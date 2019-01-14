@@ -1,0 +1,16 @@
+
+module(base:Data.List)
+
+data( List(t)
+    nil  : List(t)
+    cons : List(t) t -- List(t)
+)
+
+snoc : t List(t) -- List(t)
+nil  snoc = dip(nil)  cons
+cons snoc = dip(snoc) cons
+
+++ : List(t) List(t) -- List(t)
+nil  ++ = id
+cons ++ = dip(++) cons
+

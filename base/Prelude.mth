@@ -1,0 +1,779 @@
+############################### LICENSE ###############################
+# This Source Code Form is subject to the terms of the Mozilla Public #
+# License, v. 2.0. If a copy of the MPL was not distributed with this #
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.            #
+#######################################################################
+
+## `base:Prelude`
+#
+# This module provides the basic definitions of Mirth.
+#
+# This module is open imported by default, i.e. we pretend all
+# Mirth modules have the following line in their import list:
+#
+#     import(base:Prelude...)
+#
+# This behavior can be overriden by either an explicit import,
+#
+#     import(base:Prelude)
+#
+# which forces all words in `Prelude` to be qualifie (for example,
+# you would use `Prelude.dup` instead of `dup`.
+
+# Alternatively, adding the pragma
+#
+#     pragma(NoPrelude)
+#
+# at the top removes `base:Prelude` from the import list.
+#
+# Working with `NoPrelude`
+#
+
+pragma(NoPrelude)             # The prelude can't import itself.
+pragma(BootstrapRestrictions) # Stick to constructs available from bootstrap.
+			      #   e.g. no pattern matching, no elaboration
+
+module(base:Prelude)
+import(base:Prelude.Primitive) # module supplied by the bootstrap
+export(dup? drop? swap dup drop dip trip nip tuck over rotr rotl
+       swap' dup' drop' dip' trip' nip' tuck' over' rotr' rotl'
+       swap2 dup2 drop2 dip2 trip2 nip2 tuck2 over2 rotr2 rotl2)
+
+
+## Primitive Words: `dup? drop? swap dup drop dip(f)`
+# The implementation of these words is supplied by the bootstrap.
+
+## `dup?`
+#
+# Is the value dupable? That is, can we call `dup` on it?
+# Dupability excludes mutability, volatility, or any connection
+# with the outside world. A pure value like an integer or a string,
+# or a tuple of pure values is always dupable. A mutable reference
+# is never dupable, and neither is a tuple containing a mutable
+# reference. The `World` is never duppable.
+#
+#   >>> 1 dup?
+#   1 true
+#   >>> "foo" dup?
+#   "foo" true
+#   >>> [1 "foo"] dup?
+#   [1 "foo"] true
+#   >>> mut(1) dup?
+#   mut(1) false
+#   >>> [mut(1) "foo"] dup?
+#   [mut(1) "foo"] false
+#   >>> dup?
+#   false
+
+dup? : (a) a -> Prop
+dup? = Primitive.dup?
+
+## `dup`
+#
+# Duplicate a value. This can only be called if the value is
+# dupable (see `dup?`).
+#
+#   >>> 1 dup
+#   1 1
+#   >>> "foo" dup
+#   "foo" "foo"
+#   >>> [1 "foo"] dup
+#   [1 "foo"] [1 "foo"]
+#   >>> mut(1) dup
+#   !!! TypeError
+#   >>> dup
+#   !!! TypeError
+
+dup : (a) a {dup?} -- a a
+dup = Primitive.dup
+
+
+## `drop?`
+#
+# Can the value be dropped? I.e. can we call `drop` on it?
+# Only the `World`, and values connected to or containing
+# the world, are not droppable. All dupable values are
+# droppable, as are mutable references to droppable values.
+#
+#   >>> 1 drop?
+#   1 true
+#   >>> "foo" drop?
+#   1 true
+#   >>> mut(1) drop?
+#   mut(1) true
+#   >>> drop?
+#   false
+#   >>> [] cons drop?
+#   [WORLD] false
+
+drop? : (a) a -> Prop
+drop? = Primitive.drop?
+
+axiom( dup? => drop? : a -> Prop )
+
+
+## `drop`
+#
+# Drop a value, deallocating or freeing resources in the process.
+# Can only drop values that are droppable (see `drop?`). For example,
+# you cannot drop the world. Where it exists, drop is the unique morphism
+# of its type, and indeed any two morphisms of this type must be equal.
+#
+#   >>> 1 drop
+#   >>> 1 2 drop
+#   1
+#   >>> "foo" "bar" drop
+#   "foo"
+#   >>> drop
+#   !!! TypeError
+
+drop : (a) a {drop?} --
+drop = Primitive.drop
+
+axiom(
+  f == g : a --
+  | f : a --
+  | g : a --
+)
+
+
+## `swap`
+#
+# Swap two values.
+#
+#   >>> 1 2 swap
+#   2 1
+#   >>> 1 swap
+#   1 WORLD
+
+swap : (a,b) a b -- b a
+swap = Primitive.swap
+
+axiom( swap swap == : a b -- a b )
+
+
+## `dip(f)`
+# Hide the top value, execute 'f', then restore the hidden value.
+#
+#    >>> 1 2 3 dip(swap)
+#    2 1 3
+#    >>> 1 2 dip(dup)
+#    1 1 2
+#    >>> 1 swap dip(dup)
+#    1 1 WORLD
+
+dip(f) : (a,b,z) *a z -- *b z
+  | f  :         *a   -- *b
+dip(f) = Primitive.dip(f)
+
+
+## First Derived Words: `id trip nip tuck over rotr rotl hide(f)`
+# These words are used pretty often, as simple combinations of the
+# primitive words `swap dup drop dip(f)`. Everyone should learn these.
+
+## `id`
+# The identity word. Do nothing.
+#
+#   >>> id
+#   >>> 1 id
+#   1
+
+id : --
+id =
+
+## `trip`
+# Triplicate a dupable value. See `dup?` and `dup`.
+#
+#   >>> 1 trip
+#   1 1 1
+
+trip : (a) a {dup?} -- a a a
+trip = dup dup
+
+## `nip`
+# Drop the second value from the top.
+#
+#   >>> 1 2 nip
+#   2
+
+nip : (a,b) a {drop?} b -- b
+nip = dip(drop)
+
+## `tuck`
+# Duplicate the top value, but tuck it under the second value, so it ends
+# up as the third value.
+#
+#   >>> 1 2 tuck
+#   2 1 2
+
+tuck : (a,b) a b {dup?} -- b a b
+tuck = dup dip(swap)
+
+## `over`
+# Duplicate the second value, and bring it over the top, so it ends up
+# as the top value.
+#
+#   >>> 1 2 over
+#   1 2 1
+
+over : a {dup?} b -- a b a
+over = dip(dup) swap
+
+## `rotr`
+# Rotate the top three values to the right, so the top value becomes
+# the third value, the third value becomes the second, and the second
+# becomes the top.
+#
+#   >>> 1 2 3 rotr
+#   3 1 2
+
+rotr : a b c -- c a b
+rotr = swap dip(swap)
+
+## `rotl`
+# Rotate the top three values to the left, so the third value becomes
+# the top value, the top value becomes the second, and the second
+# becomes the third.
+
+rotl : a b c -- b c a
+rotl = dip(swap) swap
+
+## `hide`
+# Hide the second value, execute `f`, then restore the second value.
+# This is a `dip` on the second value rather than the top value.
+
+hide(f) : (a,b,c,d,z) *a z b -- *c z d
+   | f  :             *a   b -- *c   d
+hide(f) = swap dip(f) swap
+
+
+## Tuples: Packing, Mapping, and Unpacking.
+
+## `in_tuple(f)`
+#
+# Modify a tuple from inside, running `f` in it.
+#
+#   >>> [1] in_tuple(dup)
+#   [1 1]
+#   >>> [1 2] in_tuple(swap)
+#   [2 1]
+
+in_tuple(f) : [*a] -- [*b]
+       | f  :  *a  --  *b
+in_tuple(f) = Primitive.in_tuple(f)
+
+
+## `pack2`
+#
+# Construct a pair, i.e. a tuple with two elements.
+#
+#   >>> 1 2 pack2
+#   [1 2]
+#   >>> "hello" pack2
+#   [WORLD "hello"]
+
+pack2 : a b -- [a b]
+pack2 = Primitive.pack2
+
+
+## `unpack2`
+#
+# Destruct a pair into its constituent elements.
+#
+#   >>> [1 2] unpack2
+#   1 2
+
+unpack2 : [a b] -- a b
+unpack2 = Primitive.unpack2
+
+
+## `pack0`
+#
+# Create a zero-element tuple.
+#
+#   >>> pack0
+#   []
+
+pack0 : -- []
+pack0 = 1 1 pack2 in_tuple(drop2)
+
+
+## `unpack0`
+#
+# Destruct a zero-element tuple.
+#
+#   >>> [] unpack0
+#   >>> [1] unpack0
+#   !!! TypeError
+
+unpack0 : [] --
+unpack0 = drop
+
+
+## `pack1`
+#
+# Construct a one-element tuple.
+#
+#   >>> 1 pack1
+#   [1]
+#   >>> pack1
+#   [WORLD]
+
+pack1 : a -- [a]
+pack1 = 1 pack2 in_tuple(drop1)
+
+## `unpack1`
+#
+# Destruct a one-element tuple.
+#
+#   >>> [1] unpack1
+#   1
+#   >>> ["foo"] unpack1
+#   "foo"
+#   >>> [1 2] unpack1
+#   !!! TypeError
+
+unpack1 : [a] -- a
+unpack1 = in_tuple(1) unpack2 drop
+
+## `pack3`
+#
+# Construct a triple i.e. a three-element tuple.
+#
+#   >>> 1 2 3 pack3
+#   [1 2 3]
+#   >>> "foo" "bar" pack3
+#   [WORLD "foo" "bar"]
+
+pack3 : a b c -- [a b c]
+pack3 = pack2 pack2 in_tuple(unpack2)
+
+
+## `unpack3`
+#
+# Destruct a triple i.e. a three-element tuple.
+#
+#   >>> [1 2 3] unpack3
+#   1 2 3
+
+unpack3 : [a b c] -- a b c
+unpack3 = in_tuple(pack2) unpack2 unpack2
+
+## `pack4`
+#
+# Construct a four-element tuple.
+#
+#   >>> 1 2 3 4 pack4
+#   [1 2 3 4]
+
+pack4 : a b c d -- [a b c d]
+pack4 = pack2 pack3 in_tuple(unpack2)
+
+## `unpack4`
+#
+# Destruct a four-element tuple.
+#
+#   >>> [1 2 3 4] unpack4
+#   1 2 3 4
+
+unpack4 : [a b c d] -- a b c d
+unpack4 = in_tuple(pack2) unpack3 unpack2
+
+## `pack5`
+#
+# Construct a five-element tuple.
+#
+#   >>> 1 2 3 4 5 pack5
+#   [1 2 3 4 5]
+
+pack5 : a b c d e -- [a b c d e]
+pack5 = pack2 pack4 in_tuple(unpack2)
+
+## `unpack5`
+#
+# Destruct a five-element tuple.
+#
+#   >>> [1 2 3 4 5] unpack5
+#   1 2 3 4 5
+
+unpack5 : [a b c d e] -- a b c d e
+unpack5 = in_tuple(pack2) unpack4 unpack2
+
+
+## Axioms for primitive words.
+# These axioms form the basis for reasoning in Mirth.
+
+axiom (
+  dup? => drop? : a -> Prop
+
+  dup drop == id : a {dup?} -- a
+
+  dup swap == dup : a {dup?} -- a
+
+  swap swap == id : a b -- a b
+
+  dip(id) == id : a -- a
+
+  dip(f) dip(g) == dip(f g) : *a z == *c z
+  | f : *a -- *b
+  | g : *b -- *c
+)
+
+
+## Commutation Laws
+#
+# We can perform computations *f* and *g* in either order (*f then g* or
+# *g then f*) or even in parallel (*both f and g*) as long as they rely on
+# different inputs. This is why effectful code must pass `World` around
+# explicitly, in order to create an unambiguous sequencing of effects.
+#
+# Fortunately we only need to assume one axiom to be able to prove this
+# for all f and g, where g has any particular number of inputs and outputs.
+# Here we provide all such theorems for g mapping 0 to 5 inputs to 0 to 5
+# outputs.
+#
+# Future work: replace this patchwork of theorems with an efficient
+# solver for the theory of colored PROPs, generating the appropriate
+# proof automatically.
+
+axiom (
+  dip(f) g == g dip(f) : *a x -- *b y
+  | f : *a -- *b
+  | g :  x --  y
+)
+
+show (
+  f g == g dip(f) : *a -- *b z
+  | f : *a -- *b
+  | g :    --  y
+
+  f g
+  == pack0 dip(f) unpack0 g
+  == pack0 unpack0 g dip(f)
+  == g dip(f)
+
+  dip(f) g == g f : *a x -- *b
+  | f : *a -- *b
+  | g :  x --
+
+  dip(f) g
+  == dip(f) g pack0 unpack0
+  == g pack0 dip(f) unpack0
+  == g f
+
+  dip2(f) g == g dip(f) : *a x y -- *b z
+  | f :  *a -- *b
+  | g : x y --  z
+
+  dip2(f) g
+  == pack2 dip(f) unpack2 g
+  == pack2 unpack2 g dip(f)
+  == g dip(f)
+
+  dip3(f) g == g dip(f) : *a w x y -- *b z
+  | f : *a -- *b
+  | g : w x y -- z
+
+  dip3(f) g
+  == pack3 dip(f) unpack3 g
+  == pack3 unpack3 g dip(f)
+  == g dip(f)
+
+  dip4(f) g == g dip(f) : *a v w x y -- *b z
+  | f : *a -- *b
+  | g : v w x y -- z
+
+  dip4(f) g
+  == pack4 dip(f) unpack4 g
+  == pack4 unpack4 g dip(f)
+  == g dip(f)
+
+  dip5(f) g == g dip(f) : *a u v w x y -- *b z
+  | f : *a -- *b
+  | g : u v w x y -- z
+
+  dip5(f) g
+  == pack5 dip(f) unpack5 g
+  == pack5 unpack5 g dip(f)
+  == g dip(f)
+
+  dip(f) g == g dip3(f) : *a u -- *b v w x
+  | f : *a --    *b
+  | g :  u -- v w x
+
+  dip(f) g
+  == dip(f) g pack3 unpack3
+  == g pack3 dip(f) unpack3
+  == g dip3(f)
+
+  dip(f) g == g dip4(f) : *a u -- *b v w x y
+  | f : *a --      *b
+  | g :  u -- v w x y
+
+  dip(f) g
+  == dip(f) g pack4 unpack4
+  == g pack4 dip(f) unpack4
+  == g dip4(f)
+
+  dip(f) g == g dip5(f) : *a u -- *b v w x y z
+  | f : *a --        *b
+  | g :  u -- v w x y z
+
+  dip(f) g
+  == dip(f) g pack5 unpack5
+  == g pack5 dip(f) unpack5
+  == g dip5(f)
+)
+
+show (
+  f g == g f : *a -- *b
+  | f : *a -- *b
+  | g : --
+
+  f g
+  == f pack0 unpack0 g
+  == pack0 dip(f) unpack0 g
+  == pack0 unpack0 g f
+  == g f
+
+  dip2(f) g == g f : *a i j -- *b
+  | f : *a -- *b
+  | g : i j --
+
+  dip2(f) g
+  == dip2(f) pack2 unpack2 g
+  == pack2 dip(f) unpack2 g
+  == pack2 unpack2 g f
+  == g f
+
+  dip3(f) g == g f : *a i j k -- *b
+  | f : *a -- *b
+  | g : i j k --
+
+  dip3(f) g
+  == dip3(f) pack3 unpack3 g
+  == pack3 dip(f) unpack3 g
+  == pack3 unpack3 g f
+  == g f
+
+  dip4(f) g == g f : *a i j k l -- *b
+  | f : *a -- *b
+  | g : i j k l --
+
+  dip4(f) g
+  == dip4(f) pack4 unpack4 g
+  == pack4 dip(f) unpack4 g
+  == pack4 unpack4 g f
+  == g f
+
+  dip5(f) g == g f : *a i j k l m -- *b
+  | f : *a -- *b
+  | g : i j k l m --
+
+  dip5(f) g
+  == dip5(f) pack5 unpack5 g
+  == pack5 dip(f) unpack5 g
+  == pack5 unpack5 g f
+  == g f
+
+  f g == g dip2(f) : *a -- *b y z
+  | f : *a -- *b
+  | g : -- y z
+
+  f g
+  == f pack0 unpack0 g
+  == pack0 dip(f) unpack0 g
+  == pack0 unpack0 g dip2(f)
+  == g dip2(f)
+
+  dip2(f) g == g dip2(f) : *a i j -- *b y z
+  | f : *a -- *b
+  | g : i j -- y z
+
+  dip2(f) g
+  == dip2(f) pack2 unpack2 g
+  == pack2 dip(f) unpack2 g
+  == pack2 unpack2 g dip2(f)
+  == g dip2(f)
+
+  dip3(f) g == g dip2(f) : *a i j k -- *b y z
+  | f : *a -- *b
+  | g : i j k -- y z
+
+  dip3(f) g
+  == dip3(f) pack3 unpack3 g
+  == pack3 dip(f) unpack3 g
+  == pack3 unpack3 g dip2(f)
+  == g dip2(f)
+
+  dip4(f) g == g dip2(f) : *a i j k l -- *b y z
+  | f : *a -- *b
+  | g : i j k l -- y z
+
+  dip4(f) g
+  == dip4(f) pack4 unpack4 g
+  == pack4 dip(f) unpack4 g
+  == pack4 unpack4 g dip2(f)
+  == g dip2(f)
+
+  dip5(f) g == g dip2(f) : *a i j k l m -- *b y z
+  | f : *a -- *b
+  | g : i j k l m -- y z
+
+  dip5(f) g
+  == dip5(f) pack5 unpack5 g
+  == pack5 dip(f) unpack5 g
+  == pack5 unpack5 g dip2(f)
+  == g dip2(f)
+
+  f g == g dip3(f) : *a -- *b x y z
+  | f : *a -- *b
+  | g : -- x y z
+
+  f g
+  == f pack0 unpack0 g
+  == pack0 dip(f) unpack0 g
+  == pack0 unpack0 g dip3(f)
+  == g dip3(f)
+
+  dip2(f) g == g dip3(f) : *a i j -- *b x y z
+  | f : *a -- *b
+  | g : i j -- x y z
+
+  dip2(f) g
+  == dip2(f) pack2 unpack2 g
+  == pack2 dip(f) unpack2 g
+  == pack2 unpack2 g dip3(f)
+  == g dip3(f)
+
+  dip3(f) g == g dip3(f) : *a i j k -- *b x y z
+  | f : *a -- *b
+  | g : i j k -- x y z
+
+  dip3(f) g
+  == dip3(f) pack3 unpack3 g
+  == pack3 dip(f) unpack3 g
+  == pack3 unpack3 g dip3(f)
+  == g dip3(f)
+
+  dip4(f) g == g dip3(f) : *a i j k l -- *b x y z
+  | f : *a -- *b
+  | g : i j k l -- x y z
+
+  dip4(f) g
+  == dip4(f) pack4 unpack4 g
+  == pack4 dip(f) unpack4 g
+  == pack4 unpack4 g dip3(f)
+  == g dip3(f)
+
+  dip5(f) g == g dip3(f) : *a i j k l m -- *b x y z
+  | f : *a -- *b
+  | g : i j k l m -- x y z
+
+  dip5(f) g
+  == dip5(f) pack5 unpack5 g
+  == pack5 dip(f) unpack5 g
+  == pack5 unpack5 g dip3(f)
+  == g dip3(f)
+
+  f g == g dip4(f) : *a -- *b w x y z
+  | f : *a -- *b
+  | g : -- w x y z
+
+  f g
+  == f pack0 unpack0 g
+  == pack0 dip(f) unpack0 g
+  == pack0 unpack0 g dip4(f)
+  == g dip4(f)
+
+  dip2(f) g == g dip4(f) : *a i j -- *b w x y z
+  | f : *a -- *b
+  | g : i j -- w x y z
+
+  dip2(f) g
+  == dip2(f) pack2 unpack2 g
+  == pack2 dip(f) unpack2 g
+  == pack2 unpack2 g dip4(f)
+  == g dip4(f)
+
+  dip3(f) g == g dip4(f) : *a i j k -- *b w x y z
+  | f : *a -- *b
+  | g : i j k -- w x y z
+
+  dip3(f) g
+  == dip3(f) pack3 unpack3 g
+  == pack3 dip(f) unpack3 g
+  == pack3 unpack3 g dip4(f)
+  == g dip4(f)
+
+  dip4(f) g == g dip4(f) : *a i j k l -- *b w x y z
+      | f : *a -- *b
+  | g : i j k l -- w x y z
+
+  dip4(f) g
+  == dip4(f) pack4 unpack4 g
+  == pack4 dip(f) unpack4 g
+  == pack4 unpack4 g dip4(f)
+  == g dip4(f)
+
+  dip5(f) g == g dip4(f) : *a i j k l m -- *b w x y z
+  | f : *a -- *b
+  | g : i j k l m -- w x y z
+
+  dip5(f) g
+  == dip5(f) pack5 unpack5 g
+  == pack5 dip(f) unpack5 g
+  == pack5 unpack5 g dip4(f)
+  == g dip4(f)
+
+  f g == g dip5(f) : *a -- *b v w x y z
+  | f : *a -- *b
+  | g : -- v w x y z
+
+  f g
+  == f pack0 unpack0 g
+  == pack0 dip(f) unpack0 g
+  == pack0 unpack0 g dip5(f)
+  == g dip5(f)
+
+  dip2(f) g == g dip5(f) : *a i j -- *b v w x y z
+  | f : *a -- *b
+  | g : i j -- v w x y z
+
+  dip2(f) g
+  == dip2(f) pack2 unpack2 g
+  == pack2 dip(f) unpack2 g
+  == pack2 unpack2 g dip5(f)
+  == g dip5(f)
+
+  dip3(f) g == g dip5(f) : *a i j k -- *b v w x y z
+  | f : *a -- *b
+  | g : i j k -- v w x y z
+
+  dip3(f) g
+  == dip3(f) pack3 unpack3 g
+  == pack3 dip(f) unpack3 g
+  == pack3 unpack3 g dip5(f)
+  == g dip5(f)
+
+  dip4(f) g == g dip5(f) : *a i j k l -- *b v w x y z
+  | f : *a -- *b
+  | g : i j k l -- v w x y z
+
+  dip4(f) g
+  == dip4(f) pack4 unpack4 g
+  == pack4 dip(f) unpack4 g
+  == pack4 unpack4 g dip5(f)
+  == g dip5(f)
+
+  dip5(f) g == g dip5(f) : *a i j k l m -- *b v w x y z
+  | f : *a -- *b
+  | g : i j k l m -- v w x y z
+
+  dip5(f) g
+  == dip5(f) pack5 unpack5 g
+  == pack5 dip(f) unpack5 g
+  == pack5 unpack5 g dip5(f)
+  == g dip5(f)
+)
+
