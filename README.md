@@ -30,9 +30,9 @@ Please read the license text under `LICENSE.txt` or [here](https://mozilla.org/M
 
 ## Issue Reports
 
-If you find a bug or a paper cut, please use the [GitHub issue tracker](https://) to search for an existing issue. If you find your issue, please add a comment. If not, please submit a new issue with a descriptive title.
+If you find a bug or a paper cut, please use the [GitHub issue tracker](https://github.com/mirth-lang/mirth/issues) to search for an existing issue. If you find your issue, please add a comment. If not, please submit a new issue with a descriptive title.
 
-Please do not use the issue tracker for language feature requests. A mailing list or similar will be created where such discussion is appropriate.
+Please do not use the issue tracker for language feature requests, use the Patreon.
 
 ## Contributing
 
@@ -42,5 +42,5 @@ To contribute, open a pull request on [the GitHub repo](https://github.com/mirth
 > License, v. 2.0. If a copy of the MPL was not distributed with this
 > file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-We want to ensure all code is of high quality, so if you see something that can be improved, please contribute! Our philosophy is to merge with `master` often, to use atomic commits that preserve correctness, and to favor smaller diffs where possible.
+We want to ensure all code is of high quality, so if you see something that can be improved, please contribute!
 
