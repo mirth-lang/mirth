@@ -4,9 +4,9 @@
   file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 
-# Mirth - a type-safe functional Forth.
+# Mirth
 
-Mirth is a language in the Forth family, with a focus on type-safety, functional programming, and low-level control. Mirth will have dependent types, linear types, elaborator macros, and much more.
+**Mirth** is a new programming languague inspired by **Forth**, **Joy**, **Haskell**, **Idris**, and **Rust**. Mirth focuses on type-safety, concatenative functional programming, and low-level control. Mirth will have typeclasses, dependent types, linear types, elaborator macros, and much more.
 
 This repository contains:
 
