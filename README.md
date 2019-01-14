@@ -32,7 +32,7 @@ Please read the license text under `LICENSE.txt` or [here](https://mozilla.org/M
 
 If you find a bug or a paper cut, please use the [GitHub issue tracker](https://github.com/mirth-lang/mirth/issues) to search for an existing issue. If you find your issue, please add a comment. If not, please submit a new issue with a descriptive title.
 
-Please do not use the issue tracker for language feature requests, use the Patreon.
+Please do not use the issue tracker for language feature requests, use the [Patreon](https://www.patreon.com/mirth_lang).
 
 ## Contributing
 
