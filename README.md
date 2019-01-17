@@ -6,19 +6,9 @@
 
 # Mirth
 
-**Mirth** is a new programming languague inspired by **Forth**, **Joy**, **Haskell**, **Idris**, and **Rust**. Mirth focuses on type-safety, concatenative functional programming, and low-level control. Mirth will have typeclasses, dependent types, linear types, elaborator macros, and much more.
+**Mirth** is a new programming languague inspired by **Forth**, **Joy**, **Haskell**, **Idris**, and **Rust**. Mirth is a type-safe concatenative functional programming language. Mirth is very much a work in progress and should be considered an early stage research project at this point.
 
-This repository contains:
-
-- the Mirth compiler (eventually, in the folder `mirth`)
-- the bootstrap interpreter for Mirth (eventually, in the folder `bootstrap`)
-- tests for the bootstrap and compiler (eventually, in the folder `tests`)
-- documentation for the language (eventually, in the folder `docs`)
-- the Mirth package `base` which includes the `Prelude` (in the folder `base`)
-- examples of Mirth (in the folder `examples`)
-- informal models of Mirth (in the folder `formal`)
-
-Mirth is still very much a work in progress. Please support the development of Mirth on [Patreon](https://patreon.com/mirth_lang)!
+Please support the development of Mirth on [Patreon](https://patreon.com/mirth_lang)!
 
 ## License
 
@@ -30,9 +20,7 @@ Please read the license text under `LICENSE.txt` or [here](https://mozilla.org/M
 
 ## Issue Reports
 
-If you find a bug or a paper cut, please use the [GitHub issue tracker](https://github.com/mirth-lang/mirth/issues) to search for an existing issue. If you find your issue, please add a comment. If not, please submit a new issue with a descriptive title.
-
-Please do not use the issue tracker for language feature requests, use the [Patreon](https://www.patreon.com/mirth_lang).
+If you find a bug or a paper cut, please use the [GitHub issue tracker](https://github.com/mirth-lang/mirth/issues) to search for an existing issue. If you find your issue, please add a comment. If not, please submit a new issue with a descriptive title. Please do not use the issue tracker for feature requests.
 
 ## Contributing
 
@@ -42,5 +30,4 @@ To contribute, open a pull request on [the GitHub repo](https://github.com/mirth
 > License, v. 2.0. If a copy of the MPL was not distributed with this
 > file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-We want to ensure all code is of high quality, so if you see something that can be improved, please contribute!
-
+If you see something that can be improved, please contribute!
