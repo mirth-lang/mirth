@@ -6,11 +6,9 @@
 
 # Mirth
 
-**Mirth** is a new programming languague! Mirth is type-safe, concatenative, and functional. Mirth was inspired by  **Forth**, **Joy**, **Haskell**, **Idris**, **Rust**, **Lisp**, and symmetric monoidal category theory.
+**Mirth** is a new type-safe concatenative functional programming languague. Mirth was inspired by **Forth**, **Joy**, **Haskell**, **Idris**, **Rust**, **Lisp**, and symmetric monoidal category theory. This repo contains all the interpreters, compilers, (in)formal models, libraries, docs and examples for Mirth.
 
-Mirth is very much a work in progress and should be considered an early stage research project at this point.
-
-Please support the development of Mirth on [Patreon](https://patreon.com/mirth_lang)!
+This is very much an early-stage WIP at this point. Mirth exists conceptually, but not as a working language yet. In my spare time, I'm working to change this. If you are interested, please support the development of Mirth on [Patreon](https://patreon.com/mirth_lang)! Thank you for your time and generosity.
 
 ## License
 
@@ -22,7 +20,7 @@ Please read the license text under `LICENSE.txt` or [here](https://mozilla.org/M
 
 ## Issue Reports
 
-If you find a bug or a paper cut, please use the [GitHub issue tracker](https://github.com/mirth-lang/mirth/issues) to search for an existing issue. If you find your issue, please add a comment. If not, please submit a new issue with a descriptive title. Please do not use the issue tracker for feature requests.
+If you find a bug or a paper cut, please use the [GitHub issue tracker](https://github.com/mirth-lang/mirth/issues) to search for an existing issue. If you find your issue already, please add a comment so we know it affects you as well. If not, please submit a new issue with a descriptive title. Please do not use the issue tracker for feature requests.
 
 ## Contributing
 
