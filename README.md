@@ -6,7 +6,9 @@
 
 # Mirth
 
-**Mirth** is a new programming languague inspired by **Forth**, **Joy**, **Haskell**, **Idris**, and **Rust**. Mirth is a type-safe concatenative functional programming language. Mirth is very much a work in progress and should be considered an early stage research project at this point.
+**Mirth** is a new programming languague! Mirth is type-safe, concatenative, and functional. Mirth was inspired by  **Forth**, **Joy**, **Haskell**, **Idris**, **Rust**, **Lisp**, and symmetric monoidal category theory.
+
+Mirth is very much a work in progress and should be considered an early stage research project at this point.
 
 Please support the development of Mirth on [Patreon](https://patreon.com/mirth_lang)!
 
