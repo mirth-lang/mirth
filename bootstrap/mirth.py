@@ -145,7 +145,7 @@ base_rules = [
     Rule(OPEN,   LCURLY,  r'\{'),
     Rule(CLOSE,  RCURLY,  r'\}'),
     Rule(ATOMIC, NEWLINE, r'\n'),
-    Rule(ATOMIC, COMMENT, r'#([\r\n]+|[ \t\n])'),
+    Rule(ATOMIC, COMMENT, r'#[^\r\n]*[\r\n]*'),
     Rule(ATOMIC, COMMA,   r','),
     Rule(ATOMIC, STR,     r'"([^\\"]|\\.)*"', to_value=unescape_str),
     Rule(ATOMIC, STR,     r"'([^\\']|\\.)*'", to_value=unescape_str),
@@ -328,19 +328,22 @@ def parse_tokens (tokens):
             part, i = parti
             parts.append(part)
             parti = parse_part(i)
-        return Expr(parts), i
+        loc = tokens[i].loc if i < len(tokens) else None
+        return Expr(parts, loc=loc), i
 
     def parse_part(i):
         if i >= len(tokens):
             return None
         elif tokens[i].name == NEWLINE:
-            return tokens[i], i+1
+            return NewLine(loc=tokens[i].loc), i+1
+        elif tokens[i].name == COMMENT:
+            return Comment(tokens[i].value, loc=tokens[i].loc), i+1
         elif tokens[i].name == WORD:
             return parse_atom(i)
         elif tokens[i].name == INT:
-            return Lit(tokens[i].value), i+1
+            return Lit(tokens[i].value, loc=tokens[i].loc), i+1
         elif tokens[i].name == STR:
-            return Lit(tokens[i].value), i+1
+            return Lit(tokens[i].value, loc=tokens[i].loc), i+1
         elif tokens[i].name == LPAREN:
             # LPAREN only allowed to modify word, not stand alone.
             raise SyntaxError("%s: Expected atom but got '('." % tokens[i].loc)
@@ -358,13 +361,13 @@ def parse_tokens (tokens):
                 if argsk:
                     args, k = argsk
                     if k < len(tokens) and tokens[k].name == RPAREN:
-                        return Atom(word, args), k+1
+                        return Atom(word, args, loc=tokens[i].loc), k+1
                     elif k >= len(tokens):
                         raise SyntaxError("%s: Mismatched '('" % tokens[j].loc)
                     else:
                         raise SyntaxError("%s: Expected ')'" % tokens[k].loc)
             else:
-                return Atom(word, []), i+1
+                return Atom(word, [], loc=tokens[i].loc), i+1
 
     expr, i = parse_expr(0)
     if i >= len(tokens):
@@ -374,7 +377,7 @@ def parse_tokens (tokens):
 
 
 class Lit:
-    def __init__ (self, value):
+    def __init__ (self, value, loc=None):
         self.value = value
 
     def expand(self, env):
@@ -393,9 +396,10 @@ class Lit:
         return 'Lit(%r)' % self.value
 
 class Atom:
-    def __init__ (self, word, args):
+    def __init__ (self, word, args, loc=None):
         self.word = word
         self.args = tuple(args)
+        self.loc  = loc
 
     def expand(self, env):
         if self.word in env.macros:
@@ -405,13 +409,15 @@ class Atom:
             for arg in self.args:
                 argenv = env.copy()
                 expargs.append(arg.expand(argenv))
-            return Atom(self.word, expargs)
+            return Atom(self.word, expargs, loc=self.loc)
 
     def compile(self, env):
         if self.word in env.words:
             wordfn = env.words[self.word]
             argfns = tuple(arg.compile(env) for arg in self.args)
             return (lambda env2: wordfn(env2, *argfns))
+        elif self.loc:
+            raise NameError("%s: Word not found: %s" % (self.loc, self.word))
         else:
             raise NameError("Word not found: %s" % self.word)
 
@@ -425,11 +431,12 @@ class Atom:
         return 'Atom(%r, %r)' % (self.word, list(self.args))
 
 class Expr:
-    def __init__ (self, parts):
+    def __init__ (self, parts, loc=None):
         self.parts = tuple(parts)
+        self.loc = loc
 
     def expand(self, env):
-        return Expr(part.expand(env) for part in self.parts)
+        return Expr((part.expand(env) for part in self.parts), loc=self.loc)
 
     def compile(self, env):
         partfns = tuple(part.compile(env) for part in self.parts)
@@ -448,8 +455,9 @@ class Expr:
         return 'Expr(%r)' % list(self.parts)
 
 class Comment (Pure):
-    def __init__ (self, comment):
+    def __init__ (self, comment, loc=None):
         self.comment = comment
+        self.loc = loc
 
     def expand(self, env):
         return self
@@ -458,8 +466,8 @@ class Comment (Pure):
         return lambda env: None
 
 class NewLine (Pure):
-    def __init__ (self):
-        pass
+    def __init__ (self, loc=None):
+        self.loc = loc
 
     def expand(self, env):
         return self
