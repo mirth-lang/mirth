@@ -639,8 +639,11 @@ def let(env, *let_args):
         word = let_args[1].expand(env2).compile(env2)
         env.words[name] = word
         return Expr([])
+    elif len(let_args) == 3:
+        # ignore middle argument (it's a type signature)
+        return let(env, let_args[0], let_args[2])
     else:
-        raise ValueError("let: Expected exactly two arguments.")
+        raise ValueError("let: Expected exactly 2 or 3 arguments.")
 
 def test(env, *test_args):
     if len(test_args) == 2:
