@@ -322,13 +322,13 @@ def parse_tokens (tokens):
         return args, i
 
     def parse_expr(i):
+        loc = tokens[i].loc if i < len(tokens) else None
         parts = []
         parti = parse_part(i)
         while parti:
             part, i = parti
             parts.append(part)
             parti = parse_part(i)
-        loc = tokens[i].loc if i < len(tokens) else None
         return Expr(parts, loc=loc), i
 
     def parse_part(i):
@@ -403,6 +403,7 @@ class Atom:
 
     def expand(self, env):
         if self.word in env.macros:
+            env.loc = self.loc
             return env.macros[self.word](env, *self.args).expand(env)
         else:
             expargs = []
@@ -548,6 +549,7 @@ class Env:
         }
         self.macros = macros or {
             'let': let,
+            'test': test,
             #'let_macro': let_macro,
             'quote_expr': quote_expr,
         }
@@ -639,6 +641,21 @@ def let(env, *let_args):
         return Expr([])
     else:
         raise ValueError("let: Expected exactly two arguments.")
+
+def test(env, *test_args):
+    if len(test_args) == 2:
+        env2 = env.copy()
+        env3 = env.copy()
+        lhs = test_args[0].expand(env2).compile(env2)
+        rhs = test_args[1].expand(env3).compile(env3)
+        lhs(env2)
+        rhs(env3)
+        if env2.stack != env3.stack:
+            loc_prefix = ('%s: ' % env.loc) if env.loc else ''
+            print("%sTest failed %r vs %r\n" % (loc_prefix, env2.stack, env3.stack))
+        return Expr([], loc=test_args[0].loc)
+    else:
+        raise ValueError("test: Expected exactly two arguments.")
 
 def quote_expr(f,expr):
     return Lit(expr)
