@@ -10,6 +10,16 @@
 
 This is very much an early-stage WIP at this point. Mirth exists conceptually, but not as a working language yet. In my spare time, I'm working to change this. If you are interested, please support the development of Mirth on [Patreon](https://patreon.com/mirth_lang)! Thank you for your time and generosity.
 
+Directory structure:
+
+- `mirth`: The mirth compiler / interpreter.
+- `bootstrap`: Bootstrap for compiler.
+- `base`: Base package for mirth.
+- `docs`: Documentation and tutorials.
+- `examples`: Examples of Mirth (aspirational -- don't try to run this).
+- `tests`: Language tests.
+- `formal`: (In)formal models of mirth and related systems.
+
 ## License
 
 The entire code base is licensed under the Mozilla Public License 2.0.

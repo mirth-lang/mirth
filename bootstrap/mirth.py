@@ -7,6 +7,7 @@
 #######################################################################
 
 import re
+import copy
 
 def exception(fn):
     r"""Get thrown exception from function and return it.
@@ -109,6 +110,22 @@ CLOSE  = 'CLOSE'
 ATOMIC = 'ATOMIC'
 IGNORE = 'IGNORE'
 
+# token names
+LPAREN = 'LPAREN'
+RPAREN = 'RPAREN'
+LSQUARE = 'LSQUARE'
+RSQUARE = 'RSQUARE'
+LCURLY = 'LCURLY'
+RCURLY = 'RCURLY'
+NEWLINE = 'NEWLINE'
+COMMENT = 'COMMENT'
+COMMA = 'COMMA'
+STR = 'STR'
+INT = 'INT'
+WORD = 'WORD'
+SPACE = 'SPACE'
+
+
 class Rule:
     KINDS = {OPEN, CLOSE, ATOMIC, IGNORE}
 
@@ -121,25 +138,29 @@ class Rule:
         self.to_value = to_value if to_value else lambda x: x
 
 base_rules = [
-    Rule(OPEN, 'LPAREN', r'\('),
-    Rule(CLOSE,'RPAREN', r'\)'),
-    Rule(OPEN, 'LSQUARE', r'\['),
-    Rule(CLOSE,'RSQUARE', r'\]'),
-    Rule(OPEN, 'LCURLY', r'\{'),
-    Rule(CLOSE,'RCURLY', r'\}'),
-    Rule(ATOMIC, 'LINE', r'\n'),
-    Rule(ATOMIC, 'PRAGMA', r'#\[[^\n\[\]]*\]()\n'),
-    Rule(ATOMIC, 'COMMENT', r'#([\r\n]+|[ \t\n])'),
-    Rule(ATOMIC, 'COMMA', r','),
-    Rule(ATOMIC, 'STR', r'"([^\\"]|\\.)*"', to_value=unescape_str),
-    Rule(ATOMIC, 'STR', r"'([^\\']|\\.)*'", to_value=unescape_str),
-    Rule(ATOMIC, 'INT', r'[\+\-]?\d+', to_value=int),
-    Rule(ATOMIC, 'INT', r'0[xX][0-9a-zA-Z]+', to_value=lambda x: int(x,16)),
-    Rule(ATOMIC, 'WORD', r'[^\s\(\)\[\]\{\},]+'),
-    Rule(IGNORE, 'SPACE', r'[ \t\r\f\v]+'),
+    Rule(OPEN,   LPAREN,  r'\('),
+    Rule(CLOSE,  RPAREN,  r'\)'),
+    Rule(OPEN,   LSQUARE, r'\['),
+    Rule(CLOSE,  RSQUARE, r'\]'),
+    Rule(OPEN,   LCURLY,  r'\{'),
+    Rule(CLOSE,  RCURLY,  r'\}'),
+    Rule(ATOMIC, NEWLINE, r'\n'),
+    Rule(ATOMIC, COMMENT, r'#([\r\n]+|[ \t\n])'),
+    Rule(ATOMIC, COMMA,   r','),
+    Rule(ATOMIC, STR,     r'"([^\\"]|\\.)*"', to_value=unescape_str),
+    Rule(ATOMIC, STR,     r"'([^\\']|\\.)*'", to_value=unescape_str),
+    Rule(ATOMIC, INT,     r'[\+\-]?\d+', to_value=int),
+    Rule(ATOMIC, INT,     r'0[xX][0-9a-zA-Z]+', to_value=lambda x: int(x,16)),
+    Rule(ATOMIC, WORD,    r'[^\s\(\)\[\]\{\},]+'),
+    Rule(IGNORE, SPACE,   r'[ \t\r\f\v]+'),
 ]
 
-class Loc:
+class Pure:
+    def can_dup (self): return True
+    def can_drop (self): return True
+
+
+class Loc (Pure):
     def __init__ (self, path=None, row=1, col=1):
         self.path = assert_type_or_none(path, str, 'path')
         self.row = assert_type(row, int, 'row')
@@ -162,12 +183,6 @@ class Loc:
             elif c == '\t': col += TABSTOP - col % TABSTOP
             else: col += 1
         return Loc(self.path, row, col)
-
-    def can_dup (self):
-        return True
-
-    def can_drop (self):
-        return True
 
 
 class Token:
@@ -273,9 +288,184 @@ def tokenize(source, loc=Loc(), rules=base_rules):
     >>> tokenize('foo bar')
     [Token('ATOMIC', 'WORD', 'foo', 'foo', Loc(None, 1, 1)), Token('ATOMIC', 'WORD', 'bar', 'bar', Loc(None, 1, 5))]
     >>> tokenize('foo(1 2 \n +)')
-    [Token('ATOMIC', 'WORD', 'foo', 'foo', Loc(None, 1, 1)), Token('OPEN', 'LPAREN', '(', '(', Loc(None, 1, 4)), Token('ATOMIC', 'INT', '1', 1, Loc(None, 1, 5)), Token('ATOMIC', 'INT', '2', 2, Loc(None, 1, 7)), Token('ATOMIC', 'LINE', '\n', '\n', Loc(None, 1, 9)), Token('ATOMIC', 'WORD', '+', '+', Loc(None, 2, 2)), Token('CLOSE', 'RPAREN', ')', ')', Loc(None, 2, 3))]
+    [Token('ATOMIC', 'WORD', 'foo', 'foo', Loc(None, 1, 1)), Token('OPEN', 'LPAREN', '(', '(', Loc(None, 1, 4)), Token('ATOMIC', 'INT', '1', 1, Loc(None, 1, 5)), Token('ATOMIC', 'INT', '2', 2, Loc(None, 1, 7)), Token('ATOMIC', 'NEWLINE', '\n', '\n', Loc(None, 1, 9)), Token('ATOMIC', 'WORD', '+', '+', Loc(None, 2, 2)), Token('CLOSE', 'RPAREN', ')', ')', Loc(None, 2, 3))]
     '''
     return [t for t in Lexer(source, loc, rules) if t.kind != IGNORE]
+
+def parse_tokens (tokens):
+    r'''Parse tokens into a syntax tree.
+
+    >>> parse_tokens(tokenize(''))
+    Expr([])
+    >>> parse_tokens(tokenize('10 20 30'))
+    Expr([Lit(10), Lit(20), Lit(30)])
+    >>> parse_tokens(tokenize('hello'))
+    Expr([Atom('hello', [])])
+    >>> parse_tokens(tokenize('foo bar'))
+    Expr([Atom('foo', []), Atom('bar', [])])
+    >>> parse_tokens(tokenize('foo(bar,baz)'))
+    Expr([Atom('foo', [Expr([Atom('bar', [])]), Expr([Atom('baz', [])])])])
+    '''
+    tokens = list(tokens)
+
+    def parse_args(i):
+        args = []
+        expri = parse_expr(i)
+        while expri:
+            expr, i = expri
+            args.append(expr)
+            if i < len(tokens) and tokens[i].name == COMMA:
+                i += 1
+                expri = parse_expr(i)
+            else:
+                expri = None
+        return args, i
+
+    def parse_expr(i):
+        parts = []
+        parti = parse_part(i)
+        while parti:
+            part, i = parti
+            parts.append(part)
+            parti = parse_part(i)
+        return Expr(parts), i
+
+    def parse_part(i):
+        if i >= len(tokens):
+            return None
+        elif tokens[i].name == NEWLINE:
+            return tokens[i], i+1
+        elif tokens[i].name == WORD:
+            return parse_atom(i)
+        elif tokens[i].name == INT:
+            return Lit(tokens[i].value), i+1
+        elif tokens[i].name == STR:
+            return Lit(tokens[i].value), i+1
+        elif tokens[i].name == LPAREN:
+            # LPAREN only allowed to modify word, not stand alone.
+            raise SyntaxError("%s: Expected atom but got '('." % tokens[i].loc)
+
+    def parse_atom(i):
+        if i >= len(tokens):
+            return None
+        if tokens[i].name == WORD:
+            word = tokens[i].value
+            j = i+1
+            while j < len(tokens) and tokens[j].name in {COMMENT, NEWLINE}:
+                j += 1
+            if j < len(tokens) and tokens[j].name == LPAREN:
+                argsk = parse_args(j+1)
+                if argsk:
+                    args, k = argsk
+                    if k < len(tokens) and tokens[k].name == RPAREN:
+                        return Atom(word, args), k+1
+                    elif k >= len(tokens):
+                        raise SyntaxError("%s: Mismatched '('" % tokens[j].loc)
+                    else:
+                        raise SyntaxError("%s: Expected ')'" % tokens[k].loc)
+            else:
+                return Atom(word, []), i+1
+
+    expr, i = parse_expr(0)
+    if i >= len(tokens):
+        return expr
+    else:
+        raise SyntaxError("%s: expected EOF" % tokens[i].loc)
+
+
+class Lit:
+    def __init__ (self, value):
+        self.value = value
+
+    def expand(self, env):
+        return self
+
+    def compile(self, env):
+        return lambda env: env.push(self.value)
+
+    def can_dup(self):
+        return can_dup(self.value)
+
+    def can_drop(self):
+        return can_drop(self.value)
+
+    def __repr__(self):
+        return 'Lit(%r)' % self.value
+
+class Atom:
+    def __init__ (self, word, args):
+        self.word = word
+        self.args = tuple(args)
+
+    def expand(self, env):
+        if self.word in env.macros:
+            return env.macros[self.word](env, *self.args).expand(env)
+        else:
+            expargs = []
+            for arg in self.args:
+                argenv = env.copy()
+                expargs.append(arg.expand(argenv))
+            return Atom(self.word, expargs)
+
+    def compile(self, env):
+        if self.word in env.words:
+            wordfn = env.words[self.word]
+            argfns = tuple(arg.compile(env) for arg in self.args)
+            return (lambda env2: wordfn(env2, *argfns))
+        else:
+            raise NameError("Word not found: %s" % self.word)
+
+    def can_dup(self):
+        return all(can_dup(p) for p in self.args)
+
+    def can_drop(self):
+        return all(can_drop(p) for p in self.args)
+
+    def __repr__(self):
+        return 'Atom(%r, %r)' % (self.word, list(self.args))
+
+class Expr:
+    def __init__ (self, parts):
+        self.parts = tuple(parts)
+
+    def expand(self, env):
+        return Expr(part.expand(env) for part in self.parts)
+
+    def compile(self, env):
+        partfns = tuple(part.compile(env) for part in self.parts)
+        def compfn(env2):
+            for partfn in partfns:
+                partfn(env2)
+        return compfn
+
+    def can_dup(self):
+        return all(can_dup(p) for p in self.parts)
+
+    def can_drop(self):
+        return all(can_drop(p) for p in self.parts)
+
+    def __repr__(self):
+        return 'Expr(%r)' % list(self.parts)
+
+class Comment (Pure):
+    def __init__ (self, comment):
+        self.comment = comment
+
+    def expand(self, env):
+        return self
+
+    def compile(self, env):
+        return lambda env: None
+
+class NewLine (Pure):
+    def __init__ (self):
+        pass
+
+    def expand(self, env):
+        return self
+
+    def compile(self, env):
+        return lambda env: None
 
 def can_drop(x):
     '''Is x safely droppable, i.e. can x be dropped without dropping
@@ -333,64 +523,171 @@ def can_dup(x):
     return any(isinstance(x,ty) for ty in (int, bool, str, type(None)))
 
 
-# word creators / combinators
+# environment in which to execute and compile words
 
-def const_word(x):
-    def f(vs, rs, ps):
-        vs.append(x)
-    return f
+class Env:
+    def __init__ (self, init_stack=(), words=None, macros=None):
+        self.stack = list(init_stack)
+        self.words = words or {
+            'dup': dup,
+            'drop': drop,
+            'swap': swap,
+            'dip': dip,
+            'pack2': pack2,
+            'unpack2': unpack2,
+            'in_tuple': in_tuple,
+            '+': plus,
+        }
+        self.macros = macros or {
+            'let': let,
+            #'let_macro': let_macro,
+            'quote_expr': quote_expr,
+        }
 
+    def copy(self):
+        return Env (
+            words  = copy.copy(self.words),
+            macros = copy.copy(self.macros),
+        )
+
+    def pop(self, word, n):
+        if len(self.stack) < n:
+            raise ValueError("Stack has fewer than %d arguments for %s" % (n, word))
+        elif n == 1:
+            return self.stack.pop()
+        else:
+            xs = self.stack[-n:]
+            del self.stack[-n:]
+            return xs
+
+    def push(self, *args):
+        self.stack.extend(args)
 
 # built-in words
+#
+# these are given by python functions that take env as the first argument,
+# then any word arguments (these are also python fns; higher order arguments
+# are technically possible this way, but not in practice).
 
-def dup(vs, rs, ps):
-    x = vs.pop()
-    if duppable(x):
-        vs.append(x)
-        vs.append(x)
+def dup(env):
+    x = env.pop('dup', 1)
+    if can_dup(x):
+        env.push(x,x)
     else:
-        raise ValueError("runtime error: can't duplicate value")
+        raise ValueError("Can't duplicate %r" % x)
 
-def drop(vs, rs, ps):
-    vs.pop()
+def drop(env):
+    x = env.pop('drop', 1)
+    if not can_drop(x):
+        raise ValueError("Can't drop %r" % x)
 
-def swap(vs, rs, ps):
-    x = vs.pop()
-    y = vs.pop()
-    vs.append(x)
-    vs.append(y)
+def swap(env):
+    a,b = env.pop('swap', 2)
+    env.push(b,a)
 
-def dip(vs, rs, ps):
-    x = vs.pop()
-    rs.append(const_word(x))
-    rs.append(ps[0])
+def dip(env, fn):
+    x = env.pop('dip', 1)
+    fn(env)
+    env.push(x)
 
+def plus(env):
+    x,y = env.pop('+', 2)
+    env.push(x + y)
 
-# built-in forms
+def pack2(env):
+    x,y = env.pop('pack2', 2)
+    env.push((x,y))
 
-def define_word(vs, rs, word, code):
+def unpack2(env):
+    t = env.pop('unpack2', 1)
+    if isinstance(t, tuple) and len(t) == 2:
+        x,y = t
+        env.push(x,y)
+    else:
+        raise TypeError("Expected pair, but got %r" % t)
 
-    # usage: define_word(trip,    dup dup)
-    #        define_word(dip2(f), dip(dip(f)))
+def in_tuple(env, f):
+    t = env.pop('in_tuple', 1)
+    if isinstance(t, tuple):
+        env2 = Env(init_stack=t)
+        f(env2)
+        env.push(tuple(env2.stack))
 
-    print(word, code)
+# built-in macros
+#
+# these are given by python functions that take env as the first argument,
+# then all the arguments (un-expanded), and return the replacing code.
 
+def let(env, *let_args):
+    if len(let_args) == 2:
+        if len(let_args[0].parts) != 1:
+            raise ValueError("let: Expected LHS to have a single part.")
+        if len(let_args[0].parts[0].args) != 0:
+            raise ValueError("let: Higher order words not yet implemented.")
+        name = let_args[0].parts[0].word
+        env2 = env.copy()
+        word = let_args[1].expand(env2).compile(env2)
+        env.words[name] = word
+        return Expr([])
+    else:
+        raise ValueError("let: Expected exactly two arguments.")
 
-# modes
-WORD = 'WORD'
-FORM = 'FORM'
+def quote_expr(f,expr):
+    return Lit(expr)
 
-loaded_modules = {
-    'Prelude.Primitive':
-        { 'dup'         : (WORD, 0, dup)
-        , 'drop'        : (WORD, 0, drop)
-        , 'swap'        : (WORD, 0, swap)
-        , 'dip'         : (WORD, 1, dip)
-        , 'define_word' : (FORM, 2, define_word)
-        },
-}
+# running the thing!
+
+def eval(code):
+    '''
+    >>> eval('')
+    []
+    >>> eval('10')
+    [10]
+    >>> eval('10 20')
+    [10, 20]
+    >>> eval('10 dup')
+    [10, 10]
+    >>> eval('10 20 30 dip(dup)')
+    [10, 20, 20, 30]
+    >>> eval('10 20 swap')
+    [20, 10]
+    >>> eval('"foo" "bar"')
+    ['foo', 'bar']
+    >>> eval('10 drop')
+    []
+    >>> eval('10 20 +')
+    [30]
+    >>> eval('30 20 10 dip(+)')
+    [50, 10]
+    >>> eval('let(trip, dup dup) 10 trip')
+    [10, 10, 10]
+    >>> eval('10 20 30 rot let(rot, swap dip(swap))')
+    [30, 10, 20]
+    '''
+    env    = Env()
+    tokens = tokenize(code)
+    expr   = parse_tokens(tokens)
+    expr2  = expr.expand(env)
+    word   = expr2.compile(env)
+    word(env)
+    return env.stack
+
+def run_file(filepath, env=None):
+    env = env or Env()
+    with open(filepath, 'r') as fp:
+        tokens  = tokenize(fp.read(), loc=Loc(filepath))
+        program = parse_tokens(tokens)
+        program = program.expand(env)
+        program = program.compile(env)
+        program(env)
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
+
+    import sys
+    if len(sys.argv) > 1:
+        env = Env()
+        env.words['argv'] = tuple(sys.argv[1:])
+        run_file(sys.argv[1])
 
