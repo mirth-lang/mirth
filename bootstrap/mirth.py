@@ -159,33 +159,44 @@ class Pure:
     def can_dup (self): return True
     def can_drop (self): return True
 
-
 class Loc (Pure):
     def __init__ (self, path=None, row=1, col=1):
-        self.path = assert_type_or_none(path, str, 'path')
-        self.row = assert_type(row, int, 'row')
-        self.col = assert_type(col, int, 'col')
+        self.path = path
+        self.row = row
+        self.col = col
 
-    def __str__ (self):
-        if self.path:
-            return '%s:%d:%d' % (self.path, self.row, self.col)
+    def __str__ (loc):
+        if loc.path:
+            return '%s:%d:%d' % (loc.path, loc.row, loc.col)
         else:
-            return '%d:%d' % (self.row, self.col)
+            return '%d:%d' % (loc.row, loc.col)
 
-    def __repr__ (self):
-        return 'Loc(%r, %r, %r)' % (self.path, self.row, self.col)
+    def __repr__ (loc):
+        return 'Loc(%r, %r, %r)' % (loc.path, loc.row, loc.col)
+
+    def prefix (loc):
+        if loc:
+            return '%s: ' % loc_show(loc)
+        else:
+            return ''
 
     def next(self, text, **etc):
         TABSTOP = etc.get('TABSTOP', 8)
         row, col = self.row, self.col
         for c in text:
-            if   c == '\n': row += 1 ; col = 1
-            elif c == '\t': col += TABSTOP - col % TABSTOP
-            else: col += 1
+            if c == '\n':
+                row += 1
+                col  = 1
+            elif c == '\t':
+                col += TABSTOP - col % TABSTOP
+            else:
+                col += 1
         return Loc(self.path, row, col)
 
+    def decons(self, env):
+        env.push(self.path, self.row, self.col)
 
-class Token:
+class Token (Pure):
     def __init__ (self, kind, name, text, value, loc):
         self.kind = assert_type(kind, str, 'kind')
         if kind not in Rule.KINDS:
@@ -197,12 +208,12 @@ class Token:
 
     def __repr__ (self):
         return 'Token(%r, %r, %r, %r, %r)' % (
-            self.kind, self.name, self.text, self.value, self.loc
-        )
+                self.kind, self.name, self.text, self.value, self.loc
+                )
 
 
-    def __len__ (self):
-        return len(self.text)
+        def __len__ (self):
+            return len(self.text)
 
     def next_loc(self, **etc):
         return self.loc.next(self.text, **etc)
@@ -213,70 +224,52 @@ class Token:
     def can_drop (self):
         return can_drop(self.value)
 
-# rewriting this in OO style was a mistake ...
-class Lexer:
-    def __init__(self, source, loc=Loc(), rules=base_rules):
-        self.source = assert_type(source, str, 'source')
-        self.loc    = assert_type(loc, Loc, 'loc')
-        self.rules  = rules
-
-    def can_dup(self):
-        return False # contains variables, so can't duplicate
-
-    def can_drop(self):
-        return True
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        r'''Get the next token based on rules.
-        If no rule matches / end of file, returns None.
-        If multiple rules match, returns the longest match.
-        If multiple rules match with the same length, returns the first such match
-        (the rules are ordered).
-
-        >>> l = Lexer(''); exception(lambda: l.__next__())
-        StopIteration()
-        >>> l = Lexer('123'); l.__next__()
-        Token('ATOMIC', 'INT', '123', 123, Loc(None, 1, 1))
-        >>> l = Lexer('0xdeadbeef', Loc(None,100)); l.__next__()
-        Token('ATOMIC', 'INT', '0xdeadbeef', 3735928559, Loc(None, 100, 1))
-        >>> l = Lexer('1st', Loc(None,10,20)); l.__next__()
-        Token('ATOMIC', 'WORD', '1st', '1st', Loc(None, 10, 20))
-        >>> l = Lexer('"\l"', Loc('jeff.txt',2,3)); exception(lambda: l.__next__())
-        SyntaxError('jeff.txt:2:3: Unknown escape sequence: \\l',)
-        >>> l = Lexer('foo(bar baz)'); l.__next__()
-        Token('ATOMIC', 'WORD', 'foo', 'foo', Loc(None, 1, 1))
-        '''
-        result = None
-        best_len = 0
-        for rule in self.rules:
-            match = rule.regex.match(self.source)
-            if match:
-                text = match.group()
-                if len(text) > best_len:
-                    best_len = len(text)
-                    try:
-                        value = rule.to_value(text)
-                    except SyntaxError as e:
-                        raise SyntaxError("%s: %s" % (self.loc, e.msg))
-                    result = Token(rule.kind, rule.name, text, value, self.loc)
-
-        if result:
-            self.source = self.source[best_len:]
-            self.loc = result.next_loc()
-            return result
-        elif len(self.source) > 0:
-            short_source = (self.source if len(self.source) < 8
-                                      else self.source[:5] + '...')
-            raise SyntaxError("%s: expected token, got %r"
-                            % (show_loc(loc), short_source))
-        else:
-            raise StopIteration
+    def decons (self, env):
+        env.push(self.kind, self.name, self.text, self.value, self.loc)
 
 
-def tokenize(source, loc=Loc(), rules=base_rules):
+
+def next_token (code, loc=Loc(None,1,1), rules=base_rules):
+    r'''Get the next token based on rules.
+    If no rule matches / end of file, returns None.
+    If multiple rules match, returns the longest match.
+    If multiple rules match with the same length, returns the first such match
+    (the rules are ordered).
+
+    >>> next_token('')
+    >>> next_token('123')
+    (Token('ATOMIC', 'INT', '123', 123, Loc(None, 1, 1)), '', Loc(None, 1, 4))
+    >>> next_token('0xdeadbeef ', Loc(None,100,1))
+    (Token('ATOMIC', 'INT', '0xdeadbeef', 3735928559, Loc(None, 100, 1)), ' ', Loc(None, 100, 11))
+    >>> next_token('1st', Loc(None,10,20))
+    (Token('ATOMIC', 'WORD', '1st', '1st', Loc(None, 10, 20)), '', Loc(None, 10, 23))
+    >>> exception(lambda: next_token('"\l"', Loc('jeff.txt',2,3)))
+    SyntaxError('jeff.txt:2:3: Unknown escape sequence: \\l',)
+    >>> next_token('foo(bar baz)', Loc(None,1,1))
+    (Token('ATOMIC', 'WORD', 'foo', 'foo', Loc(None, 1, 1)), '(bar baz)', Loc(None, 1, 4))
+    '''
+    result = None
+    best_len = 0
+    for rule in rules:
+        match = rule.regex.match(code)
+        if match:
+            text = match.group()
+            if len(text) > best_len:
+                best_len = len(text)
+                try:
+                    value = rule.to_value(text)
+                except SyntaxError as e:
+                    raise SyntaxError("%s: %s" % (loc, e.msg))
+                result = Token(rule.kind, rule.name, text, value, loc)
+
+    if result:
+        return result, code[best_len:], result.next_loc()
+    if code:
+        short_code = code if len(code) < 8 else code[:5] + '...'
+        raise SyntaxError("%s: expected token, got %r" % (loc, short_code))
+
+
+def tokenize(code, loc=Loc(None,1,1), rules=base_rules):
     r'''Tokenize source all at once according to rules. This ignores
     lexer macros. As such, it is not suitable for modules that
     introduce or import lexer macros (if such a thing is to exist).
@@ -290,7 +283,14 @@ def tokenize(source, loc=Loc(), rules=base_rules):
     >>> tokenize('foo(1 2 \n +)')
     [Token('ATOMIC', 'WORD', 'foo', 'foo', Loc(None, 1, 1)), Token('OPEN', 'LPAREN', '(', '(', Loc(None, 1, 4)), Token('ATOMIC', 'INT', '1', 1, Loc(None, 1, 5)), Token('ATOMIC', 'INT', '2', 2, Loc(None, 1, 7)), Token('ATOMIC', 'NEWLINE', '\n', '\n', Loc(None, 1, 9)), Token('ATOMIC', 'WORD', '+', '+', Loc(None, 2, 2)), Token('CLOSE', 'RPAREN', ')', ')', Loc(None, 2, 3))]
     '''
-    return [t for t in Lexer(source, loc, rules) if t.kind != IGNORE]
+    toks = []
+    match = next_token(code, loc)
+    while match:
+        tok, code, loc = match
+        if tok.kind != IGNORE:
+            toks.append(tok)
+        match = next_token(code, loc)
+    return toks
 
 def parse_tokens (tokens):
     r'''Parse tokens into a syntax tree.
@@ -298,7 +298,7 @@ def parse_tokens (tokens):
     >>> parse_tokens(tokenize(''))
     Expr([])
     >>> parse_tokens(tokenize('10 20 30'))
-    Expr([Lit(10), Lit(20), Lit(30)])
+    Expr([LitInt(10), LitInt(20), LitInt(30)])
     >>> parse_tokens(tokenize('hello'))
     Expr([Atom('hello', [])])
     >>> parse_tokens(tokenize('foo bar'))
@@ -341,9 +341,9 @@ def parse_tokens (tokens):
         elif tokens[i].name == WORD:
             return parse_atom(i)
         elif tokens[i].name == INT:
-            return Lit(tokens[i].value, loc=tokens[i].loc), i+1
+            return LitInt(tokens[i].value, loc=tokens[i].loc), i+1
         elif tokens[i].name == STR:
-            return Lit(tokens[i].value, loc=tokens[i].loc), i+1
+            return LitStr(tokens[i].value, loc=tokens[i].loc), i+1
         elif tokens[i].name == LPAREN:
             # LPAREN only allowed to modify word, not stand alone.
             raise SyntaxError("%s: Expected atom but got '('." % tokens[i].loc)
@@ -375,8 +375,9 @@ def parse_tokens (tokens):
     else:
         raise SyntaxError("%s: expected EOF" % tokens[i].loc)
 
+class Term (Pure): pass
 
-class Lit:
+class Lit (Term):
     def __init__ (self, value, loc=None):
         self.value = value
 
@@ -386,16 +387,46 @@ class Lit:
     def compile(self, env):
         return lambda env: env.push(self.value)
 
-    def can_dup(self):
-        return can_dup(self.value)
-
-    def can_drop(self):
-        return can_drop(self.value)
+    def decons(self, env):
+        env.push((self.tag, self.value))
 
     def __repr__(self):
-        return 'Lit(%r)' % self.value
+        return '%s(%r)' % (self.tag, self.value)
 
-class Atom:
+class LitInt  (Lit): tag = 'LitInt'
+class LitStr  (Lit): tag = 'LitStr'
+class LitExpr (Lit): tag = 'LitExpr'
+
+class LitTuple (Term):
+    tag = 'LitTuple'
+
+    def __init__ (self, expr, loc=None):
+        self.expr = expr
+        self.loc = loc
+
+    def expand(self, env):
+        env2 = env.copy()
+        return LitTuple(self.expr.expand(env2), self.loc)
+
+    def compile(self, env):
+        env2 = env.copy()
+        exprfn = self.expr.compile(env2)
+        def tuplefn(env3):
+            env4 = env3.copy()
+            env4.stack = []
+            exprfn (env4)
+            env3.push(tuple(env4.stack))
+        return tuplefn
+
+    def decons(self, env):
+        env.push((self.tag, self.expr, self.loc))
+
+    def __repr__(self):
+        return 'LitTuple(%r)' % self.expr
+
+class Atom (Term):
+    tag = 'Atom'
+
     def __init__ (self, word, args, loc=None):
         self.word = word
         self.args = tuple(args)
@@ -422,16 +453,15 @@ class Atom:
         else:
             raise NameError("Word not found: %s" % self.word)
 
-    def can_dup(self):
-        return all(can_dup(p) for p in self.args)
-
-    def can_drop(self):
-        return all(can_drop(p) for p in self.args)
+    def decons(self, env):
+        env.push((self.tag, self.word, self.args, self.loc))
 
     def __repr__(self):
         return 'Atom(%r, %r)' % (self.word, list(self.args))
 
-class Expr:
+class Expr (Term):
+    tag = 'Expr'
+
     def __init__ (self, parts, loc=None):
         self.parts = tuple(parts)
         self.loc = loc
@@ -446,16 +476,15 @@ class Expr:
                 partfn(env2)
         return compfn
 
-    def can_dup(self):
-        return all(can_dup(p) for p in self.parts)
-
-    def can_drop(self):
-        return all(can_drop(p) for p in self.parts)
+    def decons(self, env):
+        env.push((self.tag, self.parts, self.loc))
 
     def __repr__(self):
         return 'Expr(%r)' % list(self.parts)
 
-class Comment (Pure):
+class Comment (Term):
+    tag = 'Expr'
+
     def __init__ (self, comment, loc=None):
         self.comment = comment
         self.loc = loc
@@ -466,7 +495,15 @@ class Comment (Pure):
     def compile(self, env):
         return lambda env: None
 
-class NewLine (Pure):
+    def decons(self, env):
+        return env.push((self.tag, self.comment, self.loc))
+
+    def __repr__(self):
+        return 'Comment(%r)' % self.comment
+
+class NewLine (Term):
+    tag = 'NewLine'
+
     def __init__ (self, loc=None):
         self.loc = loc
 
@@ -475,6 +512,12 @@ class NewLine (Pure):
 
     def compile(self, env):
         return lambda env: None
+
+    def decons(self, env):
+        return env.push((self.tag, self.loc))
+
+    def __repr__(self):
+        return 'NewLine()'
 
 def can_drop(x):
     '''Is x safely droppable, i.e. can x be dropped without dropping
@@ -535,27 +578,15 @@ def can_dup(x):
 # environment in which to execute and compile words
 
 class Env:
-    def __init__ (self, init_stack=(), words=None, macros=None):
-        self.stack = list(init_stack)
-        self.words = words or {
-            'dup': dup,
-            'drop': drop,
-            'swap': swap,
-            'dip': dip,
-            'pack2': pack2,
-            'unpack2': unpack2,
-            'in_tuple': in_tuple,
-            '+': plus,
-        }
-        self.macros = macros or {
-            'let': let,
-            'test': test,
-            #'let_macro': let_macro,
-            'quote_expr': quote_expr,
-        }
+    def __init__ (self, stack=(), words=None, macros=None, loc=None):
+        self.stack = list(stack)
+        self.words = words or copy.copy(builtin_words)
+        self.macros = macros or copy.copy(builtin_macros)
+        self.loc = loc
 
     def copy(self):
         return Env (
+            stack  = (),
             words  = copy.copy(self.words),
             macros = copy.copy(self.macros),
         )
@@ -579,34 +610,34 @@ class Env:
 # then any word arguments (these are also python fns; higher order arguments
 # are technically possible this way, but not in practice).
 
+def make_word (name, n, m, fun):
+    if m==1:
+        if n==1:
+            return lambda env: env.push(fun(env.pop(name,n)))
+        else:
+            return lambda env: env.push(fun(*env.pop(name,n)))
+    else:
+        if n==1:
+            return lambda env: env.push(*fun(env.pop(name,n)))
+        else:
+            return lambda env: env.push(*fun(*env.pop(name,n)))
+
 def dup(env):
     x = env.pop('dup', 1)
     if can_dup(x):
         env.push(x,x)
     else:
-        raise ValueError("Can't duplicate %r" % x)
+        raise ValueError("dup: Can't duplicate %r" % x)
 
 def drop(env):
     x = env.pop('drop', 1)
     if not can_drop(x):
-        raise ValueError("Can't drop %r" % x)
-
-def swap(env):
-    a,b = env.pop('swap', 2)
-    env.push(b,a)
+        raise ValueError("drop: Can't drop %r" % x)
 
 def dip(env, fn):
     x = env.pop('dip', 1)
     fn(env)
     env.push(x)
-
-def plus(env):
-    x,y = env.pop('+', 2)
-    env.push(x + y)
-
-def pack2(env):
-    x,y = env.pop('pack2', 2)
-    env.push((x,y))
 
 def unpack2(env):
     t = env.pop('unpack2', 1)
@@ -614,14 +645,63 @@ def unpack2(env):
         x,y = t
         env.push(x,y)
     else:
-        raise TypeError("Expected pair, but got %r" % t)
+        raise TypeError("unpack2: Expected pair, but got %r" % t)
 
 def in_tuple(env, f):
     t = env.pop('in_tuple', 1)
     if isinstance(t, tuple):
-        env2 = Env(init_stack=t)
+        env2 = Env(stack=t)
         f(env2)
         env.push(tuple(env2.stack))
+
+def decons (env):
+    x = env.pop('decons',1)
+    if hasattr(x, 'decons'):
+        x.decons(env)
+    else:
+        raise TypeError("decons: Can't deconstruct %r" % x)
+
+recons_types = {
+    'Loc': Loc,
+    'Token': Token,
+    'LitInt': LitInt,
+    'LitStr': LitStr,
+    'LitExpr': LitExpr,
+    'Atom': Atom,
+    'Expr': Expr,
+    'Comment': Comment,
+    'NewLine': NewLine,
+}
+
+def recons (env):
+    x = env.pop('recons',1)
+    if not isinstance(x,tuple):
+        raise TypeError("recons: Expected tuple.")
+    if len(x) < 1:
+        raise ValueError("recons: Missing tag.")
+    if x[0] not in recons_types:
+        raise ValueError("recons: Unknown tag %r" % x[0])
+    cons = recons_types[x[0]]
+    env.push(cons(*x[1:]))
+
+builtin_words = {
+    'in_tuple': in_tuple,
+    'dip': dip,
+    'dup': dup,
+    'drop': drop,
+    'swap': make_word('swap', 2, 2, lambda x,y: (y,x)),
+    'pack2': make_word('pack2', 2, 1, lambda x,y: (x,y)),
+    'unpack2': unpack2,
+    '+' : make_word('+', 2, 1, lambda x,y: x + y),
+    '-' : make_word('-', 2, 1, lambda x,y: x - y),
+    '*' : make_word('*', 2, 1, lambda x,y: x * y),
+    '/' : make_word('/', 2, 1, lambda x,y: x // y),
+    '%' : make_word('%', 2, 1, lambda x,y: x % y),
+    'decons': decons,
+    'recons': recons,
+    'let': make_word('len', 1, 1, len),
+}
+
 
 # built-in macros
 #
@@ -645,6 +725,25 @@ def let(env, *let_args):
     else:
         raise ValueError("let: Expected exactly 2 or 3 arguments.")
 
+def macro(env, *args):
+    if len(args) == 2:
+        if len(args[0].parts) != 1:
+            raise ValueError("macro: Expected LHS to have a single part.")
+        if len(args[0].parts[0].args) != 0:
+            raise ValueError("macro: Higher order macros not allowed.")
+        name = args[0].parts[0].word
+        env2 = env.copy()
+        word = args[1].expand(env2).compile(env2)
+        def macrofn(env3, *varg):
+            env3.push(env3, tuple(varg))
+            word(env3)
+            _,ast = env3.pop('macro', 2)
+            return ast
+        env.macros[name] = macrofn
+        return Expr([])
+    else:
+        raise ValueError("macro: Expected exactly 2 arguments.")
+
 def test(env, *test_args):
     if len(test_args) == 2:
         env2 = env.copy()
@@ -660,8 +759,17 @@ def test(env, *test_args):
     else:
         raise ValueError("test: Expected exactly two arguments.")
 
-def quote_expr(f,expr):
-    return Lit(expr)
+def quote(f, expr):
+    return LitExpr(expr)
+
+
+builtin_macros = {
+    'let': let,
+    'macro': macro,
+    'test': test,
+    'quote': quote,
+}
+
 
 # running the thing!
 
