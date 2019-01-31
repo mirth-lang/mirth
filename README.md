@@ -30,7 +30,7 @@ Please read the license text under `LICENSE.txt` or [here](https://mozilla.org/M
 
 ## Issue Reports
 
-If you find a bug or a paper cut, please use the [GitHub issue tracker](https://github.com/mirth-lang/mirth/issues) to search for an existing issue. If you find your issue already, please add a comment so we know it affects you as well. If not, please submit a new issue with a descriptive title. Please do not use the issue tracker for feature requests.
+If you find a bug or a paper cut, please use the [GitHub issue tracker](https://github.com/mirth-lang/mirth/issues) to search for an existing issue. If you find your issue already, please add a comment so we know it affects you as well. If not, please submit a new issue with a descriptive title.
 
 ## Contributing
 
