@@ -5,6 +5,9 @@ import Mirth.Token
 import Mirth.Test
 import Mirth.Syntax.Parser
 
+%default total
+%access public export
+
 Name : Type
 Name = String
 
