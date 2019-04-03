@@ -1,1 +1,4 @@
 *.ibc
+.stack-work/
+mirth.cabal
+*~
