@@ -1,7 +1,7 @@
 name:                mirth
 version:             0.1.0.0
 github:              "mirth-lang/mirth"
-license:             MPL2
+license:             MPL-2.0
 author:              "Sofia AF"
 maintainer:          ""
 copyright:           "2019 Sofia AF"
