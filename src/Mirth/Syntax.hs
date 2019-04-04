@@ -33,16 +33,9 @@ data Lit
   deriving (Eq, Ord, Show)
 
 data Word = Word
-  { wordVocab :: !Vocab
-  , wordLName :: !(L Name)
-  , wordLArgs :: !(L Args)
+  { wordName :: !Name
+  , wordArgs :: !Args
   } deriving (Eq, Ord, Show)
-
-wordName :: Word -> Name
-wordName = unL . wordLName
-
-wordArgs :: Word -> Args
-wordArgs = unL . wordLArgs
 
 data Atom
   = AWord !Word 
