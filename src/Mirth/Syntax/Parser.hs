@@ -12,6 +12,7 @@ import Mirth.Syntax
 import Mirth.Syntax.Loc
 import Control.Monad
 import Data.Void
+import Data.List.Extra
 import qualified Data.Text as T
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -28,37 +29,98 @@ getLoc = do
     , locLine = unPos (sourceLine p)
     , locCol  = unPos (sourceColumn p)
     }
-
+--
 -- | Annotate with location.
 parseL :: Parser t -> Parser (L t)
 parseL p = L <$> getLoc <*> p
 
+-- | Is this a valid name character?
+isNameChar :: Char -> Bool
+isNameChar = (`notElem` (" \t\r\n()[]{},\"" :: String))
+
+-- | Take name-like characters.
+takeNameP :: Maybe String -> Parser Text
+takeNameP descM = takeWhile1P descM isNameChar
+
+data Base = Dec | Hex | Oct | Bin
+
+-- | Is this a valid digit for integer literal?
+isDigit :: Base -> Char -> Bool
+isDigit base = (`elem` baseStr base)
+  where
+    baseStr :: Base -> String
+    baseStr Dec = "0123456789"
+    baseStr Hex = "0123456789abcdefABCDEF"
+    baseStr Oct = "01234567"
+    baseStr Bin = "01"
+
+-- | Value of base.
+baseVal :: Base -> Integer
+baseVal Dec = 10 
+baseVal Hex = 16 
+baseVal Oct = 8 
+baseVal Bin = 2
+
+-- | Count the number of succs needed to get from one enum val to the next.
+-- (Can be negative.)
+countSuccs :: (Enum t, Integral i) => t -> t -> i
+countSuccs a b = fromIntegral (fromEnum b - fromEnum a)
+
+-- | Get the value of a digit at a certain base.
+digitVal :: Base -> Char -> Integer
+digitVal Hex c | 'A' <= c && c <= 'F' = countSuccs 'A' c + 10
+digitVal Hex c | 'a' <= c && c <= 'f' = countSuccs 'a' c + 10
+digitVal _ c = countSuccs '0' c
+
+
 -- | Parse an integer literal.
 parseInt :: Parser Integer
-parseInt = read <$> label "integer literal" (many digitChar)
+parseInt = label "integer literal" $ do
+    name <- unpack <$> takeNameP Nothing
+    let (prefixFn, rest) =
+            case name of
+                '+' : rest -> (id, rest)
+                '-' : rest -> (negate, rest)
+                rest -> (id, rest)
+        (base, digits) =
+            case rest of
+                '0' : 'x' : digits -> (Hex, digits)
+                '0' : 'o' : digits -> (Oct, digits)
+                '0' : 'b' : digits -> (Bin, digits)
+                '0' : 'd' : digits -> (Dec, digits)
+                digits -> (Dec, digits)
+
+    unless (all (isDigit base) digits && notNull digits) $
+        fail "Invalid integer literal"
+
+    pure . prefixFn $
+      foldl (\a b -> baseVal base * a + digitVal base b) 0 digits
+
+
 
 -- | Parse a string literal.
 parseStr :: Parser Text
 parseStr = label "string literal" $ do
   char '"'
-  xs <- some (escapeSeq <|> nonEscape)
+  xs <- many (escapeSeq <|> nonEscape)
   char '"'
   pure (T.concat xs)
     where
       nonEscape :: Parser Text
-      nonEscape = takeWhile1P Nothing (\c -> c /= '"' || c /= '\\' || c /= '\n' || c /= '\r')
+      nonEscape = takeWhile1P Nothing (`notElem` ("\n\t\r\\\"" :: String))
 
       escapeSeq :: Parser Text
       escapeSeq = do
         char '\\' 
         choice
           [ char '\\' >> pure "\\"
+          , char '\"' >> pure "\""
+          , char '\'' >> pure "\'"
           , char 'n'  >> pure "\n"
           , char 'r'  >> pure "\r"
           , char 't'  >> pure "\t"
+          , char '\r' >> optional (char '\n') >> pure ""
           , char '\n' >> pure ""
-          , char '"'  >> pure "\""
-          , char '\'' >> pure "\'"
           ]
 
 -- | Parse any literal.
@@ -69,11 +131,12 @@ parseLit
 
 -- | Parse an LF or CRLF.
 parseLine :: Parser ()
-parseLine = void newline <|> void crlf
+parseLine = void newline <|> void crlf <|> void (char '\r')
 
 -- | Parse a (single-line) comment. A comment must begin with the
 -- # character, be followed by whitespace, and ends at the first
--- LF or CRLF after the #. The returned text does not contain the-- whitespace after the #' nor does it ontain the LF/CRLF.
+-- LF or CRLF or CR after the #. The returned text does not contain
+-- the whitespace after the # nor does it ontain the LF/CRLF/CR.
 parseComment :: Parser Text
 parseComment = do
   void (char '#')
@@ -81,9 +144,11 @@ parseComment = do
     [ parseLine >> pure "" -- "edge case" of a '#' followed by a newline
     , do
         void (char ' ' <|> char '\t')
-        t <- takeWhileP (Just "comment text") (not . (== '\n'))
-        parseLine
+        t <- takeWhileP (Just "comment text") (`notElem` ("\n\r" :: String))
+        optional (parseLine)
         pure t
+    , takeWhile1P Nothing (`notElem` (" \t\n\r" :: String)) >> fail "not a comment"
+    , pure ""
     ]
 
 -- | Parse a single comma.
@@ -92,7 +157,7 @@ parseComma = void (char ',')
 
 -- | Parse a name.
 parseName :: Parser Name
-parseName = Name <$> takeWhile1P (Just "name") (`elem` (" \t\r\n()[]{}," :: String))
+parseName = Name <$> takeNameP (Just "name")
 
 ignoreW :: Parser ()
 ignoreW = void $ takeWhileP Nothing (\c -> c == ' ' || c == '\t')
@@ -102,7 +167,7 @@ parseArgs :: Parser Args
 parseArgs = ignoreW >> Args <$> choice
   [ do
       char '(' >> ignoreW
-      xs <- some (const <$> parseL parseAtom <*> ignoreW)
+      xs <- many (const <$> parseL parseAtom <*> ignoreW)
       char ')' >> ignoreW
       pure xs
   , pure []
@@ -124,7 +189,7 @@ parseAtom = choice
 
 -- | Parse expression.
 parseExpr :: Parser Expr
-parseExpr = ignoreW >> Expr <$> some (const <$> parseL parseAtom <*> ignoreW)
+parseExpr = ignoreW >> Expr <$> many (const <$> parseL parseAtom <*> ignoreW)
 
 -- | Parse whole file.
 parseFile :: Parser Expr
