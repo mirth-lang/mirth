@@ -16,7 +16,6 @@ import Data.List.Extra
 import qualified Data.Text as T
 import Text.Megaparsec
 import Text.Megaparsec.Char
-import Text.Megaparsec.Pos
 
 type Parser = Parsec Void Text
 
@@ -79,16 +78,16 @@ parseInt = label "integer literal" $ do
     name <- unpack <$> takeNameP Nothing
     let (prefixFn, rest) =
             case name of
-                '+' : rest -> (id, rest)
-                '-' : rest -> (negate, rest)
-                rest -> (id, rest)
+                '+' : r -> (id, r)
+                '-' : r -> (negate, r)
+                r -> (id, r)
         (base, digits) =
             case rest of
-                '0' : 'x' : digits -> (Hex, digits)
-                '0' : 'o' : digits -> (Oct, digits)
-                '0' : 'b' : digits -> (Bin, digits)
-                '0' : 'd' : digits -> (Dec, digits)
-                digits -> (Dec, digits)
+                '0' : 'x' : ds -> (Hex, ds)
+                '0' : 'o' : ds -> (Oct, ds)
+                '0' : 'b' : ds -> (Bin, ds)
+                '0' : 'd' : ds -> (Dec, ds)
+                ds -> (Dec, ds)
 
     unless (all (isDigit base) digits && notNull digits) $
         fail "Invalid integer literal"
@@ -101,9 +100,9 @@ parseInt = label "integer literal" $ do
 -- | Parse a string literal.
 parseStr :: Parser Text
 parseStr = label "string literal" $ do
-  char '"'
+  void (char '"')
   xs <- many (escapeSeq <|> nonEscape)
-  char '"'
+  void (char '"')
   pure (T.concat xs)
     where
       nonEscape :: Parser Text
@@ -111,7 +110,7 @@ parseStr = label "string literal" $ do
 
       escapeSeq :: Parser Text
       escapeSeq = do
-        char '\\' 
+        void (char '\\')
         choice
           [ char '\\' >> pure "\\"
           , char '\"' >> pure "\""
@@ -145,7 +144,7 @@ parseComment = do
     , do
         void (char ' ' <|> char '\t')
         t <- takeWhileP (Just "comment text") (`notElem` ("\n\r" :: String))
-        optional (parseLine)
+        void (optional (parseLine))
         pure t
     , takeWhile1P Nothing (`notElem` (" \t\n\r" :: String)) >> fail "not a comment"
     , pure ""

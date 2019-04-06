@@ -5,23 +5,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Mirth.Syntax
-  ( Atom (..)
-  , Expr (..)
-  , Args (..)
-  , Word (..)
-  , Vocab (..)
-  , Name (..)
-  , Lit (..)
-  ) where
+module Mirth.Syntax where
 
 import Mirth.Prelude
 import Mirth.Syntax.Loc
-
-data Vocab
-  = Local
-  | Global !Text
-  deriving (Eq, Ord, Show)
 
 newtype Name
   = Name Text

@@ -37,7 +37,7 @@ locStart :: FilePath -> Loc
 locStart path = Loc path 1 1
 
 locSkip :: Char -> Loc -> Loc
-locSkip '\n' (Loc path l c) = Loc path (l+1) 0
+locSkip '\n' (Loc path l _) = Loc path (l+1) 0
 locSkip _ (Loc path l c) = Loc path l (c+1)
 
 locTag :: Loc -> Text
