@@ -2,3 +2,4 @@
 .stack-work/
 mirth.cabal
 *~
+*.swp
