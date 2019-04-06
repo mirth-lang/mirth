@@ -132,6 +132,40 @@ parserTests = testGroup "Mirth.Syntax.Parser"
       assertParse parseWord "foo()" (Word (Name "foo") (Args []))
       assertParse parseWord "foo(\n)" (Word (Name "foo") (Args [L (Loc testPath 1 5) ALine]))
 
+  , testCase "parseAtom" $ do
+      assertParse parseAtom "\nfoo" ALine
+      assertParse parseAtom "\rfoo" ALine
+      assertParse parseAtom "\r\nfoo" ALine
+      assertParse parseAtom "# foo \n bar" (AComment "foo ")
+      assertParse parseAtom ", bar" AComma
+      assertParse parseAtom "foo bar" (AWord (Word (Name "foo") (Args [])))
+      assertParse parseAtom "100 bar" (ALit (LitInt 100))
+      assertParse parseAtom "\"foo bar\" baz" (ALit (LitStr "foo bar"))
+      assertParse parseAtom "#foo bar" (AWord (Word (Name "#foo") (Args [])))
+      assertError "leading space" (useParser parseAtom " foo")
+  
+  , testCase "parseExpr" $ do
+      assertParse parseExpr "   " (Expr [])
+      assertParse parseExpr "  100 200  "
+        (Expr [ L (Loc testPath 1 3) (ALit (LitInt 100))
+              , L (Loc testPath 1 7) (ALit (LitInt 200))
+              ])
+      assertParse parseExpr " foo\r\nbar"
+        (Expr [ L (Loc testPath 1 2) (AWord (Word (Name "foo") (Args [])))
+              , L (Loc testPath 1 5) ALine
+              , L (Loc testPath 2 1) (AWord (Word (Name "bar") (Args [])))
+              ])
+      assertParse parseExpr "foo)bar"
+        (Expr [ L (Loc testPath 1 1) (AWord (Word (Name "foo") (Args [])))
+              ]) 
+
+  , testCase "parseFile" $ do
+      assertParse parseFile "foo\nbar"
+        (Expr [ L (Loc testPath 1 1) (AWord (Word (Name "foo") (Args [])))
+              , L (Loc testPath 1 4) ALine
+              , L (Loc testPath 2 1) (AWord (Word (Name "bar") (Args [])))
+              ])
+      assertError "mismatched paren" (useParser parseFile "foo)bar")
   ]
 
 
