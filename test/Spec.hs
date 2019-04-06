@@ -26,7 +26,8 @@ assertError msg (Right v) =
 assertParse parser code result =
   assertEqual (show code) (Right result) (useParser parser code)
 
-useParser p t = runParser p "<test>" t
+testPath = "<test>"
+useParser p t = runParser p testPath t
 
 parserTests = testGroup "Mirth.Syntax.Parser"
   [ testCase "parseInt" $ do
@@ -103,33 +104,33 @@ parserTests = testGroup "Mirth.Syntax.Parser"
       assertError "#foo bar\\n" (useParser parseComment "#foo bar\n")
 
   , testCase "parseName" $ do
-      assertEqual "foo" (Right (Name "foo")) (useParser parseName "foo")
-      assertEqual "1st" (Right (Name "1st")) (useParser parseName "1st")
-      assertEqual "1+1" (Right (Name "1+1")) (useParser parseName "1+1")
-      assertEqual "foo bar" (Right (Name "foo")) (useParser parseName "foo bar")
-      assertEqual "foo\\nbar" (Right (Name "foo")) (useParser parseName "foo\nbar")
-      assertEqual "foo\\rbar" (Right (Name "foo")) (useParser parseName "foo\rbar")
-      assertEqual "foo\\tbar" (Right (Name "foo")) (useParser parseName "foo\tbar")
-      assertEqual "foo(bar" (Right (Name "foo")) (useParser parseName "foo(bar")
-      assertEqual "foo,bar" (Right (Name "foo")) (useParser parseName "foo,bar")
-      assertEqual "foo)bar" (Right (Name "foo")) (useParser parseName "foo)bar")
+      assertParse parseName "foo" (Name "foo")
+      assertParse parseName "1st" (Name "1st")
+      assertParse parseName "1+1" (Name "1+1")
+      assertParse parseName "#foo" (Name "#foo")
+      assertParse parseName "foo bar" (Name "foo")
+      assertParse parseName "foo\nbar" (Name "foo")
+      assertParse parseName "foo\rbar" (Name "foo")
+      assertParse parseName "foo\tbar" (Name "foo")
+      assertParse parseName "foo(bar" (Name "foo")
+      assertParse parseName "foo,bar" (Name "foo")
+      assertParse parseName "foo)bar" (Name "foo")
       assertError "empty string" (useParser parseName "")
       assertError "space" (useParser parseName " foo")
       assertError "open paren" (useParser parseName "(foo")
 
   , testCase "parseArgs" $ do
-      assertEqual "" (Right (Args [])) (useParser parseArgs "")
-      assertEqual "()" (Right (Args [])) (useParser parseArgs "()")
-      assertEqual "(,)" (Right (Args [L (Loc "<test>" 1 2) AComma])) (useParser parseArgs "(,)")
-      assertEqual " ( , )" (Right (Args [L (Loc "<test>" 1 4) AComma])) (useParser parseArgs " ( , )")
-      assertEqual " \\t ( \\t  , \\t )" (Right (Args [L (Loc "<test>" 1 19) AComma])) (useParser parseArgs " \t ( \t  , \t )")
-
+      assertParse parseArgs "" (Args [])
+      assertParse parseArgs "()" (Args [])
+      assertParse parseArgs "(,)" (Args [L (Loc testPath 1 2) AComma])
+      assertParse parseArgs " ( , )" (Args [L (Loc testPath 1 4) AComma])
+      assertParse parseArgs " \t(\t  , )" (Args [L (Loc testPath 1 19) AComma])
 
   , testCase "parseWord" $ do
-      assertEqual "foo" (Right (Word (Name "foo") (Args []))) (useParser parseWord "foo")
-      assertEqual "bar" (Right (Word (Name "bar") (Args []))) (useParser parseWord "bar")
-      assertEqual "foo()" (Right (Word (Name "foo") (Args []))) (useParser parseWord "foo()")
-      assertEqual "foo(\n)" (Right (Word (Name "foo") (Args [L (Loc "<test>" 1 5) ALine]))) (useParser parseWord "foo(\n)")
+      assertParse parseWord "foo" (Word (Name "foo") (Args []))
+      assertParse parseWord "bar" (Word (Name "bar") (Args []))
+      assertParse parseWord "foo()" (Word (Name "foo") (Args []))
+      assertParse parseWord "foo(\n)" (Word (Name "foo") (Args [L (Loc testPath 1 5) ALine]))
 
   ]
 
