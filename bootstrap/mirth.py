@@ -391,6 +391,7 @@ class assertion:
 class module:
     def __init__(self):
         self.types = {'Int': 'Int'} # placeholder
+        self.prims = builtin_prims.copy()
         self.word_sigs = {}
         self.word_defs = {}
         self.assertions = []
@@ -401,6 +402,14 @@ class module:
         if name not in self.types:
             raise TypeError("Type %s not defined." % name)
         return self.types[name]
+
+    def has_prim (self, name):
+        return name in self.prims
+    
+    def get_prim (self, name): 
+        if name not in self.prims:
+            raise NameError("Primitive %s is not defined." % name)
+        return self.prims[name]
 
     def get_word_sig (self, name):
         if name not in self.word_sigs:
@@ -443,14 +452,14 @@ class module:
         raise SyntaxError("Bare expression not yet supported.")
 
 class type_elaborator:
-    def __init__(self, module):
-        self.module = module
+    def __init__(self, mod):
+        self.mod = mod
 
     def elab_push_int(self, value):
         raise TypeError("Expected a type but got an int.")
 
     def elab_word(self, name, args):
-        return [self.module.get_type(name, args)]
+        return [self.mod.get_type(name, args)]
 
     def elab_expr(self, atoms):
         ts = []
@@ -458,9 +467,16 @@ class type_elaborator:
             ts.extend(atom.elab(self))
         return ts
 
+builtin_prims = {
+    'dup':  lambda e, args: e.elab_dup  (*args),
+    'drop': lambda e, args: e.elab_drop (*args),
+    'swap': lambda e, args: e.elab_swap (*args),
+    'dip':  lambda e, args: e.elab_dip  (*args),
+}
+
 class word_elaborator:
-    def __init__(self, module, dom):
-        self.module = module
+    def __init__(self, mod, dom):
+        self.mod = mod
         self.dom = list(dom)[:]
 
     def elab_push_int(self, value):
@@ -468,9 +484,12 @@ class word_elaborator:
         return lambda p: p.push(value)
 
     def elab_word(self, name, args):
+        if self.mod.has_prim(name):
+            return self.mod.get_prim(name) (self, args)
+
         if len(args):
             raise SyntaxError("Word arguments not yet implemented.")
-        (dom, cod) = self.module.get_word_sig(name)
+        (dom, cod) = self.mod.get_word_sig(name)
     
         if len(dom) == 0:
             dom_extra, dom_used = self.dom, []
@@ -490,29 +509,85 @@ class word_elaborator:
         for atom in atoms:
             fns.append(atom.elab(self))
         def f(p):
-            for fn in fns:
-                fn(p)
+            for fn in fns[::-1]:
+                p.copush(fn)
         return f
 
+    # prims
+
+    def elab_dup (self):
+        if len(self.dom) <= 0:
+            raise TypeError("Can't dup on empty stack.")
+        self.dom.append(self.dom[-1])
+        return lambda env: env.dup()
+
+    def elab_drop (self):
+        if len(self.dom) <= 0:
+            raise TypeError("Can't drop on empty stack.")
+        self.dom.pop()
+        return lambda env: env.drop()
+
+    def elab_dip (self, body):
+        if len(self.dom) <= 0:
+            raise TypeError("Can't drop on empty stack.")
+
+        t = self.dom.pop()
+        f = body.elab(self)
+        self.dom.append(t)
+        return lambda env: env.dip(f)
+
+    def elab_swap (self):
+        if len(self.dom) <= 1:
+            raise TypeError("Can't swap on stack with less than 2 elements.")
+        b = self.dom.pop()
+        a = self.dom.pop()
+        self.dom.append(b)
+        self.dom.append(a)
+        return lambda env: env.swap()
+
+
 class env:
-    def __init__(self, module):
-        self.module = module
+    def __init__(self, mod):
+        self.mod = mod
         self.stack  = []
         self.rstack = []
 
     def push(self, v):
         self.stack.append(v)
 
+    def pop(self):
+        return self.stack.pop()
+
     def copush(self, r):
         self.rstack.append(r)
 
+    def copop(self):
+        return self.rstack.pop()
+
+    def drop(self):
+        self.pop()
+
+    def dup(self):
+        self.push(self.stack[-1])
+
+    def swap(self):
+        b = self.pop()
+        a = self.pop()
+        self.push(b)
+        self.push(a)
+    
+    def dip(self, f):
+        x = self.pop()
+        self.copush(lambda env: env.push(x))
+        self.copush(f)
+
     def step(self):
         if self.rstack:
-            w = self.rstack.pop()
+            w = self.copop()
             if callable(w):
                 w(self)
             elif isinstance(w, str):
-                self.module.get_word_def(w) (self)
+                self.mod.get_word_def(w) (self)
             else:
                 raise TypeError("Unknown item on return stack: %r" % w)
             return True
