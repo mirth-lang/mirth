@@ -9,37 +9,46 @@ This is a test runner for this project. Just invoke with python3.
 This will run tests for the bootstrap.
 '''
 
+import sys
 import glob
 import subprocess
 
 # run bootstrap tests
 
+failed = 0
+
 interp = 'bootstrap/mirth.py'
 subprocess.run([interp, '--doctest'])
 
-for path in glob.glob('bootstrap/tests/pass/*'):
+for path in glob.glob('bootstrap/pass/*'):
     with subprocess.Popen([interp, path],
             stdout = subprocess.PIPE,
             stderr = subprocess.PIPE) as proc:
 
         (outs, errs) = proc.communicate()
         if proc.returncode > 0:
-            print ("TEST FAILED [", path, "]")
-            if outs: print ("  STDOUT:", outs.decode('utf8'))
-            if errs: print ("  STDERR:", errs.decode('utf8'))
+            print ("\nTEST FAILED [", path, "]")
+            if outs: print ("\nSTDOUT:\n\n" + outs.decode('utf8') + '\n')
+            if errs: print ("\nSTDERR:\n\n" + errs.decode('utf8') + '\n')
+            print ()
 
-for path in glob.glob('bootstrap/tests/fail_types/*'):
+            failed += 1
+
+for path in glob.glob('bootstrap/fail_types/*'):
     with subprocess.Popen([interp, path],
             stdout = subprocess.PIPE,
             stderr = subprocess.PIPE) as proc:
 
         (outs, errs) = proc.communicate()
         if 'TypeError' not in errs.decode('utf8'):
-            print ("TEST FAILED [", path, "]")
-            if outs: print ("  STDOUT:", outs.decode('utf8'))
-            if errs: print ("  STDERR:", errs.decode('utf8'))
+            print ("\nTEST FAILED [", path, "]")
+            if outs: print ("\nSTDOUT:\n\n" + outs.decode('utf8') + '\n')
+            if errs: print ("\nSTDERR:\n\n" + errs.decode('utf8') + '\n')
+            print ()
 
-for path in glob.glob('bootstrap/tests/fail_tests/*'):
+            failed += 1
+
+for path in glob.glob('bootstrap/fail_tests/*'):
     with subprocess.Popen([interp, path],
             stdout = subprocess.PIPE,
             stderr = subprocess.PIPE) as proc:
@@ -50,4 +59,8 @@ for path in glob.glob('bootstrap/tests/fail_tests/*'):
             if outs: print ("\nSTDOUT:\n\n" + outs.decode('utf8') + '\n')
             if errs: print ("\nSTDERR:\n\n" + errs.decode('utf8') + '\n')
             print ()
+
+            failed += 1
+
+sys.exit(failed)
 
