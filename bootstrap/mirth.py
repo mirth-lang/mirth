@@ -44,6 +44,12 @@ def interpret(path):
     m.check_assertions()
 
 def repl():
+    # REPL banner
+    print('Mirth bootstrap interpreter -- good luck!')
+    print('Thank you to our patrons on http://patreon.com/mirth_lang')
+    print('Special thanks to our Super Patrons: Benjohn.')
+    print()
+
     m = module()
     e = env(m)
     l = word_elaborator(m, [])
