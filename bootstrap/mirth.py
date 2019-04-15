@@ -36,6 +36,19 @@ def main():
                         f = decl.elab(l)
                         f(e)
                         e.run(timeout=1000000)
+                    elif isinstance(decl, assertion):
+                        decl.decl(m)
+                        (f0, f1) = m.assertions[-1]
+                        e0 = env(m)
+                        e1 = env(m)
+                        f0(e0)
+                        f1(e1)
+                        e0.run()
+                        e1.run()
+                        if e0.stack != e1.stack:
+                            raise ValueError("Assertion failed: LHS = [%s], RHS = [%s]."
+                                % ( ' '.join(map(repr, e0.stack))
+                                  , ' '.join(map(repr, e1.stack)) ))
                     else:
                         decl.decl(m)
                 e.show_stack()
@@ -440,13 +453,25 @@ class module:
         cod2 = elab.dom
         if cod != cod2: # placeholder
             raise TypeError(
-                "Word %s has mismatched output type. Expected ( %s ) but got ( %s )"
+                "Word %s has mismatched output type. Expected [%s] but got [%s]."
                     % (name, ' '.join(cod), ' '.join(cod2))
             )
         self.word_defs[name] = func
 
     def decl_assertion (self, lhs, rhs):
-        self.assertions.append((lhs, rhs))
+        elab1 = word_elaborator(self, [])
+        elab2 = word_elaborator(self, [])
+
+        lhsf = lhs.elab(elab1)
+        rhsf = rhs.elab(elab2)
+
+        if elab1.dom != elab2.dom:
+            raise TypeError(
+               "Assertion type mismatch: LHS has [%s], RHS has [%s]."
+                % (' '.join(elab1.dom), ' '.join(elab2.dom))
+            )
+
+        self.assertions.append((lhsf, rhsf))
 
     def decl_expr (self, expr):
         raise SyntaxError("Bare expression not yet supported.")
