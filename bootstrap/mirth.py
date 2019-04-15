@@ -10,10 +10,11 @@ This is a minimalistic mirth interpreter. It is not designed to be
 correct or complete -- it is designed to be a small first step to
 bootstrapping the compiler. Never use this without copious tests.
 
-Usage:
+USAGE:
 
-    python3 mirth.py
-
+    python3 mirth.py                    Start REPL.
+    python3 mirth.py --doctest          Run doc tests.
+    python3 mirth.py PATH [ARGS...]     Run mirth script with args.
 
 '''
 
@@ -112,7 +113,7 @@ def tokenize (code):
             yield token(code='\n', lineno=i+1)
 
 # tokens with special meaning
-reserved = {'\n', '(', ')', ',', ':', '--', '=', '==', 'type', 'data', 'end'}
+reserved = {'\n', '(', ')', ',', ':', '--', '=', ':=', '==', 'type', 'data', 'end'}
 
 class token(object):
     def __init__(self, code, lineno):
@@ -132,6 +133,7 @@ class token(object):
     def is_colon   (self): return self.code == ':'
     def is_dash2   (self): return self.code == '--'
     def is_equal   (self): return self.code == '='
+    def is_coloneq (self): return self.code == ':='
     def is_equal2  (self): return self.code == '=='
     def is_type    (self): return self.type == 'type'
     def is_data    (self): return self.code == 'data'
@@ -256,6 +258,12 @@ def parsetoks(tokens):
     p_atom = memo(alt(p_int, p_word))
     p_expr = memo(fmap(expr, star(p_atom)))
 
+    p_prim_def = fmapseq(lambda a,_,b: prim_def(a,b),
+        p_name,
+        test(token.is_coloneq),
+        p_expr
+    )
+
     p_word_sig = fmapseq(lambda a,_,b,c: word_sig(a,b,c),
         p_name,
         test(token.is_colon),
@@ -281,9 +289,9 @@ def parsetoks(tokens):
         p_expr,
     )
 
-
     p_decl = fmapseq(lambda a,b: a,
         alt(
+            p_prim_def,
             p_word_sig,
             p_word_def,
             p_assertion,
@@ -314,8 +322,12 @@ def parse(code):
     [expr([word(token('foo', 1), [expr([word(token('bar', 1), [])])])])]
     >>> parse('foo : bar')
     [word_sig(token('foo', 1), expr([]), expr([word(token('bar', 1), [])]))]
+    >>> parse('foo : bar -- baz')
+    [word_sig(token('foo', 1), expr([word(token('bar', 1), [])]), expr([word(token('baz', 1), [])]))]
     >>> parse('foo = bar')
     [word_def(token('foo', 1), expr([word(token('bar', 1), [])]))]
+    >>> parse('foo := bar')
+    [prim_def(token('foo', 1), expr([word(token('bar', 1), [])]))]
     >>> parse('foo == bar')
     [assertion(expr([word(token('foo', 1), [])]), expr([word(token('bar', 1), [])]))]
     '''
@@ -397,6 +409,17 @@ class word_def:
     def decl(self, mod):
         return mod.decl_word_def(self.name.code, self.body)
 
+class prim_def:
+    def __init__(self, name, body):
+        self.name = name
+        self.body = body
+
+    def __repr__(self):
+        return 'prim_def(%r, %r)' % (self.name, self.body)
+
+    def decl(self, mod):
+        return mod.decl_prim_def(self.name.code, self.body)
+
 class assertion:
     def __init__(self, lhs, rhs):
         self.lhs = lhs
@@ -454,10 +477,10 @@ class module:
         self.word_sigs[name] = (domts, codts)
 
     def decl_word_def (self, name, body):
+        if name in self.word_defs or name in self.prims:
+            raise TypeError("Word %s is defined twice." % name)
         if name not in self.word_sigs:
             raise TypeError("Word %s is defined without type signature." % name)
-        if name in self.word_defs:
-            raise TypeError("Word %s is defined twice." % name)
 
         (dom, cod) = self.word_sigs[name]
         elab = word_elaborator(self, dom)
@@ -469,6 +492,19 @@ class module:
                     % (name, ' '.join(cod), ' '.join(cod2))
             )
         self.word_defs[name] = func
+
+    def decl_prim_def (self, name, body):
+        if name in self.word_defs or name in self.prims:
+            raise TypeError("Prim %s is defined twice." % name)
+        if name in self.word_sigs:
+            raise TypeError("Prim %s has type signature." % name)
+
+        def f(e,args):
+            if len(args) > 0:
+                raise TypeError("Prim %s takes no arguments." % name)
+            return body.elab(e)
+
+        self.prims[name] = f
 
     def decl_assertion (self, lhs, rhs):
         elab1 = word_elaborator(self, [])
