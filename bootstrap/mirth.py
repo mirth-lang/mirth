@@ -59,7 +59,7 @@ def main():
 def tokenize (code):
     r'''tokenize (file or string) -> token_generator
 
-    Lexify a mirth codebase. 
+    Lexify a mirth codebase.
 
     >>> list(tokenize('foo bar'))
     [token('foo', 1), token('bar', 1), token('\n', 1)]
@@ -111,7 +111,7 @@ class token(object):
     def is_type    (self): return self.type == 'type'
     def is_data    (self): return self.code == 'data'
     def is_end     (self): return self.code == 'end'
-    
+
     def is_int(self):
         try:
             int(self.code)
@@ -129,7 +129,7 @@ class token(object):
 
 def parsetoks(tokens):
     tokens = list(tokens)
-    
+
     # combinators
 
     def memo(p):
@@ -179,7 +179,7 @@ def parsetoks(tokens):
 
     def starsep(sep, p):
         return fmapseq(
-            (lambda a,b: [a] + b), 
+            (lambda a,b: [a] + b),
             p,
             star(fmapseq((lambda a,b: a), sep, p))
         )
@@ -230,7 +230,7 @@ def parsetoks(tokens):
     p_word = memo(fmapseq(word, p_name, p_args))
     p_atom = memo(alt(p_int, p_word))
     p_expr = memo(fmap(expr, star(p_atom)))
-    
+
     p_word_sig = fmapseq(lambda a,_,b,c: word_sig(a,b,c),
         p_name,
         test(token.is_colon),
@@ -256,7 +256,7 @@ def parsetoks(tokens):
         p_expr,
     )
 
-    
+
     p_decl = fmapseq(lambda a,b: a,
         alt(
             p_word_sig,
@@ -304,7 +304,7 @@ class intlit:
     def __init__(self, token):
         self.token = token
         self.value = int(token.code)
-    
+
     def __repr__(self):
         return 'intlit(%r)' % self.token
 
@@ -392,8 +392,8 @@ class module:
     def __init__(self):
         self.types = {'Int': 'Int'} # placeholder
         self.prims = builtin_prims.copy()
-        self.word_sigs = {}
-        self.word_defs = {}
+        self.word_sigs = builtin_word_sigs.copy()
+        self.word_defs = builtin_word_defs.copy()
         self.assertions = []
 
     def get_type(self, name, args):
@@ -405,8 +405,8 @@ class module:
 
     def has_prim (self, name):
         return name in self.prims
-    
-    def get_prim (self, name): 
+
+    def get_prim (self, name):
         if name not in self.prims:
             raise NameError("Primitive %s is not defined." % name)
         return self.prims[name]
@@ -467,12 +467,6 @@ class type_elaborator:
             ts.extend(atom.elab(self))
         return ts
 
-builtin_prims = {
-    'dup':  lambda e, args: e.elab_dup  (*args),
-    'drop': lambda e, args: e.elab_drop (*args),
-    'swap': lambda e, args: e.elab_swap (*args),
-    'dip':  lambda e, args: e.elab_dip  (*args),
-}
 
 class word_elaborator:
     def __init__(self, mod, dom):
@@ -490,7 +484,7 @@ class word_elaborator:
         if len(args):
             raise SyntaxError("Word arguments not yet implemented.")
         (dom, cod) = self.mod.get_word_sig(name)
-    
+
         if len(dom) == 0:
             dom_extra, dom_used = self.dom, []
         else:
@@ -515,28 +509,42 @@ class word_elaborator:
 
     # prims
 
-    def elab_dup (self):
+    def elab_id(self, *args):
+        if len(args) != 0:
+            raise TypeError("Prim id takes no arguments.")
+        return lambda env: None
+
+    def elab_dup (self, *args):
+        if len(args) != 0:
+            raise TypeError("Prim dup takes no arguments.")
         if len(self.dom) <= 0:
             raise TypeError("Can't dup on empty stack.")
         self.dom.append(self.dom[-1])
         return lambda env: env.dup()
 
-    def elab_drop (self):
+    def elab_drop (self, *args):
+        if len(args) != 0:
+            raise TypeError("Prim drop takes no arguments.")
         if len(self.dom) <= 0:
             raise TypeError("Can't drop on empty stack.")
         self.dom.pop()
         return lambda env: env.drop()
 
-    def elab_dip (self, body):
+    def elab_dip (self, *args):
+        if len(args) != 1:
+            raise TypeError("Prim dip takes 1 argument.")
         if len(self.dom) <= 0:
             raise TypeError("Can't drop on empty stack.")
 
+        body = args[0]
         t = self.dom.pop()
         f = body.elab(self)
         self.dom.append(t)
         return lambda env: env.dip(f)
 
-    def elab_swap (self):
+    def elab_swap (self, *args):
+        if len(args) != 0:
+            raise TypeError("Prim swap takes no arguments.")
         if len(self.dom) <= 1:
             raise TypeError("Can't swap on stack with less than 2 elements.")
         b = self.dom.pop()
@@ -544,6 +552,15 @@ class word_elaborator:
         self.dom.append(b)
         self.dom.append(a)
         return lambda env: env.swap()
+
+builtin_prims = {
+    'id':   lambda e, args: e.elab_id   (*args),
+    'dup':  lambda e, args: e.elab_dup  (*args),
+    'drop': lambda e, args: e.elab_drop (*args),
+    'swap': lambda e, args: e.elab_swap (*args),
+    'dip':  lambda e, args: e.elab_dip  (*args),
+}
+
 
 
 class env:
@@ -575,7 +592,7 @@ class env:
         a = self.pop()
         self.push(b)
         self.push(a)
-    
+
     def dip(self, f):
         x = self.pop()
         self.copush(lambda env: env.push(x))
@@ -593,7 +610,7 @@ class env:
             return True
         return False
 
-    def run(self, timeout=100000):
+    def run(self, timeout=1000000):
         r = 0
         while self.step():
             r += 1
@@ -602,6 +619,36 @@ class env:
 
     def show_stack(self):
         print(' '.join(repr(s) for s in self.stack))
+
+
+##############################################################################
+################################ BUILTINS ####################################
+##############################################################################
+
+def word2 (f):
+    def w(env):
+        b = env.pop()
+        a = env.pop()
+        env.push(f(a,b))
+    return w
+
+
+builtin_word_sigs = {
+    '+': (['Int', 'Int'], ['Int']),
+    '-': (['Int', 'Int'], ['Int']),
+    '*': (['Int', 'Int'], ['Int']),
+    '%': (['Int', 'Int'], ['Int']),
+    '/': (['Int', 'Int'], ['Int']),
+}
+
+builtin_word_defs = {
+    '+': word2(lambda a,b: a + b),
+    '-': word2(lambda a,b: a - b),
+    '*': word2(lambda a,b: a * b),
+    '%': word2(lambda a,b: a % b),
+    '/': word2(lambda a,b: a // b),
+}
+
 
 
 ##############################################################
