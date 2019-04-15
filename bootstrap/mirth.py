@@ -48,7 +48,7 @@ def repl():
     print()
     print('Mirth Bootstrap Interpreter v0.0.0: CAVEAT USOR.')
     print()
-    print('Thank you to our patrons on http://patreon.com/mirth_lang')
+    print('Thank you to our patrons on https://patreon.com/mirth_lang')
     print('And a special thanks to our Super Patron, Benjohn.')
     print()
 
