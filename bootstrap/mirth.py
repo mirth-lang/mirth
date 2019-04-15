@@ -23,17 +23,13 @@ def main():
 
     if len(sys.argv) == 1:
         repl()
-    elif len(sys.argv) == 2:
-        if sys.argv[1] == '--doctest':
-            import doctest
-            doctest.testmod()
-        else:
-            interpret(sys.argv[1])
+    elif sys.argv[1:] == ['--doctest']:
+        import doctest
+        doctest.testmod()
     else:
-        print("USAGE: %s [FILE]" % sys.argv[0])
-        sys.exit(1)
+        interpret(sys.argv[1], sys.argv[2:])
 
-def interpret(path):
+def interpret(path, args):
     with open(path) as fp:
         decls = parse(fp)
 
