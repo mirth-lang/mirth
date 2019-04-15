@@ -18,9 +18,31 @@ Usage:
 '''
 
 def main():
-    import doctest
-    doctest.testmod()
+    import sys
 
+    if len(sys.argv) == 1:
+        repl()
+    elif len(sys.argv) == 2:
+        if sys.argv[1] == '--doctest':
+            import doctest
+            doctest.testmod()
+        else:
+            interpret(sys.argv[1])
+    else:
+        print("USAGE: %s [FILE]" % sys.argv[0])
+        sys.exit(1)
+
+def interpret(path):
+    with open(path) as fp:
+        decls = parse(fp)
+
+    m = module()
+    for d in decls:
+        d.decl(m)
+
+    m.check_assertions()
+
+def repl():
     m = module()
     e = env(m)
     l = word_elaborator(m, [])
@@ -38,17 +60,7 @@ def main():
                         e.run(timeout=1000000)
                     elif isinstance(decl, assertion):
                         decl.decl(m)
-                        (f0, f1) = m.assertions[-1]
-                        e0 = env(m)
-                        e1 = env(m)
-                        f0(e0)
-                        f1(e1)
-                        e0.run()
-                        e1.run()
-                        if e0.stack != e1.stack:
-                            raise ValueError("Assertion failed: LHS = [%s], RHS = [%s]."
-                                % ( ' '.join(map(repr, e0.stack))
-                                  , ' '.join(map(repr, e1.stack)) ))
+                        m.check_assertion(m.assertions[-1])
                     else:
                         decl.decl(m)
                 e.show_stack()
@@ -475,6 +487,24 @@ class module:
 
     def decl_expr (self, expr):
         raise SyntaxError("Bare expression not yet supported.")
+
+
+    def check_assertions(self):
+        for a in self.assertions:
+            self.check_assertion(a)
+
+    def check_assertion (self, assn):
+        (f0, f1) = assn
+        e0 = env(self)
+        e1 = env(self)
+        f0(e0)
+        f1(e1)
+        e0.run()
+        e1.run()
+        if e0.stack != e1.stack:
+            raise ValueError("Assertion failed: LHS = [%s], RHS = [%s]."
+                % ( ' '.join(map(repr, e0.stack))
+                  , ' '.join(map(repr, e1.stack)) ))
 
 class type_elaborator:
     def __init__(self, mod):
