@@ -45,9 +45,11 @@ def interpret(path):
 
 def repl():
     # REPL banner
-    print('Mirth bootstrap interpreter -- good luck!')
+    print()
+    print('Mirth Bootstrap Interpreter v0.0.0: CAVEAT USOR.')
+    print()
     print('Thank you to our patrons on http://patreon.com/mirth_lang')
-    print('Special thanks to our Super Patrons: Benjohn.')
+    print('And a special thanks to our Super Patron, Benjohn.')
     print()
 
     m = module()
@@ -58,6 +60,7 @@ def repl():
         keep_going = True
         while keep_going:
             code = input(">>> ")
+            if code.strip() == 'bye': break
             try:
                 decls = parse(code)
                 for decl in decls:
@@ -80,8 +83,10 @@ def repl():
             except ValueError as err:
                 print(err)
 
+    except EOFError:
+        print('bye')
     except KeyboardInterrupt:
-        pass
+        print()
 
 
 ##############################################################################
