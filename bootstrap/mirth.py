@@ -265,8 +265,27 @@ def parsetoks(tokens):
     p_atom = memo(alt(p_int, p_word))
     p_expr = memo(fmap(expr, star(p_atom)))
 
-    p_word_sig = fmapseq(lambda a,_,b,c: word_sig(a,[],b,c),
+    p_word_sig_param = fmapseq(lambda a,_,b,c: (a,b,c),
         p_name,
+        test(token.is_colon),
+        alt(
+            fmapseq(lambda a,b: a,
+                p_expr_ignore_line,
+                test(token.is_dash2)
+            ),
+            pure(lambda: expr([]))
+        ),
+        p_expr_ignore_line
+    )
+
+    p_word_sig_params = alt(
+        parens(starsep(p_comma, p_word_sig_param)),
+        pure(lambda: []),
+    )
+
+    p_word_sig = fmapseq(lambda a,p,_,b,c: word_sig(a,p,b,c),
+        p_name,
+        p_word_sig_params,
         test(token.is_colon),
         alt(
             fmapseq(lambda a,b: a,
@@ -324,6 +343,8 @@ def parse(code):
     [word_sig(token('foo', 1), [], expr([]), expr([word(token('bar', 1), [])]))]
     >>> parse('foo : bar -- baz')
     [word_sig(token('foo', 1), [], expr([word(token('bar', 1), [])]), expr([word(token('baz', 1), [])]))]
+    >>> parse('foo(f : bar) : baz')
+    [word_sig(token('foo', 1), [(token('f', 1), expr([]), expr([word(token('bar', 1), [])]))], expr([]), expr([word(token('baz', 1), [])]))]
     >>> parse('foo = bar')
     [word_def(token('foo', 1), expr([word(token('bar', 1), [])]))]
     >>> parse('foo == bar')
