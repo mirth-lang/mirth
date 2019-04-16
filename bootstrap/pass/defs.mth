@@ -16,3 +16,6 @@ sum-of-squares : Int Int -- Int
 sum-of-squares = dip(square) square +
 square = dup *
 
+dup' : *a b -- *a b b
+dup' = dup
+

@@ -726,10 +726,13 @@ class module:
     def decl_word_sig (self, name, dom, cod):
         if name in self.word_sigs:
             raise TypeError("Word %s is declared twice." % name)
-        fvar = fresh_var()
-        domts = tpack(fvar, *dom.elab(type_elaborator(self)))
-        codts = tpack(fvar, *cod.elab(type_elaborator(self)))
-        self.word_sigs[name] = (domts, codts)
+        domte = type_elaborator(self)
+        codte = type_elaborator(self)
+        dom.elab(domte)
+        cod.elab(codte)
+        if domte.rest is None and codte.rest is None:
+            domte.rest = codte.rest = fresh_var()
+        self.word_sigs[name] = (domte.to_tpack(), codte.to_tpack())
 
     def decl_word_def (self, name, body):
         if name in self.word_defs or name in self.prims:
@@ -792,26 +795,39 @@ class module:
 class type_elaborator:
     def __init__(self, mod):
         self.mod = mod
+        self.rest = None
+        self.args = []
+
+    def to_tpack(self):
+        return tpack(self.rest, *self.args)
 
     def elab_push_int(self, value):
         raise TypeError("Expected a type but got an int.")
 
     def elab_word(self, name, args):
-        if 'a' <= name[0] <= 'z' and not self.mod.has_type(name):
+        if  (len(name) >= 2 and '*' == name[0] and 'a' <= name[1] <= 'z'
+                and not self.mod.has_type(name)):
             if len(args):
-                raise TypeError("Type var with args not currently.")
+                raise TypeError("Stack type var with args not supported.")
+            elif self.args:
+                raise TypeError("Can't have a stack type var after a type.")
+            elif self.rest:
+                raise TypeError("Can't have a stack type var after another stack type var.")
             else:
-                return [tvar(name)]
-        else:
-            return [self.mod.get_type(name, args)]
+                self.rest = tvar(name[1:])
 
+
+        elif 'a' <= name[0] <= 'z' and not self.mod.has_type(name):
+            if len(args):
+                raise TypeError("Type var with args not currently supported.")
+            else:
+                self.args.append(tvar(name))
+        else:
+            self.args.append(self.mod.get_type(name, args))
 
     def elab_expr(self, atoms):
-        ts = []
         for atom in atoms:
-            ts.extend(atom.elab(self))
-        return ts
-
+            atom.elab(self)
 
 class word_elaborator:
     def __init__(self, mod, dom):
