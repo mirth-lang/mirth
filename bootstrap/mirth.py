@@ -265,7 +265,7 @@ def parsetoks(tokens):
     p_atom = memo(alt(p_int, p_word))
     p_expr = memo(fmap(expr, star(p_atom)))
 
-    p_word_sig = fmapseq(lambda a,_,b,c: word_sig(a,b,c),
+    p_word_sig = fmapseq(lambda a,_,b,c: word_sig(a,[],b,c),
         p_name,
         test(token.is_colon),
         alt(
@@ -321,9 +321,9 @@ def parse(code):
     >>> parse('foo(bar)')
     [expr([word(token('foo', 1), [expr([word(token('bar', 1), [])])])])]
     >>> parse('foo : bar')
-    [word_sig(token('foo', 1), expr([]), expr([word(token('bar', 1), [])]))]
+    [word_sig(token('foo', 1), [], expr([]), expr([word(token('bar', 1), [])]))]
     >>> parse('foo : bar -- baz')
-    [word_sig(token('foo', 1), expr([word(token('bar', 1), [])]), expr([word(token('baz', 1), [])]))]
+    [word_sig(token('foo', 1), [], expr([word(token('bar', 1), [])]), expr([word(token('baz', 1), [])]))]
     >>> parse('foo = bar')
     [word_def(token('foo', 1), expr([word(token('bar', 1), [])]))]
     >>> parse('foo == bar')
@@ -385,16 +385,17 @@ class expr:
         return mod.decl_expr(self)
 
 class word_sig:
-    def __init__(self, name, dom, cod):
+    def __init__(self, name, params, dom, cod):
         self.name = name
+        self.params = params
         self.dom = dom
         self.cod = cod
 
     def __repr__(self):
-        return 'word_sig(%r, %r, %r)' % (self.name, self.dom, self.cod)
+        return 'word_sig(%r, %r, %r, %r)' % (self.name, self.params, self.dom, self.cod)
 
     def decl(self, mod):
-        return mod.decl_word_sig(self.name.code, self.dom, self.cod)
+        return mod.decl_word_sig(self.name.code, self.params, self.dom, self.cod)
 
 class word_def:
     def __init__(self, name, body):
@@ -694,9 +695,11 @@ class module:
             raise NameError("Word %s is not defined." % name)
         return self.word_defs[name]
 
-    def decl_word_sig (self, name, dom, cod):
+    def decl_word_sig (self, name, params, dom, cod):
         if name in self.word_sigs:
             raise TypeError("Word %s is declared twice." % name)
+        if len(params) > 0:
+            raise TypeError("higher-order words not yet supported")
         domte = type_elaborator(self)
         codte = type_elaborator(self)
         dom.elab(domte)
