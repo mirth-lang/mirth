@@ -265,12 +265,6 @@ def parsetoks(tokens):
     p_atom = memo(alt(p_int, p_word))
     p_expr = memo(fmap(expr, star(p_atom)))
 
-    p_prim_def = fmapseq(lambda a,_,b: prim_def(a,b),
-        p_name,
-        test(token.is_coloneq),
-        p_expr
-    )
-
     p_word_sig = fmapseq(lambda a,_,b,c: word_sig(a,b,c),
         p_name,
         test(token.is_colon),
@@ -298,7 +292,6 @@ def parsetoks(tokens):
 
     p_decl = fmapseq(lambda a,b: a,
         alt(
-            p_prim_def,
             p_word_sig,
             p_word_def,
             p_assertion,
@@ -333,8 +326,6 @@ def parse(code):
     [word_sig(token('foo', 1), expr([word(token('bar', 1), [])]), expr([word(token('baz', 1), [])]))]
     >>> parse('foo = bar')
     [word_def(token('foo', 1), expr([word(token('bar', 1), [])]))]
-    >>> parse('foo := bar')
-    [prim_def(token('foo', 1), expr([word(token('bar', 1), [])]))]
     >>> parse('foo == bar')
     [assertion(expr([word(token('foo', 1), [])]), expr([word(token('bar', 1), [])]))]
     '''
@@ -415,17 +406,6 @@ class word_def:
 
     def decl(self, mod):
         return mod.decl_word_def(self.name.code, self.body)
-
-class prim_def:
-    def __init__(self, name, body):
-        self.name = name
-        self.body = body
-
-    def __repr__(self):
-        return 'prim_def(%r, %r)' % (self.name, self.body)
-
-    def decl(self, mod):
-        return mod.decl_prim_def(self.name.code, self.body)
 
 class assertion:
     def __init__(self, lhs, rhs):
@@ -692,7 +672,6 @@ def fresh_var():
 class module:
     def __init__(self):
         self.types = builtin_types.copy()
-        self.prims = builtin_prims.copy()
         self.word_sigs = builtin_word_sigs.copy()
         self.word_defs = builtin_word_defs.copy()
         self.assertions = []
@@ -704,14 +683,6 @@ class module:
         if name not in self.types:
             raise TypeError("Type %s not defined." % name)
         return self.types[name] (self, args)
-
-    def has_prim (self, name):
-        return name in self.prims
-
-    def get_prim (self, name):
-        if name not in self.prims:
-            raise NameError("Primitive %s is not defined." % name)
-        return self.prims[name]
 
     def get_word_sig (self, name):
         if name not in self.word_sigs:
@@ -735,8 +706,6 @@ class module:
         self.word_sigs[name] = ([], domte.to_tpack(), codte.to_tpack())
 
     def decl_word_def (self, name, body):
-        if name in self.word_defs or name in self.prims:
-            raise TypeError("Word %s is defined twice." % name)
         if name not in self.word_sigs:
             raise TypeError("Word %s is defined without type signature." % name)
 
@@ -748,19 +717,6 @@ class module:
         cod2 = elab.dom
         cod.rigidify().unify(cod2, {}) # if this passes then we are golden
         self.word_defs[name] = func
-
-    def decl_prim_def (self, name, body):
-        if name in self.word_defs or name in self.prims:
-            raise TypeError("Prim %s is defined twice." % name)
-        if name in self.word_sigs:
-            raise TypeError("Prim %s has type signature." % name)
-
-        def f(e,args):
-            if len(args) > 0:
-                raise TypeError("Prim %s takes no arguments." % name)
-            return body.elab(e)
-
-        self.prims[name] = f
 
     def decl_assertion (self, lhs, rhs):
         orig = tpack()
@@ -842,9 +798,6 @@ class word_elaborator:
         return lambda p: p.push(value)
 
     def elab_word(self, name, args):
-        if self.mod.has_prim(name):
-            return self.mod.get_prim(name) (self, args)
-
         (wargs, dom, cod) = self.mod.get_word_sig(name)
         if len(args) != len(wargs):
             raise SyntaxError("%s: expected %d args but got %d args"
@@ -881,14 +834,6 @@ class word_elaborator:
             for fn in fns[::-1]:
                 p.copush(fn)
         return f
-
-    # prims
-
-    def elab_id(self, *args):
-        if len(args) != 0:
-            raise TypeError("Prim id takes no arguments.")
-        return lambda env: None
-
 
 class env:
     def __init__(self, mod):
@@ -963,9 +908,6 @@ tstr = tcon('Str')
 builtin_types = {
     'Int': type0(tint),
     'Str': type0(tstr),
-}
-
-builtin_prims = {
 }
 
 def word2 (f):

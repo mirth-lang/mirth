@@ -1,4 +1,0 @@
-
-trip := dup dup
-10 trip == 10 10 10
-
