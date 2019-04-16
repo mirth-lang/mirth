@@ -50,7 +50,7 @@ def repl():
 
     m = module()
     e = env(m)
-    l = word_elaborator(m, [])
+    l = word_elaborator(m, tpack())
 
     try:
         keep_going = True
@@ -438,6 +438,252 @@ class assertion:
     def decl(self, mod):
         return mod.decl_assertion(self.lhs, self.rhs)
 
+##############################################################################
+########################### TYPES & UNIFICATION ##############################
+##############################################################################
+
+class tcon:
+    def __init__(self, name, args=()):
+        self.name = name
+        self.args = list(args)
+
+    def __repr__(self):
+        if self.args:
+            return 'tcon(%r, %r)' % (self.name, self.args)
+        else:
+            return 'tcon(%r)' % self.name
+
+    def __str__(self):
+        if self.args:
+            return '%s(%s)' % (self.name, ', '.join(map(str, self.args)))
+        else:
+            return self.name
+
+    def rigidify(self):
+        return tcon(self.name, [arg.rigidify() for arg in self.args])
+
+    def freshen(self, prefix):
+        return tcon(self.name, [arg.freshen(prefix) for arg in self.args])
+
+    def has_var(self, name):
+        return any(arg.has_var(name) for arg in self.args)
+
+    def subst(self, sub):
+        """
+        >>> tcon('foo', [tvar('x')]).subst({'x': tvar('y')})
+        tcon('foo', [tvar('y')])
+        """
+        return tcon(self.name, [arg.subst(sub) for arg in self.args])
+
+    def unify(self, other, sub):
+        return other.unify_tcon(self.name, self.args, sub)
+
+    def unify_tcon(self, other_name, other_args, sub):
+        if self.name == other_name and len(self.args) == len(other_args):
+            uargs = []
+            for (sarg, oarg) in zip(self.args, other_args):
+                uarg = oarg.unify(sarg, sub)
+                uargs.append(uarg)
+            return tcon(self.name, [uarg.subst(sub) for uarg in uargs])
+        else:
+            raise TypeError("Failed to unify %s and %s." % (self, tcon(other_name, other_args)))
+
+    def unify_tvar(self, other_name, sub):
+        return tvar(other_name).unify_tcon(self.name, self.args, sub)
+
+    def unify_tpack(self, other_rest, other_args, sub):
+        raise TypeError("Failed to unify %s and %s" % (self, tpack(other_rest, other_args)))
+
+class tvar:
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return 'tvar(%r)' % self.name
+
+    def __str__(self):
+        return self.name
+
+    def rigidify(self):
+        return tcon('%' + self.name, [])
+
+    def freshen(self, prefix):
+        return tvar(prefix + self.name)
+
+    def has_var(self, name):
+        return self.name == name
+
+    def subst(self, sub):
+        """
+        >>> tvar('x').subst({'x': tvar('y')})
+        tvar('y')
+        >>> tvar('x').subst({'y': tvar('z')})
+        tvar('x')
+        """
+        if self.name in sub:
+            return sub[self.name]
+        else:
+            return self
+
+    def unify(self, other, sub):
+        """
+        >>> tvar('x').unify(tvar('x'), {})
+        tvar('x')
+        >>> tvar('x').unify(tvar('y'), {})
+        tvar('x')
+        >>> tvar('x').unify(tcon('foo', []), {})
+        tcon('foo')
+        >>> tvar('x').unify(tcon('foo', []), {'x': tvar('y')})
+        tcon('foo')
+        >>> tvar('x').unify(tcon('foo', []), {'x': tcon('foo', [])})
+        tcon('foo')
+        >>> try: tvar('x').unify(tcon('foo', []), {'x': tcon('bar', [])})
+        ... except TypeError as e: print(e)
+        Failed to unify bar and foo.
+        >>> try: tvar('x').unify(tcon('foo', [tvar('x')]), {})
+        ... except TypeError as e: print(e)
+        Failed to unify x and foo(x).
+        """
+        return other.unify_tvar(self.name, sub)
+
+    def unify_tcon(self, other_name, other_args, sub):
+        if self.name in sub:
+            return sub[self.name].unify_tcon(other_name, other_args, sub)
+        else:
+            newself = tcon(other_name, [oarg.subst(sub) for oarg in other_args])
+            if newself.has_var(self.name):
+                raise TypeError("Failed to unify %s and %s." % (self.name, newself))
+            var_sub = { self.name: newself }
+            for v in sub:
+                sub[v] = sub[v].subst(var_sub)
+            sub[self.name] = newself
+            return newself
+
+    def unify_tvar(self, other_name, sub):
+        if self.name == other_name:
+            return self
+        elif self.name in sub:
+            return sub[self.name].unify_tvar(other_name, sub)
+        elif other_name in sub:
+            return sub[other].unify(self, sub)
+        else:
+            newself = tvar(other_name)
+            var_sub = { self.name: newself }
+            for v in sub:
+                sub[v] = sub[v].subst(var_sub)
+            sub[self.name] = newself
+            return newself
+
+    def unify_tpack(self, other_rest, other_args, sub):
+        if self.name in sub:
+            return sub[self.name].unify_tpack(other_rest, other_args, sub)
+        elif other_args == [] and other_rest is not None:
+            return self.unify(other_rest, sub)
+        else:
+            newself = tpack(other_rest, *other_args).subst(sub)
+            if newself.has_var(self.name):
+                raise TypeError("Failed to unify %s and %s." % (self.name, newself))
+            var_sub = { self.name: newself }
+            for v in sub:
+                sub[v] = sub[v].subst(var_sub)
+            sub[self.name] = newself
+            return newself
+
+class tpack:
+    """
+    >>> tpack()
+    tpack()
+    >>> tpack(None, tvar('x'))
+    tpack(None, tvar('x'))
+    >>> tpack(tvar('x'), tvar('y'))
+    tpack(tvar('x'), tvar('y'))
+    >>> tpack(tvar('x'), tvar('y')).unify(tpack(tvar('z'), tcon('Int', []), tcon('Str', [])), {})
+    tpack(tvar('z'), tcon('Int'), tcon('Str'))
+    >>> tpack(tvar('x'), tvar('y')).unify(tpack(tvar('y'), tcon('Int', []), tcon('Str', [])), {})
+    tpack(tcon('Str'), tcon('Int'), tcon('Str'))
+    """
+    def __init__ (self, rest=None, *args):
+        while isinstance(rest, tpack):
+            args = rest.args + list(args)
+            rest = rest.rest
+        self.rest = rest
+        self.args = list(args)
+
+    def __repr__ (self):
+        if self.rest == None and self.args == []:
+            return 'tpack()'
+        else:
+            return 'tpack(%r, %s)' % (self.rest, ', '.join(repr(a) for a in self.args))
+
+    def __str__ (self):
+        if self.rest is None:
+            return '[ %s ]' % ' '.join(str(a) for a in self.args)
+        else:
+            return '[ *%s %s ]' % (self.rest, ' '.join(str(a) for a in self.args))
+
+    def rigidify(self):
+        if self.rest is None:
+            return tpack(None, *[a.rigidify() for a in self.args])
+        else:
+            return tpack(self.rest.rigidify(), *[a.rigidify() for a in self.args])
+
+    def freshen(self, prefix):
+        if self.rest is None:
+            return tpack(None, *[a.freshen(prefix) for a in self.args])
+        else:
+            return tpack(self.rest.freshen(prefix), *[a.freshen(prefix) for a in self.args])
+
+    def has_var(self, name):
+        if self.rest is None:
+            return any(a.has_var(name) for a in self.args)
+        else:
+            return self.rest.has_var(name) or any(a.has_var(name) for a in self.args)
+
+    def subst(self, sub):
+        if self.rest is None:
+            return tpack(None, *[a.subst(sub) for a in self.args])
+        else:
+            return tpack(self.rest.subst(sub), *[a.subst(sub) for a in self.args])
+
+    def unify(self, other, sub):
+        return other.unify_tpack(self.rest, self.args, sub)
+
+    def unify_tcon(self, other_name, other_args, sub):
+        raise TypeError("Failed to unify %s and %s." % (self, tcon(other_name, other_args)))
+
+    def unify_tvar(self, other_name, sub):
+        return tvar(other_name).unify_tpack(self.rest, self.args, sub)
+
+    def unify_tpack(self, other_rest, other_args, sub):
+        if len(self.args) < len(other_args):
+            return tpack(other_rest, *other_args).unify_tpack(self.rest, self.args, sub)
+        elif len(self.args) > len(other_args):
+            if other_rest is None:
+                raise TypeError("Failed to unify %s and %s" % (self, tpack(other_rest, *other_args)))
+            n = len(self.args) - len(other_args)
+            (largs, rargs) = (self.args[:n], self.args[n:])
+            newrest = other_rest.unify_tpack(self.rest, largs, sub)
+            newargs = []
+            for (rarg, oarg) in zip(rargs, other_args):
+                newargs.append(rarg.unify(oarg, sub))
+            return tpack(newrest, *newargs).subst(sub)
+        else:
+            npack = tpack()
+            srest = self.rest if self.rest else npack
+            orest = other_rest if other_rest else npack
+            newrest = srest if srest is orest else srest.unify(orest, sub)
+            newargs = []
+            for (rarg, oarg) in zip(self.args, other_args):
+                newargs.append(rarg.unify(oarg, sub))
+            return tpack(newrest, *newargs).subst(sub)
+
+
+var_counter = 0
+def fresh_var():
+    global var_counter
+    var_counter += 1
+    return tvar('?' + str(var_counter))
+
 
 ##############################################################################
 ############################### ELABORATOR ###################################
@@ -445,18 +691,19 @@ class assertion:
 
 class module:
     def __init__(self):
-        self.types = {'Int': 'Int'} # placeholder
+        self.types = builtin_types.copy()
         self.prims = builtin_prims.copy()
         self.word_sigs = builtin_word_sigs.copy()
         self.word_defs = builtin_word_defs.copy()
         self.assertions = []
 
+    def has_type(self, name):
+        return name in self.types
+
     def get_type(self, name, args):
-        if len(args) > 0:
-            raise TypeError("Type arguments not yet implemented.")
         if name not in self.types:
             raise TypeError("Type %s not defined." % name)
-        return self.types[name]
+        return self.types[name] (self, args)
 
     def has_prim (self, name):
         return name in self.prims
@@ -479,8 +726,8 @@ class module:
     def decl_word_sig (self, name, dom, cod):
         if name in self.word_sigs:
             raise TypeError("Word %s is declared twice." % name)
-        domts = dom.elab(type_elaborator(self))
-        codts = cod.elab(type_elaborator(self))
+        domts = tpack(None, *dom.elab(type_elaborator(self)))
+        codts = tpack(None, *cod.elab(type_elaborator(self)))
         self.word_sigs[name] = (domts, codts)
 
     def decl_word_def (self, name, body):
@@ -490,14 +737,10 @@ class module:
             raise TypeError("Word %s is defined without type signature." % name)
 
         (dom, cod) = self.word_sigs[name]
-        elab = word_elaborator(self, dom)
+        elab = word_elaborator(self, dom.rigidify())
         func = body.elab(elab)
         cod2 = elab.dom
-        if cod != cod2: # placeholder
-            raise TypeError(
-                "Word %s has mismatched output type. Expected [%s] but got [%s]."
-                    % (name, ' '.join(cod), ' '.join(cod2))
-            )
+        cod.rigidify().unify(cod2, {}) # if this passes then we are golden
         self.word_defs[name] = func
 
     def decl_prim_def (self, name, body):
@@ -514,23 +757,19 @@ class module:
         self.prims[name] = f
 
     def decl_assertion (self, lhs, rhs):
-        elab1 = word_elaborator(self, [])
-        elab2 = word_elaborator(self, [])
+        orig = tpack()
+
+        elab1 = word_elaborator(self, orig)
+        elab2 = word_elaborator(self, orig)
 
         lhsf = lhs.elab(elab1)
         rhsf = rhs.elab(elab2)
 
-        if elab1.dom != elab2.dom:
-            raise TypeError(
-               "Assertion type mismatch: LHS has [%s], RHS has [%s]."
-                % (' '.join(elab1.dom), ' '.join(elab2.dom))
-            )
-
+        elab1.dom.unify(elab2.dom, {})
         self.assertions.append((lhsf, rhsf))
 
     def decl_expr (self, expr):
-        raise SyntaxError("Bare expression not yet supported.")
-
+        raise SyntaxError("Bare expression not supported.")
 
     def check_assertions(self):
         for a in self.assertions:
@@ -557,7 +796,14 @@ class type_elaborator:
         raise TypeError("Expected a type but got an int.")
 
     def elab_word(self, name, args):
-        return [self.mod.get_type(name, args)]
+        if 'a' <= name[0] <= 'z' and not self.mod.has_type(name):
+            if len(args):
+                raise TypeError("Type var with args not currently.")
+            else:
+                return [tvar(name)]
+        else:
+            return [self.mod.get_type(name, args)]
+
 
     def elab_expr(self, atoms):
         ts = []
@@ -569,10 +815,11 @@ class type_elaborator:
 class word_elaborator:
     def __init__(self, mod, dom):
         self.mod = mod
-        self.dom = list(dom)[:]
+        self.dom = dom
+        self.sub = {}
 
     def elab_push_int(self, value):
-        self.dom.append('Int')
+        self.dom = tpack(self.dom, tcon('Int', []))
         return lambda p: p.push(value)
 
     def elab_word(self, name, args):
@@ -583,17 +830,16 @@ class word_elaborator:
             raise SyntaxError("Word arguments not yet implemented.")
         (dom, cod) = self.mod.get_word_sig(name)
 
-        if len(dom) == 0:
-            dom_extra, dom_used = self.dom, []
-        else:
-            dom_extra, dom_used = self.dom[:-len(dom)], self.dom[-len(dom):]
+        prefix = fresh_var().name + ':'
+        self.dom.unify(dom.freshen(prefix), self.sub)
+        self.dom = cod.freshen(prefix).subst(self.sub)
 
-        if dom_used != dom:
-            raise TypeError(
-                "Type mismatch for usage of word %s: expcted %s but got %s"
-                % (name, dom, self.dom)
-            )
-        self.dom = dom_extra + cod # placeholder
+        # then prune the sub
+        vs = list(self.sub.keys())
+        for v in vs:
+            if v[:len(prefix)] == prefix:
+                del self.sub[v]
+
         return lambda p: p.copush(name)
 
     def elab_expr(self, atoms):
@@ -615,9 +861,12 @@ class word_elaborator:
     def elab_dup (self, *args):
         if len(args) != 0:
             raise TypeError("Prim dup takes no arguments.")
-        if len(self.dom) <= 0:
-            raise TypeError("Can't dup on empty stack.")
-        self.dom.append(self.dom[-1])
+
+        sub = {}
+        prefix = fresh_var().name + ':'
+        self.dom.unify(tpack(tvar(prefix+'a'), tvar(prefix+'b')), sub)
+        self.dom = tpack(tvar(prefix+'a'), tvar(prefix+'b'), tvar(prefix+'b')).subst(sub)
+
         return lambda env: env.dup()
 
     def elab_drop (self, *args):
@@ -652,14 +901,8 @@ class word_elaborator:
         return lambda env: env.swap()
 
 builtin_prims = {
-    'id':   lambda e, args: e.elab_id   (*args),
-    'dup':  lambda e, args: e.elab_dup  (*args),
-    'drop': lambda e, args: e.elab_drop (*args),
-    'swap': lambda e, args: e.elab_swap (*args),
     'dip':  lambda e, args: e.elab_dip  (*args),
 }
-
-
 
 class env:
     def __init__(self, mod):
@@ -723,6 +966,22 @@ class env:
 ################################ BUILTINS ####################################
 ##############################################################################
 
+def type0 (t):
+    def f(mod, args):
+        if len(args) > 0:
+            raise TypeError("Type %s takes no arguments." % name)
+        return t
+    return f
+
+tint = tcon('Int')
+tstr = tcon('Str')
+
+builtin_types = {
+    'Int': type0(tint),
+    'Str': type0(tstr),
+}
+
+
 def word2 (f):
     def w(env):
         b = env.pop()
@@ -730,13 +989,17 @@ def word2 (f):
         env.push(f(a,b))
     return w
 
-
 builtin_word_sigs = {
-    '+': (['Int', 'Int'], ['Int']),
-    '-': (['Int', 'Int'], ['Int']),
-    '*': (['Int', 'Int'], ['Int']),
-    '%': (['Int', 'Int'], ['Int']),
-    '/': (['Int', 'Int'], ['Int']),
+    '+': (tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
+    '-': (tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
+    '*': (tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
+    '/': (tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
+    '%': (tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
+
+    'dup':  (tpack(tvar('a'), tvar('b')), tpack(tvar('a'), tvar('b'), tvar('b'))),
+    'drop': (tpack(tvar('a'), tvar('b')), tpack(tvar('a'))),
+    'swap': (tpack(tvar('a'), tvar('b'), tvar('c')), tpack(tvar('a'), tvar('c'), tvar('b'))),
+    'id':   (tvar('a'), tvar('a')),
 }
 
 builtin_word_defs = {
@@ -745,6 +1008,11 @@ builtin_word_defs = {
     '*': word2(lambda a,b: a * b),
     '%': word2(lambda a,b: a % b),
     '/': word2(lambda a,b: a // b),
+
+    'dup':  env.dup,
+    'drop': env.drop,
+    'swap': env.swap,
+    'id':   (lambda env: env),
 }
 
 
