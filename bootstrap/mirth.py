@@ -726,8 +726,9 @@ class module:
     def decl_word_sig (self, name, dom, cod):
         if name in self.word_sigs:
             raise TypeError("Word %s is declared twice." % name)
-        domts = tpack(None, *dom.elab(type_elaborator(self)))
-        codts = tpack(None, *cod.elab(type_elaborator(self)))
+        fvar = fresh_var()
+        domts = tpack(fvar, *dom.elab(type_elaborator(self)))
+        codts = tpack(fvar, *cod.elab(type_elaborator(self)))
         self.word_sigs[name] = (domts, codts)
 
     def decl_word_def (self, name, body):
