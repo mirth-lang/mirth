@@ -803,7 +803,7 @@ class word_elaborator:
             raise SyntaxError("%s: expected %d args but got %d args"
                 % (name, len(wargs), len(args)))
 
-        prefix = fresh_var().name + ':'
+        prefix = fresh_var().name + '.'
         self.dom.unify(dom.freshen(prefix), self.sub)
 
         fs = []
