@@ -732,7 +732,7 @@ class module:
         cod.elab(codte)
         if domte.rest is None and codte.rest is None:
             domte.rest = codte.rest = fresh_var()
-        self.word_sigs[name] = (domte.to_tpack(), codte.to_tpack())
+        self.word_sigs[name] = ([], domte.to_tpack(), codte.to_tpack())
 
     def decl_word_def (self, name, body):
         if name in self.word_defs or name in self.prims:
@@ -740,7 +740,9 @@ class module:
         if name not in self.word_sigs:
             raise TypeError("Word %s is defined without type signature." % name)
 
-        (dom, cod) = self.word_sigs[name]
+        (wargs, dom, cod) = self.word_sigs[name]
+        if len(wargs) > 0 :
+            raise TypeError("Higher order word definition not yet allowed.")
         elab = word_elaborator(self, dom.rigidify())
         func = body.elab(elab)
         cod2 = elab.dom
@@ -843,12 +845,23 @@ class word_elaborator:
         if self.mod.has_prim(name):
             return self.mod.get_prim(name) (self, args)
 
-        if len(args):
-            raise SyntaxError("Word arguments not yet implemented.")
-        (dom, cod) = self.mod.get_word_sig(name)
+        (wargs, dom, cod) = self.mod.get_word_sig(name)
+        if len(args) != len(wargs):
+            raise SyntaxError("%s: expected %d args but got %d args"
+                % (name, len(wargs), len(args)))
 
         prefix = fresh_var().name + ':'
         self.dom.unify(dom.freshen(prefix), self.sub)
+
+        fs = []
+        for (arg, (wargdom, wargcod)) in zip(args, wargs):
+            adom = wargdom.freshen(prefix).subst(self.sub)
+            acod = wargcod.freshen(prefix).subst(self.sub)
+            elab2 = word_elaborator(self.mod, adom)
+            elab2.sub = self.sub
+            fs.append(arg.elab(elab2))
+            elab2.dom.unify(acod, self.sub)
+
         self.dom = cod.freshen(prefix).subst(self.sub)
 
         # then prune the sub
@@ -857,7 +870,8 @@ class word_elaborator:
             if v[:len(prefix)] == prefix:
                 del self.sub[v]
 
-        return lambda p: p.copush(name)
+        return lambda p: p.copush(lambda env:
+            env.mod.get_word_def(name) (env, *fs))
 
     def elab_expr(self, atoms):
         fns = []
@@ -875,22 +889,6 @@ class word_elaborator:
             raise TypeError("Prim id takes no arguments.")
         return lambda env: None
 
-    def elab_dip (self, *args):
-        if len(args) != 1:
-            raise TypeError("Prim dip takes 1 argument.")
-        body = args[0]
-        a = fresh_var()
-        b = fresh_var()
-        dom = tpack(a, b)
-        dom.unify(self.dom, self.sub)
-        self.dom = a.subst(self.sub)
-        f = body.elab(self)
-        self.dom = tpack(self.dom, b.subst(self.sub))
-        return lambda env: env.dip(f)
-
-builtin_prims = {
-    'dip':  lambda e, args: e.elab_dip  (*args),
-}
 
 class env:
     def __init__(self, mod):
@@ -932,8 +930,6 @@ class env:
             w = self.copop()
             if callable(w):
                 w(self)
-            elif isinstance(w, str):
-                self.mod.get_word_def(w) (self)
             else:
                 raise TypeError("Unknown item on return stack: %r" % w)
             return True
@@ -969,6 +965,8 @@ builtin_types = {
     'Str': type0(tstr),
 }
 
+builtin_prims = {
+}
 
 def word2 (f):
     def w(env):
@@ -978,16 +976,19 @@ def word2 (f):
     return w
 
 builtin_word_sigs = {
-    '+': (tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
-    '-': (tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
-    '*': (tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
-    '/': (tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
-    '%': (tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
+    '+': ([], tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
+    '-': ([], tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
+    '*': ([], tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
+    '/': ([], tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
+    '%': ([], tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
 
-    'dup':  (tpack(tvar('a'), tvar('b')), tpack(tvar('a'), tvar('b'), tvar('b'))),
-    'drop': (tpack(tvar('a'), tvar('b')), tpack(tvar('a'))),
-    'swap': (tpack(tvar('a'), tvar('b'), tvar('c')), tpack(tvar('a'), tvar('c'), tvar('b'))),
-    'id':   (tvar('a'), tvar('a')),
+    'dup':  ([], tpack(tvar('a'), tvar('b')), tpack(tvar('a'), tvar('b'), tvar('b'))),
+    'drop': ([], tpack(tvar('a'), tvar('b')), tpack(tvar('a'))),
+    'swap': ([], tpack(tvar('a'), tvar('b'), tvar('c')), tpack(tvar('a'), tvar('c'), tvar('b'))),
+    'id':   ([], tvar('a'), tvar('a')),
+    'dip':  ([(tvar('a'), tvar('b'))],
+            tpack(tvar('a'), tvar('c')),
+            tpack(tvar('b'), tvar('c'))),
 }
 
 builtin_word_defs = {
@@ -1001,6 +1002,7 @@ builtin_word_defs = {
     'drop': env.drop,
     'swap': env.swap,
     'id':   (lambda env: env),
+    'dip':  (lambda env, f: env.dip(f)),
 }
 
 
