@@ -859,47 +859,18 @@ class word_elaborator:
             raise TypeError("Prim id takes no arguments.")
         return lambda env: None
 
-    def elab_dup (self, *args):
-        if len(args) != 0:
-            raise TypeError("Prim dup takes no arguments.")
-
-        sub = {}
-        prefix = fresh_var().name + ':'
-        self.dom.unify(tpack(tvar(prefix+'a'), tvar(prefix+'b')), sub)
-        self.dom = tpack(tvar(prefix+'a'), tvar(prefix+'b'), tvar(prefix+'b')).subst(sub)
-
-        return lambda env: env.dup()
-
-    def elab_drop (self, *args):
-        if len(args) != 0:
-            raise TypeError("Prim drop takes no arguments.")
-        if len(self.dom) <= 0:
-            raise TypeError("Can't drop on empty stack.")
-        self.dom.pop()
-        return lambda env: env.drop()
-
     def elab_dip (self, *args):
         if len(args) != 1:
             raise TypeError("Prim dip takes 1 argument.")
-        if len(self.dom) <= 0:
-            raise TypeError("Can't drop on empty stack.")
-
         body = args[0]
-        t = self.dom.pop()
+        a = fresh_var()
+        b = fresh_var()
+        dom = tpack(a, b)
+        dom.unify(self.dom, self.sub)
+        self.dom = a.subst(self.sub)
         f = body.elab(self)
-        self.dom.append(t)
+        self.dom = tpack(self.dom, b.subst(self.sub))
         return lambda env: env.dip(f)
-
-    def elab_swap (self, *args):
-        if len(args) != 0:
-            raise TypeError("Prim swap takes no arguments.")
-        if len(self.dom) <= 1:
-            raise TypeError("Can't swap on stack with less than 2 elements.")
-        b = self.dom.pop()
-        a = self.dom.pop()
-        self.dom.append(b)
-        self.dom.append(a)
-        return lambda env: env.swap()
 
 builtin_prims = {
     'dip':  lambda e, args: e.elab_dip  (*args),

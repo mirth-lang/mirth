@@ -1,4 +1,5 @@
 
+
 trip : a -- a a a
 trip = dup dup
 
@@ -9,4 +10,9 @@ quad = trip dup
 40 quad == 40 40 40 40
 
 10 20 trip == 10 20 20 20
+
+square : Int -- Int
+sum-of-squares : Int Int -- Int
+sum-of-squares = dip(square) square +
+square = dup *
 
