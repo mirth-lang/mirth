@@ -297,7 +297,7 @@ def parsetoks(tokens):
         p_expr
     )
 
-    p_word_def = fmapseq(lambda a,_,b: word_def(a,b),
+    p_word_def = fmapseq(lambda a,_,b: word_def(a,[],b),
         p_name,
         test(token.is_equal),
         p_expr,
@@ -346,7 +346,7 @@ def parse(code):
     >>> parse('foo(f : bar) : baz')
     [word_sig(token('foo', 1), [(token('f', 1), expr([]), expr([word(token('bar', 1), [])]))], expr([]), expr([word(token('baz', 1), [])]))]
     >>> parse('foo = bar')
-    [word_def(token('foo', 1), expr([word(token('bar', 1), [])]))]
+    [word_def(token('foo', 1), [], expr([word(token('bar', 1), [])]))]
     >>> parse('foo == bar')
     [assertion(expr([word(token('foo', 1), [])]), expr([word(token('bar', 1), [])]))]
     '''
@@ -419,15 +419,16 @@ class word_sig:
         return mod.decl_word_sig(self.name.code, self.params, self.dom, self.cod)
 
 class word_def:
-    def __init__(self, name, body):
-        self.name = name
-        self.body = body
+    def __init__(self, name, params, body):
+        self.name   = name
+        self.params = params
+        self.body   = body
 
     def __repr__(self):
-        return 'word_def(%r, %r)' % (self.name, self.body)
+        return 'word_def(%r, %r, %r)' % (self.name, self.params, self.body)
 
     def decl(self, mod):
-        return mod.decl_word_def(self.name.code, self.body)
+        return mod.decl_word_def(self.name.code, [p.name for p in self.params], self.body)
 
 class assertion:
     def __init__(self, lhs, rhs):
@@ -719,17 +720,24 @@ class module:
     def decl_word_sig (self, name, params, dom, cod):
         if name in self.word_sigs:
             raise TypeError("Word %s is declared twice." % name)
-        if len(params) > 0:
-            raise TypeError("higher-order words not yet supported")
+
+        ps = []
+        for (pname, pdom, pcod) in params:
+            pdomte = type_elaborator(self)
+            pcodte = type_elaborator(self)
+            pdom.elab(pdomte)
+            pcod.elab(pcodte)
+            ps.append((pdomte.to_tpack(), pcodte.to_tpack()))
+
         domte = type_elaborator(self)
         codte = type_elaborator(self)
         dom.elab(domte)
         cod.elab(codte)
         if domte.rest is None and codte.rest is None:
             domte.rest = codte.rest = fresh_var()
-        self.word_sigs[name] = ([], domte.to_tpack(), codte.to_tpack())
+        self.word_sigs[name] = (ps, domte.to_tpack(), codte.to_tpack())
 
-    def decl_word_def (self, name, body):
+    def decl_word_def (self, name, params, body):
         if name not in self.word_sigs:
             raise TypeError("Word %s is defined without type signature." % name)
 
@@ -812,9 +820,10 @@ class type_elaborator:
             atom.elab(self)
 
 class word_elaborator:
-    def __init__(self, mod, dom):
+    def __init__(self, mod, dom, loc=None):
         self.mod = mod
         self.dom = dom
+        self.loc = loc or {}
         self.sub = {}
 
     def elab_push_int(self, value):
