@@ -16,6 +16,8 @@ USAGE:
     python3 mirth.py --doctest          Run doc tests.
     python3 mirth.py PATH [ARGS...]     Run mirth script with args.
 
+FLAGS:
+    --no-prelude    Don't auto-import prelude.
 '''
 
 import random
@@ -23,15 +25,22 @@ import random
 def main():
     import sys
 
+    try:
+        i = sys.argv.index('--no-prelude')
+        del sys.argv[i]
+        with_prelude = False
+    except ValueError:
+        with_prelude = True
+
     if len(sys.argv) == 1:
-        repl()
+        repl(with_prelude=with_prelude)
     elif sys.argv[1:] == ['--doctest']:
         import doctest
         doctest.testmod()
     else:
-        interpret(sys.argv[1], sys.argv[2:])
+        interpret(sys.argv[1], sys.argv[2:], with_prelude=with_prelude)
 
-def interpret(path, args):
+def interpret(path, args, with_prelude=True):
     with open(path) as fp:
         decls = parse(fp)
 
@@ -41,7 +50,7 @@ def interpret(path, args):
 
     m.check_assertions()
 
-def repl():
+def repl(with_prelude=True):
     # REPL banner
     print()
     print('Mirth Bootstrap Interpreter v0.0.0: CAVEAT USOR.')
@@ -311,7 +320,7 @@ def parsetoks(tokens):
         p_expr,
     )
 
-    p_assertion = fmapseq(lambda a,_,b: assertion(a,b),
+    p_assertion = fmapseq(lambda a,c,b: assertion(c.lineno, a,b),
         p_expr,
         test(token.is_equal2),
         p_expr,
@@ -356,7 +365,7 @@ def parse(code):
     >>> parse('foo = bar')
     [word_def(token('foo', 1), [], expr([word(token('bar', 1), [])]))]
     >>> parse('foo == bar')
-    [assertion(expr([word(token('foo', 1), [])]), expr([word(token('bar', 1), [])]))]
+    [assertion(1, expr([word(token('foo', 1), [])]), expr([word(token('bar', 1), [])]))]
     '''
     return parsetoks(tokenize(code))
 
@@ -439,15 +448,16 @@ class word_def:
         return mod.decl_word_def(self.name.code, [p.code for p in self.params], self.body)
 
 class assertion:
-    def __init__(self, lhs, rhs):
+    def __init__(self, lineno, lhs, rhs):
+        self.lineno = lineno
         self.lhs = lhs
         self.rhs = rhs
 
     def __repr__(self):
-        return 'assertion(%r, %r)' % (self.lhs, self.rhs)
+        return 'assertion(%r, %r, %r)' % (self.lineno, self.lhs, self.rhs)
 
     def decl(self, mod):
-        return mod.decl_assertion(self.lhs, self.rhs)
+        return mod.decl_assertion(self.lineno, self.lhs, self.rhs)
 
 ##############################################################################
 ########################### TYPES & UNIFICATION ##############################
@@ -755,8 +765,8 @@ class module:
 
         if len(params) != len(wargs):
             raise TypeError(
-                ("Definition of %s has the wrong number of arguments. "
-                +"Expected %d arguments but definition has %d.")
+                ("Definition of %s has the wrong number of arguments."
+                +" Expected %d arguments but definition has %d.")
                 % (name, len(wargs), len(params))
             )
 
@@ -772,7 +782,7 @@ class module:
         cod.rigidify().unify(cod2, {}) # if this passes then we are golden
         self.word_defs[name] = func
 
-    def decl_assertion (self, lhs, rhs):
+    def decl_assertion (self, lineno, lhs, rhs):
         orig = tpack(fresh_var())
 
         elab1 = word_elaborator(self, orig)
@@ -784,7 +794,7 @@ class module:
         cosub = {}
         elab1.dom.unify(elab2.dom, cosub)
         orig = orig.subst(elab1.sub).unify(orig.subst(elab2.sub), cosub)
-        self.assertions.append((orig, lhsf, rhsf))
+        self.assertions.append((lineno, orig, lhsf, rhsf))
 
     def decl_expr (self, expr):
         raise SyntaxError("Bare expression not supported.")
@@ -794,7 +804,7 @@ class module:
             self.check_assertion(a)
 
     def check_assertion(self, assn):
-        (dom, f0, f1) = assn
+        (lineno, dom, f0, f1) = assn
         tries = 100 if len(dom.args) else 1
         for try_number in range(tries):
             e0 = env(self)
@@ -810,8 +820,11 @@ class module:
             e0.run()
             e1.run()
             if e0.stack != e1.stack:
-                raise ValueError("Assertion failed: VS = [%s], LHS = [%s], RHS = [%s]."
-                    % ( ' '.join(map(repr, vs))
+                raise ValueError(
+                    ("Assertion failed at line %d:"
+                    +" input = [%s], LHS = [%s], RHS = [%s].")
+                    % ( lineno
+                      , ' '.join(map(repr, vs))
                       , ' '.join(map(repr, e0.stack))
                       , ' '.join(map(repr, e1.stack)) ))
 
@@ -976,6 +989,13 @@ class env:
         self.copush(lambda env: env.push(x))
         self.copush(f)
 
+    def w_if(self, ft, ff):
+        x = self.pop()
+        if x:
+            self.copush(ft)
+        else:
+            self.copush(ff)
+
     def step(self):
         if self.rstack:
             w = self.copop()
@@ -1004,16 +1024,26 @@ class env:
 def type0 (t):
     def f(mod, args):
         if len(args) > 0:
-            raise TypeError("Type %s takes no arguments." % name)
+            raise TypeError("%s takes no arguments." % name)
         return t
     return f
 
-tint = tcon('Int')
-tstr = tcon('Str')
+def mktpack (mod, args):
+    if len(args) != 0:
+        raise TypeError("Pack takes one argument.")
+    e = type_elaborator(mod)
+    args[0].elab(e)
+    return e.to_tpack()
+
+tint  = tcon('Int')
+tstr  = tcon('Str')
+tbool = tcon('Bool')
 
 builtin_types = {
-    'Int': type0(tint),
-    'Str': type0(tstr),
+    'Int':  type0(tint),
+    'Str':  type0(tstr),
+    'Bool': type0(tbool),
+    'Pack': mktpack,
 }
 
 def word2 (f):
@@ -1024,33 +1054,54 @@ def word2 (f):
     return w
 
 builtin_word_sigs = {
-    '+': ([], tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
-    '-': ([], tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
-    '*': ([], tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
-    '/': ([], tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
-    '%': ([], tpack(tvar('a'), tint, tint), tpack(tvar('a'), tint)),
 
-    'dup':  ([], tpack(tvar('a'), tvar('b')), tpack(tvar('a'), tvar('b'), tvar('b'))),
-    'drop': ([], tpack(tvar('a'), tvar('b')), tpack(tvar('a'))),
-    'swap': ([], tpack(tvar('a'), tvar('b'), tvar('c')), tpack(tvar('a'), tvar('c'), tvar('b'))),
-    'id':   ([], tpack(tvar('a')), tpack(tvar('a'))),
+    # basic
+    'dup':  ([], tpack(None, tvar('b')), tpack(None, tvar('b'), tvar('b'))),
+    'drop': ([], tpack(None, tvar('b')), tpack(None)),
+    'swap': ([], tpack(None, tvar('b'), tvar('c')), tpack(None, tvar('c'), tvar('b'))),
+    'id':   ([], tpack(None), tpack(None)),
     'dip':  ([(tpack(tvar('a')), tpack(tvar('b')))],
             tpack(tvar('a'), tvar('c')),
             tpack(tvar('b'), tvar('c'))),
+
+    # bool
+    'true':  ([], tpack(), tpack(None, tbool)),
+    'false': ([], tpack(), tpack(None, tbool)),
+    'if': ([(tpack(tvar('a')), tpack(tvar('b')))
+           ,(tpack(tvar('a')), tpack(tvar('b')))],
+           tpack(tvar('a'), tbool), tpack(tvar('b'))),
+
+    # int
+    '+': ([], tpack(None, tint, tint), tpack(None, tint)),
+    '-': ([], tpack(None, tint, tint), tpack(None, tint)),
+    '*': ([], tpack(None, tint, tint), tpack(None, tint)),
+    '/': ([], tpack(None, tint, tint), tpack(None, tint)),
+    '%': ([], tpack(None, tint, tint), tpack(None, tint)),
+    '<': ([], tpack(None, tint, tint), tpack(None, tbool)),
+
 }
 
 builtin_word_defs = {
+    # basic
+    'dup':  env.dup,
+    'drop': env.drop,
+    'swap': env.swap,
+    'id':   (lambda env: env),
+    'dip':  env.dip,
+
+    # bool
+    'true':  (lambda env: env.push(True)),
+    'false': (lambda env: env.push(False)),
+    'if':   env.w_if,
+
+    # int
     '+': word2(lambda a,b: a + b),
     '-': word2(lambda a,b: a - b),
     '*': word2(lambda a,b: a * b),
     '%': word2(lambda a,b: a % b),
     '/': word2(lambda a,b: a // b),
+    '<': word2(lambda a,b: a < b),
 
-    'dup':  env.dup,
-    'drop': env.drop,
-    'swap': env.swap,
-    'id':   (lambda env: env),
-    'dip':  (lambda env, f: env.dip(f)),
 }
 
 

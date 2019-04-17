@@ -20,6 +20,18 @@ failed = 0
 interp = 'bootstrap/mirth.py'
 subprocess.run([interp, '--doctest'])
 
+with subprocess.Popen([interp, '--no-prelude', 'bootstrap/prelude.mth'],
+        stdout = subprocess.PIPE,
+        stderr = subprocess.PIPE ) as proc:
+    (outs, errs) = proc.communicate()
+    if proc.returncode > 0:
+        print ("\nTEST FAILED [ bootstrap/prelude.mth ]")
+        if outs: print ("\nSTDOUT:\n\n" + outs.decode('utf8') + '\n')
+        if errs: print ("\nSTDERR:\n\n" + errs.decode('utf8') + '\n')
+        print ()
+        failed += 1
+
+
 for path in glob.glob('bootstrap/pass/*'):
     with subprocess.Popen([interp, path],
             stdout = subprocess.PIPE,

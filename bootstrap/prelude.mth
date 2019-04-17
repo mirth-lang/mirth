@@ -1,0 +1,51 @@
+
+#
+# basic words
+#
+
+dup drop == id
+dup swap == dup
+swap swap == id
+
+nip  : a b -- b
+tuck : a b -- b a b
+over : a b -- a b a
+nip  = dip(drop)
+tuck = dup dip(swap)
+over = dip(dup) swap
+nip drop == drop drop
+swap nip == drop
+tuck drop == swap
+tuck nip == nip dup
+over nip == drop dup
+
+rotr : a b c -- c a b
+rotl : a b c -- b c a
+rotr = swap dip(swap)
+rotl = dip(swap) swap
+rotl rotr == id
+rotr rotl == id
+rotl rotl == rotr
+rotr rotr == rotl
+
+
+#
+# words over pairs
+#
+
+dup2  : a1 a2 -- a1 a2 a1 a2
+drop2 : a1 a2 --
+swap2 : a1 a2 b1 b2 -- b1 b2 a1 a2
+dip2(f : *a -- *b) : *a x y -- *b x y
+
+dup2  = over over
+drop2 = drop drop
+swap2 = dip(rotr) rotr
+dip2(f) = dip(dip(f))
+
+dup2 drop2 == id
+dup2 swap2 == dup2
+swap2 swap2 == id
+
+nip2 : a1 a2 b1 b2 -- b1 b2
+
