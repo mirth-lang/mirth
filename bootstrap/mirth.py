@@ -18,6 +18,8 @@ USAGE:
 
 '''
 
+import random
+
 def main():
     import sys
 
@@ -576,7 +578,7 @@ class tvar:
         elif self.name in sub:
             return sub[self.name].unify_tvar(other_name, sub)
         elif other_name in sub:
-            return sub[other].unify(self, sub)
+            return sub[other_name].unify(self, sub)
         else:
             newself = tvar(other_name)
             var_sub = { self.name: newself }
@@ -771,7 +773,7 @@ class module:
         self.word_defs[name] = func
 
     def decl_assertion (self, lhs, rhs):
-        orig = tpack()
+        orig = tpack(fresh_var())
 
         elab1 = word_elaborator(self, orig)
         elab2 = word_elaborator(self, orig)
@@ -779,8 +781,10 @@ class module:
         lhsf = lhs.elab(elab1)
         rhsf = rhs.elab(elab2)
 
-        elab1.dom.unify(elab2.dom, {})
-        self.assertions.append((lhsf, rhsf))
+        cosub = {}
+        elab1.dom.unify(elab2.dom, cosub)
+        orig = orig.subst(elab1.sub).unify(orig.subst(elab2.sub), cosub)
+        self.assertions.append((orig, lhsf, rhsf))
 
     def decl_expr (self, expr):
         raise SyntaxError("Bare expression not supported.")
@@ -789,18 +793,36 @@ class module:
         for a in self.assertions:
             self.check_assertion(a)
 
-    def check_assertion (self, assn):
-        (f0, f1) = assn
-        e0 = env(self)
-        e1 = env(self)
-        f0(e0)
-        f1(e1)
-        e0.run()
-        e1.run()
-        if e0.stack != e1.stack:
-            raise ValueError("Assertion failed: LHS = [%s], RHS = [%s]."
-                % ( ' '.join(map(repr, e0.stack))
-                  , ' '.join(map(repr, e1.stack)) ))
+    def check_assertion(self, assn):
+        (dom, f0, f1) = assn
+        tries = 100 if len(dom.args) else 1
+        for try_number in range(tries):
+            e0 = env(self)
+            e1 = env(self)
+            vs = []
+            for d in dom.args:
+                v = self.arbitrary(d)
+                vs.append(v)
+                e0.push(v)
+                e1.push(v)
+            f0(e0)
+            f1(e1)
+            e0.run()
+            e1.run()
+            if e0.stack != e1.stack:
+                raise ValueError("Assertion failed: VS = [%s], LHS = [%s], RHS = [%s]."
+                    % ( ' '.join(map(repr, vs))
+                      , ' '.join(map(repr, e0.stack))
+                      , ' '.join(map(repr, e1.stack)) ))
+
+    def arbitrary(self, t):
+        if isinstance(t, tvar):
+            return random.randint(-10, 10)
+        elif isinstance(t, tcon):
+            if t.name == 'Int' and t.args == []:
+                return random.randint(-10, 10)
+
+        raise TypeError("Assertion requires input of type %s -- don't know how to generate." % t)
 
 class type_elaborator:
     def __init__(self, mod):
@@ -1011,8 +1033,8 @@ builtin_word_sigs = {
     'dup':  ([], tpack(tvar('a'), tvar('b')), tpack(tvar('a'), tvar('b'), tvar('b'))),
     'drop': ([], tpack(tvar('a'), tvar('b')), tpack(tvar('a'))),
     'swap': ([], tpack(tvar('a'), tvar('b'), tvar('c')), tpack(tvar('a'), tvar('c'), tvar('b'))),
-    'id':   ([], tvar('a'), tvar('a')),
-    'dip':  ([(tvar('a'), tvar('b'))],
+    'id':   ([], tpack(tvar('a')), tpack(tvar('a'))),
+    'dip':  ([(tpack(tvar('a')), tpack(tvar('b')))],
             tpack(tvar('a'), tvar('c')),
             tpack(tvar('b'), tvar('c'))),
 }

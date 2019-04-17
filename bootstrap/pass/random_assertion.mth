@@ -1,0 +1,17 @@
+
+0 + == id
+
+dup swap == dup
+dup drop == id
+swap swap == id
+dip(swap) swap dip(swap) == swap dip(swap) swap
+
+# dip(f) drop == drop f
+dip(swap) drop == drop swap
+dip(dup) drop == drop dup
+dip(dip(dup) drop) drop == drop dip(dup) drop
+
+# dip(f) g == g dip(f)  |  g : a -- b
+dip(swap) 10 + == 10 + dip(swap)
+dip(drop) dup * == dup * dip(drop)
+
