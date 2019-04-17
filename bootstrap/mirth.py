@@ -297,8 +297,14 @@ def parsetoks(tokens):
         p_expr
     )
 
-    p_word_def = fmapseq(lambda a,_,b: word_def(a,[],b),
+    p_word_def_params = alt(
+        parens(starsep(p_comma, p_name)),
+        pure(lambda: []),
+    )
+
+    p_word_def = fmapseq(lambda a,p,_,b: word_def(a,p,b),
         p_name,
+        p_word_def_params,
         test(token.is_equal),
         p_expr,
     )
@@ -428,7 +434,7 @@ class word_def:
         return 'word_def(%r, %r, %r)' % (self.name, self.params, self.body)
 
     def decl(self, mod):
-        return mod.decl_word_def(self.name.code, [p.name for p in self.params], self.body)
+        return mod.decl_word_def(self.name.code, [p.code for p in self.params], self.body)
 
 class assertion:
     def __init__(self, lhs, rhs):
@@ -489,13 +495,15 @@ class tcon:
                 uargs.append(uarg)
             return tcon(self.name, [uarg.subst(sub) for uarg in uargs])
         else:
-            raise TypeError("Failed to unify %s and %s." % (self, tcon(other_name, other_args)))
+            raise TypeError("Failed to unify %s and %s." % (self, tcon(other_name, *other_args)))
 
     def unify_tvar(self, other_name, sub):
         return tvar(other_name).unify_tcon(self.name, self.args, sub)
 
     def unify_tpack(self, other_rest, other_args, sub):
-        raise TypeError("Failed to unify %s and %s" % (self, tpack(other_rest, other_args)))
+        if other_args == [] and other_rest is not None:
+            return other_rest.unify(self, sub)
+        raise TypeError("Failed to unify %s and %s" % (self, tpack(other_rest, *other_args)))
 
 class tvar:
     def __init__(self, name):
@@ -652,6 +660,8 @@ class tpack:
         return other.unify_tpack(self.rest, self.args, sub)
 
     def unify_tcon(self, other_name, other_args, sub):
+        if self.args == [] and self.rest is not None:
+            return self.rest.unify_tcon(other_name, other_args, sub)
         raise TypeError("Failed to unify %s and %s." % (self, tcon(other_name, other_args)))
 
     def unify_tvar(self, other_name, sub):
@@ -733,8 +743,6 @@ class module:
         codte = type_elaborator(self)
         dom.elab(domte)
         cod.elab(codte)
-        if domte.rest is None and codte.rest is None:
-            domte.rest = codte.rest = fresh_var()
         self.word_sigs[name] = (ps, domte.to_tpack(), codte.to_tpack())
 
     def decl_word_def (self, name, params, body):
@@ -742,9 +750,21 @@ class module:
             raise TypeError("Word %s is defined without type signature." % name)
 
         (wargs, dom, cod) = self.word_sigs[name]
-        if len(wargs) > 0 :
-            raise TypeError("Higher order word definition not yet allowed.")
-        elab = word_elaborator(self, dom.rigidify())
+
+        if len(params) != len(wargs):
+            raise TypeError(
+                ("Definition of %s has the wrong number of arguments. "
+                +"Expected %d arguments but definition has %d.")
+                % (name, len(wargs), len(params))
+            )
+
+        loc = {}
+        for (pname, (i, (argdom, argcod))) in zip(params, enumerate(wargs)):
+            adom = argdom.rigidify()
+            acod = argcod.rigidify()
+            loc[pname] = (i, adom, acod)
+
+        elab = word_elaborator(self, dom.rigidify(), loc)
         func = body.elab(elab)
         cod2 = elab.dom
         cod.rigidify().unify(cod2, {}) # if this passes then we are golden
@@ -831,10 +851,38 @@ class word_elaborator:
         return lambda p: p.push(value)
 
     def elab_word(self, name, args):
-        (wargs, dom, cod) = self.mod.get_word_sig(name)
+        if name in self.loc:
+            (nargi, dom, cod) = self.loc[name]
+
+            wargs = []
+            def mkfn(fs):
+                def fn(p, *nargs):
+                    p.copush(nargs[nargi])
+                return fn
+
+        else:
+            (wargs, dom, cod) = self.mod.get_word_sig(name)
+
+            def mkfn(fs):
+                def fn(p, *nargs):
+                    def pushedfn(e):
+                        d = e.mod.get_word_def(name)
+                        dargs = []
+                        for f in fs:
+                            def g(f): return lambda e2: f(e2, *nargs)
+                            dargs.append(g(f))
+                        d(e, *dargs)
+                    p.copush(pushedfn)
+                return fn
+
         if len(args) != len(wargs):
             raise SyntaxError("%s: expected %d args but got %d args"
                 % (name, len(wargs), len(args)))
+
+        if dom.rest is None and cod.rest is None:
+            ovar = fresh_var()
+            dom = tpack(ovar, *dom.args)
+            cod = tpack(ovar, *cod.args)
 
         prefix = fresh_var().name + '.'
         self.dom.unify(dom.freshen(prefix), self.sub)
@@ -843,7 +891,7 @@ class word_elaborator:
         for (arg, (wargdom, wargcod)) in zip(args, wargs):
             adom = wargdom.freshen(prefix).subst(self.sub)
             acod = wargcod.freshen(prefix).subst(self.sub)
-            elab2 = word_elaborator(self.mod, adom)
+            elab2 = word_elaborator(self.mod, adom, self.loc)
             elab2.sub = self.sub
             fs.append(arg.elab(elab2))
             elab2.dom.unify(acod, self.sub)
@@ -856,16 +904,19 @@ class word_elaborator:
             if v[:len(prefix)] == prefix:
                 del self.sub[v]
 
-        return lambda p: p.copush(lambda env:
-            env.mod.get_word_def(name) (env, *fs))
+        return mkfn(fs)
 
     def elab_expr(self, atoms):
         fns = []
         for atom in atoms:
             fns.append(atom.elab(self))
-        def f(p):
+
+
+        def f(p, *args):
+            def g(fn):
+                p.copush(lambda e: fn(e, *args))
             for fn in fns[::-1]:
-                p.copush(fn)
+                g(fn)
         return f
 
 class env:
@@ -944,10 +995,10 @@ builtin_types = {
 }
 
 def word2 (f):
-    def w(env):
-        b = env.pop()
-        a = env.pop()
-        env.push(f(a,b))
+    def w(e):
+        b = e.pop()
+        a = e.pop()
+        e.push(f(a,b))
     return w
 
 builtin_word_sigs = {
