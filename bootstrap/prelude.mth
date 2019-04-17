@@ -51,7 +51,7 @@ nip2 : a1 a2 b1 b2 -- b1 b2
 
 
 #
-# bools
+# bool
 #
 
 and : Bool Bool -- Bool
@@ -140,11 +140,14 @@ abs = neg? if(neg, id)
 0 1+ == 1
 0 1- == -1
 
+2* : Int -- Int
 2/ : Int -- Int
 2% : Int -- Int
+2* = 2 *
 2/ = 2 /
 2% = 2 %
 
+dup 2/ dip(2%) 2* + == id
 
 repeat(f : *a -- *a) : *a Int -- *a
 repeat(f) = pos? if(dip(f) 1- repeat(f), drop)
@@ -153,5 +156,9 @@ count(f : *a Int -- *a) : *a Int -- *a
 count(f) = dip(0) repeat(dup dip(f) 1+) drop
 
 abs dip(0) count(+) == abs dup 1- * 2/
+
+#
+#
+#
 
 
