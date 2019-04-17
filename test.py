@@ -16,63 +16,35 @@ import subprocess
 # run bootstrap tests
 
 failed = 0
-
 interp = 'bootstrap/mirth.py'
 subprocess.run([interp, '--doctest'])
 
-with subprocess.Popen([interp, '--no-prelude', 'bootstrap/prelude.mth'],
-        stdout = subprocess.PIPE,
-        stderr = subprocess.PIPE ) as proc:
-    (outs, errs) = proc.communicate()
-    if proc.returncode > 0:
-        print ("\nTEST FAILED [ bootstrap/prelude.mth ]")
-        if outs: print ("\nSTDOUT:\n\n" + outs.decode('utf8') + '\n')
-        if errs: print ("\nSTDERR:\n\n" + errs.decode('utf8') + '\n')
-        print ()
-        failed += 1
+def test_interp(args, passfn):
+    global failed
+    with subprocess.Popen([interp] + args,
+            stdout = subprocess.PIPE,
+            stderr = subprocess.PIPE ) as proc:
+        (outs, errs) = proc.communicate()
+        outs = outs.decode('utf8')
+        errs = errs.decode('utf8')
+        if not passfn(proc.returncode, outs, errs):
+            print ("\nTEST FAILED [ " ++ ' '.join(args) ++ " ]")
+            if outs: print ("\nSTDOUT:\n\n" + outs + '\n')
+            if errs: print ("\nSTDERR:\n\n" + errs + '\n')
+            print ()
+            failed += 1
 
+test_interp(['--no-prelude', 'bootstrap/prelude.mth'],
+    lambda exit_code, outs, errs: exit_code == 0)
 
 for path in glob.glob('bootstrap/pass/*'):
-    with subprocess.Popen([interp, path],
-            stdout = subprocess.PIPE,
-            stderr = subprocess.PIPE) as proc:
-
-        (outs, errs) = proc.communicate()
-        if proc.returncode > 0:
-            print ("\nTEST FAILED [", path, "]")
-            if outs: print ("\nSTDOUT:\n\n" + outs.decode('utf8') + '\n')
-            if errs: print ("\nSTDERR:\n\n" + errs.decode('utf8') + '\n')
-            print ()
-
-            failed += 1
+    test_interp([path], lambda exit_code, outs, errs: exit_code == 0)
 
 for path in glob.glob('bootstrap/fail_types/*'):
-    with subprocess.Popen([interp, path],
-            stdout = subprocess.PIPE,
-            stderr = subprocess.PIPE) as proc:
-
-        (outs, errs) = proc.communicate()
-        if 'TypeError' not in errs.decode('utf8'):
-            print ("\nTEST FAILED [", path, "]")
-            if outs: print ("\nSTDOUT:\n\n" + outs.decode('utf8') + '\n')
-            if errs: print ("\nSTDERR:\n\n" + errs.decode('utf8') + '\n')
-            print ()
-
-            failed += 1
+    test_interp([path], lambda exit_code, outs, errs: 'TypeError' in errs)
 
 for path in glob.glob('bootstrap/fail_tests/*'):
-    with subprocess.Popen([interp, path],
-            stdout = subprocess.PIPE,
-            stderr = subprocess.PIPE) as proc:
-
-        (outs, errs) = proc.communicate()
-        if 'Assertion failed' not in errs.decode('utf8'):
-            print ("\nTEST FAILED [", path, "]")
-            if outs: print ("\nSTDOUT:\n\n" + outs.decode('utf8') + '\n')
-            if errs: print ("\nSTDERR:\n\n" + errs.decode('utf8') + '\n')
-            print ()
-
-            failed += 1
+    test_interp([path], lambda exit_code, outs, errs: 'Assertion failed' in errs)
 
 sys.exit(failed)
 

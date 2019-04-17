@@ -21,6 +21,7 @@ FLAGS:
 '''
 
 import random
+random.seed('mirth bootstrap')
 
 def main():
     import sys
