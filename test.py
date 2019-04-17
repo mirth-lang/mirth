@@ -34,17 +34,22 @@ def test_interp(args, passfn):
             print ()
             failed += 1
 
-test_interp(['--no-prelude', 'bootstrap/prelude.mth'],
-    lambda exit_code, outs, errs: exit_code == 0)
+def succeeds(exit_code, outs, errs):
+    return exit_code == 0
+
+def stderr_contains(msg):
+    return lambda exit_code, outs, errs: msg in errs
+
+test_interp(['--no-prelude', 'bootstrap/prelude.mth'], succeeds)
 
 for path in glob.glob('bootstrap/pass/*'):
-    test_interp([path], lambda exit_code, outs, errs: exit_code == 0)
+    test_interp([path], succeeds)
 
 for path in glob.glob('bootstrap/fail_types/*'):
-    test_interp([path], lambda exit_code, outs, errs: 'TypeError' in errs)
+    test_interp([path], stderr_contains('TypeError'))
 
 for path in glob.glob('bootstrap/fail_tests/*'):
-    test_interp([path], lambda exit_code, outs, errs: 'Assertion failed' in errs)
+    test_interp([path], stderr_contains('Assertion failed'))
 
 sys.exit(failed)
 
