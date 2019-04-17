@@ -1,13 +1,13 @@
 
 
-dip2(f : *a -- *b) : *a c d -- *b c d
-dip2(f) = dip(dip(f))
+d2(f : *a -- *b) : *a c d -- *b c d
+d2(f) = dip(dip(f))
 
-10 20 30 40 dip2(+) == 30 30 40
+10 20 30 40 d2(+) == 30 30 40
 
 
 g(f : Int Int -- Int) : Int Int Int Int -- Int
-g(f) = dip2(f) f +
+g(f) = d2(f) f +
 
 10 20 30 40 g(*) == 200 1200 +
 

@@ -21,6 +21,7 @@ FLAGS:
 '''
 
 import random
+import os.path
 random.seed('mirth bootstrap')
 
 def main():
@@ -41,11 +42,23 @@ def main():
     else:
         interpret(sys.argv[1], sys.argv[2:], with_prelude=with_prelude)
 
+def load_prelude():
+    p = os.path.dirname(os.path.realpath(__file__))
+    p = os.path.join(p, 'prelude.mth')
+    with open(p) as fp:
+        ds = parse(fp)
+
+    m = module()
+    for d in ds:
+        d.decl(m)
+
+    return m
+
 def interpret(path, args, with_prelude=True):
     with open(path) as fp:
         decls = parse(fp)
 
-    m = module()
+    m = load_prelude() if with_prelude else module()
     for d in decls:
         d.decl(m)
 

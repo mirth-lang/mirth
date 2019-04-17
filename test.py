@@ -28,7 +28,7 @@ def test_interp(args, passfn):
         outs = outs.decode('utf8')
         errs = errs.decode('utf8')
         if not passfn(proc.returncode, outs, errs):
-            print ("\nTEST FAILED [ " ++ ' '.join(args) ++ " ]")
+            print ("\nTEST FAILED [ " + ' '.join(args) + " ]")
             if outs: print ("\nSTDOUT:\n\n" + outs + '\n')
             if errs: print ("\nSTDERR:\n\n" + errs + '\n')
             print ()
