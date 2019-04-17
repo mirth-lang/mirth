@@ -6,7 +6,8 @@ dip2(f) = dip(dip(f))
 10 20 30 40 dip2(+) == 30 30 40
 
 
-g(f : Int -- Int) : Int Int Int -- Int Int Int
-g(f) = dip2(f)
+g(f : Int Int -- Int) : Int Int Int Int -- Int
+g(f) = dip2(f) f +
 
+10 20 30 40 g(*) == 200 1200 +
 
