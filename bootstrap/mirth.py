@@ -240,7 +240,7 @@ def parsetoks(tokens):
         return fmapseq(
             (lambda a,b: [a] + b),
             p,
-            star(fmapseq((lambda a,b: a), sep, p))
+            star(fmapseq((lambda a,b: b), sep, p))
         )
 
     def fmap(g, p):
@@ -848,8 +848,10 @@ class module:
         elif isinstance(t, tcon):
             if t.name == 'Int' and t.args == []:
                 return random.randint(-10, 10)
+            elif t.name == 'Bool' and t.args == []:
+                return random.choice([True, False])
 
-        raise TypeError("Assertion requires input of type %s -- don't know how to generate." % t)
+        raise TypeError("Don't know how to generate value of type %s." % t)
 
 class type_elaborator:
     def __init__(self, mod):
@@ -897,7 +899,7 @@ class word_elaborator:
 
     def elab_push_int(self, value):
         self.dom = tpack(self.dom, tcon('Int', []))
-        return lambda p: p.push(value)
+        return lambda p, *args: p.push(value)
 
     def elab_word(self, name, args):
         if name in self.loc:
@@ -960,12 +962,11 @@ class word_elaborator:
         for atom in atoms:
             fns.append(atom.elab(self))
 
-
         def f(p, *args):
             def g(fn):
-                p.copush(lambda e: fn(e, *args))
+                return (lambda e: fn(e, *args))
             for fn in fns[::-1]:
-                g(fn)
+                p.copush(g(fn))
         return f
 
 class env:
@@ -1106,7 +1107,7 @@ builtin_word_defs = {
     # bool
     'true':  (lambda env: env.push(True)),
     'false': (lambda env: env.push(False)),
-    'if':   env.w_if,
+    'if':    env.w_if,
 
     # int
     '+': word2(lambda a,b: a + b),

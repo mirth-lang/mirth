@@ -49,3 +49,109 @@ swap2 swap2 == id
 
 nip2 : a1 a2 b1 b2 -- b1 b2
 
+
+#
+# bools
+#
+
+and : Bool Bool -- Bool
+and = if(id, drop false)
+
+true true and == true
+true false and == false
+false true and == false
+false false and == false
+true and == id
+swap and == and
+dup and and == and
+and and == dip(and) and
+
+or : Bool Bool -- Bool
+or = if(drop true, id)
+
+true true or == true
+true false or == true
+false true or == true
+false false or == false
+false or == id
+swap or == or
+dup or or == or
+or or == dip(or) or
+
+not : Bool -- Bool
+not = if(false, true)
+
+not not == id
+and not == dip(not) not or
+or not == dip(not) not and
+
+xor : Bool Bool -- Bool
+xor = if(not, id)
+
+true true xor == false
+true false xor == true
+false true xor == true
+false false xor == false
+
+false xor == id
+xor xor == dip(xor) xor
+xor not == not xor
+swap xor == xor
+
+
+#
+# arith
+#
+
+> : Int Int -- Bool
+> = swap <
+
+eq : Int Int -- Bool
+eq = dup2 dip2(<) > and
+
+eq? : Int Int -- Int Int Bool
+eq? = dup2 eq
+eq? drop == id
+
+0? : Int -- Int Bool
+0? = dup 0 eq
+0? drop == id
+
+pos? : Int -- Int Bool
+pos? = dup 0 >
+pos? drop == id
+
+neg? : Int -- Int Bool
+neg? = dup 0 <
+neg? drop == id
+
+neg : Int -- Int
+neg = -1 *
+
+abs : Int -- Int
+abs = neg? if(neg, id)
+
+1+ : Int -- Int
+1- : Int -- Int
+1+ = 1 +
+1- = 1 -
+1+ 1- == id
+1- 1+ == id
+0 1+ == 1
+0 1- == -1
+
+2/ : Int -- Int
+2% : Int -- Int
+2/ = 2 /
+2% = 2 %
+
+
+repeat(f : *a -- *a) : *a Int -- *a
+repeat(f) = pos? if(dip(f) 1- repeat(f), drop)
+
+count(f : *a Int -- *a) : *a Int -- *a
+count(f) = dip(0) repeat(dup dip(f) 1+) drop
+
+abs dip(0) count(+) == abs dup 1- * 2/
+
+
