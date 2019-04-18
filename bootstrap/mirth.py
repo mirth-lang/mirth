@@ -50,7 +50,8 @@ def load_prelude():
 
     m = module()
     for d in ds:
-        d.decl(m)
+        if not isinstance(d, assertion): # don't check assertions for import
+            d.decl(m)
 
     return m
 
@@ -819,7 +820,7 @@ class module:
 
     def check_assertion(self, assn):
         (lineno, dom, f0, f1) = assn
-        tries = 100 if len(dom.args) else 1
+        tries = 1 + 10 * len(dom.args)
         for try_number in range(tries):
             e0 = env(self)
             e1 = env(self)
