@@ -28,6 +28,9 @@ rotr rotl == id
 rotl rotl == rotr
 rotr rotr == rotl
 
+hide(f : *a b -- *c d) : *a x b -- *c x d
+hide(f) = swap dip(f) swap
+
 
 #
 # words over pairs
@@ -54,6 +57,10 @@ nip2  = dip2(drop2)
 tuck2 = dup2 dip2(swap2)
 over2 = dip2(dup2) swap2
 
+hide2(f : *a b1 b2 -- *c d1 d2) : *a x1 x2 b1 b2 -- *c x1 x2 d1 d2
+hide2(f) = swap2 dip2(f) swap2
+
+
 #
 # query words
 #
@@ -63,6 +70,9 @@ dip?(f) = dip(f) swap
 
 dip2?(f : *a -- *a p) : *a b1 b2 -- *a b1 b2 p
 dip2?(f) = dip?(dip?(f))
+
+hide?(f : *a b -- *a b p) : *a x b -- *a x b p
+hide?(f) = swap dip?(f) dip(swap)
 
 #
 # bool
@@ -117,8 +127,10 @@ while(f,g) = f if(g while(f,g), )
 
 and? (f : *a -- *a Bool, g : *a -- *a Bool) : *a -- *a Bool
 or?  (f : *a -- *a Bool, g : *a -- *a Bool) : *a -- *a Bool
+xor? (f : *a -- *a Bool, g : *a -- *a Bool) : *a -- *a Bool
 and? (f, g) = f if(g, false)
 or?  (f, g) = f if(true, g)
+xor? (f, g) = f if(g not, g)
 
 and? (true, true) == true
 and? (true, false) == false
@@ -130,6 +142,21 @@ or? (true, false) == true
 or? (false, true) == true
 or? (false, false) == false
 
+implies? (f : *a -- *a Bool, g : *a -- *a Bool) : *a -- *a Bool
+implies? (f, g) = or? (f not, g)
+
+implies? (true, true) == true
+implies? (true, false) == false
+implies? (false, true) == true
+implies? (false, false) == true
+
+iff? (f : *a -- *a Bool, g : *a -- *a Bool) : *a -- *a Bool
+iff? (f, g) = xor? (f, g) not
+
+iff? (true, true) == true
+iff? (true, false) == false
+iff? (false, true) == false
+iff? (false, false) == true
 
 #
 # arith
@@ -236,6 +263,10 @@ empty? nip == empty
 leneq? : Str Str -- Str Str Bool
 leneq? = dip?(len?) dip?(len?) eq
 
+dup leneq? == dup true
+swap leneq? == leneq? dip(swap)
+implies?( and?(leneq?, dip?(leneq?)) , hide?(leneq?) ) == true
+
 streqto : Str Str Int -- Bool
 streqto = pos? if(
   dip(dup2) 1- rotr dip(1 break drop ord) 1 break drop ord
@@ -251,5 +282,7 @@ streq = streq? nip nip
 dup streq == drop true
 swap streq == streq
 dip(dup dip(streq)) streq and == tuck dip2(streq) streq and
+implies?(and?(streq?, dip?(streq?)), hide?(streq?)) == true
+implies?(streq?, leneq?) == true
 
 
