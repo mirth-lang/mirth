@@ -47,8 +47,22 @@ dup2 drop2 == id
 dup2 swap2 == dup2
 swap2 swap2 == id
 
-nip2 : a1 a2 b1 b2 -- b1 b2
+nip2  : a1 a2 b1 b2 -- b1 b2
+tuck2 : a1 a2 b1 b2 -- b1 b2 a1 a2 b1 b2
+over2 : a1 a2 b1 b2 -- a1 a2 b1 b2 a1 a2
+nip2  = dip2(drop2)
+tuck2 = dup2 dip2(swap2)
+over2 = dip2(dup2) swap2
 
+#
+# query words
+#
+
+dip?(f : *a -- *a p) : *a b -- *a b p
+dip?(f) = dip(f) swap
+
+dip2?(f : *a -- *a p) : *a b1 b2 -- *a b1 b2 p
+dip2?(f) = dip?(dip?(f))
 
 #
 # bool
@@ -98,6 +112,24 @@ xor xor == dip(xor) xor
 xor not == not xor
 swap xor == xor
 
+while(f : *a -- *a Bool, g : *a -- *a) : *a -- *a
+while(f,g) = f if(g while(f,g), )
+
+and? (f : *a -- *a Bool, g : *a -- *a Bool) : *a -- *a Bool
+or?  (f : *a -- *a Bool, g : *a -- *a Bool) : *a -- *a Bool
+and? (f, g) = f if(g, false)
+or?  (f, g) = f if(true, g)
+
+and? (true, true) == true
+and? (true, false) == false
+and? (false, true) == false
+and? (false, false) == false
+
+or? (true, true) == true
+or? (true, false) == true
+or? (false, true) == true
+or? (false, false) == false
+
 
 #
 # arith
@@ -106,12 +138,30 @@ swap xor == xor
 > : Int Int -- Bool
 > = swap <
 
-eq : Int Int -- Bool
-eq = dup2 dip2(<) > and
+<? : Int Int -- Int Int Bool
+<? = dup2 <
+<? drop == id
+
+>? : Int Int -- Int Int Bool
+>? = dup2 >
+>? drop == id
+
+neq? : Int Int -- Int Int Bool
+neq? = or? (<?, >?)
+neq? drop == id
+
+neq : Int Int -- Bool
+neq = neq? nip nip
 
 eq? : Int Int -- Int Int Bool
-eq? = dup2 eq
+eq? = neq? not
 eq? drop == id
+
+eq : Int Int -- Bool
+eq = neq not
+dup eq == drop true
+dup 1 + eq == drop false
+swap eq == eq
 
 0? : Int -- Int Bool
 0? = dup 0 eq
@@ -156,9 +206,50 @@ count(f : *a Int -- *a) : *a Int -- *a
 count(f) = dip(0) repeat(dup dip(f) 1+) drop
 
 abs dip(0) count(+) == abs dup 1- * 2/
+abs while(pos?, dip(1+) 1-) drop == abs +
+
+dup eq == drop true
+swap eq == eq
+
 
 #
+# str
 #
-#
+
+break ++ == drop
+++ len == dip(len) len +
+abs char ord == abs
+
+len? : Str -- Str Int
+len? = dup len
+len? drop == id
+len? nip  == len
+
+empty : Str -- Bool
+empty = len 0 eq
+
+empty? : Str -- Str Bool
+empty? = dup empty
+empty? drop == id
+empty? nip == empty
+
+leneq? : Str Str -- Str Str Bool
+leneq? = dip?(len?) dip?(len?) eq
+
+streqto : Str Str Int -- Bool
+streqto = pos? if(
+  dip(dup2) 1- rotr dip(1 break drop ord) 1 break drop ord
+  eq if(streqto, drop drop2 false),
+  drop drop2 true)
+
+streq? : Str Str -- Str Str Bool
+streq? = and?( leneq?, dup2 len? streqto )
+
+streq : Str Str -- Bool
+streq = streq? nip nip
+
+dup streq == drop true
+swap streq == streq
+dip(dup dip(streq)) streq and == tuck dip2(streq) streq and
 
 

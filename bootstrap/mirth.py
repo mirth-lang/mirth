@@ -825,7 +825,7 @@ class module:
             e1 = env(self)
             vs = []
             for d in dom.args:
-                v = self.arbitrary(d)
+                v = self.arbitrary(d, try_number)
                 vs.append(v)
                 e0.push(v)
                 e1.push(v)
@@ -842,14 +842,18 @@ class module:
                       , ' '.join(map(repr, e0.stack))
                       , ' '.join(map(repr, e1.stack)) ))
 
-    def arbitrary(self, t):
+    def arbitrary(self, t, n=10):
         if isinstance(t, tvar):
-            return random.randint(-10, 10)
+            return random.randint(-n, n)
         elif isinstance(t, tcon):
             if t.name == 'Int' and t.args == []:
-                return random.randint(-10, 10)
+                return random.randint(-n, n)
             elif t.name == 'Bool' and t.args == []:
                 return random.choice([True, False])
+            elif t.name == 'Str' and t.args == []:
+                l = random.randint(0, n)
+                return ''.join(chr(random.randint(1,128)) for i in range(l))
+
 
         raise TypeError("Don't know how to generate value of type %s." % t)
 
@@ -1061,12 +1065,28 @@ builtin_types = {
     'Pack': mktpack,
 }
 
+def word1 (f):
+    def w (e):
+        a = e.pop()
+        e.push(f(a))
+    return w
+
 def word2 (f):
     def w(e):
         b = e.pop()
         a = e.pop()
         e.push(f(a,b))
     return w
+
+def word22 (f):
+    def w(e):
+        b = e.pop()
+        a = e.pop()
+        x,y = f(a,b)
+        e.push(x)
+        e.push(y)
+    return w
+
 
 builtin_word_sigs = {
 
@@ -1094,6 +1114,12 @@ builtin_word_sigs = {
     '%': ([], tpack(None, tint, tint), tpack(None, tint)),
     '<': ([], tpack(None, tint, tint), tpack(None, tbool)),
 
+    # str
+    '++': ([], tpack(None, tstr, tstr), tpack(None, tstr)),
+    'break': ([], tpack(None, tstr, tint), tpack(None, tstr, tstr)),
+    'len': ([], tpack(None, tstr), tpack(None, tint)),
+    'ord': ([], tpack(None, tstr), tpack(None, tint)),
+    'char': ([], tpack(None, tint), tpack(None, tstr)),
 }
 
 builtin_word_defs = {
@@ -1117,6 +1143,12 @@ builtin_word_defs = {
     '/': word2(lambda a,b: a // b),
     '<': word2(lambda a,b: a < b),
 
+    # str
+    '++': word2(lambda a,b: a + b),
+    'break': word22(lambda a,b: (a[:b], a[b:]) if b >= 0 else ('', a)),
+    'len': word1(len),
+    'char': word1(chr),
+    'ord': word1(ord),
 }
 
 
