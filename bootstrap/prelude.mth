@@ -285,4 +285,46 @@ dip(dup dip(streq)) streq and == tuck dip2(streq) streq and
 implies?(and?(streq?, dip?(streq?)), hide?(streq?)) == true
 implies?(streq?, leneq?) == true
 
+#
+# pack
+#
+
+pack0 : -- Pack()
+pack0 = 0 0 pack2 inpack(drop2)
+
+unpack0 : Pack() --
+unpack0 = drop
+
+pack0 unpack0 == id
+unpack0 pack0 == id
+
+pack1 : a -- Pack(a)
+pack1 = 0 pack2 inpack(drop)
+
+unpack1 : Pack(a) -- a
+unpack1 = inpack(0) unpack2 drop
+
+pack1 unpack1 == id
+unpack1 pack1 == id
+
+pack2 unpack2 == id
+unpack2 pack2 == id
+
+pack3 : a b c -- Pack(a b c)
+pack3 = pack2 pack2 inpack(unpack2)
+
+unpack3 : Pack(a b c) -- a b c
+unpack3 = inpack(pack2) unpack2 unpack2
+
+pack3 unpack3 == id
+unpack3 pack3 == id
+
+pack4 : a b c d -- Pack(a b c d)
+pack4 = pack2 pack3 inpack(unpack2)
+
+unpack4 : Pack(a b c d) -- a b c d
+unpack4 = inpack(pack2) unpack3 unpack2
+
+pack4 unpack4 == id
+unpack4 pack4 == id
 

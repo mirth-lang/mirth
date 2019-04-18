@@ -854,7 +854,11 @@ class module:
             elif t.name == 'Str' and t.args == []:
                 l = random.randint(0, n)
                 return ''.join(chr(random.randint(1,128)) for i in range(l))
-
+        elif isinstance(t, tpack):
+            vs = []
+            for t2 in t.args:
+                vs.append(self.arbitrary(t2, n))
+            return tuple(vs)
 
         raise TypeError("Don't know how to generate value of type %s." % t)
 
@@ -1049,7 +1053,7 @@ def type0 (t):
     return f
 
 def mktpack (mod, args):
-    if len(args) != 0:
+    if len(args) != 1:
         raise TypeError("Pack takes one argument.")
     e = type_elaborator(mod)
     args[0].elab(e)
@@ -1072,6 +1076,14 @@ def word1 (f):
         e.push(f(a))
     return w
 
+def word12 (f):
+    def w (e):
+        a = e.pop()
+        x, y = f(a)
+        e.push(x)
+        e.push(y)
+    return w
+
 def word2 (f):
     def w(e):
         b = e.pop()
@@ -1087,6 +1099,16 @@ def word22 (f):
         e.push(x)
         e.push(y)
     return w
+
+def inpack (e, f):
+    newstack = list(e.pop())
+    oldstack = e.stack
+    e.stack = newstack
+    def restore_stack(e2):
+        oldstack.append(tuple(e2.stack))
+        e2.stack = oldstack
+    e.copush(restore_stack)
+    e.copush(f)
 
 
 builtin_word_sigs = {
@@ -1121,6 +1143,15 @@ builtin_word_sigs = {
     'len': ([], tpack(None, tstr), tpack(None, tint)),
     'ord': ([], tpack(None, tstr), tpack(None, tint)),
     'char': ([], tpack(None, tint), tpack(None, tstr)),
+
+    # pack
+    'inpack': ([(tpack(tvar('a')), tpack(tvar('b')))],
+                    tpack(None, tpack(tvar('a'))),
+                    tpack(None, tpack(tvar('b')))),
+    'pack2'   : ([], tpack(None, tvar('a'), tvar('b')),
+                     tpack(None, tpack(None, tvar('a'), tvar('b')))),
+    'unpack2' : ([], tpack(None, tpack(None, tvar('a'), tvar('b'))),
+                     tpack(None, tvar('a'), tvar('b'))),
 }
 
 builtin_word_defs = {
@@ -1150,6 +1181,11 @@ builtin_word_defs = {
     'len': word1(len),
     'char': word1(chr),
     'ord': word1(ord),
+
+    # pack
+    'inpack': inpack,
+    'pack2': word2(lambda a,b: (a,b)),
+    'unpack2': word12(lambda p: p),
 }
 
 
