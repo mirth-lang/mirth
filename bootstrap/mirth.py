@@ -341,11 +341,21 @@ def parsetoks(tokens):
         p_expr,
     )
 
+    p_data_def = fmapseq(lambda a,b,c,d,e,f: data_def(a.lineno, b, c, e),
+        test(token.is_data),
+        p_name,
+        p_word_def_params,
+        p_line,
+        star(fmapseq(lambda a,b: a, p_word_sig, p_line)),
+        test(token.is_end)
+    )
+
     p_decl = fmapseq(lambda a,b: a,
         alt(
             p_word_sig,
             p_word_def,
             p_assertion,
+            p_data_def,
             p_expr
         ),
         p_line
@@ -473,6 +483,21 @@ class assertion:
 
     def decl(self, mod):
         return mod.decl_assertion(self.lineno, self.lhs, self.rhs)
+
+class data_def:
+    def __init__(self, lineno, name, params, wordsigs):
+        self.lineno = lineno
+        self.name = name
+        self.params = params
+        self.wordsigs = wordsigs
+
+    def __repr__(self):
+        return ('data_def(%r, %r, %r, %r)' %
+            (self.lineno, self.name, self.params, self.wordsigs))
+
+    def decl(self, mod):
+        return mod.decl_data_def(self.lineno, self.name.code, self.params, self.wordsigs)
+
 
 ##############################################################################
 ########################### TYPES & UNIFICATION ##############################
@@ -810,6 +835,62 @@ class module:
         elab1.dom.unify(elab2.dom, cosub)
         orig = orig.subst(elab1.sub).unify(orig.subst(elab2.sub), cosub)
         self.assertions.append((lineno, orig, lhsf, rhsf))
+
+    def decl_data_def (self, lineno, name, params, wordsigs):
+        if len(params) > 0:
+            raise SyntaxError(
+                "Line %d: Higher order types not yet implemented."
+            )
+
+        for wordsig in wordsigs:
+            if len(wordsig.cod.atoms) != 1:
+                raise SyntaxError(
+                    "Line %d: Constructor must return a single value."
+                    % lineno
+                )
+            if wordsig.cod.atoms[0].name.code != name:
+                raise SyntaxError(
+                    "Line %d: Constructor must return value of constructed type."
+                    % lineno
+                )
+            if (len(wordsig.dom.atoms) > 0 and isinstance(wordsig.dom.atoms[0], word) and
+                    wordsig.dom.atoms[0].name.code[0] == '*'):
+                raise SyntaxError(
+                    "Line %d: Constructor must take a fixed number of inputs."
+                    % lineno
+                )
+
+            if len(wordsig.params) > 0:
+                raise SyntaxError(
+                    "Line %d: Higher order constructors not yet implemented."
+                    % lineno
+                )
+
+        def ft(mod, args):
+            if len(args) != len(params):
+                raise TypeError("Type %s expects %d args, but got %d args."
+                    % (name, len(params), len(args)))
+            return tcon(name, [])
+
+        self.types[name] = ft
+
+
+        def addworddef(wordsig):
+            wname = wordsig.name.code
+            wlen = len(wordsig.dom.atoms)
+            def wfn(e):
+                ws = []
+                for i in range(wlen):
+                    ws.append(e.pop())
+                vs = [wname]
+                vs.extend(ws[::-1])
+                e.push(tuple(vs))
+            self.word_defs[wname] = wfn
+
+        for wordsig in wordsigs:
+            wordsig.decl(self)
+            addworddef(wordsig)
+
 
     def decl_expr (self, expr):
         raise SyntaxError("Bare expression not supported.")
