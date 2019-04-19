@@ -757,6 +757,7 @@ def fresh_var():
 class module:
     def __init__(self):
         self.types = builtin_types.copy()
+        self.prims = builtin_prims.copy()
         self.word_sigs = builtin_word_sigs.copy()
         self.word_defs = builtin_word_defs.copy()
         self.assertions = []
@@ -768,6 +769,14 @@ class module:
         if name not in self.types:
             raise TypeError("Type %s not defined." % name)
         return self.types[name] (self, args)
+
+    def has_prim(self, name):
+        return name in self.prims
+
+    def get_prim(self, name):
+        if name not in self.prims:
+            raise TypeError("Prim %s is not defined." % name)
+        return self.prims[name]
 
     def get_word_sig (self, name):
         if name not in self.word_sigs:
@@ -1001,6 +1010,9 @@ class word_elaborator:
                     p.copush(nargs[nargi])
                 return fn
 
+        elif self.mod.has_prim(name):
+            return self.mod.get_prim(name) (self, args)
+
         else:
             (wargs, dom, cod) = self.mod.get_word_sig(name)
 
@@ -1149,6 +1161,9 @@ builtin_types = {
     'Str':  type0(tstr),
     'Bool': type0(tbool),
     'Pack': mktpack,
+}
+
+builtin_prims = {
 }
 
 def word1 (f):
