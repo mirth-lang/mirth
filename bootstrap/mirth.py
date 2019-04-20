@@ -115,14 +115,28 @@ def repl(with_prelude=True):
 ################################# LEXING #####################################
 ##############################################################################
 
+import re
+lexer_rules = [ re.compile(r) for r in [
+    r'\(',
+    r'\)',
+    r',',
+    r':',
+    r'#.*',
+    r'\"([^\\\"\n]|\\[ntr\"\\])*\"',
+    r'[^ \t\n\r":\(\),]+'
+]]
+
 def tokenize (code):
     r'''tokenize (file or string) -> token_generator
 
-    Lexify a mirth codebase.
+    Lex a mirth codebase.
 
     >>> list(tokenize('foo bar'))
     [token('foo', 1), token('bar', 1), token('\n', 1)]
-
+    >>> list(tokenize('foo:bar'))
+    [token('foo', 1), token(':', 1), token('bar', 1), token('\n', 1)]
+    >>> list(tokenize('foo"bar baz"'))
+    [token('foo', 1), token('"bar baz"', 1), token('\n', 1)]
     '''
 
     if isinstance(code, str):
@@ -131,17 +145,20 @@ def tokenize (code):
         lines = list(code)
 
     for i, line in enumerate(lines):
-        toks = (line.replace('(', ' ( ')
-                    .replace(')', ' ) ')
-                    .replace(',', ' , ')
-                    .split())
         emitted = False
-        for tok in toks:
-            if tok == '#': # comment
-                break
-            elif tok:
-                emitted = True
-                yield token(code=tok, lineno=i+1)
+        line = line.lstrip()
+        while line:
+            for rule in lexer_rules:
+                m = rule.match(line)
+                if m:
+                    tok = m.group(0)
+                    line = line[len(tok):].lstrip()
+                    if tok[0] != '#':
+                        emitted = True
+                        yield token(code=tok, lineno=i+1)
+                    break
+            else:
+                raise SyntaxError("Unknown token on line %d: %r" % (i+1, line))
         if emitted:
             yield token(code='\n', lineno=i+1)
 
