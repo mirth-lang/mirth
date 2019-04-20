@@ -60,6 +60,20 @@ over2 = dip2(dup2) swap2
 hide2(f : *a b1 b2 -- *c d1 d2) : *a x1 x2 b1 b2 -- *c x1 x2 d1 d2
 hide2(f) = swap2 dip2(f) swap2
 
+#
+# words over triples
+#
+
+dup3  : a1 a2 a3 -- a1 a2 a3 a1 a2 a3
+drop3 : a1 a2 a3 --
+dip3(f : *a -- *b) : *a x y z -- *b x y z
+
+dup3 = dip(dup2) dup dip(rotr)
+drop3 = drop2 drop
+dip3(f) = dip(dip(dip(f)))
+
+dup3 drop3 == id
+
 
 #
 # query words
@@ -352,9 +366,9 @@ dip("") ++ == id
 ++ ++ == dip(++) ++
 dip(char->str) ++ str->char == drop
 
-break@ : Str Int -- Str Str
-break@ = _prim_strbrk
-break@ ++ == drop
+strBreakAt : Str Int -- Str Str
+strBreakAt = _prim_strbrk
+strBreakAt ++ == drop
 
 strlen : Str -- Int
 strlen = _prim_strlen
@@ -381,7 +395,7 @@ end
 strview : Str -- StrView
 strview = strnull? if(
     drop strnil,
-    1 break@ dip(_prim_decode1 char) strcons
+    1 strBreakAt dip(_prim_decode1 char) strcons
   )
 
 "" strview == strnil
@@ -425,6 +439,19 @@ strall?(f) = strview match(
   strnil  -> "" true,
   strcons -> and?(dip?(f), strall?(f)) dip(dip(char->str) ++)
 )
+
+strelem : Char Str -- Bool
+strelem = strview match(
+  strnil -> drop false,
+  strcons -> dip?(chareq?) if(
+    drop3 true,
+    nip strelem
+  )
+)
+
+strelem? : Char Str -- Char Str Bool
+strelem? = dup2 strelem
+strelem? drop == id
 
 strBreakOnAux(f: Char -- Char Bool) : Str Str -- Str Str
 strBreakOnAux(f) = strview match(

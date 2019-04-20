@@ -50,10 +50,11 @@ locNext = strfold(locNextChar)
 data Token
   INT    : Int -- Token
   STR    : Str -- Token
-  WORD   : Str -- Token
+  NAME   : Str -- Token
   LPAREN : Token
   RPAREN : Token
   COMMA  : Token
+  COLON  : Token
 end
 
 
@@ -69,7 +70,7 @@ isDecInt? drop == id
 "1st"        isDecInt? nip == false
 
 isHexInt? : Str -- Str Bool
-isHexInt? = dup 2 break@ and?(or?(over "0x" streq, over "0X" streq),
+isHexInt? = dup 2 strBreakAt and?(or?(over "0x" streq, over "0X" streq),
   and?(strnull? not, strall?(ishexdigit?))) dip(drop2)
 
 isHexInt? drop == id
@@ -120,6 +121,14 @@ lexStateTest?(f) = dup match( lexState ->
   )
 )
 
+lexStateTake1 : LexState -- LexState Char
+lexStateTake1 = match(
+  lexState -> strview match(
+    strnil -> "" lexState 0 int->char,
+    strcons -> over dip2(locNextChar) dip(lexState)
+  )
+)
+
 lexStateTakeUntil(f: Char -- Char Bool) : LexState -- LexState Str
 lexStateTakeUntil(f) = match(
   lexState -> strBreakOn(f) over dip2(locNext) dip(lexState)
@@ -147,20 +156,20 @@ mkLexer(f) = lexRRNA f match(
   lexRRYield -> id
 )
 
-mkLexRule(f: LexState -- LexRuleResult) : LexRuleResult -- LexRuleResult
-mkLexRule(f) = match(
+lexRule(f: LexState -- LexRuleResult) : LexRuleResult -- LexRuleResult
+lexRule(f) = match(
   lexRRNA    -> f,
   lexRRSkip  -> lexRRSkip,
   lexRRYield -> lexRRYield
 )
 
 lexRuleEOF : LexRuleResult -- LexRuleResult
-lexRuleEOF = mkLexRule(lexStateEOF? if(drop lexDone lexRRYield, lexRRNA))
+lexRuleEOF = lexRule(lexStateEOF? if(drop lexDone lexRRYield, lexRRNA))
 
 lexRuleSkip( p: Char -- Char Bool
            , q: Char -- Char Bool
            ) : LexRuleResult -- LexRuleResult
-lexRuleSkip(p,q) = mkLexRule(
+lexRuleSkip(p,q) = lexRule(
   lexStateTest?(p) if(
     lexStateTakeUntil(q) drop lexRRSkip,
     lexRRNA
@@ -170,11 +179,49 @@ lexRuleSkip(p,q) = mkLexRule(
 lexRuleYield( p: Char -- Char Bool
             , q: LexState -- LexState Token
             ) : LexRuleResult -- LexRuleResult
-lexRuleYield(p,q) = mkLexRule(
+lexRuleYield(p,q) = lexRule(
   lexStateTest?(p) if(
     lexStateLoc? dip(q) swap lexToken lexRRYield,
     lexRRNA
   )
+)
+
+lexRuleChar( p: Str, q: Token ) : LexRuleResult -- LexRuleResult
+lexRuleChar(p,q) = lexRuleYield(p str->char chareq? nip, lexStateTake1 drop q)
+
+isNameChar? : Char -- Char Bool
+isNameChar? = ":,() \n\r\t\"" strelem? nip
+isNameChar? drop == id
+
+lexRuleName( test: Str -- Str Bool
+           , conv: Str -- Token
+           ) : LexRuleResult -- LexRuleResult
+lexRuleName(test,conv) = lexRule(
+  lexStateLoc? over
+  lexStateTakeWhile(isNameChar?)
+  test if(
+    dip(swap) conv lexToken lexRRYield nip,
+    drop3 lexRRNA
+  )
+)
+
+digitVal : Char -- Int
+digitVal = isdigit? if(char->int "0" str->char char->int -,
+  isupper? if(char->int "A" str->char char->int - 10 +,
+  islower? if(char->int "a" str->char char->int - 10 +,
+  drop 0
+)))
+
+readIntBase(b: Int) : Int Str -- Int
+readIntBase(b) = strview match(
+  strnil -> id,
+  strcons -> dip(dip(b *) digitVal +) readIntBase(b)
+)
+
+readInt : Str -- Int
+readInt = 2 strBreakAt dip?(or?("0x" streq? nip, "0X" streq? nip)) if(
+  nip dip(0) readIntBase(16),
+  ++  dip(0) readIntBase(10)
 )
 
 lexStart : Str -- LexState
@@ -185,6 +232,12 @@ lexNext = mkLexer(
   lexRuleEOF
   lexRuleSkip(isIgnoreChar?, isIgnoreChar? not)
   lexRuleSkip(isCommentChar?, '\n' chareq? nip)
+  lexRuleChar("(", LPAREN)
+  lexRuleChar(")", RPAREN)
+  lexRuleChar(",", COMMA)
+  lexRuleChar(":", COLON)
+  lexRuleName(isInt?, readInt INT)
+  lexRuleName(strnull? not, NAME)
 )
 
 
