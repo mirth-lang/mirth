@@ -246,15 +246,14 @@ data Char
   char : Int -- Char
 end
 
-
 char->int : Char -- Int
 char->int = match ( char -> id )
 
-int->char : Int -- Char
-int->char = abs char
-
 char->str : Char -- Str
 char->str = match ( char -> _prim_encode1 )
+
+int->char : Int -- Char
+int->char = abs char
 
 str->char : Str -- Char
 str->char = _prim_decode1 char
@@ -262,8 +261,14 @@ str->char = _prim_decode1 char
 Char.generate : Int -- Char
 Char.generate = int->char
 
+char->int int->char == id
+char->str str->char == id
+
 chareq : Char Char -- Bool
 chareq = dip(char->int) char->int eq
+
+dup  chareq == drop true
+swap chareq == chareq
 
 #
 # str

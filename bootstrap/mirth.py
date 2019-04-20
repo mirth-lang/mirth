@@ -1015,7 +1015,42 @@ class module:
         if isinstance(t, tvar):
             return random.randint(-n, n)
         elif isinstance(t, tcon):
-            if t.name == 'Int' and t.args == []:
+            gname = t.name+'.generate'
+            if gname in self.word_sigs:
+                (ps, dom, cod) = self.word_sigs[gname]
+                if len(ps):
+                    raise TypeError(
+                        "%s cannot take args."
+                        % gname
+                    )
+                if dom.rest is not None:
+                    raise TypeError(
+                        "%s must take fixed number of args."
+                        % gname
+                    )
+
+                if not (cod.rest is None and len(cod.args) == 1):
+                    raise TypeError(
+                        "%s must return a single value."
+                        % gname
+                    )
+
+                if not (isinstance(cod.args[0], tcon) and cod.args[0].name == t.name):
+                    raise TypeError(
+                        "%s must return value of type %s."
+                        % (gname, t.name)
+                    )
+                fun = self.get_word_def(gname)
+                sub = {}
+                t.unify(cod.args[0].freshen(fresh_var().name), sub)
+                e = env(self)
+                for d in dom.args:
+                    e.push(self.arbitrary(d.subst(sub), n))
+                e.copush(fun)
+                e.run()
+                return e.pop()
+
+            elif t.name == 'Int' and t.args == []:
                 return random.randint(-n, n)
             elif t.name == 'Bool' and t.args == []:
                 return random.choice([True, False])
