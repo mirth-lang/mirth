@@ -190,7 +190,7 @@ lexRuleChar( p: Str, q: Token ) : LexRuleResult -- LexRuleResult
 lexRuleChar(p,q) = lexRuleYield(p str->char chareq? nip, lexStateTake1 drop q)
 
 isNameChar? : Char -- Char Bool
-isNameChar? = ":,() \n\r\t\"" strelem? nip
+isNameChar? = ":,() \n\r\t\"" strelem? not nip
 isNameChar? drop == id
 
 lexRuleName( test: Str -- Str Bool
@@ -224,6 +224,11 @@ readInt = 2 strBreakAt dip?(or?("0x" streq? nip, "0X" streq? nip)) if(
   ++  dip(0) readIntBase(10)
 )
 
+"102030" readInt == 102030
+"0987654321" readInt == 987654321
+"0xABCDEF" readInt == 0xABCDEF
+"0Xdeadbeefca1234567890" readInt == 0Xdeadbeefca1234567890
+
 lexStart : Str -- LexState
 lexStart = dip(1 1 loc) lexState
 
@@ -240,5 +245,16 @@ lexNext = mkLexer(
   lexRuleName(strnull? not, NAME)
 )
 
+# lexer tests
+"" lexStart lexNext == lexDone
+"(" lexStart lexNext == 1 2 loc "" lexState 1 1 loc LPAREN lexToken
+")" lexStart lexNext == 1 2 loc "" lexState 1 1 loc RPAREN lexToken
+"," lexStart lexNext == 1 2 loc "" lexState 1 1 loc COMMA lexToken
+":" lexStart lexNext == 1 2 loc "" lexState 1 1 loc COLON lexToken
+"foo bar" lexStart lexNext == 1 4 loc " bar" lexState 1 1 loc "foo" NAME lexToken
+"foo:bar" lexStart lexNext == 1 4 loc ":bar" lexState 1 1 loc "foo" NAME lexToken
+"123,456" lexStart lexNext == 1 4 loc ",456" lexState 1 1 loc 123 INT lexToken
+"foo(bar)" lexStart lexNext == 1 4 loc "(bar)" lexState 1 1 loc "foo" NAME lexToken
+"  \t  b  ()" lexStart lexNext == 1 12 loc "  ()" lexState 1 11 loc "b" NAME lexToken
 
 
