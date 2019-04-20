@@ -10,7 +10,8 @@
 
 Directory structure:
 
-- `bootstrap`: Bootstrap for compiler.
+- `bootstrap`: Bootstrap for compiler, i.e. a minimal Mirth interpreter.
+- `src`: Source code for compiler, written in Mirth.
 - `formal`: Formal models of mirth.
 
 ## Issues and Contribution
