@@ -238,14 +238,50 @@ abs while(pos?, dip(1+) 1-) drop == abs +
 dup eq == drop true
 swap eq == eq
 
+#
+# char
+#
+
+data Char
+  char : Int -- Char
+end
+
+
+char->int : Char -- Int
+char->int = match ( char -> id )
+
+int->char : Int -- Char
+int->char = abs char
+
+char->str : Char -- Str
+char->str = match ( char -> _prim_encode1 )
+
+str->char : Str -- Char
+str->char = _prim_decode1 char
+
+Char.generate : Int -- Char
+Char.generate = int->char
+
+chareq : Char Char -- Bool
+chareq = dip(char->int) char->int eq
 
 #
 # str
 #
 
-break ++ == drop
+++ : Str Str -- Str
+++ = _prim_strcat
+"" ++ == id
+dip("") ++ == id
+++ ++ == dip(++) ++
+
+break@ : Str Int -- Str Str
+break@ = _prim_strbrk
+break@ ++ == drop
+
+len : Str -- Int
+len = _prim_strlen
 ++ len == dip(len) len +
-abs char ord == abs
 
 len? : Str -- Str Int
 len? = dup len
@@ -260,30 +296,44 @@ empty? = dup empty
 empty? drop == id
 empty? nip == empty
 
-leneq? : Str Str -- Str Str Bool
-leneq? = dip?(len?) dip?(len?) eq
+data ViewStr
+  strnil  : ViewStr
+  strcons : Char Str -- ViewStr
+end
 
-dup leneq? == dup true
-swap leneq? == leneq? dip(swap)
-implies?( and?(leneq?, dip?(leneq?)) , hide?(leneq?) ) == true
+viewStr : Str -- ViewStr
+viewStr = empty? if(
+    drop strnil,
+    1 break@ dip(_prim_decode1 char) strcons
+  )
 
-streqto : Str Str Int -- Bool
-streqto = pos? if(
-  dip(dup2) 1- rotr dip(1 break drop ord) 1 break drop ord
-  eq if(streqto, drop drop2 false),
-  drop drop2 true)
-
-streq? : Str Str -- Str Str Bool
-streq? = and?( leneq?, dup2 len? streqto )
+"" viewStr == strnil
+"a" viewStr == 97 char "" strcons
+" foo" viewStr == 32 char "foo" strcons
 
 streq : Str Str -- Bool
-streq = streq? nip nip
+streq = viewStr match(
+  strnil  -> empty,
+  strcons -> rotl viewStr match(
+    strnil  -> drop2 false,
+    strcons -> dip(swap dip(chareq)) rotl if(streq, drop2 false)
+  )
+)
 
-dup streq == drop true
+"" "" streq == true
+"a" "" streq == false
+"" "a" streq == false
+"foo" "foo" streq == true
+"foo" "bar" streq == false
+"bar" "bar" streq == true
+"bar" "baz" streq == false
+"baz" "baz" streq == true
+dup  streq == drop true
 swap streq == streq
-dip(dup dip(streq)) streq and == tuck dip2(streq) streq and
-implies?(and?(streq?, dip?(streq?)), hide?(streq?)) == true
-implies?(streq?, leneq?) == true
+
+streq? : Str Str -- Str Str Bool
+streq? = dup2 streq
+
 
 #
 # pack

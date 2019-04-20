@@ -1385,11 +1385,11 @@ builtin_word_sigs = {
     '<': ([], tpack(None, tint, tint), tpack(None, tbool)),
 
     # str
-    '++': ([], tpack(None, tstr, tstr), tpack(None, tstr)),
-    'break': ([], tpack(None, tstr, tint), tpack(None, tstr, tstr)),
-    'len': ([], tpack(None, tstr), tpack(None, tint)),
-    'ord': ([], tpack(None, tstr), tpack(None, tint)),
-    'char': ([], tpack(None, tint), tpack(None, tstr)),
+    '_prim_strcat': ([], tpack(None, tstr, tstr), tpack(None, tstr)),
+    '_prim_strbrk': ([], tpack(None, tstr, tint), tpack(None, tstr, tstr)),
+    '_prim_strlen': ([], tpack(None, tstr), tpack(None, tint)),
+    '_prim_decode1': ([], tpack(None, tstr), tpack(None, tint)),
+    '_prim_encode1': ([], tpack(None, tint), tpack(None, tstr)),
 
     # pack
     'inpack': ([(tpack(tvar('a')), tpack(tvar('b')))],
@@ -1423,11 +1423,11 @@ builtin_word_defs = {
     '<': word2(lambda a,b: a < b),
 
     # str
-    '++': word2(lambda a,b: a + b),
-    'break': word22(lambda a,b: (a[:b], a[b:]) if b >= 0 else ('', a)),
-    'len': word1(len),
-    'char': word1(chr),
-    'ord': word1(ord),
+    '_prim_strcat':   word2(lambda a,b: a + b),
+    '_prim_strbrk':   word22(lambda a,b: (a[:b], a[b:]) if b >= 0 else ('', a)),
+    '_prim_strlen':   word1(len),
+    '_prim_encode1':  word1(chr),
+    '_prim_decode1':  word1(ord),
 
     # pack
     'inpack': inpack,
