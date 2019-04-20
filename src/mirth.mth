@@ -64,3 +64,32 @@ lexAt : Str Loc -- LexResult
 lex : Str -- LexResult
 lex = 1 1 loc lexAt
 
+isDecInt? : Str -- Str Bool
+isDecInt? = and?(strnull? not, strall?(isdigit?))
+isDecInt? drop == id
+""           isDecInt? nip == false
+"0"          isDecInt? nip == true
+"1"          isDecInt? nip == true
+"89"         isDecInt? nip == true
+"3622614048" isDecInt? nip == true
+"0098767890" isDecInt? nip == true
+"1st"        isDecInt? nip == false
+
+isHexInt? : Str -- Str Bool
+isHexInt? = dup 2 break@ and?(or?(over "0x" streq, over "0X" streq),
+  and?(strnull? not, strall?(ishexdigit?))) dip(drop2)
+
+isHexInt? drop == id
+"0"    isHexInt? nip == false
+"0x"   isHexInt? nip == false
+"0xA"  isHexInt? nip == true
+"0x0010"     isHexInt? nip == true
+"0xdeadbeef" isHexInt? nip == true
+"0xCABc4FED" isHexInt? nip == true
+"0xFA12E8EX" isHexInt? nip == false
+"0Xa0010aa0" isHexInt? nip == true
+implies?(isDecInt?, "0x" over ++ isHexInt? nip) == true
+
+isInt? : Str -- Str Bool
+isInt? = or? (isDecInt?, isHexInt?)
+

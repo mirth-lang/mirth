@@ -277,6 +277,7 @@ str->char = dup _prim_strlen 0 eq if(
     drop 0 char,
     1 _prim_strbrk drop _prim_decode1 char
   )
+"" str->char == 0 int->char
 
 Char.generate : Int -- Char
 Char.generate = int->char
@@ -298,7 +299,6 @@ char>= = swap char<=
 
 chareq : Char Char -- Bool
 chareq = dip(char->int) char->int eq
-
 dup  chareq == drop true
 swap chareq == chareq
 
@@ -333,6 +333,10 @@ isdigit? : Char -- Char Bool
 isdigit? = inrange?("0", "9")
 isdigit? drop == id
 
+ishexdigit? : Char -- Char Bool
+ishexdigit? = or? (isdigit?, or?( inrange?("a", "f"), inrange?("A", "F") ))
+ishexdigit? drop == id
+
 isalpha? : Char -- Char Bool
 isalpha? = or?(islower?, isupper?)
 isalpha? drop == id
@@ -352,22 +356,22 @@ break@ : Str Int -- Str Str
 break@ = _prim_strbrk
 break@ ++ == drop
 
-len : Str -- Int
-len = _prim_strlen
-++ len == dip(len) len +
+strlen : Str -- Int
+strlen = _prim_strlen
+++ strlen == dip(strlen) strlen +
 
-len? : Str -- Str Int
-len? = dup len
-len? drop == id
-len? nip  == len
+strlen? : Str -- Str Int
+strlen? = dup strlen
+strlen? drop == id
+strlen? nip  == strlen
 
-empty : Str -- Bool
-empty = len 0 eq
+strnull : Str -- Bool
+strnull = strlen 0 eq
 
-empty? : Str -- Str Bool
-empty? = dup empty
-empty? drop == id
-empty? nip == empty
+strnull? : Str -- Str Bool
+strnull? = dup strnull
+strnull? drop == id
+strnull? nip  == strnull
 
 data StrView
   strnil  : StrView
@@ -375,7 +379,7 @@ data StrView
 end
 
 strview : Str -- StrView
-strview = empty? if(
+strview = strnull? if(
     drop strnil,
     1 break@ dip(_prim_decode1 char) strcons
   )
@@ -386,7 +390,7 @@ strview = empty? if(
 
 streq : Str Str -- Bool
 streq = strview match(
-  strnil  -> empty,
+  strnil  -> strnull,
   strcons -> rotl strview match(
     strnil  -> drop2 false,
     strcons -> dip(swap dip(chareq)) rotl if(streq, drop2 false)
@@ -406,11 +410,20 @@ swap streq == streq
 
 streq? : Str Str -- Str Str Bool
 streq? = dup2 streq
+streq? drop == id
+streq? nip nip == streq
 
 strfold(f : *a Char -- *a) : *a Str -- *a
 strfold(f) = strview match(
   strnil  -> id,
   strcons -> dip(f) strfold(f)
+)
+dip("") strfold(char->str ++) == id
+
+strall?(f: Char -- Char Bool) : Str -- Str Bool
+strall?(f) = strview match(
+  strnil  -> "" true,
+  strcons -> and?(dip?(f), strall?(f)) dip(dip(char->str) ++)
 )
 
 #
