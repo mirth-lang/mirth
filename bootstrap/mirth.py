@@ -196,9 +196,38 @@ class token(object):
             return False
         return True
 
+    def is_str(self):
+        return self.code[0] == '"'
+
     def is_name(self):
         return not (self.code in reserved
+                 or self.is_str()
                  or self.is_int())
+
+    def to_str(self):
+        src = self.code[1:-1]
+        cs = []
+        while src:
+            if src[0] == '\\':
+                if len(src) < 2:
+                    raise ValueError("Invalid string token: %r" % self.code)
+                elif src[1] == 'n':
+                    cs.append('\n')
+                elif src[1] == 't':
+                    cs.append('\t')
+                elif src[1] == 'r':
+                    cs.append('\r')
+                elif src[1] == '\\':
+                    cs.append('\\')
+                elif src[1] == '\"':
+                    cs.append('\"')
+                else:
+                    raise ValueError("Invalid string token, unknown escape combination: %r" % src[0:1])
+                src = src[2:]
+            else:
+                cs.append(src[0])
+                src = src[1:]
+        return ''.join(cs)
 
 ##############################################################################
 ################################# PARSING ####################################
@@ -292,6 +321,7 @@ def parsetoks(tokens):
 
 
     p_int  = memo(fmap(intlit, test(token.is_int)))
+    p_str  = memo(fmap(strlit, test(token.is_str)))
     p_name = memo(test(token.is_name))
     p_line = test(token.is_newline)
     p_comma = test(token.is_comma)
@@ -303,9 +333,9 @@ def parsetoks(tokens):
     p_args = memo(alt(
         parens(starsep(p_comma, p_expr_ignore_line)),
         pure(lambda: []),
-    ))
+        ))
     p_word = memo(fmapseq(word, p_name, p_args))
-    p_atom = memo(alt(p_int, p_word))
+    p_atom = memo(alt(p_str, p_int, p_word))
     p_expr = memo(fmap(expr, star(p_atom)))
 
     p_word_sig_param = fmapseq(lambda a,_,b,c: (a,b,c),
@@ -428,6 +458,20 @@ class intlit:
 
     def elab(self, env):
         return env.elab_push_int(self.value)
+
+class strlit:
+    def __init__(self, token):
+        self.token = token
+        self.value = token.to_str()
+
+    def __repr__(self):
+        return 'strlit(%r)' % self.token
+
+    def __str__(self):
+        return self.value
+
+    def elab(self, env):
+        return env.elab_push_str(self.value)
 
 class word:
     def __init__(self, name, args):
@@ -998,6 +1042,9 @@ class type_elaborator:
     def elab_push_int(self, value):
         raise TypeError("Expected a type but got an int.")
 
+    def elab_push_str(self, value):
+        raise TypeError("Expected a type but got a string.")
+
     def elab_word(self, name, args):
         if  (len(name) >= 2 and '*' == name[0] and 'a' <= name[1] <= 'z'
                 and not self.mod.has_type(name)):
@@ -1032,6 +1079,10 @@ class word_elaborator:
 
     def elab_push_int(self, value):
         self.dom = tpack(self.dom, tcon('Int', []))
+        return lambda p, *args: p.push(value)
+
+    def elab_push_str(self, value):
+        self.dom = tpack(self.dom, tcon('Str', []))
         return lambda p, *args: p.push(value)
 
     def elab_word(self, name, args):
