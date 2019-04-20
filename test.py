@@ -51,5 +51,7 @@ for path in glob.glob('bootstrap/fail_types/*'):
 for path in glob.glob('bootstrap/fail_tests/*'):
     test_interp([path], stderr_contains('Assertion failed'))
 
+test_interp(['src/mirth.mth'], succeeds)
+
 sys.exit(failed)
 

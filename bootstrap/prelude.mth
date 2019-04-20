@@ -165,6 +165,12 @@ iff? (false, false) == true
 > : Int Int -- Bool
 > = swap <
 
+<= : Int Int -- Bool
+<= = > not
+
+>= : Int Int -- Bool
+>= = < not
+
 <? : Int Int -- Int Int Bool
 <? = dup2 <
 <? drop == id
@@ -173,16 +179,27 @@ iff? (false, false) == true
 >? = dup2 >
 >? drop == id
 
+<=? : Int Int -- Int Int Bool
+<=? = dup2 <=
+<=? drop == id
+
+>=? : Int Int -- Int Int Bool
+>=? = dup2 >=
+>=? drop == id
+
 neq? : Int Int -- Int Int Bool
 neq? = or? (<?, >?)
 neq? drop == id
 
 neq : Int Int -- Bool
 neq = neq? nip nip
+dup  neq == drop false
+swap neq == neq
 
 eq? : Int Int -- Int Int Bool
 eq? = neq? not
 eq? drop == id
+eq? == and? (<=?, >=?)
 
 eq : Int Int -- Bool
 eq = neq not
@@ -256,7 +273,10 @@ int->char : Int -- Char
 int->char = abs char
 
 str->char : Str -- Char
-str->char = _prim_decode1 char
+str->char = dup _prim_strlen 0 eq if(
+    drop 0 char,
+    1 _prim_strbrk drop _prim_decode1 char
+  )
 
 Char.generate : Int -- Char
 Char.generate = int->char
@@ -264,11 +284,58 @@ Char.generate = int->char
 char->int int->char == id
 char->str str->char == id
 
+char< : Char Char -- Bool
+char< = dip(char->int) char->int <
+
+char> : Char Char -- Bool
+char> = swap char<
+
+char<= : Char Char -- Bool
+char<= = dip(char->int) char->int <=
+
+char>= : Char Char -- Bool
+char>= = swap char<=
+
 chareq : Char Char -- Bool
 chareq = dip(char->int) char->int eq
 
 dup  chareq == drop true
 swap chareq == chareq
+
+chareq? : Char Char -- Char Char Bool
+chareq? = dup2 chareq
+
+# TODO: add char literals.
+'\t' : Char
+'\t' = "\t" str->char
+
+'\n' : Char
+'\n' = "\n" str->char
+
+'\r' : Char
+'\r' = "\r" str->char
+
+'\s' : Char
+'\s' = " " str->char
+
+inrange?(a: Str, b: Str) : Char -- Char Bool
+inrange?(a,b) = and? ( dup a str->char char>=, dup b str->char char<= )
+
+islower? : Char -- Char Bool
+islower? = inrange?("a", "z")
+islower? drop == id
+
+isupper? : Char -- Char Bool
+isupper? = inrange?("A", "Z")
+isupper? drop == id
+
+isdigit? : Char -- Char Bool
+isdigit? = inrange?("0", "9")
+isdigit? drop == id
+
+isalpha? : Char -- Char Bool
+isalpha? = or?(islower?, isupper?)
+isalpha? drop == id
 
 #
 # str
@@ -279,6 +346,7 @@ swap chareq == chareq
 "" ++ == id
 dip("") ++ == id
 ++ ++ == dip(++) ++
+dip(char->str) ++ str->char == drop
 
 break@ : Str Int -- Str Str
 break@ = _prim_strbrk
@@ -301,25 +369,25 @@ empty? = dup empty
 empty? drop == id
 empty? nip == empty
 
-data ViewStr
-  strnil  : ViewStr
-  strcons : Char Str -- ViewStr
+data StrView
+  strnil  : StrView
+  strcons : Char Str -- StrView
 end
 
-viewStr : Str -- ViewStr
-viewStr = empty? if(
+strview : Str -- StrView
+strview = empty? if(
     drop strnil,
     1 break@ dip(_prim_decode1 char) strcons
   )
 
-"" viewStr == strnil
-"a" viewStr == 97 char "" strcons
-" foo" viewStr == 32 char "foo" strcons
+"" strview == strnil
+"a" strview == 97 char "" strcons
+" foo" strview == 32 char "foo" strcons
 
 streq : Str Str -- Bool
-streq = viewStr match(
+streq = strview match(
   strnil  -> empty,
-  strcons -> rotl viewStr match(
+  strcons -> rotl strview match(
     strnil  -> drop2 false,
     strcons -> dip(swap dip(chareq)) rotl if(streq, drop2 false)
   )
@@ -339,6 +407,11 @@ swap streq == streq
 streq? : Str Str -- Str Str Bool
 streq? = dup2 streq
 
+strfold(f : *a Char -- *a) : *a Str -- *a
+strfold(f) = strview match(
+  strnil  -> id,
+  strcons -> dip(f) strfold(f)
+)
 
 #
 # pack
@@ -382,4 +455,5 @@ unpack4 = inpack(pack2) unpack3 unpack2
 
 pack4 unpack4 == id
 unpack4 pack4 == id
+
 

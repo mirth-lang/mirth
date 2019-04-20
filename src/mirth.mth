@@ -1,0 +1,66 @@
+
+
+#############
+# LOCATIONS #
+#############
+
+data Loc
+  loc : Int Int -- Loc
+end
+
+row : Loc -- Int
+col : Loc -- Int
+row = match( loc -> drop )
+col = match( loc -> nip  )
+
+locNextRow : Loc -- Loc
+locNextTab : Loc -- Loc
+locNextCol : Loc -- Loc
+locNextRow = match( loc -> drop 1+ 1 loc )
+locNextTab = match( loc -> 1- 8 over 8 % - + 1+ loc )
+locNextCol = match( loc -> 1+ loc )
+
+1 1  loc locNextRow == 2 1 loc
+1 10 loc locNextRow == 2 1 loc
+1 1  loc locNextTab == 1 9 loc
+1 2  loc locNextTab == 1 9 loc
+1 5  loc locNextTab == 1 9 loc
+1 8  loc locNextTab == 1 9 loc
+1 9  loc locNextTab == 1 17 loc
+1 12 loc locNextTab == 1 17 loc
+1 17 loc locNextTab == 1 25 loc
+1 1  loc locNextCol == 1 2 loc
+
+locNextChar : Loc Char -- Loc
+locNextChar = dup "\n" str->char chareq if( drop locNextRow,
+                  "\t" str->char chareq if( locNextTab, locNextCol ))
+
+locNext : Loc Str -- Loc
+locNext = strfold(locNextChar)
+
+1 1 loc "a\nb\nc" locNext == 3 2 loc
+
+##########
+# LEXING #
+##########
+
+data Token
+  INT    : Int -- Token
+  STR    : Str -- Token
+  WORD   : Str -- Token
+  LPAREN : Token
+  RPAREN : Token
+  COMMA  : Token
+end
+
+data LexResult
+  lexToken : Loc Token LexResult -- LexResult
+  lexError : Loc Str -- LexResult
+  lexDone  : LexResult
+end
+
+lexAt : Str Loc -- LexResult
+
+lex : Str -- LexResult
+lex = 1 1 loc lexAt
+
