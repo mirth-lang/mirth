@@ -247,6 +247,7 @@ lexNext = mkLexer(
 
 # lexer tests
 "" lexStart lexNext == lexDone
+"  \t   " lexStart lexNext == lexDone
 "(" lexStart lexNext == 1 2 loc "" lexState 1 1 loc LPAREN lexToken
 ")" lexStart lexNext == 1 2 loc "" lexState 1 1 loc RPAREN lexToken
 "," lexStart lexNext == 1 2 loc "" lexState 1 1 loc COMMA lexToken
