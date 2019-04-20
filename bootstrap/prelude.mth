@@ -426,6 +426,18 @@ strall?(f) = strview match(
   strcons -> and?(dip?(f), strall?(f)) dip(dip(char->str) ++)
 )
 
+strBreakOnAux(f: Char -- Char Bool) : Str Str -- Str Str
+strBreakOnAux(f) = strview match(
+  strnil  -> "",
+  strcons -> dip?(f) if(dip(char->str) ++, dip(char->str ++) strBreakOnAux(f))
+)
+
+strBreakOn(f: Char -- Char Bool) : Str -- Str Str
+strBreakOn(f) = dip("") strBreakOnAux(f)
+strBreakOn(islower?) ++ == id
+strBreakOn(isupper?) ++ == id
+strBreakOn(dup char->int 2% 0 eq) ++ == id
+
 #
 # pack
 #

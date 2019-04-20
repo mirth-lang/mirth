@@ -20,6 +20,7 @@ FLAGS:
     --no-prelude    Don't auto-import prelude.
 '''
 
+import sys
 import random
 import os.path
 random.seed('mirth bootstrap')
@@ -56,14 +57,21 @@ def load_prelude():
     return m
 
 def interpret(path, args, with_prelude=True):
-    with open(path) as fp:
-        decls = parse(fp)
+    try:
+        with open(path) as fp:
+            decls = parse(fp)
 
-    m = load_prelude() if with_prelude else module()
-    for d in decls:
-        d.decl(m)
+        m = load_prelude() if with_prelude else module()
+        for d in decls:
+            d.decl(m)
 
-    m.check_assertions()
+        m.check_assertions()
+    except TypeError as e:
+        print('TypeError:', e, file=sys.stderr)
+        sys.exit(1)
+    except SyntaxError as e:
+        print('SyntaxError:', e, file=sys.stderr)
+        sys.exit(1)
 
 def repl(with_prelude=True):
     # REPL banner
@@ -533,7 +541,12 @@ class word_sig:
         return 'word_sig(%r, %r, %r, %r)' % (self.name, self.params, self.dom, self.cod)
 
     def decl(self, mod):
-        return mod.decl_word_sig(self.name.code, self.params, self.dom, self.cod)
+        try:
+            return mod.decl_word_sig(self.name.code, self.params, self.dom, self.cod)
+        except TypeError as e:
+            raise TypeError("line %d: %s" % (self.name.lineno, e)) from e
+        except SyntaxError as e:
+            raise SyntaxError("line %d: %s" % (self.name.lineno, e)) from e
 
 class word_def:
     def __init__(self, name, params, body):
@@ -545,7 +558,12 @@ class word_def:
         return 'word_def(%r, %r, %r)' % (self.name, self.params, self.body)
 
     def decl(self, mod):
-        return mod.decl_word_def(self.name.code, [p.code for p in self.params], self.body)
+        try:
+            return mod.decl_word_def(self.name.code, [p.code for p in self.params], self.body)
+        except TypeError as e:
+            raise TypeError("line %d: %s" % (self.name.lineno, e)) from e
+        except SyntaxError as e:
+            raise SyntaxError("line %d: %s" % (self.name.lineno, e)) from e
 
 class assertion:
     def __init__(self, lineno, lhs, rhs):
@@ -557,7 +575,12 @@ class assertion:
         return 'assertion(%r, %r, %r)' % (self.lineno, self.lhs, self.rhs)
 
     def decl(self, mod):
-        return mod.decl_assertion(self.lineno, self.lhs, self.rhs)
+        try:
+            return mod.decl_assertion(self.lineno, self.lhs, self.rhs)
+        except TypeError as e:
+            raise TypeError("line %d: %s" % (self.name.lineno, e)) from e
+        except SyntaxError as e:
+            raise SyntaxError("line %d: %s" % (self.name.lineno, e)) from e
 
 class data_def:
     def __init__(self, lineno, name, params, wordsigs):
@@ -571,7 +594,12 @@ class data_def:
             (self.lineno, self.name, self.params, self.wordsigs))
 
     def decl(self, mod):
-        return mod.decl_data_def(self.lineno, self.name.code, self.params, self.wordsigs)
+        try:
+            return mod.decl_data_def(self.lineno, self.name.code, self.params, self.wordsigs)
+        except TypeError as e:
+            raise TypeError("line %d: %s" % (self.name.lineno, e)) from e
+        except SyntaxError as e:
+            raise SyntaxError("line %d: %s" % (self.name.lineno, e)) from e
 
 
 ##############################################################################

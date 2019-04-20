@@ -8,6 +8,9 @@ data Loc
   loc : Int Int -- Loc
 end
 
+Loc.generate : Int Int -- Loc
+Loc.generate = dip(abs 1+) abs 1+ loc
+
 row : Loc -- Int
 col : Loc -- Int
 row = match( loc -> drop )
@@ -53,16 +56,6 @@ data Token
   COMMA  : Token
 end
 
-data LexResult
-  lexToken : Loc Token LexResult -- LexResult
-  lexError : Loc Str -- LexResult
-  lexDone  : LexResult
-end
-
-lexAt : Str Loc -- LexResult
-
-lex : Str -- LexResult
-lex = 1 1 loc lexAt
 
 isDecInt? : Str -- Str Bool
 isDecInt? = and?(strnull? not, strall?(isdigit?))
@@ -90,6 +83,109 @@ isHexInt? drop == id
 "0Xa0010aa0" isHexInt? nip == true
 implies?(isDecInt?, "0x" over ++ isHexInt? nip) == true
 
+isIgnoreChar? : Char -- Char Bool
+isIgnoreChar? = or?('\s' chareq? nip, or?('\t' chareq? nip, '\r' chareq? nip))
+isIgnoreChar? drop == id
+
+isCommentChar? : Char -- Char Bool
+isCommentChar? = "#" str->char chareq? nip
+isCommentChar? drop == id
+
+breakComment : Str -- Str Str
+breakComment = strBreakOn ('\n' chareq? nip)
+
 isInt? : Str -- Str Bool
 isInt? = or? (isDecInt?, isHexInt?)
+
+data LexState
+  lexState : Loc Str -- LexState
+end
+
+LexState.generate : Loc Str -- LexState
+LexState.generate = lexState
+
+lexStateLoc? : LexState -- LexState Loc
+lexStateLoc? = match( lexState -> over dip(lexState) )
+lexStateLoc? drop == id
+
+lexStateEOF? : LexState -- LexState Bool
+lexStateEOF? = dup match( lexState -> nip strnull )
+lexStateEOF? drop == id
+
+lexStateTest?(f: Char -- Char Bool) : LexState -- LexState Bool
+lexStateTest?(f) = dup match( lexState ->
+  nip strview match (
+    strnil -> drop false,
+    strcons -> drop f nip
+  )
+)
+
+lexStateTakeUntil(f: Char -- Char Bool) : LexState -- LexState Str
+lexStateTakeUntil(f) = match(
+  lexState -> strBreakOn(f) over dip2(locNext) dip(lexState)
+)
+
+lexStateTakeWhile(f: Char -- Char Bool) : LexState -- LexState Str
+lexStateTakeWhile(f) = lexStateTakeUntil(f not)
+
+data LexResult
+  lexToken : LexState Loc Token -- LexResult
+  lexError : Loc Str -- LexResult
+  lexDone  : LexResult
+end
+
+data LexRuleResult
+  lexRRNA    : LexState  -- LexRuleResult
+  lexRRSkip  : LexState  -- LexRuleResult
+  lexRRYield : LexResult -- LexRuleResult
+end
+
+mkLexer(f : LexRuleResult -- LexRuleResult) : LexState -- LexResult
+mkLexer(f) = lexRRNA f match(
+  lexRRNA    -> match( lexState -> drop "Unknown token." lexError ),
+  lexRRSkip  -> mkLexer(f),
+  lexRRYield -> id
+)
+
+mkLexRule(f: LexState -- LexRuleResult) : LexRuleResult -- LexRuleResult
+mkLexRule(f) = match(
+  lexRRNA    -> f,
+  lexRRSkip  -> lexRRSkip,
+  lexRRYield -> lexRRYield
+)
+
+lexRuleEOF : LexRuleResult -- LexRuleResult
+lexRuleEOF = mkLexRule(lexStateEOF? if(drop lexDone lexRRYield, lexRRNA))
+
+lexRuleSkip( p: Char -- Char Bool
+           , q: Char -- Char Bool
+           ) : LexRuleResult -- LexRuleResult
+lexRuleSkip(p,q) = mkLexRule(
+  lexStateTest?(p) if(
+    lexStateTakeUntil(q) drop lexRRSkip,
+    lexRRNA
+  )
+)
+
+lexRuleYield( p: Char -- Char Bool
+            , q: LexState -- LexState Token
+            ) : LexRuleResult -- LexRuleResult
+lexRuleYield(p,q) = mkLexRule(
+  lexStateTest?(p) if(
+    lexStateLoc? dip(q) swap lexToken lexRRYield,
+    lexRRNA
+  )
+)
+
+lexStart : Str -- LexState
+lexStart = dip(1 1 loc) lexState
+
+lexNext : LexState -- LexResult
+lexNext = mkLexer(
+  lexRuleEOF
+  lexRuleSkip(isIgnoreChar?, isIgnoreChar? not)
+  lexRuleSkip(isCommentChar?, '\n' chareq? nip)
+)
+
+
 
