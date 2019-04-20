@@ -174,7 +174,7 @@ class token(object):
 
     def is_int(self):
         try:
-            int(self.code)
+            int(self.code, 0)
         except:
             return False
         return True
@@ -401,7 +401,7 @@ def parse(code):
 class intlit:
     def __init__(self, token):
         self.token = token
-        self.value = int(token.code)
+        self.value = int(token.code, 0)
 
     def __repr__(self):
         return 'intlit(%r)' % self.token
