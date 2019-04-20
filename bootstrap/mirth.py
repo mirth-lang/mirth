@@ -447,6 +447,20 @@ class expr:
     def decl(self, mod):
         return mod.decl_expr(self)
 
+    def split_on(self, name):
+        """
+        >>> list(expr([]).split_on('->'))
+        [expr([])]
+        >>> list(expr([word(token('->', 0), [])]).split_on('->'))
+        [expr([]), expr([])]
+        """
+        i = 0
+        for j,atom in enumerate(self.atoms):
+            if isinstance(atom, word) and atom.name.code == name and len(atom.args) == 0:
+                yield expr(self.atoms[i:j])
+                i = j+1
+        yield expr(self.atoms[i:])
+
 class word_sig:
     def __init__(self, name, params, dom, cod):
         self.name = name
@@ -758,6 +772,7 @@ class module:
     def __init__(self):
         self.types = builtin_types.copy()
         self.prims = builtin_prims.copy()
+        self.data_defs = {}
         self.word_sigs = builtin_word_sigs.copy()
         self.word_defs = builtin_word_defs.copy()
         self.assertions = []
@@ -875,6 +890,7 @@ class module:
                     % lineno
                 )
 
+
         def ft(mod, args):
             if len(args) != len(params):
                 raise TypeError("Type %s expects %d args, but got %d args."
@@ -896,10 +912,11 @@ class module:
                 e.push(tuple(vs))
             self.word_defs[wname] = wfn
 
+        self.data_defs[name] = {}
         for wordsig in wordsigs:
             wordsig.decl(self)
             addworddef(wordsig)
-
+            self.data_defs[name][wordsig.name.code] = self.word_sigs[wordsig.name.code]
 
     def decl_expr (self, expr):
         raise SyntaxError("Bare expression not supported.")
@@ -1152,6 +1169,71 @@ def mktpack (mod, args):
     args[0].elab(e)
     return e.to_tpack()
 
+def match (elab, args):
+    match = []
+    if len(elab.dom.args) < 1:
+        raise TypeError("Not a valid doman for match: [%s]" % elab.dom)
+    domt = elab.dom.args[-1]
+    if not (isinstance(domt, tcon) and domt.name in elab.mod.data_defs):
+        raise TypeError("Not a valid doman for match: [%s]" % elab.dom)
+    dname = domt.name
+    dargs = domt.args
+    dcons = elab.mod.data_defs[dname]
+    rules = {}
+    outtp = tpack(fresh_var())
+
+    for arg in args:
+        line = list (arg.split_on('->'))
+        if len(line) != 2:
+            raise SyntaxError("Expected -> in argument to match.")
+        lhs, rhs = tuple(line)
+        if not (len(lhs.atoms) == 1 and isinstance(lhs.atoms[0], word)):
+            raise SyntaxError(
+                "Expected a single constructor on LHS of -> in match, but got %s"
+                % lhs
+            )
+        cname = lhs.atoms[0].name.code
+        cargs = lhs.atoms[0].args
+        if cname not in dcons:
+            raise TypeError(
+                "Error: %s is not a constructor for type %s."
+                % (cname, dname)
+            )
+        if len(cargs) > 0:
+            raise SyntaxError("Higher-order constructors not yet implemented in match.")
+
+        (cps, cdomt, ccodt) = dcons[cname]
+        if len(cps) > 0:
+            raise SyntaxError("Higher-order constructors not yet implemented in match.")
+
+        if cname in rules:
+            raise SyntaxError("Constructor %s appears twice in match." % cname)
+
+        prefix = fresh_var()
+        cdomt = tpack(fresh_var(), *cdomt.args).freshen(prefix.name)
+        ccodt = tpack(fresh_var(), *ccodt.args).freshen(prefix.name)
+        celab = word_elaborator(elab.mod, elab.dom, elab.loc)
+        celab.sub = elab.sub
+        ccodt.unify(celab.dom, celab.sub)
+        celab.dom = cdomt.subst(celab.sub)
+
+        rules[cname] = rhs.elab(celab)
+        outtp.unify(celab.dom, elab.sub)
+
+    for cname in dcons:
+        if cname not in rules:
+            raise TypeError("Missing rule for constructor %s in match." % cname)
+
+    elab.dom = outtp
+    def outfn(e, *args):
+        v = e.pop()
+        f = rules[v[0]]
+        for x in v[1::]:
+            e.push(x)
+        f(e, *args)
+    return outfn
+
+
 tint  = tcon('Int')
 tstr  = tcon('Str')
 tbool = tcon('Bool')
@@ -1164,6 +1246,7 @@ builtin_types = {
 }
 
 builtin_prims = {
+    'match': match,
 }
 
 def word1 (f):

@@ -12,5 +12,13 @@ mk2 = smake dip(imake)
 
 mk1 == mk2
 
+elimT : T -- Int
+elimT = match(
+  imake -> id,
+  smake -> drop 0
+)
+
+imake elimT == id
+smake elimT == drop 0
 
 
