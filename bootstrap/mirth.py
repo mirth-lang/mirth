@@ -950,10 +950,6 @@ class module:
         self.assertions.append((lineno, orig, lhsf, rhsf))
 
     def decl_data_def (self, lineno, name, params, wordsigs):
-        if len(params) > 0:
-            raise SyntaxError(
-                "Line %d: Higher order types not yet implemented."
-            )
 
         for wordsig in wordsigs:
             if len(wordsig.cod.atoms) != 1:
@@ -966,8 +962,38 @@ class module:
                     "Line %d: Constructor must return value of constructed type."
                     % lineno
                 )
-            if (len(wordsig.dom.atoms) > 0 and isinstance(wordsig.dom.atoms[0], word) and
-                    wordsig.dom.atoms[0].name.code[0] == '*'):
+            if len(wordsig.cod.atoms[0].args) != len(params):
+                raise SyntaxError(
+                    "Line %d: Mismatched number of parameters in constructor output type. Expected %d but got %d."
+                    % (lineno, len(params), len(wordsig.cod.atoms[0].args))
+                )
+
+            argnames = set()
+            for arg in wordsig.cod.atoms[0].args:
+                if len(arg.atoms) != 1:
+                    raise SyntaxError(
+                        "Line %d: Constructor %s output type not valid."
+                        % (lineno, wordsig.name.code)
+                    )
+                arg = arg.atoms[0]
+                if not isinstance(arg, word):
+                    raise SyntaxError(
+                        "Line %d: Constructor %s output type not valid."
+                        % (lineno, wordsig.name.code)
+                    )
+                if not (arg.name not in argnames
+                    and arg.name.code[0].islower()
+                    and len(arg.args) == 0):
+                    raise SyntaxError(
+                        "Line %d: Constructor %s requires GADTs, not supported."
+                        % (lineno, wordsig.name.code)
+                    )
+                argnames.add(arg.name)
+
+
+            if (len(wordsig.dom.atoms) > 0
+                and isinstance(wordsig.dom.atoms[0], word)
+                and wordsig.dom.atoms[0].name.code[0] == '*'):
                 raise SyntaxError(
                     "Line %d: Constructor must take a fixed number of inputs."
                     % lineno
@@ -984,7 +1010,17 @@ class module:
             if len(args) != len(params):
                 raise TypeError("Type %s expects %d args, but got %d args."
                     % (name, len(params), len(args)))
-            return tcon(name, [])
+
+            ta = []
+            for arg in args:
+                te = type_elaborator(mod)
+                arg.elab(te)
+                tp = te.to_tpack()
+                if tp.rest is not None or len(tp.args) != 1:
+                    raise TypeError("Type %s received bad argument." % name)
+                ta.append(tp.args[0])
+
+            return tcon(name, ta)
 
         self.types[name] = ft
 

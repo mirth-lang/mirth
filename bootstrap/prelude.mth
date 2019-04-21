@@ -359,20 +359,20 @@ isalpha? drop == id
 # str
 #
 
-++ : Str Str -- Str
-++ = _prim_strcat
-"" ++ == id
-dip("") ++ == id
-++ ++ == dip(++) ++
-dip(char->str) ++ str->char == drop
+<> : Str Str -- Str
+<> = _prim_strcat
+"" <> == id
+dip("") <> == id
+<> <> == dip(<>) <>
+dip(char->str) <> str->char == drop
 
 strBreakAt : Str Int -- Str Str
 strBreakAt = _prim_strbrk
-strBreakAt ++ == drop
+strBreakAt <> == drop
 
 strlen : Str -- Int
 strlen = _prim_strlen
-++ strlen == dip(strlen) strlen +
+<> strlen == dip(strlen) strlen +
 
 strlen? : Str -- Str Int
 strlen? = dup strlen
@@ -432,12 +432,12 @@ strfold(f) = strview match(
   strnil  -> id,
   strcons -> dip(f) strfold(f)
 )
-dip("") strfold(char->str ++) == id
+dip("") strfold(char->str <>) == id
 
 strall?(f: Char -- Char Bool) : Str -- Str Bool
 strall?(f) = strview match(
   strnil  -> "" true,
-  strcons -> and?(dip?(f), strall?(f)) dip(dip(char->str) ++)
+  strcons -> and?(dip?(f), strall?(f)) dip(dip(char->str) <>)
 )
 
 strelem : Char Str -- Bool
@@ -456,14 +456,14 @@ strelem? drop == id
 strBreakOnAux(f: Char -- Char Bool) : Str Str -- Str Str
 strBreakOnAux(f) = strview match(
   strnil  -> "",
-  strcons -> dip?(f) if(dip(char->str) ++, dip(char->str ++) strBreakOnAux(f))
+  strcons -> dip?(f) if(dip(char->str) <>, dip(char->str <>) strBreakOnAux(f))
 )
 
 strBreakOn(f: Char -- Char Bool) : Str -- Str Str
 strBreakOn(f) = dip("") strBreakOnAux(f)
-strBreakOn(islower?) ++ == id
-strBreakOn(isupper?) ++ == id
-strBreakOn(dup char->int 2% 0 eq) ++ == id
+strBreakOn(islower?) <> == id
+strBreakOn(isupper?) <> == id
+strBreakOn(dup char->int 2% 0 eq) <> == id
 
 #
 # pack
@@ -508,4 +508,71 @@ unpack4 = inpack(pack2) unpack3 unpack2
 pack4 unpack4 == id
 unpack4 pack4 == id
 
+#
+# maybe type
+#
+
+data Maybe(t)
+  none : Maybe(t)
+  some : t -- Maybe(t)
+end
+
+maybePure : a -- Maybe(a)
+maybePure = some
+
+maybeBind(f : a -- Maybe(b)) : Maybe(a) -- Maybe(b)
+maybeBind(f) = match(
+  none -> none,
+  some -> f
+)
+
+maybeMap(f : a -- b) : Maybe(a) -- Maybe(b)
+maybeMap(f) = maybeBind(f maybePure)
+
+
+#
+# either type
+#
+
+data Either(a,b)
+  left  : a -- Either(a,b)
+  right : b -- Either(a,b)
+end
+
+eitherPure : b -- Either(a,b)
+eitherPure = right
+
+eitherBind(f : b -- Either(a,c)) : Either(a,b) -- Either(a,c)
+eitherBind(f) = match(
+  left -> left,
+  right -> f
+)
+
+eitherMap(f: b -- c) : Either(a,b) -- Either(a,c)
+eitherMap(f) = eitherBind(f eitherPure)
+
+
+#
+# list type
+#
+
+data List(t)
+  nil  : List(t)
+  cons : List(t) t -- List(t)
+end
+
+cat : List(a) List(a) -- List(a)
+cat = match(
+  nil  -> id,
+  cons -> dip(cat) cons
+)
+
+listPure : t -- List(t)
+listPure = dip(nil) cons
+
+listBind(f: a -- List(b)) : List(a) -- List(b)
+listBind(f) = match(
+  nil  -> nil,
+  cons -> dip(listBind(f)) f cat
+)
 

@@ -83,7 +83,7 @@ isHexInt? drop == id
 "0xCABc4FED" isHexInt? nip == true
 "0xFA12E8EX" isHexInt? nip == false
 "0Xa0010aa0" isHexInt? nip == true
-implies?(isDecInt?, "0x" over ++ isHexInt? nip) == true
+implies?(isDecInt?, "0x" over <> isHexInt? nip) == true
 
 isIgnoreChar? : Char -- Char Bool
 isIgnoreChar? = or?('\s' chareq? nip, or?('\t' chareq? nip, '\r' chareq? nip))
@@ -222,7 +222,7 @@ readIntBase(b) = strview match(
 readInt : Str -- Int
 readInt = 2 strBreakAt dip?(or?("0x" streq? nip, "0X" streq? nip)) if(
   nip dip(0) readIntBase(16),
-  ++  dip(0) readIntBase(10)
+  <>  dip(0) readIntBase(10)
 )
 
 "102030" readInt == 102030
