@@ -263,7 +263,7 @@ lexNext = mkLexer(
 
 
 ##########
-# PARSER #
+# SYNTAX #
 ##########
 
 # no mutual types in bootstrap
@@ -476,5 +476,10 @@ bodyNext = match(
   BNIL  -> BNIL,
   BDECL -> dip(drop2)
 )
+
+##########
+# PARSER #
+##########
+
 
 
