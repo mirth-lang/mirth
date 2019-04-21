@@ -454,7 +454,6 @@ declLoc = match(
   DASSERTION -> drop
 )
 
-
 data Body
   BNIL  : Loc           -- Body
   BDECL : Loc Decl Body -- Body
@@ -480,6 +479,4 @@ bodyNext = match(
 ##########
 # PARSER #
 ##########
-
-
 
