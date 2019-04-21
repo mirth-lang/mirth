@@ -261,8 +261,220 @@ lexNext = mkLexer(
 "  \t  b  ()" lexStart lexNext == 1 12 loc "  ()" lexState 1 11 loc "b" TNAME lexToken
 "  \n  b" lexStart lexNext == 2 1 loc "  b" lexState 1 3 loc TNEWLINE lexToken
 
+
 ##########
 # PARSER #
 ##########
+
+# no mutual types in bootstrap
+# yes this is silly...
+
+data Name
+  name : Loc Str -- Name
+end
+
+nameLoc : Name -- Loc
+nameLoc = match( name -> drop )
+
+name->str : Name -- Str
+name->str = match( name -> nip  )
+
+data Lit
+  LINT : Loc Int -- Lit
+  LSTR : Loc Str -- Lit
+end
+
+litLoc : Lit -- Loc
+litLoc = match(
+  LINT -> drop,
+  LSTR -> drop
+)
+
+data Expr
+  ENIL  : Loc                -- Expr
+  ESEP  : Loc           Expr -- Expr
+  EWORD : Loc Name Expr Expr -- Expr
+  EPUSH : Loc Lit       Expr -- Expr
+end
+
+exprLoc      : Expr -- Loc
+exprNextAtom : Expr -- Expr
+exprNextArg  : Expr -- Expr
+exprNumAtoms : Expr -- Int
+exprNumArgs  : Expr -- Int
+
+exprLoc = match(
+  ENIL  -> ,
+  ESEP  -> drop,
+  EWORD -> drop3,
+  EPUSH -> drop2
+)
+
+exprNextAtom = match(
+  ENIL  -> ENIL,
+  ESEP  -> ESEP,
+  EWORD -> dip(drop3),
+  EPUSH -> dip(drop2)
+)
+
+exprNextArg = match(
+  ENIL  -> ENIL,
+  ESEP  -> nip,
+  EWORD -> dip(drop3) exprNextArg,
+  EPUSH -> dip(drop2) exprNextArg
+)
+
+exprNumAtoms = match(
+  ENIL  -> drop 0,
+  ESEP  -> drop2 0,
+  EWORD -> dip(drop3) exprNumAtoms 1+,
+  EPUSH -> dip(drop2) exprNumAtoms 1+
+)
+
+exprNumArgs = match(
+  ENIL  -> drop 1,
+  ESEP  -> nip exprNumArgs 1+,
+  EWORD -> dip(drop3) exprNumArgs,
+  EPUSH -> dip(drop2) exprNumArgs
+)
+
+data StackTypeExpr
+  SNIL  :               Loc           -- StackTypeExpr
+  SVAR  :               Loc Name      -- StackTypeExpr
+  SWORD : StackTypeExpr Loc Name Expr -- StackTypeExpr
+end
+
+stackTypeExprLoc : StackTypeExpr -- Loc
+stackTypeExprLoc = match(
+  SNIL -> ,
+  SVAR -> drop,
+  SWORD -> drop2 nip
+)
+
+data WordTypeExpr
+  wordTypeExpr : Loc StackTypeExpr StackTypeExpr -- WordTypeExpr
+end
+
+wordTypeExprLoc : WordTypeExpr -- Loc
+wordTypeExprDom : WordTypeExpr -- StackTypeExpr
+wordTypeExprCod : WordTypeExpr -- StackTypeExpr
+wordTypeExprLoc = match( wordTypeExpr -> drop2 )
+wordTypeExprDom = match( wordTypeExpr -> drop nip )
+wordTypeExprCod = match( wordTypeExpr -> dip(drop2) )
+
+
+data WordSigParams
+  WSPNIL  : Loc                                 -- WordSigParams
+  WSPCONS : Loc Name WordTypeExpr WordSigParams -- WordSigParams
+end
+
+wordSigParamsLoc  : WordSigParams -- Loc
+wordSigParamsLen  : WordSigParams -- Int
+wordSigParamsNext : WordSigParams -- WordSigParams
+
+wordSigParamsLoc = match(
+  WSPNIL  -> ,
+  WSPCONS -> drop3
+)
+wordSigParamsLen = match(
+  WSPNIL  -> drop 0,
+  WSPCONS -> dip(drop2) wordSigParamsLen 1+
+)
+wordSigParamsNext = match(
+  WSPNIL -> WSPNIL,
+  WSPCONS -> dip(drop2)
+)
+
+data WordSig
+  wordSig : Loc Name WordSigParams WordTypeExpr -- WordSig
+end
+
+wordSigLoc    : WordSig -- Loc
+wordSigName   : WordSig -- Name
+wordSigParams : WordSig -- WordSigParams
+wordSigType   : WordSig -- WordTypeExpr
+
+data WordDefParams
+  WDPNIL  : Loc                    -- WordDefParams
+  WDPCONS : Loc Name WordDefParams -- WordDefParams
+end
+
+wordDefParamsLoc  : WordDefParams -- Loc
+wordDefParamsLen  : WordDefParams -- Int
+wordDefParamsNext : WordDefParams -- WordDefParams
+
+wordDefParamsLoc = match(
+  WDPNIL -> ,
+  WDPCONS -> drop2
+)
+wordDefParamsLen = match(
+  WDPNIL -> drop 0,
+  WDPCONS -> dip(drop2) wordDefParamsLen 1+
+)
+wordDefParamsNext = match(
+  WDPNIL -> WDPNIL,
+  WDPCONS -> dip(drop2)
+)
+
+data WordDef
+  wordDef : Loc Name WordDefParams Expr -- WordDef
+end
+
+wordDefLoc    : WordDef -- Loc
+wordDefName   : WordDef -- Name
+wordDefParams : WordDef -- WordDefParams
+wordDefBody   : WordDef -- Expr
+wordDefLoc    = match( wordDef -> drop3 )
+wordDefName   = match( wordDef -> drop2 nip )
+wordDefParams = match( wordDef -> drop dip(drop2) )
+wordDefBody   = match( wordDef -> dip(drop3) )
+
+data Assertion
+  assertion : Loc Expr Expr -- Assertion
+end
+
+assertionLoc : Assertion -- Loc
+assertionLHS : Assertion -- Expr
+assertionRHS : Assertion -- Expr
+assertionLoc = match( assertion -> drop2 )
+assertionLHS = match( assertion -> drop nip )
+assertionRHS = match( assertion -> dip(drop2) )
+
+data Decl
+  # declarations
+  DWORDSIG   : Loc WordSig   -- Decl
+  DWORDDEF   : Loc WordDef   -- Decl
+  DASSERTION : Loc Assertion -- Decl
+end
+
+declLoc : Decl -- Loc
+declLoc = match(
+  DWORDSIG -> drop,
+  DWORDDEF -> drop,
+  DASSERTION -> drop
+)
+
+
+data Body
+  BNIL  : Loc           -- Body
+  BDECL : Loc Decl Body -- Body
+end
+
+bodyLoc  : Body -- Loc
+bodyLen  : Body -- Int
+bodyNext : Body -- Body
+
+bodyLoc = match(
+  BNIL  -> drop,
+  BDECL -> drop2
+)
+bodyLen = match(
+  BNIL  -> drop 0,
+  BDECL -> dip(drop2) bodyLen 1+
+)
+bodyNext = match(
+  BNIL  -> BNIL,
+  BDECL -> dip(drop2)
+)
 
 
