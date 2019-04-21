@@ -44,7 +44,7 @@ locNext = strfold(locNextChar)
 1 1 loc "a\nb\nc" locNext == 3 2 loc
 
 ##########
-# LEXING #
+# TOKENS #
 ##########
 
 data Token
@@ -55,9 +55,200 @@ data Token
   TRPAREN  : Token
   TCOMMA   : Token
   TCOLON   : Token
+  TEQUAL   : Token
+  TEQUAL2  : Token
   TNEWLINE : Token
 end
 
+tokenIsInt?     : Token -- Token Bool
+tokenIsStr?     : Token -- Token Bool
+tokenIsName?    : Token -- Token Bool
+tokenIsLParen?  : Token -- Token Bool
+tokenIsRParen?  : Token -- Token Bool
+tokenIsComma?   : Token -- Token Bool
+tokenIsColon?   : Token -- Token Bool
+tokenIsEqual?   : Token -- Token Bool
+tokenIsEqual2?  : Token -- Token Bool
+tokenIsNewline? : Token -- Token Bool
+
+tokenGetInt     : Token -- Int
+tokenGetStr     : Token -- Str
+tokenGetName    : Token -- Str
+
+tokenIsInt? = dup match(
+  TINT     -> drop true,
+  TSTR     -> drop false,
+  TNAME    -> drop false,
+  TLPAREN  -> false,
+  TRPAREN  -> false,
+  TCOMMA   -> false,
+  TCOLON   -> false,
+  TEQUAL   -> false,
+  TEQUAL2  -> false,
+  TNEWLINE -> false
+)
+
+tokenGetInt = match(
+  TINT     -> ,
+  TSTR     -> drop 0,
+  TNAME    -> drop 0,
+  TLPAREN  -> 0,
+  TRPAREN  -> 0,
+  TCOMMA   -> 0,
+  TCOLON   -> 0,
+  TEQUAL   -> 0,
+  TEQUAL2  -> 0,
+  TNEWLINE -> 0
+)
+
+
+tokenIsStr? = dup match(
+  TINT     -> drop false,
+  TSTR     -> drop true,
+  TNAME    -> drop false,
+  TLPAREN  -> false,
+  TRPAREN  -> false,
+  TCOMMA   -> false,
+  TCOLON   -> false,
+  TEQUAL   -> false,
+  TEQUAL2  -> false,
+  TNEWLINE -> false
+)
+
+tokenGetStr = match(
+  TINT     -> drop "",
+  TSTR     -> ,
+  TNAME    -> drop "",
+  TLPAREN  -> "",
+  TRPAREN  -> "",
+  TCOMMA   -> "",
+  TCOLON   -> "",
+  TEQUAL   -> "",
+  TEQUAL2  -> "",
+  TNEWLINE -> ""
+)
+
+
+tokenIsName? = dup match(
+  TINT     -> drop false,
+  TSTR     -> drop false,
+  TNAME    -> drop true,
+  TLPAREN  -> false,
+  TRPAREN  -> false,
+  TCOMMA   -> false,
+  TCOLON   -> false,
+  TEQUAL   -> false,
+  TEQUAL2  -> false,
+  TNEWLINE -> false
+)
+
+tokenGetName = match(
+  TINT     -> drop "",
+  TSTR     -> drop "",
+  TNAME    -> ,
+  TLPAREN  -> "",
+  TRPAREN  -> "",
+  TCOMMA   -> "",
+  TCOLON   -> "",
+  TEQUAL   -> "",
+  TEQUAL2  -> "",
+  TNEWLINE -> ""
+)
+
+tokenIsLParen? = dup match(
+  TINT     -> drop false,
+  TSTR     -> drop false,
+  TNAME    -> drop false,
+  TLPAREN  -> true,
+  TRPAREN  -> false,
+  TCOMMA   -> false,
+  TCOLON   -> false,
+  TEQUAL   -> false,
+  TEQUAL2  -> false,
+  TNEWLINE -> false
+)
+
+tokenIsRParen? = dup match(
+  TINT     -> drop false,
+  TSTR     -> drop false,
+  TNAME    -> drop false,
+  TLPAREN  -> false,
+  TRPAREN  -> true,
+  TCOMMA   -> false,
+  TCOLON   -> false,
+  TEQUAL   -> false,
+  TEQUAL2  -> false,
+  TNEWLINE -> false
+)
+
+tokenIsComma? = dup match(
+  TINT     -> drop false,
+  TSTR     -> drop false,
+  TNAME    -> drop false,
+  TLPAREN  -> false,
+  TRPAREN  -> false,
+  TCOMMA   -> true,
+  TCOLON   -> false,
+  TEQUAL   -> false,
+  TEQUAL2  -> false,
+  TNEWLINE -> false
+)
+
+tokenIsColon? = dup match(
+  TINT     -> drop false,
+  TSTR     -> drop false,
+  TNAME    -> drop false,
+  TLPAREN  -> false,
+  TRPAREN  -> false,
+  TCOMMA   -> false,
+  TCOLON   -> true,
+  TEQUAL   -> false,
+  TEQUAL2  -> false,
+  TNEWLINE -> false
+)
+
+tokenIsEqual? = dup match(
+  TINT     -> drop false,
+  TSTR     -> drop false,
+  TNAME    -> drop false,
+  TLPAREN  -> false,
+  TRPAREN  -> false,
+  TCOMMA   -> false,
+  TCOLON   -> false,
+  TEQUAL   -> true,
+  TEQUAL2  -> false,
+  TNEWLINE -> false
+)
+
+tokenIsEqual2? = dup match(
+  TINT     -> drop false,
+  TSTR     -> drop false,
+  TNAME    -> drop false,
+  TLPAREN  -> false,
+  TRPAREN  -> false,
+  TCOMMA   -> false,
+  TCOLON   -> false,
+  TEQUAL   -> false,
+  TEQUAL2  -> true,
+  TNEWLINE -> false
+)
+
+tokenIsNewline? = dup match(
+  TINT     -> drop false,
+  TSTR     -> drop false,
+  TNAME    -> drop false,
+  TLPAREN  -> false,
+  TRPAREN  -> false,
+  TCOMMA   -> false,
+  TCOLON   -> false,
+  TEQUAL   -> false,
+  TEQUAL2  -> false,
+  TNEWLINE -> true
+)
+
+##########
+# LEXING #
+##########
 
 isDecInt? : Str -- Str Bool
 isDecInt? = and?(strnull? not, strall?(isdigit?))
@@ -261,6 +452,56 @@ lexNext = mkLexer(
 "  \t  b  ()" lexStart lexNext == 1 12 loc "  ()" lexState 1 11 loc "b" TNAME lexToken
 "  \n  b" lexStart lexNext == 2 1 loc "  b" lexState 1 3 loc TNEWLINE lexToken
 
+##########
+# PARSER #
+##########
+
+
+data PDom
+  PDOM : LexState -- PDom
+end
+
+data PCod(t)
+  PPURE : LexState t -- PCod(t)
+  PNONE : LexState   -- PCod(t)
+  PFAIL : Loc Str    -- PCod(t)
+end
+
+ppure( f : t
+     )   : PDom -- PCod(t)
+
+ptok( f: Token -- Token Bool
+    , g: Loc Token -- t
+    )  : PDom -- PCod(t)
+
+pseq1( f : Loc a -- b
+     , p : PDom -- PCod(a)
+     )   : PDom -- PCod(b)
+
+pseq2( f : Loc a b -- c
+     , p : PDom -- PCod(a)
+     , q : PDom -- PCod(b)
+     )   : PDom -- PCod(c)
+
+pseq3( f : Loc a b c -- d
+     , p : PDom -- PCod(a)
+     , q : PDom -- PCod(b)
+     , r : PDom -- PCod(c)
+     )   : PDom -- PCod(d)
+
+palt2( f : PDom -- PCod(t)
+     , g : PDom -- PCod(t)
+     )   : PDom -- PCod(t)
+
+pstar( f : PDom -- PCod(t)
+     )   : PDom -- PCod(List(t))
+
+pstarsep( f : Token -- Token Bool
+        , p : PDom  -- PCod(t)
+        )   : PDom -- PCod(List(t))
+
+pparens( p : PDom -- PCod(t)
+       )   : PDom -- PCod(t)
 
 ##########
 # SYNTAX #
@@ -277,7 +518,10 @@ nameLoc : Name -- Loc
 nameLoc = match( name -> drop )
 
 name->str : Name -- Str
-name->str = match( name -> nip  )
+name->str = match( name -> nip )
+
+pname : PDom -- PCod(Name)
+pname = ptok(tokenIsName?, tokenGetName name)
 
 data Lit
   LINT : Loc Int -- Lit
@@ -290,58 +534,29 @@ litLoc = match(
   LSTR -> drop
 )
 
-data Expr
-  ENIL  : Loc                -- Expr
-  ESEP  : Loc           Expr -- Expr
-  EWORD : Loc Name Expr Expr -- Expr
-  EPUSH : Loc Lit       Expr -- Expr
+plit : PDom -- PCod(Lit)
+plit = palt2( ptok(tokenIsInt?, tokenGetInt LINT)
+            , ptok(tokenIsStr?, tokenGetStr LSTR) )
+
+
+data Atom
+  ALIT  : Loc Lit -- Atom
+  AWORD : Loc Name List(List(Atom)) -- Atom
 end
 
-exprLoc      : Expr -- Loc
-exprNextAtom : Expr -- Expr
-exprNextArg  : Expr -- Expr
-exprNumAtoms : Expr -- Int
-exprNumArgs  : Expr -- Int
-
-exprLoc = match(
-  ENIL  -> ,
-  ESEP  -> drop,
-  EWORD -> drop3,
-  EPUSH -> drop2
-)
-
-exprNextAtom = match(
-  ENIL  -> ENIL,
-  ESEP  -> ESEP,
-  EWORD -> dip(drop3),
-  EPUSH -> dip(drop2)
-)
-
-exprNextArg = match(
-  ENIL  -> ENIL,
-  ESEP  -> nip,
-  EWORD -> dip(drop3) exprNextArg,
-  EPUSH -> dip(drop2) exprNextArg
-)
-
-exprNumAtoms = match(
-  ENIL  -> drop 0,
-  ESEP  -> drop2 0,
-  EWORD -> dip(drop3) exprNumAtoms 1+,
-  EPUSH -> dip(drop2) exprNumAtoms 1+
-)
-
-exprNumArgs = match(
-  ENIL  -> drop 1,
-  ESEP  -> nip exprNumArgs 1+,
-  EWORD -> dip(drop3) exprNumArgs,
-  EPUSH -> dip(drop2) exprNumArgs
-)
+patom : PDom -- PCod(Atom)
+pexpr : PDom -- PCod(List(Atom))
+pargs : PDom -- PCod(List(List(Atom)))
+patom = palt2( pseq1(ALIT,  plit)
+             , pseq2(AWORD, pname, pargs) )
+pexpr = pstar( patom )
+pargs = palt2( pparens(pstarsep(tokenIsComma?, pexpr))
+             , ppure(nil) )
 
 data StackTypeExpr
-  SNIL  :               Loc           -- StackTypeExpr
-  SVAR  :               Loc Name      -- StackTypeExpr
-  SWORD : StackTypeExpr Loc Name Expr -- StackTypeExpr
+  SNIL  :               Loc                 -- StackTypeExpr
+  SVAR  :               Loc Name            -- StackTypeExpr
+  SWORD : StackTypeExpr Loc Name List(Atom) -- StackTypeExpr
 end
 
 stackTypeExprLoc : StackTypeExpr -- Loc
@@ -417,25 +632,25 @@ wordDefParamsNext = match(
 )
 
 data WordDef
-  wordDef : Loc Name WordDefParams Expr -- WordDef
+  wordDef : Loc Name WordDefParams List(Atom) -- WordDef
 end
 
 wordDefLoc    : WordDef -- Loc
 wordDefName   : WordDef -- Name
 wordDefParams : WordDef -- WordDefParams
-wordDefBody   : WordDef -- Expr
+wordDefBody   : WordDef -- List(Atom)
 wordDefLoc    = match( wordDef -> drop3 )
 wordDefName   = match( wordDef -> drop2 nip )
 wordDefParams = match( wordDef -> drop dip(drop2) )
 wordDefBody   = match( wordDef -> dip(drop3) )
 
 data Assertion
-  assertion : Loc Expr Expr -- Assertion
+  assertion : Loc List(Atom) List(Atom) -- Assertion
 end
 
 assertionLoc : Assertion -- Loc
-assertionLHS : Assertion -- Expr
-assertionRHS : Assertion -- Expr
+assertionLHS : Assertion -- List(Atom)
+assertionRHS : Assertion -- List(Atom)
 assertionLoc = match( assertion -> drop2 )
 assertionLHS = match( assertion -> drop nip )
 assertionRHS = match( assertion -> dip(drop2) )
@@ -455,28 +670,13 @@ declLoc = match(
 )
 
 data Body
-  BNIL  : Loc           -- Body
-  BDECL : Loc Decl Body -- Body
+  body : Loc List(Decl) -- Body
 end
 
-bodyLoc  : Body -- Loc
-bodyLen  : Body -- Int
-bodyNext : Body -- Body
+bodyLoc : Body -- Loc
+bodyLoc = match( body -> drop )
 
-bodyLoc = match(
-  BNIL  -> drop,
-  BDECL -> drop2
-)
-bodyLen = match(
-  BNIL  -> drop 0,
-  BDECL -> dip(drop2) bodyLen 1+
-)
-bodyNext = match(
-  BNIL  -> BNIL,
-  BDECL -> dip(drop2)
-)
+bodyDecls : Body -- List(Decl)
+bodyDecls = match( body -> nip )
 
-##########
-# PARSER #
-##########
 
