@@ -1339,10 +1339,10 @@ def mktpack (mod, args):
 def match (elab, args):
     match = []
     if len(elab.dom.args) < 1:
-        raise TypeError("Not a valid doman for match: [%s]" % elab.dom)
+        raise TypeError("Not a valid domain for match: [%s]" % elab.dom)
     domt = elab.dom.args[-1]
     if not (isinstance(domt, tcon) and domt.name in elab.mod.data_defs):
-        raise TypeError("Not a valid doman for match: [%s]" % elab.dom)
+        raise TypeError("Not a valid domain for match: [%s]" % elab.dom)
     dname = domt.name
     dargs = domt.args
     dcons = elab.mod.data_defs[dname]
@@ -1377,15 +1377,15 @@ def match (elab, args):
             raise SyntaxError("Constructor %s appears twice in match." % cname)
 
         prefix = fresh_var()
-        cdomt = tpack(fresh_var(), *cdomt.args).freshen(prefix.name)
-        ccodt = tpack(fresh_var(), *ccodt.args).freshen(prefix.name)
-        celab = word_elaborator(elab.mod, elab.dom, elab.loc)
+        pvar  = fresh_var()
+        cdomt = tpack(pvar, *cdomt.args).freshen(prefix.name)
+        ccodt = tpack(pvar, *ccodt.args).freshen(prefix.name)
+        ccodt = ccodt.unify(elab.dom, elab.sub)
+        cdomt = cdomt.subst(elab.sub)
+        celab = word_elaborator(elab.mod, cdomt, elab.loc)
         celab.sub = elab.sub
-        ccodt.unify(celab.dom, celab.sub)
-        celab.dom = cdomt.subst(celab.sub)
-
         rules[cname] = rhs.elab(celab)
-        outtp.unify(celab.dom, elab.sub)
+        outtp = outtp.unify(celab.dom, elab.sub)
 
     for cname in dcons:
         if cname not in rules:

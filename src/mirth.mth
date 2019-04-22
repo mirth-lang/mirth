@@ -308,7 +308,7 @@ lexStateEOF? drop == id
 lexStateTest?(f: Char -- Char Bool) : LexState -- LexState Bool
 lexStateTest?(f) = dup match( lexState ->
   nip strview match (
-    strnil -> drop false,
+    strnil -> false,
     strcons -> drop f nip
   )
 )
@@ -593,11 +593,11 @@ wordSigParamsLoc = match(
 )
 wordSigParamsLen = match(
   WSPNIL  -> drop 0,
-  WSPCONS -> dip(drop2) wordSigParamsLen 1+
+  WSPCONS -> dip(drop3) wordSigParamsLen 1+
 )
 wordSigParamsNext = match(
   WSPNIL -> WSPNIL,
-  WSPCONS -> dip(drop2)
+  WSPCONS -> dip(drop3)
 )
 
 data WordSig
