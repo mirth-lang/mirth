@@ -578,9 +578,9 @@ class assertion:
         try:
             return mod.decl_assertion(self.lineno, self.lhs, self.rhs)
         except TypeError as e:
-            raise TypeError("line %d: %s" % (self.name.lineno, e)) from e
+            raise TypeError("line %d: %s" % (self.lineno, e)) from e
         except SyntaxError as e:
-            raise SyntaxError("line %d: %s" % (self.name.lineno, e)) from e
+            raise SyntaxError("line %d: %s" % (self.lineno, e)) from e
 
 class data_def:
     def __init__(self, lineno, name, params, wordsigs):
@@ -650,7 +650,7 @@ class tcon:
                 uargs.append(uarg)
             return tcon(self.name, [uarg.subst(sub) for uarg in uargs])
         else:
-            raise TypeError("Failed to unify %s and %s." % (self, tcon(other_name, *other_args)))
+            raise TypeError("Failed to unify %s and %s." % (self, tcon(other_name, other_args)))
 
     def unify_tvar(self, other_name, sub):
         return tvar(other_name).unify_tcon(self.name, self.args, sub)

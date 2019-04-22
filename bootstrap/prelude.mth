@@ -173,6 +173,26 @@ iff? (false, true) == false
 iff? (false, false) == true
 
 #
+# comparison data type
+#
+
+data Comparison
+  LT : Comparison
+  EQ : Comparison
+  GT : Comparison
+end
+
+compareWith? (lt?: a a -- a a Bool) : a a -- a a Comparison
+compareWith? (lt?) = lt? if(LT, swap lt? if(GT, EQ) dip(swap))
+
+compare? : Int Int -- Int Int Comparison
+compare? = compareWith?(dup2 <)
+compare? drop == id
+
+compare : Int Int -- Comparison
+compare = compare? dip(drop2)
+
+#
 # arith
 #
 
@@ -551,6 +571,81 @@ eitherBind(f) = match(
 eitherMap(f: b -- c) : Either(a,b) -- Either(a,c)
 eitherMap(f) = eitherBind(f eitherPure)
 
+#
+# nat type
+#
+
+data Nat
+  _nat : Int -- Nat
+end
+
+Nat.generate : Int -- Nat
+Nat.generate = abs _nat
+
+int->nat : Int -- Nat
+int->nat = neg? if(drop 0, id) _nat
+
+nat->int : Nat -- Int
+nat->int = match( _nat -> id )
+
+nat : Int -- Nat
+nat = int->nat
+
+nat2->int2 : Nat Nat -- Int Int
+nat2->int2 = dip(nat->int) nat->int
+
+overInts(f : Int Int -- Int) : Nat Nat -- Nat
+overInts(f) = nat2->int2 f int->nat
+
+n+ : Nat Nat -- Nat
+n+ = overInts(+)
+
+n* : Nat Nat -- Nat
+n* = overInts(*)
+
+n- : Nat Nat -- Nat
+n- = overInts(-)
+
+n/ : Nat Nat -- Nat
+n/ = overInts(/)
+
+n% : Nat Nat -- Nat
+n% = overInts(%)
+
+ncompare : Nat Nat -- Comparison
+ncompare = nat2->int2 compare
+
+ncompare? : Nat Nat -- Nat Nat Comparison
+ncompare? = dup2 ncompare
+
+n> : Nat Nat -- Bool
+n> = nat2->int2 >
+
+n< : Nat Nat -- Bool
+n< = nat2->int2 <
+
+
+n>= : Nat Nat -- Bool
+n>= = nat2->int2 >=
+
+n= : Nat Nat -- Bool
+n= = nat2->int2 eq
+
+n!= : Nat Nat -- Bool
+n!= = nat2->int2 neq
+
+n<= : Nat Nat -- Bool
+n<= = nat2->int2 neq
+
+n0 : Nat
+n0 = 0 _nat
+
+n1 : Nat
+n1 = 1 _nat
+
+nsplit : Nat -- Nat Nat
+nsplit = nat->int dup dip(2/ dup) 2% + dip(_nat) _nat
+nsplit n+ == id
 
 #
 # list type
@@ -558,21 +653,120 @@ eitherMap(f) = eitherBind(f eitherPure)
 
 data List(t)
   nil  : List(t)
-  cons : List(t) t -- List(t)
+  pure : t -- List(t)
+  _cat : List(t) List(t) Nat -- List(t)
 end
 
-cat : List(a) List(a) -- List(a)
-cat = match(
-  nil  -> id,
-  cons -> dip(cat) cons
+len? : List(t) -- List(t) Nat
+len? = match(
+  nil  -> nil  0 _nat,
+  pure -> pure 1 _nat,
+  _cat -> dup dip(_cat)
 )
 
+len : List(t) -- Nat
+len = len? nip
+
+null? : List(t) -- List(t) Bool
+null? = len? n0 n=
+
+null : List(t) -- Bool
+null = null? nip
+
+cat : List(t) List(t) -- List(t)
+cat = null? if( drop,
+  dip?(null?) if( nip,
+  dip(len?) len? rotl n+ _cat ))
+
+List.generate : t t Nat -- List(t)
+List.generate = dup 2 nat n>= if(
+  nsplit over2 swap rotl List.generate dip(List.generate) cat,
+  1 nat n= if(
+    drop pure,
+    drop2 nil))
+
+len? drop == id
+cat len == dip(len) len n+
+List.generate len == dip(drop2)
+
+cons : List(t) t -- List(t)
+cons = pure cat
+
+snoc : t List(t) -- List(t)
+snoc = dip(pure) cat
+
 listPure : t -- List(t)
-listPure = dip(nil) cons
+listPure = pure
 
 listBind(f: a -- List(b)) : List(a) -- List(b)
 listBind(f) = match(
   nil  -> nil,
-  cons -> dip(listBind(f)) f cat
+  pure -> f,
+  _cat -> drop dip(listBind(f)) listBind(f) cat
+)
+
+map(f: a -- b) : List(a) -- List(b)
+map(f) = match(
+  nil  -> nil,
+  pure -> f pure,
+  _cat -> dip(dip(map(f)) map(f)) _cat
+)
+
+fold(z: a, m: t -- a, c: a a -- a): List(t) -- a
+fold(z,m,c) = match(
+  nil  -> z,
+  pure -> m,
+  _cat -> drop dip(fold(z,m,c)) fold(z,m,c) c
+)
+
+
+for(f: *a b -- *a) : *a List(b) -- *a
+for(f) = match(
+  nil  -> ,
+  pure -> f,
+  _cat -> drop dip(for(f)) for(f)
+)
+
+rfor(f: *a b -- *a) : *a List(b) -- *a
+rfor(f) = match(
+  nil  ->,
+  pure -> f,
+  _cat -> drop swap dip(rfor(f)) rfor(f)
+)
+
+## Break list into two components at given index. O(depth)
+break : List(t) Nat -- List(t) List(t)
+break = dup n0 n= if( drop dip(nil),
+  dip(len?) tuck n<= if( drop nil,
+  swap match(
+    nil -> drop nil nil,
+    pure -> nip pure nil swap,
+    _cat ->
+       drop rotl tuck
+       dip2(dip(len?) swap dip(break))
+       rotl n- break dip(swap dip(cat)) cat
+  )))
+
+dip(nil) break == drop nil nil
+break cat len == drop len
+
+## Rebalance a list. O(n^2)
+balance : List(t) -- List(t)
+balance = len? 2 nat n/ break dip(balance) balance cat
+
+## Left bias a list.
+leftBias : List(t) -- List(t)
+leftBias = dip(nil) for(cons)
+
+## Right bias a list.
+rightBias : List(t) -- List(t)
+rightBias = dip(nil) rfor(cons)
+
+## Balanced concat.
+bcat : List(t) List(t) -- List(t)
+bcat = dip?(len?) dip?(len?) ncompare? match(
+  LT -> drop2 cat balance,
+  EQ -> drop2 cat,
+  GT -> drop2 cat balance
 )
 
