@@ -70,181 +70,23 @@ tokenIsColon?   : Token -- Token Bool
 tokenIsEqual?   : Token -- Token Bool
 tokenIsEqual2?  : Token -- Token Bool
 tokenIsNewline? : Token -- Token Bool
+tokenIsInt? = dup match( TINT -> drop true, _ -> drop false )
+tokenIsStr? = dup match( TSTR -> drop true, _ -> drop false )
+tokenIsName? = dup match( TNAME -> drop true, _ -> drop false )
+tokenIsLParen? = dup match( TLPAREN -> true, _ -> drop false )
+tokenIsRParen? = dup match( TRPAREN -> true, _ -> drop false )
+tokenIsComma? = dup match( TCOMMA -> true, _ -> drop false )
+tokenIsColon? = dup match( TCOLON -> true, _ -> drop false )
+tokenIsEqual? = dup match( TEQUAL -> true, _ -> drop false )
+tokenIsEqual2? = dup match( TEQUAL2 -> true, _ -> drop false )
+tokenIsNewline? = dup match( TNEWLINE -> true, _ -> drop false )
 
 tokenGetInt     : Token -- Int
 tokenGetStr     : Token -- Str
 tokenGetName    : Token -- Str
-
-tokenIsInt? = dup match(
-  TINT     -> drop true,
-  TSTR     -> drop false,
-  TNAME    -> drop false,
-  TLPAREN  -> false,
-  TRPAREN  -> false,
-  TCOMMA   -> false,
-  TCOLON   -> false,
-  TEQUAL   -> false,
-  TEQUAL2  -> false,
-  TNEWLINE -> false
-)
-
-tokenGetInt = match(
-  TINT     -> ,
-  TSTR     -> drop 0,
-  TNAME    -> drop 0,
-  TLPAREN  -> 0,
-  TRPAREN  -> 0,
-  TCOMMA   -> 0,
-  TCOLON   -> 0,
-  TEQUAL   -> 0,
-  TEQUAL2  -> 0,
-  TNEWLINE -> 0
-)
-
-
-tokenIsStr? = dup match(
-  TINT     -> drop false,
-  TSTR     -> drop true,
-  TNAME    -> drop false,
-  TLPAREN  -> false,
-  TRPAREN  -> false,
-  TCOMMA   -> false,
-  TCOLON   -> false,
-  TEQUAL   -> false,
-  TEQUAL2  -> false,
-  TNEWLINE -> false
-)
-
-tokenGetStr = match(
-  TINT     -> drop "",
-  TSTR     -> ,
-  TNAME    -> drop "",
-  TLPAREN  -> "",
-  TRPAREN  -> "",
-  TCOMMA   -> "",
-  TCOLON   -> "",
-  TEQUAL   -> "",
-  TEQUAL2  -> "",
-  TNEWLINE -> ""
-)
-
-
-tokenIsName? = dup match(
-  TINT     -> drop false,
-  TSTR     -> drop false,
-  TNAME    -> drop true,
-  TLPAREN  -> false,
-  TRPAREN  -> false,
-  TCOMMA   -> false,
-  TCOLON   -> false,
-  TEQUAL   -> false,
-  TEQUAL2  -> false,
-  TNEWLINE -> false
-)
-
-tokenGetName = match(
-  TINT     -> drop "",
-  TSTR     -> drop "",
-  TNAME    -> ,
-  TLPAREN  -> "",
-  TRPAREN  -> "",
-  TCOMMA   -> "",
-  TCOLON   -> "",
-  TEQUAL   -> "",
-  TEQUAL2  -> "",
-  TNEWLINE -> ""
-)
-
-tokenIsLParen? = dup match(
-  TINT     -> drop false,
-  TSTR     -> drop false,
-  TNAME    -> drop false,
-  TLPAREN  -> true,
-  TRPAREN  -> false,
-  TCOMMA   -> false,
-  TCOLON   -> false,
-  TEQUAL   -> false,
-  TEQUAL2  -> false,
-  TNEWLINE -> false
-)
-
-tokenIsRParen? = dup match(
-  TINT     -> drop false,
-  TSTR     -> drop false,
-  TNAME    -> drop false,
-  TLPAREN  -> false,
-  TRPAREN  -> true,
-  TCOMMA   -> false,
-  TCOLON   -> false,
-  TEQUAL   -> false,
-  TEQUAL2  -> false,
-  TNEWLINE -> false
-)
-
-tokenIsComma? = dup match(
-  TINT     -> drop false,
-  TSTR     -> drop false,
-  TNAME    -> drop false,
-  TLPAREN  -> false,
-  TRPAREN  -> false,
-  TCOMMA   -> true,
-  TCOLON   -> false,
-  TEQUAL   -> false,
-  TEQUAL2  -> false,
-  TNEWLINE -> false
-)
-
-tokenIsColon? = dup match(
-  TINT     -> drop false,
-  TSTR     -> drop false,
-  TNAME    -> drop false,
-  TLPAREN  -> false,
-  TRPAREN  -> false,
-  TCOMMA   -> false,
-  TCOLON   -> true,
-  TEQUAL   -> false,
-  TEQUAL2  -> false,
-  TNEWLINE -> false
-)
-
-tokenIsEqual? = dup match(
-  TINT     -> drop false,
-  TSTR     -> drop false,
-  TNAME    -> drop false,
-  TLPAREN  -> false,
-  TRPAREN  -> false,
-  TCOMMA   -> false,
-  TCOLON   -> false,
-  TEQUAL   -> true,
-  TEQUAL2  -> false,
-  TNEWLINE -> false
-)
-
-tokenIsEqual2? = dup match(
-  TINT     -> drop false,
-  TSTR     -> drop false,
-  TNAME    -> drop false,
-  TLPAREN  -> false,
-  TRPAREN  -> false,
-  TCOMMA   -> false,
-  TCOLON   -> false,
-  TEQUAL   -> false,
-  TEQUAL2  -> true,
-  TNEWLINE -> false
-)
-
-tokenIsNewline? = dup match(
-  TINT     -> drop false,
-  TSTR     -> drop false,
-  TNAME    -> drop false,
-  TLPAREN  -> false,
-  TRPAREN  -> false,
-  TCOMMA   -> false,
-  TCOLON   -> false,
-  TEQUAL   -> false,
-  TEQUAL2  -> false,
-  TNEWLINE -> true
-)
+tokenGetInt = match( TINT -> , _ -> drop 0 )
+tokenGetStr = match( TSTR -> , _ -> drop "" )
+tokenGetName = match( TNAME -> , _ -> drop "" )
 
 ##########
 # LEXING #
