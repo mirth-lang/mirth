@@ -956,6 +956,11 @@ class module:
         self.assertions.append((lineno, orig, lhsf, rhsf))
 
     def decl_data_def (self, lineno, name, params, wordsigs):
+        if name in self.types:
+            raise TypeError(
+                "Line %d: Type %s defined twice."
+                % (lineno, name)
+            )
 
         for wordsig in wordsigs:
             if len(wordsig.cod.atoms) != 1:
