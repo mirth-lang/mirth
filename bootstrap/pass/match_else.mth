@@ -1,0 +1,12 @@
+
+data T
+  A : Int -- T
+  B : Int -- T
+end
+
+foo : T -- T
+foo = match( A -> B, _ -> id )
+
+A foo == B
+B foo == B
+

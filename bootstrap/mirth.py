@@ -1353,6 +1353,7 @@ def match (elab, args):
     dargs = domt.args
     dcons = elab.mod.data_defs[dname]
     rules = {}
+    else_rule = None
     outtp = tpack(fresh_var())
 
     for arg in args:
@@ -1367,7 +1368,7 @@ def match (elab, args):
             )
         cname = lhs.atoms[0].name.code
         cargs = lhs.atoms[0].args
-        if cname not in dcons:
+        if cname != '_' and cname not in dcons:
             raise TypeError(
                 "Error: %s is not a constructor for type %s."
                 % (cname, dname)
@@ -1375,12 +1376,22 @@ def match (elab, args):
         if len(cargs) > 0:
             raise SyntaxError("Higher-order constructors not yet implemented in match.")
 
+        if else_rule is not None:
+            raise SyntaxError("Case %s is made redundant by default case in match." % cname)
+
+        if cname == '_':
+            celab = word_elaborator(elab.mod, elab.dom, elab.loc)
+            celab.sub = elab.sub
+            else_rule = rhs.elab(celab)
+            outtp = outtp.unify(celab.dom, elab.sub)
+            continue
+
         (cps, cdomt, ccodt) = dcons[cname]
         if len(cps) > 0:
             raise SyntaxError("Higher-order constructors not yet implemented in match.")
 
         if cname in rules:
-            raise TypeError("Constructor %s appears twice in match." % cname)
+            raise SyntaxError("Constructor %s appears twice in match." % cname)
 
         prefix = fresh_var()
         pvar  = fresh_var()
@@ -1393,17 +1404,28 @@ def match (elab, args):
         rules[cname] = rhs.elab(celab)
         outtp = outtp.unify(celab.dom, elab.sub)
 
-    for cname in dcons:
-        if cname not in rules:
-            raise TypeError("Missing rule for constructor %s in match." % cname)
+    missing_rules = set(dcons)
+    for cname in rules:
+        missing_rules.remove(cname)
+    if else_rule is None:
+        if missing_rules:
+            raise TypeError( 'Missing rule for constructor %s in match'
+                % ', '.join(sorted(missing_rules)) )
+    else:
+        if not missing_rules:
+            raise TypeError( 'Redundant default case in match.' )
 
     elab.dom = outtp
     def outfn(e, *args):
         v = e.pop()
-        f = rules[v[0]]
-        for x in v[1::]:
-            e.push(x)
-        f(e, *args)
+        if v[0] in rules:
+            f = rules[v[0]]
+            for x in v[1::]:
+                e.push(x)
+            f(e, *args)
+        elif else_rule is not None:
+            e.push(v)
+            else_rule(e, *args)
     return outfn
 
 
