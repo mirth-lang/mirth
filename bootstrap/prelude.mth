@@ -79,6 +79,9 @@ dup3 drop3 == id
 # query words
 #
 
+swap?(f : *a c b -- *a c b p) : *a b c -- *a b c p
+swap?(f) = swap f dip(swap)
+
 dip?(f : *a -- *a p) : *a b -- *a b p
 dip?(f) = dip(f) swap
 
@@ -183,7 +186,12 @@ data Comparison
 end
 
 compareWith? (lt?: a a -- a a Bool) : a a -- a a Comparison
-compareWith? (lt?) = lt? if(LT, swap lt? if(GT, EQ) dip(swap))
+compareWith? (lt?) =
+  cond(
+    lt? -> LT,
+    swap?(lt?) -> GT,
+    EQ
+  )
 
 compare? : Int Int -- Int Int Comparison
 compare? = compareWith?(dup2 <)
@@ -643,6 +651,14 @@ n0 = 0 _nat
 n1 : Nat
 n1 = 1 _nat
 
+n0? : Nat -- Nat Bool
+n0? = dup n0 n=
+n0? drop == id
+
+n1? : Nat -- Nat Bool
+n1? = dup n1 n=
+n1? drop == id
+
 nsplit : Nat -- Nat Nat
 nsplit = nat->int dup dip(2/ dup) 2% + dip(_nat) _nat
 nsplit n+ == id
@@ -674,16 +690,20 @@ null : List(t) -- Bool
 null = null? nip
 
 cat : List(t) List(t) -- List(t)
-cat = null? if( drop,
-  dip?(null?) if( nip,
-  dip(len?) len? rotl n+ _cat ))
+cat =
+  cond(
+    null? -> drop,
+    dip?(null?) -> dip(drop),
+    len? dip2?(len?) n+ _cat
+  )
 
 List.generate : t t Nat -- List(t)
-List.generate = dup 2 nat n>= if(
-  nsplit over2 swap rotl List.generate dip(List.generate) cat,
-  1 nat n= if(
-    drop pure,
-    drop2 nil))
+List.generate =
+  cond(
+    n0? -> drop3 nil,
+    n1? -> drop2 pure,
+    nsplit over2 swap rotl List.generate dip(List.generate) cat
+  )
 
 len? drop == id
 cat len == dip(len) len n+
@@ -769,4 +789,9 @@ bcat = dip?(len?) dip?(len?) ncompare? match(
   EQ -> drop2 cat,
   GT -> drop2 cat balance
 )
+
+++ : List(t) List(t) -- List(t)
+++ = cat
+
+
 

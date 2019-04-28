@@ -34,9 +34,19 @@ locNextCol = match( loc -> 1+ loc )
 1 17 loc locNextTab == 1 25 loc
 1 1  loc locNextCol == 1 2 loc
 
+isNewLine? : Char -- Char Bool
+isNewLine? = dup "\n" str->char chareq
+
+isTab? : Char -- Char Bool
+isTab? = dup "\t" str->char chareq
+
 locNextChar : Loc Char -- Loc
-locNextChar = dup "\n" str->char chareq if( drop locNextRow,
-                  "\t" str->char chareq if( locNextTab, locNextCol ))
+locNextChar =
+  cond(
+    isNewLine? -> drop locNextRow,
+    isTab?     -> drop locNextTab,
+                  drop locNextCol
+  )
 
 locNext : Loc Str -- Loc
 locNext = strfold(locNextChar)
@@ -240,11 +250,13 @@ lexRuleName(test,conv) = lexRule(
 )
 
 digitVal : Char -- Int
-digitVal = isdigit? if(char->int "0" str->char char->int -,
-  isupper? if(char->int "A" str->char char->int - 10 +,
-  islower? if(char->int "a" str->char char->int - 10 +,
-  drop 0
-)))
+digitVal =
+  cond(
+    isdigit? -> char->int "0" str->char char->int -,
+    isupper? -> char->int "A" str->char char->int - 10 +,
+    islower? -> char->int "a" str->char char->int - 10 +,
+    drop 0
+  )
 
 readIntBase(b: Int) : Int Str -- Int
 readIntBase(b) = strview match(
