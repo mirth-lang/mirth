@@ -1,0 +1,23 @@
+
+foo
+  :
+  Int Int -- Int
+
+
+foo
+
+
+=
+
+
+dup2 % dip(*) +
+
+
+
+
+
+
+dip(0) abs 1+ foo
+==
+
+drop 0
