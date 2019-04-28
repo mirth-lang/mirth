@@ -364,10 +364,12 @@ def parsetoks(tokens):
         pure(lambda: []),
     )
 
-    p_word_sig = fmapseq(lambda a,p,_,b,c: word_sig(a,p,b,c),
+    p_word_sig = fmapseq(lambda a,p,_1,_2,_3,b,c: word_sig(a,p,b,c),
         p_name,
         p_word_sig_params,
+        star(p_line),
         test(token.is_colon),
+        star(p_line),
         alt(
             fmapseq(lambda a,b: a,
                 p_expr,
@@ -383,16 +385,20 @@ def parsetoks(tokens):
         pure(lambda: []),
     )
 
-    p_word_def = fmapseq(lambda a,p,_,b: word_def(a,p,b),
+    p_word_def = fmapseq(lambda a,p,_1,_2,_3,b: word_def(a,p,b),
         p_name,
         p_word_def_params,
+        star(p_line),
         test(token.is_equal),
+        star(p_line),
         p_expr,
     )
 
-    p_assertion = fmapseq(lambda a,c,b: assertion(c.lineno, a,b),
+    p_assertion = fmapseq(lambda a,_1,c,_2,b: assertion(c.lineno, a,b),
         p_expr,
+        star(p_line),
         test(token.is_equal2),
+        star(p_line),
         p_expr,
     )
 
@@ -1374,7 +1380,7 @@ def match (elab, args):
             raise SyntaxError("Higher-order constructors not yet implemented in match.")
 
         if cname in rules:
-            raise SyntaxError("Constructor %s appears twice in match." % cname)
+            raise TypeError("Constructor %s appears twice in match." % cname)
 
         prefix = fresh_var()
         pvar  = fresh_var()

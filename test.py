@@ -45,6 +45,9 @@ test_interp(['--no-prelude', 'bootstrap/prelude.mth'], succeeds)
 for path in glob.glob('bootstrap/pass/*'):
     test_interp([path], succeeds)
 
+for path in glob.glob('bootstrap/fail_syntax/*'):
+    test_interp([path], stderr_contains('SyntaxError'))
+
 for path in glob.glob('bootstrap/fail_types/*'):
     test_interp([path], stderr_contains('TypeError'))
 
