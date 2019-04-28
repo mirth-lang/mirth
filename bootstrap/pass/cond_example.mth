@@ -1,0 +1,9 @@
+
+myabs : Int -- Int
+myabs = cond( neg? -> neg, id )
+
+myabs == abs
+
+
+
+

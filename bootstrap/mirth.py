@@ -1433,6 +1433,71 @@ def match (elab, args):
             else_rule(e, *args)
     return outfn
 
+#
+# cond( p_1 -> t_1, p_2 -> t_2, ... , p_n -> t_n, e ) : *a -- *b
+#   where
+#     p_i : *a -- *a Bool  with  p_i drop == id
+#     t_i : *a -- *b
+#     e   : *a -- *b
+#
+# Run p_1, p_2, ... p_n in succession until the first one returns
+# true. If p_i returns true, then perform t_i. Otherwise, if all
+# of p_1, p_2, ..., p_n return false, perfarm e.
+#
+# This is equivalent to the chained if expression:
+#
+#   p_1 if( t_1, p_2 if( t_2, ... p_n if( t_n, e ) ... ) )
+#
+def cond (elab, args):
+    if len(args) < 1:
+        raise SyntaxError("Expected at least one argument to cond.")
+    rules = []
+    odom = elab.dom
+    lcod = tpack(odom, tbool)
+    rcod = tpack(fresh_var())
+
+    for arg in args[:-1]:
+        line = list(arg.split_on('->'))
+        if len(line) != 2:
+            raise SyntaxError("Expected -> in argument to cond.")
+        lhs, rhs = tuple(line)
+
+        elab.dom = odom
+        lhsfn = lhs.elab(elab)
+        lcod = lcod.unify(elab.dom, elab.sub)
+
+        elab.dom = odom
+        rhsfn = rhs.elab(elab)
+        rcod = rcod.unify(elab.dom, elab.sub)
+        rules.append((lhsfn, rhsfn))
+
+    elab.dom = odom
+    elsefn = args[-1].elab(elab)
+    rcod = rcod.unify(elab.dom, elab.sub)
+
+    def outfn(e, *vs):
+
+        def mkpfn(i):
+            def f(e):
+                if i < len(rules):
+                    e.copush(mktfn(i))
+                    rules[i][0](e, *vs)
+                else:
+                    elsefn(e, *vs)
+            return f
+
+        def mktfn(i):
+            def f(e):
+                b = e.pop()
+                if b:
+                    rules[i][1](e, *vs)
+                else:
+                    e.copush(mkpfn(i+1))
+            return f
+
+        e.copush(mkpfn(0))
+
+    return outfn
 
 tint  = tcon('Int')
 tstr  = tcon('Str')
@@ -1447,6 +1512,7 @@ builtin_types = {
 
 builtin_prims = {
     'match': match,
+    'cond': cond,
 }
 
 def word1 (f):
