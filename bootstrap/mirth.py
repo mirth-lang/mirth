@@ -1039,13 +1039,11 @@ class module:
         def addworddef(wordsig):
             wname = wordsig.name.code
             wlen = len(wordsig.dom.atoms)
-            def wfn(e):
+            def wfn(e, *args):
                 ws = []
                 for i in range(wlen):
                     ws.append(e.pop())
-                vs = [wname]
-                vs.extend(ws[::-1])
-                e.push(tuple(vs))
+                e.push((wname, tuple(args), tuple(ws[::-1])))
             self.word_defs[wname] = wfn
 
         self.data_defs[name] = {}
@@ -1425,7 +1423,7 @@ def match (elab, args):
         v = e.pop()
         if v[0] in rules:
             f = rules[v[0]]
-            for x in v[1::]:
+            for x in v[2]:
                 e.push(x)
             f(e, *args)
         elif else_rule is not None:
