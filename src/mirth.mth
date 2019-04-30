@@ -357,9 +357,16 @@ pstarsep( f : Token -- Token Bool
 pparens( p : PDom -- PCod(t)
        )   : PDom -- PCod(t)
 
+
+
+
+
 ##########
 # SYNTAX #
 ##########
+
+pline : PDom -- PCod(Loc)
+pline = ptok(tokenIsNewline?, drop)
 
 # no mutual types in bootstrap
 # yes this is silly...
@@ -396,6 +403,7 @@ plit = palt2( ptok(tokenIsInt?, tokenGetInt LINT)
 data Atom
   ALIT  : Loc Lit -- Atom
   AWORD : Loc Name List(List(Atom)) -- Atom
+  ALINE : Loc Maybe(Str) -- Atom
 end
 
 patom : PDom -- PCod(Atom)
@@ -403,9 +411,12 @@ pexpr : PDom -- PCod(List(Atom))
 pargs : PDom -- PCod(List(List(Atom)))
 patom = palt2( pseq1(ALIT,  plit)
              , pseq2(AWORD, pname, pargs) )
-pexpr = pstar( patom )
+pexpr = pstar( pseq2(dip(drop2), pstar(pline), patom ) )
 pargs = palt2( pparens(pstarsep(tokenIsComma?, pexpr))
              , ppure(nil) )
+
+pexpr_noline : PDom -- PCod(List(Atom))
+pexpr_noline = pstar( patom )
 
 data StackTypeExpr
   SNIL  :               Loc                 -- StackTypeExpr
