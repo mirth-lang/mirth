@@ -1457,6 +1457,63 @@ def match (elab, args):
     return outfn
 
 #
+# lam( x_1 ... x_n -> args )
+#
+
+def lam (elab, args):
+    if len(args) != 1:
+        raise SyntaxError("Expected a single argument to lambda.")
+    line = list(args[0].split_on('->'))
+    if len(line) < 2:
+        raise SyntaxError("Expected -> in argument to lambda.")
+    if len(line) > 2:
+        raise SyntaxError("Expected only one -> in argument to lambda.")
+    lhs, rhs = line
+
+    names = []
+    for atom in lhs.atoms:
+        if not (isinstance(atom, word) and len(atom.args) == 0):
+            raise SyntaxError("Expected lambda param to be simple variable name.")
+        name = atom.name.code
+        if name in elab.loc:
+            raise TypeError(
+                "Param in lambda shadows local variable %s."
+                % name
+            )
+        if name in names:
+            raise SyntaxError(
+                "Param in lambda appears twice: %s"
+                % name
+            )
+        names.append(name)
+
+    trest = fresh_var()
+    targs = [fresh_var() for name in names]
+    elab.dom = tpack(trest, *targs).unify(elab.dom, elab.sub)
+
+    floc = elab.loc.copy()
+    for (name, (i, targ)) in zip(names, enumerate(targs)):
+        floc[name] = (i + len(elab.loc), tpack(None), tpack(None, targ.subst(elab.sub)))
+    felab = word_elaborator(elab.mod, trest.subst(elab.sub), floc)
+    felab.sub = elab.sub
+    f = rhs.elab(felab)
+    elab.dom = felab.dom
+
+    def mkearg(x):
+        def h(e):
+            e.push(x)
+        return h
+
+    def g (e, *args):
+        eargs = []
+        for name in names:
+            eargs.append(mkearg(e.pop()))
+        args = list(args) + eargs[::-1]
+        f (e, *args)
+
+    return g
+
+#
 # cond( p_1 -> t_1, p_2 -> t_2, ... , p_n -> t_n, e ) : *a -- *b
 #   where
 #     p_i : *a -- *a Bool  with  p_i drop == id
@@ -1536,6 +1593,7 @@ builtin_types = {
 builtin_prims = {
     'match': match,
     'cond': cond,
+    'lambda': lam,
 }
 
 def word1 (f):
