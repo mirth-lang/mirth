@@ -1010,13 +1010,6 @@ class module:
                     % lineno
                 )
 
-            if len(wordsig.params) > 0:
-                raise SyntaxError(
-                    "Line %d: Higher order constructors not yet implemented."
-                    % lineno
-                )
-
-
         def ft(mod, args):
             if len(args) != len(params):
                 raise TypeError("Type %s expects %d args, but got %d args."
@@ -1034,7 +1027,6 @@ class module:
             return tcon(name, ta)
 
         self.types[name] = ft
-
 
         def addworddef(wordsig):
             wname = wordsig.name.code
@@ -1376,8 +1368,6 @@ def match (elab, args):
                 "Error: %s is not a constructor for type %s."
                 % (cname, dname)
             )
-        if len(cargs) > 0:
-            raise SyntaxError("Higher-order constructors not yet implemented in match.")
 
         if else_rule is not None:
             raise SyntaxError("Case %s is made redundant by default case in match." % cname)
@@ -1389,20 +1379,54 @@ def match (elab, args):
             outtp = outtp.unify(celab.dom, elab.sub)
             continue
 
-        (cps, cdomt, ccodt) = dcons[cname]
-        if len(cps) > 0:
-            raise SyntaxError("Higher-order constructors not yet implemented in match.")
+        (cparams, cdomt, ccodt) = dcons[cname]
 
         if cname in rules:
             raise SyntaxError("Constructor %s appears twice in match." % cname)
 
+        if len(cargs) != len(cparams):
+            raise TypeError(
+                "Expected %d params for %s constructor in match but got %d params."
+                % (len(cparams), cname, len(cargs)))
+
+        cargvars = []
+        for carg in cargs:
+            if len(carg.atoms) != 1:
+                raise SyntaxError(
+                    "Expected single atom in %s constructor param in match."
+                    % cname
+                )
+            cargatom = carg.atoms[0]
+            if not (isinstance(cargatom, word) and len(cargatom.args) == 0):
+                raise SyntaxError(
+                    "Expected single variable in %s constructor param in match."
+                    % cname
+                )
+            cargvar = cargatom.name.code
+            if cargvar in elab.loc:
+                raise TypeError(
+                    "%s constructor param shadows local variable %s."
+                    % (cname, cargvar)
+                )
+            if cargvar in cargvars:
+                raise SyntaxError(
+                    "%s constructor param %s appears twice."
+                    % (cname, cargvar)
+                )
+            cargvars.append(cargvar)
+
         prefix = fresh_var()
-        pvar  = fresh_var()
+        pvar   = fresh_var()
         cdomt = tpack(pvar, *cdomt.args).freshen(prefix.name)
         ccodt = tpack(pvar, *ccodt.args).freshen(prefix.name)
         ccodt = ccodt.unify(elab.dom, elab.sub)
         cdomt = cdomt.subst(elab.sub)
-        celab = word_elaborator(elab.mod, cdomt, elab.loc)
+        cloc = elab.loc.copy()
+        for (cvar, (i, (cpdom, cpcod))) in zip(cargvars, enumerate(cparams)):
+            cloc[cvar] = (len(elab.loc) + i,
+                cpdom.freshen(prefix.name).subst(elab.sub),
+                cpcod.freshen(prefix.name).subst(elab.sub))
+        celab = word_elaborator(elab.mod, cdomt, cloc)
         celab.sub = elab.sub
         rules[cname] = rhs.elab(celab)
         outtp = outtp.unify(celab.dom, elab.sub)
@@ -1423,9 +1447,10 @@ def match (elab, args):
         v = e.pop()
         if v[0] in rules:
             f = rules[v[0]]
+            fargs = list(args) + list(v[1])
             for x in v[2]:
                 e.push(x)
-            f(e, *args)
+            f(e, *fargs)
         elif else_rule is not None:
             e.push(v)
             else_rule(e, *args)
