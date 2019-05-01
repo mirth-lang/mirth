@@ -175,7 +175,7 @@ def handle_package_error(pkg, modpath, f):
         print('TypeError: %s:' % shortname, e, file=sys.stderr)
         sys.exit(1)
     except SyntaxError as e:
-        print('SyntaxError: %s' % shorname, e, file=sys.stderr)
+        print('SyntaxError: %s:' % shortname, e, file=sys.stderr)
         sys.exit(1)
 
 
