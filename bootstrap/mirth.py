@@ -846,6 +846,9 @@ class tcon:
         else:
             return self.name
 
+    def __eq__ (self, other):
+        return self.name == other.name and self.args == other.args
+
     def rigidify(self):
         return tcon(self.name, [arg.rigidify() for arg in self.args])
 
@@ -892,6 +895,9 @@ class tvar:
 
     def __str__(self):
         return self.name
+
+    def __eq__ (self, other):
+        return self.name == other.name
 
     def rigidify(self):
         return tcon('%' + self.name, [])
@@ -999,7 +1005,7 @@ class tpack:
         self.args = list(args)
 
     def __repr__ (self):
-        if self.rest == None and self.args == []:
+        if self.rest is None and self.args == []:
             return 'tpack()'
         else:
             return 'tpack(%r, %s)' % (self.rest, ', '.join(repr(a) for a in self.args))
@@ -1009,6 +1015,9 @@ class tpack:
             return '[ %s ]' % ' '.join(str(a) for a in self.args)
         else:
             return '[ *%s %s ]' % (self.rest, ' '.join(str(a) for a in self.args))
+
+    def __eq__ (self, other):
+        return self.args == other.args and self.rest == other.rest
 
     def rigidify(self):
         if self.rest is None:
@@ -1117,8 +1126,6 @@ class module:
         return self.word_defs[name]
 
     def decl_word_sig (self, name, params, dom, cod):
-        if name in self.word_sigs:
-            raise TypeError("Word %s is declared twice." % name)
 
         ps = []
         for (pname, pdom, pcod) in params:
@@ -1132,7 +1139,14 @@ class module:
         codte = type_elaborator(self)
         dom.elab(domte)
         cod.elab(codte)
-        self.word_sigs[name] = (ps, domte.to_tpack(), codte.to_tpack())
+
+        sig = (ps, domte.to_tpack(), codte.to_tpack())
+
+        if name in self.word_sigs:
+            if self.word_sigs[name] != sig:
+                raise TypeError("Word %s is already declared with different type." % name)
+        else:
+            self.word_sigs[name] = sig
 
     def decl_word_def (self, name, params, body):
         if name not in self.word_sigs:
