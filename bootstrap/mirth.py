@@ -89,7 +89,7 @@ def repl(with_prelude=True):
     print()
 
     m = load_prelude() if with_prelude else module()
-    e = env(m)
+    e = env()
     l = word_elaborator(m, tpack())
 
     try:
@@ -1259,8 +1259,8 @@ class module:
         (lineno, dom, f0, f1) = assn
         tries = 1 + 10 * len(dom.args)
         for try_number in range(tries):
-            e0 = env(self)
-            e1 = env(self)
+            e0 = env()
+            e1 = env()
             vs = []
             for d in dom.args:
                 v = self.arbitrary(d, try_number)
@@ -1312,7 +1312,7 @@ class module:
                 fun = self.get_word_def(gname)
                 sub = {}
                 t.unify(cod.args[0].freshen(fresh_var().name), sub)
-                e = env(self)
+                e = env()
                 for d in dom.args:
                     e.push(self.arbitrary(d.subst(sub), n))
                 e.copush(fun)
@@ -1408,7 +1408,7 @@ class word_elaborator:
             def mkfn(fs):
                 def fn(p, *nargs):
                     def pushedfn(e):
-                        d = e.mod.get_word_def(name)
+                        d = self.mod.get_word_def(name)
                         dargs = []
                         for f in fs:
                             def g(f): return lambda e2: f(e2, *nargs)
@@ -1461,8 +1461,7 @@ class word_elaborator:
         return f
 
 class env:
-    def __init__(self, mod):
-        self.mod = mod
+    def __init__(self):
         self.stack  = []
         self.rstack = []
 
