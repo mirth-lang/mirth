@@ -1151,6 +1151,8 @@ class module:
     def decl_word_def (self, name, params, body):
         if name not in self.word_sigs:
             raise TypeError("Word %s is defined without type signature." % name)
+        if name in self.word_defs:
+            raise TypeError("Word %s is already defined." % name)
 
         (wargs, dom, cod) = self.word_sigs[name]
 
