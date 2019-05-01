@@ -1,57 +1,5 @@
 
-
-#############
-# LOCATIONS #
-#############
-
-data Loc
-  loc : Int Int -- Loc
-end
-
-Loc.generate : Int Int -- Loc
-Loc.generate = dip(abs 1+) abs 1+ loc
-
-row : Loc -- Int
-col : Loc -- Int
-row = match( loc -> drop )
-col = match( loc -> nip  )
-
-locNextRow : Loc -- Loc
-locNextTab : Loc -- Loc
-locNextCol : Loc -- Loc
-locNextRow = match( loc -> drop 1+ 1 loc )
-locNextTab = match( loc -> 1- 8 over 8 % - + 1+ loc )
-locNextCol = match( loc -> 1+ loc )
-
-1 1  loc locNextRow == 2 1 loc
-1 10 loc locNextRow == 2 1 loc
-1 1  loc locNextTab == 1 9 loc
-1 2  loc locNextTab == 1 9 loc
-1 5  loc locNextTab == 1 9 loc
-1 8  loc locNextTab == 1 9 loc
-1 9  loc locNextTab == 1 17 loc
-1 12 loc locNextTab == 1 17 loc
-1 17 loc locNextTab == 1 25 loc
-1 1  loc locNextCol == 1 2 loc
-
-isNewLine? : Char -- Char Bool
-isNewLine? = dup "\n" str->char chareq
-
-isTab? : Char -- Char Bool
-isTab? = dup "\t" str->char chareq
-
-locNextChar : Loc Char -- Loc
-locNextChar =
-  cond(
-    isNewLine? -> drop locNextRow,
-    isTab?     -> drop locNextTab,
-                  drop locNextCol
-  )
-
-locNext : Loc Str -- Loc
-locNext = strfold(locNextChar)
-
-1 1 loc "a\nb\nc" locNext == 3 2 loc
+import mirth/loc
 
 ##########
 # TOKENS #
@@ -276,7 +224,7 @@ readInt = 2 strBreakAt dip?(or?("0x" streq? nip, "0X" streq? nip)) if(
 "0Xdeadbeefca1234567890" readInt == 0Xdeadbeefca1234567890
 
 lexStart : Str -- LexState
-lexStart = dip(1 1 loc) lexState
+lexStart = dip(locStart) lexState
 
 lexNext : LexState -- LexResult
 lexNext = mkLexer(
@@ -295,16 +243,16 @@ lexNext = mkLexer(
 # lexer tests
 "" lexStart lexNext == lexDone
 "  \t   " lexStart lexNext == lexDone
-"(" lexStart lexNext == 1 2 loc "" lexState 1 1 loc TLPAREN lexToken
-")" lexStart lexNext == 1 2 loc "" lexState 1 1 loc TRPAREN lexToken
-"," lexStart lexNext == 1 2 loc "" lexState 1 1 loc TCOMMA lexToken
-":" lexStart lexNext == 1 2 loc "" lexState 1 1 loc TCOLON lexToken
-"foo bar" lexStart lexNext == 1 4 loc " bar" lexState 1 1 loc "foo" TNAME lexToken
-"foo:bar" lexStart lexNext == 1 4 loc ":bar" lexState 1 1 loc "foo" TNAME lexToken
-"123,456" lexStart lexNext == 1 4 loc ",456" lexState 1 1 loc 123 TINT lexToken
-"foo(bar)" lexStart lexNext == 1 4 loc "(bar)" lexState 1 1 loc "foo" TNAME lexToken
-"  \t  b  ()" lexStart lexNext == 1 12 loc "  ()" lexState 1 11 loc "b" TNAME lexToken
-"  \n  b" lexStart lexNext == 2 1 loc "  b" lexState 1 3 loc TNEWLINE lexToken
+"(" lexStart lexNext == locStart locNextCol "" lexState locStart TLPAREN lexToken
+")" lexStart lexNext == locStart locNextCol "" lexState locStart TRPAREN lexToken
+"," lexStart lexNext == locStart locNextCol "" lexState locStart TCOMMA lexToken
+":" lexStart lexNext == locStart locNextCol "" lexState locStart TCOLON lexToken
+"foo bar" lexStart lexNext == locStart "foo" locNext " bar" lexState locStart "foo" TNAME lexToken
+"foo:bar" lexStart lexNext == locStart "foo" locNext ":bar" lexState locStart "foo" TNAME lexToken
+"123,456" lexStart lexNext == locStart "123" locNext ",456" lexState locStart 123 TINT lexToken
+"foo(bar)" lexStart lexNext == locStart "foo" locNext "(bar)" lexState locStart "foo" TNAME lexToken
+"  \t  b  ()" lexStart lexNext == locStart "  \t  b" locNext "  ()" lexState locStart "  \t  " locNext "b" TNAME lexToken
+"  \n  b" lexStart lexNext == locStart locNextRow "  b" lexState locStart "  " locNext TNEWLINE lexToken
 
 ##########
 # PARSER #
