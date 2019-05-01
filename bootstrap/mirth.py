@@ -82,7 +82,7 @@ def repl(with_prelude=True):
     print('And a special thanks to Benjohn.')
     print()
 
-    m = module()
+    m = load_prelude() if with_prelude else module()
     e = env(m)
     l = word_elaborator(m, tpack())
 

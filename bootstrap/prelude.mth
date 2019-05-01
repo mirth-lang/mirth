@@ -88,6 +88,9 @@ dip?(f) = dip(f) swap
 dip2?(f : *a -- *a p) : *a b1 b2 -- *a b1 b2 p
 dip2?(f) = dip?(dip?(f))
 
+dip3?(f : *a -- *a p) : *a b1 b2 b3 -- *a b1 b2 b3 p
+dip3?(f) = dip2?(dip?(f))
+
 hide?(f : *a b -- *a b p) : *a x b -- *a x b p
 hide?(f) = swap dip?(f) dip(swap)
 
@@ -614,6 +617,10 @@ n* = overInts(*)
 n- : Nat Nat -- Nat
 n- = overInts(-)
 
+10 nat 4 nat n- == 6 nat
+4 nat 10 nat n- == 0 nat
+
+
 n/ : Nat Nat -- Nat
 n/ = overInts(/)
 
@@ -632,18 +639,17 @@ n> = nat2->int2 >
 n< : Nat Nat -- Bool
 n< = nat2->int2 <
 
-
 n>= : Nat Nat -- Bool
 n>= = nat2->int2 >=
+
+n<= : Nat Nat -- Bool
+n<= = nat2->int2 <=
 
 n= : Nat Nat -- Bool
 n= = nat2->int2 eq
 
 n!= : Nat Nat -- Bool
 n!= = nat2->int2 neq
-
-n<= : Nat Nat -- Bool
-n<= = nat2->int2 neq
 
 n0 : Nat
 n0 = 0 _nat
@@ -754,21 +760,60 @@ rfor(f) = match(
   _cat -> drop swap dip(rfor(f)) rfor(f)
 )
 
+countTo : Nat -- List(Nat)
+countTo =
+  cond(
+    n0? -> drop nil,
+    n1 n- dup dip(countTo) cons
+  )
+
+0 nat countTo == nil
+1 nat countTo == 0 nat pure
+5 nat countTo
+  == 0 nat pure 1 nat cons 2 nat cons 3 nat cons 4 nat cons
+
+
 ## Break list into two components at given index. O(depth)
 break : List(t) Nat -- List(t) List(t)
-break = dup n0 n= if( drop dip(nil),
-  dip(len?) tuck n<= if( drop nil,
-  swap match(
-    nil -> drop nil nil,
-    pure -> nip pure nil swap,
-    _cat ->
-       drop rotl tuck
-       dip2(dip(len?) swap dip(break))
-       rotl n- break dip(swap dip(cat)) cat
-  )))
+break =
+  cond(
+    n0? -> drop dip(nil),
+    dip?(len?) over n<= -> drop nil,
+    swap match(
+      nil -> drop nil nil,
+      pure -> nip pure nil,
+      _cat ->
+        drop rotl tuck
+        dip3?(len?) n-
+        dip2(break) break
+        dip(swap) dip2(cat) cat
+    )
+  )
+
 
 dip(nil) break == drop nil nil
+dip(len?) n+ break == drop nil
 break cat len == drop len
+
+"" pure 0 nat break == nil "" pure
+"" pure 1 nat break == "" pure nil
+"" pure 2 nat break == "" pure nil
+"" pure 3 nat break == "" pure nil
+"" pure 4 nat break == "" pure nil
+
+"a" pure "b" pure cat 0 nat break == nil "a" pure "b" pure cat
+"a" pure "b" pure cat 1 nat break == "a" pure "b" pure
+"a" pure "b" pure cat 2 nat break == "a" pure "b" pure cat nil
+"a" pure "b" pure cat 3 nat break == "a" pure "b" pure cat nil
+"a" pure "b" pure cat 4 nat break == "a" pure "b" pure cat nil
+
+over dip(n+ countTo) break drop
+  == drop countTo
+
+1 pure 2 cons 3 cons 2 nat break
+  == 1 pure 2 cons 3 pure
+1 pure 2 cons 3 cons 4 cons 2 nat break
+  == 1 pure 2 cons 3 pure 4 cons
 
 ## Rebalance a list. O(n^2)
 balance : List(t) -- List(t)
