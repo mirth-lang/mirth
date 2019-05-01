@@ -150,7 +150,7 @@ def repl(with_prelude=True):
 # interface name can be exported in multiple files (it will be combined).
 #
 # An analogy with C may be useful. Each module body represents a .c file,
-# whereas each interface represents a .h file, combined from the export
+# whereas each interface represents a .h file, compiled from the export
 # declarations in all the module preambles. The imports represent
 # `#include` statements against those .h files.
 #
@@ -165,14 +165,17 @@ def handle_package_error(pkg, modpath, f):
     shortname = get_shortname(pkg, modpath)
     try:
         return f()
+    except NameError as e:
+        print('NameError: %s:' % shortname, e, file=sys.stderr)
+        sys.exit(1)
     except ValueError as e:
-        print(shortname, ': ValueError: ', e, file=sys.stderr)
+        print('ValueError: %s:' % shortname, e, file=sys.stderr)
         sys.exit(1)
     except TypeError as e:
-        print(shortname, ': TypeError: ', e, file=sys.stderr)
+        print('TypeError: %s:' % shortname, e, file=sys.stderr)
         sys.exit(1)
     except SyntaxError as e:
-        print(shortname, ': SyntaxError: ', e, file=sys.stderr)
+        print('SyntaxError: %s' % shorname, e, file=sys.stderr)
         sys.exit(1)
 
 
@@ -183,7 +186,13 @@ def run_package(pkg, args, with_prelude=True):
     modbodies = {}
     mods = {}
     interfaces = {}
+    interfaces_orig = {}
     interfaces_defs = {}
+
+    # TODO prevent two data defs with the same name in the same package
+    #  -- a better solution would detect the actual problem of multiple
+    #     independent type definitions colliding downstream, but this is
+    #     the bootstrap and it's better to be incomplete than incorrect.
 
     for modpath in modpaths:
         with open(modpath) as fp:
@@ -193,6 +202,25 @@ def run_package(pkg, args, with_prelude=True):
         mods[modpath] = load_prelude() if with_prelude else module()
             # TODO cache the prelude instead of loading it repeatedly
 
+        for pdecl in preamble:
+            if pdecl[0] == 'export':
+                iline, iname, ibody = pdecl[1:]
+                if iname in interfaces:
+                    omodpath, oline = interfaces_orig[iname]
+                    raise SyntaxError(
+                        "%s: line %d: Duplicate interface %s with %s line %d."
+                        % (get_shortname(pkg,modpath), iline, iname,
+                           get_shortname(pkg,omodpath), oline)
+                    )
+                interfaces[iname] = ibody
+                interfaces_orig[iname] = modpath, iline
+                interfaces_defs[iname] = {}
+
+    def mk_import_interface_fn (iname, dname):
+        def f (*args):
+            return interfaces_defs[iname][dname] (*args)
+        return f
+
     for modpath in modpaths:
         m = mods[modpath]
         for pdecl in modpreambles[modpath]:
@@ -200,7 +228,19 @@ def run_package(pkg, args, with_prelude=True):
                 for decl in pdecl[3]:
                     herr(modpath, lambda: decl.decl(m))
             elif pdecl[0] == 'import':
-                pass
+                iline, iname = pdecl[1:]
+                if iname not in interfaces:
+                    raise SyntaxError(
+                        "%s: line %d: Interface %s not declared in package."
+                        % (get_shortname(pkg,modpath), iline, iname)
+                    )
+                omodpath, oline = interfaces_orig[iname]
+                for decl in interfaces[iname]:
+                    herr(omodpath, lambda: decl.decl(m))
+                    if isinstance(decl, word_sig):
+                        dname = decl.name.code
+                        m.word_defs[dname] = mk_import_interface_fn (iname, dname)
+
             else:
                 raise ValueError("%s: Unexpected preamble decl form: %r"
                     % (get_shortname(pkg, modpath), decl))
@@ -210,14 +250,21 @@ def run_package(pkg, args, with_prelude=True):
 
         for pdecl in modpreambles[modpath]:
             if pdecl[0] == 'export':
+                iname = pdecl[2]
                 for decl in pdecl[3]:
                     if isinstance(decl, word_sig):
-                        name = decl.name.code
-                        if name not in m.word_defs:
+                        dname = decl.name.code
+                        dline = decl.name.lineno
+                        if dname not in m.word_defs:
                             raise TypeError(
                                 "%s: line %d: Missing definition for exported word %s"
-                                % (get_shortname(pkg, modpath), decl.name.lineno, name)
+                                % (get_shortname(pkg, modpath), dline, dname)
                             )
+                        interfaces_defs[iname][dname] = m.word_defs[dname]
+
+    for modpath in modpaths:
+        m = mods[modpath]
+        herr(modpath, lambda: m.check_assertions())
 
 def list_modules(pkg):
     '''List all modules inside a given package.'''
