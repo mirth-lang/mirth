@@ -15,6 +15,8 @@ import subprocess
 
 # run bootstrap tests
 
+full_test = '--fast' not in sys.argv
+
 failed = 0
 interp = 'bootstrap/mirth.py'
 subprocess.run([interp, '--doctest'])
@@ -40,19 +42,21 @@ def succeeds(exit_code, outs, errs):
 def stderr_contains(msg):
     return lambda exit_code, outs, errs: msg in errs
 
-test_interp(['--no-prelude', 'bootstrap/prelude.mth'], succeeds)
+if full_test:
 
-for path in glob.glob('bootstrap/pass/*'):
-    test_interp([path], succeeds)
+    test_interp(['--no-prelude', 'bootstrap/prelude.mth'], succeeds)
 
-for path in glob.glob('bootstrap/fail_syntax/*'):
-    test_interp([path], stderr_contains('SyntaxError'))
+    for path in glob.glob('bootstrap/pass/*'):
+        test_interp([path], succeeds)
 
-for path in glob.glob('bootstrap/fail_types/*'):
-    test_interp([path], stderr_contains('TypeError'))
+    for path in glob.glob('bootstrap/fail_syntax/*'):
+        test_interp([path], stderr_contains('SyntaxError'))
 
-for path in glob.glob('bootstrap/fail_tests/*'):
-    test_interp([path], stderr_contains('Assertion failed'))
+    for path in glob.glob('bootstrap/fail_types/*'):
+        test_interp([path], stderr_contains('TypeError'))
+
+    for path in glob.glob('bootstrap/fail_tests/*'):
+        test_interp([path], stderr_contains('Assertion failed'))
 
 test_interp(['src'], succeeds)
 
