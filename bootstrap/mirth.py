@@ -193,7 +193,7 @@ class token(object):
     def is_equal   (self): return self.code == '='
     def is_coloneq (self): return self.code == ':='
     def is_equal2  (self): return self.code == '=='
-    def is_type    (self): return self.type == 'type'
+    def is_type    (self): return self.code == 'type'
     def is_data    (self): return self.code == 'data'
     def is_end     (self): return self.code == 'end'
 
@@ -402,6 +402,12 @@ def parsetoks(tokens):
         p_expr,
     )
 
+    p_type_sig = fmapseq(lambda a,b,c: type_sig(a.lineno, b,c),
+        test(token.is_type),
+        p_name,
+        p_word_def_params,
+    )
+
     p_data_def = fmapseq(lambda a,b,c,d,e,f: data_def(a.lineno, b, c, e),
         test(token.is_data),
         p_name,
@@ -416,6 +422,7 @@ def parsetoks(tokens):
             p_word_sig,
             p_word_def,
             p_assertion,
+            p_type_sig,
             p_data_def,
             p_expr
         ),
@@ -588,6 +595,25 @@ class assertion:
         except SyntaxError as e:
             raise SyntaxError("line %d: %s" % (self.lineno, e)) from e
 
+class type_sig:
+    def __init__(self, lineno, name, params):
+        self.lineno = lineno
+        self.name = name
+        self.params = params
+
+    def __repr__(self):
+        return ("type_sig(%r, %r, %r)" %
+            (self.lineno, self.name, self.params))
+
+    def decl(self, mod):
+        try:
+            return mod.decl_type_sig(self.lineno, self.name.code, self.params)
+        except TypeError as e:
+            raise TypeError("line %d: %s" % (self.lineno, e)) from e
+        except SyntaxError as e:
+            raise SyntaxError("line %d: %s" % (self.lineno, e)) from e
+
+
 class data_def:
     def __init__(self, lineno, name, params, wordsigs):
         self.lineno = lineno
@@ -603,9 +629,9 @@ class data_def:
         try:
             return mod.decl_data_def(self.lineno, self.name.code, self.params, self.wordsigs)
         except TypeError as e:
-            raise TypeError("line %d: %s" % (self.name.lineno, e)) from e
+            raise TypeError("line %d: %s" % (self.lineno, e)) from e
         except SyntaxError as e:
-            raise SyntaxError("line %d: %s" % (self.name.lineno, e)) from e
+            raise SyntaxError("line %d: %s" % (self.lineno, e)) from e
 
 
 ##############################################################################
@@ -865,6 +891,7 @@ def fresh_var():
 
 class module:
     def __init__(self):
+        self.type_sigs = {}
         self.types = builtin_types.copy()
         self.prims = builtin_prims.copy()
         self.data_defs = {}
@@ -955,8 +982,41 @@ class module:
         orig = orig.subst(elab1.sub).unify(orig.subst(elab2.sub), cosub)
         self.assertions.append((lineno, orig, lhsf, rhsf))
 
-    def decl_data_def (self, lineno, name, params, wordsigs):
+    def decl_type_sig (self, lineno, name, params):
         if name in self.types:
+            raise TypeError(
+                "Line %d: Type %s defined twice."
+                % (lineno, name)
+            )
+
+        def ft(mod, args):
+            if len(args) != len(params):
+                raise TypeError("Type %s expects %d args, but got %d args."
+                    % (name, len(params), len(args)))
+
+            ta = []
+            for arg in args:
+                te = type_elaborator(mod)
+                arg.elab(te)
+                tp = te.to_tpack()
+                if tp.rest is not None or len(tp.args) != 1:
+                    raise TypeError("Type %s received bad argument." % name)
+                ta.append(tp.args[0])
+
+            return tcon(name, ta)
+
+        self.types[name] = ft
+        self.type_sigs[name] = params
+
+    def decl_data_def (self, lineno, name, params, wordsigs):
+        if name in self.type_sigs:
+            tsparams = self.type_sigs[name]
+            if len(tsparams) != len(params):
+                raise TypeError(
+                    "Line %d: Type %s takes %d params in type sig but %d params in type def."
+                    % (lineno, name, len(tsparams), len(params))
+                )
+        elif name in self.types:
             raise TypeError(
                 "Line %d: Type %s defined twice."
                 % (lineno, name)
