@@ -1303,6 +1303,8 @@ class module:
                 for i in range(wlen):
                     ws.append(e.pop())
                 e.push((wname, tuple(args), tuple(ws[::-1])))
+            if wname in self.word_defs:
+                raise TypeError("Constructor %s already defined." % wname)
             self.word_defs[wname] = wfn
 
         self.data_defs[name] = {}
