@@ -1,0 +1,5 @@
+
+export useful-interface
+  foo : Int
+end
+

@@ -22,6 +22,7 @@ FLAGS:
 
 import sys
 import random
+import os
 import os.path
 random.seed('mirth bootstrap')
 
@@ -47,7 +48,7 @@ def load_prelude():
     p = os.path.dirname(os.path.realpath(__file__))
     p = os.path.join(p, 'prelude.mth')
     with open(p) as fp:
-        ds = parse(fp)
+        ps, ds = parse(fp)
 
     m = module()
     for d in ds:
@@ -59,13 +60,18 @@ def load_prelude():
 def interpret(path, args, with_prelude=True):
     try:
         with open(path) as fp:
-            decls = parse(fp)
+            preamble, decls = parse(fp)
+        if preamble:
+            raise SyntaxError("%s: import/export statements in single file mode." % path)
 
         m = load_prelude() if with_prelude else module()
         for d in decls:
             d.decl(m)
 
         m.check_assertions()
+
+    except IsADirectoryError as e:
+        run_package(path, args, with_prelude)
     except TypeError as e:
         print('TypeError:', e, file=sys.stderr)
         sys.exit(1)
@@ -92,7 +98,7 @@ def repl(with_prelude=True):
             code = input(">>> ")
             if code.strip() == 'bye': break
             try:
-                decls = parse(code)
+                preamble, decls = parse(code)
                 for decl in decls:
                     if isinstance(decl, expr):
                         f = decl.elab(l)
@@ -117,6 +123,109 @@ def repl(with_prelude=True):
         print('bye')
     except KeyboardInterrupt:
         print()
+
+##############################################################################
+############################ IMPORT / EXPORT #################################
+##############################################################################
+
+# A package is a collection of Mirth modules, organized as a directory tree.
+# The directory structure is not important since we pick up all Mirth files
+# (i.e. all files with the .mth extension) recursively within the specified
+# directory. The Mirth files in a package can use export / import to access
+# each other's definitions.
+#
+# For example, if the file a.mth has the statement at the top:
+#
+#     export useful-interface
+#       save-the-world : --
+#     end
+#
+# And b.mth has the statement:
+#
+#     import useful-interface
+#
+# Then b.mth has access to the definition `save-the-world`. Notice that
+# there is no relation between the import/export interface name and the
+# file names. You can export multiple interfaces per file, and the same
+# interface name can be exported in multiple files (it will be combined).
+#
+# An analogy with C may be useful. Each module body represents a .c file,
+# whereas each interface represents a .h file, combined from the export
+# declarations in all the module preambles. The imports represent
+# `#include` statements against those .h files.
+#
+# There are no inter-package imports/exports, at least, not in bootstrap.
+# You can basically do this by including one package inside another,
+# though that's obviously not ideal in the long term.
+
+def get_shortname(pkg, modpath):
+    return modpath[len(pkg)+1:]
+
+def handle_package_error(pkg, modpath, f):
+    shortname = get_shortname(pkg, modpath)
+    try:
+        return f()
+    except ValueError as e:
+        print(shortname, ': ValueError: ', e, file=sys.stderr)
+        sys.exit(1)
+    except TypeError as e:
+        print(shortname, ': TypeError: ', e, file=sys.stderr)
+        sys.exit(1)
+    except SyntaxError as e:
+        print(shortname, ': SyntaxError: ', e, file=sys.stderr)
+        sys.exit(1)
+
+
+def run_package(pkg, args, with_prelude=True):
+    herr = lambda m,f: handle_package_error(pkg,m,f)
+    modpaths = list_modules(pkg)
+    modpreambles = {}
+    modbodies = {}
+    mods = {}
+    interfaces = {}
+    interfaces_defs = {}
+
+    for modpath in modpaths:
+        with open(modpath) as fp:
+            preamble, body = herr(modpath, lambda: parse(fp))
+        modpreambles[modpath] = preamble
+        modbodies[modpath] = body
+        mods[modpath] = load_prelude() if with_prelude else module()
+            # TODO cache the prelude instead of loading it repeatedly
+
+    for modpath in modpaths:
+        m = mods[modpath]
+        for pdecl in modpreambles[modpath]:
+            if pdecl[0] == 'export':
+                for decl in pdecl[3]:
+                    herr(modpath, lambda: decl.decl(m))
+            elif pdecl[0] == 'import':
+                pass
+            else:
+                raise ValueError("%s: Unexpected preamble decl form: %r"
+                    % (get_shortname(pkg, modpath), decl))
+
+        for decl in modbodies[modpath]:
+            herr(modpath, lambda: decl.decl(m))
+
+        for pdecl in modpreambles[modpath]:
+            if pdecl[0] == 'export':
+                for decl in pdecl[3]:
+                    if isinstance(decl, word_sig):
+                        name = decl.name.code
+                        if name not in m.word_defs:
+                            raise TypeError(
+                                "%s: line %d: Missing definition for exported word %s"
+                                % (get_shortname(pkg, modpath), decl.name.lineno, name)
+                            )
+
+def list_modules(pkg):
+    '''List all modules inside a given package.'''
+    ms = []
+    for root, dirs, files in os.walk(pkg):
+        ms.extend(os.path.join(root, fp) for fp in files if fp[-4:] == ".mth")
+    return ms
+
 
 
 ##############################################################################
@@ -171,7 +280,7 @@ def tokenize (code):
             yield token(code='\n', lineno=i+1)
 
 # tokens with special meaning
-reserved = {'\n', '(', ')', ',', ':', '--', '=', ':=', '==', 'type', 'data', 'end'}
+reserved = {'\n', '(', ')', ',', ':', '--', '=', ':=', '==', 'type', 'data', 'end', 'import', 'export'}
 
 class token(object):
     def __init__(self, code, lineno):
@@ -196,6 +305,8 @@ class token(object):
     def is_type    (self): return self.code == 'type'
     def is_data    (self): return self.code == 'data'
     def is_end     (self): return self.code == 'end'
+    def is_import  (self): return self.code == 'import'
+    def is_export  (self): return self.code == 'export'
 
     def is_int(self):
         try:
@@ -417,7 +528,36 @@ def parsetoks(tokens):
         test(token.is_end)
     )
 
-    p_decl = fmapseq(lambda a,b: a,
+    p_export_decl = fmapseq(lambda a,b: a,
+        alt(
+            p_word_sig,
+            p_type_sig
+        ),
+        p_line,
+    )
+
+    p_export = fmapseq(lambda a,b,c,d,e: ('export', a.lineno, b.code, d),
+        test(token.is_export),
+        test(token.is_name),
+        p_line,
+        star(p_export_decl),
+        test(token.is_end),
+    )
+
+    p_import = fmapseq(lambda a,b: ('import', a.lineno, b.code),
+        test(token.is_import),
+        test(token.is_name),
+    )
+
+    p_preamble_decl = fmapseq(lambda a,b: a,
+        alt(
+            p_export,
+            p_import,
+        ),
+        p_line
+    )
+
+    p_body_decl = fmapseq(lambda a,b: a,
         alt(
             p_word_sig,
             p_word_def,
@@ -429,7 +569,11 @@ def parsetoks(tokens):
         p_line
     )
 
-    p_file = star(p_decl)
+
+    p_preamble = star(p_preamble_decl)
+    p_body = star(p_body_decl)
+    p_file = seq(p_preamble, p_body)
+
     r = p_file(0)
     if not r:
         raise SyntaxError("parse error at unknown line")
@@ -441,23 +585,23 @@ def parsetoks(tokens):
 def parse(code):
     '''Parse code or lines of code.
 
-    >>> [str(x) for x in parse('foo bar')]
+    >>> [str(x) for x in parse('foo bar')[1]]
     ['foo bar']
-    >>> [str(x) for x in parse('10 20 +')]
+    >>> [str(x) for x in parse('10 20 +')[1]]
     ['10 20 +']
-    >>> parse('10')
+    >>> parse('10')[1]
     [expr([intlit(token('10', 1))])]
-    >>> parse('foo(bar)')
+    >>> parse('foo(bar)')[1]
     [expr([word(token('foo', 1), [expr([word(token('bar', 1), [])])])])]
-    >>> parse('foo : bar')
+    >>> parse('foo : bar')[1]
     [word_sig(token('foo', 1), [], expr([]), expr([word(token('bar', 1), [])]))]
-    >>> parse('foo : bar -- baz')
+    >>> parse('foo : bar -- baz')[1]
     [word_sig(token('foo', 1), [], expr([word(token('bar', 1), [])]), expr([word(token('baz', 1), [])]))]
-    >>> parse('foo(f : bar) : baz')
+    >>> parse('foo(f : bar) : baz')[1]
     [word_sig(token('foo', 1), [(token('f', 1), expr([]), expr([word(token('bar', 1), [])]))], expr([]), expr([word(token('baz', 1), [])]))]
-    >>> parse('foo = bar')
+    >>> parse('foo = bar')[1]
     [word_def(token('foo', 1), [], expr([word(token('bar', 1), [])]))]
-    >>> parse('foo == bar')
+    >>> parse('foo == bar')[1]
     [assertion(1, expr([word(token('foo', 1), [])]), expr([word(token('bar', 1), [])]))]
     '''
     return parsetoks(tokenize(code))
