@@ -1,0 +1,117 @@
+
+export base/regex
+  type Regex
+  regexMatch : Str Regex -- Maybe(Int)
+end
+
+export base/regex+
+  type Regex
+  fail : Regex
+  lit  : Str -- Regex
+  cls  : Str -- Regex
+  seq2 : Regex Regex -- Regex
+  alt2 : Regex Regex -- Regex
+  star : Regex -- Regex
+  regexMatch : Str Regex -- Maybe(Int)
+end
+
+data Regex
+  fail : Regex
+  lit  : Str -- Regex
+  cls  : Str -- Regex
+  seq2 : Regex Regex -- Regex
+  alt2 : Regex Regex -- Regex
+  star : Regex -- Regex
+end
+
+fail? : Regex -- Regex Bool
+fail? =
+  match(
+    fail -> fail true,
+    lit  -> lit  false,
+    cls  -> strnull? dip(cls),
+    seq2 -> or?(dip?(fail?), fail?) dip(seq2),
+    alt2 -> and?(dip?(fail?), fail?) dip(alt2),
+    star -> star false
+  )
+
+eps? : Regex -- Regex Bool
+eps? =
+  match(
+    fail -> fail false,
+    lit  -> strnull? dip(lit),
+    cls  -> cls false,
+    seq2 -> and?(dip?(eps?), eps?) dip(seq2),
+    alt2 -> or?(dip?(eps?), eps?) dip(alt2),
+    star -> star true
+  )
+
+
+seq2' : Regex Regex -- Regex
+seq2' =
+  cond(
+    fail? -> drop2 fail,
+    dip?(fail?) -> drop2 fail,
+    eps? -> drop,
+    dip?(eps?) -> nip,
+    seq2
+  )
+
+alt2' : Regex Regex -- Regex
+alt2' =
+  cond(
+    fail? -> drop,
+    dip?(fail?) -> nip,
+    alt2
+  )
+
+star' : Regex -- Regex
+star' =
+  cond(
+    fail? -> drop "" lit,
+    star
+  )
+
+derive : Char Regex -- Regex
+derive =
+  match(
+    fail -> drop fail,
+    lit -> 1 strBreakAt dip(str->char chareq) swap if(lit, drop fail),
+    cls -> strelem if("" lit, fail),
+    seq2 ->
+      dip?(eps?) if(
+        dup3 nip dip2(dip(derive) seq2') derive alt2',
+        dip(derive) seq2'
+      ),
+    alt2 -> dip(over) dip2(derive) derive alt2',
+    star -> dup dip(derive) star seq2'
+  )
+
+
+regexMatchAux : Maybe(Int) Int Str Regex -- Maybe(Int)
+regexMatchAux =
+  cond(
+    fail? -> drop3,
+    dip?(strnull?) -> eps? if(drop2 nip some, drop3),
+    eps? if(dip2(nip dup dip(some)), id)
+    dip2(1+) dip(1 strBreakAt swap str->char)
+    derive regexMatchAux
+  )
+
+regexMatch : Str Regex -- Maybe(Int)
+regexMatch = dip2(none 0) regexMatchAux
+
+fail regexMatch == drop none
+"foobar" "foo" lit regexMatch == 3 some
+"foobar" "foo" cls regexMatch == 1 some
+"foobar" "foo" lit "bar" lit seq2 regexMatch == 6 some
+"foobar" "f" lit "foo" lit alt2 regexMatch == 3 some
+"foobar" "foo" lit star regexMatch == 3 some
+"foobar" "food" lit star regexMatch == 0 some
+"foobar" "food" lit regexMatch == none
+
+
+
+
+
+
