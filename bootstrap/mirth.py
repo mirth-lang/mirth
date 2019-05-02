@@ -1190,7 +1190,15 @@ class module:
         self.assertions.append((lineno, orig, lhsf, rhsf))
 
     def decl_type_sig (self, lineno, name, params):
-        if name in self.types:
+        if name in self.type_sigs:
+            if len(params) != len(self.type_sigs[name]):
+                raise TypeError(
+                    "Line %d: Type %s declared previously, but with different number of params."
+                    % (lineno, name)
+                )
+            return
+
+        elif name in self.types:
             raise TypeError(
                 "Line %d: Type %s defined twice."
                 % (lineno, name)
