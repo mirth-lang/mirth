@@ -1,0 +1,21 @@
+
+export base/maybe
+  type Maybe(t)
+  none : Maybe(t)
+  some : t -- Maybe(t)
+  melim (f: *a -- *b, g: *a t -- *b) : *a Maybe(t) -- *b
+  mmap  (f: a -- b) : Maybe(a) -- Maybe(b)
+  mfor  (f: *a t -- *a) : *a Maybe(t) -- *a
+  mthen (f: a -- Maybe(b)) : Maybe(a) -- Maybe(b)
+end
+
+data Maybe(t)
+  none : Maybe(t)
+  some : t -- Maybe(t)
+end
+
+melim(f,g) = match(none -> f, some -> g)
+mmap(f)    = melim(none, f some)
+mfor(f)    = melim(id, f)
+mthen(f)   = melim(none, f)
+

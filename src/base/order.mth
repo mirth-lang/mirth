@@ -1,0 +1,41 @@
+
+export base/order
+  type Comp
+  LT : Comp
+  EQ : Comp
+  GT : Comp
+  lt? : Comp -- Comp Bool
+  le? : Comp -- Comp Bool
+  eq? : Comp -- Comp Bool
+  ge? : Comp -- Comp Bool
+  gt? : Comp -- Comp Bool
+  lt : Comp -- Bool
+  le : Comp -- Bool
+  eq : Comp -- Bool
+  ge : Comp -- Bool
+  gt : Comp -- Bool
+  cmpelim (lt: *a -- *b, eq: *a -- *b, gt: *a -- *b) : *a Comp -- *b
+  cmp? (l?: a a -- a a Bool) : a a -- a a Comp
+  cmp  (l?: a a -- a a Bool) : a a -- Comp
+end
+
+data Comp
+  LT : Comp
+  EQ : Comp
+  GT : Comp
+end
+
+cmpelim(lt, eq, gt) = match(LT -> lt, EQ -> eq, GT -> gt)
+lt? = dup lt
+le? = dup le
+eq? = dup eq
+ge? = dup ge
+gt? = dup lt
+lt = cmpelim(true, false, false)
+le = cmpelim(true, true, false)
+eq = cmpelim(false, true, false)
+ge = cmpelim(false, true, true)
+gt = cmpelim(false, false, true)
+cmp?(l?) = cond(l? -> LT, swap?(l?) -> GT, EQ)
+cmp (l?) = cmp?(l?) dip(drop2)
+

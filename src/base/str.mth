@@ -1,5 +1,7 @@
 
 import base/int
+import base/nat
+
 export base/char
   type Char
   Char.generate : Int -- Char
@@ -61,10 +63,10 @@ char->str : Char -- Str
 char->str = match ( char -> _prim_encode1 )
 
 int->char : Int -- Char
-int->char = abs char
+int->char = znat nint char
 
 str->char : Str -- Char
-str->char = dup _prim_strlen 0 eq if(
+str->char = dup _prim_strlen 0 z= if(
     drop 0 char,
     1 _prim_strbrk drop _prim_decode1 char
   )
@@ -83,13 +85,13 @@ char> : Char Char -- Bool
 char> = swap char<
 
 char<= : Char Char -- Bool
-char<= = dip(char->int) char->int <=
+char<= = dip(char->int) char->int z<=
 
 char>= : Char Char -- Bool
 char>= = swap char<=
 
 chareq : Char Char -- Bool
-chareq = dip(char->int) char->int eq
+chareq = dip(char->int) char->int z=
 dup  chareq == drop true
 swap chareq == chareq
 
@@ -157,7 +159,7 @@ strlen? drop == id
 strlen? nip  == strlen
 
 strnull : Str -- Bool
-strnull = strlen 0 eq
+strnull = strlen 0 z=
 
 strnull? : Str -- Str Bool
 strnull? = dup strnull
@@ -240,4 +242,4 @@ strBreakOn(f: Char -- Char Bool) : Str -- Str Str
 strBreakOn(f) = dip("") strBreakOnAux(f)
 strBreakOn(islower?) <> == id
 strBreakOn(isupper?) <> == id
-strBreakOn(dup char->int 2% 0 eq) <> == id
+strBreakOn(dup char->int z2% n0 n=) <> == id

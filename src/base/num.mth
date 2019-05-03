@@ -1,277 +1,263 @@
 
+import base/order
+
 export base/int
-  <   : Int Int -- Bool
-  >   : Int Int -- Bool
-   <=  : Int Int -- Bool
-  >=  : Int Int -- Bool
-  eq  : Int Int -- Bool
-  neq : Int Int -- Bool
-  z=  : Int Int -- Bool
-  z!= : Int Int -- Bool
-  0?   : Int -- Int Bool
-  1?   : Int -- Int Bool
-  pos? : Int -- Int Bool
-  neg? : Int -- Int Bool
-
-  neg : Int -- Int
-  abs : Int -- Int
-
-  1+ : Int -- Int
-  1- : Int -- Int
-  2* : Int -- Int
-  2/ : Int -- Int
-  2% : Int -- Int
-  end
-
-  export base/nat
+  type Comp
   type Nat
-  Nat.generate : Int -- Nat
-  nat : Int -- Nat
+  type Pos
 
-  int->nat : Int -- Nat
-  nat->int : Nat -- Int
-  int2->nat2 : Int Int -- Nat Nat
-  nat2->int2 : Nat Nat -- Int Int
+  znat  : Int -- Nat
+  zpos  : Int -- Pos
+  nint  : Nat -- Int
+  pint  : Pos -- Int
 
-  n+ : Nat Nat -- Nat
-  n- : Nat Nat -- Nat
-  n* : Nat Nat -- Nat
-  n/ : Nat Nat -- Nat
-  n% : Nat Nat -- Nat
+  z+    : Int Int -- Int
+  z-    : Int Int -- Int
+  z*    : Int Int -- Int
+  z/    : Int Pos -- Int
+  z%    : Int Pos -- Nat
 
-  n<  : Nat Nat -- Bool
-  n>  : Nat Nat -- Bool
-  n<= : Nat Nat -- Bool
-  n>= : Nat Nat -- Bool
-  n=  : Nat Nat -- Bool
-  n!= : Nat Nat -- Bool
+  zcmp  : Int Int -- Comp
+  zcmp? : Int Int -- Int Int Comp
+  z<    : Int Int -- Bool
+  z>    : Int Int -- Bool
+  z<=   : Int Int -- Bool
+  z>=   : Int Int -- Bool
+  z=    : Int Int -- Bool
+  z!=   : Int Int -- Bool
 
-  n0? : Nat -- Nat Bool
-  n1? : Nat -- Nat Bool
+  z0 : Int
+  z1 : Int
+  z2 : Int
 
-  ncompare? : Nat Nat -- Nat Nat Comparison
+  z0?   : Int -- Int Bool
+  z1?   : Int -- Int Bool
+  z2?   : Int -- Int Bool
+  zpos? : Int -- Int Bool
+  zneg? : Int -- Int Bool
 
-  n0 : Nat
-  n1 : Nat
-  n2 : Nat
-
-  n1+ : Nat -- Nat
-  n1- : Nat -- Nat
-  n2* : Nat -- Nat
-  n2/ : Nat -- Nat
-  n2% : Nat -- Nat
-  nsplit : Nat -- Nat Nat
-
+  zneg  : Int -- Int
+  zabs  : Int -- Nat
+  z1+   : Int -- Int
+  z1-   : Int -- Int
+  z2*   : Int -- Int
+  z2/   : Int -- Int
+  z2%   : Int -- Nat
 end
 
+export base/nat
+  type Comp
+  type Nat
+  type Pos
 
+  Nat.generate : Int -- Nat
 
-#
-# arith
-#
+  nint  : Nat -- Int
+  npos  : Nat -- Pos
+  znat  : Int -- Nat
+  pnat  : Pos -- Nat
 
-> : Int Int -- Bool
-> = swap <
+  n+    : Nat Nat -- Nat
+  n-    : Nat Nat -- Int
+  n*    : Nat Nat -- Nat
+  n/    : Nat Pos -- Nat
+  n%    : Nat Pos -- Nat
 
-<= : Int Int -- Bool
-<= = > not
+  ncmp  : Nat Nat -- Comp
+  ncmp? : Nat Nat -- Nat Nat Comp
+  n<    : Nat Nat -- Bool
+  n>    : Nat Nat -- Bool
+  n<=   : Nat Nat -- Bool
+  n>=   : Nat Nat -- Bool
+  n=    : Nat Nat -- Bool
+  n!=   : Nat Nat -- Bool
 
->= : Int Int -- Bool
->= = < not
+  n0    : Nat
+  n1    : Nat
+  n2    : Nat
 
-<? : Int Int -- Int Int Bool
-<? = dup2 <
-<? drop == id
+  n0?   : Nat -- Nat Bool
+  n1?   : Nat -- Nat Bool
+  n2?   : Nat -- Nat Bool
+  npos? : Nat -- Nat Bool
 
->? : Int Int -- Int Int Bool
->? = dup2 >
->? drop == id
+  nneg  : Nat -- Int
+  n1+   : Nat -- Pos
+  n1-   : Nat -- Int
+  n2*   : Nat -- Nat
+  n2/   : Nat -- Nat
+  n2%   : Nat -- Nat
 
-<=? : Int Int -- Int Int Bool
-<=? = dup2 <=
-<=? drop == id
+  nsplit : Nat -- Nat Nat
+end
 
->=? : Int Int -- Int Int Bool
->=? = dup2 >=
->=? drop == id
+export base/pos
+  type Comp
+  type Nat
+  type Pos
 
-neq? : Int Int -- Int Int Bool
-neq? = or? (<?, >?)
-neq? drop == id
+  Pos.generate : Int -- Pos
 
-neq : Int Int -- Bool
-neq = neq? nip nip
-dup  neq == drop false
-swap neq == neq
+  pint  : Pos -- Int
+  pnat  : Pos -- Nat
+  zpos  : Int -- Pos
+  npos  : Nat -- Pos
 
-eq? : Int Int -- Int Int Bool
-eq? = neq? not
-eq? drop == id
-eq? == and? (<=?, >=?)
+  p+    : Pos Pos -- Pos
+  p-    : Pos Pos -- Int
+  p*    : Pos Pos -- Pos
+  p/    : Pos Pos -- Nat
+  p%    : Pos Pos -- Nat
 
+  pcmp  : Pos Pos -- Comp
+  pcmp? : Pos Pos -- Pos Pos Comp
+  p<    : Pos Pos -- Bool
+  p>    : Pos Pos -- Bool
+  p<=   : Pos Pos -- Bool
+  p>=   : Pos Pos -- Bool
+  p=    : Pos Pos -- Bool
+  p!=   : Pos Pos -- Bool
 
-eq : Int Int -- Bool
-eq = neq not
-dup eq == drop true
-dup 1 + eq == drop false
-swap eq == eq
+  p1    : Pos
+  p2    : Pos
 
-z= = eq
-z!= = neq
+  p1?   : Pos -- Pos Bool
+  p2?   : Pos -- Pos Bool
 
-0? : Int -- Int Bool
-0? = dup 0 eq
-0? drop == id
+  pneg  : Pos -- Int
+  p1+   : Pos -- Pos
+  p1-   : Pos -- Nat
+  p2*   : Pos -- Pos
+  p2/   : Pos -- Nat
+  p2%   : Pos -- Nat
 
-1? : Int -- Int Bool
-1? = dup 1 eq
-1? drop == id
-
-pos? : Int -- Int Bool
-pos? = dup 0 >
-pos? drop == id
-
-neg? : Int -- Int Bool
-neg? = dup 0 <
-neg? drop == id
-
-neg : Int -- Int
-neg = -1 *
-
-abs : Int -- Int
-abs = neg? if(neg, id)
-
-1+ : Int -- Int
-1- : Int -- Int
-1+ = 1 +
-1- = 1 -
-1+ 1- == id
-1- 1+ == id
-0 1+ == 1
-0 1- == -1
-
-2* : Int -- Int
-2/ : Int -- Int
-2% : Int -- Int
-2* = 2 *
-2/ = 2 /
-2% = 2 %
-
-dup 2/ dip(2%) 2* + == id
-
-repeat(f : *a -- *a) : *a Int -- *a
-repeat(f) = pos? if(dip(f) 1- repeat(f), drop)
-
-count(f : *a Int -- *a) : *a Int -- *a
-count(f) = dip(0) repeat(dup dip(f) 1+) drop
-
-abs dip(0) count(+) == abs dup 1- * 2/
-abs while(pos?, dip(1+) 1-) drop == abs +
-
-dup eq == drop true
-swap eq == eq
-
-#
-# nat type
-#
+  psplit : Pos -- Pos Nat
+end
 
 data Nat
   _nat : Int -- Nat
 end
 
-Nat.generate : Int -- Nat
-Nat.generate = abs _nat
+data Pos
+  _pos : Nat -- Pos
+end
 
-int->nat : Int -- Nat
-int->nat = neg? if(drop 0, id) _nat
+Nat.generate = zabs
+Pos.generate = Nat.generate n1+
 
-nat->int : Nat -- Int
-nat->int = match( _nat -> id )
+znat = dup 0 z<= if(drop 0, id) _nat
+zpos = dup 1 z<= if(drop 1, id) _nat _pos
+nint = match(_nat -> id)
+npos = nint zpos
+pint = pnat nint
+pnat = match(_pos -> id)
 
-nat : Int -- Nat
-nat = int->nat
+nint2 : Nat Nat -- Int Int
+pint2 : Pos Pos -- Int Int
+pnat2 : Pos Pos -- Nat Nat
+nint2 = dip(nint) nint
+pint2 = dip(pint) pint
+pnat2 = dip(pnat) pnat
 
-nat2->int2 : Nat Nat -- Int Int
-nat2->int2 = dip(nat->int) nat->int
+z+ = +
+z- = -
+z* = *
+z/ = pint /
+z% = pint % znat
 
-int2->nat2 : Int Int -- Nat Nat
-int2->nat2 = dip(int->nat) int->nat
+zcmp? = cmp?(dup2 <)
+zcmp  = cmp (dup2 <)
+z<    = <
+z>    = swap <
+z=    = zcmp eq
+z<=   = z> not
+z>=   = z< not
+z!=   = z= not
 
-overInts(f : Int Int -- Int) : Nat Nat -- Nat
-overInts(f) = nat2->int2 f int->nat
+z0 = 0
+z1 = 1
+z2 = 2
 
-n+ : Nat Nat -- Nat
-n+ = overInts(+)
+z0? = dup z0 z=
+z1? = dup z1 z=
+z2? = dup z2 z=
+zpos? = dup z0 z>
+zneg? = dup z0 z<
 
-n* : Nat Nat -- Nat
-n* = overInts(*)
+zneg = dip(z0) z-
+zabs = zneg? if(zneg, id) _nat
 
-n- : Nat Nat -- Nat
-n- = overInts(-)
+z1+ = z1 z+
+z1- = z1 z-
+z2* = z2 z*
+z2/ = p2 z/
+z2% = p2 z%
 
-10 nat 4 nat n- == 6 nat
-4 nat 10 nat n- == 0 nat
 
+n+ = nint2 z+ _nat
+n- = nint2 z-
+n* = nint2 z* _nat
+n/ = dip(nint) z/ _nat
+n% = dip(nint) z%
 
-n/ : Nat Nat -- Nat
-n/ = overInts(/)
+ncmp  = nint2 zcmp
+ncmp? = dup2 ncmp
+n<    = nint2 z<
+n<=   = nint2 z<=
+n=    = nint2 z=
+n>=   = nint2 z>=
+n>    = nint2 z>
+n!=   = nint2 z!=
 
-n% : Nat Nat -- Nat
-n% = overInts(%)
-
-ncompare : Nat Nat -- Comparison
-ncompare = nat2->int2 compare
-
-ncompare? : Nat Nat -- Nat Nat Comparison
-ncompare? = dup2 ncompare
-
-n> : Nat Nat -- Bool
-n> = nat2->int2 >
-
-n< : Nat Nat -- Bool
-n< = nat2->int2 <
-
-n>= : Nat Nat -- Bool
-n>= = nat2->int2 >=
-
-n<= : Nat Nat -- Bool
-n<= = nat2->int2 <=
-
-n= : Nat Nat -- Bool
-n= = nat2->int2 eq
-
-n!= : Nat Nat -- Bool
-n!= = nat2->int2 neq
-
-n0 : Nat
 n0 = 0 _nat
-
-n1 : Nat
 n1 = 1 _nat
-
-n2 : Nat
 n2 = 2 _nat
 
-n1+ : Nat -- Nat
-n1- : Nat -- Nat
-n2* : Nat -- Nat
-n2/ : Nat -- Nat
-n2% : Nat -- Nat
-n1+ = n1 n+
+n0? = dup n0 n=
+n1? = dup n1 n=
+n2? = dup n2 n=
+npos? = dup n0 n>
+
+nneg = nint zneg
+
+n1+ = n1 n+ _pos
 n1- = n1 n-
 n2* = n2 n*
-n2/ = n2 n/
-n2% = n2 n%
+n2/ = p2 n/
+n2% = p2 n%
 
-n0? : Nat -- Nat Bool
-n0? = dup n0 n=
-n0? drop == id
+nsplit = dup dip(n2/) n2% over dip(n+)
 
-n1? : Nat -- Nat Bool
-n1? = dup n1 n=
-n1? drop == id
 
-nsplit : Nat -- Nat Nat
-nsplit = nat->int dup dip(2/ dup) 2% + dip(_nat) _nat
-nsplit n+ == id
+p+ = pnat2 n+ _pos
+p- = pint2 z-
+p* = pnat2 n* _pos
+p/ = dip(pnat) n/
+p% = dip(pnat) n%
+
+pcmp  = pnat2 ncmp
+pcmp? = dup2 pcmp
+p<    = pnat2 n<
+p<=   = pnat2 n<=
+p=    = pnat2 n=
+p>=   = pnat2 n>=
+p>    = pnat2 n>
+p!=   = pnat2 n!=
+
+p1 = n1 _pos
+p2 = n2 _pos
+
+p1? = dup p1 p=
+p2? = dup p2 p=
+
+pneg = pint zneg
+
+p1+ = p1 p+
+p1- = p1 p- _nat
+p2* = p2 p*
+p2/ = p2 p/
+p2% = p2 p%
+
+psplit = pnat nsplit dip(_pos)
+
 

@@ -2,14 +2,17 @@
 import base/char
 import base/str
 import base/int
+import base/maybe
 
 export base/regex
   type Regex
+  type Maybe(t)
   regexMatch : Str Regex -- Maybe(Int)
 end
 
 export base/regex+
   type Regex
+  type Maybe(t)
   fail : Regex
   lit  : Str -- Regex
   cls  : Str -- Regex
@@ -98,7 +101,7 @@ regexMatchAux =
     fail? -> drop3,
     dip?(strnull?) -> eps? if(drop2 nip some, drop3),
     eps? if(dip2(nip dup dip(some)), id)
-    dip2(1+) dip(1 strBreakAt swap str->char)
+    dip2(z1+) dip(1 strBreakAt swap str->char)
     derive regexMatchAux
   )
 

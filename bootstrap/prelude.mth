@@ -179,31 +179,6 @@ iff? (false, true) == false
 iff? (false, false) == true
 
 #
-# comparison data type
-#
-
-data Comparison
-  LT : Comparison
-  EQ : Comparison
-  GT : Comparison
-end
-
-compareWith? (lt?: a a -- a a Bool) : a a -- a a Comparison
-compareWith? (lt?) =
-  cond(
-    lt? -> LT,
-    swap?(lt?) -> GT,
-    EQ
-  )
-
-compare? : Int Int -- Int Int Comparison
-compare? = compareWith?(dup2 <)
-compare? drop == id
-
-compare : Int Int -- Comparison
-compare = compare? dip(drop2)
-
-#
 # pack
 #
 
@@ -245,47 +220,4 @@ unpack4 = inpack(pack2) unpack3 unpack2
 
 pack4 unpack4 == id
 unpack4 pack4 == id
-
-#
-# maybe type
-#
-
-data Maybe(t)
-  none : Maybe(t)
-  some : t -- Maybe(t)
-end
-
-maybePure : a -- Maybe(a)
-maybePure = some
-
-maybeBind(f : a -- Maybe(b)) : Maybe(a) -- Maybe(b)
-maybeBind(f) = match(
-  none -> none,
-  some -> f
-)
-
-maybeMap(f : a -- b) : Maybe(a) -- Maybe(b)
-maybeMap(f) = maybeBind(f maybePure)
-
-
-#
-# either type
-#
-
-data Either(a,b)
-  left  : a -- Either(a,b)
-  right : b -- Either(a,b)
-end
-
-eitherPure : b -- Either(a,b)
-eitherPure = right
-
-eitherBind(f : b -- Either(a,c)) : Either(a,b) -- Either(a,c)
-eitherBind(f) = match(
-  left -> left,
-  right -> f
-)
-
-eitherMap(f: b -- c) : Either(a,b) -- Either(a,c)
-eitherMap(f) = eitherBind(f eitherPure)
 

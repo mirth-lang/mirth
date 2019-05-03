@@ -161,22 +161,26 @@ def repl(with_prelude=True):
 def get_shortname(pkg, modpath):
     return modpath[len(pkg)+1:]
 
+
+def error(modpath, lineno, msg):
+    p = os.path.relpath(modpath)
+    if lineno is None:
+        lineno = 1
+    print('%s:%d:' % (p, lineno), msg, file=sys.stderr)
+    sys.exit(1)
+
 def handle_package_error(pkg, modpath, f):
     shortname = get_shortname(pkg, modpath)
     try:
         return f()
     except NameError as e:
-        print('NameError: %s:' % shortname, e, file=sys.stderr)
-        sys.exit(1)
+        error(modpath, None, 'NameError: ' + str(e))
     except ValueError as e:
-        print('ValueError: %s:' % shortname, e, file=sys.stderr)
-        sys.exit(1)
+        error(modpath, None, 'ValueError: ' + str(e))
     except TypeError as e:
-        print('TypeError: %s:' % shortname, e, file=sys.stderr)
-        sys.exit(1)
+        error(modpath, None, 'TypeError: ' + str(e))
     except SyntaxError as e:
-        print('SyntaxError: %s:' % shortname, e, file=sys.stderr)
-        sys.exit(1)
+        error(modpath, None, 'SyntaxError: ' + str(e))
 
 
 def run_package(pkg, args, with_prelude=True):
@@ -207,10 +211,9 @@ def run_package(pkg, args, with_prelude=True):
                 iline, iname, ibody = pdecl[1:]
                 if iname in interfaces:
                     omodpath, oline = interfaces_orig[iname]
-                    raise SyntaxError(
-                        "%s: line %d: Duplicate interface %s with %s line %d."
-                        % (get_shortname(pkg,modpath), iline, iname,
-                           get_shortname(pkg,omodpath), oline)
+                    error(modpath, iline,
+                        "Duplicate interface %s with %s line %d."
+                        % (iname, os.path.relpath(omodpath), oline)
                     )
                 interfaces[iname] = ibody
                 interfaces_orig[iname] = modpath, iline
@@ -230,10 +233,7 @@ def run_package(pkg, args, with_prelude=True):
             elif pdecl[0] == 'import':
                 iline, iname = pdecl[1:]
                 if iname not in interfaces:
-                    raise SyntaxError(
-                        "%s: line %d: Interface %s not declared in package."
-                        % (get_shortname(pkg,modpath), iline, iname)
-                    )
+                    error(modpath, iline, "Interface %s not declared in package." % iname)
                 omodpath, oline = interfaces_orig[iname]
                 for decl in interfaces[iname]:
                     herr(omodpath, lambda: decl.decl(m))
@@ -242,8 +242,7 @@ def run_package(pkg, args, with_prelude=True):
                         m.word_defs[dname] = mk_import_interface_fn (iname, dname)
 
             else:
-                raise ValueError("%s: Unexpected preamble decl form: %r"
-                    % (get_shortname(pkg, modpath), decl))
+               error(modpath, None, "Unexpected preamble decl form: %r" % decl)
 
         for decl in modbodies[modpath]:
             herr(modpath, lambda: decl.decl(m))
@@ -256,10 +255,7 @@ def run_package(pkg, args, with_prelude=True):
                         dname = decl.name.code
                         dline = decl.name.lineno
                         if dname not in m.word_defs:
-                            raise TypeError(
-                                "%s: line %d: Missing definition for exported word %s"
-                                % (get_shortname(pkg, modpath), dline, dname)
-                            )
+                            error(modpath, dline, "Missing definition for exported word %s" % dname)
                         interfaces_defs[iname][dname] = m.word_defs[dname]
 
     for modpath in modpaths:
