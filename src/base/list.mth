@@ -1,0 +1,205 @@
+
+import base/nat
+export base/list
+  type List(t)
+  List.generate : t t Nat -- List(t)
+
+  nil  : List(t)
+  pure : t -- List(t)
+  cat  : List(t) List(t) -- List(t)
+  ++   : List(t) List(t) -- List(t)
+  cons : List(t) t -- List(t)
+  snoc : t List(t) -- List(t)
+
+  len? : List(t) -- List(t) Nat
+  len  : List(t) -- Nat
+
+  null? : List(t) -- List(t) Bool
+  null  : List(t) -- Bool
+
+  listPure : t -- List(t)
+  listBind(f : a -- List(b)) : List(a) -- List(b)
+
+  map(f: a -- b) : List(a) -- List(b)
+  fold(z: a, m: t -- a, c: a a -- a): List(t) -- a
+  for(f: *a b -- *a) : *a List(b) -- *a
+  rfor(f: *a b -- *a) : *a List(b) -- *a
+
+  countTo : Nat -- List(Nat)
+  break : List(t) Nat -- List(t) List(t)
+
+  balance : List(t) -- List(t)
+  leftBias : List(t) -- List(t)
+  rightBias : List(t) -- List(t)
+  bcat : List(t) List(t) -- List(t)
+
+end
+
+
+data List(t)
+  nil  : List(t)
+  pure : t -- List(t)
+  _cat : List(t) List(t) Nat -- List(t)
+end
+
+len? : List(t) -- List(t) Nat
+len? = match(
+  nil  -> nil  0 nat,
+  pure -> pure 1 nat,
+  _cat -> dup dip(_cat)
+)
+
+len : List(t) -- Nat
+len = len? nip
+
+null? : List(t) -- List(t) Bool
+null? = len? n0 n=
+
+null : List(t) -- Bool
+null = null? nip
+
+cat : List(t) List(t) -- List(t)
+cat =
+  cond(
+    null? -> drop,
+    dip?(null?) -> dip(drop),
+    len? dip2?(len?) n+ _cat
+  )
+
+++ : List(t) List(t) -- List(t)
+++ = cat
+
+List.generate : t t Nat -- List(t)
+List.generate =
+  cond(
+    n0? -> drop3 nil,
+    n1? -> drop2 pure,
+    nsplit over2 swap rotl List.generate dip(List.generate) cat
+  )
+
+len? drop == id
+cat len == dip(len) len n+
+List.generate len == dip(drop2)
+
+cons : List(t) t -- List(t)
+cons = pure cat
+
+snoc : t List(t) -- List(t)
+snoc = dip(pure) cat
+
+listPure : t -- List(t)
+listPure = pure
+
+listBind(f: a -- List(b)) : List(a) -- List(b)
+listBind(f) = match(
+  nil  -> nil,
+  pure -> f,
+  _cat -> drop dip(listBind(f)) listBind(f) cat
+)
+
+map(f: a -- b) : List(a) -- List(b)
+map(f) = match(
+  nil  -> nil,
+  pure -> f pure,
+  _cat -> dip(dip(map(f)) map(f)) _cat
+)
+
+fold(z: a, m: t -- a, c: a a -- a): List(t) -- a
+fold(z,m,c) = match(
+  nil  -> z,
+  pure -> m,
+  _cat -> drop dip(fold(z,m,c)) fold(z,m,c) c
+)
+
+
+for(f: *a b -- *a) : *a List(b) -- *a
+for(f) = match(
+  nil  -> ,
+  pure -> f,
+  _cat -> drop dip(for(f)) for(f)
+)
+
+rfor(f: *a b -- *a) : *a List(b) -- *a
+rfor(f) = match(
+  nil  ->,
+  pure -> f,
+  _cat -> drop swap dip(rfor(f)) rfor(f)
+)
+
+countTo : Nat -- List(Nat)
+countTo =
+  cond(
+    n0? -> drop nil,
+    n1 n- dup dip(countTo) cons
+  )
+
+0 nat countTo == nil
+1 nat countTo == 0 nat pure
+5 nat countTo
+  == 0 nat pure 1 nat cons 2 nat cons 3 nat cons 4 nat cons
+
+
+## Break list into two components at given index. O(depth)
+break : List(t) Nat -- List(t) List(t)
+break =
+  cond(
+    n0? -> drop dip(nil),
+    dip?(len?) over n<= -> drop nil,
+    swap match(
+      nil -> drop nil nil,
+      pure -> nip pure nil,
+      _cat ->
+        drop rotl tuck
+        dip3?(len?) n-
+        dip2(break) break
+        dip(swap) dip2(cat) cat
+    )
+  )
+
+
+dip(nil) break == drop nil nil
+dip(len?) n+ break == drop nil
+break cat len == drop len
+
+"" pure 0 nat break == nil "" pure
+"" pure 1 nat break == "" pure nil
+"" pure 2 nat break == "" pure nil
+"" pure 3 nat break == "" pure nil
+"" pure 4 nat break == "" pure nil
+
+"a" pure "b" pure cat 0 nat break == nil "a" pure "b" pure cat
+"a" pure "b" pure cat 1 nat break == "a" pure "b" pure
+"a" pure "b" pure cat 2 nat break == "a" pure "b" pure cat nil
+"a" pure "b" pure cat 3 nat break == "a" pure "b" pure cat nil
+"a" pure "b" pure cat 4 nat break == "a" pure "b" pure cat nil
+
+over dip(n+ countTo) break drop
+  == drop countTo
+
+1 pure 2 cons 3 cons 2 nat break
+  == 1 pure 2 cons 3 pure
+1 pure 2 cons 3 cons 4 cons 2 nat break
+  == 1 pure 2 cons 3 pure 4 cons
+
+## Rebalance a list. O(n^2)
+balance : List(t) -- List(t)
+balance = len? 2 nat n/ break dip(balance) balance cat
+
+## Left bias a list.
+leftBias : List(t) -- List(t)
+leftBias = dip(nil) for(cons)
+
+## Right bias a list.
+rightBias : List(t) -- List(t)
+rightBias = dip(nil) rfor(cons)
+
+## Balanced concat.
+bcat : List(t) List(t) -- List(t)
+bcat = dip?(len?) dip?(len?) ncompare? match(
+  LT -> drop2 cat balance,
+  EQ -> drop2 cat,
+  GT -> drop2 cat balance
+)
+
+
+

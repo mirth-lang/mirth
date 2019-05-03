@@ -1,4 +1,13 @@
 
+neg? : Int -- Int Bool
+neg? = dup 0 <
+
+neg : Int -- Int
+neg = dip(0) -
+
+abs : Int -- Int
+abs = neg? if(neg, id)
+
 myabs : Int -- Int
 myabs = cond( neg? -> neg, id )
 

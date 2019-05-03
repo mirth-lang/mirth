@@ -1,0 +1,243 @@
+
+import base/int
+export base/char
+  type Char
+  Char.generate : Int -- Char
+  char->int : Char -- Int
+  char->str : Char -- Str
+  int->char : Int -- Char
+  str->char : Str -- Char
+
+  char<  : Char Char -- Bool
+  char>  : Char Char -- Bool
+  char<= : Char Char -- Bool
+  char>= : Char Char -- Bool
+
+  chareq : Char Char -- Bool
+  chareq? : Char Char -- Char Char Bool
+
+  islower? : Char -- Char Bool
+  isupper? : Char -- Char Bool
+  isdigit? : Char -- Char Bool
+  ishexdigit? : Char -- Char Bool
+  isalpha? : Char -- Char Bool
+
+  '\s' : Char
+  '\n' : Char
+  '\t' : Char
+  '\r' : Char
+end
+
+export base/str
+  type Char
+  Char.generate : Int -- Char
+
+  strnull? : Str -- Str Bool
+  strnull  : Str -- Bool
+
+  strelem : Char Str -- Bool
+  strall? (p: Char -- Char Bool) : Str -- Str Bool
+
+  strBreakAt : Str Int -- Str Str
+  strBreakOn (p: Char -- Char Bool) : Str -- Str Str
+  streq : Str Str -- Bool
+  <> : Str Str -- Str
+  strfold(f : *a Char -- *a) : *a Str -- *a
+end
+
+
+#
+# char
+#
+
+data Char
+  char : Int -- Char
+end
+
+char->int : Char -- Int
+char->int = match ( char -> id )
+
+char->str : Char -- Str
+char->str = match ( char -> _prim_encode1 )
+
+int->char : Int -- Char
+int->char = abs char
+
+str->char : Str -- Char
+str->char = dup _prim_strlen 0 eq if(
+    drop 0 char,
+    1 _prim_strbrk drop _prim_decode1 char
+  )
+"" str->char == 0 int->char
+
+Char.generate : Int -- Char
+Char.generate = int->char
+
+char->int int->char == id
+char->str str->char == id
+
+char< : Char Char -- Bool
+char< = dip(char->int) char->int <
+
+char> : Char Char -- Bool
+char> = swap char<
+
+char<= : Char Char -- Bool
+char<= = dip(char->int) char->int <=
+
+char>= : Char Char -- Bool
+char>= = swap char<=
+
+chareq : Char Char -- Bool
+chareq = dip(char->int) char->int eq
+dup  chareq == drop true
+swap chareq == chareq
+
+chareq? : Char Char -- Char Char Bool
+chareq? = dup2 chareq
+
+# TODO: add char literals.
+'\t' : Char
+'\t' = "\t" str->char
+
+'\n' : Char
+'\n' = "\n" str->char
+
+'\r' : Char
+'\r' = "\r" str->char
+
+'\s' : Char
+'\s' = " " str->char
+
+inrange?(a: Str, b: Str) : Char -- Char Bool
+inrange?(a,b) = and? ( dup a str->char char>=, dup b str->char char<= )
+
+islower? : Char -- Char Bool
+islower? = inrange?("a", "z")
+islower? drop == id
+
+isupper? : Char -- Char Bool
+isupper? = inrange?("A", "Z")
+isupper? drop == id
+
+isdigit? : Char -- Char Bool
+isdigit? = inrange?("0", "9")
+isdigit? drop == id
+
+ishexdigit? : Char -- Char Bool
+ishexdigit? = or? (isdigit?, or?( inrange?("a", "f"), inrange?("A", "F") ))
+ishexdigit? drop == id
+
+isalpha? : Char -- Char Bool
+isalpha? = or?(islower?, isupper?)
+isalpha? drop == id
+
+#
+# str
+#
+
+<> : Str Str -- Str
+<> = _prim_strcat
+"" <> == id
+dip("") <> == id
+<> <> == dip(<>) <>
+dip(char->str) <> str->char == drop
+
+strBreakAt : Str Int -- Str Str
+strBreakAt = _prim_strbrk
+strBreakAt <> == drop
+
+strlen : Str -- Int
+strlen = _prim_strlen
+<> strlen == dip(strlen) strlen +
+
+strlen? : Str -- Str Int
+strlen? = dup strlen
+strlen? drop == id
+strlen? nip  == strlen
+
+strnull : Str -- Bool
+strnull = strlen 0 eq
+
+strnull? : Str -- Str Bool
+strnull? = dup strnull
+strnull? drop == id
+strnull? nip  == strnull
+
+data StrView
+  strnil  : StrView
+  strcons : Char Str -- StrView
+end
+
+strview : Str -- StrView
+strview = strnull? if(
+    drop strnil,
+    1 strBreakAt dip(_prim_decode1 char) strcons
+  )
+
+"" strview == strnil
+"a" strview == 97 char "" strcons
+" foo" strview == 32 char "foo" strcons
+
+streq : Str Str -- Bool
+streq = strview match(
+  strnil  -> strnull,
+  strcons -> rotl strview match(
+    strnil  -> drop2 false,
+    strcons -> dip(swap dip(chareq)) rotl if(streq, drop2 false)
+  )
+)
+
+"" "" streq == true
+"a" "" streq == false
+"" "a" streq == false
+"foo" "foo" streq == true
+"foo" "bar" streq == false
+"bar" "bar" streq == true
+"bar" "baz" streq == false
+"baz" "baz" streq == true
+dup  streq == drop true
+swap streq == streq
+
+streq? : Str Str -- Str Str Bool
+streq? = dup2 streq
+streq? drop == id
+streq? nip nip == streq
+
+strfold(f : *a Char -- *a) : *a Str -- *a
+strfold(f) = strview match(
+  strnil  -> id,
+  strcons -> dip(f) strfold(f)
+)
+dip("") strfold(char->str <>) == id
+
+strall?(f: Char -- Char Bool) : Str -- Str Bool
+strall?(f) = strview match(
+  strnil  -> "" true,
+  strcons -> and?(dip?(f), strall?(f)) dip(dip(char->str) <>)
+)
+
+strelem : Char Str -- Bool
+strelem = strview match(
+  strnil -> drop false,
+  strcons -> dip?(chareq?) if(
+    drop3 true,
+    nip strelem
+  )
+)
+
+strelem? : Char Str -- Char Str Bool
+strelem? = dup2 strelem
+strelem? drop == id
+
+strBreakOnAux(f: Char -- Char Bool) : Str Str -- Str Str
+strBreakOnAux(f) = strview match(
+  strnil  -> "",
+  strcons -> dip?(f) if(dip(char->str) <>, dip(char->str <>) strBreakOnAux(f))
+)
+
+strBreakOn(f: Char -- Char Bool) : Str -- Str Str
+strBreakOn(f) = dip("") strBreakOnAux(f)
+strBreakOn(islower?) <> == id
+strBreakOn(isupper?) <> == id
+strBreakOn(dup char->int 2% 0 eq) <> == id

@@ -1,4 +1,8 @@
 
+abs : Int -- Int
+abs = dup 0 < if ( dip(0) - , id )
+
+
 foo
   :
   Int Int -- Int
@@ -17,7 +21,7 @@ dup2 % dip(*) +
 
 
 
-dip(0) abs 1+ foo
+dip(0) abs 1 + foo
 ==
 
 drop 0

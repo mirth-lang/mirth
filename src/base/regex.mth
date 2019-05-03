@@ -1,4 +1,8 @@
 
+import base/char
+import base/str
+import base/int
+
 export base/regex
   type Regex
   regexMatch : Str Regex -- Maybe(Int)

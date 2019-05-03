@@ -1,6 +1,10 @@
 
+import base/int
+import base/char
+import base/str
 export mirth/loc
   type Loc
+  type Char    # why is this necessary??
   Loc.generate : Int Int -- Loc
 
   locRow      : Loc -- Int

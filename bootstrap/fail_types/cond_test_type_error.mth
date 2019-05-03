@@ -1,4 +1,4 @@
 
 foo : Int --
-foo = cond( 0 eq -> drop, drop )
+foo = cond( 0 < -> drop, drop )
 

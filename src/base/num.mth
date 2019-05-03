@@ -1,0 +1,277 @@
+
+export base/int
+  <   : Int Int -- Bool
+  >   : Int Int -- Bool
+   <=  : Int Int -- Bool
+  >=  : Int Int -- Bool
+  eq  : Int Int -- Bool
+  neq : Int Int -- Bool
+  z=  : Int Int -- Bool
+  z!= : Int Int -- Bool
+  0?   : Int -- Int Bool
+  1?   : Int -- Int Bool
+  pos? : Int -- Int Bool
+  neg? : Int -- Int Bool
+
+  neg : Int -- Int
+  abs : Int -- Int
+
+  1+ : Int -- Int
+  1- : Int -- Int
+  2* : Int -- Int
+  2/ : Int -- Int
+  2% : Int -- Int
+  end
+
+  export base/nat
+  type Nat
+  Nat.generate : Int -- Nat
+  nat : Int -- Nat
+
+  int->nat : Int -- Nat
+  nat->int : Nat -- Int
+  int2->nat2 : Int Int -- Nat Nat
+  nat2->int2 : Nat Nat -- Int Int
+
+  n+ : Nat Nat -- Nat
+  n- : Nat Nat -- Nat
+  n* : Nat Nat -- Nat
+  n/ : Nat Nat -- Nat
+  n% : Nat Nat -- Nat
+
+  n<  : Nat Nat -- Bool
+  n>  : Nat Nat -- Bool
+  n<= : Nat Nat -- Bool
+  n>= : Nat Nat -- Bool
+  n=  : Nat Nat -- Bool
+  n!= : Nat Nat -- Bool
+
+  n0? : Nat -- Nat Bool
+  n1? : Nat -- Nat Bool
+
+  ncompare? : Nat Nat -- Nat Nat Comparison
+
+  n0 : Nat
+  n1 : Nat
+  n2 : Nat
+
+  n1+ : Nat -- Nat
+  n1- : Nat -- Nat
+  n2* : Nat -- Nat
+  n2/ : Nat -- Nat
+  n2% : Nat -- Nat
+  nsplit : Nat -- Nat Nat
+
+end
+
+
+
+#
+# arith
+#
+
+> : Int Int -- Bool
+> = swap <
+
+<= : Int Int -- Bool
+<= = > not
+
+>= : Int Int -- Bool
+>= = < not
+
+<? : Int Int -- Int Int Bool
+<? = dup2 <
+<? drop == id
+
+>? : Int Int -- Int Int Bool
+>? = dup2 >
+>? drop == id
+
+<=? : Int Int -- Int Int Bool
+<=? = dup2 <=
+<=? drop == id
+
+>=? : Int Int -- Int Int Bool
+>=? = dup2 >=
+>=? drop == id
+
+neq? : Int Int -- Int Int Bool
+neq? = or? (<?, >?)
+neq? drop == id
+
+neq : Int Int -- Bool
+neq = neq? nip nip
+dup  neq == drop false
+swap neq == neq
+
+eq? : Int Int -- Int Int Bool
+eq? = neq? not
+eq? drop == id
+eq? == and? (<=?, >=?)
+
+
+eq : Int Int -- Bool
+eq = neq not
+dup eq == drop true
+dup 1 + eq == drop false
+swap eq == eq
+
+z= = eq
+z!= = neq
+
+0? : Int -- Int Bool
+0? = dup 0 eq
+0? drop == id
+
+1? : Int -- Int Bool
+1? = dup 1 eq
+1? drop == id
+
+pos? : Int -- Int Bool
+pos? = dup 0 >
+pos? drop == id
+
+neg? : Int -- Int Bool
+neg? = dup 0 <
+neg? drop == id
+
+neg : Int -- Int
+neg = -1 *
+
+abs : Int -- Int
+abs = neg? if(neg, id)
+
+1+ : Int -- Int
+1- : Int -- Int
+1+ = 1 +
+1- = 1 -
+1+ 1- == id
+1- 1+ == id
+0 1+ == 1
+0 1- == -1
+
+2* : Int -- Int
+2/ : Int -- Int
+2% : Int -- Int
+2* = 2 *
+2/ = 2 /
+2% = 2 %
+
+dup 2/ dip(2%) 2* + == id
+
+repeat(f : *a -- *a) : *a Int -- *a
+repeat(f) = pos? if(dip(f) 1- repeat(f), drop)
+
+count(f : *a Int -- *a) : *a Int -- *a
+count(f) = dip(0) repeat(dup dip(f) 1+) drop
+
+abs dip(0) count(+) == abs dup 1- * 2/
+abs while(pos?, dip(1+) 1-) drop == abs +
+
+dup eq == drop true
+swap eq == eq
+
+#
+# nat type
+#
+
+data Nat
+  _nat : Int -- Nat
+end
+
+Nat.generate : Int -- Nat
+Nat.generate = abs _nat
+
+int->nat : Int -- Nat
+int->nat = neg? if(drop 0, id) _nat
+
+nat->int : Nat -- Int
+nat->int = match( _nat -> id )
+
+nat : Int -- Nat
+nat = int->nat
+
+nat2->int2 : Nat Nat -- Int Int
+nat2->int2 = dip(nat->int) nat->int
+
+int2->nat2 : Int Int -- Nat Nat
+int2->nat2 = dip(int->nat) int->nat
+
+overInts(f : Int Int -- Int) : Nat Nat -- Nat
+overInts(f) = nat2->int2 f int->nat
+
+n+ : Nat Nat -- Nat
+n+ = overInts(+)
+
+n* : Nat Nat -- Nat
+n* = overInts(*)
+
+n- : Nat Nat -- Nat
+n- = overInts(-)
+
+10 nat 4 nat n- == 6 nat
+4 nat 10 nat n- == 0 nat
+
+
+n/ : Nat Nat -- Nat
+n/ = overInts(/)
+
+n% : Nat Nat -- Nat
+n% = overInts(%)
+
+ncompare : Nat Nat -- Comparison
+ncompare = nat2->int2 compare
+
+ncompare? : Nat Nat -- Nat Nat Comparison
+ncompare? = dup2 ncompare
+
+n> : Nat Nat -- Bool
+n> = nat2->int2 >
+
+n< : Nat Nat -- Bool
+n< = nat2->int2 <
+
+n>= : Nat Nat -- Bool
+n>= = nat2->int2 >=
+
+n<= : Nat Nat -- Bool
+n<= = nat2->int2 <=
+
+n= : Nat Nat -- Bool
+n= = nat2->int2 eq
+
+n!= : Nat Nat -- Bool
+n!= = nat2->int2 neq
+
+n0 : Nat
+n0 = 0 _nat
+
+n1 : Nat
+n1 = 1 _nat
+
+n2 : Nat
+n2 = 2 _nat
+
+n1+ : Nat -- Nat
+n1- : Nat -- Nat
+n2* : Nat -- Nat
+n2/ : Nat -- Nat
+n2% : Nat -- Nat
+n1+ = n1 n+
+n1- = n1 n-
+n2* = n2 n*
+n2/ = n2 n/
+n2% = n2 n%
+
+n0? : Nat -- Nat Bool
+n0? = dup n0 n=
+n0? drop == id
+
+n1? : Nat -- Nat Bool
+n1? = dup n1 n=
+n1? drop == id
+
+nsplit : Nat -- Nat Nat
+nsplit = nat->int dup dip(2/ dup) 2% + dip(_nat) _nat
+nsplit n+ == id
+

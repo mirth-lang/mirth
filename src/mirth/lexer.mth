@@ -1,4 +1,6 @@
 
+import base/char
+import base/str
 import mirth/loc
 import mirth/token
 
