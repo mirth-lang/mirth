@@ -7,43 +7,50 @@ import base/io/unsafe
 
 import mirth/build
 
-export tools
+export target
   mirth : List(Str) -- Int
-  mirth-build : List(Str) -- Int
 end
 
 export mirth/main
+  type IO(t)
   main     : List(Str) -- Int
-  buildCmd : List(Str) -- Int
-  helpCmd  : List(Str) -- Int
+  buildCmd : List(Str) -- IO(Int)
+  helpCmd  : List(Str) -- IO(Int)
 end
 
 mirth = main
-mirth-build = buildCmd
 
 main =
   cond(
-    nil? -> "USAGE: mirth COMMAND" _prim_unsafe_trace drop 1,
+    nil? -> drop "USAGE: mirth COMMAND" trace iomap_(1),
     unsnoc swap cond(
       dup "build"  streq -> drop buildCmd,
       dup "help"   streq -> drop helpCmd,
       dup "--help" streq -> drop helpCmd,
       dup "-h"     streq -> drop helpCmd,
-      "mirth: Unknown command " swap <> ". Use --help to list commands." <> _prim_unsafe_trace drop 1
+      nip "mirth: Unknown command " swap <> ". Use --help to list commands." <> trace iomap_(1)
     )
-  )
+  ) unsafe_runIO
 
 # mirth build [PACKAGE]
-buildCmd : List(Str) -- Int
+buildCmd : List(Str) -- IO(Int)
 buildCmd =
   cond(
-    nil? -> drop "src" path buildPkg unsafe_runIO,
-    len? n2 n>= -> drop "USAGE: mirth build [PKG]" _prim_unsafe_trace 1,
-    unsnoc drop path buildPkg unsafe_runIO
+    nil? -> drop "src" path buildPkg,
+    len? n2 n>= -> drop "USAGE: mirth build [PKG]" trace iomap_(1),
+    unsnoc drop path buildPkg
   )
 
 
 # mirth -h, mirth --help, mirth help
-helpCmd : List(Str) -- Int
-helpCmd = drop "USAGE: mirth COMMAND\n\nOPTIONS\n    --help      Display this table.\n\nCOMMANDS\n    build       Build Mirth package." _prim_unsafe_print 0
+helpCmd : List(Str) -- IO(Int)
+helpCmd = dip(
+  "USAGE: mirth COMMAND"
+  "OPTIONS\n"                               <>
+  "    --help      Display this table.\n"   <>
+  "\n"                                      <>
+  "COMMANDS\n"                              <>
+  "    build       Build Mirth package.\n"  <>
+) drop print iomap_(0)
+
 
