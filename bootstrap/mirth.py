@@ -271,6 +271,21 @@ def run_package(pkg, args, with_prelude=True):
         m = mods[modpath]
         herr(modpath, lambda: m.check_assertions())
 
+    mainpath = os.path.join(pkg, 'main.mth')
+    if mainpath in modpaths:
+        m = mods[mainpath]
+        if 'main' in m.word_defs:
+            (ps,dom,cod) = m.word_sigs['main']
+            if ps != [] or dom != tpack(None, tlist(tstr)) or cod != tpack(None, tint):
+                error(mainpath, None, "Unexpected type signature for main. Should be\n  main : List(Str) -- Int")
+            e = env()
+            e.push(args)
+            e.copush(m.word_defs['main'])
+            e.run(timeout=10000000000000)
+            sys.exit(e.pop())
+        else:
+            error(mainpath, None, "Expected definition of main.")
+
 def list_modules(pkg):
     '''List all modules inside a given package.'''
     ms = []
