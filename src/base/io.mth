@@ -1,0 +1,61 @@
+import base/unit
+export base/io
+  type IO(t)
+  type Unit
+  pure  : a     -- IO(a)
+  pure2 : a b   -- IO(a) IO(b)
+  pure3 : a b c -- IO(a) IO(b) IO(c)
+
+  iojoin : IO(IO(a)) -- IO(a)
+
+  iomap_ (f:            e) : IO(a)                   -- IO(e)
+  iomap  (f: a       -- e) : IO(a)                   -- IO(e)
+  iomap2 (f: a b     -- e) : IO(a) IO(b)             -- IO(e)
+  iomap3 (f: a b c   -- e) : IO(a) IO(b) IO(c)       -- IO(e)
+  iomap4 (f: a b c d -- e) : IO(a) IO(b) IO(c) IO(d) -- IO(e)
+
+  then_ (f:            IO(e)) : IO(a)                   -- IO(e)
+  then  (f: a       -- IO(e)) : IO(a)                   -- IO(e)
+  then2 (f: a b     -- IO(e)) : IO(a) IO(b)             -- IO(e)
+  then3 (f: a b c   -- IO(e)) : IO(a) IO(b) IO(c)       -- IO(e)
+  then4 (f: a b c d -- IO(e)) : IO(a) IO(b) IO(c) IO(d) -- IO(e)
+
+  trace : Str -- IO(Unit)
+  print : Str -- IO(Unit)
+end
+
+
+export base/io/unsafe
+  type IO(t)
+  unsafe_runIO : IO(t) -- t
+end
+
+data IO(t)
+  mkIO(f: t) : IO(t)
+end
+
+pure  = lambda(a -> mkIO(a))
+pure2 = par(pure, pure)
+pure3 = par(pure2, pure)
+
+iomap_ (g) = match(mkIO(f) -> mkIO   (f drop g))
+iomap  (g) = match(mkIO(f) -> mkIO   (f g))
+iomap2 (g) = match(mkIO(f) -> iomap  (f g))
+iomap3 (g) = match(mkIO(f) -> iomap2 (f g))
+iomap4 (g) = match(mkIO(f) -> iomap3 (f g))
+
+iojoin = iomap(unsafe_runIO)
+
+then_ (f) = iomap_ (f unsafe_runIO)
+then  (f) = iomap  (f unsafe_runIO)
+then2 (f) = iomap2 (f unsafe_runIO)
+then3 (f) = iomap3 (f unsafe_runIO)
+then4 (f) = iomap4 (f unsafe_runIO)
+
+trace = pure iomap(_prim_unsafe_trace unit)
+print = pure iomap(_prim_unsafe_print unit)
+
+unsafe_runIO = match(mkIO(f) -> f)
+
+
+

@@ -1,9 +1,13 @@
+import base/io
 import base/path
+import base/path/io
 
 export mirth/build
+  type IO(t)
   type Path
-  buildPkg : Path -- Int
+  buildPkg : Path -- IO(Int)
 end
 
-buildPkg = drop "mirth: Not yet implemented." _prim_unsafe_trace 0
+buildPkg = drop "mirth: Not yet implemented." trace iomap_(0)
+
 

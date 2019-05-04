@@ -1,0 +1,14 @@
+
+export base/unit
+  type Unit
+  unit : Unit
+  Unit.generate : Unit
+end
+
+data Unit
+  unit : Unit
+end
+
+Unit.generate = unit
+drop unit == id
+

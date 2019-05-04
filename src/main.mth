@@ -2,6 +2,8 @@ import base/nat
 import base/list
 import base/str
 import base/path
+import base/io
+import base/io/unsafe
 
 import mirth/build
 
@@ -35,9 +37,9 @@ main =
 buildCmd : List(Str) -- Int
 buildCmd =
   cond(
-    nil? -> drop "src" path buildPkg,
+    nil? -> drop "src" path buildPkg unsafe_runIO,
     len? n2 n>= -> drop "USAGE: mirth build [PKG]" _prim_unsafe_trace 1,
-    unsnoc drop path buildPkg
+    unsnoc drop path buildPkg unsafe_runIO
   )
 
 
