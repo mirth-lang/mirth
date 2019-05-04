@@ -70,6 +70,15 @@ def interpret(path, args, with_prelude=True):
 
         m.check_assertions()
 
+        if 'main' in m.word_defs:
+            (ps,dom,cod) = m.word_sigs['main']
+            if ps != [] or dom != tpack(None, tlist(tstr)) or cod != tpack(None, tint):
+                raise TypeError("%s: Unexpected type signature for main. Should be\n  main : List(Str) -- Int" % path)
+            e = env()
+            e.push(args)
+            e.copush(m.word_defs['main'])
+            e.run(timeout=10000000000000)
+            sys.exit(e.pop())
     except IsADirectoryError as e:
         run_package(path, args, with_prelude)
     except TypeError as e:
@@ -1949,6 +1958,7 @@ def listfor (e, f):
 def unsafe_panic (e):
     m = e.pop()
     print(m, file=sys.stderr)
+    print('\nstack: ' + ' '.join(map(repr, e.stack)), file=sys.stderr)
     sys.exit(1)
 
 def unsafe_trace (e):
