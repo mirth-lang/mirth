@@ -1595,11 +1595,23 @@ class env:
 ################################ BUILTINS ####################################
 ##############################################################################
 
-def type0 (t):
+def type0 (name, t):
     def f(mod, args):
         if len(args) > 0:
             raise TypeError("%s takes no arguments." % name)
         return t
+    return f
+
+def type1 (name, t):
+    def f(mod, args):
+        if len(args) != 1:
+            raise TypeError("%s takes one argument." % name)
+        e = type_elaborator(mod)
+        args[0].elab(e)
+        p = e.to_tpack()
+        if not (p.rest is None and len(p.args) == 1):
+            raise TypeError("%s expects a value type argument, not a stack type." % name)
+        return t(p.args[0])
     return f
 
 def mktpack (mod, args):
@@ -1854,11 +1866,13 @@ def cond (elab, args):
 tint  = tcon('Int')
 tstr  = tcon('Str')
 tbool = tcon('Bool')
+tlist = lambda t: tcon('List', [t])
 
 builtin_types = {
-    'Int':  type0(tint),
-    'Str':  type0(tstr),
-    'Bool': type0(tbool),
+    'Int':  type0('Int', tint),
+    'Str':  type0('Str', tstr),
+    'Bool': type0('Bool', tbool),
+    'List': type1('List', tlist),
     'Pack': mktpack,
 }
 
@@ -1908,6 +1922,25 @@ def intuple (e, f):
     e.copush(restore_stack)
     e.copush(f)
 
+def listmap (e, f):
+    xs = e.pop()
+    def g(x): return lambda e: e.push(x)
+    def h(e):
+        ys = e.stack[-len(xs):]
+        del e.stack[-len(xs):]
+        e.push(ys)
+    e.copush(h)
+    for x in reversed(xs):
+        e.copush(f)
+        e.copush(g(x))
+
+def listfor (e, f):
+    xs = e.pop()
+    def g(x): return lambda e: e.push(x)
+    for x in reversed(xs):
+        e.copush(f)
+        e.copush(g(x))
+
 
 builtin_word_sigs = {
     # basic
@@ -1949,6 +1982,19 @@ builtin_word_sigs = {
                             tpack(None, tpack(None, tvar('a'), tvar('b')))),
     '_prim_tuple_unpack2': ([], tpack(None, tpack(None, tvar('a'), tvar('b'))),
                             tpack(None, tvar('a'), tvar('b'))),
+
+    # list
+    '_prim_list_nil': ([], tpack(None), tpack(None, tlist(tvar('a')))),
+    '_prim_list_cons': ([], tpack(None, tlist(tvar('a')), tvar('a')), tpack(None, tlist(tvar('a')))),
+    '_prim_list_cat': ([], tpack(None, tlist(tvar('a')), tlist(tvar('a'))), tpack(None, tlist(tvar('a')))),
+    '_prim_list_len': ([], tpack(None, tlist(tvar('a'))), tpack(None, tint)),
+    '_prim_list_at': ([], tpack(None, tlist(tvar('a')), tint), tpack(None, tvar('a'))),
+    '_prim_list_break': ([], tpack(None, tlist(tvar('a')), tint),
+        tpack(None, tlist(tvar('a')), tlist(tvar('a')))),
+    '_prim_list_map': ([(tpack(None, tvar('a')), tpack(None, tvar('b')))],
+        tpack(None, tlist(tvar('a'))), tpack(None, tlist(tvar('b')))),
+    '_prim_list_for': ([(tpack(tvar('a'), tvar('b')), tpack(tvar('a')))],
+        tpack(tvar('a'), tlist(tvar('b'))), tpack(tvar('a')))
 }
 
 builtin_word_defs = {
@@ -1979,10 +2025,20 @@ builtin_word_defs = {
     '_prim_str_from_codepoint':    word1(chr),
     '_prim_str_to_codepoint':    word1(ord),
 
-    # tuple, i.e. heterogeneous lists
+    # tuple
     '_prim_tuple_intuple': intuple,
     '_prim_tuple_pack2':   word2(lambda a,b: (a,b)),
     '_prim_tuple_unpack2': word12(lambda p: p),
+
+    # list
+    '_prim_list_nil'  : (lambda env: env.push([])),
+    '_prim_list_cons' : word2(lambda a,b: a+[b]),
+    '_prim_list_cat'  : word2(lambda a,b: a+b),
+    '_prim_list_len'  : word1(len),
+    '_prim_list_at'   : word2(lambda a,b: a[b]),
+    '_prim_list_break': word22(lambda a,b: (a[:b], a[b:]) if b >= 0 else ([], a)),
+    '_prim_list_map'  : listmap,
+    '_prim_list_for'  : listfor,
 }
 
 
