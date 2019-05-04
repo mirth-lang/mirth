@@ -8,43 +8,42 @@ import base/io/unsafe
 import mirth/build
 
 export target
-  mirth : List(Str) -- Int
-end
-
-export mirth/main
   type IO(t)
-  main     : List(Str) -- Int
-  buildCmd : List(Str) -- IO(Int)
-  helpCmd  : List(Str) -- IO(Int)
+  mirth : List(Str) -- IO(Int)
 end
 
-mirth = main
+mirth-build : List(Str) -- IO(Int)
+mirth-help  : List(Str) -- IO(Int)
 
-main =
+# entry point for bootstrap
+main : List(Str) -- Int
+main = mirth unsafe_runIO
+
+mirth : List(Str) -- IO(Int)
+mirth =
   cond(
     nil? -> drop "USAGE: mirth COMMAND" trace iomap_(1),
     unsnoc swap cond(
-      dup "build"  streq -> drop buildCmd,
-      dup "help"   streq -> drop helpCmd,
-      dup "--help" streq -> drop helpCmd,
-      dup "-h"     streq -> drop helpCmd,
+      dup "build"  streq -> drop mirth-build,
+      dup "help"   streq -> drop mirth-help,
+      dup "--help" streq -> drop mirth-help,
+      dup "-h"     streq -> drop mirth-help,
       nip "mirth: Unknown command " swap <> ". Use --help to list commands." <> trace iomap_(1)
     )
-  ) unsafe_runIO
+  )
 
 # mirth build [PACKAGE]
-buildCmd : List(Str) -- IO(Int)
-buildCmd =
+mirth-build : List(Str) -- IO(Int)
+mirth-build =
   cond(
     nil? -> drop "src" path buildPkg,
     len? n2 n>= -> drop "USAGE: mirth build [PKG]" trace iomap_(1),
     unsnoc drop path buildPkg
   )
 
-
 # mirth -h, mirth --help, mirth help
-helpCmd : List(Str) -- IO(Int)
-helpCmd = dip(
+mirth-help : List(Str) -- IO(Int)
+mirth-help = dip(
   "USAGE: mirth COMMAND"
   "OPTIONS\n"                               <>
   "    --help      Display this table.\n"   <>
