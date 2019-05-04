@@ -1,0 +1,9 @@
+import base/path
+
+export mirth/build
+  type Path
+  buildPkg : Path -- Int
+end
+
+buildPkg = drop "mirth: Not yet implemented." _prim_unsafe_trace 0
+

@@ -1,0 +1,10 @@
+
+export base/path
+  type Path
+  path : Str -- Path
+end
+
+data Path
+  path : Str -- Path
+end
+
