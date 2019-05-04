@@ -1387,7 +1387,12 @@ class module:
                 e.copush(fun)
                 e.run()
                 return e.pop()
-
+            elif t.name == 'List' and len(t.args) == 1:
+                xt = t.args[0]
+                xs = []
+                for i in range(random.randint(0, n//2)):
+                    xs.append(self.arbitrary(xt, n//2))
+                return xs
             elif t.name == 'Int' and t.args == []:
                 return random.randint(-n, n)
             elif t.name == 'Bool' and t.args == []:

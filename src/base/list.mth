@@ -14,11 +14,13 @@ export base/list
 
   nil?    : List(t) -- List(t) Bool
 
+  map(f: a -- b) : List(a) -- List(b)
+  for(f: *a b -- *a) : *a List(b) -- *a
+  break : List(t) Nat -- List(t) List(t)
+  flatten : List(List(t)) -- List(t)
 
   lpure : t -- List(t)
-  lmap(f: a -- b) : List(a) -- List(b)
-  lfor(f: *a b -- *a) : *a List(b) -- *a
-  lbreak : List(t) Nat -- List(t) List(t)
+  lbind (f: a -- List(b)) : List(a) -- List(b)
 
 end
 
@@ -27,13 +29,23 @@ nil     = _prim_list_nil
 cat     = _prim_list_cat
 cons    = _prim_list_cons
 len     = _prim_list_len znat
-lmap(f) = _prim_list_map(f)
-lfor(f) = _prim_list_for(f)
-lbreak  = nint _prim_list_break
+map(f) = _prim_list_map(f)
+for(f) = _prim_list_for(f)
+break  = nint _prim_list_break
 
 ++    = cat
 snoc  = dip(dip(nil) cons) cat
 len?  = dup len
 nil?  = len? n0 n=
+
+flatten = dip(nil) for(cat)
+
 lpure = dip(nil) cons
+lbind(f) = map(f) flatten
+
+cat len == both(len) n+
+break cat == drop
+
+map(id) == id
+lbind(id) == flatten
 
