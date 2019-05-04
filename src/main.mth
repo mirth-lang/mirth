@@ -19,16 +19,17 @@ mirth-help  : List(Str) -- IO(Int)
 main : List(Str) -- Int
 main = mirth unsafe_runIO
 
+# entry point
 mirth : List(Str) -- IO(Int)
 mirth =
   cond(
-    nil? -> drop "USAGE: mirth COMMAND" trace iomap_(1),
+    nil? -> drop "USAGE: mirth COMMAND" trace then_(1 pure),
     unsnoc swap cond(
       dup "build"  streq -> drop mirth-build,
       dup "help"   streq -> drop mirth-help,
       dup "--help" streq -> drop mirth-help,
       dup "-h"     streq -> drop mirth-help,
-      nip "mirth: Unknown command " swap <> ". Use --help to list commands." <> trace iomap_(1)
+      nip "mirth: Unknown command " swap <> ". Use --help to list commands." <> trace then_(1 pure)
     )
   )
 
@@ -37,7 +38,7 @@ mirth-build : List(Str) -- IO(Int)
 mirth-build =
   cond(
     nil? -> drop "src" path buildPkg,
-    len? n2 n>= -> drop "USAGE: mirth build [PKG]" trace iomap_(1),
+    len? n2 n>= -> drop "USAGE: mirth build [PKG]" trace then_(1 pure),
     unsnoc drop path buildPkg
   )
 
@@ -50,6 +51,6 @@ mirth-help = dip(
   "\n"                                      <>
   "COMMANDS\n"                              <>
   "    build       Build Mirth package.\n"  <>
-) drop print iomap_(0)
+) drop print then_(0 pure)
 
 
