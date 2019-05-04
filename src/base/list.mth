@@ -16,6 +16,7 @@ export base/list
 
   map(f: a -- b) : List(a) -- List(b)
   for(f: *a b -- *a) : *a List(b) -- *a
+  formap(f: *a b -- *a c) : *a List(b) -- *a List(c)
   break : List(t) Nat -- List(t) List(t)
   flatten : List(List(t)) -- List(t)
 
@@ -41,6 +42,7 @@ snoc  = dip(dip(nil) cons) cat
 len?  = dup len
 nil?  = len? n0 n=
 
+formap(f) = dip(nil) for(swap dip(f) swap cons)
 flatten = dip(nil) for(cat)
 
 lpure = dip(nil) cons

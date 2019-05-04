@@ -32,16 +32,21 @@ end
 
 export base/str
   type Char
+  type Nat
   Char.generate : Int -- Char
 
   strnull? : Str -- Str Bool
   strnull  : Str -- Bool
+  strlen?  : Str -- Str Nat
+  strlen   : Str -- Nat
 
   strelem : Char Str -- Bool
   strall? (p: Char -- Char Bool) : Str -- Str Bool
 
-  strBreakAt : Str Int -- Str Str
-  strBreakOn (p: Char -- Char Bool) : Str -- Str Str
+  strbreak : Str Nat -- Str Str
+  strbreakWhen (p: Char -- Char Bool) : Str -- Str Str
+  strprefix? : Str Str -- Str Str Bool
+  strprefix  : Str Str -- Bool
   streq : Str Str -- Bool
   <> : Str Str -- Str
   strfold(f : *a Char -- *a) : *a Str -- *a
@@ -145,21 +150,25 @@ dip("") <> == id
 <> <> == dip(<>) <>
 dip(char->str) <> str->char == drop
 
-strBreakAt : Str Int -- Str Str
-strBreakAt = _prim_str_break
-strBreakAt <> == drop
+strbreak : Str Nat -- Str Str
+strbreak = nint _prim_str_break
+strbreak <> == drop
 
-strlen : Str -- Int
-strlen = _prim_str_len
-<> strlen == dip(strlen) strlen z+
+strprefix : Str Str -- Bool
+strprefix = dip?(strlen?) strbreak drop streq
+strprefix? = dup2 strprefix
 
-strlen? : Str -- Str Int
+strlen : Str -- Nat
+strlen = _prim_str_len znat
+<> strlen == dip(strlen) strlen n+
+
+strlen? : Str -- Str Nat
 strlen? = dup strlen
 strlen? drop == id
 strlen? nip  == strlen
 
 strnull : Str -- Bool
-strnull = strlen 0 z=
+strnull = strlen n0 n=
 
 strnull? : Str -- Str Bool
 strnull? = dup strnull
@@ -174,7 +183,7 @@ end
 strview : Str -- StrView
 strview = strnull? if(
     drop strnil,
-    1 strBreakAt dip(_prim_str_to_codepoint char) strcons
+    n1 strbreak dip(_prim_str_to_codepoint char) strcons
   )
 
 "" strview == strnil
@@ -238,8 +247,8 @@ strBreakOnAux(f) = strview match(
   strcons -> dip?(f) if(dip(char->str) <>, dip(char->str <>) strBreakOnAux(f))
 )
 
-strBreakOn(f: Char -- Char Bool) : Str -- Str Str
-strBreakOn(f) = dip("") strBreakOnAux(f)
-strBreakOn(islower?) <> == id
-strBreakOn(isupper?) <> == id
-strBreakOn(dup char->int z2% n0 n=) <> == id
+strbreakWhen(f: Char -- Char Bool) : Str -- Str Str
+strbreakWhen(f) = dip("") strBreakOnAux(f)
+strbreakWhen(islower?) <> == id
+strbreakWhen(isupper?) <> == id
+strbreakWhen(dup char->int z2% n0 n=) <> == id

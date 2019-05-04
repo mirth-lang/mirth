@@ -1,10 +1,53 @@
+import base/nat
+import base/str
+import base/list
 
 export base/path
   type Path
-  path : Str -- Path
+  path      : Str -- Path
+  unpath    : Path -- Str
+  absolute? : Path -- Path Bool
+  relative? : Path -- Path Bool
+  </>       : Path Path -- Path
+  <.>       : Path Str  -- Path
+end
+
+export base/path/unsafe
+  type Path
+  unsafe_listdir   : Path -- List(Path)
+  unsafe_listdirs  : Path -- List(Path) # list directories recursively
+  unsafe_listfiles : Path -- List(Path) # list files recursively
+  unsafe_isdir     : Path -- Bool
+  unsafe_isfile    : Path -- Bool
+  unsafe_read      : Path -- Str
+  unsafe_write     : Str Path --
+  unsafe_append    : Str Path --
 end
 
 data Path
   path : Str -- Path
 end
+
+path_sep : Str
+path_sep = "/" # FIXME: need to fix for windows
+
+unpath = match(path -> id)
+absolute? = dup unpath dip(path_sep) strprefix
+relative? = absolute? not
+
+</> = cond(
+  absolute? -> nip,
+  both(unpath) dip(path_sep) <> <> path
+)
+
+<.> = dip(unpath ".") <> <> path
+
+unsafe_listdir   = unpath _prim_unsafe_listdir map(path)
+unsafe_listdirs  = unpath _prim_unsafe_walk lbind(unpack3 drop dip(path) formap(dip(dup) path </>) nip)
+unsafe_listfiles = unpath _prim_unsafe_walk lbind(unpack3 nip  dip(path) formap(dip(dup) path </>) nip)
+unsafe_isdir     = unpath _prim_unsafe_isdir
+unsafe_isfile    = unpath _prim_unsafe_isfile
+unsafe_read      = unpath _prim_unsafe_read
+unsafe_write     = unpath _prim_unsafe_write
+unsafe_append    = unpath _prim_unsafe_append
 

@@ -1,13 +1,13 @@
 
 import base/char
 import base/str
-import base/int
+import base/nat
 import base/maybe
 
 export base/regex
   type Regex
   type Maybe(t)
-  regexMatch : Str Regex -- Maybe(Int)
+  regexMatch : Str Regex -- Maybe(Nat)
 end
 
 export base/regex+
@@ -19,7 +19,7 @@ export base/regex+
   seq2 : Regex Regex -- Regex
   alt2 : Regex Regex -- Regex
   star : Regex -- Regex
-  regexMatch : Str Regex -- Maybe(Int)
+  regexMatch : Str Regex -- Maybe(Nat)
 end
 
 data Regex
@@ -83,7 +83,7 @@ derive : Char Regex -- Regex
 derive =
   match(
     fail -> drop fail,
-    lit -> 1 strBreakAt dip(str->char chareq) swap if(lit, drop fail),
+    lit -> n1 strbreak dip(str->char chareq) swap if(lit, drop fail),
     cls -> strelem if("" lit, fail),
     seq2 ->
       dip?(eps?) if(
@@ -95,26 +95,26 @@ derive =
   )
 
 
-regexMatchAux : Maybe(Int) Int Str Regex -- Maybe(Int)
+regexMatchAux : Maybe(Nat) Nat Str Regex -- Maybe(Nat)
 regexMatchAux =
   cond(
     fail? -> drop3,
     dip?(strnull?) -> eps? if(drop2 nip some, drop3),
     eps? if(dip2(nip dup dip(some)), id)
-    dip2(z1+) dip(1 strBreakAt swap str->char)
+    dip2(n1+ pnat) dip(n1 strbreak swap str->char)
     derive regexMatchAux
   )
 
-regexMatch : Str Regex -- Maybe(Int)
-regexMatch = dip2(none 0) regexMatchAux
+regexMatch : Str Regex -- Maybe(Nat)
+regexMatch = dip2(none n0) regexMatchAux
 
 fail regexMatch == drop none
-"foobar" "foo" lit regexMatch == 3 some
-"foobar" "foo" cls regexMatch == 1 some
-"foobar" "foo" lit "bar" lit seq2 regexMatch == 6 some
-"foobar" "f" lit "foo" lit alt2 regexMatch == 3 some
-"foobar" "foo" lit star regexMatch == 3 some
-"foobar" "food" lit star regexMatch == 0 some
+"foobar" "foo" lit regexMatch == 3 znat some
+"foobar" "foo" cls regexMatch == n1 some
+"foobar" "foo" lit "bar" lit seq2 regexMatch == 6 znat some
+"foobar" "f" lit "foo" lit alt2 regexMatch == 3 znat some
+"foobar" "foo" lit star regexMatch == 3 znat some
+"foobar" "food" lit star regexMatch == n0 some
 "foobar" "food" lit regexMatch == none
 
 

@@ -1,4 +1,5 @@
 
+import base/nat
 import base/char
 import base/str
 import mirth/loc
@@ -16,7 +17,7 @@ isDecInt? drop == id
 "1st"        isDecInt? nip == false
 
 isHexInt? : Str -- Str Bool
-isHexInt? = dup 2 strBreakAt and?(or?(over "0x" streq, over "0X" streq),
+isHexInt? = dup n2 strbreak and?(or?(over "0x" streq, over "0X" streq),
   and?(strnull? not, strall?(ishexdigit?))) dip(drop2)
 
 isHexInt? drop == id
@@ -39,7 +40,7 @@ isCommentChar? = "#" str->char chareq? nip
 isCommentChar? drop == id
 
 breakComment : Str -- Str Str
-breakComment = strBreakOn ('\n' chareq? nip)
+breakComment = strbreakWhen ('\n' chareq? nip)
 
 isInt? : Str -- Str Bool
 isInt? = or? (isDecInt?, isHexInt?)
