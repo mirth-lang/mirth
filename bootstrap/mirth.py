@@ -1946,6 +1946,53 @@ def listfor (e, f):
         e.copush(f)
         e.copush(g(x))
 
+def unsafe_panic (e):
+    m = e.pop()
+    print(m, file=sys.stderr)
+    sys.exit(1)
+
+def unsafe_trace (e):
+    m = e.pop()
+    print(m, file=sys.stderr)
+
+def unsafe_print (e):
+    m = e.pop()
+    print(m)
+
+def unsafe_listdir (e):
+    m = e.pop()
+    e.push(os.listdir(m))
+
+def unsafe_walk (e):
+    m = e.pop()
+    e.push(list(os.walk(m)))
+
+def unsafe_isdir(e):
+    m = e.pop()
+    e.push(os.path.isdir(m))
+
+def unsafe_isfile(e):
+    m = e.pop()
+    e.push(os.path.isfile(m))
+
+def unsafe_read(e):
+    m = e.pop()
+    with open(m) as fp:
+        v = fp.read()
+    e.push(v)
+
+def unsafe_write(e):
+    m = e.pop()
+    v = e.pop()
+    with open(m, 'w') as fp:
+        fp.write(v)
+
+def unsafe_append(e):
+    m = e.pop()
+    v = e.pop()
+    with open(m, 'a') as fp:
+        fp.write(v)
+
 
 builtin_word_sigs = {
     # basic
@@ -1999,8 +2046,23 @@ builtin_word_sigs = {
     '_prim_list_map': ([(tpack(None, tvar('a')), tpack(None, tvar('b')))],
         tpack(None, tlist(tvar('a'))), tpack(None, tlist(tvar('b')))),
     '_prim_list_for': ([(tpack(tvar('a'), tvar('b')), tpack(tvar('a')))],
-        tpack(tvar('a'), tlist(tvar('b'))), tpack(tvar('a')))
+        tpack(tvar('a'), tlist(tvar('b'))), tpack(tvar('a'))),
+
+    # unsafe
+    '_prim_unsafe_panic':   ([], tpack(tvar('a'), tstr), tpack(tvar('b'))),
+    '_prim_unsafe_trace':   ([], tpack(None, tstr), tpack(None)),
+    '_prim_unsafe_print':   ([], tpack(None, tstr), tpack(None)),
+    '_prim_unsafe_listdir': ([], tpack(None, tstr), tpack(None, tlist(tstr))),
+    '_prim_unsafe_walk':    ([], tpack(None, tstr),
+        tpack(None, tlist(tpack(None, tstr, tlist(tstr), tlist(tstr))))),
+    '_prim_unsafe_isdir':   ([], tpack(None, tstr), tpack(None, tbool)),
+    '_prim_unsafe_isfile':  ([], tpack(None, tstr), tpack(None, tbool)),
+    '_prim_unsafe_read':    ([], tpack(None, tstr), tpack(None, tstr)),
+    '_prim_unsafe_write':   ([], tpack(None, tstr, tstr), tpack(None)),
+    '_prim_unsafe_append':  ([], tpack(None, tstr, tstr), tpack(None)),
 }
+
+
 
 builtin_word_defs = {
     # basic
@@ -2044,8 +2106,19 @@ builtin_word_defs = {
     '_prim_list_break': word22(lambda a,b: (a[:b], a[b:]) if b >= 0 else ([], a)),
     '_prim_list_map'  : listmap,
     '_prim_list_for'  : listfor,
-}
 
+    # unsafe
+    '_prim_unsafe_panic':   unsafe_panic,
+    '_prim_unsafe_trace':   unsafe_trace,
+    '_prim_unsafe_print':   unsafe_print,
+    '_prim_unsafe_listdir': unsafe_listdir,
+    '_prim_unsafe_walk':    unsafe_walk,
+    '_prim_unsafe_isdir':   unsafe_isdir,
+    '_prim_unsafe_isfile':  unsafe_isfile,
+    '_prim_unsafe_read':    unsafe_read,
+    '_prim_unsafe_write':   unsafe_write,
+    '_prim_unsafe_append':  unsafe_append,
+}
 
 
 ##############################################################
