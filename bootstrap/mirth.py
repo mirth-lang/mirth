@@ -1898,7 +1898,7 @@ def word22 (f):
         e.push(y)
     return w
 
-def inpack (e, f):
+def intuple (e, f):
     newstack = list(e.pop())
     oldstack = e.stack
     e.stack = newstack
@@ -1910,80 +1910,79 @@ def inpack (e, f):
 
 
 builtin_word_sigs = {
-
     # basic
-    'dup':  ([], tpack(None, tvar('b')), tpack(None, tvar('b'), tvar('b'))),
-    'drop': ([], tpack(None, tvar('b')), tpack(None)),
-    'swap': ([], tpack(None, tvar('b'), tvar('c')), tpack(None, tvar('c'), tvar('b'))),
-    'id':   ([], tpack(None), tpack(None)),
-    'dip':  ([(tpack(tvar('a')), tpack(tvar('b')))],
+    '_prim_dup':  ([], tpack(None, tvar('b')), tpack(None, tvar('b'), tvar('b'))),
+    '_prim_drop': ([], tpack(None, tvar('b')), tpack(None)),
+    '_prim_swap': ([], tpack(None, tvar('b'), tvar('c')), tpack(None, tvar('c'), tvar('b'))),
+    '_prim_dip':  ([(tpack(tvar('a')), tpack(tvar('b')))],
             tpack(tvar('a'), tvar('c')),
             tpack(tvar('b'), tvar('c'))),
 
     # bool
-    'true':  ([], tpack(), tpack(None, tbool)),
-    'false': ([], tpack(), tpack(None, tbool)),
-    'if': ([(tpack(tvar('a')), tpack(tvar('b')))
+    '_prim_bool_true':  ([], tpack(), tpack(None, tbool)),
+    '_prim_bool_false': ([], tpack(), tpack(None, tbool)),
+    '_prim_bool_if': ([(tpack(tvar('a')), tpack(tvar('b')))
            ,(tpack(tvar('a')), tpack(tvar('b')))],
            tpack(tvar('a'), tbool), tpack(tvar('b'))),
 
     # int
-    '+': ([], tpack(None, tint, tint), tpack(None, tint)),
-    '-': ([], tpack(None, tint, tint), tpack(None, tint)),
-    '*': ([], tpack(None, tint, tint), tpack(None, tint)),
-    '/': ([], tpack(None, tint, tint), tpack(None, tint)),
-    '%': ([], tpack(None, tint, tint), tpack(None, tint)),
-    '<': ([], tpack(None, tint, tint), tpack(None, tbool)),
+    '_prim_int_add': ([], tpack(None, tint, tint), tpack(None, tint)),
+    '_prim_int_sub': ([], tpack(None, tint, tint), tpack(None, tint)),
+    '_prim_int_mul': ([], tpack(None, tint, tint), tpack(None, tint)),
+    '_prim_int_div': ([], tpack(None, tint, tint), tpack(None, tint)),
+    '_prim_int_mod': ([], tpack(None, tint, tint), tpack(None, tint)),
+    '_prim_int_lt': ([], tpack(None, tint, tint), tpack(None, tbool)),
+    '_prim_int_eq': ([], tpack(None, tint, tint), tpack(None, tbool)),
 
     # str
-    '_prim_strcat': ([], tpack(None, tstr, tstr), tpack(None, tstr)),
-    '_prim_strbrk': ([], tpack(None, tstr, tint), tpack(None, tstr, tstr)),
-    '_prim_strlen': ([], tpack(None, tstr), tpack(None, tint)),
-    '_prim_decode1': ([], tpack(None, tstr), tpack(None, tint)),
-    '_prim_encode1': ([], tpack(None, tint), tpack(None, tstr)),
+    '_prim_str_cat': ([], tpack(None, tstr, tstr), tpack(None, tstr)),
+    '_prim_str_break': ([], tpack(None, tstr, tint), tpack(None, tstr, tstr)),
+    '_prim_str_len': ([], tpack(None, tstr), tpack(None, tint)),
+    '_prim_str_to_codepoint': ([], tpack(None, tstr), tpack(None, tint)),
+    '_prim_str_from_codepoint': ([], tpack(None, tint), tpack(None, tstr)),
 
-    # pack
-    'inpack': ([(tpack(tvar('a')), tpack(tvar('b')))],
-                    tpack(None, tpack(tvar('a'))),
-                    tpack(None, tpack(tvar('b')))),
-    'pack2'   : ([], tpack(None, tvar('a'), tvar('b')),
-                     tpack(None, tpack(None, tvar('a'), tvar('b')))),
-    'unpack2' : ([], tpack(None, tpack(None, tvar('a'), tvar('b'))),
-                     tpack(None, tvar('a'), tvar('b'))),
+    # tuple
+    '_prim_tuple_intuple': ([(tpack(tvar('a')), tpack(tvar('b')))],
+                            tpack(None, tpack(tvar('a'))),
+                            tpack(None, tpack(tvar('b')))),
+    '_prim_tuple_pack2'  : ([], tpack(None, tvar('a'), tvar('b')),
+                            tpack(None, tpack(None, tvar('a'), tvar('b')))),
+    '_prim_tuple_unpack2': ([], tpack(None, tpack(None, tvar('a'), tvar('b'))),
+                            tpack(None, tvar('a'), tvar('b'))),
 }
 
 builtin_word_defs = {
     # basic
-    'dup':  env.dup,
-    'drop': env.drop,
-    'swap': env.swap,
-    'id':   (lambda env: env),
-    'dip':  env.dip,
+    '_prim_dup':        env.dup,
+    '_prim_drop':       env.drop,
+    '_prim_swap':       env.swap,
+    '_prim_dip':        env.dip,
 
     # bool
-    'true':  (lambda env: env.push(True)),
-    'false': (lambda env: env.push(False)),
-    'if':    env.w_if,
+    '_prim_bool_true':  (lambda env: env.push(True)),
+    '_prim_bool_false': (lambda env: env.push(False)),
+    '_prim_bool_if':    env.w_if,
 
     # int
-    '+': word2(lambda a,b: a + b),
-    '-': word2(lambda a,b: a - b),
-    '*': word2(lambda a,b: a * b),
-    '%': word2(lambda a,b: a % b),
-    '/': word2(lambda a,b: a // b),
-    '<': word2(lambda a,b: a < b),
+    '_prim_int_add':    word2(lambda a,b: a + b),
+    '_prim_int_sub':    word2(lambda a,b: a - b),
+    '_prim_int_mul':    word2(lambda a,b: a * b),
+    '_prim_int_mod':    word2(lambda a,b: a % b),
+    '_prim_int_div':    word2(lambda a,b: a // b),
+    '_prim_int_lt':     word2(lambda a,b: a < b),
+    '_prim_int_eq':     word2(lambda a,b: a == b),
 
     # str
-    '_prim_strcat':   word2(lambda a,b: a + b),
-    '_prim_strbrk':   word22(lambda a,b: (a[:b], a[b:]) if b >= 0 else ('', a)),
-    '_prim_strlen':   word1(len),
-    '_prim_encode1':  word1(chr),
-    '_prim_decode1':  word1(ord),
+    '_prim_str_cat':    word2(lambda a,b: a + b),
+    '_prim_str_break':  word22(lambda a,b: (a[:b], a[b:]) if b >= 0 else ('', a)),
+    '_prim_str_len':    word1(len),
+    '_prim_str_from_codepoint':    word1(chr),
+    '_prim_str_to_codepoint':    word1(ord),
 
-    # pack
-    'inpack': inpack,
-    'pack2': word2(lambda a,b: (a,b)),
-    'unpack2': word12(lambda p: p),
+    # tuple, i.e. heterogeneous lists
+    '_prim_tuple_intuple': intuple,
+    '_prim_tuple_pack2':   word2(lambda a,b: (a,b)),
+    '_prim_tuple_unpack2': word12(lambda p: p),
 }
 
 
@@ -1991,6 +1990,9 @@ builtin_word_defs = {
 ##############################################################
 
 if __name__ == '__main__':
+    if list(sorted(builtin_word_sigs)) != list(sorted(builtin_word_defs)):
+        raise ValueError("Builtins are mismatched.")
+
     main()
 
 

@@ -3,6 +3,18 @@
 # basic words
 #
 
+dup  : a -- a a
+drop : a --
+id   : --
+swap : a b -- b a
+dip(f : *a -- *b) : *a c -- *b c
+
+dup    = _prim_dup
+drop   = _prim_drop
+id     = 0 drop
+swap   = _prim_swap
+dip(f) = _prim_dip(f)
+
 dup drop == id
 dup swap == dup
 swap swap == id
@@ -102,6 +114,14 @@ both?(f) = par?(f, f)
 # bool
 #
 
+true : Bool
+false : Bool
+if (f: *a -- *b, g : *a -- *b) : *a Bool -- *b
+
+true  = _prim_bool_true
+false = _prim_bool_false
+if(f,g) = _prim_bool_if(f,g)
+
 and : Bool Bool -- Bool
 and = if(id, drop false)
 
@@ -185,6 +205,15 @@ iff? (false, false) == true
 #
 # pack
 #
+
+inpack(f: *a -- *b) : Pack(*a) -- Pack(*b)
+inpack(f) = _prim_tuple_intuple(f)
+
+pack2 : a b -- Pack(a b)
+pack2 = _prim_tuple_pack2
+
+unpack2 : Pack(a b) -- a b
+unpack2 = _prim_tuple_unpack2
 
 pack0 : -- Pack()
 pack0 = 0 0 pack2 inpack(drop2)

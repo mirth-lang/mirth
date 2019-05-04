@@ -159,17 +159,17 @@ nint2 = both(nint)
 pint2 = both(pint)
 pnat2 = both(pnat)
 
-z+ = +
-z- = -
-z* = *
-z/ = pint /
-z% = pint % znat
+z+ = _prim_int_add
+z- = _prim_int_sub
+z* = _prim_int_mul
+z/ = pint _prim_int_div
+z% = pint _prim_int_mod znat
 
-zcmp? = cmp?(dup2 <)
-zcmp  = cmp (dup2 <)
-z<    = <
-z>    = swap <
-z=    = zcmp eq
+zcmp? = cmp?(dup2 z<)
+zcmp  = cmp (dup2 z<)
+z<    = _prim_int_lt
+z>    = swap z<
+z=    = _prim_int_eq
 z<=   = z> not
 z>=   = z< not
 z!=   = z= not

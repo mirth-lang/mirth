@@ -13,8 +13,8 @@ quad = trip dup
 
 square : Int -- Int
 sum-of-squares : Int Int -- Int
-sum-of-squares = dip(square) square +
-square = dup *
+sum-of-squares = dip(square) square _prim_int_add
+square = dup _prim_int_mul
 
 dup' : *a b -- *a b b
 dup' = dup

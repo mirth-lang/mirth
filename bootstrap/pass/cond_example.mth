@@ -1,18 +1,17 @@
 
 neg? : Int -- Int Bool
-neg? = dup 0 <
+neg? = dup 0 _prim_int_lt
 
 neg : Int -- Int
-neg = dip(0) -
+neg = dip(0) _prim_int_sub
 
-abs : Int -- Int
-abs = neg? if(neg, id)
+abs1 : Int -- Int
+abs1 = neg? if(neg, id)
 
-myabs : Int -- Int
-myabs = cond( neg? -> neg, id )
+abs2 : Int -- Int
+abs2 = cond( neg? -> neg, id )
 
-myabs == abs
-
+abs1 == abs2
 
 
 

@@ -56,30 +56,30 @@ data Char
   char : Int -- Char
 end
 
+Char.generate : Int -- Char
+Char.generate = int->char
+
 char->int : Char -- Int
 char->int = match ( char -> id )
 
 char->str : Char -- Str
-char->str = match ( char -> _prim_encode1 )
+char->str = match ( char -> _prim_str_from_codepoint )
 
 int->char : Int -- Char
 int->char = znat nint char
 
 str->char : Str -- Char
-str->char = dup _prim_strlen 0 z= if(
+str->char = dup _prim_str_len 0 z= if(
     drop 0 char,
-    1 _prim_strbrk drop _prim_decode1 char
+    1 _prim_str_break drop _prim_str_to_codepoint char
   )
 "" str->char == 0 int->char
-
-Char.generate : Int -- Char
-Char.generate = int->char
 
 char->int int->char == id
 char->str str->char == id
 
 char< : Char Char -- Bool
-char< = dip(char->int) char->int <
+char< = both(char->int) z<
 
 char> : Char Char -- Bool
 char> = swap char<
@@ -139,19 +139,19 @@ isalpha? drop == id
 #
 
 <> : Str Str -- Str
-<> = _prim_strcat
+<> = _prim_str_cat
 "" <> == id
 dip("") <> == id
 <> <> == dip(<>) <>
 dip(char->str) <> str->char == drop
 
 strBreakAt : Str Int -- Str Str
-strBreakAt = _prim_strbrk
+strBreakAt = _prim_str_break
 strBreakAt <> == drop
 
 strlen : Str -- Int
-strlen = _prim_strlen
-<> strlen == dip(strlen) strlen +
+strlen = _prim_str_len
+<> strlen == dip(strlen) strlen z+
 
 strlen? : Str -- Str Int
 strlen? = dup strlen
@@ -174,7 +174,7 @@ end
 strview : Str -- StrView
 strview = strnull? if(
     drop strnil,
-    1 strBreakAt dip(_prim_decode1 char) strcons
+    1 strBreakAt dip(_prim_str_to_codepoint char) strcons
   )
 
 "" strview == strnil
