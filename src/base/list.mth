@@ -22,6 +22,9 @@ export base/list
   lpure : t -- List(t)
   lbind (f: a -- List(b)) : List(a) -- List(b)
 
+  uncons : List(t) -- List(t) t   # panic on failure
+  unsnoc : List(t) -- t List(t)   # panic on failure
+
 end
 
 
@@ -48,4 +51,11 @@ break cat == drop
 
 map(id) == id
 lbind(id) == flatten
+
+uncons = nil? if("uncons on empty list" _prim_unsafe_panic,
+  len? n1- znat break 0 _prim_list_at)
+unsnoc = nil? if("unsnoc on empty list" _prim_unsafe_panic,
+  n1 break dip(0 _prim_list_at))
+
+
 

@@ -1,4 +1,14 @@
+import base/nat
+import base/list
+import base/str
 
 main : List(Str) -- Int
-main = drop 0
+main =
+  cond(
+    nil? -> "USAGE: mirth COMMAND" _prim_unsafe_trace drop 1,
+    unsnoc swap cond(
+      "mirth: Unknown command " swap <> _prim_unsafe_trace drop 1
+    )
+  )
+
 
