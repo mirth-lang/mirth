@@ -23,7 +23,7 @@ data Loc
   loc : Pos Pos -- Loc
 end
 
-Loc.generate = dip(Pos.generate) Pos.generate loc
+Loc.generate = both(Pos.generate) loc
 
 locRow = match( loc -> drop )
 locCol = match( loc -> nip  )

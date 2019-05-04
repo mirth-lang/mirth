@@ -57,7 +57,7 @@ cat =
   cond(
     nil? -> drop,
     dip?(nil?) -> dip(drop),
-    len? dip2?(len?) n+ _cat
+    both?(len?) n+ _cat
   )
 
 ++ : List(t) List(t) -- List(t)

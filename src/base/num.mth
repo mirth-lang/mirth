@@ -155,9 +155,9 @@ pnat = match(_pos -> id)
 nint2 : Nat Nat -- Int Int
 pint2 : Pos Pos -- Int Int
 pnat2 : Pos Pos -- Nat Nat
-nint2 = dip(nint) nint
-pint2 = dip(pint) pint
-pnat2 = dip(pnat) pnat
+nint2 = both(nint)
+pint2 = both(pint)
+pnat2 = both(pnat)
 
 z+ = +
 z- = -
@@ -226,7 +226,7 @@ n2* = n2 n*
 n2/ = p2 n/
 n2% = p2 n%
 
-nsplit = dup dip(n2/) n2% over dip(n+)
+nsplit = dup par(n2/, n2%) over dip(n+)
 
 
 p+ = pnat2 n+ _pos

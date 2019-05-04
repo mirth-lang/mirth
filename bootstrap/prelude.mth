@@ -28,8 +28,11 @@ rotr rotl == id
 rotl rotl == rotr
 rotr rotr == rotl
 
-hide(f : *a b -- *c d) : *a x b -- *c x d
-hide(f) = swap dip(f) swap
+par(f : *a -- *b, g : c -- d) : *a c -- *b d
+par(f,g) = dip(f) g
+
+both(f : a -- b) : a a -- b b
+both(f) = par(f,f)
 
 
 #
@@ -57,8 +60,6 @@ nip2  = dip2(drop2)
 tuck2 = dup2 dip2(swap2)
 over2 = dip2(dup2) swap2
 
-hide2(f : *a b1 b2 -- *c d1 d2) : *a x1 x2 b1 b2 -- *c x1 x2 d1 d2
-hide2(f) = swap2 dip2(f) swap2
 
 #
 # words over triples
@@ -91,8 +92,11 @@ dip2?(f) = dip?(dip?(f))
 dip3?(f : *a -- *a p) : *a b1 b2 b3 -- *a b1 b2 b3 p
 dip3?(f) = dip2?(dip?(f))
 
-hide?(f : *a b -- *a b p) : *a x b -- *a x b p
-hide?(f) = swap dip?(f) dip(swap)
+par?(f : *a -- *a p1, g : b -- b p2) : *a b -- *a b p1 p2
+par?(f, g) = dip?(f) dip?(g)
+
+both?(f : a -- a p) : a a -- a a p p
+both?(f) = par?(f, f)
 
 #
 # bool
