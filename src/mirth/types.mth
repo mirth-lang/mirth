@@ -1,0 +1,66 @@
+#
+# Identifiers for packages and modules, including anonymous ones
+# for testing or code generation.
+#
+
+import base/path
+import base/nat
+import base/str
+
+export mirth/types/pkg
+  type Path
+  type Nat
+  type Pkg
+
+  Pkg.generate : Int -- Pkg
+
+  anonPkg : Nat  -- Pkg
+  pathPkg : Path -- Pkg
+
+  pkg->str  : Pkg -- Str
+  pkg->path : Pkg -- Path
+end
+
+export mirth/types/mod
+  type Path
+  type Nat
+  type Pkg
+  type Mod
+
+  Mod.generate : Int -- Mod
+
+  anonMod : Nat  -- Mod
+  pathMod : Path -- Mod
+  pkgMod  : Pkg Path -- Mod
+
+  mod->str  : Mod -- Str
+  mod->path : Mod -- Path
+end
+
+data Pkg
+  anonPkg : Nat -- Pkg
+  pathPkg : Path -- Pkg
+end
+
+Pkg.generate = Nat.generate anonPkg
+pkg->str = match(
+  anonPkg -> dip("?pkg") nat->str <>,
+  pathPkg -> path->str
+)
+pkg->path = pkg->str str->path
+pathPkg pkg->path == id
+
+data Mod
+  anonMod : Nat      -- Mod
+  pathMod : Path     -- Mod
+  pkgMod  : Pkg Path -- Mod
+end
+
+Mod.generate = Nat.generate anonMod
+mod->str = match(
+  anonMod -> dip("?mod") nat->str <>,
+  pathMod -> path->str,
+  pkgMod  -> dip(pkg->path) </> path->str
+)
+mod->path = mod->str str->path
+

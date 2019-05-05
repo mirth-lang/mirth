@@ -17,8 +17,13 @@ export base/regex+
   lit  : Str -- Regex
   cls  : Str -- Regex
   seq2 : Regex Regex -- Regex
+  seq3 : Regex Regex Regex -- Regex
+  seq4 : Regex Regex Regex Regex -- Regex
   alt2 : Regex Regex -- Regex
+  alt3 : Regex Regex Regex -- Regex
+  alt4 : Regex Regex Regex Regex -- Regex
   star : Regex -- Regex
+  plus : Regex -- Regex
   regexMatch : Str Regex -- Maybe(Nat)
 end
 
@@ -30,6 +35,14 @@ data Regex
   alt2 : Regex Regex -- Regex
   star : Regex -- Regex
 end
+
+plus : Regex -- Regex
+plus = dup star seq2
+
+seq3 = seq2 seq2
+seq4 = seq3 seq2
+alt3 = alt2 alt2
+alt4 = alt3 alt2
 
 fail? : Regex -- Regex Bool
 fail? =

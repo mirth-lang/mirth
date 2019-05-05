@@ -1,5 +1,8 @@
 
+import base/order
+
 export base/maybe
+  type Comp
   type Maybe(t)
   none : Maybe(t)
   some : t -- Maybe(t)
@@ -7,6 +10,7 @@ export base/maybe
   mmap  (f: a -- b) : Maybe(a) -- Maybe(b)
   mfor  (f: *a t -- *a) : *a Maybe(t) -- *a
   mthen (f: a -- Maybe(b)) : Maybe(a) -- Maybe(b)
+  mcmp  (f: a a -- Comp) : Maybe(a) Maybe(a) -- Comp
 end
 
 data Maybe(t)
@@ -18,4 +22,20 @@ melim(f,g) = match(none -> f, some -> g)
 mmap(f)    = melim(none, f some)
 mfor(f)    = melim(id, f)
 mthen(f)   = melim(none, f)
+
+mcmp(f) =
+  match(
+    none ->
+      match(
+        none -> EQ,
+        some -> drop GT
+      ),
+    some ->
+      swap match(
+        none -> drop LT,
+        some -> swap f
+      )
+  )
+
+
 

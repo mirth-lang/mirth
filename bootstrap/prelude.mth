@@ -104,6 +104,13 @@ dip2?(f) = dip?(dip?(f))
 dip3?(f : *a -- *a p) : *a b1 b2 b3 -- *a b1 b2 b3 p
 dip3?(f) = dip2?(dip?(f))
 
+#
+# misc
+#
+
+$(f: *a -- *b) : *a -- *b
+$(f) = f
+
 
 #
 # bool

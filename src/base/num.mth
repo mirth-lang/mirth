@@ -1,10 +1,14 @@
 
 import base/order
+import base/char
+import base/str
 
 export base/int
   type Comp
   type Nat
   type Pos
+
+  int->str : Int -- Str
 
   znat  : Int -- Nat
   zpos  : Int -- Pos
@@ -16,6 +20,7 @@ export base/int
   z*    : Int Int -- Int
   z/    : Int Pos -- Int
   z%    : Int Pos -- Nat
+  z/%   : Int Pos -- Int Nat
 
   zcmp  : Int Int -- Comp
   zcmp? : Int Int -- Int Int Comp
@@ -52,6 +57,8 @@ export base/nat
 
   Nat.generate : Int -- Nat
 
+  nat->str : Nat -- Str
+
   nint  : Nat -- Int
   npos  : Nat -- Pos
   znat  : Int -- Nat
@@ -62,6 +69,7 @@ export base/nat
   n*    : Nat Nat -- Nat
   n/    : Nat Pos -- Nat
   n%    : Nat Pos -- Nat
+  n/%   : Nat Pos -- Nat Nat
 
   ncmp  : Nat Nat -- Comp
   ncmp? : Nat Nat -- Nat Nat Comp
@@ -96,6 +104,8 @@ export base/pos
   type Nat
   type Pos
 
+  pos->str : Pos -- Str
+
   Pos.generate : Int -- Pos
 
   pint  : Pos -- Int
@@ -108,6 +118,7 @@ export base/pos
   p*    : Pos Pos -- Pos
   p/    : Pos Pos -- Nat
   p%    : Pos Pos -- Nat
+  p/%   : Pos Pos -- Nat Nat
 
   pcmp  : Pos Pos -- Comp
   pcmp? : Pos Pos -- Pos Pos Comp
@@ -164,6 +175,7 @@ z- = _prim_int_sub
 z* = _prim_int_mul
 z/ = pint _prim_int_div
 z% = pint _prim_int_mod znat
+z/% = dup2 dip2(z/) z%
 
 zcmp? = cmp?(dup2 z<)
 zcmp  = cmp (dup2 z<)
@@ -199,6 +211,7 @@ n- = nint2 z-
 n* = nint2 z* _nat
 n/ = dip(nint) z/ _nat
 n% = dip(nint) z%
+n/% = dup2 dip2(n/) n%
 
 ncmp  = nint2 zcmp
 ncmp? = dup2 ncmp
@@ -234,6 +247,7 @@ p- = pint2 z-
 p* = pnat2 n* _pos
 p/ = dip(pnat) n/
 p% = dip(pnat) n%
+p/% = dup2 dip2(p/) p%
 
 pcmp  = pnat2 ncmp
 pcmp? = dup2 pcmp
@@ -259,5 +273,15 @@ p2/ = p2 p/
 p2% = p2 p%
 
 psplit = pnat nsplit dip(_pos)
+
+digit->str : Nat -- Str
+digit->str = nint "0" str->char char->int z+ int->char char->str
+
+int->str = zneg? if(zabs nat->str dip("-") <>, znat nat->str)
+pos->str = pnat nat->str
+
+nat->str' : Nat -- Str
+nat->str' = n0? if(drop "", 10 zpos n/% dip(nat->str') digit->str <>)
+nat->str  = n0? if(drop "0", nat->str')
 
 

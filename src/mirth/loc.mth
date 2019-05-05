@@ -3,15 +3,20 @@ import base/nat
 import base/pos
 import base/char
 import base/str
+
+import mirth/types/mod
 export mirth/loc
   type Loc
   type Pos
+  type Mod
   type Char
-  Loc.generate : Int Int -- Loc
-  loc          : Pos Pos -- Loc
+  Loc.generate : Int Int Int -- Loc
+  loc          : Mod Pos Pos -- Loc
+  loc->str     : Loc -- Str
+  locMod       : Loc -- Mod
   locRow       : Loc -- Pos
   locCol       : Loc -- Pos
-  locStart     : Loc
+  locStart     : Mod -- Loc
   locNextRow   : Loc -- Loc
   locNextTab   : Loc -- Loc
   locNextCol   : Loc -- Loc
@@ -20,19 +25,28 @@ export mirth/loc
 end
 
 data Loc
-  loc : Pos Pos -- Loc
+  loc : Mod Pos Pos -- Loc
 end
 
-Loc.generate = both(Pos.generate) loc
+Loc.generate = dip2(Mod.generate) both(Pos.generate) loc
 
-locRow = match( loc -> drop )
-locCol = match( loc -> nip  )
+unloc : Loc -- Mod Pos Pos
+unloc = match( loc -> id )
+
+reloc(f : Mod Pos Pos -- Mod Pos Pos) : Loc -- Loc
+reloc(f) = unloc f loc
+
+loc->str = unloc dip2(mod->str) both(pos->str) dip(both(":" <>)) <> <>
+
+locMod = unloc drop2
+locRow = unloc drop nip
+locCol = unloc dip(drop2)
 
 locStart = p1 p1 loc
 
-locNextRow = match( loc -> drop p1+ p1 loc )
-locNextTab = match( loc -> p1- 8 znat over 8 zpos n% n- znat n+ n1+ loc )
-locNextCol = match( loc -> p1+ loc )
+locNextRow = reloc( drop p1+ p1 )
+locNextTab = reloc( p1- 8 znat over 8 zpos n% n- znat n+ n1+ )
+locNextCol = reloc( p1+ )
 
 p1 p1      loc locNextRow == p2 p1      loc
 p1 10 zpos loc locNextRow == p2 p1      loc

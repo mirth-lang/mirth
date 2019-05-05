@@ -1,7 +1,11 @@
 
 import base/nat
 import base/char
+import base/list
 import base/str
+import base/regex+
+import base/maybe
+import mirth/types/mod
 import mirth/loc
 import mirth/token
 
@@ -44,4 +48,66 @@ breakComment = strbreakWhen ('\n' chareq? nip)
 
 isInt? : Str -- Str Bool
 isInt? = or? (isDecInt?, isHexInt?)
+
+
+data LexerRule
+  lexerRule(f: Str -- Token) : Regex -- LexerRule
+end
+
+readDecInt : Str -- Int
+readHexInt : Str -- Int
+readStr    : Str -- Str
+wordToken  : Str -- Token  # basically TWORD but separates out reserved words.
+
+lexerRules : List(LexerRule)
+lexerRules = $(
+  nil
+
+  # ints
+  "0123456789" cls plus lexerRule(readDecInt TINT) cons
+  "0" lit "xX" cls "0123456789abcdefABCDEF" cls plus seq3 lexerRule(readHexInt TINT) cons
+
+  # strings
+  # TODO
+
+  # words -- we use wordToken to disambiguate between reserved words and regular words.
+  # TODO
+)
+
+data LexerMatch
+  lexerMatch(f: Str -- Token) : Maybe(Nat) -- LexerMatch
+end
+
+lexerMatchUnwrap : LexerMatch -- Maybe(Nat)
+lexerMatchUnwrap = match( lexerMatch(f) -> id )
+
+lexerMatchCmp? : LexerMatch LexerMatch -- LexerMatch LexerMatch Comp
+lexerMatchCmp? = dup2 both(lexerMatchUnwrap) mcmp(ncmp)
+
+bestLexerMatch : Str -- LexerMatch
+bestLexerMatch =
+  lexerRules formap(
+    match( lexerRule(f) ->
+      dip(dup) regexMatch lexerMatch(f)
+    )
+  ) nip maximum(lexerMatchCmp?)
+
+data LexerError
+  lexerError : Loc Str -- LexerError
+end
+
+unLexerError : LexerError -- Loc Str
+unLexerError = match( lexerError -> id )
+
+lexerError->str : LexerError -- Str
+lexerError->str = unLexerError dip(loc->str ":" <>) <>
+
+data LexerState
+  lexerState : Loc Str -- LexerState
+end
+
+unLexerState : LexerState -- Loc Str
+unLexerState = match( lexerState -> id )
+
+
 
