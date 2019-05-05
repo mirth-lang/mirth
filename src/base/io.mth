@@ -20,6 +20,11 @@ export base/io
   then3 (f: a b c   -- IO(e)) : IO(a) IO(b) IO(c)       -- IO(e)
   then4 (f: a b c d -- IO(e)) : IO(a) IO(b) IO(c) IO(d) -- IO(e)
 
+  >>    (f:          IO(d)) : IO(a)             -- IO(d)
+  >>=   (f: a     -- IO(d)) : IO(a)             -- IO(d)
+  >>==  (f: a b   -- IO(d)) : IO(a) IO(b)       -- IO(d)
+  >>=== (f: a b c -- IO(d)) : IO(a) IO(b) IO(c) -- IO(d)
+
   trace : Str -- IO(Unit)
   print : Str -- IO(Unit)
 end
@@ -58,4 +63,8 @@ print = pure iomap(_prim_unsafe_print unit)
 unsafe_runIO = match(mkIO(f) -> f)
 
 
+>>    (f) = then_ (f)
+>>=   (f) = then  (f)
+>>==  (f) = then2 (f)
+>>=== (f) = then3 (f)
 
