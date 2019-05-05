@@ -104,11 +104,6 @@ dip2?(f) = dip?(dip?(f))
 dip3?(f : *a -- *a p) : *a b1 b2 b3 -- *a b1 b2 b3 p
 dip3?(f) = dip2?(dip?(f))
 
-par?(f : *a -- *a p1, g : b -- b p2) : *a b -- *a b p1 p2
-par?(f, g) = dip?(f) dip?(g)
-
-both?(f : a -- a p) : a a -- a a p p
-both?(f) = par?(f, f)
 
 #
 # bool
