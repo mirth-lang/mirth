@@ -901,10 +901,10 @@ class tcon:
     def unify_tvar(self, other_name, sub):
         return tvar(other_name).unify_tcon(self.name, self.args, sub)
 
-    def unify_tpack(self, other_rest, other_args, sub):
-        if other_args == [] and other_rest is not None:
+    def unify_tpack(self, other_rest, other_args, other_tags, sub):
+        if other_args == [] and len(other_tags) == 0 and other_rest is not None:
             return other_rest.unify(self, sub)
-        raise TypeError("Failed to unify %s and %s" % (self, tpack(other_rest, other_args)))
+        raise TypeError("Failed to unify %s and %s" % (self, tpack(other_rest, other_args, other_tags)))
 
 class tvar:
     def __init__(self, name):
@@ -989,10 +989,10 @@ class tvar:
             sub[self.name] = newself
             return newself
 
-    def unify_tpack(self, other_rest, other_args, sub):
+    def unify_tpack(self, other_rest, other_args, other_tags, sub):
         if self.name in sub:
             return sub[self.name].unify_tpack(other_rest, other_args, sub)
-        elif other_args == [] and other_rest is not None:
+        elif other_args == [] and len(other_tags) == 0 and other_rest is not None:
             return self.unify(other_rest, sub)
         else:
             newself = tpack(other_rest, other_args).subst(sub)
@@ -1016,21 +1016,31 @@ class tpack:
     tpack(tvar('z'), [tcon('Int'), tcon('Str')])
     >>> tpack(tvar('x'), [tvar('y')]).unify(tpack(tvar('y'), [tcon('Int', []), tcon('Str', [])]), {})
     tpack(tcon('Str'), [tcon('Int'), tcon('Str')])
+    >>> tpack(tvar('x'), [tvar('y')], {'+IO'})
+    tpack(tvar('x'), [tvar('y')], {'+IO'})
+    >>> tpack(tvar('x'), [tvar('y')], {'+IO'}).unify(tpack(tvar('x'), [tvar('y')], {'+Exit'}), {})
+    tpack(tvar('x'), [tvar('y')], {'+Exit', '+IO'})
     """
-    def __init__ (self, rest=None, args=()):
+    def __init__ (self, rest=None, args=(), tags=()):
         self.rest = rest
         self.args = list(args)
+        self.tags = set(tags)
         while isinstance(self.rest, tpack):
             self.args = self.rest.args + self.args
+            self.tags = self.rest.tags | self.tags
             self.rest = self.rest.rest
 
     def __repr__ (self):
-        if self.rest is None and self.args == []:
+        if self.rest is None and len(self.args) == 0 and len(self.tags) == 0:
             return 'tpack()'
-        elif self.args == []:
+        elif len(self.args) == 0 and len(self.tags) == 0:
             return 'tpack(%r)' % self.rest
-        else:
+        elif len(self.tags) == 0:
             return 'tpack(%r, %r)' % (self.rest, self.args)
+        else:
+            return 'tpack(%r, %r, {%s})' % (
+                self.rest, self.args,
+                ', '.join(sorted(repr(t) for t in self.tags)))
 
     def __str__ (self):
         if self.rest is None:
@@ -1063,32 +1073,34 @@ class tpack:
         if self.rest is None:
             return tpack(None, [a.subst(sub) for a in self.args])
         else:
-            return tpack(self.rest.subst(sub), [a.subst(sub) for a in self.args])
+            return tpack(self.rest.subst(sub), [a.subst(sub) for a in self.args], self.tags)
 
     def unify(self, other, sub):
-        return other.unify_tpack(self.rest, self.args, sub)
+        return other.unify_tpack(self.rest, self.args, self.tags, sub)
 
     def unify_tcon(self, other_name, other_args, sub):
-        if self.args == [] and self.rest is not None:
+        if len(self.args) == 0 and len(self.tags) == 0 and self.rest is not None:
             return self.rest.unify_tcon(other_name, other_args, sub)
         raise TypeError("Failed to unify %s and %s." % (self, tcon(other_name, other_args)))
 
     def unify_tvar(self, other_name, sub):
-        return tvar(other_name).unify_tpack(self.rest, self.args, sub)
+        return tvar(other_name).unify_tpack(self.rest, self.args, self.tags, sub)
 
-    def unify_tpack(self, other_rest, other_args, sub):
+    def unify_tpack(self, other_rest, other_args, other_tags, sub):
         if len(self.args) < len(other_args):
-            return tpack(other_rest, other_args).unify_tpack(self.rest, self.args, sub)
+            return tpack(other_rest, other_args, other_tags
+                    ).unify_tpack(self.rest, self.args, self.tags, sub)
         elif len(self.args) > len(other_args):
             if other_rest is None:
-                raise TypeError("Failed to unify %s and %s" % (self, tpack(other_rest, other_args)))
+                raise TypeError("Failed to unify %s and %s" %
+                    (self, tpack(other_rest, other_args, other_tags)))
             n = len(self.args) - len(other_args)
             (largs, rargs) = (self.args[:n], self.args[n:])
-            newrest = other_rest.unify_tpack(self.rest, largs, sub)
+            newrest = other_rest.unify_tpack(self.rest, largs, other_tags, sub)
             newargs = []
             for (rarg, oarg) in zip(rargs, other_args):
                 newargs.append(rarg.unify(oarg, sub))
-            return tpack(newrest, newargs).subst(sub)
+            return tpack(newrest, newargs, other_tags | self.tags).subst(sub)
         else:
             npack = tpack()
             srest = self.rest if self.rest else npack
@@ -1097,7 +1109,7 @@ class tpack:
             newargs = []
             for (rarg, oarg) in zip(self.args, other_args):
                 newargs.append(rarg.unify(oarg, sub))
-            return tpack(newrest, newargs).subst(sub)
+            return tpack(newrest, newargs, other_tags | self.tags).subst(sub)
 
 
 var_counter = 0
