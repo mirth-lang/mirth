@@ -72,7 +72,7 @@ def interpret(path, args, with_prelude=True):
 
         if 'main' in m.word_defs:
             (ps,dom,cod) = m.word_sigs['main']
-            if ps != [] or dom != tpack(None, tlist(tstr)) or cod != tpack(None, tint):
+            if ps != [] or dom != tpack(None, [tlist(tstr)]) or cod != tpack(None, [tint]):
                 raise TypeError("%s: Unexpected type signature for main. Should be\n  main : List(Str) -- Int" % path)
             e = env()
             e.push(args)
@@ -276,7 +276,7 @@ def run_package(pkg, args, with_prelude=True):
         m = mods[mainpath]
         if 'main' in m.word_defs:
             (ps,dom,cod) = m.word_sigs['main']
-            if ps != [] or dom != tpack(None, tlist(tstr)) or cod != tpack(None, tint):
+            if ps != [] or dom != tpack(None, [tlist(tstr)]) or cod != tpack(None, [tint]):
                 error(mainpath, None, "Unexpected type signature for main. Should be\n  main : List(Str) -- Int")
             e = env()
             e.push(args)
@@ -904,7 +904,7 @@ class tcon:
     def unify_tpack(self, other_rest, other_args, sub):
         if other_args == [] and other_rest is not None:
             return other_rest.unify(self, sub)
-        raise TypeError("Failed to unify %s and %s" % (self, tpack(other_rest, *other_args)))
+        raise TypeError("Failed to unify %s and %s" % (self, tpack(other_rest, other_args)))
 
 class tvar:
     def __init__(self, name):
@@ -995,7 +995,7 @@ class tvar:
         elif other_args == [] and other_rest is not None:
             return self.unify(other_rest, sub)
         else:
-            newself = tpack(other_rest, *other_args).subst(sub)
+            newself = tpack(other_rest, other_args).subst(sub)
             if newself.has_var(self.name):
                 raise TypeError("Failed to unify %s and %s." % (self.name, newself))
             var_sub = { self.name: newself }
@@ -1008,27 +1008,29 @@ class tpack:
     """
     >>> tpack()
     tpack()
-    >>> tpack(None, tvar('x'))
-    tpack(None, tvar('x'))
-    >>> tpack(tvar('x'), tvar('y'))
-    tpack(tvar('x'), tvar('y'))
-    >>> tpack(tvar('x'), tvar('y')).unify(tpack(tvar('z'), tcon('Int', []), tcon('Str', [])), {})
-    tpack(tvar('z'), tcon('Int'), tcon('Str'))
-    >>> tpack(tvar('x'), tvar('y')).unify(tpack(tvar('y'), tcon('Int', []), tcon('Str', [])), {})
-    tpack(tcon('Str'), tcon('Int'), tcon('Str'))
+    >>> tpack(None, [tvar('x')])
+    tpack(None, [tvar('x')])
+    >>> tpack(tvar('x'), [tvar('y')])
+    tpack(tvar('x'), [tvar('y')])
+    >>> tpack(tvar('x'), [tvar('y')]).unify(tpack(tvar('z'), [tcon('Int', []), tcon('Str', [])]), {})
+    tpack(tvar('z'), [tcon('Int'), tcon('Str')])
+    >>> tpack(tvar('x'), [tvar('y')]).unify(tpack(tvar('y'), [tcon('Int', []), tcon('Str', [])]), {})
+    tpack(tcon('Str'), [tcon('Int'), tcon('Str')])
     """
-    def __init__ (self, rest=None, *args):
-        while isinstance(rest, tpack):
-            args = rest.args + list(args)
-            rest = rest.rest
+    def __init__ (self, rest=None, args=()):
         self.rest = rest
         self.args = list(args)
+        while isinstance(self.rest, tpack):
+            self.args = self.rest.args + self.args
+            self.rest = self.rest.rest
 
     def __repr__ (self):
         if self.rest is None and self.args == []:
             return 'tpack()'
+        elif self.args == []:
+            return 'tpack(%r)' % self.rest
         else:
-            return 'tpack(%r, %s)' % (self.rest, ', '.join(repr(a) for a in self.args))
+            return 'tpack(%r, %r)' % (self.rest, self.args)
 
     def __str__ (self):
         if self.rest is None:
@@ -1041,15 +1043,15 @@ class tpack:
 
     def rigidify(self):
         if self.rest is None:
-            return tpack(None, *[a.rigidify() for a in self.args])
+            return tpack(None, [a.rigidify() for a in self.args])
         else:
-            return tpack(self.rest.rigidify(), *[a.rigidify() for a in self.args])
+            return tpack(self.rest.rigidify(), [a.rigidify() for a in self.args])
 
     def freshen(self, prefix):
         if self.rest is None:
-            return tpack(None, *[a.freshen(prefix) for a in self.args])
+            return tpack(None, [a.freshen(prefix) for a in self.args])
         else:
-            return tpack(self.rest.freshen(prefix), *[a.freshen(prefix) for a in self.args])
+            return tpack(self.rest.freshen(prefix), [a.freshen(prefix) for a in self.args])
 
     def has_var(self, name):
         if self.rest is None:
@@ -1059,9 +1061,9 @@ class tpack:
 
     def subst(self, sub):
         if self.rest is None:
-            return tpack(None, *[a.subst(sub) for a in self.args])
+            return tpack(None, [a.subst(sub) for a in self.args])
         else:
-            return tpack(self.rest.subst(sub), *[a.subst(sub) for a in self.args])
+            return tpack(self.rest.subst(sub), [a.subst(sub) for a in self.args])
 
     def unify(self, other, sub):
         return other.unify_tpack(self.rest, self.args, sub)
@@ -1076,17 +1078,17 @@ class tpack:
 
     def unify_tpack(self, other_rest, other_args, sub):
         if len(self.args) < len(other_args):
-            return tpack(other_rest, *other_args).unify_tpack(self.rest, self.args, sub)
+            return tpack(other_rest, other_args).unify_tpack(self.rest, self.args, sub)
         elif len(self.args) > len(other_args):
             if other_rest is None:
-                raise TypeError("Failed to unify %s and %s" % (self, tpack(other_rest, *other_args)))
+                raise TypeError("Failed to unify %s and %s" % (self, tpack(other_rest, other_args)))
             n = len(self.args) - len(other_args)
             (largs, rargs) = (self.args[:n], self.args[n:])
             newrest = other_rest.unify_tpack(self.rest, largs, sub)
             newargs = []
             for (rarg, oarg) in zip(rargs, other_args):
                 newargs.append(rarg.unify(oarg, sub))
-            return tpack(newrest, *newargs).subst(sub)
+            return tpack(newrest, newargs).subst(sub)
         else:
             npack = tpack()
             srest = self.rest if self.rest else npack
@@ -1095,7 +1097,7 @@ class tpack:
             newargs = []
             for (rarg, oarg) in zip(self.args, other_args):
                 newargs.append(rarg.unify(oarg, sub))
-            return tpack(newrest, *newargs).subst(sub)
+            return tpack(newrest, newargs).subst(sub)
 
 
 var_counter = 0
@@ -1439,7 +1441,7 @@ class type_elaborator:
         self.args = []
 
     def to_tpack(self):
-        return tpack(self.rest, *self.args)
+        return tpack(self.rest, self.args)
 
     def elab_push_int(self, value):
         raise TypeError("Expected a type but got an int.")
@@ -1480,11 +1482,11 @@ class word_elaborator:
         self.sub = {}
 
     def elab_push_int(self, value):
-        self.dom = tpack(self.dom, tcon('Int', []))
+        self.dom = tpack(self.dom, [tcon('Int', [])])
         return lambda p, *args: p.push(value)
 
     def elab_push_str(self, value):
-        self.dom = tpack(self.dom, tcon('Str', []))
+        self.dom = tpack(self.dom, [tcon('Str', [])])
         return lambda p, *args: p.push(value)
 
     def elab_word(self, name, args):
@@ -1521,8 +1523,8 @@ class word_elaborator:
 
         if dom.rest is None and cod.rest is None:
             ovar = fresh_var()
-            dom = tpack(ovar, *dom.args)
-            cod = tpack(ovar, *cod.args)
+            dom = tpack(ovar, dom.args)
+            cod = tpack(ovar, cod.args)
 
         prefix = fresh_var().name + '.'
         self.dom.unify(dom.freshen(prefix), self.sub)
@@ -1730,8 +1732,8 @@ def match (elab, args):
 
         prefix = fresh_var()
         pvar   = fresh_var()
-        cdomt = tpack(pvar, *cdomt.args).freshen(prefix.name)
-        ccodt = tpack(pvar, *ccodt.args).freshen(prefix.name)
+        cdomt = tpack(pvar, cdomt.args).freshen(prefix.name)
+        ccodt = tpack(pvar, ccodt.args).freshen(prefix.name)
         ccodt = ccodt.unify(elab.dom, elab.sub)
         cdomt = cdomt.subst(elab.sub)
         cloc = elab.loc.copy()
@@ -1802,11 +1804,11 @@ def lam (elab, args):
 
     trest = fresh_var()
     targs = [fresh_var() for name in names]
-    elab.dom = tpack(trest, *targs).unify(elab.dom, elab.sub)
+    elab.dom = tpack(trest, targs).unify(elab.dom, elab.sub)
 
     floc = elab.loc.copy()
     for (name, (i, targ)) in zip(names, enumerate(targs)):
-        floc[name] = (i + len(elab.loc), tpack(None), tpack(None, targ.subst(elab.sub)))
+        floc[name] = (i + len(elab.loc), tpack(None), tpack(None, [targ.subst(elab.sub)]))
     felab = word_elaborator(elab.mod, trest.subst(elab.sub), floc)
     felab.sub = elab.sub
     f = rhs.elab(felab)
@@ -1846,7 +1848,7 @@ def cond (elab, args):
         raise SyntaxError("Expected at least one argument to cond.")
     rules = []
     odom = elab.dom
-    lcod = tpack(odom, tbool)
+    lcod = tpack(odom, [tbool])
     rcod = tpack(fresh_var())
 
     for arg in args[:-1]:
@@ -2021,70 +2023,70 @@ def unsafe_append(e):
 
 builtin_word_sigs = {
     # basic
-    '_prim_dup':  ([], tpack(None, tvar('b')), tpack(None, tvar('b'), tvar('b'))),
-    '_prim_drop': ([], tpack(None, tvar('b')), tpack(None)),
-    '_prim_swap': ([], tpack(None, tvar('b'), tvar('c')), tpack(None, tvar('c'), tvar('b'))),
+    '_prim_dup':  ([], tpack(None, [tvar('b')]), tpack(None, [tvar('b'), tvar('b')])),
+    '_prim_drop': ([], tpack(None, [tvar('b')]), tpack(None)),
+    '_prim_swap': ([], tpack(None, [tvar('b'), tvar('c')]), tpack(None, [tvar('c'), tvar('b')])),
     '_prim_dip':  ([(tpack(tvar('a')), tpack(tvar('b')))],
-            tpack(tvar('a'), tvar('c')),
-            tpack(tvar('b'), tvar('c'))),
+            tpack(tvar('a'), [tvar('c')]),
+            tpack(tvar('b'), [tvar('c')])),
 
     # bool
-    '_prim_bool_true':  ([], tpack(), tpack(None, tbool)),
-    '_prim_bool_false': ([], tpack(), tpack(None, tbool)),
+    '_prim_bool_true':  ([], tpack(), tpack(None, [tbool])),
+    '_prim_bool_false': ([], tpack(), tpack(None, [tbool])),
     '_prim_bool_if': ([(tpack(tvar('a')), tpack(tvar('b')))
            ,(tpack(tvar('a')), tpack(tvar('b')))],
-           tpack(tvar('a'), tbool), tpack(tvar('b'))),
+           tpack(tvar('a'), [tbool]), tpack(tvar('b'))),
 
     # int
-    '_prim_int_add': ([], tpack(None, tint, tint), tpack(None, tint)),
-    '_prim_int_sub': ([], tpack(None, tint, tint), tpack(None, tint)),
-    '_prim_int_mul': ([], tpack(None, tint, tint), tpack(None, tint)),
-    '_prim_int_div': ([], tpack(None, tint, tint), tpack(None, tint)),
-    '_prim_int_mod': ([], tpack(None, tint, tint), tpack(None, tint)),
-    '_prim_int_lt': ([], tpack(None, tint, tint), tpack(None, tbool)),
-    '_prim_int_eq': ([], tpack(None, tint, tint), tpack(None, tbool)),
+    '_prim_int_add': ([], tpack(None, [tint, tint]), tpack(None, [tint])),
+    '_prim_int_sub': ([], tpack(None, [tint, tint]), tpack(None, [tint])),
+    '_prim_int_mul': ([], tpack(None, [tint, tint]), tpack(None, [tint])),
+    '_prim_int_div': ([], tpack(None, [tint, tint]), tpack(None, [tint])),
+    '_prim_int_mod': ([], tpack(None, [tint, tint]), tpack(None, [tint])),
+    '_prim_int_lt': ([], tpack(None, [tint, tint]), tpack(None, [tbool])),
+    '_prim_int_eq': ([], tpack(None, [tint, tint]), tpack(None, [tbool])),
 
     # str
-    '_prim_str_cat': ([], tpack(None, tstr, tstr), tpack(None, tstr)),
-    '_prim_str_break': ([], tpack(None, tstr, tint), tpack(None, tstr, tstr)),
-    '_prim_str_len': ([], tpack(None, tstr), tpack(None, tint)),
-    '_prim_str_to_codepoint': ([], tpack(None, tstr), tpack(None, tint)),
-    '_prim_str_from_codepoint': ([], tpack(None, tint), tpack(None, tstr)),
+    '_prim_str_cat': ([], tpack(None, [tstr, tstr]), tpack(None, [tstr])),
+    '_prim_str_break': ([], tpack(None, [tstr, tint]), tpack(None, [tstr, tstr])),
+    '_prim_str_len': ([], tpack(None, [tstr]), tpack(None, [tint])),
+    '_prim_str_to_codepoint': ([], tpack(None, [tstr]), tpack(None, [tint])),
+    '_prim_str_from_codepoint': ([], tpack(None, [tint]), tpack(None, [tstr])),
 
     # tuple
     '_prim_tuple_intuple': ([(tpack(tvar('a')), tpack(tvar('b')))],
-                            tpack(None, tpack(tvar('a'))),
-                            tpack(None, tpack(tvar('b')))),
-    '_prim_tuple_pack2'  : ([], tpack(None, tvar('a'), tvar('b')),
-                            tpack(None, tpack(None, tvar('a'), tvar('b')))),
-    '_prim_tuple_unpack2': ([], tpack(None, tpack(None, tvar('a'), tvar('b'))),
-                            tpack(None, tvar('a'), tvar('b'))),
+                            tpack(None, [tpack(tvar('a'))]),
+                            tpack(None, [tpack(tvar('b'))])),
+    '_prim_tuple_pack2'  : ([], tpack(None, [tvar('a'), tvar('b')]),
+                            tpack(None, [tpack(None, [tvar('a'), tvar('b')])])),
+    '_prim_tuple_unpack2': ([], tpack(None, [tpack(None, [tvar('a'), tvar('b')])]),
+                            tpack(None, [tvar('a'), tvar('b')])),
 
     # list
-    '_prim_list_nil': ([], tpack(None), tpack(None, tlist(tvar('a')))),
-    '_prim_list_cons': ([], tpack(None, tlist(tvar('a')), tvar('a')), tpack(None, tlist(tvar('a')))),
-    '_prim_list_cat': ([], tpack(None, tlist(tvar('a')), tlist(tvar('a'))), tpack(None, tlist(tvar('a')))),
-    '_prim_list_len': ([], tpack(None, tlist(tvar('a'))), tpack(None, tint)),
-    '_prim_list_at': ([], tpack(None, tlist(tvar('a')), tint), tpack(None, tvar('a'))),
-    '_prim_list_break': ([], tpack(None, tlist(tvar('a')), tint),
-        tpack(None, tlist(tvar('a')), tlist(tvar('a')))),
-    '_prim_list_map': ([(tpack(None, tvar('a')), tpack(None, tvar('b')))],
-        tpack(None, tlist(tvar('a'))), tpack(None, tlist(tvar('b')))),
-    '_prim_list_for': ([(tpack(tvar('a'), tvar('b')), tpack(tvar('a')))],
-        tpack(tvar('a'), tlist(tvar('b'))), tpack(tvar('a'))),
+    '_prim_list_nil': ([], tpack(None), tpack(None, [tlist(tvar('a'))])),
+    '_prim_list_cons': ([], tpack(None, [tlist(tvar('a')), tvar('a')]), tpack(None, [tlist(tvar('a'))])),
+    '_prim_list_cat': ([], tpack(None, [tlist(tvar('a')), tlist(tvar('a'))]), tpack(None, [tlist(tvar('a'))])),
+    '_prim_list_len': ([], tpack(None, [tlist(tvar('a'))]), tpack(None, [tint])),
+    '_prim_list_at': ([], tpack(None, [tlist(tvar('a')), tint]), tpack(None, [tvar('a')])),
+    '_prim_list_break': ([], tpack(None, [tlist(tvar('a')), tint]),
+        tpack(None, [tlist(tvar('a')), tlist(tvar('a'))])),
+    '_prim_list_map': ([(tpack(None, [tvar('a')]), tpack(None, [tvar('b')]))],
+        tpack(None, [tlist(tvar('a'))]), tpack(None, [tlist(tvar('b'))])),
+    '_prim_list_for': ([(tpack(tvar('a'), [tvar('b')]), tpack(tvar('a')))],
+        tpack(tvar('a'), [tlist(tvar('b'))]), tpack(tvar('a'))),
 
     # unsafe
-    '_prim_unsafe_panic':   ([], tpack(tvar('a'), tstr), tpack(tvar('b'))),
-    '_prim_unsafe_trace':   ([], tpack(None, tstr), tpack(None)),
-    '_prim_unsafe_print':   ([], tpack(None, tstr), tpack(None)),
-    '_prim_unsafe_listdir': ([], tpack(None, tstr), tpack(None, tlist(tstr))),
-    '_prim_unsafe_walk':    ([], tpack(None, tstr),
-        tpack(None, tlist(tpack(None, tstr, tlist(tstr), tlist(tstr))))),
-    '_prim_unsafe_isdir':   ([], tpack(None, tstr), tpack(None, tbool)),
-    '_prim_unsafe_isfile':  ([], tpack(None, tstr), tpack(None, tbool)),
-    '_prim_unsafe_read':    ([], tpack(None, tstr), tpack(None, tstr)),
-    '_prim_unsafe_write':   ([], tpack(None, tstr, tstr), tpack(None)),
-    '_prim_unsafe_append':  ([], tpack(None, tstr, tstr), tpack(None)),
+    '_prim_unsafe_panic':   ([], tpack(tvar('a'), [tstr]), tpack(tvar('b'))),
+    '_prim_unsafe_trace':   ([], tpack(None, [tstr]), tpack(None)),
+    '_prim_unsafe_print':   ([], tpack(None, [tstr]), tpack(None)),
+    '_prim_unsafe_listdir': ([], tpack(None, [tstr]), tpack(None, [tlist(tstr)])),
+    '_prim_unsafe_walk':    ([], tpack(None, [tstr]),
+        tpack(None, [tlist(tpack(None, [tstr, tlist(tstr), tlist(tstr)]))])),
+    '_prim_unsafe_isdir':   ([], tpack(None, [tstr]), tpack(None, [tbool])),
+    '_prim_unsafe_isfile':  ([], tpack(None, [tstr]), tpack(None, [tbool])),
+    '_prim_unsafe_read':    ([], tpack(None, [tstr]), tpack(None, [tstr])),
+    '_prim_unsafe_write':   ([], tpack(None, [tstr, tstr]), tpack(None)),
+    '_prim_unsafe_append':  ([], tpack(None, [tstr, tstr]), tpack(None)),
 }
 
 
