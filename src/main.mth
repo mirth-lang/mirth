@@ -24,7 +24,7 @@ mirth : List(Str) -- Int +IO
 mirth =
   cond(
     nil? -> drop "USAGE: mirth COMMAND" trace 1,
-    assert_total(unsnoc) swap cond(
+    unsnoc swap cond(
       dup "build"  streq -> drop mirth-build,
       dup "help"   streq -> drop mirth-help,
       dup "--help" streq -> drop mirth-help,
@@ -40,7 +40,7 @@ mirth-build =
   cond(
     nil? -> drop "src" path buildPkg,
     len? n2 n>= -> drop "USAGE: mirth build [PKG]" trace 1,
-    assert_total(unsnoc) drop path buildPkg
+    unsnoc drop path buildPkg
   )
 
 # mirth -h, mirth --help, mirth help

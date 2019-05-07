@@ -91,7 +91,7 @@ bestLexerMatch =
     match( lexerRule(f) ->
       dip(dup) regexMatch lexerMatch(f)
     )
-  ) nip assert_total(maximum(lexerMatchCmp?))
+  ) nip maximum(lexerMatchCmp?)
 
 data LexerError
   lexerError : Loc Str -- LexerError

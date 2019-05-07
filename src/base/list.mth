@@ -6,7 +6,6 @@ import base/panic
 export base/list
   type Nat
   type Comp
-  type +Panic
 
   nil    : List(t)
   cat    : List(t) List(t) -- List(t)
@@ -28,10 +27,10 @@ export base/list
   lpure : t -- List(t)
   lbind (f: a -- List(b)) : List(a) -- List(b)
 
-  uncons : List(t) -- List(t) t +Panic  # panic on empty list
-  unsnoc : List(t) -- t List(t) +Panic  # panic on empty list
+  uncons : List(t) -- List(t) t   # panic on empty list
+  unsnoc : List(t) -- t List(t)   # panic on empty list
 
-  maximum (f: a a -- a a Comp) : List(a) -- a +Panic  # panic on empty list
+  maximum (f: a a -- a a Comp) : List(a) -- a   # panic on empty list
 end
 
 
