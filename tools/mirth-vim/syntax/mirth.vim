@@ -28,7 +28,8 @@ syntax match mirthNumber "\v[+-]0[xX][0-9a-fA-F][0-9a-fA-F]*"
 syntax match mirthNumber "\v[0-9][0-9]*"
 syntax match mirthNumber "\v0[xX][0-9a-fA-F][0-9a-fA-F]*"
 syntax match mirthWord "\v[a-z_?*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthWord "\v[+-][A-Za-z_\-+?*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
+syntax match mirthWord "\v\+[a-z_\-+?*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
+syntax match mirthWord "\v-[A-Za-z_\-+?*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
 syntax match mirthWord "\v[+-][1-9][0-9]*[A-Za-z_\-+?*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
 syntax match mirthWord "\v[+-]0[A-WYZa-wyz_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
 syntax match mirthWord "\v[+-]0[0-9][0-9]*[A-Za-z_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
@@ -38,6 +39,7 @@ syntax match mirthWord "\v0[A-WYZa-wyz_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!
 syntax match mirthWord "\v0[0-9][0-9]*[A-Za-z_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
 syntax match mirthWord "\v0[xX][0-9a-fA-F]*[G-Zg-z_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
 syntax match mirthType "\v[A-Z][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
+syntax match mirthTag "\v\+[A-Z][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
 
 " operators
 syntax match mirthColon "\v:"
@@ -57,6 +59,7 @@ highlight def link mirthParen Operator
 highlight def link mirthComma Operator
 highlight def link mirthWord Function
 highlight def link mirthType Type
+highlight def link mirthTag Tag
 highlight def link mirthComment Comment
 highlight def link mirthString String
 highlight def link mirthNumber Number

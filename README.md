@@ -13,6 +13,9 @@ Directory structure:
 - `src`: Source code for compiler, written in Mirth.
 - `bootstrap`: Bootstrap for compiler, i.e. a minimal Mirth interpreter.
 - `formal`: Formal models of mirth.
+- `tools`: Development tools.
+
+  - `tools/mirth-vim`: Mirth syntax highlighting for Vim. To use, install Pathogen, then run `make install-vim`.
 
 ## Issues and Contribution
 
