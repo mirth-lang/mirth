@@ -38,9 +38,9 @@ mirth =
 mirth-build : List(Str) -- Int +IO
 mirth-build =
   cond(
-    nil? -> drop "src" path buildPkg,
+    nil? -> drop "src" path buildPath,
     len? n2 n>= -> drop "USAGE: mirth build [PKG]" trace 1,
-    unsnoc drop path buildPkg
+    unsnoc drop path buildPath
   )
 
 # mirth -h, mirth --help, mirth help
@@ -55,4 +55,5 @@ mirth-help = $(
   "    build       Build Mirth package.\n"  <>
   print 0
 )
+
 

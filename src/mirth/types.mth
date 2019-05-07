@@ -3,6 +3,7 @@
 # for testing or code generation.
 #
 
+import base/panic
 import base/path
 import base/nat
 import base/str
@@ -18,7 +19,7 @@ export mirth/types/pkg
   pathPkg : Path -- Pkg
 
   pkg->str  : Pkg -- Str
-  pkg->path : Pkg -- Path
+  pkg->path : Pkg -- Path  # panic on anonPkg
 end
 
 export mirth/types/mod
@@ -34,7 +35,7 @@ export mirth/types/mod
   pkgMod  : Pkg Path -- Mod
 
   mod->str  : Mod -- Str
-  mod->path : Mod -- Path
+  mod->path : Mod -- Path  # panic on anonMod
 end
 
 data Pkg
@@ -47,7 +48,10 @@ pkg->str = match(
   anonPkg -> dip("?pkg") nat->str <>,
   pathPkg -> path->str
 )
-pkg->path = pkg->str str->path
+pkg->path = match(
+  anonPkg -> "pkg->path: anon pkg does not have associated path" panic,
+  pathPkg -> id
+)
 pathPkg pkg->path == id
 
 data Mod
@@ -60,7 +64,11 @@ Mod.generate = Nat.generate anonMod
 mod->str = match(
   anonMod -> dip("?mod") nat->str <>,
   pathMod -> path->str,
-  pkgMod  -> dip(pkg->path) </> path->str
+  pkgMod  -> nip path->str
 )
-mod->path = mod->str str->path
+mod->path = match(
+  anonMod -> "mod->path: anonymous mod does not have associated path" panic,
+  pathMod -> id,
+  pkgMod  -> nip
+)
 

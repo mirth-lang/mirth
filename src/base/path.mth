@@ -23,6 +23,8 @@ export base/path
   nilpath  : Path
   nilpath? : Path -- Path Bool
 
+  pathHasExtension? (ext: Str) : Path -- Path Bool
+
   </> : Path Path -- Path
   <.> : Path Str  -- Path
 end
@@ -129,4 +131,7 @@ nilpath </> nilpath </> == nilpath </>
 </> relative? == and?(dip?(relative?), relative?) dip(</>)
 
 <.> = dip(unpath ".") <> <> path
+
+
+pathHasExtension?(e) = "." e <> over unpath strsuffix
 

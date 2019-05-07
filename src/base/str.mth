@@ -47,6 +47,8 @@ export base/str
   strbreakWhen (p: Char -- Char Bool) : Str -- Str Str
   strprefix? : Str Str -- Str Str Bool
   strprefix  : Str Str -- Bool
+  strsuffix? : Str Str -- Str Str Bool
+  strsuffix  : Str Str -- Bool
   streq : Str Str -- Bool
   <> : Str Str -- Str
   strfold(f : *a Char -- *a) : *a Str -- *a
@@ -157,6 +159,18 @@ strbreak <> == drop
 strprefix : Str Str -- Bool
 strprefix = dip?(strlen?) strbreak drop streq
 strprefix? = dup2 strprefix
+
+"foo" "foo.mth" strprefix == true
+"foobar" "foo.mth" strprefix == false
+dup strprefix == drop true
+
+strsuffix = dup2 both(strlen) swap n- znat strbreak nip streq
+strsuffix? = dup2 strsuffix
+
+".mth" "foo.mth" strsuffix == true
+".bar" "foo.bar" strsuffix == true
+".zero" "foo.one" strsuffix == false
+
 
 strlen : Str -- Nat
 strlen = _prim_str_len znat

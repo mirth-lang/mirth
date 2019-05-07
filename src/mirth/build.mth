@@ -1,18 +1,45 @@
 import base/io
+import base/str
 import base/unit
 import base/list
 import base/path
+import base/maybe
+import mirth/types/pkg
+import mirth/types/mod
 
 export mirth/build
   type +IO
   type Path
-  buildPkg : Path -- Int +IO
+  buildPath : Path -- Int +IO
 end
 
-buildPkg : Path -- Int +IO
-buildPkg = $(
-  listfiles for(path->str print)
+findMods : Pkg -- List(Mod) +IO
+findMods = $(
+  dup pkg->path listfiles
+  filter(pathHasExtension?("mth"))
+  formap(dip(dup) pkgMod) nip
+)
+
+buildPkgMods : Maybe(Pkg) List(Mod) -- Int +IO
+buildPkgMods = $(
+  dip(maybe("no pkg", pkg->str) print)
+  for(mod->str print)
   "mirth: Not yet implemented." print 0
+)
+
+buildPkg : Pkg -- Int +IO
+buildPkg = dup dip(some) findMods buildPkgMods
+
+buildMod : Mod -- Int +IO
+buildMod = dip(none) nil snoc buildPkgMods
+
+buildPath : Path -- Int +IO
+buildPath = $(
+  cond(
+    dup isfile -> pathMod buildMod,
+    dup isdir  -> pathPkg buildPkg,
+    "mirth: Path does not exist: " swap path->str <> trace 1
+  )
 )
 
 

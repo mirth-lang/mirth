@@ -19,8 +19,12 @@ export base/list
   nil?    : List(t) -- List(t) Bool
 
   map(f: a -- b) : List(a) -- List(b)
+  filter(f: b -- b Bool) : List(b) -- List(b)
+
   for(f: *a b -- *a) : *a List(b) -- *a
   formap(f: *a b -- *a c) : *a List(b) -- *a List(c)
+  forfilter(f: *a b -- *a b Bool) : *a List(b) -- *a List(b)
+
   break : List(t) Nat -- List(t) List(t)
   flatten : List(List(t)) -- List(t)
 
@@ -42,12 +46,23 @@ map(f) = _prim_list_map(f)
 for(f) = _prim_list_for(f)
 break  = nint _prim_list_break
 
+
+formap(f) = dip(nil) for(swap dip(f) swap cons)
+
+filter(f) = forfilter(f)
+forfilter(f) = dip(nil) for(swap dip(f) rotr if(cons, drop))
+
+filter(true) == id
+filter(false) == drop nil
+
+
 ++    = cat
 snoc  = dip(dip(nil) cons) cat
 len?  = dup len
 nil?  = len? n0 n=
 
-formap(f) = dip(nil) for(swap dip(f) swap cons)
+
+
 flatten = dip(nil) for(cat)
 
 lpure = dip(nil) cons
