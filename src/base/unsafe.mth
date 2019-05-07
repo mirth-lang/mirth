@@ -1,0 +1,41 @@
+# re-export of all the unsafe primitive functions with nicer types.
+
+import base/list
+import base/path
+
+export base/unsafe
+  type Path
+  unsafe_panic     : *a Str -- *b
+  unsafe_trace     : Str --
+  unsafe_print     : Str --
+  unsafe_walk      : Path -- List(Pack(Path List(Path) List(Path)))
+  unsafe_listdir   : Path -- List(Path)
+  unsafe_listdirs  : Path -- List(Path) # list directories recursively
+  unsafe_listfiles : Path -- List(Path) # list files recursively
+  unsafe_isdir     : Path -- Bool
+  unsafe_isfile    : Path -- Bool
+  unsafe_read      : Path -- Str
+  unsafe_write     : Str Path --
+  unsafe_append    : Str Path --
+  unsafe_coerce    : *a -- *b   # the big unsafe!
+end
+
+unsafe_panic = _prim_unsafe_panic
+unsafe_trace = _prim_unsafe_trace
+unsafe_print = _prim_unsafe_print
+
+unsafe_listdir   = unpath _prim_unsafe_listdir map(path)
+unsafe_walk      = unpath _prim_unsafe_walk map(
+  unpack3 dip2(path) both(map(path)) pack3)
+unsafe_listdirs  = unpath _prim_unsafe_walk lbind(
+  unpack3 drop dip(path) formap(dip(dup) path </>) nip)
+unsafe_listfiles = unpath _prim_unsafe_walk lbind(
+  unpack3 nip  dip(path) formap(dip(dup) path </>) nip)
+unsafe_isdir     = unpath _prim_unsafe_isdir
+unsafe_isfile    = unpath _prim_unsafe_isfile
+unsafe_read      = unpath _prim_unsafe_read
+unsafe_write     = unpath _prim_unsafe_write
+unsafe_append    = unpath _prim_unsafe_append
+
+unsafe_coerce = _prim_unsafe_coerce
+

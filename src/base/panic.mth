@@ -1,0 +1,12 @@
+import base/unsafe
+
+export base/panic
+  type +Panic
+  assert_total (f : *a -- *b +Panic) : *a -- *b
+  panic : *a Str -- *b +Panic
+end
+
+panic   = unsafe_panic
+assert_total(f) = f unsafe_coerce
+
+

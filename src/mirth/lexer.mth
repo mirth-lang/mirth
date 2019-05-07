@@ -1,4 +1,5 @@
 
+import base/panic
 import base/nat
 import base/char
 import base/list
@@ -90,7 +91,7 @@ bestLexerMatch =
     match( lexerRule(f) ->
       dip(dup) regexMatch lexerMatch(f)
     )
-  ) nip maximum(lexerMatchCmp?)
+  ) nip assert_total(maximum(lexerMatchCmp?))
 
 data LexerError
   lexerError : Loc Str -- LexerError

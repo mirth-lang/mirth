@@ -2,7 +2,6 @@ import base/io
 import base/unit
 import base/list
 import base/path
-import base/path/unsafe
 
 export mirth/build
   type +IO

@@ -4,7 +4,6 @@ import base/list
 
 export base/path
   type Path
-  type +IO
 
   Path.generate : Bool List(Int) Bool Bool -- Path
 
@@ -26,27 +25,6 @@ export base/path
 
   </> : Path Path -- Path
   <.> : Path Str  -- Path
-
-  listdir   : Path -- List(Path) +IO
-  listdirs  : Path -- List(Path) +IO
-  listfiles : Path -- List(Path) +IO
-  isdir     : Path -- Bool +IO
-  isfile    : Path -- Bool +IO
-  read      : Path -- Str +IO
-  write     : Str Path -- +IO
-  append    : Str Path -- +IO
-end
-
-export base/path/unsafe
-  type Path
-  unsafe_listdir   : Path -- List(Path)
-  unsafe_listdirs  : Path -- List(Path) # list directories recursively
-  unsafe_listfiles : Path -- List(Path) # list files recursively
-  unsafe_isdir     : Path -- Bool
-  unsafe_isfile    : Path -- Bool
-  unsafe_read      : Path -- Str
-  unsafe_write     : Str Path --
-  unsafe_append    : Str Path --
 end
 
 data Path
@@ -151,22 +129,4 @@ nilpath </> nilpath </> == nilpath </>
 </> relative? == and?(dip?(relative?), relative?) dip(</>)
 
 <.> = dip(unpath ".") <> <> path
-
-unsafe_listdir   = unpath _prim_unsafe_listdir map(path)
-unsafe_listdirs  = unpath _prim_unsafe_walk lbind(unpack3 drop dip(path) formap(dip(dup) path </>) nip)
-unsafe_listfiles = unpath _prim_unsafe_walk lbind(unpack3 nip  dip(path) formap(dip(dup) path </>) nip)
-unsafe_isdir     = unpath _prim_unsafe_isdir
-unsafe_isfile    = unpath _prim_unsafe_isfile
-unsafe_read      = unpath _prim_unsafe_read
-unsafe_write     = unpath _prim_unsafe_write
-unsafe_append    = unpath _prim_unsafe_append
-
-listdir   = unsafe_listdir
-listdirs  = unsafe_listdirs
-listfiles = unsafe_listfiles
-isdir     = unsafe_isdir
-isfile    = unsafe_isfile
-read      = unsafe_read
-write     = unsafe_write
-append    = unsafe_append
 

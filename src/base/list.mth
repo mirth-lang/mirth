@@ -1,10 +1,12 @@
 
 import base/nat
 import base/order
+import base/panic
 
 export base/list
   type Nat
   type Comp
+  type +Panic
 
   nil    : List(t)
   cat    : List(t) List(t) -- List(t)
@@ -26,10 +28,10 @@ export base/list
   lpure : t -- List(t)
   lbind (f: a -- List(b)) : List(a) -- List(b)
 
-  uncons : List(t) -- List(t) t   # panic on empty list
-  unsnoc : List(t) -- t List(t)   # panic on empty list
+  uncons : List(t) -- List(t) t +Panic  # panic on empty list
+  unsnoc : List(t) -- t List(t) +Panic  # panic on empty list
 
-  maximum (f: a a -- a a Comp) : List(a) -- a  # panic on empty list
+  maximum (f: a a -- a a Comp) : List(a) -- a +Panic  # panic on empty list
 end
 
 
@@ -58,9 +60,9 @@ break cat == drop
 map(id) == id
 lbind(id) == flatten
 
-uncons = nil? if("uncons on empty list" _prim_unsafe_panic,
+uncons = nil? if("uncons on empty list" panic,
   len? n1- znat break 0 _prim_list_at)
-unsnoc = nil? if("unsnoc on empty list" _prim_unsafe_panic,
+unsnoc = nil? if("unsnoc on empty list" panic,
   n1 break dip(0 _prim_list_at))
 
 maximum(f) = unsnoc for(max(f))

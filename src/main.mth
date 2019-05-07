@@ -3,6 +3,7 @@ import base/list
 import base/str
 import base/path
 import base/io
+import base/panic
 
 import mirth/build
 
@@ -23,7 +24,7 @@ mirth : List(Str) -- Int +IO
 mirth =
   cond(
     nil? -> drop "USAGE: mirth COMMAND" trace 1,
-    unsnoc swap cond(
+    assert_total(unsnoc) swap cond(
       dup "build"  streq -> drop mirth-build,
       dup "help"   streq -> drop mirth-help,
       dup "--help" streq -> drop mirth-help,
@@ -39,7 +40,7 @@ mirth-build =
   cond(
     nil? -> drop "src" path buildPkg,
     len? n2 n>= -> drop "USAGE: mirth build [PKG]" trace 1,
-    unsnoc drop path buildPkg
+    assert_total(unsnoc) drop path buildPkg
   )
 
 # mirth -h, mirth --help, mirth help
