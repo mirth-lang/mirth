@@ -177,8 +177,8 @@ z/ = pint _prim_int_div
 z% = pint _prim_int_mod znat
 z/% = dup2 dip2(z/) z%
 
-zcmp? = cmp?(dup2 z<)
-zcmp  = cmp (dup2 z<)
+zcmp? = mkcmp?(dup2 z<)
+zcmp  = mkcmp (dup2 z<)
 z<    = _prim_int_lt
 z>    = swap z<
 z=    = _prim_int_eq

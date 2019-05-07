@@ -1,72 +1,77 @@
 
 import base/panic
+import base/int
 import base/nat
+import base/pos
 import base/char
+import base/order
 import base/list
 import base/str
 import base/regex+
 import base/maybe
+import base/result
 import mirth/types/mod
 import mirth/loc
 import mirth/token
 
-isDecInt? : Str -- Str Bool
-isDecInt? = and?(strnull? not, strall?(isdigit?))
-isDecInt? drop == id
-""           isDecInt? nip == false
-"0"          isDecInt? nip == true
-"1"          isDecInt? nip == true
-"89"         isDecInt? nip == true
-"3622614048" isDecInt? nip == true
-"0098767890" isDecInt? nip == true
-"1st"        isDecInt? nip == false
+export mirth/lexer
+  type LToken
+  type LexerError
+  lexerError->str : LexerError -- Str
+  tokenize : Mod Str -- Result(LexerError, List(LToken))
+end
 
-isHexInt? : Str -- Str Bool
-isHexInt? = dup n2 strbreak and?(or?(over "0x" streq, over "0X" streq),
-  and?(strnull? not, strall?(ishexdigit?))) dip(drop2)
 
-isHexInt? drop == id
-"0"    isHexInt? nip == false
-"0x"   isHexInt? nip == false
-"0xA"  isHexInt? nip == true
-"0x0010"     isHexInt? nip == true
-"0xdeadbeef" isHexInt? nip == true
-"0xCABc4FED" isHexInt? nip == true
-"0xFA12E8EX" isHexInt? nip == false
-"0Xa0010aa0" isHexInt? nip == true
-implies?(isDecInt?, "0x" over <> isHexInt? nip) == true
+#
+# auxiliary lexing functions
+#
 
-isIgnoreChar? : Char -- Char Bool
-isIgnoreChar? = or?('\s' chareq? nip, or?('\t' chareq? nip, '\r' chareq? nip))
-isIgnoreChar? drop == id
+digitVal : Char -- Int
+digitVal =
+  cond(
+    isdigit? -> char->int "0" str->char char->int z-,
+    islower? -> char->int "a" str->char char->int z- 10 z+,
+    isupper? -> char->int "A" str->char char->int z- 10 z+,
+    drop 0
+  )
 
-isCommentChar? : Char -- Char Bool
-isCommentChar? = "#" str->char chareq? nip
-isCommentChar? drop == id
+readInt(base: Int) : Str -- Int
+readInt(base) = dip(0) strfold(dip(base z*) digitVal z+)
 
-breakComment : Str -- Str Str
-breakComment = strbreakWhen ('\n' chareq? nip)
+readDecInt : Str -- Int
+readHexInt : Str -- Int
+readDecInt = readInt(10)
+readHexInt = n2 strbreak nip readInt(16)
 
-isInt? : Str -- Str Bool
-isInt? = or? (isDecInt?, isHexInt?)
+readStr    : Str -- Str
+wordToken  : Str -- Token  # basically TWORD but separates out reserved words.
 
+#
+# regexes
+#
+
+decIntRegex : Regex
+decIntRegex = "" lit "+-" cls alt2 "0123456789" cls plus seq2
+
+hexIntRegex : Regex
+hexIntRegex = "" lit "+-" cls alt2 "0" lit "xX" cls "0123456789abcdefABCDEF" cls plus seq4
+
+#
+#
+#
 
 data LexerRule
   lexerRule(f: Str -- Token) : Regex -- LexerRule
 end
 
-readDecInt : Str -- Int
-readHexInt : Str -- Int
-readStr    : Str -- Str
-wordToken  : Str -- Token  # basically TWORD but separates out reserved words.
 
 lexerRules : List(LexerRule)
 lexerRules = $(
   nil
 
   # ints
-  "0123456789" cls plus lexerRule(readDecInt TINT) cons
-  "0" lit "xX" cls "0123456789abcdefABCDEF" cls plus seq3 lexerRule(readHexInt TINT) cons
+  decIntRegex lexerRule(readDecInt TINT) cons
+  hexIntRegex lexerRule(readHexInt TINT) cons
 
   # strings
   # TODO
@@ -85,13 +90,16 @@ lexerMatchUnwrap = match( lexerMatch(f) -> id )
 lexerMatchCmp? : LexerMatch LexerMatch -- LexerMatch LexerMatch Comp
 lexerMatchCmp? = dup2 both(lexerMatchUnwrap) mcmp(ncmp)
 
+lexerMatchOrder : Order(LexerMatch)
+lexerMatchOrder = MkOrder(lexerMatchCmp?)
+
 bestLexerMatch : Str -- LexerMatch
 bestLexerMatch =
   lexerRules formap(
     match( lexerRule(f) ->
       dip(dup) regexMatch lexerMatch(f)
     )
-  ) nip maximum(lexerMatchCmp?)
+  ) nip maximum(lexerMatchOrder)
 
 data LexerError
   lexerError : Loc Str -- LexerError
@@ -103,12 +111,35 @@ unLexerError = match( lexerError -> id )
 lexerError->str : LexerError -- Str
 lexerError->str = unLexerError dip(loc->str ":" <>) <>
 
-data LexerState
-  lexerState : Loc Str -- LexerState
+data LToken
+  ltoken : Loc Loc Token -- LToken
 end
 
-unLexerState : LexerState -- Loc Str
-unLexerState = match( lexerState -> id )
+unltoken : LToken -- Loc Loc Token
+unltoken = match( ltoken -> id )
 
+tokenizeAux : List(LToken) Loc Str -- Result(LexerError, List(LToken))
+tokenizeAux =
+  cond(
+    strnull? -> drop2 ok,
+    dup bestLexerMatch match( lexerMatch(f) ->
+      maybe(
+        drop nip "Unrecognized token." lexerError err,
+        strbreak dip(
+          dip(dup) dup
+          dip(locNext) f over
+          dip(ltoken cons)
+        ) tokenizeAux
+      )
+    )
+  )
+
+tokenize : Mod Str -- Result(LexerError, List(LToken))
+tokenize = dip2(nil) dip(locStart) tokenizeAux
+
+
+
+"10" tokenize
+ == lambda(m -> nil m p1 p1 loc m p1 3 zpos loc 10 TINT ltoken cons ok)
 
 

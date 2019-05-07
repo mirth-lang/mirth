@@ -70,10 +70,8 @@ eps? =
 seq2' : Regex Regex -- Regex
 seq2' =
   cond(
-    fail? -> drop2 fail,
     dip?(fail?) -> drop2 fail,
-    eps? -> drop,
-    dip?(eps?) -> nip,
+    fail? -> drop2 fail,
     seq2
   )
 
@@ -104,7 +102,7 @@ derive =
         dip(derive) seq2'
       ),
     alt2 -> dip(over) dip2(derive) derive alt2',
-    star -> dup dip(derive) star seq2'
+    star -> dup dip(derive) star' seq2'
   )
 
 
@@ -131,7 +129,7 @@ fail regexMatch == drop none
 "foobar" "food" lit regexMatch == none
 
 
-
+"abc" "ab" cls star regexMatch == 2 znat some
 
 
 
