@@ -991,11 +991,11 @@ class tvar:
 
     def unify_tpack(self, other_rest, other_args, other_tags, sub):
         if self.name in sub:
-            return sub[self.name].unify_tpack(other_rest, other_args, sub)
+            return sub[self.name].unify_tpack(other_rest, other_args, other_tags, sub)
         elif other_args == [] and len(other_tags) == 0 and other_rest is not None:
             return self.unify(other_rest, sub)
         else:
-            newself = tpack(other_rest, other_args).subst(sub)
+            newself = tpack(other_rest, other_args, other_tags).subst(sub)
             if newself.has_var(self.name):
                 raise TypeError("Failed to unify %s and %s." % (self.name, newself))
             var_sub = { self.name: newself }
@@ -1043,25 +1043,26 @@ class tpack:
                 ', '.join(sorted(repr(t) for t in self.tags)))
 
     def __str__ (self):
+        argspart = ' '.join(str(a) for a in self.args + list(sorted(self.tags)))
         if self.rest is None:
-            return '[ %s ]' % ' '.join(str(a) for a in self.args)
+            return '[ %s ]' % argspart
         else:
-            return '[ *%s %s ]' % (self.rest, ' '.join(str(a) for a in self.args))
+            return '[ *%s %s ]' % (self.rest, argspart)
 
     def __eq__ (self, other):
-        return self.args == other.args and self.rest == other.rest
+        return self.args == other.args and self.rest == other.rest and self.tags == other.tags
 
     def rigidify(self):
         if self.rest is None:
-            return tpack(None, [a.rigidify() for a in self.args])
+            return tpack(None, [a.rigidify() for a in self.args], self.tags)
         else:
-            return tpack(self.rest.rigidify(), [a.rigidify() for a in self.args])
+            return tpack(self.rest.rigidify(), [a.rigidify() for a in self.args], self.tags)
 
     def freshen(self, prefix):
         if self.rest is None:
-            return tpack(None, [a.freshen(prefix) for a in self.args])
+            return tpack(None, [a.freshen(prefix) for a in self.args], self.tags)
         else:
-            return tpack(self.rest.freshen(prefix), [a.freshen(prefix) for a in self.args])
+            return tpack(self.rest.freshen(prefix), [a.freshen(prefix) for a in self.args], self.tags)
 
     def has_var(self, name):
         if self.rest is None:
@@ -1071,7 +1072,7 @@ class tpack:
 
     def subst(self, sub):
         if self.rest is None:
-            return tpack(None, [a.subst(sub) for a in self.args])
+            return tpack(None, [a.subst(sub) for a in self.args], self.tags)
         else:
             return tpack(self.rest.subst(sub), [a.subst(sub) for a in self.args], self.tags)
 
@@ -1096,20 +1097,21 @@ class tpack:
                     (self, tpack(other_rest, other_args, other_tags)))
             n = len(self.args) - len(other_args)
             (largs, rargs) = (self.args[:n], self.args[n:])
-            newrest = other_rest.unify_tpack(self.rest, largs, other_tags, sub)
+            newrest = other_rest.unify_tpack(self.rest, largs, self.tags | other_tags, sub)
             newargs = []
             for (rarg, oarg) in zip(rargs, other_args):
                 newargs.append(rarg.unify(oarg, sub))
-            return tpack(newrest, newargs, other_tags | self.tags).subst(sub)
+            return tpack(newrest, newargs, newrest.tags).subst(sub)
         else:
             npack = tpack()
+            npack.tags = self.tags | other_tags
             srest = self.rest if self.rest else npack
             orest = other_rest if other_rest else npack
             newrest = srest if srest is orest else srest.unify(orest, sub)
             newargs = []
             for (rarg, oarg) in zip(self.args, other_args):
                 newargs.append(rarg.unify(oarg, sub))
-            return tpack(newrest, newargs, other_tags | self.tags).subst(sub)
+            return tpack(newrest, newargs, npack.tags).subst(sub)
 
 
 var_counter = 0
@@ -1206,7 +1208,15 @@ class module:
         elab = word_elaborator(self, dom.rigidify(), loc)
         func = body.elab(elab)
         cod2 = elab.dom
-        cod.rigidify().unify(cod2, {}) # if this passes then we are golden
+        cod.rigidify().unify(cod2, {})
+        extra_tags = cod2.tags - cod.tags
+        print(extra_tags)
+        print(dom)
+        print(cod2)
+        print(cod.rigidify())
+        if len(extra_tags):
+            raise TypeError("Word %s missing output tags in type: %s" %
+                (name, ' '.join(sorted(extra_tags))))
         self.word_defs[name] = func
 
     def decl_assertion (self, lineno, lhs, rhs):
@@ -1451,9 +1461,10 @@ class type_elaborator:
         self.mod = mod
         self.rest = None
         self.args = []
+        self.tags = set()
 
     def to_tpack(self):
-        return tpack(self.rest, self.args)
+        return tpack(self.rest, self.args, self.tags)
 
     def elab_push_int(self, value):
         raise TypeError("Expected a type but got an int.")
@@ -1473,6 +1484,12 @@ class type_elaborator:
             else:
                 self.rest = tvar(name[1:])
 
+        elif (len(name) >= 2 and '+' == name[0] and 'A' <= name[1] <= 'Z'):
+            if len(args):
+                raise TypeError("Tag with args not supported.")
+            if not self.mod.has_type(name):
+                raise TypeError("Unknown tag type %s." % ame)
+            self.tags.add(name)
 
         elif 'a' <= name[0] <= 'z' and not self.mod.has_type(name):
             if len(args):
@@ -1535,8 +1552,8 @@ class word_elaborator:
 
         if dom.rest is None and cod.rest is None:
             ovar = fresh_var()
-            dom = tpack(ovar, dom.args)
-            cod = tpack(ovar, cod.args)
+            dom = tpack(ovar, dom.args, dom.tags)
+            cod = tpack(ovar, cod.args, cod.tags)
 
         prefix = fresh_var().name + '.'
         self.dom.unify(dom.freshen(prefix), self.sub)

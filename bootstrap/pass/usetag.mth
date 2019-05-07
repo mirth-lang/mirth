@@ -1,0 +1,10 @@
+
+type +NewTag
+
+f : +NewTag -- +NewTag
+f = id
+
+g : -- +NewTag
+g = id
+
+
