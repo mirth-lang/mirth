@@ -72,8 +72,10 @@ def interpret(path, args, with_prelude=True):
 
         if 'main' in m.word_defs:
             (ps,dom,cod) = m.word_sigs['main']
-            if ps != [] or dom != tpack(None, [tlist(tstr)]) or cod != tpack(None, [tint]):
-                raise TypeError("%s: Unexpected type signature for main. Should be\n  main : List(Str) -- Int" % path)
+            exp_dom = tpack(None, [tlist(tstr)] if len(dom.args) > 0 else [])
+            exp_cod = tpack(None, [tint] if len(cod.args) > 0 else [], cod.tags)
+            if ps != [] or dom != exp_dom or cod != exp_cod:
+                raise TypeError("%s: Unexpected type signature for main. Should be\n  main : List(Str) -- Int +t1 +t2 ... +tn" % path)
             e = env()
             e.push(args)
             e.copush(m.word_defs['main'])
@@ -276,8 +278,10 @@ def run_package(pkg, args, with_prelude=True):
         m = mods[mainpath]
         if 'main' in m.word_defs:
             (ps,dom,cod) = m.word_sigs['main']
-            if ps != [] or dom != tpack(None, [tlist(tstr)]) or cod != tpack(None, [tint]):
-                error(mainpath, None, "Unexpected type signature for main. Should be\n  main : List(Str) -- Int")
+            exp_dom = tpack(None, [tlist(tstr)] if len(dom.args) > 0 else [])
+            exp_cod = tpack(None, [tint] if len(cod.args) > 0 else [], cod.tags)
+            if ps != [] or dom != exp_dom or cod != exp_cod:
+                error(mainpath, None, "Unexpected type signature for main. Should be\n  main : List(Str) -- Int +t1 +t2 ... +tn")
             e = env()
             e.push(args)
             e.copush(m.word_defs['main'])

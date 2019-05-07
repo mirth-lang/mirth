@@ -3,54 +3,55 @@ import base/list
 import base/str
 import base/path
 import base/io
-import base/io/unsafe
 
 import mirth/build
 
 export target
-  type IO(t)
-  mirth : List(Str) -- IO(Int)
+  type +IO
+  mirth : List(Str) -- Int +IO
 end
 
-mirth-build : List(Str) -- IO(Int)
-mirth-help  : List(Str) -- IO(Int)
+mirth-build : List(Str) -- Int +IO
+mirth-help  : List(Str) -- Int +IO
 
 # entry point for bootstrap
-main : List(Str) -- Int
-main = mirth unsafe_runIO
+main : List(Str) -- Int +IO
+main = mirth
 
 # entry point
-mirth : List(Str) -- IO(Int)
+mirth : List(Str) -- Int +IO
 mirth =
   cond(
-    nil? -> drop "USAGE: mirth COMMAND" trace then_(1 pure),
+    nil? -> drop "USAGE: mirth COMMAND" trace 1,
     unsnoc swap cond(
       dup "build"  streq -> drop mirth-build,
       dup "help"   streq -> drop mirth-help,
       dup "--help" streq -> drop mirth-help,
       dup "-h"     streq -> drop mirth-help,
-      nip "mirth: Unknown command " swap <> ". Use --help to list commands." <> trace then_(1 pure)
+      nip "mirth: Unknown command " swap <>
+      ". Use 'mirth --help' to list available commands." <> trace 1
     )
   )
 
 # mirth build [PACKAGE]
-mirth-build : List(Str) -- IO(Int)
+mirth-build : List(Str) -- Int +IO
 mirth-build =
   cond(
     nil? -> drop "src" path buildPkg,
-    len? n2 n>= -> drop "USAGE: mirth build [PKG]" trace then_(1 pure),
+    len? n2 n>= -> drop "USAGE: mirth build [PKG]" trace 1,
     unsnoc drop path buildPkg
   )
 
 # mirth -h, mirth --help, mirth help
-mirth-help : List(Str) -- IO(Int)
-mirth-help = dip(
+mirth-help : List(Str) -- Int +IO
+mirth-help = $(
+  drop
   "USAGE: mirth COMMAND"
   "OPTIONS\n"                               <>
   "    --help      Display this table.\n"   <>
   "\n"                                      <>
   "COMMANDS\n"                              <>
   "    build       Build Mirth package.\n"  <>
-) drop print then_(0 pure)
-
+  print 0
+)
 

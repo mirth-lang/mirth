@@ -1,11 +1,10 @@
 import base/nat
 import base/str
 import base/list
-import base/io
-import base/unit
 
 export base/path
   type Path
+  type +IO
 
   Path.generate : Bool List(Int) Bool Bool -- Path
 
@@ -27,6 +26,15 @@ export base/path
 
   </> : Path Path -- Path
   <.> : Path Str  -- Path
+
+  listdir   : Path -- List(Path) +IO
+  listdirs  : Path -- List(Path) +IO
+  listfiles : Path -- List(Path) +IO
+  isdir     : Path -- Bool +IO
+  isfile    : Path -- Bool +IO
+  read      : Path -- Str +IO
+  write     : Str Path -- +IO
+  append    : Str Path -- +IO
 end
 
 export base/path/unsafe
@@ -39,19 +47,6 @@ export base/path/unsafe
   unsafe_read      : Path -- Str
   unsafe_write     : Str Path --
   unsafe_append    : Str Path --
-end
-
-export base/path/io
-  type Unit
-  type IO(t)
-  listdir   : Path -- IO(List(Path))
-  listdirs  : Path -- IO(List(Path))
-  listfiles : Path -- IO(List(Path))
-  isdir     : Path -- IO(Bool)
-  isfile    : Path -- IO(Bool)
-  read      : Path -- IO(Str)
-  write     : Str Path -- IO(Unit)
-  append    : Str Path -- IO(Unit)
 end
 
 data Path
@@ -166,12 +161,12 @@ unsafe_read      = unpath _prim_unsafe_read
 unsafe_write     = unpath _prim_unsafe_write
 unsafe_append    = unpath _prim_unsafe_append
 
-listdir   = pure iomap(unsafe_listdir)
-listdirs  = pure iomap(unsafe_listdirs)
-listfiles = pure iomap(unsafe_listfiles)
-isdir     = pure iomap(unsafe_isdir)
-isfile    = pure iomap(unsafe_isfile)
-read      = pure iomap(unsafe_read)
-write     = pure2 iomap2(unsafe_write unit)
-append    = pure2 iomap2(unsafe_append unit)
+listdir   = unsafe_listdir
+listdirs  = unsafe_listdirs
+listfiles = unsafe_listfiles
+isdir     = unsafe_isdir
+isfile    = unsafe_isfile
+read      = unsafe_read
+write     = unsafe_write
+append    = unsafe_append
 

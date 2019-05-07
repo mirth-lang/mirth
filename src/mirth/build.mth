@@ -3,25 +3,17 @@ import base/unit
 import base/list
 import base/path
 import base/path/unsafe
-import base/path/io
 
 export mirth/build
-  type IO(t)
+  type +IO
   type Path
-  buildPkg : Path -- IO(Int)
+  buildPkg : Path -- Int +IO
 end
 
-mapM (f: a -- IO(b))    : List(a) -- IO(List(b))
-
-forM (f: a -- IO(Unit)) : List(a) -- IO(Unit)
-forM (f) = dip(unit pure) for(pure then2(nip f))
-
-buildPkg : Path -- IO(Int)
+buildPkg : Path -- Int +IO
 buildPkg = $(
-  listfiles
-  >>= ( forM(path->str print) )
-  >>  ( "mirth: Not yet implemented." print )
-  >>  ( 0 pure )
+  listfiles for(path->str print)
+  "mirth: Not yet implemented." print 0
 )
 
 
