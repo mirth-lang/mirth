@@ -1097,21 +1097,21 @@ class tpack:
                     (self, tpack(other_rest, other_args, other_tags)))
             n = len(self.args) - len(other_args)
             (largs, rargs) = (self.args[:n], self.args[n:])
-            newrest = other_rest.unify_tpack(self.rest, largs, self.tags | other_tags, sub)
+            newrest = other_rest.unify_tpack(self.rest, largs, self.tags, sub)
             newargs = []
             for (rarg, oarg) in zip(rargs, other_args):
                 newargs.append(rarg.unify(oarg, sub))
             return tpack(newrest, newargs, newrest.tags).subst(sub)
         else:
             npack = tpack()
-            npack.tags = self.tags | other_tags
+            npack.tags = (self.tags | other_tags) - (self.tags & other_tags)
             srest = self.rest if self.rest else npack
             orest = other_rest if other_rest else npack
             newrest = srest if srest is orest else srest.unify(orest, sub)
             newargs = []
             for (rarg, oarg) in zip(self.args, other_args):
                 newargs.append(rarg.unify(oarg, sub))
-            return tpack(newrest, newargs, npack.tags).subst(sub)
+            return tpack(newrest, newargs, self.tags | other_tags).subst(sub)
 
 
 var_counter = 0
