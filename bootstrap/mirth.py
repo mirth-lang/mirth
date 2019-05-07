@@ -1211,8 +1211,9 @@ class module:
         cod.rigidify().unify(cod2, {})
         extra_tags = cod2.tags - cod.tags
         if len(extra_tags):
-            raise TypeError("Word %s missing output tags in type: %s" %
-                (name, ' '.join(sorted(extra_tags))))
+            raise TypeError("Word %s missing %s tag%s in output type." %
+                (name, ' '.join(sorted(extra_tags)),
+                ('s' if len(extra_tags) != 1 else '')))
         self.word_defs[name] = func
 
     def decl_assertion (self, lineno, lhs, rhs):
