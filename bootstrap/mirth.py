@@ -1210,10 +1210,6 @@ class module:
         cod2 = elab.dom
         cod.rigidify().unify(cod2, {})
         extra_tags = cod2.tags - cod.tags
-        print(extra_tags)
-        print(dom)
-        print(cod2)
-        print(cod.rigidify())
         if len(extra_tags):
             raise TypeError("Word %s missing output tags in type: %s" %
                 (name, ' '.join(sorted(extra_tags))))
@@ -1281,6 +1277,10 @@ class module:
                 % (lineno, name)
             )
 
+        if name[0] == '+':
+            raise SyntaxError("Line %d: Can't declare tag type %s as data."
+                % (lineno, name))
+
         for wordsig in wordsigs:
             if len(wordsig.cod.atoms) != 1:
                 raise SyntaxError(
@@ -1329,6 +1329,13 @@ class module:
                     % lineno
                 )
 
+            for wsatom in wordsig.dom.atoms:
+                if isinstance(wsatom, word) and wsatom.name.code[0] == '+':
+                    raise SyntaxError(
+                        "Line %d: Can't take tags in constructor."
+                        % wsatom.name.lineno
+                    )
+
         def ft(mod, args):
             if len(args) != len(params):
                 raise TypeError("Type %s expects %d args, but got %d args."
@@ -1339,7 +1346,7 @@ class module:
                 te = type_elaborator(mod)
                 arg.elab(te)
                 tp = te.to_tpack()
-                if tp.rest is not None or len(tp.args) != 1:
+                if tp.rest is not None or len(tp.args) != 1 or len(tp.tags) != 0:
                     raise TypeError("Type %s received bad argument." % name)
                 ta.append(tp.args[0])
 
@@ -1488,7 +1495,7 @@ class type_elaborator:
             if len(args):
                 raise TypeError("Tag with args not supported.")
             if not self.mod.has_type(name):
-                raise TypeError("Unknown tag type %s." % ame)
+                raise TypeError("Unknown tag type %s." % name)
             self.tags.add(name)
 
         elif 'a' <= name[0] <= 'z' and not self.mod.has_type(name):
@@ -1879,6 +1886,7 @@ def cond (elab, args):
     odom = elab.dom
     lcod = tpack(odom, [tbool])
     rcod = tpack(fresh_var())
+    otags = set()
 
     for arg in args[:-1]:
         line = list(arg.split_on('->'))
@@ -1893,9 +1901,10 @@ def cond (elab, args):
         elab.dom = odom
         rhsfn = rhs.elab(elab)
         rcod = rcod.unify(elab.dom, elab.sub)
+        otags = otags | rcod.tags
         rules.append((lhsfn, rhsfn))
 
-    elab.dom = odom
+    elab.dom = tpack(odom.rest, odom.args, odom.tags | otags)
     elsefn = args[-1].elab(elab)
     rcod = rcod.unify(elab.dom, elab.sub)
 

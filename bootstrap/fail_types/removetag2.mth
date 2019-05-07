@@ -1,0 +1,10 @@
+
+type +NewTag
+
+f : +NewTag
+f = id
+
+g : --
+g = cond( false -> f, id )
+
+

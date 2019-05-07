@@ -1,0 +1,7 @@
+
+type +NewTag
+
+data T
+  A : +NewTag -- T
+end
+
