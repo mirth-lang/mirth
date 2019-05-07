@@ -35,13 +35,28 @@ digitVal =
     drop 0
   )
 
+hassign? : Str -- Str Bool
+hassign? = dup n1 strbreak drop cond(
+  dup "-" streq -> drop true,
+  dup "+" streq -> drop true,
+  drop false
+)
+hassign? drop == id
+
 readInt(base: Int) : Str -- Int
-readInt(base) = dip(0) strfold(dip(base z*) digitVal z+)
+readInt(base) =
+  hassign? if(
+    n1 strbreak readInt(base)
+    swap "-" streq if(zneg, id),
+    dip(0) strfold(dip(base z*) digitVal z+)
+  )
 
 readDecInt : Str -- Int
 readHexInt : Str -- Int
 readDecInt = readInt(10)
 readHexInt = n2 strbreak nip readInt(16)
+
+int->str readDecInt == id
 
 readStr    : Str -- Str
 wordToken  : Str -- Token  # basically TWORD but separates out reserved words.
