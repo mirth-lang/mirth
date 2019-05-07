@@ -1,5 +1,6 @@
 
 import base/maybe
+import base/panic
 export base/result
   type Result(e,t)
   Result.generate : e t Bool -- Result(e,t)
@@ -10,12 +11,19 @@ export base/result
   err? : Result(e,t) -- Result(e,t) Bool
   ok?  : Result(e,t) -- Result(e,t) Bool
 
-  relim(f : *a e -- *b, g : *a t -- *b) : *a Result(e,t) -- *b
+  result(f : *a e -- *b, g : *a t -- *b) : *a Result(e,t) -- *b
   rmap(f : a -- b) : Result(e,a) -- Result(e,b)
   rfor(f : *a t -- *a) : *a Result(e,t) -- *a
   rthen(f : a -- Result(e,b)) : Result(e,a) -- Result(e,b)
 
+
   result->maybe : Result(e,t) -- Maybe(t)
+
+  # panics on err
+  runwrap : Result(e,a) -- a
+
+  # panics on ok
+  runwrap_error : Result(e,a) -- e
 
 end
 
@@ -26,17 +34,21 @@ end
 
 Result.generate = if(drop err, nip ok)
 
-relim(f,g) = match(err -> f, ok -> g)
-rmap(f) = relim(err, f ok)
-rfor(f) = relim(drop, f)
-rthen(f) = relim(err, f)
+result(f,g) = match(err -> f, ok -> g)
+rmap(f) = result(err, f ok)
+rfor(f) = result(drop, f)
+rthen(f) = result(err, f)
 
-result->maybe = relim(drop none, some)
+result->maybe = result(drop none, some)
 
-err? = relim(err true, ok false)
-ok?  = relim(err false, ok true)
+err? = result(err true, ok false)
+ok?  = result(err false, ok true)
 
 err? drop == id
 ok?  drop == id
 err? == ok? not
+
+runwrap = result("runwrap on err" panic, id)
+runwrap_error = result(id, "runwrap_error on ok" panic)
+
 
