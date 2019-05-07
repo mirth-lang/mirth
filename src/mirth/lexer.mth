@@ -133,9 +133,15 @@ end
 unltoken : LToken -- Loc Loc Token
 unltoken = match( ltoken -> id )
 
+trimRegex : Regex
+trimRegex = " \t\r" cls star
+
+trim : Loc Str -- Loc Str
+trim = dup trimRegex regexMatch maybe(n0, id) strbreak dip(locNext)
+
 tokenizeAux : List(LToken) Loc Str -- Result(LexerError, List(LToken))
 tokenizeAux =
-  cond(
+  trim cond(
     strnull? -> drop2 ok,
     dup bestLexerMatch match( lexerMatch(f) ->
       maybe(
@@ -152,8 +158,6 @@ tokenizeAux =
 tokenize : Mod Str -- Result(LexerError, List(LToken))
 tokenize = dip2(nil) dip(locStart) tokenizeAux
 
-
-
 "10" tokenize
   == lambda(m -> nil m p1 p1 loc m p1 3 zpos loc 10 TINT ltoken cons ok)
 
@@ -169,10 +173,12 @@ tokenize = dip2(nil) dip(locStart) tokenizeAux
 "0xFF" tokenize
   == lambda(m -> nil m p1 p1 loc m p1 5 zpos loc 255 TINT ltoken cons ok)
 
+"  10" tokenize
+  == lambda(m -> nil m p1 3 zpos loc m p1 5 zpos loc 10 TINT ltoken cons ok)
 
-
-
-
+"" tokenize == drop nil ok
+"      " tokenize == drop nil ok
+"  \t  \r   " tokenize == drop nil ok
 
 
 
