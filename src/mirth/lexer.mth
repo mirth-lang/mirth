@@ -155,6 +155,24 @@ tokenize = dip2(nil) dip(locStart) tokenizeAux
 
 
 "10" tokenize
- == lambda(m -> nil m p1 p1 loc m p1 3 zpos loc 10 TINT ltoken cons ok)
+  == lambda(m -> nil m p1 p1 loc m p1 3 zpos loc 10 TINT ltoken cons ok)
+
+"+42" tokenize
+  == lambda(m -> nil m p1 p1 loc m p1 4 zpos loc +42 TINT ltoken cons ok)
+
+"-5133" tokenize
+  == lambda(m -> nil m p1 p1 loc m p1 6 zpos loc -5133 TINT ltoken cons ok)
+
+"0" tokenize
+  == lambda(m -> nil m p1 p1 loc m p1 2 zpos loc 0 TINT ltoken cons ok)
+
+"0xFF" tokenize
+  == lambda(m -> nil m p1 p1 loc m p1 5 zpos loc 255 TINT ltoken cons ok)
+
+
+
+
+
+
 
 
