@@ -58,8 +58,21 @@ readHexInt = n2 strbreak nip readInt(16)
 
 int->str readDecInt == id
 
-readStr    : Str -- Str
-wordToken  : Str -- Token  # basically TWORD but separates out reserved words.
+readStr   : Str -- Str
+wordToken : Str -- Token  # basically TNAME but separates out reserved words.
+wordToken =
+  cond(
+    dup "="      streq -> drop TEQUAL,
+    dup "=="     streq -> drop TEQUAL2,
+    dup "--"     streq -> drop TDASH2,
+    dup "import" streq -> drop TIMPORT,
+    dup "export" streq -> drop TEXPORT,
+    dup "type"   streq -> drop TTYPE,
+    dup "data"   streq -> drop TDATA,
+    dup "end"    streq -> drop TEND,
+    TNAME
+  )
+
 
 #
 # regexes
@@ -70,6 +83,13 @@ decIntRegex = "" lit "+-" cls alt2 "0123456789" cls plus seq2
 
 hexIntRegex : Regex
 hexIntRegex = "" lit "+-" cls alt2 "0" lit "xX" cls "0123456789abcdefABCDEF" cls plus seq4
+
+wordRegex : Regex
+wordRegex = "0123456789abcdefghijklmnopqrstuvwxyzzABCDEFGHIJKLMNOPQRSTUVWXYZ_-?+*~!@$%^&=/|<>'" cls plus
+
+trimRegex : Regex
+trimRegex = " \t\r" cls star    # need better cls support for comments.
+
 
 #
 #
@@ -84,14 +104,21 @@ lexerRules : List(LexerRule)
 lexerRules = $(
   nil
 
-  # ints
+  # literals
+  "(" lit lexerRule(drop TLPAREN) cons
+  ")" lit lexerRule(drop TRPAREN) cons
+  "," lit lexerRule(drop TCOMMA) cons
+  ":" lit lexerRule(drop TCOLON) cons
+
+  # regexes
   decIntRegex lexerRule(readDecInt TINT) cons
   hexIntRegex lexerRule(readHexInt TINT) cons
+  wordRegex   lexerRule(wordToken)       cons
+
+  # newlines
+  "\n" lit trimRegex "\n" lit seq2 star seq2 lexerRule(drop TNEWLINE) cons
 
   # strings
-  # TODO
-
-  # words -- we use wordToken to disambiguate between reserved words and regular words.
   # TODO
 )
 
@@ -132,9 +159,6 @@ end
 
 unltoken : LToken -- Loc Loc Token
 unltoken = match( ltoken -> id )
-
-trimRegex : Regex
-trimRegex = " \t\r" cls star
 
 trim : Loc Str -- Loc Str
 trim = dup trimRegex regexMatch maybe(n0, id) strbreak dip(locNext)
@@ -180,5 +204,8 @@ tokenize = dip2(nil) dip(locStart) tokenizeAux
 "      " tokenize == drop nil ok
 "  \t  \r   " tokenize == drop nil ok
 
+
+"foobar" tokenize
+  == lambda(m -> nil m p1 p1 loc m p1 7 zpos loc "foobar" TNAME ltoken cons ok)
 
 

@@ -11,7 +11,13 @@ export mirth/token
   TCOLON   : Token
   TEQUAL   : Token
   TEQUAL2  : Token
+  TDASH2   : Token
   TNEWLINE : Token
+  TEXPORT  : Token
+  TIMPORT  : Token
+  TDATA    : Token
+  TTYPE    : Token
+  TEND     : Token
 
   tokenIsInt?     : Token -- Token Bool
   tokenIsStr?     : Token -- Token Bool
@@ -22,6 +28,12 @@ export mirth/token
   tokenIsColon?   : Token -- Token Bool
   tokenIsEqual?   : Token -- Token Bool
   tokenIsEqual2?  : Token -- Token Bool
+  tokenIsDash2?   : Token -- Token Bool
+  tokenIsExport?  : Token -- Token Bool
+  tokenIsImport?  : Token -- Token Bool
+  tokenIsData?    : Token -- Token Bool
+  tokenIsType?    : Token -- Token Bool
+  tokenIsEnd?     : Token -- Token Bool
   tokenIsNewline? : Token -- Token Bool
 
   tokenGetInt     : Token -- Int
@@ -39,7 +51,13 @@ data Token
   TCOLON   : Token
   TEQUAL   : Token
   TEQUAL2  : Token
+  TDASH2   : Token
   TNEWLINE : Token
+  TEXPORT  : Token
+  TIMPORT  : Token
+  TDATA    : Token
+  TTYPE    : Token
+  TEND     : Token
 end
 
 tokenIsInt?     : Token -- Token Bool
@@ -61,7 +79,13 @@ tokenIsComma? = dup match( TCOMMA -> true, _ -> drop false )
 tokenIsColon? = dup match( TCOLON -> true, _ -> drop false )
 tokenIsEqual? = dup match( TEQUAL -> true, _ -> drop false )
 tokenIsEqual2? = dup match( TEQUAL2 -> true, _ -> drop false )
+tokenIsDash2? = dup match( TDASH2 -> true, _ -> drop false )
 tokenIsNewline? = dup match( TNEWLINE -> true, _ -> drop false )
+tokenIsExport? = dup match( TEXPORT -> true, _ -> drop false )
+tokenIsImport? = dup match( TIMPORT -> true, _ -> drop false )
+tokenIsData? = dup match( TDATA -> true, _ -> drop false )
+tokenIsType? = dup match( TTYPE -> true, _ -> drop false )
+tokenIsEnd? = dup match( TEND -> true, _ -> drop false )
 
 tokenGetInt     : Token -- Int
 tokenGetStr     : Token -- Str
