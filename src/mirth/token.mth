@@ -1,4 +1,9 @@
 
+
+import base/int
+import base/str
+
+import mirth/loc
 export mirth/token
   type Token
 
@@ -40,6 +45,15 @@ export mirth/token
   tokenGetStr     : Token -- Str
   tokenGetName    : Token -- Str
   tokenGetComment : Token -- Str
+
+  token->str : Token -- Str
+
+  type Loc
+  type LToken
+  ltoken : Loc Loc Token -- LToken
+  unltoken : LToken -- Loc Loc Token
+  ltoken->str : LToken -- Str
+
 end
 
 data Token
@@ -61,16 +75,6 @@ data Token
   TEND     : Token
 end
 
-tokenIsInt?     : Token -- Token Bool
-tokenIsStr?     : Token -- Token Bool
-tokenIsName?    : Token -- Token Bool
-tokenIsLParen?  : Token -- Token Bool
-tokenIsRParen?  : Token -- Token Bool
-tokenIsComma?   : Token -- Token Bool
-tokenIsColon?   : Token -- Token Bool
-tokenIsEqual?   : Token -- Token Bool
-tokenIsEqual2?  : Token -- Token Bool
-tokenIsNewline? : Token -- Token Bool
 tokenIsInt? = dup match( TINT -> drop true, _ -> drop false )
 tokenIsStr? = dup match( TSTR -> drop true, _ -> drop false )
 tokenIsName? = dup match( TNAME -> drop true, _ -> drop false )
@@ -96,4 +100,37 @@ tokenGetInt = match( TINT -> , _ -> drop 0 )
 tokenGetStr = match( TSTR -> , _ -> drop "" )
 tokenGetName = match( TNAME -> , _ -> drop "" )
 tokenGetComment = match( TNEWLINE -> , _ -> drop "" )
+
+
+token->str : Token -- Str
+token->str =
+  match(
+    TINT -> int->str " TINT" <>,
+    TSTR -> " TSTR" <>, # todo escape string
+    TNAME -> " TNAME" <>, # todo escape string
+    TNEWLINE -> " TNEWLINE" <>, # todo escape string
+    TLPAREN -> "TLPAREN",
+    TRPAREN -> "TRPAREN",
+    TCOMMA -> "TCOMMA",
+    TCOLON -> "TCOLON",
+    TEQUAL -> "TEQUAL",
+    TEQUAL2 -> "TEQUAL2",
+    TDASH2 -> "TDASH2",
+    TEXPORT -> "TEXPORT",
+    TIMPORT -> "TIMPORT",
+    TDATA -> "TDATA",
+    TTYPE -> "TTYPE",
+    TEND -> "TEND"
+  )
+
+
+data LToken
+  ltoken : Loc Loc Token -- LToken
+end
+
+unltoken : LToken -- Loc Loc Token
+unltoken = match( ltoken -> id )
+
+ltoken->str : LToken -- Str
+ltoken->str = unltoken dip(both(loc->str " " <>)) token->str <> <>
 

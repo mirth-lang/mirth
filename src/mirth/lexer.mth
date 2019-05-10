@@ -17,6 +17,7 @@ import mirth/token
 export mirth/lexer
   type LToken
   type LexerError
+  type Result(a,b)
   lexerError->str : LexerError -- Str
   tokenize : Mod Str -- Result(LexerError, List(LToken))
 end
@@ -205,13 +206,6 @@ unLexerError = match( lexerError -> id )
 
 lexerError->str : LexerError -- Str
 lexerError->str = unLexerError dip(loc->str ":" <>) <>
-
-data LToken
-  ltoken : Loc Loc Token -- LToken
-end
-
-unltoken : LToken -- Loc Loc Token
-unltoken = match( ltoken -> id )
 
 trim : Loc Str -- Loc Str
 trim = dup trimRegex regexMatch maybe(n0, id) strbreak dip(locNext)

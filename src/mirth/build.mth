@@ -3,9 +3,13 @@ import base/str
 import base/unit
 import base/list
 import base/path
+import base/panic
 import base/maybe
+import base/result
 import mirth/types/pkg
 import mirth/types/mod
+import mirth/token
+import mirth/lexer
 
 export mirth/build
   type +IO
@@ -23,8 +27,16 @@ findMods = $(
 buildPkgMods : Maybe(Pkg) List(Mod) -- Int +IO
 buildPkgMods = $(
   dip(maybe("no pkg", pkg->str) print)
-  for(mod->str print)
-  "mirth: Not yet implemented." print 0
+  cond(
+    nil? -> drop "No modules found." print 1,
+    no_panic_11(headL)
+    dup mod->str "Opening " swap <> trace
+    dup mod->path read
+    tokenize result(
+      lexerError->str print 1,
+      for(ltoken->str print) 0
+    )
+  )
 )
 
 buildPkg : Pkg -- Int +IO
