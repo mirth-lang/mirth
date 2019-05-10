@@ -1,8 +1,30 @@
 import base/unsafe
 
 export base/panic
-  panic : *a Str -- *b
+  type +Panic
+  panic : *a Str -- *b +Panic
+
+  # these all have fixed numbers of params because tags are not well developed in bootstrap
+  no_panic_11 (f: a -- b +Panic) : a -- b
+  no_panic_12 (f: a -- b1 b2 +Panic) : a -- b1 b2
+  no_panic_13 (f: a -- b1 b2 b3 +Panic) : a -- b1 b2 b3
+  no_panic_21 (f: a1 a2 -- b +Panic) : a1 a2 -- b
+  no_panic_22 (f: a1 a2 -- b1 b2 +Panic) : a1 a2 -- b1 b2
+  no_panic_23 (f: a1 a2 -- b1 b2 b3 +Panic) : a1 a2 -- b1 b2 b3
+  no_panic_31 (f: a1 a2 a3 -- b +Panic) : a1 a2 a3 -- b
+  no_panic_32 (f: a1 a2 a3 -- b1 b2 +Panic) : a1 a2 a3 -- b1 b2
+  no_panic_33 (f: a1 a2 a3 -- b1 b2 b3 +Panic) : a1 a2 a3 -- b1 b2 b3
 end
 
 panic = unsafe_panic
+
+no_panic_11 (f) = f unsafe_coerce
+no_panic_12 (f) = f unsafe_coerce
+no_panic_13 (f) = f unsafe_coerce
+no_panic_21 (f) = f unsafe_coerce
+no_panic_22 (f) = f unsafe_coerce
+no_panic_23 (f) = f unsafe_coerce
+no_panic_31 (f) = f unsafe_coerce
+no_panic_32 (f) = f unsafe_coerce
+no_panic_33 (f) = f unsafe_coerce
 

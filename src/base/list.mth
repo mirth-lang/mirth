@@ -6,17 +6,23 @@ import base/panic
 export base/list
   type Nat
   type Order(t)
+  type +Panic
 
-  nil    : List(t)
-  cat    : List(t) List(t) -- List(t)
-  ++     : List(t) List(t) -- List(t)
-  cons   : List(t) t -- List(t)
-  snoc   : t List(t) -- List(t)
+  nil : List(t)
+  cat : List(t) List(t) -- List(t)
+  ++ : List(t) List(t) -- List(t)
+  cons : List(t) t -- List(t)
+  snoc : t List(t) -- List(t)
+
+  consL : t List(t) -- List(t)
+  consR : List(t) t -- List(t)
 
   len? : List(t) -- List(t) Nat
   len  : List(t) -- Nat
 
-  nil?    : List(t) -- List(t) Bool
+  nil?  : List(t) -- List(t) Bool
+  null? : List(t) -- List(t) Bool
+  null  : List(t) -- Bool
 
   map(f: a -- b) : List(a) -- List(b)
   filter(f: b -- b Bool) : List(b) -- List(b)
@@ -28,15 +34,26 @@ export base/list
   break : List(t) Nat -- List(t) List(t)
   flatten : List(List(t)) -- List(t)
 
+  breakL : List(t) Nat -- List(t) List(t)
+  breakR : List(t) Nat -- List(t) List(t)
+  takeL : List(t) Nat -- List(t)
+  takeR : List(t) Nat -- List(t)
+  dropL : List(t) Nat -- List(t)
+  dropR : List(t) Nat -- List(t)
+
   lpure : t -- List(t)
   lbind (f: a -- List(b)) : List(a) -- List(b)
 
-  uncons : List(t) -- List(t) t   # panic on empty list
-  unsnoc : List(t) -- t List(t)   # panic on empty list
-  maximum (ord: Order(a)) : List(a) -- a   # panic on empty list
-  minimum (ord: Order(a)) : List(a) -- a   # panic on empty list
+  # Words that panic on empty list.
+  uncons : List(t) -- List(t) t +Panic
+  unsnoc : List(t) -- t List(t) +Panic
+  maximum (ord: Order(a)) : List(a) -- a +Panic
+  minimum (ord: Order(a)) : List(a) -- a +Panic
+  headL : List(t) -- t +Panic
+  headR : List(t) -- t +Panic
+  tailL : List(t) -- List(t) +Panic
+  tailR : List(t) -- List(t) +Panic
 end
-
 
 nil     = _prim_list_nil
 cat     = _prim_list_cat
@@ -46,6 +63,19 @@ map(f) = _prim_list_map(f)
 for(f) = _prim_list_for(f)
 break  = nint _prim_list_break
 
+consL = snoc
+consR = cons
+
+breakL = break
+breakR = dip(len?) n- znat break
+takeL = breakL drop
+takeR = breakR nip
+dropL = breakL nip
+dropR = breakR drop
+headL = unsnoc drop
+headR = uncons nip
+tailL = unsnoc nip
+tailR = uncons drop
 
 formap(f) = dip(nil) for(swap dip(f) swap cons)
 
@@ -60,7 +90,9 @@ filter(false) == drop nil
 snoc  = dip(dip(nil) cons) cat
 len?  = dup len
 nil?  = len? n0 n=
-
+null? = len? n0 n=
+null = null? nip
+null? drop == id
 
 
 flatten = dip(nil) for(cat)

@@ -194,7 +194,7 @@ bestLexerMatch =
     match( lexerRule(f) ->
       dip(dup) regexMatch lexerMatch(f)
     )
-  ) nip maximum(lexerMatchOrder)
+  ) nip no_panic_11(maximum(lexerMatchOrder))
 
 data LexerError
   lexerError : Loc Str -- LexerError
