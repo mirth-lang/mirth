@@ -226,33 +226,72 @@ tokenizeAux =
     )
   )
 
-tokenize : Mod Str -- Result(LexerError, List(LToken))
-tokenize = dip2(nil) dip(locStart) tokenizeAux
+pretokenize : Mod Str -- Result(LexerError, List(LToken))
+pretokenize = dip2(nil) dip(locStart) tokenizeAux
 
-"10" tokenize
+"10" pretokenize
   == lambda(m -> nil m p1 p1 loc m p1 3 zpos loc 10 TINT ltoken cons ok)
 
-"+42" tokenize
+"+42" pretokenize
   == lambda(m -> nil m p1 p1 loc m p1 4 zpos loc +42 TINT ltoken cons ok)
 
-"-5133" tokenize
+"-5133" pretokenize
   == lambda(m -> nil m p1 p1 loc m p1 6 zpos loc -5133 TINT ltoken cons ok)
 
-"0" tokenize
+"0" pretokenize
   == lambda(m -> nil m p1 p1 loc m p1 2 zpos loc 0 TINT ltoken cons ok)
 
-"0xFF" tokenize
+"0xFF" pretokenize
   == lambda(m -> nil m p1 p1 loc m p1 5 zpos loc 255 TINT ltoken cons ok)
 
-"  10" tokenize
+"  10" pretokenize
   == lambda(m -> nil m p1 3 zpos loc m p1 5 zpos loc 10 TINT ltoken cons ok)
 
-"" tokenize == drop nil ok
-"      " tokenize == drop nil ok
-"  \t     " tokenize == drop nil ok
+"" pretokenize == drop nil ok
+"      " pretokenize == drop nil ok
+"  \t     " pretokenize == drop nil ok
 
 
-"foobar" tokenize
+"foobar" pretokenize
   == lambda(m -> nil m p1 p1 loc m p1 7 zpos loc "foobar" TNAME ltoken cons ok)
+
+
+"(\n)" pretokenize
+  == lambda(m ->
+    nil
+    m p1 p1 loc m p1 p2 loc TLPAREN ltoken cons
+    m p1 p2 loc m p2 p1 loc "\n" TNEWLINE ltoken cons
+    m p2 p1 loc m p2 p2 loc TRPAREN ltoken cons
+    ok
+  )
+
+tokenize : Mod Str -- Result(LexerError, List(LToken))
+tokenize = pretokenize rmap(
+  dip(n0)
+  forfilter(
+    save(
+      unltoken dip(drop2) cond(
+        tokenIsLParen? -> drop n1+ pnat true,
+        tokenIsRParen? -> drop n1- znat true,
+        tokenIsNewline? -> drop n0?,
+        drop true
+      )
+    ) swap
+  )
+  nip
+)
+
+
+"(\n)" tokenize
+  == lambda(m ->
+    nil
+    m p1 p1 loc m p1 p2 loc TLPAREN ltoken cons
+    m p2 p1 loc m p2 p2 loc TRPAREN ltoken cons
+    ok
+  )
+
+
+
+
 
 

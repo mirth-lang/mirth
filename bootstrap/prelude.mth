@@ -40,6 +40,9 @@ rotr rotl == id
 rotl rotl == rotr
 rotr rotr == rotl
 
+save(f : *a c -- *b) : *a c -- *b c
+save(f) = dup dip(f)
+
 par(f : *a -- *b, g : c -- d) : *a c -- *b d
 par(f,g) = dip(f) g
 
@@ -71,6 +74,9 @@ over2 : a1 a2 b1 b2 -- a1 a2 b1 b2 a1 a2
 nip2  = dip2(drop2)
 tuck2 = dup2 dip2(swap2)
 over2 = dip2(dup2) swap2
+
+save2(f : *a c1 c2 -- *b) : *a c1 c2 -- *b c1 c2
+save2(f) = dup2 dip2(f)
 
 
 #
