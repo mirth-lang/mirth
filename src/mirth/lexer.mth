@@ -36,7 +36,7 @@ digitVal =
   )
 
 hassign? : Str -- Str Bool
-hassign? = dup n1 strbreak drop cond(
+hassign? = dup n1 strtakeL cond(
   dup "-" streq -> drop true,
   dup "+" streq -> drop true,
   drop false
@@ -54,11 +54,10 @@ readInt(base) =
 readDecInt : Str -- Int
 readHexInt : Str -- Int
 readDecInt = readInt(10)
-readHexInt = n2 strbreak nip readInt(16)
+readHexInt = n2 strdropL readInt(16)
 
 int->str readDecInt == id
 
-readStr   : Str -- Str
 wordToken : Str -- Token  # basically TNAME but separates out reserved words.
 wordToken =
   cond(
@@ -73,6 +72,35 @@ wordToken =
     TNAME
   )
 
+isEscapeChar? : Char -- Char Bool
+isEscapeChar? = dup "\\" str->char chareq
+
+interpretEscapedChar : Char -- Char
+interpretEscapedChar =
+  cond(
+    dup "n" str->char chareq -> drop "\n" str->char,
+    dup "r" str->char chareq -> drop "\r" str->char,
+    dup "t" str->char chareq -> drop "\t" str->char,
+    id
+  )
+
+
+readStringBody : Str -- Str
+readStringBody = dip("" false) strfold(
+  swap if(
+    cond(
+      isEscapeChar? -> drop true,
+      char->str <> false
+    ),
+    interpretEscapedChar char->str <> false
+  )
+) drop
+
+readString : Str -- Str
+readString = n1 strdropL n1 strdropR readStringBody
+
+readMultistring : Str -- Str
+readMultistring = 3 znat strdropL 3 znat strdropR readStringBody
 
 #
 # regexes
@@ -87,8 +115,32 @@ hexIntRegex = "" lit "+-" cls alt2 "0" lit "xX" cls "0123456789abcdefABCDEF" cls
 wordRegex : Regex
 wordRegex = "0123456789abcdefghijklmnopqrstuvwxyzzABCDEFGHIJKLMNOPQRSTUVWXYZ_-?+*~!@$%^&=/|<>'" cls plus
 
+stringChar : Regex
+stringChar = "\t !#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~" cls "\\" lit "ntr\\\"" cls seq2 alt2
+
+stringRegex : Regex
+stringRegex = "\"" lit stringChar star "\"" lit seq3
+
+multistringChar : Regex
+multistringChar = stringChar "\n" lit alt2
+
+multistringAtom : Regex
+multistringAtom = multistringChar "\"" lit multistringChar "\"" lit multistringChar seq2 alt2 seq2 alt2
+
+multistringRegex : Regex
+multistringRegex = "\"\"\"" lit multistringAtom star "\"\"\"" lit seq3
+
+visibleChar : Regex
+visibleChar = "\t !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~" cls
+
+commentRegex : Regex
+commentRegex = "#" lit visibleChar star seq2
+
 trimRegex : Regex
-trimRegex = " \t\r" cls star    # need better cls support for comments.
+trimRegex = " \t" cls star
+
+newlineRegex : Regex
+newlineRegex = commentRegex "\r\n" cls trimRegex seq2 alt2 plus
 
 
 #
@@ -116,10 +168,11 @@ lexerRules = $(
   wordRegex   lexerRule(wordToken)       cons
 
   # newlines
-  "\n" lit trimRegex "\n" lit seq2 star seq2 lexerRule(drop TNEWLINE) cons
+  newlineRegex lexerRule(TNEWLINE) cons
 
   # strings
-  # TODO
+  stringRegex lexerRule(readString TSTR) cons
+  multistringRegex lexerRule(readMultistring TSTR) cons
 )
 
 data LexerMatch
@@ -202,7 +255,7 @@ tokenize = dip2(nil) dip(locStart) tokenizeAux
 
 "" tokenize == drop nil ok
 "      " tokenize == drop nil ok
-"  \t  \r   " tokenize == drop nil ok
+"  \t     " tokenize == drop nil ok
 
 
 "foobar" tokenize

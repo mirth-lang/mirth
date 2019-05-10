@@ -44,7 +44,15 @@ export base/str
   strall? (p: Char -- Char Bool) : Str -- Str Bool
 
   strbreak : Str Nat -- Str Str
+  strbreakL : Str Nat -- Str Str
+  strbreakR : Str Nat -- Str Str
   strbreakWhen (p: Char -- Char Bool) : Str -- Str Str
+
+  strtakeL : Str Nat -- Str
+  strtakeR : Str Nat -- Str
+  strdropL : Str Nat -- Str
+  strdropR : Str Nat -- Str
+
   strprefix? : Str Str -- Str Str Bool
   strprefix  : Str Str -- Bool
   strsuffix? : Str Str -- Str Str Bool
@@ -266,3 +274,22 @@ strbreakWhen(f) = dip("") strBreakOnAux(f)
 strbreakWhen(islower?) <> == id
 strbreakWhen(isupper?) <> == id
 strbreakWhen(dup char->int z2% n0 n=) <> == id
+
+strbreakL : Str Nat -- Str Str
+strbreakL = strbreak
+
+strbreakR : Str Nat -- Str Str
+strbreakR = dip(strlen?) n- znat strbreak
+
+strtakeL : Str Nat -- Str
+strtakeL = strbreakL drop
+
+strdropL : Str Nat -- Str
+strdropL = strbreak nip
+
+strtakeR : Str Nat -- Str
+strtakeR = strbreakR nip
+
+strdropR : Str Nat -- Str
+strdropR = strbreakR drop
+
