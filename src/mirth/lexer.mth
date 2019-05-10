@@ -89,13 +89,17 @@ interpretEscapedChar =
 readStringBody : Str -- Str
 readStringBody = dip("" false) strfold(
   swap if(
+    interpretEscapedChar char->str <> false,
     cond(
       isEscapeChar? -> drop true,
       char->str <> false
-    ),
-    interpretEscapedChar char->str <> false
+    )
   )
 ) drop
+
+"nrt" readStringBody == "nrt"
+"\\n\\r\\t\\\\\\\"" readStringBody == "\n\r\t\\\""
+# TODO: Add unicode support \u0000.
 
 readString : Str -- Str
 readString = n1 strdropL n1 strdropR readStringBody

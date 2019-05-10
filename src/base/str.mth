@@ -28,6 +28,8 @@ export base/char
   '\n' : Char
   '\t' : Char
   '\r' : Char
+
+  showChar : Char -- Str
 end
 
 export base/str
@@ -60,6 +62,8 @@ export base/str
   streq : Str Str -- Bool
   <> : Str Str -- Str
   strfold(f : *a Char -- *a) : *a Str -- *a
+
+  showStr : Str -- Str
 end
 
 
@@ -292,4 +296,36 @@ strtakeR = strbreakR nip
 
 strdropR : Str Nat -- Str
 strdropR = strbreakR drop
+
+showDigitHex : Nat -- Str
+showDigitHex = nint dup 10 z< if(48, 55) z+ int->char char->str
+
+showCodepointHex : Int -- Str
+showCodepointHex = $(
+  16 zpos z/% showDigitHex
+  dip(16 zpos z/% showDigitHex) <>
+  dip(16 zpos z/% showDigitHex) <>
+  dip(16 zpos z/% showDigitHex) <>
+  dip(16 zpos z/% showDigitHex) <>
+  dip(16 zpos z% showDigitHex) <>
+)
+
+showCharBody : Char -- Str
+showCharBody =
+  char->int cond(
+    dup 9  z= -> drop "\\t",
+    dup 10 z= -> drop "\\n",
+    dup 13 z= -> drop "\\r",
+    dup 34 z= -> drop "\\\"",
+    dup 92 z= -> drop "\\\\",
+    and?(dup 32 z>=, dup 127 z<) -> int->char char->str,
+    dip("\\u") showCodepointHex <>
+  )
+
+showChar = showCharBody dip("'") "'" <> <>
+showStr = dip("\"") strfold(showCharBody <>) "\"" <>
+
+"tnrfoo" showStr == "\"tnrfoo\""
+"\t\n\r\\\"" showStr == "\"\\t\\n\\r\\\\\\\"\""
+272 int->char char->str showStr == "\"\\u000110\""
 

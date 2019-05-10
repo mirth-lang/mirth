@@ -106,9 +106,9 @@ token->str : Token -- Str
 token->str =
   match(
     TINT -> int->str " TINT" <>,
-    TSTR -> " TSTR" <>, # todo escape string
-    TNAME -> " TNAME" <>, # todo escape string
-    TNEWLINE -> " TNEWLINE" <>, # todo escape string
+    TSTR -> showStr " TSTR" <>,
+    TNAME -> showStr " TNAME" <>,
+    TNEWLINE -> showStr " TNEWLINE" <>,
     TLPAREN -> "TLPAREN",
     TRPAREN -> "TRPAREN",
     TCOMMA -> "TCOMMA",
