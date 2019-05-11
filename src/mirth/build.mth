@@ -8,6 +8,7 @@ import base/maybe
 import base/result
 import mirth/types/pkg
 import mirth/types/mod
+import mirth/loc
 import mirth/token
 import mirth/lexer
 
@@ -34,7 +35,7 @@ buildPkgMods = $(
     dup mod->path read
     tokenize result(
       lexerError->str print 1,
-      for(ltoken->str print) 0
+      for(getL token->str print) 0
     )
   )
 )

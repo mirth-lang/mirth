@@ -15,11 +15,11 @@ import mirth/loc
 import mirth/token
 
 export mirth/lexer
-  type LToken
   type LexerError
   type Result(a,b)
+  type L(t)
   lexerError->str : LexerError -- Str
-  tokenize : Mod Str -- Result(LexerError, List(LToken))
+  tokenize : Mod Str -- Result(LexerError, List(L(Token)))
 end
 
 #
@@ -210,65 +210,65 @@ lexerError->str = unLexerError dip(loc->str ":" <>) <>
 trim : Loc Str -- Loc Str
 trim = dup trimRegex regexMatch maybe(n0, id) strbreak dip(locNext)
 
-tokenizeAux : List(LToken) Loc Str -- Result(LexerError, List(LToken))
-tokenizeAux =
+pretokenizeAux : List(L(Token)) Loc Str -- Result(LexerError, List(L(Token)))
+pretokenizeAux =
   trim cond(
     strnull? -> drop2 ok,
     dup bestLexerMatch match( lexerMatch(f) ->
       maybe(
         drop nip "Unrecognized token." lexerError err,
         strbreak dip(
-          dip(dup) dup
-          dip(locNext) f over
-          dip(ltoken cons)
-        ) tokenizeAux
+          dup f
+          dip(locSpan locSpanEnd? dip(locSetSpan))
+          swap dip(mkL cons)
+        ) pretokenizeAux
       )
     )
   )
 
-pretokenize : Mod Str -- Result(LexerError, List(LToken))
-pretokenize = dip2(nil) dip(locStart) tokenizeAux
+pretokenize : Mod Str -- Result(LexerError, List(L(Token)))
+pretokenize = dip2(nil) dip(locStart) pretokenizeAux
 
 "10" pretokenize
-  == lambda(m -> nil m p1 p1 loc m p1 3 zpos loc 10 TINT ltoken cons ok)
+  == dip(nil) locStart "10" locSpan locSetSpan 10 TINT mkL cons ok
 
 "+42" pretokenize
-  == lambda(m -> nil m p1 p1 loc m p1 4 zpos loc +42 TINT ltoken cons ok)
+  == dip(nil) locStart "+42" locSpan locSetSpan +42 TINT mkL cons ok
 
 "-5133" pretokenize
-  == lambda(m -> nil m p1 p1 loc m p1 6 zpos loc -5133 TINT ltoken cons ok)
+  == dip(nil) locStart "-5133" locSpan locSetSpan -5133 TINT mkL cons ok
 
 "0" pretokenize
-  == lambda(m -> nil m p1 p1 loc m p1 2 zpos loc 0 TINT ltoken cons ok)
+  == dip(nil) locStart "0" locSpan locSetSpan 0 TINT mkL cons ok
 
 "0xFF" pretokenize
-  == lambda(m -> nil m p1 p1 loc m p1 5 zpos loc 255 TINT ltoken cons ok)
+  == dip(nil) locStart "0xFF" locSpan locSetSpan 255 TINT mkL cons ok
 
 "  10" pretokenize
-  == lambda(m -> nil m p1 3 zpos loc m p1 5 zpos loc 10 TINT ltoken cons ok)
+  == dip(nil) p1 3 zpos loc "10" locSpan locSetSpan 10 TINT mkL cons ok
 
 "" pretokenize == drop nil ok
 "      " pretokenize == drop nil ok
 "  \t     " pretokenize == drop nil ok
 
 "foobar" pretokenize
-  == lambda(m -> nil m p1 p1 loc m p1 7 zpos loc "foobar" TNAME ltoken cons ok)
+  == dip(nil) locStart "foobar" locSpan locSetSpan "foobar" TNAME mkL cons ok
 
 "(\n)" pretokenize
   == lambda(m ->
     nil
-    m p1 p1 loc m p1 p2 loc TLPAREN ltoken cons
-    m p1 p2 loc m p2 p1 loc "\n" TNEWLINE ltoken cons
-    m p2 p1 loc m p2 p2 loc TRPAREN ltoken cons
+    m p1 p1 loc "(" locSpan locSetSpan TLPAREN mkL cons
+    m p1 p2 loc "\n" locSpan locSetSpan "\n" TNEWLINE mkL cons
+    m p2 p1 loc ")" locSpan locSetSpan TRPAREN mkL cons
     ok
   )
 
-tokenize : Mod Str -- Result(LexerError, List(LToken))
+tokenize : Mod Str -- Result(LexerError, List(L(Token)))
 tokenize = pretokenize rmap(
   dip(n0)
   forfilter(
     save(
-      unltoken dip(drop2) cond(
+      getL cond(
         tokenIsLParen? -> drop n1+ pnat true,
         tokenIsRParen? -> drop n1- znat true,
         tokenIsNewline? -> drop n0?,
@@ -282,8 +282,8 @@ tokenize = pretokenize rmap(
 "(\n)" tokenize
   == lambda(m ->
     nil
-    m p1 p1 loc m p1 p2 loc TLPAREN ltoken cons
-    m p2 p1 loc m p2 p2 loc TRPAREN ltoken cons
+    m p1 p1 loc "(" locSpan locSetSpan TLPAREN mkL cons
+    m p2 p1 loc ")" locSpan locSetSpan TRPAREN mkL cons
     ok
   )
 

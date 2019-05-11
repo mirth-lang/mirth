@@ -1,7 +1,6 @@
 
 import base/int
 import base/str
-import mirth/loc
 
 export mirth/token
   type Token
@@ -46,13 +45,6 @@ export mirth/token
   tokenGetComment : Token -- Str
 
   token->str : Token -- Str
-
-  type Loc
-  type LToken
-  ltoken : Loc Loc Token -- LToken
-  unltoken : LToken -- Loc Loc Token
-  ltoken->str : LToken -- Str
-
 end
 
 data Token
@@ -120,14 +112,4 @@ token->str =
     TTYPE -> "TTYPE",
     TEND -> "TEND"
   )
-
-data LToken
-  ltoken : Loc Loc Token -- LToken
-end
-
-unltoken : LToken -- Loc Loc Token
-unltoken = match( ltoken -> id )
-
-ltoken->str : LToken -- Str
-ltoken->str = unltoken dip(both(loc->str " " <>)) token->str <> <>
 
