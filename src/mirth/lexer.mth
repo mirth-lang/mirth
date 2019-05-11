@@ -22,7 +22,6 @@ export mirth/lexer
   tokenize : Mod Str -- Result(LexerError, List(LToken))
 end
 
-
 #
 # auxiliary lexing functions
 #
@@ -85,7 +84,6 @@ interpretEscapedChar =
     id
   )
 
-
 readStringBody : Str -- Str
 readStringBody = dip("" false) strfold(
   swap if(
@@ -147,7 +145,6 @@ trimRegex = " \t" cls star
 newlineRegex : Regex
 newlineRegex = commentRegex "\r\n" cls trimRegex seq2 alt2 plus
 
-
 #
 #
 #
@@ -155,7 +152,6 @@ newlineRegex = commentRegex "\r\n" cls trimRegex seq2 alt2 plus
 data LexerRule
   lexerRule(f: Str -- Token) : Regex -- LexerRule
 end
-
 
 lexerRules : List(LexerRule)
 lexerRules = $(
@@ -255,10 +251,8 @@ pretokenize = dip2(nil) dip(locStart) tokenizeAux
 "      " pretokenize == drop nil ok
 "  \t     " pretokenize == drop nil ok
 
-
 "foobar" pretokenize
   == lambda(m -> nil m p1 p1 loc m p1 7 zpos loc "foobar" TNAME ltoken cons ok)
-
 
 "(\n)" pretokenize
   == lambda(m ->
@@ -285,7 +279,6 @@ tokenize = pretokenize rmap(
   nip
 )
 
-
 "(\n)" tokenize
   == lambda(m ->
     nil
@@ -293,9 +286,5 @@ tokenize = pretokenize rmap(
     m p2 p1 loc m p2 p2 loc TRPAREN ltoken cons
     ok
   )
-
-
-
-
 
 

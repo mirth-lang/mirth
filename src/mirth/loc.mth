@@ -57,7 +57,6 @@ export mirth/loc
   formapL2 (f: *a b c -- *d e) : *a L(b) L(c) -- *d L(e)
   formapL3 (f: *a b c d -- *e f) : *a L(b) L(c) L(d) -- *e L(f)
 
-
 end
 
 data Loc
@@ -134,7 +133,6 @@ unsafe_locMax = max(unsafe_locOrder)
 unsafe_locMin : Loc Loc -- Loc
 unsafe_locMin = min(unsafe_locOrder)
 
-
 data LocSpan
   _locSpan : Loc Loc -- LocSpan
 end
@@ -194,8 +192,5 @@ mapL3(f) = mapL2(pack2) mapL2(unpack2 f)
 formapL(f) = unL swap dip(f) swap mkL
 formapL2(f) = mapL2(pack2) formapL(unpack2 f)
 formapL3(f) = mapL2(pack2) formapL2(unpack2 f)
-
-
-
 
 
