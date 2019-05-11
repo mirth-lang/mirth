@@ -18,6 +18,9 @@ export mirth/types/pkg
   anonPkg : Nat  -- Pkg
   pathPkg : Path -- Pkg
 
+  pkg=  : Pkg Pkg -- Bool
+  pkg=? : Pkg Pkg -- Pkg Pkg Bool
+
   pkg->str  : Pkg -- Str
   pkg->path : Pkg -- Path  # panic on anonPkg
 end
@@ -33,6 +36,9 @@ export mirth/types/mod
   anonMod : Nat  -- Mod
   pathMod : Path -- Mod
   pkgMod  : Pkg Path -- Mod
+
+  mod=  : Mod Mod -- Bool
+  mod=? : Mod Mod -- Mod Mod Bool
 
   mod->str  : Mod -- Str
   mod->path : Mod -- Path  # panic on anonMod
@@ -54,6 +60,12 @@ pkg->path = match(
 )
 pathPkg pkg->path == id
 
+pkg=? = dup2 pkg=
+pkg= = match(
+  anonPkg -> swap match(anonPkg -> n=, _ -> drop2 false),
+  pathPkg -> swap match(pathPkg -> path=, _ -> drop2 false)
+)
+
 data Mod
   anonMod : Nat      -- Mod
   pathMod : Path     -- Mod
@@ -71,4 +83,14 @@ mod->path = match(
   pathMod -> id,
   pkgMod  -> nip
 )
+
+mod=? = dup2 mod=
+mod= = match(
+  anonMod -> swap match(anonMod -> n=, _ -> drop2 false),
+  pathMod -> swap match(pathMod -> path=, _ -> drop2 false),
+  pkgMod -> rotl match(pkgMod -> dip(swap dip(pkg=)) path= and, _ -> drop3 false)
+)
+
+
+
 

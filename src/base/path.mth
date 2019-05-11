@@ -23,6 +23,9 @@ export base/path
   nilpath  : Path
   nilpath? : Path -- Path Bool
 
+  path=  : Path Path -- Bool
+  path=? : Path Path -- Path Path Bool
+
   pathHasExtension? (ext: Str) : Path -- Path Bool
 
   </> : Path Path -- Path
@@ -132,6 +135,9 @@ nilpath </> nilpath </> == nilpath </>
 
 <.> = dip(unpath ".") <> <> path
 
-
 pathHasExtension?(e) = "." e <> over unpath strsuffix
+
+path=  = both(unpath) streq
+path=? = dup2 path=
+
 

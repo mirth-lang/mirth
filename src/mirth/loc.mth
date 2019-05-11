@@ -2,7 +2,10 @@
 import base/nat
 import base/pos
 import base/char
+import base/list
 import base/str
+import base/panic
+import base/order
 
 import mirth/types/mod
 export mirth/loc
@@ -22,6 +25,39 @@ export mirth/loc
   locNextCol   : Loc -- Loc
   locNextChar  : Loc Char -- Loc
   locNext      : Loc Str  -- Loc
+
+  type LocSpan
+  LocSpan.generate : Int Int Int Str -- LocSpan
+  locSpan       : Loc Str -- LocSpan
+  locSpanMod    : LocSpan -- Mod
+  locSpanStart  : LocSpan -- Loc
+  locSpanEnd    : LocSpan -- Loc
+  locSpanMod?   : LocSpan -- LocSpan Mod
+  locSpanStart? : LocSpan -- LocSpan Loc
+  locSpanEnd?   : LocSpan -- LocSpan Loc
+
+  type LocSet
+  LocSet.generate : List(Pack(Int Int Int Str)) -- LocSet
+  locSetNull : LocSet
+  locSetSpan : LocSpan -- LocSet
+  locSetCons : LocSet LocSpan -- LocSet
+  locSetJoin : LocSet LocSet -- LocSet
+
+  type L(t)
+  L.generate : List(Pack(Int Int Int Str)) t -- L(t)
+  mkL : LocSet t -- L(t)
+  unL : L(t) -- LocSet t
+  getL : L(t) -- t
+  setL : L(a) b -- L(b)
+  pureL : t -- L(t)
+  mapL (f: a -- b)  : L(a) -- L(b)
+  mapL2 (f: a b -- c) : L(a) L(b) -- L(c)
+  mapL3 (f: a b c -- d) : L(a) L(b) L(c) -- L(d)
+  formapL (f: *a b -- *c d) : *a L(b) -- *c L(d)
+  formapL2 (f: *a b c -- *d e) : *a L(b) L(c) -- *d L(e)
+  formapL3 (f: *a b c d -- *e f) : *a L(b) L(c) L(d) -- *e L(f)
+
+
 end
 
 data Loc
@@ -75,4 +111,91 @@ locNextChar =
 locNext = strfold(locNextChar)
 
 locStart "a\nb\nc" locNext == 3 zpos p2 loc
+
+# only call when both locs have same mod
+unsafe_locCmp : Loc Loc -- Comp
+unsafe_locCmp = $(
+  dup2 both(locRow) pcmp
+  cmpeq? if(
+    drop both(locCol) pcmp,
+    dip(drop2)
+  )
+)
+
+# only use to compare locs of same mod
+unsafe_locOrder : Order(Loc)
+unsafe_locOrder = MkOrder(dup2 unsafe_locCmp)
+
+# only call when both locs have same mod
+unsafe_locMax : Loc Loc -- Loc
+unsafe_locMax = max(unsafe_locOrder)
+
+# only call when both locs have same mod
+unsafe_locMin : Loc Loc -- Loc
+unsafe_locMin = min(unsafe_locOrder)
+
+
+data LocSpan
+  _locSpan : Loc Loc -- LocSpan
+end
+
+LocSpan.generate = dip(Loc.generate) locSpan
+locSpan       = dip(dup) locNext _locSpan
+locSpanMod    = locSpanStart locMod
+locSpanStart  = match( _locSpan -> drop )
+locSpanEnd    = match( _locSpan -> nip )
+locSpanMod?   = dup locSpanMod
+locSpanStart? = dup locSpanStart
+locSpanEnd?   = dup locSpanEnd
+
+# only call this if both locspans are of the same module.
+unsafe_locSpanJoin : LocSpan LocSpan -- LocSpan
+unsafe_locSpanJoin = $(
+  dip(match(_locSpan -> id)) match(_locSpan -> id)
+  dip(swap) dip2(unsafe_locMin) unsafe_locMax _locSpan
+)
+
+data LocSet
+  _locSet : List(LocSpan) -- LocSet
+end
+
+LocSet.generate = dip(locSetNull) for(unpack4 LocSpan.generate locSetCons)
+locSetNull = nil _locSet
+locSetSpan = nil snoc _locSet
+locSetJoin = match( _locSet -> for(locSetCons) )
+
+locSetConsAux : List(LocSpan) LocSpan List(LocSpan) -- List(LocSpan)
+locSetConsAux =
+  cond(
+    nil? -> drop cons,
+    no_panic_12(unsnoc) rotr
+    dup2 both(locSpanMod) mod= if(
+      unsafe_locSpanJoin dip(++) swap snoc,
+      rotr swap dip2(cons) locSetConsAux
+    )
+  )
+
+locSetCons =
+  swap match( _locSet -> dip2(nil) locSetConsAux _locSet )
+
+data L(t)
+  mkL : LocSet t -- L(t)
+end
+
+L.generate = dip(LocSet.generate) mkL
+unL = match( mkL -> id )
+getL = unL nip
+setL = dip(unL drop) mkL
+pureL = dip(locSetNull) mkL
+mapL(f) = unL f mkL
+mapL2(f) = dip(unL) unL dip(swap) dip2(locSetJoin) f mkL
+mapL3(f) = mapL2(pack2) mapL2(unpack2 f)
+
+formapL(f) = unL swap dip(f) swap mkL
+formapL2(f) = mapL2(pack2) formapL(unpack2 f)
+formapL3(f) = mapL2(pack2) formapL2(unpack2 f)
+
+
+
+
 
