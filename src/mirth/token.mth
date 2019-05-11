@@ -8,7 +8,8 @@ export mirth/token
   TINT     : Int -- Token
   TSTR     : Str -- Token
   TNAME    : Str -- Token
-  TNEWLINE : Str -- Token # includes comment
+  TDOC     : Str -- Token
+  TNEWLINE : Token
   TLPAREN  : Token
   TRPAREN  : Token
   TCOMMA   : Token
@@ -25,6 +26,8 @@ export mirth/token
   tokenIsInt?     : Token -- Token Bool
   tokenIsStr?     : Token -- Token Bool
   tokenIsName?    : Token -- Token Bool
+  tokenIsDoc?     : Token -- Token Bool
+  tokenIsNewline? : Token -- Token Bool
   tokenIsLParen?  : Token -- Token Bool
   tokenIsRParen?  : Token -- Token Bool
   tokenIsComma?   : Token -- Token Bool
@@ -37,12 +40,11 @@ export mirth/token
   tokenIsData?    : Token -- Token Bool
   tokenIsType?    : Token -- Token Bool
   tokenIsEnd?     : Token -- Token Bool
-  tokenIsNewline? : Token -- Token Bool
 
-  tokenGetInt     : Token -- Int
-  tokenGetStr     : Token -- Str
-  tokenGetName    : Token -- Str
-  tokenGetComment : Token -- Str
+  tokenGetInt  : Token -- Int
+  tokenGetStr  : Token -- Str
+  tokenGetName : Token -- Str
+  tokenGetDoc  : Token -- Str
 
   token->str : Token -- Str
 end
@@ -51,7 +53,8 @@ data Token
   TINT     : Int -- Token
   TSTR     : Str -- Token
   TNAME    : Str -- Token
-  TNEWLINE : Str -- Token
+  TDOC     : Str -- Token
+  TNEWLINE : Token
   TLPAREN  : Token
   TRPAREN  : Token
   TCOMMA   : Token
@@ -69,7 +72,8 @@ end
 tokenIsInt? = dup match( TINT -> drop true, _ -> drop false )
 tokenIsStr? = dup match( TSTR -> drop true, _ -> drop false )
 tokenIsName? = dup match( TNAME -> drop true, _ -> drop false )
-tokenIsNewline? = dup match( TNEWLINE -> drop true, _ -> drop false )
+tokenIsDoc? = dup match( TDOC -> drop true, _ -> drop false )
+tokenIsNewline? = dup match( TNEWLINE -> true, _ -> drop false )
 tokenIsLParen? = dup match( TLPAREN -> true, _ -> drop false )
 tokenIsRParen? = dup match( TRPAREN -> true, _ -> drop false )
 tokenIsComma? = dup match( TCOMMA -> true, _ -> drop false )
@@ -87,10 +91,10 @@ tokenGetInt     : Token -- Int
 tokenGetStr     : Token -- Str
 tokenGetName    : Token -- Str
 tokenGetComment : Token -- Str
-tokenGetInt = match( TINT -> , _ -> drop 0 )
-tokenGetStr = match( TSTR -> , _ -> drop "" )
-tokenGetName = match( TNAME -> , _ -> drop "" )
-tokenGetComment = match( TNEWLINE -> , _ -> drop "" )
+tokenGetInt  = match( TINT  -> id, _ -> drop 0 )
+tokenGetStr  = match( TSTR  -> id, _ -> drop "" )
+tokenGetName = match( TNAME -> id, _ -> drop "" )
+tokenGetDoc  = match( TDOC  -> id, _ -> drop "" )
 
 token->str : Token -- Str
 token->str =
@@ -98,7 +102,8 @@ token->str =
     TINT -> int->str " TINT" <>,
     TSTR -> showStr " TSTR" <>,
     TNAME -> showStr " TNAME" <>,
-    TNEWLINE -> showStr " TNEWLINE" <>,
+    TDOC -> showStr " TDOC" <>,
+    TNEWLINE -> "TNEWLINE",
     TLPAREN -> "TLPAREN",
     TRPAREN -> "TRPAREN",
     TCOMMA -> "TCOMMA",

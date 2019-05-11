@@ -105,6 +105,9 @@ readString = n1 strdropL n1 strdropR readStringBody
 readMultistring : Str -- Str
 readMultistring = 3 znat strdropL 3 znat strdropR readStringBody
 
+readDoc : Str -- Str
+readDoc = 3 znat strbreak nip n1 strbreak over " " streq if(nip, <>)
+
 #
 # regexes
 #
@@ -145,6 +148,9 @@ trimRegex = " \t" cls star
 newlineRegex : Regex
 newlineRegex = commentRegex "\r\n" cls trimRegex seq2 alt2 plus
 
+docRegex : Regex
+docRegex = "|||" lit visibleChar star seq2
+
 #
 #
 #
@@ -164,12 +170,13 @@ lexerRules = $(
   ":" lit lexerRule(drop TCOLON) cons
 
   # regexes
+  docRegex lexerRule(readDoc TDOC) cons
   decIntRegex lexerRule(readDecInt TINT) cons
   hexIntRegex lexerRule(readHexInt TINT) cons
   wordRegex   lexerRule(wordToken)       cons
 
   # newlines
-  newlineRegex lexerRule(TNEWLINE) cons
+  newlineRegex lexerRule(drop TNEWLINE) cons
 
   # strings
   stringRegex lexerRule(readString TSTR) cons
@@ -258,8 +265,17 @@ pretokenize = dip2(nil) dip(locStart) pretokenizeAux
   == lambda(m ->
     nil
     m p1 p1 loc "(" locSpan locSetSpan TLPAREN mkL cons
-    m p1 p2 loc "\n" locSpan locSetSpan "\n" TNEWLINE mkL cons
+    m p1 p2 loc "\n" locSpan locSetSpan TNEWLINE mkL cons
     m p2 p1 loc ")" locSpan locSetSpan TRPAREN mkL cons
+    ok
+  )
+
+"||| foo bar\n|||foo" pretokenize
+  == lambda(m ->
+    nil
+    m p1 p1 loc "||| foo bar" locSpan locSetSpan "foo bar" TDOC mkL cons
+    m p1 12 zpos loc "\n" locSpan locSetSpan TNEWLINE mkL cons
+    m p2 p1 loc "|||foo" locSpan locSetSpan "foo" TDOC mkL cons
     ok
   )
 
