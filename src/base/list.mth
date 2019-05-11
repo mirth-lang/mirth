@@ -85,7 +85,6 @@ forfilter(f) = dip(nil) for(swap dip(f) rotr if(cons, drop))
 filter(true) == id
 filter(false) == drop nil
 
-
 ++    = cat
 snoc  = dip(dip(nil) cons) cat
 len?  = dup len
@@ -93,7 +92,6 @@ nil?  = len? n0 n=
 null? = len? n0 n=
 null = null? nip
 null? drop == id
-
 
 flatten = dip(nil) for(cat)
 

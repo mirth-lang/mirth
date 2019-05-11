@@ -205,7 +205,6 @@ z2* = z2 z*
 z2/ = p2 z/
 z2% = p2 z%
 
-
 n+ = nint2 z+ _nat
 n- = nint2 z-
 n* = nint2 z* _nat
@@ -240,7 +239,6 @@ n2/ = p2 n/
 n2% = p2 n%
 
 nsplit = dup par(n2/, n2%) over dip(n+)
-
 
 p+ = pnat2 n+ _pos
 p- = pint2 z-

@@ -66,7 +66,6 @@ eps? =
     star -> star true
   )
 
-
 seq2' : Regex Regex -- Regex
 seq2' =
   cond(
@@ -105,7 +104,6 @@ derive =
     star -> dup dip(derive) star' seq2'
   )
 
-
 regexMatchAux : Maybe(Nat) Nat Str Regex -- Maybe(Nat)
 regexMatchAux =
   cond(
@@ -128,8 +126,6 @@ fail regexMatch == drop none
 "foobar" "food" lit star regexMatch == n0 some
 "foobar" "food" lit regexMatch == none
 
-
 "abc" "ab" cls star regexMatch == 2 znat some
-
 
 

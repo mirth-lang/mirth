@@ -16,7 +16,6 @@ export base/result
   rfor(f : *a t -- *a) : *a Result(e,t) -- *a
   rthen(f : a -- Result(e,b)) : Result(e,a) -- Result(e,b)
 
-
   result->maybe : Result(e,t) -- Maybe(t)
 
   # panics on err

@@ -39,7 +39,6 @@ export base/order
   mkcmp? (l?: a a -- a a Bool) : a a -- a a Comp
   mkcmp  (l?: a a -- a a Bool) : a a -- Comp
 
-
   max (ord: Order(a)) : a a -- a
   min (ord: Order(a)) : a a -- a
 end
