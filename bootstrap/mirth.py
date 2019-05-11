@@ -534,7 +534,8 @@ def parsetoks(tokens):
     p_atom = memo(alt(p_str, p_int, p_word))
     p_expr = memo(fmap(expr, star(p_atom)))
 
-    p_word_sig_param = fmapseq(lambda a,_,b,c: (a,b,c),
+    p_word_sig_param = fmapseq(lambda _0,a,_,b,c: (a,b,c),
+        star(p_line),
         p_name,
         test(token.is_colon),
         alt(
@@ -569,7 +570,10 @@ def parsetoks(tokens):
     )
 
     p_word_def_params = alt(
-        parens(starsep(p_comma, p_name)),
+        parens(starsep(
+            seq(star(p_line), p_comma, star(p_line)),
+            fmapseq(lambda a,b,c: b, star(p_line), p_name, star(p_line))
+        )),
         pure(lambda: []),
     )
 
