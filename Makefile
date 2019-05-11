@@ -2,6 +2,9 @@
 build:
 	python3 bootstrap/mirth.py src build
 
+typecheck:
+	python3 bootstrap/mirth.py --typecheck src
+
 test:
 	python3 test.py
 
@@ -10,5 +13,5 @@ install-vim:
 	rm -rf ~/.vim/bundle/mirth-vim
 	cp -r tools/mirth-vim ~/.vim/bundle/
 
-.PHONY: build test
+.PHONY: build test typecheck install-vim
 

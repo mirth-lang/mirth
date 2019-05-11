@@ -28,20 +28,29 @@ random.seed('mirth bootstrap')
 def main():
     import sys
 
-    try:
-        i = sys.argv.index('--no-prelude')
-        del sys.argv[i]
-        with_prelude = False
-    except ValueError:
-        with_prelude = True
+    flags = {
+        'no-prelude': False,
+        'typecheck': False,
+    }
+
+    def check_flag(p):
+        try:
+            i = sys.argv.index('--' + p)
+            del sys.argv[i]
+            flags[p] = True
+        except ValueError:
+            flags[p] = False
+
+    check_flag('no-prelude')
+    check_flag('typecheck')
 
     if len(sys.argv) == 1:
-        repl(with_prelude=with_prelude)
+        repl(flags)
     elif sys.argv[1:] == ['--doctest']:
         import doctest
         doctest.testmod()
     else:
-        interpret(sys.argv[1], sys.argv[2:], with_prelude=with_prelude)
+        interpret(sys.argv[1], sys.argv[2:], flags)
 
 def load_prelude():
     p = os.path.dirname(os.path.realpath(__file__))
@@ -56,20 +65,21 @@ def load_prelude():
 
     return m
 
-def interpret(path, args, with_prelude=True):
+def interpret(path, args, flags):
     try:
         with open(path) as fp:
             preamble, decls = parse(fp)
         if preamble:
             raise SyntaxError("%s: import/export statements in single file mode." % path)
 
-        m = load_prelude() if with_prelude else module()
+        m = load_prelude() if not flags['no-prelude'] else module()
         for d in decls:
             d.decl(m)
 
-        m.check_assertions()
+        if not flags['typecheck']:
+            m.check_assertions()
 
-        if 'main' in m.word_defs:
+        if 'main' in m.word_defs and not flags['typecheck']:
             (ps,dom,cod) = m.word_sigs['main']
             exp_dom = tpack(None, [tlist(tstr)] if len(dom.args) > 0 else [])
             exp_cod = tpack(None, [tint] if len(cod.args) > 0 else [], cod.tags)
@@ -81,7 +91,7 @@ def interpret(path, args, with_prelude=True):
             e.run(timeout=10000000000000)
             sys.exit(e.pop())
     except IsADirectoryError as e:
-        run_package(path, args, with_prelude)
+        run_package(path, args, flags)
     except TypeError as e:
         print('TypeError:', e, file=sys.stderr)
         sys.exit(1)
@@ -89,7 +99,7 @@ def interpret(path, args, with_prelude=True):
         print('SyntaxError:', e, file=sys.stderr)
         sys.exit(1)
 
-def repl(with_prelude=True):
+def repl(flags):
     # REPL banner
     print()
     print('Mirth Bootstrap Interpreter v0.0.0: CAVEAT USOR.')
@@ -98,7 +108,7 @@ def repl(with_prelude=True):
     print('And a special thanks to Benjohn.')
     print()
 
-    m = load_prelude() if with_prelude else module()
+    m = load_prelude() if not flags['no-prelude'] else module()
     e = env()
     l = word_elaborator(m, tpack())
 
@@ -191,7 +201,7 @@ def handle_package_error(pkg, modpath, f):
     except SyntaxError as e:
         error(modpath, None, 'SyntaxError: ' + str(e))
 
-def run_package(pkg, args, with_prelude=True):
+def run_package(pkg, args, flags):
     herr = lambda m,f: handle_package_error(pkg,m,f)
     modpaths = list_modules(pkg)
     modpreambles = {}
@@ -211,7 +221,7 @@ def run_package(pkg, args, with_prelude=True):
             preamble, body = herr(modpath, lambda: parse(fp))
         modpreambles[modpath] = preamble
         modbodies[modpath] = body
-        mods[modpath] = load_prelude() if with_prelude else module()
+        mods[modpath] = load_prelude() if not flags['no-prelude'] else module()
             # TODO cache the prelude instead of loading it repeatedly
 
         for pdecl in preamble:
@@ -266,12 +276,13 @@ def run_package(pkg, args, with_prelude=True):
                             error(modpath, dline, "Missing definition for exported word %s" % dname)
                         interfaces_defs[iname][dname] = m.word_defs[dname]
 
-    for modpath in modpaths:
-        m = mods[modpath]
-        herr(modpath, lambda: m.check_assertions())
+    if not flags['typecheck']:
+        for modpath in modpaths:
+            m = mods[modpath]
+            herr(modpath, lambda: m.check_assertions())
 
     mainpath = os.path.join(pkg, 'main.mth')
-    if mainpath in modpaths:
+    if mainpath in modpaths and not flags['typecheck']:
         m = mods[mainpath]
         if 'main' in m.word_defs:
             (ps,dom,cod) = m.word_sigs['main']
