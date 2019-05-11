@@ -263,6 +263,10 @@ pretokenize = dip2(nil) dip(locStart) pretokenizeAux
     ok
   )
 
+||| Convert the contents of a module into a list of located tokens.
+||| This will also strip out any newline tokens inside parentheses.
+||| Fails with `LexerError` if an unknown character or malformed
+||| token is found.
 tokenize : Mod Str -- Result(LexerError, List(L(Token)))
 tokenize = pretokenize rmap(
   dip(n0)

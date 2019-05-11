@@ -4,7 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-
 '''
 This is a minimalistic mirth interpreter. It is not designed to be
 correct or complete -- it is designed to be a small first step to
@@ -172,7 +171,6 @@ def repl(with_prelude=True):
 def get_shortname(pkg, modpath):
     return modpath[len(pkg)+1:]
 
-
 def error(modpath, lineno, msg):
     p = os.path.relpath(modpath)
     if lineno is None:
@@ -192,7 +190,6 @@ def handle_package_error(pkg, modpath, f):
         error(modpath, None, 'TypeError: ' + str(e))
     except SyntaxError as e:
         error(modpath, None, 'SyntaxError: ' + str(e))
-
 
 def run_package(pkg, args, with_prelude=True):
     herr = lambda m,f: handle_package_error(pkg,m,f)
@@ -297,8 +294,6 @@ def list_modules(pkg):
         ms.extend(os.path.join(root, fp) for fp in files if fp[-4:] == ".mth")
     return ms
 
-
-
 ##############################################################################
 ################################# LEXING #####################################
 ##############################################################################
@@ -310,6 +305,7 @@ lexer_rules = [ re.compile(r) for r in [
     r',',
     r':',
     r'#.*',
+    r'\|\|\|.*',
     r'\"([^\\\"\n]|\\[ntr\"\\])*\"',
     r'[^ \t\n\r":\(\),]+'
 ]]
@@ -341,7 +337,7 @@ def tokenize (code):
                 if m:
                     tok = m.group(0)
                     line = line[len(tok):].lstrip()
-                    if tok[0] != '#':
+                    if tok[0] != '#' and tok[:3] != '|||':
                         emitted = True
                         yield token(code=tok, lineno=i+1)
                     break
@@ -509,7 +505,6 @@ def parsetoks(tokens):
 
     # parsers
 
-
     p_int  = memo(fmap(intlit, test(token.is_int)))
     p_str  = memo(fmap(strlit, test(token.is_str)))
     p_name = memo(test(token.is_name))
@@ -640,7 +635,6 @@ def parsetoks(tokens):
         p_line
     )
 
-
     p_preamble = star(p_preamble_decl)
     p_body = star(p_body_decl)
     p_file = seq(p_preamble, p_body)
@@ -726,7 +720,6 @@ class word:
 
     def elab(self, env):
         return env.elab_word(self.name.code, self.args)
-
 
 class expr:
     def __init__(self, atoms):
@@ -828,7 +821,6 @@ class type_sig:
         except SyntaxError as e:
             raise SyntaxError("line %d: %s" % (self.lineno, e)) from e
 
-
 class data_def:
     def __init__(self, lineno, name, params, wordsigs):
         self.lineno = lineno
@@ -847,7 +839,6 @@ class data_def:
             raise TypeError("line %d: %s" % (self.lineno, e)) from e
         except SyntaxError as e:
             raise SyntaxError("line %d: %s" % (self.lineno, e)) from e
-
 
 ##############################################################################
 ########################### TYPES & UNIFICATION ##############################
@@ -1117,13 +1108,11 @@ class tpack:
                 newargs.append(rarg.unify(oarg, sub))
             return tpack(newrest, newargs, self.tags | other_tags).subst(sub)
 
-
 var_counter = 0
 def fresh_var():
     global var_counter
     var_counter += 1
     return tvar('?' + str(var_counter))
-
 
 ##############################################################################
 ############################### ELABORATOR ###################################
@@ -1324,7 +1313,6 @@ class module:
                         % (lineno, wordsig.name.code)
                     )
                 argnames.add(arg.name)
-
 
             if (len(wordsig.dom.atoms) > 0
                 and isinstance(wordsig.dom.atoms[0], word)
@@ -1661,7 +1649,6 @@ class env:
 
     def show_stack(self):
         print(' '.join(repr(s) for s in self.stack))
-
 
 ##############################################################################
 ################################ BUILTINS ####################################
@@ -2063,7 +2050,6 @@ def unsafe_append(e):
     with open(m, 'a') as fp:
         fp.write(v)
 
-
 builtin_word_sigs = {
     # basic
     '_prim_dup':  ([], tpack(None, [tvar('b')]), tpack(None, [tvar('b'), tvar('b')])),
@@ -2133,8 +2119,6 @@ builtin_word_sigs = {
     '_prim_unsafe_coerce':  ([], tpack(tvar('a')), tpack(tvar('b'))),
 }
 
-
-
 builtin_word_defs = {
     # basic
     '_prim_dup':        env.dup,
@@ -2191,7 +2175,6 @@ builtin_word_defs = {
     '_prim_unsafe_append':  unsafe_append,
     '_prim_unsafe_coerce':  word1(lambda a: a),
 }
-
 
 ##############################################################
 

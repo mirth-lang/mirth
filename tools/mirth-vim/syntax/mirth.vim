@@ -48,6 +48,7 @@ syntax match mirthComma "\v,"
 
 " comments
 syntax match mirthComment "\v#.*$"
+syntax match mirthDocument "\v^[ \t]*\|\|\|.*$"
 
 " strings
 syntax region mirthString start=/\v"/ skip=/\v\\./ end=/\v"/
@@ -61,6 +62,7 @@ highlight def link mirthWord Function
 highlight def link mirthType Type
 highlight def link mirthTag Tag
 highlight def link mirthComment Comment
+highlight def link mirthDocument Comment
 highlight def link mirthString String
 highlight def link mirthNumber Number
 
