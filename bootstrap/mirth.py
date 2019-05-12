@@ -1280,7 +1280,8 @@ class module:
                     "Line %d: Type %s takes %d params in type sig but %d params in type def."
                     % (lineno, name, len(tsparams), len(params))
                 )
-        elif name in self.types:
+
+        if name in self.data_defs or (name in self.types and name not in self.type_sigs):
             raise TypeError(
                 "Line %d: Type %s defined twice."
                 % (lineno, name)
