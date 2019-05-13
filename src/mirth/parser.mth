@@ -1,0 +1,285 @@
+import base/unit
+import base/maybe
+import base/result
+import base/list
+import base/panic
+import base/str
+import mirth/loc
+import mirth/token
+import mirth/syntax
+
+export mirth/parser
+  type SyntaxError
+  type Parser(t)
+
+  syntaxErrorLocSet : SyntaxError -- LocSet
+  syntaxErrorMsg : SyntaxError -- Str
+
+end
+
+data SyntaxError
+  mkSyntaxError : LocSet Str -- SyntaxError
+end
+
+syntaxErrorLocSet = match( mkSyntaxError -> drop )
+syntaxErrorMsg = match( mkSyntaxError -> nip )
+
+data ParserResult(t)
+  prFail : SyntaxError -- ParserResult(t)
+  prMore : Parser(t) -- ParserResult(t)
+  prSome : L(t) List(L(Token)) -- ParserResult(t)
+  prNone : ParserResult(t)
+end
+
+data Parser(t)
+  pureP : t -- Parser(t)
+  read (p: Token -- Token Bool, f: Token -- t) : Parser(t)
+  fail : Parser(a) Str -- Parser(b)
+  seq1 (f: L(a) -- b) : Parser(a) -- Parser(b)
+  seq2 (f: L(a) L(b) -- c) : Parser(a) Parser(b) -- Parser(c)
+  seq2' (f: L(a) L(b) -- c, x: L(a)) : Parser(b) -- Parser(c)
+  alt2 : Parser(t) Parser(t) -- Parser(t)
+  lazyfeed : List(L(Token)) Parser(t) -- Parser(t)
+  star (f: List(L(a)) -- b) : Parser(a) -- Parser(b)
+end
+
+feed : List(L(Token)) Parser(t) -- ParserResult(t)
+feed = match(
+  pureP -> pureL swap prSome,
+
+  fail ->
+    dip(feed) swap match(
+      prFail -> nip prFail,
+      prMore -> swap fail prMore,
+      prSome -> drop unL drop swap mkSyntaxError prFail,
+      prNone -> drop prNone
+    ),
+
+  read(p, f) ->
+    cond(
+      nil? -> drop read(p, f) prMore,
+      no_panic_12(unsnoc) swap
+      unL p if(
+        f mkL swap prSome,
+        drop3 prNone
+      )
+    ),
+
+  seq1(f) ->
+    feed match(
+      prFail -> prFail,
+      prMore -> seq1(f) prMore,
+      prSome -> dip(cobindL(f)) prSome,
+      prNone -> prNone
+    ),
+
+  seq2(f) ->
+    dip(feed) swap match(
+      prFail -> nip prFail,
+      prMore -> swap seq2(f) prMore,
+      prNone -> drop prNone,
+      prSome -> swap lambda(x -> swap seq2'(f,x) feed)
+    ),
+
+  seq2'(f,x) ->
+    feed match(
+      prFail -> prFail,
+      prMore -> seq2'(f,x) prMore,
+      prNone -> prNone,
+      prSome -> dip(dip(x) cobindL2(f)) prSome
+    ),
+
+  alt2 ->
+    dip2(dup) dip(feed) swap match(
+      prFail -> dip(drop2) prFail,
+      prMore -> dip(lazyfeed) swap alt2 prMore,
+      prNone -> feed,
+      prSome -> dip2(drop2) prSome
+    ),
+
+  lazyfeed ->
+    dip(swap ++) feed,
+
+  star(f) ->
+    dup star(id) seq2(getL snoc f)
+    nil f pureP alt2 feed
+)
+
+token(p: Token -- Token Bool) : Parser(Unit)
+token(p) = read(p, drop unit)
+
+prefix(p: Token -- Token Bool) : Parser(t) -- Parser(t)
+suffix(p: Token -- Token Bool) : Parser(t) -- Parser(t)
+prefix(p) = read(p, id) swap seq2(nip getL)
+suffix(p) = read(p, id) seq2(drop getL)
+
+seq3(f: L(a) L(b) L(c) -- d): Parser(a) Parser(b) Parser(c) -- Parser(d)
+seq3(f) = seq2(pack2) seq2(getL unpack2 f)
+
+seq4(f: L(a) L(b) L(c) L(d) -- e): Parser(a) Parser(b) Parser(c) Parser(d) -- Parser(e)
+seq4(f) = seq2(pack2) seq3(getL unpack2 f)
+
+strongSeq2(f: L(a) L(b) -- c): Parser(a) Parser(b) -- Parser(c)
+strongSeq2(f) = over dip(seq2(f)) "Syntax Error" fail alt2
+
+strongPrefix(p: Token -- Token Bool) : Parser(t) -- Parser(t)
+strongPrefix(p) = read(p, id) swap strongSeq2(nip getL)
+
+||| Strong bracket -- if left token is found, we are locked in and any future failure
+||| (including prNone) results in a syntax error. Unfortunately it won't be a very
+||| informative one, but the location will be in the right ballpark.
+bracket(lp: Token -- Token Bool, rp: Token -- Token Bool) : Parser(t) -- Parser(t)
+bracket(lp, rp) = $(
+  save(suffix(rp)) "Syntax Error" fail alt2 prefix(lp)
+  token(lp) "Syntax Error" fail alt2
+)
+
+plussep(cp: Token -- Token Bool, f: List(L(a)) -- b) : Parser(a) -- Parser(b)
+plussep(cp, f) =
+  dup prefix(cp) star(id) seq2(getL snoc f)
+
+plusstrongsep(cp: Token -- Token Bool, f: List(L(a)) -- b) : Parser(a) -- Parser(b)
+plusstrongsep(cp, f) =
+  dup strongPrefix(cp) star(id) seq2(getL snoc f)
+
+#####################
+### Mirth Parsers ###
+#####################
+
+parseModule : Parser(Module)
+parseImport : Parser(Import)
+parseExport : Parser(Export)
+parseDecl : Parser(Decl)
+parseSig : Parser(Sig)
+
+parseTypeSig : Parser(TypeSig)
+parseWordSig : Parser(WordSig)
+parseWordDef : Parser(WordDef)
+parseAssertion : Parser(Assertion)
+parseParams : Parser(Params)
+parseParam : Parser(Param)
+parseType : Parser(Type)
+parseExpr : Parser(Expr)
+parseAtom : Parser(Atom)
+parseWord : Parser(Word)
+parseArgs : Parser(Args)
+parseInterface : Parser(Interface)
+parseName : Parser(Name)
+parseDoc : Parser(Doc)
+parseDocMaybe : Parser(Maybe(L(Doc)))
+
+parseModule = $(
+  parseImport suffix(tokenIsNewline?) star(id)
+  parseExport suffix(tokenIsNewline?) star(id)
+  parseDecl   suffix(tokenIsNewline?) star(id)
+  seq3( dip2(getL) dip(getL) getL mkModule )
+)
+
+parseImport = $(
+  parseInterface
+  strongPrefix(tokenIsImport?)
+  seq1(mkImport)
+)
+
+parseExport = $(
+  parseDocMaybe
+  parseInterface
+  suffix(tokenIsNewline?)
+  parseSig star(id) seq2(pack2)
+  bracket(tokenIsExport?, tokenIsEnd?)
+  seq2(dip(getL) getL unpack2 getL mkExport)
+)
+
+parseDecl = $(
+  parseTypeSig seq1(declTypeSig)
+  parseWordSig seq1(declWordSig) alt2
+  parseWordDef seq1(declWordDef) alt2
+  parseAssertion seq1(declAssertion) alt2
+)
+
+parseSig = $(
+  parseTypeSig seq1(sigTypeSig)
+  parseWordSig seq1(sigWordSig) alt2
+  parseAssertion seq1(sigAssertion) alt2
+)
+
+parseTypeSig = $(
+  parseDocMaybe
+  suffix(tokenIsType?)
+  parseName
+  parseParams
+  seq3(dip2(getL) mkTypeSig)
+)
+
+parseWordSig = $(
+  parseDocMaybe
+  parseName
+  parseParams
+  suffix(tokenIsColon?)
+  parseType
+  seq4(dip3(getL) mkWordSig)
+)
+
+parseWordDef = $(
+  parseDocMaybe
+  parseName
+  parseParams
+  suffix(tokenIsEqual?)
+  parseExpr
+  seq4(dip3(getL) mkWordDef)
+)
+
+parseAssertion = $(
+  parseExpr
+  suffix(tokenIsEqual2?)
+  parseExpr
+  seq2(mkAssertion)
+)
+
+parseParams = $(
+  parseParam plusstrongsep(tokenIsComma?, mkParams)
+  bracket(tokenIsLParen?, tokenIsRParen?)
+  nil mkParams pureP alt2
+)
+
+parseParam = $(
+  parseName
+  parseParams
+  parseType strongPrefix(tokenIsColon?) seq1(some)
+  none pureP alt2
+  seq3(getL mkParam)
+)
+
+parseType = $(
+  parseExpr suffix(tokenIsDash2?)
+  nil mkExpr pureP alt2
+  parseExpr seq2(mkType)
+)
+
+parseExpr = parseAtom star(mkExpr)
+
+parseAtom = $(
+  read(tokenIsInt?, tokenGetInt) seq1(atomInt)
+  read(tokenIsStr?, tokenGetStr) seq1(atomStr) alt2
+  parseWord seq1(atomWord) alt2
+)
+
+parseWord = parseName parseArgs seq2(mkWord)
+
+parseArgs = $(
+  parseExpr plusstrongsep(tokenIsComma?, mkArgs) bracket(tokenIsLParen?, tokenIsRParen?)
+  nil mkArgs pureP alt2
+)
+
+parseInterface = read(tokenIsName?, tokenGetName mkInterface)
+
+parseName = read(tokenIsName?, tokenGetName mkName)
+
+parseDoc =
+  read(tokenIsDoc?, tokenGetDoc) plussep(tokenIsNewline?,
+    dip("") for(getL <> "\n" <>) mkDoc
+  )
+
+parseDocMaybe = parseDoc seq1(some) none pureP alt2 suffix(tokenIsNewline?)
+
+

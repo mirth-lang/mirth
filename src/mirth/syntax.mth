@@ -67,16 +67,19 @@ export mirth/syntax
     onAssertion : *a L(Assertion) -- *b
   ) : *a Decl -- *b
 
-  mkTypeSig : L(Name) L(Params) -- TypeSig
+  mkTypeSig : Maybe(L(Doc)) L(Name) L(Params) -- TypeSig
+  typeSigDoc    : TypeSig -- Maybe(L(Doc))
   typeSigName   : TypeSig -- L(Name)
   typeSigParams : TypeSig -- L(Params)
 
-  mkWordSig : L(Name) L(Params) L(Type) -- WordSig
+  mkWordSig : Maybe(L(Doc)) L(Name) L(Params) L(Type) -- WordSig
+  wordSigDoc    : WordSig -- Maybe(L(Doc))
   wordSigName   : WordSig -- L(Name)
   wordSigParams : WordSig -- L(Params)
   wordSigType   : WordSig -- L(Type)
 
-  mkWordDef : L(Name) L(Params) L(Expr) -- WordDef
+  mkWordDef : Maybe(L(Doc)) L(Name) L(Params) L(Expr) -- WordDef
+  wordDefDoc    : WordDef -- Maybe(L(Doc))
   wordDefName   : WordDef -- L(Name)
   wordDefParams : WordDef -- L(Params)
   wordDefRHS    : WordDef -- L(Expr)
@@ -209,32 +212,35 @@ matchSig (
 ||| or destruct the underlying type. This can be used to declare a
 ||| tag type as well, e.g. "type +IO".
 data TypeSig
-  mkTypeSig : L(Name) L(Params) -- TypeSig
+  mkTypeSig : Maybe(L(Doc)) L(Name) L(Params) -- TypeSig
 end
 
-typeSigName   = match( mkTypeSig -> drop )
-typeSigParams = match( mkTypeSig -> nip  )
+typeSigDoc    = match( mkTypeSig -> drop2 )
+typeSigName   = match( mkTypeSig -> drop nip )
+typeSigParams = match( mkTypeSig -> dip(drop2) )
 
 ||| A word signature, "foo : bar -- baz".
 data WordSig
-  mkWordSig : L(Name) L(Params) L(Type) -- WordSig
+  mkWordSig : Maybe(L(Doc)) L(Name) L(Params) L(Type) -- WordSig
 end
 
-wordSigName   = match( mkWordSig -> drop2 )
-wordSigParams = match( mkWordSig -> drop nip )
-wordSigType   = match( mkWordSig -> dip(drop2) )
+wordSigDoc    = match( mkWordSig -> drop3 )
+wordSigName   = match( mkWordSig -> drop2 nip )
+wordSigParams = match( mkWordSig -> drop dip(drop2) )
+wordSigType   = match( mkWordSig -> dip(drop3) )
 
 ||| A word definition, "foo = bar baz".
 ### TODO:
 ###   - patterns
 ###   - copatterns
 data WordDef
-  mkWordDef : L(Name) L(Params) L(Expr) -- WordDef
+  mkWordDef : Maybe(L(Doc)) L(Name) L(Params) L(Expr) -- WordDef
 end
 
-wordDefName   = match( mkWordDef -> drop2 )
-wordDefParams = match( mkWordDef -> drop nip )
-wordDefRHS    = match( mkWordDef -> dip(drop2) )
+wordDefDoc    = match( mkWordDef -> drop3 )
+wordDefName   = match( mkWordDef -> drop2 nip )
+wordDefParams = match( mkWordDef -> drop dip(drop2) )
+wordDefRHS    = match( mkWordDef -> dip(drop3) )
 
 ||| An assertion, "lhs == rhs"
 ### TODO:

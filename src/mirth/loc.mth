@@ -56,7 +56,10 @@ export mirth/loc
   formapL (f: *a b -- *c d) : *a L(b) -- *c L(d)
   formapL2 (f: *a b c -- *d e) : *a L(b) L(c) -- *d L(e)
   formapL3 (f: *a b c d -- *e f) : *a L(b) L(c) L(d) -- *e L(f)
-
+  cojoinL : L(a) -- L(L(a))
+  cobindL  (f: L(a) -- b) : L(a) -- L(b)
+  cobindL2 (f: L(a) L(b) -- c) : L(a) L(b) -- L(c)
+  cobindL3 (f: L(a) L(b) L(c) -- d) : L(a) L(b) L(c) -- L(d)
 end
 
 data Loc
@@ -193,4 +196,8 @@ formapL(f) = unL swap dip(f) swap mkL
 formapL2(f) = mapL2(pack2) formapL(unpack2 f)
 formapL3(f) = mapL2(pack2) formapL2(unpack2 f)
 
+cojoinL = unL dip(dup) mkL mkL
+cobindL(f) = cojoinL mapL(f)
+cobindL2(f) = dip(cojoinL) cojoinL mapL2(f)
+cobindL3(f) = dip2(cojoinL) dip(cojoinL) cojoinL mapL3(f)
 
