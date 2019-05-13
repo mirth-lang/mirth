@@ -5,6 +5,7 @@ import base/list
 import base/panic
 import base/str
 import mirth/loc
+import mirth/lexer
 import mirth/token
 import mirth/syntax
 
@@ -104,6 +105,32 @@ feed = match(
     dup star(id) seq2(getL snoc f)
     nil f pureP alt2 feed
 )
+
+eofP : Parser(t) -- Maybe(L(t))
+eofR : ParserResult(t) -- Maybe(L(t))
+
+eofP = match(
+  fail -> drop2 none,
+  alt2 -> swap eofP maybe(eofP, nip some),
+  lazyfeed -> feed eofR,
+  pureP -> pureL some,
+  read(f,g) -> none,
+  seq1(f) -> eofP mmap(cobindL(f)),
+  seq2(f) -> dip(eofP) eofP mmap2(cobindL2(f)),
+  seq2'(f,x) -> eofP mmap(dip(x) cobindL2(f)),
+  star(f) -> drop nil f pureL some
+)
+
+eofR = match(
+  prFail -> drop none,
+  prMore -> eofP,
+  prNone -> none,
+  prSome -> nil? if(drop some, drop2 none)
+)
+
+##########################
+### Parser Combinators ###
+##########################
 
 token(p: Token -- Token Bool) : Parser(Unit)
 token(p) = read(p, drop unit)
@@ -282,4 +309,22 @@ parseDoc =
 
 parseDocMaybe = parseDoc seq1(some) none pureP alt2 suffix(tokenIsNewline?)
 
+####################
+### parser tests ###
+####################
+
+TNAME mkL dip(nil) cons parseName feed eofR
+  == mkName mkL some
+
+TDOC mkL dip(nil) cons parseDoc feed eofR
+  == "\n" <> mkDoc mkL some
+
+$(
+  dip(dip(dup) TDOC mkL nil snoc)
+  dip(over TNEWLINE mkL cons)
+  dip(swap) TDOC mkL cons
+  parseDoc feed eofR
+) == $(
+  dip("\n") "\n" <> <> <> mkDoc mkL some
+)
 

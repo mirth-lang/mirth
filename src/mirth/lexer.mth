@@ -16,6 +16,8 @@ import mirth/token
 
 export mirth/lexer
   type LexerError
+  type Token
+  type Mod
   type Result(a,b)
   type L(t)
   lexerError->str : LexerError -- Str

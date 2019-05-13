@@ -171,13 +171,17 @@ locSetConsAux =
     nil? -> drop cons,
     no_panic_12(unsnoc) rotr
     dup2 both(locSpanMod) mod= if(
-      unsafe_locSpanJoin dip(++) swap snoc,
+      rotl dip(unsafe_locSpanJoin cons) ++,
       rotr swap dip2(cons) locSetConsAux
     )
   )
 
 locSetCons =
   swap match( _locSet -> dip2(nil) locSetConsAux _locSet )
+
+locSetNull locSetJoin == id
+dip(locSetNull) locSetJoin == id
+dup locSetJoin == id
 
 data L(t)
   mkL : LocSet t -- L(t)

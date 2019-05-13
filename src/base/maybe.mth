@@ -9,6 +9,7 @@ export base/maybe
   some : t -- Maybe(t)
   maybe (f: *a -- *b, g: *a t -- *b) : *a Maybe(t) -- *b
   mmap  (f: a -- b) : Maybe(a) -- Maybe(b)
+  mmap2 (f: a b -- c) : Maybe(a) Maybe(b) -- Maybe(c)
   mfor  (f: *a t -- *a) : *a Maybe(t) -- *a
   mthen (f: a -- Maybe(b)) : Maybe(a) -- Maybe(b)
   mcmp  (f: a a -- Comp) : Maybe(a) Maybe(a) -- Comp
@@ -24,6 +25,7 @@ end
 
 maybe(f,g) = match(none -> f, some -> g)
 mmap(f)    = maybe(none, f some)
+mmap2(f)   = maybe(drop none, swap maybe(drop none, swap f some))
 mfor(f)    = maybe(id, f)
 mthen(f)   = maybe(none, f)
 

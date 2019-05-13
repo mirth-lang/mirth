@@ -1229,13 +1229,13 @@ class module:
 
         elab1 = word_elaborator(self, orig)
         elab2 = word_elaborator(self, orig)
+        elab1.sub = elab2.sub
 
         lhsf = lhs.elab(elab1)
         rhsf = rhs.elab(elab2)
 
-        cosub = {}
-        elab1.dom.unify(elab2.dom, cosub)
-        orig = orig.subst(elab1.sub).unify(orig.subst(elab2.sub), cosub)
+        elab1.dom.unify(elab2.dom, elab1.sub)
+        orig = orig.subst(elab1.sub)
         self.assertions.append((lineno, orig, lhsf, rhsf))
 
     def decl_type_sig (self, lineno, name, params):
@@ -1804,6 +1804,11 @@ def match (elab, args):
     elab.dom = outtp
     def outfn(e, *args):
         v = e.pop()
+        if not isinstance(v, tuple) or v[0] not in dcons:
+            print('BOOTSTRAP BUG: RUNTIME TYPE ERROR: Expected a', dname, 'but got', repr(v), file=sys.stderr)
+            print(e.stack, file=sys.stderr)
+            sys.exit(1)
+
         if v[0] in rules:
             f = rules[v[0]]
             fargs = list(args) + list(v[1])
@@ -1830,6 +1835,7 @@ def lam (elab, args):
     lhs, rhs = line
 
     names = []
+
     for atom in lhs.atoms:
         if not (isinstance(atom, word) and len(atom.args) == 0):
             raise SyntaxError("Expected lambda param to be simple variable name.")
@@ -1848,7 +1854,7 @@ def lam (elab, args):
 
     trest = fresh_var()
     targs = [fresh_var() for name in names]
-    elab.dom = tpack(trest, targs).unify(elab.dom, elab.sub)
+    elab.dom = elab.dom.unify(tpack(trest, targs), elab.sub)
 
     floc = elab.loc.copy()
     for (name, (i, targ)) in zip(names, enumerate(targs)):
@@ -1856,7 +1862,7 @@ def lam (elab, args):
     felab = word_elaborator(elab.mod, trest.subst(elab.sub), floc)
     felab.sub = elab.sub
     f = rhs.elab(felab)
-    elab.dom = felab.dom
+    elab.dom = felab.dom.subst(felab.sub)
 
     def mkearg(x):
         def h(e):
