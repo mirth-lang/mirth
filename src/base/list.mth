@@ -44,6 +44,9 @@ export base/list
   lpure : t -- List(t)
   lbind (f: a -- List(b)) : List(a) -- List(b)
 
+  lmatchL (f: *a -- *b, g: *a t List(t) -- *b) : *a List(t) -- *b
+  lmatchR (f: *a -- *b, g: *a List(t) t -- *b) : *a List(t) -- *b
+
   # Words that panic on empty list.
   uncons : List(t) -- List(t) t +Panic
   unsnoc : List(t) -- t List(t) +Panic
@@ -111,4 +114,17 @@ unsnoc = nil? if("unsnoc on empty list" panic,
 
 maximum(ord) = unsnoc for(max(ord))
 minimum(ord) = unsnoc for(min(ord))
+
+lmatchL(f,g) =
+  nil? if(
+    drop f,
+    no_panic_12(unsnoc) g
+  )
+
+lmatchR(f,g) =
+  nil? if(
+    drop f,
+    no_panic_12(uncons) g
+  )
+
 

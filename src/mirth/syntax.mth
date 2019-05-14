@@ -1,5 +1,9 @@
 
 import base/maybe
+import base/list
+import base/str
+import base/int
+import base/panic
 import mirth/loc
 
 ||| Abstract Syntax Tree for Mirth. This interface exports
@@ -28,22 +32,25 @@ export mirth/syntax
   type Word
   type Args
 
-  type Doc
+  type Docs
   type Name
   type Interface
 
-  mkModule : List(L(Import)) List(L(Export)) List(L(Decl)) -- Module
-  moduleImports : Module -- List(L(Import))
-  moduleExports : Module -- List(L(Export))
-  moduleDecls   : Module -- List(L(Decl))
+  mkModule : L(List(L(Import))) L(List(L(Export))) L(List(L(Decl))) -- Module
+  moduleImports : Module -- L(List(L(Import)))
+  moduleExports : Module -- L(List(L(Export)))
+  moduleDecls   : Module -- L(List(L(Decl)))
+  module->str : Module -- Str
 
   mkImport : L(Interface) -- Import
   importInterface : Import -- L(Interface)
+  import->str : Import -- Str
 
-  mkExport : Maybe(L(Doc)) L(Interface) List(L(Sig)) -- Export
-  exportDoc   : Export -- Maybe(L(Doc))
+  mkExport : Maybe(L(Docs)) L(Interface) List(L(Sig)) -- Export
+  exportDoc   : Export -- Maybe(L(Docs))
   exportInterface : Export -- L(Interface)
   exportSigs  : Export -- List(L(Sig))
+  export->str : Export -- Str
 
   sigTypeSig : L(TypeSig) -- Sig
   sigWordSig : L(WordSig) -- Sig
@@ -53,6 +60,7 @@ export mirth/syntax
     onWordSig : *a L(WordSig) -- *b,
     onAssertion : *a L(Assertion) -- *b
   ) : *a Sig -- *b
+  sig->str : Sig -- Str
 
   declTypeSig : L(TypeSig) -- Decl
   declWordSig : L(WordSig) -- Decl
@@ -66,42 +74,54 @@ export mirth/syntax
     onWordDef : *a L(WordDef) -- *b,
     onAssertion : *a L(Assertion) -- *b
   ) : *a Decl -- *b
+  decl->str : Decl -- Str
 
-  mkTypeSig : Maybe(L(Doc)) L(Name) L(Params) -- TypeSig
-  typeSigDoc    : TypeSig -- Maybe(L(Doc))
+  mkTypeSig : Maybe(L(Docs)) L(Name) L(Params) -- TypeSig
+  typeSigDoc    : TypeSig -- Maybe(L(Docs))
   typeSigName   : TypeSig -- L(Name)
   typeSigParams : TypeSig -- L(Params)
+  typeSig->str : TypeSig -- Str
 
-  mkWordSig : Maybe(L(Doc)) L(Name) L(Params) L(Type) -- WordSig
-  wordSigDoc    : WordSig -- Maybe(L(Doc))
+  # TODO: export dataDef words
+  dataDef->str : DataDef -- Str
+
+  mkWordSig : Maybe(L(Docs)) L(Name) L(Params) L(Type) -- WordSig
+  wordSigDoc    : WordSig -- Maybe(L(Docs))
   wordSigName   : WordSig -- L(Name)
   wordSigParams : WordSig -- L(Params)
   wordSigType   : WordSig -- L(Type)
+  wordSig->str : WordSig -- Str
 
-  mkWordDef : Maybe(L(Doc)) L(Name) L(Params) L(Expr) -- WordDef
-  wordDefDoc    : WordDef -- Maybe(L(Doc))
+  mkWordDef : Maybe(L(Docs)) L(Name) L(Params) L(Expr) -- WordDef
+  wordDefDoc    : WordDef -- Maybe(L(Docs))
   wordDefName   : WordDef -- L(Name)
   wordDefParams : WordDef -- L(Params)
   wordDefRHS    : WordDef -- L(Expr)
+  wordDef->str : WordDef -- Str
 
   mkAssertion : L(Expr) L(Expr) -- Assertion
   assertionLHS : Assertion -- L(Expr)
   assertionRHS : Assertion -- L(Expr)
+  assertion->str : Assertion -- Str
 
   mkParams : List(L(Param)) -- Params
   unParams : Params -- List(L(Param))
+  params->str : Params -- Str
 
   mkParam : L(Name) L(Params) Maybe(L(Type)) -- Param
   paramName   : Param -- L(Name)
   paramParams : Param -- L(Params)
   paramType   : Param -- Maybe(L(Type))
+  param->str : Param -- Str
 
   mkType : L(Expr) L(Expr) -- Type
   typeDom : Type -- L(Expr)
   typeCod : Type -- L(Expr)
+  type->str : Type -- Str
 
   mkExpr : List(L(Atom)) -- Expr
   exprAtoms : Expr -- List(L(Atom))
+  expr->str : Expr -- Str
 
   atomWord : L(Word) -- Atom
   atomInt  : L(Int) -- Atom
@@ -111,22 +131,28 @@ export mirth/syntax
     onInt : *a L(Int) -- *b,
     onStr : *a L(Str) -- *b
   ) : *a Atom -- *b
+  atom->str : Atom -- Str
 
   mkWord : L(Name) L(Args) -- Word
   wordName : Word -- L(Name)
   wordArgs : Word -- L(Args)
+  word->str : Word -- Str
 
   mkArgs : List(L(Expr)) -- Args
   argsExprs : Args -- List(L(Expr))
+  args->str : Args -- Str
 
-  mkDoc : Str -- Doc
-  unDoc : Doc -- Str
+  mkDocs : List(Str) -- Docs
+  unDocs : Docs -- List(Str)
+  docs->str : Docs -- Str
 
   mkName : Str -- Name
   unName : Name -- Str
+  name->str : Name -- Str
 
   mkInterface : Str -- Interface
   unInterface : Interface -- Str
+  interface->str : Interface -- Str
 end
 
 ###############
@@ -135,12 +161,18 @@ end
 
 ||| Syntax for entire module.
 data Module
-  mkModule : List(L(Import)) List(L(Export)) List(L(Decl)) -- Module
+  mkModule : L(List(L(Import))) L(List(L(Export))) L(List(L(Decl))) -- Module
 end
 
 moduleImports = match( mkModule -> drop2 )
 moduleExports = match( mkModule -> drop nip )
 moduleDecls   = match( mkModule -> dip(drop2) )
+module->str = match( mkModule ->
+  dip3("")
+  dip2(getL for(getL import->str <> "\n" <>))
+  dip (getL for(getL export->str <> "\n" <>))
+  getL for(getL decl->str <> "\n" <>)
+)
 
 ||| Import statements.
 data Import
@@ -148,16 +180,26 @@ data Import
 end
 
 importInterface = match( mkImport -> id )
+import->str = $(
+  dip("import ")
+  importInterface getL interface->str <>
+)
 
 ||| Export statements.
 ### TODO: Allow exports to import other interfaces and possibly re-export them.
 data Export
-  mkExport : Maybe(L(Doc)) L(Interface) List(L(Sig)) -- Export
+  mkExport : Maybe(L(Docs)) L(Interface) List(L(Sig)) -- Export
 end
 
 exportDoc   = match( mkExport -> drop2 )
 exportInterface = match( mkExport -> drop nip )
 exportSigs  = match( mkExport -> dip(drop2) )
+export->str = match( mkExport ->
+  dip2(maybe("", getL docs->str))
+  dip(dip("export ") getL interface->str "\n" <> <> <>)
+  for(dip("  ") getL sig->str "\n" <> <> <>)
+  "end" <>
+)
 
 ####################
 ### declarations ###
@@ -188,6 +230,13 @@ matchDecl (
   declWordDef -> onWordDef,
   declAssertion -> onAssertion
 )
+decl->str = matchDecl(
+  getL typeSig->str,
+  getL dataDef->str,
+  getL wordSig->str,
+  getL wordDef->str,
+  getL assertion->str
+)
 
 ||| The subset of declarations that can appear in interfaces.
 ||| These include word and type signatures, as well as assertions.
@@ -206,41 +255,67 @@ matchSig (
   sigWordSig -> onWordSig,
   sigAssertion -> onAssertion
 )
+sig->str = matchSig(
+  getL typeSig->str,
+  getL wordSig->str,
+  getL assertion->str
+)
 
 ||| A type signature, "type Foo", is just a declaration of the
 ||| parameters of a type, with no information of how to construct
 ||| or destruct the underlying type. This can be used to declare a
 ||| tag type as well, e.g. "type +IO".
 data TypeSig
-  mkTypeSig : Maybe(L(Doc)) L(Name) L(Params) -- TypeSig
+  mkTypeSig : Maybe(L(Docs)) L(Name) L(Params) -- TypeSig
 end
 
 typeSigDoc    = match( mkTypeSig -> drop2 )
 typeSigName   = match( mkTypeSig -> drop nip )
 typeSigParams = match( mkTypeSig -> dip(drop2) )
+typeSig->str = match( mkTypeSig ->
+  dip2(maybe("", getL docs->str))
+  dip2("type " <>)
+  dip(getL name->str <>)
+  getL params->str <>
+)
+
+### TODO: Define DataDef
+dataDef->str = drop ""
 
 ||| A word signature, "foo : bar -- baz".
 data WordSig
-  mkWordSig : Maybe(L(Doc)) L(Name) L(Params) L(Type) -- WordSig
+  mkWordSig : Maybe(L(Docs)) L(Name) L(Params) L(Type) -- WordSig
 end
 
 wordSigDoc    = match( mkWordSig -> drop3 )
 wordSigName   = match( mkWordSig -> drop2 nip )
 wordSigParams = match( mkWordSig -> drop dip(drop2) )
 wordSigType   = match( mkWordSig -> dip(drop3) )
+wordSig->str = match( mkWordSig ->
+  dip3(maybe("", getL docs->str))
+  dip2(getL name->str <>)
+  dip(getL params->str <> " : " <>)
+  getL type->str <>
+)
 
 ||| A word definition, "foo = bar baz".
 ### TODO:
 ###   - patterns
 ###   - copatterns
 data WordDef
-  mkWordDef : Maybe(L(Doc)) L(Name) L(Params) L(Expr) -- WordDef
+  mkWordDef : Maybe(L(Docs)) L(Name) L(Params) L(Expr) -- WordDef
 end
 
 wordDefDoc    = match( mkWordDef -> drop3 )
 wordDefName   = match( mkWordDef -> drop2 nip )
 wordDefParams = match( mkWordDef -> drop dip(drop2) )
 wordDefRHS    = match( mkWordDef -> dip(drop3) )
+wordDef->str  = match( mkWordDef ->
+  dip3(maybe("", getL docs->str))
+  dip2(getL name->str <>)
+  dip(getL params->str <> " = " <>)
+  getL expr->str <>
+)
 
 ||| An assertion, "lhs == rhs"
 ### TODO:
@@ -253,6 +328,9 @@ end
 
 assertionLHS = match( mkAssertion -> drop )
 assertionRHS = match( mkAssertion -> nip )
+assertion->str = match( mkAssertion ->
+  dip(getL expr->str " == " <>) getL expr->str <>
+)
 
 ###################
 ### expressions ###
@@ -264,6 +342,13 @@ data Params
 end
 
 unParams = match( mkParams -> id )
+params->str = unParams cond(
+  nil? -> drop "",
+  no_panic_12(unsnoc)
+  dip2("(") dip(getL param->str <>)
+  for(dip(", " <>) getL param->str <>)
+  ")" <>
+)
 
 ||| Single parameter.
 data Param
@@ -273,6 +358,13 @@ end
 paramName   = match( mkParam -> drop2 )
 paramParams = match( mkParam -> drop nip )
 paramType   = match( mkParam -> dip(drop2) )
+param->str  = match( mkParam ->
+  dip2(getL name->str)
+  dip(getL params->str <>)
+  maybe(id,
+    dip(": " <>) getL type->str <>
+  )
+)
 
 ||| Type expressions. These are two expressions separated by "--". If the "--"
 ||| is missing, the LHS is assumed to be empty, and the entire expression goes
@@ -281,8 +373,16 @@ data Type
   mkType : L(Expr) L(Expr) -- Type
 end
 
+exprNil? : Expr -- Expr Bool
+
 typeDom = match( mkType -> drop )
 typeCod = match( mkType -> nip )
+type->str = match( mkType ->
+  both(getL) cond(
+    dip?(exprNil?) -> nip expr->str,
+    dip(expr->str " -- " <>) expr->str <>
+  )
+)
 
 ||| Expressions. These are just lists of atoms.
 ### TODO: Allow expressions to have params and type sigs.
@@ -291,6 +391,14 @@ data Expr
 end
 
 exprAtoms = match( mkExpr -> id )
+exprNil? = match( mkExpr -> nil? dip(mkExpr) )
+expr->str = match( mkExpr ->
+  cond(
+    nil? -> drop "",
+    no_panic_12(unsnoc) dip(getL atom->str)
+    for(dip(" " <>) getL atom->str <>)
+  )
+)
 
 ||| Atoms, i.e. parts of an expression.
 data Atom
@@ -305,6 +413,12 @@ matchAtom(onWord, onInt, onStr) =
     atomInt -> onInt,
     atomStr -> onStr
   )
+atom->str =
+  matchAtom(
+    getL word->str,
+    getL int->str,
+    getL showStr
+  )
 
 ||| A word atom. It's a name followed by (optional) arguments.
 data Word
@@ -313,6 +427,10 @@ end
 
 wordName = match( mkWord -> drop )
 wordArgs = match( mkWord -> nip )
+word->str = match( mkWord ->
+  dip(getL name->str)
+  getL args->str <>
+)
 
 ||| Arguments, i.e. a list of expressions.
 ### TODO:
@@ -322,17 +440,27 @@ data Args
 end
 
 argsExprs = match( mkArgs -> id )
+args->str = match( mkArgs ->
+  cond(
+    nil? -> drop "",
+    no_panic_12(unsnoc)
+    dip2("(") dip(getL expr->str <>)
+    for(dip(", " <>) getL expr->str <>)
+    ")" <>
+  )
+)
 
 ################
 ### newtypes ###
 ################
 
 ||| Documentation associated with a decl.
-data Doc
-  mkDoc : Str -- Doc
+data Docs
+  mkDocs : List(Str) -- Docs
 end
 
-unDoc = match( mkDoc -> id )
+unDocs = match( mkDocs -> id )
+docs->str = dip("") unDocs for(dip("||| ") <> "\n" <> <>)
 
 ||| Name of Mirth type, tag, word or binding.
 data Name
@@ -340,6 +468,7 @@ data Name
 end
 
 unName = match( mkName -> id )
+name->str = unName
 
 ||| Interface name.
 data Interface
@@ -347,4 +476,5 @@ data Interface
 end
 
 unInterface = match( mkInterface -> id )
+interface->str = unInterface
 

@@ -49,6 +49,7 @@ export mirth/loc
   unL : L(t) -- LocSet t
   getL : L(t) -- t
   setL : L(a) b -- L(b)
+  withL? (p: a -- a b) : L(a) -- L(a) b
   pureL : t -- L(t)
   mapL (f: a -- b)  : L(a) -- L(b)
   mapL2 (f: a b -- c) : L(a) L(b) -- L(c)
@@ -192,6 +193,9 @@ unL = match( mkL -> id )
 getL = unL nip
 setL = dip(unL drop) mkL
 pureL = dip(locSetNull) mkL
+
+withL?(p) = unL p dip(mkL)
+
 mapL(f) = unL f mkL
 mapL2(f) = dip(unL) unL dip(swap) dip2(locSetJoin) f mkL
 mapL3(f) = mapL2(pack2) mapL2(unpack2 f)

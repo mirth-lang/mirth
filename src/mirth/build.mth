@@ -11,6 +11,8 @@ import mirth/types/mod
 import mirth/loc
 import mirth/token
 import mirth/lexer
+import mirth/syntax
+import mirth/parser
 
 export mirth/build
   type +IO
@@ -31,11 +33,17 @@ buildPkgMods = $(
   cond(
     nil? -> drop "No modules found." print 1,
     no_panic_11(headL)
-    dup mod->str "Opening " swap <> trace
+    dup mod->str "Reading " swap <> trace
     dup mod->path read
+    "Lexing." trace
     tokenize result(
-      lexerError->str print 1,
-      for(getL token->str print) 0
+      lexerError->str trace 1,
+      "Parsing." trace
+      parseModule runParser
+      result(
+        syntaxError->str trace 1,
+        getL module->str print 0
+      )
     )
   )
 )
