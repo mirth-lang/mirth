@@ -299,7 +299,7 @@ dataDef->str = match( mkDataDef ->
   dip2(getL name->str <>)
   dip(getL params->str <>)
   dip("\n" <>)
-  for(getL dip("  " <>) sig->str <> "\n" <>)
+  for(getL dip("  " <>) sig->str <>)
   "end\n" <>
 )
 
