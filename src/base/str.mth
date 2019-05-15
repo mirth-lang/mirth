@@ -253,13 +253,7 @@ strall?(f) = strview match(
 )
 
 strelem : Char Str -- Bool
-strelem = strview match(
-  strnil -> drop false,
-  strcons -> dip?(chareq?) if(
-    drop3 true,
-    nip strelem
-  )
-)
+strelem = dip(char->str) _prim_str_elem
 
 strelem? : Char Str -- Char Str Bool
 strelem? = dup2 strelem

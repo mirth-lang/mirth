@@ -2103,6 +2103,7 @@ builtin_word_sigs = {
     '_prim_str_len': ([], tpack(None, [tstr]), tpack(None, [tint])),
     '_prim_str_to_codepoint': ([], tpack(None, [tstr]), tpack(None, [tint])),
     '_prim_str_from_codepoint': ([], tpack(None, [tint]), tpack(None, [tstr])),
+    '_prim_str_elem': ([], tpack(None, [tstr, tstr]), tpack(None, [tbool])),
 
     # tuple
     '_prim_tuple_intuple': ([(tpack(tvar('a')), tpack(tvar('b')))],
@@ -2168,6 +2169,7 @@ builtin_word_defs = {
     '_prim_str_len':    word1(len),
     '_prim_str_from_codepoint':    word1(chr),
     '_prim_str_to_codepoint':    word1(ord),
+    '_prim_str_elem':   word2(lambda a,b: a in b),
 
     # tuple
     '_prim_tuple_intuple': intuple,

@@ -32,19 +32,21 @@ buildPkgMods = $(
   dip(maybe("no pkg", pkg->str) print)
   cond(
     nil? -> drop "No modules found." print 1,
-    no_panic_11(headL)
-    dup mod->str "Reading " swap <> trace
-    dup mod->path read
-    "Lexing." trace
-    tokenize result(
-      lexerError->str trace 1,
-      "Parsing." trace
-      parseModule runParser
-      result(
-        syntaxError->str trace 1,
-        getL module->str print 0
+    for(
+      dup mod->str "Reading " swap <> trace
+      dup mod->path read
+      "Lexing." trace
+      tokenize result(
+        lexerError->str panic,
+        "Parsing." trace
+        parseModule runParser
+        result(
+          syntaxError->str panic,
+          getL module->str print
+        )
       )
     )
+    0
   )
 )
 
