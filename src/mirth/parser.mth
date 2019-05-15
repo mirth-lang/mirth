@@ -352,10 +352,7 @@ parseParams = lazyP(
   # option 1
   token(tokenIsLParen?)
   parseParam plussep(tokenIsComma?)
-    "Expected parameter list." expectP
-  token(tokenIsRParen?)
-    "Expected right paren ')' to close parameter list." expectP
-    suffixP
+  suffix(tokenIsRParen?)
   seq2(nip getL mkParams)
 
   # option 2
@@ -371,7 +368,6 @@ parseParam = lazyP(
   # option 1
   token(tokenIsColon?)
   parseType
-    "Expected type expression after ':' in parameter list." expectP
   seq2(nip some)
 
   # option 2
