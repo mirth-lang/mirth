@@ -121,7 +121,7 @@ hexIntRegex : Regex
 hexIntRegex = "" lit "+-" cls alt2 "0" lit "xX" cls "0123456789abcdefABCDEF" cls plus seq4
 
 wordRegex : Regex
-wordRegex = "0123456789abcdefghijklmnopqrstuvwxyzzABCDEFGHIJKLMNOPQRSTUVWXYZ_-?+*~!@$%^&=/|<>'" cls plus
+wordRegex = "0123456789abcdefghijklmnopqrstuvwxyzzABCDEFGHIJKLMNOPQRSTUVWXYZ_-?+*~!@$%^&=/|<>'." cls plus
 
 stringChar : Regex
 stringChar = "\t !#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~" cls "\\" lit "ntr\\\"" cls seq2 alt2
@@ -214,7 +214,7 @@ unLexerError : LexerError -- Loc Str
 unLexerError = match( lexerError -> id )
 
 lexerError->str : LexerError -- Str
-lexerError->str = unLexerError dip(loc->str ":" <>) <>
+lexerError->str = unLexerError dip(loc->str ": " <>) <>
 
 trim : Loc Str -- Loc Str
 trim = dup trimRegex regexMatch maybe(n0, id) strbreak dip(locNext)

@@ -35,6 +35,7 @@ export mirth/loc
   locSpanMod?   : LocSpan -- LocSpan Mod
   locSpanStart? : LocSpan -- LocSpan Loc
   locSpanEnd?   : LocSpan -- LocSpan Loc
+  locSpan->str : LocSpan -- Str
 
   type LocSet
   LocSet.generate : List(Pack(Int Int Int Str)) -- LocSet
@@ -42,6 +43,7 @@ export mirth/loc
   locSetSpan : LocSpan -- LocSet
   locSetCons : LocSet LocSpan -- LocSet
   locSetJoin : LocSet LocSet -- LocSet
+  locSet->str : LocSet -- Str
 
   type L(t)
   L.generate : List(Pack(Int Int Int Str)) t -- L(t)
@@ -157,6 +159,11 @@ unsafe_locSpanJoin = $(
   dip(swap) dip2(unsafe_locMin) unsafe_locMax _locSpan
 )
 
+locSpan->str =
+  match( _locSpan ->
+    drop loc->str
+  )
+
 data LocSet
   _locSet : List(LocSpan) -- LocSet
 end
@@ -183,6 +190,14 @@ locSetCons =
 locSetNull locSetJoin == id
 dip(locSetNull) locSetJoin == id
 dup locSetJoin == id
+
+locSet->str =
+  match(_locSet ->
+    lmatchL(
+      "",
+      drop locSpan->str ": " <>
+    )
+  )
 
 data L(t)
   mkL : LocSet t -- L(t)

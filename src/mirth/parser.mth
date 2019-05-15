@@ -24,6 +24,7 @@ export mirth/parser
   parseDecl : Parser(Decl)
   parseSig : Parser(Sig)
   parseTypeSig : Parser(TypeSig)
+  parseDataDef : Parser(DataDef)
   parseWordSig : Parser(WordSig)
   parseWordDef : Parser(WordDef)
   parseAssertion : Parser(Assertion)
@@ -45,7 +46,9 @@ end
 
 syntaxErrorLocSet = match( mkSyntaxError -> drop )
 syntaxErrorMsg = match( mkSyntaxError -> nip )
-syntaxError->str = syntaxErrorMsg # TODO: show loc
+syntaxError->str = match( mkSyntaxError ->
+  dip(locSet->str) <>
+)
 
 ||| Parse State
 data PS
@@ -231,17 +234,18 @@ expectNewlineP = token(tokenIsNewline?) swap expectP suffixP
 #####################
 
 parseModule = lazyP(
+  token(tokenIsNewline?) star
   parseImport tryP star
   parseExport tryP star
   parseDecl star
-  seq3(mkModule)
+  seq4(dip3(drop) mkModule)
 )
 
 parseImport = lazyP(
   token(tokenIsImport?)
   parseInterface
     "Expected interface name after 'import'" expectP
-    "Expected newline after 'import INTERFAC'" expectNewlineP
+    "Expected newline after 'import INTERFACE'" expectNewlineP
   seq2(nip mkImport)
 )
 
@@ -263,6 +267,7 @@ parseExport = lazyP(
 
 parseDecl = lazyP(
   parseTypeSig tryP seq1(declTypeSig)
+  parseDataDef tryP seq1(declDataDef) alt2
   parseWordSig tryP seq1(declWordSig) alt2
   parseWordDef tryP seq1(declWordDef) alt2
   parseAssertion tryP seq1(declAssertion) alt2
@@ -286,6 +291,24 @@ parseTypeSig = lazyP(
     "Expected params or newline after 'type NAME'" expectP
     "Expected newline after 'type NAME PARAMS'" expectNewlineP
   seq3(dip2(getL) mkTypeSig)
+)
+
+parseDataDef = lazyP(
+  parseDocs
+  token(tokenIsData?)
+    suffixP
+  parseName
+    "Expected type name after 'data'" expectP
+  parseParams
+    "Expected params or newline after 'data NAME'" expectP
+    "Expected newline after 'data NAME PARAMS'" expectNewlineP
+  parseSig star
+    "Invalid syntax in data block." expectP
+  token(tokenIsEnd?)
+    "Expected 'end' to close data block." expectP
+    "Expected newline after 'end'." expectNewlineP
+    suffixP
+  seq4(dip3(getL) getL mkDataDef)
 )
 
 parseWordSig = lazyP(
@@ -359,9 +382,25 @@ parseParam = lazyP(
 )
 
 parseType = lazyP(
-  parseExpr suffix(tokenIsDash2?)
-  nil mkExpr pureP alt2
-  parseExpr seq2(mkType)
+  parseExpr
+
+  # option 1
+  token(tokenIsDash2?)
+  parseExpr
+  seq2(nip some)
+
+  # option2
+  none pureP
+
+  alt2
+  seq2(
+    getL
+    maybe(
+      dip(nil mkExpr pureL) mkType,
+      mkType
+    )
+  )
+
 )
 
 parseExpr = lazyP(

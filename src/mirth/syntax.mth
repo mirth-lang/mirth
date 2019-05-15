@@ -82,7 +82,11 @@ export mirth/syntax
   typeSigParams : TypeSig -- L(Params)
   typeSig->str : TypeSig -- Str
 
-  # TODO: export dataDef words
+  mkDataDef : Maybe(L(Docs)) L(Name) L(Params) List(L(Sig)) -- DataDef
+  dataDefDocs   : DataDef -- Maybe(L(Docs))
+  dataDefName   : DataDef -- L(Name)
+  dataDefParams : DataDef -- L(Params)
+  dataDefSigs   : DataDef -- List(L(Sig))
   dataDef->str : DataDef -- Str
 
   mkWordSig : Maybe(L(Docs)) L(Name) L(Params) L(Type) -- WordSig
@@ -169,9 +173,9 @@ moduleExports = match( mkModule -> drop nip )
 moduleDecls   = match( mkModule -> dip(drop2) )
 module->str = match( mkModule ->
   dip3("")
-  dip2(getL for(getL import->str <> "\n" <>))
-  dip (getL for(getL export->str <> "\n" <>))
-  getL for(getL decl->str <> "\n" <>)
+  dip2(getL for(getL import->str <>))
+  dip (getL for(getL export->str <>))
+  getL for(getL decl->str <>)
 )
 
 ||| Import statements.
@@ -183,6 +187,7 @@ importInterface = match( mkImport -> id )
 import->str = $(
   dip("import ")
   importInterface getL interface->str <>
+  "\n" <>
 )
 
 ||| Export statements.
@@ -197,8 +202,8 @@ exportSigs  = match( mkExport -> dip(drop2) )
 export->str = match( mkExport ->
   dip2(maybe("", getL docs->str))
   dip(dip("export ") getL interface->str "\n" <> <> <>)
-  for(dip("  ") getL sig->str "\n" <> <> <>)
-  "end" <>
+  for(dip("  ") getL sig->str <> <>)
+  "end\n" <>
 )
 
 ####################
@@ -277,10 +282,26 @@ typeSig->str = match( mkTypeSig ->
   dip2("type " <>)
   dip(getL name->str <>)
   getL params->str <>
+  "\n" <>
 )
 
-### TODO: Define DataDef
-dataDef->str = drop ""
+data DataDef
+  mkDataDef : Maybe(L(Docs)) L(Name) L(Params) List(L(Sig)) -- DataDef
+end
+
+dataDefDocs = match( mkDataDef -> drop3 )
+dataDefName = match( mkDataDef -> drop2 nip )
+dataDefParams = match( mkDataDef -> drop dip(drop2) )
+dataDefSigs = match( mkDataDef -> dip(drop3) )
+dataDef->str = match( mkDataDef ->
+  dip3(maybe("", getL docs->str))
+  dip3("data " <>)
+  dip2(getL name->str <>)
+  dip(getL params->str <>)
+  dip("\n" <>)
+  for(getL dip("  " <>) sig->str <> "\n" <>)
+  "end\n" <>
+)
 
 ||| A word signature, "foo : bar -- baz".
 data WordSig
@@ -296,6 +317,7 @@ wordSig->str = match( mkWordSig ->
   dip2(getL name->str <>)
   dip(getL params->str <> " : " <>)
   getL type->str <>
+  "\n" <>
 )
 
 ||| A word definition, "foo = bar baz".
@@ -315,6 +337,7 @@ wordDef->str  = match( mkWordDef ->
   dip2(getL name->str <>)
   dip(getL params->str <> " = " <>)
   getL expr->str <>
+  "\n" <>
 )
 
 ||| An assertion, "lhs == rhs"
@@ -329,7 +352,9 @@ end
 assertionLHS = match( mkAssertion -> drop )
 assertionRHS = match( mkAssertion -> nip )
 assertion->str = match( mkAssertion ->
-  dip(getL expr->str " == " <>) getL expr->str <>
+  dip(getL expr->str " == " <>)
+  getL expr->str <>
+  "\n" <>
 )
 
 ###################
