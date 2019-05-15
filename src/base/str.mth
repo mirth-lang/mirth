@@ -1,6 +1,7 @@
 
 import base/int
 import base/nat
+import base/maybe
 
 export base/char
   type Char
@@ -35,6 +36,7 @@ end
 export base/str
   type Char
   type Nat
+  type Maybe(t)
   Char.generate : Int -- Char
 
   strnull? : Str -- Str Bool
@@ -62,6 +64,8 @@ export base/str
   streq : Str Str -- Bool
   <> : Str Str -- Str
   strfold(f : *a Char -- *a) : *a Str -- *a
+
+  strmatch : Str Str -- Maybe(Nat)
 
   showStr : Str -- Str
 end
@@ -320,4 +324,6 @@ showStr = dip("\"") strfold(showCharBody <>) "\"" <>
 "tnrfoo" showStr == "\"tnrfoo\""
 "\t\n\r\\\"" showStr == "\"\\t\\n\\r\\\\\\\"\""
 272 int->char char->str showStr == "\"\\u000110\""
+
+strmatch = _prim_str_rematch if(znat some, drop none)
 

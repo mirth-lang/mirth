@@ -158,7 +158,7 @@ docRegex = "|||" lit visibleChar star seq2
 #
 
 data LexerRule
-  lexerRule(f: Str -- Token) : Regex -- LexerRule
+  lexerRule(f: Str -- Token) : Str -- LexerRule
 end
 
 lexerRules : List(LexerRule)
@@ -166,23 +166,22 @@ lexerRules = $(
   nil
 
   # literals
-  "(" lit lexerRule(drop TLPAREN) cons
-  ")" lit lexerRule(drop TRPAREN) cons
-  "," lit lexerRule(drop TCOMMA) cons
-  ":" lit lexerRule(drop TCOLON) cons
+  "\\(" lexerRule(drop TLPAREN) cons
+  "\\)" lexerRule(drop TRPAREN) cons
+  "," lexerRule(drop TCOMMA) cons
+  ":" lexerRule(drop TCOLON) cons
 
   # regexes
-  docRegex lexerRule(readDoc TDOC) cons
-  decIntRegex lexerRule(readDecInt TINT) cons
-  hexIntRegex lexerRule(readHexInt TINT) cons
-  wordRegex   lexerRule(wordToken)       cons
+  "\\|\\|\\|[^\r\n]*" lexerRule(readDoc TDOC) cons
+  "[+\\-]?[0-9]+" lexerRule(readDecInt TINT) cons
+  "[+\\-]?0[xX][0-9a-fA-F]+" lexerRule(readHexInt TINT) cons
+  "[^ \t\n\r\":(),]+" lexerRule(wordToken) cons
 
   # newlines
-  newlineRegex lexerRule(drop TNEWLINE) cons
+  "([ \t]*(#[^\r\n]*)?[\r\n]+)+" lexerRule(drop TNEWLINE) cons
 
   # strings
-  stringRegex lexerRule(readString TSTR) cons
-  multistringRegex lexerRule(readMultistring TSTR) cons
+  "\"([^\\\\\"\n\r]|\\\\[ntr\"\\\\])*\"" lexerRule(readString TSTR) cons
 )
 
 data LexerMatch
@@ -202,7 +201,7 @@ bestLexerMatch : Str -- LexerMatch
 bestLexerMatch =
   lexerRules formap(
     match( lexerRule(f) ->
-      dip(dup) regexMatch lexerMatch(f)
+      dip(dup) strmatch lexerMatch(f)
     )
   ) nip no_panic_11(maximum(lexerMatchOrder))
 
@@ -217,7 +216,7 @@ lexerError->str : LexerError -- Str
 lexerError->str = unLexerError dip(loc->str ": " <>) <>
 
 trim : Loc Str -- Loc Str
-trim = dup trimRegex regexMatch maybe(n0, id) strbreak dip(locNext)
+trim = dup "[ \t]+" strmatch maybe(n0, id) strbreak dip(locNext)
 
 pretokenizeAux : List(L(Token)) Loc Str -- Result(LexerError, List(L(Token)))
 pretokenizeAux =

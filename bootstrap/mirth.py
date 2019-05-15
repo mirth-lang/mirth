@@ -2072,6 +2072,16 @@ def unsafe_append(e):
     with open(m, 'a') as fp:
         fp.write(v)
 
+recache = {}
+def rematch(a,b):
+    if b not in recache:
+        recache[b] = re.compile(b, re.MULTILINE)
+    r = recache[b]
+    x = r.match(a)
+    if x is None:
+        return (0, False)
+    return (len(x.group(0)), True)
+
 builtin_word_sigs = {
     # basic
     '_prim_dup':  ([], tpack(None, [tvar('b')]), tpack(None, [tvar('b'), tvar('b')])),
@@ -2104,6 +2114,7 @@ builtin_word_sigs = {
     '_prim_str_to_codepoint': ([], tpack(None, [tstr]), tpack(None, [tint])),
     '_prim_str_from_codepoint': ([], tpack(None, [tint]), tpack(None, [tstr])),
     '_prim_str_elem': ([], tpack(None, [tstr, tstr]), tpack(None, [tbool])),
+    '_prim_str_rematch': ([], tpack(None, [tstr, tstr]), tpack(None, [tint, tbool])),
 
     # tuple
     '_prim_tuple_intuple': ([(tpack(tvar('a')), tpack(tvar('b')))],
@@ -2169,7 +2180,8 @@ builtin_word_defs = {
     '_prim_str_len':    word1(len),
     '_prim_str_from_codepoint':    word1(chr),
     '_prim_str_to_codepoint':    word1(ord),
-    '_prim_str_elem':   word2(lambda a,b: a in b),
+    '_prim_str_elem':    word2(lambda a,b: a in b),
+    '_prim_str_rematch': word22(rematch),
 
     # tuple
     '_prim_tuple_intuple': intuple,
