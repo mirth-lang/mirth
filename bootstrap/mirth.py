@@ -2151,6 +2151,7 @@ builtin_word_sigs = {
     '_prim_unsafe_write':   ([], tpack(None, [tstr, tstr]), tpack(None)),
     '_prim_unsafe_append':  ([], tpack(None, [tstr, tstr]), tpack(None)),
     '_prim_unsafe_coerce':  ([], tpack(tvar('a')), tpack(tvar('b'))),
+    '_prim_unsafe_hash':    ([], tpack(None, [tvar('a')]), tpack(None, [tint])),
 }
 
 builtin_word_defs = {
@@ -2210,6 +2211,7 @@ builtin_word_defs = {
     '_prim_unsafe_write':   unsafe_write,
     '_prim_unsafe_append':  unsafe_append,
     '_prim_unsafe_coerce':  word1(lambda a: a),
+    '_prim_unsafe_hash':    word1(hash),
 }
 
 ##############################################################

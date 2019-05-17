@@ -1,0 +1,98 @@
+
+import base/int
+import base/nat
+import base/pos
+import base/list
+import base/maybe
+
+export base/map
+  type Nat
+  type Maybe(t)
+  type Map(k,v)
+  Map.generate : List(Pack(k v)) -- Map(k,v)
+  mapFromList : List(Pack(k v)) -- Map(k,v)
+  mapNil : Map(k,v)
+  mapSet : Map(k,v) k v -- Map(k,v)
+  mapGet : Map(k,v) k -- Maybe(v)
+  mapHas : Map(k,v) k -- Bool
+  mapLen : Map(k,v) -- Nat
+  mapNil? : Map(k,v) -- Map(k,v) Bool
+  mapGet? : Map(k,v) k -- Map(k,v) k Maybe(v)
+  mapHas? : Map(k,v) k -- Map(k,v) k Bool
+  mapLen? : Map(k,v) -- Map(k,v) Nat
+end
+
+data Map(k,v)
+  mapNil : Map(k,v)
+  mapLeaf : k v Int -- Map(k,v)
+  mapNode : Map(k,v) Map(k,v) -- Map(k,v)
+end
+
+Map.generate = mapFromList
+mapFromList = dip(mapNil) for(unpack2 mapSet)
+
+hash : k -- Int
+hash = _prim_unsafe_hash
+
+moveLeafDown : k v Int -- Map(k,v)
+moveLeafDown =
+  p2 z/% n0 n= if(
+    mapLeaf mapNil mapNode,
+    mapLeaf mapNil swap mapNode
+  )
+
+mapSetAux : k v Int Map(k,v) -- Map(k,v)
+mapSetAux =
+  match(
+    mapNil -> mapLeaf,
+    mapLeaf -> dip2(over) rotl over z=
+      if(
+        drop3 mapLeaf,
+        moveLeafDown mapSetAux
+      ),
+    mapNode ->
+      dip2(p2 z/%) rotl n0 n= if(
+        dip(mapSetAux) mapNode,
+        swap dip(mapSetAux) swap mapNode
+      )
+  )
+mapSet = rotl dip(over hash) mapSetAux
+
+mapGetAux : Int Map(k,v) -- Maybe(v)
+mapGetAux =
+  match(
+    mapNil -> drop none,
+    mapLeaf -> dip(rotl) z= if(nip some, drop2 none),
+    mapNode -> dip2(p2 z/%) rotl n0 n= if(drop, nip) mapGetAux
+  )
+
+mapGet = hash swap mapGetAux
+mapHas = mapGet maybe(false, drop true)
+
+dip(mapNil) mapGet == drop none
+tuck dip(mapSet) mapGet == drop nip some
+dip(tuck dip(mapSet)) mapSet == dip2(drop) mapSet
+
+mapLenAux : Nat Map(k,v) -- Nat
+mapLen = dip(n0) mapLenAux
+mapLenAux =
+  match(
+    mapNil -> id,
+    mapLeaf -> drop3 n1+ pnat,
+    mapNode -> dip(mapLenAux) mapLenAux
+  )
+
+mapNil mapLen == n0
+mapLeaf mapLen == drop3 n1
+mapNode mapLen == mapLen dip(mapLen) n+
+
+mapNil? = match( mapNil -> mapNil true, _ -> false )
+mapGet? = dup2 mapGet
+mapHas? = dup2 mapHas
+mapLen? = dup mapLen
+
+mapNil? drop == id
+mapLen? drop == id
+mapGet? drop == id
+mapHas? drop == id
+
