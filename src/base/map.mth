@@ -4,11 +4,15 @@ import base/nat
 import base/pos
 import base/list
 import base/maybe
+import base/sexp
 
 export base/map
   type Nat
   type Maybe(t)
+  type Sexp
+
   type Map(k,v)
+
   Map.generate : List(Pack(k v)) -- Map(k,v)
   mapFromList : List(Pack(k v)) -- Map(k,v)
   mapNil : Map(k,v)
@@ -20,6 +24,9 @@ export base/map
   mapGet? : Map(k,v) k -- Map(k,v) k Maybe(v)
   mapHas? : Map(k,v) k -- Map(k,v) k Bool
   mapLen? : Map(k,v) -- Map(k,v) Nat
+
+  mapFor(f: *a k v -- *a) : *a Map(k,v) -- *a
+  map->sexp(k->sexp: k -- Sexp, v->sexp: v -- Sexp) : Map(k,v) -- Sexp
 end
 
 data Map(k,v)
@@ -95,4 +102,23 @@ mapNil? drop == id
 mapLen? drop == id
 mapGet? drop == id
 mapHas? drop == id
+
+mapFor(f) =
+  match(
+    mapNil -> id,
+    mapLeaf -> drop f,
+    mapNode -> dip(mapFor(f)) mapFor(f)
+  )
+
+map->sexp(k->sexp, v->sexp) = $(
+  dip(nil)
+  mapFor(
+    dip2(nil)
+    dip(k->sexp cons)
+    v->sexp cons
+    sexpList
+    cons
+  )
+  sexpList
+)
 

@@ -1,0 +1,31 @@
+import base/list
+import base/str
+
+export base/sexp
+  type Sexp
+  sexpAtom : Str -- Sexp
+  sexpList : List(Sexp) -- Sexp
+  sexp->str : Sexp -- Str
+end
+
+data Sexp
+  sexpAtom : Str -- Sexp
+  sexpList : List(Sexp) -- Sexp
+end
+
+sexp->str =
+  match(
+    sexpAtom ->
+      showStr,
+
+    sexpList ->
+      dip("(")
+      lmatchL(
+        id,
+        dip(sexp->str)
+        for(dip(" ") sexp->str <> <>)
+        <>
+      )
+      ")" <>
+  )
+

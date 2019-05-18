@@ -1,11 +1,15 @@
 import base/result
 import base/map
+import base/list
+import base/sexp
+
 import mirth/mod
 import mirth/loc
 
 export mirth/core
   type L(t)
   type Result(e,v)
+  type Sexp
 
   type CoreError
   type CoreModule
@@ -13,11 +17,22 @@ export mirth/core
   type CoreCtx
   type CoreSym
 
-  coreNil  : Mod -- CoreModule
-  coreCons : CoreModule L(CoreStmt) -- Result(CoreError, CoreModule)
+  coreNil   : Mod -- CoreModule
+  coreCons  : CoreModule L(CoreStmt) -- Result(CoreError, CoreModule)
+  core->str : CoreModule -- Str
+  core->sexp : CoreModule -- Sexp
 
   stmtTypeSig : CoreSym CoreCtx -- CoreStmt
+
+  sym->str : CoreSym -- Str
 end
+
+data CoreCtx
+  mkCtx : CoreCtx
+end
+
+ctx->sexp : CoreCtx -- Sexp
+ctx->sexp = drop nil sexpList
 
 data CoreStmt
   stmtTypeSig : CoreSym CoreCtx -- CoreStmt
@@ -36,6 +51,17 @@ stmt->def =
 
 defCheck : CoreModule CoreSym Maybe(CoreDef) CoreDef -- Result(CoreError, CoreDef)
 defCheck = dip(drop3) ok
+
+def->sexp : CoreDef -- Sexp
+def->sexp =
+  match(
+    defTypeSig ->
+      dip2(nil)
+      dip2("type-sig" sexpAtom cons)
+      dip(locSet->str sexpAtom cons)
+      ctx->sexp cons
+      sexpList
+  )
 
 data CoreModule
   mkCore : Mod Map(CoreSym, CoreDef) -- CoreModule
@@ -59,4 +85,22 @@ coreCons = $(
     coreSet ok
   )
 )
+
+core->str = core->sexp sexp->str
+core->sexp = $(
+  unCore
+  dip2(nil "core-module" sexpAtom cons)
+  dip(mod->str sexpAtom cons)
+  map->sexp(sym->str sexpAtom, def->sexp) cons
+  sexpList
+)
+
+data CoreSym
+  mkSym : Str -- CoreSym
+end
+
+unSym : CoreSym -- Str
+unSym = match( mkSym -> id )
+
+sym->str = unSym
 
