@@ -1,0 +1,31 @@
+import base/str
+import base/list
+import base/map
+
+import mirth/mod
+import mirth/loc
+import mirth/core
+
+export mirth/elab
+  type Map(k,v)
+  type Mod
+  type Module
+  type Env
+
+  type ElabError
+
+  elabError->str : ElabError -- Str
+  elaboratePkg : Map(Mod, Module) -- Map(Mod, Env) List(ElabError)
+end
+
+data ElabError
+  mkElabError : L(Str) -- ElabError
+end
+
+elabError->str =
+  match( mkElabError ->
+    unL dip(locSet->str) <>
+  )
+
+elaboratePkg = drop mapNil nil
+

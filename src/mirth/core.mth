@@ -5,57 +5,58 @@ import mirth/loc
 
 export mirth/core
   type L(t)
+  type Result(e,v)
 
-  type Error
-  type Env
-  type Stmt
-  type Ctx
-  type Sym
+  type CoreError
+  type CoreModule
+  type CoreStmt
+  type CoreCtx
+  type CoreSym
 
-  envNil  : Mod -- Env
-  envCons : Env L(Stmt) -- Result(Error, Env)
+  coreNil  : Mod -- CoreModule
+  coreCons : CoreModule L(CoreStmt) -- Result(CoreError, CoreModule)
 
-  stmtTypeSig : Sym Ctx -- Stmt
+  stmtTypeSig : CoreSym CoreCtx -- CoreStmt
 end
 
-data Stmt
-  stmtTypeSig : Sym Ctx -- Stmt
+data CoreStmt
+  stmtTypeSig : CoreSym CoreCtx -- CoreStmt
 end
 
-data Def
-  defTypeSig : LocSet Ctx -- Def
+data CoreDef
+  defTypeSig : LocSet CoreCtx -- CoreDef
 end
 
-stmt->def : L(Stmt) -- Sym Def
+stmt->def : L(CoreStmt) -- CoreSym CoreDef
 stmt->def =
   unL match(
     stmtTypeSig ->
       dip(swap) defTypeSig
   )
 
-defCheck : Env Sym Maybe(Def) Def -- Result(Error, Def)
+defCheck : CoreModule CoreSym Maybe(CoreDef) CoreDef -- Result(CoreError, CoreDef)
 defCheck = dip(drop3) ok
 
-data Env
-  mkEnv : Mod Map(Sym, Def) -- Env
+data CoreModule
+  mkCore : Mod Map(CoreSym, CoreDef) -- CoreModule
 end
 
-unEnv : Env -- Mod Map(Sym, Def)
-unEnv = match( mkEnv -> id )
+unCore : CoreModule -- Mod Map(CoreSym, CoreDef)
+unCore = match( mkCore -> id )
 
-envGet? : Env Sym -- Env Sym Maybe(Def)
-envGet? = dip(unEnv) mapGet? dip2(mkEnv)
+coreGet? : CoreModule CoreSym -- CoreModule CoreSym Maybe(CoreDef)
+coreGet? = dip(unCore) mapGet? dip2(mkCore)
 
-envSet : Env Sym Def -- Env
-envSet = dip2(unEnv) mapSet mkEnv
+coreSet : CoreModule CoreSym CoreDef -- CoreModule
+coreSet = dip2(unCore) mapSet mkCore
 
-envNil = mapNil mkEnv
-envCons = $(
+coreNil = mapNil mkCore
+coreCons = $(
   stmt->def
-  dip(envGet?) dip2(dup2)
+  dip(coreGet?) dip2(dup2)
   defCheck result(
     dip(drop2) err,
-    envSet ok
+    coreSet ok
   )
 )
 
