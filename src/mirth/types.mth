@@ -8,7 +8,7 @@ import base/path
 import base/nat
 import base/str
 
-export mirth/types/pkg
+export mirth/pkg
   type Path
   type Nat
   type Pkg
@@ -25,7 +25,7 @@ export mirth/types/pkg
   pkg->path : Pkg -- Path  # panic on anonPkg
 end
 
-export mirth/types/mod
+export mirth/mod
   type Path
   type Nat
   type Pkg

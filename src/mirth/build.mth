@@ -6,8 +6,8 @@ import base/path
 import base/panic
 import base/maybe
 import base/result
-import mirth/types/pkg
-import mirth/types/mod
+import mirth/pkg
+import mirth/mod
 import mirth/loc
 import mirth/token
 import mirth/lexer

@@ -6,8 +6,8 @@ import base/list
 import base/str
 import base/panic
 import base/order
+import mirth/mod
 
-import mirth/types/mod
 export mirth/loc
   type Loc
   type Pos

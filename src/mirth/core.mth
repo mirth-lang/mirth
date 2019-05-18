@@ -1,6 +1,6 @@
 import base/result
 import base/map
-import mirth/types/mod
+import mirth/mod
 import mirth/loc
 
 export mirth/core

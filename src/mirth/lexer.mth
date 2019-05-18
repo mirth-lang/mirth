@@ -10,7 +10,7 @@ import base/str
 import base/regex+
 import base/maybe
 import base/result
-import mirth/types/mod
+import mirth/mod
 import mirth/loc
 import mirth/token
 
