@@ -2,6 +2,7 @@
 import base/maybe
 import base/panic
 export base/result
+  type Maybe(t)
   type Result(e,t)
   Result.generate : e t Bool -- Result(e,t)
 

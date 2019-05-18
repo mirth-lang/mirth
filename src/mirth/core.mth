@@ -1,0 +1,61 @@
+import base/result
+import base/map
+import mirth/types/mod
+import mirth/loc
+
+export mirth/core
+  type L(t)
+
+  type Error
+  type Env
+  type Stmt
+  type Ctx
+  type Sym
+
+  envNil  : Mod -- Env
+  envCons : Env L(Stmt) -- Result(Error, Env)
+
+  stmtTypeSig : Sym Ctx -- Stmt
+end
+
+data Stmt
+  stmtTypeSig : Sym Ctx -- Stmt
+end
+
+data Def
+  defTypeSig : LocSet Ctx -- Def
+end
+
+stmt->def : L(Stmt) -- Sym Def
+stmt->def =
+  unL match(
+    stmtTypeSig ->
+      dip(swap) defTypeSig
+  )
+
+defCheck : Env Sym Maybe(Def) Def -- Result(Error, Def)
+defCheck = dip(drop3) ok
+
+data Env
+  mkEnv : Mod Map(Sym, Def) -- Env
+end
+
+unEnv : Env -- Mod Map(Sym, Def)
+unEnv = match( mkEnv -> id )
+
+envGet? : Env Sym -- Env Sym Maybe(Def)
+envGet? = dip(unEnv) mapGet? dip2(mkEnv)
+
+envSet : Env Sym Def -- Env
+envSet = dip2(unEnv) mapSet mkEnv
+
+envNil = mapNil mkEnv
+envCons = $(
+  stmt->def
+  dip(envGet?) dip2(dup2)
+  defCheck result(
+    dip(drop2) err,
+    envSet ok
+  )
+)
+
