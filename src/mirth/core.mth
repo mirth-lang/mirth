@@ -3,6 +3,7 @@ import base/map
 import base/list
 import base/sexp
 
+import mirth/syntax
 import mirth/mod
 import mirth/loc
 
@@ -12,95 +13,146 @@ export mirth/core
   type Sexp
 
   type CoreError
+  type CoreInterface
   type CoreModule
-  type CoreStmt
+  type CoreEnv
   type CoreCtx
   type CoreSym
+  type CoreVar
 
-  coreNil   : Mod -- CoreModule
-  coreCons  : CoreModule L(CoreStmt) -- Result(CoreError, CoreModule)
-  core->str : CoreModule -- Str
-  core->sexp : CoreModule -- Sexp
+  coreInterfaceNil : Interface -- CoreInterface
+  coreInterface->str : CoreInterface -- Str
+  coreInterface->sexp : CoreInterface -- Sexp
 
-  stmtTypeSig : CoreSym CoreCtx -- CoreStmt
+  coreModuleNil : Mod -- CoreModule
+  coreModule->str : CoreModule -- Str
+  coreModule->sexp : CoreModule -- Sexp
 
-  sym->str : CoreSym -- Str
+  coreEnvNil : CoreEnv
+  coreEnv->sexp : CoreEnv -- Sexp
+
+  mkCoreSym : Name -- CoreSym
+  unCoreSym : CoreSym -- Name
+  coreSym->str : CoreSym -- Str
+
+  mkCoreVar : Name -- CoreVar
+  unCoreVar : CoreVar -- Name
+  coreVar->str : CoreVar -- Str
 end
 
-data CoreCtx
-  mkCtx : CoreCtx
+||| A Core Interface is the core equivalent of an interface,
+||| i.e. an export list. These are meant to be self-contained.
+||| In practice this is just a wrapper over a CoreEnv that
+||| can only contain type signatures and word signatures.
+data CoreInterface
+  ||| Construct the Core Interface.
+  mkCoreInterface : Interface CoreEnv -- CoreInterface
 end
 
-ctx->sexp : CoreCtx -- Sexp
-ctx->sexp = drop nil sexpList
+||| Destruct the Core Interface.
+unCoreInterface : CoreInterface -- Interface CoreEnv
+unCoreInterface = match( mkCoreInterface -> id )
 
-data CoreStmt
-  stmtTypeSig : CoreSym CoreCtx -- CoreStmt
-end
+||| Empty Core Interface.
+coreInterfaceNil = coreEnvNil mkCoreInterface
 
-data CoreDef
-  defTypeSig : LocSet CoreCtx -- CoreDef
-end
+||| Show the Core interface as a string (via its sexp).
+coreInterface->str = coreInterface->sexp sexp->str
 
-stmt->def : L(CoreStmt) -- CoreSym CoreDef
-stmt->def =
-  unL match(
-    stmtTypeSig ->
-      dip(swap) defTypeSig
-  )
-
-defCheck : CoreModule CoreSym Maybe(CoreDef) CoreDef -- Result(CoreError, CoreDef)
-defCheck = dip(drop3) ok
-
-def->sexp : CoreDef -- Sexp
-def->sexp =
-  match(
-    defTypeSig ->
-      dip2(nil)
-      dip2("type-sig" sexpAtom cons)
-      dip(locSet->str sexpAtom cons)
-      ctx->sexp cons
-      sexpList
-  )
-
-data CoreModule
-  mkCore : Mod Map(CoreSym, CoreDef) -- CoreModule
-end
-
-unCore : CoreModule -- Mod Map(CoreSym, CoreDef)
-unCore = match( mkCore -> id )
-
-coreGet? : CoreModule CoreSym -- CoreModule CoreSym Maybe(CoreDef)
-coreGet? = dip(unCore) mapGet? dip2(mkCore)
-
-coreSet : CoreModule CoreSym CoreDef -- CoreModule
-coreSet = dip2(unCore) mapSet mkCore
-
-coreNil = mapNil mkCore
-coreCons = $(
-  stmt->def
-  dip(coreGet?) dip2(dup2)
-  defCheck result(
-    dip(drop2) err,
-    coreSet ok
-  )
-)
-
-core->str = core->sexp sexp->str
-core->sexp = $(
-  unCore
-  dip2(nil "core-module" sexpAtom cons)
-  dip(mod->str sexpAtom cons)
-  map->sexp(sym->str sexpAtom, def->sexp) cons
+||| Serialize a Core Interface into a Sexp.
+coreInterface->sexp = $(
+  unCoreInterface
+  dip2(nil)
+  dip2("core-interface" sexpAtom cons)
+  dip(interface->str sexpAtom cons)
+  coreEnv->sexp cons
   sexpList
 )
 
-data CoreSym
-  mkSym : Str -- CoreSym
+||| A Core Module is the core equivalent of a module.
+data CoreModule
+  ||| Construct Core Module
+  mkCoreModule : Mod CoreEnv -- CoreModule
 end
 
-unSym : CoreSym -- Str
-unSym = match( mkSym -> id )
+||| Destruct Core Module
+unCoreModule : CoreModule -- Mod CoreEnv
+unCoreModule = match( mkCoreModule -> id )
 
-sym->str = unSym
+||| Empty Core Module.
+coreModuleNil : Mod -- CoreModule
+coreModuleNil = coreEnvNil mkCoreModule
+
+||| Show the Core Module as a string (via its sexp).
+coreModule->str : CoreModule -- Str
+coreModule->str = coreModule->sexp sexp->str
+
+||| Serialize a Core Module into a Sexp.
+coreModule->sexp : CoreModule -- Sexp
+coreModule->sexp = $(
+  unCoreModule
+  dip2(nil)
+  dip2("core-module" sexpAtom cons)
+  dip(mod->str sexpAtom cons)
+  coreEnv->sexp cons
+  sexpList
+)
+
+||| A Core Env is the environment needed to evaluate terms.
+||| This is built piece by piece from core declarations,
+||| and arranged into a set of coherent bindings.
+data CoreEnv
+  mkCoreEnv : CoreEnv
+end
+
+||| Initial Core Env, devoid of bindings, not even builtins.
+coreEnvNil : CoreEnv
+coreEnvNil = mkCoreEnv
+
+||| Serialize a Core Env into a Sexp.
+coreEnv->sexp : CoreEnv -- Sexp
+coreEnv->sexp =
+  match( mkCoreEnv ->
+    nil
+    "core-env" sexpAtom cons
+    sexpList
+  )
+
+||| A Core Ctx is a context in which to evaluate terms.
+||| A context defines kinds for all variables.
+data CoreCtx
+  mkCoreCtx : CoreCtx
+end
+
+||| Serialize a CoreCtx into a Sexp.
+coreCtx->sexp : CoreCtx -- Sexp
+coreCtx->sexp = drop nil sexpList
+
+||| A symbol for a global binding.
+data CoreSym
+  ||| Construct CoreSym
+  mkCoreSym : Name -- CoreSym
+end
+
+||| Destruct CoreSym
+unCoreSym : CoreSym -- Name
+unCoreSym = match( mkCoreSym -> id )
+
+||| Show the symbol as a string.
+coreSym->str : CoreSym -- Str
+coreSym->str = unCoreSym name->str
+
+||| A variable for a local binding.
+data CoreVar
+  ||| Construct CoreVar
+  mkCoreVar : Name -- CoreVar
+end
+
+||| Destruct CoreVar
+unCoreVar : CoreVar -- Name
+unCoreVar = match( mkCoreVar -> id )
+
+||| Show the variable as a string.
+coreVar->str : CoreVar -- Str
+coreVar->str = unCoreVar name->str
 

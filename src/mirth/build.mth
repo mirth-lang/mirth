@@ -6,6 +6,8 @@ import base/path
 import base/panic
 import base/maybe
 import base/result
+import base/map
+
 import mirth/pkg
 import mirth/mod
 import mirth/loc
@@ -13,6 +15,8 @@ import mirth/token
 import mirth/lexer
 import mirth/syntax
 import mirth/parser
+import mirth/core
+import mirth/elab
 
 export mirth/build
   type +IO
@@ -32,21 +36,31 @@ buildPkgMods = $(
   dip(maybe("no pkg", pkg->str) print)
   cond(
     nil? -> drop "No modules found." print 1,
+    dip(mapNil)
     for(
       dup mod->str "Reading " swap <> trace
       dup mod->path read
       "Lexing." trace
-      tokenize result(
+      dip(dup) tokenize result(
         lexerError->str panic,
         "Parsing." trace
         parseModule runParser
         result(
           syntaxError->str panic,
-          getL module->str print
+          getL mapSet
         )
       )
     )
-    0
+    elabPackage
+    nil? not if(
+      dip(drop2)
+      for(elabError->str trace)
+      1,
+      drop
+      dip(mapFor(nip coreInterface->str print))
+      mapFor(nip coreModule->str print)
+      0
+    )
   )
 )
 

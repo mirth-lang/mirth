@@ -1,9 +1,9 @@
 
-build:
-	python3 bootstrap/mirth.py src build
-
 typecheck:
 	python3 bootstrap/mirth.py --typecheck src
+
+build:
+	python3 bootstrap/mirth.py src build
 
 test:
 	python3 test.py

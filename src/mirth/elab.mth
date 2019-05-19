@@ -4,18 +4,19 @@ import base/map
 
 import mirth/mod
 import mirth/loc
+import mirth/syntax
 import mirth/core
 
 export mirth/elab
   type Map(k,v)
   type Mod
   type Module
-  type Env
+  type CoreModule
 
   type ElabError
 
   elabError->str : ElabError -- Str
-  elaboratePkg : Map(Mod, Module) -- Map(Mod, Env) List(ElabError)
+  elabPackage : Map(Mod, Module) -- Map(Interface, CoreInterface) Map(Mod, CoreModule) List(ElabError)
 end
 
 data ElabError
@@ -27,5 +28,29 @@ elabError->str =
     unL dip(locSet->str) <>
   )
 
-elaboratePkg = drop mapNil nil
+elabInterfaces : Map(Mod, Module) -- Map(Interface, CoreInterface) List(ElabError)
+elabInterfaces = $(
+  dip(mapNil nil)
+  mapFor(
+    drop2
+  )
+)
+
+elabModule : Map(Interface, CoreInterface) Mod Module -- CoreModule List(ElabError)
+elabModule = $(
+  swap coreModuleNil nil
+  dip2(drop2)
+)
+
+elabPackage : Map(Mod, Module) -- Map(Interface, CoreInterface) Map(Mod, CoreModule) List(ElabError)
+elabPackage = $(
+  dup elabInterfaces
+  rotr swap dip(mapNil)
+  mapFor(
+    dip2(over) dip(tuck)
+    elabModule dip(mapSet)
+    rotr dip2(++)
+  )
+  rotl
+)
 
