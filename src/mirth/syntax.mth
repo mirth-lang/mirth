@@ -153,6 +153,10 @@ export mirth/syntax
   mkName : Str -- Name
   unName : Name -- Str
   name->str : Name -- Str
+  isVarName      : Name -- Bool
+  isVarName?     : Name -- Name Bool
+  isStarVarName  : Name -- Bool
+  isStarVarName? : Name -- Name Bool
 
   mkInterface : Str -- Interface
   unInterface : Interface -- Str
@@ -494,6 +498,12 @@ end
 
 unName = match( mkName -> id )
 name->str = unName
+
+isVarName = name->str "[a-z].*" strmatch isSome
+isStarVarName = name->str "\\*[a-z].*" strmatch isSome
+
+isVarName? = dup isVarName
+isStarVarName? = dup isStarVarName
 
 ||| Interface name.
 data Interface

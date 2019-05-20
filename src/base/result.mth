@@ -19,12 +19,6 @@ export base/result
 
   result->maybe : Result(e,t) -- Maybe(t)
 
-  # panics on err
-  runwrap : Result(e,a) -- a
-
-  # panics on ok
-  runwrap_error : Result(e,a) -- e
-
 end
 
 data Result(e,t)
@@ -47,8 +41,4 @@ ok?  = result(err false, ok true)
 err? drop == id
 ok?  drop == id
 err? == ok? not
-
-runwrap = result("runwrap on err" panic, id)
-runwrap_error = result(id, "runwrap_error on ok" panic)
-
 

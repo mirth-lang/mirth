@@ -1,0 +1,47 @@
+import base/int
+import base/nat
+import base/pos
+import base/list
+import base/maybe
+import base/sexp
+import base/map
+import base/unit
+
+export base/set
+  type Nat
+  type Sexp
+
+  type Set(k)
+
+  Set.generate : List(k) -- Set(k)
+  setFromList : List(k) -- Set(k)
+  setNil : Set(k)
+  setAdd : Set(k) k -- Set(k)
+  setHas : Set(k) k -- Bool
+  setLen : Set(k) -- Nat
+  setNil? : Set(k) -- Set(k) Bool
+  setLen? : Set(k) -- Set(k) Nat
+  setHas? : Set(k) k -- Set(k) k Bool
+  setFor(f: *a k -- *a) : *a Set(k) -- *a
+  set->sexp(k->sexp: k -- Sexp) : Set(k) -- Sexp
+end
+
+data Set(k)
+  mkSet : Map(k, Unit) -- Set(k)
+end
+
+unSet : Set(k) -- Map(k, Unit)
+unSet = match(mkSet -> id)
+
+Set.generate = setFromList
+setFromList = dip(setNil) for(setAdd)
+setNil = mapNil mkSet
+setAdd = dip(unSet) unit mapSet mkSet
+setHas = dip(unSet) mapHas
+setLen = unSet mapLen
+setNil? = unSet mapNil? dip(mkSet)
+setLen? = dup setLen
+setHas? = dup2 setHas
+setFor(f) = unSet mapFor(drop f)
+set->sexp(k->sexp) = dip(nil) setFor(k->sexp cons) sexpList
+
