@@ -1609,6 +1609,7 @@ class env:
     def __init__(self):
         self.stack  = []
         self.rstack = []
+        self.data   = {}
 
     def push(self, v):
         self.stack.append(v)
@@ -1665,6 +1666,23 @@ class env:
 
     def show_stack(self):
         print(' '.join(repr(s) for s in self.stack))
+
+    def get_data(self):
+        x = self.pop()
+        self.push(self.data[x])
+
+    def set_data(self):
+        x = self.pop()
+        y = self.pop()
+        self.data[x] = y
+
+    def save_data(self, f):
+        x = self.pop()
+        y = self.data[x]
+        def g(e):
+            e.data[x] = y
+        self.copush(g)
+        self.copush(f)
 
 ##############################################################################
 ################################ BUILTINS ####################################
@@ -2152,6 +2170,10 @@ builtin_word_sigs = {
     '_prim_unsafe_append':  ([], tpack(None, [tstr, tstr]), tpack(None)),
     '_prim_unsafe_coerce':  ([], tpack(tvar('a')), tpack(tvar('b'))),
     '_prim_unsafe_hash':    ([], tpack(None, [tvar('a')]), tpack(None, [tint])),
+    '_prim_unsafe_env_get': ([], tpack(None, [tstr]), tpack(None, [tvar('a')])),
+    '_prim_unsafe_env_set': ([], tpack(None, [tstr, tvar('a')]), tpack(None, [tvar('a')])),
+    '_prim_unsafe_env_save': ([(tpack(tvar('a')), tpack(tvar('b')))],
+        tpack(tvar('a'), [tstr]), tpack(tvar('b'))),
 }
 
 builtin_word_defs = {
@@ -2200,18 +2222,21 @@ builtin_word_defs = {
     '_prim_list_for'  : listfor,
 
     # unsafe
-    '_prim_unsafe_panic':   unsafe_panic,
-    '_prim_unsafe_trace':   unsafe_trace,
-    '_prim_unsafe_print':   unsafe_print,
-    '_prim_unsafe_listdir': unsafe_listdir,
-    '_prim_unsafe_walk':    unsafe_walk,
-    '_prim_unsafe_isdir':   unsafe_isdir,
-    '_prim_unsafe_isfile':  unsafe_isfile,
-    '_prim_unsafe_read':    unsafe_read,
-    '_prim_unsafe_write':   unsafe_write,
-    '_prim_unsafe_append':  unsafe_append,
-    '_prim_unsafe_coerce':  word1(lambda a: a),
-    '_prim_unsafe_hash':    word1(hash),
+    '_prim_unsafe_panic':    unsafe_panic,
+    '_prim_unsafe_trace':    unsafe_trace,
+    '_prim_unsafe_print':    unsafe_print,
+    '_prim_unsafe_listdir':  unsafe_listdir,
+    '_prim_unsafe_walk':     unsafe_walk,
+    '_prim_unsafe_isdir':    unsafe_isdir,
+    '_prim_unsafe_isfile':   unsafe_isfile,
+    '_prim_unsafe_read':     unsafe_read,
+    '_prim_unsafe_write':    unsafe_write,
+    '_prim_unsafe_append':   unsafe_append,
+    '_prim_unsafe_coerce':   word1(lambda a: a),
+    '_prim_unsafe_hash':     word1(hash),
+    '_prim_unsafe_env_get':  env.get_data,
+    '_prim_unsafe_env_set':  env.set_data,
+    '_prim_unsafe_env_save':  env.save_data,
 }
 
 ##############################################################

@@ -15,8 +15,6 @@ import mirth/token
 import mirth/lexer
 import mirth/syntax
 import mirth/parser
-import mirth/core
-import mirth/elab
 
 export mirth/build
   type +IO
@@ -51,16 +49,8 @@ buildPkgMods = $(
         )
       )
     )
-    elabPackage
-    nil? not if(
-      dip(drop2)
-      for(elabError->str trace)
-      1,
-      drop
-      dip(mapFor(nip coreInterface->str print))
-      mapFor(nip coreModule->str print)
-      0
-    )
+    drop
+    0
   )
 )
 
