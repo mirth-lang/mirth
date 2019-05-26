@@ -7,6 +7,11 @@ export base/io
   type Path
 
   panic->io : +Panic -- +IO
+
+  exitWith : *a Int -- *b +IO
+  exitFailure : *a -- *b +IO
+  exitSuccess : *a -- *b +IO
+
   trace : Str -- +IO
   print : Str -- +IO
 
@@ -21,6 +26,10 @@ export base/io
   write  : Str Path -- +IO
   append : Str Path -- +IO
 end
+
+exitWith = unsafe_exit
+exitFailure = 1 exitWith
+exitSuccess = 0 exitWith
 
 trace     = unsafe_trace
 print     = unsafe_print

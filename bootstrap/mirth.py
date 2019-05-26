@@ -1678,9 +1678,12 @@ class env:
 
     def save_data(self, f):
         x = self.pop()
-        y = self.data[x]
+        y = self.data[x] if x in self.data else None
         def g(e):
-            e.data[x] = y
+            if y is None:
+                del e.data[x]
+            else:
+                e.data[x] = y
         self.copush(g)
         self.copush(f)
 
@@ -2171,9 +2174,10 @@ builtin_word_sigs = {
     '_prim_unsafe_coerce':  ([], tpack(tvar('a')), tpack(tvar('b'))),
     '_prim_unsafe_hash':    ([], tpack(None, [tvar('a')]), tpack(None, [tint])),
     '_prim_unsafe_env_get': ([], tpack(None, [tstr]), tpack(None, [tvar('a')])),
-    '_prim_unsafe_env_set': ([], tpack(None, [tstr, tvar('a')]), tpack(None, [tvar('a')])),
+    '_prim_unsafe_env_set': ([], tpack(None, [tvar('a'), tstr]), tpack(None, [])),
     '_prim_unsafe_env_save': ([(tpack(tvar('a')), tpack(tvar('b')))],
         tpack(tvar('a'), [tstr]), tpack(tvar('b'))),
+    '_prim_unsafe_exit':    ([], tpack(tvar('a'), [tint]), tpack(tvar('b'))),
 }
 
 builtin_word_defs = {
@@ -2236,7 +2240,8 @@ builtin_word_defs = {
     '_prim_unsafe_hash':     word1(hash),
     '_prim_unsafe_env_get':  env.get_data,
     '_prim_unsafe_env_set':  env.set_data,
-    '_prim_unsafe_env_save':  env.save_data,
+    '_prim_unsafe_env_save': env.save_data,
+    '_prim_unsafe_exit':     word1(sys.exit),
 }
 
 ##############################################################
