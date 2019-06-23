@@ -105,7 +105,7 @@ def repl(flags):
     print('Mirth Bootstrap Interpreter v0.0.0: CAVEAT USOR.')
     print()
     print('Thank you to our patrons on https://patreon.com/mirth_lang')
-    print('And a special thanks to Benjohn.')
+    print('And a special thanks to Benjohn, Joseph Victor, and spacekitteh')
     print()
 
     m = load_prelude() if not flags['no-prelude'] else module()
