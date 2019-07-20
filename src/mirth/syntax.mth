@@ -37,16 +37,19 @@ export mirth/syntax
   type Interface
 
   mkModule : L(List(L(Import))) L(List(L(Export))) L(List(L(Decl))) -- Module
+  unModule : Module -- L(List(L(Import))) L(List(L(Export))) L(List(L(Decl)))
   moduleImports : Module -- L(List(L(Import)))
   moduleExports : Module -- L(List(L(Export)))
   moduleDecls   : Module -- L(List(L(Decl)))
   module->str : Module -- Str
 
   mkImport : L(Interface) -- Import
+  unImport : Import -- L(Interface)
   importInterface : Import -- L(Interface)
   import->str : Import -- Str
 
   mkExport : Maybe(L(Docs)) L(Interface) List(L(Sig)) -- Export
+  unExport : Export -- Maybe(L(Docs)) L(Interface) List(L(Sig))
   exportDoc   : Export -- Maybe(L(Docs))
   exportInterface : Export -- L(Interface)
   exportSigs  : Export -- List(L(Sig))
@@ -77,12 +80,14 @@ export mirth/syntax
   decl->str : Decl -- Str
 
   mkTypeSig : Maybe(L(Docs)) L(Name) L(Params) -- TypeSig
+  unTypeSig : TypeSig -- Maybe(L(Docs)) L(Name) L(Params)
   typeSigDoc    : TypeSig -- Maybe(L(Docs))
   typeSigName   : TypeSig -- L(Name)
   typeSigParams : TypeSig -- L(Params)
   typeSig->str : TypeSig -- Str
 
   mkDataDef : Maybe(L(Docs)) L(Name) L(Params) List(L(Sig)) -- DataDef
+  unDataDef : DataDef -- Maybe(L(Docs)) L(Name) L(Params) List(L(Sig))
   dataDefDocs   : DataDef -- Maybe(L(Docs))
   dataDefName   : DataDef -- L(Name)
   dataDefParams : DataDef -- L(Params)
@@ -90,6 +95,7 @@ export mirth/syntax
   dataDef->str : DataDef -- Str
 
   mkWordSig : Maybe(L(Docs)) L(Name) L(Params) L(Type) -- WordSig
+  unWordSig : WordSig -- Maybe(L(Docs)) L(Name) L(Params) L(Type)
   wordSigDoc    : WordSig -- Maybe(L(Docs))
   wordSigName   : WordSig -- L(Name)
   wordSigParams : WordSig -- L(Params)
@@ -97,6 +103,7 @@ export mirth/syntax
   wordSig->str : WordSig -- Str
 
   mkWordDef : Maybe(L(Docs)) L(Name) L(Params) L(Expr) -- WordDef
+  unWordDef : WordDef -- Maybe(L(Docs)) L(Name) L(Params) L(Expr)
   wordDefDoc    : WordDef -- Maybe(L(Docs))
   wordDefName   : WordDef -- L(Name)
   wordDefParams : WordDef -- L(Params)
@@ -104,6 +111,7 @@ export mirth/syntax
   wordDef->str : WordDef -- Str
 
   mkAssertion : L(Expr) L(Expr) -- Assertion
+  unAssertion : Assertion -- L(Expr) L(Expr)
   assertionLHS : Assertion -- L(Expr)
   assertionRHS : Assertion -- L(Expr)
   assertion->str : Assertion -- Str
@@ -113,18 +121,22 @@ export mirth/syntax
   params->str : Params -- Str
 
   mkParam : L(Name) L(Params) Maybe(L(Type)) -- Param
+  unParam : Param -- L(Name) L(Params) Maybe(L(Type))
   paramName   : Param -- L(Name)
   paramParams : Param -- L(Params)
   paramType   : Param -- Maybe(L(Type))
   param->str : Param -- Str
 
   mkType : L(Expr) L(Expr) -- Type
+  unType : Type -- L(Expr) L(Expr)
   typeDom : Type -- L(Expr)
   typeCod : Type -- L(Expr)
   type->str : Type -- Str
 
   mkExpr : List(L(Atom)) -- Expr
+  unExpr : Expr -- List(L(Atom))
   exprAtoms : Expr -- List(L(Atom))
+  exprNil? : Expr -- Expr Bool
   expr->str : Expr -- Str
 
   atomWord : L(Word) -- Atom
@@ -138,11 +150,13 @@ export mirth/syntax
   atom->str : Atom -- Str
 
   mkWord : L(Name) L(Args) -- Word
+  unWord : Word -- L(Name) L(Args)
   wordName : Word -- L(Name)
   wordArgs : Word -- L(Args)
   word->str : Word -- Str
 
   mkArgs : List(L(Expr)) -- Args
+  unArgs : Args -- List(L(Expr))
   argsExprs : Args -- List(L(Expr))
   args->str : Args -- Str
 
@@ -172,6 +186,7 @@ data Module
   mkModule : L(List(L(Import))) L(List(L(Export))) L(List(L(Decl))) -- Module
 end
 
+unModule = match( mkModule -> id )
 moduleImports = match( mkModule -> drop2 )
 moduleExports = match( mkModule -> drop nip )
 moduleDecls   = match( mkModule -> dip(drop2) )
@@ -187,6 +202,7 @@ data Import
   mkImport : L(Interface) -- Import
 end
 
+unImport = match( mkImport -> id )
 importInterface = match( mkImport -> id )
 import->str = $(
   dip("import ")
@@ -200,6 +216,7 @@ data Export
   mkExport : Maybe(L(Docs)) L(Interface) List(L(Sig)) -- Export
 end
 
+unExport = match( mkExport -> id )
 exportDoc   = match( mkExport -> drop2 )
 exportInterface = match( mkExport -> drop nip )
 exportSigs  = match( mkExport -> dip(drop2) )
@@ -278,6 +295,7 @@ data TypeSig
   mkTypeSig : Maybe(L(Docs)) L(Name) L(Params) -- TypeSig
 end
 
+unTypeSig = match( mkTypeSig -> id )
 typeSigDoc    = match( mkTypeSig -> drop2 )
 typeSigName   = match( mkTypeSig -> drop nip )
 typeSigParams = match( mkTypeSig -> dip(drop2) )
@@ -293,6 +311,7 @@ data DataDef
   mkDataDef : Maybe(L(Docs)) L(Name) L(Params) List(L(Sig)) -- DataDef
 end
 
+unDataDef = match( mkDataDef -> id )
 dataDefDocs = match( mkDataDef -> drop3 )
 dataDefName = match( mkDataDef -> drop2 nip )
 dataDefParams = match( mkDataDef -> drop dip(drop2) )
@@ -312,6 +331,7 @@ data WordSig
   mkWordSig : Maybe(L(Docs)) L(Name) L(Params) L(Type) -- WordSig
 end
 
+unWordSig = match( mkWordSig -> id )
 wordSigDoc    = match( mkWordSig -> drop3 )
 wordSigName   = match( mkWordSig -> drop2 nip )
 wordSigParams = match( mkWordSig -> drop dip(drop2) )
@@ -332,6 +352,7 @@ data WordDef
   mkWordDef : Maybe(L(Docs)) L(Name) L(Params) L(Expr) -- WordDef
 end
 
+unWordDef = match( mkWordDef -> id )
 wordDefDoc    = match( mkWordDef -> drop3 )
 wordDefName   = match( mkWordDef -> drop2 nip )
 wordDefParams = match( mkWordDef -> drop dip(drop2) )
@@ -353,6 +374,7 @@ data Assertion
   mkAssertion : L(Expr) L(Expr) -- Assertion
 end
 
+unAssertion = match( mkAssertion -> id )
 assertionLHS = match( mkAssertion -> drop )
 assertionRHS = match( mkAssertion -> nip )
 assertion->str = match( mkAssertion ->
@@ -384,6 +406,7 @@ data Param
   mkParam : L(Name) L(Params) Maybe(L(Type)) -- Param
 end
 
+unParam = match( mkParam -> id )
 paramName   = match( mkParam -> drop2 )
 paramParams = match( mkParam -> drop nip )
 paramType   = match( mkParam -> dip(drop2) )
@@ -402,8 +425,7 @@ data Type
   mkType : L(Expr) L(Expr) -- Type
 end
 
-exprNil? : Expr -- Expr Bool
-
+unType = match( mkType -> id )
 typeDom = match( mkType -> drop )
 typeCod = match( mkType -> nip )
 type->str = match( mkType ->
@@ -419,6 +441,7 @@ data Expr
   mkExpr : List(L(Atom)) -- Expr
 end
 
+unExpr = match( mkExpr -> id)
 exprAtoms = match( mkExpr -> id )
 exprNil? = match( mkExpr -> nil? dip(mkExpr) )
 expr->str = match( mkExpr ->
@@ -454,6 +477,7 @@ data Word
   mkWord : L(Name) L(Args) -- Word
 end
 
+unWord = match ( mkWord -> id )
 wordName = match( mkWord -> drop )
 wordArgs = match( mkWord -> nip )
 word->str = match( mkWord ->
@@ -468,6 +492,7 @@ data Args
   mkArgs : List(L(Expr)) -- Args
 end
 
+unArgs = match ( mkArgs -> id )
 argsExprs = match( mkArgs -> id )
 args->str = match( mkArgs ->
   cond(
