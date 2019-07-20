@@ -1,0 +1,145 @@
+
+||| Mirth Core language. This is very similar to surface Mirth,
+||| except there is no room for macros or elaboration, and all
+||| types are provided explicitly.
+export mirth/core
+
+  type CModule
+  type CImport
+  type CExport
+
+  type CSig
+  type CTypeSig
+  type CWordSig
+
+  type CParams
+  type CParam
+
+  type CExpr
+  type CAtom
+  type CWord
+  type CArgs
+
+  type CSort
+  type CValueTypeSort
+  type CStackTypeSort
+  type CWordSort
+
+  type CVar
+  type CWordVar
+  type CValueTypeVar
+  type CStackTypeVar
+
+  type CName
+  type CWordName
+  type CTypeName
+  type CEffectName
+
+  type CWordType
+  type CWordDom
+  type CWordCod
+  type CWordEff
+
+  type CStackType
+  type CValueType
+
+  type CEffect
+  type CEffectSet
+
+  valueTypeSort : CValueTypeSort -- CSort
+  stackTypeSort : CStackTypeSort -- CSort
+  wordSort : CWordSort -- CSort
+  matchSort (
+    f1 : *a CValueTypeSort -- *b,
+    f2 : *a CStackTypeSort -- *b,
+    f3 : *a CWordSort -- *b
+  ) : *a CSort -- *b
+
+  mkValueTypeSort : CValueTypeSort
+  unValueTypeSort : CValueTypeSort --
+
+  mkStackTypeSort : CStackTypeSort
+  unStackTypeSort : CStackTypeSort --
+
+  mkWordSort : CWordType -- CWordSort
+  unWordSort : CWordSort -- CWordType
+
+  mkWordType : CWordDom CWordCod CWordEff -- CWordType
+  unWordType : CWordType -- CWordDom CWordCod CWordEff
+
+  mkWordDom : CStackType -- CWordDom
+  unWordDom : CWordDom -- CStackType
+
+  mkWordCod : CStackType -- CWordCod
+  unWordCod : CWordCod -- CStackType
+
+  mkWordEff : CEffectSet -- CWordEff
+  unWordEff : CWordEff -- CEffectSet
+
+end
+
+||| There are three kinds of sorts: stack types, value types, and words.
+data CSort
+  valueTypeSort : CValueTypeSort -- CSort
+  stackTypeSort : CStackTypeSort -- CSort
+  wordSort : CWordSort -- CSort
+end
+
+matchSort (f1, f2, f3) = match(
+  valueTypeSort -> f1,
+  stackTypeSort -> f2,
+  wordSort -> f3
+)
+
+data CValueTypeSort
+  mkValueTypeSort : CValueTypeSort
+end
+
+unValueTypeSort = match(mkValueTypeSort -> id)
+
+data CStackTypeSort
+  mkStackTypeSort : CStackTypeSort
+end
+
+unStackTypeSort = match(mkStackTypeSort -> id)
+
+data CWordSort
+  mkWordSort : CWordType -- CWordSort
+end
+
+unWordSort = match(mkWordSort -> id)
+
+||| The type of a word.
+data CWordType
+  mkWordType : CWordDom CWordCod CWordEff -- CWordType
+end
+
+unWordType = match( mkWordType -> id )
+
+||| Domain type of a word.
+data CWordDom
+  mkWordDom : CStackType -- CWordDom
+end
+
+unWordDom = match( mkWordDom -> id )
+
+||| Codomain type of a word.
+data CWordCod
+  mkWordCod : CStackType -- CWordCod
+end
+
+unWordCod = match( mkWordCod -> id )
+
+||| Effect type of a word.
+data CWordEff
+  mkWordEff : CEffectSet -- CWordEff
+end
+
+unWordEff = match( mkWordEff -> id )
+
+||| Core variables.
+data CVar
+  mkVar : CSort Str -- CVar
+end
+
+
