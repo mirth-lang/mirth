@@ -1,145 +1,150 @@
 
-||| Mirth Core language. This is very similar to surface Mirth,
-||| except there is no room for macros or elaboration, and all
-||| types are provided explicitly.
-export mirth/core
+import base/nat
+import base/str
+import base/list
+import base/unsafe
+import base/io
+import mirth/syntax
+import mirth/loc
 
-  type CModule
-  type CImport
-  type CExport
+type +Mirth
+type K
+type W
 
-  type CSig
-  type CTypeSig
-  type CWordSig
-
-  type CParams
-  type CParam
-
-  type CExpr
-  type CAtom
-  type CWord
-  type CArgs
-
-  type CSort
-  type CValueTypeSort
-  type CStackTypeSort
-  type CWordSort
-
-  type CVar
-  type CWordVar
-  type CValueTypeVar
-  type CStackTypeVar
-
-  type CName
-  type CWordName
-  type CTypeName
-  type CEffectName
-
-  type CWordType
-  type CWordDom
-  type CWordCod
-  type CWordEff
-
-  type CStackType
-  type CValueType
-
-  type CEffect
-  type CEffectSet
-
-  valueTypeSort : CValueTypeSort -- CSort
-  stackTypeSort : CStackTypeSort -- CSort
-  wordSort : CWordSort -- CSort
-  matchSort (
-    f1 : *a CValueTypeSort -- *b,
-    f2 : *a CStackTypeSort -- *b,
-    f3 : *a CWordSort -- *b
-  ) : *a CSort -- *b
-
-  mkValueTypeSort : CValueTypeSort
-  unValueTypeSort : CValueTypeSort --
-
-  mkStackTypeSort : CStackTypeSort
-  unStackTypeSort : CStackTypeSort --
-
-  mkWordSort : CWordType -- CWordSort
-  unWordSort : CWordSort -- CWordType
-
-  mkWordType : CWordDom CWordCod CWordEff -- CWordType
-  unWordType : CWordType -- CWordDom CWordCod CWordEff
-
-  mkWordDom : CStackType -- CWordDom
-  unWordDom : CWordDom -- CStackType
-
-  mkWordCod : CStackType -- CWordCod
-  unWordCod : CWordCod -- CStackType
-
-  mkWordEff : CEffectSet -- CWordEff
-  unWordEff : CWordEff -- CEffectSet
-
+data K
+  KVar  : Name -- K
+  KVoid : K
+  KUnit : K
+  KBool : K
+  KInt  : K
+  KStr  : K
+  KPair : K K -- K
+  KList : K   -- K
+  KWord : K K -- K
 end
 
-||| There are three kinds of sorts: stack types, value types, and words.
-data CSort
-  valueTypeSort : CValueTypeSort -- CSort
-  stackTypeSort : CStackTypeSort -- CSort
-  wordSort : CWordSort -- CSort
+k->str  : K -- Str
+k->str* : K -- Str
+
+k->str =
+  match(
+    KVar -> name->str,
+    KUnit -> "[]",
+    KVoid -> "Void",
+    KBool -> "Bool",
+    KInt -> "Int",
+    KStr -> "Str",
+    KList -> k->str dip("List(") <> ")" <>,
+    KPair -> dip(k->str*) k->str <> dip("[") <> "]" <>,
+    KWord ->
+      dip2("[ ") dip(k->str* <> "-- " <>)
+      k->str* <> "]" <>
+  )
+
+k->str* =
+  match(
+    KUnit -> "",
+    KPair -> dip(k->str*) k->str " " <> <>,
+    _ -> dip("*") k->str <> " " <>
+  )
+
+data W
+  WVar (t: K -- K +Mirth) : Name -- W
+  WId   : W
+  WCp   : List(W) -- W
+
+  WDup  : W
+  WDrop : W
+  WSwap : W
+  WDip  : W -- W
+
+  WPack2 : W
+  WUnpack2 : W
+  WIntuple : W -- W
+
+  WBoolTrue : W
+  WBoolFalse : W
+  WBoolIf : W W -- W
+
+  WIntAdd : W
+  WIntSub : W
+  WIntMul : W
+  WIntMod : W
+  WIntDiv : W
+  WIntEq  : W
+  WIntLt  : W
+
+  WStrCat : W
+  WStrBreak : W
+  WStrLen : W
+  WStrFromCodepoint : W
+  WStrToCodepoint : W
+  WStrElem : W
+  WStrREMatch : W
+
+  WListNil : K -- W
+  WListCons : W
+  WListCat : W
+  WListLen : W
+  WListAt : W
+  WListBreak : W
+  WListMap : W -- W
+  WListFor : W -- W
+
+  WUnsafePanic : W
+  WUnsafeTrace : W
+  WUnsafePrint : W
+  WUnsafeListDir : W
+  WUnsafeWalk : W
+  WUnsafeIsDir : W
+  WUnsafeIsFile : W
+  WUnsafeRead : W
+  WUnsafeWrite : W
+  WUnsafeAppend : W
+  WUnsafeCoerce : W
+  WUnsafeHash : W
+  WUnsafeEnvGet : W
+  WUnsafeEnvSet : W
+  WUnsafeEnvSave : W -- W
+  WUnsafeExit : W
 end
 
-matchSort (f1, f2, f3) = match(
-  valueTypeSort -> f1,
-  stackTypeSort -> f2,
-  wordSort -> f3
+initMirth : +Mirth
+initMirth = n0 unsafe_env_set("Mirth.fresh")
+
+runMirth(f: *a -- *b +Mirth) : *a -- *b +IO
+runMirth(f) =
+  unsafe_env_save("Mirth.fresh", initMirth f) unsafe_coerce
+
+freshName : Name +Mirth
+freshName = $(
+  unsafe_env_get("Mirth.fresh")
+  n1+ pnat dup unsafe_env_set("Mirth.fresh")
+  nat->str dip("?") <> mkName
 )
 
-data CValueTypeSort
-  mkValueTypeSort : CValueTypeSort
-end
+typeError : *a Str -- *b +Mirth
+typeError = "Type Error: " swap <> unsafe_panic
 
-unValueTypeSort = match(mkValueTypeSort -> id)
+infer : K W -- K +Mirth
+infer =
+  match(
+    WVar(inferVar) -> drop inferVar,
+    WId -> id,
+    WCp -> for(infer),
 
-data CStackTypeSort
-  mkStackTypeSort : CStackTypeSort
-end
+    WDup ->
+      match(
+        KPair -> dup dip(KPair) KPair,
+        _ -> "dup: Expected item on stack but got something else." typeError
+      ),
 
-unStackTypeSort = match(mkStackTypeSort -> id)
+    WDrop ->
+      match(
+        KPair -> drop,
+        _ -> "drop: Expected item on stack but got something else." typeError
+      ),
 
-data CWordSort
-  mkWordSort : CWordType -- CWordSort
-end
-
-unWordSort = match(mkWordSort -> id)
-
-||| The type of a word.
-data CWordType
-  mkWordType : CWordDom CWordCod CWordEff -- CWordType
-end
-
-unWordType = match( mkWordType -> id )
-
-||| Domain type of a word.
-data CWordDom
-  mkWordDom : CStackType -- CWordDom
-end
-
-unWordDom = match( mkWordDom -> id )
-
-||| Codomain type of a word.
-data CWordCod
-  mkWordCod : CStackType -- CWordCod
-end
-
-unWordCod = match( mkWordCod -> id )
-
-||| Effect type of a word.
-data CWordEff
-  mkWordEff : CEffectSet -- CWordEff
-end
-
-unWordEff = match( mkWordEff -> id )
-
-||| Core variables.
-data CVar
-  mkVar : CSort Str -- CVar
-end
-
+    _ -> "not yet implemented" typeError
+  )
 
