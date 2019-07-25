@@ -91,7 +91,7 @@ data W
   WListMap : W -- W
   WListFor : W -- W
 
-  WUnsafePanic : W
+  WUnsafePanic : K -- W
   WUnsafeTrace : W
   WUnsafePrint : W
   WUnsafeListDir : W
@@ -101,12 +101,12 @@ data W
   WUnsafeRead : W
   WUnsafeWrite : W
   WUnsafeAppend : W
-  WUnsafeCoerce : W
+  WUnsafeCoerce : K -- W
   WUnsafeHash : W
-  WUnsafeEnvGet : W
+  WUnsafeEnvGet : K -- W
   WUnsafeEnvSet : W
   WUnsafeEnvSave : W -- W
-  WUnsafeExit : W
+  WUnsafeExit : K -- W
 end
 
 initMirth : +Mirth
@@ -126,6 +126,67 @@ freshName = $(
 typeError : *a Str -- *b +Mirth
 typeError = "Type Error: " swap <> unsafe_panic
 
+~KVar  : K -- Name +Mirth
+~KVoid : K -- +Mirth
+~KUnit : K -- +Mirth
+~KBool : K -- +Mirth
+~KInt  : K -- +Mirth
+~KStr  : K -- +Mirth
+~KPair : K -- K K +Mirth
+~KList : K -- K +Mirth
+~KWord : K -- K K +Mirth
+
+~KVar  = match( KVar  -> id, _ -> "Expected type var." typeError)
+~KVoid = match( KVoid -> id, _ -> "Expected Void." typeError)
+~KUnit = match( KVoid -> id, _ -> "Expected []." typeError)
+~KBool = match( KBool -> id, _ -> "Expected Bool." typeError)
+~KInt  = match( KInt  -> id, _ -> "Expected Int." typeError)
+~KStr  = match( KStr  -> id, _ -> "Expected Str." typeError)
+~KPair = match( KPair -> id, _ -> "Expected stack item." typeError)
+~KList = match( KList -> id, _ -> "Expected List." typeError)
+~KWord = match( KWord -> id, _ -> "Expected word type." typeError)
+
+klookup : Name -- K +Mirth
+klookup = KVar # TODO: lookup metavar if appropriate
+
+kexpand : K -- K +Mirth
+kexpand = match(KVar -> klookup, _ -> id)
+
+kmetamatch(fallback: K K -- K +Mirth) : K K -- K +Mirth
+kmetamatch(fallback) = fallback
+  # TODO: match metavars (either direction) if appropriate
+
+kmatch : K K -- K +Mirth
+kmatch2 : K K K K -- K K +Mirth
+
+kmatch =
+  dip(kexpand) kexpand kmetamatch(match(
+    KVar -> dip(~KVar) over nameeq
+      if(KVar, "mismatched type vars" typeError),
+    KVoid -> ~KVoid KVoid,
+    KUnit -> ~KUnit KUnit,
+    KBool -> ~KBool KBool,
+    KInt  -> ~KInt  KInt,
+    KStr  -> ~KStr  KStr,
+    KPair -> dip2(~KPair) kmatch2 KPair,
+    KList -> dip(~KList) kmatch KList,
+    KWord -> dip2(~KWord) kmatch2 KWord
+  ))
+
+kmatch2 = dip(swap) dip2(kmatch) kmatch
+
+kpop : K -- K K +Mirth
+kpop = ~KPair
+
+kpop2 : K -- K K K +Mirth
+kpop2 = kpop dip(kpop)
+
+kpush : K K -- K
+kpush = KPair
+
+kpush2 : K K K -- K
+kpush2 = dip(kpush) kpush
+
 infer : K W -- K +Mirth
 infer =
   match(
@@ -133,18 +194,65 @@ infer =
     WId -> id,
     WCp -> for(infer),
 
-    WDup ->
-      match(
-        KPair -> dup dip(KPair) KPair,
-        _ -> "dup: Expected item on stack but got something else." typeError
-      ),
+    WDup -> kpop dup kpush2,
+    WDrop -> kpop drop,
+    WSwap -> kpop2 swap kpush2,
+    WDip -> dip(kpop) swap dip(infer) kpush,
 
-    WDrop ->
-      match(
-        KPair -> drop,
-        _ -> "drop: Expected item on stack but got something else." typeError
-      ),
+    WPack2 -> kpop2 kpush kpush,
+    WUnpack2 -> kpop kpop kpush2,
+    WIntuple -> dip(kpop) infer kpush,
 
-    _ -> "not yet implemented" typeError
+    WBoolTrue -> KBool kpush,
+    WBoolFalse -> KBool kpush,
+    WBoolIf ->
+      dip2(kpop ~KBool) dip(over)
+      dip2(infer) infer kmatch,
+
+    WIntAdd -> kpop2 ~KInt ~KInt KInt kpush,
+    WIntSub -> kpop2 ~KInt ~KInt KInt kpush,
+    WIntMul -> kpop2 ~KInt ~KInt KInt kpush,
+    WIntMod -> kpop2 ~KInt ~KInt KInt kpush,
+    WIntDiv -> kpop2 ~KInt ~KInt KInt kpush,
+    WIntEq -> kpop2 ~KInt ~KInt KBool kpush,
+    WIntLt -> kpop2 ~KInt ~KInt KBool kpush,
+
+    WStrCat -> kpop2 ~KStr ~KStr KStr kpush,
+    WStrBreak -> kpop2 ~KInt ~KStr KStr KStr kpush2,
+    WStrLen -> kpop ~KStr KInt kpush,
+    WStrFromCodepoint -> kpop ~KInt KStr kpush,
+    WStrToCodepoint -> kpop ~KStr KInt kpush,
+    WStrElem -> kpop2 ~KStr ~KStr KBool kpush,
+    WStrREMatch -> kpop2 ~KStr ~KStr KInt KBool kpush2,
+
+    WListNil -> KList kpush,
+    WListCons -> kpop2 dip(~KList) kmatch KList kpush,
+    WListCat -> kpop2 dip(~KList) ~KList kmatch KList kpush,
+    WListLen -> kpop ~KList drop KInt kpush,
+    WListAt -> kpop2 ~KInt ~KList kpush,
+    WListBreak -> kpop2 ~KInt ~KList KList dup kpush2,
+    WListMap ->
+      dip(kpop ~KList dip(KUnit) KPair) infer
+      ~KPair dip(~KUnit) KList kpush,
+    WListFor ->
+      dip(kpop ~KList kpush) infer kpop KList kpush,
+
+    WUnsafePanic -> dip(kpop ~KStr drop),
+    WUnsafeTrace -> kpop ~KStr,
+    WUnsafePrint -> kpop ~KStr,
+    WUnsafeListDir -> kpop ~KStr KStr KList kpush,
+    WUnsafeWalk -> kpop ~KStr KUnit KStr kpush KStr KList dup kpush2 kpush,
+    WUnsafeIsDir -> kpop ~KStr KBool kpush,
+    WUnsafeIsFile -> kpop ~KStr KBool kpush,
+    WUnsafeRead -> kpop ~KStr KStr kpush,
+    WUnsafeWrite -> kpop2 ~KStr ~KStr,
+    WUnsafeAppend -> kpop2 ~KStr ~KStr,
+    WUnsafeCoerce -> nip,
+    WUnsafeHash -> kpop drop KInt kpush,
+    WUnsafeEnvGet -> dip(kpop ~KStr) kpush,
+    WUnsafeEnvSet -> kpop2 ~KStr drop,
+    WUnsafeEnvSave -> dip(kpop ~KStr) infer,
+    WUnsafeExit -> dip(kpop ~KInt drop)
   )
+
 

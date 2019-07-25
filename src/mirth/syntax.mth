@@ -167,6 +167,7 @@ export mirth/syntax
   mkName : Str -- Name
   unName : Name -- Str
   name->str : Name -- Str
+  nameeq : Name Name -- Bool
   isVarName      : Name -- Bool
   isVarName?     : Name -- Name Bool
   isStarVarName  : Name -- Bool
@@ -523,6 +524,7 @@ end
 
 unName = match( mkName -> id )
 name->str = unName
+nameeq = both(unName) streq
 
 isVarName = name->str "[a-z].*" strmatch isSome
 isStarVarName = name->str "\\*[a-z].*" strmatch isSome
