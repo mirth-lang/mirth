@@ -30,14 +30,12 @@ metaeq = both(meta->str) streq
 data K
   KVar  : Name -- K
   KMeta : Meta -- K
-  KVoid : K
   KUnit : K
   KBool : K
   KInt  : K
   KStr  : K
   KPair : K K -- K
   KList : K   -- K
-  KWord : K K -- K
 end
 
 k->str  : K -- Str
@@ -48,15 +46,11 @@ k->str =
     KVar -> name->str,
     KMeta -> meta->str,
     KUnit -> "[]",
-    KVoid -> "Void",
     KBool -> "Bool",
     KInt -> "Int",
     KStr -> "Str",
     KList -> k->str dip("List(") <> ")" <>,
-    KPair -> dip(k->str*) k->str <> dip("[") <> "]" <>,
-    KWord ->
-      dip2("[ ") dip(k->str* <> "-- " <>)
-      k->str* <> "]" <>
+    KPair -> dip(k->str*) k->str <> dip("[") <> "]" <>
   )
 
 k->str* =
@@ -177,7 +171,6 @@ khasmeta =
     KMeta -> metaeq,
     KList -> khasmeta,
     KPair -> or?(dip?(khasmeta?), swap?(dip?(khasmeta?))) dip(drop3),
-    KWord -> or?(dip?(khasmeta?), swap?(dip?(khasmeta?))) dip(drop3),
     _ -> drop2 false
   )
 khasmeta? = dup2 khasmeta
@@ -216,25 +209,21 @@ kmetamatch1 =
 
 ~KVar  : K -- Name +Mirth
 ~KMeta : K -- Meta +Mirth
-~KVoid : K -- +Mirth
 ~KUnit : K -- +Mirth
 ~KBool : K -- +Mirth
 ~KInt  : K -- +Mirth
 ~KStr  : K -- +Mirth
 ~KPair : K -- K K +Mirth
 ~KList : K -- K +Mirth
-~KWord : K -- K K +Mirth
 
 ~KVar  = kexpand match( KVar  -> id, _ -> "Expected type var." typeError)
 ~KMeta = kexpand match( KMeta -> id, _ -> "Expected meta var." typeError)
-~KVoid = kexpand match( KVoid -> id, _ -> "Expected Void." typeError)
-~KUnit = kexpand match( KVoid -> id, _ -> "Expected []." typeError)
+~KUnit = kexpand match( KUnit -> id, _ -> "Expected []." typeError)
 ~KBool = kexpand match( KBool -> id, _ -> "Expected Bool." typeError)
 ~KInt  = kexpand match( KInt  -> id, _ -> "Expected Int." typeError)
 ~KStr  = kexpand match( KStr  -> id, _ -> "Expected Str." typeError)
 ~KPair = kexpand match( KPair -> id, _ -> "Expected stack item." typeError)
 ~KList = kexpand match( KList -> id, _ -> "Expected List." typeError)
-~KWord = kexpand match( KWord -> id, _ -> "Expected word type." typeError)
 
 kmatch : K K -- K +Mirth
 kmatch2 : K K K K -- K K +Mirth
@@ -245,14 +234,12 @@ kmatch =
       if(KVar, "mismatched type vars" typeError),
     KMeta -> dip(~KMeta) over metaeq
       if(KMeta, "mismatched meta vars" typeError),
-    KVoid -> ~KVoid KVoid,
     KUnit -> ~KUnit KUnit,
     KBool -> ~KBool KBool,
     KInt  -> ~KInt  KInt,
     KStr  -> ~KStr  KStr,
     KPair -> dip2(~KPair) kmatch2 KPair,
-    KList -> dip(~KList) kmatch KList,
-    KWord -> dip2(~KWord) kmatch2 KWord
+    KList -> dip(~KList) kmatch KList
   ))
 
 kmatch2 = dip(swap) dip2(kmatch) kmatch
