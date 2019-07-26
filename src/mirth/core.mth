@@ -1,8 +1,11 @@
 
 import base/nat
 import base/str
+import base/map
+import base/set
 import base/list
 import base/unsafe
+import base/maybe
 import base/io
 import mirth/syntax
 import mirth/loc
@@ -11,8 +14,22 @@ type +Mirth
 type K
 type W
 
+data Meta
+  MkMeta : Nat Maybe(Name) -- Meta
+end
+
+unMeta : Meta -- Nat Maybe(Name)
+unMeta = match( MkMeta -> id )
+
+meta->str : Meta -- Str
+meta->str = dip("[:") unMeta dip(nat->str <>) maybe(id, dip(":" <>) name->str <>) ":]" <>
+
+metaeq : Meta Meta -- Bool
+metaeq = both(meta->str) streq
+
 data K
   KVar  : Name -- K
+  KMeta : Meta -- K
   KVoid : K
   KUnit : K
   KBool : K
@@ -29,6 +46,7 @@ k->str* : K -- Str
 k->str =
   match(
     KVar -> name->str,
+    KMeta -> meta->str,
     KUnit -> "[]",
     KVoid -> "Void",
     KBool -> "Bool",
@@ -109,24 +127,95 @@ data W
   WUnsafeExit : K -- W
 end
 
+MIRTH_FRESH : Str
+MIRTH_KMETA : Str
+MIRTH_FRESH = "Mirth.fresh"
+MIRTH_KMETA = "Mirth.kmeta"
+
 initMirth : +Mirth
-initMirth = n0 unsafe_env_set("Mirth.fresh")
+initMirth = $(
+  n0 unsafe_env_set(MIRTH_FRESH)
+  mapNil unsafe_env_set(MIRTH_KMETA)
+)
 
 runMirth(f: *a -- *b +Mirth) : *a -- *b +IO
-runMirth(f) =
-  unsafe_env_save("Mirth.fresh", initMirth f) unsafe_coerce
-
-freshName : Name +Mirth
-freshName = $(
-  unsafe_env_get("Mirth.fresh")
-  n1+ pnat dup unsafe_env_set("Mirth.fresh")
-  nat->str dip("?") <> mkName
+runMirth(f) = $(
+  unsafe_env_save(MIRTH_FRESH,
+  unsafe_env_save(MIRTH_KMETA,
+    initMirth f
+  ))
+  unsafe_coerce
 )
 
 typeError : *a Str -- *b +Mirth
 typeError = "Type Error: " swap <> unsafe_panic
 
+freshNat : Nat +Mirth
+freshNat = $(
+  unsafe_env_get(MIRTH_FRESH)
+  n1+ pnat dup
+  unsafe_env_set(MIRTH_FRESH)
+)
+
+kmetaget : Meta -- Maybe(K) +Mirth
+kmetaget = unsafe_env_get(MIRTH_KMETA) swap mapGet
+
+kmetaset : Meta K -- +Mirth
+kmetaset = unsafe_env_get(MIRTH_KMETA) rotr mapSet unsafe_env_set(MIRTH_KMETA)
+
+kexpand : K -- K +Mirth
+kexpand =
+  match(
+    KMeta -> dup kmetaget maybe(KMeta, nip kexpand),
+    _ -> id
+  )
+
+khasmeta? : Meta K -- Meta K Bool +Mirth
+khasmeta  : Meta K --        Bool +Mirth
+khasmeta =
+  match(
+    KMeta -> metaeq,
+    KList -> khasmeta,
+    KPair -> or?(dip?(khasmeta?), swap?(dip?(khasmeta?))) dip(drop3),
+    KWord -> or?(dip?(khasmeta?), swap?(dip?(khasmeta?))) dip(drop3),
+    _ -> drop2 false
+  )
+khasmeta? = dup2 khasmeta
+
+kmetamatch2 : Meta Meta -- K +Mirth
+kmetamatch1 : Meta K -- K +Mirth
+kmetamatch(fallback: K K -- K +Mirth) : K K -- K +Mirth
+kmetamatch(fallback) =
+  match(
+    KMeta ->
+      swap match(
+        KMeta -> kmetamatch2,
+        _ -> kmetamatch1
+      ),
+    _ ->
+      swap match(
+        KMeta -> swap kmetamatch1,
+        _ -> fallback
+      )
+  )
+
+kmetamatch2 =
+  dup2 metaeq if(
+    drop KMeta,
+    KMeta dup dip(kmetaset)
+  )
+
+kmetamatch1 =
+  dup2 khasmeta if(
+    dip2("Can't unify ")
+    dip(meta->str <> " with " <>)
+    k->str <>
+    typeError,
+    dup dip(kmetaset)
+  )
+
 ~KVar  : K -- Name +Mirth
+~KMeta : K -- Meta +Mirth
 ~KVoid : K -- +Mirth
 ~KUnit : K -- +Mirth
 ~KBool : K -- +Mirth
@@ -136,25 +225,16 @@ typeError = "Type Error: " swap <> unsafe_panic
 ~KList : K -- K +Mirth
 ~KWord : K -- K K +Mirth
 
-~KVar  = match( KVar  -> id, _ -> "Expected type var." typeError)
-~KVoid = match( KVoid -> id, _ -> "Expected Void." typeError)
-~KUnit = match( KVoid -> id, _ -> "Expected []." typeError)
-~KBool = match( KBool -> id, _ -> "Expected Bool." typeError)
-~KInt  = match( KInt  -> id, _ -> "Expected Int." typeError)
-~KStr  = match( KStr  -> id, _ -> "Expected Str." typeError)
-~KPair = match( KPair -> id, _ -> "Expected stack item." typeError)
-~KList = match( KList -> id, _ -> "Expected List." typeError)
-~KWord = match( KWord -> id, _ -> "Expected word type." typeError)
-
-klookup : Name -- K +Mirth
-klookup = KVar # TODO: lookup metavar if appropriate
-
-kexpand : K -- K +Mirth
-kexpand = match(KVar -> klookup, _ -> id)
-
-kmetamatch(fallback: K K -- K +Mirth) : K K -- K +Mirth
-kmetamatch(fallback) = fallback
-  # TODO: match metavars (either direction) if appropriate
+~KVar  = kexpand match( KVar  -> id, _ -> "Expected type var." typeError)
+~KMeta = kexpand match( KMeta -> id, _ -> "Expected meta var." typeError)
+~KVoid = kexpand match( KVoid -> id, _ -> "Expected Void." typeError)
+~KUnit = kexpand match( KVoid -> id, _ -> "Expected []." typeError)
+~KBool = kexpand match( KBool -> id, _ -> "Expected Bool." typeError)
+~KInt  = kexpand match( KInt  -> id, _ -> "Expected Int." typeError)
+~KStr  = kexpand match( KStr  -> id, _ -> "Expected Str." typeError)
+~KPair = kexpand match( KPair -> id, _ -> "Expected stack item." typeError)
+~KList = kexpand match( KList -> id, _ -> "Expected List." typeError)
+~KWord = kexpand match( KWord -> id, _ -> "Expected word type." typeError)
 
 kmatch : K K -- K +Mirth
 kmatch2 : K K K K -- K K +Mirth
@@ -163,6 +243,8 @@ kmatch =
   dip(kexpand) kexpand kmetamatch(match(
     KVar -> dip(~KVar) over nameeq
       if(KVar, "mismatched type vars" typeError),
+    KMeta -> dip(~KMeta) over metaeq
+      if(KMeta, "mismatched meta vars" typeError),
     KVoid -> ~KVoid KVoid,
     KUnit -> ~KUnit KUnit,
     KBool -> ~KBool KBool,
