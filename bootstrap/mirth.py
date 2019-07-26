@@ -2189,6 +2189,11 @@ builtin_word_defs = {
     '_prim_swap':       env.swap,
     '_prim_dip':        env.dip,
 
+    # tuple
+    '_prim_tuple_intuple': intuple,
+    '_prim_tuple_pack2':   word2(lambda a,b: (a,b)),
+    '_prim_tuple_unpack2': word12(lambda p: p),
+
     # bool
     '_prim_bool_true':  (lambda env: env.push(True)),
     '_prim_bool_false': (lambda env: env.push(False)),
@@ -2211,11 +2216,6 @@ builtin_word_defs = {
     '_prim_str_to_codepoint':    word1(ord),
     '_prim_str_elem':    word2(lambda a,b: a in b),
     '_prim_str_rematch': word22(rematch),
-
-    # tuple
-    '_prim_tuple_intuple': intuple,
-    '_prim_tuple_pack2':   word2(lambda a,b: (a,b)),
-    '_prim_tuple_unpack2': word12(lambda p: p),
 
     # list
     '_prim_list_nil'  : (lambda env: env.push([])),
