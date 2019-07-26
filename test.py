@@ -15,15 +15,22 @@ import subprocess
 
 # run bootstrap tests
 
-full_test = '--fast' not in sys.argv
+run_doctests = '--no-doctest' not in sys.argv
+run_bootstrap_tests = '--no-bootstrap' not in sys.argv
+run_build = '--no-build' not in sys.argv
 
 failed = 0
 interp = 'bootstrap/mirth.py'
-subprocess.run([interp, '--doctest'])
+
+if run_doctests:
+    print(' '.join([interp, '--doctest']))
+    subprocess.run([interp, '--doctest'])
 
 def test_interp(args, passfn):
     global failed
-    with subprocess.Popen([interp] + args,
+    cmd = [interp] + args
+    print(' '.join(cmd), file=sys.stderr)
+    with subprocess.Popen(cmd,
             stdout = subprocess.PIPE,
             stderr = subprocess.PIPE ) as proc:
         (outs, errs) = proc.communicate()
@@ -42,7 +49,7 @@ def succeeds(exit_code, outs, errs):
 def stderr_contains(msg):
     return lambda exit_code, outs, errs: msg in errs
 
-if full_test:
+if run_bootstrap_tests:
 
     test_interp(['--no-prelude', 'bootstrap/prelude.mth'], succeeds)
 
@@ -58,7 +65,8 @@ if full_test:
     for path in glob.glob('bootstrap/fail_tests/*'):
         test_interp([path], stderr_contains('Assertion failed'))
 
-test_interp(['src', 'build'], succeeds)
+if run_build:
+    test_interp(['src', 'build'], succeeds)
 
 sys.exit(failed)
 

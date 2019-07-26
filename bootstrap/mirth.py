@@ -31,6 +31,7 @@ def main():
     flags = {
         'no-prelude': False,
         'typecheck': False,
+        'testonly': False
     }
 
     def check_flag(p):
@@ -43,6 +44,7 @@ def main():
 
     check_flag('no-prelude')
     check_flag('typecheck')
+    check_flag('testonly')
 
     if len(sys.argv) == 1:
         repl(flags)
@@ -79,7 +81,7 @@ def interpret(path, args, flags):
         if not flags['typecheck']:
             m.check_assertions()
 
-        if 'main' in m.word_defs and not flags['typecheck']:
+        if 'main' in m.word_defs and not flags['typecheck'] and not flags['testonly']:
             (ps,dom,cod) = m.word_sigs['main']
             exp_dom = tpack(None, [tlist(tstr)] if len(dom.args) > 0 else [])
             exp_cod = tpack(None, [tint] if len(cod.args) > 0 else [], cod.tags)
@@ -282,7 +284,7 @@ def run_package(pkg, args, flags):
             herr(modpath, lambda: m.check_assertions())
 
     mainpath = os.path.join(pkg, 'main.mth')
-    if mainpath in modpaths and not flags['typecheck']:
+    if mainpath in modpaths and not flags['typecheck'] and not flags['testonly']:
         m = mods[mainpath]
         if 'main' in m.word_defs:
             (ps,dom,cod) = m.word_sigs['main']
