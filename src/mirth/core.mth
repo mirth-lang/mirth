@@ -239,10 +239,10 @@ kmetamatch1 =
 ~KPair = kexpand match( KPair -> id, _ -> "Expected stack item." typeError)
 ~KList = kexpand match( KList -> id, _ -> "Expected List." typeError)
 
-kmatch : K K -- K +Mirth
-kmatch2 : K K K K -- K K +Mirth
+kunify : K K -- K +Mirth
+kunify2 : K K K K -- K K +Mirth
 
-kmatch =
+kunify =
   dip(kexpand) kexpand kmetamatch(match(
     KVar -> dip(~KVar) over nameeq
       if(KVar, "mismatched type vars" typeError),
@@ -252,11 +252,11 @@ kmatch =
     KBool -> ~KBool KBool,
     KInt  -> ~KInt  KInt,
     KStr  -> ~KStr  KStr,
-    KPair -> dip2(~KPair) kmatch2 KPair,
-    KList -> dip(~KList) kmatch KList
+    KPair -> dip2(~KPair) kunify2 KPair,
+    KList -> dip(~KList) kunify KList
   ))
 
-kmatch2 = dip(swap) dip2(kmatch) kmatch
+kunify2 = dip(swap) dip2(kunify) kunify
 
 kpop : K -- K K +Mirth
 kpop = ~KPair
@@ -290,7 +290,7 @@ infer =
     WBoolFalse -> KBool kpush,
     WBoolIf ->
       dip2(kpop ~KBool) dip(over)
-      dip2(infer) infer kmatch,
+      dip2(infer) infer kunify,
 
     WIntLit -> drop KInt kpush,
     WIntAdd -> kpop2 ~KInt ~KInt KInt kpush,
@@ -311,8 +311,8 @@ infer =
     WStrREMatch -> kpop2 ~KStr ~KStr KInt KBool kpush2,
 
     WListNil -> KList kpush,
-    WListCons -> kpop2 dip(~KList) kmatch KList kpush,
-    WListCat -> kpop2 dip(~KList) ~KList kmatch KList kpush,
+    WListCons -> kpop2 dip(~KList) kunify KList kpush,
+    WListCat -> kpop2 dip(~KList) ~KList kunify KList kpush,
     WListLen -> kpop ~KList drop KInt kpush,
     WListAt -> kpop2 ~KInt ~KList kpush,
     WListBreak -> kpop2 ~KInt ~KList KList dup kpush2,
@@ -320,7 +320,7 @@ infer =
       dip(kpop ~KList dip(KUnit) KPair) infer
       ~KPair dip(~KUnit) KList kpush,
     WListFor ->
-      dip(kpop dip(dup) ~KList kpush) infer kmatch,
+      dip(kpop dip(dup) ~KList kpush) infer kunify,
 
     WUnsafePanic -> dip(kpop ~KStr drop),
     WUnsafeTrace -> kpop ~KStr,
@@ -502,7 +502,7 @@ primIntuple = expect1Args dip(kpop) elabExpr dip(kpush) WIntuple
 primBoolIf = $(
   expect2Args dip2(kpop ~KBool) dip(over)
   dip2(elabExpr) elabExpr dip(swap)
-  dip2(kmatch) WBoolIf
+  dip2(kunify) WBoolIf
 )
 
 primListNil = $(
@@ -518,7 +518,7 @@ primListMap = $(
 primListFor = $(
   expect1Args
   dip(kpop dip(dup) ~KList kpush) elabExpr
-  dip(kmatch) WListFor
+  dip(kunify) WListFor
 )
 
 primUnsafePanic = $(
