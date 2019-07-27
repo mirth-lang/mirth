@@ -165,6 +165,15 @@ freshNat = $(
 kfresh : K +Mirth
 kfresh = freshNat none MkMeta KMeta
 
+kfreshen : K -- K +Mirth
+kfreshen =
+  match(
+    KVar -> dip(freshNat) some MkMeta KMeta,
+    KList -> kfreshen KList,
+    KPair -> dip(kfreshen) kfreshen KPair,
+    _ -> id
+  )
+
 kmetaget : Meta -- Maybe(K) +Mirth
 kmetaget = unsafe_env_get(MIRTH_KMETA) swap mapGet
 
@@ -175,6 +184,8 @@ kexpand : K -- K +Mirth
 kexpand =
   match(
     KMeta -> dup kmetaget maybe(KMeta, nip kexpand),
+    KList -> kexpand KList,
+    KPair -> dip(kexpand) kexpand KPair,
     _ -> id
   )
 
