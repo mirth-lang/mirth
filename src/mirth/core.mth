@@ -28,6 +28,9 @@ meta->str = dip("[:") unMeta dip(nat->str <>) maybe(id, dip(":" <>) name->str <>
 metaeq : Meta Meta -- Bool
 metaeq = both(meta->str) streq
 
+metaeq? : Meta Meta -- Meta Meta Bool
+metaeq? = dup2 metaeq
+
 ||| Core Types. The K stands for Kind or "Konstructor". In the future
 ||| this might included constructed values, not just types.
 data K
@@ -180,57 +183,41 @@ kmetaget = unsafe_env_get(MIRTH_KMETA) swap mapGet
 kmetaset : Meta K -- +Mirth
 kmetaset = unsafe_env_get(MIRTH_KMETA) rotr mapSet unsafe_env_set(MIRTH_KMETA)
 
+||| Expand just the head, i.e. if a metavariable has been
+||| defined in the core environment, replace it with its
+||| expansion. Results in a free type variable, a type
+||| constructor, or an undefined type metavariable.
+kexpandHead : K -- K +Mirth
+kexpandHead =
+  match (
+    KMeta -> dup kmetaget maybe(KMeta, nip kexpandHead),
+    _ -> id
+  )
+
+||| Fully expand a K term.
 kexpand : K -- K +Mirth
 kexpand =
-  match(
-    KMeta -> dup kmetaget maybe(KMeta, nip kexpand),
+  kexpandHead match(
     KList -> kexpand KList,
     KPair -> dip(kexpand) kexpand KPair,
     _ -> id
   )
 
+||| Does the K term have a metavarible? This does
+||| not perform expansion / it assumes expansion
+||| has been performed beforehand.
 khasmeta? : Meta K -- Meta K Bool +Mirth
-khasmeta  : Meta K --        Bool +Mirth
-khasmeta =
+khasmeta? =
   match(
-    KMeta -> metaeq,
-    KList -> khasmeta,
-    KPair -> or?(dip?(khasmeta?), swap?(dip?(khasmeta?))) dip(drop3),
-    _ -> drop2 false
-  )
-khasmeta? = dup2 khasmeta
-
-kmetamatch2 : Meta Meta -- K +Mirth
-kmetamatch1 : Meta K -- K +Mirth
-kmetamatch(fallback: K K -- K +Mirth) : K K -- K +Mirth
-kmetamatch(fallback) =
-  match(
-    KMeta ->
-      swap match(
-        KMeta -> kmetamatch2,
-        _ -> kmetamatch1
-      ),
-    _ ->
-      swap match(
-        KMeta -> swap kmetamatch1,
-        _ -> fallback
-      )
+    KMeta -> metaeq? dip(KMeta),
+    KList -> khasmeta? dip(KList),
+    KPair -> or?(dip?(khasmeta?), swap?(dip?(khasmeta?))) dip(KPair),
+    _ -> false
   )
 
-kmetamatch2 =
-  dup2 metaeq if(
-    drop KMeta,
-    KMeta dup dip(kmetaset)
-  )
-
-kmetamatch1 =
-  dup2 khasmeta if(
-    dip2("Can't unify ")
-    dip(meta->str <> " with " <>)
-    k->str <>
-    typeError,
-    dup dip(kmetaset)
-  )
+||| Same as khasmeta? but consumes the top two arguments.
+khasmeta : Meta K -- Bool +Mirth
+khasmeta = khasmeta? dip(drop2)
 
 ~KVar  : K -- Name +Mirth
 ~KMeta : K -- Meta +Mirth
@@ -241,20 +228,55 @@ kmetamatch1 =
 ~KPair : K -- K K +Mirth
 ~KList : K -- K +Mirth
 
-~KVar  = kexpand match( KVar  -> id, _ -> "Expected type var." typeError)
-~KMeta = kexpand match( KMeta -> id, _ -> "Expected meta var." typeError)
-~KUnit = kexpand match( KUnit -> id, _ -> "Expected []." typeError)
-~KBool = kexpand match( KBool -> id, _ -> "Expected Bool." typeError)
-~KInt  = kexpand match( KInt  -> id, _ -> "Expected Int." typeError)
-~KStr  = kexpand match( KStr  -> id, _ -> "Expected Str." typeError)
-~KPair = kexpand match( KPair -> id, _ -> "Expected stack item." typeError)
-~KList = kexpand match( KList -> id, _ -> "Expected List." typeError)
+~KVar  = kexpandHead match( KVar  -> id, _ -> "Expected type var." typeError)
+~KMeta = kexpandHead match( KMeta -> id, _ -> "Expected meta var." typeError)
+~KUnit = kexpandHead match( KUnit -> id, _ -> "Expected []." typeError)
+~KBool = kexpandHead match( KBool -> id, _ -> "Expected Bool." typeError)
+~KInt  = kexpandHead match( KInt  -> id, _ -> "Expected Int." typeError)
+~KStr  = kexpandHead match( KStr  -> id, _ -> "Expected Str." typeError)
+~KPair = kexpandHead match( KPair -> id, _ -> "Expected stack item." typeError)
+~KList = kexpandHead match( KList -> id, _ -> "Expected List." typeError)
 
+kunifymeta2 : Meta Meta -- K +Mirth
+kunifymeta1 : Meta K -- K +Mirth
+kunifymeta(fallback: K K -- K +Mirth) : K K -- K +Mirth
+kunifymeta(fallback) =
+  match(
+    KMeta ->
+      swap match(
+        KMeta -> kunifymeta2,
+        _ -> kunifymeta1
+      ),
+    _ ->
+      swap match(
+        KMeta -> swap kunifymeta1,
+        _ -> fallback
+      )
+  )
+
+kunifymeta2 =
+  metaeq? if(
+    drop KMeta,
+    KMeta dup dip(kmetaset)
+  )
+
+kunifymeta1 =
+  khasmeta? if(
+    dip2("Can't unify ")
+    dip(meta->str <> " with " <>)
+    k->str <>
+    typeError,
+    dup dip(kmetaset)
+  )
+
+||| Unify two k terms, returning the unified terms.
 kunify : K K -- K +Mirth
+
+||| Unify two pairs of k terms.
 kunify2 : K K K K -- K K +Mirth
 
 kunify =
-  dip(kexpand) kexpand kmetamatch(match(
+  kexpandHead kunifymeta(match(
     KVar -> dip(~KVar) over nameeq
       if(KVar, "mismatched type vars" typeError),
     KMeta -> dip(~KMeta) over metaeq
