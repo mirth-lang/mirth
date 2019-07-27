@@ -28,6 +28,8 @@ meta->str = dip("[:") unMeta dip(nat->str <>) maybe(id, dip(":" <>) name->str <>
 metaeq : Meta Meta -- Bool
 metaeq = both(meta->str) streq
 
+||| Core Types. The K stands for Kind or "Konstructor". In the future
+||| this might included constructed values, not just types.
 data K
   KVar  : Name -- K
   KMeta : Meta -- K
@@ -61,6 +63,10 @@ k->str* =
     _ -> dip("*") k->str <> " " <>
   )
 
+||| Core Words. The W stands for Word. These operations
+||| are just all the primitives we need to replicate the
+||| functionality in the bootstrap. Perhaps it can be
+||| somewhat trimmed.
 data W
   WVar (t: K -- K +Mirth) : Name -- W
   WId   : W
@@ -129,10 +135,12 @@ MIRTH_KMETA : Str
 MIRTH_FRESH = "Mirth.fresh"
 MIRTH_KMETA = "Mirth.kmeta"
 
+initElabEnv : +Mirth
 initMirth : +Mirth
 initMirth = $(
   n0 unsafe_env_set(MIRTH_FRESH)
   mapNil unsafe_env_set(MIRTH_KMETA)
+  initElabEnv
 )
 
 runMirth(f: *a -- *b +Mirth) : *a -- *b +IO
@@ -363,8 +371,10 @@ setElabDef : Name ElabDef -- +Mirth
 getElabDef = getElabEnv unElabEnv swap mapGet
 setElabDef = getElabEnv unElabEnv rotr mapSet MkElabEnv setElabEnv
 
+initialElabMap : Map(Name, ElabDef)
+
 initElabEnv : +Mirth
-initElabEnv = mapNil MkElabEnv unsafe_env_set(MIRTH_ELAB_ENV)
+initElabEnv = initialElabMap MkElabEnv unsafe_env_set(MIRTH_ELAB_ENV)
 
 elabExpr : K Expr -- K W +Mirth
 elabAtom : K Atom -- K W +Mirth
@@ -401,8 +411,6 @@ elabLStr = getL elabStr
 # Primitives #
 ##############
 
-defaultElabMap : Map(Name, ElabDef)
-
 expect0Args : Args -- +Mirth
 expect1Args : Args -- Expr +Mirth
 expect2Args : Args -- Expr Expr +Mirth
@@ -426,7 +434,7 @@ primUnsafeEnvGet : K Args -- K W +Mirth
 primUnsafeEnvSave : K Args -- K W +Mirth
 primUnsafeExit : K Args -- K W +Mirth
 
-defaultElabMap = $(
+initialElabMap = $(
   mapNil
   "_prim_dup" addPrim(WDup wPrim)
   "_prim_swap" addPrim(WSwap wPrim)
