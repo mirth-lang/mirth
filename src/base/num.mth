@@ -97,6 +97,9 @@ export base/nat
   n2%   : Nat -- Nat
 
   nsplit : Nat -- Nat Nat
+
+  nmatch (z: *a -- *b, s: *a Nat -- *b) : *a Nat -- *b
+  nrepeat (f: *a -- *a) : *a Nat -- *a
 end
 
 export base/pos
@@ -239,6 +242,9 @@ n2/ = p2 n/
 n2% = p2 n%
 
 nsplit = dup par(n2/, n2%) over dip(n+)
+
+nmatch(z,s) = n0? if(drop z, n1- znat s)
+nrepeat(f) = nmatch(id, dip(f) nrepeat(f))
 
 p+ = pnat2 n+ _pos
 p- = pint2 z-

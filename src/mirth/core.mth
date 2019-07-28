@@ -82,6 +82,7 @@ data W
   WDrop : W
   WSwap : W
   WDip  : W -- W
+  WCoDipN : Nat W -- W
 
   WPack2 : W
   WUnpack2 : W
@@ -300,6 +301,9 @@ kunify =
     KList -> dip(~KList) kunify KList
   ))
 
+knil : K
+knil = KUnit
+
 kpop : K -- K K +Mirth
 kpop = ~KPair
 
@@ -311,6 +315,19 @@ kpush = KPair
 
 kpush2 : K K K -- K
 kpush2 = dip(kpush) kpush
+
+kbreak : K Nat -- K K +Mirth
+kbreak =
+  dip(knil) nrepeat(
+    dip(kpop) kpush
+  )
+
+kcat : K K -- K +Mirth
+kcat =
+  kexpandHead match(
+    KPair -> dip(kcat) kpush,
+    _ -> ~KUnit
+  )
 
 data Sort
   KSort : Maybe(K) -- Sort
@@ -404,6 +421,7 @@ infer =
     WDrop -> kpop drop,
     WSwap -> kpop2 swap kpush2,
     WDip -> dip(kpop) swap dip(infer) kpush,
+    WCoDipN -> dip(kbreak) infer kcat,
 
     WPack2 -> kpop2 dip2(KUnit) kpush2 kpush,
     WUnpack2 -> kpop kpop2 dip2(~KUnit) kpush2,
