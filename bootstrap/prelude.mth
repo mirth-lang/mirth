@@ -40,6 +40,16 @@ rotr rotl == id
 rotl rotl == rotr
 rotr rotr == rotl
 
+rot4r : a b c d -- d a b c
+rot4l : a b c d -- b c d a
+rot4r = swap dip(rotr)
+rot4l = dip(rotl) swap
+
+rot5r : a b c d e -- e a b c d
+rot5l : a b c d e -- b c d e a
+rot5r = swap dip(rot4r)
+rot5l = dip(rot4l) swap
+
 save(f : *a c -- *b) : *a c -- *b c
 save(f) = dup dip(f)
 
@@ -48,7 +58,6 @@ par(f,g) = dip(f) g
 
 both(f : a -- b) : a a -- b b
 both(f) = par(f,f)
-
 
 #
 # words over pairs
@@ -78,7 +87,6 @@ over2 = dip2(dup2) swap2
 save2(f : *a c1 c2 -- *b) : *a c1 c2 -- *b c1 c2
 save2(f) = dup2 dip2(f)
 
-
 #
 # words over triples
 #
@@ -93,6 +101,12 @@ dip3(f) = dip(dip(dip(f)))
 
 dup3 drop3 == id
 
+#
+# words over quadruples
+#
+
+dip4(f : *a -- *b) : *a w x y z -- *b w x y z
+dip4(f) = dip2(dip2(f))
 
 #
 # query words
@@ -116,7 +130,6 @@ dip3?(f) = dip2?(dip?(f))
 
 $(f: *a -- *b) : *a -- *b
 $(f) = f
-
 
 #
 # bool

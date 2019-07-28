@@ -73,8 +73,8 @@ k->str* =
 ||| functionality in the bootstrap. Perhaps it can be
 ||| somewhat trimmed.
 data W
-  WVar : Nat Name K -- W
-  WCall : Name List(K+W) WSig -- W
+  WVar : Name Nat K K K -- W
+  WCall : Name List(K+W) WSig K -- W
   WId  : W
   WCp  : List(W) -- W
 
@@ -185,6 +185,9 @@ kfreshen2By = dip(over) dip2(kfreshenBy) kfreshenBy
 
 kfreshen : K -- K +Mirth
 kfreshen = dip(freshNat) kfreshenBy
+
+kfreshen2 : K K -- K K +Mirth
+kfreshen2 = dip2(freshNat) kfreshen2By
 
 kmetaget : Meta -- Maybe(K) +Mirth
 kmetaget = unsafe_env_get(MIRTH_KMETA) swap mapGet
@@ -329,6 +332,17 @@ kcat =
     _ -> ~KUnit
   )
 
+kdepth : K -- Maybe(Nat) +Mirth
+kdepth =
+  kexpandHead match(
+    KUnit -> n0 some,
+    KPair -> drop kdepth maybe(none, n1+ pnat some),
+    _ -> drop none
+  )
+
+kdepth? : K -- K Maybe(Nat) +Mirth
+kdepth? = dup kdepth
+
 data Sort
   KSort : Maybe(K) -- Sort
   WSort : K K -- Sort
@@ -412,8 +426,8 @@ inferCall = $(
 
 infer =
   match(
-    WVar -> dip(drop3) kexpand,
-    WCall -> dip2(drop) inferCall,
+    WVar -> dip3(drop2) dip(kfreshen2) dip2(kunify drop) kunify,
+    WCall -> dip(dip2(drop) inferCall) kunify,
     WId -> id,
     WCp -> for(infer),
 
@@ -489,14 +503,19 @@ MIRTH_ELAB_ENV : Str
 MIRTH_ELAB_ENV = "Mirth.elab.env"
 
 data ElabDef
-  ElabDefWord(f: K Args w -- K W +Mirth) : w -- ElabDef
+  ElabDefW(f: K Args w -- K W +Mirth) : w -- ElabDef
+end
+
+data ElabLocal
+  ElabLocalK : Nat -- ElabLocal
+  ElabLocalW : Nat K K -- ElabLocal
 end
 
 data ElabEnv
-  MkElabEnv : Map(Name, ElabDef) -- ElabEnv
+  MkElabEnv : Map(Name, ElabDef) Map(Name, ElabLocal) -- ElabEnv
 end
 
-unElabEnv : ElabEnv -- Map(Name, ElabDef)
+unElabEnv : ElabEnv -- Map(Name, ElabDef) Map(Name, ElabLocal)
 unElabEnv = match(MkElabEnv -> id)
 
 getElabEnv : ElabEnv +Mirth
@@ -507,15 +526,30 @@ getElabEnv = unsafe_env_get(MIRTH_ELAB_ENV)
 setElabEnv = unsafe_env_set(MIRTH_ELAB_ENV)
 withElabEnv(f) = getElabEnv f setElabEnv
 
+getElabDefs : Map(Name, ElabDef) +Mirth
+setElabDefs : Map(Name, ElabDef) -- +Mirth
+getElabDefs = getElabEnv unElabEnv drop
+setElabDefs = getElabEnv unElabEnv nip MkElabEnv setElabEnv
+
+getElabLocals : Map(Name, ElabLocal) +Mirth
+setElabLocals : Map(Name, ElabLocal) -- +Mirth
+getElabLocals = getElabEnv unElabEnv nip
+setElabLocals = getElabEnv unElabEnv drop swap MkElabEnv setElabEnv
+
 getElabDef : Name -- Maybe(ElabDef) +Mirth
 setElabDef : Name ElabDef -- +Mirth
-getElabDef = getElabEnv unElabEnv swap mapGet
-setElabDef = getElabEnv unElabEnv rotr mapSet MkElabEnv setElabEnv
+getElabDef = getElabDefs swap mapGet
+setElabDef = getElabDefs rotr mapSet setElabDefs
 
-initialElabMap : Map(Name, ElabDef)
+getElabLocal : Name -- Maybe(ElabLocal) +Mirth
+setElabLocal : Name ElabLocal -- +Mirth
+getElabLocal = getElabLocals swap mapGet
+setElabLocal = getElabLocals rotr mapSet setElabLocals
+
+initialElabDefs : Map(Name, ElabDef)
 
 initElabEnv : +Mirth
-initElabEnv = initialElabMap MkElabEnv unsafe_env_set(MIRTH_ELAB_ENV)
+initElabEnv = initialElabDefs mapNil MkElabEnv unsafe_env_set(MIRTH_ELAB_ENV)
 
 elabExpr : K Expr -- K W +Mirth
 elabAtom : K Atom -- K W +Mirth
@@ -529,14 +563,48 @@ elabLWord : K L(Word) -- K W +Mirth
 elabLInt : K L(Int) -- K W +Mirth
 elabLStr : K L(Str) -- K W +Mirth
 
+elabWVar : K Name Nat K K -- K W +Mirth
+elabWVar =
+  dup2 dip2(
+    swap2
+    dip2(
+      dip(kunify drop)
+      kexpand dup
+    )
+    rotl
+  ) rotl WVar
+
 elabExpr = unExpr formap(elabLAtom) WCp
 elabAtom = matchAtom(elabLWord, elabLInt, elabLStr)
 elabWord = $(
-  # TODO check in locals first
-  dup wordName getL getElabDef
-  maybe(
-    wordName getL name->str " is not defined" <> typeError,
-    match(ElabDefWord(f) -> dip(wordArgs getL) f)
+  dup wordName getL
+  dup getElabLocal maybe(
+    getElabDef maybe(
+      wordName getL name->str " is not defined" <> typeError,
+      match(ElabDefW(f) -> dip(wordArgs getL) f)
+    ),
+    dip(
+      swap wordArgs getL unArgs len n0? if(drop,
+        dip2("Variable ") dip(name->str <>)
+        dip(" expected no arguments, but got " <>) nat->str <>
+        " arguments." <> typeError
+      )
+    )
+    match(
+      ElabLocalK ->
+        drop dip("Expected word but variable ") name->str <>
+        " is of sort kind." <> typeError,
+      ElabLocalW ->
+        dip?(kdepth?) maybe(
+          elabWVar,
+          dup dip(
+            rot5r dip4(kbreak)
+            elabWVar
+            dip(kcat)
+          )
+          swap WCoDipN
+        )
+    )
   )
 )
 elabInt = dip(KInt kpush) WIntLit
@@ -561,7 +629,7 @@ wPrim = dip(expect0Args) dup dip(infer)
 
 addPrim(f: K Args -- K W +Mirth)
   : Map(Name, ElabDef) Str -- Map(Name, ElabDef)
-addPrim(f) = mkName unit ElabDefWord(drop f) mapSet
+addPrim(f) = mkName unit ElabDefW(drop f) mapSet
 
 primDip : K Args -- K W +Mirth
 primIntuple : K Args -- K W +Mirth
@@ -575,7 +643,7 @@ primUnsafeEnvGet : K Args -- K W +Mirth
 primUnsafeEnvSave : K Args -- K W +Mirth
 primUnsafeExit : K Args -- K W +Mirth
 
-initialElabMap = $(
+initialElabDefs = $(
   mapNil
   "_prim_dup" addPrim(WDup wPrim)
   "_prim_swap" addPrim(WSwap wPrim)
