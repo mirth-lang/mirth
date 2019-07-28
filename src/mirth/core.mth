@@ -14,6 +14,8 @@ import mirth/loc
 type +Mirth
 type K
 type W
+type K+W
+type WSig
 
 data Meta
   MkMeta : Nat Maybe(Name) -- Meta
@@ -71,9 +73,10 @@ k->str* =
 ||| functionality in the bootstrap. Perhaps it can be
 ||| somewhat trimmed.
 data W
-  WVar (t: K -- K +Mirth) : Name -- W
-  WId   : W
-  WCp   : List(W) -- W
+  WVar : Nat Name K -- W
+  WCall : Name List(K+W) WSig -- W
+  WId  : W
+  WCp  : List(W) -- W
 
   WDup  : W
   WDrop : W
@@ -168,14 +171,19 @@ freshNat = $(
 kfresh : K +Mirth
 kfresh = freshNat none MkMeta KMeta
 
-kfreshen : K -- K +Mirth
-kfreshen =
+kfreshenBy : Nat K -- K +Mirth
+kfreshen2By : Nat K K -- K K +Mirth
+kfreshenBy =
   match(
-    KVar -> dip(freshNat) some MkMeta KMeta,
-    KList -> kfreshen KList,
-    KPair -> dip(kfreshen) kfreshen KPair,
-    _ -> id
+    KVar -> some MkMeta KMeta,
+    KList -> kfreshenBy KList,
+    KPair -> kfreshen2By KPair,
+    _ -> nip
   )
+kfreshen2By = dip(over) dip2(kfreshenBy) kfreshenBy
+
+kfreshen : K -- K +Mirth
+kfreshen = dip(freshNat) kfreshenBy
 
 kmetaget : Meta -- Maybe(K) +Mirth
 kmetaget = unsafe_env_get(MIRTH_KMETA) swap mapGet
@@ -269,11 +277,14 @@ kunifymeta1 =
     dup dip(kmetaset)
   )
 
-||| Unify two k terms, returning the unified terms.
+||| Unify two k terms, returning the unified terms. During
+||| unification, metavariables may be instantiated. The
+||| resulting term is fully expanded.
 kunify : K K -- K +Mirth
 
 ||| Unify two pairs of k terms.
 kunify2 : K K K K -- K K +Mirth
+kunify2 = dip(swap) dip2(kunify) kunify
 
 kunify =
   kexpandHead kunifymeta(match(
@@ -289,8 +300,6 @@ kunify =
     KList -> dip(~KList) kunify KList
   ))
 
-kunify2 = dip(swap) dip2(kunify) kunify
-
 kpop : K -- K K +Mirth
 kpop = ~KPair
 
@@ -303,10 +312,91 @@ kpush = KPair
 kpush2 : K K K -- K
 kpush2 = dip(kpush) kpush
 
+data Sort
+  KSort : Maybe(K) -- Sort
+  WSort : K K -- Sort
+end
+
+data Binder
+  MkBinder : Name Sort -- Binder
+end
+
+unBinder : Binder -- Name Sort
+unBinder = match(MkBinder -> id)
+
+freshenBinderBy : Nat Binder -- Binder +Mirth
+freshenBinderBy = $(
+  unBinder match(
+    KSort -> maybe(tuck some MkMeta KMeta, dip(swap) kfreshenBy) some KSort,
+    WSort -> dip2(swap) kfreshen2By WSort
+  ) MkBinder
+)
+
+data WSig
+  MkWSig : List(Binder) K K -- WSig
+end
+
+unWSig : WSig -- List(Binder) K K
+unWSig = match(MkWSig -> id)
+
+freshenWSigBy : Nat WSig -- WSig +Mirth
+freshenWSigBy = $(
+  unWSig
+  dip2(formap(dip(dup) freshenBinderBy) swap)
+  kfreshen2By
+  MkWSig
+)
+
+freshenWSig : WSig -- WSig +Mirth
+freshenWSig = dip(freshNat) freshenWSigBy
+
+data K+W
+  JustK : K -- K+W
+  JustW : W -- K+W
+end
+
 infer : K W -- K +Mirth
+inferCheck : K K W -- K +Mirth
+inferCheck = swap dip(infer) kunify
+
+inferCall : K List(K+W) WSig -- K +Mirth
+inferCall = $(
+  freshenWSig unWSig
+
+  # ensure number of arguments matches signature
+  dip2(
+    dip?(len?) dip?(len?) dup2 n= if(drop2,
+      swap dip(
+        dip("Expected ") nat->str
+        <> " arguments but got " <>
+      ) nat->str <> " arguments." <> typeError
+    )
+  )
+
+  dip(
+    rotr zip dip(kunify drop)
+    for(
+      unpack2 unBinder match(
+        KSort ->
+          rotl match(
+            JustK -> swap maybe(drop2, kunify drop2),
+            JustW -> drop2 dip("expected K but got W for argument ") name->str <> typeError
+          ),
+        WSort ->
+          dip(rotl) swap match(
+            JustK -> drop3 dip("expected W but got K for argument ") name->str <> typeError,
+            JustW -> inferCheck drop2
+          )
+      )
+    )
+  )
+  kexpand
+)
+
 infer =
   match(
-    WVar(inferVar) -> drop inferVar,
+    WVar -> dip(drop3) kexpand,
+    WCall -> dip2(drop) inferCall,
     WId -> id,
     WCp -> for(infer),
 

@@ -47,6 +47,8 @@ export base/list
   lmatchL (f: *a -- *b, g: *a t List(t) -- *b) : *a List(t) -- *b
   lmatchR (f: *a -- *b, g: *a List(t) t -- *b) : *a List(t) -- *b
 
+  zip : List(a) List(b) -- List(Pack(a b))
+
   # Words that panic on empty list.
   uncons : List(t) -- List(t) t +Panic
   unsnoc : List(t) -- t List(t) +Panic
@@ -56,6 +58,7 @@ export base/list
   headR : List(t) -- t +Panic
   tailL : List(t) -- List(t) +Panic
   tailR : List(t) -- List(t) +Panic
+
 end
 
 nil     = _prim_list_nil
@@ -127,4 +130,12 @@ lmatchR(f,g) =
     no_panic_12(uncons) g
   )
 
+zip =
+  lmatchL(
+    drop nil,
+    rotl lmatchL(
+      drop2 nil,
+      swap2 dip(swap) dip2(pack2) zip snoc
+    )
+  )
 
