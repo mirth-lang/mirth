@@ -551,11 +551,24 @@ initialElabDefs : Map(Name, ElabDef)
 initElabEnv : +Mirth
 initElabEnv = initialElabDefs mapNil MkElabEnv unsafe_env_set(MIRTH_ELAB_ENV)
 
+elabL(f: *a t -- *b +Mirth) : *a L(t) -- *b +Mirth
+elabL(f) = getL f # TODO: define error location here, to be used in typeError
+
+elabSig : Sig -- +Mirth
+elabDecl : Decl -- +Mirth
+elabTypeSig : TypeSig -- +Mirth
+elabDataDef : DataDef -- +Mirth
+elabWordSig : WordSig -- +Mirth
+elabWordDef : WordDef -- +Mirth
+elabAssertion : Assertion -- +Mirth
+
 elabExpr : K Expr -- K W +Mirth
 elabAtom : K Atom -- K W +Mirth
 elabWord : K Word -- K W +Mirth
 elabInt : K Int -- K W +Mirth
 elabStr : K Str -- K W +Mirth
+
+elabWVar : K Name Nat K K -- K W +Mirth
 
 elabLExpr : K L(Expr) -- K W +Mirth
 elabLAtom : K L(Atom) -- K W +Mirth
@@ -563,16 +576,27 @@ elabLWord : K L(Word) -- K W +Mirth
 elabLInt : K L(Int) -- K W +Mirth
 elabLStr : K L(Str) -- K W +Mirth
 
-elabWVar : K Name Nat K K -- K W +Mirth
-elabWVar =
-  dup2 dip2(
-    swap2
-    dip2(
-      dip(kunify drop)
-      kexpand dup
-    )
-    rotl
-  ) rotl WVar
+elabSig =
+  matchSig(
+    elabL(elabTypeSig),
+    elabL(elabWordSig),
+    elabL(elabAssertion)
+  )
+
+elabDecl =
+  matchDecl(
+    elabL(elabTypeSig),
+    elabL(elabDataDef),
+    elabL(elabWordSig),
+    elabL(elabWordDef),
+    elabL(elabAssertion)
+  )
+
+# elabTypeSig = ...
+# elabDataDef = ...
+# elabWordSig = ...
+# elabWordDef = ...
+# elabAssertion = ...
 
 elabExpr = unExpr formap(elabLAtom) WCp
 elabAtom = matchAtom(elabLWord, elabLInt, elabLStr)
@@ -615,6 +639,16 @@ elabLAtom = getL elabAtom
 elabLWord = getL elabWord
 elabLInt = getL elabInt
 elabLStr = getL elabStr
+
+elabWVar =
+  dup2 dip2(
+    swap2
+    dip2(
+      dip(kunify drop)
+      kexpand dup
+    )
+    rotl
+  ) rotl WVar
 
 ##############
 # Primitives #
