@@ -5,8 +5,8 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 '''
-This is a test runner for this project. Just invoke with python3.
-This will run tests for the bootstrap.
+This is a test runner for the bootstrap. Just invoke with python3
+from inside the top-level repository directory.
 '''
 
 import sys
@@ -15,16 +15,11 @@ import subprocess
 
 # run bootstrap tests
 
-run_doctests = '--no-doctest' not in sys.argv
-run_bootstrap_tests = '--no-bootstrap' not in sys.argv
-run_build = '--no-build' not in sys.argv
-
 failed = 0
 interp = 'bootstrap/mirth.py'
 
-if run_doctests:
-    print(' '.join([interp, '--doctest']))
-    subprocess.run([interp, '--doctest'])
+print(' '.join([interp, '--doctest']))
+subprocess.run([interp, '--doctest'])
 
 def test_interp(args, passfn):
     global failed
@@ -49,24 +44,19 @@ def succeeds(exit_code, outs, errs):
 def stderr_contains(msg):
     return lambda exit_code, outs, errs: msg in errs
 
-if run_bootstrap_tests:
+test_interp(['--no-prelude', 'bootstrap/prelude.mth'], succeeds)
 
-    test_interp(['--no-prelude', 'bootstrap/prelude.mth'], succeeds)
+for path in glob.glob('bootstrap/pass/*'):
+    test_interp([path], succeeds)
 
-    for path in glob.glob('bootstrap/pass/*'):
-        test_interp([path], succeeds)
+for path in glob.glob('bootstrap/fail_syntax/*'):
+    test_interp([path], stderr_contains('SyntaxError'))
 
-    for path in glob.glob('bootstrap/fail_syntax/*'):
-        test_interp([path], stderr_contains('SyntaxError'))
+for path in glob.glob('bootstrap/fail_types/*'):
+    test_interp([path], stderr_contains('TypeError'))
 
-    for path in glob.glob('bootstrap/fail_types/*'):
-        test_interp([path], stderr_contains('TypeError'))
-
-    for path in glob.glob('bootstrap/fail_tests/*'):
-        test_interp([path], stderr_contains('Assertion failed'))
-
-if run_build:
-    test_interp(['src', 'build'], succeeds)
+for path in glob.glob('bootstrap/fail_tests/*'):
+    test_interp([path], stderr_contains('Assertion failed'))
 
 sys.exit(failed)
 

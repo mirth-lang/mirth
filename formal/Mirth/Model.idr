@@ -1,3 +1,9 @@
+{-
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+-}
+
 module Mirth.Model
 
 Rel : (t:Type) -> Type
@@ -36,8 +42,6 @@ SetProd0 = MkSet () (\x,y => ())
 
 FunProd0 : (a: Set) -> Fun a SetProd0
 FunProd0 = MkSetHom (\x => ()) (\x1,x2,px => ())
-
-
 
 SetProd2 : Set -> Set -> Set
 SetProd2 a b = MkSet E R EquR EquS EquT

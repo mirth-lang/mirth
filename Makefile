@@ -1,20 +1,26 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 typecheck:
 	python3 bootstrap/mirth.py --typecheck src
 
 test:
-	python3 bootstrap/mirth.py --testonly src
+	python3 bootstrap/mirth.py src mtest
+
+test-update:
+	python3 bootstrap/mirth.py src mtest --update
 
 build:
 	python3 bootstrap/mirth.py src build
 
-test-all:
-	python3 test.py
+bootstrap-test:
+	python3 bootstrap/test.py
 
 install-vim:
 	mkdir -p ~/.vim/bundle
 	rm -rf ~/.vim/bundle/mirth-vim
 	cp -r tools/mirth-vim ~/.vim/bundle/
 
-.PHONY: build test test-all typecheck install-vim
+.PHONY: typecheck test build bootstrap-test install-vim
 

@@ -1,8 +1,11 @@
-# re-export of all the unsafe primitive functions with nicer types.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import base/list
 import base/path
 
+||| A re-export of all the unsafe primitive functions with nicer types.
 export base/unsafe
   type Path
   unsafe_panic     : *a Str -- *b
@@ -18,6 +21,7 @@ export base/unsafe
   unsafe_read      : Path -- Str
   unsafe_write     : Str Path --
   unsafe_append    : Str Path --
+  unsafe_deletefile : Path --
   unsafe_coerce    : *a -- *b   # the big unsafe!
   unsafe_env_get  (n: Str) : t
   unsafe_env_set  (n: Str) : t --
@@ -40,6 +44,7 @@ unsafe_isfile    = unpath _prim_unsafe_isfile
 unsafe_read      = unpath _prim_unsafe_read
 unsafe_write     = unpath _prim_unsafe_write
 unsafe_append    = unpath _prim_unsafe_append
+unsafe_deletefile = unpath _prim_unsafe_deletefile
 
 unsafe_coerce = _prim_unsafe_coerce
 

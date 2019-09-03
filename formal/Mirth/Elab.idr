@@ -1,3 +1,9 @@
+{-
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+-}
+
 module Mirth.Mirth
 
 import Mirth.Loc
@@ -37,7 +43,6 @@ Monad Mirth where
   (>>=) (MSeek name loc args sig end stack m1) f =
     MSeek name loc args sig end stack (\p => m1 p >>= f)
   (>>=) (MWord name elab m) f = MWord name elab (m >>= f)
-
 
 fail : Loc -> String -> Mirth t
 fail = MFail
@@ -122,7 +127,6 @@ elabExpr [] = pure ()
 elabExpr (atom :: expr) = do
   elabAtom atom
   elabExpr expr
-
 
 buildBuiltinEnv : Mirth ()
 buildBuiltinEnv = do
@@ -213,5 +217,4 @@ buildBuiltinEnv = do
     inpackD : Loc -> Args -> ElabMon
     inpackD loc [expr] = MkElabM (inpackR loc (elabExpr expr))
     inpackD loc _ = elabFail loc "inpack: Expected exactly 1 arg."
-
 

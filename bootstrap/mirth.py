@@ -2095,6 +2095,14 @@ def unsafe_append(e):
     with open(m, 'a') as fp:
         fp.write(v)
 
+def unsafe_deletefile(e):
+    m = e.pop()
+    if os.path.isfile(m):
+        os.remove(m)
+    elif os.path.isdir(m):
+        print('panic: tried to delete directory with deletefile: ' + m, file=sys.stderr)
+        sys.exit(1)
+
 recache = {}
 def rematch(a,b):
     if b not in recache:
@@ -2173,6 +2181,7 @@ builtin_word_sigs = {
     '_prim_unsafe_read':    ([], tpack(None, [tstr]), tpack(None, [tstr])),
     '_prim_unsafe_write':   ([], tpack(None, [tstr, tstr]), tpack(None)),
     '_prim_unsafe_append':  ([], tpack(None, [tstr, tstr]), tpack(None)),
+    '_prim_unsafe_deletefile':  ([], tpack(None, [tstr]), tpack(None)),
     '_prim_unsafe_coerce':  ([], tpack(tvar('a')), tpack(tvar('b'))),
     '_prim_unsafe_hash':    ([], tpack(None, [tvar('a')]), tpack(None, [tint])),
     '_prim_unsafe_env_get': ([], tpack(None, [tstr]), tpack(None, [tvar('a')])),
@@ -2238,6 +2247,7 @@ builtin_word_defs = {
     '_prim_unsafe_read':     unsafe_read,
     '_prim_unsafe_write':    unsafe_write,
     '_prim_unsafe_append':   unsafe_append,
+    '_prim_unsafe_deletefile': unsafe_deletefile,
     '_prim_unsafe_coerce':   word1(lambda a: a),
     '_prim_unsafe_hash':     word1(hash),
     '_prim_unsafe_env_get':  env.get_data,
@@ -2253,5 +2263,4 @@ if __name__ == '__main__':
         raise ValueError("Builtins are mismatched.")
 
     main()
-
 

@@ -1,13 +1,16 @@
-#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 # Identifiers for packages and modules, including anonymous ones
 # for testing or code generation.
-#
 
 import base/panic
 import base/path
 import base/nat
 import base/str
 
+||| Identifiers for packages.
 export mirth/pkg
   type Path
   type Nat
@@ -25,6 +28,7 @@ export mirth/pkg
   pkg->path : Pkg -- Path  # panic on anonPkg
 end
 
+||| Identifiers for modules.
 export mirth/mod
   type Path
   type Nat
@@ -90,5 +94,4 @@ mod= = match(
   pathMod -> swap match(pathMod -> path=, _ -> drop2 false),
   pkgMod -> rotl match(pkgMod -> dip(swap dip(pkg=)) path= and, _ -> drop3 false)
 )
-
 

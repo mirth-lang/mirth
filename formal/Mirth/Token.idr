@@ -1,3 +1,9 @@
+{-
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+-}
+
 ||| Tokens & Lexer for Mirth.
 module Mirth.Token
 import Mirth.Test
@@ -21,7 +27,6 @@ record Token where
   tokLoc : Loc
   tokStr : String
   tokVal : TokenVal
-
 
 specialChars : List Char
 specialChars = unpack " \t\n\r,()[]{}\""
@@ -124,7 +129,6 @@ tokens path code = aux (initialLoc path) (unpack code)
         in tok :: aux (advanceStr (tokStr tok) loc')
                       (assert_smaller cs cs'')
 
-
 ----------------
 -- UNIT TESTS --
 ----------------
@@ -160,5 +164,4 @@ tokensTests =
                {auto p: Matches code toks} ->
                Test
     testCase code toks {p} = TestCase (Matches code toks) {p}
-
 

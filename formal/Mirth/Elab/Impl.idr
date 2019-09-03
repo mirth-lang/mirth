@@ -1,3 +1,9 @@
+{-
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+-}
+
 module Mirth.Elab.Impl
 import Mirth.Elab
 import Mirth.Syntax
@@ -43,7 +49,6 @@ runMirth (MWord name preDefn rest) env =
 -- TODO: Figure out how to avoid partiality.
 -- Idea: Exploit covariance & contravariance in the environment.
 
-
 private
 implTests : List Test
 implTests =
@@ -54,6 +59,4 @@ implTests =
              = Right (MkMirthEnv [], ())
              ) {p=Refl}
   ]
-
-
 

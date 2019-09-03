@@ -1,3 +1,9 @@
+{-
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+-}
+
 module Mirth.Core
 
 %default total
@@ -94,5 +100,4 @@ mutual
                            (WUnpack2 <> WPack2) WId
 
 -- PCommute : Path sig (s1a +> s1b) (s2a +> s2b) (dippen f <> weaken g) (weaken g <> dippen f)
-
 

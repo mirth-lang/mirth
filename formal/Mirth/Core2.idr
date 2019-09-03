@@ -1,3 +1,9 @@
+{-
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+-}
+
 ||| Alternative Core
 module Mirth.Core2
 
@@ -204,6 +210,4 @@ mutual
   implWord Put (a :: WORLD :: c) p =
     ImpureImpl (\ (x,y,z) => putStrLn (pureToStr a p x) >>= const (pure ((),z)))
                (\ phi => phi . snd)
-
-
 

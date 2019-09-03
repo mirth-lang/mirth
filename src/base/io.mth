@@ -1,3 +1,7 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 import base/path
 import base/unsafe
 
@@ -21,10 +25,17 @@ export base/io
 
   isdir  : Path -- Bool +IO
   isfile : Path -- Bool +IO
+  isdir?  : Path -- Path Bool +IO
+  isfile? : Path -- Path Bool +IO
 
   read   : Path -- Str +IO
   write  : Str Path -- +IO
   append : Str Path -- +IO
+
+  ||| Delete a file if it exists.
+  ||| Does nothing if file does not exist.
+  ||| Panics if it is a directory or if action is forbidden.
+  deletefile : Path -- +IO
 end
 
 exitWith = unsafe_exit
@@ -38,8 +49,12 @@ listdirs  = unsafe_listdirs
 listfiles = unsafe_listfiles
 isdir     = unsafe_isdir
 isfile    = unsafe_isfile
+isdir?    = dup isdir
+isfile?   = dup isfile
 read      = unsafe_read
 write     = unsafe_write
 append    = unsafe_append
 panic->io = unsafe_coerce
+
+deletefile = unsafe_deletefile
 

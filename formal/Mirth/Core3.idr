@@ -1,3 +1,9 @@
+{-
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+-}
+
 module Mirth.Core3
 
 Rel : Type -> Type -> Type
@@ -131,9 +137,7 @@ mutual
     SwapSwap : WordEq (WCp WSwap WSwap) WId
     SwapDip2 : WordEq (WCp WSwap (WDip (WDip w))) (W
 
-
     InpackCp : WordEq (WCp (WInpack w1) (WInpack w2)) (WInpack (WCp w1 w2))
     InpackId : WordEq (WInpack WId) WId
     Pack2Unpack2: WordEq (WCp WPack2 WUnpack2) WId
-
 

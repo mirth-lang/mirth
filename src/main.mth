@@ -1,3 +1,7 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 import base/nat
 import base/list
 import base/str
@@ -6,6 +10,7 @@ import base/io
 import base/panic
 
 import mirth/build
+import mirth/mtest
 
 export target
   type +IO
@@ -13,6 +18,7 @@ export target
 end
 
 mirth-build : List(Str) -- Int +IO
+mirth-mtest : List(Str) -- Int +IO
 mirth-help  : List(Str) -- Int +IO
 
 # entry point for bootstrap
@@ -26,6 +32,7 @@ mirth =
     nil? -> drop "USAGE: mirth COMMAND" trace 1,
     no_panic_12(unsnoc) swap cond(
       dup "build"  streq -> drop mirth-build,
+      dup "mtest"  streq -> drop mirth-mtest,
       dup "help"   streq -> drop mirth-help,
       dup "--help" streq -> drop mirth-help,
       dup "-h"     streq -> drop mirth-help,
@@ -41,6 +48,17 @@ mirth-build =
     nil? -> drop "src" path buildPath,
     len? n2 n>= -> drop "USAGE: mirth build [PKG]" trace 1,
     no_panic_12(unsnoc) drop path buildPath
+  )
+
+# mirth mtest
+mirth-mtest : List(Str) -- Int +IO
+mirth-mtest =
+  lmatchR(
+    false runTests,
+    cond(
+      dup "--update" streq -> drop2 true runTests,
+      drop2 "USAGE: mirth mtest [--update]" trace 1
+    )
   )
 
 # mirth -h, mirth --help, mirth help

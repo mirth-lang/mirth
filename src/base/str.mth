@@ -1,7 +1,11 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import base/int
 import base/nat
 import base/maybe
+import base/list
 
 export base/char
   type Char
@@ -64,6 +68,8 @@ export base/str
   streq : Str Str -- Bool
   <> : Str Str -- Str
   strfold(f : *a Char -- *a) : *a Str -- *a
+
+  unlines : List(Str) -- Str
 
   strmatch : Str Str -- Maybe(Nat)
 
@@ -326,4 +332,6 @@ showStr = dip("\"") strfold(showCharBody <>) "\"" <>
 272 int->char char->str showStr == "\"\\u000110\""
 
 strmatch = _prim_str_rematch if(znat some, drop none)
+
+unlines = dip("") for("\n" <> <>)
 

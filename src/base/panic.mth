@@ -1,10 +1,14 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 import base/unsafe
 
 export base/panic
   type +Panic
   panic : *a Str -- *b +Panic
 
-  # these all have fixed numbers of params because tags are not well developed in bootstrap
+  # these all have fixed numbers of params because effects are not well developed in bootstrap
   no_panic_11 (f: a -- b +Panic) : a -- b
   no_panic_12 (f: a -- b1 b2 +Panic) : a -- b1 b2
   no_panic_13 (f: a -- b1 b2 b3 +Panic) : a -- b1 b2 b3

@@ -1,3 +1,6 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import base/panic
 import base/int
@@ -307,5 +310,4 @@ tokenize = pretokenize rmap(
     over p2 p1 loc ")" locSpan locSetSpan TRPAREN mkL cons
     nip ok
   )
-
 

@@ -1,3 +1,9 @@
+{-
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+-}
+
 module Mirth.Syntax.Parser
 
 import Mirth.Loc
@@ -112,7 +118,6 @@ star p = MkParser $ aux [] False
           Right (MkParseResult (reverse (x::acc)) b env')
         Right (MkParseResult x True env') => do
           aux (x :: acc) True (assert_smaller env env')
-
 
 parse : (path: Maybe String) -> (code: String) -> (parser: Parser t) -> Either ParseError t
 parse path code parser =
