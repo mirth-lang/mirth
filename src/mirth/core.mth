@@ -2,788 +2,146 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-import base/unit
-import base/nat
-import base/str
-import base/map
-import base/set
-import base/list
-import base/unsafe
 import base/maybe
-import base/io
-import mirth/syntax
-import mirth/loc
+import base/nat
 
-type +Mirth
-type K
-type W
-type K+W
-type WSig
-
-data Meta
-  MkMeta : Nat Maybe(Name) -- Meta
+||| Type of globals. These are unique descriptions of a word / type / etc.
+||| These are unique accross all modules and packages. Note that a particular
+||| word / type may not have the same global in differently versioned packages.
+data Global
+  MkGlobal : Global
 end
 
-unMeta : Meta -- Nat Maybe(Name)
-unMeta = match( MkMeta -> id )
-
-meta->str : Meta -- Str
-meta->str = dip("[:") unMeta dip(nat->str <>) maybe(id, dip(":" <>) name->str <>) ":]" <>
-
-metaeq : Meta Meta -- Bool
-metaeq = both(meta->str) streq
-
-metaeq? : Meta Meta -- Meta Meta Bool
-metaeq? = dup2 metaeq
-
-||| Core Types. The K stands for Kind or "Konstructor". In the future
-||| this might included constructed values, not just types.
-data K
-  KVar  : Name -- K
-  KMeta : Meta -- K
-  KUnit : K
-  KBool : K
-  KInt  : K
-  KStr  : K
-  KPair : K K -- K
-  KList : K   -- K
+||| Control whether an argument is usually passed implicitly or explicitly.
+data Visibility
+  Implicit : Visibility
+  Explicit : Visibility
 end
 
-k->str  : K -- Str
-k->str* : K -- Str
-
-k->str =
-  match(
-    KVar -> name->str,
-    KMeta -> meta->str,
-    KUnit -> "[]",
-    KBool -> "Bool",
-    KInt -> "Int",
-    KStr -> "Str",
-    KList -> k->str dip("List(") <> ")" <>,
-    KPair -> dip(k->str*) k->str <> dip("[") <> "]" <>
-  )
-
-k->str* =
-  match(
-    KUnit -> "",
-    KPair -> dip(k->str*) k->str " " <> <>,
-    _ -> dip("*") k->str <> " " <>
-  )
-
-||| Core Words. The W stands for Word. These operations
-||| are just all the primitives we need to replicate the
-||| functionality in the bootstrap. Perhaps it can be
-||| somewhat trimmed.
-data W
-  WVar : Name Nat K K K -- W
-  WCall : Name List(K+W) WSig K -- W
-  WId  : W
-  WCp  : List(W) -- W
-
-  WDup  : W
-  WDrop : W
-  WSwap : W
-  WDip  : W -- W
-  WCoDipN : Nat W -- W
-
-  WPack2 : W
-  WUnpack2 : W
-  WIntuple : W -- W
-
-  WBoolTrue : W
-  WBoolFalse : W
-  WBoolIf : W W -- W
-
-  WIntLit : Int -- W
-  WIntAdd : W
-  WIntSub : W
-  WIntMul : W
-  WIntMod : W
-  WIntDiv : W
-  WIntEq  : W
-  WIntLt  : W
-
-  WStrLit : Str -- W
-  WStrCat : W
-  WStrBreak : W
-  WStrLen : W
-  WStrFromCodepoint : W
-  WStrToCodepoint : W
-  WStrElem : W
-  WStrREMatch : W
-
-  WListNil : K -- W
-  WListCons : W
-  WListCat : W
-  WListLen : W
-  WListAt : W
-  WListBreak : W
-  WListMap : W -- W
-  WListFor : W -- W
-
-  WUnsafePanic : K -- W
-  WUnsafeTrace : W
-  WUnsafePrint : W
-  WUnsafeListDir : W
-  WUnsafeWalk : W
-  WUnsafeIsDir : W
-  WUnsafeIsFile : W
-  WUnsafeRead : W
-  WUnsafeWrite : W
-  WUnsafeAppend : W
-  WUnsafeCoerce : K -- W
-  WUnsafeHash : W
-  WUnsafeEnvGet : K -- W
-  WUnsafeEnvSet : W
-  WUnsafeEnvSave : W -- W
-  WUnsafeExit : K -- W
+||| Syntactic Kind
+data Kind
+  KStackType : Kind
+  KStack : Kind
+  KValueType : Kind
+  KValue : Kind
+  KWord : Kind
+  KLambda : Kind Kind -- Kind
 end
 
-MIRTH_FRESH : Str
-MIRTH_KMETA : Str
-MIRTH_FRESH = "Mirth.fresh"
-MIRTH_KMETA = "Mirth.kmeta"
-
-initElabEnv : +Mirth
-initMirth : +Mirth
-initMirth = $(
-  n0 unsafe_env_set(MIRTH_FRESH)
-  mapNil unsafe_env_set(MIRTH_KMETA)
-  initElabEnv
-)
-
-runMirth(f: *a -- *b +Mirth) : *a -- *b +IO
-runMirth(f) = $(
-  unsafe_env_save(MIRTH_FRESH,
-  unsafe_env_save(MIRTH_KMETA,
-    initMirth f
-  ))
-  unsafe_coerce
-)
-
-typeError : *a Str -- *b +Mirth
-typeError = "Type Error: " swap <> unsafe_panic
-
-freshNat : Nat +Mirth
-freshNat = $(
-  unsafe_env_get(MIRTH_FRESH)
-  n1+ pnat dup
-  unsafe_env_set(MIRTH_FRESH)
-)
-
-kfresh : K +Mirth
-kfresh = freshNat none MkMeta KMeta
-
-kfreshenBy : Nat K -- K +Mirth
-kfreshen2By : Nat K K -- K K +Mirth
-kfreshenBy =
+kindeq : Kind Kind -- Bool
+kindeq =
   match(
-    KVar -> some MkMeta KMeta,
-    KList -> kfreshenBy KList,
-    KPair -> kfreshen2By KPair,
-    _ -> nip
-  )
-kfreshen2By = dip(over) dip2(kfreshenBy) kfreshenBy
-
-kfreshen : K -- K +Mirth
-kfreshen = dip(freshNat) kfreshenBy
-
-kfreshen2 : K K -- K K +Mirth
-kfreshen2 = dip2(freshNat) kfreshen2By
-
-kmetaget : Meta -- Maybe(K) +Mirth
-kmetaget = unsafe_env_get(MIRTH_KMETA) swap mapGet
-
-kmetaset : Meta K -- +Mirth
-kmetaset = unsafe_env_get(MIRTH_KMETA) rotr mapSet unsafe_env_set(MIRTH_KMETA)
-
-||| Expand just the head, i.e. if a metavariable has been
-||| defined in the core environment, replace it with its
-||| expansion. Results in a free type variable, a type
-||| constructor, or an undefined type metavariable.
-kexpandHead : K -- K +Mirth
-kexpandHead =
-  match (
-    KMeta -> dup kmetaget maybe(KMeta, nip kexpandHead),
-    _ -> id
-  )
-
-||| Fully expand a K term.
-kexpand : K -- K +Mirth
-kexpand =
-  kexpandHead match(
-    KList -> kexpand KList,
-    KPair -> dip(kexpand) kexpand KPair,
-    _ -> id
-  )
-
-||| Does the K term have a metavarible? This does
-||| not perform expansion / it assumes expansion
-||| has been performed beforehand.
-khasmeta? : Meta K -- Meta K Bool +Mirth
-khasmeta? =
-  match(
-    KMeta -> metaeq? dip(KMeta),
-    KList -> khasmeta? dip(KList),
-    KPair -> or?(dip?(khasmeta?), swap?(dip?(khasmeta?))) dip(KPair),
-    _ -> false
-  )
-
-||| Same as khasmeta? but consumes the top two arguments.
-khasmeta : Meta K -- Bool +Mirth
-khasmeta = khasmeta? dip(drop2)
-
-~KVar  : K -- Name +Mirth
-~KMeta : K -- Meta +Mirth
-~KUnit : K -- +Mirth
-~KBool : K -- +Mirth
-~KInt  : K -- +Mirth
-~KStr  : K -- +Mirth
-~KPair : K -- K K +Mirth
-~KList : K -- K +Mirth
-
-~KVar  = kexpandHead match( KVar  -> id, _ -> "Expected type var." typeError)
-~KMeta = kexpandHead match( KMeta -> id, _ -> "Expected meta var." typeError)
-~KUnit = kexpandHead match( KUnit -> id, _ -> "Expected []." typeError)
-~KBool = kexpandHead match( KBool -> id, _ -> "Expected Bool." typeError)
-~KInt  = kexpandHead match( KInt  -> id, _ -> "Expected Int." typeError)
-~KStr  = kexpandHead match( KStr  -> id, _ -> "Expected Str." typeError)
-~KPair = kexpandHead match( KPair -> id, _ -> "Expected stack item." typeError)
-~KList = kexpandHead match( KList -> id, _ -> "Expected List." typeError)
-
-kunifymeta2 : Meta Meta -- K +Mirth
-kunifymeta1 : Meta K -- K +Mirth
-kunifymeta(fallback: K K -- K +Mirth) : K K -- K +Mirth
-kunifymeta(fallback) =
-  match(
-    KMeta ->
-      swap match(
-        KMeta -> kunifymeta2,
-        _ -> kunifymeta1
+    KStackType ->
+      match(
+        KStackType -> true,
+        _ -> drop false
       ),
-    _ ->
-      swap match(
-        KMeta -> swap kunifymeta1,
-        _ -> fallback
+    KStack ->
+      match(
+        KStack -> true,
+        _ -> drop false
+      ),
+    KValueType ->
+      match(
+        KValueType -> true,
+        _ -> drop false
+      ),
+    KValue ->
+      match(
+        KValue -> true,
+        _ -> drop false
+      ),
+    KWord ->
+      match(
+        KWord -> true,
+        _ -> drop false
+      ),
+    KLambda ->
+      rotl match(
+        KLambda -> dip(swap) dip2(kindeq) kindeq and,
+        _ -> drop3 false
       )
   )
 
-kunifymeta2 =
-  metaeq? if(
-    drop KMeta,
-    KMeta dup dip(kmetaset)
+kapply : Kind Kind -- Maybe(Kind)
+kapply =
+  swap match(
+    KLambda ->
+      dip(kindeq) swap if(
+        some,
+        drop none
+      ),
+    _ -> drop2 none
   )
 
-kunifymeta1 =
-  khasmeta? if(
-    dip2("Can't unify ")
-    dip(meta->str <> " with " <>)
-    k->str <>
-    typeError,
-    dup dip(kmetaset)
-  )
-
-||| Unify two k terms, returning the unified terms. During
-||| unification, metavariables may be instantiated. The
-||| resulting term is fully expanded.
-kunify : K K -- K +Mirth
-
-||| Unify two pairs of k terms.
-kunify2 : K K K K -- K K +Mirth
-kunify2 = dip(swap) dip2(kunify) kunify
-
-kunify =
-  kexpandHead kunifymeta(match(
-    KVar -> dip(~KVar) over nameeq
-      if(KVar, "mismatched type vars" typeError),
-    KMeta -> dip(~KMeta) over metaeq
-      if(KMeta, "mismatched meta vars" typeError),
-    KUnit -> ~KUnit KUnit,
-    KBool -> ~KBool KBool,
-    KInt  -> ~KInt  KInt,
-    KStr  -> ~KStr  KStr,
-    KPair -> dip2(~KPair) kunify2 KPair,
-    KList -> dip(~KList) kunify KList
-  ))
-
-knil : K
-knil = KUnit
-
-kpop : K -- K K +Mirth
-kpop = ~KPair
-
-kpop2 : K -- K K K +Mirth
-kpop2 = kpop dip(kpop)
-
-kpush : K K -- K
-kpush = KPair
-
-kpush2 : K K K -- K
-kpush2 = dip(kpush) kpush
-
-kbreak : K Nat -- K K +Mirth
-kbreak =
-  dip(knil) nrepeat(
-    dip(kpop) kpush
-  )
-
-kcat : K K -- K +Mirth
-kcat =
-  kexpandHead match(
-    KPair -> dip(kcat) kpush,
-    _ -> ~KUnit
-  )
-
-kdepth : K -- Maybe(Nat) +Mirth
-kdepth =
-  kexpandHead match(
-    KUnit -> n0 some,
-    KPair -> drop kdepth maybe(none, n1+ pnat some),
-    _ -> drop none
-  )
-
-kdepth? : K -- K Maybe(Nat) +Mirth
-kdepth? = dup kdepth
-
-data Sort
-  KSort : Maybe(K) -- Sort
-  WSort : K K -- Sort
+||| Primitives i.e. Mirth built-ins
+data Prim
+  PSTNil : Prim
+  PSTCons : Prim
+  PSNil : Prim
+  PSCons : Prim
+  PVTInt : Prim
+  PVTStr : Prim
+  PVTList : Prim
+  PVInt : Int -- Prim
+  PVStr : Str -- Prim
+  PVNil : Prim
+  PVCons : Prim
+  PWDup : Prim
+  PWDrop : Prim
+  PWSwap : Prim
+  PWDip : Prim
+  PWWeak : Nat -- Prim
 end
 
-data Binder
-  MkBinder : Name Sort -- Binder
-end
-
-unBinder : Binder -- Name Sort
-unBinder = match(MkBinder -> id)
-
-freshenBinderBy : Nat Binder -- Binder +Mirth
-freshenBinderBy = $(
-  unBinder match(
-    KSort -> maybe(tuck some MkMeta KMeta, dip(swap) kfreshenBy) some KSort,
-    WSort -> dip2(swap) kfreshen2By WSort
-  ) MkBinder
-)
-
-data WSig
-  MkWSig : List(Binder) K K -- WSig
-end
-
-unWSig : WSig -- List(Binder) K K
-unWSig = match(MkWSig -> id)
-
-freshenWSigBy : Nat WSig -- WSig +Mirth
-freshenWSigBy = $(
-  unWSig
-  dip2(formap(dip(dup) freshenBinderBy) swap)
-  kfreshen2By
-  MkWSig
-)
-
-freshenWSig : WSig -- WSig +Mirth
-freshenWSig = dip(freshNat) freshenWSigBy
-
-data K+W
-  JustK : K -- K+W
-  JustW : W -- K+W
-end
-
-infer : K W -- K +Mirth
-inferCheck : K K W -- K +Mirth
-inferCheck = swap dip(infer) kunify
-
-inferCall : K List(K+W) WSig -- K +Mirth
-inferCall = $(
-  freshenWSig unWSig
-
-  # ensure number of arguments matches signature
-  dip2(
-    dip?(len?) dip?(len?) dup2 n= if(drop2,
-      swap dip(
-        dip("Expected ") nat->str
-        <> " arguments but got " <>
-      ) nat->str <> " arguments." <> typeError
-    )
-  )
-
-  dip(
-    rotr zip dip(kunify drop)
-    for(
-      unpack2 unBinder match(
-        KSort ->
-          rotl match(
-            JustK -> swap maybe(drop2, kunify drop2),
-            JustW -> drop2 dip("expected K but got W for argument ") name->str <> typeError
-          ),
-        WSort ->
-          dip(rotl) swap match(
-            JustK -> drop3 dip("expected W but got K for argument ") name->str <> typeError,
-            JustW -> inferCheck drop2
-          )
-      )
-    )
-  )
-  kexpand
-)
-
-infer =
+||| Syntactic kind for each primitive.
+primKind : Prim -- Kind
+primKind =
   match(
-    WVar -> dip3(drop2) dip(kfreshen2) dip2(kunify drop) kunify,
-    WCall -> dip(dip2(drop) inferCall) kunify,
-    WId -> id,
-    WCp -> for(infer),
-
-    WDup -> kpop dup kpush2,
-    WDrop -> kpop drop,
-    WSwap -> kpop2 swap kpush2,
-    WDip -> dip(kpop) swap dip(infer) kpush,
-    WCoDipN -> dip(kbreak) infer kcat,
-
-    WPack2 -> kpop2 dip2(KUnit) kpush2 kpush,
-    WUnpack2 -> kpop kpop2 dip2(~KUnit) kpush2,
-    WIntuple -> dip(kpop) infer kpush,
-
-    WBoolTrue -> KBool kpush,
-    WBoolFalse -> KBool kpush,
-    WBoolIf ->
-      dip2(kpop ~KBool) dip(over)
-      dip2(infer) infer kunify,
-
-    WIntLit -> drop KInt kpush,
-    WIntAdd -> kpop2 ~KInt ~KInt KInt kpush,
-    WIntSub -> kpop2 ~KInt ~KInt KInt kpush,
-    WIntMul -> kpop2 ~KInt ~KInt KInt kpush,
-    WIntMod -> kpop2 ~KInt ~KInt KInt kpush,
-    WIntDiv -> kpop2 ~KInt ~KInt KInt kpush,
-    WIntEq -> kpop2 ~KInt ~KInt KBool kpush,
-    WIntLt -> kpop2 ~KInt ~KInt KBool kpush,
-
-    WStrLit -> drop KStr kpush,
-    WStrCat -> kpop2 ~KStr ~KStr KStr kpush,
-    WStrBreak -> kpop2 ~KInt ~KStr KStr KStr kpush2,
-    WStrLen -> kpop ~KStr KInt kpush,
-    WStrFromCodepoint -> kpop ~KInt KStr kpush,
-    WStrToCodepoint -> kpop ~KStr KInt kpush,
-    WStrElem -> kpop2 ~KStr ~KStr KBool kpush,
-    WStrREMatch -> kpop2 ~KStr ~KStr KInt KBool kpush2,
-
-    WListNil -> KList kpush,
-    WListCons -> kpop2 dip(~KList) kunify KList kpush,
-    WListCat -> kpop2 dip(~KList) ~KList kunify KList kpush,
-    WListLen -> kpop ~KList drop KInt kpush,
-    WListAt -> kpop2 ~KInt ~KList kpush,
-    WListBreak -> kpop2 ~KInt ~KList KList dup kpush2,
-    WListMap ->
-      dip(kpop ~KList dip(KUnit) KPair) infer
-      ~KPair dip(~KUnit) KList kpush,
-    WListFor ->
-      dip(kpop dip(dup) ~KList kpush) infer kunify,
-
-    WUnsafePanic -> dip(kpop ~KStr drop),
-    WUnsafeTrace -> kpop ~KStr,
-    WUnsafePrint -> kpop ~KStr,
-    WUnsafeListDir -> kpop ~KStr KStr KList kpush,
-    WUnsafeWalk -> kpop ~KStr KUnit KStr kpush KStr KList dup kpush2 kpush,
-    WUnsafeIsDir -> kpop ~KStr KBool kpush,
-    WUnsafeIsFile -> kpop ~KStr KBool kpush,
-    WUnsafeRead -> kpop ~KStr KStr kpush,
-    WUnsafeWrite -> kpop2 ~KStr ~KStr,
-    WUnsafeAppend -> kpop2 ~KStr ~KStr,
-    WUnsafeCoerce -> nip,
-    WUnsafeHash -> kpop drop KInt kpush,
-    WUnsafeEnvGet -> dip(kpop ~KStr) kpush,
-    WUnsafeEnvSet -> kpop2 ~KStr drop,
-    WUnsafeEnvSave -> dip(kpop ~KStr) infer,
-    WUnsafeExit -> dip(kpop ~KInt drop)
+    PSTNil -> KStackType,
+    PSTCons -> KStackType KValueType KStackType KLambda KLambda,
+    PSNil -> KStack,
+    PSCons -> KStack KValue KStack KLambda KLambda,
+    PVTInt -> KValueType,
+    PVTStr -> KValueType,
+    PVTList -> KValueType KValueType KLambda,
+    PVInt -> drop KValue,
+    PVStr -> drop KValue,
+    PVNil -> KValue,
+    PVCons -> KValue KValue KValue KLambda KLambda,
+    PWDup  -> KWord,
+    PWDrop -> KWord,
+    PWSwap -> KWord,
+    PWDip  -> KWord KWord KLambda,
+    PWWeak -> drop KWord KWord KLambda
   )
 
-##############
-# ELABORATOR #
-##############
-
-MIRTH_ELAB_ENV : Str
-MIRTH_ELAB_ENV = "Mirth.elab.env"
-
-data ElabDef
-  ElabDefW(f: K Args w -- K W +Mirth) : w -- ElabDef
+||| Terms.
+data Term(x)
+  TLocal : x -- Term(x)
+  TGlobal : Global -- Term(x)
+  TPrim : Prim -- Term(x)
+  TLambda : Term(Maybe(x)) -- Term(x)
+  TApply : Term(x) Term(x) -- Term(x)
 end
 
-data ElabLocal
-  ElabLocalK : Nat -- ElabLocal
-  ElabLocalW : Nat K K -- ElabLocal
-end
-
-data ElabEnv
-  MkElabEnv : Map(Name, ElabDef) Map(Name, ElabLocal) -- ElabEnv
-end
-
-unElabEnv : ElabEnv -- Map(Name, ElabDef) Map(Name, ElabLocal)
-unElabEnv = match(MkElabEnv -> id)
-
-getElabEnv : ElabEnv +Mirth
-setElabEnv : ElabEnv -- +Mirth
-withElabEnv(f: *a ElabEnv -- *b ElabEnv) : *a -- *b +Mirth
-
-getElabEnv = unsafe_env_get(MIRTH_ELAB_ENV)
-setElabEnv = unsafe_env_set(MIRTH_ELAB_ENV)
-withElabEnv(f) = getElabEnv f setElabEnv
-
-getElabDefs : Map(Name, ElabDef) +Mirth
-setElabDefs : Map(Name, ElabDef) -- +Mirth
-getElabDefs = getElabEnv unElabEnv drop
-setElabDefs = getElabEnv unElabEnv nip MkElabEnv setElabEnv
-
-getElabLocals : Map(Name, ElabLocal) +Mirth
-setElabLocals : Map(Name, ElabLocal) -- +Mirth
-getElabLocals = getElabEnv unElabEnv nip
-setElabLocals = getElabEnv unElabEnv drop swap MkElabEnv setElabEnv
-
-getElabDef : Name -- Maybe(ElabDef) +Mirth
-setElabDef : Name ElabDef -- +Mirth
-getElabDef = getElabDefs swap mapGet
-setElabDef = getElabDefs rotr mapSet setElabDefs
-
-getElabLocal : Name -- Maybe(ElabLocal) +Mirth
-setElabLocal : Name ElabLocal -- +Mirth
-getElabLocal = getElabLocals swap mapGet
-setElabLocal = getElabLocals rotr mapSet setElabLocals
-
-initialElabDefs : Map(Name, ElabDef)
-
-initElabEnv : +Mirth
-initElabEnv = initialElabDefs mapNil MkElabEnv unsafe_env_set(MIRTH_ELAB_ENV)
-
-elabL(f: *a t -- *b +Mirth) : *a L(t) -- *b +Mirth
-elabL(f) = getL f # TODO: define error location here, to be used in typeError
-
-elabSig : Sig -- +Mirth
-elabDecl : Decl -- +Mirth
-elabTypeSig : TypeSig -- +Mirth
-elabDataDef : DataDef -- +Mirth
-elabWordSig : WordSig -- +Mirth
-elabWordDef : WordDef -- +Mirth
-elabAssertion : Assertion -- +Mirth
-
-elabExpr : K Expr -- K W +Mirth
-elabAtom : K Atom -- K W +Mirth
-elabWord : K Word -- K W +Mirth
-elabInt : K Int -- K W +Mirth
-elabStr : K Str -- K W +Mirth
-
-elabWVar : K Name Nat K K -- K W +Mirth
-
-elabLExpr : K L(Expr) -- K W +Mirth
-elabLAtom : K L(Atom) -- K W +Mirth
-elabLWord : K L(Word) -- K W +Mirth
-elabLInt : K L(Int) -- K W +Mirth
-elabLStr : K L(Str) -- K W +Mirth
-
-elabSig =
-  matchSig(
-    elabL(elabTypeSig),
-    elabL(elabWordSig),
-    elabL(elabAssertion)
+rename(f: *ctx a -- *ctx b) : *ctx Term(a) -- *ctx Term(b)
+rename(f) =
+  match(
+    TLocal -> f TLocal,
+    TGlobal -> TGlobal,
+    TPrim -> TPrim,
+    TLambda -> rename(maybe(none, f some)) TLambda,
+    TApply -> dip(rename(f)) dip'(rename(f)) TApply
   )
 
-elabDecl =
-  matchDecl(
-    elabL(elabTypeSig),
-    elabL(elabDataDef),
-    elabL(elabWordSig),
-    elabL(elabWordDef),
-    elabL(elabAssertion)
+subst(f: *ctx a -- *ctx Term(b)) : *ctx Term(a) -- *ctx Term(b)
+subst(f) =
+  match(
+    TLocal -> f,
+    TGlobal -> TGlobal,
+    TPrim -> TPrim,
+    TLambda -> subst(maybe(none TLocal, f rename(some))) TLambda,
+    TApply -> dip(subst(f)) dip'(subst(f)) TApply
   )
-
-# elabTypeSig = ...
-# elabDataDef = ...
-# elabWordSig = ...
-# elabWordDef = ...
-# elabAssertion = ...
-
-elabExpr = unExpr formap(elabLAtom) WCp
-elabAtom = matchAtom(elabLWord, elabLInt, elabLStr)
-elabWord = $(
-  dup wordName getL
-  dup getElabLocal maybe(
-    getElabDef maybe(
-      wordName getL name->str " is not defined" <> typeError,
-      match(ElabDefW(f) -> dip(wordArgs getL) f)
-    ),
-    dip(
-      swap wordArgs getL unArgs len n0? if(drop,
-        dip2("Variable ") dip(name->str <>)
-        dip(" expected no arguments, but got " <>) nat->str <>
-        " arguments." <> typeError
-      )
-    )
-    match(
-      ElabLocalK ->
-        drop dip("Expected word but variable ") name->str <>
-        " is of sort kind." <> typeError,
-      ElabLocalW ->
-        dip?(kdepth?) maybe(
-          elabWVar,
-          dup dip(
-            rot5r dip4(kbreak)
-            elabWVar
-            dip(kcat)
-          )
-          swap WCoDipN
-        )
-    )
-  )
-)
-elabInt = dip(KInt kpush) WIntLit
-elabStr = dip(KStr kpush) WStrLit
-
-elabLExpr = getL elabExpr
-elabLAtom = getL elabAtom
-elabLWord = getL elabWord
-elabLInt = getL elabInt
-elabLStr = getL elabStr
-
-elabWVar =
-  dup2 dip2(
-    swap2
-    dip2(
-      dip(kunify drop)
-      kexpand dup
-    )
-    rotl
-  ) rotl WVar
-
-##############
-# Primitives #
-##############
-
-expect0Args : Args -- +Mirth
-expect1Args : Args -- Expr +Mirth
-expect2Args : Args -- Expr Expr +Mirth
-
-wPrim : K Args W -- K W +Mirth
-wPrim = dip(expect0Args) dup dip(infer)
-
-addPrim(f: K Args -- K W +Mirth)
-  : Map(Name, ElabDef) Str -- Map(Name, ElabDef)
-addPrim(f) = mkName unit ElabDefW(drop f) mapSet
-
-primDip : K Args -- K W +Mirth
-primIntuple : K Args -- K W +Mirth
-primBoolIf : K Args -- K W +Mirth
-primListNil : K Args -- K W +Mirth
-primListMap : K Args -- K W +Mirth
-primListFor : K Args -- K W +Mirth
-primUnsafePanic : K Args -- K W +Mirth
-primUnsafeCoerce : K Args -- K W +Mirth
-primUnsafeEnvGet : K Args -- K W +Mirth
-primUnsafeEnvSave : K Args -- K W +Mirth
-primUnsafeExit : K Args -- K W +Mirth
-
-initialElabDefs = $(
-  mapNil
-  "_prim_dup" addPrim(WDup wPrim)
-  "_prim_swap" addPrim(WSwap wPrim)
-  "_prim_drop" addPrim(WDrop wPrim)
-  "_prim_dip" addPrim(primDip)
-
-  "_prim_tuple_intuple" addPrim(primIntuple)
-  "_prim_tuple_pack2" addPrim(WPack2 wPrim)
-  "_prim_tuple_unpack2" addPrim(WUnpack2 wPrim)
-
-  "_prim_bool_true" addPrim(WBoolTrue wPrim)
-  "_prim_bool_false" addPrim(WBoolFalse wPrim)
-  "_prim_bool_if" addPrim(primBoolIf)
-
-  "_prim_int_add" addPrim(WIntAdd wPrim)
-  "_prim_int_sub" addPrim(WIntSub wPrim)
-  "_prim_int_mul" addPrim(WIntMul wPrim)
-  "_prim_int_mod" addPrim(WIntMod wPrim)
-  "_prim_int_div" addPrim(WIntDiv wPrim)
-  "_prim_int_eq" addPrim(WIntEq wPrim)
-  "_prim_int_lt" addPrim(WIntLt wPrim)
-
-  "_prim_str_cat" addPrim(WStrCat wPrim)
-  "_prim_str_break" addPrim(WStrBreak wPrim)
-  "_prim_str_len" addPrim(WStrLen wPrim)
-  "_prim_str_from_codepoint" addPrim(WStrFromCodepoint wPrim)
-  "_prim_str_to_codepoint" addPrim(WStrToCodepoint wPrim)
-  "_prim_str_elem" addPrim(WStrElem wPrim)
-  "_prim_str_rematch" addPrim(WStrREMatch wPrim)
-
-  "_prim_list_nil" addPrim(primListNil)
-  "_prim_list_cons" addPrim(WListCons wPrim)
-  "_prim_list_cat" addPrim(WListCat wPrim)
-  "_prim_list_len" addPrim(WListLen wPrim)
-  "_prim_list_at" addPrim(WListAt wPrim)
-  "_prim_list_break" addPrim(WListBreak wPrim)
-  "_prim_list_map" addPrim(primListMap)
-  "_prim_list_for" addPrim(primListFor)
-
-  "_prim_unsafe_panic" addPrim(primUnsafePanic)
-  "_prim_unsafe_trace" addPrim(WUnsafeTrace wPrim)
-  "_prim_unsafe_print" addPrim(WUnsafePrint wPrim)
-  "_prim_unsafe_listdir" addPrim(WUnsafeListDir wPrim)
-  "_prim_unsafe_walk" addPrim(WUnsafeWalk wPrim)
-  "_prim_unsafe_isdir" addPrim(WUnsafeIsDir wPrim)
-  "_prim_unsafe_isfile" addPrim(WUnsafeIsFile wPrim)
-  "_prim_unsafe_read" addPrim(WUnsafeRead wPrim)
-  "_prim_unsafe_write" addPrim(WUnsafeWrite wPrim)
-  "_prim_unsafe_append" addPrim(WUnsafeAppend wPrim)
-  "_prim_unsafe_coerce" addPrim(primUnsafeCoerce)
-  "_prim_unsafe_hash" addPrim(WUnsafeHash wPrim)
-  "_prim_unsafe_env_get" addPrim(primUnsafeEnvGet)
-  "_prim_unsafe_env_set" addPrim(WUnsafeEnvSet wPrim)
-  "_prim_unsafe_env_save" addPrim(primUnsafeEnvSave)
-  "_prim_unsafe_exit" addPrim(primUnsafeExit)
-)
-
-primDip = $(
-  expect1Args dip(kpop) swap
-  dip(elabExpr) swap dip(kpush)
-)
-
-primIntuple = expect1Args dip(kpop) elabExpr dip(kpush) WIntuple
-
-primBoolIf = $(
-  expect2Args dip2(kpop ~KBool) dip(over)
-  dip2(elabExpr) elabExpr dip(swap)
-  dip2(kunify) WBoolIf
-)
-
-primListNil = $(
-  expect0Args kfresh dup dip(KList kpush) WListNil
-)
-
-primListMap = $(
-  expect1Args
-  dip(kpop ~KList dip(KUnit) kpush) elabExpr
-  dip(kpop dip(~KUnit) KList kpush) WListMap
-)
-
-primListFor = $(
-  expect1Args
-  dip(kpop dip(dup) ~KList kpush) elabExpr
-  dip(kunify) WListFor
-)
-
-primUnsafePanic = $(
-  expect0Args kpop ~KStr drop kfresh dup WUnsafePanic
-)
-
-primUnsafeCoerce = $(
-  expect0Args drop kfresh dup WUnsafeCoerce
-)
-
-primUnsafeExit = $(
-  expect0Args kpop ~KInt drop kfresh dup WUnsafeExit
-)
-
-primUnsafeEnvGet = $(
-  expect0Args kpop ~KStr kfresh dup dip(kpush) WUnsafeEnvGet
-)
-
-primUnsafeEnvSave = $(
-  expect1Args dip(kpop ~KStr) elabExpr WUnsafeEnvSave
-)
 

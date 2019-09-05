@@ -112,6 +112,28 @@ dip4(f : *a -- *b) : *a w x y z -- *b w x y z
 dip4(f) = dip2(dip2(f))
 
 #
+# shifted dips
+#
+
+dip'(f: *a a1 -- *b b1) : *a x a1 -- *b x b1
+dip'(f) = swap dip(f) swap
+
+dip2'(f: *a a1 -- *b b1) : *a x a1 y -- *b x b1 y
+dip2'(f) = dip(dip'(f))
+
+dip2''(f: *a a1 -- *b b1) : *a x y a1 -- *b x y b1
+dip2''(f) = rotr dip2(f) rotl
+
+dip3'(f: *a a1 -- *b b1) : *a x a1 y z -- *b x b1 y z
+dip3'(f) = dip2(dip'(f))
+
+dip3''(f: *a a1 -- *b b1) : *a x y a1 z -- *b x y b1 z
+dip3''(f) = dip(dip2''(f))
+
+dip3'''(f: *a a1 -- *b b1) : *a x y z a1 -- *b x y z b1
+dip3'''(f) = rot4r dip3(f) rot4l
+
+#
 # query words
 #
 
