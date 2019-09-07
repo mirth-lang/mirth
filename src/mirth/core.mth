@@ -3,14 +3,12 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import base/maybe
+import base/result
 import base/nat
-
-||| Type of globals. These are unique descriptions of a word / type / etc.
-||| These are unique accross all modules and packages. Note that a particular
-||| word / type may not have the same global in differently versioned packages.
-data Global
-  MkGlobal : Global
-end
+import base/str
+import base/list
+import base/void
+import mirth/loc
 
 ||| Control whether an argument is usually passed implicitly or explicitly.
 data Visibility
@@ -27,6 +25,17 @@ data Kind
   KWord : Kind
   KLambda : Kind Kind -- Kind
 end
+
+kind->str : Kind -- Str
+kind->str =
+  match(
+    KStackType -> "stack type",
+    KStack -> "stack",
+    KValueType -> "value type",
+    KValue -> "value",
+    KWord -> "word",
+    KLambda -> dip2("(") dip(kind->str <> ") -> " <>) kind->str <>
+  )
 
 kindeq : Kind Kind -- Bool
 kindeq =
@@ -63,16 +72,8 @@ kindeq =
       )
   )
 
-kapply : Kind Kind -- Maybe(Kind)
-kapply =
-  swap match(
-    KLambda ->
-      dip(kindeq) swap if(
-        some,
-        drop none
-      ),
-    _ -> drop2 none
-  )
+kindeq? : Kind Kind -- Kind Kind Bool
+kindeq? = dup2 kindeq
 
 ||| Primitives i.e. Mirth built-ins
 data Prim
@@ -116,32 +117,173 @@ primKind =
     PWWeak -> drop KWord KWord KLambda
   )
 
-||| Terms.
-data Term(x)
-  TLocal : x -- Term(x)
-  TGlobal : Global -- Term(x)
-  TPrim : Prim -- Term(x)
-  TLambda : Term(Maybe(x)) -- Term(x)
-  TApply : Term(x) Term(x) -- Term(x)
+||| Type of globals. These are unique descriptions of a word / type / etc.
+||| These are unique accross all modules and packages. Note that a particular
+||| word / type may not have the same global in differently versioned packages.
+data Global
+  MkGlobal : Kind -- Global
 end
 
-rename(f: *ctx a -- *ctx b) : *ctx Term(a) -- *ctx Term(b)
+unGlobal : Global -- Kind
+unGlobal = match(MkGlobal -> id)
+
+globalKind : Global -- Kind
+globalKind = unGlobal
+
+||| Terms.
+data Term(x)
+  TLocal : L(x) -- Term(x)
+  TGlobal : L(Global) -- Term(x)
+  TPrim : L(Prim) -- Term(x)
+  TLambda : Kind L(Term(Maybe(x))) -- Term(x)
+  TApply : L(Term(x)) L(Term(x)) -- Term(x)
+end
+
+||| Change the value (and possibly the type) of all the free variables in a term.
+rename  (f: *ctx a -- *ctx b) : *ctx   Term(a)  -- *ctx   Term(b)
+renameL (f: *ctx a -- *ctx b) : *ctx L(Term(a)) -- *ctx L(Term(b))
+
 rename(f) =
   match(
-    TLocal -> f TLocal,
+    TLocal -> unL dip'(f) mkL TLocal,
     TGlobal -> TGlobal,
     TPrim -> TPrim,
-    TLambda -> rename(maybe(none, f some)) TLambda,
-    TApply -> dip(rename(f)) dip'(rename(f)) TApply
+    TLambda -> renameL(maybe(none, dip'(f) some)) TLambda,
+    TApply -> dip(renameL(f)) dip'(renameL(f)) TApply
   )
 
-subst(f: *ctx a -- *ctx Term(b)) : *ctx Term(a) -- *ctx Term(b)
+renameL(f) = unL dip'(rename(f)) mkL
+
+||| Shift all free variables in a term to make room for a new variable.
+rename1 : Term(a) -- Term(Maybe(a))
+rename1 = rename(some)
+
+||| Substitute every free variable with a term given by the function.
+subst  (f: *ctx L(a) -- *ctx Term(b)) : *ctx   Term(a)  -- *ctx   Term(b)
+substL (f: *ctx L(a) -- *ctx Term(b)) : *ctx L(Term(a)) -- *ctx L(Term(b))
+
 subst(f) =
   match(
     TLocal -> f,
     TGlobal -> TGlobal,
     TPrim -> TPrim,
-    TLambda -> subst(maybe(none TLocal, f rename(some))) TLambda,
-    TApply -> dip(subst(f)) dip'(subst(f)) TApply
+    TLambda -> dip'(substL(unL maybe(none mkL TLocal, mkL f rename1))) TLambda,
+    TApply -> dip(substL(f)) dip'(substL(f)) TApply
+  )
+
+substL(f) = unL dip'(subst(f)) mkL
+
+||| Substitute a single variable, as in beta reduction.
+subst1 : Term(Maybe(a)) Term(a) -- Term(a)
+subst1 = swap subst(unL maybe(drop dup, mkL TLocal)) nip
+
+data KindError
+  MkKindError : L(Str) -- KindError
+end
+
+||| Determine the syntactic kind of a term. This is guaranteed
+||| to terminate, returning an error if the term is not well-typed.
+inferKind  (f: *ctx L(x) -- *ctx Result(KindError, Kind)) : *ctx   Term(x)  -- *ctx Result(KindError, Kind)
+inferKindL (f: *ctx L(x) -- *ctx Result(KindError, Kind)) : *ctx L(Term(x)) -- *ctx Result(KindError, Kind)
+
+inferKind(f) =
+  match(
+    TLocal -> f,
+    TGlobal -> getL globalKind ok,
+    TPrim -> getL primKind ok,
+    TLambda ->
+      inferKindL(
+        unL maybe(
+          drop dup ok,
+          mkL dip'(f)
+        )
+      )
+      result(
+        nip err,
+        KLambda ok
+      ),
+    TApply ->
+      dip(unL dip'(inferKind(f))) swap
+      result(
+        dip(drop2) err,
+        match(
+          KLambda ->
+            dip2(nip unL dip'(inferKind(f))) rotl
+            result(
+              dip(drop3) err,
+              _prim_unsafe_coerce
+              rotr dip?(kindeq?) if(
+                dip(drop3) ok,
+                drop swap
+                dip2("Core Kind Error: Expected ")
+                dip(kind->str <> " but got " <>)
+                kind->str <> mkL
+                MkKindError err
+              )
+            ),
+
+          _ ->
+            nip
+            dip("Core Kind Error: Expected a lambda kind but got ") kind->str <>
+            " (function is applied to too many arguments?)" <> mkL
+            MkKindError
+            err
+        )
+      )
+  )
+
+inferKindL(f) = getL inferKind(f)
+
+||| Same as inferKind but for closed terms.
+inferKind0 : Term(Void) -- Result(KindError, Kind)
+inferKind0 = inferKind(getL absurd)
+
+PVTInt pureL TPrim inferKind0 == KValueType ok
+PVTList pureL TPrim inferKind0 == KValueType KValueType KLambda ok
+PWSwap pureL TPrim inferKind0 == KWord ok
+KWord none pureL TLocal pureL TLambda inferKind0 == KWord KWord KLambda ok
+
+||| HTerm(x) is a Term(x) in weak head normal form. This means it is
+||| either a lambda term, or one of the atomic terms applied to some
+||| number of arguments (not in normal form).
+data HTerm(x)
+  HTLocal : L(x) List(L(Term(x))) -- HTerm(x)
+  HTGlobal : L(Global) List(L(Term(x))) -- HTerm(x)
+  HTPrim : L(Prim) List(L(Term(x))) -- HTerm(x)
+  HTLambda : Kind L(Term(Maybe(x))) -- HTerm(x)
+end
+
+||| Turn a term into an HTerm by beta reduction, with the additional
+||| arguments provided. This is only guaranteed to terminate if the
+||| terms involved are well-kinded, as is the application.
+htermApply : Term(x) List(L(Term(x))) -- HTerm(x)
+htermApply =
+  swap match(
+    TLocal -> swap HTLocal,
+    TGlobal -> swap HTGlobal,
+    TPrim -> swap HTPrim,
+    TApply -> dip(getL swap) swap consL htermApply,
+    TLambda ->
+      rotl lmatchL(
+        HTLambda,
+        dip3(drop) dip2(getL) dip(getL subst1) htermApply
+      )
+  )
+
+||| Turn a term into an HTerm by beta-reduction. This is only
+||| guaranteed to terminate if the term is well kinded.
+hterm : Term(x) -- HTerm(x)
+hterm = nil htermApply
+
+||| Turn an HTerm into a Term. This always succeeds. Note that
+||| some location info is lost when translating from a Term to
+||| an HTerm and back.
+term : HTerm(x) -- Term(x)
+term =
+  match(
+    HTLocal -> dip(TLocal) for(dip(pureL) TApply),
+    HTGlobal -> dip(TGlobal) for(dip(pureL) TApply),
+    HTPrim -> dip(TPrim) for(dip(pureL) TApply),
+    HTLambda -> TLambda
   )
 
