@@ -4,11 +4,17 @@
 
 import base/maybe
 import base/result
+import base/int
 import base/nat
 import base/str
 import base/list
 import base/void
 import mirth/loc
+import mirth/name
+
+||| Placeholder.
+undefined : *a -- *b
+undefined = "undefined" _prim_unsafe_panic
 
 ||| Control whether an argument is usually passed implicitly or explicitly.
 data Visibility
@@ -25,6 +31,9 @@ data Kind
   KWord : Kind
   KLambda : Kind Kind -- Kind
 end
+
+KWordType : Kind
+KWordType = KStackType KStackType KLambda
 
 kind->str : Kind -- Str
 kind->str =
@@ -75,60 +84,128 @@ kindeq =
 kindeq? : Kind Kind -- Kind Kind Bool
 kindeq? = dup2 kindeq
 
+||| Type of globals. These are unique descriptions of a word / type / etc.
+||| These are unique accross all modules and packages. Note that a particular
+||| word / type may not have the same global in differently versioned packages.
+data Global
+  MkGlobal : Kind Name -- Global
+end
+
+unGlobal : Global -- Kind Name
+unGlobal = match(MkGlobal -> id)
+
+globalKind : Global -- Kind
+globalKind = unGlobal drop
+
+globalName : Global -- Name
+globalName = unGlobal nip
+
+global->str : Global -- Str
+global->str = globalName name->str
+
 ||| Primitives i.e. Mirth built-ins
 data Prim
+  # Polymorphic Primitives
+  PError : L(Str) Kind -- Prim
+
+  # StackType Primitives
   PSTNil : Prim
   PSTCons : Prim
+  PSTRun : Prim
+  PSTExpect : Kind -- Prim
+  PSTExpectCons : Kind -- Prim
+
+  # Stack Primitives
   PSNil : Prim
   PSCons : Prim
+  PSRun : Prim
+
+  # ValueType Primitives
   PVTInt : Prim
   PVTStr : Prim
-  PVTList : Prim
+  PVTExpect : Kind -- Prim
+
+  # Value Primitives
   PVInt : Int -- Prim
   PVStr : Str -- Prim
-  PVNil : Prim
-  PVCons : Prim
+
+  # Word Primitives
+  PWId : Prim
+  PWCp : Prim
   PWDup : Prim
   PWDrop : Prim
   PWSwap : Prim
   PWDip : Prim
-  PWWeak : Nat -- Prim
+  PWWeak : Prim
+  PWPush : Prim
 end
+
+||| Show primitive as string.
+prim->str : Prim -- Str
+prim->str =
+  match(
+    PError -> drop dip("PError[") unL dip(locSet->str) <> showStr <> "]" <>,
+    PSTNil -> "PSTNil",
+    PSTCons -> "PSTCons",
+    PSTRun -> "PSTRun",
+    PSTExpect -> drop "PSTExpect",
+    PSTExpectCons -> drop "PSTExpectCons",
+    PSNil -> "PSNil",
+    PSCons -> "PSCons",
+    PSRun -> "PSRun",
+    PVTInt -> "PVTInt",
+    PVTStr -> "PVTStr",
+    PVTExpect -> drop "PVTExpect",
+    PVInt -> dip("PVInt[") int->str <> "]" <>,
+    PVStr -> dip("PVStr[") showStr <> "]" <>,
+    PWId -> "PWId",
+    PWCp -> "PWCp",
+    PWDup -> "PWDup",
+    PWDrop -> "PWDrop",
+    PWSwap -> "PWSwap",
+    PWDip -> "PWDip",
+    PWWeak -> "PWWeak",
+    PWPush -> "PWPush"
+  )
 
 ||| Syntactic kind for each primitive.
 primKind : Prim -- Kind
 primKind =
   match(
+    PError -> nip,
+
+    # Stack Type Primitives
     PSTNil -> KStackType,
     PSTCons -> KStackType KValueType KStackType KLambda KLambda,
+    PSTRun -> KStackType KWord KStackType KLambda KLambda,
+    PSTExpect -> dip(KStackType KStackType) dup KLambda KLambda KLambda,
+    PSTExpectCons ->
+      dup dip(dip(KValueType KStackType) KLambda KLambda KStackType) KLambda KLambda,
+
+    # Stack Primitives
     PSNil -> KStack,
     PSCons -> KStack KValue KStack KLambda KLambda,
+    PSRun -> KStack KWord KStack KLambda KLambda,
+
+    # Value Type Primitives
     PVTInt -> KValueType,
     PVTStr -> KValueType,
-    PVTList -> KValueType KValueType KLambda,
+    PVTExpect -> dip(KValueType KValueType) dup KLambda KLambda KLambda,
+
+    # Value Primitives
     PVInt -> drop KValue,
     PVStr -> drop KValue,
-    PVNil -> KValue,
-    PVCons -> KValue KValue KValue KLambda KLambda,
+
+    # Word Primitives
+    PWId   -> KWord,
+    PWCp   -> KWord KWord KWord KLambda KLambda,
     PWDup  -> KWord,
     PWDrop -> KWord,
     PWSwap -> KWord,
     PWDip  -> KWord KWord KLambda,
-    PWWeak -> drop KWord KWord KLambda
+    PWWeak -> KWord KWord KLambda,
+    PWPush -> KValue KValueType KWord KLambda KLambda
   )
-
-||| Type of globals. These are unique descriptions of a word / type / etc.
-||| These are unique accross all modules and packages. Note that a particular
-||| word / type may not have the same global in differently versioned packages.
-data Global
-  MkGlobal : Kind -- Global
-end
-
-unGlobal : Global -- Kind
-unGlobal = match(MkGlobal -> id)
-
-globalKind : Global -- Kind
-globalKind = unGlobal
 
 ||| Terms.
 data Term(x)
@@ -138,6 +215,23 @@ data Term(x)
   TLambda : Kind L(Term(Maybe(x))) -- Term(x)
   TApply : L(Term(x)) L(Term(x)) -- Term(x)
 end
+
+term->str_aux(f: *ctx x -- *ctx Str) : *ctx Int Term(x) -- *ctx Int Str
+term->str_aux(f) =
+  match(
+    TLocal -> getL dip'(f) dip("L:") <>,
+    TGlobal -> getL dip("G:") global->str <>,
+    TPrim -> getL dip("P:") prim->str <>,
+    TApply -> dip(getL term->str_aux(f) dip("A: ") <> " (" <>) dip'(getL term->str_aux(f)) <> ")" <>,
+    TLambda ->
+      nip dip(dup z1+ dip(int->str))
+      getL term->str_aux(maybe(dup, dip'(f)))
+      dip(nip)
+  )
+
+||| Turn a term into a string.
+term->str(f: *ctx x -- *ctx Str) : *ctx Term(x) -- *ctx Str
+term->str(f) = dip(0) term->str_aux(f) nip
 
 ||| Change the value (and possibly the type) of all the free variables in a term.
 rename  (f: *ctx a -- *ctx b) : *ctx   Term(a)  -- *ctx   Term(b)
@@ -239,7 +333,6 @@ inferKind0 : Term(Void) -- Result(KindError, Kind)
 inferKind0 = inferKind(getL absurd)
 
 PVTInt pureL TPrim inferKind0 == KValueType ok
-PVTList pureL TPrim inferKind0 == KValueType KValueType KLambda ok
 PWSwap pureL TPrim inferKind0 == KWord ok
 KWord none pureL TLocal pureL TLambda inferKind0 == KWord KWord KLambda ok
 
@@ -285,5 +378,50 @@ term =
     HTGlobal -> dip(TGlobal) for(dip(pureL) TApply),
     HTPrim -> dip(TPrim) for(dip(pureL) TApply),
     HTLambda -> TLambda
+  )
+
+||| Get the type of a word. This takes a KWord and returns a KWordType.
+||| Lambdas and applications are preserved. Otherwise we get an error.
+||| Only guaranteed to terminate for well-kinded terms.
+wordType : Term(x) -- Term(x)
+
+||| Get the type of a word primitive. Like wordType, lambdas are preserved.
+||| Guaranteed to terminate. Note that type-level eliminators like PSTExpect*
+||| and PVTExpect* are not allowed, even though they might have the right type.
+primWordType : L(Prim) -- Term(x)
+primWordType =
+  unL match(
+    PError ->
+      PError mkL TPrim,
+
+    PWId -> # \x. x
+      drop
+      KStackType
+      none pureL TLocal pureL
+      TLambda,
+
+    PWDrop -> # PSTExpectCons (\xy. y)
+      drop
+      KStackType PSTExpectCons pureL TPrim pureL
+      KValueType KStackType
+      none pureL TLocal pureL
+      TLambda pureL TLambda pureL
+      TApply,
+
+    PWDup -> # PSTExpectCons (\xy. PSTCons(PSTCons(y, x), x))
+      drop
+      KStackType PSTExpectCons pureL TPrim pureL
+      KValueType KStackType
+      PSTCons pureL TPrim pureL
+      PSTCons pureL TPrim pureL
+      none pureL TLocal pureL TApply pureL
+      none some pureL TLocal pureL TApply pureL TApply pureL
+      none some pureL TLocal pureL TApply pureL
+      TLambda pureL TLambda pureL
+      TApply,
+
+    _ ->
+      dip("Expected a word primitive, but got ") prim->str <>
+      dip(dup) mkL KWordType PError mkL TPrim
   )
 

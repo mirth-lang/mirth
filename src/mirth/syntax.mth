@@ -9,6 +9,19 @@ import base/int
 import base/panic
 import mirth/loc
 
+||| Export just Name and related functions.
+export mirth/name
+  type Name
+  mkName : Str -- Name
+  unName : Name -- Str
+  name->str : Name -- Str
+  nameeq : Name Name -- Bool
+  isVarName : Name -- Bool
+  isVarName? : Name -- Name Bool
+  isStarVarName  : Name -- Bool
+  isStarVarName? : Name -- Name Bool
+end
+
 ||| Abstract Syntax Tree for Mirth. This interface exports
 ||| the types, constructors, basic eliminators of the AST.
 export mirth/syntax
