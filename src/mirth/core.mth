@@ -23,9 +23,12 @@ export mirth/core
   type CCtx
   type CSort
 
+  type CTypes
   type CType
+  type CValues
+  type CValue
+  type CEffect
   type CWord
-  type CData
   type CArgs
   type CArg
 end
@@ -55,23 +58,42 @@ unCCtx : CCtx -- List(Pack(Name CSort))
 unCCtx = match(MkCCtx -> id)
 
 data CSort
+  CSTypes : CSort
   CSType : CSort
-  CSData : CType -- CSort
-  CSWord : CType CType CType -- CSort
+  CSValues : CTypes -- CSort
+  CSValue : CType -- CSort
+  CSEffect : CSort
+  CSWord : CTypes CTypes CEffect -- CSort
+end
+
+data CTypes
+  CTsVar : Name -- CTypes
+  CTsSym : Symbol CArgs -- CTypes
+  CTsNil : CTypes
+  CTsCons : CTypes CType -- CTypes
 end
 
 data CType
   CTVar : Name -- CType
   CTSym : Symbol CArgs -- CType
-  CTNil  : CType
-  CTCons : CType CType -- CType
 end
 
-data CData
-  CDVar : Name -- CData
-  CDSym : Symbol CArgs -- CData
-  CDNil : CData
-  CDCons : CData CData -- CData
+data CValues
+  CVsVar : Name -- CValues
+  CVsSym : Symbol CArgs -- CValues
+  CVsNil : CValues
+  CVsCons : CValues CValue -- CValues
+end
+
+data CValue
+  CVVar : Name -- CValue
+  CVSym : Symbol CArgs -- CValue
+end
+
+data CEffect
+  CEVar : Name -- CEffect
+  CESym : Symbol CArgs -- CEffect
+  CENone : CEffect
 end
 
 data CWord
@@ -86,16 +108,22 @@ data CArgs
 end
 
 data CArg
+  CATypes : CTypes -- CArg
   CAType : CType -- CArg
-  CAData : CData -- CArg
+  CAValues : CValues -- CArg
+  CAValue : CValue -- CArg
+  CAEffect : CEffect -- CArg
   CAWord : CWord -- CArg
 end
 
 cdef->str : CDef -- Str
 cctx->str : CCtx -- Str
 csort->str : CSort -- Str
+ctypes->str : CType -- Str
 ctype->str : CType -- Str
-cdata->str : CData -- Str
+cvalues->str : CValues -- Str
+cvalue->str : CValue -- Str
+ceffect->str : CEffect -- Str
 cword->str : CWord -- Str
 cargs->str : CArgs -- Str
 carg->str : CArg -- Str
@@ -117,15 +145,27 @@ lookupCtx : CCtx Name -- CCtx Maybe(CSort)
 lookupCtx? : CCtx Name -- CCtx Name Maybe(CSort)
 lookupCtx? = dup dip'(lookupCtx)
 
+checkTypes : CEnv CCtx CTypes -- CEnv CCtx CCheck
+checkTypesEq : CEnv CCtx CTypes CTypes -- CEnv CCtx CCheck
+checkTypesSub : CEnv CCtx CTypes CTypes -- CEnv CCtx CCheck
+
 checkType : CEnv CCtx CType -- CEnv CCtx CCheck
 checkTypeEq : CEnv CCtx CType CType -- CEnv CCtx CCheck
+checkTypeSub : CEnv CCtx CType CType -- CEnv CCtx CCheck
 
-checkData : CEnv CCtx CData CType -- CEnv CCtx CCheck
-checkDataEq : CEnv CCtx CType CType -- CEnv CCtx CCheck
+checkValues : CEnv CCtx CValues CTypes -- CEnv CCtx CCheck
+checkValuesEq : CEnv CCtx CValues CValues CTypes -- CEnv CCtx CCheck
 
-checkWord : CEnv CCtx CWord CType CType CType -- CEnv CCtx CCheck
-checkWordEq : CEnv CCtx CWord CWord CType CType CType -- CEnv CCtx CCheck
-inferWord : CEnv CCtx CType CWord -- CEnv CCtx CType CType CCheck
+checkValue : CEnv CCtx CValue CType -- CEnv CCtx CCheck
+checkValueEq : CEnv CCtx CValue CValue CType -- CEnv CCtx CCheck
+
+checkEffect : CEnv CCtx CEffect -- CEnv CCtx CCheck
+checkEffectEq : CEnv CCtx CEffect CEffect -- CEnv CCtx CCheck
+checkEffectSub : CEnv CCtx CEffect CEffect -- CEnv CCtx CCheck
+
+checkWord : CEnv CCtx CWord CType CType CEffect -- CEnv CCtx CCheck
+checkWordEq : CEnv CCtx CWord CWord CType CType CEffect -- CEnv CCtx CCheck
+inferWord : CEnv CCtx CType CWord -- CEnv CCtx CType CEffect CCheck
 
 checkArgs : CEnv CCtx CArgs CCtx -- CEnv CCtx CCheck
 checkArgsEq : CEnv CCtx CArgs CCtx -- CEnv CCtx CCheck
@@ -174,22 +214,13 @@ checkType =
             CCErr
 
         )
-      ),
-
-    CTNil ->
-      CCOk,
-
-    CTCons ->
-      dip(checkType) swap ccheck(
-        checkType,
-        nip CCErr
       )
   )
 
-checkData : CEnv CCtx CData CType -- CEnv CCtx CCheck
-checkData =
+checkValue : CEnv CCtx CValue CType -- CEnv CCtx CCheck
+checkValue =
   swap match(
-    CDVar ->
+    CVVar ->
       swap dip?(lookupCtx?)
       maybe(
         dip2("Unknown data variable ")
@@ -197,37 +228,25 @@ checkData =
         ctype->str <> CCErr,
 
         match(
-          CSData ->
+          CSValue ->
             dip2(drop) checkTypeEq,
           _ ->
             drop2 dip("Expected data but variable ") name->str <> " has wrong sort" <> CCErr
         )
       ),
 
-    CDSym ->
-      undefined,
-
-    CDNil ->
-      match(
-        CTNil ->
-          undefined,
-
-        _ ->
-          undefined
-      ),
-
-    CDCons ->
+    CVSym ->
       undefined
   )
 
-checkWord : CEnv CCtx CWord CType CType CType -- CEnv CCtx CCheck
+checkWord : CEnv CCtx CWord CType CType CEffect -- CEnv CCtx CCheck
 checkWord =
   dip2(swap inferWord) rotl ccheck(
     undefined,
     dip(drop4) CCErr
   )
 
-inferWord : CEnv CCtx CType CWord -- CEnv CCtx CType CType CCheck
+inferWord : CEnv CCtx CType CWord -- CEnv CCtx CType CEffect CCheck
 inferWord =
   match(
     CWVar ->
@@ -237,7 +256,7 @@ inferWord =
       undefined,
 
     CWId ->
-      CTNil CCOk,
+      CENone CCOk,
 
     CWCp ->
       dip(inferWord) swap
@@ -250,6 +269,9 @@ inferWord =
 checkArg : CEnv CCtx CArg CSort -- CEnv CCtx CCheck
 checkArg =
   swap match(
+    CATypes ->
+      undefined,
+
     CAType ->
       swap match(
         CSType ->
@@ -258,7 +280,13 @@ checkArg =
           undefined
       ),
 
-    CAData ->
+    CAValues ->
+      undefined,
+
+    CAValue ->
+      undefined,
+
+    CAEffect ->
       undefined,
 
     CAWord ->
