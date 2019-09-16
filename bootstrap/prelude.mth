@@ -111,6 +111,12 @@ dup3 drop3 == id
 dip4(f : *a -- *b) : *a w x y z -- *b w x y z
 dip4(f) = dip2(dip2(f))
 
+drop4 : a b c d --
+drop4 = drop2 drop2
+
+dup4 : a b c d -- a b c d a b c d
+dup4 = over2 over2
+
 #
 # shifted dips
 #

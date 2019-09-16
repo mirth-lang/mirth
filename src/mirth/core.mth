@@ -1,0 +1,267 @@
+
+import base/maybe
+import base/void
+import base/map
+import base/result
+import base/int
+import base/str
+
+import mirth/mod
+import mirth/name
+import mirth/loc
+import mirth/syntax
+
+export mirth/symbol
+  type Symbol
+end
+
+export mirth/core
+  type L(x)
+  type Symbol
+  type CEnv
+  type CDef
+  type CCtx
+  type CSort
+
+  type CType
+  type CWord
+  type CData
+  type CArgs
+  type CArg
+end
+
+data Symbol
+  MkSymbol : Mod Name -- Symbol
+end
+
+symbol->str : Symbol -- Str
+
+data CEnv
+  MkCEnv : Map(Symbol, CDef) -- CEnv
+end
+
+data CDef
+  MkCDef : CCtx CSort Maybe(CArg) -- CDef
+end
+
+unCDef : CDef -- CCtx CSort Maybe(CArg)
+unCDef = match(MkCDef -> id)
+
+data CCtx
+  MkCCtx : List(Pack(Name CSort)) -- CCtx
+end
+
+unCCtx : CCtx -- List(Pack(Name CSort))
+unCCtx = match(MkCCtx -> id)
+
+data CSort
+  CSType : CSort
+  CSData : CType -- CSort
+  CSWord : CType CType CType -- CSort
+end
+
+data CType
+  CTVar : Name -- CType
+  CTSym : Symbol CArgs -- CType
+  CTNil  : CType
+  CTCons : CType CType -- CType
+end
+
+data CData
+  CDVar : Name -- CData
+  CDSym : Symbol CArgs -- CData
+  CDNil : CData
+  CDCons : CData CData -- CData
+end
+
+data CWord
+  CWVar : Name -- CWord
+  CWSym : Symbol CArgs -- CWord
+  CWId : CWord
+  CWCp : CWord CWord -- CWord
+end
+
+data CArgs
+  MkCArgs : List(CArg) -- CArgs
+end
+
+data CArg
+  CAType : CType -- CArg
+  CAData : CData -- CArg
+  CAWord : CWord -- CArg
+end
+
+cdef->str : CDef -- Str
+cctx->str : CCtx -- Str
+csort->str : CSort -- Str
+ctype->str : CType -- Str
+cdata->str : CData -- Str
+cword->str : CWord -- Str
+cargs->str : CArgs -- Str
+carg->str : CArg -- Str
+
+data CCheck
+  CCOk : CCheck
+  CCErr : Str -- CCheck
+end
+
+ccheck(
+  f : *a -- *b,
+  g : *a Str -- *b
+) : *a CCheck -- *b
+
+lookupEnv : CEnv Symbol -- CEnv Maybe(CDef)
+
+lookupCtx : CCtx Name -- CCtx Maybe(CSort)
+
+lookupCtx? : CCtx Name -- CCtx Name Maybe(CSort)
+lookupCtx? = dup dip'(lookupCtx)
+
+checkType : CEnv CCtx CType -- CEnv CCtx CCheck
+checkTypeEq : CEnv CCtx CType CType -- CEnv CCtx CCheck
+
+checkData : CEnv CCtx CData CType -- CEnv CCtx CCheck
+checkDataEq : CEnv CCtx CType CType -- CEnv CCtx CCheck
+
+checkWord : CEnv CCtx CWord CType CType CType -- CEnv CCtx CCheck
+checkWordEq : CEnv CCtx CWord CWord CType CType CType -- CEnv CCtx CCheck
+inferWord : CEnv CCtx CType CWord -- CEnv CCtx CType CType CCheck
+
+checkArgs : CEnv CCtx CArgs CCtx -- CEnv CCtx CCheck
+checkArgsEq : CEnv CCtx CArgs CCtx -- CEnv CCtx CCheck
+
+checkArg : CEnv CCtx CArg CSort -- CEnv CCtx CCheck
+checkArgEq : CEnv CCtx CArg CArg CSort -- CEnv CCtx CCheck
+
+undefined : *a -- *b
+undefined = "undefined" _prim_unsafe_panic
+
+checkType : CEnv CCtx CType -- CEnv CCtx CCheck
+checkType =
+  match(
+    CTVar ->
+      lookupCtx?
+      maybe(
+        dip("Unknown type variable ") name->str <> CCErr,
+
+        match(
+          CSType ->
+            drop CCOk,
+
+          _ ->
+            dip2("Expected type variable, got ")
+            dip(name->str <> " : " <>)
+            csort->str <>
+            CCErr
+        )
+      ),
+
+    CTSym ->
+      over dip3'''(lookupEnv)
+      maybe(
+        drop dip("Unknown type constructor ")
+        symbol->str <> CCErr,
+
+        unCDef drop match(
+          CSType ->
+            dip2(drop) checkArgs,
+
+          _ ->
+            dip4("Expected type constructor, got ")
+            dip2(drop symbol->str <>)
+            dip(cctx->str <> " : " <>)
+            csort->str <>
+            CCErr
+
+        )
+      ),
+
+    CTNil ->
+      CCOk,
+
+    CTCons ->
+      dip(checkType) swap ccheck(
+        checkType,
+        nip CCErr
+      )
+  )
+
+checkData : CEnv CCtx CData CType -- CEnv CCtx CCheck
+checkData =
+  swap match(
+    CDVar ->
+      swap dip?(lookupCtx?)
+      maybe(
+        dip2("Unknown data variable ")
+        dip(name->str <> " : " <>)
+        ctype->str <> CCErr,
+
+        match(
+          CSData ->
+            dip2(drop) checkTypeEq,
+          _ ->
+            drop2 dip("Expected data but variable ") name->str <> " has wrong sort" <> CCErr
+        )
+      ),
+
+    CDSym ->
+      undefined,
+
+    CDNil ->
+      match(
+        CTNil ->
+          undefined,
+
+        _ ->
+          undefined
+      ),
+
+    CDCons ->
+      undefined
+  )
+
+checkWord : CEnv CCtx CWord CType CType CType -- CEnv CCtx CCheck
+checkWord =
+  dip2(swap inferWord) rotl ccheck(
+    undefined,
+    dip(drop4) CCErr
+  )
+
+inferWord : CEnv CCtx CType CWord -- CEnv CCtx CType CType CCheck
+inferWord =
+  match(
+    CWVar ->
+      undefined,
+
+    CWSym ->
+      undefined,
+
+    CWId ->
+      CTNil CCOk,
+
+    CWCp ->
+      dip(inferWord) swap
+      ccheck(
+        undefined,
+        undefined
+      )
+  )
+
+checkArg : CEnv CCtx CArg CSort -- CEnv CCtx CCheck
+checkArg =
+  swap match(
+    CAType ->
+      swap match(
+        CSType ->
+          checkType,
+        _ ->
+          undefined
+      ),
+
+    CAData ->
+      undefined,
+
+    CAWord ->
+      undefined
+  )
+
