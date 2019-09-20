@@ -1,295 +1,413 @@
 
+import base/unit
 import base/maybe
 import base/void
 import base/map
 import base/result
 import base/int
 import base/str
+import base/sexp
+import base/list
 
 import mirth/mod
 import mirth/name
 import mirth/loc
 import mirth/syntax
 
-export mirth/symbol
-  type Symbol
-end
-
 export mirth/core
-  type L(x)
-  type Symbol
   type CEnv
-  type CDef
-  type CCtx
+  type CCtx(x)
   type CSort
-
-  type CTypes
-  type CType
-  type CValues
-  type CValue
-  type CEffect
-  type CWord
-  type CArgs
-  type CArg
+  type CPrim
+  type CZero
+  type CSucc(x)
+  type CBind
+  type CTerm(x)
+  type CPrim
+  type CError
+  type CMonad(x,t)
 end
-
-data Symbol
-  MkSymbol : Mod Name -- Symbol
-end
-
-symbol->str : Symbol -- Str
-
-data CEnv
-  MkCEnv : Map(Symbol, CDef) -- CEnv
-end
-
-data CDef
-  MkCDef : CCtx CSort Maybe(CArg) -- CDef
-end
-
-unCDef : CDef -- CCtx CSort Maybe(CArg)
-unCDef = match(MkCDef -> id)
-
-data CCtx
-  MkCCtx : List(Pack(Name CSort)) -- CCtx
-end
-
-unCCtx : CCtx -- List(Pack(Name CSort))
-unCCtx = match(MkCCtx -> id)
-
-data CSort
-  CSTypes : CSort
-  CSType : CSort
-  CSValues : CTypes -- CSort
-  CSValue : CType -- CSort
-  CSEffect : CSort
-  CSWord : CTypes CTypes CEffect -- CSort
-end
-
-data CTypes
-  CTsVar : Name -- CTypes
-  CTsSym : Symbol CArgs -- CTypes
-  CTsNil : CTypes
-  CTsCons : CTypes CType -- CTypes
-end
-
-data CType
-  CTVar : Name -- CType
-  CTSym : Symbol CArgs -- CType
-end
-
-data CValues
-  CVsVar : Name -- CValues
-  CVsSym : Symbol CArgs -- CValues
-  CVsNil : CValues
-  CVsCons : CValues CValue -- CValues
-end
-
-data CValue
-  CVVar : Name -- CValue
-  CVSym : Symbol CArgs -- CValue
-end
-
-data CEffect
-  CEVar : Name -- CEffect
-  CESym : Symbol CArgs -- CEffect
-  CENone : CEffect
-end
-
-data CWord
-  CWVar : Name -- CWord
-  CWSym : Symbol CArgs -- CWord
-  CWId : CWord
-  CWCp : CWord CWord -- CWord
-end
-
-data CArgs
-  MkCArgs : List(CArg) -- CArgs
-end
-
-data CArg
-  CATypes : CTypes -- CArg
-  CAType : CType -- CArg
-  CAValues : CValues -- CArg
-  CAValue : CValue -- CArg
-  CAEffect : CEffect -- CArg
-  CAWord : CWord -- CArg
-end
-
-cdef->str : CDef -- Str
-cctx->str : CCtx -- Str
-csort->str : CSort -- Str
-ctypes->str : CType -- Str
-ctype->str : CType -- Str
-cvalues->str : CValues -- Str
-cvalue->str : CValue -- Str
-ceffect->str : CEffect -- Str
-cword->str : CWord -- Str
-cargs->str : CArgs -- Str
-carg->str : CArg -- Str
-
-data CCheck
-  CCOk : CCheck
-  CCErr : Str -- CCheck
-end
-
-ccheck(
-  f : *a -- *b,
-  g : *a Str -- *b
-) : *a CCheck -- *b
-
-lookupEnv : CEnv Symbol -- CEnv Maybe(CDef)
-
-lookupCtx : CCtx Name -- CCtx Maybe(CSort)
-
-lookupCtx? : CCtx Name -- CCtx Name Maybe(CSort)
-lookupCtx? = dup dip'(lookupCtx)
-
-checkTypes : CEnv CCtx CTypes -- CEnv CCtx CCheck
-checkTypesEq : CEnv CCtx CTypes CTypes -- CEnv CCtx CCheck
-checkTypesSub : CEnv CCtx CTypes CTypes -- CEnv CCtx CCheck
-
-checkType : CEnv CCtx CType -- CEnv CCtx CCheck
-checkTypeEq : CEnv CCtx CType CType -- CEnv CCtx CCheck
-checkTypeSub : CEnv CCtx CType CType -- CEnv CCtx CCheck
-
-checkValues : CEnv CCtx CValues CTypes -- CEnv CCtx CCheck
-checkValuesEq : CEnv CCtx CValues CValues CTypes -- CEnv CCtx CCheck
-
-checkValue : CEnv CCtx CValue CType -- CEnv CCtx CCheck
-checkValueEq : CEnv CCtx CValue CValue CType -- CEnv CCtx CCheck
-
-checkEffect : CEnv CCtx CEffect -- CEnv CCtx CCheck
-checkEffectEq : CEnv CCtx CEffect CEffect -- CEnv CCtx CCheck
-checkEffectSub : CEnv CCtx CEffect CEffect -- CEnv CCtx CCheck
-
-checkWord : CEnv CCtx CWord CType CType CEffect -- CEnv CCtx CCheck
-checkWordEq : CEnv CCtx CWord CWord CType CType CEffect -- CEnv CCtx CCheck
-inferWord : CEnv CCtx CType CWord -- CEnv CCtx CType CEffect CCheck
-
-checkArgs : CEnv CCtx CArgs CCtx -- CEnv CCtx CCheck
-checkArgsEq : CEnv CCtx CArgs CCtx -- CEnv CCtx CCheck
-
-checkArg : CEnv CCtx CArg CSort -- CEnv CCtx CCheck
-checkArgEq : CEnv CCtx CArg CArg CSort -- CEnv CCtx CCheck
 
 undefined : *a -- *b
 undefined = "undefined" _prim_unsafe_panic
 
-checkType : CEnv CCtx CType -- CEnv CCtx CCheck
-checkType =
+||| Syntactic sort. This represents the sort of a term,
+||| i.e. what kind of syntax it represents.
+data CSort
+
+  ||| Atomic types, e.g. Int, Str.
+  CSType  : CSort
+
+  ||| Atomic values, e.g. 10, "foo"
+  CSValue : CSort
+
+  ||| Atomic word, e.g. dup, drop, dip(10 20)
+  CSWord : CSort
+
+  ||| Syntactic lists. See also: `CSList(x)`
+  CSList_ : CSort -- CSort
+
+  ||| Syntactic functions. See also: `CSArrow(a,b)`
+  CSArrow__ : CSort CSort -- CSort
+end
+
+||| `CSList(x)` represents lists of sort `x`.
+CSList(f: CSort) : CSort
+CSList(f) = f CSList_
+
+||| `CSArrow(a,b)` represents a lambda or primitive that takes an `a` and produces a `b`.
+CSArrow(f: CSort, g: CSort) : CSort
+CSArrow(f,g) = g f CSArrow__
+
+||| Lists of atomic types, such as stack types.
+CSTypes : CSort
+CSTypes = CSList(CSType)
+
+||| Lists of atomic values, such as stack values.
+CSValues : CSort
+CSValues = CSList(CSValue)
+
+||| Lists of atomic words, such as word bodies.
+CSWords : CSort
+CSWords = CSList(CSWord)
+
+||| Convert CSort into a string for printing. The output format
+||| is meant to be easy to read, not necessarily to be useful for
+||| (de)serialization. See also: `csort->sexp`
+csort->str : CSort -- Str
+csort->str =
   match(
-    CTVar ->
-      lookupCtx?
-      maybe(
-        dip("Unknown type variable ") name->str <> CCErr,
-
-        match(
-          CSType ->
-            drop CCOk,
-
-          _ ->
-            dip2("Expected type variable, got ")
-            dip(name->str <> " : " <>)
-            csort->str <>
-            CCErr
-        )
-      ),
-
-    CTSym ->
-      over dip3'''(lookupEnv)
-      maybe(
-        drop dip("Unknown type constructor ")
-        symbol->str <> CCErr,
-
-        unCDef drop match(
-          CSType ->
-            dip2(drop) checkArgs,
-
-          _ ->
-            dip4("Expected type constructor, got ")
-            dip2(drop symbol->str <>)
-            dip(cctx->str <> " : " <>)
-            csort->str <>
-            CCErr
-
-        )
-      )
+    CSType -> "type",
+    CSWord -> "word",
+    CSValue -> "value",
+    CSList_ -> csort->str "*" <>,
+    CSArrow__ -> dip(csort->str "[" <>) csort->str "]" <> <>
   )
 
-checkValue : CEnv CCtx CValue CType -- CEnv CCtx CCheck
-checkValue =
-  swap match(
-    CVVar ->
-      swap dip?(lookupCtx?)
-      maybe(
-        dip2("Unknown data variable ")
-        dip(name->str <> " : " <>)
-        ctype->str <> CCErr,
-
-        match(
-          CSValue ->
-            dip2(drop) checkTypeEq,
-          _ ->
-            drop2 dip("Expected data but variable ") name->str <> " has wrong sort" <> CCErr
-        )
-      ),
-
-    CVSym ->
-      undefined
-  )
-
-checkWord : CEnv CCtx CWord CType CType CEffect -- CEnv CCtx CCheck
-checkWord =
-  dip2(swap inferWord) rotl ccheck(
-    undefined,
-    dip(drop4) CCErr
-  )
-
-inferWord : CEnv CCtx CType CWord -- CEnv CCtx CType CEffect CCheck
-inferWord =
+||| Convert CSort into an S-expression. The output format is
+||| meant for (de)serialization. See also `csort->str`
+csort->sexp : CSort -- Sexp
+csort->sexp =
   match(
-    CWVar ->
-      undefined,
-
-    CWSym ->
-      undefined,
-
-    CWId ->
-      CENone CCOk,
-
-    CWCp ->
-      dip(inferWord) swap
-      ccheck(
-        undefined,
-        undefined
-      )
+    CSType -> "type" sexpAtom,
+    CSWord -> "word" sexpAtom,
+    CSValue -> "value" sexpAtom,
+    CSList_ -> dip(nil "list" sexpAtom cons) csort->sexp cons sexpList,
+    CSArrow__ -> dip2(nil "->" sexpAtom cons) dip(csort->sexp cons) csort->sexp cons sexpList
   )
 
-checkArg : CEnv CCtx CArg CSort -- CEnv CCtx CCheck
-checkArg =
-  swap match(
-    CATypes ->
-      undefined,
-
-    CAType ->
+||| Compare two CSorts for equality.
+csort= : CSort CSort -- Bool
+csort= =
+  match(
+    CSType ->
+      match(
+        CSType -> true,
+        _ -> drop false
+      ),
+    CSWord ->
+      match(
+        CSWord -> true,
+        _ -> drop false
+      ),
+    CSValue ->
+      match(
+        CSValue -> true,
+        _ -> drop false
+      ),
+    CSList_ ->
       swap match(
-        CSType ->
-          checkType,
-        _ ->
-          undefined
+        CSList_ -> csort=,
+        _ -> drop2 false
       ),
+    CSArrow__ ->
+      rotl match(
+        CSArrow__ -> dip(swap) csort= if(csort=, drop2 false),
+        _ -> drop3 false
+      )
+  )
 
-    CAValues ->
-      undefined,
+||| Compare two CSorts for equality without consuming them.
+csort=? : CSort CSort -- CSort CSort Bool
+csort=? = dup2 csort=
 
-    CAValue ->
-      undefined,
+||| Empty type to represent the free variables that can appear in a closed term.
+data CZero
+end
 
-    CAEffect ->
-      undefined,
+||| Successor type, to represent the free variables that can appear inside a lambda.
+data CSucc(x)
+  S_ : x -- CSucc(x)
+  Z : CSucc(x)
+end
 
-    CAWord ->
+|||
+S(f: x) : CSucc(x)
+S(f) = f S_
+
+||| Binding information. This may contain the sort, name, multiplicity, implicity,
+||| etc. of a variable that is being bound.
+data CBind
+  MkCBind : CSort Name -- CBind
+end
+
+unCBind : CBind -- CSort Name
+unCBind = match(MkCBind -> id)
+
+cbind->csort : CBind -- CSort
+cbind->csort = unCBind drop
+
+cbind->name : CBind -- Name
+cbind->name = unCBind nip
+
+cbind= : CBind CBind -- Bool
+cbind= = both(cbind->csort) csort=
+
+||| Separate name spaces for each core name.
+data CSpace
+end
+
+||| Convert CSpace into a string for printing. This is
+||| meant for easy reading, not for (de)serialization.
+|||
+||| See also: `cspace->sexp`
+cspace->str : CSpace -- Str
+cspace->str =
+  match
+
+||| Convert CSpace into an S-expression for (de)serialization.
+|||
+||| See also: `cspace->str`
+cspace->sexp : CSpace -- Sexp
+cspace->sexp =
+  match
+
+||| A Core Name is a Name bundled with its
+||| syntactic sort and its space. This makes
+||| each name _unique_.
+data CName
+  MkCName : CSort CSpace Name -- CName
+end
+
+||| Deconstructo CName
+unCName : CName -- CSort CSpace Name
+unCName = match(MkCName -> id)
+
+||| Get the CSort of a CName.
+cname->csort : CName -- CSort
+cname->csort = unCName drop2
+
+||| Get the CSpace of a CName.
+cname->cspace : CName -- CSpace
+cname->cspace = unCName drop nip
+
+||| Get the underlying Name of a CName.
+cname->name : CName -- Name
+cname->name = unCName dip(drop2)
+
+||| Convert a CName into a Str. This is meant for easy reading,
+||| not for (de)serialization.
+|||
+||| See also: `cname->sexp`
+cname->str : CName -- Str
+cname->str = unCName dip2(csort->str "::" <>) dip(cspace->str "::" <> <>) name->str <>
+
+||| Primitive operations, i.e. built-in terms or globals that do
+||| not contain any variables.
+data CPrim
+  # Word Primitives
+  CPDip : CPrim
+  CPSwap : CPrim
+  CPDrop : CPrim
+  CPDup : CPrim
+end
+
+||| Get the CSort of a CPrim.
+cprim->csort : CPrim -- CSort
+cprim->csort =
+  match(
+    CPDip -> CSArrow(CSWords, CSWord),
+    CPSwap -> CSWord,
+    CPDrop -> CSWord,
+    CPDup -> CSWord
+  )
+
+data CTerm(x)
+  CTVar_ : x -- CTerm(x)
+  CTName_ : CName -- CTerm(x)
+  CTPrim_ : CPrim -- CTerm(x)
+  CTNil : CTerm(x)
+  CTCons__ : CTerm(x) CTerm(x) -- CTerm(x)
+  CTCat__ : CTerm(x) CTerm(x) -- CTerm(x)
+  CTApply__ : CTerm(x) CTerm(x) -- CTerm(x)
+  CTLambda__ : CBind CTerm(CSucc(x)) -- CTerm(x)
+end
+
+CTVar(f: x) : CTerm(x)
+CTName(f: CName) : CTerm(x)
+CTPrim(f: CPrim) : CTerm(x)
+CTCons(f: CTerm(x), g: CTerm(x)) : CTerm(x)
+CTCat(f: CTerm(x), g: CTerm(x)) : CTerm(x)
+CTOne(f: CTerm(x)) : CTerm(x)
+CTApply(f: CTerm(x), g: CTerm(x)) : CTerm(x)
+CTLambda(f: CBind, g: CTerm(CSucc(x))) : CTerm(x)
+
+CTVar(f) = f CTVar_
+CTName(f) = f CTName_
+CTPrim(f) = f CTPrim_
+CTCons(f,g) = f g CTCons__
+CTCat(f,g) = f g CTCat__
+CTOne(f) = CTNil f CTCons__
+CTApply(f,g) = f g CTApply__
+CTLambda(f,g) = f g CTLambda__
+
+data CCtx(x)
+
+  ||| Raw constructor for empty context. The odd form is due to the
+  ||| lack of GADTs in the bootstrap. See also: `CCZero`
+  CCZero@(f: x -- CZero, g: CZero -- x) : CCtx(x)
+
+  ||| Raw constructor for successor context. The odd form is due to the
+  ||| lack of GADTs in the bootstrap. See also: `CCSucc___`
+  CCSucc___@(f: x -- CSucc(y), g: CSucc(y) -- x) : CCtx(y) CBind CTerm(y) -- CCtx(x)
+end
+
+||| Constructor for empty context.
+CCZero : CCtx(CZero)
+CCZero = CCZero@(id, id)
+
+||| Constructor for successor context. Note that this
+||| does not check that the name in CBind is unique.
+CCSucc___ : CCtx(x) CBind CTerm(x) -- CCtx(CSucc(x))
+CCSucc___ = CCSucc___@(id, id)
+
+||| Lookup the binding information for a variable.
+lookupVarBind : CCtx(x) x -- CBind
+lookupVarBind =
+  swap match(
+    CCZero@(f,g) -> f match,
+    CCSucc___@(f,g) ->
+      rot4l f match(
+        Z -> drop nip,
+        S_ -> dip(drop2) lookupVarBind
+      )
+  )
+
+||| Lookup the syntactic sort for a variable.
+lookupVarSort : CCtx(x) x -- CSort
+lookupVarSort = lookupVarBind cbind->csort
+
+||| Lookup the name for a variable.
+lookupVarName : CCtx(x) x -- Name
+lookupVarName = lookupVarBind cbind->name
+
+||| Lookup a variable by name.
+lookupVarByName : CCtx(x) Name -- Maybe(x)
+lookupVarByName =
+  swap match(
+    CCZero@(f,g) -> drop none,
+    CCSucc___@(f,g) ->
+      drop cbind->name dip(swap dup) nameeq
+      if(
+        drop2 Z g some,
+        lookupVarByName mmap(S_ g)
+      )
+  )
+
+data CError
+  CESortMismatch : CCtx(x) CTerm(x) CSort CSort -- CError
+end
+
+cerror->str : CError -- Str
+cerror->str =
+  match(
+    CESortMismatch ->
+      dip2(drop2)
+      dip2("Sort Mismatch: Expected ")
+      dip(csort->str <> " but got " <>)
+      csort->str <>
+  )
+
+cerror->sexp : CError -- Sexp
+cerror->sexp =
+  match(
+    CESortMismatch ->
       undefined
+  )
+
+data CMonad(x, t)
+  MkCMonad(
+    f: CEnv CCtx(x) m -- CEnv CCtx(x) Result(CError, t)
+  ) : m -- CMonad(x, t)
+end
+
+crun : CEnv CCtx(x) CMonad(x,t) -- CEnv CCtx(x) Result(CError, t)
+crun = match(MkCMonad(f) -> f)
+
+cpure : a -- CMonad(x, a)
+cpure = MkCMonad(ok)
+
+cpure2 : a b -- CMonad(x, a) CMonad(x, b)
+cpure2 = dip(cpure) cpure
+
+cmap(f: a -- b) : CMonad(x, a) -- CMonad(x, b)
+cmap(f) = MkCMonad(crun rmap(f))
+
+cmap2(f: a b -- c) : CMonad(x, a) CMonad(x, b) -- CMonad(x, c)
+cmap2(f) =
+  pack2 MkCMonad(
+    unpack2 dip(crun) swap
+    result(nip err,
+      dip(crun) swap
+      result(nip err, f ok)
+    )
+  )
+
+cmap3(f: a b c -- d) : CMonad(x, a) CMonad(x, b) CMonad(x, c) -- CMonad(x, d)
+cmap3(f) = cmap2(pack2) cmap2(unpack2 f)
+
+cmap4(f: a b c d -- e) : CMonad(x, a) CMonad(x, b) CMonad(x, c) CMonad(x, d) -- CMonad(x, e)
+cmap4(f) = cmap2(pack2) cmap3(unpack2 f)
+
+cbind(f: a -- CMonad(x, b)) : CMonad(x, a) -- CMonad(x, b)
+cbind(f) =
+  MkCMonad(
+    crun result(
+      err,
+      f crun
+    )
+  )
+
+cbind2(f: a b -- CMonad(x, c)) : CMonad(x, a) CMonad(x, b) -- CMonad(x, c)
+cbind2(f) = cmap2(pack2) cbind(unpack2 f)
+
+cbind3(f: a b c -- CMonad(x, d)) : CMonad(x, a) CMonad(x, b) CMonad(x, c) -- CMonad(x, d)
+cbind3(f) = cmap3(pack3) cbind(unpack3 f)
+
+cbind4(f: a b c d -- CMonad(x, e)) : CMonad(x, a) CMonad(x, b) CMonad(x, c) CMonad(x, d) -- CMonad(x, e)
+cbind4(f) = cmap4(pack4) cbind(unpack4 f)
+
+cfail : CError -- CMonad(x,t)
+cfail = MkCMonad(err)
+
+cctx : CMonad(x, CCtx(x))
+cctx = unit MkCMonad(drop dup ok)
+
+cenv : CMonad(x, CEnv)
+cenv = unit MkCMonad(drop over ok)
+
+clookupVarSort : x -- CMonad(x, CSort)
+clookupVarSort = dip(cctx) cpure cmap2(lookupVarSort)
+
+inferSort : CTerm(x) -- CMonad(x, CSort)
+inferSort = undefined
+
+checkSort : CTerm(x) CSort -- CMonad(x, Unit)
+checkSort =
+  dip(dup) dip3(cctx) dip2(cpure) dip(inferSort) cpure cbind4(
+    csort=? if(
+      drop4 unit cpure,
+      CESortMismatch cfail
+    )
   )
 
