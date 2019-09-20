@@ -236,7 +236,7 @@ data CTerm(x)
   CTVar_ : x -- CTerm(x)
   CTName_ : CName -- CTerm(x)
   CTPrim_ : CPrim -- CTerm(x)
-  CTNil : CTerm(x)
+  CTNil_ : CSort -- CTerm(x)
   CTCons__ : CTerm(x) CTerm(x) -- CTerm(x)
   CTCat__ : CTerm(x) CTerm(x) -- CTerm(x)
   CTApply__ : CTerm(x) CTerm(x) -- CTerm(x)
@@ -246,18 +246,18 @@ end
 CTVar(f: x) : CTerm(x)
 CTName(f: CName) : CTerm(x)
 CTPrim(f: CPrim) : CTerm(x)
+CTNil(f: CSort) : CTerm(x)
 CTCons(f: CTerm(x), g: CTerm(x)) : CTerm(x)
 CTCat(f: CTerm(x), g: CTerm(x)) : CTerm(x)
-CTOne(f: CTerm(x)) : CTerm(x)
 CTApply(f: CTerm(x), g: CTerm(x)) : CTerm(x)
 CTLambda(f: CBind, g: CTerm(CSucc(x))) : CTerm(x)
 
 CTVar(f) = f CTVar_
 CTName(f) = f CTName_
 CTPrim(f) = f CTPrim_
+CTNil(f) = f CTNil_
 CTCons(f,g) = f g CTCons__
 CTCat(f,g) = f g CTCat__
-CTOne(f) = CTNil f CTCons__
 CTApply(f,g) = f g CTApply__
 CTLambda(f,g) = f g CTLambda__
 
@@ -316,6 +316,7 @@ lookupVarByName =
 
 data CError
   CESortMismatch : CCtx(x) CTerm(x) CSort CSort -- CError
+  CEGeneral : Str -- CError
 end
 
 cerror->str : CError -- Str
@@ -325,13 +326,17 @@ cerror->str =
       dip2(drop2)
       dip2("Sort Mismatch: Expected ")
       dip(csort->str <> " but got " <>)
-      csort->str <>
+      csort->str <>,
+    CEGeneral ->
+      id
   )
 
 cerror->sexp : CError -- Sexp
 cerror->sexp =
   match(
     CESortMismatch ->
+      undefined,
+    CEGeneral ->
       undefined
   )
 
@@ -399,10 +404,35 @@ cenv = unit MkCMonad(drop over ok)
 clookupVarSort : x -- CMonad(x, CSort)
 clookupVarSort = dip(cctx) cpure cmap2(lookupVarSort)
 
-inferSort : CTerm(x) -- CMonad(x, CSort)
-inferSort = undefined
+~CSList_ : CSort -- CMonad(x, CSort)
+~CSList_ =
+  match(
+    CSList_ -> cpure,
+    _ -> dip("Expected list sort, got ") csort->str <> CEGeneral cfail
+  )
 
+~CSArrow__ : CSort -- CMonad(x, Pack(CSort CSort))
+~CSArrow__ =
+  match(
+    CSArrow__ -> pack2 cpure,
+    _ -> dip("Expected arrow sort, got ") csort->str <> CEGeneral cfail
+  )
+
+inferSort : CTerm(x) -- CMonad(x, CSort)
 checkSort : CTerm(x) CSort -- CMonad(x, Unit)
+
+inferSort =
+  match(
+    CTVar_ -> clookupVarSort,
+    CTName_ -> cname->csort cpure,
+    CTPrim_ -> cprim->csort cpure,
+    CTNil_ -> CSList_ cpure,
+    CTCons__ -> dip(cpure) inferSort cbind2(CSList_ dup dip(checkSort) cpure cmap2(nip)),
+    CTCat__ -> dip(cpure) inferSort cbind(~CSList_) cbind2(CSList_ dup dip(checkSort) cpure cmap2(nip)),
+    CTApply__ -> dip(inferSort cbind(~CSArrow__)) cpure cbind2(swap unpack2 dip(checkSort) cpure cmap2(nip)),
+    CTLambda__ -> undefined
+  )
+
 checkSort =
   dip(dup) dip3(cctx) dip2(cpure) dip(inferSort) cpure cbind4(
     csort=? if(
