@@ -35,41 +35,28 @@ undefined = "undefined" _prim_unsafe_panic
 ||| i.e. what kind of syntax it represents.
 data CSort
 
+  ||| Stack type.
+  CSTypes : CSort
+
   ||| Atomic types, e.g. Int, Str.
-  CSType  : CSort
+  CSType : CSort
+
+  ||| Stack values.
+  CSValues : CSort
 
   ||| Atomic values, e.g. 10, "foo"
   CSValue : CSort
 
-  ||| Atomic word, e.g. dup, drop, dip(10 20)
+  ||| Words, e.g. dup, drop, dip(10 20)
   CSWord : CSort
-
-  ||| Syntactic lists. See also: `CSList(x)`
-  CSList_ : CSort -- CSort
 
   ||| Syntactic functions. See also: `CSArrow(a,b)`
   CSArrow__ : CSort CSort -- CSort
 end
 
-||| `CSList(x)` represents lists of sort `x`.
-CSList(f: CSort) : CSort
-CSList(f) = f CSList_
-
 ||| `CSArrow(a,b)` represents a lambda or primitive that takes an `a` and produces a `b`.
 CSArrow(f: CSort, g: CSort) : CSort
 CSArrow(f,g) = g f CSArrow__
-
-||| Lists of atomic types, such as stack types.
-CSTypes : CSort
-CSTypes = CSList(CSType)
-
-||| Lists of atomic values, such as stack values.
-CSValues : CSort
-CSValues = CSList(CSValue)
-
-||| Lists of atomic words, such as word bodies.
-CSWords : CSort
-CSWords = CSList(CSWord)
 
 ||| Convert CSort into a string for printing. The output format
 ||| is meant to be easy to read, not necessarily to be useful for
@@ -77,10 +64,11 @@ CSWords = CSList(CSWord)
 csort->str : CSort -- Str
 csort->str =
   match(
+    CSTypes -> "types",
     CSType -> "type",
-    CSWord -> "word",
     CSValue -> "value",
-    CSList_ -> csort->str "*" <>,
+    CSValues -> "values",
+    CSWord -> "word",
     CSArrow__ -> dip(csort->str "[" <>) csort->str "]" <> <>
   )
 
@@ -89,10 +77,11 @@ csort->str =
 csort->sexp : CSort -- Sexp
 csort->sexp =
   match(
+    CSTypes -> "types" sexpAtom,
     CSType -> "type" sexpAtom,
-    CSWord -> "word" sexpAtom,
+    CSValues -> "values" sexpAtom,
     CSValue -> "value" sexpAtom,
-    CSList_ -> dip(nil "list" sexpAtom cons) csort->sexp cons sexpList,
+    CSWord -> "word" sexpAtom,
     CSArrow__ -> dip2(nil "->" sexpAtom cons) dip(csort->sexp cons) csort->sexp cons sexpList
   )
 
@@ -100,14 +89,19 @@ csort->sexp =
 csort= : CSort CSort -- Bool
 csort= =
   match(
+    CSTypes ->
+      match(
+        CSTypes -> true,
+        _ -> drop false
+      ),
     CSType ->
       match(
         CSType -> true,
         _ -> drop false
       ),
-    CSWord ->
+    CSValues ->
       match(
-        CSWord -> true,
+        CSValues -> true,
         _ -> drop false
       ),
     CSValue ->
@@ -115,10 +109,10 @@ csort= =
         CSValue -> true,
         _ -> drop false
       ),
-    CSList_ ->
-      swap match(
-        CSList_ -> csort=,
-        _ -> drop2 false
+    CSWord ->
+      match(
+        CSWord -> true,
+        _ -> drop false
       ),
     CSArrow__ ->
       rotl match(
@@ -137,13 +131,20 @@ end
 
 ||| Successor type, to represent the free variables that can appear inside a lambda.
 data CSucc(x)
-  S_ : x -- CSucc(x)
   Z : CSucc(x)
+  S_ : x -- CSucc(x)
 end
 
-|||
+||| Successor of variable.
 S(f: x) : CSucc(x)
 S(f) = f S_
+
+csucc(f: *a -- *b, g: *a x -- *b) : *a CSucc(x) -- *b
+csucc(f, g) =
+  match(
+    Z -> f,
+    S_ -> g
+  )
 
 ||| Binding information. This may contain the sort, name, multiplicity, implicity,
 ||| etc. of a variable that is being bound.
@@ -226,43 +227,96 @@ end
 cprim->csort : CPrim -- CSort
 cprim->csort =
   match(
-    CPDip -> CSArrow(CSWords, CSWord),
+    CPDip -> CSArrow(CSWord, CSWord),
     CPSwap -> CSWord,
     CPDrop -> CSWord,
     CPDup -> CSWord
   )
 
+||| Core Variable
+data CVar(x)
+  MkCVar : CBind x -- CVar(x)
+end
+
+unCVar : CVar(x) -- CBind x
+unCVar = match(MkCVar -> id)
+
+cvar->cbind : CVar(x) -- CBind
+cvar->cbind = unCVar drop
+
+cvar->value : CVar(x) -- x
+cvar->value = unCVar nip
+
+cvar->csort : CVar(x) -- CSort
+cvar->csort = cvar->cbind cbind->csort
+
+cvar->name : CVar(x) -- Name
+cvar->name = cvar->cbind cbind->name
+
+cvarMap(f: *ctx a -- *ctx b) : *ctx CVar(a) -- *ctx CVar(b)
+cvarMap(f) = unCVar dip'(f) MkCVar
+
+||| Core Term
 data CTerm(x)
-  CTVar_ : x -- CTerm(x)
+  CTVar_ : CVar(x) -- CTerm(x)
   CTName_ : CName -- CTerm(x)
   CTPrim_ : CPrim -- CTerm(x)
-  CTNil_ : CSort -- CTerm(x)
-  CTCons__ : CTerm(x) CTerm(x) -- CTerm(x)
-  CTCat__ : CTerm(x) CTerm(x) -- CTerm(x)
   CTApply__ : CTerm(x) CTerm(x) -- CTerm(x)
   CTLambda__ : CBind CTerm(CSucc(x)) -- CTerm(x)
 end
 
-CTVar(f: x) : CTerm(x)
+CTVar(f: CVar(x)) : CTerm(x)
 CTName(f: CName) : CTerm(x)
 CTPrim(f: CPrim) : CTerm(x)
-CTNil(f: CSort) : CTerm(x)
-CTCons(f: CTerm(x), g: CTerm(x)) : CTerm(x)
-CTCat(f: CTerm(x), g: CTerm(x)) : CTerm(x)
 CTApply(f: CTerm(x), g: CTerm(x)) : CTerm(x)
 CTLambda(f: CBind, g: CTerm(CSucc(x))) : CTerm(x)
 
 CTVar(f) = f CTVar_
 CTName(f) = f CTName_
 CTPrim(f) = f CTPrim_
-CTNil(f) = f CTNil_
-CTCons(f,g) = f g CTCons__
-CTCat(f,g) = f g CTCat__
 CTApply(f,g) = f g CTApply__
 CTLambda(f,g) = f g CTLambda__
 
-data CCtx(x)
+rename(f: *ctx a -- *ctx b) : *ctx CTerm(a) -- *ctx CTerm(b)
+rename(f) =
+  match(
+    CTVar_ -> cvarMap(f) CTVar_,
+    CTName_ -> CTName_,
+    CTPrim_ -> CTPrim_,
+    CTApply__ -> dip(rename(f)) dip'(rename(f)) CTApply__,
+    CTLambda__ -> dip'(rename(csucc(Z, f S_))) CTLambda__
+  )
 
+subst(f: *ctx a -- *ctx CTerm(b)) : *ctx CTerm(a) -- *ctx CTerm(b)
+subst(f) =
+  match(
+    CTVar_ -> cvar->value f,
+    CTName_ -> CTName_,
+    CTPrim_ -> CTPrim_,
+    CTApply__ -> dip(subst(f)) dip'(subst(f)) CTApply__,
+    CTLambda__ -> subst(csucc(dup Z MkCVar CTVar_, dip'(f) rename(S_))) CTLambda__
+  )
+
+||| Quickly get the sort of a term. This may fail or return
+||| garbage if the term is not well-sorted, so use checkSort to
+||| make sure the term is well-sorted before relying on this.
+cterm->csort : CTerm(x) -- CSort
+cterm->csort =
+  match(
+    CTVar_ -> cvar->csort,
+    CTName_ -> cname->csort,
+    CTPrim_ -> cprim->csort,
+    CTApply__ ->
+      drop cterm->csort
+      match(
+        CSArrow__ -> drop,
+        _ -> "core sort error: CTApply__ on non-lambda." _prim_unsafe_panic
+      ),
+    CTLambda__ ->
+      dip(cbind->csort) cterm->csort CSArrow__
+  )
+
+data CCtx(x)
   ||| Raw constructor for empty context. The odd form is due to the
   ||| lack of GADTs in the bootstrap. See also: `CCZero`
   CCZero@(f: x -- CZero, g: CZero -- x) : CCtx(x)
@@ -404,13 +458,6 @@ cenv = unit MkCMonad(drop over ok)
 clookupVarSort : x -- CMonad(x, CSort)
 clookupVarSort = dip(cctx) cpure cmap2(lookupVarSort)
 
-~CSList_ : CSort -- CMonad(x, CSort)
-~CSList_ =
-  match(
-    CSList_ -> cpure,
-    _ -> dip("Expected list sort, got ") csort->str <> CEGeneral cfail
-  )
-
 ~CSArrow__ : CSort -- CMonad(x, Pack(CSort CSort))
 ~CSArrow__ =
   match(
@@ -423,12 +470,9 @@ checkSort : CTerm(x) CSort -- CMonad(x, Unit)
 
 inferSort =
   match(
-    CTVar_ -> clookupVarSort,
+    CTVar_ -> cvar->value clookupVarSort,
     CTName_ -> cname->csort cpure,
     CTPrim_ -> cprim->csort cpure,
-    CTNil_ -> CSList_ cpure,
-    CTCons__ -> dip(cpure) inferSort cbind2(CSList_ dup dip(checkSort) cpure cmap2(nip)),
-    CTCat__ -> dip(cpure) inferSort cbind(~CSList_) cbind2(CSList_ dup dip(checkSort) cpure cmap2(nip)),
     CTApply__ -> dip(inferSort cbind(~CSArrow__)) cpure cbind2(swap unpack2 dip(checkSort) cpure cmap2(nip)),
     CTLambda__ -> undefined
   )
