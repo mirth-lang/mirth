@@ -128,7 +128,6 @@ data CStackType(x)
   CSTVar  : x CArgs(x) -- CStackType(x)
   CSTNil  : CStackType(x)
   CSTCons : CStackType(x) CValueType(x) -- CStackType(x)
-  CSTCat  : CStackType(x) CStackType(x) -- CStackType(x)
 end
 
 data CValueType(x)
@@ -285,8 +284,7 @@ cstMap(f) =
   match(
     CSTVar -> dip(f) dip'(caMap(f)) CSTVar,
     CSTNil -> CSTNil,
-    CSTCons -> dip(cstMap(f)) dip'(cvtMap(f)) CSTCons,
-    CSTCat -> dip(cstMap(f)) dip'(cstMap(f)) CSTCat
+    CSTCons -> dip(cstMap(f)) dip'(cvtMap(f)) CSTCons
   )
 cvtMap(f) =
   match(
@@ -389,8 +387,7 @@ cstSubst(f) =
         _ -> unexpected("bad substitution")
       ),
     CSTNil -> CSTNil,
-    CSTCons -> dip(cstSubst(f)) dip'(cvtSubst(f)) CSTCons,
-    CSTCat -> dip(cstSubst(f)) dip'(cstSubst(f)) CSTCat
+    CSTCons -> dip(cstSubst(f)) dip'(cvtSubst(f)) CSTCons
   )
 
 cvtSubst(f) =
@@ -589,8 +586,7 @@ cstCheck =
   match(
     CSTVar -> caInferVar cmBind(cmExpectKStackType),
     CSTNil -> cmUnit,
-    CSTCons -> dip(cstCheck) cvtCheck cmVoid2,
-    CSTCat -> dip(cstCheck) cstCheck cmVoid2
+    CSTCons -> dip(cstCheck) cvtCheck cmVoid2
   )
 
 cvtCheck =
