@@ -15,77 +15,39 @@ import mirth/loc
 import mirth/syntax
 
 export mirth/core
+  type Name
+
   type CZero
   type CSucc(x)
 
   type CEnv
   type CDef
-  type CSort
   type CCtx(x)
-  type CVar(x)
+  type CSpace
+  type CSymbol
+  type CImplicit
+  type CBind
   type CKind(x)
-  type CType(x)
+
+  type CSort
+  type CKind(x)
+  type CTerm(x)
+  type CStackType(x)
+  type CValueType(x)
+  type CStack(x)
+  type CValue(x)
   type CWord(x)
 
   type CError
   type CMonad(x,t)
+
+  ctmSubst (f: *g a -- *g CTerm(a)) : *g CTerm(a) -- *g CTerm(b)
+  cstSubst (f: *g a -- *g CTerm(a)) : *g CStackType(a) -- *g CStackType(b)
+  cvtSubst (f: *g a -- *g CTerm(a)) : *g CValueType(a) -- *g CValueType(b)
+  csSubst (f: *g a -- *g CTerm(a)) : *g CStack(a) -- *g CStack(b)
+  cvSubst (f: *g a -- *g CTerm(a)) : *g CValue(a) -- *g CValue(b)
+  cwSubst (f: *g a -- *g CTerm(a)) : *g CWord(a) -- *g CWord(b)
 end
-
-undefined : *a -- *b
-undefined = "undefined" _prim_unsafe_panic
-
-||| Syntactic sort. This represents the sort of a term,
-||| i.e. what kind of syntax it represents.
-data CSort
-  CSType : CSort
-  CSWord : CSort
-end
-
-||| Kind of a binding. This implies both the sort and,
-||| where applicable, the type.
-data CKind(x)
-  CKType : CKind(x)
-  CKWord : CType(x) CType(x) -- CKind(x)
-end
-
-||| Convert CSort into a string for printing. The output format
-||| is meant to be easy to read, not necessarily to be useful for
-||| (de)serialization. See also: `csort->sexp`
-csort->str : CSort -- Str
-csort->str =
-  match(
-    CSType -> "type",
-    CSWord -> "word"
-  )
-
-||| Convert CSort into an S-expression. The output format is
-||| meant for (de)serialization. See also `csort->str`
-csort->sexp : CSort -- Sexp
-csort->sexp =
-  match(
-    CSType -> "type" sexpAtom,
-    CSWord -> "word" sexpAtom
-  )
-
-||| Compare two CSorts for equality.
-csort= : CSort CSort -- Bool
-csort= =
-  match(
-    CSType -> 
-      match(
-        CSType -> true,
-        _ -> drop false
-      ),
-    CSWord ->
-      match(
-        CSWord -> true,
-        _ -> drop false
-      )
-  )
-
-||| Compare two CSorts for equality without consuming them.
-csort=? : CSort CSort -- CSort CSort Bool
-csort=? = dup2 csort=
 
 ||| Empty type to represent the free variables that can appear in a closed term.
 data CZero
@@ -104,124 +66,83 @@ csucc(f, g) =
     S -> g
   )
 
+data CImplicit
+  MkCImplicit : Bool -- CImplicit
+end
+
 ||| Binding information. This may contain the sort, name, multiplicity, implicity,
 ||| etc. of a variable that is being bound.
 data CBind
-  MkCBind : CSort Name -- CBind
+  MkCBind : CImplicit Name -- CBind
 end
-
-unCBind : CBind -- CSort Name
-unCBind = match(MkCBind -> id)
-
-cbind->csort : CBind -- CSort
-cbind->csort = unCBind drop
-
-cbind->name : CBind -- Name
-cbind->name = unCBind nip
-
-cbind= : CBind CBind -- Bool
-cbind= = both(cbind->csort) csort=
 
 ||| Separate name spaces for each core name.
 data CSpace
-  CSpPkg : Pkg -- CSpace
+  CSpPrim : CSpace
   CSpMod : Mod -- CSpace
+  CSpPkg : Pkg -- CSpace
+  CSpIface : Interface -- CSpace
 end
 
-||| Convert CSpace into a string for printing. This is
-||| meant for easy reading, not for (de)serialization.
-|||
-||| See also: `cspace->sexp`
-cspace->str : CSpace -- Str
-cspace->str =
-  match
-
-||| Convert CSpace into an S-expression for (de)serialization.
-|||
-||| See also: `cspace->str`
-cspace->sexp : CSpace -- Sexp
-cspace->sexp =
-  match
-
-||| A Core Name is a Name bundled with its
-||| syntactic sort and its space. This makes
-||| each name _unique_.
-data CName
-  MkCName : CSort CSpace Name -- CName
+||| A Core Symbol is a Name bundled with its
+||| name space. This makes each name _unique_.
+data CSymbol
+  MkCSymbol : CSpace Name -- CSymbol
 end
-
-||| Deconstructo CName
-unCName : CName -- CSort CSpace Name
-unCName = match(MkCName -> id)
-
-||| Get the CSort of a CName.
-cname->csort : CName -- CSort
-cname->csort = unCName drop2
-
-||| Get the CSpace of a CName.
-cname->cspace : CName -- CSpace
-cname->cspace = unCName drop nip
-
-||| Get the underlying Name of a CName.
-cname->name : CName -- Name
-cname->name = unCName dip(drop2)
-
-||| Convert a CName into a Str. This is meant for easy reading,
-||| not for (de)serialization.
-|||
-||| See also: `cname->sexp`
-cname->str : CName -- Str
-cname->str = unCName dip2(csort->str "::" <>) dip(cspace->str "::" <> <>) name->str <>
-
 
 data CSort
-  CSType : CSort
-  CSData : CSort
+  CSStackType : CSort
+  CSValueType : CSort
+  CSStack : CSort
+  CSValue : CSort
   CSWord : CSort
 end
 
 data CKind(x)
-  CKType : CKind(x)
-  CKData : CType(x) -- CKind(x)
-  CKWord : CType(x) CType(x) -- CKind(x)
+  CKStackType : CKind(x)
+  CKValueType : CKind(x)
+  CKStack : CStackType(x) -- CKind(x)
+  CKValue : CValueType(x) -- CKind(x)
+  CKWord : CStackType(x) CStackType(x) -- CKind(x)
 end
 
 data CTerm(x)
-  CTType : CType(x) -- CTerm(x)
-  CTData : CData(x) -- CTerm(x)
+  CTStackType : CStackType(x) -- CTerm(x)
+  CTValueType : CValueType(x) -- CTerm(x)
+  CTStack : CStack(x) -- CTerm(x)
+  CTValue : CValue(x) -- CTerm(x)
   CTWord : CWord(x) -- CTerm(x)
 end
 
-data CType(x)
-  CTVar : x -- CType(x)
-  CTApp : CName List(CTerm(x)) -- CType(x)
-  CTAny : CBind CKind(x) CType(CSucc(x)) -- CType(x)
-  CTNil : CType(x)
-  CTCat : CType(x) CType(x) -- CType(x)
-  CTInt : CType(x)
-  CTStr : CType(x)
+data CStackType(x)
+  CSTVar  : x -- CStack(x)
+  CSTNil  : CStack(x)
+  CSTCons : CStack(x) CType(x) -- CStack(x)
+  CSTCat  : CStack(x) CStack(x) -- CStack(x)
 end
 
-data CData(x)
-  CDVar : x -- CData(x)
-  CDApp : CName List(CTerm(x)) -- CData(x)
-  CDNil : CData(x)
-  CDCat : CData(x) CData(x) -- CData(x)
-  CDInt : Int -- CData(x)
-  CDStr : Str -- CData(x)
+data CValueType(x)
+  CVTVar : x -- CType(x)
+  CVTSym : CSymbol List(CTerm(x)) -- CType(x)
+end
+
+data CStack(x)
+  CSVar : x -- CStack(x)
+  CSCons : CStack(x) CValue(x) -- CStack(x)
+  CSTail : CStack(x) -- CStack(x)
+  CSRun : CStack(x) CWord(x) -- CStack(x)
+end
+
+data CValue(x)
+  CVVar : x -- CValue(x)
+  CVSym : CSymbol List(CTerm(x)) -- CValue(x)
+  CVHead : CStack(x) -- CValue(x)
 end
 
 data CWord(x)
   CWVar : x -- CType(x)
-  CWApp : CName List(CTerm(x)) -- CWord(x)
+  CWSym : CSymbol List(CTerm(x)) -- CWord(x)
   CWPush : CData(x) -- CWord(x)
-  CWId : CWord(x)
-  CWCp : CWord(x) CWord(x) -- CWord(x)
-  CWSym : CWord(x)
-  CWDipL : CWord(x) -- CWord(x)
-  CWDipR : CWord(x) -- CWord(x)
-  CWAssocL : CWord(x)
-  CWAssocR : CWord(x)
 end
 
 data CCtx(x)
@@ -234,7 +155,19 @@ data CDef
 end
 
 data CEnv
-  MkCEnv : Map(CName, CDef) -- CEnv
+  MkCEnv : Map(CSymbol, CDef) -- CEnv
 end
 
+undefined : *a -- *b
+undefined = "undefined" _prim_unsafe_panic
+
+unexpected(m: Str) : *a -- *b
+unexpected(m) = "unexpected: " m <> _prim_unsafe_panic
+
+ctmSubst (f: *g a -- *g CTerm(a)) : *g CTerm(a) -- *g CTerm(b)
+cstSubst (f: *g a -- *g CTerm(a)) : *g CStackType(a) -- *g CStackType(b)
+cvtSubst (f: *g a -- *g CTerm(a)) : *g CValueType(a) -- *g CValueType(b)
+csSubst (f: *g a -- *g CTerm(a)) : *g CStack(a) -- *g CStack(b)
+cvSubst (f: *g a -- *g CTerm(a)) : *g CValue(a) -- *g CValue(b)
+cwSubst (f: *g a -- *g CTerm(a)) : *g CWord(a) -- *g CWord(b)
 
