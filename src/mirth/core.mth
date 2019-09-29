@@ -63,6 +63,9 @@ end
 data CZero
 end
 
+czero : *a CZero -- *b
+czero = match
+
 ||| Successor type, to represent the free variables that can appear inside a lambda.
 data CSucc(x)
   Z : CSucc(x)
@@ -104,7 +107,7 @@ data CSort
 end
 
 data CKind(x)
-  CKLambda : CKind(x) CKind(CSucc(x)) -- CKind(x)
+  CKLambda : CBind(x) CKind(CSucc(x)) -- CKind(x)
   CKStackType : CKind(x)
   CKValueType : CKind(x)
   CKStack : CStackType(x) -- CKind(x)
@@ -113,12 +116,12 @@ data CKind(x)
 end
 
 data CTerm(x)
-  CTLambda : CKind(x) CTerm(CSucc(x)) -- CTerm(x)
+  CTLambda : CBind(x) CTerm(CSucc(x)) -- CTerm(x)
   CTStackType : CStackType(x) -- CTerm(x)
   CTValueType : CValueType(x) -- CTerm(x)
   CTStack : CStack(x) -- CTerm(x)
   CTValue : CValue(x) -- CTerm(x)
-  CTWord : CWord(x) -- CTerm(x)
+  CTWord : CStackType(x) CWord(x) -- CTerm(x)
 end
 
 data CStackType(x)
@@ -196,6 +199,12 @@ data CBind(x)
   MkCBind : CBindInfo CKind(x) -- CBind(x)
 end
 
+unCBind : CBind(x) -- CBindInfo CKind(x)
+unCBind = match(MkCBind -> id)
+
+cbind->ckind : CBind(x) -- CKind(x)
+cbind->ckind = unCBind nip
+
 data CDef
   MkCDef : CKind(CZero) Maybe(CTerm(CZero)) -- CDef
 end
@@ -204,10 +213,12 @@ data CEnv
   MkCEnv : Map(CSymbol, CDef) -- CEnv
 end
 
+cbind->csort : CBind(x) -- CSort
 ckind->csort : CKind(x) -- CSort
+cbind->csort = cbind->ckind ckind->csort
 ckind->csort =
   match(
-    CKLambda -> dip(ckind->csort) ckind->csort CSLambda,
+    CKLambda -> dip(cbind->csort) ckind->csort CSLambda,
     CKStackType -> CSStackType,
     CKValueType -> CSValueType,
     CKStack -> drop CSStack,
@@ -218,12 +229,12 @@ ckind->csort =
 cterm->csort : CTerm(x) -- CSort
 cterm->csort =
   match(
-    CTLambda -> dip(ckind->csort) cterm->csort CSLambda,
+    CTLambda -> dip(cbind->csort) cterm->csort CSLambda,
     CTStackType -> drop CSStackType,
     CTValueType -> drop CSValueType,
     CTStack -> drop CSStack,
     CTValue -> drop CSValue,
-    CTWord -> drop CSWord
+    CTWord -> drop2 CSWord
   )
 
 undefined : *a -- *b
@@ -249,7 +260,7 @@ cbMap(f) =
 ckMap(f) =
   match(
     CKLambda ->
-      dip(ckMap(f))
+      dip(cbMap(f))
       dip'(ckMap(csucc(Z, f S)))
       CKLambda,
     CKStackType -> CKStackType,
@@ -261,14 +272,14 @@ ckMap(f) =
 ctMap(f) =
   match(
     CTLambda ->
-      dip(ckMap(f))
+      dip(cbMap(f))
       dip'(ctMap(csucc(Z, f S)))
       CTLambda,
     CTStackType -> cstMap(f) CTStackType,
     CTValueType -> cvtMap(f) CTValueType,
     CTStack -> csMap(f) CTStack,
     CTValue -> cvMap(f) CTValue,
-    CTWord -> cwMap(f) CTWord
+    CTWord -> dip(cstMap(f)) dip'(cwMap(f)) CTWord
   )
 cstMap(f) =
   match(
@@ -317,14 +328,14 @@ ctVarZaux =
     CKLambda ->
       dip2(dip(S) caMap(S))
       dip(dup dip(rotr))
-      dip(ctVarZ caConsR)
+      dip(cbind->ckind ctVarZ caConsR)
       ctVarZaux
       CTLambda,
     CKStackType -> CSTVar CTStackType,
     CKValueType -> CVTVar CTValueType,
     CKStack -> drop CSVar CTStack,
     CKValue -> drop CVVar CTValue,
-    CKWord -> drop2 CWVar CTWord
+    CKWord -> drop rotr CWVar CTWord
   )
 
 ctApply : CTerm(x) CArgs(x) -- CTerm(x)
@@ -347,8 +358,8 @@ cbSubst(f) =
 ckSubst(f) =
   match(
     CKLambda ->
-      dip(ckSubst(f))
-      ckSubst(csucc(dup ctVarZ, dip'(f) ctMap(S)))
+      dip(cbSubst(f))
+      ckSubst(csucc(dup cbind->ckind ctVarZ, dip'(f) ctMap(S)))
       CKLambda,
     CKStackType -> CKStackType,
     CKValueType -> CKValueType,
@@ -360,14 +371,14 @@ ckSubst(f) =
 ctSubst(f) =
   match(
     CTLambda ->
-      dip(ckSubst(f))
-      ctSubst(csucc(dup ctVarZ, dip'(f) ctMap(S)))
+      dip(cbSubst(f))
+      ctSubst(csucc(dup cbind->ckind ctVarZ, dip'(f) ctMap(S)))
       CTLambda,
     CTStackType -> cstSubst(f) CTStackType,
     CTValueType -> cvtSubst(f) CTValueType,
     CTStack -> csSubst(f) CTStack,
     CTValue -> cvSubst(f) CTValue,
-    CTWord -> cwSubst(f) CTWord
+    CTWord -> dip(cstSubst(f)) dip'(cwSubst(f)) CTWord
   )
 
 cstSubst(f) =
@@ -420,7 +431,7 @@ cwSubst(f) =
   match(
     CWVar ->
       dip(f) dip'(caSubst(f)) ctApply match(
-        CTWord -> id,
+        CTWord -> nip,
         _ -> unexpected("bad substitution")
       ),
     CWSym -> dip'(caSubst(f)) CWSym,
@@ -428,4 +439,183 @@ cwSubst(f) =
   )
 
 caSubst(f) = unCArgs formap(ctSubst(f)) MkCArgs
+
+######################
+# Core Type Checking #
+######################
+
+data CCtx(x)
+  CCZ@(f: x -- CZero, g: CZero -- x) : CCtx(x)
+  CCS@(f: x -- CSucc(y), g: CSucc(y) -- x) : CCtx(y) CBind(y) -- CCtx(x)
+end
+
+CCZ : CCtx(CZero)
+CCZ = CCZ@(id,id)
+
+CCS : CCtx(x) CBind(x) -- CCtx(CSucc(x))
+CCS = CCS@(id,id)
+
+ccLookup : CCtx(x) x -- CBind(x)
+ccLookup =
+  swap match(
+    CCZ@(f,g) -> f czero,
+    CCS@(f,g) ->
+      rotl f csucc(
+        nip,
+        nip ccLookup
+      ) cbMap(S g)
+  )
+
+data CError
+end
+
+data CMonad(x,t)
+  MkCMonad(f: CEnv CCtx(x) m -- CEnv CCtx(x) Result(CError, t)) : m -- CMonad(x,t)
+end
+
+cmRun : CEnv CCtx(x) CMonad(x,t) -- CEnv CCtx(x) Result(CError, t)
+cmRun = match(MkCMonad(f) -> f)
+
+cmPure : t -- CMonad(x,t)
+cmPure = MkCMonad(ok)
+
+cmPure2 : a b -- CMonad(x,a) CMonad(x,b)
+cmPure2 = dip(cmPure) cmPure
+
+cmFail : CError -- CMonad(x,t)
+cmFail = MkCMonad(err)
+
+cmCtx : CMonad(x, CCtx(x))
+cmCtx = unit MkCMonad(drop dup ok)
+
+cmEnv : CMonad(x, CEnv)
+cmEnv = unit MkCMonad(drop over ok)
+
+cmMap(f: a -- b) : CMonad(x,a) -- CMonad(x,b)
+cmMap(f) = MkCMonad(cmRun rmap(f))
+
+cmMap2(f: a b -- c) : CMonad(x,a) CMonad(x,b) -- CMonad(x,c)
+cmMap2(f) =
+  pack2 MkCMonad(
+    unpack2 dip(cmRun) swap
+    result(
+      nip err,
+      dip(cmRun) swap
+      result(
+        nip err,
+        f ok
+      )
+    )
+  )
+
+cmMap3(f: a b c -- d) : CMonad(x,a) CMonad(x,b) CMonad(x,c) -- CMonad(x,d)
+cmMap3(f) = cmMap2(pack2) cmMap2(unpack2 f)
+
+cmMap4(f: a b c d -- e) : CMonad(x,a) CMonad(x,b) CMonad(x,c) CMonad(x,d) -- CMonad(x,e)
+cmMap4(f) = cmMap2(pack2) cmMap3(unpack2 f)
+
+cmBind(f: a -- CMonad(x,b)) : CMonad(x,a) -- CMonad(x,b)
+cmBind(f) =
+  MkCMonad(
+    cmRun
+    result(
+      err,
+      f cmRun
+    )
+  )
+
+cmBind2(f: a b -- CMonad(x,c)) : CMonad(x,a) CMonad(x,b) -- CMonad(x,c)
+cmBind2(f) = cmMap2(pack2) cmBind(unpack2 f)
+
+cmBind3(f: a b c -- CMonad(x,d)) : CMonad(x,a) CMonad(x,b) CMonad(x,c) -- CMonad(x,d)
+cmBind3(f) = cmMap3(pack3) cmBind(unpack3 f)
+
+cmBind4(f: a b c d -- CMonad(x,e)) : CMonad(x,a) CMonad(x,b) CMonad(x,c) CMonad(x,d) -- CMonad(x,e)
+cmBind4(f) = cmMap4(pack4) cmBind(unpack4 f)
+
+cmUnit : CMonad(x, Unit)
+cmUnit = unit cmPure
+
+cmVoid : CMonad(x,a) -- CMonad(x, Unit)
+cmVoid = cmMap(drop unit)
+
+cmVoid2 : CMonad(x,a) CMonad(x,b) -- CMonad(x, Unit)
+cmVoid2 = cmMap2(drop2 unit)
+
+cmSucc : CBind(x) CMonad(CSucc(x), t) -- CMonad(x, t)
+cmSucc = pack2 MkCMonad(dip(tuck) unpack2 dip(CCS) cmRun dip(drop swap))
+
+ckCheck : CKind(x) -- CMonad(x, Unit)
+cstCheck : CStackType(x) -- CMonad(x, Unit)
+cvtCheck : CValueType(x) -- CMonad(x, Unit)
+ctCheck : CTerm(x) CKind(x) -- CMonad(x, Unit)
+csCheck : CStack(x) CStackType(x) -- CMonad(x, Unit)
+cvCheck : CValue(x) CValueType(x) -- CMonad(x, Unit)
+cwCheck : CWord(x) CStackType(x) CStackType(x) -- CMonad(x, Unit)
+
+ckCheckEq : CKind(x) CKind(x) -- CMonad(x, Unit)
+cstCheckEq : CStackType(x) CStackType(x) -- CMonad(x, Unit)
+cvtCheckEq : CValueType(x) CValueType(x) -- CMonad(x, Unit)
+
+ctInfer : CTerm(x) -- CMonad(x, CKind(x))
+csInfer : CStack(x) -- CMonad(x, CStackType(x))
+cvInfer : CValue(x) -- CMonad(x, CValueType(x))
+cwInfer : CStackType(x) CWord(x) -- CMonad(x, CStackType(x))
+
+caInfer : CKind(x) CArgs(x) -- CMonad(x, CKind(x))
+caInferVar : x CArgs(x) -- CMonad(x, CKind(x))
+caInferSym : CSymbol CArgs(x) -- CMonad(x, CKind(x))
+
+cmExpectKLambda : CKind(x) -- CMonad(x, Pack(CKind(x) CKind(CSucc(x))))
+cmExpectKStackType : CKind(x) -- CMonad(x, Unit)
+cmExpectKValueType : CKind(x) -- CMonad(x, Unit)
+cmExpectKStack : CKind(x) -- CMonad(x, CStackType(x))
+cmExpectKValue : CKind(x) -- CMonad(x, CValueType(x))
+cmExpectKWord : CKind(x) -- CMonad(x, Pack(CStackType(x) CStackType(x)))
+
+ckCheck =
+  match(
+    CKLambda -> dip(dup dip(cbind->ckind ckCheck)) ckCheck cmSucc cmVoid2,
+    CKStackType -> cmUnit,
+    CKValueType -> cmUnit,
+    CKStack -> cstCheck,
+    CKValue -> cvtCheck,
+    CKWord -> dip(cstCheck) cstCheck cmVoid2
+  )
+
+cstCheck =
+  match(
+    CSTVar -> caInferVar cmBind(cmExpectKStackType),
+    CSTNil -> cmUnit,
+    CSTCons -> dip(cstCheck) cvtCheck cmVoid2,
+    CSTCat -> dip(cstCheck) cstCheck cmVoid2
+  )
+
+cvtCheck =
+  match(
+    CVTVar -> caInferVar cmBind(cmExpectKValueType),
+    CVTSym -> caInferSym cmBind(cmExpectKValueType)
+  )
+
+ctCheck = dip(ctInfer) cmPure cmBind2(ckCheckEq)
+csCheck = dip(csInfer) cmPure cmBind2(cstCheckEq)
+cvCheck = dip(cvInfer) cmPure cmBind2(cvtCheckEq)
+cwCheck = dip(swap cwInfer) cmPure cmBind2(cstCheckEq)
+
+ctInfer =
+  match(
+    CTLambda ->
+      dip(dup dip(cbind->ckind ckCheck))
+      dip(dup dip(cmPure))
+      ctInfer cmSucc
+      cmMap3(CKLambda nip),
+    CTStackType -> cstCheck cmMap(drop CKStackType),
+    CTValueType -> cvtCheck cmMap(drop CKValueType),
+    CTStack -> csInfer cmMap(CKStack),
+    CTValue -> cvInfer cmMap(CKValue),
+    CTWord ->
+      dip(dup dip(cstCheck))
+      dip(dup dip(cmPure))
+      cwInfer cmMap3(CKWord nip)
+  )
 
