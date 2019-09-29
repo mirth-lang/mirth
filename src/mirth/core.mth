@@ -22,14 +22,13 @@ export mirth/core
 
   type CEnv
   type CDef
-  type CCtx(x)
   type CSpace
   type CSymbol
   type CImplicit
-  type CBind
-  type CKind(x)
-
+  type CBindInfo
   type CSort
+
+  type CBind(x)
   type CKind(x)
   type CTerm(x)
   type CStackType(x)
@@ -37,16 +36,27 @@ export mirth/core
   type CStack(x)
   type CValue(x)
   type CWord(x)
+  type CArgs(x)
 
-  type CError
-  type CMonad(x,t)
+  cbMap (f: *g a -- *g b) : *g CBind(a) -- *g CBind(b)
+  ckMap (f: *g a -- *g b) : *g CKind(a) -- *g CKind(b)
+  ctMap (f: *g a -- *g b) : *g CTerm(a) -- *g CTerm(b)
+  cstMap (f: *g a -- *g b) : *g CStackType(a) -- *g CStackType(b)
+  cvtMap (f: *g a -- *g b) : *g CValueType(a) -- *g CValueType(b)
+  csMap (f: *g a -- *g b) : *g CStack(a) -- *g CStack(b)
+  cvMap (f: *g a -- *g b) : *g CValue(a) -- *g CValue(b)
+  cwMap (f: *g a -- *g b) : *g CWord(a) -- *g CWord(b)
+  caMap (f: *g a -- *g b) : *g CArgs(a) -- *g CArgs(b)
 
-  ctmSubst (f: *g a -- *g CTerm(a)) : *g CTerm(a) -- *g CTerm(b)
-  cstSubst (f: *g a -- *g CTerm(a)) : *g CStackType(a) -- *g CStackType(b)
-  cvtSubst (f: *g a -- *g CTerm(a)) : *g CValueType(a) -- *g CValueType(b)
-  csSubst (f: *g a -- *g CTerm(a)) : *g CStack(a) -- *g CStack(b)
-  cvSubst (f: *g a -- *g CTerm(a)) : *g CValue(a) -- *g CValue(b)
-  cwSubst (f: *g a -- *g CTerm(a)) : *g CWord(a) -- *g CWord(b)
+  cbSubst (f: *g a -- *g CTerm(b)) : *g CBind(a) -- *g CBind(b)
+  ckSubst (f: *g a -- *g CTerm(b)) : *g CKind(a) -- *g CKind(b)
+  ctSubst (f: *g a -- *g CTerm(b)) : *g CTerm(a) -- *g CTerm(b)
+  cstSubst (f: *g a -- *g CTerm(b)) : *g CStackType(a) -- *g CStackType(b)
+  cvtSubst (f: *g a -- *g CTerm(b)) : *g CValueType(a) -- *g CValueType(b)
+  csSubst (f: *g a -- *g CTerm(b)) : *g CStack(a) -- *g CStack(b)
+  cvSubst (f: *g a -- *g CTerm(b)) : *g CValue(a) -- *g CValue(b)
+  cwSubst (f: *g a -- *g CTerm(b)) : *g CWord(a) -- *g CWord(b)
+  caSubst (f: *g a -- *g CTerm(b)) : *g CArgs(a) -- *g CArgs(b)
 end
 
 ||| Empty type to represent the free variables that can appear in a closed term.
@@ -70,12 +80,6 @@ data CImplicit
   MkCImplicit : Bool -- CImplicit
 end
 
-||| Binding information. This may contain the sort, name, multiplicity, implicity,
-||| etc. of a variable that is being bound.
-data CBind
-  MkCBind : CImplicit Name -- CBind
-end
-
 ||| Separate name spaces for each core name.
 data CSpace
   CSpPrim : CSpace
@@ -91,6 +95,7 @@ data CSymbol
 end
 
 data CSort
+  CSLambda : CSort CSort -- CSort
   CSStackType : CSort
   CSValueType : CSort
   CSStack : CSort
@@ -99,6 +104,7 @@ data CSort
 end
 
 data CKind(x)
+  CKLambda : CKind(x) CKind(CSucc(x)) -- CKind(x)
   CKStackType : CKind(x)
   CKValueType : CKind(x)
   CKStack : CStackType(x) -- CKind(x)
@@ -107,6 +113,7 @@ data CKind(x)
 end
 
 data CTerm(x)
+  CTLambda : CKind(x) CTerm(CSucc(x)) -- CTerm(x)
   CTStackType : CStackType(x) -- CTerm(x)
   CTValueType : CValueType(x) -- CTerm(x)
   CTStack : CStack(x) -- CTerm(x)
@@ -115,48 +122,109 @@ data CTerm(x)
 end
 
 data CStackType(x)
-  CSTVar  : x -- CStack(x)
-  CSTNil  : CStack(x)
-  CSTCons : CStack(x) CType(x) -- CStack(x)
-  CSTCat  : CStack(x) CStack(x) -- CStack(x)
+  CSTVar  : x CArgs(x) -- CStackType(x)
+  CSTNil  : CStackType(x)
+  CSTCons : CStackType(x) CValueType(x) -- CStackType(x)
+  CSTCat  : CStackType(x) CStackType(x) -- CStackType(x)
 end
 
 data CValueType(x)
-  CVTVar : x -- CType(x)
-  CVTSym : CSymbol List(CTerm(x)) -- CType(x)
+  CVTVar : x CArgs(x) -- CValueType(x)
+  CVTSym : CSymbol CArgs(x) -- CValueType(x)
 end
 
 data CStack(x)
-  CSVar : x -- CStack(x)
+  CSVar : x CArgs(x) -- CStack(x)
+  CSNil : CStack(x)
   CSCons : CStack(x) CValue(x) -- CStack(x)
   CSTail : CStack(x) -- CStack(x)
   CSRun : CStack(x) CWord(x) -- CStack(x)
 end
 
 data CValue(x)
-  CVVar : x -- CValue(x)
-  CVSym : CSymbol List(CTerm(x)) -- CValue(x)
+  CVVar : x CArgs(x) -- CValue(x)
+  CVSym : CSymbol CArgs(x) -- CValue(x)
   CVHead : CStack(x) -- CValue(x)
 end
 
 data CWord(x)
-  CWVar : x -- CType(x)
-  CWSym : CSymbol List(CTerm(x)) -- CWord(x)
-  CWPush : CData(x) -- CWord(x)
+  CWVar : x CArgs(x) -- CWord(x)
+  CWSym : CSymbol CArgs(x) -- CWord(x)
+  CWPush : CValue(x) -- CWord(x)
 end
 
-data CCtx(x)
-  CCZ' (f: CZero -- x, g: x -- CZero) : CCtx(x)
-  CCS' (f: CSucc(y) -- x, g: x -- CSucc(y)) : CCtx(y) CBind CKind(y) -- CCtx(x)
+||| Argument lists.
+data CArgs(x)
+  MkCArgs : List(CTerm(x)) -- CArgs(x)
+end
+
+unCArgs : CArgs(x) -- List(CTerm(x))
+unCArgs = match(MkCArgs -> id)
+
+caNil : CArgs(x)
+caNil = nil MkCArgs
+
+caConsL : CTerm(x) CArgs(x) -- CArgs(x)
+caConsL = unCArgs consL MkCArgs
+
+caConsR : CArgs(x) CTerm(x) -- CArgs(x)
+caConsR = dip(unCArgs) consR MkCArgs
+
+caCat : CArgs(x) CArgs(x) -- CArgs(x)
+caCat = dip(unCArgs) unCArgs ++ MkCArgs
+
+caMatchL (
+  f: *a -- *b,
+  g: *a CTerm(x) CArgs(x) -- *b
+) : *a CArgs(x) -- *b
+
+caMatchR (
+  f: *a -- *b,
+  g: *a CArgs(x) CTerm(x) -- *b
+) : *a CArgs(x) -- *b
+
+caMatchL(f,g) = unCArgs lmatchL(f, MkCArgs g)
+caMatchR(f,g) = unCArgs lmatchR(f, dip(MkCArgs) g)
+
+||| Binding info, such as name, implicit/explicit/auto, etc.
+data CBindInfo
+  MkCBindInfo : CImplicit Name -- CBindInfo
+end
+
+||| A binding, which includes the kind and other binding info.
+data CBind(x)
+  MkCBind : CBindInfo CKind(x) -- CBind(x)
 end
 
 data CDef
-  MkCDef : CCtx(x) CKind(x) Maybe(CTerm(x))
+  MkCDef : CKind(CZero) Maybe(CTerm(CZero)) -- CDef
 end
 
 data CEnv
   MkCEnv : Map(CSymbol, CDef) -- CEnv
 end
+
+ckind->csort : CKind(x) -- CSort
+ckind->csort =
+  match(
+    CKLambda -> dip(ckind->csort) ckind->csort CSLambda,
+    CKStackType -> CSStackType,
+    CKValueType -> CSValueType,
+    CKStack -> drop CSStack,
+    CKValue -> drop CSValue,
+    CKWord -> drop2 CSWord
+  )
+
+cterm->csort : CTerm(x) -- CSort
+cterm->csort =
+  match(
+    CTLambda -> dip(ckind->csort) cterm->csort CSLambda,
+    CTStackType -> drop CSStackType,
+    CTValueType -> drop CSValueType,
+    CTStack -> drop CSStack,
+    CTValue -> drop CSValue,
+    CTWord -> drop CSWord
+  )
 
 undefined : *a -- *b
 undefined = "undefined" _prim_unsafe_panic
@@ -164,10 +232,200 @@ undefined = "undefined" _prim_unsafe_panic
 unexpected(m: Str) : *a -- *b
 unexpected(m) = "unexpected: " m <> _prim_unsafe_panic
 
-ctmSubst (f: *g a -- *g CTerm(a)) : *g CTerm(a) -- *g CTerm(b)
-cstSubst (f: *g a -- *g CTerm(a)) : *g CStackType(a) -- *g CStackType(b)
-cvtSubst (f: *g a -- *g CTerm(a)) : *g CValueType(a) -- *g CValueType(b)
-csSubst (f: *g a -- *g CTerm(a)) : *g CStack(a) -- *g CStack(b)
-cvSubst (f: *g a -- *g CTerm(a)) : *g CValue(a) -- *g CValue(b)
-cwSubst (f: *g a -- *g CTerm(a)) : *g CWord(a) -- *g CWord(b)
+cbMap (f: *g a -- *g b) : *g CBind(a) -- *g CBind(b)
+ckMap (f: *g a -- *g b) : *g CKind(a) -- *g CKind(b)
+ctMap (f: *g a -- *g b) : *g CTerm(a) -- *g CTerm(b)
+cstMap (f: *g a -- *g b) : *g CStackType(a) -- *g CStackType(b)
+cvtMap (f: *g a -- *g b) : *g CValueType(a) -- *g CValueType(b)
+csMap (f: *g a -- *g b) : *g CStack(a) -- *g CStack(b)
+cvMap (f: *g a -- *g b) : *g CValue(a) -- *g CValue(b)
+cwMap (f: *g a -- *g b) : *g CWord(a) -- *g CWord(b)
+caMap (f: *g a -- *g b) : *g CArgs(a) -- *g CArgs(b)
+
+cbMap(f) =
+  match(
+    MkCBind -> dip'(ckMap(f)) MkCBind
+  )
+ckMap(f) =
+  match(
+    CKLambda ->
+      dip(ckMap(f))
+      dip'(ckMap(csucc(Z, f S)))
+      CKLambda,
+    CKStackType -> CKStackType,
+    CKValueType -> CKValueType,
+    CKStack -> cstMap(f) CKStack,
+    CKValue -> cvtMap(f) CKValue,
+    CKWord -> dip(cstMap(f)) dip'(cstMap(f)) CKWord
+  )
+ctMap(f) =
+  match(
+    CTLambda ->
+      dip(ckMap(f))
+      dip'(ctMap(csucc(Z, f S)))
+      CTLambda,
+    CTStackType -> cstMap(f) CTStackType,
+    CTValueType -> cvtMap(f) CTValueType,
+    CTStack -> csMap(f) CTStack,
+    CTValue -> cvMap(f) CTValue,
+    CTWord -> cwMap(f) CTWord
+  )
+cstMap(f) =
+  match(
+    CSTVar -> dip(f) dip'(caMap(f)) CSTVar,
+    CSTNil -> CSTNil,
+    CSTCons -> dip(cstMap(f)) dip'(cvtMap(f)) CSTCons,
+    CSTCat -> dip(cstMap(f)) dip'(cstMap(f)) CSTCat
+  )
+cvtMap(f) =
+  match(
+    CVTVar -> dip(f) dip'(caMap(f)) CVTVar,
+    CVTSym -> dip'(caMap(f)) CVTSym
+  )
+csMap(f) =
+  match(
+    CSVar -> dip(f) dip'(caMap(f)) CSVar,
+    CSNil -> CSNil,
+    CSCons -> dip(csMap(f)) dip'(cvMap(f)) CSCons,
+    CSTail -> csMap(f) CSTail,
+    CSRun -> dip(csMap(f)) dip'(cwMap(f)) CSRun
+  )
+cvMap(f) =
+  match(
+    CVVar -> dip(f) dip'(caMap(f)) CVVar,
+    CVSym -> dip'(caMap(f)) CVSym,
+    CVHead -> csMap(f) CVHead
+  )
+cwMap(f) =
+  match(
+    CWVar -> dip(f) dip'(caMap(f)) CWVar,
+    CWSym -> dip'(caMap(f)) CWSym,
+    CWPush -> cvMap(f) CWPush
+  )
+caMap(f) =
+  unCArgs formap(ctMap(f)) MkCArgs
+
+||| Return the top level variable for a given kind.
+||| Note that core terms are always eta-expanded,
+||| so the "zero" variable may be largish.
+ctVarZ : CKind(x) -- CTerm(CSucc(x))
+ctVarZaux : x CArgs(x) CKind(x) -- CTerm(x)
+
+ctVarZ = ckMap(S) dip(Z caNil) ctVarZaux
+ctVarZaux =
+  match(
+    CKLambda ->
+      dip2(dip(S) caMap(S))
+      dip(dup dip(rotr))
+      dip(ctVarZ caConsR)
+      ctVarZaux
+      CTLambda,
+    CKStackType -> CSTVar CTStackType,
+    CKValueType -> CVTVar CTValueType,
+    CKStack -> drop CSVar CTStack,
+    CKValue -> drop CVVar CTValue,
+    CKWord -> drop2 CWVar CTWord
+  )
+
+ctApply : CTerm(x) CArgs(x) -- CTerm(x)
+
+cbSubst (f: *g a -- *g CTerm(b)) : *g CBind(a) -- *g CBind(b)
+ckSubst (f: *g a -- *g CTerm(b)) : *g CKind(a) -- *g CKind(b)
+ctSubst (f: *g a -- *g CTerm(b)) : *g CTerm(a) -- *g CTerm(b)
+cstSubst (f: *g a -- *g CTerm(b)) : *g CStackType(a) -- *g CStackType(b)
+cvtSubst (f: *g a -- *g CTerm(b)) : *g CValueType(a) -- *g CValueType(b)
+csSubst (f: *g a -- *g CTerm(b)) : *g CStack(a) -- *g CStack(b)
+cvSubst (f: *g a -- *g CTerm(b)) : *g CValue(a) -- *g CValue(b)
+cwSubst (f: *g a -- *g CTerm(b)) : *g CWord(a) -- *g CWord(b)
+caSubst (f: *g a -- *g CTerm(b)) : *g CArgs(a) -- *g CArgs(b)
+
+cbSubst(f) =
+  match(
+    MkCBind -> dip'(ckSubst(f)) MkCBind
+  )
+
+ckSubst(f) =
+  match(
+    CKLambda ->
+      dip(ckSubst(f))
+      ckSubst(csucc(dup ctVarZ, dip'(f) ctMap(S)))
+      CKLambda,
+    CKStackType -> CKStackType,
+    CKValueType -> CKValueType,
+    CKStack -> cstSubst(f) CKStack,
+    CKValue -> cvtSubst(f) CKValue,
+    CKWord -> dip(cstSubst(f)) dip'(cstSubst(f)) CKWord
+  )
+
+ctSubst(f) =
+  match(
+    CTLambda ->
+      dip(ckSubst(f))
+      ctSubst(csucc(dup ctVarZ, dip'(f) ctMap(S)))
+      CTLambda,
+    CTStackType -> cstSubst(f) CTStackType,
+    CTValueType -> cvtSubst(f) CTValueType,
+    CTStack -> csSubst(f) CTStack,
+    CTValue -> cvSubst(f) CTValue,
+    CTWord -> cwSubst(f) CTWord
+  )
+
+cstSubst(f) =
+  match(
+    CSTVar ->
+      dip(f) dip'(caSubst(f)) ctApply match(
+        CTStackType -> id,
+        _ -> unexpected("bad substitution")
+      ),
+    CSTNil -> CSTNil,
+    CSTCons -> dip(cstSubst(f)) dip'(cvtSubst(f)) CSTCons,
+    CSTCat -> dip(cstSubst(f)) dip'(cstSubst(f)) CSTCat
+  )
+
+cvtSubst(f) =
+  match(
+    CVTVar ->
+      dip(f) dip'(caSubst(f)) ctApply match(
+        CTValueType -> id,
+        _ -> unexpected("bad substitution")
+      ),
+    CVTSym -> dip'(caSubst(f)) CVTSym
+  )
+
+csSubst(f) =
+  match(
+    CSVar ->
+      dip(f) dip'(caSubst(f)) ctApply match(
+        CTStack -> id,
+        _ -> unexpected("bad substitution")
+      ),
+    CSNil -> CSNil,
+    CSCons -> dip(csSubst(f)) dip'(cvSubst(f)) CSCons,
+    CSRun -> dip(csSubst(f)) dip'(cwSubst(f)) CSRun,
+    CSTail -> csSubst(f) CSTail
+  )
+
+cvSubst(f) =
+  match(
+    CVVar ->
+      dip(f) dip'(caSubst(f)) ctApply match(
+        CTValue -> id,
+        _ -> unexpected("bad substitution")
+      ),
+    CVSym -> dip'(caSubst(f)) CVSym,
+    CVHead -> csSubst(f) CVHead
+  )
+
+cwSubst(f) =
+  match(
+    CWVar ->
+      dip(f) dip'(caSubst(f)) ctApply match(
+        CTWord -> id,
+        _ -> unexpected("bad substitution")
+      ),
+    CWSym -> dip'(caSubst(f)) CWSym,
+    CWPush -> cvSubst(f) CWPush
+  )
+
+caSubst(f) = unCArgs formap(ctSubst(f)) MkCArgs
 
