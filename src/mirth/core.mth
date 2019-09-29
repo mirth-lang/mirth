@@ -16,6 +16,7 @@ import mirth/syntax
 
 export mirth/core
   type Name
+  type Either(a,b)
 
   type CZero
   type CSucc(x)
@@ -48,15 +49,16 @@ export mirth/core
   cwMap (f: *g a -- *g b) : *g CWord(a) -- *g CWord(b)
   caMap (f: *g a -- *g b) : *g CArgs(a) -- *g CArgs(b)
 
-  cbSubst (f: *g a -- *g CTerm(b)) : *g CBind(a) -- *g CBind(b)
-  ckSubst (f: *g a -- *g CTerm(b)) : *g CKind(a) -- *g CKind(b)
-  ctSubst (f: *g a -- *g CTerm(b)) : *g CTerm(a) -- *g CTerm(b)
-  cstSubst (f: *g a -- *g CTerm(b)) : *g CStackType(a) -- *g CStackType(b)
-  cvtSubst (f: *g a -- *g CTerm(b)) : *g CValueType(a) -- *g CValueType(b)
-  csSubst (f: *g a -- *g CTerm(b)) : *g CStack(a) -- *g CStack(b)
-  cvSubst (f: *g a -- *g CTerm(b)) : *g CValue(a) -- *g CValue(b)
-  cwSubst (f: *g a -- *g CTerm(b)) : *g CWord(a) -- *g CWord(b)
-  caSubst (f: *g a -- *g CTerm(b)) : *g CArgs(a) -- *g CArgs(b)
+  cbSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CBind(a) -- *g CBind(b)
+  ckSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CKind(a) -- *g CKind(b)
+  ctSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CTerm(a) -- *g CTerm(b)
+  cstSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CStackType(a) -- *g CStackType(b)
+  cvtSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CValueType(a) -- *g CValueType(b)
+  csSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CStack(a) -- *g CStack(b)
+  cvSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CValue(a) -- *g CValue(b)
+  cwSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CWord(a) -- *g CWord(b)
+  caSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CArgs(a) -- *g CArgs(b)
+
 end
 
 ||| Empty type to represent the free variables that can appear in a closed term.
@@ -337,16 +339,32 @@ ctVarZaux =
   )
 
 ctApply : CTerm(x) CArgs(x) -- CTerm(x)
+ctApply1 : CTerm(x) CTerm(x) -- CTerm(x)
 
-cbSubst (f: *g a -- *g CTerm(b)) : *g CBind(a) -- *g CBind(b)
-ckSubst (f: *g a -- *g CTerm(b)) : *g CKind(a) -- *g CKind(b)
-ctSubst (f: *g a -- *g CTerm(b)) : *g CTerm(a) -- *g CTerm(b)
-cstSubst (f: *g a -- *g CTerm(b)) : *g CStackType(a) -- *g CStackType(b)
-cvtSubst (f: *g a -- *g CTerm(b)) : *g CValueType(a) -- *g CValueType(b)
-csSubst (f: *g a -- *g CTerm(b)) : *g CStack(a) -- *g CStack(b)
-cvSubst (f: *g a -- *g CTerm(b)) : *g CValue(a) -- *g CValue(b)
-cwSubst (f: *g a -- *g CTerm(b)) : *g CWord(a) -- *g CWord(b)
-caSubst (f: *g a -- *g CTerm(b)) : *g CArgs(a) -- *g CArgs(b)
+data Either(a,b)
+  Left : a -- Either(a,b)
+  Right : b -- Either(a,b)
+end
+
+either(f: *x a -- *y, g: *x b -- *y) : *x Either(a,b) -- *y
+either(f,g) = match(Left -> f, Right -> g)
+
+cbSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CBind(a) -- *g CBind(b)
+ckSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CKind(a) -- *g CKind(b)
+ctSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CTerm(a) -- *g CTerm(b)
+cstSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CStackType(a) -- *g CStackType(b)
+cvtSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CValueType(a) -- *g CValueType(b)
+csSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CStack(a) -- *g CStack(b)
+cvSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CValue(a) -- *g CValue(b)
+cwSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CWord(a) -- *g CWord(b)
+caSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CArgs(a) -- *g CArgs(b)
+
+ctApply = caMatchL(id, dip(ctApply1) ctApply)
+ctApply1 =
+  swap match(
+    CTLambda -> nip ctSubst(csucc(dup Right, Left)) nip,
+    _ -> unexpected("attempt to apply to non-lambda")
+  )
 
 cbSubst(f) =
   match(
@@ -357,7 +375,7 @@ ckSubst(f) =
   match(
     CKLambda ->
       dip(cbSubst(f))
-      ckSubst(csucc(dup cbind->ckind ctVarZ, dip'(f) ctMap(S)))
+      ckSubst(csucc(Z Left, dip'(f) either(S Left, ctMap(S) Right)))
       CKLambda,
     CKStackType -> CKStackType,
     CKValueType -> CKValueType,
@@ -370,7 +388,7 @@ ctSubst(f) =
   match(
     CTLambda ->
       dip(cbSubst(f))
-      ctSubst(csucc(dup cbind->ckind ctVarZ, dip'(f) ctMap(S)))
+      ctSubst(csucc(Z Left, dip'(f) either(S Left, ctMap(S) Right)))
       CTLambda,
     CTStackType -> cstSubst(f) CTStackType,
     CTValueType -> cvtSubst(f) CTValueType,
@@ -382,9 +400,13 @@ ctSubst(f) =
 cstSubst(f) =
   match(
     CSTVar ->
-      dip(f) dip'(caSubst(f)) ctApply match(
-        CTStackType -> id,
-        _ -> unexpected("bad substitution")
+      dip(f) dip'(caSubst(f))
+      swap either(
+        swap CSTVar,
+        swap ctApply match(
+          CTStackType -> id,
+          _ -> unexpected("bad substitution")
+        )
       ),
     CSTNil -> CSTNil,
     CSTCons -> dip(cstSubst(f)) dip'(cvtSubst(f)) CSTCons
@@ -393,9 +415,13 @@ cstSubst(f) =
 cvtSubst(f) =
   match(
     CVTVar ->
-      dip(f) dip'(caSubst(f)) ctApply match(
-        CTValueType -> id,
-        _ -> unexpected("bad substitution")
+      dip(f) dip'(caSubst(f))
+      swap either(
+        swap CVTVar,
+        swap ctApply match(
+          CTValueType -> id,
+          _ -> unexpected("bad substitution")
+        )
       ),
     CVTSym -> dip'(caSubst(f)) CVTSym
   )
@@ -403,9 +429,13 @@ cvtSubst(f) =
 csSubst(f) =
   match(
     CSVar ->
-      dip(f) dip'(caSubst(f)) ctApply match(
-        CTStack -> id,
-        _ -> unexpected("bad substitution")
+      dip(f) dip'(caSubst(f))
+      swap either(
+        swap CSVar,
+        swap ctApply match(
+          CTStack -> id,
+          _ -> unexpected("bad substitution")
+        )
       ),
     CSNil -> CSNil,
     CSCons -> dip(csSubst(f)) dip'(cvSubst(f)) CSCons,
@@ -416,9 +446,13 @@ csSubst(f) =
 cvSubst(f) =
   match(
     CVVar ->
-      dip(f) dip'(caSubst(f)) ctApply match(
-        CTValue -> id,
-        _ -> unexpected("bad substitution")
+      dip(f) dip'(caSubst(f))
+      swap either(
+        swap CVVar,
+        swap ctApply match(
+          CTValue -> id,
+          _ -> unexpected("bad substitution")
+        )
       ),
     CVSym -> dip'(caSubst(f)) CVSym,
     CVHead -> csSubst(f) CVHead
@@ -427,9 +461,13 @@ cvSubst(f) =
 cwSubst(f) =
   match(
     CWVar ->
-      dip(f) dip'(caSubst(f)) ctApply match(
-        CTWord -> nip,
-        _ -> unexpected("bad substitution")
+      dip(f) dip'(caSubst(f))
+      swap either(
+        swap CWVar,
+        swap ctApply match(
+          CTWord -> nip,
+          _ -> unexpected("bad substitution")
+        )
       ),
     CWSym -> dip'(caSubst(f)) CWSym,
     CWPush -> cvSubst(f) CWPush
