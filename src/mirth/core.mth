@@ -338,9 +338,6 @@ ctVarZaux =
     CKWord -> drop rotr CWVar CTWord
   )
 
-ctApply : CTerm(x) CArgs(x) -- CTerm(x)
-ctApply1 : CTerm(x) CTerm(x) -- CTerm(x)
-
 data Either(a,b)
   Left : a -- Either(a,b)
   Right : b -- Either(a,b)
@@ -359,11 +356,17 @@ cvSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CValue(a) -- *g CValue(b)
 cwSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CWord(a) -- *g CWord(b)
 caSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CArgs(a) -- *g CArgs(b)
 
-ctApply = caMatchL(id, dip(ctApply1) ctApply)
-ctApply1 =
-  swap match(
-    CTLambda -> nip ctSubst(csucc(dup Right, Left)) nip,
-    _ -> unexpected("attempt to apply to non-lambda")
+ctApply : CTerm(x) CArgs(x) -- CTerm(x)
+ctApplyAux(f: *g y -- *g Either(x, CTerm(x))) : *g CTerm(y) CArgs(x) -- *g CTerm(x)
+
+ctApply = ctApplyAux(Left)
+ctApplyAux(f) =
+  caMatchL(
+    ctSubst(f),
+    rotl match(
+      CTLambda -> nip swap ctApplyAux(csucc(dup Right, dip'(f))) nip,
+      _ -> unexpected("attempt to apply to non-lambda")
+    )
   )
 
 cbSubst(f) =
