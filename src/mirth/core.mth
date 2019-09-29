@@ -573,6 +573,8 @@ cmExpectKStack : CKind(x) -- CMonad(x, CStackType(x))
 cmExpectKValue : CKind(x) -- CMonad(x, CValueType(x))
 cmExpectKWord : CKind(x) -- CMonad(x, Pack(CStackType(x) CStackType(x)))
 
+cmExpectSTCons : CStackType(x) -- CMonad(x, Pack(CStackType(x) CValueType(x)))
+
 ckCheck =
   match(
     CKLambda -> dip(dup dip(cbind->ckind ckCheck)) ckCheck cmSucc cmVoid2,
@@ -617,5 +619,33 @@ ctInfer =
       dip(dup dip(cstCheck))
       dip(dup dip(cmPure))
       cwInfer cmMap3(CKWord nip)
+  )
+
+csInfer =
+  match(
+    CSVar -> caInferVar cmBind(cmExpectKStack),
+    CSNil -> CSTNil cmPure,
+    CSCons -> dip(csInfer) cvInfer cmMap2(CSTCons),
+    CSTail -> csInfer cmBind(cmExpectSTCons cmMap(unpack2 drop)),
+    CSRun -> dip(csInfer) cmPure cmBind2(cwInfer)
+  )
+
+cvInfer =
+  match(
+    CVVar -> caInferVar cmBind(cmExpectKValue),
+    CVSym -> caInferSym cmBind(cmExpectKValue),
+    CVHead -> csInfer cmBind(cmExpectSTCons cmMap(unpack2 nip))
+  )
+
+cwInfer =
+  match(
+    CWVar ->
+      dip2(cmPure) caInferVar cmBind(cmExpectKWord)
+      cmBind2(unpack2 dip(cstCheckEq) cmPure cmMap2(nip)),
+    CWSym ->
+      dip2(cmPure) caInferSym cmBind(cmExpectKWord)
+      cmBind2(unpack2 dip(cstCheckEq) cmPure cmMap2(nip)),
+    CWPush ->
+      dip(cmPure) cvInfer cmMap2(CSTCons)
   )
 
