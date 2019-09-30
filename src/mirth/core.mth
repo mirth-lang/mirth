@@ -154,7 +154,13 @@ end
 data CWord(x)
   CWVar : x CArgs(x) -- CWord(x)
   CWSym : CSymbol CArgs(x) -- CWord(x)
+  CWId : CWord(x)
+  CWCp : CWord(x) CWord(x) -- CWord(x)
   CWPush : CValue(x) -- CWord(x)
+  CWSwap : CWord(x)
+  CWDrop : CWord(x)
+  CWDup : CWord(x)
+  CWDip : CWord(x) -- CWord(x)
 end
 
 ||| Argument lists.
@@ -303,7 +309,13 @@ cwMap(f) =
   match(
     CWVar -> dip(f) dip'(caMap(f)) CWVar,
     CWSym -> dip'(caMap(f)) CWSym,
-    CWPush -> cvMap(f) CWPush
+    CWId -> CWId,
+    CWCp -> dip(cwMap(f)) dip'(cwMap(f)) CWCp,
+    CWPush -> cvMap(f) CWPush,
+    CWSwap -> CWSwap,
+    CWDrop -> CWDrop,
+    CWDup -> CWDup,
+    CWDip -> cwMap(f) CWDip
   )
 caMap(f) =
   unCArgs formap(ctMap(f)) MkCArgs
@@ -465,7 +477,13 @@ cwSubst(f) =
         )
       ),
     CWSym -> dip'(caSubst(f)) CWSym,
-    CWPush -> cvSubst(f) CWPush
+    CWId -> CWId,
+    CWCp -> dip(cwSubst(f)) dip'(cwSubst(f)) CWCp,
+    CWPush -> cvSubst(f) CWPush,
+    CWSwap -> CWSwap,
+    CWDrop -> CWDrop,
+    CWDup -> CWDup,
+    CWDip -> cwSubst(f) CWDip
   )
 
 caSubst(f) = unCArgs formap(ctSubst(f)) MkCArgs
@@ -664,28 +682,41 @@ ckExpectValueType : CKind(x) -- CMonad(x, Unit)
 ckExpectStack : CKind(x) -- CMonad(x, CStackType(x))
 ckExpectValue : CKind(x) -- CMonad(x, CValueType(x))
 ckExpectWord : CKind(x) -- CMonad(x, Pack(CStackType(x) CStackType(x)))
-cstExpectVar : CStackType(x) -- CMonad(x, Pack(x CArgs(x)))
-cstExpectNil : CStackType(x) -- CMonad(x, Unit)
-cstExpectCons : CStackType(x) -- CMonad(x, Pack(CStackType(x) CValueType(x)))
-cvtExpectVar : CValueType(x) -- CMonad(x, Pack(x CArgs(x)))
-cvtExpectSym : CValueType(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
+
 ctExpectLambda : CTerm(x) -- CMonad(x, Pack(CBind(x) CTerm(CSucc(x))))
 ctExpectStackType : CTerm(x) -- CMonad(x, CStackType(x))
 ctExpectValueType : CTerm(x) -- CMonad(x, CValueType(x))
 ctExpectStack : CTerm(x) -- CMonad(x, CStack(x))
 ctExpectValue : CTerm(x) -- CMonad(x, CValue(x))
 ctExpectWord : CTerm(x) -- CMonad(x, Pack(CStackType(x) CWord(x)))
+
+cstExpectVar : CStackType(x) -- CMonad(x, Pack(x CArgs(x)))
+cstExpectNil : CStackType(x) -- CMonad(x, Unit)
+cstExpectCons : CStackType(x) -- CMonad(x, Pack(CStackType(x) CValueType(x)))
+
+cvtExpectVar : CValueType(x) -- CMonad(x, Pack(x CArgs(x)))
+cvtExpectSym : CValueType(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
+
 csExpectVar : CStack(x) -- CMonad(x, Pack(x CArgs(x)))
 csExpectNil : CStack(x) -- CMonad(x, Unit)
 csExpectCons : CStack(x) -- CMonad(x, Pack(CStack(x) CValue(x)))
 csExpectTail : CStack(x) -- CMonad(x, CStack(x))
 csExpectRun : CStack(x) -- CMonad(x, Pack(CStack(x) CWord(x)))
+
 cvExpectVar : CValue(x) -- CMonad(x, Pack(x CArgs(x)))
 cvExpectSym : CValue(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
 cvExpectHead : CValue(x) -- CMonad(x, CStack(x))
+
 cwExpectVar : CWord(x) -- CMonad(x, Pack(x CArgs(x)))
 cwExpectSym : CWord(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
+cwExpectId : CWord(x) -- CMonad(x, Unit)
+cwExpectCp : CWord(x) -- CMonad(x, Pack(CWord(x) CWord(x)))
 cwExpectPush : CWord(x) -- CMonad(x, CValue(x))
+cwExpectSwap : CWord(x) -- CMonad(x, Unit)
+cwExpectDrop : CWord(x) -- CMonad(x, Unit)
+cwExpectDup : CWord(x) -- CMonad(x, Unit)
+cwExpectDip : CWord(x) -- CMonad(x, CWord(x))
+
 caExpectNil : CArgs(x) -- CMonad(x, Unit)
 caExpectConsL : CArgs(x) -- CMonad(x, Pack(CTerm(x) CArgs(x)))
 
@@ -769,8 +800,27 @@ cwInfer =
     CWSym ->
       dip2(cmPure) caInferSym cmBind(ckExpectWord)
       cmBind2(unpack2 dip(cstCheckEq) cmPure cmMap2(nip)),
+    CWId ->
+      cmPure,
+    CWCp ->
+      dip(cwInfer) cmPure cmBind2(cwInfer),
     CWPush ->
-      dip(cmPure) cvInfer cmMap2(CSTCons)
+      dip(cmPure) cvInfer cmMap2(CSTCons),
+    CWSwap ->
+      cstExpectCons cmBind(
+        unpack2 dip(cstExpectCons) cmPure cmMap2(
+          dip(unpack2) swap dip(CSTCons) CSTCons
+        )
+      ),
+    CWDrop ->
+      cstExpectCons cmMap(unpack2 drop),
+    CWDup ->
+      cstExpectCons cmMap(unpack2 dup dip(CSTCons) CSTCons),
+    CWDip ->
+      dip(cstExpectCons) cmPure cmBind2(
+        dip(unpack2) swap dip(cwInfer) cmPure
+        cmMap2(CSTCons)
+      )
   )
 
 caInfer =
@@ -880,7 +930,13 @@ cwCheckEq =
     match(
       CWVar -> mkEqCheck2(cwExpectVar, cmCheckVarEq, caCheckEq),
       CWSym -> mkEqCheck2(cwExpectSym, cmCheckSymEq, caCheckEq),
-      CWPush -> mkEqCheck1(cwExpectPush, cvCheckEq)
+      CWId -> mkEqCheck0(cwExpectId),
+      CWCp -> mkEqCheck2(cwExpectCp, cwCheckEq, cwCheckEq),
+      CWPush -> mkEqCheck1(cwExpectPush, cvCheckEq),
+      CWSwap -> mkEqCheck0(cwExpectSwap),
+      CWDrop -> mkEqCheck0(cwExpectDrop),
+      CWDup -> mkEqCheck0(cwExpectDup),
+      CWDip -> mkEqCheck1(cwExpectDip, cwCheckEq)
     )
   )
 
@@ -925,7 +981,9 @@ cvExpectHead = cvHeadNorm cmBind(match(CVHead -> cmPure, _ -> drop "CVHead" CEEx
 
 cwExpectVar = cwHeadNorm cmBind(match(CWVar -> pack2 cmPure, _ -> drop "CWVar" CEExpectedForm cmFail))
 cwExpectSym = cwHeadNorm cmBind(match(CWSym -> pack2 cmPure, _ -> drop "CWSym" CEExpectedForm cmFail))
+## TODO -- cwExpectId, cwExpectCp
 cwExpectPush = cwHeadNorm cmBind(match(CWPush -> cmPure, _ -> drop "CWPush" CEExpectedForm cmFail))
+## TODO -- cwExpectSwap, ...
 
 caExpectNil = caHeadNorm cmBind(caMatchL(cmUnit, drop2 "CANil" CEExpectedForm cmFail))
 caExpectConsL = caHeadNorm cmBind(caMatchL("CAConsL" CEExpectedForm cmFail, pack2 cmPure))
@@ -987,12 +1045,29 @@ cvHeadNorm =
       ))
   )
 
-cwHeadNorm =
+cwAtoms : CWord(x) -- List(CWord(x))
+cwAtoms =
   match(
-    CWVar -> CWVar cmPure,
-    CWSym -> cmExpandSym(CWSym, ctExpectWord cmMap(unpack2 nip), cwHeadNorm),
-    CWPush -> CWPush cmPure
+    CWId -> nil,
+    CWCp -> dip(cwAtoms) cwAtoms ++,
+    _ -> lpure
   )
+
+cwHeadNormAtoms : CWord(x) -- CMonad(x, List(CWord(x)))
+cwHeadNormAtoms =
+  match(
+    CWVar -> CWVar lpure cmPure,
+    CWSym -> cmExpandSym(CWSym lpure, ctExpectWord cmBind(unpack2 nip cwHeadNormAtoms), cmPure),
+    CWId -> nil cmPure,
+    CWCp -> dip(cwHeadNormAtoms) cwHeadNormAtoms cmMap2(++),
+    CWPush -> CWPush lpure cmPure,
+    CWSwap -> CWSwap lpure cmPure,
+    CWDrop -> CWDrop lpure cmPure,
+    CWDup -> CWDup lpure cmPure,
+    CWDip -> CWDip lpure cmPure
+  )
+
+cwHeadNorm = cwHeadNormAtoms cmMap(lmatchL(CWId, for(CWCp)))
 
 caHeadNorm = cmPure
 
@@ -1009,7 +1084,13 @@ cwStep =
     match(
       CWVar -> CWVar CSRun Left cmPure,
       CWSym -> CWSym CSRun Left cmPure,
-      CWPush -> CSCons Left cmPure
+      CWId -> Left cmPure,
+      CWCp -> undefined,
+        ## TODO: need to separate outcomes more clearly (between "stuck" and "finished" and "stepped")
+        ### Note that we want dip(CSRun) CSRun == CWCp CSRun after normalization.
+        ### This all just involves being a lot more explicit about the "machine" that runs these expressions.
+      CWPush -> CSCons Left cmPure,
+      _ -> undefined
     )
   )
 
