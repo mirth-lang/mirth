@@ -720,14 +720,14 @@ cwExpectDip : CWord(x) -- CMonad(x, CWord(x))
 caExpectNil : CArgs(x) -- CMonad(x, Unit)
 caExpectConsL : CArgs(x) -- CMonad(x, Pack(CTerm(x) CArgs(x)))
 
-ckHeadNorm : CKind(x) -- CMonad(x, CKind(x))
-ctHeadNorm : CTerm(x) -- CMonad(x, CTerm(x))
-cstHeadNorm : CStackType(x) -- CMonad(x, CStackType(x))
-cvtHeadNorm : CValueType(x) -- CMonad(x, CValueType(x))
-csHeadNorm : CStack(x) -- CMonad(x, CStack(x))
-cvHeadNorm : CValue(x) -- CMonad(x, CValue(x))
-cwHeadNorm : CWord(x) -- CMonad(x, CWord(x))
-caHeadNorm : CArgs(x) -- CMonad(x, CArgs(x))
+ckNorm : CKind(x) -- CMonad(x, CKind(x))
+ctNorm : CTerm(x) -- CMonad(x, CTerm(x))
+cstNorm : CStackType(x) -- CMonad(x, CStackType(x))
+cvtNorm : CValueType(x) -- CMonad(x, CValueType(x))
+csNorm : CStack(x) -- CMonad(x, CStack(x))
+cvNorm : CValue(x) -- CMonad(x, CValue(x))
+cwNorm : CWord(x) -- CMonad(x, CWord(x))
+caNorm : CArgs(x) -- CMonad(x, CArgs(x))
 
 cbCheck = cbind->ckind ckCheck
 
@@ -874,7 +874,7 @@ mkEqCheckSucc(d,g) =
   )
 
 ckCheckEq =
-  dip(cmPure) ckHeadNorm cmBind2(
+  dip(cmPure) ckNorm cmBind2(
     match(
       CKLambda -> mkEqCheckSucc(ckExpectLambda, ckCheckEq),
       CKStackType -> mkEqCheck0(ckExpectStackType),
@@ -886,7 +886,7 @@ ckCheckEq =
   )
 
 cstCheckEq =
-  dip(cmPure) cstHeadNorm cmBind2(
+  dip(cmPure) cstNorm cmBind2(
     match(
       CSTVar -> mkEqCheck2(cstExpectVar, cmCheckVarEq, caCheckEq),
       CSTNil -> mkEqCheck0(cstExpectNil),
@@ -895,7 +895,7 @@ cstCheckEq =
   )
 
 cvtCheckEq =
-  dip(cmPure) cvtHeadNorm cmBind2(
+  dip(cmPure) cvtNorm cmBind2(
     match(
       CVTVar -> mkEqCheck2(cvtExpectVar, cmCheckVarEq, caCheckEq),
       CVTSym -> mkEqCheck2(cvtExpectSym, cmCheckSymEq, caCheckEq)
@@ -903,7 +903,7 @@ cvtCheckEq =
   )
 
 ctCheckEq =
-  dip(cmPure) ctHeadNorm cmBind2(
+  dip(cmPure) ctNorm cmBind2(
     match(
       CTLambda -> mkEqCheckSucc(ctExpectLambda, ctCheckEq),
       CTStackType -> mkEqCheck1(ctExpectStackType, cstCheckEq),
@@ -915,7 +915,7 @@ ctCheckEq =
   )
 
 csCheckEq =
-  dip(cmPure) csHeadNorm cmBind2(
+  dip(cmPure) csNorm cmBind2(
     match(
       CSVar -> mkEqCheck2(csExpectVar, cmCheckVarEq, caCheckEq),
       CSNil -> mkEqCheck0(csExpectNil),
@@ -926,7 +926,7 @@ csCheckEq =
   )
 
 cwCheckEq =
-  dip(cmPure) cwHeadNorm cmBind2(
+  dip(cmPure) cwNorm cmBind2(
     match(
       CWVar -> mkEqCheck2(cwExpectVar, cmCheckVarEq, caCheckEq),
       CWSym -> mkEqCheck2(cwExpectSym, cmCheckSymEq, caCheckEq),
@@ -941,52 +941,56 @@ cwCheckEq =
   )
 
 caCheckEq =
-  dip(cmPure) caHeadNorm cmBind2(
+  dip(cmPure) caNorm cmBind2(
     caMatchL(
       mkEqCheck0(caExpectNil),
       mkEqCheck2(caExpectConsL, ctCheckEq, caCheckEq)
     )
   )
 
-ckExpectLambda = ckHeadNorm cmBind(match(CKLambda -> pack2 cmPure, _ -> drop "CKLambda" CEExpectedForm cmFail))
-ckExpectStackType = ckHeadNorm cmBind(match(CKStackType -> cmUnit, _ -> drop "CKStackType" CEExpectedForm cmFail))
-ckExpectValueType = ckHeadNorm cmBind(match(CKValueType -> cmUnit, _ -> drop "CKValueType" CEExpectedForm cmFail))
-ckExpectStack = ckHeadNorm cmBind(match(CKStack -> cmPure, _ -> drop "CKStack" CEExpectedForm cmFail))
-ckExpectValue = ckHeadNorm cmBind(match(CKValue -> cmPure, _ -> drop "CKValue" CEExpectedForm cmFail))
-ckExpectWord = ckHeadNorm cmBind(match(CKWord -> pack2 cmPure, _ -> drop "CKWord" CEExpectedForm cmFail))
+ckExpectLambda = ckNorm cmBind(match(CKLambda -> pack2 cmPure, _ -> drop "CKLambda" CEExpectedForm cmFail))
+ckExpectStackType = ckNorm cmBind(match(CKStackType -> cmUnit, _ -> drop "CKStackType" CEExpectedForm cmFail))
+ckExpectValueType = ckNorm cmBind(match(CKValueType -> cmUnit, _ -> drop "CKValueType" CEExpectedForm cmFail))
+ckExpectStack = ckNorm cmBind(match(CKStack -> cmPure, _ -> drop "CKStack" CEExpectedForm cmFail))
+ckExpectValue = ckNorm cmBind(match(CKValue -> cmPure, _ -> drop "CKValue" CEExpectedForm cmFail))
+ckExpectWord = ckNorm cmBind(match(CKWord -> pack2 cmPure, _ -> drop "CKWord" CEExpectedForm cmFail))
 
-ctExpectLambda = ctHeadNorm cmBind(match(CTLambda -> pack2 cmPure, _ -> drop "CTLambda" CEExpectedForm cmFail))
-ctExpectStackType = ctHeadNorm cmBind(match(CTStackType -> cmPure, _ -> drop "CTStackType" CEExpectedForm cmFail))
-ctExpectValueType = ctHeadNorm cmBind(match(CTValueType -> cmPure, _ -> drop "CTValueType" CEExpectedForm cmFail))
-ctExpectStack = ctHeadNorm cmBind(match(CTStack -> cmPure, _ -> drop "CTStack" CEExpectedForm cmFail))
-ctExpectValue = ctHeadNorm cmBind(match(CTValue -> cmPure, _ -> drop "CTValue" CEExpectedForm cmFail))
-ctExpectWord = ctHeadNorm cmBind(match(CTWord -> pack2 cmPure, _ -> drop "CTWord" CEExpectedForm cmFail))
+ctExpectLambda = ctNorm cmBind(match(CTLambda -> pack2 cmPure, _ -> drop "CTLambda" CEExpectedForm cmFail))
+ctExpectStackType = ctNorm cmBind(match(CTStackType -> cmPure, _ -> drop "CTStackType" CEExpectedForm cmFail))
+ctExpectValueType = ctNorm cmBind(match(CTValueType -> cmPure, _ -> drop "CTValueType" CEExpectedForm cmFail))
+ctExpectStack = ctNorm cmBind(match(CTStack -> cmPure, _ -> drop "CTStack" CEExpectedForm cmFail))
+ctExpectValue = ctNorm cmBind(match(CTValue -> cmPure, _ -> drop "CTValue" CEExpectedForm cmFail))
+ctExpectWord = ctNorm cmBind(match(CTWord -> pack2 cmPure, _ -> drop "CTWord" CEExpectedForm cmFail))
 
-cstExpectVar = cstHeadNorm cmBind(match(CSTVar -> pack2 cmPure, _ -> drop "CSTVar" CEExpectedForm cmFail))
-cstExpectNil = cstHeadNorm cmBind(match(CSTNil -> cmUnit, _ -> drop "CSTNil" CEExpectedForm cmFail))
-cstExpectCons = cstHeadNorm cmBind(match(CSTCons -> pack2 cmPure, _ -> drop "CSTCons" CEExpectedForm cmFail))
+cstExpectVar = cstNorm cmBind(match(CSTVar -> pack2 cmPure, _ -> drop "CSTVar" CEExpectedForm cmFail))
+cstExpectNil = cstNorm cmBind(match(CSTNil -> cmUnit, _ -> drop "CSTNil" CEExpectedForm cmFail))
+cstExpectCons = cstNorm cmBind(match(CSTCons -> pack2 cmPure, _ -> drop "CSTCons" CEExpectedForm cmFail))
 
-cvtExpectVar = cvtHeadNorm cmBind(match(CVTVar -> pack2 cmPure, _ -> drop "CVTVar" CEExpectedForm cmFail))
-cvtExpectSym = cvtHeadNorm cmBind(match(CVTSym -> pack2 cmPure, _ -> drop "CVTSym" CEExpectedForm cmFail))
+cvtExpectVar = cvtNorm cmBind(match(CVTVar -> pack2 cmPure, _ -> drop "CVTVar" CEExpectedForm cmFail))
+cvtExpectSym = cvtNorm cmBind(match(CVTSym -> pack2 cmPure, _ -> drop "CVTSym" CEExpectedForm cmFail))
 
-csExpectVar = csHeadNorm cmBind(match(CSVar -> pack2 cmPure, _ -> drop "CSVar" CEExpectedForm cmFail))
-csExpectNil = csHeadNorm cmBind(match(CSNil -> cmUnit, _ -> drop "CSNil" CEExpectedForm cmFail))
-csExpectCons = csHeadNorm cmBind(match(CSCons -> pack2 cmPure, _ -> drop "CSCons" CEExpectedForm cmFail))
-csExpectTail = csHeadNorm cmBind(match(CSTail -> cmPure, _ -> drop "CSTail" CEExpectedForm cmFail))
-csExpectRun = csHeadNorm cmBind(match(CSRun -> pack2 cmPure, _ -> drop "CSRun" CEExpectedForm cmFail))
+csExpectVar = csNorm cmBind(match(CSVar -> pack2 cmPure, _ -> drop "CSVar" CEExpectedForm cmFail))
+csExpectNil = csNorm cmBind(match(CSNil -> cmUnit, _ -> drop "CSNil" CEExpectedForm cmFail))
+csExpectCons = csNorm cmBind(match(CSCons -> pack2 cmPure, _ -> drop "CSCons" CEExpectedForm cmFail))
+csExpectTail = csNorm cmBind(match(CSTail -> cmPure, _ -> drop "CSTail" CEExpectedForm cmFail))
+csExpectRun = csNorm cmBind(match(CSRun -> pack2 cmPure, _ -> drop "CSRun" CEExpectedForm cmFail))
 
-cvExpectVar = cvHeadNorm cmBind(match(CVVar -> pack2 cmPure, _ -> drop "CVVar" CEExpectedForm cmFail))
-cvExpectSym = cvHeadNorm cmBind(match(CVSym -> pack2 cmPure, _ -> drop "CVSym" CEExpectedForm cmFail))
-cvExpectHead = cvHeadNorm cmBind(match(CVHead -> cmPure, _ -> drop "CVHead" CEExpectedForm cmFail))
+cvExpectVar = cvNorm cmBind(match(CVVar -> pack2 cmPure, _ -> drop "CVVar" CEExpectedForm cmFail))
+cvExpectSym = cvNorm cmBind(match(CVSym -> pack2 cmPure, _ -> drop "CVSym" CEExpectedForm cmFail))
+cvExpectHead = cvNorm cmBind(match(CVHead -> cmPure, _ -> drop "CVHead" CEExpectedForm cmFail))
 
-cwExpectVar = cwHeadNorm cmBind(match(CWVar -> pack2 cmPure, _ -> drop "CWVar" CEExpectedForm cmFail))
-cwExpectSym = cwHeadNorm cmBind(match(CWSym -> pack2 cmPure, _ -> drop "CWSym" CEExpectedForm cmFail))
-## TODO -- cwExpectId, cwExpectCp
-cwExpectPush = cwHeadNorm cmBind(match(CWPush -> cmPure, _ -> drop "CWPush" CEExpectedForm cmFail))
-## TODO -- cwExpectSwap, ...
+cwExpectVar = cwNorm cmBind(match(CWVar -> pack2 cmPure, _ -> drop "CWVar" CEExpectedForm cmFail))
+cwExpectSym = cwNorm cmBind(match(CWSym -> pack2 cmPure, _ -> drop "CWSym" CEExpectedForm cmFail))
+cwExpectId = cwNorm cmBind(match(CWId -> cmUnit, _ -> drop "CWId" CEExpectedForm cmFail))
+cwExpectCp = cwNorm cmBind(match(CWCp -> pack2 cmPure, _ -> drop "CWCp" CEExpectedForm cmFail))
+cwExpectPush = cwNorm cmBind(match(CWPush -> cmPure, _ -> drop "CWPush" CEExpectedForm cmFail))
+cwExpectSwap = cwNorm cmBind(match(CWSwap -> cmUnit, _ -> drop "CWSwap" CEExpectedForm cmFail))
+cwExpectDrop = cwNorm cmBind(match(CWDrop -> cmUnit, _ -> drop "CWDrop" CEExpectedForm cmFail))
+cwExpectDup = cwNorm cmBind(match(CWDup -> cmUnit, _ -> drop "CWDup" CEExpectedForm cmFail))
+cwExpectDip = cwNorm cmBind(match(CWDip -> cmPure, _ -> drop "CWDip" CEExpectedForm cmFail))
 
-caExpectNil = caHeadNorm cmBind(caMatchL(cmUnit, drop2 "CANil" CEExpectedForm cmFail))
-caExpectConsL = caHeadNorm cmBind(caMatchL("CAConsL" CEExpectedForm cmFail, pack2 cmPure))
+caExpectNil = caNorm cmBind(caMatchL(cmUnit, drop2 "CANil" CEExpectedForm cmFail))
+caExpectConsL = caNorm cmBind(caMatchL("CAConsL" CEExpectedForm cmFail, pack2 cmPure))
 
 cwStep : CStack(x) CWord(x) -- CMonad(x, Either(CStack(x), Pack(CStack(x) CWord(x))))
 cwSteps : CStack(x) CWord(x) -- CMonad(x, CStack(x))
@@ -1005,92 +1009,154 @@ cmExpandSym(f,g,n) =
     )
   )
 
-ckHeadNorm = cmPure
-ctHeadNorm = cmPure
+ckNorm = cmPure
+ctNorm = cmPure
+caNorm = cmPure
 
-cstHeadNorm =
-  match(
-    CSTVar -> CSTVar cmPure,
-    CSTNil -> CSTNil cmPure,
-    CSTCons -> CSTCons cmPure
-  )
+################################
+# Normalization By Evaluation
+#
+# We map each syntactic sort (e.g. CStack(x)) into either
+# (CEStack(x)) a  canonical (CCStack(x)) or neutral
+# (CNStack(x)) version.
+################################
 
-cvtHeadNorm =
-  match(
-    CVTVar -> CVTVar cmPure,
-    CVTSym -> cmExpandSym(CVTSym, ctExpectValueType, cvtHeadNorm)
-  )
+type CEStackType(x)
+type CEValueType(x)
+type CEStack(x)
+type CEValue(x)
+type CEWord(x)
+type CERun(x)
 
-csHeadNorm =
-  match(
-    CSVar -> CSVar cmPure,
-    CSNil -> CSNil cmPure,
-    CSCons -> CSCons cmPure,
-    CSTail ->
-      csHeadNorm cmBind(match(
-        CSCons -> drop csHeadNorm,
-        _ -> CSTail cmPure
-      )),
-    CSRun -> cwSteps
-  )
+type CCStackType(x)
+type CCValueType(x)
+type CCStack(x)
+type CCValue(x)
+type CCWord(x)
 
-cvHeadNorm =
-  match(
-    CVVar -> CVVar cmPure,
-    CVSym -> cmExpandSym(CVSym, ctExpectValue, cvHeadNorm),
-    CVHead ->
-      csHeadNorm cmBind(match(
-        CSCons -> nip cvHeadNorm,
-        _ -> CVHead cmPure
-      ))
-  )
+type CNStackType(x)
+type CNValueType(x)
+type CNStack(x)
+type CNValue(x)
+type CNWord(x)
 
-cwAtoms : CWord(x) -- List(CWord(x))
-cwAtoms =
-  match(
-    CWId -> nil,
-    CWCp -> dip(cwAtoms) cwAtoms ++,
-    _ -> lpure
-  )
+data CEStackType(x)
+  CESTN : CNStackType(x) -- CEStackType(x)
+  CESTC : CCStackType(x) -- CEStackType(x)
+end
 
-cwHeadNormAtoms : CWord(x) -- CMonad(x, List(CWord(x)))
-cwHeadNormAtoms =
-  match(
-    CWVar -> CWVar lpure cmPure,
-    CWSym -> cmExpandSym(CWSym lpure, ctExpectWord cmBind(unpack2 nip cwHeadNormAtoms), cmPure),
-    CWId -> nil cmPure,
-    CWCp -> dip(cwHeadNormAtoms) cwHeadNormAtoms cmMap2(++),
-    CWPush -> CWPush lpure cmPure,
-    CWSwap -> CWSwap lpure cmPure,
-    CWDrop -> CWDrop lpure cmPure,
-    CWDup -> CWDup lpure cmPure,
-    CWDip -> CWDip lpure cmPure
-  )
+data CNStackType(x)
+  CNSTVar : x CArgs(x) -- CNStackType(x)
+end
 
-cwHeadNorm = cwHeadNormAtoms cmMap(lmatchL(CWId, for(CWCp)))
+data CCStackType(x)
+  CCSTNil : CCStackType(x)
+  CCSTCons : CStackType(x) CValueType(x) -- CCStackType(x)
+end
 
-caHeadNorm = cmPure
+data CEValueType(x)
+  CEVTN : CNValueType(x) -- CEValueType(x)
+  CEVTC : CCValueType(x) -- CEValueType(x)
+end
 
-cwSteps =
-  cwStep cmBind(
-    either(
-      cmPure,
-      unpack2 cwSteps
-    )
-  )
+data CNValueType(x)
+  CNVTVar : x CArgs(x) -- CNValueType(x)
+  CNVTSym : CSymbol CArgs(x) -- CNValueType(x)
+end
 
-cwStep =
-  dip(cmPure) cwHeadNorm cmBind2(
-    match(
-      CWVar -> CWVar CSRun Left cmPure,
-      CWSym -> CWSym CSRun Left cmPure,
-      CWId -> Left cmPure,
-      CWCp -> undefined,
-        ## TODO: need to separate outcomes more clearly (between "stuck" and "finished" and "stepped")
-        ### Note that we want dip(CSRun) CSRun == CWCp CSRun after normalization.
-        ### This all just involves being a lot more explicit about the "machine" that runs these expressions.
-      CWPush -> CSCons Left cmPure,
-      _ -> undefined
-    )
-  )
+data CCValueType(x)
+end
+
+data CEStack(x)
+  CESN : CNStack(x) -- CEStack(x)
+  CEST : CCStack(x) -- CEStack(x) 
+end
+
+data CNStack(x)
+  CNSVar : x CArgs(x) -- CNStack(x)
+  CNSTail : CNStack(x) -- CNStack(x)
+  CNSRunSwap0 : CNStack(x) -- CNStack(x) 
+  CNSRunSwap1 : CNStack(x) CValue(x) -- CNStack(x)
+  CNSRunDrop : CNStack(x) -- CNStack(x)
+  CNSRunDup : CNStack(x) -- CNStack(x)
+  CNSRunDip : CNStack(x) CWord(x) -- CNStack(x)
+end
+
+data CCStack(x)
+  CCSNil : CCStack(x)
+  CCCons : CStack(x) CValue(x) -- CCStack(x)
+end
+
+data CEValue(x)
+  CEVN : CNValue(x) -- CEValue(x)
+  CEVC : CCValue(x) -- CEValue(x)
+end
+
+data CNValue(x)
+  CNVVar : x CArgs(x) -- CNValue(x)
+  CNVSym : CSymbol CArgs(x) -- CNValue(x)
+  CNVHead : CNStack(x) -- CNValue(x)
+end
+
+data CCValue(x)
+end
+
+data CEWord(x)
+  CEWN : CNWord(x) -- CEWord(x)
+  CEWC : CCWord(x) -- CEWord(x)
+end
+
+data CNWord(x)
+  CNWVar : x CArgs(x) CWord(x) -- CNWord(x)
+  CNWSym : CSymbol CArgs(x) CWord(x) -- CNWord(x)
+end
+
+data CCWord(x)
+  CCWDone : CCWord(x)
+  CCWPush : CValue(x) CWord(x) -- CCWord(x)
+  CCWSwap : CWord(x) -- CCWord(x) 
+  CCWDrop : CWord(x) -- CCWord(x)
+  CCWDup : CWord(x) -- CCWord(x)
+  CCWDip : CWord(x) CWord(x) -- CCWord(x)
+end
+
+
+cestQuote : CEStackType(x) -- CStackType(x)
+cnstQuote : CNStackType(x) -- CStackType(x)
+ccstQuote : CCStackType(x) -- CStackType(x)
+
+cevtQuote : CEValueType(x) -- CValueType(x)
+cnvtQuote : CNValueType(x) -- CValueType(x)
+ccvtQuote : CCValueType(x) -- CValueType(x)
+
+cesQuote : CEStack(x) -- CStack(x)
+cnsQuote : CNStack(x) -- CStack(x)
+ccsQuote : CCStack(x) -- CStack(x)
+
+cevQuote : CEValue(x) -- CValue(x)
+cnvQuote : CNValue(x) -- CValue(x)
+ccvQuote : CCValue(x) -- CValue(x)
+
+cewQuote : CEWord(x) -- CWord(x)
+cnwQuote : CNWord(x) -- CWord(x)
+ccwQuote : CCWord(x) -- CWord(x)
+
+cstEval : CStackType(x) -- CMonad(x, CEStackType(x))
+cvtEval : CValueType(x) -- CMonad(x, CEValueType(x))
+csEval : CStack(x) -- CMonad(x, CEStack(x))
+cvEval : CValue(x) -- CMonad(x, CEValue(x))
+cwEval : CWord(x) -- CMonad(x, CEWord(x))
+
+cstNorm : CStackType(x) -- CMonad(x, CStackType(x))
+cvtNorm : CValueType(x) -- CMonad(x, CValueType(x))
+csNorm : CStack(x) -- CMonad(x, CStack(x))
+cvNorm : CValue(x) -- CMonad(x, CValue(x))
+cwNorm : CWord(x) -- CMonad(x, CWord(x))
+
+cstNorm = cstEval cmMap(cestQuote)
+cvtNorm = cvtEval cmMap(cevtQuote)
+csNorm = csEval cmMap(cesQuote)
+cvNorm = cvEval cmMap(cevQuote)
+cwNorm = cwEval cmMap(cewQuote)
+
 
