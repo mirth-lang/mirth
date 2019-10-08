@@ -1019,7 +1019,9 @@ caNorm = cmPure
 #
 # We map each syntactic sort (e.g. CStack(x)) into either
 # (CEStack(x)) a  canonical (CCStack(x)) or neutral
-# (CNStack(x)) version.
+# (CNStack(x)) version. The exception is CWord(x) is broken
+# into a list (CEWord(x)) of word atoms (CEWord1(x)) which
+# are themselves either neutral or canonical.
 ################################
 
 type CEStackType(x)
@@ -1027,19 +1029,19 @@ type CEValueType(x)
 type CEStack(x)
 type CEValue(x)
 type CEWord(x)
-type CERun(x)
-
-type CCStackType(x)
-type CCValueType(x)
-type CCStack(x)
-type CCValue(x)
-type CCWord(x)
+type CEWord1(x)
 
 type CNStackType(x)
 type CNValueType(x)
 type CNStack(x)
 type CNValue(x)
-type CNWord(x)
+type CNWord1(x)
+
+type CCStackType(x)
+type CCValueType(x)
+type CCStack(x)
+type CCValue(x)
+type CCWord1(x)
 
 data CEStackType(x)
   CESTN : CNStackType(x) -- CEStackType(x)
@@ -1076,12 +1078,7 @@ end
 data CNStack(x)
   CNSVar : x CArgs(x) -- CNStack(x)
   CNSTail : CNStack(x) -- CNStack(x)
-  CNSRun : CStack(x) CNWord(x) -- CNStack(x)
-  CNSRunSwap0 : CNStack(x) CWord(x) -- CNStack(x) 
-  CNSRunSwap1 : CNStack(x) CValue(x) CWord(x) -- CNStack(x)
-  CNSRunDrop : CNStack(x) CWord(x) -- CNStack(x)
-  CNSRunDup : CNStack(x) CWord(x) -- CNStack(x)
-  CNSRunDip : CNStack(x) CWord(x) CWord(x) -- CNStack(x)
+  CNSRun : CStack(x) CEWord1(x) -- CNStack(x)
 end
 
 data CCStack(x)
@@ -1104,24 +1101,37 @@ data CCValue(x)
 end
 
 data CEWord(x)
-  CEWN : CNWord(x) -- CEWord(x)
-  CEWC : CCWord(x) -- CEWord(x)
+  MkCEWord : List(CEWord1(x)) -- CEWord(x)
 end
 
-data CNWord(x)
-  CNWVar : x CArgs(x) List(CWord(x)) -- CNWord(x)
-  CNWSym : CSymbol CArgs(x) List(CWord(x)) -- CNWord(x)
+unCEWord : CEWord(x) -- List(CEWord1(x))
+unCEWord = match(MkCEWord -> id)
+
+data CEWord1(x)
+  CEWN : CNWord1(x) -- CEWord1(x)
+  CEWC : CCWord1(x) -- CEWord1(x)
 end
 
-data CCWord(x)
-  CCWId : CCWord(x)
-  CCWPush : CValue(x) List(CWord(x)) -- CCWord(x)
-  CCWSwap : List(CWord(x)) -- CCWord(x) 
-  CCWDrop : List(CWord(x)) -- CCWord(x)
-  CCWDup : List(CWord(x)) -- CCWord(x)
-  CCWDip : CWord(x) List(CWord(x)) -- CCWord(x)
+data CNWord1(x)
+  CNWVar : x CArgs(x) -- CNWord1(x)
+  CNWSym : CSymbol CArgs(x) -- CNWord1(x)
 end
 
+data CCWord1(x)
+  CCWPush : CValue(x) -- CCWord1(x)
+  CCWSwap : CCWord1(x)
+  CCWDrop : CCWord1(x)
+  CCWDup : CCWord1(x)
+  CCWDip : CWord(x) -- CCWord1(x)
+end
+
+cewId : CEWord(x)
+cewCp : CEWord(x) CEWord(x) -- CEWord(x)
+cew1 : CEWord1(x) -- CEWord(x)
+
+cewId = nil MkCEWord
+cewCp = dip(unCEWord) unCEWord ++ MkCEWord
+cew1 = lpure MkCEWord
 
 cestQuote : CEStackType(x) -- CStackType(x)
 cnstQuote : CNStackType(x) -- CStackType(x)
@@ -1140,8 +1150,9 @@ cnvQuote : CNValue(x) -- CValue(x)
 ccvQuote : CCValue(x) -- CValue(x)
 
 cewQuote : CEWord(x) -- CWord(x)
-cnwQuote : CNWord(x) -- CWord(x)
-ccwQuote : CCWord(x) -- CWord(x)
+cew1Quote : CEWord1(x) -- CWord(x)
+cnw1Quote : CNWord1(x) -- CWord(x)
+ccw1Quote : CCWord1(x) -- CWord(x)
 
 cstEval : CStackType(x) -- CMonad(x, CEStackType(x))
 cvtEval : CValueType(x) -- CMonad(x, CEValueType(x))
@@ -1186,12 +1197,7 @@ cnsQuote =
   match(
     CNSVar -> CSVar,
     CNSTail -> cnsQuote CSTail,
-    CNSRun -> cnwQuote CSRun,
-    CNSRunSwap0 -> dip(cnsQuote CWSwap) CWCp CSRun,
-    CNSRunSwap1 -> dip(dip(cnsQuote) CSCons CWSwap) CWCp CSRun,
-    CNSRunDrop -> dip(cnsQuote CWDrop) CWCp CSRun,
-    CNSRunDup -> dip(cnsQuote CWDup) CWCp CSRun,
-    CNSRunDip -> dip(dip(cnsQuote) CWDip) CWCp CSRun
+    CNSRun -> cew1Quote CSRun
   )
 
 ccsQuote =
@@ -1207,23 +1213,31 @@ cnvQuote =
     CNVSym -> CVSym,
     CNVHead -> cnsQuote CVHead
   )
+
 ccvQuote =
   match
 
-cewQuote = match(CEWN -> cnwQuote, CEWC -> ccwQuote)
-cnwQuote =
+cewQuote = 
   match(
-    CNWVar -> dip(CWVar) for(CWCp),
-    CNWSym -> dip(CWSym) for(CWCp)
+    MkCEWord ->
+      lmatchL(CWId, dip(cew1Quote) for(cew1Quote CWCp))
   )
-ccwQuote =
+
+cew1Quote = match(CEWN -> cnw1Quote, CEWC -> ccw1Quote)
+
+cnw1Quote =
   match(
-    CCWId -> CWId,
-    CCWPush -> dip(CWPush) for(CWCp),
-    CCWSwap -> dip(CWSwap) for(CWCp),
-    CCWDrop -> dip(CWDrop) for(CWCp),
-    CCWDup -> dip(CWDup) for(CWCp),
-    CCWDip -> dip(CWDip) for(CWCp)
+    CNWVar -> CWVar,
+    CNWSym -> CWSym
+  )
+
+ccw1Quote =
+  match(
+    CCWPush -> CWPush,
+    CCWSwap -> CWSwap,
+    CCWDrop -> CWDrop,
+    CCWDup -> CWDup,
+    CCWDip -> CWDip
   )
 
 
@@ -1240,8 +1254,85 @@ cvtEval =
     CVTSym -> CNVTSym CEVTN cmPure # TODO: expand the symbol
   )
 
+csEvalRun : CStack(x) CWord(x) -- CMonad(x, CEStack(x))
+csEvalRun1 : CStack(x) CEWord1(x) -- CMonad(x, CEStack(x))
+csEvalSwap : CStack(x) -- CMonad(x, CEStack(x))
+csEvalDup : CStack(x) -- CMonad(x, CEStack(x))
+csEvalDip : CStack(x) CWord(x) -- CMonad(x, CEStack(x))
+
 csEval =
-  undefined # TODO
+  match(
+    CSVar -> CNSVar CESN cmPure,
+    CSNil -> CCSNil CESC cmPure,
+    CSCons -> CCSCons CESC cmPure,
+    CSTail ->
+      csEval cmBind(match(
+        CESN -> CNSTail CESN cmPure,
+        CESC -> match(
+          CCSNil -> "attempted to get tail of empty stack" CERuntimeTypeError cmFail,
+          CCSCons -> drop csEval
+        )
+      )),
+    CSRun -> csEvalRun
+  )
+
+csEvalRun =
+  dip(cmPure) cwEval cmBind2(
+    unCEWord lmatchR(
+      csEval,
+      dip(MkCEWord cewQuote CSRun) csEvalRun1  
+    )
+  )
+
+csEvalRun1 =
+  match(
+    CEWN -> CEWN CNSRun CESN cmPure,
+    CEWC ->
+      match(
+        CCWPush -> CCSCons CESC cmPure,
+        CCWSwap -> csEvalSwap,
+        CCWDrop -> CSTail csEval,
+        CCWDup -> csEvalDup,
+        CCWDip -> csEvalDip
+      )
+  )
+
+csEvalDup =
+  csEval cmBind(
+    match(
+      CESN -> cnsQuote CCWDup CEWC CNSRun CESN cmPure,
+      CESC -> 
+        match(
+          CCSNil -> "attempted to run dup on empty stack" CERuntimeTypeError cmFail,
+          CCSCons -> dup dip(CSCons) CCSCons CESC cmPure
+        )
+    )
+  )
+
+csEvalDip =
+  dip(csEval) cmPure cmBind2(
+    swap match(
+      CESN -> cnsQuote swap CCWDip CEWC CNSRun CESN cmPure,
+      CESC ->
+        match(
+          CCSNil -> drop "attempted to run dip on empty stack" CERuntimeTypeError cmFail,
+          CCSCons -> dip(swap CSRun) CCSCons CESC cmPure 
+        )
+    )
+  )
+
+csEvalSwap =
+  csEval cmBind(
+    match(
+      CESN -> cnsQuote CCWSwap CEWC CNSRun CESN cmPure,
+      CESC ->
+        match(
+          CCSNil -> "attempted to run swap on empty stack" CERuntimeTypeError cmFail,
+          CCSCons -> CWPush csEvalDip
+        )
+    )
+  )
+
 
 cvEval =
   match(
@@ -1257,19 +1348,17 @@ cvEval =
       ))
   )
 
-cwEvalAux : CWord(x) List(CWord(x)) -- CMonad(x, CEWord(x))
-cwEval = nil cwEvalAux
-cwEvalAux = 
-  swap match(
-    CWVar -> rotl CNWVar CEWN cmPure,
-    CWSym -> rotl CNWSym CEWN cmPure, # TODO: expand the symbol
-    CWId -> lmatchL(CCWId CEWC cmPure, cwEvalAux),
-    CWCp -> rotl consL cwEvalAux,
-    CWPush -> swap CCWPush CEWC cmPure,
-    CWSwap -> CCWSwap CEWC cmPure,
-    CWDrop -> CCWDrop CEWC cmPure,
-    CWDup -> CCWDup CEWC cmPure,
-    CWDip -> swap CCWDip CEWC cmPure
+cwEval =
+  match(
+    CWId -> cewId cmPure,
+    CWCp -> dip(cwEval) cwEval cmMap2(cewCp),
+    CWVar -> CNWVar CEWN cew1 cmPure,
+    CWSym -> CNWSym CEWN cew1 cmPure, # TODO: expand the symbol
+    CWPush -> CCWPush CEWC cew1 cmPure,
+    CWSwap -> CCWSwap CEWC cew1 cmPure,
+    CWDrop -> CCWDrop CEWC cew1 cmPure,
+    CWDup -> CCWDup CEWC cew1 cmPure,
+    CWDip -> CCWDip CEWC cew1 cmPure
   )
 
 
