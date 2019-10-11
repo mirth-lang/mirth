@@ -192,6 +192,7 @@ export mirth/syntax
   mkInterface : Str -- Interface
   unInterface : Interface -- Str
   interface->str : Interface -- Str
+  interface= : Interface Interface -- Bool
 end
 
 ###############
@@ -555,4 +556,7 @@ end
 
 unInterface = match( mkInterface -> id )
 interface->str = unInterface
+
+interface= : Interface Interface -- Bool
+interface= = both(interface->str) streq
 

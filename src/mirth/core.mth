@@ -1,4 +1,5 @@
 
+import base/nat
 import base/unit
 import base/maybe
 import base/void
@@ -14,6 +15,8 @@ import mirth/mod
 import mirth/name
 import mirth/loc
 import mirth/syntax
+import mirth/pkg
+import mirth/mod
 
 export mirth/core
   type Name
@@ -30,6 +33,7 @@ export mirth/core
   type CBindInfo
   type CSort
 
+  type CCtx(x)
   type CBind(x)
   type CKind(x)
   type CTerm(x)
@@ -39,6 +43,12 @@ export mirth/core
   type CValue(x)
   type CWord(x)
   type CArgs(x)
+
+  type CError
+  type CMonad(x,t)
+
+  cimplicit->bool : CImplicit -- Bool
+  bool->cimplicit : Bool -- CImplicit
 
   cbMap (f: *g a -- *g b) : *g CBind(a) -- *g CBind(b)
   ckMap (f: *g a -- *g b) : *g CKind(a) -- *g CKind(b)
@@ -59,6 +69,113 @@ export mirth/core
   cvSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CValue(a) -- *g CValue(b)
   cwSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CWord(a) -- *g CWord(b)
   caSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CArgs(a) -- *g CArgs(b)
+
+  cmRun : CEnv CCtx(x) CMonad(x,t) -- CEnv CCtx(x) Result(CError, t)
+  cmPure : t -- CMonad(x,t)
+  cmPure2 : a b -- CMonad(x,a) CMonad(x,b)
+  cmFail : CError -- CMonad(x,t)
+  cmMap(f: a -- b) : CMonad(x,a) -- CMonad(x,b)
+  cmMap2(f: a b -- c) : CMonad(x,a) CMonad(x,b) -- CMonad(x,c)
+  cmMap3(f: a b c -- d) : CMonad(x,a) CMonad(x,b) CMonad(x,c) -- CMonad(x,d)
+  cmMap4(f: a b c d -- e) : CMonad(x,a) CMonad(x,b) CMonad(x,c) CMonad(x,d) -- CMonad(x,e)
+  cmBind(f: a -- CMonad(x,b)) : CMonad(x,a) -- CMonad(x,b)
+  cmBind2(f: a b -- CMonad(x,c)) : CMonad(x,a) CMonad(x,b) -- CMonad(x,c)
+  cmBind3(f: a b c -- CMonad(x,d)) : CMonad(x,a) CMonad(x,b) CMonad(x,c) -- CMonad(x,d)
+  cmBind4(f: a b c d -- CMonad(x,e)) : CMonad(x,a) CMonad(x,b) CMonad(x,c) CMonad(x,d) -- CMonad(x,e)
+  cmUnit : CMonad(x, Unit)
+  cmVoid : CMonad(x,a) -- CMonad(x, Unit)
+  cmVoid2 : CMonad(x,a) CMonad(x,b) -- CMonad(x, Unit)
+  cmSucc : CBind(x) CMonad(CSucc(x), t) -- CMonad(x, t)
+  cmCtx : CMonad(x, CCtx(x))
+  cmLookupVar : x -- CMonad(x, CBind(x))
+  cmLookupVarKind : x -- CMonad(x, CKind(x))
+  cmEnv : CMonad(x, CEnv)
+  cmLookupSym : CSymbol -- CMonad(x, CDef)
+  cmLookupSymKind : CSymbol -- CMonad(x, CKind(x))
+  cmLookupSymMaybeTerm : CSymbol -- CMonad(x, Maybe(CTerm(x)))
+
+  cbCheck : CBind(x) -- CMonad(x, Unit)
+  ckCheck : CKind(x) -- CMonad(x, Unit)
+  cstCheck : CStackType(x) -- CMonad(x, Unit)
+  cvtCheck : CValueType(x) -- CMonad(x, Unit)
+  ctCheck : CTerm(x) CKind(x) -- CMonad(x, Unit)
+  csCheck : CStack(x) CStackType(x) -- CMonad(x, Unit)
+  cvCheck : CValue(x) CValueType(x) -- CMonad(x, Unit)
+  cwCheck : CWord(x) CStackType(x) CStackType(x) -- CMonad(x, Unit)
+
+  ctInfer : CTerm(x) -- CMonad(x, CKind(x))
+  csInfer : CStack(x) -- CMonad(x, CStackType(x))
+  cvInfer : CValue(x) -- CMonad(x, CValueType(x))
+  cwInfer : CStackType(x) CWord(x) -- CMonad(x, CStackType(x))
+
+  caInfer : CKind(x) CArgs(x) -- CMonad(x, CKind(x))
+  caInferVar : x CArgs(x) -- CMonad(x, CKind(x))
+  caInferSym : CSymbol CArgs(x) -- CMonad(x, CKind(x))
+
+  cbCheckEq : CBind(x) CBind(x) -- CMonad(x, Unit)
+  ckCheckEq : CKind(x) CKind(x) -- CMonad(x, Unit)
+  cstCheckEq : CStackType(x) CStackType(x) -- CMonad(x, Unit)
+  cvtCheckEq : CValueType(x) CValueType(x) -- CMonad(x, Unit)
+  ctCheckEq : CTerm(x) CTerm(x) -- CMonad(x, Unit)
+  csCheckEq : CStack(x) CStack(x) -- CMonad(x, Unit)
+  cvCheckEq : CValue(x) CValue(x) -- CMonad(x, Unit)
+  cwCheckEq : CWord(x) CWord(x) -- CMonad(x, Unit)
+  caCheckEq : CArgs(x) CArgs(x) -- CMonad(x, Unit)
+  cmCheckVarEq : x x -- CMonad(x, Unit)
+  cmCheckSymEq : CSymbol CSymbol -- CMonad(x, Unit)
+
+  ckExpectLambda : CKind(x) -- CMonad(x, Pack(CBind(x) CKind(CSucc(x))))
+  ckExpectStackType : CKind(x) -- CMonad(x, Unit)
+  ckExpectValueType : CKind(x) -- CMonad(x, Unit)
+  ckExpectStack : CKind(x) -- CMonad(x, CStackType(x))
+  ckExpectValue : CKind(x) -- CMonad(x, CValueType(x))
+  ckExpectWord : CKind(x) -- CMonad(x, Pack(CStackType(x) CStackType(x)))
+  
+  ctExpectLambda : CTerm(x) -- CMonad(x, Pack(CBind(x) CTerm(CSucc(x))))
+  ctExpectStackType : CTerm(x) -- CMonad(x, CStackType(x))
+  ctExpectValueType : CTerm(x) -- CMonad(x, CValueType(x))
+  ctExpectStack : CTerm(x) -- CMonad(x, CStack(x))
+  ctExpectValue : CTerm(x) -- CMonad(x, CValue(x))
+  ctExpectWord : CTerm(x) -- CMonad(x, Pack(CStackType(x) CWord(x)))
+  
+  cstExpectVar : CStackType(x) -- CMonad(x, Pack(x CArgs(x)))
+  cstExpectNil : CStackType(x) -- CMonad(x, Unit)
+  cstExpectCons : CStackType(x) -- CMonad(x, Pack(CStackType(x) CValueType(x)))
+  
+  cvtExpectVar : CValueType(x) -- CMonad(x, Pack(x CArgs(x)))
+  cvtExpectSym : CValueType(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
+  
+  csExpectVar : CStack(x) -- CMonad(x, Pack(x CArgs(x)))
+  csExpectNil : CStack(x) -- CMonad(x, Unit)
+  csExpectCons : CStack(x) -- CMonad(x, Pack(CStack(x) CValue(x)))
+  csExpectTail : CStack(x) -- CMonad(x, CStack(x))
+  csExpectRun : CStack(x) -- CMonad(x, Pack(CStack(x) CWord(x)))
+  
+  cvExpectVar : CValue(x) -- CMonad(x, Pack(x CArgs(x)))
+  cvExpectSym : CValue(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
+  cvExpectHead : CValue(x) -- CMonad(x, CStack(x))
+  
+  cwExpectVar : CWord(x) -- CMonad(x, Pack(x CArgs(x)))
+  cwExpectSym : CWord(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
+  cwExpectId : CWord(x) -- CMonad(x, Unit)
+  cwExpectCp : CWord(x) -- CMonad(x, Pack(CWord(x) CWord(x)))
+  cwExpectPush : CWord(x) -- CMonad(x, CValue(x))
+  cwExpectSwap : CWord(x) -- CMonad(x, Unit)
+  cwExpectDrop : CWord(x) -- CMonad(x, Unit)
+  cwExpectDup : CWord(x) -- CMonad(x, Unit)
+  cwExpectDip : CWord(x) -- CMonad(x, CWord(x))
+  
+  caExpectNil : CArgs(x) -- CMonad(x, Unit)
+  caExpectConsL : CArgs(x) -- CMonad(x, Pack(CTerm(x) CArgs(x)))
+  
+  ckNorm : CKind(x) -- CMonad(x, CKind(x))
+  ctNorm : CTerm(x) -- CMonad(x, CTerm(x))
+  cstNorm : CStackType(x) -- CMonad(x, CStackType(x))
+  cvtNorm : CValueType(x) -- CMonad(x, CValueType(x))
+  csNorm : CStack(x) -- CMonad(x, CStack(x))
+  cvNorm : CValue(x) -- CMonad(x, CValue(x))
+  cwNorm : CWord(x) -- CMonad(x, CWord(x))
+  caNorm : CArgs(x) -- CMonad(x, CArgs(x))
 
 end
 
@@ -82,9 +199,6 @@ csucc(f, g) =
     S -> g
   )
 
-data CImplicit
-  MkCImplicit : Bool -- CImplicit
-end
 
 ||| Separate name spaces for each core name.
 data CSpace
@@ -94,11 +208,60 @@ data CSpace
   CSpIface : Interface -- CSpace
 end
 
+cspace= : CSpace CSpace -- Bool
+cspace= = 
+  match(
+    CSpPrim -> 
+      match(
+        CSpPrim -> true,
+        _ -> drop false
+      ),
+    CSpMod ->
+      swap match(
+        CSpMod -> mod=,
+        _ -> drop2 false
+      ),
+    CSpPkg ->
+      swap match(
+        CSpPkg -> pkg=,
+        _ -> drop2 false
+      ),
+    CSpIface ->
+      swap match(
+        CSpIface -> interface=,
+        _ -> drop2 false
+      ) 
+  )
+
+cspace->str : CSpace -- Str
+cspace->str =
+  match(
+    CSpPrim -> "prim",
+    CSpMod -> dip("mod:") mod->str <>,
+    CSpPkg -> dip("pkg:") pkg->str <>,
+    CSpIface -> dip("interface:") interface->str <>
+  )
+
 ||| A Core Symbol is a Name bundled with its
 ||| name space. This makes each name _unique_.
 data CSymbol
   MkCSymbol : CSpace Name -- CSymbol
 end
+
+unCSymbol : CSymbol -- CSpace Name
+unCSymbol = match(MkCSymbol -> id)
+
+csymbol->cspace : CSymbol -- CSpace
+csymbol->cspace = unCSymbol drop
+
+csymbol->name : CSymbol -- Name
+csymbol->name = unCSymbol nip
+
+csymbol= : CSymbol CSymbol -- Bool
+csymbol= = dip(unCSymbol) unCSymbol dip(swap) nameeq if(cspace=, drop2 false)
+
+csymbol->str : CSymbol -- Str
+csymbol->str = unCSymbol dip(cspace->str ":" <>) name->str <>
 
 data CSort
   CSLambda : CSort CSort -- CSort
@@ -197,10 +360,34 @@ caMatchR (
 caMatchL(f,g) = unCArgs lmatchL(f, MkCArgs g)
 caMatchR(f,g) = unCArgs lmatchR(f, dip(MkCArgs) g)
 
+||| Whether a number is implicit or explicit.
+data CImplicit
+  MkCImplicit : Bool -- CImplicit
+end
+
+unCImplicit : CImplicit -- Bool
+unCImplicit = match(MkCImplicit -> id)
+
+cimplicit->bool : CImplicit -- Bool
+cimplicit->bool = unCImplicit
+
+bool->cimplicit : Bool -- CImplicit
+bool->cimplicit = MkCImplicit
+
+
 ||| Binding info, such as name, implicit/explicit/auto, etc.
 data CBindInfo
   MkCBindInfo : CImplicit Name -- CBindInfo
 end
+
+unCBindInfo : CBindInfo -- CImplicit Name
+unCBindInfo = match(MkCBindInfo -> id)
+
+cbindinfo->cimplicit : CBindInfo -- CImplicit
+cbindinfo->cimplicit = unCBindInfo drop
+
+cbindinfo->name : CBindInfo -- Name
+cbindinfo->name = unCBindInfo nip
 
 ||| A binding, which includes the kind and other binding info.
 data CBind(x)
@@ -209,6 +396,9 @@ end
 
 unCBind : CBind(x) -- CBindInfo CKind(x)
 unCBind = match(MkCBind -> id)
+
+cbind->cbindinfo : CBind(x) -- CBindInfo
+cbind->cbindinfo = unCBind drop
 
 cbind->ckind : CBind(x) -- CKind(x)
 cbind->ckind = unCBind nip
@@ -507,6 +697,17 @@ ccLookupVar =
       ) cbMap(S g)
   )
 
+ccLookupVarIndex : CCtx(x) x -- Nat
+ccLookupVarIndex =
+  swap match(
+    CCZ@(f,g) -> f czero,
+    CCS@(f,g) ->
+      drop swap f csucc(
+        drop n0,
+        ccLookupVarIndex n1+ pnat
+      )
+  )
+
 data CDef
   MkCDef : CKind(CZero) Maybe(CTerm(CZero)) -- CDef
 end
@@ -541,6 +742,14 @@ data CError
   CEExpectedForm : Str -- CError
   CERuntimeTypeError : Str -- CError
 end
+
+cerror->str : CError -- Str
+cerror->str =
+  match(
+    CEUndeclaredSymbol -> dip("CORE ERROR: Undeclared Symbol: ") csymbol->str <>,
+    CEExpectedForm -> dip("CORE ERROR: Expected Form: ") <>,
+    CERuntimeTypeError -> dip("CORE ERROR: Runtime Type Error: ") <>
+  )
 
 data CMonad(x,t)
   MkCMonad(f: CEnv CCtx(x) m -- CEnv CCtx(x) Result(CError, t)) : m -- CMonad(x,t)
@@ -639,89 +848,6 @@ cmLookupSymKind = cmLookupSym cmMap(cdef->ckind)
 
 cmLookupSymMaybeTerm : CSymbol -- CMonad(x, Maybe(CTerm(x)))
 cmLookupSymMaybeTerm = cmLookupSym cmMap(cdef->mcterm)
-
-cbCheck : CBind(x) -- CMonad(x, Unit)
-ckCheck : CKind(x) -- CMonad(x, Unit)
-cstCheck : CStackType(x) -- CMonad(x, Unit)
-cvtCheck : CValueType(x) -- CMonad(x, Unit)
-ctCheck : CTerm(x) CKind(x) -- CMonad(x, Unit)
-csCheck : CStack(x) CStackType(x) -- CMonad(x, Unit)
-cvCheck : CValue(x) CValueType(x) -- CMonad(x, Unit)
-cwCheck : CWord(x) CStackType(x) CStackType(x) -- CMonad(x, Unit)
-
-ctInfer : CTerm(x) -- CMonad(x, CKind(x))
-csInfer : CStack(x) -- CMonad(x, CStackType(x))
-cvInfer : CValue(x) -- CMonad(x, CValueType(x))
-cwInfer : CStackType(x) CWord(x) -- CMonad(x, CStackType(x))
-
-caInfer : CKind(x) CArgs(x) -- CMonad(x, CKind(x))
-caInferVar : x CArgs(x) -- CMonad(x, CKind(x))
-caInferSym : CSymbol CArgs(x) -- CMonad(x, CKind(x))
-
-cbCheckEq : CBind(x) CBind(x) -- CMonad(x, Unit)
-ckCheckEq : CKind(x) CKind(x) -- CMonad(x, Unit)
-cstCheckEq : CStackType(x) CStackType(x) -- CMonad(x, Unit)
-cvtCheckEq : CValueType(x) CValueType(x) -- CMonad(x, Unit)
-ctCheckEq : CTerm(x) CTerm(x) -- CMonad(x, Unit)
-csCheckEq : CStack(x) CStack(x) -- CMonad(x, Unit)
-cvCheckEq : CValue(x) CValue(x) -- CMonad(x, Unit)
-cwCheckEq : CWord(x) CWord(x) -- CMonad(x, Unit)
-caCheckEq : CArgs(x) CArgs(x) -- CMonad(x, Unit)
-cmCheckVarEq : x x -- CMonad(x, Unit)
-cmCheckSymEq : CSymbol CSymbol -- CMonad(x, Unit)
-
-ckExpectLambda : CKind(x) -- CMonad(x, Pack(CBind(x) CKind(CSucc(x))))
-ckExpectStackType : CKind(x) -- CMonad(x, Unit)
-ckExpectValueType : CKind(x) -- CMonad(x, Unit)
-ckExpectStack : CKind(x) -- CMonad(x, CStackType(x))
-ckExpectValue : CKind(x) -- CMonad(x, CValueType(x))
-ckExpectWord : CKind(x) -- CMonad(x, Pack(CStackType(x) CStackType(x)))
-
-ctExpectLambda : CTerm(x) -- CMonad(x, Pack(CBind(x) CTerm(CSucc(x))))
-ctExpectStackType : CTerm(x) -- CMonad(x, CStackType(x))
-ctExpectValueType : CTerm(x) -- CMonad(x, CValueType(x))
-ctExpectStack : CTerm(x) -- CMonad(x, CStack(x))
-ctExpectValue : CTerm(x) -- CMonad(x, CValue(x))
-ctExpectWord : CTerm(x) -- CMonad(x, Pack(CStackType(x) CWord(x)))
-
-cstExpectVar : CStackType(x) -- CMonad(x, Pack(x CArgs(x)))
-cstExpectNil : CStackType(x) -- CMonad(x, Unit)
-cstExpectCons : CStackType(x) -- CMonad(x, Pack(CStackType(x) CValueType(x)))
-
-cvtExpectVar : CValueType(x) -- CMonad(x, Pack(x CArgs(x)))
-cvtExpectSym : CValueType(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
-
-csExpectVar : CStack(x) -- CMonad(x, Pack(x CArgs(x)))
-csExpectNil : CStack(x) -- CMonad(x, Unit)
-csExpectCons : CStack(x) -- CMonad(x, Pack(CStack(x) CValue(x)))
-csExpectTail : CStack(x) -- CMonad(x, CStack(x))
-csExpectRun : CStack(x) -- CMonad(x, Pack(CStack(x) CWord(x)))
-
-cvExpectVar : CValue(x) -- CMonad(x, Pack(x CArgs(x)))
-cvExpectSym : CValue(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
-cvExpectHead : CValue(x) -- CMonad(x, CStack(x))
-
-cwExpectVar : CWord(x) -- CMonad(x, Pack(x CArgs(x)))
-cwExpectSym : CWord(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
-cwExpectId : CWord(x) -- CMonad(x, Unit)
-cwExpectCp : CWord(x) -- CMonad(x, Pack(CWord(x) CWord(x)))
-cwExpectPush : CWord(x) -- CMonad(x, CValue(x))
-cwExpectSwap : CWord(x) -- CMonad(x, Unit)
-cwExpectDrop : CWord(x) -- CMonad(x, Unit)
-cwExpectDup : CWord(x) -- CMonad(x, Unit)
-cwExpectDip : CWord(x) -- CMonad(x, CWord(x))
-
-caExpectNil : CArgs(x) -- CMonad(x, Unit)
-caExpectConsL : CArgs(x) -- CMonad(x, Pack(CTerm(x) CArgs(x)))
-
-ckNorm : CKind(x) -- CMonad(x, CKind(x))
-ctNorm : CTerm(x) -- CMonad(x, CTerm(x))
-cstNorm : CStackType(x) -- CMonad(x, CStackType(x))
-cvtNorm : CValueType(x) -- CMonad(x, CValueType(x))
-csNorm : CStack(x) -- CMonad(x, CStack(x))
-cvNorm : CValue(x) -- CMonad(x, CValue(x))
-cwNorm : CWord(x) -- CMonad(x, CWord(x))
-caNorm : CArgs(x) -- CMonad(x, CArgs(x))
 
 cbCheck = cbind->ckind ckCheck
 
@@ -867,6 +993,8 @@ mkEqCheckSucc(d,g) =
     dip2(dup dip(cbCheckEq)) g cmSucc cmVoid2
   )
 
+cbCheckEq = both(cbind->ckind) ckCheckEq
+
 ckCheckEq =
   dip(cmPure) ckNorm cmBind2(
     match(
@@ -919,6 +1047,15 @@ csCheckEq =
     )
   )
 
+cvCheckEq = 
+  dip(cmPure) cvNorm cmBind2(
+    match(
+      CVVar -> mkEqCheck2(cvExpectVar, cmCheckVarEq, caCheckEq),
+      CVSym -> mkEqCheck2(cvExpectSym, cmCheckSymEq, caCheckEq),
+      CVHead -> mkEqCheck1(cvExpectHead, csCheckEq)
+    )
+  )
+
 cwCheckEq =
   dip(cmPure) cwNorm cmBind2(
     match(
@@ -940,6 +1077,22 @@ caCheckEq =
       mkEqCheck0(caExpectNil),
       mkEqCheck2(caExpectConsL, ctCheckEq, caCheckEq)
     )
+  )
+
+cmCheckVarEq = 
+  dip2(cmCtx) cmPure2 cmBind3(
+    dip(over)
+    dip2(ccLookupVarIndex) ccLookupVarIndex
+    n= if(
+       cmUnit,
+       "variables do not match" CEExpectedForm cmFail
+    )
+  )
+
+cmCheckSymEq =
+  csymbol= if(
+    cmUnit,
+    "symbols do not match" CEExpectedForm cmFail
   )
 
 ckExpectLambda = ckNorm cmBind(match(CKLambda -> pack2 cmPure, _ -> drop "CKLambda" CEExpectedForm cmFail))
@@ -1353,6 +1506,4 @@ cwEval =
     CWDup -> CCWDup CEWC cew1 cmPure,
     CWDip -> CCWDip CEWC cew1 cmPure
   )
-
-
 
