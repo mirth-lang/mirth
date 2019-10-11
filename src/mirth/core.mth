@@ -8,6 +8,7 @@ import base/int
 import base/str
 import base/sexp
 import base/list
+import base/either
 
 import mirth/mod
 import mirth/name
@@ -341,14 +342,6 @@ ctVarZaux =
     CKValue -> drop CVVar CTValue,
     CKWord -> drop rotr CWVar CTWord
   )
-
-data Either(a,b)
-  Left : a -- Either(a,b)
-  Right : b -- Either(a,b)
-end
-
-either(f: *x a -- *y, g: *x b -- *y) : *x Either(a,b) -- *y
-either(f,g) = match(Left -> f, Right -> g)
 
 cbSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CBind(a) -- *g CBind(b)
 ckSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CKind(a) -- *g CKind(b)

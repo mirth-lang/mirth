@@ -1,0 +1,20 @@
+
+export base/either
+  type Either(a,b)
+  Left : a -- Either(a,b)
+  Right : b -- Either(a,b)
+  either(f: *x a -- *y, g: *x b -- *y) : *x Either(a,b) -- *y
+end
+
+data Either(a,b)
+  Left : a -- Either(a,b)
+  Right : b -- Either(a,b)
+end
+
+either(f: *x a -- *y, g: *x b -- *y) : *x Either(a,b) -- *y
+either(f,g) =
+  match(
+    Left -> f,
+    Right -> g
+  )
+
