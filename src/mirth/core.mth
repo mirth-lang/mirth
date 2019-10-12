@@ -47,8 +47,108 @@ export mirth/core
   type CError
   type CMonad(x,t)
 
+  czero : *a CZero -- *b
+
+  Z : CSucc(x)
+  S : x -- CSucc(x)
+  csucc(f: *a -- *b, g: *a x -- *b) : *a CSucc(x) -- *b
+
+  CSpPrim : CSpace
+  CSpMod : Mod -- CSpace
+  CSpPkg : Pkg -- CSpace
+  CSpIface : Interface -- CSpace
+  cspace= : CSpace CSpace -- Bool
+  cspace->str : CSpace -- Str
+
+  MkCSymbol : CSpace Name -- CSymbol
+  unCSymbol : CSymbol -- CSpace Name
+  csymbol->cspace : CSymbol -- CSpace
+  csymbol->name : CSymbol -- Name
+  csymbol->str : CSymbol -- Str
+  csymbol= : CSymbol CSymbol -- Bool
+
+  CSLambda : CSort CSort -- CSort
+  CSStackType : CSort
+  CSValueType : CSort
+  CSStack : CSort
+  CSValue : CSort
+  CSWord : CSort
+
+  CKLambda : CBind(x) CKind(CSucc(x)) -- CKind(x)
+  CKStackType : CKind(x)
+  CKValueType : CKind(x)
+  CKStack : CStackType(x) -- CKind(x)
+  CKValue : CValueType(x) -- CKind(x)
+  CKWord : CStackType(x) CStackType(x) -- CKind(x)
+
+  CTLambda : CBind(x) CTerm(CSucc(x)) -- CTerm(x)
+  CTStackType : CStackType(x) -- CTerm(x)
+  CTValueType : CValueType(x) -- CTerm(x)
+  CTStack : CStack(x) -- CTerm(x)
+  CTValue : CValue(x) -- CTerm(x)
+  CTWord : CStackType(x) CWord(x) -- CTerm(x)
+
+  CSTVar  : x CArgs(x) -- CStackType(x)
+  CSTNil  : CStackType(x)
+  CSTCons : CStackType(x) CValueType(x) -- CStackType(x)
+
+  CVTVar : x CArgs(x) -- CValueType(x)
+  CVTSym : CSymbol CArgs(x) -- CValueType(x)
+
+  CSVar : x CArgs(x) -- CStack(x)
+  CSNil : CStack(x)
+  CSCons : CStack(x) CValue(x) -- CStack(x)
+  CSTail : CStack(x) -- CStack(x)
+  CSRun : CStack(x) CWord(x) -- CStack(x)
+
+  CVVar : x CArgs(x) -- CValue(x)
+  CVSym : CSymbol CArgs(x) -- CValue(x)
+  CVHead : CStack(x) -- CValue(x)
+
+  CWVar : x CArgs(x) -- CWord(x)
+  CWSym : CSymbol CArgs(x) -- CWord(x)
+  CWId : CWord(x)
+  CWCp : CWord(x) CWord(x) -- CWord(x)
+  CWPush : CValue(x) -- CWord(x)
+  CWSwap : CWord(x)
+  CWDrop : CWord(x)
+  CWDup : CWord(x)
+  CWDip : CWord(x) -- CWord(x)
+
+  MkCArgs : List(CTerm(x)) -- CArgs(x)
+  unCArgs : CArgs(x) -- List(CTerm(x))
+
+  CANil : CArgs(x)
+  CAConsL : CTerm(x) CArgs(x) -- CArgs(x)
+  CAConsR : CArgs(x) CTerm(x) -- CArgs(x)
+  CACat : CArgs(x) CArgs(x) -- CArgs(x)
+  
+  caMatchL (
+    f: *a -- *b,
+    g: *a CTerm(x) CArgs(x) -- *b
+  ) : *a CArgs(x) -- *b
+
+  caMatchR (
+    f: *a -- *b,
+    g: *a CArgs(x) CTerm(x) -- *b
+  ) : *a CArgs(x) -- *b
+
   cimplicit->bool : CImplicit -- Bool
   bool->cimplicit : Bool -- CImplicit
+
+  MkCBindInfo : CImplicit Name -- CBindInfo
+  unCBindInfo : CBindInfo -- CImplicit Name
+  cbindinfo->cimplicit : CBindInfo -- CImplicit
+  cbindinfo->name : CBindInfo -- Name
+
+  MkCBind : CBindInfo CKind(x) -- CBind(x)
+  unCBind : CBind(x) -- CBindInfo CKind(x)
+  cbind->cbindinfo : CBind(x) -- CBindInfo
+  cbind->ckind : CBind(x) -- CKind(x)
+
+  cbind->csort : CBind(x) -- CSort
+  ckind->csort : CKind(x) -- CSort
+  cterm->csort : CTerm(x) -- CSort
 
   cbMap (f: *g a -- *g b) : *g CBind(a) -- *g CBind(b)
   ckMap (f: *g a -- *g b) : *g CKind(a) -- *g CKind(b)
