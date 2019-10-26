@@ -1,0 +1,218 @@
+
+import base/nat
+import base/unit
+import base/maybe
+import base/void
+import base/map
+import base/set
+import base/result
+import base/int
+import base/str
+import base/sexp
+import base/list
+import base/either
+
+import mirth/mod
+import mirth/name
+import mirth/loc
+import mirth/syntax
+import mirth/pkg
+import mirth/mod
+import mirth/core
+
+export mirth/elab
+  type EKind
+  type ETerm
+  type EStackType
+  type EValueType
+  type EValue
+  type EWord
+  type EArgs
+  type EEnv
+  type EError
+  type EMonad(t)
+end
+
+data EKind
+  EKStackType : EKind
+  EKValueType : EKind
+  EKValue : EValueType -- EKind
+  EKWord : EStackType EStackType -- EKind
+end
+
+data ETerm
+  ETStackType : EStackType -- ETerm
+  ETValueType : EValueType -- ETerm
+  ETValue : EValue -- ETerm
+  ETWord : EStackType EWord -- ETerm
+end
+
+data EStackType
+  ESTMeta : L(Int) -- EStackType
+  ESTVar : L(Name) -- EStackType
+  ESTNil : EStackType
+  ESTCons : EStackType EValueType -- EStackType
+end
+
+data EValueType
+  EVTMeta : L(Int) -- EValueType
+  EVTVar : L(Name) -- EValueType
+  EVTSym : L(CSymbol) EArgs -- EValueType
+end
+
+data EValue
+  EVMeta : L(Int) -- EValue
+  EVVar : L(Name) -- EValue
+end
+
+data EWord
+  EWVar : Name -- EWord
+  EWSym : CSymbol EArgs -- EWord
+  EWPush : EValue -- EWord
+end
+
+data EArgs
+  MkEArgs : List(ETerm) -- EArgs
+end
+
+||| An eleboration definition. These typically just
+||| point to core definitions, but sometimes you have
+||| an elaborator macro (to be implemented).
+data EDef
+  EDCore : CSymbol -- EDef
+end
+
+||| The elaboration environment. This captures both the (cross-module)
+||| core environment, and the current set of bindings in this
+||| module.
+data EEnv
+  MkEEnv : CEnv Map(Name, EDef) -- EEnv
+end
+
+data EMetaDef
+  MkEMetaDef : Set(Name) EKind Maybe(ETerm) -- EMetaDef
+end
+
+||| The elaboration "fresh" state. This captures the id of the last
+||| metavariable generated, as well as the value of any unified
+||| metavariables. The fresh state is wiped clean in between
+||| definitions.
+data EFresh
+  MkEFresh : Map(Int, EMetaDef) Int -- EFresh
+end
+
+||| A variable context for the elaborator.
+data ECtx
+  ECZero : ECtx
+  ECSucc : ECtx Name EKind -- ECtx
+end
+
+||| An elaborator error.
+data EError
+  MkEError : L(Str) -- EError 
+end
+
+unEError : EError -- L(Str)
+unEError = match(MkEError -> id)
+
+eerror->str : EError -- Str
+eerror->str = unEError unL dip(locSet->str) <>
+
+
+||| The overall state of the elaborator. It consists of an
+||| environment, a fresh state, and a variable context.
+data EState
+  MkEState : EEnv EFresh ECtx -- EState
+end
+
+||| 
+data EMonad(t)
+  MkEMonad(f: EEnv m -- EEnv Result(EError, t)) : m -- EMonad(t)
+end
+
+
+emPure : a -- EMonad(a)
+emPure2 : a b -- EMonad(a) EMonad(b)
+emMap (f: a -- b) : EMonad(a) -- EMonad(b)
+emMap2 (f: a b -- c) : EMonad(a) EMonad(b) -- EMonad(c)
+emMap3 (f: a b c -- d) : EMonad(a) EMonad(b) EMonad(c) -- EMonad(d)
+emBind (f: a -- EMonad(b)) : EMonad(a) -- EMonad(b)
+emBind2 (f: a b -- EMonad(c)) : EMonad(a) EMonad(b) -- EMonad(c)
+emBind3 (f: a b c -- EMonad(d)) : EMonad(a) EMonad(b) EMonad(c) -- EMonad(d)
+emUnit : EMonad(Unit)
+emVoid : EMonad(a) -- EMonad(Unit)
+emVoid2 : EMonad(a) EMonad(b) -- EMonad(Unit)
+emGetState : EMonad(EState)
+emSetState : EState -- EMonad(Unit)
+emFail : Str -- EMonad(b)
+emWithLoc (f: a -- EMonad(b)) : L(a) -- EMonad(b)
+emWithLoc2 (f: a b -- EMonad(c)) : a L(b) -- EMonad(c)
+emGetLoc : EMonad(a) -- EMonad(L(a))
+
+emFoundStackTypeVar : L(Name) -- EMonad(EStackType)
+emFoundValueTypeVar : L(Name) -- EMonad(EValueType)
+emExpectNoLArgs : L(Args) -- EMonad(Unit)
+emExpectNoArgs : Args -- EMonad(Unit) 
+
+elabModules : List(Module) -- EMonad(Unit)
+elabModuleExports : Module -- EMonad(Unit)
+elabModuleBody : Module -- EMonad(Unit)
+elabLSig : L(Sig) -- EMonad(Unit)
+elabLDecl : L(Decl) -- EMonad(Unit)
+elabLTypeSig : L(TypeSig) -- EMonad(Unit)
+elabLWordSig : L(WordSig) -- EMonad(Unit)
+elabLDataDef : L(DataDef) -- EMonad(Unit)
+elabLWordDef : L(WordDef) -- EMonad(Unit)
+elabLAssertion : L(Assertion) -- EMonad(Unit)
+
+estElabLExpr : L(Expr) -- EMonad(EStackType)
+estElabLAtom : L(Atom) -- EMonad(EStackType)
+estElabLWord : L(Word) -- EMonad(EStackType)
+estElabExpr : Expr -- EMonad(EStackType)
+estElabAtom : Atom -- EMonad(EStackType)
+estElabWord : Word -- EMonad(EStackType)
+
+evtElabLExpr : L(Expr) -- EMonad(EValueType)
+evtElabLAtom : L(Atom) -- EMonad(EValueType)
+evtElabLWord : L(Word) -- EMonad(EValueType)
+evtElabExpr : Expr -- EMonad(EValueType)
+evtElabAtom : Atom -- EMonad(EValueType)
+evtElabWord : Word -- EMonad(EValueType)
+
+ewElabLExpr : EStackType L(Expr) -- EMonad(Pack(EStackType EWord))
+ewElabLAtom : EStackType L(Atom) -- EMonad(Pack(EStackType EWord))
+ewElabLWord : EStackType L(Word) -- EMonad(Pack(EStackType EWord))
+ewELabExpr : EStackType Expr -- EMonad(Pack(EStackType EWord))
+ewElabAtom : EStackType Atom -- EMonad(Pack(EStackType EWord))
+ewELabWord : EStackType Word -- EMonad(Pack(EStackType EWord))
+
+ekBake : CCtx(x) EKind -- EMonad(CKind(x))
+etBake : CCtx(x) ETerm -- EMonad(CTerm(x))
+estBake : CCtx(x) EStackType -- EMonad(CStackType(x))
+evtBake : CCtx(x) EValueType -- EMonad(CValueType(x))
+evBake : CCtx(x) EValue -- EMonad(CValue(x))
+ewBake : CCtx(x) EWord -- EMonad(CWord(x))
+eaBake : CCtx(x) EArgs -- EMonad(CArgs(x))
+
+estElabLExpr = emWithLoc(estElabExpr)
+estElabLAtom = emWithLoc(estElabAtom)
+estElabLWord = emWithLoc(estElabWord)
+estElabExpr = 
+  exprAtoms lmatchL(
+    ESTNil emPure,
+    dip(estElabLAtom) for(evtElabLAtom emMap2(ESTCons)) 
+  )
+estElabAtom =
+  matchAtom(
+    estElabLWord,
+    drop "Expected stack type, got int." emFail,
+    drop "Expected stack type, got str." emFail
+  )
+estElabWord =
+  dup wordName getL isStarVarName if(
+    unWord dip(emFoundStackTypeVar) emExpectNoLArgs emMap2(drop),
+    evtElabWord emMap(dip(ESTNil) ESTCons)
+  )
+
+
+
