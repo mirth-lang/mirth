@@ -58,17 +58,23 @@ data EValueType
   EVTMeta : L(Int) -- EValueType
   EVTVar : L(Name) -- EValueType
   EVTSym : L(CSymbol) EArgs -- EValueType
+  EVTInt : EValueType
+  EVTStr : EValueType
 end
 
 data EValue
   EVMeta : L(Int) -- EValue
   EVVar : L(Name) -- EValue
+  EVInt : Int -- EValue
+  EVStr : Str -- EValue
 end
 
 data EWord
-  EWVar : Name -- EWord
+  EWVar : L(Name) -- EWord
   EWSym : CSymbol EArgs -- EWord
   EWPush : EValue -- EWord
+  EWId : EWord
+  EWCp : EWord EWord -- EWord
 end
 
 data EArgs
@@ -154,6 +160,9 @@ emFoundValueTypeVar : L(Name) -- EMonad(EValueType)
 emExpectNoLArgs : L(Args) -- EMonad(Unit)
 emExpectNoArgs : Args -- EMonad(Unit) 
 
+emLookupValueType : L(Name) L(Args) -- EMonad(EValueType) 
+emLookupWord : EStackType L(Name) L(Args) -- EMonad(Pack(EWord EStackType))
+
 elabModules : List(Module) -- EMonad(Unit)
 elabModuleExports : Module -- EMonad(Unit)
 elabModuleBody : Module -- EMonad(Unit)
@@ -179,12 +188,16 @@ evtElabExpr : Expr -- EMonad(EValueType)
 evtElabAtom : Atom -- EMonad(EValueType)
 evtElabWord : Word -- EMonad(EValueType)
 
-ewElabLExpr : EStackType L(Expr) -- EMonad(Pack(EStackType EWord))
-ewElabLAtom : EStackType L(Atom) -- EMonad(Pack(EStackType EWord))
-ewElabLWord : EStackType L(Word) -- EMonad(Pack(EStackType EWord))
-ewELabExpr : EStackType Expr -- EMonad(Pack(EStackType EWord))
-ewElabAtom : EStackType Atom -- EMonad(Pack(EStackType EWord))
-ewELabWord : EStackType Word -- EMonad(Pack(EStackType EWord))
+ewElabLExpr : EStackType L(Expr) -- EMonad(Pack(EWord EStackType))
+ewElabLAtom : EStackType L(Atom) -- EMonad(Pack(EWord EStackType))
+ewElabLWord : EStackType L(Word) -- EMonad(Pack(EWord EStackType))
+ewElabLInt : EStackType L(Int) -- EMonad(Pack(EWord EStackType))
+ewElabLStr : EStackType L(Str) -- EMonad(Pack(EWord EStackType))
+ewElabExpr : EStackType Expr -- EMonad(Pack(EWord EStackType))
+ewElabAtom : EStackType Atom -- EMonad(Pack(EWord EStackType))
+ewElabWord : EStackType Word -- EMonad(Pack(EWord EStackType))
+ewElabInt : EStackType Int -- EMonad(Pack(EWord EStackType))
+ewElabStr : EStackType Str -- EMonad(Pack(EWord EStackType))
 
 ekBake : CCtx(x) EKind -- EMonad(CKind(x))
 etBake : CCtx(x) ETerm -- EMonad(CTerm(x))
@@ -214,5 +227,51 @@ estElabWord =
     evtElabWord emMap(dip(ESTNil) ESTCons)
   )
 
+evtElabLExpr = emWithLoc(evtElabExpr)
+evtElabLAtom = emWithLoc(evtElabAtom)
+evtElabLWord = emWithLoc(evtElabWord)
+evtElabExpr =
+  exprAtoms lmatchL(
+    "Expected value type, got nothing." emFail,
+    lmatchL(
+      evtElabLAtom,
+      drop3 "Expected value type, got multiple atoms." emFail
+    )
+  )
+evtElabAtom =
+  matchAtom(
+    evtElabLWord,
+    drop "Expected value type, got int." emFail,
+    drop "Expected value type, got str." emFail
+  )
+evtElabWord =
+  dup wordName getL isVarName if(
+    unWord dip(emFoundValueTypeVar) emExpectNoLArgs emMap2(drop),
+    unWord emLookupValueType
+  )
 
+ewElabLExpr = emWithLoc2(ewElabExpr)
+ewElabLAtom = emWithLoc2(ewElabAtom)
+ewElabLWord = emWithLoc2(ewElabWord)
+ewElabLInt = emWithLoc2(ewElabInt)
+ewElabLStr = emWithLoc2(ewElabStr)
+ewElabExpr =
+  exprAtoms lmatchL(
+    drop "Expected word, got nothing. Use id for identity word." emFail,
+    dip(ewElabLAtom) for(
+      emPure emBind2(
+        dip(unpack2) dip2(emPure) ewElabLAtom
+        emMap2(unpack2 dip(EWCp) pack2)
+      )
+    )
+  )
+ewElabAtom =
+  matchAtom(
+    ewElabLWord,
+    ewElabLInt,
+    ewElabLStr
+  )
+ewElabWord = unWord emLookupWord
+ewElabInt = EVInt EWPush swap EVTInt ESTCons pack2 emPure
+ewElabStr = EVStr EWPush swap EVTStr ESTCons pack2 emPure
 
