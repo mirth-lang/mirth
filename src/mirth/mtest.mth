@@ -15,6 +15,7 @@ import mirth/token
 import mirth/lexer
 import mirth/syntax
 import mirth/parser
+import mirth/elab
 
 ||| Integration & Golden Tests for the Mirth compiler.
 export mirth/mtest
@@ -147,6 +148,21 @@ expectParserSuccess = $(
   getL module->str expect("syntax") drop
 )
 
+||| Check that an elaborator error was expected.
+expectElabError : Mod EError -- +IO
+expectElabError = $(
+  dip(expectNo("elab"))
+  eerror->str expect("elab-error") drop
+)
+
+||| Check that an elaborator success was expected.
+expectElabSuccess : Mod EModule -- +IO
+expectElabSuccess = $(
+  dip(expectNo("elab-error"))
+  emodule->str expect("elab") drop
+)
+
+
 ||| Run golden test on single Mirth file.
 runGoldenTestFile : Path -- +IO
 runGoldenTestFile = $(
@@ -157,7 +173,11 @@ runGoldenTestFile = $(
     dup2 expectLexerSuccess
     parseModule runParser result(
       expectSyntaxError,
-      expectParserSuccess
+      dup2 expectParserSuccess
+      runElabModule result(
+        expectElabError,
+        expectElabSuccess
+      )
     )
   )
 )

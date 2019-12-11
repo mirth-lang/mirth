@@ -1,16 +1,23 @@
 
+import base/unit
 import base/maybe
+import base/result
 import base/list
 import base/str
 import base/int
+import base/nat
+import base/sexp
 import mirth/loc
 import mirth/syntax
 
 export mirth/elab
+  type Result(a,b)
   type EEnv
+  type EError
   type EMonad(t)
 
-  emRun : EEnv EMonad(t) -- EEnv Maybe(t)
+  emRun : EEnv EMonad(t) -- EEnv Result(EError,t)
+  emFail : Str -- EMonad(a)
   emPure : a -- EMonad(a)
   emPure2 : a b -- EMonad(a) EMonad(b)
   emPure3 : a b c -- EMonad(a) EMonad(b) EMonad(c)
@@ -22,21 +29,49 @@ export mirth/elab
   emBind2(f: a b -- EMonad(c)) : EMonad(a) EMonad(b) -- EMonad(c)
   emBind3(f: a b c -- EMonad(d)) : EMonad(a) EMonad(b) EMonad(c) -- EMonad(d)
   emBind4(f: a b c d -- EMonad(e)) : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(e)
+
+  type EModule
+
+  eeInitial : EEnv
+  runElabModule : L(Module) -- Result(EError, EModule)
+  eerror->str : EError -- Str
+  emodule->str : EModule -- Str
+
 end
 
-data EEnv
-  MkEEnv : EEnv
+||| Elaborator error.
+data EError
+  MkEError : Str -- EError
 end
 
+unEError : EError -- Str
+unEError = match(MkEError -> id)
+
+eerror->str : EError -- Str
+eerror->str = unEError
+
+||| Elaboration monad.
 data EMonad(t)
-  MkEMonad(f: EEnv m -- EEnv Maybe(t)) : m -- EMonad(t)
+  MkEMonad(f: EEnv m -- EEnv Result(EError, t)) : m -- EMonad(t)
 end
 
-emRun : EEnv EMonad(t) -- EEnv Maybe(t)
+emUse(f: EEnv a -- EEnv b) : a -- EMonad(b)
+emUse(f) = MkEMonad(f ok)
+
+emGet(f: EEnv -- EEnv b) : EMonad(b)
+emGet(f) = unit emUse(drop f)
+
+emPut(f: EEnv t -- EEnv) : t -- EMonad(Unit)
+emPut(f) = emUse(f unit)
+
+emRun : EEnv EMonad(t) -- EEnv Result(EError, t)
 emRun = match(MkEMonad(f) -> f)
 
 emPure : a -- EMonad(a)
-emPure = MkEMonad(some)
+emPure = MkEMonad(ok)
+
+emFail : Str -- EMonad(a)
+emFail = MkEMonad(MkEError err)
 
 emPure2 : a b -- EMonad(a) EMonad(b)
 emPure2 = dip(emPure) emPure
@@ -45,15 +80,15 @@ emPure3 : a b c -- EMonad(a) EMonad(b) EMonad(c)
 emPure3 = dip(emPure2) emPure
 
 emMap(f: a -- b) : EMonad(a) -- EMonad(b)
-emMap(f) = MkEMonad(emRun mmap(f))
+emMap(f) = MkEMonad(emRun rmap(f))
 
 emMap2(f: a b -- c) : EMonad(a) EMonad(b) -- EMonad(c)
 emMap2(f) =
   pack2 MkEMonad(
     unpack2 dip(emRun) swap
-    maybe(drop none,
+    result(nip err,
       dip(emRun) swap
-      maybe(drop none, f some)
+      result(nip err, f ok)
     )
   )
 
@@ -64,7 +99,7 @@ emMap4(f: a b c d -- e) : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(e)
 emMap4(f) = emMap2(pack2) emMap3(unpack2 f)
 
 emBind(f: a -- EMonad(b)) : EMonad(a) -- EMonad(b)
-emBind(f) = MkEMonad(emRun maybe(none, f emRun))
+emBind(f) = MkEMonad(emRun result(err, f emRun))
 
 emBind2(f: a b -- EMonad(c)) : EMonad(a) EMonad(b) -- EMonad(c)
 emBind2(f) = emMap2(pack2) emBind(unpack2 f)
@@ -74,4 +109,72 @@ emBind3(f) = emMap3(pack3) emBind(unpack3 f)
 
 emBind4(f: a b c d -- EMonad(e)) : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(e)
 emBind4(f) = emMap4(pack4) emBind(unpack4 f)
+
+###############
+# Elaboration #
+###############
+
+||| Elaboration World -- The collection of loaded packages and modules.
+data EWorld
+  MkEWorld : EWorld
+end
+
+||| Elaboration Context -- Necessary information for the current elaboration,
+||| such as the type of local variables and the mappings of names to symbols
+||| and metavariables to expansions.
+data ECtx
+  MkECtx : ECtx
+end
+
+||| Elaboration Environment
+data EEnv
+  MkEEnv : EWorld ECtx Nat -- EEnv
+end
+
+unEEnv : EEnv -- EWorld ECtx Nat
+unEEnv = match(MkEEnv -> id)
+
+eeInitial : EEnv
+eeInitial = MkEWorld MkECtx n0 MkEEnv
+
+eeFreshNat : EEnv -- EEnv Nat
+eeFreshNat = unEEnv n1+ pnat dup dip(MkEEnv)
+
+emFreshNat : EMonad(Nat)
+emFreshNat = emGet(eeFreshNat)
+
+eeUseWorld(f: EWorld a -- EWorld b) : EEnv a -- EEnv b
+eeUseWorld(f) = dip(unEEnv) dip2''(f) dip(MkEEnv)
+
+eeUseCtx(f: ECtx a -- ECtx b) : EEnv a -- EEnv b
+eeUseCtx(f) = dip(unEEnv) dip'(f) dip(MkEEnv)
+
+emFor(f: a b -- EMonad(a)) : a List(b) -- EMonad(a)
+emFor(f) = lmatchL(emPure, dip(f) emPure emBind2(emFor(f)))
+
+emList(f: a -- EMonad(b)) : List(a) -- EMonad(List(b))
+emList(f) = dip(nil) emFor(dip(emPure) f emMap2(consR))
+
+elabL(f: a -- EMonad(b)) : L(a) -- EMonad(b)
+elabL(f) = getL f # TODO: Keep track of current location within EEnv.
+
+data EModule
+  MkEModule : EModule
+end
+
+unEModule : EModule --
+unEModule = match(MkEModule -> id)
+
+emodule->sexp : EModule -- Sexp
+emodule->sexp = unEModule "module" sexpAtom nil consL sexpList
+
+emodule->str : EModule -- Str
+emodule->str = emodule->sexp sexp->str
+
+||| Elaborate a module as a single entity.
+elabModule : Module -- EMonad(EModule)
+elabModule = drop MkEModule emPure
+
+runElabModule : L(Module) -- Result(EError, EModule)
+runElabModule = dip(eeInitial) elabL(elabModule) emRun nip
 
