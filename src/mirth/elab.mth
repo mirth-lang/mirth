@@ -1,279 +1,70 @@
 
-import base/nat
-import base/unit
 import base/maybe
-import base/void
-import base/map
-import base/set
-import base/result
-import base/int
-import base/str
-import base/sexp
 import base/list
-import base/either
-import base/lens
-
-import mirth/mod
-import mirth/name
+import base/str
+import base/int
 import mirth/loc
 import mirth/syntax
-import mirth/pkg
-import mirth/mod
-import mirth/core
 
 export mirth/elab
-  type Lens(a,b)
-
-  type EKind
-  type ETerm
-  type EStackType
-  type EValueType
-  type EValue
-  type EWord
-  type EArgs
   type EEnv
-  type EFresh
-  type ECtx
-  type EError
-  type EState
   type EMonad(t)
 
-  emRun : EState EMonad(a) -- EState Result(EError, a)
+  emRun : EEnv EMonad(t) -- EEnv Maybe(t)
   emPure : a -- EMonad(a)
   emPure2 : a b -- EMonad(a) EMonad(b)
-  emMap (f: a -- b) : EMonad(a) -- EMonad(b)
-  emMap2 (f: a b -- c) : EMonad(a) EMonad(b) -- EMonad(c)
-  emMap3 (f: a b c -- d) : EMonad(a) EMonad(b) EMonad(c) -- EMonad(d)
-  emBind (f: a -- EMonad(b)) : EMonad(a) -- EMonad(b)
-  emBind2 (f: a b -- EMonad(c)) : EMonad(a) EMonad(b) -- EMonad(c)
-  emBind3 (f: a b c -- EMonad(d)) : EMonad(a) EMonad(b) EMonad(c) -- EMonad(d)
-  emUnit : EMonad(Unit)
-  emVoid : EMonad(a) -- EMonad(Unit)
-  emVoid2 : EMonad(a) EMonad(b) -- EMonad(Unit)
-  emGetState : EMonad(EState)
-  emSetState : EState -- EMonad(Unit)
-  emFail : Str -- EMonad(b)
-  emWithLoc (f: a -- EMonad(b)) : L(a) -- EMonad(b)
-  emWithLoc2 (f: a b -- EMonad(c)) : a L(b) -- EMonad(c)
-  emGetLoc : EMonad(a) -- EMonad(L(a))
-
-  emFoundStackTypeVar : L(Name) -- EMonad(EStackType)
-  emFoundValueTypeVar : L(Name) -- EMonad(EValueType)
-  emExpectNoLArgs : L(Args) -- EMonad(Unit)
-  emExpectNoArgs : Args -- EMonad(Unit)
-
-  emLookupValueType : L(Name) L(Args) -- EMonad(EValueType)
-  emLookupWord : EStackType L(Name) L(Args) -- EMonad(Pack(EWord EStackType))
-
-  elabModules : List(Module) -- EMonad(Unit)
-  elabModuleExports : Module -- EMonad(Unit)
-  elabModuleBody : Module -- EMonad(Unit)
-  elabLSig : L(Sig) -- EMonad(Unit)
-  elabLDecl : L(Decl) -- EMonad(Unit)
-  elabLTypeSig : L(TypeSig) -- EMonad(Unit)
-  elabLWordSig : L(WordSig) -- EMonad(Unit)
-  elabLDataDef : L(DataDef) -- EMonad(Unit)
-  elabLWordDef : L(WordDef) -- EMonad(Unit)
-  elabLAssertion : L(Assertion) -- EMonad(Unit)
-
-  estElabLExpr : L(Expr) -- EMonad(EStackType)
-  estElabLAtom : L(Atom) -- EMonad(EStackType)
-  estElabLWord : L(Word) -- EMonad(EStackType)
-  estElabExpr : Expr -- EMonad(EStackType)
-  estElabAtom : Atom -- EMonad(EStackType)
-  estElabWord : Word -- EMonad(EStackType)
-
-  evtElabLExpr : L(Expr) -- EMonad(EValueType)
-  evtElabLAtom : L(Atom) -- EMonad(EValueType)
-  evtElabLWord : L(Word) -- EMonad(EValueType)
-  evtElabExpr : Expr -- EMonad(EValueType)
-  evtElabAtom : Atom -- EMonad(EValueType)
-  evtElabWord : Word -- EMonad(EValueType)
-
-  ewElabLExpr : EStackType L(Expr) -- EMonad(Pack(EWord EStackType))
-  ewElabLAtom : EStackType L(Atom) -- EMonad(Pack(EWord EStackType))
-  ewElabLWord : EStackType L(Word) -- EMonad(Pack(EWord EStackType))
-  ewElabLInt : EStackType L(Int) -- EMonad(Pack(EWord EStackType))
-  ewElabLStr : EStackType L(Str) -- EMonad(Pack(EWord EStackType))
-  ewElabExpr : EStackType Expr -- EMonad(Pack(EWord EStackType))
-  ewElabAtom : EStackType Atom -- EMonad(Pack(EWord EStackType))
-  ewElabWord : EStackType Word -- EMonad(Pack(EWord EStackType))
-  ewElabInt : EStackType Int -- EMonad(Pack(EWord EStackType))
-  ewElabStr : EStackType Str -- EMonad(Pack(EWord EStackType))
-
-  ekBake : CCtx(x) EKind -- EMonad(CKind(x))
-  etBake : CCtx(x) ETerm -- EMonad(CTerm(x))
-  estBake : CCtx(x) EStackType -- EMonad(CStackType(x))
-  evtBake : CCtx(x) EValueType -- EMonad(CValueType(x))
-  evBake : CCtx(x) EValue -- EMonad(CValue(x))
-  ewBake : CCtx(x) EWord -- EMonad(CWord(x))
-  eaBake : CCtx(x) EArgs -- EMonad(CArgs(x))
-
-  ekUnBake : CKind(x) -- EMonad(EKind)
-  etUnBake : CTerm(x) -- EMonad(ETerm)
-  estUnBake : CStackType(x) -- EMonad(EStackType)
-  evtUnBake : CValueType(x) -- EMonad(EValueType)
-  #esUnBake : -- EMonad(EStack)
-  evUnBake : CValue(x) -- EMonad(EValue)
-  ewUnBake : CWord(x) -- EMonad(EWord)
-  eaUnBake : CArgs(x) -- EMonad(EArgs)
-
+  emPure3 : a b c -- EMonad(a) EMonad(b) EMonad(c)
+  emMap(f: a -- b) : EMonad(a) -- EMonad(b)
+  emMap2(f: a b -- c) : EMonad(a) EMonad(b) -- EMonad(c)
+  emMap3(f: a b c -- d) : EMonad(a) EMonad(b) EMonad(c) -- EMonad(d)
+  emMap4(f: a b c d -- e) : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(e)
+  emBind(f: a -- EMonad(b)) : EMonad(a) -- EMonad(b)
+  emBind2(f: a b -- EMonad(c)) : EMonad(a) EMonad(b) -- EMonad(c)
+  emBind3(f: a b c -- EMonad(d)) : EMonad(a) EMonad(b) EMonad(c) -- EMonad(d)
+  emBind4(f: a b c d -- EMonad(e)) : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(e)
 end
 
-data EKind
-  EKStackType : EKind
-  EKValueType : EKind
-  EKValue : EValueType -- EKind
-  EKWord : EStackType EStackType -- EKind
-end
-
-data ETerm
-  ETStackType : EStackType -- ETerm
-  ETValueType : EValueType -- ETerm
-  ETValue : EValue -- ETerm
-  ETWord : EStackType EWord -- ETerm
-end
-
-data EStackType
-  ESTMeta : L(Int) -- EStackType
-  ESTVar : L(Name) -- EStackType
-  ESTNil : EStackType
-  ESTCons : EStackType EValueType -- EStackType
-end
-
-data EValueType
-  EVTMeta : L(Int) -- EValueType
-  EVTVar : L(Name) -- EValueType
-  EVTSym : L(CSymbol) EArgs -- EValueType
-  EVTInt : EValueType
-  EVTStr : EValueType
-end
-
-data EValue
-  EVMeta : L(Int) -- EValue
-  EVVar : L(Name) -- EValue
-  EVInt : Int -- EValue
-  EVStr : Str -- EValue
-end
-
-data EWord
-  EWVar : L(Name) -- EWord
-  EWSym : CSymbol EArgs -- EWord
-  EWPush : EValue -- EWord
-  EWId : EWord
-  EWCp : EWord EWord -- EWord
-end
-
-data EArgs
-  MkEArgs : List(ETerm) -- EArgs
-end
-
-||| An eleboration definition. These typically just
-||| point to core definitions, but sometimes you have
-||| an elaborator macro (to be implemented).
-data EDef
-  EDCore : CSymbol -- EDef
-end
-
-||| The elaboration environment. This captures both the (cross-module)
-||| core environment, and the current set of bindings in this
-||| module.
 data EEnv
-  MkEEnv : CEnv Map(Name, EDef) -- EEnv
+  MkEEnv : EEnv
 end
 
-data EMetaDef
-  MkEMetaDef : Set(Name) EKind Maybe(ETerm) -- EMetaDef
-end
-
-||| The elaboration "fresh" state. This captures the id of the last
-||| metavariable generated, as well as the value of any unified
-||| metavariables. The fresh state is wiped clean in between
-||| definitions.
-data EFresh
-  MkEFresh : Map(Int, EMetaDef) Int -- EFresh
-end
-
-||| A variable context for the elaborator.
-data ECtxList
-  ECLZero : ECtxList
-  ECLSucc : ECtxList Name EKind -- ECtxList
-end
-
-data ECtx
-  MkECtx : Bool ECtxList ECtxList -- ECtx
-end
-
-unECtx : ECtxList
-
-ectx.captureImplicits : Lens(ECtx, Bool)
-ectx.implicitBinds : Lens(ECtx, ECtxList)
-ectx.explicitBinds : Lens(ECtx, ECtxList)
-
-ectx.captureImplicits = lens1/3(MkECtx, unECtx)
-ectx.implicitBinds = lens2/3(MkECtx, unECtx)
-ectx.explicitBinds = lens3/3(MkECtx, unECtx)
-
-ectxFoundStackTypeVar : ECtx L(Name) -- Either(EError, ECtx)
-ectxFoundValueTypeVar : ECtx L(Name) -- Either(EError, ECtx)
-
-
-||| An elaborator error.
-data EError
-  MkEError : L(Str) -- EError
-end
-
-unEError : EError -- L(Str)
-unEError = match(MkEError -> id)
-
-eerror->str : EError -- Str
-eerror->str = unEError unL dip(locSet->str) <>
-
-
-||| The overall state of the elaborator. It consists of an
-||| environment, a fresh state, and a variable context.
-data EState
-  MkEState : EEnv EFresh ECtx LocSet -- EState
-end
-
-unEState : EState -- EEnv EFresh ECtx LocSet
-unEState = match(MkEState -> id)
-
-estate.eenv   : Lens(EState, EEnv)
-estate.efresh : Lens(EState, EFresh)
-estate.ectx   : Lens(EState, ECtx)
-estate.locSet : Lens(EState, LocSet)
-
-estate.eenv   = lens1/4(MkEState, unEState)
-estate.efresh = lens2/4(MkEState, unEState)
-estate.ectx   = lens3/4(MkEState, unEState)
-estate.locSet = lens4/4(MkEState, unEState)
-
-|||
 data EMonad(t)
-  MkEMonad(f: EState m -- EState Result(EError, t)) : m -- EMonad(t)
+  MkEMonad(f: EEnv m -- EEnv Maybe(t)) : m -- EMonad(t)
 end
 
-emRun : EState EMonad(a) -- EState Result(EError, a)
+emRun : EEnv EMonad(t) -- EEnv Maybe(t)
 emRun = match(MkEMonad(f) -> f)
 
 emPure : a -- EMonad(a)
-emPure = MkEMonad(ok)
+emPure = MkEMonad(some)
 
 emPure2 : a b -- EMonad(a) EMonad(b)
 emPure2 = dip(emPure) emPure
 
+emPure3 : a b c -- EMonad(a) EMonad(b) EMonad(c)
+emPure3 = dip(emPure2) emPure
+
 emMap(f: a -- b) : EMonad(a) -- EMonad(b)
-emMap(f) = MkEMonad(emRun rmap(f))
+emMap(f) = MkEMonad(emRun mmap(f))
 
 emMap2(f: a b -- c) : EMonad(a) EMonad(b) -- EMonad(c)
-emMap2(f) = pack2 MkEMonad(unpack2 dip(emRun) swap result(nip err, dip(emRun) swap result(nip err, f ok)))
+emMap2(f) =
+  pack2 MkEMonad(
+    unpack2 dip(emRun) swap
+    maybe(drop none,
+      dip(emRun) swap
+      maybe(drop none, f some)
+    )
+  )
 
 emMap3(f: a b c -- d) : EMonad(a) EMonad(b) EMonad(c) -- EMonad(d)
 emMap3(f) = emMap2(pack2) emMap2(unpack2 f)
 
+emMap4(f: a b c d -- e) : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(e)
+emMap4(f) = emMap2(pack2) emMap3(unpack2 f)
+
 emBind(f: a -- EMonad(b)) : EMonad(a) -- EMonad(b)
-emBind(f) = MkEMonad(emRun result(err, f emRun))
+emBind(f) = MkEMonad(emRun maybe(none, f emRun))
 
 emBind2(f: a b -- EMonad(c)) : EMonad(a) EMonad(b) -- EMonad(c)
 emBind2(f) = emMap2(pack2) emBind(unpack2 f)
@@ -281,181 +72,6 @@ emBind2(f) = emMap2(pack2) emBind(unpack2 f)
 emBind3(f: a b c -- EMonad(d)) : EMonad(a) EMonad(b) EMonad(c) -- EMonad(d)
 emBind3(f) = emMap3(pack3) emBind(unpack3 f)
 
-emUnit : EMonad(Unit)
-emUnit = unit emPure
-
-emVoid : EMonad(a) -- EMonad(Unit)
-emVoid = emMap(drop unit)
-
-emVoid2 : EMonad(a) EMonad(b) -- EMonad(Unit)
-emVoid2 = emMap2(drop2 unit)
-
-emGetState : EMonad(EState)
-emGetState = unit MkEMonad(drop dup ok)
-
-emSetState : EState -- EMonad(Unit)
-emSetState = MkEMonad(nip unit ok)
-
-em@ : Lens(EState, a) -- EMonad(a)
-em@ = dip(emGetState) emPure emMap2(@)
-
-em! : a Lens(EState, a) -- EMonad(Unit)
-em! = dip2(emGetState) emPure2 emBind3(! emSetState)
-
-em^(f: x a -- EMonad(Pack(y a))) : x Lens(EState, a) -- EMonad(y)
-em^(f) =
-  dip(emPure) dup dip(em@) emPure emBind3(
-    dip(f) emPure emBind2(
-      dip(unpack2 dip(emPure)) em!
-      emMap2(drop)
-    )
-  )
-
-emThrow : EError -- EMonad(b)
-emThrow = MkEMonad(err)
-
-emFail : Str -- EMonad(b)
-emFail = emPure emGetLoc emBind(MkEError emThrow)
-
-emGetLocSet : EMonad(LocSet)
-emGetLocSet = estate.locSet em@
-
-emSetLocSet : LocSet -- EMonad(Unit)
-emSetLocSet = estate.locSet em!
-
-emWithLocSet : LocSet EMonad(a) -- EMonad(a)
-emWithLocSet =
-  dip2(emGetLocSet) dip(emSetLocSet) emBind3(
-    dip(drop emSetLocSet)
-    emPure emMap2(nip)
-  )
-
-emWithLoc(f: a -- EMonad(b)) : L(a) -- EMonad(b)
-emWithLoc(f) = unL f emWithLocSet
-
-emWithLoc2(f: a b -- EMonad(c)) : a L(b) -- EMonad(c)
-emWithLoc2(f) = unL dip(swap) f emWithLocSet
-
-emGetLoc : EMonad(a) -- EMonad(L(a))
-emGetLoc = dip(emGetLocSet) emMap2(mkL)
-
-emFoundStackTypeVar : L(Name) -- EMonad(EStackType)
-emFoundValueTypeVar : L(Name) -- EMonad(EValueType)
-emExpectNoLArgs : L(Args) -- EMonad(Unit)
-emExpectNoArgs : Args -- EMonad(Unit)
-
-emLookupValueType : L(Name) L(Args) -- EMonad(EValueType)
-emLookupWord : EStackType L(Name) L(Args) -- EMonad(Pack(EWord EStackType))
-
-elabModules : List(Module) -- EMonad(Unit)
-elabModuleExports : Module -- EMonad(Unit)
-elabModuleBody : Module -- EMonad(Unit)
-elabLSig : L(Sig) -- EMonad(Unit)
-elabLDecl : L(Decl) -- EMonad(Unit)
-elabLTypeSig : L(TypeSig) -- EMonad(Unit)
-elabLWordSig : L(WordSig) -- EMonad(Unit)
-elabLDataDef : L(DataDef) -- EMonad(Unit)
-elabLWordDef : L(WordDef) -- EMonad(Unit)
-elabLAssertion : L(Assertion) -- EMonad(Unit)
-
-estElabLExpr : L(Expr) -- EMonad(EStackType)
-estElabLAtom : L(Atom) -- EMonad(EStackType)
-estElabLWord : L(Word) -- EMonad(EStackType)
-estElabExpr : Expr -- EMonad(EStackType)
-estElabAtom : Atom -- EMonad(EStackType)
-estElabWord : Word -- EMonad(EStackType)
-
-evtElabLExpr : L(Expr) -- EMonad(EValueType)
-evtElabLAtom : L(Atom) -- EMonad(EValueType)
-evtElabLWord : L(Word) -- EMonad(EValueType)
-evtElabExpr : Expr -- EMonad(EValueType)
-evtElabAtom : Atom -- EMonad(EValueType)
-evtElabWord : Word -- EMonad(EValueType)
-
-ewElabLExpr : EStackType L(Expr) -- EMonad(Pack(EWord EStackType))
-ewElabLAtom : EStackType L(Atom) -- EMonad(Pack(EWord EStackType))
-ewElabLWord : EStackType L(Word) -- EMonad(Pack(EWord EStackType))
-ewElabLInt : EStackType L(Int) -- EMonad(Pack(EWord EStackType))
-ewElabLStr : EStackType L(Str) -- EMonad(Pack(EWord EStackType))
-ewElabExpr : EStackType Expr -- EMonad(Pack(EWord EStackType))
-ewElabAtom : EStackType Atom -- EMonad(Pack(EWord EStackType))
-ewElabWord : EStackType Word -- EMonad(Pack(EWord EStackType))
-ewElabInt : EStackType Int -- EMonad(Pack(EWord EStackType))
-ewElabStr : EStackType Str -- EMonad(Pack(EWord EStackType))
-
-ekBake : CCtx(x) EKind -- EMonad(CKind(x))
-etBake : CCtx(x) ETerm -- EMonad(CTerm(x))
-estBake : CCtx(x) EStackType -- EMonad(CStackType(x))
-evtBake : CCtx(x) EValueType -- EMonad(CValueType(x))
-evBake : CCtx(x) EValue -- EMonad(CValue(x))
-ewBake : CCtx(x) EWord -- EMonad(CWord(x))
-eaBake : CCtx(x) EArgs -- EMonad(CArgs(x))
-
-estElabLExpr = emWithLoc(estElabExpr)
-estElabLAtom = emWithLoc(estElabAtom)
-estElabLWord = emWithLoc(estElabWord)
-estElabExpr =
-  exprAtoms lmatchL(
-    ESTNil emPure,
-    dip(estElabLAtom) for(evtElabLAtom emMap2(ESTCons))
-  )
-estElabAtom =
-  matchAtom(
-    estElabLWord,
-    drop "Expected stack type, got int." emFail,
-    drop "Expected stack type, got str." emFail
-  )
-estElabWord =
-  dup wordName getL isStarVarName if(
-    unWord dip(emFoundStackTypeVar) emExpectNoLArgs emMap2(drop),
-    evtElabWord emMap(dip(ESTNil) ESTCons)
-  )
-
-evtElabLExpr = emWithLoc(evtElabExpr)
-evtElabLAtom = emWithLoc(evtElabAtom)
-evtElabLWord = emWithLoc(evtElabWord)
-evtElabExpr =
-  exprAtoms lmatchL(
-    "Expected value type, got nothing." emFail,
-    lmatchL(
-      evtElabLAtom,
-      drop3 "Expected value type, got multiple atoms." emFail
-    )
-  )
-evtElabAtom =
-  matchAtom(
-    evtElabLWord,
-    drop "Expected value type, got int." emFail,
-    drop "Expected value type, got str." emFail
-  )
-evtElabWord =
-  dup wordName getL isVarName if(
-    unWord dip(emFoundValueTypeVar) emExpectNoLArgs emMap2(drop),
-    unWord emLookupValueType
-  )
-
-ewElabLExpr = emWithLoc2(ewElabExpr)
-ewElabLAtom = emWithLoc2(ewElabAtom)
-ewElabLWord = emWithLoc2(ewElabWord)
-ewElabLInt = emWithLoc2(ewElabInt)
-ewElabLStr = emWithLoc2(ewElabStr)
-ewElabExpr =
-  exprAtoms lmatchL(
-    drop "Expected word, got nothing. Use id for identity word." emFail,
-    dip(ewElabLAtom) for(
-      emPure emBind2(
-        dip(unpack2) dip2(emPure) ewElabLAtom
-        emMap2(unpack2 dip(EWCp) pack2)
-      )
-    )
-  )
-ewElabAtom =
-  matchAtom(
-    ewElabLWord,
-    ewElabLInt,
-    ewElabLStr
-  )
-ewElabWord = unWord emLookupWord
-ewElabInt = EVInt EWPush swap EVTInt ESTCons pack2 emPure
-ewElabStr = EVStr EWPush swap EVTStr ESTCons pack2 emPure
+emBind4(f: a b c d -- EMonad(e)) : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(e)
+emBind4(f) = emMap4(pack4) emBind(unpack4 f)
 
