@@ -104,11 +104,12 @@ def interpret(path, args, flags):
 def repl(flags):
     # REPL banner
     print()
-    print('Mirth Bootstrap Interpreter v0.0.0: CAVEAT USOR.')
+    print('Mirth Bootstrap Interpreter v0.0.0: Caveat Explorator.')
     print()
     print('Thank you to our patrons on https://patreon.com/mirth_lang')
     print('And a special thanks to Benjohn, Joseph Victor, spacekitteh,')
-    print('webstrand, Mark Friedenback, Tycho Luyben, and agentofuser.')
+    print('webstrand, Mark Friedenback, Tycho Luyben, agentofuser,')
+    print('and Nikolai Mushegian.')
     print()
 
     m = load_prelude() if not flags['no-prelude'] else module()
