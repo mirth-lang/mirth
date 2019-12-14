@@ -6,7 +6,7 @@
 
 # Mirth
 
-![](https://github.com/mirth-lang/mirth/workflows/CI/badge.svg)
+![](https://github.com/mirth-lang/mirth/workflows/tests/badge.svg)
 ![](https://github.com/mirth-lang/mirth/workflows/self-build/badge.svg)
 
 **Mirth** is a new type-safe concatenative functional programming languague. Mirth was inspired by **Forth**, **Joy**, **Haskell**, **Idris**, **Rust**, **Lisp**, and symmetric monoidal category theory. This repo is the WIP implementation of these ideas. If you are interested, please support the development of Mirth on [Patreon](https://patreon.com/mirth_lang)! Thank you for your time and generosity.

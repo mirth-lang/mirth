@@ -1,10 +1,23 @@
-name: CI
+name: tests
 
 on:
   - push
   - pull_request
 
 jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
+    - name: Bootstrap Tests
+      run: python bootstrap/test.py
+
   build:
     strategy:
       matrix:
@@ -15,7 +28,7 @@ jobs:
     - uses: actions/setup-python@v1
       with:
         python-version: '3.x'
-    - name: Typecheck
+    - name: Mirth Typecheck
       run: python bootstrap/mirth.py --typecheck src
 
   test:
@@ -28,5 +41,6 @@ jobs:
     - uses: actions/setup-python@v1
       with:
         python-version: '3.x'
-    - name: Run Mirth tests
+    - name: Mirth Golden Tests
       run: PYTHONHASHSEED=0 python bootstrap/mirth.py src mtest
+
