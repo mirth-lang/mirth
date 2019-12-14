@@ -9,14 +9,15 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
+        arch: [x86, x64]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-python@v1
       with:
         python-version: '3.x'
-        architecture: 'x64'
+        architecture: {{ matrix.arch }}
     - name: Typecheck
-      run: make
+      run: PYTHONHASHSEED=0 python bootstrap/mirth.py --typecheck src
     - name: Run Mirth tests
-      run: make test
+      run: PYTHONHASHSEED=0 python bootstrap/mirth.py src mtest
