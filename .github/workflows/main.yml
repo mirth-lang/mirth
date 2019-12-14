@@ -5,7 +5,7 @@ on:
   - pull_request
 
 jobs:
-  test:
+  bootstrap-tests:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
@@ -18,7 +18,7 @@ jobs:
     - name: Bootstrap Tests
       run: python bootstrap/test.py
 
-  build:
+  mirth-typecheck:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
@@ -31,7 +31,7 @@ jobs:
     - name: Mirth Typecheck
       run: python bootstrap/mirth.py --typecheck src
 
-  test:
+  mirth-golden-tests:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
