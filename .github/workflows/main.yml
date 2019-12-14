@@ -16,7 +16,7 @@ jobs:
     - uses: actions/setup-python@v1
       with:
         python-version: '3.x'
-        architecture: {{ matrix.arch }}
+        architecture: ${{ matrix.arch }}
     - name: Typecheck
       run: PYTHONHASHSEED=0 python bootstrap/mirth.py --typecheck src
     - name: Run Mirth tests
