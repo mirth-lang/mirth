@@ -5,7 +5,7 @@ on:
   - pull_request
 
 jobs:
-  test:
+  build:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
@@ -16,6 +16,17 @@ jobs:
       with:
         python-version: '3.x'
     - name: Typecheck
-      run: PYTHONHASHSEED=0 python bootstrap/mirth.py --typecheck src
+      run: python bootstrap/mirth.py --typecheck src
+
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
     - name: Run Mirth tests
       run: PYTHONHASHSEED=0 python bootstrap/mirth.py src mtest
