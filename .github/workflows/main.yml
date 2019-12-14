@@ -1,0 +1,15 @@
+name: CI
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  test:
+    runs-on: ["ubuntu-latest", "macos-latest", "windows-latest"]
+    steps:
+    - uses: actions/checkout@v1
+    - name: Typecheck
+      run: make
+    - name: Run Mirth tests
+      run: make test
