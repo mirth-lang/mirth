@@ -159,6 +159,9 @@ emForB(f) = emPure emBind2(emFor(f))
 emList(f: a -- EMonad(b)) : List(a) -- EMonad(List(b))
 emList(f) = dip(nil) emFor(dip(emPure) f emMap2(consR))
 
+emUpdateMap(f: Maybe(v) a -- EMonad(v)) : Map(k,v) k a -- EMonad(Map(k,v))
+emUpdateMap(f) = dip(mapGet? dip(emPure2)) f emMap3(mapSet)
+
 elabL(f: a -- EMonad(b)) : L(a) -- EMonad(b)
 elabL(f) = getL f # TODO: Keep track of current location within EEnv.
 
@@ -172,10 +175,15 @@ data EDefType
 end
 
 data EDef
+  EDType : EDef
+  EDWord : EDef
 end
 
 edef->sexp : EDef -- Sexp
-edef->sexp = match
+edef->sexp = match(
+  EDType -> "def-type" sexpAtom,
+  EDWord -> "def-word" sexpAtom
+)
 
 data EModule
   MkEModule : Map(Name, EDef) -- EModule
@@ -198,10 +206,14 @@ emodule->sexp = $(
 emodule->str : EModule -- Str
 emodule->str = emodule->sexp sexp->str
 
+emUpdateDef(f: Maybe(EDef) x -- EMonad(EDef)) : EModule Name x -- EMonad(EModule)
+emUpdateDef(f) =
+  dip2(unEModule) emUpdateMap(f) emMap(MkEModule)
 
 elabLModule : L(Module) -- EMonad(EModule)
 elabLImport : EModule L(Import) -- EMonad(EModule)
 elabLExport : EModule L(Export) -- EMonad(EModule)
+elabLSig : EModule L(Sig) -- EMonad(EModule)
 elabLDecl : EModule L(Decl) -- EMonad(EModule)
 elabLTypeSig : EModule L(TypeSig) -- EMonad(EModule)
 elabLDataDef : EModule L(DataDef) -- EMonad(EModule)
@@ -212,6 +224,7 @@ elabLAssertion : EModule L(Assertion) -- EMonad(EModule)
 elabModule : Module -- EMonad(EModule)
 elabImport : EModule Import -- EMonad(EModule)
 elabExport : EModule Export -- EMonad(EModule)
+elabSig : EModule Sig -- EMonad(EModule)
 elabDecl : EModule Decl -- EMonad(EModule)
 elabTypeSig : EModule TypeSig -- EMonad(EModule)
 elabDataDef : EModule DataDef -- EMonad(EModule)
@@ -219,8 +232,14 @@ elabWordSig : EModule WordSig -- EMonad(EModule)
 elabWordDef : EModule WordDef -- EMonad(EModule)
 elabAssertion : EModule Assertion -- EMonad(EModule)
 
+elabTypeSig@EDef : Maybe(EDef) TypeSig -- EMonad(EDef)
+elabDataDef@EDef : Maybe(EDef) DataDef -- EMonad(EDef)
+elabWordSig@EDef : Maybe(EDef) WordSig -- EMonad(EDef)
+elabWordDef@EDef : Maybe(EDef) WordDef -- EMonad(EDef)
+
 elabLModule = elabL(elabModule)
 elabLDecl = elabL2(elabDecl)
+elabLSig = elabL2(elabSig)
 elabLTypeSig = elabL2(elabTypeSig)
 elabLDataDef = elabL2(elabDataDef)
 elabLWordSig = elabL2(elabWordSig)
@@ -233,6 +252,37 @@ elabModule = $(
   dip(getL emForB(elabLExport))
   getL emForB(elabLDecl)
 )
+
+elabImport = drop emPure
+elabExport = drop emPure
+
+elabDecl =
+  matchDecl(
+    elabLTypeSig,
+    elabLDataDef,
+    elabLWordSig,
+    elabLWordDef,
+    elabLAssertion
+  )
+
+elabSig =
+  matchSig(
+    elabLTypeSig,
+    elabLWordSig,
+    elabLAssertion
+  )
+
+elabTypeSig = dup dip(typeSigName getL) emUpdateDef(elabTypeSig@EDef)
+elabDataDef = dup dip(dataDefName getL) emUpdateDef(elabDataDef@EDef) # TODO add the word defs of constructors as well
+elabWordSig = dup dip(wordSigName getL) emUpdateDef(elabWordSig@EDef)
+elabWordDef = dup dip(wordDefName getL) emUpdateDef(elabWordDef@EDef)
+elabAssertion = drop emPure
+
+elabTypeSig@EDef = drop2 EDType emPure
+elabDataDef@EDef = drop2 EDType emPure
+elabWordSig@EDef = drop2 EDWord emPure
+elabWordDef@EDef = drop2 EDWord emPure
+
 
 runElabModule : L(Module) -- Result(EError, EModule)
 runElabModule = dip(eeInitial) elabLModule emRun nip
