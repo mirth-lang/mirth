@@ -3,19 +3,19 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 typecheck:
-	python3 bootstrap/mirth.py --typecheck src
+	PYTHONHASHSEED=0 python3 bootstrap/mirth.py --typecheck src
 
 test:
-	python3 bootstrap/mirth.py src mtest
+	PYTHONHASHSEED=0 python3 bootstrap/mirth.py src mtest
 
 test-update:
-	python3 bootstrap/mirth.py src mtest --update
+	PYTHONHASHSEED=0 python3 bootstrap/mirth.py src mtest --update
 
 build:
-	python3 bootstrap/mirth.py src build
+	PYTHONHASHSEED=0 python3 bootstrap/mirth.py src build
 
 bootstrap-test:
-	python3 bootstrap/test.py
+	PYTHONHASHSEED=0 python3 bootstrap/test.py
 
 install-vim:
 	mkdir -p ~/.vim/bundle

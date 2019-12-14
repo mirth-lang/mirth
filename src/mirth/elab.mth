@@ -172,18 +172,36 @@ elabL3(f: a b c -- EMonad(d)) : a b L(c) -- EMonad(d)
 elabL3(f) = unL dip(rotr) pack3 mkL elabL(unpack3 f)
 
 data EDefType
+  MkEDefType : EDefType
 end
 
+unEDefType : EDefType --
+unEDefType = match(MkEDefType -> id)
+
+edeftype->sexp : EDefType -- Sexp
+edeftype->sexp = unEDefType "type" sexpAtom
+
+data EDefWord
+  MkEDefWord : EDefWord
+end
+
+unEDefWord : EDefWord --
+unEDefWord = match(MkEDefWord -> id)
+
+edefword->sexp : EDefWord -- Sexp
+edefword->sexp = unEDefWord "word" sexpAtom
+
 data EDef
-  EDType : EDef
-  EDWord : EDef
+  EDType : EDefType -- EDef
+  EDWord : EDefWord -- EDef
 end
 
 edef->sexp : EDef -- Sexp
-edef->sexp = match(
-  EDType -> "def-type" sexpAtom,
-  EDWord -> "def-word" sexpAtom
-)
+edef->sexp =
+  match(
+    EDType -> edeftype->sexp,
+    EDWord -> edefword->sexp
+  )
 
 data EModule
   MkEModule : Map(Name, EDef) -- EModule
@@ -273,16 +291,16 @@ elabSig =
   )
 
 elabTypeSig = dup dip(typeSigName getL) emUpdateDef(elabTypeSig@EDef)
-elabDataDef = dup dip(dataDefName getL) emUpdateDef(elabDataDef@EDef) # TODO add the word defs of constructors as well
+elabDataDef = dup dip(dataDefName getL) emUpdateDef(elabDataDef@EDef)
+  # TODO: add word defs for constructors as well
 elabWordSig = dup dip(wordSigName getL) emUpdateDef(elabWordSig@EDef)
 elabWordDef = dup dip(wordDefName getL) emUpdateDef(elabWordDef@EDef)
 elabAssertion = drop emPure
 
-elabTypeSig@EDef = drop2 EDType emPure
-elabDataDef@EDef = drop2 EDType emPure
-elabWordSig@EDef = drop2 EDWord emPure
-elabWordDef@EDef = drop2 EDWord emPure
-
+elabTypeSig@EDef = drop2 MkEDefType EDType emPure
+elabDataDef@EDef = drop2 MkEDefType EDType emPure
+elabWordSig@EDef = drop2 MkEDefWord EDWord emPure
+elabWordDef@EDef = drop2 MkEDefWord EDWord emPure
 
 runElabModule : L(Module) -- Result(EError, EModule)
 runElabModule = dip(eeInitial) elabLModule emRun nip
