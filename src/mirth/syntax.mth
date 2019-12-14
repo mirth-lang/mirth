@@ -6,6 +6,7 @@ import base/maybe
 import base/list
 import base/str
 import base/int
+import base/sexp
 import base/panic
 import mirth/loc
 
@@ -14,6 +15,7 @@ export mirth/name
   type Name
   mkName : Str -- Name
   unName : Name -- Str
+  name->sexp : Name -- Sexp
   name->str : Name -- Str
   nameeq : Name Name -- Bool
   isVarName : Name -- Bool
@@ -27,6 +29,7 @@ end
 export mirth/syntax
   type L(t)
   type Maybe(t)
+  type Sexp
 
   type Module
   type Import
@@ -182,6 +185,7 @@ export mirth/syntax
 
   mkName : Str -- Name
   unName : Name -- Str
+  name->sexp : Name -- Sexp
   name->str : Name -- Str
   nameeq : Name Name -- Bool
   isVarName      : Name -- Bool
@@ -541,6 +545,7 @@ end
 
 unName = match( mkName -> id )
 name->str = unName
+name->sexp = name->str sexpAtom
 nameeq = both(unName) streq
 
 isVarName = name->str "[a-z].*" strmatch isSome

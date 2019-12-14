@@ -7,6 +7,7 @@ import base/str
 import base/int
 import base/nat
 import base/sexp
+import base/map
 import mirth/loc
 import mirth/syntax
 
@@ -152,29 +153,87 @@ eeUseCtx(f) = dip(unEEnv) dip'(f) dip(MkEEnv)
 emFor(f: a b -- EMonad(a)) : a List(b) -- EMonad(a)
 emFor(f) = lmatchL(emPure, dip(f) emPure emBind2(emFor(f)))
 
+emForB(f: a b -- EMonad(a)) : EMonad(a) List(b) -- EMonad(a)
+emForB(f) = emPure emBind2(emFor(f))
+
 emList(f: a -- EMonad(b)) : List(a) -- EMonad(List(b))
 emList(f) = dip(nil) emFor(dip(emPure) f emMap2(consR))
 
 elabL(f: a -- EMonad(b)) : L(a) -- EMonad(b)
 elabL(f) = getL f # TODO: Keep track of current location within EEnv.
 
-data EModule
-  MkEModule : EModule
+elabL2(f: a b -- EMonad(c)) : a L(b) -- EMonad(c)
+elabL2(f) = unL dip(swap) pack2 mkL elabL(unpack2 f)
+
+elabL3(f: a b c -- EMonad(d)) : a b L(c) -- EMonad(d)
+elabL3(f) = unL dip(rotr) pack3 mkL elabL(unpack3 f)
+
+data EDefType
 end
 
-unEModule : EModule --
+data EDef
+end
+
+edef->sexp : EDef -- Sexp
+edef->sexp = match
+
+data EModule
+  MkEModule : Map(Name, EDef) -- EModule
+end
+
+unEModule : EModule -- Map(Name, EDef)
 unEModule = match(MkEModule -> id)
 
+initialEModule : EModule
+initialEModule = mapNil MkEModule
+
 emodule->sexp : EModule -- Sexp
-emodule->sexp = unEModule "module" sexpAtom nil consL sexpList
+emodule->sexp = $(
+  unEModule
+  dip("module" sexpAtom lpure)
+  map->sexp(name->sexp, edef->sexp) cons
+  sexpList
+)
 
 emodule->str : EModule -- Str
 emodule->str = emodule->sexp sexp->str
 
-||| Elaborate a module as a single entity.
+
+elabLModule : L(Module) -- EMonad(EModule)
+elabLImport : EModule L(Import) -- EMonad(EModule)
+elabLExport : EModule L(Export) -- EMonad(EModule)
+elabLDecl : EModule L(Decl) -- EMonad(EModule)
+elabLTypeSig : EModule L(TypeSig) -- EMonad(EModule)
+elabLDataDef : EModule L(DataDef) -- EMonad(EModule)
+elabLWordSig : EModule L(WordSig) -- EMonad(EModule)
+elabLWordDef : EModule L(WordDef) -- EMonad(EModule)
+elabLAssertion : EModule L(Assertion) -- EMonad(EModule)
+
 elabModule : Module -- EMonad(EModule)
-elabModule = drop MkEModule emPure
+elabImport : EModule Import -- EMonad(EModule)
+elabExport : EModule Export -- EMonad(EModule)
+elabDecl : EModule Decl -- EMonad(EModule)
+elabTypeSig : EModule TypeSig -- EMonad(EModule)
+elabDataDef : EModule DataDef -- EMonad(EModule)
+elabWordSig : EModule WordSig -- EMonad(EModule)
+elabWordDef : EModule WordDef -- EMonad(EModule)
+elabAssertion : EModule Assertion -- EMonad(EModule)
+
+elabLModule = elabL(elabModule)
+elabLDecl = elabL2(elabDecl)
+elabLTypeSig = elabL2(elabTypeSig)
+elabLDataDef = elabL2(elabDataDef)
+elabLWordSig = elabL2(elabWordSig)
+elabLWordDef = elabL2(elabWordDef)
+elabLAssertion = elabL2(elabAssertion)
+
+elabModule = $(
+  dip(initialEModule) unModule
+  dip2(getL emFor(elabLImport))
+  dip(getL emForB(elabLExport))
+  getL emForB(elabLDecl)
+)
 
 runElabModule : L(Module) -- Result(EError, EModule)
-runElabModule = dip(eeInitial) elabL(elabModule) emRun nip
+runElabModule = dip(eeInitial) elabLModule emRun nip
 
