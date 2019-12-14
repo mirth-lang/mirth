@@ -68,6 +68,10 @@ def load_prelude():
     return m
 
 def interpret(path, args, flags):
+    if os.path.isdir(path):
+        run_package(path, args, flags)
+        return
+
     try:
         with open(path) as fp:
             preamble, decls = parse(fp)

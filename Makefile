@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 typecheck:
-	PYTHONHASHSEED=0 python3 bootstrap/mirth.py --typecheck src
+	python3 bootstrap/mirth.py --typecheck src
 
 test:
 	PYTHONHASHSEED=0 python3 bootstrap/mirth.py src mtest
