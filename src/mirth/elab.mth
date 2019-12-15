@@ -132,6 +132,9 @@ emVoid = emMap(drop unit)
 emVoid2 : EMonad(a) EMonad(b) -- EMonad(Unit)
 emVoid2 = emMap2(drop2 unit)
 
+emVoid3 : EMonad(a) EMonad(b) EMonad(c) -- EMonad(Unit)
+emVoid3 = emMap3(drop3 unit)
+
 ###############
 # Elaboration #
 ###############
@@ -226,6 +229,12 @@ unEImports = match(MkEImports -> id)
 eimportsNil : EImports
 eimportsNil = setNil MkEImports
 
+eimportsAdd : EImports Interface -- EImports
+eimportsAdd = dip(unEImports) setAdd MkEImports
+
+eimportsHas : EImports Interface -- Bool
+eimportsHas = dip(unEImports) setHas
+
 eimports->sexp : EImports -- Sexp
 eimports->sexp = unEImports set->sexp(interface->sexp)
 
@@ -252,6 +261,18 @@ end
 
 unEModule : EModule -- Mod EImports EExports EDefs
 unEModule = match(MkEModule -> id)
+
+emoduleMod : EModule -- Mod
+emoduleMod = unEModule drop3
+
+emoduleUseImports(f: EImports a -- EImports b) : EModule a -- EModule b
+emoduleUseImports(f) = dip(unEModule) dip2''(f) dip(MkEModule)
+
+emoduleUseExports(f: EExports a -- EExports b) : EModule a -- EModule b
+emoduleUseExports(f) = dip(unEModule) dip'(f) dip(MkEModule)
+
+emoduleUseDefs(f: EDefs a -- EDefs b) : EModule a -- EModule b
+emoduleUseDefs(f) = dip(unEModule) f dip(MkEModule)
 
 emoduleNil : Mod -- EModule
 emoduleNil = eimportsNil eexportsNil edefsNil MkEModule
@@ -309,22 +330,27 @@ eworldNil = mapNil MkEWorld
 ||| Elaboration Focus -- The current package/module/interface being
 ||| elaborated. This should be unchanged during expression elaboration.
 data EFocus
-  EFNone : EFocus
-  EFPackage : EPackage -- EFocus
-  EFModule : EPackage EModule -- EFocus
-  EFInterface : EPackage EModule EInterface -- EFocus
+  MkEFocus : Maybe(EPackage) Maybe(EModule) Maybe(EInterface) -- EFocus
 end
 
-efocusNil : EFocus
-efocusNil = EFNone
+unEFocus : EFocus -- Maybe(EPackage) Maybe(EModule) Maybe(EInterface)
+unEFocus = match(MkEFocus -> id)
 
-||| Create an empty package focus for a Pkg.
-efocusNilPkg : Pkg -- EFocus
-efocusNilPkg = epackageNil EFPackage
+efocusNil : EFocus
+efocusNil = none none none MkEFocus
 
 ||| Create an empty module focus for a Mod, for testing purposes.
 efocusNilMod : Mod -- EFocus
-efocusNilMod = dup dip(mod->pkg epackageNil) emoduleNil EFModule
+efocusNilMod =  dip(none) emoduleNil some none MkEFocus
+
+efocusUsePackage(f: Maybe(EPackage) a -- Maybe(EPackage) b) : EFocus a -- EFocus b
+efocusUseModule(f: Maybe(EModule) a -- Maybe(EModule) b) : EFocus a -- EFocus b
+efocusUseInterface(f: Maybe(EInterface) a -- Maybe(EInterface) b) : EFocus a -- EFocus b
+
+efocusUsePackage(f) = dip(unEFocus) dip2''(f) dip(MkEFocus)
+efocusUseModule(f) = dip(unEFocus) dip'(f) dip(MkEFocus)
+efocusUseInterface(f) = dip(unEFocus) f dip(MkEFocus)
+
 
 data ESym
   MkESym : Pkg Mod Name -- ESym
@@ -534,14 +560,50 @@ emGetFocus = unit emUse(eenvUseFocus(drop dup))
 emSetFocus : EFocus -- EMonad(Unit)
 emSetFocus = emUse(eenvUseFocus(nip unit))
 
-emGetFocusModule : EMonad(EModule)
-emGetFocusModule =
-  emGetFocus emBind(match(
-    EFNone -> "Compiler Error: emGetFocusModule: Not in module." emFail,
-    EFPackage -> drop "Compiler Error: emGetFocusModule: Not in module." emFail,
-    EFModule -> nip emPure,
-    EFInterface -> drop nip emPure
+emGetFocusPackage : EMonad(EPackage)
+emGetFocusPackage = $(
+  unit emUse(eenvUseFocus(efocusUsePackage(drop dup)))
+  emBind(maybe(
+    "Compiler Error: emGetFocusPackage: Not in package." emFail,
+    emPure
   ))
+)
+
+emGetFocusModule : EMonad(EModule)
+emGetFocusModule = $(
+  unit emUse(eenvUseFocus(efocusUseModule(drop dup)))
+  emBind(maybe(
+    "Compiler Error: emGetFocusModule: Not in module." emFail,
+    emPure
+  ))
+)
+
+emGetFocusInterface : EMonad(EInterface)
+emGetFocusInterface = $(
+  unit emUse(eenvUseFocus(efocusUseInterface(drop dup)))
+  emBind(maybe(
+    "Compiler Error: emGetFocusInterface: Not in module." emFail,
+    emPure
+  ))
+)
+
+emSetFocusPackage : EPackage -- EMonad(Unit)
+emSetFocusPackage = emUse(eenvUseFocus(efocusUsePackage(nip some unit)))
+
+emSetFocusModule : EModule -- EMonad(Unit)
+emSetFocusModule = emUse(eenvUseFocus(efocusUseModule(nip some unit)))
+
+emSetFocusInterface : EInterface -- EMonad(Unit)
+emSetFocusInterface = emUse(eenvUseFocus(efocusUseInterface(nip some unit)))
+
+emDropFocusPackage : EMonad(Unit)
+emDropFocusPackage = unit emUse(eenvUseFocus(efocusUsePackage(dip(drop none))))
+
+emDropFocusModule : EMonad(Unit)
+emDropFocusModule = unit emUse(eenvUseFocus(efocusUseModule(dip(drop none))))
+
+emDropFocusInterface : EMonad(Unit)
+emDropFocusInterface = unit emUse(eenvUseFocus(efocusUseInterface(dip(drop none))))
 
 elabLModule : L(Module) -- EMonad(Unit)
 elabLImport : L(Import) -- EMonad(Unit)
@@ -566,6 +628,8 @@ elabWordDef : WordDef -- EMonad(Unit)
 elabAssertion : Assertion -- EMonad(Unit)
 
 elabLModule = elabL(elabModule)
+elabLImport = elabL(elabImport)
+elabLExport = elabL(elabExport)
 elabLDecl = elabL(elabDecl)
 elabLSig = elabL(elabSig)
 elabLTypeSig = elabL(elabTypeSig)
@@ -574,8 +638,19 @@ elabLWordSig = elabL(elabWordSig)
 elabLWordDef = elabL(elabWordDef)
 elabLAssertion = elabL(elabAssertion)
 
-elabModule = drop emUnit
-elabImport = drop emUnit
+elabModule = $(
+  unModule
+  dip2(getL emFor_(elabLImport))
+  dip(getL emFor_(elabLExport))
+  getL emFor_(elabLDecl)
+  emVoid3
+)
+
+elabImport = unImport elabL(
+  dip(emGetFocusModule) emPure
+  emBind2(emoduleUseImports(eimportsAdd unit) drop emSetFocusModule)
+)
+
 elabExport = drop emUnit
 elabDecl = drop emUnit
 elabSig = drop emUnit

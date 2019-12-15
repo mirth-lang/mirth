@@ -1,0 +1,9 @@
+test/importlist.mth:1:1: TIMPORT
+test/importlist.mth:1:8: "foo/bar" TNAME
+test/importlist.mth:1:15: TNEWLINE
+test/importlist.mth:2:1: TIMPORT
+test/importlist.mth:2:8: "baz" TNAME
+test/importlist.mth:2:11: TNEWLINE
+test/importlist.mth:3:1: TIMPORT
+test/importlist.mth:3:8: "x" TNAME
+test/importlist.mth:3:9: TNEWLINE
