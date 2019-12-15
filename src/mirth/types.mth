@@ -9,12 +9,14 @@ import base/panic
 import base/path
 import base/nat
 import base/str
+import base/sexp
 
 ||| Identifiers for packages.
 export mirth/pkg
   type Path
   type Nat
   type Pkg
+  type Sexp
 
   Pkg.generate : Int -- Pkg
 
@@ -25,6 +27,7 @@ export mirth/pkg
   pkg=? : Pkg Pkg -- Pkg Pkg Bool
 
   pkg->str  : Pkg -- Str
+  pkg->sexp : Pkg -- Sexp
   pkg->path : Pkg -- Path  # panic on anonPkg
 end
 
@@ -34,6 +37,7 @@ export mirth/mod
   type Nat
   type Pkg
   type Mod
+  type Sexp
 
   Mod.generate : Int -- Mod
 
@@ -45,7 +49,9 @@ export mirth/mod
   mod=? : Mod Mod -- Mod Mod Bool
 
   mod->str  : Mod -- Str
+  mod->sexp : Mod -- Sexp
   mod->path : Mod -- Path  # panic on anonMod
+  mod->pkg  : Mod -- Pkg   # get the pkg of a mod (approximately)
 end
 
 data Pkg
@@ -58,6 +64,7 @@ pkg->str = match(
   anonPkg -> dip("?pkg") nat->str <>,
   pathPkg -> path->str
 )
+pkg->sexp = pkg->str sexpAtom
 pkg->path = match(
   anonPkg -> "pkg->path: anon pkg does not have associated path" panic,
   pathPkg -> id
@@ -82,10 +89,16 @@ mod->str = match(
   pathMod -> path->str,
   pkgMod  -> nip path->str
 )
+mod->sexp = mod->str sexpAtom
 mod->path = match(
   anonMod -> "mod->path: anonymous mod does not have associated path" panic,
   pathMod -> id,
   pkgMod  -> nip
+)
+mod->pkg = match(
+  anonMod -> anonPkg,
+  pathMod -> pathPkg,
+  pkgMod -> drop
 )
 
 mod=? = dup2 mod=
