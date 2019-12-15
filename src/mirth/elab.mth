@@ -8,7 +8,11 @@ import base/int
 import base/nat
 import base/sexp
 import base/map
+import base/set
+
 import mirth/loc
+import mirth/pkg
+import mirth/mod
 import mirth/syntax
 
 export mirth/elab
@@ -33,8 +37,7 @@ export mirth/elab
 
   type EModule
 
-  eeInitial : EEnv
-  runElabModule : L(Module) -- Result(EError, EModule)
+  runElabModule : Mod L(Module) -- Result(EError, EModule)
   eerror->str : EError -- Str
   emodule->str : EModule -- Str
 
@@ -111,66 +114,21 @@ emBind3(f) = emMap3(pack3) emBind(unpack3 f)
 emBind4(f: a b c d -- EMonad(e)) : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(e)
 emBind4(f) = emMap4(pack4) emBind(unpack4 f)
 
+emUnit : EMonad(Unit)
+emUnit = unit emPure
+
+emVoid : EMonad(a) -- EMonad(Unit)
+emVoid = emMap(drop unit)
+
+emVoid2 : EMonad(a) EMonad(b) -- EMonad(Unit)
+emVoid2 = emMap2(drop2 unit)
+
 ###############
 # Elaboration #
 ###############
 
-||| Elaboration World -- The collection of loaded packages and modules.
-data EWorld
-  MkEWorld : EWorld
-end
 
-||| Elaboration Context -- Necessary information for the current elaboration,
-||| such as the type of local variables and the mappings of names to symbols
-||| and metavariables to expansions.
-data ECtx
-  MkECtx : ECtx
-end
-
-||| Elaboration Environment
-data EEnv
-  MkEEnv : EWorld ECtx Nat -- EEnv
-end
-
-unEEnv : EEnv -- EWorld ECtx Nat
-unEEnv = match(MkEEnv -> id)
-
-eeInitial : EEnv
-eeInitial = MkEWorld MkECtx n0 MkEEnv
-
-eeFreshNat : EEnv -- EEnv Nat
-eeFreshNat = unEEnv n1+ pnat dup dip(MkEEnv)
-
-emFreshNat : EMonad(Nat)
-emFreshNat = emGet(eeFreshNat)
-
-eeUseWorld(f: EWorld a -- EWorld b) : EEnv a -- EEnv b
-eeUseWorld(f) = dip(unEEnv) dip2''(f) dip(MkEEnv)
-
-eeUseCtx(f: ECtx a -- ECtx b) : EEnv a -- EEnv b
-eeUseCtx(f) = dip(unEEnv) dip'(f) dip(MkEEnv)
-
-emFor(f: a b -- EMonad(a)) : a List(b) -- EMonad(a)
-emFor(f) = lmatchL(emPure, dip(f) emPure emBind2(emFor(f)))
-
-emForB(f: a b -- EMonad(a)) : EMonad(a) List(b) -- EMonad(a)
-emForB(f) = emPure emBind2(emFor(f))
-
-emList(f: a -- EMonad(b)) : List(a) -- EMonad(List(b))
-emList(f) = dip(nil) emFor(dip(emPure) f emMap2(consR))
-
-emUpdateMap(f: Maybe(v) a -- EMonad(v)) : Map(k,v) k a -- EMonad(Map(k,v))
-emUpdateMap(f) = dip(mapGet? dip(emPure2)) f emMap3(mapSet)
-
-elabL(f: a -- EMonad(b)) : L(a) -- EMonad(b)
-elabL(f) = getL f # TODO: Keep track of current location within EEnv.
-
-elabL2(f: a b -- EMonad(c)) : a L(b) -- EMonad(c)
-elabL2(f) = unL dip(swap) pack2 mkL elabL(unpack2 f)
-
-elabL3(f: a b c -- EMonad(d)) : a b L(c) -- EMonad(d)
-elabL3(f) = unL dip(rotr) pack3 mkL elabL(unpack3 f)
-
+||| A type definition.
 data EDefType
   MkEDefType : EDefType
 end
@@ -181,6 +139,8 @@ unEDefType = match(MkEDefType -> id)
 edeftype->sexp : EDefType -- Sexp
 edeftype->sexp = unEDefType "type" sexpAtom
 
+
+||| A word definition.
 data EDefWord
   MkEDefWord : EDefWord
 end
@@ -191,6 +151,8 @@ unEDefWord = match(MkEDefWord -> id)
 edefword->sexp : EDefWord -- Sexp
 edefword->sexp = unEDefWord "word" sexpAtom
 
+
+||| A definition.
 data EDef
   EDType : EDefType -- EDef
   EDWord : EDefWord -- EDef
@@ -203,105 +165,294 @@ edef->sexp =
     EDWord -> edefword->sexp
   )
 
-data EModule
-  MkEModule : Map(Name, EDef) -- EModule
+
+||| A set of definitions in a single scope.
+data EDefs
+  MkEDefs : Map(Name, EDef) -- EDefs
 end
 
-unEModule : EModule -- Map(Name, EDef)
+unEDefs : EDefs -- Map(Name, EDef)
+unEDefs = match(MkEDefs -> id)
+
+edefsNil : EDefs
+edefsNil = mapNil MkEDefs
+
+edefsGet : EDefs Name -- Maybe(EDef)
+edefsGet = dip(unEDefs) mapGet
+
+edefsSet : EDefs Name EDef -- EDefs
+edefsSet = dip2(unEDefs) mapSet MkEDefs
+
+edefs->sexp : EDefs -- Sexp
+edefs->sexp = unEDefs map->sexp(name->sexp, edef->sexp)
+
+
+||| A single interface.
+data EInterface
+  MkEInterface : Pkg Interface EDefs -- EInterface
+end
+
+unEInterface : EInterface -- Pkg Interface EDefs
+unEInterface = match(MkEInterface -> id)
+
+einterface->sexp : EInterface -- Sexp
+einterface->sexp = $(
+  unEInterface
+  dip3("interface" sexpAtom lpure)
+  dip2(pkg->sexp cons)
+  dip(interface->sexp cons)
+  edefs->sexp cons
+  sexpList
+)
+
+
+||| A module's imports, i.e. a set of interfaces.
+data EImports
+  MkEImports : Set(Interface) -- EImports
+end
+
+unEImports : EImports -- Set(Interface)
+unEImports = match(MkEImports -> id)
+
+eimportsNil : EImports
+eimportsNil = setNil MkEImports
+
+eimports->sexp : EImports -- Sexp
+eimports->sexp = unEImports set->sexp(interface->sexp)
+
+
+||| A module's exports, i.e. a map of interface definitions.
+data EExports
+  MkEExports : Map(Interface, EInterface) -- EExports
+end
+
+unEExports : EExports -- Map(Interface, EInterface)
+unEExports = match(MkEExports -> id)
+
+eexportsNil : EExports
+eexportsNil = mapNil MkEExports
+
+eexports->sexp : EExports -- Sexp
+eexports->sexp = unEExports map->sexp(interface->sexp, einterface->sexp)
+
+
+||| A single Mirth module.
+data EModule
+  MkEModule : Mod EImports EExports EDefs -- EModule
+end
+
+unEModule : EModule -- Mod EImports EExports EDefs
 unEModule = match(MkEModule -> id)
 
-initialEModule : EModule
-initialEModule = mapNil MkEModule
+emoduleNil : Mod -- EModule
+emoduleNil = eimportsNil eexportsNil edefsNil MkEModule
 
 emodule->sexp : EModule -- Sexp
 emodule->sexp = $(
   unEModule
-  dip("module" sexpAtom lpure)
-  map->sexp(name->sexp, edef->sexp) cons
+  dip4("module" sexpAtom lpure)
+  dip3(mod->sexp cons)
+  dip2(eimports->sexp cons)
+  dip(eexports->sexp cons)
+  edefs->sexp cons
   sexpList
 )
 
 emodule->str : EModule -- Str
 emodule->str = emodule->sexp sexp->str
 
-emUpdateDef(f: Maybe(EDef) x -- EMonad(EDef)) : EModule Name x -- EMonad(EModule)
-emUpdateDef(f) =
-  dip2(unEModule) emUpdateMap(f) emMap(MkEModule)
 
-elabLModule : L(Module) -- EMonad(EModule)
-elabLImport : EModule L(Import) -- EMonad(EModule)
-elabLExport : EModule L(Export) -- EMonad(EModule)
-elabLSig : EModule L(Sig) -- EMonad(EModule)
-elabLDecl : EModule L(Decl) -- EMonad(EModule)
-elabLTypeSig : EModule L(TypeSig) -- EMonad(EModule)
-elabLDataDef : EModule L(DataDef) -- EMonad(EModule)
-elabLWordSig : EModule L(WordSig) -- EMonad(EModule)
-elabLWordDef : EModule L(WordDef) -- EMonad(EModule)
-elabLAssertion : EModule L(Assertion) -- EMonad(EModule)
+||| A Mirth package, i.e. a collection of modules and interfaces.
+data EPackage
+  MkEPackage : Pkg EExports Map(Mod, EModule) -- EPackage
+end
 
-elabModule : Module -- EMonad(EModule)
-elabImport : EModule Import -- EMonad(EModule)
-elabExport : EModule Export -- EMonad(EModule)
-elabSig : EModule Sig -- EMonad(EModule)
-elabDecl : EModule Decl -- EMonad(EModule)
-elabTypeSig : EModule TypeSig -- EMonad(EModule)
-elabDataDef : EModule DataDef -- EMonad(EModule)
-elabWordSig : EModule WordSig -- EMonad(EModule)
-elabWordDef : EModule WordDef -- EMonad(EModule)
-elabAssertion : EModule Assertion -- EMonad(EModule)
+unEPackage : EPackage -- Pkg EExports Map(Mod, EModule)
+unEPackage = match(MkEPackage -> id)
 
-elabTypeSig@EDef : Maybe(EDef) TypeSig -- EMonad(EDef)
-elabDataDef@EDef : Maybe(EDef) DataDef -- EMonad(EDef)
-elabWordSig@EDef : Maybe(EDef) WordSig -- EMonad(EDef)
-elabWordDef@EDef : Maybe(EDef) WordDef -- EMonad(EDef)
+epackageNil : Pkg -- EPackage
+epackageNil = eexportsNil mapNil MkEPackage
 
-elabLModule = elabL(elabModule)
-elabLDecl = elabL2(elabDecl)
-elabLSig = elabL2(elabSig)
-elabLTypeSig = elabL2(elabTypeSig)
-elabLDataDef = elabL2(elabDataDef)
-elabLWordSig = elabL2(elabWordSig)
-elabLWordDef = elabL2(elabWordDef)
-elabLAssertion = elabL2(elabAssertion)
-
-elabModule = $(
-  dip(initialEModule) unModule
-  dip2(getL emFor(elabLImport))
-  dip(getL emForB(elabLExport))
-  getL emForB(elabLDecl)
+epackage->sexp : EPackage -- Sexp
+epackage->sexp = $(
+  unEPackage
+  dip3("package" sexpAtom lpure)
+  dip2(pkg->sexp cons)
+  dip(eexports->sexp cons)
+  map->sexp(mod->sexp, emodule->sexp) cons
+  sexpList
 )
 
-elabImport = drop emPure
-elabExport = drop emPure
 
-elabDecl =
-  matchDecl(
-    elabLTypeSig,
-    elabLDataDef,
-    elabLWordSig,
-    elabLWordDef,
-    elabLAssertion
-  )
+||| Elaboration World -- The collection of loaded packages and modules.
+||| This should be unchanged during module elaboration.
+data EWorld
+  MkEWorld : Map(Pkg, EPackage) -- EWorld
+end
 
-elabSig =
-  matchSig(
-    elabLTypeSig,
-    elabLWordSig,
-    elabLAssertion
-  )
+unEWorld : EWorld -- Map(Pkg, EPackage)
+unEWorld = match(MkEWorld -> id)
 
-elabTypeSig = dup dip(typeSigName getL) emUpdateDef(elabTypeSig@EDef)
-elabDataDef = dup dip(dataDefName getL) emUpdateDef(elabDataDef@EDef)
-  # TODO: add word defs for constructors as well
-elabWordSig = dup dip(wordSigName getL) emUpdateDef(elabWordSig@EDef)
-elabWordDef = dup dip(wordDefName getL) emUpdateDef(elabWordDef@EDef)
-elabAssertion = drop emPure
+eworldNil : EWorld
+eworldNil = mapNil MkEWorld
 
-elabTypeSig@EDef = drop2 MkEDefType EDType emPure
-elabDataDef@EDef = drop2 MkEDefType EDType emPure
-elabWordSig@EDef = drop2 MkEDefWord EDWord emPure
-elabWordDef@EDef = drop2 MkEDefWord EDWord emPure
 
-runElabModule : L(Module) -- Result(EError, EModule)
-runElabModule = dip(eeInitial) elabLModule emRun nip
+||| Elaboration Focus -- The current package/module/interface being
+||| elaborated. This should be unchanged during expression elaboration.
+data EFocus
+  EFNone : EFocus
+  EFPackage : EPackage -- EFocus
+  EFModule : EPackage EModule -- EFocus
+  EFInterface : EPackage EModule EInterface -- EFocus
+end
+
+efocusNil : EFocus
+efocusNil = EFNone
+
+
+||| Local Scope
+data ECtx
+  ECtxNil : ECtx
+end
+
+ectxNil : ECtx
+ectxNil = ECtxNil
+
+
+||| Environment -- The current scope and metavariables.
+data ELocal
+  MkELocal : ECtx LocSet Nat -- ELocal
+end
+
+unELocal : ELocal -- ECtx LocSet Nat
+unELocal = match(MkELocal -> id)
+
+elocalNil : ELocal
+elocalNil =  ectxNil locSetNull n0 MkELocal
+
+elocalFreshNat : ELocal -- ELocal Nat
+elocalFreshNat = unELocal dup dip(n1+ pnat MkELocal)
+
+
+||| Elaboration Environment
+data EEnv
+  MkEEnv : EWorld EFocus ELocal -- EEnv
+end
+
+unEEnv : EEnv -- EWorld EFocus ELocal
+unEEnv = match(MkEEnv -> id)
+
+eenvNil : EEnv
+eenvNil = eworldNil efocusNil elocalNil MkEEnv
+
+eenvUseWorld(f: EWorld a -- EWorld b) : EEnv a -- EEnv b
+eenvUseWorld(f) = dip(unEEnv) dip2''(f) dip(MkEEnv)
+
+eenvUseFocus(f: EFocus a -- EFocus b) : EEnv a -- EEnv b
+eenvUseFocus(f) = dip(unEEnv) dip'(f) dip(MkEEnv)
+
+eenvUseLocal(f: ELocal a -- ELocal b) : EEnv a -- EEnv b
+eenvUseLocal(f) = dip(unEEnv) f dip(MkEEnv)
+
+eenvFreshNat : EEnv -- EEnv Nat
+eenvFreshNat = unit eenvUseLocal(drop elocalFreshNat)
+
+emFreshNat : EMonad(Nat)
+emFreshNat = emGet(eenvFreshNat)
+
+
+emFor(f: a b -- EMonad(a)) : a List(b) -- EMonad(a)
+emFor(f) = lmatchL(emPure, dip(f) emPure emBind2(emFor(f)))
+
+emForB(f: a b -- EMonad(a)) : EMonad(a) List(b) -- EMonad(a)
+emForB(f) = emPure emBind2(emFor(f))
+
+emList(f: a -- EMonad(b)) : List(a) -- EMonad(List(b))
+emList(f) = dip(nil) emFor(dip(emPure) f emMap2(consR))
+
+emFor_(f: a -- EMonad(Unit)) : List(a) -- EMonad(Unit)
+emFor_(f) = dip(unit emPure) for(f emVoid2)
+
+elabL(f: a -- EMonad(b)) : L(a) -- EMonad(b)
+elabL(f) = getL f # TODO: Keep track of current location within EEnv.
+
+elabL2(f: a b -- EMonad(c)) : a L(b) -- EMonad(c)
+elabL2(f) = unL dip(swap) pack2 mkL elabL(unpack2 f)
+
+elabL3(f: a b c -- EMonad(d)) : a b L(c) -- EMonad(d)
+elabL3(f) = unL dip(rotr) pack3 mkL elabL(unpack3 f)
+
+emGetFocus : EMonad(EFocus)
+emGetFocus = unit emUse(eenvUseFocus(drop dup))
+
+emSetFocus : EFocus -- EMonad(Unit)
+emSetFocus = emUse(eenvUseFocus(nip unit))
+
+emGetFocusModule : EMonad(EModule)
+emGetFocusModule =
+  emGetFocus emBind(match(
+    EFNone -> "Compiler Error: emGetFocusModule: Not in module." emFail,
+    EFPackage -> drop "Compiler Error: emGetFocusModule: Not in module." emFail,
+    EFModule -> nip emPure,
+    EFInterface -> drop nip emPure
+  ))
+
+elabLModule : L(Module) -- EMonad(Unit)
+elabLImport : L(Import) -- EMonad(Unit)
+elabLExport : L(Export) -- EMonad(Unit)
+elabLSig : L(Sig) -- EMonad(Unit)
+elabLDecl : L(Decl) -- EMonad(Unit)
+elabLTypeSig : L(TypeSig) -- EMonad(Unit)
+elabLDataDef : L(DataDef) -- EMonad(Unit)
+elabLWordSig : L(WordSig) -- EMonad(Unit)
+elabLWordDef : L(WordDef) -- EMonad(Unit)
+elabLAssertion : L(Assertion) -- EMonad(Unit)
+
+elabModule : Module -- EMonad(Unit)
+elabImport : Import -- EMonad(Unit)
+elabExport : Export -- EMonad(Unit)
+elabSig : Sig -- EMonad(Unit)
+elabDecl : Decl -- EMonad(Unit)
+elabTypeSig : TypeSig -- EMonad(Unit)
+elabDataDef : DataDef -- EMonad(Unit)
+elabWordSig : WordSig -- EMonad(Unit)
+elabWordDef : WordDef -- EMonad(Unit)
+elabAssertion : Assertion -- EMonad(Unit)
+
+elabLModule = elabL(elabModule)
+elabLDecl = elabL(elabDecl)
+elabLSig = elabL(elabSig)
+elabLTypeSig = elabL(elabTypeSig)
+elabLDataDef = elabL(elabDataDef)
+elabLWordSig = elabL(elabWordSig)
+elabLWordDef = elabL(elabWordDef)
+elabLAssertion = elabL(elabAssertion)
+
+elabModule = drop emUnit
+elabImport = drop emUnit
+elabExport = drop emUnit
+elabDecl = drop emUnit
+elabSig = drop emUnit
+elabTypeSig = drop emUnit
+elabDataDef = drop emUnit
+elabWordSig = drop emUnit
+elabWordDef = drop emUnit
+elabAssertion = drop emUnit
+
+||| Create a focus out of a Pkg.
+pkg->efocus : Pkg -- EFocus
+pkg->efocus = epackageNil EFPackage
+
+||| Create a focus out of a Mod, for testing purposes.
+mod->efocus : Mod -- EFocus
+mod->efocus = dup dip(mod->pkg epackageNil) emoduleNil EFModule
+
+runElabModule : Mod L(Module) -- Result(EError, EModule)
+runElabModule = $(
+  dip(mod->efocus emSetFocus)
+  elabLModule
+  emGetFocusModule
+  emMap3(dip(drop2))
+  dip(eenvNil) emRun nip
+)
 
