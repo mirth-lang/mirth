@@ -21,6 +21,15 @@ export mirth/elab
   type EError
   type EMonad(t)
 
+  type ESym
+  type ETerm
+  type EEffect
+  type EStack
+  type EType
+  type EKind
+  type EBind
+  type ECtx
+
   emRun : EEnv EMonad(t) -- EEnv Result(EError,t)
   emFail : Str -- EMonad(a)
   emPure : a -- EMonad(a)
@@ -309,15 +318,122 @@ end
 efocusNil : EFocus
 efocusNil = EFNone
 
+||| Create an empty package focus for a Pkg.
+efocusNilPkg : Pkg -- EFocus
+efocusNilPkg = epackageNil EFPackage
+
+||| Create an empty module focus for a Mod, for testing purposes.
+efocusNilMod : Mod -- EFocus
+efocusNilMod = dup dip(mod->pkg epackageNil) emoduleNil EFModule
+
+data ESym
+  MkESym : Pkg Mod Name -- ESym
+end
+
+data EEffect
+  EEVar : Name -- EEffect
+  EESym : ESym -- EEffect
+  EENil : EEffect
+end
+
+data EStack
+  ESVar : Name -- EStack
+  ESNil : EStack
+  ESCons : EStack EType -- EStack
+end
+
+data EType
+  ETVar : Name -- EType
+  ETSym : ESym List(EType) -- EType
+end
+
+data EWord
+  EWId : EWord
+  EWCp : EWord EWord -- EWord
+  EWSwap : EWord
+  EWDrop : EWord
+  EWDup : EWord
+  EWDip : EWord -- EWord
+end
+
+||| Additional info associated with a binding.
+data EMeta(t)
+  ||| Binding represents a rigid variable, i.e. we can't instantiate
+  ||| during unification. The Bool controls whether the variable
+  ||| was passed implicitly or explicitly.
+  EMRigid : Bool -- EMeta(t)
+
+  ||| Binding represents a plastic variable, i.e. we can instantiate
+  ||| it once during unification. The Maybe(t) represents the value
+  ||| it was instantiated to, if it was, and Set(Name) represents
+  ||| the set of rigid free variables that are allowed in the
+  ||| instantiated value
+  EMPlastic : Set(Name) Maybe(t) -- EMeta(t)
+end
+
+emetaIsRigid : EMeta(t) -- Bool
+emetaIsRigid =
+  match(
+    EMRigid -> drop true,
+    EMPlastic -> drop2 false
+  )
+
+data EBind
+  EBStack : EMeta(EStack) -- EBind
+  EBType : EMeta(EType) -- EBind
+  EBEffect : EMeta(EEffect) -- EBind
+  EBWord : EStack EStack EEffect EMeta(EWord) -- EBind
+end
+
+ebindIsRigid : EBind -- Bool
+ebindIsRigid =
+  match(
+    EBStack -> emetaIsRigid,
+    EBType -> emetaIsRigid,
+    EBEffect -> emetaIsRigid,
+    EBWord -> dip(drop3) emetaIsRigid
+  )
+
+ebindIsPlastic : EBind -- Bool
+ebindIsPlastic = ebindIsRigid not
+
+
+data EBinds
+  MkEBinds : Map(Name, EBind) -- EBinds
+end
+
+unEBinds : EBinds -- Map(Name, EBind)
+unEBinds = match(MkEBinds -> id)
+
+ebindsNil : EBinds
+ebindsNil = mapNil MkEBinds
+
+ebindsGet : EBinds Name -- Maybe(EBind)
+ebindsGet = dip(unEBinds) mapGet
+
+ebindsSet : EBinds Name EBind -- EBinds
+ebindsSet = dip2(unEBinds) mapSet MkEBinds
+
 
 ||| Local Scope
 data ECtx
-  ECtxNil : ECtx
+  MkECtx : EBinds Maybe(EStack) -- ECtx
 end
 
-ectxNil : ECtx
-ectxNil = ECtxNil
+unECtx : ECtx -- EBinds Maybe(EStack)
+unECtx = match(MkECtx -> id)
 
+ectxNil : ECtx
+ectxNil = ebindsNil none MkECtx
+
+ectxUseBinds(f: EBinds a -- EBinds b) : ECtx a -- ECtx b
+ectxUseBinds(f) = dip(unECtx) dip'(f) dip(MkECtx)
+
+ectxUseStack(f: Maybe(EStack) a -- Maybe(EStack) b) : ECtx a -- ECtx b
+ectxUseStack(f) = dip(unECtx) f dip(MkECtx)
+
+ectxVars : ECtx -- Set(Name)
+ectxVars = unECtx drop unEBinds mapKeys
 
 ||| Environment -- The current scope and metavariables.
 data ELocal
@@ -332,6 +448,13 @@ elocalNil =  ectxNil locSetNull n0 MkELocal
 
 elocalFreshNat : ELocal -- ELocal Nat
 elocalFreshNat = unELocal dup dip(n1+ pnat MkELocal)
+
+elocalUseCtx(f: ECtx a -- ECtx b) : ELocal a -- ELocal b
+elocalUseCtx(f) = dip(unELocal) dip2''(f) dip(MkELocal)
+
+elocalUseLoc(f: LocSet a -- LocSet b) : ELocal a -- ELocal b
+elocalUseLoc(f) = dip(unELocal) dip'(f) dip(MkELocal)
+
 
 
 ||| Elaboration Environment
@@ -359,6 +482,29 @@ eenvFreshNat = unit eenvUseLocal(drop elocalFreshNat)
 
 emFreshNat : EMonad(Nat)
 emFreshNat = emGet(eenvFreshNat)
+
+emFreshName : EMonad(Name)
+emFreshName = emFreshNat emMap(dip("?") nat->str <> mkName)
+
+emGetCtx : EMonad(ECtx)
+emGetCtx = unit emUse(eenvUseLocal(elocalUseCtx(drop dup)))
+
+emGetBind : Name -- EMonad(Maybe(EBind))
+emGetBind = emUse(eenvUseLocal(elocalUseCtx(ectxUseBinds(dip(dup) ebindsGet))))
+
+emSetBind : Name EBind -- EMonad(Unit)
+emSetBind = pack2 emUse(eenvUseLocal(elocalUseCtx(ectxUseBinds(unpack2 ebindsSet unit))))
+
+emFreshType : EMonad(EType)
+emFreshType = $(
+  emFreshName emGetCtx
+  emBind2(
+    dip(dup)
+    dip2(ETVar emPure)
+    ectxVars none EMPlastic EBType emSetBind
+    emMap2(drop)
+  )
+)
 
 
 emFor(f: a b -- EMonad(a)) : a List(b) -- EMonad(a)
@@ -439,20 +585,12 @@ elabWordSig = drop emUnit
 elabWordDef = drop emUnit
 elabAssertion = drop emUnit
 
-||| Create a focus out of a Pkg.
-pkg->efocus : Pkg -- EFocus
-pkg->efocus = epackageNil EFPackage
-
-||| Create a focus out of a Mod, for testing purposes.
-mod->efocus : Mod -- EFocus
-mod->efocus = dup dip(mod->pkg epackageNil) emoduleNil EFModule
-
 runElabModule : Mod L(Module) -- Result(EError, EModule)
 runElabModule = $(
-  dip(mod->efocus emSetFocus)
+  dip(efocusNilMod emSetFocus)
   elabLModule
   emGetFocusModule
-  emMap3(dip(drop2))
+  emMap3(nip nip)
   dip(eenvNil) emRun nip
 )
 
