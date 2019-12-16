@@ -294,6 +294,9 @@ unETypeDef = match(MkETypeDef -> id)
 etypedef->sexp : ETypeDef -- Sexp
 etypedef->sexp = unETypeDef sexp1("type", eparams->sexp)
 
+etypedefMerge : Name ETypeDef ETypeDef -- Name EMonad(ETypeDef)
+etypedefMerge = drop emPure # TODO
+
 
 ||| A word definition.
 data EWordDef
@@ -305,6 +308,9 @@ unEWordDef = match(MkEWordDef -> id)
 
 eworddef->sexp : EWordDef -- Sexp
 eworddef->sexp = unEWordDef "word" sexpAtom
+
+eworddefMerge : Name EWordDef EWordDef -- Name EMonad(EWordDef)
+eworddefMerge = drop emPure # TODO
 
 
 ||| A definition.
@@ -319,6 +325,23 @@ edef->sexp =
     EDType -> etypedef->sexp,
     EDWord -> eworddef->sexp
   )
+
+edefMerge : Name EDef EDef -- Name EMonad(EDef)
+edefMerge =
+  swap match(
+    EDType ->
+      swap match(
+        EDType -> etypedefMerge emMap(EDType),
+        EDWord -> drop2 "Cannot redefine word " over name->str <> " as type." <> emFail
+      ),
+    EDWord ->
+      swap match(
+        EDType -> drop2 "Cannot redefine type " over name->str <> " as word." <> emFail,
+        EDWord -> eworddefMerge emMap(EDWord)
+      )
+    )
+
+
 
 
 ||| A set of definitions in a single scope.
@@ -338,6 +361,18 @@ edefsGet = dip(unEDefs) mapGet
 edefsSet : EDefs Name EDef -- EDefs
 edefsSet = dip2(unEDefs) mapSet MkEDefs
 
+edefsMerge : EDefs EDefs -- EMonad(EDefs)
+edefsMerge =
+  dip(unEDefs emPure) unEDefs mapFor(
+    emPure2 emBind3(
+      dip(mapGet?) swap maybe(
+        mapSet emPure,
+        swap edefMerge dip(emPure2)
+        emMap3(mapSet)
+      )
+    )
+  ) emMap(MkEDefs)
+
 edefs->sexp : EDefs -- Sexp
 edefs->sexp = unEDefs map->sexp(name->sexp, edef->sexp)
 
@@ -356,6 +391,9 @@ einterfaceNil = edefsNil MkEInterface
 einterfaceInterface : EInterface -- Interface
 einterfaceInterface = unEInterface drop
 
+einterfaceDefs : EInterface -- EDefs
+einterfaceDefs = unEInterface nip
+
 einterfaceUseDefs(f: EDefs a -- EDefs b) : EInterface a -- EInterface b
 einterfaceUseDefs(f) = dip(unEInterface) f dip(MkEInterface)
 
@@ -364,6 +402,10 @@ einterfaceGetDef = einterfaceUseDefs(dip(dup) edefsGet) nip
 
 einterfaceSetDef : EInterface Name EDef -- EInterface
 einterfaceSetDef = pack2 einterfaceUseDefs(unpack2 edefsSet unit) drop
+
+||| Merge two interfaces. Assumes both interfaces have the same name.
+einterfaceMerge : EInterface EInterface -- EMonad(EInterface)
+einterfaceMerge = dip(unEInterface dip(emPure)) einterfaceDefs edefsMerge emMap2(MkEInterface)
 
 einterface->sexp : EInterface -- Sexp
 einterface->sexp = unEInterface sexp2("interface", interface->sexp, edefs->sexp)
@@ -401,9 +443,18 @@ unEExports = match(MkEExports -> id)
 eexportsNil : EExports
 eexportsNil = mapNil MkEExports
 
-eexportsMerge : EExports EExports -- EExports
-eexportsMerge = dip(unEExports) unEExports mapFor(mapSet) MkEExports
-  # TODO merge gracefully
+eexportsMerge : EExports EExports -- EMonad(EExports)
+eexportsMerge =
+  dip(unEExports emPure) unEExports mapFor(
+    emPure2 emBind3(
+      dip(mapGet?) swap maybe(
+        mapSet emPure,
+        swap einterfaceMerge dip(emPure2)
+        emMap3(mapSet)
+      )
+    )
+  ) emMap(MkEExports)
+
 
 eexportsAdd : EExports EInterface -- EExports
 eexportsAdd = dip(unEExports) dup dip(einterfaceInterface) mapSet MkEExports
@@ -468,12 +519,12 @@ epackageNil = eexportsNil mapNil MkEPackage
 epackage->sexp : EPackage -- Sexp
 epackage->sexp = unEPackage nip sexp2("package", pkg->sexp, map->sexp(mod->sexp, emodule->sexp))
 
-epackageAddModule : EPackage EModule -- EPackage
+epackageAddModule : EPackage EModule -- EMonad(EPackage)
 epackageAddModule = $(
-  dip(unEPackage)
+  dip(unEPackage dip2(emPure))
   dup dip(emoduleExports swap dip(eexportsMerge))
-  dup dip(emoduleMod) mapSet
-  MkEPackage
+  dup dip(emoduleMod) mapSet emPure
+  emMap3(MkEPackage)
 )
 
 
@@ -766,7 +817,7 @@ emDropFocusInterface = unit emUse(eenvUseFocus(efocusUseInterface(dip(drop none)
 emSaveFocusModule : EMonad(Unit)
 emSaveFocusModule = $(
   emGetFocusPackage emGetFocusModule
-  emBind2(epackageAddModule emSetFocusPackage)
+  emBind2(epackageAddModule) emBind(emSetFocusPackage)
   emThen(emDropFocusModule)
 )
 
@@ -902,7 +953,7 @@ elabTypeSig = $(
   emBind3(
     swap maybe(
       MkETypeDef EDType emSetDef,
-      drop3 emUnit #TODO
+      drop3 emUnit # TODO
     )
   )
 )
