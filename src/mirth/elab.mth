@@ -29,6 +29,11 @@ export mirth/elab
   type EKind
   type EBind
   type ECtx
+  type EParams
+  type EDefs
+  type EInterface
+  type EModule
+
 
   emRun : EEnv EMonad(t) -- EEnv Result(EError,t)
   emFail : Str -- EMonad(a)
@@ -44,7 +49,6 @@ export mirth/elab
   emBind3(f: a b c -- EMonad(d)) : EMonad(a) EMonad(b) EMonad(c) -- EMonad(d)
   emBind4(f: a b c d -- EMonad(e)) : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(e)
 
-  type EModule
 
   runElabModule : Mod L(Module) -- Result(EError, EModule)
   eerror->str : EError -- Str
@@ -139,17 +143,60 @@ emVoid3 = emMap3(drop3 unit)
 # Elaboration #
 ###############
 
+data ESym
+  MkESym : Pkg Mod Name -- ESym
+end
+
+data EParams
+  MkEParams : EParams
+end
+
+unEParams : EParams --
+unEParams = match(MkEParams -> id)
+
+eparamsNil : EParams
+eparamsNil = MkEParams
+
+eparams->sexp : EParams -- Sexp
+eparams->sexp = unEParams nil sexpList
+
+data EEffect
+  EEVar : Name -- EEffect
+  EESym : ESym -- EEffect
+  EENil : EEffect
+end
+
+data EStack
+  ESVar : Name -- EStack
+  ESNil : EStack
+  ESCons : EStack EType -- EStack
+end
+
+data EType
+  ETVar : Name -- EType
+  ETSym : ESym List(EType) -- EType
+end
+
+data EWord
+  EWId : EWord
+  EWCp : EWord EWord -- EWord
+  EWSwap : EWord
+  EWDrop : EWord
+  EWDup : EWord
+  EWDip : EWord -- EWord
+end
+
 
 ||| A type definition.
 data EDefType
-  MkEDefType : EDefType
+  MkEDefType : EParams -- EDefType
 end
 
-unEDefType : EDefType --
+unEDefType : EDefType -- EParams
 unEDefType = match(MkEDefType -> id)
 
 edeftype->sexp : EDefType -- Sexp
-edeftype->sexp = unEDefType "type" sexpAtom
+edeftype->sexp = unEDefType sexp1("type", eparams->sexp)
 
 
 ||| A word definition.
@@ -206,6 +253,21 @@ end
 
 unEInterface : EInterface -- Pkg Interface EDefs
 unEInterface = match(MkEInterface -> id)
+
+einterfacePkg : EInterface -- Pkg
+einterfacePkg = unEInterface drop2
+
+einterfaceInterface : EInterface -- Interface
+einterfaceInterface = unEInterface drop nip
+
+einterfaceUseDefs(f: EDefs a -- EDefs b) : EInterface a -- EInterface b
+einterfaceUseDefs(f) = dip(unEInterface) f dip(MkEInterface)
+
+einterfaceGetDef : EInterface Name -- Maybe(EDef)
+einterfaceGetDef = einterfaceUseDefs(dip(dup) edefsGet) nip
+
+einterfaceSetDef : EInterface Name EDef -- EInterface
+einterfaceSetDef = pack2 einterfaceUseDefs(unpack2 edefsSet unit) drop
 
 einterface->sexp : EInterface -- Sexp
 einterface->sexp = $(
@@ -274,6 +336,12 @@ emoduleUseExports(f) = dip(unEModule) dip'(f) dip(MkEModule)
 emoduleUseDefs(f: EDefs a -- EDefs b) : EModule a -- EModule b
 emoduleUseDefs(f) = dip(unEModule) f dip(MkEModule)
 
+emoduleGetDef : EModule Name -- Maybe(EDef)
+emoduleGetDef = emoduleUseDefs(dip(dup) edefsGet) nip
+
+emoduleSetDef : EModule Name EDef -- EModule
+emoduleSetDef = pack2 emoduleUseDefs(unpack2 edefsSet unit) drop
+
 emoduleNil : Mod -- EModule
 emoduleNil = eimportsNil eexportsNil edefsNil MkEModule
 
@@ -339,6 +407,25 @@ unEFocus = match(MkEFocus -> id)
 efocusNil : EFocus
 efocusNil = none none none MkEFocus
 
+efocusGetDef : EFocus Name -- Maybe(EDef)
+efocusGetDef =
+  swap unEFocus dip2(drop) maybe(
+    maybe(drop none, swap emoduleGetDef),
+    nip swap einterfaceGetDef
+  )
+
+||| Set def. If impossible, returns original EFocus and some error.
+efocusSetDef : EFocus Name EDef -- EFocus Maybe(Str)
+efocusSetDef =
+  dip2(unEFocus) rotl maybe(
+    rotl maybe(
+      drop2 none none MkEFocus "Compiler Error: efocusSetDef: Not in module or interface." some,
+      rotr emoduleSetDef some none MkEFocus none
+    ),
+    rotr einterfaceSetDef some MkEFocus none
+  )
+
+
 ||| Create an empty module focus for a Mod, for testing purposes.
 efocusNilMod : Mod -- EFocus
 efocusNilMod =  dip(none) emoduleNil some none MkEFocus
@@ -351,36 +438,6 @@ efocusUsePackage(f) = dip(unEFocus) dip2''(f) dip(MkEFocus)
 efocusUseModule(f) = dip(unEFocus) dip'(f) dip(MkEFocus)
 efocusUseInterface(f) = dip(unEFocus) f dip(MkEFocus)
 
-
-data ESym
-  MkESym : Pkg Mod Name -- ESym
-end
-
-data EEffect
-  EEVar : Name -- EEffect
-  EESym : ESym -- EEffect
-  EENil : EEffect
-end
-
-data EStack
-  ESVar : Name -- EStack
-  ESNil : EStack
-  ESCons : EStack EType -- EStack
-end
-
-data EType
-  ETVar : Name -- EType
-  ETSym : ESym List(EType) -- EType
-end
-
-data EWord
-  EWId : EWord
-  EWCp : EWord EWord -- EWord
-  EWSwap : EWord
-  EWDrop : EWord
-  EWDup : EWord
-  EWDip : EWord -- EWord
-end
 
 ||| Additional info associated with a binding.
 data EMeta(t)
@@ -451,6 +508,9 @@ unECtx = match(MkECtx -> id)
 
 ectxNil : ECtx
 ectxNil = ebindsNil none MkECtx
+
+ectxNilWithImplicits : ECtx
+ectxNilWithImplicits = ectxNil # TODO
 
 ectxUseBinds(f: EBinds a -- EBinds b) : ECtx a -- ECtx b
 ectxUseBinds(f) = dip(unECtx) dip'(f) dip(MkECtx)
@@ -605,6 +665,18 @@ emDropFocusModule = unit emUse(eenvUseFocus(efocusUseModule(dip(drop none))))
 emDropFocusInterface : EMonad(Unit)
 emDropFocusInterface = unit emUse(eenvUseFocus(efocusUseInterface(dip(drop none))))
 
+
+
+emSetCtx : ECtx -- EMonad(Unit)
+emSetCtx = emUse(eenvUseLocal(elocalUseCtx(nip unit)))
+
+emGetDef : Name -- EMonad(Maybe(EDef))
+emGetDef = emUse(eenvUseFocus(dip(dup) efocusGetDef))
+
+emSetDef : Name EDef -- EMonad(Unit)
+emSetDef = pack2 emUse(eenvUseFocus(unpack2 efocusSetDef)) emBind(maybe(emUnit, emFail))
+
+
 elabLModule : L(Module) -- EMonad(Unit)
 elabLImport : L(Import) -- EMonad(Unit)
 elabLExport : L(Export) -- EMonad(Unit)
@@ -615,6 +687,8 @@ elabLDataDef : L(DataDef) -- EMonad(Unit)
 elabLWordSig : L(WordSig) -- EMonad(Unit)
 elabLWordDef : L(WordDef) -- EMonad(Unit)
 elabLAssertion : L(Assertion) -- EMonad(Unit)
+
+elabLParams : L(Params) -- EMonad(EParams)
 
 elabModule : Module -- EMonad(Unit)
 elabImport : Import -- EMonad(Unit)
@@ -627,6 +701,8 @@ elabWordSig : WordSig -- EMonad(Unit)
 elabWordDef : WordDef -- EMonad(Unit)
 elabAssertion : Assertion -- EMonad(Unit)
 
+elabParams : Params -- EMonad(EParams)
+
 elabLModule = elabL(elabModule)
 elabLImport = elabL(elabImport)
 elabLExport = elabL(elabExport)
@@ -637,6 +713,7 @@ elabLDataDef = elabL(elabDataDef)
 elabLWordSig = elabL(elabWordSig)
 elabLWordDef = elabL(elabWordDef)
 elabLAssertion = elabL(elabAssertion)
+elabLParams = elabL(elabParams)
 
 elabModule = $(
   unModule
@@ -652,13 +729,59 @@ elabImport = unImport elabL(
 )
 
 elabExport = drop emUnit
-elabDecl = drop emUnit
-elabSig = drop emUnit
-elabTypeSig = drop emUnit
+
+elabDecl =
+  matchDecl(
+    elabLTypeSig,
+    elabLDataDef,
+    elabLWordSig,
+    elabLWordDef,
+    elabLAssertion
+  )
+
+elabSig =
+  matchSig(
+    elabLTypeSig,
+    elabLWordSig,
+    elabLAssertion
+  )
+
+emWith(f: a -- EMonad(b), getX : EMonad(x), setX : x -- EMonad(Unit)) : a x -- EMonad(b)
+emWith(f, getX, setX) = $(
+  dip(f getX) setX rotl
+  emBind3(nip dip(setX) emPure emMap2(nip))
+)
+
+emWithCtx(f: a -- EMonad(b)) : a ECtx -- EMonad(b)
+emWithCtx(f) = emWith(f, emGetCtx, emSetCtx)
+
+elabTypeSig = $(
+  dup dip(
+    typeSigName getL dup
+    dip(emPure)
+    emGetDef
+  )
+
+  ectxNilWithImplicits emWithCtx(
+    typeSigParams elabLParams
+  )
+
+  emBind3(
+    swap maybe(
+      MkEDefType EDType emSetDef,
+      drop3 "type already defined -- case unhandled" emFail # TODO
+    )
+  )
+)
+
+
+
 elabDataDef = drop emUnit
 elabWordSig = drop emUnit
 elabWordDef = drop emUnit
 elabAssertion = drop emUnit
+
+elabParams = drop MkEParams emPure # TODO
 
 runElabModule : Mod L(Module) -- Result(EError, EModule)
 runElabModule = $(

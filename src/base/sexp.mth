@@ -9,6 +9,12 @@ export base/sexp
   type Sexp
   sexpAtom : Str -- Sexp
   sexpList : List(Sexp) -- Sexp
+  sexpPair : Sexp Sexp -- Sexp
+  sexp0(f: Str) : Sexp
+  sexp1(f: Str, g: a -- Sexp) : a -- Sexp
+  sexp2(f: Str, g: a -- Sexp, h: b -- Sexp) : a b -- Sexp
+  sexp3(f: Str, g: a -- Sexp, h: b -- Sexp, i: c -- Sexp) : a b c -- Sexp
+  sexp4(f: Str, g: a -- Sexp, h: b -- Sexp, i: c -- Sexp, j: d -- Sexp) : a b c d -- Sexp
   sexp->str : Sexp -- Str
 end
 
@@ -32,4 +38,13 @@ sexp->str =
       )
       ")" <>
   )
+
+
+sexpPair = dip2(nil) dip(cons) cons sexpList
+
+sexp0(f) = f sexpAtom
+sexp1(f,g) = dip(f sexpAtom lpure) g cons sexpList
+sexp2(f,g,h) = dip2(f sexpAtom lpure) dip(g cons) h cons sexpList
+sexp3(f,g,h,i) = dip3(f sexpAtom lpure) dip2(g cons) dip(h cons) i cons sexpList
+sexp4(f,g,h,i,j) = dip4(f sexpAtom lpure) dip3(g cons) dip2(h cons) dip(i cons) j cons sexpList
 

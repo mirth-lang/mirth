@@ -1,1 +1,1 @@
-("module" "test/hello-world.mth" () () ())
+("module" "test/hello-world.mth" () () (("+IO" ("type" ()))))
