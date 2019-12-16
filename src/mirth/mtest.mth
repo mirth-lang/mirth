@@ -154,8 +154,8 @@ expectElabError = $(
   dip2(expectNo("elab"))
   dip(map(eerror->str) unlines expect("elab-error"))
   nil? if(
-    drop expectNo("elab-warnings"),
-    map(ewarning->str) unlines expect("elab-warnings")
+    drop expectNo("elab-warning"),
+    map(ewarning->str) unlines expect("elab-warning")
   ) drop
 )
 
@@ -165,8 +165,8 @@ expectElabSuccess = $(
   dip2(expectNo("elab-error"))
   dip(emodule->str expect("elab"))
   nil? if(
-    drop expectNo("elab-warnings"),
-    map(ewarning->str) unlines expect("elab-warnings")
+    drop expectNo("elab-warning"),
+    map(ewarning->str) unlines expect("elab-warning")
   ) drop
 )
 
