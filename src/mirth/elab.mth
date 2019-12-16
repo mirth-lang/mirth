@@ -743,6 +743,7 @@ elabAssertion : Assertion -- EMonad(Unit)
 
 elabParams : Params -- EMonad(EParams)
 
+elabLModuleHead = elabL2(elabModule)
 elabLModule = elabL2(elabModule)
 elabLImport = elabL(elabImport)
 elabLExport = elabL(elabExport)
