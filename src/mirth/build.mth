@@ -55,9 +55,9 @@ buildPkgMods = $(
     )
   )
   dip(maybe(n0 anonPkg, id))
-  runElabPackage result(
-    eerror->str panic,
-    drop 0
+  runElabPackage eresult(
+    dip(for(eerror->str trace)) for(ewarning->str trace) 1,
+    nip for(ewarning->str trace) 0
   )
 )
 

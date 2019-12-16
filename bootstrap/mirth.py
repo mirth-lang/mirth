@@ -2036,15 +2036,18 @@ def intuple (e, f):
 
 def listmap (e, f):
     xs = e.pop()
-    def g(x): return lambda e: e.push(x)
-    def h(e):
-        ys = e.stack[-len(xs):]
-        del e.stack[-len(xs):]
-        e.push(ys)
-    e.copush(h)
-    for x in reversed(xs):
-        e.copush(f)
-        e.copush(g(x))
+    if len(xs) == 0:
+        e.push(xs)
+    else:
+        def g(x): return lambda e: e.push(x)
+        def h(e):
+            ys = e.stack[-len(xs):]
+            del e.stack[-len(xs):]
+            e.push(ys)
+        e.copush(h)
+        for x in reversed(xs):
+            e.copush(f)
+            e.copush(g(x))
 
 def listfor (e, f):
     xs = e.pop()
@@ -2197,6 +2200,11 @@ builtin_word_sigs = {
     '_prim_unsafe_exit':    ([], tpack(tvar('a'), [tint]), tpack(tvar('b'))),
 }
 
+def strcat(a,b):
+    if not (isinstance(a,str) and isinstance(b,str)):
+        raise TypeError("Runtime type error: strcat with (%r, %r)" % (a,b))
+    return a + b
+
 builtin_word_defs = {
     # basic
     '_prim_dup':        env.dup,
@@ -2224,7 +2232,7 @@ builtin_word_defs = {
     '_prim_int_eq':     word2(lambda a,b: a == b),
 
     # str
-    '_prim_str_cat':    word2(lambda a,b: a + b),
+    '_prim_str_cat':    word2(strcat),
     '_prim_str_break':  word22(lambda a,b: (a[:b], a[b:]) if b >= 0 else ('', a)),
     '_prim_str_len':    word1(len),
     '_prim_str_from_codepoint':    word1(chr),

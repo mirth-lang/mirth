@@ -149,17 +149,25 @@ expectParserSuccess = $(
 )
 
 ||| Check that an elaborator error was expected.
-expectElabError : Mod EError -- +IO
+expectElabError : Mod List(EError) List(EWarning) -- +IO
 expectElabError = $(
-  dip(expectNo("elab"))
-  eerror->str expect("elab-error") drop
+  dip2(expectNo("elab"))
+  dip(map(eerror->str) unlines expect("elab-error"))
+  nil? if(
+    drop expectNo("elab-warnings"),
+    map(ewarning->str) unlines expect("elab-warnings")
+  ) drop
 )
 
 ||| Check that an elaborator success was expected.
-expectElabSuccess : Mod EModule -- +IO
+expectElabSuccess : Mod EModule List(EWarning) -- +IO
 expectElabSuccess = $(
-  dip(expectNo("elab-error"))
-  emodule->str expect("elab") drop
+  dip2(expectNo("elab-error"))
+  dip(emodule->str expect("elab"))
+  nil? if(
+    drop expectNo("elab-warnings"),
+    map(ewarning->str) unlines expect("elab-warnings")
+  ) drop
 )
 
 
@@ -174,7 +182,7 @@ runGoldenTestFile = $(
     parseModule runParser result(
       expectSyntaxError,
       dup2 expectParserSuccess
-      dip(dup) runElabModule result(
+      dip(dup) runElabModule eresult(
         expectElabError,
         expectElabSuccess
       )
