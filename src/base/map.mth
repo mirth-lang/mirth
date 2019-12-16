@@ -8,6 +8,7 @@ import base/pos
 import base/list
 import base/maybe
 import base/sexp
+import base/set
 
 export base/map
   type Nat
@@ -15,6 +16,7 @@ export base/map
   type Sexp
 
   type Map(k,v)
+  type Set(k)
 
   Map.generate : List(Pack(k v)) -- Map(k,v)
   mapFromList : List(Pack(k v)) -- Map(k,v)
@@ -27,6 +29,9 @@ export base/map
   mapGet? : Map(k,v) k -- Map(k,v) k Maybe(v)
   mapHas? : Map(k,v) k -- Map(k,v) k Bool
   mapLen? : Map(k,v) -- Map(k,v) Nat
+
+  mapMap(f: a -- b) : Map(k,a) -- Map(k,b)
+  mapKeys : Map(k,v) -- Set(k)
 
   mapFor(f: *a k v -- *a) : *a Map(k,v) -- *a
   map->sexp(k->sexp: k -- Sexp, v->sexp: v -- Sexp) : Map(k,v) -- Sexp
@@ -105,6 +110,15 @@ mapNil? drop == id
 mapLen? drop == id
 mapGet? drop == id
 mapHas? drop == id
+
+mapMap(f) =
+  match(
+    mapNil -> mapNil,
+    mapLeaf -> dip(f) mapLeaf,
+    mapNode -> dip(mapMap(f)) mapMap(f) mapNode
+  )
+
+mapKeys = setFromMapKeys
 
 mapFor(f) =
   match(
