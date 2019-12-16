@@ -1,0 +1,9 @@
+pull_request_rules:
+  - name: auto-merge
+    conditions:
+      - "author=@collaborators"
+      - "#status-failure<=0"
+      - "#status-success>=10"
+    actions:
+      merge:
+        method: squash
