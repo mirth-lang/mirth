@@ -212,40 +212,40 @@ end
 
 
 ||| A type definition.
-data EDefType
-  MkEDefType : EParams -- EDefType
+data ETypeDef
+  MkETypeDef : EParams -- ETypeDef
 end
 
-unEDefType : EDefType -- EParams
-unEDefType = match(MkEDefType -> id)
+unETypeDef : ETypeDef -- EParams
+unETypeDef = match(MkETypeDef -> id)
 
-edeftype->sexp : EDefType -- Sexp
-edeftype->sexp = unEDefType sexp1("type", eparams->sexp)
+etypedef->sexp : ETypeDef -- Sexp
+etypedef->sexp = unETypeDef sexp1("type", eparams->sexp)
 
 
 ||| A word definition.
-data EDefWord
-  MkEDefWord : EDefWord
+data EWordDef
+  MkEWordDef : EWordDef
 end
 
-unEDefWord : EDefWord --
-unEDefWord = match(MkEDefWord -> id)
+unEWordDef : EWordDef --
+unEWordDef = match(MkEWordDef -> id)
 
-edefword->sexp : EDefWord -- Sexp
-edefword->sexp = unEDefWord "word" sexpAtom
+eworddef->sexp : EWordDef -- Sexp
+eworddef->sexp = unEWordDef "word" sexpAtom
 
 
 ||| A definition.
 data EDef
-  EDType : EDefType -- EDef
-  EDWord : EDefWord -- EDef
+  EDType : ETypeDef -- EDef
+  EDWord : EWordDef -- EDef
 end
 
 edef->sexp : EDef -- Sexp
 edef->sexp =
   match(
-    EDType -> edeftype->sexp,
-    EDWord -> edefword->sexp
+    EDType -> etypedef->sexp,
+    EDWord -> eworddef->sexp
   )
 
 
@@ -277,6 +277,9 @@ end
 
 unEInterface : EInterface -- Interface EDefs
 unEInterface = match(MkEInterface -> id)
+
+einterfaceNil : Interface -- EInterface
+einterfaceNil = edefsNil MkEInterface
 
 einterfaceInterface : EInterface -- Interface
 einterfaceInterface = unEInterface drop
@@ -781,7 +784,11 @@ elabImport = unImport elabL(
   emBind2(emoduleUseImports(eimportsAdd unit) drop emSetFocusModule)
 )
 
-elabExport = drop emUnit
+elabExport = $(
+  dup dip(exportInterface getL einterfaceNil emSetFocusInterface)
+  exportSigs emFor_(elabLSig)
+  emVoid2
+)
 
 elabDecl =
   matchDecl(
@@ -821,13 +828,11 @@ elabTypeSig = $(
 
   emBind3(
     swap maybe(
-      MkEDefType EDType emSetDef,
-      drop3 "type already defined -- case unhandled" emFail # TODO
+      MkETypeDef EDType emSetDef,
+      drop3 emUnit #TODO
     )
   )
 )
-
-
 
 elabDataDef = drop emUnit
 elabWordSig = drop emUnit
