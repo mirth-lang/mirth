@@ -22,5 +22,5 @@ install-vim:
 	rm -rf ~/.vim/bundle/mirth-vim
 	cp -r tools/mirth-vim ~/.vim/bundle/
 
-.PHONY: typecheck test build bootstrap-test install-vim
+.PHONY: typecheck test test-update build bootstrap-test install-vim
 

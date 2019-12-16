@@ -21,7 +21,9 @@ export mirth/elab
 
   type EEnv
   type EError
+  type EWarning
   type EMonad(t)
+  type EResult(t)
 
   type ESym
   type ETerm
@@ -37,8 +39,7 @@ export mirth/elab
   type EModule
   type EPackage
 
-
-  emRun : EEnv EMonad(t) -- EEnv Result(EError,t)
+  emRun : EEnv EMonad(t) -- EEnv EResult(t)
   emFail : Str -- EMonad(a)
   emPure : a -- EMonad(a)
   emPure2 : a b -- EMonad(a) EMonad(b)
@@ -56,33 +57,97 @@ export mirth/elab
   emThen3(f: EMonad(d)) : EMonad(a) EMonad(b) EMonad(c) -- EMonad(d)
   emThen4(f: EMonad(e)) : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(e)
 
-
-  runElabModule : Mod L(Module) -- Result(EError, EModule)
-  runElabPackage : Pkg Map(Mod, L(Module)) -- Result(EError, EPackage)
+  runElabModule : Mod L(Module) -- EResult(EModule)
+  runElabPackage : Pkg Map(Mod, L(Module)) -- EResult(EPackage)
 
   eerror->str : EError -- Str
+  ewarning->str : EWarning -- Str
   emodule->str : EModule -- Str
 
+  eresult(
+    f: *a List(EError) List(EWarning) -- *b,
+    g: *a t List(EWarning) -- *b
+  ) : *a EResult(t) -- *b
 end
 
-||| Elaborator error.
+||| Error during elaboration.
 data EError
-  MkEError : Str -- EError
+  MkEError : L(Str) -- EError
 end
 
-unEError : EError -- Str
+unEError : EError -- L(Str)
 unEError = match(MkEError -> id)
 
 eerror->str : EError -- Str
-eerror->str = unEError
+eerror->str = unEError unL dip(locSet->str) <>
+
+
+||| Warning during elaboration.
+data EWarning
+  MkEWarning : L(Str) -- EWarning
+end
+
+unEWarning : EWarning -- L(Str)
+unEWarning = match(MkEWarning -> id)
+
+ewarning->str : EWarning -- Str
+ewarning->str = unEWarning unL dip(locSet->str) <>
+
+
+data EResult(t)
+  ERErr : List(EError) List(EWarning) -- EResult(t)
+  EROk : t List(EWarning) -- EResult(t)
+end
+
+eresult(f,g) =
+  match(
+    ERErr -> f,
+    EROk -> g
+  )
+
+erPure : t -- EResult(t)
+erPure = nil EROk
+
+erFail : EError -- EResult(t)
+erFail = lpure nil ERErr
+
+erWarn : EWarning -- EResult(Unit)
+erWarn = dip(unit) lpure EROk
+
+erMap(f: *c a -- *c b) : *c EResult(a) -- *c EResult(b)
+erMap(f) = eresult(ERErr, dip(f) EROk)
+
+erMap2(f: a b -- c) : EResult(a) EResult(b) -- EResult(c)
+erMap2(f) =
+  swap eresult(
+    rotl eresult(
+      dip(swap) dip2(++) ++ ERErr,
+      nip ++ ERErr
+    ),
+    rotl eresult(
+      dip3(drop) dip(swap) ++ ERErr,
+      dip(swap) dip2(f) ++ EROk
+    )
+  )
+
+erBind(f: a -- EResult(b)) : EResult(a) -- EResult(b)
+erBind(f) =
+  eresult(
+    ERErr,
+    swap f eresult(
+      dip(swap) ++ ERErr,
+      dip(swap) ++ EROk
+    )
+  )
+
 
 ||| Elaboration monad.
 data EMonad(t)
-  MkEMonad(f: EEnv m -- EEnv Result(EError, t)) : m -- EMonad(t)
+  MkEMonad(f: EEnv m -- EEnv EResult(t)) : m -- EMonad(t)
 end
 
 emUse(f: EEnv a -- EEnv b) : a -- EMonad(b)
-emUse(f) = MkEMonad(f ok)
+emUse(f) = MkEMonad(f erPure)
 
 emGet(f: EEnv -- EEnv b) : EMonad(b)
 emGet(f) = unit emUse(drop f)
@@ -90,14 +155,14 @@ emGet(f) = unit emUse(drop f)
 emPut(f: EEnv t -- EEnv) : t -- EMonad(Unit)
 emPut(f) = emUse(f unit)
 
-emRun : EEnv EMonad(t) -- EEnv Result(EError, t)
+emRun : EEnv EMonad(t) -- EEnv EResult(t)
 emRun = match(MkEMonad(f) -> f)
 
 emPure : a -- EMonad(a)
-emPure = MkEMonad(ok)
+emPure = MkEMonad(erPure)
 
 emFail : Str -- EMonad(a)
-emFail = MkEMonad(MkEError err)
+emFail = MkEMonad(pureL MkEError erFail)
 
 emPure2 : a b -- EMonad(a) EMonad(b)
 emPure2 = dip(emPure) emPure
@@ -106,16 +171,15 @@ emPure3 : a b c -- EMonad(a) EMonad(b) EMonad(c)
 emPure3 = dip(emPure2) emPure
 
 emMap(f: a -- b) : EMonad(a) -- EMonad(b)
-emMap(f) = MkEMonad(emRun rmap(f))
+emMap(f) = MkEMonad(emRun erMap(f))
 
 emMap2(f: a b -- c) : EMonad(a) EMonad(b) -- EMonad(c)
 emMap2(f) =
   pack2 MkEMonad(
-    unpack2 dip(emRun) swap
-    result(nip err,
-      dip(emRun) swap
-      result(nip err, f ok)
-    )
+    unpack2
+    dip(emRun) swap
+    dip(emRun) swap
+    erMap2(f)
   )
 
 emMap3(f: a b c -- d) : EMonad(a) EMonad(b) EMonad(c) -- EMonad(d)
@@ -125,7 +189,15 @@ emMap4(f: a b c d -- e) : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(e)
 emMap4(f) = emMap2(pack2) emMap3(unpack2 f)
 
 emBind(f: a -- EMonad(b)) : EMonad(a) -- EMonad(b)
-emBind(f) = MkEMonad(emRun result(err, f emRun))
+emBind(f) =
+  MkEMonad(
+    emRun eresult(
+      ERErr,
+      dip(unit) EROk
+      dip(f emRun)
+      swap erMap2(nip)
+    )
+  )
 
 emBind2(f: a b -- EMonad(c)) : EMonad(a) EMonad(b) -- EMonad(c)
 emBind2(f) = emMap2(pack2) emBind(unpack2 f)
@@ -842,13 +914,13 @@ elabAssertion = drop emUnit
 
 elabParams = drop MkEParams emPure # TODO
 
-runElabModule : Mod L(Module) -- Result(EError, EModule)
+runElabModule : Mod L(Module) -- EResult(EModule)
 runElabModule = $(
   elabLModule emThen(emGetFocusModule)
   dip(eenvNil) emRun nip
 )
 
-runElabPackage : Pkg Map(Mod, L(Module)) -- Result(EError, EPackage)
+runElabPackage : Pkg Map(Mod, L(Module)) -- EResult(EPackage)
 runElabPackage = $(
   elabPackage emThen(emGetFocusPackage)
   dip(eenvNil) emRun nip
