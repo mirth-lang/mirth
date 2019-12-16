@@ -3,6 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import base/io
+import base/nat
 import base/str
 import base/unit
 import base/list
@@ -19,6 +20,7 @@ import mirth/token
 import mirth/lexer
 import mirth/syntax
 import mirth/parser
+import mirth/elab
 
 export mirth/build
   type +IO
@@ -35,26 +37,27 @@ findMods = $(
 
 buildPkgMods : Maybe(Pkg) List(Mod) -- Int +IO
 buildPkgMods = $(
-  dip(maybe("no pkg", pkg->str) print)
-  cond(
-    nil? -> drop "No modules found." print 1,
-    dip(mapNil)
-    for(
-      dup mod->str "Reading " swap <> trace
-      dup mod->path read
-      "Lexing." trace
-      dip(dup) tokenize result(
-        lexerError->str panic,
-        "Parsing." trace
-        parseModule runParser
-        result(
-          syntaxError->str panic,
-          getL mapSet
-        )
+  dip(dup maybe("no pkg", pkg->str) print)
+  nil? if("No modules found." panic, id)
+  dip(mapNil)
+  for(
+    dup mod->str "Reading " swap <> trace
+    dup mod->path read
+    "Lexing." trace
+    dip(dup) tokenize result(
+      lexerError->str panic,
+      "Parsing." trace
+      parseModule runParser
+      result(
+        syntaxError->str panic,
+        mapSet
       )
     )
-    drop
-    0
+  )
+  dip(maybe(n0 anonPkg, id))
+  runElabPackage result(
+    eerror->str panic,
+    drop 0
   )
 )
 
