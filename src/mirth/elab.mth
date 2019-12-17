@@ -358,20 +358,24 @@ edefsNil = mapNil MkEDefs
 edefsGet : EDefs Name -- Maybe(EDef)
 edefsGet = dip(unEDefs) mapGet
 
+||| Set or overwrite a definition. Does not attempt to merge.
 edefsSet : EDefs Name EDef -- EDefs
 edefsSet = dip2(unEDefs) mapSet MkEDefs
 
+edefsSingle : Name EDef -- EDefs
+edefsSingle = dip2(edefsNil) edefsSet
+
+||| Add a definition
+edefsAdd : EDefs Name EDef -- EMonad(EDefs)
+edefsAdd =
+  dip2(unEDefs) dip(mapGet?) swap maybe(
+    mapSet MkEDefs emPure,
+    swap edefMerge dip(emPure2)
+    emMap3(mapSet MkEDefs)
+  )
+
 edefsMerge : EDefs EDefs -- EMonad(EDefs)
-edefsMerge =
-  dip(unEDefs emPure) unEDefs mapFor(
-    emPure2 emBind3(
-      dip(mapGet?) swap maybe(
-        mapSet emPure,
-        swap edefMerge dip(emPure2)
-        emMap3(mapSet)
-      )
-    )
-  ) emMap(MkEDefs)
+edefsMerge = dip(emPure) unEDefs mapFor(emPure2 emBind3(edefsAdd))
 
 edefs->sexp : EDefs -- Sexp
 edefs->sexp = unEDefs map->sexp(name->sexp, edef->sexp)
@@ -400,8 +404,11 @@ einterfaceUseDefs(f) = dip(unEInterface) f dip(MkEInterface)
 einterfaceGetDef : EInterface Name -- Maybe(EDef)
 einterfaceGetDef = einterfaceUseDefs(dip(dup) edefsGet) nip
 
-einterfaceSetDef : EInterface Name EDef -- EInterface
-einterfaceSetDef = pack2 einterfaceUseDefs(unpack2 edefsSet unit) drop
+einterfaceAddDefs : EInterface EDefs -- EMonad(EInterface)
+einterfaceAddDefs = dip(unEInterface dip(emPure)) edefsMerge emMap2(MkEInterface)
+
+einterfaceAddDef : EInterface Name EDef -- EMonad(EInterface)
+einterfaceAddDef = edefsSingle einterfaceAddDefs
 
 ||| Merge two interfaces. Assumes both interfaces have the same name.
 einterfaceMerge : EInterface EInterface -- EMonad(EInterface)
@@ -443,21 +450,15 @@ unEExports = match(MkEExports -> id)
 eexportsNil : EExports
 eexportsNil = mapNil MkEExports
 
+eexportsAdd : EExports EInterface -- EMonad(EExports)
+eexportsAdd =
+  dip(unEExports) dup dip(einterfaceInterface mapGet?) swap maybe(
+    mapSet MkEExports emPure,
+    swap einterfaceMerge dip(emPure2) emMap3(mapSet MkEExports)
+  )
+
 eexportsMerge : EExports EExports -- EMonad(EExports)
-eexportsMerge =
-  dip(unEExports emPure) unEExports mapFor(
-    emPure2 emBind3(
-      dip(mapGet?) swap maybe(
-        mapSet emPure,
-        swap einterfaceMerge dip(emPure2)
-        emMap3(mapSet)
-      )
-    )
-  ) emMap(MkEExports)
-
-
-eexportsAdd : EExports EInterface -- EExports
-eexportsAdd = dip(unEExports) dup dip(einterfaceInterface) mapSet MkEExports
+eexportsMerge = dip(emPure) unEExports mapFor(nip emPure emBind2(eexportsAdd))
 
 eexports->sexp : EExports -- Sexp
 eexports->sexp = unEExports map->sexp(interface->sexp, einterface->sexp)
@@ -489,14 +490,23 @@ emoduleUseDefs(f) = dip(unEModule) f dip(MkEModule)
 emoduleGetDef : EModule Name -- Maybe(EDef)
 emoduleGetDef = emoduleUseDefs(dip(dup) edefsGet) nip
 
-emoduleSetDef : EModule Name EDef -- EModule
-emoduleSetDef = pack2 emoduleUseDefs(unpack2 edefsSet unit) drop
+emoduleAddDefs : EModule EDefs -- EMonad(EModule)
+emoduleAddDefs = dip(unEModule dip(emPure3)) edefsMerge emMap4(MkEModule)
+
+emoduleAddDef : EModule Name EDef -- EMonad(EModule)
+emoduleAddDef = edefsSingle emoduleAddDefs
 
 emoduleNil : Mod -- EModule
 emoduleNil = eimportsNil eexportsNil edefsNil MkEModule
 
-emoduleAddInterface : EModule EInterface -- EModule
-emoduleAddInterface = emoduleUseExports(eexportsAdd unit) drop
+emoduleAddInterface : EModule EInterface -- EMonad(EModule)
+emoduleAddInterface = $(
+  dip(unEModule) tuck
+  dip4(emPure2)
+  dip2(eexportsAdd)
+  einterfaceDefs edefsMerge
+  emMap4(MkEModule)
+)
 
 emodule->sexp : EModule -- Sexp
 emodule->sexp = unEModule sexp4("module", mod->sexp, eimports->sexp, eexports->sexp, edefs->sexp)
@@ -560,17 +570,20 @@ efocusGetDef =
     nip swap einterfaceGetDef
   )
 
-||| Set def. If impossible, returns original EFocus and some error.
-efocusSetDef : EFocus Name EDef -- EFocus Maybe(Str)
-efocusSetDef =
-  dip2(unEFocus) rotl maybe(
-    rotl maybe(
-      drop2 none none MkEFocus "Compiler Error: efocusSetDef: Not in module or interface." some,
-      rotr emoduleSetDef some none MkEFocus none
+efocusAddDefs : EFocus EDefs -- EMonad(EFocus)
+efocusAddDefs = $(
+  dip(unEFocus dip2(emPure))
+  swap maybe(
+    swap maybe(
+      drop2 "Compiler Error: efocusAddDefs: Not in module or interface." emFail,
+      swap emoduleAddDefs emMap2(some none MkEFocus)
     ),
-    rotr einterfaceSetDef some MkEFocus none
+    swap einterfaceAddDefs dip(emPure) emMap3(some MkEFocus)
   )
+)
 
+efocusAddDef : EFocus Name EDef -- EMonad(EFocus)
+efocusAddDef = edefsSingle efocusAddDefs
 
 ||| Create an empty package focus for a Pkg.
 efocusNilPkg : Pkg -- EFocus
@@ -824,9 +837,10 @@ emSaveFocusModule = $(
 emSaveFocusInterface : EMonad(Unit)
 emSaveFocusInterface = $(
   emGetFocusModule emGetFocusInterface
-  emBind2(emoduleAddInterface emSetFocusModule)
+  emBind2(emoduleAddInterface) emBind(emSetFocusModule)
   emThen(emDropFocusInterface)
 )
+
 
 emSetCtx : ECtx -- EMonad(Unit)
 emSetCtx = emUse(eenvUseLocal(elocalUseCtx(nip unit)))
@@ -834,8 +848,11 @@ emSetCtx = emUse(eenvUseLocal(elocalUseCtx(nip unit)))
 emGetDef : Name -- EMonad(Maybe(EDef))
 emGetDef = emUse(eenvUseFocus(dip(dup) efocusGetDef))
 
-emSetDef : Name EDef -- EMonad(Unit)
-emSetDef = pack2 emUse(eenvUseFocus(unpack2 efocusSetDef)) emBind(maybe(emUnit, emFail))
+emAddDefs : EDefs -- EMonad(Unit)
+emAddDefs = dip(emGetFocus) emPure emBind2(efocusAddDefs) emBind(emSetFocus)
+
+emAddDef : Name EDef -- EMonad(Unit)
+emAddDef = edefsSingle emAddDefs
 
 elabLModuleHead : Mod L(Module) -- EMonad(Unit)
 elabLModule : Mod L(Module) -- EMonad(Unit)
@@ -940,22 +957,9 @@ emWithCtx(f: a -- EMonad(b)) : a ECtx -- EMonad(b)
 emWithCtx(f) = emWith(f, emGetCtx, emSetCtx)
 
 elabTypeSig = $(
-  dup dip(
-    typeSigName getL dup
-    dip(emPure)
-    emGetDef
-  )
-
-  ectxNilWithImplicits emWithCtx(
-    typeSigParams elabLParams
-  )
-
-  emBind3(
-    swap maybe(
-      MkETypeDef EDType emSetDef,
-      drop3 emUnit # TODO
-    )
-  )
+  dup dip(typeSigName getL emPure)
+  ectxNilWithImplicits emWithCtx(typeSigParams elabLParams)
+  emBind2(MkETypeDef EDType emAddDef)
 )
 
 elabDataDef = drop emUnit
