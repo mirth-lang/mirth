@@ -240,8 +240,19 @@ emVoid4 = emMap4(drop4 unit)
 ###############
 
 data ESym
-  MkESym : Pkg Mod Name -- ESym
+  ESymType : Maybe(Pkg) Name -- ESym
+  ESymWord : Maybe(Mod) Name -- ESym
 end
+
+esym->str : ESym -- Str
+esym->str =
+  match(
+    ESymType -> dip(dip("T:") maybe(id, pkg->str <> ":" <>)) name->str <>,
+    ESymWord -> dip(dip("w:") maybe(id, mod->str <> ":" <>)) name->str <>
+  )
+
+esym->sexp : ESym -- Sexp
+esym->sexp = esym->str sexpAtom
 
 data EParams
   MkEParams : EParams
@@ -256,24 +267,30 @@ eparamsNil = MkEParams
 eparams->sexp : EParams -- Sexp
 eparams->sexp = unEParams nil sexpList
 
+||| Elaborated effect type.
 data EEffect
   EEVar : Name -- EEffect
   EESym : ESym -- EEffect
   EENil : EEffect
 end
 
+||| Elaborated stack type.
 data EStack
   ESVar : Name -- EStack
   ESNil : EStack
   ESCons : EStack EType -- EStack
 end
 
+||| Elaborated value type.
 data EType
   ETVar : Name -- EType
   ETSym : ESym List(EType) -- EType
 end
 
+||| Elaborated word.
 data EWord
+  EWVar : Name List(EWord) -- EWord
+  EWSym : ESym List(EWord) -- EWord
   EWId : EWord
   EWCp : EWord EWord -- EWord
   EWSwap : EWord
@@ -282,17 +299,19 @@ data EWord
   EWDip : EWord -- EWord
 end
 
-
 ||| A type definition.
 data ETypeDef
-  MkETypeDef : EParams -- ETypeDef
+  MkETypeDef : ESym EParams -- ETypeDef
 end
 
-unETypeDef : ETypeDef -- EParams
+unETypeDef : ETypeDef -- ESym EParams
 unETypeDef = match(MkETypeDef -> id)
 
+etypedefSym : ETypeDef -- ESym
+etypedefSym = unETypeDef drop
+
 etypedef->sexp : ETypeDef -- Sexp
-etypedef->sexp = unETypeDef sexp1("type", eparams->sexp)
+etypedef->sexp = unETypeDef sexp2("type", esym->sexp, eparams->sexp)
 
 etypedefMerge : Name ETypeDef ETypeDef -- Name EMonad(ETypeDef)
 etypedefMerge = drop emPure # TODO
@@ -300,14 +319,17 @@ etypedefMerge = drop emPure # TODO
 
 ||| A word definition.
 data EWordDef
-  MkEWordDef : EWordDef
+  MkEWordDef : ESym -- EWordDef
 end
 
-unEWordDef : EWordDef --
+unEWordDef : EWordDef -- ESym
 unEWordDef = match(MkEWordDef -> id)
 
+eworddefSym : EWordDef -- ESym
+eworddefSym = unEWordDef
+
 eworddef->sexp : EWordDef -- Sexp
-eworddef->sexp = unEWordDef "word" sexpAtom
+eworddef->sexp = unEWordDef sexp1("word", esym->sexp)
 
 eworddefMerge : Name EWordDef EWordDef -- Name EMonad(EWordDef)
 eworddefMerge = drop emPure # TODO
@@ -318,6 +340,13 @@ data EDef
   EDType : ETypeDef -- EDef
   EDWord : EWordDef -- EDef
 end
+
+edefSym : EDef -- ESym
+edefSym =
+  match(
+    EDType -> etypedefSym,
+    EDWord -> eworddefSym
+  )
 
 edef->sexp : EDef -- Sexp
 edef->sexp =
@@ -340,8 +369,6 @@ edefMerge =
         EDWord -> eworddefMerge emMap(EDWord)
       )
     )
-
-
 
 
 ||| A set of definitions in a single scope.
@@ -523,6 +550,9 @@ end
 unEPackage : EPackage -- Pkg EExports Map(Mod, EModule)
 unEPackage = match(MkEPackage -> id)
 
+epackagePkg : EPackage -- Pkg
+epackagePkg = unEPackage drop2
+
 epackageNil : Pkg -- EPackage
 epackageNil = eexportsNil mapNil MkEPackage
 
@@ -600,6 +630,18 @@ efocusUseInterface(f: Maybe(EInterface) a -- Maybe(EInterface) b) : EFocus a -- 
 efocusUsePackage(f) = dip(unEFocus) dip2''(f) dip(MkEFocus)
 efocusUseModule(f) = dip(unEFocus) dip'(f) dip(MkEFocus)
 efocusUseInterface(f) = dip(unEFocus) f dip(MkEFocus)
+
+efocusPkg : EFocus -- Maybe(Pkg)
+efocusPkg = unEFocus drop2 mmap(epackagePkg)
+
+efocusMod : EFocus -- Maybe(Mod)
+efocusMod = unEFocus drop nip mmap(emoduleMod)
+
+efocusTypeSym : EFocus Name -- ESym
+efocusTypeSym = dip(efocusPkg) ESymType
+
+efocusWordSym : EFocus Name -- ESym
+efocusWordSym = dip(efocusMod) ESymWord
 
 ||| Additional info associated with a binding.
 data EMeta(t)
@@ -854,6 +896,11 @@ emAddDefs = dip(emGetFocus) emPure emBind2(efocusAddDefs) emBind(emSetFocus)
 emAddDef : Name EDef -- EMonad(Unit)
 emAddDef = edefsSingle emAddDefs
 
+emMkTypeSym : Name -- EMonad(ESym)
+emMkWordSym : Name -- EMonad(ESym)
+emMkTypeSym = dip(emGetFocus) emPure emMap2(efocusTypeSym)
+emMkWordSym = dip(emGetFocus) emPure emMap2(efocusWordSym)
+
 elabLModuleHead : Mod L(Module) -- EMonad(Unit)
 elabLModule : Mod L(Module) -- EMonad(Unit)
 elabLImport : L(Import) -- EMonad(Unit)
@@ -957,9 +1004,9 @@ emWithCtx(f: a -- EMonad(b)) : a ECtx -- EMonad(b)
 emWithCtx(f) = emWith(f, emGetCtx, emSetCtx)
 
 elabTypeSig = $(
-  dup dip(typeSigName getL emPure)
+  dup dip(typeSigName getL dup dip(emPure) emMkTypeSym)
   ectxNilWithImplicits emWithCtx(typeSigParams elabLParams)
-  emBind2(MkETypeDef EDType emAddDef)
+  emBind3(MkETypeDef EDType emAddDef)
 )
 
 elabDataDef = drop emUnit
