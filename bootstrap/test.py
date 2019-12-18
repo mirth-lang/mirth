@@ -50,10 +50,10 @@ for path in glob.glob('bootstrap/pass/*'):
     test_interp([path], succeeds)
 
 for path in glob.glob('bootstrap/fail_syntax/*'):
-    test_interp([path], stderr_contains('SyntaxError'))
+    test_interp([path], stderr_contains('Syntax Error'))
 
 for path in glob.glob('bootstrap/fail_types/*'):
-    test_interp([path], stderr_contains('TypeError'))
+    test_interp([path], stderr_contains('Type Error'))
 
 for path in glob.glob('bootstrap/fail_tests/*'):
     test_interp([path], stderr_contains('Assertion failed'))
