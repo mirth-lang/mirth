@@ -3,25 +3,26 @@ import base/int
 import base/str
 import base/map
 import base/list
+import base/nat
+import base/maybe
 import base/result
 
 import mirth/loc
 export mirth/core
-  type CName
+  type L(t)
   type CSort
   type CArity
+  type CSym
+  type CVar
+  type CHole
   type CPrim
+  type CHead
+  type CTerm
 
-  MkCName : Str -- CName
-  unCName : CName -- Str
-  cname->str : CName -- Str
-
-  CSDomain : CSort
   CSStack : CSort
   CSType : CSort
   CSValue : CSort
   CSWord : CSort
-  csortIsDomain? : CSort -- CSort Bool
   csortIsStack? : CSort -- CSort Bool
   csortIsType? : CSort -- CSort Bool
   csortIsValue? : CSort -- CSort Bool
@@ -40,10 +41,64 @@ export mirth/core
   carity= : CArity CArity -- Bool
   carity->str : CArity -- Str
 
+  MkCVar : Str -- CVar
+  unCVar : CVar -- Str
+  cvar= : CVar CVar -- Bool
+  cvar->str : CVar -- Str
+
+  MkCSym : Str -- CSym
+  unCSym : CSym -- Str
+  csym= : CSym CSym -- Bool
+  csym->str : CSym -- Str
+
+  MkCHole : Nat -- CHole
+  unCHole : CHole -- Nat
+  chole= : CHole CHole -- Bool
+  chole->str : CHole -- Str
+
+  CHSym : CSym -- CHead
+  CHVar : CVar -- CHead
+  CHHole : CHole -- CHead
+  CHPrim : CPrim -- CHead
+  cheadGetSym : CHead -- Maybe(CSym)
+  cheadGetVar : CHead -- Maybe(CVar)
+  cheadGetHole : CHead -- Maybe(CHole)
+  cheadGetPrim : CHead -- Maybe(CPrim)
+  chead= : CHead CHead -- Bool
+  chead->str : CHead -- Str
+
+  MkCTerm : L(CHead) List(L(CTerm)) -- CTerm
+  unCTerm : CTerm -- L(CHead) List(L(CTerm))
+  cterm= : CTerm CTerm -- Bool
+  cterm->str : CTerm -- Str
+
+  CPSNil : CPrim
+  CPSCons : CPrim
+  CPTInt : CPrim
+  CPTStr : CPrim
+  CPTBool : CPrim
+  CPTList : CPrim
+  CPTPack : CPrim
+  CPVInt : Int -- CPrim
+  CPVStr : Str -- CPrim
+  CPVBool : Bool -- CPrim
+  CPVListNil : CPrim
+  CPVListCons : CPrim
+  CPVPackNil : CPrim
+  CPVPackCons : CPrim
+  CPWId : CPrim
+  CPWCp : CPrim
+  CPWDip : CPrim
+  CPWDup : CPrim
+  CPWDrop : CPrim
+  CPWSwap : CPrim
+  CPWPush : CPrim
   cprimBuiltinTypes : Map(Str, CPrim)
   cprimBuiltinWords : Map(Str, CPrim)
   cprimArity : CPrim -- CArity
   cprimSort : CPrim -- CSort
+  cprim= : CPrim CPrim -- Bool
+  cprim->str : CPrim -- Str
 end
 
 ||| Unique name.
@@ -60,15 +115,11 @@ cname->str = unCName
 
 ||| Syntactic sorts.
 data CSort
-  CSDomain : CSort
   CSStack : CSort
   CSType : CSort
   CSValue : CSort
   CSWord : CSort
 end
-
-csortIsDomain? : CSort -- CSort Bool
-csortIsDomain? = dup match(CSDomain -> true, _ -> drop false)
 
 csortIsStack? : CSort -- CSort Bool
 csortIsStack? = dup match(CSStack -> true, _ -> drop false)
@@ -85,7 +136,6 @@ csortIsWord? = dup match(CSWord -> true, _ -> drop false)
 csort= : CSort CSort -- Bool
 csort= =
   match(
-    CSDomain -> csortIsDomain? nip,
     CSStack -> csortIsStack? nip,
     CSType -> csortIsType? nip,
     CSValue -> csortIsValue? nip,
@@ -95,7 +145,6 @@ csort= =
 csort->str : CSort -- Str
 csort->str =
   match(
-    CSDomain -> "domain",
     CSStack -> "stack",
     CSType -> "type",
     CSValue -> "value",
@@ -135,21 +184,80 @@ carity->str : CArity -- Str
 carity->str = dip("") unCArity dip(for(csort->str " -> " <> <>)) csort->str <>
 
 data CVar
-  MkCVar : Nat -- CVar
+  MkCVar : Str -- CVar
 end
 
-data CMeta
-  MkCMeta : Nat -- CMeta
+unCVar : CVar -- Str
+unCVar = match(MkCVar -> id)
+
+cvar= : CVar CVar -- Bool
+cvar= = both(unCVar) streq
+
+cvar->str : CVar -- Str
+cvar->str = unCVar
+
+data CSym
+  MkCSym : Str -- CSym
 end
+
+unCSym : CSym -- Str
+unCSym = match(MkCSym -> id)
+
+csym= : CSym CSym -- Bool
+csym= = both(unCSym) streq
+
+csym->str : CSym -- Str
+csym->str = unCSym
+
+data CHole
+  MkCHole : Nat -- CHole
+end
+
+unCHole : CHole -- Nat
+unCHole = match(MkCHole -> id)
+
+chole= : CHole CHole -- Bool
+chole= = both(unCHole) n=
+
+chole->str : CHole -- Str
+chole->str = dip("?") unCHole nat->str <>
 
 data CHead
+  CHSym : CSym -- CHead
   CHVar : CVar -- CHead
-  CHMeta : CMeta -- CHead
-  CHName : CName -- CHead
+  CHHole : CHole -- CHead
   CHPrim : CPrim -- CHead
 end
 
+cheadGetSym : CHead -- Maybe(CSym)
+cheadGetSym = match(CHSym -> some, _ -> drop none)
+
+cheadGetVar : CHead -- Maybe(CVar)
+cheadGetVar = match(CHVar -> some, _ -> drop none)
+
+cheadGetHole : CHead -- Maybe(CHole)
+cheadGetHole = match(CHHole -> some, _ -> drop none)
+
+cheadGetPrim : CHead -- Maybe(CPrim)
+cheadGetPrim = match(CHPrim -> some, _ -> drop none)
+
 chead= : CHead CHead -- Bool
+chead= =
+  match(
+    CHSym -> swap cheadGetSym maybe(drop false, swap csym=),
+    CHVar -> swap cheadGetVar maybe(drop false, swap cvar=),
+    CHHole -> swap cheadGetHole maybe(drop false, swap chole=),
+    CHPrim -> swap cheadGetPrim maybe(drop false, swap cprim=)
+  )
+
+chead->str : CHead -- Str
+chead->str =
+  match(
+    CHSym -> csym->str,
+    CHVar -> cvar->str,
+    CHHole -> chole->str,
+    CHPrim -> cprim->str
+  )
 
 data CTerm
   MkCTerm : L(CHead) List(L(CTerm)) -- CTerm
@@ -173,15 +281,24 @@ cterm= = $(
   )
 )
 
+cterm->str : CTerm -- Str
+cterm->str = $(
+  unCTerm dip(getL chead->str)
+  lmatchL(id,
+    dip2("(" <>)
+    dip(getL cterm->str <>)
+    for(dip(", ") getL cterm->str <> <>)
+    ")" <>
+  )
+)
+
+
 ##############
 # Primitives #
 ##############
 
 ||| Primitive operators.
 data CPrim
-  # Built-in Domains
-  CPDPure : CPrim
-
   # Built-in Stacks
   CPSNil : CPrim
   CPSCons : CPrim
@@ -259,7 +376,6 @@ end
 cprim->str : CPrim -- Str
 cprim->str =
   match(
-    CPDPure -> "CPDPure",
     CPSNil -> "CPSNil",
     CPSCons -> "CPSCons",
     CPTInt -> "CPTInt",
@@ -398,7 +514,6 @@ cprimBuiltinWords = $(
 cprimArity : CPrim -- CArity
 cprimArity =
   match(
-    CPDPure -> CA1(CSStack, CSDomain),
     CPSNil -> CA0(CSStack),
     CPSCons -> CA2(CSStack, CSValue, CSStack),
     CPTInt -> CA0(CSType),
