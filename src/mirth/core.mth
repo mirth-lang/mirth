@@ -8,6 +8,7 @@ import base/maybe
 import base/result
 
 import mirth/loc
+
 export mirth/core
   type L(t)
   type CSort
@@ -41,18 +42,24 @@ export mirth/core
   carity= : CArity CArity -- Bool
   carity->str : CArity -- Str
 
-  MkCVar : Str -- CVar
-  unCVar : CVar -- Str
-  cvar= : CVar CVar -- Bool
-  cvar->str : CVar -- Str
-
-  MkCSym : Str -- CSym
-  unCSym : CSym -- Str
+  MkCSym : CArity Str -- CSym
+  unCSym : CSym -- CArity Str
+  csymArity : CSym -- CArity
+  csymSort : CSym -- CSort
   csym= : CSym CSym -- Bool
   csym->str : CSym -- Str
 
-  MkCHole : Nat -- CHole
-  unCHole : CHole -- Nat
+  MkCVar : CSort Str -- CVar
+  unCVar : CVar -- CSort Str
+  cvarArity : CVar -- CArity
+  cvarSort : CVar -- CSort
+  cvar= : CVar CVar -- Bool
+  cvar->str : CVar -- Str
+
+  MkCHole : CSort Nat -- CHole
+  unCHole : CHole -- CSort Nat
+  choleArity : CHole -- CArity
+  choleSort : CHole -- CSort
   chole= : CHole CHole -- Bool
   chole->str : CHole -- Str
 
@@ -64,11 +71,16 @@ export mirth/core
   cheadGetVar : CHead -- Maybe(CVar)
   cheadGetHole : CHead -- Maybe(CHole)
   cheadGetPrim : CHead -- Maybe(CPrim)
+  cheadArity : CHead -- CArity
+  cheadSort : CHead -- CSort
   chead= : CHead CHead -- Bool
   chead->str : CHead -- Str
 
-  MkCTerm : L(CHead) List(L(CTerm)) -- CTerm
-  unCTerm : CTerm -- L(CHead) List(L(CTerm))
+  MkCTerm : CHead List(CTerm) -- CTerm
+  unCTerm : CTerm -- CHead List(CTerm)
+  ctermHead : CTerm -- CHead
+  ctermArgs : CTerm -- List(CTerm)
+  ctermSort : CTerm -- CSort
   cterm= : CTerm CTerm -- Bool
   cterm->str : CTerm -- Str
 
@@ -100,17 +112,6 @@ export mirth/core
   cprim= : CPrim CPrim -- Bool
   cprim->str : CPrim -- Str
 end
-
-||| Unique name.
-data CName
-  MkCName : Str -- CName
-end
-
-unCName : CName -- Str
-unCName = match(MkCName -> id)
-
-cname->str : CName -- Str
-cname->str = unCName
 
 
 ||| Syntactic sorts.
@@ -151,6 +152,10 @@ csort->str =
     CSWord -> "word"
   )
 
+csort->carity : CSort -- CArity
+csort->carity = dip(nil) MkCArity
+
+
 ||| Operator arity.
 data CArity
   MkCArity : List(CSort) CSort -- CArity
@@ -183,44 +188,66 @@ carity= = $(
 carity->str : CArity -- Str
 carity->str = dip("") unCArity dip(for(csort->str " -> " <> <>)) csort->str <>
 
-data CVar
-  MkCVar : Str -- CVar
-end
-
-unCVar : CVar -- Str
-unCVar = match(MkCVar -> id)
-
-cvar= : CVar CVar -- Bool
-cvar= = both(unCVar) streq
-
-cvar->str : CVar -- Str
-cvar->str = unCVar
 
 data CSym
-  MkCSym : Str -- CSym
+  MkCSym : CArity Str -- CSym
 end
 
-unCSym : CSym -- Str
+unCSym : CSym -- CArity Str
 unCSym = match(MkCSym -> id)
 
+csymArity : CSym -- CArity
+csymArity = unCSym drop
+
+csymSort : CSym -- CSort
+csymSort = csymArity caritySort
+
 csym= : CSym CSym -- Bool
-csym= = both(unCSym) streq
+csym= = dip(unCSym) unCSym dip(swap) dip2(carity=) streq and
 
 csym->str : CSym -- Str
-csym->str = unCSym
+csym->str = unCSym nip
 
-data CHole
-  MkCHole : Nat -- CHole
+
+data CVar
+  MkCVar : CSort Str -- CVar
 end
 
-unCHole : CHole -- Nat
+unCVar : CVar -- CSort Str
+unCVar = match(MkCVar -> id)
+
+cvarSort : CVar -- CSort
+cvarSort = unCVar drop
+
+cvarArity : CVar -- CArity
+cvarArity = cvarSort csort->carity
+
+cvar= : CVar CVar -- Bool
+cvar= = dip(unCVar) unCVar dip(swap) dip2(csort=) streq and
+
+cvar->str : CVar -- Str
+cvar->str = unCVar nip
+
+
+data CHole
+  MkCHole : CSort Nat -- CHole
+end
+
+unCHole : CHole -- CSort Nat
 unCHole = match(MkCHole -> id)
 
+choleSort : CHole -- CSort
+choleSort = unCHole drop
+
+choleArity : CHole -- CArity
+choleArity = choleSort csort->carity
+
 chole= : CHole CHole -- Bool
-chole= = both(unCHole) n=
+chole= = dip(unCHole) unCHole dip(swap) dip2(csort=) n= and
 
 chole->str : CHole -- Str
-chole->str = dip("?") unCHole nat->str <>
+chole->str = dip("?") unCHole nip nat->str <>
+
 
 data CHead
   CHSym : CSym -- CHead
@@ -241,6 +268,18 @@ cheadGetHole = match(CHHole -> some, _ -> drop none)
 cheadGetPrim : CHead -- Maybe(CPrim)
 cheadGetPrim = match(CHPrim -> some, _ -> drop none)
 
+cheadArity : CHead -- CArity
+cheadArity =
+  match(
+    CHSym -> csymArity,
+    CHVar -> cvarArity,
+    CHHole -> choleArity,
+    CHPrim -> cprimArity
+  )
+
+cheadSort : CHead -- CSort
+cheadSort = cheadArity caritySort
+
 chead= : CHead CHead -- Bool
 chead= =
   match(
@@ -259,38 +298,91 @@ chead->str =
     CHPrim -> cprim->str
   )
 
+
 data CTerm
-  MkCTerm : L(CHead) List(L(CTerm)) -- CTerm
+  MkCTerm : CHead List(CTerm) -- CTerm
 end
 
-unCTerm : CTerm -- L(CHead) List(L(CTerm))
+unCTerm : CTerm -- CHead List(CTerm)
 unCTerm = match(MkCTerm -> id)
 
-ctermHead : CTerm -- L(CHead)
+ctermHead : CTerm -- CHead
 ctermHead = unCTerm drop
 
-ctermArgs : CTerm -- List(L(CTerm))
+ctermArgs : CTerm -- List(CTerm)
 ctermArgs = unCTerm nip
+
+ctermSort : CTerm -- CSort
+ctermSort = ctermHead cheadSort
 
 cterm= : CTerm CTerm -- Bool
 cterm= = $(
   dip(unCTerm) unCTerm dip(swap)
-  dip2(both(getL) chead=) rotl if(
-    list=(both(getL) cterm=),
+  dip2(chead=) rotl if(
+    list=(cterm=),
     drop2 false
   )
 )
 
 cterm->str : CTerm -- Str
 cterm->str = $(
-  unCTerm dip(getL chead->str)
+  unCTerm dip(chead->str)
   lmatchL(id,
     dip2("(" <>)
-    dip(getL cterm->str <>)
-    for(dip(", ") getL cterm->str <> <>)
+    dip(cterm->str <>)
+    for(dip(", ") cterm->str <> <>)
     ")" <>
   )
 )
+
+
+data CTest
+  CTCp : List(CTest) -- CTest
+  CTSwap : CTest
+  CTDrop : CTest
+  CTDup : CTest
+  CTDip : CTest -- CTest
+  CTSym : CSym -- CTest
+  CTPrim : CPrim -- CTest
+
+  CTPass : CTest
+  CTFail : Str -- CTest
+  CTOr  : CTest CTest -- CTest
+  CTAnd : CTest -- CTest
+  CTAll : CSort CTest -- CTest
+  CTAny : CSort -- CTest
+
+  CTUnify : CTest
+  CTCheckStack : CTest
+  CTCheckType : CTest
+  CTCheckValue : CTest
+  CTCheckWord : CTest
+end
+
+ctestInfer : List(CSort) CTest -- Maybe(List(CSort))
+ctestInfer =
+  match(
+    CTCp -> dip(some) for(swap maybe(drop none, swap ctestInfer)),
+    CTSwap -> lmatchR(none, swap lmatchR(drop none, dip(swap cons) cons some)),
+    CTDrop -> lmatchR(none, drop some),
+    CTDup -> lmatchR(none, dup dip(cons) cons some),
+    CTDip -> swap lmatchR(drop none, dip(swap ctestInfer) swap maybe(drop none, swap cons some)),
+    CTSym -> swap lmatchR(drop none, dip(swap csymArity unCArity) csort= if(++ some, drop2 none)),
+    CTPrim -> swap lmatchR(drop none, dip(swap cprimArity unCArity) csort= if(++ some, drop2 none)),
+
+    CTPass -> some,
+    CTFail -> drop2 nil some,
+    CTOr -> dip(over) ctestInfer maybe(drop2 none, rotr ctestInfer maybe(drop none, over list=(csort=) if(some, drop none))),
+    CTAnd -> dip(dup) ctestInfer maybe(drop none, drop some),
+    CTAll -> dip(cons) ctestInfer,
+    CTAny -> cons some,
+
+    CTUnify -> lmatchR(none, swap lmatchR(drop none, dip(swap) csort= if(some, drop none))),
+    CTCheckStack -> lmatchR(none, csortIsStack? nip if(some, drop none)),
+    CTCheckType -> lmatchR(none, csortIsType? nip if(some, drop none)),
+    CTCheckValue -> lmatchR(none, csortIsValue? nip if(CSType cons some, drop none)),
+    CTCheckWord -> lmatchR(none, csortIsWord? nip if(lmatchR(none, csortIsStack? if(cons some, drop2 none)), drop none))
+  )
 
 
 ##############
