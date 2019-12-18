@@ -984,13 +984,11 @@ emAddDefs = $(
 emAddDef : Name EDef -- EMonad(Unit)
 emAddDef = edefsSingle emAddDefs
 
-
-
 emMkTypeSym : Name -- EMonad(ESym)
-emMkWordSym : Name -- EMonad(ESym)
-emMkTypeSym = dip(emGetFocus) emPure emMap2(efocusTypeSym)
-emMkWordSym = dip(emGetFocus) emPure emMap2(efocusWordSym)
+emMkTypeSym = emUse(eenvUseFocus(dip(dup) efocusTypeSym))
 
+emMkWordSym : Name -- EMonad(ESym)
+emMkWordSym = emUse(eenvUseFocus(dip(dup) efocusWordSym))
 
 
 ########################
