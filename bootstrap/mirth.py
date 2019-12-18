@@ -1298,29 +1298,29 @@ class module:
 
         for wordsig in wordsigs:
             if len(wordsig.cod.atoms) != 1:
-                raise MirthError(lineno, "Type Error: Constructor must return a single value.")
+                raise MirthError(lineno, "Syntax Error: Constructor must return a single value.")
             if wordsig.cod.atoms[0].name.code != name:
-                raise MirthError(lineno, "Type Error: Constructor must return value of constructed type.")
+                raise MirthError(lineno, "Syntax Error: Constructor must return value of constructed type.")
             if len(wordsig.cod.atoms[0].args) != len(params):
-                raise MirthError(lineno, "Type Error: Mismatched number of parameters in constructor output type. Expected %d but got %d." % (len(params), len(wordsig.cod.atoms[0].args)))
+                raise MirthError(lineno, "Syntax Error: Mismatched number of parameters in constructor output type. Expected %d but got %d." % (len(params), len(wordsig.cod.atoms[0].args)))
 
             argnames = set()
             for arg in wordsig.cod.atoms[0].args:
                 if len(arg.atoms) != 1:
-                    raise MirthError(lineno, "Type Error: Constructor %s output type not valid." % wordsig.name.code)
+                    raise MirthError(lineno, "Syntax Error: Constructor %s output type not valid." % wordsig.name.code)
                 arg = arg.atoms[0]
                 if not isinstance(arg, word):
-                    raise MirthError(lineno, "Type Error: Constructor %s output type not valid." % wordsig.name.code)
+                    raise MirthError(lineno, "Syntax Error: Constructor %s output type not valid." % wordsig.name.code)
                 if not (arg.name not in argnames
                     and arg.name.code[0].islower()
                     and len(arg.args) == 0):
-                    raise MirthError(lineno, "Type Error: Constructor %s requires GADTs, not supported." % wordsig.name.code)
+                    raise MirthError(lineno, "Syntax Error: Constructor %s requires GADTs, not supported." % wordsig.name.code)
                 argnames.add(arg.name)
 
             if (len(wordsig.dom.atoms) > 0
                 and isinstance(wordsig.dom.atoms[0], word)
                 and wordsig.dom.atoms[0].name.code[0] == '*'):
-                raise MirthError(lineno, "Type Error: Constructor must take a fixed number of inputs.")
+                raise MirthError(lineno, "Syntax Error: Constructor must take a fixed number of inputs.")
 
             for wsatom in wordsig.dom.atoms:
                 if isinstance(wsatom, word) and wsatom.name.code[0] == '+':
