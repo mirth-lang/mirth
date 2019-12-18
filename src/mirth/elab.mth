@@ -313,8 +313,8 @@ etypedefSym = unETypeDef drop
 etypedef->sexp : ETypeDef -- Sexp
 etypedef->sexp = unETypeDef sexp2("type", esym->sexp, eparams->sexp)
 
-etypedefMerge : Name ETypeDef ETypeDef -- Name EMonad(ETypeDef)
-etypedefMerge = drop emPure # TODO
+etypedefMerge(key->str: key -- Str) : key ETypeDef ETypeDef -- key EMonad(ETypeDef)
+etypedefMerge(key->str) = drop emPure # TODO
 
 
 ||| A word definition.
@@ -331,8 +331,8 @@ eworddefSym = unEWordDef
 eworddef->sexp : EWordDef -- Sexp
 eworddef->sexp = unEWordDef sexp1("word", esym->sexp)
 
-eworddefMerge : Name EWordDef EWordDef -- Name EMonad(EWordDef)
-eworddefMerge = drop emPure # TODO
+eworddefMerge(key->str: key -- Str) : key EWordDef EWordDef -- key EMonad(EWordDef)
+eworddefMerge(key->str) = drop emPure # TODO
 
 
 ||| A definition.
@@ -355,23 +355,23 @@ edef->sexp =
     EDWord -> eworddef->sexp
   )
 
-edefMerge : Name EDef EDef -- Name EMonad(EDef)
-edefMerge =
+edefMerge(key->str: key -- Str) : key EDef EDef -- key EMonad(EDef)
+edefMerge(key->str) =
   swap match(
     EDType ->
       swap match(
-        EDType -> etypedefMerge emMap(EDType),
-        EDWord -> drop2 "Cannot redefine word " over name->str <> " as type." <> emFail
+        EDType -> etypedefMerge(key->str) emMap(EDType),
+        EDWord -> drop2 "Cannot redefine word " over key->str <> " as type." <> emFail
       ),
     EDWord ->
       swap match(
-        EDType -> drop2 "Cannot redefine type " over name->str <> " as word." <> emFail,
-        EDWord -> eworddefMerge emMap(EDWord)
+        EDType -> drop2 "Cannot redefine type " over key->str <> " as word." <> emFail,
+        EDWord -> eworddefMerge(key->str) emMap(EDWord)
       )
     )
 
 
-||| A set of definitions in a single scope.
+||| A set of definitions, local to a module or interface.
 data EDefs
   MkEDefs : Map(Name, EDef) -- EDefs
 end
@@ -379,25 +379,24 @@ end
 unEDefs : EDefs -- Map(Name, EDef)
 unEDefs = match(MkEDefs -> id)
 
+edefsLocals : EDefs -- Map(Name, EDef)
+edefsLocals = unEDefs
+
 edefsNil : EDefs
 edefsNil = mapNil MkEDefs
 
 edefsGet : EDefs Name -- Maybe(EDef)
-edefsGet = dip(unEDefs) mapGet
-
-||| Set or overwrite a definition. Does not attempt to merge.
-edefsSet : EDefs Name EDef -- EDefs
-edefsSet = dip2(unEDefs) mapSet MkEDefs
+edefsGet = dip(edefsLocals) mapGet
 
 edefsSingle : Name EDef -- EDefs
-edefsSingle = dip2(edefsNil) edefsSet
+edefsSingle = mapSingle MkEDefs
 
 ||| Add a definition
 edefsAdd : EDefs Name EDef -- EMonad(EDefs)
 edefsAdd =
   dip2(unEDefs) dip(mapGet?) swap maybe(
     mapSet MkEDefs emPure,
-    swap edefMerge dip(emPure2)
+    swap edefMerge(name->str) dip(emPure2)
     emMap3(mapSet MkEDefs)
   )
 
@@ -406,6 +405,38 @@ edefsMerge = dip(emPure) unEDefs mapFor(emPure2 emBind3(edefsAdd))
 
 edefs->sexp : EDefs -- Sexp
 edefs->sexp = unEDefs map->sexp(name->sexp, edef->sexp)
+
+||| All definitions.
+data EGlobals
+  MkEGlobals : Map(ESym, EDef) -- EGlobals
+end
+
+unEGlobals : EGlobals -- Map(ESym, EDef)
+unEGlobals = match(MkEGlobals -> id)
+
+eglobalsNil : EGlobals
+eglobalsNil = mapNil MkEGlobals
+
+eglobalsGet : EGlobals ESym -- Maybe(EDef)
+eglobalsGet = dip(unEGlobals) mapGet
+
+||| Add a global definition.
+eglobalsAdd : EGlobals EDef -- EMonad(EGlobals)
+eglobalsAdd =
+  dip(unEGlobals) dup dip(edefSym mapGet?) swap maybe(
+    mapSet MkEGlobals emPure,
+    swap edefMerge(esym->str) dip(emPure2)
+    emMap3(mapSet MkEGlobals)
+  )
+
+eglobalsAddDefs : EGlobals EDefs -- EMonad(EGlobals)
+eglobalsAddDefs = dip(emPure) unEDefs mapFor(nip emPure emBind2(eglobalsAdd))
+
+eglobalsMerge : EGlobals EGlobals -- EMonad(EGlobals)
+eglobalsMerge = dip(emPure) unEGlobals mapFor(nip emPure emBind2(eglobalsAdd))
+
+eglobals->sexp : EGlobals -- Sexp
+eglobals->sexp = unEGlobals map->sexp(esym->sexp, edef->sexp)
 
 
 ||| A single interface.
@@ -568,17 +599,29 @@ epackageAddModule = $(
 )
 
 
-||| Elaboration World -- The collection of loaded packages and modules.
-||| This should be unchanged during module elaboration.
+||| Elaboration World -- The collection of loaded packages,
+||| and a repository of global definitions.
 data EWorld
-  MkEWorld : Map(Pkg, EPackage) -- EWorld
+  MkEWorld : Map(Pkg, EPackage) EGlobals -- EWorld
 end
 
-unEWorld : EWorld -- Map(Pkg, EPackage)
+unEWorld : EWorld -- Map(Pkg, EPackage) EGlobals
 unEWorld = match(MkEWorld -> id)
 
+eworldPackages : EWorld -- Map(Pkg, EPackage)
+eworldPackages = unEWorld drop
+
+eworldGlobals : EWorld -- EGlobals
+eworldGlobals = unEWorld nip
+
 eworldNil : EWorld
-eworldNil = mapNil MkEWorld
+eworldNil = mapNil eglobalsNil MkEWorld
+
+eworldGetDef : EWorld ESym -- Maybe(EDef)
+eworldGetDef = dip(eworldGlobals) eglobalsGet
+
+eworldAddDefs : EWorld EDefs -- EMonad(EWorld)
+eworldAddDefs = dip(unEWorld) dip2(emPure) eglobalsAddDefs emMap2(MkEWorld)
 
 
 ||| Elaboration Focus -- The current package/module/interface being
@@ -818,11 +861,24 @@ elabL2(f) = unL dip(swap) pack2 mkL elabL(unpack2 f)
 elabL3(f: a b c -- EMonad(d)) : a b L(c) -- EMonad(d)
 elabL3(f) = unL dip(rotr) pack3 mkL elabL(unpack3 f)
 
+emGetWorld : EMonad(EWorld)
+emGetWorld = unit emUse(eenvUseWorld(drop dup))
+
+emSetWorld : EWorld -- EMonad(Unit)
+emSetWorld = emUse(eenvUseWorld(nip unit))
+
 emGetFocus : EMonad(EFocus)
 emGetFocus = unit emUse(eenvUseFocus(drop dup))
 
 emSetFocus : EFocus -- EMonad(Unit)
 emSetFocus = emUse(eenvUseFocus(nip unit))
+
+emGetLocal : EMonad(ELocal)
+emGetLocal = unit emUse(eenvUseLocal(drop dup))
+
+emSetLocal : ELocal -- EMonad(Unit)
+emSetLocal = emUse(eenvUseLocal(nip unit))
+
 
 emGetFocusPackage : EMonad(EPackage)
 emGetFocusPackage = $(
@@ -890,8 +946,15 @@ emSetCtx = emUse(eenvUseLocal(elocalUseCtx(nip unit)))
 emGetDef : Name -- EMonad(Maybe(EDef))
 emGetDef = emUse(eenvUseFocus(dip(dup) efocusGetDef))
 
+emGetGlobal : ESym -- EMonad(Maybe(EDef))
+emGetGlobal = emUse(eenvUseWorld(dip(dup) eworldGetDef))
+
 emAddDefs : EDefs -- EMonad(Unit)
-emAddDefs = dip(emGetFocus) emPure emBind2(efocusAddDefs) emBind(emSetFocus)
+emAddDefs = $(
+  emPure dup emUnit
+  emGetFocus emBind3(nip swap efocusAddDefs emBind(emSetFocus))
+  emGetWorld emBind3(nip swap eworldAddDefs emBind(emSetWorld))
+)
 
 emAddDef : Name EDef -- EMonad(Unit)
 emAddDef = edefsSingle emAddDefs
