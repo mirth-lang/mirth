@@ -342,11 +342,14 @@ data CTest
   CTDrop : CTest
   CTDup : CTest
   CTDip : CTest -- CTest
+
   CTSym : CSym -- CTest
   CTPrim : CPrim -- CTest
+  CTUnSym : CSym -- CTest
+  CTUnPrim : CPrim -- CTest
 
   CTPass : CTest
-  CTFail : Str -- CTest
+  CTFail : Str List(CSort) -- CTest
   CTOr  : CTest CTest -- CTest
   CTAnd : CTest -- CTest
   CTAll : CSort CTest -- CTest
@@ -367,11 +370,14 @@ ctestInfer =
     CTDrop -> lmatchR(none, drop some),
     CTDup -> lmatchR(none, dup dip(cons) cons some),
     CTDip -> swap lmatchR(drop none, dip(swap ctestInfer) swap maybe(drop none, swap cons some)),
-    CTSym -> swap lmatchR(drop none, dip(swap csymArity unCArity) csort= if(++ some, drop2 none)),
-    CTPrim -> swap lmatchR(drop none, dip(swap cprimArity unCArity) csort= if(++ some, drop2 none)),
+
+    CTSym -> drop2 none, #TODO
+    CTPrim -> drop2 none, #TODO
+    CTUnSym -> swap lmatchR(drop none, dip(swap csymArity unCArity) csort= if(++ some, drop2 none)),
+    CTUnPrim -> swap lmatchR(drop none, dip(swap cprimArity unCArity) csort= if(++ some, drop2 none)),
 
     CTPass -> some,
-    CTFail -> drop2 nil some,
+    CTFail -> dip(drop2) some,
     CTOr -> dip(over) ctestInfer maybe(drop2 none, rotr ctestInfer maybe(drop none, over list=(csort=) if(some, drop none))),
     CTAnd -> dip(dup) ctestInfer maybe(drop none, drop some),
     CTAll -> dip(cons) ctestInfer,
@@ -675,4 +681,40 @@ cprimArity =
 
 cprimSort : CPrim -- CSort
 cprimSort = cprimArity caritySort
+
+cprimCheckStack : CPrim -- CTest
+cprimCheckStack =
+  match(
+    CPSNil -> CTPass,
+    CPSCons -> nil CTCheckStack CTDip cons CTCheckType cons CTCp,
+    _ -> cprim->str " is not a stack primitive." <> nil CTFail
+  )
+
+cprimCheckType : CPrim -- CTest
+cprimCheckType =
+  match(
+    CPTInt -> CTPass,
+    CPTStr -> CTPass,
+    CPTBool -> CTPass,
+    CPTList -> CTCheckType,
+    CPTPack -> CTCheckStack,
+    _ -> cprim->str " is not a type primitive." <> nil CTFail
+  )
+
+cprimCheckValue : CPrim -- CTest
+cprimCheckValue =
+  match(
+    CPVInt -> drop CPTInt CTPrim,
+    CPVStr -> drop CPTStr CTPrim,
+    CPVBool -> drop CPTBool CTPrim,
+    CPVListNil -> nil CSType CTAny cons CPTList CTPrim cons CTCp,
+    CPVListCons -> nil CTDup CTDip cons CPTList CTUnPrim CTDip cons CTUnify cons CTCp,
+    CPVPackNil -> nil CPSNil CTPrim cons CPTPack CTPrim cons CTCp,
+    CPVPackCons ->
+      nil CTCheckValue CTDip cons CPTPack CTUnPrim CTDip
+      cons CTCheckValue cons CPSCons CTPrim cons CTCp,
+    _ -> cprim->str " is not a value primitive." <> CSType lpure CTFail
+  )
+
+
 
