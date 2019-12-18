@@ -1,4 +1,4 @@
 
 main : List(Str) -- Int
-main = "TypeError" _prim_unsafe_trace drop 0
+main = "Type Error" _prim_unsafe_trace drop 0
 

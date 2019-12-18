@@ -25,6 +25,12 @@ import os
 import os.path
 random.seed('mirth bootstrap')
 
+class MirthError(Exception):
+    def __init__(self, line, msg):
+        self.line = line
+        self.msg = msg
+        super(Exception, self).__init__(self, "%d: %s" % (line, msg))
+
 def main():
     import sys
 
@@ -99,10 +105,10 @@ def interpret(path, args, flags):
     except IsADirectoryError as e:
         run_package(path, args, flags)
     except TypeError as e:
-        print('TypeError:', e, file=sys.stderr)
+        print('Type Error:', e, file=sys.stderr)
         sys.exit(1)
     except SyntaxError as e:
-        print('SyntaxError:', e, file=sys.stderr)
+        print('Syntax Error:', e, file=sys.stderr)
         sys.exit(1)
 
 def repl(flags):
@@ -196,21 +202,23 @@ def error(modpath, lineno, msg):
     print('%s:%d:' % (p, lineno), msg, file=sys.stderr)
     sys.exit(1)
 
-def handle_package_error(pkg, modpath, f):
+def handle_package_error(pkg, modpath, n, f):
     shortname = get_shortname(pkg, modpath)
     try:
         return f()
+    except MirthError as e:
+        error(modpath, e.line, e.msg)
     except NameError as e:
-        error(modpath, None, 'NameError: ' + str(e))
+        error(modpath, n, 'Name Error: ' + str(e))
     except ValueError as e:
-        error(modpath, None, 'ValueError: ' + str(e))
+        error(modpath, n, 'Value Error: ' + str(e))
     except TypeError as e:
-        error(modpath, None, 'TypeError: ' + str(e))
+        error(modpath, n, 'Type Error: ' + str(e))
     except SyntaxError as e:
-        error(modpath, None, 'SyntaxError: ' + str(e))
+        error(modpath, n, 'Syntax Error: ' + str(e))
 
 def run_package(pkg, args, flags):
-    herr = lambda m,f: handle_package_error(pkg,m,f)
+    herr = lambda m,n,f: handle_package_error(pkg,m,n,f)
     modpaths = list_modules(pkg)
     modpreambles = {}
     modbodies = {}
@@ -226,7 +234,7 @@ def run_package(pkg, args, flags):
 
     for modpath in modpaths:
         with open(modpath) as fp:
-            preamble, body = herr(modpath, lambda: parse(fp))
+            preamble, body = herr(modpath, None, lambda: parse(fp))
         modpreambles[modpath] = preamble
         modbodies[modpath] = body
         mods[modpath] = load_prelude() if not flags['no-prelude'] else module()
@@ -255,14 +263,14 @@ def run_package(pkg, args, flags):
         for pdecl in modpreambles[modpath]:
             if pdecl[0] == 'export':
                 for decl in pdecl[3]:
-                    herr(modpath, lambda: decl.decl(m))
+                    herr(modpath, None, lambda: decl.decl(m))
             elif pdecl[0] == 'import':
                 iline, iname = pdecl[1:]
                 if iname not in interfaces:
                     error(modpath, iline, "Interface %s not declared in package." % iname)
                 omodpath, oline = interfaces_orig[iname]
                 for decl in interfaces[iname]:
-                    herr(omodpath, lambda: decl.decl(m))
+                    herr(omodpath, decl.name.lineno, lambda: decl.decl(m))
                     if isinstance(decl, word_sig):
                         dname = decl.name.code
                         m.word_defs[dname] = mk_import_interface_fn (iname, dname)
@@ -271,7 +279,7 @@ def run_package(pkg, args, flags):
                error(modpath, None, "Unexpected preamble decl form: %r" % decl)
 
         for decl in modbodies[modpath]:
-            herr(modpath, lambda: decl.decl(m))
+            herr(modpath, decl.name.lineno if hasattr(decl,'name') else None, lambda: decl.decl(m))
 
         for pdecl in modpreambles[modpath]:
             if pdecl[0] == 'export':
@@ -287,7 +295,7 @@ def run_package(pkg, args, flags):
     if not flags['typecheck']:
         for modpath in modpaths:
             m = mods[modpath]
-            herr(modpath, lambda: m.check_assertions())
+            herr(modpath, None, lambda: m.check_assertions())
 
     mainpath = os.path.join(pkg, 'main.mth')
     if mainpath in modpaths and not flags['typecheck'] and not flags['testonly']:
@@ -361,7 +369,7 @@ def tokenize (code):
                         yield token(code=tok, lineno=i+1)
                     break
             else:
-                raise SyntaxError("Unknown token on line %d: %r" % (i+1, line))
+                raise MirthError(i+1, "Unknown token on line: %r" % line)
         if emitted:
             yield token(code='\n', lineno=i+1)
 
@@ -788,9 +796,9 @@ class word_sig:
         try:
             return mod.decl_word_sig(self.name.code, self.params, self.dom, self.cod)
         except TypeError as e:
-            raise TypeError("line %d: %s" % (self.name.lineno, e)) from e
+            raise MirthError(self.name.lineno, "Type Error: " + str(e)) from e
         except SyntaxError as e:
-            raise SyntaxError("line %d: %s" % (self.name.lineno, e)) from e
+            raise MirthError(self.name.lineno, "Syntax Error: " + str(e)) from e
 
 class word_def:
     def __init__(self, name, params, body):
@@ -805,9 +813,9 @@ class word_def:
         try:
             return mod.decl_word_def(self.name.code, [p.code for p in self.params], self.body)
         except TypeError as e:
-            raise TypeError("line %d: %s" % (self.name.lineno, e)) from e
+            raise MirthError(self.name.lineno, "Type Error: " + str(e)) from e
         except SyntaxError as e:
-            raise SyntaxError("line %d: %s" % (self.name.lineno, e)) from e
+            raise MirthError(self.name.lineno, "Syntax Error: " + str(e)) from e
 
 class assertion:
     def __init__(self, lineno, lhs, rhs):
@@ -822,9 +830,9 @@ class assertion:
         try:
             return mod.decl_assertion(self.lineno, self.lhs, self.rhs)
         except TypeError as e:
-            raise TypeError("line %d: %s" % (self.lineno, e)) from e
+            raise MirthError(self.lineno, "Type Error: " + str(e)) from e
         except SyntaxError as e:
-            raise SyntaxError("line %d: %s" % (self.lineno, e)) from e
+            raise MirthError(self.lineno, "Syntax Error: " + str(e)) from e
 
 class type_sig:
     def __init__(self, lineno, name, params):
@@ -840,9 +848,9 @@ class type_sig:
         try:
             return mod.decl_type_sig(self.lineno, self.name.code, self.params)
         except TypeError as e:
-            raise TypeError("line %d: %s" % (self.lineno, e)) from e
+            raise MirthError(self.lineno, "Type Error: " + str(e)) from e
         except SyntaxError as e:
-            raise SyntaxError("line %d: %s" % (self.lineno, e)) from e
+            raise MirthError(self.lineno, "Syntax Error: " + str(e)) from e
 
 class data_def:
     def __init__(self, lineno, name, params, wordsigs):
@@ -859,9 +867,9 @@ class data_def:
         try:
             return mod.decl_data_def(self.lineno, self.name.code, self.params, self.wordsigs)
         except TypeError as e:
-            raise TypeError("line %d: %s" % (self.lineno, e)) from e
+            raise MirthError(self.lineno, "Type Error: " + str(e)) from e
         except SyntaxError as e:
-            raise SyntaxError("line %d: %s" % (self.lineno, e)) from e
+            raise MirthError(self.lineno, "Syntax Error: " + str(e)) from e
 
 ##############################################################################
 ########################### TYPES & UNIFICATION ##############################
@@ -1249,22 +1257,15 @@ class module:
     def decl_type_sig (self, lineno, name, params):
         if name in self.type_sigs:
             if len(params) != len(self.type_sigs[name]):
-                raise TypeError(
-                    "Line %d: Type %s declared previously, but with different number of params."
-                    % (lineno, name)
-                )
+                raise MirthError(lineno, "Type Error: Type %s declared previously, but with different number of params." % name)
             return
 
         elif name in self.types:
-            raise TypeError(
-                "Line %d: Type %s defined twice."
-                % (lineno, name)
-            )
+            raise MirthError(lineno, "Type Error: Type %s defined twice." % name)
 
         def ft(mod, args):
             if len(args) != len(params):
-                raise TypeError("Type %s expects %d args, but got %d args."
-                    % (name, len(params), len(args)))
+                raise TypeError("Type %s expects %d args, but got %d args." % (name, len(params), len(args)))
 
             ta = []
             for arg in args:
@@ -1284,74 +1285,46 @@ class module:
         if name in self.type_sigs:
             tsparams = self.type_sigs[name]
             if len(tsparams) != len(params):
-                raise TypeError(
-                    "Line %d: Type %s takes %d params in type sig but %d params in type def."
-                    % (lineno, name, len(tsparams), len(params))
+                raise MirthError(lineno,
+                    "Type Error: Type %s takes %d params in type sig but %d params in type def."
+                    % (name, len(tsparams), len(params))
                 )
 
         if name in self.data_defs or (name in self.types and name not in self.type_sigs):
-            raise TypeError(
-                "Line %d: Type %s defined twice."
-                % (lineno, name)
-            )
+            raise MirthError(lineno, "Type Error: Type %s defined twice." % name)
 
         if name[0] == '+':
-            raise SyntaxError("Line %d: Can't declare tag type %s as data."
-                % (lineno, name))
+            raise MirthError(lineno, "Syntax Error: Can't declare tag type %s as data." % name)
 
         for wordsig in wordsigs:
             if len(wordsig.cod.atoms) != 1:
-                raise SyntaxError(
-                    "Line %d: Constructor must return a single value."
-                    % lineno
-                )
+                raise MirthError(lineno, "Type Error: Constructor must return a single value.")
             if wordsig.cod.atoms[0].name.code != name:
-                raise SyntaxError(
-                    "Line %d: Constructor must return value of constructed type."
-                    % lineno
-                )
+                raise MirthError(lineno, "Type Error: Constructor must return value of constructed type.")
             if len(wordsig.cod.atoms[0].args) != len(params):
-                raise SyntaxError(
-                    "Line %d: Mismatched number of parameters in constructor output type. Expected %d but got %d."
-                    % (lineno, len(params), len(wordsig.cod.atoms[0].args))
-                )
+                raise MirthError(lineno, "Type Error: Mismatched number of parameters in constructor output type. Expected %d but got %d." % (len(params), len(wordsig.cod.atoms[0].args)))
 
             argnames = set()
             for arg in wordsig.cod.atoms[0].args:
                 if len(arg.atoms) != 1:
-                    raise SyntaxError(
-                        "Line %d: Constructor %s output type not valid."
-                        % (lineno, wordsig.name.code)
-                    )
+                    raise MirthError(lineno, "Type Error: Constructor %s output type not valid." % wordsig.name.code)
                 arg = arg.atoms[0]
                 if not isinstance(arg, word):
-                    raise SyntaxError(
-                        "Line %d: Constructor %s output type not valid."
-                        % (lineno, wordsig.name.code)
-                    )
+                    raise MirthError(lineno, "Type Error: Constructor %s output type not valid." % wordsig.name.code)
                 if not (arg.name not in argnames
                     and arg.name.code[0].islower()
                     and len(arg.args) == 0):
-                    raise SyntaxError(
-                        "Line %d: Constructor %s requires GADTs, not supported."
-                        % (lineno, wordsig.name.code)
-                    )
+                    raise MirthError(lineno, "Type Error: Constructor %s requires GADTs, not supported." % wordsig.name.code)
                 argnames.add(arg.name)
 
             if (len(wordsig.dom.atoms) > 0
                 and isinstance(wordsig.dom.atoms[0], word)
                 and wordsig.dom.atoms[0].name.code[0] == '*'):
-                raise SyntaxError(
-                    "Line %d: Constructor must take a fixed number of inputs."
-                    % lineno
-                )
+                raise MirthError(lineno, "Type Error: Constructor must take a fixed number of inputs.")
 
             for wsatom in wordsig.dom.atoms:
                 if isinstance(wsatom, word) and wsatom.name.code[0] == '+':
-                    raise SyntaxError(
-                        "Line %d: Can't take tags in constructor."
-                        % wsatom.name.lineno
-                    )
+                    raise MirthError(wsatom.name.lineno, "Syntax Error: Can't take tags in constructor.")
 
         def ft(mod, args):
             if len(args) != len(params):
@@ -1380,7 +1353,7 @@ class module:
                     ws.append(e.pop())
                 e.push((wname, tuple(args), tuple(ws[::-1])))
             if wname in self.word_defs:
-                raise TypeError("Constructor %s already defined." % wname)
+                raise MirthError(wordsig.name.lineno, "Type Error: Constructor %s already defined." % wname)
             self.word_defs[wname] = wfn
 
         self.data_defs[name] = {}
@@ -1413,11 +1386,9 @@ class module:
             e0.run()
             e1.run()
             if e0.stack != e1.stack:
-                raise ValueError(
-                    ("Assertion failed at line %d:"
-                    +" input = [%s], LHS = [%s], RHS = [%s].")
-                    % ( lineno
-                      , ' '.join(map(repr, vs))
+                raise MirthError(lineno, "Assertion failed: "
+                    + " input = [%s], LHS = [%s], RHS = [%s]."
+                    % ( ' '.join(map(repr, vs))
                       , ' '.join(map(repr, e0.stack))
                       , ' '.join(map(repr, e1.stack)) ))
 
