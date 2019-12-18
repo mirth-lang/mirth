@@ -1,0 +1,471 @@
+
+import base/int
+import base/str
+import base/map
+import base/list
+import base/result
+
+import mirth/loc
+export mirth/core
+  type CName
+  type CSort
+  type CArity
+  type CPrim
+
+  MkCName : Str -- CName
+  unCName : CName -- Str
+  cname->str : CName -- Str
+
+  CSDomain : CSort
+  CSStack : CSort
+  CSType : CSort
+  CSValue : CSort
+  CSWord : CSort
+  csortIsDomain? : CSort -- CSort Bool
+  csortIsStack? : CSort -- CSort Bool
+  csortIsType? : CSort -- CSort Bool
+  csortIsValue? : CSort -- CSort Bool
+  csortIsWord? : CSort -- CSort Bool
+  csort= : CSort CSort -- Bool
+  csort->str : CSort -- Str
+
+  MkCArity : List(CSort) CSort -- CArity
+  CA0(a: CSort) : CArity
+  CA1(a: CSort, b: CSort) : CArity
+  CA2(a: CSort, b: CSort, c: CSort) : CArity
+  CA3(a: CSort, b: CSort, c: CSort, d: CSort) : CArity
+  unCArity : CArity -- List(CSort) CSort
+  caritySort : CArity -- CSort
+  carityArgs : CArity -- List(CSort)
+  carity= : CArity CArity -- Bool
+  carity->str : CArity -- Str
+
+  cprimBuiltinTypes : Map(Str, CPrim)
+  cprimBuiltinWords : Map(Str, CPrim)
+  cprimArity : CPrim -- CArity
+  cprimSort : CPrim -- CSort
+end
+
+||| Unique name.
+data CName
+  MkCName : Str -- CName
+end
+
+unCName : CName -- Str
+unCName = match(MkCName -> id)
+
+cname->str : CName -- Str
+cname->str = unCName
+
+
+||| Syntactic sorts.
+data CSort
+  CSDomain : CSort
+  CSStack : CSort
+  CSType : CSort
+  CSValue : CSort
+  CSWord : CSort
+end
+
+csortIsDomain? : CSort -- CSort Bool
+csortIsDomain? = dup match(CSDomain -> true, _ -> drop false)
+
+csortIsStack? : CSort -- CSort Bool
+csortIsStack? = dup match(CSStack -> true, _ -> drop false)
+
+csortIsType? : CSort -- CSort Bool
+csortIsType? = dup match(CSType -> true, _ -> drop false)
+
+csortIsValue? : CSort -- CSort Bool
+csortIsValue? = dup match(CSValue -> true, _ -> drop false)
+
+csortIsWord? : CSort -- CSort Bool
+csortIsWord? = dup match(CSWord -> true, _ -> drop false)
+
+csort= : CSort CSort -- Bool
+csort= =
+  match(
+    CSDomain -> csortIsDomain? nip,
+    CSStack -> csortIsStack? nip,
+    CSType -> csortIsType? nip,
+    CSValue -> csortIsValue? nip,
+    CSWord -> csortIsWord? nip
+  )
+
+csort->str : CSort -- Str
+csort->str =
+  match(
+    CSDomain -> "domain",
+    CSStack -> "stack",
+    CSType -> "type",
+    CSValue -> "value",
+    CSWord -> "word"
+  )
+
+||| Operator arity.
+data CArity
+  MkCArity : List(CSort) CSort -- CArity
+end
+
+CA0(a: CSort) : CArity
+CA1(a: CSort, b: CSort) : CArity
+CA2(a: CSort, b: CSort, c: CSort) : CArity
+CA3(a: CSort, b: CSort, c: CSort, d: CSort) : CArity
+CA0(a) = nil a MkCArity
+CA1(a,b) = nil a cons b MkCArity
+CA2(a,b,c) = nil a cons b cons c MkCArity
+CA3(a,b,c,d) = nil a cons b cons c cons d MkCArity
+
+unCArity : CArity -- List(CSort) CSort
+unCArity = match(MkCArity -> id)
+
+caritySort : CArity -- CSort
+caritySort = unCArity nip
+
+carityArgs : CArity -- List(CSort)
+carityArgs = unCArity drop
+
+carity= : CArity CArity -- Bool
+carity= = $(
+  dip(unCArity) unCArity dip(swap)
+  dip2(list=(csort=)) csort= and
+)
+
+carity->str : CArity -- Str
+carity->str = dip("") unCArity dip(for(csort->str " -> " <> <>)) csort->str <>
+
+data CVar
+  MkCVar : Nat -- CVar
+end
+
+data CMeta
+  MkCMeta : Nat -- CMeta
+end
+
+data CHead
+  CHVar : CVar -- CHead
+  CHMeta : CMeta -- CHead
+  CHName : CName -- CHead
+  CHPrim : CPrim -- CHead
+end
+
+chead= : CHead CHead -- Bool
+
+data CTerm
+  MkCTerm : L(CHead) List(L(CTerm)) -- CTerm
+end
+
+unCTerm : CTerm -- L(CHead) List(L(CTerm))
+unCTerm = match(MkCTerm -> id)
+
+ctermHead : CTerm -- L(CHead)
+ctermHead = unCTerm drop
+
+ctermArgs : CTerm -- List(L(CTerm))
+ctermArgs = unCTerm nip
+
+cterm= : CTerm CTerm -- Bool
+cterm= = $(
+  dip(unCTerm) unCTerm dip(swap)
+  dip2(both(getL) chead=) rotl if(
+    list=(both(getL) cterm=),
+    drop2 false
+  )
+)
+
+##############
+# Primitives #
+##############
+
+||| Primitive operators.
+data CPrim
+  # Built-in Domains
+  CPDPure : CPrim
+
+  # Built-in Stacks
+  CPSNil : CPrim
+  CPSCons : CPrim
+
+  # Built-in Types
+  CPTInt : CPrim
+  CPTStr : CPrim
+  CPTBool : CPrim
+  CPTList : CPrim
+  CPTPack : CPrim
+
+  # Built-in Values
+  CPVInt : Int -- CPrim
+  CPVStr : Str -- CPrim
+  CPVBool : Bool -- CPrim
+  CPVListNil : CPrim
+  CPVListCons : CPrim
+  CPVPackNil : CPrim
+  CPVPackCons : CPrim
+
+  # Built-in Words
+  CPWId : CPrim
+  CPWCp : CPrim
+  CPWDip : CPrim
+  CPWDup : CPrim
+  CPWDrop : CPrim
+  CPWPush : CPrim
+  CPWSwap : CPrim
+  CPWPackMap : CPrim
+  CPWPackPack2 : CPrim
+  CPWPackUnpack2 : CPrim
+  CPWBoolIf : CPrim
+  CPWBoolTrue : CPrim
+  CPWBoolFalse : CPrim
+  CPWIntAdd : CPrim
+  CPWIntSub : CPrim
+  CPWIntMul : CPrim
+  CPWIntDiv : CPrim
+  CPWIntMod : CPrim
+  CPWIntLt : CPrim
+  CPWIntEq : CPrim
+  CPWStrCat : CPrim
+  CPWStrBreak : CPrim
+  CPWStrLen : CPrim
+  CPWStrFromCodepoint : CPrim
+  CPWStrToCodepoint : CPrim
+  CPWStrElem : CPrim
+  CPWStrReMatch : CPrim
+  CPWListNil : CPrim
+  CPWListCons : CPrim
+  CPWListCat : CPrim
+  CPWListLen : CPrim
+  CPWListAt : CPrim
+  CPWListBreak : CPrim
+  CPWListMap : CPrim
+  CPWListFor : CPrim
+  CPWUnsafePanic : CPrim
+  CPWUnsafeTrace : CPrim
+  CPWUnsafePrint : CPrim
+  CPWUnsafeListDir : CPrim
+  CPWUnsafeWalk : CPrim
+  CPWUnsafeIsDir : CPrim
+  CPWUnsafeIsFile : CPrim
+  CPWUnsafeRead : CPrim
+  CPWUnsafeWrite : CPrim
+  CPWUnsafeAppend : CPrim
+  CPWUnsafeDelete : CPrim
+  CPWUnsafeCoerce : CPrim
+  CPWUnsafeHash : CPrim
+  CPWUnsafeEnvGet : CPrim
+  CPWUnsafeEnvSet : CPrim
+  CPWUnsafeExit : CPrim
+end
+
+cprim->str : CPrim -- Str
+cprim->str =
+  match(
+    CPDPure -> "CPDPure",
+    CPSNil -> "CPSNil",
+    CPSCons -> "CPSCons",
+    CPTInt -> "CPTInt",
+    CPTStr -> "CPTStr",
+    CPTBool -> "CPTBool",
+    CPTList -> "CPTList",
+    CPTPack -> "CPTPack",
+    CPVInt -> drop "CPVInt",
+    CPVStr -> drop "CPVStr",
+    CPVBool -> drop "CPVBool",
+    CPVListNil -> "CPVListNil",
+    CPVListCons -> "CPVListCons",
+    CPVPackNil -> "CPVPackNil",
+    CPVPackCons -> "CPVPackCons",
+    CPWId -> "CPWId",
+    CPWCp -> "CPWCp",
+    CPWDip -> "CPWDip",
+    CPWDup -> "CPWDup",
+    CPWDrop -> "CPWDrop",
+    CPWSwap -> "CPWSwap",
+    CPWPush -> "CPWPush",
+    CPWPackMap -> "CPWPackMap",
+    CPWPackPack2 -> "CPWPackPack2",
+    CPWPackUnpack2 -> "CPWPackUnpack2",
+    CPWBoolIf -> "CPWBoolIf",
+    CPWBoolTrue -> "CPWBoolTrue",
+    CPWBoolFalse -> "CPWBoolFalse",
+    CPWIntAdd -> "CPWIntAdd",
+    CPWIntSub -> "CPWIntSub",
+    CPWIntMul -> "CPWIntMul",
+    CPWIntDiv -> "CPWIntDiv",
+    CPWIntMod -> "CPWIntMod",
+    CPWIntLt -> "CPWIntLt",
+    CPWIntEq -> "CPWIntEq",
+    CPWStrCat -> "CPWStrCat",
+    CPWStrBreak -> "CPWStrBreak",
+    CPWStrLen -> "CPWStrLen",
+    CPWStrFromCodepoint -> "CPWStrFromCodepoint",
+    CPWStrToCodepoint -> "CPWStrToCodepoint",
+    CPWStrElem -> "CPWStrElem",
+    CPWStrReMatch -> "CPWStrReMatch",
+    CPWListNil -> "CPWListNil",
+    CPWListCons -> "CPWListCons",
+    CPWListCat -> "CPWListCat",
+    CPWListLen -> "CPWListLen",
+    CPWListAt -> "CPWListAt",
+    CPWListBreak -> "CPWListBreak",
+    CPWListMap -> "CPWListMap",
+    CPWListFor -> "CPWListFor",
+    CPWUnsafePanic -> "CPWUnsafePanic",
+    CPWUnsafeTrace -> "CPWUnsafeTrace",
+    CPWUnsafePrint -> "CPWUnsafePrint",
+    CPWUnsafeListDir -> "CPWUnsafeListDir",
+    CPWUnsafeWalk -> "CPWUnsafeWalk",
+    CPWUnsafeIsDir -> "CPWUnsafeIsDir",
+    CPWUnsafeIsFile -> "CPWUnsafeIsFile",
+    CPWUnsafeRead -> "CPWUnsafeRead",
+    CPWUnsafeWrite -> "CPWUnsafeWrite",
+    CPWUnsafeAppend -> "CPWUnsafeAppend",
+    CPWUnsafeDelete -> "CPWUnsafeDelete",
+    CPWUnsafeCoerce -> "CPWUnsafeCoerce",
+    CPWUnsafeHash -> "CPWUnsafeHash",
+    CPWUnsafeEnvGet -> "CPWUnsafeEnvGet",
+    CPWUnsafeEnvSet -> "CPWUnsafeEnvSet",
+    CPWUnsafeExit -> "CPWUnsafeExit"
+  )
+
+cprim= : CPrim CPrim -- Bool
+cprim= = dip(cprim->str) cprim->str streq
+
+cprimBuiltinTypes : Map(Str, CPrim)
+cprimBuiltinTypes = $(
+  mapNil
+  "Int" CPTInt mapSet
+  "Str" CPTStr mapSet
+  "Bool" CPTBool mapSet
+  "List" CPTList mapSet
+  "Pack" CPTPack mapSet
+)
+
+cprimBuiltinWords : Map(Str, CPrim)
+cprimBuiltinWords = $(
+  mapNil
+  "_prim_id" CPWId mapSet
+  "_prim_cp" CPWCp mapSet
+  "_prim_dup" CPWDup mapSet
+  "_prim_drop" CPWDrop mapSet
+  "_prim_swap" CPWSwap mapSet
+  "_prim_dip" CPWDip mapSet
+  "_prim_bool_true" CPWBoolTrue mapSet
+  "_prim_bool_false" CPWBoolFalse mapSet
+  "_prim_bool_if" CPWBoolIf mapSet
+  "_prim_int_add" CPWIntAdd mapSet
+  "_prim_int_sub" CPWIntSub mapSet
+  "_prim_int_mul" CPWIntMul mapSet
+  "_prim_int_div" CPWIntDiv mapSet
+  "_prim_int_mod" CPWIntMod mapSet
+  "_prim_int_lt" CPWIntLt mapSet
+  "_prim_int_eq" CPWIntEq mapSet
+  "_prim_str_cat" CPWStrCat mapSet
+  "_prim_str_break" CPWStrBreak mapSet
+  "_prim_str_len" CPWStrLen mapSet
+  "_prim_str_to_codepoint" CPWStrToCodepoint mapSet
+  "_prim_str_from_codepaint" CPWStrFromCodepoint mapSet
+  "_prim_str_elem" CPWStrElem mapSet
+  "_prim_str_rematch" CPWStrReMatch mapSet
+  "_prim_tuple_intuple" CPWPackMap mapSet
+  "_prim_tuple_pack2" CPWPackPack2 mapSet
+  "_prim_tuple_unpack2" CPWPackUnpack2 mapSet
+  "_prim_list_nil" CPWListNil mapSet
+  "_prim_list_cons" CPWListCons mapSet
+  "_prim_list_cat" CPWListCat mapSet
+  "_prim_list_len" CPWListLen mapSet
+  "_prim_list_at" CPWListAt mapSet
+  "_prim_list_break" CPWListBreak mapSet
+  "_prim_list_map" CPWListMap mapSet
+  "_prim_list_for" CPWListFor mapSet
+  "_prim_unsafe_panic" CPWUnsafePanic mapSet
+  "_prim_unsafe_trace" CPWUnsafeTrace mapSet
+  "_prim_unsafe_print" CPWUnsafePrint mapSet
+  "_prim_unsafe_listdir" CPWUnsafeListDir mapSet
+  "_prim_unsafe_walk" CPWUnsafeWalk mapSet
+  "_prim_unsafe_isdir" CPWUnsafeIsDir mapSet
+  "_prim_unsafe_isfile" CPWUnsafeIsFile mapSet
+  "_prim_unsafe_read" CPWUnsafeRead mapSet
+  "_prim_unsafe_write" CPWUnsafeWrite mapSet
+  "_prim_unsafe_append" CPWUnsafeAppend mapSet
+  "_prim_unsafe_deletefile" CPWUnsafeDelete mapSet
+  "_prim_unsafe_coerce" CPWUnsafeCoerce mapSet
+  "_prim_unsafe_hash" CPWUnsafeHash mapSet
+  "_prim_unsafe_env_get" CPWUnsafeEnvGet mapSet
+  "_prim_unsafe_env_set" CPWUnsafeEnvSet mapSet
+  "_prim_unsafe_exit" CPWUnsafeExit mapSet
+)
+
+cprimArity : CPrim -- CArity
+cprimArity =
+  match(
+    CPDPure -> CA1(CSStack, CSDomain),
+    CPSNil -> CA0(CSStack),
+    CPSCons -> CA2(CSStack, CSValue, CSStack),
+    CPTInt -> CA0(CSType),
+    CPTStr -> CA0(CSType),
+    CPTBool -> CA0(CSType),
+    CPTList -> CA1(CSType, CSType),
+    CPTPack -> CA1(CSStack, CSType),
+    CPVInt -> drop CA0(CSValue),
+    CPVStr -> drop CA0(CSValue),
+    CPVBool -> drop CA0(CSValue),
+    CPVListNil -> CA0(CSValue),
+    CPVListCons -> CA2(CSValue, CSValue, CSValue),
+    CPVPackNil -> CA0(CSValue),
+    CPVPackCons -> CA2(CSValue, CSValue, CSValue),
+    CPWId -> CA0(CSWord),
+    CPWCp -> CA2(CSWord, CSWord, CSWord),
+    CPWDip -> CA1(CSWord, CSWord),
+    CPWDup -> CA0(CSWord),
+    CPWDrop -> CA0(CSWord),
+    CPWSwap -> CA0(CSWord),
+    CPWPush -> CA1(CSValue, CSWord),
+    CPWPackMap -> CA1(CSWord, CSWord),
+    CPWPackPack2 -> CA0(CSWord),
+    CPWPackUnpack2 -> CA0(CSWord),
+    CPWBoolTrue -> CA0(CSWord),
+    CPWBoolFalse -> CA0(CSWord),
+    CPWBoolIf -> CA2(CSWord, CSWord, CSWord),
+    CPWIntAdd -> CA0(CSWord),
+    CPWIntSub -> CA0(CSWord),
+    CPWIntMul -> CA0(CSWord),
+    CPWIntDiv -> CA0(CSWord),
+    CPWIntMod -> CA0(CSWord),
+    CPWIntLt -> CA0(CSWord),
+    CPWIntEq -> CA0(CSWord),
+    CPWStrCat -> CA0(CSWord),
+    CPWStrBreak -> CA0(CSWord),
+    CPWStrLen -> CA0(CSWord),
+    CPWStrFromCodepoint -> CA0(CSWord),
+    CPWStrToCodepoint -> CA0(CSWord),
+    CPWStrElem -> CA0(CSWord),
+    CPWStrReMatch -> CA0(CSWord),
+    CPWListNil -> CA0(CSWord),
+    CPWListCons -> CA0(CSWord),
+    CPWListCat -> CA0(CSWord),
+    CPWListLen -> CA0(CSWord),
+    CPWListAt -> CA0(CSWord),
+    CPWListBreak -> CA0(CSWord),
+    CPWListMap -> CA1(CSWord, CSWord),
+    CPWListFor -> CA1(CSWord, CSWord),
+    CPWUnsafePanic -> CA0(CSWord),
+    CPWUnsafeTrace -> CA0(CSWord),
+    CPWUnsafePrint -> CA0(CSWord),
+    CPWUnsafeListDir -> CA0(CSWord),
+    CPWUnsafeWalk -> CA0(CSWord),
+    CPWUnsafeIsDir -> CA0(CSWord),
+    CPWUnsafeIsFile -> CA0(CSWord),
+    CPWUnsafeRead -> CA0(CSWord),
+    CPWUnsafeWrite -> CA0(CSWord),
+    CPWUnsafeAppend -> CA0(CSWord),
+    CPWUnsafeDelete -> CA0(CSWord),
+    CPWUnsafeCoerce -> CA0(CSWord),
+    CPWUnsafeHash -> CA0(CSWord),
+    CPWUnsafeEnvGet -> CA0(CSWord),
+    CPWUnsafeEnvSet -> CA0(CSWord),
+    CPWUnsafeExit -> CA0(CSWord)
+  )
+
+cprimSort : CPrim -- CSort
+cprimSort = cprimArity caritySort
+
