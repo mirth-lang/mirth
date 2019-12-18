@@ -51,6 +51,9 @@ export base/list
   lmatchR (f: *a -- *b, g: *a List(t) t -- *b) : *a List(t) -- *b
 
   zip : List(a) List(b) -- List(Pack(a b))
+  all(f: a -- Bool) : List(a) -- Bool
+  any(f: a -- Bool) : List(a) -- Bool
+  list=(f: a b -- Bool) : List(a) List(b) -- Bool
 
   # Words that panic on empty list.
   uncons : List(t) -- List(t) t +Panic
@@ -140,5 +143,22 @@ zip =
       drop2 nil,
       swap2 dip(swap) dip2(pack2) zip snoc
     )
+  )
+
+all(f) =
+  lmatchL(
+    true,
+    swap f if(
+      all(f),
+      drop false
+    )
+  )
+
+any(f) = all(f not) not
+
+list=(f) =
+  dip?(len?) dip?(len?) n= if(
+    zip all(unpack2 f),
+    drop2 false
   )
 
