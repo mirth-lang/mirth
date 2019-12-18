@@ -161,8 +161,22 @@ emRun = match(MkEMonad(f) -> f)
 emPure : a -- EMonad(a)
 emPure = MkEMonad(erPure)
 
+emThrowError : EError -- EMonad(a)
+emThrowError = MkEMonad(erFail)
+
+emThrowWarning : EWarning -- EMonad(Unit)
+emThrowWarning = MkEMonad(erWarn)
+
+emGetLoc : EMonad(LocSet) # Defined below.
+
+emPureL : a -- EMonad(L(a))
+emPureL = dip(emGetLoc) emPure emMap2(mkL)
+
 emFail : Str -- EMonad(a)
-emFail = MkEMonad(pureL MkEError erFail)
+emFail = emPureL emBind(MkEError emThrowError)
+
+emWarn : Str -- EMonad(Unit)
+emWarn = emPureL emBind(MkEWarning emThrowWarning)
 
 emPure2 : a b -- EMonad(a) EMonad(b)
 emPure2 = dip(emPure) emPure
@@ -810,17 +824,59 @@ eenvUseFocus(f) = dip(unEEnv) dip'(f) dip(MkEEnv)
 eenvUseLocal(f: ELocal a -- ELocal b) : EEnv a -- EEnv b
 eenvUseLocal(f) = dip(unEEnv) f dip(MkEEnv)
 
-eenvFreshNat : EEnv -- EEnv Nat
-eenvFreshNat = unit eenvUseLocal(drop elocalFreshNat)
+###############
+## UTILITIES ##
+###############
+
+emGetWorld : EMonad(EWorld)
+emGetWorld = unit emUse(eenvUseWorld(drop dup))
+
+emSetWorld : EWorld -- EMonad(Unit)
+emSetWorld = emUse(eenvUseWorld(nip unit))
+
+emGetFocus : EMonad(EFocus)
+emGetFocus = unit emUse(eenvUseFocus(drop dup))
+
+emSetFocus : EFocus -- EMonad(Unit)
+emSetFocus = emUse(eenvUseFocus(nip unit))
+
+emGetLocal : EMonad(ELocal)
+emGetLocal = unit emUse(eenvUseLocal(drop dup))
+
+emSetLocal : ELocal -- EMonad(Unit)
+emSetLocal = emUse(eenvUseLocal(nip unit))
 
 emFreshNat : EMonad(Nat)
-emFreshNat = emGet(eenvFreshNat)
+emFreshNat = unit emUse(eenvUseLocal(drop elocalFreshNat))
 
 emFreshName : EMonad(Name)
 emFreshName = emFreshNat emMap(dip("?") nat->str <> mkName)
 
+
+
+emWith(f: a -- EMonad(b), getX : EMonad(x), setX : x -- EMonad(Unit)) : a x -- EMonad(b)
+emWith(f, getX, setX) = $(
+  dip(f getX) setX rotl
+  emBind3(nip dip(setX) emPure emMap2(nip))
+)
+
 emGetCtx : EMonad(ECtx)
 emGetCtx = unit emUse(eenvUseLocal(elocalUseCtx(drop dup)))
+
+emSetCtx : ECtx -- EMonad(Unit)
+emSetCtx = emUse(eenvUseLocal(elocalUseCtx(nip unit)))
+
+emWithCtx(f: a -- EMonad(b)) : a ECtx -- EMonad(b)
+emWithCtx(f) = emWith(f, emGetCtx, emSetCtx)
+
+emGetLoc : EMonad(LocSet)
+emGetLoc = unit emUse(eenvUseLocal(elocalUseLoc(drop dup)))
+
+emSetLoc : LocSet -- EMonad(Unit)
+emSetLoc = emUse(eenvUseLocal(elocalUseLoc(nip unit)))
+
+emWithLoc(f: a -- EMonad(b)) : a LocSet -- EMonad(b)
+emWithLoc(f) = emWith(f, emGetLoc, emSetLoc)
 
 emGetBind : Name -- EMonad(Maybe(EBind))
 emGetBind = emUse(eenvUseLocal(elocalUseCtx(ectxUseBinds(dip(dup) ebindsGet))))
@@ -851,34 +907,6 @@ emList(f) = dip(nil) emFor(dip(emPure) f emMap2(consR))
 
 emFor_(f: a -- EMonad(Unit)) : List(a) -- EMonad(Unit)
 emFor_(f) = dip(unit emPure) for(f emVoid2)
-
-elabL(f: a -- EMonad(b)) : L(a) -- EMonad(b)
-elabL(f) = getL f # TODO: Keep track of current location within EEnv.
-
-elabL2(f: a b -- EMonad(c)) : a L(b) -- EMonad(c)
-elabL2(f) = unL dip(swap) pack2 mkL elabL(unpack2 f)
-
-elabL3(f: a b c -- EMonad(d)) : a b L(c) -- EMonad(d)
-elabL3(f) = unL dip(rotr) pack3 mkL elabL(unpack3 f)
-
-emGetWorld : EMonad(EWorld)
-emGetWorld = unit emUse(eenvUseWorld(drop dup))
-
-emSetWorld : EWorld -- EMonad(Unit)
-emSetWorld = emUse(eenvUseWorld(nip unit))
-
-emGetFocus : EMonad(EFocus)
-emGetFocus = unit emUse(eenvUseFocus(drop dup))
-
-emSetFocus : EFocus -- EMonad(Unit)
-emSetFocus = emUse(eenvUseFocus(nip unit))
-
-emGetLocal : EMonad(ELocal)
-emGetLocal = unit emUse(eenvUseLocal(drop dup))
-
-emSetLocal : ELocal -- EMonad(Unit)
-emSetLocal = emUse(eenvUseLocal(nip unit))
-
 
 emGetFocusPackage : EMonad(EPackage)
 emGetFocusPackage = $(
@@ -940,9 +968,6 @@ emSaveFocusInterface = $(
 )
 
 
-emSetCtx : ECtx -- EMonad(Unit)
-emSetCtx = emUse(eenvUseLocal(elocalUseCtx(nip unit)))
-
 emGetDef : Name -- EMonad(Maybe(EDef))
 emGetDef = emUse(eenvUseFocus(dip(dup) efocusGetDef))
 
@@ -959,10 +984,27 @@ emAddDefs = $(
 emAddDef : Name EDef -- EMonad(Unit)
 emAddDef = edefsSingle emAddDefs
 
+
+
 emMkTypeSym : Name -- EMonad(ESym)
 emMkWordSym : Name -- EMonad(ESym)
 emMkTypeSym = dip(emGetFocus) emPure emMap2(efocusTypeSym)
 emMkWordSym = dip(emGetFocus) emPure emMap2(efocusWordSym)
+
+
+
+########################
+## ACTUAL ELABORATION ##
+########################
+
+elabL(f: a -- EMonad(b)) : L(a) -- EMonad(b)
+elabL(f) = unL swap emWithLoc(f)
+
+elabL2(f: a b -- EMonad(c)) : a L(b) -- EMonad(c)
+elabL2(f) = unL swap dip(pack2) emWithLoc(unpack2 f)
+
+elabL3(f: a b c -- EMonad(d)) : a b L(c) -- EMonad(d)
+elabL3(f) = unL swap dip(pack3) emWithLoc(unpack3 f)
 
 elabLModuleHead : Mod L(Module) -- EMonad(Unit)
 elabLModule : Mod L(Module) -- EMonad(Unit)
@@ -1057,14 +1099,6 @@ elabSig =
     elabLAssertion
   )
 
-emWith(f: a -- EMonad(b), getX : EMonad(x), setX : x -- EMonad(Unit)) : a x -- EMonad(b)
-emWith(f, getX, setX) = $(
-  dip(f getX) setX rotl
-  emBind3(nip dip(setX) emPure emMap2(nip))
-)
-
-emWithCtx(f: a -- EMonad(b)) : a ECtx -- EMonad(b)
-emWithCtx(f) = emWith(f, emGetCtx, emSetCtx)
 
 elabTypeSig = $(
   dup dip(typeSigName getL dup dip(emPure) emMkTypeSym)
