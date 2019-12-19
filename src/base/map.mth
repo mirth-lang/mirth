@@ -21,6 +21,7 @@ export base/map
   Map.generate : List(Pack(k v)) -- Map(k,v)
   mapFromList : List(Pack(k v)) -- Map(k,v)
   mapNil : Map(k,v)
+  mapSingle : k v -- Map(k,v)
   mapSet : Map(k,v) k v -- Map(k,v)
   mapGet : Map(k,v) k -- Maybe(v)
   mapHas : Map(k,v) k -- Bool
@@ -72,6 +73,7 @@ mapSetAux =
       )
   )
 mapSet = rotl dip(over hash) mapSetAux
+mapSingle = over hash mapLeaf
 
 mapGetAux : Int Map(k,v) -- Maybe(v)
 mapGetAux =

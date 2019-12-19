@@ -1,1609 +1,857 @@
 
-import base/nat
-import base/unit
-import base/maybe
-import base/void
-import base/map
-import base/result
 import base/int
+import base/nat
 import base/str
-import base/sexp
+import base/map
 import base/list
-import base/either
+import base/maybe
+import base/result
+import base/unsafe
 
-import mirth/mod
-import mirth/name
 import mirth/loc
-import mirth/syntax
-import mirth/pkg
-import mirth/mod
 
 export mirth/core
-  type Name
-  type Either(a,b)
-
-  type CZero
-  type CSucc(x)
-
-  type CEnv
-  type CDef
-  type CSpace
-  type CSymbol
-  type CImplicit
-  type CBindInfo
+  type L(t)
   type CSort
+  type CArity
+  type CSym
+  type CVar
+  type CHole
+  type CPrim
+  type CHead
+  type CTerm
 
-  type CCtx(x)
-  type CBind(x)
-  type CKind(x)
-  type CTerm(x)
-  type CStackType(x)
-  type CValueType(x)
-  type CStack(x)
-  type CValue(x)
-  type CWord(x)
-  type CArgs(x)
-
-  type CError
-  type CMonad(x,t)
-
-  czero : *a CZero -- *b
-
-  Z : CSucc(x)
-  S : x -- CSucc(x)
-  csucc(f: *a -- *b, g: *a x -- *b) : *a CSucc(x) -- *b
-
-  CSpPrim : CSpace
-  CSpMod : Mod -- CSpace
-  CSpPkg : Pkg -- CSpace
-  CSpIface : Interface -- CSpace
-  cspace= : CSpace CSpace -- Bool
-  cspace->str : CSpace -- Str
-
-  MkCSymbol : CSpace Name -- CSymbol
-  unCSymbol : CSymbol -- CSpace Name
-  csymbol->cspace : CSymbol -- CSpace
-  csymbol->name : CSymbol -- Name
-  csymbol->str : CSymbol -- Str
-  csymbol= : CSymbol CSymbol -- Bool
-
-  CSLambda : CSort CSort -- CSort
-  CSStackType : CSort
-  CSValueType : CSort
   CSStack : CSort
+  CSType : CSort
   CSValue : CSort
   CSWord : CSort
+  csortIsStack? : CSort -- CSort Bool
+  csortIsType? : CSort -- CSort Bool
+  csortIsValue? : CSort -- CSort Bool
+  csortIsWord? : CSort -- CSort Bool
+  csort= : CSort CSort -- Bool
+  csort->str : CSort -- Str
 
-  CKLambda : CBind(x) CKind(CSucc(x)) -- CKind(x)
-  CKStackType : CKind(x)
-  CKValueType : CKind(x)
-  CKStack : CStackType(x) -- CKind(x)
-  CKValue : CValueType(x) -- CKind(x)
-  CKWord : CStackType(x) CStackType(x) -- CKind(x)
+  MkCArity : List(CSort) CSort -- CArity
+  CA0(a: CSort) : CArity
+  CA1(a: CSort, b: CSort) : CArity
+  CA2(a: CSort, b: CSort, c: CSort) : CArity
+  CA3(a: CSort, b: CSort, c: CSort, d: CSort) : CArity
+  unCArity : CArity -- List(CSort) CSort
+  caritySort : CArity -- CSort
+  carityArgs : CArity -- List(CSort)
+  carity= : CArity CArity -- Bool
+  carity->str : CArity -- Str
 
-  CTLambda : CBind(x) CTerm(CSucc(x)) -- CTerm(x)
-  CTStackType : CStackType(x) -- CTerm(x)
-  CTValueType : CValueType(x) -- CTerm(x)
-  CTStack : CStack(x) -- CTerm(x)
-  CTValue : CValue(x) -- CTerm(x)
-  CTWord : CStackType(x) CWord(x) -- CTerm(x)
+  MkCSym : CArity Str -- CSym
+  unCSym : CSym -- CArity Str
+  csymArity : CSym -- CArity
+  csymSort : CSym -- CSort
+  csym= : CSym CSym -- Bool
+  csym->str : CSym -- Str
 
-  CSTVar  : x CArgs(x) -- CStackType(x)
-  CSTNil  : CStackType(x)
-  CSTCons : CStackType(x) CValueType(x) -- CStackType(x)
+  MkCVar : CSort Str -- CVar
+  unCVar : CVar -- CSort Str
+  cvarArity : CVar -- CArity
+  cvarSort : CVar -- CSort
+  cvar= : CVar CVar -- Bool
+  cvar->str : CVar -- Str
 
-  CVTVar : x CArgs(x) -- CValueType(x)
-  CVTSym : CSymbol CArgs(x) -- CValueType(x)
+  MkCHole : CSort Int -- CHole
+  unCHole : CHole -- CSort Int
+  choleArity : CHole -- CArity
+  choleSort : CHole -- CSort
+  chole= : CHole CHole -- Bool
+  chole->str : CHole -- Str
 
-  CSVar : x CArgs(x) -- CStack(x)
-  CSNil : CStack(x)
-  CSCons : CStack(x) CValue(x) -- CStack(x)
-  CSTail : CStack(x) -- CStack(x)
-  CSRun : CStack(x) CWord(x) -- CStack(x)
+  CHSym : CSym -- CHead
+  CHVar : CVar -- CHead
+  CHHole : CHole -- CHead
+  CHPrim : CPrim -- CHead
+  cheadGetSym : CHead -- Maybe(CSym)
+  cheadGetVar : CHead -- Maybe(CVar)
+  cheadGetHole : CHead -- Maybe(CHole)
+  cheadGetPrim : CHead -- Maybe(CPrim)
+  cheadArity : CHead -- CArity
+  cheadSort : CHead -- CSort
+  chead= : CHead CHead -- Bool
+  chead->str : CHead -- Str
 
-  CVVar : x CArgs(x) -- CValue(x)
-  CVSym : CSymbol CArgs(x) -- CValue(x)
-  CVHead : CStack(x) -- CValue(x)
+  MkCTerm : CHead List(CTerm) -- CTerm
+  unCTerm : CTerm -- CHead List(CTerm)
+  ctermHead : CTerm -- CHead
+  ctermArgs : CTerm -- List(CTerm)
+  ctermSort : CTerm -- CSort
+  cterm= : CTerm CTerm -- Bool
+  cterm->str : CTerm -- Str
 
-  CWVar : x CArgs(x) -- CWord(x)
-  CWSym : CSymbol CArgs(x) -- CWord(x)
-  CWId : CWord(x)
-  CWCp : CWord(x) CWord(x) -- CWord(x)
-  CWPush : CValue(x) -- CWord(x)
-  CWSwap : CWord(x)
-  CWDrop : CWord(x)
-  CWDup : CWord(x)
-  CWDip : CWord(x) -- CWord(x)
-
-  MkCArgs : List(CTerm(x)) -- CArgs(x)
-  unCArgs : CArgs(x) -- List(CTerm(x))
-
-  CANil : CArgs(x)
-  CAConsL : CTerm(x) CArgs(x) -- CArgs(x)
-  CAConsR : CArgs(x) CTerm(x) -- CArgs(x)
-  CACat : CArgs(x) CArgs(x) -- CArgs(x)
-  
-  caMatchL (
-    f: *a -- *b,
-    g: *a CTerm(x) CArgs(x) -- *b
-  ) : *a CArgs(x) -- *b
-
-  caMatchR (
-    f: *a -- *b,
-    g: *a CArgs(x) CTerm(x) -- *b
-  ) : *a CArgs(x) -- *b
-
-  cimplicit->bool : CImplicit -- Bool
-  bool->cimplicit : Bool -- CImplicit
-
-  MkCBindInfo : CImplicit Name -- CBindInfo
-  unCBindInfo : CBindInfo -- CImplicit Name
-  cbindinfo->cimplicit : CBindInfo -- CImplicit
-  cbindinfo->name : CBindInfo -- Name
-
-  MkCBind : CBindInfo CKind(x) -- CBind(x)
-  unCBind : CBind(x) -- CBindInfo CKind(x)
-  cbind->cbindinfo : CBind(x) -- CBindInfo
-  cbind->ckind : CBind(x) -- CKind(x)
-
-  cbind->csort : CBind(x) -- CSort
-  ckind->csort : CKind(x) -- CSort
-  cterm->csort : CTerm(x) -- CSort
-
-  cbMap (f: *g a -- *g b) : *g CBind(a) -- *g CBind(b)
-  ckMap (f: *g a -- *g b) : *g CKind(a) -- *g CKind(b)
-  ctMap (f: *g a -- *g b) : *g CTerm(a) -- *g CTerm(b)
-  cstMap (f: *g a -- *g b) : *g CStackType(a) -- *g CStackType(b)
-  cvtMap (f: *g a -- *g b) : *g CValueType(a) -- *g CValueType(b)
-  csMap (f: *g a -- *g b) : *g CStack(a) -- *g CStack(b)
-  cvMap (f: *g a -- *g b) : *g CValue(a) -- *g CValue(b)
-  cwMap (f: *g a -- *g b) : *g CWord(a) -- *g CWord(b)
-  caMap (f: *g a -- *g b) : *g CArgs(a) -- *g CArgs(b)
-
-  cbSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CBind(a) -- *g CBind(b)
-  ckSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CKind(a) -- *g CKind(b)
-  ctSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CTerm(a) -- *g CTerm(b)
-  cstSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CStackType(a) -- *g CStackType(b)
-  cvtSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CValueType(a) -- *g CValueType(b)
-  csSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CStack(a) -- *g CStack(b)
-  cvSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CValue(a) -- *g CValue(b)
-  cwSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CWord(a) -- *g CWord(b)
-  caSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CArgs(a) -- *g CArgs(b)
-
-  cmRun : CEnv CCtx(x) CMonad(x,t) -- CEnv CCtx(x) Result(CError, t)
-  cmPure : t -- CMonad(x,t)
-  cmPure2 : a b -- CMonad(x,a) CMonad(x,b)
-  cmFail : CError -- CMonad(x,t)
-  cmMap(f: a -- b) : CMonad(x,a) -- CMonad(x,b)
-  cmMap2(f: a b -- c) : CMonad(x,a) CMonad(x,b) -- CMonad(x,c)
-  cmMap3(f: a b c -- d) : CMonad(x,a) CMonad(x,b) CMonad(x,c) -- CMonad(x,d)
-  cmMap4(f: a b c d -- e) : CMonad(x,a) CMonad(x,b) CMonad(x,c) CMonad(x,d) -- CMonad(x,e)
-  cmBind(f: a -- CMonad(x,b)) : CMonad(x,a) -- CMonad(x,b)
-  cmBind2(f: a b -- CMonad(x,c)) : CMonad(x,a) CMonad(x,b) -- CMonad(x,c)
-  cmBind3(f: a b c -- CMonad(x,d)) : CMonad(x,a) CMonad(x,b) CMonad(x,c) -- CMonad(x,d)
-  cmBind4(f: a b c d -- CMonad(x,e)) : CMonad(x,a) CMonad(x,b) CMonad(x,c) CMonad(x,d) -- CMonad(x,e)
-  cmUnit : CMonad(x, Unit)
-  cmVoid : CMonad(x,a) -- CMonad(x, Unit)
-  cmVoid2 : CMonad(x,a) CMonad(x,b) -- CMonad(x, Unit)
-  cmSucc : CBind(x) CMonad(CSucc(x), t) -- CMonad(x, t)
-  cmCtx : CMonad(x, CCtx(x))
-  cmLookupVar : x -- CMonad(x, CBind(x))
-  cmLookupVarKind : x -- CMonad(x, CKind(x))
-  cmEnv : CMonad(x, CEnv)
-  cmLookupSym : CSymbol -- CMonad(x, CDef)
-  cmLookupSymKind : CSymbol -- CMonad(x, CKind(x))
-  cmLookupSymMaybeTerm : CSymbol -- CMonad(x, Maybe(CTerm(x)))
-
-  cbCheck : CBind(x) -- CMonad(x, Unit)
-  ckCheck : CKind(x) -- CMonad(x, Unit)
-  cstCheck : CStackType(x) -- CMonad(x, Unit)
-  cvtCheck : CValueType(x) -- CMonad(x, Unit)
-  ctCheck : CTerm(x) CKind(x) -- CMonad(x, Unit)
-  csCheck : CStack(x) CStackType(x) -- CMonad(x, Unit)
-  cvCheck : CValue(x) CValueType(x) -- CMonad(x, Unit)
-  cwCheck : CWord(x) CStackType(x) CStackType(x) -- CMonad(x, Unit)
-
-  ctInfer : CTerm(x) -- CMonad(x, CKind(x))
-  csInfer : CStack(x) -- CMonad(x, CStackType(x))
-  cvInfer : CValue(x) -- CMonad(x, CValueType(x))
-  cwInfer : CStackType(x) CWord(x) -- CMonad(x, CStackType(x))
-
-  caInfer : CKind(x) CArgs(x) -- CMonad(x, CKind(x))
-  caInferVar : x CArgs(x) -- CMonad(x, CKind(x))
-  caInferSym : CSymbol CArgs(x) -- CMonad(x, CKind(x))
-
-  cbCheckEq : CBind(x) CBind(x) -- CMonad(x, Unit)
-  ckCheckEq : CKind(x) CKind(x) -- CMonad(x, Unit)
-  cstCheckEq : CStackType(x) CStackType(x) -- CMonad(x, Unit)
-  cvtCheckEq : CValueType(x) CValueType(x) -- CMonad(x, Unit)
-  ctCheckEq : CTerm(x) CTerm(x) -- CMonad(x, Unit)
-  csCheckEq : CStack(x) CStack(x) -- CMonad(x, Unit)
-  cvCheckEq : CValue(x) CValue(x) -- CMonad(x, Unit)
-  cwCheckEq : CWord(x) CWord(x) -- CMonad(x, Unit)
-  caCheckEq : CArgs(x) CArgs(x) -- CMonad(x, Unit)
-  cmCheckVarEq : x x -- CMonad(x, Unit)
-  cmCheckSymEq : CSymbol CSymbol -- CMonad(x, Unit)
-
-  ckExpectLambda : CKind(x) -- CMonad(x, Pack(CBind(x) CKind(CSucc(x))))
-  ckExpectStackType : CKind(x) -- CMonad(x, Unit)
-  ckExpectValueType : CKind(x) -- CMonad(x, Unit)
-  ckExpectStack : CKind(x) -- CMonad(x, CStackType(x))
-  ckExpectValue : CKind(x) -- CMonad(x, CValueType(x))
-  ckExpectWord : CKind(x) -- CMonad(x, Pack(CStackType(x) CStackType(x)))
-  
-  ctExpectLambda : CTerm(x) -- CMonad(x, Pack(CBind(x) CTerm(CSucc(x))))
-  ctExpectStackType : CTerm(x) -- CMonad(x, CStackType(x))
-  ctExpectValueType : CTerm(x) -- CMonad(x, CValueType(x))
-  ctExpectStack : CTerm(x) -- CMonad(x, CStack(x))
-  ctExpectValue : CTerm(x) -- CMonad(x, CValue(x))
-  ctExpectWord : CTerm(x) -- CMonad(x, Pack(CStackType(x) CWord(x)))
-  
-  cstExpectVar : CStackType(x) -- CMonad(x, Pack(x CArgs(x)))
-  cstExpectNil : CStackType(x) -- CMonad(x, Unit)
-  cstExpectCons : CStackType(x) -- CMonad(x, Pack(CStackType(x) CValueType(x)))
-  
-  cvtExpectVar : CValueType(x) -- CMonad(x, Pack(x CArgs(x)))
-  cvtExpectSym : CValueType(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
-  
-  csExpectVar : CStack(x) -- CMonad(x, Pack(x CArgs(x)))
-  csExpectNil : CStack(x) -- CMonad(x, Unit)
-  csExpectCons : CStack(x) -- CMonad(x, Pack(CStack(x) CValue(x)))
-  csExpectTail : CStack(x) -- CMonad(x, CStack(x))
-  csExpectRun : CStack(x) -- CMonad(x, Pack(CStack(x) CWord(x)))
-  
-  cvExpectVar : CValue(x) -- CMonad(x, Pack(x CArgs(x)))
-  cvExpectSym : CValue(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
-  cvExpectHead : CValue(x) -- CMonad(x, CStack(x))
-  
-  cwExpectVar : CWord(x) -- CMonad(x, Pack(x CArgs(x)))
-  cwExpectSym : CWord(x) -- CMonad(x, Pack(CSymbol CArgs(x)))
-  cwExpectId : CWord(x) -- CMonad(x, Unit)
-  cwExpectCp : CWord(x) -- CMonad(x, Pack(CWord(x) CWord(x)))
-  cwExpectPush : CWord(x) -- CMonad(x, CValue(x))
-  cwExpectSwap : CWord(x) -- CMonad(x, Unit)
-  cwExpectDrop : CWord(x) -- CMonad(x, Unit)
-  cwExpectDup : CWord(x) -- CMonad(x, Unit)
-  cwExpectDip : CWord(x) -- CMonad(x, CWord(x))
-  
-  caExpectNil : CArgs(x) -- CMonad(x, Unit)
-  caExpectConsL : CArgs(x) -- CMonad(x, Pack(CTerm(x) CArgs(x)))
-  
-  ckNorm : CKind(x) -- CMonad(x, CKind(x))
-  ctNorm : CTerm(x) -- CMonad(x, CTerm(x))
-  cstNorm : CStackType(x) -- CMonad(x, CStackType(x))
-  cvtNorm : CValueType(x) -- CMonad(x, CValueType(x))
-  csNorm : CStack(x) -- CMonad(x, CStack(x))
-  cvNorm : CValue(x) -- CMonad(x, CValue(x))
-  cwNorm : CWord(x) -- CMonad(x, CWord(x))
-  caNorm : CArgs(x) -- CMonad(x, CArgs(x))
-
+  CPSNil : CPrim
+  CPSCons : CPrim
+  CPTInt : CPrim
+  CPTStr : CPrim
+  CPTBool : CPrim
+  CPTList : CPrim
+  CPTPack : CPrim
+  CPVInt : Int -- CPrim
+  CPVStr : Str -- CPrim
+  CPVBool : Bool -- CPrim
+  CPVListNil : CPrim
+  CPVListCons : CPrim
+  CPVPackNil : CPrim
+  CPVPackCons : CPrim
+  CPWId : CPrim
+  CPWCp : CPrim
+  CPWDip : CPrim
+  CPWDup : CPrim
+  CPWDrop : CPrim
+  CPWSwap : CPrim
+  CPWPush : CPrim
+  cprimBuiltinTypes : Map(Str, CPrim)
+  cprimBuiltinWords : Map(Str, CPrim)
+  cprimArity : CPrim -- CArity
+  cprimSort : CPrim -- CSort
+  cprim= : CPrim CPrim -- Bool
+  cprim->str : CPrim -- Str
 end
 
-||| Empty type to represent the free variables that can appear in a closed term.
-data CZero
-end
 
-czero : *a CZero -- *b
-czero = match
-
-||| Successor type, to represent the free variables that can appear inside a lambda.
-data CSucc(x)
-  Z : CSucc(x)
-  S : x -- CSucc(x)
-end
-
-csucc(f: *a -- *b, g: *a x -- *b) : *a CSucc(x) -- *b
-csucc(f, g) =
-  match(
-    Z -> f,
-    S -> g
-  )
-
-
-||| Separate name spaces for each core name.
-data CSpace
-  CSpPrim : CSpace
-  CSpMod : Mod -- CSpace
-  CSpPkg : Pkg -- CSpace
-  CSpIface : Interface -- CSpace
-end
-
-cspace= : CSpace CSpace -- Bool
-cspace= = 
-  match(
-    CSpPrim -> 
-      match(
-        CSpPrim -> true,
-        _ -> drop false
-      ),
-    CSpMod ->
-      swap match(
-        CSpMod -> mod=,
-        _ -> drop2 false
-      ),
-    CSpPkg ->
-      swap match(
-        CSpPkg -> pkg=,
-        _ -> drop2 false
-      ),
-    CSpIface ->
-      swap match(
-        CSpIface -> interface=,
-        _ -> drop2 false
-      ) 
-  )
-
-cspace->str : CSpace -- Str
-cspace->str =
-  match(
-    CSpPrim -> "prim",
-    CSpMod -> dip("mod:") mod->str <>,
-    CSpPkg -> dip("pkg:") pkg->str <>,
-    CSpIface -> dip("interface:") interface->str <>
-  )
-
-||| A Core Symbol is a Name bundled with its
-||| name space. This makes each name _unique_.
-data CSymbol
-  MkCSymbol : CSpace Name -- CSymbol
-end
-
-unCSymbol : CSymbol -- CSpace Name
-unCSymbol = match(MkCSymbol -> id)
-
-csymbol->cspace : CSymbol -- CSpace
-csymbol->cspace = unCSymbol drop
-
-csymbol->name : CSymbol -- Name
-csymbol->name = unCSymbol nip
-
-csymbol= : CSymbol CSymbol -- Bool
-csymbol= = dip(unCSymbol) unCSymbol dip(swap) nameeq if(cspace=, drop2 false)
-
-csymbol->str : CSymbol -- Str
-csymbol->str = unCSymbol dip(cspace->str ":" <>) name->str <>
-
+||| Syntactic sorts.
 data CSort
-  CSLambda : CSort CSort -- CSort
-  CSStackType : CSort
-  CSValueType : CSort
   CSStack : CSort
+  CSType : CSort
   CSValue : CSort
   CSWord : CSort
 end
 
-data CKind(x)
-  CKLambda : CBind(x) CKind(CSucc(x)) -- CKind(x)
-  CKStackType : CKind(x)
-  CKValueType : CKind(x)
-  CKStack : CStackType(x) -- CKind(x)
-  CKValue : CValueType(x) -- CKind(x)
-  CKWord : CStackType(x) CStackType(x) -- CKind(x)
+csortIsStack? : CSort -- CSort Bool
+csortIsStack? = dup match(CSStack -> true, _ -> drop false)
+
+csortIsType? : CSort -- CSort Bool
+csortIsType? = dup match(CSType -> true, _ -> drop false)
+
+csortIsValue? : CSort -- CSort Bool
+csortIsValue? = dup match(CSValue -> true, _ -> drop false)
+
+csortIsWord? : CSort -- CSort Bool
+csortIsWord? = dup match(CSWord -> true, _ -> drop false)
+
+csort= : CSort CSort -- Bool
+csort= =
+  match(
+    CSStack -> csortIsStack? nip,
+    CSType -> csortIsType? nip,
+    CSValue -> csortIsValue? nip,
+    CSWord -> csortIsWord? nip
+  )
+
+csort->str : CSort -- Str
+csort->str =
+  match(
+    CSStack -> "stack",
+    CSType -> "type",
+    CSValue -> "value",
+    CSWord -> "word"
+  )
+
+csort->carity : CSort -- CArity
+csort->carity = dip(nil) MkCArity
+
+
+||| Operator arity.
+data CArity
+  MkCArity : List(CSort) CSort -- CArity
 end
 
-data CTerm(x)
-  CTLambda : CBind(x) CTerm(CSucc(x)) -- CTerm(x)
-  CTStackType : CStackType(x) -- CTerm(x)
-  CTValueType : CValueType(x) -- CTerm(x)
-  CTStack : CStack(x) -- CTerm(x)
-  CTValue : CValue(x) -- CTerm(x)
-  CTWord : CStackType(x) CWord(x) -- CTerm(x)
+CA0(a: CSort) : CArity
+CA1(a: CSort, b: CSort) : CArity
+CA2(a: CSort, b: CSort, c: CSort) : CArity
+CA3(a: CSort, b: CSort, c: CSort, d: CSort) : CArity
+CA0(a) = nil a MkCArity
+CA1(a,b) = nil a cons b MkCArity
+CA2(a,b,c) = nil a cons b cons c MkCArity
+CA3(a,b,c,d) = nil a cons b cons c cons d MkCArity
+
+unCArity : CArity -- List(CSort) CSort
+unCArity = match(MkCArity -> id)
+
+caritySort : CArity -- CSort
+caritySort = unCArity nip
+
+carityArgs : CArity -- List(CSort)
+carityArgs = unCArity drop
+
+carity= : CArity CArity -- Bool
+carity= = $(
+  dip(unCArity) unCArity dip(swap)
+  dip2(list=(csort=)) csort= and
+)
+
+carity->str : CArity -- Str
+carity->str = dip("") unCArity dip(for(csort->str " -> " <> <>)) csort->str <>
+
+
+data CSym
+  MkCSym : CArity Str -- CSym
 end
 
-data CStackType(x)
-  CSTVar  : x CArgs(x) -- CStackType(x)
-  CSTNil  : CStackType(x)
-  CSTCons : CStackType(x) CValueType(x) -- CStackType(x)
+unCSym : CSym -- CArity Str
+unCSym = match(MkCSym -> id)
+
+csymArity : CSym -- CArity
+csymArity = unCSym drop
+
+csymSort : CSym -- CSort
+csymSort = csymArity caritySort
+
+csym= : CSym CSym -- Bool
+csym= = dip(unCSym) unCSym dip(swap) dip2(carity=) streq and
+
+csym->str : CSym -- Str
+csym->str = unCSym nip
+
+
+data CVar
+  MkCVar : CSort Str -- CVar
 end
 
-data CValueType(x)
-  CVTVar : x CArgs(x) -- CValueType(x)
-  CVTSym : CSymbol CArgs(x) -- CValueType(x)
+unCVar : CVar -- CSort Str
+unCVar = match(MkCVar -> id)
+
+cvarSort : CVar -- CSort
+cvarSort = unCVar drop
+
+cvarArity : CVar -- CArity
+cvarArity = cvarSort csort->carity
+
+cvar= : CVar CVar -- Bool
+cvar= = dip(unCVar) unCVar dip(swap) dip2(csort=) streq and
+
+cvar->str : CVar -- Str
+cvar->str = unCVar nip
+
+
+data CHole
+  MkCHole : CSort Int -- CHole
 end
 
-data CStack(x)
-  CSVar : x CArgs(x) -- CStack(x)
-  CSNil : CStack(x)
-  CSCons : CStack(x) CValue(x) -- CStack(x)
-  CSTail : CStack(x) -- CStack(x)
-  CSRun : CStack(x) CWord(x) -- CStack(x)
+unCHole : CHole -- CSort Int
+unCHole = match(MkCHole -> id)
+
+choleSort : CHole -- CSort
+choleSort = unCHole drop
+
+choleArity : CHole -- CArity
+choleArity = choleSort csort->carity
+
+chole= : CHole CHole -- Bool
+chole= = dip(unCHole) unCHole dip(swap) dip2(csort=) z= and
+
+chole->str : CHole -- Str
+chole->str = dip("?") unCHole nip int->str <>
+
+
+data CHead
+  CHSym : CSym -- CHead
+  CHVar : CVar -- CHead
+  CHHole : CHole -- CHead
+  CHPrim : CPrim -- CHead
 end
 
-data CValue(x)
-  CVVar : x CArgs(x) -- CValue(x)
-  CVSym : CSymbol CArgs(x) -- CValue(x)
-  CVHead : CStack(x) -- CValue(x)
+cheadGetSym : CHead -- Maybe(CSym)
+cheadGetSym = match(CHSym -> some, _ -> drop none)
+
+cheadGetVar : CHead -- Maybe(CVar)
+cheadGetVar = match(CHVar -> some, _ -> drop none)
+
+cheadGetHole : CHead -- Maybe(CHole)
+cheadGetHole = match(CHHole -> some, _ -> drop none)
+
+cheadGetPrim : CHead -- Maybe(CPrim)
+cheadGetPrim = match(CHPrim -> some, _ -> drop none)
+
+cheadArity : CHead -- CArity
+cheadArity =
+  match(
+    CHSym -> csymArity,
+    CHVar -> cvarArity,
+    CHHole -> choleArity,
+    CHPrim -> cprimArity
+  )
+
+cheadSort : CHead -- CSort
+cheadSort = cheadArity caritySort
+
+chead= : CHead CHead -- Bool
+chead= =
+  match(
+    CHSym -> swap cheadGetSym maybe(drop false, swap csym=),
+    CHVar -> swap cheadGetVar maybe(drop false, swap cvar=),
+    CHHole -> swap cheadGetHole maybe(drop false, swap chole=),
+    CHPrim -> swap cheadGetPrim maybe(drop false, swap cprim=)
+  )
+
+chead->str : CHead -- Str
+chead->str =
+  match(
+    CHSym -> csym->str,
+    CHVar -> cvar->str,
+    CHHole -> chole->str,
+    CHPrim -> cprim->str
+  )
+
+
+data CTerm
+  MkCTerm : CHead List(CTerm) -- CTerm
 end
 
-data CWord(x)
-  CWVar : x CArgs(x) -- CWord(x)
-  CWSym : CSymbol CArgs(x) -- CWord(x)
-  CWId : CWord(x)
-  CWCp : CWord(x) CWord(x) -- CWord(x)
-  CWPush : CValue(x) -- CWord(x)
-  CWSwap : CWord(x)
-  CWDrop : CWord(x)
-  CWDup : CWord(x)
-  CWDip : CWord(x) -- CWord(x)
+unCTerm : CTerm -- CHead List(CTerm)
+unCTerm = match(MkCTerm -> id)
+
+ctermHead : CTerm -- CHead
+ctermHead = unCTerm drop
+
+ctermArgs : CTerm -- List(CTerm)
+ctermArgs = unCTerm nip
+
+ctermSort : CTerm -- CSort
+ctermSort = ctermHead cheadSort
+
+cterm= : CTerm CTerm -- Bool
+cterm= = $(
+  dip(unCTerm) unCTerm dip(swap)
+  dip2(chead=) rotl if(
+    list=(cterm=),
+    drop2 false
+  )
+)
+
+cterm->str : CTerm -- Str
+cterm->str = $(
+  unCTerm dip(chead->str)
+  lmatchL(id,
+    dip2("(" <>)
+    dip(cterm->str <>)
+    for(dip(", ") cterm->str <> <>)
+    ")" <>
+  )
+)
+
+
+##############
+# Primitives #
+##############
+
+||| Primitive operators.
+data CPrim
+  # Built-in Stacks
+  CPSNil : CPrim
+  CPSCons : CPrim
+
+  # Built-in Types
+  CPTInt : CPrim
+  CPTStr : CPrim
+  CPTBool : CPrim
+  CPTList : CPrim
+  CPTPack : CPrim
+
+  # Built-in Values
+  CPVInt : Int -- CPrim
+  CPVStr : Str -- CPrim
+  CPVBool : Bool -- CPrim
+  CPVListNil : CPrim
+  CPVListCons : CPrim
+  CPVPackNil : CPrim
+  CPVPackCons : CPrim
+
+  # Built-in Words
+  CPWId : CPrim
+  CPWCp : CPrim
+  CPWDip : CPrim
+  CPWDup : CPrim
+  CPWDrop : CPrim
+  CPWPush : CPrim
+  CPWSwap : CPrim
+  CPWPackMap : CPrim
+  CPWPackPack2 : CPrim
+  CPWPackUnpack2 : CPrim
+  CPWBoolIf : CPrim
+  CPWBoolTrue : CPrim
+  CPWBoolFalse : CPrim
+  CPWIntAdd : CPrim
+  CPWIntSub : CPrim
+  CPWIntMul : CPrim
+  CPWIntDiv : CPrim
+  CPWIntMod : CPrim
+  CPWIntLt : CPrim
+  CPWIntEq : CPrim
+  CPWStrCat : CPrim
+  CPWStrBreak : CPrim
+  CPWStrLen : CPrim
+  CPWStrFromCodepoint : CPrim
+  CPWStrToCodepoint : CPrim
+  CPWStrElem : CPrim
+  CPWStrReMatch : CPrim
+  CPWListNil : CPrim
+  CPWListCons : CPrim
+  CPWListCat : CPrim
+  CPWListLen : CPrim
+  CPWListAt : CPrim
+  CPWListBreak : CPrim
+  CPWListMap : CPrim
+  CPWListFor : CPrim
+  CPWUnsafePanic : CPrim
+  CPWUnsafeTrace : CPrim
+  CPWUnsafePrint : CPrim
+  CPWUnsafeListDir : CPrim
+  CPWUnsafeWalk : CPrim
+  CPWUnsafeIsDir : CPrim
+  CPWUnsafeIsFile : CPrim
+  CPWUnsafeRead : CPrim
+  CPWUnsafeWrite : CPrim
+  CPWUnsafeAppend : CPrim
+  CPWUnsafeDelete : CPrim
+  CPWUnsafeCoerce : CPrim
+  CPWUnsafeHash : CPrim
+  CPWUnsafeEnvGet : CPrim
+  CPWUnsafeEnvSet : CPrim
+  CPWUnsafeExit : CPrim
 end
 
-||| Argument lists.
-data CArgs(x)
-  MkCArgs : List(CTerm(x)) -- CArgs(x)
+cprim->str : CPrim -- Str
+cprim->str =
+  match(
+    CPSNil -> "CPSNil",
+    CPSCons -> "CPSCons",
+    CPTInt -> "CPTInt",
+    CPTStr -> "CPTStr",
+    CPTBool -> "CPTBool",
+    CPTList -> "CPTList",
+    CPTPack -> "CPTPack",
+    CPVInt -> drop "CPVInt",
+    CPVStr -> drop "CPVStr",
+    CPVBool -> drop "CPVBool",
+    CPVListNil -> "CPVListNil",
+    CPVListCons -> "CPVListCons",
+    CPVPackNil -> "CPVPackNil",
+    CPVPackCons -> "CPVPackCons",
+    CPWId -> "CPWId",
+    CPWCp -> "CPWCp",
+    CPWDip -> "CPWDip",
+    CPWDup -> "CPWDup",
+    CPWDrop -> "CPWDrop",
+    CPWSwap -> "CPWSwap",
+    CPWPush -> "CPWPush",
+    CPWPackMap -> "CPWPackMap",
+    CPWPackPack2 -> "CPWPackPack2",
+    CPWPackUnpack2 -> "CPWPackUnpack2",
+    CPWBoolIf -> "CPWBoolIf",
+    CPWBoolTrue -> "CPWBoolTrue",
+    CPWBoolFalse -> "CPWBoolFalse",
+    CPWIntAdd -> "CPWIntAdd",
+    CPWIntSub -> "CPWIntSub",
+    CPWIntMul -> "CPWIntMul",
+    CPWIntDiv -> "CPWIntDiv",
+    CPWIntMod -> "CPWIntMod",
+    CPWIntLt -> "CPWIntLt",
+    CPWIntEq -> "CPWIntEq",
+    CPWStrCat -> "CPWStrCat",
+    CPWStrBreak -> "CPWStrBreak",
+    CPWStrLen -> "CPWStrLen",
+    CPWStrFromCodepoint -> "CPWStrFromCodepoint",
+    CPWStrToCodepoint -> "CPWStrToCodepoint",
+    CPWStrElem -> "CPWStrElem",
+    CPWStrReMatch -> "CPWStrReMatch",
+    CPWListNil -> "CPWListNil",
+    CPWListCons -> "CPWListCons",
+    CPWListCat -> "CPWListCat",
+    CPWListLen -> "CPWListLen",
+    CPWListAt -> "CPWListAt",
+    CPWListBreak -> "CPWListBreak",
+    CPWListMap -> "CPWListMap",
+    CPWListFor -> "CPWListFor",
+    CPWUnsafePanic -> "CPWUnsafePanic",
+    CPWUnsafeTrace -> "CPWUnsafeTrace",
+    CPWUnsafePrint -> "CPWUnsafePrint",
+    CPWUnsafeListDir -> "CPWUnsafeListDir",
+    CPWUnsafeWalk -> "CPWUnsafeWalk",
+    CPWUnsafeIsDir -> "CPWUnsafeIsDir",
+    CPWUnsafeIsFile -> "CPWUnsafeIsFile",
+    CPWUnsafeRead -> "CPWUnsafeRead",
+    CPWUnsafeWrite -> "CPWUnsafeWrite",
+    CPWUnsafeAppend -> "CPWUnsafeAppend",
+    CPWUnsafeDelete -> "CPWUnsafeDelete",
+    CPWUnsafeCoerce -> "CPWUnsafeCoerce",
+    CPWUnsafeHash -> "CPWUnsafeHash",
+    CPWUnsafeEnvGet -> "CPWUnsafeEnvGet",
+    CPWUnsafeEnvSet -> "CPWUnsafeEnvSet",
+    CPWUnsafeExit -> "CPWUnsafeExit"
+  )
+
+cprim= : CPrim CPrim -- Bool
+cprim= = dip(cprim->str) cprim->str streq
+
+cprimBuiltinTypes : Map(Str, CPrim)
+cprimBuiltinTypes = $(
+  mapNil
+  "Int" CPTInt mapSet
+  "Str" CPTStr mapSet
+  "Bool" CPTBool mapSet
+  "List" CPTList mapSet
+  "Pack" CPTPack mapSet
+)
+
+cprimBuiltinWords : Map(Str, CPrim)
+cprimBuiltinWords = $(
+  mapNil
+  "_prim_id" CPWId mapSet
+  "_prim_cp" CPWCp mapSet
+  "_prim_dup" CPWDup mapSet
+  "_prim_drop" CPWDrop mapSet
+  "_prim_swap" CPWSwap mapSet
+  "_prim_dip" CPWDip mapSet
+  "_prim_bool_true" CPWBoolTrue mapSet
+  "_prim_bool_false" CPWBoolFalse mapSet
+  "_prim_bool_if" CPWBoolIf mapSet
+  "_prim_int_add" CPWIntAdd mapSet
+  "_prim_int_sub" CPWIntSub mapSet
+  "_prim_int_mul" CPWIntMul mapSet
+  "_prim_int_div" CPWIntDiv mapSet
+  "_prim_int_mod" CPWIntMod mapSet
+  "_prim_int_lt" CPWIntLt mapSet
+  "_prim_int_eq" CPWIntEq mapSet
+  "_prim_str_cat" CPWStrCat mapSet
+  "_prim_str_break" CPWStrBreak mapSet
+  "_prim_str_len" CPWStrLen mapSet
+  "_prim_str_to_codepoint" CPWStrToCodepoint mapSet
+  "_prim_str_from_codepaint" CPWStrFromCodepoint mapSet
+  "_prim_str_elem" CPWStrElem mapSet
+  "_prim_str_rematch" CPWStrReMatch mapSet
+  "_prim_tuple_intuple" CPWPackMap mapSet
+  "_prim_tuple_pack2" CPWPackPack2 mapSet
+  "_prim_tuple_unpack2" CPWPackUnpack2 mapSet
+  "_prim_list_nil" CPWListNil mapSet
+  "_prim_list_cons" CPWListCons mapSet
+  "_prim_list_cat" CPWListCat mapSet
+  "_prim_list_len" CPWListLen mapSet
+  "_prim_list_at" CPWListAt mapSet
+  "_prim_list_break" CPWListBreak mapSet
+  "_prim_list_map" CPWListMap mapSet
+  "_prim_list_for" CPWListFor mapSet
+  "_prim_unsafe_panic" CPWUnsafePanic mapSet
+  "_prim_unsafe_trace" CPWUnsafeTrace mapSet
+  "_prim_unsafe_print" CPWUnsafePrint mapSet
+  "_prim_unsafe_listdir" CPWUnsafeListDir mapSet
+  "_prim_unsafe_walk" CPWUnsafeWalk mapSet
+  "_prim_unsafe_isdir" CPWUnsafeIsDir mapSet
+  "_prim_unsafe_isfile" CPWUnsafeIsFile mapSet
+  "_prim_unsafe_read" CPWUnsafeRead mapSet
+  "_prim_unsafe_write" CPWUnsafeWrite mapSet
+  "_prim_unsafe_append" CPWUnsafeAppend mapSet
+  "_prim_unsafe_deletefile" CPWUnsafeDelete mapSet
+  "_prim_unsafe_coerce" CPWUnsafeCoerce mapSet
+  "_prim_unsafe_hash" CPWUnsafeHash mapSet
+  "_prim_unsafe_env_get" CPWUnsafeEnvGet mapSet
+  "_prim_unsafe_env_set" CPWUnsafeEnvSet mapSet
+  "_prim_unsafe_exit" CPWUnsafeExit mapSet
+)
+
+cprimArity : CPrim -- CArity
+cprimArity =
+  match(
+    CPSNil -> CA0(CSStack),
+    CPSCons -> CA2(CSStack, CSValue, CSStack),
+    CPTInt -> CA0(CSType),
+    CPTStr -> CA0(CSType),
+    CPTBool -> CA0(CSType),
+    CPTList -> CA1(CSType, CSType),
+    CPTPack -> CA1(CSStack, CSType),
+    CPVInt -> drop CA0(CSValue),
+    CPVStr -> drop CA0(CSValue),
+    CPVBool -> drop CA0(CSValue),
+    CPVListNil -> CA0(CSValue),
+    CPVListCons -> CA2(CSValue, CSValue, CSValue),
+    CPVPackNil -> CA0(CSValue),
+    CPVPackCons -> CA2(CSValue, CSValue, CSValue),
+    CPWId -> CA0(CSWord),
+    CPWCp -> CA2(CSWord, CSWord, CSWord),
+    CPWDip -> CA1(CSWord, CSWord),
+    CPWDup -> CA0(CSWord),
+    CPWDrop -> CA0(CSWord),
+    CPWSwap -> CA0(CSWord),
+    CPWPush -> CA1(CSValue, CSWord),
+    CPWPackMap -> CA1(CSWord, CSWord),
+    CPWPackPack2 -> CA0(CSWord),
+    CPWPackUnpack2 -> CA0(CSWord),
+    CPWBoolTrue -> CA0(CSWord),
+    CPWBoolFalse -> CA0(CSWord),
+    CPWBoolIf -> CA2(CSWord, CSWord, CSWord),
+    CPWIntAdd -> CA0(CSWord),
+    CPWIntSub -> CA0(CSWord),
+    CPWIntMul -> CA0(CSWord),
+    CPWIntDiv -> CA0(CSWord),
+    CPWIntMod -> CA0(CSWord),
+    CPWIntLt -> CA0(CSWord),
+    CPWIntEq -> CA0(CSWord),
+    CPWStrCat -> CA0(CSWord),
+    CPWStrBreak -> CA0(CSWord),
+    CPWStrLen -> CA0(CSWord),
+    CPWStrFromCodepoint -> CA0(CSWord),
+    CPWStrToCodepoint -> CA0(CSWord),
+    CPWStrElem -> CA0(CSWord),
+    CPWStrReMatch -> CA0(CSWord),
+    CPWListNil -> CA0(CSWord),
+    CPWListCons -> CA0(CSWord),
+    CPWListCat -> CA0(CSWord),
+    CPWListLen -> CA0(CSWord),
+    CPWListAt -> CA0(CSWord),
+    CPWListBreak -> CA0(CSWord),
+    CPWListMap -> CA1(CSWord, CSWord),
+    CPWListFor -> CA1(CSWord, CSWord),
+    CPWUnsafePanic -> CA0(CSWord),
+    CPWUnsafeTrace -> CA0(CSWord),
+    CPWUnsafePrint -> CA0(CSWord),
+    CPWUnsafeListDir -> CA0(CSWord),
+    CPWUnsafeWalk -> CA0(CSWord),
+    CPWUnsafeIsDir -> CA0(CSWord),
+    CPWUnsafeIsFile -> CA0(CSWord),
+    CPWUnsafeRead -> CA0(CSWord),
+    CPWUnsafeWrite -> CA0(CSWord),
+    CPWUnsafeAppend -> CA0(CSWord),
+    CPWUnsafeDelete -> CA0(CSWord),
+    CPWUnsafeCoerce -> CA0(CSWord),
+    CPWUnsafeHash -> CA0(CSWord),
+    CPWUnsafeEnvGet -> CA0(CSWord),
+    CPWUnsafeEnvSet -> CA0(CSWord),
+    CPWUnsafeExit -> CA0(CSWord)
+  )
+
+cprimSort : CPrim -- CSort
+cprimSort = cprimArity caritySort
+
+#######################
+# STRONGLY TYPED CORE #
+#######################
+
+type CStack
+type CType
+type CValue
+type CWord
+
+ctermGetStack : CTerm -- Maybe(CStack)
+ctermGetType  : CTerm -- Maybe(CType)
+ctermGetValue : CTerm -- Maybe(CValue)
+ctermGetWord  : CTerm -- Maybe(CWord)
+
+cstack->cterm : CStack -- CTerm
+ctype->cterm : CType -- CTerm
+cvalue->cterm : CValue -- CTerm
+cword->cterm : CWord -- CTerm
+
+data CStack
+  MkCStack : CTerm -- CStack
 end
 
-unCArgs : CArgs(x) -- List(CTerm(x))
-unCArgs = match(MkCArgs -> id)
+ctermGetStack : CTerm -- Maybe(CStack)
+ctermGetStack = dup ctermSort CSStack csort= if(MkCStack some, drop none)
 
-CANil : CArgs(x)
-CANil = nil MkCArgs
+cterm->cstack : CTerm -- CStack
+cterm->cstack =
+  dup ctermGetStack maybe(
+    dip("cterm->cstack: not a stack type: ") cterm->str <> unsafe_panic,
+    nip
+  )
 
-CAConsL : CTerm(x) CArgs(x) -- CArgs(x)
-CAConsL = unCArgs consL MkCArgs
+cstack->cterm : CStack -- CTerm
+cstack->cterm = match(MkCStack -> id)
 
-CAConsR : CArgs(x) CTerm(x) -- CArgs(x)
-CAConsR = dip(unCArgs) consR MkCArgs
+CSVar : Str -- CStack
+CSVar = dip(CSStack) MkCVar CHVar nil MkCTerm MkCStack
 
-CACat : CArgs(x) CArgs(x) -- CArgs(x)
-CACat = dip(unCArgs) unCArgs ++ MkCArgs
+CSHole : Int -- CStack
+CSHole = dip(CSStack) MkCHole CHHole nil MkCTerm MkCStack
 
-caMatchL (
-  f: *a -- *b,
-  g: *a CTerm(x) CArgs(x) -- *b
-) : *a CArgs(x) -- *b
+CSNil : CStack
+CSNil = CPSNil CHPrim nil MkCTerm MkCStack
 
-caMatchR (
-  f: *a -- *b,
-  g: *a CArgs(x) CTerm(x) -- *b
-) : *a CArgs(x) -- *b
+CSCons : CStack CType -- CStack
+CSCons = dip2(CPSCons CHPrim nil) dip(cstack->cterm cons) ctype->cterm cons MkCTerm MkCStack
 
-caMatchL(f,g) = unCArgs lmatchL(f, MkCArgs g)
-caMatchR(f,g) = unCArgs lmatchR(f, dip(MkCArgs) g)
-
-||| Whether a number is implicit or explicit.
-data CImplicit
-  MkCImplicit : Bool -- CImplicit
+data CType
+  MkCType : CTerm -- CType
 end
 
-unCImplicit : CImplicit -- Bool
-unCImplicit = match(MkCImplicit -> id)
+ctermGetType : CTerm -- Maybe(CType)
+ctermGetType = dup ctermSort CSType csort= if(MkCType some, drop none)
 
-cimplicit->bool : CImplicit -- Bool
-cimplicit->bool = unCImplicit
+cterm->ctype : CTerm -- CType
+cterm->ctype =
+  dup ctermGetType maybe(
+    dip("cterm->ctype: not a value type: ") cterm->str <> unsafe_panic,
+    nip
+  )
 
-bool->cimplicit : Bool -- CImplicit
-bool->cimplicit = MkCImplicit
+ctype->cterm : CType -- CTerm
+ctype->cterm = match(MkCType -> id)
 
+CTVar : Str -- CType
+CTVar = dip(CSType) MkCVar CHVar nil MkCTerm MkCType
 
-||| Binding info, such as name, implicit/explicit/auto, etc.
-data CBindInfo
-  MkCBindInfo : CImplicit Name -- CBindInfo
+CTHole : Int -- CType
+CTHole = dip(CSType) MkCHole CHHole nil MkCTerm MkCType
+
+CTInt : CType
+CTInt = CPTInt CHPrim nil MkCTerm MkCType
+
+CTStr : CType
+CTStr = CPTStr CHPrim nil MkCTerm MkCType
+
+CTBool : CType
+CTBool = CPTBool CHPrim nil MkCTerm MkCType
+
+CTList : CType -- CType
+CTList = dip(CPTList CHPrim nil) ctype->cterm cons MkCTerm MkCType
+
+CTPack : CStack -- CType
+CTPack = dip(CPTPack CHPrim nil) cstack->cterm cons MkCTerm MkCType
+
+data CKind
+  CKStack : CKind
+  CKType : CKind
+  CKValue : CType -- CKind
+  CKWord : CStack CStack -- CKind
 end
 
-unCBindInfo : CBindInfo -- CImplicit Name
-unCBindInfo = match(MkCBindInfo -> id)
-
-cbindinfo->cimplicit : CBindInfo -- CImplicit
-cbindinfo->cimplicit = unCBindInfo drop
-
-cbindinfo->name : CBindInfo -- Name
-cbindinfo->name = unCBindInfo nip
-
-||| A binding, which includes the kind and other binding info.
-data CBind(x)
-  MkCBind : CBindInfo CKind(x) -- CBind(x)
+data CSig
+  MkCSig : List(CKind) CKind -- CSig
 end
 
-unCBind : CBind(x) -- CBindInfo CKind(x)
-unCBind = match(MkCBind -> id)
+[ : List(t)
+[ = nil
 
-cbind->cbindinfo : CBind(x) -- CBindInfo
-cbind->cbindinfo = unCBind drop
+; : List(t) t -- List(t)
+; = cons
 
-cbind->ckind : CBind(x) -- CKind(x)
-cbind->ckind = unCBind nip
+] : List(t) t -- List(t)
+] = cons
 
-cbind->csort : CBind(x) -- CSort
-ckind->csort : CKind(x) -- CSort
-cbind->csort = cbind->ckind ckind->csort
-ckind->csort =
+[] : List(t)
+[] = nil
+
+CKWord00 : CKind
+CKWord01 : CType -- CKind
+CKWord10 : CType -- CKind
+CKWord11 : CType CType -- CKind
+CKWord12 : CType CType CType -- CKind
+CKWord20 : CType CType -- CKind
+CKWord21 : CType CType CType -- CKind
+CKWord22 : CType CType CType CType -- CKind
+
+CKWord00 = 0 CSHole 0 CSHole CKWord
+CKWord01 = dip(0 CSHole 0 CSHole) CSCons CKWord
+CKWord10 = dip(0 CSHole) CSCons 0 CSHole CKWord
+CKWord11 = dip2(0 CSHole) dip(CSCons 0 CSHole) CSCons CKWord
+CKWord12 = dip3(0 CSHole) dip2(CSCons 0 CSHole) dip(CSCons) CSCons CKWord
+CKWord20 = dip2(0 CSHole) dip(CSCons) CSCons 0 CSHole CKWord
+CKWord21 = dip3(0 CSHole) dip2(CSCons) dip(CSCons 0 CSHole) CSCons CKWord
+CKWord22 = dip4(0 CSHole) dip3(CSCons) dip2(CSCons 0 CSHole) dip(CSCons) CSCons CKWord
+
+cprimSig : CPrim -- CSig
+cprimSig =
   match(
-    CKLambda -> dip(cbind->csort) ckind->csort CSLambda,
-    CKStackType -> CSStackType,
-    CKValueType -> CSValueType,
-    CKStack -> drop CSStack,
-    CKValue -> drop CSValue,
-    CKWord -> drop2 CSWord
-  )
+    CPSNil -> [] CKStack,
+    CPSCons -> [ CKStack ; CKType ] CKStack,
+
+    CPTInt -> [] CKType,
+    CPTStr -> [] CKType,
+    CPTBool -> [] CKType,
+    CPTList -> [ CKType ] CKType,
+    CPTPack -> [ CKStack ] CKType,
+
+    CPVInt -> drop [] CTInt CKValue,
+    CPVStr -> drop [] CTStr CKValue,
+    CPVBool -> drop [] CTBool CKValue,
+    CPVListNil -> [] 0 CTHole CTList CKValue,
+    CPVListCons ->
+      [ 0 CTHole CTList CKValue
+      ; 0 CTHole CKValue
+      ] 0 CTHole CTList CKValue,
+    CPVPackNil  -> [] CSNil CTPack CKValue,
+    CPVPackCons ->
+      [ 0 CSHole CTPack CKValue
+      ; 1 CTHole CKValue
+      ] 0 CSHole 1 CTHole CSCons CTPack CKValue,
+
+    CPWId -> [] CKWord00,
+    CPWCp ->
+      [ 0 CSHole 1 CSHole CKWord
+      ; 1 CSHole 2 CSHole CKWord
+      ] 0 CSHole 2 CSHole CKWord,
+    CPWDip ->
+      [ 0 CSHole 1 CSHole CKWord
+      ] 0 CSHole 2 CTHole CSCons
+        1 CSHole 2 CTHole CSCons CKWord,
+    CPWDup ->  [] 1 CTHole dup dup CKWord12,
+    CPWDrop -> [] 1 CTHole CKWord10,
+    CPWSwap -> [] 1 CTHole 2 CTHole dup2 swap CKWord22,
+    CPWPush -> [ 1 CTHole CKValue ] 1 CTHole CKWord01,
+
+    CPWPackMap ->
+      [ 1 CSHole 2 CSHole CKWord
+      ] 1 CSHole CTPack 2 CSHole CTPack CKWord11,
+    CPWPackPack2 ->
+      [] 1 CTHole 2 CTHole
+         CSNil 1 CTHole CSCons 2 CTHole CSCons CTPack
+         CKWord21,
+    CPWPackUnpack2 ->
+      [] CSNil 1 CTHole CSCons 2 CTHole CSCons CTPack
+         1 CTHole 2 CTHole CKWord12,
+
+    CPWBoolIf ->
+      [ 0 CSHole 1 CSHole CKWord
+      ; 0 CSHole 1 CSHole CKWord
+      ] 0 CSHole CTBool CSCons 1 CSHole CKWord,
+    CPWBoolTrue -> [] CTBool CKWord01,
+    CPWBoolFalse -> [] CTBool CKWord01,
+
+    CPWIntAdd -> [] CTInt CTInt CTInt CKWord21,
+    CPWIntSub -> [] CTInt CTInt CTInt CKWord21,
+    CPWIntMul -> [] CTInt CTInt CTInt CKWord21,
+    CPWIntDiv -> [] CTInt CTInt CTInt CKWord21,
+    CPWIntMod -> [] CTInt CTInt CTInt CKWord21,
+    CPWIntLt -> [] CTInt CTInt CTBool CKWord21,
+    CPWIntEq -> [] CTInt CTInt CTBool CKWord21,
+    CPWStrCat -> [] CTStr CTStr CTStr CKWord21,
+    CPWStrBreak -> [] CTInt CTStr CTStr CTStr CKWord22,
+    CPWStrLen -> [] CTStr CTInt CKWord11,
+    CPWStrFromCodepoint -> [] CTInt CTStr CKWord11,
+    CPWStrToCodepoint -> [] CTStr CTInt CKWord11,
+    CPWStrElem -> [] CTStr CTStr CTBool CKWord21,
+    CPWStrReMatch -> [] CTStr CTStr CTInt CTBool CKWord22,
+    CPWListNil -> [] 1 CTHole CTList CKWord01,
+    CPWListCons -> [] 1 CTHole CTList 1 CTHole 1 CTHole CTList CKWord21,
+    CPWListCat -> [] 1 CTHole CTList dup dup CKWord21,
+    CPWListLen -> [] 1 CTHole CTList CTInt CKWord11,
+    CPWListAt -> [] 1 CTHole CTList CTInt 1 CTHole CKWord21,
+    CPWListBreak -> [] 1 CTHole CTList dup dup dip2(CTInt) CKWord22,
+    CPWListMap -> [ 1 CTHole 2 CTHole CKWord11 ] 1 CTHole CTList 2 CTHole CTList CKWord11,
+    CPWListFor -> [ 1 CTHole CKWord10 ] 1 CTHole CTList CKWord10,
+    CPWUnsafePanic -> [] 0 CSHole CTStr CSCons 1 CSHole CKWord,
+    CPWUnsafeTrace -> [] CTStr CKWord10,
+    CPWUnsafePrint -> [] CTStr CKWord10,
+    CPWUnsafeListDir -> [] CTStr CTStr CTList CKWord11,
+    CPWUnsafeWalk ->
+      [] CTStr CSNil CTStr CSCons CTStr CTList CSCons CTStr CTList CSCons CTPack CKWord11,
+    CPWUnsafeIsDir -> [] CTStr CTBool CKWord11,
+    CPWUnsafeIsFile -> [] CTStr CTBool CKWord11,
+    CPWUnsafeRead -> [] CTStr CTStr CKWord11,
+    CPWUnsafeWrite -> [] CTStr CTStr CKWord20,
+    CPWUnsafeAppend -> [] CTStr CTStr CKWord20,
+    CPWUnsafeDelete -> [] CTStr CKWord10,
+    CPWUnsafeCoerce -> [] 0 CSHole 1 CSHole CKWord,
+    CPWUnsafeHash -> [] 1 CTHole CTInt CKWord11,
+    CPWUnsafeEnvGet -> [] CTStr 1 CTHole CKWord11,
+    CPWUnsafeEnvSet -> [] 1 CTHole CTStr CKWord20,
+    CPWUnsafeExit -> [] 0 CSHole CTInt CSCons 1 CSHole CKWord
+  ) MkCSig
 
-cterm->csort : CTerm(x) -- CSort
-cterm->csort =
-  match(
-    CTLambda -> dip(cbind->csort) cterm->csort CSLambda,
-    CTStackType -> drop CSStackType,
-    CTValueType -> drop CSValueType,
-    CTStack -> drop CSStack,
-    CTValue -> drop CSValue,
-    CTWord -> drop2 CSWord
-  )
-
-undefined : *a -- *b
-undefined = "undefined" _prim_unsafe_panic
-
-unexpected(m: Str) : *a -- *b
-unexpected(m) = "unexpected: " m <> _prim_unsafe_panic
-
-cbMap (f: *g a -- *g b) : *g CBind(a) -- *g CBind(b)
-ckMap (f: *g a -- *g b) : *g CKind(a) -- *g CKind(b)
-ctMap (f: *g a -- *g b) : *g CTerm(a) -- *g CTerm(b)
-cstMap (f: *g a -- *g b) : *g CStackType(a) -- *g CStackType(b)
-cvtMap (f: *g a -- *g b) : *g CValueType(a) -- *g CValueType(b)
-csMap (f: *g a -- *g b) : *g CStack(a) -- *g CStack(b)
-cvMap (f: *g a -- *g b) : *g CValue(a) -- *g CValue(b)
-cwMap (f: *g a -- *g b) : *g CWord(a) -- *g CWord(b)
-caMap (f: *g a -- *g b) : *g CArgs(a) -- *g CArgs(b)
-
-cbMap(f) =
-  match(
-    MkCBind -> dip'(ckMap(f)) MkCBind
-  )
-ckMap(f) =
-  match(
-    CKLambda ->
-      dip(cbMap(f))
-      dip'(ckMap(csucc(Z, f S)))
-      CKLambda,
-    CKStackType -> CKStackType,
-    CKValueType -> CKValueType,
-    CKStack -> cstMap(f) CKStack,
-    CKValue -> cvtMap(f) CKValue,
-    CKWord -> dip(cstMap(f)) dip'(cstMap(f)) CKWord
-  )
-ctMap(f) =
-  match(
-    CTLambda ->
-      dip(cbMap(f))
-      dip'(ctMap(csucc(Z, f S)))
-      CTLambda,
-    CTStackType -> cstMap(f) CTStackType,
-    CTValueType -> cvtMap(f) CTValueType,
-    CTStack -> csMap(f) CTStack,
-    CTValue -> cvMap(f) CTValue,
-    CTWord -> dip(cstMap(f)) dip'(cwMap(f)) CTWord
-  )
-cstMap(f) =
-  match(
-    CSTVar -> dip(f) dip'(caMap(f)) CSTVar,
-    CSTNil -> CSTNil,
-    CSTCons -> dip(cstMap(f)) dip'(cvtMap(f)) CSTCons
-  )
-cvtMap(f) =
-  match(
-    CVTVar -> dip(f) dip'(caMap(f)) CVTVar,
-    CVTSym -> dip'(caMap(f)) CVTSym
-  )
-csMap(f) =
-  match(
-    CSVar -> dip(f) dip'(caMap(f)) CSVar,
-    CSNil -> CSNil,
-    CSCons -> dip(csMap(f)) dip'(cvMap(f)) CSCons,
-    CSTail -> csMap(f) CSTail,
-    CSRun -> dip(csMap(f)) dip'(cwMap(f)) CSRun
-  )
-cvMap(f) =
-  match(
-    CVVar -> dip(f) dip'(caMap(f)) CVVar,
-    CVSym -> dip'(caMap(f)) CVSym,
-    CVHead -> csMap(f) CVHead
-  )
-cwMap(f) =
-  match(
-    CWVar -> dip(f) dip'(caMap(f)) CWVar,
-    CWSym -> dip'(caMap(f)) CWSym,
-    CWId -> CWId,
-    CWCp -> dip(cwMap(f)) dip'(cwMap(f)) CWCp,
-    CWPush -> cvMap(f) CWPush,
-    CWSwap -> CWSwap,
-    CWDrop -> CWDrop,
-    CWDup -> CWDup,
-    CWDip -> cwMap(f) CWDip
-  )
-caMap(f) =
-  unCArgs formap(ctMap(f)) MkCArgs
-
-||| Return the top level variable for a given kind.
-||| Note that core terms are always eta-expanded,
-||| so the "zero" variable may be largish.
-ctVarZ : CKind(x) -- CTerm(CSucc(x))
-ctVarZaux : x CArgs(x) CKind(x) -- CTerm(x)
-
-ctVarZ = ckMap(S) dip(Z CANil) ctVarZaux
-ctVarZaux =
-  match(
-    CKLambda ->
-      dip2(dip(S) caMap(S))
-      dip(dup dip(rotr))
-      dip(cbind->ckind ctVarZ CAConsR)
-      ctVarZaux
-      CTLambda,
-    CKStackType -> CSTVar CTStackType,
-    CKValueType -> CVTVar CTValueType,
-    CKStack -> drop CSVar CTStack,
-    CKValue -> drop CVVar CTValue,
-    CKWord -> drop rotr CWVar CTWord
-  )
-
-cbSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CBind(a) -- *g CBind(b)
-ckSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CKind(a) -- *g CKind(b)
-ctSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CTerm(a) -- *g CTerm(b)
-cstSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CStackType(a) -- *g CStackType(b)
-cvtSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CValueType(a) -- *g CValueType(b)
-csSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CStack(a) -- *g CStack(b)
-cvSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CValue(a) -- *g CValue(b)
-cwSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CWord(a) -- *g CWord(b)
-caSubst (f: *g a -- *g Either(b, CTerm(b))) : *g CArgs(a) -- *g CArgs(b)
-
-ctApply : CTerm(x) CArgs(x) -- CTerm(x)
-ctApplyAux(f: *g y -- *g Either(x, CTerm(x))) : *g CTerm(y) CArgs(x) -- *g CTerm(x)
-
-ctApply = ctApplyAux(Left)
-ctApplyAux(f) =
-  caMatchL(
-    ctSubst(f),
-    rotl match(
-      CTLambda -> nip swap ctApplyAux(csucc(dup Right, dip'(f))) nip,
-      _ -> unexpected("attempt to apply to non-lambda")
-    )
-  )
-
-cbSubst(f) =
-  match(
-    MkCBind -> dip'(ckSubst(f)) MkCBind
-  )
-
-ckSubst(f) =
-  match(
-    CKLambda ->
-      dip(cbSubst(f))
-      ckSubst(csucc(Z Left, dip'(f) either(S Left, ctMap(S) Right)))
-      CKLambda,
-    CKStackType -> CKStackType,
-    CKValueType -> CKValueType,
-    CKStack -> cstSubst(f) CKStack,
-    CKValue -> cvtSubst(f) CKValue,
-    CKWord -> dip(cstSubst(f)) dip'(cstSubst(f)) CKWord
-  )
-
-ctSubst(f) =
-  match(
-    CTLambda ->
-      dip(cbSubst(f))
-      ctSubst(csucc(Z Left, dip'(f) either(S Left, ctMap(S) Right)))
-      CTLambda,
-    CTStackType -> cstSubst(f) CTStackType,
-    CTValueType -> cvtSubst(f) CTValueType,
-    CTStack -> csSubst(f) CTStack,
-    CTValue -> cvSubst(f) CTValue,
-    CTWord -> dip(cstSubst(f)) dip'(cwSubst(f)) CTWord
-  )
-
-cstSubst(f) =
-  match(
-    CSTVar ->
-      dip(f) dip'(caSubst(f))
-      swap either(
-        swap CSTVar,
-        swap ctApply match(
-          CTStackType -> id,
-          _ -> unexpected("bad substitution")
-        )
-      ),
-    CSTNil -> CSTNil,
-    CSTCons -> dip(cstSubst(f)) dip'(cvtSubst(f)) CSTCons
-  )
-
-cvtSubst(f) =
-  match(
-    CVTVar ->
-      dip(f) dip'(caSubst(f))
-      swap either(
-        swap CVTVar,
-        swap ctApply match(
-          CTValueType -> id,
-          _ -> unexpected("bad substitution")
-        )
-      ),
-    CVTSym -> dip'(caSubst(f)) CVTSym
-  )
-
-csSubst(f) =
-  match(
-    CSVar ->
-      dip(f) dip'(caSubst(f))
-      swap either(
-        swap CSVar,
-        swap ctApply match(
-          CTStack -> id,
-          _ -> unexpected("bad substitution")
-        )
-      ),
-    CSNil -> CSNil,
-    CSCons -> dip(csSubst(f)) dip'(cvSubst(f)) CSCons,
-    CSRun -> dip(csSubst(f)) dip'(cwSubst(f)) CSRun,
-    CSTail -> csSubst(f) CSTail
-  )
-
-cvSubst(f) =
-  match(
-    CVVar ->
-      dip(f) dip'(caSubst(f))
-      swap either(
-        swap CVVar,
-        swap ctApply match(
-          CTValue -> id,
-          _ -> unexpected("bad substitution")
-        )
-      ),
-    CVSym -> dip'(caSubst(f)) CVSym,
-    CVHead -> csSubst(f) CVHead
-  )
-
-cwSubst(f) =
-  match(
-    CWVar ->
-      dip(f) dip'(caSubst(f))
-      swap either(
-        swap CWVar,
-        swap ctApply match(
-          CTWord -> nip,
-          _ -> unexpected("bad substitution")
-        )
-      ),
-    CWSym -> dip'(caSubst(f)) CWSym,
-    CWId -> CWId,
-    CWCp -> dip(cwSubst(f)) dip'(cwSubst(f)) CWCp,
-    CWPush -> cvSubst(f) CWPush,
-    CWSwap -> CWSwap,
-    CWDrop -> CWDrop,
-    CWDup -> CWDup,
-    CWDip -> cwSubst(f) CWDip
-  )
-
-caSubst(f) = unCArgs formap(ctSubst(f)) MkCArgs
-
-######################
-# Core Type Checking #
-######################
-
-data CCtx(x)
-  CCZ@(f: x -- CZero, g: CZero -- x) : CCtx(x)
-  CCS@(f: x -- CSucc(y), g: CSucc(y) -- x) : CCtx(y) CBind(y) -- CCtx(x)
-end
-
-CCZ : CCtx(CZero)
-CCZ = CCZ@(id,id)
-
-CCS : CCtx(x) CBind(x) -- CCtx(CSucc(x))
-CCS = CCS@(id,id)
-
-ccLookupVar : CCtx(x) x -- CBind(x)
-ccLookupVar =
-  swap match(
-    CCZ@(f,g) -> f czero,
-    CCS@(f,g) ->
-      rotl f csucc(
-        nip,
-        nip ccLookupVar
-      ) cbMap(S g)
-  )
-
-ccLookupVarIndex : CCtx(x) x -- Nat
-ccLookupVarIndex =
-  swap match(
-    CCZ@(f,g) -> f czero,
-    CCS@(f,g) ->
-      drop swap f csucc(
-        drop n0,
-        ccLookupVarIndex n1+ pnat
-      )
-  )
-
-data CDef
-  MkCDef : CKind(CZero) Maybe(CTerm(CZero)) -- CDef
-end
-
-unCDef : CDef -- CKind(CZero) Maybe(CTerm(CZero))
-unCDef = match(MkCDef -> id)
-
-cdef->ckind0 : CDef -- CKind(CZero)
-cdef->ckind0 = unCDef drop
-
-cdef->ckind : CDef -- CKind(x)
-cdef->ckind = cdef->ckind0 ckMap(czero)
-
-cdef->mcterm0 : CDef -- Maybe(CTerm(CZero))
-cdef->mcterm0 = unCDef nip
-
-cdef->mcterm : CDef -- Maybe(CTerm(x))
-cdef->mcterm = cdef->mcterm0 mmap(ctMap(czero))
-
-data CEnv
-  MkCEnv : Map(CSymbol, CDef) -- CEnv
-end
-
-unCEnv : CEnv -- Map(CSymbol, CDef)
-unCEnv = match(MkCEnv -> id)
-
-ceLookupSym : CEnv CSymbol -- Maybe(CDef)
-ceLookupSym = dip(unCEnv) mapGet
-
-data CError
-  CEUndeclaredSymbol : CSymbol -- CError
-  CEExpectedForm : Str -- CError
-  CERuntimeTypeError : Str -- CError
-end
-
-cerror->str : CError -- Str
-cerror->str =
-  match(
-    CEUndeclaredSymbol -> dip("CORE ERROR: Undeclared Symbol: ") csymbol->str <>,
-    CEExpectedForm -> dip("CORE ERROR: Expected Form: ") <>,
-    CERuntimeTypeError -> dip("CORE ERROR: Runtime Type Error: ") <>
-  )
-
-data CMonad(x,t)
-  MkCMonad(f: CEnv CCtx(x) m -- CEnv CCtx(x) Result(CError, t)) : m -- CMonad(x,t)
-end
-
-cmRun : CEnv CCtx(x) CMonad(x,t) -- CEnv CCtx(x) Result(CError, t)
-cmRun = match(MkCMonad(f) -> f)
-
-cmPure : t -- CMonad(x,t)
-cmPure = MkCMonad(ok)
-
-cmPure2 : a b -- CMonad(x,a) CMonad(x,b)
-cmPure2 = dip(cmPure) cmPure
-
-cmFail : CError -- CMonad(x,t)
-cmFail = MkCMonad(err)
-
-cmMap(f: a -- b) : CMonad(x,a) -- CMonad(x,b)
-cmMap(f) = MkCMonad(cmRun rmap(f))
-
-cmMap2(f: a b -- c) : CMonad(x,a) CMonad(x,b) -- CMonad(x,c)
-cmMap2(f) =
-  pack2 MkCMonad(
-    unpack2 dip(cmRun) swap
-    result(
-      nip err,
-      dip(cmRun) swap
-      result(
-        nip err,
-        f ok
-      )
-    )
-  )
-
-cmMap3(f: a b c -- d) : CMonad(x,a) CMonad(x,b) CMonad(x,c) -- CMonad(x,d)
-cmMap3(f) = cmMap2(pack2) cmMap2(unpack2 f)
-
-cmMap4(f: a b c d -- e) : CMonad(x,a) CMonad(x,b) CMonad(x,c) CMonad(x,d) -- CMonad(x,e)
-cmMap4(f) = cmMap2(pack2) cmMap3(unpack2 f)
-
-cmBind(f: a -- CMonad(x,b)) : CMonad(x,a) -- CMonad(x,b)
-cmBind(f) =
-  MkCMonad(
-    cmRun
-    result(
-      err,
-      f cmRun
-    )
-  )
-
-cmBind2(f: a b -- CMonad(x,c)) : CMonad(x,a) CMonad(x,b) -- CMonad(x,c)
-cmBind2(f) = cmMap2(pack2) cmBind(unpack2 f)
-
-cmBind3(f: a b c -- CMonad(x,d)) : CMonad(x,a) CMonad(x,b) CMonad(x,c) -- CMonad(x,d)
-cmBind3(f) = cmMap3(pack3) cmBind(unpack3 f)
-
-cmBind4(f: a b c d -- CMonad(x,e)) : CMonad(x,a) CMonad(x,b) CMonad(x,c) CMonad(x,d) -- CMonad(x,e)
-cmBind4(f) = cmMap4(pack4) cmBind(unpack4 f)
-
-cmUnit : CMonad(x, Unit)
-cmUnit = unit cmPure
-
-cmVoid : CMonad(x,a) -- CMonad(x, Unit)
-cmVoid = cmMap(drop unit)
-
-cmVoid2 : CMonad(x,a) CMonad(x,b) -- CMonad(x, Unit)
-cmVoid2 = cmMap2(drop2 unit)
-
-cmSucc : CBind(x) CMonad(CSucc(x), t) -- CMonad(x, t)
-cmSucc = pack2 MkCMonad(dip(tuck) unpack2 dip(CCS) cmRun dip(drop swap))
-
-cmCtx : CMonad(x, CCtx(x))
-cmCtx = unit MkCMonad(drop dup ok)
-
-cmLookupVar : x -- CMonad(x, CBind(x))
-cmLookupVar = dip(cmCtx) cmPure cmMap2(ccLookupVar)
-
-cmLookupVarKind : x -- CMonad(x, CKind(x))
-cmLookupVarKind = cmLookupVar cmMap(cbind->ckind)
-
-cmEnv : CMonad(x, CEnv)
-cmEnv = unit MkCMonad(drop over ok)
-
-cmLookupSym : CSymbol -- CMonad(x, CDef)
-cmLookupSym =
-  dip(cmEnv) cmPure cmBind2(
-    tuck ceLookupSym
-    maybe(
-      CEUndeclaredSymbol cmFail,
-      nip cmPure
-    )
-  )
-
-cmLookupSymKind : CSymbol -- CMonad(x, CKind(x))
-cmLookupSymKind = cmLookupSym cmMap(cdef->ckind)
-
-cmLookupSymMaybeTerm : CSymbol -- CMonad(x, Maybe(CTerm(x)))
-cmLookupSymMaybeTerm = cmLookupSym cmMap(cdef->mcterm)
-
-cbCheck = cbind->ckind ckCheck
-
-ckCheck =
-  match(
-    CKLambda -> dip(dup dip(cbCheck)) ckCheck cmSucc cmVoid2,
-    CKStackType -> cmUnit,
-    CKValueType -> cmUnit,
-    CKStack -> cstCheck,
-    CKValue -> cvtCheck,
-    CKWord -> dip(cstCheck) cstCheck cmVoid2
-  )
-
-cstCheck =
-  match(
-    CSTVar -> caInferVar cmBind(ckExpectStackType),
-    CSTNil -> cmUnit,
-    CSTCons -> dip(cstCheck) cvtCheck cmVoid2
-  )
-
-cvtCheck =
-  match(
-    CVTVar -> caInferVar cmBind(ckExpectValueType),
-    CVTSym -> caInferSym cmBind(ckExpectValueType)
-  )
-
-ctCheck = dip(ctInfer) cmPure cmBind2(ckCheckEq)
-csCheck = dip(csInfer) cmPure cmBind2(cstCheckEq)
-cvCheck = dip(cvInfer) cmPure cmBind2(cvtCheckEq)
-cwCheck = dip(swap cwInfer) cmPure cmBind2(cstCheckEq)
-
-ctInfer =
-  match(
-    CTLambda ->
-      dip(dup dip(cbind->ckind ckCheck))
-      dip(dup dip(cmPure))
-      ctInfer cmSucc
-      cmMap3(CKLambda nip),
-    CTStackType -> cstCheck cmMap(drop CKStackType),
-    CTValueType -> cvtCheck cmMap(drop CKValueType),
-    CTStack -> csInfer cmMap(CKStack),
-    CTValue -> cvInfer cmMap(CKValue),
-    CTWord ->
-      dip(dup dip(cstCheck))
-      dip(dup dip(cmPure))
-      cwInfer cmMap3(CKWord nip)
-  )
-
-csInfer =
-  match(
-    CSVar -> caInferVar cmBind(ckExpectStack),
-    CSNil -> CSTNil cmPure,
-    CSCons -> dip(csInfer) cvInfer cmMap2(CSTCons),
-    CSTail -> csInfer cmBind(cstExpectCons cmMap(unpack2 drop)),
-    CSRun -> dip(csInfer) cmPure cmBind2(cwInfer)
-  )
-
-cvInfer =
-  match(
-    CVVar -> caInferVar cmBind(ckExpectValue),
-    CVSym -> caInferSym cmBind(ckExpectValue),
-    CVHead -> csInfer cmBind(cstExpectCons cmMap(unpack2 nip))
-  )
-
-cwInfer =
-  match(
-    CWVar ->
-      dip2(cmPure) caInferVar cmBind(ckExpectWord)
-      cmBind2(unpack2 dip(cstCheckEq) cmPure cmMap2(nip)),
-    CWSym ->
-      dip2(cmPure) caInferSym cmBind(ckExpectWord)
-      cmBind2(unpack2 dip(cstCheckEq) cmPure cmMap2(nip)),
-    CWId ->
-      cmPure,
-    CWCp ->
-      dip(cwInfer) cmPure cmBind2(cwInfer),
-    CWPush ->
-      dip(cmPure) cvInfer cmMap2(CSTCons),
-    CWSwap ->
-      cstExpectCons cmBind(
-        unpack2 dip(cstExpectCons) cmPure cmMap2(
-          dip(unpack2) swap dip(CSTCons) CSTCons
-        )
-      ),
-    CWDrop ->
-      cstExpectCons cmMap(unpack2 drop),
-    CWDup ->
-      cstExpectCons cmMap(unpack2 dup dip(CSTCons) CSTCons),
-    CWDip ->
-      dip(cstExpectCons) cmPure cmBind2(
-        dip(unpack2) swap dip(cwInfer) cmPure
-        cmMap2(CSTCons)
-      )
-  )
-
-caInfer =
-  caMatchL(
-    cmPure,
-    dip2(ckExpectLambda) cmPure2 cmBind3(
-      dip2(unpack2) dip(swap)
-      dip2(tuck dip(cbind->ckind ctCheck))
-      pack3 cmPure cmBind2(
-        nip unpack3
-        dip(ckSubst(csucc(dup Right, Left)) nip)
-        caInfer
-      )
-    )
-  )
-
-caInferVar = dip(cmLookupVarKind) cmPure cmBind2(caInfer)
-caInferSym = dip(cmLookupSymKind) cmPure cmBind2(caInfer)
-
-mkEqCheck0 (
-  d: t -- CMonad(x, Unit)
-) : t -- CMonad(x, Unit)
-
-mkEqCheck1 (
-  d: t -- CMonad(x, a),
-  f: a a -- CMonad(x, Unit)
-) : t a -- CMonad(x, Unit)
-
-mkEqCheck2 (
-  d: t -- CMonad(x, Pack(a b)),
-  f: a a -- CMonad(x, Unit),
-  g: b b -- CMonad(x, Unit)
-) : t a b -- CMonad(x, Unit)
-
-mkEqCheckSucc (
-  d: t -- CMonad(x, Pack(CBind(x) b)),
-  g: b b -- CMonad(CSucc(x), Unit)
-) : t CBind(x) b -- CMonad(x, Unit)
-
-mkEqCheck0(d) = d
-mkEqCheck1(d,f) = dip(d) cmPure cmBind2(f)
-mkEqCheck2(d,f,g) =
-  dip2(d) cmPure2 cmBind3(
-    dip2(unpack2) dip(swap)
-    dip2(f) g cmVoid2
-  )
-mkEqCheckSucc(d,g) =
-  dip2(d) cmPure2 cmBind3(
-    dip2(unpack2) dip(swap)
-    dip2(dup dip(cbCheckEq)) g cmSucc cmVoid2
-  )
-
-cbCheckEq = both(cbind->ckind) ckCheckEq
-
-ckCheckEq =
-  dip(cmPure) ckNorm cmBind2(
-    match(
-      CKLambda -> mkEqCheckSucc(ckExpectLambda, ckCheckEq),
-      CKStackType -> mkEqCheck0(ckExpectStackType),
-      CKValueType -> mkEqCheck0(ckExpectValueType),
-      CKStack -> mkEqCheck1(ckExpectStack, cstCheckEq),
-      CKValue -> mkEqCheck1(ckExpectValue, cvtCheckEq),
-      CKWord -> mkEqCheck2(ckExpectWord, cstCheckEq, cstCheckEq)
-    )
-  )
-
-cstCheckEq =
-  dip(cmPure) cstNorm cmBind2(
-    match(
-      CSTVar -> mkEqCheck2(cstExpectVar, cmCheckVarEq, caCheckEq),
-      CSTNil -> mkEqCheck0(cstExpectNil),
-      CSTCons -> mkEqCheck2(cstExpectCons, cstCheckEq, cvtCheckEq)
-    )
-  )
-
-cvtCheckEq =
-  dip(cmPure) cvtNorm cmBind2(
-    match(
-      CVTVar -> mkEqCheck2(cvtExpectVar, cmCheckVarEq, caCheckEq),
-      CVTSym -> mkEqCheck2(cvtExpectSym, cmCheckSymEq, caCheckEq)
-    )
-  )
-
-ctCheckEq =
-  dip(cmPure) ctNorm cmBind2(
-    match(
-      CTLambda -> mkEqCheckSucc(ctExpectLambda, ctCheckEq),
-      CTStackType -> mkEqCheck1(ctExpectStackType, cstCheckEq),
-      CTValueType -> mkEqCheck1(ctExpectValueType, cvtCheckEq),
-      CTStack -> mkEqCheck1(ctExpectStack, csCheckEq),
-      CTValue -> mkEqCheck1(ctExpectValue, cvCheckEq),
-      CTWord -> mkEqCheck2(ctExpectWord, cstCheckEq, cwCheckEq)
-    )
-  )
-
-csCheckEq =
-  dip(cmPure) csNorm cmBind2(
-    match(
-      CSVar -> mkEqCheck2(csExpectVar, cmCheckVarEq, caCheckEq),
-      CSNil -> mkEqCheck0(csExpectNil),
-      CSCons -> mkEqCheck2(csExpectCons, csCheckEq, cvCheckEq),
-      CSTail -> mkEqCheck1(csExpectTail, csCheckEq),
-      CSRun -> mkEqCheck2(csExpectRun, csCheckEq, cwCheckEq)
-    )
-  )
-
-cvCheckEq = 
-  dip(cmPure) cvNorm cmBind2(
-    match(
-      CVVar -> mkEqCheck2(cvExpectVar, cmCheckVarEq, caCheckEq),
-      CVSym -> mkEqCheck2(cvExpectSym, cmCheckSymEq, caCheckEq),
-      CVHead -> mkEqCheck1(cvExpectHead, csCheckEq)
-    )
-  )
-
-cwCheckEq =
-  dip(cmPure) cwNorm cmBind2(
-    match(
-      CWVar -> mkEqCheck2(cwExpectVar, cmCheckVarEq, caCheckEq),
-      CWSym -> mkEqCheck2(cwExpectSym, cmCheckSymEq, caCheckEq),
-      CWId -> mkEqCheck0(cwExpectId),
-      CWCp -> mkEqCheck2(cwExpectCp, cwCheckEq, cwCheckEq),
-      CWPush -> mkEqCheck1(cwExpectPush, cvCheckEq),
-      CWSwap -> mkEqCheck0(cwExpectSwap),
-      CWDrop -> mkEqCheck0(cwExpectDrop),
-      CWDup -> mkEqCheck0(cwExpectDup),
-      CWDip -> mkEqCheck1(cwExpectDip, cwCheckEq)
-    )
-  )
-
-caCheckEq =
-  dip(cmPure) caNorm cmBind2(
-    caMatchL(
-      mkEqCheck0(caExpectNil),
-      mkEqCheck2(caExpectConsL, ctCheckEq, caCheckEq)
-    )
-  )
-
-cmCheckVarEq = 
-  dip2(cmCtx) cmPure2 cmBind3(
-    dip(over)
-    dip2(ccLookupVarIndex) ccLookupVarIndex
-    n= if(
-       cmUnit,
-       "variables do not match" CEExpectedForm cmFail
-    )
-  )
-
-cmCheckSymEq =
-  csymbol= if(
-    cmUnit,
-    "symbols do not match" CEExpectedForm cmFail
-  )
-
-ckExpectLambda = ckNorm cmBind(match(CKLambda -> pack2 cmPure, _ -> drop "CKLambda" CEExpectedForm cmFail))
-ckExpectStackType = ckNorm cmBind(match(CKStackType -> cmUnit, _ -> drop "CKStackType" CEExpectedForm cmFail))
-ckExpectValueType = ckNorm cmBind(match(CKValueType -> cmUnit, _ -> drop "CKValueType" CEExpectedForm cmFail))
-ckExpectStack = ckNorm cmBind(match(CKStack -> cmPure, _ -> drop "CKStack" CEExpectedForm cmFail))
-ckExpectValue = ckNorm cmBind(match(CKValue -> cmPure, _ -> drop "CKValue" CEExpectedForm cmFail))
-ckExpectWord = ckNorm cmBind(match(CKWord -> pack2 cmPure, _ -> drop "CKWord" CEExpectedForm cmFail))
-
-ctExpectLambda = ctNorm cmBind(match(CTLambda -> pack2 cmPure, _ -> drop "CTLambda" CEExpectedForm cmFail))
-ctExpectStackType = ctNorm cmBind(match(CTStackType -> cmPure, _ -> drop "CTStackType" CEExpectedForm cmFail))
-ctExpectValueType = ctNorm cmBind(match(CTValueType -> cmPure, _ -> drop "CTValueType" CEExpectedForm cmFail))
-ctExpectStack = ctNorm cmBind(match(CTStack -> cmPure, _ -> drop "CTStack" CEExpectedForm cmFail))
-ctExpectValue = ctNorm cmBind(match(CTValue -> cmPure, _ -> drop "CTValue" CEExpectedForm cmFail))
-ctExpectWord = ctNorm cmBind(match(CTWord -> pack2 cmPure, _ -> drop "CTWord" CEExpectedForm cmFail))
-
-cstExpectVar = cstNorm cmBind(match(CSTVar -> pack2 cmPure, _ -> drop "CSTVar" CEExpectedForm cmFail))
-cstExpectNil = cstNorm cmBind(match(CSTNil -> cmUnit, _ -> drop "CSTNil" CEExpectedForm cmFail))
-cstExpectCons = cstNorm cmBind(match(CSTCons -> pack2 cmPure, _ -> drop "CSTCons" CEExpectedForm cmFail))
-
-cvtExpectVar = cvtNorm cmBind(match(CVTVar -> pack2 cmPure, _ -> drop "CVTVar" CEExpectedForm cmFail))
-cvtExpectSym = cvtNorm cmBind(match(CVTSym -> pack2 cmPure, _ -> drop "CVTSym" CEExpectedForm cmFail))
-
-csExpectVar = csNorm cmBind(match(CSVar -> pack2 cmPure, _ -> drop "CSVar" CEExpectedForm cmFail))
-csExpectNil = csNorm cmBind(match(CSNil -> cmUnit, _ -> drop "CSNil" CEExpectedForm cmFail))
-csExpectCons = csNorm cmBind(match(CSCons -> pack2 cmPure, _ -> drop "CSCons" CEExpectedForm cmFail))
-csExpectTail = csNorm cmBind(match(CSTail -> cmPure, _ -> drop "CSTail" CEExpectedForm cmFail))
-csExpectRun = csNorm cmBind(match(CSRun -> pack2 cmPure, _ -> drop "CSRun" CEExpectedForm cmFail))
-
-cvExpectVar = cvNorm cmBind(match(CVVar -> pack2 cmPure, _ -> drop "CVVar" CEExpectedForm cmFail))
-cvExpectSym = cvNorm cmBind(match(CVSym -> pack2 cmPure, _ -> drop "CVSym" CEExpectedForm cmFail))
-cvExpectHead = cvNorm cmBind(match(CVHead -> cmPure, _ -> drop "CVHead" CEExpectedForm cmFail))
-
-cwExpectVar = cwNorm cmBind(match(CWVar -> pack2 cmPure, _ -> drop "CWVar" CEExpectedForm cmFail))
-cwExpectSym = cwNorm cmBind(match(CWSym -> pack2 cmPure, _ -> drop "CWSym" CEExpectedForm cmFail))
-cwExpectId = cwNorm cmBind(match(CWId -> cmUnit, _ -> drop "CWId" CEExpectedForm cmFail))
-cwExpectCp = cwNorm cmBind(match(CWCp -> pack2 cmPure, _ -> drop "CWCp" CEExpectedForm cmFail))
-cwExpectPush = cwNorm cmBind(match(CWPush -> cmPure, _ -> drop "CWPush" CEExpectedForm cmFail))
-cwExpectSwap = cwNorm cmBind(match(CWSwap -> cmUnit, _ -> drop "CWSwap" CEExpectedForm cmFail))
-cwExpectDrop = cwNorm cmBind(match(CWDrop -> cmUnit, _ -> drop "CWDrop" CEExpectedForm cmFail))
-cwExpectDup = cwNorm cmBind(match(CWDup -> cmUnit, _ -> drop "CWDup" CEExpectedForm cmFail))
-cwExpectDip = cwNorm cmBind(match(CWDip -> cmPure, _ -> drop "CWDip" CEExpectedForm cmFail))
-
-caExpectNil = caNorm cmBind(caMatchL(cmUnit, drop2 "CANil" CEExpectedForm cmFail))
-caExpectConsL = caNorm cmBind(caMatchL("CAConsL" CEExpectedForm cmFail, pack2 cmPure))
-
-cwStep : CStack(x) CWord(x) -- CMonad(x, Either(CStack(x), Pack(CStack(x) CWord(x))))
-cwSteps : CStack(x) CWord(x) -- CMonad(x, CStack(x))
-
-cmExpandSym(
-  f: CSymbol CArgs(x) -- t,
-  g: CTerm(x) -- CMonad(x, t),
-  n: t -- CMonad(x, t)
-) : CSymbol CArgs(x) -- CMonad(x, t)
-
-cmExpandSym(f,g,n) =
-  over dip(cmPure2) cmLookupSymMaybeTerm cmBind3(
-    maybe(
-      f cmPure,
-      swap ctApply nip g cmBind(n)
-    )
-  )
-
-ckNorm = cmPure
-ctNorm = cmPure
-caNorm = cmPure
-
-################################
-# Normalization By Evaluation
-#
-# We map each syntactic sort (e.g. CStack(x)) into either
-# (CEStack(x)) a  canonical (CCStack(x)) or neutral
-# (CNStack(x)) version. The exception is CWord(x) is broken
-# into a list (CEWord(x)) of word atoms (CEWord1(x)) which
-# are themselves either neutral or canonical.
-################################
-
-type CEStackType(x)
-type CEValueType(x)
-type CEStack(x)
-type CEValue(x)
-type CEWord(x)
-type CEWord1(x)
-
-type CNStackType(x)
-type CNValueType(x)
-type CNStack(x)
-type CNValue(x)
-type CNWord1(x)
-
-type CCStackType(x)
-type CCValueType(x)
-type CCStack(x)
-type CCValue(x)
-type CCWord1(x)
-
-data CEStackType(x)
-  CESTN : CNStackType(x) -- CEStackType(x)
-  CESTC : CCStackType(x) -- CEStackType(x)
-end
-
-data CNStackType(x)
-  CNSTVar : x CArgs(x) -- CNStackType(x)
-end
-
-data CCStackType(x)
-  CCSTNil : CCStackType(x)
-  CCSTCons : CStackType(x) CValueType(x) -- CCStackType(x)
-end
-
-data CEValueType(x)
-  CEVTN : CNValueType(x) -- CEValueType(x)
-  CEVTC : CCValueType(x) -- CEValueType(x)
-end
-
-data CNValueType(x)
-  CNVTVar : x CArgs(x) -- CNValueType(x)
-  CNVTSym : CSymbol CArgs(x) -- CNValueType(x)
-end
-
-data CCValueType(x)
-end
-
-data CEStack(x)
-  CESN : CNStack(x) -- CEStack(x)
-  CESC : CCStack(x) -- CEStack(x) 
-end
-
-data CNStack(x)
-  CNSVar : x CArgs(x) -- CNStack(x)
-  CNSTail : CNStack(x) -- CNStack(x)
-  CNSRun : CStack(x) CEWord1(x) -- CNStack(x)
-end
-
-data CCStack(x)
-  CCSNil : CCStack(x)
-  CCSCons : CStack(x) CValue(x) -- CCStack(x)
-end
-
-data CEValue(x)
-  CEVN : CNValue(x) -- CEValue(x)
-  CEVC : CCValue(x) -- CEValue(x)
-end
-
-data CNValue(x)
-  CNVVar : x CArgs(x) -- CNValue(x)
-  CNVSym : CSymbol CArgs(x) -- CNValue(x)
-  CNVHead : CNStack(x) -- CNValue(x)
-end
-
-data CCValue(x)
-end
-
-data CEWord(x)
-  MkCEWord : List(CEWord1(x)) -- CEWord(x)
-end
-
-unCEWord : CEWord(x) -- List(CEWord1(x))
-unCEWord = match(MkCEWord -> id)
-
-data CEWord1(x)
-  CEWN : CNWord1(x) -- CEWord1(x)
-  CEWC : CCWord1(x) -- CEWord1(x)
-end
-
-data CNWord1(x)
-  CNWVar : x CArgs(x) -- CNWord1(x)
-  CNWSym : CSymbol CArgs(x) -- CNWord1(x)
-end
-
-data CCWord1(x)
-  CCWPush : CValue(x) -- CCWord1(x)
-  CCWSwap : CCWord1(x)
-  CCWDrop : CCWord1(x)
-  CCWDup : CCWord1(x)
-  CCWDip : CWord(x) -- CCWord1(x)
-end
-
-cewId : CEWord(x)
-cewCp : CEWord(x) CEWord(x) -- CEWord(x)
-cew1 : CEWord1(x) -- CEWord(x)
-
-cewId = nil MkCEWord
-cewCp = dip(unCEWord) unCEWord ++ MkCEWord
-cew1 = lpure MkCEWord
-
-cestQuote : CEStackType(x) -- CStackType(x)
-cnstQuote : CNStackType(x) -- CStackType(x)
-ccstQuote : CCStackType(x) -- CStackType(x)
-
-cevtQuote : CEValueType(x) -- CValueType(x)
-cnvtQuote : CNValueType(x) -- CValueType(x)
-ccvtQuote : CCValueType(x) -- CValueType(x)
-
-cesQuote : CEStack(x) -- CStack(x)
-cnsQuote : CNStack(x) -- CStack(x)
-ccsQuote : CCStack(x) -- CStack(x)
-
-cevQuote : CEValue(x) -- CValue(x)
-cnvQuote : CNValue(x) -- CValue(x)
-ccvQuote : CCValue(x) -- CValue(x)
-
-cewQuote : CEWord(x) -- CWord(x)
-cew1Quote : CEWord1(x) -- CWord(x)
-cnw1Quote : CNWord1(x) -- CWord(x)
-ccw1Quote : CCWord1(x) -- CWord(x)
-
-cstEval : CStackType(x) -- CMonad(x, CEStackType(x))
-cvtEval : CValueType(x) -- CMonad(x, CEValueType(x))
-csEval : CStack(x) -- CMonad(x, CEStack(x))
-cvEval : CValue(x) -- CMonad(x, CEValue(x))
-cwEval : CWord(x) -- CMonad(x, CEWord(x))
-
-cstNorm : CStackType(x) -- CMonad(x, CStackType(x))
-cvtNorm : CValueType(x) -- CMonad(x, CValueType(x))
-csNorm : CStack(x) -- CMonad(x, CStack(x))
-cvNorm : CValue(x) -- CMonad(x, CValue(x))
-cwNorm : CWord(x) -- CMonad(x, CWord(x))
-
-cstNorm = cstEval cmMap(cestQuote)
-cvtNorm = cvtEval cmMap(cevtQuote)
-csNorm = csEval cmMap(cesQuote)
-cvNorm = cvEval cmMap(cevQuote)
-cwNorm = cwEval cmMap(cewQuote)
-
-cestQuote = match(CESTN -> cnstQuote, CESTC -> ccstQuote)
-cnstQuote =
-  match(
-    CNSTVar -> CSTVar
-  )
-ccstQuote =
-  match(
-    CCSTNil -> CSTNil,
-    CCSTCons -> CSTCons
-  )
-
-cevtQuote = match(CEVTN -> cnvtQuote, CEVTC -> ccvtQuote)
-cnvtQuote =
-  match(
-    CNVTVar -> CVTVar,
-    CNVTSym -> CVTSym
-  )
-ccvtQuote =
-  match
-
-cesQuote = match(CESN -> cnsQuote, CESC -> ccsQuote)
-cnsQuote = 
-  match(
-    CNSVar -> CSVar,
-    CNSTail -> cnsQuote CSTail,
-    CNSRun -> cew1Quote CSRun
-  )
-
-ccsQuote =
-  match(
-    CCSNil -> CSNil,
-    CCSCons -> CSCons
-  )
-
-cevQuote = match(CEVN -> cnvQuote, CEVC -> ccvQuote)
-cnvQuote =
-  match(
-    CNVVar -> CVVar,
-    CNVSym -> CVSym,
-    CNVHead -> cnsQuote CVHead
-  )
-
-ccvQuote =
-  match
-
-cewQuote = 
-  match(
-    MkCEWord ->
-      lmatchL(CWId, dip(cew1Quote) for(cew1Quote CWCp))
-  )
-
-cew1Quote = match(CEWN -> cnw1Quote, CEWC -> ccw1Quote)
-
-cnw1Quote =
-  match(
-    CNWVar -> CWVar,
-    CNWSym -> CWSym
-  )
-
-ccw1Quote =
-  match(
-    CCWPush -> CWPush,
-    CCWSwap -> CWSwap,
-    CCWDrop -> CWDrop,
-    CCWDup -> CWDup,
-    CCWDip -> CWDip
-  )
-
-
-cstEval =
-  match(
-    CSTVar -> CNSTVar CESTN cmPure,
-    CSTNil -> CCSTNil CESTC cmPure,
-    CSTCons -> CCSTCons CESTC cmPure
-  )
-
-cvtEval =
-  match(
-    CVTVar -> CNVTVar CEVTN cmPure,
-    CVTSym -> CNVTSym CEVTN cmPure # TODO: expand the symbol
-  )
-
-csEvalRun : CStack(x) CWord(x) -- CMonad(x, CEStack(x))
-csEvalRun1 : CStack(x) CEWord1(x) -- CMonad(x, CEStack(x))
-csEvalSwap : CStack(x) -- CMonad(x, CEStack(x))
-csEvalDup : CStack(x) -- CMonad(x, CEStack(x))
-csEvalDip : CStack(x) CWord(x) -- CMonad(x, CEStack(x))
-
-csEval =
-  match(
-    CSVar -> CNSVar CESN cmPure,
-    CSNil -> CCSNil CESC cmPure,
-    CSCons -> CCSCons CESC cmPure,
-    CSTail ->
-      csEval cmBind(match(
-        CESN -> CNSTail CESN cmPure,
-        CESC -> match(
-          CCSNil -> "attempted to get tail of empty stack" CERuntimeTypeError cmFail,
-          CCSCons -> drop csEval
-        )
-      )),
-    CSRun -> csEvalRun
-  )
-
-csEvalRun =
-  dip(cmPure) cwEval cmBind2(
-    unCEWord lmatchR(
-      csEval,
-      dip(MkCEWord cewQuote CSRun) csEvalRun1  
-    )
-  )
-
-csEvalRun1 =
-  match(
-    CEWN -> CEWN CNSRun CESN cmPure,
-    CEWC ->
-      match(
-        CCWPush -> CCSCons CESC cmPure,
-        CCWSwap -> csEvalSwap,
-        CCWDrop -> CSTail csEval,
-        CCWDup -> csEvalDup,
-        CCWDip -> csEvalDip
-      )
-  )
-
-csEvalDup =
-  csEval cmBind(
-    match(
-      CESN -> cnsQuote CCWDup CEWC CNSRun CESN cmPure,
-      CESC -> 
-        match(
-          CCSNil -> "attempted to run dup on empty stack" CERuntimeTypeError cmFail,
-          CCSCons -> dup dip(CSCons) CCSCons CESC cmPure
-        )
-    )
-  )
-
-csEvalDip =
-  dip(csEval) cmPure cmBind2(
-    swap match(
-      CESN -> cnsQuote swap CCWDip CEWC CNSRun CESN cmPure,
-      CESC ->
-        match(
-          CCSNil -> drop "attempted to run dip on empty stack" CERuntimeTypeError cmFail,
-          CCSCons -> dip(swap CSRun) CCSCons CESC cmPure 
-        )
-    )
-  )
-
-csEvalSwap =
-  csEval cmBind(
-    match(
-      CESN -> cnsQuote CCWSwap CEWC CNSRun CESN cmPure,
-      CESC ->
-        match(
-          CCSNil -> "attempted to run swap on empty stack" CERuntimeTypeError cmFail,
-          CCSCons -> CWPush csEvalDip
-        )
-    )
-  )
-
-
-cvEval =
-  match(
-    CVVar -> CNVVar CEVN cmPure,
-    CVSym -> CNVSym CEVN cmPure, # TODO: expand the symbol
-    CVHead ->
-      csEval cmBind(match(
-        CESN -> CNVHead CEVN cmPure,
-        CESC -> match(
-          CCSNil -> "attempted to get head of empty stack" CERuntimeTypeError cmFail,
-          CCSCons -> nip cvEval
-        )
-      ))
-  )
-
-cwEval =
-  match(
-    CWId -> cewId cmPure,
-    CWCp -> dip(cwEval) cwEval cmMap2(cewCp),
-    CWVar -> CNWVar CEWN cew1 cmPure,
-    CWSym -> CNWSym CEWN cew1 cmPure, # TODO: expand the symbol
-    CWPush -> CCWPush CEWC cew1 cmPure,
-    CWSwap -> CCWSwap CEWC cew1 cmPure,
-    CWDrop -> CCWDrop CEWC cew1 cmPure,
-    CWDup -> CCWDup CEWC cew1 cmPure,
-    CWDip -> CCWDip CEWC cew1 cmPure
-  )
 

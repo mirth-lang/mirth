@@ -25,7 +25,6 @@ export base/unsafe
   unsafe_coerce    : *a -- *b   # the big unsafe!
   unsafe_env_get  (n: Str) : t
   unsafe_env_set  (n: Str) : t --
-  unsafe_env_save (n: Str, f: *a -- *b) : *a -- *b
 end
 
 unsafe_panic = _prim_unsafe_panic
@@ -51,5 +50,4 @@ unsafe_coerce = _prim_unsafe_coerce
 unsafe_exit = _prim_unsafe_exit
 unsafe_env_get(n) = n _prim_unsafe_env_get
 unsafe_env_set(n) = n _prim_unsafe_env_set
-unsafe_env_save(n,f) = n _prim_unsafe_env_save(f)
 
