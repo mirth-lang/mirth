@@ -16,9 +16,20 @@ export base/result
   ok?  : Result(e,t) -- Result(e,t) Bool
 
   result(f : *a e -- *b, g : *a t -- *b) : *a Result(e,t) -- *b
-  rmap(f : a -- b) : Result(e,a) -- Result(e,b)
   rfor(f : *a t -- *a) : *a Result(e,t) -- *a
-  rthen(f : a -- Result(e,b)) : Result(e,a) -- Result(e,b)
+
+
+  rpure : a -- Result(e,a)
+  rpure2 : a b -- Result(e,a) Result(e,b)
+  rpure3 : a b c -- Result(e,a) Result(e,b) Result(e,c)
+
+  rmap(f: a -- b) : Result(e,a) -- Result(e,b)
+  rmap2(f: a b -- c) : Result(e,a) Result(e,b) -- Result(e,c)
+  rmap3(f: a b c -- d) : Result(e,a) Result(e,b) Result(e,c) -- Result(e,d)
+
+  rbind(f: a -- Result(e,b)) : Result(e,a) -- Result(e,b)
+  rbind2(f: a b -- Result(e,c)) : Result(e,a) Result(e,b) -- Result(e,c)
+  rbind3(f: a b c -- Result(e,d)) : Result(e,a) Result(e,b) Result(e,c) -- Result(e,d)
 
   result->maybe : Result(e,t) -- Maybe(t)
 
@@ -32,9 +43,7 @@ end
 Result.generate = if(drop err, nip ok)
 
 result(f,g) = match(err -> f, ok -> g)
-rmap(f) = result(err, f ok)
 rfor(f) = result(drop, f)
-rthen(f) = result(err, f)
 
 result->maybe = result(drop none, some)
 
@@ -44,4 +53,15 @@ ok?  = result(err false, ok true)
 err? drop == id
 ok?  drop == id
 err? == ok? not
+
+rpure = ok
+rpure2 = dip(ok) ok
+rpure3 = dip(rpure2) ok
+rmap(f) = result(err, f ok)
+rmap2(f) = swap result(nip err, swap result(nip err, f ok))
+rmap3(f) = rmap2(pack2) rmap2(unpack2 f)
+rbind(f) = result(err, f)
+rbind2(f) = rmap2(pack2) rbind(unpack2 f)
+rbind3(f) = rmap3(pack3) rbind(unpack3 f)
+
 

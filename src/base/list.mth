@@ -6,6 +6,13 @@ import base/nat
 import base/order
 import base/panic
 
+export base/list/syntax
+  [ : List(t)
+  ; : List(t) t -- List(t)
+  ] : List(t) t -- List(t)
+  [] : List(t)
+end
+
 export base/list
   type Nat
   type Order(t)
@@ -66,6 +73,11 @@ export base/list
   tailR : List(t) -- List(t) +Panic
 
 end
+
+[ = nil
+; = cons
+] = cons
+[] = nil
 
 nil     = _prim_list_nil
 cat     = _prim_list_cat

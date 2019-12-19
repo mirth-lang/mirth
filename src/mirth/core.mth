@@ -4,6 +4,7 @@ import base/nat
 import base/str
 import base/map
 import base/list
+import base/list/syntax
 import base/maybe
 import base/result
 import base/unsafe
@@ -20,6 +21,23 @@ export mirth/core
   type CPrim
   type CHead
   type CTerm
+  type CStack
+  type CType
+  type CValue
+  type CWord
+  type CKind
+  type CBind
+  type CSig
+  type CCons
+  type CData
+  type CCase
+  type CMatch
+  type CBody
+  type CDef
+  type CEnv
+  type CBinds
+  type CFresh
+  type CCtx
 
   CSStack : CSort
   CSType : CSort
@@ -64,27 +82,6 @@ export mirth/core
   chole= : CHole CHole -- Bool
   chole->str : CHole -- Str
 
-  CHSym : CSym -- CHead
-  CHVar : CVar -- CHead
-  CHHole : CHole -- CHead
-  CHPrim : CPrim -- CHead
-  cheadGetSym : CHead -- Maybe(CSym)
-  cheadGetVar : CHead -- Maybe(CVar)
-  cheadGetHole : CHead -- Maybe(CHole)
-  cheadGetPrim : CHead -- Maybe(CPrim)
-  cheadArity : CHead -- CArity
-  cheadSort : CHead -- CSort
-  chead= : CHead CHead -- Bool
-  chead->str : CHead -- Str
-
-  MkCTerm : CHead List(CTerm) -- CTerm
-  unCTerm : CTerm -- CHead List(CTerm)
-  ctermHead : CTerm -- CHead
-  ctermArgs : CTerm -- List(CTerm)
-  ctermSort : CTerm -- CSort
-  cterm= : CTerm CTerm -- Bool
-  cterm->str : CTerm -- Str
-
   CPSNil : CPrim
   CPSCons : CPrim
   CPTInt : CPrim
@@ -110,8 +107,207 @@ export mirth/core
   cprimBuiltinWords : Map(Str, CPrim)
   cprimArity : CPrim -- CArity
   cprimSort : CPrim -- CSort
+  cprimKind : CPrim -- CKind
+  cprimSig : CPrim -- CSig
   cprim= : CPrim CPrim -- Bool
   cprim->str : CPrim -- Str
+
+  CHSym : CSym -- CHead
+  CHVar : CVar -- CHead
+  CHHole : CHole -- CHead
+  CHPrim : CPrim -- CHead
+  cheadGetSym : CHead -- Maybe(CSym)
+  cheadGetVar : CHead -- Maybe(CVar)
+  cheadGetHole : CHead -- Maybe(CHole)
+  cheadGetPrim : CHead -- Maybe(CPrim)
+  cheadArity : CHead -- CArity
+  cheadSort : CHead -- CSort
+  chead= : CHead CHead -- Bool
+  chead->str : CHead -- Str
+
+  MkCTerm : CHead List(CTerm) -- CTerm
+  unCTerm : CTerm -- CHead List(CTerm)
+  ctermHead : CTerm -- CHead
+  ctermArgs : CTerm -- List(CTerm)
+  ctermSort : CTerm -- CSort
+  cterm= : CTerm CTerm -- Bool
+  cterm->str : CTerm -- Str
+
+  CSVar : CVar -- CStack # panics
+  CSHole : CHole -- CStack # panics
+  CSVar' : Str -- CStack
+  CSHole' : Int -- CStack
+  CSNil : CStack
+  CSCons : CStack CType -- CStack
+  ctermGetStack : CTerm -- Maybe(CStack)
+  cterm->cstack : CTerm -- CStack # panics
+  cstack->cterm : CStack -- CTerm
+  cstack->str : CStack -- Str
+
+  CTVar : CVar -- CType # panics
+  CTHole : CHole -- CType # panics
+  CTSym : CSym List(CTerm) -- CType # panics
+  CTPrim : CPrim List(CTerm) -- CType # panics
+  CTVar' : Str -- CType
+  CTSym' : Str List(CTerm) -- CType
+  CTHole' : Int -- CType
+  CTInt : CType
+  CTStr : CType
+  CTBool : CType
+  CTList : CType -- CType
+  CTPack : CStack -- CType
+  ctermGetType : CTerm -- Maybe(CType)
+  cterm->ctype : CTerm -- CType # panics
+  ctype->cterm : CType -- CTerm
+  ctype->str : CType -- Str
+
+  CVVar : CVar -- CValue #panics
+  CVSym : CSym List(CTerm) -- CValue #panics
+  CVHole : CHole -- CValue #panics
+  CVVar' : Str -- CValue
+  CVSym' : Str List(CTerm) -- CValue
+  CVHole' : Int -- CValue
+  CVInt : Int -- CValue
+  CVStr : Str -- CValue
+  CVBool : Bool -- CValue
+  CVListNil : CValue
+  CVListCons : CValue CValue -- CValue
+  CVPackNil : CValue
+  CVPackCons : CValue CValue -- CValue
+  ctermGetValue : CTerm -- Maybe(CValue)
+  cterm->cvalue : CTerm -- CValue #panics
+  cvalue->cterm : CValue -- CTerm
+  cvalue->str : CValue -- Str
+
+  CWVar : CVar -- CWord #panics
+  CWSym : CSym List(CTerm) -- CWord #panics
+  CWHole : CHole -- CWord #panics
+  CWPrim : CPrim List(CTerm) -- CWord #panics
+  CWVar' : Str -- CWord
+  CWSym' : Str List(CTerm) -- CWord
+  CWHole' : Int -- CWord
+  CWId : CWord
+  CWCp : CWord CWord -- CWord
+  ctermGetWord : CTerm -- Maybe(CWord)
+  cterm->cword : CTerm -- CWord #panics
+  cword->cterm : CWord -- CTerm
+  cword->str : CWord -- Str
+
+  CKStack : CKind
+  CKType : CKind
+  CKValue : CType -- CKind
+  CKWord : CStack CStack -- CKind
+  CKWord00 : CKind
+  CKWord01 : CType -- CKind
+  CKWord10 : CType -- CKind
+  CKWord11 : CType CType -- CKind
+  CKWord12 : CType CType CType -- CKind
+  CKWord20 : CType CType -- CKind
+  CKWord21 : CType CType CType -- CKind
+  CKWord22 : CType CType CType CType -- CKind
+  ckindSort : CKind -- CSort
+  ckind->cbind : CKind -- CBind
+
+  MkCBind : Maybe(CVar) CKind -- CBind
+  MkCBind' : Str CKind -- CBind
+  cbindVar : CBind -- Maybe(CVar)
+  cbindKind : CBind -- CKind
+  cbindSort : CBind -- CSort
+
+  MkCSig : List(CBind) CKind -- CSig
+  MkCSig' : List(CKind) CKind -- CSig
+  unCSig : CSig -- List(CBind) CKind
+  csigKind : CSig -- CKind
+  csigArgs : CSig -- List(CBind)
+  csigSort : CSig -- CSort
+  csigArity : CSig -- CArity
+
+  MkCCons : CSym List(CBind) List(CType) CType -- CCons
+  unCCons : CCons -- CSym List(CBind) List(CType) CType
+  cconsSym : CCons -- CSym
+  cconsArgs : CCons -- List(CBind)
+  cconsInputs : CCons -- List(CType)
+  cconsOutput : CCons -- CType
+  ccons->str : CCons -- Str
+
+  MkCData : List(CCons) -- CData
+  unCData : CData -- List(CCons)
+
+  MkCCase : CCons List(CBind) CWord -- CCase
+  unCCase : CCase -- CCons List(CBind) CWord
+  ccaseCons : CCase -- CCons
+  ccaseArgs : CCase -- List(CBind)
+  ccaseBody : CCase -- CWord
+  ccase->str : CCase -- Str
+
+  MkCMatch : List(CCase) Maybe(CTerm) -- CMatch
+  unCMatch : CMatch -- List(CCase) Maybe(CTerm)
+  cmatchCases : CMatch -- List(CCase)
+  cmatchDefault : CMatch -- Maybe(CTerm)
+
+  CBTerm : CTerm -- CBody
+  CBData : CData -- CBody
+  CBCons : CCons -- CBody
+  CBMatch : CMatch -- CBody
+  cbodyMatch(
+    onTerm: *a CTerm -- *b,
+    onData: *a CData -- *b,
+    onCons: *a CCons -- *b,
+    onMatch: *a CMatch -- *b
+  ) : *a CBody -- *b
+
+  MkCDef : CSym CSig Maybe(CBody) -- CDef
+  unCDef : CDef -- CSym CSig Maybe(CBody)
+  cdefSym : CDef -- CSym
+  cdefSig : CDef -- CSig
+  cdefArity : CDef -- CArity
+  cdefKind : CDef -- CKind
+  cdefSort : CDef -- CSort
+  cdefBody : CDef -- Maybe(CBody)
+  cdef->str : CDef -- Str
+
+  MkCEnv : Map(CSym, CDef) -- CEnv
+  unCEnv : CEnv -- Map(CSym, CDef)
+  cenvDefs : CEnv -- Map(CSym, CDef)
+  cenvNil : CEnv
+  cenvGet : CEnv CSym -- Maybe(CDef)
+  cenvSet : CEnv CDef -- CEnv
+  cenvAdd : CEnv CDef -- Result(Str, CEnv)
+  cenv->str : CEnv -- Str
+
+  MkCBinds : Map(CVar, CBind) -- CBinds
+  unCBinds : CBinds -- Map(CVar, CBind)
+  cbindsNil : CBinds
+  cbindsGet : CBinds CVar -- Maybe(CBind)
+  cbindsGetKind : CBinds CVar -- Maybe(CKind)
+  cbindsGet? : CBinds CVar -- CBinds CVar Maybe(CBind)
+  cbindsGetKind? : CBinds CVar -- CBinds CVar Maybe(CKind)
+  cbindsAdd : CBinds CBind -- Result(Str, CBinds)
+  cbindsAddMany : CBinds List(CBind) -- Result(Str, CBinds)
+
+  MkCFresh : Map(CHole, CTerm) Nat -- CFresh
+  unCFresh : CFresh -- Map(CHole, CTerm) Nat
+  cfreshNil : CFresh
+  cfreshNext : CFresh -- CFresh Nat
+  cfreshReserve : CFresh Nat -- CFresh
+  cfreshGet : CFresh CHole -- Maybe(CTerm)
+  cfreshGet? : CFresh CHole -- CFresh CHole Maybe(CTerm)
+  cfreshSet : CFresh CHole CTerm -- CFresh
+
+  MkCCtx : CEnv CBinds CFresh -- CCtx
+  cctxNil : CEnv -- CCtx
+  cctxAdd : CCtx CBind -- Result(Str, CCtx)
+  cctxAddMany : CCtx List(CBind) -- Result(Str, CCtx)
+  cctxGet : CCtx CVar -- Maybe(CBind)
+  cctxGetKind : CCtx CVar -- Maybe(CKind)
+  cctxGet? : CCtx CVar -- CCtx CVar Maybe(CBind)
+  cctxGetKind? : CCtx CVar -- CCtx CVar Maybe(CKind)
+  cctxFreshNat : CCtx -- CCtx Nat
+  cctxReserve : CCtx Nat -- CCtx
+  cctxGetHole : CCtx CHole -- Maybe(CTerm)
+  cctxGetHole? : CCtx CHole -- CCtx CHole Maybe(CTerm)
+  cctxSetHole : CCtx CHole CTerm -- CCtx
+
 end
 
 
@@ -555,97 +751,117 @@ cprimBuiltinWords = $(
   "_prim_unsafe_exit" CPWUnsafeExit mapSet
 )
 
-cprimArity : CPrim -- CArity
-cprimArity =
-  match(
-    CPSNil -> CA0(CSStack),
-    CPSCons -> CA2(CSStack, CSValue, CSStack),
-    CPTInt -> CA0(CSType),
-    CPTStr -> CA0(CSType),
-    CPTBool -> CA0(CSType),
-    CPTList -> CA1(CSType, CSType),
-    CPTPack -> CA1(CSStack, CSType),
-    CPVInt -> drop CA0(CSValue),
-    CPVStr -> drop CA0(CSValue),
-    CPVBool -> drop CA0(CSValue),
-    CPVListNil -> CA0(CSValue),
-    CPVListCons -> CA2(CSValue, CSValue, CSValue),
-    CPVPackNil -> CA0(CSValue),
-    CPVPackCons -> CA2(CSValue, CSValue, CSValue),
-    CPWId -> CA0(CSWord),
-    CPWCp -> CA2(CSWord, CSWord, CSWord),
-    CPWDip -> CA1(CSWord, CSWord),
-    CPWDup -> CA0(CSWord),
-    CPWDrop -> CA0(CSWord),
-    CPWSwap -> CA0(CSWord),
-    CPWPush -> CA1(CSValue, CSWord),
-    CPWPackMap -> CA1(CSWord, CSWord),
-    CPWPackPack2 -> CA0(CSWord),
-    CPWPackUnpack2 -> CA0(CSWord),
-    CPWBoolTrue -> CA0(CSWord),
-    CPWBoolFalse -> CA0(CSWord),
-    CPWBoolIf -> CA2(CSWord, CSWord, CSWord),
-    CPWIntAdd -> CA0(CSWord),
-    CPWIntSub -> CA0(CSWord),
-    CPWIntMul -> CA0(CSWord),
-    CPWIntDiv -> CA0(CSWord),
-    CPWIntMod -> CA0(CSWord),
-    CPWIntLt -> CA0(CSWord),
-    CPWIntEq -> CA0(CSWord),
-    CPWStrCat -> CA0(CSWord),
-    CPWStrBreak -> CA0(CSWord),
-    CPWStrLen -> CA0(CSWord),
-    CPWStrFromCodepoint -> CA0(CSWord),
-    CPWStrToCodepoint -> CA0(CSWord),
-    CPWStrElem -> CA0(CSWord),
-    CPWStrReMatch -> CA0(CSWord),
-    CPWListNil -> CA0(CSWord),
-    CPWListCons -> CA0(CSWord),
-    CPWListCat -> CA0(CSWord),
-    CPWListLen -> CA0(CSWord),
-    CPWListAt -> CA0(CSWord),
-    CPWListBreak -> CA0(CSWord),
-    CPWListMap -> CA1(CSWord, CSWord),
-    CPWListFor -> CA1(CSWord, CSWord),
-    CPWUnsafePanic -> CA0(CSWord),
-    CPWUnsafeTrace -> CA0(CSWord),
-    CPWUnsafePrint -> CA0(CSWord),
-    CPWUnsafeListDir -> CA0(CSWord),
-    CPWUnsafeWalk -> CA0(CSWord),
-    CPWUnsafeIsDir -> CA0(CSWord),
-    CPWUnsafeIsFile -> CA0(CSWord),
-    CPWUnsafeRead -> CA0(CSWord),
-    CPWUnsafeWrite -> CA0(CSWord),
-    CPWUnsafeAppend -> CA0(CSWord),
-    CPWUnsafeDelete -> CA0(CSWord),
-    CPWUnsafeCoerce -> CA0(CSWord),
-    CPWUnsafeHash -> CA0(CSWord),
-    CPWUnsafeEnvGet -> CA0(CSWord),
-    CPWUnsafeEnvSet -> CA0(CSWord),
-    CPWUnsafeExit -> CA0(CSWord)
-  )
-
 cprimSort : CPrim -- CSort
 cprimSort = cprimArity caritySort
+
+cprimArity : CPrim -- CArity
+cprimArity = cprimSig csigArity
+
+cprimKind : CPrim -- CKind
+cprimKind = cprimSig csigKind
+
+cprimSig : CPrim -- CSig
+cprimSig =
+  match(
+    CPSNil -> [] CKStack,
+    CPSCons -> [ CKStack ; CKType ] CKStack,
+
+    CPTInt -> [] CKType,
+    CPTStr -> [] CKType,
+    CPTBool -> [] CKType,
+    CPTList -> [ CKType ] CKType,
+    CPTPack -> [ CKStack ] CKType,
+
+    CPVInt -> drop [] CTInt CKValue,
+    CPVStr -> drop [] CTStr CKValue,
+    CPVBool -> drop [] CTBool CKValue,
+    CPVListNil -> [] 0 CTHole' CTList CKValue,
+    CPVListCons ->
+      [ 0 CTHole' CTList CKValue
+      ; 0 CTHole' CKValue
+      ] 0 CTHole' CTList CKValue,
+    CPVPackNil  -> [] CSNil CTPack CKValue,
+    CPVPackCons ->
+      [ 0 CSHole' CTPack CKValue
+      ; 1 CTHole' CKValue
+      ] 0 CSHole' 1 CTHole' CSCons CTPack CKValue,
+
+    CPWId -> [] CKWord00,
+    CPWCp ->
+      [ 0 CSHole' 1 CSHole' CKWord
+      ; 1 CSHole' 2 CSHole' CKWord
+      ] 0 CSHole' 2 CSHole' CKWord,
+    CPWDip ->
+      [ 0 CSHole' 1 CSHole' CKWord
+      ] 0 CSHole' 2 CTHole' CSCons
+        1 CSHole' 2 CTHole' CSCons CKWord,
+    CPWDup ->  [] 1 CTHole' dup dup CKWord12,
+    CPWDrop -> [] 1 CTHole' CKWord10,
+    CPWSwap -> [] 1 CTHole' 2 CTHole' dup2 swap CKWord22,
+    CPWPush -> [ 1 CTHole' CKValue ] 1 CTHole' CKWord01,
+
+    CPWPackMap ->
+      [ 1 CSHole' 2 CSHole' CKWord
+      ] 1 CSHole' CTPack 2 CSHole' CTPack CKWord11,
+    CPWPackPack2 ->
+      [] 1 CTHole' 2 CTHole'
+         CSNil 1 CTHole' CSCons 2 CTHole' CSCons CTPack
+         CKWord21,
+    CPWPackUnpack2 ->
+      [] CSNil 1 CTHole' CSCons 2 CTHole' CSCons CTPack
+         1 CTHole' 2 CTHole' CKWord12,
+
+    CPWBoolIf ->
+      [ 0 CSHole' 1 CSHole' CKWord
+      ; 0 CSHole' 1 CSHole' CKWord
+      ] 0 CSHole' CTBool CSCons 1 CSHole' CKWord,
+    CPWBoolTrue -> [] CTBool CKWord01,
+    CPWBoolFalse -> [] CTBool CKWord01,
+
+    CPWIntAdd -> [] CTInt CTInt CTInt CKWord21,
+    CPWIntSub -> [] CTInt CTInt CTInt CKWord21,
+    CPWIntMul -> [] CTInt CTInt CTInt CKWord21,
+    CPWIntDiv -> [] CTInt CTInt CTInt CKWord21,
+    CPWIntMod -> [] CTInt CTInt CTInt CKWord21,
+    CPWIntLt -> [] CTInt CTInt CTBool CKWord21,
+    CPWIntEq -> [] CTInt CTInt CTBool CKWord21,
+    CPWStrCat -> [] CTStr CTStr CTStr CKWord21,
+    CPWStrBreak -> [] CTInt CTStr CTStr CTStr CKWord22,
+    CPWStrLen -> [] CTStr CTInt CKWord11,
+    CPWStrFromCodepoint -> [] CTInt CTStr CKWord11,
+    CPWStrToCodepoint -> [] CTStr CTInt CKWord11,
+    CPWStrElem -> [] CTStr CTStr CTBool CKWord21,
+    CPWStrReMatch -> [] CTStr CTStr CTInt CTBool CKWord22,
+    CPWListNil -> [] 1 CTHole' CTList CKWord01,
+    CPWListCons -> [] 1 CTHole' CTList 1 CTHole' 1 CTHole' CTList CKWord21,
+    CPWListCat -> [] 1 CTHole' CTList dup dup CKWord21,
+    CPWListLen -> [] 1 CTHole' CTList CTInt CKWord11,
+    CPWListAt -> [] 1 CTHole' CTList CTInt 1 CTHole' CKWord21,
+    CPWListBreak -> [] 1 CTHole' CTList dup dup dip2(CTInt) CKWord22,
+    CPWListMap -> [ 1 CTHole' 2 CTHole' CKWord11 ] 1 CTHole' CTList 2 CTHole' CTList CKWord11,
+    CPWListFor -> [ 1 CTHole' CKWord10 ] 1 CTHole' CTList CKWord10,
+    CPWUnsafePanic -> [] 0 CSHole' CTStr CSCons 1 CSHole' CKWord,
+    CPWUnsafeTrace -> [] CTStr CKWord10,
+    CPWUnsafePrint -> [] CTStr CKWord10,
+    CPWUnsafeListDir -> [] CTStr CTStr CTList CKWord11,
+    CPWUnsafeWalk ->
+      [] CTStr CSNil CTStr CSCons CTStr CTList CSCons CTStr CTList CSCons CTPack CKWord11,
+    CPWUnsafeIsDir -> [] CTStr CTBool CKWord11,
+    CPWUnsafeIsFile -> [] CTStr CTBool CKWord11,
+    CPWUnsafeRead -> [] CTStr CTStr CKWord11,
+    CPWUnsafeWrite -> [] CTStr CTStr CKWord20,
+    CPWUnsafeAppend -> [] CTStr CTStr CKWord20,
+    CPWUnsafeDelete -> [] CTStr CKWord10,
+    CPWUnsafeCoerce -> [] 0 CSHole' 1 CSHole' CKWord,
+    CPWUnsafeHash -> [] 1 CTHole' CTInt CKWord11,
+    CPWUnsafeEnvGet -> [] CTStr 1 CTHole' CKWord11,
+    CPWUnsafeEnvSet -> [] 1 CTHole' CTStr CKWord20,
+    CPWUnsafeExit -> [] 0 CSHole' CTInt CSCons 1 CSHole' CKWord
+  ) MkCSig'
 
 #######################
 # STRONGLY TYPED CORE #
 #######################
-
-type CStack
-type CType
-type CValue
-type CWord
-
-ctermGetStack : CTerm -- Maybe(CStack)
-ctermGetType  : CTerm -- Maybe(CType)
-ctermGetValue : CTerm -- Maybe(CValue)
-ctermGetWord  : CTerm -- Maybe(CWord)
-
-cstack->cterm : CStack -- CTerm
-ctype->cterm : CType -- CTerm
-cvalue->cterm : CValue -- CTerm
-cword->cterm : CWord -- CTerm
 
 data CStack
   MkCStack : CTerm -- CStack
@@ -664,11 +880,20 @@ cterm->cstack =
 cstack->cterm : CStack -- CTerm
 cstack->cterm = match(MkCStack -> id)
 
-CSVar : Str -- CStack
-CSVar = dip(CSStack) MkCVar CHVar nil MkCTerm MkCStack
+cstack->str : CStack -- Str
+cstack->str = cstack->cterm cterm->str
 
-CSHole : Int -- CStack
-CSHole = dip(CSStack) MkCHole CHHole nil MkCTerm MkCStack
+CSVar : CVar -- CStack
+CSVar = CHVar nil MkCTerm cterm->cstack
+
+CSHole : CHole -- CStack
+CSHole = CHHole nil MkCTerm cterm->cstack
+
+CSVar' : Str -- CStack
+CSVar' = dip(CSStack) MkCVar CHVar nil MkCTerm MkCStack
+
+CSHole' : Int -- CStack
+CSHole' = dip(CSStack) MkCHole CHHole nil MkCTerm MkCStack
 
 CSNil : CStack
 CSNil = CPSNil CHPrim nil MkCTerm MkCStack
@@ -693,11 +918,29 @@ cterm->ctype =
 ctype->cterm : CType -- CTerm
 ctype->cterm = match(MkCType -> id)
 
-CTVar : Str -- CType
-CTVar = dip(CSType) MkCVar CHVar nil MkCTerm MkCType
+ctype->str : CType -- Str
+ctype->str = ctype->cterm cterm->str
 
-CTHole : Int -- CType
-CTHole = dip(CSType) MkCHole CHHole nil MkCTerm MkCType
+CTVar : CVar -- CType
+CTVar = CHVar nil MkCTerm cterm->ctype
+
+CTHole : CHole -- CType
+CTHole = CHHole nil MkCTerm cterm->ctype
+
+CTSym : CSym List(CTerm) -- CType
+CTSym = dip(CHSym) MkCTerm cterm->ctype
+
+CTPrim : CPrim List(CTerm) -- CType
+CTPrim = dip(CHPrim) MkCTerm cterm->ctype
+
+CTVar' : Str -- CType
+CTVar' = dip(CSType) MkCVar CHVar nil MkCTerm MkCType
+
+CTHole' : Int -- CType
+CTHole' = dip(CSType) MkCHole CHHole nil MkCTerm MkCType
+
+CTSym' : Str List(CTerm) -- CType
+CTSym' = dup map(ctermSort) rotr dip2(CSType MkCArity) dip(MkCSym CHSym) MkCTerm MkCType
 
 CTInt : CType
 CTInt = CPTInt CHPrim nil MkCTerm MkCType
@@ -714,28 +957,121 @@ CTList = dip(CPTList CHPrim nil) ctype->cterm cons MkCTerm MkCType
 CTPack : CStack -- CType
 CTPack = dip(CPTPack CHPrim nil) cstack->cterm cons MkCTerm MkCType
 
+
+data CValue
+  MkCValue : CTerm -- CValue
+end
+
+ctermGetValue : CTerm -- Maybe(CValue)
+ctermGetValue = dup ctermSort CSValue csort= if(MkCValue some, drop none)
+
+cterm->cvalue : CTerm -- CValue
+cterm->cvalue =
+  dup ctermGetValue maybe(
+    dip("cterm->cvalue: not a value type: ") cterm->str <> unsafe_panic,
+    nip
+  )
+
+cvalue->cterm : CValue -- CTerm
+cvalue->cterm = match(MkCValue -> id)
+
+cvalue->str : CValue -- Str
+cvalue->str = cvalue->cterm cterm->str
+
+CVVar : CVar -- CValue
+CVVar = CHVar nil MkCTerm cterm->cvalue
+
+CVHole : CHole -- CValue
+CVHole = CHHole nil MkCTerm cterm->cvalue
+
+CVSym : CSym List(CTerm) -- CValue
+CVSym = dip(CHSym) MkCTerm cterm->cvalue
+
+CVVar' : Str -- CValue
+CVVar' = dip(CSValue) MkCVar CHVar nil MkCTerm MkCValue
+
+CVHole' : Int -- CValue
+CVHole' = dip(CSValue) MkCHole CHHole nil MkCTerm MkCValue
+
+CVSym' : Str List(CTerm) -- CValue
+CVSym' = dup map(ctermSort) rotr dip2(CSValue MkCArity) dip(MkCSym CHSym) MkCTerm MkCValue
+
+CVInt : Int -- CValue
+CVInt = CPVInt CHPrim nil MkCTerm MkCValue
+
+CVStr : Str -- CValue
+CVStr = CPVStr CHPrim nil MkCTerm MkCValue
+
+CVBool : Bool -- CValue
+CVBool = CPVBool CHPrim nil MkCTerm MkCValue
+
+CVListNil : CValue
+CVListNil = CPVListNil CHPrim nil MkCTerm MkCValue
+
+CVListCons : CValue CValue -- CValue
+CVListCons = dip2(CPVListCons CHPrim nil) dip(cvalue->cterm cons) cvalue->cterm cons MkCTerm MkCValue
+
+CVPackNil : CValue
+CVPackNil = CPVPackNil CHPrim nil MkCTerm MkCValue
+
+CVPackCons : CValue CValue -- CValue
+CVPackCons = dip2(CPVPackCons CHPrim nil) dip(cvalue->cterm cons) cvalue->cterm cons MkCTerm MkCValue
+
+
+data CWord
+  MkCWord : CTerm -- CWord
+end
+
+ctermGetWord : CTerm -- Maybe(CWord)
+ctermGetWord = dup ctermSort CSWord csort= if(MkCWord some, drop none)
+
+cterm->cword : CTerm -- CWord
+cterm->cword =
+  dup ctermGetWord maybe(
+    dip("cterm->cword: not a value type: ") cterm->str <> unsafe_panic,
+    nip
+  )
+
+cword->cterm : CWord -- CTerm
+cword->cterm = match(MkCWord -> id)
+
+cword->str : CWord -- Str
+cword->str = cword->cterm cterm->str
+
+CWVar : CVar -- CWord
+CWVar = CHVar nil MkCTerm cterm->cword
+
+CWHole : CHole -- CWord
+CWHole = CHHole nil MkCTerm cterm->cword
+
+CWSym : CSym List(CTerm) -- CWord
+CWSym = dip(CHSym) MkCTerm cterm->cword
+
+CWPrim : CPrim List(CTerm) -- CWord
+CWPrim = dip(CHPrim) MkCTerm cterm->cword
+
+CWVar' : Str -- CWord
+CWVar' = dip(CSWord) MkCVar CHVar nil MkCTerm MkCWord
+
+CWHole' : Int -- CWord
+CWHole' = dip(CSWord) MkCHole CHHole nil MkCTerm MkCWord
+
+CWSym' : Str List(CTerm) -- CWord
+CWSym' = dup map(ctermSort) rotr dip2(CSWord MkCArity) dip(MkCSym CHSym) MkCTerm MkCWord
+
+CWId : CWord
+CWId = CPWId CHPrim nil MkCTerm MkCWord
+
+CWCp : CWord CWord -- CWord
+CWCp = dip2(CPWCp CHPrim nil) dip(cword->cterm cons) cword->cterm cons MkCTerm MkCWord
+
+
 data CKind
   CKStack : CKind
   CKType : CKind
   CKValue : CType -- CKind
   CKWord : CStack CStack -- CKind
 end
-
-data CSig
-  MkCSig : List(CKind) CKind -- CSig
-end
-
-[ : List(t)
-[ = nil
-
-; : List(t) t -- List(t)
-; = cons
-
-] : List(t) t -- List(t)
-] = cons
-
-[] : List(t)
-[] = nil
 
 CKWord00 : CKind
 CKWord01 : CType -- CKind
@@ -746,112 +1082,315 @@ CKWord20 : CType CType -- CKind
 CKWord21 : CType CType CType -- CKind
 CKWord22 : CType CType CType CType -- CKind
 
-CKWord00 = 0 CSHole 0 CSHole CKWord
-CKWord01 = dip(0 CSHole 0 CSHole) CSCons CKWord
-CKWord10 = dip(0 CSHole) CSCons 0 CSHole CKWord
-CKWord11 = dip2(0 CSHole) dip(CSCons 0 CSHole) CSCons CKWord
-CKWord12 = dip3(0 CSHole) dip2(CSCons 0 CSHole) dip(CSCons) CSCons CKWord
-CKWord20 = dip2(0 CSHole) dip(CSCons) CSCons 0 CSHole CKWord
-CKWord21 = dip3(0 CSHole) dip2(CSCons) dip(CSCons 0 CSHole) CSCons CKWord
-CKWord22 = dip4(0 CSHole) dip3(CSCons) dip2(CSCons 0 CSHole) dip(CSCons) CSCons CKWord
+CKWord00 = 0 CSHole' 0 CSHole' CKWord
+CKWord01 = dip(0 CSHole' 0 CSHole') CSCons CKWord
+CKWord10 = dip(0 CSHole') CSCons 0 CSHole' CKWord
+CKWord11 = dip2(0 CSHole') dip(CSCons 0 CSHole') CSCons CKWord
+CKWord12 = dip3(0 CSHole') dip2(CSCons 0 CSHole') dip(CSCons) CSCons CKWord
+CKWord20 = dip2(0 CSHole') dip(CSCons) CSCons 0 CSHole' CKWord
+CKWord21 = dip3(0 CSHole') dip2(CSCons) dip(CSCons 0 CSHole') CSCons CKWord
+CKWord22 = dip4(0 CSHole') dip3(CSCons) dip2(CSCons 0 CSHole') dip(CSCons) CSCons CKWord
 
-cprimSig : CPrim -- CSig
-cprimSig =
+ckindSort : CKind -- CSort
+ckindSort =
   match(
-    CPSNil -> [] CKStack,
-    CPSCons -> [ CKStack ; CKType ] CKStack,
+    CKStack -> CSStack,
+    CKType -> CSType,
+    CKValue -> drop CSValue,
+    CKWord -> drop2 CSWord
+  )
 
-    CPTInt -> [] CKType,
-    CPTStr -> [] CKType,
-    CPTBool -> [] CKType,
-    CPTList -> [ CKType ] CKType,
-    CPTPack -> [ CKStack ] CKType,
+ckind->cbind : CKind -- CBind
+ckind->cbind = dip(none) MkCBind
 
-    CPVInt -> drop [] CTInt CKValue,
-    CPVStr -> drop [] CTStr CKValue,
-    CPVBool -> drop [] CTBool CKValue,
-    CPVListNil -> [] 0 CTHole CTList CKValue,
-    CPVListCons ->
-      [ 0 CTHole CTList CKValue
-      ; 0 CTHole CKValue
-      ] 0 CTHole CTList CKValue,
-    CPVPackNil  -> [] CSNil CTPack CKValue,
-    CPVPackCons ->
-      [ 0 CSHole CTPack CKValue
-      ; 1 CTHole CKValue
-      ] 0 CSHole 1 CTHole CSCons CTPack CKValue,
 
-    CPWId -> [] CKWord00,
-    CPWCp ->
-      [ 0 CSHole 1 CSHole CKWord
-      ; 1 CSHole 2 CSHole CKWord
-      ] 0 CSHole 2 CSHole CKWord,
-    CPWDip ->
-      [ 0 CSHole 1 CSHole CKWord
-      ] 0 CSHole 2 CTHole CSCons
-        1 CSHole 2 CTHole CSCons CKWord,
-    CPWDup ->  [] 1 CTHole dup dup CKWord12,
-    CPWDrop -> [] 1 CTHole CKWord10,
-    CPWSwap -> [] 1 CTHole 2 CTHole dup2 swap CKWord22,
-    CPWPush -> [ 1 CTHole CKValue ] 1 CTHole CKWord01,
+data CBind
+  MkCBind : Maybe(CVar) CKind -- CBind
+end
 
-    CPWPackMap ->
-      [ 1 CSHole 2 CSHole CKWord
-      ] 1 CSHole CTPack 2 CSHole CTPack CKWord11,
-    CPWPackPack2 ->
-      [] 1 CTHole 2 CTHole
-         CSNil 1 CTHole CSCons 2 CTHole CSCons CTPack
-         CKWord21,
-    CPWPackUnpack2 ->
-      [] CSNil 1 CTHole CSCons 2 CTHole CSCons CTPack
-         1 CTHole 2 CTHole CKWord12,
+MkCBind' : Str CKind -- CBind
+MkCBind' = dup dip(ckindSort swap MkCVar some) MkCBind
 
-    CPWBoolIf ->
-      [ 0 CSHole 1 CSHole CKWord
-      ; 0 CSHole 1 CSHole CKWord
-      ] 0 CSHole CTBool CSCons 1 CSHole CKWord,
-    CPWBoolTrue -> [] CTBool CKWord01,
-    CPWBoolFalse -> [] CTBool CKWord01,
+unCBind : CBind -- Maybe(CVar) CKind
+unCBind = match(MkCBind -> id)
 
-    CPWIntAdd -> [] CTInt CTInt CTInt CKWord21,
-    CPWIntSub -> [] CTInt CTInt CTInt CKWord21,
-    CPWIntMul -> [] CTInt CTInt CTInt CKWord21,
-    CPWIntDiv -> [] CTInt CTInt CTInt CKWord21,
-    CPWIntMod -> [] CTInt CTInt CTInt CKWord21,
-    CPWIntLt -> [] CTInt CTInt CTBool CKWord21,
-    CPWIntEq -> [] CTInt CTInt CTBool CKWord21,
-    CPWStrCat -> [] CTStr CTStr CTStr CKWord21,
-    CPWStrBreak -> [] CTInt CTStr CTStr CTStr CKWord22,
-    CPWStrLen -> [] CTStr CTInt CKWord11,
-    CPWStrFromCodepoint -> [] CTInt CTStr CKWord11,
-    CPWStrToCodepoint -> [] CTStr CTInt CKWord11,
-    CPWStrElem -> [] CTStr CTStr CTBool CKWord21,
-    CPWStrReMatch -> [] CTStr CTStr CTInt CTBool CKWord22,
-    CPWListNil -> [] 1 CTHole CTList CKWord01,
-    CPWListCons -> [] 1 CTHole CTList 1 CTHole 1 CTHole CTList CKWord21,
-    CPWListCat -> [] 1 CTHole CTList dup dup CKWord21,
-    CPWListLen -> [] 1 CTHole CTList CTInt CKWord11,
-    CPWListAt -> [] 1 CTHole CTList CTInt 1 CTHole CKWord21,
-    CPWListBreak -> [] 1 CTHole CTList dup dup dip2(CTInt) CKWord22,
-    CPWListMap -> [ 1 CTHole 2 CTHole CKWord11 ] 1 CTHole CTList 2 CTHole CTList CKWord11,
-    CPWListFor -> [ 1 CTHole CKWord10 ] 1 CTHole CTList CKWord10,
-    CPWUnsafePanic -> [] 0 CSHole CTStr CSCons 1 CSHole CKWord,
-    CPWUnsafeTrace -> [] CTStr CKWord10,
-    CPWUnsafePrint -> [] CTStr CKWord10,
-    CPWUnsafeListDir -> [] CTStr CTStr CTList CKWord11,
-    CPWUnsafeWalk ->
-      [] CTStr CSNil CTStr CSCons CTStr CTList CSCons CTStr CTList CSCons CTPack CKWord11,
-    CPWUnsafeIsDir -> [] CTStr CTBool CKWord11,
-    CPWUnsafeIsFile -> [] CTStr CTBool CKWord11,
-    CPWUnsafeRead -> [] CTStr CTStr CKWord11,
-    CPWUnsafeWrite -> [] CTStr CTStr CKWord20,
-    CPWUnsafeAppend -> [] CTStr CTStr CKWord20,
-    CPWUnsafeDelete -> [] CTStr CKWord10,
-    CPWUnsafeCoerce -> [] 0 CSHole 1 CSHole CKWord,
-    CPWUnsafeHash -> [] 1 CTHole CTInt CKWord11,
-    CPWUnsafeEnvGet -> [] CTStr 1 CTHole CKWord11,
-    CPWUnsafeEnvSet -> [] 1 CTHole CTStr CKWord20,
-    CPWUnsafeExit -> [] 0 CSHole CTInt CSCons 1 CSHole CKWord
-  ) MkCSig
+cbindVar : CBind -- Maybe(CVar)
+cbindVar = unCBind drop
 
+cbindKind : CBind -- CKind
+cbindKind = unCBind nip
+
+cbindSort : CBind -- CSort
+cbindSort = cbindKind ckindSort
+
+
+data CSig
+  MkCSig : List(CBind) CKind -- CSig
+end
+
+MkCSig' : List(CKind) CKind -- CSig
+MkCSig' = dip(map(ckind->cbind)) MkCSig
+
+unCSig : CSig -- List(CBind) CKind
+unCSig = match(MkCSig -> id)
+
+csigKind : CSig -- CKind
+csigKind = unCSig nip
+
+csigArgs : CSig -- List(CBind)
+csigArgs = unCSig drop
+
+csigSort : CSig -- CSort
+csigSort = csigKind ckindSort
+
+csigArity : CSig -- CArity
+csigArity = unCSig dip(map(cbindSort)) ckindSort MkCArity
+
+
+data CCons
+  MkCCons : CSym List(CBind) List(CType) CType -- CCons
+end
+
+unCCons : CCons -- CSym List(CBind) List(CType) CType
+unCCons = match(MkCCons -> id)
+
+cconsSym : CCons -- CSym
+cconsSym = unCCons drop3
+
+cconsArgs : CCons -- List(CBind)
+cconsArgs = unCCons drop2 nip
+
+cconsInputs : CCons -- List(CType)
+cconsInputs = unCCons drop dip(drop2)
+
+cconsOutput : CCons -- CType
+cconsOutput = unCCons dip(drop3)
+
+ccons->str : CCons -- Str
+ccons->str = cconsSym csym->str # TODO: improve
+
+data CData
+  MkCData : List(CCons) -- CData
+end
+
+unCData : CData -- List(CCons)
+unCData = match(MkCData -> id)
+
+data CCase
+  MkCCase : CCons List(CBind) CWord -- CCase
+end
+
+unCCase : CCase -- CCons List(CBind) CWord
+unCCase = match(MkCCase -> id)
+
+ccaseCons : CCase -- CCons
+ccaseCons = unCCase drop2
+
+ccaseArgs : CCase -- List(CBind)
+ccaseArgs = unCCase drop nip
+
+ccaseBody : CCase -- CWord
+ccaseBody = unCCase dip(drop2)
+
+ccase->str : CCase -- Str
+ccase->str = ccaseCons ccons->str " -> _" <>  # TODO: improve
+
+data CMatch
+  MkCMatch : List(CCase) Maybe(CTerm) -- CMatch
+end
+
+unCMatch : CMatch -- List(CCase) Maybe(CTerm)
+unCMatch = match(MkCMatch -> id)
+
+cmatchCases : CMatch -- List(CCase)
+cmatchCases = unCMatch drop
+
+cmatchDefault : CMatch -- Maybe(CTerm)
+cmatchDefault = unCMatch nip
+
+data CBody
+  CBTerm : CTerm -- CBody
+  CBData : CData -- CBody
+  CBCons : CCons -- CBody
+  CBMatch : CMatch -- CBody
+end
+
+cbodyMatch(
+  onTerm: *a CTerm -- *b,
+  onData: *a CData -- *b,
+  onCons: *a CCons -- *b,
+  onMatch: *a CMatch -- *b
+) : *a CBody -- *b
+
+cbodyMatch(onTerm, onData, onCons, onMatch) =
+  match(
+    CBTerm -> onTerm,
+    CBData -> onData,
+    CBCons -> onCons,
+    CBMatch -> onMatch
+  )
+
+
+data CDef
+  MkCDef : CSym CSig Maybe(CBody) -- CDef
+end
+
+unCDef : CDef -- CSym CSig Maybe(CBody)
+unCDef = match(MkCDef -> id)
+
+cdefSym : CDef -- CSym
+cdefSym = unCDef drop2
+
+cdefSig : CDef -- CSig
+cdefSig = unCDef drop nip
+
+cdefBody : CDef -- Maybe(CBody)
+cdefBody = unCDef dip(drop2)
+
+cdefArity : CDef -- CArity
+cdefArity = cdefSig csigArity
+
+cdefKind : CDef -- CKind
+cdefKind = cdefSig csigKind
+
+cdefSort : CDef -- CSort
+cdefSort = cdefSig csigSort
+
+cdef->str : CDef -- Str
+cdef->str = cdefSym csym->str " = _" <> # TODO : improve
+
+
+data CEnv
+  MkCEnv : Map(CSym, CDef) -- CEnv
+end
+
+unCEnv : CEnv -- Map(CSym, CDef)
+unCEnv = match(MkCEnv -> id)
+
+cenvDefs : CEnv -- Map(CSym, CDef)
+cenvDefs = unCEnv
+
+cenvNil : CEnv
+cenvNil = mapNil MkCEnv
+
+cenvGet : CEnv CSym -- Maybe(CDef)
+cenvGet = dip(unCEnv) mapGet
+
+cenvSet : CEnv CDef -- CEnv
+cenvSet = dip(unCEnv) dup dip(cdefSym) mapSet MkCEnv
+
+cenvAdd : CEnv CDef -- Result(Str, CEnv)
+cenvAdd = cenvSet ok # TODO: improve
+
+cenv->str : CEnv -- Str
+cenv->str = dip("") unCEnv mapFor(nip cdef->str "\n" <> <>)
+
+data CBinds
+  MkCBinds : Map(CVar, CBind) -- CBinds
+end
+
+unCBinds : CBinds -- Map(CVar, CBind)
+unCBinds = match(MkCBinds -> id)
+
+cbindsNil : CBinds
+cbindsNil = mapNil MkCBinds
+
+cbindsGet : CBinds CVar -- Maybe(CBind)
+cbindsGet = dip(unCBinds) mapGet
+
+cbindsGetKind : CBinds CVar -- Maybe(CKind)
+cbindsGetKind = cbindsGetKind
+
+cbindsGet? : CBinds CVar -- CBinds CVar Maybe(CBind)
+cbindsGet? = dup2 cbindsGet
+
+cbindsGetKind? : CBinds CVar -- CBinds CVar Maybe(CKind)
+cbindsGetKind? = dup2 cbindsGetKind
+
+cbindsSet : CBinds CBind -- CBinds
+cbindsSet = dup cbindVar maybe(drop, dip2(unCBinds) swap mapSet MkCBinds)
+
+cbindsAdd : CBinds CBind -- Result(Str, CBinds)
+cbindsAdd = cbindsSet ok # TODO: improve (to prevent shadowing)
+
+cbindsAddMany : CBinds List(CBind) -- Result(Str, CBinds)
+cbindsAddMany = dip(ok) for(rpure rbind2(cbindsAdd))
+
+data CFresh
+  MkCFresh : Map(CHole, CTerm) Nat -- CFresh
+end
+
+unCFresh : CFresh -- Map(CHole, CTerm) Nat
+unCFresh = match(MkCFresh -> id)
+
+cfreshNil : CFresh
+cfreshNil = mapNil n0 MkCFresh
+
+cfreshNext : CFresh -- CFresh Nat
+cfreshNext = unCFresh n1+ pnat dup dip(MkCFresh)
+
+cfreshReserve : CFresh Nat -- CFresh
+cfreshReserve = dip(unCFresh) nmax MkCFresh
+
+cfreshGet : CFresh CHole -- Maybe(CTerm)
+cfreshGet = dip(unCFresh drop) mapGet
+
+cfreshGet? : CFresh CHole -- CFresh CHole Maybe(CTerm)
+cfreshGet? = dup2 cfreshGet
+
+cfreshSet : CFresh CHole CTerm -- CFresh
+cfreshSet = dip2(unCFresh swap) mapSet swap MkCFresh
+
+
+data CCtx
+  MkCCtx : CEnv CBinds CFresh -- CCtx
+end
+
+unCCtx : CCtx -- CEnv CBinds CFresh
+unCCtx = match(MkCCtx -> id)
+
+cctxEnv : CCtx -- CEnv
+cctxEnv = unCCtx drop2
+
+cctxBinds : CCtx -- CBinds
+cctxBinds = unCCtx drop nip
+
+cctxFresh : CCtx -- CFresh
+cctxFresh = unCCtx dip(drop2)
+
+cctxNil : CEnv -- CCtx
+cctxNil = cbindsNil cfreshNil MkCCtx
+
+cctxAdd : CCtx CBind -- Result(Str, CCtx)
+cctxAdd = dip(unCCtx swap dip(rpure2)) cbindsAdd rmap3(swap MkCCtx)
+
+cctxAddMany : CCtx List(CBind) -- Result(Str, CCtx)
+cctxAddMany = dip(ok) for(rpure rbind2(cctxAdd))
+
+cctxGet : CCtx CVar -- Maybe(CBind)
+cctxGet = dip(cctxBinds) cbindsGet
+
+cctxGetKind : CCtx CVar -- Maybe(CKind)
+cctxGetKind = dip(cctxBinds) cbindsGetKind
+
+cctxGet? : CCtx CVar -- CCtx CVar Maybe(CBind)
+cctxGet? = dup2 cctxGet
+
+cctxGetKind? : CCtx CVar -- CCtx CVar Maybe(CKind)
+cctxGetKind? = dup2 cctxGetKind
+
+cctxFreshNat : CCtx -- CCtx Nat
+cctxFreshNat = unCCtx cfreshNext dip(MkCCtx)
+
+cctxReserve : CCtx Nat -- CCtx
+cctxReserve = dip(unCCtx) cfreshReserve MkCCtx
+
+cctxGetHole : CCtx CHole -- Maybe(CTerm)
+cctxGetHole = dip(cctxFresh) cfreshGet
+
+cctxGetHole? : CCtx CHole -- CCtx CHole Maybe(CTerm)
+cctxGetHole? = dup2 cctxGetHole
+
+cctxSetHole : CCtx CHole CTerm -- CCtx
+cctxSetHole = dip2(unCCtx) cfreshSet MkCCtx
 
