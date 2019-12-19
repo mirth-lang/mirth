@@ -82,6 +82,8 @@ export base/nat
   n>=   : Nat Nat -- Bool
   n=    : Nat Nat -- Bool
   n!=   : Nat Nat -- Bool
+  nmax  : Nat Nat -- Nat
+  nmin  : Nat Nat -- Nat
 
   n0    : Nat
   n1    : Nat
@@ -226,6 +228,9 @@ n=    = nint2 z=
 n>=   = nint2 z>=
 n>    = nint2 z>
 n!=   = nint2 z!=
+
+nmax = dup2 n>= if(drop, nip)
+nmin = dup2 n<= if(drop, nip)
 
 n0 = 0 _nat
 n1 = 1 _nat
