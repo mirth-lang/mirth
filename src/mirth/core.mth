@@ -503,19 +503,7 @@ cheadSig =
     CHPrim -> cprimSig
   )
 
-||| True if the head's sig is not context-dependent (i.e., is a "closed" term).
-||| The reason variables and holes do not have closed signatures is because they
-||| are context-dependent. For example, you cannot use a variable with type [-]_1
-||| (i.e. hole #1) at two different types by instantiating the hole differently
-||| each time. [EXCEPTION: Actually this is kinda desirable for the "stack hole"
-||| on a word variable that only looks at a finite number of items from the stack.
-||| For instance, a surface level variable "f: a b -- b a" would have a secret
-||| third argument which is the "rest of the stack", so it's "f: *z a b -- *z b a"
-||| but this secret third argument should be independent of f and we want to be
-||| able to use f at different stacks, so the z *should* be instantiated differently
-||| each time, unlike the rest of the arguments which should be context-dependent.
-||| SOLUTION: Keep track of which variables are or aren't context-dependent in
-||| CSig, and allow variables to have a full CSig instead of just a small thing.
+||| True only if the head or the head's sig are not context-dependent.
 cheadClosed : CHead -- Bool
 cheadClosed =
   match(
@@ -818,22 +806,52 @@ cprimArity = cprimSig csigArity
 cprimKind : CPrim -- CKind
 cprimKind = cprimSig csigKind
 
+S1 : CStack
+S2 : CStack
+S3 : CStack
+S4 : CStack
+
+T1 : CType
+T2 : CType
+T3 : CType
+T4 : CType
+
+BS1 : CBind
+BS2 : CBind
+BS3 : CBind
+BS4 : CBind
+
+BT1 : CBind
+BT2 : CBind
+BT3 : CBind
+BT4 : CBind
+
+S1 = "S1" CSVar'
+S2 = "S2" CSVar'
+S3 = "S3" CSVar'
+S4 = "S4" CSVar'
+
+T1 = "T1" CTVar'
+T2 = "T2" CTVar'
+T3 = "T3" CTVar'
+T4 = "T4" CTVar'
+
 cprimSig : CPrim -- CSig
 cprimSig =
   match(
-    CPSNil -> [] CKStack,
-    CPSCons -> [ CKStack ; CKType ] CKStack,
+    CPSNil -> [] [] CKStack,
+    CPSCons -> [] [ CKStack ; CKType ] CKStack,
 
-    CPTInt -> [] CKType,
-    CPTStr -> [] CKType,
-    CPTBool -> [] CKType,
-    CPTList -> [ CKType ] CKType,
-    CPTPack -> [ CKStack ] CKType,
+    CPTInt -> [] [] CKType,
+    CPTStr -> [] [] CKType,
+    CPTBool -> [] [] CKType,
+    CPTList -> [] [ CKType ] CKType,
+    CPTPack -> [] [ CKStack ] CKType,
 
-    CPVInt -> drop [] CTInt CKValue,
-    CPVStr -> drop [] CTStr CKValue,
-    CPVBool -> drop [] CTBool CKValue,
-    CPVListNil -> [] 0 CTHole' CTList CKValue,
+    CPVInt -> drop [] [] CTInt CKValue,
+    CPVStr -> drop [] [] CTStr CKValue,
+    CPVBool -> drop [] [] CTBool CKValue,
+    CPVListNil -> [ "t" CTVar' CBImplicit ] [] "t" CTVar' CTHole' CTList CKValue,
     CPVListCons ->
       [ 0 CTHole' CTList CKValue
       ; 0 CTHole' CKValue
@@ -915,7 +933,7 @@ cprimSig =
     CPWUnsafeEnvGet -> [] CTStr 1 CTHole' CKWord11,
     CPWUnsafeEnvSet -> [] 1 CTHole' CTStr CKWord20,
     CPWUnsafeExit -> [] 0 CSHole' CTInt CSCons 1 CSHole' CKWord
-  ) MkCSig'
+  ) dip(map(CBAnonymous) ++) MkCSig
 
 #######################
 # STRONGLY TYPED CORE #
