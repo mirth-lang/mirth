@@ -61,48 +61,33 @@ export mirth/core
   carity= : CArity CArity -- Bool
   carity->str : CArity -- Str
 
-  MkCSym : CArity Str -- CSym
-  unCSym : CSym -- CArity Str
+  MkCSym : CSig Str -- CSym
+  unCSym : CSym -- CSig Str
+  csymSig : CSym -- CSig
+  csymKind : CSym -- CKind
   csymArity : CSym -- CArity
   csymSort : CSym -- CSort
   csym= : CSym CSym -- Bool
   csym->str : CSym -- Str
 
-  MkCVar : CSort Str -- CVar
-  unCVar : CVar -- CSort Str
+  MkCVar : CKind Str -- CVar
+  unCVar : CVar -- CKind Str
+  cvarSig : CVar -- CSig
+  cvarKind : CVar -- CKind
   cvarArity : CVar -- CArity
   cvarSort : CVar -- CSort
   cvar= : CVar CVar -- Bool
   cvar->str : CVar -- Str
 
-  MkCHole : CSort Int -- CHole
-  unCHole : CHole -- CSort Int
+  MkCHole : CKind Nat -- CHole
+  unCHole : CHole -- CKind Nat
+  choleSig : CHole -- CSig
+  choleKind : CHole -- CKind
   choleArity : CHole -- CArity
   choleSort : CHole -- CSort
   chole= : CHole CHole -- Bool
   chole->str : CHole -- Str
 
-  CPSNil : CPrim
-  CPSCons : CPrim
-  CPTInt : CPrim
-  CPTStr : CPrim
-  CPTBool : CPrim
-  CPTList : CPrim
-  CPTPack : CPrim
-  CPVInt : Int -- CPrim
-  CPVStr : Str -- CPrim
-  CPVBool : Bool -- CPrim
-  CPVListNil : CPrim
-  CPVListCons : CPrim
-  CPVPackNil : CPrim
-  CPVPackCons : CPrim
-  CPWId : CPrim
-  CPWCp : CPrim
-  CPWDip : CPrim
-  CPWDup : CPrim
-  CPWDrop : CPrim
-  CPWSwap : CPrim
-  CPWPush : CPrim
   cprimBuiltinTypes : Map(Str, CPrim)
   cprimBuiltinWords : Map(Str, CPrim)
   cprimArity : CPrim -- CArity
@@ -116,10 +101,20 @@ export mirth/core
   CHVar : CVar -- CHead
   CHHole : CHole -- CHead
   CHPrim : CPrim -- CHead
+  cheadMatch(
+    onSym: *a CSym -- *b,
+    onVar: *a CVar -- *b,
+    onHole: *a CHole -- *b,
+    onPrim: *a CPrim -- *b
+  ) : *a CHead -- *b
   cheadGetSym : CHead -- Maybe(CSym)
   cheadGetVar : CHead -- Maybe(CVar)
   cheadGetHole : CHead -- Maybe(CHole)
   cheadGetPrim : CHead -- Maybe(CPrim)
+  cheadSig : CHead -- CSig
+  cheadKind : CHead -- CKind
+  cheadClosed : CHead -- Bool
+  cheadClosed? : CHead -- CHead Bool
   cheadArity : CHead -- CArity
   cheadSort : CHead -- CSort
   chead= : CHead CHead -- Bool
@@ -149,7 +144,6 @@ export mirth/core
   CTSym : CSym List(CTerm) -- CType # panics
   CTPrim : CPrim List(CTerm) -- CType # panics
   CTVar' : Str -- CType
-  CTSym' : Str List(CTerm) -- CType
   CTHole' : Int -- CType
   CTInt : CType
   CTStr : CType
@@ -164,9 +158,6 @@ export mirth/core
   CVVar : CVar -- CValue #panics
   CVSym : CSym List(CTerm) -- CValue #panics
   CVHole : CHole -- CValue #panics
-  CVVar' : Str -- CValue
-  CVSym' : Str List(CTerm) -- CValue
-  CVHole' : Int -- CValue
   CVInt : Int -- CValue
   CVStr : Str -- CValue
   CVBool : Bool -- CValue
@@ -183,9 +174,6 @@ export mirth/core
   CWSym : CSym List(CTerm) -- CWord #panics
   CWHole : CHole -- CWord #panics
   CWPrim : CPrim List(CTerm) -- CWord #panics
-  CWVar' : Str -- CWord
-  CWSym' : Str List(CTerm) -- CWord
-  CWHole' : Int -- CWord
   CWId : CWord
   CWCp : CWord CWord -- CWord
   ctermGetWord : CTerm -- Maybe(CWord)
@@ -217,6 +205,7 @@ export mirth/core
   MkCSig : List(CBind) CKind -- CSig
   MkCSig' : List(CKind) CKind -- CSig
   unCSig : CSig -- List(CBind) CKind
+  csigNil : CKind -- CSig
   csigKind : CSig -- CKind
   csigArgs : CSig -- List(CBind)
   csigSort : CSig -- CSort
@@ -387,63 +376,90 @@ carity->str = dip("") unCArity dip(for(csort->str " -> " <> <>)) csort->str <>
 
 
 data CSym
-  MkCSym : CArity Str -- CSym
+  MkCSym : CSig Str -- CSym
 end
 
-unCSym : CSym -- CArity Str
+unCSym : CSym -- CSig Str
 unCSym = match(MkCSym -> id)
 
+||| Get the sym's sig. This is not context-dependent.
+csymSig : CSym -- CSig
+csymSig = unCSym drop
+
+||| Get the sym's kind. This is not context-dependent.
+csymKind : CSym -- CKind
+csymKind = csymSig csigKind
+
 csymArity : CSym -- CArity
-csymArity = unCSym drop
+csymArity = csymSig csigArity
 
 csymSort : CSym -- CSort
-csymSort = csymArity caritySort
+csymSort = csymKind ckindSort
 
 csym= : CSym CSym -- Bool
-csym= = dip(unCSym) unCSym dip(swap) dip2(carity=) streq and
+csym= = dip(csym->str) csym->str streq
 
 csym->str : CSym -- Str
 csym->str = unCSym nip
 
 
 data CVar
-  MkCVar : CSort Str -- CVar
+  MkCVar : CKind Str -- CVar
 end
 
-unCVar : CVar -- CSort Str
+unCVar : CVar -- CKind Str
 unCVar = match(MkCVar -> id)
 
+||| Get the var's sig. This is context-dependent.
+cvarSig : CVar -- CSig
+cvarSig = cvarKind csigNil
+
+||| Get the var's kind. This is context-dependent.
+cvarKind : CVar -- CKind
+cvarKind = unCVar drop
+
 cvarSort : CVar -- CSort
-cvarSort = unCVar drop
+cvarSort = cvarKind ckindSort
 
 cvarArity : CVar -- CArity
-cvarArity = cvarSort csort->carity
+cvarArity = cvarSig csigArity
 
 cvar= : CVar CVar -- Bool
-cvar= = dip(unCVar) unCVar dip(swap) dip2(csort=) streq and
+cvar= = dip(cvar->str) cvar->str streq # Maybe should compare kinds as well? Seems dangerous.
 
 cvar->str : CVar -- Str
 cvar->str = unCVar nip
 
 
 data CHole
-  MkCHole : CSort Int -- CHole
+  MkCHole : CKind Nat -- CHole
 end
 
-unCHole : CHole -- CSort Int
+unCHole : CHole -- CKind Nat
 unCHole = match(MkCHole -> id)
 
+choleNat : CHole -- Nat
+choleNat = unCHole nip
+
+||| Get the hole's kind. This is context-dependent.
+choleSig : CHole -- CSig
+choleSig = choleKind csigNil
+
+||| Get the hole's kind. This is context-dependent.
+choleKind : CHole -- CKind
+choleKind = unCHole drop
+
 choleSort : CHole -- CSort
-choleSort = unCHole drop
+choleSort = choleKind ckindSort
 
 choleArity : CHole -- CArity
-choleArity = choleSort csort->carity
+choleArity = choleSig csigArity
 
 chole= : CHole CHole -- Bool
-chole= = dip(unCHole) unCHole dip(swap) dip2(csort=) z= and
+chole= = dip(choleNat) choleNat n=
 
 chole->str : CHole -- Str
-chole->str = dip("?") unCHole nip int->str <>
+chole->str = dip("?") choleNat nat->str <>
 
 
 data CHead
@@ -452,6 +468,20 @@ data CHead
   CHHole : CHole -- CHead
   CHPrim : CPrim -- CHead
 end
+
+cheadMatch(
+  onSym: *a CSym -- *b,
+  onVar: *a CVar -- *b,
+  onHole: *a CHole -- *b,
+  onPrim: *a CPrim -- *b
+) : *a CHead -- *b
+cheadMatch(onSym, onVar, onHole, onPrim) =
+  match(
+    CHSym -> onSym,
+    CHVar -> onVar,
+    CHHole -> onHole,
+    CHPrim -> onPrim
+  )
 
 cheadGetSym : CHead -- Maybe(CSym)
 cheadGetSym = match(CHSym -> some, _ -> drop none)
@@ -465,17 +495,50 @@ cheadGetHole = match(CHHole -> some, _ -> drop none)
 cheadGetPrim : CHead -- Maybe(CPrim)
 cheadGetPrim = match(CHPrim -> some, _ -> drop none)
 
-cheadArity : CHead -- CArity
-cheadArity =
+||| Get the head's sig. This is context-dependent only for CVars and CHoles.
+||| See `cheadClosed` below.
+cheadSig : CHead -- CSig
+cheadSig =
   match(
-    CHSym -> csymArity,
-    CHVar -> cvarArity,
-    CHHole -> choleArity,
-    CHPrim -> cprimArity
+    CHSym -> csymSig,
+    CHVar -> cvarSig,
+    CHHole -> choleSig,
+    CHPrim -> cprimSig
   )
 
+||| True if the head's sig is not context-dependent (i.e., is a "closed" term).
+||| The reason variables and holes do not have closed signatures is because they
+||| are context-dependent. For example, you cannot use a variable with type [-]_1
+||| (i.e. hole #1) at two different types by instantiating the hole differently
+||| each time. [EXCEPTION: Actually this is kinda desirable for the "stack hole"
+||| on a word variable that only looks at a finite number of items from the stack.
+||| For instance, a surface level variable "f: a b -- b a" would have a secret
+||| third argument which is the "rest of the stack", so it's "f: *z a b -- *z b a"
+||| but this secret third argument should be independent of f and we want to be
+||| able to use f at different stacks, so the z *should* be instantiated differently
+||| each time, unlike the rest of the arguments which should be context-dependent.
+||| SOLUTION: Keep track of which variables are or aren't context-dependent in
+||| CSig, and allow variables to have a full CSig instead of just a small thing.
+cheadClosed : CHead -- Bool
+cheadClosed =
+  match(
+    CHSym -> drop true,
+    CHVar -> drop false,
+    CHHole -> drop false,
+    CHPrim -> drop true
+  )
+
+cheadClosed? : CHead -- CHead Bool
+cheadClosed? = dup cheadClosed
+
+cheadKind : CHead -- CKind
+cheadKind = cheadSig csigKind
+
+cheadArity : CHead -- CArity
+cheadArity = cheadSig csigArity
+
 cheadSort : CHead -- CSort
-cheadSort = cheadArity caritySort
+cheadSort = cheadSig csigSort
 
 chead= : CHead CHead -- Bool
 chead= =
@@ -890,10 +953,10 @@ CSHole : CHole -- CStack
 CSHole = CHHole nil MkCTerm cterm->cstack
 
 CSVar' : Str -- CStack
-CSVar' = dip(CSStack) MkCVar CHVar nil MkCTerm MkCStack
+CSVar' = dip(CKStack) MkCVar CHVar nil MkCTerm MkCStack
 
 CSHole' : Int -- CStack
-CSHole' = dip(CSStack) MkCHole CHHole nil MkCTerm MkCStack
+CSHole' = dip(CKStack) znat MkCHole CHHole nil MkCTerm MkCStack
 
 CSNil : CStack
 CSNil = CPSNil CHPrim nil MkCTerm MkCStack
@@ -934,13 +997,10 @@ CTPrim : CPrim List(CTerm) -- CType
 CTPrim = dip(CHPrim) MkCTerm cterm->ctype
 
 CTVar' : Str -- CType
-CTVar' = dip(CSType) MkCVar CHVar nil MkCTerm MkCType
+CTVar' = dip(CKType) MkCVar CHVar nil MkCTerm MkCType
 
 CTHole' : Int -- CType
-CTHole' = dip(CSType) MkCHole CHHole nil MkCTerm MkCType
-
-CTSym' : Str List(CTerm) -- CType
-CTSym' = dup map(ctermSort) rotr dip2(CSType MkCArity) dip(MkCSym CHSym) MkCTerm MkCType
+CTHole' = dip(CKType) znat MkCHole CHHole nil MkCTerm MkCType
 
 CTInt : CType
 CTInt = CPTInt CHPrim nil MkCTerm MkCType
@@ -986,15 +1046,6 @@ CVHole = CHHole nil MkCTerm cterm->cvalue
 
 CVSym : CSym List(CTerm) -- CValue
 CVSym = dip(CHSym) MkCTerm cterm->cvalue
-
-CVVar' : Str -- CValue
-CVVar' = dip(CSValue) MkCVar CHVar nil MkCTerm MkCValue
-
-CVHole' : Int -- CValue
-CVHole' = dip(CSValue) MkCHole CHHole nil MkCTerm MkCValue
-
-CVSym' : Str List(CTerm) -- CValue
-CVSym' = dup map(ctermSort) rotr dip2(CSValue MkCArity) dip(MkCSym CHSym) MkCTerm MkCValue
 
 CVInt : Int -- CValue
 CVInt = CPVInt CHPrim nil MkCTerm MkCValue
@@ -1050,15 +1101,6 @@ CWSym = dip(CHSym) MkCTerm cterm->cword
 CWPrim : CPrim List(CTerm) -- CWord
 CWPrim = dip(CHPrim) MkCTerm cterm->cword
 
-CWVar' : Str -- CWord
-CWVar' = dip(CSWord) MkCVar CHVar nil MkCTerm MkCWord
-
-CWHole' : Int -- CWord
-CWHole' = dip(CSWord) MkCHole CHHole nil MkCTerm MkCWord
-
-CWSym' : Str List(CTerm) -- CWord
-CWSym' = dup map(ctermSort) rotr dip2(CSWord MkCArity) dip(MkCSym CHSym) MkCTerm MkCWord
-
 CWId : CWord
 CWId = CPWId CHPrim nil MkCTerm MkCWord
 
@@ -1109,7 +1151,7 @@ data CBind
 end
 
 MkCBind' : Str CKind -- CBind
-MkCBind' = dup dip(ckindSort swap MkCVar some) MkCBind
+MkCBind' = dup dip(swap MkCVar some) MkCBind
 
 unCBind : CBind -- Maybe(CVar) CKind
 unCBind = match(MkCBind -> id)
@@ -1133,6 +1175,9 @@ MkCSig' = dip(map(ckind->cbind)) MkCSig
 
 unCSig : CSig -- List(CBind) CKind
 unCSig = match(MkCSig -> id)
+
+csigNil : CKind -- CSig
+csigNil = dip(nil) MkCSig
 
 csigKind : CSig -- CKind
 csigKind = unCSig nip
