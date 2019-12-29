@@ -194,10 +194,13 @@ export mirth/core
   CKWord21 : CType CType CType -- CKind
   CKWord22 : CType CType CType CType -- CKind
   ckindSort : CKind -- CSort
-  ckind->cbind : CKind -- CBind
 
-  MkCBind : Maybe(CVar) CKind -- CBind
-  MkCBind' : Str CKind -- CBind
+  CBImplicit : CVar -- CBind
+  CBExplicit : CVar -- CBind
+  CBAnonymous : CKind -- CBind
+  cbindIsImplicit : CBind -- Bool
+  cbindIsExplicit : CBind -- Bool
+  cbindIsAnonymous : CBind -- Bool
   cbindVar : CBind -- Maybe(CVar)
   cbindKind : CBind -- CKind
   cbindSort : CBind -- CSort
@@ -299,7 +302,6 @@ export mirth/core
 
 end
 
-
 ||| Syntactic sorts.
 data CSort
   CSStack : CSort
@@ -341,7 +343,6 @@ csort->str =
 csort->carity : CSort -- CArity
 csort->carity = dip(nil) MkCArity
 
-
 ||| Operator arity.
 data CArity
   MkCArity : List(CSort) CSort -- CArity
@@ -374,7 +375,6 @@ carity= = $(
 carity->str : CArity -- Str
 carity->str = dip("") unCArity dip(for(csort->str " -> " <> <>)) csort->str <>
 
-
 data CSym
   MkCSym : CSig Str -- CSym
 end
@@ -402,7 +402,6 @@ csym= = dip(csym->str) csym->str streq
 csym->str : CSym -- Str
 csym->str = unCSym nip
 
-
 data CVar
   MkCVar : CKind Str -- CVar
 end
@@ -429,7 +428,6 @@ cvar= = dip(cvar->str) cvar->str streq # Maybe should compare kinds as well? See
 
 cvar->str : CVar -- Str
 cvar->str = unCVar nip
-
 
 data CHole
   MkCHole : CKind Nat -- CHole
@@ -460,7 +458,6 @@ chole= = dip(choleNat) choleNat n=
 
 chole->str : CHole -- Str
 chole->str = dip("?") choleNat nat->str <>
-
 
 data CHead
   CHSym : CSym -- CHead
@@ -558,7 +555,6 @@ chead->str =
     CHPrim -> cprim->str
   )
 
-
 data CTerm
   MkCTerm : CHead List(CTerm) -- CTerm
 end
@@ -594,7 +590,6 @@ cterm->str = $(
     ")" <>
   )
 )
-
 
 ##############
 # Primitives #
@@ -1017,7 +1012,6 @@ CTList = dip(CPTList CHPrim nil) ctype->cterm cons MkCTerm MkCType
 CTPack : CStack -- CType
 CTPack = dip(CPTPack CHPrim nil) cstack->cterm cons MkCTerm MkCType
 
-
 data CValue
   MkCValue : CTerm -- CValue
 end
@@ -1068,7 +1062,6 @@ CVPackNil = CPVPackNil CHPrim nil MkCTerm MkCValue
 CVPackCons : CValue CValue -- CValue
 CVPackCons = dip2(CPVPackCons CHPrim nil) dip(cvalue->cterm cons) cvalue->cterm cons MkCTerm MkCValue
 
-
 data CWord
   MkCWord : CTerm -- CWord
 end
@@ -1107,7 +1100,6 @@ CWId = CPWId CHPrim nil MkCTerm MkCWord
 CWCp : CWord CWord -- CWord
 CWCp = dip2(CPWCp CHPrim nil) dip(cword->cterm cons) cword->cterm cons MkCTerm MkCWord
 
-
 data CKind
   CKStack : CKind
   CKType : CKind
@@ -1142,36 +1134,58 @@ ckindSort =
     CKWord -> drop2 CSWord
   )
 
-ckind->cbind : CKind -- CBind
-ckind->cbind = dip(none) MkCBind
-
-
 data CBind
-  MkCBind : Maybe(CVar) CKind -- CBind
+  CBImplicit : CVar -- CBind
+  CBExplicit : CVar -- CBind
+  CBAnonymous : CKind -- CBind
 end
 
-MkCBind' : Str CKind -- CBind
-MkCBind' = dup dip(swap MkCVar some) MkCBind
-
-unCBind : CBind -- Maybe(CVar) CKind
-unCBind = match(MkCBind -> id)
-
 cbindVar : CBind -- Maybe(CVar)
-cbindVar = unCBind drop
+cbindVar =
+  match(
+    CBImplicit -> some,
+    CBExplicit -> some,
+    CBAnonymous -> drop none
+  )
 
 cbindKind : CBind -- CKind
-cbindKind = unCBind nip
+cbindKind =
+  match(
+    CBImplicit -> cvarKind,
+    CBExplicit -> cvarKind,
+    CBAnonymous -> id
+  )
 
 cbindSort : CBind -- CSort
 cbindSort = cbindKind ckindSort
 
+cbindIsImplicit : CBind -- Bool
+cbindIsImplicit =
+  match(
+    CBImplicit -> drop true,
+    _ -> drop false
+  )
+
+cbindIsExplicit : CBind -- Bool
+cbindIsExplicit =
+  match(
+    CBExplicit -> drop true,
+    _ -> drop false
+  )
+
+cbindIsAnonymous : CBind -- Bool
+cbindIsAnonymous =
+  match(
+    CBAnonymous -> drop true,
+    _ -> drop false
+  )
 
 data CSig
   MkCSig : List(CBind) CKind -- CSig
 end
 
 MkCSig' : List(CKind) CKind -- CSig
-MkCSig' = dip(map(ckind->cbind)) MkCSig
+MkCSig' = dip(map(CBAnonymous)) MkCSig
 
 unCSig : CSig -- List(CBind) CKind
 unCSig = match(MkCSig -> id)
@@ -1190,7 +1204,6 @@ csigSort = csigKind ckindSort
 
 csigArity : CSig -- CArity
 csigArity = unCSig dip(map(cbindSort)) ckindSort MkCArity
-
 
 data CCons
   MkCCons : CSym List(CBind) List(CType) CType -- CCons
@@ -1275,7 +1288,6 @@ cbodyMatch(onTerm, onData, onCons, onMatch) =
     CBMatch -> onMatch
   )
 
-
 data CDef
   MkCDef : CSym CSig Maybe(CBody) -- CDef
 end
@@ -1303,7 +1315,6 @@ cdefSort = cdefSig csigSort
 
 cdef->str : CDef -- Str
 cdef->str = cdefSym csym->str " = _" <> # TODO : improve
-
 
 data CEnv
   MkCEnv : Map(CSym, CDef) -- CEnv
@@ -1385,7 +1396,6 @@ cfreshGet? = dup2 cfreshGet
 
 cfreshSet : CFresh CHole CTerm -- CFresh
 cfreshSet = dip2(unCFresh swap) mapSet swap MkCFresh
-
 
 data CCtx
   MkCCtx : CEnv CBinds CFresh -- CCtx
