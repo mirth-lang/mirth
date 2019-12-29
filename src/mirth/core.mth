@@ -150,6 +150,8 @@ export mirth/core
   CTBool : CType
   CTList : CType -- CType
   CTPack : CStack -- CType
+  CTPack2 : CType CType -- CType
+  CTPack3 : CType CType CType -- CType
   ctermGetType : CTerm -- Maybe(CType)
   cterm->ctype : CTerm -- CType # panics
   ctype->cterm : CType -- CTerm
@@ -806,35 +808,53 @@ cprimArity = cprimSig csigArity
 cprimKind : CPrim -- CKind
 cprimKind = cprimSig csigKind
 
+S0 : CStack
 S1 : CStack
 S2 : CStack
 S3 : CStack
 S4 : CStack
 
+T0 : CType
 T1 : CType
 T2 : CType
 T3 : CType
 T4 : CType
 
+BS0 : CBind
 BS1 : CBind
 BS2 : CBind
 BS3 : CBind
 BS4 : CBind
 
+BT0 : CBind
 BT1 : CBind
 BT2 : CBind
 BT3 : CBind
 BT4 : CBind
 
+S0 = "S0" CSVar'
 S1 = "S1" CSVar'
 S2 = "S2" CSVar'
 S3 = "S3" CSVar'
 S4 = "S4" CSVar'
 
+T0 = "T0" CTVar'
 T1 = "T1" CTVar'
 T2 = "T2" CTVar'
 T3 = "T3" CTVar'
 T4 = "T4" CTVar'
+
+BS0 = CKStack "S0" MkCVar CBImplicit
+BS1 = CKStack "S1" MkCVar CBImplicit
+BS2 = CKStack "S2" MkCVar CBImplicit
+BS3 = CKStack "S3" MkCVar CBImplicit
+BS4 = CKStack "S4" MkCVar CBImplicit
+
+BT0 = CKType "T0" MkCVar CBImplicit
+BT1 = CKType "T1" MkCVar CBImplicit
+BT2 = CKType "T2" MkCVar CBImplicit
+BT3 = CKType "T3" MkCVar CBImplicit
+BT4 = CKType "T4" MkCVar CBImplicit
 
 cprimSig : CPrim -- CSig
 cprimSig =
@@ -851,88 +871,92 @@ cprimSig =
     CPVInt -> drop [] [] CTInt CKValue,
     CPVStr -> drop [] [] CTStr CKValue,
     CPVBool -> drop [] [] CTBool CKValue,
-    CPVListNil -> [ "t" CTVar' CBImplicit ] [] "t" CTVar' CTHole' CTList CKValue,
+    CPVListNil -> [ BT0 ] [] T0 CTList CKValue,
     CPVListCons ->
-      [ 0 CTHole' CTList CKValue
-      ; 0 CTHole' CKValue
-      ] 0 CTHole' CTList CKValue,
-    CPVPackNil  -> [] CSNil CTPack CKValue,
+      [ BT0 ]
+      [ T0 CTList CKValue
+      ; T0 CKValue
+      ] T0 CTList CKValue,
+    CPVPackNil  -> [] [] CSNil CTPack CKValue,
     CPVPackCons ->
-      [ 0 CSHole' CTPack CKValue
-      ; 1 CTHole' CKValue
-      ] 0 CSHole' 1 CTHole' CSCons CTPack CKValue,
+      [ BS0 ; BT0 ]
+      [ S0 CTPack CKValue
+      ; T0 CKValue
+      ] S0 T0 CSCons CTPack CKValue,
 
-    CPWId -> [] CKWord00,
+    CPWId -> [] [] CKWord00,
     CPWCp ->
-      [ 0 CSHole' 1 CSHole' CKWord
-      ; 1 CSHole' 2 CSHole' CKWord
-      ] 0 CSHole' 2 CSHole' CKWord,
+      [ BS0 ; BS1 ; BS2 ]
+      [ S0 S1 CKWord
+      ; S1 S2 CKWord
+      ] S0 S2 CKWord,
     CPWDip ->
-      [ 0 CSHole' 1 CSHole' CKWord
-      ] 0 CSHole' 2 CTHole' CSCons
-        1 CSHole' 2 CTHole' CSCons CKWord,
-    CPWDup ->  [] 1 CTHole' dup dup CKWord12,
-    CPWDrop -> [] 1 CTHole' CKWord10,
-    CPWSwap -> [] 1 CTHole' 2 CTHole' dup2 swap CKWord22,
-    CPWPush -> [ 1 CTHole' CKValue ] 1 CTHole' CKWord01,
+      [ BS0 ; BS1 ; BT2 ]
+      [ S0 S1 CKWord
+      ] S0 T2 CSCons S1 T2 CSCons CKWord,
+    CPWDup ->  [ BT1 ] [] T1 T1 T1 CKWord12,
+    CPWDrop -> [ BT1 ] [] T1 CKWord10,
+    CPWSwap -> [ BT1 ; BT2 ] [] T1 T2 T2 T1 CKWord22,
+    CPWPush -> [ BT1 ] [ T1 CKValue ] T1 CKWord01,
 
     CPWPackMap ->
-      [ 1 CSHole' 2 CSHole' CKWord
-      ] 1 CSHole' CTPack 2 CSHole' CTPack CKWord11,
+      [ BS0 ; BS1 ]
+      [ S0 S1 CKWord
+      ] S0 CTPack S1 CTPack CKWord11,
     CPWPackPack2 ->
-      [] 1 CTHole' 2 CTHole'
-         CSNil 1 CTHole' CSCons 2 CTHole' CSCons CTPack
-         CKWord21,
+      [ BT1 ; BT2 ]
+      [] T1 T2 T1 T2 CTPack2 CKWord21,
     CPWPackUnpack2 ->
-      [] CSNil 1 CTHole' CSCons 2 CTHole' CSCons CTPack
-         1 CTHole' 2 CTHole' CKWord12,
+      [ BT1 ; BT2 ]
+      [] T1 T2 CTPack2 T1 T2 CKWord12,
 
     CPWBoolIf ->
-      [ 0 CSHole' 1 CSHole' CKWord
-      ; 0 CSHole' 1 CSHole' CKWord
-      ] 0 CSHole' CTBool CSCons 1 CSHole' CKWord,
-    CPWBoolTrue -> [] CTBool CKWord01,
-    CPWBoolFalse -> [] CTBool CKWord01,
+      [ BS0 ; BS1 ]
+      [ S0 S1 CKWord
+      ; S0 S1 CKWord
+      ] S0 CTBool CSCons S1 CKWord,
+    CPWBoolTrue -> [] [] CTBool CKWord01,
+    CPWBoolFalse -> [] [] CTBool CKWord01,
 
-    CPWIntAdd -> [] CTInt CTInt CTInt CKWord21,
-    CPWIntSub -> [] CTInt CTInt CTInt CKWord21,
-    CPWIntMul -> [] CTInt CTInt CTInt CKWord21,
-    CPWIntDiv -> [] CTInt CTInt CTInt CKWord21,
-    CPWIntMod -> [] CTInt CTInt CTInt CKWord21,
-    CPWIntLt -> [] CTInt CTInt CTBool CKWord21,
-    CPWIntEq -> [] CTInt CTInt CTBool CKWord21,
-    CPWStrCat -> [] CTStr CTStr CTStr CKWord21,
-    CPWStrBreak -> [] CTInt CTStr CTStr CTStr CKWord22,
-    CPWStrLen -> [] CTStr CTInt CKWord11,
-    CPWStrFromCodepoint -> [] CTInt CTStr CKWord11,
-    CPWStrToCodepoint -> [] CTStr CTInt CKWord11,
-    CPWStrElem -> [] CTStr CTStr CTBool CKWord21,
-    CPWStrReMatch -> [] CTStr CTStr CTInt CTBool CKWord22,
-    CPWListNil -> [] 1 CTHole' CTList CKWord01,
-    CPWListCons -> [] 1 CTHole' CTList 1 CTHole' 1 CTHole' CTList CKWord21,
-    CPWListCat -> [] 1 CTHole' CTList dup dup CKWord21,
-    CPWListLen -> [] 1 CTHole' CTList CTInt CKWord11,
-    CPWListAt -> [] 1 CTHole' CTList CTInt 1 CTHole' CKWord21,
-    CPWListBreak -> [] 1 CTHole' CTList dup dup dip2(CTInt) CKWord22,
-    CPWListMap -> [ 1 CTHole' 2 CTHole' CKWord11 ] 1 CTHole' CTList 2 CTHole' CTList CKWord11,
-    CPWListFor -> [ 1 CTHole' CKWord10 ] 1 CTHole' CTList CKWord10,
-    CPWUnsafePanic -> [] 0 CSHole' CTStr CSCons 1 CSHole' CKWord,
-    CPWUnsafeTrace -> [] CTStr CKWord10,
-    CPWUnsafePrint -> [] CTStr CKWord10,
-    CPWUnsafeListDir -> [] CTStr CTStr CTList CKWord11,
+    CPWIntAdd -> [] [] CTInt CTInt CTInt CKWord21,
+    CPWIntSub -> [] [] CTInt CTInt CTInt CKWord21,
+    CPWIntMul -> [] [] CTInt CTInt CTInt CKWord21,
+    CPWIntDiv -> [] [] CTInt CTInt CTInt CKWord21,
+    CPWIntMod -> [] [] CTInt CTInt CTInt CKWord21,
+    CPWIntLt -> [] [] CTInt CTInt CTBool CKWord21,
+    CPWIntEq -> [] [] CTInt CTInt CTBool CKWord21,
+    CPWStrCat -> [] [] CTStr CTStr CTStr CKWord21,
+    CPWStrBreak -> [] [] CTInt CTStr CTStr CTStr CKWord22,
+    CPWStrLen -> [] [] CTStr CTInt CKWord11,
+    CPWStrFromCodepoint -> [] [] CTInt CTStr CKWord11,
+    CPWStrToCodepoint -> [] [] CTStr CTInt CKWord11,
+    CPWStrElem -> [] [] CTStr CTStr CTBool CKWord21,
+    CPWStrReMatch -> [] [] CTStr CTStr CTInt CTBool CKWord22,
+    CPWListNil -> [ BT1 ] [] T1 CTList CKWord01,
+    CPWListCons -> [ BT1 ] [] T1 CTList T1 T1 CTList CKWord21,
+    CPWListCat -> [ BT1 ] [] T1 CTList dup dup CKWord21,
+    CPWListLen -> [ BT1 ] [] T1 CTList CTInt CKWord11,
+    CPWListAt -> [ BT1 ] [] T1 CTList CTInt T1 CKWord21,
+    CPWListBreak -> [ BT1 ] [] T1 CTList CTInt T1 CTList T1 CTList CKWord22,
+    CPWListMap -> [ BT1 ; BT2 ] [ T1 T2 CKWord11 ] T1 CTList T2 CTList CKWord11,
+    CPWListFor -> [ BS0 ; BT1 ] [ S0 T1 CSCons S0 CKWord ] S0 T1 CTList CSCons S0 CKWord,
+    CPWUnsafePanic -> [ BS0 ; BS1 ] [] S0 CTStr CSCons S1 CKWord,
+    CPWUnsafeTrace -> [] [] CTStr CKWord10,
+    CPWUnsafePrint -> [] [] CTStr CKWord10,
+    CPWUnsafeListDir -> [] [] CTStr CTStr CTList CKWord11,
     CPWUnsafeWalk ->
-      [] CTStr CSNil CTStr CSCons CTStr CTList CSCons CTStr CTList CSCons CTPack CKWord11,
-    CPWUnsafeIsDir -> [] CTStr CTBool CKWord11,
-    CPWUnsafeIsFile -> [] CTStr CTBool CKWord11,
-    CPWUnsafeRead -> [] CTStr CTStr CKWord11,
-    CPWUnsafeWrite -> [] CTStr CTStr CKWord20,
-    CPWUnsafeAppend -> [] CTStr CTStr CKWord20,
-    CPWUnsafeDelete -> [] CTStr CKWord10,
-    CPWUnsafeCoerce -> [] 0 CSHole' 1 CSHole' CKWord,
-    CPWUnsafeHash -> [] 1 CTHole' CTInt CKWord11,
-    CPWUnsafeEnvGet -> [] CTStr 1 CTHole' CKWord11,
-    CPWUnsafeEnvSet -> [] 1 CTHole' CTStr CKWord20,
-    CPWUnsafeExit -> [] 0 CSHole' CTInt CSCons 1 CSHole' CKWord
+      [] [] CTStr CTStr CTStr CTList CTStr CTList CTPack3 CTList CKWord11,
+    CPWUnsafeIsDir -> [] [] CTStr CTBool CKWord11,
+    CPWUnsafeIsFile -> [] [] CTStr CTBool CKWord11,
+    CPWUnsafeRead -> [] [] CTStr CTStr CKWord11,
+    CPWUnsafeWrite -> [] [] CTStr CTStr CKWord20,
+    CPWUnsafeAppend -> [] [] CTStr CTStr CKWord20,
+    CPWUnsafeDelete -> [] [] CTStr CKWord10,
+    CPWUnsafeCoerce -> [ BS0 ; BS1 ] [] S0 S1 CKWord,
+    CPWUnsafeHash -> [ BT1 ] [] T1 CTInt CKWord11,
+    CPWUnsafeEnvGet -> [ BT1 ] [] CTStr T1 CKWord11,
+    CPWUnsafeEnvSet -> [ BT1 ] [] T1 CTStr CKWord20,
+    CPWUnsafeExit -> [ BS0 ; BS1 ] [] S0 CTInt CSCons S1 CKWord
   ) dip(map(CBAnonymous) ++) MkCSig
 
 #######################
@@ -1029,6 +1053,12 @@ CTList = dip(CPTList CHPrim nil) ctype->cterm cons MkCTerm MkCType
 
 CTPack : CStack -- CType
 CTPack = dip(CPTPack CHPrim nil) cstack->cterm cons MkCTerm MkCType
+
+CTPack2 : CType CType -- CType
+CTPack2 = dip2(CSNil) dip(CSCons) CSCons CTPack
+
+CTPack3 : CType CType CType -- CType
+CTPack3 = dip3(CSNil) dip2(CSCons) dip(CSCons) CSCons CTPack
 
 data CValue
   MkCValue : CTerm -- CValue
@@ -1134,14 +1164,14 @@ CKWord20 : CType CType -- CKind
 CKWord21 : CType CType CType -- CKind
 CKWord22 : CType CType CType CType -- CKind
 
-CKWord00 = 0 CSHole' 0 CSHole' CKWord
-CKWord01 = dip(0 CSHole' 0 CSHole') CSCons CKWord
-CKWord10 = dip(0 CSHole') CSCons 0 CSHole' CKWord
-CKWord11 = dip2(0 CSHole') dip(CSCons 0 CSHole') CSCons CKWord
-CKWord12 = dip3(0 CSHole') dip2(CSCons 0 CSHole') dip(CSCons) CSCons CKWord
-CKWord20 = dip2(0 CSHole') dip(CSCons) CSCons 0 CSHole' CKWord
-CKWord21 = dip3(0 CSHole') dip2(CSCons) dip(CSCons 0 CSHole') CSCons CKWord
-CKWord22 = dip4(0 CSHole') dip3(CSCons) dip2(CSCons 0 CSHole') dip(CSCons) CSCons CKWord
+CKWord00 = CSNil CSNil CKWord
+CKWord01 = dip(CSNil CSNil) CSCons CKWord
+CKWord10 = dip(CSNil) CSCons CSNil CKWord
+CKWord11 = dip2(CSNil) dip(CSCons CSNil) CSCons CKWord
+CKWord12 = dip3(CSNil) dip2(CSCons CSNil) dip(CSCons) CSCons CKWord
+CKWord20 = dip2(CSNil) dip(CSCons) CSCons CSNil CKWord
+CKWord21 = dip3(CSNil) dip2(CSCons) dip(CSCons CSNil) CSCons CKWord
+CKWord22 = dip4(CSNil) dip3(CSCons) dip2(CSCons CSNil) dip(CSCons) CSCons CKWord
 
 ckindSort : CKind -- CSort
 ckindSort =
