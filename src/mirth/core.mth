@@ -34,6 +34,9 @@ export mirth/core
   type CMatch
   type CBody
   type CDef
+  type CSymKey
+  type CVarKey
+  type CHoleKey
   type CEnv
   type CBinds
   type CFresh
@@ -250,8 +253,8 @@ export mirth/core
     onMatch: *a CMatch -- *b
   ) : *a CBody -- *b
 
-  MkCDef : CSym CSig Maybe(CBody) -- CDef
-  unCDef : CDef -- CSym CSig Maybe(CBody)
+  MkCDef : CSym Maybe(CBody) -- CDef
+  unCDef : CDef -- CSym Maybe(CBody)
   cdefSym : CDef -- CSym
   cdefSig : CDef -- CSig
   cdefArity : CDef -- CArity
@@ -260,17 +263,26 @@ export mirth/core
   cdefBody : CDef -- Maybe(CBody)
   cdef->str : CDef -- Str
 
-  MkCEnv : Map(CSym, CDef) -- CEnv
-  unCEnv : CEnv -- Map(CSym, CDef)
-  cenvDefs : CEnv -- Map(CSym, CDef)
+  MkCSymKey : CArity Str -- CSymKey
+  csym->csymkey : CSym -- CSymKey
+
+  MkCVarKey : CSort Str -- CVarKey
+  cvar->cvarkey : CVar -- CVarKey
+
+  MkCHoleKey : CSort Nat -- CHoleKey
+  chole->cholekey : CHole -- CHoleKey
+
+  MkCEnv : Map(CSymKey, CDef) -- CEnv
+  unCEnv : CEnv -- Map(CSymKey, CDef)
+  cenvDefs : CEnv -- Map(CSymKey, CDef)
   cenvNil : CEnv
   cenvGet : CEnv CSym -- Maybe(CDef)
   cenvSet : CEnv CDef -- CEnv
   cenvAdd : CEnv CDef -- Result(Str, CEnv)
   cenv->str : CEnv -- Str
 
-  MkCBinds : Map(CVar, CBind) -- CBinds
-  unCBinds : CBinds -- Map(CVar, CBind)
+  MkCBinds : Map(CVarKey, CBind) -- CBinds
+  unCBinds : CBinds -- Map(CVarKey, CBind)
   cbindsNil : CBinds
   cbindsGet : CBinds CVar -- Maybe(CBind)
   cbindsGetKind : CBinds CVar -- Maybe(CKind)
@@ -279,8 +291,8 @@ export mirth/core
   cbindsAdd : CBinds CBind -- Result(Str, CBinds)
   cbindsAddMany : CBinds List(CBind) -- Result(Str, CBinds)
 
-  MkCFresh : Map(CHole, CTerm) Nat -- CFresh
-  unCFresh : CFresh -- Map(CHole, CTerm) Nat
+  MkCFresh : Map(CHoleKey, CTerm) Nat -- CFresh
+  unCFresh : CFresh -- Map(CHoleKey, CTerm) Nat
   cfreshNil : CFresh
   cfreshNext : CFresh -- CFresh Nat
   cfreshReserve : CFresh Nat -- CFresh
@@ -1337,20 +1349,20 @@ cbodyMatch(onTerm, onData, onCons, onMatch) =
   )
 
 data CDef
-  MkCDef : CSym CSig Maybe(CBody) -- CDef
+  MkCDef : CSym Maybe(CBody) -- CDef
 end
 
-unCDef : CDef -- CSym CSig Maybe(CBody)
+unCDef : CDef -- CSym Maybe(CBody)
 unCDef = match(MkCDef -> id)
 
 cdefSym : CDef -- CSym
-cdefSym = unCDef drop2
+cdefSym = unCDef drop
 
 cdefSig : CDef -- CSig
-cdefSig = unCDef drop nip
+cdefSig = cdefSym csymSig
 
 cdefBody : CDef -- Maybe(CBody)
-cdefBody = unCDef dip(drop2)
+cdefBody = unCDef nip
 
 cdefArity : CDef -- CArity
 cdefArity = cdefSig csigArity
@@ -1364,24 +1376,45 @@ cdefSort = cdefSig csigSort
 cdef->str : CDef -- Str
 cdef->str = cdefSym csym->str " = _" <> # TODO : improve
 
-data CEnv
-  MkCEnv : Map(CSym, CDef) -- CEnv
+data CSymKey
+  MkCSymKey : CArity Str -- CSymKey
 end
 
-unCEnv : CEnv -- Map(CSym, CDef)
+csym->csymkey : CSym -- CSymKey
+csym->csymkey = unCSym dip(csigArity) MkCSymKey
+
+data CVarKey
+  MkCVarKey : CSort Str -- CVarKey
+end
+
+cvar->cvarkey : CVar -- CVarKey
+cvar->cvarkey = unCVar dip(ckindSort) MkCVarKey
+
+data CHoleKey
+  MkCHoleKey : CSort Nat -- CHoleKey
+end
+
+chole->cholekey : CHole -- CHoleKey
+chole->cholekey = unCHole dip(ckindSort) MkCHoleKey
+
+data CEnv
+  MkCEnv : Map(CSymKey, CDef) -- CEnv
+end
+
+unCEnv : CEnv -- Map(CSymKey, CDef)
 unCEnv = match(MkCEnv -> id)
 
-cenvDefs : CEnv -- Map(CSym, CDef)
+cenvDefs : CEnv -- Map(CSymKey, CDef)
 cenvDefs = unCEnv
 
 cenvNil : CEnv
 cenvNil = mapNil MkCEnv
 
 cenvGet : CEnv CSym -- Maybe(CDef)
-cenvGet = dip(unCEnv) mapGet
+cenvGet = dip(unCEnv) csym->csymkey mapGet
 
 cenvSet : CEnv CDef -- CEnv
-cenvSet = dip(unCEnv) dup dip(cdefSym) mapSet MkCEnv
+cenvSet = dip(unCEnv) dup dip(cdefSym csym->csymkey) mapSet MkCEnv
 
 cenvAdd : CEnv CDef -- Result(Str, CEnv)
 cenvAdd = cenvSet ok # TODO: improve
@@ -1390,20 +1423,20 @@ cenv->str : CEnv -- Str
 cenv->str = dip("") unCEnv mapFor(nip cdef->str "\n" <> <>)
 
 data CBinds
-  MkCBinds : Map(CVar, CBind) -- CBinds
+  MkCBinds : Map(CVarKey, CBind) -- CBinds
 end
 
-unCBinds : CBinds -- Map(CVar, CBind)
+unCBinds : CBinds -- Map(CVarKey, CBind)
 unCBinds = match(MkCBinds -> id)
 
 cbindsNil : CBinds
 cbindsNil = mapNil MkCBinds
 
 cbindsGet : CBinds CVar -- Maybe(CBind)
-cbindsGet = dip(unCBinds) mapGet
+cbindsGet = dip(unCBinds) cvar->cvarkey mapGet
 
 cbindsGetKind : CBinds CVar -- Maybe(CKind)
-cbindsGetKind = cbindsGetKind
+cbindsGetKind = cbindsGet mmap(cbindKind)
 
 cbindsGet? : CBinds CVar -- CBinds CVar Maybe(CBind)
 cbindsGet? = dup2 cbindsGet
@@ -1412,7 +1445,7 @@ cbindsGetKind? : CBinds CVar -- CBinds CVar Maybe(CKind)
 cbindsGetKind? = dup2 cbindsGetKind
 
 cbindsSet : CBinds CBind -- CBinds
-cbindsSet = dup cbindVar maybe(drop, dip2(unCBinds) swap mapSet MkCBinds)
+cbindsSet = dup cbindVar maybe(drop, cvar->cvarkey dip2(unCBinds) swap mapSet MkCBinds)
 
 cbindsAdd : CBinds CBind -- Result(Str, CBinds)
 cbindsAdd = cbindsSet ok # TODO: improve (to prevent shadowing)
@@ -1421,10 +1454,10 @@ cbindsAddMany : CBinds List(CBind) -- Result(Str, CBinds)
 cbindsAddMany = dip(ok) for(rpure rbind2(cbindsAdd))
 
 data CFresh
-  MkCFresh : Map(CHole, CTerm) Nat -- CFresh
+  MkCFresh : Map(CHoleKey, CTerm) Nat -- CFresh
 end
 
-unCFresh : CFresh -- Map(CHole, CTerm) Nat
+unCFresh : CFresh -- Map(CHoleKey, CTerm) Nat
 unCFresh = match(MkCFresh -> id)
 
 cfreshNil : CFresh
@@ -1437,13 +1470,13 @@ cfreshReserve : CFresh Nat -- CFresh
 cfreshReserve = dip(unCFresh) nmax MkCFresh
 
 cfreshGet : CFresh CHole -- Maybe(CTerm)
-cfreshGet = dip(unCFresh drop) mapGet
+cfreshGet = dip(unCFresh drop) chole->cholekey mapGet
 
 cfreshGet? : CFresh CHole -- CFresh CHole Maybe(CTerm)
 cfreshGet? = dup2 cfreshGet
 
 cfreshSet : CFresh CHole CTerm -- CFresh
-cfreshSet = dip2(unCFresh swap) mapSet swap MkCFresh
+cfreshSet = dip2(unCFresh swap) dip(chole->cholekey) mapSet swap MkCFresh
 
 data CCtx
   MkCCtx : CEnv CBinds CFresh -- CCtx
