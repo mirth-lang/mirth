@@ -23,6 +23,8 @@ export base/set
   setFromMapKeys : Map(k,v) -- Set(k)
   setNil : Set(k)
   setAdd : Set(k) k -- Set(k)
+  setSingle : k -- Set(k)
+  setUnion : Set(k) Set(k) -- Set(k)
   setHas : Set(k) k -- Bool
   setLen : Set(k) -- Nat
   setNil? : Set(k) -- Set(k) Bool
@@ -43,7 +45,9 @@ Set.generate = setFromList
 setFromList = dip(setNil) for(setAdd)
 setFromMapKeys = mapMap(drop unit) mkSet
 setNil = mapNil mkSet
+setSingle = dip(setNil) setAdd
 setAdd = dip(unSet) unit mapSet mkSet
+setUnion = setFor(setAdd)
 setHas = dip(unSet) mapHas
 setLen = unSet mapLen
 setNil? = unSet mapNil? dip(mkSet)
@@ -51,5 +55,4 @@ setLen? = dup setLen
 setHas? = dup2 setHas
 setFor(f) = unSet mapFor(drop f)
 set->sexp(k->sexp) = dip(nil) setFor(k->sexp cons) sexpList
-
 
