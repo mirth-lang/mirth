@@ -3,6 +3,7 @@ import base/int
 import base/nat
 import base/str
 import base/map
+import base/set
 import base/list
 import base/list/syntax
 import base/maybe
@@ -125,6 +126,7 @@ export mirth/core
 
   MkCTerm : CHead List(CTerm) -- CTerm
   unCTerm : CTerm -- CHead List(CTerm)
+  ctermGetHole : CTerm -- Maybe(CHole)
   ctermHead : CTerm -- CHead
   ctermArgs : CTerm -- List(CTerm)
   ctermSort : CTerm -- CSort
@@ -572,6 +574,18 @@ ctermArgs = unCTerm nip
 
 ctermSort : CTerm -- CSort
 ctermSort = ctermHead cheadSort
+
+ctermGetHole : CTerm -- Maybe(CHole)
+ctermGetHole = ctermHead cheadGetHole
+
+ctermGetVar : CTerm -- Maybe(CVar)
+ctermGetVar = ctermHead cheadGetVar
+
+ctermGetSym : CTerm -- Maybe(CSym)
+ctermGetSym = ctermHead cheadGetSym
+
+ctermGetPrim : CTerm -- Maybe(CPrim)
+ctermGetPrim = ctermHead cheadGetPrim
 
 cterm= : CTerm CTerm -- Bool
 cterm= = $(
@@ -1529,4 +1543,68 @@ cctxGetHole? = dup2 cctxGetHole
 
 cctxSetHole : CCtx CHole CTerm -- CCtx
 cctxSetHole = dip2(unCCtx) cfreshSet MkCCtx
+
+cheadHoles : CHead -- Set(CHole)
+cheadHoles =
+  match(
+    CHHole -> setSingle,
+    _ -> drop setNil
+  )
+
+ctermHoles : CTerm -- Set(CHole)
+ctermHoles = unCTerm dip(cheadHoles) for(ctermHoles setUnion)
+
+||| Expand out a term's head if it's a defined hole.
+||| Guaranteed to preserve term's sort, and its type
+||| if the ctx and term are in agreement on hole kinds.
+ctermExpandHeadHoles : CCtx CTerm -- CCtx CTerm
+ctermExpandHeadHoles =
+  unCTerm swap match(
+    CHHole ->
+      swap dip(cctxGetHole?) swap maybe(
+        dip(CHHole) MkCTerm,
+        dip(drop2) ctermExpandHeadHoles
+      ),
+    _ -> swap MkCTerm
+  )
+
+||| Expand a term's defined holes fully.
+||| Guaranteed to preserve term's sort, and its type
+||| if the ctx and term are in agreement on hole kinds.
+ctermExpandHoles : CCtx CTerm -- CCtx CTerm
+ctermExpandHoles = ctermExpandHeadHoles unCTerm dip'(formap(ctermExpandHoles)) MkCTerm
+
+||| Unify a term with an undefined hole. (Do not call this
+||| with a defined hole on the RHS.)
+ctermUnifyUndefinedHole : CCtx CTerm CHole -- CCtx Result(Str, CTerm)
+ctermUnifyUndefinedHole =
+  dup2 CHHole nil MkCTerm cterm= if(
+    # case where the term is the hole
+    drop ok,
+
+    dip(ctermExpandHoles dup ctermHoles) setHas? if(
+      # case where the term contains the hole, so unification must fail
+      nip dip2("Cannot unify ") dip(cterm->str <> " with " <>) chole->str <> err,
+
+      # case where unification happens
+      nip swap dup dip(cctxSetHole) ok
+    )
+  )
+
+||| Unify two non-hole terms. (Do not call this with holes.)
+ctermUnifyNonHoles : CCtx CTerm CTerm -- CCtx Result(Str, CTerm)
+ctermUnifyNonHoles = drop2 "ctermUnifyNonHoles not yet implemented" err # TODO
+
+||| Unify two terms.
+ctermUnify : CCtx CTerm CTerm -- CCtx Result(Str, CTerm)
+ctermUnify = $(
+  dip(ctermExpandHeadHoles) dip'(ctermExpandHeadHoles)
+  dup ctermGetHole maybe(
+    over ctermGetHole maybe(
+      ctermUnifyNonHoles,
+      dip2(drop) ctermUnifyUndefinedHole
+    ),
+    nip ctermUnifyUndefinedHole
+  )
+)
 
