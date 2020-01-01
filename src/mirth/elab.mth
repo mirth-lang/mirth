@@ -14,6 +14,7 @@ import mirth/loc
 import mirth/pkg
 import mirth/mod
 import mirth/syntax
+import mirth/core
 
 export mirth/elab
   type Map(k,v)
@@ -27,13 +28,8 @@ export mirth/elab
 
   type ESym
   type ETerm
-  type EEffect
-  type EStack
-  type EType
-  type EKind
   type EBind
   type ECtx
-  type EParams
   type EDefs
   type EInterface
   type EModule
@@ -265,89 +261,26 @@ esym->str =
 esym->sexp : ESym -- Sexp
 esym->sexp = esym->str sexpAtom
 
-data EParams
-  MkEParams : EParams
-end
-
-unEParams : EParams --
-unEParams = match(MkEParams -> id)
-
-eparamsNil : EParams
-eparamsNil = MkEParams
-
-eparams->sexp : EParams -- Sexp
-eparams->sexp = unEParams nil sexpList
-
-||| Elaborated effect type.
-data EEffect
-  EEVar : Name -- EEffect
-  EESym : ESym -- EEffect
-  EENil : EEffect
-end
-
-||| Elaborated stack type.
-data EStack
-  ESVar : Name -- EStack
-  ESNil : EStack
-  ESCons : EStack EType -- EStack
-end
-
-||| Elaborated value type.
-data EType
-  ETVar : Name -- EType
-  ETSym : ESym List(EType) -- EType
-end
-
-||| Elaborated word.
-data EWord
-  EWVar : Name List(EWord) -- EWord
-  EWSym : ESym List(EWord) -- EWord
-  EWId : EWord
-  EWCp : EWord EWord -- EWord
-  EWSwap : EWord
-  EWDrop : EWord
-  EWDup : EWord
-  EWDip : EWord -- EWord
-end
-
 ||| A type definition.
-data ETypeDef
-  MkETypeDef : ESym EParams -- ETypeDef
+data ECoreDef
+  MkECoreDef : ESym CSym List(CDef) -- ECoreDef
 end
 
-unETypeDef : ETypeDef -- ESym EParams
-unETypeDef = match(MkETypeDef -> id)
+unECoreDef : ECoreDef -- ESym CSym List(CDef)
+unECoreDef = match(MkEcoreDef -> id)
 
-etypedefSym : ETypeDef -- ESym
-etypedefSym = unETypeDef drop
+ecoredefSym : ECoreDef -- ESym
+ecoredefSym = unECoreDef drop2
 
-etypedef->sexp : ETypeDef -- Sexp
-etypedef->sexp = unETypeDef sexp2("type", esym->sexp, eparams->sexp)
+ecoredef->sexp : ECoreDef -- Sexp
+ecoredef->sexp = unETypeDef sexp3("core", esym->sexp, csym->sexp, list->sexp(cdef->sexp))
 
-etypedefMerge(key->str: key -- Str) : key ETypeDef ETypeDef -- key EMonad(ETypeDef)
-etypedefMerge(key->str) = drop emPure # TODO
-
-||| A word definition.
-data EWordDef
-  MkEWordDef : ESym -- EWordDef
-end
-
-unEWordDef : EWordDef -- ESym
-unEWordDef = match(MkEWordDef -> id)
-
-eworddefSym : EWordDef -- ESym
-eworddefSym = unEWordDef
-
-eworddef->sexp : EWordDef -- Sexp
-eworddef->sexp = unEWordDef sexp1("word", esym->sexp)
-
-eworddefMerge(key->str: key -- Str) : key EWordDef EWordDef -- key EMonad(EWordDef)
-eworddefMerge(key->str) = drop emPure # TODO
+ecoredefMerge(key->str: key -- Str) : key ECoreDef ECoreDef -- key EMonad(ECoreDef)
+ecoredefMerge(key->str) = drop emPure # TODO
 
 ||| A definition.
 data EDef
-  EDType : ETypeDef -- EDef
-  EDWord : EWordDef -- EDef
+  EDCore : ECoreDef -- EDef
 end
 
 edefSym : EDef -- ESym
@@ -681,73 +614,32 @@ efocusPkg = unEFocus drop2 mmap(epackagePkg)
 efocusMod : EFocus -- Maybe(Mod)
 efocusMod = unEFocus drop nip mmap(emoduleMod)
 
-efocusTypeSym : EFocus Name -- ESym
-efocusTypeSym = dip(efocusPkg) ESymType
-
-efocusWordSym : EFocus Name -- ESym
-efocusWordSym = dip(efocusMod) ESymWord
-
-||| Information associated with a binding.
-data EBind
-  MkEBind : EBind
-end
-
-||| List of bindings.
-data EBinds
-  MkEBinds : EBinds
-end
-
-ebindsNil : EBinds
-ebindsNil = MkEBinds
-
-ebindsGet : EBinds Name -- Maybe(EBind)
-ebindsGet = drop2 none
-
-ebindsSet : EBinds Name EBind -- EBinds
-ebindsSet = drop2
-
-||| Local Scope
+||| Elaboration context.
 data ECtx
-  MkECtx : EBinds Maybe(EStack) -- ECtx
+  ECtxNone : ECtx
+  ECtxType : CCtx -- ECtx
+  ECtxWord : CCtx CStack -- ECtx
 end
-
-unECtx : ECtx -- EBinds Maybe(EStack)
-unECtx = match(MkECtx -> id)
 
 ectxNil : ECtx
-ectxNil = ebindsNil none MkECtx
+ectxNil = ECtxNone
 
-ectxNilWithImplicits : ECtx
-ectxNilWithImplicits = ectxNil # TODO
-
-ectxUseBinds(f: EBinds a -- EBinds b) : ECtx a -- ECtx b
-ectxUseBinds(f) = dip(unECtx) dip'(f) dip(MkECtx)
-
-ectxUseStack(f: Maybe(EStack) a -- Maybe(EStack) b) : ECtx a -- ECtx b
-ectxUseStack(f) = dip(unECtx) f dip(MkECtx)
-
-ectxVars : ECtx -- Set(Name)
-ectxVars = drop setNil
-
-||| Environment -- The current scope and metavariables.
+||| Local environment -- The current elab context and location.
 data ELocal
-  MkELocal : ECtx LocSet Nat -- ELocal
+  MkELocal : ECtx LocSet -- ELocal
 end
 
-unELocal : ELocal -- ECtx LocSet Nat
+unELocal : ELocal -- ECtx LocSet
 unELocal = match(MkELocal -> id)
 
 elocalNil : ELocal
-elocalNil =  ectxNil locSetNull n0 MkELocal
-
-elocalFreshNat : ELocal -- ELocal Nat
-elocalFreshNat = unELocal dup dip(n1+ pnat MkELocal)
+elocalNil = ectxNil locSetNull MkELocal
 
 elocalUseCtx(f: ECtx a -- ECtx b) : ELocal a -- ELocal b
-elocalUseCtx(f) = dip(unELocal) dip2''(f) dip(MkELocal)
+elocalUseCtx(f) = dip(unELocal) dip'(f) dip(MkELocal)
 
 elocalUseLoc(f: LocSet a -- LocSet b) : ELocal a -- ELocal b
-elocalUseLoc(f) = dip(unELocal) dip'(f) dip(MkELocal)
+elocalUseLoc(f) = dip(unELocal) f dip(MkELocal)
 
 ||| Elaboration Environment
 data EEnv
@@ -791,12 +683,6 @@ emGetLocal = unit emUse(eenvUseLocal(drop dup))
 emSetLocal : ELocal -- EMonad(Unit)
 emSetLocal = emUse(eenvUseLocal(nip unit))
 
-emFreshNat : EMonad(Nat)
-emFreshNat = unit emUse(eenvUseLocal(drop elocalFreshNat))
-
-emFreshName : EMonad(Name)
-emFreshName = emFreshNat emMap(dip("?") nat->str <> mkName)
-
 emWith(f: a -- EMonad(b), getX : EMonad(x), setX : x -- EMonad(Unit)) : a x -- EMonad(b)
 emWith(f, getX, setX) = $(
   dip(f getX) setX rotl
@@ -820,12 +706,6 @@ emSetLoc = emUse(eenvUseLocal(elocalUseLoc(nip unit)))
 
 emWithLoc(f: a -- EMonad(b)) : a LocSet -- EMonad(b)
 emWithLoc(f) = emWith(f, emGetLoc, emSetLoc)
-
-emGetBind : Name -- EMonad(Maybe(EBind))
-emGetBind = emUse(eenvUseLocal(elocalUseCtx(ectxUseBinds(dip(dup) ebindsGet))))
-
-emSetBind : Name EBind -- EMonad(Unit)
-emSetBind = pack2 emUse(eenvUseLocal(elocalUseCtx(ectxUseBinds(unpack2 ebindsSet unit))))
 
 emFor(f: a b -- EMonad(a)) : a List(b) -- EMonad(a)
 emFor(f) = lmatchL(emPure, dip(f) emPure emBind2(emFor(f)))
@@ -914,12 +794,6 @@ emAddDefs = $(
 emAddDef : Name EDef -- EMonad(Unit)
 emAddDef = edefsSingle emAddDefs
 
-emMkTypeSym : Name -- EMonad(ESym)
-emMkTypeSym = emUse(eenvUseFocus(dip(dup) efocusTypeSym))
-
-emMkWordSym : Name -- EMonad(ESym)
-emMkWordSym = emUse(eenvUseFocus(dip(dup) efocusWordSym))
-
 ########################
 ## ACTUAL ELABORATION ##
 ########################
@@ -945,8 +819,6 @@ elabLWordSig : L(WordSig) -- EMonad(Unit)
 elabLWordDef : L(WordDef) -- EMonad(Unit)
 elabLAssertion : L(Assertion) -- EMonad(Unit)
 
-elabLParams : L(Params) -- EMonad(EParams)
-
 elabPackage : Pkg Map(Mod, L(Module)) -- EMonad(Unit)
 elabModuleHead : Mod Module -- EMonad(Unit)
 elabModule : Mod Module -- EMonad(Unit)
@@ -960,8 +832,6 @@ elabWordSig : WordSig -- EMonad(Unit)
 elabWordDef : WordDef -- EMonad(Unit)
 elabAssertion : Assertion -- EMonad(Unit)
 
-elabParams : Params -- EMonad(EParams)
-
 elabLModuleHead = elabL2(elabModule)
 elabLModule = elabL2(elabModule)
 elabLImport = elabL(elabImport)
@@ -973,7 +843,6 @@ elabLDataDef = elabL(elabDataDef)
 elabLWordSig = elabL(elabWordSig)
 elabLWordDef = elabL(elabWordDef)
 elabLAssertion = elabL(elabAssertion)
-elabLParams = elabL(elabParams)
 
 elabPackage = $(
   dip(epackageNil emSetFocusPackage emDropFocusModule emDropFocusInterface emVoid3)
@@ -1026,18 +895,11 @@ elabSig =
     elabLAssertion
   )
 
-elabTypeSig = $(
-  dup dip(typeSigName getL dup dip(emPure) emMkTypeSym)
-  ectxNilWithImplicits emWithCtx(typeSigParams elabLParams)
-  emBind3(MkETypeDef EDType emAddDef)
-)
-
+elabTypeSig = drop emUnit
 elabDataDef = drop emUnit
 elabWordSig = drop emUnit
 elabWordDef = drop emUnit
 elabAssertion = drop emUnit
-
-elabParams = drop MkEParams emPure # TODO
 
 runElabModule : Mod L(Module) -- EResult(EModule)
 runElabModule = $(
