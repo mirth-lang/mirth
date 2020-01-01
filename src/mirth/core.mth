@@ -1574,6 +1574,15 @@ ctermExpandHeadHoles =
 ctermExpandHoles : CCtx CTerm -- CCtx CTerm
 ctermExpandHoles = ctermExpandHeadHoles unCTerm dip'(formap(ctermExpandHoles)) MkCTerm
 
+###############
+# UNIFICATION #
+###############
+
+ctermUnify : CCtx CTerm CTerm -- CCtx Result(Str, CTerm)
+ctermUnifyList : CCtx List(CTerm) List(CTerm) -- CCtx Result(Str, List(CTerm))
+ctermUnifyNonHoles : CCtx CTerm CTerm -- CCtx Result(Str, CTerm)
+ctermUnifyUndefinedHole : CCtx CTerm CHole -- CCtx Result(Str, CTerm)
+
 ||| Unify a term with an undefined hole. (Do not call this
 ||| with a defined hole on the RHS.)
 ctermUnifyUndefinedHole : CCtx CTerm CHole -- CCtx Result(Str, CTerm)
@@ -1591,9 +1600,21 @@ ctermUnifyUndefinedHole =
     )
   )
 
+ctermUnifyList : CCtx List(CTerm) List(CTerm) -- CCtx Result(Str, List(CTerm))
+ctermUnifyList =
+  dup2 list=(drop2 true) if(
+    dip2(nil ok) zip for(swap result(nip err, dip(unpack2 ctermUnify) ok swap rmap2(cons))),
+    drop2 "Arity mismatch between unification terms." err
+  )
+
 ||| Unify two non-hole terms. (Do not call this with holes.)
 ctermUnifyNonHoles : CCtx CTerm CTerm -- CCtx Result(Str, CTerm)
-ctermUnifyNonHoles = drop2 "ctermUnifyNonHoles not yet implemented" err # TODO
+ctermUnifyNonHoles =
+  # TODO: Expand neutral terms before comparing heads.
+  dup2 both(ctermHead) chead= if(
+    dip(ctermArgs) unCTerm swap dip(ctermUnifyList) ok rmap2(swap MkCTerm),
+    dip2("Cannot unify ") dip(cterm->str <> " with " <>) cterm->str <> err
+  )
 
 ||| Unify two terms.
 ctermUnify : CCtx CTerm CTerm -- CCtx Result(Str, CTerm)
