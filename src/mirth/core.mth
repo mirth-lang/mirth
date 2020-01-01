@@ -121,6 +121,8 @@ export mirth/core
   cheadClosed? : CHead -- CHead Bool
   cheadArity : CHead -- CArity
   cheadSort : CHead -- CSort
+  cheadVars : CHead -- Set(CVar)
+  cheadHoles : CHead -- Set(CHole)
   chead= : CHead CHead -- Bool
   chead->str : CHead -- Str
 
@@ -130,6 +132,8 @@ export mirth/core
   ctermHead : CTerm -- CHead
   ctermArgs : CTerm -- List(CTerm)
   ctermSort : CTerm -- CSort
+  ctermVars : CTerm -- Set(CVar)
+  ctermHoles : CTerm -- Set(CHole)
   cterm= : CTerm CTerm -- Bool
   cterm->str : CTerm -- Str
 
@@ -201,6 +205,8 @@ export mirth/core
   CKWord21 : CType CType CType -- CKind
   CKWord22 : CType CType CType CType -- CKind
   ckindSort : CKind -- CSort
+  ckindVars : CKind -- Set(CVar)
+  ckindHoles : CKind -- Set(CHole)
 
   CBImplicit : CVar -- CBind
   CBExplicit : CVar -- CBind
@@ -508,6 +514,12 @@ cheadGetHole = match(CHHole -> some, _ -> drop none)
 cheadGetPrim : CHead -- Maybe(CPrim)
 cheadGetPrim = match(CHPrim -> some, _ -> drop none)
 
+cheadVars : CHead -- Set(CVar)
+cheadVars = cheadClosed? if(drop setNil, dup dip(cheadGetVar maybe->set) cheadKind ckindVars setUnion)
+
+cheadHoles : CHead -- Set(CHole)
+cheadHoles = cheadClosed? if(drop setNil, dup dip(cheadGetHole maybe->set) cheadKind ckindHoles setUnion)
+
 ||| Get the head's sig. This is context-dependent only for CVars and CHoles.
 ||| See `cheadClosed` below.
 cheadSig : CHead -- CSig
@@ -586,6 +598,12 @@ ctermGetSym = ctermHead cheadGetSym
 
 ctermGetPrim : CTerm -- Maybe(CPrim)
 ctermGetPrim = ctermHead cheadGetPrim
+
+ctermVars : CTerm -- Set(CVar)
+ctermVars = unCTerm dip(cheadVars) for(ctermVars setUnion)
+
+ctermHoles : CTerm -- Set(CHole)
+ctermHoles = unCTerm dip(cheadHoles) for(ctermHoles setUnion)
 
 cterm= : CTerm CTerm -- Bool
 cterm= = $(
@@ -1208,6 +1226,24 @@ ckindSort =
     CKWord -> drop2 CSWord
   )
 
+ckindVars : CKind -- Set(CVar)
+ckindVars =
+  match(
+    CKStack -> setNil,
+    CKType -> setNil,
+    CKValue -> ctype->cterm ctermVars,
+    CKWord -> both(cstack->cterm ctermVars) setUnion
+  )
+
+ckindHoles : CKind -- Set(CHole)
+ckindHoles =
+  match(
+    CKStack -> setNil,
+    CKType -> setNil,
+    CKValue -> ctype->cterm ctermHoles,
+    CKWord -> both(cstack->cterm ctermHoles) setUnion
+  )
+
 data CBind
   CBImplicit : CVar -- CBind
   CBExplicit : CVar -- CBind
@@ -1544,22 +1580,31 @@ cctxGetHole? = dup2 cctxGetHole
 cctxSetHole : CCtx CHole CTerm -- CCtx
 cctxSetHole = dip2(unCCtx) cfreshSet MkCCtx
 
-cheadHoles : CHead -- Set(CHole)
-cheadHoles =
-  match(
-    CHHole -> setSingle,
-    _ -> drop setNil
-  )
+##################
+# HOLE EXPANSION #
+##################
 
-ctermHoles : CTerm -- Set(CHole)
-ctermHoles = unCTerm dip(cheadHoles) for(ctermHoles setUnion)
+cheadExpandHoles : CCtx CHead -- CCtx CHead
+ctermExpandHoles : CCtx CTerm -- CCtx CTerm
+ckindExpandHoles : CCtx CKind -- CCtx CKind
+
+||| Expand the holes in a head's kind, if it's not a closed head.
+||| Note we don't expand a head that is a hole here, we only expand
+||| holes in the head's kind. For the former, see `ctermExpandHeadHoles`.
+cheadExpandHoles : CCtx CHead -- CCtx CHead
+cheadExpandHoles =
+  match(
+    CHHole -> unCHole dip(ckindExpandHoles) MkCHole CHHole,
+    CHVar -> unCVar dip(ckindExpandHoles) MkCVar CHVar,
+    _ -> id # the rest are closed heads
+  )
 
 ||| Expand out a term's head if it's a defined hole.
 ||| Guaranteed to preserve term's sort, and its type
 ||| if the ctx and term are in agreement on hole kinds.
 ctermExpandHeadHoles : CCtx CTerm -- CCtx CTerm
 ctermExpandHeadHoles =
-  unCTerm swap match(
+  unCTerm dip(cheadExpandHoles) swap match(
     CHHole ->
       swap dip(cctxGetHole?) swap maybe(
         dip(CHHole) MkCTerm,
@@ -1573,6 +1618,16 @@ ctermExpandHeadHoles =
 ||| if the ctx and term are in agreement on hole kinds.
 ctermExpandHoles : CCtx CTerm -- CCtx CTerm
 ctermExpandHoles = ctermExpandHeadHoles unCTerm dip'(formap(ctermExpandHoles)) MkCTerm
+
+||| Expand a kind's holes.
+ckindExpandHoles : CCtx CKind -- CCtx CKind
+ckindExpandHoles =
+  match(
+    CKStack -> CKStack,
+    CKType -> CKType,
+    CKValue -> ctype->cterm ctermExpandHoles cterm->ctype CKValue,
+    CKWord -> both(cstack->cterm) dip(ctermExpandHoles) dip'(ctermExpandHoles) both(cterm->cstack) CKWord
+  )
 
 ###############
 # UNIFICATION #
