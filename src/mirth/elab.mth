@@ -81,7 +81,6 @@ unEError = match(MkEError -> id)
 eerror->str : EError -- Str
 eerror->str = unEError unL dip(locSet->str) <>
 
-
 ||| Warning during elaboration.
 data EWarning
   MkEWarning : L(Str) -- EWarning
@@ -92,7 +91,6 @@ unEWarning = match(MkEWarning -> id)
 
 ewarning->str : EWarning -- Str
 ewarning->str = unEWarning unL dip(locSet->str) <>
-
 
 data EResult(t)
   ERErr : List(EError) List(EWarning) -- EResult(t)
@@ -139,7 +137,6 @@ erBind(f) =
       dip(swap) ++ EROk
     )
   )
-
 
 ||| Elaboration monad.
 data EMonad(t)
@@ -330,7 +327,6 @@ etypedef->sexp = unETypeDef sexp2("type", esym->sexp, eparams->sexp)
 etypedefMerge(key->str: key -- Str) : key ETypeDef ETypeDef -- key EMonad(ETypeDef)
 etypedefMerge(key->str) = drop emPure # TODO
 
-
 ||| A word definition.
 data EWordDef
   MkEWordDef : ESym -- EWordDef
@@ -347,7 +343,6 @@ eworddef->sexp = unEWordDef sexp1("word", esym->sexp)
 
 eworddefMerge(key->str: key -- Str) : key EWordDef EWordDef -- key EMonad(EWordDef)
 eworddefMerge(key->str) = drop emPure # TODO
-
 
 ||| A definition.
 data EDef
@@ -383,7 +378,6 @@ edefMerge(key->str) =
         EDWord -> eworddefMerge(key->str) emMap(EDWord)
       )
     )
-
 
 ||| A set of definitions, local to a module or interface.
 data EDefs
@@ -452,7 +446,6 @@ eglobalsMerge = dip(emPure) unEGlobals mapFor(nip emPure emBind2(eglobalsAdd))
 eglobals->sexp : EGlobals -- Sexp
 eglobals->sexp = unEGlobals map->sexp(esym->sexp, edef->sexp)
 
-
 ||| A single interface.
 data EInterface
   MkEInterface : Interface EDefs -- EInterface
@@ -489,7 +482,6 @@ einterfaceMerge = dip(unEInterface dip(emPure)) einterfaceDefs edefsMerge emMap2
 einterface->sexp : EInterface -- Sexp
 einterface->sexp = unEInterface sexp2("interface", interface->sexp, edefs->sexp)
 
-
 ||| A module's imports, i.e. a set of interfaces.
 data EImports
   MkEImports : Set(Interface) -- EImports
@@ -509,7 +501,6 @@ eimportsHas = dip(unEImports) setHas
 
 eimports->sexp : EImports -- Sexp
 eimports->sexp = unEImports set->sexp(interface->sexp)
-
 
 ||| A module's exports, i.e. a map of interface definitions.
 data EExports
@@ -534,7 +525,6 @@ eexportsMerge = dip(emPure) unEExports mapFor(nip emPure emBind2(eexportsAdd))
 
 eexports->sexp : EExports -- Sexp
 eexports->sexp = unEExports map->sexp(interface->sexp, einterface->sexp)
-
 
 ||| A single Mirth module.
 data EModule
@@ -586,7 +576,6 @@ emodule->sexp = unEModule sexp4("module", mod->sexp, eimports->sexp, eexports->s
 emodule->str : EModule -- Str
 emodule->str = emodule->sexp sexp->str
 
-
 ||| A Mirth package, i.e. a collection of modules and interfaces.
 data EPackage
   MkEPackage : Pkg EExports Map(Mod, EModule) -- EPackage
@@ -612,7 +601,6 @@ epackageAddModule = $(
   emMap3(MkEPackage)
 )
 
-
 ||| Elaboration World -- The collection of loaded packages,
 ||| and a repository of global definitions.
 data EWorld
@@ -636,7 +624,6 @@ eworldGetDef = dip(eworldGlobals) eglobalsGet
 
 eworldAddDefs : EWorld EDefs -- EMonad(EWorld)
 eworldAddDefs = dip(unEWorld) dip2(emPure) eglobalsAddDefs emMap2(MkEWorld)
-
 
 ||| Elaboration Focus -- The current package/module/interface being
 ||| elaborated. This should be unchanged during expression elaboration.
@@ -700,7 +687,6 @@ efocusTypeSym = dip(efocusPkg) ESymType
 efocusWordSym : EFocus Name -- ESym
 efocusWordSym = dip(efocusMod) ESymWord
 
-
 ||| Information associated with a binding.
 data EBind
   MkEBind : EBind
@@ -719,7 +705,6 @@ ebindsGet = drop2 none
 
 ebindsSet : EBinds Name EBind -- EBinds
 ebindsSet = drop2
-
 
 ||| Local Scope
 data ECtx
@@ -763,8 +748,6 @@ elocalUseCtx(f) = dip(unELocal) dip2''(f) dip(MkELocal)
 
 elocalUseLoc(f: LocSet a -- LocSet b) : ELocal a -- ELocal b
 elocalUseLoc(f) = dip(unELocal) dip'(f) dip(MkELocal)
-
-
 
 ||| Elaboration Environment
 data EEnv
@@ -813,8 +796,6 @@ emFreshNat = unit emUse(eenvUseLocal(drop elocalFreshNat))
 
 emFreshName : EMonad(Name)
 emFreshName = emFreshNat emMap(dip("?") nat->str <> mkName)
-
-
 
 emWith(f: a -- EMonad(b), getX : EMonad(x), setX : x -- EMonad(Unit)) : a x -- EMonad(b)
 emWith(f, getX, setX) = $(
@@ -917,7 +898,6 @@ emSaveFocusInterface = $(
   emThen(emDropFocusInterface)
 )
 
-
 emGetDef : Name -- EMonad(Maybe(EDef))
 emGetDef = emUse(eenvUseFocus(dip(dup) efocusGetDef))
 
@@ -939,7 +919,6 @@ emMkTypeSym = emUse(eenvUseFocus(dip(dup) efocusTypeSym))
 
 emMkWordSym : Name -- EMonad(ESym)
 emMkWordSym = emUse(eenvUseFocus(dip(dup) efocusWordSym))
-
 
 ########################
 ## ACTUAL ELABORATION ##
@@ -1046,7 +1025,6 @@ elabSig =
     elabLWordSig,
     elabLAssertion
   )
-
 
 elabTypeSig = $(
   dup dip(typeSigName getL dup dip(emPure) emMkTypeSym)
