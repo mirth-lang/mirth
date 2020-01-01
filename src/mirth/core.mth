@@ -1758,6 +1758,7 @@ ctermUnifyUndefinedHole =
     )
   )
 
+||| Unify a list of terms.
 ctermUnifyList : CCtx List(CTerm) List(CTerm) -- CCtx Result(Str, List(CTerm))
 ctermUnifyList =
   dup2 list=(drop2 true) if(
