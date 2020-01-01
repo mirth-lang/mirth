@@ -14,9 +14,10 @@ import base/unit
 export base/set
   type Nat
   type Sexp
+  type Maybe(k)
+  type Map(k,v)
 
   type Set(k)
-  type Map(k,v)
 
   Set.generate : List(k) -- Set(k)
   setFromList : List(k) -- Set(k)
@@ -32,6 +33,7 @@ export base/set
   setHas? : Set(k) k -- Set(k) k Bool
   setFor(f: *a k -- *a) : *a Set(k) -- *a
   set->sexp(k->sexp: k -- Sexp) : Set(k) -- Sexp
+  maybe->set : Maybe(k) -- Set(k)
 end
 
 data Set(k)
@@ -55,4 +57,5 @@ setLen? = dup setLen
 setHas? = dup2 setHas
 setFor(f) = unSet mapFor(drop f)
 set->sexp(k->sexp) = dip(nil) setFor(k->sexp cons) sexpList
+maybe->set = maybe(setNil, setSingle)
 
