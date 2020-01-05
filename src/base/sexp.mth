@@ -15,6 +15,7 @@ export base/sexp
   sexp2(f: Str, g: a -- Sexp, h: b -- Sexp) : a b -- Sexp
   sexp3(f: Str, g: a -- Sexp, h: b -- Sexp, i: c -- Sexp) : a b c -- Sexp
   sexp4(f: Str, g: a -- Sexp, h: b -- Sexp, i: c -- Sexp, j: d -- Sexp) : a b c d -- Sexp
+  list->sexp(f: a -- Sexp) : List(a) -- Sexp
   sexp->str : Sexp -- Str
 end
 
@@ -47,4 +48,6 @@ sexp1(f,g) = dip(f sexpAtom lpure) g cons sexpList
 sexp2(f,g,h) = dip2(f sexpAtom lpure) dip(g cons) h cons sexpList
 sexp3(f,g,h,i) = dip3(f sexpAtom lpure) dip2(g cons) dip(h cons) i cons sexpList
 sexp4(f,g,h,i,j) = dip4(f sexpAtom lpure) dip3(g cons) dip2(h cons) dip(i cons) j cons sexpList
+
+list->sexp(f) = map(f) sexpList
 

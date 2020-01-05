@@ -263,17 +263,17 @@ esym->sexp = esym->str sexpAtom
 
 ||| A type definition.
 data ECoreDef
-  MkECoreDef : ESym CSym List(CDef) -- ECoreDef
+  MkECoreDef : ESym CDef -- ECoreDef
 end
 
-unECoreDef : ECoreDef -- ESym CSym List(CDef)
-unECoreDef = match(MkEcoreDef -> id)
+unECoreDef : ECoreDef -- ESym CDef
+unECoreDef = match(MkECoreDef -> id)
 
 ecoredefSym : ECoreDef -- ESym
-ecoredefSym = unECoreDef drop2
+ecoredefSym = unECoreDef drop
 
 ecoredef->sexp : ECoreDef -- Sexp
-ecoredef->sexp = unETypeDef sexp3("core", esym->sexp, csym->sexp, list->sexp(cdef->sexp))
+ecoredef->sexp = unECoreDef sexp2("core", esym->sexp, cdef->sexp)
 
 ecoredefMerge(key->str: key -- Str) : key ECoreDef ECoreDef -- key EMonad(ECoreDef)
 ecoredefMerge(key->str) = drop emPure # TODO
@@ -286,29 +286,21 @@ end
 edefSym : EDef -- ESym
 edefSym =
   match(
-    EDType -> etypedefSym,
-    EDWord -> eworddefSym
+    EDCore -> ecoredefSym
   )
 
 edef->sexp : EDef -- Sexp
 edef->sexp =
   match(
-    EDType -> etypedef->sexp,
-    EDWord -> eworddef->sexp
+    EDCore -> ecoredef->sexp
   )
 
 edefMerge(key->str: key -- Str) : key EDef EDef -- key EMonad(EDef)
 edefMerge(key->str) =
   swap match(
-    EDType ->
+    EDCore ->
       swap match(
-        EDType -> etypedefMerge(key->str) emMap(EDType),
-        EDWord -> drop2 "Cannot redefine word " over key->str <> " as type." <> emFail
-      ),
-    EDWord ->
-      swap match(
-        EDType -> drop2 "Cannot redefine type " over key->str <> " as word." <> emFail,
-        EDWord -> eworddefMerge(key->str) emMap(EDWord)
+        EDCore -> ecoredefMerge(key->str) emMap(EDCore)
       )
     )
 
