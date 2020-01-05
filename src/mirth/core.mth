@@ -9,6 +9,7 @@ import base/list/syntax
 import base/maybe
 import base/result
 import base/unsafe
+import base/sexp
 
 import mirth/loc
 
@@ -53,6 +54,7 @@ export mirth/core
   csortIsWord? : CSort -- CSort Bool
   csort= : CSort CSort -- Bool
   csort->str : CSort -- Str
+  csort->sexp : CSort -- Sexp
 
   MkCArity : List(CSort) CSort -- CArity
   CA0(a: CSort) : CArity
@@ -64,6 +66,7 @@ export mirth/core
   carityArgs : CArity -- List(CSort)
   carity= : CArity CArity -- Bool
   carity->str : CArity -- Str
+  carity->sexp : CArity -- Sexp
 
   MkCSym : CSig Str -- CSym
   unCSym : CSym -- CSig Str
@@ -73,6 +76,7 @@ export mirth/core
   csymSort : CSym -- CSort
   csym= : CSym CSym -- Bool
   csym->str : CSym -- Str
+  csym->sexp : CSym -- Sexp
 
   MkCVar : CKind Str -- CVar
   unCVar : CVar -- CKind Str
@@ -82,6 +86,7 @@ export mirth/core
   cvarSort : CVar -- CSort
   cvar= : CVar CVar -- Bool
   cvar->str : CVar -- Str
+  cvar->sexp : CVar -- Sexp
 
   MkCHole : CKind Nat -- CHole
   unCHole : CHole -- CKind Nat
@@ -91,6 +96,7 @@ export mirth/core
   choleSort : CHole -- CSort
   chole= : CHole CHole -- Bool
   chole->str : CHole -- Str
+  chole->sexp : CHole -- Sexp
 
   cprimBuiltinTypes : Map(Str, CPrim)
   cprimBuiltinWords : Map(Str, CPrim)
@@ -100,6 +106,7 @@ export mirth/core
   cprimSig : CPrim -- CSig
   cprim= : CPrim CPrim -- Bool
   cprim->str : CPrim -- Str
+  cprim->sexp : CPrim -- Sexp
 
   CHSym : CSym -- CHead
   CHVar : CVar -- CHead
@@ -125,6 +132,7 @@ export mirth/core
   cheadHoles : CHead -- Set(CHole)
   chead= : CHead CHead -- Bool
   chead->str : CHead -- Str
+  chead->sexp : CHead -- Sexp
 
   MkCTerm : CHead List(CTerm) -- CTerm
   unCTerm : CTerm -- CHead List(CTerm)
@@ -136,6 +144,7 @@ export mirth/core
   ctermHoles : CTerm -- Set(CHole)
   cterm= : CTerm CTerm -- Bool
   cterm->str : CTerm -- Str
+  cterm->sexp : CTerm -- Sexp
 
   CSVar : CVar -- CStack # panics
   CSHole : CHole -- CStack # panics
@@ -147,6 +156,7 @@ export mirth/core
   cterm->cstack : CTerm -- CStack # panics
   cstack->cterm : CStack -- CTerm
   cstack->str : CStack -- Str
+  cstack->sexp : CStack -- Sexp
 
   CTVar : CVar -- CType # panics
   CTHole : CHole -- CType # panics
@@ -165,6 +175,7 @@ export mirth/core
   cterm->ctype : CTerm -- CType # panics
   ctype->cterm : CType -- CTerm
   ctype->str : CType -- Str
+  ctype->sexp : CType -- Sexp
 
   CVVar : CVar -- CValue #panics
   CVSym : CSym List(CTerm) -- CValue #panics
@@ -180,6 +191,7 @@ export mirth/core
   cterm->cvalue : CTerm -- CValue #panics
   cvalue->cterm : CValue -- CTerm
   cvalue->str : CValue -- Str
+  cvalue->sexp : CValue -- Sexp
 
   CWVar : CVar -- CWord #panics
   CWSym : CSym List(CTerm) -- CWord #panics
@@ -191,6 +203,7 @@ export mirth/core
   cterm->cword : CTerm -- CWord #panics
   cword->cterm : CWord -- CTerm
   cword->str : CWord -- Str
+  cword->sexp : CWord -- Sexp
 
   CKStack : CKind
   CKType : CKind
@@ -207,6 +220,7 @@ export mirth/core
   ckindSort : CKind -- CSort
   ckindVars : CKind -- Set(CVar)
   ckindHoles : CKind -- Set(CHole)
+  ckind->sexp : CKind -- Sexp
 
   CBImplicit : CVar -- CBind
   CBExplicit : CVar -- CBind
@@ -217,6 +231,7 @@ export mirth/core
   cbindVar : CBind -- Maybe(CVar)
   cbindKind : CBind -- CKind
   cbindSort : CBind -- CSort
+  cbind->sexp : CBind -- Sexp
 
   MkCSig : List(CBind) CKind -- CSig
   MkCSig' : List(CKind) CKind -- CSig
@@ -226,6 +241,7 @@ export mirth/core
   csigArgs : CSig -- List(CBind)
   csigSort : CSig -- CSort
   csigArity : CSig -- CArity
+  csig->sexp : CSig -- Sexp
 
   MkCCons : CSym List(CBind) List(CType) CType -- CCons
   unCCons : CCons -- CSym List(CBind) List(CType) CType
@@ -234,9 +250,11 @@ export mirth/core
   cconsInputs : CCons -- List(CType)
   cconsOutput : CCons -- CType
   ccons->str : CCons -- Str
+  ccons->sexp : CCons -- Sexp
 
   MkCData : List(CCons) -- CData
   unCData : CData -- List(CCons)
+  cdata->sexp : CData -- Sexp
 
   MkCCase : CCons List(CBind) CWord -- CCase
   unCCase : CCase -- CCons List(CBind) CWord
@@ -244,11 +262,13 @@ export mirth/core
   ccaseArgs : CCase -- List(CBind)
   ccaseBody : CCase -- CWord
   ccase->str : CCase -- Str
+  ccase->sexp : CCase -- Sexp
 
   MkCMatch : List(CCase) Maybe(CTerm) -- CMatch
   unCMatch : CMatch -- List(CCase) Maybe(CTerm)
   cmatchCases : CMatch -- List(CCase)
   cmatchDefault : CMatch -- Maybe(CTerm)
+  cmatch->sexp : CMatch -- Sexp
 
   CBTerm : CTerm -- CBody
   CBData : CData -- CBody
@@ -260,6 +280,7 @@ export mirth/core
     onCons: *a CCons -- *b,
     onMatch: *a CMatch -- *b
   ) : *a CBody -- *b
+  cbody->sexp : CBody -- Sexp
 
   MkCDef : CSym Maybe(CBody) -- CDef
   unCDef : CDef -- CSym Maybe(CBody)
@@ -270,6 +291,7 @@ export mirth/core
   cdefSort : CDef -- CSort
   cdefBody : CDef -- Maybe(CBody)
   cdef->str : CDef -- Str
+  cdef->sexp : CDef -- Sexp
 
   MkCSymKey : CArity Str -- CSymKey
   csym->csymkey : CSym -- CSymKey
@@ -362,6 +384,9 @@ csort->str =
     CSWord -> "word"
   )
 
+csort->sexp : CSort -- Sexp
+csort->sexp = csort->str sexpAtom
+
 csort->carity : CSort -- CArity
 csort->carity = dip(nil) MkCArity
 
@@ -397,6 +422,9 @@ carity= = $(
 carity->str : CArity -- Str
 carity->str = dip("") unCArity dip(for(csort->str " -> " <> <>)) csort->str <>
 
+carity->sexp : CArity -- Sexp
+carity->sexp = unCArity sexp2("MkCArity", list->sexp(csort->sexp), csort->sexp)
+
 data CSym
   MkCSym : CSig Str -- CSym
 end
@@ -424,6 +452,9 @@ csym= = dip(csym->str) csym->str streq
 csym->str : CSym -- Str
 csym->str = unCSym nip
 
+csym->sexp : CSym -- Sexp
+csym->sexp = unCSym sexp2("MkCSym", csig->sexp, sexpAtom)
+
 data CVar
   MkCVar : CKind Str -- CVar
 end
@@ -450,6 +481,9 @@ cvar= = dip(cvar->str) cvar->str streq # Maybe should compare kinds as well? See
 
 cvar->str : CVar -- Str
 cvar->str = unCVar nip
+
+cvar->sexp : CVar -- Sexp
+cvar->sexp = unCVar sexp2("MkCVar", ckind->sexp, sexpAtom)
 
 data CHole
   MkCHole : CKind Nat -- CHole
@@ -480,6 +514,10 @@ chole= = dip(choleNat) choleNat n=
 
 chole->str : CHole -- Str
 chole->str = dip("?") choleNat nat->str <>
+
+chole->sexp : CHole -- Sexp
+chole->sexp =
+  dup dip(choleKind) chole->str sexp2("MkCHole", ckind->sexp, sexpAtom)
 
 data CHead
   CHSym : CSym -- CHead
@@ -571,6 +609,15 @@ chead->str =
     CHPrim -> cprim->str
   )
 
+chead->sexp : CHead -- Sexp
+chead->sexp =
+  match(
+    CHSym -> csym->sexp,
+    CHVar -> cvar->sexp,
+    CHHole -> chole->sexp,
+    CHPrim -> cprim->sexp
+  )
+
 data CTerm
   MkCTerm : CHead List(CTerm) -- CTerm
 end
@@ -624,6 +671,9 @@ cterm->str = $(
     ")" <>
   )
 )
+
+cterm->sexp : CTerm -- Sexp
+cterm->sexp = unCTerm sexp2("MkCTerm", chead->sexp, list->sexp(cterm->sexp))
 
 ##############
 # Primitives #
@@ -774,6 +824,9 @@ cprim->str =
     CPWUnsafeEnvSet -> "CPWUnsafeEnvSet",
     CPWUnsafeExit -> "CPWUnsafeExit"
   )
+
+cprim->sexp : CPrim -- Sexp
+cprim->sexp = cprim->str sexpAtom
 
 cprim= : CPrim CPrim -- Bool
 cprim= = dip(cprim->str) cprim->str streq
@@ -1027,6 +1080,9 @@ cstack->cterm = match(MkCStack -> id)
 cstack->str : CStack -- Str
 cstack->str = cstack->cterm cterm->str
 
+cstack->sexp : CStack -- Sexp
+cstack->sexp = cstack->cterm cterm->sexp
+
 CSVar : CVar -- CStack
 CSVar = CHVar nil MkCTerm cterm->cstack
 
@@ -1064,6 +1120,9 @@ ctype->cterm = match(MkCType -> id)
 
 ctype->str : CType -- Str
 ctype->str = ctype->cterm cterm->str
+
+ctype->sexp : CType -- Sexp
+ctype->sexp = ctype->cterm cterm->sexp
 
 CTVar : CVar -- CType
 CTVar = CHVar nil MkCTerm cterm->ctype
@@ -1124,6 +1183,9 @@ cvalue->cterm = match(MkCValue -> id)
 cvalue->str : CValue -- Str
 cvalue->str = cvalue->cterm cterm->str
 
+cvalue->sexp : CValue -- Sexp
+cvalue->sexp = cvalue->cterm cterm->sexp
+
 CVVar : CVar -- CValue
 CVVar = CHVar nil MkCTerm cterm->cvalue
 
@@ -1173,6 +1235,9 @@ cword->cterm = match(MkCWord -> id)
 
 cword->str : CWord -- Str
 cword->str = cword->cterm cterm->str
+
+cword->sexp : CWord -- Sexp
+cword->sexp = cword->cterm cterm->sexp
 
 CWVar : CVar -- CWord
 CWVar = CHVar nil MkCTerm cterm->cword
@@ -1244,6 +1309,15 @@ ckindHoles =
     CKWord -> both(cstack->cterm ctermHoles) setUnion
   )
 
+ckind->sexp : CKind -- Sexp
+ckind->sexp =
+  match(
+    CKStack -> "CKStack" sexpAtom,
+    CKType -> "CKType" sexpAtom,
+    CKValue -> sexp1("CKValue", ctype->sexp),
+    CKWord -> sexp2("CKWord", cstack->sexp, cstack->sexp)
+  )
+
 data CBind
   CBImplicit : CVar -- CBind
   CBExplicit : CVar -- CBind
@@ -1290,6 +1364,14 @@ cbindIsAnonymous =
     _ -> drop false
   )
 
+cbind->sexp : CBind -- Sexp
+cbind->sexp =
+  match(
+    CBImplicit -> sexp1("CBImplicit", cvar->sexp),
+    CBExplicit -> sexp1("CBExplicit", cvar->sexp),
+    CBAnonymous -> sexp1("CBAnonymous", ckind->sexp)
+  )
+
 data CSig
   MkCSig : List(CBind) CKind -- CSig
 end
@@ -1315,6 +1397,9 @@ csigSort = csigKind ckindSort
 csigArity : CSig -- CArity
 csigArity = unCSig dip(map(cbindSort)) ckindSort MkCArity
 
+csig->sexp : CSig -- Sexp
+csig->sexp = unCSig sexp2("MkCSig", list->sexp(cbind->sexp), ckind->sexp)
+
 data CCons
   MkCCons : CSym List(CBind) List(CType) CType -- CCons
 end
@@ -1337,12 +1422,19 @@ cconsOutput = unCCons dip(drop3)
 ccons->str : CCons -- Str
 ccons->str = cconsSym csym->str # TODO: improve
 
+ccons->sexp : CCons -- Sexp
+ccons->sexp = unCCons sexp4("MkCCons", csym->sexp,
+  list->sexp(cbind->sexp), list->sexp(ctype->sexp), ctype->sexp)
+
 data CData
   MkCData : List(CCons) -- CData
 end
 
 unCData : CData -- List(CCons)
 unCData = match(MkCData -> id)
+
+cdata->sexp : CData -- Sexp
+cdata->sexp = unCData sexp1("MkCData", list->sexp(ccons->sexp))
 
 data CCase
   MkCCase : CCons List(CBind) CWord -- CCase
@@ -1363,6 +1455,10 @@ ccaseBody = unCCase dip(drop2)
 ccase->str : CCase -- Str
 ccase->str = ccaseCons ccons->str " -> _" <>  # TODO: improve
 
+ccase->sexp : CCase -- Sexp
+ccase->sexp = unCCase sexp3("MkCCase", ccons->sexp,
+  list->sexp(cbind->sexp), cword->sexp)
+
 data CMatch
   MkCMatch : List(CCase) Maybe(CTerm) -- CMatch
 end
@@ -1375,6 +1471,10 @@ cmatchCases = unCMatch drop
 
 cmatchDefault : CMatch -- Maybe(CTerm)
 cmatchDefault = unCMatch nip
+
+cmatch->sexp : CMatch -- Sexp
+cmatch->sexp = unCMatch sexp2("MkCMatch", list->sexp(ccase->sexp),
+  maybe(nil sexpList, cterm->sexp))
 
 data CBody
   CBTerm : CTerm -- CBody
@@ -1396,6 +1496,15 @@ cbodyMatch(onTerm, onData, onCons, onMatch) =
     CBData -> onData,
     CBCons -> onCons,
     CBMatch -> onMatch
+  )
+
+cbody->sexp : CBody -- Sexp
+cbody->sexp =
+  match(
+    CBTerm -> sexp1("CBTerm", cterm->sexp),
+    CBData -> sexp1("CBData", cdata->sexp),
+    CBCons -> sexp1("CBCons", ccons->sexp),
+    CBMatch -> sexp1("CBMatch", cmatch->sexp)
   )
 
 data CDef
@@ -1425,6 +1534,9 @@ cdefSort = cdefSig csigSort
 
 cdef->str : CDef -- Str
 cdef->str = cdefSym csym->str " = _" <> # TODO : improve
+
+cdef->sexp : CDef -- Sexp
+cdef->sexp = unCDef sexp2("MkCDef", csym->sexp, maybe(nil sexpList, cbody->sexp))
 
 data CSymKey
   MkCSymKey : CArity Str -- CSymKey
