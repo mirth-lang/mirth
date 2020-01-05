@@ -529,26 +529,39 @@ epackageAddModule = $(
 ||| Elaboration World -- The collection of loaded packages,
 ||| and a repository of global definitions.
 data EWorld
-  MkEWorld : Map(Pkg, EPackage) EGlobals -- EWorld
+  MkEWorld : Map(Pkg, EPackage) EGlobals CEnv -- EWorld
 end
 
-unEWorld : EWorld -- Map(Pkg, EPackage) EGlobals
+unEWorld : EWorld -- Map(Pkg, EPackage) EGlobals CEnv
 unEWorld = match(MkEWorld -> id)
 
 eworldPackages : EWorld -- Map(Pkg, EPackage)
-eworldPackages = unEWorld drop
+eworldPackages = unEWorld drop2
 
 eworldGlobals : EWorld -- EGlobals
-eworldGlobals = unEWorld nip
+eworldGlobals = unEWorld drop nip
+
+eworldCEnv : EWorld -- CEnv
+eworldCEnv = unEWorld dip(drop2)
 
 eworldNil : EWorld
-eworldNil = mapNil eglobalsNil MkEWorld
+eworldNil = mapNil eglobalsNil cenvNil MkEWorld
 
 eworldGetDef : EWorld ESym -- Maybe(EDef)
 eworldGetDef = dip(eworldGlobals) eglobalsGet
 
 eworldAddDefs : EWorld EDefs -- EMonad(EWorld)
-eworldAddDefs = dip(unEWorld) dip2(emPure) eglobalsAddDefs emMap2(MkEWorld)
+eworldAddDefs = dip(unEWorld swap) dip2(emPure2) eglobalsAddDefs emMap3(swap MkEWorld)
+
+eworldCoreGet : EWorld CSym -- Maybe(CDef)
+eworldCoreGet = dip(eworldCEnv) cenvGet
+
+eworldCoreSet : EWorld CDef -- EWorld
+eworldCoreSet = dip(unEWorld) cenvSet MkEWorld
+
+eworldCoreAdd : EWorld CDef -- EMonad(EWorld)
+eworldCoreAdd = dip(unEWorld) cenvAdd result(dip(drop2) emFail, MkEWorld emPure)
+
 
 ||| Elaboration Focus -- The current package/module/interface being
 ||| elaborated. This should be unchanged during expression elaboration.
@@ -776,6 +789,9 @@ emGetDef = emUse(eenvUseFocus(dip(dup) efocusGetDef))
 emGetGlobal : ESym -- EMonad(Maybe(EDef))
 emGetGlobal = emUse(eenvUseWorld(dip(dup) eworldGetDef))
 
+emCoreGet : CSym -- EMonad(Maybe(CDef))
+emCoreGet = emUse(eenvUseWorld(dip(dup) eworldCoreGet))
+
 emAddDefs : EDefs -- EMonad(Unit)
 emAddDefs = $(
   emPure dup emUnit
@@ -785,6 +801,9 @@ emAddDefs = $(
 
 emAddDef : Name EDef -- EMonad(Unit)
 emAddDef = edefsSingle emAddDefs
+
+emCoreAdd : CDef -- EMonad(Unit)
+emCoreAdd = dip(emGetWorld) emPure emBind2(eworldCoreAdd) emBind(emSetWorld)
 
 ########################
 ## ACTUAL ELABORATION ##
