@@ -1,1 +1,1 @@
-("module" "test/ftree.mth" () () (("Node" ("MkCDef" ("MkCSym" ("MkCSig" () "CKType") "p:test/ftree.mth:Node") ())) ("FTree" ("MkCDef" ("MkCSym" ("MkCSig" () "CKType") "p:test/ftree.mth:FTree") ()))))
+("module" "test/ftree.mth" () () (("Node" ("MkCDef" ("MkCSym" ("MkCSig" (("CBExplicit" ("MkCVar" "CKType" "a"))) "CKType") "p:test/ftree.mth:Node") ())) ("FTree" ("MkCDef" ("MkCSym" ("MkCSig" (("CBExplicit" ("MkCVar" "CKType" "a"))) "CKType") "p:test/ftree.mth:FTree") ()))))
