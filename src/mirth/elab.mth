@@ -26,7 +26,6 @@ export mirth/elab
   type EMonad(t)
   type EResult(t)
 
-  type ESym
   type ETerm
   type EBind
   type ECtx
@@ -246,63 +245,25 @@ emVoid4 = emMap4(drop4 unit)
 # Elaboration #
 ###############
 
-data ESym
-  ESymType : Maybe(Pkg) Name -- ESym
-  ESymWord : Maybe(Mod) Name -- ESym
-end
-
-esym->str : ESym -- Str
-esym->str =
-  match(
-    ESymType -> dip(dip("T:") maybe(id, pkg->str <> ":" <>)) name->str <>,
-    ESymWord -> dip(dip("w:") maybe(id, mod->str <> ":" <>)) name->str <>
-  )
-
-esym->sexp : ESym -- Sexp
-esym->sexp = esym->str sexpAtom
-
-||| A type definition.
-data ECoreDef
-  MkECoreDef : ESym CDef -- ECoreDef
-end
-
-unECoreDef : ECoreDef -- ESym CDef
-unECoreDef = match(MkECoreDef -> id)
-
-ecoredefSym : ECoreDef -- ESym
-ecoredefSym = unECoreDef drop
-
-ecoredef->sexp : ECoreDef -- Sexp
-ecoredef->sexp = unECoreDef sexp2("core", esym->sexp, cdef->sexp)
-
-ecoredefMerge(key->str: key -- Str) : key ECoreDef ECoreDef -- key EMonad(ECoreDef)
-ecoredefMerge(key->str) = drop emPure # TODO
-
 ||| A definition.
 data EDef
-  EDCore : ECoreDef -- EDef
+  EDCore : CDef -- EDef
 end
 
-edefSym : EDef -- ESym
+edefSym : EDef -- CSym
 edefSym =
   match(
-    EDCore -> ecoredefSym
+    EDCore -> cdefSym
   )
 
 edef->sexp : EDef -- Sexp
 edef->sexp =
   match(
-    EDCore -> ecoredef->sexp
+    EDCore -> cdef->sexp
   )
 
 edefMerge(key->str: key -- Str) : key EDef EDef -- key EMonad(EDef)
-edefMerge(key->str) =
-  swap match(
-    EDCore ->
-      swap match(
-        EDCore -> ecoredefMerge(key->str) emMap(EDCore)
-      )
-    )
+edefMerge(key->str) = drop emPure #TODO
 
 ||| A set of definitions, local to a module or interface.
 data EDefs
@@ -338,38 +299,6 @@ edefsMerge = dip(emPure) unEDefs mapFor(emPure2 emBind3(edefsAdd))
 
 edefs->sexp : EDefs -- Sexp
 edefs->sexp = unEDefs map->sexp(name->sexp, edef->sexp)
-
-||| All definitions.
-data EGlobals
-  MkEGlobals : Map(ESym, EDef) -- EGlobals
-end
-
-unEGlobals : EGlobals -- Map(ESym, EDef)
-unEGlobals = match(MkEGlobals -> id)
-
-eglobalsNil : EGlobals
-eglobalsNil = mapNil MkEGlobals
-
-eglobalsGet : EGlobals ESym -- Maybe(EDef)
-eglobalsGet = dip(unEGlobals) mapGet
-
-||| Add a global definition.
-eglobalsAdd : EGlobals EDef -- EMonad(EGlobals)
-eglobalsAdd =
-  dip(unEGlobals) dup dip(edefSym mapGet?) swap maybe(
-    mapSet MkEGlobals emPure,
-    swap edefMerge(esym->str) dip(emPure2)
-    emMap3(mapSet MkEGlobals)
-  )
-
-eglobalsAddDefs : EGlobals EDefs -- EMonad(EGlobals)
-eglobalsAddDefs = dip(emPure) unEDefs mapFor(nip emPure emBind2(eglobalsAdd))
-
-eglobalsMerge : EGlobals EGlobals -- EMonad(EGlobals)
-eglobalsMerge = dip(emPure) unEGlobals mapFor(nip emPure emBind2(eglobalsAdd))
-
-eglobals->sexp : EGlobals -- Sexp
-eglobals->sexp = unEGlobals map->sexp(esym->sexp, edef->sexp)
 
 ||| A single interface.
 data EInterface
@@ -529,29 +458,20 @@ epackageAddModule = $(
 ||| Elaboration World -- The collection of loaded packages,
 ||| and a repository of global definitions.
 data EWorld
-  MkEWorld : Map(Pkg, EPackage) EGlobals CEnv -- EWorld
+  MkEWorld : Map(Pkg, EPackage) CEnv -- EWorld
 end
 
-unEWorld : EWorld -- Map(Pkg, EPackage) EGlobals CEnv
+unEWorld : EWorld -- Map(Pkg, EPackage) CEnv
 unEWorld = match(MkEWorld -> id)
 
 eworldPackages : EWorld -- Map(Pkg, EPackage)
-eworldPackages = unEWorld drop2
-
-eworldGlobals : EWorld -- EGlobals
-eworldGlobals = unEWorld drop nip
+eworldPackages = unEWorld drop
 
 eworldCEnv : EWorld -- CEnv
-eworldCEnv = unEWorld dip(drop2)
+eworldCEnv = unEWorld nip
 
 eworldNil : EWorld
-eworldNil = mapNil eglobalsNil cenvNil MkEWorld
-
-eworldGetDef : EWorld ESym -- Maybe(EDef)
-eworldGetDef = dip(eworldGlobals) eglobalsGet
-
-eworldAddDefs : EWorld EDefs -- EMonad(EWorld)
-eworldAddDefs = dip(unEWorld swap) dip2(emPure2) eglobalsAddDefs emMap3(swap MkEWorld)
+eworldNil = mapNil cenvNil MkEWorld
 
 eworldCoreGet : EWorld CSym -- Maybe(CDef)
 eworldCoreGet = dip(eworldCEnv) cenvGet
@@ -560,7 +480,7 @@ eworldCoreSet : EWorld CDef -- EWorld
 eworldCoreSet = dip(unEWorld) cenvSet MkEWorld
 
 eworldCoreAdd : EWorld CDef -- EMonad(EWorld)
-eworldCoreAdd = dip(unEWorld) cenvAdd result(dip(drop2) emFail, MkEWorld emPure)
+eworldCoreAdd = dip(unEWorld) cenvAdd result(nip emFail, MkEWorld emPure)
 
 
 ||| Elaboration Focus -- The current package/module/interface being
@@ -621,13 +541,57 @@ efocusMod = unEFocus drop nip mmap(emoduleMod)
 
 ||| Elaboration context.
 data ECtx
-  ECtxNone : ECtx
-  ECtxType : CCtx -- ECtx
+ECtxNone : ECtx
+  ECtxType : CCtx List(CBind) -- ECtx
   ECtxWord : CCtx CStack -- ECtx
 end
 
 ectxNil : ECtx
 ectxNil = ECtxNone
+
+ectxGetCCtx : ECtx -- Maybe(CCtx)
+ectxGetCCtx =
+  match(
+    ECtxType -> drop some,
+    ECtxWord -> drop some,
+    _ -> drop none
+  )
+
+ectxGetImplicitBinds : ECtx -- Maybe(List(CBind))
+ectxGetImplicitBinds =
+  match(
+    ECtxType -> nip some,
+    _ -> drop none
+  )
+
+ectxGetStack : ECtx -- Maybe(CStack)
+ectxGetStack =
+  match(
+    ECtxWord -> nip some,
+    _ -> drop none
+  )
+
+ectxSetCCtx : ECtx CCtx -- Maybe(ECtx)
+ectxSetCCtx =
+  swap match(
+    ECtxType -> nip ECtxType some,
+    ECtxWord -> nip ECtxWord some,
+    _ -> drop2 none
+  )
+
+ectxSetImplicitBinds : ECtx List(CBind) -- Maybe(ECtx)
+ectxSetImplicitBinds =
+  swap match(
+    ECtxType -> drop swap ECtxType some,
+    _ -> drop2 none
+  )
+
+ectxSetCStack : ECtx CStack -- Maybe(ECtx)
+ectxSetCStack =
+  swap match(
+    ECtxWord -> drop swap ECtxWord some,
+    _ -> drop2 none
+  )
 
 ||| Local environment -- The current elab context and location.
 data ELocal
@@ -702,6 +666,16 @@ emSetCtx = emUse(eenvUseLocal(elocalUseCtx(nip unit)))
 
 emWithCtx(f: a -- EMonad(b)) : a ECtx -- EMonad(b)
 emWithCtx(f) = emWith(f, emGetCtx, emSetCtx)
+
+emGetCCtx : EMonad(CCtx)
+emGetCCtx = emGetCtx emBind(ectxGetCCtx maybe("compiler error: CCtx requested but not available" emFail, emPure))
+
+emGetImplicitBinds : EMonad(List(CBind))
+emGetImplicitBinds = emGetCtx emBind(ectxGetImplicitBinds maybe("compiler error: implicit binds requested but not available" emFail, emPure))
+
+emGetCStack : EMonad(CStack)
+emGetCStack = emGetCtx emBind(ectxGetStack maybe("compiler error: CStack requested but not available" emFail, emPure))
+
 
 emGetLoc : EMonad(LocSet)
 emGetLoc = unit emUse(eenvUseLocal(elocalUseLoc(drop dup)))
@@ -786,24 +760,39 @@ emSaveFocusInterface = $(
 emGetDef : Name -- EMonad(Maybe(EDef))
 emGetDef = emUse(eenvUseFocus(dip(dup) efocusGetDef))
 
-emGetGlobal : ESym -- EMonad(Maybe(EDef))
-emGetGlobal = emUse(eenvUseWorld(dip(dup) eworldGetDef))
-
-emCoreGet : CSym -- EMonad(Maybe(CDef))
-emCoreGet = emUse(eenvUseWorld(dip(dup) eworldCoreGet))
-
 emAddDefs : EDefs -- EMonad(Unit)
 emAddDefs = $(
-  emPure dup emUnit
-  emGetFocus emBind3(nip swap efocusAddDefs emBind(emSetFocus))
-  emGetWorld emBind3(nip swap eworldAddDefs emBind(emSetWorld))
+  emPure emGetFocus
+  emBind2(swap efocusAddDefs emBind(emSetFocus))
 )
 
 emAddDef : Name EDef -- EMonad(Unit)
 emAddDef = edefsSingle emAddDefs
 
+emCoreGet : CSym -- EMonad(Maybe(CDef))
+emCoreGet = emUse(eenvUseWorld(dip(dup) eworldCoreGet))
+
+emCoreSet : CDef -- EMonad(Unit)
+emCoreSet = emUse(eenvUseWorld(eworldCoreSet unit))
+
 emCoreAdd : CDef -- EMonad(Unit)
 emCoreAdd = dip(emGetWorld) emPure emBind2(eworldCoreAdd) emBind(emSetWorld)
+
+emPackageSymStr : Name -- EMonad(Str)
+emPackageSymStr = dip(emGetFocusPackage) emPure emMap2(
+  dip2("p:") dip(epackagePkg pkg->str ":" <> <>) name->str <>)
+
+emModuleSymStr : Name -- EMonad(Str)
+emModuleSymStr = dip(emGetFocusModule) emPure emMap2(
+  dip2("m:") dip(emoduleMod mod->str ":" <> <>) name->str <>)
+
+||| Make a package-wide symbol.
+emPackageSym : CSig Name -- EMonad(CSym)
+emPackageSym = dip(emPure) emPackageSymStr emMap2(MkCSym)
+
+||| Make a module-wide symbol.
+emModuleSym : CSig Name -- EMonad(CSym)
+emModuleSym = dip(emPure) emModuleSymStr emMap2(MkCSym)
 
 ########################
 ## ACTUAL ELABORATION ##
@@ -829,6 +818,7 @@ elabLDataDef : L(DataDef) -- EMonad(Unit)
 elabLWordSig : L(WordSig) -- EMonad(Unit)
 elabLWordDef : L(WordDef) -- EMonad(Unit)
 elabLAssertion : L(Assertion) -- EMonad(Unit)
+elabLParams : L(Params) -- EMonad(List(CBind))
 
 elabPackage : Pkg Map(Mod, L(Module)) -- EMonad(Unit)
 elabModuleHead : Mod Module -- EMonad(Unit)
@@ -842,6 +832,7 @@ elabDataDef : DataDef -- EMonad(Unit)
 elabWordSig : WordSig -- EMonad(Unit)
 elabWordDef : WordDef -- EMonad(Unit)
 elabAssertion : Assertion -- EMonad(Unit)
+elabParams : Params -- EMonad(List(CBind))
 
 elabLModuleHead = elabL2(elabModule)
 elabLModule = elabL2(elabModule)
@@ -854,6 +845,7 @@ elabLDataDef = elabL(elabDataDef)
 elabLWordSig = elabL(elabWordSig)
 elabLWordDef = elabL(elabWordDef)
 elabLAssertion = elabL(elabAssertion)
+elabLParams = elabL(elabParams)
 
 elabPackage = $(
   dip(epackageNil emSetFocusPackage emDropFocusModule emDropFocusInterface emVoid3)
@@ -906,15 +898,37 @@ elabSig =
     elabLAssertion
   )
 
-elabTypeSig = drop emUnit
+elabTypeSig = $(
+  dup dip(typeSigParams elabLParams emGetImplicitBinds)
+  typeSigName getL emPure
+  emBind3(
+    dup dip2(swap ++ CKType MkCSig) dip(emPackageSym) emPure
+    emBind2(
+      swap none MkCDef
+      dup dip(EDCore emAddDef)
+      emCoreAdd
+      ECtxNone emSetCtx
+      emVoid3
+    )
+  )
+)
+
 elabDataDef = drop emUnit
 elabWordSig = drop emUnit
 elabWordDef = drop emUnit
 elabAssertion = drop emUnit
 
+||| Set a "type context" and infer explicit bindings.
+elabParams = $(
+  emGetWorld emBind(eworldCEnv cctxNil nil ECtxType emSetCtx)
+  emThen(nil emPure) # TODO
+  nip
+)
+
 runElabModule : Mod L(Module) -- EResult(EModule)
 runElabModule = $(
-  elabLModule emThen(emGetFocusModule)
+  dip(dup dip(mod->pkg epackageNil emSetFocusPackage))
+  elabLModule emThen2(emGetFocusModule)
   dip(eenvNil) emRun nip
 )
 
