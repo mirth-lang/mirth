@@ -913,7 +913,21 @@ elabTypeSig = $(
   )
 )
 
-elabDataDef = drop emUnit
+elabDataDef = $( # Just elaborates as a type sig for now.
+  dup dip(dataDefParams elabLParams emGetImplicitBinds)
+  dataDefName getL emPure
+  emBind3(
+    dup dip2(swap ++ CKType MkCSig) dip(emPackageSym) emPure
+    emBind2(
+      swap none MkCDef
+      dup dip(EDCore emAddDef)
+      emCoreAdd
+      ECtxNone emSetCtx
+      emVoid3
+    )
+  )
+)
+
 elabWordSig = drop emUnit
 elabWordDef = drop emUnit
 elabAssertion = drop emUnit
