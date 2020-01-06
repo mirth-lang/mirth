@@ -2163,6 +2163,18 @@ def strcat(a,b):
         raise TypeError("Runtime type error: strcat with (%r, %r)" % (a,b))
     return a + b
 
+def myhash(x):
+    x = str(x)
+    k = 0x25A1
+    m = 0x1B51
+    t = 0xA0B1
+    b = 0xFFFF
+    for c in x:
+        k += m * ord(c)
+        k = k % b
+        t = t * b + k
+    return t % 0xFFFFFFFFFFFFFF # clip to 48 bits
+
 builtin_word_defs = {
     # basic
     '_prim_dup':        env.dup,
@@ -2221,7 +2233,7 @@ builtin_word_defs = {
     '_prim_unsafe_append':   unsafe_append,
     '_prim_unsafe_deletefile': unsafe_deletefile,
     '_prim_unsafe_coerce':   word1(lambda a: a),
-    '_prim_unsafe_hash':     word1(hash),
+    '_prim_unsafe_hash':     word1(myhash),
     '_prim_unsafe_env_get':  env.get_data,
     '_prim_unsafe_env_set':  env.set_data,
     '_prim_unsafe_exit':     word1(sys.exit),
