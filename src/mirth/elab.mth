@@ -819,6 +819,8 @@ elabLWordSig : L(WordSig) -- EMonad(Unit)
 elabLWordDef : L(WordDef) -- EMonad(Unit)
 elabLAssertion : L(Assertion) -- EMonad(Unit)
 elabLParams : L(Params) -- EMonad(List(CBind))
+elabLParam : L(Param) -- EMonad(CBind)
+elabLType : L(Type) -- EMonad(Pack(CStack CStack))
 
 elabPackage : Pkg Map(Mod, L(Module)) -- EMonad(Unit)
 elabModuleHead : Mod Module -- EMonad(Unit)
@@ -833,6 +835,8 @@ elabWordSig : WordSig -- EMonad(Unit)
 elabWordDef : WordDef -- EMonad(Unit)
 elabAssertion : Assertion -- EMonad(Unit)
 elabParams : Params -- EMonad(List(CBind))
+elabParam : Param -- EMonad(CBind)
+elabType : Type -- EMonad(Pack(CStack CStack))
 
 elabLModuleHead = elabL2(elabModule)
 elabLModule = elabL2(elabModule)
@@ -846,6 +850,8 @@ elabLWordSig = elabL(elabWordSig)
 elabLWordDef = elabL(elabWordDef)
 elabLAssertion = elabL(elabAssertion)
 elabLParams = elabL(elabParams)
+elabLParam = elabL(elabParam)
+elabLType = elabL(elabType)
 
 elabPackage = $(
   dip(epackageNil emSetFocusPackage emDropFocusModule emDropFocusInterface emVoid3)
@@ -898,32 +904,92 @@ elabSig =
     elabLAssertion
   )
 
+emGetCEnv : EMonad(CEnv)
+emGetCEnv = emGetWorld emMap(eworldCEnv)
+
+emSetCtxNone : EMonad(Unit)
+emSetCtxNone = ECtxNone emSetCtx
+
+emSetCtxType : EMonad(Unit)
+emSetCtxType = emGetCEnv emBind(cctxNil nil ECtxType emSetCtx)
+
 elabTypeSig = $(
+  dip(emSetCtxType)
   dup dip(typeSigParams elabLParams emGetImplicitBinds)
   typeSigName getL emPure
-  emBind3(
+  emBind4(
+    dip3(drop)
     dup dip2(swap ++ CKType MkCSig) dip(emPackageSym) emPure
     emBind2(
       swap none MkCDef
       dup dip(EDCore emAddDef)
       emCoreAdd
-      ECtxNone emSetCtx
+      emSetCtxNone
       emVoid3
     )
   )
 )
 
-elabDataDef = drop emUnit
-elabWordSig = drop emUnit
+elabDataDef = $( # Just elaborates as a type sig for now.
+  dip(emSetCtxType)
+  dup dip(dataDefParams elabLParams emGetImplicitBinds)
+  dataDefName getL emPure
+  emBind4(
+    dip3(drop)
+    dup dip2(swap ++ CKType MkCSig) dip(emPackageSym) emPure
+    emBind2(
+      swap none MkCDef
+      dup dip(EDCore emAddDef)
+      emCoreAdd
+      emSetCtxNone
+      emVoid3
+    )
+  )
+)
+
+elabWordSig = $(
+  dip(emSetCtxType)
+  dup dip(wordSigParams elabLParams emMap2(nip))
+  dup dip(wordSigType elabLType)
+  dip(emGetImplicitBinds)
+  wordSigName getL emPure
+  emBind4(
+    dip(rotr) dip2(++)
+    dip(unpack2 CKWord MkCSig)
+    dup dip(emModuleSym) emPure
+    emBind2(
+      swap none MkCDef
+      dup dip(EDCore emAddDef)
+      emCoreAdd
+      emSetCtxNone
+      emVoid3
+    )
+  )
+)
+
 elabWordDef = drop emUnit
 elabAssertion = drop emUnit
 
-||| Set a "type context" and infer explicit bindings.
-elabParams = $(
-  emGetWorld emBind(eworldCEnv cctxNil nil ECtxType emSetCtx)
-  emThen(nil emPure) # TODO
-  nip
-)
+||| Elaborate explicit bindings.
+elabParams = unParams dip(nil emPure) for(elabLParam emMap2(cons))
+
+elabParam =
+  dup paramParams getL unParams null not if(
+    drop "higher-order parameters not supported" emFail,
+    dup paramType maybe(
+      paramName elabL(cond(
+        isStarVarName? -> name->str dip(CKStack) MkCVar CBExplicit emPure,
+        isVarName? -> name->str dip(CKType) MkCVar CBExplicit emPure,
+        dip("not a permitted variable name: ") name->str <> emFail
+      )),
+      swap paramName elabL2(isVarName? if(
+        dip(elabLType) emPure emMap2(dip(unpack2 CKWord) name->str MkCVar CBExplicit),
+        nip dip("not a permitted variable name: ") name->str <> emFail
+      ))
+    )
+  )
+
+elabType = drop CSNil CSNil pack2 emPure # TODO
 
 runElabModule : Mod L(Module) -- EResult(EModule)
 runElabModule = $(

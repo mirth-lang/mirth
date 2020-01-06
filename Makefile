@@ -6,16 +6,16 @@ typecheck:
 	python3 bootstrap/mirth.py --typecheck src
 
 test:
-	PYTHONHASHSEED=0 python3 bootstrap/mirth.py src mtest
+	python3 bootstrap/mirth.py src mtest
 
 test-update:
-	PYTHONHASHSEED=0 python3 bootstrap/mirth.py src mtest --update
+	python3 bootstrap/mirth.py src mtest --update
 
 build:
-	PYTHONHASHSEED=0 python3 bootstrap/mirth.py src build
+	python3 bootstrap/mirth.py src build
 
 bootstrap-test:
-	PYTHONHASHSEED=0 python3 bootstrap/test.py
+	python3 bootstrap/test.py
 
 install-vim:
 	mkdir -p ~/.vim/bundle
