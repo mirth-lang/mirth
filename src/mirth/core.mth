@@ -293,13 +293,13 @@ export mirth/core
   cdef->str : CDef -- Str
   cdef->sexp : CDef -- Sexp
 
-  MkCSymKey : CArity Str -- CSymKey
+  MkCSymKey : Str -- CSymKey
   csym->csymkey : CSym -- CSymKey
 
-  MkCVarKey : CSort Str -- CVarKey
+  MkCVarKey : Str -- CVarKey
   cvar->cvarkey : CVar -- CVarKey
 
-  MkCHoleKey : CSort Nat -- CHoleKey
+  MkCHoleKey : Str -- CHoleKey
   chole->cholekey : CHole -- CHoleKey
 
   MkCEnv : Map(CSymKey, CDef) -- CEnv
@@ -1539,25 +1539,25 @@ cdef->sexp : CDef -- Sexp
 cdef->sexp = unCDef sexp2("MkCDef", csym->sexp, maybe(nil sexpList, cbody->sexp))
 
 data CSymKey
-  MkCSymKey : CArity Str -- CSymKey
+  MkCSymKey : Str -- CSymKey
 end
 
 csym->csymkey : CSym -- CSymKey
-csym->csymkey = unCSym dip(csigArity) MkCSymKey
+csym->csymkey = csym->str MkCSymKey
 
 data CVarKey
-  MkCVarKey : CSort Str -- CVarKey
+  MkCVarKey : Str -- CVarKey
 end
 
 cvar->cvarkey : CVar -- CVarKey
-cvar->cvarkey = unCVar dip(ckindSort) MkCVarKey
+cvar->cvarkey = cvar->str MkCVarKey
 
 data CHoleKey
-  MkCHoleKey : CSort Nat -- CHoleKey
+  MkCHoleKey : Str -- CHoleKey
 end
 
 chole->cholekey : CHole -- CHoleKey
-chole->cholekey = unCHole dip(ckindSort) MkCHoleKey
+chole->cholekey = chole->str MkCHoleKey
 
 data CEnv
   MkCEnv : Map(CSymKey, CDef) -- CEnv
