@@ -117,7 +117,7 @@ def repl(flags):
     print('Mirth Bootstrap Interpreter v0.0.0: Caveat Explorator.')
     print()
     print('Thank you to our patrons on https://patreon.com/mirth_lang')
-    print('And a special thanks to Benjohn, Joseph Victor, webstrand,'
+    print('And a special thanks to Benjohn, Joseph Victor, webstrand,')
     print('Mark Friedenback, Tycho Luyben, and Nikolai Mushegian.')
     print()
 
