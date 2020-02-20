@@ -96,12 +96,12 @@ unParser = match(mkParser(f) -> f)
 
 runParser =
   dip(mkPS) unParser match(
-    prFail -> nip err,
-    prNone -> drop "Syntax Error" psErr err,
+    prFail -> nip Err,
+    prNone -> drop "Syntax Error" psErr Err,
     prSome ->
       drop cond(
-        dip?(psNil?) -> nip ok,
-        drop "Syntax Error: Leftover Tokens" psErr err
+        dip?(psNil?) -> nip Ok,
+        drop "Syntax Error: Leftover Tokens" psErr Err
       )
   )
 
@@ -372,10 +372,10 @@ parseParam = lazyP(
   # option 1
   token(tokenIsColon?)
   parseType
-  seq2(nip some)
+  seq2(nip Some)
 
   # option 2
-  none pureP
+  None pureP
 
   alt2
   seq3(getL mkParam)
@@ -387,10 +387,10 @@ parseType = lazyP(
   # option 1
   token(tokenIsDash2?)
   parseExpr
-  seq2(nip some)
+  seq2(nip Some)
 
   # option2
-  none pureP
+  None pureP
 
   alt2
   seq2(
@@ -433,8 +433,8 @@ parseDocs = lazyP(
     star
   seq1(
     unL nil? if(
-      drop2 none,
-      map(getL) mkDocs mkL some
+      drop2 None,
+      map(getL) mkDocs mkL Some
     )
   )
 )
@@ -442,4 +442,3 @@ parseDocs = lazyP(
 ####################
 ### parser tests ###
 ####################
-

@@ -37,25 +37,24 @@ export base/set
 end
 
 data Set(k)
-  mkSet : Map(k, Unit) -- Set(k)
+  MkSet : Map(k, Unit) -- Set(k)
 end
 
 unSet : Set(k) -- Map(k, Unit)
-unSet = match(mkSet -> id)
+unSet = match(MkSet -> id)
 
 Set.generate = setFromList
 setFromList = dip(setNil) for(setAdd)
-setFromMapKeys = mapMap(drop unit) mkSet
-setNil = mapNil mkSet
+setFromMapKeys = mapMap(drop unit) MkSet
+setNil = mapNil MkSet
 setSingle = dip(setNil) setAdd
-setAdd = dip(unSet) unit mapSet mkSet
+setAdd = dip(unSet) unit mapSet MkSet
 setUnion = setFor(setAdd)
 setHas = dip(unSet) mapHas
 setLen = unSet mapLen
-setNil? = unSet mapNil? dip(mkSet)
+setNil? = unSet mapNil? dip(MkSet)
 setLen? = dup setLen
 setHas? = dup2 setHas
 setFor(f) = unSet mapFor(drop f)
 set->sexp(k->sexp) = dip(nil) setFor(k->sexp cons) sexpList
 maybe->set = maybe(setNil, setSingle)
-

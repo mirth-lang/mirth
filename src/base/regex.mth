@@ -111,23 +111,22 @@ regexMatchAux : Maybe(Nat) Nat Str Regex -- Maybe(Nat)
 regexMatchAux =
   cond(
     fail? -> drop3,
-    dip?(strnull?) -> eps? if(drop2 nip some, drop3),
-    eps? if(dip2(nip dup dip(some)), id)
+    dip?(strnull?) -> eps? if(drop2 nip Some, drop3),
+    eps? if(dip2(nip dup dip(Some)), id)
     dip2(n1+ pnat) dip(n1 strbreak swap str->char)
     derive regexMatchAux
   )
 
 regexMatch : Str Regex -- Maybe(Nat)
-regexMatch = dip2(none n0) regexMatchAux
+regexMatch = dip2(None n0) regexMatchAux
 
-fail regexMatch == drop none
-"foobar" "foo" lit regexMatch == 3 znat some
-"foobar" "foo" cls regexMatch == n1 some
-"foobar" "foo" lit "bar" lit seq2 regexMatch == 6 znat some
-"foobar" "f" lit "foo" lit alt2 regexMatch == 3 znat some
-"foobar" "foo" lit star regexMatch == 3 znat some
-"foobar" "food" lit star regexMatch == n0 some
-"foobar" "food" lit regexMatch == none
+fail regexMatch == drop None
+"foobar" "foo" lit regexMatch == 3 znat Some
+"foobar" "foo" cls regexMatch == n1 Some
+"foobar" "foo" lit "bar" lit seq2 regexMatch == 6 znat Some
+"foobar" "f" lit "foo" lit alt2 regexMatch == 3 znat Some
+"foobar" "foo" lit star regexMatch == 3 znat Some
+"foobar" "food" lit star regexMatch == n0 Some
+"foobar" "food" lit regexMatch == None
 
-"abc" "ab" cls star regexMatch == 2 znat some
-
+"abc" "ab" cls star regexMatch == 2 znat Some

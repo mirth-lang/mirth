@@ -331,7 +331,6 @@ showStr = dip("\"") strfold(showCharBody <>) "\"" <>
 "\t\n\r\\\"" showStr == "\"\\t\\n\\r\\\\\\\"\""
 272 int->char char->str showStr == "\"\\u000110\""
 
-strmatch = _prim_str_rematch if(znat some, drop none)
+strmatch = _prim_str_rematch if(znat Some, drop None)
 
 unlines = dip("") for("\n" <> <>)
-

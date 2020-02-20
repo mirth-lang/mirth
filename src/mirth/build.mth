@@ -62,10 +62,10 @@ buildPkgMods = $(
 )
 
 buildPkg : Pkg -- Int +IO
-buildPkg = dup dip(some) findMods buildPkgMods
+buildPkg = dup dip(Some) findMods buildPkgMods
 
 buildMod : Mod -- Int +IO
-buildMod = dip(none) nil snoc buildPkgMods
+buildMod = dip(None) nil snoc buildPkgMods
 
 buildPath : Path -- Int +IO
 buildPath = $(
@@ -75,4 +75,3 @@ buildPath = $(
     "mirth: Path does not exist: " swap path->str <> trace 1
   )
 )
-

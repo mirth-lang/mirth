@@ -493,12 +493,12 @@ unEFocus : EFocus -- Maybe(EPackage) Maybe(EModule) Maybe(EInterface)
 unEFocus = match(MkEFocus -> id)
 
 efocusNil : EFocus
-efocusNil = none none none MkEFocus
+efocusNil = None None None MkEFocus
 
 efocusGetDef : EFocus Name -- Maybe(EDef)
 efocusGetDef =
   swap unEFocus dip2(drop) maybe(
-    maybe(drop none, swap emoduleGetDef),
+    maybe(drop None, swap emoduleGetDef),
     nip swap einterfaceGetDef
   )
 
@@ -508,9 +508,9 @@ efocusAddDefs = $(
   swap maybe(
     swap maybe(
       drop2 "Compiler Error: efocusAddDefs: Not in module or interface." emFail,
-      swap emoduleAddDefs emMap2(some none MkEFocus)
+      swap emoduleAddDefs emMap2(Some None MkEFocus)
     ),
-    swap einterfaceAddDefs dip(emPure) emMap3(some MkEFocus)
+    swap einterfaceAddDefs dip(emPure) emMap3(Some MkEFocus)
   )
 )
 
@@ -519,11 +519,11 @@ efocusAddDef = edefsSingle efocusAddDefs
 
 ||| Create an empty package focus for a Pkg.
 efocusNilPkg : Pkg -- EFocus
-efocusNilPkg = epackageNil some none none MkEFocus
+efocusNilPkg = epackageNil Some None None MkEFocus
 
 ||| Create an empty module focus for a Mod, for testing purposes.
 efocusNilMod : Mod -- EFocus
-efocusNilMod =  dip(none) emoduleNil some none MkEFocus
+efocusNilMod =  dip(None) emoduleNil Some None MkEFocus
 
 efocusUsePackage(f: Maybe(EPackage) a -- Maybe(EPackage) b) : EFocus a -- EFocus b
 efocusUseModule(f: Maybe(EModule) a -- Maybe(EModule) b) : EFocus a -- EFocus b
@@ -552,45 +552,45 @@ ectxNil = ECtxNone
 ectxGetCCtx : ECtx -- Maybe(CCtx)
 ectxGetCCtx =
   match(
-    ECtxType -> drop some,
-    ECtxWord -> drop some,
-    _ -> drop none
+    ECtxType -> drop Some,
+    ECtxWord -> drop Some,
+    _ -> drop None
   )
 
 ectxGetImplicitBinds : ECtx -- Maybe(List(CBind))
 ectxGetImplicitBinds =
   match(
-    ECtxType -> nip some,
-    _ -> drop none
+    ECtxType -> nip Some,
+    _ -> drop None
   )
 
 ectxGetStack : ECtx -- Maybe(CStack)
 ectxGetStack =
   match(
-    ECtxWord -> nip some,
-    _ -> drop none
+    ECtxWord -> nip Some,
+    _ -> drop None
   )
 
 ectxSetCCtx : ECtx CCtx -- Maybe(ECtx)
 ectxSetCCtx =
   swap match(
-    ECtxType -> nip ECtxType some,
-    ECtxWord -> nip ECtxWord some,
-    _ -> drop2 none
+    ECtxType -> nip ECtxType Some,
+    ECtxWord -> nip ECtxWord Some,
+    _ -> drop2 None
   )
 
 ectxSetImplicitBinds : ECtx List(CBind) -- Maybe(ECtx)
 ectxSetImplicitBinds =
   swap match(
-    ECtxType -> drop swap ECtxType some,
-    _ -> drop2 none
+    ECtxType -> drop swap ECtxType Some,
+    _ -> drop2 None
   )
 
 ectxSetCStack : ECtx CStack -- Maybe(ECtx)
 ectxSetCStack =
   swap match(
-    ECtxWord -> drop swap ECtxWord some,
-    _ -> drop2 none
+    ECtxWord -> drop swap ECtxWord Some,
+    _ -> drop2 None
   )
 
 ||| Local environment -- The current elab context and location.
@@ -726,22 +726,22 @@ emGetFocusInterface = $(
 )
 
 emSetFocusPackage : EPackage -- EMonad(Unit)
-emSetFocusPackage = emUse(eenvUseFocus(efocusUsePackage(nip some unit)))
+emSetFocusPackage = emUse(eenvUseFocus(efocusUsePackage(nip Some unit)))
 
 emSetFocusModule : EModule -- EMonad(Unit)
-emSetFocusModule = emUse(eenvUseFocus(efocusUseModule(nip some unit)))
+emSetFocusModule = emUse(eenvUseFocus(efocusUseModule(nip Some unit)))
 
 emSetFocusInterface : EInterface -- EMonad(Unit)
-emSetFocusInterface = emUse(eenvUseFocus(efocusUseInterface(nip some unit)))
+emSetFocusInterface = emUse(eenvUseFocus(efocusUseInterface(nip Some unit)))
 
 emDropFocusPackage : EMonad(Unit)
-emDropFocusPackage = unit emUse(eenvUseFocus(efocusUsePackage(dip(drop none))))
+emDropFocusPackage = unit emUse(eenvUseFocus(efocusUsePackage(dip(drop None))))
 
 emDropFocusModule : EMonad(Unit)
-emDropFocusModule = unit emUse(eenvUseFocus(efocusUseModule(dip(drop none))))
+emDropFocusModule = unit emUse(eenvUseFocus(efocusUseModule(dip(drop None))))
 
 emDropFocusInterface : EMonad(Unit)
-emDropFocusInterface = unit emUse(eenvUseFocus(efocusUseInterface(dip(drop none))))
+emDropFocusInterface = unit emUse(eenvUseFocus(efocusUseInterface(dip(drop None))))
 
 emSaveFocusModule : EMonad(Unit)
 emSaveFocusModule = $(
@@ -921,7 +921,7 @@ elabTypeSig = $(
     dip3(drop)
     dup dip2(swap ++ CKType MkCSig) dip(emPackageSym) emPure
     emBind2(
-      swap none MkCDef
+      swap None MkCDef
       dup dip(EDCore emAddDef)
       emCoreAdd
       emSetCtxNone
@@ -938,7 +938,7 @@ elabDataDef = $( # Just elaborates as a type sig for now.
     dip3(drop)
     dup dip2(swap ++ CKType MkCSig) dip(emPackageSym) emPure
     emBind2(
-      swap none MkCDef
+      swap None MkCDef
       dup dip(EDCore emAddDef)
       emCoreAdd
       emSetCtxNone
@@ -958,7 +958,7 @@ elabWordSig = $(
     dip(unpack2 CKWord MkCSig)
     dup dip(emModuleSym) emPure
     emBind2(
-      swap none MkCDef
+      swap None MkCDef
       dup dip(EDCore emAddDef)
       emCoreAdd
       emSetCtxNone
@@ -1003,4 +1003,3 @@ runElabPackage = $(
   elabPackage emThen(emGetFocusPackage)
   dip(eenvNil) emRun nip
 )
-
