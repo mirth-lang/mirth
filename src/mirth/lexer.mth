@@ -10,7 +10,6 @@ import base/char
 import base/order
 import base/list
 import base/str
-import base/regex+
 import base/maybe
 import base/result
 import mirth/mod
@@ -112,49 +111,6 @@ readMultistring = 3 znat strdropL 3 znat strdropR readStringBody
 
 readDoc : Str -- Str
 readDoc = 3 znat strbreak nip n1 strbreak over " " streq if(nip, <>)
-
-#
-# regexes
-#
-
-decIntRegex : Regex
-decIntRegex = "" lit "+-" cls alt2 "0123456789" cls plus seq2
-
-hexIntRegex : Regex
-hexIntRegex = "" lit "+-" cls alt2 "0" lit "xX" cls "0123456789abcdefABCDEF" cls plus seq4
-
-wordRegex : Regex
-wordRegex = "0123456789abcdefghijklmnopqrstuvwxyzzABCDEFGHIJKLMNOPQRSTUVWXYZ_-?+*~!@$%^&=/|<>'.\\" cls plus
-
-stringChar : Regex
-stringChar = "\t !#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~" cls "\\" lit "ntr\\\"" cls seq2 alt2
-
-stringRegex : Regex
-stringRegex = "\"" lit stringChar star "\"" lit seq3
-
-multistringChar : Regex
-multistringChar = stringChar "\n" lit alt2
-
-multistringAtom : Regex
-multistringAtom = multistringChar "\"" lit multistringChar "\"" lit multistringChar seq2 alt2 seq2 alt2
-
-multistringRegex : Regex
-multistringRegex = "\"\"\"" lit multistringAtom star "\"\"\"" lit seq3
-
-visibleChar : Regex
-visibleChar = "\t !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~" cls
-
-commentRegex : Regex
-commentRegex = "#" lit visibleChar star seq2
-
-trimRegex : Regex
-trimRegex = " \t" cls star
-
-newlineRegex : Regex
-newlineRegex = commentRegex "\r\n" cls trimRegex seq2 alt2 plus
-
-docRegex : Regex
-docRegex = "|||" lit visibleChar star seq2
 
 #
 #
