@@ -1,0 +1,27 @@
+{
+    "publisher": "mirth-lang",
+    "repository": "mirth-lang/mirth",
+    "name": "mirth",
+    "displayName": "Mirth",
+    "description": "Language support for the Mirth programming language",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.42.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "mirth",
+            "aliases": ["Mirth", "mirth"],
+            "extensions": [".mth"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "mirth",
+            "scopeName": "source.mirth",
+            "path": "./syntaxes/mirth.tmLanguage.json"
+        }]
+    }
+}

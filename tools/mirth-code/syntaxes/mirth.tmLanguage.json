@@ -1,0 +1,72 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Mirth",
+	"patterns": [
+		{ "include": "#comment" },
+		{ "include": "#token" },
+		{ "include": "#string" }
+	],
+	"repository": {
+		"comment": {
+			"patterns": [{
+				"name": "comment.line.number-sign.mirth",
+				"match": "#.*"
+			}, {
+				"name": "comment.block.documentation.mirth",
+				"match": "\\|\\|\\| ?(.*)"
+			}]
+		},
+		"token": {
+			"patterns": [{
+				"name": "token.mirth",
+				"match": "([:\\(\\)\\[\\]\\{\\},]|[^\\s\\\":()\\[\\]\\{\\},]+)",
+				"captures": {"0": {"patterns": [
+					{"include": "#keyword"},
+					{"include": "#entity"}
+				]}}
+			}]
+		},
+		"keyword": {
+			"patterns": [{
+				"name": "keyword.control.mirth",
+				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])(import|export|end|data|type)(?![^\\s\\\":()\\[\\]\\{\\},])"
+			}, {
+				"name": "keyword.operator.mirth",
+				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])(\\$|->|--|=|==)(?![^\\s\\\":()\\[\\]\\{\\},])"
+			}, {
+				"name": "keyword.operator.mirth",
+				"match": "[:\\(\\)\\[\\]\\{\\},]"
+			}]
+		},
+		"entity": {
+			"patterns": [{
+				"name": "constant.numeric.dec.mirth",
+				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])([+-]?[0-9]+)(?![^\\s\\\":()\\[\\]\\{\\},])"
+			}, {
+				"name": "constant.numeric.hex.mirth",
+				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])([+-]?0[xX][a-zA-Z0-9]+)(?![^\\s\\\":()\\[\\]\\{\\},])"
+			}, {
+				"name": "keyword.operator.mirth",
+				"match": "\\+[a-zA-Z][^\\s\\\":()\\[\\]\\{\\},]*"
+			}, {
+				"name": "entity.name.function.mirth",
+				"match": "[A-Z][^\\s\\\":()\\[\\]\\{\\},]*"
+			}, {
+				"name": "support.function.mirth",
+				"match": "[^\\s\\\":()\\[\\]\\{\\},]+"
+			}]
+		},
+		"string": {
+			"name": "string.quoted.double.mirth",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.mirth",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.mirth"
+}
