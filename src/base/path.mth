@@ -13,8 +13,6 @@ export base/path
 
   path->str : Path -- Str
   str->path : Str -- Path
-  path      : Str -- Path
-  unpath    : Path -- Str
 
   absolute? : Path -- Path Bool
   relative? : Path -- Path Bool
@@ -37,46 +35,48 @@ export base/path
 end
 
 data Path
-  path : Str -- Path
+  MkPath : Str -- Path
 end
+
+unPath : Path -- Str
+unPath = match(MkPath -> id)
 
 Path.generate : Bool List(Int) Bool Bool -- Path
 Path.generate = $(
   dip2?(nil? not) and
-  dip3(if("/", "") path)
-  dip2(for(Nat.generate nat->str dip("f") <> path </>))
+  dip3(if("/", "") MkPath)
+  dip2(for(Nat.generate nat->str dip("f") <> MkPath </>))
   dip(if(addPathSep, id))
   if("txt" <.>, id)
 )
 
-unpath = match(path -> id)
-str->path = path
-path->str = unpath
+str->path = MkPath
+path->str = unPath
 
 nilpath : Path
-nilpath = "" path
+nilpath = "" MkPath
 
 nilpath? : Path -- Path Bool
-nilpath? = dup unpath strnull
+nilpath? = dup unPath strnull
 
 unixrootpath : Path
-unixrootpath = "/" path
+unixrootpath = "/" MkPath
 
 unixrootpath? : Path -- Path Bool
-unixrootpath? = dup unpath "/" streq
+unixrootpath? = dup unPath "/" streq
 
 unixhomepath : Path
-unixhomepath = "~" path
+unixhomepath = "~" MkPath
 
 unixhomepath? : Path -- Path Bool
-unixhomepath? = dup unpath "~" streq
+unixhomepath? = dup unPath "~" streq
 
 defaultrootpath : Str
 defaultrootpath = "/" # FIXME: windows support
 
 absolute? = or?(
-  dup unpath dip("/") strprefix,
-  dup unpath dip("~") strprefix
+  dup unPath dip("/") strprefix,
+  dup unPath dip("~") strprefix
 )
 
 # FIXME: windows support, home path (~) support
@@ -90,7 +90,7 @@ pathSep : Str
 pathSep = "/" # FIXME: windows support
 
 hasPathSep : Path -- Bool
-hasPathSep = unpath strlen? n1- znat strbreak nip pathSep streq
+hasPathSep = unPath strlen? n1- znat strbreak nip pathSep streq
 
 hasPathSep? : Path -- Path Bool
 hasPathSep? = dup hasPathSep
@@ -100,7 +100,7 @@ addPathSep =
   cond(
     nilpath? -> id,
     hasPathSep? -> id,
-    unpath "/" <> path
+    unPath "/" <> MkPath
   )
 
 delPathSep : Path -- Path
@@ -109,7 +109,7 @@ delPathSep =
     nilpath? -> id,
     hasPathSep? not -> id,
     unixrootpath? -> id,
-    unpath strlen? n1- znat strbreak drop path
+    unPath strlen? n1- znat strbreak drop MkPath
   )
 
 addPathSep hasPathSep == nilpath? not nip
@@ -127,7 +127,7 @@ absolute? nip == delPathSep absolute? nip
 </> = cond(
   absolute? -> nip,
   dip?(nilpath?) -> nip,
-  dip(addPathSep) both(unpath) <> path
+  dip(addPathSep) both(unPath) <> MkPath
 )
 
 </> </> == dip(</>) </>
@@ -137,10 +137,9 @@ nilpath </> nilpath </> == nilpath </>
 </> absolute? == or?(dip?(absolute?), absolute?) dip(</>)
 </> relative? == and?(dip?(relative?), relative?) dip(</>)
 
-<.> = dip(unpath ".") <> <> path
+<.> = dip(unPath ".") <> <> MkPath
 
-pathHasExtension?(e) = "." e <> over unpath strsuffix
+pathHasExtension?(e) = "." e <> over unPath strsuffix
 
-path=  = both(unpath) streq
+path=  = both(unPath) streq
 path=? = dup2 path=
-
