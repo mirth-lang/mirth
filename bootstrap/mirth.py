@@ -198,7 +198,7 @@ def error(modpath, lineno, msg):
     p = os.path.relpath(modpath)
     if lineno is None:
         lineno = 1
-    print('%s:%d:' % (p, lineno), msg, file=sys.stderr)
+    print('%s:%d:1: error:' % (p, lineno), msg, file=sys.stderr)
     sys.exit(1)
 
 def handle_package_error(pkg, modpath, n, f):
@@ -2261,4 +2261,3 @@ if __name__ == '__main__':
         raise ValueError("Builtins are mismatched.")
 
     main()
-
