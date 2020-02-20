@@ -45,10 +45,10 @@ unSet = match(MkSet -> id)
 
 Set.generate = setFromList
 setFromList = dip(setNil) for(setAdd)
-setFromMapKeys = mapMap(drop unit) MkSet
+setFromMapKeys = mapMap(drop MkUnit) MkSet
 setNil = mapNil MkSet
 setSingle = dip(setNil) setAdd
-setAdd = dip(unSet) unit mapSet MkSet
+setAdd = dip(unSet) MkUnit mapSet MkSet
 setUnion = setFor(setAdd)
 setHas = dip(unSet) mapHas
 setLen = unSet mapLen

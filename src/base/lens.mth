@@ -53,7 +53,7 @@ data Lens(s,a)
   MkLens(get: s p -- x a, set: x a -- s) : p -- Lens(s,a)
 end
 
-lens(get, set) = unit MkLens(drop get, set)
+lens(get, set) = MkUnit MkLens(drop get, set)
 lensParam(get, set) = MkLens(get, set)
 
 lensId = lens1/1(id, id)
@@ -87,7 +87,7 @@ lensCp4 = lensCp lensCp lensCp
 !!!! = lensCp4 !
 ^^^^(f) = lensCp4 ^(f)
 
-lens1/1(c,d) = lens(dip(unit) d, nip c)
+lens1/1(c,d) = lens(dip(MkUnit) d, nip c)
 lens2/2(c,d) = lens(d, c)
 lens3/3(c,d) = lens(d dip(pack2), dip(unpack2) c)
 lens4/4(c,d) = lens(d dip(pack3), dip(unpack3) c)
@@ -106,4 +106,3 @@ lens1/4(c,d) = lens4/4(rot4r c, d rot4l)
 lens2/5(c,d) = lens5/5(rot4r c, d rot4l)
 
 lens1/5(c,d) = lens5/5(rot5r c, d rot5l)
-

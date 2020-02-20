@@ -105,7 +105,7 @@ erFail : EError -- EResult(t)
 erFail = lpure nil ERErr
 
 erWarn : EWarning -- EResult(Unit)
-erWarn = dip(unit) lpure EROk
+erWarn = dip(MkUnit) lpure EROk
 
 erMap(f: *c a -- *c b) : *c EResult(a) -- *c EResult(b)
 erMap(f) = eresult(ERErr, dip(f) EROk)
@@ -142,10 +142,10 @@ emUse(f: EEnv a -- EEnv b) : a -- EMonad(b)
 emUse(f) = MkEMonad(f erPure)
 
 emGet(f: EEnv -- EEnv b) : EMonad(b)
-emGet(f) = unit emUse(drop f)
+emGet(f) = MkUnit emUse(drop f)
 
 emPut(f: EEnv t -- EEnv) : t -- EMonad(Unit)
-emPut(f) = emUse(f unit)
+emPut(f) = emUse(f MkUnit)
 
 emRun : EEnv EMonad(t) -- EEnv EResult(t)
 emRun = match(MkEMonad(f) -> f)
@@ -199,7 +199,7 @@ emBind(f) =
   MkEMonad(
     emRun eresult(
       ERErr,
-      dip(unit) EROk
+      dip(MkUnit) EROk
       dip(f emRun)
       swap erMap2(nip)
     )
@@ -227,19 +227,19 @@ emThen4(f: EMonad(e)) : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(e)
 emThen4(f) = emBind4(drop4 f)
 
 emUnit : EMonad(Unit)
-emUnit = unit emPure
+emUnit = MkUnit emPure
 
 emVoid : EMonad(a) -- EMonad(Unit)
-emVoid = emMap(drop unit)
+emVoid = emMap(drop MkUnit)
 
 emVoid2 : EMonad(a) EMonad(b) -- EMonad(Unit)
-emVoid2 = emMap2(drop2 unit)
+emVoid2 = emMap2(drop2 MkUnit)
 
 emVoid3 : EMonad(a) EMonad(b) EMonad(c) -- EMonad(Unit)
-emVoid3 = emMap3(drop3 unit)
+emVoid3 = emMap3(drop3 MkUnit)
 
 emVoid4 : EMonad(a) EMonad(b) EMonad(c) EMonad(d) -- EMonad(Unit)
-emVoid4 = emMap4(drop4 unit)
+emVoid4 = emMap4(drop4 MkUnit)
 
 ###############
 # Elaboration #
@@ -635,22 +635,22 @@ eenvUseLocal(f) = dip(unEEnv) f dip(MkEEnv)
 ###############
 
 emGetWorld : EMonad(EWorld)
-emGetWorld = unit emUse(eenvUseWorld(drop dup))
+emGetWorld = MkUnit emUse(eenvUseWorld(drop dup))
 
 emSetWorld : EWorld -- EMonad(Unit)
-emSetWorld = emUse(eenvUseWorld(nip unit))
+emSetWorld = emUse(eenvUseWorld(nip MkUnit))
 
 emGetFocus : EMonad(EFocus)
-emGetFocus = unit emUse(eenvUseFocus(drop dup))
+emGetFocus = MkUnit emUse(eenvUseFocus(drop dup))
 
 emSetFocus : EFocus -- EMonad(Unit)
-emSetFocus = emUse(eenvUseFocus(nip unit))
+emSetFocus = emUse(eenvUseFocus(nip MkUnit))
 
 emGetLocal : EMonad(ELocal)
-emGetLocal = unit emUse(eenvUseLocal(drop dup))
+emGetLocal = MkUnit emUse(eenvUseLocal(drop dup))
 
 emSetLocal : ELocal -- EMonad(Unit)
-emSetLocal = emUse(eenvUseLocal(nip unit))
+emSetLocal = emUse(eenvUseLocal(nip MkUnit))
 
 emWith(f: a -- EMonad(b), getX : EMonad(x), setX : x -- EMonad(Unit)) : a x -- EMonad(b)
 emWith(f, getX, setX) = $(
@@ -659,10 +659,10 @@ emWith(f, getX, setX) = $(
 )
 
 emGetCtx : EMonad(ECtx)
-emGetCtx = unit emUse(eenvUseLocal(elocalUseCtx(drop dup)))
+emGetCtx = MkUnit emUse(eenvUseLocal(elocalUseCtx(drop dup)))
 
 emSetCtx : ECtx -- EMonad(Unit)
-emSetCtx = emUse(eenvUseLocal(elocalUseCtx(nip unit)))
+emSetCtx = emUse(eenvUseLocal(elocalUseCtx(nip MkUnit)))
 
 emWithCtx(f: a -- EMonad(b)) : a ECtx -- EMonad(b)
 emWithCtx(f) = emWith(f, emGetCtx, emSetCtx)
@@ -678,10 +678,10 @@ emGetCStack = emGetCtx emBind(ectxGetStack maybe("compiler error: CStack request
 
 
 emGetLoc : EMonad(LocSet)
-emGetLoc = unit emUse(eenvUseLocal(elocalUseLoc(drop dup)))
+emGetLoc = MkUnit emUse(eenvUseLocal(elocalUseLoc(drop dup)))
 
 emSetLoc : LocSet -- EMonad(Unit)
-emSetLoc = emUse(eenvUseLocal(elocalUseLoc(nip unit)))
+emSetLoc = emUse(eenvUseLocal(elocalUseLoc(nip MkUnit)))
 
 emWithLoc(f: a -- EMonad(b)) : a LocSet -- EMonad(b)
 emWithLoc(f) = emWith(f, emGetLoc, emSetLoc)
@@ -696,11 +696,11 @@ emList(f: a -- EMonad(b)) : List(a) -- EMonad(List(b))
 emList(f) = dip(nil) emFor(dip(emPure) f emMap2(consR))
 
 emFor_(f: a -- EMonad(Unit)) : List(a) -- EMonad(Unit)
-emFor_(f) = dip(unit emPure) for(f emVoid2)
+emFor_(f) = dip(MkUnit emPure) for(f emVoid2)
 
 emGetFocusPackage : EMonad(EPackage)
 emGetFocusPackage = $(
-  unit emUse(eenvUseFocus(efocusUsePackage(drop dup)))
+  MkUnit emUse(eenvUseFocus(efocusUsePackage(drop dup)))
   emBind(maybe(
     "Compiler Error: emGetFocusPackage: Not in package." emFail,
     emPure
@@ -709,7 +709,7 @@ emGetFocusPackage = $(
 
 emGetFocusModule : EMonad(EModule)
 emGetFocusModule = $(
-  unit emUse(eenvUseFocus(efocusUseModule(drop dup)))
+  MkUnit emUse(eenvUseFocus(efocusUseModule(drop dup)))
   emBind(maybe(
     "Compiler Error: emGetFocusModule: Not in module." emFail,
     emPure
@@ -718,7 +718,7 @@ emGetFocusModule = $(
 
 emGetFocusInterface : EMonad(EInterface)
 emGetFocusInterface = $(
-  unit emUse(eenvUseFocus(efocusUseInterface(drop dup)))
+  MkUnit emUse(eenvUseFocus(efocusUseInterface(drop dup)))
   emBind(maybe(
     "Compiler Error: emGetFocusInterface: Not in module." emFail,
     emPure
@@ -726,22 +726,22 @@ emGetFocusInterface = $(
 )
 
 emSetFocusPackage : EPackage -- EMonad(Unit)
-emSetFocusPackage = emUse(eenvUseFocus(efocusUsePackage(nip Some unit)))
+emSetFocusPackage = emUse(eenvUseFocus(efocusUsePackage(nip Some MkUnit)))
 
 emSetFocusModule : EModule -- EMonad(Unit)
-emSetFocusModule = emUse(eenvUseFocus(efocusUseModule(nip Some unit)))
+emSetFocusModule = emUse(eenvUseFocus(efocusUseModule(nip Some MkUnit)))
 
 emSetFocusInterface : EInterface -- EMonad(Unit)
-emSetFocusInterface = emUse(eenvUseFocus(efocusUseInterface(nip Some unit)))
+emSetFocusInterface = emUse(eenvUseFocus(efocusUseInterface(nip Some MkUnit)))
 
 emDropFocusPackage : EMonad(Unit)
-emDropFocusPackage = unit emUse(eenvUseFocus(efocusUsePackage(dip(drop None))))
+emDropFocusPackage = MkUnit emUse(eenvUseFocus(efocusUsePackage(dip(drop None))))
 
 emDropFocusModule : EMonad(Unit)
-emDropFocusModule = unit emUse(eenvUseFocus(efocusUseModule(dip(drop None))))
+emDropFocusModule = MkUnit emUse(eenvUseFocus(efocusUseModule(dip(drop None))))
 
 emDropFocusInterface : EMonad(Unit)
-emDropFocusInterface = unit emUse(eenvUseFocus(efocusUseInterface(dip(drop None))))
+emDropFocusInterface = MkUnit emUse(eenvUseFocus(efocusUseInterface(dip(drop None))))
 
 emSaveFocusModule : EMonad(Unit)
 emSaveFocusModule = $(
@@ -773,7 +773,7 @@ emCoreGet : CSym -- EMonad(Maybe(CDef))
 emCoreGet = emUse(eenvUseWorld(dip(dup) eworldCoreGet))
 
 emCoreSet : CDef -- EMonad(Unit)
-emCoreSet = emUse(eenvUseWorld(eworldCoreSet unit))
+emCoreSet = emUse(eenvUseWorld(eworldCoreSet MkUnit))
 
 emCoreAdd : CDef -- EMonad(Unit)
 emCoreAdd = dip(emGetWorld) emPure emBind2(eworldCoreAdd) emBind(emSetWorld)
@@ -879,7 +879,7 @@ elabModule = $(
 
 elabImport = unImport elabL(
   dip(emGetFocusModule) emPure
-  emBind2(emoduleUseImports(eimportsAdd unit) drop emSetFocusModule)
+  emBind2(emoduleUseImports(eimportsAdd MkUnit) drop emSetFocusModule)
 )
 
 elabExport = $(

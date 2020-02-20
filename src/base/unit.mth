@@ -4,14 +4,13 @@
 
 export base/unit
   type Unit
-  unit : Unit
+  MkUnit : Unit
   Unit.generate : Unit
 end
 
 data Unit
-  unit : Unit
+  MkUnit : Unit
 end
 
-Unit.generate = unit
-drop unit == id
-
+Unit.generate = MkUnit
+drop MkUnit == id
