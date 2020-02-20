@@ -1934,6 +1934,21 @@ def cond (elab, args):
 
     return outfn
 
+# A super unsafe escape hatch for the otherwise very incomplete
+# type system of the bootstrap. trust_me(f) will run f,
+# but ignore its type, like a "high-order coerce". This is
+# useful for building effects in the bootstrap.
+def trust_me (elab, args):
+    if len(args) != 1:
+        raise SyntaxError("Expected one argument to trust_me")
+    f = args[0]
+    fdom = tpack(fresh_var())
+    tcod = tpack(fresh_var())
+    elab.dom = fdom
+    w = f.elab(elab)
+    elab.dom = tcod
+    return w
+
 tint  = tcon('Int')
 tstr  = tcon('Str')
 tbool = tcon('Bool')
@@ -1951,6 +1966,7 @@ builtin_prims = {
     'match': match,
     'cond': cond,
     'lambda': lam,
+    'trust_me': trust_me,
 }
 
 def word1 (f):
@@ -2245,3 +2261,4 @@ if __name__ == '__main__':
         raise ValueError("Builtins are mismatched.")
 
     main()
+
