@@ -15,6 +15,8 @@ export base/var
     vdelete : Var(t) --
     vlookup : Var(t) -- Maybe(t)
     vupdate : Maybe(t) Var(t) --
+    vuse(f: *a t -- *b t) : *a Var(t) -- *b
+    vmodify(f: *a Maybe(t) -- *b Maybe(t)) : *a Var(t) -- *b
     vlocal(f: *a -- *b): *a t Var(t) -- *b
 end
 
@@ -36,11 +38,8 @@ FRESH = "base/var/FRESH" MkVar
 ||| argument is used as a variable prefix.
 vfresh : Str -- Var(t)
 vfresh = $(
-    "/" <> FRESH vlookup maybe(
-        0 FRESH vset 0,
-        z1+ dup FRESH vset
-    )
-    int->str <> MkVar
+    FRESH vmodify(maybe(0, z1+) dup Some)
+    dip("/" <>) int->str <> MkVar
 )
 
 ||| Get the name underlying a variable reference.
@@ -70,6 +69,15 @@ vlookup = dup vhas if(vget Some, drop None)
 ||| Update the variable's value. If None is passed, variable is deleted.
 vupdate : Maybe(t) Var(t) --
 vupdate = swap maybe(vdelete, swap vset)
+
+||| Use a variable's value and update it. Panics if the variable is undefined.
+vuse(f: *a t -- *b t) : *a Var(t) -- *b
+vuse(f) = save(vget f) vset
+
+||| Use a variables' value and update it. Handles the case where a variable
+||| is undefined, and allows you to make it undefined it in turn.
+vmodify(f: *a Maybe(t) -- *b Maybe(t)) : *a Var(t) -- *b
+vmodify(f) = save(vlookup f) vupdate
 
 ||| Set a variable temporarily. After f, the variable will be reset to
 ||| its original value, even if f throws an exception. If the variable
