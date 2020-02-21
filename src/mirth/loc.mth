@@ -7,7 +7,6 @@ import base/pos
 import base/char
 import base/list
 import base/str
-import base/panic
 import base/order
 import mirth/mod
 
@@ -178,10 +177,9 @@ locSetJoin = match( _locSet -> for(locSetCons) )
 
 locSetConsAux : List(LocSpan) LocSpan List(LocSpan) -- List(LocSpan)
 locSetConsAux =
-  cond(
-    nil? -> drop cons,
-    no_panic_12(unsnoc) rotr
-    dup2 both(locSpanMod) mod= if(
+  lmatchL(
+    cons,
+    rotr dup2 both(locSpanMod) mod= if(
       rotl dip(unsafe_locSpanJoin cons) ++,
       rotr swap dip2(cons) locSetConsAux
     )
@@ -226,4 +224,3 @@ cojoinL = unL dip(dup) mkL mkL
 cobindL(f) = cojoinL mapL(f)
 cobindL2(f) = dip(cojoinL) cojoinL mapL2(f)
 cobindL3(f) = dip2(cojoinL) dip(cojoinL) cojoinL mapL3(f)
-

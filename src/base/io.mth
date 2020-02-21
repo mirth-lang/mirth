@@ -7,11 +7,9 @@ import base/unsafe
 
 export base/io
   type +IO
-  type +Panic
   type Path
 
-  panic->io : +Panic -- +IO
-
+  panic : *a Str -- *b +IO
   exitWith : *a Int -- *b +IO
   exitFailure : *a -- *b +IO
   exitSuccess : *a -- *b +IO
@@ -42,19 +40,17 @@ exitWith = unsafe_exit
 exitFailure = 1 exitWith
 exitSuccess = 0 exitWith
 
-trace     = unsafe_trace
-print     = unsafe_print
-listdir   = unsafe_listdir
-listdirs  = unsafe_listdirs
-listfiles = unsafe_listfiles
-isdir     = unsafe_isdir
-isfile    = unsafe_isfile
-isdir?    = dup isdir
-isfile?   = dup isfile
-read      = unsafe_read
-write     = unsafe_write
-append    = unsafe_append
-panic->io = unsafe_coerce
-
+trace      = unsafe_trace
+print      = unsafe_print
+listdir    = unsafe_listdir
+listdirs   = unsafe_listdirs
+listfiles  = unsafe_listfiles
+isdir      = unsafe_isdir
+isfile     = unsafe_isfile
+isdir?     = dup isdir
+isfile?    = dup isfile
+read       = unsafe_read
+write      = unsafe_write
+append     = unsafe_append
+panic      = unsafe_panic
 deletefile = unsafe_deletefile
-

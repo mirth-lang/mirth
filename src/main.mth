@@ -7,7 +7,6 @@ import base/list
 import base/str
 import base/path
 import base/io
-import base/panic
 
 import mirth/build
 import mirth/mtest
@@ -28,9 +27,9 @@ main = mirth
 # entry point
 mirth : List(Str) -- Int +IO
 mirth =
-  cond(
-    nil? -> drop "USAGE: mirth COMMAND" trace 1,
-    no_panic_12(unsnoc) swap cond(
+  lmatchL(
+    "USAGE: mirth COMMAND" trace 1,
+    swap cond(
       dup "build"  streq -> drop mirth-build,
       dup "mtest"  streq -> drop mirth-mtest,
       dup "help"   streq -> drop mirth-help,
@@ -44,10 +43,12 @@ mirth =
 # mirth build [PACKAGE]
 mirth-build : List(Str) -- Int +IO
 mirth-build =
-  cond(
-    nil? -> drop "src" str->path buildPath,
-    len? n2 n>= -> drop "USAGE: mirth build [PKG]" trace 1,
-    no_panic_12(unsnoc) drop str->path buildPath
+  lmatchL(
+    "src" str->path buildPath,
+    lmatchL(
+      str->path buildPath,
+      drop3 "USAGE: mirth build [PKG]" trace 1
+    )
   )
 
 # mirth mtest

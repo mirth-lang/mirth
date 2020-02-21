@@ -3,7 +3,6 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import base/order
-import base/panic
 
 export base/maybe
   type Comp
@@ -19,9 +18,6 @@ export base/maybe
 
   isSome : Maybe(t) -- Bool
   isNone : Maybe(t) -- Bool
-
-  # panics on none
-  munwrap : Maybe(a) -- a
 end
 
 data Maybe(t)
@@ -34,8 +30,6 @@ mmap(f)    = maybe(None, f Some)
 mmap2(f)   = maybe(drop None, swap maybe(drop None, swap f Some))
 mfor(f)    = maybe(id, f)
 mthen(f)   = maybe(None, f)
-
-munwrap = maybe("munwrap on none" panic, id)
 
 mcmp(f) =
   match(
