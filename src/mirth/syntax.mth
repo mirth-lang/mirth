@@ -7,7 +7,6 @@ import base/list
 import base/str
 import base/int
 import base/sexp
-import base/panic
 import mirth/loc
 
 ||| Export just Name and related functions.
@@ -416,13 +415,13 @@ data Params
 end
 
 unParams = match( mkParams -> id )
-params->str = unParams cond(
-  nil? -> drop "",
-  no_panic_12(unsnoc)
-  dip2("(") dip(getL param->str <>)
-  for(dip(", " <>) getL param->str <>)
-  ")" <>
-)
+params->str =
+  unParams lmatchL(
+    "",
+    dip2("(") dip(getL param->str <>)
+    for(dip(", " <>) getL param->str <>)
+    ")" <>
+  )
 
 ||| Single parameter.
 data Param
@@ -467,13 +466,12 @@ end
 unExpr = match( mkExpr -> id)
 exprAtoms = match( mkExpr -> id )
 exprNil? = match( mkExpr -> nil? dip(mkExpr) )
-expr->str = match( mkExpr ->
-  cond(
-    nil? -> drop "",
-    no_panic_12(unsnoc) dip(getL atom->str)
+expr->str =
+  unExpr lmatchL(
+    "",
+    dip(getL atom->str)
     for(dip(" " <>) getL atom->str <>)
   )
-)
 
 ||| Atoms, i.e. parts of an expression.
 data Atom
@@ -517,15 +515,13 @@ end
 
 unArgs = match ( mkArgs -> id )
 argsExprs = match( mkArgs -> id )
-args->str = match( mkArgs ->
-  cond(
-    nil? -> drop "",
-    no_panic_12(unsnoc)
+args->str =
+  unArgs lmatchL(
+    "",
     dip2("(") dip(getL expr->str <>)
     for(dip(", " <>) getL expr->str <>)
     ")" <>
   )
-)
 
 ################
 ### newtypes ###
@@ -546,7 +542,7 @@ end
 
 unName = match( mkName -> id )
 name->str = unName
-name->sexp = name->str sexpAtom
+name->sexp = name->str Atom
 nameeq = both(unName) streq
 
 isVarName = name->str "[a-z].*" strmatch isSome
@@ -562,8 +558,7 @@ end
 
 unInterface = match( mkInterface -> id )
 interface->str = unInterface
-interface->sexp = interface->str sexpAtom
+interface->sexp = interface->str Atom
 
 interface= : Interface Interface -- Bool
 interface= = both(interface->str) streq
-

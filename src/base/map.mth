@@ -39,13 +39,15 @@ export base/map
 end
 
 data Map(k,v)
-  mapNil : Map(k,v)
-  mapLeaf : k v Int -- Map(k,v)
-  mapNode : Map(k,v) Map(k,v) -- Map(k,v)
+  MapNil : Map(k,v)
+  MapLeaf : k v Int -- Map(k,v)
+  MapNode : Map(k,v) Map(k,v) -- Map(k,v)
 end
 
+mapNil = MapNil
+
 Map.generate = mapFromList
-mapFromList = dip(mapNil) for(unpack2 mapSet)
+mapFromList = dip(MapNil) for(unpack2 mapSet)
 
 hash : k -- Int
 hash = _prim_unsafe_hash
@@ -53,57 +55,57 @@ hash = _prim_unsafe_hash
 moveLeafDown : k v Int -- Map(k,v)
 moveLeafDown =
   p2 z/% n0 n= if(
-    mapLeaf mapNil mapNode,
-    mapLeaf mapNil swap mapNode
+    MapLeaf MapNil MapNode,
+    MapLeaf MapNil swap MapNode
   )
 
 mapSetAux : k v Int Map(k,v) -- Map(k,v)
 mapSetAux =
   match(
-    mapNil -> mapLeaf,
-    mapLeaf -> dip2(over) rotl over z=
+    MapNil -> MapLeaf,
+    MapLeaf -> dip2(over) rotl over z=
       if(
-        drop3 mapLeaf,
+        drop3 MapLeaf,
         moveLeafDown mapSetAux
       ),
-    mapNode ->
+    MapNode ->
       dip2(p2 z/%) rotl n0 n= if(
-        dip(mapSetAux) mapNode,
-        swap dip(mapSetAux) swap mapNode
+        dip(mapSetAux) MapNode,
+        swap dip(mapSetAux) swap MapNode
       )
   )
 mapSet = rotl dip(over hash) mapSetAux
-mapSingle = over hash mapLeaf
+mapSingle = over hash MapLeaf
 
 mapGetAux : Int Map(k,v) -- Maybe(v)
 mapGetAux =
   match(
-    mapNil -> drop none,
-    mapLeaf -> dip(rotl) z= if(nip some, drop2 none),
-    mapNode -> dip2(p2 z/%) rotl n0 n= if(drop, nip) mapGetAux
+    MapNil -> drop None,
+    MapLeaf -> dip(rotl) z= if(nip Some, drop2 None),
+    MapNode -> dip2(p2 z/%) rotl n0 n= if(drop, nip) mapGetAux
   )
 
 mapGet = hash swap mapGetAux
 mapHas = mapGet maybe(false, drop true)
 
-dip(mapNil) mapGet == drop none
-tuck dip(mapSet) mapGet == drop nip some
+dip(mapNil) mapGet == drop None
+tuck dip(mapSet) mapGet == drop nip Some
 dip(tuck dip(mapSet)) mapSet == dip2(drop) mapSet
 
 mapLenAux : Nat Map(k,v) -- Nat
 mapLen = dip(n0) mapLenAux
 mapLenAux =
   match(
-    mapNil -> id,
-    mapLeaf -> drop3 n1+ pnat,
-    mapNode -> dip(mapLenAux) mapLenAux
+    MapNil -> id,
+    MapLeaf -> drop3 n1+ pnat,
+    MapNode -> dip(mapLenAux) mapLenAux
   )
 
-mapNil mapLen == n0
-mapLeaf mapLen == drop3 n1
-mapNode mapLen == mapLen dip(mapLen) n+
+MapNil mapLen == n0
+MapLeaf mapLen == drop3 n1
+MapNode mapLen == mapLen dip(mapLen) n+
 
-mapNil? = match( mapNil -> mapNil true, _ -> false )
+mapNil? = match( MapNil -> MapNil true, _ -> false )
 mapGet? = dup2 mapGet
 mapHas? = dup2 mapHas
 mapLen? = dup mapLen
@@ -115,18 +117,18 @@ mapHas? drop == id
 
 mapMap(f) =
   match(
-    mapNil -> mapNil,
-    mapLeaf -> dip(f) mapLeaf,
-    mapNode -> dip(mapMap(f)) mapMap(f) mapNode
+    MapNil -> MapNil,
+    MapLeaf -> dip(f) MapLeaf,
+    MapNode -> dip(mapMap(f)) mapMap(f) MapNode
   )
 
 mapKeys = setFromMapKeys
 
 mapFor(f) =
   match(
-    mapNil -> id,
-    mapLeaf -> drop f,
-    mapNode -> dip(mapFor(f)) mapFor(f)
+    MapNil -> id,
+    MapLeaf -> drop f,
+    MapNode -> dip(mapFor(f)) mapFor(f)
   )
 
 map->sexp(k->sexp, v->sexp) = $(
@@ -135,9 +137,8 @@ map->sexp(k->sexp, v->sexp) = $(
     dip2(nil)
     dip(k->sexp cons)
     v->sexp cons
-    sexpList
+    List
     cons
   )
-  sexpList
+  List
 )
-

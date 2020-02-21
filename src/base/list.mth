@@ -4,7 +4,7 @@
 
 import base/nat
 import base/order
-import base/panic
+import base/unsafe
 
 export base/list/syntax
   [ : List(t)
@@ -62,16 +62,7 @@ export base/list
   any(f: a -- Bool) : List(a) -- Bool
   list=(f: a b -- Bool) : List(a) List(b) -- Bool
 
-  # Words that panic on empty list.
-  uncons : List(t) -- List(t) t +Panic
-  unsnoc : List(t) -- t List(t) +Panic
-  maximum (ord: Order(a)) : List(a) -- a +Panic
-  minimum (ord: Order(a)) : List(a) -- a +Panic
-  headL : List(t) -- t +Panic
-  headR : List(t) -- t +Panic
-  tailL : List(t) -- List(t) +Panic
-  tailR : List(t) -- List(t) +Panic
-
+  maximum (ord: Order(a)) : List(a) a -- a
 end
 
 [ = nil
@@ -96,10 +87,6 @@ takeL = breakL drop
 takeR = breakR nip
 dropL = breakL nip
 dropR = breakR drop
-headL = unsnoc drop
-headR = uncons nip
-tailL = unsnoc nip
-tailR = uncons drop
 
 formap(f) = dip(nil) for(swap dip(f) swap cons)
 
@@ -128,24 +115,18 @@ break cat == drop
 map(id) == id
 lbind(id) == flatten
 
-uncons = nil? if("uncons on empty list" panic,
-  len? n1- znat break 0 _prim_list_at)
-unsnoc = nil? if("unsnoc on empty list" panic,
-  n1 break dip(0 _prim_list_at))
-
-maximum(ord) = unsnoc for(max(ord))
-minimum(ord) = unsnoc for(min(ord))
+maximum(ord) = swap for(max(ord))
 
 lmatchL(f,g) =
   nil? if(
     drop f,
-    no_panic_12(unsnoc) g
+    n1 break dip(0 _prim_list_at) g
   )
 
 lmatchR(f,g) =
   nil? if(
     drop f,
-    no_panic_12(uncons) g
+    len? n1- znat break 0 _prim_list_at g
   )
 
 zip =
@@ -173,4 +154,3 @@ list=(f) =
     zip all(unpack2 f),
     drop2 false
   )
-

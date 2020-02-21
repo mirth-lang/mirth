@@ -3,13 +3,12 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import base/order
-import base/panic
 
 export base/maybe
   type Comp
   type Maybe(t)
-  none : Maybe(t)
-  some : t -- Maybe(t)
+  None : Maybe(t)
+  Some : t -- Maybe(t)
   maybe (f: *a -- *b, g: *a t -- *b) : *a Maybe(t) -- *b
   mmap  (f: a -- b) : Maybe(a) -- Maybe(b)
   mmap2 (f: a b -- c) : Maybe(a) Maybe(b) -- Maybe(c)
@@ -19,38 +18,32 @@ export base/maybe
 
   isSome : Maybe(t) -- Bool
   isNone : Maybe(t) -- Bool
-
-  # panics on none
-  munwrap : Maybe(a) -- a
 end
 
 data Maybe(t)
-  none : Maybe(t)
-  some : t -- Maybe(t)
+  None : Maybe(t)
+  Some : t -- Maybe(t)
 end
 
-maybe(f,g) = match(none -> f, some -> g)
-mmap(f)    = maybe(none, f some)
-mmap2(f)   = maybe(drop none, swap maybe(drop none, swap f some))
+maybe(f,g) = match(None -> f, Some -> g)
+mmap(f)    = maybe(None, f Some)
+mmap2(f)   = maybe(drop None, swap maybe(drop None, swap f Some))
 mfor(f)    = maybe(id, f)
-mthen(f)   = maybe(none, f)
-
-munwrap = maybe("munwrap on none" panic, id)
+mthen(f)   = maybe(None, f)
 
 mcmp(f) =
   match(
-    none ->
+    None ->
       match(
-        none -> EQ,
-        some -> drop GT
+        None -> EQ,
+        Some -> drop GT
       ),
-    some ->
+    Some ->
       swap match(
-        none -> drop LT,
-        some -> swap f
+        None -> drop LT,
+        Some -> swap f
       )
   )
 
 isNone = maybe(true, drop false)
 isSome = isNone not
-

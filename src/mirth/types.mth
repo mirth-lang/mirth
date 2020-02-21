@@ -5,11 +5,11 @@
 # Identifiers for packages and modules, including anonymous ones
 # for testing or code generation.
 
-import base/panic
 import base/path
 import base/nat
 import base/str
 import base/sexp
+import base/unsafe
 
 ||| Identifiers for packages.
 export mirth/pkg
@@ -64,9 +64,9 @@ pkg->str = match(
   anonPkg -> dip("?pkg") nat->str <>,
   pathPkg -> path->str
 )
-pkg->sexp = pkg->str sexpAtom
+pkg->sexp = pkg->str Atom
 pkg->path = match(
-  anonPkg -> "pkg->path: anon pkg does not have associated path" panic,
+  anonPkg -> "pkg->path: anon pkg does not have associated path" unsafe_panic,
   pathPkg -> id
 )
 pathPkg pkg->path == id
@@ -89,9 +89,9 @@ mod->str = match(
   pathMod -> path->str,
   pkgMod  -> nip path->str
 )
-mod->sexp = mod->str sexpAtom
+mod->sexp = mod->str Atom
 mod->path = match(
-  anonMod -> "mod->path: anonymous mod does not have associated path" panic,
+  anonMod -> "mod->path: anonymous mod does not have associated path" unsafe_panic,
   pathMod -> id,
   pkgMod  -> nip
 )
@@ -107,4 +107,3 @@ mod= = match(
   pathMod -> swap match(pathMod -> path=, _ -> drop2 false),
   pkgMod -> rotl match(pkgMod -> dip(swap dip(pkg=)) path= and, _ -> drop3 false)
 )
-

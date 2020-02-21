@@ -385,7 +385,7 @@ csort->str =
   )
 
 csort->sexp : CSort -- Sexp
-csort->sexp = csort->str sexpAtom
+csort->sexp = csort->str Atom
 
 csort->carity : CSort -- CArity
 csort->carity = dip(nil) MkCArity
@@ -453,7 +453,7 @@ csym->str : CSym -- Str
 csym->str = unCSym nip
 
 csym->sexp : CSym -- Sexp
-csym->sexp = unCSym sexp2("MkCSym", csig->sexp, sexpAtom)
+csym->sexp = unCSym sexp2("MkCSym", csig->sexp, Atom)
 
 data CVar
   MkCVar : CKind Str -- CVar
@@ -483,7 +483,7 @@ cvar->str : CVar -- Str
 cvar->str = unCVar nip
 
 cvar->sexp : CVar -- Sexp
-cvar->sexp = unCVar sexp2("MkCVar", ckind->sexp, sexpAtom)
+cvar->sexp = unCVar sexp2("MkCVar", ckind->sexp, Atom)
 
 data CHole
   MkCHole : CKind Nat -- CHole
@@ -517,7 +517,7 @@ chole->str = dip("?") choleNat nat->str <>
 
 chole->sexp : CHole -- Sexp
 chole->sexp =
-  dup dip(choleKind) chole->str sexp2("MkCHole", ckind->sexp, sexpAtom)
+  dup dip(choleKind) chole->str sexp2("MkCHole", ckind->sexp, Atom)
 
 data CHead
   CHSym : CSym -- CHead
@@ -541,16 +541,16 @@ cheadMatch(onSym, onVar, onHole, onPrim) =
   )
 
 cheadGetSym : CHead -- Maybe(CSym)
-cheadGetSym = match(CHSym -> some, _ -> drop none)
+cheadGetSym = match(CHSym -> Some, _ -> drop None)
 
 cheadGetVar : CHead -- Maybe(CVar)
-cheadGetVar = match(CHVar -> some, _ -> drop none)
+cheadGetVar = match(CHVar -> Some, _ -> drop None)
 
 cheadGetHole : CHead -- Maybe(CHole)
-cheadGetHole = match(CHHole -> some, _ -> drop none)
+cheadGetHole = match(CHHole -> Some, _ -> drop None)
 
 cheadGetPrim : CHead -- Maybe(CPrim)
-cheadGetPrim = match(CHPrim -> some, _ -> drop none)
+cheadGetPrim = match(CHPrim -> Some, _ -> drop None)
 
 cheadVars : CHead -- Set(CVar)
 cheadVars = cheadClosed? if(drop setNil, dup dip(cheadGetVar maybe->set) cheadKind ckindVars setUnion)
@@ -826,7 +826,7 @@ cprim->str =
   )
 
 cprim->sexp : CPrim -- Sexp
-cprim->sexp = cprim->str sexpAtom
+cprim->sexp = cprim->str Atom
 
 cprim= : CPrim CPrim -- Bool
 cprim= = dip(cprim->str) cprim->str streq
@@ -1065,7 +1065,7 @@ data CStack
 end
 
 ctermGetStack : CTerm -- Maybe(CStack)
-ctermGetStack = dup ctermSort CSStack csort= if(MkCStack some, drop none)
+ctermGetStack = dup ctermSort CSStack csort= if(MkCStack Some, drop None)
 
 cterm->cstack : CTerm -- CStack
 cterm->cstack =
@@ -1106,7 +1106,7 @@ data CType
 end
 
 ctermGetType : CTerm -- Maybe(CType)
-ctermGetType = dup ctermSort CSType csort= if(MkCType some, drop none)
+ctermGetType = dup ctermSort CSType csort= if(MkCType Some, drop None)
 
 cterm->ctype : CTerm -- CType
 cterm->ctype =
@@ -1168,7 +1168,7 @@ data CValue
 end
 
 ctermGetValue : CTerm -- Maybe(CValue)
-ctermGetValue = dup ctermSort CSValue csort= if(MkCValue some, drop none)
+ctermGetValue = dup ctermSort CSValue csort= if(MkCValue Some, drop None)
 
 cterm->cvalue : CTerm -- CValue
 cterm->cvalue =
@@ -1221,7 +1221,7 @@ data CWord
 end
 
 ctermGetWord : CTerm -- Maybe(CWord)
-ctermGetWord = dup ctermSort CSWord csort= if(MkCWord some, drop none)
+ctermGetWord = dup ctermSort CSWord csort= if(MkCWord Some, drop None)
 
 cterm->cword : CTerm -- CWord
 cterm->cword =
@@ -1312,8 +1312,8 @@ ckindHoles =
 ckind->sexp : CKind -- Sexp
 ckind->sexp =
   match(
-    CKStack -> "CKStack" sexpAtom,
-    CKType -> "CKType" sexpAtom,
+    CKStack -> "CKStack" Atom,
+    CKType -> "CKType" Atom,
     CKValue -> sexp1("CKValue", ctype->sexp),
     CKWord -> sexp2("CKWord", cstack->sexp, cstack->sexp)
   )
@@ -1327,9 +1327,9 @@ end
 cbindVar : CBind -- Maybe(CVar)
 cbindVar =
   match(
-    CBImplicit -> some,
-    CBExplicit -> some,
-    CBAnonymous -> drop none
+    CBImplicit -> Some,
+    CBExplicit -> Some,
+    CBAnonymous -> drop None
   )
 
 cbindKind : CBind -- CKind
@@ -1474,7 +1474,7 @@ cmatchDefault = unCMatch nip
 
 cmatch->sexp : CMatch -- Sexp
 cmatch->sexp = unCMatch sexp2("MkCMatch", list->sexp(ccase->sexp),
-  maybe(nil sexpList, cterm->sexp))
+  maybe(nil List, cterm->sexp))
 
 data CBody
   CBTerm : CTerm -- CBody
@@ -1536,7 +1536,7 @@ cdef->str : CDef -- Str
 cdef->str = cdefSym csym->str " = _" <> # TODO : improve
 
 cdef->sexp : CDef -- Sexp
-cdef->sexp = unCDef sexp2("MkCDef", csym->sexp, maybe(nil sexpList, cbody->sexp))
+cdef->sexp = unCDef sexp2("MkCDef", csym->sexp, maybe(nil List, cbody->sexp))
 
 data CSymKey
   MkCSymKey : Str -- CSymKey
@@ -1579,7 +1579,7 @@ cenvSet : CEnv CDef -- CEnv
 cenvSet = dip(unCEnv) dup dip(cdefSym csym->csymkey) mapSet MkCEnv
 
 cenvAdd : CEnv CDef -- Result(Str, CEnv)
-cenvAdd = cenvSet ok # TODO: improve
+cenvAdd = cenvSet Ok # TODO: improve
 
 cenv->str : CEnv -- Str
 cenv->str = dip("") unCEnv mapFor(nip cdef->str "\n" <> <>)
@@ -1610,10 +1610,10 @@ cbindsSet : CBinds CBind -- CBinds
 cbindsSet = dup cbindVar maybe(drop, cvar->cvarkey dip2(unCBinds) swap mapSet MkCBinds)
 
 cbindsAdd : CBinds CBind -- Result(Str, CBinds)
-cbindsAdd = cbindsSet ok # TODO: improve (to prevent shadowing)
+cbindsAdd = cbindsSet Ok # TODO: improve (to prevent shadowing)
 
 cbindsAddMany : CBinds List(CBind) -- Result(Str, CBinds)
-cbindsAddMany = dip(ok) for(rpure rbind2(cbindsAdd))
+cbindsAddMany = dip(Ok) for(rpure rbind2(cbindsAdd))
 
 data CFresh
   MkCFresh : Map(CHoleKey, CTerm) Nat -- CFresh
@@ -1663,7 +1663,7 @@ cctxAdd : CCtx CBind -- Result(Str, CCtx)
 cctxAdd = dip(unCCtx swap dip(rpure2)) cbindsAdd rmap3(swap MkCCtx)
 
 cctxAddMany : CCtx List(CBind) -- Result(Str, CCtx)
-cctxAddMany = dip(ok) for(rpure rbind2(cctxAdd))
+cctxAddMany = dip(Ok) for(rpure rbind2(cctxAdd))
 
 cctxGet : CCtx CVar -- Maybe(CBind)
 cctxGet = dip(cctxBinds) cbindsGet
@@ -1859,14 +1859,14 @@ ctermUnifyUndefinedHole : CCtx CTerm CHole -- CCtx Result(Str, CTerm)
 ctermUnifyUndefinedHole =
   dup2 CHHole nil MkCTerm cterm= if(
     # case where the term is the hole
-    drop ok,
+    drop Ok,
 
     dip(ctermExpandHoles dup ctermHoles) setHas? if(
       # case where the term contains the hole, so unification must fail
-      nip dip2("Cannot unify ") dip(cterm->str <> " with " <>) chole->str <> err,
+      nip dip2("Cannot unify ") dip(cterm->str <> " with " <>) chole->str <> Err,
 
       # case where unification happens
-      nip swap dup dip(cctxSetHole) ok
+      nip swap dup dip(cctxSetHole) Ok
     )
   )
 
@@ -1874,8 +1874,8 @@ ctermUnifyUndefinedHole =
 ctermUnifyList : CCtx List(CTerm) List(CTerm) -- CCtx Result(Str, List(CTerm))
 ctermUnifyList =
   dup2 list=(drop2 true) if(
-    dip2(nil ok) zip for(swap result(nip err, dip(unpack2 ctermUnify) ok swap rmap2(cons))),
-    drop2 "Arity mismatch between unification terms." err
+    dip2(nil Ok) zip for(swap result(nip Err, dip(unpack2 ctermUnify) Ok swap rmap2(cons))),
+    drop2 "Arity mismatch between unification terms." Err
   )
 
 ||| Unify two non-hole terms. (Do not call this with holes.)
@@ -1883,8 +1883,8 @@ ctermUnifyNonHoles : CCtx CTerm CTerm -- CCtx Result(Str, CTerm)
 ctermUnifyNonHoles =
   # TODO: Expand neutral terms before comparing heads.
   dup2 both(ctermHead) chead= if(
-    dip(ctermArgs) unCTerm swap dip(ctermUnifyList) ok rmap2(swap MkCTerm),
-    dip2("Cannot unify ") dip(cterm->str <> " with " <>) cterm->str <> err
+    dip(ctermArgs) unCTerm swap dip(ctermUnifyList) Ok rmap2(swap MkCTerm),
+    dip2("Cannot unify ") dip(cterm->str <> " with " <>) cterm->str <> Err
   )
 
 ||| Unify two terms.
@@ -1899,4 +1899,3 @@ ctermUnify = $(
     nip ctermUnifyUndefinedHole
   )
 )
-

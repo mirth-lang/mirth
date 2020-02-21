@@ -81,25 +81,25 @@ end
 #
 
 data Char
-  char : Int -- Char
+  MkChar : Int -- Char
 end
 
 Char.generate : Int -- Char
 Char.generate = int->char
 
 char->int : Char -- Int
-char->int = match ( char -> id )
+char->int = match ( MkChar -> id )
 
 char->str : Char -- Str
-char->str = match ( char -> _prim_str_from_codepoint )
+char->str = match ( MkChar -> _prim_str_from_codepoint )
 
 int->char : Int -- Char
-int->char = znat nint char
+int->char = znat nint MkChar
 
 str->char : Str -- Char
 str->char = dup _prim_str_len 0 z= if(
-    drop 0 char,
-    1 _prim_str_break drop _prim_str_to_codepoint char
+    drop 0 MkChar,
+    1 _prim_str_break drop _prim_str_to_codepoint MkChar
   )
 "" str->char == 0 int->char
 
@@ -217,12 +217,12 @@ end
 strview : Str -- StrView
 strview = strnull? if(
     drop strnil,
-    n1 strbreak dip(_prim_str_to_codepoint char) strcons
+    n1 strbreak dip(_prim_str_to_codepoint MkChar) strcons
   )
 
 "" strview == strnil
-"a" strview == 97 char "" strcons
-" foo" strview == 32 char "foo" strcons
+"a" strview == 97 MkChar "" strcons
+" foo" strview == 32 MkChar "foo" strcons
 
 streq : Str Str -- Bool
 streq = strview match(
@@ -331,7 +331,6 @@ showStr = dip("\"") strfold(showCharBody <>) "\"" <>
 "\t\n\r\\\"" showStr == "\"\\t\\n\\r\\\\\\\"\""
 272 int->char char->str showStr == "\"\\u000110\""
 
-strmatch = _prim_str_rematch if(znat some, drop none)
+strmatch = _prim_str_rematch if(znat Some, drop None)
 
 unlines = dip("") for("\n" <> <>)
-

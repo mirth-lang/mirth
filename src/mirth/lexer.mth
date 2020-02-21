@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-import base/panic
 import base/int
 import base/nat
 import base/pos
@@ -10,7 +9,6 @@ import base/char
 import base/order
 import base/list
 import base/str
-import base/regex+
 import base/maybe
 import base/result
 import mirth/mod
@@ -114,49 +112,6 @@ readDoc : Str -- Str
 readDoc = 3 znat strbreak nip n1 strbreak over " " streq if(nip, <>)
 
 #
-# regexes
-#
-
-decIntRegex : Regex
-decIntRegex = "" lit "+-" cls alt2 "0123456789" cls plus seq2
-
-hexIntRegex : Regex
-hexIntRegex = "" lit "+-" cls alt2 "0" lit "xX" cls "0123456789abcdefABCDEF" cls plus seq4
-
-wordRegex : Regex
-wordRegex = "0123456789abcdefghijklmnopqrstuvwxyzzABCDEFGHIJKLMNOPQRSTUVWXYZ_-?+*~!@$%^&=/|<>'.\\" cls plus
-
-stringChar : Regex
-stringChar = "\t !#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~" cls "\\" lit "ntr\\\"" cls seq2 alt2
-
-stringRegex : Regex
-stringRegex = "\"" lit stringChar star "\"" lit seq3
-
-multistringChar : Regex
-multistringChar = stringChar "\n" lit alt2
-
-multistringAtom : Regex
-multistringAtom = multistringChar "\"" lit multistringChar "\"" lit multistringChar seq2 alt2 seq2 alt2
-
-multistringRegex : Regex
-multistringRegex = "\"\"\"" lit multistringAtom star "\"\"\"" lit seq3
-
-visibleChar : Regex
-visibleChar = "\t !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~" cls
-
-commentRegex : Regex
-commentRegex = "#" lit visibleChar star seq2
-
-trimRegex : Regex
-trimRegex = " \t" cls star
-
-newlineRegex : Regex
-newlineRegex = commentRegex "\r\n" cls trimRegex seq2 alt2 plus
-
-docRegex : Regex
-docRegex = "|||" lit visibleChar star seq2
-
-#
 #
 #
 
@@ -191,6 +146,9 @@ data LexerMatch
   lexerMatch(f: Str -- Token) : Maybe(Nat) -- LexerMatch
 end
 
+lexerMatchNil : LexerMatch
+lexerMatchNil = None lexerMatch(drop TNEWLINE)
+
 lexerMatchUnwrap : LexerMatch -- Maybe(Nat)
 lexerMatchUnwrap = match( lexerMatch(f) -> id )
 
@@ -206,7 +164,7 @@ bestLexerMatch =
     match( lexerRule(f) ->
       dip(dup) strmatch lexerMatch(f)
     )
-  ) nip no_panic_11(maximum(lexerMatchOrder))
+  ) nip lexerMatchNil maximum(lexerMatchOrder)
 
 data LexerError
   lexerError : Loc Str -- LexerError
@@ -224,10 +182,10 @@ trim = dup "[ \t]+" strmatch maybe(n0, id) strbreak dip(locNext)
 pretokenizeAux : List(L(Token)) Loc Str -- Result(LexerError, List(L(Token)))
 pretokenizeAux =
   trim cond(
-    strnull? -> drop2 ok,
+    strnull? -> drop2 Ok,
     dup bestLexerMatch match( lexerMatch(f) ->
       maybe(
-        drop nip "Unrecognized token." lexerError err,
+        drop nip "Unrecognized token." lexerError Err,
         strbreak dip(
           dup f
           dip(locSpan locSpanEnd? dip(locSetSpan))
@@ -241,29 +199,29 @@ pretokenize : Mod Str -- Result(LexerError, List(L(Token)))
 pretokenize = dip2(nil) dip(locStart) pretokenizeAux
 
 "10" pretokenize
-  == dip(nil) locStart "10" locSpan locSetSpan 10 TINT mkL cons ok
+  == dip(nil) locStart "10" locSpan locSetSpan 10 TINT mkL cons Ok
 
 "+42" pretokenize
-  == dip(nil) locStart "+42" locSpan locSetSpan +42 TINT mkL cons ok
+  == dip(nil) locStart "+42" locSpan locSetSpan +42 TINT mkL cons Ok
 
 "-5133" pretokenize
-  == dip(nil) locStart "-5133" locSpan locSetSpan -5133 TINT mkL cons ok
+  == dip(nil) locStart "-5133" locSpan locSetSpan -5133 TINT mkL cons Ok
 
 "0" pretokenize
-  == dip(nil) locStart "0" locSpan locSetSpan 0 TINT mkL cons ok
+  == dip(nil) locStart "0" locSpan locSetSpan 0 TINT mkL cons Ok
 
 "0xFF" pretokenize
-  == dip(nil) locStart "0xFF" locSpan locSetSpan 255 TINT mkL cons ok
+  == dip(nil) locStart "0xFF" locSpan locSetSpan 255 TINT mkL cons Ok
 
 "  10" pretokenize
-  == dip(nil) p1 3 zpos loc "10" locSpan locSetSpan 10 TINT mkL cons ok
+  == dip(nil) p1 3 zpos loc "10" locSpan locSetSpan 10 TINT mkL cons Ok
 
-"" pretokenize == drop nil ok
-"      " pretokenize == drop nil ok
-"  \t     " pretokenize == drop nil ok
+"" pretokenize == drop nil Ok
+"      " pretokenize == drop nil Ok
+"  \t     " pretokenize == drop nil Ok
 
 "foobar" pretokenize
-  == dip(nil) locStart "foobar" locSpan locSetSpan "foobar" TNAME mkL cons ok
+  == dip(nil) locStart "foobar" locSpan locSetSpan "foobar" TNAME mkL cons Ok
 
 "(\n)" pretokenize
   == $(
@@ -271,7 +229,7 @@ pretokenize = dip2(nil) dip(locStart) pretokenizeAux
     over p1 p1 loc "(" locSpan locSetSpan TLPAREN mkL cons
     over p1 p2 loc "\n" locSpan locSetSpan TNEWLINE mkL cons
     over p2 p1 loc ")" locSpan locSetSpan TRPAREN mkL cons
-    nip ok
+    nip Ok
   )
 
 "||| foo bar\n|||foo" pretokenize
@@ -280,7 +238,7 @@ pretokenize = dip2(nil) dip(locStart) pretokenizeAux
     over p1 p1 loc "||| foo bar" locSpan locSetSpan "foo bar" TDOC mkL cons
     over p1 12 zpos loc "\n" locSpan locSetSpan TNEWLINE mkL cons
     over p2 p1 loc "|||foo" locSpan locSetSpan "foo" TDOC mkL cons
-    nip ok
+    nip Ok
   )
 
 ||| Convert the contents of a module into a list of located tokens.
@@ -308,6 +266,5 @@ tokenize = pretokenize rmap(
     nil
     over p1 p1 loc "(" locSpan locSetSpan TLPAREN mkL cons
     over p2 p1 loc ")" locSpan locSetSpan TRPAREN mkL cons
-    nip ok
+    nip Ok
   )
-

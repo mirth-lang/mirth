@@ -3,21 +3,20 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import base/maybe
-import base/panic
+
 export base/result
   type Maybe(t)
   type Result(e,t)
   Result.generate : e t Bool -- Result(e,t)
 
-  err : e -- Result(e,t)
-  ok  : t -- Result(e,t)
+  Err : e -- Result(e,t)
+  Ok  : t -- Result(e,t)
 
   err? : Result(e,t) -- Result(e,t) Bool
   ok?  : Result(e,t) -- Result(e,t) Bool
 
   result(f : *a e -- *b, g : *a t -- *b) : *a Result(e,t) -- *b
   rfor(f : *a t -- *a) : *a Result(e,t) -- *a
-
 
   rpure : a -- Result(e,a)
   rpure2 : a b -- Result(e,a) Result(e,b)
@@ -32,36 +31,33 @@ export base/result
   rbind3(f: a b c -- Result(e,d)) : Result(e,a) Result(e,b) Result(e,c) -- Result(e,d)
 
   result->maybe : Result(e,t) -- Maybe(t)
-
 end
 
 data Result(e,t)
-  err : e -- Result(e,t)
-  ok  : t -- Result(e,t)
+  Err : e -- Result(e,t)
+  Ok  : t -- Result(e,t)
 end
 
-Result.generate = if(drop err, nip ok)
+Result.generate = if(drop Err, nip Ok)
 
-result(f,g) = match(err -> f, ok -> g)
+result(f,g) = match(Err -> f, Ok -> g)
 rfor(f) = result(drop, f)
 
-result->maybe = result(drop none, some)
+result->maybe = result(drop None, Some)
 
-err? = result(err true, ok false)
-ok?  = result(err false, ok true)
+err? = result(Err true, Ok false)
+ok?  = result(Err false, Ok true)
 
 err? drop == id
 ok?  drop == id
 err? == ok? not
 
-rpure = ok
-rpure2 = dip(ok) ok
-rpure3 = dip(rpure2) ok
-rmap(f) = result(err, f ok)
-rmap2(f) = swap result(nip err, swap result(nip err, f ok))
+rpure = Ok
+rpure2 = dip(Ok) Ok
+rpure3 = dip(rpure2) Ok
+rmap(f) = result(Err, f Ok)
+rmap2(f) = swap result(nip Err, swap result(nip Err, f Ok))
 rmap3(f) = rmap2(pack2) rmap2(unpack2 f)
-rbind(f) = result(err, f)
+rbind(f) = result(Err, f)
 rbind2(f) = rmap2(pack2) rbind(unpack2 f)
 rbind3(f) = rmap3(pack3) rbind(unpack3 f)
-
-
