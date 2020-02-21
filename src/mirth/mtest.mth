@@ -9,6 +9,8 @@ import base/nat
 import base/str
 import base/list
 import base/result
+import base/var
+
 import mirth/loc
 import mirth/mod
 import mirth/token
@@ -22,24 +24,30 @@ export mirth/mtest
   runTests : Bool -- Int +IO
 end
 
+UPDATE_TESTS : Var(Bool)
+UPDATE_TESTS = "UPDATE_TESTS" MkVar
+
+NUM_FAILED : Var(Nat)
+NUM_FAILED = "NUM_FAILED" MkVar
+
 ||| Initialize the test environment.
 initTestEnv : Bool -- +IO
 initTestEnv = $(
-  unsafe_env_set("UPDATE_TESTS")
-  n0 unsafe_env_set("NUM_FAILED")
+  UPDATE_TESTS vset
+  n0 NUM_FAILED vset
 )
 
 ||| Should golden tests be updated?
-shouldUpdate? : -- Bool +IO
-shouldUpdate? = unsafe_env_get("UPDATE_TESTS")
+shouldUpdate? : Bool +IO
+shouldUpdate? = UPDATE_TESTS vget
 
 ||| Get number of failed tests.
 getNumFailed : Nat +IO
-getNumFailed = unsafe_env_get("NUM_FAILED")
+getNumFailed = NUM_FAILED vget
 
 ||| Increment number of failed tests.
 incNumFailed : +IO
-incNumFailed = getNumFailed n1+ pnat unsafe_env_set("NUM_FAILED")
+incNumFailed = NUM_FAILED vuse(n1+ pnat)
 
 ||| A test has failed.
 testFailed : Str -- +IO
@@ -198,4 +206,3 @@ runGoldenTests =
 ||| Run all the compiler tests.
 runTests : Bool -- Int +IO
 runTests = initTestEnv runGoldenTests getNumFailed nint
-
