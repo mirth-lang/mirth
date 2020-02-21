@@ -1601,6 +1601,7 @@ class env:
         self.stack  = []
         self.rstack = []
         self.data   = {}
+        self.handlers = None
 
     def push(self, v):
         self.stack.append(v)
@@ -1658,6 +1659,10 @@ class env:
     def show_stack(self):
         print(' '.join(repr(s) for s in self.stack))
 
+    def has_data(self):
+        x = self.pop()
+        self.push(x in self.data)
+
     def get_data(self):
         x = self.pop()
         self.push(self.data[x])
@@ -1666,6 +1671,62 @@ class env:
         x = self.pop()
         y = self.pop()
         self.data[x] = y
+
+    def del_data(self):
+        x = self.pop()
+        del self.data[x]
+
+    def rethrow(self, etype, epayload):
+        while self.handlers is not None:
+            (etype_pattern, ehandler, erest) = self.handlers
+            self.handlers = erest
+            if etype_pattern is None or etype == etype_pattern:
+                return ehandler(self, etype, epayload)
+        print("Unhandled %s exception: %r" % (etype, epayload), file=sys.stderr)
+        sys.exit(1)
+
+    def ethrow(self):
+        etype = self.pop()
+        if not isinstance(etype, str):
+            raise TypeError("expected string for throw, but got %r" % etype)
+        epayload = self.pop()
+        self.rethrow(etype, epayload)
+
+    def ecatch(self, body, prehandler):
+        etype = self.pop()
+        if not isinstance(etype, str):
+            raise TypeError("expected string for catch, but got %r" % etype)
+        saved_handlers = self.handlers
+        saved_rstack = self.rstack[:]
+        saved_stack = self.stack[:]
+        def handler(env, etype2, epayload):
+            env.stack = saved_stack
+            env.rstack = saved_rstack
+            env.pop()
+            env.push(epayload)
+            env.copush(prehandler)
+        def restore_handlers(env):
+            env.handlers = saved_handlers
+        self.handlers = (etype, handler, saved_handlers)
+        self.copush(restore_handlers)
+        self.copush(lambda env: body(env))
+
+    def efinally(self, body, finalizer):
+        saved_item = self.pop()
+        saved_handlers = self.handlers
+        def handler(env, etype, epayload):
+            env.stack = [saved_item]
+            env.rstack = []
+            env.copush(lambda e: e.rethrow(etype, epayload))
+            env.copush(finalizer)
+        def restore_handlers(env):
+            env.handlers = saved_handlers
+        self.handlers = (None, handler, saved_handlers)
+        self.copush(finalizer)
+        self.copush(lambda e: e.push(saved_item))
+        self.copush(restore_handlers)
+        self.copush(body)
+
 
 ##############################################################################
 ################################ BUILTINS ####################################
@@ -2181,9 +2242,22 @@ builtin_word_sigs = {
     '_prim_unsafe_deletefile':  ([], tpack(None, [tstr]), tpack(None)),
     '_prim_unsafe_coerce':  ([], tpack(tvar('a')), tpack(tvar('b'))),
     '_prim_unsafe_hash':    ([], tpack(None, [tvar('a')]), tpack(None, [tint])),
+    '_prim_unsafe_env_has': ([], tpack(None, [tstr]), tpack(None, [tbool])),
     '_prim_unsafe_env_get': ([], tpack(None, [tstr]), tpack(None, [tvar('a')])),
     '_prim_unsafe_env_set': ([], tpack(None, [tvar('a'), tstr]), tpack(None, [])),
-    '_prim_unsafe_exit':    ([], tpack(tvar('a'), [tint]), tpack(tvar('b'))),
+    '_prim_unsafe_env_del': ([], tpack(None, [tstr]), tpack(None, [])),
+    '_prim_unsafe_throw':   ([], tpack(tvar('a'), [tvar('x'), tstr]), tpack(tvar('b'))),
+    '_prim_unsafe_catch':   (
+        [ (tpack(None, [tvar('a')]), tpack(None, [tvar('b')]))
+        , (tpack(tvar('c'), [tvar('x')]), tpack(tvar('c'), [tvar('b')]))
+        ], tpack(tvar('c'), [tvar('a'), tstr]), tpack(tvar('c'), [tvar('b')])
+        ),
+    '_prim_unsafe_finally': (
+        [ (tpack(tvar('a'), []), tpack(tvar('b'), []))
+        , (tpack(None, [tvar('c')]), tpack(None, [tvar('d')]))
+        ], tpack(tvar('a'), [tvar('c')]), tpack(tvar('b'), [tvar('d')])
+        ),
+    '_prim_unsafe_exit': ([], tpack(tvar('a'), [tint]), tpack(tvar('b'))),
 }
 
 def strcat(a,b):
@@ -2262,8 +2336,13 @@ builtin_word_defs = {
     '_prim_unsafe_deletefile': unsafe_deletefile,
     '_prim_unsafe_coerce':   word1(lambda a: a),
     '_prim_unsafe_hash':     word1(myhash),
+    '_prim_unsafe_env_has':  env.has_data,
     '_prim_unsafe_env_get':  env.get_data,
     '_prim_unsafe_env_set':  env.set_data,
+    '_prim_unsafe_env_del':  env.del_data,
+    '_prim_unsafe_throw':    env.ethrow,
+    '_prim_unsafe_catch':    env.ecatch,
+    '_prim_unsafe_finally':  env.efinally,
     '_prim_unsafe_exit':     word1(sys.exit),
 }
 
