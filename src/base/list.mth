@@ -16,7 +16,6 @@ end
 export base/list
   type Nat
   type Order(t)
-  type +Panic
 
   nil : List(t)
   cat : List(t) List(t) -- List(t)
