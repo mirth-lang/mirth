@@ -385,7 +385,7 @@ csort->str =
   )
 
 csort->sexp : CSort -- Sexp
-csort->sexp = csort->str Atom
+csort->sexp = csort->str SexpAtom
 
 csort->carity : CSort -- CArity
 csort->carity = dip(nil) MkCArity
@@ -453,7 +453,7 @@ csym->str : CSym -- Str
 csym->str = unCSym nip
 
 csym->sexp : CSym -- Sexp
-csym->sexp = unCSym sexp2("MkCSym", csig->sexp, Atom)
+csym->sexp = unCSym sexp2("MkCSym", csig->sexp, SexpAtom)
 
 data CVar
   MkCVar : CKind Str -- CVar
@@ -483,7 +483,7 @@ cvar->str : CVar -- Str
 cvar->str = unCVar nip
 
 cvar->sexp : CVar -- Sexp
-cvar->sexp = unCVar sexp2("MkCVar", ckind->sexp, Atom)
+cvar->sexp = unCVar sexp2("MkCVar", ckind->sexp, SexpAtom)
 
 data CHole
   MkCHole : CKind Nat -- CHole
@@ -517,7 +517,7 @@ chole->str = dip("?") choleNat nat->str <>
 
 chole->sexp : CHole -- Sexp
 chole->sexp =
-  dup dip(choleKind) chole->str sexp2("MkCHole", ckind->sexp, Atom)
+  dup dip(choleKind) chole->str sexp2("MkCHole", ckind->sexp, SexpAtom)
 
 data CHead
   CHSym : CSym -- CHead
@@ -826,7 +826,7 @@ cprim->str =
   )
 
 cprim->sexp : CPrim -- Sexp
-cprim->sexp = cprim->str Atom
+cprim->sexp = cprim->str SexpAtom
 
 cprim= : CPrim CPrim -- Bool
 cprim= = dip(cprim->str) cprim->str streq
@@ -1312,8 +1312,8 @@ ckindHoles =
 ckind->sexp : CKind -- Sexp
 ckind->sexp =
   match(
-    CKStack -> "CKStack" Atom,
-    CKType -> "CKType" Atom,
+    CKStack -> "CKStack" SexpAtom,
+    CKType -> "CKType" SexpAtom,
     CKValue -> sexp1("CKValue", ctype->sexp),
     CKWord -> sexp2("CKWord", cstack->sexp, cstack->sexp)
   )
@@ -1474,7 +1474,7 @@ cmatchDefault = unCMatch nip
 
 cmatch->sexp : CMatch -- Sexp
 cmatch->sexp = unCMatch sexp2("MkCMatch", list->sexp(ccase->sexp),
-  maybe(nil List, cterm->sexp))
+  maybe(nil SexpList, cterm->sexp))
 
 data CBody
   CBTerm : CTerm -- CBody
@@ -1536,7 +1536,7 @@ cdef->str : CDef -- Str
 cdef->str = cdefSym csym->str " = _" <> # TODO : improve
 
 cdef->sexp : CDef -- Sexp
-cdef->sexp = unCDef sexp2("MkCDef", csym->sexp, maybe(nil List, cbody->sexp))
+cdef->sexp = unCDef sexp2("MkCDef", csym->sexp, maybe(nil SexpList, cbody->sexp))
 
 data CSymKey
   MkCSymKey : Str -- CSymKey

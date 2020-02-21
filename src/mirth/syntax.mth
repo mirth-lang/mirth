@@ -542,7 +542,7 @@ end
 
 unName = match( mkName -> id )
 name->str = unName
-name->sexp = name->str Atom
+name->sexp = name->str SexpAtom
 nameeq = both(unName) streq
 
 isVarName = name->str "[a-z].*" strmatch isSome
@@ -558,7 +558,7 @@ end
 
 unInterface = match( mkInterface -> id )
 interface->str = unInterface
-interface->sexp = interface->str Atom
+interface->sexp = interface->str SexpAtom
 
 interface= : Interface Interface -- Bool
 interface= = both(interface->str) streq

@@ -1,6 +1,0 @@
-
-type +NewTag
-data T
-  A (f: +NewTag) : T
-end
-

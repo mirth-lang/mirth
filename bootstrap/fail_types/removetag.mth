@@ -1,7 +1,0 @@
-
-type +NewTag
-
-f : +NewTag --
-f = id
-
-

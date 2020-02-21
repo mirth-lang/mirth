@@ -1,10 +1,8 @@
 
 type +NewTag
 
-f : +NewTag -- +NewTag
+f : -- +NewTag
 f = id
 
 g : -- +NewTag
-g = id
-
-
+g = f
