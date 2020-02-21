@@ -1,0 +1,33 @@
+import base/result
+
+export base/exception
+    type Result(e,t)
+
+    throw (x: Str) : *a e -- *b
+
+    catch (x: Str, f: a -- b) : a -- Result(e,b)
+    catch0 (x: Str, f: t) : Result(e,t)
+    catch1 (x: Str, f: a -- t) : a -- Result(e,t)
+    catch2 (x: Str, f: a b -- t) : a b -- Result(e,t)
+    catch3 (x: Str, f: a b c -- t) : a b c -- Result(e,t)
+    catch4 (x: Str, f: a b c d -- t) : a b c d -- Result(e,t)
+
+    bracket (f: *a -- *b x, g: *b x -- *c, h: x --) : *a -- *c
+    bracket0 (f: *a -- *b, g: *b -- *c, h: --) : *a -- *c
+    bracket1 (f: *a -- *b x, g: *b x -- *c, h: x --) : *a -- *c
+    bracket2 (f: *a -- *b x y, g: *b x y -- *c, h: x y --) : *a -- *c
+end
+
+throw(x) = x _prim_unsafe_throw
+catch(x,f) = x _prim_unsafe_catch(f Ok, Err)
+
+catch0(x,f) = 0 catch(x, drop f)
+catch1(x,f) = catch(x, f)
+catch2(x,f) = pack2 catch(x, unpack2 f)
+catch3(x,f) = pack3 catch(x, unpack3 f)
+catch4(x,f) = pack4 catch(x, unpack4 f)
+
+bracket (f,g,h) = f dup _prim_unsafe_finally(g, h 0) drop
+bracket0(f,g,h) = bracket(f 0, drop g, drop h)
+bracket1(f,g,h) = bracket(f,g,h)
+bracket2(f,g,h) = bracket(f pack2, unpack2 g, unpack2 h)
