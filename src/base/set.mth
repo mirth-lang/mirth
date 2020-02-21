@@ -56,5 +56,5 @@ setNil? = unSet mapNil? dip(MkSet)
 setLen? = dup setLen
 setHas? = dup2 setHas
 setFor(f) = unSet mapFor(drop f)
-set->sexp(k->sexp) = dip(nil) setFor(k->sexp cons) List
+set->sexp(k->sexp) = dip(nil) setFor(k->sexp cons) SexpList
 maybe->set = maybe(setNil, setSingle)

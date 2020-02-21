@@ -7,8 +7,8 @@ import base/str
 
 export base/sexp
   type Sexp
-  Atom : Str -- Sexp
-  List : List(Sexp) -- Sexp
+  SexpAtom : Str -- Sexp
+  SexpList : List(Sexp) -- Sexp
   sexpPair : Sexp Sexp -- Sexp
   sexp0(f: Str) : Sexp
   sexp1(f: Str, g: a -- Sexp) : a -- Sexp
@@ -20,16 +20,16 @@ export base/sexp
 end
 
 data Sexp
-  Atom : Str -- Sexp
-  List : List(Sexp) -- Sexp
+  SexpAtom : Str -- Sexp
+  SexpList : List(Sexp) -- Sexp
 end
 
 sexp->str =
   match(
-    Atom ->
+    SexpAtom ->
       showStr,
 
-    List ->
+    SexpList ->
       dip("(")
       lmatchL(
         id,
@@ -41,12 +41,12 @@ sexp->str =
   )
 
 
-sexpPair = dip2(nil) dip(cons) cons List
+sexpPair = dip2(nil) dip(cons) cons SexpList
 
-sexp0(f) = f Atom
-sexp1(f,g) = dip(f Atom lpure) g cons List
-sexp2(f,g,h) = dip2(f Atom lpure) dip(g cons) h cons List
-sexp3(f,g,h,i) = dip3(f Atom lpure) dip2(g cons) dip(h cons) i cons List
-sexp4(f,g,h,i,j) = dip4(f Atom lpure) dip3(g cons) dip2(h cons) dip(i cons) j cons List
+sexp0(f) = f SexpAtom
+sexp1(f,g) = dip(f SexpAtom lpure) g cons SexpList
+sexp2(f,g,h) = dip2(f SexpAtom lpure) dip(g cons) h cons SexpList
+sexp3(f,g,h,i) = dip3(f SexpAtom lpure) dip2(g cons) dip(h cons) i cons SexpList
+sexp4(f,g,h,i,j) = dip4(f SexpAtom lpure) dip3(g cons) dip2(h cons) dip(i cons) j cons SexpList
 
-list->sexp(f) = map(f) List
+list->sexp(f) = map(f) SexpList
