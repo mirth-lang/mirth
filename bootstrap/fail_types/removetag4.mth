@@ -1,9 +1,0 @@
-
-type +NewTag
-
-f : +NewTag
-f = id
-
-g : Int -- Int
-g = lambda( x -> x f )
-

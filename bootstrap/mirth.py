@@ -91,6 +91,9 @@ def interpret(path, args, flags):
         if not flags['typecheck']:
             m.check_assertions()
 
+        if flags['typecheck']:
+            print('Typechecked 1 module.')
+
         if 'main' in m.word_defs and not flags['typecheck'] and not flags['testonly']:
             (ps,dom,cod) = m.word_sigs['main']
             exp_dom = tpack(None, [tlist(tstr)] if len(dom.args) > 0 else [])
@@ -290,6 +293,9 @@ def run_package(pkg, args, flags):
                         if dname not in m.word_defs:
                             error(modpath, dline, "Missing definition for exported word %s" % dname)
                         interfaces_defs[iname][dname] = m.word_defs[dname]
+
+    if flags['typecheck']:
+        print('Typechecked %d modules.' % len(modpaths))
 
     if not flags['typecheck']:
         for modpath in modpaths:
@@ -781,12 +787,19 @@ class expr:
                 i = j+1
         yield expr(self.atoms[i:])
 
+    def filter_effects(self):
+        '''strip out effect types'''
+        isnt_effect_word = (lambda a: not
+            (isinstance(a, word) and a.name.code[0] == '+'))
+        return expr(filter(isnt_effect_word, self.atoms))
+
 class word_sig:
     def __init__(self, name, params, dom, cod):
         self.name = name
-        self.params = params
-        self.dom = dom
-        self.cod = cod
+        self.params = [(pn, px.filter_effects(), py.filter_effects())
+            for (pn, px, py) in params]
+        self.dom = dom.filter_effects()
+        self.cod = cod.filter_effects()
 
     def __repr__(self):
         return 'word_sig(%r, %r, %r, %r)' % (self.name, self.params, self.dom, self.cod)
