@@ -19,7 +19,7 @@ Directory structure:
 - `tools`: Development tools.
 
   - `tools/mirth-vim`: Mirth syntax highlighting for Vim. To use, install Pathogen, then run `make install-vim`.
-  - `tools/mirth-code`: Mirth syntax highlighting for VS Code. The extension is not yet published in the Marketplace, but you can install it locally. To do so, run `make install-code`. (You will need `code` in your `PATH`. That should set up automatically by VS Code on Windows and Linux. To set that up on Mac, [please follow these official instructions](https://code.visualstudio.com/docs/setup/mac).)
+  - `tools/mirth-code`: Mirth syntax highlighting for VS Code. The extension is not yet published in the Marketplace, but you can install it locally. To do so, run `make install-code`. (You will need `code` in your `PATH`.)
 
 ## Issues and Contribution
 
