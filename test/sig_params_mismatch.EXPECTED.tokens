@@ -1,0 +1,12 @@
+test/sig_params_mismatch.mth:1:1: TNEWLINE
+test/sig_params_mismatch.mth:2:1: TTYPE
+test/sig_params_mismatch.mth:2:6: "A" TNAME
+test/sig_params_mismatch.mth:2:7: TNEWLINE
+test/sig_params_mismatch.mth:4:1: TDATA
+test/sig_params_mismatch.mth:4:6: "A" TNAME
+test/sig_params_mismatch.mth:4:7: TLPAREN
+test/sig_params_mismatch.mth:4:8: "t" TNAME
+test/sig_params_mismatch.mth:4:9: TRPAREN
+test/sig_params_mismatch.mth:4:10: TNEWLINE
+test/sig_params_mismatch.mth:5:1: TEND
+test/sig_params_mismatch.mth:5:4: TNEWLINE

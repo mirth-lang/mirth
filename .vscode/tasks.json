@@ -11,7 +11,27 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": "$gcc",
+            "problemMatcher": {
+                // The problem is owned by the cpp language service.
+                "owner": "mirth",
+                // The file name for reported problems is relative to the opened folder.
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                // The actual pattern to match problems in the output.
+                "pattern": {
+                  // The regular expression. Example to match: helloWorld.c:5:3: warning: implicit declaration of function ‘printf’ [-Wimplicit-function-declaration]
+                  "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                  // The first match group matches the file name which is relative.
+                  "file": 1,
+                  // The second match group matches the line on which the problem occurred.
+                  "line": 2,
+                  // The third match group matches the column at which the problem occurred.
+                  "column": 3,
+                  // The fourth match group matches the problem's severity. Can be ignored. Then all problems are captured as errors.
+                  "severity": 4,
+                  // The fifth match group matches the message.
+                  "message": 5
+                }
+            },
             "presentation": {
                 "echo": true,
                 "reveal": "always",

@@ -1,0 +1,8 @@
+test/type_missing.mth:1:1: TNEWLINE
+test/type_missing.mth:3:1: "id'" TNAME
+test/type_missing.mth:3:5: TCOLON
+test/type_missing.mth:3:6: TNEWLINE
+test/type_missing.mth:4:1: "id'" TNAME
+test/type_missing.mth:4:5: TEQUAL
+test/type_missing.mth:4:7: "id" TNAME
+test/type_missing.mth:4:9: TNEWLINE

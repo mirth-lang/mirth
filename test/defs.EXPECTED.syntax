@@ -1,0 +1,13 @@
+trip : a -- a a a
+trip = dup dup
+quad : a -- a a a a
+quad = trip dup
+10 trip == 10 10 10
+40 quad == 40 40 40 40
+10 20 trip == 10 20 20 20
+square : Int -- Int
+sum-of-squares : Int Int -- Int
+sum-of-squares = dip(square) square _prim_int_add
+square = dup _prim_int_mul
+dup' : *a b -- *a b b
+dup' = dup

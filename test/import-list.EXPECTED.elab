@@ -1,1 +1,1 @@
-("module" "test/import-list.mth" ("foo/bar" "baz" "x") () ())
+("module" "test/import-list.mth")

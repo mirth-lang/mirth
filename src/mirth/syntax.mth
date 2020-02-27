@@ -17,10 +17,17 @@ export mirth/name
   name->sexp : Name -- Sexp
   name->str : Name -- Str
   nameeq : Name Name -- Bool
-  isVarName : Name -- Bool
-  isVarName? : Name -- Name Bool
+  isConName      : Name -- Bool
+  isVarName      : Name -- Bool
   isStarVarName  : Name -- Bool
+  isPlusConName  : Name -- Bool
+  isPlusVarName  : Name -- Bool
+  isConName?     : Name -- Name Bool
+  isVarName?     : Name -- Name Bool
   isStarVarName? : Name -- Name Bool
+  isPlusConName? : Name -- Name Bool
+  isPlusVarName? : Name -- Name Bool
+
 end
 
 ||| Abstract Syntax Tree for Mirth. This interface exports
@@ -187,10 +194,16 @@ export mirth/syntax
   name->sexp : Name -- Sexp
   name->str : Name -- Str
   nameeq : Name Name -- Bool
+  isConName      : Name -- Bool
   isVarName      : Name -- Bool
-  isVarName?     : Name -- Name Bool
   isStarVarName  : Name -- Bool
+  isPlusConName  : Name -- Bool
+  isPlusVarName  : Name -- Bool
+  isConName?     : Name -- Name Bool
+  isVarName?     : Name -- Name Bool
   isStarVarName? : Name -- Name Bool
+  isPlusConName? : Name -- Name Bool
+  isPlusVarName? : Name -- Name Bool
 
   mkInterface : Str -- Interface
   unInterface : Interface -- Str
@@ -545,11 +558,17 @@ name->str = unName
 name->sexp = name->str SexpAtom
 nameeq = both(unName) streq
 
+isConName = name->str "[A-Z].*" strmatch isSome
 isVarName = name->str "[a-z].*" strmatch isSome
 isStarVarName = name->str "\\*[a-z].*" strmatch isSome
+isPlusConName = name->str "\\+[A-Z].*" strmatch isSome
+isPlusVarName = name->str "\\+[a-z].*" strmatch isSome
 
+isConName? = dup isConName
 isVarName? = dup isVarName
 isStarVarName? = dup isStarVarName
+isPlusConName? = dup isPlusConName
+isPlusVarName? = dup isPlusVarName
 
 ||| Interface name.
 data Interface

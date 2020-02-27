@@ -1,0 +1,5 @@
+test/lit2.mth:1:1: TNEWLINE
+test/lit2.mth:2:1: 1 TINT
+test/lit2.mth:2:3: TEQUAL2
+test/lit2.mth:2:6: 2 TINT
+test/lit2.mth:2:7: TNEWLINE

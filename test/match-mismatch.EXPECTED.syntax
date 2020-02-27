@@ -1,0 +1,6 @@
+data T
+  A : Int -- T
+  B : T
+end
+dothing : T -- Int
+dothing = match(A ->, B ->)

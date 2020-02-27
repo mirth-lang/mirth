@@ -1,0 +1,85 @@
+test/data_def.mth:1:1: TNEWLINE
+test/data_def.mth:2:1: TDATA
+test/data_def.mth:2:6: "T" TNAME
+test/data_def.mth:2:7: TNEWLINE
+test/data_def.mth:3:3: "imake" TNAME
+test/data_def.mth:3:9: TCOLON
+test/data_def.mth:3:11: "Int" TNAME
+test/data_def.mth:3:15: TDASH2
+test/data_def.mth:3:18: "T" TNAME
+test/data_def.mth:3:19: TNEWLINE
+test/data_def.mth:4:3: "smake" TNAME
+test/data_def.mth:4:9: TCOLON
+test/data_def.mth:4:11: "Str" TNAME
+test/data_def.mth:4:15: TDASH2
+test/data_def.mth:4:18: "T" TNAME
+test/data_def.mth:4:19: TNEWLINE
+test/data_def.mth:5:1: TEND
+test/data_def.mth:5:4: TNEWLINE
+test/data_def.mth:7:1: "mk1" TNAME
+test/data_def.mth:7:5: TCOLON
+test/data_def.mth:7:7: "Int" TNAME
+test/data_def.mth:7:11: "Str" TNAME
+test/data_def.mth:7:15: TDASH2
+test/data_def.mth:7:18: "T" TNAME
+test/data_def.mth:7:20: "T" TNAME
+test/data_def.mth:7:21: TNEWLINE
+test/data_def.mth:8:1: "mk1" TNAME
+test/data_def.mth:8:5: TEQUAL
+test/data_def.mth:8:7: "dip" TNAME
+test/data_def.mth:8:10: TLPAREN
+test/data_def.mth:8:11: "imake" TNAME
+test/data_def.mth:8:16: TRPAREN
+test/data_def.mth:8:18: "smake" TNAME
+test/data_def.mth:8:23: TNEWLINE
+test/data_def.mth:10:1: "mk2" TNAME
+test/data_def.mth:10:5: TCOLON
+test/data_def.mth:10:7: "Int" TNAME
+test/data_def.mth:10:11: "Str" TNAME
+test/data_def.mth:10:15: TDASH2
+test/data_def.mth:10:18: "T" TNAME
+test/data_def.mth:10:20: "T" TNAME
+test/data_def.mth:10:21: TNEWLINE
+test/data_def.mth:11:1: "mk2" TNAME
+test/data_def.mth:11:5: TEQUAL
+test/data_def.mth:11:7: "smake" TNAME
+test/data_def.mth:11:13: "dip" TNAME
+test/data_def.mth:11:16: TLPAREN
+test/data_def.mth:11:17: "imake" TNAME
+test/data_def.mth:11:22: TRPAREN
+test/data_def.mth:11:23: TNEWLINE
+test/data_def.mth:13:1: "mk1" TNAME
+test/data_def.mth:13:5: TEQUAL2
+test/data_def.mth:13:8: "mk2" TNAME
+test/data_def.mth:13:11: TNEWLINE
+test/data_def.mth:15:1: "elimT" TNAME
+test/data_def.mth:15:7: TCOLON
+test/data_def.mth:15:9: "T" TNAME
+test/data_def.mth:15:11: TDASH2
+test/data_def.mth:15:14: "Int" TNAME
+test/data_def.mth:15:17: TNEWLINE
+test/data_def.mth:16:1: "elimT" TNAME
+test/data_def.mth:16:7: TEQUAL
+test/data_def.mth:16:9: "match" TNAME
+test/data_def.mth:16:14: TLPAREN
+test/data_def.mth:17:3: "imake" TNAME
+test/data_def.mth:17:9: "->" TNAME
+test/data_def.mth:17:12: "id" TNAME
+test/data_def.mth:17:14: TCOMMA
+test/data_def.mth:18:3: "smake" TNAME
+test/data_def.mth:18:9: "->" TNAME
+test/data_def.mth:18:12: "drop" TNAME
+test/data_def.mth:18:17: 0 TINT
+test/data_def.mth:19:1: TRPAREN
+test/data_def.mth:19:2: TNEWLINE
+test/data_def.mth:21:1: "imake" TNAME
+test/data_def.mth:21:7: "elimT" TNAME
+test/data_def.mth:21:13: TEQUAL2
+test/data_def.mth:21:16: "id" TNAME
+test/data_def.mth:21:18: TNEWLINE
+test/data_def.mth:22:1: "smake" TNAME
+test/data_def.mth:22:7: "elimT" TNAME
+test/data_def.mth:22:13: TEQUAL2
+test/data_def.mth:22:16: "drop" TNAME
+test/data_def.mth:22:21: 0 TINT
+test/data_def.mth:22:22: TNEWLINE

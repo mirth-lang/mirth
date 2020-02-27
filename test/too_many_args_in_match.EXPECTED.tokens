@@ -1,0 +1,30 @@
+test/too_many_args_in_match.mth:1:1: TNEWLINE
+test/too_many_args_in_match.mth:2:1: TDATA
+test/too_many_args_in_match.mth:2:6: "T" TNAME
+test/too_many_args_in_match.mth:2:7: TNEWLINE
+test/too_many_args_in_match.mth:3:3: "A" TNAME
+test/too_many_args_in_match.mth:3:5: TCOLON
+test/too_many_args_in_match.mth:3:7: "Int" TNAME
+test/too_many_args_in_match.mth:3:11: TDASH2
+test/too_many_args_in_match.mth:3:14: "T" TNAME
+test/too_many_args_in_match.mth:3:15: TNEWLINE
+test/too_many_args_in_match.mth:4:1: TEND
+test/too_many_args_in_match.mth:4:4: TNEWLINE
+test/too_many_args_in_match.mth:7:1: "unA" TNAME
+test/too_many_args_in_match.mth:7:5: TCOLON
+test/too_many_args_in_match.mth:7:7: "T" TNAME
+test/too_many_args_in_match.mth:7:9: TDASH2
+test/too_many_args_in_match.mth:7:12: "Int" TNAME
+test/too_many_args_in_match.mth:7:15: TNEWLINE
+test/too_many_args_in_match.mth:8:1: "unA" TNAME
+test/too_many_args_in_match.mth:8:5: TEQUAL
+test/too_many_args_in_match.mth:8:6: TNEWLINE
+test/too_many_args_in_match.mth:9:3: "match" TNAME
+test/too_many_args_in_match.mth:9:8: TLPAREN
+test/too_many_args_in_match.mth:10:5: "A" TNAME
+test/too_many_args_in_match.mth:10:6: TLPAREN
+test/too_many_args_in_match.mth:10:7: "x" TNAME
+test/too_many_args_in_match.mth:10:8: TRPAREN
+test/too_many_args_in_match.mth:10:10: "->" TNAME
+test/too_many_args_in_match.mth:11:3: TRPAREN
+test/too_many_args_in_match.mth:11:4: TNEWLINE
