@@ -475,7 +475,14 @@ elabDecl =
     )
 
 elabSig : L(Sig) -- EDef +Elab
-elabSig = "not yet implemented" efail
+elabSig =
+    elabL(
+        matchSig(
+            elabTypeSig EDType,
+            elabWordSig EDWord,
+            elabAssertion EDAssertion
+        )
+    )
 
 data EBind
     EBStackType : EBind
