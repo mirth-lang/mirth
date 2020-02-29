@@ -53,11 +53,25 @@ export mirth/elab/data
     type EModule
     type EDef
     type ETypeDef
+    type EDataDef
+    type EDataConDef
     type EWordDef
     type EPrimDef
     type ETestDef
     type ETypeParam
+    type EWordParam
     type ETypeName
+    type EWordName
+    type EBind
+    type EWordType
+    type EStackType
+    type EType
+    type ETypePrim
+    type EWord
+    type EWordAtom
+    type EWordPrim
+    type EWordMatch
+    type EWordMatchCase
     type EDocs
 
     ERErr : List(EError) List(EWarning) -- EResult(t)
@@ -94,13 +108,25 @@ export mirth/elab/data
     edef->sexp : EDef -- Sexp
     edef->str : EDef -- Str
 
-    MkETypeDef : EDocs ETypeName List(ETypeParam) -- ETypeDef
+    MkETypeDef : EDocs ETypeName List(ETypeParam) Maybe(EDataDef) -- ETypeDef
     etypedef->sexp : ETypeDef -- Sexp
     etypedef->str : ETypeDef -- Str
 
-    MkEWordDef : EWordDef
+    MkEDataDef : List(EDataConDef) -- EDataDef
+    edatadef->sexp : EDataDef -- Sexp
+    edatadef->str : EDataDef -- Str
+
+    MkEDataConDef : EDocs EWordName List(EWordParam) List(EType) -- EDataConDef
+    edatacondef->sexp : EDataConDef -- Sexp
+    edatacondef->str : EDataConDef -- Str
+
+    MkEWordDef : EDocs List(EWordParam) EWordType Maybe(EWord) -- EWordDef
     eworddef->sexp : EWordDef -- Sexp
     eworddef->str : EWordDef -- Str
+
+    MkEWordParam : Name EWordType -- EWordParam
+    ewordparam->sexp : EWordParam -- Sexp
+    ewordparam->str : EWordParam -- Str
 
     MkEPrimDef : EPrimDef
     eprimdef->sexp : EPrimDef -- Sexp
@@ -118,6 +144,60 @@ export mirth/elab/data
     etypename->sexp : ETypeName -- Sexp
     etypename->str : ETypeName -- Str
 
+    MkEWordName : Name -- EWordName
+    ewordname->sexp : EWordName -- Sexp
+    ewordname->str : EWordName -- Str
+
+    MkEWordType : EStackType EStackType -- EWordType
+    ewordtype->sexp : EWordType -- Sexp
+    ewordtype->str : EWordType -- Str
+
+    ESNil : EStackType
+    ESVar : Name -- EStackType
+    ESCons : EStackType EType -- EStackType
+    estacktype->sexp : EStackType -- Sexp
+    estacktype->str : EStackType -- Str
+
+    ETVar : Name -- EType
+    ETCall : ETypeName List(EType) -- EType
+    ETPrim : ETypePrim List(EType) -- EType
+    ETPack : EStackType -- EType
+    etype->sexp : EType -- Sexp
+    etype->str : EType -- Str
+
+    ETPBool : ETypePrim
+    ETPInt : ETypePrim
+    ETPStr : ETypePrim
+    ETPList : ETypePrim
+    etypeprim->sexp : ETypePrim -- Sexp
+    etypeprim->str : ETypePrim -- Str
+
+    MkEWord : List(EWordAtom) -- EWord
+    eword->sexp : EWord -- Sexp
+    eword->str : EWord -- Str
+
+    EWAVar : Name -- EWordAtom
+    EWACall : EWordName List(EWord) -- EWordAtom
+    EWAPrim : EWordPrim List(EWord) -- EWordAtom
+    EWAMatch : EWordMatch -- EWordAtom
+    ewordatom->sexp : EWordAtom -- Sexp
+    ewordatom->str : EWordAtom -- Str
+
+    EWPDip : EWordPrim
+    EWPDup : EWordPrim
+    EWPDrop : EWordPrim
+    EWPSwap : EWordPrim
+    ewordprim->sexp : EWordPrim -- Sexp
+    ewordprim->str : EWordPrim -- Str
+
+    MkEWordMatch : List(EWordMatchCase) -- EWordMatch
+    ewordmatch->sexp : EWordMatch -- Sexp
+    ewordmatch->str : EWordMatch -- Str
+
+    MkEWordMatchCase : Maybe(EWordName) EWord -- EWordMatchCase
+    ewordmatchcase->sexp : EWordMatchCase -- Sexp
+    ewordmatchcase->str : EWordMatchCase -- Str
+
     MkEDocs : List(Str) -- EDocs
     edocs->sexp : EDocs -- Sexp
     edocs->str : EDocs -- Str
@@ -133,9 +213,12 @@ export mirth/elab/effect
     type EModule
     type EPackage
     type ETypeDef
+    type EDataDef
+    type EDataConDef
     type EWordDef
     type ETestDef
     type ETypeParam
+    type EDocs
 
     runElab(f: a -- b +Elab) : a -- EResult(b)
     runElab2(f: a1 a2 -- b +Elab) : a1 a2 -- EResult(b)
@@ -150,11 +233,16 @@ export mirth/elab/effect
     elabSig : L(Sig) -- EDef +Elab
     elabTypeSig : L(TypeSig) -- ETypeDef +Elab
     elabDataDef : L(DataDef) -- ETypeDef +Elab
+    elabDataConDef : L(Sig) -- EDataConDef +Elab
     elabWordSig : L(WordSig) -- EWordDef +Elab
     elabWordDef : L(WordDef) -- EWordDef +Elab
     elabAssertion : L(Assertion) -- ETestDef +Elab
+
+    elabDocs : Maybe(L(Docs)) -- EDocs +Elab
+    elabTypeName : L(Name) -- ETypeName +Elab
     elabTypeParams : L(Params) -- List(ETypeParam) +Elab
     elabTypeParam : L(Param) -- ETypeParam +Elab
+
 end
 
 ##########################
@@ -182,6 +270,9 @@ EWARNINGS = "EWARNINGS" MkVar
 EDEFS : Var(Map(Name, EDef))
 EDEFS = "EDEFS" MkVar
 
+EBINDS : Var(Map(Name, EBind))
+EBINDS = "ECTX" MkVar
+
 ElabError : Exception(List(EError))
 ElabError = "ElabError" MkException
 
@@ -189,12 +280,14 @@ runElab(f: a -- b +Elab) : a -- EResult(b)
 runElab(f) =
     nil EWARNINGS vlocal(
     locSetNull ELOCSET vlocal(
+    mapNil EDEFS vlocal(
+    mapNil EBINDS vlocal(
         catch(ElabError, f)
         dip(EWARNINGS vget) result(
             swap ERErr,
             swap EROk
         )
-    ))
+    ))))
 
 runElab2(f: a1 a2 -- b +Elab) : a1 a2 -- EResult(b)
 runElab2(f) = pack2 runElab(unpack2 f)
@@ -228,6 +321,24 @@ efail = easkL MkEError lpure throw(ElabError)
 ewarn : Str -- +Elab
 ewarn = easkL MkEWarning EWARNINGS vuse(swap cons)
 
+isBound : Name -- Bool +Elab
+isBound = dip(EBINDS vget) mapHas
+
+isBound? : Name -- Name Bool +Elab
+isBound? = dup isBound
+
+addBind : Name EBind -- +Elab
+addBind =
+    over dip(EBINDS vget) mapHas if(
+        "duplicate name binding" efail,
+        EBINDS vuse(rotr mapSet)
+    )
+
+resetBinds : +Elab
+resetBinds = mapNil EBINDS vset
+
+saveBinds(f: *a -- *b +Elab) : *a -- *b +Elab
+saveBinds(f) = EBINDS vget EBINDS vlocal(f)
 
 data EResult(t)
     ERErr : List(EError) List(EWarning) -- EResult(t)
@@ -329,23 +440,72 @@ elabSig : L(Sig) -- EDef
 elabSig = "not yet implemented" efail
 
 data ETypeDef
-    MkETypeDef : EDocs ETypeName List(ETypeParam) -- ETypeDef
+    MkETypeDef : EDocs ETypeName List(ETypeParam) Maybe(EDataDef) -- ETypeDef
 end
 
-unETypeDef : ETypeDef -- EDocs ETypeName List(ETypeParam)
+unETypeDef : ETypeDef -- EDocs ETypeName List(ETypeParam) Maybe(EDataDef)
 unETypeDef = match(MkETypeDef -> id)
 
 etypedef->sexp : ETypeDef -- Sexp
-etypedef->sexp = unETypeDef sexp3("type", edocs->sexp, etypename->sexp, list->sexp(etypeparam->sexp))
+etypedef->sexp = unETypeDef sexp4("type", edocs->sexp, etypename->sexp,
+    list->sexp(etypeparam->sexp), maybe->sexp(edatadef->sexp))
 
 etypedef->str : ETypeDef -- Str
 etypedef->str = etypedef->sexp sexp->str
 
 elabTypeSig : L(TypeSig) -- ETypeDef +Elab
-elabTypeSig = "not yet implemented" efail # TODO
+elabTypeSig =
+    elabL(
+        resetBinds
+        unTypeSig
+        dip2(elabDocs)
+        dip(elabTypeName)
+        elabTypeParams
+        None
+        MkETypeDef
+    )
 
 elabDataDef : L(DataDef) -- ETypeDef +Elab
-elabDataDef = "not yet implemented" efail
+elabDataDef =
+    elabL(
+        resetBinds
+        unDataDef
+        dip3(elabDocs)
+        dip2(elabTypeName)
+        dip(elabTypeParams)
+        elabList(elabDataConDef) MkEDataDef Some
+        MkETypeDef
+    )
+
+data EDataDef
+    MkEDataDef : List(EDataConDef) -- EDataDef
+end
+
+unEDataDef : EDataDef -- List(EDataConDef)
+unEDataDef = match(MkEDataDef -> id)
+
+edatadef->sexp : EDataDef -- Sexp
+edatadef->sexp = unEDataDef sexp1("data-def", list->sexp(edatacondef->sexp))
+
+edatadef->str : EDataDef -- Str
+edatadef->str = edatadef->sexp sexp->str
+
+data EDataConDef
+    MkEDataConDef : EDocs EWordName List(EWordParam) List(EType) -- EDataConDef
+end
+
+unEDataConDef : EDataConDef -- EDocs EWordName List(EWordParam) List(EType)
+unEDataConDef = match(MkEDataConDef -> id)
+
+edatacondef->sexp : EDataConDef -- Sexp
+edatacondef->sexp = unEDataConDef sexp4("data-con", edocs->sexp, ewordname->sexp,
+    list->sexp(ewordparam->sexp), list->sexp(etype->sexp))
+
+edatacondef->str : EDataConDef -- Str
+edatacondef->str = edatacondef->sexp sexp->str
+
+elabDataConDef : L(Sig) -- EDataConDef +Elab
+elabDataConDef = "not yet implemented" efail
 
 data ETypeParam
     MkETypeParam : Name -- ETypeParam
@@ -360,23 +520,8 @@ etypeparam->sexp = unETypeParam name->str SexpAtom
 etypeparam->str : ETypeParam -- Str
 etypeparam->str = unETypeParam name->str
 
-EBOUNDVARS : Var(Set(Name))
-EBOUNDVARS = "EBOUNDVARS" MkVar
-
-isBound : Name -- Bool +Elab
-isBound = dip(EBOUNDVARS vget) setHas
-
-isBound? : Name -- Name Bool +Elab
-isBound? = dup isBound
-
 elabTypeParams : L(Params) -- List(ETypeParam) +Elab
-elabTypeParams =
-    elabL(setNil EBOUNDVARS vlocal(
-        unParams map(
-            elabTypeParam
-            dup unETypeParam setSingle EBOUNDVARS vuse(setUnion)
-        )
-    ))
+elabTypeParams = elabL(unParams elabList(elabTypeParam))
 
 elabTypeParam : L(Param) -- ETypeParam +Elab
 elabTypeParam =
@@ -399,6 +544,19 @@ elabTypeParam =
         )
     )
 
+data EWordParam
+    MkEWordParam : Name EWordType -- EWordParam
+end
+
+unEWordParam : EWordParam -- Name EWordType
+unEWordParam = match(MkEWordParam -> id)
+
+ewordparam->sexp : EWordParam -- Sexp
+ewordparam->sexp = unEWordParam sexp2("word-param", name->sexp, ewordtype->sexp)
+
+ewordparam->str : EWordParam -- Str
+ewordparam->str = ewordparam->sexp sexp->str
+
 data ETypeName
     MkETypeName : Name -- ETypeName
 end
@@ -407,20 +565,44 @@ unETypeName : ETypeName -- Name
 unETypeName = match(MkETypeName -> id)
 
 etypename->sexp : ETypeName -- Sexp
-etypename->sexp = unETypeName name->str SexpAtom
+etypename->sexp = unETypeName name->sexp
 
 etypename->str : ETypeName -- Str
 etypename->str = unETypeName name->str
 
-data EWordDef
-    MkEWordDef : EWordDef
+elabTypeName : L(Name) -- ETypeName +Elab
+elabTypeName =
+    elabL(
+        cond(
+            isConName? -> MkETypeName,
+            isPlusConName? -> MkETypeName,
+            "invalid type name" efail
+        )
+    )
+
+data EWordName
+    MkEWordName : Name -- EWordName
 end
 
-unEWordDef : EWordDef --
+unEWordName : EWordName -- Name
+unEWordName = match(MkEWordName -> id)
+
+ewordname->sexp : EWordName -- Sexp
+ewordname->sexp = unEWordName name->sexp
+
+ewordname->str : EWordName -- Str
+ewordname->str = unEWordName name->str
+
+data EWordDef
+    MkEWordDef : EDocs List(EWordParam) EWordType Maybe(EWord) -- EWordDef
+end
+
+unEWordDef : EWordDef -- EDocs List(EWordParam) EWordType Maybe(EWord)
 unEWordDef = match(MkEWordDef -> id)
 
 eworddef->sexp : EWordDef -- Sexp
-eworddef->sexp = unEWordDef sexp0("word")
+eworddef->sexp = unEWordDef sexp4("word", edocs->sexp,
+    list->sexp(ewordparam->sexp), ewordtype->sexp, maybe->sexp(eword->sexp))
 
 eworddef->str : EWordDef -- Str
 eworddef->str = eworddef->sexp sexp->str
@@ -460,6 +642,153 @@ etestdef->str = etestdef->sexp sexp->str
 elabAssertion : L(Assertion) -- ETestDef +Elab
 elabAssertion = "not yet implemented" efail
 
+data EWordType
+    MkEWordType : EStackType EStackType -- EWordType
+end
+
+unEWordType : EWordType -- EStackType EStackType
+unEWordType = match(MkEWordType -> id)
+
+ewordtype->sexp : EWordType -- Sexp
+ewordtype->sexp = unEWordType sexp2("word-type",
+    estacktype->sexp, estacktype->sexp)
+
+ewordtype->str : EWordType -- Str
+ewordtype->str = ewordtype->sexp sexp->str
+
+data EStackType
+    ESNil : EStackType
+    ESVar : Name -- EStackType
+    ESCons : EStackType EType -- EStackType
+end
+
+estacktype->sexp : EStackType -- Sexp
+estacktype->sexp =
+    match(
+        ESNil -> sexp0("stack-nil"),
+        ESVar -> sexp1("stack-var", name->sexp),
+        ESCons -> sexp2("stack-cons", estacktype->sexp, etype->sexp)
+    )
+
+estacktype->str : EStackType -- Str
+estacktype->str = estacktype->sexp sexp->str
+
+data EType
+    ETVar : Name -- EType
+    ETCall : ETypeName List(EType) -- EType
+    ETPrim : ETypePrim List(EType) -- EType
+    ETPack : EStackType -- EType
+end
+
+etype->sexp : EType -- Sexp
+etype->sexp =
+    match(
+        ETVar -> sexp1("type-var", name->sexp),
+        ETCall -> sexp2("type-call", etypename->sexp, list->sexp(etype->sexp)),
+        ETPrim -> sexp2("type-prim", etypeprim->sexp, list->sexp(etype->sexp)),
+        ETPack -> sexp1("type-pack", estacktype->sexp)
+    )
+
+etype->str : EType -- Str
+etype->str = etype->sexp sexp->str
+
+data ETypePrim
+    ETPBool : ETypePrim
+    ETPInt : ETypePrim
+    ETPStr : ETypePrim
+    ETPList : ETypePrim
+end
+
+etypeprim->sexp : ETypePrim -- Sexp
+etypeprim->sexp =
+    match(
+        ETPBool -> sexp0("Bool"),
+        ETPInt -> sexp0("Int"),
+        ETPStr -> sexp0("Str"),
+        ETPList -> sexp0("List")
+    )
+
+etypeprim->str : ETypePrim -- Str
+etypeprim->str = etypeprim->sexp sexp->str
+
+data EWord
+    MkEWord : List(EWordAtom) -- EWord
+end
+
+unEWord : EWord -- List(EWordAtom)
+unEWord = match(MkEWord -> id)
+
+eword->sexp : EWord -- Sexp
+eword->sexp = unEWord list->sexp(ewordatom->sexp)
+
+eword->str : EWord -- Str
+eword->str = eword->sexp sexp->str
+
+data EWordAtom
+    EWAVar : Name -- EWordAtom
+    EWACall : EWordName List(EWord) -- EWordAtom
+    EWAPrim : EWordPrim List(EWord) -- EWordAtom
+    EWAMatch : EWordMatch -- EWordAtom
+end
+
+ewordatom->sexp : EWordAtom -- Sexp
+ewordatom->sexp =
+    match(
+        EWAVar -> sexp1("word-var", name->sexp),
+        EWACall -> sexp2("word-call", ewordname->sexp, list->sexp(eword->sexp)),
+        EWAPrim -> sexp2("word-prim", ewordprim->sexp, list->sexp(eword->sexp)),
+        EWAMatch -> sexp1("word-match", ewordmatch->sexp)
+    )
+
+ewordatom->str : EWordAtom -- Str
+ewordatom->str = ewordatom->sexp sexp->str
+
+data EWordPrim
+    EWPDip : EWordPrim
+    EWPDup : EWordPrim
+    EWPDrop : EWordPrim
+    EWPSwap : EWordPrim
+end
+
+ewordprim->sexp : EWordPrim -- Sexp
+ewordprim->sexp =
+    match(
+        EWPDip -> sexp0("dip"),
+        EWPDup -> sexp0("dup"),
+        EWPDrop -> sexp0("drop"),
+        EWPSwap -> sexp0("swap")
+    )
+
+ewordprim->str : EWordPrim -- Str
+ewordprim->str = ewordprim->sexp sexp->str
+
+data EWordMatch
+    MkEWordMatch : List(EWordMatchCase) -- EWordMatch
+end
+
+unEWordMatch : EWordMatch -- List(EWordMatchCase)
+unEWordMatch = match(MkEWordMatch -> id)
+
+ewordmatch->sexp : EWordMatch -- Sexp
+ewordmatch->sexp = unEWordMatch list->sexp(ewordmatchcase->sexp)
+
+ewordmatch->str : EWordMatch -- Str
+ewordmatch->str = ewordmatch->sexp sexp->str
+
+data EWordMatchCase
+    MkEWordMatchCase : Maybe(EWordName) EWord -- EWordMatchCase
+end
+
+unEWordMatchCase : EWordMatchCase -- Maybe(EWordName) EWord
+unEWordMatchCase = match(MkEWordMatchCase -> id)
+
+ewordmatchcase->sexp : EWordMatchCase -- Sexp
+ewordmatchcase->sexp = unEWordMatchCase sexp2("case",
+    maybe->sexp(ewordname->sexp), eword->sexp)
+
+ewordmatchcase->str : EWordMatchCase -- Str
+ewordmatchcase->str = ewordmatchcase->sexp sexp->str
+
 data EDocs
     MkEDocs : List(Str) -- EDocs
 end
@@ -472,3 +801,6 @@ edocs->sexp = unEDocs list->sexp(SexpAtom)
 
 edocs->str : EDocs -- Str
 edocs->str = edocs->sexp sexp->str
+
+elabDocs : Maybe(L(Docs)) -- EDocs +Elab
+elabDocs = maybe(nil, getL unDocs) MkEDocs

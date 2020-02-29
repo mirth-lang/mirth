@@ -3,8 +3,11 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import base/order
+import base/sexp
+import base/list
 
 export base/maybe
+  type Sexp
   type Comp
   type Maybe(t)
   None : Maybe(t)
@@ -18,6 +21,7 @@ export base/maybe
 
   isSome : Maybe(t) -- Bool
   isNone : Maybe(t) -- Bool
+  maybe->sexp(f: t -- Sexp) : Maybe(t) -- Sexp
 end
 
 data Maybe(t)
@@ -47,3 +51,5 @@ mcmp(f) =
 
 isNone = maybe(true, drop false)
 isSome = isNone not
+
+maybe->sexp(f) = maybe(nil SexpList, f lpure SexpList)
