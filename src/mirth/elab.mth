@@ -57,8 +57,7 @@ export mirth/elab/data
     type EDataDef
     type EDataConDef
     type EWordDef
-    type EPrimDef
-    type ETestDef
+    type EAssertion
     type ETypeParam
     type EWordParam
     type ETypeName
@@ -98,9 +97,11 @@ export mirth/elab/data
 
     EDType : ETypeDef -- EDef
     EDWord : EWordDef -- EDef
+    EDAssertion : EAssertion -- EDef
     edef(
         onTypeDef: *a ETypeDef -- *b,
-        onWordDef: *a EWordDef -- *b
+        onWordDef: *a EWordDef -- *b,
+        onAssertion: *a EAssertion -- *b
     ) : *a EDef -- *b
     edef->sexp : EDef -- Sexp
     edef->str : EDef -- Str
@@ -131,13 +132,9 @@ export mirth/elab/data
     ewordparam->sexp : EWordParam -- Sexp
     ewordparam->str : EWordParam -- Str
 
-    MkEPrimDef : EPrimDef
-    eprimdef->sexp : EPrimDef -- Sexp
-    eprimdef->str : EPrimDef -- Str
-
-    MkETestDef : ETestDef
-    etestdef->sexp : ETestDef -- Sexp
-    etestdef->str : ETestDef -- Str
+    MkEAssertion  : EAssertion
+    eassertion->sexp : EAssertion -- Sexp
+    eassertion->str : EAssertion -- Str
 
     MkETypeParam : Name -- ETypeParam
     unETypeParam : ETypeParam -- Name
@@ -223,7 +220,6 @@ export mirth/elab/effect
     type EDataDef
     type EDataConDef
     type EWordDef
-    type ETestDef
     type ETypeParam
     type EDocs
 
@@ -243,7 +239,7 @@ export mirth/elab/effect
     elabDataConDef : L(Sig) -- EDataConDef +Elab
     elabWordSig : L(WordSig) -- EWordDef +Elab
     elabWordDef : L(WordDef) -- EWordDef +Elab
-    elabAssertion : L(Assertion) -- ETestDef +Elab
+    elabAssertion : L(Assertion) -- EAssertion +Elab
 
     elabTypeName : L(Name) -- ETypeName +Elab
     elabWordName : L(Name) -- EWordName +Elab
@@ -439,33 +435,46 @@ elabModule = drop MkEModule
 data EDef
     EDType : ETypeDef -- EDef
     EDWord : EWordDef -- EDef
+    EDAssertion : EAssertion -- EDef
 end
 
 edef(
     onTypeDef: *a ETypeDef -- *b,
-    onWordDef: *a EWordDef -- *b
+    onWordDef: *a EWordDef -- *b,
+    onAssertion: *a EAssertion -- *b
 ) : *a EDef -- *b
 
-edef(onTypeDef, onWordDef) =
+edef(onTypeDef, onWordDef, onAssertion) =
     match(
         EDType -> onTypeDef,
-        EDWord -> onWordDef
+        EDWord -> onWordDef,
+        EDAssertion -> onAssertion
     )
 
 edef->sexp : EDef -- Sexp
 edef->sexp =
     match(
         EDType -> etypedef->sexp,
-        EDWord -> eworddef->sexp
+        EDWord -> eworddef->sexp,
+        EDAssertion -> eassertion->sexp
     )
 
 edef->str : EDef -- Str
 edef->str = edef->sexp sexp->str
 
-elabDecl : L(Decl) -- EDef
-elabDecl = "not yet implemented" efail
+elabDecl : L(Decl) -- EDef +Elab
+elabDecl =
+    elabL(
+        matchDecl(
+            elabTypeSig EDType,
+            elabDataDef EDType,
+            elabWordSig EDWord,
+            elabWordDef EDWord,
+            elabAssertion EDAssertion
+        )
+    )
 
-elabSig : L(Sig) -- EDef
+elabSig : L(Sig) -- EDef +Elab
 elabSig = "not yet implemented" efail
 
 data EBind
@@ -548,7 +557,10 @@ addTypeDef = $(
                 dip(swap) mergeTypeDef EDType setDef,
             EDWord ->
                 swap dip("type ") name->str <>
-                " already defined as word" <> efail
+                " already defined as word" <> efail,
+            EDAssertion ->
+                swap dip("type ") name->str <>
+                " already defined as assertion" <> efail
         )
     )
 )
@@ -737,33 +749,20 @@ elabWordSig = "not yet implemented" efail
 elabWordDef : L(WordDef) -- EWordDef +Elab
 elabWordDef = "not yet implemented" efail
 
-data EPrimDef
-    MkEPrimDef : EPrimDef
+data EAssertion
+    MkEAssertion : EAssertion
 end
 
-unEPrimDef : EPrimDef --
-unEPrimDef = match(MkEPrimDef -> id)
+unEAssertion : EAssertion --
+unEAssertion = match(MkEAssertion -> id)
 
-eprimdef->sexp : EPrimDef -- Sexp
-eprimdef->sexp = unEPrimDef sexp0("prim")
+eassertion->sexp : EAssertion -- Sexp
+eassertion->sexp = unEAssertion sexp0("assertion")
 
-eprimdef->str : EPrimDef -- Str
-eprimdef->str = eprimdef->sexp sexp->str
+eassertion->str : EAssertion -- Str
+eassertion->str = eassertion->sexp sexp->str
 
-data ETestDef
-    MkETestDef : ETestDef
-end
-
-unETestDef : ETestDef --
-unETestDef = match(MkETestDef -> id)
-
-etestdef->sexp : ETestDef -- Sexp
-etestdef->sexp = unETestDef sexp0("test")
-
-etestdef->str : ETestDef -- Str
-etestdef->str = etestdef->sexp sexp->str
-
-elabAssertion : L(Assertion) -- ETestDef +Elab
+elabAssertion : L(Assertion) -- EAssertion +Elab
 elabAssertion = "not yet implemented" efail
 
 data EWordType
@@ -934,7 +933,9 @@ elabTypeCall =
                 EDType ->
                     nip unETypeDef drop dip2(drop),
                 EDWord ->
-                    drop dip("expected type but got word ") name->str <> efail
+                    drop dip("expected type but got word ") name->str <> efail,
+                EDAssertion ->
+                    drop dip("expected type but got assertion ") name->str <> efail
             )
         )
     )
