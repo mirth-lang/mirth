@@ -1,4 +1,4 @@
-test/higher_order_constructor.mth:7:1: error: missing signature for word constT
-test/higher_order_constructor.mth:10:1: error: missing signature for word isoT
-test/higher_order_constructor.mth:13:1: error: missing signature for word runT
-test/higher_order_constructor.mth:19:1: error: missing signature for word runTthen
+test/higher_order_constructor.mth:7:10: error: not yet implemented
+test/higher_order_constructor.mth:10:8: error: not yet implemented
+test/higher_order_constructor.mth:13:8: error: not yet implemented
+test/higher_order_constructor.mth:19:16: error: not yet implemented

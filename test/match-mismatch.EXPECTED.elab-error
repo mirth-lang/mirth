@@ -1,1 +1,1 @@
-test/match-mismatch.mth:8:1: error: missing signature for word dothing
+test/match-mismatch.mth:8:11: error: not yet implemented

@@ -1,2 +1,2 @@
-test/trust_me.mth:4:1: error: missing signature for word foo
-test/trust_me.mth:9:1: error: missing signature for word unsafe_perform_io
+test/trust_me.mth:4:7: error: not yet implemented
+test/trust_me.mth:9:24: error: not yet implemented

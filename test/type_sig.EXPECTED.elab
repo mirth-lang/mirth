@@ -1,1 +1,1 @@
-("module" "test/type_sig.mth" () () (("IntPair" ("type" () "IntPair" () (("data-def" (("data-con" () "MkIntPair" () (("type-prim" "Int" ()) ("type-prim" "Int" ()))))))))))
+("module" "test/type_sig.mth" () () (("MkIntPair" ("word" () "MkIntPair" () ("word-type" ("stack-cons" ("stack-cons" "stack-nil" ("type-prim" "Int" ())) ("type-prim" "Int" ())) ("stack-cons" "stack-nil" ("type-call" "IntPair" ()))) ())) ("IntPair" ("type" () "IntPair" () (("data-def" (("data-con" () "MkIntPair" () (("type-prim" "Int" ()) ("type-prim" "Int" ()))))))))))

@@ -1,5 +1,5 @@
-test/exceptions.mth:4:1: error: missing signature for word throw
-test/exceptions.mth:7:1: error: missing signature for word catch
-test/exceptions.mth:17:1: error: missing signature for word finally
-test/exceptions.mth:20:1: error: missing signature for word setx
-test/exceptions.mth:23:1: error: missing signature for word getx
+test/exceptions.mth:4:12: error: not yet implemented
+test/exceptions.mth:7:16: error: not yet implemented
+test/exceptions.mth:17:16: error: not yet implemented
+test/exceptions.mth:20:12: error: not yet implemented
+test/exceptions.mth:23:12: error: not yet implemented

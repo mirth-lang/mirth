@@ -1,2 +1,2 @@
-test/duplicate_def.mth:3:1: error: missing signature for word foo
-test/duplicate_def.mth:4:1: error: missing signature for word foo
+test/duplicate_def.mth:3:1: error: word foo already declared with different type
+test/duplicate_def.mth:4:1: error: word foo already declared with different type

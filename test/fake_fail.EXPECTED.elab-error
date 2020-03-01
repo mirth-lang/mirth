@@ -1,1 +1,1 @@
-test/fake_fail.mth:3:1: error: missing signature for word main
+test/fake_fail.mth:3:21: error: not yet implemented

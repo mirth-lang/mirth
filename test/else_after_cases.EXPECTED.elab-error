@@ -1,1 +1,1 @@
-test/else_after_cases.mth:8:1: error: missing signature for word foo
+test/else_after_cases.mth:8:7: error: not yet implemented

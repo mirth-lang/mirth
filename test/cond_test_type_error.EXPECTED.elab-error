@@ -1,1 +1,1 @@
-test/cond_test_type_error.mth:3:1: error: missing signature for word foo
+test/cond_test_type_error.mth:3:7: error: not yet implemented

@@ -1,1 +1,0 @@
-("module" "test/redefining_constrs.mth" () () (("T1" ("type" () "T1" () (("data-def" (("data-con" () "A" () (("type-prim" "Int" ())))))))) ("T2" ("type" () "T2" () (("data-def" (("data-con" () "A" () (("type-prim" "Int" ()))))))))))

@@ -1,3 +1,3 @@
-test/data_def.mth:8:1: error: missing signature for word mk1
-test/data_def.mth:11:1: error: missing signature for word mk2
-test/data_def.mth:16:1: error: missing signature for word elimT
+test/data_def.mth:8:7: error: not yet implemented
+test/data_def.mth:11:7: error: not yet implemented
+test/data_def.mth:16:9: error: not yet implemented

@@ -1,1 +1,1 @@
-test/constructor_already_defined.mth:5:1: error: missing signature for word F
+test/constructor_already_defined.mth:5:5: error: not yet implemented

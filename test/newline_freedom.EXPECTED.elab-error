@@ -1,2 +1,2 @@
-test/newline_freedom.mth:3:1: error: missing signature for word abs
-test/newline_freedom.mth:11:1: error: missing signature for word foo
+test/newline_freedom.mth:3:7: error: not yet implemented
+test/newline_freedom.mth:17:1: error: not yet implemented

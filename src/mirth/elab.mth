@@ -137,6 +137,8 @@ export mirth/elab/data
     MkEWordParam : Name EWordType -- EWordParam
     ewordparam->sexp : EWordParam -- Sexp
     ewordparam->str : EWordParam -- Str
+    ewordparam= : EWordParam EWordParam -- Bool
+    ewordparam=? : EWordParam EWordParam -- EWordParam EWordParam Bool
 
     MkEAssertion  : EAssertion
     eassertion->sexp : EAssertion -- Sexp
@@ -194,6 +196,7 @@ export mirth/elab/data
     etypeprim->str : ETypePrim -- Str
     etypeprim= : ETypePrim ETypePrim -- Bool
     etypeprim=? : ETypePrim ETypePrim -- ETypePrim ETypePrim Bool
+    isTypePrimName : Name -- Bool
     isTypePrimName? : Name -- Name Bool
 
     MkEWord : List(EWordAtom) -- EWord
@@ -213,6 +216,8 @@ export mirth/elab/data
     EWPSwap : EWordPrim
     ewordprim->sexp : EWordPrim -- Sexp
     ewordprim->str : EWordPrim -- Str
+    isWordPrimName : Name -- Bool
+    isWordPrimName? : Name -- Name Bool
 
     MkEWordMatch : List(EWordMatchCase) -- EWordMatch
     ewordmatch->sexp : EWordMatch -- Sexp
@@ -223,6 +228,7 @@ export mirth/elab/data
     ewordmatchcase->str : EWordMatchCase -- Str
 
     MkEDocs : List(Str) -- EDocs
+    edocsNull : EDocs -- Bool
     edocsNull? : EDocs -- EDocs Bool
     edocs->sexp : EDocs -- Sexp
     edocs->str : EDocs -- Str
@@ -287,6 +293,10 @@ export mirth/elab/effect
 
     elabWord : EStackType L(Expr) -- EStackType EWord +Elab
     elabWordAtom : EStackType L(Atom) -- EStackType EWordAtom +Elab
+    elabWordVar : EStackType L(Name) -- EStackType EWordAtom +Elab
+    elabWordPrim : EStackType L(Name) L(Args) -- EStackType EWordAtom +Elab
+    elabWordCall : EStackType L(Name) L(Args) -- EStackType EWordAtom +Elab
+    elabWordMatch : EStackType L(Args) -- EStackType EWordAtom +Elab
 
     estacktypeUnify : EStackType EStackType -- EStackType +Elab
     etypeUnify : EType EType -- EType +Elab
@@ -822,6 +832,16 @@ ewordparam->sexp = unEWordParam sexp2("word-param", name->sexp, ewordtype->sexp)
 ewordparam->str : EWordParam -- Str
 ewordparam->str = ewordparam->sexp sexp->str
 
+ewordparam= : EWordParam EWordParam -- Bool
+ewordparam= = $(
+    dip(unEWordParam) unEWordParam
+    dip(swap) dip2(nameeq) rotl
+    if(ewordtype=, drop2 false)
+)
+
+ewordparam=? : EWordParam EWordParam -- EWordParam EWordParam Bool
+ewordparam=? = dup2 ewordparam=
+
 elabWordParams : L(Params) -- List(EWordParam) +Elab
 elabWordParams = elabL(unParams elabList(elabWordParam))
 
@@ -898,6 +918,27 @@ end
 unEWordDef : EWordDef -- EDocs EWordName List(EWordParam) EWordType Maybe(EWord)
 unEWordDef = match(MkEWordDef -> id)
 
+eworddef->edocs : EWordDef -- EDocs
+eworddef->edocs = unEWordDef drop4
+
+eworddef->ewordname : EWordDef -- EWordName
+eworddef->ewordname = unEWordDef drop3 nip
+
+eworddef->ewordparams : EWordDef -- List(EWordParam)
+eworddef->ewordparams = unEWordDef drop2 dip(drop2)
+
+eworddef->ewordtype : EWordDef -- EWordType
+eworddef->ewordtype = unEWordDef drop dip(drop3)
+
+eworddef->eword : EWordDef -- Maybe(EWord)
+eworddef->eword = unEWordDef dip(drop4)
+
+eworddefSetEDocs : EWordDef EDocs -- EWordDef
+eworddefSetEDocs = swap unEWordDef dip4(drop) MkEWordDef
+
+eworddefSetEWord : EWordDef EWord -- EWordDef
+eworddefSetEWord = dip(unEWordDef drop) Some MkEWordDef
+
 eworddef->sexp : EWordDef -- Sexp
 eworddef->sexp = unEWordDef sexp5("word", edocs->sexp, ewordname->sexp,
     list->sexp(ewordparam->sexp), ewordtype->sexp, maybe->sexp(eword->sexp))
@@ -905,8 +946,56 @@ eworddef->sexp = unEWordDef sexp5("word", edocs->sexp, ewordname->sexp,
 eworddef->str : EWordDef -- Str
 eworddef->str = eworddef->sexp sexp->str
 
+mergeWordDef : EWordDef EWordDef -- EWordDef +Elab
+mergeWordDef =
+    cond(
+        dup2 both(eworddef->ewordname unEWordName) nameeq not ->
+            "compiler error: attempted to merge word defs with different names" efail,
+        dup2 both(eworddef->ewordtype) ewordtype= not ->
+            eworddef->ewordname unEWordName
+            dip("word ") name->str <>
+            " already declared with different type" <> efail,
+        dup2 both(eworddef->ewordparams len) n= not ->
+            eworddef->ewordname unEWordName
+            dip("word ") name->str <>
+            " already declared with different number of parameters" <> efail,
+        dup2 both(eworddef->ewordparams) list=(ewordparam=) not ->
+            eworddef->ewordname unEWordName
+            dip("word ") name->str <>
+            " already declared with different parameter types" <> efail,
+
+        over eworddef->edocs edocsNull if(
+            save(eworddef->edocs eworddefSetEDocs),
+            id
+        )
+        eworddef->eword maybe(
+            id,
+            over eworddef->eword maybe(
+                eworddefSetEWord,
+                drop2 eworddef->ewordname unEWordName
+                dip("word ") name->str <>
+                " already defined" <> efail
+            )
+        )
+    )
+
 addWordDef : EWordDef -- +Elab
-addWordDef = drop # TODO
+addWordDef = $(
+    dup eworddef->ewordname unEWordName askDef?
+    maybe(
+        swap EDWord setDef,
+        match(
+            EDWord ->
+                dip(swap) mergeWordDef EDWord setDef,
+            EDType ->
+                drop dip("word ") name->str <>
+                " already defined as type" efail,
+            EDAssertion ->
+                drop dip("word ") name->str <>
+                " already defined as assertion" efail
+        )
+    )
+)
 
 elabWordSig : L(WordSig) -- EWordDef +Elab
 elabWordSig =
@@ -1284,6 +1373,9 @@ etypeprim= =
 etypeprim=? : ETypePrim ETypePrim -- ETypePrim ETypePrim Bool
 etypeprim=? = dup2 etypeprim=
 
+isTypePrimName : Name -- Bool
+isTypePrimName = isTypePrimName? nip
+
 isTypePrimName? : Name -- Name Bool
 isTypePrimName? =
     cond(
@@ -1345,13 +1437,6 @@ ewordatom->sexp =
 ewordatom->str : EWordAtom -- Str
 ewordatom->str = ewordatom->sexp sexp->str
 
-elabWordVar : EStackType L(Name) -- EStackType EWordAtom +Elab
-elabWordPrim : EStackType L(Name) L(Args) -- EStackType EWordAtom +Elab
-elabWordCall : EStackType L(Name) L(Args) -- EStackType EWordAtom +Elab
-elabWordMatch : EStackType L(Args) -- EStackType EWordAtom +Elab
-isWordPrimName : Name -- Bool
-isWordPrimName? : Name -- Name Bool
-
 elabWordAtom : EStackType L(Atom) -- EStackType EWordAtom +Elab
 elabWordAtom =
     elabL(matchAtom(
@@ -1369,6 +1454,32 @@ elabWordAtom =
         elabL(dip(ETPStr [] ETPrim ESCons) EWAStr)
     ))
 
+||| apply word type to stack type, without freshening
+applyWordType : EStackType EWordType -- EStackType +Elab
+applyWordType =
+    "not yet implemented" efail
+
+elabWordVar : EStackType L(Name) -- EStackType EWordAtom +Elab
+elabWordVar =
+    elabL(
+        askBind? maybe(
+            name->str " is not defined" efail,
+            match(
+                EBWord ->
+                    swap dip(applyWordType) EWAVar,
+                EBType ->
+                    dip("expected word but ") name->str <>
+                    " is a type variable" <> efail,
+                EBStackType ->
+                    dip("expected word but ") name->str <>
+                    " is a stack type variable" <> efail
+            )
+        )
+    )
+
+elabWordCall : EStackType L(Name) L(Args) -- EStackType EWordAtom +Elab
+elabWordCall = "not yet implemented" efail
+
 data EWordPrim
     EWPDip : EWordPrim
     EWPDup : EWordPrim
@@ -1379,14 +1490,30 @@ end
 ewordprim->sexp : EWordPrim -- Sexp
 ewordprim->sexp =
     match(
-        EWPDip -> sexp0("dip"),
-        EWPDup -> sexp0("dup"),
-        EWPDrop -> sexp0("drop"),
-        EWPSwap -> sexp0("swap")
+        EWPDip -> sexp0("_prim_dip"),
+        EWPDup -> sexp0("_prim_dup"),
+        EWPDrop -> sexp0("_prim_drop"),
+        EWPSwap -> sexp0("_prim_swap")
     )
 
 ewordprim->str : EWordPrim -- Str
 ewordprim->str = ewordprim->sexp sexp->str
+
+isWordPrimName : Name -- Bool
+isWordPrimName = isWordPrimName? nip
+
+isWordPrimName? : Name -- Name Bool
+isWordPrimName? =
+    cond(
+        dup name->str "_prim_dip" streq -> true,
+        dup name->str "_prim_dup" streq -> true,
+        dup name->str "_prim_drop" streq -> true,
+        dup name->str "_prim_swap" streq -> true,
+        false
+    )
+
+elabWordPrim : EStackType L(Name) L(Args) -- EStackType EWordAtom +Elab
+elabWordPrim = "not yet implemented" efail
 
 data EWordMatch
     MkEWordMatch : List(EWordMatchCase) -- EWordMatch
@@ -1400,6 +1527,9 @@ ewordmatch->sexp = unEWordMatch list->sexp(ewordmatchcase->sexp)
 
 ewordmatch->str : EWordMatch -- Str
 ewordmatch->str = ewordmatch->sexp sexp->str
+
+elabWordMatch : EStackType L(Args) -- EStackType EWordAtom +Elab
+elabWordMatch = "not yet implemented" efail
 
 data EWordMatchCase
     MkEWordMatchCase : Maybe(EWordName) EWord -- EWordMatchCase

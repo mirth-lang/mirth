@@ -1,2 +1,2 @@
-test/higher_order.mth:4:1: error: missing signature for word d2
-test/higher_order.mth:10:1: error: missing signature for word g
+test/higher_order.mth:4:9: error: not yet implemented
+test/higher_order.mth:10:8: error: not yet implemented

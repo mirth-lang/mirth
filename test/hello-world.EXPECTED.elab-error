@@ -1,1 +1,1 @@
-test/hello-world.mth:5:1: error: missing signature for word hello
+test/hello-world.mth:5:24: error: not yet implemented

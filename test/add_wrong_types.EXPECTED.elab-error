@@ -1,1 +1,1 @@
-test/add_wrong_types.mth:3:1: error: missing signature for word h
+test/add_wrong_types.mth:3:13: error: not yet implemented

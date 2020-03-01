@@ -1,2 +1,2 @@
-test/mutual.mth:15:1: error: missing signature for word A->str
-test/mutual.mth:23:1: error: missing signature for word str->A
+test/mutual.mth:15:10: error: not yet implemented
+test/mutual.mth:23:10: error: not yet implemented

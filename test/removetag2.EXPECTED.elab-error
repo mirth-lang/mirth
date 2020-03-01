@@ -1,7 +1,7 @@
-test/removetag2.mth:5:1: error: missing signature for word remove_tag
-test/removetag2.mth:8:1: error: missing signature for word add_tag_1
-test/removetag2.mth:11:1: error: missing signature for word add_tag_2
-test/removetag2.mth:14:1: error: missing signature for word foo
-test/removetag2.mth:17:1: error: missing signature for word bar
-test/removetag2.mth:20:1: error: missing signature for word baz
-test/removetag2.mth:23:1: error: missing signature for word qux
+test/removetag2.mth:5:18: error: not yet implemented
+test/removetag2.mth:8:13: error: not yet implemented
+test/removetag2.mth:11:13: error: not yet implemented
+test/removetag2.mth:14:7: error: not yet implemented
+test/removetag2.mth:17:7: error: not yet implemented
+test/removetag2.mth:20:7: error: not yet implemented
+test/removetag2.mth:23:7: error: not yet implemented
