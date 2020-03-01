@@ -163,6 +163,7 @@ export mirth/syntax
   exprAtoms : Expr -- List(L(Atom))
   exprNil? : Expr -- Expr Bool
   expr->str : Expr -- Str
+  exprSplitPlusAtoms : Expr -- Expr Expr
 
   atomWord : L(Word) -- Atom
   atomInt  : L(Int) -- Atom
@@ -173,12 +174,16 @@ export mirth/syntax
     onStr : *a L(Str) -- *b
   ) : *a Atom -- *b
   atom->str : Atom -- Str
+  isPlusAtom : Atom -- Bool
+  isPlusAtom? : Atom -- Atom Bool
 
   mkWord : L(Name) L(Args) -- Word
   unWord : Word -- L(Name) L(Args)
   wordName : Word -- L(Name)
   wordArgs : Word -- L(Args)
   word->str : Word -- Str
+  isPlusWord : Word -- Bool
+  isPlusWord? : Word -- Word Bool
 
   mkArgs : List(L(Expr)) -- Args
   unArgs : Args -- List(L(Expr))
@@ -197,11 +202,13 @@ export mirth/syntax
   isConName      : Name -- Bool
   isVarName      : Name -- Bool
   isStarVarName  : Name -- Bool
+  isPlusName     : Name -- Bool
   isPlusConName  : Name -- Bool
   isPlusVarName  : Name -- Bool
   isConName?     : Name -- Name Bool
   isVarName?     : Name -- Name Bool
   isStarVarName? : Name -- Name Bool
+  isPlusName?    : Name -- Name Bool
   isPlusConName? : Name -- Name Bool
   isPlusVarName? : Name -- Name Bool
 
@@ -486,6 +493,18 @@ expr->str =
     for(dip(" " <>) getL atom->str <>)
   )
 
+||| Split the expression into two, with the effect-looking
+||| types on the right (the ones of the form +x)
+exprSplitPlusAtoms : Expr -- Expr Expr
+exprSplitPlusAtoms =
+    unExpr lmatchR(
+        nil mkExpr nil mkExpr,
+        getL?(isPlusAtom?) if(
+            dip(mkExpr exprSplitPlusAtoms unExpr) cons mkExpr,
+            cons mkExpr nil mkExpr
+        )
+    )
+
 ||| Atoms, i.e. parts of an expression.
 data Atom
   atomWord : L(Word) -- Atom
@@ -506,6 +525,15 @@ atom->str =
     getL showStr
   )
 
+isPlusAtom =
+    match(
+        atomWord -> getL isPlusWord,
+        atomInt -> drop false,
+        atomStr -> drop false
+    )
+
+isPlusAtom? = dup isPlusAtom
+
 ||| A word atom. It's a name followed by (optional) arguments.
 data Word
   mkWord : L(Name) L(Args) -- Word
@@ -518,6 +546,8 @@ word->str = match( mkWord ->
   dip(getL name->str)
   getL args->str <>
 )
+isPlusWord = wordName getL isPlusName
+isPlusWord? = dup isPlusWord
 
 ||| Arguments, i.e. a list of expressions.
 ### TODO:
@@ -560,12 +590,14 @@ nameeq = both(unName) streq
 
 isConName = name->str "[A-Z].*" strmatch isSome
 isVarName = name->str "[a-z].*" strmatch isSome
+isPlusName = name->str "\\+[a-zA-Z].*" strmatch isSome
 isStarVarName = name->str "\\*[a-z].*" strmatch isSome
 isPlusConName = name->str "\\+[A-Z].*" strmatch isSome
 isPlusVarName = name->str "\\+[a-z].*" strmatch isSome
 
 isConName? = dup isConName
 isVarName? = dup isVarName
+isPlusName? = dup isPlusName
 isStarVarName? = dup isStarVarName
 isPlusConName? = dup isPlusConName
 isPlusVarName? = dup isPlusVarName
