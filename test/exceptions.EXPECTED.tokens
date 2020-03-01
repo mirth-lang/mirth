@@ -1,0 +1,361 @@
+test/exceptions.mth:1:1: TNEWLINE
+test/exceptions.mth:3:1: "throw" TNAME
+test/exceptions.mth:3:6: TLPAREN
+test/exceptions.mth:3:7: "x" TNAME
+test/exceptions.mth:3:8: TCOLON
+test/exceptions.mth:3:10: "Str" TNAME
+test/exceptions.mth:3:13: TRPAREN
+test/exceptions.mth:3:15: TCOLON
+test/exceptions.mth:3:17: "*a" TNAME
+test/exceptions.mth:3:20: "e" TNAME
+test/exceptions.mth:3:22: TDASH2
+test/exceptions.mth:3:25: "*b" TNAME
+test/exceptions.mth:3:27: TNEWLINE
+test/exceptions.mth:4:1: "throw" TNAME
+test/exceptions.mth:4:6: TLPAREN
+test/exceptions.mth:4:7: "x" TNAME
+test/exceptions.mth:4:8: TRPAREN
+test/exceptions.mth:4:10: TEQUAL
+test/exceptions.mth:4:12: "x" TNAME
+test/exceptions.mth:4:14: "_prim_unsafe_throw" TNAME
+test/exceptions.mth:4:32: TNEWLINE
+test/exceptions.mth:6:1: "catch" TNAME
+test/exceptions.mth:6:6: TLPAREN
+test/exceptions.mth:6:7: "x" TNAME
+test/exceptions.mth:6:8: TCOLON
+test/exceptions.mth:6:10: "Str" TNAME
+test/exceptions.mth:6:13: TCOMMA
+test/exceptions.mth:6:15: "f" TNAME
+test/exceptions.mth:6:16: TCOLON
+test/exceptions.mth:6:18: "a" TNAME
+test/exceptions.mth:6:20: TDASH2
+test/exceptions.mth:6:23: "b" TNAME
+test/exceptions.mth:6:24: TCOMMA
+test/exceptions.mth:6:26: "g" TNAME
+test/exceptions.mth:6:27: TCOLON
+test/exceptions.mth:6:29: "*c" TNAME
+test/exceptions.mth:6:32: "e" TNAME
+test/exceptions.mth:6:34: TDASH2
+test/exceptions.mth:6:37: "*c" TNAME
+test/exceptions.mth:6:40: "b" TNAME
+test/exceptions.mth:6:41: TRPAREN
+test/exceptions.mth:6:43: TCOLON
+test/exceptions.mth:6:45: "*c" TNAME
+test/exceptions.mth:6:48: "a" TNAME
+test/exceptions.mth:6:50: TDASH2
+test/exceptions.mth:6:53: "*c" TNAME
+test/exceptions.mth:6:56: "b" TNAME
+test/exceptions.mth:6:57: TNEWLINE
+test/exceptions.mth:7:1: "catch" TNAME
+test/exceptions.mth:7:6: TLPAREN
+test/exceptions.mth:7:7: "x" TNAME
+test/exceptions.mth:7:8: TCOMMA
+test/exceptions.mth:7:9: "f" TNAME
+test/exceptions.mth:7:10: TCOMMA
+test/exceptions.mth:7:11: "g" TNAME
+test/exceptions.mth:7:12: TRPAREN
+test/exceptions.mth:7:14: TEQUAL
+test/exceptions.mth:7:16: "x" TNAME
+test/exceptions.mth:7:18: "_prim_unsafe_catch" TNAME
+test/exceptions.mth:7:36: TLPAREN
+test/exceptions.mth:7:37: "f" TNAME
+test/exceptions.mth:7:38: TCOMMA
+test/exceptions.mth:7:39: "g" TNAME
+test/exceptions.mth:7:40: TRPAREN
+test/exceptions.mth:7:41: TNEWLINE
+test/exceptions.mth:9:1: "finally(f,g) is the same as dip(f) g, assuming no" TDOC
+test/exceptions.mth:9:54: TNEWLINE
+test/exceptions.mth:10:1: "exception occurs. But if an exception occurs during" TDOC
+test/exceptions.mth:10:56: TNEWLINE
+test/exceptions.mth:11:1: "f, and it escapes f (i.e. isn't handled inside f)," TDOC
+test/exceptions.mth:11:55: TNEWLINE
+test/exceptions.mth:12:1: "then g will still get run while the exception is" TDOC
+test/exceptions.mth:12:53: TNEWLINE
+test/exceptions.mth:13:1: "propagating upward, and g's results gets discarded" TDOC
+test/exceptions.mth:13:55: TNEWLINE
+test/exceptions.mth:14:1: "as the exception is rethrown. In other words," TDOC
+test/exceptions.mth:14:50: TNEWLINE
+test/exceptions.mth:15:1: "`finally(f,g)` always runs `g` even if `f` raises" TDOC
+test/exceptions.mth:15:54: TNEWLINE
+test/exceptions.mth:16:1: "finally" TNAME
+test/exceptions.mth:16:8: TLPAREN
+test/exceptions.mth:16:9: "f" TNAME
+test/exceptions.mth:16:10: TCOLON
+test/exceptions.mth:16:12: "*a" TNAME
+test/exceptions.mth:16:15: TDASH2
+test/exceptions.mth:16:18: "*b" TNAME
+test/exceptions.mth:16:20: TCOMMA
+test/exceptions.mth:16:22: "g" TNAME
+test/exceptions.mth:16:23: TCOLON
+test/exceptions.mth:16:25: "c" TNAME
+test/exceptions.mth:16:27: TDASH2
+test/exceptions.mth:16:30: "d" TNAME
+test/exceptions.mth:16:31: TRPAREN
+test/exceptions.mth:16:33: TCOLON
+test/exceptions.mth:16:35: "*a" TNAME
+test/exceptions.mth:16:38: "c" TNAME
+test/exceptions.mth:16:40: TDASH2
+test/exceptions.mth:16:43: "*b" TNAME
+test/exceptions.mth:16:46: "d" TNAME
+test/exceptions.mth:16:47: TNEWLINE
+test/exceptions.mth:17:1: "finally" TNAME
+test/exceptions.mth:17:8: TLPAREN
+test/exceptions.mth:17:9: "f" TNAME
+test/exceptions.mth:17:10: TCOMMA
+test/exceptions.mth:17:11: "g" TNAME
+test/exceptions.mth:17:12: TRPAREN
+test/exceptions.mth:17:14: TEQUAL
+test/exceptions.mth:17:16: "_prim_unsafe_finally" TNAME
+test/exceptions.mth:17:36: TLPAREN
+test/exceptions.mth:17:37: "f" TNAME
+test/exceptions.mth:17:38: TCOMMA
+test/exceptions.mth:17:39: "g" TNAME
+test/exceptions.mth:17:40: TRPAREN
+test/exceptions.mth:17:41: TNEWLINE
+test/exceptions.mth:19:1: "setx" TNAME
+test/exceptions.mth:19:6: TCOLON
+test/exceptions.mth:19:8: "Int" TNAME
+test/exceptions.mth:19:12: TDASH2
+test/exceptions.mth:19:14: TNEWLINE
+test/exceptions.mth:20:1: "setx" TNAME
+test/exceptions.mth:20:6: TEQUAL
+test/exceptions.mth:20:8: "x" TSTR
+test/exceptions.mth:20:12: "_prim_unsafe_env_set" TNAME
+test/exceptions.mth:20:32: TNEWLINE
+test/exceptions.mth:22:1: "getx" TNAME
+test/exceptions.mth:22:6: TCOLON
+test/exceptions.mth:22:8: TDASH2
+test/exceptions.mth:22:11: "Int" TNAME
+test/exceptions.mth:22:14: TNEWLINE
+test/exceptions.mth:23:1: "getx" TNAME
+test/exceptions.mth:23:6: TEQUAL
+test/exceptions.mth:23:8: "x" TSTR
+test/exceptions.mth:23:12: "_prim_unsafe_env_get" TNAME
+test/exceptions.mth:23:32: TNEWLINE
+test/exceptions.mth:25:1: 100 TINT
+test/exceptions.mth:25:5: 200 TINT
+test/exceptions.mth:25:9: "catch" TNAME
+test/exceptions.mth:25:14: TLPAREN
+test/exceptions.mth:25:15: "foo" TSTR
+test/exceptions.mth:25:20: TCOMMA
+test/exceptions.mth:25:22: "id" TNAME
+test/exceptions.mth:25:24: TCOMMA
+test/exceptions.mth:25:26: "id" TNAME
+test/exceptions.mth:25:28: TRPAREN
+test/exceptions.mth:25:30: TEQUAL2
+test/exceptions.mth:25:33: 100 TINT
+test/exceptions.mth:25:37: 200 TINT
+test/exceptions.mth:25:40: TNEWLINE
+test/exceptions.mth:26:1: 101 TINT
+test/exceptions.mth:26:5: 201 TINT
+test/exceptions.mth:26:9: "catch" TNAME
+test/exceptions.mth:26:14: TLPAREN
+test/exceptions.mth:26:15: "foo" TSTR
+test/exceptions.mth:26:20: TCOMMA
+test/exceptions.mth:26:22: "id" TNAME
+test/exceptions.mth:26:24: TCOMMA
+test/exceptions.mth:26:26: "swap" TNAME
+test/exceptions.mth:26:30: TRPAREN
+test/exceptions.mth:26:32: TEQUAL2
+test/exceptions.mth:26:35: 101 TINT
+test/exceptions.mth:26:39: 201 TINT
+test/exceptions.mth:26:42: TNEWLINE
+test/exceptions.mth:27:1: 102 TINT
+test/exceptions.mth:27:5: 202 TINT
+test/exceptions.mth:27:9: "catch" TNAME
+test/exceptions.mth:27:14: TLPAREN
+test/exceptions.mth:27:15: "foo" TSTR
+test/exceptions.mth:27:20: TCOMMA
+test/exceptions.mth:27:22: "throw" TNAME
+test/exceptions.mth:27:27: TLPAREN
+test/exceptions.mth:27:28: "foo" TSTR
+test/exceptions.mth:27:33: TRPAREN
+test/exceptions.mth:27:34: TCOMMA
+test/exceptions.mth:27:36: "id" TNAME
+test/exceptions.mth:27:38: TRPAREN
+test/exceptions.mth:27:40: TEQUAL2
+test/exceptions.mth:27:43: 102 TINT
+test/exceptions.mth:27:47: 202 TINT
+test/exceptions.mth:27:50: TNEWLINE
+test/exceptions.mth:28:1: 103 TINT
+test/exceptions.mth:28:5: 203 TINT
+test/exceptions.mth:28:9: "catch" TNAME
+test/exceptions.mth:28:14: TLPAREN
+test/exceptions.mth:28:15: "foo" TSTR
+test/exceptions.mth:28:20: TCOMMA
+test/exceptions.mth:28:22: "throw" TNAME
+test/exceptions.mth:28:27: TLPAREN
+test/exceptions.mth:28:28: "foo" TSTR
+test/exceptions.mth:28:33: TRPAREN
+test/exceptions.mth:28:34: TCOMMA
+test/exceptions.mth:28:36: "swap" TNAME
+test/exceptions.mth:28:40: TRPAREN
+test/exceptions.mth:28:42: TEQUAL2
+test/exceptions.mth:28:45: 203 TINT
+test/exceptions.mth:28:49: 103 TINT
+test/exceptions.mth:28:52: TNEWLINE
+test/exceptions.mth:29:1: 104 TINT
+test/exceptions.mth:29:5: 204 TINT
+test/exceptions.mth:29:9: "catch" TNAME
+test/exceptions.mth:29:14: TLPAREN
+test/exceptions.mth:29:15: "foo" TSTR
+test/exceptions.mth:29:20: TCOMMA
+test/exceptions.mth:29:22: "drop" TNAME
+test/exceptions.mth:29:27: 304 TINT
+test/exceptions.mth:29:31: "throw" TNAME
+test/exceptions.mth:29:36: TLPAREN
+test/exceptions.mth:29:37: "foo" TSTR
+test/exceptions.mth:29:42: TRPAREN
+test/exceptions.mth:29:43: TCOMMA
+test/exceptions.mth:29:45: "id" TNAME
+test/exceptions.mth:29:47: TRPAREN
+test/exceptions.mth:29:49: TEQUAL2
+test/exceptions.mth:29:52: 104 TINT
+test/exceptions.mth:29:56: 304 TINT
+test/exceptions.mth:29:59: TNEWLINE
+test/exceptions.mth:30:1: 105 TINT
+test/exceptions.mth:30:5: 205 TINT
+test/exceptions.mth:30:9: "catch" TNAME
+test/exceptions.mth:30:14: TLPAREN
+test/exceptions.mth:30:15: "foo" TSTR
+test/exceptions.mth:30:20: TCOMMA
+test/exceptions.mth:30:22: "throw" TNAME
+test/exceptions.mth:30:27: TLPAREN
+test/exceptions.mth:30:28: "foo" TSTR
+test/exceptions.mth:30:33: TRPAREN
+test/exceptions.mth:30:35: "drop" TNAME
+test/exceptions.mth:30:40: 305 TINT
+test/exceptions.mth:30:43: TCOMMA
+test/exceptions.mth:30:45: "id" TNAME
+test/exceptions.mth:30:47: TRPAREN
+test/exceptions.mth:30:49: TEQUAL2
+test/exceptions.mth:30:52: 105 TINT
+test/exceptions.mth:30:56: 205 TINT
+test/exceptions.mth:30:59: TNEWLINE
+test/exceptions.mth:32:1: 106 TINT
+test/exceptions.mth:32:5: "finally" TNAME
+test/exceptions.mth:32:12: TLPAREN
+test/exceptions.mth:32:13: "id" TNAME
+test/exceptions.mth:32:15: TCOMMA
+test/exceptions.mth:32:17: "drop" TNAME
+test/exceptions.mth:32:22: 206 TINT
+test/exceptions.mth:32:25: TRPAREN
+test/exceptions.mth:32:27: TEQUAL2
+test/exceptions.mth:32:30: 206 TINT
+test/exceptions.mth:32:33: TNEWLINE
+test/exceptions.mth:33:1: 107 TINT
+test/exceptions.mth:33:5: 207 TINT
+test/exceptions.mth:33:9: "catch" TNAME
+test/exceptions.mth:33:14: TLPAREN
+test/exceptions.mth:33:15: "foo" TSTR
+test/exceptions.mth:33:20: TCOMMA
+test/exceptions.mth:33:22: "finally" TNAME
+test/exceptions.mth:33:29: TLPAREN
+test/exceptions.mth:33:30: 307 TINT
+test/exceptions.mth:33:34: "throw" TNAME
+test/exceptions.mth:33:39: TLPAREN
+test/exceptions.mth:33:40: "foo" TSTR
+test/exceptions.mth:33:45: TRPAREN
+test/exceptions.mth:33:46: TCOMMA
+test/exceptions.mth:33:48: "drop" TNAME
+test/exceptions.mth:33:53: 407 TINT
+test/exceptions.mth:33:56: TRPAREN
+test/exceptions.mth:33:57: TCOMMA
+test/exceptions.mth:33:59: "id" TNAME
+test/exceptions.mth:33:61: TRPAREN
+test/exceptions.mth:33:63: TEQUAL2
+test/exceptions.mth:33:66: 107 TINT
+test/exceptions.mth:33:70: 307 TINT
+test/exceptions.mth:33:73: TNEWLINE
+test/exceptions.mth:34:1: 107 TINT
+test/exceptions.mth:34:5: 207 TINT
+test/exceptions.mth:34:9: "catch" TNAME
+test/exceptions.mth:34:14: TLPAREN
+test/exceptions.mth:34:15: "foo" TSTR
+test/exceptions.mth:34:20: TCOMMA
+test/exceptions.mth:34:22: "finally" TNAME
+test/exceptions.mth:34:29: TLPAREN
+test/exceptions.mth:34:30: "id" TNAME
+test/exceptions.mth:34:32: TCOMMA
+test/exceptions.mth:34:34: "drop" TNAME
+test/exceptions.mth:34:39: 407 TINT
+test/exceptions.mth:34:42: TRPAREN
+test/exceptions.mth:34:43: TCOMMA
+test/exceptions.mth:34:45: "id" TNAME
+test/exceptions.mth:34:47: TRPAREN
+test/exceptions.mth:34:49: TEQUAL2
+test/exceptions.mth:34:52: 107 TINT
+test/exceptions.mth:34:56: 407 TINT
+test/exceptions.mth:34:59: TNEWLINE
+test/exceptions.mth:36:1: 108 TINT
+test/exceptions.mth:36:5: "setx" TNAME
+test/exceptions.mth:36:10: "getx" TNAME
+test/exceptions.mth:36:15: TEQUAL2
+test/exceptions.mth:36:18: 108 TINT
+test/exceptions.mth:36:21: TNEWLINE
+test/exceptions.mth:37:1: 109 TINT
+test/exceptions.mth:37:5: "setx" TNAME
+test/exceptions.mth:37:10: 209 TINT
+test/exceptions.mth:37:14: "setx" TNAME
+test/exceptions.mth:37:19: "getx" TNAME
+test/exceptions.mth:37:24: TEQUAL2
+test/exceptions.mth:37:27: 209 TINT
+test/exceptions.mth:37:30: TNEWLINE
+test/exceptions.mth:38:1: 110 TINT
+test/exceptions.mth:38:5: "setx" TNAME
+test/exceptions.mth:38:10: 210 TINT
+test/exceptions.mth:38:14: 310 TINT
+test/exceptions.mth:38:18: "catch" TNAME
+test/exceptions.mth:38:23: TLPAREN
+test/exceptions.mth:38:24: "foo" TSTR
+test/exceptions.mth:38:29: TCOMMA
+test/exceptions.mth:38:31: "finally" TNAME
+test/exceptions.mth:38:38: TLPAREN
+test/exceptions.mth:38:39: 410 TINT
+test/exceptions.mth:38:43: "throw" TNAME
+test/exceptions.mth:38:48: TLPAREN
+test/exceptions.mth:38:49: "foo" TSTR
+test/exceptions.mth:38:54: TRPAREN
+test/exceptions.mth:38:55: TCOMMA
+test/exceptions.mth:38:57: "drop" TNAME
+test/exceptions.mth:38:62: 510 TINT
+test/exceptions.mth:38:65: TRPAREN
+test/exceptions.mth:38:66: TCOMMA
+test/exceptions.mth:38:68: "id" TNAME
+test/exceptions.mth:38:70: TRPAREN
+test/exceptions.mth:38:72: "getx" TNAME
+test/exceptions.mth:38:77: TEQUAL2
+test/exceptions.mth:38:80: 210 TINT
+test/exceptions.mth:38:84: 410 TINT
+test/exceptions.mth:38:88: 110 TINT
+test/exceptions.mth:38:91: TNEWLINE
+test/exceptions.mth:39:1: 111 TINT
+test/exceptions.mth:39:5: "setx" TNAME
+test/exceptions.mth:39:10: 211 TINT
+test/exceptions.mth:39:14: 311 TINT
+test/exceptions.mth:39:18: "catch" TNAME
+test/exceptions.mth:39:23: TLPAREN
+test/exceptions.mth:39:24: "foo" TSTR
+test/exceptions.mth:39:29: TCOMMA
+test/exceptions.mth:39:31: "finally" TNAME
+test/exceptions.mth:39:38: TLPAREN
+test/exceptions.mth:39:39: 411 TINT
+test/exceptions.mth:39:43: "throw" TNAME
+test/exceptions.mth:39:48: TLPAREN
+test/exceptions.mth:39:49: "foo" TSTR
+test/exceptions.mth:39:54: TRPAREN
+test/exceptions.mth:39:55: TCOMMA
+test/exceptions.mth:39:57: "drop" TNAME
+test/exceptions.mth:39:62: 511 TINT
+test/exceptions.mth:39:66: 611 TINT
+test/exceptions.mth:39:70: "setx" TNAME
+test/exceptions.mth:39:74: TRPAREN
+test/exceptions.mth:39:75: TCOMMA
+test/exceptions.mth:39:77: "id" TNAME
+test/exceptions.mth:39:79: TRPAREN
+test/exceptions.mth:39:81: "getx" TNAME
+test/exceptions.mth:39:86: TEQUAL2
+test/exceptions.mth:39:89: 211 TINT
+test/exceptions.mth:39:93: 411 TINT
+test/exceptions.mth:39:97: 611 TINT
+test/exceptions.mth:39:100: TNEWLINE

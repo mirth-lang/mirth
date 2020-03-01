@@ -1,0 +1,13 @@
+mydup : a -- a a
+mydup = lambda(x -> x x)
+mydrop : a -- 
+mydrop = lambda(x ->)
+myswap : a b -- b a
+myswap = lambda(x y -> y x)
+mydip(f: *a -- *b) : *a c -- *b c
+mydip(f) = lambda(x -> f x)
+mydup == dup
+mydrop == drop
+myswap == swap
+mydip(dup) == dip(dup)
+mydip(swap) == dip(myswap)

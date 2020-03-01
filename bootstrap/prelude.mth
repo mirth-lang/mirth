@@ -118,6 +118,13 @@ dup4 : a b c d -- a b c d a b c d
 dup4 = over2 over2
 
 #
+# even more
+#
+
+dip5(f: *a -- *b) : *a x1 x2 x3 x4 x5 -- *b x1 x2 x3 x4 x5
+dip5(f) = dip3(dip2(f))
+
+#
 # shifted dips
 #
 
@@ -305,4 +312,3 @@ unpack4 = inpack(pack2) unpack3 unpack2
 
 pack4 unpack4 == id
 unpack4 pack4 == id
-

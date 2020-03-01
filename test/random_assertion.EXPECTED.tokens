@@ -1,0 +1,101 @@
+test/random_assertion.mth:1:1: TNEWLINE
+test/random_assertion.mth:2:1: 0 TINT
+test/random_assertion.mth:2:3: "_prim_int_add" TNAME
+test/random_assertion.mth:2:17: TEQUAL2
+test/random_assertion.mth:2:20: "id" TNAME
+test/random_assertion.mth:2:22: TNEWLINE
+test/random_assertion.mth:4:1: "dup" TNAME
+test/random_assertion.mth:4:5: "swap" TNAME
+test/random_assertion.mth:4:10: TEQUAL2
+test/random_assertion.mth:4:13: "dup" TNAME
+test/random_assertion.mth:4:16: TNEWLINE
+test/random_assertion.mth:5:1: "dup" TNAME
+test/random_assertion.mth:5:5: "drop" TNAME
+test/random_assertion.mth:5:10: TEQUAL2
+test/random_assertion.mth:5:13: "id" TNAME
+test/random_assertion.mth:5:15: TNEWLINE
+test/random_assertion.mth:6:1: "swap" TNAME
+test/random_assertion.mth:6:6: "swap" TNAME
+test/random_assertion.mth:6:11: TEQUAL2
+test/random_assertion.mth:6:14: "id" TNAME
+test/random_assertion.mth:6:16: TNEWLINE
+test/random_assertion.mth:7:1: "dip" TNAME
+test/random_assertion.mth:7:4: TLPAREN
+test/random_assertion.mth:7:5: "swap" TNAME
+test/random_assertion.mth:7:9: TRPAREN
+test/random_assertion.mth:7:11: "swap" TNAME
+test/random_assertion.mth:7:16: "dip" TNAME
+test/random_assertion.mth:7:19: TLPAREN
+test/random_assertion.mth:7:20: "swap" TNAME
+test/random_assertion.mth:7:24: TRPAREN
+test/random_assertion.mth:7:26: TEQUAL2
+test/random_assertion.mth:7:29: "swap" TNAME
+test/random_assertion.mth:7:34: "dip" TNAME
+test/random_assertion.mth:7:37: TLPAREN
+test/random_assertion.mth:7:38: "swap" TNAME
+test/random_assertion.mth:7:42: TRPAREN
+test/random_assertion.mth:7:44: "swap" TNAME
+test/random_assertion.mth:7:48: TNEWLINE
+test/random_assertion.mth:10:1: "dip" TNAME
+test/random_assertion.mth:10:4: TLPAREN
+test/random_assertion.mth:10:5: "swap" TNAME
+test/random_assertion.mth:10:9: TRPAREN
+test/random_assertion.mth:10:11: "drop" TNAME
+test/random_assertion.mth:10:16: TEQUAL2
+test/random_assertion.mth:10:19: "drop" TNAME
+test/random_assertion.mth:10:24: "swap" TNAME
+test/random_assertion.mth:10:28: TNEWLINE
+test/random_assertion.mth:11:1: "dip" TNAME
+test/random_assertion.mth:11:4: TLPAREN
+test/random_assertion.mth:11:5: "dup" TNAME
+test/random_assertion.mth:11:8: TRPAREN
+test/random_assertion.mth:11:10: "drop" TNAME
+test/random_assertion.mth:11:15: TEQUAL2
+test/random_assertion.mth:11:18: "drop" TNAME
+test/random_assertion.mth:11:23: "dup" TNAME
+test/random_assertion.mth:11:26: TNEWLINE
+test/random_assertion.mth:12:1: "dip" TNAME
+test/random_assertion.mth:12:4: TLPAREN
+test/random_assertion.mth:12:5: "dip" TNAME
+test/random_assertion.mth:12:8: TLPAREN
+test/random_assertion.mth:12:9: "dup" TNAME
+test/random_assertion.mth:12:12: TRPAREN
+test/random_assertion.mth:12:14: "drop" TNAME
+test/random_assertion.mth:12:18: TRPAREN
+test/random_assertion.mth:12:20: "drop" TNAME
+test/random_assertion.mth:12:25: TEQUAL2
+test/random_assertion.mth:12:28: "drop" TNAME
+test/random_assertion.mth:12:33: "dip" TNAME
+test/random_assertion.mth:12:36: TLPAREN
+test/random_assertion.mth:12:37: "dup" TNAME
+test/random_assertion.mth:12:40: TRPAREN
+test/random_assertion.mth:12:42: "drop" TNAME
+test/random_assertion.mth:12:46: TNEWLINE
+test/random_assertion.mth:15:1: "dip" TNAME
+test/random_assertion.mth:15:4: TLPAREN
+test/random_assertion.mth:15:5: "swap" TNAME
+test/random_assertion.mth:15:9: TRPAREN
+test/random_assertion.mth:15:11: 10 TINT
+test/random_assertion.mth:15:14: "_prim_int_add" TNAME
+test/random_assertion.mth:15:28: TEQUAL2
+test/random_assertion.mth:15:31: 10 TINT
+test/random_assertion.mth:15:34: "_prim_int_add" TNAME
+test/random_assertion.mth:15:48: "dip" TNAME
+test/random_assertion.mth:15:51: TLPAREN
+test/random_assertion.mth:15:52: "swap" TNAME
+test/random_assertion.mth:15:56: TRPAREN
+test/random_assertion.mth:15:57: TNEWLINE
+test/random_assertion.mth:16:1: "dip" TNAME
+test/random_assertion.mth:16:4: TLPAREN
+test/random_assertion.mth:16:5: "drop" TNAME
+test/random_assertion.mth:16:9: TRPAREN
+test/random_assertion.mth:16:11: "dup" TNAME
+test/random_assertion.mth:16:15: "_prim_int_mul" TNAME
+test/random_assertion.mth:16:29: TEQUAL2
+test/random_assertion.mth:16:32: "dup" TNAME
+test/random_assertion.mth:16:36: "_prim_int_mul" TNAME
+test/random_assertion.mth:16:50: "dip" TNAME
+test/random_assertion.mth:16:53: TLPAREN
+test/random_assertion.mth:16:54: "drop" TNAME
+test/random_assertion.mth:16:58: TRPAREN
+test/random_assertion.mth:16:59: TNEWLINE

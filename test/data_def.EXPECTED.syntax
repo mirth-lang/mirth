@@ -1,0 +1,13 @@
+data T
+  imake : Int -- T
+  smake : Str -- T
+end
+mk1 : Int Str -- T T
+mk1 = dip(imake) smake
+mk2 : Int Str -- T T
+mk2 = smake dip(imake)
+mk1 == mk2
+elimT : T -- Int
+elimT = match(imake -> id, smake -> drop 0)
+imake elimT == id
+smake elimT == drop 0

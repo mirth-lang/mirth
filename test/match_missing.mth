@@ -1,0 +1,11 @@
+
+data T
+  A : T
+  B : T
+end
+
+f : --
+f = match(A -> )
+
+
+

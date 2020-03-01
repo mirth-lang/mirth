@@ -1,0 +1,16 @@
+test/type_sig.mth:1:1: TNEWLINE
+test/type_sig.mth:2:1: TTYPE
+test/type_sig.mth:2:6: "IntPair" TNAME
+test/type_sig.mth:2:13: TNEWLINE
+test/type_sig.mth:4:1: TDATA
+test/type_sig.mth:4:6: "IntPair" TNAME
+test/type_sig.mth:4:13: TNEWLINE
+test/type_sig.mth:5:3: "MkIntPair" TNAME
+test/type_sig.mth:5:13: TCOLON
+test/type_sig.mth:5:15: "Int" TNAME
+test/type_sig.mth:5:19: "Int" TNAME
+test/type_sig.mth:5:23: TDASH2
+test/type_sig.mth:5:26: "IntPair" TNAME
+test/type_sig.mth:5:33: TNEWLINE
+test/type_sig.mth:6:1: TEND
+test/type_sig.mth:6:4: TNEWLINE

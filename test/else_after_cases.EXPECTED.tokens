@@ -1,0 +1,34 @@
+test/else_after_cases.mth:1:1: TNEWLINE
+test/else_after_cases.mth:2:1: TDATA
+test/else_after_cases.mth:2:6: "T" TNAME
+test/else_after_cases.mth:2:7: TNEWLINE
+test/else_after_cases.mth:3:3: "A" TNAME
+test/else_after_cases.mth:3:5: TCOLON
+test/else_after_cases.mth:3:7: "T" TNAME
+test/else_after_cases.mth:3:8: TNEWLINE
+test/else_after_cases.mth:4:3: "B" TNAME
+test/else_after_cases.mth:4:5: TCOLON
+test/else_after_cases.mth:4:7: "T" TNAME
+test/else_after_cases.mth:4:8: TNEWLINE
+test/else_after_cases.mth:5:1: TEND
+test/else_after_cases.mth:5:4: TNEWLINE
+test/else_after_cases.mth:7:1: "foo" TNAME
+test/else_after_cases.mth:7:5: TCOLON
+test/else_after_cases.mth:7:7: "T" TNAME
+test/else_after_cases.mth:7:9: TDASH2
+test/else_after_cases.mth:7:11: TNEWLINE
+test/else_after_cases.mth:8:1: "foo" TNAME
+test/else_after_cases.mth:8:5: TEQUAL
+test/else_after_cases.mth:8:7: "match" TNAME
+test/else_after_cases.mth:8:12: TLPAREN
+test/else_after_cases.mth:8:14: "A" TNAME
+test/else_after_cases.mth:8:16: "->" TNAME
+test/else_after_cases.mth:8:19: TCOMMA
+test/else_after_cases.mth:8:21: "B" TNAME
+test/else_after_cases.mth:8:23: "->" TNAME
+test/else_after_cases.mth:8:26: TCOMMA
+test/else_after_cases.mth:8:28: "_" TNAME
+test/else_after_cases.mth:8:30: "->" TNAME
+test/else_after_cases.mth:8:33: "drop" TNAME
+test/else_after_cases.mth:8:38: TRPAREN
+test/else_after_cases.mth:8:39: TNEWLINE

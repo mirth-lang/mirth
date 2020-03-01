@@ -1,0 +1,9 @@
+test/int_is_not_nat.mth:1:1: TNEWLINE
+test/int_is_not_nat.mth:2:1: "foo" TNAME
+test/int_is_not_nat.mth:2:5: TCOLON
+test/int_is_not_nat.mth:2:7: "Nat" TNAME
+test/int_is_not_nat.mth:2:10: TNEWLINE
+test/int_is_not_nat.mth:3:1: "foo" TNAME
+test/int_is_not_nat.mth:3:5: TEQUAL
+test/int_is_not_nat.mth:3:7: 42 TINT
+test/int_is_not_nat.mth:3:9: TNEWLINE

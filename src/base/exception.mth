@@ -2,15 +2,19 @@ import base/result
 
 export base/exception
     type Result(e,t)
+    type Exception(e)
 
-    throw (x: Str) : *a e -- *b
+    MkException : Str -- Exception(e)
+    unException : Exception(e) -- Str
 
-    catch (x: Str, f: a -- b) : a -- Result(e,b)
-    catch0 (x: Str, f: t) : Result(e,t)
-    catch1 (x: Str, f: a -- t) : a -- Result(e,t)
-    catch2 (x: Str, f: a b -- t) : a b -- Result(e,t)
-    catch3 (x: Str, f: a b c -- t) : a b c -- Result(e,t)
-    catch4 (x: Str, f: a b c d -- t) : a b c d -- Result(e,t)
+    throw (x: Exception(e)) : *a e -- *b
+
+    catch (x: Exception(e), f: a -- b) : a -- Result(e,b)
+    catch0 (x: Exception(e), f: t) : Result(e,t)
+    catch1 (x: Exception(e), f: a -- t) : a -- Result(e,t)
+    catch2 (x: Exception(e), f: a b -- t) : a b -- Result(e,t)
+    catch3 (x: Exception(e), f: a b c -- t) : a b c -- Result(e,t)
+    catch4 (x: Exception(e), f: a b c d -- t) : a b c d -- Result(e,t)
 
     bracket (f: *a -- *b x, g: *b x -- *c, h: x --) : *a -- *c
     bracket0 (f: *a -- *b, g: *b -- *c, h: --) : *a -- *c
@@ -18,8 +22,15 @@ export base/exception
     bracket2 (f: *a -- *b x y, g: *b x y -- *c, h: x y --) : *a -- *c
 end
 
-throw(x) = x _prim_unsafe_throw
-catch(x,f) = x _prim_unsafe_catch(f Ok, Err)
+data Exception(e)
+    MkException : Str -- Exception(e)
+end
+
+unException : Exception(e) -- Str
+unException = match(MkException -> id)
+
+throw(x) = x unException _prim_unsafe_throw
+catch(x,f) = x unException _prim_unsafe_catch(f Ok, Err)
 
 catch0(x,f) = 0 catch(x, drop f)
 catch1(x,f) = catch(x, f)

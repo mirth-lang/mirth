@@ -1,0 +1,4 @@
+
+nip : a -- a
+nip = id
+

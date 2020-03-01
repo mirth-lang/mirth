@@ -2023,6 +2023,17 @@ def trust_me (elab, args):
     elab.dom = tcod
     return w
 
+holenum = 1
+def hole (elab, args):
+    global holenum
+    n = holenum
+    holenum += 1
+    print("Hole #%d:" % n, elab.dom)
+    elab.dom = tpack(fresh_var())
+    def w(env):
+        raise ValueError("executing hole #%d" % n)
+    return w
+
 tint  = tcon('Int')
 tstr  = tcon('Str')
 tbool = tcon('Bool')
@@ -2041,6 +2052,7 @@ builtin_prims = {
     'cond': cond,
     'lambda': lam,
     'trust_me': trust_me,
+    '??': hole
 }
 
 def word1 (f):

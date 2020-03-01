@@ -1,0 +1,10 @@
+
+type A
+
+F : A -- A
+F = id
+
+data A
+  F : A -- A
+end
+

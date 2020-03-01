@@ -1,0 +1,15 @@
+test/main.mth:1:1: TNEWLINE
+test/main.mth:2:1: "main" TNAME
+test/main.mth:2:6: TCOLON
+test/main.mth:2:8: "List" TNAME
+test/main.mth:2:12: TLPAREN
+test/main.mth:2:13: "Str" TNAME
+test/main.mth:2:16: TRPAREN
+test/main.mth:2:18: TDASH2
+test/main.mth:2:21: "Int" TNAME
+test/main.mth:2:24: TNEWLINE
+test/main.mth:3:1: "main" TNAME
+test/main.mth:3:6: TEQUAL
+test/main.mth:3:8: "drop" TNAME
+test/main.mth:3:13: 0 TINT
+test/main.mth:3:14: TNEWLINE
