@@ -1,0 +1,2 @@
+test/mutual.mth:15:1: error: missing signature for word A->str
+test/mutual.mth:23:1: error: missing signature for word str->A

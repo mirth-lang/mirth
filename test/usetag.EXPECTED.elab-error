@@ -1,0 +1,2 @@
+test/usetag.mth:5:1: error: missing signature for word f
+test/usetag.mth:8:1: error: missing signature for word g

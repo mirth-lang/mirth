@@ -1,0 +1,3 @@
+test/data_def.mth:8:1: error: missing signature for word mk1
+test/data_def.mth:11:1: error: missing signature for word mk2
+test/data_def.mth:16:1: error: missing signature for word elimT

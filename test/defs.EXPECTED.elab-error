@@ -1,0 +1,5 @@
+test/defs.mth:4:1: error: missing signature for word trip
+test/defs.mth:7:1: error: missing signature for word quad
+test/defs.mth:16:1: error: missing signature for word sum-of-squares
+test/defs.mth:17:1: error: missing signature for word square
+test/defs.mth:20:1: error: missing signature for word dup'

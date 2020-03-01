@@ -1,0 +1,4 @@
+test/lambda.mth:3:1: error: missing signature for word mydup
+test/lambda.mth:6:1: error: missing signature for word mydrop
+test/lambda.mth:9:1: error: missing signature for word myswap
+test/lambda.mth:12:1: error: missing signature for word mydip

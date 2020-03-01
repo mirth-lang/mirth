@@ -1,0 +1,4 @@
+test/cond_example.mth:3:1: error: missing signature for word neg?
+test/cond_example.mth:6:1: error: missing signature for word neg
+test/cond_example.mth:9:1: error: missing signature for word abs1
+test/cond_example.mth:12:1: error: missing signature for word abs2
