@@ -52,6 +52,7 @@ export mirth/elab/data
     type EWarning
     type EPackage
     type EModule
+    type EInterface
     type EDef
     type ETypeDef
     type EDataDef
@@ -91,9 +92,14 @@ export mirth/elab/data
     epackage->sexp : EPackage -- Sexp
     epackage->str : EPackage -- Str
 
-    MkEModule : Mod -- EModule
+    MkEModule : Mod Set(Interface) Map(Interface, EInterface) Map(Name, EDef) -- EModule
     emodule->sexp : EModule -- Sexp
     emodule->str : EModule -- Str
+
+    MkEInterface : EDocs Interface Map(Name, EDef) -- EInterface
+    einterface->interface : EInterface -- Interface
+    einterface->sexp : EInterface -- Sexp
+    einterface->str : EInterface -- Str
 
     EDType : ETypeDef -- EDef
     EDWord : EWordDef -- EDef
@@ -250,6 +256,7 @@ export mirth/elab/effect
 
     elabPackage : Pkg Map(Mod, L(Module)) -- EPackage +Elab
     elabModule : Mod L(Module) -- EModule +Elab
+    elabInterface : L(Export) -- EInterface +Elab
     elabDecl : L(Decl) -- EDef +Elab
     elabSig : L(Sig) -- EDef +Elab
     elabTypeSig : L(TypeSig) -- ETypeDef +Elab
@@ -423,7 +430,7 @@ unEError : EError -- L(Str)
 unEError = match(MkEError -> id)
 
 eerror->str : EError -- Str
-eerror->str = unEError unL dip(locSet->str) <>
+eerror->str = unEError unL dip(locSet->str "error: " <>) <>
 
 data EWarning
     MkEWarning : L(Str) -- EWarning
@@ -433,7 +440,7 @@ unEWarning : EWarning -- L(Str)
 unEWarning = match(MkEWarning -> id)
 
 ewarning->str : EWarning -- Str
-ewarning->str = unEWarning unL dip(locSet->str) <>
+ewarning->str = unEWarning unL dip(locSet->str "warning: " <>) <>
 
 data EPackage
     MkEPackage : Pkg -- EPackage
@@ -452,20 +459,70 @@ elabPackage : Pkg Map(Mod, L(Module)) -- EPackage +Elab
 elabPackage = drop MkEPackage # TODO
 
 data EModule
-    MkEModule : Mod -- EModule
+    MkEModule : Mod Set(Interface) Map(Interface, EInterface) Map(Name, EDef) -- EModule
 end
 
-unEModule : EModule -- Mod
+unEModule : EModule -- Mod Set(Interface) Map(Interface, EInterface) Map(Name, EDef)
 unEModule = match(MkEModule -> id)
 
 emodule->sexp : EModule -- Sexp
-emodule->sexp = unEModule sexp1("module", mod->sexp)
+emodule->sexp = unEModule sexp4("module", mod->sexp,
+    set->sexp(interface->sexp),
+    map->sexp(interface->sexp, einterface->sexp),
+    map->sexp(name->sexp, edef->sexp))
 
 emodule->str : EModule -- Str
 emodule->str = emodule->sexp sexp->str
 
 elabModule : Mod L(Module) -- EModule +Elab
-elabModule = drop MkEModule # TODO
+elabModule =
+    elabL(
+        mapNil EDEFS vset
+        unModule
+        dip2(getL map(getL unImport getL) setFromList)
+        dip(getL elabList(
+            elabInterface
+            save(einterface->interface)
+            pack2
+        ) mapFromList)
+        getL elabList(elabDecl) drop
+        EDEFS vget
+        MkEModule
+    )
+
+data EInterface
+    MkEInterface : EDocs Interface Map(Name, EDef) -- EInterface
+end
+
+unEInterface : EInterface -- EDocs Interface Map(Name, EDef)
+unEInterface = match(MkEInterface -> id)
+
+einterface->interface : EInterface -- Interface
+einterface->interface = unEInterface drop nip
+
+einterface->sexp : EInterface -- Sexp
+einterface->sexp =
+    unEInterface sexp3(
+        "interface",
+        edocs->sexp,
+        interface->sexp,
+        map->sexp(name->sexp, edef->sexp)
+    )
+
+einterface->str : EInterface -- Str
+einterface->str = einterface->sexp sexp->str
+
+elabInterface : L(Export) -- EInterface +Elab
+elabInterface =
+    elabL(
+        # TODO save defs
+        unExport
+        dip2(elabDocs)
+        dip(getL)
+        elabList(elabSig) drop
+        EDEFS vget
+        MkEInterface
+    )
 
 data EDef
     EDType : ETypeDef -- EDef

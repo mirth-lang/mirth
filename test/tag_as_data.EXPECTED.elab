@@ -1,1 +1,1 @@
-("module" "test/tag_as_data.mth")
+("module" "test/tag_as_data.mth" () () (("+NewTag" ("type" () "+NewTag" () (("data-def" ()))))))

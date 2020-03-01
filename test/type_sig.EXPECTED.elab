@@ -1,1 +1,1 @@
-("module" "test/type_sig.mth")
+("module" "test/type_sig.mth" () () (("IntPair" ("type" () "IntPair" () (("data-def" (("data-con" () "MkIntPair" () (("type-prim" "Int" ()) ("type-prim" "Int" ()))))))))))
