@@ -3,3 +3,4 @@
 mirth.cabal
 *~
 *.swp
+/mirth
