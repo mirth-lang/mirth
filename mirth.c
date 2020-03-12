@@ -10,14 +10,33 @@ struct command_t {
 } command = {0};
 
 // String table
-#define STRINGS_SIZE 0xC010
-#define STRING_SIZE 0x40
-struct strings_t {
+enum builtin_t {
+    BUILTIN_END = 0,
+    BUILTIN_ID,
+    BUILTIN_DUP,
+    BUILTIN_DROP,
+    BUILTIN_SWAP,
+};
+#define NUM_BUILTINS (BUILTIN_SWAP+1)
+
+#define SYMBOLS_SIZE 0xC010
+#define NAME_SIZE 0x10
+
+struct symbols_t {
     size_t length;
-    struct __attribute__((packed)) string_t {
-        char data [STRING_SIZE];
-    } string [STRINGS_SIZE];
-} strings = {0};
+    struct __attribute__((packed)) name_t {
+        char data [NAME_SIZE];
+    } name [SYMBOLS_SIZE];
+} symbols = {
+    .length = NUM_BUILTINS,
+    .name = {
+        [BUILTIN_END] = { .data = "end" },
+        [BUILTIN_ID] = { .data = "id" },
+        [BUILTIN_DUP] = { .data = "dup" },
+        [BUILTIN_DROP] = { .data = "drop" },
+        [BUILTIN_SWAP] = { .data = "swap" },
+    }
+};
 
 // Tokens, Syntax Tree (it's the same structure)
 #define TOKENS_SIZE 0x8100
@@ -32,6 +51,7 @@ struct tokens_t {
         TOKEN_LPAREN,
         TOKEN_RPAREN,
         TOKEN_COMMA,
+        TOKEN_COLON,
         TOKEN_WORD,
     } kind [TOKENS_SIZE];
     uint16_t value [TOKENS_SIZE];
@@ -163,6 +183,13 @@ int main (int argc, const char** argv)
                         line++;
                         break;
 
+                    case ':':
+                        fprintf(stderr, "%s:%d:%d: info: COLON %d\n", command.path, token_row, token_col, t);
+                        tokens.kind[tokens.length++] = TOKEN_COLON;
+                        lexer.col++;
+                        line++;
+                        break;
+
                     case '\"':
                         exit(200); // not yet implemented
 
@@ -181,6 +208,7 @@ int main (int argc, const char** argv)
                                 case '(':
                                 case ')':
                                 case ',':
+                                case ':':
                                 case '"':
                                     goto end_of_token;
 
@@ -192,30 +220,30 @@ int main (int argc, const char** argv)
                         }
                     end_of_token:
                         token_size = line - token_start;
-                        if (token_size >= STRING_SIZE) {
-                            token_size = STRING_SIZE-1;
+                        if (token_size >= NAME_SIZE) {
+                            token_size = NAME_SIZE-1;
                             fprintf(stderr, "%s:%d:%d: warning: Token too large. Cutting to %d bytes.\n", command.path, token_row, token_col, token_size);
                         }
                         bool found_match = false;
-                        char buf[STRING_SIZE];
+                        char buf[NAME_SIZE];
                         memcpy(buf, token_start, token_size);
-                        memset(buf+token_size, 0, STRING_SIZE-token_size);
-                        for (int j = 0; j < strings.length; j++) {
-                            // TODO: experiment with changing where you start searching based on some super rudimentary hash.
-                            if (memcmp(buf, strings.string[j].data, STRING_SIZE) == 0) {
+                        memset(buf+token_size, 0, NAME_SIZE-token_size);
+                        for (int j = 0; j < symbols.length; j++) {
+                            // TODO: experiment with changing where you start searching based on some simple rudimentary hash.
+                            if (memcmp(buf, symbols.name[j].data, NAME_SIZE) == 0) {
                                 found_match = true;
                                 tokens.value[t] = j;
                                 break;
                             }
                         }
                         if (!found_match) {
-                            if ((size_t)strings.length >= STRINGS_SIZE-1) {
-                                fprintf(stderr, "%s:%d:%d: error: Ran out of strings. Increase STRINGS_SIZE in the compiler.\n", command.path, token_row, token_col);
+                            if ((size_t)symbols.length >= SYMBOLS_SIZE-1) {
+                                fprintf(stderr, "%s:%d:%d: error: Ran out of symbols. Increase SYMBOLS_SIZE in the compiler.\n", command.path, token_row, token_col);
                             }
-                            memcpy(strings.string[strings.length].data, buf, STRING_SIZE);
-                            tokens.value[t] = strings.length++;
+                            memcpy(symbols.name[symbols.length].data, buf, NAME_SIZE);
+                            tokens.value[t] = symbols.length++;
                         }
-                        fprintf(stderr, "%s:%d:%d: info: WORD %d \"%s\" %d\n", command.path, token_row, token_col, tokens.value[t], strings.string[tokens.value[t]].data, t);
+                        fprintf(stderr, "%s:%d:%d: info: WORD %d \"%s\" %d\n", command.path, token_row, token_col, tokens.value[t], symbols.name[tokens.value[t]].data, t);
                         tokens.kind[tokens.length++] = TOKEN_WORD;
                         break;
                 }
