@@ -17,7 +17,6 @@ enum builtin_t {
     BUILTIN_DROP,
     BUILTIN_SWAP,
     BUILTIN_DIP,
-    BUILTIN_DIP_END,
     BUILTIN_DEF,
 };
 #define NUM_BUILTINS (BUILTIN_DEF+1)
@@ -37,7 +36,6 @@ struct symbols_t {
         [BUILTIN_ID] = { .data = "id" },
         [BUILTIN_DUP] = { .data = "dup" },
         [BUILTIN_DIP] = { .data = "dip" },
-        [BUILTIN_DIP_END] = { .data = "dip" }, // repeated on purpose
         [BUILTIN_DROP] = { .data = "drop" },
         [BUILTIN_SWAP] = { .data = "swap" },
         [BUILTIN_DEF] = { .data = "def" },
@@ -202,6 +200,8 @@ int main (int argc, const char** argv)
                         break;
 
                     case '\"':
+                        fprintf(stderr, "%s:%d:%d: error: string tokens not yet implemented\n",
+                            command.path, token_row, token_col);
                         exit(200); // not yet implemented
 
                     default:
