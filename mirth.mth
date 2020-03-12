@@ -1,5 +1,5 @@
 
-meow
-meow(dup drop, 10 20 30 : 30 40 0xFF)
-
-hellow
+10 20 30
+dip(swap) swap dip(swap)
+swap dip(swap) swap
+dip(swap) swap dip(swap)

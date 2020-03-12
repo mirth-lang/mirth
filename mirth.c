@@ -16,8 +16,11 @@ enum builtin_t {
     BUILTIN_DUP,
     BUILTIN_DROP,
     BUILTIN_SWAP,
+    BUILTIN_DIP,
+    BUILTIN_DIP_END,
+    BUILTIN_DEF,
 };
-#define NUM_BUILTINS (BUILTIN_SWAP+1)
+#define NUM_BUILTINS (BUILTIN_DEF+1)
 
 #define SYMBOLS_SIZE 0xC010
 #define NAME_SIZE 0x10
@@ -33,8 +36,11 @@ struct symbols_t {
         [BUILTIN_END] = { .data = "end" },
         [BUILTIN_ID] = { .data = "id" },
         [BUILTIN_DUP] = { .data = "dup" },
+        [BUILTIN_DIP] = { .data = "dip" },
+        [BUILTIN_DIP_END] = { .data = "dip" }, // repeated on purpose
         [BUILTIN_DROP] = { .data = "drop" },
         [BUILTIN_SWAP] = { .data = "swap" },
+        [BUILTIN_DEF] = { .data = "def" },
     }
 };
 
@@ -69,6 +75,10 @@ struct lexer_t {
     uint32_t stack [LEXER_STACK_SIZE];
     char line [LEXER_LINE_MAX];
 } lexer = {0};
+
+#define STACK_SIZE 0x400
+#define RSTACK_SIZE 0x100
+#define FSTACK_SIZE 0x400
 
 int main (int argc, const char** argv)
 {
@@ -140,13 +150,13 @@ int main (int argc, const char** argv)
                         break; // ignore whitespace
 
                     case '\n':
-                        fprintf(stderr, "%s:%d:%d: info: NEWLINE %d\n", command.path, token_row, token_col, t);
+                        // fprintf(stderr, "%s:%d:%d: info: NEWLINE %d\n", command.path, token_row, token_col, t);
                         tokens.kind[tokens.length++] = TOKEN_NEWLINE;
                         line++;
                         break;
 
                     case '(':
-                        fprintf(stderr, "%s:%d:%d: info: LPAREN %d\n", command.path, token_row, token_col, t);
+                        // fprintf(stderr, "%s:%d:%d: info: LPAREN %d\n", command.path, token_row, token_col, t);
                         if ((size_t)lexer.depth >= LEXER_STACK_SIZE-1) {
                             fprintf(stderr, "%s:%d:%d: error: Ran out of lexer stack. Increase LEXER_STACK_SIZE in compiler.\n", command.path, token_row, token_col);
                             exit(103);
@@ -158,7 +168,7 @@ int main (int argc, const char** argv)
                         break;
 
                     case ')':
-                        fprintf(stderr, "%s:%d:%d: info: RPAREN %d\n", command.path, token_row, token_col, t);
+                        // fprintf(stderr, "%s:%d:%d: info: RPAREN %d\n", command.path, token_row, token_col, t);
                         if (lexer.depth == 0) {
                             fprintf(stderr, "%s:%d:%d: error: Right paren without matching left paren.\n", command.path, token_row, token_col);
                             exit(2);
@@ -171,21 +181,21 @@ int main (int argc, const char** argv)
                         }
                         tokens.value[t0] = t;
                         tokens.value[t] = t0;
-                        fprintf(stderr, "%s:%d:%d: info: ^ LPAREN %d\n", command.path, token_row, token_col, t0);
+                        // fprintf(stderr, "%s:%d:%d: info: ^ LPAREN %d\n", command.path, token_row, token_col, t0);
                         tokens.kind[tokens.length++] = TOKEN_RPAREN;
                         lexer.col++;
                         line++;
                         break;
 
                     case ',':
-                        fprintf(stderr, "%s:%d:%d: info: COMMA %d\n", command.path, token_row, token_col, t);
+                        // fprintf(stderr, "%s:%d:%d: info: COMMA %d\n", command.path, token_row, token_col, t);
                         tokens.kind[tokens.length++] = TOKEN_COMMA;
                         lexer.col++;
                         line++;
                         break;
 
                     case ':':
-                        fprintf(stderr, "%s:%d:%d: info: COLON %d\n", command.path, token_row, token_col, t);
+                        // fprintf(stderr, "%s:%d:%d: info: COLON %d\n", command.path, token_row, token_col, t);
                         tokens.kind[tokens.length++] = TOKEN_COLON;
                         lexer.col++;
                         line++;
@@ -289,7 +299,7 @@ int main (int argc, const char** argv)
                                 }
                                 tokens.value[t] = -(int16_t)hexadecimal_value;
                             }
-                            fprintf(stderr, "%s:%d:%d: info: INT 0x%X %d\n", command.path, token_row, token_col, tokens.value[t], t);
+                            // fprintf(stderr, "%s:%d:%d: info: INT 0x%X %d\n", command.path, token_row, token_col, tokens.value[t], t);
                             tokens.kind[tokens.length++] = TOKEN_INT;
 
                         } else if (only_digits) {
@@ -304,7 +314,7 @@ int main (int argc, const char** argv)
                                 }
                                 tokens.value[t] = -(int16_t)decimal_value;
                             }
-                            fprintf(stderr, "%s:%d:%d: info: INT %d %d\n", command.path, token_row, token_col, tokens.value[t], t);
+                            // fprintf(stderr, "%s:%d:%d: info: INT %d %d\n", command.path, token_row, token_col, tokens.value[t], t);
                             tokens.kind[tokens.length++] = TOKEN_INT;
                         } else {
                             token_size = line - token_start;
@@ -331,7 +341,7 @@ int main (int argc, const char** argv)
                                 memcpy(symbols.name[symbols.length].data, buf, NAME_SIZE);
                                 tokens.value[t] = symbols.length++;
                             }
-                            fprintf(stderr, "%s:%d:%d: info: WORD %d \"%s\" %d\n", command.path, token_row, token_col, tokens.value[t], symbols.name[tokens.value[t]].data, t);
+                            // fprintf(stderr, "%s:%d:%d: info: WORD %d \"%s\" %d\n", command.path, token_row, token_col, tokens.value[t], symbols.name[tokens.value[t]].data, t);
                             tokens.kind[tokens.length++] = TOKEN_WORD;
                         }
                         break;
@@ -349,7 +359,167 @@ int main (int argc, const char** argv)
         fclose(lexer.file);
     }
 
+    { // Run file.
+        uint16_t pc = 0;
+        uint16_t sc = STACK_SIZE;
+        #define arity_check(word,num_params,num_in,num_out) \
+            if (num_args != num_params) { \
+                fprintf(stderr, "%s:%d:%d: error: %s expects %d arguments, got %d\n", \
+                    command.path, tokens.row[pc], tokens.col[pc], \
+                    word, num_params, num_args); \
+                return 50; \
+            } \
+            if (sc+num_in > STACK_SIZE) { \
+                fprintf(stderr, "%s:%d:%d: error: stack underflow in %s\n", \
+                    command.path, tokens.row[pc], tokens.col[pc], word); \
+                return 51; \
+            } \
+            if (sc+num_in < num_out) { \
+                fprintf(stderr, "%s:%d:%d: error: stack overflow in %s\n", \
+                    command.path, tokens.row[pc], tokens.col[pc], word); \
+                return 52; \
+            }
+        uint16_t rc = RSTACK_SIZE;
+        uint16_t fc = FSTACK_SIZE;
+        int16_t a;
+        int16_t stack [STACK_SIZE];
+        int16_t rstack [RSTACK_SIZE];
+        int16_t next_pc, num_args;
+        int16_t fstack [FSTACK_SIZE];
+        for (; pc < tokens.length; pc++) {
+        resume_loop:
+            switch (tokens.kind[pc]) {
+                case TOKEN_NONE:
+                case TOKEN_RPAREN:
+                    goto pop_rstack;
+                case TOKEN_NEWLINE:
+                case TOKEN_COMMA:
+                case TOKEN_COLON:
+                    break;
+                case TOKEN_LPAREN:
+                    pc = tokens.value[pc]+1;
+                    break;
+                case TOKEN_INT:
+                    stack[--sc] = tokens.value[pc];
+                    break;
+                case TOKEN_WORD:
+                    next_pc = pc+1;
+                    num_args = 0;
+                    if (tokens.kind[pc+1] == TOKEN_LPAREN) { // determine arguments to word
+                        bool is_empty_arg = true;
+                        next_pc = tokens.value[pc+1]+1;
+                        if (fc < 1) {
+                            fprintf(stderr, "%s:%d:%d: error: fstack ran out, increase FSTACK_SIZE\n",
+                                command.path, tokens.row[pc], tokens.col[pc]);
+                            return 53;
+                        }
+                        num_args += 1;
+                        fstack[--fc] = pc+1;
+                        for (int i = pc+2; i < next_pc; i++) {
+                            switch (tokens.kind[i]) {
+                                case TOKEN_COMMA:
+                                    if (fc < 1) {
+                                        fprintf(stderr, "%s:%d:%d: error: fstack ran out, increase FSTACK_SIZE\n",
+                                            command.path, tokens.row[pc], tokens.col[pc]);
+                                        return 53;
+                                    }
+                                    num_args += 1;
+                                    fstack[--fc] = pc+1;
+                                    is_empty_arg = true;
+                                    break;
 
+                                case TOKEN_NEWLINE:
+                                case TOKEN_RPAREN:
+                                    break;
+
+                                case TOKEN_LPAREN:
+                                    i = tokens.value[i];
+                                    is_empty_arg = false;
+                                    break;
+
+                                default:
+                                    is_empty_arg = false;
+                                    break;
+                            }
+                        }
+
+                        if (is_empty_arg) {
+                            num_args--;
+                            fc++;
+                        }
+                    }
+
+                    switch (tokens.value[pc]) {
+                        case BUILTIN_END:
+                            fprintf(stderr, "%s:%d:%d: error: unexpected end\n",
+                                command.path, tokens.row[pc], tokens.col[pc]);
+                            return 53;
+                        case BUILTIN_ID:
+                            arity_check("id", 0,0,0);
+                            break;
+                        case BUILTIN_DIP:
+                            arity_check("dip", 1, 1, 1);
+                            if (rc < 3) {
+                                fprintf(stderr, "%s:%d:%d: error: rstack ran out, increase RSTACK_SIZE\n",
+                                    command.path, tokens.row[pc], tokens.col[pc]);
+                                return 57;
+                            }
+                            pc = fstack[fc++];
+                            rstack[--rc] = next_pc;
+                            rstack[--rc] = stack[sc++];
+                            rstack[--rc] = -1;
+                            break;
+                        case BUILTIN_DUP:
+                            arity_check("dup", 0, 1, 2);
+                            a = stack[sc];
+                            stack[--sc] = a;
+                            pc = next_pc - 1;
+                            break;
+                        case BUILTIN_DROP:
+                            arity_check("drop", 0, 1, 0);
+                            sc++;
+                            break;
+                        case BUILTIN_SWAP:
+                            arity_check("swap", 0, 2, 2);
+                            a = stack[sc];
+                            stack[sc] = stack[sc+1];
+                            stack[sc+1] = a;
+                            break;
+                        case BUILTIN_DEF:
+                            return 246;
+                        default:
+                            fprintf(stderr, "%s:%d:%d: error: undefined word \"%s\"\n",
+                                command.path, tokens.row[pc], tokens.col[pc],
+                                symbols.name[tokens.value[pc]].data);
+                            return 55;
+                    }
+                    break;
+
+            }
+        }
+
+        pop_rstack:
+        if (rc < RSTACK_SIZE) {
+            if (rstack[rc] == -1) {
+                if (sc < 1) {
+                    fprintf(stderr, "%s:%d:%d: error: stack overflow when returning from dip",
+                        command.path, tokens.row[pc], tokens.col[pc]);
+                    return 56;
+                }
+                rc++;
+                stack[--sc] = rstack[rc++];
+                goto pop_rstack;
+            } else {
+                pc = rstack[rc++];
+                goto resume_loop;
+            }
+        }
+
+        for (; sc < STACK_SIZE; sc++) {
+            fprintf(stderr, "%d ", stack[sc]);
+        }
+        fprintf(stderr, "\n");
+    }
 
     return 0;
 }
