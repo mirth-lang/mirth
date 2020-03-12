@@ -53,6 +53,7 @@ struct tokens_t {
         TOKEN_COMMA,
         TOKEN_COLON,
         TOKEN_WORD,
+        TOKEN_INT,
     } kind [TOKENS_SIZE];
     uint16_t value [TOKENS_SIZE];
 } tokens = {0};
@@ -195,6 +196,28 @@ int main (int argc, const char** argv)
 
                     default:
                         token_start = line;
+                        bool hexadecimal = false;
+                        bool positive = true;
+                        bool only_digits = true;
+                        bool only_hexdigits = true;
+                        uint64_t decimal_value = 0;
+                        uint64_t hexadecimal_value = 0;
+
+                        switch (*line) {
+                            case '+': line++; lexer.col++; break;
+                            case '-': positive = false; line++; lexer.col++; break;
+                        }
+
+                        if (*line == '+' || *line == '-') {
+                            line++;
+                            lexer.col++;
+                        }
+                        if (line[0] == '0' && (line[1] == 'x' || line[1] == 'X')) {
+                            line+=2;
+                            lexer.col+=2;
+                            hexadecimal = true;
+                        }
+
                         while (*line) {
                             switch (*line) {
                                 case '\0':
@@ -212,45 +235,111 @@ int main (int argc, const char** argv)
                                 case '"':
                                     goto end_of_token;
 
+                                case '0': case '1':
+                                case '2': case '3':
+                                case '4': case '5':
+                                case '6': case '7':
+                                case '8': case '9':
+                                    decimal_value *= 10;
+                                    decimal_value += *line - '0';
+                                    hexadecimal_value *= 16;
+                                    hexadecimal_value += *line - '0';
+                                    line++;
+                                    lexer.col++;
+                                    break;
+
+                                case 'a': case 'b':
+                                case 'c': case 'd':
+                                case 'e': case 'f':
+                                    hexadecimal_value *= 16;
+                                    hexadecimal_value += *line - 'a' + 10;
+                                    line++;
+                                    lexer.col++;
+                                    only_digits = false;
+                                    break;
+
+                                case 'A': case 'B':
+                                case 'C': case 'D':
+                                case 'E': case 'F':
+                                    hexadecimal_value *= 16;
+                                    hexadecimal_value += *line - 'A' + 10;
+                                    line++;
+                                    lexer.col++;
+                                    only_digits = false;
+                                    break;
+
                                 default:
                                     line++;
-                                    lexer.col += (lexer.col >= 1);
+                                    lexer.col++;
+                                    only_digits = false;
+                                    only_hexdigits = false;
                                     break;
                             }
                         }
                     end_of_token:
-                        token_size = line - token_start;
-                        if (token_size >= NAME_SIZE) {
-                            token_size = NAME_SIZE-1;
-                            fprintf(stderr, "%s:%d:%d: warning: Token too large. Cutting to %d bytes.\n", command.path, token_row, token_col, token_size);
-                        }
-                        bool found_match = false;
-                        char buf[NAME_SIZE];
-                        memcpy(buf, token_start, token_size);
-                        memset(buf+token_size, 0, NAME_SIZE-token_size);
-                        for (int j = 0; j < symbols.length; j++) {
-                            // TODO: experiment with changing where you start searching based on some simple rudimentary hash.
-                            if (memcmp(buf, symbols.name[j].data, NAME_SIZE) == 0) {
-                                found_match = true;
-                                tokens.value[t] = j;
-                                break;
+                        if (hexadecimal && only_hexdigits) {
+                            if (positive) {
+                                if (hexadecimal_value >= 0x8000) {
+                                    fprintf(stderr, "%s:%d:%d: error: Positive integer literal too large.\n", command.path, token_row, token_col);
+                                }
+                                tokens.value[t] = hexadecimal_value;
+                            } else {
+                                if (hexadecimal_value > 0x8000) {
+                                    fprintf(stderr, "%s:%d:%d: error: Negative integer literal too large.\n", command.path, token_row, token_col);
+                                }
+                                tokens.value[t] = -(int16_t)hexadecimal_value;
                             }
-                        }
-                        if (!found_match) {
-                            if ((size_t)symbols.length >= SYMBOLS_SIZE-1) {
-                                fprintf(stderr, "%s:%d:%d: error: Ran out of symbols. Increase SYMBOLS_SIZE in the compiler.\n", command.path, token_row, token_col);
+                            fprintf(stderr, "%s:%d:%d: info: INT 0x%X %d\n", command.path, token_row, token_col, tokens.value[t], t);
+                            tokens.kind[tokens.length++] = TOKEN_INT;
+
+                        } else if (only_digits) {
+                            if (positive) {
+                                if (decimal_value >= 0x8000) {
+                                    fprintf(stderr, "%s:%d:%d: error: Positive integer literal too large.\n", command.path, token_row, token_col);
+                                }
+                                tokens.value[t] = decimal_value;
+                            } else {
+                                if (decimal_value > 0x8000) {
+                                    fprintf(stderr, "%s:%d:%d: error: Negative integer literal too large.\n", command.path, token_row, token_col);
+                                }
+                                tokens.value[t] = -(int16_t)decimal_value;
                             }
-                            memcpy(symbols.name[symbols.length].data, buf, NAME_SIZE);
-                            tokens.value[t] = symbols.length++;
+                            fprintf(stderr, "%s:%d:%d: info: INT %d %d\n", command.path, token_row, token_col, tokens.value[t], t);
+                            tokens.kind[tokens.length++] = TOKEN_INT;
+                        } else {
+                            token_size = line - token_start;
+                            if (token_size >= NAME_SIZE) {
+                                token_size = NAME_SIZE-1;
+                                fprintf(stderr, "%s:%d:%d: warning: Token too large. Cutting to %d bytes.\n", command.path, token_row, token_col, token_size);
+                            }
+                            bool found_match = false;
+                            char buf[NAME_SIZE];
+                            memcpy(buf, token_start, token_size);
+                            memset(buf+token_size, 0, NAME_SIZE-token_size);
+                            for (int j = 0; j < symbols.length; j++) {
+                                // TODO: experiment with changing where you start searching based on some simple rudimentary hash.
+                                if (memcmp(buf, symbols.name[j].data, NAME_SIZE) == 0) {
+                                    found_match = true;
+                                    tokens.value[t] = j;
+                                    break;
+                                }
+                            }
+                            if (!found_match) {
+                                if ((size_t)symbols.length >= SYMBOLS_SIZE-1) {
+                                    fprintf(stderr, "%s:%d:%d: error: Ran out of symbols. Increase SYMBOLS_SIZE in the compiler.\n", command.path, token_row, token_col);
+                                }
+                                memcpy(symbols.name[symbols.length].data, buf, NAME_SIZE);
+                                tokens.value[t] = symbols.length++;
+                            }
+                            fprintf(stderr, "%s:%d:%d: info: WORD %d \"%s\" %d\n", command.path, token_row, token_col, tokens.value[t], symbols.name[tokens.value[t]].data, t);
+                            tokens.kind[tokens.length++] = TOKEN_WORD;
                         }
-                        fprintf(stderr, "%s:%d:%d: info: WORD %d \"%s\" %d\n", command.path, token_row, token_col, tokens.value[t], symbols.name[tokens.value[t]].data, t);
-                        tokens.kind[tokens.length++] = TOKEN_WORD;
                         break;
                 }
             }
         }
         if ((tokens.length == 0) || (tokens.kind[tokens.length - 1] != TOKEN_NEWLINE)) {
-            fprintf(stderr, "%s:%d:%d: info: Added missing newline at end of file.", command.path, lexer.row, lexer.col);
+            fprintf(stderr, "%s:%d:%d: warning: Missing newline at end of file.", command.path, lexer.row, lexer.col);
             size_t t = tokens.length;
             tokens.row[t] = lexer.row;
             tokens.col[t] = lexer.col+1;
@@ -259,6 +348,8 @@ int main (int argc, const char** argv)
         }
         fclose(lexer.file);
     }
+
+
 
     return 0;
 }
