@@ -4,6 +4,19 @@
 #include <stdio.h>
 #include <string.h>
 
+enum error_t {
+    ERROR_NONE = 0,
+    ERROR_BAD_COMMAND = 1,
+    ERROR_FILE_IO = 2,
+    ERROR_SYNTAX = 3,
+    ERROR_ARITY = 50,
+    ERROR_UNDERFLOW = 51,
+    ERROR_OVERFLOW = 52,
+    ERROR_UNDEFINED = 53,
+    ERROR_NOT_IMPLEMENTED = 200,
+    ERROR_IMPOSSIBLE = 201,
+};
+
 // Command-line info
 struct command_t {
     const char* path;
@@ -23,6 +36,7 @@ enum builtin_t {
 
 #define SYMBOLS_SIZE 0xC010
 #define NAME_SIZE 0x10
+#define ASSERT(b) do { if (!(b)) { fprintf(stderr, "%s:%d:1: error: assertion failed: %s", __FILE__, __LINE__, #b); return ERROR_IMPOSSIBLE; } } while(0)
 
 struct symbols_t {
     size_t length;
@@ -58,9 +72,17 @@ struct tokens_t {
         TOKEN_COLON,
         TOKEN_WORD,
         TOKEN_INT,
+        TOKEN_STR,
     } kind [TOKENS_SIZE];
     uint16_t value [TOKENS_SIZE];
 } tokens = {0};
+
+// String table
+#define STRINGS_SIZE 0x4000
+struct strings_t {
+    uint16_t length;
+    char data [STRINGS_SIZE];
+} strings = {0};
 
 // Lexer state
 #define LEXER_LINE_MAX 0x200
@@ -74,9 +96,47 @@ struct lexer_t {
     char line [LEXER_LINE_MAX];
 } lexer = {0};
 
+enum __attribute__((packed)) type_t {
+    TYPE_NIL,
+
+    // actual value types
+    TYPE_INT,
+    TYPE_STR,
+
+    // return stack types
+    TYPE_FRAME,
+    TYPE_JUMP
+};
+
+struct __attribute__((packed)) value_t {
+    enum type_t type;
+    int16_t data;
+};
+
+struct __attribute__((packed)) fvalue_t {
+    int16_t pc;
+    int16_t fi;
+};
+
+// intepreter state
 #define STACK_SIZE 0x400
 #define RSTACK_SIZE 0x100
 #define FSTACK_SIZE 0x400
+struct __attribute__((packed)) state_t {
+    uint16_t pc; // program counter
+    uint16_t sc; // stack counter
+    uint16_t rc; // return stack counter
+    uint16_t fc; // frame stack counter
+    uint16_t fi; // frame pointer
+    struct value_t stack [STACK_SIZE];
+    struct value_t rstack [RSTACK_SIZE];
+    struct fvalue_t fstack [FSTACK_SIZE];
+} state = {
+    .pc = 0,
+    .sc = STACK_SIZE,
+    .rc = RSTACK_SIZE,
+    .fc = FSTACK_SIZE,
+};
 
 int main (int argc, const char** argv)
 {
@@ -86,12 +146,12 @@ int main (int argc, const char** argv)
                 command.path = argv[i];
             } else {
                 fprintf(stderr, "mirth: Bad command.\n");
-                return 1;
+                return ERROR_BAD_COMMAND;
             }
         }
         if (command.path == NULL) {
             fprintf(stderr, "mirth: Expected source file.\n");
-            return 1;
+            return ERROR_BAD_COMMAND;
         }
     }
 
@@ -102,17 +162,17 @@ int main (int argc, const char** argv)
         lexer.depth = 0;
         if (lexer.file == NULL) {
             fprintf(stderr, "mirth: Failed to open file %s\n", command.path);
-            return 1;
+            return ERROR_FILE_IO;
         }
         while (1) {
             char* line = fgets(lexer.line, LEXER_LINE_MAX, lexer.file);
             if (ferror(lexer.file)) {
-                fprintf(stderr, "mirth: Error while reading file %s\n", command.path);
-                return 1;
+                fprintf(stderr, "%s:%d:%d: Error while reading file %s\n",
+                    command.path, lexer.row, lexer.col, command.path);
+                return ERROR_FILE_IO;
             }
             if (feof(lexer.file)) break;
-            if (line == NULL)
-                exit(100); // can't happen
+            ASSERT (line != NULL);
             lexer.row ++;
             lexer.col = 1;
             //fprintf(stderr, "%s:%d:%d: info: %s", command.path, lexer.row, lexer.col, line);
@@ -127,7 +187,7 @@ int main (int argc, const char** argv)
                 uint32_t t0;
                 if ((size_t)t >= TOKENS_SIZE-1) {
                     fprintf(stderr, "mirth: Ran out of tokens space. Increase TOKENS_SIZE.\n");
-                    exit(102);
+                    return ERROR_OVERFLOW;
                 }
                 tokens.row[t] = token_row;
                 tokens.col[t] = token_col;
@@ -137,7 +197,7 @@ int main (int argc, const char** argv)
 
                 switch (*line) {
                     case '\0':
-                        exit(101); // can't happen
+                        return ERROR_IMPOSSIBLE; // can't happen
 
                     case ' ':
                     case '\t':
@@ -157,7 +217,7 @@ int main (int argc, const char** argv)
                         // fprintf(stderr, "%s:%d:%d: info: LPAREN %d\n", command.path, token_row, token_col, t);
                         if ((size_t)lexer.depth >= LEXER_STACK_SIZE-1) {
                             fprintf(stderr, "%s:%d:%d: error: Ran out of lexer stack. Increase LEXER_STACK_SIZE in compiler.\n", command.path, token_row, token_col);
-                            exit(103);
+                            return ERROR_OVERFLOW;
                         }
                         lexer.stack[lexer.depth++] = t;
                         tokens.kind[tokens.length++] = TOKEN_LPAREN;
@@ -169,13 +229,13 @@ int main (int argc, const char** argv)
                         // fprintf(stderr, "%s:%d:%d: info: RPAREN %d\n", command.path, token_row, token_col, t);
                         if (lexer.depth == 0) {
                             fprintf(stderr, "%s:%d:%d: error: Right paren without matching left paren.\n", command.path, token_row, token_col);
-                            exit(2);
+                            return ERROR_SYNTAX;
                         }
                         t0 = lexer.stack[--lexer.depth];
                         if (tokens.kind[t0] != TOKEN_LPAREN) {
                             fprintf(stderr, "%s:%d:%d: error: Left token without matching right token.\n", command.path, tokens.row[t0], tokens.col[t0]);
                             fprintf(stderr, "%s:%d:%d: error: Right paren without matching left paren.\n", command.path, token_row, token_col);
-                            exit(3);
+                            return ERROR_SYNTAX;
                         }
                         tokens.value[t0] = t;
                         tokens.value[t] = t0;
@@ -200,9 +260,50 @@ int main (int argc, const char** argv)
                         break;
 
                     case '\"':
-                        fprintf(stderr, "%s:%d:%d: error: string tokens not yet implemented\n",
-                            command.path, token_row, token_col);
-                        exit(200); // not yet implemented
+                        { // lex a string
+                            size_t n = strings.length;
+                            if (((n+7) & 0x3F) < (n & 0x3F)) {
+                                // n is nearly at cache line break, so add some padding
+                                n += 0x40 - (n & 0x3F);
+                            }
+                            size_t i = n;
+                            line++;
+                            lexer.col++;
+                            while (*line) {
+                                switch (*line) {
+                                    case 0:
+                                        return ERROR_IMPOSSIBLE;
+                                    case '\"':
+                                    case '\n':
+                                        goto string_over;
+                                    case '\\':
+                                        line++;
+                                        lexer.col++;
+                                        switch (*line) {
+                                            default:
+                                                return ERROR_NOT_IMPLEMENTED;
+                                        }
+                                    default:
+                                        strings.data[i++] = *line;
+                                        line++;
+                                        lexer.col++;
+                                }
+                            }
+                            string_over:
+                            if (*line == '\"') {
+                                line++;
+                                lexer.col++;
+                                strings.data[i++] = 0;
+                                tokens.value[t] = n;
+                                tokens.kind[tokens.length++] = TOKEN_STR;
+                                strings.length = i;
+                            } else {
+                                fprintf(stderr, "%s:%d:%d: error: Unexpected newline in string literal.\n",
+                                    command.path, lexer.row, lexer.col);
+                                return ERROR_SYNTAX;
+                            }
+                        }
+                        break;
 
                     default:
                         token_start = line;
@@ -231,7 +332,7 @@ int main (int argc, const char** argv)
                         while (*line) {
                             switch (*line) {
                                 case '\0':
-                                    exit(102); // can't happen;
+                                    return ERROR_IMPOSSIBLE;
 
                                 case ' ':
                                 case '\t':
@@ -367,17 +468,17 @@ int main (int argc, const char** argv)
                 fprintf(stderr, "%s:%d:%d: error: %s expects %d arguments, got %d\n", \
                     command.path, tokens.row[pc], tokens.col[pc], \
                     word, num_params, num_args); \
-                return 50; \
+                return ERROR_ARITY; \
             } \
             if (sc+num_in > STACK_SIZE) { \
                 fprintf(stderr, "%s:%d:%d: error: stack underflow in %s\n", \
                     command.path, tokens.row[pc], tokens.col[pc], word); \
-                return 51; \
+                return ERROR_UNDERFLOW; \
             } \
             if (sc+num_in < num_out) { \
                 fprintf(stderr, "%s:%d:%d: error: stack overflow in %s\n", \
                     command.path, tokens.row[pc], tokens.col[pc], word); \
-                return 52; \
+                return ERROR_OVERFLOW; \
             }
         uint16_t rc = RSTACK_SIZE;
         uint16_t fc = FSTACK_SIZE;
@@ -402,6 +503,9 @@ int main (int argc, const char** argv)
                 case TOKEN_INT:
                     stack[--sc] = tokens.value[pc];
                     break;
+                case TOKEN_STR:
+                    stack[--sc] = tokens.value[pc];
+                    break;
                 case TOKEN_WORD:
                     next_pc = pc+1;
                     num_args = 0;
@@ -411,7 +515,7 @@ int main (int argc, const char** argv)
                         if (fc < 1) {
                             fprintf(stderr, "%s:%d:%d: error: fstack ran out, increase FSTACK_SIZE\n",
                                 command.path, tokens.row[pc], tokens.col[pc]);
-                            return 53;
+                            return ERROR_OVERFLOW;
                         }
                         num_args += 1;
                         fstack[--fc] = pc+1;
@@ -421,7 +525,7 @@ int main (int argc, const char** argv)
                                     if (fc < 1) {
                                         fprintf(stderr, "%s:%d:%d: error: fstack ran out, increase FSTACK_SIZE\n",
                                             command.path, tokens.row[pc], tokens.col[pc]);
-                                        return 53;
+                                        return ERROR_OVERFLOW;
                                     }
                                     num_args += 1;
                                     fstack[--fc] = pc+1;
@@ -451,9 +555,9 @@ int main (int argc, const char** argv)
 
                     switch (tokens.value[pc]) {
                         case BUILTIN_END:
-                            fprintf(stderr, "%s:%d:%d: error: unexpected end\n",
+                            fprintf(stderr, "%s:%d:%d: error: unexpected \"end\"\n",
                                 command.path, tokens.row[pc], tokens.col[pc]);
-                            return 53;
+                            return ERROR_SYNTAX;
                         case BUILTIN_ID:
                             arity_check("id", 0,0,0);
                             break;
@@ -462,7 +566,7 @@ int main (int argc, const char** argv)
                             if (rc < 3) {
                                 fprintf(stderr, "%s:%d:%d: error: rstack ran out, increase RSTACK_SIZE\n",
                                     command.path, tokens.row[pc], tokens.col[pc]);
-                                return 57;
+                                return ERROR_OVERFLOW;
                             }
                             pc = fstack[fc++];
                             rstack[--rc] = next_pc;
@@ -486,12 +590,12 @@ int main (int argc, const char** argv)
                             stack[sc+1] = a;
                             break;
                         case BUILTIN_DEF:
-                            return 246;
+                            return ERROR_NOT_IMPLEMENTED;
                         default:
                             fprintf(stderr, "%s:%d:%d: error: undefined word \"%s\"\n",
                                 command.path, tokens.row[pc], tokens.col[pc],
                                 symbols.name[tokens.value[pc]].data);
-                            return 55;
+                            return ERROR_UNDEFINED;
                     }
                     break;
 
