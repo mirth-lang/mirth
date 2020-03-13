@@ -319,13 +319,58 @@ int main (int argc, const char** argv)
                                         line++;
                                         lexer.col++;
                                         switch (*line) {
+                                            case '\\':
+                                                strings.data[i++] = '\\';
+                                                break;
+
+                                            case '\"':
+                                                strings.data[i++] = '\"';
+                                                break;
+
+                                            case '\'':
+                                                strings.data[i++] = '\'';
+                                                break;
+
+                                            case 'n': // newline
+                                                strings.data[i++] = '\n';
+                                                break;
+
+                                            case 't': // horizontal tab
+                                                strings.data[i++] = '\t';
+                                                break;
+
+                                            case 'r': // carriage return
+                                                strings.data[i++] = '\r';
+                                                break;
+
+                                            case 'v': // vertical tab
+                                                strings.data[i++] = '\v';
+                                                break;
+
+                                            case 'e': // escape
+                                                strings.data[i++] = 0x1B;
+                                                break;
+
+                                            case 'a': // alert
+                                                strings.data[i++] = '\a';
+                                                break;
+
+                                            case 'b': // backspace
+                                                strings.data[i++] = '\b';
+                                                break;
+
                                             default:
-                                                return ERROR_NOT_IMPLEMENTED;
+                                                fprintf(stderr, "%s:%d:%d: error: unrecognized character escape sequence \"\\%c\"\n", command.path, lexer.row, lexer.col, *line);
+                                                return ERROR_SYNTAX;
                                         }
+                                        line++;
+                                        lexer.col++;
+                                        break;
                                     default:
                                         strings.data[i++] = *line;
                                         line++;
                                         lexer.col++;
+                                        break;
                                 }
                             }
                             string_over:
