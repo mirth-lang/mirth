@@ -1,5 +1,32 @@
-"hello"
-"world"
-"f\vo\vo\vo\vo\vo" "bar"
-10 20 30
-40 50 60
+
+def(trip, a -- a a a, dup dup)
+def(rotr, a b c -- c a b, swap dip(swap))
+def(rotl, a b c -- b c a, dip(swap) swap)
+def(over, a b -- a b a, dip(dup) swap)
+def(tuck, a b -- b a b, dup dip(swap))
+def(nip, a b -- b, dip(drop))
+def(dup2, a b -- a b a b, over over)
+def(drop2, a b --, drop drop)
+def(swap2, a b c d -- c d a b, dip(rotr) rotr)
+
+def(expect0, Int --, if("assertion failed" panic, id))
+def(expect1, Int --, if(id, "assertion failed" panic))
+
+def(run-tests, --, test-if test-drop test-dup test-swap test-dip
+    test-trip test-rotr test-rotl)
+def(test-if, --, 0 expect0 1 expect1 0 1 expect1 expect0)
+def(test-drop, --, 0 1 drop expect0)
+def(test-dup, --, 0 1 dup expect1 expect1 expect0)
+def(test-swap, --, 0 1 0 swap expect1 expect0 expect0)
+def(test-dip, --, 0 0 dip(1) expect0 expect1 expect0)
+def(test-trip, --, 0 1 trip expect1 expect1 expect1 expect0)
+def(test-rotr, --,
+    1 0 0 rotr expect0 expect1 expect0
+    0 1 0 rotr expect1 expect0 expect0
+    0 0 1 rotr expect0 expect0 expect1)
+def(test-rotl, --,
+    1 0 0 rotl expect1 expect0 expect0
+    0 1 0 rotl expect0 expect0 expect1
+    0 0 1 rotl expect0 expect1 expect0)
+
+run-tests

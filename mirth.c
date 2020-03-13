@@ -11,6 +11,7 @@ enum error_t {
     ERROR_BAD_COMMAND = 1,
     ERROR_FILE_IO = 2,
     ERROR_SYNTAX = 3,
+    ERROR_PANIC = 4,
     ERROR_ARITY = 50,
     ERROR_UNDERFLOW = 51,
     ERROR_OVERFLOW = 52,
@@ -32,9 +33,11 @@ enum builtin_t {
     BUILTIN_DROP,
     BUILTIN_SWAP,
     BUILTIN_DIP,
+    BUILTIN_IF,
+    BUILTIN_PANIC,
     BUILTIN_DEF,
+    NUM_BUILTINS
 };
-#define NUM_BUILTINS (BUILTIN_DEF+1)
 
 #define SYMBOLS_SIZE 0xC010
 #define NAME_SIZE 0x10
@@ -55,6 +58,8 @@ struct symbols_t {
         [BUILTIN_DROP] = { .data = "drop" },
         [BUILTIN_SWAP] = { .data = "swap" },
         [BUILTIN_DEF] = { .data = "def" },
+        [BUILTIN_IF] = { .data = "if" },
+        [BUILTIN_PANIC] = { .data = "panic" },
     }
 };
 
@@ -97,6 +102,11 @@ struct lexer_t {
     uint32_t stack [LEXER_STACK_SIZE];
     char line [LEXER_LINE_MAX];
 } lexer = {0};
+
+// Definitions
+struct defs_t {
+    int16_t pc[SYMBOLS_SIZE];
+} defs = { {0} };
 
 enum __attribute__((packed)) type_t {
     TYPE_NIL,
@@ -301,6 +311,7 @@ int main (int argc, const char** argv)
                     case '\"':
                         { // lex a string
                             size_t n = strings.length;
+                            uint32_t escape_char;
                             if (((n+7) & 0x3F) < (n & 0x3F)) {
                                 // n is nearly at cache line break, so add some padding
                                 n += 0x40 - (n & 0x3F);
@@ -359,6 +370,40 @@ int main (int argc, const char** argv)
                                                 strings.data[i++] = '\b';
                                                 break;
 
+                                            case 'x': // raw byte
+                                                escape_char = 0;
+                                                for (int j = 0; j < 2; j++) {
+                                                    line++;
+                                                    lexer.col++;
+                                                    switch (*line) {
+                                                        case '0': case '1': case '2':
+                                                        case '3': case '4': case '5':
+                                                        case '6': case '7': case '8':
+                                                        case '9':
+                                                            escape_char *= 16;
+                                                            escape_char += *line - '0';
+                                                            break;
+
+                                                        case 'a': case 'b': case 'c':
+                                                        case 'd': case 'e': case 'f':
+                                                            escape_char *= 16;
+                                                            escape_char = *line + 10 - 'a';
+                                                            break;
+
+                                                        case 'A': case 'B': case 'C':
+                                                        case 'D': case 'E': case 'F':
+                                                            escape_char *= 16;
+                                                            escape_char = *line + 10 - 'a';
+                                                            break;
+
+                                                        default:
+                                                            fprintf(stderr, "%s:%d:%d: error: unrecognized character escape sequence", command.path, lexer.row, lexer.col);
+                                                            return ERROR_SYNTAX;
+                                                    }
+                                                }
+                                                strings.data[i++] = escape_char;
+                                                break;
+
                                             default:
                                                 fprintf(stderr, "%s:%d:%d: error: unrecognized character escape sequence \"\\%c\"\n", command.path, lexer.row, lexer.col, *line);
                                                 return ERROR_SYNTAX;
@@ -393,7 +438,9 @@ int main (int argc, const char** argv)
                         token_start = line;
                         bool hexadecimal = false;
                         bool positive = true;
+                        bool has_digits = false;
                         bool only_digits = true;
+                        bool has_hexdigits = false;
                         bool only_hexdigits = true;
                         uint64_t decimal_value = 0;
                         uint64_t hexadecimal_value = 0;
@@ -401,11 +448,6 @@ int main (int argc, const char** argv)
                         switch (*line) {
                             case '+': line++; lexer.col++; break;
                             case '-': positive = false; line++; lexer.col++; break;
-                        }
-
-                        if (*line == '+' || *line == '-') {
-                            line++;
-                            lexer.col++;
                         }
                         if (line[0] == '0' && (line[1] == 'x' || line[1] == 'X')) {
                             line+=2;
@@ -439,6 +481,8 @@ int main (int argc, const char** argv)
                                     decimal_value += *line - '0';
                                     hexadecimal_value *= 16;
                                     hexadecimal_value += *line - '0';
+                                    has_digits = true;
+                                    has_hexdigits = true;
                                     line++;
                                     lexer.col++;
                                     break;
@@ -451,6 +495,7 @@ int main (int argc, const char** argv)
                                     line++;
                                     lexer.col++;
                                     only_digits = false;
+                                    has_hexdigits = true;
                                     break;
 
                                 case 'A': case 'B':
@@ -461,6 +506,7 @@ int main (int argc, const char** argv)
                                     line++;
                                     lexer.col++;
                                     only_digits = false;
+                                    has_hexdigits = true;
                                     break;
 
                                 default:
@@ -472,7 +518,7 @@ int main (int argc, const char** argv)
                             }
                         }
                     end_of_token:
-                        if (hexadecimal && only_hexdigits) {
+                        if (hexadecimal && only_hexdigits && has_hexdigits) {
                             if (positive) {
                                 if (hexadecimal_value >= 0x8000) {
                                     fprintf(stderr, "%s:%d:%d: error: Positive integer literal too large.\n", command.path, token_row, token_col);
@@ -487,7 +533,7 @@ int main (int argc, const char** argv)
                             // fprintf(stderr, "%s:%d:%d: info: INT 0x%X %d\n", command.path, token_row, token_col, tokens.value[t], t);
                             tokens.kind[tokens.length++] = TOKEN_INT;
 
-                        } else if (only_digits) {
+                        } else if (only_digits && has_digits) {
                             if (positive) {
                                 if (decimal_value >= 0x8000) {
                                     fprintf(stderr, "%s:%d:%d: error: Positive integer literal too large.\n", command.path, token_row, token_col);
@@ -611,7 +657,7 @@ int main (int argc, const char** argv)
                         }
                         num_args += 1;
                         f.fi = state.fi;
-                        f.pc = state.pc+1;
+                        f.pc = state.pc+2;
                         state.fstack[--state.fc] = f;
                         for (int i = state.pc+2; i < next_pc; i++) {
                             switch (tokens.kind[i]) {
@@ -672,7 +718,36 @@ int main (int argc, const char** argv)
                             a.data = saved_fc;
                             state.rstack[--state.rc] = a;
                             state.rstack[--state.rc] = state.stack[state.sc++];
-                            break;
+                            goto resume_loop;
+                        case BUILTIN_IF:
+                            arity_check("if", 2, 1, 0);
+                            if (state.rc < 2) {
+                                fprintf(stderr, "%s:%d:%d: error: rstack ran out, increase RSTACK_SIZE\n",
+                                    command.path, tokens.row[state.pc], tokens.col[state.pc]);
+                                return ERROR_OVERFLOW;
+                            }
+                            a.type = TYPE_PC;
+                            a.data = next_pc;
+                            state.rstack[--state.rc] = a;
+                            a = state.stack[state.sc++];
+                            state.pc = a.data ? state.fstack[state.fc+1].pc : state.fstack[state.fc].pc;
+                            state.fc += 2;
+                            goto resume_loop;
+                        case BUILTIN_PANIC:
+                            if (state.sc < STACK_SIZE && state.stack[state.sc].type == TYPE_STR) {
+                                fprintf(stderr, "%s:%d:%d: error: panic: %s\n",
+                                    command.path, tokens.row[state.pc], tokens.col[state.pc],
+                                    &strings.data[state.stack[state.sc++].data]);
+                                fprintf(stderr, "stack: ");
+                                fprint_stack(stderr);
+                                return ERROR_PANIC;
+                            } else {
+                                fprintf(stderr, "%s:%d:%d: error: panic\n",
+                                    command.path, tokens.row[state.pc], tokens.col[state.pc]);
+                                fprintf(stderr, "stack: ");
+                                fprint_stack(stderr);
+                                return ERROR_PANIC;
+                            }
                         case BUILTIN_DUP:
                             arity_check("dup", 0, 1, 2);
                             a = state.stack[state.sc];
@@ -689,12 +764,48 @@ int main (int argc, const char** argv)
                             state.stack[state.sc+1] = a;
                             break;
                         case BUILTIN_DEF:
-                            return ERROR_NOT_IMPLEMENTED;
+                            arity_check("def",3,0,0);
+                            {
+                                uint16_t name = state.fstack[state.fc+2].pc;
+                                // uint16_t type = saved_fc[1].pc;
+                                uint16_t body = state.fstack[state.fc+0].pc;
+                                if (tokens.kind[name] == TOKEN_WORD) {
+                                    uint16_t w = tokens.value[name];
+                                    defs.pc[w] = body;
+                                } else {
+                                    fprintf(stderr, "%s:%d:%d: error: expected word\n",
+                                        command.path, tokens.row[name], tokens.col[name]);
+                                }
+                                state.fc = saved_fc;
+                                state.pc = next_pc;
+                                goto resume_loop;
+                            }
                         default:
-                            fprintf(stderr, "%s:%d:%d: error: undefined word \"%s\"\n",
-                                command.path, tokens.row[state.pc], tokens.col[state.pc],
-                                symbols.name[tokens.value[state.pc]].data);
-                            return ERROR_UNDEFINED;
+                            if (defs.pc[tokens.value[state.pc]]) {
+                                if (state.rc < 3) {
+                                    fprintf(stderr, "%s:%d:%d: error: rstack ran out, increase RSTACK_SIZE\n",
+                                        command.path, tokens.row[state.pc], tokens.col[state.pc]);
+                                    return ERROR_OVERFLOW;
+                                }
+                                int jumpto = defs.pc[tokens.value[state.pc]];
+                                a.type = TYPE_PC;
+                                a.data = next_pc;
+                                state.rstack[--state.rc] = a;
+                                a.type = TYPE_FC;
+                                a.data = saved_fc;
+                                state.rstack[--state.rc] = a;
+                                a.type = TYPE_FI;
+                                a.data = state.fi;
+                                state.rstack[--state.rc] = a;
+                                state.fi = state.fc;
+                                state.pc = jumpto;
+                                goto resume_loop;
+                            } else {
+                                fprintf(stderr, "%s:%d:%d: error: undefined word \"%s\"\n",
+                                    command.path, tokens.row[state.pc], tokens.col[state.pc],
+                                    symbols.name[tokens.value[state.pc]].data);
+                                return ERROR_UNDEFINED;
+                            }
                     }
                     break;
 
@@ -705,16 +816,12 @@ int main (int argc, const char** argv)
         if (state.rc < RSTACK_SIZE) {
             switch (state.rstack[state.rc].type) {
                 case TYPE_NIL:
-                    fprintf(stderr, "%s:%d:%d: error: unexpected TYPE_NIL on return stack\n",
-                        command.path, tokens.row[state.pc], tokens.col[state.pc]);
-                    return ERROR_UNDEFINED;
-
                 case TYPE_INT:
                 case TYPE_STR:
                     if (state.sc < 1) {
                         fprintf(stderr, "%s:%d:%d: error: stack overflow when pushing from return stack",
                             command.path, tokens.row[state.pc], tokens.col[state.pc]);
-                        return 56;
+                        return ERROR_OVERFLOW;
                     }
                     state.stack[--state.sc] = state.rstack[state.rc++];
                     goto pop_rstack;
