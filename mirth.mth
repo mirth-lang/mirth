@@ -29,4 +29,8 @@ def(test-rotl, --,
     0 1 0 rotl expect0 expect0 expect1
     0 0 1 rotl expect0 expect1 expect0)
 
+def(yo, "yo")
+
 run-tests
+
+"mirth.asm" output-asm

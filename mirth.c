@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #define WITH_PREFETCHING
 
@@ -16,6 +17,7 @@ enum error_t {
     ERROR_UNDERFLOW = 51,
     ERROR_OVERFLOW = 52,
     ERROR_UNDEFINED = 53,
+    ERROR_TYPE = 54,
     ERROR_NOT_IMPLEMENTED = 200,
     ERROR_IMPOSSIBLE = 201,
 };
@@ -36,6 +38,7 @@ enum builtin_t {
     BUILTIN_IF,
     BUILTIN_PANIC,
     BUILTIN_DEF,
+    BUILTIN_OUTPUT_ASM,
     NUM_BUILTINS
 };
 
@@ -60,6 +63,7 @@ struct symbols_t {
         [BUILTIN_DEF] = { .data = "def" },
         [BUILTIN_IF] = { .data = "if" },
         [BUILTIN_PANIC] = { .data = "panic" },
+        [BUILTIN_OUTPUT_ASM] = { .data = "output-asm" },
     }
 };
 
@@ -185,6 +189,107 @@ static void fprint_stack (FILE* fp) {
         fprintf(fp, " ");
     }
     fprintf(fp, "\n");
+}
+
+static void mangle (char* dst, const char* src) {
+    for (int j = 0; j < NAME_SIZE && *src; j++, src++) {
+        char c = *src;
+        if (isalpha(c) || isdigit(c)) {
+            *dst++ = *src;
+        } else {
+            *dst++ = '_';
+            *dst++ = 'a' + (c >> 4);
+            *dst++ = 'a' + (c & 0xF);
+            *dst++ = '_';
+        }
+    }
+    *dst++ = 0;
+}
+
+struct output_t {
+    FILE* file;
+    int fresh;
+    size_t sc;
+    enum type_t stack_types[STACK_SIZE];
+} output = {0};
+
+static void output_asm_block (size_t t) {
+//    static int fresh_label = 0;
+//    char mangled_name[NAME_SIZE*4+1];
+    while (t < tokens.length) {
+        switch(tokens.kind[t]) {
+            case TOKEN_NONE:
+            case TOKEN_RPAREN:
+            case TOKEN_COMMA:
+            case TOKEN_COLON:
+                return;
+
+            case TOKEN_NEWLINE:
+                t++;
+                break;
+
+            case TOKEN_LPAREN:
+                t = tokens.value[t];
+                break;
+
+            case TOKEN_INT:
+                fprintf(output.file, "    sub rbx, 2\n");
+                fprintf(output.file, "    mov qword [rbx], %d\n", tokens.value[t]);
+                t++;
+                break;
+
+            case TOKEN_STR:
+                fprintf(output.file, "    sub rbx, 2\n");
+                fprintf(output.file, "    lea rax, [rel strings+%d]\n", tokens.value[t]);
+                fprintf(output.file, "    mov qword [rbx], rax\n");
+                t++;
+                break;
+
+            default:
+                t++;
+                break;
+        }
+    }
+}
+
+static void output_asm (struct value_t path_value) {
+    if (path_value.type != TYPE_STR) {
+        fprintf(stderr, "%s:%d:%d: error: output-asm expects a string\n",
+            command.path, tokens.row[state.pc], tokens.col[state.pc]);
+        exit(ERROR_TYPE);
+    }
+    const char* path = &strings.data[path_value.data];
+    output.file = fopen(path, "w");
+    fprintf(output.file, "bits 64\n");
+    fprintf(output.file, "section .text\n");
+    fprintf(output.file, "global start\n");
+    fprintf(output.file, "start:\n");
+    fprintf(output.file, "    lea rbx, [rel vs+0x10000]\n");
+    fprintf(output.file, "    ; add start code here\n");
+    fprintf(output.file, "    mov rax, 0x2000001\n");
+    fprintf(output.file, "    mov rdi, 0\n");
+    fprintf(output.file, "    syscall\n");
+
+    char mangled_name[NAME_SIZE*4+1];
+    for (int sym = 0; sym < symbols.length; sym++) {
+        if (defs.pc[sym]) {
+            const char* unmangled_name = symbols.name[sym].data;
+            mangle(mangled_name, unmangled_name);
+            fprintf(output.file, "w_%s:\n", mangled_name);
+            output_asm_block(defs.pc[sym]);
+            fprintf(output.file, "    ret\n");
+        }
+    }
+    fprintf(output.file, "section .data\n");
+    fprintf(output.file, "    vc: dq 0x10000\n");
+    fprintf(output.file, "    strings: db ");
+    for (int i = 0; i < strings.length; i++) {
+        fprintf(output.file, "0%.2Xh, ", strings.data[i]);
+    }
+    fprintf(output.file, "0\n");
+    fprintf(output.file, "section .bss\n");
+    fprintf(output.file, "    vs: resq 0x10020\n");
+    fclose(output.file);
 }
 
 int main (int argc, const char** argv)
@@ -764,9 +869,9 @@ int main (int argc, const char** argv)
                             state.stack[state.sc+1] = a;
                             break;
                         case BUILTIN_DEF:
-                            arity_check("def",3,0,0);
+                            arity_check("def",2+(num_args>2),0,0);
                             {
-                                uint16_t name = state.fstack[state.fc+2].pc;
+                                uint16_t name = state.fstack[state.fc+1+(num_args>2)].pc;
                                 // uint16_t type = saved_fc[1].pc;
                                 uint16_t body = state.fstack[state.fc+0].pc;
                                 if (tokens.kind[name] == TOKEN_WORD) {
@@ -780,6 +885,11 @@ int main (int argc, const char** argv)
                                 state.pc = next_pc;
                                 goto resume_loop;
                             }
+                        case BUILTIN_OUTPUT_ASM:
+                            arity_check("output-asm",0,1,0);
+                            a = state.stack[state.sc++];
+                            output_asm(a);
+                            break;
                         default:
                             if (defs.pc[tokens.value[state.pc]]) {
                                 if (state.rc < 3) {

@@ -4,3 +4,7 @@ mirth.cabal
 *~
 *.swp
 /mirth
+/mirth2
+/mirth3
+/mirth.asm
+/mirth.o
