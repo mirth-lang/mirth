@@ -209,14 +209,11 @@ static void mangle (char* dst, const char* src) {
 struct output_t {
     FILE* file;
     int fresh;
-    size_t sc;
-    enum type_t stack_types[STACK_SIZE];
 } output = {0};
 
 static void output_asm_block (size_t t) {
-//    static int fresh_label = 0;
-//    char mangled_name[NAME_SIZE*4+1];
-    while (t < tokens.length) {
+    char mangled_name[NAME_SIZE*4+1];
+    for (; t < tokens.length; t++) {
         switch(tokens.kind[t]) {
             case TOKEN_NONE:
             case TOKEN_RPAREN:
@@ -225,7 +222,6 @@ static void output_asm_block (size_t t) {
                 return;
 
             case TOKEN_NEWLINE:
-                t++;
                 break;
 
             case TOKEN_LPAREN:
@@ -233,20 +229,103 @@ static void output_asm_block (size_t t) {
                 break;
 
             case TOKEN_INT:
-                fprintf(output.file, "    sub rbx, 2\n");
-                fprintf(output.file, "    mov qword [rbx], %d\n", tokens.value[t]);
-                t++;
+                fprintf(output.file, "    lea rbx, [rbx-8]\n");
+                fprintf(output.file, "    mov [rbx], rax\n");
+                fprintf(output.file, "    mov rax, %d\n", tokens.value[t]);
                 break;
 
             case TOKEN_STR:
-                fprintf(output.file, "    sub rbx, 2\n");
+                fprintf(output.file, "    lea rbx, [rbx-8]\n");
+                fprintf(output.file, "    mov [rbx], rax\n");
                 fprintf(output.file, "    lea rax, [rel strings+%d]\n", tokens.value[t]);
-                fprintf(output.file, "    mov qword [rbx], rax\n");
-                t++;
                 break;
 
+            case TOKEN_WORD:
+                {
+                    size_t num_args = 0;
+                    size_t args[16];
+                    size_t next = t+1;
+                    if (tokens.kind[t+1] == TOKEN_LPAREN) {
+                        next = tokens.value[t+1]+1;
+                        args[num_args++] = t+2;
+                        for (size_t i = t+2; i+1 < next && num_args < 16; i++) {
+                            switch (tokens.kind[i]) {
+                                case TOKEN_LPAREN:
+                                    i = tokens.value[i];
+                                    break;
+                                case TOKEN_COMMA:
+                                    args[num_args++] = i+1;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                    switch (tokens.value[t]) {
+                        case BUILTIN_ID:
+                            break;
+                        case BUILTIN_DROP:
+                            fprintf(output.file, "    mov rax, [rbx]\n");
+                            fprintf(output.file, "    lea rbx, [rbx+8]\n");
+                            break;
+                        case BUILTIN_DUP:
+                            fprintf(output.file, "    lea rbx, [rbx-8]\n");
+                            fprintf(output.file, "    mov [rbx], rax\n");
+                            break;
+                        case BUILTIN_SWAP:
+                            fprintf(output.file, "    mov rcx, [rbx]\n");
+                            fprintf(output.file, "    mov [rbx], rax\n");
+                            fprintf(output.file, "    mov rax, rcx\n");
+                            break;
+                        case BUILTIN_DIP:
+                            fprintf(output.file, "    push rax\n");
+                            fprintf(output.file, "    mov rax, [rbx]\n");
+                            fprintf(output.file, "    lea rbx, [rbx+8]\n");
+                            output_asm_block(args[0]);
+                            fprintf(output.file, "    lea rbx, [rbx-8]\n");
+                            fprintf(output.file, "    mov [rbx], rax\n");
+                            fprintf(output.file, "    pop rax\n");
+                            break;
+                        case BUILTIN_IF:
+                            {
+                                int l1 = output.fresh++;
+                                int l2 = output.fresh++;
+                                fprintf(output.file, "    test rax, rax\n");
+                                fprintf(output.file, "    jz .L%d\n", l1);
+                                fprintf(output.file, "    mov rax, [rbx]\n");
+                                fprintf(output.file, "    lea rbx, [rbx+8]\n");
+                                output_asm_block(args[0]);
+                                fprintf(output.file, "    jmp .L%d\n", l2);
+                                fprintf(output.file, ".L%d:\n", l1);
+                                fprintf(output.file, "    mov rax, [rbx]\n");
+                                fprintf(output.file, "    lea rbx, [rbx+8]\n");
+                                    // read manual to figure out if can do
+                                    // these moves before jumping
+                                output_asm_block(args[1]);
+                                fprintf(output.file, ".L%d:\n", l2);
+                            }
+                            break;
+                        case BUILTIN_PANIC:
+                            fprintf(output.file, "    mov rax, 0x2000001\n"); // exit syscall
+                            fprintf(output.file, "    mov rdi, 1\n");
+                            fprintf(output.file, "    syscall\n");
+                            break;
+
+                        default:
+                            if (defs.pc[tokens.value[t]]) {
+                                const char* unmangled_name = symbols.name[tokens.value[t]].data;
+                                mangle(mangled_name, unmangled_name);
+                                fprintf(output.file, "    call w_%s\n", mangled_name);
+                            } else {
+                                fprintf(stderr, "%s:%d:%d: warning: asm not implemented\n",
+                                    command.path, tokens.row[t], tokens.col[t]);
+                            }
+                            break;
+                    }
+                    break;
+                }
+
             default:
-                t++;
                 break;
         }
     }
@@ -260,6 +339,7 @@ static void output_asm (struct value_t path_value) {
     }
     const char* path = &strings.data[path_value.data];
     output.file = fopen(path, "w");
+    output.fresh = 0;
     fprintf(output.file, "bits 64\n");
     fprintf(output.file, "section .text\n");
     fprintf(output.file, "global start\n");
