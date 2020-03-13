@@ -1,30 +1,5 @@
-
+"hello"
+"world"
+"foo" "bar"
 10 20 30
-dip(swap) swap dip(swap)
-swap dip(swap) swap
-dip(swap) swap dip(swap)
-
-"foo"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
-"bar"
+40 50 60

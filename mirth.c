@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define WITH_PREFETCHING
+
 enum error_t {
     ERROR_NONE = 0,
     ERROR_BAD_COMMAND = 1,
@@ -104,8 +106,9 @@ enum __attribute__((packed)) type_t {
     TYPE_STR,
 
     // return stack types
-    TYPE_FRAME,
-    TYPE_JUMP
+    TYPE_FI,
+    TYPE_FC,
+    TYPE_PC
 };
 
 struct __attribute__((packed)) value_t {
@@ -137,6 +140,42 @@ struct __attribute__((packed)) state_t {
     .rc = RSTACK_SIZE,
     .fc = FSTACK_SIZE,
 };
+
+static void fprint_value (FILE* fp, struct value_t value) {
+    switch (value.type) {
+        case TYPE_INT:
+            fprintf(fp, "%d", value.data);
+            break;
+
+        case TYPE_STR:
+            fprintf(fp, "\"%s\"", &strings.data[value.data]);
+            break;
+
+        case TYPE_NIL:
+            fprintf(fp, "<nil>");
+            break;
+
+        case TYPE_FI:
+            fprintf(fp, "<fi>");
+            break;
+
+        case TYPE_FC:
+            fprintf(fp, "<fc>");
+            break;
+
+        case TYPE_PC:
+            fprintf(fp, "<pc>");
+            break;
+    }
+}
+
+static void fprint_stack (FILE* fp) {
+    for (int i = STACK_SIZE-1; i >= state.sc; i--) {
+        fprint_value(fp, state.stack[i]);
+        fprintf(fp, " ");
+    }
+    fprintf(fp, "\n");
+}
 
 int main (int argc, const char** argv)
 {
@@ -461,74 +500,85 @@ int main (int argc, const char** argv)
     }
 
     { // Run file.
-        uint16_t pc = 0;
-        uint16_t sc = STACK_SIZE;
+        state.pc = 0;
+        state.sc = STACK_SIZE;
+        state.rc = RSTACK_SIZE;
+        state.fc = FSTACK_SIZE;
+        state.fi = FSTACK_SIZE;
+
         #define arity_check(word,num_params,num_in,num_out) \
             if (num_args != num_params) { \
                 fprintf(stderr, "%s:%d:%d: error: %s expects %d arguments, got %d\n", \
-                    command.path, tokens.row[pc], tokens.col[pc], \
+                    command.path, tokens.row[state.pc], tokens.col[state.pc], \
                     word, num_params, num_args); \
                 return ERROR_ARITY; \
             } \
-            if (sc+num_in > STACK_SIZE) { \
+            if (state.sc+num_in > STACK_SIZE) { \
                 fprintf(stderr, "%s:%d:%d: error: stack underflow in %s\n", \
-                    command.path, tokens.row[pc], tokens.col[pc], word); \
+                    command.path, tokens.row[state.pc], tokens.col[state.pc], word); \
                 return ERROR_UNDERFLOW; \
             } \
-            if (sc+num_in < num_out) { \
+            if (state.sc+num_in < num_out) { \
                 fprintf(stderr, "%s:%d:%d: error: stack overflow in %s\n", \
-                    command.path, tokens.row[pc], tokens.col[pc], word); \
+                    command.path, tokens.row[state.pc], tokens.col[state.pc], word); \
                 return ERROR_OVERFLOW; \
             }
-        uint16_t rc = RSTACK_SIZE;
-        uint16_t fc = FSTACK_SIZE;
-        int16_t a;
-        int16_t stack [STACK_SIZE];
-        int16_t rstack [RSTACK_SIZE];
-        int16_t next_pc, num_args;
-        int16_t fstack [FSTACK_SIZE];
-        for (; pc < tokens.length; pc++) {
+        struct value_t a;
+        struct fvalue_t f;
+        int16_t next_pc, num_args, saved_fc;
+        for (; state.pc < tokens.length; state.pc++) {
         resume_loop:
-            switch (tokens.kind[pc]) {
+            switch (tokens.kind[state.pc]) {
                 case TOKEN_NONE:
                 case TOKEN_RPAREN:
-                    goto pop_rstack;
-                case TOKEN_NEWLINE:
                 case TOKEN_COMMA:
                 case TOKEN_COLON:
+                    goto pop_rstack;
+                case TOKEN_NEWLINE:
                     break;
                 case TOKEN_LPAREN:
-                    pc = tokens.value[pc]+1;
+                    state.pc = tokens.value[state.pc];
                     break;
                 case TOKEN_INT:
-                    stack[--sc] = tokens.value[pc];
+                    a.type = TYPE_INT;
+                    a.data = tokens.value[state.pc];
+                    state.stack[--state.sc] = a;
                     break;
                 case TOKEN_STR:
-                    stack[--sc] = tokens.value[pc];
+                    a.type = TYPE_STR;
+                    a.data = tokens.value[state.pc];
+                    state.stack[--state.sc] = a;
+                    #ifdef WITH_PREFETCHING
+                        __builtin_prefetch(&strings.data[tokens.value[state.pc]]);
+                    #endif
                     break;
                 case TOKEN_WORD:
-                    next_pc = pc+1;
+                    next_pc = state.pc+1;
+                    saved_fc = state.fc;
                     num_args = 0;
-                    if (tokens.kind[pc+1] == TOKEN_LPAREN) { // determine arguments to word
+                    if (tokens.kind[state.pc+1] == TOKEN_LPAREN) { // determine arguments to word
                         bool is_empty_arg = true;
-                        next_pc = tokens.value[pc+1]+1;
-                        if (fc < 1) {
+                        next_pc = tokens.value[state.pc+1]+1;
+                        if (state.fc < 1) {
                             fprintf(stderr, "%s:%d:%d: error: fstack ran out, increase FSTACK_SIZE\n",
-                                command.path, tokens.row[pc], tokens.col[pc]);
+                                command.path, tokens.row[state.pc], tokens.col[state.pc]);
                             return ERROR_OVERFLOW;
                         }
                         num_args += 1;
-                        fstack[--fc] = pc+1;
-                        for (int i = pc+2; i < next_pc; i++) {
+                        f.fi = state.fi;
+                        f.pc = state.pc+1;
+                        state.fstack[--state.fc] = f;
+                        for (int i = state.pc+2; i < next_pc; i++) {
                             switch (tokens.kind[i]) {
                                 case TOKEN_COMMA:
-                                    if (fc < 1) {
+                                    if (state.fc < 1) {
                                         fprintf(stderr, "%s:%d:%d: error: fstack ran out, increase FSTACK_SIZE\n",
-                                            command.path, tokens.row[pc], tokens.col[pc]);
+                                            command.path, tokens.row[i], tokens.col[i]);
                                         return ERROR_OVERFLOW;
                                     }
                                     num_args += 1;
-                                    fstack[--fc] = pc+1;
+                                    f.pc = i+1;
+                                    state.fstack[--state.fc] = f;
                                     is_empty_arg = true;
                                     break;
 
@@ -549,52 +599,56 @@ int main (int argc, const char** argv)
 
                         if (is_empty_arg) {
                             num_args--;
-                            fc++;
+                            state.fc++;
                         }
                     }
 
-                    switch (tokens.value[pc]) {
+                    switch (tokens.value[state.pc]) {
                         case BUILTIN_END:
                             fprintf(stderr, "%s:%d:%d: error: unexpected \"end\"\n",
-                                command.path, tokens.row[pc], tokens.col[pc]);
+                                command.path, tokens.row[state.pc], tokens.col[state.pc]);
                             return ERROR_SYNTAX;
                         case BUILTIN_ID:
                             arity_check("id", 0,0,0);
                             break;
                         case BUILTIN_DIP:
                             arity_check("dip", 1, 1, 1);
-                            if (rc < 3) {
+                            if (state.rc < 3) {
                                 fprintf(stderr, "%s:%d:%d: error: rstack ran out, increase RSTACK_SIZE\n",
-                                    command.path, tokens.row[pc], tokens.col[pc]);
+                                    command.path, tokens.row[state.pc], tokens.col[state.pc]);
                                 return ERROR_OVERFLOW;
                             }
-                            pc = fstack[fc++];
-                            rstack[--rc] = next_pc;
-                            rstack[--rc] = stack[sc++];
-                            rstack[--rc] = -1;
+                            state.fi = state.fstack[state.fc].fi;
+                            state.pc = state.fstack[state.fc++].pc;
+                            a.type = TYPE_PC;
+                            a.data = next_pc;
+                            state.rstack[--state.rc] = a;
+                            a.type = TYPE_FC;
+                            a.data = saved_fc;
+                            state.rstack[--state.rc] = a;
+                            state.rstack[--state.rc] = state.stack[state.sc++];
                             break;
                         case BUILTIN_DUP:
                             arity_check("dup", 0, 1, 2);
-                            a = stack[sc];
-                            stack[--sc] = a;
-                            pc = next_pc - 1;
+                            a = state.stack[state.sc];
+                            state.stack[--state.sc] = a;
                             break;
                         case BUILTIN_DROP:
                             arity_check("drop", 0, 1, 0);
-                            sc++;
+                            state.sc++;
                             break;
                         case BUILTIN_SWAP:
                             arity_check("swap", 0, 2, 2);
-                            a = stack[sc];
-                            stack[sc] = stack[sc+1];
-                            stack[sc+1] = a;
+                            a = state.stack[state.sc];
+                            state.stack[state.sc] = state.stack[state.sc+1];
+                            state.stack[state.sc+1] = a;
                             break;
                         case BUILTIN_DEF:
                             return ERROR_NOT_IMPLEMENTED;
                         default:
                             fprintf(stderr, "%s:%d:%d: error: undefined word \"%s\"\n",
-                                command.path, tokens.row[pc], tokens.col[pc],
-                                symbols.name[tokens.value[pc]].data);
+                                command.path, tokens.row[state.pc], tokens.col[state.pc],
+                                symbols.name[tokens.value[state.pc]].data);
                             return ERROR_UNDEFINED;
                     }
                     break;
@@ -603,26 +657,41 @@ int main (int argc, const char** argv)
         }
 
         pop_rstack:
-        if (rc < RSTACK_SIZE) {
-            if (rstack[rc] == -1) {
-                if (sc < 1) {
-                    fprintf(stderr, "%s:%d:%d: error: stack overflow when returning from dip",
-                        command.path, tokens.row[pc], tokens.col[pc]);
-                    return 56;
-                }
-                rc++;
-                stack[--sc] = rstack[rc++];
-                goto pop_rstack;
-            } else {
-                pc = rstack[rc++];
-                goto resume_loop;
+        if (state.rc < RSTACK_SIZE) {
+            switch (state.rstack[state.rc].type) {
+                case TYPE_NIL:
+                    fprintf(stderr, "%s:%d:%d: error: unexpected TYPE_NIL on return stack\n",
+                        command.path, tokens.row[state.pc], tokens.col[state.pc]);
+                    return ERROR_UNDEFINED;
+
+                case TYPE_INT:
+                case TYPE_STR:
+                    if (state.sc < 1) {
+                        fprintf(stderr, "%s:%d:%d: error: stack overflow when pushing from return stack",
+                            command.path, tokens.row[state.pc], tokens.col[state.pc]);
+                        return 56;
+                    }
+                    state.stack[--state.sc] = state.rstack[state.rc++];
+                    goto pop_rstack;
+
+                case TYPE_FI:
+                    state.fi = state.rstack[state.rc++].data;
+                    goto pop_rstack;
+
+                case TYPE_FC:
+                    state.fc = state.rstack[state.rc++].data;
+                    goto pop_rstack;
+
+                case TYPE_PC:
+                    state.pc = state.rstack[state.rc++].data;
+                    goto resume_loop;
             }
         }
 
-        for (; sc < STACK_SIZE; sc++) {
-            fprintf(stderr, "%d ", stack[sc]);
+        // display stack
+        if (state.sc < STACK_SIZE) {
+            fprint_stack(stderr);
         }
-        fprintf(stderr, "\n");
     }
 
     return 0;
