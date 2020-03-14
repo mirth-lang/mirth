@@ -317,8 +317,9 @@ static void output_asm_block (size_t t) {
                                 mangle(mangled_name, unmangled_name);
                                 fprintf(output.file, "    call w_%s\n", mangled_name);
                             } else {
-                                fprintf(stderr, "%s:%d:%d: warning: asm not implemented\n",
+                                fprintf(stderr, "%s:%d:%d: error: not implemented\n",
                                     command.path, tokens.row[t], tokens.col[t]);
+                                exit(ERROR_NOT_IMPLEMENTED);
                             }
                             break;
                     }
@@ -331,7 +332,7 @@ static void output_asm_block (size_t t) {
     }
 }
 
-static void output_asm (struct value_t path_value) {
+static void output_asm (struct value_t path_value, size_t pc) {
     if (path_value.type != TYPE_STR) {
         fprintf(stderr, "%s:%d:%d: error: output-asm expects a string\n",
             command.path, tokens.row[state.pc], tokens.col[state.pc]);
@@ -345,7 +346,7 @@ static void output_asm (struct value_t path_value) {
     fprintf(output.file, "global start\n");
     fprintf(output.file, "start:\n");
     fprintf(output.file, "    lea rbx, [rel vs+0x10000]\n");
-    fprintf(output.file, "    ; add start code here\n");
+    output_asm_block(pc);
     fprintf(output.file, "    mov rax, 0x2000001\n");
     fprintf(output.file, "    mov rdi, 0\n");
     fprintf(output.file, "    syscall\n");
@@ -833,7 +834,6 @@ int main (int argc, const char** argv)
                     saved_fc = state.fc;
                     num_args = 0;
                     if (tokens.kind[state.pc+1] == TOKEN_LPAREN) { // determine arguments to word
-                        bool is_empty_arg = true;
                         next_pc = tokens.value[state.pc+1]+1;
                         if (state.fc < 1) {
                             fprintf(stderr, "%s:%d:%d: error: fstack ran out, increase FSTACK_SIZE\n",
@@ -855,27 +855,15 @@ int main (int argc, const char** argv)
                                     num_args += 1;
                                     f.pc = i+1;
                                     state.fstack[--state.fc] = f;
-                                    is_empty_arg = true;
-                                    break;
-
-                                case TOKEN_NEWLINE:
-                                case TOKEN_RPAREN:
                                     break;
 
                                 case TOKEN_LPAREN:
                                     i = tokens.value[i];
-                                    is_empty_arg = false;
                                     break;
 
                                 default:
-                                    is_empty_arg = false;
                                     break;
                             }
-                        }
-
-                        if (is_empty_arg) {
-                            num_args--;
-                            state.fc++;
                         }
                     }
 
@@ -966,9 +954,11 @@ int main (int argc, const char** argv)
                                 goto resume_loop;
                             }
                         case BUILTIN_OUTPUT_ASM:
-                            arity_check("output-asm",0,1,0);
+                            arity_check("output-asm",1,1,0);
                             a = state.stack[state.sc++];
-                            output_asm(a);
+                            output_asm(a, state.fstack[state.fc].pc);
+                            state.fc = saved_fc;
+                            state.pc = next_pc;
                             break;
                         default:
                             if (defs.pc[tokens.value[state.pc]]) {

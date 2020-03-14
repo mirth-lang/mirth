@@ -1,4 +1,12 @@
 
+# TODO:
+#  - Add comment support in lexer!
+#  - Add arithmetic words.
+#  - Add memory access.
+#  - Add (0-initialized) static variables.
+#  - Add basic (semi-high-level) file IO words.
+#  - Add while loops.
+
 def(trip, a -- a a a, dup dup)
 def(rotr, a b c -- c a b, swap dip(swap))
 def(rotl, a b c -- b c a, dip(swap) swap)
@@ -29,8 +37,6 @@ def(test-rotl, --,
     0 1 0 rotl expect0 expect0 expect1
     0 0 1 rotl expect0 expect1 expect0)
 
-def(yo, "yo")
-
 run-tests
 
-"mirth.asm" output-asm
+"mirth.asm" output-asm(run-tests)
