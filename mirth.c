@@ -5,10 +5,23 @@
 #include <string.h>
 #include <ctype.h>
 
-#define WITH_PREFETCHING
+#define ASSERT(b, error_code, file, line, col, msg) \
+    do { \
+        if (!(b)) { \
+            fprintf(stderr, "%s:%d:%d: %s: %s\n", file, line, col, (error_code ? "error" : "warning"), msg); \
+            if (error_code) exit(error_code); \
+        } \
+    } while(0)
+
+#define ASSERT_LEXER(b, error, msg) \
+    ASSERT(b, error, command.path, lexer.row, lexer.col, msg)
+#define ASSERT_TOKEN(b, error, t, msg) \
+    ASSERT(b, error, command.path, tokens.row[t], tokens.col[t], msg)
+#define ASSERT_BASIC(b) \
+    ASSERT(b, ERROR_IMPOSSIBLE, __FILE__, __LINE__, 1, "assertion failed")
 
 enum error_t {
-    ERROR_NONE = 0,
+    WARNING = 0,
     ERROR_BAD_COMMAND = 1,
     ERROR_FILE_IO = 2,
     ERROR_SYNTAX = 3,
@@ -43,8 +56,7 @@ enum builtin_t {
 };
 
 #define SYMBOLS_SIZE 0xC010
-#define NAME_SIZE 0x10
-#define ASSERT(b) do { if (!(b)) { fprintf(stderr, "%s:%d:1: error: assertion failed: %s", __FILE__, __LINE__, #b); return ERROR_IMPOSSIBLE; } } while(0)
+#define NAME_SIZE 0x20
 
 struct symbols_t {
     size_t length;
@@ -71,9 +83,9 @@ struct symbols_t {
 #define TOKENS_SIZE 0x8100
 struct tokens_t {
     size_t length;
-    uint16_t row [TOKENS_SIZE];
-    uint8_t col [TOKENS_SIZE];
-    uint8_t depth [TOKENS_SIZE];
+    int row [TOKENS_SIZE];
+    int col [TOKENS_SIZE];
+    int depth [TOKENS_SIZE];
     enum __attribute__((packed)) token_kind_t {
         TOKEN_NONE = 0,
         TOKEN_NEWLINE,
@@ -85,13 +97,13 @@ struct tokens_t {
         TOKEN_INT,
         TOKEN_STR,
     } kind [TOKENS_SIZE];
-    uint32_t value [TOKENS_SIZE];
+    uint64_t value [TOKENS_SIZE];
 } tokens = {0};
 
 // String table
 #define STRINGS_SIZE 0x4000
 struct strings_t {
-    uint16_t length;
+    uint64_t length;
     char data [STRINGS_SIZE];
 } strings = {0};
 
@@ -100,16 +112,16 @@ struct strings_t {
 #define LEXER_STACK_SIZE 0x80
 struct lexer_t {
     FILE* file;
-    uint16_t row;
-    uint8_t col;
-    uint8_t depth;
-    uint32_t stack [LEXER_STACK_SIZE];
+    int row;
+    int col;
+    int depth;
+    uint64_t stack [LEXER_STACK_SIZE];
     char line [LEXER_LINE_MAX];
 } lexer = {0};
 
 // Definitions
 struct defs_t {
-    int16_t pc[SYMBOLS_SIZE];
+    int64_t pc[SYMBOLS_SIZE];
 } defs = { {0} };
 
 enum __attribute__((packed)) type_t {
@@ -127,12 +139,12 @@ enum __attribute__((packed)) type_t {
 
 struct __attribute__((packed)) value_t {
     enum type_t type;
-    int32_t data;
+    int64_t data;
 };
 
 struct __attribute__((packed)) fvalue_t {
-    int16_t pc;
-    int16_t fi;
+    int64_t pc;
+    int64_t fi;
 };
 
 // intepreter state
@@ -140,11 +152,11 @@ struct __attribute__((packed)) fvalue_t {
 #define RSTACK_SIZE 0x100
 #define FSTACK_SIZE 0x400
 struct __attribute__((packed)) state_t {
-    uint16_t pc; // program counter
-    uint16_t sc; // stack counter
-    uint16_t rc; // return stack counter
-    uint16_t fc; // frame stack counter
-    uint16_t fi; // frame pointer
+    uint64_t pc; // program counter
+    uint64_t sc; // stack counter
+    uint64_t rc; // return stack counter
+    uint64_t fc; // frame stack counter
+    uint64_t fi; // frame pointer
     struct value_t stack [STACK_SIZE];
     struct value_t rstack [RSTACK_SIZE];
     struct fvalue_t fstack [FSTACK_SIZE];
@@ -158,7 +170,7 @@ struct __attribute__((packed)) state_t {
 static void fprint_value (FILE* fp, struct value_t value) {
     switch (value.type) {
         case TYPE_INT:
-            fprintf(fp, "%d", value.data);
+            fprintf(fp, "%lld", value.data);
             break;
 
         case TYPE_STR:
@@ -231,13 +243,13 @@ static void output_asm_block (size_t t) {
             case TOKEN_INT:
                 fprintf(output.file, "    lea rbx, [rbx-8]\n");
                 fprintf(output.file, "    mov [rbx], rax\n");
-                fprintf(output.file, "    mov rax, %d\n", tokens.value[t]);
+                fprintf(output.file, "    mov rax, %lld\n", tokens.value[t]);
                 break;
 
             case TOKEN_STR:
                 fprintf(output.file, "    lea rbx, [rbx-8]\n");
                 fprintf(output.file, "    mov [rbx], rax\n");
-                fprintf(output.file, "    lea rax, [rel strings+%d]\n", tokens.value[t]);
+                fprintf(output.file, "    lea rax, [rel strings+%lld]\n", tokens.value[t]);
                 break;
 
             case TOKEN_WORD:
@@ -312,15 +324,11 @@ static void output_asm_block (size_t t) {
                             break;
 
                         default:
-                            if (defs.pc[tokens.value[t]]) {
-                                const char* unmangled_name = symbols.name[tokens.value[t]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file, "    call w_%s\n", mangled_name);
-                            } else {
-                                fprintf(stderr, "%s:%d:%d: error: not implemented\n",
-                                    command.path, tokens.row[t], tokens.col[t]);
-                                exit(ERROR_NOT_IMPLEMENTED);
-                            }
+                            ASSERT_TOKEN(defs.pc[tokens.value[t]] != 0, ERROR_NOT_IMPLEMENTED, t,
+                                "not implemented in output-asm");
+                            const char* unmangled_name = symbols.name[tokens.value[t]].data;
+                            mangle(mangled_name, unmangled_name);
+                            fprintf(output.file, "    call w_%s\n", mangled_name);
                             break;
                     }
                     break;
@@ -333,11 +341,8 @@ static void output_asm_block (size_t t) {
 }
 
 static void output_asm (struct value_t path_value, size_t pc) {
-    if (path_value.type != TYPE_STR) {
-        fprintf(stderr, "%s:%d:%d: error: output-asm expects a string\n",
-            command.path, tokens.row[state.pc], tokens.col[state.pc]);
-        exit(ERROR_TYPE);
-    }
+    ASSERT_TOKEN(path_value.type == TYPE_STR, ERROR_TYPE, state.pc,
+        "output-asm expects a string.");
     const char* path = &strings.data[path_value.data];
     output.file = fopen(path, "w");
     output.fresh = 0;
@@ -401,29 +406,23 @@ int main (int argc, const char** argv)
         }
         while (1) {
             char* line = fgets(lexer.line, LEXER_LINE_MAX, lexer.file);
-            if (ferror(lexer.file)) {
-                fprintf(stderr, "%s:%d:%d: Error while reading file %s\n",
-                    command.path, lexer.row, lexer.col, command.path);
-                return ERROR_FILE_IO;
-            }
+            ASSERT_LEXER(!ferror(lexer.file), ERROR_FILE_IO, "Error while reading file.\n");
             if (feof(lexer.file)) break;
-            ASSERT (line != NULL);
+            ASSERT_BASIC (line != NULL);
             lexer.row ++;
             lexer.col = 1;
-            //fprintf(stderr, "%s:%d:%d: info: %s", command.path, lexer.row, lexer.col, line);
 
             while (*line) {
                 const char* token_start;
-                uint32_t token_size;
-                uint32_t token_row = lexer.row;
-                uint8_t token_col = lexer.col;
+                uint64_t token_size;
+                int token_row = lexer.row;
+                int token_col = lexer.col;
 
-                uint32_t t = tokens.length;
-                uint32_t t0;
-                if ((size_t)t >= TOKENS_SIZE-1) {
-                    fprintf(stderr, "mirth: Ran out of tokens space. Increase TOKENS_SIZE.\n");
-                    return ERROR_OVERFLOW;
-                }
+                uint64_t t = tokens.length;
+                uint64_t t0;
+                ASSERT_LEXER(t+1 < TOKENS_SIZE, ERROR_OVERFLOW,
+                    "Ran out of token buffer. Increase TOKENS_SIZE.");
+
                 tokens.row[t] = token_row;
                 tokens.col[t] = token_col;
                 tokens.depth[t] = lexer.depth;
@@ -443,7 +442,6 @@ int main (int argc, const char** argv)
                         break; // ignore whitespace
 
                     case '\n':
-                        // fprintf(stderr, "%s:%d:%d: info: NEWLINE %d\n", command.path, token_row, token_col, t);
                         tokens.kind[tokens.length++] = TOKEN_NEWLINE;
                         line++;
                         break;
@@ -454,11 +452,8 @@ int main (int argc, const char** argv)
                         break;
 
                     case '(':
-                        // fprintf(stderr, "%s:%d:%d: info: LPAREN %d\n", command.path, token_row, token_col, t);
-                        if ((size_t)lexer.depth >= LEXER_STACK_SIZE-1) {
-                            fprintf(stderr, "%s:%d:%d: error: Ran out of lexer stack. Increase LEXER_STACK_SIZE in compiler.\n", command.path, token_row, token_col);
-                            return ERROR_OVERFLOW;
-                        }
+                        ASSERT_LEXER(lexer.depth+1 < LEXER_STACK_SIZE, ERROR_OVERFLOW,
+                            "Ran out of lexer stack. Increase LEXER_STACK_SIZE.");
                         lexer.stack[lexer.depth++] = t;
                         tokens.kind[tokens.length++] = TOKEN_LPAREN;
                         lexer.col++;
@@ -466,34 +461,25 @@ int main (int argc, const char** argv)
                         break;
 
                     case ')':
-                        // fprintf(stderr, "%s:%d:%d: info: RPAREN %d\n", command.path, token_row, token_col, t);
-                        if (lexer.depth == 0) {
-                            fprintf(stderr, "%s:%d:%d: error: Right paren without matching left paren.\n", command.path, token_row, token_col);
-                            return ERROR_SYNTAX;
-                        }
+                        ASSERT_LEXER(lexer.depth > 0, ERROR_SYNTAX,
+                            "Right paren without matching left paren.");
                         t0 = lexer.stack[--lexer.depth];
-                        if (tokens.kind[t0] != TOKEN_LPAREN) {
-                            fprintf(stderr, "%s:%d:%d: error: Left token without matching right token.\n", command.path, tokens.row[t0], tokens.col[t0]);
-                            fprintf(stderr, "%s:%d:%d: error: Right paren without matching left paren.\n", command.path, token_row, token_col);
-                            return ERROR_SYNTAX;
-                        }
+                        ASSERT_LEXER(tokens.kind[t0] == TOKEN_LPAREN, ERROR_SYNTAX,
+                            "Right paren without matching left paren.");
                         tokens.value[t0] = t;
                         tokens.value[t] = t0;
-                        // fprintf(stderr, "%s:%d:%d: info: ^ LPAREN %d\n", command.path, token_row, token_col, t0);
                         tokens.kind[tokens.length++] = TOKEN_RPAREN;
                         lexer.col++;
                         line++;
                         break;
 
                     case ',':
-                        // fprintf(stderr, "%s:%d:%d: info: COMMA %d\n", command.path, token_row, token_col, t);
                         tokens.kind[tokens.length++] = TOKEN_COMMA;
                         lexer.col++;
                         line++;
                         break;
 
                     case ':':
-                        // fprintf(stderr, "%s:%d:%d: info: COLON %d\n", command.path, token_row, token_col, t);
                         tokens.kind[tokens.length++] = TOKEN_COLON;
                         lexer.col++;
                         line++;
@@ -502,7 +488,7 @@ int main (int argc, const char** argv)
                     case '\"':
                         { // lex a string
                             size_t n = strings.length;
-                            uint32_t escape_char;
+                            uint64_t escape_char;
                             if (((n+7) & 0x3F) < (n & 0x3F)) {
                                 // n is nearly at cache line break, so add some padding
                                 n += 0x40 - (n & 0x3F);
@@ -588,16 +574,16 @@ int main (int argc, const char** argv)
                                                             break;
 
                                                         default:
-                                                            fprintf(stderr, "%s:%d:%d: error: unrecognized character escape sequence", command.path, lexer.row, lexer.col);
-                                                            return ERROR_SYNTAX;
+                                                            ASSERT_LEXER(false, ERROR_SYNTAX,
+                                                                "Unrecognized character escape sequence.");
                                                     }
                                                 }
                                                 strings.data[i++] = escape_char;
                                                 break;
 
                                             default:
-                                                fprintf(stderr, "%s:%d:%d: error: unrecognized character escape sequence \"\\%c\"\n", command.path, lexer.row, lexer.col, *line);
-                                                return ERROR_SYNTAX;
+                                                ASSERT_LEXER(false, ERROR_SYNTAX,
+                                                    "Unrecognized character escape sequence.");
                                         }
                                         line++;
                                         lexer.col++;
@@ -609,19 +595,15 @@ int main (int argc, const char** argv)
                                         break;
                                 }
                             }
-                            string_over:
-                            if (*line == '\"') {
-                                line++;
-                                lexer.col++;
-                                strings.data[i++] = 0;
-                                tokens.value[t] = n;
-                                tokens.kind[tokens.length++] = TOKEN_STR;
-                                strings.length = i;
-                            } else {
-                                fprintf(stderr, "%s:%d:%d: error: Unexpected newline in string literal.\n",
-                                    command.path, lexer.row, lexer.col);
-                                return ERROR_SYNTAX;
-                            }
+                          string_over:
+                            ASSERT_LEXER(*line == '\"', ERROR_SYNTAX,
+                                "Unrecognized newline in string literal.");
+                            line++;
+                            lexer.col++;
+                            strings.data[i++] = 0;
+                            tokens.value[t] = n;
+                            tokens.kind[tokens.length++] = TOKEN_STR;
+                            strings.length = i;
                         }
                         break;
 
@@ -711,39 +693,23 @@ int main (int argc, const char** argv)
                     end_of_token:
                         if (hexadecimal && only_hexdigits && has_hexdigits) {
                             if (positive) {
-                                if (hexadecimal_value > 0xFFFFFFFF) {
-                                    fprintf(stderr, "%s:%d:%d: error: Positive integer literal too large.\n", command.path, token_row, token_col);
-                                }
                                 tokens.value[t] = hexadecimal_value;
                             } else {
-                                if (hexadecimal_value > 0xFFFFFFFF) {
-                                    fprintf(stderr, "%s:%d:%d: error: Negative integer literal too large.\n", command.path, token_row, token_col);
-                                }
                                 tokens.value[t] = -(int64_t)hexadecimal_value;
                             }
-                            // fprintf(stderr, "%s:%d:%d: info: INT 0x%X %d\n", command.path, token_row, token_col, tokens.value[t], t);
                             tokens.kind[tokens.length++] = TOKEN_INT;
 
                         } else if (only_digits && has_digits) {
                             if (positive) {
-                                if (decimal_value > 0xFFFFFFFF) {
-                                    fprintf(stderr, "%s:%d:%d: error: Positive integer literal too large.\n", command.path, token_row, token_col);
-                                }
                                 tokens.value[t] = decimal_value;
                             } else {
-                                if (decimal_value > 0xFFFFFFFF) {
-                                    fprintf(stderr, "%s:%d:%d: error: Negative integer literal too large.\n", command.path, token_row, token_col);
-                                }
                                 tokens.value[t] = -(int64_t)decimal_value;
                             }
-                            // fprintf(stderr, "%s:%d:%d: info: INT %d %d\n", command.path, token_row, token_col, tokens.value[t], t);
                             tokens.kind[tokens.length++] = TOKEN_INT;
                         } else {
                             token_size = line - token_start;
-                            if (token_size >= NAME_SIZE) {
-                                token_size = NAME_SIZE-1;
-                                fprintf(stderr, "%s:%d:%d: warning: Token too large. Cutting to %d bytes.\n", command.path, token_row, token_col, token_size);
-                            }
+                            ASSERT_LEXER(token_size < NAME_SIZE, ERROR_OVERFLOW,
+                                "Name too large. Increase NAME_SIZE or shorten name.");
                             bool found_match = false;
                             char buf[NAME_SIZE];
                             memcpy(buf, token_start, token_size);
@@ -757,13 +723,11 @@ int main (int argc, const char** argv)
                                 }
                             }
                             if (!found_match) {
-                                if ((size_t)symbols.length >= SYMBOLS_SIZE-1) {
-                                    fprintf(stderr, "%s:%d:%d: error: Ran out of symbols. Increase SYMBOLS_SIZE in the compiler.\n", command.path, token_row, token_col);
-                                }
+                                ASSERT_LEXER(symbols.length < SYMBOLS_SIZE-1, ERROR_OVERFLOW,
+                                    "Ran out of symbol buffer. Increase SYMBOLS_SIZE.");
                                 memcpy(symbols.name[symbols.length].data, buf, NAME_SIZE);
                                 tokens.value[t] = symbols.length++;
                             }
-                            // fprintf(stderr, "%s:%d:%d: info: WORD %d \"%s\" %d\n", command.path, token_row, token_col, tokens.value[t], symbols.name[tokens.value[t]].data, t);
                             tokens.kind[tokens.length++] = TOKEN_WORD;
                         }
                         break;
@@ -771,7 +735,7 @@ int main (int argc, const char** argv)
             }
         }
         if ((tokens.length == 0) || (tokens.kind[tokens.length - 1] != TOKEN_NEWLINE)) {
-            fprintf(stderr, "%s:%d:%d: warning: Missing newline at end of file.", command.path, lexer.row, lexer.col);
+            ASSERT_LEXER(false, WARNING, "Missing newline at end of file.");
             size_t t = tokens.length;
             tokens.row[t] = lexer.row;
             tokens.col[t] = lexer.col+1;
@@ -789,25 +753,14 @@ int main (int argc, const char** argv)
         state.fi = FSTACK_SIZE;
 
         #define arity_check(word,num_params,num_in,num_out) \
-            if (num_args != num_params) { \
-                fprintf(stderr, "%s:%d:%d: error: %s expects %d arguments, got %d\n", \
-                    command.path, tokens.row[state.pc], tokens.col[state.pc], \
-                    word, num_params, num_args); \
-                return ERROR_ARITY; \
-            } \
-            if (state.sc+num_in > STACK_SIZE) { \
-                fprintf(stderr, "%s:%d:%d: error: stack underflow in %s\n", \
-                    command.path, tokens.row[state.pc], tokens.col[state.pc], word); \
-                return ERROR_UNDERFLOW; \
-            } \
-            if (state.sc+num_in < num_out) { \
-                fprintf(stderr, "%s:%d:%d: error: stack overflow in %s\n", \
-                    command.path, tokens.row[state.pc], tokens.col[state.pc], word); \
-                return ERROR_OVERFLOW; \
-            }
+            do { \
+                ASSERT_TOKEN(num_args == num_params, ERROR_ARITY, state.pc, "Wrong number of arguments."); \
+                ASSERT_TOKEN(state.sc <= STACK_SIZE - num_in, ERROR_UNDERFLOW, state.pc, "Stack underflow."); \
+                ASSERT_TOKEN(state.sc >= num_out, ERROR_OVERFLOW, state.pc, "Stack overflow."); \
+            } while(0)
         struct value_t a;
         struct fvalue_t f;
-        int16_t next_pc, num_args, saved_fc;
+        int64_t next_pc, num_args, saved_fc;
         for (; state.pc < tokens.length; state.pc++) {
         resume_loop:
             switch (tokens.kind[state.pc]) {
@@ -830,9 +783,6 @@ int main (int argc, const char** argv)
                     a.type = TYPE_STR;
                     a.data = tokens.value[state.pc];
                     state.stack[--state.sc] = a;
-                    #ifdef WITH_PREFETCHING
-                        __builtin_prefetch(&strings.data[tokens.value[state.pc]]);
-                    #endif
                     break;
                 case TOKEN_WORD:
                     next_pc = state.pc+1;
@@ -840,11 +790,8 @@ int main (int argc, const char** argv)
                     num_args = 0;
                     if (tokens.kind[state.pc+1] == TOKEN_LPAREN) { // determine arguments to word
                         next_pc = tokens.value[state.pc+1]+1;
-                        if (state.fc < 1) {
-                            fprintf(stderr, "%s:%d:%d: error: fstack ran out, increase FSTACK_SIZE\n",
-                                command.path, tokens.row[state.pc], tokens.col[state.pc]);
-                            return ERROR_OVERFLOW;
-                        }
+                        ASSERT_TOKEN(state.fc >= 1, ERROR_OVERFLOW, state.pc,
+                            "fstack ran out, increase FSTACK_SIZE.");
                         num_args += 1;
                         f.fi = state.fi;
                         f.pc = state.pc+2;
@@ -852,11 +799,8 @@ int main (int argc, const char** argv)
                         for (int i = state.pc+2; i < next_pc; i++) {
                             switch (tokens.kind[i]) {
                                 case TOKEN_COMMA:
-                                    if (state.fc < 1) {
-                                        fprintf(stderr, "%s:%d:%d: error: fstack ran out, increase FSTACK_SIZE\n",
-                                            command.path, tokens.row[i], tokens.col[i]);
-                                        return ERROR_OVERFLOW;
-                                    }
+                                    ASSERT_TOKEN(state.fc >= 1, ERROR_OVERFLOW, state.pc,
+                                        "fstack ran out, increase FSTACK_SIZE.");
                                     num_args += 1;
                                     f.pc = i+1;
                                     state.fstack[--state.fc] = f;
@@ -874,19 +818,15 @@ int main (int argc, const char** argv)
 
                     switch (tokens.value[state.pc]) {
                         case BUILTIN_END:
-                            fprintf(stderr, "%s:%d:%d: error: unexpected \"end\"\n",
-                                command.path, tokens.row[state.pc], tokens.col[state.pc]);
-                            return ERROR_SYNTAX;
+                            ASSERT_TOKEN(false, ERROR_SYNTAX, state.pc,
+                                "Unexpected \"end\".");
                         case BUILTIN_ID:
                             arity_check("id", 0,0,0);
                             break;
                         case BUILTIN_DIP:
                             arity_check("dip", 1, 1, 1);
-                            if (state.rc < 3) {
-                                fprintf(stderr, "%s:%d:%d: error: rstack ran out, increase RSTACK_SIZE\n",
-                                    command.path, tokens.row[state.pc], tokens.col[state.pc]);
-                                return ERROR_OVERFLOW;
-                            }
+                            ASSERT_TOKEN(state.rc >= 3, ERROR_OVERFLOW, state.pc,
+                                "rstack ran out, increase RSTACK_SIZE.");
                             state.fi = state.fstack[state.fc].fi;
                             state.pc = state.fstack[state.fc++].pc;
                             a.type = TYPE_PC;
@@ -899,11 +839,8 @@ int main (int argc, const char** argv)
                             goto resume_loop;
                         case BUILTIN_IF:
                             arity_check("if", 2, 1, 0);
-                            if (state.rc < 2) {
-                                fprintf(stderr, "%s:%d:%d: error: rstack ran out, increase RSTACK_SIZE\n",
-                                    command.path, tokens.row[state.pc], tokens.col[state.pc]);
-                                return ERROR_OVERFLOW;
-                            }
+                            ASSERT_TOKEN(state.rc >= 2, ERROR_OVERFLOW, state.rc,
+                                "rstack ran out, increase RSTACK_SIZE.");
                             a.type = TYPE_PC;
                             a.data = next_pc;
                             state.rstack[--state.rc] = a;
@@ -945,16 +882,13 @@ int main (int argc, const char** argv)
                         case BUILTIN_DEF:
                             arity_check("def",2+(num_args>2),0,0);
                             {
-                                uint16_t name = state.fstack[state.fc+1+(num_args>2)].pc;
-                                // uint16_t type = saved_fc[1].pc;
-                                uint16_t body = state.fstack[state.fc+0].pc;
-                                if (tokens.kind[name] == TOKEN_WORD) {
-                                    uint16_t w = tokens.value[name];
-                                    defs.pc[w] = body;
-                                } else {
-                                    fprintf(stderr, "%s:%d:%d: error: expected word\n",
-                                        command.path, tokens.row[name], tokens.col[name]);
-                                }
+                                uint64_t name = state.fstack[state.fc+1+(num_args>2)].pc;
+                                // uint64_t type = saved_fc[1].pc;
+                                uint64_t body = state.fstack[state.fc+0].pc;
+                                ASSERT_TOKEN(tokens.kind[name] == TOKEN_WORD, ERROR_SYNTAX, name,
+                                    "Expected word.");
+                                uint64_t w = tokens.value[name];
+                                defs.pc[w] = body;
                                 state.fc = saved_fc;
                                 state.pc = next_pc;
                                 goto resume_loop;
@@ -968,11 +902,8 @@ int main (int argc, const char** argv)
                             break;
                         default:
                             if (defs.pc[tokens.value[state.pc]]) {
-                                if (state.rc < 3) {
-                                    fprintf(stderr, "%s:%d:%d: error: rstack ran out, increase RSTACK_SIZE\n",
-                                        command.path, tokens.row[state.pc], tokens.col[state.pc]);
-                                    return ERROR_OVERFLOW;
-                                }
+                                ASSERT_TOKEN(state.rc >= 3, ERROR_OVERFLOW, state.pc,
+                                    "rstack ran out, increase RSTACK_SIZE.");
                                 int jumpto = defs.pc[tokens.value[state.pc]];
                                 a.type = TYPE_PC;
                                 a.data = next_pc;
@@ -990,7 +921,7 @@ int main (int argc, const char** argv)
                                 fprintf(stderr, "%s:%d:%d: error: undefined word \"%s\"\n",
                                     command.path, tokens.row[state.pc], tokens.col[state.pc],
                                     symbols.name[tokens.value[state.pc]].data);
-                                return ERROR_UNDEFINED;
+                                exit(ERROR_UNDEFINED);
                             }
                     }
                     break;
@@ -1004,11 +935,8 @@ int main (int argc, const char** argv)
                 case TYPE_NIL:
                 case TYPE_INT:
                 case TYPE_STR:
-                    if (state.sc < 1) {
-                        fprintf(stderr, "%s:%d:%d: error: stack overflow when pushing from return stack",
-                            command.path, tokens.row[state.pc], tokens.col[state.pc]);
-                        return ERROR_OVERFLOW;
-                    }
+                    ASSERT_TOKEN(state.sc >= 1, ERROR_OVERFLOW, state.pc,
+                        "Stack overflow when pushing from return stack.");
                     state.stack[--state.sc] = state.rstack[state.rc++];
                     goto pop_rstack;
 
