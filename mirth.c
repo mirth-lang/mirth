@@ -448,6 +448,11 @@ int main (int argc, const char** argv)
                         line++;
                         break;
 
+                    case '#': // just ignore comments.
+                        while (*line != 0 && *line != '\n')
+                            line++;
+                        break;
+
                     case '(':
                         // fprintf(stderr, "%s:%d:%d: info: LPAREN %d\n", command.path, token_row, token_col, t);
                         if ((size_t)lexer.depth >= LEXER_STACK_SIZE-1) {
