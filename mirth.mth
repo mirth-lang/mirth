@@ -1,6 +1,5 @@
 
 # TODO:
-#  - Add comment support in lexer!
 #  - Add arithmetic words.
 #  - Add memory access.
 #  - Add (0-initialized) static variables.
