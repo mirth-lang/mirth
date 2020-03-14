@@ -912,7 +912,8 @@ int main (int argc, const char** argv)
                             state.fc += 2;
                             goto resume_loop;
                         case BUILTIN_PANIC:
-                            if (state.sc < STACK_SIZE && state.stack[state.sc].type == TYPE_STR) {
+                            arity_check("panic", 0, 1, 0);
+                            if (state.stack[state.sc].type == TYPE_STR) {
                                 fprintf(stderr, "%s:%d:%d: error: panic: %s\n",
                                     command.path, tokens.row[state.pc], tokens.col[state.pc],
                                     &strings.data[state.stack[state.sc++].data]);
@@ -920,11 +921,11 @@ int main (int argc, const char** argv)
                                 fprint_stack(stderr);
                                 return ERROR_PANIC;
                             } else {
-                                fprintf(stderr, "%s:%d:%d: error: panic\n",
+                                fprintf(stderr, "%s:%d:%d: error: panic expected message\n",
                                     command.path, tokens.row[state.pc], tokens.col[state.pc]);
                                 fprintf(stderr, "stack: ");
                                 fprint_stack(stderr);
-                                return ERROR_PANIC;
+                                return ERROR_TYPE;
                             }
                         case BUILTIN_DUP:
                             arity_check("dup", 0, 1, 2);
