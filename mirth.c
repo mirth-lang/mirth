@@ -85,7 +85,7 @@ struct tokens_t {
         TOKEN_INT,
         TOKEN_STR,
     } kind [TOKENS_SIZE];
-    uint16_t value [TOKENS_SIZE];
+    uint32_t value [TOKENS_SIZE];
 } tokens = {0};
 
 // String table
@@ -127,7 +127,7 @@ enum __attribute__((packed)) type_t {
 
 struct __attribute__((packed)) value_t {
     enum type_t type;
-    int16_t data;
+    int32_t data;
 };
 
 struct __attribute__((packed)) fvalue_t {
@@ -711,30 +711,30 @@ int main (int argc, const char** argv)
                     end_of_token:
                         if (hexadecimal && only_hexdigits && has_hexdigits) {
                             if (positive) {
-                                if (hexadecimal_value >= 0x8000) {
+                                if (hexadecimal_value > 0xFFFFFFFF) {
                                     fprintf(stderr, "%s:%d:%d: error: Positive integer literal too large.\n", command.path, token_row, token_col);
                                 }
                                 tokens.value[t] = hexadecimal_value;
                             } else {
-                                if (hexadecimal_value > 0x8000) {
+                                if (hexadecimal_value > 0xFFFFFFFF) {
                                     fprintf(stderr, "%s:%d:%d: error: Negative integer literal too large.\n", command.path, token_row, token_col);
                                 }
-                                tokens.value[t] = -(int16_t)hexadecimal_value;
+                                tokens.value[t] = -(int64_t)hexadecimal_value;
                             }
                             // fprintf(stderr, "%s:%d:%d: info: INT 0x%X %d\n", command.path, token_row, token_col, tokens.value[t], t);
                             tokens.kind[tokens.length++] = TOKEN_INT;
 
                         } else if (only_digits && has_digits) {
                             if (positive) {
-                                if (decimal_value >= 0x8000) {
+                                if (decimal_value > 0xFFFFFFFF) {
                                     fprintf(stderr, "%s:%d:%d: error: Positive integer literal too large.\n", command.path, token_row, token_col);
                                 }
                                 tokens.value[t] = decimal_value;
                             } else {
-                                if (decimal_value > 0x8000) {
+                                if (decimal_value > 0xFFFFFFFF) {
                                     fprintf(stderr, "%s:%d:%d: error: Negative integer literal too large.\n", command.path, token_row, token_col);
                                 }
-                                tokens.value[t] = -(int16_t)decimal_value;
+                                tokens.value[t] = -(int64_t)decimal_value;
                             }
                             // fprintf(stderr, "%s:%d:%d: info: INT %d %d\n", command.path, token_row, token_col, tokens.value[t], t);
                             tokens.kind[tokens.length++] = TOKEN_INT;
