@@ -6,6 +6,8 @@
 #  - Add basic (semi-high-level) file IO words.
 #  - Add while loops.
 
+# Prelude
+
 def(trip, a -- a a a, dup dup)
 def(rotr, a b c -- c a b, swap dip(swap))
 def(rotl, a b c -- b c a, dip(swap) swap)
@@ -15,6 +17,8 @@ def(nip, a b -- b, dip(drop))
 def(dup2, a b -- a b a b, over over)
 def(drop2, a b --, drop drop)
 def(swap2, a b c d -- c d a b, dip(rotr) rotr)
+
+# Tests
 
 def(expect0, Int --, if("assertion failed" panic, id))
 def(expect1, Int --, if(id, "assertion failed" panic))
@@ -37,5 +41,7 @@ def(test-rotl, --,
     0 0 1 rotl expect0 expect1 expect0)
 
 run-tests
+
+# Build
 
 "mirth.asm" output-asm(run-tests)
