@@ -34,80 +34,149 @@ def(1<=, Int -- Bool, 1 <=)
 def(1>=, Int -- Bool, 1 >=)
 
 
+# Assertions
+
+def(!!, Bool --, if(id, "Assertion failed" panic))
+def(!!=, Int Int --, = !!)
+def(!!0, Int --, 0 !!=)
+def(!!1, Int --, 1 !!=)
+def(!!00, Int Int --, !!0 !!0)
+def(!!01, Int Int --, !!1 !!0)
+def(!!10, Int Int --, !!0 !!1)
+def(!!11, Int Int --, !!1 !!1)
+def(!!000, Int Int --, !!0 !!0 !!0)
+def(!!001, Int Int --, !!1 !!0 !!0)
+def(!!010, Int Int --, !!0 !!1 !!0)
+def(!!011, Int Int --, !!1 !!1 !!0)
+def(!!100, Int Int --, !!0 !!0 !!1)
+def(!!101, Int Int --, !!1 !!0 !!1)
+def(!!110, Int Int --, !!0 !!1 !!1)
+def(!!111, Int Int --, !!1 !!1 !!1)
+
 # Tests
 
-def(expect0, Int --, 0= if(id, "assertion failed" panic))
-def(expect1, Int --, 1= if(id, "assertion failed" panic))
-def(expect00, Int Int --, expect0 expect0)
-def(expect01, Int Int --, expect1 expect0)
-def(expect10, Int Int --, expect0 expect1)
-def(expect11, Int Int --, expect1 expect1)
-def(expect000, Int Int --, expect0 expect0 expect0)
-def(expect001, Int Int --, expect1 expect0 expect0)
-def(expect010, Int Int --, expect0 expect1 expect0)
-def(expect011, Int Int --, expect1 expect1 expect0)
-def(expect100, Int Int --, expect0 expect0 expect1)
-def(expect101, Int Int --, expect1 expect0 expect1)
-def(expect110, Int Int --, expect0 expect1 expect1)
-def(expect111, Int Int --, expect1 expect1 expect1)
-
 def(run-tests, --, test-if test-drop test-dup test-swap test-dip
-    test-trip test-rotr test-rotl test= test< test<= test> test>=)
-def(test-if, --, 0 expect0 1 expect1 0 1 expect1 expect0)
-def(test-drop, --, 0 1 drop expect0)
-def(test-dup, --, 0 1 dup expect011)
-def(test-swap, --, 0 1 0 swap expect001)
-def(test-dip, --, 0 0 dip(1) expect010)
-def(test-trip, --, 0 1 trip expect1 expect011)
+    test-trip test-rotr test-rotl test= test< test<= test> test>=
+    test+ test- test* test/ test%)
+def(test-if, --, 0 !!0 1 !!1 0 1 !!1 !!0)
+def(test-drop, --, 0 1 drop !!0)
+def(test-dup, --, 0 1 dup !!011)
+def(test-swap, --, 0 1 0 swap !!001)
+def(test-dip, --, 0 0 dip(1) !!010)
+def(test-trip, --, 0 1 trip !!111 !!0)
 def(test-rotr, --,
-    1 0 0 rotr expect010
-    0 1 0 rotr expect001
-    0 0 1 rotr expect100)
+    1 0 0 rotr !!010
+    0 1 0 rotr !!001
+    0 0 1 rotr !!100)
 def(test-rotl, --,
-    1 0 0 rotl expect001
-    0 1 0 rotl expect100
-    0 0 1 rotl expect010)
+    1 0 0 rotl !!001
+    0 1 0 rotl !!100
+    0 0 1 rotl !!010)
 
 def(test=, --,
-    0 0 = expect1
-    0 1 = expect0
-    1 0 = expect0
-    1 1 = expect1
-    1 2 = expect0
-    2 1 = expect0
-    2 2 = expect1)
+    0 0 = !!1
+    0 1 = !!0
+    1 0 = !!0
+    1 1 = !!1
+    1 2 = !!0
+    2 1 = !!0
+    2 2 = !!1)
 def(test<, --,
-    0 0 < expect0
-    0 1 < expect1
-    1 0 < expect0
-    1 1 < expect0
-    1 2 < expect1
-    2 1 < expect0
-    2 2 < expect0)
+    0 0 < !!0
+    0 1 < !!1
+    1 0 < !!0
+    1 1 < !!0
+    1 2 < !!1
+    2 1 < !!0
+    2 2 < !!0)
 def(test<=, --,
-    0 0 <= expect1
-    0 1 <= expect1
-    1 0 <= expect0
-    1 1 <= expect1
-    1 2 <= expect1
-    2 1 <= expect0
-    2 2 <= expect1)
+    0 0 <= !!1
+    0 1 <= !!1
+    1 0 <= !!0
+    1 1 <= !!1
+    1 2 <= !!1
+    2 1 <= !!0
+    2 2 <= !!1)
 def(test>, --,
-    0 0 > expect0
-    0 1 > expect0
-    1 0 > expect1
-    1 1 > expect0
-    1 2 > expect0
-    2 1 > expect1
-    2 2 > expect0)
+    0 0 > !!0
+    0 1 > !!0
+    1 0 > !!1
+    1 1 > !!0
+    1 2 > !!0
+    2 1 > !!1
+    2 2 > !!0)
 def(test>=, --,
-    0 0 >= expect1
-    0 1 >= expect0
-    1 0 >= expect1
-    1 1 >= expect1
-    1 2 >= expect0
-    2 1 >= expect1
-    2 2 >= expect1)
+    0 0 >= !!1
+    0 1 >= !!0
+    1 0 >= !!1
+    1 1 >= !!1
+    1 2 >= !!0
+    2 1 >= !!1
+    2 2 >= !!1
+    -1 0 >= !!0
+    -1 -1 >= !!1
+    0 -1 >= !!1
+    -1 -2 >= !!1
+    -2 -2 >= !!1
+    -2 -1 >= !!0)
+
+def(test+, --,
+    0 0 + !!0
+    0 1 + !!1
+    1 0 + !!1
+    1 1 + 2 = !!1
+    2 2 + 4 = !!1
+    2 -2 + !!0)
+
+def(test-, --,
+    0 0 - !!0
+    1 0 - !!1
+    1 1 - !!0
+    0 1 - -1 !!=
+    2 2 - !!0
+    2 4 - -2 !!=
+    4 2 - 2 !!=)
+
+def(test*, --,
+    0 0 * !!0
+    2 1 * 2 !!=
+    2 2 * 4 !!=
+    2 4 * 8 !!=)
+
+def(test/, --,
+    1 1 / !!1
+    -5 2 / -2 !!=
+    -4 2 / -2 !!=
+    -3 2 / -1 !!=
+    -2 2 / -1 !!=
+    -1 2 / !!0
+    0 2 / !!0
+    1 2 / !!0
+    2 2 / !!1
+    3 2 / !!1
+    4 2 / 2 !!=
+    5 2 / 2 !!=
+    0 -2 /
+    0 -2 / !!0
+    1 -2 / !!0
+    2 -2 / -1 !!=
+    3 -2 / -1 !!=
+    4 -2 / -2 !!=
+    5 -2 / -2 !!=)
+
+def(test%, --,
+    1 1 % !!0
+    -5 2 % -1 !!=
+    -4 2 % !!0
+    -3 2 % -1 !!=
+    -2 2 % !!0
+    -1 2 % -1 !!=
+    0 2 % !!0
+    1 2 % !!1
+    2 2 % !!0
+    3 2 % !!1
+    4 2 % !!0
+    5 2 % !!1)
 
 run-tests
 

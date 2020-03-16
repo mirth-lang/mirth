@@ -319,6 +319,44 @@ static void output_asm_block (size_t t) {
                                 "    mov [rbx], rax\n"
                                 "    pop rax\n");
                             break;
+                        case BUILTIN_INT_ADD:
+                            fprintf(output.file,
+                                "    add rax, [rbx]\n"
+                                "    lea rbx, [rbx+8]\n");
+                            break;
+
+                        case BUILTIN_INT_SUB:
+                            fprintf(output.file,
+                                "    sub rax, [rbx]\n"
+                                "    neg rax\n"
+                                "    lea rbx, [rbx+8]\n");
+                            break;
+
+                        case BUILTIN_INT_MUL:
+                            fprintf(output.file,
+                                "    imul rax, [rbx]\n"
+                                "    lea rbx, [rbx+8]\n");
+                            break;
+
+                        case BUILTIN_INT_DIV:
+                            fprintf(output.file,
+                                "    mov rcx, rax\n"
+                                "    mov rax, [rbx]\n"
+                                "    lea rbx, [rbx+8]\n"
+                                "    cqo\n"
+                                "    idiv rcx\n");
+                            break;
+
+                        case BUILTIN_INT_MOD:
+                            fprintf(output.file,
+                                "    mov rcx, rax\n"
+                                "    mov rax, [rbx]\n"
+                                "    lea rbx, [rbx+8]\n"
+                                "    cqo\n"
+                                "    idiv rcx\n"
+                                "    mov rax, rdx\n");
+                            break;
+
                         case BUILTIN_INT_EQ:
                             fprintf(output.file,
                                 "    cmp rax, [rbx]\n"
@@ -934,41 +972,43 @@ int main (int argc, const char** argv)
                             state.stack[state.sc+1] = a;
                             break;
 
+                        #define INT_BIN_OP(word,binop)\
+                            arity_check(word, 0, 2, 1);\
+                            a = state.stack[state.sc+1];\
+                            b = state.stack[state.sc];\
+                            ASSERT_TOKEN(a.type == TYPE_INT, ERROR_TYPE, state.pc,\
+                                "Expected int for first argument.");\
+                            ASSERT_TOKEN(b.type == TYPE_INT, ERROR_TYPE, state.pc,\
+                                "Expected int for second argument.");\
+                            state.sc++;\
+                            state.stack[state.sc].data = (int64_t)((int64_t)a.data binop (int64_t)b.data);\
+                            break
+
+                        case BUILTIN_INT_ADD:
+                            INT_BIN_OP("+", +);
+
+                        case BUILTIN_INT_SUB:
+                            INT_BIN_OP("-", -);
+
+                        case BUILTIN_INT_MUL:
+                            INT_BIN_OP("*", *);
+
+                        case BUILTIN_INT_DIV:
+                            INT_BIN_OP("/", /);
+
+                        case BUILTIN_INT_MOD:
+                            INT_BIN_OP("%", %);
+
                         case BUILTIN_INT_EQ:
-                            arity_check("=", 0, 2, 1);
-                            a = state.stack[state.sc+1];
-                            b = state.stack[state.sc];
-                            ASSERT_TOKEN(a.type == TYPE_INT, ERROR_TYPE, state.pc,
-                                "Expected int for first argument.");
-                            ASSERT_TOKEN(b.type == TYPE_INT, ERROR_TYPE, state.pc,
-                                "Expected int for second argument.");
-                            state.sc++;
-                            state.stack[state.sc].data = (a.data == b.data);
-                            break;
+                            INT_BIN_OP("=", ==);
 
                         case BUILTIN_INT_LT:
-                            arity_check("<", 0, 2, 1);
-                            a = state.stack[state.sc+1];
-                            b = state.stack[state.sc];
-                            ASSERT_TOKEN(a.type == TYPE_INT, ERROR_TYPE, state.pc,
-                                "Expected int for first argument.");
-                            ASSERT_TOKEN(b.type == TYPE_INT, ERROR_TYPE, state.pc,
-                                "Expected int for second argument.");
-                            state.sc++;
-                            state.stack[state.sc].data = (a.data < b.data);
-                            break;
+                            INT_BIN_OP("<", <);
 
                         case BUILTIN_INT_LE:
-                            arity_check("<=", 0, 2, 1);
-                            a = state.stack[state.sc+1];
-                            b = state.stack[state.sc];
-                            ASSERT_TOKEN(a.type == TYPE_INT, ERROR_TYPE, state.pc,
-                                "Expected int for first argument.");
-                            ASSERT_TOKEN(b.type == TYPE_INT, ERROR_TYPE, state.pc,
-                                "Expected int for second argument.");
-                            state.sc++;
-                            state.stack[state.sc].data = (a.data <= b.data);
-                            break;
+                            INT_BIN_OP("<=", <=);
+
+                        #undef INT_BIN_OP
 
                         case BUILTIN_DEF:
                             arity_check("def",2+(num_args>2),0,0);
