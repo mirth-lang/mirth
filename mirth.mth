@@ -1,7 +1,7 @@
 
 # TODO:
 #  - Add memory access.
-#  - Add (0-initialized) static variables.
+#  - Add (0-initialized) static buffers.
 #  - Add basic (semi-high-level) file IO words.
 #  - Add while loops.
 
@@ -31,7 +31,14 @@ def(1<, Int -- Bool, 1 <)
 def(1>, Int -- Bool, 1 >)
 def(1<=, Int -- Bool, 1 <=)
 def(1>=, Int -- Bool, 1 >=)
+def(1+, Int -- Int, 1 +)
+def(1-, Int -- Int, 1 -)
 
+def(2*, Int -- Int, 2 *)
+def(2/, Int -- Int, 2 /)
+def(2%, Int -- Int, 2 %)
+def(2+, Int -- Int, 2 +)
+def(2-, Int -- Int, 2 -)
 
 # Assertions
 
