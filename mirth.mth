@@ -40,6 +40,13 @@ def(2%, Int -- Int, 2 %)
 def(2+, Int -- Int, 2 +)
 def(2-, Int -- Int, 2 -)
 
+def(u8, 1)
+def(u16, 2)
+def(u32, 4)
+def(u64, 8)
+
+0x1000 def-static-buffer (TestBuffer)
+
 # Assertions
 
 def(!!, Bool --, if(id, "Assertion failed" panic))
@@ -162,7 +169,6 @@ def(test/, --,
     3 2 / !!1
     4 2 / 2 !!=
     5 2 / 2 !!=
-    0 -2 /
     0 -2 / !!0
     1 -2 / !!0
     2 -2 / -1 !!=

@@ -59,6 +59,7 @@ enum builtin_t {
     BUILTIN_INT_LE,
     BUILTIN_PANIC,
     BUILTIN_DEF,
+    BUILTIN_DEF_STATIC_BUFFER,
     BUILTIN_OUTPUT_ASM,
     NUM_BUILTINS
 };
@@ -81,6 +82,7 @@ struct symbols_t {
         [BUILTIN_DROP] = { .data = "drop" },
         [BUILTIN_SWAP] = { .data = "swap" },
         [BUILTIN_DEF] = { .data = "def" },
+        [BUILTIN_DEF_STATIC_BUFFER] = { .data = "def-static-buffer" },
         [BUILTIN_IF] = { .data = "if" },
         [BUILTIN_INT_ADD] = { .data = "+" },
         [BUILTIN_INT_SUB] = { .data = "-" },
@@ -138,6 +140,8 @@ struct lexer_t {
 // Definitions
 struct defs_t {
     int64_t pc[SYMBOLS_SIZE];
+    int64_t bs[SYMBOLS_SIZE];
+    void* buffer[SYMBOLS_SIZE];
 } defs = { {0} };
 
 enum __attribute__((packed)) type_t {
@@ -465,7 +469,17 @@ static void output_asm (struct value_t path_value, size_t pc) {
     }
     fprintf(output.file,
         "0\n"
-        "section .bss\n"
+        "section .bss\n");
+
+    for (int sym = 0; sym < symbols.length; sym++) {
+        if (defs.bs[sym]) {
+            const char* unmangled_name = symbols.name[sym].data;
+            mangle(mangled_name, unmangled_name);
+            fprintf(output.file, "    b_%s: resb %llu\n", mangled_name, defs.bs[sym]);
+        }
+    }
+
+    fprintf(output.file,
         "    vs: resq 0x10020\n");
     fclose(output.file);
 }
@@ -1019,11 +1033,32 @@ int main (int argc, const char** argv)
                                 ASSERT_TOKEN(tokens.kind[name] == TOKEN_WORD, ERROR_SYNTAX, name,
                                     "Expected word.");
                                 uint64_t w = tokens.value[name];
+                                ASSERT_TOKEN(defs.pc[w] == 0, ERROR_SYNTAX, name,
+                                    "Attempt to define word twice.");
                                 defs.pc[w] = body;
                                 state.fc = saved_fc;
                                 state.pc = next_pc;
                                 goto resume_loop;
                             }
+
+                        case BUILTIN_DEF_STATIC_BUFFER:
+                            arity_check("def-static-buffer", 1, 1, 0);
+                            {
+                                uint64_t name = state.fstack[state.fc].pc;
+                                a = state.stack[state.sc++];
+                                ASSERT_TOKEN(a.type == TYPE_INT, ERROR_TYPE, state.pc,
+                                    "Expected integer.");
+                                ASSERT_TOKEN(tokens.kind[name] == TOKEN_WORD, ERROR_SYNTAX, name,
+                                    "Expected word.");
+                                state.pc = next_pc;
+                                uint64_t w = tokens.value[name];
+                                ASSERT_TOKEN(defs.bs[w] == 0, ERROR_SYNTAX, name,
+                                    "Attempt to define buffer twice.");
+                                defs.bs[w] = a.data;
+                                defs.buffer[w] = malloc(a.data);
+                                goto resume_loop;
+                            }
+
                         case BUILTIN_OUTPUT_ASM:
                             arity_check("output-asm",1,1,0);
                             a = state.stack[state.sc++];
@@ -1088,6 +1123,13 @@ int main (int argc, const char** argv)
         // display stack
         if (state.sc < STACK_SIZE) {
             fprint_stack(stderr);
+        }
+    }
+
+    { // deallocate buffers so valgrind doesn't complain
+        for (int w = 0; w < symbols.length; w++) {
+            free(defs.buffer[w]);
+            defs.buffer[w] = NULL;
         }
     }
 
