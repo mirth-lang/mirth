@@ -1,6 +1,5 @@
 
 # TODO:
-#  - Add arithmetic words.
 #  - Add memory access.
 #  - Add (0-initialized) static variables.
 #  - Add basic (semi-high-level) file IO words.
