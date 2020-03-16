@@ -49,6 +49,14 @@ enum builtin_t {
     BUILTIN_SWAP,
     BUILTIN_DIP,
     BUILTIN_IF,
+    BUILTIN_INT_ADD,
+    BUILTIN_INT_SUB,
+    BUILTIN_INT_MUL,
+    BUILTIN_INT_DIV,
+    BUILTIN_INT_MOD,
+    BUILTIN_INT_EQ,
+    BUILTIN_INT_LT,
+    BUILTIN_INT_LE,
     BUILTIN_PANIC,
     BUILTIN_DEF,
     BUILTIN_OUTPUT_ASM,
@@ -74,6 +82,14 @@ struct symbols_t {
         [BUILTIN_SWAP] = { .data = "swap" },
         [BUILTIN_DEF] = { .data = "def" },
         [BUILTIN_IF] = { .data = "if" },
+        [BUILTIN_INT_ADD] = { .data = "+" },
+        [BUILTIN_INT_SUB] = { .data = "-" },
+        [BUILTIN_INT_MUL] = { .data = "*" },
+        [BUILTIN_INT_DIV] = { .data = "/" },
+        [BUILTIN_INT_MOD] = { .data = "%" },
+        [BUILTIN_INT_EQ] = { .data = "=" },
+        [BUILTIN_INT_LT] = { .data = "<" },
+        [BUILTIN_INT_LE] = { .data = "<=" },
         [BUILTIN_PANIC] = { .data = "panic" },
         [BUILTIN_OUTPUT_ASM] = { .data = "output-asm" },
     }
@@ -277,50 +293,84 @@ static void output_asm_block (size_t t) {
                         case BUILTIN_ID:
                             break;
                         case BUILTIN_DROP:
-                            fprintf(output.file, "    mov rax, [rbx]\n");
-                            fprintf(output.file, "    lea rbx, [rbx+8]\n");
+                            fprintf(output.file,
+                                "    mov rax, [rbx]\n"
+                                "    lea rbx, [rbx+8]\n");
                             break;
                         case BUILTIN_DUP:
-                            fprintf(output.file, "    lea rbx, [rbx-8]\n");
-                            fprintf(output.file, "    mov [rbx], rax\n");
+                            fprintf(output.file,
+                                "    lea rbx, [rbx-8]\n"
+                                "    mov [rbx], rax\n");
                             break;
                         case BUILTIN_SWAP:
-                            fprintf(output.file, "    mov rcx, [rbx]\n");
-                            fprintf(output.file, "    mov [rbx], rax\n");
-                            fprintf(output.file, "    mov rax, rcx\n");
+                            fprintf(output.file,
+                                "    mov rcx, [rbx]\n"
+                                "    mov [rbx], rax\n"
+                                "    mov rax, rcx\n");
                             break;
                         case BUILTIN_DIP:
-                            fprintf(output.file, "    push rax\n");
-                            fprintf(output.file, "    mov rax, [rbx]\n");
-                            fprintf(output.file, "    lea rbx, [rbx+8]\n");
+                            fprintf(output.file,
+                                "    push rax\n"
+                                "    mov rax, [rbx]\n"
+                                "    lea rbx, [rbx+8]\n");
                             output_asm_block(args[0]);
-                            fprintf(output.file, "    lea rbx, [rbx-8]\n");
-                            fprintf(output.file, "    mov [rbx], rax\n");
-                            fprintf(output.file, "    pop rax\n");
+                            fprintf(output.file,
+                                "    lea rbx, [rbx-8]\n"
+                                "    mov [rbx], rax\n"
+                                "    pop rax\n");
+                            break;
+                        case BUILTIN_INT_EQ:
+                            fprintf(output.file,
+                                "    cmp rax, [rbx]\n"
+                                "    lea rbx, [rbx+8]\n"
+                                "    sete al\n"
+                                "    movzx eax, al\n");
+                            break;
+                        case BUILTIN_INT_LT:
+                            fprintf(output.file,
+                                "    cmp rax, [rbx]\n"
+                                "    lea rbx, [rbx+8]\n"
+                                "    setg al\n"
+                                "    movzx eax, al\n");
+                            break;
+                        case BUILTIN_INT_LE:
+                            fprintf(output.file,
+                                "    cmp rax, [rbx]\n"
+                                "    lea rbx, [rbx+8]\n"
+                                "    setge al\n"
+                                "    movzx eax, al\n");
                             break;
                         case BUILTIN_IF:
                             {
                                 int l1 = output.fresh++;
                                 int l2 = output.fresh++;
-                                fprintf(output.file, "    test rax, rax\n");
-                                fprintf(output.file, "    jz .L%d\n", l1);
-                                fprintf(output.file, "    mov rax, [rbx]\n");
-                                fprintf(output.file, "    lea rbx, [rbx+8]\n");
+                                fprintf(output.file,
+                                    "    test rax, rax\n"
+                                    "    jz .L%d\n"
+                                    "    mov rax, [rbx]\n"
+                                    "    lea rbx, [rbx+8]\n"
+                                    , l1);
                                 output_asm_block(args[0]);
-                                fprintf(output.file, "    jmp .L%d\n", l2);
-                                fprintf(output.file, ".L%d:\n", l1);
-                                fprintf(output.file, "    mov rax, [rbx]\n");
-                                fprintf(output.file, "    lea rbx, [rbx+8]\n");
+                                fprintf(output.file,
+                                    "    jmp .L%d\n"
+                                    ".L%d:\n"
+                                    "    mov rax, [rbx]\n"
+                                    "    lea rbx, [rbx+8]\n"
                                     // read manual to figure out if can do
                                     // these moves before jumping
+                                    , l2
+                                    , l1);
                                 output_asm_block(args[1]);
-                                fprintf(output.file, ".L%d:\n", l2);
+                                fprintf(output.file,
+                                    ".L%d:\n"
+                                    , l2);
                             }
                             break;
                         case BUILTIN_PANIC:
-                            fprintf(output.file, "    mov rax, 0x2000001\n"); // exit syscall
-                            fprintf(output.file, "    mov rdi, 1\n");
-                            fprintf(output.file, "    syscall\n");
+                            fprintf(output.file,
+                                "    mov rax, 0x2000001\n" // exit syscall
+                                "    mov rdi, 1\n"
+                                "    syscall\n");
                             break;
 
                         default:
@@ -346,15 +396,17 @@ static void output_asm (struct value_t path_value, size_t pc) {
     const char* path = &strings.data[path_value.data];
     output.file = fopen(path, "w");
     output.fresh = 0;
-    fprintf(output.file, "bits 64\n");
-    fprintf(output.file, "section .text\n");
-    fprintf(output.file, "global start\n");
-    fprintf(output.file, "start:\n");
-    fprintf(output.file, "    lea rbx, [rel vs+0x10000]\n");
+    fprintf(output.file,
+        "bits 64\n"
+        "section .text\n"
+        "global start\n"
+        "start:\n"
+        "    lea rbx, [rel vs+0x10000]\n");
     output_asm_block(pc);
-    fprintf(output.file, "    mov rax, 0x2000001\n");
-    fprintf(output.file, "    mov rdi, 0\n");
-    fprintf(output.file, "    syscall\n");
+    fprintf(output.file,
+        "    mov rax, 0x2000001\n"
+        "    mov rdi, 0\n"
+        "    syscall\n");
 
     char mangled_name[NAME_SIZE*4+1];
     for (int sym = 0; sym < symbols.length; sym++) {
@@ -366,15 +418,17 @@ static void output_asm (struct value_t path_value, size_t pc) {
             fprintf(output.file, "    ret\n");
         }
     }
-    fprintf(output.file, "section .data\n");
-    fprintf(output.file, "    vc: dq 0x10000\n");
-    fprintf(output.file, "    strings: db ");
+    fprintf(output.file,
+        "section .data\n"
+        "    vc: dq 0x10000\n"
+        "    strings: db ");
     for (int i = 0; i < strings.length; i++) {
         fprintf(output.file, "0%.2Xh, ", strings.data[i]);
     }
-    fprintf(output.file, "0\n");
-    fprintf(output.file, "section .bss\n");
-    fprintf(output.file, "    vs: resq 0x10020\n");
+    fprintf(output.file,
+        "0\n"
+        "section .bss\n"
+        "    vs: resq 0x10020\n");
     fclose(output.file);
 }
 
@@ -758,7 +812,7 @@ int main (int argc, const char** argv)
                 ASSERT_TOKEN(state.sc <= STACK_SIZE - num_in, ERROR_UNDERFLOW, state.pc, "Stack underflow."); \
                 ASSERT_TOKEN(state.sc >= num_out, ERROR_OVERFLOW, state.pc, "Stack overflow."); \
             } while(0)
-        struct value_t a;
+        struct value_t a,b;
         struct fvalue_t f;
         int64_t next_pc, num_args, saved_fc;
         for (; state.pc < tokens.length; state.pc++) {
@@ -879,6 +933,43 @@ int main (int argc, const char** argv)
                             state.stack[state.sc] = state.stack[state.sc+1];
                             state.stack[state.sc+1] = a;
                             break;
+
+                        case BUILTIN_INT_EQ:
+                            arity_check("=", 0, 2, 1);
+                            a = state.stack[state.sc+1];
+                            b = state.stack[state.sc];
+                            ASSERT_TOKEN(a.type == TYPE_INT, ERROR_TYPE, state.pc,
+                                "Expected int for first argument.");
+                            ASSERT_TOKEN(b.type == TYPE_INT, ERROR_TYPE, state.pc,
+                                "Expected int for second argument.");
+                            state.sc++;
+                            state.stack[state.sc].data = (a.data == b.data);
+                            break;
+
+                        case BUILTIN_INT_LT:
+                            arity_check("<", 0, 2, 1);
+                            a = state.stack[state.sc+1];
+                            b = state.stack[state.sc];
+                            ASSERT_TOKEN(a.type == TYPE_INT, ERROR_TYPE, state.pc,
+                                "Expected int for first argument.");
+                            ASSERT_TOKEN(b.type == TYPE_INT, ERROR_TYPE, state.pc,
+                                "Expected int for second argument.");
+                            state.sc++;
+                            state.stack[state.sc].data = (a.data < b.data);
+                            break;
+
+                        case BUILTIN_INT_LE:
+                            arity_check("<=", 0, 2, 1);
+                            a = state.stack[state.sc+1];
+                            b = state.stack[state.sc];
+                            ASSERT_TOKEN(a.type == TYPE_INT, ERROR_TYPE, state.pc,
+                                "Expected int for first argument.");
+                            ASSERT_TOKEN(b.type == TYPE_INT, ERROR_TYPE, state.pc,
+                                "Expected int for second argument.");
+                            state.sc++;
+                            state.stack[state.sc].data = (a.data <= b.data);
+                            break;
+
                         case BUILTIN_DEF:
                             arity_check("def",2+(num_args>2),0,0);
                             {
