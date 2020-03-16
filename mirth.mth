@@ -1,7 +1,6 @@
 
 # TODO:
 #  - Add memory access.
-#  - Add (0-initialized) static buffers.
 #  - Add basic (semi-high-level) file IO words.
 #  - Add while loops.
 
@@ -45,8 +44,6 @@ def(u16, 2)
 def(u32, 4)
 def(u64, 8)
 
-0x1000 def-static-buffer (TestBuffer)
-
 # Assertions
 
 def(!!, Bool --, if(id, "Assertion failed" panic))
@@ -70,7 +67,7 @@ def(!!111, Int Int --, !!1 !!1 !!1)
 
 def(run-tests, --, test-if test-drop test-dup test-swap test-dip
     test-trip test-rotr test-rotl test= test< test<= test> test>=
-    test+ test- test* test/ test%)
+    test+ test- test* test/ test% test@!)
 def(test-if, --, 0 !!0 1 !!1 0 1 !!1 !!0)
 def(test-drop, --, 0 1 drop !!0)
 def(test-dup, --, 0 1 dup !!011)
@@ -189,6 +186,29 @@ def(test%, --,
     3 2 % !!1
     4 2 % !!0
     5 2 % !!1)
+
+0x10 def-static-buffer(TestBuffer)
+def(u8@test, u8@(TestBuffer))
+def(i8@test, i8@(TestBuffer))
+def(u8!test, u8!(TestBuffer))
+def(i8!test, i8!(TestBuffer))
+def(u16@test, u16@(TestBuffer))
+def(i16@test, i16@(TestBuffer))
+def(u16!test, u16!(TestBuffer))
+def(i16!test, i16!(TestBuffer))
+
+def(test@!, --,
+    0 u8@test !!0 1 u8@test !!0
+    10 0 u8!test 0 u8@test 10 !!= 1 u8@test !!0
+    20 0 u8!test 0 u8@test 20 !!= 1 u8@test !!0
+    0x1FF 0 u8!test 0 u8@test 0xFF !!= 1 u8@test !!0 0 u16@test 0xFF !!=
+    0x1FF 0 u16!test 0 u8@test 0xFF !!= 1 u8@test !!1 0 u16@test 0x1FF !!=
+    -1 0 u8!test 0 u8@test 0xFF !!=
+    -1 0 u16!test 0 u16@test 0xFFFF !!=
+    -1 0 i16!test 0 i16@test -1 !!=
+    -1 0 i16!test 0 i8@test -1 !!=
+    0 0 i16!test -1 0 i8!test 0 i16@test 0xFF !!=
+    )
 
 run-tests
 
