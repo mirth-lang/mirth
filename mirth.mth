@@ -196,6 +196,14 @@ def(u16@test, u16@(TestBuffer))
 def(i16@test, i16@(TestBuffer))
 def(u16!test, u16!(TestBuffer))
 def(i16!test, i16!(TestBuffer))
+def(u32@test, u32@(TestBuffer))
+def(i32@test, i32@(TestBuffer))
+def(u32!test, u32!(TestBuffer))
+def(i32!test, i32!(TestBuffer))
+def(u64@test, u64@(TestBuffer))
+def(i64@test, i64@(TestBuffer))
+def(u64!test, u64!(TestBuffer))
+def(i64!test, i64!(TestBuffer))
 
 def(test@!, --,
     0 u8@test !!0 1 u8@test !!0

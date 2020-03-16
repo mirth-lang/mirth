@@ -445,6 +445,19 @@ static void output_asm_block (size_t t) {
                             }
                             break;
 
+                        case BUILTIN_MEM_GET_U32:
+                            {
+                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
+                                mangle(mangled_name, unmangled_name);
+                                fprintf(output.file,
+                                    "    lea rdx, [rel b_%s]\n"
+                                    "    add rdx, rax\n"
+                                    "    mov eax, dword [rdx]\n"
+                                    , mangled_name
+                                    );
+                            }
+                            break;
+
                         case BUILTIN_MEM_GET_I8:
                             {
                                 const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
@@ -466,6 +479,33 @@ static void output_asm_block (size_t t) {
                                     "    lea rdx, [rel b_%s]\n"
                                     "    add rdx, rax\n"
                                     "    movsx rax, word [rdx]\n"
+                                    , mangled_name
+                                    );
+                            }
+                            break;
+
+                        case BUILTIN_MEM_GET_I32:
+                            {
+                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
+                                mangle(mangled_name, unmangled_name);
+                                fprintf(output.file,
+                                    "    lea rdx, [rel b_%s]\n"
+                                    "    add rdx, rax\n"
+                                    "    movsx rax, dword [rdx]\n"
+                                    , mangled_name
+                                    );
+                            }
+                            break;
+
+                        case BUILTIN_MEM_GET_U64:
+                        case BUILTIN_MEM_GET_I64:
+                            {
+                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
+                                mangle(mangled_name, unmangled_name);
+                                fprintf(output.file,
+                                    "    lea rdx, [rel b_%s]\n"
+                                    "    add rdx, rax\n"
+                                    "    mov rax, qword [rdx]\n"
                                     , mangled_name
                                     );
                             }
@@ -498,6 +538,38 @@ static void output_asm_block (size_t t) {
                                     "    mov rax, [rbx]\n"
                                     "    lea rbx, [rbx+8]\n"
                                     "    stosw\n"
+                                    , mangled_name
+                                    );
+                            }
+                            break;
+
+                        case BUILTIN_MEM_SET_U32:
+                        case BUILTIN_MEM_SET_I32:
+                            {
+                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
+                                mangle(mangled_name, unmangled_name);
+                                fprintf(output.file,
+                                    "    lea rdi, [rel b_%s]\n"
+                                    "    add rdi, rax\n"
+                                    "    mov rax, [rbx]\n"
+                                    "    lea rbx, [rbx+8]\n"
+                                    "    stosd\n"
+                                    , mangled_name
+                                    );
+                            }
+                            break;
+
+                        case BUILTIN_MEM_SET_U64:
+                        case BUILTIN_MEM_SET_I64:
+                            {
+                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
+                                mangle(mangled_name, unmangled_name);
+                                fprintf(output.file,
+                                    "    lea rdi, [rel b_%s]\n"
+                                    "    add rdi, rax\n"
+                                    "    mov rax, [rbx]\n"
+                                    "    lea rbx, [rbx+8]\n"
+                                    "    stosq\n"
                                     , mangled_name
                                     );
                             }
