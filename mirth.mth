@@ -1,8 +1,9 @@
 
 # TODO:
-#  - Add memory access.
-#  - Add basic (semi-high-level) file IO words.
+#  - Add more memory access tests (see below).
+#  - Add string memory access & fix strings.
 #  - Add while loops.
+#  - Add basic (semi-high-level) file IO words.
 
 # Prelude
 
@@ -216,6 +217,14 @@ def(test@!, --,
     -1 0 i16!test 0 i16@test -1 !!=
     -1 0 i16!test 0 i8@test -1 !!=
     0 0 i16!test -1 0 i8!test 0 i16@test 0xFF !!=
+    # TODO add tests for u32, i32, u64, i64
+    # specifically, add tests that zero-extension works with u32 (and u8, and u16)
+    # add tests that sign-extension works
+    # try to avoid arch assumptions? (LE/BE) not sure if worth it
+    # organize these tests:
+    #   - persistence test
+    #   - zero extension test
+    #   - sign extension / cast test (well ... it's the same as sign extension test?)
     )
 
 run-tests
