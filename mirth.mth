@@ -54,7 +54,7 @@ def(or, Bool Bool -- Bool, swap if(drop 1, id))
 
 # Assertions
 
-def(!!, Bool --, if(id, "Assertion failed" panic))
+def(!!, Bool --, if(id, "Assertion failed" panic!))
 def(!!=, Int Int --, = !!)
 def(!!0, Int --, 0 !!=)
 def(!!1, Int --, 1 !!=)
@@ -96,7 +96,7 @@ def(str-buf-full?, str-buf-length? 1+ STR_BUF_SIZE >=)
 def(str-buf-clear!, 0 str-buf-length!)
 def(str-buf-push!,
     str-buf-full? if(
-        "str-buf-push but STR_BUF is already full" panic,
+        "str-buf-push but STR_BUF is already full" panic!,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     ))
@@ -387,6 +387,9 @@ def(int-print-sp!, Int -- +IO, int-print! print-sp!)
 def(int-trace-sp!, Int -- +IO, int-trace! trace-sp!)
 def(int-print-ln!, Int -- +IO, int-print! print-ln!)
 def(int-trace-ln!, Int -- +IO, int-trace! trace-ln!)
+
+def(panic!, Str -- +IO,
+    "panic: " str-trace! str-trace-ln! 0 exit!)
 
 # reverse contents of str buf
 

@@ -81,7 +81,7 @@ enum builtin_t {
     BUILTIN_MEM_SET_I64,
     BUILTIN_MEM_READ,
     BUILTIN_MEM_WRITE,
-    BUILTIN_PANIC,
+    BUILTIN_EXIT,
     BUILTIN_DEF,
     BUILTIN_DEF_STATIC_BUFFER,
     BUILTIN_OUTPUT_ASM,
@@ -137,7 +137,7 @@ struct symbols_t {
         [BUILTIN_MEM_SET_I64] = { .data = "i64!" },
         [BUILTIN_MEM_READ] = { .data = "read" },
         [BUILTIN_MEM_WRITE] = { .data = "write" },
-        [BUILTIN_PANIC] = { .data = "panic" },
+        [BUILTIN_EXIT] = { .data = "exit!" },
         [BUILTIN_DEF] = { .data = "def" },
         [BUILTIN_DEF_STATIC_BUFFER] = { .data = "def-static-buffer" },
         [BUILTIN_OUTPUT_ASM] = { .data = "output-asm" },
@@ -668,10 +668,10 @@ static void output_asm_block (size_t t) {
                             }
                             break;
 
-                        case BUILTIN_PANIC:
+                        case BUILTIN_EXIT:
                             fprintf(output.file,
+                                "    mov rdi, rax\n"
                                 "    mov rax, 0x2000001\n" // exit syscall
-                                "    mov rdi, 1\n"
                                 "    syscall\n");
                             break;
 
@@ -1244,22 +1244,10 @@ int main (int argc, const char** argv)
                             }
                             goto resume_loop;
 
-                        case BUILTIN_PANIC:
-                            arity_check("panic", 0, 1, 0);
-                            if (state.stack[state.sc].type == TYPE_STR) {
-                                fprintf(stderr, "%s:%d:%d: error: panic: %s\n",
-                                    command.path, tokens.row[state.pc], tokens.col[state.pc],
-                                    &strings.data[state.stack[state.sc++].data]);
-                                fprintf(stderr, "stack: ");
-                                fprint_stack(stderr);
-                                return ERROR_PANIC;
-                            } else {
-                                fprintf(stderr, "%s:%d:%d: error: panic expected message\n",
-                                    command.path, tokens.row[state.pc], tokens.col[state.pc]);
-                                fprintf(stderr, "stack: ");
-                                fprint_stack(stderr);
-                                return ERROR_TYPE;
-                            }
+                        case BUILTIN_EXIT:
+                            arity_check("exit", 0, 1, 0);
+                            exit(state.stack[state.sc].data);
+
                         case BUILTIN_DUP:
                             arity_check("dup", 0, 1, 2);
                             a = state.stack[state.sc];
