@@ -1,9 +1,10 @@
 
 # TODO:
-#  - Add while loops.
 #  - Add basic (semi-high-level) file IO words.
 
-# Prelude
+###########
+# Prelude #
+###########
 
 def(trip, a -- a a a, dup dup)
 def(rotr, a b c -- c a b, swap dip(swap))
@@ -70,7 +71,7 @@ def(!!111, Int Int --, !!1 !!1 !!1)
 
 def(run-tests, --, test-if test-drop test-dup test-swap test-dip
     test-trip test-rotr test-rotl test= test< test<= test> test>=
-    test+ test- test* test/ test% test@! test-str)
+    test+ test- test* test/ test% test@! test-str test-while)
 def(test-if, --, 0 !!0 1 !!1 0 1 !!1 !!0)
 def(test-drop, --, 0 1 drop !!0)
 def(test-dup, --, 0 1 dup !!011)
@@ -253,9 +254,7 @@ def(test@!, --,
     0 0 i64!test 0 |i64| i64!test
     10 0 i64!test 0 i64@test 10 !!= |i64| i64@test 0 !!=
     -20 0 i64!test 0 i64@test -20 !!= |i64| i64@test 0 !!=
-    30 |i64| i64!test 0 i64@test -20 !!= |i64| i64@test 30 !!=
-
-    )
+    30 |i64| i64!test 0 i64@test -20 !!= |i64| i64@test 30 !!=)
 
 def(test-str,
     "AaBb"
@@ -266,8 +265,19 @@ def(test-str,
     dup str-tail str-tail str-tail str-tail str-head 0 !!=
     drop)
 
+def(test-while,
+    10 20 while(1- dip(1+)) 30 !!=)
+
 run-tests
 
-# Build
+#########
+# Lexer #
+#########
+
+
+
+#########
+# Build #
+#########
 
 "mirth.asm" output-asm(run-tests)

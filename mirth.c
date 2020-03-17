@@ -611,6 +611,27 @@ static void output_asm_block (size_t t) {
                                     , l2);
                             }
                             break;
+                        case BUILTIN_WHILE:
+                            {
+                                int l1 = output.fresh++;
+                                int l2 = output.fresh++;
+                                fprintf(output.file,
+                                    ".L%d:\n"
+                                    "    test rax, rax\n"
+                                    "    jz .L%d\n"
+                                    , l1
+                                    , l2);
+                                output_asm_block(args[0]);
+                                fprintf(output.file,
+                                    "    jmp .L%d\n"
+                                    ".L%d:\n"
+                                    "    mov rax, [rbx]\n"
+                                    "    lea rbx, [rbx+8]\n"
+                                    , l1
+                                    , l2);
+                            }
+                            break;
+
                         case BUILTIN_PANIC:
                             fprintf(output.file,
                                 "    mov rax, 0x2000001\n" // exit syscall
@@ -1157,6 +1178,24 @@ int main (int argc, const char** argv)
                             state.pc = a.data ? state.fstack[state.fc+1].pc : state.fstack[state.fc].pc;
                             state.fc += 2;
                             goto resume_loop;
+
+                        case BUILTIN_WHILE:
+                            arity_check("while", 1, 1, 0);
+                            ASSERT_TOKEN(state.rc >= 1, ERROR_OVERFLOW, state.rc,
+                                "rstack ran out, increase RSTACK_SIZE.");
+                            a = state.stack[state.sc];
+                            if (a.data) {
+                                a.type = TYPE_PC;
+                                a.data = state.pc;
+                                state.rstack[--state.rc] = a;
+                                state.pc = state.fstack[state.fc].pc;
+                                state.fc++;
+                            } else {
+                                state.pc = next_pc;
+                                state.sc++;
+                            }
+                            goto resume_loop;
+
                         case BUILTIN_PANIC:
                             arity_check("panic", 0, 1, 0);
                             if (state.stack[state.sc].type == TYPE_STR) {
