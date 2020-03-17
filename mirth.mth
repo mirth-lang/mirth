@@ -48,6 +48,10 @@ def(|i16|, 2)
 def(|i32|, 4)
 def(|i64|, 8)
 
+def(not, Bool -- Bool, 0 =)
+def(and, Bool Bool -- Bool, swap if(id, drop 0))
+def(or, Bool Bool -- Bool, swap if(drop 1, id))
+
 # Assertions
 
 def(!!, Bool --, if(id, "Assertion failed" panic))
@@ -66,6 +70,52 @@ def(!!100, Int Int --, !!0 !!0 !!1)
 def(!!101, Int Int --, !!1 !!0 !!1)
 def(!!110, Int Int --, !!0 !!1 !!1)
 def(!!111, Int Int --, !!1 !!1 !!1)
+
+
+def(str-head?, Str -- Str Int, dup str-head)
+def(str-tail?, Str -- Str Str, dup str-tail)
+def(str-null, Str -- Bool, str-head 0=)
+def(str-null?, Str -- Str Bool, dup str-null)
+def(str-not-null, Str -- Bool, str-null not)
+def(str-not-null?, Str -- Str Bool, dup str-not-null)
+def(str-length?, Str -- Str Int, dup str-length)
+def(str-length, Str -- Int,
+    dip(0) str-not-null? while(
+        drop str-tail dip(1+)
+        str-not-null?
+    ) drop)
+
+def(STR_BUF_SIZE, 0x1000)
+|u64| def-static-buffer(STR_BUF_LEN)
+STR_BUF_SIZE def-static-buffer(STR_BUF)
+def(str-buf-length?, 0 u64@(STR_BUF_LEN))
+def(str-buf-length!, dup 0 u64!(STR_BUF_LEN) dip(0) str-buf-u8!)
+def(str-buf-u8@, u8@(STR_BUF))
+def(str-buf-u8!, u8!(STR_BUF))
+def(str-buf-full?, str-buf-length? 1+ STR_BUF_SIZE >=)
+def(str-buf-clear!, 0 str-buf-length!)
+def(str-buf-push!,
+    str-buf-full? if(
+        "str-buf-push but STR_BUF is already full" panic,
+        str-buf-length? str-buf-u8!
+        str-buf-length? 1+ str-buf-length!
+    ))
+def(str-buf-write, 0 str-buf-length? write(STR_BUF))
+
+# Clear STR_BUF and copy prefix of string over to it.
+# Returns remaining string.
+def(str-buf-copy!, Str -- Str,
+    str-buf-clear!
+    str-head?
+    while(
+        str-buf-push!
+        str-tail
+        str-buf-full? if(0, str-head?)
+    ))
+
+# Set the STR_BUF to a given string. If the string is
+# too large (> STR_BUF_SIZE - 1) it gets truncated.
+def(str-buf!, Str --, str-buf-copy! drop)
 
 # Tests
 
@@ -216,22 +266,22 @@ def(test@!, --,
     # -- we don't make architectural assumptions here, like little
     # endian vs big endian.
 
-    0 0 u8!test 0 |u8| u8!test
+    999 0 0 u8!test 999 !!= 0 |u8| u8!test
     10 0 u8!test 0 u8@test 10 !!= |u8| u8@test 0 !!=
     20 0 u8!test 0 u8@test 20 !!= |u8| u8@test 0 !!=
     30 |u8| u8!test 0 u8@test 20 !!= |u8| u8@test 30 !!=
 
-    0 0 u16!test 0 |u16| u16!test
+    999 0 0 u16!test 999 !!= 0 |u16| u16!test
     10 0 u16!test 0 u16@test 10 !!= |u16| u16@test 0 !!=
     20 0 u16!test 0 u16@test 20 !!= |u16| u16@test 0 !!=
     30 |u16| u16!test 0 u16@test 20 !!= |u16| u16@test 30 !!=
 
-    0 0 u32!test 0 |u32| u32!test
+    999 0 0 u32!test 999 !!= 0 |u32| u32!test
     10 0 u32!test 0 u32@test 10 !!= |u32| u32@test 0 !!=
     20 0 u32!test 0 u32@test 20 !!= |u32| u32@test 0 !!=
     30 |u32| u32!test 0 u32@test 20 !!= |u32| u32@test 30 !!=
 
-    0 0 u64!test 0 |u64| u64!test
+    999 0 0 u64!test 999 !!= 0 |u64| u64!test
     10 0 u64!test 0 u64@test 10 !!= |u64| u64@test 0 !!=
     20 0 u64!test 0 u64@test 20 !!= |u64| u64@test 0 !!=
     30 |u64| u64!test 0 u64@test 20 !!= |u64| u64@test 30 !!=
@@ -263,21 +313,53 @@ def(test-str,
     dup str-tail str-tail str-head 66 !!=
     dup str-tail str-tail str-tail str-head 98 !!=
     dup str-tail str-tail str-tail str-tail str-head 0 !!=
-    drop)
+    drop
+
+    "" str-length 0 !!=
+    "hello" str-length 5 !!=
+    "hello, world!" str-length 13 !!=
+    )
 
 def(test-while,
-    10 20 while(1- dip(1+)) 30 !!=)
+    999 10 20 while(1- dip(1+)) 30 !!= 999 !!=)
 
-run-tests
+
+# def(str-print, Str --,
+#     str-not-null? while(
+#         drop
+#         str-copy dip(
+#             dip(1 0) write(STR_BUF)
+#         )
+#         str-not-null?
+#     )
+#     drop)
+
+# def(do-it, "Hello, world!\n" str-copy drop dip(1 0) ?? write(STR_BUF))
+
+# do-it
+
+
+# drop dip(0 0) write(STR_BUF)
 
 #########
 # Lexer #
 #########
 
-
-
 #########
-# Build #
+# Main #
 #########
 
-"mirth.asm" output-asm(run-tests)
+def(main,
+    run-tests
+
+    "\nMirth v0.0.0\nHello, World!\n\n" str-buf!
+    1 str-buf-write
+)
+
+main
+
+###############
+# Build Rules #
+###############
+
+"mirth.asm" output-asm(main)

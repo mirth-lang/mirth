@@ -19,6 +19,7 @@
     ASSERT(b, error, command.path, tokens.row[t], tokens.col[t], msg)
 #define ASSERT_BASIC(b) \
     ASSERT(b, ERROR_IMPOSSIBLE, __FILE__, __LINE__, 1, "assertion failed")
+#include <unistd.h>
 
 enum error_t {
     WARNING = 0,
@@ -43,6 +44,7 @@ struct command_t {
 // String table
 enum builtin_t {
     BUILTIN_END = 0,
+    BUILTIN_DEBUG,
     BUILTIN_ID,
     BUILTIN_DUP,
     BUILTIN_DROP,
@@ -60,6 +62,7 @@ enum builtin_t {
     BUILTIN_INT_LE,
     BUILTIN_STR_HEAD,
     BUILTIN_STR_TAIL,
+    BUILTIN_STR_WRITE,
     BUILTIN_MEM_GET_U8,
     BUILTIN_MEM_GET_U16,
     BUILTIN_MEM_GET_U32,
@@ -76,6 +79,8 @@ enum builtin_t {
     BUILTIN_MEM_SET_I16,
     BUILTIN_MEM_SET_I32,
     BUILTIN_MEM_SET_I64,
+    BUILTIN_MEM_READ,
+    BUILTIN_MEM_WRITE,
     BUILTIN_PANIC,
     BUILTIN_DEF,
     BUILTIN_DEF_STATIC_BUFFER,
@@ -94,6 +99,7 @@ struct symbols_t {
 } symbols = {
     .length = NUM_BUILTINS,
     .name = {
+        [BUILTIN_DEBUG] = { .data = "??" },
         [BUILTIN_END] = { .data = "end" },
         [BUILTIN_ID] = { .data = "id" },
         [BUILTIN_DUP] = { .data = "dup" },
@@ -112,6 +118,7 @@ struct symbols_t {
         [BUILTIN_INT_LE] = { .data = "<=" },
         [BUILTIN_STR_HEAD] = { .data = "str-head" },
         [BUILTIN_STR_TAIL] = { .data = "str-tail" },
+        [BUILTIN_STR_WRITE] = { .data = "str-write" },
         [BUILTIN_MEM_GET_U8] = { .data = "u8@" },
         [BUILTIN_MEM_GET_U16] = { .data = "u16@" },
         [BUILTIN_MEM_GET_U32] = { .data = "u32@" },
@@ -128,6 +135,8 @@ struct symbols_t {
         [BUILTIN_MEM_SET_I16] = { .data = "i16!" },
         [BUILTIN_MEM_SET_I32] = { .data = "i32!" },
         [BUILTIN_MEM_SET_I64] = { .data = "i64!" },
+        [BUILTIN_MEM_READ] = { .data = "read" },
+        [BUILTIN_MEM_WRITE] = { .data = "write" },
         [BUILTIN_PANIC] = { .data = "panic" },
         [BUILTIN_DEF] = { .data = "def" },
         [BUILTIN_DEF_STATIC_BUFFER] = { .data = "def-static-buffer" },
@@ -426,7 +435,7 @@ static void output_asm_block (size_t t) {
 
                         case BUILTIN_STR_TAIL:
                             fprintf(output.file,
-                                "   inc rax\n");
+                                "    inc rax\n");
                             break;
 
                         case BUILTIN_MEM_GET_U8:
@@ -530,8 +539,9 @@ static void output_asm_block (size_t t) {
                                     "    lea rdi, [rel b_%s]\n"
                                     "    add rdi, rax\n"
                                     "    mov rax, [rbx]\n"
-                                    "    lea rbx, [rbx+8]\n"
                                     "    stosb\n"
+                                    "    mov rax, [rbx+8]\n"
+                                    "    lea rbx, [rbx+16]\n"
                                     , mangled_name
                                     );
                             }
@@ -546,8 +556,9 @@ static void output_asm_block (size_t t) {
                                     "    lea rdi, [rel b_%s]\n"
                                     "    add rdi, rax\n"
                                     "    mov rax, [rbx]\n"
-                                    "    lea rbx, [rbx+8]\n"
                                     "    stosw\n"
+                                    "    mov rax, [rbx+8]\n"
+                                    "    lea rbx, [rbx+16]\n"
                                     , mangled_name
                                     );
                             }
@@ -562,8 +573,9 @@ static void output_asm_block (size_t t) {
                                     "    lea rdi, [rel b_%s]\n"
                                     "    add rdi, rax\n"
                                     "    mov rax, [rbx]\n"
-                                    "    lea rbx, [rbx+8]\n"
                                     "    stosd\n"
+                                    "    mov rax, [rbx+8]\n"
+                                    "    lea rbx, [rbx+16]\n"
                                     , mangled_name
                                     );
                             }
@@ -578,11 +590,35 @@ static void output_asm_block (size_t t) {
                                     "    lea rdi, [rel b_%s]\n"
                                     "    add rdi, rax\n"
                                     "    mov rax, [rbx]\n"
-                                    "    lea rbx, [rbx+8]\n"
                                     "    stosq\n"
+                                    "    mov rax, [rbx+8]\n"
+                                    "    lea rbx, [rbx+16]\n"
                                     , mangled_name
                                     );
                             }
+                            break;
+
+                        case BUILTIN_MEM_WRITE:
+                            {
+                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
+                                mangle(mangled_name, unmangled_name);
+                                fprintf(output.file,
+                                    "    mov rdi, [rbx+8]\n" // file descriptior
+                                    "    lea rsi, [rel b_%s]\n" // load buffer address
+                                    "    add rsi, [rbx]\n" // and add offset
+                                    "    mov rdx, rax\n" // size to write
+                                    "    mov rax, 0x2000004\n" // select "write" syscall
+                                    "    push rbx\n"
+                                    "    syscall\n" // invoke syscall
+                                    "    pop rbx\n"
+                                    "    mov rax, [rbx+16]\n"
+                                    "    lea rbx, [rbx+24]\n" // drop3
+                                    , mangled_name
+                                    );
+                            }
+                            break;
+
+                        case BUILTIN_DEBUG:
                             break;
 
                         case BUILTIN_IF:
@@ -662,12 +698,22 @@ static void output_asm (struct value_t path_value, size_t pc) {
     const char* path = &strings.data[path_value.data];
     output.file = fopen(path, "w");
     output.fresh = 0;
+    // int64_t bss_size = 0;
+    // for (int i = 0; i < symbols.length; i++) {
+    //     bss_size += defs.bs[i];
+    // }
     fprintf(output.file,
         "bits 64\n"
         "section .text\n"
         "global start\n"
         "start:\n"
-        "    lea rbx, [rel vs+0x10000]\n");
+        "    lea rbx, [rel vs+0x10000]\n"
+        // "    lea rdi, [rel bss_start]\n"
+        // "    xor rax, rax\n"
+        // "    mov ecx, %lld\n"
+        // "    rep stosb\n" // zero-fill bss
+        // , bss_size
+        );
     output_asm_block(pc);
     fprintf(output.file,
         "    mov rax, 0x2000001\n"
@@ -693,7 +739,9 @@ static void output_asm (struct value_t path_value, size_t pc) {
     }
     fprintf(output.file,
         "0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0\n"
-        "section .bss\n");
+        "section .bss\n"
+        // "bss_start:\n"
+        );
 
     for (int sym = 0; sym < symbols.length; sym++) {
         if (defs.bs[sym]) {
@@ -1088,7 +1136,7 @@ int main (int argc, const char** argv)
                 ASSERT_TOKEN(state.sc <= STACK_SIZE - num_in, ERROR_UNDERFLOW, state.pc, "Stack underflow."); \
                 ASSERT_TOKEN(state.sc >= num_out, ERROR_OVERFLOW, state.pc, "Stack overflow."); \
             } while(0)
-        struct value_t a,b;
+        struct value_t a,b,c;
         struct fvalue_t f;
         int64_t next_pc, num_args, saved_fc;
         for (; state.pc < tokens.length; state.pc++) {
@@ -1228,6 +1276,11 @@ int main (int argc, const char** argv)
                             state.stack[state.sc+1] = a;
                             break;
 
+                        case BUILTIN_DEBUG:
+                            fprintf(stderr, "??: ");
+                            fprint_stack(stderr);
+                            break;
+
                         #define INT_BIN_OP(word,binop)\
                             arity_check(word, 0, 2, 1);\
                             a = state.stack[state.sc+1];\
@@ -1342,6 +1395,8 @@ int main (int argc, const char** argv)
                                 uint64_t w = tokens.value[name]; \
                                 ASSERT_TOKEN(defs.buffer[w] != NULL, ERROR_SYNTAX, name, \
                                     "Expected buffer name."); \
+                                if (a.data + sizeof(optype) > defs.bs[w]) \
+                                    fprintf(stderr, "wtf %lld %lld\n", a.data, defs.bs[w]); \
                                 ASSERT_TOKEN(a.data >= 0, ERROR_UNDERFLOW, state.pc, \
                                     "Buffer underflow."); \
                                 ASSERT_TOKEN(a.data + sizeof(optype) <= defs.bs[w], ERROR_OVERFLOW, state.pc, \
@@ -1362,6 +1417,31 @@ int main (int argc, const char** argv)
                         case BUILTIN_MEM_SET_I64: MEM_SET_OP("i64!", int64_t);
 
                         #undef MEM_SET_OP
+
+                        case BUILTIN_MEM_WRITE:
+                            arity_check("write", 1, 3, 0);
+                            {
+                                a = state.stack[state.sc+2];
+                                b = state.stack[state.sc+1];
+                                c = state.stack[state.sc];
+                                state.sc += 3;
+                                uint64_t name = state.fstack[state.fc].pc;
+                                ASSERT_TOKEN(a.type == TYPE_INT && b.type == TYPE_INT && c.type == TYPE_INT, ERROR_TYPE, state.pc,
+                                    "Expected integers.");
+                                ASSERT_TOKEN(tokens.kind[name] == TOKEN_WORD, ERROR_SYNTAX, name,
+                                    "Expected buffer name.");
+                                uint64_t w = tokens.value[name];
+                                ASSERT_TOKEN(defs.buffer[w] != NULL, ERROR_SYNTAX, name,
+                                    "Expected buffer name.");
+                                ASSERT_TOKEN(b.data >= 0, ERROR_UNDERFLOW, state.pc,
+                                    "Buffer underflow.");
+                                ASSERT_TOKEN(b.data + c.data <= defs.bs[w], ERROR_OVERFLOW, state.pc,
+                                    "Buffer overflow.");
+                                fprintf(stderr,"a.data is %lld\n", a.data);
+                                write(a.data, ((uint8_t*)defs.buffer[w]) + b.data, c.data);
+                                state.pc = next_pc;
+                            }
+                            goto resume_loop;
 
                         case BUILTIN_DEF:
                             arity_check("def",2+(num_args>2),0,0);
