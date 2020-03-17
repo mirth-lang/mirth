@@ -1,6 +1,5 @@
 
 # TODO:
-#  - Add more memory access tests (see below).
 #  - Add string memory access & fix strings.
 #  - Add while loops.
 #  - Add basic (semi-high-level) file IO words.
@@ -40,10 +39,14 @@ def(2%, Int -- Int, 2 %)
 def(2+, Int -- Int, 2 +)
 def(2-, Int -- Int, 2 -)
 
-def(u8, 1)
-def(u16, 2)
-def(u32, 4)
-def(u64, 8)
+def(|u8|, 1)
+def(|u16|, 2)
+def(|u32|, 4)
+def(|u64|, 8)
+def(|i8|, 1)
+def(|i16|, 2)
+def(|i32|, 4)
+def(|i64|, 8)
 
 # Assertions
 
@@ -188,7 +191,8 @@ def(test%, --,
     4 2 % !!0
     5 2 % !!1)
 
-0x10 def-static-buffer(TestBuffer)
+2 |u64| * def-static-buffer(TestBuffer)
+
 def(u8@test, u8@(TestBuffer))
 def(i8@test, i8@(TestBuffer))
 def(u8!test, u8!(TestBuffer))
@@ -207,24 +211,51 @@ def(u64!test, u64!(TestBuffer))
 def(i64!test, i64!(TestBuffer))
 
 def(test@!, --,
-    0 u8@test !!0 1 u8@test !!0
-    10 0 u8!test 0 u8@test 10 !!= 1 u8@test !!0
-    20 0 u8!test 0 u8@test 20 !!= 1 u8@test !!0
-    0x1FF 0 u8!test 0 u8@test 0xFF !!= 1 u8@test !!0 0 u16@test 0xFF !!=
-    0x1FF 0 u16!test 0 u8@test 0xFF !!= 1 u8@test !!1 0 u16@test 0x1FF !!=
-    -1 0 u8!test 0 u8@test 0xFF !!=
-    -1 0 u16!test 0 u16@test 0xFFFF !!=
-    -1 0 i16!test 0 i16@test -1 !!=
-    -1 0 i16!test 0 i8@test -1 !!=
-    0 0 i16!test -1 0 i8!test 0 i16@test 0xFF !!=
-    # TODO add tests for u32, i32, u64, i64
-    # specifically, add tests that zero-extension works with u32 (and u8, and u16)
-    # add tests that sign-extension works
-    # try to avoid arch assumptions? (LE/BE) not sure if worth it
-    # organize these tests:
-    #   - persistence test
-    #   - zero extension test
-    #   - sign extension / cast test (well ... it's the same as sign extension test?)
+    # persistence tests -- i.e. get and set behave as expected and
+    # don't interfere when performed at non-overlapping locations
+    # -- we don't make architectural assumptions here, like little
+    # endian vs big endian.
+
+    0 0 u8!test 0 |u8| u8!test
+    10 0 u8!test 0 u8@test 10 !!= |u8| u8@test 0 !!=
+    20 0 u8!test 0 u8@test 20 !!= |u8| u8@test 0 !!=
+    30 |u8| u8!test 0 u8@test 20 !!= |u8| u8@test 30 !!=
+
+    0 0 u16!test 0 |u16| u16!test
+    10 0 u16!test 0 u16@test 10 !!= |u16| u16@test 0 !!=
+    20 0 u16!test 0 u16@test 20 !!= |u16| u16@test 0 !!=
+    30 |u16| u16!test 0 u16@test 20 !!= |u16| u16@test 30 !!=
+
+    0 0 u32!test 0 |u32| u32!test
+    10 0 u32!test 0 u32@test 10 !!= |u32| u32@test 0 !!=
+    20 0 u32!test 0 u32@test 20 !!= |u32| u32@test 0 !!=
+    30 |u32| u32!test 0 u32@test 20 !!= |u32| u32@test 30 !!=
+
+    0 0 u64!test 0 |u64| u64!test
+    10 0 u64!test 0 u64@test 10 !!= |u64| u64@test 0 !!=
+    20 0 u64!test 0 u64@test 20 !!= |u64| u64@test 0 !!=
+    30 |u64| u64!test 0 u64@test 20 !!= |u64| u64@test 30 !!=
+
+    0 0 i8!test 0 |i8| i8!test
+    10 0 i8!test 0 i8@test 10 !!= |i8| i8@test 0 !!=
+    -20 0 i8!test 0 i8@test -20 !!= |i8| i8@test 0 !!=
+    30 |i8| i8!test 0 i8@test -20 !!= |i8| i8@test 30 !!=
+
+    0 0 i16!test 0 |i16| i16!test
+    10 0 i16!test 0 i16@test 10 !!= |i16| i16@test 0 !!=
+    -20 0 i16!test 0 i16@test -20 !!= |i16| i16@test 0 !!=
+    30 |i16| i16!test 0 i16@test -20 !!= |i16| i16@test 30 !!=
+
+    0 0 i32!test 0 |i32| i32!test
+    10 0 i32!test 0 i32@test 10 !!= |i32| i32@test 0 !!=
+    -20 0 i32!test 0 i32@test -20 !!= |i32| i32@test 0 !!=
+    30 |i32| i32!test 0 i32@test -20 !!= |i32| i32@test 30 !!=
+
+    0 0 i64!test 0 |i64| i64!test
+    10 0 i64!test 0 i64@test 10 !!= |i64| i64@test 0 !!=
+    -20 0 i64!test 0 i64@test -20 !!= |i64| i64@test 0 !!=
+    30 |i64| i64!test 0 i64@test -20 !!= |i64| i64@test 30 !!=
+
     )
 
 run-tests
