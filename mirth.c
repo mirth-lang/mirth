@@ -58,7 +58,8 @@ enum builtin_t {
     BUILTIN_INT_EQ,
     BUILTIN_INT_LT,
     BUILTIN_INT_LE,
-    BUILTIN_STR_GET_U8,
+    BUILTIN_STR_HEAD,
+    BUILTIN_STR_TAIL,
     BUILTIN_MEM_GET_U8,
     BUILTIN_MEM_GET_U16,
     BUILTIN_MEM_GET_U32,
@@ -109,7 +110,8 @@ struct symbols_t {
         [BUILTIN_INT_EQ] = { .data = "=" },
         [BUILTIN_INT_LT] = { .data = "<" },
         [BUILTIN_INT_LE] = { .data = "<=" },
-        [BUILTIN_STR_GET_U8] = { .data = "u8@str" },
+        [BUILTIN_STR_HEAD] = { .data = "str-head" },
+        [BUILTIN_STR_TAIL] = { .data = "str-tail" },
         [BUILTIN_MEM_GET_U8] = { .data = "u8@" },
         [BUILTIN_MEM_GET_U16] = { .data = "u16@" },
         [BUILTIN_MEM_GET_U32] = { .data = "u32@" },
@@ -297,15 +299,10 @@ static void output_asm_block (size_t t) {
                 break;
 
             case TOKEN_INT:
-                fprintf(output.file, "    lea rbx, [rbx-8]\n");
-                fprintf(output.file, "    mov [rbx], rax\n");
-                fprintf(output.file, "    mov rax, %lld\n", tokens.value[t]);
-                break;
-
             case TOKEN_STR:
                 fprintf(output.file, "    lea rbx, [rbx-8]\n");
                 fprintf(output.file, "    mov [rbx], rax\n");
-                fprintf(output.file, "    lea rax, [rel strings+%lld]\n", tokens.value[t]);
+                fprintf(output.file, "    mov rax, %lld\n", tokens.value[t]);
                 break;
 
             case TOKEN_WORD:
@@ -417,6 +414,19 @@ static void output_asm_block (size_t t) {
                                 "    lea rbx, [rbx+8]\n"
                                 "    setge al\n"
                                 "    movzx eax, al\n");
+                            break;
+
+                        case BUILTIN_STR_HEAD:
+                            fprintf(output.file,
+                                "    lea rsi, [rel strings]\n"
+                                "    add rsi, rax\n"
+                                "    lodsb\n"
+                                "    movzx eax, al\n");
+                            break;
+
+                        case BUILTIN_STR_TAIL:
+                            fprintf(output.file,
+                                "   inc rax\n");
                             break;
 
                         case BUILTIN_MEM_GET_U8:
@@ -661,7 +671,7 @@ static void output_asm (struct value_t path_value, size_t pc) {
         fprintf(output.file, "0%.2Xh, ", strings.data[i]);
     }
     fprintf(output.file,
-        "0\n"
+        "0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0\n"
         "section .bss\n");
 
     for (int sym = 0; sym < symbols.length; sym++) {
@@ -1216,6 +1226,34 @@ int main (int argc, const char** argv)
                             INT_BIN_OP("<=", <=);
 
                         #undef INT_BIN_OP
+
+                        case BUILTIN_STR_HEAD:
+                            arity_check("str-head", 0, 1, 1);
+                            a = state.stack[state.sc];
+                            ASSERT_TOKEN(a.type == TYPE_STR, ERROR_TYPE, state.pc,
+                                "Expected string.");
+                            ASSERT_TOKEN(a.data >= 0, ERROR_UNDERFLOW, state.pc,
+                                "String buffer underflow.");
+                            ASSERT_TOKEN(a.data < strings.length, ERROR_OVERFLOW, state.pc,
+                                "String buffer overflow.");
+                            a.type = TYPE_INT;
+                            a.data = strings.data[a.data];
+                            state.stack[state.sc] = a;
+                            break;
+
+                        case BUILTIN_STR_TAIL:
+                            arity_check("str-tail", 0, 1, 1);
+                            a = state.stack[state.sc];
+                            ASSERT_TOKEN(a.type == TYPE_STR, ERROR_TYPE, state.pc,
+                                "Expected string.");
+                            ASSERT_TOKEN(a.data >= 0, ERROR_UNDERFLOW, state.pc,
+                                "String buffer underflow.");
+                            ASSERT_TOKEN(a.data < strings.length, ERROR_OVERFLOW, state.pc,
+                                "String buffer overflow.");
+                            ASSERT_TOKEN(strings.data[a.data], ERROR_OVERFLOW, state.pc,
+                                "String overflow.");
+                            state.stack[state.sc].data++;
+                            break;
 
                         #define MEM_GET_OP(opname, optype) \
                             arity_check(opname, 1, 1, 1); \

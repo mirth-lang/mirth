@@ -1,6 +1,5 @@
 
 # TODO:
-#  - Add string memory access & fix strings.
 #  - Add while loops.
 #  - Add basic (semi-high-level) file IO words.
 
@@ -71,7 +70,7 @@ def(!!111, Int Int --, !!1 !!1 !!1)
 
 def(run-tests, --, test-if test-drop test-dup test-swap test-dip
     test-trip test-rotr test-rotl test= test< test<= test> test>=
-    test+ test- test* test/ test% test@!)
+    test+ test- test* test/ test% test@! test-str)
 def(test-if, --, 0 !!0 1 !!1 0 1 !!1 !!0)
 def(test-drop, --, 0 1 drop !!0)
 def(test-dup, --, 0 1 dup !!011)
@@ -257,6 +256,15 @@ def(test@!, --,
     30 |i64| i64!test 0 i64@test -20 !!= |i64| i64@test 30 !!=
 
     )
+
+def(test-str,
+    "AaBb"
+    dup str-head 65 !!=
+    dup str-tail str-head 97 !!=
+    dup str-tail str-tail str-head 66 !!=
+    dup str-tail str-tail str-tail str-head 98 !!=
+    dup str-tail str-tail str-tail str-tail str-head 0 !!=
+    drop)
 
 run-tests
 
