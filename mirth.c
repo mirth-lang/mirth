@@ -1437,7 +1437,6 @@ int main (int argc, const char** argv)
                                     "Buffer underflow.");
                                 ASSERT_TOKEN(b.data + c.data <= defs.bs[w], ERROR_OVERFLOW, state.pc,
                                     "Buffer overflow.");
-                                fprintf(stderr,"a.data is %lld\n", a.data);
                                 write(a.data, ((uint8_t*)defs.buffer[w]) + b.data, c.data);
                                 state.pc = next_pc;
                             }

@@ -100,7 +100,9 @@ def(str-buf-push!,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     ))
-def(str-buf-write, 0 str-buf-length? write(STR_BUF))
+def(str-buf-write!, 0 str-buf-length? write(STR_BUF))
+def(str-buf-print!, file-out? str-buf-write!)
+def(str-buf-trace!, file-err? str-buf-trace!)
 
 # Clear STR_BUF and copy prefix of string over to it.
 # Returns remaining string.
@@ -323,6 +325,86 @@ def(test-str,
 def(test-while,
     999 10 20 while(1- dip(1+)) 30 !!= 999 !!=)
 
+def(stdout, File, 1)
+def(stderr, File, 2)
+def(stdin,  File, 0)
+
+def(init, init-io)
+def(init-io,
+    0 file-in!
+    1 file-out!
+    2 file-err!)
+
+|u64| def-static-buffer(FILE_IN)
+def(file-in!, 0 u64!(FILE_IN))
+def(file-in?, 0 u64@(FILE_IN))
+
+|u64| def-static-buffer(FILE_OUT)
+def(file-out!, 0 u64!(FILE_OUT))
+def(file-out?, 0 u64@(FILE_OUT))
+
+|u64| def-static-buffer(FILE_ERR)
+def(file-err!, 0 u64!(FILE_ERR))
+def(file-err?, 0 u64@(FILE_ERR))
+
+def(str-write!, Str File --,
+    swap str-not-null? while(
+        drop str-buf-copy!
+        dip(dup str-buf-write!)
+        str-not-null?
+    ) drop2
+    )
+
+def(str-print!, file-out? str-write!)
+def(str-trace!, file-err? str-write!)
+def(str-print-sp!, str-print! print-sp!)
+def(str-trace-sp!, str-trace! trace-sp!)
+def(str-print-ln!, str-print! print-ln!)
+def(str-trace-ln!, str-trace! trace-ln!)
+
+def(print-sp!, " " str-print!)
+def(trace-sp!, " " str-trace!)
+def(print-ln!, "\n" str-print!)
+def(trace-ln!, "\n" str-trace!)
+
+def(to-digit, Int -- Char, 10 % 48 +)
+
+# put integer into str buf
+def(str-buf-int!, Int --,
+    dup 0= if(
+        "0" str-buf!,
+        dup dip(
+            str-buf-clear!
+            while(dup to-digit str-buf-push! 10 /)
+        ) 0 < if(45 str-buf-push!, id)
+        str-buf-reverse!
+    ))
+
+def(int-write!, Int File -- +IO, dip(str-buf-int!) str-buf-write!)
+def(int-print!, Int -- +IO, file-out? int-write!)
+def(int-trace!, Int -- +IO, file-err? int-write!)
+def(int-print-sp!, Int -- +IO, int-print! print-sp!)
+def(int-trace-sp!, Int -- +IO, int-trace! trace-sp!)
+def(int-print-ln!, Int -- +IO, int-print! print-ln!)
+def(int-trace-ln!, Int -- +IO, int-trace! trace-ln!)
+
+# reverse contents of str buf
+
+def(str-buf-swap-u8!, Int Int --,
+    dup2 swap
+    dip(dip(dip(str-buf-u8@)))
+    dip(str-buf-u8@)
+    str-buf-u8! str-buf-u8!
+)
+
+def(str-buf-reverse!, --,
+    0 str-buf-length? 1- dup2 <
+    while(drop
+        dup2 str-buf-swap-u8!
+        dip(1 +) 1- dup2 <
+    )
+    drop2
+)
 
 # def(str-print, Str --,
 #     str-not-null? while(
@@ -352,8 +434,11 @@ def(test-while,
 def(main,
     run-tests
 
-    "\nMirth v0.0.0\nHello, World!\n\n" str-buf!
-    1 str-buf-write
+    print-ln!
+    "Mirth v0.0.0" str-print-ln!
+    "Hello, world!" str-print-ln!
+    0 10 20 30 while(int-print-sp!) print-ln!
+    print-ln!
 )
 
 main
