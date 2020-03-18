@@ -104,6 +104,17 @@ def(str-buf-write!, 0 str-buf-length? syscall-write!(STR_BUF))
 def(str-buf-print!, file-out? str-buf-write!)
 def(str-buf-trace!, file-err? str-buf-trace!)
 
+def(str-buf-read!, File -- +IO,
+    str-buf-clear!
+    0 STR_BUF_SIZE 1- syscall-read!(STR_BUF)
+    dup 0 < if(
+        "str-buf-read! failed" panic!,
+        str-buf-length!
+    )
+)
+
+
+
 # Clear STR_BUF and copy prefix of string over to it.
 # Returns remaining string.
 def(str-buf-copy!, Str -- Str,
@@ -452,6 +463,11 @@ def(main,
     "Hello, world!" str-print-ln!
     0 10 20 30 while(int-print-sp!) print-ln!
     print-ln!
+
+    stdin "What is your name?" str-print-sp! str-buf-read!
+    str-buf-print!
+    str-buf-print!
+    "Hello!" str-print-ln! print-ln!
 )
 
 main
