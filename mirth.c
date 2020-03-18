@@ -135,9 +135,9 @@ struct symbols_t {
         [BUILTIN_MEM_SET_I16] = { .data = "i16!" },
         [BUILTIN_MEM_SET_I32] = { .data = "i32!" },
         [BUILTIN_MEM_SET_I64] = { .data = "i64!" },
-        [BUILTIN_MEM_READ] = { .data = "read" },
-        [BUILTIN_MEM_WRITE] = { .data = "write" },
-        [BUILTIN_EXIT] = { .data = "exit!" },
+        [BUILTIN_MEM_READ] = { .data = "syscall-read!" },
+        [BUILTIN_MEM_WRITE] = { .data = "syscall-write!" },
+        [BUILTIN_EXIT] = { .data = "syscall-exit!" },
         [BUILTIN_DEF] = { .data = "def" },
         [BUILTIN_DEF_STATIC_BUFFER] = { .data = "def-static-buffer" },
         [BUILTIN_OUTPUT_ASM] = { .data = "output-asm" },
@@ -1245,7 +1245,7 @@ int main (int argc, const char** argv)
                             goto resume_loop;
 
                         case BUILTIN_EXIT:
-                            arity_check("exit", 0, 1, 0);
+                            arity_check("syscall-exit!", 0, 1, 0);
                             exit(state.stack[state.sc].data);
 
                         case BUILTIN_DUP:

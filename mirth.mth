@@ -100,7 +100,7 @@ def(str-buf-push!,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     ))
-def(str-buf-write!, 0 str-buf-length? write(STR_BUF))
+def(str-buf-write!, 0 str-buf-length? syscall-write!(STR_BUF))
 def(str-buf-print!, file-out? str-buf-write!)
 def(str-buf-trace!, file-err? str-buf-trace!)
 
@@ -389,7 +389,7 @@ def(int-print-ln!, Int -- +IO, int-print! print-ln!)
 def(int-trace-ln!, Int -- +IO, int-trace! trace-ln!)
 
 def(panic!, Str -- +IO,
-    "panic: " str-trace! str-trace-ln! 0 exit!)
+    "panic: " str-trace! str-trace-ln! 0 syscall-exit!)
 
 # reverse contents of str buf
 
@@ -409,26 +409,36 @@ def(str-buf-reverse!, --,
     drop2
 )
 
-# def(str-print, Str --,
-#     str-not-null? while(
-#         drop
-#         str-copy dip(
-#             dip(1 0) write(STR_BUF)
-#         )
-#         str-not-null?
-#     )
-#     drop)
-
-# def(do-it, "Hello, world!\n" str-copy drop dip(1 0) ?? write(STR_BUF))
-
-# do-it
-
-
-# drop dip(0 0) write(STR_BUF)
-
 #########
 # Lexer #
 #########
+
+def(FILE_BUF_SIZE, 0x100000)
+|u64| def-static-buffer(FILE_BUF_LENGTH)
+FILE_BUF_SIZE def-static-buffer(FILE_BUF)
+
+def(file-buf-length!, Int --, 0 u64!(FILE_BUF_LENGTH))
+def(file-buf-length?, -- Int, 0 u64@(FILE_BUF_LENGTH))
+
+# def(str-buf-open-file!, -- File +IO,
+#     0 0 syscall-open!(STR_BUF)
+#     dup -1 = if("failed to open file!" panic!, id))
+
+# def(str-buf-create-file!, -- File +IO,
+#     1 0 syscall-open!(STR_BUF)
+#     dup -1 = if("failed to open file!" panic!, id))
+
+# def(str-open-file!, Str -- File +IO, str-buf! str-buf-open-file!)
+# def(str-create-file!, Str -- File +IO, str-buf! str-buf-create-file!)
+
+# def(read-file!, File -- +IO,
+#     0 syscall-read!(FILE_BUF)
+#     dup -1 = if(
+#         "failed to read file" panic!,
+#         file-buf-length!
+#     ))
+
+# "mirth.mth" str-open-file! read-file!
 
 #########
 # Main #
