@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #define ASSERT(b, error_code, file, line, col, msg) \
     do { \
@@ -19,7 +21,6 @@
     ASSERT(b, error, command.path, tokens.row[t], tokens.col[t], msg)
 #define ASSERT_BASIC(b) \
     ASSERT(b, ERROR_IMPOSSIBLE, __FILE__, __LINE__, 1, "assertion failed")
-#include <unistd.h>
 
 enum error_t {
     WARNING = 0,
@@ -79,8 +80,10 @@ enum builtin_t {
     BUILTIN_MEM_SET_I16,
     BUILTIN_MEM_SET_I32,
     BUILTIN_MEM_SET_I64,
-    BUILTIN_MEM_READ,
-    BUILTIN_MEM_WRITE,
+    BUILTIN_FILE_READ,
+    BUILTIN_FILE_WRITE,
+    BUILTIN_FILE_OPEN,
+    BUILTIN_FILE_CLOSE,
     BUILTIN_EXIT,
     BUILTIN_DEF,
     BUILTIN_DEF_STATIC_BUFFER,
@@ -135,8 +138,10 @@ struct symbols_t {
         [BUILTIN_MEM_SET_I16] = { .data = "i16!" },
         [BUILTIN_MEM_SET_I32] = { .data = "i32!" },
         [BUILTIN_MEM_SET_I64] = { .data = "i64!" },
-        [BUILTIN_MEM_READ] = { .data = "syscall-read!" },
-        [BUILTIN_MEM_WRITE] = { .data = "syscall-write!" },
+        [BUILTIN_FILE_READ] = { .data = "syscall-read!" },
+        [BUILTIN_FILE_WRITE] = { .data = "syscall-write!" },
+        [BUILTIN_FILE_OPEN] = { .data = "syscall-open!" },
+        [BUILTIN_FILE_CLOSE] = { .data = "syscall-close!" },
         [BUILTIN_EXIT] = { .data = "syscall-exit!" },
         [BUILTIN_DEF] = { .data = "def" },
         [BUILTIN_DEF_STATIC_BUFFER] = { .data = "def-static-buffer" },
@@ -598,7 +603,7 @@ static void output_asm_block (size_t t) {
                             }
                             break;
 
-                        case BUILTIN_MEM_WRITE:
+                        case BUILTIN_FILE_WRITE:
                             {
                                 const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
                                 mangle(mangled_name, unmangled_name);
@@ -616,7 +621,7 @@ static void output_asm_block (size_t t) {
                             }
                             break;
 
-                        case BUILTIN_MEM_READ:
+                        case BUILTIN_FILE_READ:
                             {
                                 const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
                                 mangle(mangled_name, unmangled_name);
@@ -627,11 +632,38 @@ static void output_asm_block (size_t t) {
                                     "    mov rdx, rax\n" // size to read
                                     "    mov rax, 0x2000003\n" // select "read" syscall
                                     "    syscall\n" // invoke syscall
-                                    "    lea rbx, [rbx+16]\n" // drop3
+                                    "    lea rbx, [rbx+16]\n" // drop2
                                     , mangled_name
                                     );
                             }
                             break;
+
+                        case BUILTIN_FILE_OPEN:
+                            {
+                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
+                                mangle(mangled_name, unmangled_name);
+                                fprintf(output.file,
+                                    "    lea rdi, [rel b_%s]\n" // file name buffer
+                                    "    add rdi, [rbx+8]\n" // add offset
+                                    "    mov rsi, [rbx]\n" // file mask
+                                    "    mov rdx, rax\n" // file mode
+                                    "    mov rax, 0x2000005\n" // select "open" syscall
+                                    "    syscall\n" // invoke syscall
+                                    "    lea rbx, [rbx+16]\n" // drop2
+                                    , mangled_name
+                                    );
+                            }
+                            break;
+
+                        case BUILTIN_FILE_CLOSE:
+                            {
+                                fprintf(output.file,
+                                    "   mov rdi, rax\n" // file descriptor
+                                    "   mov rax, 0x2000006\n" // close syscall
+                                    "   syscall\n");
+                            }
+                            break;
+
 
                         case BUILTIN_DEBUG:
                             break;
@@ -1421,7 +1453,7 @@ int main (int argc, const char** argv)
 
                         #undef MEM_SET_OP
 
-                        case BUILTIN_MEM_WRITE:
+                        case BUILTIN_FILE_WRITE:
                             arity_check("syscall-write!", 1, 3, 0);
                             {
                                 a = state.stack[state.sc+2];
@@ -1446,7 +1478,7 @@ int main (int argc, const char** argv)
                             goto resume_loop;
 
 
-                        case BUILTIN_MEM_READ:
+                        case BUILTIN_FILE_READ:
                             arity_check("syscall-read!", 1, 3, 1);
                             {
                                 a = state.stack[state.sc+2];
@@ -1469,6 +1501,39 @@ int main (int argc, const char** argv)
                                 state.pc = next_pc;
                             }
                             goto resume_loop;
+
+                        case BUILTIN_FILE_OPEN:
+                            arity_check("syscall-open!", 1, 3, 1);
+                            {
+                                a = state.stack[state.sc+2];
+                                b = state.stack[state.sc+1];
+                                c = state.stack[state.sc];
+                                state.sc += 2;
+                                uint64_t name = state.fstack[state.fc].pc;
+                                ASSERT_TOKEN(a.type == TYPE_INT && b.type == TYPE_INT && c.type == TYPE_INT, ERROR_TYPE, state.pc,
+                                    "Expected integers.");
+                                ASSERT_TOKEN(tokens.kind[name] == TOKEN_WORD, ERROR_SYNTAX, name,
+                                    "Expected buffer name.");
+                                uint64_t w = tokens.value[name];
+                                ASSERT_TOKEN(defs.buffer[w] != NULL, ERROR_SYNTAX, name,
+                                    "Expected buffer name.");
+                                ASSERT_TOKEN(a.data >= 0, ERROR_UNDERFLOW, state.pc,
+                                    "Buffer underflow.");
+                                state.stack[state.sc].data = open(((char*)defs.buffer[w]) + a.data, b.data, c.data);
+                                state.pc = next_pc;
+                            }
+                            goto resume_loop;
+
+                        case BUILTIN_FILE_CLOSE:
+                            arity_check("syscall-close!", 0, 1, 1);
+                            {
+                                a = state.stack[state.sc];
+                                ASSERT_TOKEN(a.type == TYPE_INT, ERROR_TYPE, state.pc, "Expected integers.");
+                                ASSERT_TOKEN(a.data >= 0, ERROR_TYPE, state.pc, "File descriptor is negative? That's bad.");
+                                state.stack[state.sc].data = close(a.data);
+                            }
+                            break;
+
 
                         case BUILTIN_DEF:
                             arity_check("def",2+(num_args>2),0,0);
