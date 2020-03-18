@@ -1,6 +1,0 @@
-data T
-  A : T
-  B : T
-end
-f : T -- 
-f = match(A ->, B ->, A ->)

@@ -1,2 +1,0 @@
-test/removetag.mth:4:7: error: expected type but got effect name
-test/removetag.mth:5:1: error: missing signature for word f

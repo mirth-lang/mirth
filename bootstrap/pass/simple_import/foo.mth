@@ -1,7 +1,0 @@
-
-export foo
-  foo : Int
-end
-
-foo = 42
-

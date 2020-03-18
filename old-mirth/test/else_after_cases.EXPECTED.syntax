@@ -1,6 +1,0 @@
-data T
-  A : T
-  B : T
-end
-foo : T -- 
-foo = match(A ->, B ->, _ -> drop)

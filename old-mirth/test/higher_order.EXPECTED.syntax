@@ -1,6 +1,0 @@
-d2(f: *a -- *b) : *a c d -- *b c d
-d2(f) = dip(dip(f))
-10 20 30 40 d2(_prim_int_add) == 30 30 40
-g(f: Int Int -- Int) : Int Int Int Int -- Int
-g(f) = d2(f) f _prim_int_add
-10 20 30 40 g(_prim_int_mul) == 200 1200 _prim_int_add

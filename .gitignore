@@ -1,6 +1,3 @@
-*.ibc
-.stack-work/
-mirth.cabal
 *~
 *.swp
 /mirth

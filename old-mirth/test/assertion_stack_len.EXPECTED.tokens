@@ -1,5 +1,0 @@
-test/assertion_stack_len.mth:1:1: 0 TINT
-test/assertion_stack_len.mth:1:3: TEQUAL2
-test/assertion_stack_len.mth:1:6: 0 TINT
-test/assertion_stack_len.mth:1:8: 1 TINT
-test/assertion_stack_len.mth:1:9: TNEWLINE

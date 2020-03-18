@@ -1,8 +1,0 @@
-
-import foo
-
-bar : Int
-bar = foo
-
-bar == 42
-

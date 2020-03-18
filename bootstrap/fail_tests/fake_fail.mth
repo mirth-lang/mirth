@@ -1,4 +1,0 @@
-
-main : List(Str) -- Int
-main = "Assertion failed" _prim_unsafe_trace drop 0
-

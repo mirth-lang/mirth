@@ -1,4 +1,0 @@
-
-foo : Int --
-foo = cond( 0 _prim_int_lt -> drop, drop )
-

@@ -1,2 +1,0 @@
-h : Int
-h = 10 "20" _prim_int_add
