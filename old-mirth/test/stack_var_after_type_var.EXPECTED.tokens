@@ -1,0 +1,12 @@
+test/stack_var_after_type_var.mth:1:1: TNEWLINE
+test/stack_var_after_type_var.mth:2:1: "what_is_this" TNAME
+test/stack_var_after_type_var.mth:2:14: TCOLON
+test/stack_var_after_type_var.mth:2:16: "a" TNAME
+test/stack_var_after_type_var.mth:2:18: "*b" TNAME
+test/stack_var_after_type_var.mth:2:21: TDASH2
+test/stack_var_after_type_var.mth:2:24: "a" TNAME
+test/stack_var_after_type_var.mth:2:26: "*b" TNAME
+test/stack_var_after_type_var.mth:2:28: TNEWLINE
+test/stack_var_after_type_var.mth:3:1: "what_is_this" TNAME
+test/stack_var_after_type_var.mth:3:14: TEQUAL
+test/stack_var_after_type_var.mth:3:15: TNEWLINE

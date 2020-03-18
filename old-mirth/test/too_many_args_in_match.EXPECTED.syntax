@@ -1,0 +1,5 @@
+data T
+  A : Int -- T
+end
+unA : T -- Int
+unA = match(A(x) ->)

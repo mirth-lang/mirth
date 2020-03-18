@@ -1,0 +1,23 @@
+test/redefining_constrs.mth:1:1: TNEWLINE
+test/redefining_constrs.mth:3:1: TDATA
+test/redefining_constrs.mth:3:6: "T1" TNAME
+test/redefining_constrs.mth:3:8: TNEWLINE
+test/redefining_constrs.mth:4:3: "A" TNAME
+test/redefining_constrs.mth:4:5: TCOLON
+test/redefining_constrs.mth:4:7: "Int" TNAME
+test/redefining_constrs.mth:4:11: TDASH2
+test/redefining_constrs.mth:4:14: "T1" TNAME
+test/redefining_constrs.mth:4:16: TNEWLINE
+test/redefining_constrs.mth:5:1: TEND
+test/redefining_constrs.mth:5:4: TNEWLINE
+test/redefining_constrs.mth:7:1: TDATA
+test/redefining_constrs.mth:7:6: "T2" TNAME
+test/redefining_constrs.mth:7:8: TNEWLINE
+test/redefining_constrs.mth:8:3: "A" TNAME
+test/redefining_constrs.mth:8:5: TCOLON
+test/redefining_constrs.mth:8:7: "Int" TNAME
+test/redefining_constrs.mth:8:11: TDASH2
+test/redefining_constrs.mth:8:14: "T2" TNAME
+test/redefining_constrs.mth:8:16: TNEWLINE
+test/redefining_constrs.mth:9:1: TEND
+test/redefining_constrs.mth:9:4: TNEWLINE

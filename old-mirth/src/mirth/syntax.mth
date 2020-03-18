@@ -1,0 +1,615 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+import base/maybe
+import base/list
+import base/str
+import base/int
+import base/sexp
+import mirth/loc
+
+||| Export just Name and related functions.
+export mirth/name
+  type Name
+  mkName : Str -- Name
+  unName : Name -- Str
+  name->sexp : Name -- Sexp
+  name->str : Name -- Str
+  nameeq : Name Name -- Bool
+  isConName      : Name -- Bool
+  isVarName      : Name -- Bool
+  isStarVarName  : Name -- Bool
+  isPlusConName  : Name -- Bool
+  isPlusVarName  : Name -- Bool
+  isConName?     : Name -- Name Bool
+  isVarName?     : Name -- Name Bool
+  isStarVarName? : Name -- Name Bool
+  isPlusConName? : Name -- Name Bool
+  isPlusVarName? : Name -- Name Bool
+
+end
+
+||| Abstract Syntax Tree for Mirth. This interface exports
+||| the types, constructors, basic eliminators of the AST.
+export mirth/syntax
+  type L(t)
+  type Maybe(t)
+  type Sexp
+
+  type Module
+  type Import
+  type Export
+
+  type Sig
+  type Decl
+  type TypeSig
+  type DataDef
+  type WordSig
+  type WordDef
+  type Assertion
+
+  type Params
+  type Param
+  type Type
+  type Expr
+  type Atom
+  type Word
+  type Args
+
+  type Docs
+  type Name
+  type Interface
+
+  mkModule : L(List(L(Import))) L(List(L(Export))) L(List(L(Decl))) -- Module
+  unModule : Module -- L(List(L(Import))) L(List(L(Export))) L(List(L(Decl)))
+  moduleImports : Module -- L(List(L(Import)))
+  moduleExports : Module -- L(List(L(Export)))
+  moduleDecls   : Module -- L(List(L(Decl)))
+  module->str : Module -- Str
+
+  mkImport : L(Interface) -- Import
+  unImport : Import -- L(Interface)
+  importInterface : Import -- L(Interface)
+  import->str : Import -- Str
+
+  mkExport : Maybe(L(Docs)) L(Interface) List(L(Sig)) -- Export
+  unExport : Export -- Maybe(L(Docs)) L(Interface) List(L(Sig))
+  exportDoc   : Export -- Maybe(L(Docs))
+  exportInterface : Export -- L(Interface)
+  exportSigs  : Export -- List(L(Sig))
+  export->str : Export -- Str
+
+  sigTypeSig : L(TypeSig) -- Sig
+  sigWordSig : L(WordSig) -- Sig
+  sigAssertion : L(Assertion) -- Sig
+  matchSig (
+    onTypeSig : *a L(TypeSig) -- *b,
+    onWordSig : *a L(WordSig) -- *b,
+    onAssertion : *a L(Assertion) -- *b
+  ) : *a Sig -- *b
+  sig->str : Sig -- Str
+
+  declTypeSig : L(TypeSig) -- Decl
+  declWordSig : L(WordSig) -- Decl
+  declDataDef : L(DataDef) -- Decl
+  declWordDef : L(WordDef) -- Decl
+  declAssertion : L(Assertion) -- Decl
+  matchDecl (
+    onTypeSig : *a L(TypeSig) -- *b,
+    onDataDef : *a L(DataDef) -- *b,
+    onWordSig : *a L(WordSig) -- *b,
+    onWordDef : *a L(WordDef) -- *b,
+    onAssertion : *a L(Assertion) -- *b
+  ) : *a Decl -- *b
+  decl->str : Decl -- Str
+
+  mkTypeSig : Maybe(L(Docs)) L(Name) L(Params) -- TypeSig
+  unTypeSig : TypeSig -- Maybe(L(Docs)) L(Name) L(Params)
+  typeSigDoc    : TypeSig -- Maybe(L(Docs))
+  typeSigName   : TypeSig -- L(Name)
+  typeSigParams : TypeSig -- L(Params)
+  typeSig->str : TypeSig -- Str
+
+  mkDataDef : Maybe(L(Docs)) L(Name) L(Params) List(L(Sig)) -- DataDef
+  unDataDef : DataDef -- Maybe(L(Docs)) L(Name) L(Params) List(L(Sig))
+  dataDefDocs   : DataDef -- Maybe(L(Docs))
+  dataDefName   : DataDef -- L(Name)
+  dataDefParams : DataDef -- L(Params)
+  dataDefSigs   : DataDef -- List(L(Sig))
+  dataDef->str : DataDef -- Str
+
+  mkWordSig : Maybe(L(Docs)) L(Name) L(Params) L(Type) -- WordSig
+  unWordSig : WordSig -- Maybe(L(Docs)) L(Name) L(Params) L(Type)
+  wordSigDoc    : WordSig -- Maybe(L(Docs))
+  wordSigName   : WordSig -- L(Name)
+  wordSigParams : WordSig -- L(Params)
+  wordSigType   : WordSig -- L(Type)
+  wordSig->str : WordSig -- Str
+
+  mkWordDef : Maybe(L(Docs)) L(Name) L(Params) L(Expr) -- WordDef
+  unWordDef : WordDef -- Maybe(L(Docs)) L(Name) L(Params) L(Expr)
+  wordDefDoc    : WordDef -- Maybe(L(Docs))
+  wordDefName   : WordDef -- L(Name)
+  wordDefParams : WordDef -- L(Params)
+  wordDefRHS    : WordDef -- L(Expr)
+  wordDef->str : WordDef -- Str
+
+  mkAssertion : L(Expr) L(Expr) -- Assertion
+  unAssertion : Assertion -- L(Expr) L(Expr)
+  assertionLHS : Assertion -- L(Expr)
+  assertionRHS : Assertion -- L(Expr)
+  assertion->str : Assertion -- Str
+
+  mkParams : List(L(Param)) -- Params
+  unParams : Params -- List(L(Param))
+  params->str : Params -- Str
+
+  mkParam : L(Name) L(Params) Maybe(L(Type)) -- Param
+  unParam : Param -- L(Name) L(Params) Maybe(L(Type))
+  paramName   : Param -- L(Name)
+  paramParams : Param -- L(Params)
+  paramType   : Param -- Maybe(L(Type))
+  param->str : Param -- Str
+
+  mkType : L(Expr) L(Expr) -- Type
+  unType : Type -- L(Expr) L(Expr)
+  typeDom : Type -- L(Expr)
+  typeCod : Type -- L(Expr)
+  type->str : Type -- Str
+
+  mkExpr : List(L(Atom)) -- Expr
+  unExpr : Expr -- List(L(Atom))
+  exprAtoms : Expr -- List(L(Atom))
+  exprNil? : Expr -- Expr Bool
+  expr->str : Expr -- Str
+  exprSplitPlusAtoms : Expr -- Expr Expr
+
+  atomWord : L(Word) -- Atom
+  atomInt  : L(Int) -- Atom
+  atomStr  : L(Str) -- Atom
+  matchAtom (
+    onWord : *a L(Word) -- *b,
+    onInt : *a L(Int) -- *b,
+    onStr : *a L(Str) -- *b
+  ) : *a Atom -- *b
+  atom->str : Atom -- Str
+  isPlusAtom : Atom -- Bool
+  isPlusAtom? : Atom -- Atom Bool
+
+  mkWord : L(Name) L(Args) -- Word
+  unWord : Word -- L(Name) L(Args)
+  wordName : Word -- L(Name)
+  wordArgs : Word -- L(Args)
+  word->str : Word -- Str
+  isPlusWord : Word -- Bool
+  isPlusWord? : Word -- Word Bool
+
+  mkArgs : List(L(Expr)) -- Args
+  unArgs : Args -- List(L(Expr))
+  argsExprs : Args -- List(L(Expr))
+  args->str : Args -- Str
+
+  mkDocs : List(Str) -- Docs
+  unDocs : Docs -- List(Str)
+  docs->str : Docs -- Str
+
+  mkName : Str -- Name
+  unName : Name -- Str
+  name->sexp : Name -- Sexp
+  name->str : Name -- Str
+  nameeq : Name Name -- Bool
+  isConName      : Name -- Bool
+  isVarName      : Name -- Bool
+  isStarVarName  : Name -- Bool
+  isPlusName     : Name -- Bool
+  isPlusConName  : Name -- Bool
+  isPlusVarName  : Name -- Bool
+  isConName?     : Name -- Name Bool
+  isVarName?     : Name -- Name Bool
+  isStarVarName? : Name -- Name Bool
+  isPlusName?    : Name -- Name Bool
+  isPlusConName? : Name -- Name Bool
+  isPlusVarName? : Name -- Name Bool
+
+  mkInterface : Str -- Interface
+  unInterface : Interface -- Str
+  interface->str : Interface -- Str
+  interface->sexp : Interface -- Sexp
+  interface= : Interface Interface -- Bool
+end
+
+###############
+### modules ###
+###############
+
+||| Syntax for entire module.
+data Module
+  mkModule : L(List(L(Import))) L(List(L(Export))) L(List(L(Decl))) -- Module
+end
+
+unModule = match( mkModule -> id )
+moduleImports = match( mkModule -> drop2 )
+moduleExports = match( mkModule -> drop nip )
+moduleDecls   = match( mkModule -> dip(drop2) )
+module->str = match( mkModule ->
+  dip3("")
+  dip2(getL for(getL import->str <>))
+  dip (getL for(getL export->str <>))
+  getL for(getL decl->str <>)
+)
+
+||| Import statements.
+data Import
+  mkImport : L(Interface) -- Import
+end
+
+unImport = match( mkImport -> id )
+importInterface = match( mkImport -> id )
+import->str = $(
+  dip("import ")
+  importInterface getL interface->str <>
+  "\n" <>
+)
+
+||| Export statements.
+### TODO: Allow exports to import other interfaces and possibly re-export them.
+data Export
+  mkExport : Maybe(L(Docs)) L(Interface) List(L(Sig)) -- Export
+end
+
+unExport = match( mkExport -> id )
+exportDoc   = match( mkExport -> drop2 )
+exportInterface = match( mkExport -> drop nip )
+exportSigs  = match( mkExport -> dip(drop2) )
+export->str = match( mkExport ->
+  dip2(maybe("", getL docs->str))
+  dip(dip("export ") getL interface->str "\n" <> <> <>)
+  for(dip("  ") getL sig->str <> <>)
+  "end\n" <>
+)
+
+####################
+### declarations ###
+####################
+
+||| Top-level declarations, not including import/export statements.
+### TODO
+###   - Codata def
+###   - Tag def
+data Decl
+  declTypeSig : L(TypeSig) -- Decl
+  declDataDef : L(DataDef) -- Decl
+  declWordSig : L(WordSig) -- Decl
+  declWordDef : L(WordDef) -- Decl
+  declAssertion : L(Assertion) -- Decl
+end
+
+matchDecl (
+  onTypeSig,
+  onDataDef,
+  onWordSig,
+  onWordDef,
+  onAssertion
+) = match(
+  declTypeSig -> onTypeSig,
+  declDataDef -> onDataDef,
+  declWordSig -> onWordSig,
+  declWordDef -> onWordDef,
+  declAssertion -> onAssertion
+)
+decl->str = matchDecl(
+  getL typeSig->str,
+  getL dataDef->str,
+  getL wordSig->str,
+  getL wordDef->str,
+  getL assertion->str
+)
+
+||| The subset of declarations that can appear in interfaces.
+||| These include word and type signatures, as well as assertions.
+data Sig
+  sigTypeSig : L(TypeSig) -- Sig
+  sigWordSig : L(WordSig) -- Sig
+  sigAssertion : L(Assertion) -- Sig
+end
+
+matchSig (
+  onTypeSig,
+  onWordSig,
+  onAssertion
+) = match(
+  sigTypeSig -> onTypeSig,
+  sigWordSig -> onWordSig,
+  sigAssertion -> onAssertion
+)
+sig->str = matchSig(
+  getL typeSig->str,
+  getL wordSig->str,
+  getL assertion->str
+)
+
+||| A type signature, "type Foo", is just a declaration of the
+||| parameters of a type, with no information of how to construct
+||| or destruct the underlying type. This can be used to declare a
+||| tag type as well, e.g. "type +IO".
+data TypeSig
+  mkTypeSig : Maybe(L(Docs)) L(Name) L(Params) -- TypeSig
+end
+
+unTypeSig = match( mkTypeSig -> id )
+typeSigDoc    = match( mkTypeSig -> drop2 )
+typeSigName   = match( mkTypeSig -> drop nip )
+typeSigParams = match( mkTypeSig -> dip(drop2) )
+typeSig->str = match( mkTypeSig ->
+  dip2(maybe("", getL docs->str))
+  dip2("type " <>)
+  dip(getL name->str <>)
+  getL params->str <>
+  "\n" <>
+)
+
+data DataDef
+  mkDataDef : Maybe(L(Docs)) L(Name) L(Params) List(L(Sig)) -- DataDef
+end
+
+unDataDef = match( mkDataDef -> id )
+dataDefDocs = match( mkDataDef -> drop3 )
+dataDefName = match( mkDataDef -> drop2 nip )
+dataDefParams = match( mkDataDef -> drop dip(drop2) )
+dataDefSigs = match( mkDataDef -> dip(drop3) )
+dataDef->str = match( mkDataDef ->
+  dip3(maybe("", getL docs->str))
+  dip3("data " <>)
+  dip2(getL name->str <>)
+  dip(getL params->str <>)
+  dip("\n" <>)
+  for(getL dip("  " <>) sig->str <>)
+  "end\n" <>
+)
+
+||| A word signature, "foo : bar -- baz".
+data WordSig
+  mkWordSig : Maybe(L(Docs)) L(Name) L(Params) L(Type) -- WordSig
+end
+
+unWordSig = match( mkWordSig -> id )
+wordSigDoc    = match( mkWordSig -> drop3 )
+wordSigName   = match( mkWordSig -> drop2 nip )
+wordSigParams = match( mkWordSig -> drop dip(drop2) )
+wordSigType   = match( mkWordSig -> dip(drop3) )
+wordSig->str = match( mkWordSig ->
+  dip3(maybe("", getL docs->str))
+  dip2(getL name->str <>)
+  dip(getL params->str <> " : " <>)
+  getL type->str <>
+  "\n" <>
+)
+
+||| A word definition, "foo = bar baz".
+### TODO:
+###   - patterns
+###   - copatterns
+data WordDef
+  mkWordDef : Maybe(L(Docs)) L(Name) L(Params) L(Expr) -- WordDef
+end
+
+unWordDef = match( mkWordDef -> id )
+wordDefDoc    = match( mkWordDef -> drop3 )
+wordDefName   = match( mkWordDef -> drop2 nip )
+wordDefParams = match( mkWordDef -> drop dip(drop2) )
+wordDefRHS    = match( mkWordDef -> dip(drop3) )
+wordDef->str  = match( mkWordDef ->
+  dip3(maybe("", getL docs->str))
+  dip2(getL name->str <>)
+  dip(getL params->str <> " = " <>)
+  getL expr->str <>
+  "\n" <>
+)
+
+||| An assertion, "lhs == rhs"
+### TODO:
+###   - Allow chaining assertions "lhs == rhs1 == rhs2 == ... == rhsN".
+###   - Allow preconditions (i.e. where clauses).
+###   - Allow equational proofs.
+data Assertion
+  mkAssertion : L(Expr) L(Expr) -- Assertion
+end
+
+unAssertion = match( mkAssertion -> id )
+assertionLHS = match( mkAssertion -> drop )
+assertionRHS = match( mkAssertion -> nip )
+assertion->str = match( mkAssertion ->
+  dip(getL expr->str " == " <>)
+  getL expr->str <>
+  "\n" <>
+)
+
+###################
+### expressions ###
+###################
+
+||| List of params.
+data Params
+  mkParams : List(L(Param)) -- Params
+end
+
+unParams = match( mkParams -> id )
+params->str =
+  unParams lmatchL(
+    "",
+    dip2("(") dip(getL param->str <>)
+    for(dip(", " <>) getL param->str <>)
+    ")" <>
+  )
+
+||| Single parameter.
+data Param
+  mkParam : L(Name) L(Params) Maybe(L(Type)) -- Param
+end
+
+unParam = match( mkParam -> id )
+paramName   = match( mkParam -> drop2 )
+paramParams = match( mkParam -> drop nip )
+paramType   = match( mkParam -> dip(drop2) )
+param->str  = match( mkParam ->
+  dip2(getL name->str)
+  dip(getL params->str <>)
+  maybe(id,
+    dip(": " <>) getL type->str <>
+  )
+)
+
+||| Type expressions. These are two expressions separated by "--". If the "--"
+||| is missing, the LHS is assumed to be empty, and the entire expression goes
+||| to the RHS.
+data Type
+  mkType : L(Expr) L(Expr) -- Type
+end
+
+unType = match( mkType -> id )
+typeDom = match( mkType -> drop )
+typeCod = match( mkType -> nip )
+type->str = match( mkType ->
+  both(getL) cond(
+    dip?(exprNil?) -> nip expr->str,
+    dip(expr->str " -- " <>) expr->str <>
+  )
+)
+
+||| Expressions. These are just lists of atoms.
+### TODO: Allow expressions to have params and type sigs.
+data Expr
+  mkExpr : List(L(Atom)) -- Expr
+end
+
+unExpr = match( mkExpr -> id)
+exprAtoms = match( mkExpr -> id )
+exprNil? = match( mkExpr -> nil? dip(mkExpr) )
+expr->str =
+  unExpr lmatchL(
+    "",
+    dip(getL atom->str)
+    for(dip(" " <>) getL atom->str <>)
+  )
+
+||| Split the expression into two, with the effect-looking
+||| types on the right (the ones of the form +x)
+exprSplitPlusAtoms : Expr -- Expr Expr
+exprSplitPlusAtoms =
+    unExpr lmatchR(
+        nil mkExpr nil mkExpr,
+        getL?(isPlusAtom?) if(
+            dip(mkExpr exprSplitPlusAtoms unExpr) cons mkExpr,
+            cons mkExpr nil mkExpr
+        )
+    )
+
+||| Atoms, i.e. parts of an expression.
+data Atom
+  atomWord : L(Word) -- Atom
+  atomInt  : L(Int) -- Atom
+  atomStr  : L(Str) -- Atom
+end
+
+matchAtom(onWord, onInt, onStr) =
+  match(
+    atomWord -> onWord,
+    atomInt -> onInt,
+    atomStr -> onStr
+  )
+atom->str =
+  matchAtom(
+    getL word->str,
+    getL int->str,
+    getL showStr
+  )
+
+isPlusAtom =
+    match(
+        atomWord -> getL isPlusWord,
+        atomInt -> drop false,
+        atomStr -> drop false
+    )
+
+isPlusAtom? = dup isPlusAtom
+
+||| A word atom. It's a name followed by (optional) arguments.
+data Word
+  mkWord : L(Name) L(Args) -- Word
+end
+
+unWord = match ( mkWord -> id )
+wordName = match( mkWord -> drop )
+wordArgs = match( mkWord -> nip )
+word->str = match( mkWord ->
+  dip(getL name->str)
+  getL args->str <>
+)
+isPlusWord = wordName getL isPlusName
+isPlusWord? = dup isPlusWord
+
+||| Arguments, i.e. a list of expressions.
+### TODO:
+###  - named arguments
+data Args
+  mkArgs : List(L(Expr)) -- Args
+end
+
+unArgs = match ( mkArgs -> id )
+argsExprs = match( mkArgs -> id )
+args->str =
+  unArgs lmatchL(
+    "",
+    dip2("(") dip(getL expr->str <>)
+    for(dip(", " <>) getL expr->str <>)
+    ")" <>
+  )
+
+################
+### newtypes ###
+################
+
+||| Documentation associated with a decl.
+data Docs
+  mkDocs : List(Str) -- Docs
+end
+
+unDocs = match( mkDocs -> id )
+docs->str = dip("") unDocs for(dip("||| ") <> "\n" <> <>)
+
+||| Name of Mirth type, tag, word or binding.
+data Name
+  mkName : Str -- Name
+end
+
+unName = match( mkName -> id )
+name->str = unName
+name->sexp = name->str SexpAtom
+nameeq = both(unName) streq
+
+isConName = name->str "[A-Z].*" strmatch isSome
+isVarName = name->str "[a-z].*" strmatch isSome
+isPlusName = name->str "\\+[a-zA-Z].*" strmatch isSome
+isStarVarName = name->str "\\*[a-z].*" strmatch isSome
+isPlusConName = name->str "\\+[A-Z].*" strmatch isSome
+isPlusVarName = name->str "\\+[a-z].*" strmatch isSome
+
+isConName? = dup isConName
+isVarName? = dup isVarName
+isPlusName? = dup isPlusName
+isStarVarName? = dup isStarVarName
+isPlusConName? = dup isPlusConName
+isPlusVarName? = dup isPlusVarName
+
+||| Interface name.
+data Interface
+  mkInterface : Str -- Interface
+end
+
+unInterface = match( mkInterface -> id )
+interface->str = unInterface
+interface->sexp = interface->str SexpAtom
+
+interface= : Interface Interface -- Bool
+interface= = both(interface->str) streq

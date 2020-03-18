@@ -1,0 +1,109 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+# Identifiers for packages and modules, including anonymous ones
+# for testing or code generation.
+
+import base/path
+import base/nat
+import base/str
+import base/sexp
+import base/unsafe
+
+||| Identifiers for packages.
+export mirth/pkg
+  type Path
+  type Nat
+  type Pkg
+  type Sexp
+
+  Pkg.generate : Int -- Pkg
+
+  anonPkg : Nat  -- Pkg
+  pathPkg : Path -- Pkg
+
+  pkg=  : Pkg Pkg -- Bool
+  pkg=? : Pkg Pkg -- Pkg Pkg Bool
+
+  pkg->str  : Pkg -- Str
+  pkg->sexp : Pkg -- Sexp
+  pkg->path : Pkg -- Path  # panic on anonPkg
+end
+
+||| Identifiers for modules.
+export mirth/mod
+  type Path
+  type Nat
+  type Pkg
+  type Mod
+  type Sexp
+
+  Mod.generate : Int -- Mod
+
+  anonMod : Nat  -- Mod
+  pathMod : Path -- Mod
+  pkgMod  : Pkg Path -- Mod
+
+  mod=  : Mod Mod -- Bool
+  mod=? : Mod Mod -- Mod Mod Bool
+
+  mod->str  : Mod -- Str
+  mod->sexp : Mod -- Sexp
+  mod->path : Mod -- Path  # panic on anonMod
+  mod->pkg  : Mod -- Pkg   # get the pkg of a mod (approximately)
+end
+
+data Pkg
+  anonPkg : Nat -- Pkg
+  pathPkg : Path -- Pkg
+end
+
+Pkg.generate = Nat.generate anonPkg
+pkg->str = match(
+  anonPkg -> dip("?pkg") nat->str <>,
+  pathPkg -> path->str
+)
+pkg->sexp = pkg->str SexpAtom
+pkg->path = match(
+  anonPkg -> "pkg->path: anon pkg does not have associated path" unsafe_panic,
+  pathPkg -> id
+)
+pathPkg pkg->path == id
+
+pkg=? = dup2 pkg=
+pkg= = match(
+  anonPkg -> swap match(anonPkg -> n=, _ -> drop2 false),
+  pathPkg -> swap match(pathPkg -> path=, _ -> drop2 false)
+)
+
+data Mod
+  anonMod : Nat      -- Mod
+  pathMod : Path     -- Mod
+  pkgMod  : Pkg Path -- Mod
+end
+
+Mod.generate = Nat.generate anonMod
+mod->str = match(
+  anonMod -> dip("?mod") nat->str <>,
+  pathMod -> path->str,
+  pkgMod  -> nip path->str
+)
+mod->sexp = mod->str SexpAtom
+mod->path = match(
+  anonMod -> "mod->path: anonymous mod does not have associated path" unsafe_panic,
+  pathMod -> id,
+  pkgMod  -> nip
+)
+mod->pkg = match(
+  anonMod -> anonPkg,
+  pathMod -> pathPkg,
+  pkgMod -> drop
+)
+
+mod=? = dup2 mod=
+mod= = match(
+  anonMod -> swap match(anonMod -> n=, _ -> drop2 false),
+  pathMod -> swap match(pathMod -> path=, _ -> drop2 false),
+  pkgMod -> rotl match(pkgMod -> dip(swap dip(pkg=)) path= and, _ -> drop3 false)
+)

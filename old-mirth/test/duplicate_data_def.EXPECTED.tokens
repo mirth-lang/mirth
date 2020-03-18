@@ -1,0 +1,14 @@
+test/duplicate_data_def.mth:1:1: TNEWLINE
+test/duplicate_data_def.mth:2:1: TTYPE
+test/duplicate_data_def.mth:2:6: "Moo" TNAME
+test/duplicate_data_def.mth:2:9: TNEWLINE
+test/duplicate_data_def.mth:4:1: TDATA
+test/duplicate_data_def.mth:4:6: "Moo" TNAME
+test/duplicate_data_def.mth:4:9: TNEWLINE
+test/duplicate_data_def.mth:5:1: TEND
+test/duplicate_data_def.mth:5:4: TNEWLINE
+test/duplicate_data_def.mth:7:1: TDATA
+test/duplicate_data_def.mth:7:6: "Moo" TNAME
+test/duplicate_data_def.mth:7:9: TNEWLINE
+test/duplicate_data_def.mth:8:1: TEND
+test/duplicate_data_def.mth:8:4: TNEWLINE

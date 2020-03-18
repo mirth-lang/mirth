@@ -1,0 +1,54 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+import base/list
+import base/str
+
+export base/sexp
+  type Sexp
+  SexpAtom : Str -- Sexp
+  SexpList : List(Sexp) -- Sexp
+  sexpPair : Sexp Sexp -- Sexp
+  sexp0(f: Str) : Sexp
+  sexp1(f: Str, g: a -- Sexp) : a -- Sexp
+  sexp2(f: Str, g: a -- Sexp, h: b -- Sexp) : a b -- Sexp
+  sexp3(f: Str, g: a -- Sexp, h: b -- Sexp, i: c -- Sexp) : a b c -- Sexp
+  sexp4(f: Str, g: a -- Sexp, h: b -- Sexp, i: c -- Sexp, j: d -- Sexp) : a b c d -- Sexp
+  sexp5(f: Str, g: a -- Sexp, h: b -- Sexp, i: c -- Sexp, j: d -- Sexp, k: e -- Sexp) : a b c d e -- Sexp
+  list->sexp(f: a -- Sexp) : List(a) -- Sexp
+  sexp->str : Sexp -- Str
+end
+
+data Sexp
+  SexpAtom : Str -- Sexp
+  SexpList : List(Sexp) -- Sexp
+end
+
+sexp->str =
+  match(
+    SexpAtom ->
+      showStr,
+
+    SexpList ->
+      dip("(")
+      lmatchL(
+        id,
+        dip(sexp->str)
+        for(dip(" ") sexp->str <> <>)
+        <>
+      )
+      ")" <>
+  )
+
+
+sexpPair = dip2(nil) dip(cons) cons SexpList
+
+sexp0(f) = f SexpAtom
+sexp1(f,g) = dip(f SexpAtom lpure) g cons SexpList
+sexp2(f,g,h) = dip2(f SexpAtom lpure) dip(g cons) h cons SexpList
+sexp3(f,g,h,i) = dip3(f SexpAtom lpure) dip2(g cons) dip(h cons) i cons SexpList
+sexp4(f,g,h,i,j) = dip4(f SexpAtom lpure) dip3(g cons) dip2(h cons) dip(i cons) j cons SexpList
+sexp5(f,g,h,i,j,k) = dip5(f SexpAtom lpure) dip4(g cons) dip3(h cons) dip2(i cons) dip(j cons) k cons SexpList
+
+list->sexp(f) = map(f) SexpList

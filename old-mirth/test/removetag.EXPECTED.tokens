@@ -1,0 +1,22 @@
+test/removetag.mth:1:1: TNEWLINE
+test/removetag.mth:2:1: TTYPE
+test/removetag.mth:2:6: "+NewTag" TNAME
+test/removetag.mth:2:13: TNEWLINE
+test/removetag.mth:4:1: "f" TNAME
+test/removetag.mth:4:3: TLPAREN
+test/removetag.mth:4:4: "g" TNAME
+test/removetag.mth:4:5: TCOLON
+test/removetag.mth:4:7: "+NewTag" TNAME
+test/removetag.mth:4:15: TDASH2
+test/removetag.mth:4:17: TRPAREN
+test/removetag.mth:4:19: TCOLON
+test/removetag.mth:4:21: "+NewTag" TNAME
+test/removetag.mth:4:29: TDASH2
+test/removetag.mth:4:31: TNEWLINE
+test/removetag.mth:5:1: "f" TNAME
+test/removetag.mth:5:3: TLPAREN
+test/removetag.mth:5:4: "g" TNAME
+test/removetag.mth:5:5: TRPAREN
+test/removetag.mth:5:7: TEQUAL
+test/removetag.mth:5:9: "g" TNAME
+test/removetag.mth:5:10: TNEWLINE

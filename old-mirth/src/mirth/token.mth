@@ -1,0 +1,123 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+import base/int
+import base/str
+
+export mirth/token
+  type Token
+
+  TINT     : Int -- Token
+  TSTR     : Str -- Token
+  TNAME    : Str -- Token
+  TDOC     : Str -- Token
+  TNEWLINE : Token
+  TLPAREN  : Token
+  TRPAREN  : Token
+  TCOMMA   : Token
+  TCOLON   : Token
+  TEQUAL   : Token
+  TEQUAL2  : Token
+  TDASH2   : Token
+  TEXPORT  : Token
+  TIMPORT  : Token
+  TDATA    : Token
+  TTYPE    : Token
+  TEND     : Token
+
+  tokenIsInt?     : Token -- Token Bool
+  tokenIsStr?     : Token -- Token Bool
+  tokenIsName?    : Token -- Token Bool
+  tokenIsDoc?     : Token -- Token Bool
+  tokenIsNewline? : Token -- Token Bool
+  tokenIsLParen?  : Token -- Token Bool
+  tokenIsRParen?  : Token -- Token Bool
+  tokenIsComma?   : Token -- Token Bool
+  tokenIsColon?   : Token -- Token Bool
+  tokenIsEqual?   : Token -- Token Bool
+  tokenIsEqual2?  : Token -- Token Bool
+  tokenIsDash2?   : Token -- Token Bool
+  tokenIsExport?  : Token -- Token Bool
+  tokenIsImport?  : Token -- Token Bool
+  tokenIsData?    : Token -- Token Bool
+  tokenIsType?    : Token -- Token Bool
+  tokenIsEnd?     : Token -- Token Bool
+
+  tokenGetInt  : Token -- Int
+  tokenGetStr  : Token -- Str
+  tokenGetName : Token -- Str
+  tokenGetDoc  : Token -- Str
+
+  token->str : Token -- Str
+end
+
+data Token
+  TINT     : Int -- Token
+  TSTR     : Str -- Token
+  TNAME    : Str -- Token
+  TDOC     : Str -- Token
+  TNEWLINE : Token
+  TLPAREN  : Token
+  TRPAREN  : Token
+  TCOMMA   : Token
+  TCOLON   : Token
+  TEQUAL   : Token
+  TEQUAL2  : Token
+  TDASH2   : Token
+  TEXPORT  : Token
+  TIMPORT  : Token
+  TDATA    : Token
+  TTYPE    : Token
+  TEND     : Token
+end
+
+tokenIsInt? = dup match( TINT -> drop true, _ -> drop false )
+tokenIsStr? = dup match( TSTR -> drop true, _ -> drop false )
+tokenIsName? = dup match( TNAME -> drop true, _ -> drop false )
+tokenIsDoc? = dup match( TDOC -> drop true, _ -> drop false )
+tokenIsNewline? = dup match( TNEWLINE -> true, _ -> drop false )
+tokenIsLParen? = dup match( TLPAREN -> true, _ -> drop false )
+tokenIsRParen? = dup match( TRPAREN -> true, _ -> drop false )
+tokenIsComma? = dup match( TCOMMA -> true, _ -> drop false )
+tokenIsColon? = dup match( TCOLON -> true, _ -> drop false )
+tokenIsEqual? = dup match( TEQUAL -> true, _ -> drop false )
+tokenIsEqual2? = dup match( TEQUAL2 -> true, _ -> drop false )
+tokenIsDash2? = dup match( TDASH2 -> true, _ -> drop false )
+tokenIsExport? = dup match( TEXPORT -> true, _ -> drop false )
+tokenIsImport? = dup match( TIMPORT -> true, _ -> drop false )
+tokenIsData? = dup match( TDATA -> true, _ -> drop false )
+tokenIsType? = dup match( TTYPE -> true, _ -> drop false )
+tokenIsEnd? = dup match( TEND -> true, _ -> drop false )
+
+tokenGetInt     : Token -- Int
+tokenGetStr     : Token -- Str
+tokenGetName    : Token -- Str
+tokenGetComment : Token -- Str
+tokenGetInt  = match( TINT  -> id, _ -> drop 0 )
+tokenGetStr  = match( TSTR  -> id, _ -> drop "" )
+tokenGetName = match( TNAME -> id, _ -> drop "" )
+tokenGetDoc  = match( TDOC  -> id, _ -> drop "" )
+
+token->str : Token -- Str
+token->str =
+  match(
+    TINT -> int->str " TINT" <>,
+    TSTR -> showStr " TSTR" <>,
+    TNAME -> showStr " TNAME" <>,
+    TDOC -> showStr " TDOC" <>,
+    TNEWLINE -> "TNEWLINE",
+    TLPAREN -> "TLPAREN",
+    TRPAREN -> "TRPAREN",
+    TCOMMA -> "TCOMMA",
+    TCOLON -> "TCOLON",
+    TEQUAL -> "TEQUAL",
+    TEQUAL2 -> "TEQUAL2",
+    TDASH2 -> "TDASH2",
+    TEXPORT -> "TEXPORT",
+    TIMPORT -> "TIMPORT",
+    TDATA -> "TDATA",
+    TTYPE -> "TTYPE",
+    TEND -> "TEND"
+  )
+

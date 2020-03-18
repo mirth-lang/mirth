@@ -1,0 +1,30 @@
+throw(x: Str) : *a e -- *b
+throw(x) = x _prim_unsafe_throw
+catch(x: Str, f: a -- b, g: *c e -- *c b) : *c a -- *c b
+catch(x, f, g) = x _prim_unsafe_catch(f, g)
+||| finally(f,g) is the same as dip(f) g, assuming no
+||| exception occurs. But if an exception occurs during
+||| f, and it escapes f (i.e. isn't handled inside f),
+||| then g will still get run while the exception is
+||| propagating upward, and g's results gets discarded
+||| as the exception is rethrown. In other words,
+||| `finally(f,g)` always runs `g` even if `f` raises
+finally(f: *a -- *b, g: c -- d) : *a c -- *b d
+finally(f, g) = _prim_unsafe_finally(f, g)
+setx : Int -- 
+setx = "x" _prim_unsafe_env_set
+getx : Int
+getx = "x" _prim_unsafe_env_get
+100 200 catch("foo", id, id) == 100 200
+101 201 catch("foo", id, swap) == 101 201
+102 202 catch("foo", throw("foo"), id) == 102 202
+103 203 catch("foo", throw("foo"), swap) == 203 103
+104 204 catch("foo", drop 304 throw("foo"), id) == 104 304
+105 205 catch("foo", throw("foo") drop 305, id) == 105 205
+106 finally(id, drop 206) == 206
+107 207 catch("foo", finally(307 throw("foo"), drop 407), id) == 107 307
+107 207 catch("foo", finally(id, drop 407), id) == 107 407
+108 setx getx == 108
+109 setx 209 setx getx == 209
+110 setx 210 310 catch("foo", finally(410 throw("foo"), drop 510), id) getx == 210 410 110
+111 setx 211 311 catch("foo", finally(411 throw("foo"), drop 511 611 setx), id) getx == 211 411 611

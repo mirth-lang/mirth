@@ -1,0 +1,10 @@
+0 _prim_int_add == id
+dup swap == dup
+dup drop == id
+swap swap == id
+dip(swap) swap dip(swap) == swap dip(swap) swap
+dip(swap) drop == drop swap
+dip(dup) drop == drop dup
+dip(dip(dup) drop) drop == drop dip(dup) drop
+dip(swap) 10 _prim_int_add == 10 _prim_int_add dip(swap)
+dip(drop) dup _prim_int_mul == dup _prim_int_mul dip(drop)

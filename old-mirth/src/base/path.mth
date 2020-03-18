@@ -1,0 +1,145 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+import base/nat
+import base/str
+import base/list
+
+export base/path
+  type Path
+
+  Path.generate : Bool List(Int) Bool Bool -- Path
+
+  path->str : Path -- Str
+  str->path : Str -- Path
+
+  absolute? : Path -- Path Bool
+  relative? : Path -- Path Bool
+
+  pathSep     : Str
+  hasPathSep? : Path -- Path Bool
+  addPathSep  : Path -- Path
+  delPathSep  : Path -- Path
+
+  nilpath  : Path
+  nilpath? : Path -- Path Bool
+
+  path=  : Path Path -- Bool
+  path=? : Path Path -- Path Path Bool
+
+  pathHasExtension? (ext: Str) : Path -- Path Bool
+
+  </> : Path Path -- Path
+  <.> : Path Str  -- Path
+end
+
+data Path
+  MkPath : Str -- Path
+end
+
+unPath : Path -- Str
+unPath = match(MkPath -> id)
+
+Path.generate : Bool List(Int) Bool Bool -- Path
+Path.generate = $(
+  dip2?(nil? not) and
+  dip3(if("/", "") MkPath)
+  dip2(for(Nat.generate nat->str dip("f") <> MkPath </>))
+  dip(if(addPathSep, id))
+  if("txt" <.>, id)
+)
+
+str->path = MkPath
+path->str = unPath
+
+nilpath : Path
+nilpath = "" MkPath
+
+nilpath? : Path -- Path Bool
+nilpath? = dup unPath strnull
+
+unixrootpath : Path
+unixrootpath = "/" MkPath
+
+unixrootpath? : Path -- Path Bool
+unixrootpath? = dup unPath "/" streq
+
+unixhomepath : Path
+unixhomepath = "~" MkPath
+
+unixhomepath? : Path -- Path Bool
+unixhomepath? = dup unPath "~" streq
+
+defaultrootpath : Str
+defaultrootpath = "/" # FIXME: windows support
+
+absolute? = or?(
+  dup unPath dip("/") strprefix,
+  dup unPath dip("~") strprefix
+)
+
+# FIXME: windows support, home path (~) support
+relative? = absolute? not
+
+nilpath      absolute? nip == false
+unixrootpath absolute? nip == true
+unixhomepath absolute? nip == true
+
+pathSep : Str
+pathSep = "/" # FIXME: windows support
+
+hasPathSep : Path -- Bool
+hasPathSep = unPath strlen? n1- znat strbreak nip pathSep streq
+
+hasPathSep? : Path -- Path Bool
+hasPathSep? = dup hasPathSep
+
+addPathSep : Path -- Path
+addPathSep =
+  cond(
+    nilpath? -> id,
+    hasPathSep? -> id,
+    unPath "/" <> MkPath
+  )
+
+delPathSep : Path -- Path
+delPathSep =
+  cond(
+    nilpath? -> id,
+    hasPathSep? not -> id,
+    unixrootpath? -> id,
+    unPath strlen? n1- znat strbreak drop MkPath
+  )
+
+addPathSep hasPathSep == nilpath? not nip
+delPathSep hasPathSep == unixrootpath? nip
+addPathSep addPathSep == addPathSep
+delPathSep addPathSep == addPathSep
+addPathSep delPathSep == delPathSep
+delPathSep delPathSep == delPathSep
+
+nilpath? nip == addPathSep nilpath? nip
+nilpath? nip == delPathSep nilpath? nip
+absolute? nip == addPathSep absolute? nip
+absolute? nip == delPathSep absolute? nip
+
+</> = cond(
+  absolute? -> nip,
+  dip?(nilpath?) -> nip,
+  dip(addPathSep) both(unPath) <> MkPath
+)
+
+</> </> == dip(</>) </>
+dip(nilpath) </> == id
+nilpath </> nilpath </> == nilpath </>
+
+</> absolute? == or?(dip?(absolute?), absolute?) dip(</>)
+</> relative? == and?(dip?(relative?), relative?) dip(</>)
+
+<.> = dip(unPath ".") <> <> MkPath
+
+pathHasExtension?(e) = "." e <> over unPath strsuffix
+
+path=  = both(unPath) streq
+path=? = dup2 path=

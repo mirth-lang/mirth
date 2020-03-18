@@ -1,0 +1,155 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+import base/nat
+import base/order
+import base/unsafe
+
+export base/list/syntax
+  [ : List(t)
+  ; : List(t) t -- List(t)
+  ] : List(t) t -- List(t)
+  [] : List(t)
+end
+
+export base/list
+  type Nat
+  type Order(t)
+
+  nil : List(t)
+  cat : List(t) List(t) -- List(t)
+  ++ : List(t) List(t) -- List(t)
+  cons : List(t) t -- List(t)
+  snoc : t List(t) -- List(t)
+
+  consL : t List(t) -- List(t)
+  consR : List(t) t -- List(t)
+
+  len? : List(t) -- List(t) Nat
+  len  : List(t) -- Nat
+
+  nil?  : List(t) -- List(t) Bool
+  null? : List(t) -- List(t) Bool
+  null  : List(t) -- Bool
+
+  map(f: a -- b) : List(a) -- List(b)
+  filter(f: b -- b Bool) : List(b) -- List(b)
+
+  for(f: *a b -- *a) : *a List(b) -- *a
+  formap(f: *a b -- *a c) : *a List(b) -- *a List(c)
+  forfilter(f: *a b -- *a b Bool) : *a List(b) -- *a List(b)
+
+  break : List(t) Nat -- List(t) List(t)
+  flatten : List(List(t)) -- List(t)
+
+  breakL : List(t) Nat -- List(t) List(t)
+  breakR : List(t) Nat -- List(t) List(t)
+  takeL : List(t) Nat -- List(t)
+  takeR : List(t) Nat -- List(t)
+  dropL : List(t) Nat -- List(t)
+  dropR : List(t) Nat -- List(t)
+
+  lpure : t -- List(t)
+  lbind (f: a -- List(b)) : List(a) -- List(b)
+
+  lmatchL (f: *a -- *b, g: *a t List(t) -- *b) : *a List(t) -- *b
+  lmatchR (f: *a -- *b, g: *a List(t) t -- *b) : *a List(t) -- *b
+
+  zip : List(a) List(b) -- List(Pack(a b))
+  all(f: a -- Bool) : List(a) -- Bool
+  any(f: a -- Bool) : List(a) -- Bool
+  list=(f: a b -- Bool) : List(a) List(b) -- Bool
+
+  maximum (ord: Order(a)) : List(a) a -- a
+end
+
+[ = nil
+; = cons
+] = cons
+[] = nil
+
+nil     = _prim_list_nil
+cat     = _prim_list_cat
+cons    = _prim_list_cons
+len     = _prim_list_len znat
+map(f) = _prim_list_map(f)
+for(f) = _prim_list_for(f)
+break  = nint _prim_list_break
+
+consL = snoc
+consR = cons
+
+breakL = break
+breakR = dip(len?) n- znat break
+takeL = breakL drop
+takeR = breakR nip
+dropL = breakL nip
+dropR = breakR drop
+
+formap(f) = dip(nil) for(swap dip(f) swap cons)
+
+filter(f) = forfilter(f)
+forfilter(f) = dip(nil) for(swap dip(f) rotr if(cons, drop))
+
+filter(true) == id
+filter(false) == drop nil
+
+++    = cat
+snoc  = dip(dip(nil) cons) cat
+len?  = dup len
+nil?  = len? n0 n=
+null? = len? n0 n=
+null = null? nip
+null? drop == id
+
+flatten = dip(nil) for(cat)
+
+lpure = dip(nil) cons
+lbind(f) = map(f) flatten
+
+cat len == both(len) n+
+break cat == drop
+
+map(id) == id
+lbind(id) == flatten
+
+maximum(ord) = swap for(max(ord))
+
+lmatchL(f,g) =
+  nil? if(
+    drop f,
+    n1 break dip(0 _prim_list_at) g
+  )
+
+lmatchR(f,g) =
+  nil? if(
+    drop f,
+    len? n1- znat break 0 _prim_list_at g
+  )
+
+zip =
+  lmatchL(
+    drop nil,
+    rotl lmatchL(
+      drop2 nil,
+      swap2 dip(swap) dip2(pack2) zip snoc
+    )
+  )
+
+all(f) =
+  lmatchL(
+    true,
+    swap f if(
+      all(f),
+      drop false
+    )
+  )
+
+any(f) = all(f not) not
+
+list=(f) =
+  dip?(len?) dip?(len?) n= if(
+    zip all(unpack2 f),
+    drop2 false
+  )

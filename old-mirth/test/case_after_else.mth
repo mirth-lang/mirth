@@ -1,0 +1,10 @@
+
+data T
+  A : T
+  B : T
+end
+
+foo : T --
+foo = match( _ -> drop, B -> )
+
+

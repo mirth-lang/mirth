@@ -1,0 +1,90 @@
+import base/maybe
+import base/int
+import base/str
+import base/exception
+
+export base/var
+    type Var(t)
+    type Maybe(t)
+    MkVar : Str -- Var(t)
+    vfresh : Str -- Var(t)
+    vname : Var(t) -- Str
+    vhas : Var(t) -- Bool
+    vget : Var(t) -- t
+    vset : t Var(t) --
+    vdelete : Var(t) --
+    vlookup : Var(t) -- Maybe(t)
+    vupdate : Maybe(t) Var(t) --
+    vuse(f: *a t -- *b t) : *a Var(t) -- *b
+    vmodify(f: *a Maybe(t) -- *b Maybe(t)) : *a Var(t) -- *b
+    vlocal(f: *a -- *b): *a t Var(t) -- *b
+end
+
+||| A global variable reference. This is a slightly
+||| less unsafe interface to a global data table.
+data Var(t)
+    ||| Make a global variable reference. Variables
+    ||| are referenced by name, so "foo" MkVar and
+    ||| "foo" MkVar will reference the same global.
+    ||| You can abuse this to create runtime type
+    ||| errors, so don't do it.
+    MkVar : Str -- Var(t)
+end
+
+FRESH : Var(Int)
+FRESH = "base/var/FRESH" MkVar
+
+||| Makes a fresh variable name each time. The Str
+||| argument is used as a variable prefix.
+vfresh : Str -- Var(t)
+vfresh = $(
+    FRESH vmodify(maybe(0, z1+) dup Some)
+    dip("/" <>) int->str <> MkVar
+)
+
+||| Get the name underlying a variable reference.
+vname : Var(t) -- Str
+vname = match(MkVar -> id)
+
+||| Is the variable defined?
+vhas : Var(t) -- Bool
+vhas = vname _prim_unsafe_env_has
+
+||| Get the variable's value. If the variable is undefined, panics.
+vget : Var(t) -- t
+vget = vname _prim_unsafe_env_get
+
+||| Set the variable's value.
+vset : t Var(t) --
+vset = vname _prim_unsafe_env_set
+
+||| Delete the variable.
+vdelete : Var(t) --
+vdelete = vname _prim_unsafe_env_del
+
+||| Lookup the variable's value. If the variable is undefined, returns None.
+vlookup : Var(t) -- Maybe(t)
+vlookup = dup vhas if(vget Some, drop None)
+
+||| Update the variable's value. If None is passed, variable is deleted.
+vupdate : Maybe(t) Var(t) --
+vupdate = swap maybe(vdelete, swap vset)
+
+||| Use a variable's value and update it. Panics if the variable is undefined.
+vuse(f: *a t -- *b t) : *a Var(t) -- *b
+vuse(f) = save(vget f) vset
+
+||| Use a variables' value and update it. Handles the case where a variable
+||| is undefined, and allows you to make it undefined it in turn.
+vmodify(f: *a Maybe(t) -- *b Maybe(t)) : *a Var(t) -- *b
+vmodify(f) = save(vlookup f) vupdate
+
+||| Set a variable temporarily. After f, the variable will be reset to
+||| its original value, even if f throws an exception. If the variable
+||| was originally undefined, it will be undefined at the end.
+vlocal(f: *a -- *b) : *a t Var(t) -- *b
+vlocal(f) = bracket2(
+    save(dup vlookup dip(vset)),
+    drop2 f,
+    vupdate
+)

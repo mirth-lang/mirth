@@ -1,0 +1,10 @@
+
+data T
+  A : T
+  B : T
+end
+
+
+foo : T -- T Int
+foo = match( _ -> 10, _ -> 20 )
+

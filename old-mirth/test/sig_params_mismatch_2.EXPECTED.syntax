@@ -1,0 +1,4 @@
+type Foo(a, b, c)
+data Foo(a, b)
+  mk : a b -- Foo(a, b)
+end

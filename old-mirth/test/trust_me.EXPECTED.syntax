@@ -1,0 +1,5 @@
+foo : Int -- Str
+foo = trust_me(id)
+type +IO
+unsafe_perform_io(f: a -- b +IO) : a -- b
+unsafe_perform_io(f) = trust_me(f)

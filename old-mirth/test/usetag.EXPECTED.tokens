@@ -1,0 +1,22 @@
+test/usetag.mth:1:1: TNEWLINE
+test/usetag.mth:2:1: TTYPE
+test/usetag.mth:2:6: "+NewTag" TNAME
+test/usetag.mth:2:13: TNEWLINE
+test/usetag.mth:4:1: "f" TNAME
+test/usetag.mth:4:3: TCOLON
+test/usetag.mth:4:5: TDASH2
+test/usetag.mth:4:8: "+NewTag" TNAME
+test/usetag.mth:4:15: TNEWLINE
+test/usetag.mth:5:1: "f" TNAME
+test/usetag.mth:5:3: TEQUAL
+test/usetag.mth:5:5: "id" TNAME
+test/usetag.mth:5:7: TNEWLINE
+test/usetag.mth:7:1: "g" TNAME
+test/usetag.mth:7:3: TCOLON
+test/usetag.mth:7:5: TDASH2
+test/usetag.mth:7:8: "+NewTag" TNAME
+test/usetag.mth:7:15: TNEWLINE
+test/usetag.mth:8:1: "g" TNAME
+test/usetag.mth:8:3: TEQUAL
+test/usetag.mth:8:5: "f" TNAME
+test/usetag.mth:8:6: TNEWLINE

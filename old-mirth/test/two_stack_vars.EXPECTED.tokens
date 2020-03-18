@@ -1,0 +1,12 @@
+test/two_stack_vars.mth:1:1: TNEWLINE
+test/two_stack_vars.mth:2:1: "not_allowed" TNAME
+test/two_stack_vars.mth:2:13: TCOLON
+test/two_stack_vars.mth:2:15: "*a" TNAME
+test/two_stack_vars.mth:2:18: "*b" TNAME
+test/two_stack_vars.mth:2:21: TDASH2
+test/two_stack_vars.mth:2:24: "*a" TNAME
+test/two_stack_vars.mth:2:27: "*b" TNAME
+test/two_stack_vars.mth:2:29: TNEWLINE
+test/two_stack_vars.mth:3:1: "not_allowed" TNAME
+test/two_stack_vars.mth:3:13: TEQUAL
+test/two_stack_vars.mth:3:14: TNEWLINE

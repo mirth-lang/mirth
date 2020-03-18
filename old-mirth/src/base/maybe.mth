@@ -1,0 +1,55 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+import base/order
+import base/sexp
+import base/list
+
+export base/maybe
+  type Sexp
+  type Comp
+  type Maybe(t)
+  None : Maybe(t)
+  Some : t -- Maybe(t)
+  maybe (f: *a -- *b, g: *a t -- *b) : *a Maybe(t) -- *b
+  mmap  (f: a -- b) : Maybe(a) -- Maybe(b)
+  mmap2 (f: a b -- c) : Maybe(a) Maybe(b) -- Maybe(c)
+  mfor  (f: *a t -- *a) : *a Maybe(t) -- *a
+  mthen (f: a -- Maybe(b)) : Maybe(a) -- Maybe(b)
+  mcmp  (f: a a -- Comp) : Maybe(a) Maybe(a) -- Comp
+
+  isSome : Maybe(t) -- Bool
+  isNone : Maybe(t) -- Bool
+  maybe->sexp(f: t -- Sexp) : Maybe(t) -- Sexp
+end
+
+data Maybe(t)
+  None : Maybe(t)
+  Some : t -- Maybe(t)
+end
+
+maybe(f,g) = match(None -> f, Some -> g)
+mmap(f)    = maybe(None, f Some)
+mmap2(f)   = maybe(drop None, swap maybe(drop None, swap f Some))
+mfor(f)    = maybe(id, f)
+mthen(f)   = maybe(None, f)
+
+mcmp(f) =
+  match(
+    None ->
+      match(
+        None -> EQ,
+        Some -> drop GT
+      ),
+    Some ->
+      swap match(
+        None -> drop LT,
+        Some -> swap f
+      )
+  )
+
+isNone = maybe(true, drop false)
+isSome = isNone not
+
+maybe->sexp(f) = maybe(nil SexpList, f lpure SexpList)

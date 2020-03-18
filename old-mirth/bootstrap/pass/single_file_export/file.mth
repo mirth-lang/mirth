@@ -1,0 +1,8 @@
+
+export useful-interface
+  foo : Int
+end
+
+foo = 42
+
+

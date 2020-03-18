@@ -1,0 +1,1 @@
+test/sig_params_mismatch.mth:4:1: error: type A already declared with different number of parameters

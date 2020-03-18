@@ -1,0 +1,58 @@
+test/newline_freedom.mth:1:1: TNEWLINE
+test/newline_freedom.mth:2:1: "abs" TNAME
+test/newline_freedom.mth:2:5: TCOLON
+test/newline_freedom.mth:2:7: "Int" TNAME
+test/newline_freedom.mth:2:11: TDASH2
+test/newline_freedom.mth:2:14: "Int" TNAME
+test/newline_freedom.mth:2:17: TNEWLINE
+test/newline_freedom.mth:3:1: "abs" TNAME
+test/newline_freedom.mth:3:5: TEQUAL
+test/newline_freedom.mth:3:7: "dup" TNAME
+test/newline_freedom.mth:3:11: 0 TINT
+test/newline_freedom.mth:3:13: "_prim_int_lt" TNAME
+test/newline_freedom.mth:3:26: "if" TNAME
+test/newline_freedom.mth:3:29: TLPAREN
+test/newline_freedom.mth:3:31: "dip" TNAME
+test/newline_freedom.mth:3:34: TLPAREN
+test/newline_freedom.mth:3:35: 0 TINT
+test/newline_freedom.mth:3:36: TRPAREN
+test/newline_freedom.mth:3:38: "_prim_int_sub" TNAME
+test/newline_freedom.mth:3:52: TCOMMA
+test/newline_freedom.mth:3:54: "id" TNAME
+test/newline_freedom.mth:3:57: TRPAREN
+test/newline_freedom.mth:3:58: TNEWLINE
+test/newline_freedom.mth:6:1: "foo" TNAME
+test/newline_freedom.mth:6:4: TNEWLINE
+test/newline_freedom.mth:7:3: TCOLON
+test/newline_freedom.mth:7:4: TNEWLINE
+test/newline_freedom.mth:8:3: "Int" TNAME
+test/newline_freedom.mth:8:7: "Int" TNAME
+test/newline_freedom.mth:8:11: TDASH2
+test/newline_freedom.mth:8:14: "Int" TNAME
+test/newline_freedom.mth:8:17: TNEWLINE
+test/newline_freedom.mth:11:1: "foo" TNAME
+test/newline_freedom.mth:11:4: TNEWLINE
+test/newline_freedom.mth:14:1: TEQUAL
+test/newline_freedom.mth:14:2: TNEWLINE
+test/newline_freedom.mth:17:1: "dup2" TNAME
+test/newline_freedom.mth:17:6: "_prim_int_mod" TNAME
+test/newline_freedom.mth:17:20: "dip" TNAME
+test/newline_freedom.mth:17:23: TLPAREN
+test/newline_freedom.mth:17:24: "_prim_int_mul" TNAME
+test/newline_freedom.mth:17:37: TRPAREN
+test/newline_freedom.mth:17:39: "_prim_int_add" TNAME
+test/newline_freedom.mth:17:52: TNEWLINE
+test/newline_freedom.mth:24:1: "dip" TNAME
+test/newline_freedom.mth:24:4: TLPAREN
+test/newline_freedom.mth:24:5: 0 TINT
+test/newline_freedom.mth:24:6: TRPAREN
+test/newline_freedom.mth:24:8: "abs" TNAME
+test/newline_freedom.mth:24:12: 1 TINT
+test/newline_freedom.mth:24:14: "_prim_int_add" TNAME
+test/newline_freedom.mth:24:28: "foo" TNAME
+test/newline_freedom.mth:24:31: TNEWLINE
+test/newline_freedom.mth:25:1: TEQUAL2
+test/newline_freedom.mth:25:3: TNEWLINE
+test/newline_freedom.mth:27:1: "drop" TNAME
+test/newline_freedom.mth:27:6: 0 TINT
+test/newline_freedom.mth:27:7: TNEWLINE
