@@ -451,11 +451,22 @@ def(str-open-file!, Str -- File +IO, str-buf! str-buf-open-file!)
 def(str-create-file!, Str -- File +IO, str-buf! str-buf-create-file!)
 
 def(read-file!, File -- +IO,
-    0 FILE_BUF_SIZE 1- syscall-read!(FILE_BUF)
+    dup 0 FILE_BUF_SIZE 1- syscall-read!(FILE_BUF)
     dup 0 < if(
         "failed to read file" panic!,
-        file-buf-length!
+        file-buf-length! syscall-close!
+        0 < if(
+            "failed to close file" panic!,
+            id
+        )
     ))
+
+def(read-mirth-src!,
+    "Reading mirth.mth" str-trace-ln!
+    "mirth.mth" str-open-file! read-file!
+    "Read " str-trace!
+    file-buf-length? int-trace!
+    " bytes." str-trace-ln!)
 
 # "mirth.mth" str-open-file! read-file!
 
@@ -464,21 +475,7 @@ def(read-file!, File -- +IO,
 #########
 
 def(main,
-    run-tests
-
-    print-ln!
-    "Mirth v0.0.0" str-print-ln!
-    "Hello, world!" str-print-ln!
-    0 10 20 30 while(int-print-sp!) print-ln!
-    print-ln!
-
-    "Hello!" str-print-ln! print-ln!
-
-    "test.txt" str-open-file!
-    str-buf-read!
-    str-buf-print!
-    print-ln!
-
+    read-mirth-src!
 )
 
 main
