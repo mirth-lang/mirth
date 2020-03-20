@@ -382,7 +382,7 @@ def(to-digit, Int -- Char, 10 % 48 +)
 # put integer into str buf
 def(str-buf-int!, Int --,
     dup 0= if(
-        "0" str-buf!,
+        drop "0" str-buf!,
         dup dip(
             str-buf-clear!
             while(dup to-digit str-buf-push! 10 /)
@@ -420,15 +420,17 @@ def(str-buf-reverse!, --,
 )
 
 #########
-# Lexer #
+# Input #
 #########
 
-def(FILE_BUF_SIZE, 0x100000)
+def(FILE_BUF_SIZE, 0x10000)
 |u64| def-static-buffer(FILE_BUF_LENGTH)
 FILE_BUF_SIZE def-static-buffer(FILE_BUF)
 
 def(file-buf-length!, Int --, dup 0 u64!(FILE_BUF_LENGTH) 0 swap u8!(FILE_BUF))
-def(file-buf-length?, -- Int, 0 u64@(FILE_BUF_LENGTH))
+def(file-buf-length@, -- Int, 0 u64@(FILE_BUF_LENGTH))
+
+def(file-buf@, Int -- U8, u8@(FILE_BUF))
 
 def(str-buf-open-file!, -- File +IO,
     0 0 0 syscall-open!(STR_BUF)
@@ -440,9 +442,8 @@ def(str-buf-create-file!, -- File +IO,
         #    O_WRONLY 0x0001 : open in write-only mode
         #    O_CREAT  0x0200 : create file if it doesn't exist
         #    O_TRUNC  0x0400 : truncate to zero bytes
-    420 # 420 is the official unix number
-        # in reality this creates a file with
-        # unix permission 644 (in octal),
+    0x1B6 # this is the default mode creates a file with
+        # unix permission 666 (in octal),
         # i.e. owner can read+write, everyone can read
     syscall-open!(STR_BUF)
     dup 0 < if("failed to open file!" panic!, id))
@@ -465,10 +466,315 @@ def(read-mirth-src!,
     "Reading mirth.mth" str-trace-ln!
     "mirth.mth" str-open-file! read-file!
     "Read " str-trace!
-    file-buf-length? int-trace!
-    " bytes." str-trace-ln!)
+    file-buf-length@ int-trace!
+    " bytes (FILE_BUF_SIZE = " str-trace!
+    FILE_BUF_SIZE int-trace!
+    ")." str-trace-ln!)
 
-# "mirth.mth" str-open-file! read-file!
+#########
+# Names #
+#########
+
+def(MAX_NAMES, 0x1000)
+|i64| def-static-buffer(NUM_NAMES)
+def(num-names@, Int, 0 i64@(NUM_NAMES))
+def(num-names!, Int --, 0 i64!(NUM_NAMES))
+
+def(NAME_QUADS, 8)
+def(NAME_SIZE, NAME_QUADS |u64| *)
+def(NAME_BUF_SIZE, NAME_SIZE MAX_NAMES *)
+NAME_BUF_SIZE def-static-buffer(NAME_BUF)
+
+# Recalculate length of string buffer as the
+# first position with a zero byte.
+def(str-buf-recalc-length!, --,
+    0 dup i8@(STR_BUF)
+    while( # Len Char -- Len Char
+        drop 1+
+        dup i8@(STR_BUF)
+    )
+    str-buf-length!
+)
+
+# Add \0 until you get to a certain length.
+def(str-pad-zeros-to-length!, Int --,
+    dup str-buf-length? >
+    while(
+        drop
+        str-buf-length? 1+
+        dup str-buf-length! # this pads the zeros for free
+        dip(dup) >
+    ) drop)
+
+# Load a name into STR_BUF.
+def(name-load!, Name --,
+    name-quads-load!
+    NAME_SIZE str-buf-length!
+    str-buf-recalc-length!)
+
+# Compare a specific name QUAD with
+# the respective QUAD in STR_BUF.
+def(name-quad-eq, Name Int -- Bool,
+    dip(NAME_SIZE *) |u64| * dup dip(+)
+    dip(u64@(NAME_BUF)) u64@(STR_BUF) =)
+
+# Compare all quads in name to STR_BUF.
+# Note this code assumes NAME_QUADS is 4.
+def(name-quads-eq, Name -- Bool,
+    dup 0 name-quad-eq if(
+    dup 1 name-quad-eq if(
+    dup 2 name-quad-eq if(
+    dup 3 name-quad-eq if(
+    dup 4 name-quad-eq if(
+    dup 5 name-quad-eq if(
+    dup 6 name-quad-eq if(
+    7 name-quad-eq,
+    drop 0),
+    drop 0),
+    drop 0),
+    drop 0),
+    drop 0),
+    drop 0),
+    drop 0))
+
+def(name-quads-eq?, Name -- Name Bool,
+    dup name-quads-eq)
+
+def(name-quad-save!, Name Int --,
+    dip(NAME_SIZE *) |u64| * dup dip(+)
+    u64@(STR_BUF) swap u64!(NAME_BUF))
+
+def(name-quads-save!, Name -- ,
+    dup 0 name-quad-save!
+    dup 1 name-quad-save!
+    dup 2 name-quad-save!
+    dup 3 name-quad-save!
+    dup 4 name-quad-save!
+    dup 5 name-quad-save!
+    dup 6 name-quad-save!
+    7 name-quad-save!)
+
+def(name-quad-load!, Name Int --,
+    dip(NAME_SIZE *) |u64| * dup dip(+)
+    dip(u64@(NAME_BUF)) u64!(STR_BUF))
+
+def(name-quads-load!, Name -- ,
+    dup 0 name-quad-load!
+    dup 1 name-quad-load!
+    dup 2 name-quad-load!
+    dup 3 name-quad-load!
+    dup 4 name-quad-load!
+    dup 5 name-quad-load!
+    dup 6 name-quad-load!
+    7 name-quad-load!)
+
+# Load STR_BUF into name table. Performs deduplication.
+def(name-save!, -- Name,
+    NAME_SIZE 1+ str-pad-zeros-to-length!
+    0 dup num-names@ < while(
+        drop
+        name-quads-eq? if(
+            0,
+            1+ dup num-names@ <
+        )
+    )
+    dup num-names@ < if(
+        id, # name already exists
+        # name is new
+        dup name-quads-save!
+        dup 1+ num-names!
+    ))
+
+def(show-names-table!,
+    0 dup num-names@ <
+    while( # Name Bool -- Name Bool Bool
+        drop
+        dup int-print!
+        ": " str-print!
+        dup name-load! str-buf-print! print-ln!
+        1+ dup num-names@ <
+    )
+    drop
+)
+
+
+##########
+# Tokens #
+##########
+
+def(MAX_TOKENS, 0x8000)
+
+|i64| def-static-buffer(NUM_TOKENS)
+def(num-tokens@, Int, 0 i64@(NUM_TOKENS))
+def(num-tokens!, Int --, 0 i64!(NUM_TOKENS))
+def(clear-tokens!, --, 0 num-tokens!)
+
+MAX_TOKENS |u8|  * def-static-buffer(TOKEN_TYPE)
+def(token-type!, TokenType Token --, u8!(TOKEN_TYPE))
+def(token-type@, Token -- TokenType, u8@(TOKEN_TYPE))
+def(token-type?, Token -- Token TokenType, dup token-type@)
+def(TOKEN_NONE, TokenType, 0)
+def(TOKEN_NEWLINE, TokenType, 1)
+def(TOKEN_LPAREN, TokenType, 2)
+def(TOKEN_RPAREN, TokenType, 3)
+def(TOKEN_COMMA, TokenType, 4)
+def(TOKEN_COLON, TokenType, 5)
+def(TOKEN_WORD, TokenType, 6)
+def(TOKEN_INT, TokenType, 7)
+def(TOKEN_STR, TokenType, 8)
+def(token-type-str, TokenType -- Str,
+    dup TOKEN_NONE = if(drop "NONE",
+    dup TOKEN_NEWLINE = if(drop "NEWLINE",
+    dup TOKEN_LPAREN = if(drop "LPAREN",
+    dup TOKEN_RPAREN = if(drop "RPAREN",
+    dup TOKEN_COMMA = if(drop "COMMA",
+    dup TOKEN_COLON = if(drop "COLON",
+    dup TOKEN_WORD = if(drop "WORD",
+    dup TOKEN_INT = if(drop "INT",
+    dup TOKEN_STR = if(drop "STR",
+    drop "???UNKNOWN???"))))))))))
+def(token-type-print!, TokenType --,
+    token-type-str str-print!)
+
+MAX_TOKENS |i64| * def-static-buffer(TOKEN_VALUE)
+def(token-value!, TokenValue Token --, |i64| * i64!(TOKEN_VALUE))
+def(token-value@, Token -- TokenValue, |i64| * i64@(TOKEN_VALUE))
+def(token-value?, Token -- Token TokenValue, dup token-value@)
+
+MAX_TOKENS |u32| * def-static-buffer(TOKEN_ROW)
+def(token-row!, Row Token --, |u32| * u32!(TOKEN_ROW))
+def(token-row@, Token -- Row, |u32| * u32@(TOKEN_ROW))
+def(token-row?, Token -- Token Row, dup token-row@)
+
+MAX_TOKENS |u16| * def-static-buffer(TOKEN_COL)
+def(token-col!, Col Token --, |u16| * u16!(TOKEN_COL))
+def(token-col@, Token -- Col, |u16| * u16@(TOKEN_COL))
+def(token-col?, Token -- Token Col, dup token-col@)
+
+def(token-new, -- Token, num-tokens@ dup 1+ num-tokens!)
+
+def(token-print!, Token --,
+    token-row? int-print! ":" str-print!
+    token-col? int-print! ":" str-print-sp!
+    token-type? token-type-print!
+    print-ln!
+    drop
+)
+
+def(show-tokens!, --,
+    0 dup num-tokens@ < while(
+        drop
+        dup token-print!
+        1+ dup num-tokens@ <
+    ) drop)
+
+#########
+# LEXER #
+#########
+
+|u32| def-static-buffer(LEXER_ROW)
+def(lexer-row@, 0 u32@(LEXER_ROW))
+def(lexer-row!, 0 u32!(LEXER_ROW))
+
+|u16| def-static-buffer(LEXER_COL)
+def(lexer-col@, 0 u16@(LEXER_COL))
+def(lexer-col!, 0 u16!(LEXER_COL))
+
+|u64| def-static-buffer(LEXER_IDX)
+def(lexer-idx@, 0 u64@(LEXER_IDX))
+def(lexer-idx!, 0 u64!(LEXER_IDX))
+
+def(run-lexer!,
+    1 lexer-row!
+    1 lexer-col!
+
+    lexer-done? not while(
+        drop
+        lexer-next!
+        lexer-done? not
+    )
+)
+
+def(lexer-done?, Bool, lexer-idx@ file-buf-length@ >=)
+
+
+def(lexer-make!, TokenType TokenValue -- Token,
+    token-new
+    dup dip(token-value!)
+    dup dip(token-type!)
+    dip(lexer-row@) dup dip(token-row!)
+    dip(lexer-col@) dup dip(token-col!)
+)
+
+def(lexer-emit!, lexer-make! drop)
+
+def(lexer-next!, --,
+    lexer-peek
+    is-newline? if(
+        drop
+        TOKEN_NEWLINE 0 lexer-emit!
+        lexer-row@ 1+ lexer-row!
+        0 lexer-col!,
+
+    is-whitespace? if(
+        drop,
+
+    is-pound? if(
+        drop
+        lexer-skip-comment!,
+
+    is-comma? if(
+        drop
+        TOKEN_COMMA 0 lexer-emit!,
+
+    is-colon? if(
+        drop
+        TOKEN_COLON 0 lexer-emit!,
+
+    is-lparen? if(
+        drop
+        TOKEN_LPAREN 0 lexer-emit!,
+
+    is-rparen? if(
+        drop
+        TOKEN_RPAREN 0 lexer-emit!,
+
+        drop
+        )))))))
+
+    lexer-move!
+)
+
+def(lexer-skip-comment!,
+    lexer-comment-end? not while(
+        drop
+        lexer-move!
+        lexer-comment-end?
+    ))
+def(lexer-comment-end?,
+    lexer-done? if(
+        1,
+        lexer-peek is-newline? nip
+    ))
+
+def(lexer-peek, U8, lexer-idx@ file-buf@)
+def(lexer-move!,
+    lexer-idx@ 1+ lexer-idx!
+    lexer-col@ 1+ lexer-col!)
+
+def(is-newline?, dup 10 =)
+def(is-whitespace?, dup 9 = dip(dup 32 =) +)
+def(is-pound?, dup 35 =)
+def(is-lparen?, dup 40 =)
+def(is-rparen?, dup 41 =)
+def(is-comma?, dup 44 =)
+def(is-colon?, dup 58 =)
+def(is-quote?, dup 34 =)
+def(is-digit?, dup 48 57 in-range)
+def(is-upper-hexdigit?, dup 65 70 in-range)
+def(is-lower-hexdigit?, dup 97 102 in-range)
+def(in-range, dip(over dip(>=)) <= *)
+
 
 #########
 # Main #
@@ -476,6 +782,9 @@ def(read-mirth-src!,
 
 def(main,
     read-mirth-src!
+    run-lexer!
+    show-names-table!
+    show-tokens!
 )
 
 main
