@@ -712,7 +712,7 @@ def(lexer-next!, --,
     lexer-peek
     is-newline? if(
         drop
-        lexer-newline!,
+        lexer-emit-newline!,
 
     is-whitespace? if(
         drop,
@@ -743,7 +743,7 @@ def(lexer-next!, --,
     lexer-move!
 )
 
-def(lexer-newline!,
+def(lexer-emit-newline!,
     TOKEN_NEWLINE 0 lexer-emit!
     lexer-row@ 1+ lexer-row!
     0 lexer-col!)
@@ -755,7 +755,7 @@ def(lexer-skip-comment!,
         lexer-comment-end? not
     )
     lexer-peek is-newline? if(
-        lexer-newline! drop,
+        lexer-emit-newline! drop,
         drop
     ))
 
