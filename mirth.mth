@@ -712,9 +712,7 @@ def(lexer-next!, --,
     lexer-peek
     is-newline? if(
         drop
-        TOKEN_NEWLINE 0 lexer-emit!
-        lexer-row@ 1+ lexer-row!
-        0 lexer-col!,
+        lexer-newline!,
 
     is-whitespace? if(
         drop,
@@ -745,12 +743,22 @@ def(lexer-next!, --,
     lexer-move!
 )
 
+def(lexer-newline!,
+    TOKEN_NEWLINE 0 lexer-emit!
+    lexer-row@ 1+ lexer-row!
+    0 lexer-col!)
+
 def(lexer-skip-comment!,
     lexer-comment-end? not while(
         drop
         lexer-move!
-        lexer-comment-end?
+        lexer-comment-end? not
+    )
+    lexer-peek is-newline? if(
+        lexer-newline! drop,
+        drop
     ))
+
 def(lexer-comment-end?,
     lexer-done? if(
         1,
@@ -773,6 +781,7 @@ def(is-quote?, dup 34 =)
 def(is-digit?, dup 48 57 in-range)
 def(is-upper-hexdigit?, dup 65 70 in-range)
 def(is-lower-hexdigit?, dup 97 102 in-range)
+def(is-hexdigit?, is-digit? dip(is-upper-hexdigit?) + dip(is-lower-hexdigit?) +)
 def(in-range, dip(over dip(>=)) <= *)
 
 
