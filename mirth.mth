@@ -96,13 +96,13 @@ def(str-buf-full?, str-buf-length? 1+ STR_BUF_SIZE >=)
 def(str-buf-clear!, 0 str-buf-length!)
 def(str-buf-push!,
     str-buf-full? if(
-        "str-buf-push but STR_BUF is already full" panic!,
+        "str-buf-push! but STR_BUF is already full" panic!,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     ))
 def(str-buf-write!, 0 str-buf-length? syscall-write!(STR_BUF))
 def(str-buf-print!, file-out? str-buf-write!)
-def(str-buf-trace!, file-err? str-buf-trace!)
+def(str-buf-trace!, file-err? str-buf-write!)
 
 def(str-buf-read!, File -- +IO,
     str-buf-clear!
@@ -372,10 +372,16 @@ def(str-trace-sp!, str-trace! trace-sp!)
 def(str-print-ln!, str-print! print-ln!)
 def(str-trace-ln!, str-trace! trace-ln!)
 
-def(print-sp!, " " str-print!)
-def(trace-sp!, " " str-trace!)
-def(print-ln!, "\n" str-print!)
-def(trace-ln!, "\n" str-trace!)
+def(str-buf-char!, 0 str-buf-u8! 1 str-buf-length!)
+def(print-char!, str-buf-char! str-buf-print!)
+def(trace-char!, str-buf-char! str-buf-trace!)
+
+def(print-ln!, 10 print-char!)
+def(trace-ln!, 10 trace-char!)
+def(print-sp!, 32 print-char!)
+def(trace-sp!, 32 trace-char!)
+def(print-quote!, 34 print-char!)
+def(trace-quote!, 34 trace-char!)
 
 def(to-digit, Int -- Char, 10 % 48 +)
 
@@ -502,7 +508,7 @@ def(str-pad-zeros-to-length!, Int --,
     while(
         drop
         str-buf-length? 1+
-        dup str-buf-length! # this pads the zeros for free
+        dup str-buf-length! # this pads the zeros
         dip(dup) >
     ) drop)
 
@@ -597,6 +603,66 @@ def(show-names-table!,
     drop
 )
 
+#################
+# Strings Table #
+#################
+
+def(MAX_STRINGS, 0x10000)
+|i64| def-static-buffer(STRINGS_SIZE)
+MAX_STRINGS def-static-buffer(STRINGS_BUF)
+
+# Size of strings table.
+def(strings-size@, -- U64 +StrTable,
+    0 u64@(STRINGS_SIZE))
+
+# Size of strings table.
+def(strings-size!, U64 -- +StrTable,
+    0 u64!(STRINGS_SIZE))
+
+# Read byte from strings table.
+def(strings-u8@, U64 -- U8 +StrTable,
+    u8@(STRINGS_BUF))
+
+# Read byte from strings table, leaving index in place.
+def(strings-u8?, U64 -- U64 U8 +StrTable,
+    dup strings-u8@)
+
+# Write byte to strings table.
+def(strings-u8!, U8 U64 -- +StrTable,
+    u8!(STRINGS_BUF))
+
+# Push byte onto strings table.
+def(strings-push!, U8 -- +StrTable,
+    strings-size@ strings-u8!
+    strings-size@ 1+ strings-size!)
+
+# Load STR_BUF into strings table,
+# returning the index of the new string.
+def(strings-save!, -- String +StrTable +StrBuf,
+    strings-size@
+    0 dup str-buf-length? < while(
+        drop
+        dup str-buf-u8@
+        strings-push!
+        1+
+        dup str-buf-length? <
+    )
+    drop
+    0 strings-push!)
+
+# Load string into STR_BUF.
+def(strings-load!, String -- +StrTable +StrBuf,
+    str-buf-clear!
+    strings-u8? while(
+        str-buf-push!
+        1+ strings-u8?
+    )
+    drop)
+
+# Load string into STR_BUF but with escape sequences.
+# TODO: implement escape sequence handling.
+def(strings-load-escaped!, String -- +StrTable +StrBuf,
+    strings-load!)
 
 ##########
 # Tokens #
@@ -619,7 +685,7 @@ def(TOKEN_LPAREN, TokenType, 2)
 def(TOKEN_RPAREN, TokenType, 3)
 def(TOKEN_COMMA, TokenType, 4)
 def(TOKEN_COLON, TokenType, 5)
-def(TOKEN_WORD, TokenType, 6)
+def(TOKEN_NAME, TokenType, 6)
 def(TOKEN_INT, TokenType, 7)
 def(TOKEN_STR, TokenType, 8)
 def(token-type-str, TokenType -- Str,
@@ -629,7 +695,7 @@ def(token-type-str, TokenType -- Str,
     dup TOKEN_RPAREN = if(drop "RPAREN",
     dup TOKEN_COMMA = if(drop "COMMA",
     dup TOKEN_COLON = if(drop "COLON",
-    dup TOKEN_WORD = if(drop "WORD",
+    dup TOKEN_NAME = if(drop "NAME",
     dup TOKEN_INT = if(drop "INT",
     dup TOKEN_STR = if(drop "STR",
     drop "???UNKNOWN???"))))))))))
@@ -657,8 +723,21 @@ def(token-print!, Token --,
     token-row? int-print! ":" str-print!
     token-col? int-print! ":" str-print-sp!
     token-type? token-type-print!
-    print-ln!
+
+    token-type? TOKEN_NAME = if(
+        print-sp!
+        token-value? name-load! str-buf-print!,
+
+    token-type? TOKEN_STR = if(
+        print-sp!
+        print-quote!
+        token-value? strings-load-escaped! str-buf-print!
+        print-quote!,
+
+        id))
+
     drop
+    print-ln!
 )
 
 def(show-tokens!, --,
@@ -695,21 +774,25 @@ def(run-lexer!,
     )
 )
 
-def(lexer-done?, Bool, lexer-idx@ file-buf-length@ >=)
+# Is the lexer done?
+def(lexer-done?, Bool +Lexer, lexer-idx@ file-buf-length@ >=)
 
-
+# Create a token, and add it to the token buffer,
+# returning the new token.
 def(lexer-make!, TokenType TokenValue -- Token,
     token-new
     dup dip(token-value!)
     dup dip(token-type!)
     dip(lexer-row@) dup dip(token-row!)
-    dip(lexer-col@) dup dip(token-col!)
-)
+    dip(lexer-col@) dup dip(token-col!))
 
-def(lexer-emit!, lexer-make! drop)
+# Create a token, and add it to the token buffer.
+def(lexer-emit!, TokenType TokenValue, lexer-make! drop)
 
+# Lex the next token.
 def(lexer-next!, --,
     lexer-peek
+
     is-newline? if(
         drop
         lexer-emit-newline!,
@@ -731,14 +814,22 @@ def(lexer-next!, --,
 
     is-lparen? if(
         drop
-        TOKEN_LPAREN 0 lexer-emit!,
+        lexer-emit-lparen!,
 
     is-rparen? if(
         drop
-        TOKEN_RPAREN 0 lexer-emit!,
+        lexer-emit-rparen!,
 
+    is-quote? if(
         drop
-        )))))))
+        lexer-emit-string!,
+
+    is-name-char? if(
+        drop
+        lexer-emit-name!,
+
+        drop # TODO emit lexer error
+        )))))))))
 
     lexer-move!
 )
@@ -747,6 +838,53 @@ def(lexer-emit-newline!,
     TOKEN_NEWLINE 0 lexer-emit!
     lexer-row@ 1+ lexer-row!
     0 lexer-col!)
+
+def(lexer-emit-lparen!,
+    TOKEN_LPAREN 0 lexer-emit!
+    )
+
+def(lexer-emit-rparen!,
+    TOKEN_RPAREN 0 lexer-emit!
+    )
+
+def(lexer-emit-name!,
+    str-buf-clear!
+    TOKEN_NAME 0 lexer-make!
+
+    lexer-peek 1 while(
+        drop
+        str-buf-push!
+        lexer-move!
+        lexer-peek is-name-char?
+    )
+    drop
+    lexer-move-back!
+
+    # TODO: handle integers
+
+    name-save!
+    swap token-value!
+    )
+
+def(lexer-emit-string!,
+    str-buf-clear!
+    TOKEN_STR 0 lexer-make!
+
+    lexer-move!
+    lexer-peek is-string-end? not while(
+        drop
+        lexer-push-string-char!
+        lexer-move!
+        lexer-peek is-string-end? not
+    )
+    drop
+
+    strings-save!
+    swap token-value!
+    )
+
+def(lexer-push-string-char!, Char -- +Lexer,
+    str-buf-push!) # TODO: handle escape codes
 
 def(lexer-skip-comment!,
     lexer-comment-end? not while(
@@ -769,6 +907,9 @@ def(lexer-peek, U8, lexer-idx@ file-buf@)
 def(lexer-move!,
     lexer-idx@ 1+ lexer-idx!
     lexer-col@ 1+ lexer-col!)
+def(lexer-move-back!,
+    lexer-idx@ 1- lexer-idx!
+    lexer-col@ 1- lexer-col!)
 
 def(is-newline?, dup 10 =)
 def(is-whitespace?, dup 9 = dip(dup 32 =) +)
@@ -783,11 +924,25 @@ def(is-upper-hexdigit?, dup 65 70 in-range)
 def(is-lower-hexdigit?, dup 97 102 in-range)
 def(is-hexdigit?, is-digit? dip(is-upper-hexdigit?) + dip(is-lower-hexdigit?) +)
 def(in-range, dip(over dip(>=)) <= *)
+def(is-nul?, dup 0=)
 
+def(is-string-end?, is-quote? dip(is-newline?) + dip(is-nul?) +)
 
-#########
+def(is-name-char?, Char -- Char Bool,
+    is-special-char?
+    if(0, dup 33 126 in-range))
+
+def(is-special-char?, Char -- Char Bool,
+    is-quote?
+    dip(is-lparen?) +
+    dip(is-rparen?) +
+    dip(is-comma?) +
+    dip(is-colon?) +
+    dip(is-pound?) +)
+
+########
 # Main #
-#########
+########
 
 def(main,
     read-mirth-src!
@@ -797,7 +952,6 @@ def(main,
 )
 
 main
-
 
 ###############
 # Build Rules #
