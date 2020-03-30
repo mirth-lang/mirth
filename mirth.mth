@@ -383,11 +383,15 @@ def(trace-quote!, 34 trace-char!)
 
 def(to-digit, Int -- Char, 10 % 48 +)
 
+def(negate, Int -- Int, -1 *)
+def(abs, Int -- Int, dup 0< if(negate, id))
+
 # put integer into str buf
 def(str-buf-int!, Int --,
     dup 0= if(
         drop "0" str-buf!,
         dup dip(
+            abs
             str-buf-clear!
             while(dup to-digit str-buf-push! 10 /)
         ) 0 < if(45 str-buf-push!, id)
@@ -870,7 +874,10 @@ def(str-buf-is-int?,
 def(str-buf-is-dec-int?,
     0 # number of digits
     0 # current index
-    # TODO: handle sign
+    dup str-buf-u8@ is-sign? nip if(
+        1+,
+        id
+    )
     dup str-buf-u8@ is-digit? nip while(
         drop
         dip(1+) 1+
@@ -886,9 +893,17 @@ def(str-buf-int?,
     )
 
 def(str-buf-dec-int?,
+    1 # sign multiplier
     0 # accumulated value
     0 # current index
-    # TODO: handle sign
+    dup str-buf-u8@ is-sign? if(
+        is-minus-sign? nip if(
+            dip(dip(drop -1)),
+            id
+        )
+        1+,
+        drop
+    )
     dup str-buf-length? < while(
         drop
         dup dip(
@@ -898,7 +913,7 @@ def(str-buf-dec-int?,
         1+
         dup str-buf-length? <
     )
-    drop)
+    drop *)
 
 def(lexer-emit-string!,
     str-buf-clear!
@@ -958,6 +973,9 @@ def(is-lower-hexdigit?, dup 97 102 in-range)
 def(is-hexdigit?, is-digit? dip(is-upper-hexdigit?) + dip(is-lower-hexdigit?) +)
 def(in-range, dip(over dip(>=)) <= *)
 def(is-nul?, dup 0=)
+def(is-sign?, is-plus-sign? dip(is-minus-sign?) +)
+def(is-plus-sign?, dup 43 =)
+def(is-minus-sign?, dup 45 =)
 
 def(is-string-end?, is-quote? dip(is-newline?) + dip(is-nul?) +)
 
