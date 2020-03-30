@@ -734,7 +734,11 @@ def(token-print!, Token --,
         token-value? strings-load-escaped! str-buf-print!
         print-quote!,
 
-        id))
+    token-type? TOKEN_INT = if(
+        print-sp!
+        token-value? int-print!,
+
+        id)))
 
     drop
     print-ln!
@@ -860,11 +864,50 @@ def(lexer-emit-name!,
     drop
     lexer-move-back!
 
-    # TODO: handle integers
+    str-buf-is-int? if(
+        str-buf-int? over token-value!
+        TOKEN_INT swap token-type!,
 
-    name-save!
-    swap token-value!
+        name-save!
+        swap token-value!
+    ))
+
+def(str-buf-is-int?,
+    str-buf-is-dec-int? # TODO: handle hex
     )
+
+def(str-buf-is-dec-int?,
+    0 # number of digits
+    0 # current index
+    # TODO: handle sign
+    dup str-buf-u8@ is-digit? nip while(
+        drop
+        dip(1+) 1+
+        dup str-buf-u8@ is-digit? nip
+    )
+    swap 1 >= if(
+        str-buf-length? =,
+        drop 0
+    ))
+
+def(str-buf-int?,
+    str-buf-dec-int? # TODO: handle hex
+    )
+
+def(str-buf-dec-int?,
+    0 # accumulated value
+    0 # current index
+    # TODO: handle sign
+    dup str-buf-length? < while(
+        drop
+        dup dip(
+            str-buf-u8@
+            dip(10 *) 48 - +
+        )
+        1+
+        dup str-buf-length? <
+    )
+    drop)
 
 def(lexer-emit-string!,
     str-buf-clear!
@@ -884,7 +927,7 @@ def(lexer-emit-string!,
     )
 
 def(lexer-push-string-char!, Char -- +Lexer,
-    str-buf-push!) # TODO: handle escape codes
+    str-buf-push!) # TODO: handle escape sequences
 
 def(lexer-skip-comment!,
     lexer-comment-end? not while(
@@ -938,7 +981,9 @@ def(is-special-char?, Char -- Char Bool,
     dip(is-rparen?) +
     dip(is-comma?) +
     dip(is-colon?) +
-    dip(is-pound?) +)
+    dip(is-pound?) +
+    # TODO include brackets & braces also
+    )
 
 ########
 # Main #
@@ -948,8 +993,7 @@ def(main,
     read-mirth-src!
     run-lexer!
     show-names-table!
-    show-tokens!
-)
+    show-tokens!)
 
 main
 
