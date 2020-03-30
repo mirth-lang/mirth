@@ -683,9 +683,9 @@ def(TOKEN_NONE, TokenType, 0)
 def(TOKEN_LPAREN, TokenType, 1)
 def(TOKEN_RPAREN, TokenType, 2)
 def(TOKEN_COMMA, TokenType, 3)
-def(TOKEN_NAME, TokenType, 5)
-def(TOKEN_INT, TokenType, 6)
-def(TOKEN_STR, TokenType, 7)
+def(TOKEN_NAME, TokenType, 4)
+def(TOKEN_INT, TokenType, 5)
+def(TOKEN_STR, TokenType, 6)
 def(token-type-str, TokenType -- Str,
     dup TOKEN_NONE = if(drop "NONE",
     dup TOKEN_LPAREN = if(drop "LPAREN",
