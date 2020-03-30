@@ -1,6 +1,4 @@
 
-# TODO:
-#  - Add basic (semi-high-level) file IO words.
 
 ###########
 # Prelude #
@@ -85,7 +83,7 @@ def(str-length, Str -- Int,
         str-not-null?
     ) drop)
 
-def(STR_BUF_SIZE, 0x1000)
+def(STR_BUF_SIZE, 4096)
 |u64| def-static-buffer(STR_BUF_LEN)
 STR_BUF_SIZE def-static-buffer(STR_BUF)
 def(str-buf-length?, 0 u64@(STR_BUF_LEN))
@@ -429,7 +427,7 @@ def(str-buf-reverse!, --,
 # Input #
 #########
 
-def(FILE_BUF_SIZE, 0x10000)
+def(FILE_BUF_SIZE, 65536)
 |u64| def-static-buffer(FILE_BUF_LENGTH)
 FILE_BUF_SIZE def-static-buffer(FILE_BUF)
 
@@ -444,11 +442,13 @@ def(str-buf-open-file!, -- File +IO,
 
 def(str-buf-create-file!, -- File +IO,
     0 # offset into str-buf to read
-    0x601 # this is an OR of flags:
+    1537 # 0x601
+        # this is an OR of flags:
         #    O_WRONLY 0x0001 : open in write-only mode
         #    O_CREAT  0x0200 : create file if it doesn't exist
         #    O_TRUNC  0x0400 : truncate to zero bytes
-    0x1B6 # this is the default mode creates a file with
+    438 # 0x1B6
+        # this is the default mode creates a file with
         # unix permission 666 (in octal),
         # i.e. owner can read+write, everyone can read
     syscall-open!(STR_BUF)
@@ -481,7 +481,7 @@ def(read-mirth-src!,
 # Names #
 #########
 
-def(MAX_NAMES, 0x1000)
+def(MAX_NAMES, 4096)
 |i64| def-static-buffer(NUM_NAMES)
 def(num-names@, Int, 0 i64@(NUM_NAMES))
 def(num-names!, Int --, 0 i64!(NUM_NAMES))
@@ -607,7 +607,7 @@ def(show-names-table!,
 # Strings Table #
 #################
 
-def(MAX_STRINGS, 0x10000)
+def(MAX_STRINGS, 8192)
 |i64| def-static-buffer(STRINGS_SIZE)
 MAX_STRINGS def-static-buffer(STRINGS_BUF)
 
@@ -660,7 +660,7 @@ def(strings-load!, String -- +StrTable +StrBuf,
     drop)
 
 # Load string into STR_BUF but with escape sequences.
-# TODO: implement escape sequence handling.
+# FIXME: implement escape sequence handling.
 def(strings-load-escaped!, String -- +StrTable +StrBuf,
     strings-load!)
 
@@ -668,7 +668,7 @@ def(strings-load-escaped!, String -- +StrTable +StrBuf,
 # Tokens #
 ##########
 
-def(MAX_TOKENS, 0x8000)
+def(MAX_TOKENS, 32768)
 
 |i64| def-static-buffer(NUM_TOKENS)
 def(num-tokens@, Int, 0 i64@(NUM_TOKENS))
@@ -832,7 +832,7 @@ def(lexer-next!, --,
         drop
         lexer-emit-name!,
 
-        drop # TODO emit lexer error
+        drop # LATER emit lexer error
         )))))))))
 
     lexer-move!
@@ -873,7 +873,7 @@ def(lexer-emit-name!,
     ))
 
 def(str-buf-is-int?,
-    str-buf-is-dec-int? # TODO: handle hex
+    str-buf-is-dec-int? # FIXME: handle hex
     )
 
 def(str-buf-is-dec-int?,
@@ -891,7 +891,7 @@ def(str-buf-is-dec-int?,
     ))
 
 def(str-buf-int?,
-    str-buf-dec-int? # TODO: handle hex
+    str-buf-dec-int? # FIXME: handle hex
     )
 
 def(str-buf-dec-int?,
@@ -927,7 +927,7 @@ def(lexer-emit-string!,
     )
 
 def(lexer-push-string-char!, Char -- +Lexer,
-    str-buf-push!) # TODO: handle escape sequences
+    str-buf-push!) # FIXME: handle escape sequences
 
 def(lexer-skip-comment!,
     lexer-comment-end? not while(
@@ -982,7 +982,7 @@ def(is-special-char?, Char -- Char Bool,
     dip(is-comma?) +
     dip(is-colon?) +
     dip(is-pound?) +
-    # TODO include brackets & braces also
+    # FIXME: include brackets & braces also
     )
 
 ########
@@ -990,6 +990,7 @@ def(is-special-char?, Char -- Char Bool,
 ########
 
 def(main,
+    run-tests
     read-mirth-src!
     run-lexer!
     show-names-table!
