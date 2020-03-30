@@ -767,6 +767,41 @@ def(lexer-col!, 0 u16!(LEXER_COL))
 def(lexer-idx@, 0 u64@(LEXER_IDX))
 def(lexer-idx!, 0 u64!(LEXER_IDX))
 
+def(LEXER_STACK_SIZE, 256)
+|u64| def-static-buffer(LEXER_STACK_LENGTH)
+LEXER_STACK_SIZE |u64| * def-static-buffer(LEXER_STACK_BUF)
+
+def(lexer-stack-length@, U64 +Lexer,
+    0 u64@(LEXER_STACK_LENGTH))
+
+def(lexer-stack-length!, U64 -- +Lexer,
+    0 u64!(LEXER_STACK_LENGTH))
+
+def(lexer-stack-clear!, +Lexer,
+    0 lexer-stack-length!)
+
+def(lexer-stack-empty?, Bool +Lexer,
+    lexer-stack-length@ 0 <=)
+
+def(lexer-stack-full?, Bool +Lexer,
+    lexer-stack-length@ LEXER_STACK_SIZE >=)
+
+def(lexer-stack-push!, Token -- +Lexer,
+    lexer-stack-full? if(
+        "compiler error: lexer stack overflow" panic!,
+        lexer-stack-length@
+        dup 1+ lexer-stack-length!
+        u64!(LEXER_STACK_BUF)
+    ))
+
+def(lexer-stack-pop!, -- Token +Lexer,
+    lexer-stack-empty? if(
+        "compiler error: lexer stack underflow" panic!,
+        lexer-stack-length@ 1-
+        dup lexer-stack-length!
+        u64@(LEXER_STACK_BUF)
+    ))
+
 def(run-lexer!,
     1 lexer-row!
     1 lexer-col!
@@ -776,6 +811,8 @@ def(run-lexer!,
         lexer-next!
         lexer-done? not
     )
+
+    # FIXME: check lexer stack is empty
 )
 
 # Is the lexer done?
@@ -840,10 +877,12 @@ def(lexer-emit-newline!,
 
 def(lexer-emit-lparen!,
     TOKEN_LPAREN 0 lexer-emit!
+    # TODO: push to lexer stack
     )
 
 def(lexer-emit-rparen!,
     TOKEN_RPAREN 0 lexer-emit!
+    # TODO: pop from lexer stack
     )
 
 def(lexer-emit-name!,
@@ -989,7 +1028,7 @@ def(is-special-char?, Char -- Char Bool,
     dip(is-rparen?) +
     dip(is-comma?) +
     dip(is-pound?) +
-    # FIXME: include brackets & braces eventually
+    # FIXME: include brackets & braces ... maybe colons
     )
 
 ########
@@ -1001,7 +1040,8 @@ def(main,
     read-mirth-src!
     run-lexer!
     show-names-table!
-    show-tokens!)
+    #show-tokens!
+    )
 
 main
 
