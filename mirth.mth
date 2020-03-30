@@ -672,7 +672,7 @@ def(strings-load-escaped!, String -- +StrTable +StrBuf,
 # Tokens #
 ##########
 
-def(MAX_TOKENS, 32768)
+def(MAX_TOKENS, 8192)
 
 |i64| def-static-buffer(NUM_TOKENS)
 def(num-tokens@, Int, 0 i64@(NUM_TOKENS))
@@ -722,8 +722,8 @@ def(token-new, -- Token, num-tokens@ dup 1+ num-tokens!)
 def(token-print!, Token --,
     token-row? int-print! ":" str-print!
     token-col? int-print! ":" str-print-sp!
+    dup int-print-sp!
     token-type? token-type-print!
-
     token-type? TOKEN_NAME = if(
         print-sp!
         token-value? name-load! str-buf-print!,
@@ -734,11 +734,8 @@ def(token-print!, Token --,
         token-value? strings-load-escaped! str-buf-print!
         print-quote!,
 
-    token-type? TOKEN_INT = if(
         print-sp!
-        token-value? int-print!,
-
-        id)))
+        token-value? int-print!))
 
     drop
     print-ln!
@@ -791,7 +788,7 @@ def(lexer-stack-push!, Token -- +Lexer,
         "compiler error: lexer stack overflow" panic!,
         lexer-stack-length@
         dup 1+ lexer-stack-length!
-        u64!(LEXER_STACK_BUF)
+        |u64| * u64!(LEXER_STACK_BUF)
     ))
 
 def(lexer-stack-pop!, -- Token +Lexer,
@@ -799,7 +796,7 @@ def(lexer-stack-pop!, -- Token +Lexer,
         "compiler error: lexer stack underflow" panic!,
         lexer-stack-length@ 1-
         dup lexer-stack-length!
-        u64@(LEXER_STACK_BUF)
+        |u64| * u64@(LEXER_STACK_BUF)
     ))
 
 def(run-lexer!,
@@ -876,13 +873,15 @@ def(lexer-emit-newline!,
     0 lexer-col!)
 
 def(lexer-emit-lparen!,
-    TOKEN_LPAREN 0 lexer-emit!
-    # TODO: push to lexer stack
+    TOKEN_LPAREN 0 lexer-make!
+    lexer-stack-push!
     )
 
 def(lexer-emit-rparen!,
-    TOKEN_RPAREN 0 lexer-emit!
-    # TODO: pop from lexer stack
+    # FIXME: handle empty lexer stack (AKA mismatched right paren)
+    TOKEN_RPAREN
+    lexer-stack-pop! dup
+    dip(lexer-make!) token-value!
     )
 
 def(lexer-emit-name!,
@@ -1040,7 +1039,7 @@ def(main,
     read-mirth-src!
     run-lexer!
     show-names-table!
-    #show-tokens!
+    show-tokens!
     )
 
 main
