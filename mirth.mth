@@ -485,7 +485,7 @@ def(read-mirth-src!,
 # Names #
 #########
 
-def(MAX_NAMES, 4096)
+def(MAX_NAMES, 32768)
 |i64| def-static-buffer(NUM_NAMES)
 def(num-names@, Int, 0 i64@(NUM_NAMES))
 def(num-names!, Int --, 0 i64!(NUM_NAMES))
@@ -611,7 +611,7 @@ def(show-names-table!,
 # Strings Table #
 #################
 
-def(MAX_STRINGS, 8192)
+def(MAX_STRINGS, 32768)
 |i64| def-static-buffer(STRINGS_SIZE)
 MAX_STRINGS def-static-buffer(STRINGS_BUF)
 
@@ -672,7 +672,7 @@ def(strings-load-escaped!, String -- +StrTable +StrBuf,
 # Tokens #
 ##########
 
-def(MAX_TOKENS, 8192)
+def(MAX_TOKENS, 32768)
 
 |i64| def-static-buffer(NUM_TOKENS)
 def(num-tokens@, Int, 0 i64@(NUM_TOKENS))
