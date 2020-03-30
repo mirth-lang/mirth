@@ -680,25 +680,21 @@ def(token-type!, TokenType Token --, u8!(TOKEN_TYPE))
 def(token-type@, Token -- TokenType, u8@(TOKEN_TYPE))
 def(token-type?, Token -- Token TokenType, dup token-type@)
 def(TOKEN_NONE, TokenType, 0)
-def(TOKEN_NEWLINE, TokenType, 1)
-def(TOKEN_LPAREN, TokenType, 2)
-def(TOKEN_RPAREN, TokenType, 3)
-def(TOKEN_COMMA, TokenType, 4)
-def(TOKEN_COLON, TokenType, 5)
-def(TOKEN_NAME, TokenType, 6)
-def(TOKEN_INT, TokenType, 7)
-def(TOKEN_STR, TokenType, 8)
+def(TOKEN_LPAREN, TokenType, 1)
+def(TOKEN_RPAREN, TokenType, 2)
+def(TOKEN_COMMA, TokenType, 3)
+def(TOKEN_NAME, TokenType, 5)
+def(TOKEN_INT, TokenType, 6)
+def(TOKEN_STR, TokenType, 7)
 def(token-type-str, TokenType -- Str,
     dup TOKEN_NONE = if(drop "NONE",
-    dup TOKEN_NEWLINE = if(drop "NEWLINE",
     dup TOKEN_LPAREN = if(drop "LPAREN",
     dup TOKEN_RPAREN = if(drop "RPAREN",
     dup TOKEN_COMMA = if(drop "COMMA",
-    dup TOKEN_COLON = if(drop "COLON",
     dup TOKEN_NAME = if(drop "NAME",
     dup TOKEN_INT = if(drop "INT",
     dup TOKEN_STR = if(drop "STR",
-    drop "???UNKNOWN???"))))))))))
+    drop "???UNKNOWN???"))))))))
 def(token-type-print!, TokenType --,
     token-type-str str-print!)
 
@@ -812,10 +808,6 @@ def(lexer-next!, --,
         drop
         TOKEN_COMMA 0 lexer-emit!,
 
-    is-colon? if(
-        drop
-        TOKEN_COLON 0 lexer-emit!,
-
     is-lparen? if(
         drop
         lexer-emit-lparen!,
@@ -833,13 +825,12 @@ def(lexer-next!, --,
         lexer-emit-name!,
 
         drop # LATER emit lexer error
-        )))))))))
+        ))))))))
 
     lexer-move!
 )
 
 def(lexer-emit-newline!,
-    TOKEN_NEWLINE 0 lexer-emit!
     lexer-row@ 1+ lexer-row!
     0 lexer-col!)
 
@@ -960,7 +951,6 @@ def(is-pound?, dup 35 =)
 def(is-lparen?, dup 40 =)
 def(is-rparen?, dup 41 =)
 def(is-comma?, dup 44 =)
-def(is-colon?, dup 58 =)
 def(is-quote?, dup 34 =)
 def(is-digit?, dup 48 57 in-range)
 def(is-upper-hexdigit?, dup 65 70 in-range)
@@ -980,9 +970,8 @@ def(is-special-char?, Char -- Char Bool,
     dip(is-lparen?) +
     dip(is-rparen?) +
     dip(is-comma?) +
-    dip(is-colon?) +
     dip(is-pound?) +
-    # FIXME: include brackets & braces also
+    # FIXME: include brackets & braces eventually
     )
 
 ########
