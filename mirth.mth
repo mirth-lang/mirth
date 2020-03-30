@@ -607,6 +607,107 @@ def(show-names-table!,
     drop
 )
 
+###################
+# Primitive Names #
+###################
+
+def(PRIM_END, 0)
+def(PRIM_DEBUG, 1)
+def(PRIM_ID, 1)
+def(PRIM_DUP, 2)
+def(PRIM_DROP, 3)
+def(PRIM_SWAP, 4)
+def(PRIM_DIP, 5)
+def(PRIM_IF, 6)
+def(PRIM_WHILE, 7)
+def(PRIM_INT_ADD, 8)
+def(PRIM_INT_SUB, 9)
+def(PRIM_INT_MUL, 10)
+def(PRIM_INT_DIV, 11)
+def(PRIM_INT_MOD, 12)
+def(PRIM_INT_EQ, 13)
+def(PRIM_INT_LT, 14)
+def(PRIM_INT_LE, 15)
+def(PRIM_STR_HEAD, 16)
+def(PRIM_STR_TAIL, 17)
+def(PRIM_MEM_GET_U8, 18)
+def(PRIM_MEM_GET_U16, 19)
+def(PRIM_MEM_GET_U32, 20)
+def(PRIM_MEM_GET_U64, 21)
+def(PRIM_MEM_GET_I8, 22)
+def(PRIM_MEM_GET_I16, 23)
+def(PRIM_MEM_GET_I32, 24)
+def(PRIM_MEM_GET_I64, 25)
+def(PRIM_MEM_SET_U8, 26)
+def(PRIM_MEM_SET_U16, 27)
+def(PRIM_MEM_SET_U32, 28)
+def(PRIM_MEM_SET_U64, 29)
+def(PRIM_MEM_SET_I8, 30)
+def(PRIM_MEM_SET_I16, 31)
+def(PRIM_MEM_SET_I32, 32)
+def(PRIM_MEM_SET_I64, 33)
+def(PRIM_FILE_READ, 34)
+def(PRIM_FILE_WRITE, 35)
+def(PRIM_FILE_OPEN, 36)
+def(PRIM_FILE_CLOSE, 37)
+def(PRIM_EXIT, 38)
+def(PRIM_DEF, 39)
+def(PRIM_DEF_STATIC_BUFFER, 40)
+def(PRIM_OUTPUT_ASM, 41)
+
+def(def-prim!, Prim Str -- +Names, name-save! swap !!=)
+
+# Initialize name table with list of primitives.
+# Note that order matters very much here, but any
+# deviation from the order above will be flagged
+# thanks to assertions.
+def(init-names!, +Names,
+    0 num-names!
+    PRIM_END "end" def-prim!
+    PRIM_DEBUG "??" def-prim!
+    PRIM_ID "id" def-prim!
+    PRIM_DUP "dup" def-prim!
+    PRIM_DROP "drop" def-prim!
+    PRIM_SWAP "swap" def-prim!
+    PRIM_DIP "dip" def-prim!
+    PRIM_IF "if" def-prim!
+    PRIM_WHILE "while" def-prim!
+    PRIM_INT_ADD "+" def-prim!
+    PRIM_INT_SUB "-" def-prim!
+    PRIM_INT_MUL "*" def-prim!
+    PRIM_INT_DIV "/" def-prim!
+    PRIM_INT_MOD "%" def-prim!
+    PRIM_INT_EQ "=" def-prim!
+    PRIM_INT_LT "<" def-prim!
+    PRIM_INT_LE "<=" def-prim!
+    PRIM_STR_HEAD "str-head" def-prim!
+    PRIM_STR_TAIL "str-tail" def-prim!
+    PRIM_MEM_GET_U8 "u8@" def-prim!
+    PRIM_MEM_GET_U16 "u16@" def-prim!
+    PRIM_MEM_GET_U32 "u32@" def-prim!
+    PRIM_MEM_GET_U64 "u64@" def-prim!
+    PRIM_MEM_GET_I8 "i8@" def-prim!
+    PRIM_MEM_GET_I16 "i16@" def-prim!
+    PRIM_MEM_GET_I32 "i32@" def-prim!
+    PRIM_MEM_GET_I64 "i64@" def-prim!
+    PRIM_MEM_SET_U8 "u8!" def-prim!
+    PRIM_MEM_SET_U16 "u16!" def-prim!
+    PRIM_MEM_SET_U32 "u32!" def-prim!
+    PRIM_MEM_SET_U64 "u64!" def-prim!
+    PRIM_MEM_SET_I8 "i8!" def-prim!
+    PRIM_MEM_SET_I16 "i16!" def-prim!
+    PRIM_MEM_SET_I32 "i32!" def-prim!
+    PRIM_MEM_SET_I64 "i64!" def-prim!
+    PRIM_FILE_READ "syscall-read!" def-prim!
+    PRIM_FILE_WRITE "syscall-write!" def-prim!
+    PRIM_FILE_OPEN "syscall-open!" def-prim!
+    PRIM_FILE_CLOSE "syscall-close!" def-prim!
+    PRIM_EXIT "syscall-exit!" def-prim!
+    PRIM_DEF "def" def-prim!
+    PRIM_DEF_STATIC_BUFFER "def-static-buffer" def-prim!
+    PRIM_OUTPUT_ASM "output-asm" def-prim!
+    )
+
 #################
 # Strings Table #
 #################
@@ -1029,6 +1130,59 @@ def(is-special-char?, Char -- Char Bool,
     dip(is-pound?) +
     # FIXME: include brackets & braces ... maybe colons
     )
+
+###############
+# Value Stack #
+###############
+
+def(VSTACK_SIZE, 32768)
+|u64| def-static-buffer(VSTACK_LEN)
+VSTACK_SIZE |i64| * def-static-buffer(VSTACK_BUF)
+
+def(vstack-len@, U64 +VSTACK, 0 u64@(VSTACK_LEN))
+def(vstack-len!, U64 -- +VSTACK, 0 u64!(VSTACK_LEN))
+def(vstack-empty?, Bool +VSTACK, vstack-len@ 0 <=)
+def(vstack-full?, Bool +VSTACK, vstack-len@ VSTACK_SIZE >=)
+def(vstack-i64@, U64 -- I64 +VSTACK, |u64| * i64@(VSTACK_BUF))
+def(vstack-i64!, I64 U64 -- +VSTACK, |u64| * i64!(VSTACK_BUF))
+
+def(vstack-pop!, I64 +VSTACK,
+    vstack-empty? if(
+        "stack underflow: attempted to pop on empty vstack" panic!,
+        vstack-len@ 1- vstack-len!
+        vstack-len@ vstack-i64@
+    ))
+
+def(vstack-pop2!, I64 I64 +VSTACK,
+    vstack-pop! dip(vstack-pop!))
+
+def(vstack-pop3!, I64 I64 I64 +VSTACK,
+    vstack-pop! dip(vstack-pop2!))
+
+def(vstack-push!, I64 -- +VSTACK,
+    vstack-full? if(
+        "stack overflow: attempted to push on full vstack" panic!,
+        vstack-len@ vstack-i64!
+        vstack-len@ 1+ vstack-len!
+    ))
+
+def(vstack-push2!, I64 I64 -- +VSTACK,
+    dip(vstack-push!) vstack-push!)
+
+def(vstack-push3!, I64 I64 I64 -- +VSTACK,
+    dip(vstack-push2!) vstack-push!)
+
+def(vstack-top@, I64 +VSTACK,
+    vstack-empty? if(
+        "stack underflow: attempted to read from top of empty vstack" panic!,
+        vstack-len@ 1- vstack-i64@
+    ))
+
+def(vstack-top!, I64 -- +VSTACK,
+    vstack-empty? if(
+        "stack underflow: attempted to write to top of empty vstack" panic!,
+        vstack-len@ 1- vstack-i64!
+    ))
 
 ########
 # Main #
