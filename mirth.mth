@@ -1233,7 +1233,7 @@ def(token-run-from!, Token -- +Mirth,
         drop
         token-run!
         token-run-end? not
-    ) trace-ln!)
+    ) drop trace-ln!)
 
 # Is this a token to stop running at?
 def(token-run-end?, Token -- Token Bool +Mirth,
@@ -1256,9 +1256,23 @@ def(token-run!, Token -- Token +Mirth,
         token-value? vstack-push!,
     token-type? TOKEN_LPAREN = if(
         token-value@,
+    token-type? TOKEN_NAME = if(
+        dup token-run-name!,
+
         dup "Unexpected token type in token-run!" emit-warning!
-    )))
-    1+)
+    )))) 1+)
+
+# Run a single token that is a name.
+def(token-run-name!, Token -- +Mirth,
+    token-value? is-prim? nip if(
+        token-run-prim!,
+
+        "Dont know how to run word yet." emit-warning!
+    ))
+
+# Run a single token that is a prim name.
+def(token-run-prim!, Token -- +Mirth,
+    "Dont know how to run prim yet." emit-warning!)
 
 ########
 # Main #
@@ -1282,10 +1296,12 @@ def(main,
         "VSTACK = " str-trace! vstack-trace!
     ))
 
+main
+
 ###############
 # Build Rules #
 ###############
 
 "mirth.asm" output-asm(main)
 
-0 1 2 3 4 5 6 7 8 9
+0 1 2 3 4 5 6 7 8 9 +
