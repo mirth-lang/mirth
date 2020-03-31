@@ -407,7 +407,7 @@ def(int-print-ln!, Int -- +IO, int-print! print-ln!)
 def(int-trace-ln!, Int -- +IO, int-trace! trace-ln!)
 
 def(panic!, Str -- +IO,
-    "panic: " str-trace! str-trace-ln! 0 syscall-exit!)
+    "panic: " str-trace! str-trace-ln! 1 syscall-exit!)
 
 # reverse contents of str buf
 
@@ -612,7 +612,6 @@ def(show-names-table!,
 ###################
 
 def(PRIM_END, 0)
-def(PRIM_DEBUG, 1)
 def(PRIM_ID, 1)
 def(PRIM_DUP, 2)
 def(PRIM_DROP, 3)
@@ -654,8 +653,13 @@ def(PRIM_EXIT, 38)
 def(PRIM_DEF, 39)
 def(PRIM_DEF_STATIC_BUFFER, 40)
 def(PRIM_OUTPUT_ASM, 41)
+def(PRIM_DEBUG, 42)
+def(NUM_PRIMS, 43)
 
-def(def-prim!, Prim Str -- +Names, name-save! swap !!=)
+def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
+
+def(def-prim!, Prim Str -- +Names,
+    str-buf! name-save! swap !!=)
 
 # Initialize name table with list of primitives.
 # Note that order matters very much here, but any
@@ -664,7 +668,6 @@ def(def-prim!, Prim Str -- +Names, name-save! swap !!=)
 def(init-names!, +Names,
     0 num-names!
     PRIM_END "end" def-prim!
-    PRIM_DEBUG "??" def-prim!
     PRIM_ID "id" def-prim!
     PRIM_DUP "dup" def-prim!
     PRIM_DROP "drop" def-prim!
@@ -706,6 +709,7 @@ def(init-names!, +Names,
     PRIM_DEF "def" def-prim!
     PRIM_DEF_STATIC_BUFFER "def-static-buffer" def-prim!
     PRIM_OUTPUT_ASM "output-asm" def-prim!
+    PRIM_DEBUG "??" def-prim!
     )
 
 #################
@@ -820,9 +824,18 @@ def(token-col?, Token -- Token Col, dup token-col@)
 
 def(token-new, -- Token, num-tokens@ dup 1+ num-tokens!)
 
-def(token-print!, Token --,
+def(token-trace-prefix!, Token -- +IO,
+    token-row? int-trace! ":" str-trace!
+    token-col? int-trace! ":" str-trace-sp!
+    drop)
+
+def(token-print-prefix!, Token -- +IO,
     token-row? int-print! ":" str-print!
     token-col? int-print! ":" str-print-sp!
+    drop)
+
+def(token-print!, Token -- +IO,
+    dup token-print-prefix!
     dup int-print-sp!
     token-type? token-type-print!
     token-type? TOKEN_NAME = if(
@@ -1135,7 +1148,7 @@ def(is-special-char?, Char -- Char Bool,
 # Value Stack #
 ###############
 
-def(VSTACK_SIZE, 32768)
+def(VSTACK_SIZE, 8192)
 |u64| def-static-buffer(VSTACK_LEN)
 VSTACK_SIZE |i64| * def-static-buffer(VSTACK_BUF)
 
@@ -1184,6 +1197,69 @@ def(vstack-top!, I64 -- +VSTACK,
         vstack-len@ 1- vstack-i64!
     ))
 
+def(vstack-trace!, +VSTACK +IO,
+    0 dup vstack-len@ < while(
+        drop
+        dup vstack-i64@
+        int-trace-sp!
+        1+
+        dup vstack-len@ <
+    ) drop trace-ln!)
+
+###############
+# Diagnostics #
+###############
+
+def(emit-warning!, Token Str -- +IO,
+    "mirth.mth:" str-trace!
+    dip(token-trace-prefix!)
+    "warning: " str-trace!
+    str-trace-ln!)
+
+def(emit-error!, Token Str -- +IO,
+    "mirth.mth:" str-trace!
+    dip(token-trace-prefix!)
+    "error: " str-trace!
+    str-trace-ln!)
+
+###########
+# Running #
+###########
+
+# Run directly from tokens! (FIXME: Use this only for top-level code.)
+# No type checking. (FIXME: Add dynamic types.)
+def(token-run-from!, Token -- +Mirth,
+    token-run-end? not while(
+        drop
+        token-run!
+        token-run-end? not
+    ) trace-ln!)
+
+# Is this a token to stop running at?
+def(token-run-end?, Token -- Token Bool +Mirth,
+    dup num-tokens@ >= if(
+        1,
+    token-type? TOKEN_NONE = if(
+        1,
+    token-type? TOKEN_COMMA = if(
+        1,
+    token-type? TOKEN_RPAREN = if(
+        1,
+        0
+    )))))
+
+# Run a single token, return next token.
+def(token-run!, Token -- Token +Mirth,
+    token-type? TOKEN_INT = if(
+        token-value? vstack-push!,
+    token-type? TOKEN_STR = if(
+        token-value? vstack-push!,
+    token-type? TOKEN_LPAREN = if(
+        token-value@,
+        dup "Unexpected token type in token-run!" emit-warning!
+    )))
+    1+)
+
 ########
 # Main #
 ########
@@ -1191,15 +1267,25 @@ def(vstack-top!, I64 -- +VSTACK,
 def(main,
     run-tests
     read-mirth-src!
+    init-names!
     run-lexer!
-    show-names-table!
-    show-tokens!
-    )
+#    show-names-table!
+#    show-tokens!
 
-main
+    "Building." str-trace-ln!
+
+    0 token-run-from!
+
+    "Done." str-trace-ln!
+    vstack-empty? if(
+        id,
+        "VSTACK = " str-trace! vstack-trace!
+    ))
 
 ###############
 # Build Rules #
 ###############
 
 "mirth.asm" output-asm(main)
+
+0 1 2 3 4 5 6 7 8 9
