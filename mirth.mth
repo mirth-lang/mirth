@@ -1577,4 +1577,10 @@ def(main,
 #################################
 
 0
-10 20 30 "Aello" str-head
+10 20 30 "ABC" str-tail str-tail str-head
+
+# TODO "heap"
+# TODO memory primitives, def-static-buffer
+# TODO syscall primitives
+# TODO def primitive
+# TODO output-asm
