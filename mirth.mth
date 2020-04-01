@@ -1,7 +1,4 @@
-
-0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0
+0 1 2 3 2 1 0
 
 ###########
 # Prelude #
@@ -40,14 +37,14 @@ def(2%, Int -- Int, 2 %)
 def(2+, Int -- Int, 2 +)
 def(2-, Int -- Int, 2 -)
 
-def(|u8|, 1)
-def(|u16|, 2)
-def(|u32|, 4)
-def(|u64|, 8)
-def(|i8|, 1)
-def(|i16|, 2)
-def(|i32|, 4)
-def(|i64|, 8)
+def(|u8|, Int, 1)
+def(|u16|, Int, 2)
+def(|u32|, Int, 4)
+def(|u64|, Int, 8)
+def(|i8|, Int, 1)
+def(|i16|, Int, 2)
+def(|i32|, Int, 4)
+def(|i64|, Int, 8)
 
 def(not, Bool -- Bool, 0 =)
 def(and, Bool Bool -- Bool, swap if(id, drop 0))
@@ -86,24 +83,28 @@ def(str-length, Str -- Int,
         str-not-null?
     ) drop)
 
-def(STR_BUF_SIZE, 4096)
+def(STR_BUF_SIZE, Int, 4096)
 |u64| def-static-buffer(STR_BUF_LEN)
 STR_BUF_SIZE def-static-buffer(STR_BUF)
-def(str-buf-length?, 0 u64@(STR_BUF_LEN))
-def(str-buf-length!, dup 0 u64!(STR_BUF_LEN) dip(0) str-buf-u8!)
-def(str-buf-u8@, u8@(STR_BUF))
-def(str-buf-u8!, u8!(STR_BUF))
-def(str-buf-full?, str-buf-length? 1+ STR_BUF_SIZE >=)
-def(str-buf-clear!, 0 str-buf-length!)
-def(str-buf-push!,
+def(str-buf-length?, Int +StrBuf,
+    0 u64@(STR_BUF_LEN))
+def(str-buf-length!, Int -- +StrBuf,
+    dup 0 u64!(STR_BUF_LEN) dip(0) str-buf-u8!)
+def(str-buf-u8@, Index -- U8 +StrBuf, u8@(STR_BUF))
+def(str-buf-u8!, U8 Index -- +StrBuf, u8!(STR_BUF))
+def(str-buf-full?, Bool +StrBuf,
+    str-buf-length? 1+ STR_BUF_SIZE >=)
+def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
+def(str-buf-push!, U8 -- +StrBuf,
     str-buf-full? if(
         "str-buf-push! but STR_BUF is already full" panic!,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     ))
-def(str-buf-write!, 0 str-buf-length? syscall-write!(STR_BUF))
-def(str-buf-print!, file-out? str-buf-write!)
-def(str-buf-trace!, file-err? str-buf-write!)
+def(str-buf-write!, File -- +StrBuf,
+    0 str-buf-length? syscall-write!(STR_BUF))
+def(str-buf-print!, +StrBuf, file-out? str-buf-write!)
+def(str-buf-trace!, +StrBuf, file-err? str-buf-write!)
 
 def(str-buf-read!, File -- +IO,
     str-buf-clear!
@@ -256,22 +257,22 @@ def(test%, --,
 
 2 |u64| * def-static-buffer(TestBuffer)
 
-def(u8@test, u8@(TestBuffer))
-def(i8@test, i8@(TestBuffer))
-def(u8!test, u8!(TestBuffer))
-def(i8!test, i8!(TestBuffer))
-def(u16@test, u16@(TestBuffer))
-def(i16@test, i16@(TestBuffer))
-def(u16!test, u16!(TestBuffer))
-def(i16!test, i16!(TestBuffer))
-def(u32@test, u32@(TestBuffer))
-def(i32@test, i32@(TestBuffer))
-def(u32!test, u32!(TestBuffer))
-def(i32!test, i32!(TestBuffer))
-def(u64@test, u64@(TestBuffer))
-def(i64@test, i64@(TestBuffer))
-def(u64!test, u64!(TestBuffer))
-def(i64!test, i64!(TestBuffer))
+def(u8@test, Index -- U8 +TestBuf, u8@(TestBuffer))
+def(i8@test, Index -- I8 +TestBuf, i8@(TestBuffer))
+def(u8!test, U8 Index -- +TestBuf, u8!(TestBuffer))
+def(i8!test, I8 Index -- +TestBuf, i8!(TestBuffer))
+def(u16@test, Index -- U16 +TestBuf, u16@(TestBuffer))
+def(i16@test, Index -- I16 +TestBuf, i16@(TestBuffer))
+def(u16!test, U16 Index -- +TestBuf, u16!(TestBuffer))
+def(i16!test, I16 Index -- +TestBuf, i16!(TestBuffer))
+def(u32@test, Index -- U32 +TestBuf, u32@(TestBuffer))
+def(i32@test, Index -- I32 +TestBuf, i32@(TestBuffer))
+def(u32!test, U32 Index -- +TestBuf, u32!(TestBuffer))
+def(i32!test, I32 Index -- +TestBuf, i32!(TestBuffer))
+def(u64@test, Index -- U64 +TestBuf, u64@(TestBuffer))
+def(i64@test, Index -- I64 +TestBuf, i64@(TestBuffer))
+def(u64!test, U64 Index -- +TestBuf, u64!(TestBuffer))
+def(i64!test, I64 Index -- +TestBuf, i64!(TestBuffer))
 
 def(test@!, --,
     # persistence tests -- i.e. get and set behave as expected and
@@ -319,7 +320,7 @@ def(test@!, --,
     -20 0 i64!test 0 i64@test -20 !!= |i64| i64@test 0 !!=
     30 |i64| i64!test 0 i64@test -20 !!= |i64| i64@test 30 !!=)
 
-def(test-str,
+def(test-str, --,
     "AaBb"
     dup str-head 65 !!=
     dup str-tail str-head 97 !!=
@@ -333,32 +334,33 @@ def(test-str,
     "hello, world!" str-length 13 !!=
     )
 
-def(test-while,
+def(test-while, --,
     999 10 20 while(1- dip(1+)) 30 !!= 999 !!=)
 
+def(stdin,  File, 0)
 def(stdout, File, 1)
 def(stderr, File, 2)
-def(stdin,  File, 0)
 
-def(init, init-io)
-def(init-io,
-    0 file-in!
-    1 file-out!
-    2 file-err!)
+def(init!, +IO, init-io!)
+def(init-io!, +IO,
+    stdin file-in!
+    stdout file-out!
+    stderr file-err!
+    )
 
 |u64| def-static-buffer(FILE_IN)
-def(file-in!, 0 u64!(FILE_IN))
-def(file-in?, 0 u64@(FILE_IN))
+def(file-in!, File -- +IO, 0 u64!(FILE_IN))
+def(file-in?, -- File +IO, 0 u64@(FILE_IN))
 
 |u64| def-static-buffer(FILE_OUT)
-def(file-out!, 0 u64!(FILE_OUT))
-def(file-out?, 0 u64@(FILE_OUT))
+def(file-out!, File -- +IO, 0 u64!(FILE_OUT))
+def(file-out?, -- File +IO, 0 u64@(FILE_OUT))
 
 |u64| def-static-buffer(FILE_ERR)
-def(file-err!, 0 u64!(FILE_ERR))
-def(file-err?, 0 u64@(FILE_ERR))
+def(file-err!, File -- +IO, 0 u64!(FILE_ERR))
+def(file-err?, -- File +IO, 0 u64@(FILE_ERR))
 
-def(str-write!, Str File --,
+def(str-write!, Str File -- +IO,
     swap str-not-null? while(
         drop str-buf-copy!
         dip(dup str-buf-write!)
@@ -366,23 +368,23 @@ def(str-write!, Str File --,
     ) drop2
     )
 
-def(str-print!, file-out? str-write!)
-def(str-trace!, file-err? str-write!)
-def(str-print-sp!, str-print! print-sp!)
-def(str-trace-sp!, str-trace! trace-sp!)
-def(str-print-ln!, str-print! print-ln!)
-def(str-trace-ln!, str-trace! trace-ln!)
+def(str-print!, Str -- +IO, file-out? str-write!)
+def(str-trace!, Str -- +IO, file-err? str-write!)
+def(str-print-sp!, Str -- +IO, str-print! print-sp!)
+def(str-trace-sp!, Str -- +IO, str-trace! trace-sp!)
+def(str-print-ln!, Str -- +IO, str-print! print-ln!)
+def(str-trace-ln!, Str -- +IO, str-trace! trace-ln!)
 
-def(str-buf-char!, 0 str-buf-u8! 1 str-buf-length!)
-def(print-char!, str-buf-char! str-buf-print!)
-def(trace-char!, str-buf-char! str-buf-trace!)
+def(str-buf-char!, Char -- +StrBuf, 0 str-buf-u8! 1 str-buf-length!)
+def(print-char!, Char -- +IO, str-buf-char! str-buf-print!)
+def(trace-char!, Char -- +IO, str-buf-char! str-buf-trace!)
 
-def(print-ln!, 10 print-char!)
-def(trace-ln!, 10 trace-char!)
-def(print-sp!, 32 print-char!)
-def(trace-sp!, 32 trace-char!)
-def(print-quote!, 34 print-char!)
-def(trace-quote!, 34 trace-char!)
+def(print-ln!, +IO, 10 print-char!)
+def(trace-ln!, +IO, 10 trace-char!)
+def(print-sp!, +IO, 32 print-char!)
+def(trace-sp!, +IO, 32 trace-char!)
+def(print-quote!, +IO, 34 print-char!)
+def(trace-quote!, +IO, 34 trace-char!)
 
 def(to-digit, Int -- Char, 10 % 48 +)
 
@@ -434,7 +436,7 @@ def(str-buf-reverse!, --,
 # Input #
 #########
 
-def(FILE_BUF_SIZE, 65536)
+def(FILE_BUF_SIZE, USize, 65536)
 |u64| def-static-buffer(FILE_BUF_LENGTH)
 FILE_BUF_SIZE def-static-buffer(FILE_BUF)
 
@@ -475,7 +477,7 @@ def(read-file!, File -- +IO,
         )
     ))
 
-def(read-mirth-src!,
+def(read-mirth-src!, +IO,
     "Reading mirth.mth" str-trace-ln!
     "mirth.mth" str-open-file! read-file!
     "Read " str-trace!
@@ -488,14 +490,14 @@ def(read-mirth-src!,
 # Names #
 #########
 
-def(MAX_NAMES, 32768)
+def(MAX_NAMES, USize, 4096)
 |i64| def-static-buffer(NUM_NAMES)
 def(num-names@, Int, 0 i64@(NUM_NAMES))
 def(num-names!, Int --, 0 i64!(NUM_NAMES))
 
-def(NAME_QUADS, 8)
-def(NAME_SIZE, NAME_QUADS |u64| *)
-def(NAME_BUF_SIZE, NAME_SIZE MAX_NAMES *)
+def(NAME_QUADS, USize, 8)
+def(NAME_SIZE, USize, NAME_QUADS |u64| *)
+def(NAME_BUF_SIZE, USize, NAME_SIZE MAX_NAMES *)
 NAME_BUF_SIZE def-static-buffer(NAME_BUF)
 
 # Recalculate length of string buffer as the
@@ -598,7 +600,7 @@ def(name-save!, -- Name,
         dup 1+ num-names!
     ))
 
-def(show-names-table!,
+def(show-names-table!, +Names +IO,
     0 dup num-names@ <
     while( # Name Bool -- Name Bool Bool
         drop
@@ -614,50 +616,50 @@ def(show-names-table!,
 # Primitive Names #
 ###################
 
-def(PRIM_END, 0)
-def(PRIM_ID, 1)
-def(PRIM_DUP, 2)
-def(PRIM_DROP, 3)
-def(PRIM_SWAP, 4)
-def(PRIM_DIP, 5)
-def(PRIM_IF, 6)
-def(PRIM_WHILE, 7)
-def(PRIM_INT_ADD, 8)
-def(PRIM_INT_SUB, 9)
-def(PRIM_INT_MUL, 10)
-def(PRIM_INT_DIV, 11)
-def(PRIM_INT_MOD, 12)
-def(PRIM_INT_EQ, 13)
-def(PRIM_INT_LT, 14)
-def(PRIM_INT_LE, 15)
-def(PRIM_STR_HEAD, 16)
-def(PRIM_STR_TAIL, 17)
-def(PRIM_MEM_GET_U8, 18)
-def(PRIM_MEM_GET_U16, 19)
-def(PRIM_MEM_GET_U32, 20)
-def(PRIM_MEM_GET_U64, 21)
-def(PRIM_MEM_GET_I8, 22)
-def(PRIM_MEM_GET_I16, 23)
-def(PRIM_MEM_GET_I32, 24)
-def(PRIM_MEM_GET_I64, 25)
-def(PRIM_MEM_SET_U8, 26)
-def(PRIM_MEM_SET_U16, 27)
-def(PRIM_MEM_SET_U32, 28)
-def(PRIM_MEM_SET_U64, 29)
-def(PRIM_MEM_SET_I8, 30)
-def(PRIM_MEM_SET_I16, 31)
-def(PRIM_MEM_SET_I32, 32)
-def(PRIM_MEM_SET_I64, 33)
-def(PRIM_FILE_READ, 34)
-def(PRIM_FILE_WRITE, 35)
-def(PRIM_FILE_OPEN, 36)
-def(PRIM_FILE_CLOSE, 37)
-def(PRIM_EXIT, 38)
-def(PRIM_DEF, 39)
-def(PRIM_DEF_STATIC_BUFFER, 40)
-def(PRIM_OUTPUT_ASM, 41)
-def(PRIM_DEBUG, 42)
-def(NUM_PRIMS, 43)
+def(PRIM_END, Prim, 0)
+def(PRIM_ID, Prim, 1)
+def(PRIM_DUP, Prim, 2)
+def(PRIM_DROP, Prim, 3)
+def(PRIM_SWAP, Prim, 4)
+def(PRIM_DIP, Prim, 5)
+def(PRIM_IF, Prim, 6)
+def(PRIM_WHILE, Prim, 7)
+def(PRIM_INT_ADD, Prim, 8)
+def(PRIM_INT_SUB, Prim, 9)
+def(PRIM_INT_MUL, Prim, 10)
+def(PRIM_INT_DIV, Prim, 11)
+def(PRIM_INT_MOD, Prim, 12)
+def(PRIM_INT_EQ, Prim, 13)
+def(PRIM_INT_LT, Prim, 14)
+def(PRIM_INT_LE, Prim, 15)
+def(PRIM_STR_HEAD, Prim, 16)
+def(PRIM_STR_TAIL, Prim, 17)
+def(PRIM_MEM_GET_U8, Prim, 18)
+def(PRIM_MEM_GET_U16, Prim, 19)
+def(PRIM_MEM_GET_U32, Prim, 20)
+def(PRIM_MEM_GET_U64, Prim, 21)
+def(PRIM_MEM_GET_I8, Prim, 22)
+def(PRIM_MEM_GET_I16, Prim, 23)
+def(PRIM_MEM_GET_I32, Prim, 24)
+def(PRIM_MEM_GET_I64, Prim, 25)
+def(PRIM_MEM_SET_U8, Prim, 26)
+def(PRIM_MEM_SET_U16, Prim, 27)
+def(PRIM_MEM_SET_U32, Prim, 28)
+def(PRIM_MEM_SET_U64, Prim, 29)
+def(PRIM_MEM_SET_I8, Prim, 30)
+def(PRIM_MEM_SET_I16, Prim, 31)
+def(PRIM_MEM_SET_I32, Prim, 32)
+def(PRIM_MEM_SET_I64, Prim, 33)
+def(PRIM_FILE_READ, Prim, 34)
+def(PRIM_FILE_WRITE, Prim, 35)
+def(PRIM_FILE_OPEN, Prim, 36)
+def(PRIM_FILE_CLOSE, Prim, 37)
+def(PRIM_EXIT, Prim, 38)
+def(PRIM_DEF, Prim, 39)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 40)
+def(PRIM_OUTPUT_ASM, Prim, 41)
+def(PRIM_DEBUG, Prim, 42)
+def(NUM_PRIMS, Prim, 43)
 
 def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
 
@@ -719,7 +721,7 @@ def(init-names!, +Names,
 # Strings Table #
 #################
 
-def(MAX_STRINGS, 32768)
+def(MAX_STRINGS, USize, 32768)
 |i64| def-static-buffer(STRINGS_SIZE)
 MAX_STRINGS def-static-buffer(STRINGS_BUF)
 
@@ -780,7 +782,7 @@ def(strings-load-escaped!, String -- +StrTable +StrBuf,
 # Tokens #
 ##########
 
-def(MAX_TOKENS, 32768)
+def(MAX_TOKENS, USize, 32768)
 
 |i64| def-static-buffer(NUM_TOKENS)
 def(num-tokens@, Int, 0 i64@(NUM_TOKENS))
@@ -870,18 +872,18 @@ def(show-tokens!, --,
 #########
 
 |u32| def-static-buffer(LEXER_ROW)
-def(lexer-row@, 0 u32@(LEXER_ROW))
-def(lexer-row!, 0 u32!(LEXER_ROW))
+def(lexer-row@, -- Row +Lexer, 0 u32@(LEXER_ROW))
+def(lexer-row!, Row -- +Lexer, 0 u32!(LEXER_ROW))
 
 |u16| def-static-buffer(LEXER_COL)
-def(lexer-col@, 0 u16@(LEXER_COL))
-def(lexer-col!, 0 u16!(LEXER_COL))
+def(lexer-col@, -- Col +Lexer, 0 u16@(LEXER_COL))
+def(lexer-col!, Col -- +Lexer, 0 u16!(LEXER_COL))
 
 |u64| def-static-buffer(LEXER_IDX)
-def(lexer-idx@, 0 u64@(LEXER_IDX))
-def(lexer-idx!, 0 u64!(LEXER_IDX))
+def(lexer-idx@, -- Token +Lexer, 0 u64@(LEXER_IDX))
+def(lexer-idx!, Token -- +Lexer, 0 u64!(LEXER_IDX))
 
-def(LEXER_STACK_SIZE, 256)
+def(LEXER_STACK_SIZE, USize, 256)
 |u64| def-static-buffer(LEXER_STACK_LENGTH)
 LEXER_STACK_SIZE |u64| * def-static-buffer(LEXER_STACK_BUF)
 
@@ -916,9 +918,10 @@ def(lexer-stack-pop!, -- Token +Lexer,
         |u64| * u64@(LEXER_STACK_BUF)
     ))
 
-def(run-lexer!,
+def(run-lexer!, +Lexer,
     1 lexer-row!
     1 lexer-col!
+    0 lexer-idx!
 
     lexer-done? not while(
         drop
@@ -926,7 +929,10 @@ def(run-lexer!,
         lexer-done? not
     )
 
-    # FIXME: check lexer stack is empty
+    # FIXME: check that lexer stack is empty
+
+    TOKEN_NONE 0
+    lexer-emit!
 )
 
 # Is the lexer done?
@@ -985,23 +991,21 @@ def(lexer-next!, --,
     lexer-move!
 )
 
-def(lexer-emit-newline!,
+def(lexer-emit-newline!, +Lexer,
     lexer-row@ 1+ lexer-row!
     0 lexer-col!)
 
-def(lexer-emit-lparen!,
+def(lexer-emit-lparen!, +Lexer,
     TOKEN_LPAREN 0 lexer-make!
-    lexer-stack-push!
-    )
+    lexer-stack-push!)
 
-def(lexer-emit-rparen!,
+def(lexer-emit-rparen!, +Lexer,
     # FIXME: handle empty lexer stack (AKA mismatched right paren)
     TOKEN_RPAREN
     lexer-stack-pop! dup
-    dip(lexer-make!) token-value!
-    )
+    dip(lexer-make!) token-value!)
 
-def(lexer-emit-name!,
+def(lexer-emit-name!, +Lexer,
     str-buf-clear!
     TOKEN_NAME 0 lexer-make!
 
@@ -1022,11 +1026,11 @@ def(lexer-emit-name!,
         swap token-value!
     ))
 
-def(str-buf-is-int?,
+def(str-buf-is-int?, Bool +StrBuf,
     str-buf-is-dec-int? # FIXME: handle hex
     )
 
-def(str-buf-is-dec-int?,
+def(str-buf-is-dec-int?, Bool +StrBuf,
     0 # number of digits
     0 # current index
     dup str-buf-u8@ is-sign? nip if(
@@ -1043,11 +1047,11 @@ def(str-buf-is-dec-int?,
         drop 0
     ))
 
-def(str-buf-int?,
+def(str-buf-int?, Int +StrBuf,
     str-buf-dec-int? # FIXME: handle hex
     )
 
-def(str-buf-dec-int?,
+def(str-buf-dec-int?, Int +StrBuf,
     1 # sign multiplier
     0 # accumulated value
     0 # current index
@@ -1070,7 +1074,7 @@ def(str-buf-dec-int?,
     )
     drop *)
 
-def(lexer-emit-string!,
+def(lexer-emit-string!, +Lexer,
     str-buf-clear!
     TOKEN_STR 0 lexer-make!
 
@@ -1090,7 +1094,7 @@ def(lexer-emit-string!,
 def(lexer-push-string-char!, Char -- +Lexer,
     str-buf-push!) # FIXME: handle escape sequences
 
-def(lexer-skip-comment!,
+def(lexer-skip-comment!, +Lexer,
     lexer-comment-end? not while(
         drop
         lexer-move!
@@ -1101,38 +1105,38 @@ def(lexer-skip-comment!,
         drop
     ))
 
-def(lexer-comment-end?,
+def(lexer-comment-end?, Bool +Lexer,
     lexer-done? if(
         1,
         lexer-peek is-newline? nip
     ))
 
-def(lexer-peek, U8, lexer-idx@ file-buf@)
-def(lexer-move!,
+def(lexer-peek, Char +Lexer, lexer-idx@ file-buf@)
+def(lexer-move!, +Lexer,
     lexer-idx@ 1+ lexer-idx!
     lexer-col@ 1+ lexer-col!)
-def(lexer-move-back!,
+def(lexer-move-back!, +Lexer,
     lexer-idx@ 1- lexer-idx!
     lexer-col@ 1- lexer-col!)
 
-def(is-newline?, dup 10 =)
-def(is-whitespace?, dup 9 = dip(dup 32 =) +)
-def(is-pound?, dup 35 =)
-def(is-lparen?, dup 40 =)
-def(is-rparen?, dup 41 =)
-def(is-comma?, dup 44 =)
-def(is-quote?, dup 34 =)
-def(is-digit?, dup 48 57 in-range)
-def(is-upper-hexdigit?, dup 65 70 in-range)
-def(is-lower-hexdigit?, dup 97 102 in-range)
-def(is-hexdigit?, is-digit? dip(is-upper-hexdigit?) + dip(is-lower-hexdigit?) +)
-def(in-range, dip(over dip(>=)) <= *)
-def(is-nul?, dup 0=)
-def(is-sign?, is-plus-sign? dip(is-minus-sign?) +)
-def(is-plus-sign?, dup 43 =)
-def(is-minus-sign?, dup 45 =)
+def(is-newline?, Char -- Char Bool, dup 10 =)
+def(is-whitespace?, Char -- Char Bool, dup 9 = dip(dup 32 =) +)
+def(is-pound?, Char -- Char Bool, dup 35 =)
+def(is-lparen?, Char -- Char Bool, dup 40 =)
+def(is-rparen?, Char -- Char Bool, dup 41 =)
+def(is-comma?, Char -- Char Bool, dup 44 =)
+def(is-quote?, Char -- Char Bool, dup 34 =)
+def(is-digit?, Char -- Char Bool, dup 48 57 in-range)
+def(is-upper-hexdigit?, Char -- Char Bool, dup 65 70 in-range)
+def(is-lower-hexdigit?, Char -- Char Bool, dup 97 102 in-range)
+def(is-hexdigit?, Char -- Char Bool, is-digit? dip(is-upper-hexdigit?) + dip(is-lower-hexdigit?) +)
+def(in-range, Char Char Char -- Bool, dip(over dip(>=)) <= *)
+def(is-nul?, Char -- Char Bool, dup 0=)
+def(is-sign?, Char -- Char Bool, is-plus-sign? dip(is-minus-sign?) +)
+def(is-plus-sign?, Char -- Char Bool, dup 43 =)
+def(is-minus-sign?, Char -- Char Bool, dup 45 =)
 
-def(is-string-end?, is-quote? dip(is-newline?) + dip(is-nul?) +)
+def(is-string-end?, Char -- Char Bool, is-quote? dip(is-newline?) + dip(is-nul?) +)
 
 def(is-name-char?, Char -- Char Bool,
     is-special-char?
@@ -1151,7 +1155,7 @@ def(is-special-char?, Char -- Char Bool,
 # Value Stack #
 ###############
 
-def(VSTACK_SIZE, 8192)
+def(VSTACK_SIZE, USize, 8192)
 |u64| def-static-buffer(VSTACK_LEN)
 VSTACK_SIZE |i64| * def-static-buffer(VSTACK_BUF)
 
@@ -1264,15 +1268,21 @@ def(token-run-one!, Token -- Token +Mirth,
     token-type? TOKEN_NAME = if(
         dup token-run-name!,
 
-        dup "Unexpected token type in token-run!" emit-warning!
+        dup "Unexpected token type in token-run!" emit-fatal-error!
     )))) 1+)
 
 # Run a single name token.
 def(token-run-name!, Token -- +Mirth,
     token-value? is-prim? nip if(
         token-run-prim!,
-
-        "Dont know how to run word yet." emit-warning!
+        token-value?
+        name-undefined? if(
+            drop "Word is undefined." emit-fatal-error!,
+            name-is-word? if(
+                nip name-value@ token-run!,
+                drop2 "Not a word." emit-fatal-error!
+            )
+        )
     ))
 
 # Run a single primitive name token.
@@ -1417,9 +1427,36 @@ def(token-run-prim!, Token --,
         )
         vstack-push!,
 
+    dup PRIM_DEF = if(
         drop
-        "Dont know how to run prim yet." emit-warning!
-    ))))))))))))))))))
+        0 0 arity-check!
+        token-args-3
+        nip swap token-type? TOKEN_NAME = if(
+            token-value? name-undefined? if(
+                DEF_WORD over name-sort!
+                nip name-value!,
+                drop "word already defined" emit-fatal-error!
+            ),
+            "expected word name" emit-fatal-error!
+        ),
+
+    dup PRIM_DEF_STATIC_BUFFER = if(
+        drop
+        1 0 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value? name-undefined? if(
+                nip
+                DEF_BUFFER over name-sort!
+                vstack-pop! buffer-alloc! swap name-value!,
+                drop "buffer already defined" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+        drop
+        "Dont know how to run prim yet." emit-fatal-error!
+    ))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -1504,7 +1541,7 @@ def(token-args-3, Token -- Token Token Token,
             ),
             drop
             "expected 3 args, got only 1"
-            emit-fatal-error!,
+            emit-fatal-error!
         ),
         drop
         "expected 3 args, got none"
@@ -1546,7 +1583,8 @@ def(token-is-arg-end?, Token -- Token Bool,
 # Main #
 ########
 
-def(main,
+def(main, +IO,
+    init!
     run-tests
     read-mirth-src!
     init-names!
@@ -1566,6 +1604,207 @@ def(main,
 
 #main
 
+###########
+# Buffers #
+###########
+
+def(MAX_BUFFERS, USize, 1024)
+def(PAGE_SIZE, USize, 8192)
+
+|u64| def-static-buffer(NUM_BUFFERS)
+def(num-buffers@, USize +Buffers, 0 u64@(NUM_BUFFERS))
+def(num-buffers!, USize -- +Buffers, 0 u64!(NUM_BUFFERS))
+
+MAX_BUFFERS |u64| * dup
+    def-static-buffer(BUFFER_SIZE)
+    def-static-buffer(BUFFER_BASE)
+
+def(buffer-size@, Buffer -- U64 +Buffers,
+    |u64| * u64@(BUFFER_SIZE))
+
+def(buffer-size!, Buffer -- U64 +Buffers,
+    |u64| * u64!(BUFFER_SIZE))
+
+def(buffer-large?, Buffer -- Buffer Bool +Buffers,
+    dup buffer-size@ PAGE_SIZE >)
+
+def(buffer-alloc!, U64 -- Buffer +Buffers,
+    num-buffers@ MAX_BUFFERS >= if(
+        "compiler error: ran out of buffers" panic!,
+        dup num-buffers@ buffer-size!
+        dup PAGE_SIZE > if(
+            PAGE_SIZE + 1- PAGE_SIZE / |u64| *,
+            id
+        )
+        heap-alloc! num-buffers@ buffer-base!
+        num-buffers@ dup 1+ num-buffers!
+    ))
+
+def(buffer-base@, Buffer -- Ptr +Buffers,
+    |u64| * u64@(BUFFER_BASE))
+
+def(buffer-base!, Buffer -- Ptr +Buffers,
+    |u64| * u64!(BUFFER_BASE))
+
+def(buffer-offset-to-ptr, Offset Buffer -- Ptr +Buffers,
+    buffer-large? if(
+        buffer-base@ over PAGE_SIZE / +
+        |u64| * heap-u64@-or-alloc-page!,
+        buffer-base@ +
+    ))
+
+def(buffer-u8@, Offset Buffer -- U8 +Buffers,
+    buffer-offset-to-ptr heap-u8@)
+
+def(buffer-u8!, U8 Offset Buffer -- +Buffers,
+    buffer-offset-to-ptr heap-u8!)
+
+def(buffer-u16@, Offset Buffer -- U16 +Buffers,
+    over |u16| % if(
+        "unaligned buffer-u16@" panic!,
+        buffer-offset-to-ptr heap-u16@
+    ))
+
+def(buffer-u16!, U16 Offset Buffer -- +Buffers,
+    over |u16| % if(
+        "unaligned buffer-u16!" panic!,
+        buffer-offset-to-ptr heap-u16!
+    ))
+
+def(buffer-u32@, Offset Buffer -- U32 +Buffers,
+    over |u32| % if(
+        "unaligned buffer-u32@" panic!,
+        buffer-offset-to-ptr heap-u32@
+    ))
+
+def(buffer-u32!, U32 Offset Buffer -- +Buffers,
+    over |u32| % if(
+        "unaligned buffer-u32!" panic!,
+        buffer-offset-to-ptr heap-u32!
+    ))
+
+def(buffer-u64@, Offset Buffer -- U64 +Buffers,
+    over |u64| % if(
+        "unaligned buffer-u64@" panic!,
+        buffer-offset-to-ptr heap-u64@
+    ))
+
+def(buffer-u64!, U64 Offset Buffer -- +Buffers,
+    over |u64| % if(
+        "unaligned buffer-u64!" panic!,
+        buffer-offset-to-ptr heap-u64!
+    ))
+
+def(buffer-i8@, Offset Buffer -- I8 +Buffers,
+    buffer-offset-to-ptr heap-i8@)
+
+def(buffer-i8!, U8 Offset Buffer -- +Buffers,
+    buffer-offset-to-ptr heap-i8!)
+
+def(buffer-i16@, Offset Buffer -- I16 +Buffers,
+    over |i16| % if(
+        "unaligned buffer-i16@" panic!,
+        buffer-offset-to-ptr heap-i16@
+    ))
+
+def(buffer-i16!, I16 Offset Buffer -- +Buffers,
+    over |i16| % if(
+        "unaligned buffer-i16!" panic!,
+        buffer-offset-to-ptr heap-i16!
+    ))
+
+def(buffer-i32@, Offset Buffer -- I32 +Buffers,
+    over |i32| % if(
+        "unaligned buffer-i32@" panic!,
+        buffer-offset-to-ptr heap-i32@
+    ))
+
+def(buffer-i32!, I32 Offset Buffer -- +Buffers,
+    over |i32| % if(
+        "unaligned buffer-i32!" panic!,
+        buffer-offset-to-ptr heap-i32!
+    ))
+
+def(buffer-i64@, Offset Buffer -- I64 +Buffers,
+    over |i64| % if(
+        "unaligned buffer-i64@" panic!,
+        buffer-offset-to-ptr heap-i64@
+    ))
+
+def(buffer-i64!, I64 Offset Buffer -- +Buffers,
+    over |i64| % if(
+        "unaligned buffer-i64!" panic!,
+        buffer-offset-to-ptr heap-i64!
+    ))
+
+########
+# Heap #
+########
+
+def(HEAP_SIZE, USize, 67108864) # 64 MB
+
+|u64| def-static-buffer(HEAP_LENGTH)
+def(heap-length@, U64 +Heap, 0 u64@(HEAP_LENGTH))
+def(heap-length!, U64 -- +Heap, 0 u64!(HEAP_LENGTH))
+def(heap-alloc!, U64 -- Ptr +Heap,
+    63 + dup 64 % -
+    heap-length@ tuck +
+    dup HEAP_SIZE > if(
+        "compiler error: ran out of heap space" panic!,
+        heap-length!
+    ))
+
+HEAP_SIZE def-static-buffer(HEAP)
+
+def(heap-u8@,  Ptr -- U8  +Heap, u8@(HEAP))
+def(heap-u16@, Ptr -- U16 +Heap, u16@(HEAP))
+def(heap-u32@, Ptr -- U32 +Heap, u32@(HEAP))
+def(heap-u64@, Ptr -- U64 +Heap, u64@(HEAP))
+def(heap-i8@,  Ptr -- I8  +Heap, i8@(HEAP))
+def(heap-i16@, Ptr -- I16 +Heap, i16@(HEAP))
+def(heap-i32@, Ptr -- I32 +Heap, i32@(HEAP))
+def(heap-i64@, Ptr -- I64 +Heap, i64@(HEAP))
+def(heap-u8!,  U8  Ptr -- +Heap, u8!(HEAP))
+def(heap-u16!, U16 Ptr -- +Heap, u16!(HEAP))
+def(heap-u32!, U32 Ptr -- +Heap, u32!(HEAP))
+def(heap-u64!, U64 Ptr -- +Heap, u64!(HEAP))
+def(heap-i8!,  I8  Ptr -- +Heap, i8!(HEAP))
+def(heap-i16!, I16 Ptr -- +Heap, i16!(HEAP))
+def(heap-i32!, I32 Ptr -- +Heap, i32!(HEAP))
+def(heap-i64!, I64 Ptr -- +Heap, i64!(HEAP))
+
+def(heap-u64@-or-alloc-page!, Ptr -- Ptr +Heap,
+    dup heap-u64@ dup if(
+        nip,
+        drop
+        dip(PAGE_SIZE heap-alloc! dup)
+        heap-u64!
+    ))
+
+########
+# Defs #
+########
+
+def(DEF_NONE, Sort, 0)
+def(DEF_WORD, Sort, 1)
+def(DEF_BUFFER, Sort, 2)
+
+MAX_NAMES def-static-buffer(DEF_SORT)
+MAX_NAMES |u64| * def-static-buffer(DEF_VALUE)
+
+def(name-sort!, Sort Name --, u8!(DEF_SORT))
+def(name-sort@, Name -- Sort, u8@(DEF_SORT))
+def(name-sort?, Name -- Name Sort, dup name-sort@)
+
+def(name-value!, Value Name --, |u64| * u64!(DEF_VALUE))
+def(name-value@, Name -- Value, |u64| * u64@(DEF_VALUE))
+def(name-value?, Name -- Name Value, dup name-value@)
+
+def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
+def(name-defined?, Name -- Name Bool, name-undefined? not)
+def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD =)
+def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
+
 ###############
 # Build Rules #
 ###############
@@ -1576,11 +1815,38 @@ def(main,
 # Testing the self-interpereter #
 #################################
 
-0
-10 20 30 "ABC" str-tail str-tail str-head
+10 heap-alloc!
+20 heap-alloc!
+30 heap-alloc!
+4096 heap-alloc!
+4096 heap-alloc!
+30 heap-alloc!
+30 heap-alloc!
 
-# TODO "heap"
+10 buffer-alloc!
+10 buffer-alloc!
+
+PAGE_SIZE 17 * buffer-alloc!
+10 buffer-alloc!
+10 buffer-alloc!
+10 buffer-alloc!
+
+0 buffer-size@
+0 buffer-base@
+1 buffer-size@
+1 buffer-base@
+2 buffer-size@
+2 buffer-base@
+3 buffer-size@
+3 buffer-base@
+4 buffer-size@
+4 buffer-base@
+
+#test-if test-drop test-dup test-swap test-dip
+#test-trip test-rotr test-rotl test= test< test<= test> test>=
+#test+ test- test* test/ test% test-while
+# test@! test-str
+
 # TODO memory primitives, def-static-buffer
 # TODO syscall primitives
-# TODO def primitive
 # TODO output-asm
