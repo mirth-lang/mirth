@@ -1222,18 +1222,22 @@ def(emit-error!, Token Str -- +IO,
     "error: " str-trace!
     str-trace-ln!)
 
+def(emit-fatal-error!, *a Token Str -- *b +IO,
+    emit-error!
+    1 syscall-exit!)
+
 ###########
 # Running #
 ###########
 
 # Run directly from tokens! (FIXME: Use this only for top-level code.)
 # No type checking. (FIXME: Add dynamic types.)
-def(token-run-from!, Token -- +Mirth,
+def(token-run!, Token -- +Mirth,
     token-run-end? not while(
         drop
-        token-run!
+        token-run-one!
         token-run-end? not
-    ) drop trace-ln!)
+    ) drop)
 
 # Is this a token to stop running at?
 def(token-run-end?, Token -- Token Bool +Mirth,
@@ -1243,13 +1247,11 @@ def(token-run-end?, Token -- Token Bool +Mirth,
         1,
     token-type? TOKEN_COMMA = if(
         1,
-    token-type? TOKEN_RPAREN = if(
-        1,
-        0
-    )))))
+        token-type? TOKEN_RPAREN =
+    ))))
 
 # Run a single token, return next token.
-def(token-run!, Token -- Token +Mirth,
+def(token-run-one!, Token -- Token +Mirth,
     token-type? TOKEN_INT = if(
         token-value? vstack-push!,
     token-type? TOKEN_STR = if(
@@ -1262,7 +1264,7 @@ def(token-run!, Token -- Token +Mirth,
         dup "Unexpected token type in token-run!" emit-warning!
     )))) 1+)
 
-# Run a single token that is a name.
+# Run a single name token.
 def(token-run-name!, Token -- +Mirth,
     token-value? is-prim? nip if(
         token-run-prim!,
@@ -1270,9 +1272,192 @@ def(token-run-name!, Token -- +Mirth,
         "Dont know how to run word yet." emit-warning!
     ))
 
-# Run a single token that is a prim name.
-def(token-run-prim!, Token -- +Mirth,
-    "Dont know how to run prim yet." emit-warning!)
+# Run a single primitive name token.
+def(token-run-prim!, Token --,
+
+    token-value?
+
+    dup PRIM_SWAP = if(
+        drop
+        2 2 arity-check!
+        token-args-0
+        vstack-pop2!
+        swap
+        vstack-push2!,
+
+    dup PRIM_DUP = if(
+        drop
+        1 2 arity-check!
+        token-args-0
+        vstack-pop!
+        dup
+        vstack-push2!,
+
+    dup PRIM_DROP = if(
+        drop
+        1 0 arity-check!
+        token-args-0
+        vstack-pop!
+        drop,
+
+    dup PRIM_DIP = if(
+        drop
+        1 1 arity-check!
+        token-args-1
+        vstack-pop!
+        dip(token-run!)
+        vstack-push!,
+
+    dup PRIM_IF = if(
+        drop
+        1 0 arity-check!
+        token-args-2
+        vstack-pop!
+        if(drop, nip) token-run!,
+
+    dup PRIM_WHILE = if(
+        drop
+        1 0 arity-check!
+        token-args-1
+        vstack-pop! while(
+            vstack-push!
+            dup token-run!
+            vstack-pop!
+        )
+        drop,
+
+    dup PRIM_INT_ADD = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        +
+        vstack-push!,
+
+        drop
+        "Dont know how to run prim yet." emit-warning!
+    ))))))))
+
+# Assert stack arity of a primitive. If the
+# arity would result in underflow/overflow,
+# emits a fatal error.
+def(arity-check!, Token U64 U64 -- Token,
+    drop2 # FIXME: implement
+    )
+
+# Verify that token has 0 args, and return them.
+# Emits a fatal error if arity is wrong.
+def(token-args-0, Token --,
+    1+ token-type?
+    TOKEN_LPAREN = if(
+        "expected no args"
+        emit-fatal-error!,
+        drop
+    ))
+
+# Verify that token has 1 arg, and return it.
+# Emits a fatal error if arity is wrong.
+def(token-args-1, Token -- Token,
+    dup
+    1+ token-type?
+    TOKEN_LPAREN = if(
+        1+
+        tuck token-next-arg-end
+        token-type? TOKEN_RPAREN = if(
+            drop2,
+            drop
+            "expected 1 arg, got too many"
+            emit-fatal-error!
+        ),
+        drop
+        "expected 1 arg, got none"
+        emit-fatal-error!
+    ))
+
+# Verify that token has 2 args, and return them.
+# Emits a fatal error if arity is wrong.
+def(token-args-2, Token -- Token Token,
+    dup
+    1+ token-type?
+    TOKEN_LPAREN = if(
+        1+ tuck token-next-arg-end
+        token-type? TOKEN_COMMA = if(
+            1+ tuck token-next-arg-end
+            token-type? TOKEN_RPAREN = if(
+                drop2,
+                drop
+                "expected 2 args, got too many"
+                emit-fatal-error!
+            ),
+            drop
+            "expected 2 args, got only 1"
+            emit-fatal-error!,
+        ),
+        drop
+        "expected 2 args, got none"
+        emit-fatal-error!
+    ))
+
+# Verify that token has 3 args, and return them.
+# Emits a fatal error if arity is wrong.
+def(token-args-3, Token -- Token Token Token,
+    dup
+    1+ token-type?
+    TOKEN_LPAREN = if(
+        1+ tuck token-next-arg-end
+        token-type? TOKEN_COMMA = if(
+            1+ tuck token-next-arg-end
+            token-type? TOKEN_COMMA = if(
+                1+ tuck token-next-arg-end
+                token-type? TOKEN_RPAREN = if(
+                    drop2,
+                    drop
+                    "expected 3 args, got too many"
+                    emit-fatal-error!
+                ),
+                drop
+                "expected 3 args, got only 2"
+                emit-fatal-error!
+            ),
+            drop
+            "expected 3 args, got only 1"
+            emit-fatal-error!,
+        ),
+        drop
+        "expected 3 args, got none"
+        emit-fatal-error!
+    ))
+
+# Get closest arg ending (COMMA or RPAREN),
+# while respecting the nesting of tokens.
+def(token-next-arg-end, Token -- Token,
+    token-is-arg-end? not while(
+        drop
+        token-next
+        token-is-arg-end? not
+    ))
+
+# Get next token, respecting nesting of tokens.
+def(token-next, Token -- Token,
+    token-type? TOKEN_LPAREN = if(
+        token-value@ 1+,
+
+    token-type? TOKEN_NAME = if(
+        1+
+        token-type? TOKEN_LPAREN = if(
+            token-value@ 1+,
+            id
+        ),
+
+        1+
+    )))
+
+# Is this an arg ending (COMMA or RPAREN)?
+def(token-is-arg-end?, Token -- Token Bool,
+    token-type? TOKEN_COMMA = if(
+        1,
+        token-type? TOKEN_RPAREN =
+    ))
 
 ########
 # Main #
@@ -1288,7 +1473,7 @@ def(main,
 
     "Building." str-trace-ln!
 
-    0 token-run-from!
+    0 token-run!
 
     "Done." str-trace-ln!
     vstack-empty? if(
@@ -1296,7 +1481,7 @@ def(main,
         "VSTACK = " str-trace! vstack-trace!
     ))
 
-main
+#main
 
 ###############
 # Build Rules #
@@ -1304,4 +1489,9 @@ main
 
 "mirth.asm" output-asm(main)
 
-0 1 2 3 4 5 6 7 8 9 +
+#################################
+# Testing the self-interpereter #
+#################################
+
+0 0 0 0 0
+10 20 30
