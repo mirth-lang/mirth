@@ -2,20 +2,55 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
 
 #define STACK_SIZE 2000
-
 size_t sc = STACK_SIZE;
 int64_t stack[STACK_SIZE];
+
+uint8_t b119[8] = {0};
+uint8_t b120[4096] = {0};
+uint8_t b165[16] = {0};
+uint8_t b198[8] = {0};
+uint8_t b199[8] = {0};
+uint8_t b200[8] = {0};
+uint8_t b233[8] = {0};
+uint8_t b234[131072] = {0};
+uint8_t b245[8] = {0};
+uint8_t b251[524288] = {0};
+uint8_t b317[8] = {0};
+uint8_t b318[32768] = {0};
+uint8_t b331[8] = {0};
+uint8_t b335[32768] = {0};
+uint8_t b350[262144] = {0};
+uint8_t b355[131072] = {0};
+uint8_t b360[65536] = {0};
+uint8_t b370[4] = {0};
+uint8_t b374[2] = {0};
+uint8_t b377[8] = {0};
+uint8_t b381[8] = {0};
+uint8_t b382[2048] = {0};
+uint8_t b430[8] = {0};
+uint8_t b431[65536] = {0};
+uint8_t b498[8] = {0};
+uint8_t b502[8192] = {0};
+uint8_t b503[8192] = {0};
+uint8_t b537[8192] = {0};
+uint8_t b538[65536] = {0};
+uint8_t b567[8] = {0};
+uint8_t b571[15000000] = {0};
+
+#define STRINGS_SIZE 4955
+char strings[STRINGS_SIZE] = {0};
 
 int64_t pop (void) {
     if (sc < STACK_SIZE) {
         return stack[sc++];
     } else {
         fprintf(stderr, "STACK UNDERFLOW");
-        fputc(stderr, 10);
+        fputc(10, stderr);
         exit(1);
     }
 }
@@ -25,7 +60,7 @@ void push (int64_t x) {
         stack[--sc] = x;
     } else {
         fprintf(stderr, "STACK OVERFLOW");
-        fputc(stderr, 10);
+        fputc(10, stderr);
         exit(1);
     }
 }
@@ -52,6 +87,4269 @@ void w4 (void) {
     push(x); push(y);
 }
 
-int main (int argc, char* argv) {
+// +
+void w8 (void) {
+    int64_t x = pop();
+    int64_t y = pop();
+    push(x + y);
+}
+
+// -
+void w9 (void) {
+    int64_t x = pop();
+    int64_t y = pop();
+    push(x - y);
+}
+
+// *
+void w10 (void) {
+    int64_t x = pop();
+    int64_t y = pop();
+    push(x * y);
+}
+
+// /
+void w11 (void) {
+    int64_t x = pop();
+    int64_t y = pop();
+    push(x / y);
+}
+
+// %
+void w12 (void) {
+    int64_t x = pop();
+    int64_t y = pop();
+    push(x % y);
+}
+
+// =
+void w13 (void) {
+    int64_t x = pop();
+    int64_t y = pop();
+    push(x == y);
+}
+
+// <
+void w14 (void) {
+    int64_t x = pop();
+    int64_t y = pop();
+    push(x < y);
+}
+
+// <=
+void w15 (void) {
+    int64_t x = pop();
+    int64_t y = pop();
+    push(x <= y);
+}
+
+// str-head
+void w16 (void) {
+    int64_t x = pop();
+    if ((x < 0) || (x >= STRINGS_SIZE)) {
+        fprintf(stderr, "ERROR: String out of bounds.");
+        fputc(10, stderr);
+        exit(1);
+    }
+    push(strings[x]);
+}
+
+// str-tail
+void w17 (void) {
+    int64_t x = pop();
+    if ((x < 0) || (x >= STRINGS_SIZE)) {
+        fprintf(stderr, "ERROR: String out of bounds.");
+        fputc(10, stderr);
+        exit(1);
+    }
+    push(x + (strings[x] != 0));
+}
+
+// syscall-close!
+void w37 (void) {
+    int64_t x = pop();
+    close(x);
+}
+
+// syscall-exit!
+void w38 (void) {
+    int64_t x = pop();
+    exit(x);
+}
+
+// ??
+void w39 (void) {
+    for (int i = STACK_SIZE-1; i >= sc; i--) {
+        fprintf(stderr, "%lld ", stack[i]);
+    }
+    fputc(10, stderr);
+}
+
+// MIRTH_REVISION
+void w40 (void) {
+    push(0);
+}
+
+void w45 (void);
+void w48 (void);
+void w51 (void);
+void w52 (void);
+void w53 (void);
+void w54 (void);
+void w55 (void);
+void w56 (void);
+void w57 (void);
+void w59 (void);
+void w60 (void);
+void w63 (void);
+void w64 (void);
+void w65 (void);
+void w66 (void);
+void w67 (void);
+void w68 (void);
+void w69 (void);
+void w70 (void);
+void w71 (void);
+void w72 (void);
+void w73 (void);
+void w74 (void);
+void w75 (void);
+void w76 (void);
+void w77 (void);
+void w78 (void);
+void w79 (void);
+void w80 (void);
+void w81 (void);
+void w82 (void);
+void w83 (void);
+void w84 (void);
+void w85 (void);
+void w86 (void);
+void w87 (void);
+void w88 (void);
+void w89 (void);
+void w90 (void);
+void w91 (void);
+void w92 (void);
+void w93 (void);
+void w94 (void);
+void w95 (void);
+void w96 (void);
+void w97 (void);
+void w98 (void);
+void w99 (void);
+void w100 (void);
+void w101 (void);
+void w102 (void);
+void w103 (void);
+void w104 (void);
+void w105 (void);
+void w106 (void);
+void w107 (void);
+void w108 (void);
+void w109 (void);
+void w111 (void);
+void w112 (void);
+void w113 (void);
+void w114 (void);
+void w115 (void);
+void w116 (void);
+void w117 (void);
+void w118 (void);
+void w121 (void);
+void w123 (void);
+void w124 (void);
+void w125 (void);
+void w128 (void);
+void w129 (void);
+void w130 (void);
+void w131 (void);
+void w133 (void);
+void w134 (void);
+void w135 (void);
+void w136 (void);
+void w137 (void);
+void w139 (void);
+void w140 (void);
+void w141 (void);
+void w142 (void);
+void w143 (void);
+void w144 (void);
+void w145 (void);
+void w146 (void);
+void w147 (void);
+void w148 (void);
+void w149 (void);
+void w150 (void);
+void w151 (void);
+void w152 (void);
+void w153 (void);
+void w154 (void);
+void w155 (void);
+void w156 (void);
+void w157 (void);
+void w158 (void);
+void w159 (void);
+void w160 (void);
+void w161 (void);
+void w162 (void);
+void w163 (void);
+void w164 (void);
+void w166 (void);
+void w168 (void);
+void w170 (void);
+void w171 (void);
+void w172 (void);
+void w174 (void);
+void w176 (void);
+void w177 (void);
+void w178 (void);
+void w180 (void);
+void w182 (void);
+void w183 (void);
+void w184 (void);
+void w186 (void);
+void w188 (void);
+void w189 (void);
+void w190 (void);
+void w191 (void);
+void w192 (void);
+void w193 (void);
+void w194 (void);
+void w195 (void);
+void w196 (void);
+void w197 (void);
+void w201 (void);
+void w202 (void);
+void w203 (void);
+void w204 (void);
+void w205 (void);
+void w206 (void);
+void w207 (void);
+void w208 (void);
+void w209 (void);
+void w210 (void);
+void w211 (void);
+void w212 (void);
+void w214 (void);
+void w215 (void);
+void w216 (void);
+void w217 (void);
+void w218 (void);
+void w219 (void);
+void w220 (void);
+void w221 (void);
+void w222 (void);
+void w223 (void);
+void w224 (void);
+void w225 (void);
+void w226 (void);
+void w227 (void);
+void w228 (void);
+void w229 (void);
+void w230 (void);
+void w231 (void);
+void w235 (void);
+void w236 (void);
+void w237 (void);
+void w238 (void);
+void w239 (void);
+void w240 (void);
+void w241 (void);
+void w242 (void);
+void w243 (void);
+void w244 (void);
+void w246 (void);
+void w247 (void);
+void w248 (void);
+void w249 (void);
+void w250 (void);
+void w252 (void);
+void w253 (void);
+void w254 (void);
+void w256 (void);
+void w257 (void);
+void w258 (void);
+void w259 (void);
+void w260 (void);
+void w261 (void);
+void w262 (void);
+void w263 (void);
+void w264 (void);
+void w266 (void);
+void w268 (void);
+void w269 (void);
+void w270 (void);
+void w271 (void);
+void w272 (void);
+void w273 (void);
+void w274 (void);
+void w275 (void);
+void w276 (void);
+void w277 (void);
+void w278 (void);
+void w279 (void);
+void w280 (void);
+void w281 (void);
+void w282 (void);
+void w283 (void);
+void w284 (void);
+void w285 (void);
+void w286 (void);
+void w287 (void);
+void w288 (void);
+void w289 (void);
+void w290 (void);
+void w291 (void);
+void w292 (void);
+void w293 (void);
+void w294 (void);
+void w295 (void);
+void w296 (void);
+void w297 (void);
+void w298 (void);
+void w299 (void);
+void w300 (void);
+void w301 (void);
+void w302 (void);
+void w303 (void);
+void w304 (void);
+void w305 (void);
+void w306 (void);
+void w307 (void);
+void w308 (void);
+void w309 (void);
+void w310 (void);
+void w311 (void);
+void w312 (void);
+void w313 (void);
+void w314 (void);
+void w315 (void);
+void w316 (void);
+void w319 (void);
+void w321 (void);
+void w322 (void);
+void w323 (void);
+void w324 (void);
+void w325 (void);
+void w326 (void);
+void w328 (void);
+void w329 (void);
+void w330 (void);
+void w332 (void);
+void w333 (void);
+void w334 (void);
+void w336 (void);
+void w339 (void);
+void w340 (void);
+void w341 (void);
+void w342 (void);
+void w343 (void);
+void w344 (void);
+void w345 (void);
+void w346 (void);
+void w347 (void);
+void w348 (void);
+void w349 (void);
+void w351 (void);
+void w353 (void);
+void w354 (void);
+void w356 (void);
+void w358 (void);
+void w359 (void);
+void w361 (void);
+void w363 (void);
+void w364 (void);
+void w365 (void);
+void w366 (void);
+void w367 (void);
+void w368 (void);
+void w369 (void);
+void w371 (void);
+void w373 (void);
+void w375 (void);
+void w376 (void);
+void w378 (void);
+void w379 (void);
+void w380 (void);
+void w383 (void);
+void w384 (void);
+void w385 (void);
+void w386 (void);
+void w387 (void);
+void w388 (void);
+void w389 (void);
+void w390 (void);
+void w391 (void);
+void w392 (void);
+void w393 (void);
+void w394 (void);
+void w395 (void);
+void w396 (void);
+void w397 (void);
+void w398 (void);
+void w399 (void);
+void w400 (void);
+void w401 (void);
+void w402 (void);
+void w403 (void);
+void w404 (void);
+void w405 (void);
+void w406 (void);
+void w407 (void);
+void w408 (void);
+void w409 (void);
+void w410 (void);
+void w411 (void);
+void w412 (void);
+void w413 (void);
+void w414 (void);
+void w415 (void);
+void w416 (void);
+void w417 (void);
+void w418 (void);
+void w419 (void);
+void w420 (void);
+void w421 (void);
+void w422 (void);
+void w423 (void);
+void w424 (void);
+void w425 (void);
+void w426 (void);
+void w427 (void);
+void w428 (void);
+void w429 (void);
+void w432 (void);
+void w434 (void);
+void w435 (void);
+void w436 (void);
+void w437 (void);
+void w438 (void);
+void w439 (void);
+void w440 (void);
+void w441 (void);
+void w442 (void);
+void w443 (void);
+void w444 (void);
+void w445 (void);
+void w446 (void);
+void w447 (void);
+void w448 (void);
+void w449 (void);
+void w450 (void);
+void w453 (void);
+void w455 (void);
+void w456 (void);
+void w457 (void);
+void w458 (void);
+void w459 (void);
+void w460 (void);
+void w461 (void);
+void w462 (void);
+void w463 (void);
+void w464 (void);
+void w465 (void);
+void w466 (void);
+void w467 (void);
+void w468 (void);
+void w469 (void);
+void w470 (void);
+void w471 (void);
+void w472 (void);
+void w473 (void);
+void w474 (void);
+void w475 (void);
+void w476 (void);
+void w477 (void);
+void w478 (void);
+void w479 (void);
+void w480 (void);
+void w481 (void);
+void w482 (void);
+void w483 (void);
+void w484 (void);
+void w485 (void);
+void w486 (void);
+void w487 (void);
+void w488 (void);
+void w489 (void);
+void w490 (void);
+void w491 (void);
+void w492 (void);
+void w493 (void);
+void w494 (void);
+void w495 (void);
+void w496 (void);
+void w497 (void);
+void w499 (void);
+void w501 (void);
+void w504 (void);
+void w506 (void);
+void w507 (void);
+void w508 (void);
+void w509 (void);
+void w511 (void);
+void w513 (void);
+void w514 (void);
+void w515 (void);
+void w516 (void);
+void w517 (void);
+void w518 (void);
+void w519 (void);
+void w520 (void);
+void w521 (void);
+void w522 (void);
+void w523 (void);
+void w524 (void);
+void w525 (void);
+void w526 (void);
+void w527 (void);
+void w528 (void);
+void w530 (void);
+void w531 (void);
+void w534 (void);
+void w535 (void);
+void w539 (void);
+void w540 (void);
+void w542 (void);
+void w543 (void);
+void w544 (void);
+void w545 (void);
+void w546 (void);
+void w547 (void);
+void w548 (void);
+void w549 (void);
+void w550 (void);
+void w551 (void);
+void w552 (void);
+void w553 (void);
+void w554 (void);
+void w555 (void);
+void w556 (void);
+void w557 (void);
+void w558 (void);
+void w559 (void);
+void w560 (void);
+void w561 (void);
+void w562 (void);
+void w563 (void);
+void w564 (void);
+void w565 (void);
+void w566 (void);
+void w568 (void);
+void w570 (void);
+void w572 (void);
+void w573 (void);
+void w574 (void);
+
+// trip
+void w45 (void){
+}
+
+// rotr
+void w48 (void){
+    int d28 = pop();
+    push(d28);
+}
+
+// rotl
+void w51 (void){
+    int d45 = pop();
+    push(d45);
+}
+
+// over
+void w52 (void){
+    int d62 = pop();
+    push(d62);
+}
+
+// tuck
+void w53 (void){
+    int d80 = pop();
+    push(d80);
+}
+
+// nip
+void w54 (void){
+    int d94 = pop();
+    push(d94);
+}
+
+// dup2
+void w55 (void){
+}
+
+// drop2
+void w56 (void){
+}
+
+// swap2
+void w57 (void){
+    int d139 = pop();
+    push(d139);
+}
+
+// dup3
+void w59 (void){
+    int d160 = pop();
+    push(d160);
+    int d165 = pop();
+    push(d165);
+}
+
+// >
+void w60 (void){
+}
+
+// >=
+void w63 (void){
+}
+
+// 0=
+void w64 (void){
+    push(0);
+}
+
+// 0<
+void w65 (void){
+    push(0);
+}
+
+// 0>
+void w66 (void){
+    push(0);
+}
+
+// 0<=
+void w67 (void){
+    push(0);
+}
+
+// 0>=
+void w68 (void){
+    push(0);
+}
+
+// 1=
+void w69 (void){
+    push(1);
+}
+
+// 1<
+void w70 (void){
+    push(1);
+}
+
+// 1>
+void w71 (void){
+    push(1);
+}
+
+// 1<=
+void w72 (void){
+    push(1);
+}
+
+// 1>=
+void w73 (void){
+    push(1);
+}
+
+// 1+
+void w74 (void){
+    push(1);
+}
+
+// 1-
+void w75 (void){
+    push(1);
+}
+
+// 2*
+void w76 (void){
+    push(2);
+}
+
+// 2/
+void w77 (void){
+    push(2);
+}
+
+// 2%
+void w78 (void){
+    push(2);
+}
+
+// 2+
+void w79 (void){
+    push(2);
+}
+
+// 2-
+void w80 (void){
+    push(2);
+}
+
+// |u8|
+void w81 (void){
+    push(1);
+}
+
+// |u16|
+void w82 (void){
+    push(2);
+}
+
+// |u32|
+void w83 (void){
+    push(4);
+}
+
+// |u64|
+void w84 (void){
+    push(8);
+}
+
+// |i8|
+void w85 (void){
+    push(1);
+}
+
+// |i16|
+void w86 (void){
+    push(2);
+}
+
+// |i32|
+void w87 (void){
+    push(4);
+}
+
+// |i64|
+void w88 (void){
+    push(8);
+}
+
+// not
+void w89 (void){
+    push(0);
+}
+
+// and
+void w90 (void){
+    if (pop()) {
+    } else {
+    push(0);
+    }
+}
+
+// or
+void w91 (void){
+    if (pop()) {
+    push(1);
+    } else {
+    }
+}
+
+// !!
+void w92 (void){
+    if (pop()) {
+    } else {
+    push(0);
+    }
+}
+
+// panic!
+void w93 (void){
+    push(108);
+    push(1);
+}
+
+// !!=
+void w94 (void){
+}
+
+// !!0
+void w95 (void){
+    push(0);
+}
+
+// !!1
+void w96 (void){
+    push(1);
+}
+
+// !!00
+void w97 (void){
+}
+
+// !!01
+void w98 (void){
+}
+
+// !!10
+void w99 (void){
+}
+
+// !!11
+void w100 (void){
+}
+
+// !!000
+void w101 (void){
+}
+
+// !!001
+void w102 (void){
+}
+
+// !!010
+void w103 (void){
+}
+
+// !!011
+void w104 (void){
+}
+
+// !!100
+void w105 (void){
+}
+
+// !!101
+void w106 (void){
+}
+
+// !!110
+void w107 (void){
+}
+
+// !!111
+void w108 (void){
+}
+
+// str-head?
+void w109 (void){
+}
+
+// str-tail?
+void w111 (void){
+}
+
+// str-null
+void w112 (void){
+}
+
+// str-null?
+void w113 (void){
+}
+
+// str-not-null
+void w114 (void){
+}
+
+// str-not-null?
+void w115 (void){
+}
+
+// str-length?
+void w116 (void){
+}
+
+// str-length
+void w117 (void){
+    int d768 = pop();
+    push(0);
+    push(d768);
+    for (int c773 = pop(); c773; c773 = pop()) {
+    push(c773);
+    int d777 = pop();
+    push(d777);
+    }
+}
+
+// STR_BUF_SIZE
+void w118 (void){
+    push(4096);
+}
+
+// str-buf-length?
+void w121 (void){
+    push(0);
+}
+
+// str-buf-length!
+void w123 (void){
+    push(0);
+    int d830 = pop();
+    push(0);
+    push(d830);
+}
+
+// str-buf-u8!
+void w124 (void){
+}
+
+// str-buf-u8@
+void w125 (void){
+}
+
+// str-buf-full?
+void w128 (void){
+}
+
+// str-buf-clear!
+void w129 (void){
+    push(0);
+}
+
+// str-buf-push!
+void w130 (void){
+    if (pop()) {
+    push(17);
+    } else {
+    }
+}
+
+// str-buf-write!
+void w131 (void){
+    push(0);
+}
+
+// str-buf-print!
+void w133 (void){
+}
+
+// file-out?
+void w134 (void){
+    push(0);
+}
+
+// str-buf-trace!
+void w135 (void){
+}
+
+// file-err?
+void w136 (void){
+    push(0);
+}
+
+// str-buf-read!
+void w137 (void){
+    push(0);
+    push(0);
+    if (pop()) {
+    push(59);
+    } else {
+    }
+}
+
+// str-buf-input!
+void w139 (void){
+}
+
+// file-in?
+void w140 (void){
+    push(0);
+}
+
+// str-buf-copy!
+void w141 (void){
+    for (int c986 = pop(); c986; c986 = pop()) {
+    push(c986);
+    if (pop()) {
+    push(0);
+    } else {
+    }
+    }
+}
+
+// str-buf!
+void w142 (void){
+}
+
+// run-tests
+void w143 (void){
+}
+
+// test-if
+void w144 (void){
+    push(0);
+    push(1);
+    push(0);
+    push(1);
+}
+
+// test-drop
+void w145 (void){
+    push(0);
+    push(1);
+}
+
+// test-dup
+void w146 (void){
+    push(0);
+    push(1);
+}
+
+// test-swap
+void w147 (void){
+    push(0);
+    push(1);
+    push(0);
+}
+
+// test-dip
+void w148 (void){
+    push(0);
+    push(0);
+    int d1094 = pop();
+    push(1);
+    push(d1094);
+}
+
+// test-trip
+void w149 (void){
+    push(0);
+    push(1);
+}
+
+// test-rotr
+void w150 (void){
+    push(1);
+    push(0);
+    push(0);
+    push(0);
+    push(1);
+    push(0);
+    push(0);
+    push(0);
+    push(1);
+}
+
+// test-rotl
+void w151 (void){
+    push(1);
+    push(0);
+    push(0);
+    push(0);
+    push(1);
+    push(0);
+    push(0);
+    push(0);
+    push(1);
+}
+
+// test=
+void w152 (void){
+    push(0);
+    push(0);
+    push(0);
+    push(1);
+    push(1);
+    push(0);
+    push(1);
+    push(1);
+    push(1);
+    push(2);
+    push(2);
+    push(1);
+    push(2);
+    push(2);
+}
+
+// test<
+void w153 (void){
+    push(0);
+    push(0);
+    push(0);
+    push(1);
+    push(1);
+    push(0);
+    push(1);
+    push(1);
+    push(1);
+    push(2);
+    push(2);
+    push(1);
+    push(2);
+    push(2);
+}
+
+// test<=
+void w154 (void){
+    push(0);
+    push(0);
+    push(0);
+    push(1);
+    push(1);
+    push(0);
+    push(1);
+    push(1);
+    push(1);
+    push(2);
+    push(2);
+    push(1);
+    push(2);
+    push(2);
+}
+
+// test>
+void w155 (void){
+    push(0);
+    push(0);
+    push(0);
+    push(1);
+    push(1);
+    push(0);
+    push(1);
+    push(1);
+    push(1);
+    push(2);
+    push(2);
+    push(1);
+    push(2);
+    push(2);
+}
+
+// test>=
+void w156 (void){
+    push(0);
+    push(0);
+    push(0);
+    push(1);
+    push(1);
+    push(0);
+    push(1);
+    push(1);
+    push(1);
+    push(2);
+    push(2);
+    push(1);
+    push(2);
+    push(2);
+    push(-1);
+    push(0);
+    push(-1);
+    push(-1);
+    push(0);
+    push(-1);
+    push(-1);
+    push(-2);
+    push(-2);
+    push(-2);
+    push(-2);
+    push(-1);
+}
+
+// test+
+void w157 (void){
+    push(0);
+    push(0);
+    push(0);
+    push(1);
+    push(1);
+    push(0);
+    push(1);
+    push(1);
+    push(2);
+    push(2);
+    push(2);
+    push(4);
+    push(2);
+    push(-2);
+}
+
+// test-
+void w158 (void){
+    push(0);
+    push(0);
+    push(1);
+    push(0);
+    push(1);
+    push(1);
+    push(0);
+    push(1);
+    push(-1);
+    push(2);
+    push(2);
+    push(2);
+    push(4);
+    push(-2);
+    push(4);
+    push(2);
+    push(2);
+}
+
+// test*
+void w159 (void){
+    push(0);
+    push(0);
+    push(2);
+    push(1);
+    push(2);
+    push(2);
+    push(2);
+    push(4);
+    push(2);
+    push(4);
+    push(8);
+}
+
+// test/
+void w160 (void){
+    push(1);
+    push(1);
+    push(-5);
+    push(2);
+    push(-2);
+    push(-4);
+    push(2);
+    push(-2);
+    push(-3);
+    push(2);
+    push(-1);
+    push(-2);
+    push(2);
+    push(-1);
+    push(-1);
+    push(2);
+    push(0);
+    push(2);
+    push(1);
+    push(2);
+    push(2);
+    push(2);
+    push(3);
+    push(2);
+    push(4);
+    push(2);
+    push(2);
+    push(5);
+    push(2);
+    push(2);
+    push(0);
+    push(-2);
+    push(1);
+    push(-2);
+    push(2);
+    push(-2);
+    push(-1);
+    push(3);
+    push(-2);
+    push(-1);
+    push(4);
+    push(-2);
+    push(-2);
+    push(5);
+    push(-2);
+    push(-2);
+}
+
+// test%
+void w161 (void){
+    push(1);
+    push(1);
+    push(-5);
+    push(2);
+    push(-1);
+    push(-4);
+    push(2);
+    push(-3);
+    push(2);
+    push(-1);
+    push(-2);
+    push(2);
+    push(-1);
+    push(2);
+    push(-1);
+    push(0);
+    push(2);
+    push(1);
+    push(2);
+    push(2);
+    push(2);
+    push(3);
+    push(2);
+    push(4);
+    push(2);
+    push(5);
+    push(2);
+}
+
+// test@!
+void w162 (void){
+    push(999);
+    push(0);
+    push(0);
+    push(999);
+    push(0);
+    push(10);
+    push(0);
+    push(0);
+    push(10);
+    push(0);
+    push(20);
+    push(0);
+    push(0);
+    push(20);
+    push(0);
+    push(30);
+    push(0);
+    push(20);
+    push(30);
+    push(999);
+    push(0);
+    push(0);
+    push(999);
+    push(0);
+    push(10);
+    push(0);
+    push(0);
+    push(10);
+    push(0);
+    push(20);
+    push(0);
+    push(0);
+    push(20);
+    push(0);
+    push(30);
+    push(0);
+    push(20);
+    push(30);
+    push(999);
+    push(0);
+    push(0);
+    push(999);
+    push(0);
+    push(10);
+    push(0);
+    push(0);
+    push(10);
+    push(0);
+    push(20);
+    push(0);
+    push(0);
+    push(20);
+    push(0);
+    push(30);
+    push(0);
+    push(20);
+    push(30);
+    push(999);
+    push(0);
+    push(0);
+    push(999);
+    push(0);
+    push(10);
+    push(0);
+    push(0);
+    push(10);
+    push(0);
+    push(20);
+    push(0);
+    push(0);
+    push(20);
+    push(0);
+    push(30);
+    push(0);
+    push(20);
+    push(30);
+    push(0);
+    push(0);
+    push(0);
+    push(10);
+    push(0);
+    push(0);
+    push(10);
+    push(0);
+    push(-20);
+    push(0);
+    push(0);
+    push(-20);
+    push(0);
+    push(30);
+    push(0);
+    push(-20);
+    push(30);
+    push(0);
+    push(0);
+    push(0);
+    push(10);
+    push(0);
+    push(0);
+    push(10);
+    push(0);
+    push(-20);
+    push(0);
+    push(0);
+    push(-20);
+    push(0);
+    push(30);
+    push(0);
+    push(-20);
+    push(30);
+    push(0);
+    push(0);
+    push(0);
+    push(10);
+    push(0);
+    push(0);
+    push(10);
+    push(0);
+    push(-20);
+    push(0);
+    push(0);
+    push(-20);
+    push(0);
+    push(30);
+    push(0);
+    push(-20);
+    push(30);
+    push(0);
+    push(0);
+    push(0);
+    push(10);
+    push(0);
+    push(0);
+    push(10);
+    push(0);
+    push(-20);
+    push(0);
+    push(0);
+    push(-20);
+    push(0);
+    push(30);
+    push(0);
+    push(-20);
+    push(30);
+}
+
+// test-str
+void w163 (void){
+    push(80);
+    push(65);
+    push(97);
+    push(66);
+    push(98);
+    push(0);
+    push(85);
+    push(0);
+    push(86);
+    push(5);
+    push(92);
+    push(13);
+}
+
+// test-while
+void w164 (void){
+    push(999);
+    push(10);
+    push(20);
+    for (int c2223 = pop(); c2223; c2223 = pop()) {
+    push(c2223);
+    int d2226 = pop();
+    push(d2226);
+    }
+    push(30);
+    push(999);
+}
+
+// u8@test
+void w166 (void){
+}
+
+// i8@test
+void w168 (void){
+}
+
+// u8!test
+void w170 (void){
+}
+
+// i8!test
+void w171 (void){
+}
+
+// u16@test
+void w172 (void){
+}
+
+// i16@test
+void w174 (void){
+}
+
+// u16!test
+void w176 (void){
+}
+
+// i16!test
+void w177 (void){
+}
+
+// u32@test
+void w178 (void){
+}
+
+// i32@test
+void w180 (void){
+}
+
+// u32!test
+void w182 (void){
+}
+
+// i32!test
+void w183 (void){
+}
+
+// u64@test
+void w184 (void){
+}
+
+// i64@test
+void w186 (void){
+}
+
+// u64!test
+void w188 (void){
+}
+
+// i64!test
+void w189 (void){
+}
+
+// stdin
+void w190 (void){
+    push(0);
+}
+
+// stdout
+void w191 (void){
+    push(1);
+}
+
+// stderr
+void w192 (void){
+    push(2);
+}
+
+// init!
+void w193 (void){
+}
+
+// init-io!
+void w194 (void){
+}
+
+// file-in!
+void w195 (void){
+    push(0);
+}
+
+// file-out!
+void w196 (void){
+    push(0);
+}
+
+// file-err!
+void w197 (void){
+    push(0);
+}
+
+// str-write!
+void w201 (void){
+    for (int c2391 = pop(); c2391; c2391 = pop()) {
+    push(c2391);
+    int d2395 = pop();
+    push(d2395);
+    }
+}
+
+// str-print!
+void w202 (void){
+}
+
+// str-trace!
+void w203 (void){
+}
+
+// str-print-sp!
+void w204 (void){
+}
+
+// print-sp!
+void w205 (void){
+    push(32);
+}
+
+// str-trace-sp!
+void w206 (void){
+}
+
+// trace-sp!
+void w207 (void){
+    push(32);
+}
+
+// str-print-ln!
+void w208 (void){
+}
+
+// print-ln!
+void w209 (void){
+    push(10);
+}
+
+// str-trace-ln!
+void w210 (void){
+}
+
+// trace-ln!
+void w211 (void){
+    push(10);
+}
+
+// str-buf-char!
+void w212 (void){
+    push(0);
+    push(1);
+}
+
+// print-char!
+void w214 (void){
+}
+
+// trace-char!
+void w215 (void){
+}
+
+// print-quote!
+void w216 (void){
+    push(34);
+}
+
+// trace-quote!
+void w217 (void){
+    push(34);
+}
+
+// to-digit
+void w218 (void){
+    push(10);
+    push(48);
+}
+
+// negate
+void w219 (void){
+    push(-1);
+}
+
+// abs
+void w220 (void){
+    if (pop()) {
+    } else {
+    }
+}
+
+// str-buf-int!
+void w221 (void){
+    if (pop()) {
+    push(106);
+    } else {
+    int d2616 = pop();
+    for (int c2620 = pop(); c2620; c2620 = pop()) {
+    push(c2620);
+    push(10);
+    }
+    push(d2616);
+    push(0);
+    if (pop()) {
+    push(45);
+    } else {
+    }
+    }
+}
+
+// str-buf-reverse!
+void w222 (void){
+    push(0);
+    for (int c2774 = pop(); c2774; c2774 = pop()) {
+    push(c2774);
+    int d2779 = pop();
+    push(1);
+    push(d2779);
+    }
+}
+
+// int-write!
+void w223 (void){
+    int d2650 = pop();
+    push(d2650);
+}
+
+// int-print!
+void w224 (void){
+}
+
+// int-trace!
+void w225 (void){
+}
+
+// int-print-sp!
+void w226 (void){
+}
+
+// int-trace-sp!
+void w227 (void){
+}
+
+// int-print-ln!
+void w228 (void){
+}
+
+// int-trace-ln!
+void w229 (void){
+}
+
+// str-buf-swap-u8!
+void w230 (void){
+    int d2746 = pop();
+    int d2748 = pop();
+    int d2750 = pop();
+    push(d2750);
+    push(d2748);
+    push(d2746);
+    int d2756 = pop();
+    push(d2756);
+}
+
+// FILE_BUF_SIZE
+void w231 (void){
+    push(65536);
+    push(2);
+}
+
+// file-buf-length!
+void w235 (void){
+    push(0);
+    push(0);
+}
+
+// file-buf-length@
+void w236 (void){
+    push(0);
+}
+
+// file-buf@
+void w237 (void){
+}
+
+// str-buf-open-file!
+void w238 (void){
+    push(0);
+    push(0);
+    push(0);
+    push(0);
+    if (pop()) {
+    push(116);
+    } else {
+    }
+}
+
+// str-buf-create-file!
+void w239 (void){
+    push(0);
+    push(1537);
+    push(438);
+    push(0);
+    if (pop()) {
+    push(137);
+    } else {
+    }
+}
+
+// str-open-file!
+void w240 (void){
+}
+
+// str-create-file!
+void w241 (void){
+}
+
+// read-file!
+void w242 (void){
+    push(0);
+    push(0);
+    if (pop()) {
+    push(158);
+    } else {
+    push(0);
+    if (pop()) {
+    push(178);
+    } else {
+    }
+    }
+}
+
+// read-mirth-src!
+void w243 (void){
+    push(199);
+    push(217);
+    push(227);
+    push(233);
+    push(258);
+}
+
+// MAX_NAMES
+void w244 (void){
+    push(8192);
+}
+
+// num-names@
+void w246 (void){
+    push(0);
+}
+
+// num-names!
+void w247 (void){
+    push(0);
+}
+
+// NAME_QUADS
+void w248 (void){
+    push(8);
+}
+
+// NAME_SIZE
+void w249 (void){
+}
+
+// NAME_BUF_SIZE
+void w250 (void){
+}
+
+// str-buf-recalc-length!
+void w252 (void){
+    push(0);
+    for (int c3074 = pop(); c3074; c3074 = pop()) {
+    push(c3074);
+    }
+}
+
+// str-pad-zeros-to-length!
+void w253 (void){
+    for (int c3096 = pop(); c3096; c3096 = pop()) {
+    push(c3096);
+    int d3103 = pop();
+    push(d3103);
+    }
+}
+
+// name-load!
+void w254 (void){
+}
+
+// name-quads-load!
+void w256 (void){
+    push(0);
+    push(1);
+    push(2);
+    push(3);
+    push(4);
+    push(5);
+    push(6);
+    push(7);
+}
+
+// name-quad-eq
+void w257 (void){
+    int d3132 = pop();
+    push(d3132);
+    int d3140 = pop();
+    push(d3140);
+    int d3144 = pop();
+    push(d3144);
+}
+
+// name-quads-eq
+void w258 (void){
+    push(0);
+    if (pop()) {
+    push(1);
+    if (pop()) {
+    push(2);
+    if (pop()) {
+    push(3);
+    if (pop()) {
+    push(4);
+    if (pop()) {
+    push(5);
+    if (pop()) {
+    push(6);
+    if (pop()) {
+    push(7);
+    } else {
+    push(0);
+    }
+    } else {
+    push(0);
+    }
+    } else {
+    push(0);
+    }
+    } else {
+    push(0);
+    }
+    } else {
+    push(0);
+    }
+    } else {
+    push(0);
+    }
+    } else {
+    push(0);
+    }
+}
+
+// name-quads-eq?
+void w259 (void){
+}
+
+// name-quad-save!
+void w260 (void){
+    int d3251 = pop();
+    push(d3251);
+    int d3259 = pop();
+    push(d3259);
+}
+
+// name-quads-save!
+void w261 (void){
+    push(0);
+    push(1);
+    push(2);
+    push(3);
+    push(4);
+    push(5);
+    push(6);
+    push(7);
+}
+
+// name-quad-load!
+void w262 (void){
+    int d3312 = pop();
+    push(d3312);
+    int d3320 = pop();
+    push(d3320);
+    int d3324 = pop();
+    push(d3324);
+}
+
+// name-save!
+void w263 (void){
+    push(0);
+    for (int c3381 = pop(); c3381; c3381 = pop()) {
+    push(c3381);
+    if (pop()) {
+    push(0);
+    } else {
+    }
+    }
+    if (pop()) {
+    } else {
+    }
+}
+
+// show-names-table!
+void w264 (void){
+    push(0);
+    for (int c3420 = pop(); c3420; c3420 = pop()) {
+    push(c3420);
+    push(261);
+    }
+}
+
+// PRIM_END
+void w266 (void){
+    push(0);
+}
+
+// PRIM_ID
+void w268 (void){
+    push(1);
+}
+
+// PRIM_DUP
+void w269 (void){
+    push(2);
+}
+
+// PRIM_DROP
+void w270 (void){
+    push(3);
+}
+
+// PRIM_SWAP
+void w271 (void){
+    push(4);
+}
+
+// PRIM_DIP
+void w272 (void){
+    push(5);
+}
+
+// PRIM_IF
+void w273 (void){
+    push(6);
+}
+
+// PRIM_WHILE
+void w274 (void){
+    push(7);
+}
+
+// PRIM_INT_ADD
+void w275 (void){
+    push(8);
+}
+
+// PRIM_INT_SUB
+void w276 (void){
+    push(9);
+}
+
+// PRIM_INT_MUL
+void w277 (void){
+    push(10);
+}
+
+// PRIM_INT_DIV
+void w278 (void){
+    push(11);
+}
+
+// PRIM_INT_MOD
+void w279 (void){
+    push(12);
+}
+
+// PRIM_INT_EQ
+void w280 (void){
+    push(13);
+}
+
+// PRIM_INT_LT
+void w281 (void){
+    push(14);
+}
+
+// PRIM_INT_LE
+void w282 (void){
+    push(15);
+}
+
+// PRIM_STR_HEAD
+void w283 (void){
+    push(16);
+}
+
+// PRIM_STR_TAIL
+void w284 (void){
+    push(17);
+}
+
+// PRIM_MEM_GET_U8
+void w285 (void){
+    push(18);
+}
+
+// PRIM_MEM_GET_U16
+void w286 (void){
+    push(19);
+}
+
+// PRIM_MEM_GET_U32
+void w287 (void){
+    push(20);
+}
+
+// PRIM_MEM_GET_U64
+void w288 (void){
+    push(21);
+}
+
+// PRIM_MEM_GET_I8
+void w289 (void){
+    push(22);
+}
+
+// PRIM_MEM_GET_I16
+void w290 (void){
+    push(23);
+}
+
+// PRIM_MEM_GET_I32
+void w291 (void){
+    push(24);
+}
+
+// PRIM_MEM_GET_I64
+void w292 (void){
+    push(25);
+}
+
+// PRIM_MEM_SET_U8
+void w293 (void){
+    push(26);
+}
+
+// PRIM_MEM_SET_U16
+void w294 (void){
+    push(27);
+}
+
+// PRIM_MEM_SET_U32
+void w295 (void){
+    push(28);
+}
+
+// PRIM_MEM_SET_U64
+void w296 (void){
+    push(29);
+}
+
+// PRIM_MEM_SET_I8
+void w297 (void){
+    push(30);
+}
+
+// PRIM_MEM_SET_I16
+void w298 (void){
+    push(31);
+}
+
+// PRIM_MEM_SET_I32
+void w299 (void){
+    push(32);
+}
+
+// PRIM_MEM_SET_I64
+void w300 (void){
+    push(33);
+}
+
+// PRIM_FILE_READ
+void w301 (void){
+    push(34);
+}
+
+// PRIM_FILE_WRITE
+void w302 (void){
+    push(35);
+}
+
+// PRIM_FILE_OPEN
+void w303 (void){
+    push(36);
+}
+
+// PRIM_FILE_CLOSE
+void w304 (void){
+    push(37);
+}
+
+// PRIM_EXIT
+void w305 (void){
+    push(38);
+}
+
+// PRIM_DEBUG
+void w306 (void){
+    push(39);
+}
+
+// PRIM_MIRTH_REVISION
+void w307 (void){
+    push(40);
+}
+
+// PRIM_DEF
+void w308 (void){
+    push(41);
+}
+
+// PRIM_DEF_STATIC_BUFFER
+void w309 (void){
+    push(42);
+}
+
+// PRIM_OUTPUT_ASM
+void w310 (void){
+    push(43);
+}
+
+// PRIM_OUTPUT_C99
+void w311 (void){
+    push(44);
+}
+
+// NUM_PRIMS
+void w312 (void){
+    push(45);
+}
+
+// is-prim?
+void w313 (void){
+}
+
+// def-prim!
+void w314 (void){
+}
+
+// init-names!
+void w315 (void){
+    push(0);
+    push(264);
+    push(268);
+    push(271);
+    push(275);
+    push(280);
+    push(285);
+    push(289);
+    push(292);
+    push(298);
+    push(300);
+    push(302);
+    push(304);
+    push(306);
+    push(308);
+    push(310);
+    push(312);
+    push(315);
+    push(324);
+    push(333);
+    push(337);
+    push(342);
+    push(347);
+    push(352);
+    push(356);
+    push(361);
+    push(366);
+    push(371);
+    push(375);
+    push(380);
+    push(385);
+    push(390);
+    push(394);
+    push(399);
+    push(404);
+    push(409);
+    push(423);
+    push(438);
+    push(452);
+    push(467);
+    push(481);
+    push(484);
+    push(499);
+    push(503);
+    push(521);
+    push(532);
+}
+
+// MAX_STRINGS
+void w316 (void){
+    push(32768);
+}
+
+// strings-size@
+void w319 (void){
+    push(0);
+}
+
+// strings-size!
+void w321 (void){
+    push(0);
+}
+
+// strings-u8@
+void w322 (void){
+}
+
+// strings-u8?
+void w323 (void){
+}
+
+// strings-u8!
+void w324 (void){
+}
+
+// strings-push!
+void w325 (void){
+}
+
+// strings-save!
+void w326 (void){
+    push(0);
+    for (int c4091 = pop(); c4091; c4091 = pop()) {
+    push(c4091);
+    }
+    push(0);
+}
+
+// strings-load!
+void w328 (void){
+    for (int c4117 = pop(); c4117; c4117 = pop()) {
+    push(c4117);
+    }
+}
+
+// strings-load-escaped!
+void w329 (void){
+}
+
+// MAX_TOKENS
+void w330 (void){
+    push(32768);
+}
+
+// num-tokens@
+void w332 (void){
+    push(0);
+}
+
+// num-tokens!
+void w333 (void){
+    push(0);
+}
+
+// clear-tokens!
+void w334 (void){
+    push(0);
+}
+
+// token-type!
+void w336 (void){
+}
+
+// token-type@
+void w339 (void){
+}
+
+// token-type?
+void w340 (void){
+}
+
+// TOKEN_NONE
+void w341 (void){
+    push(0);
+}
+
+// TOKEN_LPAREN
+void w342 (void){
+    push(1);
+}
+
+// TOKEN_RPAREN
+void w343 (void){
+    push(2);
+}
+
+// TOKEN_COMMA
+void w344 (void){
+    push(3);
+}
+
+// TOKEN_NAME
+void w345 (void){
+    push(4);
+}
+
+// TOKEN_INT
+void w346 (void){
+    push(5);
+}
+
+// TOKEN_STR
+void w347 (void){
+    push(6);
+}
+
+// token-type-str
+void w348 (void){
+    if (pop()) {
+    push(543);
+    } else {
+    if (pop()) {
+    push(548);
+    } else {
+    if (pop()) {
+    push(555);
+    } else {
+    if (pop()) {
+    push(562);
+    } else {
+    if (pop()) {
+    push(568);
+    } else {
+    if (pop()) {
+    push(573);
+    } else {
+    if (pop()) {
+    push(577);
+    } else {
+    push(581);
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+}
+
+// token-type-print!
+void w349 (void){
+}
+
+// token-value!
+void w351 (void){
+}
+
+// token-value@
+void w353 (void){
+}
+
+// token-value?
+void w354 (void){
+}
+
+// token-row!
+void w356 (void){
+}
+
+// token-row@
+void w358 (void){
+}
+
+// token-row?
+void w359 (void){
+}
+
+// token-col!
+void w361 (void){
+}
+
+// token-col@
+void w363 (void){
+}
+
+// token-col?
+void w364 (void){
+}
+
+// token-new
+void w365 (void){
+}
+
+// token-trace-prefix!
+void w366 (void){
+    push(595);
+    push(597);
+}
+
+// token-print-prefix!
+void w367 (void){
+    push(599);
+    push(601);
+}
+
+// token-print!
+void w368 (void){
+    if (pop()) {
+    } else {
+    if (pop()) {
+    } else {
+    }
+    }
+}
+
+// show-tokens!
+void w369 (void){
+    push(0);
+    for (int c4617 = pop(); c4617; c4617 = pop()) {
+    push(c4617);
+    }
+}
+
+// lexer-row@
+void w371 (void){
+    push(0);
+}
+
+// lexer-row!
+void w373 (void){
+    push(0);
+}
+
+// lexer-col@
+void w375 (void){
+    push(0);
+}
+
+// lexer-col!
+void w376 (void){
+    push(0);
+}
+
+// lexer-idx@
+void w378 (void){
+    push(0);
+}
+
+// lexer-idx!
+void w379 (void){
+    push(0);
+}
+
+// LEXER_STACK_SIZE
+void w380 (void){
+    push(256);
+}
+
+// lexer-stack-length@
+void w383 (void){
+    push(0);
+}
+
+// lexer-stack-length!
+void w384 (void){
+    push(0);
+}
+
+// lexer-stack-clear!
+void w385 (void){
+    push(0);
+}
+
+// lexer-stack-empty?
+void w386 (void){
+    push(0);
+}
+
+// lexer-stack-full?
+void w387 (void){
+}
+
+// lexer-stack-push!
+void w388 (void){
+    if (pop()) {
+    push(603);
+    } else {
+    }
+}
+
+// lexer-stack-pop!
+void w389 (void){
+    if (pop()) {
+    push(640);
+    } else {
+    }
+}
+
+// run-lexer!
+void w390 (void){
+    push(1);
+    push(1);
+    push(0);
+    for (int c4872 = pop(); c4872; c4872 = pop()) {
+    push(c4872);
+    }
+    push(0);
+}
+
+// lexer-done?
+void w391 (void){
+}
+
+// lexer-next!
+void w392 (void){
+    if (pop()) {
+    } else {
+    if (pop()) {
+    } else {
+    if (pop()) {
+    } else {
+    if (pop()) {
+    push(0);
+    } else {
+    if (pop()) {
+    } else {
+    if (pop()) {
+    } else {
+    if (pop()) {
+    } else {
+    if (pop()) {
+    } else {
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+}
+
+// lexer-emit!
+void w393 (void){
+}
+
+// lexer-make!
+void w394 (void){
+    int d4905 = pop();
+    push(d4905);
+    int d4910 = pop();
+    push(d4910);
+    int d4914 = pop();
+    push(d4914);
+    int d4919 = pop();
+    push(d4919);
+    int d4923 = pop();
+    push(d4923);
+    int d4928 = pop();
+    push(d4928);
+}
+
+// lexer-peek
+void w395 (void){
+}
+
+// is-newline?
+void w396 (void){
+    push(10);
+}
+
+// lexer-emit-newline!
+void w397 (void){
+    push(0);
+}
+
+// is-whitespace?
+void w398 (void){
+    push(9);
+    int d5353 = pop();
+    push(32);
+    push(d5353);
+}
+
+// is-pound?
+void w399 (void){
+    push(35);
+}
+
+// lexer-skip-comment!
+void w400 (void){
+    for (int c5258 = pop(); c5258; c5258 = pop()) {
+    push(c5258);
+    }
+    if (pop()) {
+    } else {
+    }
+}
+
+// is-comma?
+void w401 (void){
+    push(44);
+}
+
+// is-lparen?
+void w402 (void){
+    push(40);
+}
+
+// lexer-emit-lparen!
+void w403 (void){
+    push(0);
+}
+
+// is-rparen?
+void w404 (void){
+    push(41);
+}
+
+// lexer-emit-rparen!
+void w405 (void){
+    int d5042 = pop();
+    push(d5042);
+}
+
+// is-quote?
+void w406 (void){
+    push(34);
+}
+
+// lexer-emit-string!
+void w407 (void){
+    push(0);
+    for (int c5226 = pop(); c5226; c5226 = pop()) {
+    push(c5226);
+    }
+}
+
+// is-name-char?
+void w408 (void){
+    if (pop()) {
+    push(0);
+    } else {
+    push(33);
+    push(126);
+    }
+}
+
+// lexer-emit-name!
+void w409 (void){
+    push(0);
+    push(1);
+    for (int c5060 = pop(); c5060; c5060 = pop()) {
+    push(c5060);
+    }
+    if (pop()) {
+    } else {
+    }
+}
+
+// lexer-move!
+void w410 (void){
+}
+
+// lexer-move-back!
+void w411 (void){
+}
+
+// str-buf-is-int?
+void w412 (void){
+}
+
+// str-buf-int?
+void w413 (void){
+}
+
+// str-buf-is-dec-int?
+void w414 (void){
+    push(0);
+    push(0);
+    if (pop()) {
+    } else {
+    }
+    for (int c5117 = pop(); c5117; c5117 = pop()) {
+    push(c5117);
+    int d5120 = pop();
+    push(d5120);
+    }
+    push(1);
+    if (pop()) {
+    } else {
+    push(0);
+    }
+}
+
+// is-sign?
+void w415 (void){
+    int d5511 = pop();
+    push(d5511);
+}
+
+// is-digit?
+void w416 (void){
+    push(48);
+    push(57);
+}
+
+// str-buf-dec-int?
+void w417 (void){
+    push(1);
+    push(0);
+    push(0);
+    if (pop()) {
+    if (pop()) {
+    int d5170 = pop();
+    int d5172 = pop();
+    push(-1);
+    push(d5172);
+    push(d5170);
+    } else {
+    }
+    } else {
+    }
+    for (int c5188 = pop(); c5188; c5188 = pop()) {
+    push(c5188);
+    int d5192 = pop();
+    int d5195 = pop();
+    push(10);
+    push(d5195);
+    push(48);
+    push(d5192);
+    }
+}
+
+// is-minus-sign?
+void w418 (void){
+    push(45);
+}
+
+// is-string-end?
+void w419 (void){
+    int d5553 = pop();
+    push(d5553);
+    int d5558 = pop();
+    push(d5558);
+}
+
+// lexer-push-string-char!
+void w420 (void){
+}
+
+// lexer-comment-end?
+void w421 (void){
+    if (pop()) {
+    push(1);
+    } else {
+    }
+}
+
+// in-range
+void w422 (void){
+    int d5625 = pop();
+    int d5628 = pop();
+    push(d5628);
+    push(d5625);
+}
+
+// is-upper-hexdigit?
+void w423 (void){
+    push(65);
+    push(70);
+}
+
+// is-lower-hexdigit?
+void w424 (void){
+    push(97);
+    push(102);
+}
+
+// is-hexdigit?
+void w425 (void){
+    int d5478 = pop();
+    push(d5478);
+    int d5483 = pop();
+    push(d5483);
+}
+
+// is-nul?
+void w426 (void){
+}
+
+// is-plus-sign?
+void w427 (void){
+    push(43);
+}
+
+// is-special-char?
+void w428 (void){
+    int d5594 = pop();
+    push(d5594);
+    int d5599 = pop();
+    push(d5599);
+    int d5604 = pop();
+    push(d5604);
+    int d5609 = pop();
+    push(d5609);
+}
+
+// VSTACK_SIZE
+void w429 (void){
+    push(8192);
+}
+
+// vstack-len@
+void w432 (void){
+    push(0);
+}
+
+// vstack-len!
+void w434 (void){
+    push(0);
+}
+
+// vstack-empty?
+void w435 (void){
+    push(0);
+}
+
+// vstack-full?
+void w436 (void){
+}
+
+// vstack-i64@
+void w437 (void){
+}
+
+// vstack-i64!
+void w438 (void){
+}
+
+// vstack-pop!
+void w439 (void){
+    if (pop()) {
+    push(678);
+    } else {
+    }
+}
+
+// vstack-pop2!
+void w440 (void){
+    int d5766 = pop();
+    push(d5766);
+}
+
+// vstack-pop3!
+void w441 (void){
+    int d5781 = pop();
+    push(d5781);
+}
+
+// vstack-push!
+void w442 (void){
+    if (pop()) {
+    push(728);
+    } else {
+    }
+}
+
+// vstack-push2!
+void w443 (void){
+    int d5816 = pop();
+    push(d5816);
+}
+
+// vstack-push3!
+void w444 (void){
+    int d5832 = pop();
+    push(d5832);
+}
+
+// vstack-top@
+void w445 (void){
+    if (pop()) {
+    push(777);
+    } else {
+    }
+}
+
+// vstack-top!
+void w446 (void){
+    if (pop()) {
+    push(837);
+    } else {
+    }
+}
+
+// vstack-trace!
+void w447 (void){
+    push(0);
+    for (int c5886 = pop(); c5886; c5886 = pop()) {
+    push(c5886);
+    }
+}
+
+// emit-warning!
+void w448 (void){
+    push(896);
+    int d5911 = pop();
+    push(d5911);
+    push(907);
+}
+
+// emit-error!
+void w449 (void){
+    push(917);
+    int d5930 = pop();
+    push(d5930);
+    push(928);
+}
+
+// emit-fatal-error!
+void w450 (void){
+    push(1);
+}
+
+// token-run!
+void w453 (void){
+    for (int c5963 = pop(); c5963; c5963 = pop()) {
+    push(c5963);
+    }
+}
+
+// token-run-end?
+void w455 (void){
+    if (pop()) {
+    push(1);
+    } else {
+    if (pop()) {
+    push(1);
+    } else {
+    if (pop()) {
+    push(1);
+    } else {
+    }
+    }
+    }
+}
+
+// token-run-one!
+void w456 (void){
+    if (pop()) {
+    } else {
+    if (pop()) {
+    } else {
+    if (pop()) {
+    } else {
+    if (pop()) {
+    } else {
+    push(936);
+    }
+    }
+    }
+    }
+}
+
+// token-run-name!
+void w457 (void){
+    if (pop()) {
+    } else {
+    if (pop()) {
+    push(972);
+    } else {
+    if (pop()) {
+    } else {
+    push(991);
+    }
+    }
+    }
+}
+
+// token-run-prim!
+void w458 (void){
+    if (pop()) {
+    push(0);
+    push(0);
+    } else {
+    if (pop()) {
+    push(2);
+    push(2);
+    } else {
+    if (pop()) {
+    push(1);
+    push(2);
+    } else {
+    if (pop()) {
+    push(1);
+    push(0);
+    } else {
+    if (pop()) {
+    push(1);
+    push(1);
+    int d6167 = pop();
+    push(d6167);
+    } else {
+    if (pop()) {
+    push(1);
+    push(0);
+    if (pop()) {
+    } else {
+    }
+    } else {
+    if (pop()) {
+    push(1);
+    push(0);
+    for (int c6203 = pop(); c6203; c6203 = pop()) {
+    push(c6203);
+    }
+    } else {
+    if (pop()) {
+    push(2);
+    push(1);
+    } else {
+    if (pop()) {
+    push(2);
+    push(1);
+    } else {
+    if (pop()) {
+    push(2);
+    push(1);
+    } else {
+    if (pop()) {
+    push(2);
+    push(1);
+    } else {
+    if (pop()) {
+    push(2);
+    push(1);
+    } else {
+    if (pop()) {
+    push(2);
+    push(1);
+    } else {
+    if (pop()) {
+    push(2);
+    push(1);
+    } else {
+    if (pop()) {
+    push(2);
+    push(1);
+    } else {
+    if (pop()) {
+    push(1);
+    push(1);
+    } else {
+    if (pop()) {
+    push(1);
+    push(1);
+    if (pop()) {
+    } else {
+    }
+    } else {
+    if (pop()) {
+    push(1);
+    push(1);
+    if (pop()) {
+    if (pop()) {
+    int d6379 = pop();
+    push(d6379);
+    } else {
+    push(1003);
+    }
+    } else {
+    push(1024);
+    }
+    } else {
+    if (pop()) {
+    push(1);
+    push(1);
+    if (pop()) {
+    if (pop()) {
+    int d6416 = pop();
+    push(d6416);
+    } else {
+    push(1045);
+    }
+    } else {
+    push(1066);
+    }
+    } else {
+    if (pop()) {
+    push(1);
+    push(1);
+    if (pop()) {
+    if (pop()) {
+    int d6453 = pop();
+    push(d6453);
+    } else {
+    push(1087);
+    }
+    } else {
+    push(1108);
+    }
+    } else {
+    if (pop()) {
+    push(1);
+    push(1);
+    if (pop()) {
+    if (pop()) {
+    int d6490 = pop();
+    push(d6490);
+    } else {
+    push(1129);
+    }
+    } else {
+    push(1150);
+    }
+    } else {
+    if (pop()) {
+    push(1);
+    push(1);
+    if (pop()) {
+    if (pop()) {
+    int d6527 = pop();
+    push(d6527);
+    } else {
+    push(1171);
+    }
+    } else {
+    push(1192);
+    }
+    } else {
+    if (pop()) {
+    push(1);
+    push(1);
+    if (pop()) {
+    if (pop()) {
+    int d6564 = pop();
+    push(d6564);
+    } else {
+    push(1213);
+    }
+    } else {
+    push(1234);
+    }
+    } else {
+    if (pop()) {
+    push(1);
+    push(1);
+    if (pop()) {
+    if (pop()) {
+    int d6601 = pop();
+    push(d6601);
+    } else {
+    push(1255);
+    }
+    } else {
+    push(1276);
+    }
+    } else {
+    if (pop()) {
+    push(1);
+    push(1);
+    if (pop()) {
+    if (pop()) {
+    int d6638 = pop();
+    push(d6638);
+    } else {
+    push(1297);
+    }
+    } else {
+    push(1318);
+    }
+    } else {
+    if (pop()) {
+    push(2);
+    push(0);
+    if (pop()) {
+    if (pop()) {
+    int d6675 = pop();
+    push(d6675);
+    } else {
+    push(1339);
+    }
+    } else {
+    push(1360);
+    }
+    } else {
+    if (pop()) {
+    push(2);
+    push(0);
+    if (pop()) {
+    if (pop()) {
+    int d6711 = pop();
+    push(d6711);
+    } else {
+    push(1381);
+    }
+    } else {
+    push(1402);
+    }
+    } else {
+    if (pop()) {
+    push(2);
+    push(0);
+    if (pop()) {
+    if (pop()) {
+    int d6747 = pop();
+    push(d6747);
+    } else {
+    push(1423);
+    }
+    } else {
+    push(1444);
+    }
+    } else {
+    if (pop()) {
+    push(2);
+    push(0);
+    if (pop()) {
+    if (pop()) {
+    int d6783 = pop();
+    push(d6783);
+    } else {
+    push(1465);
+    }
+    } else {
+    push(1486);
+    }
+    } else {
+    if (pop()) {
+    push(2);
+    push(0);
+    if (pop()) {
+    if (pop()) {
+    int d6819 = pop();
+    push(d6819);
+    } else {
+    push(1507);
+    }
+    } else {
+    push(1528);
+    }
+    } else {
+    if (pop()) {
+    push(2);
+    push(0);
+    if (pop()) {
+    if (pop()) {
+    int d6855 = pop();
+    push(d6855);
+    } else {
+    push(1549);
+    }
+    } else {
+    push(1570);
+    }
+    } else {
+    if (pop()) {
+    push(2);
+    push(0);
+    if (pop()) {
+    if (pop()) {
+    int d6891 = pop();
+    push(d6891);
+    } else {
+    push(1591);
+    }
+    } else {
+    push(1612);
+    }
+    } else {
+    if (pop()) {
+    push(2);
+    push(0);
+    if (pop()) {
+    if (pop()) {
+    int d6927 = pop();
+    push(d6927);
+    } else {
+    push(1633);
+    }
+    } else {
+    push(1654);
+    }
+    } else {
+    if (pop()) {
+    push(3);
+    push(0);
+    if (pop()) {
+    if (pop()) {
+    int d6963 = pop();
+    push(d6963);
+    } else {
+    push(1675);
+    }
+    } else {
+    push(1696);
+    }
+    } else {
+    if (pop()) {
+    push(3);
+    push(1);
+    if (pop()) {
+    if (pop()) {
+    int d6999 = pop();
+    push(d6999);
+    } else {
+    push(1717);
+    }
+    } else {
+    push(1738);
+    }
+    } else {
+    if (pop()) {
+    push(3);
+    push(1);
+    if (pop()) {
+    if (pop()) {
+    int d7036 = pop();
+    push(d7036);
+    } else {
+    push(1759);
+    }
+    } else {
+    push(1780);
+    }
+    } else {
+    if (pop()) {
+    push(1);
+    push(1);
+    } else {
+    if (pop()) {
+    push(1);
+    push(0);
+    } else {
+    if (pop()) {
+    push(0);
+    push(0);
+    } else {
+    if (pop()) {
+    push(0);
+    push(0);
+    if (pop()) {
+    if (pop()) {
+    } else {
+    push(1801);
+    }
+    } else {
+    push(1822);
+    }
+    } else {
+    if (pop()) {
+    push(1);
+    push(0);
+    if (pop()) {
+    if (pop()) {
+    } else {
+    push(1841);
+    }
+    } else {
+    push(1864);
+    }
+    } else {
+    if (pop()) {
+    push(0);
+    push(1);
+    } else {
+    if (pop()) {
+    push(1);
+    push(0);
+    } else {
+    push(1885);
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+}
+
+// name-undefined?
+void w459 (void){
+}
+
+// name-is-word?
+void w460 (void){
+}
+
+// name-value@
+void w461 (void){
+}
+
+// arity-check!
+void w462 (void){
+}
+
+// token-args-0
+void w463 (void){
+    if (pop()) {
+    push(1916);
+    } else {
+    }
+}
+
+// token-args-1
+void w464 (void){
+    if (pop()) {
+    if (pop()) {
+    } else {
+    push(1933);
+    }
+    } else {
+    push(1962);
+    }
+}
+
+// token-args-2
+void w465 (void){
+    if (pop()) {
+    if (pop()) {
+    if (pop()) {
+    } else {
+    push(1987);
+    }
+    } else {
+    push(2017);
+    }
+    } else {
+    push(2045);
+    }
+}
+
+// name-is-buffer?
+void w466 (void){
+}
+
+// buffer-u8@
+void w467 (void){
+}
+
+// buffer-u16@
+void w468 (void){
+    if (pop()) {
+    push(2247);
+    } else {
+    }
+}
+
+// buffer-u32@
+void w469 (void){
+    if (pop()) {
+    push(2291);
+    } else {
+    }
+}
+
+// buffer-u64@
+void w470 (void){
+    if (pop()) {
+    push(2335);
+    } else {
+    }
+}
+
+// buffer-i8@
+void w471 (void){
+}
+
+// buffer-i16@
+void w472 (void){
+    if (pop()) {
+    push(2379);
+    } else {
+    }
+}
+
+// buffer-i32@
+void w473 (void){
+    if (pop()) {
+    push(2423);
+    } else {
+    }
+}
+
+// buffer-i64@
+void w474 (void){
+    if (pop()) {
+    push(2467);
+    } else {
+    }
+}
+
+// buffer-u8!
+void w475 (void){
+}
+
+// buffer-u16!
+void w476 (void){
+    if (pop()) {
+    push(2269);
+    } else {
+    }
+}
+
+// buffer-u32!
+void w477 (void){
+    if (pop()) {
+    push(2313);
+    } else {
+    }
+}
+
+// buffer-u64!
+void w478 (void){
+    if (pop()) {
+    push(2357);
+    } else {
+    }
+}
+
+// buffer-i8!
+void w479 (void){
+}
+
+// buffer-i16!
+void w480 (void){
+    if (pop()) {
+    push(2401);
+    } else {
+    }
+}
+
+// buffer-i32!
+void w481 (void){
+    if (pop()) {
+    push(2445);
+    } else {
+    }
+}
+
+// buffer-i64!
+void w482 (void){
+    if (pop()) {
+    push(2489);
+    } else {
+    }
+}
+
+// buffer-write!
+void w483 (void){
+    push(0);
+    if (pop()) {
+    push(2511);
+    } else {
+    int d8008 = pop();
+    push(d8008);
+    int d8015 = pop();
+    push(d8015);
+    }
+}
+
+// buffer-read!
+void w484 (void){
+    push(0);
+    if (pop()) {
+    push(2546);
+    } else {
+    int d8043 = pop();
+    push(d8043);
+    int d8050 = pop();
+    push(d8050);
+    }
+}
+
+// buffer-open!
+void w485 (void){
+    int d8070 = pop();
+    int d8072 = pop();
+    push(d8072);
+    push(d8070);
+}
+
+// token-args-3
+void w486 (void){
+    if (pop()) {
+    if (pop()) {
+    if (pop()) {
+    if (pop()) {
+    } else {
+    push(2071);
+    }
+    } else {
+    push(2101);
+    }
+    } else {
+    push(2129);
+    }
+    } else {
+    push(2157);
+    }
+}
+
+// DEF_WORD
+void w487 (void){
+    push(1);
+}
+
+// name-sort!
+void w488 (void){
+}
+
+// name-value!
+void w489 (void){
+}
+
+// DEF_BUFFER
+void w490 (void){
+    push(2);
+}
+
+// buffer-alloc!
+void w491 (void){
+    if (pop()) {
+    push(2183);
+    } else {
+    }
+}
+
+// run-output-c99!
+void w492 (void){
+}
+
+// token-next-arg-end
+void w493 (void){
+    for (int c7426 = pop(); c7426; c7426 = pop()) {
+    push(c7426);
+    }
+}
+
+// token-is-arg-end?
+void w494 (void){
+    if (pop()) {
+    push(1);
+    } else {
+    }
+}
+
+// token-next
+void w495 (void){
+    if (pop()) {
+    } else {
+    if (pop()) {
+    if (pop()) {
+    } else {
+    }
+    } else {
+    }
+    }
+}
+
+// MAX_BUFFERS
+void w496 (void){
+    push(1024);
+}
+
+// PAGE_SIZE
+void w497 (void){
+    push(8192);
+}
+
+// num-buffers@
+void w499 (void){
+    push(0);
+}
+
+// num-buffers!
+void w501 (void){
+    push(0);
+}
+
+// buffer-size@
+void w504 (void){
+}
+
+// buffer-size!
+void w506 (void){
+}
+
+// heap-alloc!
+void w507 (void){
+    push(63);
+    push(64);
+    if (pop()) {
+    push(4886);
+    } else {
+    }
+}
+
+// buffer-base!
+void w508 (void){
+}
+
+// buffer-base@
+void w509 (void){
+}
+
+// buffer-offset-to-ptr
+void w511 (void){
+    int d7656 = pop();
+    push(0);
+    push(d7656);
+    if (pop()) {
+    } else {
+    push(2218);
+    }
+}
+
+// heap-u8@
+void w513 (void){
+}
+
+// heap-u8!
+void w514 (void){
+}
+
+// heap-u16@
+void w515 (void){
+}
+
+// heap-u16!
+void w516 (void){
+}
+
+// heap-u32@
+void w517 (void){
+}
+
+// heap-u32!
+void w518 (void){
+}
+
+// heap-u64@
+void w519 (void){
+}
+
+// heap-u64!
+void w520 (void){
+}
+
+// heap-i8@
+void w521 (void){
+}
+
+// heap-i8!
+void w522 (void){
+}
+
+// heap-i16@
+void w523 (void){
+}
+
+// heap-i16!
+void w524 (void){
+}
+
+// heap-i32@
+void w525 (void){
+}
+
+// heap-i32!
+void w526 (void){
+}
+
+// heap-i64@
+void w527 (void){
+}
+
+// heap-i64!
+void w528 (void){
+}
+
+// heap-write!
+void w530 (void){
+}
+
+// heap-read!
+void w531 (void){
+}
+
+// heap-open!
+void w534 (void){
+}
+
+// DEF_NONE
+void w535 (void){
+    push(0);
+}
+
+// name-sort@
+void w539 (void){
+}
+
+// name-sort?
+void w540 (void){
+}
+
+// name-value?
+void w542 (void){
+}
+
+// name-defined?
+void w543 (void){
+}
+
+// c99-emit-header!
+void w544 (void){
+    push(2599);
+    push(2641);
+    push(2662);
+    push(2682);
+    push(2702);
+    push(2721);
+    push(2740);
+    push(2760);
+    push(2784);
+    push(2808);
+}
+
+// c99-emit-buffers!
+void w545 (void){
+    push(0);
+    for (int c8392 = pop(); c8392; c8392 = pop()) {
+    push(c8392);
+    }
+    push(2892);
+}
+
+// c99-emit-strings!
+void w546 (void){
+    push(2835);
+    push(2857);
+    push(2858);
+}
+
+// c99-emit-prims!
+void w547 (void){
+    push(2914);
+    push(2935);
+    push(2962);
+    push(2990);
+    push(3003);
+    push(3028);
+    push(3044);
+    push(3047);
+    push(3074);
+    push(3091);
+    push(3097);
+    push(3099);
+    push(3123);
+    push(3141);
+    push(3166);
+    push(3179);
+    push(3204);
+    push(3219);
+    push(3222);
+    push(3249);
+    push(3266);
+    push(3272);
+    push(3274);
+    push(3277);
+    push(3279);
+    push(3282);
+    push(3305);
+    push(3327);
+    push(3329);
+    push(3332);
+    push(3343);
+    push(3345);
+    push(3348);
+    push(3371);
+    push(3394);
+    push(3416);
+    push(3418);
+    push(3421);
+    push(3444);
+    push(3467);
+    push(3484);
+    push(3486);
+    push(3489);
+    push(3512);
+    push(3535);
+    push(3552);
+    push(3554);
+    push(3557);
+    push(3580);
+    push(3603);
+    push(3620);
+    push(3622);
+    push(3625);
+    push(3648);
+    push(3671);
+    push(3688);
+    push(3690);
+    push(3693);
+    push(3716);
+    push(3739);
+    push(3756);
+    push(3758);
+    push(3761);
+    push(3784);
+    push(3807);
+    push(3825);
+    push(3827);
+    push(3830);
+    push(3853);
+    push(3876);
+    push(3893);
+    push(3895);
+    push(3898);
+    push(3921);
+    push(3944);
+    push(3962);
+    push(3964);
+    push(3967);
+    push(3990);
+    push(4032);
+    push(4057);
+    push(4086);
+    push(4089);
+    push(4116);
+    push(4133);
+    push(4139);
+    push(4161);
+    push(4163);
+    push(4166);
+    push(4189);
+    push(4231);
+    push(4256);
+    push(4285);
+    push(4288);
+    push(4315);
+    push(4332);
+    push(4338);
+    push(4371);
+    push(4373);
+    push(4376);
+    push(4399);
+    push(4413);
+    push(4415);
+    push(4418);
+    push(4441);
+    push(4454);
+    push(4456);
+    push(4459);
+    push(4506);
+    push(4531);
+    push(4537);
+    push(4550);
+    push(4556);
+    push(4579);
+    push(4581);
+    push(4584);
+    push(0);
+    push(4594);
+    push(4597);
+}
+
+// c99-emit-word-sigs!
+void w548 (void){
+    push(0);
+    for (int c8723 = pop(); c8723; c8723 = pop()) {
+    push(c8723);
+    }
+    push(4599);
+}
+
+// c99-emit-word-defs!
+void w549 (void){
+    push(0);
+    for (int c8767 = pop(); c8767; c8767 = pop()) {
+    push(c8767);
+    }
+}
+
+// c99-emit-main!
+void w550 (void){
+    push(4779);
+    push(4814);
+    push(4826);
+    push(4844);
+    push(4847);
+    push(4870);
+    push(4884);
+}
+
+// ;
+void w551 (void){
+}
+
+// ;;
+void w552 (void){
+}
+
+// .q
+void w553 (void){
+}
+
+// .
+void w554 (void){
+}
+
+// .n
+void w555 (void){
+}
+
+// .w
+void w556 (void){
+    push(2580);
+    push(2584);
+    push(2591);
+}
+
+// c99-emit-buffer!
+void w557 (void){
+    if (pop()) {
+    push(2893);
+    push(2903);
+    push(2905);
+    } else {
+    }
+}
+
+// c99-emit-word-sig!
+void w558 (void){
+    if (pop()) {
+    push(4600);
+    push(4607);
+    } else {
+    }
+}
+
+// c99-emit-word-def!
+void w559 (void){
+    if (pop()) {
+    push(4616);
+    push(4618);
+    } else {
+    }
+}
+
+// c99-emit-run!
+void w560 (void){
+    for (int c8812 = pop(); c8812; c8812 = pop()) {
+    push(c8812);
+    }
+}
+
+// c99-emit-token!
+void w561 (void){
+    if (pop()) {
+    push(4620);
+    push(4630);
+    } else {
+    if (pop()) {
+    push(4633);
+    push(4643);
+    } else {
+    if (pop()) {
+    } else {
+    }
+    }
+    }
+}
+
+// c99-emit-word!
+void w562 (void){
+    if (pop()) {
+    push(4646);
+    push(4656);
+    push(4666);
+    push(4677);
+    } else {
+    if (pop()) {
+    push(4680);
+    int d8903 = pop();
+    push(d8903);
+    push(4697);
+    push(4710);
+    } else {
+    if (pop()) {
+    push(4716);
+    push(4731);
+    push(4743);
+    push(4747);
+    push(4759);
+    push(4770);
+    push(4773);
+    } else {
+    }
+    }
+    }
+}
+
+// BASE_HEAP_SIZE
+void w563 (void){
+    push(5000000);
+}
+
+// MAX_REVISIONS
+void w564 (void){
+    push(4);
+}
+
+// NUM_REVISIONS_LEFT
+void w565 (void){
+}
+
+// HEAP_SIZE
+void w566 (void){
+}
+
+// heap-length@
+void w568 (void){
+    push(0);
+}
+
+// heap-length!
+void w570 (void){
+    push(0);
+}
+
+// main
+void w572 (void){
+    push(4908);
+    push(0);
+    if (pop()) {
+    } else {
+    push(4918);
+    }
+}
+
+// in-bootstrap?
+void w573 (void){
+    push(0);
+}
+
+// self-hosting?
+void w574 (void){
+    push(0);
+}
+
+int main (int argc, char** argv) {
+    printf("hello from mirth3");
+    fputc(10, stdout);
     return 0;
 }

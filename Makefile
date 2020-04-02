@@ -5,9 +5,8 @@ mirth: mirth.c
 	nasm -f macho64 mirth.asm
 	ld -static mirth.o -o mirth2
 	./mirth2 mirth.mth
-#	nasm -f macho64 mirth.asm
-#	ld -static mirth.o -o mirth3
-#	./mirth3 mirth.mth
+	gcc -std=c99 -o mirth3 mirth2.c
+	./mirth3
 
 install-vim:
 	mkdir -p ~/.vim/bundle

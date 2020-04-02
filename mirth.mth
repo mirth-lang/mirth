@@ -436,7 +436,7 @@ def(str-buf-reverse!, --,
 # Input #
 #########
 
-def(FILE_BUF_SIZE, USize, 65536)
+def(FILE_BUF_SIZE, USize, 65536 2 *)
 |u64| def-static-buffer(FILE_BUF_LENGTH)
 FILE_BUF_SIZE def-static-buffer(FILE_BUF)
 
@@ -2090,10 +2090,11 @@ def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
 def(run-output-c99!, Token String -- +IO,
     strings-load! str-buf-create-file! file-out!
     c99-emit-header!
-#    c99-emit-buffers!
+    c99-emit-buffers!
+    c99-emit-strings!
     c99-emit-prims!
-#    c99-emit-word-sigs!
-#    c99-emit-word-defs!
+    c99-emit-word-sigs!
+    c99-emit-word-defs!
     c99-emit-main!
     stdout file-out!)
 
@@ -2112,12 +2113,33 @@ def(c99-emit-header!, +IO,
     "#include <stdbool.h>" ;
     "#include <stdint.h>" ;
     "#include <stdlib.h>" ;
+    "#include <stdio.h>" ;
     "#include <fcntl.h>" ;
     "#include <unistd.h>" ;;
-    "#define STACK_SIZE 2000" ;;
+    "#define STACK_SIZE 2000" ;
     "size_t sc = STACK_SIZE;" ;
     "int64_t stack[STACK_SIZE];" ;;
     )
+
+def(c99-emit-strings!, +IO,
+    "#define STRINGS_SIZE " . strings-size@ .n "" ;
+    "char strings[STRINGS_SIZE] = {0};" ;;
+    )
+
+def(c99-emit-buffers!, +IO,
+    0
+    dup num-names@ < while(
+        drop
+        dup c99-emit-buffer!
+        1+
+        dup num-names@ <
+    ) "" ; drop)
+
+def(c99-emit-buffer!, Name -- +IO,
+    name-is-buffer? if(
+        "uint8_t b" . dup .n "[" . name-value@ buffer-size@ .n "] = {0};" ;,
+        drop
+    ))
 
 def(c99-emit-prims!, +IO,
     "int64_t pop (void) {" ;
@@ -2125,7 +2147,7 @@ def(c99-emit-prims!, +IO,
     "        return stack[sc++];" ;
     "    } else {" ;
     "        fprintf(stderr, " .q "STACK UNDERFLOW" .q ");" ;
-    "        fputc(stderr, 10);" ;
+    "        fputc(10, stderr);" ;
     "        exit(1);" ;
     "    }" ;
     "}" ;;
@@ -2134,7 +2156,7 @@ def(c99-emit-prims!, +IO,
     "        stack[--sc] = x;" ;
     "    } else {" ;
     "        fprintf(stderr, " .q "STACK OVERFLOW" .q ");" ;
-    "        fputc(stderr, 10);" ;
+    "        fputc(10, stderr);" ;
     "        exit(1);" ;
     "    }" ;
     "}" ;;
@@ -2156,14 +2178,189 @@ def(c99-emit-prims!, +IO,
     "    int64_t y = pop();" ;
     "    push(x); push(y);" ;
     "}" ;;
+
+    PRIM_INT_ADD .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x + y);" ;
+    "}" ;;
+
+    PRIM_INT_SUB .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x - y);" ;
+    "}" ;;
+
+    PRIM_INT_MUL .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x * y);" ;
+    "}" ;;
+
+    PRIM_INT_DIV .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x / y);" ;
+    "}" ;;
+
+    PRIM_INT_MOD .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x % y);" ;
+    "}" ;;
+
+    PRIM_INT_EQ .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x == y);" ;
+    "}" ;;
+
+    PRIM_INT_LT .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x < y);" ;
+    "}" ;;
+
+    PRIM_INT_LE .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x <= y);" ;
+    "}" ;;
+
+    PRIM_STR_HEAD .w " {" ;
+    "    int64_t x = pop();" ;
+    "    if ((x < 0) || (x >= STRINGS_SIZE)) {" ;
+    "        fprintf(stderr, " .q
+    "ERROR: String out of bounds." .q ");" ;
+    "        fputc(10, stderr);" ;
+    "        exit(1);" ;
+    "    }";
+    "    push(strings[x]);" ;
+    "}" ;;
+
+    PRIM_STR_TAIL .w " {" ;
+    "    int64_t x = pop();" ;
+    "    if ((x < 0) || (x >= STRINGS_SIZE)) {" ;
+    "        fprintf(stderr, " .q
+    "ERROR: String out of bounds." .q ");" ;
+    "        fputc(10, stderr);" ;
+    "        exit(1);" ;
+    "    }";
+    "    push(x + (strings[x] != 0));" ;
+    "}" ;;
+
+    PRIM_FILE_CLOSE .w " {" ;
+    "    int64_t x = pop();" ;
+    "    close(x);" ;
+    "}" ;;
+
+    PRIM_EXIT .w " {" ;
+    "    int64_t x = pop();" ;
+    "    exit(x);" ;
+    "}" ;;
+
+    PRIM_DEBUG .w " {" ;
+    "    for (int i = STACK_SIZE-1; i >= sc; i--) {" ;
+    "        fprintf(stderr, " .q "%lld " .q ", stack[i]);" ;
+    "    }" ;
+    "    fputc(10, stderr);" ;
+    "}" ;;
+
+    PRIM_MIRTH_REVISION .w " {" ;
+    "    push(" . 0 .n ");"; # reset REVISION counter
+    "}" ;;
+
     )
 
+def(c99-emit-word-sigs!, +IO,
+    0
+    dup num-names@ < while(
+        drop
+        dup c99-emit-word-sig!
+        1+
+        dup num-names@ <
+    )
+    "" ;
+    drop)
+
+def(c99-emit-word-sig!, Name -- +IO,
+    name-is-word? if(
+        "void w" . .n " (void);" ;,
+        drop
+    ))
+
+def(c99-emit-word-defs!, +IO,
+    0
+    dup num-names@ < while(
+        drop
+        dup c99-emit-word-def!
+        1+
+        dup num-names@ <
+    )
+    drop)
+
+def(c99-emit-word-def!, Name -- +IO,
+    name-is-word? if(
+        dup .w "{" ;
+        name-value@ c99-emit-run!
+        "}" ;;,
+        drop
+    ))
+
+def(c99-emit-run!, Token -- +IO,
+    token-run-end? not while(
+        drop
+        dup c99-emit-token!
+        token-next
+        token-run-end? not
+    ) drop)
+
+def(c99-emit-token!, Token -- +IO,
+    token-type? TOKEN_INT = if(
+        "    push(" . token-value@ .n ");" ;,
+
+    token-type? TOKEN_STR = if(
+        "    push(" . token-value@ .n ");" ;,
+
+    token-type? TOKEN_NAME = if(
+        c99-emit-word!,
+
+        drop
+    ))))
+
+def(c99-emit-word!, Token -- +IO,
+    token-value? PRIM_DIP = if(
+        token-args-1
+        "    int d" . dup .n " = pop();" ;
+        dup c99-emit-run!
+        "    push(d" . .n ");" ;,
+
+    token-value? PRIM_IF = if(
+        token-args-2
+        "    if (pop()) {" ;
+        dip(c99-emit-run!)
+        "    } else {" ;
+        c99-emit-run!
+        "    }" ;,
+
+    token-value? PRIM_WHILE = if(
+        token-args-1
+        "    for (int c" . dup .n
+        " = pop(); c" . dup .n
+        "; c" . dup .n " = pop()) {" ;
+        "    push(c" . dup .n ");" ;
+        c99-emit-run!
+        "    }" ;,
+
+        drop
+    ))))
 
 def(c99-emit-main!, Token -- +IO,
-    "int main (int argc, char* argv) {" ;
+    "int main (int argc, char** argv) {" ;
+    "    printf(" .q "hello from mirth3" .q ");" ;
+    "    fputc(10, stdout);" ;
     "    return 0;" ;
-    "}" ;
-    )
+    "}" ;)
 
 ########
 # Heap #
