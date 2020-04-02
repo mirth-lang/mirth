@@ -1,4 +1,3 @@
-0 1 2 3 2 1 0
 
 ###########
 # Prelude #
@@ -13,6 +12,7 @@ def(nip, a b -- b, dip(drop))
 def(dup2, a b -- a b a b, over over)
 def(drop2, a b --, drop drop)
 def(swap2, a b c d -- c d a b, dip(rotr) rotr)
+def(dup3, a b c -- a b c a b c, dip(dup2) dup dip(rotr))
 
 def(>, Int Int -- Bool, swap <)
 def(>=, Int Int -- Bool, swap <=)
@@ -490,7 +490,7 @@ def(read-mirth-src!, +IO,
 # Names #
 #########
 
-def(MAX_NAMES, USize, 4096)
+def(MAX_NAMES, USize, 8192)
 |i64| def-static-buffer(NUM_NAMES)
 def(num-names@, Int, 0 i64@(NUM_NAMES))
 def(num-names!, Int --, 0 i64!(NUM_NAMES))
@@ -655,12 +655,13 @@ def(PRIM_FILE_WRITE, Prim, 35)
 def(PRIM_FILE_OPEN, Prim, 36)
 def(PRIM_FILE_CLOSE, Prim, 37)
 def(PRIM_EXIT, Prim, 38)
-def(PRIM_DEF, Prim, 39)
-def(PRIM_DEF_STATIC_BUFFER, Prim, 40)
-def(PRIM_OUTPUT_ASM, Prim, 41)
-def(PRIM_DEBUG, Prim, 42)
-def(PRIM_MIRTH_REVISION, Prim, 43)
-def(NUM_PRIMS, Prim, 44)
+def(PRIM_DEBUG, Prim, 39)
+def(PRIM_MIRTH_REVISION, Prim, 40)
+def(PRIM_DEF, Prim, 41)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 42)
+def(PRIM_OUTPUT_ASM, Prim, 43)
+def(PRIM_OUTPUT_C99, Prim, 44)
+def(NUM_PRIMS, Prim, 45)
 
 def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
 
@@ -712,11 +713,12 @@ def(init-names!, +Names,
     PRIM_FILE_OPEN "syscall-open!" def-prim!
     PRIM_FILE_CLOSE "syscall-close!" def-prim!
     PRIM_EXIT "syscall-exit!" def-prim!
+    PRIM_DEBUG "??" def-prim!
+    PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
     PRIM_DEF "def" def-prim!
     PRIM_DEF_STATIC_BUFFER "def-static-buffer" def-prim!
     PRIM_OUTPUT_ASM "output-asm" def-prim!
-    PRIM_DEBUG "??" def-prim!
-    PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
+    PRIM_OUTPUT_C99 "output-c99" def-prim!
     )
 
 #################
@@ -1132,7 +1134,6 @@ def(is-digit?, Char -- Char Bool, dup 48 57 in-range)
 def(is-upper-hexdigit?, Char -- Char Bool, dup 65 70 in-range)
 def(is-lower-hexdigit?, Char -- Char Bool, dup 97 102 in-range)
 def(is-hexdigit?, Char -- Char Bool, is-digit? dip(is-upper-hexdigit?) + dip(is-lower-hexdigit?) +)
-def(in-range, Char Char Char -- Bool, dip(over dip(>=)) <= *)
 def(is-nul?, Char -- Char Bool, dup 0=)
 def(is-sign?, Char -- Char Bool, is-plus-sign? dip(is-minus-sign?) +)
 def(is-plus-sign?, Char -- Char Bool, dup 43 =)
@@ -1152,6 +1153,8 @@ def(is-special-char?, Char -- Char Bool,
     dip(is-pound?) +
     # FIXME: include brackets & braces ... maybe colons
     )
+
+def(in-range, Int Int Int -- Bool, dip(over dip(>=)) <= *)
 
 ###############
 # Value Stack #
@@ -1695,6 +1698,54 @@ def(token-run-prim!, Token --,
         ),
 
 
+    dup PRIM_FILE_READ = if(
+        drop
+        3 1 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop3!)
+                buffer-read!
+                vstack-push!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_FILE_OPEN = if(
+        drop
+        3 1 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop3!)
+                buffer-open!
+                vstack-push!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_FILE_CLOSE = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        syscall-close!
+        vstack-push!,
+
+    dup PRIM_EXIT = if(
+        drop 1 0 arity-check! token-args-0
+        vstack-pop! syscall-exit!,
+
+    dup PRIM_DEBUG = if(
+        drop 0 0 arity-check! token-args-0
+        vstack-trace!,
+
     dup PRIM_DEF = if(
         drop
         0 0 arity-check!
@@ -1729,9 +1780,16 @@ def(token-run-prim!, Token --,
         MIRTH_REVISION 1+
         vstack-push!,
 
+    dup PRIM_OUTPUT_C99 = if(
+        drop
+        1 0 arity-check!
+        token-args-1
+        vstack-pop!
+        run-output-c99!,
+
         drop
         "Dont know how to run prim yet." emit-warning!
-    ))))))))))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -1786,7 +1844,7 @@ def(token-args-2, Token -- Token Token,
             ),
             drop
             "expected 2 args, got only 1"
-            emit-fatal-error!,
+            emit-fatal-error!
         ),
         drop
         "expected 2 args, got none"
@@ -1854,31 +1912,6 @@ def(token-is-arg-end?, Token -- Token Bool,
         token-type? TOKEN_RPAREN =
     ))
 
-########
-# Main #
-########
-
-def(main, +IO,
-    init!
-    run-tests
-    read-mirth-src!
-    init-names!
-    run-lexer!
-#    show-names-table!
-#    show-tokens!
-
-    "Building." str-trace-ln!
-
-    0 token-run!
-
-    "Done." str-trace-ln!
-    vstack-empty? if(
-        id,
-        "VSTACK = " str-trace! vstack-trace!
-    ))
-
-#main
-
 ###########
 # Buffers #
 ###########
@@ -1915,7 +1948,10 @@ def(buffer-base!, Buffer -- Ptr +Buffers,
     |u64| * u64!(BUFFER_BASE))
 
 def(buffer-offset-to-ptr, Offset Buffer -- Ptr +Buffers,
-    buffer-base@ +)
+    dup2 dip(0) buffer-size@ 1- in-range if(
+        buffer-base@ +,
+        "buffer overflow or underflow" panic!
+    ))
 
 def(buffer-u8@, Offset Buffer -- U8 +Buffers,
     buffer-offset-to-ptr heap-u8@)
@@ -2002,7 +2038,26 @@ def(buffer-i64!, I64 Offset Buffer -- +Buffers,
     ))
 
 def(buffer-write!, File Offset Len Buffer -- +Buffers,
-    swap dip(buffer-offset-to-ptr) heap-write!)
+    over 0 < if(
+        "buffer-write! with negative length" panic!,
+
+    # check for overflow
+    dup3 dip(+) buffer-offset-to-ptr drop
+
+    swap dip(buffer-offset-to-ptr) heap-write!))
+
+def(buffer-read!, File Offset Len Buffer -- Int +Buffers,
+    over 0 < if(
+        "buffer-read! with negative length" panic!,
+
+    # check for overflow
+    dup3 dip(+) buffer-offset-to-ptr drop
+
+    swap dip(buffer-offset-to-ptr) heap-read!))
+
+def(buffer-open!, Offset Flags Mode Buffer -- File +IO,
+    rotr dip(dip(buffer-offset-to-ptr))
+    heap-open!)
 
 ########
 # Defs #
@@ -2028,13 +2083,94 @@ def(name-defined?, Name -- Name Bool, name-undefined? not)
 def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD =)
 def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
 
+###########
+# Codegen #
+###########
+
+def(run-output-c99!, Token String -- +IO,
+    strings-load! str-buf-create-file! file-out!
+    c99-emit-header!
+#    c99-emit-buffers!
+    c99-emit-prims!
+#    c99-emit-word-sigs!
+#    c99-emit-word-defs!
+    c99-emit-main!
+    stdout file-out!)
+
+def(;, Str -- +IO, str-print-ln!)
+def(;;, Str -- +IO, str-print-ln! print-ln!)
+def(.q, Str -- +IO, str-print! print-quote!)
+def(., Str -- +IO, str-print!)
+def(.n, Int -- +IO, int-print!)
+def(.w, Name -- +IO,
+    "// " .
+    dup name-load! str-buf-print! print-ln!
+    "void w" . .n " (void)" .)
+
+def(c99-emit-header!, +IO,
+    "/* C99 autogenerated by mirth compiler */" ;
+    "#include <stdbool.h>" ;
+    "#include <stdint.h>" ;
+    "#include <stdlib.h>" ;
+    "#include <fcntl.h>" ;
+    "#include <unistd.h>" ;;
+    "#define STACK_SIZE 2000" ;;
+    "size_t sc = STACK_SIZE;" ;
+    "int64_t stack[STACK_SIZE];" ;;
+    )
+
+def(c99-emit-prims!, +IO,
+    "int64_t pop (void) {" ;
+    "    if (sc < STACK_SIZE) {" ;
+    "        return stack[sc++];" ;
+    "    } else {" ;
+    "        fprintf(stderr, " .q "STACK UNDERFLOW" .q ");" ;
+    "        fputc(stderr, 10);" ;
+    "        exit(1);" ;
+    "    }" ;
+    "}" ;;
+    "void push (int64_t x) {" ;
+    "    if (sc > 0) {" ;
+    "        stack[--sc] = x;" ;
+    "    } else {" ;
+    "        fprintf(stderr, " .q "STACK OVERFLOW" .q ");" ;
+    "        fputc(stderr, 10);" ;
+    "        exit(1);" ;
+    "    }" ;
+    "}" ;;
+
+    PRIM_ID .w " {" ;
+    "}" ;;
+
+    PRIM_DUP .w " {" ;
+    "    int64_t x = pop();" ;
+    "    push(x); push(x);" ;
+    "}" ;;
+
+    PRIM_DROP .w " {" ;
+    "    pop();" ;
+    "}" ;;
+
+    PRIM_SWAP .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x); push(y);" ;
+    "}" ;;
+    )
+
+
+def(c99-emit-main!, Token -- +IO,
+    "int main (int argc, char* argv) {" ;
+    "    return 0;" ;
+    "}" ;
+    )
 
 ########
 # Heap #
 ########
 
-def(BASE_HEAP_SIZE, USize, 10000000) # ~10 MB
-def(MAX_REVISIONS, USize, 10)
+def(BASE_HEAP_SIZE, USize, 5000000) # ~5 MB
+def(MAX_REVISIONS, USize, 4)
 def(NUM_REVISIONS_LEFT, USize, MAX_REVISIONS MIRTH_REVISION -)
 def(HEAP_SIZE, USize, BASE_HEAP_SIZE NUM_REVISIONS_LEFT *)
 
@@ -2072,39 +2208,41 @@ def(heap-write!, File Ptr Len -- +IO, syscall-write!(HEAP))
 def(heap-read!, File Ptr Len -- Int +IO, syscall-read!(HEAP))
 def(heap-open!, Ptr Flags Mode -- File +IO, syscall-open!(HEAP))
 
-###############
-# Build Rules #
-###############
+########
+# Main #
+########
 
-"mirth.asm" output-asm(main)
+def(main, +IO,
+    init!
+    run-tests
+    read-mirth-src!
+    init-names!
+    run-lexer!
+#    show-names-table!
+#    show-tokens!
 
-#################################
-# Testing the self-interpereter #
-#################################
+    "Building." str-trace-ln!
 
-print-ln!
-"Hello from Mirth" str-print-ln!
-print-ln!
+    0 token-run!
+
+    vstack-empty? if(
+        id,
+        "VSTACK = " str-trace! vstack-trace!
+    ))
+
+#########
+# Build #
+#########
+
+def(in-bootstrap?, Bool, MIRTH_REVISION 0 =)
+def(self-hosting?, Bool, MIRTH_REVISION 0 >)
 
 run-tests
 
-MIRTH_REVISION
+"build #" str-trace!
+MIRTH_REVISION int-trace-ln!
 
-# 9999 buffer-alloc! drop
-# 0 buffer-size@
-# 0 0 buffer-u8@
-
-# 8 heap-alloc!
-
-# 4096 heap-alloc! 0 heap-u64!
-
-# 0 heap-u64@-or-alloc-page!
-
-#test-if test-drop test-dup test-swap test-dip
-#test-trip test-rotr test-rotl test= test< test<= test> test>=
-#test+ test- test* test/ test% test-while
-# test@! test-str
-
-# TODO memory primitives
-# TODO syscall primitives
-# TODO output-asm
+in-bootstrap? if(
+    "mirth.asm" output-asm(main),
+    "mirth2.c" output-c99(main)
+)

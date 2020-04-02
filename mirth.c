@@ -1583,7 +1583,7 @@ int main (int argc, const char** argv)
                             output_asm(a, state.fstack[state.fc].pc);
                             state.fc = saved_fc;
                             state.pc = next_pc;
-                            break;
+                            goto resume_loop;
 
                         case BUILTIN_MIRTH_REVISION:
                             arity_check("MIRTH_REVISION",0,0,1);
