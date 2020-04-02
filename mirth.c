@@ -87,6 +87,7 @@ enum builtin_t {
     BUILTIN_DEF,
     BUILTIN_DEF_STATIC_BUFFER,
     BUILTIN_OUTPUT_ASM,
+    BUILTIN_MIRTH_REVISION,
     NUM_BUILTINS
 };
 
@@ -144,6 +145,7 @@ struct symbols_t {
         [BUILTIN_DEF] = { .data = "def" },
         [BUILTIN_DEF_STATIC_BUFFER] = { .data = "def-static-buffer" },
         [BUILTIN_OUTPUT_ASM] = { .data = "output-asm" },
+        [BUILTIN_MIRTH_REVISION] = { .data = "MIRTH_REVISION" },
     }
 };
 
@@ -718,6 +720,12 @@ static void output_asm_block (size_t t) {
                                 "    mov rdi, rax\n"
                                 "    mov rax, 0x2000001\n" // exit syscall
                                 "    syscall\n");
+                            break;
+
+                        case BUILTIN_MIRTH_REVISION:
+                            fprintf(output.file,
+                                "    lea rbx, [rbx-8]\n"
+                                "    mov rax, 0\n");
                             break;
 
                         default:
@@ -1575,6 +1583,14 @@ int main (int argc, const char** argv)
                             state.fc = saved_fc;
                             state.pc = next_pc;
                             break;
+
+                        case BUILTIN_MIRTH_REVISION:
+                            arity_check("MIRTH_REVISION",0,0,1);
+                            a.type = TYPE_INT;
+                            a.data = 0; // bootstrap is revision 0
+                            state.stack[--state.sc] = a;
+                            break;
+
                         default:
                             if (defs.pc[tokens.value[state.pc]]) {
                                 ASSERT_TOKEN(state.rc >= 3, ERROR_OVERFLOW, state.pc,

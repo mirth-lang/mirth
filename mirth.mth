@@ -659,7 +659,8 @@ def(PRIM_DEF, Prim, 39)
 def(PRIM_DEF_STATIC_BUFFER, Prim, 40)
 def(PRIM_OUTPUT_ASM, Prim, 41)
 def(PRIM_DEBUG, Prim, 42)
-def(NUM_PRIMS, Prim, 43)
+def(PRIM_MIRTH_REVISION, Prim, 43)
+def(NUM_PRIMS, Prim, 44)
 
 def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
 
@@ -715,6 +716,7 @@ def(init-names!, +Names,
     PRIM_DEF_STATIC_BUFFER "def-static-buffer" def-prim!
     PRIM_OUTPUT_ASM "output-asm" def-prim!
     PRIM_DEBUG "??" def-prim!
+    PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
     )
 
 #################
@@ -1427,6 +1429,272 @@ def(token-run-prim!, Token --,
         )
         vstack-push!,
 
+    dup PRIM_MEM_GET_U8 = if(
+        drop
+        1 1 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop!)
+                buffer-u8@
+                vstack-push!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_GET_U16 = if(
+        drop
+        1 1 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop!)
+                buffer-u16@
+                vstack-push!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_GET_U32 = if(
+        drop
+        1 1 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop!)
+                buffer-u32@
+                vstack-push!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_GET_U64 = if(
+        drop
+        1 1 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop!)
+                buffer-u64@
+                vstack-push!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_GET_I8 = if(
+        drop
+        1 1 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop!)
+                buffer-i8@
+                vstack-push!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_GET_I16 = if(
+        drop
+        1 1 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop!)
+                buffer-i16@
+                vstack-push!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_GET_I32 = if(
+        drop
+        1 1 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop!)
+                buffer-i32@
+                vstack-push!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_GET_I64 = if(
+        drop
+        1 1 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop!)
+                buffer-i64@
+                vstack-push!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_SET_U8 = if(
+        drop
+        2 0 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop2!)
+                buffer-u8!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_SET_U16 = if(
+        drop
+        2 0 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop2!)
+                buffer-u16!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+
+    dup PRIM_MEM_SET_U32 = if(
+        drop
+        2 0 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop2!)
+                buffer-u32!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_SET_U64 = if(
+        drop
+        2 0 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop2!)
+                buffer-u64!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_SET_I8 = if(
+        drop
+        2 0 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop2!)
+                buffer-i8!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_SET_I16 = if(
+        drop
+        2 0 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop2!)
+                buffer-i16!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+
+    dup PRIM_MEM_SET_I32 = if(
+        drop
+        2 0 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop2!)
+                buffer-i32!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MEM_SET_I64 = if(
+        drop
+        2 0 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop2!)
+                buffer-i64!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_FILE_WRITE = if(
+        drop
+        3 0 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value?
+            name-is-buffer? if(
+                nip name-value@
+                dip(vstack-pop3!)
+                buffer-write!,
+                drop "expected buffer name" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+
     dup PRIM_DEF = if(
         drop
         0 0 arity-check!
@@ -1454,9 +1722,16 @@ def(token-run-prim!, Token --,
             "expected buffer name" emit-fatal-error!
         ),
 
+    dup PRIM_MIRTH_REVISION = if(
         drop
-        "Dont know how to run prim yet." emit-fatal-error!
-    ))))))))))))))))))))
+        0 1 arity-check!
+        token-args-0
+        MIRTH_REVISION 1+
+        vstack-push!,
+
+        drop
+        "Dont know how to run prim yet." emit-warning!
+    ))))))))))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -1648,8 +1923,9 @@ def(buffer-base!, Buffer -- Ptr +Buffers,
 
 def(buffer-offset-to-ptr, Offset Buffer -- Ptr +Buffers,
     buffer-large? if(
-        buffer-base@ over PAGE_SIZE / +
-        |u64| * heap-u64@-or-alloc-page!,
+        buffer-base@ over
+        PAGE_SIZE / |u64| * +
+        heap-u64@-or-alloc-page! +,
         buffer-base@ +
     ))
 
@@ -1737,11 +2013,17 @@ def(buffer-i64!, I64 Offset Buffer -- +Buffers,
         buffer-offset-to-ptr heap-i64!
     ))
 
+def(buffer-write!, File Offset Len Buffer -- +Buffers,
+    swap dip(buffer-offset-to-ptr) heap-write!)
+
 ########
 # Heap #
 ########
 
-def(HEAP_SIZE, USize, 67108864) # 64 MB
+def(BASE_HEAP_SIZE, USize, 8388608) # 8 MB
+def(MAX_REVISIONS, USize, 8)
+def(NUM_REVISIONS_LEFT, USize, MAX_REVISIONS MIRTH_REVISION -)
+def(HEAP_SIZE, USize, BASE_HEAP_SIZE NUM_REVISIONS_LEFT *)
 
 |u64| def-static-buffer(HEAP_LENGTH)
 def(heap-length@, U64 +Heap, 0 u64@(HEAP_LENGTH))
@@ -1773,10 +2055,13 @@ def(heap-i16!, I16 Ptr -- +Heap, i16!(HEAP))
 def(heap-i32!, I32 Ptr -- +Heap, i32!(HEAP))
 def(heap-i64!, I64 Ptr -- +Heap, i64!(HEAP))
 
+def(heap-write!, File Ptr Len -- +IO, syscall-write!(HEAP))
+def(heap-read!, File Ptr Len -- Int +IO, syscall-read!(HEAP))
+def(heap-open!, Ptr Flags Mode -- File +IO, syscall-open!(HEAP))
+
 def(heap-u64@-or-alloc-page!, Ptr -- Ptr +Heap,
-    dup heap-u64@ dup if(
-        nip,
-        drop
+    dup heap-u64@ if(
+        heap-u64@,
         dip(PAGE_SIZE heap-alloc! dup)
         heap-u64!
     ))
@@ -1815,38 +2100,29 @@ def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
 # Testing the self-interpereter #
 #################################
 
-10 heap-alloc!
-20 heap-alloc!
-30 heap-alloc!
-4096 heap-alloc!
-4096 heap-alloc!
-30 heap-alloc!
-30 heap-alloc!
+print-ln!
+"Hello from Mirth" str-print-ln!
+print-ln!
 
-10 buffer-alloc!
-10 buffer-alloc!
+run-tests
 
-PAGE_SIZE 17 * buffer-alloc!
-10 buffer-alloc!
-10 buffer-alloc!
-10 buffer-alloc!
+MIRTH_REVISION
 
-0 buffer-size@
-0 buffer-base@
-1 buffer-size@
-1 buffer-base@
-2 buffer-size@
-2 buffer-base@
-3 buffer-size@
-3 buffer-base@
-4 buffer-size@
-4 buffer-base@
+# 9999 buffer-alloc! drop
+# 0 buffer-size@
+# 0 0 buffer-u8@
+
+# 8 heap-alloc!
+
+# 4096 heap-alloc! 0 heap-u64!
+
+# 0 heap-u64@-or-alloc-page!
 
 #test-if test-drop test-dup test-swap test-dip
 #test-trip test-rotr test-rotl test= test< test<= test> test>=
 #test+ test- test* test/ test% test-while
 # test@! test-str
 
-# TODO memory primitives, def-static-buffer
+# TODO memory primitives
 # TODO syscall primitives
 # TODO output-asm
