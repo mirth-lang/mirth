@@ -1900,17 +1900,10 @@ def(buffer-size@, Buffer -- U64 +Buffers,
 def(buffer-size!, Buffer -- U64 +Buffers,
     |u64| * u64!(BUFFER_SIZE))
 
-def(buffer-large?, Buffer -- Buffer Bool +Buffers,
-    dup buffer-size@ PAGE_SIZE >)
-
 def(buffer-alloc!, U64 -- Buffer +Buffers,
     num-buffers@ MAX_BUFFERS >= if(
         "compiler error: ran out of buffers" panic!,
         dup num-buffers@ buffer-size!
-        dup PAGE_SIZE > if(
-            PAGE_SIZE + 1- PAGE_SIZE / |u64| *,
-            id
-        )
         heap-alloc! num-buffers@ buffer-base!
         num-buffers@ dup 1+ num-buffers!
     ))
@@ -1922,12 +1915,7 @@ def(buffer-base!, Buffer -- Ptr +Buffers,
     |u64| * u64!(BUFFER_BASE))
 
 def(buffer-offset-to-ptr, Offset Buffer -- Ptr +Buffers,
-    buffer-large? if(
-        buffer-base@ over
-        PAGE_SIZE / |u64| * +
-        heap-u64@-or-alloc-page! +,
-        buffer-base@ +
-    ))
+    buffer-base@ +)
 
 def(buffer-u8@, Offset Buffer -- U8 +Buffers,
     buffer-offset-to-ptr heap-u8@)
@@ -2017,11 +2005,36 @@ def(buffer-write!, File Offset Len Buffer -- +Buffers,
     swap dip(buffer-offset-to-ptr) heap-write!)
 
 ########
+# Defs #
+########
+
+def(DEF_NONE, Sort, 0)
+def(DEF_WORD, Sort, 1)
+def(DEF_BUFFER, Sort, 2)
+
+MAX_NAMES def-static-buffer(DEF_SORT)
+MAX_NAMES |u64| * def-static-buffer(DEF_VALUE)
+
+def(name-sort!, Sort Name --, u8!(DEF_SORT))
+def(name-sort@, Name -- Sort, u8@(DEF_SORT))
+def(name-sort?, Name -- Name Sort, dup name-sort@)
+
+def(name-value!, Value Name --, |u64| * u64!(DEF_VALUE))
+def(name-value@, Name -- Value, |u64| * u64@(DEF_VALUE))
+def(name-value?, Name -- Name Value, dup name-value@)
+
+def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
+def(name-defined?, Name -- Name Bool, name-undefined? not)
+def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD =)
+def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
+
+
+########
 # Heap #
 ########
 
-def(BASE_HEAP_SIZE, USize, 8388608) # 8 MB
-def(MAX_REVISIONS, USize, 8)
+def(BASE_HEAP_SIZE, USize, 10000000) # ~10 MB
+def(MAX_REVISIONS, USize, 10)
 def(NUM_REVISIONS_LEFT, USize, MAX_REVISIONS MIRTH_REVISION -)
 def(HEAP_SIZE, USize, BASE_HEAP_SIZE NUM_REVISIONS_LEFT *)
 
@@ -2032,7 +2045,7 @@ def(heap-alloc!, U64 -- Ptr +Heap,
     63 + dup 64 % -
     heap-length@ tuck +
     dup HEAP_SIZE > if(
-        "compiler error: ran out of heap space" panic!,
+        "ran out of heap space" panic!,
         heap-length!
     ))
 
@@ -2058,37 +2071,6 @@ def(heap-i64!, I64 Ptr -- +Heap, i64!(HEAP))
 def(heap-write!, File Ptr Len -- +IO, syscall-write!(HEAP))
 def(heap-read!, File Ptr Len -- Int +IO, syscall-read!(HEAP))
 def(heap-open!, Ptr Flags Mode -- File +IO, syscall-open!(HEAP))
-
-def(heap-u64@-or-alloc-page!, Ptr -- Ptr +Heap,
-    dup heap-u64@ if(
-        heap-u64@,
-        dip(PAGE_SIZE heap-alloc! dup)
-        heap-u64!
-    ))
-
-########
-# Defs #
-########
-
-def(DEF_NONE, Sort, 0)
-def(DEF_WORD, Sort, 1)
-def(DEF_BUFFER, Sort, 2)
-
-MAX_NAMES def-static-buffer(DEF_SORT)
-MAX_NAMES |u64| * def-static-buffer(DEF_VALUE)
-
-def(name-sort!, Sort Name --, u8!(DEF_SORT))
-def(name-sort@, Name -- Sort, u8@(DEF_SORT))
-def(name-sort?, Name -- Name Sort, dup name-sort@)
-
-def(name-value!, Value Name --, |u64| * u64!(DEF_VALUE))
-def(name-value@, Name -- Value, |u64| * u64@(DEF_VALUE))
-def(name-value?, Name -- Name Value, dup name-value@)
-
-def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
-def(name-defined?, Name -- Name Bool, name-undefined? not)
-def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD =)
-def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
 
 ###############
 # Build Rules #

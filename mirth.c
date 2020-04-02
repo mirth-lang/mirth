@@ -725,6 +725,7 @@ static void output_asm_block (size_t t) {
                         case BUILTIN_MIRTH_REVISION:
                             fprintf(output.file,
                                 "    lea rbx, [rbx-8]\n"
+                                "    mov [rbx], rax\n"
                                 "    mov rax, 0\n");
                             break;
 
