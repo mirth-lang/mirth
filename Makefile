@@ -7,6 +7,9 @@ mirth: mirth.c
 	./mirth2 mirth.mth
 	gcc -std=c99 -o mirth3 mirth2.c
 	./mirth3
+	gcc -std=c99 -o mirth4 mirth3.c
+	./mirth4
+
 
 install-vim:
 	mkdir -p ~/.vim/bundle

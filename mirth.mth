@@ -2703,7 +2703,7 @@ in-bootstrap? if(
         "mirth2.c" output-c99(0 main),
         in-self-compiled? if(
             "mirth3.c" output-c99(0 main),
-            "so deep" print-str-ln!
+            "this is really deep" str-print-ln!
         )
     )
 )
