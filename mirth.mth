@@ -2256,7 +2256,7 @@ def(c99-emit-prims!, +IO,
 
     PRIM_FILE_CLOSE .w " {" ;
     "    int64_t x = pop();" ;
-    "    close(x);" ;
+    "    push(close(x));" ;
     "}" ;;
 
     PRIM_EXIT .w " {" ;
@@ -2700,9 +2700,9 @@ def(in-self-compiled?, Bool, MIRTH_REVISION 2 =)
 in-bootstrap? if(
     "mirth.asm" output-asm(main),
     in-self-interpreted? if(
-        "mirth2.c" output-c99(0 main),
+        "mirth2.c" output-c99(main),
         in-self-compiled? if(
-            "mirth3.c" output-c99(0 main),
+            "mirth3.c" output-c99(main),
             "this is really deep" str-print-ln!
         )
     )
