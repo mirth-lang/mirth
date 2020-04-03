@@ -2700,7 +2700,7 @@ def(in-self-compiled?, Bool, MIRTH_REVISION 2 =)
 in-bootstrap? if(
     "mirth.asm" output-asm(main),
     in-self-interpreted? if(
-        "mirth2.c" output-c99(main),
+        "mirth2.c" output-c99(0 main),
         in-self-compiled? if(
             "mirth3.c" output-c99(0 main),
             "so deep" print-str-ln!
