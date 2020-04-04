@@ -1,3 +1,5 @@
+C99FLAGS =-std=c99 -Weverything -Wno-missing-noreturn -Wno-unused-function -Werror -pedantic
+
 
 mirth: mirth.c
 	gcc -std=c99 -Wall -Werror -pedantic -o mirth mirth.c
@@ -5,9 +7,9 @@ mirth: mirth.c
 	nasm -f macho64 mirth.asm
 	ld -static mirth.o -o mirth2
 	./mirth2 mirth.mth
-	gcc -std=c99 -Wall -Werror -pedantic -o mirth3 mirth2.c
+	gcc $(C99FLAGS) -o mirth3 mirth2.c
 	./mirth3
-	gcc -std=c99 -Wall -Werror -pedantic -o mirth4 mirth3.c
+	gcc $(C99FLAGS) -o mirth4 mirth3.c
 	./mirth4
 
 

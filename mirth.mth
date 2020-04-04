@@ -105,8 +105,8 @@ def(str-buf-push!, U8 -- +StrBuf,
     ))
 def(str-buf-write!, File -- +StrBuf,
     0 str-buf-length? syscall-write!(STR_BUF))
-def(str-buf-print!, +StrBuf, file-out? str-buf-write!)
-def(str-buf-trace!, +StrBuf, file-err? str-buf-write!)
+def(str-buf-print!, +StrBuf, file-out@ str-buf-write!)
+def(str-buf-trace!, +StrBuf, file-err@ str-buf-write!)
 
 def(str-buf-read!, File -- +IO,
     str-buf-clear!
@@ -115,7 +115,7 @@ def(str-buf-read!, File -- +IO,
         "str-buf-read! failed" panic!,
         str-buf-length!
     ))
-def(str-buf-input!, -- +IO, file-in? str-buf-read!)
+def(str-buf-input!, -- +IO, file-in@ str-buf-read!)
 
 # Clear STR_BUF and copy prefix of string over to it.
 # Returns remaining string.
@@ -308,16 +308,16 @@ def(init-io!, +IO,
     )
 
 long def-static-buffer(FILE_IN)
-def(file-in!, File -- +IO, 0 u64!(FILE_IN))
-def(file-in?, -- File +IO, 0 u64@(FILE_IN))
+def(file-in!, File -- +IO, FILE_IN !)
+def(file-in@, -- File +IO, FILE_IN @)
 
 long def-static-buffer(FILE_OUT)
-def(file-out!, File -- +IO, 0 u64!(FILE_OUT))
-def(file-out?, -- File +IO, 0 u64@(FILE_OUT))
+def(file-out!, File -- +IO, FILE_OUT !)
+def(file-out@, -- File +IO, FILE_OUT @)
 
 long def-static-buffer(FILE_ERR)
-def(file-err!, File -- +IO, 0 u64!(FILE_ERR))
-def(file-err?, -- File +IO, 0 u64@(FILE_ERR))
+def(file-err!, File -- +IO, FILE_ERR !)
+def(file-err@, -- File +IO, FILE_ERR @)
 
 def(str-write!, Str File -- +IO,
     swap str-not-null? while(
@@ -327,8 +327,8 @@ def(str-write!, Str File -- +IO,
     ) drop2
     )
 
-def(str-print!, Str -- +IO, file-out? str-write!)
-def(str-trace!, Str -- +IO, file-err? str-write!)
+def(str-print!, Str -- +IO, file-out@ str-write!)
+def(str-trace!, Str -- +IO, file-err@ str-write!)
 def(str-print-sp!, Str -- +IO, str-print! print-sp!)
 def(str-trace-sp!, Str -- +IO, str-trace! trace-sp!)
 def(str-print-ln!, Str -- +IO, str-print! print-ln!)
@@ -363,8 +363,8 @@ def(str-buf-int!, Int --,
     ))
 
 def(int-write!, Int File -- +IO, dip(str-buf-int!) str-buf-write!)
-def(int-print!, Int -- +IO, file-out? int-write!)
-def(int-trace!, Int -- +IO, file-err? int-write!)
+def(int-print!, Int -- +IO, file-out@ int-write!)
+def(int-trace!, Int -- +IO, file-err@ int-write!)
 def(int-print-sp!, Int -- +IO, int-print! print-sp!)
 def(int-trace-sp!, Int -- +IO, int-trace! trace-sp!)
 def(int-print-ln!, Int -- +IO, int-print! print-ln!)
@@ -399,8 +399,10 @@ def(FILE_BUF_SIZE, USize, 65536 2 *)
 long def-static-buffer(FILE_BUF_LENGTH)
 FILE_BUF_SIZE def-static-buffer(FILE_BUF)
 
-def(file-buf-length!, Int --, dup 0 u64!(FILE_BUF_LENGTH) 0 swap u8!(FILE_BUF))
-def(file-buf-length@, -- Int, 0 u64@(FILE_BUF_LENGTH))
+def(file-buf-length!, Int --,
+    dup FILE_BUF_LENGTH !
+    dip(0) FILE_BUF byte!!)
+def(file-buf-length@, -- Int, FILE_BUF_LENGTH @)
 
 def(file-buf@, Int -- U8, u8@(FILE_BUF))
 
@@ -451,8 +453,8 @@ def(read-mirth-src!, +IO,
 
 def(MAX_NAMES, USize, 8192)
 long def-static-buffer(NUM_NAMES)
-def(num-names@, Int, 0 i64@(NUM_NAMES))
-def(num-names!, Int --, 0 i64!(NUM_NAMES))
+def(num-names@, Int, NUM_NAMES @)
+def(num-names!, Int --, NUM_NAMES !)
 
 def(NAME_QUADS, USize, 8)
 def(NAME_SIZE, USize, NAME_QUADS longs)
@@ -489,8 +491,8 @@ def(name-load!, Name --,
 # Compare a specific name QUAD with
 # the respective QUAD in STR_BUF.
 def(name-quad-eq, Name Int -- Bool,
-    dip(NAME_SIZE *) longs dup dip(+)
-    dip(u64@(NAME_BUF)) u64@(STR_BUF) =)
+    dip(NAME_SIZE * NAME_BUF +) tuck
+    dip(long@@) STR_BUF long@@ =)
 
 # Compare all quads in name to STR_BUF.
 # Note this code assumes NAME_QUADS is 4.
@@ -515,8 +517,8 @@ def(name-quads-eq?, Name -- Name Bool,
     dup name-quads-eq)
 
 def(name-quad-save!, Name Int --,
-    dip(NAME_SIZE *) longs dup dip(+)
-    u64@(STR_BUF) swap u64!(NAME_BUF))
+    dip(NAME_SIZE * NAME_BUF +) tuck
+    STR_BUF long@@ rotr long!!)
 
 def(name-quads-save!, Name -- ,
     dup 0 name-quad-save!
@@ -529,8 +531,8 @@ def(name-quads-save!, Name -- ,
     7 name-quad-save!)
 
 def(name-quad-load!, Name Int --,
-    dip(NAME_SIZE *) longs dup dip(+)
-    dip(u64@(NAME_BUF)) u64!(STR_BUF))
+    dip(NAME_SIZE * NAME_BUF +) tuck
+    dip(long@@) STR_BUF long!!)
 
 def(name-quads-load!, Name -- ,
     dup 0 name-quad-load!
@@ -677,24 +679,19 @@ long def-static-buffer(STRINGS_SIZE)
 MAX_STRINGS bytes def-static-buffer(STRINGS_BUF)
 
 # Size of strings table.
-def(strings-size@, -- U64 +StrTable,
-    0 u64@(STRINGS_SIZE))
+def(strings-size@, -- U64 +StrTable, STRINGS_SIZE @)
 
 # Size of strings table.
-def(strings-size!, U64 -- +StrTable,
-    0 u64!(STRINGS_SIZE))
+def(strings-size!, U64 -- +StrTable, STRINGS_SIZE !)
 
 # Read byte from strings table.
-def(strings-u8@, U64 -- U8 +StrTable,
-    u8@(STRINGS_BUF))
+def(strings-u8@, U64 -- U8 +StrTable, STRINGS_BUF byte@@)
 
 # Read byte from strings table, leaving index in place.
-def(strings-u8?, U64 -- U64 U8 +StrTable,
-    dup strings-u8@)
+def(strings-u8?, U64 -- U64 U8 +StrTable, dup strings-u8@)
 
 # Write byte to strings table.
-def(strings-u8!, U8 U64 -- +StrTable,
-    u8!(STRINGS_BUF))
+def(strings-u8!, U8 U64 -- +StrTable, STRINGS_BUF byte!!)
 
 # Push byte onto strings table.
 def(strings-push!, U8 -- +StrTable,
@@ -736,8 +733,8 @@ def(strings-load-escaped!, String -- +StrTable +StrBuf,
 def(MAX_TOKENS, USize, 32768)
 
 long def-static-buffer(NUM_TOKENS)
-def(num-tokens@, Int, 0 i64@(NUM_TOKENS))
-def(num-tokens!, Int --, 0 i64!(NUM_TOKENS))
+def(num-tokens@, Int, NUM_TOKENS @)
+def(num-tokens!, Int --, NUM_TOKENS !)
 def(clear-tokens!, --, 0 num-tokens!)
 
 MAX_TOKENS bytes def-static-buffer(TOKEN_TYPE)
@@ -1748,8 +1745,8 @@ def(MAX_BUFFERS, USize, 1024)
 def(PAGE_SIZE, USize, 8192)
 
 long def-static-buffer(NUM_BUFFERS)
-def(num-buffers@, USize +Buffers, 0 u64@(NUM_BUFFERS))
-def(num-buffers!, USize -- +Buffers, 0 u64!(NUM_BUFFERS))
+def(num-buffers@, USize +Buffers, NUM_BUFFERS @)
+def(num-buffers!, USize -- +Buffers, NUM_BUFFERS !)
 
 MAX_BUFFERS longs dup
     def-static-buffer(BUFFER_SIZE)
@@ -1880,7 +1877,7 @@ def(.n, Int -- +IO, int-print!)
 def(.w, Name -- +IO,
     "// " .
     dup name-load! str-buf-print! print-ln!
-    "void w" . .n " (void)" .)
+    "static void w" . .n " (void)" .)
 
 def(c99-emit-header!, +IO,
     "/* C99 autogenerated by mirth compiler */" ;
@@ -1891,13 +1888,13 @@ def(c99-emit-header!, +IO,
     "#include <fcntl.h>" ;
     "#include <unistd.h>" ;;
     "#define STACK_SIZE 2000" ;
-    "size_t sc = STACK_SIZE;" ;
-    "int64_t stack[STACK_SIZE] = {0};" ;;
+    "static size_t sc = STACK_SIZE;" ;
+    "static int64_t stack[STACK_SIZE] = {0};" ;;
     )
 
 def(c99-emit-strings!, +IO,
     "#define STRINGS_SIZE " . strings-size@ .n "" ;
-    "char strings[STRINGS_SIZE] = { " .
+    "static char strings[STRINGS_SIZE] = { " .
     0 dup strings-size@ < while(
         drop
         dup strings-u8@ .n ", " .
@@ -1916,13 +1913,13 @@ def(c99-emit-buffers!, +IO,
 
 def(c99-emit-buffer!, Name -- +IO,
     name-is-buffer? if(
-        "uint8_t b" . dup .n "[" . dup name-value@ buffer-size@ .n "] = {0};" ;
-        "void w" . dup .n " (void) { push((uint64_t)b" . .n "); }" ;  ,
+        "static uint8_t b" . dup .n "[" . dup name-value@ buffer-size@ .n "] = {0};" ;
+        "static void w" . dup .n " (void) { push((int64_t)b" . .n "); }" ;  ,
         drop
     ))
 
 def(c99-emit-prims!, +IO,
-    "int64_t pop (void) {" ;
+    "static int64_t pop (void) {" ;
     "    if (sc < STACK_SIZE) {" ;
     "        return stack[sc++];" ;
     "    } else {" ;
@@ -1931,7 +1928,16 @@ def(c99-emit-prims!, +IO,
     "        exit(1);" ;
     "    }" ;
     "}" ;;
-    "void push (int64_t x) {" ;
+    "static void* pop_ptr (void) {" ;
+    "    int64_t x = pop();" ;
+    "    return (void*)x;" ;
+    "}";;
+    "static uint8_t pop_u8 (void) {" ;
+    "    int64_t x = pop();" ;
+    "    return (uint8_t)x;" ;
+    "}";;
+
+    "static void push (int64_t x) {" ;
     "    if (sc > 0) {" ;
     "        stack[--sc] = x;" ;
     "    } else {" ;
@@ -2030,18 +2036,18 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_FILE_CLOSE .w " {" ;
-    "    int64_t x = pop();" ;
+    "    int x = (int)pop();" ;
     "    push(close(x));" ;
     "}" ;;
 
     PRIM_EXIT .w " {" ;
-    "    int64_t x = pop();" ;
+    "    int x = (int)pop();" ;
     "    exit(x);" ;
     "}" ;;
 
     PRIM_DEBUG .w " {" ;
     "    fprintf(stderr, " .q "?? " .q ");" ;
-    "    for (int i = STACK_SIZE-1; i >= sc; i--) {" ;
+    "    for (long i = STACK_SIZE-1; i >= (long)sc; i--) {" ;
     "        fprintf(stderr, " .q "%p " .q ", (void*)stack[i]);" ;
     "    }" ;
     "    fputc(10, stderr);" ;
@@ -2056,17 +2062,18 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_MEM_SET .w " {" ;
-    "   int64_t* x = (void*)pop();" ;
+    "   int64_t* x = pop_ptr();" ;
     "   *x = (int64_t)pop();" ;
     "}" ;;
 
     PRIM_MEM_GET_BYTE .w " {" ;
-    "   push(*(uint8_t*)pop());" ;
+    "   uint8_t* x = pop_ptr();" ;
+    "   push(*x);" ;
     "}" ;;
 
     PRIM_MEM_SET_BYTE .w " {" ;
-    "   uint8_t* x = (void*)pop();" ;
-    "   *x = (uint8_t)pop();" ;
+    "   uint8_t* x = pop_ptr();" ;
+    "   *x = pop_u8();" ;
     "}" ;;
 
     )
@@ -2084,7 +2091,7 @@ def(c99-emit-word-sigs!, +IO,
 
 def(c99-emit-word-sig!, Name -- +IO,
     name-is-word? if(
-        "void w" . .n " (void);" ;,
+        "static void w" . .n " (void);" ;,
         drop
     ))
 
@@ -2156,8 +2163,8 @@ def(c99-emit-word!, Token -- +IO,
         token-type? TOKEN_NAME = if(
             token-value? name-is-buffer? if(
                 nip
-                "    push(*(uint8_t*)(b" . .n
-                " + pop()));" ;,
+                "    { uint8_t* p = b" . .n "+ pop();" ;
+                "      push(*p); }" ;,
 
                 drop "Expected buffer name." emit-fatal-error!
             ),
@@ -2195,7 +2202,7 @@ def(c99-emit-word!, Token -- +IO,
         token-type? TOKEN_NAME = if(
             token-value? name-is-buffer? if(
                 "    void* p" . over .n " = b" . .n " + pop();" ;
-                "    *(uint8_t*)p" . .n " = pop();" ;,
+                "    *(uint8_t*)p" . .n " = pop_u8();" ;,
 
                 drop "Expected buffer name." emit-fatal-error!
             ),
@@ -2230,8 +2237,8 @@ def(c99-emit-word!, Token -- +IO,
         token-args-1
         token-type? TOKEN_NAME = if(
             token-value? name-is-buffer? if(
-                "    int64_t m" . over .n " = pop();";
-                "    int64_t f" . over .n " = pop();";
+                "    int m" . over .n " = (int)pop();";
+                "    int f" . over .n " = (int)pop();";
                 "    void* p" . over .n " = b" . .n " + pop();";
                 "    push(open(p" . dup .n
                 ", f" . dup .n
@@ -2246,9 +2253,9 @@ def(c99-emit-word!, Token -- +IO,
         token-args-1
         token-type? TOKEN_NAME = if(
             token-value? name-is-buffer? if(
-                "    int64_t n" . over .n " = pop();";
+                "    size_t n" . over .n " = (size_t)pop();";
                 "    void* p" . over .n " = b" . .n " + pop();";
-                "    int64_t f" . dup .n " = pop();";
+                "    int f" . dup .n " = (int)pop();";
                 "    push(read(f" . dup .n
                 ", p" . dup .n
                 ", n" . .n "));" ;,
@@ -2262,9 +2269,9 @@ def(c99-emit-word!, Token -- +IO,
         token-args-1
         token-type? TOKEN_NAME = if(
             token-value? name-is-buffer? if(
-                "    int64_t n" . over .n " = pop();";
+                "    size_t n" . over .n " = (size_t)pop();";
                 "    void* p" . over .n " = b" . .n " + pop();";
-                "    int64_t f" . dup .n " = pop();";
+                "    int f" . dup .n " = (int)pop();";
                 "    write(f" . dup .n
                 ", p" . dup .n
                 ", n" . .n ");" ;,
@@ -2279,7 +2286,7 @@ def(c99-emit-word!, Token -- +IO,
     )))))))))))))
 
 def(c99-emit-main!, Token -- +IO,
-    "int main (int argc, char** argv) {" ;
+    "int main (void) {" ;
     c99-emit-run!
     "    return 0;" ;
     "}" ;)
@@ -2294,8 +2301,8 @@ def(HEAP_MULTIPLIER, USize, MAX_REVISION MIRTH_REVISION -)
 def(HEAP_SIZE, USize, BASE_HEAP_SIZE HEAP_MULTIPLIER *)
 
 long def-static-buffer(HEAP_LENGTH)
-def(heap-length@, U64 +Heap, 0 u64@(HEAP_LENGTH))
-def(heap-length!, U64 -- +Heap, 0 u64!(HEAP_LENGTH))
+def(heap-length@, U64 +Heap, HEAP_LENGTH @)
+def(heap-length!, U64 -- +Heap, HEAP_LENGTH !)
 def(heap-alloc!, U64 -- Ptr +Heap,
     63 + dup 64 % -
     heap-length@ tuck +
@@ -2306,12 +2313,12 @@ def(heap-alloc!, U64 -- Ptr +Heap,
 
 HEAP_SIZE def-static-buffer(HEAP)
 
-def(heap-u8@,  Ptr -- U8  +Heap, u8@(HEAP))
-def(heap-u64@, Ptr -- U64 +Heap, u64@(HEAP))
-def(heap-i64@, Ptr -- I64 +Heap, i64@(HEAP))
-def(heap-u8!,  U8  Ptr -- +Heap, u8!(HEAP))
-def(heap-u64!, U64 Ptr -- +Heap, u64!(HEAP))
-def(heap-i64!, I64 Ptr -- +Heap, i64!(HEAP))
+def(heap-u8@,  Ptr -- U8  +Heap, heap-byte@)
+def(heap-u64@, Ptr -- U64 +Heap, heap@)
+def(heap-i64@, Ptr -- I64 +Heap, heap@)
+def(heap-u8!,  U8  Ptr -- +Heap, heap-byte!)
+def(heap-u64!, U64 Ptr -- +Heap, heap!)
+def(heap-i64!, I64 Ptr -- +Heap, heap!)
 
 def(heap@, Ptr -- U64 +Heap, HEAP + @)
 def(heap!, U64 Ptr -- +Heap, HEAP + !)
