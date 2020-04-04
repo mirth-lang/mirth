@@ -439,21 +439,15 @@ static void output_asm_block (size_t t) {
                             break;
 
                         case BUILTIN_FILE_WRITE:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    mov rdi, [rbx+8]\n" // file descriptior
-                                    "    lea rsi, [rel b_%s]\n" // load buffer address
-                                    "    add rsi, [rbx]\n" // and add offset
-                                    "    mov rdx, rax\n" // size to write
-                                    "    mov rax, 0x2000004\n" // select "write" syscall
-                                    "    syscall\n" // invoke syscall
-                                    "    mov rax, [rbx+16]\n"
-                                    "    lea rbx, [rbx+24]\n" // drop3
-                                    , mangled_name
-                                    );
-                            }
+                            fprintf(output.file,
+                                "    mov rdi, [rbx+8]\n" // file descriptior
+                                "    mov rsi, [rbx]\n" // load buffer address
+                                "    mov rdx, rax\n" // size to write
+                                "    mov rax, 0x2000004\n" // select "write" syscall
+                                "    syscall\n" // invoke syscall
+                                "    mov rax, [rbx+16]\n"
+                                "    lea rbx, [rbx+24]\n" // drop3
+                                );
                             break;
 
                         case BUILTIN_FILE_READ:
@@ -1242,29 +1236,14 @@ int main (int argc, const char** argv)
                             break;
 
                         case BUILTIN_FILE_WRITE:
-                            arity_check("syscall-write!", 1, 3, 0);
-                            {
-                                a = state.stack[state.sc+2];
-                                b = state.stack[state.sc+1];
-                                c = state.stack[state.sc];
-                                state.sc += 3;
-                                uint64_t name = state.fstack[state.fc].pc;
-                                ASSERT_TOKEN(a.type == TYPE_INT && b.type == TYPE_INT && c.type == TYPE_INT, ERROR_TYPE, state.pc,
-                                    "Expected integers.");
-                                ASSERT_TOKEN(tokens.kind[name] == TOKEN_WORD, ERROR_SYNTAX, name,
-                                    "Expected buffer name.");
-                                uint64_t w = tokens.value[name];
-                                ASSERT_TOKEN(defs.buffer[w] != NULL, ERROR_SYNTAX, name,
-                                    "Expected buffer name.");
-                                ASSERT_TOKEN(b.data >= 0, ERROR_UNDERFLOW, state.pc,
-                                    "Buffer underflow.");
-                                ASSERT_TOKEN(b.data + c.data <= defs.bs[w], ERROR_OVERFLOW, state.pc,
-                                    "Buffer overflow.");
-                                write(a.data, ((uint8_t*)defs.buffer[w]) + b.data, c.data);
-                                state.pc = next_pc;
-                            }
-                            goto resume_loop;
-
+                            arity_check("syscall-write!", 0, 3, 0);
+                            a = state.stack[state.sc+2];
+                            b = state.stack[state.sc+1];
+                            c = state.stack[state.sc];
+                            state.sc += 3;
+                            ASSERT_TOKEN(a.type == TYPE_INT && b.type == TYPE_INT && c.type == TYPE_INT, ERROR_TYPE, state.pc, "Expected integers.");
+                            write(a.data, (void*)b.data, c.data);
+                            break;
 
                         case BUILTIN_FILE_READ:
                             arity_check("syscall-read!", 1, 3, 1);

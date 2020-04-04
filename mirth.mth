@@ -105,8 +105,7 @@ def(str-buf-push!, U8 -- +StrBuf,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     ))
-def(str-buf-write!, File -- +StrBuf,
-    0 str-buf-length? syscall-write!(STR_BUF))
+def(str-buf-write!, File -- +StrBuf, STR_BUF str-buf-length? syscall-write!)
 def(str-buf-print!, +StrBuf, file-out@ str-buf-write!)
 def(str-buf-trace!, +StrBuf, file-err@ str-buf-write!)
 
@@ -1383,18 +1382,9 @@ def(token-run-prim!, Token --,
     dup PRIM_FILE_WRITE = if(
         drop
         3 0 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop3!)
-                buffer-write!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
+        token-args-0
+        vstack-pop3!
+        syscall-write!,
 
     dup PRIM_FILE_READ = if(
         drop
@@ -1652,15 +1642,6 @@ def(buffer-offset-to-ptr, Offset Buffer -- Ptr +Buffers,
         "buffer overflow or underflow" panic!
     ))
 
-def(buffer-write!, File Offset Len Buffer -- +Buffers,
-    over 0 < if(
-        "buffer-write! with negative length" panic!,
-
-    # check for overflow
-    dup3 dip(+) buffer-offset-to-ptr drop
-
-    swap dip(buffer-offset-to-ptr) heap-write!))
-
 def(buffer-read!, File Offset Len Buffer -- Int +Buffers,
     over 0 < if(
         "buffer-read! with negative length" panic!,
@@ -1857,6 +1838,13 @@ def(c99-emit-prims!, +IO,
     "    push(y <= x);" ;
     "}" ;;
 
+    PRIM_FILE_WRITE .w " {" ;
+    "    size_t n = (size_t)pop();" ;
+    "    void* p = pop_ptr();" ;
+    "    int f = (int)pop();" ;
+    "    write(f, p, n);" ;
+    "}" ;;
+
     PRIM_FILE_CLOSE .w " {" ;
     "    int x = (int)pop();" ;
     "    push(close(x));" ;
@@ -2012,25 +2000,9 @@ def(c99-emit-word!, Token -- +IO,
             "Expected buffer name." emit-fatal-error!
         ),
 
-    token-value? PRIM_FILE_WRITE = if(
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value? name-is-buffer? if(
-                "    size_t n" . over .n " = (size_t)pop();";
-                "    void* p" . over .n " = b" . .n " + pop();";
-                "    int f" . dup .n " = (int)pop();";
-                "    write(f" . dup .n
-                ", p" . dup .n
-                ", n" . .n ");" ;,
-
-                drop "Expected buffer name." emit-fatal-error!
-            ),
-            "Expected buffer name." emit-fatal-error!
-        ),
-
         token-value@
         "    w" . .n "();" ;
-    )))))))
+    ))))))
 
 def(c99-emit-main!, Token -- +IO,
     "int main (void) {" ;
@@ -2060,7 +2032,6 @@ def(heap-alloc!, U64 -- Ptr +Heap,
 
 HEAP_SIZE def-static-buffer(HEAP)
 
-def(heap-write!, File Ptr Len -- +IO, syscall-write!(HEAP))
 def(heap-read!, File Ptr Len -- Int +IO, syscall-read!(HEAP))
 def(heap-open!, Ptr Flags Mode -- File +IO, syscall-open!(HEAP))
 
