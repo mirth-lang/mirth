@@ -2042,7 +2042,7 @@ def(in-self-compiled?, Bool, MIRTH_REVISION 2 =)
 run-tests
 
 "build #" str-trace!
-MIRTH_REVISION int-trace-ln!
+MIRTH_REVISION 1+ int-trace-ln!
 
 in-bootstrap? if(
     "mirth.asm" output-asm(main),

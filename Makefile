@@ -1,17 +1,17 @@
 C99FLAGS =-std=c99 -Weverything -Wno-missing-noreturn -Wno-unused-function -Werror -pedantic
 
-
-mirth: mirth.c
-	gcc -std=c99 -Wall -Werror -pedantic -o mirth mirth.c
-	./mirth mirth.mth
+mirth: mirth0.c mirth.mth
+	gcc -std=c99 -Wall -Werror -pedantic -o mirth0 mirth0.c
+	./mirth0 mirth.mth
 	nasm -f macho64 mirth.asm
-	ld -static mirth.o -o mirth2
-	./mirth2 mirth.mth
-	gcc $(C99FLAGS) -o mirth3 mirth2.c
+	ld -static mirth.o -o mirth
+	./mirth mirth.mth
+	gcc $(C99FLAGS) -o mirth2 mirth2.c
+	./mirth2
+	echo
+	diff mirth2.c mirth3.c || echo
+	gcc $(C99FLAGS) -o mirth3 mirth3.c
 	./mirth3
-	gcc $(C99FLAGS) -o mirth4 mirth3.c
-	./mirth4
-
 
 install-vim:
 	mkdir -p ~/.vim/bundle
