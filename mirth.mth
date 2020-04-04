@@ -1224,7 +1224,7 @@ def(token-run-name!, Token -- +Mirth,
         nip name-value@ token-run!,
 
     name-is-buffer? if(
-        nip name-value@ buffer-base@ vstack-push!,
+        nip name-value@ buffer-base@ HEAP + vstack-push!,
 
         drop2 "Don't know how to run word." emit-fatal-error!
     )))))
@@ -1376,7 +1376,7 @@ def(token-run-prim!, Token --,
         1 1 arity-check!
         token-args-0
         vstack-pop!
-        heap@
+        @
         vstack-push!,
 
     dup PRIM_MEM_SET = if(
@@ -1384,14 +1384,14 @@ def(token-run-prim!, Token --,
         2 0 arity-check!
         token-args-0
         vstack-pop2!
-        heap!,
+        !,
 
     dup PRIM_MEM_GET_BYTE = if(
         drop
         1 1 arity-check!
         token-args-0
         vstack-pop!
-        heap-byte@
+        byte@
         vstack-push!,
 
     dup PRIM_MEM_SET_BYTE = if(
@@ -1399,7 +1399,7 @@ def(token-run-prim!, Token --,
         2 0 arity-check!
         token-args-0
         vstack-pop2!
-        heap-byte!,
+        byte!,
 
     dup PRIM_FILE_WRITE = if(
         drop
@@ -1671,36 +1671,6 @@ def(buffer-offset-to-ptr, Offset Buffer -- Ptr +Buffers,
     dup2 dip(0) buffer-size@ 1- in-range if(
         buffer-base@ +,
         "buffer overflow or underflow" panic!
-    ))
-
-def(buffer-u8@, Offset Buffer -- U8 +Buffers,
-    buffer-offset-to-ptr heap-u8@)
-
-def(buffer-u8!, U8 Offset Buffer -- +Buffers,
-    buffer-offset-to-ptr heap-u8!)
-
-def(buffer-u64@, Offset Buffer -- U64 +Buffers,
-    over long % if(
-        "unaligned buffer-u64@" panic!,
-        buffer-offset-to-ptr heap-u64@
-    ))
-
-def(buffer-u64!, U64 Offset Buffer -- +Buffers,
-    over long % if(
-        "unaligned buffer-u64!" panic!,
-        buffer-offset-to-ptr heap-u64!
-    ))
-
-def(buffer-i64@, Offset Buffer -- I64 +Buffers,
-    over long % if(
-        "unaligned buffer-i64@" panic!,
-        buffer-offset-to-ptr heap-i64@
-    ))
-
-def(buffer-i64!, I64 Offset Buffer -- +Buffers,
-    over long % if(
-        "unaligned buffer-i64!" panic!,
-        buffer-offset-to-ptr heap-i64!
     ))
 
 def(buffer-write!, File Offset Len Buffer -- +Buffers,
@@ -2132,18 +2102,6 @@ def(heap-alloc!, U64 -- Ptr +Heap,
     ))
 
 HEAP_SIZE def-static-buffer(HEAP)
-
-def(heap-u8@,  Ptr -- U8  +Heap, heap-byte@)
-def(heap-u64@, Ptr -- U64 +Heap, heap@)
-def(heap-i64@, Ptr -- I64 +Heap, heap@)
-def(heap-u8!,  U8  Ptr -- +Heap, heap-byte!)
-def(heap-u64!, U64 Ptr -- +Heap, heap!)
-def(heap-i64!, I64 Ptr -- +Heap, heap!)
-
-def(heap@, Ptr -- U64 +Heap, HEAP + @)
-def(heap!, U64 Ptr -- +Heap, HEAP + !)
-def(heap-byte@, Ptr -- U8 +Heap, HEAP + byte@)
-def(heap-byte!, U8 Ptr -- +Heap, HEAP + byte!)
 
 def(heap-write!, File Ptr Len -- +IO, syscall-write!(HEAP))
 def(heap-read!, File Ptr Len -- Int +IO, syscall-read!(HEAP))
