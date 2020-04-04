@@ -460,7 +460,8 @@ static void output_asm_block (size_t t) {
                             fprintf(output.file,
                                 "    mov rcx, [rbx]\n"
                                 "    mov [rax], rcx\n"
-                                "    lea rbx, [rbx+8]\n");
+                                "    mov rax, [rbx+8]\n"
+                                "    lea rbx, [rbx+16]\n");
                             break;
 
                         case BUILTIN_MEM_GET_BYTE:
@@ -473,7 +474,8 @@ static void output_asm_block (size_t t) {
                             fprintf(output.file,
                                 "    mov rcx, [rbx]\n"
                                 "    mov [rax], cl\n"
-                                "    lea rbx, [rbx+8]\n");
+                                "    mov rax, [rbx+8]\n"
+                                "    lea rbx, [rbx+16]\n");
                             break;
 
                         case BUILTIN_MEM_GET_U8:
@@ -699,6 +701,21 @@ static void output_asm_block (size_t t) {
 
 
                         case BUILTIN_DEBUG:
+                            {
+                                fprintf(output.file,
+                                    "    push rbx\n"
+                                    "    push rax\n"
+                                    "    push 0x0A3F3F\n"
+                                    "    mov rdi, 2\n" // file descriptior = stderr
+                                    "    mov rsi, rsp\n" // load buffer address = rsp
+                                    "    mov rdx, 3\n" // size to write
+                                    "    mov rax, 0x2000004\n" // select "write" syscall
+                                    "    syscall\n" // invoke syscall
+                                    "    pop rax\n"
+                                    "    pop rax\n"
+                                    "    pop rbx\n"
+                                    );
+                            }
                             break;
 
                         case BUILTIN_IF:
@@ -776,6 +793,9 @@ static void output_asm_block (size_t t) {
                                     "    lea rax, [rel b_%s]\n"
                                     , mangled_name);
 
+                            } else {
+                                ASSERT_TOKEN(0, ERROR_UNDEFINED, t,
+                                    "Undefined word.\n");
                             }
                             break;
                     }

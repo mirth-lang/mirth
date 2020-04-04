@@ -37,18 +37,19 @@ def(2%, Int -- Int, 2 %)
 def(2+, Int -- Int, 2 +)
 def(2-, Int -- Int, 2 -)
 
-def(|u8|, Int, 1)
-def(|u16|, Int, 2)
-def(|u32|, Int, 4)
-def(|u64|, Int, 8)
-def(|i8|, Int, 1)
-def(|i16|, Int, 2)
-def(|i32|, Int, 4)
-def(|i64|, Int, 8)
-
 def(not, Bool -- Bool, 0 =)
 def(and, Bool Bool -- Bool, swap if(id, drop 0))
 def(or, Bool Bool -- Bool, swap if(drop 1, id))
+
+def(byte, Size, 1)
+def(bytes, Size -- Size, id)
+def(byte@@, Offset Pointer -- Byte, + byte@)
+def(byte!!, Byte Offset Pointer --, + byte!)
+
+def(long, Size, 8)
+def(longs, Size -- Size, long *)
+def(long@@, Offset Pointer -- Long, dip(longs) + @)
+def(long!!, Long Offset Pointer --, dip(longs) + !)
 
 # Assertions
 
@@ -84,12 +85,13 @@ def(str-length, Str -- Int,
     ) drop)
 
 def(STR_BUF_SIZE, Int, 4096)
-|u64| def-static-buffer(STR_BUF_LEN)
-STR_BUF_SIZE def-static-buffer(STR_BUF)
-def(str-buf-length?, Int +StrBuf,
-    0 u64@(STR_BUF_LEN))
+long def-static-buffer(STR_BUF_LEN)
+STR_BUF_SIZE bytes def-static-buffer(STR_BUF)
+
+def(str-buf-length?, Int +StrBuf, STR_BUF_LEN @)
 def(str-buf-length!, Int -- +StrBuf,
-    dup 0 u64!(STR_BUF_LEN) dip(0) str-buf-u8!)
+    dup STR_BUF_LEN !
+    dip(0) str-buf-u8!)
 def(str-buf-u8@, Index -- U8 +StrBuf, u8@(STR_BUF))
 def(str-buf-u8!, U8 Index -- +StrBuf, u8!(STR_BUF))
 def(str-buf-full?, Bool +StrBuf,
@@ -112,8 +114,7 @@ def(str-buf-read!, File -- +IO,
     dup 0 < if(
         "str-buf-read! failed" panic!,
         str-buf-length!
-    )
-)
+    ))
 def(str-buf-input!, -- +IO, file-in? str-buf-read!)
 
 # Clear STR_BUF and copy prefix of string over to it.
@@ -137,7 +138,7 @@ def(run-tests, --,
     test-if test-drop test-dup test-swap test-dip
     test-trip test-rotr test-rotl test= test< test<= test> test>=
     test+ test- test* test/ test% test-str test-while
-    test@! test@!-new)
+    test@!)
 def(test-if, --, 0 !!0 1 !!1 0 1 !!1 !!0)
 def(test-drop, --, 0 1 drop !!0)
 def(test-dup, --, 0 1 dup !!011)
@@ -257,93 +258,26 @@ def(test%, --,
     4 2 % !!0
     5 2 % !!1)
 
-2 |u64| * def-static-buffer(TestBuffer)
-
-def(u8@test, Index -- U8 +TestBuf, u8@(TestBuffer))
-def(i8@test, Index -- I8 +TestBuf, i8@(TestBuffer))
-def(u8!test, U8 Index -- +TestBuf, u8!(TestBuffer))
-def(i8!test, I8 Index -- +TestBuf, i8!(TestBuffer))
-def(u16@test, Index -- U16 +TestBuf, u16@(TestBuffer))
-def(i16@test, Index -- I16 +TestBuf, i16@(TestBuffer))
-def(u16!test, U16 Index -- +TestBuf, u16!(TestBuffer))
-def(i16!test, I16 Index -- +TestBuf, i16!(TestBuffer))
-def(u32@test, Index -- U32 +TestBuf, u32@(TestBuffer))
-def(i32@test, Index -- I32 +TestBuf, i32@(TestBuffer))
-def(u32!test, U32 Index -- +TestBuf, u32!(TestBuffer))
-def(i32!test, I32 Index -- +TestBuf, i32!(TestBuffer))
-def(u64@test, Index -- U64 +TestBuf, u64@(TestBuffer))
-def(i64@test, Index -- I64 +TestBuf, i64@(TestBuffer))
-def(u64!test, U64 Index -- +TestBuf, u64!(TestBuffer))
-def(i64!test, I64 Index -- +TestBuf, i64!(TestBuffer))
-
-2 |u64| * def-static-buffer(TEST_BUF)
-def(test@!-new, --,
-    TEST_BUF @ !!0
-    TEST_BUF |u64| + @ !!0
-    99 TEST_BUF !
-    TEST_BUF @ 99 !!=
-    TEST_BUF |u64| + @ !!0
-    30 TEST_BUF |u64| + !
-    TEST_BUF @ 99 !!=
-    TEST_BUF |u64| + @ 30 !!=
-
-    0 TEST_BUF !
-    0 TEST_BUF + byte@ !!0
-    1 TEST_BUF + byte@ !!0
-    2 TEST_BUF + byte@ !!0
-    3 TEST_BUF + byte@ !!0
-    99 2 TEST_BUF + byte!
-    0 TEST_BUF + byte@ !!0
-    1 TEST_BUF + byte@ !!0
-    2 TEST_BUF + byte@ 99 !!=
-    3 TEST_BUF + byte@ !!0
-    )
-
+2 longs def-static-buffer(TEST_BUF)
 def(test@!, --,
-    # persistence tests -- i.e. get and set behave as expected and
-    # don't interfere when performed at non-overlapping locations
-    # -- we don't make architectural assumptions here, like little
-    # endian vs big endian.
-
-    999 0 0 u8!test 999 !!= 0 |u8| u8!test
-    10 0 u8!test 0 u8@test 10 !!= |u8| u8@test 0 !!=
-    20 0 u8!test 0 u8@test 20 !!= |u8| u8@test 0 !!=
-    30 |u8| u8!test 0 u8@test 20 !!= |u8| u8@test 30 !!=
-
-    999 0 0 u16!test 999 !!= 0 |u16| u16!test
-    10 0 u16!test 0 u16@test 10 !!= |u16| u16@test 0 !!=
-    20 0 u16!test 0 u16@test 20 !!= |u16| u16@test 0 !!=
-    30 |u16| u16!test 0 u16@test 20 !!= |u16| u16@test 30 !!=
-
-    999 0 0 u32!test 999 !!= 0 |u32| u32!test
-    10 0 u32!test 0 u32@test 10 !!= |u32| u32@test 0 !!=
-    20 0 u32!test 0 u32@test 20 !!= |u32| u32@test 0 !!=
-    30 |u32| u32!test 0 u32@test 20 !!= |u32| u32@test 30 !!=
-
-    999 0 0 u64!test 999 !!= 0 |u64| u64!test
-    10 0 u64!test 0 u64@test 10 !!= |u64| u64@test 0 !!=
-    20 0 u64!test 0 u64@test 20 !!= |u64| u64@test 0 !!=
-    30 |u64| u64!test 0 u64@test 20 !!= |u64| u64@test 30 !!=
-
-    0 0 i8!test 0 |i8| i8!test
-    10 0 i8!test 0 i8@test 10 !!= |i8| i8@test 0 !!=
-    -20 0 i8!test 0 i8@test -20 !!= |i8| i8@test 0 !!=
-    30 |i8| i8!test 0 i8@test -20 !!= |i8| i8@test 30 !!=
-
-    0 0 i16!test 0 |i16| i16!test
-    10 0 i16!test 0 i16@test 10 !!= |i16| i16@test 0 !!=
-    -20 0 i16!test 0 i16@test -20 !!= |i16| i16@test 0 !!=
-    30 |i16| i16!test 0 i16@test -20 !!= |i16| i16@test 30 !!=
-
-    0 0 i32!test 0 |i32| i32!test
-    10 0 i32!test 0 i32@test 10 !!= |i32| i32@test 0 !!=
-    -20 0 i32!test 0 i32@test -20 !!= |i32| i32@test 0 !!=
-    30 |i32| i32!test 0 i32@test -20 !!= |i32| i32@test 30 !!=
-
-    0 0 i64!test 0 |i64| i64!test
-    10 0 i64!test 0 i64@test 10 !!= |i64| i64@test 0 !!=
-    -20 0 i64!test 0 i64@test -20 !!= |i64| i64@test 0 !!=
-    30 |i64| i64!test 0 i64@test -20 !!= |i64| i64@test 30 !!=)
+    0 TEST_BUF long@@ !!0
+    1 TEST_BUF long@@ !!0
+    99 0 TEST_BUF long!!
+    0 TEST_BUF long@@ 99 !!=
+    1 TEST_BUF long@@ !!0
+    30 1 TEST_BUF long!!
+    0 TEST_BUF long@@ 99 !!=
+    1 TEST_BUF long@@ 30 !!=
+    0 0 TEST_BUF long!!
+    0 TEST_BUF byte@@ !!0
+    1 TEST_BUF byte@@ !!0
+    2 TEST_BUF byte@@ !!0
+    3 TEST_BUF byte@@ !!0
+    99 2 TEST_BUF byte!!
+    0 TEST_BUF byte@@ !!0
+    1 TEST_BUF byte@@ !!0
+    2 TEST_BUF byte@@ 99 !!=
+    3 TEST_BUF byte@@ !!0)
 
 def(test-str, --,
     "AaBb"
@@ -373,15 +307,15 @@ def(init-io!, +IO,
     stderr file-err!
     )
 
-|u64| def-static-buffer(FILE_IN)
+long def-static-buffer(FILE_IN)
 def(file-in!, File -- +IO, 0 u64!(FILE_IN))
 def(file-in?, -- File +IO, 0 u64@(FILE_IN))
 
-|u64| def-static-buffer(FILE_OUT)
+long def-static-buffer(FILE_OUT)
 def(file-out!, File -- +IO, 0 u64!(FILE_OUT))
 def(file-out?, -- File +IO, 0 u64@(FILE_OUT))
 
-|u64| def-static-buffer(FILE_ERR)
+long def-static-buffer(FILE_ERR)
 def(file-err!, File -- +IO, 0 u64!(FILE_ERR))
 def(file-err?, -- File +IO, 0 u64@(FILE_ERR))
 
@@ -462,7 +396,7 @@ def(str-buf-reverse!, --,
 #########
 
 def(FILE_BUF_SIZE, USize, 65536 2 *)
-|u64| def-static-buffer(FILE_BUF_LENGTH)
+long def-static-buffer(FILE_BUF_LENGTH)
 FILE_BUF_SIZE def-static-buffer(FILE_BUF)
 
 def(file-buf-length!, Int --, dup 0 u64!(FILE_BUF_LENGTH) 0 swap u8!(FILE_BUF))
@@ -516,12 +450,12 @@ def(read-mirth-src!, +IO,
 #########
 
 def(MAX_NAMES, USize, 8192)
-|i64| def-static-buffer(NUM_NAMES)
+long def-static-buffer(NUM_NAMES)
 def(num-names@, Int, 0 i64@(NUM_NAMES))
 def(num-names!, Int --, 0 i64!(NUM_NAMES))
 
 def(NAME_QUADS, USize, 8)
-def(NAME_SIZE, USize, NAME_QUADS |u64| *)
+def(NAME_SIZE, USize, NAME_QUADS longs)
 def(NAME_BUF_SIZE, USize, NAME_SIZE MAX_NAMES *)
 NAME_BUF_SIZE def-static-buffer(NAME_BUF)
 
@@ -555,7 +489,7 @@ def(name-load!, Name --,
 # Compare a specific name QUAD with
 # the respective QUAD in STR_BUF.
 def(name-quad-eq, Name Int -- Bool,
-    dip(NAME_SIZE *) |u64| * dup dip(+)
+    dip(NAME_SIZE *) longs dup dip(+)
     dip(u64@(NAME_BUF)) u64@(STR_BUF) =)
 
 # Compare all quads in name to STR_BUF.
@@ -581,7 +515,7 @@ def(name-quads-eq?, Name -- Name Bool,
     dup name-quads-eq)
 
 def(name-quad-save!, Name Int --,
-    dip(NAME_SIZE *) |u64| * dup dip(+)
+    dip(NAME_SIZE *) longs dup dip(+)
     u64@(STR_BUF) swap u64!(NAME_BUF))
 
 def(name-quads-save!, Name -- ,
@@ -595,7 +529,7 @@ def(name-quads-save!, Name -- ,
     7 name-quad-save!)
 
 def(name-quad-load!, Name Int --,
-    dip(NAME_SIZE *) |u64| * dup dip(+)
+    dip(NAME_SIZE *) longs dup dip(+)
     dip(u64@(NAME_BUF)) u64!(STR_BUF))
 
 def(name-quads-load!, Name -- ,
@@ -759,8 +693,8 @@ def(init-names!, +Names,
 #################
 
 def(MAX_STRINGS, USize, 32768)
-|i64| def-static-buffer(STRINGS_SIZE)
-MAX_STRINGS def-static-buffer(STRINGS_BUF)
+long def-static-buffer(STRINGS_SIZE)
+MAX_STRINGS bytes def-static-buffer(STRINGS_BUF)
 
 # Size of strings table.
 def(strings-size@, -- U64 +StrTable,
@@ -821,12 +755,12 @@ def(strings-load-escaped!, String -- +StrTable +StrBuf,
 
 def(MAX_TOKENS, USize, 32768)
 
-|i64| def-static-buffer(NUM_TOKENS)
+long def-static-buffer(NUM_TOKENS)
 def(num-tokens@, Int, 0 i64@(NUM_TOKENS))
 def(num-tokens!, Int --, 0 i64!(NUM_TOKENS))
 def(clear-tokens!, --, 0 num-tokens!)
 
-MAX_TOKENS |u8|  * def-static-buffer(TOKEN_TYPE)
+MAX_TOKENS bytes def-static-buffer(TOKEN_TYPE)
 def(token-type!, TokenType Token --, u8!(TOKEN_TYPE))
 def(token-type@, Token -- TokenType, u8@(TOKEN_TYPE))
 def(token-type?, Token -- Token TokenType, dup token-type@)
@@ -849,19 +783,21 @@ def(token-type-str, TokenType -- Str,
 def(token-type-print!, TokenType --,
     token-type-str str-print!)
 
-MAX_TOKENS |i64| * def-static-buffer(TOKEN_VALUE)
-def(token-value!, TokenValue Token --, |i64| * i64!(TOKEN_VALUE))
-def(token-value@, Token -- TokenValue, |i64| * i64@(TOKEN_VALUE))
+MAX_TOKENS longs trip
+    def-static-buffer(TOKEN_VALUE)
+    def-static-buffer(TOKEN_ROW)
+    def-static-buffer(TOKEN_COL)
+
+def(token-value!, TokenValue Token --, TOKEN_VALUE long!!)
+def(token-value@, Token -- TokenValue, TOKEN_VALUE long@@)
 def(token-value?, Token -- Token TokenValue, dup token-value@)
 
-MAX_TOKENS |u32| * def-static-buffer(TOKEN_ROW)
-def(token-row!, Row Token --, |u32| * u32!(TOKEN_ROW))
-def(token-row@, Token -- Row, |u32| * u32@(TOKEN_ROW))
+def(token-row!, Row Token --, TOKEN_ROW long!!)
+def(token-row@, Token -- Row, TOKEN_ROW long@@)
 def(token-row?, Token -- Token Row, dup token-row@)
 
-MAX_TOKENS |u16| * def-static-buffer(TOKEN_COL)
-def(token-col!, Col Token --, |u16| * u16!(TOKEN_COL))
-def(token-col@, Token -- Col, |u16| * u16@(TOKEN_COL))
+def(token-col!, Col Token --, TOKEN_COL long!!)
+def(token-col@, Token -- Col, TOKEN_COL long@@)
 def(token-col?, Token -- Token Col, dup token-col@)
 
 def(token-new, -- Token, num-tokens@ dup 1+ num-tokens!)
@@ -908,27 +844,27 @@ def(show-tokens!, --,
 # LEXER #
 #########
 
-|u32| def-static-buffer(LEXER_ROW)
-def(lexer-row@, -- Row +Lexer, 0 u32@(LEXER_ROW))
-def(lexer-row!, Row -- +Lexer, 0 u32!(LEXER_ROW))
+long def-static-buffer(LEXER_ROW)
+def(lexer-row@, -- Row +Lexer, LEXER_ROW @)
+def(lexer-row!, Row -- +Lexer, LEXER_ROW !)
 
-|u16| def-static-buffer(LEXER_COL)
-def(lexer-col@, -- Col +Lexer, 0 u16@(LEXER_COL))
-def(lexer-col!, Col -- +Lexer, 0 u16!(LEXER_COL))
+long def-static-buffer(LEXER_COL)
+def(lexer-col@, -- Col +Lexer, LEXER_COL @)
+def(lexer-col!, Col -- +Lexer, LEXER_COL !)
 
-|u64| def-static-buffer(LEXER_IDX)
-def(lexer-idx@, -- Token +Lexer, 0 u64@(LEXER_IDX))
-def(lexer-idx!, Token -- +Lexer, 0 u64!(LEXER_IDX))
+long def-static-buffer(LEXER_IDX)
+def(lexer-idx@, -- Token +Lexer, LEXER_IDX @)
+def(lexer-idx!, Token -- +Lexer, LEXER_IDX !)
 
 def(LEXER_STACK_SIZE, USize, 256)
-|u64| def-static-buffer(LEXER_STACK_LENGTH)
-LEXER_STACK_SIZE |u64| * def-static-buffer(LEXER_STACK_BUF)
+long def-static-buffer(LEXER_STACK_LENGTH)
+LEXER_STACK_SIZE longs def-static-buffer(LEXER_STACK_BUF)
 
 def(lexer-stack-length@, U64 +Lexer,
-    0 u64@(LEXER_STACK_LENGTH))
+    LEXER_STACK_LENGTH @)
 
 def(lexer-stack-length!, U64 -- +Lexer,
-    0 u64!(LEXER_STACK_LENGTH))
+    LEXER_STACK_LENGTH !)
 
 def(lexer-stack-clear!, +Lexer,
     0 lexer-stack-length!)
@@ -944,7 +880,7 @@ def(lexer-stack-push!, Token -- +Lexer,
         "compiler error: lexer stack overflow" panic!,
         lexer-stack-length@
         dup 1+ lexer-stack-length!
-        |u64| * u64!(LEXER_STACK_BUF)
+        LEXER_STACK_BUF long!!
     ))
 
 def(lexer-stack-pop!, -- Token +Lexer,
@@ -952,7 +888,7 @@ def(lexer-stack-pop!, -- Token +Lexer,
         "compiler error: lexer stack underflow" panic!,
         lexer-stack-length@ 1-
         dup lexer-stack-length!
-        |u64| * u64@(LEXER_STACK_BUF)
+        LEXER_STACK_BUF long@@
     ))
 
 def(run-lexer!, +Lexer,
@@ -1194,15 +1130,15 @@ def(in-range, Int Int Int -- Bool, dip(over dip(>=)) <= *)
 ###############
 
 def(VSTACK_SIZE, USize, 8192)
-|u64| def-static-buffer(VSTACK_LEN)
-VSTACK_SIZE |i64| * def-static-buffer(VSTACK_BUF)
+long def-static-buffer(VSTACK_LEN)
+VSTACK_SIZE longs def-static-buffer(VSTACK_BUF)
 
-def(vstack-len@, U64 +VSTACK, 0 u64@(VSTACK_LEN))
-def(vstack-len!, U64 -- +VSTACK, 0 u64!(VSTACK_LEN))
+def(vstack-len@, U64 +VSTACK, VSTACK_LEN @)
+def(vstack-len!, U64 -- +VSTACK, VSTACK_LEN !)
 def(vstack-empty?, Bool +VSTACK, vstack-len@ 0 <=)
 def(vstack-full?, Bool +VSTACK, vstack-len@ VSTACK_SIZE >=)
-def(vstack-i64@, U64 -- I64 +VSTACK, |u64| * i64@(VSTACK_BUF))
-def(vstack-i64!, I64 U64 -- +VSTACK, |u64| * i64!(VSTACK_BUF))
+def(vstack-i64@, U64 -- I64 +VSTACK, VSTACK_BUF long@@)
+def(vstack-i64!, I64 U64 -- +VSTACK, VSTACK_BUF long!!)
 
 def(vstack-pop!, I64 +VSTACK,
     vstack-empty? if(
@@ -1311,21 +1247,22 @@ def(token-run-one!, Token -- Token +Mirth,
 
 # Run a single name token.
 def(token-run-name!, Token -- +Mirth,
-    token-value? is-prim? nip if(
-        token-run-prim!,
-        token-value?
-        name-undefined? if(
-            drop "Word is undefined." emit-fatal-error!,
-            name-is-word? if(
-                nip name-value@ token-run!,
+    token-value?
 
-            name-is-buffer? if(
-                nip name-value@ buffer-base@ vstack-push!,
+    is-prim? if(
+        drop token-run-prim!,
 
-                drop2 "Don't know how to run word." emit-fatal-error!
-            ))
-        )
-    ))
+    name-undefined? if(
+        drop "Word is undefined." emit-fatal-error!,
+
+    name-is-word? if(
+        nip name-value@ token-run!,
+
+    name-is-buffer? if(
+        nip name-value@ buffer-base@ vstack-push!,
+
+        drop2 "Don't know how to run word." emit-fatal-error!
+    )))))
 
 # Run a single primitive name token.
 def(token-run-prim!, Token --,
@@ -1515,38 +1452,6 @@ def(token-run-prim!, Token --,
             "expected buffer name" emit-fatal-error!
         ),
 
-    dup PRIM_MEM_GET_U16 = if(
-        drop
-        1 1 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop!)
-                buffer-u16@
-                vstack-push!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-    dup PRIM_MEM_GET_U32 = if(
-        drop
-        1 1 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop!)
-                buffer-u32@
-                vstack-push!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
     dup PRIM_MEM_GET_U64 = if(
         drop
         1 1 arity-check!
@@ -1557,54 +1462,6 @@ def(token-run-prim!, Token --,
                 nip name-value@
                 dip(vstack-pop!)
                 buffer-u64@
-                vstack-push!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-    dup PRIM_MEM_GET_I8 = if(
-        drop
-        1 1 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop!)
-                buffer-i8@
-                vstack-push!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-    dup PRIM_MEM_GET_I16 = if(
-        drop
-        1 1 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop!)
-                buffer-i16@
-                vstack-push!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-    dup PRIM_MEM_GET_I32 = if(
-        drop
-        1 1 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop!)
-                buffer-i32@
                 vstack-push!,
                 drop "expected buffer name" emit-fatal-error!
             ),
@@ -1642,37 +1499,6 @@ def(token-run-prim!, Token --,
             "expected buffer name" emit-fatal-error!
         ),
 
-    dup PRIM_MEM_SET_U16 = if(
-        drop
-        2 0 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop2!)
-                buffer-u16!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-
-    dup PRIM_MEM_SET_U32 = if(
-        drop
-        2 0 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop2!)
-                buffer-u32!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
     dup PRIM_MEM_SET_U64 = if(
         drop
         2 0 arity-check!
@@ -1683,52 +1509,6 @@ def(token-run-prim!, Token --,
                 nip name-value@
                 dip(vstack-pop2!)
                 buffer-u64!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-    dup PRIM_MEM_SET_I8 = if(
-        drop
-        2 0 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop2!)
-                buffer-i8!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-    dup PRIM_MEM_SET_I16 = if(
-        drop
-        2 0 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop2!)
-                buffer-i16!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-
-    dup PRIM_MEM_SET_I32 = if(
-        drop
-        2 0 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop2!)
-                buffer-i32!,
                 drop "expected buffer name" emit-fatal-error!
             ),
             "expected buffer name" emit-fatal-error!
@@ -1811,6 +1591,7 @@ def(token-run-prim!, Token --,
 
     dup PRIM_DEBUG = if(
         drop 0 0 arity-check! token-args-0
+        "?? " str-trace!
         vstack-trace!,
 
     dup PRIM_DEF = if(
@@ -1856,7 +1637,7 @@ def(token-run-prim!, Token --,
 
         drop
         "Dont know how to run prim yet." emit-warning!
-    ))))))))))))))))))))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -1986,19 +1767,19 @@ def(token-is-arg-end?, Token -- Token Bool,
 def(MAX_BUFFERS, USize, 1024)
 def(PAGE_SIZE, USize, 8192)
 
-|u64| def-static-buffer(NUM_BUFFERS)
+long def-static-buffer(NUM_BUFFERS)
 def(num-buffers@, USize +Buffers, 0 u64@(NUM_BUFFERS))
 def(num-buffers!, USize -- +Buffers, 0 u64!(NUM_BUFFERS))
 
-MAX_BUFFERS |u64| * dup
+MAX_BUFFERS longs dup
     def-static-buffer(BUFFER_SIZE)
     def-static-buffer(BUFFER_BASE)
 
 def(buffer-size@, Buffer -- U64 +Buffers,
-    |u64| * u64@(BUFFER_SIZE))
+    BUFFER_SIZE long@@)
 
 def(buffer-size!, Buffer -- U64 +Buffers,
-    |u64| * u64!(BUFFER_SIZE))
+    BUFFER_SIZE long!!)
 
 def(buffer-alloc!, U64 -- Buffer +Buffers,
     num-buffers@ MAX_BUFFERS >= if(
@@ -2009,10 +1790,10 @@ def(buffer-alloc!, U64 -- Buffer +Buffers,
     ))
 
 def(buffer-base@, Buffer -- Ptr +Buffers,
-    |u64| * u64@(BUFFER_BASE))
+    BUFFER_BASE long@@)
 
 def(buffer-base!, Buffer -- Ptr +Buffers,
-    |u64| * u64!(BUFFER_BASE))
+    BUFFER_BASE long!!)
 
 def(buffer-offset-to-ptr, Offset Buffer -- Ptr +Buffers,
     dup2 dip(0) buffer-size@ 1- in-range if(
@@ -2026,80 +1807,26 @@ def(buffer-u8@, Offset Buffer -- U8 +Buffers,
 def(buffer-u8!, U8 Offset Buffer -- +Buffers,
     buffer-offset-to-ptr heap-u8!)
 
-def(buffer-u16@, Offset Buffer -- U16 +Buffers,
-    over |u16| % if(
-        "unaligned buffer-u16@" panic!,
-        buffer-offset-to-ptr heap-u16@
-    ))
-
-def(buffer-u16!, U16 Offset Buffer -- +Buffers,
-    over |u16| % if(
-        "unaligned buffer-u16!" panic!,
-        buffer-offset-to-ptr heap-u16!
-    ))
-
-def(buffer-u32@, Offset Buffer -- U32 +Buffers,
-    over |u32| % if(
-        "unaligned buffer-u32@" panic!,
-        buffer-offset-to-ptr heap-u32@
-    ))
-
-def(buffer-u32!, U32 Offset Buffer -- +Buffers,
-    over |u32| % if(
-        "unaligned buffer-u32!" panic!,
-        buffer-offset-to-ptr heap-u32!
-    ))
-
 def(buffer-u64@, Offset Buffer -- U64 +Buffers,
-    over |u64| % if(
+    over long % if(
         "unaligned buffer-u64@" panic!,
         buffer-offset-to-ptr heap-u64@
     ))
 
 def(buffer-u64!, U64 Offset Buffer -- +Buffers,
-    over |u64| % if(
+    over long % if(
         "unaligned buffer-u64!" panic!,
         buffer-offset-to-ptr heap-u64!
     ))
 
-def(buffer-i8@, Offset Buffer -- I8 +Buffers,
-    buffer-offset-to-ptr heap-i8@)
-
-def(buffer-i8!, U8 Offset Buffer -- +Buffers,
-    buffer-offset-to-ptr heap-i8!)
-
-def(buffer-i16@, Offset Buffer -- I16 +Buffers,
-    over |i16| % if(
-        "unaligned buffer-i16@" panic!,
-        buffer-offset-to-ptr heap-i16@
-    ))
-
-def(buffer-i16!, I16 Offset Buffer -- +Buffers,
-    over |i16| % if(
-        "unaligned buffer-i16!" panic!,
-        buffer-offset-to-ptr heap-i16!
-    ))
-
-def(buffer-i32@, Offset Buffer -- I32 +Buffers,
-    over |i32| % if(
-        "unaligned buffer-i32@" panic!,
-        buffer-offset-to-ptr heap-i32@
-    ))
-
-def(buffer-i32!, I32 Offset Buffer -- +Buffers,
-    over |i32| % if(
-        "unaligned buffer-i32!" panic!,
-        buffer-offset-to-ptr heap-i32!
-    ))
-
 def(buffer-i64@, Offset Buffer -- I64 +Buffers,
-    over |i64| % if(
+    over long % if(
         "unaligned buffer-i64@" panic!,
         buffer-offset-to-ptr heap-i64@
     ))
 
 def(buffer-i64!, I64 Offset Buffer -- +Buffers,
-    over |i64| % if(
+    over long % if(
         "unaligned buffer-i64!" panic!,
         buffer-offset-to-ptr heap-i64!
     ))
@@ -2135,14 +1862,14 @@ def(DEF_WORD, Sort, 1)
 def(DEF_BUFFER, Sort, 2)
 
 MAX_NAMES def-static-buffer(DEF_SORT)
-MAX_NAMES |u64| * def-static-buffer(DEF_VALUE)
+MAX_NAMES longs def-static-buffer(DEF_VALUE)
 
 def(name-sort!, Sort Name --, u8!(DEF_SORT))
 def(name-sort@, Name -- Sort, u8@(DEF_SORT))
 def(name-sort?, Name -- Name Sort, dup name-sort@)
 
-def(name-value!, Value Name --, |u64| * u64!(DEF_VALUE))
-def(name-value@, Name -- Value, |u64| * u64@(DEF_VALUE))
+def(name-value!, Value Name --, DEF_VALUE long!!)
+def(name-value@, Name -- Value, DEF_VALUE long@@)
 def(name-value?, Name -- Name Value, dup name-value@)
 
 def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
@@ -2185,7 +1912,7 @@ def(c99-emit-header!, +IO,
     "#include <unistd.h>" ;;
     "#define STACK_SIZE 2000" ;
     "size_t sc = STACK_SIZE;" ;
-    "int64_t stack[STACK_SIZE];" ;;
+    "int64_t stack[STACK_SIZE] = {0};" ;;
     )
 
 def(c99-emit-strings!, +IO,
@@ -2210,7 +1937,7 @@ def(c99-emit-buffers!, +IO,
 def(c99-emit-buffer!, Name -- +IO,
     name-is-buffer? if(
         "uint8_t b" . dup .n "[" . dup name-value@ buffer-size@ .n "] = {0};" ;
-        "void w" . dup .n " (void) { push((int64_t)b" . .n "); }" ;  ,
+        "void w" . dup .n " (void) { push((uint64_t)b" . .n "); }" ;  ,
         drop
     ))
 
@@ -2333,8 +2060,9 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_DEBUG .w " {" ;
+    "    fprintf(stderr, " .q "?? " .q ");" ;
     "    for (int i = STACK_SIZE-1; i >= sc; i--) {" ;
-    "        fprintf(stderr, " .q "%lld " .q ", stack[i]);" ;
+    "        fprintf(stderr, " .q "%p " .q ", (void*)stack[i]);" ;
     "    }" ;
     "    fputc(10, stderr);" ;
     "}" ;;
@@ -2344,12 +2072,12 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_MEM_GET .w " {" ;
-    "   push(*(int64_t*)pop());" ;
+    "    stack[sc] = *(int64_t*)(stack[sc]);" ;
     "}" ;;
 
     PRIM_MEM_SET .w " {" ;
     "   int64_t* x = (void*)pop();" ;
-    "   *x = pop();" ;
+    "   *x = (int64_t)pop();" ;
     "}" ;;
 
     PRIM_MEM_GET_BYTE .w " {" ;
@@ -2358,9 +2086,8 @@ def(c99-emit-prims!, +IO,
 
     PRIM_MEM_SET_BYTE .w " {" ;
     "   uint8_t* x = (void*)pop();" ;
-    "   *x = pop();" ;
+    "   *x = (uint8_t)pop();" ;
     "}" ;;
-
 
     )
 
@@ -2423,7 +2150,7 @@ def(c99-emit-token!, Token -- +IO,
 def(c99-emit-word!, Token -- +IO,
     token-value? PRIM_DIP = if(
         token-args-1
-        "    int d" . dup .n " = pop();" ;
+        "    int64_t d" . dup .n " = pop();" ;
         dup c99-emit-run!
         "    push(d" . .n ");" ;,
 
@@ -2437,7 +2164,7 @@ def(c99-emit-word!, Token -- +IO,
 
     token-value? PRIM_WHILE = if(
         token-args-1
-        "    for (int c" . dup .n
+        "    for (int64_t c" . dup .n
         " = pop(); c" . dup .n
         "; c" . dup .n " = pop()) {" ;
         "    push(c" . dup .n ");" ;
@@ -2652,8 +2379,8 @@ def(c99-emit-word!, Token -- +IO,
         token-args-1
         token-type? TOKEN_NAME = if(
             token-value? name-is-buffer? if(
-                "    int m" . over .n " = pop();";
-                "    int f" . over .n " = pop();";
+                "    int64_t m" . over .n " = pop();";
+                "    int64_t f" . over .n " = pop();";
                 "    void* p" . over .n " = b" . .n " + pop();";
                 "    push(open(p" . dup .n
                 ", f" . dup .n
@@ -2668,9 +2395,9 @@ def(c99-emit-word!, Token -- +IO,
         token-args-1
         token-type? TOKEN_NAME = if(
             token-value? name-is-buffer? if(
-                "    int n" . over .n " = pop();";
+                "    int64_t n" . over .n " = pop();";
                 "    void* p" . over .n " = b" . .n " + pop();";
-                "    int f" . dup .n " = pop();";
+                "    int64_t f" . dup .n " = pop();";
                 "    push(read(f" . dup .n
                 ", p" . dup .n
                 ", n" . .n "));" ;,
@@ -2684,9 +2411,9 @@ def(c99-emit-word!, Token -- +IO,
         token-args-1
         token-type? TOKEN_NAME = if(
             token-value? name-is-buffer? if(
-                "    int n" . over .n " = pop();";
+                "    int64_t n" . over .n " = pop();";
                 "    void* p" . over .n " = b" . .n " + pop();";
-                "    int f" . dup .n " = pop();";
+                "    int64_t f" . dup .n " = pop();";
                 "    write(f" . dup .n
                 ", p" . dup .n
                 ", n" . .n ");" ;,
@@ -2715,7 +2442,7 @@ def(MAX_REVISION, USize, 10)
 def(HEAP_MULTIPLIER, USize, MAX_REVISION MIRTH_REVISION -)
 def(HEAP_SIZE, USize, BASE_HEAP_SIZE HEAP_MULTIPLIER *)
 
-|u64| def-static-buffer(HEAP_LENGTH)
+long def-static-buffer(HEAP_LENGTH)
 def(heap-length@, U64 +Heap, 0 u64@(HEAP_LENGTH))
 def(heap-length!, U64 -- +Heap, 0 u64!(HEAP_LENGTH))
 def(heap-alloc!, U64 -- Ptr +Heap,
@@ -2729,26 +2456,16 @@ def(heap-alloc!, U64 -- Ptr +Heap,
 HEAP_SIZE def-static-buffer(HEAP)
 
 def(heap-u8@,  Ptr -- U8  +Heap, u8@(HEAP))
-def(heap-u16@, Ptr -- U16 +Heap, u16@(HEAP))
-def(heap-u32@, Ptr -- U32 +Heap, u32@(HEAP))
 def(heap-u64@, Ptr -- U64 +Heap, u64@(HEAP))
-def(heap-i8@,  Ptr -- I8  +Heap, i8@(HEAP))
-def(heap-i16@, Ptr -- I16 +Heap, i16@(HEAP))
-def(heap-i32@, Ptr -- I32 +Heap, i32@(HEAP))
 def(heap-i64@, Ptr -- I64 +Heap, i64@(HEAP))
 def(heap-u8!,  U8  Ptr -- +Heap, u8!(HEAP))
-def(heap-u16!, U16 Ptr -- +Heap, u16!(HEAP))
-def(heap-u32!, U32 Ptr -- +Heap, u32!(HEAP))
 def(heap-u64!, U64 Ptr -- +Heap, u64!(HEAP))
-def(heap-i8!,  I8  Ptr -- +Heap, i8!(HEAP))
-def(heap-i16!, I16 Ptr -- +Heap, i16!(HEAP))
-def(heap-i32!, I32 Ptr -- +Heap, i32!(HEAP))
 def(heap-i64!, I64 Ptr -- +Heap, i64!(HEAP))
 
-def(heap@, Ptr -- U64 +Heap, u64@(HEAP))
-def(heap!, U64 Ptr -- +Heap, u64!(HEAP))
-def(heap-byte@, Ptr -- U64 +Heap, u8@(HEAP))
-def(heap-byte!, U64 Ptr -- +Heap, u8!(HEAP))
+def(heap@, Ptr -- U64 +Heap, HEAP + @)
+def(heap!, U64 Ptr -- +Heap, HEAP + !)
+def(heap-byte@, Ptr -- U8 +Heap, HEAP + byte@)
+def(heap-byte!, U8 Ptr -- +Heap, HEAP + byte!)
 
 def(heap-write!, File Ptr Len -- +IO, syscall-write!(HEAP))
 def(heap-read!, File Ptr Len -- Int +IO, syscall-read!(HEAP))
@@ -2789,7 +2506,6 @@ run-tests
 
 "build #" str-trace!
 MIRTH_REVISION int-trace-ln!
-
 
 in-bootstrap? if(
     "mirth.asm" output-asm(main),
