@@ -2095,7 +2095,7 @@ def(in-bootstrap?, Bool, MIRTH_REVISION 0 =)
 def(in-self-interpreted?, Bool, MIRTH_REVISION 1 =)
 def(in-self-compiled?, Bool, MIRTH_REVISION 2 =)
 
-#run-tests
+run-tests
 
 "build #" str-trace!
 MIRTH_REVISION int-trace-ln!
