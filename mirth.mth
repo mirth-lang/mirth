@@ -71,7 +71,9 @@ def(!!110, Int Int --, !!0 !!1 !!1)
 def(!!111, Int Int --, !!1 !!1 !!1)
 
 
-def(str-head?, Str -- Str Int, dup str-head)
+def(str-head, Str -- Byte, byte@)
+def(str-head?, Str -- Str Byte, dup str-head)
+def(str-tail, Str -- Str, str-head? if(1+, id))
 def(str-tail?, Str -- Str Str, dup str-tail)
 def(str-null, Str -- Bool, str-head 0=)
 def(str-null?, Str -- Str Bool, dup str-null)
@@ -593,24 +595,22 @@ def(PRIM_INT_MOD, Prim, 12)
 def(PRIM_INT_EQ, Prim, 13)
 def(PRIM_INT_LT, Prim, 14)
 def(PRIM_INT_LE, Prim, 15)
-def(PRIM_STR_HEAD, Prim, 16)
-def(PRIM_STR_TAIL, Prim, 17)
-def(PRIM_MEM_GET, Prim, 18)
-def(PRIM_MEM_SET, Prim, 19)
-def(PRIM_MEM_GET_BYTE, Prim, 20)
-def(PRIM_MEM_SET_BYTE, Prim, 21)
-def(PRIM_FILE_READ, Prim, 22)
-def(PRIM_FILE_WRITE, Prim, 23)
-def(PRIM_FILE_OPEN, Prim, 24)
-def(PRIM_FILE_CLOSE, Prim, 25)
-def(PRIM_EXIT, Prim, 26)
-def(PRIM_DEBUG, Prim, 27)
-def(PRIM_MIRTH_REVISION, Prim, 28)
-def(PRIM_DEF, Prim, 29)
-def(PRIM_DEF_STATIC_BUFFER, Prim, 30)
-def(PRIM_OUTPUT_ASM, Prim, 31)
-def(PRIM_OUTPUT_C99, Prim, 32)
-def(NUM_PRIMS, Prim, 33)
+def(PRIM_MEM_GET, Prim, 16)
+def(PRIM_MEM_SET, Prim, 17)
+def(PRIM_MEM_GET_BYTE, Prim, 18)
+def(PRIM_MEM_SET_BYTE, Prim, 19)
+def(PRIM_FILE_READ, Prim, 20)
+def(PRIM_FILE_WRITE, Prim, 21)
+def(PRIM_FILE_OPEN, Prim, 22)
+def(PRIM_FILE_CLOSE, Prim, 23)
+def(PRIM_EXIT, Prim, 24)
+def(PRIM_DEBUG, Prim, 25)
+def(PRIM_MIRTH_REVISION, Prim, 26)
+def(PRIM_DEF, Prim, 27)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 28)
+def(PRIM_OUTPUT_ASM, Prim, 29)
+def(PRIM_OUTPUT_C99, Prim, 30)
+def(NUM_PRIMS, Prim, 31)
 
 def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
 
@@ -639,8 +639,6 @@ def(init-names!, +Names,
     PRIM_INT_EQ "=" def-prim!
     PRIM_INT_LT "<" def-prim!
     PRIM_INT_LE "<=" def-prim!
-    PRIM_STR_HEAD "str-head" def-prim!
-    PRIM_STR_TAIL "str-tail" def-prim!
     PRIM_MEM_GET "@" def-prim!
     PRIM_MEM_SET "!" def-prim!
     PRIM_MEM_GET_BYTE "byte@" def-prim!
@@ -1352,25 +1350,6 @@ def(token-run-prim!, Token --,
         <=
         vstack-push!,
 
-    dup PRIM_STR_HEAD = if(
-        drop
-        1 1 arity-check!
-        token-args-0
-        vstack-pop!
-        byte@
-        vstack-push!,
-
-    dup PRIM_STR_TAIL = if(
-        drop
-        1 1 arity-check!
-        token-args-0
-        vstack-pop!
-        dup byte@ if(
-            1+,
-            id
-        )
-        vstack-push!,
-
     dup PRIM_MEM_GET = if(
         drop
         1 1 arity-check!
@@ -1509,7 +1488,7 @@ def(token-run-prim!, Token --,
 
         drop
         "Dont know how to run prim yet." emit-warning!
-    ))))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -1876,17 +1855,6 @@ def(c99-emit-prims!, +IO,
     "    int64_t x = pop();" ;
     "    int64_t y = pop();" ;
     "    push(y <= x);" ;
-    "}" ;;
-
-    PRIM_STR_HEAD .w " {" ;
-    "    uint8_t *x = pop_ptr();" ;
-    "    push(*x);" ;
-    "}" ;;
-
-    PRIM_STR_TAIL .w " {" ;
-    "    uint8_t *x = pop_ptr();" ;
-    "    if (*x) x++;" ;
-    "    push((int64_t)x);" ;
     "}" ;;
 
     PRIM_FILE_CLOSE .w " {" ;

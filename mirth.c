@@ -61,8 +61,6 @@ enum builtin_t {
     BUILTIN_INT_EQ,
     BUILTIN_INT_LT,
     BUILTIN_INT_LE,
-    BUILTIN_STR_HEAD,
-    BUILTIN_STR_TAIL,
     BUILTIN_MEM_GET,
     BUILTIN_MEM_SET,
     BUILTIN_MEM_GET_BYTE,
@@ -107,8 +105,6 @@ struct symbols_t {
         [BUILTIN_INT_EQ] = { .data = "=" },
         [BUILTIN_INT_LT] = { .data = "<" },
         [BUILTIN_INT_LE] = { .data = "<=" },
-        [BUILTIN_STR_HEAD] = { .data = "str-head" },
-        [BUILTIN_STR_TAIL] = { .data = "str-tail" },
         [BUILTIN_MEM_GET] = { .data = "@" },
         [BUILTIN_MEM_SET] = { .data = "!" },
         [BUILTIN_MEM_GET_BYTE] = { .data = "byte@" },
@@ -415,17 +411,6 @@ static void output_asm_block (size_t t) {
                                 "    movzx eax, al\n");
                             break;
 
-                        case BUILTIN_STR_HEAD:
-                            fprintf(output.file,
-                                "    mov al, [rax]\n"
-                                "    movzx eax, al\n");
-                            break;
-
-                        case BUILTIN_STR_TAIL:
-                            fprintf(output.file,
-                                "    inc rax\n");
-                            break;
-
                         case BUILTIN_MEM_GET:
                             fprintf(output.file,
                                 "    mov rax, [rax]\n");
@@ -624,8 +609,6 @@ static void output_asm_block (size_t t) {
 }
 
 static void output_asm (struct value_t path_value, size_t pc) {
-    ASSERT_TOKEN(path_value.type == TYPE_STR, ERROR_TYPE, state.pc,
-        "output-asm expects a string.");
     const char* path = (void*)path_value.data;
     output.file = fopen(path, "w");
     output.fresh = 0;
@@ -1078,7 +1061,7 @@ int main (int argc, const char** argv)
                     state.stack[--state.sc] = a;
                     break;
                 case TOKEN_STR:
-                    a.type = TYPE_STR;
+                    a.type = TYPE_INT;
                     a.data = (int64_t)(strings.data + tokens.value[state.pc]);
                     state.stack[--state.sc] = a;
                     break;
@@ -1226,25 +1209,6 @@ int main (int argc, const char** argv)
                             INT_BIN_OP("<=", <=);
 
                         #undef INT_BIN_OP
-
-                        case BUILTIN_STR_HEAD:
-                            arity_check("str-head", 0, 1, 1);
-                            a = state.stack[state.sc];
-                            ASSERT_TOKEN(a.type == TYPE_STR, ERROR_TYPE, state.pc,
-                                "Expected string.");
-                            a.type = TYPE_INT;
-                            a.data = *(uint8_t*)a.data;
-                            state.stack[state.sc] = a;
-                            break;
-
-                        case BUILTIN_STR_TAIL:
-                            arity_check("str-tail", 0, 1, 1);
-                            a = state.stack[state.sc];
-                            ASSERT_TOKEN(a.type == TYPE_STR, ERROR_TYPE, state.pc,
-                                "Expected string.");
-                            if (*(uint8_t*)a.data) a.data++;
-                            state.stack[state.sc] = a;
-                            break;
 
                         case BUILTIN_MEM_GET:
                             arity_check("@", 0, 1, 1);
