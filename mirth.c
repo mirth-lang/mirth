@@ -222,7 +222,7 @@ static void fprint_value (FILE* fp, struct value_t value) {
             break;
 
         case TYPE_STR:
-            fprintf(fp, "\"%s\"", &strings.data[value.data]);
+            fprintf(fp, "\"%s\"", (char*)value.data);
             break;
 
         case TYPE_NIL:
@@ -289,10 +289,19 @@ static void output_asm_block (size_t t) {
                 break;
 
             case TOKEN_INT:
+                fprintf(output.file,
+                    "    lea rbx, [rbx-8]\n"
+                    "    mov [rbx], rax\n"
+                    "    mov rax, %lld\n"
+                    , tokens.value[t]);
+                break;
+
             case TOKEN_STR:
-                fprintf(output.file, "    lea rbx, [rbx-8]\n");
-                fprintf(output.file, "    mov [rbx], rax\n");
-                fprintf(output.file, "    mov rax, %lld\n", tokens.value[t]);
+                fprintf(output.file,
+                    "    lea rbx, [rbx-8]\n"
+                    "    mov [rbx], rax\n"
+                    "    lea rax, [rel strings+%lld]\n"
+                    , tokens.value[t]);
                 break;
 
             case TOKEN_WORD:
@@ -408,9 +417,7 @@ static void output_asm_block (size_t t) {
 
                         case BUILTIN_STR_HEAD:
                             fprintf(output.file,
-                                "    lea rsi, [rel strings]\n"
-                                "    add rsi, rax\n"
-                                "    lodsb\n"
+                                "    mov al, [rax]\n"
                                 "    movzx eax, al\n");
                             break;
 
@@ -619,24 +626,15 @@ static void output_asm_block (size_t t) {
 static void output_asm (struct value_t path_value, size_t pc) {
     ASSERT_TOKEN(path_value.type == TYPE_STR, ERROR_TYPE, state.pc,
         "output-asm expects a string.");
-    const char* path = &strings.data[path_value.data];
+    const char* path = (void*)path_value.data;
     output.file = fopen(path, "w");
     output.fresh = 0;
-    // int64_t bss_size = 0;
-    // for (int i = 0; i < symbols.length; i++) {
-    //     bss_size += defs.bs[i];
-    // }
     fprintf(output.file,
         "bits 64\n"
         "section .text\n"
         "global start\n"
         "start:\n"
         "    lea rbx, [rel vs+0x10000]\n"
-        // "    lea rdi, [rel bss_start]\n"
-        // "    xor rax, rax\n"
-        // "    mov ecx, %lld\n"
-        // "    rep stosb\n" // zero-fill bss
-        // , bss_size
         );
     output_asm_block(pc);
     fprintf(output.file,
@@ -656,7 +654,6 @@ static void output_asm (struct value_t path_value, size_t pc) {
     }
     fprintf(output.file,
         "section .data\n"
-        "    vc: dq 0x10000\n"
         "    strings: db ");
     for (int i = 0; i < strings.length; i++) {
         fprintf(output.file, "0%.2Xh, ", strings.data[i]);
@@ -664,7 +661,6 @@ static void output_asm (struct value_t path_value, size_t pc) {
     fprintf(output.file,
         "0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0\n"
         "section .bss\n"
-        // "bss_start:\n"
         );
 
     for (int sym = 0; sym < symbols.length; sym++) {
@@ -1083,7 +1079,7 @@ int main (int argc, const char** argv)
                     break;
                 case TOKEN_STR:
                     a.type = TYPE_STR;
-                    a.data = tokens.value[state.pc];
+                    a.data = (int64_t)(strings.data + tokens.value[state.pc]);
                     state.stack[--state.sc] = a;
                     break;
                 case TOKEN_WORD:
@@ -1236,12 +1232,8 @@ int main (int argc, const char** argv)
                             a = state.stack[state.sc];
                             ASSERT_TOKEN(a.type == TYPE_STR, ERROR_TYPE, state.pc,
                                 "Expected string.");
-                            ASSERT_TOKEN(a.data >= 0, ERROR_UNDERFLOW, state.pc,
-                                "String buffer underflow.");
-                            ASSERT_TOKEN(a.data < strings.length, ERROR_OVERFLOW, state.pc,
-                                "String buffer overflow.");
                             a.type = TYPE_INT;
-                            a.data = strings.data[a.data];
+                            a.data = *(uint8_t*)a.data;
                             state.stack[state.sc] = a;
                             break;
 
@@ -1250,13 +1242,8 @@ int main (int argc, const char** argv)
                             a = state.stack[state.sc];
                             ASSERT_TOKEN(a.type == TYPE_STR, ERROR_TYPE, state.pc,
                                 "Expected string.");
-                            ASSERT_TOKEN(a.data >= 0, ERROR_UNDERFLOW, state.pc,
-                                "String buffer underflow.");
-                            ASSERT_TOKEN(a.data < strings.length, ERROR_OVERFLOW, state.pc,
-                                "String buffer overflow.");
-                            ASSERT_TOKEN(strings.data[a.data], ERROR_OVERFLOW, state.pc,
-                                "String overflow.");
-                            state.stack[state.sc].data++;
+                            if (*(uint8_t*)a.data) a.data++;
+                            state.stack[state.sc] = a;
                             break;
 
                         case BUILTIN_MEM_GET:
