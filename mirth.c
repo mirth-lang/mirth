@@ -196,9 +196,9 @@ struct __attribute__((packed)) fvalue_t {
 };
 
 // intepreter state
-#define STACK_SIZE 0x400
-#define RSTACK_SIZE 0x100
-#define FSTACK_SIZE 0x400
+#define STACK_SIZE 0x1000
+#define RSTACK_SIZE 0x1000
+#define FSTACK_SIZE 0x1000
 struct __attribute__((packed)) state_t {
     uint64_t pc; // program counter
     uint64_t sc; // stack counter

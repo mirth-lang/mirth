@@ -673,17 +673,17 @@ def(strings-size@, -- U64 +StrTable, STRINGS_SIZE @)
 def(strings-size!, U64 -- +StrTable, STRINGS_SIZE !)
 
 # Read byte from strings table.
-def(strings-u8@, U64 -- U8 +StrTable, STRINGS_BUF byte@@)
+def(strings-u8@, U64 -- U8 +StrTable, byte@)
 
 # Read byte from strings table, leaving index in place.
 def(strings-u8?, U64 -- U64 U8 +StrTable, dup strings-u8@)
 
 # Write byte to strings table.
-def(strings-u8!, U8 U64 -- +StrTable, STRINGS_BUF byte!!)
+def(strings-u8!, U8 U64 -- +StrTable, byte!)
 
 # Push byte onto strings table.
 def(strings-push!, U8 -- +StrTable,
-    strings-size@ strings-u8!
+    strings-size@ STRINGS_BUF byte!!
     strings-size@ 1+ strings-size!)
 
 # Load STR_BUF into strings table,
@@ -788,7 +788,7 @@ def(token-print!, Token -- +IO,
     token-type? TOKEN_STR = if(
         print-sp!
         print-quote!
-        token-value? strings-load-escaped! str-buf-print!
+        token-value? STRINGS_BUF + strings-load-escaped! str-buf-print!
         print-quote!,
 
         print-sp!
@@ -1201,7 +1201,7 @@ def(token-run-one!, Token -- Token +Mirth,
     token-type? TOKEN_INT = if(
         token-value? vstack-push!,
     token-type? TOKEN_STR = if(
-        token-value? vstack-push!,
+        token-value? STRINGS_BUF + vstack-push!,
     token-type? TOKEN_LPAREN = if(
         token-value@,
     token-type? TOKEN_NAME = if(
@@ -1357,7 +1357,7 @@ def(token-run-prim!, Token --,
         1 1 arity-check!
         token-args-0
         vstack-pop!
-        strings-u8@
+        byte@
         vstack-push!,
 
     dup PRIM_STR_TAIL = if(
@@ -1365,7 +1365,7 @@ def(token-run-prim!, Token --,
         1 1 arity-check!
         token-args-0
         vstack-pop!
-        strings-u8? if(
+        dup byte@ if(
             1+,
             id
         )
@@ -1762,7 +1762,7 @@ def(c99-emit-strings!, +IO,
     "static char strings[STRINGS_SIZE] = { " .
     0 dup strings-size@ < while(
         drop
-        dup strings-u8@ .n ", " .
+        dup STRINGS_BUF byte@@ .n ", " .
         1+ dup strings-size@ <
     ) drop
     "};" ;;)
@@ -1879,25 +1879,14 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_STR_HEAD .w " {" ;
-    "    int64_t x = pop();" ;
-    "    if ((x < 0) || (x >= STRINGS_SIZE)) {" ;
-    "        fprintf(stderr, " .q
-    "ERROR: String out of bounds." .q ");" ;
-    "        fputc(10, stderr);" ;
-    "        exit(1);" ;
-    "    }";
-    "    push(strings[x]);" ;
+    "    uint8_t *x = pop_ptr();" ;
+    "    push(*x);" ;
     "}" ;;
 
     PRIM_STR_TAIL .w " {" ;
-    "    int64_t x = pop();" ;
-    "    if ((x < 0) || (x >= STRINGS_SIZE)) {" ;
-    "        fprintf(stderr, " .q
-    "ERROR: String out of bounds." .q ");" ;
-    "        fputc(10, stderr);" ;
-    "        exit(1);" ;
-    "    }";
-    "    push(x + (strings[x] != 0));" ;
+    "    uint8_t *x = pop_ptr();" ;
+    "    if (*x) x++;" ;
+    "    push((int64_t)x);" ;
     "}" ;;
 
     PRIM_FILE_CLOSE .w " {" ;
@@ -1991,7 +1980,7 @@ def(c99-emit-token!, Token -- +IO,
         "    push(" . token-value@ .n ");" ;,
 
     token-type? TOKEN_STR = if(
-        "    push(" . token-value@ .n ");" ;,
+        "    push((int64_t)(strings + " . token-value@ .n "));" ;,
 
     token-type? TOKEN_NAME = if(
         c99-emit-word!,
@@ -2138,7 +2127,7 @@ def(in-bootstrap?, Bool, MIRTH_REVISION 0 =)
 def(in-self-interpreted?, Bool, MIRTH_REVISION 1 =)
 def(in-self-compiled?, Bool, MIRTH_REVISION 2 =)
 
-run-tests
+#run-tests
 
 "build #" str-trace!
 MIRTH_REVISION int-trace-ln!
