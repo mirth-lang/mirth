@@ -65,6 +65,8 @@ enum builtin_t {
     BUILTIN_STR_TAIL,
     BUILTIN_MEM_GET,
     BUILTIN_MEM_SET,
+    BUILTIN_MEM_GET_BYTE,
+    BUILTIN_MEM_SET_BYTE,
     BUILTIN_MEM_GET_U8,
     BUILTIN_MEM_GET_U16,
     BUILTIN_MEM_GET_U32,
@@ -125,6 +127,8 @@ struct symbols_t {
         [BUILTIN_STR_TAIL] = { .data = "str-tail" },
         [BUILTIN_MEM_GET] = { .data = "@" },
         [BUILTIN_MEM_SET] = { .data = "!" },
+        [BUILTIN_MEM_GET_BYTE] = { .data = "byte@" },
+        [BUILTIN_MEM_SET_BYTE] = { .data = "byte!" },
         [BUILTIN_MEM_GET_U8] = { .data = "u8@" },
         [BUILTIN_MEM_GET_U16] = { .data = "u16@" },
         [BUILTIN_MEM_GET_U32] = { .data = "u32@" },
@@ -456,6 +460,19 @@ static void output_asm_block (size_t t) {
                             fprintf(output.file,
                                 "    mov rcx, [rbx]\n"
                                 "    mov [rax], rcx\n"
+                                "    lea rbx, [rbx+8]\n");
+                            break;
+
+                        case BUILTIN_MEM_GET_BYTE:
+                            fprintf(output.file,
+                                "    mov al, [rax]\n"
+                                "    movzx eax, al\n");
+                            break;
+
+                        case BUILTIN_MEM_SET_BYTE:
+                            fprintf(output.file,
+                                "    mov rcx, [rbx]\n"
+                                "    mov [rax], cl\n"
                                 "    lea rbx, [rbx+8]\n");
                             break;
 
@@ -1427,6 +1444,22 @@ int main (int argc, const char** argv)
                             a = state.stack[state.sc++];
                             b = state.stack[state.sc++];
                             *(int64_t*)(a.data) = b.data;
+                            break;
+
+
+                        case BUILTIN_MEM_GET_BYTE:
+                            arity_check("byte@", 0, 1, 1);
+                            a = state.stack[state.sc];
+                            a.type = TYPE_INT;
+                            a.data = *(uint8_t*)(a.data);
+                            state.stack[state.sc] = a;
+                            break;
+
+                        case BUILTIN_MEM_SET_BYTE:
+                            arity_check("byte!", 0, 2, 0);
+                            a = state.stack[state.sc++];
+                            b = state.stack[state.sc++];
+                            *(uint8_t*)(a.data) = b.data;
                             break;
 
                         #define MEM_GET_OP(opname, optype) \

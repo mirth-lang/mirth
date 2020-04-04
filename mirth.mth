@@ -285,7 +285,19 @@ def(test@!-new, --,
     TEST_BUF |u64| + @ !!0
     30 TEST_BUF |u64| + !
     TEST_BUF @ 99 !!=
-    TEST_BUF |u64| + @ 30 !!=)
+    TEST_BUF |u64| + @ 30 !!=
+
+    0 TEST_BUF !
+    0 TEST_BUF + byte@ !!0
+    1 TEST_BUF + byte@ !!0
+    2 TEST_BUF + byte@ !!0
+    3 TEST_BUF + byte@ !!0
+    99 2 TEST_BUF + byte!
+    0 TEST_BUF + byte@ !!0
+    1 TEST_BUF + byte@ !!0
+    2 TEST_BUF + byte@ 99 !!=
+    3 TEST_BUF + byte@ !!0
+    )
 
 def(test@!, --,
     # persistence tests -- i.e. get and set behave as expected and
@@ -676,7 +688,9 @@ def(PRIM_OUTPUT_ASM, Prim, 43)
 def(PRIM_OUTPUT_C99, Prim, 44)
 def(PRIM_MEM_GET, Prim, 45)
 def(PRIM_MEM_SET, Prim, 46)
-def(NUM_PRIMS, Prim, 47)
+def(PRIM_MEM_GET_BYTE, Prim, 47)
+def(PRIM_MEM_SET_BYTE, Prim, 48)
+def(NUM_PRIMS, Prim, 49)
 
 def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
 
@@ -736,6 +750,8 @@ def(init-names!, +Names,
     PRIM_OUTPUT_C99 "output-c99" def-prim!
     PRIM_MEM_GET "@" def-prim!
     PRIM_MEM_SET "!" def-prim!
+    PRIM_MEM_GET_BYTE "byte@" def-prim!
+    PRIM_MEM_SET_BYTE "byte!" def-prim!
     )
 
 #################
@@ -1468,6 +1484,21 @@ def(token-run-prim!, Token --,
         vstack-pop2!
         heap!,
 
+    dup PRIM_MEM_GET_BYTE = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        heap-byte@
+        vstack-push!,
+
+    dup PRIM_MEM_SET_BYTE = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        heap-byte!,
+
     dup PRIM_MEM_GET_U8 = if(
         drop
         1 1 arity-check!
@@ -1825,7 +1856,7 @@ def(token-run-prim!, Token --,
 
         drop
         "Dont know how to run prim yet." emit-warning!
-    ))))))))))))))))))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -2317,10 +2348,19 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_MEM_SET .w " {" ;
-    "   int64_t* y = (int64_t*)pop();" ;
-    "   int64_t x = pop();" ;
-    "   *y = x;" ;
+    "   int64_t* x = (void*)pop();" ;
+    "   *x = pop();" ;
     "}" ;;
+
+    PRIM_MEM_GET_BYTE .w " {" ;
+    "   push(*(uint8_t*)pop());" ;
+    "}" ;;
+
+    PRIM_MEM_SET_BYTE .w " {" ;
+    "   uint8_t* x = (void*)pop();" ;
+    "   *x = pop();" ;
+    "}" ;;
+
 
     )
 
@@ -2707,6 +2747,8 @@ def(heap-i64!, I64 Ptr -- +Heap, i64!(HEAP))
 
 def(heap@, Ptr -- U64 +Heap, u64@(HEAP))
 def(heap!, U64 Ptr -- +Heap, u64!(HEAP))
+def(heap-byte@, Ptr -- U64 +Heap, u8@(HEAP))
+def(heap-byte!, U64 Ptr -- +Heap, u8!(HEAP))
 
 def(heap-write!, File Ptr Len -- +IO, syscall-write!(HEAP))
 def(heap-read!, File Ptr Len -- Int +IO, syscall-read!(HEAP))
