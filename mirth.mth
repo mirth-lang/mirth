@@ -599,24 +599,18 @@ def(PRIM_MEM_GET, Prim, 18)
 def(PRIM_MEM_SET, Prim, 19)
 def(PRIM_MEM_GET_BYTE, Prim, 20)
 def(PRIM_MEM_SET_BYTE, Prim, 21)
-def(PRIM_MEM_GET_U8, Prim, 22)
-def(PRIM_MEM_GET_U64, Prim, 23)
-def(PRIM_MEM_GET_I64, Prim, 24)
-def(PRIM_MEM_SET_U8, Prim, 25)
-def(PRIM_MEM_SET_U64, Prim, 26)
-def(PRIM_MEM_SET_I64, Prim, 27)
-def(PRIM_FILE_READ, Prim, 28)
-def(PRIM_FILE_WRITE, Prim, 29)
-def(PRIM_FILE_OPEN, Prim, 30)
-def(PRIM_FILE_CLOSE, Prim, 31)
-def(PRIM_EXIT, Prim, 32)
-def(PRIM_DEBUG, Prim, 33)
-def(PRIM_MIRTH_REVISION, Prim, 34)
-def(PRIM_DEF, Prim, 35)
-def(PRIM_DEF_STATIC_BUFFER, Prim, 36)
-def(PRIM_OUTPUT_ASM, Prim, 37)
-def(PRIM_OUTPUT_C99, Prim, 38)
-def(NUM_PRIMS, Prim, 39)
+def(PRIM_FILE_READ, Prim, 22)
+def(PRIM_FILE_WRITE, Prim, 23)
+def(PRIM_FILE_OPEN, Prim, 24)
+def(PRIM_FILE_CLOSE, Prim, 25)
+def(PRIM_EXIT, Prim, 26)
+def(PRIM_DEBUG, Prim, 27)
+def(PRIM_MIRTH_REVISION, Prim, 28)
+def(PRIM_DEF, Prim, 29)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 30)
+def(PRIM_OUTPUT_ASM, Prim, 31)
+def(PRIM_OUTPUT_C99, Prim, 32)
+def(NUM_PRIMS, Prim, 33)
 
 def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
 
@@ -651,12 +645,6 @@ def(init-names!, +Names,
     PRIM_MEM_SET "!" def-prim!
     PRIM_MEM_GET_BYTE "byte@" def-prim!
     PRIM_MEM_SET_BYTE "byte!" def-prim!
-    PRIM_MEM_GET_U8 "u8@" def-prim!
-    PRIM_MEM_GET_U64 "u64@" def-prim!
-    PRIM_MEM_GET_I64 "i64@" def-prim!
-    PRIM_MEM_SET_U8 "u8!" def-prim!
-    PRIM_MEM_SET_U64 "u64!" def-prim!
-    PRIM_MEM_SET_I64 "i64!" def-prim!
     PRIM_FILE_READ "syscall-read!" def-prim!
     PRIM_FILE_WRITE "syscall-write!" def-prim!
     PRIM_FILE_OPEN "syscall-open!" def-prim!
@@ -1413,99 +1401,6 @@ def(token-run-prim!, Token --,
         vstack-pop2!
         heap-byte!,
 
-    dup PRIM_MEM_GET_U8 = if(
-        drop
-        1 1 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop!)
-                buffer-u8@
-                vstack-push!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-    dup PRIM_MEM_GET_U64 = if(
-        drop
-        1 1 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop!)
-                buffer-u64@
-                vstack-push!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-    dup PRIM_MEM_GET_I64 = if(
-        drop
-        1 1 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop!)
-                buffer-i64@
-                vstack-push!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-    dup PRIM_MEM_SET_U8 = if(
-        drop
-        2 0 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop2!)
-                buffer-u8!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-    dup PRIM_MEM_SET_U64 = if(
-        drop
-        2 0 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop2!)
-                buffer-u64!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
-    dup PRIM_MEM_SET_I64 = if(
-        drop
-        2 0 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop2!)
-                buffer-i64!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
-
     dup PRIM_FILE_WRITE = if(
         drop
         3 0 arity-check!
@@ -1614,7 +1509,7 @@ def(token-run-prim!, Token --,
 
         drop
         "Dont know how to run prim yet." emit-warning!
-    ))))))))))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -2158,81 +2053,6 @@ def(c99-emit-word!, Token -- +IO,
         c99-emit-run!
         "    }" ;,
 
-    token-value? PRIM_MEM_GET_U8 = if(
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value? name-is-buffer? if(
-                nip
-                "    { uint8_t* p = b" . .n "+ pop();" ;
-                "      push(*p); }" ;,
-
-                drop "Expected buffer name." emit-fatal-error!
-            ),
-            "Expected buffer name." emit-fatal-error!
-        ),
-
-    token-value? PRIM_MEM_GET_U64 = if(
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value? name-is-buffer? if(
-                nip
-                "    push(*(uint64_t*)(b" . .n
-                " + pop()));" ;,
-
-                drop "Expected buffer name." emit-fatal-error!
-            ),
-            "Expected buffer name." emit-fatal-error!
-        ),
-
-    token-value? PRIM_MEM_GET_I64 = if(
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value? name-is-buffer? if(
-                nip
-                "    push(*(int64_t*)(b" . .n
-                " + pop()));" ;,
-
-                drop "Expected buffer name." emit-fatal-error!
-            ),
-            "Expected buffer name." emit-fatal-error!
-        ),
-
-    token-value? PRIM_MEM_SET_U8 = if(
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value? name-is-buffer? if(
-                "    void* p" . over .n " = b" . .n " + pop();" ;
-                "    *(uint8_t*)p" . .n " = pop_u8();" ;,
-
-                drop "Expected buffer name." emit-fatal-error!
-            ),
-            "Expected buffer name." emit-fatal-error!
-        ),
-
-    token-value? PRIM_MEM_SET_U64 = if(
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value? name-is-buffer? if(
-                "    void* p" . over .n " = b" . .n " + pop();" ;
-                "    *(uint64_t*)p" . .n " = pop();" ;,
-
-                drop "Expected buffer name." emit-fatal-error!
-            ),
-            "Expected buffer name." emit-fatal-error!
-        ),
-
-    token-value? PRIM_MEM_SET_I64 = if(
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value? name-is-buffer? if(
-                "    void* p" . over .n " = b" . .n " + pop();" ;
-                "    *(int64_t*)p" . .n " = pop();" ;,
-
-                drop "Expected buffer name." emit-fatal-error!
-            ),
-            "Expected buffer name." emit-fatal-error!
-        ),
-
     token-value? PRIM_FILE_OPEN = if(
         token-args-1
         token-type? TOKEN_NAME = if(
@@ -2283,7 +2103,7 @@ def(c99-emit-word!, Token -- +IO,
 
         token-value@
         "    w" . .n "();" ;
-    )))))))))))))
+    )))))))
 
 def(c99-emit-main!, Token -- +IO,
     "int main (void) {" ;
