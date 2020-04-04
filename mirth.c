@@ -68,20 +68,10 @@ enum builtin_t {
     BUILTIN_MEM_GET_BYTE,
     BUILTIN_MEM_SET_BYTE,
     BUILTIN_MEM_GET_U8,
-    BUILTIN_MEM_GET_U16,
-    BUILTIN_MEM_GET_U32,
     BUILTIN_MEM_GET_U64,
-    BUILTIN_MEM_GET_I8,
-    BUILTIN_MEM_GET_I16,
-    BUILTIN_MEM_GET_I32,
     BUILTIN_MEM_GET_I64,
     BUILTIN_MEM_SET_U8,
-    BUILTIN_MEM_SET_U16,
-    BUILTIN_MEM_SET_U32,
     BUILTIN_MEM_SET_U64,
-    BUILTIN_MEM_SET_I8,
-    BUILTIN_MEM_SET_I16,
-    BUILTIN_MEM_SET_I32,
     BUILTIN_MEM_SET_I64,
     BUILTIN_FILE_READ,
     BUILTIN_FILE_WRITE,
@@ -130,20 +120,10 @@ struct symbols_t {
         [BUILTIN_MEM_GET_BYTE] = { .data = "byte@" },
         [BUILTIN_MEM_SET_BYTE] = { .data = "byte!" },
         [BUILTIN_MEM_GET_U8] = { .data = "u8@" },
-        [BUILTIN_MEM_GET_U16] = { .data = "u16@" },
-        [BUILTIN_MEM_GET_U32] = { .data = "u32@" },
         [BUILTIN_MEM_GET_U64] = { .data = "u64@" },
-        [BUILTIN_MEM_GET_I8] = { .data = "i8@" },
-        [BUILTIN_MEM_GET_I16] = { .data = "i16@" },
-        [BUILTIN_MEM_GET_I32] = { .data = "i32@" },
         [BUILTIN_MEM_GET_I64] = { .data = "i64@" },
         [BUILTIN_MEM_SET_U8] = { .data = "u8!" },
-        [BUILTIN_MEM_SET_U16] = { .data = "u16!" },
-        [BUILTIN_MEM_SET_U32] = { .data = "u32!" },
         [BUILTIN_MEM_SET_U64] = { .data = "u64!" },
-        [BUILTIN_MEM_SET_I8] = { .data = "i8!" },
-        [BUILTIN_MEM_SET_I16] = { .data = "i16!" },
-        [BUILTIN_MEM_SET_I32] = { .data = "i32!" },
         [BUILTIN_MEM_SET_I64] = { .data = "i64!" },
         [BUILTIN_FILE_READ] = { .data = "syscall-read!" },
         [BUILTIN_FILE_WRITE] = { .data = "syscall-write!" },
@@ -491,71 +471,6 @@ static void output_asm_block (size_t t) {
                             }
                             break;
 
-                        case BUILTIN_MEM_GET_U16:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    lea rdx, [rel b_%s]\n"
-                                    "    add rdx, rax\n"
-                                    "    movzx rax, word [rdx]\n"
-                                    , mangled_name
-                                    );
-                            }
-                            break;
-
-                        case BUILTIN_MEM_GET_U32:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    lea rdx, [rel b_%s]\n"
-                                    "    add rdx, rax\n"
-                                    "    mov eax, dword [rdx]\n"
-                                    , mangled_name
-                                    );
-                            }
-                            break;
-
-                        case BUILTIN_MEM_GET_I8:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    lea rdx, [rel b_%s]\n"
-                                    "    add rdx, rax\n"
-                                    "    movsx rax, byte [rdx]\n"
-                                    , mangled_name
-                                    );
-                            }
-                            break;
-
-                        case BUILTIN_MEM_GET_I16:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    lea rdx, [rel b_%s]\n"
-                                    "    add rdx, rax\n"
-                                    "    movsx rax, word [rdx]\n"
-                                    , mangled_name
-                                    );
-                            }
-                            break;
-
-                        case BUILTIN_MEM_GET_I32:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    lea rdx, [rel b_%s]\n"
-                                    "    add rdx, rax\n"
-                                    "    movsx rax, dword [rdx]\n"
-                                    , mangled_name
-                                    );
-                            }
-                            break;
-
                         case BUILTIN_MEM_GET_U64:
                         case BUILTIN_MEM_GET_I64:
                             {
@@ -571,7 +486,6 @@ static void output_asm_block (size_t t) {
                             break;
 
                         case BUILTIN_MEM_SET_U8:
-                        case BUILTIN_MEM_SET_I8:
                             {
                                 const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
                                 mangle(mangled_name, unmangled_name);
@@ -580,40 +494,6 @@ static void output_asm_block (size_t t) {
                                     "    add rdi, rax\n"
                                     "    mov rax, [rbx]\n"
                                     "    stosb\n"
-                                    "    mov rax, [rbx+8]\n"
-                                    "    lea rbx, [rbx+16]\n"
-                                    , mangled_name
-                                    );
-                            }
-                            break;
-
-                        case BUILTIN_MEM_SET_U16:
-                        case BUILTIN_MEM_SET_I16:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    lea rdi, [rel b_%s]\n"
-                                    "    add rdi, rax\n"
-                                    "    mov rax, [rbx]\n"
-                                    "    stosw\n"
-                                    "    mov rax, [rbx+8]\n"
-                                    "    lea rbx, [rbx+16]\n"
-                                    , mangled_name
-                                    );
-                            }
-                            break;
-
-                        case BUILTIN_MEM_SET_U32:
-                        case BUILTIN_MEM_SET_I32:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    lea rdi, [rel b_%s]\n"
-                                    "    add rdi, rax\n"
-                                    "    mov rax, [rbx]\n"
-                                    "    stosd\n"
                                     "    mov rax, [rbx+8]\n"
                                     "    lea rbx, [rbx+16]\n"
                                     , mangled_name
@@ -1505,12 +1385,7 @@ int main (int argc, const char** argv)
                             goto resume_loop
 
                         case BUILTIN_MEM_GET_U8:  MEM_GET_OP("u8@",  uint8_t);
-                        case BUILTIN_MEM_GET_U16: MEM_GET_OP("u16@", uint16_t);
-                        case BUILTIN_MEM_GET_U32: MEM_GET_OP("u32@", uint32_t);
                         case BUILTIN_MEM_GET_U64: MEM_GET_OP("u64@", uint64_t);
-                        case BUILTIN_MEM_GET_I8:  MEM_GET_OP("i8@",  int8_t);
-                        case BUILTIN_MEM_GET_I16: MEM_GET_OP("i16@", int16_t);
-                        case BUILTIN_MEM_GET_I32: MEM_GET_OP("i32@", int32_t);
                         case BUILTIN_MEM_GET_I64: MEM_GET_OP("i64@", int64_t);
 
                         #undef MEM_GET_OP
@@ -1543,12 +1418,7 @@ int main (int argc, const char** argv)
                             goto resume_loop
 
                         case BUILTIN_MEM_SET_U8:  MEM_SET_OP("u8!",  uint8_t);
-                        case BUILTIN_MEM_SET_U16: MEM_SET_OP("u16!", uint16_t);
-                        case BUILTIN_MEM_SET_U32: MEM_SET_OP("u32!", uint32_t);
                         case BUILTIN_MEM_SET_U64: MEM_SET_OP("u64!", uint64_t);
-                        case BUILTIN_MEM_SET_I8:  MEM_SET_OP("i8!",  int8_t);
-                        case BUILTIN_MEM_SET_I16: MEM_SET_OP("i16!", int16_t);
-                        case BUILTIN_MEM_SET_I32: MEM_SET_OP("i32!", int32_t);
                         case BUILTIN_MEM_SET_I64: MEM_SET_OP("i64!", int64_t);
 
                         #undef MEM_SET_OP

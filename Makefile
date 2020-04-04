@@ -5,9 +5,9 @@ mirth: mirth.c
 	nasm -f macho64 mirth.asm
 	ld -static mirth.o -o mirth2
 	./mirth2 mirth.mth
-	gcc -std=c99 -o mirth3 mirth2.c
+	gcc -std=c99 -Wall -Werror -pedantic -o mirth3 mirth2.c
 	./mirth3
-	gcc -std=c99 -o mirth4 mirth3.c
+	gcc -std=c99 -Wall -Werror -pedantic -o mirth4 mirth3.c
 	./mirth4
 
 
