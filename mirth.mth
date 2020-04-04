@@ -92,8 +92,8 @@ def(str-buf-length?, Int +StrBuf, STR_BUF_LEN @)
 def(str-buf-length!, Int -- +StrBuf,
     dup STR_BUF_LEN !
     dip(0) str-buf-u8!)
-def(str-buf-u8@, Index -- U8 +StrBuf, u8@(STR_BUF))
-def(str-buf-u8!, U8 Index -- +StrBuf, u8!(STR_BUF))
+def(str-buf-u8@, Index -- U8 +StrBuf, STR_BUF byte@@)
+def(str-buf-u8!, U8 Index -- +StrBuf, STR_BUF byte!!)
 def(str-buf-full?, Bool +StrBuf,
     str-buf-length? 1+ STR_BUF_SIZE >=)
 def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
@@ -404,7 +404,7 @@ def(file-buf-length!, Int --,
     dip(0) FILE_BUF byte!!)
 def(file-buf-length@, -- Int, FILE_BUF_LENGTH @)
 
-def(file-buf@, Int -- U8, u8@(FILE_BUF))
+def(file-buf@, Int -- U8, FILE_BUF byte@@)
 
 def(str-buf-open-file!, -- File +IO,
     0 0 0 syscall-open!(STR_BUF)
@@ -464,10 +464,10 @@ NAME_BUF_SIZE def-static-buffer(NAME_BUF)
 # Recalculate length of string buffer as the
 # first position with a zero byte.
 def(str-buf-recalc-length!, --,
-    0 dup u8@(STR_BUF)
+    0 dup STR_BUF byte@@
     while( # Len Char -- Len Char
         drop 1+
-        dup u8@(STR_BUF)
+        dup STR_BUF byte@@
     )
     str-buf-length!
 )
@@ -738,8 +738,8 @@ def(num-tokens!, Int --, NUM_TOKENS !)
 def(clear-tokens!, --, 0 num-tokens!)
 
 MAX_TOKENS bytes def-static-buffer(TOKEN_TYPE)
-def(token-type!, TokenType Token --, u8!(TOKEN_TYPE))
-def(token-type@, Token -- TokenType, u8@(TOKEN_TYPE))
+def(token-type!, TokenType Token --, TOKEN_TYPE byte!!)
+def(token-type@, Token -- TokenType, TOKEN_TYPE byte@@)
 def(token-type?, Token -- Token TokenType, dup token-type@)
 def(TOKEN_NONE, TokenType, 0)
 def(TOKEN_LPAREN, TokenType, 1)
@@ -1841,8 +1841,8 @@ def(DEF_BUFFER, Sort, 2)
 MAX_NAMES def-static-buffer(DEF_SORT)
 MAX_NAMES longs def-static-buffer(DEF_VALUE)
 
-def(name-sort!, Sort Name --, u8!(DEF_SORT))
-def(name-sort@, Name -- Sort, u8@(DEF_SORT))
+def(name-sort!, Sort Name --, DEF_SORT byte!!)
+def(name-sort@, Name -- Sort, DEF_SORT byte@@)
 def(name-sort?, Name -- Name Sort, dup name-sort@)
 
 def(name-value!, Value Name --, DEF_VALUE long!!)
