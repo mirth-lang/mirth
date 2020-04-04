@@ -67,12 +67,6 @@ enum builtin_t {
     BUILTIN_MEM_SET,
     BUILTIN_MEM_GET_BYTE,
     BUILTIN_MEM_SET_BYTE,
-    BUILTIN_MEM_GET_U8,
-    BUILTIN_MEM_GET_U64,
-    BUILTIN_MEM_GET_I64,
-    BUILTIN_MEM_SET_U8,
-    BUILTIN_MEM_SET_U64,
-    BUILTIN_MEM_SET_I64,
     BUILTIN_FILE_READ,
     BUILTIN_FILE_WRITE,
     BUILTIN_FILE_OPEN,
@@ -119,12 +113,6 @@ struct symbols_t {
         [BUILTIN_MEM_SET] = { .data = "!" },
         [BUILTIN_MEM_GET_BYTE] = { .data = "byte@" },
         [BUILTIN_MEM_SET_BYTE] = { .data = "byte!" },
-        [BUILTIN_MEM_GET_U8] = { .data = "u8@" },
-        [BUILTIN_MEM_GET_U64] = { .data = "u64@" },
-        [BUILTIN_MEM_GET_I64] = { .data = "i64@" },
-        [BUILTIN_MEM_SET_U8] = { .data = "u8!" },
-        [BUILTIN_MEM_SET_U64] = { .data = "u64!" },
-        [BUILTIN_MEM_SET_I64] = { .data = "i64!" },
         [BUILTIN_FILE_READ] = { .data = "syscall-read!" },
         [BUILTIN_FILE_WRITE] = { .data = "syscall-write!" },
         [BUILTIN_FILE_OPEN] = { .data = "syscall-open!" },
@@ -456,66 +444,6 @@ static void output_asm_block (size_t t) {
                                 "    mov [rax], cl\n"
                                 "    mov rax, [rbx+8]\n"
                                 "    lea rbx, [rbx+16]\n");
-                            break;
-
-                        case BUILTIN_MEM_GET_U8:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    lea rdx, [rel b_%s]\n"
-                                    "    add rdx, rax\n"
-                                    "    movzx rax, byte [rdx]\n"
-                                    , mangled_name
-                                    );
-                            }
-                            break;
-
-                        case BUILTIN_MEM_GET_U64:
-                        case BUILTIN_MEM_GET_I64:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    lea rdx, [rel b_%s]\n"
-                                    "    add rdx, rax\n"
-                                    "    mov rax, qword [rdx]\n"
-                                    , mangled_name
-                                    );
-                            }
-                            break;
-
-                        case BUILTIN_MEM_SET_U8:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    lea rdi, [rel b_%s]\n"
-                                    "    add rdi, rax\n"
-                                    "    mov rax, [rbx]\n"
-                                    "    stosb\n"
-                                    "    mov rax, [rbx+8]\n"
-                                    "    lea rbx, [rbx+16]\n"
-                                    , mangled_name
-                                    );
-                            }
-                            break;
-
-                        case BUILTIN_MEM_SET_U64:
-                        case BUILTIN_MEM_SET_I64:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    lea rdi, [rel b_%s]\n"
-                                    "    add rdi, rax\n"
-                                    "    mov rax, [rbx]\n"
-                                    "    stosq\n"
-                                    "    mov rax, [rbx+8]\n"
-                                    "    lea rbx, [rbx+16]\n"
-                                    , mangled_name
-                                    );
-                            }
                             break;
 
                         case BUILTIN_FILE_WRITE:
@@ -1361,67 +1289,6 @@ int main (int argc, const char** argv)
                             b = state.stack[state.sc++];
                             *(uint8_t*)(a.data) = b.data;
                             break;
-
-                        #define MEM_GET_OP(opname, optype) \
-                            arity_check(opname, 1, 1, 1); \
-                            { \
-                                a = state.stack[state.sc]; \
-                                uint64_t name = state.fstack[state.fc].pc; \
-                                ASSERT_TOKEN(a.type == TYPE_INT, ERROR_TYPE, state.pc, \
-                                    "Expected integer."); \
-                                ASSERT_TOKEN(tokens.kind[name] == TOKEN_WORD, ERROR_SYNTAX, name, \
-                                    "Expected buffer name."); \
-                                uint64_t w = tokens.value[name]; \
-                                ASSERT_TOKEN(defs.buffer[w] != NULL, ERROR_SYNTAX, name, \
-                                    "Expected buffer name."); \
-                                ASSERT_TOKEN(a.data >= 0, ERROR_UNDERFLOW, state.pc, \
-                                    "Buffer underflow."); \
-                                ASSERT_TOKEN(a.data + sizeof(optype) <= defs.bs[w], ERROR_OVERFLOW, state.pc, \
-                                    "Buffer overflow."); \
-                                optype value = *(optype*)(((uint8_t*)defs.buffer[w])+a.data); \
-                                state.stack[state.sc].data = value; \
-                                state.pc = next_pc; \
-                            } \
-                            goto resume_loop
-
-                        case BUILTIN_MEM_GET_U8:  MEM_GET_OP("u8@",  uint8_t);
-                        case BUILTIN_MEM_GET_U64: MEM_GET_OP("u64@", uint64_t);
-                        case BUILTIN_MEM_GET_I64: MEM_GET_OP("i64@", int64_t);
-
-                        #undef MEM_GET_OP
-
-                        #define MEM_SET_OP(opname, optype) \
-                            arity_check(opname, 1, 2, 0); \
-                            { \
-                                a = state.stack[state.sc++]; \
-                                b = state.stack[state.sc++]; \
-                                uint64_t name = state.fstack[state.fc].pc; \
-                                ASSERT_TOKEN(a.type == TYPE_INT, ERROR_TYPE, state.pc, \
-                                    "Expected integer address."); \
-                                ASSERT_TOKEN(b.type == TYPE_INT, ERROR_TYPE, state.pc, \
-                                    "Expected integer value."); \
-                                ASSERT_TOKEN(tokens.kind[name] == TOKEN_WORD, ERROR_SYNTAX, name, \
-                                    "Expected buffer name."); \
-                                uint64_t w = tokens.value[name]; \
-                                ASSERT_TOKEN(defs.buffer[w] != NULL, ERROR_SYNTAX, name, \
-                                    "Expected buffer name."); \
-                                if (a.data + sizeof(optype) > defs.bs[w]) \
-                                    fprintf(stderr, "wtf %lld %lld\n", a.data, defs.bs[w]); \
-                                ASSERT_TOKEN(a.data >= 0, ERROR_UNDERFLOW, state.pc, \
-                                    "Buffer underflow."); \
-                                ASSERT_TOKEN(a.data + sizeof(optype) <= defs.bs[w], ERROR_OVERFLOW, state.pc, \
-                                    "Buffer overflow."); \
-                                optype value = b.data; \
-                                *(optype*)(((uint8_t*)defs.buffer[w])+a.data) = value; \
-                                state.pc = next_pc; \
-                            } \
-                            goto resume_loop
-
-                        case BUILTIN_MEM_SET_U8:  MEM_SET_OP("u8!",  uint8_t);
-                        case BUILTIN_MEM_SET_U64: MEM_SET_OP("u64!", uint64_t);
-                        case BUILTIN_MEM_SET_I64: MEM_SET_OP("i64!", int64_t);
-
-                        #undef MEM_SET_OP
 
                         case BUILTIN_FILE_WRITE:
                             arity_check("syscall-write!", 1, 3, 0);
