@@ -111,7 +111,7 @@ def(str-buf-trace!, +StrBuf, file-err@ str-buf-write!)
 
 def(str-buf-read!, File -- +IO,
     str-buf-clear!
-    0 STR_BUF_SIZE 1- syscall-read!(STR_BUF)
+    STR_BUF STR_BUF_SIZE 1- syscall-read!
     dup 0 < if(
         "str-buf-read! failed" panic!,
         str-buf-length!
@@ -429,7 +429,7 @@ def(str-open-file!, Str -- File +IO, str-buf! str-buf-open-file!)
 def(str-create-file!, Str -- File +IO, str-buf! str-buf-create-file!)
 
 def(read-file!, File -- +IO,
-    dup 0 FILE_BUF_SIZE 1- syscall-read!(FILE_BUF)
+    dup FILE_BUF FILE_BUF_SIZE 1- syscall-read!
     dup 0 < if(
         "failed to read file" panic!,
         file-buf-length! syscall-close!
@@ -1389,18 +1389,10 @@ def(token-run-prim!, Token --,
     dup PRIM_FILE_READ = if(
         drop
         3 1 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value?
-            name-is-buffer? if(
-                nip name-value@
-                dip(vstack-pop3!)
-                buffer-read!
-                vstack-push!,
-                drop "expected buffer name" emit-fatal-error!
-            ),
-            "expected buffer name" emit-fatal-error!
-        ),
+        token-args-0
+        vstack-pop3!
+        syscall-read!
+        vstack-push!,
 
     dup PRIM_FILE_OPEN = if(
         drop
@@ -1642,15 +1634,6 @@ def(buffer-offset-to-ptr, Offset Buffer -- Ptr +Buffers,
         "buffer overflow or underflow" panic!
     ))
 
-def(buffer-read!, File Offset Len Buffer -- Int +Buffers,
-    over 0 < if(
-        "buffer-read! with negative length" panic!,
-
-    # check for overflow
-    dup3 dip(+) buffer-offset-to-ptr drop
-
-    swap dip(buffer-offset-to-ptr) heap-read!))
-
 def(buffer-open!, Offset Flags Mode Buffer -- File +IO,
     rotr dip(dip(buffer-offset-to-ptr))
     heap-open!)
@@ -1845,6 +1828,13 @@ def(c99-emit-prims!, +IO,
     "    write(f, p, n);" ;
     "}" ;;
 
+    PRIM_FILE_READ .w " {" ;
+    "    size_t n = (size_t)pop();" ;
+    "    void* p = pop_ptr();" ;
+    "    int f = (int)pop();" ;
+    "    push(read(f,p,n));" ;
+    "}" ;;
+
     PRIM_FILE_CLOSE .w " {" ;
     "    int x = (int)pop();" ;
     "    push(close(x));" ;
@@ -1984,25 +1974,9 @@ def(c99-emit-word!, Token -- +IO,
             "Expected buffer name." emit-fatal-error!
         ),
 
-    token-value? PRIM_FILE_READ = if(
-        token-args-1
-        token-type? TOKEN_NAME = if(
-            token-value? name-is-buffer? if(
-                "    size_t n" . over .n " = (size_t)pop();";
-                "    void* p" . over .n " = b" . .n " + pop();";
-                "    int f" . dup .n " = (int)pop();";
-                "    push(read(f" . dup .n
-                ", p" . dup .n
-                ", n" . .n "));" ;,
-
-                drop "Expected buffer name." emit-fatal-error!
-            ),
-            "Expected buffer name." emit-fatal-error!
-        ),
-
         token-value@
         "    w" . .n "();" ;
-    ))))))
+    )))))
 
 def(c99-emit-main!, Token -- +IO,
     "int main (void) {" ;
@@ -2032,7 +2006,6 @@ def(heap-alloc!, U64 -- Ptr +Heap,
 
 HEAP_SIZE def-static-buffer(HEAP)
 
-def(heap-read!, File Ptr Len -- Int +IO, syscall-read!(HEAP))
 def(heap-open!, Ptr Flags Mode -- File +IO, syscall-open!(HEAP))
 
 ########
