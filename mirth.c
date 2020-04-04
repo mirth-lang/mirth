@@ -63,6 +63,8 @@ enum builtin_t {
     BUILTIN_INT_LE,
     BUILTIN_STR_HEAD,
     BUILTIN_STR_TAIL,
+    BUILTIN_MEM_GET,
+    BUILTIN_MEM_SET,
     BUILTIN_MEM_GET_U8,
     BUILTIN_MEM_GET_U16,
     BUILTIN_MEM_GET_U32,
@@ -121,6 +123,8 @@ struct symbols_t {
         [BUILTIN_INT_LE] = { .data = "<=" },
         [BUILTIN_STR_HEAD] = { .data = "str-head" },
         [BUILTIN_STR_TAIL] = { .data = "str-tail" },
+        [BUILTIN_MEM_GET] = { .data = "@" },
+        [BUILTIN_MEM_SET] = { .data = "!" },
         [BUILTIN_MEM_GET_U8] = { .data = "u8@" },
         [BUILTIN_MEM_GET_U16] = { .data = "u16@" },
         [BUILTIN_MEM_GET_U32] = { .data = "u32@" },
@@ -443,6 +447,18 @@ static void output_asm_block (size_t t) {
                                 "    inc rax\n");
                             break;
 
+                        case BUILTIN_MEM_GET:
+                            fprintf(output.file,
+                                "    mov rax, [rax]\n");
+                            break;
+
+                        case BUILTIN_MEM_SET:
+                            fprintf(output.file,
+                                "    mov rcx, [rbx]\n"
+                                "    mov [rax], rcx\n"
+                                "    lea rbx, [rbx+8]\n");
+                            break;
+
                         case BUILTIN_MEM_GET_U8:
                             {
                                 const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
@@ -730,11 +746,20 @@ static void output_asm_block (size_t t) {
                             break;
 
                         default:
-                            ASSERT_TOKEN(defs.pc[tokens.value[t]] != 0, ERROR_NOT_IMPLEMENTED, t,
-                                "not implemented in output-asm");
-                            const char* unmangled_name = symbols.name[tokens.value[t]].data;
-                            mangle(mangled_name, unmangled_name);
-                            fprintf(output.file, "    call w_%s\n", mangled_name);
+                            if (defs.pc[tokens.value[t]]) {
+                                const char* unmangled_name = symbols.name[tokens.value[t]].data;
+                                mangle(mangled_name, unmangled_name);
+                                fprintf(output.file, "    call w_%s\n", mangled_name);
+                            } else if (defs.buffer[tokens.value[t]]) {
+                                const char* unmangled_name = symbols.name[tokens.value[t]].data;
+                                mangle(mangled_name, unmangled_name);
+                                fprintf(output.file,
+                                    "    lea rbx, [rbx-8]\n"
+                                    "    mov [rbx], rax\n"
+                                    "    lea rax, [rel b_%s]\n"
+                                    , mangled_name);
+
+                            }
                             break;
                     }
                     break;
@@ -1389,6 +1414,21 @@ int main (int argc, const char** argv)
                             state.stack[state.sc].data++;
                             break;
 
+                        case BUILTIN_MEM_GET:
+                            arity_check("@", 0, 1, 1);
+                            a = state.stack[state.sc];
+                            a.type = TYPE_INT;
+                            a.data = *(int64_t*)(a.data);
+                            state.stack[state.sc] = a;
+                            break;
+
+                        case BUILTIN_MEM_SET:
+                            arity_check("!", 0, 2, 0);
+                            a = state.stack[state.sc++];
+                            b = state.stack[state.sc++];
+                            *(int64_t*)(a.data) = b.data;
+                            break;
+
                         #define MEM_GET_OP(opname, optype) \
                             arity_check(opname, 1, 1, 1); \
                             { \
@@ -1609,6 +1649,12 @@ int main (int argc, const char** argv)
                                 state.fi = state.fc;
                                 state.pc = jumpto;
                                 goto resume_loop;
+                            } else if (defs.buffer[tokens.value[state.pc]]) {
+                                ASSERT_TOKEN(state.sc > 0, ERROR_OVERFLOW, state.pc,
+                                    "stack overflow");
+                                a.type = TYPE_INT;
+                                a.data = (int64_t)defs.buffer[tokens.value[state.pc]];
+                                state.stack[--state.sc] = a;
                             } else {
                                 fprintf(stderr, "%s:%d:%d: error: undefined word \"%s\"\n",
                                     command.path, tokens.row[state.pc], tokens.col[state.pc],
