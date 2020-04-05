@@ -1,5 +1,6 @@
-*.ibc
-.stack-work/
-mirth.cabal
 *~
 *.swp
+/mirth0
+/mirth1
+/mirth2
+/mirth3

@@ -1,21 +1,20 @@
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+C99FLAGS =-std=c99 -Weverything -Wno-missing-noreturn -Wno-unused-function -Werror -pedantic
 
-typecheck:
-	python3 bootstrap/mirth.py --typecheck src
+mirth: mirth0.c mirth.mth
+	gcc $(C99FLAGS) -o mirth0 mirth0.c
+	./mirth0
+	mv mirth.c mirth1.c
+	gcc $(C99FLAGS) -o mirth1 mirth1.c
+	./mirth1
+	mv mirth.c mirth2.c
+	gcc $(C99FLAGS) -o mirth2 mirth2.c
+	diff mirth1.c mirth2.c || true
+	./mirth2
+	mv mirth.c mirth3.c
+	diff mirth2.c mirth3.c
 
-test:
-	python3 bootstrap/mirth.py src mtest
-
-test-update:
-	python3 bootstrap/mirth.py src mtest --update
-
-build:
-	python3 bootstrap/mirth.py src build
-
-bootstrap-test:
-	python3 bootstrap/test.py
+update-mirth: mirth
+	cp mirth3.c mirth0.c
 
 install-vim:
 	mkdir -p ~/.vim/bundle
@@ -25,5 +24,4 @@ install-vim:
 install-code:
 	code --install-extension tools/mirth-code/mirth-*.vsix
 
-.PHONY: typecheck test test-update build bootstrap-test install-vim install-code
-
+.PHONY: mirth update-mirth install-vim install-code

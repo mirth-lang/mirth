@@ -1,3 +1,0 @@
-type +NewTag
-f(g: +NewTag -- ) : +NewTag -- 
-f(g) = g

@@ -1,2 +1,0 @@
-main : List(Str) -- Int
-main = "Type Error" _prim_unsafe_trace drop 0

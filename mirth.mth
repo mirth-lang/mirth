@@ -1,0 +1,2076 @@
+
+###########
+# Prelude #
+###########
+
+def(trip, a -- a a a, dup dup)
+def(rotr, a b c -- c a b, swap dip(swap))
+def(rotl, a b c -- b c a, dip(swap) swap)
+def(over, a b -- a b a, dip(dup) swap)
+def(tuck, a b -- b a b, dup dip(swap))
+def(nip, a b -- b, dip(drop))
+def(dup2, a b -- a b a b, over over)
+def(drop2, a b --, drop drop)
+def(swap2, a b c d -- c d a b, dip(rotr) rotr)
+def(dup3, a b c -- a b c a b c, dip(dup2) dup dip(rotr))
+
+def(>, Int Int -- Bool, swap <)
+def(>=, Int Int -- Bool, swap <=)
+
+def(0=, Int -- Bool, 0 =)
+def(0<, Int -- Bool, 0 <)
+def(0>, Int -- Bool, 0 >)
+def(0<=, Int -- Bool, 0 <=)
+def(0>=, Int -- Bool, 0 >=)
+
+def(1=, Int -- Bool, 1 =)
+def(1<, Int -- Bool, 1 <)
+def(1>, Int -- Bool, 1 >)
+def(1<=, Int -- Bool, 1 <=)
+def(1>=, Int -- Bool, 1 >=)
+def(1+, Int -- Int, 1 +)
+def(1-, Int -- Int, 1 -)
+
+def(2*, Int -- Int, 2 *)
+def(2/, Int -- Int, 2 /)
+def(2%, Int -- Int, 2 %)
+def(2+, Int -- Int, 2 +)
+def(2-, Int -- Int, 2 -)
+
+def(not, Bool -- Bool, 0 =)
+def(and, Bool Bool -- Bool, swap if(id, drop 0))
+def(or, Bool Bool -- Bool, swap if(drop 1, id))
+
+def(byte, Size, 1)
+def(bytes, Size -- Size, id)
+def(byte@@, Offset Pointer -- Byte, + byte@)
+def(byte!!, Byte Offset Pointer --, + byte!)
+
+def(long, Size, 8)
+def(longs, Size -- Size, long *)
+def(long@@, Offset Pointer -- Long, dip(longs) + @)
+def(long!!, Long Offset Pointer --, dip(longs) + !)
+
+# Assertions
+
+def(!!, Bool --, if(id, "Assertion failed" panic!))
+def(!!=, Int Int --, = !!)
+def(!!0, Int --, 0 !!=)
+def(!!1, Int --, 1 !!=)
+def(!!00, Int Int --, !!0 !!0)
+def(!!01, Int Int --, !!1 !!0)
+def(!!10, Int Int --, !!0 !!1)
+def(!!11, Int Int --, !!1 !!1)
+def(!!000, Int Int --, !!0 !!0 !!0)
+def(!!001, Int Int --, !!1 !!0 !!0)
+def(!!010, Int Int --, !!0 !!1 !!0)
+def(!!011, Int Int --, !!1 !!1 !!0)
+def(!!100, Int Int --, !!0 !!0 !!1)
+def(!!101, Int Int --, !!1 !!0 !!1)
+def(!!110, Int Int --, !!0 !!1 !!1)
+def(!!111, Int Int --, !!1 !!1 !!1)
+
+
+def(str-head, Str -- Byte, byte@)
+def(str-head?, Str -- Str Byte, dup str-head)
+def(str-tail, Str -- Str, str-head? if(1+, id))
+def(str-tail?, Str -- Str Str, dup str-tail)
+def(str-null, Str -- Bool, str-head 0=)
+def(str-null?, Str -- Str Bool, dup str-null)
+def(str-not-null, Str -- Bool, str-null not)
+def(str-not-null?, Str -- Str Bool, dup str-not-null)
+def(str-length?, Str -- Str Int, dup str-length)
+def(str-length, Str -- Int,
+    dip(0) str-not-null? while(
+        drop str-tail dip(1+)
+        str-not-null?
+    ) drop)
+
+def(STR_BUF_SIZE, Int, 4096)
+long def-static-buffer(STR_BUF_LEN)
+STR_BUF_SIZE bytes def-static-buffer(STR_BUF)
+
+def(str-buf-length?, Int +StrBuf, STR_BUF_LEN @)
+def(str-buf-length!, Int -- +StrBuf,
+    dup STR_BUF_LEN !
+    dip(0) str-buf-u8!)
+def(str-buf-u8@, Index -- U8 +StrBuf, STR_BUF byte@@)
+def(str-buf-u8!, U8 Index -- +StrBuf, STR_BUF byte!!)
+def(str-buf-full?, Bool +StrBuf,
+    str-buf-length? 1+ STR_BUF_SIZE >=)
+def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
+def(str-buf-push!, U8 -- +StrBuf,
+    str-buf-full? if(
+        "str-buf-push! but STR_BUF is already full" panic!,
+        str-buf-length? str-buf-u8!
+        str-buf-length? 1+ str-buf-length!
+    ))
+def(str-buf-write!, File -- +StrBuf, STR_BUF str-buf-length? posix-write!)
+def(str-buf-print!, +StrBuf, file-out@ str-buf-write!)
+def(str-buf-trace!, +StrBuf, file-err@ str-buf-write!)
+
+def(str-buf-read!, File -- +IO,
+    str-buf-clear!
+    STR_BUF STR_BUF_SIZE 1- posix-read!
+    dup 0 < if(
+        "str-buf-read! failed" panic!,
+        str-buf-length!
+    ))
+def(str-buf-input!, -- +IO, file-in@ str-buf-read!)
+
+# Clear STR_BUF and copy prefix of string over to it.
+# Returns remaining string.
+def(str-buf-copy!, Str -- Str,
+    str-buf-clear!
+    str-head?
+    while(
+        str-buf-push!
+        str-tail
+        str-buf-full? if(0, str-head?)
+    ))
+
+# Set the STR_BUF to a given string. If the string is
+# too large (> STR_BUF_SIZE - 1) it gets truncated.
+def(str-buf!, Str --, str-buf-copy! drop)
+
+# Tests
+
+def(run-tests, --,
+    test-if test-drop test-dup test-swap test-dip
+    test-trip test-rotr test-rotl test= test< test<= test> test>=
+    test+ test- test* test/ test% test-str test-while
+    test@!)
+def(test-if, --, 0 !!0 1 !!1 0 1 !!1 !!0)
+def(test-drop, --, 0 1 drop !!0)
+def(test-dup, --, 0 1 dup !!011)
+def(test-swap, --, 0 1 0 swap !!001)
+def(test-dip, --, 0 0 dip(1) !!010)
+def(test-trip, --, 0 1 trip !!111 !!0)
+def(test-rotr, --,
+    1 0 0 rotr !!010
+    0 1 0 rotr !!001
+    0 0 1 rotr !!100)
+def(test-rotl, --,
+    1 0 0 rotl !!001
+    0 1 0 rotl !!100
+    0 0 1 rotl !!010)
+
+def(test=, --,
+    0 0 = !!1
+    0 1 = !!0
+    1 0 = !!0
+    1 1 = !!1
+    1 2 = !!0
+    2 1 = !!0
+    2 2 = !!1)
+def(test<, --,
+    0 0 < !!0
+    0 1 < !!1
+    1 0 < !!0
+    1 1 < !!0
+    1 2 < !!1
+    2 1 < !!0
+    2 2 < !!0)
+def(test<=, --,
+    0 0 <= !!1
+    0 1 <= !!1
+    1 0 <= !!0
+    1 1 <= !!1
+    1 2 <= !!1
+    2 1 <= !!0
+    2 2 <= !!1)
+def(test>, --,
+    0 0 > !!0
+    0 1 > !!0
+    1 0 > !!1
+    1 1 > !!0
+    1 2 > !!0
+    2 1 > !!1
+    2 2 > !!0)
+def(test>=, --,
+    0 0 >= !!1
+    0 1 >= !!0
+    1 0 >= !!1
+    1 1 >= !!1
+    1 2 >= !!0
+    2 1 >= !!1
+    2 2 >= !!1
+    -1 0 >= !!0
+    -1 -1 >= !!1
+    0 -1 >= !!1
+    -1 -2 >= !!1
+    -2 -2 >= !!1
+    -2 -1 >= !!0)
+
+def(test+, --,
+    0 0 + !!0
+    0 1 + !!1
+    1 0 + !!1
+    1 1 + 2 = !!1
+    2 2 + 4 = !!1
+    2 -2 + !!0)
+
+def(test-, --,
+    0 0 - !!0
+    1 0 - !!1
+    1 1 - !!0
+    0 1 - -1 !!=
+    2 2 - !!0
+    2 4 - -2 !!=
+    4 2 - 2 !!=)
+
+def(test*, --,
+    0 0 * !!0
+    2 1 * 2 !!=
+    2 2 * 4 !!=
+    2 4 * 8 !!=)
+
+def(test/, --,
+    1 1 / !!1
+    -5 2 / -2 !!=
+    -4 2 / -2 !!=
+    -3 2 / -1 !!=
+    -2 2 / -1 !!=
+    -1 2 / !!0
+    0 2 / !!0
+    1 2 / !!0
+    2 2 / !!1
+    3 2 / !!1
+    4 2 / 2 !!=
+    5 2 / 2 !!=
+    0 -2 / !!0
+    1 -2 / !!0
+    2 -2 / -1 !!=
+    3 -2 / -1 !!=
+    4 -2 / -2 !!=
+    5 -2 / -2 !!=)
+
+def(test%, --,
+    1 1 % !!0
+    -5 2 % -1 !!=
+    -4 2 % !!0
+    -3 2 % -1 !!=
+    -2 2 % !!0
+    -1 2 % -1 !!=
+    0 2 % !!0
+    1 2 % !!1
+    2 2 % !!0
+    3 2 % !!1
+    4 2 % !!0
+    5 2 % !!1)
+
+2 longs def-static-buffer(TEST_BUF)
+def(test@!, --,
+    0 TEST_BUF long@@ !!0
+    1 TEST_BUF long@@ !!0
+    99 0 TEST_BUF long!!
+    0 TEST_BUF long@@ 99 !!=
+    1 TEST_BUF long@@ !!0
+    30 1 TEST_BUF long!!
+    0 TEST_BUF long@@ 99 !!=
+    1 TEST_BUF long@@ 30 !!=
+    0 0 TEST_BUF long!!
+    0 TEST_BUF byte@@ !!0
+    1 TEST_BUF byte@@ !!0
+    2 TEST_BUF byte@@ !!0
+    3 TEST_BUF byte@@ !!0
+    99 2 TEST_BUF byte!!
+    0 TEST_BUF byte@@ !!0
+    1 TEST_BUF byte@@ !!0
+    2 TEST_BUF byte@@ 99 !!=
+    3 TEST_BUF byte@@ !!0)
+
+def(test-str, --,
+    "AaBb"
+    dup str-head 65 !!=
+    dup str-tail str-head 97 !!=
+    dup str-tail str-tail str-head 66 !!=
+    dup str-tail str-tail str-tail str-head 98 !!=
+    dup str-tail str-tail str-tail str-tail str-head 0 !!=
+    drop
+
+    "" str-length 0 !!=
+    "hello" str-length 5 !!=
+    "hello, world!" str-length 13 !!=
+    )
+
+def(test-while, --,
+    999 10 20 while(1- dip(1+)) 30 !!= 999 !!=)
+
+def(stdin,  File, 0)
+def(stdout, File, 1)
+def(stderr, File, 2)
+
+def(init!, +IO, init-io!)
+def(init-io!, +IO,
+    stdin file-in!
+    stdout file-out!
+    stderr file-err!
+    )
+
+long def-static-buffer(FILE_IN)
+def(file-in!, File -- +IO, FILE_IN !)
+def(file-in@, -- File +IO, FILE_IN @)
+
+long def-static-buffer(FILE_OUT)
+def(file-out!, File -- +IO, FILE_OUT !)
+def(file-out@, -- File +IO, FILE_OUT @)
+
+long def-static-buffer(FILE_ERR)
+def(file-err!, File -- +IO, FILE_ERR !)
+def(file-err@, -- File +IO, FILE_ERR @)
+
+def(str-write!, Str File -- +IO,
+    swap str-not-null? while(
+        drop str-buf-copy!
+        dip(dup str-buf-write!)
+        str-not-null?
+    ) drop2
+    )
+
+def(str-print!, Str -- +IO, file-out@ str-write!)
+def(str-trace!, Str -- +IO, file-err@ str-write!)
+def(str-print-sp!, Str -- +IO, str-print! print-sp!)
+def(str-trace-sp!, Str -- +IO, str-trace! trace-sp!)
+def(str-print-ln!, Str -- +IO, str-print! print-ln!)
+def(str-trace-ln!, Str -- +IO, str-trace! trace-ln!)
+
+def(str-buf-char!, Char -- +StrBuf, 0 str-buf-u8! 1 str-buf-length!)
+def(print-char!, Char -- +IO, str-buf-char! str-buf-print!)
+def(trace-char!, Char -- +IO, str-buf-char! str-buf-trace!)
+
+def(print-ln!, +IO, 10 print-char!)
+def(trace-ln!, +IO, 10 trace-char!)
+def(print-sp!, +IO, 32 print-char!)
+def(trace-sp!, +IO, 32 trace-char!)
+def(print-quote!, +IO, 34 print-char!)
+def(trace-quote!, +IO, 34 trace-char!)
+
+def(to-digit, Int -- Char, 10 % 48 +)
+
+def(negate, Int -- Int, -1 *)
+def(abs, Int -- Int, dup 0< if(negate, id))
+
+# put integer into str buf
+def(str-buf-int!, Int --,
+    dup 0= if(
+        drop "0" str-buf!,
+        dup dip(
+            abs
+            str-buf-clear!
+            while(dup to-digit str-buf-push! 10 /)
+        ) 0 < if(45 str-buf-push!, id)
+        str-buf-reverse!
+    ))
+
+def(int-write!, Int File -- +IO, dip(str-buf-int!) str-buf-write!)
+def(int-print!, Int -- +IO, file-out@ int-write!)
+def(int-trace!, Int -- +IO, file-err@ int-write!)
+def(int-print-sp!, Int -- +IO, int-print! print-sp!)
+def(int-trace-sp!, Int -- +IO, int-trace! trace-sp!)
+def(int-print-ln!, Int -- +IO, int-print! print-ln!)
+def(int-trace-ln!, Int -- +IO, int-trace! trace-ln!)
+
+def(panic!, Str -- +IO,
+    "panic: " str-trace! str-trace-ln! 1 posix-exit!)
+
+# reverse contents of str buf
+
+def(str-buf-swap-u8!, Int Int --,
+    dup2 swap
+    dip(dip(dip(str-buf-u8@)))
+    dip(str-buf-u8@)
+    str-buf-u8! str-buf-u8!
+)
+
+def(str-buf-reverse!, --,
+    0 str-buf-length? 1- dup2 <
+    while(drop
+        dup2 str-buf-swap-u8!
+        dip(1 +) 1- dup2 <
+    )
+    drop2
+)
+
+#########
+# Input #
+#########
+
+def(FILE_BUF_SIZE, USize, 65536 2 *)
+long def-static-buffer(FILE_BUF_LENGTH)
+FILE_BUF_SIZE def-static-buffer(FILE_BUF)
+
+def(file-buf-length!, Int --,
+    dup FILE_BUF_LENGTH !
+    dip(0) FILE_BUF byte!!)
+def(file-buf-length@, -- Int, FILE_BUF_LENGTH @)
+
+def(file-buf@, Int -- U8, FILE_BUF byte@@)
+
+def(str-buf-open-file!, -- File +IO,
+    STR_BUF 0 0 posix-open!
+    dup 0 < if("failed to open file!" panic!, id))
+
+def(str-buf-create-file!, -- File +IO,
+    STR_BUF
+    1537 # 0x601
+        # this is an OR of flags:
+        #    O_WRONLY 0x0001 : open in write-only mode
+        #    O_CREAT  0x0200 : create file if it doesn't exist
+        #    O_TRUNC  0x0400 : truncate to zero bytes
+    438 # 0x1B6
+        # this is the default mode creates a file with
+        # unix permission 666 (in octal),
+        # i.e. owner can read+write, everyone can read
+    posix-open!
+    dup 0 < if("failed to open file!" panic!, id))
+
+def(str-open-file!, Str -- File +IO, str-buf! str-buf-open-file!)
+def(str-create-file!, Str -- File +IO, str-buf! str-buf-create-file!)
+
+def(read-file!, File -- +IO,
+    dup FILE_BUF FILE_BUF_SIZE 1- posix-read!
+    dup 0 < if(
+        "failed to read file" panic!,
+        file-buf-length! posix-close!
+        0 < if(
+            "failed to close file" panic!,
+            id
+        )
+    ))
+
+def(read-mirth-src!, +IO,
+    "Reading mirth.mth" str-trace-ln!
+    "mirth.mth" str-open-file! read-file!
+    "Read " str-trace!
+    file-buf-length@ int-trace!
+    " bytes (FILE_BUF_SIZE = " str-trace!
+    FILE_BUF_SIZE int-trace!
+    ")." str-trace-ln!)
+
+#########
+# Names #
+#########
+
+def(MAX_NAMES, USize, 8192)
+long def-static-buffer(NUM_NAMES)
+def(num-names@, Int, NUM_NAMES @)
+def(num-names!, Int --, NUM_NAMES !)
+
+def(NAME_QUADS, USize, 8)
+def(NAME_SIZE, USize, NAME_QUADS longs)
+def(NAME_BUF_SIZE, USize, NAME_SIZE MAX_NAMES *)
+NAME_BUF_SIZE def-static-buffer(NAME_BUF)
+
+# Recalculate length of string buffer as the
+# first position with a zero byte.
+def(str-buf-recalc-length!, --,
+    0 dup STR_BUF byte@@
+    while( # Len Char -- Len Char
+        drop 1+
+        dup STR_BUF byte@@
+    )
+    str-buf-length!
+)
+
+# Add \0 until you get to a certain length.
+def(str-pad-zeros-to-length!, Int --,
+    dup str-buf-length? >
+    while(
+        drop
+        str-buf-length? 1+
+        dup str-buf-length! # this pads the zeros
+        dip(dup) >
+    ) drop)
+
+# Load a name into STR_BUF.
+def(name-load!, Name --,
+    name-quads-load!
+    NAME_SIZE str-buf-length!
+    str-buf-recalc-length!)
+
+# Compare a specific name QUAD with
+# the respective QUAD in STR_BUF.
+def(name-quad-eq, Name Int -- Bool,
+    dip(NAME_SIZE * NAME_BUF +) tuck
+    dip(long@@) STR_BUF long@@ =)
+
+# Compare all quads in name to STR_BUF.
+# Note this code assumes NAME_QUADS is 4.
+def(name-quads-eq, Name -- Bool,
+    dup 0 name-quad-eq if(
+    dup 1 name-quad-eq if(
+    dup 2 name-quad-eq if(
+    dup 3 name-quad-eq if(
+    dup 4 name-quad-eq if(
+    dup 5 name-quad-eq if(
+    dup 6 name-quad-eq if(
+    7 name-quad-eq,
+    drop 0),
+    drop 0),
+    drop 0),
+    drop 0),
+    drop 0),
+    drop 0),
+    drop 0))
+
+def(name-quads-eq?, Name -- Name Bool,
+    dup name-quads-eq)
+
+def(name-quad-save!, Name Int --,
+    dip(NAME_SIZE * NAME_BUF +) tuck
+    STR_BUF long@@ rotr long!!)
+
+def(name-quads-save!, Name -- ,
+    dup 0 name-quad-save!
+    dup 1 name-quad-save!
+    dup 2 name-quad-save!
+    dup 3 name-quad-save!
+    dup 4 name-quad-save!
+    dup 5 name-quad-save!
+    dup 6 name-quad-save!
+    7 name-quad-save!)
+
+def(name-quad-load!, Name Int --,
+    dip(NAME_SIZE * NAME_BUF +) tuck
+    dip(long@@) STR_BUF long!!)
+
+def(name-quads-load!, Name -- ,
+    dup 0 name-quad-load!
+    dup 1 name-quad-load!
+    dup 2 name-quad-load!
+    dup 3 name-quad-load!
+    dup 4 name-quad-load!
+    dup 5 name-quad-load!
+    dup 6 name-quad-load!
+    7 name-quad-load!)
+
+# Load STR_BUF into name table. Performs deduplication.
+def(name-save!, -- Name,
+    NAME_SIZE 1+ str-pad-zeros-to-length!
+    0 dup num-names@ < while(
+        drop
+        name-quads-eq? if(
+            0,
+            1+ dup num-names@ <
+        )
+    )
+    dup num-names@ < if(
+        id, # name already exists
+        # name is new
+        dup name-quads-save!
+        dup 1+ num-names!
+    ))
+
+def(show-names-table!, +Names +IO,
+    0 dup num-names@ <
+    while( # Name Bool -- Name Bool Bool
+        drop
+        dup int-print!
+        ": " str-print!
+        dup name-load! str-buf-print! print-ln!
+        1+ dup num-names@ <
+    )
+    drop
+)
+
+###################
+# Primitive Names #
+###################
+
+def(PRIM_END, Prim, 0)
+def(PRIM_ID, Prim, 1)
+def(PRIM_DUP, Prim, 2)
+def(PRIM_DROP, Prim, 3)
+def(PRIM_SWAP, Prim, 4)
+def(PRIM_DIP, Prim, 5)
+def(PRIM_IF, Prim, 6)
+def(PRIM_WHILE, Prim, 7)
+def(PRIM_INT_ADD, Prim, 8)
+def(PRIM_INT_SUB, Prim, 9)
+def(PRIM_INT_MUL, Prim, 10)
+def(PRIM_INT_DIV, Prim, 11)
+def(PRIM_INT_MOD, Prim, 12)
+def(PRIM_INT_EQ, Prim, 13)
+def(PRIM_INT_LT, Prim, 14)
+def(PRIM_INT_LE, Prim, 15)
+def(PRIM_MEM_GET, Prim, 16)
+def(PRIM_MEM_SET, Prim, 17)
+def(PRIM_MEM_GET_BYTE, Prim, 18)
+def(PRIM_MEM_SET_BYTE, Prim, 19)
+def(PRIM_POSIX_READ, Prim, 20)
+def(PRIM_POSIX_WRITE, Prim, 21)
+def(PRIM_POSIX_OPEN, Prim, 22)
+def(PRIM_POSIX_CLOSE, Prim, 23)
+def(PRIM_POSIX_EXIT, Prim, 24)
+def(PRIM_POSIX_MMAP, Prim, 25)
+def(PRIM_DEBUG, Prim, 26)
+def(PRIM_MIRTH_REVISION, Prim, 27)
+def(PRIM_DEF, Prim, 28)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 29)
+def(PRIM_OUTPUT_ASM, Prim, 30)
+def(PRIM_OUTPUT_C99, Prim, 31)
+def(NUM_PRIMS, Prim, 32)
+
+def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
+
+def(def-prim!, Prim Str -- +Names,
+    str-buf! name-save! swap !!=)
+
+# Initialize name table with list of primitives.
+# Note that order matters very much here, but any
+# deviation from the order above will be flagged
+# thanks to assertions.
+def(init-names!, +Names,
+    0 num-names!
+    PRIM_END "end" def-prim!
+    PRIM_ID "id" def-prim!
+    PRIM_DUP "dup" def-prim!
+    PRIM_DROP "drop" def-prim!
+    PRIM_SWAP "swap" def-prim!
+    PRIM_DIP "dip" def-prim!
+    PRIM_IF "if" def-prim!
+    PRIM_WHILE "while" def-prim!
+    PRIM_INT_ADD "+" def-prim!
+    PRIM_INT_SUB "-" def-prim!
+    PRIM_INT_MUL "*" def-prim!
+    PRIM_INT_DIV "/" def-prim!
+    PRIM_INT_MOD "%" def-prim!
+    PRIM_INT_EQ "=" def-prim!
+    PRIM_INT_LT "<" def-prim!
+    PRIM_INT_LE "<=" def-prim!
+    PRIM_MEM_GET "@" def-prim!
+    PRIM_MEM_SET "!" def-prim!
+    PRIM_MEM_GET_BYTE "byte@" def-prim!
+    PRIM_MEM_SET_BYTE "byte!" def-prim!
+    PRIM_POSIX_READ "posix-read!" def-prim!
+    PRIM_POSIX_WRITE "posix-write!" def-prim!
+    PRIM_POSIX_OPEN "posix-open!" def-prim!
+    PRIM_POSIX_CLOSE "posix-close!" def-prim!
+    PRIM_POSIX_EXIT "posix-exit!" def-prim!
+    PRIM_POSIX_MMAP "posix-mmap!" def-prim!
+    PRIM_DEBUG "??" def-prim!
+    PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
+    PRIM_DEF "def" def-prim!
+    PRIM_DEF_STATIC_BUFFER "def-static-buffer" def-prim!
+    PRIM_OUTPUT_ASM "output-asm" def-prim!
+    PRIM_OUTPUT_C99 "output-c99" def-prim!
+    )
+
+#################
+# Strings Table #
+#################
+
+def(MAX_STRINGS, USize, 32768)
+long def-static-buffer(STRINGS_SIZE)
+MAX_STRINGS bytes def-static-buffer(STRINGS_BUF)
+
+# Size of strings table.
+def(strings-size@, -- U64 +StrTable, STRINGS_SIZE @)
+
+# Size of strings table.
+def(strings-size!, U64 -- +StrTable, STRINGS_SIZE !)
+
+# Read byte from strings table.
+def(strings-u8@, U64 -- U8 +StrTable, byte@)
+
+# Read byte from strings table, leaving index in place.
+def(strings-u8?, U64 -- U64 U8 +StrTable, dup strings-u8@)
+
+# Write byte to strings table.
+def(strings-u8!, U8 U64 -- +StrTable, byte!)
+
+# Push byte onto strings table.
+def(strings-push!, U8 -- +StrTable,
+    strings-size@ STRINGS_BUF byte!!
+    strings-size@ 1+ strings-size!)
+
+# Load STR_BUF into strings table,
+# returning the index of the new string.
+def(strings-save!, -- String +StrTable +StrBuf,
+    strings-size@
+    0 dup str-buf-length? < while(
+        drop
+        dup str-buf-u8@
+        strings-push!
+        1+
+        dup str-buf-length? <
+    )
+    drop
+    0 strings-push!)
+
+# Load string into STR_BUF.
+def(strings-load!, String -- +StrTable +StrBuf,
+    str-buf-clear!
+    strings-u8? while(
+        str-buf-push!
+        1+ strings-u8?
+    )
+    drop)
+
+# Load string into STR_BUF but with escape sequences.
+# FIXME: implement escape sequence handling.
+def(strings-load-escaped!, String -- +StrTable +StrBuf,
+    strings-load!)
+
+##########
+# Tokens #
+##########
+
+def(MAX_TOKENS, USize, 32768)
+
+long def-static-buffer(NUM_TOKENS)
+def(num-tokens@, Int, NUM_TOKENS @)
+def(num-tokens!, Int --, NUM_TOKENS !)
+def(clear-tokens!, --, 0 num-tokens!)
+
+MAX_TOKENS bytes def-static-buffer(TOKEN_TYPE)
+def(token-type!, TokenType Token --, TOKEN_TYPE byte!!)
+def(token-type@, Token -- TokenType, TOKEN_TYPE byte@@)
+def(token-type?, Token -- Token TokenType, dup token-type@)
+def(TOKEN_NONE, TokenType, 0)
+def(TOKEN_LPAREN, TokenType, 1)
+def(TOKEN_RPAREN, TokenType, 2)
+def(TOKEN_COMMA, TokenType, 3)
+def(TOKEN_NAME, TokenType, 4)
+def(TOKEN_INT, TokenType, 5)
+def(TOKEN_STR, TokenType, 6)
+def(token-type-str, TokenType -- Str,
+    dup TOKEN_NONE = if(drop "NONE",
+    dup TOKEN_LPAREN = if(drop "LPAREN",
+    dup TOKEN_RPAREN = if(drop "RPAREN",
+    dup TOKEN_COMMA = if(drop "COMMA",
+    dup TOKEN_NAME = if(drop "NAME",
+    dup TOKEN_INT = if(drop "INT",
+    dup TOKEN_STR = if(drop "STR",
+    drop "???UNKNOWN???"))))))))
+def(token-type-print!, TokenType --,
+    token-type-str str-print!)
+
+MAX_TOKENS longs trip
+    def-static-buffer(TOKEN_VALUE)
+    def-static-buffer(TOKEN_ROW)
+    def-static-buffer(TOKEN_COL)
+
+def(token-value!, TokenValue Token --, TOKEN_VALUE long!!)
+def(token-value@, Token -- TokenValue, TOKEN_VALUE long@@)
+def(token-value?, Token -- Token TokenValue, dup token-value@)
+
+def(token-row!, Row Token --, TOKEN_ROW long!!)
+def(token-row@, Token -- Row, TOKEN_ROW long@@)
+def(token-row?, Token -- Token Row, dup token-row@)
+
+def(token-col!, Col Token --, TOKEN_COL long!!)
+def(token-col@, Token -- Col, TOKEN_COL long@@)
+def(token-col?, Token -- Token Col, dup token-col@)
+
+def(token-new, -- Token, num-tokens@ dup 1+ num-tokens!)
+
+def(token-trace-prefix!, Token -- +IO,
+    token-row? int-trace! ":" str-trace!
+    token-col? int-trace! ":" str-trace-sp!
+    drop)
+
+def(token-print-prefix!, Token -- +IO,
+    token-row? int-print! ":" str-print!
+    token-col? int-print! ":" str-print-sp!
+    drop)
+
+def(token-print!, Token -- +IO,
+    dup token-print-prefix!
+    dup int-print-sp!
+    token-type? token-type-print!
+    token-type? TOKEN_NAME = if(
+        print-sp!
+        token-value? name-load! str-buf-print!,
+
+    token-type? TOKEN_STR = if(
+        print-sp!
+        print-quote!
+        token-value? STRINGS_BUF + strings-load-escaped! str-buf-print!
+        print-quote!,
+
+        print-sp!
+        token-value? int-print!))
+
+    drop
+    print-ln!
+)
+
+def(show-tokens!, --,
+    0 dup num-tokens@ < while(
+        drop
+        dup token-print!
+        1+ dup num-tokens@ <
+    ) drop)
+
+#########
+# LEXER #
+#########
+
+long def-static-buffer(LEXER_ROW)
+def(lexer-row@, -- Row +Lexer, LEXER_ROW @)
+def(lexer-row!, Row -- +Lexer, LEXER_ROW !)
+
+long def-static-buffer(LEXER_COL)
+def(lexer-col@, -- Col +Lexer, LEXER_COL @)
+def(lexer-col!, Col -- +Lexer, LEXER_COL !)
+
+long def-static-buffer(LEXER_IDX)
+def(lexer-idx@, -- Token +Lexer, LEXER_IDX @)
+def(lexer-idx!, Token -- +Lexer, LEXER_IDX !)
+
+def(LEXER_STACK_SIZE, USize, 256)
+long def-static-buffer(LEXER_STACK_LENGTH)
+LEXER_STACK_SIZE longs def-static-buffer(LEXER_STACK_BUF)
+
+def(lexer-stack-length@, U64 +Lexer,
+    LEXER_STACK_LENGTH @)
+
+def(lexer-stack-length!, U64 -- +Lexer,
+    LEXER_STACK_LENGTH !)
+
+def(lexer-stack-clear!, +Lexer,
+    0 lexer-stack-length!)
+
+def(lexer-stack-empty?, Bool +Lexer,
+    lexer-stack-length@ 0 <=)
+
+def(lexer-stack-full?, Bool +Lexer,
+    lexer-stack-length@ LEXER_STACK_SIZE >=)
+
+def(lexer-stack-push!, Token -- +Lexer,
+    lexer-stack-full? if(
+        "compiler error: lexer stack overflow" panic!,
+        lexer-stack-length@
+        dup 1+ lexer-stack-length!
+        LEXER_STACK_BUF long!!
+    ))
+
+def(lexer-stack-pop!, -- Token +Lexer,
+    lexer-stack-empty? if(
+        "compiler error: lexer stack underflow" panic!,
+        lexer-stack-length@ 1-
+        dup lexer-stack-length!
+        LEXER_STACK_BUF long@@
+    ))
+
+def(run-lexer!, +Lexer,
+    1 lexer-row!
+    1 lexer-col!
+    0 lexer-idx!
+
+    lexer-done? not while(
+        drop
+        lexer-next!
+        lexer-done? not
+    )
+
+    # FIXME: check that lexer stack is empty
+
+    TOKEN_NONE 0
+    lexer-emit!
+)
+
+# Is the lexer done?
+def(lexer-done?, Bool +Lexer, lexer-idx@ file-buf-length@ >=)
+
+# Create a token, and add it to the token buffer,
+# returning the new token.
+def(lexer-make!, TokenType TokenValue -- Token,
+    token-new
+    dup dip(token-value!)
+    dup dip(token-type!)
+    dip(lexer-row@) dup dip(token-row!)
+    dip(lexer-col@) dup dip(token-col!))
+
+# Create a token, and add it to the token buffer.
+def(lexer-emit!, TokenType TokenValue, lexer-make! drop)
+
+# Lex the next token.
+def(lexer-next!, --,
+    lexer-peek
+
+    is-newline? if(
+        drop
+        lexer-emit-newline!,
+
+    is-whitespace? if(
+        drop,
+
+    is-pound? if(
+        drop
+        lexer-skip-comment!,
+
+    is-comma? if(
+        drop
+        TOKEN_COMMA 0 lexer-emit!,
+
+    is-lparen? if(
+        drop
+        lexer-emit-lparen!,
+
+    is-rparen? if(
+        drop
+        lexer-emit-rparen!,
+
+    is-quote? if(
+        drop
+        lexer-emit-string!,
+
+    is-name-char? if(
+        drop
+        lexer-emit-name!,
+
+        drop # LATER emit lexer error
+        ))))))))
+
+    lexer-move!
+)
+
+def(lexer-emit-newline!, +Lexer,
+    lexer-row@ 1+ lexer-row!
+    0 lexer-col!)
+
+def(lexer-emit-lparen!, +Lexer,
+    TOKEN_LPAREN 0 lexer-make!
+    lexer-stack-push!)
+
+def(lexer-emit-rparen!, +Lexer,
+    # FIXME: handle empty lexer stack (AKA mismatched right paren)
+    TOKEN_RPAREN
+    lexer-stack-pop! dup
+    dip(lexer-make!) token-value!)
+
+def(lexer-emit-name!, +Lexer,
+    str-buf-clear!
+    TOKEN_NAME 0 lexer-make!
+
+    lexer-peek 1 while(
+        drop
+        str-buf-push!
+        lexer-move!
+        lexer-peek is-name-char?
+    )
+    drop
+    lexer-move-back!
+
+    str-buf-is-int? if(
+        str-buf-int? over token-value!
+        TOKEN_INT swap token-type!,
+
+        name-save!
+        swap token-value!
+    ))
+
+def(str-buf-is-int?, Bool +StrBuf,
+    str-buf-is-dec-int? # FIXME: handle hex
+    )
+
+def(str-buf-is-dec-int?, Bool +StrBuf,
+    0 # number of digits
+    0 # current index
+    dup str-buf-u8@ is-sign? nip if(
+        1+,
+        id
+    )
+    dup str-buf-u8@ is-digit? nip while(
+        drop
+        dip(1+) 1+
+        dup str-buf-u8@ is-digit? nip
+    )
+    swap 1 >= if(
+        str-buf-length? =,
+        drop 0
+    ))
+
+def(str-buf-int?, Int +StrBuf,
+    str-buf-dec-int? # FIXME: handle hex
+    )
+
+def(str-buf-dec-int?, Int +StrBuf,
+    1 # sign multiplier
+    0 # accumulated value
+    0 # current index
+    dup str-buf-u8@ is-sign? if(
+        is-minus-sign? nip if(
+            dip(dip(drop -1)),
+            id
+        )
+        1+,
+        drop
+    )
+    dup str-buf-length? < while(
+        drop
+        dup dip(
+            str-buf-u8@
+            dip(10 *) 48 - +
+        )
+        1+
+        dup str-buf-length? <
+    )
+    drop *)
+
+def(lexer-emit-string!, +Lexer,
+    str-buf-clear!
+    TOKEN_STR 0 lexer-make!
+
+    lexer-move!
+    lexer-peek is-string-end? not while(
+        drop
+        lexer-push-string-char!
+        lexer-move!
+        lexer-peek is-string-end? not
+    )
+    drop
+
+    strings-save!
+    swap token-value!
+    )
+
+def(lexer-push-string-char!, Char -- +Lexer,
+    str-buf-push!) # FIXME: handle escape sequences
+
+def(lexer-skip-comment!, +Lexer,
+    lexer-comment-end? not while(
+        drop
+        lexer-move!
+        lexer-comment-end? not
+    )
+    lexer-peek is-newline? if(
+        lexer-emit-newline! drop,
+        drop
+    ))
+
+def(lexer-comment-end?, Bool +Lexer,
+    lexer-done? if(
+        1,
+        lexer-peek is-newline? nip
+    ))
+
+def(lexer-peek, Char +Lexer, lexer-idx@ file-buf@)
+def(lexer-move!, +Lexer,
+    lexer-idx@ 1+ lexer-idx!
+    lexer-col@ 1+ lexer-col!)
+def(lexer-move-back!, +Lexer,
+    lexer-idx@ 1- lexer-idx!
+    lexer-col@ 1- lexer-col!)
+
+def(is-newline?, Char -- Char Bool, dup 10 =)
+def(is-whitespace?, Char -- Char Bool, dup 9 = dip(dup 32 =) +)
+def(is-pound?, Char -- Char Bool, dup 35 =)
+def(is-lparen?, Char -- Char Bool, dup 40 =)
+def(is-rparen?, Char -- Char Bool, dup 41 =)
+def(is-comma?, Char -- Char Bool, dup 44 =)
+def(is-quote?, Char -- Char Bool, dup 34 =)
+def(is-digit?, Char -- Char Bool, dup 48 57 in-range)
+def(is-upper-hexdigit?, Char -- Char Bool, dup 65 70 in-range)
+def(is-lower-hexdigit?, Char -- Char Bool, dup 97 102 in-range)
+def(is-hexdigit?, Char -- Char Bool, is-digit? dip(is-upper-hexdigit?) + dip(is-lower-hexdigit?) +)
+def(is-nul?, Char -- Char Bool, dup 0=)
+def(is-sign?, Char -- Char Bool, is-plus-sign? dip(is-minus-sign?) +)
+def(is-plus-sign?, Char -- Char Bool, dup 43 =)
+def(is-minus-sign?, Char -- Char Bool, dup 45 =)
+
+def(is-string-end?, Char -- Char Bool, is-quote? dip(is-newline?) + dip(is-nul?) +)
+
+def(is-name-char?, Char -- Char Bool,
+    is-special-char?
+    if(0, dup 33 126 in-range))
+
+def(is-special-char?, Char -- Char Bool,
+    is-quote?
+    dip(is-lparen?) +
+    dip(is-rparen?) +
+    dip(is-comma?) +
+    dip(is-pound?) +
+    # FIXME: include brackets & braces ... maybe colons
+    )
+
+def(in-range, Int Int Int -- Bool, dip(over dip(>=)) <= *)
+
+###############
+# Value Stack #
+###############
+
+def(VSTACK_SIZE, USize, 8192)
+long def-static-buffer(VSTACK_LEN)
+VSTACK_SIZE longs def-static-buffer(VSTACK_BUF)
+
+def(vstack-len@, U64 +VSTACK, VSTACK_LEN @)
+def(vstack-len!, U64 -- +VSTACK, VSTACK_LEN !)
+def(vstack-empty?, Bool +VSTACK, vstack-len@ 0 <=)
+def(vstack-full?, Bool +VSTACK, vstack-len@ VSTACK_SIZE >=)
+def(vstack-i64@, U64 -- I64 +VSTACK, VSTACK_BUF long@@)
+def(vstack-i64!, I64 U64 -- +VSTACK, VSTACK_BUF long!!)
+
+def(vstack-pop!, I64 +VSTACK,
+    vstack-empty? if(
+        "stack underflow: attempted to pop on empty vstack" panic!,
+        vstack-len@ 1- vstack-len!
+        vstack-len@ vstack-i64@
+    ))
+
+def(vstack-pop2!, I64 I64 +VSTACK,
+    vstack-pop! dip(vstack-pop!))
+
+def(vstack-pop3!, I64 I64 I64 +VSTACK,
+    vstack-pop! dip(vstack-pop2!))
+
+def(vstack-pop4!, I64 I64 I64 I64 +VSTACK,
+    vstack-pop! dip(vstack-pop3!))
+
+def(vstack-pop5!, I64 I64 I64 I64 I64 +VSTACK,
+    vstack-pop! dip(vstack-pop4!))
+
+def(vstack-pop6!, I64 I64 I64 I64 I64 I64 +VSTACK,
+    vstack-pop! dip(vstack-pop5!))
+
+def(vstack-push!, I64 -- +VSTACK,
+    vstack-full? if(
+        "stack overflow: attempted to push on full vstack" panic!,
+        vstack-len@ vstack-i64!
+        vstack-len@ 1+ vstack-len!
+    ))
+
+def(vstack-push2!, I64 I64 -- +VSTACK,
+    dip(vstack-push!) vstack-push!)
+
+def(vstack-push3!, I64 I64 I64 -- +VSTACK,
+    dip(vstack-push2!) vstack-push!)
+
+def(vstack-top@, I64 +VSTACK,
+    vstack-empty? if(
+        "stack underflow: attempted to read from top of empty vstack" panic!,
+        vstack-len@ 1- vstack-i64@
+    ))
+
+def(vstack-top!, I64 -- +VSTACK,
+    vstack-empty? if(
+        "stack underflow: attempted to write to top of empty vstack" panic!,
+        vstack-len@ 1- vstack-i64!
+    ))
+
+def(vstack-trace!, +VSTACK +IO,
+    0 dup vstack-len@ < while(
+        drop
+        dup vstack-i64@
+        int-trace-sp!
+        1+
+        dup vstack-len@ <
+    ) drop trace-ln!)
+
+###############
+# Diagnostics #
+###############
+
+def(emit-warning!, Token Str -- +IO,
+    "mirth.mth:" str-trace!
+    dip(token-trace-prefix!)
+    "warning: " str-trace!
+    str-trace-ln!)
+
+def(emit-error!, Token Str -- +IO,
+    "mirth.mth:" str-trace!
+    dip(token-trace-prefix!)
+    "error: " str-trace!
+    str-trace-ln!)
+
+def(emit-fatal-error!, *a Token Str -- *b +IO,
+    emit-error!
+    1 posix-exit!)
+
+###########
+# Running #
+###########
+
+# Run directly from tokens! (FIXME: Use this only for top-level code.)
+# No type checking. (FIXME: Add dynamic types.)
+def(token-run!, Token -- +Mirth,
+    token-run-end? not while(
+        drop
+        token-run-one!
+        token-run-end? not
+    ) drop)
+
+# Is this a token to stop running at?
+def(token-run-end?, Token -- Token Bool +Mirth,
+    dup num-tokens@ >= if(
+        1,
+    token-type? TOKEN_NONE = if(
+        1,
+    token-type? TOKEN_COMMA = if(
+        1,
+        token-type? TOKEN_RPAREN =
+    ))))
+
+# Run a single token, return next token.
+def(token-run-one!, Token -- Token +Mirth,
+    token-type? TOKEN_INT = if(
+        token-value? vstack-push!,
+    token-type? TOKEN_STR = if(
+        token-value? STRINGS_BUF + vstack-push!,
+    token-type? TOKEN_LPAREN = if(
+        token-value@,
+    token-type? TOKEN_NAME = if(
+        dup token-run-name!,
+
+        dup "Unexpected token type in token-run!" emit-fatal-error!
+    )))) 1+)
+
+# Run a single name token.
+def(token-run-name!, Token -- +Mirth,
+    token-value?
+
+    is-prim? if(
+        drop token-run-prim!,
+
+    name-undefined? if(
+        drop "Word is undefined." emit-fatal-error!,
+
+    name-is-word? if(
+        nip name-value@ token-run!,
+
+    name-is-buffer? if(
+        nip name-value@ buffer-base@ vstack-push!,
+
+        drop2 "Don't know how to run word." emit-fatal-error!
+    )))))
+
+# Run a single primitive name token.
+def(token-run-prim!, Token --,
+
+    token-value?
+
+    dup PRIM_ID = if(
+        drop
+        0 0 arity-check!
+        token-args-0,
+
+    dup PRIM_SWAP = if(
+        drop
+        2 2 arity-check!
+        token-args-0
+        vstack-pop2!
+        swap
+        vstack-push2!,
+
+    dup PRIM_DUP = if(
+        drop
+        1 2 arity-check!
+        token-args-0
+        vstack-pop!
+        dup
+        vstack-push2!,
+
+    dup PRIM_DROP = if(
+        drop
+        1 0 arity-check!
+        token-args-0
+        vstack-pop!
+        drop,
+
+    dup PRIM_DIP = if(
+        drop
+        1 1 arity-check!
+        token-args-1
+        vstack-pop!
+        dip(token-run!)
+        vstack-push!,
+
+    dup PRIM_IF = if(
+        drop
+        1 0 arity-check!
+        token-args-2
+        vstack-pop!
+        if(drop, nip) token-run!,
+
+    dup PRIM_WHILE = if(
+        drop
+        1 0 arity-check!
+        token-args-1
+        vstack-pop! while(
+            vstack-push!
+            dup token-run!
+            vstack-pop!
+        )
+        drop,
+
+    dup PRIM_INT_ADD = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        +
+        vstack-push!,
+
+    dup PRIM_INT_SUB = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        -
+        vstack-push!,
+
+    dup PRIM_INT_MUL = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        *
+        vstack-push!,
+
+    dup PRIM_INT_DIV = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        /
+        vstack-push!,
+
+    dup PRIM_INT_MOD = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        %
+        vstack-push!,
+
+    dup PRIM_INT_EQ = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        =
+        vstack-push!,
+
+    dup PRIM_INT_LT = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        <
+        vstack-push!,
+
+    dup PRIM_INT_LE = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        <=
+        vstack-push!,
+
+    dup PRIM_MEM_GET = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        @
+        vstack-push!,
+
+    dup PRIM_MEM_SET = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        !,
+
+    dup PRIM_MEM_GET_BYTE = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        byte@
+        vstack-push!,
+
+    dup PRIM_MEM_SET_BYTE = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        byte!,
+
+    dup PRIM_POSIX_MMAP = if(
+        drop
+        6 1 arity-check!
+        token-args-0
+        vstack-pop6!
+        posix-mmap!
+        vstack-push!,
+
+    dup PRIM_POSIX_WRITE = if(
+        drop
+        3 0 arity-check!
+        token-args-0
+        vstack-pop3!
+        posix-write!,
+
+    dup PRIM_POSIX_READ = if(
+        drop
+        3 1 arity-check!
+        token-args-0
+        vstack-pop3!
+        posix-read!
+        vstack-push!,
+
+    dup PRIM_POSIX_OPEN = if(
+        drop
+        3 1 arity-check!
+        token-args-0
+        vstack-pop3!
+        posix-open!
+        vstack-push!,
+
+    dup PRIM_POSIX_CLOSE = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        posix-close!
+        vstack-push!,
+
+    dup PRIM_POSIX_EXIT = if(
+        drop 1 0 arity-check! token-args-0
+        vstack-pop! posix-exit!,
+
+    dup PRIM_DEBUG = if(
+        drop 0 0 arity-check! token-args-0
+        "?? " str-trace!
+        vstack-trace!,
+
+    dup PRIM_DEF = if(
+        drop
+        0 0 arity-check!
+        token-args-3
+        nip swap token-type? TOKEN_NAME = if(
+            token-value? name-undefined? if(
+                DEF_WORD over name-sort!
+                nip name-value!,
+                drop "word already defined" emit-fatal-error!
+            ),
+            "expected word name" emit-fatal-error!
+        ),
+
+    dup PRIM_DEF_STATIC_BUFFER = if(
+        drop
+        1 0 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-value? name-undefined? if(
+                nip
+                DEF_BUFFER over name-sort!
+                vstack-pop! buffer-alloc! swap name-value!,
+                drop "buffer already defined" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_MIRTH_REVISION = if(
+        drop
+        0 1 arity-check!
+        token-args-0
+        NEW_MIRTH_REVISION
+        vstack-push!,
+
+    dup PRIM_OUTPUT_C99 = if(
+        drop
+        1 0 arity-check!
+        token-args-1
+        vstack-pop!
+        run-output-c99!,
+
+        drop
+        "Dont know how to run prim yet." emit-warning!
+    )))))))))))))))))))))))))))))))
+
+# Assert stack arity of a primitive. If the
+# arity would result in underflow/overflow,
+# emits a fatal error.
+def(arity-check!, Token U64 U64 -- Token,
+    drop2 # FIXME: implement
+    )
+
+# Verify that token has 0 args, and return them.
+# Emits a fatal error if arity is wrong.
+def(token-args-0, Token --,
+    1+ token-type?
+    TOKEN_LPAREN = if(
+        "expected no args"
+        emit-fatal-error!,
+        drop
+    ))
+
+# Verify that token has 1 arg, and return it.
+# Emits a fatal error if arity is wrong.
+def(token-args-1, Token -- Token,
+    dup
+    1+ token-type?
+    TOKEN_LPAREN = if(
+        1+
+        tuck token-next-arg-end
+        token-type? TOKEN_RPAREN = if(
+            drop2,
+            drop
+            "expected 1 arg, got too many"
+            emit-fatal-error!
+        ),
+        drop
+        "expected 1 arg, got none"
+        emit-fatal-error!
+    ))
+
+# Verify that token has 2 args, and return them.
+# Emits a fatal error if arity is wrong.
+def(token-args-2, Token -- Token Token,
+    dup
+    1+ token-type?
+    TOKEN_LPAREN = if(
+        1+ tuck token-next-arg-end
+        token-type? TOKEN_COMMA = if(
+            1+ tuck token-next-arg-end
+            token-type? TOKEN_RPAREN = if(
+                drop2,
+                drop
+                "expected 2 args, got too many"
+                emit-fatal-error!
+            ),
+            drop
+            "expected 2 args, got only 1"
+            emit-fatal-error!
+        ),
+        drop
+        "expected 2 args, got none"
+        emit-fatal-error!
+    ))
+
+# Verify that token has 3 args, and return them.
+# Emits a fatal error if arity is wrong.
+def(token-args-3, Token -- Token Token Token,
+    dup
+    1+ token-type?
+    TOKEN_LPAREN = if(
+        1+ tuck token-next-arg-end
+        token-type? TOKEN_COMMA = if(
+            1+ tuck token-next-arg-end
+            token-type? TOKEN_COMMA = if(
+                1+ tuck token-next-arg-end
+                token-type? TOKEN_RPAREN = if(
+                    drop2,
+                    drop
+                    "expected 3 args, got too many"
+                    emit-fatal-error!
+                ),
+                drop
+                "expected 3 args, got only 2"
+                emit-fatal-error!
+            ),
+            drop
+            "expected 3 args, got only 1"
+            emit-fatal-error!
+        ),
+        drop
+        "expected 3 args, got none"
+        emit-fatal-error!
+    ))
+
+# Get closest arg ending (COMMA or RPAREN),
+# while respecting the nesting of tokens.
+def(token-next-arg-end, Token -- Token,
+    token-is-arg-end? not while(
+        drop
+        token-next
+        token-is-arg-end? not
+    ))
+
+# Get next token, respecting nesting of tokens.
+def(token-next, Token -- Token,
+    token-type? TOKEN_LPAREN = if(
+        token-value@ 1+,
+
+    token-type? TOKEN_NAME = if(
+        1+
+        token-type? TOKEN_LPAREN = if(
+            token-value@ 1+,
+            id
+        ),
+
+        1+
+    )))
+
+# Is this an arg ending (COMMA or RPAREN)?
+def(token-is-arg-end?, Token -- Token Bool,
+    token-type? TOKEN_COMMA = if(
+        1,
+        token-type? TOKEN_RPAREN =
+    ))
+
+###########
+# Buffers #
+###########
+
+def(MAX_BUFFERS, USize, 1024)
+def(PAGE_SIZE, USize, 8192)
+
+long def-static-buffer(NUM_BUFFERS)
+def(num-buffers@, USize +Buffers, NUM_BUFFERS @)
+def(num-buffers!, USize -- +Buffers, NUM_BUFFERS !)
+
+MAX_BUFFERS longs dup
+    def-static-buffer(BUFFER_SIZE)
+    def-static-buffer(BUFFER_BASE)
+
+def(buffer-size@, Buffer -- U64 +Buffers,
+    BUFFER_SIZE long@@)
+
+def(buffer-size!, Buffer -- U64 +Buffers,
+    BUFFER_SIZE long!!)
+
+def(buffer-alloc!, U64 -- Buffer +Buffers,
+    num-buffers@ MAX_BUFFERS >= if(
+        "compiler error: ran out of buffers" panic!,
+        dup num-buffers@ buffer-size!
+        heap-alloc! num-buffers@ buffer-base!
+        num-buffers@ dup 1+ num-buffers!
+    ))
+
+def(buffer-base@, Buffer -- Ptr +Buffers,
+    BUFFER_BASE long@@)
+
+def(buffer-base!, Buffer -- Ptr +Buffers,
+    BUFFER_BASE long!!)
+
+########
+# Defs #
+########
+
+def(DEF_NONE, Sort, 0)
+def(DEF_WORD, Sort, 1)
+def(DEF_BUFFER, Sort, 2)
+
+MAX_NAMES def-static-buffer(DEF_SORT)
+MAX_NAMES longs def-static-buffer(DEF_VALUE)
+
+def(name-sort!, Sort Name --, DEF_SORT byte!!)
+def(name-sort@, Name -- Sort, DEF_SORT byte@@)
+def(name-sort?, Name -- Name Sort, dup name-sort@)
+
+def(name-value!, Value Name --, DEF_VALUE long!!)
+def(name-value@, Name -- Value, DEF_VALUE long@@)
+def(name-value?, Name -- Name Value, dup name-value@)
+
+def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
+def(name-defined?, Name -- Name Bool, name-undefined? not)
+def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD =)
+def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
+
+###########
+# Codegen #
+###########
+
+def(run-output-c99!, Token String -- +IO,
+    strings-load! str-buf-create-file! file-out!
+    c99-emit-header!
+    c99-emit-strings!
+    c99-emit-prims!
+    c99-emit-buffers!
+    c99-emit-word-sigs!
+    c99-emit-word-defs!
+    c99-emit-main!
+    stdout file-out!)
+
+def(;, Str -- +IO, str-print-ln!)
+def(;;, Str -- +IO, str-print-ln! print-ln!)
+def(.q, Str -- +IO, str-print! print-quote!)
+def(., Str -- +IO, str-print!)
+def(.n, Int -- +IO, int-print!)
+def(.w, Name -- +IO,
+    "// " .
+    dup name-load! str-buf-print! print-ln!
+    "static void w" . .n " (void)" .)
+
+def(c99-emit-header!, +IO,
+    "/* C99 autogenerated by mirth compiler */" ;
+    "#include <stdbool.h>" ;
+    "#include <stdint.h>" ;
+    "#include <stdlib.h>" ;
+    "#include <stdio.h>" ;
+    "#include <fcntl.h>" ;
+    "#include <unistd.h>" ;
+    "#include <sys/mman.h>" ;;
+    "#define STACK_SIZE 2000" ;
+    "static size_t sc = STACK_SIZE;" ;
+    "static int64_t stack[STACK_SIZE] = {0};" ;;
+    )
+
+def(c99-emit-strings!, +IO,
+    "#define STRINGS_SIZE " . strings-size@ .n "" ;
+    "static char strings[STRINGS_SIZE] = { " .
+    0 dup strings-size@ < while(
+        drop
+        dup STRINGS_BUF byte@@ .n ", " .
+        1+ dup strings-size@ <
+    ) drop
+    "};" ;;)
+
+def(c99-emit-buffers!, +IO,
+    0
+    dup num-names@ < while(
+        drop
+        dup c99-emit-buffer!
+        1+
+        dup num-names@ <
+    ) "" ; drop)
+
+def(c99-emit-buffer!, Name -- +IO,
+    name-is-buffer? if(
+        "static uint8_t b" . dup .n "[" . dup name-value@ buffer-size@ .n "] = {0};" ;
+        "static void w" . dup .n " (void) { push((int64_t)b" . .n "); }" ;  ,
+        drop
+    ))
+
+def(c99-emit-prims!, +IO,
+    "static int64_t pop (void) {" ;
+    "    if (sc < STACK_SIZE) {" ;
+    "        return stack[sc++];" ;
+    "    } else {" ;
+    "        fprintf(stderr, " .q "STACK UNDERFLOW" .q ");" ;
+    "        fputc(10, stderr);" ;
+    "        exit(1);" ;
+    "    }" ;
+    "}" ;;
+    "static void* pop_ptr (void) {" ;
+    "    int64_t x = pop();" ;
+    "    return (void*)x;" ;
+    "}";;
+    "static uint8_t pop_u8 (void) {" ;
+    "    int64_t x = pop();" ;
+    "    return (uint8_t)x;" ;
+    "}";;
+
+    "static void push (int64_t x) {" ;
+    "    if (sc > 0) {" ;
+    "        stack[--sc] = x;" ;
+    "    } else {" ;
+    "        fprintf(stderr, " .q "STACK OVERFLOW" .q ");" ;
+    "        fputc(10, stderr);" ;
+    "        exit(1);" ;
+    "    }" ;
+    "}" ;;
+
+    PRIM_ID .w " {" ;
+    "}" ;;
+
+    PRIM_DUP .w " {" ;
+    "    int64_t x = pop();" ;
+    "    push(x); push(x);" ;
+    "}" ;;
+
+    PRIM_DROP .w " {" ;
+    "    pop();" ;
+    "}" ;;
+
+    PRIM_SWAP .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x); push(y);" ;
+    "}" ;;
+
+    PRIM_INT_ADD .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x + y);" ;
+    "}" ;;
+
+    PRIM_INT_SUB .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(y - x);" ;
+    "}" ;;
+
+    PRIM_INT_MUL .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x * y);" ;
+    "}" ;;
+
+    PRIM_INT_DIV .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(y / x);" ;
+    "}" ;;
+
+    PRIM_INT_MOD .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(y % x);" ;
+    "}" ;;
+
+    PRIM_INT_EQ .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(x == y);" ;
+    "}" ;;
+
+    PRIM_INT_LT .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(y < x);" ;
+    "}" ;;
+
+    PRIM_INT_LE .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(y <= x);" ;
+    "}" ;;
+
+    PRIM_POSIX_WRITE .w " {" ;
+    "    size_t n = (size_t)pop();" ;
+    "    void* p = pop_ptr();" ;
+    "    int f = (int)pop();" ;
+    "    write(f, p, n);" ;
+    "}" ;;
+
+    PRIM_POSIX_READ .w " {" ;
+    "    size_t n = (size_t)pop();" ;
+    "    void* p = pop_ptr();" ;
+    "    int f = (int)pop();" ;
+    "    push(read(f,p,n));" ;
+    "}" ;;
+
+    PRIM_POSIX_OPEN .w " {" ;
+    "    int m = (int)pop();" ;
+    "    int f = (int)pop();" ;
+    "    void* p = pop_ptr();" ;
+    "    push(open(p,f,m));" ;
+    "}" ;;
+
+    PRIM_POSIX_CLOSE .w " {" ;
+    "    int x = (int)pop();" ;
+    "    push(close(x));" ;
+    "}" ;;
+
+    PRIM_POSIX_EXIT .w " {" ;
+    "    int x = (int)pop();" ;
+    "    exit(x);" ;
+    "}" ;;
+
+    PRIM_POSIX_MMAP .w " {" ;
+    "    int f = (int)pop();" ;
+    "    int e = (int)pop();" ;
+    "    int d = (int)pop();" ;
+    "    int c = (int)pop();" ;
+    "    size_t b = (size_t)pop();" ;
+    "    void* a = pop_ptr();" ;
+    "    void* p = mmap(a,b,c,d,e,f);" ;
+    "    push((int64_t)p);" ;
+    "}" ;;
+
+    PRIM_DEBUG .w " {" ;
+    "    fprintf(stderr, " .q "?? " .q ");" ;
+    "    for (long i = STACK_SIZE-1; i >= (long)sc; i--) {" ;
+    "        fprintf(stderr, " .q "%p " .q ", (void*)stack[i]);" ;
+    "    }" ;
+    "    fputc(10, stderr);" ;
+    "}" ;;
+
+    PRIM_MIRTH_REVISION .w " {" ;
+    "    push(" . NEW_MIRTH_REVISION .n ");";
+    "}" ;;
+
+    PRIM_MEM_GET .w " {" ;
+    "    stack[sc] = *(int64_t*)(stack[sc]);" ;
+    "}" ;;
+
+    PRIM_MEM_SET .w " {" ;
+    "   int64_t* x = pop_ptr();" ;
+    "   *x = (int64_t)pop();" ;
+    "}" ;;
+
+    PRIM_MEM_GET_BYTE .w " {" ;
+    "   uint8_t* x = pop_ptr();" ;
+    "   push(*x);" ;
+    "}" ;;
+
+    PRIM_MEM_SET_BYTE .w " {" ;
+    "   uint8_t* x = pop_ptr();" ;
+    "   *x = pop_u8();" ;
+    "}" ;;
+
+    )
+
+def(c99-emit-word-sigs!, +IO,
+    0
+    dup num-names@ < while(
+        drop
+        dup c99-emit-word-sig!
+        1+
+        dup num-names@ <
+    )
+    "" ;
+    drop)
+
+def(c99-emit-word-sig!, Name -- +IO,
+    name-is-word? if(
+        "static void w" . .n " (void);" ;,
+        drop
+    ))
+
+def(c99-emit-word-defs!, +IO,
+    0
+    dup num-names@ < while(
+        drop
+        dup c99-emit-word-def!
+        1+
+        dup num-names@ <
+    )
+    drop)
+
+def(c99-emit-word-def!, Name -- +IO,
+    name-is-word? if(
+        dup .w "{" ;
+        name-value@ c99-emit-run!
+        "}" ;;,
+        drop
+    ))
+
+def(c99-emit-run!, Token -- +IO,
+    token-run-end? not while(
+        drop
+        dup c99-emit-token!
+        token-next
+        token-run-end? not
+    ) drop)
+
+def(c99-emit-token!, Token -- +IO,
+    token-type? TOKEN_INT = if(
+        "    push(" . token-value@ .n ");" ;,
+
+    token-type? TOKEN_STR = if(
+        "    push((int64_t)(strings + " . token-value@ .n "));" ;,
+
+    token-type? TOKEN_NAME = if(
+        c99-emit-word!,
+
+        drop
+    ))))
+
+def(c99-emit-word!, Token -- +IO,
+    token-value? PRIM_DIP = if(
+        token-args-1
+        "    int64_t d" . dup .n " = pop();" ;
+        dup c99-emit-run!
+        "    push(d" . .n ");" ;,
+
+    token-value? PRIM_IF = if(
+        token-args-2
+        "    if (pop()) {" ;
+        dip(c99-emit-run!)
+        "    } else {" ;
+        c99-emit-run!
+        "    }" ;,
+
+    token-value? PRIM_WHILE = if(
+        token-args-1
+        "    for (int64_t c" . dup .n
+        " = pop(); c" . dup .n
+        "; c" . dup .n " = pop()) {" ;
+        "    push(c" . dup .n ");" ;
+        c99-emit-run!
+        "    }" ;,
+
+        token-value@
+        "    w" . .n "();" ;
+    ))))
+
+def(c99-emit-main!, Token -- +IO,
+    "int main (void) {" ;
+    c99-emit-run!
+    "    return 0;" ;
+    "}" ;)
+
+########
+# Heap #
+########
+
+def(BASE_HEAP_SIZE, USize, 4194304)
+
+long def-static-buffer(HEAP_LENGTH)
+def(heap-length@, U64 +Heap, HEAP_LENGTH @)
+def(heap-length!, U64 -- +Heap, HEAP_LENGTH !)
+
+long def-static-buffer(HEAP_BASE)
+def(heap-base@, Ptr +Heap, HEAP_BASE @)
+def(heap-base!, Ptr -- +Heap, HEAP_BASE !)
+
+# Ensure that at at least X space on the heap is available.
+#
+# If the space left is too small (or heap has not been allocated,
+# in which the space left is 0), then it throws away the rest of
+# the heap (yes this is bad ... FIXME) and allocates a bigger
+# buffer.
+#
+# Panics if reservation is impossible.
+def(heap-reserve!, U64 -- +Heap,
+    dup heap-length@ <= if(
+        drop,
+
+        heap-new-size dup # size
+        heap-base@ heap-length@ + swap # pointer hint
+        3 # PROT_READ (0x1) | PROT_WRITE (0x2)
+        4098 # MAP_ANONYMOUS (0x1000) | MAP_PRIVATE (0x2)
+        -1 # file descriptor (-1 for MAP_ANONYMOUS)
+        0 # offset
+        posix-mmap!
+        dup 0 > if(
+            dup heap-base@ heap-length@ + = if(
+                drop heap-length@ + heap-length!,
+                heap-base! heap-length!
+            ),
+            "Failed to allocate heap buffer." panic!
+        )
+    ))
+
+def(heap-new-size, U64 -- U64,
+    4095 + dup 4096 % -
+    BASE_HEAP_SIZE max)
+    # FIXME: Increase base heap size each time
+    # this is called, exponentially.
+
+def(max, Int Int -- Int, dup2 < if(nip, drop))
+
+def(heap-alloc!, U64 -- Ptr +Heap,
+    63 + dup 64 % -
+    dup heap-reserve!
+    dup heap-length@ swap - heap-length!
+    heap-base@ tuck + heap-base!)
+
+########
+# Main #
+########
+
+def(main, +IO,
+    init!
+    run-tests
+    read-mirth-src!
+    init-names!
+    run-lexer!
+#    show-names-table!
+#    show-tokens!
+
+    "Building." str-trace-ln!
+
+    0 token-run!
+
+    vstack-empty? if(
+        id,
+        "VSTACK = " str-trace! vstack-trace!
+    ))
+
+
+#########
+# Build #
+#########
+
+def(NEW_MIRTH_REVISION, Int, 0)
+
+"mirth.c" output-c99(main)

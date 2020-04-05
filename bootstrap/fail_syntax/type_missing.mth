@@ -1,5 +1,0 @@
-
-# this is not ok, empty type signature should be "--"
-id' :
-id' = id
-

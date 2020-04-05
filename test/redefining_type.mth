@@ -1,9 +1,0 @@
-
-data T
-  A : Int -- T
-end
-
-data T
-  B : Int -- T
-end
-

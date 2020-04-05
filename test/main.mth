@@ -1,5 +1,0 @@
-
-main : List(Str) -- Int
-main = drop 0
-
-

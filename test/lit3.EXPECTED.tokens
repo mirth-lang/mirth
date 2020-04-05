@@ -1,5 +1,0 @@
-test/lit3.mth:1:1: TNEWLINE
-test/lit3.mth:2:1: -1 TINT
-test/lit3.mth:2:4: TEQUAL2
-test/lit3.mth:2:7: 1 TINT
-test/lit3.mth:2:9: TNEWLINE

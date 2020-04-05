@@ -1,6 +1,0 @@
-data T1
-  A : Int -- T1
-end
-data T2
-  A : Int -- T2
-end

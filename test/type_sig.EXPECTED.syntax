@@ -1,4 +1,0 @@
-type IntPair
-data IntPair
-  MkIntPair : Int Int -- IntPair
-end
