@@ -181,7 +181,7 @@ static void w26 (void) {
 
 // MIRTH_REVISION
 static void w27 (void) {
-    push(1);
+    push(0);
 }
 
 // @
@@ -5009,7 +5009,7 @@ static void w435 (void){
 
 // NEW_MIRTH_REVISION
 static void w436 (void){
-    push(1);
+    push(0);
 }
 
 // run-output-c99!

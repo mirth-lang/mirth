@@ -8,12 +8,12 @@ mirth: mirth0.c mirth.mth
 	./mirth1
 	mv mirth.c mirth2.c
 	gcc $(C99FLAGS) -o mirth2 mirth2.c
-	diff mirth1.c mirth2.c
+	diff mirth1.c mirth2.c || true
 	./mirth2
 	mv mirth.c mirth3.c
 	diff mirth2.c mirth3.c
 
-self-update: mirth
+update-mirth: mirth
 	cp mirth3.c mirth0.c
 
 install-vim:
@@ -24,4 +24,4 @@ install-vim:
 install-code:
 	code --install-extension tools/mirth-code/mirth-*.vsix
 
-.PHONY: mirth self-update install-vim install-code
+.PHONY: mirth update-mirth install-vim install-code
