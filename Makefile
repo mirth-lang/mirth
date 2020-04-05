@@ -13,6 +13,9 @@ mirth: mirth0.c mirth.mth
 	mv mirth.c mirth3.c
 	diff mirth2.c mirth3.c
 
+self-update: mirth
+	cp mirth3.c mirth0.c
+
 install-vim:
 	mkdir -p ~/.vim/bundle
 	rm -rf ~/.vim/bundle/mirth-vim
@@ -21,4 +24,4 @@ install-vim:
 install-code:
 	code --install-extension tools/mirth-code/mirth-*.vsix
 
-.PHONY: mirth install-vim install-code
+.PHONY: mirth self-update install-vim install-code
