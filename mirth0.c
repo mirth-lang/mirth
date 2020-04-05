@@ -109,11 +109,11 @@ struct symbols_t {
         [BUILTIN_MEM_SET] = { .data = "!" },
         [BUILTIN_MEM_GET_BYTE] = { .data = "byte@" },
         [BUILTIN_MEM_SET_BYTE] = { .data = "byte!" },
-        [BUILTIN_FILE_READ] = { .data = "syscall-read!" },
-        [BUILTIN_FILE_WRITE] = { .data = "syscall-write!" },
-        [BUILTIN_FILE_OPEN] = { .data = "syscall-open!" },
-        [BUILTIN_FILE_CLOSE] = { .data = "syscall-close!" },
-        [BUILTIN_EXIT] = { .data = "syscall-exit!" },
+        [BUILTIN_FILE_READ] = { .data = "posix-read!" },
+        [BUILTIN_FILE_WRITE] = { .data = "posix-write!" },
+        [BUILTIN_FILE_OPEN] = { .data = "posix-open!" },
+        [BUILTIN_FILE_CLOSE] = { .data = "posix-close!" },
+        [BUILTIN_EXIT] = { .data = "posix-exit!" },
         [BUILTIN_DEF] = { .data = "def" },
         [BUILTIN_DEF_STATIC_BUFFER] = { .data = "def-static-buffer" },
         [BUILTIN_OUTPUT_ASM] = { .data = "output-asm" },
@@ -1136,7 +1136,7 @@ int main (int argc, const char** argv)
                             goto resume_loop;
 
                         case BUILTIN_EXIT:
-                            arity_check("syscall-exit!", 0, 1, 0);
+                            arity_check("posix-exit!", 0, 1, 0);
                             exit(state.stack[state.sc].data);
 
                         case BUILTIN_DUP:
@@ -1230,7 +1230,7 @@ int main (int argc, const char** argv)
                             break;
 
                         case BUILTIN_FILE_WRITE:
-                            arity_check("syscall-write!", 0, 3, 0);
+                            arity_check("posix-write!", 0, 3, 0);
                             a = state.stack[state.sc+2];
                             b = state.stack[state.sc+1];
                             c = state.stack[state.sc];
@@ -1240,7 +1240,7 @@ int main (int argc, const char** argv)
                             break;
 
                         case BUILTIN_FILE_READ:
-                            arity_check("syscall-read!", 1, 3, 1);
+                            arity_check("posix-read!", 1, 3, 1);
                             a = state.stack[state.sc+2];
                             b = state.stack[state.sc+1];
                             c = state.stack[state.sc];
@@ -1251,7 +1251,7 @@ int main (int argc, const char** argv)
                             break;
 
                         case BUILTIN_FILE_OPEN:
-                            arity_check("syscall-open!", 1, 3, 1);
+                            arity_check("posix-open!", 1, 3, 1);
                             {
                                 a = state.stack[state.sc+2];
                                 b = state.stack[state.sc+1];
@@ -1273,7 +1273,7 @@ int main (int argc, const char** argv)
                             goto resume_loop;
 
                         case BUILTIN_FILE_CLOSE:
-                            arity_check("syscall-close!", 0, 1, 1);
+                            arity_check("posix-close!", 0, 1, 1);
                             {
                                 a = state.stack[state.sc];
                                 ASSERT_TOKEN(a.type == TYPE_INT, ERROR_TYPE, state.pc, "Expected integers.");

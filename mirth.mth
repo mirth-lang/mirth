@@ -105,13 +105,13 @@ def(str-buf-push!, U8 -- +StrBuf,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     ))
-def(str-buf-write!, File -- +StrBuf, STR_BUF str-buf-length? syscall-write!)
+def(str-buf-write!, File -- +StrBuf, STR_BUF str-buf-length? posix-write!)
 def(str-buf-print!, +StrBuf, file-out@ str-buf-write!)
 def(str-buf-trace!, +StrBuf, file-err@ str-buf-write!)
 
 def(str-buf-read!, File -- +IO,
     str-buf-clear!
-    STR_BUF STR_BUF_SIZE 1- syscall-read!
+    STR_BUF STR_BUF_SIZE 1- posix-read!
     dup 0 < if(
         "str-buf-read! failed" panic!,
         str-buf-length!
@@ -372,7 +372,7 @@ def(int-print-ln!, Int -- +IO, int-print! print-ln!)
 def(int-trace-ln!, Int -- +IO, int-trace! trace-ln!)
 
 def(panic!, Str -- +IO,
-    "panic: " str-trace! str-trace-ln! 1 syscall-exit!)
+    "panic: " str-trace! str-trace-ln! 1 posix-exit!)
 
 # reverse contents of str buf
 
@@ -408,7 +408,7 @@ def(file-buf-length@, -- Int, FILE_BUF_LENGTH @)
 def(file-buf@, Int -- U8, FILE_BUF byte@@)
 
 def(str-buf-open-file!, -- File +IO,
-    0 0 0 syscall-open!(STR_BUF)
+    0 0 0 posix-open!(STR_BUF)
     dup 0 < if("failed to open file!" panic!, id))
 
 def(str-buf-create-file!, -- File +IO,
@@ -422,17 +422,17 @@ def(str-buf-create-file!, -- File +IO,
         # this is the default mode creates a file with
         # unix permission 666 (in octal),
         # i.e. owner can read+write, everyone can read
-    syscall-open!(STR_BUF)
+    posix-open!(STR_BUF)
     dup 0 < if("failed to open file!" panic!, id))
 
 def(str-open-file!, Str -- File +IO, str-buf! str-buf-open-file!)
 def(str-create-file!, Str -- File +IO, str-buf! str-buf-create-file!)
 
 def(read-file!, File -- +IO,
-    dup FILE_BUF FILE_BUF_SIZE 1- syscall-read!
+    dup FILE_BUF FILE_BUF_SIZE 1- posix-read!
     dup 0 < if(
         "failed to read file" panic!,
-        file-buf-length! syscall-close!
+        file-buf-length! posix-close!
         0 < if(
             "failed to close file" panic!,
             id
@@ -642,11 +642,11 @@ def(init-names!, +Names,
     PRIM_MEM_SET "!" def-prim!
     PRIM_MEM_GET_BYTE "byte@" def-prim!
     PRIM_MEM_SET_BYTE "byte!" def-prim!
-    PRIM_FILE_READ "syscall-read!" def-prim!
-    PRIM_FILE_WRITE "syscall-write!" def-prim!
-    PRIM_FILE_OPEN "syscall-open!" def-prim!
-    PRIM_FILE_CLOSE "syscall-close!" def-prim!
-    PRIM_EXIT "syscall-exit!" def-prim!
+    PRIM_FILE_READ "posix-read!" def-prim!
+    PRIM_FILE_WRITE "posix-write!" def-prim!
+    PRIM_FILE_OPEN "posix-open!" def-prim!
+    PRIM_FILE_CLOSE "posix-close!" def-prim!
+    PRIM_EXIT "posix-exit!" def-prim!
     PRIM_DEBUG "??" def-prim!
     PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
     PRIM_DEF "def" def-prim!
@@ -1167,7 +1167,7 @@ def(emit-error!, Token Str -- +IO,
 
 def(emit-fatal-error!, *a Token Str -- *b +IO,
     emit-error!
-    1 syscall-exit!)
+    1 posix-exit!)
 
 ###########
 # Running #
@@ -1384,14 +1384,14 @@ def(token-run-prim!, Token --,
         3 0 arity-check!
         token-args-0
         vstack-pop3!
-        syscall-write!,
+        posix-write!,
 
     dup PRIM_FILE_READ = if(
         drop
         3 1 arity-check!
         token-args-0
         vstack-pop3!
-        syscall-read!
+        posix-read!
         vstack-push!,
 
     dup PRIM_FILE_OPEN = if(
@@ -1415,12 +1415,12 @@ def(token-run-prim!, Token --,
         1 1 arity-check!
         token-args-0
         vstack-pop!
-        syscall-close!
+        posix-close!
         vstack-push!,
 
     dup PRIM_EXIT = if(
         drop 1 0 arity-check! token-args-0
-        vstack-pop! syscall-exit!,
+        vstack-pop! posix-exit!,
 
     dup PRIM_DEBUG = if(
         drop 0 0 arity-check! token-args-0
@@ -2006,7 +2006,7 @@ def(heap-alloc!, U64 -- Ptr +Heap,
 
 HEAP_SIZE def-static-buffer(HEAP)
 
-def(heap-open!, Ptr Flags Mode -- File +IO, syscall-open!(HEAP))
+def(heap-open!, Ptr Flags Mode -- File +IO, posix-open!(HEAP))
 
 ########
 # Main #
@@ -2054,3 +2054,7 @@ in-bootstrap? if(
         )
     )
 )
+
+# TODO:
+#  - simplify posix-open! to take a ptr instead of buffer offset
+#  - implement sbrk / mmap or something
