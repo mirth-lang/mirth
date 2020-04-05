@@ -449,9 +449,9 @@ static void output_asm_block (size_t t) {
                                 "    mov rcx, [rbx+8]\n" // flags
                                 "    mov r8, [rbx]\n" // fd
                                 "    mov r9, rax\n" // offset
-                                "    mov rax, 0x20000C5\n" // = mmap
+                                "    mov rax, 0x20000C5\n" // mmap
                                 "    syscall\n" // invoke syscall
-                                "    lea rbx, [rbx+32]\n" // drop 5
+                                "    lea rbx, [rbx+40]\n" // drop 5
                                 );
                             break;
 

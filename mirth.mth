@@ -1469,7 +1469,7 @@ def(token-run-prim!, Token --,
         drop
         0 1 arity-check!
         token-args-0
-        MIRTH_REVISION 1+
+        1
         vstack-push!,
 
     dup PRIM_OUTPUT_C99 = if(
@@ -1874,7 +1874,7 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_MIRTH_REVISION .w " {" ;
-    "    push(" . MIRTH_REVISION 1+ .n ");"; # reset REVISION counter
+    "    push(1);";
     "}" ;;
 
     PRIM_MEM_GET .w " {" ;
@@ -1992,24 +1992,60 @@ def(c99-emit-main!, Token -- +IO,
 # Heap #
 ########
 
-def(BASE_HEAP_SIZE, USize, 5000000) # ~5 MB
-def(MAX_REVISION, USize, 10)
-def(HEAP_MULTIPLIER, USize, MAX_REVISION MIRTH_REVISION -)
-def(HEAP_SIZE, USize, BASE_HEAP_SIZE HEAP_MULTIPLIER *)
+def(BASE_HEAP_SIZE, USize, 4194304)
 
 long def-static-buffer(HEAP_LENGTH)
 def(heap-length@, U64 +Heap, HEAP_LENGTH @)
 def(heap-length!, U64 -- +Heap, HEAP_LENGTH !)
+
+long def-static-buffer(HEAP_BASE)
+def(heap-base@, Ptr +Heap, HEAP_BASE @)
+def(heap-base!, Ptr -- +Heap, HEAP_BASE !)
+
+# Ensure that at at least X space on the heap is available.
+#
+# If the space left is too small (or heap has not been allocated,
+# in which the space left is 0), then it throws away the rest of
+# the heap (yes this is bad ... FIXME) and allocates a bigger
+# buffer.
+#
+# Panics if reservation is impossible.
+def(heap-reserve!, U64 -- +Heap,
+    dup heap-length@ <= if(
+        drop,
+
+        heap-new-size dup # size
+        heap-base@ heap-length@ + swap # pointer hint
+        3 # PROT_READ (0x1) | PROT_WRITE (0x2)
+        4098 # MAP_ANONYMOUS (0x1000) | MAP_PRIVATE (0x2)
+        -1 # file descriptor (-1 for MAP_ANONYMOUS)
+        0 # offset
+        ??
+        posix-mmap!
+        dup 0 > if(
+            dup heap-base@ heap-length@ + = if(
+                drop heap-length@ + heap-length!
+                "reserved more size" str-trace-ln!,
+                heap-base! heap-length!
+                "allocated new heap" str-trace-ln!
+            ),
+            "Failed to allocate heap buffer." panic!
+        )
+    ))
+
+def(heap-new-size, U64 -- U64,
+    4095 + dup 4096 % -
+    BASE_HEAP_SIZE max)
+    # FIXME: Increase base heap size each time
+    # this is called, exponentially.
+
+def(max, Int Int -- Int, dup2 < if(nip, drop))
+
 def(heap-alloc!, U64 -- Ptr +Heap,
     63 + dup 64 % -
-    heap-length@ tuck +
-    dup HEAP_SIZE > if(
-        "ran out of heap space" panic!,
-        heap-length!
-    )
-    HEAP +)
-
-HEAP_SIZE def-static-buffer(HEAP)
+    dup heap-reserve!
+    dup heap-length@ swap - heap-length!
+    heap-base@ tuck + heap-base!)
 
 ########
 # Main #
@@ -2039,23 +2075,16 @@ def(main, +IO,
 #########
 
 def(in-bootstrap?, Bool, MIRTH_REVISION 0 =)
-def(in-self-interpreted?, Bool, MIRTH_REVISION 1 =)
-def(in-self-compiled?, Bool, MIRTH_REVISION 2 =)
+def(in-mirth-proper?, Bool, MIRTH_REVISION 1 =)
 
-run-tests
+#run-tests
 
 "build #" str-trace!
 MIRTH_REVISION 1+ int-trace-ln!
 
 in-bootstrap? if(
-    "mirth.asm" output-asm(main),
-    in-self-interpreted? if(
-        "mirth2.c" output-c99(main),
-        in-self-compiled? if(
-            "mirth3.c" output-c99(main),
-            "this is really deep" str-print-ln!
-        )
-    )
+    main,
+    "mirth.c" output-c99(main)
 )
 
 # TODO:
