@@ -1469,7 +1469,7 @@ def(token-run-prim!, Token --,
         drop
         0 1 arity-check!
         token-args-0
-        1
+        NEW_MIRTH_REVISION
         vstack-push!,
 
     dup PRIM_OUTPUT_C99 = if(
@@ -1874,7 +1874,7 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_MIRTH_REVISION .w " {" ;
-    "    push(1);";
+    "    push(" . NEW_MIRTH_REVISION .n ");";
     "}" ;;
 
     PRIM_MEM_GET .w " {" ;
@@ -2020,14 +2020,11 @@ def(heap-reserve!, U64 -- +Heap,
         4098 # MAP_ANONYMOUS (0x1000) | MAP_PRIVATE (0x2)
         -1 # file descriptor (-1 for MAP_ANONYMOUS)
         0 # offset
-        ??
         posix-mmap!
         dup 0 > if(
             dup heap-base@ heap-length@ + = if(
-                drop heap-length@ + heap-length!
-                "reserved more size" str-trace-ln!,
+                drop heap-length@ + heap-length!,
                 heap-base! heap-length!
-                "allocated new heap" str-trace-ln!
             ),
             "Failed to allocate heap buffer." panic!
         )
@@ -2074,18 +2071,6 @@ def(main, +IO,
 # Build #
 #########
 
-def(in-bootstrap?, Bool, MIRTH_REVISION 0 =)
-def(in-mirth-proper?, Bool, MIRTH_REVISION 1 =)
+def(NEW_MIRTH_REVISION, Int, 1)
 
-#run-tests
-
-"build #" str-trace!
-MIRTH_REVISION 1+ int-trace-ln!
-
-in-bootstrap? if(
-    main,
-    "mirth.c" output-c99(main)
-)
-
-# TODO:
-#  - implement mmap or something
+"mirth.c" output-c99(main)
