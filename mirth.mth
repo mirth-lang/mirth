@@ -1232,7 +1232,7 @@ def(token-run-name!, Token -- +Mirth,
         nip name-value@ token-run!,
 
     name-is-buffer? if(
-        nip name-value@ buffer-base@ HEAP + vstack-push!,
+        nip name-value@ buffer-base@ vstack-push!,
 
         drop2 "Don't know how to run word." emit-fatal-error!
     )))))
@@ -1639,12 +1639,6 @@ def(buffer-base@, Buffer -- Ptr +Buffers,
 def(buffer-base!, Buffer -- Ptr +Buffers,
     BUFFER_BASE long!!)
 
-def(buffer-offset-to-ptr, Offset Buffer -- Ptr +Buffers,
-    dup2 dip(0) buffer-size@ 1- in-range if(
-        buffer-base@ +,
-        "buffer overflow or underflow" panic!
-    ))
-
 ########
 # Defs #
 ########
@@ -2012,7 +2006,8 @@ def(heap-alloc!, U64 -- Ptr +Heap,
     dup HEAP_SIZE > if(
         "ran out of heap space" panic!,
         heap-length!
-    ))
+    )
+    HEAP +)
 
 HEAP_SIZE def-static-buffer(HEAP)
 
