@@ -2033,5 +2033,4 @@ in-bootstrap? if(
 )
 
 # TODO:
-#  - simplify posix-open! to take a ptr instead of buffer offset
 #  - implement sbrk / mmap or something
