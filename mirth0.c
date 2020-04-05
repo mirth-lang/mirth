@@ -462,20 +462,14 @@ static void output_asm_block (size_t t) {
                             break;
 
                         case BUILTIN_FILE_OPEN:
-                            {
-                                const char* unmangled_name = symbols.name[tokens.value[args[0]]].data;
-                                mangle(mangled_name, unmangled_name);
-                                fprintf(output.file,
-                                    "    lea rdi, [rel b_%s]\n" // file name buffer
-                                    "    add rdi, [rbx+8]\n" // add offset
-                                    "    mov rsi, [rbx]\n" // file mask
-                                    "    mov rdx, rax\n" // file mode
-                                    "    mov rax, 0x2000005\n" // select "open" syscall
-                                    "    syscall\n" // invoke syscall
-                                    "    lea rbx, [rbx+16]\n" // drop2
-                                    , mangled_name
-                                    );
-                            }
+                            fprintf(output.file,
+                                "    mov rdi, [rbx+8]\n" // file name
+                                "    mov rsi, [rbx]\n" // file mask
+                                "    mov rdx, rax\n" // file mode
+                                "    mov rax, 0x2000005\n" // select "open" syscall
+                                "    syscall\n" // invoke syscall
+                                "    lea rbx, [rbx+16]\n" // drop2
+                                );
                             break;
 
                         case BUILTIN_FILE_CLOSE:
@@ -1251,26 +1245,15 @@ int main (int argc, const char** argv)
                             break;
 
                         case BUILTIN_FILE_OPEN:
-                            arity_check("posix-open!", 1, 3, 1);
-                            {
-                                a = state.stack[state.sc+2];
-                                b = state.stack[state.sc+1];
-                                c = state.stack[state.sc];
-                                state.sc += 2;
-                                uint64_t name = state.fstack[state.fc].pc;
-                                ASSERT_TOKEN(a.type == TYPE_INT && b.type == TYPE_INT && c.type == TYPE_INT, ERROR_TYPE, state.pc,
-                                    "Expected integers.");
-                                ASSERT_TOKEN(tokens.kind[name] == TOKEN_WORD, ERROR_SYNTAX, name,
-                                    "Expected buffer name.");
-                                uint64_t w = tokens.value[name];
-                                ASSERT_TOKEN(defs.buffer[w] != NULL, ERROR_SYNTAX, name,
-                                    "Expected buffer name.");
-                                ASSERT_TOKEN(a.data >= 0, ERROR_UNDERFLOW, state.pc,
-                                    "Buffer underflow.");
-                                state.stack[state.sc].data = open(((char*)defs.buffer[w]) + a.data, b.data, c.data);
-                                state.pc = next_pc;
-                            }
-                            goto resume_loop;
+                            arity_check("posix-open!", 0, 3, 1);
+                            a = state.stack[state.sc+2];
+                            b = state.stack[state.sc+1];
+                            c = state.stack[state.sc];
+                            state.sc += 2;
+                            ASSERT_TOKEN(a.type == TYPE_INT && b.type == TYPE_INT && c.type == TYPE_INT, ERROR_TYPE, state.pc,
+                                "Expected integers.");
+                            state.stack[state.sc].data = open((char*)a.data, b.data, c.data);
+                            break;
 
                         case BUILTIN_FILE_CLOSE:
                             arity_check("posix-close!", 0, 1, 1);
