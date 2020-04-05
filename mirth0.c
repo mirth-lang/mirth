@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
 #define ASSERT(b, error_code, file, line, col, msg) \
     do { \
@@ -65,6 +66,7 @@ enum builtin_t {
     BUILTIN_MEM_SET,
     BUILTIN_MEM_GET_BYTE,
     BUILTIN_MEM_SET_BYTE,
+    BUILTIN_POSIX_MMAP,
     BUILTIN_POSIX_READ,
     BUILTIN_POSIX_WRITE,
     BUILTIN_POSIX_OPEN,
@@ -109,6 +111,7 @@ struct symbols_t {
         [BUILTIN_MEM_SET] = { .data = "!" },
         [BUILTIN_MEM_GET_BYTE] = { .data = "byte@" },
         [BUILTIN_MEM_SET_BYTE] = { .data = "byte!" },
+        [BUILTIN_POSIX_MMAP] = { .data = "posix-mmap!" },
         [BUILTIN_POSIX_READ] = { .data = "posix-read!" },
         [BUILTIN_POSIX_WRITE] = { .data = "posix-write!" },
         [BUILTIN_POSIX_OPEN] = { .data = "posix-open!" },
@@ -438,6 +441,21 @@ static void output_asm_block (size_t t) {
                                 "    lea rbx, [rbx+16]\n");
                             break;
 
+                        case BUILTIN_POSIX_MMAP:
+                            fprintf(output.file,
+                                "    mov rdi, [rbx+32]\n" // base
+                                "    mov rsi, [rbx+24]\n" // size
+                                "    mov rdx, [rbx+16]\n" // prot
+                                "    mov rcx, [rbx+8]\n" // flags
+                                "    mov r8, [rbx]\n" // fd
+                                "    mov r9, rax\n" // offset
+                                "    mov rax, 0x20000C5\n" // = mmap
+                                "    syscall\n" // invoke syscall
+                                "    lea rbx, [rbx+32]\n" // drop 5
+                                );
+                            break;
+
+
                         case BUILTIN_POSIX_WRITE:
                             fprintf(output.file,
                                 "    mov rdi, [rbx+8]\n" // file descriptior
@@ -457,7 +475,7 @@ static void output_asm_block (size_t t) {
                                 "    mov rdx, rax\n" // size to read
                                 "    mov rax, 0x2000003\n" // select "read" syscall
                                 "    syscall\n" // invoke syscall
-                                "    lea rbx, [rbx+16]\n" // drop2
+                                "    lea rbx, [rbx+16]\n" // drop 2
                                 );
                             break;
 
@@ -1234,7 +1252,7 @@ int main (int argc, const char** argv)
                             break;
 
                         case BUILTIN_POSIX_READ:
-                            arity_check("posix-read!", 1, 3, 1);
+                            arity_check("posix-read!", 0, 3, 1);
                             a = state.stack[state.sc+2];
                             b = state.stack[state.sc+1];
                             c = state.stack[state.sc];
@@ -1265,6 +1283,22 @@ int main (int argc, const char** argv)
                             }
                             break;
 
+                        case BUILTIN_POSIX_MMAP:
+                            {
+                                arity_check("posix-mmap!", 0, 6, 1);
+                                void* p = mmap(
+                                    (void*)state.stack[state.sc+5].data,
+                                    (size_t)state.stack[state.sc+4].data,
+                                    (int)state.stack[state.sc+3].data,
+                                    (int)state.stack[state.sc+2].data,
+                                    (int)state.stack[state.sc+1].data,
+                                    (int)state.stack[state.sc].data
+                                );
+                                state.sc += 5;
+                                state.stack[state.sc].type = TYPE_INT;
+                                state.stack[state.sc].data = (int64_t)p;
+                            }
+                            break;
 
                         case BUILTIN_DEF:
                             arity_check("def",2+(num_args>2),0,0);

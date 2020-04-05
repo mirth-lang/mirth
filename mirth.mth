@@ -603,13 +603,14 @@ def(PRIM_POSIX_WRITE, Prim, 21)
 def(PRIM_POSIX_OPEN, Prim, 22)
 def(PRIM_POSIX_CLOSE, Prim, 23)
 def(PRIM_POSIX_EXIT, Prim, 24)
-def(PRIM_DEBUG, Prim, 25)
-def(PRIM_MIRTH_REVISION, Prim, 26)
-def(PRIM_DEF, Prim, 27)
-def(PRIM_DEF_STATIC_BUFFER, Prim, 28)
-def(PRIM_OUTPUT_ASM, Prim, 29)
-def(PRIM_OUTPUT_C99, Prim, 30)
-def(NUM_PRIMS, Prim, 31)
+def(PRIM_POSIX_MMAP, Prim, 25)
+def(PRIM_DEBUG, Prim, 26)
+def(PRIM_MIRTH_REVISION, Prim, 27)
+def(PRIM_DEF, Prim, 28)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 29)
+def(PRIM_OUTPUT_ASM, Prim, 30)
+def(PRIM_OUTPUT_C99, Prim, 31)
+def(NUM_PRIMS, Prim, 32)
 
 def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
 
@@ -647,6 +648,7 @@ def(init-names!, +Names,
     PRIM_POSIX_OPEN "posix-open!" def-prim!
     PRIM_POSIX_CLOSE "posix-close!" def-prim!
     PRIM_POSIX_EXIT "posix-exit!" def-prim!
+    PRIM_POSIX_MMAP "posix-mmap!" def-prim!
     PRIM_DEBUG "??" def-prim!
     PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
     PRIM_DEF "def" def-prim!
@@ -1115,6 +1117,15 @@ def(vstack-pop2!, I64 I64 +VSTACK,
 def(vstack-pop3!, I64 I64 I64 +VSTACK,
     vstack-pop! dip(vstack-pop2!))
 
+def(vstack-pop4!, I64 I64 I64 I64 +VSTACK,
+    vstack-pop! dip(vstack-pop3!))
+
+def(vstack-pop5!, I64 I64 I64 I64 I64 +VSTACK,
+    vstack-pop! dip(vstack-pop4!))
+
+def(vstack-pop6!, I64 I64 I64 I64 I64 I64 +VSTACK,
+    vstack-pop! dip(vstack-pop5!))
+
 def(vstack-push!, I64 -- +VSTACK,
     vstack-full? if(
         "stack overflow: attempted to push on full vstack" panic!,
@@ -1379,6 +1390,14 @@ def(token-run-prim!, Token --,
         vstack-pop2!
         byte!,
 
+    dup PRIM_POSIX_MMAP = if(
+        drop
+        6 1 arity-check!
+        token-args-0
+        vstack-pop6!
+        posix-mmap!
+        vstack-push!,
+
     dup PRIM_POSIX_WRITE = if(
         drop
         3 0 arity-check!
@@ -1462,7 +1481,7 @@ def(token-run-prim!, Token --,
 
         drop
         "Dont know how to run prim yet." emit-warning!
-    ))))))))))))))))))))))))))))))
+    )))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -1682,7 +1701,8 @@ def(c99-emit-header!, +IO,
     "#include <stdlib.h>" ;
     "#include <stdio.h>" ;
     "#include <fcntl.h>" ;
-    "#include <unistd.h>" ;;
+    "#include <unistd.h>" ;
+    "#include <sys/mman.h>" ;;
     "#define STACK_SIZE 2000" ;
     "static size_t sc = STACK_SIZE;" ;
     "static int64_t stack[STACK_SIZE] = {0};" ;;
@@ -1838,6 +1858,17 @@ def(c99-emit-prims!, +IO,
     PRIM_POSIX_EXIT .w " {" ;
     "    int x = (int)pop();" ;
     "    exit(x);" ;
+    "}" ;;
+
+    PRIM_POSIX_MMAP .w " {" ;
+    "    int f = (int)pop();" ;
+    "    int e = (int)pop();" ;
+    "    int d = (int)pop();" ;
+    "    int c = (int)pop();" ;
+    "    size_t b = (size_t)pop();" ;
+    "    void* a = pop_ptr();" ;
+    "    void* p = mmap(a,b,c,d,e,f);" ;
+    "    push((int64_t)p);" ;
     "}" ;;
 
     PRIM_DEBUG .w " {" ;
@@ -2033,4 +2064,4 @@ in-bootstrap? if(
 )
 
 # TODO:
-#  - implement sbrk / mmap or something
+#  - implement mmap or something
