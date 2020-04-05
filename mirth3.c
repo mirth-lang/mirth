@@ -2767,27 +2767,27 @@ static void w255 (void){
     push(19);
 }
 
-// PRIM_FILE_READ
+// PRIM_POSIX_READ
 static void w256 (void){
     push(20);
 }
 
-// PRIM_FILE_WRITE
+// PRIM_POSIX_WRITE
 static void w257 (void){
     push(21);
 }
 
-// PRIM_FILE_OPEN
+// PRIM_POSIX_OPEN
 static void w258 (void){
     push(22);
 }
 
-// PRIM_FILE_CLOSE
+// PRIM_POSIX_CLOSE
 static void w259 (void){
     push(23);
 }
 
-// PRIM_EXIT
+// PRIM_POSIX_EXIT
 static void w260 (void){
     push(24);
 }

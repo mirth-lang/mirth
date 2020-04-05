@@ -65,11 +65,11 @@ enum builtin_t {
     BUILTIN_MEM_SET,
     BUILTIN_MEM_GET_BYTE,
     BUILTIN_MEM_SET_BYTE,
-    BUILTIN_FILE_READ,
-    BUILTIN_FILE_WRITE,
-    BUILTIN_FILE_OPEN,
-    BUILTIN_FILE_CLOSE,
-    BUILTIN_EXIT,
+    BUILTIN_POSIX_READ,
+    BUILTIN_POSIX_WRITE,
+    BUILTIN_POSIX_OPEN,
+    BUILTIN_POSIX_CLOSE,
+    BUILTIN_POSIX_EXIT,
     BUILTIN_DEF,
     BUILTIN_DEF_STATIC_BUFFER,
     BUILTIN_OUTPUT_ASM,
@@ -109,11 +109,11 @@ struct symbols_t {
         [BUILTIN_MEM_SET] = { .data = "!" },
         [BUILTIN_MEM_GET_BYTE] = { .data = "byte@" },
         [BUILTIN_MEM_SET_BYTE] = { .data = "byte!" },
-        [BUILTIN_FILE_READ] = { .data = "posix-read!" },
-        [BUILTIN_FILE_WRITE] = { .data = "posix-write!" },
-        [BUILTIN_FILE_OPEN] = { .data = "posix-open!" },
-        [BUILTIN_FILE_CLOSE] = { .data = "posix-close!" },
-        [BUILTIN_EXIT] = { .data = "posix-exit!" },
+        [BUILTIN_POSIX_READ] = { .data = "posix-read!" },
+        [BUILTIN_POSIX_WRITE] = { .data = "posix-write!" },
+        [BUILTIN_POSIX_OPEN] = { .data = "posix-open!" },
+        [BUILTIN_POSIX_CLOSE] = { .data = "posix-close!" },
+        [BUILTIN_POSIX_EXIT] = { .data = "posix-exit!" },
         [BUILTIN_DEF] = { .data = "def" },
         [BUILTIN_DEF_STATIC_BUFFER] = { .data = "def-static-buffer" },
         [BUILTIN_OUTPUT_ASM] = { .data = "output-asm" },
@@ -438,7 +438,7 @@ static void output_asm_block (size_t t) {
                                 "    lea rbx, [rbx+16]\n");
                             break;
 
-                        case BUILTIN_FILE_WRITE:
+                        case BUILTIN_POSIX_WRITE:
                             fprintf(output.file,
                                 "    mov rdi, [rbx+8]\n" // file descriptior
                                 "    mov rsi, [rbx]\n" // load buffer address
@@ -450,7 +450,7 @@ static void output_asm_block (size_t t) {
                                 );
                             break;
 
-                        case BUILTIN_FILE_READ:
+                        case BUILTIN_POSIX_READ:
                             fprintf(output.file,
                                 "    mov rdi, [rbx+8]\n" // file descriptior
                                 "    mov rsi, [rbx]\n" // load buffer address
@@ -461,7 +461,7 @@ static void output_asm_block (size_t t) {
                                 );
                             break;
 
-                        case BUILTIN_FILE_OPEN:
+                        case BUILTIN_POSIX_OPEN:
                             fprintf(output.file,
                                 "    mov rdi, [rbx+8]\n" // file name
                                 "    mov rsi, [rbx]\n" // file mask
@@ -472,7 +472,7 @@ static void output_asm_block (size_t t) {
                                 );
                             break;
 
-                        case BUILTIN_FILE_CLOSE:
+                        case BUILTIN_POSIX_CLOSE:
                             {
                                 fprintf(output.file,
                                     "   mov rdi, rax\n" // file descriptor
@@ -547,7 +547,7 @@ static void output_asm_block (size_t t) {
                             }
                             break;
 
-                        case BUILTIN_EXIT:
+                        case BUILTIN_POSIX_EXIT:
                             fprintf(output.file,
                                 "    mov rdi, rax\n"
                                 "    mov rax, 0x2000001\n" // exit syscall
@@ -1129,7 +1129,7 @@ int main (int argc, const char** argv)
                             }
                             goto resume_loop;
 
-                        case BUILTIN_EXIT:
+                        case BUILTIN_POSIX_EXIT:
                             arity_check("posix-exit!", 0, 1, 0);
                             exit(state.stack[state.sc].data);
 
@@ -1223,7 +1223,7 @@ int main (int argc, const char** argv)
                             *(uint8_t*)(a.data) = b.data;
                             break;
 
-                        case BUILTIN_FILE_WRITE:
+                        case BUILTIN_POSIX_WRITE:
                             arity_check("posix-write!", 0, 3, 0);
                             a = state.stack[state.sc+2];
                             b = state.stack[state.sc+1];
@@ -1233,7 +1233,7 @@ int main (int argc, const char** argv)
                             write(a.data, (void*)b.data, c.data);
                             break;
 
-                        case BUILTIN_FILE_READ:
+                        case BUILTIN_POSIX_READ:
                             arity_check("posix-read!", 1, 3, 1);
                             a = state.stack[state.sc+2];
                             b = state.stack[state.sc+1];
@@ -1244,7 +1244,7 @@ int main (int argc, const char** argv)
                             state.stack[state.sc].data = read(a.data, (void*)b.data, c.data);
                             break;
 
-                        case BUILTIN_FILE_OPEN:
+                        case BUILTIN_POSIX_OPEN:
                             arity_check("posix-open!", 0, 3, 1);
                             a = state.stack[state.sc+2];
                             b = state.stack[state.sc+1];
@@ -1255,7 +1255,7 @@ int main (int argc, const char** argv)
                             state.stack[state.sc].data = open((char*)a.data, b.data, c.data);
                             break;
 
-                        case BUILTIN_FILE_CLOSE:
+                        case BUILTIN_POSIX_CLOSE:
                             arity_check("posix-close!", 0, 1, 1);
                             {
                                 a = state.stack[state.sc];

@@ -598,11 +598,11 @@ def(PRIM_MEM_GET, Prim, 16)
 def(PRIM_MEM_SET, Prim, 17)
 def(PRIM_MEM_GET_BYTE, Prim, 18)
 def(PRIM_MEM_SET_BYTE, Prim, 19)
-def(PRIM_FILE_READ, Prim, 20)
-def(PRIM_FILE_WRITE, Prim, 21)
-def(PRIM_FILE_OPEN, Prim, 22)
-def(PRIM_FILE_CLOSE, Prim, 23)
-def(PRIM_EXIT, Prim, 24)
+def(PRIM_POSIX_READ, Prim, 20)
+def(PRIM_POSIX_WRITE, Prim, 21)
+def(PRIM_POSIX_OPEN, Prim, 22)
+def(PRIM_POSIX_CLOSE, Prim, 23)
+def(PRIM_POSIX_EXIT, Prim, 24)
 def(PRIM_DEBUG, Prim, 25)
 def(PRIM_MIRTH_REVISION, Prim, 26)
 def(PRIM_DEF, Prim, 27)
@@ -642,11 +642,11 @@ def(init-names!, +Names,
     PRIM_MEM_SET "!" def-prim!
     PRIM_MEM_GET_BYTE "byte@" def-prim!
     PRIM_MEM_SET_BYTE "byte!" def-prim!
-    PRIM_FILE_READ "posix-read!" def-prim!
-    PRIM_FILE_WRITE "posix-write!" def-prim!
-    PRIM_FILE_OPEN "posix-open!" def-prim!
-    PRIM_FILE_CLOSE "posix-close!" def-prim!
-    PRIM_EXIT "posix-exit!" def-prim!
+    PRIM_POSIX_READ "posix-read!" def-prim!
+    PRIM_POSIX_WRITE "posix-write!" def-prim!
+    PRIM_POSIX_OPEN "posix-open!" def-prim!
+    PRIM_POSIX_CLOSE "posix-close!" def-prim!
+    PRIM_POSIX_EXIT "posix-exit!" def-prim!
     PRIM_DEBUG "??" def-prim!
     PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
     PRIM_DEF "def" def-prim!
@@ -1379,14 +1379,14 @@ def(token-run-prim!, Token --,
         vstack-pop2!
         byte!,
 
-    dup PRIM_FILE_WRITE = if(
+    dup PRIM_POSIX_WRITE = if(
         drop
         3 0 arity-check!
         token-args-0
         vstack-pop3!
         posix-write!,
 
-    dup PRIM_FILE_READ = if(
+    dup PRIM_POSIX_READ = if(
         drop
         3 1 arity-check!
         token-args-0
@@ -1394,7 +1394,7 @@ def(token-run-prim!, Token --,
         posix-read!
         vstack-push!,
 
-    dup PRIM_FILE_OPEN = if(
+    dup PRIM_POSIX_OPEN = if(
         drop
         3 1 arity-check!
         token-args-0
@@ -1402,7 +1402,7 @@ def(token-run-prim!, Token --,
         posix-open!
         vstack-push!,
 
-    dup PRIM_FILE_CLOSE = if(
+    dup PRIM_POSIX_CLOSE = if(
         drop
         1 1 arity-check!
         token-args-0
@@ -1410,7 +1410,7 @@ def(token-run-prim!, Token --,
         posix-close!
         vstack-push!,
 
-    dup PRIM_EXIT = if(
+    dup PRIM_POSIX_EXIT = if(
         drop 1 0 arity-check! token-args-0
         vstack-pop! posix-exit!,
 
@@ -1809,33 +1809,33 @@ def(c99-emit-prims!, +IO,
     "    push(y <= x);" ;
     "}" ;;
 
-    PRIM_FILE_WRITE .w " {" ;
+    PRIM_POSIX_WRITE .w " {" ;
     "    size_t n = (size_t)pop();" ;
     "    void* p = pop_ptr();" ;
     "    int f = (int)pop();" ;
     "    write(f, p, n);" ;
     "}" ;;
 
-    PRIM_FILE_READ .w " {" ;
+    PRIM_POSIX_READ .w " {" ;
     "    size_t n = (size_t)pop();" ;
     "    void* p = pop_ptr();" ;
     "    int f = (int)pop();" ;
     "    push(read(f,p,n));" ;
     "}" ;;
 
-    PRIM_FILE_OPEN .w " {" ;
+    PRIM_POSIX_OPEN .w " {" ;
     "    int m = (int)pop();" ;
     "    int f = (int)pop();" ;
     "    void* p = pop_ptr();" ;
     "    push(open(p,f,m));" ;
     "}" ;;
 
-    PRIM_FILE_CLOSE .w " {" ;
+    PRIM_POSIX_CLOSE .w " {" ;
     "    int x = (int)pop();" ;
     "    push(close(x));" ;
     "}" ;;
 
-    PRIM_EXIT .w " {" ;
+    PRIM_POSIX_EXIT .w " {" ;
     "    int x = (int)pop();" ;
     "    exit(x);" ;
     "}" ;;
