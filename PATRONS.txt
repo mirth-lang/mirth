@@ -4,16 +4,19 @@ This project is supported by our patrons on Patreon:
 
 Thank you for your generous support:
 
+    Allele Dev
     Art Yerkes
     Benjohn
     Callan McGill
     Doug Clinton
+    Dylan Baker
     fernlager
+    Hécate
+    Jesper Cockx
     John Hopper
     Joseph Victor
     Joshua Mitchell
     Julie Moronuki
-    Mark Friedenbach
     Marko Mikulicic
     Nickolay Kudasov
     Nikolai Mushegian
@@ -21,4 +24,3 @@ Thank you for your generous support:
     Teodor Elstad
     Tycho Luyben
     webstrand
-
