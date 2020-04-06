@@ -11,35 +11,17 @@ def(tuck, a b -- b a b, dup dip(swap))
 def(nip, a b -- b, dip(drop))
 def(dup2, a b -- a b a b, over over)
 def(drop2, a b --, drop drop)
-def(swap2, a b c d -- c d a b, dip(rotr) rotr)
-def(dup3, a b c -- a b c a b c, dip(dup2) dup dip(rotr))
 
 def(>, Int Int -- Bool, swap <)
 def(>=, Int Int -- Bool, swap <=)
 
 def(0=, Int -- Bool, 0 =)
 def(0<, Int -- Bool, 0 <)
-def(0>, Int -- Bool, 0 >)
-def(0<=, Int -- Bool, 0 <=)
-def(0>=, Int -- Bool, 0 >=)
 
-def(1=, Int -- Bool, 1 =)
-def(1<, Int -- Bool, 1 <)
-def(1>, Int -- Bool, 1 >)
-def(1<=, Int -- Bool, 1 <=)
-def(1>=, Int -- Bool, 1 >=)
 def(1+, Int -- Int, 1 +)
 def(1-, Int -- Int, 1 -)
 
-def(2*, Int -- Int, 2 *)
-def(2/, Int -- Int, 2 /)
-def(2%, Int -- Int, 2 %)
-def(2+, Int -- Int, 2 +)
-def(2-, Int -- Int, 2 -)
-
 def(not, Bool -- Bool, 0 =)
-def(and, Bool Bool -- Bool, swap if(id, drop 0))
-def(or, Bool Bool -- Bool, swap if(drop 1, id))
 
 def(byte, Size, 1)
 def(bytes, Size -- Size, id)
@@ -57,33 +39,20 @@ def(!!, Bool --, if(id, "Assertion failed" panic!))
 def(!!=, Int Int --, = !!)
 def(!!0, Int --, 0 !!=)
 def(!!1, Int --, 1 !!=)
-def(!!00, Int Int --, !!0 !!0)
-def(!!01, Int Int --, !!1 !!0)
-def(!!10, Int Int --, !!0 !!1)
-def(!!11, Int Int --, !!1 !!1)
-def(!!000, Int Int --, !!0 !!0 !!0)
 def(!!001, Int Int --, !!1 !!0 !!0)
 def(!!010, Int Int --, !!0 !!1 !!0)
 def(!!011, Int Int --, !!1 !!1 !!0)
 def(!!100, Int Int --, !!0 !!0 !!1)
-def(!!101, Int Int --, !!1 !!0 !!1)
-def(!!110, Int Int --, !!0 !!1 !!1)
 def(!!111, Int Int --, !!1 !!1 !!1)
-
 
 def(str-head, Str -- Byte, byte@)
 def(str-head?, Str -- Str Byte, dup str-head)
 def(str-tail, Str -- Str, str-head? if(1+, id))
-def(str-tail?, Str -- Str Str, dup str-tail)
-def(str-null, Str -- Bool, str-head 0=)
-def(str-null?, Str -- Str Bool, dup str-null)
-def(str-not-null, Str -- Bool, str-null not)
-def(str-not-null?, Str -- Str Bool, dup str-not-null)
 def(str-length?, Str -- Str Int, dup str-length)
 def(str-length, Str -- Int,
-    dip(0) str-not-null? while(
-        drop str-tail dip(1+)
-        str-not-null?
+    dip(0) dup byte@ while(
+        drop 1+ dip(1+)
+        dup byte@
     ) drop)
 
 def(STR_BUF_SIZE, Int, 4096)
@@ -321,12 +290,7 @@ def(file-err!, File -- +IO, FILE_ERR !)
 def(file-err@, -- File +IO, FILE_ERR @)
 
 def(str-write!, Str File -- +IO,
-    swap str-not-null? while(
-        drop str-buf-copy!
-        dip(dup str-buf-write!)
-        str-not-null?
-    ) drop2
-    )
+    swap str-length? posix-write!)
 
 def(str-print!, Str -- +IO, file-out@ str-write!)
 def(str-trace!, Str -- +IO, file-err@ str-write!)
@@ -344,7 +308,6 @@ def(trace-ln!, +IO, 10 trace-char!)
 def(print-sp!, +IO, 32 print-char!)
 def(trace-sp!, +IO, 32 trace-char!)
 def(print-quote!, +IO, 34 print-char!)
-def(trace-quote!, +IO, 34 trace-char!)
 
 def(to-digit, Int -- Char, 10 % 48 +)
 
@@ -407,26 +370,35 @@ def(file-buf-length@, -- Int, FILE_BUF_LENGTH @)
 
 def(file-buf@, Int -- U8, FILE_BUF byte@@)
 
-def(str-buf-open-file!, -- File +IO,
-    STR_BUF 0 0 posix-open!
-    dup 0 < if("failed to open file!" panic!, id))
+def(open-file!, Str -- File +IO,
+    0 0 posix-open!
+    dup 0 < if("Failed to open file!" panic!, id))
 
-def(str-buf-create-file!, -- File +IO,
-    STR_BUF
-    1537 # 0x601
-        # this is an OR of flags:
-        #    O_WRONLY 0x0001 : open in write-only mode
-        #    O_CREAT  0x0200 : create file if it doesn't exist
-        #    O_TRUNC  0x0400 : truncate to zero bytes
+def(str-buf-create-file!, File +IO,
+    STR_BUF create-file!)
+
+def(create-file!, Str -- File +IO,
+    O_WRONLY|O_CREAT|O_TRUNC
     438 # 0x1B6
         # this is the default mode creates a file with
         # unix permission 666 (in octal),
         # i.e. owner can read+write, everyone can read
     posix-open!
-    dup 0 < if("failed to open file!" panic!, id))
+    dup 0 < if("Failed to create file!" panic!, id))
 
-def(str-open-file!, Str -- File +IO, str-buf! str-buf-open-file!)
-def(str-create-file!, Str -- File +IO, str-buf! str-buf-create-file!)
+def(O_WRONLY|O_CREAT|O_TRUNC, Int,
+
+    RUNNING_OS MACOS = if(
+        1537, # 0x601
+            # this is an OR of flags:
+            #    O_WRONLY 0x0001 : open in write-only mode
+            #    O_CREAT  0x0200 : create file if it doesn't exist
+            #    O_TRUNC  0x0400 : truncate to zero bytes
+    RUNNING_OS LINUX = if(
+        577, # O_TRUNC = 0x200, O_CREAT = 0x40, O_WRONLY = 0x1
+
+        "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic!
+    )))
 
 def(read-file!, File -- +IO,
     dup FILE_BUF FILE_BUF_SIZE 1- posix-read!
@@ -441,7 +413,7 @@ def(read-file!, File -- +IO,
 
 def(read-mirth-src!, +IO,
     "Reading mirth.mth" str-trace-ln!
-    "mirth.mth" str-open-file! read-file!
+    "mirth.mth" open-file! read-file!
     "Read " str-trace!
     file-buf-length@ int-trace!
     " bytes (FILE_BUF_SIZE = " str-trace!
@@ -606,11 +578,12 @@ def(PRIM_POSIX_EXIT, Prim, 24)
 def(PRIM_POSIX_MMAP, Prim, 25)
 def(PRIM_DEBUG, Prim, 26)
 def(PRIM_MIRTH_REVISION, Prim, 27)
-def(PRIM_DEF, Prim, 28)
-def(PRIM_DEF_STATIC_BUFFER, Prim, 29)
-def(PRIM_OUTPUT_ASM, Prim, 30)
-def(PRIM_OUTPUT_C99, Prim, 31)
-def(NUM_PRIMS, Prim, 32)
+def(PRIM_RUNNING_OS, Prim, 28)
+def(PRIM_DEF, Prim, 29)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 30)
+def(PRIM_OUTPUT_ASM, Prim, 31)
+def(PRIM_OUTPUT_C99, Prim, 32)
+def(NUM_PRIMS, Prim, 33)
 
 def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
 
@@ -651,6 +624,7 @@ def(init-names!, +Names,
     PRIM_POSIX_MMAP "posix-mmap!" def-prim!
     PRIM_DEBUG "??" def-prim!
     PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
+    PRIM_RUNNING_OS "RUNNING_OS" def-prim!
     PRIM_DEF "def" def-prim!
     PRIM_DEF_STATIC_BUFFER "def-static-buffer" def-prim!
     PRIM_OUTPUT_ASM "output-asm" def-prim!
@@ -794,8 +768,7 @@ def(token-print!, Token -- +IO,
         token-value? int-print!))
 
     drop
-    print-ln!
-)
+    print-ln!)
 
 def(show-tokens!, --,
     0 dup num-tokens@ < while(
@@ -869,8 +842,7 @@ def(run-lexer!, +Lexer,
     # FIXME: check that lexer stack is empty
 
     TOKEN_NONE 0
-    lexer-emit!
-)
+    lexer-emit!)
 
 # Is the lexer done?
 def(lexer-done?, Bool +Lexer, lexer-idx@ file-buf-length@ >=)
@@ -925,8 +897,7 @@ def(lexer-next!, --,
         drop # LATER emit lexer error
         ))))))))
 
-    lexer-move!
-)
+    lexer-move!)
 
 def(lexer-emit-newline!, +Lexer,
     lexer-row@ 1+ lexer-row!
@@ -1057,7 +1028,8 @@ def(lexer-move-back!, +Lexer,
     lexer-col@ 1- lexer-col!)
 
 def(is-newline?, Char -- Char Bool, dup 10 =)
-def(is-whitespace?, Char -- Char Bool, dup 9 = dip(dup 32 =) +)
+def(is-whitespace?, Char -- Char Bool,
+    dup 9 = dip(dup 32 =) +)
 def(is-pound?, Char -- Char Bool, dup 35 =)
 def(is-lparen?, Char -- Char Bool, dup 40 =)
 def(is-rparen?, Char -- Char Bool, dup 41 =)
@@ -1087,7 +1059,8 @@ def(is-special-char?, Char -- Char Bool,
     # FIXME: include brackets & braces ... maybe colons
     )
 
-def(in-range, Int Int Int -- Bool, dip(over dip(>=)) <= *)
+def(in-range, Int Int Int -- Bool,
+    dip(over dip(>=)) <= *)
 
 ###############
 # Value Stack #
@@ -1472,6 +1445,13 @@ def(token-run-prim!, Token --,
         NEW_MIRTH_REVISION
         vstack-push!,
 
+    dup PRIM_RUNNING_OS = if(
+        drop
+        0 1 arity-check!
+        token-args-0
+        RUNNING_OS
+        vstack-push!,
+
     dup PRIM_OUTPUT_C99 = if(
         drop
         1 0 arity-check!
@@ -1481,7 +1461,7 @@ def(token-run-prim!, Token --,
 
         drop
         "Dont know how to run prim yet." emit-warning!
-    )))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -1882,18 +1862,30 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_MEM_SET .w " {" ;
-    "   int64_t* x = pop_ptr();" ;
-    "   *x = (int64_t)pop();" ;
+    "    int64_t* x = pop_ptr();" ;
+    "    *x = (int64_t)pop();" ;
     "}" ;;
 
     PRIM_MEM_GET_BYTE .w " {" ;
-    "   uint8_t* x = pop_ptr();" ;
-    "   push(*x);" ;
+    "    uint8_t* x = pop_ptr();" ;
+    "    push(*x);" ;
     "}" ;;
 
     PRIM_MEM_SET_BYTE .w " {" ;
-    "   uint8_t* x = pop_ptr();" ;
-    "   *x = pop_u8();" ;
+    "    uint8_t* x = pop_ptr();" ;
+    "    *x = pop_u8();" ;
+    "}" ;;
+
+    PRIM_RUNNING_OS .w " {" ;
+    "#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)" ;
+    "    push(" . WINDOWS .n ");" ;
+    "#elif defined(__linux__)" ;
+    "    push(" . LINUX .n ");" ;
+    "#elif defined(__APPLE__)" ;
+    "    push(" . MACOS .n ");" ;
+    "#else" ;
+    "    push(" . UNKNOWN .n ");" ;
+    "#endif" ;
     "}" ;;
 
     )
@@ -2016,8 +2008,8 @@ def(heap-reserve!, U64 -- +Heap,
 
         heap-new-size dup # size
         heap-base@ heap-length@ + swap # pointer hint
-        3 # PROT_READ (0x1) | PROT_WRITE (0x2)
-        4098 # MAP_ANONYMOUS (0x1000) | MAP_PRIVATE (0x2)
+        PROT_READ|PROT_WRITE
+        MAP_ANON|MAP_PRIVATE
         -1 # file descriptor (-1 for MAP_ANONYMOUS)
         0 # offset
         posix-mmap!
@@ -2030,16 +2022,34 @@ def(heap-reserve!, U64 -- +Heap,
         )
     ))
 
+def(PROT_READ|PROT_WRITE, Int,
+    3) # PROT_READ = 0x1, PROT_WRITE = 0x2
+
+def(MAP_ANON|MAP_PRIVATE, Int,
+    RUNNING_OS MACOS = if(
+        4098, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
+    RUNNING_OS LINUX = if(
+        34, # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
+        "MAP_ANON|MAP_PRIVATE unknown for os" panic!
+    )))
+
+# Aligns a by b, rounding upward. For instance,
+#
+#   10 64 align == 64
+#   64 64 align == 64
+#   70 64 align == 128
+def(align, a:U64 b:U64 -- U64,
+    dup dip(1- + dup) % -)
+
 def(heap-new-size, U64 -- U64,
-    4095 + dup 4096 % -
-    BASE_HEAP_SIZE max)
+    4096 align BASE_HEAP_SIZE max)
     # FIXME: Increase base heap size each time
     # this is called, exponentially.
 
 def(max, Int Int -- Int, dup2 < if(nip, drop))
 
 def(heap-alloc!, U64 -- Ptr +Heap,
-    63 + dup 64 % -
+    64 align
     dup heap-reserve!
     dup heap-length@ swap - heap-length!
     heap-base@ tuck + heap-base!)
@@ -2070,6 +2080,11 @@ def(main, +IO,
 #########
 # Build #
 #########
+
+def(UNKNOWN, OS, 0)
+def(WINDOWS, OS, 1)
+def(LINUX, OS, 2)
+def(MACOS, OS, 3)
 
 def(NEW_MIRTH_REVISION, Int, 0)
 
