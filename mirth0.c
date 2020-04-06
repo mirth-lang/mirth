@@ -2113,7 +2113,7 @@ static void w181 (void){
     w183();
     w13();
     if (pop()) {
-    push(4353);
+    push(577);
     } else {
     push((int64_t)(strings + 160));
     w68();
