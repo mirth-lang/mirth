@@ -666,11 +666,12 @@ static void w495 (void);
 static void w496 (void);
 static void w497 (void);
 static void w498 (void);
-static void w499 (void);
-static void w500 (void);
+static void w501 (void);
 static void w502 (void);
 static void w503 (void);
-static void w504 (void);
+static void w505 (void);
+static void w506 (void);
+static void w507 (void);
 
 // trip
 static void w34 (void){
@@ -5068,7 +5069,7 @@ static void w440 (void){
 
 // NEW_TARGET_OS
 static void w441 (void){
-    w504();
+    w507();
 }
 
 // run-output-c99!
@@ -5179,12 +5180,8 @@ static void w456 (void){
 
 // heap-alloc!
 static void w457 (void){
-    push(63);
-    w8();
-    w2();
     push(64);
-    w12();
-    w9();
+    w498();
     w2();
     w496();
     w2();
@@ -6037,18 +6034,26 @@ static void w496 (void){
 
 // heap-new-size
 static void w497 (void){
-    push(4095);
+    push(4096);
+    w498();
+    w488();
+    w501();
+}
+
+// align
+static void w498 (void){
+    w2();
+    int64_t d7476 = pop();
+    w64();
     w8();
     w2();
-    push(4096);
+    push(d7476);
     w12();
     w9();
-    w488();
-    w498();
 }
 
 // max
-static void w498 (void){
+static void w501 (void){
     w44();
     w14();
     if (pop()) {
@@ -6059,7 +6064,7 @@ static void w498 (void){
 }
 
 // main
-static void w499 (void){
+static void w502 (void){
     w165();
     w139();
     w215();
@@ -6080,26 +6085,26 @@ static void w499 (void){
 }
 
 // UNKNOWN
-static void w500 (void){
+static void w503 (void){
     push(0);
 }
 
 // WINDOWS
-static void w502 (void){
+static void w505 (void){
     push(1);
 }
 
 // LINUX
-static void w503 (void){
+static void w506 (void){
     push(2);
 }
 
 // MACOS
-static void w504 (void){
+static void w507 (void){
     push(3);
 }
 
 int main (void) {
-    w499();
+    w502();
     return 0;
 }

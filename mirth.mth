@@ -2051,16 +2051,23 @@ def(heap-reserve!, U64 -- +Heap,
         )
     ))
 
+# Aligns a by b, rounding upward. For instance,
+#
+#   10 64 align == 64
+#   64 64 align == 64
+#   70 64 align == 128
+def(align, a:U64 b:U64 -- U64,
+    dup dip(1- + dup) % -)
+
 def(heap-new-size, U64 -- U64,
-    4095 + dup 4096 % -
-    BASE_HEAP_SIZE max)
+    4096 align BASE_HEAP_SIZE max)
     # FIXME: Increase base heap size each time
     # this is called, exponentially.
 
 def(max, Int Int -- Int, dup2 < if(nip, drop))
 
 def(heap-alloc!, U64 -- Ptr +Heap,
-    63 + dup 64 % -
+    64 align
     dup heap-reserve!
     dup heap-length@ swap - heap-length!
     heap-base@ tuck + heap-base!)
