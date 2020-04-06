@@ -321,12 +321,7 @@ def(file-err!, File -- +IO, FILE_ERR !)
 def(file-err@, -- File +IO, FILE_ERR @)
 
 def(str-write!, Str File -- +IO,
-    swap str-not-null? while(
-        drop str-buf-copy!
-        dip(dup str-buf-write!)
-        str-not-null?
-    ) drop2
-    )
+    swap str-length? posix-write!)
 
 def(str-print!, Str -- +IO, file-out@ str-write!)
 def(str-trace!, Str -- +IO, file-err@ str-write!)
