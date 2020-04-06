@@ -2037,8 +2037,8 @@ def(heap-reserve!, U64 -- +Heap,
 
         heap-new-size dup # size
         heap-base@ heap-length@ + swap # pointer hint
-        3 # PROT_READ (0x1) | PROT_WRITE (0x2)
-        4098 # MAP_ANONYMOUS (0x1000) | MAP_PRIVATE (0x2)
+        PROT_READ|PROT_WRITE
+        MAP_ANON|MAP_PRIVATE
         -1 # file descriptor (-1 for MAP_ANONYMOUS)
         0 # offset
         posix-mmap!
@@ -2050,6 +2050,22 @@ def(heap-reserve!, U64 -- +Heap,
             "Failed to allocate heap buffer." panic!
         )
     ))
+
+def(PROT_READ|PROT_WRITE, Int,
+    RUNNING_OS MACOS = if(
+        3, # PROT_READ = 0x1, PROT_WRITE = 0x2
+    RUNNING_OS LINUX = if(
+        6, # PROT_READ = 0x4, PROT_WRITE = 0x1
+        "PROT_READ|PROT_WRITE unknown for os" panic!
+    )))
+
+def(MAP_ANON|MAP_PRIVATE, Int,
+    RUNNING_OS MACOS = if(
+        4098, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
+    RUNNING_OS LINUX = if(
+        2, # MAP_ANON = 0x2, MAP_PRIVATE = 0x0
+        "MAP_ANON|MAP_PRIVATE unknown for os" panic!
+    )))
 
 # Aligns a by b, rounding upward. For instance,
 #
