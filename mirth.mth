@@ -606,11 +606,13 @@ def(PRIM_POSIX_EXIT, Prim, 24)
 def(PRIM_POSIX_MMAP, Prim, 25)
 def(PRIM_DEBUG, Prim, 26)
 def(PRIM_MIRTH_REVISION, Prim, 27)
-def(PRIM_DEF, Prim, 28)
-def(PRIM_DEF_STATIC_BUFFER, Prim, 29)
-def(PRIM_OUTPUT_ASM, Prim, 30)
-def(PRIM_OUTPUT_C99, Prim, 31)
-def(NUM_PRIMS, Prim, 32)
+def(PRIM_MIRTH_OS, Prim, 28)
+def(PRIM_TARGET_OS, Prim, 29)
+def(PRIM_DEF, Prim, 30)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 31)
+def(PRIM_OUTPUT_ASM, Prim, 32)
+def(PRIM_OUTPUT_C99, Prim, 33)
+def(NUM_PRIMS, Prim, 34)
 
 def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
 
@@ -651,6 +653,8 @@ def(init-names!, +Names,
     PRIM_POSIX_MMAP "posix-mmap!" def-prim!
     PRIM_DEBUG "??" def-prim!
     PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
+    PRIM_MIRTH_OS "MIRTH_OS" def-prim!
+    PRIM_TARGET_OS "TARGET_OS" def-prim!
     PRIM_DEF "def" def-prim!
     PRIM_DEF_STATIC_BUFFER "def-static-buffer" def-prim!
     PRIM_OUTPUT_ASM "output-asm" def-prim!
