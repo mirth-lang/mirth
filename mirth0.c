@@ -2014,18 +2014,8 @@ static void w169 (void){
 // str-write!
 static void w173 (void){
     w4();
-    w111();
-    for (int64_t c1940 = pop(); c1940; c1940 = pop()) {
-    push(c1940);
-    w3();
-    w137();
-    int64_t d1944 = pop();
-    w2();
-    w127();
-    push(d1944);
-    w111();
-    }
-    w45();
+    w112();
+    w21();
 }
 
 // str-print!
@@ -2155,18 +2145,18 @@ static void w193 (void){
     w138();
     } else {
     w2();
-    int64_t d2165 = pop();
+    int64_t d2154 = pop();
     w192();
     w125();
-    for (int64_t c2169 = pop(); c2169; c2169 = pop()) {
-    push(c2169);
+    for (int64_t c2158 = pop(); c2158; c2158 = pop()) {
+    push(c2158);
     w2();
     w190();
     w126();
     push(10);
     w11();
     }
-    push(d2165);
+    push(d2154);
     push(0);
     w14();
     if (pop()) {
@@ -2186,15 +2176,15 @@ static void w194 (void){
     w64();
     w44();
     w14();
-    for (int64_t c2323 = pop(); c2323; c2323 = pop()) {
-    push(c2323);
+    for (int64_t c2312 = pop(); c2312; c2312 = pop()) {
+    push(c2312);
     w3();
     w44();
     w202();
-    int64_t d2328 = pop();
+    int64_t d2317 = pop();
     push(1);
     w8();
-    push(d2328);
+    push(d2317);
     w64();
     w44();
     w14();
@@ -2204,9 +2194,9 @@ static void w194 (void){
 
 // int-write!
 static void w195 (void){
-    int64_t d2199 = pop();
+    int64_t d2188 = pop();
     w193();
-    push(d2199);
+    push(d2188);
     w127();
 }
 
@@ -2250,16 +2240,16 @@ static void w201 (void){
 static void w202 (void){
     w44();
     w4();
-    int64_t d2295 = pop();
-    int64_t d2297 = pop();
-    int64_t d2299 = pop();
+    int64_t d2284 = pop();
+    int64_t d2286 = pop();
+    int64_t d2288 = pop();
     w121();
-    push(d2299);
-    push(d2297);
-    push(d2295);
-    int64_t d2305 = pop();
+    push(d2288);
+    push(d2286);
+    push(d2284);
+    int64_t d2294 = pop();
     w121();
-    push(d2305);
+    push(d2294);
     w120();
     w120();
 }
@@ -2276,9 +2266,9 @@ static void w207 (void){
     w2();
     w205();
     w17();
-    int64_t d2369 = pop();
+    int64_t d2358 = pop();
     push(0);
-    push(d2369);
+    push(d2358);
     w206();
     w80();
 }
@@ -2428,8 +2418,8 @@ static void w224 (void){
     w2();
     w116();
     w76();
-    for (int64_t c2597 = pop(); c2597; c2597 = pop()) {
-    push(c2597);
+    for (int64_t c2586 = pop(); c2586; c2586 = pop()) {
+    push(c2586);
     w3();
     w63();
     w2();
@@ -2444,16 +2434,16 @@ static void w225 (void){
     w2();
     w117();
     w49();
-    for (int64_t c2617 = pop(); c2617; c2617 = pop()) {
-    push(c2617);
+    for (int64_t c2606 = pop(); c2606; c2606 = pop()) {
+    push(c2606);
     w3();
     w117();
     w63();
     w2();
     w119();
-    int64_t d2624 = pop();
+    int64_t d2613 = pop();
     w2();
-    push(d2624);
+    push(d2613);
     w49();
     }
     w3();
@@ -2496,16 +2486,16 @@ static void w228 (void){
 
 // name-quad-eq
 static void w229 (void){
-    int64_t d2653 = pop();
+    int64_t d2642 = pop();
     w221();
     w10();
     w223();
     w8();
-    push(d2653);
+    push(d2642);
     w42();
-    int64_t d2661 = pop();
+    int64_t d2650 = pop();
     w83();
-    push(d2661);
+    push(d2650);
     w116();
     w83();
     w13();
@@ -2581,12 +2571,12 @@ static void w231 (void){
 
 // name-quad-save!
 static void w232 (void){
-    int64_t d2763 = pop();
+    int64_t d2752 = pop();
     w221();
     w10();
     w223();
     w8();
-    push(d2763);
+    push(d2752);
     w42();
     w116();
     w83();
@@ -2623,16 +2613,16 @@ static void w233 (void){
 
 // name-quad-load!
 static void w234 (void){
-    int64_t d2815 = pop();
+    int64_t d2804 = pop();
     w221();
     w10();
     w223();
     w8();
-    push(d2815);
+    push(d2804);
     w42();
-    int64_t d2823 = pop();
+    int64_t d2812 = pop();
     w83();
-    push(d2823);
+    push(d2812);
     w116();
     w85();
 }
@@ -2646,8 +2636,8 @@ static void w235 (void){
     w2();
     w218();
     w14();
-    for (int64_t c2875 = pop(); c2875; c2875 = pop()) {
-    push(c2875);
+    for (int64_t c2864 = pop(); c2864; c2864 = pop()) {
+    push(c2864);
     w3();
     w231();
     if (pop()) {
@@ -2679,8 +2669,8 @@ static void w236 (void){
     w2();
     w218();
     w14();
-    for (int64_t c2914 = pop(); c2914; c2914 = pop()) {
-    push(c2914);
+    for (int64_t c2903 = pop(); c2903; c2903 = pop()) {
+    push(c2903);
     w3();
     w2();
     w196();
@@ -3046,8 +3036,8 @@ static void w288 (void){
     w2();
     w117();
     w14();
-    for (int64_t c3454 = pop(); c3454; c3454 = pop()) {
-    push(c3454);
+    for (int64_t c3443 = pop(); c3443; c3443 = pop()) {
+    push(c3443);
     w3();
     w2();
     w121();
@@ -3066,8 +3056,8 @@ static void w288 (void){
 static void w290 (void){
     w125();
     w285();
-    for (int64_t c3480 = pop(); c3480; c3480 = pop()) {
-    push(c3480);
+    for (int64_t c3469 = pop(); c3469; c3469 = pop()) {
+    push(c3469);
     w126();
     w63();
     w285();
@@ -3357,8 +3347,8 @@ static void w331 (void){
     w2();
     w294();
     w14();
-    for (int64_t c3941 = pop(); c3941; c3941 = pop()) {
-    push(c3941);
+    for (int64_t c3930 = pop(); c3930; c3930 = pop()) {
+    push(c3930);
     w3();
     w2();
     w330();
@@ -3485,8 +3475,8 @@ static void w352 (void){
     w341();
     w353();
     w70();
-    for (int64_t c4163 = pop(); c4163; c4163 = pop()) {
-    push(c4163);
+    for (int64_t c4152 = pop(); c4152; c4152 = pop()) {
+    push(c4152);
     w3();
     w354();
     w353();
@@ -3570,27 +3560,27 @@ static void w355 (void){
 static void w356 (void){
     w327();
     w2();
-    int64_t d4196 = pop();
+    int64_t d4185 = pop();
     w315();
-    push(d4196);
+    push(d4185);
     w2();
-    int64_t d4201 = pop();
+    int64_t d4190 = pop();
     w298();
-    push(d4201);
-    int64_t d4205 = pop();
+    push(d4190);
+    int64_t d4194 = pop();
     w333();
-    push(d4205);
+    push(d4194);
     w2();
-    int64_t d4210 = pop();
+    int64_t d4199 = pop();
     w319();
-    push(d4210);
-    int64_t d4214 = pop();
+    push(d4199);
+    int64_t d4203 = pop();
     w337();
-    push(d4214);
+    push(d4203);
     w2();
-    int64_t d4219 = pop();
+    int64_t d4208 = pop();
     w323();
-    push(d4219);
+    push(d4208);
 }
 
 // lexer-peek
@@ -3620,11 +3610,11 @@ static void w360 (void){
     w2();
     push(9);
     w13();
-    int64_t d4644 = pop();
+    int64_t d4633 = pop();
     w2();
     push(32);
     w13();
-    push(d4644);
+    push(d4633);
     w8();
 }
 
@@ -3639,8 +3629,8 @@ static void w361 (void){
 static void w362 (void){
     w383();
     w70();
-    for (int64_t c4549 = pop(); c4549; c4549 = pop()) {
-    push(c4549);
+    for (int64_t c4538 = pop(); c4538; c4538 = pop()) {
+    push(c4538);
     w3();
     w372();
     w383();
@@ -3690,9 +3680,9 @@ static void w367 (void){
     w305();
     w351();
     w2();
-    int64_t d4333 = pop();
+    int64_t d4322 = pop();
     w356();
-    push(d4333);
+    push(d4322);
     w315();
 }
 
@@ -3713,8 +3703,8 @@ static void w369 (void){
     w357();
     w381();
     w70();
-    for (int64_t c4517 = pop(); c4517; c4517 = pop()) {
-    push(c4517);
+    for (int64_t c4506 = pop(); c4506; c4506 = pop()) {
+    push(c4506);
     w3();
     w382();
     w372();
@@ -3749,8 +3739,8 @@ static void w371 (void){
     w356();
     w357();
     push(1);
-    for (int64_t c4351 = pop(); c4351; c4351 = pop()) {
-    push(c4351);
+    for (int64_t c4340 = pop(); c4340; c4340 = pop()) {
+    push(c4340);
     w3();
     w126();
     w372();
@@ -3821,12 +3811,12 @@ static void w376 (void){
     w121();
     w378();
     w43();
-    for (int64_t c4408 = pop(); c4408; c4408 = pop()) {
-    push(c4408);
+    for (int64_t c4397 = pop(); c4397; c4397 = pop()) {
+    push(c4397);
     w3();
-    int64_t d4411 = pop();
+    int64_t d4400 = pop();
     w63();
-    push(d4411);
+    push(d4400);
     w63();
     w2();
     w121();
@@ -3848,9 +3838,9 @@ static void w376 (void){
 // is-sign?
 static void w377 (void){
     w389();
-    int64_t d4802 = pop();
+    int64_t d4791 = pop();
     w380();
-    push(d4802);
+    push(d4791);
     w8();
 }
 
@@ -3874,12 +3864,12 @@ static void w379 (void){
     w380();
     w43();
     if (pop()) {
-    int64_t d4461 = pop();
-    int64_t d4463 = pop();
+    int64_t d4450 = pop();
+    int64_t d4452 = pop();
     w3();
     push(-1);
-    push(d4463);
-    push(d4461);
+    push(d4452);
+    push(d4450);
     } else {
     w1();
     }
@@ -3890,20 +3880,20 @@ static void w379 (void){
     w2();
     w117();
     w14();
-    for (int64_t c4479 = pop(); c4479; c4479 = pop()) {
-    push(c4479);
+    for (int64_t c4468 = pop(); c4468; c4468 = pop()) {
+    push(c4468);
     w3();
     w2();
-    int64_t d4483 = pop();
+    int64_t d4472 = pop();
     w121();
-    int64_t d4486 = pop();
+    int64_t d4475 = pop();
     push(10);
     w10();
-    push(d4486);
+    push(d4475);
     push(48);
     w9();
     w8();
-    push(d4483);
+    push(d4472);
     w63();
     w2();
     w117();
@@ -3923,13 +3913,13 @@ static void w380 (void){
 // is-string-end?
 static void w381 (void){
     w368();
-    int64_t d4844 = pop();
+    int64_t d4833 = pop();
     w358();
-    push(d4844);
+    push(d4833);
     w8();
-    int64_t d4849 = pop();
+    int64_t d4838 = pop();
     w388();
-    push(d4849);
+    push(d4838);
     w8();
 }
 
@@ -3952,12 +3942,12 @@ static void w383 (void){
 
 // in-range
 static void w384 (void){
-    int64_t d4916 = pop();
+    int64_t d4905 = pop();
     w41();
-    int64_t d4919 = pop();
+    int64_t d4908 = pop();
     w52();
-    push(d4919);
-    push(d4916);
+    push(d4908);
+    push(d4905);
     w15();
     w10();
 }
@@ -3981,13 +3971,13 @@ static void w386 (void){
 // is-hexdigit?
 static void w387 (void){
     w378();
-    int64_t d4769 = pop();
+    int64_t d4758 = pop();
     w385();
-    push(d4769);
+    push(d4758);
     w8();
-    int64_t d4774 = pop();
+    int64_t d4763 = pop();
     w386();
-    push(d4774);
+    push(d4763);
     w8();
 }
 
@@ -4007,21 +3997,21 @@ static void w389 (void){
 // is-special-char?
 static void w390 (void){
     w368();
-    int64_t d4885 = pop();
+    int64_t d4874 = pop();
     w364();
-    push(d4885);
+    push(d4874);
     w8();
-    int64_t d4890 = pop();
+    int64_t d4879 = pop();
     w366();
-    push(d4890);
+    push(d4879);
     w8();
-    int64_t d4895 = pop();
+    int64_t d4884 = pop();
     w363();
-    push(d4895);
+    push(d4884);
     w8();
-    int64_t d4900 = pop();
+    int64_t d4889 = pop();
     w361();
-    push(d4900);
+    push(d4889);
     w8();
 }
 
@@ -4086,41 +4076,41 @@ static void w402 (void){
 // vstack-pop2!
 static void w403 (void){
     w402();
-    int64_t d5042 = pop();
+    int64_t d5031 = pop();
     w402();
-    push(d5042);
+    push(d5031);
 }
 
 // vstack-pop3!
 static void w404 (void){
     w402();
-    int64_t d5057 = pop();
+    int64_t d5046 = pop();
     w403();
-    push(d5057);
+    push(d5046);
 }
 
 // vstack-pop4!
 static void w405 (void){
     w402();
-    int64_t d5073 = pop();
+    int64_t d5062 = pop();
     w404();
-    push(d5073);
+    push(d5062);
 }
 
 // vstack-pop5!
 static void w406 (void){
     w402();
-    int64_t d5090 = pop();
+    int64_t d5079 = pop();
     w405();
-    push(d5090);
+    push(d5079);
 }
 
 // vstack-pop6!
 static void w407 (void){
     w402();
-    int64_t d5108 = pop();
+    int64_t d5097 = pop();
     w406();
-    push(d5108);
+    push(d5097);
 }
 
 // vstack-push!
@@ -4140,17 +4130,17 @@ static void w408 (void){
 
 // vstack-push2!
 static void w409 (void){
-    int64_t d5143 = pop();
+    int64_t d5132 = pop();
     w408();
-    push(d5143);
+    push(d5132);
     w408();
 }
 
 // vstack-push3!
 static void w410 (void){
-    int64_t d5159 = pop();
+    int64_t d5148 = pop();
     w409();
-    push(d5159);
+    push(d5148);
     w408();
 }
 
@@ -4186,8 +4176,8 @@ static void w413 (void){
     w2();
     w394();
     w14();
-    for (int64_t c5213 = pop(); c5213; c5213 = pop()) {
-    push(c5213);
+    for (int64_t c5202 = pop(); c5202; c5202 = pop()) {
+    push(c5202);
     w3();
     w2();
     w399();
@@ -4205,9 +4195,9 @@ static void w413 (void){
 static void w414 (void){
     push((int64_t)(strings + 841));
     w175();
-    int64_t d5238 = pop();
+    int64_t d5227 = pop();
     w328();
-    push(d5238);
+    push(d5227);
     push((int64_t)(strings + 852));
     w175();
     w182();
@@ -4217,9 +4207,9 @@ static void w414 (void){
 static void w415 (void){
     push((int64_t)(strings + 862));
     w175();
-    int64_t d5257 = pop();
+    int64_t d5246 = pop();
     w328();
-    push(d5257);
+    push(d5246);
     push((int64_t)(strings + 873));
     w175();
     w182();
@@ -4236,8 +4226,8 @@ static void w416 (void){
 static void w419 (void){
     w421();
     w70();
-    for (int64_t c5290 = pop(); c5290; c5290 = pop()) {
-    push(c5290);
+    for (int64_t c5279 = pop(); c5279; c5279 = pop()) {
+    push(c5279);
     w3();
     w422();
     w421();
@@ -4412,9 +4402,9 @@ static void w424 (void){
     w430();
     w432();
     w402();
-    int64_t d5504 = pop();
+    int64_t d5493 = pop();
     w419();
-    push(d5504);
+    push(d5493);
     w408();
     } else {
     w2();
@@ -4444,8 +4434,8 @@ static void w424 (void){
     w430();
     w432();
     w402();
-    for (int64_t c5540 = pop(); c5540; c5540 = pop()) {
-    push(c5540);
+    for (int64_t c5529 = pop(); c5529; c5529 = pop()) {
+    push(c5529);
     w408();
     w2();
     w419();
@@ -5094,8 +5084,8 @@ static void w442 (void){
 static void w443 (void){
     w444();
     w70();
-    for (int64_t c6160 = pop(); c6160; c6160 = pop()) {
-    push(c6160);
+    for (int64_t c6149 = pop(); c6149; c6149 = pop()) {
+    push(c6149);
     w3();
     w445();
     w444();
@@ -5272,8 +5262,8 @@ static void w470 (void){
     w2();
     w280();
     w14();
-    for (int64_t c6651 = pop(); c6651; c6651 = pop()) {
-    push(c6651);
+    for (int64_t c6640 = pop(); c6640; c6640 = pop()) {
+    push(c6640);
     w3();
     w2();
     w279();
@@ -5663,8 +5653,8 @@ static void w472 (void){
     w2();
     w218();
     w14();
-    for (int64_t c6679 = pop(); c6679; c6679 = pop()) {
-    push(c6679);
+    for (int64_t c6668 = pop(); c6668; c6668 = pop()) {
+    push(c6668);
     w3();
     w2();
     w482();
@@ -5684,8 +5674,8 @@ static void w473 (void){
     w2();
     w218();
     w14();
-    for (int64_t c7108 = pop(); c7108; c7108 = pop()) {
-    push(c7108);
+    for (int64_t c7097 = pop(); c7097; c7097 = pop()) {
+    push(c7097);
     w3();
     w2();
     w483();
@@ -5705,8 +5695,8 @@ static void w474 (void){
     w2();
     w218();
     w14();
-    for (int64_t c7152 = pop(); c7152; c7152 = pop()) {
-    push(c7152);
+    for (int64_t c7141 = pop(); c7141; c7141 = pop()) {
+    push(c7141);
     w3();
     w2();
     w484();
@@ -5836,8 +5826,8 @@ static void w484 (void){
 static void w485 (void){
     w421();
     w70();
-    for (int64_t c7197 = pop(); c7197; c7197 = pop()) {
-    push(c7197);
+    for (int64_t c7186 = pop(); c7186; c7186 = pop()) {
+    push(c7186);
     w3();
     w2();
     w486();
@@ -5912,9 +5902,9 @@ static void w487 (void){
     w433();
     push((int64_t)(strings + 4180));
     w476();
-    int64_t d7288 = pop();
+    int64_t d7277 = pop();
     w485();
-    push(d7288);
+    push(d7277);
     push((int64_t)(strings + 4197));
     w476();
     w485();
@@ -6095,11 +6085,11 @@ static void w501 (void){
 // align
 static void w502 (void){
     w2();
-    int64_t d7526 = pop();
+    int64_t d7515 = pop();
     w64();
     w8();
     w2();
-    push(d7526);
+    push(d7515);
     w12();
     w9();
 }
