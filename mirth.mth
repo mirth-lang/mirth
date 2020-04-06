@@ -798,8 +798,7 @@ def(token-print!, Token -- +IO,
         token-value? int-print!))
 
     drop
-    print-ln!
-)
+    print-ln!)
 
 def(show-tokens!, --,
     0 dup num-tokens@ < while(
@@ -873,8 +872,7 @@ def(run-lexer!, +Lexer,
     # FIXME: check that lexer stack is empty
 
     TOKEN_NONE 0
-    lexer-emit!
-)
+    lexer-emit!)
 
 # Is the lexer done?
 def(lexer-done?, Bool +Lexer, lexer-idx@ file-buf-length@ >=)
@@ -929,8 +927,7 @@ def(lexer-next!, --,
         drop # LATER emit lexer error
         ))))))))
 
-    lexer-move!
-)
+    lexer-move!)
 
 def(lexer-emit-newline!, +Lexer,
     lexer-row@ 1+ lexer-row!
@@ -1061,7 +1058,8 @@ def(lexer-move-back!, +Lexer,
     lexer-col@ 1- lexer-col!)
 
 def(is-newline?, Char -- Char Bool, dup 10 =)
-def(is-whitespace?, Char -- Char Bool, dup 9 = dip(dup 32 =) +)
+def(is-whitespace?, Char -- Char Bool,
+    dup 9 = dip(dup 32 =) +)
 def(is-pound?, Char -- Char Bool, dup 35 =)
 def(is-lparen?, Char -- Char Bool, dup 40 =)
 def(is-rparen?, Char -- Char Bool, dup 41 =)
@@ -1091,7 +1089,8 @@ def(is-special-char?, Char -- Char Bool,
     # FIXME: include brackets & braces ... maybe colons
     )
 
-def(in-range, Int Int Int -- Bool, dip(over dip(>=)) <= *)
+def(in-range, Int Int Int -- Bool,
+    dip(over dip(>=)) <= *)
 
 ###############
 # Value Stack #
