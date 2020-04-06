@@ -378,17 +378,27 @@ def(str-buf-create-file!, File +IO,
     STR_BUF create-file!)
 
 def(create-file!, Str -- File +IO,
-    1537 # 0x601
-        # this is an OR of flags:
-        #    O_WRONLY 0x0001 : open in write-only mode
-        #    O_CREAT  0x0200 : create file if it doesn't exist
-        #    O_TRUNC  0x0400 : truncate to zero bytes
+    O_WRONLY|O_CREAT|O_TRUNC
     438 # 0x1B6
         # this is the default mode creates a file with
         # unix permission 666 (in octal),
         # i.e. owner can read+write, everyone can read
     posix-open!
     dup 0 < if("Failed to create file!" panic!, id))
+
+def(O_WRONLY|O_CREAT|O_TRUNC, Int,
+
+    RUNNING_OS MACOS = if(
+        1537, # 0x601
+            # this is an OR of flags:
+            #    O_WRONLY 0x0001 : open in write-only mode
+            #    O_CREAT  0x0200 : create file if it doesn't exist
+            #    O_TRUNC  0x0400 : truncate to zero bytes
+    RUNNING_OS LINUX = if(
+        4353, # O_TRUNC = 0x1000, O_CREAT = 0x100, O_WRONLY = 0x1
+
+        "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic!
+    )))
 
 def(read-file!, File -- +IO,
     dup FILE_BUF FILE_BUF_SIZE 1- posix-read!
