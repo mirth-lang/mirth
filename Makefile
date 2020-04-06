@@ -5,6 +5,7 @@ mirth: mirth0.c mirth.mth
 	./mirth0
 	mv mirth.c mirth1.c
 	clang $(C99FLAGS) -o mirth1 mirth1.c
+	diff mirth0.c mirth1.c || true
 	./mirth1
 	mv mirth.c mirth2.c
 	clang $(C99FLAGS) -o mirth2 mirth2.c
