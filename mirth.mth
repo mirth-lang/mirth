@@ -1476,6 +1476,13 @@ def(token-run-prim!, Token --,
         NEW_MIRTH_REVISION
         vstack-push!,
 
+    dup PRIM_RUNNING_OS = if(
+        drop
+        0 1 arity-check!
+        token-args-0
+        RUNNING_OS
+        vstack-push!,
+
     dup PRIM_TARGET_OS = if(
         drop
         0 1 arity-check!
@@ -1492,7 +1499,7 @@ def(token-run-prim!, Token --,
 
         drop
         "Dont know how to run prim yet." emit-warning!
-    ))))))))))))))))))))))))))))))))
+    )))))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,

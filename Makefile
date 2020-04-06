@@ -13,7 +13,7 @@ mirth: mirth0.c mirth.mth
 	mv mirth.c mirth3.c
 	diff mirth2.c mirth3.c
 
-update-mirth: mirth
+update-mirth:
 	cp mirth3.c mirth0.c
 
 install-vim:
