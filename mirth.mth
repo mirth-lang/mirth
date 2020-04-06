@@ -22,8 +22,6 @@ def(1+, Int -- Int, 1 +)
 def(1-, Int -- Int, 1 -)
 
 def(not, Bool -- Bool, 0 =)
-def(and, Bool Bool -- Bool, swap if(id, drop 0))
-def(or, Bool Bool -- Bool, swap if(drop 1, id))
 
 def(byte, Size, 1)
 def(bytes, Size -- Size, id)
@@ -41,33 +39,20 @@ def(!!, Bool --, if(id, "Assertion failed" panic!))
 def(!!=, Int Int --, = !!)
 def(!!0, Int --, 0 !!=)
 def(!!1, Int --, 1 !!=)
-def(!!00, Int Int --, !!0 !!0)
-def(!!01, Int Int --, !!1 !!0)
-def(!!10, Int Int --, !!0 !!1)
-def(!!11, Int Int --, !!1 !!1)
-def(!!000, Int Int --, !!0 !!0 !!0)
 def(!!001, Int Int --, !!1 !!0 !!0)
 def(!!010, Int Int --, !!0 !!1 !!0)
 def(!!011, Int Int --, !!1 !!1 !!0)
 def(!!100, Int Int --, !!0 !!0 !!1)
-def(!!101, Int Int --, !!1 !!0 !!1)
-def(!!110, Int Int --, !!0 !!1 !!1)
 def(!!111, Int Int --, !!1 !!1 !!1)
-
 
 def(str-head, Str -- Byte, byte@)
 def(str-head?, Str -- Str Byte, dup str-head)
 def(str-tail, Str -- Str, str-head? if(1+, id))
-def(str-tail?, Str -- Str Str, dup str-tail)
-def(str-null, Str -- Bool, str-head 0=)
-def(str-null?, Str -- Str Bool, dup str-null)
-def(str-not-null, Str -- Bool, str-null not)
-def(str-not-null?, Str -- Str Bool, dup str-not-null)
 def(str-length?, Str -- Str Int, dup str-length)
 def(str-length, Str -- Int,
-    dip(0) str-not-null? while(
-        drop str-tail dip(1+)
-        str-not-null?
+    dip(0) dup byte@ while(
+        drop 1+ dip(1+)
+        dup byte@
     ) drop)
 
 def(STR_BUF_SIZE, Int, 4096)
@@ -323,7 +308,6 @@ def(trace-ln!, +IO, 10 trace-char!)
 def(print-sp!, +IO, 32 print-char!)
 def(trace-sp!, +IO, 32 trace-char!)
 def(print-quote!, +IO, 34 print-char!)
-def(trace-quote!, +IO, 34 trace-char!)
 
 def(to-digit, Int -- Char, 10 % 48 +)
 
@@ -386,12 +370,14 @@ def(file-buf-length@, -- Int, FILE_BUF_LENGTH @)
 
 def(file-buf@, Int -- U8, FILE_BUF byte@@)
 
-def(str-buf-open-file!, -- File +IO,
-    STR_BUF 0 0 posix-open!
-    dup 0 < if("failed to open file!" panic!, id))
+def(open-file!, Str -- File +IO,
+    0 0 posix-open!
+    dup 0 < if("Failed to open file!" panic!, id))
 
-def(str-buf-create-file!, -- File +IO,
-    STR_BUF
+def(str-buf-create-file!, File +IO,
+    STR_BUF create-file!)
+
+def(create-file!, Str -- File +IO,
     1537 # 0x601
         # this is an OR of flags:
         #    O_WRONLY 0x0001 : open in write-only mode
@@ -402,10 +388,7 @@ def(str-buf-create-file!, -- File +IO,
         # unix permission 666 (in octal),
         # i.e. owner can read+write, everyone can read
     posix-open!
-    dup 0 < if("failed to open file!" panic!, id))
-
-def(str-open-file!, Str -- File +IO, str-buf! str-buf-open-file!)
-def(str-create-file!, Str -- File +IO, str-buf! str-buf-create-file!)
+    dup 0 < if("Failed to create file!" panic!, id))
 
 def(read-file!, File -- +IO,
     dup FILE_BUF FILE_BUF_SIZE 1- posix-read!
@@ -420,7 +403,7 @@ def(read-file!, File -- +IO,
 
 def(read-mirth-src!, +IO,
     "Reading mirth.mth" str-trace-ln!
-    "mirth.mth" str-open-file! read-file!
+    "mirth.mth" open-file! read-file!
     "Read " str-trace!
     file-buf-length@ int-trace!
     " bytes (FILE_BUF_SIZE = " str-trace!
