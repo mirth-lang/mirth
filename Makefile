@@ -3,7 +3,6 @@ C99FLAGS =-std=c99 -Weverything -Wno-missing-noreturn -Wno-unused-function -Werr
 .PHONY: mirth update-mirth install-vim install-code
 
 mirth: mirth3.c
-	diff mirth1.c mirth2.c || true
 	diff mirth2.c mirth3.c
 
 update-mirth: mirth3.c
