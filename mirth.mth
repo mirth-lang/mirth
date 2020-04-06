@@ -1876,7 +1876,15 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_RUNNING_OS .w " {" ;
-    "    push(" . NEW_TARGET_OS .n ");" ;
+    "#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)" ;
+    "    push(" . WINDOWS .n ");" ;
+    "#elif defined(__linux__)" ;
+    "    push(" . LINUX .n ");" ;
+    "#elif defined(__APPLE__)" ;
+    "    push(" . MACOS .n ");" ;
+    "#else" ;
+    "    push(" . UNKNOWN .n ");" ;
+    "#endif" ;
     "}" ;;
 
     )
