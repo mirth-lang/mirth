@@ -1068,7 +1068,36 @@ def(lexer-emit-string!, +Lexer,
     )
 
 def(lexer-push-string-char!, Char -- +Lexer,
-    str-buf-push!) # FIXME: handle escape sequences
+    is-backslash? if(
+        drop lexer-move! lexer-peek
+
+        is-newline? if(
+            drop,
+
+        is-n? if(
+            drop 10 str-buf-push!,
+
+        is-r? if(
+            drop 13 str-buf-push!,
+
+        is-t? if(
+            drop 9 str-buf-push!,
+
+        is-quote? if(
+            str-buf-push!,
+
+        is-backslash? if(
+            str-buf-push!,
+
+            str-buf-push!
+
+            "Unknown character escape sequence."
+            lexer-emit-warning!
+
+        )))))),
+
+        str-buf-push!
+    ))
 
 def(lexer-skip-comment!, +Lexer,
     lexer-comment-end? not while(
@@ -1113,6 +1142,10 @@ def(is-plus-sign?, Char -- Char Bool, dup 43 =)
 def(is-minus-sign?, Char -- Char Bool, dup 45 =)
 
 def(is-string-end?, Char -- Char Bool, is-quote? dip(is-newline?) + dip(is-nul?) +)
+def(is-backslash?, Char -- Char Bool, dup 92 =)
+def(is-n?, Char -- Char Bool, dup 110 =)
+def(is-r?, Char -- Char Bool, dup 114 =)
+def(is-t?, Char -- Char Bool, dup 116 =)
 
 def(is-name-char?, Char -- Char Bool,
     is-special-char?
@@ -1224,6 +1257,12 @@ def(emit-error!, Token Str -- +IO,
 def(emit-fatal-error!, *a Token Str -- *b +IO,
     emit-error!
     1 posix-exit!)
+
+def(lexer-emit-warning!, Str -- +IO,
+    "mirth.mth:" str-trace!
+    lexer-trace-prefix!
+    "warning: " str-trace!
+    str-trace-ln!)
 
 def(lexer-emit-error!, Str -- +IO,
     "mirth.mth:" str-trace!
