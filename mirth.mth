@@ -380,9 +380,9 @@ def(str-buf-create-file!, File +IO,
 def(create-file!, Str -- File +IO,
     O_WRONLY|O_CREAT|O_TRUNC
     0x1B6
-        # this is the default mode creates a file with
-        # unix permission 666 (in octal),
-        # i.e. owner can read+write, everyone can read
+        # this is the default mode for creating a file
+        # on unix, 666 in octal, i.e. owner can
+        # read+write, everyone can read
     posix-open!
     dup 0 < if("Failed to create file!" panic!, id))
 
