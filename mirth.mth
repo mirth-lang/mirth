@@ -379,23 +379,23 @@ def(str-buf-create-file!, File +IO,
 
 def(create-file!, Str -- File +IO,
     O_WRONLY|O_CREAT|O_TRUNC
-    438 # 0x1B6
-        # this is the default mode creates a file with
-        # unix permission 666 (in octal),
-        # i.e. owner can read+write, everyone can read
+    0x1B6
+        # this is the default mode for creating a file
+        # on unix, 666 in octal, i.e. owner can
+        # read+write, everyone can read
     posix-open!
     dup 0 < if("Failed to create file!" panic!, id))
 
 def(O_WRONLY|O_CREAT|O_TRUNC, Int,
 
     RUNNING_OS MACOS = if(
-        1537, # 0x601
+        0x601,
             # this is an OR of flags:
             #    O_WRONLY 0x0001 : open in write-only mode
             #    O_CREAT  0x0200 : create file if it doesn't exist
             #    O_TRUNC  0x0400 : truncate to zero bytes
     RUNNING_OS LINUX = if(
-        577, # O_TRUNC = 0x200, O_CREAT = 0x40, O_WRONLY = 0x1
+        0x241, # O_TRUNC = 0x200, O_CREAT = 0x40, O_WRONLY = 0x1
 
         "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic!
     )))
@@ -839,10 +839,13 @@ def(run-lexer!, +Lexer,
         lexer-done? not
     )
 
-    # FIXME: check that lexer stack is empty
+    lexer-stack-empty? if(
+        TOKEN_NONE 0 lexer-emit!,
 
-    TOKEN_NONE 0
-    lexer-emit!)
+        lexer-stack-pop!
+        "Mismatched left parenthesis."
+        emit-fatal-error!
+    ))
 
 # Is the lexer done?
 def(lexer-done?, Bool +Lexer, lexer-idx@ file-buf-length@ >=)
@@ -908,10 +911,11 @@ def(lexer-emit-lparen!, +Lexer,
     lexer-stack-push!)
 
 def(lexer-emit-rparen!, +Lexer,
-    # FIXME: handle empty lexer stack (AKA mismatched right paren)
-    TOKEN_RPAREN
-    lexer-stack-pop! dup
-    dip(lexer-make!) token-value!)
+    lexer-stack-empty? if(
+        "Mismatched right parenthesis." lexer-emit-fatal-error!,
+        TOKEN_RPAREN lexer-stack-pop! dup
+        dip(lexer-make!) token-value!
+    ))
 
 def(lexer-emit-name!, +Lexer,
     str-buf-clear!
@@ -935,8 +939,7 @@ def(lexer-emit-name!, +Lexer,
     ))
 
 def(str-buf-is-int?, Bool +StrBuf,
-    str-buf-is-dec-int? # FIXME: handle hex
-    )
+    str-buf-is-dec-int? if(1, str-buf-is-hex-int?))
 
 def(str-buf-is-dec-int?, Bool +StrBuf,
     0 # number of digits
@@ -955,9 +958,41 @@ def(str-buf-is-dec-int?, Bool +StrBuf,
         drop 0
     ))
 
-def(str-buf-int?, Int +StrBuf,
-    str-buf-dec-int? # FIXME: handle hex
+def(is-zero-char, Char -- Bool, 48 =)
+def(is-xX-char, Char -- Bool, dup 88 = dip(120 =) +)
+
+def(str-buf-is-hex-int?, Bool +StrBuf,
+    0 # number of digits
+    0 # current index
+    dup str-buf-u8@ is-sign? nip if(
+        1+,
+        id
     )
+    dup str-buf-u8@ is-zero-char if(
+        1+
+        dup str-buf-u8@ is-xX-char if(
+            1+
+            dup str-buf-u8@ is-hexdigit? nip while(
+                drop
+                dip(1+) 1+
+                dup str-buf-u8@ is-hexdigit? nip
+            )
+            swap 1 >= if(
+                str-buf-length? =,
+                drop 0
+            ),
+
+            drop2 0
+        ),
+
+        drop2 0
+    ))
+
+def(str-buf-int?, Int +StrBuf,
+    str-buf-is-dec-int? if(
+        str-buf-dec-int?,
+        str-buf-hex-int?
+    ))
 
 def(str-buf-dec-int?, Int +StrBuf,
     1 # sign multiplier
@@ -982,6 +1017,39 @@ def(str-buf-dec-int?, Int +StrBuf,
     )
     drop *)
 
+def(str-buf-hex-int?, Int +StrBuf,
+    1 # sign multiplier
+    0 # accumulated value
+    0 # current index
+    dup str-buf-u8@ is-sign? if(
+        is-minus-sign? nip if(
+            dip(dip(drop -1)),
+            id
+        )
+        1+,
+        drop
+    )
+    2 + # skip 0x prefix
+    dup str-buf-length? < while(
+        drop
+        dup dip(
+            str-buf-u8@
+            dip(16 *) hexdigit-value +
+        )
+        1+
+        dup str-buf-length? <
+    )
+    drop *)
+
+def(hexdigit-value, Char -- Int,
+    is-digit? if(
+        48 -,
+        is-upper-hexdigit? if(
+            55 -,
+            87 -
+        )
+    ))
+
 def(lexer-emit-string!, +Lexer,
     str-buf-clear!
     TOKEN_STR 0 lexer-make!
@@ -1000,7 +1068,36 @@ def(lexer-emit-string!, +Lexer,
     )
 
 def(lexer-push-string-char!, Char -- +Lexer,
-    str-buf-push!) # FIXME: handle escape sequences
+    is-backslash? if(
+        drop lexer-move! lexer-peek
+
+        is-newline? if(
+            drop,
+
+        is-n? if(
+            drop 10 str-buf-push!,
+
+        is-r? if(
+            drop 13 str-buf-push!,
+
+        is-t? if(
+            drop 9 str-buf-push!,
+
+        is-quote? if(
+            str-buf-push!,
+
+        is-backslash? if(
+            str-buf-push!,
+
+            str-buf-push!
+
+            "Unknown character escape sequence."
+            lexer-emit-warning!
+
+        )))))),
+
+        str-buf-push!
+    ))
 
 def(lexer-skip-comment!, +Lexer,
     lexer-comment-end? not while(
@@ -1045,6 +1142,10 @@ def(is-plus-sign?, Char -- Char Bool, dup 43 =)
 def(is-minus-sign?, Char -- Char Bool, dup 45 =)
 
 def(is-string-end?, Char -- Char Bool, is-quote? dip(is-newline?) + dip(is-nul?) +)
+def(is-backslash?, Char -- Char Bool, dup 92 =)
+def(is-n?, Char -- Char Bool, dup 110 =)
+def(is-r?, Char -- Char Bool, dup 114 =)
+def(is-t?, Char -- Char Bool, dup 116 =)
 
 def(is-name-char?, Char -- Char Bool,
     is-special-char?
@@ -1061,6 +1162,10 @@ def(is-special-char?, Char -- Char Bool,
 
 def(in-range, Int Int Int -- Bool,
     dip(over dip(>=)) <= *)
+
+def(lexer-trace-prefix!, +IO,
+    lexer-row@ int-trace! ":" str-trace!
+    lexer-col@ int-trace! ":" str-trace-sp!)
 
 ###############
 # Value Stack #
@@ -1151,6 +1256,22 @@ def(emit-error!, Token Str -- +IO,
 
 def(emit-fatal-error!, *a Token Str -- *b +IO,
     emit-error!
+    1 posix-exit!)
+
+def(lexer-emit-warning!, Str -- +IO,
+    "mirth.mth:" str-trace!
+    lexer-trace-prefix!
+    "warning: " str-trace!
+    str-trace-ln!)
+
+def(lexer-emit-error!, Str -- +IO,
+    "mirth.mth:" str-trace!
+    lexer-trace-prefix!
+    "error: " str-trace!
+    str-trace-ln!)
+
+def(lexer-emit-fatal-error!, Str -- +IO,
+    lexer-emit-error!
     1 posix-exit!)
 
 ###########
@@ -2023,13 +2144,13 @@ def(heap-reserve!, U64 -- +Heap,
     ))
 
 def(PROT_READ|PROT_WRITE, Int,
-    3) # PROT_READ = 0x1, PROT_WRITE = 0x2
+    0x3) # PROT_READ = 0x1, PROT_WRITE = 0x2
 
 def(MAP_ANON|MAP_PRIVATE, Int,
     RUNNING_OS MACOS = if(
-        4098, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
+        0x1002, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
     RUNNING_OS LINUX = if(
-        34, # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
+        0x22, # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
         "MAP_ANON|MAP_PRIVATE unknown for os" panic!
     )))
 
@@ -2075,7 +2196,6 @@ def(main, +IO,
         id,
         "VSTACK = " str-trace! vstack-trace!
     ))
-
 
 #########
 # Build #
