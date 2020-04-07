@@ -939,8 +939,7 @@ def(lexer-emit-name!, +Lexer,
     ))
 
 def(str-buf-is-int?, Bool +StrBuf,
-    str-buf-is-dec-int? # FIXME: handle hex
-    )
+    str-buf-is-dec-int? if(1, str-buf-is-hex-int?))
 
 def(str-buf-is-dec-int?, Bool +StrBuf,
     0 # number of digits
@@ -959,9 +958,41 @@ def(str-buf-is-dec-int?, Bool +StrBuf,
         drop 0
     ))
 
-def(str-buf-int?, Int +StrBuf,
-    str-buf-dec-int? # FIXME: handle hex
+def(is-zero-char, Char -- Bool, 48 =)
+def(is-xX-char, Char -- Bool, dup 88 = dip(120 =) +)
+
+def(str-buf-is-hex-int?, Bool +StrBuf,
+    0 # number of digits
+    0 # current index
+    dup str-buf-u8@ is-sign? nip if(
+        1+,
+        id
     )
+    dup str-buf-u8@ is-zero-char if(
+        1+
+        dup str-buf-u8@ is-xX-char if(
+            1+
+            dup str-buf-u8@ is-hexdigit? nip while(
+                drop
+                dip(1+) 1+
+                dup str-buf-u8@ is-hexdigit? nip
+            )
+            swap 1 >= if(
+                str-buf-length? =,
+                drop 0
+            ),
+
+            drop2 0
+        ),
+
+        drop2 0
+    ))
+
+def(str-buf-int?, Int +StrBuf,
+    str-buf-is-dec-int? if(
+        str-buf-dec-int?,
+        str-buf-hex-int?
+    ))
 
 def(str-buf-dec-int?, Int +StrBuf,
     1 # sign multiplier
@@ -985,6 +1016,39 @@ def(str-buf-dec-int?, Int +StrBuf,
         dup str-buf-length? <
     )
     drop *)
+
+def(str-buf-hex-int?, Int +StrBuf,
+    1 # sign multiplier
+    0 # accumulated value
+    0 # current index
+    dup str-buf-u8@ is-sign? if(
+        is-minus-sign? nip if(
+            dip(dip(drop -1)),
+            id
+        )
+        1+,
+        drop
+    )
+    2 + # skip 0x prefix
+    dup str-buf-length? < while(
+        drop
+        dup dip(
+            str-buf-u8@
+            dip(16 *) hexdigit-value +
+        )
+        1+
+        dup str-buf-length? <
+    )
+    drop *)
+
+def(hexdigit-value, Char -- Int,
+    is-digit? if(
+        48 -,
+        is-upper-hexdigit? if(
+            55 -,
+            87 -
+        )
+    ))
 
 def(lexer-emit-string!, +Lexer,
     str-buf-clear!

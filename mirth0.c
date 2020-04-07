@@ -264,24 +264,24 @@ static uint8_t b312[8] = {0};
 static void w312 (void) { push((int64_t)b312); }
 static uint8_t b313[2048] = {0};
 static void w313 (void) { push((int64_t)b313); }
-static uint8_t b364[8] = {0};
-static void w364 (void) { push((int64_t)b364); }
-static uint8_t b365[65536] = {0};
-static void w365 (void) { push((int64_t)b365); }
-static uint8_t b419[8] = {0};
-static void w419 (void) { push((int64_t)b419); }
-static uint8_t b423[8192] = {0};
-static void w423 (void) { push((int64_t)b423); }
-static uint8_t b424[8192] = {0};
+static uint8_t b369[8] = {0};
+static void w369 (void) { push((int64_t)b369); }
+static uint8_t b370[65536] = {0};
+static void w370 (void) { push((int64_t)b370); }
+static uint8_t b424[8] = {0};
 static void w424 (void) { push((int64_t)b424); }
-static uint8_t b433[8192] = {0};
-static void w433 (void) { push((int64_t)b433); }
-static uint8_t b434[65536] = {0};
-static void w434 (void) { push((int64_t)b434); }
-static uint8_t b462[8] = {0};
-static void w462 (void) { push((int64_t)b462); }
-static uint8_t b466[8] = {0};
-static void w466 (void) { push((int64_t)b466); }
+static uint8_t b428[8192] = {0};
+static void w428 (void) { push((int64_t)b428); }
+static uint8_t b429[8192] = {0};
+static void w429 (void) { push((int64_t)b429); }
+static uint8_t b438[8192] = {0};
+static void w438 (void) { push((int64_t)b438); }
+static uint8_t b439[65536] = {0};
+static void w439 (void) { push((int64_t)b439); }
+static uint8_t b467[8] = {0};
+static void w467 (void) { push((int64_t)b467); }
+static uint8_t b471[8] = {0};
+static void w471 (void) { push((int64_t)b471); }
 
 static void w33 (void);
 static void w36 (void);
@@ -561,16 +561,16 @@ static void w360 (void);
 static void w361 (void);
 static void w362 (void);
 static void w363 (void);
+static void w364 (void);
+static void w365 (void);
 static void w366 (void);
+static void w367 (void);
 static void w368 (void);
-static void w369 (void);
-static void w370 (void);
 static void w371 (void);
 static void w373 (void);
 static void w374 (void);
 static void w375 (void);
 static void w376 (void);
-static void w377 (void);
 static void w378 (void);
 static void w379 (void);
 static void w380 (void);
@@ -581,13 +581,13 @@ static void w384 (void);
 static void w385 (void);
 static void w386 (void);
 static void w387 (void);
+static void w388 (void);
+static void w389 (void);
 static void w390 (void);
 static void w391 (void);
-static void w393 (void);
-static void w394 (void);
+static void w392 (void);
 static void w395 (void);
 static void w396 (void);
-static void w397 (void);
 static void w398 (void);
 static void w399 (void);
 static void w400 (void);
@@ -609,20 +609,20 @@ static void w415 (void);
 static void w416 (void);
 static void w417 (void);
 static void w418 (void);
+static void w419 (void);
 static void w420 (void);
+static void w421 (void);
 static void w422 (void);
+static void w423 (void);
 static void w425 (void);
 static void w427 (void);
-static void w428 (void);
-static void w429 (void);
-static void w431 (void);
-static void w435 (void);
+static void w430 (void);
+static void w432 (void);
+static void w433 (void);
+static void w434 (void);
 static void w436 (void);
-static void w438 (void);
-static void w439 (void);
 static void w440 (void);
 static void w441 (void);
-static void w442 (void);
 static void w443 (void);
 static void w444 (void);
 static void w445 (void);
@@ -642,17 +642,22 @@ static void w458 (void);
 static void w459 (void);
 static void w460 (void);
 static void w461 (void);
+static void w462 (void);
 static void w463 (void);
+static void w464 (void);
 static void w465 (void);
-static void w467 (void);
+static void w466 (void);
 static void w468 (void);
-static void w469 (void);
 static void w470 (void);
-static void w471 (void);
 static void w472 (void);
 static void w473 (void);
+static void w474 (void);
+static void w475 (void);
 static void w476 (void);
 static void w477 (void);
+static void w478 (void);
+static void w481 (void);
+static void w482 (void);
 
 // trip
 static void w33 (void){
@@ -3360,7 +3365,7 @@ static void w324 (void){
 
 // emit-fatal-error!
 static void w325 (void){
-    w387();
+    w392();
     push(1);
     w24();
 }
@@ -3419,11 +3424,11 @@ static void w330 (void){
     w2();
     push(9);
     w13();
-    int64_t d4279 = pop();
+    int64_t d4475 = pop();
     w2();
     push(32);
     w13();
-    push(d4279);
+    push(d4475);
     w8();
 }
 
@@ -3436,13 +3441,13 @@ static void w331 (void){
 
 // lexer-skip-comment!
 static void w332 (void){
-    w354();
+    w361();
     w53();
-    for (int64_t c4184 = pop(); c4184; c4184 = pop()) {
-    push(c4184);
+    for (int64_t c4380 = pop(); c4380; c4380 = pop()) {
+    push(c4380);
     w3();
     w342();
-    w354();
+    w361();
     w53();
     }
     w327();
@@ -3516,15 +3521,15 @@ static void w339 (void){
     w326();
     w342();
     w327();
-    w352();
+    w359();
     w53();
-    for (int64_t c4152 = pop(); c4152; c4152 = pop()) {
-    push(c4152);
+    for (int64_t c4348 = pop(); c4348; c4348 = pop()) {
+    push(c4348);
     w3();
-    w353();
+    w360();
     w342();
     w327();
-    w352();
+    w359();
     w53();
     }
     w3();
@@ -3535,14 +3540,14 @@ static void w339 (void){
 
 // is-name-char?
 static void w340 (void){
-    w361();
+    w366();
     if (pop()) {
     push(0);
     } else {
     w2();
     push(33);
     push(126);
-    w355();
+    w362();
     }
 }
 
@@ -3591,7 +3596,7 @@ static void w342 (void){
 
 // lexer-emit-fatal-error!
 static void w343 (void){
-    w390();
+    w395();
     push(1);
     w24();
 }
@@ -3609,11 +3614,21 @@ static void w344 (void){
 // str-buf-is-int?
 static void w345 (void){
     w347();
+    if (pop()) {
+    push(1);
+    } else {
+    w348();
+    }
 }
 
 // str-buf-int?
 static void w346 (void){
-    w350();
+    w347();
+    if (pop()) {
+    w354();
+    } else {
+    w355();
+    }
 }
 
 // str-buf-is-dec-int?
@@ -3622,7 +3637,7 @@ static void w347 (void){
     push(0);
     w2();
     w90();
-    w348();
+    w349();
     w42();
     if (pop()) {
     w51();
@@ -3631,18 +3646,18 @@ static void w347 (void){
     }
     w2();
     w90();
-    w349();
+    w350();
     w42();
-    for (int64_t c4043 = pop(); c4043; c4043 = pop()) {
-    push(c4043);
+    for (int64_t c4049 = pop(); c4049; c4049 = pop()) {
+    push(c4049);
     w3();
-    int64_t d4046 = pop();
+    int64_t d4052 = pop();
     w51();
-    push(d4046);
+    push(d4052);
     w51();
     w2();
     w90();
-    w349();
+    w350();
     w42();
     }
     w4();
@@ -3657,41 +3672,131 @@ static void w347 (void){
     }
 }
 
-// is-sign?
+// str-buf-is-hex-int?
 static void w348 (void){
-    w360();
-    int64_t d4437 = pop();
+    push(0);
+    push(0);
+    w2();
+    w90();
+    w349();
+    w42();
+    if (pop()) {
+    w51();
+    } else {
+    w1();
+    }
+    w2();
+    w90();
     w351();
-    push(d4437);
+    if (pop()) {
+    w51();
+    w2();
+    w90();
+    w352();
+    if (pop()) {
+    w51();
+    w2();
+    w90();
+    w353();
+    w42();
+    for (int64_t c4138 = pop(); c4138; c4138 = pop()) {
+    push(c4138);
+    w3();
+    int64_t d4141 = pop();
+    w51();
+    push(d4141);
+    w51();
+    w2();
+    w90();
+    w353();
+    w42();
+    }
+    w4();
+    push(1);
+    w48();
+    if (pop()) {
+    w86();
+    w13();
+    } else {
+    w3();
+    push(0);
+    }
+    } else {
+    w44();
+    push(0);
+    }
+    } else {
+    w44();
+    push(0);
+    }
+}
+
+// is-sign?
+static void w349 (void){
+    w365();
+    int64_t d4633 = pop();
+    w356();
+    push(d4633);
     w8();
 }
 
 // is-digit?
-static void w349 (void){
+static void w350 (void){
     w2();
     push(48);
     push(57);
-    w355();
+    w362();
+}
+
+// is-zero-char
+static void w351 (void){
+    push(48);
+    w13();
+}
+
+// is-xX-char
+static void w352 (void){
+    w2();
+    push(88);
+    w13();
+    int64_t d4096 = pop();
+    push(120);
+    w13();
+    push(d4096);
+    w8();
+}
+
+// is-hexdigit?
+static void w353 (void){
+    w350();
+    int64_t d4600 = pop();
+    w358();
+    push(d4600);
+    w8();
+    int64_t d4605 = pop();
+    w363();
+    push(d4605);
+    w8();
 }
 
 // str-buf-dec-int?
-static void w350 (void){
+static void w354 (void){
     push(1);
     push(0);
     push(0);
     w2();
     w90();
-    w348();
+    w349();
     if (pop()) {
-    w351();
+    w356();
     w42();
     if (pop()) {
-    int64_t d4096 = pop();
-    int64_t d4098 = pop();
+    int64_t d4205 = pop();
+    int64_t d4207 = pop();
     w3();
     push(-1);
-    push(d4098);
-    push(d4096);
+    push(d4207);
+    push(d4205);
     } else {
     w1();
     }
@@ -3702,20 +3807,72 @@ static void w350 (void){
     w2();
     w86();
     w14();
-    for (int64_t c4114 = pop(); c4114; c4114 = pop()) {
-    push(c4114);
+    for (int64_t c4223 = pop(); c4223; c4223 = pop()) {
+    push(c4223);
     w3();
     w2();
-    int64_t d4118 = pop();
+    int64_t d4227 = pop();
     w90();
-    int64_t d4121 = pop();
+    int64_t d4230 = pop();
     push(10);
     w10();
-    push(d4121);
+    push(d4230);
     push(48);
     w9();
     w8();
-    push(d4118);
+    push(d4227);
+    w51();
+    w2();
+    w86();
+    w14();
+    }
+    w3();
+    w10();
+}
+
+// str-buf-hex-int?
+static void w355 (void){
+    push(1);
+    push(0);
+    push(0);
+    w2();
+    w90();
+    w349();
+    if (pop()) {
+    w356();
+    w42();
+    if (pop()) {
+    int64_t d4266 = pop();
+    int64_t d4268 = pop();
+    w3();
+    push(-1);
+    push(d4268);
+    push(d4266);
+    } else {
+    w1();
+    }
+    w51();
+    } else {
+    w3();
+    }
+    push(2);
+    w8();
+    w2();
+    w86();
+    w14();
+    for (int64_t c4286 = pop(); c4286; c4286 = pop()) {
+    push(c4286);
+    w3();
+    w2();
+    int64_t d4290 = pop();
+    w90();
+    int64_t d4293 = pop();
+    push(16);
+    w10();
+    push(d4293);
+    w357();
+    w8();
+    push(d4290);
     w51();
     w2();
     w86();
@@ -3726,32 +3883,58 @@ static void w350 (void){
 }
 
 // is-minus-sign?
-static void w351 (void){
+static void w356 (void){
     w2();
     push(45);
     w13();
 }
 
+// hexdigit-value
+static void w357 (void){
+    w350();
+    if (pop()) {
+    push(48);
+    w9();
+    } else {
+    w358();
+    if (pop()) {
+    push(55);
+    w9();
+    } else {
+    push(87);
+    w9();
+    }
+    }
+}
+
+// is-upper-hexdigit?
+static void w358 (void){
+    w2();
+    push(65);
+    push(70);
+    w362();
+}
+
 // is-string-end?
-static void w352 (void){
+static void w359 (void){
     w338();
-    int64_t d4479 = pop();
+    int64_t d4675 = pop();
     w328();
-    push(d4479);
+    push(d4675);
     w8();
-    int64_t d4484 = pop();
-    w359();
-    push(d4484);
+    int64_t d4680 = pop();
+    w364();
+    push(d4680);
     w8();
 }
 
 // lexer-push-string-char!
-static void w353 (void){
+static void w360 (void){
     w95();
 }
 
 // lexer-comment-end?
-static void w354 (void){
+static void w361 (void){
     w322();
     if (pop()) {
     push(1);
@@ -3763,82 +3946,61 @@ static void w354 (void){
 }
 
 // in-range
-static void w355 (void){
-    int64_t d4551 = pop();
+static void w362 (void){
+    int64_t d4747 = pop();
     w40();
-    int64_t d4554 = pop();
+    int64_t d4750 = pop();
     w48();
-    push(d4554);
-    push(d4551);
+    push(d4750);
+    push(d4747);
     w15();
     w10();
 }
 
-// is-upper-hexdigit?
-static void w356 (void){
-    w2();
-    push(65);
-    push(70);
-    w355();
-}
-
 // is-lower-hexdigit?
-static void w357 (void){
+static void w363 (void){
     w2();
     push(97);
     push(102);
-    w355();
-}
-
-// is-hexdigit?
-static void w358 (void){
-    w349();
-    int64_t d4404 = pop();
-    w356();
-    push(d4404);
-    w8();
-    int64_t d4409 = pop();
-    w357();
-    push(d4409);
-    w8();
+    w362();
 }
 
 // is-nul?
-static void w359 (void){
+static void w364 (void){
     w2();
     w49();
 }
 
 // is-plus-sign?
-static void w360 (void){
+static void w365 (void){
     w2();
     push(43);
     w13();
 }
 
 // is-special-char?
-static void w361 (void){
+static void w366 (void){
     w338();
-    int64_t d4520 = pop();
+    int64_t d4716 = pop();
     w334();
-    push(d4520);
+    push(d4716);
     w8();
-    int64_t d4525 = pop();
+    int64_t d4721 = pop();
     w336();
-    push(d4525);
+    push(d4721);
     w8();
-    int64_t d4530 = pop();
+    int64_t d4726 = pop();
     w333();
-    push(d4530);
+    push(d4726);
     w8();
-    int64_t d4535 = pop();
+    int64_t d4731 = pop();
     w331();
-    push(d4535);
+    push(d4731);
     w8();
 }
 
 // lexer-trace-prefix!
-static void w362 (void){
+static void w367 (void){
     w302();
     w165();
     push((int64_t)(strings + 716));
@@ -3850,175 +4012,175 @@ static void w362 (void){
 }
 
 // VSTACK_SIZE
-static void w363 (void){
+static void w368 (void){
     push(8192);
 }
 
 // vstack-len@
-static void w366 (void){
-    w364();
+static void w371 (void){
+    w369();
     w16();
 }
 
 // vstack-len!
-static void w368 (void){
-    w364();
+static void w373 (void){
+    w369();
     w17();
 }
 
 // vstack-empty?
-static void w369 (void){
-    w366();
+static void w374 (void){
+    w371();
     push(0);
     w15();
 }
 
 // vstack-full?
-static void w370 (void){
-    w366();
-    w363();
+static void w375 (void){
+    w371();
+    w368();
     w48();
 }
 
 // vstack-i64@
-static void w371 (void){
-    w365();
+static void w376 (void){
+    w370();
     w64();
 }
 
 // vstack-i64!
-static void w373 (void){
-    w365();
+static void w378 (void){
+    w370();
     w66();
 }
 
 // vstack-pop!
-static void w374 (void){
-    w369();
+static void w379 (void){
+    w374();
     if (pop()) {
     push((int64_t)(strings + 720));
     w68();
     } else {
-    w366();
-    w52();
-    w368();
-    w366();
     w371();
+    w52();
+    w373();
+    w371();
+    w376();
     }
 }
 
 // vstack-pop2!
-static void w375 (void){
-    w374();
-    int64_t d4692 = pop();
-    w374();
-    push(d4692);
+static void w380 (void){
+    w379();
+    int64_t d4888 = pop();
+    w379();
+    push(d4888);
 }
 
 // vstack-pop3!
-static void w376 (void){
-    w374();
-    int64_t d4707 = pop();
-    w375();
-    push(d4707);
+static void w381 (void){
+    w379();
+    int64_t d4903 = pop();
+    w380();
+    push(d4903);
 }
 
 // vstack-pop4!
-static void w377 (void){
-    w374();
-    int64_t d4723 = pop();
-    w376();
-    push(d4723);
+static void w382 (void){
+    w379();
+    int64_t d4919 = pop();
+    w381();
+    push(d4919);
 }
 
 // vstack-pop5!
-static void w378 (void){
-    w374();
-    int64_t d4740 = pop();
-    w377();
-    push(d4740);
+static void w383 (void){
+    w379();
+    int64_t d4936 = pop();
+    w382();
+    push(d4936);
 }
 
 // vstack-pop6!
-static void w379 (void){
-    w374();
-    int64_t d4758 = pop();
-    w378();
-    push(d4758);
+static void w384 (void){
+    w379();
+    int64_t d4954 = pop();
+    w383();
+    push(d4954);
 }
 
 // vstack-push!
-static void w380 (void){
-    w370();
+static void w385 (void){
+    w375();
     if (pop()) {
     push((int64_t)(strings + 770));
     w68();
     } else {
-    w366();
-    w373();
-    w366();
+    w371();
+    w378();
+    w371();
     w51();
-    w368();
+    w373();
     }
 }
 
 // vstack-push2!
-static void w381 (void){
-    int64_t d4793 = pop();
-    w380();
-    push(d4793);
-    w380();
+static void w386 (void){
+    int64_t d4989 = pop();
+    w385();
+    push(d4989);
+    w385();
 }
 
 // vstack-push3!
-static void w382 (void){
-    int64_t d4809 = pop();
-    w381();
-    push(d4809);
-    w380();
+static void w387 (void){
+    int64_t d5005 = pop();
+    w386();
+    push(d5005);
+    w385();
 }
 
 // vstack-top@
-static void w383 (void){
-    w369();
+static void w388 (void){
+    w374();
     if (pop()) {
     push((int64_t)(strings + 819));
     w68();
     } else {
-    w366();
-    w52();
     w371();
+    w52();
+    w376();
     }
 }
 
 // vstack-top!
-static void w384 (void){
-    w369();
+static void w389 (void){
+    w374();
     if (pop()) {
     push((int64_t)(strings + 879));
     w68();
     } else {
-    w366();
+    w371();
     w52();
-    w373();
+    w378();
     }
 }
 
 // vstack-trace!
-static void w385 (void){
+static void w390 (void){
     push(0);
     w2();
-    w366();
+    w371();
     w14();
-    for (int64_t c4863 = pop(); c4863; c4863 = pop()) {
-    push(c4863);
+    for (int64_t c5059 = pop(); c5059; c5059 = pop()) {
+    push(c5059);
     w3();
     w2();
-    w371();
+    w376();
     w167();
     w51();
     w2();
-    w366();
+    w371();
     w14();
     }
     w3();
@@ -4026,55 +4188,55 @@ static void w385 (void){
 }
 
 // emit-warning!
-static void w386 (void){
+static void w391 (void){
     push((int64_t)(strings + 938));
     w144();
-    int64_t d4888 = pop();
+    int64_t d5084 = pop();
     w297();
-    push(d4888);
+    push(d5084);
     push((int64_t)(strings + 949));
     w144();
     w151();
 }
 
 // emit-error!
-static void w387 (void){
+static void w392 (void){
     push((int64_t)(strings + 959));
     w144();
-    int64_t d4907 = pop();
+    int64_t d5103 = pop();
     w297();
-    push(d4907);
+    push(d5103);
     push((int64_t)(strings + 970));
     w144();
     w151();
 }
 
 // lexer-emit-error!
-static void w390 (void){
+static void w395 (void){
     push((int64_t)(strings + 978));
     w144();
-    w362();
+    w367();
     push((int64_t)(strings + 989));
     w144();
     w151();
 }
 
 // token-run!
-static void w391 (void){
-    w393();
+static void w396 (void){
+    w398();
     w53();
-    for (int64_t c4967 = pop(); c4967; c4967 = pop()) {
-    push(c4967);
+    for (int64_t c5163 = pop(); c5163; c5163 = pop()) {
+    push(c5163);
     w3();
-    w394();
-    w393();
+    w399();
+    w398();
     w53();
     }
     w3();
 }
 
 // token-run-end?
-static void w393 (void){
+static void w398 (void){
     w2();
     w263();
     w48();
@@ -4102,13 +4264,13 @@ static void w393 (void){
 }
 
 // token-run-one!
-static void w394 (void){
+static void w399 (void){
     w271();
     w277();
     w13();
     if (pop()) {
     w287();
-    w380();
+    w385();
     } else {
     w271();
     w278();
@@ -4117,7 +4279,7 @@ static void w394 (void){
     w287();
     w248();
     w8();
-    w380();
+    w385();
     } else {
     w271();
     w273();
@@ -4130,7 +4292,7 @@ static void w394 (void){
     w13();
     if (pop()) {
     w2();
-    w395();
+    w400();
     } else {
     w2();
     push((int64_t)(strings + 997));
@@ -4143,31 +4305,31 @@ static void w394 (void){
 }
 
 // token-run-name!
-static void w395 (void){
+static void w400 (void){
     w287();
     w243();
     if (pop()) {
     w3();
-    w396();
+    w401();
     } else {
-    w397();
+    w402();
     if (pop()) {
     w3();
     push((int64_t)(strings + 1033));
     w325();
     } else {
-    w398();
+    w403();
     if (pop()) {
     w42();
-    w399();
-    w391();
+    w404();
+    w396();
     } else {
-    w400();
+    w405();
     if (pop()) {
     w42();
-    w399();
-    w401();
-    w380();
+    w404();
+    w406();
+    w385();
     } else {
     w44();
     push((int64_t)(strings + 1052));
@@ -4179,7 +4341,7 @@ static void w395 (void){
 }
 
 // token-run-prim!
-static void w396 (void){
+static void w401 (void){
     w287();
     w2();
     w210();
@@ -4188,8 +4350,8 @@ static void w396 (void){
     w3();
     push(0);
     push(0);
-    w402();
-    w403();
+    w407();
+    w408();
     } else {
     w2();
     w213();
@@ -4198,11 +4360,11 @@ static void w396 (void){
     w3();
     push(2);
     push(2);
-    w402();
-    w403();
-    w375();
+    w407();
+    w408();
+    w380();
     w4();
-    w381();
+    w386();
     } else {
     w2();
     w211();
@@ -4211,11 +4373,11 @@ static void w396 (void){
     w3();
     push(1);
     push(2);
-    w402();
-    w403();
-    w374();
+    w407();
+    w408();
+    w379();
     w2();
-    w381();
+    w386();
     } else {
     w2();
     w212();
@@ -4224,9 +4386,9 @@ static void w396 (void){
     w3();
     push(1);
     push(0);
-    w402();
-    w403();
-    w374();
+    w407();
+    w408();
+    w379();
     w3();
     } else {
     w2();
@@ -4236,13 +4398,13 @@ static void w396 (void){
     w3();
     push(1);
     push(1);
-    w402();
-    w404();
-    w374();
-    int64_t d5181 = pop();
-    w391();
-    push(d5181);
-    w380();
+    w407();
+    w409();
+    w379();
+    int64_t d5377 = pop();
+    w396();
+    push(d5377);
+    w385();
     } else {
     w2();
     w215();
@@ -4251,15 +4413,15 @@ static void w396 (void){
     w3();
     push(1);
     push(0);
-    w402();
-    w405();
-    w374();
+    w407();
+    w410();
+    w379();
     if (pop()) {
     w3();
     } else {
     w42();
     }
-    w391();
+    w396();
     } else {
     w2();
     w216();
@@ -4268,15 +4430,15 @@ static void w396 (void){
     w3();
     push(1);
     push(0);
-    w402();
-    w404();
-    w374();
-    for (int64_t c5217 = pop(); c5217; c5217 = pop()) {
-    push(c5217);
-    w380();
+    w407();
+    w409();
+    w379();
+    for (int64_t c5413 = pop(); c5413; c5413 = pop()) {
+    push(c5413);
+    w385();
     w2();
-    w391();
-    w374();
+    w396();
+    w379();
     }
     w3();
     } else {
@@ -4287,11 +4449,11 @@ static void w396 (void){
     w3();
     push(2);
     push(1);
-    w402();
-    w403();
-    w375();
-    w8();
+    w407();
+    w408();
     w380();
+    w8();
+    w385();
     } else {
     w2();
     w218();
@@ -4300,11 +4462,11 @@ static void w396 (void){
     w3();
     push(2);
     push(1);
-    w402();
-    w403();
-    w375();
-    w9();
+    w407();
+    w408();
     w380();
+    w9();
+    w385();
     } else {
     w2();
     w219();
@@ -4313,11 +4475,11 @@ static void w396 (void){
     w3();
     push(2);
     push(1);
-    w402();
-    w403();
-    w375();
-    w10();
+    w407();
+    w408();
     w380();
+    w10();
+    w385();
     } else {
     w2();
     w220();
@@ -4326,11 +4488,11 @@ static void w396 (void){
     w3();
     push(2);
     push(1);
-    w402();
-    w403();
-    w375();
-    w11();
+    w407();
+    w408();
     w380();
+    w11();
+    w385();
     } else {
     w2();
     w221();
@@ -4339,11 +4501,11 @@ static void w396 (void){
     w3();
     push(2);
     push(1);
-    w402();
-    w403();
-    w375();
-    w12();
+    w407();
+    w408();
     w380();
+    w12();
+    w385();
     } else {
     w2();
     w222();
@@ -4352,11 +4514,11 @@ static void w396 (void){
     w3();
     push(2);
     push(1);
-    w402();
-    w403();
-    w375();
-    w13();
+    w407();
+    w408();
     w380();
+    w13();
+    w385();
     } else {
     w2();
     w223();
@@ -4365,11 +4527,11 @@ static void w396 (void){
     w3();
     push(2);
     push(1);
-    w402();
-    w403();
-    w375();
-    w14();
+    w407();
+    w408();
     w380();
+    w14();
+    w385();
     } else {
     w2();
     w224();
@@ -4378,11 +4540,11 @@ static void w396 (void){
     w3();
     push(2);
     push(1);
-    w402();
-    w403();
-    w375();
-    w15();
+    w407();
+    w408();
     w380();
+    w15();
+    w385();
     } else {
     w2();
     w225();
@@ -4391,11 +4553,11 @@ static void w396 (void){
     w3();
     push(1);
     push(1);
-    w402();
-    w403();
-    w374();
+    w407();
+    w408();
+    w379();
     w16();
-    w380();
+    w385();
     } else {
     w2();
     w226();
@@ -4404,9 +4566,9 @@ static void w396 (void){
     w3();
     push(2);
     push(0);
-    w402();
-    w403();
-    w375();
+    w407();
+    w408();
+    w380();
     w17();
     } else {
     w2();
@@ -4416,11 +4578,11 @@ static void w396 (void){
     w3();
     push(1);
     push(1);
-    w402();
-    w403();
-    w374();
+    w407();
+    w408();
+    w379();
     w18();
-    w380();
+    w385();
     } else {
     w2();
     w228();
@@ -4429,9 +4591,9 @@ static void w396 (void){
     w3();
     push(2);
     push(0);
-    w402();
-    w403();
-    w375();
+    w407();
+    w408();
+    w380();
     w19();
     } else {
     w2();
@@ -4441,11 +4603,11 @@ static void w396 (void){
     w3();
     push(6);
     push(1);
-    w402();
-    w403();
-    w379();
+    w407();
+    w408();
+    w384();
     w25();
-    w380();
+    w385();
     } else {
     w2();
     w230();
@@ -4454,9 +4616,9 @@ static void w396 (void){
     w3();
     push(3);
     push(0);
-    w402();
-    w403();
-    w376();
+    w407();
+    w408();
+    w381();
     w21();
     } else {
     w2();
@@ -4466,11 +4628,11 @@ static void w396 (void){
     w3();
     push(3);
     push(1);
-    w402();
-    w403();
-    w376();
+    w407();
+    w408();
+    w381();
     w20();
-    w380();
+    w385();
     } else {
     w2();
     w231();
@@ -4479,11 +4641,11 @@ static void w396 (void){
     w3();
     push(3);
     push(1);
-    w402();
-    w403();
-    w376();
+    w407();
+    w408();
+    w381();
     w22();
-    w380();
+    w385();
     } else {
     w2();
     w232();
@@ -4492,11 +4654,11 @@ static void w396 (void){
     w3();
     push(1);
     push(1);
-    w402();
-    w403();
-    w374();
+    w407();
+    w408();
+    w379();
     w23();
-    w380();
+    w385();
     } else {
     w2();
     w233();
@@ -4505,9 +4667,9 @@ static void w396 (void){
     w3();
     push(1);
     push(0);
-    w402();
-    w403();
-    w374();
+    w407();
+    w408();
+    w379();
     w24();
     } else {
     w2();
@@ -4517,11 +4679,11 @@ static void w396 (void){
     w3();
     push(0);
     push(0);
-    w402();
-    w403();
+    w407();
+    w408();
     push((int64_t)(strings + 1080));
     w144();
-    w385();
+    w390();
     } else {
     w2();
     w238();
@@ -4530,8 +4692,8 @@ static void w396 (void){
     w3();
     push(0);
     push(0);
-    w402();
-    w406();
+    w407();
+    w411();
     w42();
     w4();
     w271();
@@ -4539,13 +4701,13 @@ static void w396 (void){
     w13();
     if (pop()) {
     w287();
-    w397();
+    w402();
     if (pop()) {
-    w407();
+    w412();
     w40();
-    w408();
+    w413();
     w42();
-    w409();
+    w414();
     } else {
     w3();
     push((int64_t)(strings + 1084));
@@ -4563,23 +4725,23 @@ static void w396 (void){
     w3();
     push(1);
     push(0);
-    w402();
-    w404();
+    w407();
+    w409();
     w271();
     w276();
     w13();
     if (pop()) {
     w287();
-    w397();
+    w402();
     if (pop()) {
     w42();
-    w410();
+    w415();
     w40();
-    w408();
-    w374();
-    w411();
+    w413();
+    w379();
+    w416();
     w4();
-    w409();
+    w414();
     } else {
     w3();
     push((int64_t)(strings + 1124));
@@ -4597,10 +4759,10 @@ static void w396 (void){
     w3();
     push(0);
     push(1);
-    w402();
-    w403();
-    w412();
-    w380();
+    w407();
+    w408();
+    w417();
+    w385();
     } else {
     w2();
     w237();
@@ -4609,10 +4771,10 @@ static void w396 (void){
     w3();
     push(0);
     push(1);
-    w402();
-    w403();
+    w407();
+    w408();
     w28();
-    w380();
+    w385();
     } else {
     w2();
     w241();
@@ -4621,14 +4783,14 @@ static void w396 (void){
     w3();
     push(1);
     push(0);
-    w402();
-    w404();
-    w374();
-    w413();
+    w407();
+    w409();
+    w379();
+    w418();
     } else {
     w3();
     push((int64_t)(strings + 1168));
-    w386();
+    w391();
     }
     }
     }
@@ -4663,45 +4825,45 @@ static void w396 (void){
 }
 
 // name-undefined?
-static void w397 (void){
+static void w402 (void){
+    w441();
     w436();
-    w431();
     w13();
 }
 
 // name-is-word?
-static void w398 (void){
-    w436();
-    w407();
+static void w403 (void){
+    w441();
+    w412();
     w13();
 }
 
 // name-value@
-static void w399 (void){
-    w434();
+static void w404 (void){
+    w439();
     w64();
 }
 
 // name-is-buffer?
-static void w400 (void){
-    w436();
-    w410();
+static void w405 (void){
+    w441();
+    w415();
     w13();
 }
 
 // buffer-base@
-static void w401 (void){
-    w424();
+static void w406 (void){
+    w429();
     w64();
 }
 
 // arity-check!
-static void w402 (void){
+static void w407 (void){
     w44();
 }
 
 // token-args-0
-static void w403 (void){
+static void w408 (void){
     w51();
     w271();
     w273();
@@ -4715,7 +4877,7 @@ static void w403 (void){
 }
 
 // token-args-1
-static void w404 (void){
+static void w409 (void){
     w2();
     w51();
     w271();
@@ -4724,7 +4886,7 @@ static void w404 (void){
     if (pop()) {
     w51();
     w41();
-    w414();
+    w419();
     w271();
     w274();
     w13();
@@ -4743,7 +4905,7 @@ static void w404 (void){
 }
 
 // token-args-2
-static void w405 (void){
+static void w410 (void){
     w2();
     w51();
     w271();
@@ -4752,14 +4914,14 @@ static void w405 (void){
     if (pop()) {
     w51();
     w41();
-    w414();
+    w419();
     w271();
     w275();
     w13();
     if (pop()) {
     w51();
     w41();
-    w414();
+    w419();
     w271();
     w274();
     w13();
@@ -4783,7 +4945,7 @@ static void w405 (void){
 }
 
 // token-args-3
-static void w406 (void){
+static void w411 (void){
     w2();
     w51();
     w271();
@@ -4792,21 +4954,21 @@ static void w406 (void){
     if (pop()) {
     w51();
     w41();
-    w414();
+    w419();
     w271();
     w275();
     w13();
     if (pop()) {
     w51();
     w41();
-    w414();
+    w419();
     w271();
     w275();
     w13();
     if (pop()) {
     w51();
     w41();
-    w414();
+    w419();
     w271();
     w274();
     w13();
@@ -4835,85 +4997,85 @@ static void w406 (void){
 }
 
 // DEF_WORD
-static void w407 (void){
+static void w412 (void){
     push(1);
 }
 
 // name-sort!
-static void w408 (void){
-    w433();
+static void w413 (void){
+    w438();
     w61();
 }
 
 // name-value!
-static void w409 (void){
-    w434();
+static void w414 (void){
+    w439();
     w66();
 }
 
 // DEF_BUFFER
-static void w410 (void){
+static void w415 (void){
     push(2);
 }
 
 // buffer-alloc!
-static void w411 (void){
-    w420();
-    w417();
+static void w416 (void){
+    w425();
+    w422();
     w48();
     if (pop()) {
     push((int64_t)(strings + 1466));
     w68();
     } else {
     w2();
-    w420();
-    w427();
-    w428();
-    w420();
-    w429();
-    w420();
+    w425();
+    w432();
+    w433();
+    w425();
+    w434();
+    w425();
     w2();
     w51();
-    w422();
+    w427();
     }
 }
 
 // NEW_MIRTH_REVISION
-static void w412 (void){
+static void w417 (void){
     push(0);
 }
 
 // run-output-c99!
-static void w413 (void){
+static void w418 (void){
     w259();
     w179();
     w137();
-    w440();
-    w441();
-    w442();
-    w443();
-    w444();
     w445();
     w446();
+    w447();
+    w448();
+    w449();
+    w450();
+    w451();
     w132();
     w137();
 }
 
 // token-next-arg-end
-static void w414 (void){
-    w415();
+static void w419 (void){
+    w420();
     w53();
-    for (int64_t c5823 = pop(); c5823; c5823 = pop()) {
-    push(c5823);
+    for (int64_t c6019 = pop(); c6019; c6019 = pop()) {
+    push(c6019);
     w3();
-    w416();
-    w415();
+    w421();
+    w420();
     w53();
     }
 }
 
 // token-is-arg-end?
-static void w415 (void){
+static void w420 (void){
     w271();
     w275();
     w13();
@@ -4927,7 +5089,7 @@ static void w415 (void){
 }
 
 // token-next
-static void w416 (void){
+static void w421 (void){
     w271();
     w273();
     w13();
@@ -4956,140 +5118,140 @@ static void w416 (void){
 }
 
 // MAX_BUFFERS
-static void w417 (void){
+static void w422 (void){
     push(1024);
 }
 
 // PAGE_SIZE
-static void w418 (void){
+static void w423 (void){
     push(8192);
 }
 
 // num-buffers@
-static void w420 (void){
-    w419();
+static void w425 (void){
+    w424();
     w16();
 }
 
 // num-buffers!
-static void w422 (void){
-    w419();
+static void w427 (void){
+    w424();
     w17();
 }
 
 // buffer-size@
-static void w425 (void){
-    w423();
+static void w430 (void){
+    w428();
     w64();
 }
 
 // buffer-size!
-static void w427 (void){
-    w423();
+static void w432 (void){
+    w428();
     w66();
 }
 
 // heap-alloc!
-static void w428 (void){
+static void w433 (void){
     push(64);
-    w473();
+    w478();
     w2();
-    w469();
+    w474();
     w2();
-    w463();
+    w468();
     w4();
     w9();
-    w465();
-    w467();
+    w470();
+    w472();
     w41();
     w8();
-    w468();
+    w473();
 }
 
 // buffer-base!
-static void w429 (void){
-    w424();
+static void w434 (void){
+    w429();
     w66();
 }
 
 // DEF_NONE
-static void w431 (void){
+static void w436 (void){
     push(0);
 }
 
 // name-sort@
-static void w435 (void){
-    w433();
+static void w440 (void){
+    w438();
     w57();
 }
 
 // name-sort?
-static void w436 (void){
+static void w441 (void){
     w2();
-    w435();
+    w440();
 }
 
 // name-value?
-static void w438 (void){
+static void w443 (void){
     w2();
-    w399();
+    w404();
 }
 
 // name-defined?
-static void w439 (void){
-    w397();
+static void w444 (void){
+    w402();
     w53();
 }
 
 // c99-emit-header!
-static void w440 (void){
+static void w445 (void){
     push((int64_t)(strings + 1527));
-    w447();
+    w452();
     push((int64_t)(strings + 1569));
-    w447();
+    w452();
     push((int64_t)(strings + 1590));
-    w447();
+    w452();
     push((int64_t)(strings + 1610));
-    w447();
+    w452();
     push((int64_t)(strings + 1630));
-    w447();
+    w452();
     push((int64_t)(strings + 1649));
-    w447();
+    w452();
     push((int64_t)(strings + 1668));
-    w447();
+    w452();
     push((int64_t)(strings + 1688));
-    w448();
+    w453();
     push((int64_t)(strings + 1710));
-    w447();
+    w452();
     push((int64_t)(strings + 1734));
-    w447();
+    w452();
     push((int64_t)(strings + 1765));
-    w448();
+    w453();
 }
 
 // c99-emit-strings!
-static void w441 (void){
+static void w446 (void){
     push((int64_t)(strings + 1805));
-    w450();
+    w455();
     w249();
-    w451();
+    w456();
     push((int64_t)(strings + 1827));
-    w447();
+    w452();
     push((int64_t)(strings + 1828));
-    w450();
+    w455();
     push(0);
     w2();
     w249();
     w14();
-    for (int64_t c6314 = pop(); c6314; c6314 = pop()) {
-    push(c6314);
+    for (int64_t c6510 = pop(); c6510; c6510 = pop()) {
+    push(c6510);
     w3();
     w2();
     w248();
     w57();
-    w451();
+    w456();
     push((int64_t)(strings + 1867));
-    w450();
+    w455();
     w51();
     w2();
     w249();
@@ -5097,456 +5259,456 @@ static void w441 (void){
     }
     w3();
     push((int64_t)(strings + 1870));
-    w448();
+    w453();
 }
 
 // c99-emit-prims!
-static void w442 (void){
+static void w447 (void){
     push((int64_t)(strings + 1947));
-    w447();
+    w452();
     push((int64_t)(strings + 1975));
-    w447();
+    w452();
     push((int64_t)(strings + 2002));
-    w447();
+    w452();
     push((int64_t)(strings + 2030));
-    w447();
+    w452();
     push((int64_t)(strings + 2043));
-    w449();
-    push((int64_t)(strings + 2068));
-    w449();
-    push((int64_t)(strings + 2084));
-    w447();
-    push((int64_t)(strings + 2087));
-    w447();
-    push((int64_t)(strings + 2114));
-    w447();
-    push((int64_t)(strings + 2131));
-    w447();
-    push((int64_t)(strings + 2137));
-    w448();
-    push((int64_t)(strings + 2139));
-    w447();
-    push((int64_t)(strings + 2169));
-    w447();
-    push((int64_t)(strings + 2192));
-    w447();
-    push((int64_t)(strings + 2213));
-    w448();
-    push((int64_t)(strings + 2215));
-    w447();
-    push((int64_t)(strings + 2246));
-    w447();
-    push((int64_t)(strings + 2269));
-    w447();
-    push((int64_t)(strings + 2292));
-    w448();
-    push((int64_t)(strings + 2294));
-    w447();
-    push((int64_t)(strings + 2325));
-    w447();
-    push((int64_t)(strings + 2343));
-    w447();
-    push((int64_t)(strings + 2368));
-    w447();
-    push((int64_t)(strings + 2381));
-    w449();
-    push((int64_t)(strings + 2406));
-    w449();
-    push((int64_t)(strings + 2421));
-    w447();
-    push((int64_t)(strings + 2424));
-    w447();
-    push((int64_t)(strings + 2451));
-    w447();
-    push((int64_t)(strings + 2468));
-    w447();
-    push((int64_t)(strings + 2474));
-    w448();
-    w210();
-    w452();
-    push((int64_t)(strings + 2476));
-    w447();
-    push((int64_t)(strings + 2479));
-    w448();
-    w211();
-    w452();
-    push((int64_t)(strings + 2481));
-    w447();
-    push((int64_t)(strings + 2484));
-    w447();
-    push((int64_t)(strings + 2507));
-    w447();
-    push((int64_t)(strings + 2529));
-    w448();
-    w212();
-    w452();
-    push((int64_t)(strings + 2531));
-    w447();
-    push((int64_t)(strings + 2534));
-    w447();
-    push((int64_t)(strings + 2545));
-    w448();
-    w213();
-    w452();
-    push((int64_t)(strings + 2547));
-    w447();
-    push((int64_t)(strings + 2550));
-    w447();
-    push((int64_t)(strings + 2573));
-    w447();
-    push((int64_t)(strings + 2596));
-    w447();
-    push((int64_t)(strings + 2618));
-    w448();
-    w217();
-    w452();
-    push((int64_t)(strings + 2620));
-    w447();
-    push((int64_t)(strings + 2623));
-    w447();
-    push((int64_t)(strings + 2646));
-    w447();
-    push((int64_t)(strings + 2669));
-    w447();
-    push((int64_t)(strings + 2686));
-    w448();
-    w218();
-    w452();
-    push((int64_t)(strings + 2688));
-    w447();
-    push((int64_t)(strings + 2691));
-    w447();
-    push((int64_t)(strings + 2714));
-    w447();
-    push((int64_t)(strings + 2737));
-    w447();
-    push((int64_t)(strings + 2754));
-    w448();
-    w219();
-    w452();
-    push((int64_t)(strings + 2756));
-    w447();
-    push((int64_t)(strings + 2759));
-    w447();
-    push((int64_t)(strings + 2782));
-    w447();
-    push((int64_t)(strings + 2805));
-    w447();
-    push((int64_t)(strings + 2822));
-    w448();
-    w220();
-    w452();
-    push((int64_t)(strings + 2824));
-    w447();
-    push((int64_t)(strings + 2827));
-    w447();
-    push((int64_t)(strings + 2850));
-    w447();
-    push((int64_t)(strings + 2873));
-    w447();
-    push((int64_t)(strings + 2890));
-    w448();
-    w221();
-    w452();
-    push((int64_t)(strings + 2892));
-    w447();
-    push((int64_t)(strings + 2895));
-    w447();
-    push((int64_t)(strings + 2918));
-    w447();
-    push((int64_t)(strings + 2941));
-    w447();
-    push((int64_t)(strings + 2958));
-    w448();
-    w222();
-    w452();
-    push((int64_t)(strings + 2960));
-    w447();
-    push((int64_t)(strings + 2963));
-    w447();
-    push((int64_t)(strings + 2986));
-    w447();
-    push((int64_t)(strings + 3009));
-    w447();
-    push((int64_t)(strings + 3027));
-    w448();
-    w223();
-    w452();
-    push((int64_t)(strings + 3029));
-    w447();
-    push((int64_t)(strings + 3032));
-    w447();
-    push((int64_t)(strings + 3055));
-    w447();
-    push((int64_t)(strings + 3078));
-    w447();
-    push((int64_t)(strings + 3095));
-    w448();
-    w224();
-    w452();
-    push((int64_t)(strings + 3097));
-    w447();
-    push((int64_t)(strings + 3100));
-    w447();
-    push((int64_t)(strings + 3123));
-    w447();
-    push((int64_t)(strings + 3146));
-    w447();
-    push((int64_t)(strings + 3164));
-    w448();
-    w230();
-    w452();
-    push((int64_t)(strings + 3166));
-    w447();
-    push((int64_t)(strings + 3169));
-    w447();
-    push((int64_t)(strings + 3199));
-    w447();
-    push((int64_t)(strings + 3224));
-    w447();
-    push((int64_t)(strings + 3248));
-    w447();
-    push((int64_t)(strings + 3268));
-    w448();
-    w229();
-    w452();
-    push((int64_t)(strings + 3270));
-    w447();
-    push((int64_t)(strings + 3273));
-    w447();
-    push((int64_t)(strings + 3303));
-    w447();
-    push((int64_t)(strings + 3328));
-    w447();
-    push((int64_t)(strings + 3352));
-    w447();
-    push((int64_t)(strings + 3375));
-    w448();
-    w231();
-    w452();
-    push((int64_t)(strings + 3377));
-    w447();
-    push((int64_t)(strings + 3380));
-    w447();
-    push((int64_t)(strings + 3404));
-    w447();
-    push((int64_t)(strings + 3428));
-    w447();
-    push((int64_t)(strings + 3453));
-    w447();
-    push((int64_t)(strings + 3476));
-    w448();
-    w232();
-    w452();
-    push((int64_t)(strings + 3478));
-    w447();
-    push((int64_t)(strings + 3481));
-    w447();
-    push((int64_t)(strings + 3505));
-    w447();
-    push((int64_t)(strings + 3525));
-    w448();
-    w233();
-    w452();
-    push((int64_t)(strings + 3527));
-    w447();
-    push((int64_t)(strings + 3530));
-    w447();
-    push((int64_t)(strings + 3554));
-    w447();
-    push((int64_t)(strings + 3567));
-    w448();
-    w234();
-    w452();
-    push((int64_t)(strings + 3569));
-    w447();
-    push((int64_t)(strings + 3572));
-    w447();
-    push((int64_t)(strings + 3596));
-    w447();
-    push((int64_t)(strings + 3620));
-    w447();
-    push((int64_t)(strings + 3644));
-    w447();
-    push((int64_t)(strings + 3668));
-    w447();
-    push((int64_t)(strings + 3698));
-    w447();
-    push((int64_t)(strings + 3723));
-    w447();
-    push((int64_t)(strings + 3756));
-    w447();
-    push((int64_t)(strings + 3778));
-    w448();
-    w235();
-    w452();
-    push((int64_t)(strings + 3780));
-    w447();
-    push((int64_t)(strings + 3783));
-    w449();
-    push((int64_t)(strings + 3804));
-    w449();
-    push((int64_t)(strings + 3808));
-    w447();
-    push((int64_t)(strings + 3811));
-    w447();
-    push((int64_t)(strings + 3865));
-    w449();
-    push((int64_t)(strings + 3890));
-    w449();
-    push((int64_t)(strings + 3894));
-    w447();
-    push((int64_t)(strings + 3914));
-    w447();
-    push((int64_t)(strings + 3920));
-    w447();
-    push((int64_t)(strings + 3943));
-    w448();
-    w236();
-    w452();
-    push((int64_t)(strings + 3945));
-    w447();
-    push((int64_t)(strings + 3948));
-    w450();
-    w412();
-    w451();
-    push((int64_t)(strings + 3958));
-    w447();
-    push((int64_t)(strings + 3961));
-    w448();
-    w225();
-    w452();
-    push((int64_t)(strings + 3963));
-    w447();
-    push((int64_t)(strings + 3966));
-    w447();
-    push((int64_t)(strings + 4006));
-    w448();
-    w226();
-    w452();
-    push((int64_t)(strings + 4008));
-    w447();
-    push((int64_t)(strings + 4011));
-    w447();
-    push((int64_t)(strings + 4039));
-    w447();
-    push((int64_t)(strings + 4064));
-    w448();
-    w227();
-    w452();
-    push((int64_t)(strings + 4066));
-    w447();
-    push((int64_t)(strings + 4069));
-    w447();
-    push((int64_t)(strings + 4097));
-    w447();
-    push((int64_t)(strings + 4111));
-    w448();
-    w228();
-    w452();
-    push((int64_t)(strings + 4113));
-    w447();
-    push((int64_t)(strings + 4116));
-    w447();
-    push((int64_t)(strings + 4144));
-    w447();
-    push((int64_t)(strings + 4163));
-    w448();
-    w237();
-    w452();
-    push((int64_t)(strings + 4165));
-    w447();
-    push((int64_t)(strings + 4168));
-    w447();
-    push((int64_t)(strings + 4247));
-    w450();
     w454();
-    w451();
-    push((int64_t)(strings + 4257));
-    w447();
-    push((int64_t)(strings + 4260));
-    w447();
-    push((int64_t)(strings + 4285));
-    w450();
-    w183();
-    w451();
-    push((int64_t)(strings + 4295));
-    w447();
-    push((int64_t)(strings + 4298));
-    w447();
-    push((int64_t)(strings + 4323));
-    w450();
-    w182();
-    w451();
-    push((int64_t)(strings + 4333));
-    w447();
-    push((int64_t)(strings + 4336));
-    w447();
-    push((int64_t)(strings + 4342));
-    w450();
+    push((int64_t)(strings + 2068));
+    w454();
+    push((int64_t)(strings + 2084));
+    w452();
+    push((int64_t)(strings + 2087));
+    w452();
+    push((int64_t)(strings + 2114));
+    w452();
+    push((int64_t)(strings + 2131));
+    w452();
+    push((int64_t)(strings + 2137));
+    w453();
+    push((int64_t)(strings + 2139));
+    w452();
+    push((int64_t)(strings + 2169));
+    w452();
+    push((int64_t)(strings + 2192));
+    w452();
+    push((int64_t)(strings + 2213));
+    w453();
+    push((int64_t)(strings + 2215));
+    w452();
+    push((int64_t)(strings + 2246));
+    w452();
+    push((int64_t)(strings + 2269));
+    w452();
+    push((int64_t)(strings + 2292));
+    w453();
+    push((int64_t)(strings + 2294));
+    w452();
+    push((int64_t)(strings + 2325));
+    w452();
+    push((int64_t)(strings + 2343));
+    w452();
+    push((int64_t)(strings + 2368));
+    w452();
+    push((int64_t)(strings + 2381));
+    w454();
+    push((int64_t)(strings + 2406));
+    w454();
+    push((int64_t)(strings + 2421));
+    w452();
+    push((int64_t)(strings + 2424));
+    w452();
+    push((int64_t)(strings + 2451));
+    w452();
+    push((int64_t)(strings + 2468));
+    w452();
+    push((int64_t)(strings + 2474));
+    w453();
+    w210();
+    w457();
+    push((int64_t)(strings + 2476));
+    w452();
+    push((int64_t)(strings + 2479));
+    w453();
+    w211();
+    w457();
+    push((int64_t)(strings + 2481));
+    w452();
+    push((int64_t)(strings + 2484));
+    w452();
+    push((int64_t)(strings + 2507));
+    w452();
+    push((int64_t)(strings + 2529));
+    w453();
+    w212();
+    w457();
+    push((int64_t)(strings + 2531));
+    w452();
+    push((int64_t)(strings + 2534));
+    w452();
+    push((int64_t)(strings + 2545));
+    w453();
+    w213();
+    w457();
+    push((int64_t)(strings + 2547));
+    w452();
+    push((int64_t)(strings + 2550));
+    w452();
+    push((int64_t)(strings + 2573));
+    w452();
+    push((int64_t)(strings + 2596));
+    w452();
+    push((int64_t)(strings + 2618));
+    w453();
+    w217();
+    w457();
+    push((int64_t)(strings + 2620));
+    w452();
+    push((int64_t)(strings + 2623));
+    w452();
+    push((int64_t)(strings + 2646));
+    w452();
+    push((int64_t)(strings + 2669));
+    w452();
+    push((int64_t)(strings + 2686));
+    w453();
+    w218();
+    w457();
+    push((int64_t)(strings + 2688));
+    w452();
+    push((int64_t)(strings + 2691));
+    w452();
+    push((int64_t)(strings + 2714));
+    w452();
+    push((int64_t)(strings + 2737));
+    w452();
+    push((int64_t)(strings + 2754));
+    w453();
+    w219();
+    w457();
+    push((int64_t)(strings + 2756));
+    w452();
+    push((int64_t)(strings + 2759));
+    w452();
+    push((int64_t)(strings + 2782));
+    w452();
+    push((int64_t)(strings + 2805));
+    w452();
+    push((int64_t)(strings + 2822));
+    w453();
+    w220();
+    w457();
+    push((int64_t)(strings + 2824));
+    w452();
+    push((int64_t)(strings + 2827));
+    w452();
+    push((int64_t)(strings + 2850));
+    w452();
+    push((int64_t)(strings + 2873));
+    w452();
+    push((int64_t)(strings + 2890));
+    w453();
+    w221();
+    w457();
+    push((int64_t)(strings + 2892));
+    w452();
+    push((int64_t)(strings + 2895));
+    w452();
+    push((int64_t)(strings + 2918));
+    w452();
+    push((int64_t)(strings + 2941));
+    w452();
+    push((int64_t)(strings + 2958));
+    w453();
+    w222();
+    w457();
+    push((int64_t)(strings + 2960));
+    w452();
+    push((int64_t)(strings + 2963));
+    w452();
+    push((int64_t)(strings + 2986));
+    w452();
+    push((int64_t)(strings + 3009));
+    w452();
+    push((int64_t)(strings + 3027));
+    w453();
+    w223();
+    w457();
+    push((int64_t)(strings + 3029));
+    w452();
+    push((int64_t)(strings + 3032));
+    w452();
+    push((int64_t)(strings + 3055));
+    w452();
+    push((int64_t)(strings + 3078));
+    w452();
+    push((int64_t)(strings + 3095));
+    w453();
+    w224();
+    w457();
+    push((int64_t)(strings + 3097));
+    w452();
+    push((int64_t)(strings + 3100));
+    w452();
+    push((int64_t)(strings + 3123));
+    w452();
+    push((int64_t)(strings + 3146));
+    w452();
+    push((int64_t)(strings + 3164));
+    w453();
+    w230();
+    w457();
+    push((int64_t)(strings + 3166));
+    w452();
+    push((int64_t)(strings + 3169));
+    w452();
+    push((int64_t)(strings + 3199));
+    w452();
+    push((int64_t)(strings + 3224));
+    w452();
+    push((int64_t)(strings + 3248));
+    w452();
+    push((int64_t)(strings + 3268));
+    w453();
+    w229();
+    w457();
+    push((int64_t)(strings + 3270));
+    w452();
+    push((int64_t)(strings + 3273));
+    w452();
+    push((int64_t)(strings + 3303));
+    w452();
+    push((int64_t)(strings + 3328));
+    w452();
+    push((int64_t)(strings + 3352));
+    w452();
+    push((int64_t)(strings + 3375));
+    w453();
+    w231();
+    w457();
+    push((int64_t)(strings + 3377));
+    w452();
+    push((int64_t)(strings + 3380));
+    w452();
+    push((int64_t)(strings + 3404));
+    w452();
+    push((int64_t)(strings + 3428));
+    w452();
+    push((int64_t)(strings + 3453));
+    w452();
+    push((int64_t)(strings + 3476));
+    w453();
+    w232();
+    w457();
+    push((int64_t)(strings + 3478));
+    w452();
+    push((int64_t)(strings + 3481));
+    w452();
+    push((int64_t)(strings + 3505));
+    w452();
+    push((int64_t)(strings + 3525));
+    w453();
+    w233();
+    w457();
+    push((int64_t)(strings + 3527));
+    w452();
+    push((int64_t)(strings + 3530));
+    w452();
+    push((int64_t)(strings + 3554));
+    w452();
+    push((int64_t)(strings + 3567));
+    w453();
+    w234();
+    w457();
+    push((int64_t)(strings + 3569));
+    w452();
+    push((int64_t)(strings + 3572));
+    w452();
+    push((int64_t)(strings + 3596));
+    w452();
+    push((int64_t)(strings + 3620));
+    w452();
+    push((int64_t)(strings + 3644));
+    w452();
+    push((int64_t)(strings + 3668));
+    w452();
+    push((int64_t)(strings + 3698));
+    w452();
+    push((int64_t)(strings + 3723));
+    w452();
+    push((int64_t)(strings + 3756));
+    w452();
+    push((int64_t)(strings + 3778));
+    w453();
+    w235();
+    w457();
+    push((int64_t)(strings + 3780));
+    w452();
+    push((int64_t)(strings + 3783));
+    w454();
+    push((int64_t)(strings + 3804));
+    w454();
+    push((int64_t)(strings + 3808));
+    w452();
+    push((int64_t)(strings + 3811));
+    w452();
+    push((int64_t)(strings + 3865));
+    w454();
+    push((int64_t)(strings + 3890));
+    w454();
+    push((int64_t)(strings + 3894));
+    w452();
+    push((int64_t)(strings + 3914));
+    w452();
+    push((int64_t)(strings + 3920));
+    w452();
+    push((int64_t)(strings + 3943));
+    w453();
+    w236();
+    w457();
+    push((int64_t)(strings + 3945));
+    w452();
+    push((int64_t)(strings + 3948));
     w455();
-    w451();
+    w417();
+    w456();
+    push((int64_t)(strings + 3958));
+    w452();
+    push((int64_t)(strings + 3961));
+    w453();
+    w225();
+    w457();
+    push((int64_t)(strings + 3963));
+    w452();
+    push((int64_t)(strings + 3966));
+    w452();
+    push((int64_t)(strings + 4006));
+    w453();
+    w226();
+    w457();
+    push((int64_t)(strings + 4008));
+    w452();
+    push((int64_t)(strings + 4011));
+    w452();
+    push((int64_t)(strings + 4039));
+    w452();
+    push((int64_t)(strings + 4064));
+    w453();
+    w227();
+    w457();
+    push((int64_t)(strings + 4066));
+    w452();
+    push((int64_t)(strings + 4069));
+    w452();
+    push((int64_t)(strings + 4097));
+    w452();
+    push((int64_t)(strings + 4111));
+    w453();
+    w228();
+    w457();
+    push((int64_t)(strings + 4113));
+    w452();
+    push((int64_t)(strings + 4116));
+    w452();
+    push((int64_t)(strings + 4144));
+    w452();
+    push((int64_t)(strings + 4163));
+    w453();
+    w237();
+    w457();
+    push((int64_t)(strings + 4165));
+    w452();
+    push((int64_t)(strings + 4168));
+    w452();
+    push((int64_t)(strings + 4247));
+    w455();
+    w459();
+    w456();
+    push((int64_t)(strings + 4257));
+    w452();
+    push((int64_t)(strings + 4260));
+    w452();
+    push((int64_t)(strings + 4285));
+    w455();
+    w183();
+    w456();
+    push((int64_t)(strings + 4295));
+    w452();
+    push((int64_t)(strings + 4298));
+    w452();
+    push((int64_t)(strings + 4323));
+    w455();
+    w182();
+    w456();
+    push((int64_t)(strings + 4333));
+    w452();
+    push((int64_t)(strings + 4336));
+    w452();
+    push((int64_t)(strings + 4342));
+    w455();
+    w460();
+    w456();
     push((int64_t)(strings + 4352));
-    w447();
+    w452();
     push((int64_t)(strings + 4355));
-    w447();
+    w452();
     push((int64_t)(strings + 4362));
-    w448();
+    w453();
 }
 
 // c99-emit-buffers!
-static void w443 (void){
+static void w448 (void){
     push(0);
     w2();
     w188();
     w14();
-    for (int64_t c6342 = pop(); c6342; c6342 = pop()) {
-    push(c6342);
+    for (int64_t c6538 = pop(); c6538; c6538 = pop()) {
+    push(c6538);
     w3();
     w2();
-    w453();
+    w458();
     w51();
     w2();
     w188();
     w14();
     }
     push((int64_t)(strings + 1873));
-    w447();
+    w452();
     w3();
 }
 
 // c99-emit-word-sigs!
-static void w444 (void){
+static void w449 (void){
     push(0);
     w2();
     w188();
     w14();
-    for (int64_t c6799 = pop(); c6799; c6799 = pop()) {
-    push(c6799);
+    for (int64_t c6995 = pop(); c6995; c6995 = pop()) {
+    push(c6995);
     w3();
     w2();
-    w456();
+    w461();
     w51();
     w2();
     w188();
     w14();
     }
     push((int64_t)(strings + 4364));
-    w447();
+    w452();
     w3();
 }
 
 // c99-emit-word-defs!
-static void w445 (void){
+static void w450 (void){
     push(0);
     w2();
     w188();
     w14();
-    for (int64_t c6843 = pop(); c6843; c6843 = pop()) {
-    push(c6843);
+    for (int64_t c7039 = pop(); c7039; c7039 = pop()) {
+    push(c7039);
     w3();
     w2();
-    w457();
+    w462();
     w51();
     w2();
     w188();
@@ -5556,174 +5718,174 @@ static void w445 (void){
 }
 
 // c99-emit-main!
-static void w446 (void){
+static void w451 (void){
     push((int64_t)(strings + 4590));
-    w447();
-    w458();
+    w452();
+    w463();
     push((int64_t)(strings + 4608));
-    w447();
+    w452();
     push((int64_t)(strings + 4622));
-    w447();
+    w452();
 }
 
 // ;
-static void w447 (void){
+static void w452 (void){
     w149();
 }
 
 // ;;
-static void w448 (void){
+static void w453 (void){
     w149();
     w150();
 }
 
 // .q
-static void w449 (void){
+static void w454 (void){
     w143();
     w157();
 }
 
 // .
-static void w450 (void){
+static void w455 (void){
     w143();
 }
 
 // .n
-static void w451 (void){
+static void w456 (void){
     w164();
 }
 
 // .w
-static void w452 (void){
+static void w457 (void){
     push((int64_t)(strings + 1501));
-    w450();
+    w455();
     w2();
     w196();
     w98();
     w150();
     push((int64_t)(strings + 1505));
-    w450();
-    w451();
+    w455();
+    w456();
     push((int64_t)(strings + 1519));
-    w450();
+    w455();
 }
 
 // c99-emit-buffer!
-static void w453 (void){
-    w400();
+static void w458 (void){
+    w405();
     if (pop()) {
     push((int64_t)(strings + 1874));
-    w450();
+    w455();
     w2();
-    w451();
+    w456();
     push((int64_t)(strings + 1891));
-    w450();
+    w455();
     w2();
-    w399();
-    w425();
-    w451();
+    w404();
+    w430();
+    w456();
     push((int64_t)(strings + 1893));
-    w447();
+    w452();
     push((int64_t)(strings + 1902));
-    w450();
+    w455();
     w2();
-    w451();
+    w456();
     push((int64_t)(strings + 1916));
-    w450();
-    w451();
+    w455();
+    w456();
     push((int64_t)(strings + 1942));
-    w447();
+    w452();
     } else {
     w3();
     }
 }
 
 // WINDOWS
-static void w454 (void){
+static void w459 (void){
     push(1);
 }
 
 // UNKNOWN
-static void w455 (void){
+static void w460 (void){
     push(0);
 }
 
 // c99-emit-word-sig!
-static void w456 (void){
-    w398();
+static void w461 (void){
+    w403();
     if (pop()) {
     push((int64_t)(strings + 4365));
-    w450();
-    w451();
+    w455();
+    w456();
     push((int64_t)(strings + 4379));
-    w447();
+    w452();
     } else {
     w3();
     }
 }
 
 // c99-emit-word-def!
-static void w457 (void){
-    w398();
+static void w462 (void){
+    w403();
     if (pop()) {
     w2();
-    w452();
+    w457();
     push((int64_t)(strings + 4388));
-    w447();
-    w399();
-    w458();
+    w452();
+    w404();
+    w463();
     push((int64_t)(strings + 4390));
-    w448();
+    w453();
     } else {
     w3();
     }
 }
 
 // c99-emit-run!
-static void w458 (void){
-    w393();
+static void w463 (void){
+    w398();
     w53();
-    for (int64_t c6888 = pop(); c6888; c6888 = pop()) {
-    push(c6888);
+    for (int64_t c7084 = pop(); c7084; c7084 = pop()) {
+    push(c7084);
     w3();
     w2();
-    w459();
-    w416();
-    w393();
+    w464();
+    w421();
+    w398();
     w53();
     }
     w3();
 }
 
 // c99-emit-token!
-static void w459 (void){
+static void w464 (void){
     w271();
     w277();
     w13();
     if (pop()) {
     push((int64_t)(strings + 4392));
-    w450();
+    w455();
     w286();
-    w451();
+    w456();
     push((int64_t)(strings + 4402));
-    w447();
+    w452();
     } else {
     w271();
     w278();
     w13();
     if (pop()) {
     push((int64_t)(strings + 4405));
-    w450();
+    w455();
     w286();
-    w451();
+    w456();
     push((int64_t)(strings + 4435));
-    w447();
+    w452();
     } else {
     w271();
     w276();
     w13();
     if (pop()) {
-    w460();
+    w465();
     } else {
     w3();
     }
@@ -5732,127 +5894,127 @@ static void w459 (void){
 }
 
 // c99-emit-word!
-static void w460 (void){
+static void w465 (void){
     w287();
     w214();
     w13();
     if (pop()) {
-    w404();
+    w409();
     push((int64_t)(strings + 4439));
-    w450();
+    w455();
     w2();
-    w451();
+    w456();
     push((int64_t)(strings + 4453));
-    w447();
+    w452();
     w2();
-    w458();
+    w463();
     push((int64_t)(strings + 4463));
-    w450();
-    w451();
+    w455();
+    w456();
     push((int64_t)(strings + 4474));
-    w447();
+    w452();
     } else {
     w287();
     w215();
     w13();
     if (pop()) {
-    w405();
+    w410();
     push((int64_t)(strings + 4477));
-    w447();
-    int64_t d6979 = pop();
-    w458();
-    push(d6979);
+    w452();
+    int64_t d7175 = pop();
+    w463();
+    push(d7175);
     push((int64_t)(strings + 4494));
-    w447();
-    w458();
+    w452();
+    w463();
     push((int64_t)(strings + 4507));
-    w447();
+    w452();
     } else {
     w287();
     w216();
     w13();
     if (pop()) {
-    w404();
+    w409();
     push((int64_t)(strings + 4513));
-    w450();
+    w455();
     w2();
-    w451();
+    w456();
     push((int64_t)(strings + 4532));
-    w450();
+    w455();
     w2();
-    w451();
+    w456();
     push((int64_t)(strings + 4544));
-    w450();
+    w455();
     w2();
-    w451();
+    w456();
     push((int64_t)(strings + 4548));
-    w447();
+    w452();
     push((int64_t)(strings + 4560));
-    w450();
+    w455();
     w2();
-    w451();
+    w456();
     push((int64_t)(strings + 4571));
-    w447();
-    w458();
+    w452();
+    w463();
     push((int64_t)(strings + 4574));
-    w447();
+    w452();
     } else {
     w286();
     push((int64_t)(strings + 4580));
-    w450();
-    w451();
+    w455();
+    w456();
     push((int64_t)(strings + 4586));
-    w447();
+    w452();
     }
     }
     }
 }
 
 // BASE_HEAP_SIZE
-static void w461 (void){
+static void w466 (void){
     push(4194304);
 }
 
 // heap-length@
-static void w463 (void){
-    w462();
+static void w468 (void){
+    w467();
     w16();
 }
 
 // heap-length!
-static void w465 (void){
-    w462();
+static void w470 (void){
+    w467();
     w17();
 }
 
 // heap-base@
-static void w467 (void){
-    w466();
+static void w472 (void){
+    w471();
     w16();
 }
 
 // heap-base!
-static void w468 (void){
-    w466();
+static void w473 (void){
+    w471();
     w17();
 }
 
 // heap-reserve!
-static void w469 (void){
+static void w474 (void){
     w2();
-    w463();
+    w468();
     w15();
     if (pop()) {
     w3();
     } else {
-    w470();
+    w475();
     w2();
-    w467();
-    w463();
+    w472();
+    w468();
     w8();
     w4();
-    w471();
-    w472();
+    w476();
+    w477();
     push(-1);
     push(0);
     w25();
@@ -5861,18 +6023,18 @@ static void w469 (void){
     w45();
     if (pop()) {
     w2();
-    w467();
-    w463();
+    w472();
+    w468();
     w8();
     w13();
     if (pop()) {
     w3();
-    w463();
-    w8();
-    w465();
-    } else {
     w468();
-    w465();
+    w8();
+    w470();
+    } else {
+    w473();
+    w470();
     }
     } else {
     push((int64_t)(strings + 4624));
@@ -5882,20 +6044,20 @@ static void w469 (void){
 }
 
 // heap-new-size
-static void w470 (void){
+static void w475 (void){
     push(4096);
-    w473();
-    w461();
-    w476();
+    w478();
+    w466();
+    w481();
 }
 
 // PROT_READ|PROT_WRITE
-static void w471 (void){
+static void w476 (void){
     push(3);
 }
 
 // MAP_ANON|MAP_PRIVATE
-static void w472 (void){
+static void w477 (void){
     w28();
     w182();
     w13();
@@ -5915,19 +6077,19 @@ static void w472 (void){
 }
 
 // align
-static void w473 (void){
+static void w478 (void){
     w2();
-    int64_t d7200 = pop();
+    int64_t d7396 = pop();
     w52();
     w8();
     w2();
-    push(d7200);
+    push(d7396);
     w12();
     w9();
 }
 
 // max
-static void w476 (void){
+static void w481 (void){
     w43();
     w14();
     if (pop()) {
@@ -5938,7 +6100,7 @@ static void w476 (void){
 }
 
 // main
-static void w477 (void){
+static void w482 (void){
     w134();
     w108();
     w185();
@@ -5947,18 +6109,18 @@ static void w477 (void){
     push((int64_t)(strings + 4692));
     w151();
     push(0);
-    w391();
-    w369();
+    w396();
+    w374();
     if (pop()) {
     w1();
     } else {
     push((int64_t)(strings + 4702));
     w144();
-    w385();
+    w390();
     }
 }
 
 int main (void) {
-    w477();
+    w482();
     return 0;
 }
