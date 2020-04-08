@@ -55,7 +55,7 @@ def(str-length, Str -- Int,
         dup byte@
     ) drop)
 
-def(STR_BUF_SIZE, Int, 4096)
+def(STR_BUF_SIZE, Int, 0x2000)
 long def-static-buffer(STR_BUF_LEN)
 STR_BUF_SIZE bytes def-static-buffer(STR_BUF)
 
@@ -359,7 +359,7 @@ def(str-buf-reverse!, --,
 # Input #
 #########
 
-def(FILE_BUF_SIZE, USize, 65536 2 *)
+def(FILE_BUF_SIZE, USize, 0x20000)
 long def-static-buffer(FILE_BUF_LENGTH)
 FILE_BUF_SIZE def-static-buffer(FILE_BUF)
 
@@ -635,7 +635,7 @@ def(init-names!, +Names,
 # Strings Table #
 #################
 
-def(MAX_STRINGS, USize, 32768)
+def(MAX_STRINGS, USize, 0x10000)
 long def-static-buffer(STRINGS_SIZE)
 MAX_STRINGS bytes def-static-buffer(STRINGS_BUF)
 
@@ -793,7 +793,7 @@ long def-static-buffer(LEXER_IDX)
 def(lexer-idx@, -- Token +Lexer, LEXER_IDX @)
 def(lexer-idx!, Token -- +Lexer, LEXER_IDX !)
 
-def(LEXER_STACK_SIZE, USize, 256)
+def(LEXER_STACK_SIZE, USize, 0x200)
 long def-static-buffer(LEXER_STACK_LENGTH)
 LEXER_STACK_SIZE longs def-static-buffer(LEXER_STACK_BUF)
 
@@ -1170,7 +1170,7 @@ def(lexer-trace-prefix!, +IO,
 # Value Stack #
 ###############
 
-def(VSTACK_SIZE, USize, 8192)
+def(VSTACK_SIZE, USize, 0x2000)
 long def-static-buffer(VSTACK_LEN)
 VSTACK_SIZE longs def-static-buffer(VSTACK_BUF)
 
@@ -1716,8 +1716,7 @@ def(token-is-arg-end?, Token -- Token Bool,
 # Buffers #
 ###########
 
-def(MAX_BUFFERS, USize, 1024)
-def(PAGE_SIZE, USize, 8192)
+def(MAX_BUFFERS, USize, 0x1000)
 
 long def-static-buffer(NUM_BUFFERS)
 def(num-buffers@, USize +Buffers, NUM_BUFFERS @)
@@ -2112,7 +2111,7 @@ def(c99-emit-main!, Token -- +IO,
 # Heap #
 ########
 
-def(BASE_HEAP_SIZE, USize, 4194304)
+def(BASE_HEAP_SIZE, USize, 0x400000)
 
 long def-static-buffer(HEAP_LENGTH)
 def(heap-length@, U64 +Heap, HEAP_LENGTH @)
