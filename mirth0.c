@@ -282,6 +282,8 @@ static uint8_t b472[8] = {0};
 static void w472 (void) { push((int64_t)b472); }
 static uint8_t b476[8] = {0};
 static void w476 (void) { push((int64_t)b476); }
+static uint8_t b479[8] = {0};
+static void w479 (void) { push((int64_t)b479); }
 
 static void w33 (void);
 static void w36 (void);
@@ -656,13 +658,17 @@ static void w473 (void);
 static void w475 (void);
 static void w477 (void);
 static void w478 (void);
-static void w479 (void);
 static void w480 (void);
 static void w481 (void);
 static void w482 (void);
 static void w483 (void);
+static void w484 (void);
+static void w485 (void);
 static void w486 (void);
 static void w487 (void);
+static void w490 (void);
+static void w491 (void);
+static void w492 (void);
 
 // trip
 static void w33 (void){
@@ -5243,9 +5249,9 @@ static void w437 (void){
 // heap-alloc!
 static void w438 (void){
     push(64);
-    w483();
+    w487();
     w2();
-    w479();
+    w483();
     w2();
     w473();
     w4();
@@ -6088,22 +6094,42 @@ static void w478 (void){
     w17();
 }
 
+// heap-times-expanded@
+static void w480 (void){
+    w479();
+    w16();
+}
+
+// heap-times-expanded!
+static void w481 (void){
+    w479();
+    w17();
+}
+
+// ++heap-times-expanded
+static void w482 (void){
+    w480();
+    w51();
+    w2();
+    w481();
+}
+
 // heap-reserve!
-static void w479 (void){
+static void w483 (void){
     w2();
     w473();
     w15();
     if (pop()) {
     w3();
     } else {
-    w480();
+    w484();
     w2();
     w477();
     w473();
     w8();
     w4();
-    w481();
-    w482();
+    w485();
+    w486();
     push(-1);
     push(0);
     w25();
@@ -6133,20 +6159,23 @@ static void w479 (void){
 }
 
 // heap-new-size
-static void w480 (void){
+static void w484 (void){
     push(4096);
-    w483();
+    w487();
     w471();
-    w486();
+    w482();
+    w490();
+    w10();
+    w491();
 }
 
 // PROT_READ|PROT_WRITE
-static void w481 (void){
+static void w485 (void){
     push(3);
 }
 
 // MAP_ANON|MAP_PRIVATE
-static void w482 (void){
+static void w486 (void){
     w28();
     w182();
     w13();
@@ -6166,19 +6195,25 @@ static void w482 (void){
 }
 
 // align
-static void w483 (void){
+static void w487 (void){
     w2();
-    int64_t d7516 = pop();
+    int64_t d7554 = pop();
     w52();
     w8();
     w2();
-    push(d7516);
+    push(d7554);
     w12();
     w9();
 }
 
+// square
+static void w490 (void){
+    w2();
+    w10();
+}
+
 // max
-static void w486 (void){
+static void w491 (void){
     w43();
     w14();
     if (pop()) {
@@ -6189,7 +6224,7 @@ static void w486 (void){
 }
 
 // main
-static void w487 (void){
+static void w492 (void){
     w134();
     w108();
     w185();
@@ -6210,6 +6245,6 @@ static void w487 (void){
 }
 
 int main (void) {
-    w487();
+    w492();
     return 0;
 }
