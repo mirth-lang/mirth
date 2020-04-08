@@ -2115,12 +2115,19 @@ long def-static-buffer(HEAP_BASE)
 def(heap-base@, Ptr +Heap, HEAP_BASE @)
 def(heap-base!, Ptr -- +Heap, HEAP_BASE !)
 
+long def-static-buffer(HEAP_TIMES_EXPANDED)
+def(heap-times-expanded@, Int +Heap, HEAP_TIMES_EXPANDED @)
+def(heap-times-expanded!, Int -- +Heap, HEAP_TIMES_EXPANDED !)
+def(++heap-times-expanded, Int +Heap,
+    heap-times-expanded@ 1+ dup heap-times-expanded!)
+
 # Ensure that at at least X space on the heap is available.
 #
 # If the space left is too small (or heap has not been allocated,
-# in which the space left is 0), then it throws away the rest of
-# the heap (yes this is bad ... FIXME) and allocates a bigger
-# buffer.
+# in which the space left is 0), then it tries to make the heap
+# larger in place. This usually works, but if it fails, we just
+# allocate a new buffer and forget about the old one, leaking
+# some memory and introducing fragmentation.
 #
 # Panics if reservation is impossible.
 def(heap-reserve!, U64 -- +Heap,
@@ -2161,13 +2168,16 @@ def(MAP_ANON|MAP_PRIVATE, Int,
 #   70 64 align == 128
 def(align, a:U64 b:U64 -- U64,
     dup dip(1- + dup) % -)
-
-def(heap-new-size, U64 -- U64,
-    4096 align BASE_HEAP_SIZE max)
-    # FIXME: Increase base heap size each time
-    # this is called, exponentially.
-
+def(square, Int -- Int, dup *)
 def(max, Int Int -- Int, dup2 < if(nip, drop))
+
+# Figure out how much to expand heap size by, based on a minimum size
+# (= requested size aligned to 4096).
+# The expansion has a quadratic lower bound.
+def(heap-new-size, U64 -- U64,
+    4096 align
+    BASE_HEAP_SIZE ++heap-times-expanded square *
+    max)
 
 def(heap-alloc!, U64 -- Ptr +Heap,
     64 align
