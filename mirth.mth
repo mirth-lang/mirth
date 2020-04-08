@@ -1157,7 +1157,6 @@ def(is-special-char?, Char -- Char Bool,
     dip(is-rparen?) +
     dip(is-comma?) +
     dip(is-pound?) +
-    # FIXME: include brackets & braces ... maybe colons
     )
 
 def(in-range, Int Int Int -- Bool,
@@ -1301,8 +1300,10 @@ def(token-run-end?, Token -- Token Bool +Mirth,
 # Run a single token, return next token.
 def(token-run-one!, Token -- Token +Mirth,
     token-type? TOKEN_INT = if(
+        0 1 arity-check!
         token-value? vstack-push!,
     token-type? TOKEN_STR = if(
+        0 1 arity-check!
         token-value? STRINGS_BUF + vstack-push!,
     token-type? TOKEN_LPAREN = if(
         token-value@,
@@ -1588,8 +1589,14 @@ def(token-run-prim!, Token --,
 # arity would result in underflow/overflow,
 # emits a fatal error.
 def(arity-check!, Token U64 U64 -- Token,
-    drop2 # FIXME: implement
-    )
+    dip(dip(vstack-len@))
+    dip(dup2 <) swap if(
+        drop drop2 "Stack underflow." emit-fatal-error!,
+        dip(-) + VSTACK_SIZE > if(
+            "Stack overflow." emit-fatal-error!,
+            id
+        )
+    ))
 
 # Verify that token has 0 args, and return them.
 # Emits a fatal error if arity is wrong.
