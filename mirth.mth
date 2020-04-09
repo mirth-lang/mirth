@@ -546,6 +546,21 @@ def(show-names-table!, +Names +IO,
     drop
 )
 
+def(name-could-be-type, Name -- Bool,
+    NAME_SIZE * NAME_BUF byte@@ is-alpha? nip)
+
+def(name-could-be-type-var, Name -- Bool,
+    NAME_SIZE * NAME_BUF byte@@ is-lower? nip)
+
+def(name-could-be-type-con, Name -- Bool,
+    NAME_SIZE * NAME_BUF byte@@ is-upper? nip)
+
+def(name-could-be-effect-con, Name -- Bool,
+    NAME_SIZE * dup NAME_BUF byte@@ is-plus-sign? nip if(
+        1+ NAME_BUF byte@@ is-upper? nip,
+        drop 0
+    ))
+
 ###################
 # Primitive Names #
 ###################
@@ -583,7 +598,8 @@ def(PRIM_DEF, Prim, 29)
 def(PRIM_DEF_STATIC_BUFFER, Prim, 30)
 def(PRIM_OUTPUT_ASM, Prim, 31)
 def(PRIM_OUTPUT_C99, Prim, 32)
-def(NUM_PRIMS, Prim, 33)
+def(PRIM_DASHES, Prim, 33)
+def(NUM_PRIMS, Prim, 34)
 
 def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
 
@@ -629,6 +645,7 @@ def(init-names!, +Names,
     PRIM_DEF_STATIC_BUFFER "def-static-buffer" def-prim!
     PRIM_OUTPUT_ASM "output-asm" def-prim!
     PRIM_OUTPUT_C99 "output-c99" def-prim!
+    PRIM_DASHES "--" def-prim!
     )
 
 #################
@@ -1140,6 +1157,9 @@ def(is-nul?, Char -- Char Bool, dup 0=)
 def(is-sign?, Char -- Char Bool, is-plus-sign? dip(is-minus-sign?) +)
 def(is-plus-sign?, Char -- Char Bool, dup 43 =)
 def(is-minus-sign?, Char -- Char Bool, dup 45 =)
+def(is-alpha?, Char -- Char Bool, is-lower? dip(is-upper?) +)
+def(is-lower?, Char -- Char Bool, dup 97 122 in-range)
+def(is-upper?, Char -- Char Bool, dup 65 90 in-range)
 
 def(is-string-end?, Char -- Char Bool, is-quote? dip(is-newline?) + dip(is-nul?) +)
 def(is-backslash?, Char -- Char Bool, dup 92 =)
@@ -1272,6 +1292,58 @@ def(lexer-emit-error!, Str -- +IO,
 def(lexer-emit-fatal-error!, Str -- +IO,
     lexer-emit-error!
     1 posix-exit!)
+
+#############
+# Type Sigs #
+#############
+
+def(token-is-dashes, Token -- Bool,
+    token-type? TOKEN_NAME = if(
+        token-value@ PRIM_DASHES =,
+        drop 0
+    ))
+
+def(token-is-dashes?, Token -- Token Bool,
+    dup token-is-dashes)
+
+def(sig-dashes-end?, Token -- Token Bool,
+    token-is-dashes? if(
+        1,
+        token-run-end?
+    ))
+
+def(sig-has-dashes, Token -- Bool,
+    sig-dashes-end? not while(
+        drop token-next sig-dashes-end? not
+    ) token-is-dashes)
+
+def(sig-has-dashes?, Token -- Token Bool,
+    dup sig-has-dashes)
+
+def(sig-arity, Token -- Int Int,
+    sig-has-dashes? if(
+        sig-count-types
+        token-next
+        sig-count-types
+        drop,
+
+        dip(0)
+        sig-count-types
+        drop
+    ))
+
+def(sig-count-types, Token -- Int Token,
+    dip(0) sig-dashes-end? not while(
+        drop
+        sig-token-is-type? if(dip(1+), id)
+        token-next sig-dashes-end? not
+    ))
+
+def(sig-token-is-type?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-value? name-could-be-type,
+        0
+    ))
 
 ###########
 # Running #
