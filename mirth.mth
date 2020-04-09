@@ -601,7 +601,7 @@ def(PRIM_OUTPUT_C99, Prim, 32)
 def(PRIM_DASHES, Prim, 33)
 def(NUM_PRIMS, Prim, 34)
 
-def(is-prim?, Name -- Bool, dup NUM_PRIMS <)
+def(name-is-prim?, Name -- Bool, dup NUM_PRIMS <)
 
 def(def-prim!, Prim Str -- +Names,
     str-buf! name-save! swap !!=)
@@ -1293,58 +1293,6 @@ def(lexer-emit-fatal-error!, Str -- +IO,
     lexer-emit-error!
     1 posix-exit!)
 
-#############
-# Type Sigs #
-#############
-
-def(token-is-dashes, Token -- Bool,
-    token-type? TOKEN_NAME = if(
-        token-value@ PRIM_DASHES =,
-        drop 0
-    ))
-
-def(token-is-dashes?, Token -- Token Bool,
-    dup token-is-dashes)
-
-def(sig-dashes-end?, Token -- Token Bool,
-    token-is-dashes? if(
-        1,
-        token-run-end?
-    ))
-
-def(sig-has-dashes, Token -- Bool,
-    sig-dashes-end? not while(
-        drop token-next sig-dashes-end? not
-    ) token-is-dashes)
-
-def(sig-has-dashes?, Token -- Token Bool,
-    dup sig-has-dashes)
-
-def(sig-arity, Token -- Int Int,
-    sig-has-dashes? if(
-        sig-count-types
-        token-next
-        sig-count-types
-        drop,
-
-        dip(0)
-        sig-count-types
-        drop
-    ))
-
-def(sig-count-types, Token -- Int Token,
-    dip(0) sig-dashes-end? not while(
-        drop
-        sig-token-is-type? if(dip(1+), id)
-        token-next sig-dashes-end? not
-    ))
-
-def(sig-token-is-type?, Token -- Token Bool,
-    token-type? TOKEN_NAME = if(
-        token-value? name-could-be-type,
-        0
-    ))
-
 ###########
 # Running #
 ###########
@@ -1389,7 +1337,7 @@ def(token-run-one!, Token -- Token +Mirth,
 def(token-run-name!, Token -- +Mirth,
     token-value?
 
-    is-prim? if(
+    name-is-prim? if(
         drop token-run-prim!,
 
     name-undefined? if(
@@ -1848,6 +1796,138 @@ def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
 def(name-defined?, Name -- Name Bool, name-undefined? not)
 def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD =)
 def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
+
+#################
+# Type Checking #
+#################
+
+MAX_NAMES def-static-buffer(DEF_CHECKED)
+def(name-checked!, Bool Name --, DEF_CHECKED byte!!)
+def(name-checked@, Name -- Bool, DEF_CHECKED byte@@)
+def(name-checked?, Name -- Bool, dup name-checked@)
+
+def(TSTACK_SIZE, Size, VSTACK_SIZE)
+long def-static-buffer(TSTACK_LEN)
+TSTACK_SIZE longs def-static-buffer(TSTACK_BUF)
+
+def(tstack-len!, Size, TSTACK_LEN !)
+def(tstack-len@, Size, TSTACK_LEN @)
+def(tstack-empty?, Bool, tstack-len@ 0 <=)
+def(tstack-full?, Bool, tstack-len@ TSTACK_SIZE >=)
+
+def(tstack!, Type Index --, TSTACK_BUF long!!)
+def(tstack@, Index -- Type, TSTACK_BUF long@@)
+def(tstack-pop!,  -- Type,
+    tstack-empty? if(
+        "Underflow: Attempt to pop empty tstack." panic!,
+        tstack-len@ 1- dup tstack-len! tstack@
+    ))
+def(tstack-push!, Type --,
+    tstack-full? if(
+        "Overflow: Attempt to push full tstack." panic!,
+        tstack-len@ 1+ dup tstack-len! tstack!
+    ))
+
+def(typecheck-token!, Token --,
+    token-type? TOKEN_NAME = if(
+        token-value?
+
+        name-is-prim? if(
+            drop2,
+
+        name-undefined? if(
+            drop "Name is undefined." emit-error!,
+
+            nip typecheck-name!
+        )),
+
+        drop
+    ))
+
+def(typecheck-name!, Name --,
+    name-checked? if(
+        drop,
+
+        1 over name-checked!
+
+        name-is-prim? if(
+            drop,
+
+        name-undefined? if(
+            "error: Name undefined: " str-trace!
+            name-load! str-buf-trace! trace-ln!,
+
+        name-is-word? if(
+            typecheck-word!,
+
+        name-is-buffer? if(
+            typecheck-buffer!,
+
+            "error: Dont know how to typecheck name: "
+            str-trace! name-load! str-buf-trace! trace-ln!
+            1 posix-exit!
+
+        ))))
+    ))
+
+def(typecheck-word!, Name --,
+    drop) # FIXME: check the sig & body
+
+def(typecheck-buffer!, Name --,
+    drop) # FIXME: check the type
+
+#############
+# Type Sigs #
+#############
+
+def(token-is-dashes, Token -- Bool,
+    token-type? TOKEN_NAME = if(
+        token-value@ PRIM_DASHES =,
+        drop 0
+    ))
+
+def(token-is-dashes?, Token -- Token Bool,
+    dup token-is-dashes)
+
+def(sig-dashes-end?, Token -- Token Bool,
+    token-is-dashes? if(
+        1,
+        token-run-end?
+    ))
+
+def(sig-has-dashes, Token -- Bool,
+    sig-dashes-end? not while(
+        drop token-next sig-dashes-end? not
+    ) token-is-dashes)
+
+def(sig-has-dashes?, Token -- Token Bool,
+    dup sig-has-dashes)
+
+def(sig-arity, Token -- Int Int,
+    sig-has-dashes? if(
+        sig-count-types
+        token-next
+        sig-count-types
+        drop,
+
+        dip(0)
+        sig-count-types
+        drop
+    ))
+
+def(sig-count-types, Token -- Int Token,
+    dip(0) sig-dashes-end? not while(
+        drop
+        sig-token-is-type? if(dip(1+), id)
+        token-next sig-dashes-end? not
+    ))
+
+def(sig-token-is-type?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-value? name-could-be-type,
+        0
+    ))
+
 
 ###########
 # Codegen #
