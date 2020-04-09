@@ -2207,7 +2207,7 @@ def(c99-emit-word-defs!, +IO,
 
 def(c99-emit-word-def!, Name -- +IO,
     name-is-word? if(
-        dup typecheck-name!
+        dup typecheck-word!
         dup .w "{" ;
         name-value@ c99-emit-run!
         "}" ;;,
