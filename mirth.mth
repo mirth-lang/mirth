@@ -1537,10 +1537,12 @@ def(token-run-prim!, Token --,
         drop
         0 0 arity-check!
         token-args-3
-        nip swap token-type? TOKEN_NAME = if(
+        rotl token-type? TOKEN_NAME = if(
             token-value? name-undefined? if(
+                nip
                 DEF_WORD over name-sort!
-                nip name-value!,
+                dup dip(name-value!)
+                name-sig!,
                 drop "word already defined" emit-fatal-error!
             ),
             "expected word name" emit-fatal-error!
@@ -1756,6 +1758,7 @@ def(DEF_BUFFER, Sort, 2)
 
 MAX_NAMES def-static-buffer(DEF_SORT)
 MAX_NAMES longs def-static-buffer(DEF_VALUE)
+MAX_NAMES longs def-static-buffer(DEF_SIG)
 
 def(name-sort!, Sort Name --, DEF_SORT byte!!)
 def(name-sort@, Name -- Sort, DEF_SORT byte@@)
@@ -1764,6 +1767,10 @@ def(name-sort?, Name -- Name Sort, dup name-sort@)
 def(name-value!, Value Name --, DEF_VALUE long!!)
 def(name-value@, Name -- Value, DEF_VALUE long@@)
 def(name-value?, Name -- Name Value, dup name-value@)
+
+def(name-sig!, Token Name --, DEF_SIG long!!)
+def(name-sig@, Name -- Token, DEF_SIG long@@)
+def(name-sig?, Name -- Name Token, dup name-sig@)
 
 def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
 def(name-defined?, Name -- Name Bool, name-undefined? not)
