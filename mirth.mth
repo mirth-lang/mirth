@@ -1319,6 +1319,8 @@ def(token-run-end?, Token -- Token Bool +Mirth,
 
 # Run a single token, return next token.
 def(token-run-one!, Token -- Token +Mirth,
+    dup typecheck-token!
+
     token-type? TOKEN_INT = if(
         0 1 arity-check!
         token-value? vstack-push!,
@@ -1836,7 +1838,7 @@ def(typecheck-token!, Token --,
             drop2,
 
         name-undefined? if(
-            drop "Name is undefined." emit-error!,
+            drop "Word is undefined." emit-fatal-error!,
 
             nip typecheck-name!
         )),
@@ -2205,6 +2207,7 @@ def(c99-emit-word-defs!, +IO,
 
 def(c99-emit-word-def!, Name -- +IO,
     name-is-word? if(
+        dup typecheck-name!
         dup .w "{" ;
         name-value@ c99-emit-run!
         "}" ;;,
@@ -2212,6 +2215,7 @@ def(c99-emit-word-def!, Name -- +IO,
     ))
 
 def(c99-emit-run!, Token -- +IO,
+    dup typecheck-token!
     token-run-end? not while(
         drop
         dup c99-emit-token!
