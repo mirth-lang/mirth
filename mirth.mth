@@ -520,7 +520,7 @@ def(name-quads-load!, Name -- ,
     7 name-quad-load!)
 
 # Load STR_BUF into name table. Performs deduplication.
-def(name-save!, C -- C Name, # FIXME
+def(name-save!, -- Name,
     NAME_SIZE 1+ str-pad-zeros-to-length!
     0 dup num-names@ < while(
         drop
@@ -2108,11 +2108,6 @@ def(typecheck-run-prim!, Token --,
         token-args-0
         tstack-pop2! drop2, # TODO: check operand types
 
-    token-value? PRIM_RUNNING_OS = if(
-        0 1 tstack-arity-check!
-        token-args-0
-        0 tstack-push!, # TODO: push TYPE_INT
-
     token-value? PRIM_POSIX_EXIT = if(
         1 0 tstack-arity-check!
         token-args-0
@@ -2139,8 +2134,19 @@ def(typecheck-run-prim!, Token --,
         tstack-pop3! drop3 tstack-pop3! drop3 # TODO: check types
         0 tstack-push!, # TODO: push pointer type
 
+    token-value? PRIM_DEBUG = if(
+        token-args-0,
+    token-value? PRIM_MIRTH_REVISION = if(
+        0 1 tstack-arity-check!
+        token-args-0
+        0 tstack-push!, # TODO: push TYPE_INT
+    token-value? PRIM_RUNNING_OS = if(
+        0 1 tstack-arity-check!
+        token-args-0
+        0 tstack-push!, # TODO: push TYPE_INT
+
         "Unknown primitive" emit-error!
-    )))))))))))))))))))))))))))
+    )))))))))))))))))))))))))))))
 
 def(tstack-arity-check!, Token Int Int -- Token +TSTACK,
     dip(dip(tstack-len@))
@@ -2688,7 +2694,7 @@ def(max, Int Int -- Int, dup2 < if(nip, drop))
 # The expansion has a quadratic lower bound.
 def(heap-new-size, U64 -- U64,
     4096 align
-    BASE_HEAP_SIZE ++heap-times-expanded square *
+    BASE_HEAP_SIZE ++heap-times-expanded square * ??
     max)
 
 def(heap-alloc!, U64 -- Ptr +Heap,
