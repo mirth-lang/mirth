@@ -69,6 +69,7 @@ def(str-buf-u8!, U8 Index -- +StrBuf, STR_BUF byte!!)
 def(str-buf-full?, Bool +StrBuf,
     str-buf-length? 1+ STR_BUF_SIZE >=)
 def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
+
 def(str-buf-push!, U8 -- +StrBuf,
     str-buf-full? if(
         "str-buf-push! but STR_BUF is already full" panic!
@@ -452,16 +453,6 @@ def(str-buf-recalc-length!, --,
     str-buf-length!
 )
 
-# Add \0 until you get to a certain length.
-def(str-pad-zeros-to-length!, Int --,
-    dup str-buf-length? >
-    while(
-        drop
-        str-buf-length? 1+
-        dup str-buf-length! # this pads the zeros
-        dip(dup) >
-    ) drop)
-
 # Load a name into STR_BUF.
 def(name-load!, Name --,
     name-quads-load!
@@ -514,19 +505,41 @@ def(name-quad-load!, Name Int --,
     dip(NAME_SIZE * NAME_BUF +) tuck
     dip(long@@) STR_BUF long!!)
 
-def(name-quads-load!, Name -- ,
-    dup 0 name-quad-load!
-    dup 1 name-quad-load!
-    dup 2 name-quad-load!
-    dup 3 name-quad-load!
-    dup 4 name-quad-load!
-    dup 5 name-quad-load!
-    dup 6 name-quad-load!
-    7 name-quad-load!)
+# def(name-quads-load!, Name -- ,
+#     dup 0 name-quad-load!
+#     dup 1 name-quad-load!
+#     dup 2 name-quad-load!
+#     dup 3 name-quad-load!
+#     dup 4 name-quad-load!
+#     dup 5 name-quad-load!
+#     dup 6 name-quad-load!
+#     7 name-quad-load!)
+
+def(name-quads-load!, Name --,
+    NAME_SIZE * NAME_BUF +
+    0 over long@@ 0 STR_BUF long!!
+    1 over long@@ 1 STR_BUF long!!
+    2 over long@@ 2 STR_BUF long!!
+    3 over long@@ 3 STR_BUF long!!
+    4 over long@@ 4 STR_BUF long!!
+    5 over long@@ 5 STR_BUF long!!
+    6 over long@@ 6 STR_BUF long!!
+    7 swap long@@ 7 STR_BUF long!!)
+
+# zero str-buf up to NAME_SIZE
+def(str-buf-zero!, --,
+    0 0 STR_BUF long!!
+    0 1 STR_BUF long!!
+    0 2 STR_BUF long!!
+    0 3 STR_BUF long!!
+    0 4 STR_BUF long!!
+    0 5 STR_BUF long!!
+    0 6 STR_BUF long!!
+    0 7 STR_BUF long!!
+    0 8 STR_BUF long!!)
 
 # Load STR_BUF into name table. Performs deduplication.
 def(name-save!, -- Name,
-    NAME_SIZE 1+ str-pad-zeros-to-length!
     0 dup num-names@ < while(
         drop
         name-quads-eq? if(
@@ -665,7 +678,7 @@ def(NUM_PRIMS, Prim, 41)
 def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
 
 def(def-prim!, Prim Str -- +Names,
-    str-buf! name-save! swap !!=)
+    str-buf-zero! str-buf! name-save! swap !!=)
 
 # Initialize name table with list of primitives.
 # Note that order matters very much here, but any
@@ -1004,6 +1017,7 @@ def(lexer-emit-rparen!, +Lexer,
 
 def(lexer-emit-name!, +Lexer,
     str-buf-clear!
+    str-buf-zero!
     TOKEN_NAME 0 lexer-make!
 
     lexer-peek 1 while(
