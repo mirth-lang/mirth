@@ -2694,7 +2694,7 @@ def(max, Int Int -- Int, dup2 < if(nip, drop))
 # The expansion has a quadratic lower bound.
 def(heap-new-size, U64 -- U64,
     4096 align
-    BASE_HEAP_SIZE ++heap-times-expanded square * ??
+    BASE_HEAP_SIZE ++heap-times-expanded square *
     max)
 
 def(heap-alloc!, U64 -- Ptr +Heap,
