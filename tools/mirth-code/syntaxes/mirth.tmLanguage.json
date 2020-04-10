@@ -28,9 +28,6 @@
 		},
 		"keyword": {
 			"patterns": [{
-				"name": "keyword.control.mirth",
-				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])(import|export|end|data|type)(?![^\\s\\\":()\\[\\]\\{\\},])"
-			}, {
 				"name": "keyword.operator.mirth",
 				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])(\\$|->|--|=|==)(?![^\\s\\\":()\\[\\]\\{\\},])"
 			}, {
