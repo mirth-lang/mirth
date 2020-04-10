@@ -1810,24 +1810,43 @@ def(name-checked?, Name -- Bool, dup name-checked@)
 
 def(TSTACK_SIZE, Size, VSTACK_SIZE)
 long def-static-buffer(TSTACK_LEN)
+long def-static-buffer(TSTACK_BASE)
 TSTACK_SIZE longs def-static-buffer(TSTACK_BUF)
 
 def(tstack-len!, Size, TSTACK_LEN !)
 def(tstack-len@, Size, TSTACK_LEN @)
-def(tstack-empty?, Bool, tstack-len@ 0 <=)
+
+def(tstack-base!, Size, TSTACK_BASE !)
+def(tstack-base@, Size, TSTACK_BASE @)
+def(tstack-base?, Size, dup tstack-base@)
+
+def(tstack-empty?, Bool, tstack-len@ tstack-base@ <=)
 def(tstack-full?, Bool, tstack-len@ TSTACK_SIZE >=)
 
 def(tstack!, Type Index --, TSTACK_BUF long!!)
 def(tstack@, Index -- Type, TSTACK_BUF long@@)
-def(tstack-pop!,  -- Type,
+def(tstack-pop!, -- Type,
     tstack-empty? if(
         "Underflow: Attempt to pop empty tstack." panic!,
         tstack-len@ 1- dup tstack-len! tstack@
     ))
 def(tstack-push!, Type --,
     tstack-full? if(
-        "Overflow: Attempt to push full tstack." panic!,
-        tstack-len@ 1+ dup tstack-len! tstack!
+        "Overflow: Attempt to push to full tstack." panic!,
+        tstack-len@ dup 1+ tstack-len! tstack!
+    ))
+
+def(tstack-enter!, --,
+    tstack-base@ tstack-push!
+    tstack-len@ tstack-base!
+    )
+
+def(tstack-leave!, --,
+    tstack-base@ 0 <= if(
+        "Compiler error: Attempt to leave empty tstack frame." panic!,
+        tstack-base@
+        1- dup tstack-len!
+        tstack@ tstack-base!
     ))
 
 def(typecheck-token!, Token --,
@@ -1875,11 +1894,11 @@ def(typecheck-name!, Name --,
 def(typecheck-word!, Name --,
     name-sig? typecheck-word-sig!
 
-    # tstack-enter!
+    tstack-enter!
     # name-sig? sig-push-inputs!
-    # name-body? typecheck-run!
+    # name-value? typecheck-run!
     # name-sig? sig-match-outputs!
-    # tstack-leave!
+    tstack-leave!
     # drop
 
     drop) # FIXME: check the body
