@@ -661,8 +661,10 @@ static uint8_t bFILE_BUF[131072] = {0};
 /*static*/ void wFILE_BUF (void) { push((int64_t)bFILE_BUF); }
 static uint8_t bNUM_NAMES[8] = {0};
 /*static*/ void wNUM_NAMES (void) { push((int64_t)bNUM_NAMES); }
-static uint8_t bNAME_BUF[4194304] = {0};
+static uint8_t bNAME_BUF[393216] = {0};
 /*static*/ void wNAME_BUF (void) { push((int64_t)bNAME_BUF); }
+static uint8_t bNAME_TABLE[65536] = {0};
+/*static*/ void wNAME_TABLE (void) { push((int64_t)bNAME_TABLE); }
 static uint8_t bSTRINGS_SIZE[8] = {0};
 /*static*/ void wSTRINGS_SIZE (void) { push((int64_t)bSTRINGS_SIZE); }
 static uint8_t bSTRINGS_BUF[65536] = {0};
@@ -697,13 +699,13 @@ static uint8_t bBUFFER_SIZE[32768] = {0};
 /*static*/ void wBUFFER_SIZE (void) { push((int64_t)bBUFFER_SIZE); }
 static uint8_t bBUFFER_BASE[32768] = {0};
 /*static*/ void wBUFFER_BASE (void) { push((int64_t)bBUFFER_BASE); }
-static uint8_t bDEF_SORT[65536] = {0};
+static uint8_t bDEF_SORT[6144] = {0};
 /*static*/ void wDEF_SORT (void) { push((int64_t)bDEF_SORT); }
-static uint8_t bDEF_VALUE[524288] = {0};
+static uint8_t bDEF_VALUE[49152] = {0};
 /*static*/ void wDEF_VALUE (void) { push((int64_t)bDEF_VALUE); }
-static uint8_t bDEF_SIG[524288] = {0};
+static uint8_t bDEF_SIG[49152] = {0};
 /*static*/ void wDEF_SIG (void) { push((int64_t)bDEF_SIG); }
-static uint8_t bDEF_CHECKED[65536] = {0};
+static uint8_t bDEF_CHECKED[6144] = {0};
 /*static*/ void wDEF_CHECKED (void) { push((int64_t)bDEF_CHECKED); }
 static uint8_t bTSTACK_LEN[8] = {0};
 /*static*/ void wTSTACK_LEN (void) { push((int64_t)bTSTACK_LEN); }
@@ -855,6 +857,8 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
 /*static*/ void wread_file_21_ (void);
 /*static*/ void wread_mirth_src_21_ (void);
 /*static*/ void wMAX_NAMES (void);
+/*static*/ void wNAME_HASH_MAX (void);
+/*static*/ void wNAME_TABLE_SIZE (void);
 /*static*/ void wnum_names_40_ (void);
 /*static*/ void wnum_names_21_ (void);
 /*static*/ void wNAME_QUADS (void);
@@ -863,8 +867,9 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
 /*static*/ void wstr_buf_recalc_length_21_ (void);
 /*static*/ void wname_load_21_ (void);
 /*static*/ void wname_quads_load_21_ (void);
-/*static*/ void wname_quad_eq (void);
 /*static*/ void wname_quads_eq (void);
+/*static*/ void wquads_hash (void);
+/*static*/ void wname_hash (void);
 /*static*/ void wname_quads_eq_3F_ (void);
 /*static*/ void wname_quad_save_21_ (void);
 /*static*/ void wname_quads_save_21_ (void);
@@ -2879,7 +2884,18 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
 
 // MAX_NAMES
 /*static*/ void wMAX_NAMES (void){
-    push(65536);
+    push(6144);
+}
+
+// NAME_HASH_MAX
+/*static*/ void wNAME_HASH_MAX (void){
+    push(8191);
+}
+
+// NAME_TABLE_SIZE
+/*static*/ void wNAME_TABLE_SIZE (void){
+    wNAME_HASH_MAX();
+    w1_2B_();
 }
 
 // num-names@
@@ -2993,55 +3009,75 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
     wlong_21__21_();
 }
 
-// name-quad-eq
-/*static*/ void wname_quad_eq (void){
-    { int64_t d1 = pop();
+// name-quads-eq
+/*static*/ void wname_quads_eq (void){
     wNAME_SIZE();
     w_2A_();
     wNAME_BUF();
     w_2B_();
-      push(d1); }
-    wtuck();
-    { int64_t d1 = pop();
+    push(0);
+    wover();
     wlong_40__40_();
-      push(d1); }
+    push(0);
     wSTR_BUF();
     wlong_40__40_();
     w_3D_();
-}
-
-// name-quads-eq
-/*static*/ void wname_quads_eq (void){
-    wdup();
-    push(0);
-    wname_quad_eq();
     if (pop()) {
-    wdup();
     push(1);
-    wname_quad_eq();
+    wover();
+    wlong_40__40_();
+    push(1);
+    wSTR_BUF();
+    wlong_40__40_();
+    w_3D_();
     if (pop()) {
-    wdup();
     push(2);
-    wname_quad_eq();
+    wover();
+    wlong_40__40_();
+    push(2);
+    wSTR_BUF();
+    wlong_40__40_();
+    w_3D_();
     if (pop()) {
-    wdup();
     push(3);
-    wname_quad_eq();
+    wover();
+    wlong_40__40_();
+    push(3);
+    wSTR_BUF();
+    wlong_40__40_();
+    w_3D_();
     if (pop()) {
-    wdup();
     push(4);
-    wname_quad_eq();
+    wover();
+    wlong_40__40_();
+    push(4);
+    wSTR_BUF();
+    wlong_40__40_();
+    w_3D_();
     if (pop()) {
-    wdup();
     push(5);
-    wname_quad_eq();
+    wover();
+    wlong_40__40_();
+    push(5);
+    wSTR_BUF();
+    wlong_40__40_();
+    w_3D_();
     if (pop()) {
-    wdup();
     push(6);
-    wname_quad_eq();
+    wover();
+    wlong_40__40_();
+    push(6);
+    wSTR_BUF();
+    wlong_40__40_();
+    w_3D_();
     if (pop()) {
     push(7);
-    wname_quad_eq();
+    wswap();
+    wlong_40__40_();
+    push(7);
+    wSTR_BUF();
+    wlong_40__40_();
+    w_3D_();
     } else {
     wdrop();
     push(0);
@@ -3070,6 +3106,71 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
     wdrop();
     push(0);
     }
+}
+
+// quads-hash
+/*static*/ void wquads_hash (void){
+    push(0);
+    wover();
+    wlong_40__40_();
+    { int64_t d1 = pop();
+    push(1);
+    wover();
+    wlong_40__40_();
+      push(d1); }
+    w_5E_();
+    { int64_t d1 = pop();
+    push(2);
+    wover();
+    wlong_40__40_();
+      push(d1); }
+    w_5E_();
+    { int64_t d1 = pop();
+    push(3);
+    wover();
+    wlong_40__40_();
+      push(d1); }
+    w_5E_();
+    { int64_t d1 = pop();
+    push(4);
+    wover();
+    wlong_40__40_();
+      push(d1); }
+    w_5E_();
+    { int64_t d1 = pop();
+    push(5);
+    wover();
+    wlong_40__40_();
+      push(d1); }
+    w_5E_();
+    { int64_t d1 = pop();
+    push(6);
+    wover();
+    wlong_40__40_();
+      push(d1); }
+    w_5E_();
+    { int64_t d1 = pop();
+    push(7);
+    wover();
+    wlong_40__40_();
+      push(d1); }
+    w_5E_();
+    push(288796637541958145);
+    w_2A_();
+    push(48);
+    w_3E__3E_();
+    wNAME_HASH_MAX();
+    w_26_();
+    wnip();
+}
+
+// name-hash
+/*static*/ void wname_hash (void){
+    wNAME_SIZE();
+    w_2A_();
+    wNAME_BUF();
+    w_2B_();
+    wquads_hash();
 }
 
 // name-quads-eq?
@@ -3225,6 +3326,10 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
     wdup();
     wname_load_21_();
     wstr_buf_print_21_();
+    wprint_sp_21_();
+    wdup();
+    wname_hash();
+    wint_print_21_();
     wprint_ln_21_();
     w1_2B_();
     wdup();

@@ -432,7 +432,9 @@ def(read-mirth-src!, +IO,
 # Names #
 #########
 
-def(MAX_NAMES, Size, 0x10000)
+def(MAX_NAMES, Size, 0x1800)
+def(NAME_HASH_MAX, Size, 0x1FFF)
+def(NAME_TABLE_SIZE, Size, NAME_HASH_MAX 1+)
 long def-static-buffer(NUM_NAMES)
 def(num-names@, Size, NUM_NAMES @)
 def(num-names!, Size --, NUM_NAMES !)
@@ -441,6 +443,9 @@ def(NAME_QUADS, Size, 8)
 def(NAME_SIZE, Size, NAME_QUADS longs)
 def(NAME_BUF_SIZE, Size, NAME_SIZE MAX_NAMES *)
 NAME_BUF_SIZE def-static-buffer(NAME_BUF)
+
+NAME_TABLE_SIZE longs
+    def-static-buffer(NAME_TABLE)
 
 # Recalculate length of string buffer as the
 # first position with a zero byte.
@@ -459,30 +464,36 @@ def(name-load!, Name --,
     NAME_SIZE str-buf-length!
     str-buf-recalc-length!)
 
-# Compare a specific name QUAD with
-# the respective QUAD in STR_BUF.
-def(name-quad-eq, Name Int -- Bool,
-    dip(NAME_SIZE * NAME_BUF +) tuck
-    dip(long@@) STR_BUF long@@ =)
-
 # Compare all quads in name to STR_BUF.
 # Note this code assumes NAME_QUADS is 4.
 def(name-quads-eq, Name -- Bool,
-    dup 0 name-quad-eq if(
-    dup 1 name-quad-eq if(
-    dup 2 name-quad-eq if(
-    dup 3 name-quad-eq if(
-    dup 4 name-quad-eq if(
-    dup 5 name-quad-eq if(
-    dup 6 name-quad-eq if(
-    7 name-quad-eq,
-    drop 0),
-    drop 0),
-    drop 0),
-    drop 0),
-    drop 0),
-    drop 0),
-    drop 0))
+    NAME_SIZE * NAME_BUF +
+    0 over long@@ 0 STR_BUF long@@ = if(
+    1 over long@@ 1 STR_BUF long@@ = if(
+    2 over long@@ 2 STR_BUF long@@ = if(
+    3 over long@@ 3 STR_BUF long@@ = if(
+    4 over long@@ 4 STR_BUF long@@ = if(
+    5 over long@@ 5 STR_BUF long@@ = if(
+    6 over long@@ 6 STR_BUF long@@ = if(
+    7 swap long@@ 7 STR_BUF long@@ =,
+    drop 0), drop 0), drop 0), drop 0),
+    drop 0), drop 0), drop 0))
+
+def(quads-hash, Ptr -- Hash,
+    0 over long@@
+    dip(1 over long@@) ^
+    dip(2 over long@@) ^
+    dip(3 over long@@) ^
+    dip(4 over long@@) ^
+    dip(5 over long@@) ^
+    dip(6 over long@@) ^
+    dip(7 over long@@) ^
+    0x0402030301040201 *
+    48 >> NAME_HASH_MAX &
+    nip)
+
+def(name-hash, Name -- Hash,
+    NAME_SIZE * NAME_BUF + quads-hash)
 
 def(name-quads-eq?, Name -- Name Bool,
     dup name-quads-eq)
@@ -560,7 +571,8 @@ def(show-names-table!, +Names +IO,
         drop
         dup int-print!
         ": " str-print!
-        dup name-load! str-buf-print! print-ln!
+        dup name-load! str-buf-print! print-sp!
+        dup name-hash int-print! print-ln!
         1+ dup num-names@ <
     )
     drop
