@@ -2353,11 +2353,18 @@ def(run-output-c99!, Token String -- +IO,
     c99-emit-main!
     stdout file-out!)
 
+long def-static-buffer(C99_DEPTH)
+def(c99-depth@, -- Int +C99, C99_DEPTH @)
+def(c99-depth!, Int -- +C99, C99_DEPTH !)
+def(c99-depth++, +C99, c99-depth@ 1+ c99-depth!)
+def(c99-depth--, +C99, c99-depth@ 1- c99-depth!)
+
 def(;, Str -- +IO, str-print-ln!)
 def(;;, Str -- +IO, str-print-ln! print-ln!)
 def(.q, Str -- +IO, str-print! print-quote!)
 def(., Str -- +IO, str-print!)
 def(.n, Int -- +IO, int-print!)
+def(.d, +IO, c99-depth@ int-print!)
 def(.name, Name -- +IO, name-print-mangled!)
 
 def(.w, Name -- +IO,
@@ -2625,12 +2632,14 @@ def(c99-emit-word-def!, Name -- +IO,
     ))
 
 def(c99-emit-run!, Token -- +IO,
+    c99-depth++
     token-run-end? not while(
         drop
         dup c99-emit-token!
         token-next
         token-run-end? not
-    ) drop)
+    ) drop
+    c99-depth--)
 
 def(c99-emit-token!, Token -- +IO,
     dup typecheck-token!
@@ -2650,9 +2659,9 @@ def(c99-emit-token!, Token -- +IO,
 def(c99-emit-word!, Token -- +IO,
     token-value? PRIM_DIP = if(
         token-args-1
-        "    int64_t d" . dup .n " = pop();" ;
-        dup c99-emit-run!
-        "    push(d" . .n ");" ;,
+        "    { int64_t d" . .d " = pop();" ;
+        c99-emit-run!
+        "      push(d" . .d "); }" ;,
 
     token-value? PRIM_IF = if(
         token-args-2
@@ -2664,10 +2673,10 @@ def(c99-emit-word!, Token -- +IO,
 
     token-value? PRIM_WHILE = if(
         token-args-1
-        "    for (int64_t c" . dup .n
-        " = pop(); c" . dup .n
-        "; c" . dup .n " = pop()) {" ;
-        "    push(c" . dup .n ");" ;
+        "    for (int64_t c" . .d
+        " = pop(); c" . .d
+        "; c" . .d " = pop()) {" ;
+        "    push(c" . .d ");" ;
         c99-emit-run!
         "    }" ;,
 
