@@ -272,7 +272,12 @@ def(stdin,  File, 0)
 def(stdout, File, 1)
 def(stderr, File, 2)
 
-def(init!, +IO, init-io!)
+def(init!, +IO,
+    init-io!
+    0 strings-size!
+    0 num-tokens!
+    init-names!)
+
 def(init-io!, +IO,
     stdin file-in!
     stdout file-out!
@@ -2768,7 +2773,6 @@ def(main, +IO,
     init!
     run-tests
     read-mirth-src!
-    init-names!
     run-lexer!
 #   show-names-table!
 #   show-tokens!
