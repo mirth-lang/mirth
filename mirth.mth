@@ -39,11 +39,11 @@ def(!!, Bool --, if(id, "Assertion failed" panic!))
 def(!!=, Int Int --, = !!)
 def(!!0, Int --, 0 !!=)
 def(!!1, Int --, 1 !!=)
-def(!!001, Int Int --, !!1 !!0 !!0)
-def(!!010, Int Int --, !!0 !!1 !!0)
-def(!!011, Int Int --, !!1 !!1 !!0)
-def(!!100, Int Int --, !!0 !!0 !!1)
-def(!!111, Int Int --, !!1 !!1 !!1)
+def(!!001, Int Int Int --, !!1 !!0 !!0)
+def(!!010, Int Int Int --, !!0 !!1 !!0)
+def(!!011, Int Int Int --, !!1 !!1 !!0)
+def(!!100, Int Int Int --, !!0 !!0 !!1)
+def(!!111, Int Int Int --, !!1 !!1 !!1)
 
 def(str-head, Str -- Byte, byte@)
 def(str-head?, Str -- Str Byte, dup str-head)
@@ -877,7 +877,7 @@ def(lexer-make!, TokenType TokenValue -- Token,
     dip(lexer-col@) dup dip(token-col!))
 
 # Create a token, and add it to the token buffer.
-def(lexer-emit!, TokenType TokenValue, lexer-make! drop)
+def(lexer-emit!, TokenType TokenValue --, lexer-make! drop)
 
 # Lex the next token.
 def(lexer-next!, --,
@@ -1754,7 +1754,7 @@ MAX_BUFFERS longs dup
 def(buffer-size@, Buffer -- U64 +Buffers,
     BUFFER_SIZE long@@)
 
-def(buffer-size!, Buffer -- U64 +Buffers,
+def(buffer-size!, U64 Buffer -- +Buffers,
     BUFFER_SIZE long!!)
 
 def(buffer-alloc!, U64 -- Buffer +Buffers,
@@ -1768,7 +1768,7 @@ def(buffer-alloc!, U64 -- Buffer +Buffers,
 def(buffer-base@, Buffer -- Ptr +Buffers,
     BUFFER_BASE long@@)
 
-def(buffer-base!, Buffer -- Ptr +Buffers,
+def(buffer-base!, Ptr Buffer -- +Buffers,
     BUFFER_BASE long!!)
 
 ########
@@ -1819,10 +1819,11 @@ def(tstack-len@, Size, TSTACK_LEN @)
 
 def(tstack-base!, Size, TSTACK_BASE !)
 def(tstack-base@, Size, TSTACK_BASE @)
-def(tstack-base?, Size, dup tstack-base@)
 
+def(tstack-length?, Size +TSTACK, tstack-len@ tstack-base@ -)
 def(tstack-empty?, Bool, tstack-len@ tstack-base@ <=)
 def(tstack-full?, Bool, tstack-len@ TSTACK_SIZE >=)
+def(tstack-clear!, +TSTACK, tstack-base@ tstack-len!)
 
 def(tstack!, Type Index --, TSTACK_BUF long!!)
 def(tstack@, Index -- Type, TSTACK_BUF long@@)
@@ -1836,6 +1837,9 @@ def(tstack-push!, Type --,
         "Overflow: Attempt to push to full tstack." panic!,
         tstack-len@ dup 1+ tstack-len! tstack!
     ))
+
+def(tstack-pop2!, -- Type Type, tstack-pop! dip(tstack-pop!))
+def(tstack-push2!, Type Type --, dip(tstack-push!) tstack-push!)
 
 def(tstack-enter!, --,
     tstack-base@ tstack-push!
@@ -1912,8 +1916,81 @@ def(typecheck-buffer!, Name --,
     drop) # FIXME: check the type
 
 def(typecheck-run!, Token --,
-    drop) # FIXME: run from token.
+    token-is-arg-end? not while(
+        drop
+        dup typecheck-run-one!
+        token-next
+        token-is-arg-end? not
+    ) drop)
 
+def(typecheck-run-one!, Token --,
+    token-type? TOKEN_INT = if(
+        token-args-0
+        0 tstack-push!, # FIXME: push TYPE_INT
+
+    token-type? TOKEN_STR = if(
+        token-args-0
+        0 tstack-push!, # FIXME: push TYPE_STR
+
+
+    token-type? TOKEN_NAME = if(
+        token-value? typecheck-run-name!,
+
+        "Unexpected token type." emit-fatal-error!
+    ))))
+
+def(typecheck-run-name!, Token Name --,
+    name-is-prim? if(
+        drop typecheck-run-prim!,
+
+    name-is-word? if(
+        over token-args-0
+        name-sig@ sig-apply!,
+
+    name-is-buffer? if(
+        drop token-args-0
+        0 tstack-push!, # FIXME: push "pointer to buffer type" type
+
+        drop
+        "Don't know how to typecheck token." emit-warning!
+    ))))
+
+def(typecheck-run-prim!, Token --,
+    token-value? PRIM_DUP = if(
+        1 2 tstack-arity-check!
+        token-args-0
+        tstack-pop! dup tstack-push2!,
+
+    token-value? PRIM_DROP = if(
+        0 1 tstack-arity-check!
+        token-args-0
+        tstack-pop! drop,
+
+    token-value? PRIM_SWAP = if(
+        2 2 tstack-arity-check!
+        token-args-0
+        tstack-pop2! swap tstack-push2!,
+
+    token-value? PRIM_DIP = if(
+        1 1 tstack-arity-check!
+        token-args-1
+        tstack-pop! swap typecheck-run! tstack-push!,
+
+        drop # FIXME: emit error for unknown primitive
+    )))))
+
+def(tstack-arity-check!, Token Int Int -- Token +TSTACK,
+    dip(dip(tstack-len@))
+    dip(-) over tstack-base@ < if(
+        drop2
+        dup "Stack underflow." emit-warning!, # FIXME: upgrade to error
+
+        + TSTACK_SIZE > if(
+            "compiler error: tstack overflow." emit-fatal-error!,
+
+            id
+        )
+    ))
 
 #############
 # Type Sigs #
@@ -2004,6 +2081,24 @@ def(sig-push-inputs!, Token -- +TSTACK,
 
 def(sig-match-outputs!, Token -- +TSTACK,
     drop) #FIXME: Implement.
+
+def(sig-apply!, Token Token -- +TSTACK,
+    dup2 sig-pop-inputs! sig-push-outputs!)
+
+def(sig-pop-inputs!, Token Token -- +TSTACK,
+    sig-arity drop
+    dup tstack-length? > if(
+        drop tstack-clear!
+        "Stack underflow." emit-warning!, # FIXME: emit error
+
+        while(tstack-pop! drop 1-) # FIXME: match types
+        drop
+    ))
+
+def(sig-push-outputs!, Token Token -- +TSTACK,
+    sig-arity nip
+    while(0 tstack-push! 1-) # FIXME: push correct type
+    drop)
 
 ###########
 # Codegen #
