@@ -635,26 +635,32 @@ def(PRIM_INT_MOD, Prim, 12)
 def(PRIM_INT_EQ, Prim, 13)
 def(PRIM_INT_LT, Prim, 14)
 def(PRIM_INT_LE, Prim, 15)
-def(PRIM_MEM_GET, Prim, 16)
-def(PRIM_MEM_SET, Prim, 17)
-def(PRIM_MEM_GET_BYTE, Prim, 18)
-def(PRIM_MEM_SET_BYTE, Prim, 19)
-def(PRIM_POSIX_READ, Prim, 20)
-def(PRIM_POSIX_WRITE, Prim, 21)
-def(PRIM_POSIX_OPEN, Prim, 22)
-def(PRIM_POSIX_CLOSE, Prim, 23)
-def(PRIM_POSIX_EXIT, Prim, 24)
-def(PRIM_POSIX_MMAP, Prim, 25)
-def(PRIM_DEBUG, Prim, 26)
-def(PRIM_MIRTH_REVISION, Prim, 27)
-def(PRIM_RUNNING_OS, Prim, 28)
-def(PRIM_DEF, Prim, 29)
-def(PRIM_DEF_TYPE, Prim, 30)
-def(PRIM_DEF_STATIC_BUFFER, Prim, 31)
-def(PRIM_OUTPUT_ASM, Prim, 32)
-def(PRIM_OUTPUT_C99, Prim, 33)
-def(PRIM_DASHES, Prim, 34)
-def(NUM_PRIMS, Prim, 35)
+def(PRIM_INT_AND, Prim, 16)
+def(PRIM_INT_OR, Prim, 17)
+def(PRIM_INT_XOR, Prim, 18)
+def(PRIM_INT_SHL, Prim, 19)
+def(PRIM_INT_SHR, Prim, 20)
+def(PRIM_MEM_GET, Prim, 21)
+def(PRIM_MEM_SET, Prim, 22)
+def(PRIM_MEM_GET_BYTE, Prim, 23)
+def(PRIM_MEM_SET_BYTE, Prim, 24)
+def(PRIM_POSIX_READ, Prim, 25)
+def(PRIM_POSIX_WRITE, Prim, 26)
+def(PRIM_POSIX_OPEN, Prim, 27)
+def(PRIM_POSIX_CLOSE, Prim, 28)
+def(PRIM_POSIX_EXIT, Prim, 29)
+def(PRIM_POSIX_MMAP, Prim, 30)
+def(PRIM_DEBUG, Prim, 31)
+def(PRIM_MIRTH_REVISION, Prim, 32)
+def(PRIM_RUNNING_OS, Prim, 33)
+def(PRIM_DEF, Prim, 34)
+def(PRIM_DEF_TYPE, Prim, 35)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 36)
+def(PRIM_OUTPUT_ASM, Prim, 37)
+def(PRIM_OUTPUT_C99, Prim, 38)
+def(PRIM_DASHES, Prim, 39)
+def(PRIM_ARROW, Prim, 40)
+def(NUM_PRIMS, Prim, 41)
 
 def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
 
@@ -683,6 +689,11 @@ def(init-names!, +Names,
     PRIM_INT_EQ "=" def-prim!
     PRIM_INT_LT "<" def-prim!
     PRIM_INT_LE "<=" def-prim!
+    PRIM_INT_AND "&" def-prim!
+    PRIM_INT_OR "|" def-prim!
+    PRIM_INT_XOR "^" def-prim!
+    PRIM_INT_SHL "<<" def-prim!
+    PRIM_INT_SHR ">>" def-prim!
     PRIM_MEM_GET "@" def-prim!
     PRIM_MEM_SET "!" def-prim!
     PRIM_MEM_GET_BYTE "byte@" def-prim!
@@ -702,6 +713,7 @@ def(init-names!, +Names,
     PRIM_OUTPUT_ASM "output-asm" def-prim!
     PRIM_OUTPUT_C99 "output-c99" def-prim!
     PRIM_DASHES "--" def-prim!
+    PRIM_ARROW "->" def-prim!
     )
 
 #################
