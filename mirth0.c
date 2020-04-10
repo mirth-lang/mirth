@@ -238,7 +238,7 @@ static uint8_t b174[131072] = {0};
 static void w174 (void) { push((int64_t)b174); }
 static uint8_t b187[8] = {0};
 static void w187 (void) { push((int64_t)b187); }
-static uint8_t b193[524288] = {0};
+static uint8_t b193[4194304] = {0};
 static void w193 (void) { push((int64_t)b193); }
 static uint8_t b256[8] = {0};
 static void w256 (void) { push((int64_t)b256); }
@@ -246,13 +246,13 @@ static uint8_t b257[65536] = {0};
 static void w257 (void) { push((int64_t)b257); }
 static uint8_t b271[8] = {0};
 static void w271 (void) { push((int64_t)b271); }
-static uint8_t b275[32768] = {0};
+static uint8_t b275[65536] = {0};
 static void w275 (void) { push((int64_t)b275); }
-static uint8_t b290[262144] = {0};
+static uint8_t b290[524288] = {0};
 static void w290 (void) { push((int64_t)b290); }
-static uint8_t b291[262144] = {0};
+static uint8_t b291[524288] = {0};
 static void w291 (void) { push((int64_t)b291); }
-static uint8_t b292[262144] = {0};
+static uint8_t b292[524288] = {0};
 static void w292 (void) { push((int64_t)b292); }
 static uint8_t b310[8] = {0};
 static void w310 (void) { push((int64_t)b310); }
@@ -274,13 +274,13 @@ static uint8_t b440[32768] = {0};
 static void w440 (void) { push((int64_t)b440); }
 static uint8_t b441[32768] = {0};
 static void w441 (void) { push((int64_t)b441); }
-static uint8_t b450[8192] = {0};
+static uint8_t b450[65536] = {0};
 static void w450 (void) { push((int64_t)b450); }
-static uint8_t b451[65536] = {0};
+static uint8_t b451[524288] = {0};
 static void w451 (void) { push((int64_t)b451); }
-static uint8_t b452[65536] = {0};
+static uint8_t b452[524288] = {0};
 static void w452 (void) { push((int64_t)b452); }
-static uint8_t b460[8192] = {0};
+static uint8_t b460[65536] = {0};
 static void w460 (void) { push((int64_t)b460); }
 static uint8_t b465[8] = {0};
 static void w465 (void) { push((int64_t)b465); }
@@ -2281,7 +2281,7 @@ static void w185 (void){
 
 // MAX_NAMES
 static void w186 (void){
-    push(8192);
+    push(65536);
 }
 
 // num-names@
@@ -3057,7 +3057,7 @@ static void w269 (void){
 
 // MAX_TOKENS
 static void w270 (void){
-    push(32768);
+    push(65536);
 }
 
 // num-tokens@
