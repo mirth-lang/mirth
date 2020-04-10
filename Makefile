@@ -31,6 +31,7 @@ install-code:
 
 profile: mirth_prof
 	./mirth_prof
+	rm -f mirth.c
 
 #########
 
@@ -55,7 +56,7 @@ mirth3.c: mirth2 mirth.mth
 	./mirth2
 	mv mirth.c mirth3.c
 
-mirth_prof.c: mirth1.c
+mirth_prof.c: mirth3.c
 
 mirth_prof: mirth_prof.c
 	$(CC) -g -fprofile-instr-generate -o mirth_prof mirth_prof.c

@@ -818,6 +818,7 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
 /*static*/ void wstrings_size_21_ (void);
 /*static*/ void wnum_tokens_21_ (void);
 /*static*/ void winit_names_21_ (void);
+/*static*/ void winit_buffers_21_ (void);
 /*static*/ void winit_heap_21_ (void);
 /*static*/ void wfile_in_21_ (void);
 /*static*/ void wfile_out_21_ (void);
@@ -949,7 +950,10 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
 /*static*/ void wNUM_PRIMS (void);
 /*static*/ void wname_is_prim_3F_ (void);
 /*static*/ void wdef_prim_21_ (void);
+/*static*/ void wname_checked_21_ (void);
 /*static*/ void wname_sort_21_ (void);
+/*static*/ void wname_value_21_ (void);
+/*static*/ void wname_sig_21_ (void);
 /*static*/ void wMAX_STRINGS (void);
 /*static*/ void wstrings_size_40_ (void);
 /*static*/ void wstrings_push_21_ (void);
@@ -1087,8 +1091,6 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
 /*static*/ void wtoken_args_2 (void);
 /*static*/ void wtoken_args_3 (void);
 /*static*/ void wDEF_WORD (void);
-/*static*/ void wname_value_21_ (void);
-/*static*/ void wname_sig_21_ (void);
 /*static*/ void wDEF_BUFFER (void);
 /*static*/ void wbuffer_alloc_21_ (void);
 /*static*/ void wNEW_MIRTH_REVISION (void);
@@ -1110,7 +1112,6 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
 /*static*/ void wname_sig_40_ (void);
 /*static*/ void wname_sig_3F_ (void);
 /*static*/ void wname_defined_3F_ (void);
-/*static*/ void wname_checked_21_ (void);
 /*static*/ void wname_checked_40_ (void);
 /*static*/ void wname_checked_3F_ (void);
 /*static*/ void wTSTACK_SIZE (void);
@@ -2239,6 +2240,14 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
 // test@!
 /*static*/ void wtest_40__21_ (void){
     push(0);
+    push(0);
+    wTEST_BUF();
+    wlong_21__21_();
+    push(0);
+    push(1);
+    wTEST_BUF();
+    wlong_21__21_();
+    push(0);
     wTEST_BUF();
     wlong_40__40_();
     w_21__21_0();
@@ -2339,6 +2348,7 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
     push(0);
     wnum_tokens_21_();
     winit_names_21_();
+    winit_buffers_21_();
     winit_heap_21_();
 }
 
@@ -2381,7 +2391,16 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
     w1_();
     push(0);
     wover();
+    wname_checked_21_();
+    push(0);
+    wover();
     wname_sort_21_();
+    push(0);
+    wover();
+    wname_value_21_();
+    push(0);
+    wover();
+    wname_sig_21_();
     }
     push(0);
     wnum_names_21_();
@@ -2508,6 +2527,12 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
     wPRIM_ARROW();
     push((int64_t)(strings + 572));
     wdef_prim_21_();
+}
+
+// init-buffers!
+/*static*/ void winit_buffers_21_ (void){
+    push(0);
+    wnum_buffers_21_();
 }
 
 // init-heap!
@@ -3843,10 +3868,28 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
     }
 }
 
+// name-checked!
+/*static*/ void wname_checked_21_ (void){
+    wDEF_CHECKED();
+    wbyte_21__21_();
+}
+
 // name-sort!
 /*static*/ void wname_sort_21_ (void){
     wDEF_SORT();
     wbyte_21__21_();
+}
+
+// name-value!
+/*static*/ void wname_value_21_ (void){
+    wDEF_VALUE();
+    wlong_21__21_();
+}
+
+// name-sig!
+/*static*/ void wname_sig_21_ (void){
+    wDEF_SIG();
+    wlong_21__21_();
 }
 
 // MAX_STRINGS
@@ -6247,18 +6290,6 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
     push(1);
 }
 
-// name-value!
-/*static*/ void wname_value_21_ (void){
-    wDEF_VALUE();
-    wlong_21__21_();
-}
-
-// name-sig!
-/*static*/ void wname_sig_21_ (void){
-    wDEF_SIG();
-    wlong_21__21_();
-}
-
 // DEF_BUFFER
 /*static*/ void wDEF_BUFFER (void){
     push(2);
@@ -6453,12 +6484,6 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
 /*static*/ void wname_defined_3F_ (void){
     wname_undefined_3F_();
     wnot();
-}
-
-// name-checked!
-/*static*/ void wname_checked_21_ (void){
-    wDEF_CHECKED();
-    wbyte_21__21_();
 }
 
 // name-checked@

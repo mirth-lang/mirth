@@ -233,6 +233,10 @@ def(test%, --,
 
 2 longs def-static-buffer(TEST_BUF)
 def(test@!, --,
+    # reset test buffer
+    0 0 TEST_BUF long!!
+    0 1 TEST_BUF long!!
+    # run test
     0 TEST_BUF long@@ !!0
     1 TEST_BUF long@@ !!0
     99 0 TEST_BUF long!!
@@ -278,6 +282,7 @@ def(init!, +IO,
     0 strings-size!
     0 num-tokens!
     init-names!
+    init-buffers!
     init-heap!)
 
 def(init-io!, +IO,
@@ -707,7 +712,10 @@ def(init-names!, +Names,
 
     num-names@ while(
         1-
+        0 over name-checked!
         0 over name-sort!
+        0 over name-value!
+        0 over name-sig!
     )
 
     0 num-names!
@@ -1883,6 +1891,9 @@ long def-static-buffer(NUM_BUFFERS)
 def(num-buffers@, USize +Buffers, NUM_BUFFERS @)
 def(num-buffers!, USize -- +Buffers, NUM_BUFFERS !)
 
+def(init-buffers!, +Buffers,
+    0 num-buffers!)
+
 MAX_BUFFERS longs dup
     def-static-buffer(BUFFER_SIZE)
     def-static-buffer(BUFFER_BASE)
@@ -2948,12 +2959,4 @@ def(MACOS, OS, 3)
 def(NEW_MIRTH_REVISION, Int, 0)
 
 "mirth.c" output-c99(main)
-"mirth_prof.c" output-c99(
-    init!
-    read-mirth-src!
-    1000 while(
-        init!
-        run-lexer!
-        1-
-    )
-)
+"mirth_prof.c" output-c99(100 while(main 1-))
