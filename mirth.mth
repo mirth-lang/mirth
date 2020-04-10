@@ -277,7 +277,8 @@ def(init!, +IO,
     init-io!
     0 strings-size!
     0 num-tokens!
-    init-names!)
+    init-names!
+    init-heap!)
 
 def(init-io!, +IO,
     stdin file-in!
@@ -465,7 +466,7 @@ def(name-load!, Name --,
     str-buf-recalc-length!)
 
 # Compare all quads in name to STR_BUF.
-# Note this code assumes NAME_QUADS is 4.
+# Note this code assumes NAME_QUADS is 8.
 def(name-quads-eq, Name -- Bool,
     NAME_SIZE * NAME_BUF +
     0 over long@@ 0 STR_BUF long@@ = if(
@@ -495,6 +496,9 @@ def(quads-hash, Ptr -- Hash,
 def(name-hash, Name -- Hash,
     NAME_SIZE * NAME_BUF + quads-hash)
 
+def(str-buf-hash, Hash +StrBuf,
+    STR_BUF quads-hash)
+
 def(name-quads-eq?, Name -- Name Bool,
     dup name-quads-eq)
 
@@ -511,20 +515,6 @@ def(name-quads-save!, Name -- ,
     dup 5 name-quad-save!
     dup 6 name-quad-save!
     7 name-quad-save!)
-
-def(name-quad-load!, Name Int --,
-    dip(NAME_SIZE * NAME_BUF +) tuck
-    dip(long@@) STR_BUF long!!)
-
-# def(name-quads-load!, Name -- ,
-#     dup 0 name-quad-load!
-#     dup 1 name-quad-load!
-#     dup 2 name-quad-load!
-#     dup 3 name-quad-load!
-#     dup 4 name-quad-load!
-#     dup 5 name-quad-load!
-#     dup 6 name-quad-load!
-#     7 name-quad-load!)
 
 def(name-quads-load!, Name --,
     NAME_SIZE * NAME_BUF +
@@ -546,23 +536,35 @@ def(str-buf-zero!, --,
     0 4 STR_BUF long!!
     0 5 STR_BUF long!!
     0 6 STR_BUF long!!
-    0 7 STR_BUF long!!
-    0 8 STR_BUF long!!)
+    0 7 STR_BUF long!!)
+
+
+def(name-table@, Hash -- Name, NAME_TABLE long@@ 1-)
+def(name-table!, Name Hash --, dip(1+) NAME_TABLE long!!)
+def(next-hash, Hash -- Hash, 1+ NAME_HASH_MAX &)
+
+def(name-save-keep-going?, Hash -- Hash Bool,
+    dup name-table@
+    dup 0 < if(
+        drop 0,
+        name-quads-eq not
+    ))
 
 # Load STR_BUF into name table. Performs deduplication.
 def(name-save!, -- Name,
-    0 dup num-names@ < while(
+    str-buf-hash
+    name-save-keep-going? while(
         drop
-        name-quads-eq? if(
-            0,
-            1+ dup num-names@ <
-        )
+        next-hash
+        name-save-keep-going?
     )
-    dup num-names@ < if(
-        id, # name already exists
-        # name is new
-        dup name-quads-save!
-        dup 1+ num-names!
+    dup name-table@
+    dup 0 < if(
+        drop
+        num-names@ swap name-table!
+        num-names@ name-quads-save!
+        num-names@ dup 1+ num-names!,
+        nip
     ))
 
 def(show-names-table!, +Names +IO,
@@ -690,13 +692,24 @@ def(NUM_PRIMS, Prim, 41)
 def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
 
 def(def-prim!, Prim Str -- +Names,
-    str-buf-zero! str-buf! name-save! swap !!=)
+    str-buf-zero! str-buf! name-save! swap
+    = if(id, "primitive number mismatch" panic!))
 
 # Initialize name table with list of primitives.
-# Note that order matters very much here, but any
+# Note that order matters very much here. Any
 # deviation from the order above will be flagged
-# thanks to assertions.
+# by def-prim!
 def(init-names!, +Names,
+    NAME_TABLE_SIZE while(
+        1-
+        0 over NAME_TABLE long!!
+    )
+
+    num-names@ while(
+        1-
+        0 over name-sort!
+    )
+
     0 num-names!
     PRIM_END "end" def-prim!
     PRIM_ID "id" def-prim!
@@ -755,15 +768,6 @@ def(strings-size@, -- U64 +StrTable, STRINGS_SIZE @)
 # Size of strings table.
 def(strings-size!, U64 -- +StrTable, STRINGS_SIZE !)
 
-# Read byte from strings table.
-def(strings-u8@, U64 -- U8 +StrTable, byte@)
-
-# Read byte from strings table, leaving index in place.
-def(strings-u8?, U64 -- U64 U8 +StrTable, dup strings-u8@)
-
-# Write byte to strings table.
-def(strings-u8!, U8 U64 -- +StrTable, byte!)
-
 # Push byte onto strings table.
 def(strings-push!, U8 -- +StrTable,
     strings-size@ STRINGS_BUF byte!!
@@ -771,7 +775,7 @@ def(strings-push!, U8 -- +StrTable,
 
 # Load STR_BUF into strings table,
 # returning the index of the new string.
-def(strings-save!, -- String +StrTable +StrBuf,
+def(strings-save!, String +StrTable +StrBuf,
     strings-size@
     0 dup str-buf-length? < while(
         drop
@@ -785,12 +789,7 @@ def(strings-save!, -- String +StrTable +StrBuf,
 
 # Load string into STR_BUF.
 def(strings-load!, String -- +StrTable +StrBuf,
-    str-buf-clear!
-    strings-u8? while(
-        str-buf-push!
-        1+ strings-u8?
-    )
-    drop)
+    str-buf!)
 
 # Load string into STR_BUF but with escape sequences.
 # FIXME: implement escape sequence handling.
@@ -2441,7 +2440,7 @@ def(sig-push-outputs!, Token Token -- +TSTACK,
 ###########
 
 def(run-output-c99!, Token String -- +IO,
-    strings-load! str-buf-create-file! file-out!
+    create-file! file-out!
     c99-emit-header!
     c99-emit-strings!
     c99-emit-prims!
@@ -2824,6 +2823,14 @@ def(c99-emit-main!, Token -- +IO,
 
 def(BASE_HEAP_SIZE, USize, 0x400000)
 
+long def-static-buffer(HEAP_INITIAL_LENGTH)
+def(heap-initial-length@, U64 +Heap, HEAP_INITIAL_LENGTH @)
+def(heap-initial-length!, U64 -- +Heap, HEAP_INITIAL_LENGTH !)
+
+long def-static-buffer(HEAP_INITIAL_BASE)
+def(heap-initial-base@, Ptr +Heap, HEAP_INITIAL_BASE @)
+def(heap-initial-base!, Ptr -- +Heap, HEAP_INITIAL_BASE !)
+
 long def-static-buffer(HEAP_LENGTH)
 def(heap-length@, U64 +Heap, HEAP_LENGTH @)
 def(heap-length!, U64 -- +Heap, HEAP_LENGTH !)
@@ -2831,6 +2838,10 @@ def(heap-length!, U64 -- +Heap, HEAP_LENGTH !)
 long def-static-buffer(HEAP_BASE)
 def(heap-base@, Ptr +Heap, HEAP_BASE @)
 def(heap-base!, Ptr -- +Heap, HEAP_BASE !)
+
+def(init-heap!, +Heap,
+    heap-initial-base@ heap-base!
+    heap-initial-length@ heap-length!)
 
 long def-static-buffer(HEAP_TIMES_EXPANDED)
 def(heap-times-expanded@, Int +Heap, HEAP_TIMES_EXPANDED @)
@@ -2861,7 +2872,8 @@ def(heap-reserve!, U64 -- +Heap,
         dup 0 > if(
             dup heap-base@ heap-length@ + = if(
                 drop heap-length@ + heap-length!,
-                heap-base! heap-length!
+                dup heap-initial-base! heap-base!
+                dup heap-initial-length! heap-length!
             ),
             "Failed to allocate heap buffer." panic! drop2
         )
@@ -2939,7 +2951,7 @@ def(NEW_MIRTH_REVISION, Int, 0)
 "mirth_prof.c" output-c99(
     init!
     read-mirth-src!
-    100 while(
+    1000 while(
         init!
         run-lexer!
         1-
