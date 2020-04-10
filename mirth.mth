@@ -1158,8 +1158,8 @@ def(is-sign?, Char -- Char Bool, is-plus-sign? dip(is-minus-sign?) +)
 def(is-plus-sign?, Char -- Char Bool, dup 43 =)
 def(is-minus-sign?, Char -- Char Bool, dup 45 =)
 def(is-alpha?, Char -- Char Bool, is-lower? dip(is-upper?) +)
-def(is-lower?, Char -- Char Bool, dup 97 122 in-range)
 def(is-upper?, Char -- Char Bool, dup 65 90 in-range)
+def(is-lower?, Char -- Char Bool, dup 97 122 in-range)
 
 def(is-string-end?, Char -- Char Bool, is-quote? dip(is-newline?) + dip(is-nul?) +)
 def(is-backslash?, Char -- Char Bool, dup 92 =)
@@ -1273,7 +1273,8 @@ def(emit-error!, Token Str -- +IO,
     "error: " str-trace!
     str-trace-ln!)
 
-def(emit-fatal-error!, *a Token Str -- *b +IO,
+def(emit-fatal-error!, Token Str -- +IO,
+    # FIXME: type sig should be *a Token Str -- *b +IO.
     emit-error!
     1 posix-exit!)
 
@@ -1895,9 +1896,10 @@ def(typecheck-word!, Name --,
     name-sig? typecheck-word-sig!
 
     tstack-enter!
-    # name-sig? sig-push-inputs!
-    # name-value? typecheck-run!
-    # name-sig? sig-match-outputs!
+    name-sig? sig-push-inputs!
+    name-value? typecheck-run!
+    name-sig? sig-match-outputs!
+    # FIXME: sig-effects
     tstack-leave!
     # drop
 
@@ -1908,6 +1910,10 @@ def(typecheck-word-sig!, Token --,
 
 def(typecheck-buffer!, Name --,
     drop) # FIXME: check the type
+
+def(typecheck-run!, Token --,
+    drop) # FIXME: run from token.
+
 
 #############
 # Type Sigs #
@@ -1961,6 +1967,43 @@ def(sig-token-is-type?, Token -- Token Bool,
         0
     ))
 
+def(sig-token-is-type-con?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-value? name-could-be-type-con,
+        0
+    ))
+
+def(sig-token-is-type-var?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-value? name-could-be-type-var,
+        0
+    ))
+
+def(sig-push-inputs!, Token -- +TSTACK,
+    sig-has-dashes? if(
+        sig-dashes-end? not while(
+            drop
+
+            sig-token-is-type-con? if(
+                0 # FIXME: push type con
+                tstack-push!,
+
+            sig-token-is-type-var? if(
+                0 # FIXME: push rigid type var and
+                  # register it in context.
+                tstack-push!,
+
+                "Expected type."
+                emit-fatal-error!
+            ))
+            token-next sig-dashes-end? not
+        ) drop,
+
+        drop
+    ))
+
+def(sig-match-outputs!, Token -- +TSTACK,
+    drop) #FIXME: Implement.
 
 ###########
 # Codegen #
