@@ -11,12 +11,13 @@ def(tuck, a b -- b a b, dup dip(swap))
 def(nip, a b -- b, dip(drop))
 def(dup2, a b -- a b a b, over over)
 def(drop2, a b --, drop drop)
+def(drop3, a b c --, drop drop drop)
 
 def(>, Int Int -- Bool, swap <)
 def(>=, Int Int -- Bool, swap <=)
 
 def(0=, Int -- Bool, 0 =)
-def(0<, Int -- Bool, 0 <)
+#def(0<, Int -- Bool, 0 <)
 
 def(1+, Int -- Int, 1 +)
 def(1-, Int -- Int, 1 -)
@@ -70,7 +71,8 @@ def(str-buf-full?, Bool +StrBuf,
 def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
 def(str-buf-push!, U8 -- +StrBuf,
     str-buf-full? if(
-        "str-buf-push! but STR_BUF is already full" panic!,
+        "str-buf-push! but STR_BUF is already full" panic!
+        drop,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     ))
@@ -82,7 +84,7 @@ def(str-buf-read!, File -- +IO,
     str-buf-clear!
     STR_BUF STR_BUF_SIZE 1- posix-read!
     dup 0 < if(
-        "str-buf-read! failed" panic!,
+        "str-buf-read! failed" panic! drop,
         str-buf-length!
     ))
 def(str-buf-input!, -- +IO, file-in@ str-buf-read!)
@@ -312,7 +314,7 @@ def(print-quote!, +IO, 34 print-char!)
 def(to-digit, Int -- Char, 10 % 48 +)
 
 def(negate, Int -- Int, -1 *)
-def(abs, Int -- Int, dup 0< if(negate, id))
+def(abs, Int -- Int, dup 0 < if(negate, id))
 
 # put integer into str buf
 def(str-buf-int!, Int --,
@@ -397,13 +399,13 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     RUNNING_OS LINUX = if(
         0x241, # O_TRUNC = 0x200, O_CREAT = 0x40, O_WRONLY = 0x1
 
-        "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic!
+        "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic! 0
     )))
 
 def(read-file!, File -- +IO,
     dup FILE_BUF FILE_BUF_SIZE 1- posix-read!
     dup 0 < if(
-        "failed to read file" panic!,
+        "failed to read file" panic! drop2,
         file-buf-length! posix-close!
         0 < if(
             "failed to close file" panic!,
@@ -424,14 +426,14 @@ def(read-mirth-src!, +IO,
 # Names #
 #########
 
-def(MAX_NAMES, USize, 8192)
+def(MAX_NAMES, Size, 8192)
 long def-static-buffer(NUM_NAMES)
-def(num-names@, Int, NUM_NAMES @)
-def(num-names!, Int --, NUM_NAMES !)
+def(num-names@, Size, NUM_NAMES @)
+def(num-names!, Size --, NUM_NAMES !)
 
-def(NAME_QUADS, USize, 8)
-def(NAME_SIZE, USize, NAME_QUADS longs)
-def(NAME_BUF_SIZE, USize, NAME_SIZE MAX_NAMES *)
+def(NAME_QUADS, Size, 8)
+def(NAME_SIZE, Size, NAME_QUADS longs)
+def(NAME_BUF_SIZE, Size, NAME_SIZE MAX_NAMES *)
 NAME_BUF_SIZE def-static-buffer(NAME_BUF)
 
 # Recalculate length of string buffer as the
@@ -518,7 +520,7 @@ def(name-quads-load!, Name -- ,
     7 name-quad-load!)
 
 # Load STR_BUF into name table. Performs deduplication.
-def(name-save!, -- Name,
+def(name-save!, C -- C Name, # FIXME
     NAME_SIZE 1+ str-pad-zeros-to-length!
     0 dup num-names@ < while(
         drop
@@ -831,7 +833,7 @@ def(lexer-stack-full?, Bool +Lexer,
 
 def(lexer-stack-push!, Token -- +Lexer,
     lexer-stack-full? if(
-        "compiler error: lexer stack overflow" panic!,
+        "compiler error: lexer stack overflow" panic! drop,
         lexer-stack-length@
         dup 1+ lexer-stack-length!
         LEXER_STACK_BUF long!!
@@ -839,7 +841,7 @@ def(lexer-stack-push!, Token -- +Lexer,
 
 def(lexer-stack-pop!, -- Token +Lexer,
     lexer-stack-empty? if(
-        "compiler error: lexer stack underflow" panic!,
+        "compiler error: lexer stack underflow" panic! 0,
         lexer-stack-length@ 1-
         dup lexer-stack-length!
         LEXER_STACK_BUF long@@
@@ -1203,7 +1205,7 @@ def(vstack-i64!, I64 U64 -- +VSTACK, VSTACK_BUF long!!)
 
 def(vstack-pop!, I64 +VSTACK,
     vstack-empty? if(
-        "stack underflow: attempted to pop on empty vstack" panic!,
+        "stack underflow: attempted to pop on empty vstack" panic! 0,
         vstack-len@ 1- vstack-len!
         vstack-len@ vstack-i64@
     ))
@@ -1225,7 +1227,7 @@ def(vstack-pop6!, I64 I64 I64 I64 I64 I64 +VSTACK,
 
 def(vstack-push!, I64 -- +VSTACK,
     vstack-full? if(
-        "stack overflow: attempted to push on full vstack" panic!,
+        "stack overflow: attempted to push on full vstack" panic! drop,
         vstack-len@ vstack-i64!
         vstack-len@ 1+ vstack-len!
     ))
@@ -1238,13 +1240,13 @@ def(vstack-push3!, I64 I64 I64 -- +VSTACK,
 
 def(vstack-top@, I64 +VSTACK,
     vstack-empty? if(
-        "stack underflow: attempted to read from top of empty vstack" panic!,
+        "stack underflow: attempted to read from top of empty vstack" panic! 0,
         vstack-len@ 1- vstack-i64@
     ))
 
 def(vstack-top!, I64 -- +VSTACK,
     vstack-empty? if(
-        "stack underflow: attempted to write to top of empty vstack" panic!,
+        "stack underflow: attempted to write to top of empty vstack" panic! drop,
         vstack-len@ 1- vstack-i64!
     ))
 
@@ -1352,7 +1354,7 @@ def(token-run-name!, Token -- +Mirth,
     name-is-buffer? if(
         nip name-value@ buffer-base@ vstack-push!,
 
-        drop2 "Don't know how to run word." emit-fatal-error!
+        drop "Don't know how to run word." emit-fatal-error!
     )))))
 
 # Run a single primitive name token.
@@ -1566,9 +1568,9 @@ def(token-run-prim!, Token --,
                 DEF_WORD over name-sort!
                 dup dip(name-value!)
                 name-sig!,
-                drop "word already defined" emit-fatal-error!
+                drop "word already defined" emit-fatal-error! drop2
             ),
-            "expected word name" emit-fatal-error!
+            "expected word name" emit-fatal-error! drop2
         ),
 
     dup PRIM_DEF_STATIC_BUFFER = if(
@@ -1616,9 +1618,9 @@ def(token-run-prim!, Token --,
 def(arity-check!, Token U64 U64 -- Token,
     dip(dip(vstack-len@))
     dip(dup2 <) swap if(
-        drop drop2 "Stack underflow." emit-fatal-error!,
+        drop drop2 "Stack underflow." emit-fatal-error! 0,
         dip(-) + VSTACK_SIZE > if(
-            "Stack overflow." emit-fatal-error!,
+            "Stack overflow." emit-fatal-error! 0,
             id
         )
     ))
@@ -1649,7 +1651,7 @@ def(token-args-1, Token -- Token,
         ),
         drop
         "expected 1 arg, got none"
-        emit-fatal-error!
+        emit-fatal-error! 0
     ))
 
 # Verify that token has 2 args, and return them.
@@ -1669,11 +1671,11 @@ def(token-args-2, Token -- Token Token,
             ),
             drop
             "expected 2 args, got only 1"
-            emit-fatal-error!
+            emit-fatal-error! 0
         ),
         drop
         "expected 2 args, got none"
-        emit-fatal-error!
+        emit-fatal-error! 0 0
     ))
 
 # Verify that token has 3 args, and return them.
@@ -1695,15 +1697,15 @@ def(token-args-3, Token -- Token Token Token,
                 ),
                 drop
                 "expected 3 args, got only 2"
-                emit-fatal-error!
+                emit-fatal-error! 0
             ),
             drop
             "expected 3 args, got only 1"
-            emit-fatal-error!
+            emit-fatal-error! 0 0
         ),
         drop
         "expected 3 args, got none"
-        emit-fatal-error!
+        emit-fatal-error! 0 0 0
     ))
 
 # Get closest arg ending (COMMA or RPAREN),
@@ -1829,16 +1831,17 @@ def(tstack!, Type Index --, TSTACK_BUF long!!)
 def(tstack@, Index -- Type, TSTACK_BUF long@@)
 def(tstack-pop!, -- Type,
     tstack-empty? if(
-        "Underflow: Attempt to pop empty tstack." panic!,
+        "Underflow: Attempt to pop empty tstack." panic! 0,
         tstack-len@ 1- dup tstack-len! tstack@
     ))
 def(tstack-push!, Type --,
     tstack-full? if(
-        "Overflow: Attempt to push to full tstack." panic!,
+        "Overflow: Attempt to push to full tstack." panic! drop,
         tstack-len@ dup 1+ tstack-len! tstack!
     ))
 
 def(tstack-pop2!, -- Type Type, tstack-pop! dip(tstack-pop!))
+def(tstack-pop3!, -- Type Type Type, tstack-pop! dip(tstack-pop2!))
 def(tstack-push2!, Type Type --, dip(tstack-push!) tstack-push!)
 
 def(tstack-enter!, --,
@@ -1856,21 +1859,54 @@ def(tstack-leave!, --,
 
 # Create a copy of the current tstack frame as a new tstack frame.
 def(tstack-frame-dup!, -- +TSTACK,
-    tstack-base@ tstack-len@
+    tstack-len@ tstack-base@
     tstack-enter!
-    dup2 < while(
+    dup2 > while(
         drop
-        over tstack@ tstack-push!
-        dip(1+) dup2 <
+        dup tstack@ tstack-push!
+        1+ dup2 >
     ) drop2)
+
+long def-static-buffer(TSTACK_NUM_STASHES)
+def(tstack-num-stashes@, Size +TSTACK, TSTACK_NUM_STASHES @)
+def(tstack-num-stashes!, Size -- +TSTACK, TSTACK_NUM_STASHES !)
+
+TSTACK_SIZE longs def-static-buffer(TSTACK_STASH_LEN)
+def(tstack-stash-len@, Stash -- Size +TSTACK, TSTACK_STASH_LEN long@@)
+def(tstack-stash-len!, Size Stash -- +TSTACK, TSTACK_STASH_LEN long!!)
+
+def(tstack-stash-len-push!, Size -- +TSTACK,
+    tstack-num-stashes@ TSTACK_SIZE < if(
+        tstack-num-stashes@ tstack-stash-len!
+        tstack-num-stashes@ 1+ tstack-num-stashes!,
+        "compiler error: tstack stash overflow" panic! drop
+    ))
+
+def(tstack-stash-len-pop!, Size +TSTACK,
+    tstack-num-stashes@ 0 > if(
+        tstack-num-stashes@ 1- tstack-num-stashes!
+        tstack-num-stashes@ tstack-stash-len@,
+        "compiler error: tstack stash underflow" panic! 0
+    ))
 
 # Stash the top tstack frame.
 def(tstack-frame-stash!, -- +TSTACK,
-    tstack-leave!) # FIXME
+    tstack-length? tstack-stash-len-push!
+    tstack-leave!) # FIXME: actually save the values
 
 # Pop the stashed tstack frame & unify it with the top tstack frame.
 def(tstack-frame-unify!, Token -- Token +TSTACK,
-    id) # FIXME
+    tstack-length? tstack-stash-len-pop!
+    dup2 = if(
+        drop2,
+        "mirth.mth:" str-trace!
+        dip(dip(dup token-trace-prefix!))
+        "warning: Failed to unify branches. First branch has " str-trace!
+        int-trace!
+        " outputs, second branch has " str-trace!
+        int-trace!
+        " outputs." str-trace-ln!
+    ))
 
 def(typecheck-token!, Token --,
     token-type? TOKEN_NAME = if(
@@ -1945,10 +1981,12 @@ def(typecheck-run-one!, Token --,
     dup typecheck-token!
 
     token-type? TOKEN_INT = if(
+        0 1 tstack-arity-check!
         token-args-0
         0 tstack-push!, # FIXME: push TYPE_INT
 
     token-type? TOKEN_STR = if(
+        0 1 tstack-arity-check!
         token-args-0
         0 tstack-push!, # FIXME: push TYPE_STR
 
@@ -1975,6 +2013,9 @@ def(typecheck-run-name!, Token Name --,
     ))))
 
 def(typecheck-run-prim!, Token --,
+    token-value? PRIM_ID = if(
+        token-args-0,
+
     token-value? PRIM_DUP = if(
         1 2 tstack-arity-check!
         token-args-0
@@ -2002,8 +2043,19 @@ def(typecheck-run-prim!, Token --,
         tstack-frame-dup!
         dip(typecheck-run!)
         tstack-frame-stash!
-        drop # typecheck-run!
+        typecheck-run!
         tstack-frame-unify!
+        drop,
+
+    token-value? PRIM_WHILE = if(
+        1 0 tstack-arity-check!
+        dup token-args-1
+        # FIXME: check that tstack top is TYPE_BOOL
+        tstack-frame-dup!
+        tstack-frame-stash!
+        typecheck-run!
+        tstack-frame-unify!
+        tstack-pop! drop
         drop,
 
     token-value? PRIM_INT_ADD = if(
@@ -2061,17 +2113,43 @@ def(typecheck-run-prim!, Token --,
         token-args-0
         0 tstack-push!, # TODO: push TYPE_INT
 
-        drop # FIXME: emit error for unknown primitive
-    )))))))))))))))))))
+    token-value? PRIM_POSIX_EXIT = if(
+        1 0 tstack-arity-check!
+        token-args-0
+        tstack-pop! drop, # TODO: types, noreturn ...
+    token-value? PRIM_POSIX_READ = if(
+        3 1 tstack-arity-check!
+        token-args-0
+        tstack-pop3! drop2 tstack-push!, # TODO: check types
+    token-value? PRIM_POSIX_WRITE = if(
+        3 0 tstack-arity-check!
+        token-args-0
+        tstack-pop3! drop3, # TODO: check types
+    token-value? PRIM_POSIX_OPEN = if(
+        3 1 tstack-arity-check!
+        token-args-0
+        tstack-pop3! drop2 tstack-push!, # TODO: check types
+    token-value? PRIM_POSIX_CLOSE = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop! tstack-push!, # TODO: check types
+    token-value? PRIM_POSIX_MMAP = if(
+        6 1 tstack-arity-check!
+        token-args-0
+        tstack-pop3! drop3 tstack-pop3! drop3 # TODO: check types
+        0 tstack-push!, # TODO: push pointer type
+
+        "Unknown primitive" emit-error!
+    )))))))))))))))))))))))))))
 
 def(tstack-arity-check!, Token Int Int -- Token +TSTACK,
     dip(dip(tstack-len@))
     dip(-) over tstack-base@ < if(
         drop2
-        dup "Stack underflow." emit-warning!, # FIXME: upgrade to error
+        dup "Stack underflow." emit-error!, # FIXME: upgrade to error
 
         + TSTACK_SIZE > if(
-            "compiler error: tstack overflow." emit-fatal-error!,
+            "compiler error: tstack overflow." emit-fatal-error! 0,
 
             id
         )
@@ -2156,7 +2234,7 @@ def(sig-push-inputs!, Token -- +TSTACK,
                 tstack-push!,
 
                 "Expected type."
-                emit-fatal-error!
+                emit-fatal-error! 0
             ))
             token-next sig-dashes-end? not
         ) drop,
@@ -2184,7 +2262,7 @@ def(sig-pop-inputs!, Token Token -- +TSTACK,
     sig-arity drop
     dup tstack-length? > if(
         drop tstack-clear!
-        "Stack underflow." emit-warning!, # FIXME: emit error
+        "Stack underflow." emit-error!, # FIXME: emit error
 
         while(tstack-pop! drop 1-) # FIXME: match types
         drop
@@ -2580,7 +2658,7 @@ def(heap-reserve!, U64 -- +Heap,
                 drop heap-length@ + heap-length!,
                 heap-base! heap-length!
             ),
-            "Failed to allocate heap buffer." panic!
+            "Failed to allocate heap buffer." panic! drop2
         )
     ))
 
@@ -2592,7 +2670,7 @@ def(MAP_ANON|MAP_PRIVATE, Int,
         0x1002, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
     RUNNING_OS LINUX = if(
         0x22, # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
-        "MAP_ANON|MAP_PRIVATE unknown for os" panic!
+        "MAP_ANON|MAP_PRIVATE unknown for os" panic! 0
     )))
 
 # Aligns a by b, rounding upward. For instance,
@@ -2629,8 +2707,8 @@ def(main, +IO,
     read-mirth-src!
     init-names!
     run-lexer!
-#    show-names-table!
-#    show-tokens!
+#   show-names-table!
+#   show-tokens!
 
     "Building." str-trace-ln!
 
