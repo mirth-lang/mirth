@@ -644,11 +644,12 @@ def(PRIM_DEBUG, Prim, 26)
 def(PRIM_MIRTH_REVISION, Prim, 27)
 def(PRIM_RUNNING_OS, Prim, 28)
 def(PRIM_DEF, Prim, 29)
-def(PRIM_DEF_STATIC_BUFFER, Prim, 30)
-def(PRIM_OUTPUT_ASM, Prim, 31)
-def(PRIM_OUTPUT_C99, Prim, 32)
-def(PRIM_DASHES, Prim, 33)
-def(NUM_PRIMS, Prim, 34)
+def(PRIM_DEF_TYPE, Prim, 30)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 31)
+def(PRIM_OUTPUT_ASM, Prim, 32)
+def(PRIM_OUTPUT_C99, Prim, 33)
+def(PRIM_DASHES, Prim, 34)
+def(NUM_PRIMS, Prim, 35)
 
 def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
 
@@ -691,6 +692,7 @@ def(init-names!, +Names,
     PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
     PRIM_RUNNING_OS "RUNNING_OS" def-prim!
     PRIM_DEF "def" def-prim!
+    PRIM_DEF_TYPE "def-type" def-prim!
     PRIM_DEF_STATIC_BUFFER "def-static-buffer" def-prim!
     PRIM_OUTPUT_ASM "output-asm" def-prim!
     PRIM_OUTPUT_C99 "output-c99" def-prim!
@@ -2374,10 +2376,11 @@ def(c99-emit-header!, +IO,
 
 def(c99-emit-strings!, +IO,
     "#define STRINGS_SIZE " . strings-size@ .n "" ;
-    "static char strings[STRINGS_SIZE] = { " .
+    "static char strings[STRINGS_SIZE] = { " ;
     0 dup strings-size@ < while(
         drop
-        dup STRINGS_BUF byte@@ .n ", " .
+        dup STRINGS_BUF byte@@ dup .n ", " .
+        if(id, print-ln!)
         1+ dup strings-size@ <
     ) drop
     "};" ;;)
