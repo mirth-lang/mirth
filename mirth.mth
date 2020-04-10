@@ -1873,7 +1873,19 @@ def(typecheck-name!, Name --,
     ))
 
 def(typecheck-word!, Name --,
-    drop) # FIXME: check the sig & body
+    name-sig? typecheck-word-sig!
+
+    # tstack-enter!
+    # name-sig? sig-push-inputs!
+    # name-body? typecheck-run!
+    # name-sig? sig-match-outputs!
+    # tstack-leave!
+    # drop
+
+    drop) # FIXME: check the body
+
+def(typecheck-word-sig!, Token --,
+    drop) # FIXME: check that the sig make sense.
 
 def(typecheck-buffer!, Name --,
     drop) # FIXME: check the type
@@ -2215,7 +2227,6 @@ def(c99-emit-word-def!, Name -- +IO,
     ))
 
 def(c99-emit-run!, Token -- +IO,
-    dup typecheck-token!
     token-run-end? not while(
         drop
         dup c99-emit-token!
@@ -2224,6 +2235,8 @@ def(c99-emit-run!, Token -- +IO,
     ) drop)
 
 def(c99-emit-token!, Token -- +IO,
+    dup typecheck-token!
+
     token-type? TOKEN_INT = if(
         "    push(" . token-value@ .n ");" ;,
 
