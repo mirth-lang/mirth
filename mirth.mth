@@ -17,7 +17,7 @@ def(>, Int Int -- Bool, swap <)
 def(>=, Int Int -- Bool, swap <=)
 
 def(0=, Int -- Bool, 0 =)
-#def(0<, Int -- Bool, 0 <)
+def(0<, Int -- Bool, 0 <)
 
 def(1+, Int -- Int, 1 +)
 def(1-, Int -- Int, 1 -)
@@ -83,7 +83,7 @@ def(str-buf-trace!, +StrBuf, file-err@ str-buf-write!)
 def(str-buf-read!, File -- +IO,
     str-buf-clear!
     STR_BUF STR_BUF_SIZE 1- posix-read!
-    dup 0 < if(
+    dup 0< if(
         "str-buf-read! failed" panic! drop,
         str-buf-length!
     ))
