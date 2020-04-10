@@ -11,7 +11,7 @@
 static size_t sc = STACK_SIZE;
 static int64_t stack[STACK_SIZE] = {0};
 
-#define STRINGS_SIZE 5795
+#define STRINGS_SIZE 5820
 static char strings[STRINGS_SIZE] = { 
 65, 115, 115, 101, 114, 116, 105, 111, 110, 32, 102, 97, 105, 108, 101, 100, 0, 
 115, 116, 114, 45, 98, 117, 102, 45, 112, 117, 115, 104, 33, 32, 98, 117, 116, 32, 83, 84, 82, 95, 66, 85, 70, 32, 105, 115, 32, 97, 108, 114, 101, 97, 100, 121, 32, 102, 117, 108, 108, 0, 
@@ -151,7 +151,7 @@ static char strings[STRINGS_SIZE] = {
 32, 111, 117, 116, 112, 117, 116, 115, 46, 0, 
 83, 116, 97, 99, 107, 32, 117, 110, 100, 101, 114, 102, 108, 111, 119, 46, 0, 
 47, 47, 32, 0, 
-115, 116, 97, 116, 105, 99, 32, 118, 111, 105, 100, 32, 119, 0, 
+47, 42, 115, 116, 97, 116, 105, 99, 42, 47, 32, 118, 111, 105, 100, 32, 119, 0, 
 32, 40, 118, 111, 105, 100, 41, 0, 
 47, 42, 32, 67, 57, 57, 32, 97, 117, 116, 111, 103, 101, 110, 101, 114, 97, 116, 101, 100, 32, 98, 121, 32, 109, 105, 114, 116, 104, 32, 99, 111, 109, 112, 105, 108, 101, 114, 32, 42, 47, 0, 
 35, 105, 110, 99, 108, 117, 100, 101, 32, 60, 115, 116, 100, 98, 111, 111, 108, 46, 104, 62, 0, 
@@ -173,7 +173,7 @@ static char strings[STRINGS_SIZE] = {
 115, 116, 97, 116, 105, 99, 32, 117, 105, 110, 116, 56, 95, 116, 32, 98, 0, 
 91, 0, 
 93, 32, 61, 32, 123, 48, 125, 59, 0, 
-115, 116, 97, 116, 105, 99, 32, 118, 111, 105, 100, 32, 119, 0, 
+47, 42, 115, 116, 97, 116, 105, 99, 42, 47, 32, 118, 111, 105, 100, 32, 119, 0, 
 32, 40, 118, 111, 105, 100, 41, 32, 123, 32, 112, 117, 115, 104, 40, 40, 105, 110, 116, 54, 52, 95, 116, 41, 98, 0, 
 41, 59, 32, 125, 0, 
 115, 116, 97, 116, 105, 99, 32, 105, 110, 116, 54, 52, 95, 116, 32, 112, 111, 112, 32, 40, 118, 111, 105, 100, 41, 32, 123, 0, 
@@ -367,7 +367,7 @@ static char strings[STRINGS_SIZE] = {
 35, 101, 110, 100, 105, 102, 0, 
 125, 0, 
 0, 
-115, 116, 97, 116, 105, 99, 32, 118, 111, 105, 100, 32, 119, 0, 
+47, 42, 115, 116, 97, 116, 105, 99, 42, 47, 32, 118, 111, 105, 100, 32, 119, 0, 
 32, 40, 118, 111, 105, 100, 41, 59, 0, 
 123, 0, 
 125, 0, 
@@ -399,6 +399,7 @@ static char strings[STRINGS_SIZE] = {
 66, 117, 105, 108, 100, 105, 110, 103, 46, 0, 
 86, 83, 84, 65, 67, 75, 32, 61, 32, 0, 
 109, 105, 114, 116, 104, 46, 99, 0, 
+109, 105, 114, 116, 104, 95, 112, 114, 111, 102, 46, 99, 0, 
 };
 
 static int64_t pop (void) {
@@ -432,120 +433,120 @@ static void push (int64_t x) {
 }
 
 // id
-static void wid (void) {
+/*static*/ void wid (void) {
 }
 
 // dup
-static void wdup (void) {
+/*static*/ void wdup (void) {
     int64_t x = pop();
     push(x); push(x);
 }
 
 // drop
-static void wdrop (void) {
+/*static*/ void wdrop (void) {
     pop();
 }
 
 // swap
-static void wswap (void) {
+/*static*/ void wswap (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(x); push(y);
 }
 
 // +
-static void w_2B_ (void) {
+/*static*/ void w_2B_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(x + y);
 }
 
 // -
-static void w_ (void) {
+/*static*/ void w_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(y - x);
 }
 
 // *
-static void w_2A_ (void) {
+/*static*/ void w_2A_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(x * y);
 }
 
 // /
-static void w_2F_ (void) {
+/*static*/ void w_2F_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(y / x);
 }
 
 // %
-static void w_25_ (void) {
+/*static*/ void w_25_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(y % x);
 }
 
 // =
-static void w_3D_ (void) {
+/*static*/ void w_3D_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(x == y);
 }
 
 // <
-static void w_3C_ (void) {
+/*static*/ void w_3C_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(y < x);
 }
 
 // <=
-static void w_3C__3D_ (void) {
+/*static*/ void w_3C__3D_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(y <= x);
 }
 
 // &
-static void w_26_ (void) {
+/*static*/ void w_26_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(y & x);
 }
 
 // |
-static void w_7C_ (void) {
+/*static*/ void w_7C_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(y | x);
 }
 
 // ^
-static void w_5E_ (void) {
+/*static*/ void w_5E_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(y ^ x);
 }
 
 // <<
-static void w_3C__3C_ (void) {
+/*static*/ void w_3C__3C_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(y << x);
 }
 
 // >>
-static void w_3E__3E_ (void) {
+/*static*/ void w_3E__3E_ (void) {
     int64_t x = pop();
     int64_t y = pop();
     push(y >> x);
 }
 
 // posix-write!
-static void wposix_write_21_ (void) {
+/*static*/ void wposix_write_21_ (void) {
     size_t n = (size_t)pop();
     void* p = pop_ptr();
     int f = (int)pop();
@@ -553,7 +554,7 @@ static void wposix_write_21_ (void) {
 }
 
 // posix-read!
-static void wposix_read_21_ (void) {
+/*static*/ void wposix_read_21_ (void) {
     size_t n = (size_t)pop();
     void* p = pop_ptr();
     int f = (int)pop();
@@ -561,7 +562,7 @@ static void wposix_read_21_ (void) {
 }
 
 // posix-open!
-static void wposix_open_21_ (void) {
+/*static*/ void wposix_open_21_ (void) {
     int m = (int)pop();
     int f = (int)pop();
     void* p = pop_ptr();
@@ -569,19 +570,19 @@ static void wposix_open_21_ (void) {
 }
 
 // posix-close!
-static void wposix_close_21_ (void) {
+/*static*/ void wposix_close_21_ (void) {
     int x = (int)pop();
     push(close(x));
 }
 
 // posix-exit!
-static void wposix_exit_21_ (void) {
+/*static*/ void wposix_exit_21_ (void) {
     int x = (int)pop();
     exit(x);
 }
 
 // posix-mmap!
-static void wposix_mmap_21_ (void) {
+/*static*/ void wposix_mmap_21_ (void) {
     int f = (int)pop();
     int e = (int)pop();
     int d = (int)pop();
@@ -593,7 +594,7 @@ static void wposix_mmap_21_ (void) {
 }
 
 // ??
-static void w_3F__3F_ (void) {
+/*static*/ void w_3F__3F_ (void) {
     fprintf(stderr, "?? ");
     for (long i = STACK_SIZE-1; i >= (long)sc; i--) {
         fprintf(stderr, "%p ", (void*)stack[i]);
@@ -602,35 +603,35 @@ static void w_3F__3F_ (void) {
 }
 
 // MIRTH_REVISION
-static void wMIRTH_REVISION (void) {
+/*static*/ void wMIRTH_REVISION (void) {
     push(0);
 }
 
 // @
-static void w_40_ (void) {
+/*static*/ void w_40_ (void) {
     stack[sc] = *(int64_t*)(stack[sc]);
 }
 
 // !
-static void w_21_ (void) {
+/*static*/ void w_21_ (void) {
     int64_t* x = pop_ptr();
     *x = (int64_t)pop();
 }
 
 // byte@
-static void wbyte_40_ (void) {
+/*static*/ void wbyte_40_ (void) {
     uint8_t* x = pop_ptr();
     push(*x);
 }
 
 // byte!
-static void wbyte_21_ (void) {
+/*static*/ void wbyte_21_ (void) {
     uint8_t* x = pop_ptr();
     *x = pop_u8();
 }
 
 // RUNNING_OS
-static void wRUNNING_OS (void) {
+/*static*/ void wRUNNING_OS (void) {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
     push(1);
 #elif defined(__linux__)
@@ -643,566 +644,566 @@ static void wRUNNING_OS (void) {
 }
 
 static uint8_t bSTR_BUF_LEN[8] = {0};
-static void wSTR_BUF_LEN (void) { push((int64_t)bSTR_BUF_LEN); }
+/*static*/ void wSTR_BUF_LEN (void) { push((int64_t)bSTR_BUF_LEN); }
 static uint8_t bSTR_BUF[8192] = {0};
-static void wSTR_BUF (void) { push((int64_t)bSTR_BUF); }
+/*static*/ void wSTR_BUF (void) { push((int64_t)bSTR_BUF); }
 static uint8_t bTEST_BUF[16] = {0};
-static void wTEST_BUF (void) { push((int64_t)bTEST_BUF); }
+/*static*/ void wTEST_BUF (void) { push((int64_t)bTEST_BUF); }
 static uint8_t bFILE_IN[8] = {0};
-static void wFILE_IN (void) { push((int64_t)bFILE_IN); }
+/*static*/ void wFILE_IN (void) { push((int64_t)bFILE_IN); }
 static uint8_t bFILE_OUT[8] = {0};
-static void wFILE_OUT (void) { push((int64_t)bFILE_OUT); }
+/*static*/ void wFILE_OUT (void) { push((int64_t)bFILE_OUT); }
 static uint8_t bFILE_ERR[8] = {0};
-static void wFILE_ERR (void) { push((int64_t)bFILE_ERR); }
+/*static*/ void wFILE_ERR (void) { push((int64_t)bFILE_ERR); }
 static uint8_t bFILE_BUF_LENGTH[8] = {0};
-static void wFILE_BUF_LENGTH (void) { push((int64_t)bFILE_BUF_LENGTH); }
+/*static*/ void wFILE_BUF_LENGTH (void) { push((int64_t)bFILE_BUF_LENGTH); }
 static uint8_t bFILE_BUF[131072] = {0};
-static void wFILE_BUF (void) { push((int64_t)bFILE_BUF); }
+/*static*/ void wFILE_BUF (void) { push((int64_t)bFILE_BUF); }
 static uint8_t bNUM_NAMES[8] = {0};
-static void wNUM_NAMES (void) { push((int64_t)bNUM_NAMES); }
+/*static*/ void wNUM_NAMES (void) { push((int64_t)bNUM_NAMES); }
 static uint8_t bNAME_BUF[4194304] = {0};
-static void wNAME_BUF (void) { push((int64_t)bNAME_BUF); }
+/*static*/ void wNAME_BUF (void) { push((int64_t)bNAME_BUF); }
 static uint8_t bSTRINGS_SIZE[8] = {0};
-static void wSTRINGS_SIZE (void) { push((int64_t)bSTRINGS_SIZE); }
+/*static*/ void wSTRINGS_SIZE (void) { push((int64_t)bSTRINGS_SIZE); }
 static uint8_t bSTRINGS_BUF[65536] = {0};
-static void wSTRINGS_BUF (void) { push((int64_t)bSTRINGS_BUF); }
+/*static*/ void wSTRINGS_BUF (void) { push((int64_t)bSTRINGS_BUF); }
 static uint8_t bNUM_TOKENS[8] = {0};
-static void wNUM_TOKENS (void) { push((int64_t)bNUM_TOKENS); }
+/*static*/ void wNUM_TOKENS (void) { push((int64_t)bNUM_TOKENS); }
 static uint8_t bTOKEN_TYPE[65536] = {0};
-static void wTOKEN_TYPE (void) { push((int64_t)bTOKEN_TYPE); }
+/*static*/ void wTOKEN_TYPE (void) { push((int64_t)bTOKEN_TYPE); }
 static uint8_t bTOKEN_VALUE[524288] = {0};
-static void wTOKEN_VALUE (void) { push((int64_t)bTOKEN_VALUE); }
+/*static*/ void wTOKEN_VALUE (void) { push((int64_t)bTOKEN_VALUE); }
 static uint8_t bTOKEN_ROW[524288] = {0};
-static void wTOKEN_ROW (void) { push((int64_t)bTOKEN_ROW); }
+/*static*/ void wTOKEN_ROW (void) { push((int64_t)bTOKEN_ROW); }
 static uint8_t bTOKEN_COL[524288] = {0};
-static void wTOKEN_COL (void) { push((int64_t)bTOKEN_COL); }
+/*static*/ void wTOKEN_COL (void) { push((int64_t)bTOKEN_COL); }
 static uint8_t bLEXER_ROW[8] = {0};
-static void wLEXER_ROW (void) { push((int64_t)bLEXER_ROW); }
+/*static*/ void wLEXER_ROW (void) { push((int64_t)bLEXER_ROW); }
 static uint8_t bLEXER_COL[8] = {0};
-static void wLEXER_COL (void) { push((int64_t)bLEXER_COL); }
+/*static*/ void wLEXER_COL (void) { push((int64_t)bLEXER_COL); }
 static uint8_t bLEXER_IDX[8] = {0};
-static void wLEXER_IDX (void) { push((int64_t)bLEXER_IDX); }
+/*static*/ void wLEXER_IDX (void) { push((int64_t)bLEXER_IDX); }
 static uint8_t bLEXER_STACK_LENGTH[8] = {0};
-static void wLEXER_STACK_LENGTH (void) { push((int64_t)bLEXER_STACK_LENGTH); }
+/*static*/ void wLEXER_STACK_LENGTH (void) { push((int64_t)bLEXER_STACK_LENGTH); }
 static uint8_t bLEXER_STACK_BUF[4096] = {0};
-static void wLEXER_STACK_BUF (void) { push((int64_t)bLEXER_STACK_BUF); }
+/*static*/ void wLEXER_STACK_BUF (void) { push((int64_t)bLEXER_STACK_BUF); }
 static uint8_t bVSTACK_LEN[8] = {0};
-static void wVSTACK_LEN (void) { push((int64_t)bVSTACK_LEN); }
+/*static*/ void wVSTACK_LEN (void) { push((int64_t)bVSTACK_LEN); }
 static uint8_t bVSTACK_BUF[65536] = {0};
-static void wVSTACK_BUF (void) { push((int64_t)bVSTACK_BUF); }
+/*static*/ void wVSTACK_BUF (void) { push((int64_t)bVSTACK_BUF); }
 static uint8_t bNUM_BUFFERS[8] = {0};
-static void wNUM_BUFFERS (void) { push((int64_t)bNUM_BUFFERS); }
+/*static*/ void wNUM_BUFFERS (void) { push((int64_t)bNUM_BUFFERS); }
 static uint8_t bBUFFER_SIZE[32768] = {0};
-static void wBUFFER_SIZE (void) { push((int64_t)bBUFFER_SIZE); }
+/*static*/ void wBUFFER_SIZE (void) { push((int64_t)bBUFFER_SIZE); }
 static uint8_t bBUFFER_BASE[32768] = {0};
-static void wBUFFER_BASE (void) { push((int64_t)bBUFFER_BASE); }
+/*static*/ void wBUFFER_BASE (void) { push((int64_t)bBUFFER_BASE); }
 static uint8_t bDEF_SORT[65536] = {0};
-static void wDEF_SORT (void) { push((int64_t)bDEF_SORT); }
+/*static*/ void wDEF_SORT (void) { push((int64_t)bDEF_SORT); }
 static uint8_t bDEF_VALUE[524288] = {0};
-static void wDEF_VALUE (void) { push((int64_t)bDEF_VALUE); }
+/*static*/ void wDEF_VALUE (void) { push((int64_t)bDEF_VALUE); }
 static uint8_t bDEF_SIG[524288] = {0};
-static void wDEF_SIG (void) { push((int64_t)bDEF_SIG); }
+/*static*/ void wDEF_SIG (void) { push((int64_t)bDEF_SIG); }
 static uint8_t bDEF_CHECKED[65536] = {0};
-static void wDEF_CHECKED (void) { push((int64_t)bDEF_CHECKED); }
+/*static*/ void wDEF_CHECKED (void) { push((int64_t)bDEF_CHECKED); }
 static uint8_t bTSTACK_LEN[8] = {0};
-static void wTSTACK_LEN (void) { push((int64_t)bTSTACK_LEN); }
+/*static*/ void wTSTACK_LEN (void) { push((int64_t)bTSTACK_LEN); }
 static uint8_t bTSTACK_BASE[8] = {0};
-static void wTSTACK_BASE (void) { push((int64_t)bTSTACK_BASE); }
+/*static*/ void wTSTACK_BASE (void) { push((int64_t)bTSTACK_BASE); }
 static uint8_t bTSTACK_BUF[65536] = {0};
-static void wTSTACK_BUF (void) { push((int64_t)bTSTACK_BUF); }
+/*static*/ void wTSTACK_BUF (void) { push((int64_t)bTSTACK_BUF); }
 static uint8_t bTSTACK_NUM_STASHES[8] = {0};
-static void wTSTACK_NUM_STASHES (void) { push((int64_t)bTSTACK_NUM_STASHES); }
+/*static*/ void wTSTACK_NUM_STASHES (void) { push((int64_t)bTSTACK_NUM_STASHES); }
 static uint8_t bTSTACK_STASH_LEN[65536] = {0};
-static void wTSTACK_STASH_LEN (void) { push((int64_t)bTSTACK_STASH_LEN); }
+/*static*/ void wTSTACK_STASH_LEN (void) { push((int64_t)bTSTACK_STASH_LEN); }
 static uint8_t bC99_DEPTH[8] = {0};
-static void wC99_DEPTH (void) { push((int64_t)bC99_DEPTH); }
+/*static*/ void wC99_DEPTH (void) { push((int64_t)bC99_DEPTH); }
 static uint8_t bHEAP_LENGTH[8] = {0};
-static void wHEAP_LENGTH (void) { push((int64_t)bHEAP_LENGTH); }
+/*static*/ void wHEAP_LENGTH (void) { push((int64_t)bHEAP_LENGTH); }
 static uint8_t bHEAP_BASE[8] = {0};
-static void wHEAP_BASE (void) { push((int64_t)bHEAP_BASE); }
+/*static*/ void wHEAP_BASE (void) { push((int64_t)bHEAP_BASE); }
 static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
-static void wHEAP_TIMES_EXPANDED (void) { push((int64_t)bHEAP_TIMES_EXPANDED); }
+/*static*/ void wHEAP_TIMES_EXPANDED (void) { push((int64_t)bHEAP_TIMES_EXPANDED); }
 
-static void wtrip (void);
-static void wrotr (void);
-static void wrotl (void);
-static void wover (void);
-static void wtuck (void);
-static void wnip (void);
-static void wdup2 (void);
-static void wdrop2 (void);
-static void wdrop3 (void);
-static void w_3E_ (void);
-static void w_3E__3D_ (void);
-static void w0_3D_ (void);
-static void w0_3C_ (void);
-static void w1_2B_ (void);
-static void w1_ (void);
-static void wnot (void);
-static void wbyte (void);
-static void wbytes (void);
-static void wbyte_40__40_ (void);
-static void wbyte_21__21_ (void);
-static void wlong (void);
-static void wlongs (void);
-static void wlong_40__40_ (void);
-static void wlong_21__21_ (void);
-static void w_21__21_ (void);
-static void wpanic_21_ (void);
-static void w_21__21__3D_ (void);
-static void w_21__21_0 (void);
-static void w_21__21_1 (void);
-static void w_21__21_001 (void);
-static void w_21__21_010 (void);
-static void w_21__21_011 (void);
-static void w_21__21_100 (void);
-static void w_21__21_111 (void);
-static void wstr_head (void);
-static void wstr_head_3F_ (void);
-static void wstr_tail (void);
-static void wstr_length_3F_ (void);
-static void wstr_length (void);
-static void wSTR_BUF_SIZE (void);
-static void wstr_buf_length_3F_ (void);
-static void wstr_buf_length_21_ (void);
-static void wstr_buf_u8_21_ (void);
-static void wstr_buf_u8_40_ (void);
-static void wstr_buf_full_3F_ (void);
-static void wstr_buf_clear_21_ (void);
-static void wstr_buf_push_21_ (void);
-static void wstr_buf_write_21_ (void);
-static void wstr_buf_print_21_ (void);
-static void wfile_out_40_ (void);
-static void wstr_buf_trace_21_ (void);
-static void wfile_err_40_ (void);
-static void wstr_buf_read_21_ (void);
-static void wstr_buf_input_21_ (void);
-static void wfile_in_40_ (void);
-static void wstr_buf_copy_21_ (void);
-static void wstr_buf_21_ (void);
-static void wrun_tests (void);
-static void wtest_if (void);
-static void wtest_drop (void);
-static void wtest_dup (void);
-static void wtest_swap (void);
-static void wtest_dip (void);
-static void wtest_trip (void);
-static void wtest_rotr (void);
-static void wtest_rotl (void);
-static void wtest_3D_ (void);
-static void wtest_3C_ (void);
-static void wtest_3C__3D_ (void);
-static void wtest_3E_ (void);
-static void wtest_3E__3D_ (void);
-static void wtest_2B_ (void);
-static void wtest_ (void);
-static void wtest_2A_ (void);
-static void wtest_2F_ (void);
-static void wtest_25_ (void);
-static void wtest_str (void);
-static void wtest_while (void);
-static void wtest_40__21_ (void);
-static void wstdin (void);
-static void wstdout (void);
-static void wstderr (void);
-static void winit_21_ (void);
-static void winit_io_21_ (void);
-static void wstrings_size_21_ (void);
-static void wnum_tokens_21_ (void);
-static void winit_names_21_ (void);
-static void wfile_in_21_ (void);
-static void wfile_out_21_ (void);
-static void wfile_err_21_ (void);
-static void wstr_write_21_ (void);
-static void wstr_print_21_ (void);
-static void wstr_trace_21_ (void);
-static void wstr_print_sp_21_ (void);
-static void wprint_sp_21_ (void);
-static void wstr_trace_sp_21_ (void);
-static void wtrace_sp_21_ (void);
-static void wstr_print_ln_21_ (void);
-static void wprint_ln_21_ (void);
-static void wstr_trace_ln_21_ (void);
-static void wtrace_ln_21_ (void);
-static void wstr_buf_char_21_ (void);
-static void wprint_char_21_ (void);
-static void wtrace_char_21_ (void);
-static void wprint_quote_21_ (void);
-static void wto_digit (void);
-static void wnegate (void);
-static void wabs (void);
-static void wstr_buf_int_21_ (void);
-static void wstr_buf_reverse_21_ (void);
-static void wint_write_21_ (void);
-static void wint_print_21_ (void);
-static void wint_trace_21_ (void);
-static void wint_print_sp_21_ (void);
-static void wint_trace_sp_21_ (void);
-static void wint_print_ln_21_ (void);
-static void wint_trace_ln_21_ (void);
-static void wstr_buf_swap_u8_21_ (void);
-static void wFILE_BUF_SIZE (void);
-static void wfile_buf_length_21_ (void);
-static void wfile_buf_length_40_ (void);
-static void wfile_buf_40_ (void);
-static void wopen_file_21_ (void);
-static void wstr_buf_create_file_21_ (void);
-static void wcreate_file_21_ (void);
-static void wO_WRONLY_7C_O_CREAT_7C_O_TRUNC (void);
-static void wMACOS (void);
-static void wLINUX (void);
-static void wread_file_21_ (void);
-static void wread_mirth_src_21_ (void);
-static void wMAX_NAMES (void);
-static void wnum_names_40_ (void);
-static void wnum_names_21_ (void);
-static void wNAME_QUADS (void);
-static void wNAME_SIZE (void);
-static void wNAME_BUF_SIZE (void);
-static void wstr_buf_recalc_length_21_ (void);
-static void wstr_pad_zeros_to_length_21_ (void);
-static void wname_load_21_ (void);
-static void wname_quads_load_21_ (void);
-static void wname_quad_eq (void);
-static void wname_quads_eq (void);
-static void wname_quads_eq_3F_ (void);
-static void wname_quad_save_21_ (void);
-static void wname_quads_save_21_ (void);
-static void wname_quad_load_21_ (void);
-static void wname_save_21_ (void);
-static void wshow_names_table_21_ (void);
-static void wname_could_be_type (void);
-static void wis_alpha_3F_ (void);
-static void wname_could_be_type_var (void);
-static void wis_lower_3F_ (void);
-static void wname_could_be_type_con (void);
-static void wis_upper_3F_ (void);
-static void wname_could_be_effect_con (void);
-static void wis_plus_sign_3F_ (void);
-static void wname_print_mangled_21_ (void);
-static void wname_mangle_21_ (void);
-static void wstr_buf_push_mangled_21_ (void);
-static void wis_nul_3F_ (void);
-static void wis_digit_3F_ (void);
-static void wis_dash_3F_ (void);
-static void wunderscore (void);
-static void wis_underscore_3F_ (void);
-static void wstr_buf_push_hexdigits_21_ (void);
-static void wstr_buf_push_hexdigit_21_ (void);
-static void wPRIM_END (void);
-static void wPRIM_ID (void);
-static void wPRIM_DUP (void);
-static void wPRIM_DROP (void);
-static void wPRIM_SWAP (void);
-static void wPRIM_DIP (void);
-static void wPRIM_IF (void);
-static void wPRIM_WHILE (void);
-static void wPRIM_INT_ADD (void);
-static void wPRIM_INT_SUB (void);
-static void wPRIM_INT_MUL (void);
-static void wPRIM_INT_DIV (void);
-static void wPRIM_INT_MOD (void);
-static void wPRIM_INT_EQ (void);
-static void wPRIM_INT_LT (void);
-static void wPRIM_INT_LE (void);
-static void wPRIM_INT_AND (void);
-static void wPRIM_INT_OR (void);
-static void wPRIM_INT_XOR (void);
-static void wPRIM_INT_SHL (void);
-static void wPRIM_INT_SHR (void);
-static void wPRIM_MEM_GET (void);
-static void wPRIM_MEM_SET (void);
-static void wPRIM_MEM_GET_BYTE (void);
-static void wPRIM_MEM_SET_BYTE (void);
-static void wPRIM_POSIX_READ (void);
-static void wPRIM_POSIX_WRITE (void);
-static void wPRIM_POSIX_OPEN (void);
-static void wPRIM_POSIX_CLOSE (void);
-static void wPRIM_POSIX_EXIT (void);
-static void wPRIM_POSIX_MMAP (void);
-static void wPRIM_DEBUG (void);
-static void wPRIM_MIRTH_REVISION (void);
-static void wPRIM_RUNNING_OS (void);
-static void wPRIM_DEF (void);
-static void wPRIM_DEF_TYPE (void);
-static void wPRIM_DEF_STATIC_BUFFER (void);
-static void wPRIM_OUTPUT_ASM (void);
-static void wPRIM_OUTPUT_C99 (void);
-static void wPRIM_DASHES (void);
-static void wPRIM_ARROW (void);
-static void wNUM_PRIMS (void);
-static void wname_is_prim_3F_ (void);
-static void wdef_prim_21_ (void);
-static void wMAX_STRINGS (void);
-static void wstrings_size_40_ (void);
-static void wstrings_u8_40_ (void);
-static void wstrings_u8_3F_ (void);
-static void wstrings_u8_21_ (void);
-static void wstrings_push_21_ (void);
-static void wstrings_save_21_ (void);
-static void wstrings_load_21_ (void);
-static void wstrings_load_escaped_21_ (void);
-static void wMAX_TOKENS (void);
-static void wnum_tokens_40_ (void);
-static void wclear_tokens_21_ (void);
-static void wtoken_type_21_ (void);
-static void wtoken_type_40_ (void);
-static void wtoken_type_3F_ (void);
-static void wTOKEN_NONE (void);
-static void wTOKEN_LPAREN (void);
-static void wTOKEN_RPAREN (void);
-static void wTOKEN_COMMA (void);
-static void wTOKEN_NAME (void);
-static void wTOKEN_INT (void);
-static void wTOKEN_STR (void);
-static void wtoken_type_str (void);
-static void wtoken_type_print_21_ (void);
-static void wtoken_value_21_ (void);
-static void wtoken_value_40_ (void);
-static void wtoken_value_3F_ (void);
-static void wtoken_row_21_ (void);
-static void wtoken_row_40_ (void);
-static void wtoken_row_3F_ (void);
-static void wtoken_col_21_ (void);
-static void wtoken_col_40_ (void);
-static void wtoken_col_3F_ (void);
-static void wtoken_new (void);
-static void wtoken_trace_prefix_21_ (void);
-static void wtoken_print_prefix_21_ (void);
-static void wtoken_print_21_ (void);
-static void wshow_tokens_21_ (void);
-static void wlexer_row_40_ (void);
-static void wlexer_row_21_ (void);
-static void wlexer_col_40_ (void);
-static void wlexer_col_21_ (void);
-static void wlexer_idx_40_ (void);
-static void wlexer_idx_21_ (void);
-static void wLEXER_STACK_SIZE (void);
-static void wlexer_stack_length_40_ (void);
-static void wlexer_stack_length_21_ (void);
-static void wlexer_stack_clear_21_ (void);
-static void wlexer_stack_empty_3F_ (void);
-static void wlexer_stack_full_3F_ (void);
-static void wlexer_stack_push_21_ (void);
-static void wlexer_stack_pop_21_ (void);
-static void wrun_lexer_21_ (void);
-static void wlexer_done_3F_ (void);
-static void wlexer_next_21_ (void);
-static void wlexer_emit_21_ (void);
-static void wemit_fatal_error_21_ (void);
-static void wlexer_make_21_ (void);
-static void wlexer_peek (void);
-static void wis_newline_3F_ (void);
-static void wlexer_emit_newline_21_ (void);
-static void wis_whitespace_3F_ (void);
-static void wis_pound_3F_ (void);
-static void wlexer_skip_comment_21_ (void);
-static void wis_comma_3F_ (void);
-static void wis_lparen_3F_ (void);
-static void wlexer_emit_lparen_21_ (void);
-static void wis_rparen_3F_ (void);
-static void wlexer_emit_rparen_21_ (void);
-static void wis_quote_3F_ (void);
-static void wlexer_emit_string_21_ (void);
-static void wis_name_char_3F_ (void);
-static void wlexer_emit_name_21_ (void);
-static void wlexer_move_21_ (void);
-static void wlexer_emit_fatal_error_21_ (void);
-static void wlexer_move_back_21_ (void);
-static void wstr_buf_is_int_3F_ (void);
-static void wstr_buf_int_3F_ (void);
-static void wstr_buf_is_dec_int_3F_ (void);
-static void wstr_buf_is_hex_int_3F_ (void);
-static void wis_sign_3F_ (void);
-static void wis_zero_char (void);
-static void wis_xX_char (void);
-static void wis_hexdigit_3F_ (void);
-static void wstr_buf_dec_int_3F_ (void);
-static void wstr_buf_hex_int_3F_ (void);
-static void wis_minus_sign_3F_ (void);
-static void whexdigit_value (void);
-static void wis_upper_hexdigit_3F_ (void);
-static void wis_string_end_3F_ (void);
-static void wlexer_push_string_char_21_ (void);
-static void wis_backslash_3F_ (void);
-static void wis_n_3F_ (void);
-static void wis_r_3F_ (void);
-static void wis_t_3F_ (void);
-static void wlexer_emit_warning_21_ (void);
-static void wlexer_comment_end_3F_ (void);
-static void win_range (void);
-static void wis_lower_hexdigit_3F_ (void);
-static void wis_special_char_3F_ (void);
-static void wlexer_trace_prefix_21_ (void);
-static void wVSTACK_SIZE (void);
-static void wvstack_len_40_ (void);
-static void wvstack_len_21_ (void);
-static void wvstack_empty_3F_ (void);
-static void wvstack_full_3F_ (void);
-static void wvstack_i64_40_ (void);
-static void wvstack_i64_21_ (void);
-static void wvstack_pop_21_ (void);
-static void wvstack_pop2_21_ (void);
-static void wvstack_pop3_21_ (void);
-static void wvstack_pop4_21_ (void);
-static void wvstack_pop5_21_ (void);
-static void wvstack_pop6_21_ (void);
-static void wvstack_push_21_ (void);
-static void wvstack_push2_21_ (void);
-static void wvstack_push3_21_ (void);
-static void wvstack_top_40_ (void);
-static void wvstack_top_21_ (void);
-static void wvstack_trace_21_ (void);
-static void wemit_warning_21_ (void);
-static void wemit_error_21_ (void);
-static void wlexer_emit_error_21_ (void);
-static void wtoken_run_21_ (void);
-static void wtoken_run_end_3F_ (void);
-static void wtoken_run_one_21_ (void);
-static void wtypecheck_token_21_ (void);
-static void warity_check_21_ (void);
-static void wtoken_run_name_21_ (void);
-static void wtoken_run_prim_21_ (void);
-static void wname_undefined_3F_ (void);
-static void wname_is_word_3F_ (void);
-static void wname_value_40_ (void);
-static void wname_is_buffer_3F_ (void);
-static void wbuffer_base_40_ (void);
-static void wtoken_args_0 (void);
-static void wtoken_args_1 (void);
-static void wtoken_args_2 (void);
-static void wtoken_args_3 (void);
-static void wDEF_WORD (void);
-static void wname_sort_21_ (void);
-static void wname_value_21_ (void);
-static void wname_sig_21_ (void);
-static void wDEF_BUFFER (void);
-static void wbuffer_alloc_21_ (void);
-static void wNEW_MIRTH_REVISION (void);
-static void wrun_output_c99_21_ (void);
-static void wtoken_next_arg_end (void);
-static void wtoken_is_arg_end_3F_ (void);
-static void wtoken_next (void);
-static void wMAX_BUFFERS (void);
-static void wnum_buffers_40_ (void);
-static void wnum_buffers_21_ (void);
-static void wbuffer_size_40_ (void);
-static void wbuffer_size_21_ (void);
-static void wheap_alloc_21_ (void);
-static void wbuffer_base_21_ (void);
-static void wDEF_NONE (void);
-static void wname_sort_40_ (void);
-static void wname_sort_3F_ (void);
-static void wname_value_3F_ (void);
-static void wname_sig_40_ (void);
-static void wname_sig_3F_ (void);
-static void wname_defined_3F_ (void);
-static void wname_checked_21_ (void);
-static void wname_checked_40_ (void);
-static void wname_checked_3F_ (void);
-static void wTSTACK_SIZE (void);
-static void wtstack_len_21_ (void);
-static void wtstack_len_40_ (void);
-static void wtstack_base_21_ (void);
-static void wtstack_base_40_ (void);
-static void wtstack_length_3F_ (void);
-static void wtstack_empty_3F_ (void);
-static void wtstack_full_3F_ (void);
-static void wtstack_clear_21_ (void);
-static void wtstack_21_ (void);
-static void wtstack_40_ (void);
-static void wtstack_pop_21_ (void);
-static void wtstack_push_21_ (void);
-static void wtstack_pop2_21_ (void);
-static void wtstack_pop3_21_ (void);
-static void wtstack_push2_21_ (void);
-static void wtstack_enter_21_ (void);
-static void wtstack_leave_21_ (void);
-static void wtstack_frame_dup_21_ (void);
-static void wtstack_num_stashes_40_ (void);
-static void wtstack_num_stashes_21_ (void);
-static void wtstack_stash_len_40_ (void);
-static void wtstack_stash_len_21_ (void);
-static void wtstack_stash_len_push_21_ (void);
-static void wtstack_stash_len_pop_21_ (void);
-static void wtstack_frame_stash_21_ (void);
-static void wtstack_frame_unify_21_ (void);
-static void wtypecheck_name_21_ (void);
-static void wtypecheck_word_21_ (void);
-static void wtypecheck_buffer_21_ (void);
-static void wtypecheck_word_sig_21_ (void);
-static void wsig_push_inputs_21_ (void);
-static void wtypecheck_run_21_ (void);
-static void wsig_match_outputs_21_ (void);
-static void wtypecheck_run_one_21_ (void);
-static void wtstack_arity_check_21_ (void);
-static void wtypecheck_run_name_21_ (void);
-static void wtypecheck_run_prim_21_ (void);
-static void wsig_apply_21_ (void);
-static void wtoken_is_dashes (void);
-static void wtoken_is_dashes_3F_ (void);
-static void wsig_dashes_end_3F_ (void);
-static void wsig_has_dashes (void);
-static void wsig_has_dashes_3F_ (void);
-static void wsig_arity (void);
-static void wsig_count_types (void);
-static void wsig_token_is_type_3F_ (void);
-static void wsig_token_is_type_con_3F_ (void);
-static void wsig_token_is_type_var_3F_ (void);
-static void wsig_pop_inputs_21_ (void);
-static void wsig_push_outputs_21_ (void);
-static void wc99_emit_header_21_ (void);
-static void wc99_emit_strings_21_ (void);
-static void wc99_emit_prims_21_ (void);
-static void wc99_emit_buffers_21_ (void);
-static void wc99_emit_word_sigs_21_ (void);
-static void wc99_emit_word_defs_21_ (void);
-static void wc99_emit_main_21_ (void);
-static void wc99_depth_40_ (void);
-static void wc99_depth_21_ (void);
-static void wc99_depth_2B__2B_ (void);
-static void wc99_depth__ (void);
-static void w_3B_ (void);
-static void w_3B__3B_ (void);
-static void w_2E_q (void);
-static void w_2E_ (void);
-static void w_2E_n (void);
-static void w_2E_d (void);
-static void w_2E_name (void);
-static void w_2E_w (void);
-static void wc99_emit_buffer_21_ (void);
-static void wWINDOWS (void);
-static void wUNKNOWN (void);
-static void wc99_emit_word_sig_21_ (void);
-static void wc99_emit_word_def_21_ (void);
-static void wc99_emit_run_21_ (void);
-static void wc99_emit_token_21_ (void);
-static void wc99_emit_word_21_ (void);
-static void wBASE_HEAP_SIZE (void);
-static void wheap_length_40_ (void);
-static void wheap_length_21_ (void);
-static void wheap_base_40_ (void);
-static void wheap_base_21_ (void);
-static void wheap_times_expanded_40_ (void);
-static void wheap_times_expanded_21_ (void);
-static void w_2B__2B_heap_times_expanded (void);
-static void wheap_reserve_21_ (void);
-static void wheap_new_size (void);
-static void wPROT_READ_7C_PROT_WRITE (void);
-static void wMAP_ANON_7C_MAP_PRIVATE (void);
-static void walign (void);
-static void wsquare (void);
-static void wmax (void);
-static void wmain (void);
+/*static*/ void wtrip (void);
+/*static*/ void wrotr (void);
+/*static*/ void wrotl (void);
+/*static*/ void wover (void);
+/*static*/ void wtuck (void);
+/*static*/ void wnip (void);
+/*static*/ void wdup2 (void);
+/*static*/ void wdrop2 (void);
+/*static*/ void wdrop3 (void);
+/*static*/ void w_3E_ (void);
+/*static*/ void w_3E__3D_ (void);
+/*static*/ void w0_3D_ (void);
+/*static*/ void w0_3C_ (void);
+/*static*/ void w1_2B_ (void);
+/*static*/ void w1_ (void);
+/*static*/ void wnot (void);
+/*static*/ void wbyte (void);
+/*static*/ void wbytes (void);
+/*static*/ void wbyte_40__40_ (void);
+/*static*/ void wbyte_21__21_ (void);
+/*static*/ void wlong (void);
+/*static*/ void wlongs (void);
+/*static*/ void wlong_40__40_ (void);
+/*static*/ void wlong_21__21_ (void);
+/*static*/ void w_21__21_ (void);
+/*static*/ void wpanic_21_ (void);
+/*static*/ void w_21__21__3D_ (void);
+/*static*/ void w_21__21_0 (void);
+/*static*/ void w_21__21_1 (void);
+/*static*/ void w_21__21_001 (void);
+/*static*/ void w_21__21_010 (void);
+/*static*/ void w_21__21_011 (void);
+/*static*/ void w_21__21_100 (void);
+/*static*/ void w_21__21_111 (void);
+/*static*/ void wstr_head (void);
+/*static*/ void wstr_head_3F_ (void);
+/*static*/ void wstr_tail (void);
+/*static*/ void wstr_length_3F_ (void);
+/*static*/ void wstr_length (void);
+/*static*/ void wSTR_BUF_SIZE (void);
+/*static*/ void wstr_buf_length_3F_ (void);
+/*static*/ void wstr_buf_length_21_ (void);
+/*static*/ void wstr_buf_u8_21_ (void);
+/*static*/ void wstr_buf_u8_40_ (void);
+/*static*/ void wstr_buf_full_3F_ (void);
+/*static*/ void wstr_buf_clear_21_ (void);
+/*static*/ void wstr_buf_push_21_ (void);
+/*static*/ void wstr_buf_write_21_ (void);
+/*static*/ void wstr_buf_print_21_ (void);
+/*static*/ void wfile_out_40_ (void);
+/*static*/ void wstr_buf_trace_21_ (void);
+/*static*/ void wfile_err_40_ (void);
+/*static*/ void wstr_buf_read_21_ (void);
+/*static*/ void wstr_buf_input_21_ (void);
+/*static*/ void wfile_in_40_ (void);
+/*static*/ void wstr_buf_copy_21_ (void);
+/*static*/ void wstr_buf_21_ (void);
+/*static*/ void wrun_tests (void);
+/*static*/ void wtest_if (void);
+/*static*/ void wtest_drop (void);
+/*static*/ void wtest_dup (void);
+/*static*/ void wtest_swap (void);
+/*static*/ void wtest_dip (void);
+/*static*/ void wtest_trip (void);
+/*static*/ void wtest_rotr (void);
+/*static*/ void wtest_rotl (void);
+/*static*/ void wtest_3D_ (void);
+/*static*/ void wtest_3C_ (void);
+/*static*/ void wtest_3C__3D_ (void);
+/*static*/ void wtest_3E_ (void);
+/*static*/ void wtest_3E__3D_ (void);
+/*static*/ void wtest_2B_ (void);
+/*static*/ void wtest_ (void);
+/*static*/ void wtest_2A_ (void);
+/*static*/ void wtest_2F_ (void);
+/*static*/ void wtest_25_ (void);
+/*static*/ void wtest_str (void);
+/*static*/ void wtest_while (void);
+/*static*/ void wtest_40__21_ (void);
+/*static*/ void wstdin (void);
+/*static*/ void wstdout (void);
+/*static*/ void wstderr (void);
+/*static*/ void winit_21_ (void);
+/*static*/ void winit_io_21_ (void);
+/*static*/ void wstrings_size_21_ (void);
+/*static*/ void wnum_tokens_21_ (void);
+/*static*/ void winit_names_21_ (void);
+/*static*/ void wfile_in_21_ (void);
+/*static*/ void wfile_out_21_ (void);
+/*static*/ void wfile_err_21_ (void);
+/*static*/ void wstr_write_21_ (void);
+/*static*/ void wstr_print_21_ (void);
+/*static*/ void wstr_trace_21_ (void);
+/*static*/ void wstr_print_sp_21_ (void);
+/*static*/ void wprint_sp_21_ (void);
+/*static*/ void wstr_trace_sp_21_ (void);
+/*static*/ void wtrace_sp_21_ (void);
+/*static*/ void wstr_print_ln_21_ (void);
+/*static*/ void wprint_ln_21_ (void);
+/*static*/ void wstr_trace_ln_21_ (void);
+/*static*/ void wtrace_ln_21_ (void);
+/*static*/ void wstr_buf_char_21_ (void);
+/*static*/ void wprint_char_21_ (void);
+/*static*/ void wtrace_char_21_ (void);
+/*static*/ void wprint_quote_21_ (void);
+/*static*/ void wto_digit (void);
+/*static*/ void wnegate (void);
+/*static*/ void wabs (void);
+/*static*/ void wstr_buf_int_21_ (void);
+/*static*/ void wstr_buf_reverse_21_ (void);
+/*static*/ void wint_write_21_ (void);
+/*static*/ void wint_print_21_ (void);
+/*static*/ void wint_trace_21_ (void);
+/*static*/ void wint_print_sp_21_ (void);
+/*static*/ void wint_trace_sp_21_ (void);
+/*static*/ void wint_print_ln_21_ (void);
+/*static*/ void wint_trace_ln_21_ (void);
+/*static*/ void wstr_buf_swap_u8_21_ (void);
+/*static*/ void wFILE_BUF_SIZE (void);
+/*static*/ void wfile_buf_length_21_ (void);
+/*static*/ void wfile_buf_length_40_ (void);
+/*static*/ void wfile_buf_40_ (void);
+/*static*/ void wopen_file_21_ (void);
+/*static*/ void wstr_buf_create_file_21_ (void);
+/*static*/ void wcreate_file_21_ (void);
+/*static*/ void wO_WRONLY_7C_O_CREAT_7C_O_TRUNC (void);
+/*static*/ void wMACOS (void);
+/*static*/ void wLINUX (void);
+/*static*/ void wread_file_21_ (void);
+/*static*/ void wread_mirth_src_21_ (void);
+/*static*/ void wMAX_NAMES (void);
+/*static*/ void wnum_names_40_ (void);
+/*static*/ void wnum_names_21_ (void);
+/*static*/ void wNAME_QUADS (void);
+/*static*/ void wNAME_SIZE (void);
+/*static*/ void wNAME_BUF_SIZE (void);
+/*static*/ void wstr_buf_recalc_length_21_ (void);
+/*static*/ void wstr_pad_zeros_to_length_21_ (void);
+/*static*/ void wname_load_21_ (void);
+/*static*/ void wname_quads_load_21_ (void);
+/*static*/ void wname_quad_eq (void);
+/*static*/ void wname_quads_eq (void);
+/*static*/ void wname_quads_eq_3F_ (void);
+/*static*/ void wname_quad_save_21_ (void);
+/*static*/ void wname_quads_save_21_ (void);
+/*static*/ void wname_quad_load_21_ (void);
+/*static*/ void wname_save_21_ (void);
+/*static*/ void wshow_names_table_21_ (void);
+/*static*/ void wname_could_be_type (void);
+/*static*/ void wis_alpha_3F_ (void);
+/*static*/ void wname_could_be_type_var (void);
+/*static*/ void wis_lower_3F_ (void);
+/*static*/ void wname_could_be_type_con (void);
+/*static*/ void wis_upper_3F_ (void);
+/*static*/ void wname_could_be_effect_con (void);
+/*static*/ void wis_plus_sign_3F_ (void);
+/*static*/ void wname_print_mangled_21_ (void);
+/*static*/ void wname_mangle_21_ (void);
+/*static*/ void wstr_buf_push_mangled_21_ (void);
+/*static*/ void wis_nul_3F_ (void);
+/*static*/ void wis_digit_3F_ (void);
+/*static*/ void wis_dash_3F_ (void);
+/*static*/ void wunderscore (void);
+/*static*/ void wis_underscore_3F_ (void);
+/*static*/ void wstr_buf_push_hexdigits_21_ (void);
+/*static*/ void wstr_buf_push_hexdigit_21_ (void);
+/*static*/ void wPRIM_END (void);
+/*static*/ void wPRIM_ID (void);
+/*static*/ void wPRIM_DUP (void);
+/*static*/ void wPRIM_DROP (void);
+/*static*/ void wPRIM_SWAP (void);
+/*static*/ void wPRIM_DIP (void);
+/*static*/ void wPRIM_IF (void);
+/*static*/ void wPRIM_WHILE (void);
+/*static*/ void wPRIM_INT_ADD (void);
+/*static*/ void wPRIM_INT_SUB (void);
+/*static*/ void wPRIM_INT_MUL (void);
+/*static*/ void wPRIM_INT_DIV (void);
+/*static*/ void wPRIM_INT_MOD (void);
+/*static*/ void wPRIM_INT_EQ (void);
+/*static*/ void wPRIM_INT_LT (void);
+/*static*/ void wPRIM_INT_LE (void);
+/*static*/ void wPRIM_INT_AND (void);
+/*static*/ void wPRIM_INT_OR (void);
+/*static*/ void wPRIM_INT_XOR (void);
+/*static*/ void wPRIM_INT_SHL (void);
+/*static*/ void wPRIM_INT_SHR (void);
+/*static*/ void wPRIM_MEM_GET (void);
+/*static*/ void wPRIM_MEM_SET (void);
+/*static*/ void wPRIM_MEM_GET_BYTE (void);
+/*static*/ void wPRIM_MEM_SET_BYTE (void);
+/*static*/ void wPRIM_POSIX_READ (void);
+/*static*/ void wPRIM_POSIX_WRITE (void);
+/*static*/ void wPRIM_POSIX_OPEN (void);
+/*static*/ void wPRIM_POSIX_CLOSE (void);
+/*static*/ void wPRIM_POSIX_EXIT (void);
+/*static*/ void wPRIM_POSIX_MMAP (void);
+/*static*/ void wPRIM_DEBUG (void);
+/*static*/ void wPRIM_MIRTH_REVISION (void);
+/*static*/ void wPRIM_RUNNING_OS (void);
+/*static*/ void wPRIM_DEF (void);
+/*static*/ void wPRIM_DEF_TYPE (void);
+/*static*/ void wPRIM_DEF_STATIC_BUFFER (void);
+/*static*/ void wPRIM_OUTPUT_ASM (void);
+/*static*/ void wPRIM_OUTPUT_C99 (void);
+/*static*/ void wPRIM_DASHES (void);
+/*static*/ void wPRIM_ARROW (void);
+/*static*/ void wNUM_PRIMS (void);
+/*static*/ void wname_is_prim_3F_ (void);
+/*static*/ void wdef_prim_21_ (void);
+/*static*/ void wMAX_STRINGS (void);
+/*static*/ void wstrings_size_40_ (void);
+/*static*/ void wstrings_u8_40_ (void);
+/*static*/ void wstrings_u8_3F_ (void);
+/*static*/ void wstrings_u8_21_ (void);
+/*static*/ void wstrings_push_21_ (void);
+/*static*/ void wstrings_save_21_ (void);
+/*static*/ void wstrings_load_21_ (void);
+/*static*/ void wstrings_load_escaped_21_ (void);
+/*static*/ void wMAX_TOKENS (void);
+/*static*/ void wnum_tokens_40_ (void);
+/*static*/ void wclear_tokens_21_ (void);
+/*static*/ void wtoken_type_21_ (void);
+/*static*/ void wtoken_type_40_ (void);
+/*static*/ void wtoken_type_3F_ (void);
+/*static*/ void wTOKEN_NONE (void);
+/*static*/ void wTOKEN_LPAREN (void);
+/*static*/ void wTOKEN_RPAREN (void);
+/*static*/ void wTOKEN_COMMA (void);
+/*static*/ void wTOKEN_NAME (void);
+/*static*/ void wTOKEN_INT (void);
+/*static*/ void wTOKEN_STR (void);
+/*static*/ void wtoken_type_str (void);
+/*static*/ void wtoken_type_print_21_ (void);
+/*static*/ void wtoken_value_21_ (void);
+/*static*/ void wtoken_value_40_ (void);
+/*static*/ void wtoken_value_3F_ (void);
+/*static*/ void wtoken_row_21_ (void);
+/*static*/ void wtoken_row_40_ (void);
+/*static*/ void wtoken_row_3F_ (void);
+/*static*/ void wtoken_col_21_ (void);
+/*static*/ void wtoken_col_40_ (void);
+/*static*/ void wtoken_col_3F_ (void);
+/*static*/ void wtoken_new (void);
+/*static*/ void wtoken_trace_prefix_21_ (void);
+/*static*/ void wtoken_print_prefix_21_ (void);
+/*static*/ void wtoken_print_21_ (void);
+/*static*/ void wshow_tokens_21_ (void);
+/*static*/ void wlexer_row_40_ (void);
+/*static*/ void wlexer_row_21_ (void);
+/*static*/ void wlexer_col_40_ (void);
+/*static*/ void wlexer_col_21_ (void);
+/*static*/ void wlexer_idx_40_ (void);
+/*static*/ void wlexer_idx_21_ (void);
+/*static*/ void wLEXER_STACK_SIZE (void);
+/*static*/ void wlexer_stack_length_40_ (void);
+/*static*/ void wlexer_stack_length_21_ (void);
+/*static*/ void wlexer_stack_clear_21_ (void);
+/*static*/ void wlexer_stack_empty_3F_ (void);
+/*static*/ void wlexer_stack_full_3F_ (void);
+/*static*/ void wlexer_stack_push_21_ (void);
+/*static*/ void wlexer_stack_pop_21_ (void);
+/*static*/ void wrun_lexer_21_ (void);
+/*static*/ void wlexer_done_3F_ (void);
+/*static*/ void wlexer_next_21_ (void);
+/*static*/ void wlexer_emit_21_ (void);
+/*static*/ void wemit_fatal_error_21_ (void);
+/*static*/ void wlexer_make_21_ (void);
+/*static*/ void wlexer_peek (void);
+/*static*/ void wis_newline_3F_ (void);
+/*static*/ void wlexer_emit_newline_21_ (void);
+/*static*/ void wis_whitespace_3F_ (void);
+/*static*/ void wis_pound_3F_ (void);
+/*static*/ void wlexer_skip_comment_21_ (void);
+/*static*/ void wis_comma_3F_ (void);
+/*static*/ void wis_lparen_3F_ (void);
+/*static*/ void wlexer_emit_lparen_21_ (void);
+/*static*/ void wis_rparen_3F_ (void);
+/*static*/ void wlexer_emit_rparen_21_ (void);
+/*static*/ void wis_quote_3F_ (void);
+/*static*/ void wlexer_emit_string_21_ (void);
+/*static*/ void wis_name_char_3F_ (void);
+/*static*/ void wlexer_emit_name_21_ (void);
+/*static*/ void wlexer_move_21_ (void);
+/*static*/ void wlexer_emit_fatal_error_21_ (void);
+/*static*/ void wlexer_move_back_21_ (void);
+/*static*/ void wstr_buf_is_int_3F_ (void);
+/*static*/ void wstr_buf_int_3F_ (void);
+/*static*/ void wstr_buf_is_dec_int_3F_ (void);
+/*static*/ void wstr_buf_is_hex_int_3F_ (void);
+/*static*/ void wis_sign_3F_ (void);
+/*static*/ void wis_zero_char (void);
+/*static*/ void wis_xX_char (void);
+/*static*/ void wis_hexdigit_3F_ (void);
+/*static*/ void wstr_buf_dec_int_3F_ (void);
+/*static*/ void wstr_buf_hex_int_3F_ (void);
+/*static*/ void wis_minus_sign_3F_ (void);
+/*static*/ void whexdigit_value (void);
+/*static*/ void wis_upper_hexdigit_3F_ (void);
+/*static*/ void wis_string_end_3F_ (void);
+/*static*/ void wlexer_push_string_char_21_ (void);
+/*static*/ void wis_backslash_3F_ (void);
+/*static*/ void wis_n_3F_ (void);
+/*static*/ void wis_r_3F_ (void);
+/*static*/ void wis_t_3F_ (void);
+/*static*/ void wlexer_emit_warning_21_ (void);
+/*static*/ void wlexer_comment_end_3F_ (void);
+/*static*/ void win_range (void);
+/*static*/ void wis_lower_hexdigit_3F_ (void);
+/*static*/ void wis_special_char_3F_ (void);
+/*static*/ void wlexer_trace_prefix_21_ (void);
+/*static*/ void wVSTACK_SIZE (void);
+/*static*/ void wvstack_len_40_ (void);
+/*static*/ void wvstack_len_21_ (void);
+/*static*/ void wvstack_empty_3F_ (void);
+/*static*/ void wvstack_full_3F_ (void);
+/*static*/ void wvstack_i64_40_ (void);
+/*static*/ void wvstack_i64_21_ (void);
+/*static*/ void wvstack_pop_21_ (void);
+/*static*/ void wvstack_pop2_21_ (void);
+/*static*/ void wvstack_pop3_21_ (void);
+/*static*/ void wvstack_pop4_21_ (void);
+/*static*/ void wvstack_pop5_21_ (void);
+/*static*/ void wvstack_pop6_21_ (void);
+/*static*/ void wvstack_push_21_ (void);
+/*static*/ void wvstack_push2_21_ (void);
+/*static*/ void wvstack_push3_21_ (void);
+/*static*/ void wvstack_top_40_ (void);
+/*static*/ void wvstack_top_21_ (void);
+/*static*/ void wvstack_trace_21_ (void);
+/*static*/ void wemit_warning_21_ (void);
+/*static*/ void wemit_error_21_ (void);
+/*static*/ void wlexer_emit_error_21_ (void);
+/*static*/ void wtoken_run_21_ (void);
+/*static*/ void wtoken_run_end_3F_ (void);
+/*static*/ void wtoken_run_one_21_ (void);
+/*static*/ void wtypecheck_token_21_ (void);
+/*static*/ void warity_check_21_ (void);
+/*static*/ void wtoken_run_name_21_ (void);
+/*static*/ void wtoken_run_prim_21_ (void);
+/*static*/ void wname_undefined_3F_ (void);
+/*static*/ void wname_is_word_3F_ (void);
+/*static*/ void wname_value_40_ (void);
+/*static*/ void wname_is_buffer_3F_ (void);
+/*static*/ void wbuffer_base_40_ (void);
+/*static*/ void wtoken_args_0 (void);
+/*static*/ void wtoken_args_1 (void);
+/*static*/ void wtoken_args_2 (void);
+/*static*/ void wtoken_args_3 (void);
+/*static*/ void wDEF_WORD (void);
+/*static*/ void wname_sort_21_ (void);
+/*static*/ void wname_value_21_ (void);
+/*static*/ void wname_sig_21_ (void);
+/*static*/ void wDEF_BUFFER (void);
+/*static*/ void wbuffer_alloc_21_ (void);
+/*static*/ void wNEW_MIRTH_REVISION (void);
+/*static*/ void wrun_output_c99_21_ (void);
+/*static*/ void wtoken_next_arg_end (void);
+/*static*/ void wtoken_is_arg_end_3F_ (void);
+/*static*/ void wtoken_next (void);
+/*static*/ void wMAX_BUFFERS (void);
+/*static*/ void wnum_buffers_40_ (void);
+/*static*/ void wnum_buffers_21_ (void);
+/*static*/ void wbuffer_size_40_ (void);
+/*static*/ void wbuffer_size_21_ (void);
+/*static*/ void wheap_alloc_21_ (void);
+/*static*/ void wbuffer_base_21_ (void);
+/*static*/ void wDEF_NONE (void);
+/*static*/ void wname_sort_40_ (void);
+/*static*/ void wname_sort_3F_ (void);
+/*static*/ void wname_value_3F_ (void);
+/*static*/ void wname_sig_40_ (void);
+/*static*/ void wname_sig_3F_ (void);
+/*static*/ void wname_defined_3F_ (void);
+/*static*/ void wname_checked_21_ (void);
+/*static*/ void wname_checked_40_ (void);
+/*static*/ void wname_checked_3F_ (void);
+/*static*/ void wTSTACK_SIZE (void);
+/*static*/ void wtstack_len_21_ (void);
+/*static*/ void wtstack_len_40_ (void);
+/*static*/ void wtstack_base_21_ (void);
+/*static*/ void wtstack_base_40_ (void);
+/*static*/ void wtstack_length_3F_ (void);
+/*static*/ void wtstack_empty_3F_ (void);
+/*static*/ void wtstack_full_3F_ (void);
+/*static*/ void wtstack_clear_21_ (void);
+/*static*/ void wtstack_21_ (void);
+/*static*/ void wtstack_40_ (void);
+/*static*/ void wtstack_pop_21_ (void);
+/*static*/ void wtstack_push_21_ (void);
+/*static*/ void wtstack_pop2_21_ (void);
+/*static*/ void wtstack_pop3_21_ (void);
+/*static*/ void wtstack_push2_21_ (void);
+/*static*/ void wtstack_enter_21_ (void);
+/*static*/ void wtstack_leave_21_ (void);
+/*static*/ void wtstack_frame_dup_21_ (void);
+/*static*/ void wtstack_num_stashes_40_ (void);
+/*static*/ void wtstack_num_stashes_21_ (void);
+/*static*/ void wtstack_stash_len_40_ (void);
+/*static*/ void wtstack_stash_len_21_ (void);
+/*static*/ void wtstack_stash_len_push_21_ (void);
+/*static*/ void wtstack_stash_len_pop_21_ (void);
+/*static*/ void wtstack_frame_stash_21_ (void);
+/*static*/ void wtstack_frame_unify_21_ (void);
+/*static*/ void wtypecheck_name_21_ (void);
+/*static*/ void wtypecheck_word_21_ (void);
+/*static*/ void wtypecheck_buffer_21_ (void);
+/*static*/ void wtypecheck_word_sig_21_ (void);
+/*static*/ void wsig_push_inputs_21_ (void);
+/*static*/ void wtypecheck_run_21_ (void);
+/*static*/ void wsig_match_outputs_21_ (void);
+/*static*/ void wtypecheck_run_one_21_ (void);
+/*static*/ void wtstack_arity_check_21_ (void);
+/*static*/ void wtypecheck_run_name_21_ (void);
+/*static*/ void wtypecheck_run_prim_21_ (void);
+/*static*/ void wsig_apply_21_ (void);
+/*static*/ void wtoken_is_dashes (void);
+/*static*/ void wtoken_is_dashes_3F_ (void);
+/*static*/ void wsig_dashes_end_3F_ (void);
+/*static*/ void wsig_has_dashes (void);
+/*static*/ void wsig_has_dashes_3F_ (void);
+/*static*/ void wsig_arity (void);
+/*static*/ void wsig_count_types (void);
+/*static*/ void wsig_token_is_type_3F_ (void);
+/*static*/ void wsig_token_is_type_con_3F_ (void);
+/*static*/ void wsig_token_is_type_var_3F_ (void);
+/*static*/ void wsig_pop_inputs_21_ (void);
+/*static*/ void wsig_push_outputs_21_ (void);
+/*static*/ void wc99_emit_header_21_ (void);
+/*static*/ void wc99_emit_strings_21_ (void);
+/*static*/ void wc99_emit_prims_21_ (void);
+/*static*/ void wc99_emit_buffers_21_ (void);
+/*static*/ void wc99_emit_word_sigs_21_ (void);
+/*static*/ void wc99_emit_word_defs_21_ (void);
+/*static*/ void wc99_emit_main_21_ (void);
+/*static*/ void wc99_depth_40_ (void);
+/*static*/ void wc99_depth_21_ (void);
+/*static*/ void wc99_depth_2B__2B_ (void);
+/*static*/ void wc99_depth__ (void);
+/*static*/ void w_3B_ (void);
+/*static*/ void w_3B__3B_ (void);
+/*static*/ void w_2E_q (void);
+/*static*/ void w_2E_ (void);
+/*static*/ void w_2E_n (void);
+/*static*/ void w_2E_d (void);
+/*static*/ void w_2E_name (void);
+/*static*/ void w_2E_w (void);
+/*static*/ void wc99_emit_buffer_21_ (void);
+/*static*/ void wWINDOWS (void);
+/*static*/ void wUNKNOWN (void);
+/*static*/ void wc99_emit_word_sig_21_ (void);
+/*static*/ void wc99_emit_word_def_21_ (void);
+/*static*/ void wc99_emit_run_21_ (void);
+/*static*/ void wc99_emit_token_21_ (void);
+/*static*/ void wc99_emit_word_21_ (void);
+/*static*/ void wBASE_HEAP_SIZE (void);
+/*static*/ void wheap_length_40_ (void);
+/*static*/ void wheap_length_21_ (void);
+/*static*/ void wheap_base_40_ (void);
+/*static*/ void wheap_base_21_ (void);
+/*static*/ void wheap_times_expanded_40_ (void);
+/*static*/ void wheap_times_expanded_21_ (void);
+/*static*/ void w_2B__2B_heap_times_expanded (void);
+/*static*/ void wheap_reserve_21_ (void);
+/*static*/ void wheap_new_size (void);
+/*static*/ void wPROT_READ_7C_PROT_WRITE (void);
+/*static*/ void wMAP_ANON_7C_MAP_PRIVATE (void);
+/*static*/ void walign (void);
+/*static*/ void wsquare (void);
+/*static*/ void wmax (void);
+/*static*/ void wmain (void);
 
 // trip
-static void wtrip (void){
+/*static*/ void wtrip (void){
     wdup();
     wdup();
 }
 
 // rotr
-static void wrotr (void){
+/*static*/ void wrotr (void){
     wswap();
     { int64_t d1 = pop();
     wswap();
@@ -1210,7 +1211,7 @@ static void wrotr (void){
 }
 
 // rotl
-static void wrotl (void){
+/*static*/ void wrotl (void){
     { int64_t d1 = pop();
     wswap();
       push(d1); }
@@ -1218,7 +1219,7 @@ static void wrotl (void){
 }
 
 // over
-static void wover (void){
+/*static*/ void wover (void){
     { int64_t d1 = pop();
     wdup();
       push(d1); }
@@ -1226,7 +1227,7 @@ static void wover (void){
 }
 
 // tuck
-static void wtuck (void){
+/*static*/ void wtuck (void){
     wdup();
     { int64_t d1 = pop();
     wswap();
@@ -1234,108 +1235,108 @@ static void wtuck (void){
 }
 
 // nip
-static void wnip (void){
+/*static*/ void wnip (void){
     { int64_t d1 = pop();
     wdrop();
       push(d1); }
 }
 
 // dup2
-static void wdup2 (void){
+/*static*/ void wdup2 (void){
     wover();
     wover();
 }
 
 // drop2
-static void wdrop2 (void){
+/*static*/ void wdrop2 (void){
     wdrop();
     wdrop();
 }
 
 // drop3
-static void wdrop3 (void){
+/*static*/ void wdrop3 (void){
     wdrop();
     wdrop();
     wdrop();
 }
 
 // >
-static void w_3E_ (void){
+/*static*/ void w_3E_ (void){
     wswap();
     w_3C_();
 }
 
 // >=
-static void w_3E__3D_ (void){
+/*static*/ void w_3E__3D_ (void){
     wswap();
     w_3C__3D_();
 }
 
 // 0=
-static void w0_3D_ (void){
+/*static*/ void w0_3D_ (void){
     push(0);
     w_3D_();
 }
 
 // 0<
-static void w0_3C_ (void){
+/*static*/ void w0_3C_ (void){
     push(0);
     w_3C_();
 }
 
 // 1+
-static void w1_2B_ (void){
+/*static*/ void w1_2B_ (void){
     push(1);
     w_2B_();
 }
 
 // 1-
-static void w1_ (void){
+/*static*/ void w1_ (void){
     push(1);
     w_();
 }
 
 // not
-static void wnot (void){
+/*static*/ void wnot (void){
     push(0);
     w_3D_();
 }
 
 // byte
-static void wbyte (void){
+/*static*/ void wbyte (void){
     push(1);
 }
 
 // bytes
-static void wbytes (void){
+/*static*/ void wbytes (void){
     wid();
 }
 
 // byte@@
-static void wbyte_40__40_ (void){
+/*static*/ void wbyte_40__40_ (void){
     w_2B_();
     wbyte_40_();
 }
 
 // byte!!
-static void wbyte_21__21_ (void){
+/*static*/ void wbyte_21__21_ (void){
     w_2B_();
     wbyte_21_();
 }
 
 // long
-static void wlong (void){
+/*static*/ void wlong (void){
     push(8);
 }
 
 // longs
-static void wlongs (void){
+/*static*/ void wlongs (void){
     wlong();
     w_2A_();
 }
 
 // long@@
-static void wlong_40__40_ (void){
+/*static*/ void wlong_40__40_ (void){
     { int64_t d1 = pop();
     wlongs();
       push(d1); }
@@ -1344,7 +1345,7 @@ static void wlong_40__40_ (void){
 }
 
 // long!!
-static void wlong_21__21_ (void){
+/*static*/ void wlong_21__21_ (void){
     { int64_t d1 = pop();
     wlongs();
       push(d1); }
@@ -1353,7 +1354,7 @@ static void wlong_21__21_ (void){
 }
 
 // !!
-static void w_21__21_ (void){
+/*static*/ void w_21__21_ (void){
     if (pop()) {
     wid();
     } else {
@@ -1363,7 +1364,7 @@ static void w_21__21_ (void){
 }
 
 // panic!
-static void wpanic_21_ (void){
+/*static*/ void wpanic_21_ (void){
     push((int64_t)(strings + 108));
     wstr_trace_21_();
     wstr_trace_ln_21_();
@@ -1372,71 +1373,71 @@ static void wpanic_21_ (void){
 }
 
 // !!=
-static void w_21__21__3D_ (void){
+/*static*/ void w_21__21__3D_ (void){
     w_3D_();
     w_21__21_();
 }
 
 // !!0
-static void w_21__21_0 (void){
+/*static*/ void w_21__21_0 (void){
     push(0);
     w_21__21__3D_();
 }
 
 // !!1
-static void w_21__21_1 (void){
+/*static*/ void w_21__21_1 (void){
     push(1);
     w_21__21__3D_();
 }
 
 // !!001
-static void w_21__21_001 (void){
+/*static*/ void w_21__21_001 (void){
     w_21__21_1();
     w_21__21_0();
     w_21__21_0();
 }
 
 // !!010
-static void w_21__21_010 (void){
+/*static*/ void w_21__21_010 (void){
     w_21__21_0();
     w_21__21_1();
     w_21__21_0();
 }
 
 // !!011
-static void w_21__21_011 (void){
+/*static*/ void w_21__21_011 (void){
     w_21__21_1();
     w_21__21_1();
     w_21__21_0();
 }
 
 // !!100
-static void w_21__21_100 (void){
+/*static*/ void w_21__21_100 (void){
     w_21__21_0();
     w_21__21_0();
     w_21__21_1();
 }
 
 // !!111
-static void w_21__21_111 (void){
+/*static*/ void w_21__21_111 (void){
     w_21__21_1();
     w_21__21_1();
     w_21__21_1();
 }
 
 // str-head
-static void wstr_head (void){
+/*static*/ void wstr_head (void){
     wbyte_40_();
 }
 
 // str-head?
-static void wstr_head_3F_ (void){
+/*static*/ void wstr_head_3F_ (void){
     wdup();
     wstr_head();
 }
 
 // str-tail
-static void wstr_tail (void){
+/*static*/ void wstr_tail (void){
     wstr_head_3F_();
     if (pop()) {
     w1_2B_();
@@ -1446,13 +1447,13 @@ static void wstr_tail (void){
 }
 
 // str-length?
-static void wstr_length_3F_ (void){
+/*static*/ void wstr_length_3F_ (void){
     wdup();
     wstr_length();
 }
 
 // str-length
-static void wstr_length (void){
+/*static*/ void wstr_length (void){
     { int64_t d1 = pop();
     push(0);
       push(d1); }
@@ -1472,18 +1473,18 @@ static void wstr_length (void){
 }
 
 // STR_BUF_SIZE
-static void wSTR_BUF_SIZE (void){
+/*static*/ void wSTR_BUF_SIZE (void){
     push(8192);
 }
 
 // str-buf-length?
-static void wstr_buf_length_3F_ (void){
+/*static*/ void wstr_buf_length_3F_ (void){
     wSTR_BUF_LEN();
     w_40_();
 }
 
 // str-buf-length!
-static void wstr_buf_length_21_ (void){
+/*static*/ void wstr_buf_length_21_ (void){
     wdup();
     wSTR_BUF_LEN();
     w_21_();
@@ -1494,19 +1495,19 @@ static void wstr_buf_length_21_ (void){
 }
 
 // str-buf-u8!
-static void wstr_buf_u8_21_ (void){
+/*static*/ void wstr_buf_u8_21_ (void){
     wSTR_BUF();
     wbyte_21__21_();
 }
 
 // str-buf-u8@
-static void wstr_buf_u8_40_ (void){
+/*static*/ void wstr_buf_u8_40_ (void){
     wSTR_BUF();
     wbyte_40__40_();
 }
 
 // str-buf-full?
-static void wstr_buf_full_3F_ (void){
+/*static*/ void wstr_buf_full_3F_ (void){
     wstr_buf_length_3F_();
     w1_2B_();
     wSTR_BUF_SIZE();
@@ -1514,13 +1515,13 @@ static void wstr_buf_full_3F_ (void){
 }
 
 // str-buf-clear!
-static void wstr_buf_clear_21_ (void){
+/*static*/ void wstr_buf_clear_21_ (void){
     push(0);
     wstr_buf_length_21_();
 }
 
 // str-buf-push!
-static void wstr_buf_push_21_ (void){
+/*static*/ void wstr_buf_push_21_ (void){
     wstr_buf_full_3F_();
     if (pop()) {
     push((int64_t)(strings + 17));
@@ -1536,38 +1537,38 @@ static void wstr_buf_push_21_ (void){
 }
 
 // str-buf-write!
-static void wstr_buf_write_21_ (void){
+/*static*/ void wstr_buf_write_21_ (void){
     wSTR_BUF();
     wstr_buf_length_3F_();
     wposix_write_21_();
 }
 
 // str-buf-print!
-static void wstr_buf_print_21_ (void){
+/*static*/ void wstr_buf_print_21_ (void){
     wfile_out_40_();
     wstr_buf_write_21_();
 }
 
 // file-out@
-static void wfile_out_40_ (void){
+/*static*/ void wfile_out_40_ (void){
     wFILE_OUT();
     w_40_();
 }
 
 // str-buf-trace!
-static void wstr_buf_trace_21_ (void){
+/*static*/ void wstr_buf_trace_21_ (void){
     wfile_err_40_();
     wstr_buf_write_21_();
 }
 
 // file-err@
-static void wfile_err_40_ (void){
+/*static*/ void wfile_err_40_ (void){
     wFILE_ERR();
     w_40_();
 }
 
 // str-buf-read!
-static void wstr_buf_read_21_ (void){
+/*static*/ void wstr_buf_read_21_ (void){
     wstr_buf_clear_21_();
     wSTR_BUF();
     wSTR_BUF_SIZE();
@@ -1585,19 +1586,19 @@ static void wstr_buf_read_21_ (void){
 }
 
 // str-buf-input!
-static void wstr_buf_input_21_ (void){
+/*static*/ void wstr_buf_input_21_ (void){
     wfile_in_40_();
     wstr_buf_read_21_();
 }
 
 // file-in@
-static void wfile_in_40_ (void){
+/*static*/ void wfile_in_40_ (void){
     wFILE_IN();
     w_40_();
 }
 
 // str-buf-copy!
-static void wstr_buf_copy_21_ (void){
+/*static*/ void wstr_buf_copy_21_ (void){
     wstr_buf_clear_21_();
     wstr_head_3F_();
     for (int64_t c1 = pop(); c1; c1 = pop()) {
@@ -1614,13 +1615,13 @@ static void wstr_buf_copy_21_ (void){
 }
 
 // str-buf!
-static void wstr_buf_21_ (void){
+/*static*/ void wstr_buf_21_ (void){
     wstr_buf_copy_21_();
     wdrop();
 }
 
 // run-tests
-static void wrun_tests (void){
+/*static*/ void wrun_tests (void){
     wtest_if();
     wtest_drop();
     wtest_dup();
@@ -1645,7 +1646,7 @@ static void wrun_tests (void){
 }
 
 // test-if
-static void wtest_if (void){
+/*static*/ void wtest_if (void){
     push(0);
     w_21__21_0();
     push(1);
@@ -1657,7 +1658,7 @@ static void wtest_if (void){
 }
 
 // test-drop
-static void wtest_drop (void){
+/*static*/ void wtest_drop (void){
     push(0);
     push(1);
     wdrop();
@@ -1665,7 +1666,7 @@ static void wtest_drop (void){
 }
 
 // test-dup
-static void wtest_dup (void){
+/*static*/ void wtest_dup (void){
     push(0);
     push(1);
     wdup();
@@ -1673,7 +1674,7 @@ static void wtest_dup (void){
 }
 
 // test-swap
-static void wtest_swap (void){
+/*static*/ void wtest_swap (void){
     push(0);
     push(1);
     push(0);
@@ -1682,7 +1683,7 @@ static void wtest_swap (void){
 }
 
 // test-dip
-static void wtest_dip (void){
+/*static*/ void wtest_dip (void){
     push(0);
     push(0);
     { int64_t d1 = pop();
@@ -1692,7 +1693,7 @@ static void wtest_dip (void){
 }
 
 // test-trip
-static void wtest_trip (void){
+/*static*/ void wtest_trip (void){
     push(0);
     push(1);
     wtrip();
@@ -1701,7 +1702,7 @@ static void wtest_trip (void){
 }
 
 // test-rotr
-static void wtest_rotr (void){
+/*static*/ void wtest_rotr (void){
     push(1);
     push(0);
     push(0);
@@ -1720,7 +1721,7 @@ static void wtest_rotr (void){
 }
 
 // test-rotl
-static void wtest_rotl (void){
+/*static*/ void wtest_rotl (void){
     push(1);
     push(0);
     push(0);
@@ -1739,7 +1740,7 @@ static void wtest_rotl (void){
 }
 
 // test=
-static void wtest_3D_ (void){
+/*static*/ void wtest_3D_ (void){
     push(0);
     push(0);
     w_3D_();
@@ -1771,7 +1772,7 @@ static void wtest_3D_ (void){
 }
 
 // test<
-static void wtest_3C_ (void){
+/*static*/ void wtest_3C_ (void){
     push(0);
     push(0);
     w_3C_();
@@ -1803,7 +1804,7 @@ static void wtest_3C_ (void){
 }
 
 // test<=
-static void wtest_3C__3D_ (void){
+/*static*/ void wtest_3C__3D_ (void){
     push(0);
     push(0);
     w_3C__3D_();
@@ -1835,7 +1836,7 @@ static void wtest_3C__3D_ (void){
 }
 
 // test>
-static void wtest_3E_ (void){
+/*static*/ void wtest_3E_ (void){
     push(0);
     push(0);
     w_3E_();
@@ -1867,7 +1868,7 @@ static void wtest_3E_ (void){
 }
 
 // test>=
-static void wtest_3E__3D_ (void){
+/*static*/ void wtest_3E__3D_ (void){
     push(0);
     push(0);
     w_3E__3D_();
@@ -1923,7 +1924,7 @@ static void wtest_3E__3D_ (void){
 }
 
 // test+
-static void wtest_2B_ (void){
+/*static*/ void wtest_2B_ (void){
     push(0);
     push(0);
     w_2B_();
@@ -1955,7 +1956,7 @@ static void wtest_2B_ (void){
 }
 
 // test-
-static void wtest_ (void){
+/*static*/ void wtest_ (void){
     push(0);
     push(0);
     w_();
@@ -1990,7 +1991,7 @@ static void wtest_ (void){
 }
 
 // test*
-static void wtest_2A_ (void){
+/*static*/ void wtest_2A_ (void){
     push(0);
     push(0);
     w_2A_();
@@ -2013,7 +2014,7 @@ static void wtest_2A_ (void){
 }
 
 // test/
-static void wtest_2F_ (void){
+/*static*/ void wtest_2F_ (void){
     push(1);
     push(1);
     w_2F_();
@@ -2099,7 +2100,7 @@ static void wtest_2F_ (void){
 }
 
 // test%
-static void wtest_25_ (void){
+/*static*/ void wtest_25_ (void){
     push(1);
     push(1);
     w_25_();
@@ -2154,7 +2155,7 @@ static void wtest_25_ (void){
 }
 
 // test-str
-static void wtest_str (void){
+/*static*/ void wtest_str (void){
     push((int64_t)(strings + 80));
     wdup();
     wstr_head();
@@ -2202,7 +2203,7 @@ static void wtest_str (void){
 }
 
 // test-while
-static void wtest_while (void){
+/*static*/ void wtest_while (void){
     push(999);
     push(10);
     push(20);
@@ -2220,7 +2221,7 @@ static void wtest_while (void){
 }
 
 // test@!
-static void wtest_40__21_ (void){
+/*static*/ void wtest_40__21_ (void){
     push(0);
     wTEST_BUF();
     wlong_40__40_();
@@ -2300,22 +2301,22 @@ static void wtest_40__21_ (void){
 }
 
 // stdin
-static void wstdin (void){
+/*static*/ void wstdin (void){
     push(0);
 }
 
 // stdout
-static void wstdout (void){
+/*static*/ void wstdout (void){
     push(1);
 }
 
 // stderr
-static void wstderr (void){
+/*static*/ void wstderr (void){
     push(2);
 }
 
 // init!
-static void winit_21_ (void){
+/*static*/ void winit_21_ (void){
     winit_io_21_();
     push(0);
     wstrings_size_21_();
@@ -2325,7 +2326,7 @@ static void winit_21_ (void){
 }
 
 // init-io!
-static void winit_io_21_ (void){
+/*static*/ void winit_io_21_ (void){
     wstdin();
     wfile_in_21_();
     wstdout();
@@ -2335,19 +2336,19 @@ static void winit_io_21_ (void){
 }
 
 // strings-size!
-static void wstrings_size_21_ (void){
+/*static*/ void wstrings_size_21_ (void){
     wSTRINGS_SIZE();
     w_21_();
 }
 
 // num-tokens!
-static void wnum_tokens_21_ (void){
+/*static*/ void wnum_tokens_21_ (void){
     wNUM_TOKENS();
     w_21_();
 }
 
 // init-names!
-static void winit_names_21_ (void){
+/*static*/ void winit_names_21_ (void){
     push(0);
     wnum_names_21_();
     wPRIM_END();
@@ -2476,92 +2477,92 @@ static void winit_names_21_ (void){
 }
 
 // file-in!
-static void wfile_in_21_ (void){
+/*static*/ void wfile_in_21_ (void){
     wFILE_IN();
     w_21_();
 }
 
 // file-out!
-static void wfile_out_21_ (void){
+/*static*/ void wfile_out_21_ (void){
     wFILE_OUT();
     w_21_();
 }
 
 // file-err!
-static void wfile_err_21_ (void){
+/*static*/ void wfile_err_21_ (void){
     wFILE_ERR();
     w_21_();
 }
 
 // str-write!
-static void wstr_write_21_ (void){
+/*static*/ void wstr_write_21_ (void){
     wswap();
     wstr_length_3F_();
     wposix_write_21_();
 }
 
 // str-print!
-static void wstr_print_21_ (void){
+/*static*/ void wstr_print_21_ (void){
     wfile_out_40_();
     wstr_write_21_();
 }
 
 // str-trace!
-static void wstr_trace_21_ (void){
+/*static*/ void wstr_trace_21_ (void){
     wfile_err_40_();
     wstr_write_21_();
 }
 
 // str-print-sp!
-static void wstr_print_sp_21_ (void){
+/*static*/ void wstr_print_sp_21_ (void){
     wstr_print_21_();
     wprint_sp_21_();
 }
 
 // print-sp!
-static void wprint_sp_21_ (void){
+/*static*/ void wprint_sp_21_ (void){
     push(32);
     wprint_char_21_();
 }
 
 // str-trace-sp!
-static void wstr_trace_sp_21_ (void){
+/*static*/ void wstr_trace_sp_21_ (void){
     wstr_trace_21_();
     wtrace_sp_21_();
 }
 
 // trace-sp!
-static void wtrace_sp_21_ (void){
+/*static*/ void wtrace_sp_21_ (void){
     push(32);
     wtrace_char_21_();
 }
 
 // str-print-ln!
-static void wstr_print_ln_21_ (void){
+/*static*/ void wstr_print_ln_21_ (void){
     wstr_print_21_();
     wprint_ln_21_();
 }
 
 // print-ln!
-static void wprint_ln_21_ (void){
+/*static*/ void wprint_ln_21_ (void){
     push(10);
     wprint_char_21_();
 }
 
 // str-trace-ln!
-static void wstr_trace_ln_21_ (void){
+/*static*/ void wstr_trace_ln_21_ (void){
     wstr_trace_21_();
     wtrace_ln_21_();
 }
 
 // trace-ln!
-static void wtrace_ln_21_ (void){
+/*static*/ void wtrace_ln_21_ (void){
     push(10);
     wtrace_char_21_();
 }
 
 // str-buf-char!
-static void wstr_buf_char_21_ (void){
+/*static*/ void wstr_buf_char_21_ (void){
     push(0);
     wstr_buf_u8_21_();
     push(1);
@@ -2569,25 +2570,25 @@ static void wstr_buf_char_21_ (void){
 }
 
 // print-char!
-static void wprint_char_21_ (void){
+/*static*/ void wprint_char_21_ (void){
     wstr_buf_char_21_();
     wstr_buf_print_21_();
 }
 
 // trace-char!
-static void wtrace_char_21_ (void){
+/*static*/ void wtrace_char_21_ (void){
     wstr_buf_char_21_();
     wstr_buf_trace_21_();
 }
 
 // print-quote!
-static void wprint_quote_21_ (void){
+/*static*/ void wprint_quote_21_ (void){
     push(34);
     wprint_char_21_();
 }
 
 // to-digit
-static void wto_digit (void){
+/*static*/ void wto_digit (void){
     push(10);
     w_25_();
     push(48);
@@ -2595,13 +2596,13 @@ static void wto_digit (void){
 }
 
 // negate
-static void wnegate (void){
+/*static*/ void wnegate (void){
     push(-1);
     w_2A_();
 }
 
 // abs
-static void wabs (void){
+/*static*/ void wabs (void){
     wdup();
     push(0);
     w_3C_();
@@ -2613,7 +2614,7 @@ static void wabs (void){
 }
 
 // str-buf-int!
-static void wstr_buf_int_21_ (void){
+/*static*/ void wstr_buf_int_21_ (void){
     wdup();
     w0_3D_();
     if (pop()) {
@@ -2647,7 +2648,7 @@ static void wstr_buf_int_21_ (void){
 }
 
 // str-buf-reverse!
-static void wstr_buf_reverse_21_ (void){
+/*static*/ void wstr_buf_reverse_21_ (void){
     push(0);
     wstr_buf_length_3F_();
     w1_();
@@ -2670,7 +2671,7 @@ static void wstr_buf_reverse_21_ (void){
 }
 
 // int-write!
-static void wint_write_21_ (void){
+/*static*/ void wint_write_21_ (void){
     { int64_t d1 = pop();
     wstr_buf_int_21_();
       push(d1); }
@@ -2678,43 +2679,43 @@ static void wint_write_21_ (void){
 }
 
 // int-print!
-static void wint_print_21_ (void){
+/*static*/ void wint_print_21_ (void){
     wfile_out_40_();
     wint_write_21_();
 }
 
 // int-trace!
-static void wint_trace_21_ (void){
+/*static*/ void wint_trace_21_ (void){
     wfile_err_40_();
     wint_write_21_();
 }
 
 // int-print-sp!
-static void wint_print_sp_21_ (void){
+/*static*/ void wint_print_sp_21_ (void){
     wint_print_21_();
     wprint_sp_21_();
 }
 
 // int-trace-sp!
-static void wint_trace_sp_21_ (void){
+/*static*/ void wint_trace_sp_21_ (void){
     wint_trace_21_();
     wtrace_sp_21_();
 }
 
 // int-print-ln!
-static void wint_print_ln_21_ (void){
+/*static*/ void wint_print_ln_21_ (void){
     wint_print_21_();
     wprint_ln_21_();
 }
 
 // int-trace-ln!
-static void wint_trace_ln_21_ (void){
+/*static*/ void wint_trace_ln_21_ (void){
     wint_trace_21_();
     wtrace_ln_21_();
 }
 
 // str-buf-swap-u8!
-static void wstr_buf_swap_u8_21_ (void){
+/*static*/ void wstr_buf_swap_u8_21_ (void){
     wdup2();
     wswap();
     { int64_t d1 = pop();
@@ -2732,12 +2733,12 @@ static void wstr_buf_swap_u8_21_ (void){
 }
 
 // FILE_BUF_SIZE
-static void wFILE_BUF_SIZE (void){
+/*static*/ void wFILE_BUF_SIZE (void){
     push(131072);
 }
 
 // file-buf-length!
-static void wfile_buf_length_21_ (void){
+/*static*/ void wfile_buf_length_21_ (void){
     wdup();
     wFILE_BUF_LENGTH();
     w_21_();
@@ -2749,19 +2750,19 @@ static void wfile_buf_length_21_ (void){
 }
 
 // file-buf-length@
-static void wfile_buf_length_40_ (void){
+/*static*/ void wfile_buf_length_40_ (void){
     wFILE_BUF_LENGTH();
     w_40_();
 }
 
 // file-buf@
-static void wfile_buf_40_ (void){
+/*static*/ void wfile_buf_40_ (void){
     wFILE_BUF();
     wbyte_40__40_();
 }
 
 // open-file!
-static void wopen_file_21_ (void){
+/*static*/ void wopen_file_21_ (void){
     push(0);
     push(0);
     wposix_open_21_();
@@ -2777,13 +2778,13 @@ static void wopen_file_21_ (void){
 }
 
 // str-buf-create-file!
-static void wstr_buf_create_file_21_ (void){
+/*static*/ void wstr_buf_create_file_21_ (void){
     wSTR_BUF();
     wcreate_file_21_();
 }
 
 // create-file!
-static void wcreate_file_21_ (void){
+/*static*/ void wcreate_file_21_ (void){
     wO_WRONLY_7C_O_CREAT_7C_O_TRUNC();
     push(438);
     wposix_open_21_();
@@ -2799,7 +2800,7 @@ static void wcreate_file_21_ (void){
 }
 
 // O_WRONLY|O_CREAT|O_TRUNC
-static void wO_WRONLY_7C_O_CREAT_7C_O_TRUNC (void){
+/*static*/ void wO_WRONLY_7C_O_CREAT_7C_O_TRUNC (void){
     wRUNNING_OS();
     wMACOS();
     w_3D_();
@@ -2820,17 +2821,17 @@ static void wO_WRONLY_7C_O_CREAT_7C_O_TRUNC (void){
 }
 
 // MACOS
-static void wMACOS (void){
+/*static*/ void wMACOS (void){
     push(3);
 }
 
 // LINUX
-static void wLINUX (void){
+/*static*/ void wLINUX (void){
     push(2);
 }
 
 // read-file!
-static void wread_file_21_ (void){
+/*static*/ void wread_file_21_ (void){
     wdup();
     wFILE_BUF();
     wFILE_BUF_SIZE();
@@ -2858,7 +2859,7 @@ static void wread_file_21_ (void){
 }
 
 // read-mirth-src!
-static void wread_mirth_src_21_ (void){
+/*static*/ void wread_mirth_src_21_ (void){
     push((int64_t)(strings + 243));
     wstr_trace_ln_21_();
     push((int64_t)(strings + 261));
@@ -2877,42 +2878,42 @@ static void wread_mirth_src_21_ (void){
 }
 
 // MAX_NAMES
-static void wMAX_NAMES (void){
+/*static*/ void wMAX_NAMES (void){
     push(65536);
 }
 
 // num-names@
-static void wnum_names_40_ (void){
+/*static*/ void wnum_names_40_ (void){
     wNUM_NAMES();
     w_40_();
 }
 
 // num-names!
-static void wnum_names_21_ (void){
+/*static*/ void wnum_names_21_ (void){
     wNUM_NAMES();
     w_21_();
 }
 
 // NAME_QUADS
-static void wNAME_QUADS (void){
+/*static*/ void wNAME_QUADS (void){
     push(8);
 }
 
 // NAME_SIZE
-static void wNAME_SIZE (void){
+/*static*/ void wNAME_SIZE (void){
     wNAME_QUADS();
     wlongs();
 }
 
 // NAME_BUF_SIZE
-static void wNAME_BUF_SIZE (void){
+/*static*/ void wNAME_BUF_SIZE (void){
     wNAME_SIZE();
     wMAX_NAMES();
     w_2A_();
 }
 
 // str-buf-recalc-length!
-static void wstr_buf_recalc_length_21_ (void){
+/*static*/ void wstr_buf_recalc_length_21_ (void){
     push(0);
     wdup();
     wSTR_BUF();
@@ -2929,7 +2930,7 @@ static void wstr_buf_recalc_length_21_ (void){
 }
 
 // str-pad-zeros-to-length!
-static void wstr_pad_zeros_to_length_21_ (void){
+/*static*/ void wstr_pad_zeros_to_length_21_ (void){
     wdup();
     wstr_buf_length_3F_();
     w_3E_();
@@ -2949,7 +2950,7 @@ static void wstr_pad_zeros_to_length_21_ (void){
 }
 
 // name-load!
-static void wname_load_21_ (void){
+/*static*/ void wname_load_21_ (void){
     wname_quads_load_21_();
     wNAME_SIZE();
     wstr_buf_length_21_();
@@ -2957,7 +2958,7 @@ static void wname_load_21_ (void){
 }
 
 // name-quads-load!
-static void wname_quads_load_21_ (void){
+/*static*/ void wname_quads_load_21_ (void){
     wdup();
     push(0);
     wname_quad_load_21_();
@@ -2984,7 +2985,7 @@ static void wname_quads_load_21_ (void){
 }
 
 // name-quad-eq
-static void wname_quad_eq (void){
+/*static*/ void wname_quad_eq (void){
     { int64_t d1 = pop();
     wNAME_SIZE();
     w_2A_();
@@ -3001,7 +3002,7 @@ static void wname_quad_eq (void){
 }
 
 // name-quads-eq
-static void wname_quads_eq (void){
+/*static*/ void wname_quads_eq (void){
     wdup();
     push(0);
     wname_quad_eq();
@@ -3063,13 +3064,13 @@ static void wname_quads_eq (void){
 }
 
 // name-quads-eq?
-static void wname_quads_eq_3F_ (void){
+/*static*/ void wname_quads_eq_3F_ (void){
     wdup();
     wname_quads_eq();
 }
 
 // name-quad-save!
-static void wname_quad_save_21_ (void){
+/*static*/ void wname_quad_save_21_ (void){
     { int64_t d1 = pop();
     wNAME_SIZE();
     w_2A_();
@@ -3084,7 +3085,7 @@ static void wname_quad_save_21_ (void){
 }
 
 // name-quads-save!
-static void wname_quads_save_21_ (void){
+/*static*/ void wname_quads_save_21_ (void){
     wdup();
     push(0);
     wname_quad_save_21_();
@@ -3111,7 +3112,7 @@ static void wname_quads_save_21_ (void){
 }
 
 // name-quad-load!
-static void wname_quad_load_21_ (void){
+/*static*/ void wname_quad_load_21_ (void){
     { int64_t d1 = pop();
     wNAME_SIZE();
     w_2A_();
@@ -3127,7 +3128,7 @@ static void wname_quad_load_21_ (void){
 }
 
 // name-save!
-static void wname_save_21_ (void){
+/*static*/ void wname_save_21_ (void){
     wNAME_SIZE();
     w1_2B_();
     wstr_pad_zeros_to_length_21_();
@@ -3163,7 +3164,7 @@ static void wname_save_21_ (void){
 }
 
 // show-names-table!
-static void wshow_names_table_21_ (void){
+/*static*/ void wshow_names_table_21_ (void){
     push(0);
     wdup();
     wnum_names_40_();
@@ -3188,7 +3189,7 @@ static void wshow_names_table_21_ (void){
 }
 
 // name-could-be-type
-static void wname_could_be_type (void){
+/*static*/ void wname_could_be_type (void){
     wNAME_SIZE();
     w_2A_();
     wNAME_BUF();
@@ -3198,7 +3199,7 @@ static void wname_could_be_type (void){
 }
 
 // is-alpha?
-static void wis_alpha_3F_ (void){
+/*static*/ void wis_alpha_3F_ (void){
     wis_lower_3F_();
     { int64_t d1 = pop();
     wis_upper_3F_();
@@ -3207,7 +3208,7 @@ static void wis_alpha_3F_ (void){
 }
 
 // name-could-be-type-var
-static void wname_could_be_type_var (void){
+/*static*/ void wname_could_be_type_var (void){
     wNAME_SIZE();
     w_2A_();
     wNAME_BUF();
@@ -3217,7 +3218,7 @@ static void wname_could_be_type_var (void){
 }
 
 // is-lower?
-static void wis_lower_3F_ (void){
+/*static*/ void wis_lower_3F_ (void){
     wdup();
     push(97);
     push(122);
@@ -3225,7 +3226,7 @@ static void wis_lower_3F_ (void){
 }
 
 // name-could-be-type-con
-static void wname_could_be_type_con (void){
+/*static*/ void wname_could_be_type_con (void){
     wNAME_SIZE();
     w_2A_();
     wNAME_BUF();
@@ -3235,7 +3236,7 @@ static void wname_could_be_type_con (void){
 }
 
 // is-upper?
-static void wis_upper_3F_ (void){
+/*static*/ void wis_upper_3F_ (void){
     wdup();
     push(65);
     push(90);
@@ -3243,7 +3244,7 @@ static void wis_upper_3F_ (void){
 }
 
 // name-could-be-effect-con
-static void wname_could_be_effect_con (void){
+/*static*/ void wname_could_be_effect_con (void){
     wNAME_SIZE();
     w_2A_();
     wdup();
@@ -3264,20 +3265,20 @@ static void wname_could_be_effect_con (void){
 }
 
 // is-plus-sign?
-static void wis_plus_sign_3F_ (void){
+/*static*/ void wis_plus_sign_3F_ (void){
     wdup();
     push(43);
     w_3D_();
 }
 
 // name-print-mangled!
-static void wname_print_mangled_21_ (void){
+/*static*/ void wname_print_mangled_21_ (void){
     wname_mangle_21_();
     wstr_buf_print_21_();
 }
 
 // name-mangle!
-static void wname_mangle_21_ (void){
+/*static*/ void wname_mangle_21_ (void){
     wstr_buf_clear_21_();
     wNAME_SIZE();
     w_2A_();
@@ -3304,7 +3305,7 @@ static void wname_mangle_21_ (void){
 }
 
 // str-buf-push-mangled!
-static void wstr_buf_push_mangled_21_ (void){
+/*static*/ void wstr_buf_push_mangled_21_ (void){
     wis_nul_3F_();
     if (pop()) {
     wdrop();
@@ -3340,13 +3341,13 @@ static void wstr_buf_push_mangled_21_ (void){
 }
 
 // is-nul?
-static void wis_nul_3F_ (void){
+/*static*/ void wis_nul_3F_ (void){
     wdup();
     w0_3D_();
 }
 
 // is-digit?
-static void wis_digit_3F_ (void){
+/*static*/ void wis_digit_3F_ (void){
     wdup();
     push(48);
     push(57);
@@ -3354,26 +3355,26 @@ static void wis_digit_3F_ (void){
 }
 
 // is-dash?
-static void wis_dash_3F_ (void){
+/*static*/ void wis_dash_3F_ (void){
     wdup();
     push(45);
     w_3D_();
 }
 
 // underscore
-static void wunderscore (void){
+/*static*/ void wunderscore (void){
     push(95);
 }
 
 // is-underscore?
-static void wis_underscore_3F_ (void){
+/*static*/ void wis_underscore_3F_ (void){
     wdup();
     push(95);
     w_3D_();
 }
 
 // str-buf-push-hexdigits!
-static void wstr_buf_push_hexdigits_21_ (void){
+/*static*/ void wstr_buf_push_hexdigits_21_ (void){
     wdup();
     push(16);
     w_2F_();
@@ -3384,7 +3385,7 @@ static void wstr_buf_push_hexdigits_21_ (void){
 }
 
 // str-buf-push-hexdigit!
-static void wstr_buf_push_hexdigit_21_ (void){
+/*static*/ void wstr_buf_push_hexdigit_21_ (void){
     wdup();
     push(10);
     w_3E__3D_();
@@ -3400,224 +3401,224 @@ static void wstr_buf_push_hexdigit_21_ (void){
 }
 
 // PRIM_END
-static void wPRIM_END (void){
+/*static*/ void wPRIM_END (void){
     push(0);
 }
 
 // PRIM_ID
-static void wPRIM_ID (void){
+/*static*/ void wPRIM_ID (void){
     push(1);
 }
 
 // PRIM_DUP
-static void wPRIM_DUP (void){
+/*static*/ void wPRIM_DUP (void){
     push(2);
 }
 
 // PRIM_DROP
-static void wPRIM_DROP (void){
+/*static*/ void wPRIM_DROP (void){
     push(3);
 }
 
 // PRIM_SWAP
-static void wPRIM_SWAP (void){
+/*static*/ void wPRIM_SWAP (void){
     push(4);
 }
 
 // PRIM_DIP
-static void wPRIM_DIP (void){
+/*static*/ void wPRIM_DIP (void){
     push(5);
 }
 
 // PRIM_IF
-static void wPRIM_IF (void){
+/*static*/ void wPRIM_IF (void){
     push(6);
 }
 
 // PRIM_WHILE
-static void wPRIM_WHILE (void){
+/*static*/ void wPRIM_WHILE (void){
     push(7);
 }
 
 // PRIM_INT_ADD
-static void wPRIM_INT_ADD (void){
+/*static*/ void wPRIM_INT_ADD (void){
     push(8);
 }
 
 // PRIM_INT_SUB
-static void wPRIM_INT_SUB (void){
+/*static*/ void wPRIM_INT_SUB (void){
     push(9);
 }
 
 // PRIM_INT_MUL
-static void wPRIM_INT_MUL (void){
+/*static*/ void wPRIM_INT_MUL (void){
     push(10);
 }
 
 // PRIM_INT_DIV
-static void wPRIM_INT_DIV (void){
+/*static*/ void wPRIM_INT_DIV (void){
     push(11);
 }
 
 // PRIM_INT_MOD
-static void wPRIM_INT_MOD (void){
+/*static*/ void wPRIM_INT_MOD (void){
     push(12);
 }
 
 // PRIM_INT_EQ
-static void wPRIM_INT_EQ (void){
+/*static*/ void wPRIM_INT_EQ (void){
     push(13);
 }
 
 // PRIM_INT_LT
-static void wPRIM_INT_LT (void){
+/*static*/ void wPRIM_INT_LT (void){
     push(14);
 }
 
 // PRIM_INT_LE
-static void wPRIM_INT_LE (void){
+/*static*/ void wPRIM_INT_LE (void){
     push(15);
 }
 
 // PRIM_INT_AND
-static void wPRIM_INT_AND (void){
+/*static*/ void wPRIM_INT_AND (void){
     push(16);
 }
 
 // PRIM_INT_OR
-static void wPRIM_INT_OR (void){
+/*static*/ void wPRIM_INT_OR (void){
     push(17);
 }
 
 // PRIM_INT_XOR
-static void wPRIM_INT_XOR (void){
+/*static*/ void wPRIM_INT_XOR (void){
     push(18);
 }
 
 // PRIM_INT_SHL
-static void wPRIM_INT_SHL (void){
+/*static*/ void wPRIM_INT_SHL (void){
     push(19);
 }
 
 // PRIM_INT_SHR
-static void wPRIM_INT_SHR (void){
+/*static*/ void wPRIM_INT_SHR (void){
     push(20);
 }
 
 // PRIM_MEM_GET
-static void wPRIM_MEM_GET (void){
+/*static*/ void wPRIM_MEM_GET (void){
     push(21);
 }
 
 // PRIM_MEM_SET
-static void wPRIM_MEM_SET (void){
+/*static*/ void wPRIM_MEM_SET (void){
     push(22);
 }
 
 // PRIM_MEM_GET_BYTE
-static void wPRIM_MEM_GET_BYTE (void){
+/*static*/ void wPRIM_MEM_GET_BYTE (void){
     push(23);
 }
 
 // PRIM_MEM_SET_BYTE
-static void wPRIM_MEM_SET_BYTE (void){
+/*static*/ void wPRIM_MEM_SET_BYTE (void){
     push(24);
 }
 
 // PRIM_POSIX_READ
-static void wPRIM_POSIX_READ (void){
+/*static*/ void wPRIM_POSIX_READ (void){
     push(25);
 }
 
 // PRIM_POSIX_WRITE
-static void wPRIM_POSIX_WRITE (void){
+/*static*/ void wPRIM_POSIX_WRITE (void){
     push(26);
 }
 
 // PRIM_POSIX_OPEN
-static void wPRIM_POSIX_OPEN (void){
+/*static*/ void wPRIM_POSIX_OPEN (void){
     push(27);
 }
 
 // PRIM_POSIX_CLOSE
-static void wPRIM_POSIX_CLOSE (void){
+/*static*/ void wPRIM_POSIX_CLOSE (void){
     push(28);
 }
 
 // PRIM_POSIX_EXIT
-static void wPRIM_POSIX_EXIT (void){
+/*static*/ void wPRIM_POSIX_EXIT (void){
     push(29);
 }
 
 // PRIM_POSIX_MMAP
-static void wPRIM_POSIX_MMAP (void){
+/*static*/ void wPRIM_POSIX_MMAP (void){
     push(30);
 }
 
 // PRIM_DEBUG
-static void wPRIM_DEBUG (void){
+/*static*/ void wPRIM_DEBUG (void){
     push(31);
 }
 
 // PRIM_MIRTH_REVISION
-static void wPRIM_MIRTH_REVISION (void){
+/*static*/ void wPRIM_MIRTH_REVISION (void){
     push(32);
 }
 
 // PRIM_RUNNING_OS
-static void wPRIM_RUNNING_OS (void){
+/*static*/ void wPRIM_RUNNING_OS (void){
     push(33);
 }
 
 // PRIM_DEF
-static void wPRIM_DEF (void){
+/*static*/ void wPRIM_DEF (void){
     push(34);
 }
 
 // PRIM_DEF_TYPE
-static void wPRIM_DEF_TYPE (void){
+/*static*/ void wPRIM_DEF_TYPE (void){
     push(35);
 }
 
 // PRIM_DEF_STATIC_BUFFER
-static void wPRIM_DEF_STATIC_BUFFER (void){
+/*static*/ void wPRIM_DEF_STATIC_BUFFER (void){
     push(36);
 }
 
 // PRIM_OUTPUT_ASM
-static void wPRIM_OUTPUT_ASM (void){
+/*static*/ void wPRIM_OUTPUT_ASM (void){
     push(37);
 }
 
 // PRIM_OUTPUT_C99
-static void wPRIM_OUTPUT_C99 (void){
+/*static*/ void wPRIM_OUTPUT_C99 (void){
     push(38);
 }
 
 // PRIM_DASHES
-static void wPRIM_DASHES (void){
+/*static*/ void wPRIM_DASHES (void){
     push(39);
 }
 
 // PRIM_ARROW
-static void wPRIM_ARROW (void){
+/*static*/ void wPRIM_ARROW (void){
     push(40);
 }
 
 // NUM_PRIMS
-static void wNUM_PRIMS (void){
+/*static*/ void wNUM_PRIMS (void){
     push(41);
 }
 
 // name-is-prim?
-static void wname_is_prim_3F_ (void){
+/*static*/ void wname_is_prim_3F_ (void){
     wdup();
     wNUM_PRIMS();
     w_3C_();
 }
 
 // def-prim!
-static void wdef_prim_21_ (void){
+/*static*/ void wdef_prim_21_ (void){
     wstr_buf_21_();
     wname_save_21_();
     wswap();
@@ -3625,34 +3626,34 @@ static void wdef_prim_21_ (void){
 }
 
 // MAX_STRINGS
-static void wMAX_STRINGS (void){
+/*static*/ void wMAX_STRINGS (void){
     push(65536);
 }
 
 // strings-size@
-static void wstrings_size_40_ (void){
+/*static*/ void wstrings_size_40_ (void){
     wSTRINGS_SIZE();
     w_40_();
 }
 
 // strings-u8@
-static void wstrings_u8_40_ (void){
+/*static*/ void wstrings_u8_40_ (void){
     wbyte_40_();
 }
 
 // strings-u8?
-static void wstrings_u8_3F_ (void){
+/*static*/ void wstrings_u8_3F_ (void){
     wdup();
     wstrings_u8_40_();
 }
 
 // strings-u8!
-static void wstrings_u8_21_ (void){
+/*static*/ void wstrings_u8_21_ (void){
     wbyte_21_();
 }
 
 // strings-push!
-static void wstrings_push_21_ (void){
+/*static*/ void wstrings_push_21_ (void){
     wstrings_size_40_();
     wSTRINGS_BUF();
     wbyte_21__21_();
@@ -3662,7 +3663,7 @@ static void wstrings_push_21_ (void){
 }
 
 // strings-save!
-static void wstrings_save_21_ (void){
+/*static*/ void wstrings_save_21_ (void){
     wstrings_size_40_();
     push(0);
     wdup();
@@ -3685,7 +3686,7 @@ static void wstrings_save_21_ (void){
 }
 
 // strings-load!
-static void wstrings_load_21_ (void){
+/*static*/ void wstrings_load_21_ (void){
     wstr_buf_clear_21_();
     wstrings_u8_3F_();
     for (int64_t c1 = pop(); c1; c1 = pop()) {
@@ -3698,82 +3699,82 @@ static void wstrings_load_21_ (void){
 }
 
 // strings-load-escaped!
-static void wstrings_load_escaped_21_ (void){
+/*static*/ void wstrings_load_escaped_21_ (void){
     wstrings_load_21_();
 }
 
 // MAX_TOKENS
-static void wMAX_TOKENS (void){
+/*static*/ void wMAX_TOKENS (void){
     push(65536);
 }
 
 // num-tokens@
-static void wnum_tokens_40_ (void){
+/*static*/ void wnum_tokens_40_ (void){
     wNUM_TOKENS();
     w_40_();
 }
 
 // clear-tokens!
-static void wclear_tokens_21_ (void){
+/*static*/ void wclear_tokens_21_ (void){
     push(0);
     wnum_tokens_21_();
 }
 
 // token-type!
-static void wtoken_type_21_ (void){
+/*static*/ void wtoken_type_21_ (void){
     wTOKEN_TYPE();
     wbyte_21__21_();
 }
 
 // token-type@
-static void wtoken_type_40_ (void){
+/*static*/ void wtoken_type_40_ (void){
     wTOKEN_TYPE();
     wbyte_40__40_();
 }
 
 // token-type?
-static void wtoken_type_3F_ (void){
+/*static*/ void wtoken_type_3F_ (void){
     wdup();
     wtoken_type_40_();
 }
 
 // TOKEN_NONE
-static void wTOKEN_NONE (void){
+/*static*/ void wTOKEN_NONE (void){
     push(0);
 }
 
 // TOKEN_LPAREN
-static void wTOKEN_LPAREN (void){
+/*static*/ void wTOKEN_LPAREN (void){
     push(1);
 }
 
 // TOKEN_RPAREN
-static void wTOKEN_RPAREN (void){
+/*static*/ void wTOKEN_RPAREN (void){
     push(2);
 }
 
 // TOKEN_COMMA
-static void wTOKEN_COMMA (void){
+/*static*/ void wTOKEN_COMMA (void){
     push(3);
 }
 
 // TOKEN_NAME
-static void wTOKEN_NAME (void){
+/*static*/ void wTOKEN_NAME (void){
     push(4);
 }
 
 // TOKEN_INT
-static void wTOKEN_INT (void){
+/*static*/ void wTOKEN_INT (void){
     push(5);
 }
 
 // TOKEN_STR
-static void wTOKEN_STR (void){
+/*static*/ void wTOKEN_STR (void){
     push(6);
 }
 
 // token-type-str
-static void wtoken_type_str (void){
+/*static*/ void wtoken_type_str (void){
     wdup();
     wTOKEN_NONE();
     w_3D_();
@@ -3835,67 +3836,67 @@ static void wtoken_type_str (void){
 }
 
 // token-type-print!
-static void wtoken_type_print_21_ (void){
+/*static*/ void wtoken_type_print_21_ (void){
     wtoken_type_str();
     wstr_print_21_();
 }
 
 // token-value!
-static void wtoken_value_21_ (void){
+/*static*/ void wtoken_value_21_ (void){
     wTOKEN_VALUE();
     wlong_21__21_();
 }
 
 // token-value@
-static void wtoken_value_40_ (void){
+/*static*/ void wtoken_value_40_ (void){
     wTOKEN_VALUE();
     wlong_40__40_();
 }
 
 // token-value?
-static void wtoken_value_3F_ (void){
+/*static*/ void wtoken_value_3F_ (void){
     wdup();
     wtoken_value_40_();
 }
 
 // token-row!
-static void wtoken_row_21_ (void){
+/*static*/ void wtoken_row_21_ (void){
     wTOKEN_ROW();
     wlong_21__21_();
 }
 
 // token-row@
-static void wtoken_row_40_ (void){
+/*static*/ void wtoken_row_40_ (void){
     wTOKEN_ROW();
     wlong_40__40_();
 }
 
 // token-row?
-static void wtoken_row_3F_ (void){
+/*static*/ void wtoken_row_3F_ (void){
     wdup();
     wtoken_row_40_();
 }
 
 // token-col!
-static void wtoken_col_21_ (void){
+/*static*/ void wtoken_col_21_ (void){
     wTOKEN_COL();
     wlong_21__21_();
 }
 
 // token-col@
-static void wtoken_col_40_ (void){
+/*static*/ void wtoken_col_40_ (void){
     wTOKEN_COL();
     wlong_40__40_();
 }
 
 // token-col?
-static void wtoken_col_3F_ (void){
+/*static*/ void wtoken_col_3F_ (void){
     wdup();
     wtoken_col_40_();
 }
 
 // token-new
-static void wtoken_new (void){
+/*static*/ void wtoken_new (void){
     wnum_tokens_40_();
     wdup();
     w1_2B_();
@@ -3903,7 +3904,7 @@ static void wtoken_new (void){
 }
 
 // token-trace-prefix!
-static void wtoken_trace_prefix_21_ (void){
+/*static*/ void wtoken_trace_prefix_21_ (void){
     wtoken_row_3F_();
     wint_trace_21_();
     push((int64_t)(strings + 601));
@@ -3916,7 +3917,7 @@ static void wtoken_trace_prefix_21_ (void){
 }
 
 // token-print-prefix!
-static void wtoken_print_prefix_21_ (void){
+/*static*/ void wtoken_print_prefix_21_ (void){
     wtoken_row_3F_();
     wint_print_21_();
     push((int64_t)(strings + 605));
@@ -3929,7 +3930,7 @@ static void wtoken_print_prefix_21_ (void){
 }
 
 // token-print!
-static void wtoken_print_21_ (void){
+/*static*/ void wtoken_print_21_ (void){
     wdup();
     wtoken_print_prefix_21_();
     wdup();
@@ -3968,7 +3969,7 @@ static void wtoken_print_21_ (void){
 }
 
 // show-tokens!
-static void wshow_tokens_21_ (void){
+/*static*/ void wshow_tokens_21_ (void){
     push(0);
     wdup();
     wnum_tokens_40_();
@@ -3987,80 +3988,80 @@ static void wshow_tokens_21_ (void){
 }
 
 // lexer-row@
-static void wlexer_row_40_ (void){
+/*static*/ void wlexer_row_40_ (void){
     wLEXER_ROW();
     w_40_();
 }
 
 // lexer-row!
-static void wlexer_row_21_ (void){
+/*static*/ void wlexer_row_21_ (void){
     wLEXER_ROW();
     w_21_();
 }
 
 // lexer-col@
-static void wlexer_col_40_ (void){
+/*static*/ void wlexer_col_40_ (void){
     wLEXER_COL();
     w_40_();
 }
 
 // lexer-col!
-static void wlexer_col_21_ (void){
+/*static*/ void wlexer_col_21_ (void){
     wLEXER_COL();
     w_21_();
 }
 
 // lexer-idx@
-static void wlexer_idx_40_ (void){
+/*static*/ void wlexer_idx_40_ (void){
     wLEXER_IDX();
     w_40_();
 }
 
 // lexer-idx!
-static void wlexer_idx_21_ (void){
+/*static*/ void wlexer_idx_21_ (void){
     wLEXER_IDX();
     w_21_();
 }
 
 // LEXER_STACK_SIZE
-static void wLEXER_STACK_SIZE (void){
+/*static*/ void wLEXER_STACK_SIZE (void){
     push(512);
 }
 
 // lexer-stack-length@
-static void wlexer_stack_length_40_ (void){
+/*static*/ void wlexer_stack_length_40_ (void){
     wLEXER_STACK_LENGTH();
     w_40_();
 }
 
 // lexer-stack-length!
-static void wlexer_stack_length_21_ (void){
+/*static*/ void wlexer_stack_length_21_ (void){
     wLEXER_STACK_LENGTH();
     w_21_();
 }
 
 // lexer-stack-clear!
-static void wlexer_stack_clear_21_ (void){
+/*static*/ void wlexer_stack_clear_21_ (void){
     push(0);
     wlexer_stack_length_21_();
 }
 
 // lexer-stack-empty?
-static void wlexer_stack_empty_3F_ (void){
+/*static*/ void wlexer_stack_empty_3F_ (void){
     wlexer_stack_length_40_();
     push(0);
     w_3C__3D_();
 }
 
 // lexer-stack-full?
-static void wlexer_stack_full_3F_ (void){
+/*static*/ void wlexer_stack_full_3F_ (void){
     wlexer_stack_length_40_();
     wLEXER_STACK_SIZE();
     w_3E__3D_();
 }
 
 // lexer-stack-push!
-static void wlexer_stack_push_21_ (void){
+/*static*/ void wlexer_stack_push_21_ (void){
     wlexer_stack_full_3F_();
     if (pop()) {
     push((int64_t)(strings + 609));
@@ -4077,7 +4078,7 @@ static void wlexer_stack_push_21_ (void){
 }
 
 // lexer-stack-pop!
-static void wlexer_stack_pop_21_ (void){
+/*static*/ void wlexer_stack_pop_21_ (void){
     wlexer_stack_empty_3F_();
     if (pop()) {
     push((int64_t)(strings + 646));
@@ -4094,7 +4095,7 @@ static void wlexer_stack_pop_21_ (void){
 }
 
 // run-lexer!
-static void wrun_lexer_21_ (void){
+/*static*/ void wrun_lexer_21_ (void){
     push(1);
     wlexer_row_21_();
     push(1);
@@ -4123,14 +4124,14 @@ static void wrun_lexer_21_ (void){
 }
 
 // lexer-done?
-static void wlexer_done_3F_ (void){
+/*static*/ void wlexer_done_3F_ (void){
     wlexer_idx_40_();
     wfile_buf_length_40_();
     w_3E__3D_();
 }
 
 // lexer-next!
-static void wlexer_next_21_ (void){
+/*static*/ void wlexer_next_21_ (void){
     wlexer_peek();
     wis_newline_3F_();
     if (pop()) {
@@ -4186,20 +4187,20 @@ static void wlexer_next_21_ (void){
 }
 
 // lexer-emit!
-static void wlexer_emit_21_ (void){
+/*static*/ void wlexer_emit_21_ (void){
     wlexer_make_21_();
     wdrop();
 }
 
 // emit-fatal-error!
-static void wemit_fatal_error_21_ (void){
+/*static*/ void wemit_fatal_error_21_ (void){
     wemit_error_21_();
     push(1);
     wposix_exit_21_();
 }
 
 // lexer-make!
-static void wlexer_make_21_ (void){
+/*static*/ void wlexer_make_21_ (void){
     wtoken_new();
     wdup();
     { int64_t d1 = pop();
@@ -4226,20 +4227,20 @@ static void wlexer_make_21_ (void){
 }
 
 // lexer-peek
-static void wlexer_peek (void){
+/*static*/ void wlexer_peek (void){
     wlexer_idx_40_();
     wfile_buf_40_();
 }
 
 // is-newline?
-static void wis_newline_3F_ (void){
+/*static*/ void wis_newline_3F_ (void){
     wdup();
     push(10);
     w_3D_();
 }
 
 // lexer-emit-newline!
-static void wlexer_emit_newline_21_ (void){
+/*static*/ void wlexer_emit_newline_21_ (void){
     wlexer_row_40_();
     w1_2B_();
     wlexer_row_21_();
@@ -4248,7 +4249,7 @@ static void wlexer_emit_newline_21_ (void){
 }
 
 // is-whitespace?
-static void wis_whitespace_3F_ (void){
+/*static*/ void wis_whitespace_3F_ (void){
     wdup();
     push(9);
     w_3D_();
@@ -4261,14 +4262,14 @@ static void wis_whitespace_3F_ (void){
 }
 
 // is-pound?
-static void wis_pound_3F_ (void){
+/*static*/ void wis_pound_3F_ (void){
     wdup();
     push(35);
     w_3D_();
 }
 
 // lexer-skip-comment!
-static void wlexer_skip_comment_21_ (void){
+/*static*/ void wlexer_skip_comment_21_ (void){
     wlexer_comment_end_3F_();
     wnot();
     for (int64_t c1 = pop(); c1; c1 = pop()) {
@@ -4289,21 +4290,21 @@ static void wlexer_skip_comment_21_ (void){
 }
 
 // is-comma?
-static void wis_comma_3F_ (void){
+/*static*/ void wis_comma_3F_ (void){
     wdup();
     push(44);
     w_3D_();
 }
 
 // is-lparen?
-static void wis_lparen_3F_ (void){
+/*static*/ void wis_lparen_3F_ (void){
     wdup();
     push(40);
     w_3D_();
 }
 
 // lexer-emit-lparen!
-static void wlexer_emit_lparen_21_ (void){
+/*static*/ void wlexer_emit_lparen_21_ (void){
     wTOKEN_LPAREN();
     push(0);
     wlexer_make_21_();
@@ -4311,14 +4312,14 @@ static void wlexer_emit_lparen_21_ (void){
 }
 
 // is-rparen?
-static void wis_rparen_3F_ (void){
+/*static*/ void wis_rparen_3F_ (void){
     wdup();
     push(41);
     w_3D_();
 }
 
 // lexer-emit-rparen!
-static void wlexer_emit_rparen_21_ (void){
+/*static*/ void wlexer_emit_rparen_21_ (void){
     wlexer_stack_empty_3F_();
     if (pop()) {
     push((int64_t)(strings + 713));
@@ -4335,14 +4336,14 @@ static void wlexer_emit_rparen_21_ (void){
 }
 
 // is-quote?
-static void wis_quote_3F_ (void){
+/*static*/ void wis_quote_3F_ (void){
     wdup();
     push(34);
     w_3D_();
 }
 
 // lexer-emit-string!
-static void wlexer_emit_string_21_ (void){
+/*static*/ void wlexer_emit_string_21_ (void){
     wstr_buf_clear_21_();
     wTOKEN_STR();
     push(0);
@@ -4367,7 +4368,7 @@ static void wlexer_emit_string_21_ (void){
 }
 
 // is-name-char?
-static void wis_name_char_3F_ (void){
+/*static*/ void wis_name_char_3F_ (void){
     wis_special_char_3F_();
     if (pop()) {
     push(0);
@@ -4380,7 +4381,7 @@ static void wis_name_char_3F_ (void){
 }
 
 // lexer-emit-name!
-static void wlexer_emit_name_21_ (void){
+/*static*/ void wlexer_emit_name_21_ (void){
     wstr_buf_clear_21_();
     wTOKEN_NAME();
     push(0);
@@ -4413,7 +4414,7 @@ static void wlexer_emit_name_21_ (void){
 }
 
 // lexer-move!
-static void wlexer_move_21_ (void){
+/*static*/ void wlexer_move_21_ (void){
     wlexer_idx_40_();
     w1_2B_();
     wlexer_idx_21_();
@@ -4423,14 +4424,14 @@ static void wlexer_move_21_ (void){
 }
 
 // lexer-emit-fatal-error!
-static void wlexer_emit_fatal_error_21_ (void){
+/*static*/ void wlexer_emit_fatal_error_21_ (void){
     wlexer_emit_error_21_();
     push(1);
     wposix_exit_21_();
 }
 
 // lexer-move-back!
-static void wlexer_move_back_21_ (void){
+/*static*/ void wlexer_move_back_21_ (void){
     wlexer_idx_40_();
     w1_();
     wlexer_idx_21_();
@@ -4440,7 +4441,7 @@ static void wlexer_move_back_21_ (void){
 }
 
 // str-buf-is-int?
-static void wstr_buf_is_int_3F_ (void){
+/*static*/ void wstr_buf_is_int_3F_ (void){
     wstr_buf_is_dec_int_3F_();
     if (pop()) {
     push(1);
@@ -4450,7 +4451,7 @@ static void wstr_buf_is_int_3F_ (void){
 }
 
 // str-buf-int?
-static void wstr_buf_int_3F_ (void){
+/*static*/ void wstr_buf_int_3F_ (void){
     wstr_buf_is_dec_int_3F_();
     if (pop()) {
     wstr_buf_dec_int_3F_();
@@ -4460,7 +4461,7 @@ static void wstr_buf_int_3F_ (void){
 }
 
 // str-buf-is-dec-int?
-static void wstr_buf_is_dec_int_3F_ (void){
+/*static*/ void wstr_buf_is_dec_int_3F_ (void){
     push(0);
     push(0);
     wdup();
@@ -4501,7 +4502,7 @@ static void wstr_buf_is_dec_int_3F_ (void){
 }
 
 // str-buf-is-hex-int?
-static void wstr_buf_is_hex_int_3F_ (void){
+/*static*/ void wstr_buf_is_hex_int_3F_ (void){
     push(0);
     push(0);
     wdup();
@@ -4560,7 +4561,7 @@ static void wstr_buf_is_hex_int_3F_ (void){
 }
 
 // is-sign?
-static void wis_sign_3F_ (void){
+/*static*/ void wis_sign_3F_ (void){
     wis_plus_sign_3F_();
     { int64_t d1 = pop();
     wis_minus_sign_3F_();
@@ -4569,13 +4570,13 @@ static void wis_sign_3F_ (void){
 }
 
 // is-zero-char
-static void wis_zero_char (void){
+/*static*/ void wis_zero_char (void){
     push(48);
     w_3D_();
 }
 
 // is-xX-char
-static void wis_xX_char (void){
+/*static*/ void wis_xX_char (void){
     wdup();
     push(88);
     w_3D_();
@@ -4587,7 +4588,7 @@ static void wis_xX_char (void){
 }
 
 // is-hexdigit?
-static void wis_hexdigit_3F_ (void){
+/*static*/ void wis_hexdigit_3F_ (void){
     wis_digit_3F_();
     { int64_t d1 = pop();
     wis_upper_hexdigit_3F_();
@@ -4600,7 +4601,7 @@ static void wis_hexdigit_3F_ (void){
 }
 
 // str-buf-dec-int?
-static void wstr_buf_dec_int_3F_ (void){
+/*static*/ void wstr_buf_dec_int_3F_ (void){
     push(1);
     push(0);
     push(0);
@@ -4651,7 +4652,7 @@ static void wstr_buf_dec_int_3F_ (void){
 }
 
 // str-buf-hex-int?
-static void wstr_buf_hex_int_3F_ (void){
+/*static*/ void wstr_buf_hex_int_3F_ (void){
     push(1);
     push(0);
     push(0);
@@ -4703,14 +4704,14 @@ static void wstr_buf_hex_int_3F_ (void){
 }
 
 // is-minus-sign?
-static void wis_minus_sign_3F_ (void){
+/*static*/ void wis_minus_sign_3F_ (void){
     wdup();
     push(45);
     w_3D_();
 }
 
 // hexdigit-value
-static void whexdigit_value (void){
+/*static*/ void whexdigit_value (void){
     wis_digit_3F_();
     if (pop()) {
     push(48);
@@ -4728,7 +4729,7 @@ static void whexdigit_value (void){
 }
 
 // is-upper-hexdigit?
-static void wis_upper_hexdigit_3F_ (void){
+/*static*/ void wis_upper_hexdigit_3F_ (void){
     wdup();
     push(65);
     push(70);
@@ -4736,7 +4737,7 @@ static void wis_upper_hexdigit_3F_ (void){
 }
 
 // is-string-end?
-static void wis_string_end_3F_ (void){
+/*static*/ void wis_string_end_3F_ (void){
     wis_quote_3F_();
     { int64_t d1 = pop();
     wis_newline_3F_();
@@ -4749,7 +4750,7 @@ static void wis_string_end_3F_ (void){
 }
 
 // lexer-push-string-char!
-static void wlexer_push_string_char_21_ (void){
+/*static*/ void wlexer_push_string_char_21_ (void){
     wis_backslash_3F_();
     if (pop()) {
     wdrop();
@@ -4800,35 +4801,35 @@ static void wlexer_push_string_char_21_ (void){
 }
 
 // is-backslash?
-static void wis_backslash_3F_ (void){
+/*static*/ void wis_backslash_3F_ (void){
     wdup();
     push(92);
     w_3D_();
 }
 
 // is-n?
-static void wis_n_3F_ (void){
+/*static*/ void wis_n_3F_ (void){
     wdup();
     push(110);
     w_3D_();
 }
 
 // is-r?
-static void wis_r_3F_ (void){
+/*static*/ void wis_r_3F_ (void){
     wdup();
     push(114);
     w_3D_();
 }
 
 // is-t?
-static void wis_t_3F_ (void){
+/*static*/ void wis_t_3F_ (void){
     wdup();
     push(116);
     w_3D_();
 }
 
 // lexer-emit-warning!
-static void wlexer_emit_warning_21_ (void){
+/*static*/ void wlexer_emit_warning_21_ (void){
     push((int64_t)(strings + 1040));
     wstr_trace_21_();
     wlexer_trace_prefix_21_();
@@ -4838,7 +4839,7 @@ static void wlexer_emit_warning_21_ (void){
 }
 
 // lexer-comment-end?
-static void wlexer_comment_end_3F_ (void){
+/*static*/ void wlexer_comment_end_3F_ (void){
     wlexer_done_3F_();
     if (pop()) {
     push(1);
@@ -4850,7 +4851,7 @@ static void wlexer_comment_end_3F_ (void){
 }
 
 // in-range
-static void win_range (void){
+/*static*/ void win_range (void){
     { int64_t d1 = pop();
     wover();
     { int64_t d2 = pop();
@@ -4862,7 +4863,7 @@ static void win_range (void){
 }
 
 // is-lower-hexdigit?
-static void wis_lower_hexdigit_3F_ (void){
+/*static*/ void wis_lower_hexdigit_3F_ (void){
     wdup();
     push(97);
     push(102);
@@ -4870,7 +4871,7 @@ static void wis_lower_hexdigit_3F_ (void){
 }
 
 // is-special-char?
-static void wis_special_char_3F_ (void){
+/*static*/ void wis_special_char_3F_ (void){
     wis_quote_3F_();
     { int64_t d1 = pop();
     wis_lparen_3F_();
@@ -4891,7 +4892,7 @@ static void wis_special_char_3F_ (void){
 }
 
 // lexer-trace-prefix!
-static void wlexer_trace_prefix_21_ (void){
+/*static*/ void wlexer_trace_prefix_21_ (void){
     wlexer_row_40_();
     wint_trace_21_();
     push((int64_t)(strings + 778));
@@ -4903,50 +4904,50 @@ static void wlexer_trace_prefix_21_ (void){
 }
 
 // VSTACK_SIZE
-static void wVSTACK_SIZE (void){
+/*static*/ void wVSTACK_SIZE (void){
     push(8192);
 }
 
 // vstack-len@
-static void wvstack_len_40_ (void){
+/*static*/ void wvstack_len_40_ (void){
     wVSTACK_LEN();
     w_40_();
 }
 
 // vstack-len!
-static void wvstack_len_21_ (void){
+/*static*/ void wvstack_len_21_ (void){
     wVSTACK_LEN();
     w_21_();
 }
 
 // vstack-empty?
-static void wvstack_empty_3F_ (void){
+/*static*/ void wvstack_empty_3F_ (void){
     wvstack_len_40_();
     push(0);
     w_3C__3D_();
 }
 
 // vstack-full?
-static void wvstack_full_3F_ (void){
+/*static*/ void wvstack_full_3F_ (void){
     wvstack_len_40_();
     wVSTACK_SIZE();
     w_3E__3D_();
 }
 
 // vstack-i64@
-static void wvstack_i64_40_ (void){
+/*static*/ void wvstack_i64_40_ (void){
     wVSTACK_BUF();
     wlong_40__40_();
 }
 
 // vstack-i64!
-static void wvstack_i64_21_ (void){
+/*static*/ void wvstack_i64_21_ (void){
     wVSTACK_BUF();
     wlong_21__21_();
 }
 
 // vstack-pop!
-static void wvstack_pop_21_ (void){
+/*static*/ void wvstack_pop_21_ (void){
     wvstack_empty_3F_();
     if (pop()) {
     push((int64_t)(strings + 782));
@@ -4962,7 +4963,7 @@ static void wvstack_pop_21_ (void){
 }
 
 // vstack-pop2!
-static void wvstack_pop2_21_ (void){
+/*static*/ void wvstack_pop2_21_ (void){
     wvstack_pop_21_();
     { int64_t d1 = pop();
     wvstack_pop_21_();
@@ -4970,7 +4971,7 @@ static void wvstack_pop2_21_ (void){
 }
 
 // vstack-pop3!
-static void wvstack_pop3_21_ (void){
+/*static*/ void wvstack_pop3_21_ (void){
     wvstack_pop_21_();
     { int64_t d1 = pop();
     wvstack_pop2_21_();
@@ -4978,7 +4979,7 @@ static void wvstack_pop3_21_ (void){
 }
 
 // vstack-pop4!
-static void wvstack_pop4_21_ (void){
+/*static*/ void wvstack_pop4_21_ (void){
     wvstack_pop_21_();
     { int64_t d1 = pop();
     wvstack_pop3_21_();
@@ -4986,7 +4987,7 @@ static void wvstack_pop4_21_ (void){
 }
 
 // vstack-pop5!
-static void wvstack_pop5_21_ (void){
+/*static*/ void wvstack_pop5_21_ (void){
     wvstack_pop_21_();
     { int64_t d1 = pop();
     wvstack_pop4_21_();
@@ -4994,7 +4995,7 @@ static void wvstack_pop5_21_ (void){
 }
 
 // vstack-pop6!
-static void wvstack_pop6_21_ (void){
+/*static*/ void wvstack_pop6_21_ (void){
     wvstack_pop_21_();
     { int64_t d1 = pop();
     wvstack_pop5_21_();
@@ -5002,7 +5003,7 @@ static void wvstack_pop6_21_ (void){
 }
 
 // vstack-push!
-static void wvstack_push_21_ (void){
+/*static*/ void wvstack_push_21_ (void){
     wvstack_full_3F_();
     if (pop()) {
     push((int64_t)(strings + 832));
@@ -5018,7 +5019,7 @@ static void wvstack_push_21_ (void){
 }
 
 // vstack-push2!
-static void wvstack_push2_21_ (void){
+/*static*/ void wvstack_push2_21_ (void){
     { int64_t d1 = pop();
     wvstack_push_21_();
       push(d1); }
@@ -5026,7 +5027,7 @@ static void wvstack_push2_21_ (void){
 }
 
 // vstack-push3!
-static void wvstack_push3_21_ (void){
+/*static*/ void wvstack_push3_21_ (void){
     { int64_t d1 = pop();
     wvstack_push2_21_();
       push(d1); }
@@ -5034,7 +5035,7 @@ static void wvstack_push3_21_ (void){
 }
 
 // vstack-top@
-static void wvstack_top_40_ (void){
+/*static*/ void wvstack_top_40_ (void){
     wvstack_empty_3F_();
     if (pop()) {
     push((int64_t)(strings + 881));
@@ -5048,7 +5049,7 @@ static void wvstack_top_40_ (void){
 }
 
 // vstack-top!
-static void wvstack_top_21_ (void){
+/*static*/ void wvstack_top_21_ (void){
     wvstack_empty_3F_();
     if (pop()) {
     push((int64_t)(strings + 941));
@@ -5062,7 +5063,7 @@ static void wvstack_top_21_ (void){
 }
 
 // vstack-trace!
-static void wvstack_trace_21_ (void){
+/*static*/ void wvstack_trace_21_ (void){
     push(0);
     wdup();
     wvstack_len_40_();
@@ -5083,7 +5084,7 @@ static void wvstack_trace_21_ (void){
 }
 
 // emit-warning!
-static void wemit_warning_21_ (void){
+/*static*/ void wemit_warning_21_ (void){
     push((int64_t)(strings + 1000));
     wstr_trace_21_();
     { int64_t d1 = pop();
@@ -5095,7 +5096,7 @@ static void wemit_warning_21_ (void){
 }
 
 // emit-error!
-static void wemit_error_21_ (void){
+/*static*/ void wemit_error_21_ (void){
     push((int64_t)(strings + 1021));
     wstr_trace_21_();
     { int64_t d1 = pop();
@@ -5107,7 +5108,7 @@ static void wemit_error_21_ (void){
 }
 
 // lexer-emit-error!
-static void wlexer_emit_error_21_ (void){
+/*static*/ void wlexer_emit_error_21_ (void){
     push((int64_t)(strings + 1061));
     wstr_trace_21_();
     wlexer_trace_prefix_21_();
@@ -5117,7 +5118,7 @@ static void wlexer_emit_error_21_ (void){
 }
 
 // token-run!
-static void wtoken_run_21_ (void){
+/*static*/ void wtoken_run_21_ (void){
     wtoken_run_end_3F_();
     wnot();
     for (int64_t c1 = pop(); c1; c1 = pop()) {
@@ -5131,7 +5132,7 @@ static void wtoken_run_21_ (void){
 }
 
 // token-run-end?
-static void wtoken_run_end_3F_ (void){
+/*static*/ void wtoken_run_end_3F_ (void){
     wdup();
     wnum_tokens_40_();
     w_3E__3D_();
@@ -5159,7 +5160,7 @@ static void wtoken_run_end_3F_ (void){
 }
 
 // token-run-one!
-static void wtoken_run_one_21_ (void){
+/*static*/ void wtoken_run_one_21_ (void){
     wdup();
     wtypecheck_token_21_();
     wtoken_type_3F_();
@@ -5208,7 +5209,7 @@ static void wtoken_run_one_21_ (void){
 }
 
 // typecheck-token!
-static void wtypecheck_token_21_ (void){
+/*static*/ void wtypecheck_token_21_ (void){
     wtoken_type_3F_();
     wTOKEN_NAME();
     w_3D_();
@@ -5234,7 +5235,7 @@ static void wtypecheck_token_21_ (void){
 }
 
 // arity-check!
-static void warity_check_21_ (void){
+/*static*/ void warity_check_21_ (void){
     { int64_t d1 = pop();
     { int64_t d2 = pop();
     wvstack_len_40_();
@@ -5269,7 +5270,7 @@ static void warity_check_21_ (void){
 }
 
 // token-run-name!
-static void wtoken_run_name_21_ (void){
+/*static*/ void wtoken_run_name_21_ (void){
     wtoken_value_3F_();
     wname_is_prim_3F_();
     if (pop()) {
@@ -5305,7 +5306,7 @@ static void wtoken_run_name_21_ (void){
 }
 
 // token-run-prim!
-static void wtoken_run_prim_21_ (void){
+/*static*/ void wtoken_run_prim_21_ (void){
     wtoken_value_3F_();
     wdup();
     wPRIM_ID();
@@ -5864,40 +5865,40 @@ static void wtoken_run_prim_21_ (void){
 }
 
 // name-undefined?
-static void wname_undefined_3F_ (void){
+/*static*/ void wname_undefined_3F_ (void){
     wname_sort_3F_();
     wDEF_NONE();
     w_3D_();
 }
 
 // name-is-word?
-static void wname_is_word_3F_ (void){
+/*static*/ void wname_is_word_3F_ (void){
     wname_sort_3F_();
     wDEF_WORD();
     w_3D_();
 }
 
 // name-value@
-static void wname_value_40_ (void){
+/*static*/ void wname_value_40_ (void){
     wDEF_VALUE();
     wlong_40__40_();
 }
 
 // name-is-buffer?
-static void wname_is_buffer_3F_ (void){
+/*static*/ void wname_is_buffer_3F_ (void){
     wname_sort_3F_();
     wDEF_BUFFER();
     w_3D_();
 }
 
 // buffer-base@
-static void wbuffer_base_40_ (void){
+/*static*/ void wbuffer_base_40_ (void){
     wBUFFER_BASE();
     wlong_40__40_();
 }
 
 // token-args-0
-static void wtoken_args_0 (void){
+/*static*/ void wtoken_args_0 (void){
     w1_2B_();
     wtoken_type_3F_();
     wTOKEN_LPAREN();
@@ -5911,7 +5912,7 @@ static void wtoken_args_0 (void){
 }
 
 // token-args-1
-static void wtoken_args_1 (void){
+/*static*/ void wtoken_args_1 (void){
     wdup();
     w1_2B_();
     wtoken_type_3F_();
@@ -5940,7 +5941,7 @@ static void wtoken_args_1 (void){
 }
 
 // token-args-2
-static void wtoken_args_2 (void){
+/*static*/ void wtoken_args_2 (void){
     wdup();
     w1_2B_();
     wtoken_type_3F_();
@@ -5983,7 +5984,7 @@ static void wtoken_args_2 (void){
 }
 
 // token-args-3
-static void wtoken_args_3 (void){
+/*static*/ void wtoken_args_3 (void){
     wdup();
     w1_2B_();
     wtoken_type_3F_();
@@ -6041,35 +6042,35 @@ static void wtoken_args_3 (void){
 }
 
 // DEF_WORD
-static void wDEF_WORD (void){
+/*static*/ void wDEF_WORD (void){
     push(1);
 }
 
 // name-sort!
-static void wname_sort_21_ (void){
+/*static*/ void wname_sort_21_ (void){
     wDEF_SORT();
     wbyte_21__21_();
 }
 
 // name-value!
-static void wname_value_21_ (void){
+/*static*/ void wname_value_21_ (void){
     wDEF_VALUE();
     wlong_21__21_();
 }
 
 // name-sig!
-static void wname_sig_21_ (void){
+/*static*/ void wname_sig_21_ (void){
     wDEF_SIG();
     wlong_21__21_();
 }
 
 // DEF_BUFFER
-static void wDEF_BUFFER (void){
+/*static*/ void wDEF_BUFFER (void){
     push(2);
 }
 
 // buffer-alloc!
-static void wbuffer_alloc_21_ (void){
+/*static*/ void wbuffer_alloc_21_ (void){
     wnum_buffers_40_();
     wMAX_BUFFERS();
     w_3E__3D_();
@@ -6091,12 +6092,12 @@ static void wbuffer_alloc_21_ (void){
 }
 
 // NEW_MIRTH_REVISION
-static void wNEW_MIRTH_REVISION (void){
+/*static*/ void wNEW_MIRTH_REVISION (void){
     push(0);
 }
 
 // run-output-c99!
-static void wrun_output_c99_21_ (void){
+/*static*/ void wrun_output_c99_21_ (void){
     wstrings_load_21_();
     wstr_buf_create_file_21_();
     wfile_out_21_();
@@ -6112,7 +6113,7 @@ static void wrun_output_c99_21_ (void){
 }
 
 // token-next-arg-end
-static void wtoken_next_arg_end (void){
+/*static*/ void wtoken_next_arg_end (void){
     wtoken_is_arg_end_3F_();
     wnot();
     for (int64_t c1 = pop(); c1; c1 = pop()) {
@@ -6125,7 +6126,7 @@ static void wtoken_next_arg_end (void){
 }
 
 // token-is-arg-end?
-static void wtoken_is_arg_end_3F_ (void){
+/*static*/ void wtoken_is_arg_end_3F_ (void){
     wtoken_type_3F_();
     wTOKEN_COMMA();
     w_3D_();
@@ -6139,7 +6140,7 @@ static void wtoken_is_arg_end_3F_ (void){
 }
 
 // token-next
-static void wtoken_next (void){
+/*static*/ void wtoken_next (void){
     wtoken_type_3F_();
     wTOKEN_LPAREN();
     w_3D_();
@@ -6168,36 +6169,36 @@ static void wtoken_next (void){
 }
 
 // MAX_BUFFERS
-static void wMAX_BUFFERS (void){
+/*static*/ void wMAX_BUFFERS (void){
     push(4096);
 }
 
 // num-buffers@
-static void wnum_buffers_40_ (void){
+/*static*/ void wnum_buffers_40_ (void){
     wNUM_BUFFERS();
     w_40_();
 }
 
 // num-buffers!
-static void wnum_buffers_21_ (void){
+/*static*/ void wnum_buffers_21_ (void){
     wNUM_BUFFERS();
     w_21_();
 }
 
 // buffer-size@
-static void wbuffer_size_40_ (void){
+/*static*/ void wbuffer_size_40_ (void){
     wBUFFER_SIZE();
     wlong_40__40_();
 }
 
 // buffer-size!
-static void wbuffer_size_21_ (void){
+/*static*/ void wbuffer_size_21_ (void){
     wBUFFER_SIZE();
     wlong_21__21_();
 }
 
 // heap-alloc!
-static void wheap_alloc_21_ (void){
+/*static*/ void wheap_alloc_21_ (void){
     push(64);
     walign();
     wdup();
@@ -6214,140 +6215,140 @@ static void wheap_alloc_21_ (void){
 }
 
 // buffer-base!
-static void wbuffer_base_21_ (void){
+/*static*/ void wbuffer_base_21_ (void){
     wBUFFER_BASE();
     wlong_21__21_();
 }
 
 // DEF_NONE
-static void wDEF_NONE (void){
+/*static*/ void wDEF_NONE (void){
     push(0);
 }
 
 // name-sort@
-static void wname_sort_40_ (void){
+/*static*/ void wname_sort_40_ (void){
     wDEF_SORT();
     wbyte_40__40_();
 }
 
 // name-sort?
-static void wname_sort_3F_ (void){
+/*static*/ void wname_sort_3F_ (void){
     wdup();
     wname_sort_40_();
 }
 
 // name-value?
-static void wname_value_3F_ (void){
+/*static*/ void wname_value_3F_ (void){
     wdup();
     wname_value_40_();
 }
 
 // name-sig@
-static void wname_sig_40_ (void){
+/*static*/ void wname_sig_40_ (void){
     wDEF_SIG();
     wlong_40__40_();
 }
 
 // name-sig?
-static void wname_sig_3F_ (void){
+/*static*/ void wname_sig_3F_ (void){
     wdup();
     wname_sig_40_();
 }
 
 // name-defined?
-static void wname_defined_3F_ (void){
+/*static*/ void wname_defined_3F_ (void){
     wname_undefined_3F_();
     wnot();
 }
 
 // name-checked!
-static void wname_checked_21_ (void){
+/*static*/ void wname_checked_21_ (void){
     wDEF_CHECKED();
     wbyte_21__21_();
 }
 
 // name-checked@
-static void wname_checked_40_ (void){
+/*static*/ void wname_checked_40_ (void){
     wDEF_CHECKED();
     wbyte_40__40_();
 }
 
 // name-checked?
-static void wname_checked_3F_ (void){
+/*static*/ void wname_checked_3F_ (void){
     wdup();
     wname_checked_40_();
 }
 
 // TSTACK_SIZE
-static void wTSTACK_SIZE (void){
+/*static*/ void wTSTACK_SIZE (void){
     wVSTACK_SIZE();
 }
 
 // tstack-len!
-static void wtstack_len_21_ (void){
+/*static*/ void wtstack_len_21_ (void){
     wTSTACK_LEN();
     w_21_();
 }
 
 // tstack-len@
-static void wtstack_len_40_ (void){
+/*static*/ void wtstack_len_40_ (void){
     wTSTACK_LEN();
     w_40_();
 }
 
 // tstack-base!
-static void wtstack_base_21_ (void){
+/*static*/ void wtstack_base_21_ (void){
     wTSTACK_BASE();
     w_21_();
 }
 
 // tstack-base@
-static void wtstack_base_40_ (void){
+/*static*/ void wtstack_base_40_ (void){
     wTSTACK_BASE();
     w_40_();
 }
 
 // tstack-length?
-static void wtstack_length_3F_ (void){
+/*static*/ void wtstack_length_3F_ (void){
     wtstack_len_40_();
     wtstack_base_40_();
     w_();
 }
 
 // tstack-empty?
-static void wtstack_empty_3F_ (void){
+/*static*/ void wtstack_empty_3F_ (void){
     wtstack_len_40_();
     wtstack_base_40_();
     w_3C__3D_();
 }
 
 // tstack-full?
-static void wtstack_full_3F_ (void){
+/*static*/ void wtstack_full_3F_ (void){
     wtstack_len_40_();
     wTSTACK_SIZE();
     w_3E__3D_();
 }
 
 // tstack-clear!
-static void wtstack_clear_21_ (void){
+/*static*/ void wtstack_clear_21_ (void){
     wtstack_base_40_();
     wtstack_len_21_();
 }
 
 // tstack!
-static void wtstack_21_ (void){
+/*static*/ void wtstack_21_ (void){
     wTSTACK_BUF();
     wlong_21__21_();
 }
 
 // tstack@
-static void wtstack_40_ (void){
+/*static*/ void wtstack_40_ (void){
     wTSTACK_BUF();
     wlong_40__40_();
 }
 
 // tstack-pop!
-static void wtstack_pop_21_ (void){
+/*static*/ void wtstack_pop_21_ (void){
     wtstack_empty_3F_();
     if (pop()) {
     push((int64_t)(strings + 1617));
@@ -6363,7 +6364,7 @@ static void wtstack_pop_21_ (void){
 }
 
 // tstack-push!
-static void wtstack_push_21_ (void){
+/*static*/ void wtstack_push_21_ (void){
     wtstack_full_3F_();
     if (pop()) {
     push((int64_t)(strings + 1657));
@@ -6379,7 +6380,7 @@ static void wtstack_push_21_ (void){
 }
 
 // tstack-pop2!
-static void wtstack_pop2_21_ (void){
+/*static*/ void wtstack_pop2_21_ (void){
     wtstack_pop_21_();
     { int64_t d1 = pop();
     wtstack_pop_21_();
@@ -6387,7 +6388,7 @@ static void wtstack_pop2_21_ (void){
 }
 
 // tstack-pop3!
-static void wtstack_pop3_21_ (void){
+/*static*/ void wtstack_pop3_21_ (void){
     wtstack_pop_21_();
     { int64_t d1 = pop();
     wtstack_pop2_21_();
@@ -6395,7 +6396,7 @@ static void wtstack_pop3_21_ (void){
 }
 
 // tstack-push2!
-static void wtstack_push2_21_ (void){
+/*static*/ void wtstack_push2_21_ (void){
     { int64_t d1 = pop();
     wtstack_push_21_();
       push(d1); }
@@ -6403,7 +6404,7 @@ static void wtstack_push2_21_ (void){
 }
 
 // tstack-enter!
-static void wtstack_enter_21_ (void){
+/*static*/ void wtstack_enter_21_ (void){
     wtstack_base_40_();
     wtstack_push_21_();
     wtstack_len_40_();
@@ -6411,7 +6412,7 @@ static void wtstack_enter_21_ (void){
 }
 
 // tstack-leave!
-static void wtstack_leave_21_ (void){
+/*static*/ void wtstack_leave_21_ (void){
     wtstack_base_40_();
     push(0);
     w_3C__3D_();
@@ -6429,7 +6430,7 @@ static void wtstack_leave_21_ (void){
 }
 
 // tstack-frame-dup!
-static void wtstack_frame_dup_21_ (void){
+/*static*/ void wtstack_frame_dup_21_ (void){
     wtstack_len_40_();
     wtstack_base_40_();
     wtstack_enter_21_();
@@ -6449,31 +6450,31 @@ static void wtstack_frame_dup_21_ (void){
 }
 
 // tstack-num-stashes@
-static void wtstack_num_stashes_40_ (void){
+/*static*/ void wtstack_num_stashes_40_ (void){
     wTSTACK_NUM_STASHES();
     w_40_();
 }
 
 // tstack-num-stashes!
-static void wtstack_num_stashes_21_ (void){
+/*static*/ void wtstack_num_stashes_21_ (void){
     wTSTACK_NUM_STASHES();
     w_21_();
 }
 
 // tstack-stash-len@
-static void wtstack_stash_len_40_ (void){
+/*static*/ void wtstack_stash_len_40_ (void){
     wTSTACK_STASH_LEN();
     wlong_40__40_();
 }
 
 // tstack-stash-len!
-static void wtstack_stash_len_21_ (void){
+/*static*/ void wtstack_stash_len_21_ (void){
     wTSTACK_STASH_LEN();
     wlong_21__21_();
 }
 
 // tstack-stash-len-push!
-static void wtstack_stash_len_push_21_ (void){
+/*static*/ void wtstack_stash_len_push_21_ (void){
     wtstack_num_stashes_40_();
     wTSTACK_SIZE();
     w_3C_();
@@ -6491,7 +6492,7 @@ static void wtstack_stash_len_push_21_ (void){
 }
 
 // tstack-stash-len-pop!
-static void wtstack_stash_len_pop_21_ (void){
+/*static*/ void wtstack_stash_len_pop_21_ (void){
     wtstack_num_stashes_40_();
     push(0);
     w_3E_();
@@ -6509,14 +6510,14 @@ static void wtstack_stash_len_pop_21_ (void){
 }
 
 // tstack-frame-stash!
-static void wtstack_frame_stash_21_ (void){
+/*static*/ void wtstack_frame_stash_21_ (void){
     wtstack_length_3F_();
     wtstack_stash_len_push_21_();
     wtstack_leave_21_();
 }
 
 // tstack-frame-unify!
-static void wtstack_frame_unify_21_ (void){
+/*static*/ void wtstack_frame_unify_21_ (void){
     wtstack_length_3F_();
     wtstack_stash_len_pop_21_();
     wdup2();
@@ -6546,7 +6547,7 @@ static void wtstack_frame_unify_21_ (void){
 }
 
 // typecheck-name!
-static void wtypecheck_name_21_ (void){
+/*static*/ void wtypecheck_name_21_ (void){
     wname_checked_3F_();
     if (pop()) {
     wdrop();
@@ -6589,7 +6590,7 @@ static void wtypecheck_name_21_ (void){
 }
 
 // typecheck-word!
-static void wtypecheck_word_21_ (void){
+/*static*/ void wtypecheck_word_21_ (void){
     wname_sig_3F_();
     wtypecheck_word_sig_21_();
     wtstack_enter_21_();
@@ -6604,17 +6605,17 @@ static void wtypecheck_word_21_ (void){
 }
 
 // typecheck-buffer!
-static void wtypecheck_buffer_21_ (void){
+/*static*/ void wtypecheck_buffer_21_ (void){
     wdrop();
 }
 
 // typecheck-word-sig!
-static void wtypecheck_word_sig_21_ (void){
+/*static*/ void wtypecheck_word_sig_21_ (void){
     wdrop();
 }
 
 // sig-push-inputs!
-static void wsig_push_inputs_21_ (void){
+/*static*/ void wsig_push_inputs_21_ (void){
     wsig_has_dashes_3F_();
     if (pop()) {
     wsig_dashes_end_3F_();
@@ -6648,7 +6649,7 @@ static void wsig_push_inputs_21_ (void){
 }
 
 // typecheck-run!
-static void wtypecheck_run_21_ (void){
+/*static*/ void wtypecheck_run_21_ (void){
     wtoken_is_arg_end_3F_();
     wnot();
     for (int64_t c1 = pop(); c1; c1 = pop()) {
@@ -6664,7 +6665,7 @@ static void wtypecheck_run_21_ (void){
 }
 
 // sig-match-outputs!
-static void wsig_match_outputs_21_ (void){
+/*static*/ void wsig_match_outputs_21_ (void){
     wdup();
     wsig_arity();
     wnip();
@@ -6693,7 +6694,7 @@ static void wsig_match_outputs_21_ (void){
 }
 
 // typecheck-run-one!
-static void wtypecheck_run_one_21_ (void){
+/*static*/ void wtypecheck_run_one_21_ (void){
     wdup();
     wtypecheck_token_21_();
     wtoken_type_3F_();
@@ -6733,7 +6734,7 @@ static void wtypecheck_run_one_21_ (void){
 }
 
 // tstack-arity-check!
-static void wtstack_arity_check_21_ (void){
+/*static*/ void wtstack_arity_check_21_ (void){
     { int64_t d1 = pop();
     { int64_t d2 = pop();
     wtstack_len_40_();
@@ -6765,7 +6766,7 @@ static void wtstack_arity_check_21_ (void){
 }
 
 // typecheck-run-name!
-static void wtypecheck_run_name_21_ (void){
+/*static*/ void wtypecheck_run_name_21_ (void){
     wname_is_prim_3F_();
     if (pop()) {
     wdrop();
@@ -6794,7 +6795,7 @@ static void wtypecheck_run_name_21_ (void){
 }
 
 // typecheck-run-prim!
-static void wtypecheck_run_prim_21_ (void){
+/*static*/ void wtypecheck_run_prim_21_ (void){
     wtoken_value_3F_();
     wPRIM_ID();
     w_3D_();
@@ -7224,14 +7225,14 @@ static void wtypecheck_run_prim_21_ (void){
 }
 
 // sig-apply!
-static void wsig_apply_21_ (void){
+/*static*/ void wsig_apply_21_ (void){
     wdup2();
     wsig_pop_inputs_21_();
     wsig_push_outputs_21_();
 }
 
 // token-is-dashes
-static void wtoken_is_dashes (void){
+/*static*/ void wtoken_is_dashes (void){
     wtoken_type_3F_();
     wTOKEN_NAME();
     w_3D_();
@@ -7246,13 +7247,13 @@ static void wtoken_is_dashes (void){
 }
 
 // token-is-dashes?
-static void wtoken_is_dashes_3F_ (void){
+/*static*/ void wtoken_is_dashes_3F_ (void){
     wdup();
     wtoken_is_dashes();
 }
 
 // sig-dashes-end?
-static void wsig_dashes_end_3F_ (void){
+/*static*/ void wsig_dashes_end_3F_ (void){
     wtoken_is_dashes_3F_();
     if (pop()) {
     push(1);
@@ -7262,7 +7263,7 @@ static void wsig_dashes_end_3F_ (void){
 }
 
 // sig-has-dashes
-static void wsig_has_dashes (void){
+/*static*/ void wsig_has_dashes (void){
     wsig_dashes_end_3F_();
     wnot();
     for (int64_t c1 = pop(); c1; c1 = pop()) {
@@ -7276,13 +7277,13 @@ static void wsig_has_dashes (void){
 }
 
 // sig-has-dashes?
-static void wsig_has_dashes_3F_ (void){
+/*static*/ void wsig_has_dashes_3F_ (void){
     wdup();
     wsig_has_dashes();
 }
 
 // sig-arity
-static void wsig_arity (void){
+/*static*/ void wsig_arity (void){
     wsig_has_dashes_3F_();
     if (pop()) {
     wsig_count_types();
@@ -7299,7 +7300,7 @@ static void wsig_arity (void){
 }
 
 // sig-count-types
-static void wsig_count_types (void){
+/*static*/ void wsig_count_types (void){
     { int64_t d1 = pop();
     push(0);
       push(d1); }
@@ -7323,7 +7324,7 @@ static void wsig_count_types (void){
 }
 
 // sig-token-is-type?
-static void wsig_token_is_type_3F_ (void){
+/*static*/ void wsig_token_is_type_3F_ (void){
     wtoken_type_3F_();
     wTOKEN_NAME();
     w_3D_();
@@ -7336,7 +7337,7 @@ static void wsig_token_is_type_3F_ (void){
 }
 
 // sig-token-is-type-con?
-static void wsig_token_is_type_con_3F_ (void){
+/*static*/ void wsig_token_is_type_con_3F_ (void){
     wtoken_type_3F_();
     wTOKEN_NAME();
     w_3D_();
@@ -7349,7 +7350,7 @@ static void wsig_token_is_type_con_3F_ (void){
 }
 
 // sig-token-is-type-var?
-static void wsig_token_is_type_var_3F_ (void){
+/*static*/ void wsig_token_is_type_var_3F_ (void){
     wtoken_type_3F_();
     wTOKEN_NAME();
     w_3D_();
@@ -7362,7 +7363,7 @@ static void wsig_token_is_type_var_3F_ (void){
 }
 
 // sig-pop-inputs!
-static void wsig_pop_inputs_21_ (void){
+/*static*/ void wsig_pop_inputs_21_ (void){
     wsig_arity();
     wdrop();
     wdup();
@@ -7385,7 +7386,7 @@ static void wsig_pop_inputs_21_ (void){
 }
 
 // sig-push-outputs!
-static void wsig_push_outputs_21_ (void){
+/*static*/ void wsig_push_outputs_21_ (void){
     wsig_arity();
     wnip();
     for (int64_t c1 = pop(); c1; c1 = pop()) {
@@ -7398,40 +7399,40 @@ static void wsig_push_outputs_21_ (void){
 }
 
 // c99-emit-header!
-static void wc99_emit_header_21_ (void){
-    push((int64_t)(strings + 2254));
+/*static*/ void wc99_emit_header_21_ (void){
+    push((int64_t)(strings + 2258));
     w_3B_();
-    push((int64_t)(strings + 2296));
+    push((int64_t)(strings + 2300));
     w_3B_();
-    push((int64_t)(strings + 2317));
+    push((int64_t)(strings + 2321));
     w_3B_();
-    push((int64_t)(strings + 2337));
+    push((int64_t)(strings + 2341));
     w_3B_();
-    push((int64_t)(strings + 2357));
+    push((int64_t)(strings + 2361));
     w_3B_();
-    push((int64_t)(strings + 2376));
+    push((int64_t)(strings + 2380));
     w_3B_();
-    push((int64_t)(strings + 2395));
+    push((int64_t)(strings + 2399));
     w_3B_();
-    push((int64_t)(strings + 2415));
+    push((int64_t)(strings + 2419));
     w_3B__3B_();
-    push((int64_t)(strings + 2437));
+    push((int64_t)(strings + 2441));
     w_3B_();
-    push((int64_t)(strings + 2461));
+    push((int64_t)(strings + 2465));
     w_3B_();
-    push((int64_t)(strings + 2492));
+    push((int64_t)(strings + 2496));
     w_3B__3B_();
 }
 
 // c99-emit-strings!
-static void wc99_emit_strings_21_ (void){
-    push((int64_t)(strings + 2532));
+/*static*/ void wc99_emit_strings_21_ (void){
+    push((int64_t)(strings + 2536));
     w_2E_();
     wstrings_size_40_();
     w_2E_n();
-    push((int64_t)(strings + 2554));
+    push((int64_t)(strings + 2558));
     w_3B_();
-    push((int64_t)(strings + 2555));
+    push((int64_t)(strings + 2559));
     w_3B_();
     push(0);
     wdup();
@@ -7445,7 +7446,7 @@ static void wc99_emit_strings_21_ (void){
     wbyte_40__40_();
     wdup();
     w_2E_n();
-    push((int64_t)(strings + 2594));
+    push((int64_t)(strings + 2598));
     w_2E_();
     if (pop()) {
     wid();
@@ -7458,466 +7459,466 @@ static void wc99_emit_strings_21_ (void){
     w_3C_();
     }
     wdrop();
-    push((int64_t)(strings + 2597));
+    push((int64_t)(strings + 2601));
     w_3B__3B_();
 }
 
 // c99-emit-prims!
-static void wc99_emit_prims_21_ (void){
-    push((int64_t)(strings + 2674));
+/*static*/ void wc99_emit_prims_21_ (void){
+    push((int64_t)(strings + 2682));
     w_3B_();
-    push((int64_t)(strings + 2702));
+    push((int64_t)(strings + 2710));
     w_3B_();
-    push((int64_t)(strings + 2729));
+    push((int64_t)(strings + 2737));
     w_3B_();
-    push((int64_t)(strings + 2757));
+    push((int64_t)(strings + 2765));
     w_3B_();
-    push((int64_t)(strings + 2770));
+    push((int64_t)(strings + 2778));
     w_2E_q();
-    push((int64_t)(strings + 2795));
+    push((int64_t)(strings + 2803));
     w_2E_q();
-    push((int64_t)(strings + 2811));
+    push((int64_t)(strings + 2819));
     w_3B_();
-    push((int64_t)(strings + 2814));
+    push((int64_t)(strings + 2822));
     w_3B_();
-    push((int64_t)(strings + 2841));
+    push((int64_t)(strings + 2849));
     w_3B_();
-    push((int64_t)(strings + 2858));
-    w_3B_();
-    push((int64_t)(strings + 2864));
-    w_3B__3B_();
     push((int64_t)(strings + 2866));
     w_3B_();
-    push((int64_t)(strings + 2896));
-    w_3B_();
-    push((int64_t)(strings + 2919));
-    w_3B_();
-    push((int64_t)(strings + 2940));
+    push((int64_t)(strings + 2872));
     w_3B__3B_();
-    push((int64_t)(strings + 2942));
+    push((int64_t)(strings + 2874));
     w_3B_();
-    push((int64_t)(strings + 2973));
+    push((int64_t)(strings + 2904));
     w_3B_();
-    push((int64_t)(strings + 2996));
+    push((int64_t)(strings + 2927));
     w_3B_();
-    push((int64_t)(strings + 3019));
+    push((int64_t)(strings + 2948));
     w_3B__3B_();
-    push((int64_t)(strings + 3021));
+    push((int64_t)(strings + 2950));
     w_3B_();
-    push((int64_t)(strings + 3052));
+    push((int64_t)(strings + 2981));
     w_3B_();
-    push((int64_t)(strings + 3070));
+    push((int64_t)(strings + 3004));
     w_3B_();
-    push((int64_t)(strings + 3095));
+    push((int64_t)(strings + 3027));
+    w_3B__3B_();
+    push((int64_t)(strings + 3029));
     w_3B_();
-    push((int64_t)(strings + 3108));
+    push((int64_t)(strings + 3060));
+    w_3B_();
+    push((int64_t)(strings + 3078));
+    w_3B_();
+    push((int64_t)(strings + 3103));
+    w_3B_();
+    push((int64_t)(strings + 3116));
     w_2E_q();
-    push((int64_t)(strings + 3133));
+    push((int64_t)(strings + 3141));
     w_2E_q();
-    push((int64_t)(strings + 3148));
+    push((int64_t)(strings + 3156));
     w_3B_();
-    push((int64_t)(strings + 3151));
+    push((int64_t)(strings + 3159));
     w_3B_();
-    push((int64_t)(strings + 3178));
+    push((int64_t)(strings + 3186));
     w_3B_();
-    push((int64_t)(strings + 3195));
+    push((int64_t)(strings + 3203));
     w_3B_();
-    push((int64_t)(strings + 3201));
+    push((int64_t)(strings + 3209));
     w_3B__3B_();
     wPRIM_ID();
     w_2E_w();
-    push((int64_t)(strings + 3203));
+    push((int64_t)(strings + 3211));
     w_3B_();
-    push((int64_t)(strings + 3206));
+    push((int64_t)(strings + 3214));
     w_3B__3B_();
     wPRIM_DUP();
     w_2E_w();
-    push((int64_t)(strings + 3208));
+    push((int64_t)(strings + 3216));
     w_3B_();
-    push((int64_t)(strings + 3211));
+    push((int64_t)(strings + 3219));
     w_3B_();
-    push((int64_t)(strings + 3234));
+    push((int64_t)(strings + 3242));
     w_3B_();
-    push((int64_t)(strings + 3256));
+    push((int64_t)(strings + 3264));
     w_3B__3B_();
     wPRIM_DROP();
     w_2E_w();
-    push((int64_t)(strings + 3258));
+    push((int64_t)(strings + 3266));
     w_3B_();
-    push((int64_t)(strings + 3261));
+    push((int64_t)(strings + 3269));
     w_3B_();
-    push((int64_t)(strings + 3272));
+    push((int64_t)(strings + 3280));
     w_3B__3B_();
     wPRIM_SWAP();
     w_2E_w();
-    push((int64_t)(strings + 3274));
+    push((int64_t)(strings + 3282));
     w_3B_();
-    push((int64_t)(strings + 3277));
+    push((int64_t)(strings + 3285));
     w_3B_();
-    push((int64_t)(strings + 3300));
+    push((int64_t)(strings + 3308));
     w_3B_();
-    push((int64_t)(strings + 3323));
+    push((int64_t)(strings + 3331));
     w_3B_();
-    push((int64_t)(strings + 3345));
+    push((int64_t)(strings + 3353));
     w_3B__3B_();
     wPRIM_INT_ADD();
     w_2E_w();
-    push((int64_t)(strings + 3347));
+    push((int64_t)(strings + 3355));
     w_3B_();
-    push((int64_t)(strings + 3350));
+    push((int64_t)(strings + 3358));
     w_3B_();
-    push((int64_t)(strings + 3373));
+    push((int64_t)(strings + 3381));
     w_3B_();
-    push((int64_t)(strings + 3396));
+    push((int64_t)(strings + 3404));
     w_3B_();
-    push((int64_t)(strings + 3413));
+    push((int64_t)(strings + 3421));
     w_3B__3B_();
     wPRIM_INT_SUB();
     w_2E_w();
-    push((int64_t)(strings + 3415));
+    push((int64_t)(strings + 3423));
     w_3B_();
-    push((int64_t)(strings + 3418));
+    push((int64_t)(strings + 3426));
     w_3B_();
-    push((int64_t)(strings + 3441));
+    push((int64_t)(strings + 3449));
     w_3B_();
-    push((int64_t)(strings + 3464));
+    push((int64_t)(strings + 3472));
     w_3B_();
-    push((int64_t)(strings + 3481));
+    push((int64_t)(strings + 3489));
     w_3B__3B_();
     wPRIM_INT_MUL();
     w_2E_w();
-    push((int64_t)(strings + 3483));
+    push((int64_t)(strings + 3491));
     w_3B_();
-    push((int64_t)(strings + 3486));
+    push((int64_t)(strings + 3494));
     w_3B_();
-    push((int64_t)(strings + 3509));
+    push((int64_t)(strings + 3517));
     w_3B_();
-    push((int64_t)(strings + 3532));
+    push((int64_t)(strings + 3540));
     w_3B_();
-    push((int64_t)(strings + 3549));
+    push((int64_t)(strings + 3557));
     w_3B__3B_();
     wPRIM_INT_DIV();
     w_2E_w();
-    push((int64_t)(strings + 3551));
+    push((int64_t)(strings + 3559));
     w_3B_();
-    push((int64_t)(strings + 3554));
+    push((int64_t)(strings + 3562));
     w_3B_();
-    push((int64_t)(strings + 3577));
+    push((int64_t)(strings + 3585));
     w_3B_();
-    push((int64_t)(strings + 3600));
+    push((int64_t)(strings + 3608));
     w_3B_();
-    push((int64_t)(strings + 3617));
+    push((int64_t)(strings + 3625));
     w_3B__3B_();
     wPRIM_INT_MOD();
     w_2E_w();
-    push((int64_t)(strings + 3619));
+    push((int64_t)(strings + 3627));
     w_3B_();
-    push((int64_t)(strings + 3622));
+    push((int64_t)(strings + 3630));
     w_3B_();
-    push((int64_t)(strings + 3645));
+    push((int64_t)(strings + 3653));
     w_3B_();
-    push((int64_t)(strings + 3668));
+    push((int64_t)(strings + 3676));
     w_3B_();
-    push((int64_t)(strings + 3685));
+    push((int64_t)(strings + 3693));
     w_3B__3B_();
     wPRIM_INT_EQ();
     w_2E_w();
-    push((int64_t)(strings + 3687));
+    push((int64_t)(strings + 3695));
     w_3B_();
-    push((int64_t)(strings + 3690));
+    push((int64_t)(strings + 3698));
     w_3B_();
-    push((int64_t)(strings + 3713));
+    push((int64_t)(strings + 3721));
     w_3B_();
-    push((int64_t)(strings + 3736));
+    push((int64_t)(strings + 3744));
     w_3B_();
-    push((int64_t)(strings + 3754));
+    push((int64_t)(strings + 3762));
     w_3B__3B_();
     wPRIM_INT_LT();
     w_2E_w();
-    push((int64_t)(strings + 3756));
+    push((int64_t)(strings + 3764));
     w_3B_();
-    push((int64_t)(strings + 3759));
+    push((int64_t)(strings + 3767));
     w_3B_();
-    push((int64_t)(strings + 3782));
+    push((int64_t)(strings + 3790));
     w_3B_();
-    push((int64_t)(strings + 3805));
+    push((int64_t)(strings + 3813));
     w_3B_();
-    push((int64_t)(strings + 3822));
+    push((int64_t)(strings + 3830));
     w_3B__3B_();
     wPRIM_INT_LE();
     w_2E_w();
-    push((int64_t)(strings + 3824));
+    push((int64_t)(strings + 3832));
     w_3B_();
-    push((int64_t)(strings + 3827));
+    push((int64_t)(strings + 3835));
     w_3B_();
-    push((int64_t)(strings + 3850));
+    push((int64_t)(strings + 3858));
     w_3B_();
-    push((int64_t)(strings + 3873));
+    push((int64_t)(strings + 3881));
     w_3B_();
-    push((int64_t)(strings + 3891));
+    push((int64_t)(strings + 3899));
     w_3B__3B_();
     wPRIM_INT_AND();
     w_2E_w();
-    push((int64_t)(strings + 3893));
+    push((int64_t)(strings + 3901));
     w_3B_();
-    push((int64_t)(strings + 3896));
+    push((int64_t)(strings + 3904));
     w_3B_();
-    push((int64_t)(strings + 3919));
+    push((int64_t)(strings + 3927));
     w_3B_();
-    push((int64_t)(strings + 3942));
+    push((int64_t)(strings + 3950));
     w_3B_();
-    push((int64_t)(strings + 3959));
+    push((int64_t)(strings + 3967));
     w_3B__3B_();
     wPRIM_INT_OR();
     w_2E_w();
-    push((int64_t)(strings + 3961));
+    push((int64_t)(strings + 3969));
     w_3B_();
-    push((int64_t)(strings + 3964));
+    push((int64_t)(strings + 3972));
     w_3B_();
-    push((int64_t)(strings + 3987));
+    push((int64_t)(strings + 3995));
     w_3B_();
-    push((int64_t)(strings + 4010));
+    push((int64_t)(strings + 4018));
     w_3B_();
-    push((int64_t)(strings + 4027));
+    push((int64_t)(strings + 4035));
     w_3B__3B_();
     wPRIM_INT_XOR();
     w_2E_w();
-    push((int64_t)(strings + 4029));
+    push((int64_t)(strings + 4037));
     w_3B_();
-    push((int64_t)(strings + 4032));
+    push((int64_t)(strings + 4040));
     w_3B_();
-    push((int64_t)(strings + 4055));
+    push((int64_t)(strings + 4063));
     w_3B_();
-    push((int64_t)(strings + 4078));
+    push((int64_t)(strings + 4086));
     w_3B_();
-    push((int64_t)(strings + 4095));
+    push((int64_t)(strings + 4103));
     w_3B__3B_();
     wPRIM_INT_SHL();
     w_2E_w();
-    push((int64_t)(strings + 4097));
+    push((int64_t)(strings + 4105));
     w_3B_();
-    push((int64_t)(strings + 4100));
+    push((int64_t)(strings + 4108));
     w_3B_();
-    push((int64_t)(strings + 4123));
+    push((int64_t)(strings + 4131));
     w_3B_();
-    push((int64_t)(strings + 4146));
+    push((int64_t)(strings + 4154));
     w_3B_();
-    push((int64_t)(strings + 4164));
+    push((int64_t)(strings + 4172));
     w_3B__3B_();
     wPRIM_INT_SHR();
     w_2E_w();
-    push((int64_t)(strings + 4166));
+    push((int64_t)(strings + 4174));
     w_3B_();
-    push((int64_t)(strings + 4169));
+    push((int64_t)(strings + 4177));
     w_3B_();
-    push((int64_t)(strings + 4192));
+    push((int64_t)(strings + 4200));
     w_3B_();
-    push((int64_t)(strings + 4215));
+    push((int64_t)(strings + 4223));
     w_3B_();
-    push((int64_t)(strings + 4233));
+    push((int64_t)(strings + 4241));
     w_3B__3B_();
     wPRIM_POSIX_WRITE();
     w_2E_w();
-    push((int64_t)(strings + 4235));
+    push((int64_t)(strings + 4243));
     w_3B_();
-    push((int64_t)(strings + 4238));
+    push((int64_t)(strings + 4246));
     w_3B_();
-    push((int64_t)(strings + 4268));
+    push((int64_t)(strings + 4276));
     w_3B_();
-    push((int64_t)(strings + 4293));
+    push((int64_t)(strings + 4301));
     w_3B_();
-    push((int64_t)(strings + 4317));
+    push((int64_t)(strings + 4325));
     w_3B_();
-    push((int64_t)(strings + 4337));
+    push((int64_t)(strings + 4345));
     w_3B__3B_();
     wPRIM_POSIX_READ();
     w_2E_w();
-    push((int64_t)(strings + 4339));
+    push((int64_t)(strings + 4347));
     w_3B_();
-    push((int64_t)(strings + 4342));
+    push((int64_t)(strings + 4350));
     w_3B_();
-    push((int64_t)(strings + 4372));
+    push((int64_t)(strings + 4380));
     w_3B_();
-    push((int64_t)(strings + 4397));
+    push((int64_t)(strings + 4405));
     w_3B_();
-    push((int64_t)(strings + 4421));
+    push((int64_t)(strings + 4429));
     w_3B_();
-    push((int64_t)(strings + 4444));
+    push((int64_t)(strings + 4452));
     w_3B__3B_();
     wPRIM_POSIX_OPEN();
     w_2E_w();
-    push((int64_t)(strings + 4446));
+    push((int64_t)(strings + 4454));
     w_3B_();
-    push((int64_t)(strings + 4449));
+    push((int64_t)(strings + 4457));
     w_3B_();
-    push((int64_t)(strings + 4473));
+    push((int64_t)(strings + 4481));
     w_3B_();
-    push((int64_t)(strings + 4497));
+    push((int64_t)(strings + 4505));
     w_3B_();
-    push((int64_t)(strings + 4522));
+    push((int64_t)(strings + 4530));
     w_3B_();
-    push((int64_t)(strings + 4545));
+    push((int64_t)(strings + 4553));
     w_3B__3B_();
     wPRIM_POSIX_CLOSE();
     w_2E_w();
-    push((int64_t)(strings + 4547));
+    push((int64_t)(strings + 4555));
     w_3B_();
-    push((int64_t)(strings + 4550));
+    push((int64_t)(strings + 4558));
     w_3B_();
-    push((int64_t)(strings + 4574));
+    push((int64_t)(strings + 4582));
     w_3B_();
-    push((int64_t)(strings + 4594));
+    push((int64_t)(strings + 4602));
     w_3B__3B_();
     wPRIM_POSIX_EXIT();
     w_2E_w();
-    push((int64_t)(strings + 4596));
+    push((int64_t)(strings + 4604));
     w_3B_();
-    push((int64_t)(strings + 4599));
+    push((int64_t)(strings + 4607));
     w_3B_();
-    push((int64_t)(strings + 4623));
+    push((int64_t)(strings + 4631));
     w_3B_();
-    push((int64_t)(strings + 4636));
+    push((int64_t)(strings + 4644));
     w_3B__3B_();
     wPRIM_POSIX_MMAP();
     w_2E_w();
-    push((int64_t)(strings + 4638));
+    push((int64_t)(strings + 4646));
     w_3B_();
-    push((int64_t)(strings + 4641));
+    push((int64_t)(strings + 4649));
     w_3B_();
-    push((int64_t)(strings + 4665));
+    push((int64_t)(strings + 4673));
     w_3B_();
-    push((int64_t)(strings + 4689));
+    push((int64_t)(strings + 4697));
     w_3B_();
-    push((int64_t)(strings + 4713));
+    push((int64_t)(strings + 4721));
     w_3B_();
-    push((int64_t)(strings + 4737));
+    push((int64_t)(strings + 4745));
     w_3B_();
-    push((int64_t)(strings + 4767));
+    push((int64_t)(strings + 4775));
     w_3B_();
-    push((int64_t)(strings + 4792));
+    push((int64_t)(strings + 4800));
     w_3B_();
-    push((int64_t)(strings + 4825));
+    push((int64_t)(strings + 4833));
     w_3B_();
-    push((int64_t)(strings + 4847));
+    push((int64_t)(strings + 4855));
     w_3B__3B_();
     wPRIM_DEBUG();
     w_2E_w();
-    push((int64_t)(strings + 4849));
+    push((int64_t)(strings + 4857));
     w_3B_();
-    push((int64_t)(strings + 4852));
+    push((int64_t)(strings + 4860));
     w_2E_q();
-    push((int64_t)(strings + 4873));
+    push((int64_t)(strings + 4881));
     w_2E_q();
-    push((int64_t)(strings + 4877));
+    push((int64_t)(strings + 4885));
     w_3B_();
-    push((int64_t)(strings + 4880));
+    push((int64_t)(strings + 4888));
     w_3B_();
-    push((int64_t)(strings + 4934));
+    push((int64_t)(strings + 4942));
     w_2E_q();
-    push((int64_t)(strings + 4959));
+    push((int64_t)(strings + 4967));
     w_2E_q();
-    push((int64_t)(strings + 4963));
+    push((int64_t)(strings + 4971));
     w_3B_();
-    push((int64_t)(strings + 4983));
+    push((int64_t)(strings + 4991));
     w_3B_();
-    push((int64_t)(strings + 4989));
+    push((int64_t)(strings + 4997));
     w_3B_();
-    push((int64_t)(strings + 5012));
+    push((int64_t)(strings + 5020));
     w_3B__3B_();
     wPRIM_MIRTH_REVISION();
     w_2E_w();
-    push((int64_t)(strings + 5014));
+    push((int64_t)(strings + 5022));
     w_3B_();
-    push((int64_t)(strings + 5017));
+    push((int64_t)(strings + 5025));
     w_2E_();
     wNEW_MIRTH_REVISION();
     w_2E_n();
-    push((int64_t)(strings + 5027));
+    push((int64_t)(strings + 5035));
     w_3B_();
-    push((int64_t)(strings + 5030));
+    push((int64_t)(strings + 5038));
     w_3B__3B_();
     wPRIM_MEM_GET();
     w_2E_w();
-    push((int64_t)(strings + 5032));
+    push((int64_t)(strings + 5040));
     w_3B_();
-    push((int64_t)(strings + 5035));
+    push((int64_t)(strings + 5043));
     w_3B_();
-    push((int64_t)(strings + 5075));
+    push((int64_t)(strings + 5083));
     w_3B__3B_();
     wPRIM_MEM_SET();
     w_2E_w();
-    push((int64_t)(strings + 5077));
+    push((int64_t)(strings + 5085));
     w_3B_();
-    push((int64_t)(strings + 5080));
+    push((int64_t)(strings + 5088));
     w_3B_();
-    push((int64_t)(strings + 5108));
+    push((int64_t)(strings + 5116));
     w_3B_();
-    push((int64_t)(strings + 5133));
+    push((int64_t)(strings + 5141));
     w_3B__3B_();
     wPRIM_MEM_GET_BYTE();
     w_2E_w();
-    push((int64_t)(strings + 5135));
+    push((int64_t)(strings + 5143));
     w_3B_();
-    push((int64_t)(strings + 5138));
+    push((int64_t)(strings + 5146));
     w_3B_();
-    push((int64_t)(strings + 5166));
+    push((int64_t)(strings + 5174));
     w_3B_();
-    push((int64_t)(strings + 5180));
+    push((int64_t)(strings + 5188));
     w_3B__3B_();
     wPRIM_MEM_SET_BYTE();
     w_2E_w();
-    push((int64_t)(strings + 5182));
+    push((int64_t)(strings + 5190));
     w_3B_();
-    push((int64_t)(strings + 5185));
+    push((int64_t)(strings + 5193));
     w_3B_();
-    push((int64_t)(strings + 5213));
+    push((int64_t)(strings + 5221));
     w_3B_();
-    push((int64_t)(strings + 5232));
+    push((int64_t)(strings + 5240));
     w_3B__3B_();
     wPRIM_RUNNING_OS();
     w_2E_w();
-    push((int64_t)(strings + 5234));
+    push((int64_t)(strings + 5242));
     w_3B_();
-    push((int64_t)(strings + 5237));
+    push((int64_t)(strings + 5245));
     w_3B_();
-    push((int64_t)(strings + 5316));
+    push((int64_t)(strings + 5324));
     w_2E_();
     wWINDOWS();
     w_2E_n();
-    push((int64_t)(strings + 5326));
+    push((int64_t)(strings + 5334));
     w_3B_();
-    push((int64_t)(strings + 5329));
+    push((int64_t)(strings + 5337));
     w_3B_();
-    push((int64_t)(strings + 5354));
+    push((int64_t)(strings + 5362));
     w_2E_();
     wLINUX();
     w_2E_n();
-    push((int64_t)(strings + 5364));
+    push((int64_t)(strings + 5372));
     w_3B_();
-    push((int64_t)(strings + 5367));
+    push((int64_t)(strings + 5375));
     w_3B_();
-    push((int64_t)(strings + 5392));
+    push((int64_t)(strings + 5400));
     w_2E_();
     wMACOS();
     w_2E_n();
-    push((int64_t)(strings + 5402));
+    push((int64_t)(strings + 5410));
     w_3B_();
-    push((int64_t)(strings + 5405));
+    push((int64_t)(strings + 5413));
     w_3B_();
-    push((int64_t)(strings + 5411));
+    push((int64_t)(strings + 5419));
     w_2E_();
     wUNKNOWN();
     w_2E_n();
-    push((int64_t)(strings + 5421));
+    push((int64_t)(strings + 5429));
     w_3B_();
-    push((int64_t)(strings + 5424));
+    push((int64_t)(strings + 5432));
     w_3B_();
-    push((int64_t)(strings + 5431));
+    push((int64_t)(strings + 5439));
     w_3B__3B_();
 }
 
 // c99-emit-buffers!
-static void wc99_emit_buffers_21_ (void){
+/*static*/ void wc99_emit_buffers_21_ (void){
     push(0);
     wdup();
     wnum_names_40_();
@@ -7932,13 +7933,13 @@ static void wc99_emit_buffers_21_ (void){
     wnum_names_40_();
     w_3C_();
     }
-    push((int64_t)(strings + 2600));
+    push((int64_t)(strings + 2604));
     w_3B_();
     wdrop();
 }
 
 // c99-emit-word-sigs!
-static void wc99_emit_word_sigs_21_ (void){
+/*static*/ void wc99_emit_word_sigs_21_ (void){
     push(0);
     wdup();
     wnum_names_40_();
@@ -7953,13 +7954,13 @@ static void wc99_emit_word_sigs_21_ (void){
     wnum_names_40_();
     w_3C_();
     }
-    push((int64_t)(strings + 5433));
+    push((int64_t)(strings + 5441));
     w_3B_();
     wdrop();
 }
 
 // c99-emit-word-defs!
-static void wc99_emit_word_defs_21_ (void){
+/*static*/ void wc99_emit_word_defs_21_ (void){
     push(0);
     wdup();
     wnum_names_40_();
@@ -7978,82 +7979,82 @@ static void wc99_emit_word_defs_21_ (void){
 }
 
 // c99-emit-main!
-static void wc99_emit_main_21_ (void){
-    push((int64_t)(strings + 5665));
+/*static*/ void wc99_emit_main_21_ (void){
+    push((int64_t)(strings + 5677));
     w_3B_();
     wc99_emit_run_21_();
-    push((int64_t)(strings + 5683));
+    push((int64_t)(strings + 5695));
     w_3B_();
-    push((int64_t)(strings + 5697));
+    push((int64_t)(strings + 5709));
     w_3B_();
 }
 
 // c99-depth@
-static void wc99_depth_40_ (void){
+/*static*/ void wc99_depth_40_ (void){
     wC99_DEPTH();
     w_40_();
 }
 
 // c99-depth!
-static void wc99_depth_21_ (void){
+/*static*/ void wc99_depth_21_ (void){
     wC99_DEPTH();
     w_21_();
 }
 
 // c99-depth++
-static void wc99_depth_2B__2B_ (void){
+/*static*/ void wc99_depth_2B__2B_ (void){
     wc99_depth_40_();
     w1_2B_();
     wc99_depth_21_();
 }
 
 // c99-depth--
-static void wc99_depth__ (void){
+/*static*/ void wc99_depth__ (void){
     wc99_depth_40_();
     w1_();
     wc99_depth_21_();
 }
 
 // ;
-static void w_3B_ (void){
+/*static*/ void w_3B_ (void){
     wstr_print_ln_21_();
 }
 
 // ;;
-static void w_3B__3B_ (void){
+/*static*/ void w_3B__3B_ (void){
     wstr_print_ln_21_();
     wprint_ln_21_();
 }
 
 // .q
-static void w_2E_q (void){
+/*static*/ void w_2E_q (void){
     wstr_print_21_();
     wprint_quote_21_();
 }
 
 // .
-static void w_2E_ (void){
+/*static*/ void w_2E_ (void){
     wstr_print_21_();
 }
 
 // .n
-static void w_2E_n (void){
+/*static*/ void w_2E_n (void){
     wint_print_21_();
 }
 
 // .d
-static void w_2E_d (void){
+/*static*/ void w_2E_d (void){
     wc99_depth_40_();
     wint_print_21_();
 }
 
 // .name
-static void w_2E_name (void){
+/*static*/ void w_2E_name (void){
     wname_print_mangled_21_();
 }
 
 // .w
-static void w_2E_w (void){
+/*static*/ void w_2E_w (void){
     push((int64_t)(strings + 2228));
     w_2E_();
     wdup();
@@ -8063,34 +8064,34 @@ static void w_2E_w (void){
     push((int64_t)(strings + 2232));
     w_2E_();
     w_2E_name();
-    push((int64_t)(strings + 2246));
+    push((int64_t)(strings + 2250));
     w_2E_();
 }
 
 // c99-emit-buffer!
-static void wc99_emit_buffer_21_ (void){
+/*static*/ void wc99_emit_buffer_21_ (void){
     wname_is_buffer_3F_();
     if (pop()) {
-    push((int64_t)(strings + 2601));
+    push((int64_t)(strings + 2605));
     w_2E_();
     wdup();
     w_2E_name();
-    push((int64_t)(strings + 2618));
+    push((int64_t)(strings + 2622));
     w_2E_();
     wdup();
     wname_value_40_();
     wbuffer_size_40_();
     w_2E_n();
-    push((int64_t)(strings + 2620));
+    push((int64_t)(strings + 2624));
     w_3B_();
-    push((int64_t)(strings + 2629));
+    push((int64_t)(strings + 2633));
     w_2E_();
     wdup();
     w_2E_name();
-    push((int64_t)(strings + 2643));
+    push((int64_t)(strings + 2651));
     w_2E_();
     w_2E_name();
-    push((int64_t)(strings + 2669));
+    push((int64_t)(strings + 2677));
     w_3B_();
     } else {
     wdrop();
@@ -8098,23 +8099,23 @@ static void wc99_emit_buffer_21_ (void){
 }
 
 // WINDOWS
-static void wWINDOWS (void){
+/*static*/ void wWINDOWS (void){
     push(1);
 }
 
 // UNKNOWN
-static void wUNKNOWN (void){
+/*static*/ void wUNKNOWN (void){
     push(0);
 }
 
 // c99-emit-word-sig!
-static void wc99_emit_word_sig_21_ (void){
+/*static*/ void wc99_emit_word_sig_21_ (void){
     wname_is_word_3F_();
     if (pop()) {
-    push((int64_t)(strings + 5434));
+    push((int64_t)(strings + 5442));
     w_2E_();
     w_2E_name();
-    push((int64_t)(strings + 5448));
+    push((int64_t)(strings + 5460));
     w_3B_();
     } else {
     wdrop();
@@ -8122,18 +8123,18 @@ static void wc99_emit_word_sig_21_ (void){
 }
 
 // c99-emit-word-def!
-static void wc99_emit_word_def_21_ (void){
+/*static*/ void wc99_emit_word_def_21_ (void){
     wname_is_word_3F_();
     if (pop()) {
     wdup();
     wtypecheck_name_21_();
     wdup();
     w_2E_w();
-    push((int64_t)(strings + 5457));
+    push((int64_t)(strings + 5469));
     w_3B_();
     wname_value_40_();
     wc99_emit_run_21_();
-    push((int64_t)(strings + 5459));
+    push((int64_t)(strings + 5471));
     w_3B__3B_();
     } else {
     wdrop();
@@ -8141,7 +8142,7 @@ static void wc99_emit_word_def_21_ (void){
 }
 
 // c99-emit-run!
-static void wc99_emit_run_21_ (void){
+/*static*/ void wc99_emit_run_21_ (void){
     wc99_depth_2B__2B_();
     wtoken_run_end_3F_();
     wnot();
@@ -8159,29 +8160,29 @@ static void wc99_emit_run_21_ (void){
 }
 
 // c99-emit-token!
-static void wc99_emit_token_21_ (void){
+/*static*/ void wc99_emit_token_21_ (void){
     wdup();
     wtypecheck_token_21_();
     wtoken_type_3F_();
     wTOKEN_INT();
     w_3D_();
     if (pop()) {
-    push((int64_t)(strings + 5461));
+    push((int64_t)(strings + 5473));
     w_2E_();
     wtoken_value_40_();
     w_2E_n();
-    push((int64_t)(strings + 5471));
+    push((int64_t)(strings + 5483));
     w_3B_();
     } else {
     wtoken_type_3F_();
     wTOKEN_STR();
     w_3D_();
     if (pop()) {
-    push((int64_t)(strings + 5474));
+    push((int64_t)(strings + 5486));
     w_2E_();
     wtoken_value_40_();
     w_2E_n();
-    push((int64_t)(strings + 5504));
+    push((int64_t)(strings + 5516));
     w_3B_();
     } else {
     wtoken_type_3F_();
@@ -8197,22 +8198,22 @@ static void wc99_emit_token_21_ (void){
 }
 
 // c99-emit-word!
-static void wc99_emit_word_21_ (void){
+/*static*/ void wc99_emit_word_21_ (void){
     wtoken_value_3F_();
     wPRIM_DIP();
     w_3D_();
     if (pop()) {
     wtoken_args_1();
-    push((int64_t)(strings + 5508));
+    push((int64_t)(strings + 5520));
     w_2E_();
     w_2E_d();
-    push((int64_t)(strings + 5524));
+    push((int64_t)(strings + 5536));
     w_3B_();
     wc99_emit_run_21_();
-    push((int64_t)(strings + 5534));
+    push((int64_t)(strings + 5546));
     w_2E_();
     w_2E_d();
-    push((int64_t)(strings + 5547));
+    push((int64_t)(strings + 5559));
     w_3B_();
     } else {
     wtoken_value_3F_();
@@ -8220,15 +8221,15 @@ static void wc99_emit_word_21_ (void){
     w_3D_();
     if (pop()) {
     wtoken_args_2();
-    push((int64_t)(strings + 5552));
+    push((int64_t)(strings + 5564));
     w_3B_();
     { int64_t d3 = pop();
     wc99_emit_run_21_();
       push(d3); }
-    push((int64_t)(strings + 5569));
+    push((int64_t)(strings + 5581));
     w_3B_();
     wc99_emit_run_21_();
-    push((int64_t)(strings + 5582));
+    push((int64_t)(strings + 5594));
     w_3B_();
     } else {
     wtoken_value_3F_();
@@ -8236,31 +8237,31 @@ static void wc99_emit_word_21_ (void){
     w_3D_();
     if (pop()) {
     wtoken_args_1();
-    push((int64_t)(strings + 5588));
-    w_2E_();
-    w_2E_d();
-    push((int64_t)(strings + 5607));
+    push((int64_t)(strings + 5600));
     w_2E_();
     w_2E_d();
     push((int64_t)(strings + 5619));
     w_2E_();
     w_2E_d();
-    push((int64_t)(strings + 5623));
-    w_3B_();
-    push((int64_t)(strings + 5635));
+    push((int64_t)(strings + 5631));
     w_2E_();
     w_2E_d();
-    push((int64_t)(strings + 5646));
+    push((int64_t)(strings + 5635));
+    w_3B_();
+    push((int64_t)(strings + 5647));
+    w_2E_();
+    w_2E_d();
+    push((int64_t)(strings + 5658));
     w_3B_();
     wc99_emit_run_21_();
-    push((int64_t)(strings + 5649));
+    push((int64_t)(strings + 5661));
     w_3B_();
     } else {
     wtoken_value_40_();
-    push((int64_t)(strings + 5655));
+    push((int64_t)(strings + 5667));
     w_2E_();
     w_2E_name();
-    push((int64_t)(strings + 5661));
+    push((int64_t)(strings + 5673));
     w_3B_();
     }
     }
@@ -8268,48 +8269,48 @@ static void wc99_emit_word_21_ (void){
 }
 
 // BASE_HEAP_SIZE
-static void wBASE_HEAP_SIZE (void){
+/*static*/ void wBASE_HEAP_SIZE (void){
     push(4194304);
 }
 
 // heap-length@
-static void wheap_length_40_ (void){
+/*static*/ void wheap_length_40_ (void){
     wHEAP_LENGTH();
     w_40_();
 }
 
 // heap-length!
-static void wheap_length_21_ (void){
+/*static*/ void wheap_length_21_ (void){
     wHEAP_LENGTH();
     w_21_();
 }
 
 // heap-base@
-static void wheap_base_40_ (void){
+/*static*/ void wheap_base_40_ (void){
     wHEAP_BASE();
     w_40_();
 }
 
 // heap-base!
-static void wheap_base_21_ (void){
+/*static*/ void wheap_base_21_ (void){
     wHEAP_BASE();
     w_21_();
 }
 
 // heap-times-expanded@
-static void wheap_times_expanded_40_ (void){
+/*static*/ void wheap_times_expanded_40_ (void){
     wHEAP_TIMES_EXPANDED();
     w_40_();
 }
 
 // heap-times-expanded!
-static void wheap_times_expanded_21_ (void){
+/*static*/ void wheap_times_expanded_21_ (void){
     wHEAP_TIMES_EXPANDED();
     w_21_();
 }
 
 // ++heap-times-expanded
-static void w_2B__2B_heap_times_expanded (void){
+/*static*/ void w_2B__2B_heap_times_expanded (void){
     wheap_times_expanded_40_();
     w1_2B_();
     wdup();
@@ -8317,7 +8318,7 @@ static void w_2B__2B_heap_times_expanded (void){
 }
 
 // heap-reserve!
-static void wheap_reserve_21_ (void){
+/*static*/ void wheap_reserve_21_ (void){
     wdup();
     wheap_length_40_();
     w_3C__3D_();
@@ -8354,7 +8355,7 @@ static void wheap_reserve_21_ (void){
     wheap_length_21_();
     }
     } else {
-    push((int64_t)(strings + 5699));
+    push((int64_t)(strings + 5711));
     wpanic_21_();
     wdrop2();
     }
@@ -8362,7 +8363,7 @@ static void wheap_reserve_21_ (void){
 }
 
 // heap-new-size
-static void wheap_new_size (void){
+/*static*/ void wheap_new_size (void){
     push(4096);
     walign();
     wBASE_HEAP_SIZE();
@@ -8373,12 +8374,12 @@ static void wheap_new_size (void){
 }
 
 // PROT_READ|PROT_WRITE
-static void wPROT_READ_7C_PROT_WRITE (void){
+/*static*/ void wPROT_READ_7C_PROT_WRITE (void){
     push(3);
 }
 
 // MAP_ANON|MAP_PRIVATE
-static void wMAP_ANON_7C_MAP_PRIVATE (void){
+/*static*/ void wMAP_ANON_7C_MAP_PRIVATE (void){
     wRUNNING_OS();
     wMACOS();
     w_3D_();
@@ -8391,7 +8392,7 @@ static void wMAP_ANON_7C_MAP_PRIVATE (void){
     if (pop()) {
     push(34);
     } else {
-    push((int64_t)(strings + 5731));
+    push((int64_t)(strings + 5743));
     wpanic_21_();
     push(0);
     }
@@ -8399,7 +8400,7 @@ static void wMAP_ANON_7C_MAP_PRIVATE (void){
 }
 
 // align
-static void walign (void){
+/*static*/ void walign (void){
     wdup();
     { int64_t d1 = pop();
     w1_();
@@ -8411,13 +8412,13 @@ static void walign (void){
 }
 
 // square
-static void wsquare (void){
+/*static*/ void wsquare (void){
     wdup();
     w_2A_();
 }
 
 // max
-static void wmax (void){
+/*static*/ void wmax (void){
     wdup2();
     w_3C_();
     if (pop()) {
@@ -8428,12 +8429,12 @@ static void wmax (void){
 }
 
 // main
-static void wmain (void){
+/*static*/ void wmain (void){
     winit_21_();
     wrun_tests();
     wread_mirth_src_21_();
     wrun_lexer_21_();
-    push((int64_t)(strings + 5767));
+    push((int64_t)(strings + 5779));
     wstr_trace_ln_21_();
     push(0);
     wtoken_run_21_();
@@ -8441,7 +8442,7 @@ static void wmain (void){
     if (pop()) {
     wid();
     } else {
-    push((int64_t)(strings + 5777));
+    push((int64_t)(strings + 5789));
     wstr_trace_21_();
     wvstack_trace_21_();
     }
