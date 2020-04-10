@@ -601,7 +601,7 @@ def(PRIM_OUTPUT_C99, Prim, 32)
 def(PRIM_DASHES, Prim, 33)
 def(NUM_PRIMS, Prim, 34)
 
-def(name-is-prim?, Name -- Bool, dup NUM_PRIMS <)
+def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
 
 def(def-prim!, Prim Str -- +Names,
     str-buf! name-save! swap !!=)
@@ -1807,17 +1807,17 @@ def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
 MAX_NAMES def-static-buffer(DEF_CHECKED)
 def(name-checked!, Bool Name --, DEF_CHECKED byte!!)
 def(name-checked@, Name -- Bool, DEF_CHECKED byte@@)
-def(name-checked?, Name -- Bool, dup name-checked@)
+def(name-checked?, Name -- Name Bool, dup name-checked@)
 
 def(TSTACK_SIZE, Size, VSTACK_SIZE)
 long def-static-buffer(TSTACK_LEN)
 long def-static-buffer(TSTACK_BASE)
 TSTACK_SIZE longs def-static-buffer(TSTACK_BUF)
 
-def(tstack-len!, Size, TSTACK_LEN !)
+def(tstack-len!, Size --, TSTACK_LEN !)
 def(tstack-len@, Size, TSTACK_LEN @)
 
-def(tstack-base!, Size, TSTACK_BASE !)
+def(tstack-base!, Size --, TSTACK_BASE !)
 def(tstack-base@, Size, TSTACK_BASE @)
 
 def(tstack-length?, Size +TSTACK, tstack-len@ tstack-base@ -)
@@ -1853,6 +1853,24 @@ def(tstack-leave!, --,
         1- dup tstack-len!
         tstack@ tstack-base!
     ))
+
+# Create a copy of the current tstack frame as a new tstack frame.
+def(tstack-frame-dup!, -- +TSTACK,
+    tstack-base@ tstack-len@
+    tstack-enter!
+    dup2 < while(
+        drop
+        over tstack@ tstack-push!
+        dip(1+) dup2 <
+    ) drop2)
+
+# Stash the top tstack frame.
+def(tstack-frame-stash!, -- +TSTACK,
+    tstack-leave!) # FIXME
+
+# Pop the stashed tstack frame & unify it with the top tstack frame.
+def(tstack-frame-unify!, Token -- Token +TSTACK,
+    id) # FIXME
 
 def(typecheck-token!, Token --,
     token-type? TOKEN_NAME = if(
@@ -1924,6 +1942,8 @@ def(typecheck-run!, Token --,
     ) drop)
 
 def(typecheck-run-one!, Token --,
+    dup typecheck-token!
+
     token-type? TOKEN_INT = if(
         token-args-0
         0 tstack-push!, # FIXME: push TYPE_INT
@@ -1931,7 +1951,6 @@ def(typecheck-run-one!, Token --,
     token-type? TOKEN_STR = if(
         token-args-0
         0 tstack-push!, # FIXME: push TYPE_STR
-
 
     token-type? TOKEN_NAME = if(
         token-value? typecheck-run-name!,
@@ -1962,7 +1981,7 @@ def(typecheck-run-prim!, Token --,
         tstack-pop! dup tstack-push2!,
 
     token-value? PRIM_DROP = if(
-        0 1 tstack-arity-check!
+        1 0 tstack-arity-check!
         token-args-0
         tstack-pop! drop,
 
@@ -1976,8 +1995,74 @@ def(typecheck-run-prim!, Token --,
         token-args-1
         tstack-pop! swap typecheck-run! tstack-push!,
 
+    token-value? PRIM_IF = if(
+        1 0 tstack-arity-check!
+        dup token-args-2
+        tstack-pop! drop # FIXME: check that it's TYPE_BOOL
+        tstack-frame-dup!
+        dip(typecheck-run!)
+        tstack-frame-stash!
+        drop # typecheck-run!
+        tstack-frame-unify!
+        drop,
+
+    token-value? PRIM_INT_ADD = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
+    token-value? PRIM_INT_SUB = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
+    token-value? PRIM_INT_MUL = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
+    token-value? PRIM_INT_DIV = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
+    token-value? PRIM_INT_MOD = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
+    token-value? PRIM_INT_EQ = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
+    token-value? PRIM_INT_LT = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
+    token-value? PRIM_INT_LE = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
+
+    token-value? PRIM_MEM_GET = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop! tstack-push!, # TODO: check operand types
+    token-value? PRIM_MEM_GET_BYTE = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop! tstack-push!, # TODO: check operand types
+    token-value? PRIM_MEM_SET = if(
+        2 0 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop2, # TODO: check operand types
+    token-value? PRIM_MEM_SET_BYTE = if(
+        2 0 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop2, # TODO: check operand types
+
+    token-value? PRIM_RUNNING_OS = if(
+        0 1 tstack-arity-check!
+        token-args-0
+        0 tstack-push!, # TODO: push TYPE_INT
+
         drop # FIXME: emit error for unknown primitive
-    )))))
+    )))))))))))))))))))
 
 def(tstack-arity-check!, Token Int Int -- Token +TSTACK,
     dip(dip(tstack-len@))
@@ -2080,7 +2165,17 @@ def(sig-push-inputs!, Token -- +TSTACK,
     ))
 
 def(sig-match-outputs!, Token -- +TSTACK,
-    drop) #FIXME: Implement.
+    dup sig-arity nip dup
+    tstack-length? = if(
+        drop2,
+        "mirth.mth:" str-trace!
+        swap token-trace-prefix!
+        "warning: Exected " str-trace!
+        int-trace!
+        " outputs, but got " str-trace!
+        tstack-length? int-trace!
+        " outputs." str-trace-ln!
+    )) #FIXME: Implement.
 
 def(sig-apply!, Token Token -- +TSTACK,
     dup2 sig-pop-inputs! sig-push-outputs!)
