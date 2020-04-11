@@ -4,6 +4,11 @@
 /mirth1
 /mirth2
 /mirth3
+/mirth.c
 /mirth1.c
 /mirth2.c
 /mirth3.c
+/*.dSYM
+/mirth_prof.c
+/mirth_prof
+/default.profraw

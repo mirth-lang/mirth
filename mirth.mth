@@ -69,6 +69,7 @@ def(str-buf-u8!, U8 Index -- +StrBuf, STR_BUF byte!!)
 def(str-buf-full?, Bool +StrBuf,
     str-buf-length? 1+ STR_BUF_SIZE >=)
 def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
+
 def(str-buf-push!, U8 -- +StrBuf,
     str-buf-full? if(
         "str-buf-push! but STR_BUF is already full" panic!
@@ -232,6 +233,10 @@ def(test%, --,
 
 2 longs def-static-buffer(TEST_BUF)
 def(test@!, --,
+    # reset test buffer
+    0 0 TEST_BUF long!!
+    0 1 TEST_BUF long!!
+    # run test
     0 TEST_BUF long@@ !!0
     1 TEST_BUF long@@ !!0
     99 0 TEST_BUF long!!
@@ -272,7 +277,14 @@ def(stdin,  File, 0)
 def(stdout, File, 1)
 def(stderr, File, 2)
 
-def(init!, +IO, init-io!)
+def(init!, +IO,
+    init-io!
+    0 strings-size!
+    0 num-tokens!
+    init-names!
+    init-buffers!
+    init-heap!)
+
 def(init-io!, +IO,
     stdin file-in!
     stdout file-out!
@@ -402,15 +414,18 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
         "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic! 0
     )))
 
+def(close-file!, File -- +IO,
+    posix-close!
+    0 < if(
+        "failed to close file" panic!,
+        id
+    ))
+
 def(read-file!, File -- +IO,
     dup FILE_BUF FILE_BUF_SIZE 1- posix-read!
     dup 0 < if(
         "failed to read file" panic! drop2,
-        file-buf-length! posix-close!
-        0 < if(
-            "failed to close file" panic!,
-            id
-        )
+        file-buf-length! close-file!
     ))
 
 def(read-mirth-src!, +IO,
@@ -426,7 +441,9 @@ def(read-mirth-src!, +IO,
 # Names #
 #########
 
-def(MAX_NAMES, Size, 0x10000)
+def(MAX_NAMES, Size, 0x1800)
+def(NAME_HASH_MAX, Size, 0x1FFF)
+def(NAME_TABLE_SIZE, Size, NAME_HASH_MAX 1+)
 long def-static-buffer(NUM_NAMES)
 def(num-names@, Size, NUM_NAMES @)
 def(num-names!, Size --, NUM_NAMES !)
@@ -435,6 +452,9 @@ def(NAME_QUADS, Size, 8)
 def(NAME_SIZE, Size, NAME_QUADS longs)
 def(NAME_BUF_SIZE, Size, NAME_SIZE MAX_NAMES *)
 NAME_BUF_SIZE def-static-buffer(NAME_BUF)
+
+NAME_TABLE_SIZE longs
+    def-static-buffer(NAME_TABLE)
 
 # Recalculate length of string buffer as the
 # first position with a zero byte.
@@ -447,46 +467,45 @@ def(str-buf-recalc-length!, --,
     str-buf-length!
 )
 
-# Add \0 until you get to a certain length.
-def(str-pad-zeros-to-length!, Int --,
-    dup str-buf-length? >
-    while(
-        drop
-        str-buf-length? 1+
-        dup str-buf-length! # this pads the zeros
-        dip(dup) >
-    ) drop)
-
 # Load a name into STR_BUF.
 def(name-load!, Name --,
     name-quads-load!
     NAME_SIZE str-buf-length!
     str-buf-recalc-length!)
 
-# Compare a specific name QUAD with
-# the respective QUAD in STR_BUF.
-def(name-quad-eq, Name Int -- Bool,
-    dip(NAME_SIZE * NAME_BUF +) tuck
-    dip(long@@) STR_BUF long@@ =)
-
 # Compare all quads in name to STR_BUF.
-# Note this code assumes NAME_QUADS is 4.
+# Note this code assumes NAME_QUADS is 8.
 def(name-quads-eq, Name -- Bool,
-    dup 0 name-quad-eq if(
-    dup 1 name-quad-eq if(
-    dup 2 name-quad-eq if(
-    dup 3 name-quad-eq if(
-    dup 4 name-quad-eq if(
-    dup 5 name-quad-eq if(
-    dup 6 name-quad-eq if(
-    7 name-quad-eq,
-    drop 0),
-    drop 0),
-    drop 0),
-    drop 0),
-    drop 0),
-    drop 0),
-    drop 0))
+    NAME_SIZE * NAME_BUF +
+    0 over long@@ 0 STR_BUF long@@ = if(
+    1 over long@@ 1 STR_BUF long@@ = if(
+    2 over long@@ 2 STR_BUF long@@ = if(
+    3 over long@@ 3 STR_BUF long@@ = if(
+    4 over long@@ 4 STR_BUF long@@ = if(
+    5 over long@@ 5 STR_BUF long@@ = if(
+    6 over long@@ 6 STR_BUF long@@ = if(
+    7 swap long@@ 7 STR_BUF long@@ =,
+    drop 0), drop 0), drop 0), drop 0),
+    drop 0), drop 0), drop 0))
+
+def(quads-hash, Ptr -- Hash,
+    0 over long@@
+    dip(1 over long@@) ^
+    dip(2 over long@@) ^
+    dip(3 over long@@) ^
+    dip(4 over long@@) ^
+    dip(5 over long@@) ^
+    dip(6 over long@@) ^
+    dip(7 over long@@) ^
+    0x0402030301040201 *
+    48 >> NAME_HASH_MAX &
+    nip)
+
+def(name-hash, Name -- Hash,
+    NAME_SIZE * NAME_BUF + quads-hash)
+
+def(str-buf-hash, Hash +StrBuf,
+    STR_BUF quads-hash)
 
 def(name-quads-eq?, Name -- Name Bool,
     dup name-quads-eq)
@@ -505,35 +524,55 @@ def(name-quads-save!, Name -- ,
     dup 6 name-quad-save!
     7 name-quad-save!)
 
-def(name-quad-load!, Name Int --,
-    dip(NAME_SIZE * NAME_BUF +) tuck
-    dip(long@@) STR_BUF long!!)
+def(name-quads-load!, Name --,
+    NAME_SIZE * NAME_BUF +
+    0 over long@@ 0 STR_BUF long!!
+    1 over long@@ 1 STR_BUF long!!
+    2 over long@@ 2 STR_BUF long!!
+    3 over long@@ 3 STR_BUF long!!
+    4 over long@@ 4 STR_BUF long!!
+    5 over long@@ 5 STR_BUF long!!
+    6 over long@@ 6 STR_BUF long!!
+    7 swap long@@ 7 STR_BUF long!!)
 
-def(name-quads-load!, Name -- ,
-    dup 0 name-quad-load!
-    dup 1 name-quad-load!
-    dup 2 name-quad-load!
-    dup 3 name-quad-load!
-    dup 4 name-quad-load!
-    dup 5 name-quad-load!
-    dup 6 name-quad-load!
-    7 name-quad-load!)
+# zero str-buf up to NAME_SIZE
+def(str-buf-zero!, --,
+    0 0 STR_BUF long!!
+    0 1 STR_BUF long!!
+    0 2 STR_BUF long!!
+    0 3 STR_BUF long!!
+    0 4 STR_BUF long!!
+    0 5 STR_BUF long!!
+    0 6 STR_BUF long!!
+    0 7 STR_BUF long!!)
+
+
+def(name-table@, Hash -- Name, NAME_TABLE long@@ 1-)
+def(name-table!, Name Hash --, dip(1+) NAME_TABLE long!!)
+def(next-hash, Hash -- Hash, 1+ NAME_HASH_MAX &)
+
+def(name-save-keep-going?, Hash -- Hash Bool,
+    dup name-table@
+    dup 0 < if(
+        drop 0,
+        name-quads-eq not
+    ))
 
 # Load STR_BUF into name table. Performs deduplication.
 def(name-save!, -- Name,
-    NAME_SIZE 1+ str-pad-zeros-to-length!
-    0 dup num-names@ < while(
+    str-buf-hash
+    name-save-keep-going? while(
         drop
-        name-quads-eq? if(
-            0,
-            1+ dup num-names@ <
-        )
+        next-hash
+        name-save-keep-going?
     )
-    dup num-names@ < if(
-        id, # name already exists
-        # name is new
-        dup name-quads-save!
-        dup 1+ num-names!
+    dup name-table@
+    dup 0 < if(
+        drop
+        num-names@ swap name-table!
+        num-names@ name-quads-save!
+        num-names@ dup 1+ num-names!,
+        nip
     ))
 
 def(show-names-table!, +Names +IO,
@@ -542,7 +581,8 @@ def(show-names-table!, +Names +IO,
         drop
         dup int-print!
         ": " str-print!
-        dup name-load! str-buf-print! print-ln!
+        dup name-load! str-buf-print! print-sp!
+        dup name-hash int-print! print-ln!
         1+ dup num-names@ <
     )
     drop
@@ -630,36 +670,57 @@ def(PRIM_INT_MOD, Prim, 12)
 def(PRIM_INT_EQ, Prim, 13)
 def(PRIM_INT_LT, Prim, 14)
 def(PRIM_INT_LE, Prim, 15)
-def(PRIM_MEM_GET, Prim, 16)
-def(PRIM_MEM_SET, Prim, 17)
-def(PRIM_MEM_GET_BYTE, Prim, 18)
-def(PRIM_MEM_SET_BYTE, Prim, 19)
-def(PRIM_POSIX_READ, Prim, 20)
-def(PRIM_POSIX_WRITE, Prim, 21)
-def(PRIM_POSIX_OPEN, Prim, 22)
-def(PRIM_POSIX_CLOSE, Prim, 23)
-def(PRIM_POSIX_EXIT, Prim, 24)
-def(PRIM_POSIX_MMAP, Prim, 25)
-def(PRIM_DEBUG, Prim, 26)
-def(PRIM_MIRTH_REVISION, Prim, 27)
-def(PRIM_RUNNING_OS, Prim, 28)
-def(PRIM_DEF, Prim, 29)
-def(PRIM_DEF_STATIC_BUFFER, Prim, 30)
-def(PRIM_OUTPUT_ASM, Prim, 31)
-def(PRIM_OUTPUT_C99, Prim, 32)
-def(PRIM_DASHES, Prim, 33)
-def(NUM_PRIMS, Prim, 34)
+def(PRIM_INT_AND, Prim, 16)
+def(PRIM_INT_OR, Prim, 17)
+def(PRIM_INT_XOR, Prim, 18)
+def(PRIM_INT_SHL, Prim, 19)
+def(PRIM_INT_SHR, Prim, 20)
+def(PRIM_MEM_GET, Prim, 21)
+def(PRIM_MEM_SET, Prim, 22)
+def(PRIM_MEM_GET_BYTE, Prim, 23)
+def(PRIM_MEM_SET_BYTE, Prim, 24)
+def(PRIM_POSIX_READ, Prim, 25)
+def(PRIM_POSIX_WRITE, Prim, 26)
+def(PRIM_POSIX_OPEN, Prim, 27)
+def(PRIM_POSIX_CLOSE, Prim, 28)
+def(PRIM_POSIX_EXIT, Prim, 29)
+def(PRIM_POSIX_MMAP, Prim, 30)
+def(PRIM_DEBUG, Prim, 31)
+def(PRIM_MIRTH_REVISION, Prim, 32)
+def(PRIM_RUNNING_OS, Prim, 33)
+def(PRIM_DEF, Prim, 34)
+def(PRIM_DEF_TYPE, Prim, 35)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 36)
+def(PRIM_OUTPUT_ASM, Prim, 37)
+def(PRIM_OUTPUT_C99, Prim, 38)
+def(PRIM_DASHES, Prim, 39)
+def(PRIM_ARROW, Prim, 40)
+def(NUM_PRIMS, Prim, 41)
 
 def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
 
 def(def-prim!, Prim Str -- +Names,
-    str-buf! name-save! swap !!=)
+    str-buf-zero! str-buf! name-save! swap
+    = if(id, "primitive number mismatch" panic!))
 
 # Initialize name table with list of primitives.
-# Note that order matters very much here, but any
+# Note that order matters very much here. Any
 # deviation from the order above will be flagged
-# thanks to assertions.
+# by def-prim!
 def(init-names!, +Names,
+    NAME_TABLE_SIZE while(
+        1-
+        0 over NAME_TABLE long!!
+    )
+
+    num-names@ while(
+        1-
+        0 over name-checked!
+        0 over name-sort!
+        0 over name-value!
+        0 over name-sig!
+    )
+
     0 num-names!
     PRIM_END "end" def-prim!
     PRIM_ID "id" def-prim!
@@ -677,6 +738,11 @@ def(init-names!, +Names,
     PRIM_INT_EQ "=" def-prim!
     PRIM_INT_LT "<" def-prim!
     PRIM_INT_LE "<=" def-prim!
+    PRIM_INT_AND "&" def-prim!
+    PRIM_INT_OR "|" def-prim!
+    PRIM_INT_XOR "^" def-prim!
+    PRIM_INT_SHL "<<" def-prim!
+    PRIM_INT_SHR ">>" def-prim!
     PRIM_MEM_GET "@" def-prim!
     PRIM_MEM_SET "!" def-prim!
     PRIM_MEM_GET_BYTE "byte@" def-prim!
@@ -691,10 +757,12 @@ def(init-names!, +Names,
     PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
     PRIM_RUNNING_OS "RUNNING_OS" def-prim!
     PRIM_DEF "def" def-prim!
+    PRIM_DEF_TYPE "def-type" def-prim!
     PRIM_DEF_STATIC_BUFFER "def-static-buffer" def-prim!
     PRIM_OUTPUT_ASM "output-asm" def-prim!
     PRIM_OUTPUT_C99 "output-c99" def-prim!
     PRIM_DASHES "--" def-prim!
+    PRIM_ARROW "->" def-prim!
     )
 
 #################
@@ -711,15 +779,6 @@ def(strings-size@, -- U64 +StrTable, STRINGS_SIZE @)
 # Size of strings table.
 def(strings-size!, U64 -- +StrTable, STRINGS_SIZE !)
 
-# Read byte from strings table.
-def(strings-u8@, U64 -- U8 +StrTable, byte@)
-
-# Read byte from strings table, leaving index in place.
-def(strings-u8?, U64 -- U64 U8 +StrTable, dup strings-u8@)
-
-# Write byte to strings table.
-def(strings-u8!, U8 U64 -- +StrTable, byte!)
-
 # Push byte onto strings table.
 def(strings-push!, U8 -- +StrTable,
     strings-size@ STRINGS_BUF byte!!
@@ -727,7 +786,7 @@ def(strings-push!, U8 -- +StrTable,
 
 # Load STR_BUF into strings table,
 # returning the index of the new string.
-def(strings-save!, -- String +StrTable +StrBuf,
+def(strings-save!, String +StrTable +StrBuf,
     strings-size@
     0 dup str-buf-length? < while(
         drop
@@ -741,12 +800,7 @@ def(strings-save!, -- String +StrTable +StrBuf,
 
 # Load string into STR_BUF.
 def(strings-load!, String -- +StrTable +StrBuf,
-    str-buf-clear!
-    strings-u8? while(
-        str-buf-push!
-        1+ strings-u8?
-    )
-    drop)
+    str-buf!)
 
 # Load string into STR_BUF but with escape sequences.
 # FIXME: implement escape sequence handling.
@@ -985,6 +1039,7 @@ def(lexer-emit-rparen!, +Lexer,
 
 def(lexer-emit-name!, +Lexer,
     str-buf-clear!
+    str-buf-zero!
     TOKEN_NAME 0 lexer-make!
 
     lexer-peek 1 while(
@@ -1530,6 +1585,46 @@ def(token-run-prim!, Token --,
         <=
         vstack-push!,
 
+    dup PRIM_INT_AND = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        &
+        vstack-push!,
+
+    dup PRIM_INT_OR = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        |
+        vstack-push!,
+
+    dup PRIM_INT_XOR = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        ^
+        vstack-push!,
+
+    dup PRIM_INT_SHL = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        <<
+        vstack-push!,
+
+    dup PRIM_INT_SHR = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        >>
+        vstack-push!,
+
     dup PRIM_MEM_GET = if(
         drop
         1 1 arity-check!
@@ -1660,7 +1755,7 @@ def(token-run-prim!, Token --,
 
         drop
         "Dont know how to run prim yet." emit-fatal-error!
-    ))))))))))))))))))))))))))))))))
+    )))))))))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -1798,6 +1893,9 @@ def(MAX_BUFFERS, USize, 0x1000)
 long def-static-buffer(NUM_BUFFERS)
 def(num-buffers@, USize +Buffers, NUM_BUFFERS @)
 def(num-buffers!, USize -- +Buffers, NUM_BUFFERS !)
+
+def(init-buffers!, +Buffers,
+    0 num-buffers!)
 
 MAX_BUFFERS longs dup
     def-static-buffer(BUFFER_SIZE)
@@ -2141,6 +2239,26 @@ def(typecheck-run-prim!, Token --,
         2 1 tstack-arity-check!
         token-args-0
         tstack-pop2! drop tstack-push!, # TODO: check operand types
+    token-value? PRIM_INT_AND = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
+    token-value? PRIM_INT_OR = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
+    token-value? PRIM_INT_XOR = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
+    token-value? PRIM_INT_SHL = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
+    token-value? PRIM_INT_SHR = if(
+        2 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! drop tstack-push!, # TODO: check operand types
 
     token-value? PRIM_MEM_GET = if(
         1 1 tstack-arity-check!
@@ -2197,7 +2315,7 @@ def(typecheck-run-prim!, Token --,
         0 tstack-push!, # TODO: push TYPE_INT
 
         "Unknown primitive" emit-error!
-    )))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))))
 
 def(tstack-arity-check!, Token Int Int -- Token +TSTACK,
     dip(dip(tstack-len@))
@@ -2335,8 +2453,51 @@ def(sig-push-outputs!, Token Token -- +TSTACK,
 # Codegen #
 ###########
 
+def(CODEGEN_BUF_SIZE, Size, 0x8000)
+
+long def-static-buffer(CODEGEN_FILE)
+long def-static-buffer(CODEGEN_LENGTH)
+CODEGEN_BUF_SIZE def-static-buffer(CODEGEN_BUF)
+
+def(codegen-file@, -- File +Codegen, CODEGEN_FILE @)
+def(codegen-file!, File -- +Codegen, CODEGEN_FILE !)
+def(codegen-length@, -- Size +Codegen, CODEGEN_LENGTH @)
+def(codegen-length!, Size -- +Codegen, CODEGEN_LENGTH !)
+def(codegen-byte@, Index -- Byte +Codegen, CODEGEN_BUF byte@@)
+def(codegen-byte!, Byte Index -- +Codegen, CODEGEN_BUF byte!!)
+
+def(codegen-full?, Bool +Codegen,
+    codegen-length@ CODEGEN_BUF_SIZE >=)
+
+def(codegen-flush!, +Codegen,
+    codegen-length@ 0 > if(
+        codegen-file@ CODEGEN_BUF codegen-length@ posix-write!
+        0 codegen-length!,
+        id
+    ))
+
+def(codegen-push-byte!, Byte -- +Codegen,
+    codegen-full? if(codegen-flush!, id)
+    codegen-length@ dup 1+ codegen-length!
+    codegen-byte!)
+
+def(codegen-push-str!, Str -- +Codegen,
+    dup byte@ while(
+        codegen-push-byte!
+        1+ dup byte@
+    ) drop)
+
+def(codegen-start!, File -- +Codegen,
+    codegen-file! 0 codegen-length!)
+
+def(codegen-end!, +Codegen,
+    codegen-flush!
+    codegen-file@ close-file!
+    0 codegen-file!
+    0 codegen-length!)
+
 def(run-output-c99!, Token String -- +IO,
-    strings-load! str-buf-create-file! file-out!
+    create-file! codegen-start!
     c99-emit-header!
     c99-emit-strings!
     c99-emit-prims!
@@ -2344,19 +2505,25 @@ def(run-output-c99!, Token String -- +IO,
     c99-emit-word-sigs!
     c99-emit-word-defs!
     c99-emit-main!
-    stdout file-out!)
+    codegen-end!)
 
-def(;, Str -- +IO, str-print-ln!)
-def(;;, Str -- +IO, str-print-ln! print-ln!)
-def(.q, Str -- +IO, str-print! print-quote!)
-def(., Str -- +IO, str-print!)
-def(.n, Int -- +IO, int-print!)
-def(.name, Name -- +IO, name-print-mangled!)
+long def-static-buffer(C99_DEPTH)
+def(c99-depth@, -- Int +Codegen, C99_DEPTH @)
+def(c99-depth!, Int -- +Codegen, C99_DEPTH !)
+def(c99-depth++, +Codegen, c99-depth@ 1+ c99-depth!)
+def(c99-depth--, +Codegen, c99-depth@ 1- c99-depth!)
+
+def(., Str -- +Codegen, codegen-push-str!)
+def(.lf, +Codegen, 10 codegen-push-byte!)
+def(;, Str -- +Codegen, . .lf)
+def(;;, Str -- +Codegen, . .lf .lf)
+def(.q, Str -- +Codegen, . 34 codegen-push-byte!)
+def(.n, Int -- +Codegen, str-buf-int! STR_BUF .)
+def(.d, +Codegen, c99-depth@ .n)
+def(.name, Name -- +Codegen, name-mangle! STR_BUF .)
 
 def(.w, Name -- +IO,
-    "// " .
-    dup name-load! str-buf-print! print-ln!
-    "static void w" . .name " (void)" .)
+    "/*static*/ void w" . .name " (void)" .)
 
 def(c99-emit-header!, +IO,
     "/* C99 autogenerated by mirth compiler */" ;
@@ -2374,10 +2541,11 @@ def(c99-emit-header!, +IO,
 
 def(c99-emit-strings!, +IO,
     "#define STRINGS_SIZE " . strings-size@ .n "" ;
-    "static char strings[STRINGS_SIZE] = { " .
+    "static char strings[STRINGS_SIZE] = { " ;
     0 dup strings-size@ < while(
         drop
-        dup STRINGS_BUF byte@@ .n ", " .
+        dup STRINGS_BUF byte@@ dup .n ", " .
+        if(id, .lf)
         1+ dup strings-size@ <
     ) drop
     "};" ;;)
@@ -2394,7 +2562,7 @@ def(c99-emit-buffers!, +IO,
 def(c99-emit-buffer!, Name -- +IO,
     name-is-buffer? if(
         "static uint8_t b" . dup .name "[" . dup name-value@ buffer-size@ .n "] = {0};" ;
-        "static void w" . dup .name " (void) { push((int64_t)b" . .name "); }" ;  ,
+        "/*static*/ void w" . dup .name " (void) { push((int64_t)b" . .name "); }" ;  ,
         drop
     ))
 
@@ -2491,6 +2659,36 @@ def(c99-emit-prims!, +IO,
     "    int64_t x = pop();" ;
     "    int64_t y = pop();" ;
     "    push(y <= x);" ;
+    "}" ;;
+
+    PRIM_INT_AND .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(y & x);" ;
+    "}" ;;
+
+    PRIM_INT_OR .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(y | x);" ;
+    "}" ;;
+
+    PRIM_INT_XOR .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(y ^ x);" ;
+    "}" ;;
+
+    PRIM_INT_SHL .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(y << x);" ;
+    "}" ;;
+
+    PRIM_INT_SHR .w " {" ;
+    "    int64_t x = pop();" ;
+    "    int64_t y = pop();" ;
+    "    push(y >> x);" ;
     "}" ;;
 
     PRIM_POSIX_WRITE .w " {" ;
@@ -2593,7 +2791,7 @@ def(c99-emit-word-sigs!, +IO,
 
 def(c99-emit-word-sig!, Name -- +IO,
     name-is-word? if(
-        "static void w" . .name " (void);" ;,
+        "/*static*/ void w" . .name " (void);" ;,
         drop
     ))
 
@@ -2617,12 +2815,14 @@ def(c99-emit-word-def!, Name -- +IO,
     ))
 
 def(c99-emit-run!, Token -- +IO,
+    c99-depth++
     token-run-end? not while(
         drop
         dup c99-emit-token!
         token-next
         token-run-end? not
-    ) drop)
+    ) drop
+    c99-depth--)
 
 def(c99-emit-token!, Token -- +IO,
     dup typecheck-token!
@@ -2642,9 +2842,9 @@ def(c99-emit-token!, Token -- +IO,
 def(c99-emit-word!, Token -- +IO,
     token-value? PRIM_DIP = if(
         token-args-1
-        "    int64_t d" . dup .n " = pop();" ;
-        dup c99-emit-run!
-        "    push(d" . .n ");" ;,
+        "    { int64_t d" . .d " = pop();" ;
+        c99-emit-run!
+        "      push(d" . .d "); }" ;,
 
     token-value? PRIM_IF = if(
         token-args-2
@@ -2656,10 +2856,10 @@ def(c99-emit-word!, Token -- +IO,
 
     token-value? PRIM_WHILE = if(
         token-args-1
-        "    for (int64_t c" . dup .n
-        " = pop(); c" . dup .n
-        "; c" . dup .n " = pop()) {" ;
-        "    push(c" . dup .n ");" ;
+        "    for (int64_t c" . .d
+        " = pop(); c" . .d
+        "; c" . .d " = pop()) {" ;
+        "    push(c" . .d ");" ;
         c99-emit-run!
         "    }" ;,
 
@@ -2679,6 +2879,14 @@ def(c99-emit-main!, Token -- +IO,
 
 def(BASE_HEAP_SIZE, USize, 0x400000)
 
+long def-static-buffer(HEAP_INITIAL_LENGTH)
+def(heap-initial-length@, U64 +Heap, HEAP_INITIAL_LENGTH @)
+def(heap-initial-length!, U64 -- +Heap, HEAP_INITIAL_LENGTH !)
+
+long def-static-buffer(HEAP_INITIAL_BASE)
+def(heap-initial-base@, Ptr +Heap, HEAP_INITIAL_BASE @)
+def(heap-initial-base!, Ptr -- +Heap, HEAP_INITIAL_BASE !)
+
 long def-static-buffer(HEAP_LENGTH)
 def(heap-length@, U64 +Heap, HEAP_LENGTH @)
 def(heap-length!, U64 -- +Heap, HEAP_LENGTH !)
@@ -2686,6 +2894,10 @@ def(heap-length!, U64 -- +Heap, HEAP_LENGTH !)
 long def-static-buffer(HEAP_BASE)
 def(heap-base@, Ptr +Heap, HEAP_BASE @)
 def(heap-base!, Ptr -- +Heap, HEAP_BASE !)
+
+def(init-heap!, +Heap,
+    heap-initial-base@ heap-base!
+    heap-initial-length@ heap-length!)
 
 long def-static-buffer(HEAP_TIMES_EXPANDED)
 def(heap-times-expanded@, Int +Heap, HEAP_TIMES_EXPANDED @)
@@ -2716,7 +2928,8 @@ def(heap-reserve!, U64 -- +Heap,
         dup 0 > if(
             dup heap-base@ heap-length@ + = if(
                 drop heap-length@ + heap-length!,
-                heap-base! heap-length!
+                dup heap-initial-base! heap-base!
+                dup heap-initial-length! heap-length!
             ),
             "Failed to allocate heap buffer." panic! drop2
         )
@@ -2765,14 +2978,16 @@ def(main, +IO,
     init!
     run-tests
     read-mirth-src!
-    init-names!
     run-lexer!
+
 #   show-names-table!
 #   show-tokens!
 
     "Building." str-trace-ln!
 
     0 token-run!
+
+    "Done." str-trace-ln!
 
     vstack-empty? if(
         id,
@@ -2791,3 +3006,4 @@ def(MACOS, OS, 3)
 def(NEW_MIRTH_REVISION, Int, 0)
 
 "mirth.c" output-c99(main)
+"mirth_prof.c" output-c99(100 while(main 1-))

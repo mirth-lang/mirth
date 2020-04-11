@@ -1,7 +1,7 @@
-C99FLAGS=-std=c99 -Weverything -Wno-missing-noreturn -Wno-unused-function -Werror -pedantic
+C99FLAGS=-std=c99 -Weverything -Wno-missing-prototypes -Wno-missing-noreturn -Wno-unused-function -Werror -pedantic
 CC=clang $(C99FLAGS)
 
-.PHONY: show build update check update-mirth install-vim install-code
+.PHONY: show build update check update-mirth install-vim install-code profile
 
 show: mirth0.c mirth1.c mirth2.c mirth3.c
 	diff mirth0.c mirth1.c | head -n 5
@@ -29,6 +29,10 @@ install-vim:
 install-code:
 	code --install-extension tools/mirth-code/mirth-*.vsix
 
+profile: mirth_prof
+	./mirth_prof
+	rm -f mirth.c
+
 #########
 
 mirth0: mirth0.c
@@ -51,3 +55,8 @@ mirth2.c: mirth1 mirth.mth
 mirth3.c: mirth2 mirth.mth
 	./mirth2
 	mv mirth.c mirth3.c
+
+mirth_prof.c: mirth3.c
+
+mirth_prof: mirth_prof.c
+	$(CC) -g -fprofile-instr-generate -o mirth_prof mirth_prof.c
