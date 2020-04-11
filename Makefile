@@ -30,7 +30,7 @@ install-code:
 	code --install-extension tools/mirth-code/mirth-*.vsix
 
 profile: mirth_prof
-	./mirth_prof
+	time ./mirth_prof
 	rm -f mirth.c
 
 #########
