@@ -441,7 +441,7 @@ def(read-mirth-src!, +IO,
 # Names #
 #########
 
-def(MAX_NAMES, Size, 0x1800)
+def(MAX_NAMES, Size, 0x2000)
 def(NAME_HASH_MAX, Size, 0x1FFF)
 def(NAME_TABLE_SIZE, Size, NAME_HASH_MAX 1+)
 long def-static-buffer(NUM_NAMES)
@@ -489,13 +489,13 @@ def(name-quads-eq, Name -- Bool,
     drop 0), drop 0), drop 0))
 
 def(quads-hash, Ptr -- Hash,
-    0 over long@@
-    dip(1 over long@@) ^
-    dip(2 over long@@) ^
-    dip(3 over long@@) ^
-    dip(4 over long@@) ^
-    dip(5 over long@@) ^
-    dip(6 over long@@) ^
+    0 over long@@ 5 *
+    dip(1 over long@@) ^ 7 *
+    dip(2 over long@@) ^ 13 *
+    dip(3 over long@@) ^ 3 *
+    dip(4 over long@@) ^ 19 *
+    dip(5 over long@@) ^ 23 *
+    dip(6 over long@@) ^ 29 *
     dip(7 over long@@) ^
     0x0402030301040201 *
     48 >> NAME_HASH_MAX &
@@ -2453,7 +2453,7 @@ def(sig-push-outputs!, Token Token -- +TSTACK,
 # Codegen #
 ###########
 
-def(CODEGEN_BUF_SIZE, Size, 0x8000)
+def(CODEGEN_BUF_SIZE, Size, 0x80000)
 
 long def-static-buffer(CODEGEN_FILE)
 long def-static-buffer(CODEGEN_LENGTH)
@@ -2980,8 +2980,8 @@ def(main, +IO,
     read-mirth-src!
     run-lexer!
 
-#   show-names-table!
-#   show-tokens!
+    # show-names-table!
+    # show-tokens!
 
     "Building." str-trace-ln!
 
@@ -3006,4 +3006,4 @@ def(MACOS, OS, 3)
 def(NEW_MIRTH_REVISION, Int, 0)
 
 "mirth.c" output-c99(main)
-"mirth_prof.c" output-c99(100 while(main 1-))
+#"mirth_prof.c" output-c99(100 while(main 1-))

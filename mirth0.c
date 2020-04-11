@@ -11,7 +11,7 @@
 static size_t sc = STACK_SIZE;
 static int64_t stack[STACK_SIZE] = {0};
 
-#define STRINGS_SIZE 5848
+#define STRINGS_SIZE 5835
 static char strings[STRINGS_SIZE] = { 
 65, 115, 115, 101, 114, 116, 105, 111, 110, 32, 102, 97, 105, 108, 101, 100, 0, 
 115, 116, 114, 45, 98, 117, 102, 45, 112, 117, 115, 104, 33, 32, 98, 117, 116, 32, 83, 84, 82, 95, 66, 85, 70, 32, 105, 115, 32, 97, 108, 114, 101, 97, 100, 121, 32, 102, 117, 108, 108, 0, 
@@ -400,7 +400,6 @@ static char strings[STRINGS_SIZE] = {
 68, 111, 110, 101, 46, 0, 
 86, 83, 84, 65, 67, 75, 32, 61, 32, 0, 
 109, 105, 114, 116, 104, 46, 99, 0, 
-109, 105, 114, 116, 104, 95, 112, 114, 111, 102, 46, 99, 0, 
 };
 
 static int64_t pop (void) {
@@ -632,7 +631,7 @@ static uint8_t bFILE_BUF[131072] = {0};
 /*static*/ void wFILE_BUF (void) { push((int64_t)bFILE_BUF); }
 static uint8_t bNUM_NAMES[8] = {0};
 /*static*/ void wNUM_NAMES (void) { push((int64_t)bNUM_NAMES); }
-static uint8_t bNAME_BUF[393216] = {0};
+static uint8_t bNAME_BUF[524288] = {0};
 /*static*/ void wNAME_BUF (void) { push((int64_t)bNAME_BUF); }
 static uint8_t bNAME_TABLE[65536] = {0};
 /*static*/ void wNAME_TABLE (void) { push((int64_t)bNAME_TABLE); }
@@ -670,13 +669,13 @@ static uint8_t bBUFFER_SIZE[32768] = {0};
 /*static*/ void wBUFFER_SIZE (void) { push((int64_t)bBUFFER_SIZE); }
 static uint8_t bBUFFER_BASE[32768] = {0};
 /*static*/ void wBUFFER_BASE (void) { push((int64_t)bBUFFER_BASE); }
-static uint8_t bDEF_SORT[6144] = {0};
+static uint8_t bDEF_SORT[8192] = {0};
 /*static*/ void wDEF_SORT (void) { push((int64_t)bDEF_SORT); }
-static uint8_t bDEF_VALUE[49152] = {0};
+static uint8_t bDEF_VALUE[65536] = {0};
 /*static*/ void wDEF_VALUE (void) { push((int64_t)bDEF_VALUE); }
-static uint8_t bDEF_SIG[49152] = {0};
+static uint8_t bDEF_SIG[65536] = {0};
 /*static*/ void wDEF_SIG (void) { push((int64_t)bDEF_SIG); }
-static uint8_t bDEF_CHECKED[6144] = {0};
+static uint8_t bDEF_CHECKED[8192] = {0};
 /*static*/ void wDEF_CHECKED (void) { push((int64_t)bDEF_CHECKED); }
 static uint8_t bTSTACK_LEN[8] = {0};
 /*static*/ void wTSTACK_LEN (void) { push((int64_t)bTSTACK_LEN); }
@@ -692,7 +691,7 @@ static uint8_t bCODEGEN_FILE[8] = {0};
 /*static*/ void wCODEGEN_FILE (void) { push((int64_t)bCODEGEN_FILE); }
 static uint8_t bCODEGEN_LENGTH[8] = {0};
 /*static*/ void wCODEGEN_LENGTH (void) { push((int64_t)bCODEGEN_LENGTH); }
-static uint8_t bCODEGEN_BUF[32768] = {0};
+static uint8_t bCODEGEN_BUF[524288] = {0};
 /*static*/ void wCODEGEN_BUF (void) { push((int64_t)bCODEGEN_BUF); }
 static uint8_t bC99_DEPTH[8] = {0};
 /*static*/ void wC99_DEPTH (void) { push((int64_t)bC99_DEPTH); }
@@ -2808,7 +2807,7 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
 }
 
 /*static*/ void wMAX_NAMES (void){
-    push(6144);
+    push(8192);
 }
 
 /*static*/ void wNAME_HASH_MAX (void){
@@ -3025,42 +3024,56 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
     push(0);
     wover();
     wlong_40__40_();
+    push(5);
+    w_2A_();
     { int64_t d1 = pop();
     push(1);
     wover();
     wlong_40__40_();
       push(d1); }
     w_5E_();
+    push(7);
+    w_2A_();
     { int64_t d1 = pop();
     push(2);
     wover();
     wlong_40__40_();
       push(d1); }
     w_5E_();
+    push(13);
+    w_2A_();
     { int64_t d1 = pop();
     push(3);
     wover();
     wlong_40__40_();
       push(d1); }
     w_5E_();
+    push(3);
+    w_2A_();
     { int64_t d1 = pop();
     push(4);
     wover();
     wlong_40__40_();
       push(d1); }
     w_5E_();
+    push(19);
+    w_2A_();
     { int64_t d1 = pop();
     push(5);
     wover();
     wlong_40__40_();
       push(d1); }
     w_5E_();
+    push(23);
+    w_2A_();
     { int64_t d1 = pop();
     push(6);
     wover();
     wlong_40__40_();
       push(d1); }
     w_5E_();
+    push(29);
+    w_2A_();
     { int64_t d1 = pop();
     push(7);
     wover();
@@ -7178,7 +7191,7 @@ static uint8_t bHEAP_TIMES_EXPANDED[8] = {0};
 }
 
 /*static*/ void wCODEGEN_BUF_SIZE (void){
-    push(32768);
+    push(524288);
 }
 
 /*static*/ void wcodegen_file_40_ (void){
