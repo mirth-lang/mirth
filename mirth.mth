@@ -2987,6 +2987,8 @@ def(main, +IO,
 
     0 token-run!
 
+    "Done." str-trace-ln!
+
     vstack-empty? if(
         id,
         "VSTACK = " str-trace! vstack-trace!
