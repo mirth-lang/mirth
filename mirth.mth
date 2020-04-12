@@ -2454,7 +2454,7 @@ def(sig-push-outputs!, Token Token -- +TSTACK,
 # Codegen #
 ###########
 
-def(CODEGEN_BUF_SIZE, Size, 0x80000)
+def(CODEGEN_BUF_SIZE, Size, 0x1000)
 
 long def-static-buffer(CODEGEN_FILE)
 long def-static-buffer(CODEGEN_LENGTH)
@@ -2479,8 +2479,27 @@ def(codegen-flush!, +Codegen,
 
 def(codegen-push-byte!, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
-    codegen-length@ dup 1+ codegen-length!
-    codegen-byte!)
+    codegen-length@ dup 1+ codegen-length! codegen-byte!)
+
+def(codegen-push-u16!, Byte -- +Codegen,
+    dup 0xFF & codegen-push-byte! 8 >>
+        0xFF & codegen-push-byte!)
+
+def(codegen-push-u32!, Byte -- +Codegen,
+    dup 0xFF & codegen-push-byte! 8 >>
+    dup 0xFF & codegen-push-byte! 8 >>
+    dup 0xFF & codegen-push-byte! 8 >>
+        0xFF & codegen-push-byte!)
+
+def(codegen-push-u64!, Byte -- +Codegen,
+    dup 0xFF & codegen-push-byte! 8 >>
+    dup 0xFF & codegen-push-byte! 8 >>
+    dup 0xFF & codegen-push-byte! 8 >>
+    dup 0xFF & codegen-push-byte! 8 >>
+    dup 0xFF & codegen-push-byte! 8 >>
+    dup 0xFF & codegen-push-byte! 8 >>
+    dup 0xFF & codegen-push-byte! 8 >>
+        0xFF & codegen-push-byte!)
 
 def(codegen-push-str!, Str -- +Codegen,
     dup byte@ while(
@@ -2696,7 +2715,8 @@ def(c99-emit-prims!, +IO,
     "    size_t n = (size_t)pop();" ;
     "    void* p = pop_ptr();" ;
     "    int f = (int)pop();" ;
-    "    write(f, p, n);" ;
+    "    ssize_t x = write(f, p, n);" ;
+    "    if (x != (ssize_t)n) { fprintf(stderr, \"rts panic : write error : expected to write %zu bytes but wrote %zd bytes\\n\", n, x); exit(1); } " ;
     "}" ;;
 
     PRIM_POSIX_READ .w " {" ;
@@ -2952,7 +2972,9 @@ def(MAP_ANON|MAP_PRIVATE, Int,
 #   10 64 align == 64
 #   64 64 align == 64
 #   70 64 align == 128
-def(align, a:U64 b:U64 -- U64,
+def(align, U64 U64 -- U64,
+    # a:U64 b:U64 { a 0 >=, b 0 > } --
+    # c:U64 { c a >=, c a b + <, c b % 0 = },
     dup dip(1- + dup) % -)
 def(square, Int -- Int, dup *)
 def(max, Int Int -- Int, dup2 < if(nip, drop))
