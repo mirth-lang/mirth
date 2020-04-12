@@ -695,7 +695,9 @@ def(PRIM_OUTPUT_ASM, Prim, 37)
 def(PRIM_OUTPUT_C99, Prim, 38)
 def(PRIM_DASHES, Prim, 39)
 def(PRIM_ARROW, Prim, 40)
-def(NUM_PRIMS, Prim, 41)
+def(PRIM_INT, Prim, 41)
+def(PRIM_PTR, Prim, 42)
+def(NUM_PRIMS, Prim, 43)
 
 def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
 
@@ -763,6 +765,12 @@ def(init-names!, +Names,
     PRIM_OUTPUT_C99 "output-c99" def-prim!
     PRIM_DASHES "--" def-prim!
     PRIM_ARROW "->" def-prim!
+    PRIM_INT "Int" def-prim!
+        DEF_TYPE PRIM_INT name-sort!
+        TYPE_INT PRIM_INT name-value!
+    PRIM_PTR "Ptr" def-prim!
+        DEF_TYPE PRIM_PTR name-sort!
+        TYPE_PTR PRIM_INT name-value!
     )
 
 #################
@@ -1929,6 +1937,7 @@ def(buffer-base!, Ptr Buffer -- +Buffers,
 def(DEF_NONE, Sort, 0)
 def(DEF_WORD, Sort, 1)
 def(DEF_BUFFER, Sort, 2)
+def(DEF_TYPE, Sort, 3)
 
 MAX_NAMES def-static-buffer(DEF_SORT)
 MAX_NAMES longs def-static-buffer(DEF_VALUE)
@@ -1950,6 +1959,7 @@ def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
 def(name-defined?, Name -- Name Bool, name-undefined? not)
 def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD =)
 def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
+def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE =)
 
 #################
 # Type Checking #
@@ -2133,18 +2143,20 @@ def(typecheck-run-one!, Token --,
     token-type? TOKEN_INT = if(
         0 1 tstack-arity-check!
         token-args-0
-        0 tstack-push!, # FIXME: push TYPE_INT
+        TYPE_INT tstack-push!,
 
     token-type? TOKEN_STR = if(
         0 1 tstack-arity-check!
         token-args-0
-        0 tstack-push!, # FIXME: push TYPE_STR
+        TYPE_PTR tstack-push!,
 
     token-type? TOKEN_NAME = if(
         token-value? typecheck-run-name!,
 
         "Unexpected token type." emit-fatal-error!
     ))))
+
+def(hi, --, 10 "bye" + drop)
 
 def(typecheck-run-name!, Token Name --,
     name-is-prim? if(
@@ -2156,13 +2168,15 @@ def(typecheck-run-name!, Token Name --,
 
     name-is-buffer? if(
         drop token-args-0
-        0 tstack-push!, # FIXME: push "pointer to buffer type" type
+        TYPE_PTR tstack-push!,
 
         drop
         "Don't know how to typecheck token." emit-fatal-error!
     ))))
 
 def(typecheck-run-prim!, Token --,
+    dup elab-token!
+
     token-value? PRIM_ID = if(
         token-args-0,
 
@@ -2211,23 +2225,23 @@ def(typecheck-run-prim!, Token --,
     token-value? PRIM_INT_ADD = if(
         2 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! drop tstack-push!, # TODO: check operand types
+        tstack-pop2! elab+ tstack-push!,
     token-value? PRIM_INT_SUB = if(
         2 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! drop tstack-push!, # TODO: check operand types
+        tstack-pop2! elab- tstack-push!,
     token-value? PRIM_INT_MUL = if(
         2 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! drop tstack-push!, # TODO: check operand types
+        tstack-pop2! elab* tstack-push!,
     token-value? PRIM_INT_DIV = if(
         2 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! drop tstack-push!, # TODO: check operand types
+        tstack-pop2! elab/ tstack-push!,
     token-value? PRIM_INT_MOD = if(
         2 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! drop tstack-push!, # TODO: check operand types
+        tstack-pop2! elab% tstack-push!,
     token-value? PRIM_INT_EQ = if(
         2 1 tstack-arity-check!
         token-args-0
@@ -2449,6 +2463,222 @@ def(sig-push-outputs!, Token Token -- +TSTACK,
     sig-arity nip
     while(0 tstack-push! 1-) # FIXME: push correct type
     drop)
+
+#########
+# Types #
+#########
+
+def(TYPE_ERROR, Type, 0)
+def(TYPE_INT, Type, 1) # generic integer type (e.g. i64)
+def(TYPE_PTR, Type, 2) # generic pointer type (e.g. void*)
+
+long def-static-buffer(ELAB_TOKEN)
+def(elab-token@, -- Token +Elab, ELAB_TOKEN @)
+def(elab-token!, Token -- +Elab, ELAB_TOKEN !)
+def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
+def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
+def(elab-emit-fatal-error!, Str -- +Elab, dip(elab-token@) emit-fatal-error!)
+
+# elab type for + primitive
+def(elab+, Type Type -- Type,
+    dup TYPE_ERROR = if(
+        drop2 TYPE_ERROR,
+
+    dup TYPE_INT = if(
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+        dup TYPE_INT = if(
+            drop TYPE_INT,
+        dup TYPE_PTR = if(
+            drop TYPE_INT,
+            drop TYPE_ERROR
+            "attempted to add int to unknown type" elab-emit-error!
+        ))),
+
+    dup TYPE_PTR = if(
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+        dup TYPE_INT = if(
+            drop TYPE_INT,
+        dup TYPE_PTR = if(
+            drop
+            "attempted to add two pointers" elab-emit-error!
+            TYPE_ERROR,
+
+            drop
+            "attempted to add pointer to unknown type" elab-emit-error!
+            TYPE_ERROR
+        ))),
+
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+        dup TYPE_INT = if(
+            drop
+            "attempted to add unkwown type to int" elab-emit-error!
+            TYPE_ERROR,
+        dup TYPE_PTR = if(
+            drop
+            "attempted to add unkwown type to pointer" elab-emit-error!
+            TYPE_ERROR,
+
+            drop
+            "attempted to add two unknown types" elab-emit-error!
+            TYPE_ERROR
+        )))
+    ))))
+
+# elab type for - primitive
+def(elab-, Type Type -- Type,
+    dup TYPE_ERROR = if(
+        drop2 TYPE_ERROR,
+
+    dup TYPE_INT = if(
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+
+        dup TYPE_INT = if(
+            drop TYPE_INT,
+        dup TYPE_PTR = if(
+            drop TYPE_PTR,
+            "attempted to subtract int from unknown type" elab-emit-error!
+            drop TYPE_ERROR
+        ))),
+
+    dup TYPE_PTR = if(
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+        dup TYPE_INT = if(
+            "attempted to subtract pointer from int" elab-emit-error!
+            drop TYPE_ERROR,
+        dup TYPE_PTR = if(
+            "subtracting two pointers is dangerous" elab-emit-warning!
+            drop TYPE_INT,
+            "attempted to subtract pointer from unknown type" elab-emit-error!
+            drop TYPE_ERROR
+        ))),
+
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+        dup TYPE_INT = if(
+            "attempted to subtract unknown type from int" elab-emit-error!
+            drop TYPE_ERROR,
+        dup TYPE_PTR = if(
+            "attempted to subtract unknown type from ptr" elab-emit-error!
+            drop TYPE_ERROR,
+            "attempted to subtract two unknown types" elab-emit-error!
+            drop TYPE_ERROR
+        )))
+    ))))
+
+# elab for * primitive
+def(elab*, Type Type -- Type,
+    dup TYPE_ERROR = if(
+        drop2 TYPE_ERROR,
+
+    dup TYPE_INT = if(
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+        dup TYPE_INT = if(
+            drop TYPE_INT,
+            "attempted to multiply int with unknown type" elab-emit-error!
+            drop TYPE_ERROR
+        )),
+
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+
+        dup TYPE_INT = if(
+            "attempted to multiply unknown type with int" elab-emit-error!
+            drop TYPE_ERROR,
+
+            "attempted to multiply unknown types" elab-emit-error!
+            drop TYPE_ERROR
+        ))
+    )))
+
+# elab for / primitive
+def(elab/, Type Type -- Type,
+    dup TYPE_ERROR = if(
+        drop2 TYPE_ERROR,
+
+    dup TYPE_INT = if(
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+        dup TYPE_INT = if(
+            drop TYPE_INT,
+            "attempted to divide unknown type from int" elab-emit-error!
+            drop TYPE_ERROR
+        )),
+
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+
+        dup TYPE_INT = if(
+            "attempted to divide int from unknown type" elab-emit-error!
+            drop TYPE_ERROR,
+
+            "attempted to divide unknown types" elab-emit-error!
+            drop TYPE_ERROR
+        ))
+    )))
+
+# elab type for % primitive
+def(elab%, Type Type -- Type,
+    dup TYPE_ERROR = if(
+        drop2 TYPE_ERROR,
+
+    dup TYPE_INT = if(
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+
+        dup TYPE_INT = if(
+            drop TYPE_INT,
+        dup TYPE_PTR = if(
+            drop TYPE_INT,
+            "attempted to modulo int from unknown type" elab-emit-error!
+            drop TYPE_ERROR
+        ))),
+
+    dup TYPE_PTR = if(
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+        dup TYPE_INT = if(
+            "attempted to modulo pointer from int" elab-emit-error!
+            drop TYPE_ERROR,
+        dup TYPE_PTR = if(
+            "attempted to module two pointers" elab-emit-error!
+            drop TYPE_ERROR,
+            "attempted to modulo pointer from unknown type" elab-emit-error!
+            drop TYPE_ERROR
+        ))),
+
+        drop
+        dup TYPE_ERROR = if(
+            drop TYPE_ERROR,
+        dup TYPE_INT = if(
+            "attempted to modulo unknown type from int" elab-emit-error!
+            drop TYPE_ERROR,
+        dup TYPE_PTR = if(
+            "attempted to modulo unknown type from ptr" elab-emit-error!
+            drop TYPE_ERROR,
+            "attempted to modulo two unknown types" elab-emit-error!
+            drop TYPE_ERROR
+        )))
+    ))))
+
+def(testty, --, "hi" 10 % drop)
 
 ###########
 # Codegen #
