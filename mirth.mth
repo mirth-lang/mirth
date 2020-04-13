@@ -2782,8 +2782,12 @@ def(c99-emit-header!, +IO,
     "#include <stdint.h>" ;
     "#include <stdlib.h>" ;
     "#include <stdio.h>" ;
+    "#if defined(__linux__) || defined(__APPLE__) || defined(__MINGW32__)" ;
     "#include <fcntl.h>" ;
     "#include <unistd.h>" ;
+    "#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)" ;
+    "#include <windows.h>" ;
+    "#endif" ;
     "#if defined(__linux__) || defined(__APPLE__)" ;
     "#include <sys/mman.h>" ;
     "#endif" ;;
