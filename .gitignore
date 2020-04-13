@@ -1,5 +1,6 @@
 *~
 *.swp
+/.vs
 /mirth0
 /mirth1
 /mirth2
@@ -8,7 +9,9 @@
 /mirth1.c
 /mirth2.c
 /mirth3.c
-/*.dSYM
+*.dSYM
 /mirth_prof.c
 /mirth_prof
 /default.profraw
+*.exe
+*.obj

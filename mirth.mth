@@ -411,8 +411,11 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     RUNNING_OS LINUX = if(
         0x241, # O_TRUNC = 0x200, O_CREAT = 0x40, O_WRONLY = 0x1
 
+    RUNNING_OS WINDOWS = if(
+        0x301, # O_TRUNC = 0x400, O_CREAT = 0x200, O_WRONLY = 0x2
+
         "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic! 0
-    )))
+    ))))
 
 def(close-file!, File -- +IO,
     posix-close!
@@ -2156,8 +2159,6 @@ def(typecheck-run-one!, Token --,
         "Unexpected token type." emit-fatal-error!
     ))))
 
-def(hi, --, 10 "bye" + drop)
-
 def(typecheck-run-name!, Token Name --,
     name-is-prim? if(
         drop typecheck-run-prim!,
@@ -2781,9 +2782,15 @@ def(c99-emit-header!, +IO,
     "#include <stdint.h>" ;
     "#include <stdlib.h>" ;
     "#include <stdio.h>" ;
+    "#if defined(__linux__) || defined(__APPLE__) || defined(__MINGW32__)" ;
     "#include <fcntl.h>" ;
     "#include <unistd.h>" ;
-    "#include <sys/mman.h>" ;;
+    "#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)" ;
+    "#include <windows.h>" ;
+    "#endif" ;
+    "#if defined(__linux__) || defined(__APPLE__)" ;
+    "#include <sys/mman.h>" ;
+    "#endif" ;;
     "#define STACK_SIZE 2000" ;
     "static size_t sc = STACK_SIZE;" ;
     "static int64_t stack[STACK_SIZE] = {0};" ;;
@@ -2794,7 +2801,7 @@ def(c99-emit-strings!, +IO,
     "static char strings[STRINGS_SIZE] = { " ;
     0 dup strings-size@ < while(
         drop
-        dup STRINGS_BUF byte@@ dup .n ", " .
+        dup STRINGS_BUF byte@@ dup .n "," .
         if(id, .lf)
         1+ dup strings-size@ <
     ) drop
@@ -2945,8 +2952,8 @@ def(c99-emit-prims!, +IO,
     "    size_t n = (size_t)pop();" ;
     "    void* p = pop_ptr();" ;
     "    int f = (int)pop();" ;
-    "    ssize_t x = write(f, p, n);" ;
-    "    if (x != (ssize_t)n) { fprintf(stderr, \"rts panic : write error : expected to write %zu bytes but wrote %zd bytes\\n\", n, x); exit(1); } " ;
+    "    int64_t x = (int64_t)write(f, p, n);" ;
+    "    if (x != (int64_t)n) { fprintf(stderr, \"rts panic : write error : expected to write %ld bytes but wrote %ld bytes\\n\", (long)n, (long)x); exit(1); }" ;
     "}" ;;
 
     PRIM_POSIX_READ .w " {" ;
@@ -2974,6 +2981,7 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_POSIX_MMAP .w " {" ;
+    "    #if defined(__linux__) || defined(__APPLE__)" ;
     "    int f = (int)pop();" ;
     "    int e = (int)pop();" ;
     "    int d = (int)pop();" ;
@@ -2982,6 +2990,12 @@ def(c99-emit-prims!, +IO,
     "    void* a = pop_ptr();" ;
     "    void* p = mmap(a,b,c,d,e,f);" ;
     "    push((int64_t)p);" ;
+    "    #else" ;
+    "    pop(); pop(); pop(); pop();" ;
+    "    size_t b = (size_t)pop();" ;
+    "    pop();" ;
+    "    push((int64_t)malloc(b));" ;
+    "    #endif" ;
     "}" ;;
 
     PRIM_DEBUG .w " {" ;
@@ -3119,10 +3133,18 @@ def(c99-emit-word!, Token -- +IO,
     ))))
 
 def(c99-emit-main!, Token -- +IO,
-    "int main (void) {" ;
+    "#if defined(WIN32) && !defined(__MINGW32__)" ;
+    "void main (int argc, char** argv) {" ;
+    "#else" ;
+    "int main (int argc, char** argv) {" ;
+    "#endif" ;
     c99-emit-run!
+    "#if defined(WIN32) && !defined(__MINGW32__)" ;
+    "#else" ;
     "    return 0;" ;
-    "}" ;)
+    "#endif" ;
+    "}" ;
+    )
 
 ########
 # Heap #
@@ -3192,10 +3214,12 @@ def(PROT_READ|PROT_WRITE, Int,
 def(MAP_ANON|MAP_PRIVATE, Int,
     RUNNING_OS MACOS = if(
         0x1002, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
-    RUNNING_OS LINUX = if(
-        0x22, # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
-        "MAP_ANON|MAP_PRIVATE unknown for os" panic! 0
-    )))
+    # RUNNING_OS LINUX = if(
+        0x22 # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
+        # ,
+        # "MAP_ANON|MAP_PRIVATE unknown for os" panic! 0
+    # )
+    ))
 
 # Aligns a by b, rounding upward. For instance,
 #
