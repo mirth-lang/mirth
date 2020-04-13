@@ -2952,8 +2952,8 @@ def(c99-emit-prims!, +IO,
     "    size_t n = (size_t)pop();" ;
     "    void* p = pop_ptr();" ;
     "    int f = (int)pop();" ;
-    "    ssize_t x = write(f, p, n);" ;
-    "    if (x != (ssize_t)n) { fprintf(stderr, \"rts panic : write error : expected to write %ld bytes but wrote %ld bytes\\n\", (long)n, (long)x); exit(1); }" ;
+    "    int64_t x = (int64_t)write(f, p, n);" ;
+    "    if (x != (int64_t)n) { fprintf(stderr, \"rts panic : write error : expected to write %ld bytes but wrote %ld bytes\\n\", (long)n, (long)x); exit(1); }" ;
     "}" ;;
 
     PRIM_POSIX_READ .w " {" ;
@@ -3133,10 +3133,18 @@ def(c99-emit-word!, Token -- +IO,
     ))))
 
 def(c99-emit-main!, Token -- +IO,
-    "int main (void) {" ;
+    "#if defined(WIN32) && !defined(__MINGW32__)" ;
+    "void main (int argc, char** argv) {" ;
+    "#else" ;
+    "int main (int argc, char** argv) {" ;
+    "#endif" ;
     c99-emit-run!
+    "#if defined(WIN32) && !defined(__MINGW32__)" ;
+    "#else" ;
     "    return 0;" ;
-    "}" ;)
+    "#endif" ;
+    "}" ;
+    )
 
 ########
 # Heap #

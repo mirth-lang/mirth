@@ -1,4 +1,4 @@
-C99FLAGS=-std=c99 -Wall -Wextra -Wno-missing-prototypes -Wno-missing-noreturn -Wno-unused-function -Werror -pedantic
+C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Werror -pedantic
 CC=gcc $(C99FLAGS)
 
 .PHONY: show build update check update-mirth install-vim install-code profile
