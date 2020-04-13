@@ -2835,7 +2835,7 @@ static void wO_WRONLY_7C_O_CREAT_7C_O_TRUNC (void){
     wWINDOWS();
     w_3D_();
     if (pop()) {
-    push(1538);
+    push(1537);
     } else {
     push((int64_t)(strings + 160));
     wpanic_21_();
