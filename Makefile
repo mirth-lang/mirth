@@ -13,7 +13,7 @@ build: mirth0 mirth1 mirth2 mirth1.c mirth2.c mirth3.c
 update: mirth0.c mirth3.c
 	cp mirth3.c mirth0.c
 
-check: mirth0.c mirth1.c mirth2.c mirth3.c
+check:
 	diff --strip-trailing-cr mirth2.c mirth3.c
 	diff --strip-trailing-cr mirth1.c mirth3.c
 	diff --strip-trailing-cr mirth0.c mirth3.c
