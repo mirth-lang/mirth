@@ -21,7 +21,7 @@ jobs:
     - name: make check
       run: make check
 
-  build.bat:
+  build-bat:
     strategy:
       matrix:
         arch: [amd64,x86]
