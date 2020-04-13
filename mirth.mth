@@ -2989,7 +2989,7 @@ def(c99-emit-prims!, +IO,
     "    pop(); pop(); pop(); pop();" ;
     "    size_t b = (size_t)pop();" ;
     "    pop();" ;
-    "    push((void*)malloc(b));" ;
+    "    push((int64_t)malloc(b));" ;
     "    #endif" ;
     "}" ;;
 
