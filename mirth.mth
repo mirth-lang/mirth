@@ -412,7 +412,7 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
         0x241, # O_TRUNC = 0x200, O_CREAT = 0x40, O_WRONLY = 0x1
 
     RUNNING_OS WINDOWS = if(
-        0x2601, # O_TRUNC = 0x400, O_CREAT = 0x200, O_WRONLY = 0x2
+        0x301, # O_TRUNC = 0x400, O_CREAT = 0x200, O_WRONLY = 0x2
 
         "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic! 0
     ))))
