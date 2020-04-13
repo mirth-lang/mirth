@@ -411,7 +411,7 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     RUNNING_OS LINUX = if(
         0x241, # O_TRUNC = 0x200, O_CREAT = 0x40, O_WRONLY = 0x1
 
-    RUNNING_OS WINDOWS = if(
+    RUNNING_OS WIN32 = if(
         0x301, # O_TRUNC = 0x400, O_CREAT = 0x200, O_WRONLY = 0x2
 
         "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic! 0
@@ -3049,7 +3049,7 @@ def(c99-emit-prims!, +IO,
 
     PRIM_RUNNING_OS .w " {" ;
     "#if defined(MIRTH_WIN32)" ;
-    "    push(" . WINDOWS .n ");" ;
+    "    push(" . WIN32 .n ");" ;
     "#elif defined(MIRTH_LINUX)" ;
     "    push(" . LINUX .n ");" ;
     "#elif defined(MIRTH_MACOS)" ;
@@ -3287,7 +3287,7 @@ def(main, +IO,
 #########
 
 def(UNKNOWN, OS, 0)
-def(WINDOWS, OS, 1)
+def(WIN32, OS, 1)
 def(LINUX, OS, 2)
 def(MACOS, OS, 3)
 
