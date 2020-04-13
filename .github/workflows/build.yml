@@ -10,16 +10,27 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-latest, windows-latest]
-
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
-    - name: make clean
-      run: make clean
     - name: make build
       run: make build
+    - name: make check
+      run: make check
+
+  build.bat:
+    strategy:
+      matrix:
+        arch: [amd64,x86]
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set Up Visual Studio Environment for ${{ matrix.arch }}
+      run: "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{ matrix.arch }}
+    - name: Run build.bat
+      run: build.bat
     - name: make check
       run: make check
