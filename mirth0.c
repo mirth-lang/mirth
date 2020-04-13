@@ -13,7 +13,7 @@
 static size_t sc = STACK_SIZE;
 static int64_t stack[STACK_SIZE] = {0};
 
-#define STRINGS_SIZE 7186
+#define STRINGS_SIZE 7228
 static char strings[STRINGS_SIZE] = { 
 65, 115, 115, 101, 114, 116, 105, 111, 110, 32, 102, 97, 105, 108, 101, 100, 0, 
 115, 116, 114, 45, 98, 117, 102, 45, 112, 117, 115, 104, 33, 32, 98, 117, 116, 32, 83, 84, 82, 95, 66, 85, 70, 32, 105, 115, 32, 97, 108, 114, 101, 97, 100, 121, 32, 102, 117, 108, 108, 0, 
@@ -26,6 +26,7 @@ static char strings[STRINGS_SIZE] = {
 112, 97, 110, 105, 99, 58, 32, 0, 
 70, 97, 105, 108, 101, 100, 32, 116, 111, 32, 111, 112, 101, 110, 32, 102, 105, 108, 101, 33, 0, 
 70, 97, 105, 108, 101, 100, 32, 116, 111, 32, 99, 114, 101, 97, 116, 101, 32, 102, 105, 108, 101, 33, 0, 
+79, 95, 87, 82, 79, 78, 76, 89, 124, 79, 95, 67, 82, 69, 65, 84, 124, 79, 95, 84, 82, 85, 78, 67, 32, 110, 111, 116, 32, 107, 110, 111, 119, 110, 32, 102, 111, 114, 32, 111, 115, 0, 
 102, 97, 105, 108, 101, 100, 32, 116, 111, 32, 99, 108, 111, 115, 101, 32, 102, 105, 108, 101, 0, 
 102, 97, 105, 108, 101, 100, 32, 116, 111, 32, 114, 101, 97, 100, 32, 102, 105, 108, 101, 0, 
 82, 101, 97, 100, 105, 110, 103, 32, 109, 105, 114, 116, 104, 46, 109, 116, 104, 0, 
@@ -884,6 +885,8 @@ static void wstr_buf_create_file_21_ (void);
 static void wcreate_file_21_ (void);
 static void wO_WRONLY_7C_O_CREAT_7C_O_TRUNC (void);
 static void wMACOS (void);
+static void wLINUX (void);
+static void wWINDOWS (void);
 static void wclose_file_21_ (void);
 static void wread_file_21_ (void);
 static void wread_mirth_src_21_ (void);
@@ -1244,8 +1247,6 @@ static void w_2E_d (void);
 static void w_2E_name (void);
 static void w_2E_w (void);
 static void wc99_emit_buffer_21_ (void);
-static void wWINDOWS (void);
-static void wLINUX (void);
 static void wUNKNOWN (void);
 static void wc99_emit_word_sig_21_ (void);
 static void wc99_emit_word_def_21_ (void);
@@ -2378,130 +2379,130 @@ static void winit_names_21_ (void){
     push(0);
     wnum_names_21_();
     wPRIM_END();
-    push((int64_t)(strings + 292));
-    wdef_prim_21_();
-    wPRIM_ID();
-    push((int64_t)(strings + 296));
-    wdef_prim_21_();
-    wPRIM_DUP();
-    push((int64_t)(strings + 299));
-    wdef_prim_21_();
-    wPRIM_DROP();
-    push((int64_t)(strings + 303));
-    wdef_prim_21_();
-    wPRIM_SWAP();
-    push((int64_t)(strings + 308));
-    wdef_prim_21_();
-    wPRIM_DIP();
-    push((int64_t)(strings + 313));
-    wdef_prim_21_();
-    wPRIM_IF();
-    push((int64_t)(strings + 317));
-    wdef_prim_21_();
-    wPRIM_WHILE();
-    push((int64_t)(strings + 320));
-    wdef_prim_21_();
-    wPRIM_INT_ADD();
-    push((int64_t)(strings + 326));
-    wdef_prim_21_();
-    wPRIM_INT_SUB();
-    push((int64_t)(strings + 328));
-    wdef_prim_21_();
-    wPRIM_INT_MUL();
-    push((int64_t)(strings + 330));
-    wdef_prim_21_();
-    wPRIM_INT_DIV();
-    push((int64_t)(strings + 332));
-    wdef_prim_21_();
-    wPRIM_INT_MOD();
     push((int64_t)(strings + 334));
     wdef_prim_21_();
-    wPRIM_INT_EQ();
-    push((int64_t)(strings + 336));
-    wdef_prim_21_();
-    wPRIM_INT_LT();
+    wPRIM_ID();
     push((int64_t)(strings + 338));
     wdef_prim_21_();
-    wPRIM_INT_LE();
-    push((int64_t)(strings + 340));
+    wPRIM_DUP();
+    push((int64_t)(strings + 341));
     wdef_prim_21_();
-    wPRIM_INT_AND();
-    push((int64_t)(strings + 343));
-    wdef_prim_21_();
-    wPRIM_INT_OR();
+    wPRIM_DROP();
     push((int64_t)(strings + 345));
     wdef_prim_21_();
-    wPRIM_INT_XOR();
-    push((int64_t)(strings + 347));
+    wPRIM_SWAP();
+    push((int64_t)(strings + 350));
     wdef_prim_21_();
-    wPRIM_INT_SHL();
-    push((int64_t)(strings + 349));
-    wdef_prim_21_();
-    wPRIM_INT_SHR();
-    push((int64_t)(strings + 352));
-    wdef_prim_21_();
-    wPRIM_MEM_GET();
+    wPRIM_DIP();
     push((int64_t)(strings + 355));
     wdef_prim_21_();
-    wPRIM_MEM_SET();
-    push((int64_t)(strings + 357));
-    wdef_prim_21_();
-    wPRIM_MEM_GET_BYTE();
+    wPRIM_IF();
     push((int64_t)(strings + 359));
     wdef_prim_21_();
+    wPRIM_WHILE();
+    push((int64_t)(strings + 362));
+    wdef_prim_21_();
+    wPRIM_INT_ADD();
+    push((int64_t)(strings + 368));
+    wdef_prim_21_();
+    wPRIM_INT_SUB();
+    push((int64_t)(strings + 370));
+    wdef_prim_21_();
+    wPRIM_INT_MUL();
+    push((int64_t)(strings + 372));
+    wdef_prim_21_();
+    wPRIM_INT_DIV();
+    push((int64_t)(strings + 374));
+    wdef_prim_21_();
+    wPRIM_INT_MOD();
+    push((int64_t)(strings + 376));
+    wdef_prim_21_();
+    wPRIM_INT_EQ();
+    push((int64_t)(strings + 378));
+    wdef_prim_21_();
+    wPRIM_INT_LT();
+    push((int64_t)(strings + 380));
+    wdef_prim_21_();
+    wPRIM_INT_LE();
+    push((int64_t)(strings + 382));
+    wdef_prim_21_();
+    wPRIM_INT_AND();
+    push((int64_t)(strings + 385));
+    wdef_prim_21_();
+    wPRIM_INT_OR();
+    push((int64_t)(strings + 387));
+    wdef_prim_21_();
+    wPRIM_INT_XOR();
+    push((int64_t)(strings + 389));
+    wdef_prim_21_();
+    wPRIM_INT_SHL();
+    push((int64_t)(strings + 391));
+    wdef_prim_21_();
+    wPRIM_INT_SHR();
+    push((int64_t)(strings + 394));
+    wdef_prim_21_();
+    wPRIM_MEM_GET();
+    push((int64_t)(strings + 397));
+    wdef_prim_21_();
+    wPRIM_MEM_SET();
+    push((int64_t)(strings + 399));
+    wdef_prim_21_();
+    wPRIM_MEM_GET_BYTE();
+    push((int64_t)(strings + 401));
+    wdef_prim_21_();
     wPRIM_MEM_SET_BYTE();
-    push((int64_t)(strings + 365));
+    push((int64_t)(strings + 407));
     wdef_prim_21_();
     wPRIM_POSIX_READ();
-    push((int64_t)(strings + 371));
+    push((int64_t)(strings + 413));
     wdef_prim_21_();
     wPRIM_POSIX_WRITE();
-    push((int64_t)(strings + 383));
+    push((int64_t)(strings + 425));
     wdef_prim_21_();
     wPRIM_POSIX_OPEN();
-    push((int64_t)(strings + 396));
+    push((int64_t)(strings + 438));
     wdef_prim_21_();
     wPRIM_POSIX_CLOSE();
-    push((int64_t)(strings + 408));
+    push((int64_t)(strings + 450));
     wdef_prim_21_();
     wPRIM_POSIX_EXIT();
-    push((int64_t)(strings + 421));
-    wdef_prim_21_();
-    wPRIM_POSIX_MMAP();
-    push((int64_t)(strings + 433));
-    wdef_prim_21_();
-    wPRIM_DEBUG();
-    push((int64_t)(strings + 445));
-    wdef_prim_21_();
-    wPRIM_MIRTH_REVISION();
-    push((int64_t)(strings + 448));
-    wdef_prim_21_();
-    wPRIM_RUNNING_OS();
     push((int64_t)(strings + 463));
     wdef_prim_21_();
-    wPRIM_DEF();
-    push((int64_t)(strings + 474));
+    wPRIM_POSIX_MMAP();
+    push((int64_t)(strings + 475));
     wdef_prim_21_();
-    wPRIM_DEF_TYPE();
-    push((int64_t)(strings + 478));
-    wdef_prim_21_();
-    wPRIM_DEF_STATIC_BUFFER();
+    wPRIM_DEBUG();
     push((int64_t)(strings + 487));
     wdef_prim_21_();
-    wPRIM_OUTPUT_ASM();
+    wPRIM_MIRTH_REVISION();
+    push((int64_t)(strings + 490));
+    wdef_prim_21_();
+    wPRIM_RUNNING_OS();
     push((int64_t)(strings + 505));
     wdef_prim_21_();
-    wPRIM_OUTPUT_C99();
+    wPRIM_DEF();
     push((int64_t)(strings + 516));
     wdef_prim_21_();
+    wPRIM_DEF_TYPE();
+    push((int64_t)(strings + 520));
+    wdef_prim_21_();
+    wPRIM_DEF_STATIC_BUFFER();
+    push((int64_t)(strings + 529));
+    wdef_prim_21_();
+    wPRIM_OUTPUT_ASM();
+    push((int64_t)(strings + 547));
+    wdef_prim_21_();
+    wPRIM_OUTPUT_C99();
+    push((int64_t)(strings + 558));
+    wdef_prim_21_();
     wPRIM_DASHES();
-    push((int64_t)(strings + 527));
+    push((int64_t)(strings + 569));
     wdef_prim_21_();
     wPRIM_ARROW();
-    push((int64_t)(strings + 530));
+    push((int64_t)(strings + 572));
     wdef_prim_21_();
     wPRIM_INT();
-    push((int64_t)(strings + 533));
+    push((int64_t)(strings + 575));
     wdef_prim_21_();
     wDEF_TYPE();
     wPRIM_INT();
@@ -2510,7 +2511,7 @@ static void winit_names_21_ (void){
     wPRIM_INT();
     wname_value_21_();
     wPRIM_PTR();
-    push((int64_t)(strings + 537));
+    push((int64_t)(strings + 579));
     wdef_prim_21_();
     wDEF_TYPE();
     wPRIM_PTR();
@@ -2824,7 +2825,23 @@ static void wO_WRONLY_7C_O_CREAT_7C_O_TRUNC (void){
     if (pop()) {
     push(1537);
     } else {
+    wRUNNING_OS();
+    wLINUX();
+    w_3D_();
+    if (pop()) {
     push(577);
+    } else {
+    wRUNNING_OS();
+    wWINDOWS();
+    w_3D_();
+    if (pop()) {
+    push(1537);
+    } else {
+    push((int64_t)(strings + 160));
+    wpanic_21_();
+    push(0);
+    }
+    }
     }
 }
 
@@ -2832,12 +2849,20 @@ static void wMACOS (void){
     push(3);
 }
 
+static void wLINUX (void){
+    push(2);
+}
+
+static void wWINDOWS (void){
+    push(1);
+}
+
 static void wclose_file_21_ (void){
     wposix_close_21_();
     push(0);
     w_3C_();
     if (pop()) {
-    push((int64_t)(strings + 160));
+    push((int64_t)(strings + 202));
     wpanic_21_();
     } else {
     wid();
@@ -2854,7 +2879,7 @@ static void wread_file_21_ (void){
     push(0);
     w_3C_();
     if (pop()) {
-    push((int64_t)(strings + 181));
+    push((int64_t)(strings + 223));
     wpanic_21_();
     wdrop2();
     } else {
@@ -2864,20 +2889,20 @@ static void wread_file_21_ (void){
 }
 
 static void wread_mirth_src_21_ (void){
-    push((int64_t)(strings + 201));
+    push((int64_t)(strings + 243));
     wstr_trace_ln_21_();
-    push((int64_t)(strings + 219));
+    push((int64_t)(strings + 261));
     wopen_file_21_();
     wread_file_21_();
-    push((int64_t)(strings + 229));
+    push((int64_t)(strings + 271));
     wstr_trace_21_();
     wfile_buf_length_40_();
     wint_trace_21_();
-    push((int64_t)(strings + 235));
+    push((int64_t)(strings + 277));
     wstr_trace_21_();
     wFILE_BUF_SIZE();
     wint_trace_21_();
-    push((int64_t)(strings + 260));
+    push((int64_t)(strings + 302));
     wstr_trace_ln_21_();
 }
 
@@ -3332,7 +3357,7 @@ static void wshow_names_table_21_ (void){
     wdrop();
     wdup();
     wint_print_21_();
-    push((int64_t)(strings + 263));
+    push((int64_t)(strings + 305));
     wstr_print_21_();
     wdup();
     wname_load_21_();
@@ -3735,7 +3760,7 @@ static void wdef_prim_21_ (void){
     if (pop()) {
     wid();
     } else {
-    push((int64_t)(strings + 266));
+    push((int64_t)(strings + 308));
     wpanic_21_();
     }
 }
@@ -3883,52 +3908,52 @@ static void wtoken_type_str (void){
     w_3D_();
     if (pop()) {
     wdrop();
-    push((int64_t)(strings + 541));
+    push((int64_t)(strings + 583));
     } else {
     wdup();
     wTOKEN_LPAREN();
     w_3D_();
     if (pop()) {
     wdrop();
-    push((int64_t)(strings + 546));
+    push((int64_t)(strings + 588));
     } else {
     wdup();
     wTOKEN_RPAREN();
     w_3D_();
     if (pop()) {
     wdrop();
-    push((int64_t)(strings + 553));
+    push((int64_t)(strings + 595));
     } else {
     wdup();
     wTOKEN_COMMA();
     w_3D_();
     if (pop()) {
     wdrop();
-    push((int64_t)(strings + 560));
+    push((int64_t)(strings + 602));
     } else {
     wdup();
     wTOKEN_NAME();
     w_3D_();
     if (pop()) {
     wdrop();
-    push((int64_t)(strings + 566));
+    push((int64_t)(strings + 608));
     } else {
     wdup();
     wTOKEN_INT();
     w_3D_();
     if (pop()) {
     wdrop();
-    push((int64_t)(strings + 571));
+    push((int64_t)(strings + 613));
     } else {
     wdup();
     wTOKEN_STR();
     w_3D_();
     if (pop()) {
     wdrop();
-    push((int64_t)(strings + 575));
+    push((int64_t)(strings + 617));
     } else {
     wdrop();
-    push((int64_t)(strings + 579));
+    push((int64_t)(strings + 621));
     }
     }
     }
@@ -3998,11 +4023,11 @@ static void wtoken_new (void){
 static void wtoken_trace_prefix_21_ (void){
     wtoken_row_3F_();
     wint_trace_21_();
-    push((int64_t)(strings + 593));
+    push((int64_t)(strings + 635));
     wstr_trace_21_();
     wtoken_col_3F_();
     wint_trace_21_();
-    push((int64_t)(strings + 595));
+    push((int64_t)(strings + 637));
     wstr_trace_sp_21_();
     wdrop();
 }
@@ -4010,11 +4035,11 @@ static void wtoken_trace_prefix_21_ (void){
 static void wtoken_print_prefix_21_ (void){
     wtoken_row_3F_();
     wint_print_21_();
-    push((int64_t)(strings + 597));
+    push((int64_t)(strings + 639));
     wstr_print_21_();
     wtoken_col_3F_();
     wint_print_21_();
-    push((int64_t)(strings + 599));
+    push((int64_t)(strings + 641));
     wstr_print_sp_21_();
     wdrop();
 }
@@ -4139,7 +4164,7 @@ static void wlexer_stack_full_3F_ (void){
 static void wlexer_stack_push_21_ (void){
     wlexer_stack_full_3F_();
     if (pop()) {
-    push((int64_t)(strings + 601));
+    push((int64_t)(strings + 643));
     wpanic_21_();
     wdrop();
     } else {
@@ -4155,7 +4180,7 @@ static void wlexer_stack_push_21_ (void){
 static void wlexer_stack_pop_21_ (void){
     wlexer_stack_empty_3F_();
     if (pop()) {
-    push((int64_t)(strings + 638));
+    push((int64_t)(strings + 680));
     wpanic_21_();
     push(0);
     } else {
@@ -4191,7 +4216,7 @@ static void wrun_lexer_21_ (void){
     wlexer_emit_21_();
     } else {
     wlexer_stack_pop_21_();
-    push((int64_t)(strings + 676));
+    push((int64_t)(strings + 718));
     wemit_fatal_error_21_();
     }
 }
@@ -4379,7 +4404,7 @@ static void wis_rparen_3F_ (void){
 static void wlexer_emit_rparen_21_ (void){
     wlexer_stack_empty_3F_();
     if (pop()) {
-    push((int64_t)(strings + 705));
+    push((int64_t)(strings + 747));
     wlexer_emit_fatal_error_21_();
     } else {
     wTOKEN_RPAREN();
@@ -4823,7 +4848,7 @@ static void wlexer_push_string_char_21_ (void){
     wstr_buf_push_21_();
     } else {
     wstr_buf_push_21_();
-    push((int64_t)(strings + 735));
+    push((int64_t)(strings + 777));
     wlexer_emit_warning_21_();
     }
     }
@@ -4861,10 +4886,10 @@ static void wis_t_3F_ (void){
 }
 
 static void wlexer_emit_warning_21_ (void){
-    push((int64_t)(strings + 1032));
+    push((int64_t)(strings + 1074));
     wstr_trace_21_();
     wlexer_trace_prefix_21_();
-    push((int64_t)(strings + 1043));
+    push((int64_t)(strings + 1085));
     wstr_trace_21_();
     wstr_trace_ln_21_();
 }
@@ -4921,11 +4946,11 @@ static void wis_special_char_3F_ (void){
 static void wlexer_trace_prefix_21_ (void){
     wlexer_row_40_();
     wint_trace_21_();
-    push((int64_t)(strings + 770));
+    push((int64_t)(strings + 812));
     wstr_trace_21_();
     wlexer_col_40_();
     wint_trace_21_();
-    push((int64_t)(strings + 772));
+    push((int64_t)(strings + 814));
     wstr_trace_sp_21_();
 }
 
@@ -4968,7 +4993,7 @@ static void wvstack_i64_21_ (void){
 static void wvstack_pop_21_ (void){
     wvstack_empty_3F_();
     if (pop()) {
-    push((int64_t)(strings + 774));
+    push((int64_t)(strings + 816));
     wpanic_21_();
     push(0);
     } else {
@@ -5018,7 +5043,7 @@ static void wvstack_pop6_21_ (void){
 static void wvstack_push_21_ (void){
     wvstack_full_3F_();
     if (pop()) {
-    push((int64_t)(strings + 824));
+    push((int64_t)(strings + 866));
     wpanic_21_();
     wdrop();
     } else {
@@ -5047,7 +5072,7 @@ static void wvstack_push3_21_ (void){
 static void wvstack_top_40_ (void){
     wvstack_empty_3F_();
     if (pop()) {
-    push((int64_t)(strings + 873));
+    push((int64_t)(strings + 915));
     wpanic_21_();
     push(0);
     } else {
@@ -5060,7 +5085,7 @@ static void wvstack_top_40_ (void){
 static void wvstack_top_21_ (void){
     wvstack_empty_3F_();
     if (pop()) {
-    push((int64_t)(strings + 933));
+    push((int64_t)(strings + 975));
     wpanic_21_();
     wdrop();
     } else {
@@ -5091,32 +5116,32 @@ static void wvstack_trace_21_ (void){
 }
 
 static void wemit_warning_21_ (void){
-    push((int64_t)(strings + 992));
+    push((int64_t)(strings + 1034));
     wstr_trace_21_();
     { int64_t d1 = pop();
     wtoken_trace_prefix_21_();
       push(d1); }
-    push((int64_t)(strings + 1003));
+    push((int64_t)(strings + 1045));
     wstr_trace_21_();
     wstr_trace_ln_21_();
 }
 
 static void wemit_error_21_ (void){
-    push((int64_t)(strings + 1013));
+    push((int64_t)(strings + 1055));
     wstr_trace_21_();
     { int64_t d1 = pop();
     wtoken_trace_prefix_21_();
       push(d1); }
-    push((int64_t)(strings + 1024));
+    push((int64_t)(strings + 1066));
     wstr_trace_21_();
     wstr_trace_ln_21_();
 }
 
 static void wlexer_emit_error_21_ (void){
-    push((int64_t)(strings + 1053));
+    push((int64_t)(strings + 1095));
     wstr_trace_21_();
     wlexer_trace_prefix_21_();
-    push((int64_t)(strings + 1064));
+    push((int64_t)(strings + 1106));
     wstr_trace_21_();
     wstr_trace_ln_21_();
 }
@@ -5200,7 +5225,7 @@ static void wtoken_run_one_21_ (void){
     wtoken_run_name_21_();
     } else {
     wdup();
-    push((int64_t)(strings + 1072));
+    push((int64_t)(strings + 1114));
     wemit_fatal_error_21_();
     }
     }
@@ -5222,7 +5247,7 @@ static void wtypecheck_token_21_ (void){
     wname_undefined_3F_();
     if (pop()) {
     wdrop();
-    push((int64_t)(strings + 1922));
+    push((int64_t)(strings + 1964));
     wemit_fatal_error_21_();
     } else {
     wnip();
@@ -5248,7 +5273,7 @@ static void warity_check_21_ (void){
     if (pop()) {
     wdrop();
     wdrop2();
-    push((int64_t)(strings + 1274));
+    push((int64_t)(strings + 1316));
     wemit_fatal_error_21_();
     push(0);
     } else {
@@ -5259,7 +5284,7 @@ static void warity_check_21_ (void){
     wVSTACK_SIZE();
     w_3E_();
     if (pop()) {
-    push((int64_t)(strings + 1291));
+    push((int64_t)(strings + 1333));
     wemit_fatal_error_21_();
     push(0);
     } else {
@@ -5278,7 +5303,7 @@ static void wtoken_run_name_21_ (void){
     wname_undefined_3F_();
     if (pop()) {
     wdrop();
-    push((int64_t)(strings + 1108));
+    push((int64_t)(strings + 1150));
     wemit_fatal_error_21_();
     } else {
     wname_is_word_3F_();
@@ -5295,7 +5320,7 @@ static void wtoken_run_name_21_ (void){
     wvstack_push_21_();
     } else {
     wdrop();
-    push((int64_t)(strings + 1127));
+    push((int64_t)(strings + 1169));
     wemit_fatal_error_21_();
     }
     }
@@ -5708,7 +5733,7 @@ static void wtoken_run_prim_21_ (void){
     push(0);
     warity_check_21_();
     wtoken_args_0();
-    push((int64_t)(strings + 1155));
+    push((int64_t)(strings + 1197));
     wstr_trace_21_();
     wvstack_trace_21_();
     } else {
@@ -5740,12 +5765,12 @@ static void wtoken_run_prim_21_ (void){
     wname_sig_21_();
     } else {
     wdrop();
-    push((int64_t)(strings + 1159));
+    push((int64_t)(strings + 1201));
     wemit_fatal_error_21_();
     wdrop2();
     }
     } else {
-    push((int64_t)(strings + 1180));
+    push((int64_t)(strings + 1222));
     wemit_fatal_error_21_();
     wdrop2();
     }
@@ -5776,11 +5801,11 @@ static void wtoken_run_prim_21_ (void){
     wname_value_21_();
     } else {
     wdrop();
-    push((int64_t)(strings + 1199));
+    push((int64_t)(strings + 1241));
     wemit_fatal_error_21_();
     }
     } else {
-    push((int64_t)(strings + 1222));
+    push((int64_t)(strings + 1264));
     wemit_fatal_error_21_();
     }
     } else {
@@ -5821,7 +5846,7 @@ static void wtoken_run_prim_21_ (void){
     wrun_output_c99_21_();
     } else {
     wdrop();
-    push((int64_t)(strings + 1243));
+    push((int64_t)(strings + 1285));
     wemit_fatal_error_21_();
     }
     }
@@ -5895,7 +5920,7 @@ static void wtoken_args_0 (void){
     wTOKEN_LPAREN();
     w_3D_();
     if (pop()) {
-    push((int64_t)(strings + 1307));
+    push((int64_t)(strings + 1349));
     wemit_fatal_error_21_();
     } else {
     wdrop();
@@ -5919,12 +5944,12 @@ static void wtoken_args_1 (void){
     wdrop2();
     } else {
     wdrop();
-    push((int64_t)(strings + 1324));
+    push((int64_t)(strings + 1366));
     wemit_fatal_error_21_();
     }
     } else {
     wdrop();
-    push((int64_t)(strings + 1353));
+    push((int64_t)(strings + 1395));
     wemit_fatal_error_21_();
     push(0);
     }
@@ -5954,18 +5979,18 @@ static void wtoken_args_2 (void){
     wdrop2();
     } else {
     wdrop();
-    push((int64_t)(strings + 1378));
+    push((int64_t)(strings + 1420));
     wemit_fatal_error_21_();
     }
     } else {
     wdrop();
-    push((int64_t)(strings + 1408));
+    push((int64_t)(strings + 1450));
     wemit_fatal_error_21_();
     push(0);
     }
     } else {
     wdrop();
-    push((int64_t)(strings + 1436));
+    push((int64_t)(strings + 1478));
     wemit_fatal_error_21_();
     push(0);
     push(0);
@@ -6003,25 +6028,25 @@ static void wtoken_args_3 (void){
     wdrop2();
     } else {
     wdrop();
-    push((int64_t)(strings + 1462));
+    push((int64_t)(strings + 1504));
     wemit_fatal_error_21_();
     }
     } else {
     wdrop();
-    push((int64_t)(strings + 1492));
+    push((int64_t)(strings + 1534));
     wemit_fatal_error_21_();
     push(0);
     }
     } else {
     wdrop();
-    push((int64_t)(strings + 1520));
+    push((int64_t)(strings + 1562));
     wemit_fatal_error_21_();
     push(0);
     push(0);
     }
     } else {
     wdrop();
-    push((int64_t)(strings + 1548));
+    push((int64_t)(strings + 1590));
     wemit_fatal_error_21_();
     push(0);
     push(0);
@@ -6042,7 +6067,7 @@ static void wbuffer_alloc_21_ (void){
     wMAX_BUFFERS();
     w_3E__3D_();
     if (pop()) {
-    push((int64_t)(strings + 1574));
+    push((int64_t)(strings + 1616));
     wpanic_21_();
     } else {
     wdup();
@@ -6283,7 +6308,7 @@ static void wtstack_40_ (void){
 static void wtstack_pop_21_ (void){
     wtstack_empty_3F_();
     if (pop()) {
-    push((int64_t)(strings + 1609));
+    push((int64_t)(strings + 1651));
     wpanic_21_();
     push(0);
     } else {
@@ -6298,7 +6323,7 @@ static void wtstack_pop_21_ (void){
 static void wtstack_push_21_ (void){
     wtstack_full_3F_();
     if (pop()) {
-    push((int64_t)(strings + 1649));
+    push((int64_t)(strings + 1691));
     wpanic_21_();
     wdrop();
     } else {
@@ -6343,7 +6368,7 @@ static void wtstack_leave_21_ (void){
     push(0);
     w_3C__3D_();
     if (pop()) {
-    push((int64_t)(strings + 1691));
+    push((int64_t)(strings + 1733));
     wpanic_21_();
     } else {
     wtstack_base_40_();
@@ -6405,7 +6430,7 @@ static void wtstack_stash_len_push_21_ (void){
     w1_2B_();
     wtstack_num_stashes_21_();
     } else {
-    push((int64_t)(strings + 1744));
+    push((int64_t)(strings + 1786));
     wpanic_21_();
     wdrop();
     }
@@ -6422,7 +6447,7 @@ static void wtstack_stash_len_pop_21_ (void){
     wtstack_num_stashes_40_();
     wtstack_stash_len_40_();
     } else {
-    push((int64_t)(strings + 1782));
+    push((int64_t)(strings + 1824));
     wpanic_21_();
     push(0);
     }
@@ -6442,7 +6467,7 @@ static void wtstack_frame_unify_21_ (void){
     if (pop()) {
     wdrop2();
     } else {
-    push((int64_t)(strings + 1821));
+    push((int64_t)(strings + 1863));
     wstr_trace_21_();
     { int64_t d2 = pop();
     { int64_t d3 = pop();
@@ -6450,13 +6475,13 @@ static void wtstack_frame_unify_21_ (void){
     wtoken_trace_prefix_21_();
       push(d3); }
       push(d2); }
-    push((int64_t)(strings + 1832));
+    push((int64_t)(strings + 1874));
     wstr_trace_21_();
     wint_trace_21_();
-    push((int64_t)(strings + 1883));
+    push((int64_t)(strings + 1925));
     wstr_trace_21_();
     wint_trace_21_();
-    push((int64_t)(strings + 1912));
+    push((int64_t)(strings + 1954));
     wstr_trace_ln_21_();
     push(1);
     wposix_exit_21_();
@@ -6477,7 +6502,7 @@ static void wtypecheck_name_21_ (void){
     } else {
     wname_undefined_3F_();
     if (pop()) {
-    push((int64_t)(strings + 1941));
+    push((int64_t)(strings + 1983));
     wstr_trace_21_();
     wname_load_21_();
     wstr_buf_trace_21_();
@@ -6491,7 +6516,7 @@ static void wtypecheck_name_21_ (void){
     if (pop()) {
     wtypecheck_buffer_21_();
     } else {
-    push((int64_t)(strings + 1965));
+    push((int64_t)(strings + 2007));
     wstr_trace_21_();
     wname_load_21_();
     wstr_buf_trace_21_();
@@ -6545,7 +6570,7 @@ static void wsig_push_inputs_21_ (void){
     push(0);
     wtstack_push_21_();
     } else {
-    push((int64_t)(strings + 2132));
+    push((int64_t)(strings + 2174));
     wemit_fatal_error_21_();
     push(0);
     }
@@ -6585,18 +6610,18 @@ static void wsig_match_outputs_21_ (void){
     if (pop()) {
     wdrop2();
     } else {
-    push((int64_t)(strings + 2147));
+    push((int64_t)(strings + 2189));
     wstr_trace_21_();
     wswap();
     wtoken_trace_prefix_21_();
-    push((int64_t)(strings + 2158));
+    push((int64_t)(strings + 2200));
     wstr_trace_21_();
     wint_trace_21_();
-    push((int64_t)(strings + 2174));
+    push((int64_t)(strings + 2216));
     wstr_trace_21_();
     wtstack_length_3F_();
     wint_trace_21_();
-    push((int64_t)(strings + 2193));
+    push((int64_t)(strings + 2235));
     wstr_trace_ln_21_();
     push(1);
     wposix_exit_21_();
@@ -6635,7 +6660,7 @@ static void wtypecheck_run_one_21_ (void){
     wtoken_value_3F_();
     wtypecheck_run_name_21_();
     } else {
-    push((int64_t)(strings + 2006));
+    push((int64_t)(strings + 2048));
     wemit_fatal_error_21_();
     }
     }
@@ -6657,14 +6682,14 @@ static void wtstack_arity_check_21_ (void){
     if (pop()) {
     wdrop2();
     wdup();
-    push((int64_t)(strings + 2082));
+    push((int64_t)(strings + 2124));
     wemit_error_21_();
     } else {
     w_2B_();
     wTSTACK_SIZE();
     w_3E_();
     if (pop()) {
-    push((int64_t)(strings + 2099));
+    push((int64_t)(strings + 2141));
     wemit_fatal_error_21_();
     push(0);
     } else {
@@ -6694,7 +6719,7 @@ static void wtypecheck_run_name_21_ (void){
     wtstack_push_21_();
     } else {
     wdrop();
-    push((int64_t)(strings + 2029));
+    push((int64_t)(strings + 2071));
     wemit_fatal_error_21_();
     }
     }
@@ -7095,7 +7120,7 @@ static void wtypecheck_run_prim_21_ (void){
     push(0);
     wtstack_push_21_();
     } else {
-    push((int64_t)(strings + 2064));
+    push((int64_t)(strings + 2106));
     wemit_error_21_();
     }
     }
@@ -7179,7 +7204,7 @@ static void welab_2B_ (void){
     } else {
     wdrop();
     wTYPE_ERROR();
-    push((int64_t)(strings + 2220));
+    push((int64_t)(strings + 2262));
     welab_emit_error_21_();
     }
     }
@@ -7209,12 +7234,12 @@ static void welab_2B_ (void){
     w_3D_();
     if (pop()) {
     wdrop();
-    push((int64_t)(strings + 2257));
+    push((int64_t)(strings + 2299));
     welab_emit_error_21_();
     wTYPE_ERROR();
     } else {
     wdrop();
-    push((int64_t)(strings + 2287));
+    push((int64_t)(strings + 2329));
     welab_emit_error_21_();
     wTYPE_ERROR();
     }
@@ -7234,7 +7259,7 @@ static void welab_2B_ (void){
     w_3D_();
     if (pop()) {
     wdrop();
-    push((int64_t)(strings + 2328));
+    push((int64_t)(strings + 2370));
     welab_emit_error_21_();
     wTYPE_ERROR();
     } else {
@@ -7243,12 +7268,12 @@ static void welab_2B_ (void){
     w_3D_();
     if (pop()) {
     wdrop();
-    push((int64_t)(strings + 2365));
+    push((int64_t)(strings + 2407));
     welab_emit_error_21_();
     wTYPE_ERROR();
     } else {
     wdrop();
-    push((int64_t)(strings + 2406));
+    push((int64_t)(strings + 2448));
     welab_emit_error_21_();
     wTYPE_ERROR();
     }
@@ -7293,7 +7318,7 @@ static void welab_ (void){
     wdrop();
     wTYPE_PTR();
     } else {
-    push((int64_t)(strings + 2441));
+    push((int64_t)(strings + 2483));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
@@ -7317,7 +7342,7 @@ static void welab_ (void){
     wTYPE_INT();
     w_3D_();
     if (pop()) {
-    push((int64_t)(strings + 2485));
+    push((int64_t)(strings + 2527));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
@@ -7326,12 +7351,12 @@ static void welab_ (void){
     wTYPE_PTR();
     w_3D_();
     if (pop()) {
-    push((int64_t)(strings + 2524));
+    push((int64_t)(strings + 2566));
     welab_emit_warning_21_();
     wdrop();
     wTYPE_INT();
     } else {
-    push((int64_t)(strings + 2562));
+    push((int64_t)(strings + 2604));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
@@ -7351,7 +7376,7 @@ static void welab_ (void){
     wTYPE_INT();
     w_3D_();
     if (pop()) {
-    push((int64_t)(strings + 2610));
+    push((int64_t)(strings + 2652));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
@@ -7360,12 +7385,12 @@ static void welab_ (void){
     wTYPE_PTR();
     w_3D_();
     if (pop()) {
-    push((int64_t)(strings + 2654));
+    push((int64_t)(strings + 2696));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
     } else {
-    push((int64_t)(strings + 2698));
+    push((int64_t)(strings + 2740));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
@@ -7404,7 +7429,7 @@ static void welab_2A_ (void){
     wdrop();
     wTYPE_INT();
     } else {
-    push((int64_t)(strings + 2738));
+    push((int64_t)(strings + 2780));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
@@ -7423,12 +7448,12 @@ static void welab_2A_ (void){
     wTYPE_INT();
     w_3D_();
     if (pop()) {
-    push((int64_t)(strings + 2782));
+    push((int64_t)(strings + 2824));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
     } else {
-    push((int64_t)(strings + 2826));
+    push((int64_t)(strings + 2868));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
@@ -7465,7 +7490,7 @@ static void welab_2F_ (void){
     wdrop();
     wTYPE_INT();
     } else {
-    push((int64_t)(strings + 2862));
+    push((int64_t)(strings + 2904));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
@@ -7484,12 +7509,12 @@ static void welab_2F_ (void){
     wTYPE_INT();
     w_3D_();
     if (pop()) {
-    push((int64_t)(strings + 2904));
+    push((int64_t)(strings + 2946));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
     } else {
-    push((int64_t)(strings + 2946));
+    push((int64_t)(strings + 2988));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
@@ -7533,45 +7558,45 @@ static void welab_25_ (void){
     wdrop();
     wTYPE_INT();
     } else {
-    push((int64_t)(strings + 2980));
-    welab_emit_error_21_();
-    wdrop();
-    wTYPE_ERROR();
-    }
-    }
-    }
-    } else {
-    wdup();
-    wTYPE_PTR();
-    w_3D_();
-    if (pop()) {
-    wdrop();
-    wdup();
-    wTYPE_ERROR();
-    w_3D_();
-    if (pop()) {
-    wdrop();
-    wTYPE_ERROR();
-    } else {
-    wdup();
-    wTYPE_INT();
-    w_3D_();
-    if (pop()) {
     push((int64_t)(strings + 3022));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
+    }
+    }
+    }
     } else {
     wdup();
     wTYPE_PTR();
     w_3D_();
     if (pop()) {
-    push((int64_t)(strings + 3059));
+    wdrop();
+    wdup();
+    wTYPE_ERROR();
+    w_3D_();
+    if (pop()) {
+    wdrop();
+    wTYPE_ERROR();
+    } else {
+    wdup();
+    wTYPE_INT();
+    w_3D_();
+    if (pop()) {
+    push((int64_t)(strings + 3064));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
     } else {
-    push((int64_t)(strings + 3092));
+    wdup();
+    wTYPE_PTR();
+    w_3D_();
+    if (pop()) {
+    push((int64_t)(strings + 3101));
+    welab_emit_error_21_();
+    wdrop();
+    wTYPE_ERROR();
+    } else {
+    push((int64_t)(strings + 3134));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
@@ -7589,15 +7614,6 @@ static void welab_25_ (void){
     } else {
     wdup();
     wTYPE_INT();
-    w_3D_();
-    if (pop()) {
-    push((int64_t)(strings + 3138));
-    welab_emit_error_21_();
-    wdrop();
-    wTYPE_ERROR();
-    } else {
-    wdup();
-    wTYPE_PTR();
     w_3D_();
     if (pop()) {
     push((int64_t)(strings + 3180));
@@ -7605,7 +7621,16 @@ static void welab_25_ (void){
     wdrop();
     wTYPE_ERROR();
     } else {
+    wdup();
+    wTYPE_PTR();
+    w_3D_();
+    if (pop()) {
     push((int64_t)(strings + 3222));
+    welab_emit_error_21_();
+    wdrop();
+    wTYPE_ERROR();
+    } else {
+    push((int64_t)(strings + 3264));
     welab_emit_error_21_();
     wdrop();
     wTYPE_ERROR();
@@ -7747,7 +7772,7 @@ static void wsig_pop_inputs_21_ (void){
     if (pop()) {
     wdrop();
     wtstack_clear_21_();
-    push((int64_t)(strings + 2203));
+    push((int64_t)(strings + 2245));
     wemit_error_21_();
     } else {
     for (int64_t c2 = pop(); c2; c2 = pop()) {
@@ -7803,7 +7828,7 @@ static void welab_emit_fatal_error_21_ (void){
 }
 
 static void wtestty (void){
-    push((int64_t)(strings + 3260));
+    push((int64_t)(strings + 3302));
     push(10);
     w_25_();
     wdrop();
@@ -7993,42 +8018,42 @@ static void wcodegen_end_21_ (void){
 }
 
 static void wc99_emit_header_21_ (void){
-    push((int64_t)(strings + 3285));
-    w_3B_();
     push((int64_t)(strings + 3327));
     w_3B_();
-    push((int64_t)(strings + 3348));
+    push((int64_t)(strings + 3369));
     w_3B_();
-    push((int64_t)(strings + 3368));
+    push((int64_t)(strings + 3390));
     w_3B_();
-    push((int64_t)(strings + 3388));
+    push((int64_t)(strings + 3410));
     w_3B_();
-    push((int64_t)(strings + 3407));
+    push((int64_t)(strings + 3430));
     w_3B_();
-    push((int64_t)(strings + 3426));
+    push((int64_t)(strings + 3449));
     w_3B_();
-    push((int64_t)(strings + 3446));
+    push((int64_t)(strings + 3468));
     w_3B_();
-    push((int64_t)(strings + 3491));
+    push((int64_t)(strings + 3488));
     w_3B_();
-    push((int64_t)(strings + 3513));
+    push((int64_t)(strings + 3533));
+    w_3B_();
+    push((int64_t)(strings + 3555));
     w_3B__3B_();
-    push((int64_t)(strings + 3520));
+    push((int64_t)(strings + 3562));
     w_3B_();
-    push((int64_t)(strings + 3544));
+    push((int64_t)(strings + 3586));
     w_3B_();
-    push((int64_t)(strings + 3575));
+    push((int64_t)(strings + 3617));
     w_3B__3B_();
 }
 
 static void wc99_emit_strings_21_ (void){
-    push((int64_t)(strings + 3615));
+    push((int64_t)(strings + 3657));
     w_2E_();
     wstrings_size_40_();
     w_2E_n();
-    push((int64_t)(strings + 3637));
+    push((int64_t)(strings + 3679));
     w_3B_();
-    push((int64_t)(strings + 3638));
+    push((int64_t)(strings + 3680));
     w_3B_();
     push(0);
     wdup();
@@ -8042,7 +8067,7 @@ static void wc99_emit_strings_21_ (void){
     wbyte_40__40_();
     wdup();
     w_2E_n();
-    push((int64_t)(strings + 3677));
+    push((int64_t)(strings + 3719));
     w_2E_();
     if (pop()) {
     wid();
@@ -8055,476 +8080,476 @@ static void wc99_emit_strings_21_ (void){
     w_3C_();
     }
     wdrop();
-    push((int64_t)(strings + 3680));
+    push((int64_t)(strings + 3722));
     w_3B__3B_();
 }
 
 static void wc99_emit_prims_21_ (void){
-    push((int64_t)(strings + 3757));
+    push((int64_t)(strings + 3799));
     w_3B_();
-    push((int64_t)(strings + 3785));
+    push((int64_t)(strings + 3827));
     w_3B_();
-    push((int64_t)(strings + 3812));
+    push((int64_t)(strings + 3854));
     w_3B_();
-    push((int64_t)(strings + 3840));
+    push((int64_t)(strings + 3882));
     w_3B_();
-    push((int64_t)(strings + 3853));
+    push((int64_t)(strings + 3895));
     w_2E_q();
-    push((int64_t)(strings + 3878));
+    push((int64_t)(strings + 3920));
     w_2E_q();
-    push((int64_t)(strings + 3894));
+    push((int64_t)(strings + 3936));
     w_3B_();
-    push((int64_t)(strings + 3897));
+    push((int64_t)(strings + 3939));
     w_3B_();
-    push((int64_t)(strings + 3924));
+    push((int64_t)(strings + 3966));
     w_3B_();
-    push((int64_t)(strings + 3941));
+    push((int64_t)(strings + 3983));
     w_3B_();
-    push((int64_t)(strings + 3947));
+    push((int64_t)(strings + 3989));
     w_3B__3B_();
-    push((int64_t)(strings + 3949));
+    push((int64_t)(strings + 3991));
     w_3B_();
-    push((int64_t)(strings + 3979));
+    push((int64_t)(strings + 4021));
     w_3B_();
-    push((int64_t)(strings + 4002));
+    push((int64_t)(strings + 4044));
     w_3B_();
-    push((int64_t)(strings + 4023));
+    push((int64_t)(strings + 4065));
     w_3B__3B_();
-    push((int64_t)(strings + 4025));
+    push((int64_t)(strings + 4067));
     w_3B_();
-    push((int64_t)(strings + 4056));
+    push((int64_t)(strings + 4098));
     w_3B_();
-    push((int64_t)(strings + 4079));
+    push((int64_t)(strings + 4121));
     w_3B_();
-    push((int64_t)(strings + 4102));
+    push((int64_t)(strings + 4144));
     w_3B__3B_();
-    push((int64_t)(strings + 4104));
+    push((int64_t)(strings + 4146));
     w_3B_();
-    push((int64_t)(strings + 4135));
+    push((int64_t)(strings + 4177));
     w_3B_();
-    push((int64_t)(strings + 4153));
+    push((int64_t)(strings + 4195));
     w_3B_();
-    push((int64_t)(strings + 4178));
+    push((int64_t)(strings + 4220));
     w_3B_();
-    push((int64_t)(strings + 4191));
+    push((int64_t)(strings + 4233));
     w_2E_q();
-    push((int64_t)(strings + 4216));
+    push((int64_t)(strings + 4258));
     w_2E_q();
-    push((int64_t)(strings + 4231));
+    push((int64_t)(strings + 4273));
     w_3B_();
-    push((int64_t)(strings + 4234));
+    push((int64_t)(strings + 4276));
     w_3B_();
-    push((int64_t)(strings + 4261));
+    push((int64_t)(strings + 4303));
     w_3B_();
-    push((int64_t)(strings + 4278));
+    push((int64_t)(strings + 4320));
     w_3B_();
-    push((int64_t)(strings + 4284));
+    push((int64_t)(strings + 4326));
     w_3B__3B_();
     wPRIM_ID();
     w_2E_w();
-    push((int64_t)(strings + 4286));
+    push((int64_t)(strings + 4328));
     w_3B_();
-    push((int64_t)(strings + 4289));
+    push((int64_t)(strings + 4331));
     w_3B__3B_();
     wPRIM_DUP();
     w_2E_w();
-    push((int64_t)(strings + 4291));
+    push((int64_t)(strings + 4333));
     w_3B_();
-    push((int64_t)(strings + 4294));
+    push((int64_t)(strings + 4336));
     w_3B_();
-    push((int64_t)(strings + 4317));
+    push((int64_t)(strings + 4359));
     w_3B_();
-    push((int64_t)(strings + 4339));
+    push((int64_t)(strings + 4381));
     w_3B__3B_();
     wPRIM_DROP();
     w_2E_w();
-    push((int64_t)(strings + 4341));
+    push((int64_t)(strings + 4383));
     w_3B_();
-    push((int64_t)(strings + 4344));
+    push((int64_t)(strings + 4386));
     w_3B_();
-    push((int64_t)(strings + 4355));
+    push((int64_t)(strings + 4397));
     w_3B__3B_();
     wPRIM_SWAP();
     w_2E_w();
-    push((int64_t)(strings + 4357));
+    push((int64_t)(strings + 4399));
     w_3B_();
-    push((int64_t)(strings + 4360));
+    push((int64_t)(strings + 4402));
     w_3B_();
-    push((int64_t)(strings + 4383));
+    push((int64_t)(strings + 4425));
     w_3B_();
-    push((int64_t)(strings + 4406));
+    push((int64_t)(strings + 4448));
     w_3B_();
-    push((int64_t)(strings + 4428));
+    push((int64_t)(strings + 4470));
     w_3B__3B_();
     wPRIM_INT_ADD();
     w_2E_w();
-    push((int64_t)(strings + 4430));
+    push((int64_t)(strings + 4472));
     w_3B_();
-    push((int64_t)(strings + 4433));
+    push((int64_t)(strings + 4475));
     w_3B_();
-    push((int64_t)(strings + 4456));
+    push((int64_t)(strings + 4498));
     w_3B_();
-    push((int64_t)(strings + 4479));
+    push((int64_t)(strings + 4521));
     w_3B_();
-    push((int64_t)(strings + 4496));
+    push((int64_t)(strings + 4538));
     w_3B__3B_();
     wPRIM_INT_SUB();
     w_2E_w();
-    push((int64_t)(strings + 4498));
+    push((int64_t)(strings + 4540));
     w_3B_();
-    push((int64_t)(strings + 4501));
+    push((int64_t)(strings + 4543));
     w_3B_();
-    push((int64_t)(strings + 4524));
+    push((int64_t)(strings + 4566));
     w_3B_();
-    push((int64_t)(strings + 4547));
+    push((int64_t)(strings + 4589));
     w_3B_();
-    push((int64_t)(strings + 4564));
+    push((int64_t)(strings + 4606));
     w_3B__3B_();
     wPRIM_INT_MUL();
     w_2E_w();
-    push((int64_t)(strings + 4566));
+    push((int64_t)(strings + 4608));
     w_3B_();
-    push((int64_t)(strings + 4569));
+    push((int64_t)(strings + 4611));
     w_3B_();
-    push((int64_t)(strings + 4592));
+    push((int64_t)(strings + 4634));
     w_3B_();
-    push((int64_t)(strings + 4615));
+    push((int64_t)(strings + 4657));
     w_3B_();
-    push((int64_t)(strings + 4632));
+    push((int64_t)(strings + 4674));
     w_3B__3B_();
     wPRIM_INT_DIV();
     w_2E_w();
-    push((int64_t)(strings + 4634));
+    push((int64_t)(strings + 4676));
     w_3B_();
-    push((int64_t)(strings + 4637));
+    push((int64_t)(strings + 4679));
     w_3B_();
-    push((int64_t)(strings + 4660));
+    push((int64_t)(strings + 4702));
     w_3B_();
-    push((int64_t)(strings + 4683));
+    push((int64_t)(strings + 4725));
     w_3B_();
-    push((int64_t)(strings + 4700));
+    push((int64_t)(strings + 4742));
     w_3B__3B_();
     wPRIM_INT_MOD();
     w_2E_w();
-    push((int64_t)(strings + 4702));
+    push((int64_t)(strings + 4744));
     w_3B_();
-    push((int64_t)(strings + 4705));
+    push((int64_t)(strings + 4747));
     w_3B_();
-    push((int64_t)(strings + 4728));
+    push((int64_t)(strings + 4770));
     w_3B_();
-    push((int64_t)(strings + 4751));
+    push((int64_t)(strings + 4793));
     w_3B_();
-    push((int64_t)(strings + 4768));
+    push((int64_t)(strings + 4810));
     w_3B__3B_();
     wPRIM_INT_EQ();
     w_2E_w();
-    push((int64_t)(strings + 4770));
+    push((int64_t)(strings + 4812));
     w_3B_();
-    push((int64_t)(strings + 4773));
+    push((int64_t)(strings + 4815));
     w_3B_();
-    push((int64_t)(strings + 4796));
+    push((int64_t)(strings + 4838));
     w_3B_();
-    push((int64_t)(strings + 4819));
+    push((int64_t)(strings + 4861));
     w_3B_();
-    push((int64_t)(strings + 4837));
+    push((int64_t)(strings + 4879));
     w_3B__3B_();
     wPRIM_INT_LT();
     w_2E_w();
-    push((int64_t)(strings + 4839));
+    push((int64_t)(strings + 4881));
     w_3B_();
-    push((int64_t)(strings + 4842));
+    push((int64_t)(strings + 4884));
     w_3B_();
-    push((int64_t)(strings + 4865));
+    push((int64_t)(strings + 4907));
     w_3B_();
-    push((int64_t)(strings + 4888));
+    push((int64_t)(strings + 4930));
     w_3B_();
-    push((int64_t)(strings + 4905));
+    push((int64_t)(strings + 4947));
     w_3B__3B_();
     wPRIM_INT_LE();
     w_2E_w();
-    push((int64_t)(strings + 4907));
+    push((int64_t)(strings + 4949));
     w_3B_();
-    push((int64_t)(strings + 4910));
+    push((int64_t)(strings + 4952));
     w_3B_();
-    push((int64_t)(strings + 4933));
+    push((int64_t)(strings + 4975));
     w_3B_();
-    push((int64_t)(strings + 4956));
+    push((int64_t)(strings + 4998));
     w_3B_();
-    push((int64_t)(strings + 4974));
+    push((int64_t)(strings + 5016));
     w_3B__3B_();
     wPRIM_INT_AND();
     w_2E_w();
-    push((int64_t)(strings + 4976));
+    push((int64_t)(strings + 5018));
     w_3B_();
-    push((int64_t)(strings + 4979));
+    push((int64_t)(strings + 5021));
     w_3B_();
-    push((int64_t)(strings + 5002));
+    push((int64_t)(strings + 5044));
     w_3B_();
-    push((int64_t)(strings + 5025));
+    push((int64_t)(strings + 5067));
     w_3B_();
-    push((int64_t)(strings + 5042));
+    push((int64_t)(strings + 5084));
     w_3B__3B_();
     wPRIM_INT_OR();
     w_2E_w();
-    push((int64_t)(strings + 5044));
+    push((int64_t)(strings + 5086));
     w_3B_();
-    push((int64_t)(strings + 5047));
+    push((int64_t)(strings + 5089));
     w_3B_();
-    push((int64_t)(strings + 5070));
+    push((int64_t)(strings + 5112));
     w_3B_();
-    push((int64_t)(strings + 5093));
+    push((int64_t)(strings + 5135));
     w_3B_();
-    push((int64_t)(strings + 5110));
+    push((int64_t)(strings + 5152));
     w_3B__3B_();
     wPRIM_INT_XOR();
     w_2E_w();
-    push((int64_t)(strings + 5112));
+    push((int64_t)(strings + 5154));
     w_3B_();
-    push((int64_t)(strings + 5115));
+    push((int64_t)(strings + 5157));
     w_3B_();
-    push((int64_t)(strings + 5138));
+    push((int64_t)(strings + 5180));
     w_3B_();
-    push((int64_t)(strings + 5161));
+    push((int64_t)(strings + 5203));
     w_3B_();
-    push((int64_t)(strings + 5178));
+    push((int64_t)(strings + 5220));
     w_3B__3B_();
     wPRIM_INT_SHL();
     w_2E_w();
-    push((int64_t)(strings + 5180));
+    push((int64_t)(strings + 5222));
     w_3B_();
-    push((int64_t)(strings + 5183));
+    push((int64_t)(strings + 5225));
     w_3B_();
-    push((int64_t)(strings + 5206));
+    push((int64_t)(strings + 5248));
     w_3B_();
-    push((int64_t)(strings + 5229));
+    push((int64_t)(strings + 5271));
     w_3B_();
-    push((int64_t)(strings + 5247));
+    push((int64_t)(strings + 5289));
     w_3B__3B_();
     wPRIM_INT_SHR();
     w_2E_w();
-    push((int64_t)(strings + 5249));
+    push((int64_t)(strings + 5291));
     w_3B_();
-    push((int64_t)(strings + 5252));
+    push((int64_t)(strings + 5294));
     w_3B_();
-    push((int64_t)(strings + 5275));
+    push((int64_t)(strings + 5317));
     w_3B_();
-    push((int64_t)(strings + 5298));
+    push((int64_t)(strings + 5340));
     w_3B_();
-    push((int64_t)(strings + 5316));
+    push((int64_t)(strings + 5358));
     w_3B__3B_();
     wPRIM_POSIX_WRITE();
     w_2E_w();
-    push((int64_t)(strings + 5318));
+    push((int64_t)(strings + 5360));
     w_3B_();
-    push((int64_t)(strings + 5321));
+    push((int64_t)(strings + 5363));
     w_3B_();
-    push((int64_t)(strings + 5351));
+    push((int64_t)(strings + 5393));
     w_3B_();
-    push((int64_t)(strings + 5376));
+    push((int64_t)(strings + 5418));
     w_3B_();
-    push((int64_t)(strings + 5400));
+    push((int64_t)(strings + 5442));
     w_3B_();
-    push((int64_t)(strings + 5432));
+    push((int64_t)(strings + 5474));
     w_3B_();
-    push((int64_t)(strings + 5585));
+    push((int64_t)(strings + 5627));
     w_3B__3B_();
     wPRIM_POSIX_READ();
     w_2E_w();
-    push((int64_t)(strings + 5587));
+    push((int64_t)(strings + 5629));
     w_3B_();
-    push((int64_t)(strings + 5590));
+    push((int64_t)(strings + 5632));
     w_3B_();
-    push((int64_t)(strings + 5620));
+    push((int64_t)(strings + 5662));
     w_3B_();
-    push((int64_t)(strings + 5645));
+    push((int64_t)(strings + 5687));
     w_3B_();
-    push((int64_t)(strings + 5669));
+    push((int64_t)(strings + 5711));
     w_3B_();
-    push((int64_t)(strings + 5692));
+    push((int64_t)(strings + 5734));
     w_3B__3B_();
     wPRIM_POSIX_OPEN();
     w_2E_w();
-    push((int64_t)(strings + 5694));
+    push((int64_t)(strings + 5736));
     w_3B_();
-    push((int64_t)(strings + 5697));
+    push((int64_t)(strings + 5739));
     w_3B_();
-    push((int64_t)(strings + 5721));
+    push((int64_t)(strings + 5763));
     w_3B_();
-    push((int64_t)(strings + 5745));
+    push((int64_t)(strings + 5787));
     w_3B_();
-    push((int64_t)(strings + 5770));
+    push((int64_t)(strings + 5812));
     w_3B_();
-    push((int64_t)(strings + 5793));
+    push((int64_t)(strings + 5835));
     w_3B__3B_();
     wPRIM_POSIX_CLOSE();
     w_2E_w();
-    push((int64_t)(strings + 5795));
+    push((int64_t)(strings + 5837));
     w_3B_();
-    push((int64_t)(strings + 5798));
+    push((int64_t)(strings + 5840));
     w_3B_();
-    push((int64_t)(strings + 5822));
-    w_3B_();
-    push((int64_t)(strings + 5842));
-    w_3B__3B_();
-    wPRIM_POSIX_EXIT();
-    w_2E_w();
-    push((int64_t)(strings + 5844));
-    w_3B_();
-    push((int64_t)(strings + 5847));
-    w_3B_();
-    push((int64_t)(strings + 5871));
+    push((int64_t)(strings + 5864));
     w_3B_();
     push((int64_t)(strings + 5884));
     w_3B__3B_();
-    wPRIM_POSIX_MMAP();
+    wPRIM_POSIX_EXIT();
     w_2E_w();
     push((int64_t)(strings + 5886));
     w_3B_();
     push((int64_t)(strings + 5889));
     w_3B_();
-    push((int64_t)(strings + 5938));
+    push((int64_t)(strings + 5913));
     w_3B_();
-    push((int64_t)(strings + 5962));
+    push((int64_t)(strings + 5926));
+    w_3B__3B_();
+    wPRIM_POSIX_MMAP();
+    w_2E_w();
+    push((int64_t)(strings + 5928));
     w_3B_();
-    push((int64_t)(strings + 5986));
+    push((int64_t)(strings + 5931));
     w_3B_();
-    push((int64_t)(strings + 6010));
+    push((int64_t)(strings + 5980));
     w_3B_();
-    push((int64_t)(strings + 6034));
+    push((int64_t)(strings + 6004));
     w_3B_();
-    push((int64_t)(strings + 6064));
+    push((int64_t)(strings + 6028));
     w_3B_();
-    push((int64_t)(strings + 6089));
+    push((int64_t)(strings + 6052));
     w_3B_();
-    push((int64_t)(strings + 6122));
+    push((int64_t)(strings + 6076));
     w_3B_();
-    push((int64_t)(strings + 6144));
+    push((int64_t)(strings + 6106));
     w_3B_();
-    push((int64_t)(strings + 6154));
+    push((int64_t)(strings + 6131));
+    w_3B_();
+    push((int64_t)(strings + 6164));
     w_3B_();
     push((int64_t)(strings + 6186));
     w_3B_();
-    push((int64_t)(strings + 6216));
+    push((int64_t)(strings + 6196));
     w_3B_();
-    push((int64_t)(strings + 6227));
+    push((int64_t)(strings + 6228));
     w_3B_();
-    push((int64_t)(strings + 6257));
+    push((int64_t)(strings + 6258));
     w_3B_();
-    push((int64_t)(strings + 6268));
+    push((int64_t)(strings + 6269));
+    w_3B_();
+    push((int64_t)(strings + 6299));
+    w_3B_();
+    push((int64_t)(strings + 6310));
     w_3B__3B_();
     wPRIM_DEBUG();
     w_2E_w();
-    push((int64_t)(strings + 6270));
+    push((int64_t)(strings + 6312));
     w_3B_();
-    push((int64_t)(strings + 6273));
+    push((int64_t)(strings + 6315));
     w_2E_q();
-    push((int64_t)(strings + 6294));
+    push((int64_t)(strings + 6336));
     w_2E_q();
-    push((int64_t)(strings + 6298));
+    push((int64_t)(strings + 6340));
     w_3B_();
-    push((int64_t)(strings + 6301));
+    push((int64_t)(strings + 6343));
     w_3B_();
-    push((int64_t)(strings + 6355));
+    push((int64_t)(strings + 6397));
     w_2E_q();
-    push((int64_t)(strings + 6380));
+    push((int64_t)(strings + 6422));
     w_2E_q();
-    push((int64_t)(strings + 6384));
+    push((int64_t)(strings + 6426));
     w_3B_();
-    push((int64_t)(strings + 6404));
+    push((int64_t)(strings + 6446));
     w_3B_();
-    push((int64_t)(strings + 6410));
+    push((int64_t)(strings + 6452));
     w_3B_();
-    push((int64_t)(strings + 6433));
+    push((int64_t)(strings + 6475));
     w_3B__3B_();
     wPRIM_MIRTH_REVISION();
     w_2E_w();
-    push((int64_t)(strings + 6435));
+    push((int64_t)(strings + 6477));
     w_3B_();
-    push((int64_t)(strings + 6438));
+    push((int64_t)(strings + 6480));
     w_2E_();
     wNEW_MIRTH_REVISION();
     w_2E_n();
-    push((int64_t)(strings + 6448));
+    push((int64_t)(strings + 6490));
     w_3B_();
-    push((int64_t)(strings + 6451));
+    push((int64_t)(strings + 6493));
     w_3B__3B_();
     wPRIM_MEM_GET();
     w_2E_w();
-    push((int64_t)(strings + 6453));
+    push((int64_t)(strings + 6495));
     w_3B_();
-    push((int64_t)(strings + 6456));
+    push((int64_t)(strings + 6498));
     w_3B_();
-    push((int64_t)(strings + 6496));
+    push((int64_t)(strings + 6538));
     w_3B__3B_();
     wPRIM_MEM_SET();
     w_2E_w();
-    push((int64_t)(strings + 6498));
+    push((int64_t)(strings + 6540));
     w_3B_();
-    push((int64_t)(strings + 6501));
+    push((int64_t)(strings + 6543));
     w_3B_();
-    push((int64_t)(strings + 6529));
+    push((int64_t)(strings + 6571));
     w_3B_();
-    push((int64_t)(strings + 6554));
+    push((int64_t)(strings + 6596));
     w_3B__3B_();
     wPRIM_MEM_GET_BYTE();
     w_2E_w();
-    push((int64_t)(strings + 6556));
-    w_3B_();
-    push((int64_t)(strings + 6559));
-    w_3B_();
-    push((int64_t)(strings + 6587));
+    push((int64_t)(strings + 6598));
     w_3B_();
     push((int64_t)(strings + 6601));
+    w_3B_();
+    push((int64_t)(strings + 6629));
+    w_3B_();
+    push((int64_t)(strings + 6643));
     w_3B__3B_();
     wPRIM_MEM_SET_BYTE();
     w_2E_w();
-    push((int64_t)(strings + 6603));
+    push((int64_t)(strings + 6645));
     w_3B_();
-    push((int64_t)(strings + 6606));
+    push((int64_t)(strings + 6648));
     w_3B_();
-    push((int64_t)(strings + 6634));
+    push((int64_t)(strings + 6676));
     w_3B_();
-    push((int64_t)(strings + 6653));
+    push((int64_t)(strings + 6695));
     w_3B__3B_();
     wPRIM_RUNNING_OS();
     w_2E_w();
-    push((int64_t)(strings + 6655));
+    push((int64_t)(strings + 6697));
     w_3B_();
-    push((int64_t)(strings + 6658));
+    push((int64_t)(strings + 6700));
     w_3B_();
-    push((int64_t)(strings + 6737));
+    push((int64_t)(strings + 6779));
     w_2E_();
     wWINDOWS();
     w_2E_n();
-    push((int64_t)(strings + 6747));
+    push((int64_t)(strings + 6789));
     w_3B_();
-    push((int64_t)(strings + 6750));
+    push((int64_t)(strings + 6792));
     w_3B_();
-    push((int64_t)(strings + 6775));
+    push((int64_t)(strings + 6817));
     w_2E_();
     wLINUX();
     w_2E_n();
-    push((int64_t)(strings + 6785));
+    push((int64_t)(strings + 6827));
     w_3B_();
-    push((int64_t)(strings + 6788));
+    push((int64_t)(strings + 6830));
     w_3B_();
-    push((int64_t)(strings + 6813));
+    push((int64_t)(strings + 6855));
     w_2E_();
     wMACOS();
     w_2E_n();
-    push((int64_t)(strings + 6823));
+    push((int64_t)(strings + 6865));
     w_3B_();
-    push((int64_t)(strings + 6826));
+    push((int64_t)(strings + 6868));
     w_3B_();
-    push((int64_t)(strings + 6832));
+    push((int64_t)(strings + 6874));
     w_2E_();
     wUNKNOWN();
     w_2E_n();
-    push((int64_t)(strings + 6842));
+    push((int64_t)(strings + 6884));
     w_3B_();
-    push((int64_t)(strings + 6845));
+    push((int64_t)(strings + 6887));
     w_3B_();
-    push((int64_t)(strings + 6852));
+    push((int64_t)(strings + 6894));
     w_3B__3B_();
 }
 
@@ -8543,7 +8568,7 @@ static void wc99_emit_buffers_21_ (void){
     wnum_names_40_();
     w_3C_();
     }
-    push((int64_t)(strings + 3683));
+    push((int64_t)(strings + 3725));
     w_3B_();
     wdrop();
 }
@@ -8563,7 +8588,7 @@ static void wc99_emit_word_sigs_21_ (void){
     wnum_names_40_();
     w_3C_();
     }
-    push((int64_t)(strings + 6854));
+    push((int64_t)(strings + 6896));
     w_3B_();
     wdrop();
 }
@@ -8587,12 +8612,12 @@ static void wc99_emit_word_defs_21_ (void){
 }
 
 static void wc99_emit_main_21_ (void){
-    push((int64_t)(strings + 7086));
+    push((int64_t)(strings + 7128));
     w_3B_();
     wc99_emit_run_21_();
-    push((int64_t)(strings + 7104));
+    push((int64_t)(strings + 7146));
     w_3B_();
-    push((int64_t)(strings + 7118));
+    push((int64_t)(strings + 7160));
     w_3B_();
 }
 
@@ -8662,48 +8687,40 @@ static void w_2E_name (void){
 }
 
 static void w_2E_w (void){
-    push((int64_t)(strings + 3263));
+    push((int64_t)(strings + 3305));
     w_2E_();
     w_2E_name();
-    push((int64_t)(strings + 3277));
+    push((int64_t)(strings + 3319));
     w_2E_();
 }
 
 static void wc99_emit_buffer_21_ (void){
     wname_is_buffer_3F_();
     if (pop()) {
-    push((int64_t)(strings + 3684));
+    push((int64_t)(strings + 3726));
     w_2E_();
     wdup();
     w_2E_name();
-    push((int64_t)(strings + 3701));
+    push((int64_t)(strings + 3743));
     w_2E_();
     wdup();
     wname_value_40_();
     wbuffer_size_40_();
     w_2E_n();
-    push((int64_t)(strings + 3703));
+    push((int64_t)(strings + 3745));
     w_3B_();
-    push((int64_t)(strings + 3712));
+    push((int64_t)(strings + 3754));
     w_2E_();
     wdup();
     w_2E_name();
-    push((int64_t)(strings + 3726));
+    push((int64_t)(strings + 3768));
     w_2E_();
     w_2E_name();
-    push((int64_t)(strings + 3752));
+    push((int64_t)(strings + 3794));
     w_3B_();
     } else {
     wdrop();
     }
-}
-
-static void wWINDOWS (void){
-    push(1);
-}
-
-static void wLINUX (void){
-    push(2);
 }
 
 static void wUNKNOWN (void){
@@ -8713,10 +8730,10 @@ static void wUNKNOWN (void){
 static void wc99_emit_word_sig_21_ (void){
     wname_is_word_3F_();
     if (pop()) {
-    push((int64_t)(strings + 6855));
+    push((int64_t)(strings + 6897));
     w_2E_();
     w_2E_name();
-    push((int64_t)(strings + 6869));
+    push((int64_t)(strings + 6911));
     w_3B_();
     } else {
     wdrop();
@@ -8730,11 +8747,11 @@ static void wc99_emit_word_def_21_ (void){
     wtypecheck_name_21_();
     wdup();
     w_2E_w();
-    push((int64_t)(strings + 6878));
+    push((int64_t)(strings + 6920));
     w_3B_();
     wname_value_40_();
     wc99_emit_run_21_();
-    push((int64_t)(strings + 6880));
+    push((int64_t)(strings + 6922));
     w_3B__3B_();
     } else {
     wdrop();
@@ -8765,22 +8782,22 @@ static void wc99_emit_token_21_ (void){
     wTOKEN_INT();
     w_3D_();
     if (pop()) {
-    push((int64_t)(strings + 6882));
+    push((int64_t)(strings + 6924));
     w_2E_();
     wtoken_value_40_();
     w_2E_n();
-    push((int64_t)(strings + 6892));
+    push((int64_t)(strings + 6934));
     w_3B_();
     } else {
     wtoken_type_3F_();
     wTOKEN_STR();
     w_3D_();
     if (pop()) {
-    push((int64_t)(strings + 6895));
+    push((int64_t)(strings + 6937));
     w_2E_();
     wtoken_value_40_();
     w_2E_n();
-    push((int64_t)(strings + 6925));
+    push((int64_t)(strings + 6967));
     w_3B_();
     } else {
     wtoken_type_3F_();
@@ -8801,16 +8818,16 @@ static void wc99_emit_word_21_ (void){
     w_3D_();
     if (pop()) {
     wtoken_args_1();
-    push((int64_t)(strings + 6929));
+    push((int64_t)(strings + 6971));
     w_2E_();
     w_2E_d();
-    push((int64_t)(strings + 6945));
+    push((int64_t)(strings + 6987));
     w_3B_();
     wc99_emit_run_21_();
-    push((int64_t)(strings + 6955));
+    push((int64_t)(strings + 6997));
     w_2E_();
     w_2E_d();
-    push((int64_t)(strings + 6968));
+    push((int64_t)(strings + 7010));
     w_3B_();
     } else {
     wtoken_value_3F_();
@@ -8818,15 +8835,15 @@ static void wc99_emit_word_21_ (void){
     w_3D_();
     if (pop()) {
     wtoken_args_2();
-    push((int64_t)(strings + 6973));
+    push((int64_t)(strings + 7015));
     w_3B_();
     { int64_t d3 = pop();
     wc99_emit_run_21_();
       push(d3); }
-    push((int64_t)(strings + 6990));
+    push((int64_t)(strings + 7032));
     w_3B_();
     wc99_emit_run_21_();
-    push((int64_t)(strings + 7003));
+    push((int64_t)(strings + 7045));
     w_3B_();
     } else {
     wtoken_value_3F_();
@@ -8834,31 +8851,31 @@ static void wc99_emit_word_21_ (void){
     w_3D_();
     if (pop()) {
     wtoken_args_1();
-    push((int64_t)(strings + 7009));
+    push((int64_t)(strings + 7051));
     w_2E_();
     w_2E_d();
-    push((int64_t)(strings + 7028));
+    push((int64_t)(strings + 7070));
     w_2E_();
     w_2E_d();
-    push((int64_t)(strings + 7040));
+    push((int64_t)(strings + 7082));
     w_2E_();
     w_2E_d();
-    push((int64_t)(strings + 7044));
+    push((int64_t)(strings + 7086));
     w_3B_();
-    push((int64_t)(strings + 7056));
+    push((int64_t)(strings + 7098));
     w_2E_();
     w_2E_d();
-    push((int64_t)(strings + 7067));
+    push((int64_t)(strings + 7109));
     w_3B_();
     wc99_emit_run_21_();
-    push((int64_t)(strings + 7070));
+    push((int64_t)(strings + 7112));
     w_3B_();
     } else {
     wtoken_value_40_();
-    push((int64_t)(strings + 7076));
+    push((int64_t)(strings + 7118));
     w_2E_();
     w_2E_name();
-    push((int64_t)(strings + 7082));
+    push((int64_t)(strings + 7124));
     w_3B_();
     }
     }
@@ -8967,7 +8984,7 @@ static void wheap_reserve_21_ (void){
     wheap_length_21_();
     }
     } else {
-    push((int64_t)(strings + 7120));
+    push((int64_t)(strings + 7162));
     wpanic_21_();
     wdrop2();
     }
@@ -9030,17 +9047,17 @@ static void wmain (void){
     wrun_tests();
     wread_mirth_src_21_();
     wrun_lexer_21_();
-    push((int64_t)(strings + 7152));
+    push((int64_t)(strings + 7194));
     wstr_trace_ln_21_();
     push(0);
     wtoken_run_21_();
-    push((int64_t)(strings + 7162));
+    push((int64_t)(strings + 7204));
     wstr_trace_ln_21_();
     wvstack_empty_3F_();
     if (pop()) {
     wid();
     } else {
-    push((int64_t)(strings + 7168));
+    push((int64_t)(strings + 7210));
     wstr_trace_21_();
     wvstack_trace_21_();
     }

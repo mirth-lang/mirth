@@ -408,13 +408,14 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
             #    O_WRONLY 0x0001 : open in write-only mode
             #    O_CREAT  0x0200 : create file if it doesn't exist
             #    O_TRUNC  0x0400 : truncate to zero bytes
-    # RUNNING_OS LINUX = if(
-        0x241 # O_TRUNC = 0x200, O_CREAT = 0x40, O_WRONLY = 0x1
+    RUNNING_OS LINUX = if(
+        0x241, # O_TRUNC = 0x200, O_CREAT = 0x40, O_WRONLY = 0x1
 
-    #    ,
-    #    "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic! 0
-    # )
-    ))
+    RUNNING_OS WINDOWS = if(
+        0x601,
+
+        "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic! 0
+    ))))
 
 def(close-file!, File -- +IO,
     posix-close!
