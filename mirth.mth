@@ -2797,7 +2797,7 @@ def(c99-emit-strings!, +IO,
     "static char strings[STRINGS_SIZE] = { " ;
     0 dup strings-size@ < while(
         drop
-        dup STRINGS_BUF byte@@ dup .n ", " .
+        dup STRINGS_BUF byte@@ dup .n "," .
         if(id, .lf)
         1+ dup strings-size@ <
     ) drop
@@ -2949,7 +2949,7 @@ def(c99-emit-prims!, +IO,
     "    void* p = pop_ptr();" ;
     "    int f = (int)pop();" ;
     "    ssize_t x = write(f, p, n);" ;
-    "    if (x != (ssize_t)n) { fprintf(stderr, \"rts panic : write error : expected to write %ld bytes but wrote %ld bytes\\n\", (long)n, (long)x); exit(1); } " ;
+    "    if (x != (ssize_t)n) { fprintf(stderr, \"rts panic : write error : expected to write %ld bytes but wrote %ld bytes\\n\", (long)n, (long)x); exit(1); }" ;
     "}" ;;
 
     PRIM_POSIX_READ .w " {" ;
