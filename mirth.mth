@@ -46,17 +46,13 @@ def(!!011, Int Int Int --, !!1 !!1 !!0)
 def(!!100, Int Int Int --, !!0 !!0 !!1)
 def(!!111, Int Int Int --, !!1 !!1 !!1)
 
-def(str-head, Str -- Byte, byte@)
-def(str-head?, Str -- Str Byte, dup str-head)
-def(str-tail, Str -- Str, str-head? if(1+, id))
-def(str-length?, Str -- Str Int, dup str-length)
 def(str-length, Str -- Int,
     dip(0) dup byte@ while(
         drop 1+ dip(1+)
         dup byte@
     ) drop)
 
-def(STR_BUF_SIZE, Int, 0x2000)
+def(STR_BUF_SIZE, Int, 0x80)
 long def-static-buffer(STR_BUF_LEN)
 STR_BUF_SIZE bytes def-static-buffer(STR_BUF)
 
@@ -90,20 +86,15 @@ def(str-buf-read!, File -- +IO,
     ))
 def(str-buf-input!, -- +IO, file-in@ str-buf-read!)
 
-# Clear STR_BUF and copy prefix of string over to it.
-# Returns remaining string.
-def(str-buf-copy!, Str -- Str,
-    str-buf-clear!
-    str-head?
-    while(
-        str-buf-push!
-        str-tail
-        str-buf-full? if(0, str-head?)
-    ))
-
 # Set the STR_BUF to a given string. If the string is
 # too large (> STR_BUF_SIZE - 1) it gets truncated.
-def(str-buf!, Str --, str-buf-copy! drop)
+def(str-buf!, Str -- +StrBuf,
+    str-buf-clear! dup byte@
+    while(
+        str-buf-push!
+        1+
+        str-buf-full? if(0, dup byte@)
+    ) drop)
 
 # Tests
 
@@ -258,11 +249,11 @@ def(test@!, --,
 
 def(test-str, --,
     "AaBb"
-    dup str-head 65 !!=
-    dup str-tail str-head 97 !!=
-    dup str-tail str-tail str-head 66 !!=
-    dup str-tail str-tail str-tail str-head 98 !!=
-    dup str-tail str-tail str-tail str-tail str-head 0 !!=
+    dup byte@ 65 !!=
+    dup 1+ byte@ 97 !!=
+    dup 1+ 1+ byte@ 66 !!=
+    dup 1+ 1+ 1+ byte@ 98 !!=
+    dup 1+ 1+ 1+ 1+ byte@ 0 !!=
     drop
 
     "" str-length 0 !!=
@@ -304,7 +295,7 @@ def(file-err!, File -- +IO, FILE_ERR !)
 def(file-err@, -- File +IO, FILE_ERR @)
 
 def(str-write!, Str File -- +IO,
-    swap str-length? posix-write!)
+    swap dup str-length posix-write!)
 
 def(str-print!, Str -- +IO, file-out@ str-write!)
 def(str-trace!, Str -- +IO, file-err@ str-write!)
@@ -369,27 +360,18 @@ def(str-buf-reverse!, --,
     drop2
 )
 
-#########
-# Input #
-#########
+##########
+# System #
+##########
 
-def(FILE_BUF_SIZE, USize, 0x20000)
-long def-static-buffer(FILE_BUF_LENGTH)
-FILE_BUF_SIZE def-static-buffer(FILE_BUF)
-
-def(file-buf-length!, Int --,
-    dup FILE_BUF_LENGTH !
-    dip(0) FILE_BUF byte!!)
-def(file-buf-length@, -- Int, FILE_BUF_LENGTH @)
-
-def(file-buf@, Int -- U8, FILE_BUF byte@@)
+def(UNKNOWN, OS, 0)
+def(WIN32, OS, 1)
+def(LINUX, OS, 2)
+def(MACOS, OS, 3)
 
 def(open-file!, Str -- File +IO,
     0 0 posix-open!
     dup 0 < if("Failed to open file!" panic!, id))
-
-def(str-buf-create-file!, File +IO,
-    STR_BUF create-file!)
 
 def(create-file!, Str -- File +IO,
     O_WRONLY|O_CREAT|O_TRUNC
@@ -401,21 +383,15 @@ def(create-file!, Str -- File +IO,
     dup 0 < if("Failed to create file!" panic!, id))
 
 def(O_WRONLY|O_CREAT|O_TRUNC, Int,
-
     RUNNING_OS MACOS = if(
-        0x601,
-            # this is an OR of flags:
-            #    O_WRONLY 0x0001 : open in write-only mode
-            #    O_CREAT  0x0200 : create file if it doesn't exist
-            #    O_TRUNC  0x0400 : truncate to zero bytes
+        0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
     RUNNING_OS LINUX = if(
-        0x241, # O_TRUNC = 0x200, O_CREAT = 0x40, O_WRONLY = 0x1
-
+        0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
     RUNNING_OS WIN32 = if(
-        0x301, # O_TRUNC = 0x400, O_CREAT = 0x200, O_WRONLY = 0x2
-
+        0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
         "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic! 0
     ))))
+
 
 def(close-file!, File -- +IO,
     posix-close!
@@ -424,28 +400,95 @@ def(close-file!, File -- +IO,
         id
     ))
 
-def(read-file!, File -- +IO,
-    dup FILE_BUF FILE_BUF_SIZE 1- posix-read!
-    dup 0 < if(
-        "failed to read file" panic! drop2,
-        file-buf-length! close-file!
+def(open-mirth-src!, File +IO,
+    "Reading mirth.mth" str-trace-ln!
+    "mirth.mth" open-file!)
+
+#########
+# Input #
+#########
+
+def(INPUT_BUFFER_SIZE, Size, 0x200)
+long def-static-buffer(INPUT_ISOPEN)
+long def-static-buffer(INPUT_LENGTH)
+long def-static-buffer(INPUT_OFFSET)
+long def-static-buffer(INPUT_HANDLE)
+INPUT_BUFFER_SIZE def-static-buffer(INPUT_BUFFER)
+
+def(input-isopen@, Bool +Input, INPUT_ISOPEN @)
+def(input-length@, Size +Input, INPUT_LENGTH @)
+def(input-offset@, Size +Input, INPUT_OFFSET @)
+def(input-handle@, File +Input, INPUT_HANDLE @)
+def(input-isopen!, Bool -- +Input, INPUT_ISOPEN !)
+def(input-length!, Size -- +Input, INPUT_LENGTH !)
+def(input-offset!, Size -- +Input, INPUT_OFFSET !)
+def(input-handle!, File -- +Input, INPUT_HANDLE !)
+
+def(input-start!, File -- +Input,
+    input-handle!
+    0 input-length!
+    0 input-offset!
+    1 input-isopen!
+    input-fill-buffer!)
+
+def(input-end!, +Input,
+    input-isopen@ if(
+        input-handle@ close-file!,
+        id
+    )
+    0 input-handle!
+    0 input-length!
+    0 input-offset!
+    0 input-isopen!)
+
+def(input-done?, Bool +Input,
+    input-isopen@ not)
+
+def(input-fill-buffer!, +Input,
+    input-isopen@ if(
+        input-handle@
+        INPUT_BUFFER
+        INPUT_BUFFER_SIZE
+        posix-read!
+        dup 0 >= if(
+            dup 0 > if(
+                input-length!
+                0 input-offset!,
+                drop
+                input-end!
+            ),
+            drop "error: failed to read from file" panic!
+        ),
+        "error: attempted to fill input buffer when file is closed" panic!
     ))
 
-def(read-mirth-src!, +IO,
-    "Reading mirth.mth" str-trace-ln!
-    "mirth.mth" open-file! read-file!
-    "Read " str-trace!
-    file-buf-length@ int-trace!
-    " bytes (FILE_BUF_SIZE = " str-trace!
-    FILE_BUF_SIZE int-trace!
-    ")." str-trace-ln!)
+
+# Return the current char in the input buffer.
+# Panics if file is exhausted.
+def(input-peek, Char +Input,
+    input-isopen@ if(
+        input-offset@ INPUT_BUFFER byte@@,
+        "error: attempted to read input buffer when file is already closed" panic! 0
+    ))
+
+# Move to next char in input buffer.
+# Panics if file is exhausted.
+def(input-move!, +Input,
+    input-isopen@ if(
+        input-offset@ 1+ dup input-offset!
+        input-length@ >= if(
+            input-fill-buffer!,
+            id
+        ),
+        "error: attempted to move input buffer when file is already closed" panic!
+    ))
 
 #########
 # Names #
 #########
 
-def(MAX_NAMES, Size, 0x2000)
-def(NAME_HASH_MAX, Size, 0x1FFF)
+def(MAX_NAMES, Size, 0x400)
+def(NAME_HASH_MAX, Size, 0x3FF)
 def(NAME_TABLE_SIZE, Size, NAME_HASH_MAX 1+)
 long def-static-buffer(NUM_NAMES)
 def(num-names@, Size, NUM_NAMES @)
@@ -459,22 +502,11 @@ NAME_BUF_SIZE def-static-buffer(NAME_BUF)
 NAME_TABLE_SIZE longs
     def-static-buffer(NAME_TABLE)
 
-# Recalculate length of string buffer as the
-# first position with a zero byte.
-def(str-buf-recalc-length!, --,
-    0 dup STR_BUF byte@@
-    while( # Len Char -- Len Char
-        drop 1+
-        dup STR_BUF byte@@
-    )
-    str-buf-length!
-)
-
 # Load a name into STR_BUF.
 def(name-load!, Name --,
     name-quads-load!
     NAME_SIZE str-buf-length!
-    str-buf-recalc-length!)
+    STR_BUF str-length str-buf-length!)
 
 # Compare all quads in name to STR_BUF.
 # Note this code assumes NAME_QUADS is 8.
@@ -506,9 +538,6 @@ def(quads-hash, Ptr -- Hash,
 
 def(name-hash, Name -- Hash,
     NAME_SIZE * NAME_BUF + quads-hash)
-
-def(str-buf-hash, Hash +StrBuf,
-    STR_BUF quads-hash)
 
 def(name-quads-eq?, Name -- Name Bool,
     dup name-quads-eq)
@@ -563,7 +592,7 @@ def(name-save-keep-going?, Hash -- Hash Bool,
 
 # Load STR_BUF into name table. Performs deduplication.
 def(name-save!, -- Name,
-    str-buf-hash
+    STR_BUF quads-hash
     name-save-keep-going? while(
         drop
         next-hash
@@ -578,18 +607,23 @@ def(name-save!, -- Name,
         nip
     ))
 
+long def-static-buffer(name-bytes)
 def(show-names-table!, +Names +IO,
+    0 name-bytes !
     0 dup num-names@ <
     while( # Name Bool -- Name Bool Bool
         drop
         dup int-print!
         ": " str-print!
-        dup name-load! str-buf-print! print-sp!
+        dup name-load!
+        str-buf-length? name-bytes @ + 1+ name-bytes !
+        str-buf-print! print-sp!
         dup name-hash int-print! print-ln!
         1+ dup num-names@ <
     )
     drop
-)
+    "Total bytes: " str-print!
+    name-bytes @ int-print-ln!)
 
 def(name-could-be-type, Name -- Bool,
     NAME_SIZE * NAME_BUF byte@@ is-alpha? nip)
@@ -780,7 +814,7 @@ def(init-names!, +Names,
 # Strings Table #
 #################
 
-def(MAX_STRINGS, USize, 0x10000)
+def(MAX_STRINGS, USize, 0x2000)
 long def-static-buffer(STRINGS_SIZE)
 MAX_STRINGS bytes def-static-buffer(STRINGS_BUF)
 
@@ -792,8 +826,11 @@ def(strings-size!, usize -- +StrTable, STRINGS_SIZE !)
 
 # Push byte onto strings table.
 def(strings-push!, U8 -- +StrTable,
-    strings-size@ STRINGS_BUF byte!!
-    strings-size@ 1+ strings-size!)
+    strings-size@ MAX_STRINGS >= if(
+        "strings buffer overflow" panic! drop,
+        strings-size@ STRINGS_BUF byte!!
+        strings-size@ 1+ strings-size!
+    ))
 
 # Load STR_BUF into strings table,
 # returning the index of the new string.
@@ -822,7 +859,7 @@ def(strings-load-escaped!, String -- +StrTable +StrBuf,
 # Tokens #
 ##########
 
-def(MAX_TOKENS, USize, 0x10000)
+def(MAX_TOKENS, USize, 0x4000)
 
 long def-static-buffer(NUM_TOKENS)
 def(num-tokens@, Int, NUM_TOKENS @)
@@ -869,7 +906,11 @@ def(token-col!, Col Token --, TOKEN_COL long!!)
 def(token-col@, Token -- Col, TOKEN_COL long@@)
 def(token-col?, Token -- Token Col, dup token-col@)
 
-def(token-new, -- Token, num-tokens@ dup 1+ num-tokens!)
+def(token-new, -- Token,
+    num-tokens@ dup MAX_TOKENS >= if(
+        "tokens buffer overflow" panic!,
+        dup 1+ num-tokens!
+    ))
 
 def(token-trace-prefix!, Token -- +IO,
     token-row? int-trace! ":" str-trace!
@@ -945,7 +986,7 @@ def(lexer-stack-full?, Bool +Lexer,
 
 def(lexer-stack-push!, Token -- +Lexer,
     lexer-stack-full? if(
-        "compiler error: lexer stack overflow" panic! drop,
+        "lexer stack overflow" panic! drop,
         lexer-stack-length@
         dup 1+ lexer-stack-length!
         LEXER_STACK_BUF long!!
@@ -953,13 +994,16 @@ def(lexer-stack-push!, Token -- +Lexer,
 
 def(lexer-stack-pop!, -- Token +Lexer,
     lexer-stack-empty? if(
-        "compiler error: lexer stack underflow" panic! 0,
+        "lexer stack underflow" panic! 0,
         lexer-stack-length@ 1-
         dup lexer-stack-length!
         LEXER_STACK_BUF long@@
     ))
 
-def(run-lexer!, +Lexer,
+def(run-lexer!, File -- +Lexer,
+
+    input-start!
+
     1 lexer-row!
     1 lexer-col!
     0 lexer-idx!
@@ -970,6 +1014,8 @@ def(run-lexer!, +Lexer,
         lexer-done? not
     )
 
+    input-end!
+
     lexer-stack-empty? if(
         TOKEN_NONE 0 lexer-emit!,
 
@@ -979,7 +1025,7 @@ def(run-lexer!, +Lexer,
     ))
 
 # Is the lexer done?
-def(lexer-done?, Bool +Lexer, lexer-idx@ file-buf-length@ >=)
+def(lexer-done?, Bool +Lexer, input-done?)
 
 # Create a token, and add it to the token buffer,
 # returning the new token.
@@ -996,6 +1042,10 @@ def(lexer-emit!, TokenType TokenValue --, lexer-make! drop)
 # Lex the next token.
 def(lexer-next!, --,
     lexer-peek
+
+    is-name-char? if(
+        drop
+        lexer-emit-name!,
 
     is-newline? if(
         drop
@@ -1024,14 +1074,11 @@ def(lexer-next!, --,
         drop
         lexer-emit-string!,
 
-    is-name-char? if(
-        drop
-        lexer-emit-name!,
-
         drop # LATER emit lexer error
-        ))))))))
+    )))))))
 
-    lexer-move!)
+    lexer-move!))
+
 
 def(lexer-emit-newline!, +Lexer,
     lexer-row@ 1+ lexer-row!
@@ -1060,7 +1107,6 @@ def(lexer-emit-name!, +Lexer,
         lexer-peek is-name-char?
     )
     drop
-    lexer-move-back!
 
     str-buf-is-int? if(
         str-buf-int? over token-value!
@@ -1248,13 +1294,8 @@ def(lexer-comment-end?, Bool +Lexer,
         lexer-peek is-newline? nip
     ))
 
-def(lexer-peek, Char +Lexer, lexer-idx@ file-buf@)
-def(lexer-move!, +Lexer,
-    lexer-idx@ 1+ lexer-idx!
-    lexer-col@ 1+ lexer-col!)
-def(lexer-move-back!, +Lexer,
-    lexer-idx@ 1- lexer-idx!
-    lexer-col@ 1- lexer-col!)
+def(lexer-peek, Char +Lexer, input-peek)
+def(lexer-move!, +Lexer, input-move! lexer-col@ 1+ lexer-col!)
 
 def(is-newline?, Char -- Char Bool, dup 10 =)
 def(is-whitespace?, Char -- Char Bool,
@@ -1308,7 +1349,7 @@ def(lexer-trace-prefix!, +IO,
 # Value Stack #
 ###############
 
-def(VSTACK_SIZE, USize, 0x2000)
+def(VSTACK_SIZE, USize, 0x100)
 long def-static-buffer(VSTACK_LEN)
 VSTACK_SIZE longs def-static-buffer(VSTACK_BUF)
 
@@ -1343,7 +1384,7 @@ def(vstack-pop6!, I64 I64 I64 I64 I64 I64 +VSTACK,
 
 def(vstack-push!, I64 -- +VSTACK,
     vstack-full? if(
-        "stack overflow: attempted to push on full vstack" panic! drop,
+        "vstack overflow" panic! drop,
         vstack-len@ vstack-i64!
         vstack-len@ 1+ vstack-len!
     ))
@@ -1356,7 +1397,7 @@ def(vstack-push3!, I64 I64 I64 -- +VSTACK,
 
 def(vstack-top@, I64 +VSTACK,
     vstack-empty? if(
-        "stack underflow: attempted to read from top of empty vstack" panic! 0,
+        "vstack underflow" panic! 0,
         vstack-len@ 1- vstack-i64@
     ))
 
@@ -1900,7 +1941,7 @@ def(token-is-arg-end?, Token -- Token Bool,
 # Buffers #
 ###########
 
-def(MAX_BUFFERS, USize, 0x1000)
+def(MAX_BUFFERS, USize, 0x80)
 
 long def-static-buffer(NUM_BUFFERS)
 def(num-buffers@, USize +Buffers, NUM_BUFFERS @)
@@ -1993,12 +2034,12 @@ def(tstack!, Type Index --, TSTACK_BUF long!!)
 def(tstack@, Index -- Type, TSTACK_BUF long@@)
 def(tstack-pop!, -- Type,
     tstack-empty? if(
-        "Underflow: Attempt to pop empty tstack." panic! 0,
+        "tstack underflow" panic! 0,
         tstack-len@ 1- dup tstack-len! tstack@
     ))
 def(tstack-push!, Type --,
     tstack-full? if(
-        "Overflow: Attempt to push to full tstack." panic! drop,
+        "tstack overflow" panic! drop,
         tstack-len@ dup 1+ tstack-len! tstack!
     ))
 
@@ -2685,7 +2726,7 @@ def(testty, --, "hi" 10 % drop)
 # Codegen #
 ###########
 
-def(CODEGEN_BUF_SIZE, Size, 0x1000)
+def(CODEGEN_BUF_SIZE, Size, 0x200)
 
 long def-static-buffer(CODEGEN_FILE)
 long def-static-buffer(CODEGEN_LENGTH)
@@ -2708,35 +2749,13 @@ def(codegen-flush!, +Codegen,
         id
     ))
 
-def(codegen-push-byte!, Byte -- +Codegen,
+def(.b, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
     codegen-length@ dup 1+ codegen-length! codegen-byte!)
 
-def(codegen-push-u16!, Byte -- +Codegen,
-    dup 0xFF & codegen-push-byte! 8 >>
-        0xFF & codegen-push-byte!)
+def(., Str -- +Codegen, dup byte@ while(.b 1+ dup byte@) drop)
 
-def(codegen-push-u32!, Byte -- +Codegen,
-    dup 0xFF & codegen-push-byte! 8 >>
-    dup 0xFF & codegen-push-byte! 8 >>
-    dup 0xFF & codegen-push-byte! 8 >>
-        0xFF & codegen-push-byte!)
 
-def(codegen-push-usize!, Byte -- +Codegen,
-    dup 0xFF & codegen-push-byte! 8 >>
-    dup 0xFF & codegen-push-byte! 8 >>
-    dup 0xFF & codegen-push-byte! 8 >>
-    dup 0xFF & codegen-push-byte! 8 >>
-    dup 0xFF & codegen-push-byte! 8 >>
-    dup 0xFF & codegen-push-byte! 8 >>
-    dup 0xFF & codegen-push-byte! 8 >>
-        0xFF & codegen-push-byte!)
-
-def(codegen-push-str!, Str -- +Codegen,
-    dup byte@ while(
-        codegen-push-byte!
-        1+ dup byte@
-    ) drop)
 
 def(codegen-start!, File -- +Codegen,
     codegen-file! 0 codegen-length!)
@@ -2764,11 +2783,9 @@ def(c99-depth!, Int -- +Codegen, C99_DEPTH !)
 def(c99-depth++, +Codegen, c99-depth@ 1+ c99-depth!)
 def(c99-depth--, +Codegen, c99-depth@ 1- c99-depth!)
 
-def(., Str -- +Codegen, codegen-push-str!)
-def(.lf, +Codegen, 10 codegen-push-byte!)
+def(.lf, +Codegen, 10 .b)
 def(;, Str -- +Codegen, . .lf)
 def(;;, Str -- +Codegen, . .lf .lf)
-def(.q, Str -- +Codegen, . 34 codegen-push-byte!)
 def(.n, Int -- +Codegen, str-buf-int! STR_BUF .)
 def(.d, +Codegen, c99-depth@ .n)
 def(.name, Name -- +Codegen, name-mangle! STR_BUF .)
@@ -3161,7 +3178,7 @@ def(c99-emit-main!, Token -- +IO,
 # Heap #
 ########
 
-def(BASE_HEAP_SIZE, USize, 0x400000)
+def(BASE_HEAP_SIZE, USize, 0x1000)
 
 long def-static-buffer(HEAP_INITIAL_LENGTH)
 def(heap-initial-length@, usize +Heap, HEAP_INITIAL_LENGTH @)
@@ -3265,8 +3282,7 @@ def(heap-alloc!, usize -- Ptr +Heap,
 def(main, +IO,
     init!
     run-tests
-    read-mirth-src!
-    run-lexer!
+    open-mirth-src! run-lexer!
 
     # show-names-table!
     # show-tokens!
@@ -3285,11 +3301,6 @@ def(main, +IO,
 #########
 # Build #
 #########
-
-def(UNKNOWN, OS, 0)
-def(WIN32, OS, 1)
-def(LINUX, OS, 2)
-def(MACOS, OS, 3)
 
 def(NEW_MIRTH_REVISION, Int, 0)
 
