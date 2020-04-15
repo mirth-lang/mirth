@@ -2183,6 +2183,7 @@ def(typecheck-run!, Token --,
 
 def(typecheck-run-one!, Token --,
     dup typecheck-token!
+    dup elab-token!
 
     token-type? TOKEN_INT = if(
         0 1 tstack-arity-check!
@@ -2217,8 +2218,6 @@ def(typecheck-run-name!, Token Name --,
     ))))
 
 def(typecheck-run-prim!, Token --,
-    dup elab-token!
-
     token-value? PRIM_ID = if(
         token-args-0,
 
