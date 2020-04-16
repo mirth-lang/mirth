@@ -716,25 +716,41 @@ def(PRIM_MEM_GET, Prim, 21)
 def(PRIM_MEM_SET, Prim, 22)
 def(PRIM_MEM_GET_BYTE, Prim, 23)
 def(PRIM_MEM_SET_BYTE, Prim, 24)
-def(PRIM_POSIX_READ, Prim, 25)
-def(PRIM_POSIX_WRITE, Prim, 26)
-def(PRIM_POSIX_OPEN, Prim, 27)
-def(PRIM_POSIX_CLOSE, Prim, 28)
-def(PRIM_POSIX_EXIT, Prim, 29)
-def(PRIM_POSIX_MMAP, Prim, 30)
-def(PRIM_DEBUG, Prim, 31)
-def(PRIM_MIRTH_REVISION, Prim, 32)
-def(PRIM_RUNNING_OS, Prim, 33)
-def(PRIM_DEF, Prim, 34)
-def(PRIM_DEF_TYPE, Prim, 35)
-def(PRIM_DEF_STATIC_BUFFER, Prim, 36)
-def(PRIM_OUTPUT_ASM, Prim, 37)
-def(PRIM_OUTPUT_C99, Prim, 38)
-def(PRIM_DASHES, Prim, 39)
-def(PRIM_ARROW, Prim, 40)
-def(PRIM_INT, Prim, 41)
-def(PRIM_PTR, Prim, 42)
-def(NUM_PRIMS, Prim, 43)
+def(PRIM_MEM_GET_U8, Prim, 25)
+def(PRIM_MEM_SET_U8, Prim, 26)
+def(PRIM_MEM_GET_U16, Prim, 27)
+def(PRIM_MEM_SET_U16, Prim, 28)
+def(PRIM_MEM_GET_U32, Prim, 29)
+def(PRIM_MEM_SET_U32, Prim, 30)
+def(PRIM_MEM_GET_U64, Prim, 31)
+def(PRIM_MEM_SET_U64, Prim, 32)
+def(PRIM_MEM_GET_I8, Prim, 33)
+def(PRIM_MEM_SET_I8, Prim, 34)
+def(PRIM_MEM_GET_I16, Prim, 35)
+def(PRIM_MEM_SET_I16, Prim, 36)
+def(PRIM_MEM_GET_I32, Prim, 37)
+def(PRIM_MEM_SET_I32, Prim, 38)
+def(PRIM_MEM_GET_I64, Prim, 39)
+def(PRIM_MEM_SET_I64, Prim, 40)
+def(PRIM_POSIX_READ, Prim, 41)
+def(PRIM_POSIX_WRITE, Prim, 42)
+def(PRIM_POSIX_OPEN, Prim, 43)
+def(PRIM_POSIX_CLOSE, Prim, 44)
+def(PRIM_POSIX_EXIT, Prim, 45)
+def(PRIM_POSIX_MMAP, Prim, 46)
+def(PRIM_DEBUG, Prim, 47)
+def(PRIM_MIRTH_REVISION, Prim, 48)
+def(PRIM_RUNNING_OS, Prim, 49)
+def(PRIM_DEF, Prim, 50)
+def(PRIM_DEF_TYPE, Prim, 51)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 52)
+def(PRIM_OUTPUT_ASM, Prim, 53)
+def(PRIM_OUTPUT_C99, Prim, 54)
+def(PRIM_DASHES, Prim, 55)
+def(PRIM_ARROW, Prim, 56)
+def(PRIM_INT, Prim, 57)
+def(PRIM_PTR, Prim, 58)
+def(NUM_PRIMS, Prim, 59)
 
 def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
 
@@ -786,6 +802,22 @@ def(init-names!, +Names,
     PRIM_MEM_SET "!" def-prim!
     PRIM_MEM_GET_BYTE "byte@" def-prim!
     PRIM_MEM_SET_BYTE "byte!" def-prim!
+    PRIM_MEM_GET_U8 "u8@" def-prim!
+    PRIM_MEM_SET_U8 "u8!" def-prim!
+    PRIM_MEM_GET_U16 "u16@" def-prim!
+    PRIM_MEM_SET_U16 "u16!" def-prim!
+    PRIM_MEM_GET_U32 "u32@" def-prim!
+    PRIM_MEM_SET_U32 "u32!" def-prim!
+    PRIM_MEM_GET_U64 "u64@" def-prim!
+    PRIM_MEM_SET_U64 "u64!" def-prim!
+    PRIM_MEM_GET_I8 "i8@" def-prim!
+    PRIM_MEM_SET_I8 "i8!" def-prim!
+    PRIM_MEM_GET_I16 "i16@" def-prim!
+    PRIM_MEM_SET_I16 "i16!" def-prim!
+    PRIM_MEM_GET_I32 "i32@" def-prim!
+    PRIM_MEM_SET_I32 "i32!" def-prim!
+    PRIM_MEM_GET_I64 "i64@" def-prim!
+    PRIM_MEM_SET_I64 "i64!" def-prim!
     PRIM_POSIX_READ "posix-read!" def-prim!
     PRIM_POSIX_WRITE "posix-write!" def-prim!
     PRIM_POSIX_OPEN "posix-open!" def-prim!
@@ -814,7 +846,7 @@ def(init-names!, +Names,
 # Strings Table #
 #################
 
-def(MAX_STRINGS, USize, 0x2000)
+def(MAX_STRINGS, USize, 0x4000)
 long def-static-buffer(STRINGS_SIZE)
 MAX_STRINGS bytes def-static-buffer(STRINGS_BUF)
 
@@ -1708,6 +1740,119 @@ def(token-run-prim!, Token --,
         vstack-pop2!
         byte!,
 
+    dup PRIM_MEM_GET_U8 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        u8@
+        vstack-push!,
+    dup PRIM_MEM_GET_U16 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        u16@
+        vstack-push!,
+    dup PRIM_MEM_GET_U32 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        u32@
+        vstack-push!,
+    dup PRIM_MEM_GET_U64 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        u64@
+        vstack-push!,
+    dup PRIM_MEM_GET_I8 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        i8@
+        vstack-push!,
+    dup PRIM_MEM_GET_I16 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        i16@
+        vstack-push!,
+    dup PRIM_MEM_GET_I32 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        i32@
+        vstack-push!,
+    dup PRIM_MEM_GET_I64 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        i64@
+        vstack-push!,
+
+    dup PRIM_MEM_SET_U8 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        u8!,
+
+    dup PRIM_MEM_SET_U16 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        u16!,
+
+    dup PRIM_MEM_SET_U32 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        u32!,
+
+    dup PRIM_MEM_SET_U64 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        u64!,
+
+    dup PRIM_MEM_SET_I8 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        i8!,
+
+    dup PRIM_MEM_SET_I16 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        i16!,
+
+    dup PRIM_MEM_SET_I32 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        i32!,
+
+    dup PRIM_MEM_SET_I64 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        i64!,
+
     dup PRIM_POSIX_MMAP = if(
         drop
         6 1 arity-check!
@@ -1808,7 +1953,7 @@ def(token-run-prim!, Token --,
 
         drop
         "Dont know how to run prim yet." emit-fatal-error!
-    )))))))))))))))))))))))))))))))))))))
+    )))))))))))))))))))))))))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -2332,6 +2477,73 @@ def(typecheck-run-prim!, Token --,
         2 0 tstack-arity-check!
         token-args-0
         tstack-pop2! elab!,
+
+    token-value? PRIM_MEM_GET_U8 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop! elab@ tstack-push!,
+    token-value? PRIM_MEM_GET_U16 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop! elab@ tstack-push!,
+    token-value? PRIM_MEM_GET_U32 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop! elab@ tstack-push!,
+    token-value? PRIM_MEM_GET_U64 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop! elab@ tstack-push!,
+    token-value? PRIM_MEM_GET_I8 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop! elab@ tstack-push!,
+    token-value? PRIM_MEM_GET_I16 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop! elab@ tstack-push!,
+    token-value? PRIM_MEM_GET_I32 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop! elab@ tstack-push!,
+    token-value? PRIM_MEM_GET_I64 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop! elab@ tstack-push!,
+
+    token-value? PRIM_MEM_SET_U8 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! elab!,
+    token-value? PRIM_MEM_SET_U16 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! elab!,
+    token-value? PRIM_MEM_SET_U32 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! elab!,
+    token-value? PRIM_MEM_SET_U64 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! elab!,
+    token-value? PRIM_MEM_SET_I8 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! elab!,
+    token-value? PRIM_MEM_SET_I16 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! elab!,
+    token-value? PRIM_MEM_SET_I32 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! elab!,
+    token-value? PRIM_MEM_SET_I64 = if(
+        1 1 tstack-arity-check!
+        token-args-0
+        tstack-pop2! elab!,
+
     token-value? PRIM_POSIX_EXIT = if(
         1 0 tstack-arity-check!
         token-args-0
@@ -2370,7 +2582,7 @@ def(typecheck-run-prim!, Token --,
         TYPE_INT tstack-push!,
 
         "Unknown primitive" emit-error!
-    ))))))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))))))))))))))))))))
 
 def(tstack-arity-check!, Token Int Int -- Token +TSTACK,
     dip(dip(tstack-len@))
@@ -2926,6 +3138,12 @@ def(c99-emit-header!, +IO,
     "#include <stdint.h>";;
 
     "typedef uint8_t u8;";
+    "typedef uint16_t u16;";
+    "typedef uint32_t u32;";
+    "typedef uint64_t u64;";
+    "typedef int8_t i8;";
+    "typedef int16_t i16;";
+    "typedef int32_t i32;";
     "typedef int64_t i64;";
     "typedef uintptr_t usize;";;
 
@@ -2986,6 +3204,33 @@ def(c99-emit-prims!, +IO,
     "static u8 pop_u8 (void) {" ;
     "    i64 x = pop();" ;
     "    return (u8)x;" ;
+    "}";;
+    "static u16 pop_u16 (void) {" ;
+    "    i64 x = pop();" ;
+    "    return (u16)x;" ;
+    "}";;
+    "static u32 pop_u32 (void) {" ;
+    "    i64 x = pop();" ;
+    "    return (u32)x;" ;
+    "}";;
+    "static u64 pop_u64 (void) {" ;
+    "    i64 x = pop();" ;
+    "    return (u64)x;" ;
+    "}";;
+    "static i8 pop_i8 (void) {" ;
+    "    i64 x = pop();" ;
+    "    return (i8)x;" ;
+    "}";;
+    "static i16 pop_i16 (void) {" ;
+    "    i64 x = pop();" ;
+    "    return (i16)x;" ;
+    "}";;
+    "static i32 pop_i32 (void) {" ;
+    "    i64 x = pop();" ;
+    "    return (i32)x;" ;
+    "}";;
+    "static i64 pop_i64 (void) {" ;
+    "    return pop();" ;
     "}";;
 
     "static void push (i64 x) {" ;
@@ -3180,6 +3425,86 @@ def(c99-emit-prims!, +IO,
     PRIM_MEM_SET_BYTE .w " {" ;
     "    u8* x = pop_ptr();" ;
     "    *x = pop_u8();" ;
+    "}" ;;
+
+    PRIM_MEM_GET_U8 .w " {" ;
+    "    u8* x = pop_ptr();" ;
+    "    push(*x);" ;
+    "}" ;;
+
+    PRIM_MEM_SET_U8 .w " {" ;
+    "    u8* x = pop_ptr();" ;
+    "    *x = pop_u8();" ;
+    "}" ;;
+
+    PRIM_MEM_GET_U16 .w " {" ;
+    "    u16* x = pop_ptr();" ;
+    "    push(*x);" ;
+    "}" ;;
+
+    PRIM_MEM_SET_U16 .w " {" ;
+    "    u16* x = pop_ptr();" ;
+    "    *x = pop_u16();" ;
+    "}" ;;
+
+    PRIM_MEM_GET_U32 .w " {" ;
+    "    u32* x = pop_ptr();" ;
+    "    push(*x);" ;
+    "}" ;;
+
+    PRIM_MEM_SET_U32 .w " {" ;
+    "    u32* x = pop_ptr();" ;
+    "    *x = pop_u32();" ;
+    "}" ;;
+
+    PRIM_MEM_GET_U64 .w " {" ;
+    "    u64* x = pop_ptr();" ;
+    "    push(*x);" ;
+    "}" ;;
+
+    PRIM_MEM_SET_U64 .w " {" ;
+    "    u32* x = pop_ptr();" ;
+    "    *x = pop_u64();" ;
+    "}" ;;
+
+    PRIM_MEM_GET_I8 .w " {" ;
+    "    i8* x = pop_ptr();" ;
+    "    push(*x);" ;
+    "}" ;;
+
+    PRIM_MEM_SET_I8 .w " {" ;
+    "    i8* x = pop_ptr();" ;
+    "    *x = pop_i8();" ;
+    "}" ;;
+
+    PRIM_MEM_GET_I16 .w " {" ;
+    "    i16* x = pop_ptr();" ;
+    "    push(*x);" ;
+    "}" ;;
+
+    PRIM_MEM_SET_I16 .w " {" ;
+    "    i16* x = pop_ptr();" ;
+    "    *x = pop_i16();" ;
+    "}" ;;
+
+    PRIM_MEM_GET_I32 .w " {" ;
+    "    i32* x = pop_ptr();" ;
+    "    push(*x);" ;
+    "}" ;;
+
+    PRIM_MEM_SET_I32 .w " {" ;
+    "    i32* x = pop_ptr();" ;
+    "    *x = pop_i32();" ;
+    "}" ;;
+
+    PRIM_MEM_GET_I64 .w " {" ;
+    "    i64* x = pop_ptr();" ;
+    "    push(*x);" ;
+    "}" ;;
+
+    PRIM_MEM_SET_I64 .w " {" ;
+    "    i32* x = pop_ptr();" ;
+    "    *x = pop_i64();" ;
     "}" ;;
 
     PRIM_RUNNING_OS .w " {" ;
