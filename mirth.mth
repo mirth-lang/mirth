@@ -18,14 +18,6 @@ def-type(Size, Int)
 def-type(Byte, Int)
 def-type(Char, Int)
 def-type(Offset, Int)
-def-type(U8, Int)
-def-type(U16, Int)
-def-type(U32, Int)
-def-type(U64, Int)
-def-type(I8, Int)
-def-type(I16, Int)
-def-type(I32, Int)
-def-type(I64, Int)
 def-type(Str, Ptr)
 def-type(File, Int)
 
@@ -775,7 +767,15 @@ def(PRIM_DASHES, Prim, 55)
 def(PRIM_ARROW, Prim, 56)
 def(PRIM_INT, Prim, 57)
 def(PRIM_PTR, Prim, 58)
-def(NUM_PRIMS, Prim, 59)
+def(PRIM_U8, Prim, 59)
+def(PRIM_U16, Prim, 60)
+def(PRIM_U32, Prim, 61)
+def(PRIM_U64, Prim, 62)
+def(PRIM_I8, Prim, 63)
+def(PRIM_I16, Prim, 64)
+def(PRIM_I32, Prim, 65)
+def(PRIM_I64, Prim, 66)
+def(NUM_PRIMS, Prim, 67)
 
 def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
 
@@ -864,7 +864,31 @@ def(init-names!, +Names,
         TYPE_INT PRIM_INT name-value!
     PRIM_PTR "Ptr" def-prim!
         DEF_TYPE PRIM_PTR name-sort!
-        TYPE_PTR PRIM_INT name-value!
+        TYPE_PTR PRIM_PTR name-value!
+    PRIM_U8 "U8" def-prim!
+        DEF_TYPE PRIM_U8 name-sort!
+        TYPE_INT PRIM_U8 name-value!
+    PRIM_U16 "U16" def-prim!
+        DEF_TYPE PRIM_U16 name-sort!
+        TYPE_INT PRIM_U16 name-value!
+    PRIM_U32 "U32" def-prim!
+        DEF_TYPE PRIM_U32 name-sort!
+        TYPE_INT PRIM_U32 name-value!
+    PRIM_U64 "U64" def-prim!
+        DEF_TYPE PRIM_U64 name-sort!
+        TYPE_INT PRIM_U64 name-value!
+    PRIM_I8 "I8" def-prim!
+        DEF_TYPE PRIM_I8 name-sort!
+        TYPE_INT PRIM_I8 name-value!
+    PRIM_I16 "I16" def-prim!
+        DEF_TYPE PRIM_I16 name-sort!
+        TYPE_INT PRIM_I16 name-value!
+    PRIM_I32 "I32" def-prim!
+        DEF_TYPE PRIM_I32 name-sort!
+        TYPE_INT PRIM_I32 name-value!
+    PRIM_I64 "I64" def-prim!
+        DEF_TYPE PRIM_I64 name-sort!
+        TYPE_INT PRIM_I64 name-value!
     )
 
 #################
