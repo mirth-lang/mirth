@@ -13,6 +13,22 @@ def(dup2, a b -- a b a b, over over)
 def(drop2, a b --, drop drop)
 def(drop3, a b c --, drop drop drop)
 
+def-type(Bool, Int)
+def-type(Size, Int)
+def-type(Byte, Int)
+def-type(Char, Int)
+def-type(Offset, Int)
+def-type(U8, Int)
+def-type(U16, Int)
+def-type(U32, Int)
+def-type(U64, Int)
+def-type(I8, Int)
+def-type(I16, Int)
+def-type(I32, Int)
+def-type(I64, Int)
+def-type(Str, Ptr)
+def-type(File, Int)
+
 def(>, Int Int -- Bool, swap <)
 def(>=, Int Int -- Bool, swap <=)
 
@@ -26,9 +42,10 @@ def(not, Bool -- Bool, 0 =)
 
 def(byte, Size, 1)
 def(bytes, Size -- Size, id)
-def(u8@@, Offset Pointer -- Byte, + u8@)
-def(u8!!, Byte Offset Pointer --, + u8!)
+def(byte@@, Offset Ptr -- Byte, + u8@)
+def(byte!!, Byte Offset Ptr --, + u8!)
 
+def-type(Short, Int)
 def(short, Size, 2)
 def(shorts, Size -- Size, short *)
 def(short@, Ptr -- Short, u16@)
@@ -36,10 +53,11 @@ def(short!, Short Ptr --, u16!)
 def(short@@, Offset Ptr -- Short, dip(shorts) + short@)
 def(short!!, Short Offset Ptr --, dip(shorts) + short!)
 
+def-type(Long, Int)
 def(long, Size, 8)
 def(longs, Size -- Size, long *)
-def(long@@, Offset Pointer -- Long, dip(longs) + @)
-def(long!!, Long Offset Pointer --, dip(longs) + !)
+def(long@@, Offset Ptr -- Long, dip(longs) + @)
+def(long!!, Long Offset Ptr --, dip(longs) + !)
 
 # Assertions
 
@@ -67,8 +85,8 @@ def(str-buf-length?, Int +StrBuf, STR_BUF_LEN @)
 def(str-buf-length!, Int -- +StrBuf,
     dup STR_BUF_LEN !
     dip(0) str-buf-u8!)
-def(str-buf-u8@, Index -- U8 +StrBuf, STR_BUF u8@@)
-def(str-buf-u8!, U8 Index -- +StrBuf, STR_BUF u8!!)
+def(str-buf-u8@, Offset -- U8 +StrBuf, STR_BUF byte@@)
+def(str-buf-u8!, U8 Offset -- +StrBuf, STR_BUF byte!!)
 def(str-buf-full?, Bool +StrBuf,
     str-buf-length? 1+ STR_BUF_SIZE >=)
 def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
@@ -244,15 +262,15 @@ def(test@!, --,
     0 TEST_BUF long@@ 99 !!=
     1 TEST_BUF long@@ 30 !!=
     0 0 TEST_BUF long!!
-    0 TEST_BUF u8@@ !!0
-    1 TEST_BUF u8@@ !!0
-    2 TEST_BUF u8@@ !!0
-    3 TEST_BUF u8@@ !!0
-    99 2 TEST_BUF u8!!
-    0 TEST_BUF u8@@ !!0
-    1 TEST_BUF u8@@ !!0
-    2 TEST_BUF u8@@ 99 !!=
-    3 TEST_BUF u8@@ !!0)
+    0 TEST_BUF byte@@ !!0
+    1 TEST_BUF byte@@ !!0
+    2 TEST_BUF byte@@ !!0
+    3 TEST_BUF byte@@ !!0
+    99 2 TEST_BUF byte!!
+    0 TEST_BUF byte@@ !!0
+    1 TEST_BUF byte@@ !!0
+    2 TEST_BUF byte@@ 99 !!=
+    3 TEST_BUF byte@@ !!0)
 
 def(test-str, --,
     "AaBb"
@@ -371,6 +389,7 @@ def(str-buf-reverse!, --,
 # System #
 ##########
 
+def-type(OS, Int)
 def(UNKNOWN, OS, 0)
 def(WIN32, OS, 1)
 def(LINUX, OS, 2)
@@ -474,7 +493,7 @@ def(input-fill-buffer!, +Input,
 # Panics if file is exhausted.
 def(input-peek, Char +Input,
     input-isopen@ if(
-        input-offset@ INPUT_BUFFER u8@@,
+        input-offset@ INPUT_BUFFER byte@@,
         "error: attempted to read input buffer when file is already closed" panic! 0
     ))
 
@@ -493,6 +512,9 @@ def(input-move!, +Input,
 #########
 # Names #
 #########
+
+def-type(Name, Int)
+def-type(Hash, Int)
 
 def(MAX_NAMES, Size, 0x400)
 def(NAME_HASH_MAX, Size, 0x3FF)
@@ -628,17 +650,17 @@ def(show-names-table!, +Names +IO,
     name-bytes @ int-print-ln!)
 
 def(name-could-be-type, Name -- Bool,
-    NAME_SIZE * NAME_BUF u8@@ is-alpha? nip)
+    NAME_SIZE * NAME_BUF byte@@ is-alpha? nip)
 
 def(name-could-be-type-var, Name -- Bool,
-    NAME_SIZE * NAME_BUF u8@@ is-lower? nip)
+    NAME_SIZE * NAME_BUF byte@@ is-lower? nip)
 
 def(name-could-be-type-con, Name -- Bool,
-    NAME_SIZE * NAME_BUF u8@@ is-upper? nip)
+    NAME_SIZE * NAME_BUF byte@@ is-upper? nip)
 
 def(name-could-be-effect-con, Name -- Bool,
-    NAME_SIZE * dup NAME_BUF u8@@ is-plus-sign? nip if(
-        1+ NAME_BUF u8@@ is-upper? nip,
+    NAME_SIZE * dup NAME_BUF byte@@ is-plus-sign? nip if(
+        1+ NAME_BUF byte@@ is-upper? nip,
         drop 0
     ))
 
@@ -650,7 +672,7 @@ def(name-mangle!, Name -- +StrBuf,
     NAME_SIZE * 0
     dup NAME_SIZE < while(
         drop
-        over NAME_BUF u8@@ str-buf-push-mangled!
+        over NAME_BUF byte@@ str-buf-push-mangled!
         dip(1+) 1+
         dup NAME_SIZE <
     )
@@ -693,6 +715,7 @@ def(str-buf-push-hexdigit!, Char -- +StrBuf,
 # Primitive Names #
 ###################
 
+def-type(Prim, Name)
 def(PRIM_END, Prim, 0)
 def(PRIM_ID, Prim, 1)
 def(PRIM_DUP, Prim, 2)
@@ -848,27 +871,30 @@ def(init-names!, +Names,
 # Strings Table #
 #################
 
-def(MAX_STRINGS, USize, 0x4000)
+def-type(StringOffset, Int)
+def-type(String, Str)
+
+def(MAX_STRINGS, Size, 0x4000)
 long def-static-buffer(STRINGS_SIZE)
 MAX_STRINGS bytes def-static-buffer(STRINGS_BUF)
 
 # Size of strings table.
-def(strings-size@, -- usize +StrTable, STRINGS_SIZE @)
+def(strings-size@, -- Size +StrTable, STRINGS_SIZE @)
 
 # Size of strings table.
-def(strings-size!, usize -- +StrTable, STRINGS_SIZE !)
+def(strings-size!, Size -- +StrTable, STRINGS_SIZE !)
 
 # Push byte onto strings table.
 def(strings-push!, U8 -- +StrTable,
     strings-size@ MAX_STRINGS >= if(
         "strings buffer overflow" panic! drop,
-        strings-size@ STRINGS_BUF u8!!
+        strings-size@ STRINGS_BUF byte!!
         strings-size@ 1+ strings-size!
     ))
 
 # Load STR_BUF into strings table,
 # returning the index of the new string.
-def(strings-save!, String +StrTable +StrBuf,
+def(strings-save!, StringOffset +StrTable +StrBuf,
     strings-size@
     0 dup str-buf-length? < while(
         drop
@@ -893,16 +919,22 @@ def(strings-load-escaped!, String -- +StrTable +StrBuf,
 # Tokens #
 ##########
 
-def(MAX_TOKENS, USize, 0x4000)
+def(MAX_TOKENS, Size, 0x4000)
 
 long def-static-buffer(NUM_TOKENS)
 def(num-tokens@, Int, NUM_TOKENS @)
 def(num-tokens!, Int --, NUM_TOKENS !)
 def(clear-tokens!, --, 0 num-tokens!)
 
+def-type(Token, Int)
+def-type(TokenType, Int)
+def-type(TokenValue, Int)
+def-type(Row, Int)
+def-type(Col, Int)
+
 MAX_TOKENS bytes def-static-buffer(TOKEN_TYPE)
-def(token-type!, TokenType Token --, TOKEN_TYPE u8!!)
-def(token-type@, Token -- TokenType, TOKEN_TYPE u8@@)
+def(token-type!, TokenType Token --, TOKEN_TYPE byte!!)
+def(token-type@, Token -- TokenType, TOKEN_TYPE byte@@)
 def(token-type?, Token -- Token TokenType, dup token-type@)
 def(TOKEN_NONE, TokenType, 0)
 def(TOKEN_LPAREN, TokenType, 1)
@@ -995,7 +1027,7 @@ short def-static-buffer(LEXER_COL)
 def(lexer-col@, -- Col +Lexer, LEXER_COL u16@)
 def(lexer-col!, Col -- +Lexer, LEXER_COL u16!)
 
-def(LEXER_STACK_SIZE, USize, 0x200)
+def(LEXER_STACK_SIZE, Size, 0x200)
 short def-static-buffer(LEXER_STACK_LENGTH)
 LEXER_STACK_SIZE longs def-static-buffer(LEXER_STACK_BUF)
 
@@ -1378,7 +1410,7 @@ def(lexer-trace-prefix!, +IO,
 # Value Stack #
 ###############
 
-def(VSTACK_SIZE, USize, 0x100)
+def(VSTACK_SIZE, Size, 0x100)
 long def-static-buffer(VSTACK_LEN)
 VSTACK_SIZE longs def-static-buffer(VSTACK_BUF)
 
@@ -1913,6 +1945,21 @@ def(token-run-prim!, Token --,
             "expected word name" emit-fatal-error! drop2
         ),
 
+    dup PRIM_DEF_TYPE = if(
+        drop
+        0 0 arity-check!
+        token-args-2
+        swap sig-token-is-type-con? if(
+            token-value? name-undefined? if(
+                nip
+                DEF_TYPE over name-sort!
+                name-value!, # idk if this is good or not
+
+                drop "type already defined" emit-fatal-error! drop
+            ),
+            "expected type constructor" emit-fatal-error! drop
+        ),
+
     dup PRIM_DEF_STATIC_BUFFER = if(
         drop
         1 0 arity-check!
@@ -1950,12 +1997,12 @@ def(token-run-prim!, Token --,
 
         drop
         "Dont know how to run prim yet." emit-fatal-error!
-    )))))))))))))))))))))))))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
 # emits a fatal error.
-def(arity-check!, Token usize usize -- Token,
+def(arity-check!, Token Size Size -- Token,
     dip(dip(vstack-len@))
     dip(dup2 <) swap if(
         drop drop2 "Stack underflow." emit-fatal-error! 0,
@@ -2083,11 +2130,12 @@ def(token-is-arg-end?, Token -- Token Bool,
 # Buffers #
 ###########
 
-def(MAX_BUFFERS, USize, 0x80)
+def(MAX_BUFFERS, Size, 0x80)
+def-type(Buffer, Int)
 
 long def-static-buffer(NUM_BUFFERS)
-def(num-buffers@, USize +Buffers, NUM_BUFFERS @)
-def(num-buffers!, USize -- +Buffers, NUM_BUFFERS !)
+def(num-buffers@, Size +Buffers, NUM_BUFFERS @)
+def(num-buffers!, Size -- +Buffers, NUM_BUFFERS !)
 
 def(init-buffers!, +Buffers,
     0 num-buffers!)
@@ -2120,6 +2168,9 @@ def(buffer-base!, Ptr Buffer -- +Buffers,
 # Defs #
 ########
 
+def-type(Sort, Int)
+def-type(Value, Int)
+
 def(DEF_NONE, Sort, 0)
 def(DEF_WORD, Sort, 1)
 def(DEF_BUFFER, Sort, 2)
@@ -2129,8 +2180,8 @@ MAX_NAMES def-static-buffer(DEF_SORT)
 MAX_NAMES longs def-static-buffer(DEF_VALUE)
 MAX_NAMES longs def-static-buffer(DEF_SIG)
 
-def(name-sort!, Sort Name --, DEF_SORT u8!!)
-def(name-sort@, Name -- Sort, DEF_SORT u8@@)
+def(name-sort!, Sort Name --, DEF_SORT byte!!)
+def(name-sort@, Name -- Sort, DEF_SORT byte@@)
 def(name-sort?, Name -- Name Sort, dup name-sort@)
 
 def(name-value!, Value Name --, DEF_VALUE long!!)
@@ -2151,9 +2202,11 @@ def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE =)
 # Type Checking #
 #################
 
+def-type(Type, Int)
+
 MAX_NAMES def-static-buffer(DEF_CHECKED)
-def(name-checked!, Bool Name --, DEF_CHECKED u8!!)
-def(name-checked@, Name -- Bool, DEF_CHECKED u8@@)
+def(name-checked!, Bool Name --, DEF_CHECKED byte!!)
+def(name-checked@, Name -- Bool, DEF_CHECKED byte@@)
 def(name-checked?, Name -- Name Bool, dup name-checked@)
 
 def(TSTACK_SIZE, Size, VSTACK_SIZE)
@@ -2172,8 +2225,8 @@ def(tstack-empty?, Bool, tstack-len@ tstack-base@ <=)
 def(tstack-full?, Bool, tstack-len@ TSTACK_SIZE >=)
 def(tstack-clear!, +TSTACK, tstack-base@ tstack-len!)
 
-def(tstack!, Type Index --, TSTACK_BUF long!!)
-def(tstack@, Index -- Type, TSTACK_BUF long@@)
+def(tstack!, Type Offset --, TSTACK_BUF long!!)
+def(tstack@, Offset -- Type, TSTACK_BUF long@@)
 def(tstack-pop!, -- Type,
     tstack-empty? if(
         "tstack underflow" panic! 0,
@@ -2310,7 +2363,55 @@ def(typecheck-word!, Name --,
     drop) # FIXME: check the body
 
 def(typecheck-word-sig!, Token --,
-    drop) # FIXME: check that the sig make sense.
+    sig-has-dashes? if(
+        typecheck-sig-inputs! 1+
+        typecheck-sig-outputs!,
+        typecheck-sig-outputs!
+    ))
+
+def(typecheck-sig-inputs!, Token -- Token,
+    token-is-dashes? not while(
+        drop
+        dup typecheck-sig-input-token!
+        1+ token-is-dashes? not
+    ))
+
+def(typecheck-sig-outputs!, Token --,
+    token-is-arg-end? not while(
+        drop
+        dup typecheck-sig-output-token!
+        1+ token-is-arg-end? not
+    ) drop)
+
+def(typecheck-sig-input-token!, Token --,
+    sig-token-is-type-con? if(
+        token-value? name-is-type? nip if(
+            drop,
+            "Unknown type" emit-error!
+        ),
+
+    sig-token-is-type-var? if(
+        drop, # TODO: register variable?
+
+        "Unexpected token in type sig" emit-error!
+    )))
+
+def(typecheck-sig-output-token!, Token --,
+    sig-token-is-type-con? if(
+        token-value? name-is-type? nip if(
+            drop,
+            "Unknown type" emit-error!
+        ),
+
+    sig-token-is-type-var? if(
+        drop, # TODO: register variable?
+
+    sig-token-is-effect-con? if(
+        drop, # TODO: check if effect exists
+
+        "Unexpected token in type sig" emit-error!
+    ))))
+
 
 def(typecheck-buffer!, Name --,
     drop) # FIXME: check the type
@@ -2655,6 +2756,12 @@ def(sig-token-is-type-con?, Token -- Token Bool,
 def(sig-token-is-type-var?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
         token-value? name-could-be-type-var,
+        0
+    ))
+
+def(sig-token-is-effect-con?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-value? name-could-be-effect-con,
         0
     ))
 
@@ -3065,8 +3172,8 @@ def(codegen-file@, -- File +Codegen, CODEGEN_FILE @)
 def(codegen-file!, File -- +Codegen, CODEGEN_FILE !)
 def(codegen-length@, -- Size +Codegen, CODEGEN_LENGTH @)
 def(codegen-length!, Size -- +Codegen, CODEGEN_LENGTH !)
-def(codegen-u8@, Index -- Byte +Codegen, CODEGEN_BUF u8@@)
-def(codegen-u8!, Byte Index -- +Codegen, CODEGEN_BUF u8!!)
+def(codegen-u8@, Offset -- Byte +Codegen, CODEGEN_BUF byte@@)
+def(codegen-u8!, Byte Offset -- +Codegen, CODEGEN_BUF byte!!)
 
 def(codegen-full?, Bool +Codegen,
     codegen-length@ CODEGEN_BUF_SIZE >=)
@@ -3162,7 +3269,7 @@ def(c99-emit-strings!, +IO,
     "static char strings[STRINGS_SIZE] = { " ;
     0 dup strings-size@ < while(
         drop
-        dup STRINGS_BUF u8@@ dup .n "," .
+        dup STRINGS_BUF byte@@ dup .n "," .
         if(id, .lf)
         1+ dup strings-size@ <
     ) drop
@@ -3618,7 +3725,7 @@ def(c99-emit-main!, Token -- +IO,
 # Heap #
 ########
 
-def(BASE_HEAP_SIZE, USize, 0x1000)
+def(BASE_HEAP_SIZE, Size, 0x1000)
 
 long def-static-buffer(HEAP_INITIAL_LENGTH)
 def(heap-initial-length@, usize +Heap, HEAP_INITIAL_LENGTH @)
@@ -3655,7 +3762,7 @@ def(++heap-times-expanded, Int +Heap,
 # some memory and introducing fragmentation.
 #
 # Panics if reservation is impossible.
-def(heap-reserve!, usize -- +Heap,
+def(heap-reserve!, Size -- +Heap,
     dup heap-length@ <= if(
         drop,
 
@@ -3694,7 +3801,7 @@ def(MAP_ANON|MAP_PRIVATE, Int,
 #   10 64 align == 64
 #   64 64 align == 64
 #   70 64 align == 128
-def(align, usize usize -- usize,
+def(align, Size Size -- Size,
     # a:usize b:usize { a 0 >=, b 0 > } --
     # c:usize { c a >=, c a b + <, c b % 0 = },
     dup dip(1- + dup) % -)
@@ -3704,12 +3811,12 @@ def(max, Int Int -- Int, dup2 < if(nip, drop))
 # Figure out how much to expand heap size by, based on a minimum size
 # (= requested size aligned to 4096).
 # The expansion has a quadratic lower bound.
-def(heap-new-size, usize -- usize,
+def(heap-new-size, Size -- Size,
     4096 align
     BASE_HEAP_SIZE ++heap-times-expanded square *
     max)
 
-def(heap-alloc!, usize -- Ptr +Heap,
+def(heap-alloc!, Size -- Ptr +Heap,
     64 align
     dup heap-reserve!
     dup heap-length@ swap - heap-length!
