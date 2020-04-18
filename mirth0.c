@@ -1164,7 +1164,10 @@ static void mwprint_char_21_ (void);
 static void mwtrace_char_21_ (void);
 static void mwprint_quote_21_ (void);
 static void mwto_digit (void);
+static void mwInt__3E_I16 (void);
+static void mwInt__3E_Ptr (void);
 static void mwU8__3E_Int (void);
+static void mwI16__3E_Int (void);
 static void mwnegate (void);
 static void mwabs (void);
 static void mwstr_buf_int_21_ (void);
@@ -1557,6 +1560,8 @@ static void mwsig_has_dashes (void);
 static void mwsig_arity (void);
 static void mwsig_count_types (void);
 static void mwsig_token_is_type_3F_ (void);
+static void mwsig_skip_dashes (void);
+static void mwsig_match_outputs_aux (void);
 static void mwsig_pop_inputs_21_ (void);
 static void mwsig_push_outputs_21_ (void);
 static void mwsig_pop_inputs_aux_21_ (void);
@@ -3134,7 +3139,19 @@ static void mwto_digit (void){
     mw_2B_();
 }
 
+static void mwInt__3E_I16 (void){
+    mwid();
+}
+
+static void mwInt__3E_Ptr (void){
+    mwid();
+}
+
 static void mwU8__3E_Int (void){
+    mwid();
+}
+
+static void mwI16__3E_Int (void){
     mwid();
 }
 
@@ -3478,6 +3495,7 @@ static void mwinput_peek (void){
     mwpanic_21_();
     push(0);
     }
+    mwInt__3E_U8();
 }
 
 static void mwinput_move_21_ (void){
@@ -4080,6 +4098,7 @@ static void mwis_dash_3F_ (void){
 
 static void mwunderscore (void){
     push(95);
+    mwInt__3E_U8();
 }
 
 static void mwis_underscore_3F_ (void){
@@ -4549,6 +4568,7 @@ static void mwtoken_type_21_ (void){
 static void mwtoken_type_40_ (void){
     mwTOKEN_TYPE();
     mwbyte_40__40_();
+    mwU8__3E_Int();
 }
 
 static void mwtoken_type_3F_ (void){
@@ -4666,6 +4686,7 @@ static void mwtoken_value_40_ (void){
       push(d1); }
     mw_2B_();
     mwi16_40_();
+    mwI16__3E_Int();
 }
 
 static void mwtoken_value_3F_ (void){
@@ -4800,22 +4821,22 @@ static void mwshow_tokens_21_ (void){
 
 static void mwlexer_row_40_ (void){
     mwLEXER_ROW();
-    mwu16_40_();
+    mwshort_40_();
 }
 
 static void mwlexer_row_21_ (void){
     mwLEXER_ROW();
-    mwu16_21_();
+    mwshort_21_();
 }
 
 static void mwlexer_col_40_ (void){
     mwLEXER_COL();
-    mwu16_40_();
+    mwshort_40_();
 }
 
 static void mwlexer_col_21_ (void){
     mwLEXER_COL();
-    mwu16_21_();
+    mwshort_21_();
 }
 
 static void mwLEXER_STACK_SIZE (void){
@@ -6861,6 +6882,7 @@ static void mwname_is_buffer_3F_ (void){
 static void mwbuffer_base_40_ (void){
     mwBUFFER_BASE();
     mwlong_40__40_();
+    mwInt__3E_Ptr();
 }
 
 static void mwtoken_args_0 (void){
@@ -7176,6 +7198,7 @@ static void mwDEF_NONE (void){
 static void mwname_sort_40_ (void){
     mwDEF_SORT();
     mwbyte_40__40_();
+    mwU8__3E_Int();
 }
 
 static void mwname_sort_3F_ (void){
@@ -7206,6 +7229,7 @@ static void mwname_defined_3F_ (void){
 static void mwname_checked_40_ (void){
     mwDEF_CHECKED();
     mwbyte_40__40_();
+    mwU8__3E_Int();
 }
 
 static void mwname_checked_3F_ (void){
@@ -7585,7 +7609,9 @@ static void mwsig_match_outputs_21_ (void){
     mwtstack_length_3F_();
     mw_3D_();
     if (pop()) {
-    mwdrop2();
+    mwdrop();
+    mwsig_skip_dashes();
+    mwsig_match_outputs_aux();
     } else {
     push((i64)(strings + 2529));
     mwstr_trace_21_();
@@ -9331,6 +9357,54 @@ static void mwsig_token_is_type_3F_ (void){
     mwname_could_be_type();
     } else {
     push(0);
+    }
+}
+
+static void mwsig_skip_dashes (void){
+    mwsig_has_dashes_3F_();
+    if (pop()) {
+    mwtoken_is_dashes_3F_();
+    mwnot();
+    for (i64 c2 = pop(); c2; c2 = pop()) {
+    push(c2);
+    mwdrop();
+    mw1_2B_();
+    mwtoken_is_dashes_3F_();
+    mwnot();
+    }
+    mw1_2B_();
+    } else {
+    mwid();
+    }
+}
+
+static void mwsig_match_outputs_aux (void){
+    mwtoken_is_arg_end_3F_();
+    if (pop()) {
+    mwdrop();
+    } else {
+    mwdup();
+    mwtoken_next();
+    mwsig_match_outputs_aux();
+    mwsig_token_is_type_con_3F_();
+    if (pop()) {
+    mwdup();
+    mwelab_token_21_();
+    mwtoken_value_40_();
+    mwname_value_40_();
+    mwtstack_pop_21_();
+    mwswap();
+    mwexpect1();
+    mwdrop();
+    } else {
+    mwsig_token_is_type_var_3F_();
+    if (pop()) {
+    mwtstack_pop_21_();
+    mwdrop2();
+    } else {
+    mwdrop();
+    }
+    }
     }
 }
 

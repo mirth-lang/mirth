@@ -337,7 +337,10 @@ def(print-quote!, +IO, 34 Int->U8 print-char!)
 def(to-digit, Int -- U8, 10 % 48 +)
 
 def(Int->U8, Int -- U8, id)
+def(Int->I16, Int -- I16, id)
+def(Int->Ptr, Int -- Ptr, id)
 def(U8->Int, U8 -- Int, id)
+def(I16->Int, I16 -- Int, id)
 
 def(negate, Int -- Int, -1 *)
 def(abs, Int -- Int, dup 0 < if(negate, id))
@@ -493,7 +496,7 @@ def(input-peek, Char +Input,
     input-isopen@ if(
         input-offset@ INPUT_BUFFER byte@@,
         "error: attempted to read input buffer when file is already closed" panic! 0
-    ))
+    ) Int->U8)
 
 # Move to next char in input buffer.
 # Panics if file is exhausted.
@@ -964,7 +967,7 @@ def-type(Col, Int)
 
 MAX_TOKENS bytes def-static-buffer(TOKEN_TYPE)
 def(token-type!, TokenType Token --, TOKEN_TYPE byte!!)
-def(token-type@, Token -- TokenType, TOKEN_TYPE byte@@)
+def(token-type@, Token -- TokenType, TOKEN_TYPE byte@@ U8->Int)
 def(token-type?, Token -- Token TokenType, dup token-type@)
 def(TOKEN_NONE, TokenType, 0)
 def(TOKEN_LPAREN, TokenType, 1)
@@ -991,7 +994,7 @@ MAX_TOKENS trip
     shorts def-static-buffer(TOKEN_COL)
 
 def(token-value!, TokenValue Token --, TOKEN_VALUE dip(shorts) + i16!)
-def(token-value@, Token -- TokenValue, TOKEN_VALUE dip(shorts) + i16@)
+def(token-value@, Token -- TokenValue, TOKEN_VALUE dip(shorts) + i16@ I16->Int)
 def(token-value?, Token -- Token TokenValue, dup token-value@)
 
 def(token-row!, Row Token --, TOKEN_ROW short!!)
@@ -1050,12 +1053,12 @@ def(show-tokens!, --,
 #########
 
 short def-static-buffer(LEXER_ROW)
-def(lexer-row@, -- Row +Lexer, LEXER_ROW u16@)
-def(lexer-row!, Row -- +Lexer, LEXER_ROW u16!)
+def(lexer-row@, -- Row +Lexer, LEXER_ROW short@)
+def(lexer-row!, Row -- +Lexer, LEXER_ROW short!)
 
 short def-static-buffer(LEXER_COL)
-def(lexer-col@, -- Col +Lexer, LEXER_COL u16@)
-def(lexer-col!, Col -- +Lexer, LEXER_COL u16!)
+def(lexer-col@, -- Col +Lexer, LEXER_COL short@)
+def(lexer-col!, Col -- +Lexer, LEXER_COL short!)
 
 def(LEXER_STACK_SIZE, Size, 0x200)
 short def-static-buffer(LEXER_STACK_LENGTH)
@@ -1415,7 +1418,7 @@ def(is-backslash?, Char -- Char Bool, dup 92 =)
 def(is-n?, Char -- Char Bool, dup 110 =)
 def(is-r?, Char -- Char Bool, dup 114 =)
 def(is-t?, Char -- Char Bool, dup 116 =)
-def(underscore, Char, 95)
+def(underscore, Char, 95 Int->U8)
 
 def(is-name-char?, Char -- Char Bool,
     is-special-char?
@@ -2199,7 +2202,7 @@ def(buffer-alloc!, usize -- Buffer +Buffers,
     ))
 
 def(buffer-base@, Buffer -- Ptr +Buffers,
-    BUFFER_BASE long@@)
+    BUFFER_BASE long@@ Int->Ptr)
 
 def(buffer-base!, Ptr Buffer -- +Buffers,
     BUFFER_BASE long!!)
@@ -2221,7 +2224,7 @@ MAX_NAMES longs def-static-buffer(DEF_VALUE)
 MAX_NAMES longs def-static-buffer(DEF_SIG)
 
 def(name-sort!, Sort Name --, DEF_SORT byte!!)
-def(name-sort@, Name -- Sort, DEF_SORT byte@@)
+def(name-sort@, Name -- Sort, DEF_SORT byte@@ U8->Int)
 def(name-sort?, Name -- Name Sort, dup name-sort@)
 
 def(name-value!, Value Name --, DEF_VALUE long!!)
@@ -2247,7 +2250,7 @@ def-type(Stash, Int)
 
 MAX_NAMES def-static-buffer(DEF_CHECKED)
 def(name-checked!, Bool Name --, DEF_CHECKED byte!!)
-def(name-checked@, Name -- Bool, DEF_CHECKED byte@@)
+def(name-checked@, Name -- Bool, DEF_CHECKED byte@@ U8->Int)
 def(name-checked?, Name -- Name Bool, dup name-checked@)
 
 def(TSTACK_SIZE, Size, VSTACK_SIZE)
@@ -2848,10 +2851,21 @@ def(sig-push-inputs!, Token -- +TSTACK,
         drop
     ))
 
+def(sig-skip-dashes, Token -- Token,
+    sig-has-dashes? if(
+        token-is-dashes? not while(
+            drop 1+ token-is-dashes? not
+        ) 1+,
+        id
+    ))
+
 def(sig-match-outputs!, Token -- +TSTACK,
     dup sig-arity nip dup
     tstack-length? = if(
-        drop2,
+        drop
+        sig-skip-dashes
+        sig-match-outputs-aux,
+
         "mirth.mth:" str-trace!
         swap token-trace-prefix!
         "error: Exected " str-trace!
@@ -2860,6 +2874,22 @@ def(sig-match-outputs!, Token -- +TSTACK,
         tstack-length? int-trace!
         " outputs." str-trace-ln!
         1 posix-exit!
+    ))
+
+def(sig-match-outputs-aux, Token -- +TSTACK,
+    token-is-arg-end? if(
+        drop,
+
+        dup token-next sig-match-outputs-aux
+        sig-token-is-type-con? if(
+            dup elab-token!
+            token-value@ name-value@
+            tstack-pop! swap expect1 drop,
+
+        sig-token-is-type-var? if(
+            tstack-pop! drop2, # TODO
+            drop
+        ))
     ))
 
 def(sig-apply!, Token Token -- +TSTACK,
