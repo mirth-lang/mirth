@@ -2603,32 +2603,28 @@ def(typecheck-run-name!, Token Name --,
     ))))
 
 def(typecheck-run-prim!, Token --,
-    token-name? PRIM_ID = if(
-        token-args-0,
+    token-name?
+    dup PRIM_ID = if(
+        drop token-args-0,
 
-    token-name? PRIM_DUP = if(
-        1 2 tstack-arity-check!
-        token-args-0
+    dup PRIM_DUP = if(
+        drop 1 2 tstack-arity-check! token-args-0
         tstack-pop! dup tstack-push2!,
 
-    token-name? PRIM_DROP = if(
-        1 0 tstack-arity-check!
-        token-args-0
+    dup PRIM_DROP = if(
+        drop 1 0 tstack-arity-check! token-args-0
         tstack-pop! drop,
 
-    token-name? PRIM_SWAP = if(
-        2 2 tstack-arity-check!
-        token-args-0
+    dup PRIM_SWAP = if(
+        drop 2 2 tstack-arity-check! token-args-0
         tstack-pop2! swap tstack-push2!,
 
-    token-name? PRIM_DIP = if(
-        1 1 tstack-arity-check!
-        token-args-1
+    dup PRIM_DIP = if(
+        drop 1 1 tstack-arity-check! token-args-1
         tstack-pop! swap typecheck-run! tstack-push!,
 
-    token-name? PRIM_IF = if(
-        1 0 tstack-arity-check!
-        dup token-args-2
+    dup PRIM_IF = if(
+        drop 1 0 tstack-arity-check! dup token-args-2
         tstack-pop! drop # FIXME: check that it's TYPE_BOOL
         tstack-frame-dup!
         dip(typecheck-run!)
@@ -2637,9 +2633,8 @@ def(typecheck-run-prim!, Token --,
         tstack-frame-unify!
         drop,
 
-    token-name? PRIM_WHILE = if(
-        1 0 tstack-arity-check!
-        dup token-args-1
+    dup PRIM_WHILE = if(
+        drop 1 0 tstack-arity-check! dup token-args-1
         # FIXME: check that tstack top is TYPE_BOOL
         tstack-frame-dup!
         tstack-frame-stash!
@@ -2648,196 +2643,155 @@ def(typecheck-run-prim!, Token --,
         tstack-pop! drop
         drop,
 
-    token-name? PRIM_INT_ADD = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_ADD = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab+ tstack-push!,
-    token-name? PRIM_INT_SUB = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_SUB = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab- tstack-push!,
-    token-name? PRIM_INT_MUL = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_MUL = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab* tstack-push!,
-    token-name? PRIM_INT_DIV = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_DIV = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab/ tstack-push!,
-    token-name? PRIM_INT_MOD = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_MOD = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab% tstack-push!,
-    token-name? PRIM_INT_EQ = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_EQ = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab= tstack-push!,
-    token-name? PRIM_INT_LT = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_LT = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab= tstack-push!,
-    token-name? PRIM_INT_LE = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_LE = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab= tstack-push!,
-    token-name? PRIM_INT_AND = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_AND = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab& tstack-push!,
-    token-name? PRIM_INT_OR = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_OR = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab& tstack-push!,
-    token-name? PRIM_INT_XOR = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_XOR = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab& tstack-push!,
-    token-name? PRIM_INT_SHL = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_SHL = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab& tstack-push!,
-    token-name? PRIM_INT_SHR = if(
-        2 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_INT_SHR = if(
+        drop 2 1 tstack-arity-check! token-args-0
         tstack-pop2! elab& tstack-push!,
 
-    token-name? PRIM_MEM_GET = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_GET = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop! elab@ tstack-push!,
-    token-name? PRIM_MEM_GET_BYTE = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_GET_BYTE = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop! elab@ tstack-push!,
-    token-name? PRIM_MEM_SET = if(
-        2 0 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_SET = if(
+        drop 2 0 tstack-arity-check! token-args-0
         tstack-pop2! elab!,
-    token-name? PRIM_MEM_SET_BYTE = if(
-        2 0 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_SET_BYTE = if(
+        drop 2 0 tstack-arity-check! token-args-0
         tstack-pop2! elab!,
 
-    token-name? PRIM_MEM_GET_U8 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_GET_U8 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop! TYPE_PTR expect1 if(
             TYPE_U8, TYPE_ERROR
         ) tstack-push!,
-    token-name? PRIM_MEM_GET_U16 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_GET_U16 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop! TYPE_PTR expect1 if(
             TYPE_U16, TYPE_ERROR
         ) tstack-push!,
-    token-name? PRIM_MEM_GET_U32 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_GET_U32 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop! TYPE_PTR expect1 if(
             TYPE_U32, TYPE_ERROR
         ) tstack-push!,
-    token-name? PRIM_MEM_GET_U64 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_GET_U64 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop! TYPE_PTR expect1 if(
             TYPE_U64, TYPE_ERROR
         ) tstack-push!,
-    token-name? PRIM_MEM_GET_I8 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_GET_I8 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop! TYPE_PTR expect1 if(
             TYPE_I8, TYPE_ERROR
         ) tstack-push!,
-    token-name? PRIM_MEM_GET_I16 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_GET_I16 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop! TYPE_PTR expect1 if(
             TYPE_I16, TYPE_ERROR
         ) tstack-push!,
-    token-name? PRIM_MEM_GET_I32 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_GET_I32 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop! TYPE_PTR expect1 if(
             TYPE_I32, TYPE_ERROR
         ) tstack-push!,
-    token-name? PRIM_MEM_GET_I64 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_GET_I64 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop! TYPE_PTR expect1 if(
             TYPE_I64, TYPE_ERROR
         ) tstack-push!,
 
-    token-name? PRIM_MEM_SET_U8 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_SET_U8 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop2! TYPE_U8 TYPE_PTR expect2 drop,
-    token-name? PRIM_MEM_SET_U16 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_SET_U16 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop2! TYPE_U16 TYPE_PTR expect2 drop,
-    token-name? PRIM_MEM_SET_U32 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_SET_U32 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop2! TYPE_U32 TYPE_PTR expect2 drop,
-    token-name? PRIM_MEM_SET_U64 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_SET_U64 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop2! TYPE_U64 TYPE_PTR expect2 drop,
-    token-name? PRIM_MEM_SET_I8 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_SET_I8 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop2! TYPE_I8 TYPE_PTR expect2 drop,
-    token-name? PRIM_MEM_SET_I16 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_SET_I16 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop2! TYPE_I16 TYPE_PTR expect2 drop,
-    token-name? PRIM_MEM_SET_I32 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_SET_I32 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop2! TYPE_I32 TYPE_PTR expect2 drop,
-    token-name? PRIM_MEM_SET_I64 = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_MEM_SET_I64 = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop2! TYPE_I64 TYPE_PTR expect2 drop,
 
-    token-name? PRIM_POSIX_EXIT = if(
-        1 0 tstack-arity-check!
-        token-args-0
+    dup PRIM_POSIX_EXIT = if(
+        drop 1 0 tstack-arity-check! token-args-0
         tstack-pop! elab-posix-exit,
-    token-name? PRIM_POSIX_READ = if(
-        3 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_POSIX_READ = if(
+        drop 3 1 tstack-arity-check! token-args-0
         tstack-pop3! elab-posix-read tstack-push!,
-    token-name? PRIM_POSIX_WRITE = if(
-        3 0 tstack-arity-check!
-        token-args-0
+    dup PRIM_POSIX_WRITE = if(
+        drop 3 0 tstack-arity-check! token-args-0
         tstack-pop3! elab-posix-write,
-    token-name? PRIM_POSIX_OPEN = if(
-        3 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_POSIX_OPEN = if(
+        drop 3 1 tstack-arity-check! token-args-0
         tstack-pop3! elab-posix-open tstack-push!,
-    token-name? PRIM_POSIX_CLOSE = if(
-        1 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_POSIX_CLOSE = if(
+        drop 1 1 tstack-arity-check! token-args-0
         tstack-pop! elab-posix-close tstack-push!,
-    token-name? PRIM_POSIX_MMAP = if(
-        6 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_POSIX_MMAP = if(
+        drop 6 1 tstack-arity-check! token-args-0
         tstack-pop3! dip(dip(dip(tstack-pop3!)))
         elab-posix-mmap tstack-push!, # not always a pointer...
 
-    token-name? PRIM_DEBUG = if(
-        token-args-0,
-    token-name? PRIM_MIRTH_REVISION = if(
-        0 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_DEBUG = if(
+        drop token-args-0,
+    dup PRIM_MIRTH_REVISION = if(
+        drop 0 1 tstack-arity-check! token-args-0
         TYPE_INT tstack-push!,
-    token-name? PRIM_RUNNING_OS = if(
-        0 1 tstack-arity-check!
-        token-args-0
+    dup PRIM_RUNNING_OS = if(
+        drop 0 1 tstack-arity-check! token-args-0
         TYPE_INT tstack-push!,
 
-        "Unknown primitive" emit-error!
+        drop "Unknown primitive" emit-error!
     ))))))))))))))))))))))))))))))))))))))))))))))))))
 
 def(tstack-arity-check!, Token Int Int -- Token +TSTACK,
