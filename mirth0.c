@@ -1314,6 +1314,14 @@ static void mwname_sig_21_ (void);
 static void mwDEF_TYPE (void);
 static void mwTYPE_INT (void);
 static void mwTYPE_PTR (void);
+static void mwTYPE_U8 (void);
+static void mwTYPE_U16 (void);
+static void mwTYPE_U32 (void);
+static void mwTYPE_U64 (void);
+static void mwTYPE_I8 (void);
+static void mwTYPE_I16 (void);
+static void mwTYPE_I32 (void);
+static void mwTYPE_I64 (void);
 static void mwMAX_STRINGS (void);
 static void mwstrings_size_40_ (void);
 static void mwstrings_push_21_ (void);
@@ -2916,7 +2924,7 @@ static void mwinit_names_21_ (void){
     mwDEF_TYPE();
     mwPRIM_U8();
     mwname_sort_21_();
-    mwTYPE_INT();
+    mwTYPE_U8();
     mwPRIM_U8();
     mwname_value_21_();
     mwPRIM_U16();
@@ -2925,7 +2933,7 @@ static void mwinit_names_21_ (void){
     mwDEF_TYPE();
     mwPRIM_U16();
     mwname_sort_21_();
-    mwTYPE_INT();
+    mwTYPE_U16();
     mwPRIM_U16();
     mwname_value_21_();
     mwPRIM_U32();
@@ -2934,7 +2942,7 @@ static void mwinit_names_21_ (void){
     mwDEF_TYPE();
     mwPRIM_U32();
     mwname_sort_21_();
-    mwTYPE_INT();
+    mwTYPE_U32();
     mwPRIM_U32();
     mwname_value_21_();
     mwPRIM_U64();
@@ -2943,7 +2951,7 @@ static void mwinit_names_21_ (void){
     mwDEF_TYPE();
     mwPRIM_U64();
     mwname_sort_21_();
-    mwTYPE_INT();
+    mwTYPE_U64();
     mwPRIM_U64();
     mwname_value_21_();
     mwPRIM_I8();
@@ -2952,7 +2960,7 @@ static void mwinit_names_21_ (void){
     mwDEF_TYPE();
     mwPRIM_I8();
     mwname_sort_21_();
-    mwTYPE_INT();
+    mwTYPE_I8();
     mwPRIM_I8();
     mwname_value_21_();
     mwPRIM_I16();
@@ -2961,7 +2969,7 @@ static void mwinit_names_21_ (void){
     mwDEF_TYPE();
     mwPRIM_I16();
     mwname_sort_21_();
-    mwTYPE_INT();
+    mwTYPE_I16();
     mwPRIM_I16();
     mwname_value_21_();
     mwPRIM_I32();
@@ -2970,7 +2978,7 @@ static void mwinit_names_21_ (void){
     mwDEF_TYPE();
     mwPRIM_I32();
     mwname_sort_21_();
-    mwTYPE_INT();
+    mwTYPE_I32();
     mwPRIM_I32();
     mwname_value_21_();
     mwPRIM_I64();
@@ -2979,7 +2987,7 @@ static void mwinit_names_21_ (void){
     mwDEF_TYPE();
     mwPRIM_I64();
     mwname_sort_21_();
-    mwTYPE_INT();
+    mwTYPE_I64();
     mwPRIM_I64();
     mwname_value_21_();
 }
@@ -4393,6 +4401,38 @@ static void mwTYPE_INT (void){
 
 static void mwTYPE_PTR (void){
     push(2);
+}
+
+static void mwTYPE_U8 (void){
+    push(3);
+}
+
+static void mwTYPE_U16 (void){
+    push(4);
+}
+
+static void mwTYPE_U32 (void){
+    push(5);
+}
+
+static void mwTYPE_U64 (void){
+    push(6);
+}
+
+static void mwTYPE_I8 (void){
+    push(7);
+}
+
+static void mwTYPE_I16 (void){
+    push(8);
+}
+
+static void mwTYPE_I32 (void){
+    push(9);
+}
+
+static void mwTYPE_I64 (void){
+    push(10);
 }
 
 static void mwMAX_STRINGS (void){

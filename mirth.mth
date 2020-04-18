@@ -867,28 +867,28 @@ def(init-names!, +Names,
         TYPE_PTR PRIM_PTR name-value!
     PRIM_U8 "U8" def-prim!
         DEF_TYPE PRIM_U8 name-sort!
-        TYPE_INT PRIM_U8 name-value!
+        TYPE_U8 PRIM_U8 name-value!
     PRIM_U16 "U16" def-prim!
         DEF_TYPE PRIM_U16 name-sort!
-        TYPE_INT PRIM_U16 name-value!
+        TYPE_U16 PRIM_U16 name-value!
     PRIM_U32 "U32" def-prim!
         DEF_TYPE PRIM_U32 name-sort!
-        TYPE_INT PRIM_U32 name-value!
+        TYPE_U32 PRIM_U32 name-value!
     PRIM_U64 "U64" def-prim!
         DEF_TYPE PRIM_U64 name-sort!
-        TYPE_INT PRIM_U64 name-value!
+        TYPE_U64 PRIM_U64 name-value!
     PRIM_I8 "I8" def-prim!
         DEF_TYPE PRIM_I8 name-sort!
-        TYPE_INT PRIM_I8 name-value!
+        TYPE_I8 PRIM_I8 name-value!
     PRIM_I16 "I16" def-prim!
         DEF_TYPE PRIM_I16 name-sort!
-        TYPE_INT PRIM_I16 name-value!
+        TYPE_I16 PRIM_I16 name-value!
     PRIM_I32 "I32" def-prim!
         DEF_TYPE PRIM_I32 name-sort!
-        TYPE_INT PRIM_I32 name-value!
+        TYPE_I32 PRIM_I32 name-value!
     PRIM_I64 "I64" def-prim!
         DEF_TYPE PRIM_I64 name-sort!
-        TYPE_INT PRIM_I64 name-value!
+        TYPE_I64 PRIM_I64 name-value!
     )
 
 #################
@@ -2850,8 +2850,16 @@ def(sig-push-outputs!, Token Token -- +TSTACK,
 #########
 
 def(TYPE_ERROR, Type, 0)
-def(TYPE_INT, Type, 1) # generic integer type (e.g. i64)
+def(TYPE_INT, Type, 1) # generic integer type for integer literals
 def(TYPE_PTR, Type, 2) # generic pointer type (e.g. void*)
+def(TYPE_U8, Type, 3) # fixed width integer type -- unsigned 8 bit
+def(TYPE_U16, Type, 4) # fixed width integer type -- unsigned 16 bit
+def(TYPE_U32, Type, 5) # fixed width integer type -- unsigned 32 bit
+def(TYPE_U64, Type, 6) # fixed width integer type -- unsigned 64 bit
+def(TYPE_I8, Type, 7) # fixed width integer type -- signed 8 bit
+def(TYPE_I16, Type, 8) # fixed width integer type -- signed 16 bit
+def(TYPE_I32, Type, 9) # fixed width integer type -- signed 32 bit
+def(TYPE_I64, Type, 10) # fixed width integer type -- signed 64 bit
 
 long def-static-buffer(ELAB_TOKEN)
 def(elab-token@, -- Token +Elab, ELAB_TOKEN @)
