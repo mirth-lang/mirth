@@ -29,6 +29,11 @@ def(bytes, Size -- Size, id)
 def(u8@@, Offset Pointer -- Byte, + u8@)
 def(u8!!, Byte Offset Pointer --, + u8!)
 
+def(|u16|, Size, 2)
+def(|u16|*, Size -- Size, |u16| *)
+def(u16@@, Offset Ptr -- U16, dip(|u16|*) + u16@)
+def(u16!!, U16 Offset Ptr --, dip(|u16|*) + u16!)
+
 def(long, Size, 8)
 def(longs, Size -- Size, long *)
 def(long@@, Offset Pointer -- Long, dip(longs) + @)
@@ -921,21 +926,21 @@ def(token-type-str, TokenType -- Str,
 def(token-type-print!, TokenType --,
     token-type-str str-print!)
 
-MAX_TOKENS longs trip
-    def-static-buffer(TOKEN_VALUE)
-    def-static-buffer(TOKEN_ROW)
-    def-static-buffer(TOKEN_COL)
+MAX_TOKENS trip
+    longs def-static-buffer(TOKEN_VALUE)
+    |u16|* def-static-buffer(TOKEN_ROW)
+    |u16|* def-static-buffer(TOKEN_COL)
 
 def(token-value!, TokenValue Token --, TOKEN_VALUE long!!)
 def(token-value@, Token -- TokenValue, TOKEN_VALUE long@@)
 def(token-value?, Token -- Token TokenValue, dup token-value@)
 
-def(token-row!, Row Token --, TOKEN_ROW long!!)
-def(token-row@, Token -- Row, TOKEN_ROW long@@)
+def(token-row!, Row Token --, TOKEN_ROW u16!!)
+def(token-row@, Token -- Row, TOKEN_ROW u16@@)
 def(token-row?, Token -- Token Row, dup token-row@)
 
-def(token-col!, Col Token --, TOKEN_COL long!!)
-def(token-col@, Token -- Col, TOKEN_COL long@@)
+def(token-col!, Col Token --, TOKEN_COL u16!!)
+def(token-col@, Token -- Col, TOKEN_COL u16@@)
 def(token-col?, Token -- Token Col, dup token-col@)
 
 def(token-new, -- Token,
@@ -985,27 +990,23 @@ def(show-tokens!, --,
 # LEXER #
 #########
 
-long def-static-buffer(LEXER_ROW)
-def(lexer-row@, -- Row +Lexer, LEXER_ROW @)
-def(lexer-row!, Row -- +Lexer, LEXER_ROW !)
+|u16| def-static-buffer(LEXER_ROW)
+def(lexer-row@, -- Row +Lexer, LEXER_ROW u16@)
+def(lexer-row!, Row -- +Lexer, LEXER_ROW u16!)
 
-long def-static-buffer(LEXER_COL)
-def(lexer-col@, -- Col +Lexer, LEXER_COL @)
-def(lexer-col!, Col -- +Lexer, LEXER_COL !)
-
-long def-static-buffer(LEXER_IDX)
-def(lexer-idx@, -- Token +Lexer, LEXER_IDX @)
-def(lexer-idx!, Token -- +Lexer, LEXER_IDX !)
+|u16| def-static-buffer(LEXER_COL)
+def(lexer-col@, -- Col +Lexer, LEXER_COL u16@)
+def(lexer-col!, Col -- +Lexer, LEXER_COL u16!)
 
 def(LEXER_STACK_SIZE, USize, 0x200)
-long def-static-buffer(LEXER_STACK_LENGTH)
+|u16| def-static-buffer(LEXER_STACK_LENGTH)
 LEXER_STACK_SIZE longs def-static-buffer(LEXER_STACK_BUF)
 
 def(lexer-stack-length@, usize +Lexer,
-    LEXER_STACK_LENGTH @)
+    LEXER_STACK_LENGTH u16@)
 
 def(lexer-stack-length!, usize -- +Lexer,
-    LEXER_STACK_LENGTH !)
+    LEXER_STACK_LENGTH u16!)
 
 def(lexer-stack-clear!, +Lexer,
     0 lexer-stack-length!)
@@ -1038,7 +1039,6 @@ def(run-lexer!, File -- +Lexer,
 
     1 lexer-row!
     1 lexer-col!
-    0 lexer-idx!
 
     lexer-done? not while(
         drop

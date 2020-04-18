@@ -976,17 +976,15 @@ static u8 bTOKEN_TYPE[16384] = {0};
 static void mwTOKEN_TYPE (void) { push((i64)bTOKEN_TYPE); }
 static u8 bTOKEN_VALUE[131072] = {0};
 static void mwTOKEN_VALUE (void) { push((i64)bTOKEN_VALUE); }
-static u8 bTOKEN_ROW[131072] = {0};
+static u8 bTOKEN_ROW[32768] = {0};
 static void mwTOKEN_ROW (void) { push((i64)bTOKEN_ROW); }
-static u8 bTOKEN_COL[131072] = {0};
+static u8 bTOKEN_COL[32768] = {0};
 static void mwTOKEN_COL (void) { push((i64)bTOKEN_COL); }
-static u8 bLEXER_ROW[8] = {0};
+static u8 bLEXER_ROW[2] = {0};
 static void mwLEXER_ROW (void) { push((i64)bLEXER_ROW); }
-static u8 bLEXER_COL[8] = {0};
+static u8 bLEXER_COL[2] = {0};
 static void mwLEXER_COL (void) { push((i64)bLEXER_COL); }
-static u8 bLEXER_IDX[8] = {0};
-static void mwLEXER_IDX (void) { push((i64)bLEXER_IDX); }
-static u8 bLEXER_STACK_LENGTH[8] = {0};
+static u8 bLEXER_STACK_LENGTH[2] = {0};
 static void mwLEXER_STACK_LENGTH (void) { push((i64)bLEXER_STACK_LENGTH); }
 static u8 bLEXER_STACK_BUF[4096] = {0};
 static void mwLEXER_STACK_BUF (void) { push((i64)bLEXER_STACK_BUF); }
@@ -1059,6 +1057,10 @@ static void mwbyte (void);
 static void mwbytes (void);
 static void mwu8_40__40_ (void);
 static void mwu8_21__21_ (void);
+static void mw_7C_u16_7C_ (void);
+static void mw_7C_u16_7C__2A_ (void);
+static void mwu16_40__40_ (void);
+static void mwu16_21__21_ (void);
 static void mwlong (void);
 static void mwlongs (void);
 static void mwlong_40__40_ (void);
@@ -1327,8 +1329,6 @@ static void mwlexer_row_40_ (void);
 static void mwlexer_row_21_ (void);
 static void mwlexer_col_40_ (void);
 static void mwlexer_col_21_ (void);
-static void mwlexer_idx_40_ (void);
-static void mwlexer_idx_21_ (void);
 static void mwLEXER_STACK_SIZE (void);
 static void mwlexer_stack_length_40_ (void);
 static void mwlexer_stack_length_21_ (void);
@@ -1686,6 +1686,31 @@ static void mwu8_40__40_ (void){
 static void mwu8_21__21_ (void){
     mw_2B_();
     mwu8_21_();
+}
+
+static void mw_7C_u16_7C_ (void){
+    push(2);
+}
+
+static void mw_7C_u16_7C__2A_ (void){
+    mw_7C_u16_7C_();
+    mw_2A_();
+}
+
+static void mwu16_40__40_ (void){
+    { i64 d1 = pop();
+    mw_7C_u16_7C__2A_();
+      push(d1); }
+    mw_2B_();
+    mwu16_40_();
+}
+
+static void mwu16_21__21_ (void){
+    { i64 d1 = pop();
+    mw_7C_u16_7C__2A_();
+      push(d1); }
+    mw_2B_();
+    mwu16_21_();
 }
 
 static void mwlong (void){
@@ -4473,12 +4498,12 @@ static void mwtoken_value_3F_ (void){
 
 static void mwtoken_row_21_ (void){
     mwTOKEN_ROW();
-    mwlong_21__21_();
+    mwu16_21__21_();
 }
 
 static void mwtoken_row_40_ (void){
     mwTOKEN_ROW();
-    mwlong_40__40_();
+    mwu16_40__40_();
 }
 
 static void mwtoken_row_3F_ (void){
@@ -4488,12 +4513,12 @@ static void mwtoken_row_3F_ (void){
 
 static void mwtoken_col_21_ (void){
     mwTOKEN_COL();
-    mwlong_21__21_();
+    mwu16_21__21_();
 }
 
 static void mwtoken_col_40_ (void){
     mwTOKEN_COL();
-    mwlong_40__40_();
+    mwu16_40__40_();
 }
 
 static void mwtoken_col_3F_ (void){
@@ -4598,32 +4623,22 @@ static void mwshow_tokens_21_ (void){
 
 static void mwlexer_row_40_ (void){
     mwLEXER_ROW();
-    mw_40_();
+    mwu16_40_();
 }
 
 static void mwlexer_row_21_ (void){
     mwLEXER_ROW();
-    mw_21_();
+    mwu16_21_();
 }
 
 static void mwlexer_col_40_ (void){
     mwLEXER_COL();
-    mw_40_();
+    mwu16_40_();
 }
 
 static void mwlexer_col_21_ (void){
     mwLEXER_COL();
-    mw_21_();
-}
-
-static void mwlexer_idx_40_ (void){
-    mwLEXER_IDX();
-    mw_40_();
-}
-
-static void mwlexer_idx_21_ (void){
-    mwLEXER_IDX();
-    mw_21_();
+    mwu16_21_();
 }
 
 static void mwLEXER_STACK_SIZE (void){
@@ -4632,12 +4647,12 @@ static void mwLEXER_STACK_SIZE (void){
 
 static void mwlexer_stack_length_40_ (void){
     mwLEXER_STACK_LENGTH();
-    mw_40_();
+    mwu16_40_();
 }
 
 static void mwlexer_stack_length_21_ (void){
     mwLEXER_STACK_LENGTH();
-    mw_21_();
+    mwu16_21_();
 }
 
 static void mwlexer_stack_clear_21_ (void){
@@ -4695,8 +4710,6 @@ static void mwrun_lexer_21_ (void){
     mwlexer_row_21_();
     push(1);
     mwlexer_col_21_();
-    push(0);
-    mwlexer_idx_21_();
     mwlexer_done_3F_();
     mwnot();
     for (i64 c1 = pop(); c1; c1 = pop()) {
