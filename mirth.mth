@@ -2203,6 +2203,7 @@ def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE =)
 #################
 
 def-type(Type, Int)
+def-type(Stash, Int)
 
 MAX_NAMES def-static-buffer(DEF_CHECKED)
 def(name-checked!, Bool Name --, DEF_CHECKED byte!!)
