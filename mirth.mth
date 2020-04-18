@@ -3463,7 +3463,7 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_MEM_SET_U64 .w " {" ;
-    "    u32* x = pop_ptr();" ;
+    "    u64* x = pop_ptr();" ;
     "    *x = pop_u64();" ;
     "}" ;;
 
@@ -3503,7 +3503,7 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_MEM_SET_I64 .w " {" ;
-    "    i32* x = pop_ptr();" ;
+    "    i64* x = pop_ptr();" ;
     "    *x = pop_i64();" ;
     "}" ;;
 
