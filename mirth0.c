@@ -1336,7 +1336,6 @@ static void mwstrings_load_escaped_21_ (void);
 static void mwMAX_TOKENS (void);
 static void mwnum_tokens_40_ (void);
 static void mwclear_tokens_21_ (void);
-static void mwcast (void);
 static void mwtoken_type_21_ (void);
 static void mwtoken_type_40_ (void);
 static void mwtoken_type_3F_ (void);
@@ -4542,10 +4541,6 @@ static void mwclear_tokens_21_ (void){
     mwnum_tokens_21_();
 }
 
-static void mwcast (void){
-    mwid();
-}
-
 static void mwtoken_type_21_ (void){
     mwTOKEN_TYPE();
     mwbyte_21__21_();
@@ -5790,7 +5785,6 @@ static void mwvstack_trace_21_ (void){
     mwdrop();
     mwdup();
     mwvstack_i64_40_();
-    mwcast();
     mwint_trace_sp_21_();
     mw1_2B_();
     mwdup();

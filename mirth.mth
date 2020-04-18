@@ -962,8 +962,6 @@ def-type(TokenValue, Int)
 def-type(Row, Int)
 def-type(Col, Int)
 
-def(cast, a -- b, id)
-
 MAX_TOKENS bytes def-static-buffer(TOKEN_TYPE)
 def(token-type!, TokenType Token --, TOKEN_TYPE byte!!)
 def(token-type@, Token -- TokenType, TOKEN_TYPE byte@@)
@@ -1450,8 +1448,8 @@ def(vstack-len@, usize +VSTACK, VSTACK_LEN @)
 def(vstack-len!, usize -- +VSTACK, VSTACK_LEN !)
 def(vstack-empty?, Bool +VSTACK, vstack-len@ 0 <=)
 def(vstack-full?, Bool +VSTACK, vstack-len@ VSTACK_SIZE >=)
-def(vstack-i64@, usize -- I64 +VSTACK, VSTACK_BUF long@@)
-def(vstack-i64!, I64 usize -- +VSTACK, VSTACK_BUF long!!)
+def(vstack-i64@, usize -- v +VSTACK, VSTACK_BUF long@@)
+def(vstack-i64!, v usize -- +VSTACK, VSTACK_BUF long!!)
 
 def(vstack-pop!, v1 +VSTACK,
     vstack-empty? if(
@@ -1503,7 +1501,7 @@ def(vstack-top!, I64 -- +VSTACK,
 def(vstack-trace!, +VSTACK +IO,
     0 dup vstack-len@ < while(
         drop
-        dup vstack-i64@ cast
+        dup vstack-i64@
         int-trace-sp!
         1+
         dup vstack-len@ <
