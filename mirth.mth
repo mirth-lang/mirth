@@ -29,10 +29,12 @@ def(bytes, Size -- Size, id)
 def(u8@@, Offset Pointer -- Byte, + u8@)
 def(u8!!, Byte Offset Pointer --, + u8!)
 
-def(|u16|, Size, 2)
-def(|u16|*, Size -- Size, |u16| *)
-def(u16@@, Offset Ptr -- U16, dip(|u16|*) + u16@)
-def(u16!!, U16 Offset Ptr --, dip(|u16|*) + u16!)
+def(short, Size, 2)
+def(shorts, Size -- Size, short *)
+def(short@, Ptr -- Short, u16@)
+def(short!, Short Ptr --, u16!)
+def(short@@, Offset Ptr -- Short, dip(shorts) + short@)
+def(short!!, Short Offset Ptr --, dip(shorts) + short!)
 
 def(long, Size, 8)
 def(longs, Size -- Size, long *)
@@ -528,21 +530,16 @@ def(name-quads-eq, Name -- Bool,
     drop 0), drop 0), drop 0), drop 0),
     drop 0), drop 0), drop 0))
 
-def(quads-hash, Ptr -- Hash,
-    0 over long@@ 5 *
-    dip(1 over long@@) ^ 7 *
-    dip(2 over long@@) ^ 13 *
-    dip(3 over long@@) ^ 3 *
-    dip(4 over long@@) ^ 19 *
-    dip(5 over long@@) ^ 23 *
-    dip(6 over long@@) ^ 29 *
-    dip(7 over long@@) ^
-    0x0402030301040201 *
-    48 >> NAME_HASH_MAX &
-    nip)
+def(hash, Ptr -- Hash,
+    0 swap
+    dup byte@ while(
+        swap dip(5 * ^)
+        1+ dup byte@
+    ) drop
+    NAME_HASH_MAX &)
 
 def(name-hash, Name -- Hash,
-    NAME_SIZE * NAME_BUF + quads-hash)
+    NAME_SIZE * NAME_BUF + hash)
 
 def(name-quads-eq?, Name -- Name Bool,
     dup name-quads-eq)
@@ -597,7 +594,7 @@ def(name-save-keep-going?, Hash -- Hash Bool,
 
 # Load STR_BUF into name table. Performs deduplication.
 def(name-save!, -- Name,
-    STR_BUF quads-hash
+    STR_BUF hash
     name-save-keep-going? while(
         drop
         next-hash
@@ -927,20 +924,20 @@ def(token-type-print!, TokenType --,
     token-type-str str-print!)
 
 MAX_TOKENS trip
-    longs def-static-buffer(TOKEN_VALUE)
-    |u16|* def-static-buffer(TOKEN_ROW)
-    |u16|* def-static-buffer(TOKEN_COL)
+    shorts def-static-buffer(TOKEN_VALUE)
+    shorts def-static-buffer(TOKEN_ROW)
+    shorts def-static-buffer(TOKEN_COL)
 
-def(token-value!, TokenValue Token --, TOKEN_VALUE long!!)
-def(token-value@, Token -- TokenValue, TOKEN_VALUE long@@)
+def(token-value!, TokenValue Token --, TOKEN_VALUE dip(shorts) + i16!)
+def(token-value@, Token -- TokenValue, TOKEN_VALUE dip(shorts) + i16@)
 def(token-value?, Token -- Token TokenValue, dup token-value@)
 
-def(token-row!, Row Token --, TOKEN_ROW u16!!)
-def(token-row@, Token -- Row, TOKEN_ROW u16@@)
+def(token-row!, Row Token --, TOKEN_ROW short!!)
+def(token-row@, Token -- Row, TOKEN_ROW short@@)
 def(token-row?, Token -- Token Row, dup token-row@)
 
-def(token-col!, Col Token --, TOKEN_COL u16!!)
-def(token-col@, Token -- Col, TOKEN_COL u16@@)
+def(token-col!, Col Token --, TOKEN_COL short!!)
+def(token-col@, Token -- Col, TOKEN_COL short@@)
 def(token-col?, Token -- Token Col, dup token-col@)
 
 def(token-new, -- Token,
@@ -990,16 +987,16 @@ def(show-tokens!, --,
 # LEXER #
 #########
 
-|u16| def-static-buffer(LEXER_ROW)
+short def-static-buffer(LEXER_ROW)
 def(lexer-row@, -- Row +Lexer, LEXER_ROW u16@)
 def(lexer-row!, Row -- +Lexer, LEXER_ROW u16!)
 
-|u16| def-static-buffer(LEXER_COL)
+short def-static-buffer(LEXER_COL)
 def(lexer-col@, -- Col +Lexer, LEXER_COL u16@)
 def(lexer-col!, Col -- +Lexer, LEXER_COL u16!)
 
 def(LEXER_STACK_SIZE, USize, 0x200)
-|u16| def-static-buffer(LEXER_STACK_LENGTH)
+short def-static-buffer(LEXER_STACK_LENGTH)
 LEXER_STACK_SIZE longs def-static-buffer(LEXER_STACK_BUF)
 
 def(lexer-stack-length@, usize +Lexer,
@@ -1360,7 +1357,7 @@ def(underscore, Char, 95)
 
 def(is-name-char?, Char -- Char Bool,
     is-special-char?
-    if(0, dup 33 126 in-range))
+    dip(dup 33 126 in-range) -)
 
 def(is-special-char?, Char -- Char Bool,
     is-quote?
@@ -3058,7 +3055,7 @@ def(expect3, Type Type Type Type Type Type -- Bool +Elab,
 # Codegen #
 ###########
 
-def(CODEGEN_BUF_SIZE, Size, 0x200)
+def(CODEGEN_BUF_SIZE, Size, 0x2000)
 
 long def-static-buffer(CODEGEN_FILE)
 long def-static-buffer(CODEGEN_LENGTH)
