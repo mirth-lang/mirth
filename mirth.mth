@@ -26,8 +26,8 @@ def(not, Bool -- Bool, 0 =)
 
 def(byte, Size, 1)
 def(bytes, Size -- Size, id)
-def(byte@@, Offset Pointer -- Byte, + byte@)
-def(byte!!, Byte Offset Pointer --, + byte!)
+def(u8@@, Offset Pointer -- Byte, + u8@)
+def(u8!!, Byte Offset Pointer --, + u8!)
 
 def(long, Size, 8)
 def(longs, Size -- Size, long *)
@@ -47,9 +47,9 @@ def(!!100, Int Int Int --, !!0 !!0 !!1)
 def(!!111, Int Int Int --, !!1 !!1 !!1)
 
 def(str-length, Str -- Int,
-    dip(0) dup byte@ while(
+    dip(0) dup u8@ while(
         drop 1+ dip(1+)
-        dup byte@
+        dup u8@
     ) drop)
 
 def(STR_BUF_SIZE, Int, 0x80)
@@ -60,8 +60,8 @@ def(str-buf-length?, Int +StrBuf, STR_BUF_LEN @)
 def(str-buf-length!, Int -- +StrBuf,
     dup STR_BUF_LEN !
     dip(0) str-buf-u8!)
-def(str-buf-u8@, Index -- U8 +StrBuf, STR_BUF byte@@)
-def(str-buf-u8!, U8 Index -- +StrBuf, STR_BUF byte!!)
+def(str-buf-u8@, Index -- U8 +StrBuf, STR_BUF u8@@)
+def(str-buf-u8!, U8 Index -- +StrBuf, STR_BUF u8!!)
 def(str-buf-full?, Bool +StrBuf,
     str-buf-length? 1+ STR_BUF_SIZE >=)
 def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
@@ -89,11 +89,11 @@ def(str-buf-input!, -- +IO, file-in@ str-buf-read!)
 # Set the STR_BUF to a given string. If the string is
 # too large (> STR_BUF_SIZE - 1) it gets truncated.
 def(str-buf!, Str -- +StrBuf,
-    str-buf-clear! dup byte@
+    str-buf-clear! dup u8@
     while(
         str-buf-push!
         1+
-        str-buf-full? if(0, dup byte@)
+        str-buf-full? if(0, dup u8@)
     ) drop)
 
 # Tests
@@ -237,23 +237,23 @@ def(test@!, --,
     0 TEST_BUF long@@ 99 !!=
     1 TEST_BUF long@@ 30 !!=
     0 0 TEST_BUF long!!
-    0 TEST_BUF byte@@ !!0
-    1 TEST_BUF byte@@ !!0
-    2 TEST_BUF byte@@ !!0
-    3 TEST_BUF byte@@ !!0
-    99 2 TEST_BUF byte!!
-    0 TEST_BUF byte@@ !!0
-    1 TEST_BUF byte@@ !!0
-    2 TEST_BUF byte@@ 99 !!=
-    3 TEST_BUF byte@@ !!0)
+    0 TEST_BUF u8@@ !!0
+    1 TEST_BUF u8@@ !!0
+    2 TEST_BUF u8@@ !!0
+    3 TEST_BUF u8@@ !!0
+    99 2 TEST_BUF u8!!
+    0 TEST_BUF u8@@ !!0
+    1 TEST_BUF u8@@ !!0
+    2 TEST_BUF u8@@ 99 !!=
+    3 TEST_BUF u8@@ !!0)
 
 def(test-str, --,
     "AaBb"
-    dup byte@ 65 !!=
-    dup 1+ byte@ 97 !!=
-    dup 1+ 1+ byte@ 66 !!=
-    dup 1+ 1+ 1+ byte@ 98 !!=
-    dup 1+ 1+ 1+ 1+ byte@ 0 !!=
+    dup u8@ 65 !!=
+    dup 1+ u8@ 97 !!=
+    dup 1+ 1+ u8@ 66 !!=
+    dup 1+ 1+ 1+ u8@ 98 !!=
+    dup 1+ 1+ 1+ 1+ u8@ 0 !!=
     drop
 
     "" str-length 0 !!=
@@ -467,7 +467,7 @@ def(input-fill-buffer!, +Input,
 # Panics if file is exhausted.
 def(input-peek, Char +Input,
     input-isopen@ if(
-        input-offset@ INPUT_BUFFER byte@@,
+        input-offset@ INPUT_BUFFER u8@@,
         "error: attempted to read input buffer when file is already closed" panic! 0
     ))
 
@@ -626,17 +626,17 @@ def(show-names-table!, +Names +IO,
     name-bytes @ int-print-ln!)
 
 def(name-could-be-type, Name -- Bool,
-    NAME_SIZE * NAME_BUF byte@@ is-alpha? nip)
+    NAME_SIZE * NAME_BUF u8@@ is-alpha? nip)
 
 def(name-could-be-type-var, Name -- Bool,
-    NAME_SIZE * NAME_BUF byte@@ is-lower? nip)
+    NAME_SIZE * NAME_BUF u8@@ is-lower? nip)
 
 def(name-could-be-type-con, Name -- Bool,
-    NAME_SIZE * NAME_BUF byte@@ is-upper? nip)
+    NAME_SIZE * NAME_BUF u8@@ is-upper? nip)
 
 def(name-could-be-effect-con, Name -- Bool,
-    NAME_SIZE * dup NAME_BUF byte@@ is-plus-sign? nip if(
-        1+ NAME_BUF byte@@ is-upper? nip,
+    NAME_SIZE * dup NAME_BUF u8@@ is-plus-sign? nip if(
+        1+ NAME_BUF u8@@ is-upper? nip,
         drop 0
     ))
 
@@ -648,7 +648,7 @@ def(name-mangle!, Name -- +StrBuf,
     NAME_SIZE * 0
     dup NAME_SIZE < while(
         drop
-        over NAME_BUF byte@@ str-buf-push-mangled!
+        over NAME_BUF u8@@ str-buf-push-mangled!
         dip(1+) 1+
         dup NAME_SIZE <
     )
@@ -860,7 +860,7 @@ def(strings-size!, usize -- +StrTable, STRINGS_SIZE !)
 def(strings-push!, U8 -- +StrTable,
     strings-size@ MAX_STRINGS >= if(
         "strings buffer overflow" panic! drop,
-        strings-size@ STRINGS_BUF byte!!
+        strings-size@ STRINGS_BUF u8!!
         strings-size@ 1+ strings-size!
     ))
 
@@ -899,8 +899,8 @@ def(num-tokens!, Int --, NUM_TOKENS !)
 def(clear-tokens!, --, 0 num-tokens!)
 
 MAX_TOKENS bytes def-static-buffer(TOKEN_TYPE)
-def(token-type!, TokenType Token --, TOKEN_TYPE byte!!)
-def(token-type@, Token -- TokenType, TOKEN_TYPE byte@@)
+def(token-type!, TokenType Token --, TOKEN_TYPE u8!!)
+def(token-type@, Token -- TokenType, TOKEN_TYPE u8@@)
 def(token-type?, Token -- Token TokenType, dup token-type@)
 def(TOKEN_NONE, TokenType, 0)
 def(TOKEN_LPAREN, TokenType, 1)
@@ -1730,7 +1730,7 @@ def(token-run-prim!, Token --,
         1 1 arity-check!
         token-args-0
         vstack-pop!
-        byte@
+        u8@
         vstack-push!,
 
     dup PRIM_MEM_SET_BYTE = if(
@@ -1738,7 +1738,7 @@ def(token-run-prim!, Token --,
         2 0 arity-check!
         token-args-0
         vstack-pop2!
-        byte!,
+        u8!,
 
     dup PRIM_MEM_GET_U8 = if(
         drop
@@ -2132,8 +2132,8 @@ MAX_NAMES def-static-buffer(DEF_SORT)
 MAX_NAMES longs def-static-buffer(DEF_VALUE)
 MAX_NAMES longs def-static-buffer(DEF_SIG)
 
-def(name-sort!, Sort Name --, DEF_SORT byte!!)
-def(name-sort@, Name -- Sort, DEF_SORT byte@@)
+def(name-sort!, Sort Name --, DEF_SORT u8!!)
+def(name-sort@, Name -- Sort, DEF_SORT u8@@)
 def(name-sort?, Name -- Name Sort, dup name-sort@)
 
 def(name-value!, Value Name --, DEF_VALUE long!!)
@@ -2155,8 +2155,8 @@ def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE =)
 #################
 
 MAX_NAMES def-static-buffer(DEF_CHECKED)
-def(name-checked!, Bool Name --, DEF_CHECKED byte!!)
-def(name-checked@, Name -- Bool, DEF_CHECKED byte@@)
+def(name-checked!, Bool Name --, DEF_CHECKED u8!!)
+def(name-checked@, Name -- Bool, DEF_CHECKED u8@@)
 def(name-checked?, Name -- Name Bool, dup name-checked@)
 
 def(TSTACK_SIZE, Size, VSTACK_SIZE)
@@ -3068,8 +3068,8 @@ def(codegen-file@, -- File +Codegen, CODEGEN_FILE @)
 def(codegen-file!, File -- +Codegen, CODEGEN_FILE !)
 def(codegen-length@, -- Size +Codegen, CODEGEN_LENGTH @)
 def(codegen-length!, Size -- +Codegen, CODEGEN_LENGTH !)
-def(codegen-byte@, Index -- Byte +Codegen, CODEGEN_BUF byte@@)
-def(codegen-byte!, Byte Index -- +Codegen, CODEGEN_BUF byte!!)
+def(codegen-u8@, Index -- Byte +Codegen, CODEGEN_BUF u8@@)
+def(codegen-u8!, Byte Index -- +Codegen, CODEGEN_BUF u8!!)
 
 def(codegen-full?, Bool +Codegen,
     codegen-length@ CODEGEN_BUF_SIZE >=)
@@ -3083,9 +3083,9 @@ def(codegen-flush!, +Codegen,
 
 def(.b, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
-    codegen-length@ dup 1+ codegen-length! codegen-byte!)
+    codegen-length@ dup 1+ codegen-length! codegen-u8!)
 
-def(., Str -- +Codegen, dup byte@ while(.b 1+ dup byte@) drop)
+def(., Str -- +Codegen, dup u8@ while(.b 1+ dup u8@) drop)
 
 def(codegen-start!, File -- +Codegen,
     codegen-file! 0 codegen-length!)
@@ -3165,7 +3165,7 @@ def(c99-emit-strings!, +IO,
     "static char strings[STRINGS_SIZE] = { " ;
     0 dup strings-size@ < while(
         drop
-        dup STRINGS_BUF byte@@ dup .n "," .
+        dup STRINGS_BUF u8@@ dup .n "," .
         if(id, .lf)
         1+ dup strings-size@ <
     ) drop
