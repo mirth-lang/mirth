@@ -13,12 +13,14 @@ def(dup2, a b -- a b a b, over over)
 def(drop2, a b --, drop drop)
 def(drop3, a b c --, drop drop drop)
 
+def-type(Byte, U8)
+def-type(Char, U8)
+
+def-type(Str, Ptr)
+
 def-type(Bool, Int)
 def-type(Size, Int)
-def-type(Byte, Int)
-def-type(Char, Int)
 def-type(Offset, Int)
-def-type(Str, Ptr)
 def-type(File, Int)
 
 def(>, Int Int -- Bool, swap <)
@@ -54,18 +56,19 @@ def(long!!, Long Offset Ptr --, dip(longs) + !)
 # Assertions
 
 def(!!, Bool --, if(id, "Assertion failed" panic!))
-def(!!=, Int Int --, = !!)
-def(!!0, Int --, 0 !!=)
-def(!!1, Int --, 1 !!=)
+def(!!=, a a --, = !!)
+def(!!0, Bool --, 0 !!=)
+def(!!1, Bool --, 1 !!=)
 def(!!001, Int Int Int --, !!1 !!0 !!0)
 def(!!010, Int Int Int --, !!0 !!1 !!0)
 def(!!011, Int Int Int --, !!1 !!1 !!0)
 def(!!100, Int Int Int --, !!0 !!0 !!1)
 def(!!111, Int Int Int --, !!1 !!1 !!1)
 
+def(str-tail, Str -- Str, 1 +)
 def(str-length, Str -- Int,
     dip(0) dup u8@ while(
-        drop 1+ dip(1+)
+        drop str-tail dip(1+)
         dup u8@
     ) drop)
 
@@ -76,7 +79,7 @@ STR_BUF_SIZE bytes def-static-buffer(STR_BUF)
 def(str-buf-length?, Int +StrBuf, STR_BUF_LEN @)
 def(str-buf-length!, Int -- +StrBuf,
     dup STR_BUF_LEN !
-    dip(0) str-buf-u8!)
+    dip(0 Int->U8) str-buf-u8!)
 def(str-buf-u8@, Offset -- U8 +StrBuf, STR_BUF byte@@)
 def(str-buf-u8!, U8 Offset -- +StrBuf, STR_BUF byte!!)
 def(str-buf-full?, Bool +StrBuf,
@@ -109,7 +112,7 @@ def(str-buf!, Str -- +StrBuf,
     str-buf-clear! dup u8@
     while(
         str-buf-push!
-        1+
+        str-tail
         str-buf-full? if(0, dup u8@)
     ) drop)
 
@@ -254,23 +257,23 @@ def(test@!, --,
     0 TEST_BUF long@@ 99 !!=
     1 TEST_BUF long@@ 30 !!=
     0 0 TEST_BUF long!!
-    0 TEST_BUF byte@@ !!0
-    1 TEST_BUF byte@@ !!0
-    2 TEST_BUF byte@@ !!0
-    3 TEST_BUF byte@@ !!0
-    99 2 TEST_BUF byte!!
-    0 TEST_BUF byte@@ !!0
-    1 TEST_BUF byte@@ !!0
+    0 TEST_BUF byte@@ 0 !!=
+    1 TEST_BUF byte@@ 0 !!=
+    2 TEST_BUF byte@@ 0 !!=
+    3 TEST_BUF byte@@ 0 !!=
+    99 Int->U8 2 TEST_BUF byte!!
+    0 TEST_BUF byte@@ 0 !!=
+    1 TEST_BUF byte@@ 0 !!=
     2 TEST_BUF byte@@ 99 !!=
-    3 TEST_BUF byte@@ !!0)
+    3 TEST_BUF byte@@ 0 !!=)
 
 def(test-str, --,
     "AaBb"
     dup u8@ 65 !!=
-    dup 1+ u8@ 97 !!=
-    dup 1+ 1+ u8@ 66 !!=
-    dup 1+ 1+ 1+ u8@ 98 !!=
-    dup 1+ 1+ 1+ 1+ u8@ 0 !!=
+    dup str-tail u8@ 97 !!=
+    dup str-tail str-tail u8@ 66 !!=
+    dup str-tail str-tail str-tail u8@ 98 !!=
+    dup str-tail str-tail str-tail str-tail u8@ 0 !!=
     drop
 
     "" str-length 0 !!=
@@ -325,13 +328,16 @@ def(str-buf-char!, Char -- +StrBuf, 0 str-buf-u8! 1 str-buf-length!)
 def(print-char!, Char -- +IO, str-buf-char! str-buf-print!)
 def(trace-char!, Char -- +IO, str-buf-char! str-buf-trace!)
 
-def(print-ln!, +IO, 10 print-char!)
-def(trace-ln!, +IO, 10 trace-char!)
-def(print-sp!, +IO, 32 print-char!)
-def(trace-sp!, +IO, 32 trace-char!)
-def(print-quote!, +IO, 34 print-char!)
+def(print-ln!, +IO, 10 Int->U8 print-char!)
+def(trace-ln!, +IO, 10 Int->U8 trace-char!)
+def(print-sp!, +IO, 32 Int->U8 print-char!)
+def(trace-sp!, +IO, 32 Int->U8 trace-char!)
+def(print-quote!, +IO, 34 Int->U8 print-char!)
 
-def(to-digit, Int -- Char, 10 % 48 +)
+def(to-digit, Int -- U8, 10 % 48 +)
+
+def(Int->U8, Int -- U8, id)
+def(U8->Int, U8 -- Int, id)
 
 def(negate, Int -- Int, -1 *)
 def(abs, Int -- Int, dup 0 < if(negate, id))
@@ -344,7 +350,7 @@ def(str-buf-int!, Int --,
             abs
             str-buf-clear!
             while(dup to-digit str-buf-push! 10 /)
-        ) 0 < if(45 str-buf-push!, id)
+        ) 0 < if(45 Int->U8 str-buf-push!, id)
         str-buf-reverse!
     ))
 
@@ -548,7 +554,7 @@ def(hash, Ptr -- Hash,
     0 swap
     dup byte@ while(
         swap dip(5 * ^)
-        1+ dup byte@
+        str-tail dup byte@
     ) drop
     NAME_HASH_MAX &)
 
@@ -928,15 +934,15 @@ def(strings-save!, StringOffset +StrTable +StrBuf,
         dup str-buf-length? <
     )
     drop
-    0 strings-push!)
+    0 Int->U8 strings-push!)
 
 # Load string into STR_BUF.
-def(strings-load!, String -- +StrTable +StrBuf,
+def(strings-load!, Str -- +StrBuf,
     str-buf!)
 
 # Load string into STR_BUF but with escape sequences.
 # FIXME: implement escape sequence handling.
-def(strings-load-escaped!, String -- +StrTable +StrBuf,
+def(strings-load-escaped!, Str -- +StrBuf,
     strings-load!)
 
 ##########
@@ -955,6 +961,8 @@ def-type(TokenType, Int)
 def-type(TokenValue, Int)
 def-type(Row, Int)
 def-type(Col, Int)
+
+def(cast, a -- b, id)
 
 MAX_TOKENS bytes def-static-buffer(TOKEN_TYPE)
 def(token-type!, TokenType Token --, TOKEN_TYPE byte!!)
@@ -1272,7 +1280,7 @@ def(str-buf-dec-int?, Int +StrBuf,
     dup str-buf-length? < while(
         drop
         dup dip(
-            str-buf-u8@
+            str-buf-u8@ U8->Int
             dip(10 *) 48 - +
         )
         1+
@@ -1306,10 +1314,10 @@ def(str-buf-hex-int?, Int +StrBuf,
 
 def(hexdigit-value, Char -- Int,
     is-digit? if(
-        48 -,
+        U8->Int 48 -,
         is-upper-hexdigit? if(
-            55 -,
-            87 -
+            U8->Int 55 -,
+            U8->Int 87 -
         )
     ))
 
@@ -1338,13 +1346,13 @@ def(lexer-push-string-char!, Char -- +Lexer,
             drop,
 
         is-n? if(
-            drop 10 str-buf-push!,
+            drop 10 Int->U8 str-buf-push!,
 
         is-r? if(
-            drop 13 str-buf-push!,
+            drop 13 Int->U8 str-buf-push!,
 
         is-t? if(
-            drop 9 str-buf-push!,
+            drop 9 Int->U8 str-buf-push!,
 
         is-quote? if(
             str-buf-push!,
@@ -1413,7 +1421,7 @@ def(underscore, Char, 95)
 
 def(is-name-char?, Char -- Char Bool,
     is-special-char?
-    dip(dup 33 126 in-range) -)
+    dip(dup U8->Int 33 126 in-range) -)
 
 def(is-special-char?, Char -- Char Bool,
     is-quote?
@@ -1445,39 +1453,39 @@ def(vstack-full?, Bool +VSTACK, vstack-len@ VSTACK_SIZE >=)
 def(vstack-i64@, usize -- I64 +VSTACK, VSTACK_BUF long@@)
 def(vstack-i64!, I64 usize -- +VSTACK, VSTACK_BUF long!!)
 
-def(vstack-pop!, I64 +VSTACK,
+def(vstack-pop!, v1 +VSTACK,
     vstack-empty? if(
         "stack underflow: attempted to pop on empty vstack" panic! 0,
         vstack-len@ 1- vstack-len!
         vstack-len@ vstack-i64@
     ))
 
-def(vstack-pop2!, I64 I64 +VSTACK,
+def(vstack-pop2!, v1 v2 +VSTACK,
     vstack-pop! dip(vstack-pop!))
 
-def(vstack-pop3!, I64 I64 I64 +VSTACK,
+def(vstack-pop3!, v1 v2 v3 +VSTACK,
     vstack-pop! dip(vstack-pop2!))
 
-def(vstack-pop4!, I64 I64 I64 I64 +VSTACK,
+def(vstack-pop4!, v1 v2 v3 v4 +VSTACK,
     vstack-pop! dip(vstack-pop3!))
 
-def(vstack-pop5!, I64 I64 I64 I64 I64 +VSTACK,
+def(vstack-pop5!, v1 v2 v3 v4 v5 +VSTACK,
     vstack-pop! dip(vstack-pop4!))
 
-def(vstack-pop6!, I64 I64 I64 I64 I64 I64 +VSTACK,
+def(vstack-pop6!, v1 v2 v3 v4 v5 v6 +VSTACK,
     vstack-pop! dip(vstack-pop5!))
 
-def(vstack-push!, I64 -- +VSTACK,
+def(vstack-push!, v1 -- +VSTACK,
     vstack-full? if(
         "vstack overflow" panic! drop,
         vstack-len@ vstack-i64!
         vstack-len@ 1+ vstack-len!
     ))
 
-def(vstack-push2!, I64 I64 -- +VSTACK,
+def(vstack-push2!, v1 v2 -- +VSTACK,
     dip(vstack-push!) vstack-push!)
 
-def(vstack-push3!, I64 I64 I64 -- +VSTACK,
+def(vstack-push3!, v1 v2 v3 -- +VSTACK,
     dip(vstack-push2!) vstack-push!)
 
 def(vstack-top@, I64 +VSTACK,
@@ -1495,7 +1503,7 @@ def(vstack-top!, I64 -- +VSTACK,
 def(vstack-trace!, +VSTACK +IO,
     0 dup vstack-len@ < while(
         drop
-        dup vstack-i64@
+        dup vstack-i64@ cast
         int-trace-sp!
         1+
         dup vstack-len@ <
@@ -1975,9 +1983,19 @@ def(token-run-prim!, Token --,
         token-args-2
         swap sig-token-is-type-con? if(
             token-value? name-undefined? if(
-                nip
-                DEF_TYPE over name-sort!
-                name-value!, # idk if this is good or not
+                nip swap
+                sig-token-is-type-con? if(
+                    token-value?
+                    name-is-type? if(
+                        name-value@ nip,
+                        drop "Unknown type." emit-error!
+                        TYPE_ERROR
+                    ),
+                    "Expected a type." emit-error!
+                    TYPE_ERROR
+                )
+                over name-value!
+                DEF_TYPE swap name-sort!,
 
                 drop "type already defined" emit-fatal-error! drop
             ),
@@ -2367,11 +2385,14 @@ def(typecheck-name!, Name --,
         name-is-buffer? if(
             typecheck-buffer!,
 
+        name-is-type? if(
+            drop, # TODO
+
             "error: Dont know how to typecheck name: "
             str-trace! name-load! str-buf-trace! trace-ln!
             1 posix-exit!
 
-        ))))
+        )))))
     ))
 
 def(typecheck-word!, Name --,
@@ -2604,35 +2625,51 @@ def(typecheck-run-prim!, Token --,
     token-value? PRIM_MEM_GET_U8 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop! elab@ tstack-push!,
+        tstack-pop! TYPE_PTR expect1 if(
+            TYPE_U8, TYPE_ERROR
+        ) tstack-push!,
     token-value? PRIM_MEM_GET_U16 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop! elab@ tstack-push!,
+        tstack-pop! TYPE_PTR expect1 if(
+            TYPE_U16, TYPE_ERROR
+        ) tstack-push!,
     token-value? PRIM_MEM_GET_U32 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop! elab@ tstack-push!,
+        tstack-pop! TYPE_PTR expect1 if(
+            TYPE_U32, TYPE_ERROR
+        ) tstack-push!,
     token-value? PRIM_MEM_GET_U64 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop! elab@ tstack-push!,
+        tstack-pop! TYPE_PTR expect1 if(
+            TYPE_U64, TYPE_ERROR
+        ) tstack-push!,
     token-value? PRIM_MEM_GET_I8 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop! elab@ tstack-push!,
+        tstack-pop! TYPE_PTR expect1 if(
+            TYPE_I8, TYPE_ERROR
+        ) tstack-push!,
     token-value? PRIM_MEM_GET_I16 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop! elab@ tstack-push!,
+        tstack-pop! TYPE_PTR expect1 if(
+            TYPE_I16, TYPE_ERROR
+        ) tstack-push!,
     token-value? PRIM_MEM_GET_I32 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop! elab@ tstack-push!,
+        tstack-pop! TYPE_PTR expect1 if(
+            TYPE_I32, TYPE_ERROR
+        ) tstack-push!,
     token-value? PRIM_MEM_GET_I64 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop! elab@ tstack-push!,
+        tstack-pop! TYPE_PTR expect1 if(
+            TYPE_I64, TYPE_ERROR
+        ) tstack-push!,
 
     token-value? PRIM_MEM_SET_U8 = if(
         1 1 tstack-arity-check!
@@ -2828,21 +2865,64 @@ def(sig-match-outputs!, Token -- +TSTACK,
     ))
 
 def(sig-apply!, Token Token -- +TSTACK,
+    dup sig-arity tstack-arity-check!
     dup2 sig-pop-inputs! sig-push-outputs!)
 
 def(sig-pop-inputs!, Token Token -- +TSTACK,
-    sig-arity drop
-    dup tstack-length? > if(
-        drop tstack-clear!
-        "Stack underflow." emit-error!, # FIXME: emit error
-
-        while(tstack-pop! drop 1-) # FIXME: match types
+    dip(elab-token!)
+    sig-has-dashes? if(
+        sig-pop-inputs-aux!,
         drop
     ))
 
+def(sig-pop-inputs-aux!, Token -- +TSTACK,
+    token-is-dashes? if(
+        drop,
+
+        dup token-next
+        sig-pop-inputs-aux!
+        tstack-empty? if(
+            "Stack underflow" elab-emit-fatal-error!
+            drop,
+
+        sig-token-is-type-con? if(
+            token-value@ name-value@
+            tstack-pop! swap expect1 drop,
+
+        sig-token-is-type-var? if(
+            tstack-pop! drop2,
+            # TODO: "define" the type variable
+
+            tstack-pop! drop2
+            # error in type sig, but it's caught elsewhere
+        )))
+    ))
+
 def(sig-push-outputs!, Token Token -- +TSTACK,
-    sig-arity nip
-    while(0 tstack-push! 1-) # FIXME: push correct type
+    dip(elab-token!)
+    sig-has-dashes? if(
+        token-is-dashes? not while(
+            drop 1+ token-is-dashes? not
+        ) 1+,
+        id
+    )
+
+    token-is-arg-end? not while(
+        drop
+        sig-token-is-type-con? if(
+            token-value? name-value@ tstack-push!,
+
+        sig-token-is-type-var? if(
+            0 tstack-push!, # TODO
+
+        sig-token-is-effect-con? if(
+            id, # TODO
+
+            # unknown, but error is caught elsewhere
+            0 tstack-push!
+        )))
+        1+ token-is-arg-end? not
+    )
     drop)
 
 #########
@@ -2850,7 +2930,7 @@ def(sig-push-outputs!, Token Token -- +TSTACK,
 #########
 
 def(TYPE_ERROR, Type, 0)
-def(TYPE_INT, Type, 1) # generic integer type for integer literals
+def(TYPE_INT, Type, 1) # generic integer type for integer literals)
 def(TYPE_PTR, Type, 2) # generic pointer type (e.g. void*)
 def(TYPE_U8, Type, 3) # fixed width integer type -- unsigned 8 bit
 def(TYPE_U16, Type, 4) # fixed width integer type -- unsigned 16 bit
@@ -2890,7 +2970,7 @@ def(elab+, Type Type -- Type,
         dup TYPE_ERROR = if(
             drop TYPE_ERROR,
         dup TYPE_INT = if(
-            drop TYPE_INT,
+            drop TYPE_PTR,
         dup TYPE_PTR = if(
             drop
             "attempted to add two pointers" elab-emit-error!
@@ -3222,7 +3302,7 @@ def(.b, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
     codegen-length@ dup 1+ codegen-length! codegen-u8!)
 
-def(., Str -- +Codegen, dup u8@ while(.b 1+ dup u8@) drop)
+def(., Str -- +Codegen, dup u8@ while(.b str-tail dup u8@) drop)
 
 def(codegen-start!, File -- +Codegen,
     codegen-file! 0 codegen-length!)
@@ -3250,7 +3330,7 @@ def(c99-depth!, Int -- +Codegen, C99_DEPTH !)
 def(c99-depth++, +Codegen, c99-depth@ 1+ c99-depth!)
 def(c99-depth--, +Codegen, c99-depth@ 1- c99-depth!)
 
-def(.lf, +Codegen, 10 .b)
+def(.lf, +Codegen, 10 Int->U8 .b)
 def(;, Str -- +Codegen, . .lf)
 def(;;, Str -- +Codegen, . .lf .lf)
 def(.n, Int -- +Codegen, str-buf-int! STR_BUF .)
@@ -3302,7 +3382,7 @@ def(c99-emit-strings!, +IO,
     "static char strings[STRINGS_SIZE] = { " ;
     0 dup strings-size@ < while(
         drop
-        dup STRINGS_BUF byte@@ dup .n "," .
+        dup STRINGS_BUF byte@@ dup U8->Int .n "," .
         if(id, .lf)
         1+ dup strings-size@ <
     ) drop
