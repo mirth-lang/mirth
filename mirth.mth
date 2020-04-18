@@ -48,10 +48,10 @@ def(short@@, Offset Ptr -- Short, dip(shorts) + short@)
 def(short!!, Short Offset Ptr --, dip(shorts) + short!)
 
 def-type(Long, Int)
-def(long, Size, 8)
-def(longs, Size -- Size, long *)
-def(long@@, Offset Ptr -- Long, dip(longs) + @)
-def(long!!, Long Offset Ptr --, dip(longs) + !)
+def(quad, Size, 8)
+def(quads, Size -- Size, quad *)
+def(quad@@, Offset Ptr -- Long, dip(quads) + @)
+def(quad!!, Long Offset Ptr --, dip(quads) + !)
 
 # Assertions
 
@@ -73,7 +73,7 @@ def(str-length, Str -- Int,
     ) drop)
 
 def(STR_BUF_SIZE, Int, 0x80)
-long def-static-buffer(STR_BUF_LEN)
+quad def-static-buffer(STR_BUF_LEN)
 STR_BUF_SIZE bytes def-static-buffer(STR_BUF)
 
 def(str-buf-length?, Int +StrBuf, STR_BUF_LEN @)
@@ -242,21 +242,21 @@ def(test%, --,
     4 2 % !!0
     5 2 % !!1)
 
-2 longs def-static-buffer(TEST_BUF)
+2 quads def-static-buffer(TEST_BUF)
 def(test@!, --,
     # reset test buffer
-    0 0 TEST_BUF long!!
-    0 1 TEST_BUF long!!
+    0 0 TEST_BUF quad!!
+    0 1 TEST_BUF quad!!
     # run test
-    0 TEST_BUF long@@ !!0
-    1 TEST_BUF long@@ !!0
-    99 0 TEST_BUF long!!
-    0 TEST_BUF long@@ 99 !!=
-    1 TEST_BUF long@@ !!0
-    30 1 TEST_BUF long!!
-    0 TEST_BUF long@@ 99 !!=
-    1 TEST_BUF long@@ 30 !!=
-    0 0 TEST_BUF long!!
+    0 TEST_BUF quad@@ !!0
+    1 TEST_BUF quad@@ !!0
+    99 0 TEST_BUF quad!!
+    0 TEST_BUF quad@@ 99 !!=
+    1 TEST_BUF quad@@ !!0
+    30 1 TEST_BUF quad!!
+    0 TEST_BUF quad@@ 99 !!=
+    1 TEST_BUF quad@@ 30 !!=
+    0 0 TEST_BUF quad!!
     0 TEST_BUF byte@@ 0 !!=
     1 TEST_BUF byte@@ 0 !!=
     2 TEST_BUF byte@@ 0 !!=
@@ -302,15 +302,15 @@ def(init-io!, +IO,
     stderr file-err!
     )
 
-long def-static-buffer(FILE_IN)
+quad def-static-buffer(FILE_IN)
 def(file-in!, File -- +IO, FILE_IN !)
 def(file-in@, -- File +IO, FILE_IN @)
 
-long def-static-buffer(FILE_OUT)
+quad def-static-buffer(FILE_OUT)
 def(file-out!, File -- +IO, FILE_OUT !)
 def(file-out@, -- File +IO, FILE_OUT @)
 
-long def-static-buffer(FILE_ERR)
+quad def-static-buffer(FILE_ERR)
 def(file-err!, File -- +IO, FILE_ERR !)
 def(file-err@, -- File +IO, FILE_ERR @)
 
@@ -436,10 +436,10 @@ def(open-mirth-src!, File +IO,
 #########
 
 def(INPUT_BUFFER_SIZE, Size, 0x200)
-long def-static-buffer(INPUT_ISOPEN)
-long def-static-buffer(INPUT_LENGTH)
-long def-static-buffer(INPUT_OFFSET)
-long def-static-buffer(INPUT_HANDLE)
+quad def-static-buffer(INPUT_ISOPEN)
+quad def-static-buffer(INPUT_LENGTH)
+quad def-static-buffer(INPUT_OFFSET)
+quad def-static-buffer(INPUT_HANDLE)
 INPUT_BUFFER_SIZE def-static-buffer(INPUT_BUFFER)
 
 def(input-isopen@, Bool +Input, INPUT_ISOPEN @)
@@ -520,16 +520,16 @@ def-type(Hash, Int)
 def(MAX_NAMES, Size, 0x400)
 def(NAME_HASH_MAX, Size, 0x3FF)
 def(NAME_TABLE_SIZE, Size, NAME_HASH_MAX 1+)
-long def-static-buffer(NUM_NAMES)
+quad def-static-buffer(NUM_NAMES)
 def(num-names@, Size, NUM_NAMES @)
 def(num-names!, Size --, NUM_NAMES !)
 
 def(NAME_QUADS, Size, 8)
-def(NAME_SIZE, Size, NAME_QUADS longs)
+def(NAME_SIZE, Size, NAME_QUADS quads)
 def(NAME_BUF_SIZE, Size, NAME_SIZE MAX_NAMES *)
 NAME_BUF_SIZE def-static-buffer(NAME_BUF)
 
-NAME_TABLE_SIZE longs
+NAME_TABLE_SIZE quads
     def-static-buffer(NAME_TABLE)
 
 # Load a name into STR_BUF.
@@ -542,14 +542,14 @@ def(name-load!, Name --,
 # Note this code assumes NAME_QUADS is 8.
 def(name-quads-eq, Name -- Bool,
     NAME_SIZE * NAME_BUF +
-    0 over long@@ 0 STR_BUF long@@ = if(
-    1 over long@@ 1 STR_BUF long@@ = if(
-    2 over long@@ 2 STR_BUF long@@ = if(
-    3 over long@@ 3 STR_BUF long@@ = if(
-    4 over long@@ 4 STR_BUF long@@ = if(
-    5 over long@@ 5 STR_BUF long@@ = if(
-    6 over long@@ 6 STR_BUF long@@ = if(
-    7 swap long@@ 7 STR_BUF long@@ =,
+    0 over quad@@ 0 STR_BUF quad@@ = if(
+    1 over quad@@ 1 STR_BUF quad@@ = if(
+    2 over quad@@ 2 STR_BUF quad@@ = if(
+    3 over quad@@ 3 STR_BUF quad@@ = if(
+    4 over quad@@ 4 STR_BUF quad@@ = if(
+    5 over quad@@ 5 STR_BUF quad@@ = if(
+    6 over quad@@ 6 STR_BUF quad@@ = if(
+    7 swap quad@@ 7 STR_BUF quad@@ =,
     drop 0), drop 0), drop 0), drop 0),
     drop 0), drop 0), drop 0))
 
@@ -569,7 +569,7 @@ def(name-quads-eq?, Name -- Name Bool,
 
 def(name-quad-save!, Name Int --,
     dip(NAME_SIZE * NAME_BUF +) tuck
-    STR_BUF long@@ rotr long!!)
+    STR_BUF quad@@ rotr quad!!)
 
 def(name-quads-save!, Name -- ,
     dup 0 name-quad-save!
@@ -583,29 +583,29 @@ def(name-quads-save!, Name -- ,
 
 def(name-quads-load!, Name --,
     NAME_SIZE * NAME_BUF +
-    0 over long@@ 0 STR_BUF long!!
-    1 over long@@ 1 STR_BUF long!!
-    2 over long@@ 2 STR_BUF long!!
-    3 over long@@ 3 STR_BUF long!!
-    4 over long@@ 4 STR_BUF long!!
-    5 over long@@ 5 STR_BUF long!!
-    6 over long@@ 6 STR_BUF long!!
-    7 swap long@@ 7 STR_BUF long!!)
+    0 over quad@@ 0 STR_BUF quad!!
+    1 over quad@@ 1 STR_BUF quad!!
+    2 over quad@@ 2 STR_BUF quad!!
+    3 over quad@@ 3 STR_BUF quad!!
+    4 over quad@@ 4 STR_BUF quad!!
+    5 over quad@@ 5 STR_BUF quad!!
+    6 over quad@@ 6 STR_BUF quad!!
+    7 swap quad@@ 7 STR_BUF quad!!)
 
 # zero str-buf up to NAME_SIZE
 def(str-buf-zero!, --,
-    0 0 STR_BUF long!!
-    0 1 STR_BUF long!!
-    0 2 STR_BUF long!!
-    0 3 STR_BUF long!!
-    0 4 STR_BUF long!!
-    0 5 STR_BUF long!!
-    0 6 STR_BUF long!!
-    0 7 STR_BUF long!!)
+    0 0 STR_BUF quad!!
+    0 1 STR_BUF quad!!
+    0 2 STR_BUF quad!!
+    0 3 STR_BUF quad!!
+    0 4 STR_BUF quad!!
+    0 5 STR_BUF quad!!
+    0 6 STR_BUF quad!!
+    0 7 STR_BUF quad!!)
 
 
-def(name-table@, Hash -- Name, NAME_TABLE long@@ 1-)
-def(name-table!, Name Hash --, dip(1+) NAME_TABLE long!!)
+def(name-table@, Hash -- Name, NAME_TABLE quad@@ 1-)
+def(name-table!, Name Hash --, dip(1+) NAME_TABLE quad!!)
 def(next-hash, Hash -- Hash, 1+ NAME_HASH_MAX &)
 
 def(name-save-keep-going?, Hash -- Hash Bool,
@@ -632,7 +632,7 @@ def(name-save!, -- Name,
         nip
     ))
 
-long def-static-buffer(name-bytes)
+quad def-static-buffer(name-bytes)
 def(show-names-table!, +Names +IO,
     0 name-bytes !
     0 dup num-names@ <
@@ -799,7 +799,7 @@ def(def-prim!, Prim Str -- +Names,
 def(init-names!, +Names,
     NAME_TABLE_SIZE while(
         1-
-        0 over NAME_TABLE long!!
+        0 over NAME_TABLE quad!!
     )
 
     num-names@ while(
@@ -908,7 +908,7 @@ def-type(StringOffset, Int)
 def-type(String, Str)
 
 def(MAX_STRINGS, Size, 0x4000)
-long def-static-buffer(STRINGS_SIZE)
+quad def-static-buffer(STRINGS_SIZE)
 MAX_STRINGS bytes def-static-buffer(STRINGS_BUF)
 
 # Size of strings table.
@@ -954,7 +954,7 @@ def(strings-load-escaped!, Str -- +StrBuf,
 
 def(MAX_TOKENS, Size, 0x4000)
 
-long def-static-buffer(NUM_TOKENS)
+quad def-static-buffer(NUM_TOKENS)
 def(num-tokens@, Int, NUM_TOKENS @)
 def(num-tokens!, Int --, NUM_TOKENS !)
 def(clear-tokens!, --, 0 num-tokens!)
@@ -1062,7 +1062,7 @@ def(lexer-col!, Col -- +Lexer, LEXER_COL short!)
 
 def(LEXER_STACK_SIZE, Size, 0x200)
 short def-static-buffer(LEXER_STACK_LENGTH)
-LEXER_STACK_SIZE longs def-static-buffer(LEXER_STACK_BUF)
+LEXER_STACK_SIZE quads def-static-buffer(LEXER_STACK_BUF)
 
 def(lexer-stack-length@, usize +Lexer,
     LEXER_STACK_LENGTH u16@)
@@ -1084,7 +1084,7 @@ def(lexer-stack-push!, Token -- +Lexer,
         "lexer stack overflow" panic! drop,
         lexer-stack-length@
         dup 1+ lexer-stack-length!
-        LEXER_STACK_BUF long!!
+        LEXER_STACK_BUF quad!!
     ))
 
 def(lexer-stack-pop!, -- Token +Lexer,
@@ -1092,7 +1092,7 @@ def(lexer-stack-pop!, -- Token +Lexer,
         "lexer stack underflow" panic! 0,
         lexer-stack-length@ 1-
         dup lexer-stack-length!
-        LEXER_STACK_BUF long@@
+        LEXER_STACK_BUF quad@@
     ))
 
 def(run-lexer!, File -- +Lexer,
@@ -1444,15 +1444,15 @@ def(lexer-trace-prefix!, +IO,
 ###############
 
 def(VSTACK_SIZE, Size, 0x100)
-long def-static-buffer(VSTACK_LEN)
-VSTACK_SIZE longs def-static-buffer(VSTACK_BUF)
+quad def-static-buffer(VSTACK_LEN)
+VSTACK_SIZE quads def-static-buffer(VSTACK_BUF)
 
 def(vstack-len@, usize +VSTACK, VSTACK_LEN @)
 def(vstack-len!, usize -- +VSTACK, VSTACK_LEN !)
 def(vstack-empty?, Bool +VSTACK, vstack-len@ 0 <=)
 def(vstack-full?, Bool +VSTACK, vstack-len@ VSTACK_SIZE >=)
-def(vstack-i64@, usize -- v +VSTACK, VSTACK_BUF long@@)
-def(vstack-i64!, v usize -- +VSTACK, VSTACK_BUF long!!)
+def(vstack-i64@, usize -- v +VSTACK, VSTACK_BUF quad@@)
+def(vstack-i64!, v usize -- +VSTACK, VSTACK_BUF quad!!)
 
 def(vstack-pop!, v1 +VSTACK,
     vstack-empty? if(
@@ -2176,22 +2176,22 @@ def(token-is-arg-end?, Token -- Token Bool,
 def(MAX_BUFFERS, Size, 0x80)
 def-type(Buffer, Int)
 
-long def-static-buffer(NUM_BUFFERS)
+quad def-static-buffer(NUM_BUFFERS)
 def(num-buffers@, Size +Buffers, NUM_BUFFERS @)
 def(num-buffers!, Size -- +Buffers, NUM_BUFFERS !)
 
 def(init-buffers!, +Buffers,
     0 num-buffers!)
 
-MAX_BUFFERS longs dup
+MAX_BUFFERS quads dup
     def-static-buffer(BUFFER_SIZE)
     def-static-buffer(BUFFER_BASE)
 
 def(buffer-size@, Buffer -- usize +Buffers,
-    BUFFER_SIZE long@@)
+    BUFFER_SIZE quad@@)
 
 def(buffer-size!, usize Buffer -- +Buffers,
-    BUFFER_SIZE long!!)
+    BUFFER_SIZE quad!!)
 
 def(buffer-alloc!, usize -- Buffer +Buffers,
     num-buffers@ MAX_BUFFERS >= if(
@@ -2202,10 +2202,10 @@ def(buffer-alloc!, usize -- Buffer +Buffers,
     ))
 
 def(buffer-base@, Buffer -- Ptr +Buffers,
-    BUFFER_BASE long@@ Int->Ptr)
+    BUFFER_BASE quad@@ Int->Ptr)
 
 def(buffer-base!, Ptr Buffer -- +Buffers,
-    BUFFER_BASE long!!)
+    BUFFER_BASE quad!!)
 
 ########
 # Defs #
@@ -2220,19 +2220,19 @@ def(DEF_BUFFER, Sort, 2)
 def(DEF_TYPE, Sort, 3)
 
 MAX_NAMES def-static-buffer(DEF_SORT)
-MAX_NAMES longs def-static-buffer(DEF_VALUE)
-MAX_NAMES longs def-static-buffer(DEF_SIG)
+MAX_NAMES quads def-static-buffer(DEF_VALUE)
+MAX_NAMES quads def-static-buffer(DEF_SIG)
 
 def(name-sort!, Sort Name --, DEF_SORT byte!!)
 def(name-sort@, Name -- Sort, DEF_SORT byte@@ U8->Int)
 def(name-sort?, Name -- Name Sort, dup name-sort@)
 
-def(name-value!, Value Name --, DEF_VALUE long!!)
-def(name-value@, Name -- Value, DEF_VALUE long@@)
+def(name-value!, Value Name --, DEF_VALUE quad!!)
+def(name-value@, Name -- Value, DEF_VALUE quad@@)
 def(name-value?, Name -- Name Value, dup name-value@)
 
-def(name-sig!, Token Name --, DEF_SIG long!!)
-def(name-sig@, Name -- Token, DEF_SIG long@@)
+def(name-sig!, Token Name --, DEF_SIG quad!!)
+def(name-sig@, Name -- Token, DEF_SIG quad@@)
 def(name-sig?, Name -- Name Token, dup name-sig@)
 
 def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
@@ -2254,9 +2254,9 @@ def(name-checked@, Name -- Bool, DEF_CHECKED byte@@ U8->Int)
 def(name-checked?, Name -- Name Bool, dup name-checked@)
 
 def(TSTACK_SIZE, Size, VSTACK_SIZE)
-long def-static-buffer(TSTACK_LEN)
-long def-static-buffer(TSTACK_BASE)
-TSTACK_SIZE longs def-static-buffer(TSTACK_BUF)
+quad def-static-buffer(TSTACK_LEN)
+quad def-static-buffer(TSTACK_BASE)
+TSTACK_SIZE quads def-static-buffer(TSTACK_BUF)
 
 def(tstack-len!, Size --, TSTACK_LEN !)
 def(tstack-len@, Size, TSTACK_LEN @)
@@ -2269,8 +2269,8 @@ def(tstack-empty?, Bool, tstack-len@ tstack-base@ <=)
 def(tstack-full?, Bool, tstack-len@ TSTACK_SIZE >=)
 def(tstack-clear!, +TSTACK, tstack-base@ tstack-len!)
 
-def(tstack!, Type Offset --, TSTACK_BUF long!!)
-def(tstack@, Offset -- Type, TSTACK_BUF long@@)
+def(tstack!, Type Offset --, TSTACK_BUF quad!!)
+def(tstack@, Offset -- Type, TSTACK_BUF quad@@)
 def(tstack-pop!, -- Type,
     tstack-empty? if(
         "tstack underflow" panic! 0,
@@ -2309,13 +2309,13 @@ def(tstack-frame-dup!, -- +TSTACK,
         1+ dup2 >
     ) drop2)
 
-long def-static-buffer(TSTACK_NUM_STASHES)
+quad def-static-buffer(TSTACK_NUM_STASHES)
 def(tstack-num-stashes@, Size +TSTACK, TSTACK_NUM_STASHES @)
 def(tstack-num-stashes!, Size -- +TSTACK, TSTACK_NUM_STASHES !)
 
-TSTACK_SIZE longs def-static-buffer(TSTACK_STASH_LEN)
-def(tstack-stash-len@, Stash -- Size +TSTACK, TSTACK_STASH_LEN long@@)
-def(tstack-stash-len!, Size Stash -- +TSTACK, TSTACK_STASH_LEN long!!)
+TSTACK_SIZE quads def-static-buffer(TSTACK_STASH_LEN)
+def(tstack-stash-len@, Stash -- Size +TSTACK, TSTACK_STASH_LEN quad@@)
+def(tstack-stash-len!, Size Stash -- +TSTACK, TSTACK_STASH_LEN quad!!)
 
 def(tstack-stash-len-push!, Size -- +TSTACK,
     tstack-num-stashes@ TSTACK_SIZE < if(
@@ -2969,7 +2969,7 @@ def(TYPE_I16, Type, 8) # fixed width integer type -- signed 16 bit
 def(TYPE_I32, Type, 9) # fixed width integer type -- signed 32 bit
 def(TYPE_I64, Type, 10) # fixed width integer type -- signed 64 bit
 
-long def-static-buffer(ELAB_TOKEN)
+quad def-static-buffer(ELAB_TOKEN)
 def(elab-token@, -- Token +Elab, ELAB_TOKEN @)
 def(elab-token!, Token -- +Elab, ELAB_TOKEN !)
 def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
@@ -3305,8 +3305,8 @@ def(expect3, Type Type Type Type Type Type -- Bool +Elab,
 
 def(CODEGEN_BUF_SIZE, Size, 0x2000)
 
-long def-static-buffer(CODEGEN_FILE)
-long def-static-buffer(CODEGEN_LENGTH)
+quad def-static-buffer(CODEGEN_FILE)
+quad def-static-buffer(CODEGEN_LENGTH)
 CODEGEN_BUF_SIZE def-static-buffer(CODEGEN_BUF)
 
 def(codegen-file@, -- File +Codegen, CODEGEN_FILE @)
@@ -3352,7 +3352,7 @@ def(run-output-c99!, Token String -- +IO,
     c99-emit-main!
     codegen-end!)
 
-long def-static-buffer(C99_DEPTH)
+quad def-static-buffer(C99_DEPTH)
 def(c99-depth@, -- Int +Codegen, C99_DEPTH @)
 def(c99-depth!, Int -- +Codegen, C99_DEPTH !)
 def(c99-depth++, +Codegen, c99-depth@ 1+ c99-depth!)
@@ -3868,19 +3868,19 @@ def(c99-emit-main!, Token -- +IO,
 
 def(BASE_HEAP_SIZE, Size, 0x1000)
 
-long def-static-buffer(HEAP_INITIAL_LENGTH)
+quad def-static-buffer(HEAP_INITIAL_LENGTH)
 def(heap-initial-length@, usize +Heap, HEAP_INITIAL_LENGTH @)
 def(heap-initial-length!, usize -- +Heap, HEAP_INITIAL_LENGTH !)
 
-long def-static-buffer(HEAP_INITIAL_BASE)
+quad def-static-buffer(HEAP_INITIAL_BASE)
 def(heap-initial-base@, Ptr +Heap, HEAP_INITIAL_BASE @)
 def(heap-initial-base!, Ptr -- +Heap, HEAP_INITIAL_BASE !)
 
-long def-static-buffer(HEAP_LENGTH)
+quad def-static-buffer(HEAP_LENGTH)
 def(heap-length@, usize +Heap, HEAP_LENGTH @)
 def(heap-length!, usize -- +Heap, HEAP_LENGTH !)
 
-long def-static-buffer(HEAP_BASE)
+quad def-static-buffer(HEAP_BASE)
 def(heap-base@, Ptr +Heap, HEAP_BASE @)
 def(heap-base!, Ptr -- +Heap, HEAP_BASE !)
 
@@ -3888,7 +3888,7 @@ def(init-heap!, +Heap,
     heap-initial-base@ heap-base!
     heap-initial-length@ heap-length!)
 
-long def-static-buffer(HEAP_TIMES_EXPANDED)
+quad def-static-buffer(HEAP_TIMES_EXPANDED)
 def(heap-times-expanded@, Int +Heap, HEAP_TIMES_EXPANDED @)
 def(heap-times-expanded!, Int -- +Heap, HEAP_TIMES_EXPANDED !)
 def(++heap-times-expanded, Int +Heap,
