@@ -34,18 +34,20 @@ def(1-, Int -- Int, 1 -)
 
 def(not, Bool -- Bool, 0 =)
 
-def(byte, Size, 1)
-def(bytes, Size -- Size, id)
-def(byte@@, Offset Ptr -- Byte, + u8@)
-def(byte!!, Byte Offset Ptr --, + u8!)
+def(u8, Size, 1)
+def(u8s, Size -- Size, id)
+def(u8@@, Offset Ptr -- Byte, + u8@)
+def(u8!!, Byte Offset Ptr --, + u8!)
 
-def-type(Short, Int)
-def(short, Size, 2)
-def(shorts, Size -- Size, short *)
-def(short@, Ptr -- Short, u16@)
-def(short!, Short Ptr --, u16!)
-def(short@@, Offset Ptr -- Short, dip(shorts) + short@)
-def(short!!, Short Offset Ptr --, dip(shorts) + short!)
+def(u16, Size, 2)
+def(u16s, Size -- Size, u16 *)
+def(u16@@, Offset Ptr -- U16, dip(u16s) + u16@)
+def(u16!!, U16 Offset Ptr --, dip(u16s) + u16!)
+
+def(i16, Size, 2)
+def(i16s, Size -- Size, i16 *)
+def(i16@@, Offset Ptr -- I16, dip(i16s) + i16@)
+def(i16!!, I16 Offset Ptr --, dip(i16s) + i16!)
 
 def-type(Long, Int)
 def(quad, Size, 8)
@@ -74,14 +76,14 @@ def(str-length, Str -- Int,
 
 def(STR_BUF_SIZE, Int, 0x80)
 quad def-static-buffer(STR_BUF_LEN)
-STR_BUF_SIZE bytes def-static-buffer(STR_BUF)
+STR_BUF_SIZE u8s def-static-buffer(STR_BUF)
 
 def(str-buf-length?, Int +StrBuf, STR_BUF_LEN @)
 def(str-buf-length!, Int -- +StrBuf,
     dup STR_BUF_LEN !
     dip(0 Int->U8) str-buf-u8!)
-def(str-buf-u8@, Offset -- U8 +StrBuf, STR_BUF byte@@)
-def(str-buf-u8!, U8 Offset -- +StrBuf, STR_BUF byte!!)
+def(str-buf-u8@, Offset -- U8 +StrBuf, STR_BUF u8@@)
+def(str-buf-u8!, U8 Offset -- +StrBuf, STR_BUF u8!!)
 def(str-buf-full?, Bool +StrBuf,
     str-buf-length? 1+ STR_BUF_SIZE >=)
 def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
@@ -257,15 +259,15 @@ def(test@!, --,
     0 TEST_BUF quad@@ 99 !!=
     1 TEST_BUF quad@@ 30 !!=
     0 0 TEST_BUF quad!!
-    0 TEST_BUF byte@@ 0 !!=
-    1 TEST_BUF byte@@ 0 !!=
-    2 TEST_BUF byte@@ 0 !!=
-    3 TEST_BUF byte@@ 0 !!=
-    99 Int->U8 2 TEST_BUF byte!!
-    0 TEST_BUF byte@@ 0 !!=
-    1 TEST_BUF byte@@ 0 !!=
-    2 TEST_BUF byte@@ 99 !!=
-    3 TEST_BUF byte@@ 0 !!=)
+    0 TEST_BUF u8@@ 0 !!=
+    1 TEST_BUF u8@@ 0 !!=
+    2 TEST_BUF u8@@ 0 !!=
+    3 TEST_BUF u8@@ 0 !!=
+    99 Int->U8 2 TEST_BUF u8!!
+    0 TEST_BUF u8@@ 0 !!=
+    1 TEST_BUF u8@@ 0 !!=
+    2 TEST_BUF u8@@ 99 !!=
+    3 TEST_BUF u8@@ 0 !!=)
 
 def(test-str, --,
     "AaBb"
@@ -334,13 +336,70 @@ def(print-sp!, +IO, 32 Int->U8 print-char!)
 def(trace-sp!, +IO, 32 Int->U8 trace-char!)
 def(print-quote!, +IO, 34 Int->U8 print-char!)
 
-def(to-digit, Int -- U8, 10 % 48 +)
+def(to-digit, Int -- U8, 10 % 48 + Int->U8)
 
-def(Int->U8, Int -- U8, id)
-def(Int->I16, Int -- I16, id)
-def(Int->Ptr, Int -- Ptr, id)
-def(U8->Int, U8 -- Int, id)
-def(I16->Int, I16 -- Int, id)
+def(cast, a -- b, id)
+
+def(Int->Ptr, Int -- Ptr, cast)
+def(Ptr->Int, Ptr -- Int, cast)
+
+def(U8_MAX, Int, 0xFF)
+def(U16_MAX, Int, 1 16 << 1-)
+def(U32_MAX, Int, 1 32 << 1-)
+def(I8_MAX, Int, 127)
+def(I16_MAX, Int, 1 15 << 1-)
+def(I32_MAX, Int, 1 31 << 1-)
+
+def(U8_MIN, Int, 0)
+def(U16_MIN, Int, 0)
+def(U32_MIN, Int, 0)
+def(I8_MIN, Int, -128)
+def(I16_MIN, Int, 0 1 15 << -)
+def(I32_MIN, Int, 0 1 31 << -)
+
+
+def(Int->U8, Int -- U8,
+    dup U8_MIN U8_MAX in-range if(
+        cast,
+        "Int->U8 failed: out of bounds" panic! cast
+    ))
+def(Int->U16, Int -- U16,
+    dup U16_MIN U16_MAX in-range if(
+        cast,
+        "Int->U16 failed: out of bounds" panic! cast
+    ))
+def(Int->U32, Int -- U32,
+    dup U32_MIN U32_MAX in-range if(
+        cast,
+        "Int->U32 failed: out of bounds" panic! cast
+    ))
+def(Int->U64, Int -- U64, cast)
+
+def(Int->I8, Int -- I8,
+    dup I8_MIN I8_MAX in-range if(
+        cast,
+        "Int->I8 failed: out of bounds" panic! cast
+    ))
+def(Int->I16, Int -- I16,
+    dup I16_MIN I16_MAX in-range if(
+        cast,
+        "Int->I16 failed: out of bounds" panic! cast
+    ))
+def(Int->I32, Int -- I32,
+    dup I32_MIN I32_MAX in-range if(
+        cast,
+        "Int->I32 failed: out of bounds" panic! cast
+    ))
+def(Int->I64, Int -- I64, cast)
+
+def(U8->Int, U8 -- Int, cast)
+def(U16->Int, U16 -- Int, cast)
+def(U32->Int, U32 -- Int, cast)
+def(U64->Int, U64 -- Int, cast)
+def(I8->Int, I8 -- Int, cast)
+def(I16->Int, I16 -- Int, cast)
+def(I32->Int, I32 -- Int, cast)
+def(I64->Int, I64 -- Int, cast)
 
 def(negate, Int -- Int, -1 *)
 def(abs, Int -- Int, dup 0 < if(negate, id))
@@ -494,7 +553,7 @@ def(input-fill-buffer!, +Input,
 # Panics if file is exhausted.
 def(input-peek, Char +Input,
     input-isopen@ if(
-        input-offset@ INPUT_BUFFER byte@@,
+        input-offset@ INPUT_BUFFER u8@@,
         "error: attempted to read input buffer when file is already closed" panic! 0
     ) Int->U8)
 
@@ -555,9 +614,9 @@ def(name-quads-eq, Name -- Bool,
 
 def(hash, Ptr -- Hash,
     0 swap
-    dup byte@ while(
+    dup u8@ U8->Int while(
         swap dip(5 * ^)
-        str-tail dup byte@
+        str-tail dup u8@ U8->Int
     ) drop
     NAME_HASH_MAX &)
 
@@ -651,17 +710,17 @@ def(show-names-table!, +Names +IO,
     name-bytes @ int-print-ln!)
 
 def(name-could-be-type, Name -- Bool,
-    NAME_SIZE * NAME_BUF byte@@ is-alpha? nip)
+    NAME_SIZE * NAME_BUF u8@@ is-alpha? nip)
 
 def(name-could-be-type-var, Name -- Bool,
-    NAME_SIZE * NAME_BUF byte@@ is-lower? nip)
+    NAME_SIZE * NAME_BUF u8@@ is-lower? nip)
 
 def(name-could-be-type-con, Name -- Bool,
-    NAME_SIZE * NAME_BUF byte@@ is-upper? nip)
+    NAME_SIZE * NAME_BUF u8@@ is-upper? nip)
 
 def(name-could-be-effect-con, Name -- Bool,
-    NAME_SIZE * dup NAME_BUF byte@@ is-plus-sign? nip if(
-        1+ NAME_BUF byte@@ is-upper? nip,
+    NAME_SIZE * dup NAME_BUF u8@@ is-plus-sign? nip if(
+        1+ NAME_BUF u8@@ is-upper? nip,
         drop 0
     ))
 
@@ -673,7 +732,7 @@ def(name-mangle!, Name -- +StrBuf,
     NAME_SIZE * 0
     dup NAME_SIZE < while(
         drop
-        over NAME_BUF byte@@ str-buf-push-mangled!
+        over NAME_BUF u8@@ str-buf-push-mangled!
         dip(1+) 1+
         dup NAME_SIZE <
     )
@@ -702,14 +761,14 @@ def(str-buf-push-mangled!, Char -- +StrBuf,
     ))))))
 
 def(str-buf-push-hexdigits!, Char -- +StrBuf,
-    dup
-    16 / str-buf-push-hexdigit!
-    16 % str-buf-push-hexdigit!)
+    U8->Int dup
+    16 / Int->U8 str-buf-push-hexdigit!
+    16 % Int->U8 str-buf-push-hexdigit!)
 
 def(str-buf-push-hexdigit!, Char -- +StrBuf,
-    dup 10 >= if(
-        55 + str-buf-push!,
-        48 + str-buf-push!
+    U8->Int dup 10 >= if(
+        55 + Int->U8 str-buf-push!,
+        48 + Int->U8 str-buf-push!
     ))
 
 ###################
@@ -909,7 +968,7 @@ def-type(String, Str)
 
 def(MAX_STRINGS, Size, 0x4000)
 quad def-static-buffer(STRINGS_SIZE)
-MAX_STRINGS bytes def-static-buffer(STRINGS_BUF)
+MAX_STRINGS u8s def-static-buffer(STRINGS_BUF)
 
 # Size of strings table.
 def(strings-size@, -- Size +StrTable, STRINGS_SIZE @)
@@ -921,7 +980,7 @@ def(strings-size!, Size -- +StrTable, STRINGS_SIZE !)
 def(strings-push!, U8 -- +StrTable,
     strings-size@ MAX_STRINGS >= if(
         "strings buffer overflow" panic! drop,
-        strings-size@ STRINGS_BUF byte!!
+        strings-size@ STRINGS_BUF u8!!
         strings-size@ 1+ strings-size!
     ))
 
@@ -943,11 +1002,6 @@ def(strings-save!, StringOffset +StrTable +StrBuf,
 def(strings-load!, Str -- +StrBuf,
     str-buf!)
 
-# Load string into STR_BUF but with escape sequences.
-# FIXME: implement escape sequence handling.
-def(strings-load-escaped!, Str -- +StrBuf,
-    strings-load!)
-
 ##########
 # Tokens #
 ##########
@@ -960,22 +1014,21 @@ def(num-tokens!, Int --, NUM_TOKENS !)
 def(clear-tokens!, --, 0 num-tokens!)
 
 def-type(Token, Int)
-def-type(TokenType, Int)
-def-type(TokenValue, Int)
-def-type(Row, Int)
-def-type(Col, Int)
+def-type(TokenType, U8)
+def-type(Row, U16)
+def-type(Col, U16)
 
-MAX_TOKENS bytes def-static-buffer(TOKEN_TYPE)
-def(token-type!, TokenType Token --, TOKEN_TYPE byte!!)
-def(token-type@, Token -- TokenType, TOKEN_TYPE byte@@ U8->Int)
+MAX_TOKENS u8s def-static-buffer(TOKEN_TYPE)
+def(token-type!, TokenType Token --, TOKEN_TYPE u8!!)
+def(token-type@, Token -- TokenType, TOKEN_TYPE u8@@)
 def(token-type?, Token -- Token TokenType, dup token-type@)
-def(TOKEN_NONE, TokenType, 0)
-def(TOKEN_LPAREN, TokenType, 1)
-def(TOKEN_RPAREN, TokenType, 2)
-def(TOKEN_COMMA, TokenType, 3)
-def(TOKEN_NAME, TokenType, 4)
-def(TOKEN_INT, TokenType, 5)
-def(TOKEN_STR, TokenType, 6)
+def(TOKEN_NONE, TokenType, 0 Int->U8)
+def(TOKEN_LPAREN, TokenType, 1 Int->U8)
+def(TOKEN_RPAREN, TokenType, 2 Int->U8)
+def(TOKEN_COMMA, TokenType, 3 Int->U8)
+def(TOKEN_NAME, TokenType, 4 Int->U8)
+def(TOKEN_INT, TokenType, 5 Int->U8)
+def(TOKEN_STR, TokenType, 6 Int->U8)
 def(token-type-str, TokenType -- Str,
     dup TOKEN_NONE = if(drop "NONE",
     dup TOKEN_LPAREN = if(drop "LPAREN",
@@ -988,22 +1041,39 @@ def(token-type-str, TokenType -- Str,
 def(token-type-print!, TokenType --,
     token-type-str str-print!)
 
-MAX_TOKENS trip
-    shorts def-static-buffer(TOKEN_VALUE)
-    shorts def-static-buffer(TOKEN_ROW)
-    shorts def-static-buffer(TOKEN_COL)
-
-def(token-value!, TokenValue Token --, TOKEN_VALUE dip(shorts) + i16!)
-def(token-value@, Token -- TokenValue, TOKEN_VALUE dip(shorts) + i16@ I16->Int)
+MAX_TOKENS i16s def-static-buffer(TOKEN_VALUE)
+def-type(TokenValue, I16)
+def(token-value!, TokenValue Token --, TOKEN_VALUE i16!!)
+def(token-value@, Token -- TokenValue, TOKEN_VALUE i16@@)
 def(token-value?, Token -- Token TokenValue, dup token-value@)
+def(Int->TokenValue, Int -- TokenValue, Int->I16)
+def(Name->TokenValue, Name -- TokenValue, Int->I16)
+def(Token->TokenValue, Token -- TokenValue, Int->I16)
+def(TokenValue->Int, TokenValue -- Int, I16->Int)
+def(TokenValue->Name, TokenValue -- Name, I16->Int)
+def(TokenValue->Token, TokenValue -- Token, I16->Int)
+def(TokenValue->Str, TokenValue -- Str, I16->Int STRINGS_BUF +)
 
-def(token-row!, Row Token --, TOKEN_ROW short!!)
-def(token-row@, Token -- Row, TOKEN_ROW short@@)
+def(token-name@, Token -- Name,
+    token-type? TOKEN_NAME = if(
+        token-value@ TokenValue->Name,
+        "compiler error: token-name@ called on non-name token" emit-fatal-error! PRIM_ID
+    ))
+def(token-name?, Token -- Token Name, dup token-name@)
+
+MAX_TOKENS u16s def-static-buffer(TOKEN_ROW)
+def(token-row!, Row Token --, TOKEN_ROW u16!!)
+def(token-row@, Token -- Row, TOKEN_ROW u16@@)
 def(token-row?, Token -- Token Row, dup token-row@)
+def(Row->Int, Row -- Int, U16->Int)
+def(Int->Row, Int -- Row, Int->U16)
 
-def(token-col!, Col Token --, TOKEN_COL short!!)
-def(token-col@, Token -- Col, TOKEN_COL short@@)
+MAX_TOKENS u16s def-static-buffer(TOKEN_COL)
+def(token-col!, Col Token --, TOKEN_COL u16!!)
+def(token-col@, Token -- Col, TOKEN_COL u16@@)
 def(token-col?, Token -- Token Col, dup token-col@)
+def(Col->Int, Col -- Int, U16->Int)
+def(Int->Col, Int -- Col, Int->U16)
 
 def(token-new, -- Token,
     num-tokens@ dup MAX_TOKENS >= if(
@@ -1012,13 +1082,13 @@ def(token-new, -- Token,
     ))
 
 def(token-trace-prefix!, Token -- +IO,
-    token-row? int-trace! ":" str-trace!
-    token-col? int-trace! ":" str-trace-sp!
+    token-row? Row->Int int-trace! ":" str-trace!
+    token-col? Col->Int int-trace! ":" str-trace-sp!
     drop)
 
 def(token-print-prefix!, Token -- +IO,
-    token-row? int-print! ":" str-print!
-    token-col? int-print! ":" str-print-sp!
+    token-row? Row->Int int-print! ":" str-print!
+    token-col? Col->Int int-print! ":" str-print-sp!
     drop)
 
 def(token-print!, Token -- +IO,
@@ -1027,16 +1097,16 @@ def(token-print!, Token -- +IO,
     token-type? token-type-print!
     token-type? TOKEN_NAME = if(
         print-sp!
-        token-value? name-load! str-buf-print!,
+        token-name? name-load! str-buf-print!,
 
     token-type? TOKEN_STR = if(
         print-sp!
         print-quote!
-        token-value? STRINGS_BUF + strings-load-escaped! str-buf-print!
-        print-quote!,
+        token-value? TokenValue->Str str-print! print-quote!,
+        # FIXME: print escaped
 
         print-sp!
-        token-value? int-print!))
+        token-value? TokenValue->Int int-print!))
 
     drop
     print-ln!)
@@ -1052,23 +1122,23 @@ def(show-tokens!, --,
 # LEXER #
 #########
 
-short def-static-buffer(LEXER_ROW)
-def(lexer-row@, -- Row +Lexer, LEXER_ROW short@)
-def(lexer-row!, Row -- +Lexer, LEXER_ROW short!)
+u16 def-static-buffer(LEXER_ROW)
+def(lexer-row@, -- Row +Lexer, LEXER_ROW u16@)
+def(lexer-row!, Row -- +Lexer, LEXER_ROW u16!)
 
-short def-static-buffer(LEXER_COL)
-def(lexer-col@, -- Col +Lexer, LEXER_COL short@)
-def(lexer-col!, Col -- +Lexer, LEXER_COL short!)
+u16 def-static-buffer(LEXER_COL)
+def(lexer-col@, -- Col +Lexer, LEXER_COL u16@)
+def(lexer-col!, Col -- +Lexer, LEXER_COL u16!)
 
 def(LEXER_STACK_SIZE, Size, 0x200)
-short def-static-buffer(LEXER_STACK_LENGTH)
+u16 def-static-buffer(LEXER_STACK_LENGTH)
 LEXER_STACK_SIZE quads def-static-buffer(LEXER_STACK_BUF)
 
-def(lexer-stack-length@, usize +Lexer,
-    LEXER_STACK_LENGTH u16@)
+def(lexer-stack-length@, Size +Lexer,
+    LEXER_STACK_LENGTH u16@ U16->Int)
 
-def(lexer-stack-length!, usize -- +Lexer,
-    LEXER_STACK_LENGTH u16!)
+def(lexer-stack-length!, Size -- +Lexer,
+    Int->U16 LEXER_STACK_LENGTH u16!)
 
 def(lexer-stack-clear!, +Lexer,
     0 lexer-stack-length!)
@@ -1099,8 +1169,8 @@ def(run-lexer!, File -- +Lexer,
 
     input-start!
 
-    1 lexer-row!
-    1 lexer-col!
+    1 Int->U16 lexer-row!
+    1 Int->U16 lexer-col!
 
     lexer-done? not while(
         drop
@@ -1111,7 +1181,7 @@ def(run-lexer!, File -- +Lexer,
     input-end!
 
     lexer-stack-empty? if(
-        TOKEN_NONE 0 lexer-emit!,
+        TOKEN_NONE 0 Int->TokenValue lexer-emit!,
 
         lexer-stack-pop!
         "Mismatched left parenthesis."
@@ -1154,7 +1224,7 @@ def(lexer-next!, --,
 
     is-comma? if(
         drop
-        TOKEN_COMMA 0 lexer-emit!,
+        TOKEN_COMMA 0 Int->TokenValue lexer-emit!,
 
     is-lparen? if(
         drop
@@ -1175,24 +1245,25 @@ def(lexer-next!, --,
 
 
 def(lexer-emit-newline!, +Lexer,
-    lexer-row@ 1+ lexer-row!
-    0 lexer-col!)
+    lexer-row@ Row->Int 1+ Int->Row lexer-row!
+    0 Int->Col lexer-col!)
 
 def(lexer-emit-lparen!, +Lexer,
-    TOKEN_LPAREN 0 lexer-make!
+    TOKEN_LPAREN 0 Int->TokenValue lexer-make!
     lexer-stack-push!)
 
 def(lexer-emit-rparen!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right parenthesis." lexer-emit-fatal-error!,
         TOKEN_RPAREN lexer-stack-pop! dup
-        dip(lexer-make!) token-value!
+        dip(Token->TokenValue lexer-make!)
+        dip(Token->TokenValue) token-value!
     ))
 
 def(lexer-emit-name!, +Lexer,
     str-buf-clear!
     str-buf-zero!
-    TOKEN_NAME 0 lexer-make!
+    TOKEN_NAME 0 Int->TokenValue lexer-make!
 
     lexer-peek 1 while(
         drop
@@ -1207,7 +1278,7 @@ def(lexer-emit-name!, +Lexer,
         TOKEN_INT swap token-type!,
 
         name-save!
-        swap token-value!
+        Name->TokenValue swap token-value!
     ))
 
 def(str-buf-is-int?, Bool +StrBuf,
@@ -1230,8 +1301,8 @@ def(str-buf-is-dec-int?, Bool +StrBuf,
         drop 0
     ))
 
-def(is-zero-char, Char -- Bool, 48 =)
-def(is-xX-char, Char -- Bool, dup 88 = dip(120 =) +)
+def(is-zero-char, Char -- Bool, U8->Int 48 =)
+def(is-xX-char, Char -- Bool, U8->Int dup 88 = dip(120 =) +)
 
 def(str-buf-is-hex-int?, Bool +StrBuf,
     0 # number of digits
@@ -1324,7 +1395,7 @@ def(hexdigit-value, Char -- Int,
 
 def(lexer-emit-string!, +Lexer,
     str-buf-clear!
-    TOKEN_STR 0 lexer-make!
+    TOKEN_STR 0 Int->TokenValue lexer-make!
 
     lexer-move!
     lexer-peek is-string-end? not while(
@@ -1336,8 +1407,7 @@ def(lexer-emit-string!, +Lexer,
     drop
 
     strings-save!
-    swap token-value!
-    )
+    Int->TokenValue swap token-value!)
 
 def(lexer-push-string-char!, Char -- +Lexer,
     is-backslash? if(
@@ -1389,35 +1459,36 @@ def(lexer-comment-end?, Bool +Lexer,
     ))
 
 def(lexer-peek, Char +Lexer, input-peek)
-def(lexer-move!, +Lexer, input-move! lexer-col@ 1+ lexer-col!)
+def(lexer-move!, +Lexer, input-move!
+    lexer-col@ Col->Int 1+ Int->Col lexer-col!)
 
-def(is-newline?, Char -- Char Bool, dup 10 =)
+def(is-newline?, Char -- Char Bool, dup U8->Int 10 =)
 def(is-whitespace?, Char -- Char Bool,
-    dup 9 = dip(dup 32 =) +)
-def(is-pound?, Char -- Char Bool, dup 35 =)
-def(is-lparen?, Char -- Char Bool, dup 40 =)
-def(is-rparen?, Char -- Char Bool, dup 41 =)
-def(is-comma?, Char -- Char Bool, dup 44 =)
-def(is-quote?, Char -- Char Bool, dup 34 =)
-def(is-digit?, Char -- Char Bool, dup 48 57 in-range)
-def(is-upper-hexdigit?, Char -- Char Bool, dup 65 70 in-range)
-def(is-lower-hexdigit?, Char -- Char Bool, dup 97 102 in-range)
+    dup U8->Int 9 = dip(dup U8->Int 32 =) +)
+def(is-pound?, Char -- Char Bool, dup U8->Int 35 =)
+def(is-lparen?, Char -- Char Bool, dup U8->Int 40 =)
+def(is-rparen?, Char -- Char Bool, dup U8->Int 41 =)
+def(is-comma?, Char -- Char Bool, dup U8->Int 44 =)
+def(is-quote?, Char -- Char Bool, dup U8->Int 34 =)
+def(is-digit?, Char -- Char Bool, dup U8->Int 48 57 in-range)
+def(is-upper-hexdigit?, Char -- Char Bool, dup U8->Int 65 70 in-range)
+def(is-lower-hexdigit?, Char -- Char Bool, dup U8->Int 97 102 in-range)
 def(is-hexdigit?, Char -- Char Bool, is-digit? dip(is-upper-hexdigit?) + dip(is-lower-hexdigit?) +)
-def(is-nul?, Char -- Char Bool, dup 0=)
+def(is-nul?, Char -- Char Bool, dup U8->Int 0=)
 def(is-sign?, Char -- Char Bool, is-plus-sign? dip(is-minus-sign?) +)
-def(is-plus-sign?, Char -- Char Bool, dup 43 =)
-def(is-minus-sign?, Char -- Char Bool, dup 45 =)
+def(is-plus-sign?, Char -- Char Bool, dup U8->Int 43 =)
+def(is-minus-sign?, Char -- Char Bool, dup U8->Int 45 =)
 def(is-alpha?, Char -- Char Bool, is-lower? dip(is-upper?) +)
-def(is-upper?, Char -- Char Bool, dup 65 90 in-range)
-def(is-lower?, Char -- Char Bool, dup 97 122 in-range)
+def(is-upper?, Char -- Char Bool, dup U8->Int 65 90 in-range)
+def(is-lower?, Char -- Char Bool, dup U8->Int 97 122 in-range)
 
 def(is-string-end?, Char -- Char Bool, is-quote? dip(is-newline?) + dip(is-nul?) +)
-def(is-dash?, Char -- Char Bool, dup 45 =)
-def(is-underscore?, Char -- Char Bool, dup 95 =)
-def(is-backslash?, Char -- Char Bool, dup 92 =)
-def(is-n?, Char -- Char Bool, dup 110 =)
-def(is-r?, Char -- Char Bool, dup 114 =)
-def(is-t?, Char -- Char Bool, dup 116 =)
+def(is-dash?, Char -- Char Bool, dup U8->Int 45 =)
+def(is-underscore?, Char -- Char Bool, dup U8->Int 95 =)
+def(is-backslash?, Char -- Char Bool, dup U8->Int 92 =)
+def(is-n?, Char -- Char Bool, dup U8->Int 110 =)
+def(is-r?, Char -- Char Bool, dup U8->Int 114 =)
+def(is-t?, Char -- Char Bool, dup U8->Int 116 =)
 def(underscore, Char, 95 Int->U8)
 
 def(is-name-char?, Char -- Char Bool,
@@ -1436,8 +1507,8 @@ def(in-range, Int Int Int -- Bool,
     dip(over dip(>=)) <= *)
 
 def(lexer-trace-prefix!, +IO,
-    lexer-row@ int-trace! ":" str-trace!
-    lexer-col@ int-trace! ":" str-trace-sp!)
+    lexer-row@ Row->Int int-trace! ":" str-trace!
+    lexer-col@ Col->Int int-trace! ":" str-trace-sp!)
 
 ###############
 # Value Stack #
@@ -2211,20 +2282,20 @@ def(buffer-base!, Ptr Buffer -- +Buffers,
 # Defs #
 ########
 
-def-type(Sort, Int)
 def-type(Value, Int)
 
-def(DEF_NONE, Sort, 0)
-def(DEF_WORD, Sort, 1)
-def(DEF_BUFFER, Sort, 2)
-def(DEF_TYPE, Sort, 3)
+def-type(Sort, U8)
+def(DEF_NONE, Sort, 0 Int->U8)
+def(DEF_WORD, Sort, 1 Int->U8)
+def(DEF_BUFFER, Sort, 2 Int->U8)
+def(DEF_TYPE, Sort, 3 Int->U8)
 
-MAX_NAMES def-static-buffer(DEF_SORT)
+MAX_NAMES u8s def-static-buffer(DEF_SORT)
 MAX_NAMES quads def-static-buffer(DEF_VALUE)
 MAX_NAMES quads def-static-buffer(DEF_SIG)
 
-def(name-sort!, Sort Name --, DEF_SORT byte!!)
-def(name-sort@, Name -- Sort, DEF_SORT byte@@ U8->Int)
+def(name-sort!, Sort Name --, DEF_SORT u8!!)
+def(name-sort@, Name -- Sort, DEF_SORT u8@@)
 def(name-sort?, Name -- Name Sort, dup name-sort@)
 
 def(name-value!, Value Name --, DEF_VALUE quad!!)
@@ -2249,8 +2320,8 @@ def-type(Type, Int)
 def-type(Stash, Int)
 
 MAX_NAMES def-static-buffer(DEF_CHECKED)
-def(name-checked!, Bool Name --, DEF_CHECKED byte!!)
-def(name-checked@, Name -- Bool, DEF_CHECKED byte@@ U8->Int)
+def(name-checked!, Bool Name --, DEF_CHECKED u8!!)
+def(name-checked@, Name -- Bool, DEF_CHECKED u8@@ U8->Int)
 def(name-checked?, Name -- Name Bool, dup name-checked@)
 
 def(TSTACK_SIZE, Size, VSTACK_SIZE)
@@ -2675,35 +2746,35 @@ def(typecheck-run-prim!, Token --,
     token-value? PRIM_MEM_SET_U8 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! elab!,
+        tstack-pop2! TYPE_U8 TYPE_PTR expect2 drop,
     token-value? PRIM_MEM_SET_U16 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! elab!,
+        tstack-pop2! TYPE_U16 TYPE_PTR expect2 drop,
     token-value? PRIM_MEM_SET_U32 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! elab!,
+        tstack-pop2! TYPE_U32 TYPE_PTR expect2 drop,
     token-value? PRIM_MEM_SET_U64 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! elab!,
+        tstack-pop2! TYPE_U64 TYPE_PTR expect2 drop,
     token-value? PRIM_MEM_SET_I8 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! elab!,
+        tstack-pop2! TYPE_I8 TYPE_PTR expect2 drop,
     token-value? PRIM_MEM_SET_I16 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! elab!,
+        tstack-pop2! TYPE_I16 TYPE_PTR expect2 drop,
     token-value? PRIM_MEM_SET_I32 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! elab!,
+        tstack-pop2! TYPE_I32 TYPE_PTR expect2 drop,
     token-value? PRIM_MEM_SET_I64 = if(
         1 1 tstack-arity-check!
         token-args-0
-        tstack-pop2! elab!,
+        tstack-pop2! TYPE_I64 TYPE_PTR expect2 drop,
 
     token-value? PRIM_POSIX_EXIT = if(
         1 0 tstack-arity-check!
@@ -2806,25 +2877,25 @@ def(sig-count-types, Token -- Int Token,
 
 def(sig-token-is-type?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
-        token-value? name-could-be-type,
+        token-name? name-could-be-type,
         0
     ))
 
 def(sig-token-is-type-con?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
-        token-value? name-could-be-type-con,
+        token-name? name-could-be-type-con,
         0
     ))
 
 def(sig-token-is-type-var?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
-        token-value? name-could-be-type-var,
+        token-name? name-could-be-type-var,
         0
     ))
 
 def(sig-token-is-effect-con?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
-        token-value? name-could-be-effect-con,
+        token-name? name-could-be-effect-con,
         0
     ))
 
@@ -2834,8 +2905,10 @@ def(sig-push-inputs!, Token -- +TSTACK,
             drop
 
             sig-token-is-type-con? if(
-                0 # FIXME: push type con
-                tstack-push!,
+                token-name? name-is-type? if(
+                    name-value@ tstack-push!,
+                    drop TYPE_ERROR tstack-push!
+                ),
 
             sig-token-is-type-var? if(
                 0 # FIXME: push rigid type var and
@@ -2893,7 +2966,6 @@ def(sig-match-outputs-aux, Token -- +TSTACK,
     ))
 
 def(sig-apply!, Token Token -- +TSTACK,
-    dup sig-arity tstack-arity-check!
     dup2 sig-pop-inputs! sig-push-outputs!)
 
 def(sig-pop-inputs!, Token Token -- +TSTACK,
@@ -2988,7 +3060,7 @@ def(elab+, Type Type -- Type,
         dup TYPE_INT = if(
             drop TYPE_INT,
         dup TYPE_PTR = if(
-            drop TYPE_INT,
+            drop TYPE_PTR,
             drop TYPE_ERROR
             "attempted to add int to unknown type" elab-emit-error!
         ))),
@@ -3179,29 +3251,8 @@ def(elab%, Type Type -- Type,
 def(elab=, Type Type -- Type,
     dup TYPE_ERROR = if(
         drop2 TYPE_ERROR,
-
-    dup TYPE_INT = if(
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-        dup TYPE_INT = if(
-            drop TYPE_INT, # TODO: TYPE_BOOL
-            "attempted to compare unknown type to int" elab-emit-error!
-            drop TYPE_ERROR
-        )),
-
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-
-        dup TYPE_INT = if(
-            "attempted to compare int to unknown type" elab-emit-error!
-            drop TYPE_ERROR,
-
-            "attempted to compare unknown types" elab-emit-error!
-            drop TYPE_ERROR
-        ))
-    )))
+        expect1 drop TYPE_INT
+    ))
 
 # elab for &, ^, | primitives
 def(elab&, Type Type -- Type,
@@ -3290,12 +3341,13 @@ def(expect1, Type Type -- Bool +Elab,
         # TODO: improve diagnostics
     )))
 
+def(expect2, Type Type Type Type -- Bool +Elab,
+    dip(swap) expect1 if(expect1, drop2 0)
+    ) # TODO: improve diagnostics
+
 def(expect3, Type Type Type Type Type Type -- Bool +Elab,
     dip(rotl) expect1 if(
-        dip(swap) expect1 if(
-            expect1,
-            drop2 0
-        ),
+        expect2,
         drop2 drop2 0
     )) # TODO: improve diagnostics
 
@@ -3313,8 +3365,8 @@ def(codegen-file@, -- File +Codegen, CODEGEN_FILE @)
 def(codegen-file!, File -- +Codegen, CODEGEN_FILE !)
 def(codegen-length@, -- Size +Codegen, CODEGEN_LENGTH @)
 def(codegen-length!, Size -- +Codegen, CODEGEN_LENGTH !)
-def(codegen-u8@, Offset -- Byte +Codegen, CODEGEN_BUF byte@@)
-def(codegen-u8!, Byte Offset -- +Codegen, CODEGEN_BUF byte!!)
+def(codegen-u8@, Offset -- Byte +Codegen, CODEGEN_BUF u8@@)
+def(codegen-u8!, Byte Offset -- +Codegen, CODEGEN_BUF u8!!)
 
 def(codegen-full?, Bool +Codegen,
     codegen-length@ CODEGEN_BUF_SIZE >=)
@@ -3410,7 +3462,7 @@ def(c99-emit-strings!, +IO,
     "static char strings[STRINGS_SIZE] = { " ;
     0 dup strings-size@ < while(
         drop
-        dup STRINGS_BUF byte@@ dup U8->Int .n "," .
+        dup STRINGS_BUF u8@@ dup U8->Int .n "," .
         if(id, .lf)
         1+ dup strings-size@ <
     ) drop
@@ -3828,13 +3880,13 @@ def(c99-emit-token!, Token -- +IO,
     ))))
 
 def(c99-emit-word!, Token -- +IO,
-    token-value? PRIM_DIP = if(
+    token-name? PRIM_DIP = if(
         token-args-1
         "    { i64 d" . .d " = pop();" ;
         c99-emit-run!
         "      push(d" . .d "); }" ;,
 
-    token-value? PRIM_IF = if(
+    token-name? PRIM_IF = if(
         token-args-2
         "    if (pop()) {" ;
         dip(c99-emit-run!)
@@ -3842,7 +3894,7 @@ def(c99-emit-word!, Token -- +IO,
         c99-emit-run!
         "    }" ;,
 
-    token-value? PRIM_WHILE = if(
+    token-name? PRIM_WHILE = if(
         token-args-1
         "    for (i64 c" . .d
         " = pop(); c" . .d
@@ -3851,7 +3903,7 @@ def(c99-emit-word!, Token -- +IO,
         c99-emit-run!
         "    }" ;,
 
-        token-value@
+        token-name@
         "    mw" . .name "();" ;
     ))))
 
