@@ -60,3 +60,10 @@ mirth_prof.c: mirth3.c
 
 mirth_prof: mirth_prof.c
 	$(CC) -g -fprofile-instr-generate -o mirth_prof mirth_prof.c
+
+snake.c: mirth0 mirth.mth
+	./mirth0
+	rm -f mirth.c
+
+snake: snake.c
+	$(CC) -o snake snake.c `pkg-config --libs sdl2`

@@ -33,7 +33,7 @@ extern void exit(int);
 static usize sc = STACK_SIZE;
 static i64 stack[STACK_SIZE] = {0};
 
-#define STRINGS_SIZE 9811
+#define STRINGS_SIZE 9826
 static char strings[STRINGS_SIZE] = { 
 65,115,115,101,114,116,105,111,110,32,102,97,105,108,101,100,0,
 115,116,114,45,98,117,102,45,112,117,115,104,33,32,98,117,116,32,83,84,82,95,66,85,70,32,105,115,32,97,108,114,101,97,100,121,32,102,117,108,108,0,
@@ -642,6 +642,8 @@ static char strings[STRINGS_SIZE] = {
 68,111,110,101,46,0,
 86,83,84,65,67,75,32,61,32,0,
 109,105,114,116,104,46,99,0,
+83,110,97,107,101,33,0,
+115,110,97,107,101,46,99,0,
 };
 
 static i64 pop (void) {
@@ -1008,9 +1010,9 @@ static u8 bINPUT_BUFFER[512] = {0};
 static void mwINPUT_BUFFER (void) { push((i64)bINPUT_BUFFER); }
 static u8 bNUM_NAMES[8] = {0};
 static void mwNUM_NAMES (void) { push((i64)bNUM_NAMES); }
-static u8 bNAME_BUF[65536] = {0};
+static u8 bNAME_BUF[262144] = {0};
 static void mwNAME_BUF (void) { push((i64)bNAME_BUF); }
-static u8 bNAME_TABLE[8192] = {0};
+static u8 bNAME_TABLE[32768] = {0};
 static void mwNAME_TABLE (void) { push((i64)bNAME_TABLE); }
 static u8 bname_bytes[8] = {0};
 static void mwname_bytes (void) { push((i64)bname_bytes); }
@@ -1020,13 +1022,13 @@ static u8 bSTRINGS_BUF[16384] = {0};
 static void mwSTRINGS_BUF (void) { push((i64)bSTRINGS_BUF); }
 static u8 bNUM_TOKENS[8] = {0};
 static void mwNUM_TOKENS (void) { push((i64)bNUM_TOKENS); }
-static u8 bTOKEN_TYPE[16384] = {0};
+static u8 bTOKEN_TYPE[28672] = {0};
 static void mwTOKEN_TYPE (void) { push((i64)bTOKEN_TYPE); }
-static u8 bTOKEN_VALUE[32768] = {0};
+static u8 bTOKEN_VALUE[57344] = {0};
 static void mwTOKEN_VALUE (void) { push((i64)bTOKEN_VALUE); }
-static u8 bTOKEN_ROW[32768] = {0};
+static u8 bTOKEN_ROW[57344] = {0};
 static void mwTOKEN_ROW (void) { push((i64)bTOKEN_ROW); }
-static u8 bTOKEN_COL[32768] = {0};
+static u8 bTOKEN_COL[57344] = {0};
 static void mwTOKEN_COL (void) { push((i64)bTOKEN_COL); }
 static u8 bLEXER_ROW[2] = {0};
 static void mwLEXER_ROW (void) { push((i64)bLEXER_ROW); }
@@ -1046,13 +1048,13 @@ static u8 bBUFFER_SIZE[1024] = {0};
 static void mwBUFFER_SIZE (void) { push((i64)bBUFFER_SIZE); }
 static u8 bBUFFER_BASE[1024] = {0};
 static void mwBUFFER_BASE (void) { push((i64)bBUFFER_BASE); }
-static u8 bDEF_SORT[1024] = {0};
+static u8 bDEF_SORT[4096] = {0};
 static void mwDEF_SORT (void) { push((i64)bDEF_SORT); }
-static u8 bDEF_VALUE[8192] = {0};
+static u8 bDEF_VALUE[32768] = {0};
 static void mwDEF_VALUE (void) { push((i64)bDEF_VALUE); }
-static u8 bDEF_SIG[8192] = {0};
+static u8 bDEF_SIG[32768] = {0};
 static void mwDEF_SIG (void) { push((i64)bDEF_SIG); }
-static u8 bDEF_CHECKED[1024] = {0};
+static u8 bDEF_CHECKED[4096] = {0};
 static void mwDEF_CHECKED (void) { push((i64)bDEF_CHECKED); }
 static u8 bTSTACK_LEN[8] = {0};
 static void mwTSTACK_LEN (void) { push((i64)bTSTACK_LEN); }
@@ -3820,11 +3822,11 @@ static void mwinput_move_21_ (void){
 }
 
 static void mwMAX_NAMES (void){
-    push(1024);
+    push(4096);
 }
 
 static void mwNAME_HASH_MAX (void){
-    push(1023);
+    push(4095);
 }
 
 static void mwNAME_TABLE_SIZE (void){
@@ -4867,7 +4869,7 @@ static void mwstrings_load_21_ (void){
 }
 
 static void mwMAX_TOKENS (void){
-    push(16384);
+    push(28672);
 }
 
 static void mwnum_tokens_40_ (void){
@@ -5247,7 +5249,8 @@ static void mwtoken_print_21_ (void){
     mwprint_quote_21_();
     } else {
     mwprint_sp_21_();
-    mwtoken_int_3F_();
+    mwtoken_value_3F_();
+    mwTokenValue__3E_Int();
     mwint_print_21_();
     }
     }
