@@ -5,7 +5,7 @@ CC=gcc $(C99FLAGS)
 
 show: mirth0.c mirth1.c mirth2.c mirth3.c
 	diff --strip-trailing-cr mirth0.c mirth1.c | head -n 5
-	diff --strip-trailing-cr mirth1.c mirth2.c | head -n 5
+	diff --strip-trailing-cr mirth1.c mirth2.c | head -n 10
 	diff --strip-trailing-cr mirth2.c mirth3.c
 
 build: mirth0 mirth1 mirth2 mirth1.c mirth2.c mirth3.c
