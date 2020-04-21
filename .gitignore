@@ -12,6 +12,8 @@
 *.dSYM
 /mirth_prof.c
 /mirth_prof
+/snake
+/snake.c
 /default.profraw
 *.exe
 *.obj
