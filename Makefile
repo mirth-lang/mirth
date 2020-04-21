@@ -1,7 +1,9 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Werror -pedantic
 CC=gcc $(C99FLAGS)
 
-.PHONY: show build update check update-mirth install-vim install-code profile
+.PHONY: default show build update check update-mirth install-vim install-code profile play-snake
+
+default: show
 
 show: mirth0.c mirth1.c mirth2.c mirth3.c
 	diff --strip-trailing-cr mirth0.c mirth1.c | head -n 5
@@ -33,6 +35,9 @@ profile: mirth_prof
 	time ./mirth_prof
 	rm -f mirth.c
 
+play-snake: snake
+	./snake
+
 #########
 
 mirth0: mirth0.c
@@ -61,8 +66,8 @@ mirth_prof.c: mirth3.c
 mirth_prof: mirth_prof.c
 	$(CC) -g -fprofile-instr-generate -o mirth_prof mirth_prof.c
 
-snake.c: mirth0 mirth.mth
-	./mirth0
+snake.c: mirth2 mirth.mth
+	./mirth2
 	rm -f mirth.c
 
 snake: snake.c
