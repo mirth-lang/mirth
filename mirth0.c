@@ -988,12 +988,6 @@ void mwRUNNING_OS (void) {
  void mwSTR_BUF (void) { push((i64)bSTR_BUF); }
  volatile u8 bTEST_BUF[16] = {0};
  void mwTEST_BUF (void) { push((i64)bTEST_BUF); }
- volatile u8 bFILE_IN[8] = {0};
- void mwFILE_IN (void) { push((i64)bFILE_IN); }
- volatile u8 bFILE_OUT[8] = {0};
- void mwFILE_OUT (void) { push((i64)bFILE_OUT); }
- volatile u8 bFILE_ERR[8] = {0};
- void mwFILE_ERR (void) { push((i64)bFILE_ERR); }
  volatile u8 bINPUT_ISOPEN[8] = {0};
  void mwINPUT_ISOPEN (void) { push((i64)bINPUT_ISOPEN); }
  volatile u8 bINPUT_LENGTH[8] = {0};
@@ -1143,12 +1137,12 @@ void mwRUNNING_OS (void) {
  void mwstr_buf_push_21_ (void);
  void mwstr_buf_write_21_ (void);
  void mwstr_buf_print_21_ (void);
- void mwfile_out_40_ (void);
+ void mwstdout (void);
  void mwstr_buf_trace_21_ (void);
- void mwfile_err_40_ (void);
+ void mwstderr (void);
  void mwstr_buf_read_21_ (void);
  void mwstr_buf_input_21_ (void);
- void mwfile_in_40_ (void);
+ void mwstdin (void);
  void mwstr_buf_21_ (void);
  void mwrun_tests (void);
  void mwtest_if (void);
@@ -1172,19 +1166,12 @@ void mwRUNNING_OS (void) {
  void mwtest_str (void);
  void mwtest_while (void);
  void mwtest_40__21_ (void);
- void mwstdin (void);
- void mwstdout (void);
- void mwstderr (void);
  void mwinit_21_ (void);
- void mwinit_io_21_ (void);
  void mwstrings_size_21_ (void);
  void mwnum_tokens_21_ (void);
  void mwinit_names_21_ (void);
  void mwinit_buffers_21_ (void);
  void mwinit_heap_21_ (void);
- void mwfile_in_21_ (void);
- void mwfile_out_21_ (void);
- void mwfile_err_21_ (void);
  void mwstr_write_21_ (void);
  void mwstr_print_21_ (void);
  void mwstr_trace_21_ (void);
@@ -2083,23 +2070,21 @@ void mwstr_buf_write_21_ (void){
 }
 
 void mwstr_buf_print_21_ (void){
-    mwfile_out_40_();
+    mwstdout();
     mwstr_buf_write_21_();
 }
 
-void mwfile_out_40_ (void){
-    mwFILE_OUT();
-    mw_40_();
+void mwstdout (void){
+    push(1);
 }
 
 void mwstr_buf_trace_21_ (void){
-    mwfile_err_40_();
+    mwstderr();
     mwstr_buf_write_21_();
 }
 
-void mwfile_err_40_ (void){
-    mwFILE_ERR();
-    mw_40_();
+void mwstderr (void){
+    push(2);
 }
 
 void mwstr_buf_read_21_ (void){
@@ -2120,13 +2105,12 @@ void mwstr_buf_read_21_ (void){
 }
 
 void mwstr_buf_input_21_ (void){
-    mwfile_in_40_();
+    mwstdin();
     mwstr_buf_read_21_();
 }
 
-void mwfile_in_40_ (void){
-    mwFILE_IN();
-    mw_40_();
+void mwstdin (void){
+    push(0);
 }
 
 void mwstr_buf_21_ (void){
@@ -2824,20 +2808,7 @@ void mwtest_40__21_ (void){
     mw_21__21__3D_();
 }
 
-void mwstdin (void){
-    push(0);
-}
-
-void mwstdout (void){
-    push(1);
-}
-
-void mwstderr (void){
-    push(2);
-}
-
 void mwinit_21_ (void){
-    mwinit_io_21_();
     push(0);
     mwstrings_size_21_();
     push(0);
@@ -2845,15 +2816,6 @@ void mwinit_21_ (void){
     mwinit_names_21_();
     mwinit_buffers_21_();
     mwinit_heap_21_();
-}
-
-void mwinit_io_21_ (void){
-    mwstdin();
-    mwfile_in_21_();
-    mwstdout();
-    mwfile_out_21_();
-    mwstderr();
-    mwfile_err_21_();
 }
 
 void mwstrings_size_21_ (void){
@@ -3177,21 +3139,6 @@ void mwinit_heap_21_ (void){
     mwheap_length_21_();
 }
 
-void mwfile_in_21_ (void){
-    mwFILE_IN();
-    mw_21_();
-}
-
-void mwfile_out_21_ (void){
-    mwFILE_OUT();
-    mw_21_();
-}
-
-void mwfile_err_21_ (void){
-    mwFILE_ERR();
-    mw_21_();
-}
-
 void mwstr_write_21_ (void){
     mwswap();
     mwdup();
@@ -3200,12 +3147,12 @@ void mwstr_write_21_ (void){
 }
 
 void mwstr_print_21_ (void){
-    mwfile_out_40_();
+    mwstdout();
     mwstr_write_21_();
 }
 
 void mwstr_trace_21_ (void){
-    mwfile_err_40_();
+    mwstderr();
     mwstr_write_21_();
 }
 
@@ -3564,12 +3511,12 @@ void mwint_write_21_ (void){
 }
 
 void mwint_print_21_ (void){
-    mwfile_out_40_();
+    mwstdout();
     mwint_write_21_();
 }
 
 void mwint_trace_21_ (void){
-    mwfile_err_40_();
+    mwstderr();
     mwint_write_21_();
 }
 
