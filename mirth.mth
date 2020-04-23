@@ -1,3 +1,5 @@
+module(mirth)
+import(math)
 
 ###########
 # Prelude #
@@ -101,6 +103,20 @@ def(str-buf-push!, U8 -- +StrBuf,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     ))
+
+# Append the given string into STR_BUF. If the string is
+# too large it gets truncated.
+def(str-buf-push-str!, Str -- +StrBuf,
+        while(str-buf-full? if(0, dup u8@),
+        dup u8@ str-buf-push!
+        str-tail)
+    drop)
+
+# Set the STR_BUF to a given string. If the string is
+# too large it gets truncated.
+def(str-buf!, Str -- +StrBuf, str-buf-clear! str-buf-push-str!)
+
+
 def(str-buf-write!, File -- +StrBuf, STR_BUF str-buf-length? posix-write!)
 def(str-buf-print!, +StrBuf, stdout str-buf-write!)
 def(str-buf-trace!, +StrBuf, stderr str-buf-write!)
@@ -113,15 +129,6 @@ def(str-buf-read!, File -- +IO,
         str-buf-length!
     ))
 def(str-buf-input!, -- +IO, stdin str-buf-read!)
-
-# Set the STR_BUF to a given string. If the string is
-# too large (> STR_BUF_SIZE - 1) it gets truncated.
-def(str-buf!, Str -- +StrBuf,
-    str-buf-clear!
-    while(str-buf-full? if(0, dup u8@),
-        dup u8@ str-buf-push!
-        str-tail)
-    drop)
 
 # Tests
 
@@ -822,7 +829,9 @@ def(PRIM_I8, Prim, 64)
 def(PRIM_I16, Prim, 65)
 def(PRIM_I32, Prim, 66)
 def(PRIM_I64, Prim, 67)
-def(NUM_PRIMS, Prim, 68)
+def(PRIM_MODULE, Prim, 68)
+def(PRIM_IMPORT, Prim, 69)
+def(NUM_PRIMS, Prim, 70)
 
 def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
 
@@ -938,6 +947,10 @@ def(init-names!, +Names,
     PRIM_I64 "I64" def-prim!
         DEF_TYPE PRIM_I64 name-sort!
         TYPE_I64 PRIM_I64 name-value!
+    PRIM_MODULE "module" def-prim!
+    PRIM_IMPORT "import" def-prim!
+    NUM_PRIMS num-names@ = if(id,
+        "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
     )
 
 #################
@@ -2073,6 +2086,53 @@ def(token-run-prim!, Token --,
             nip "expected name" emit-fatal-error!
         ),
 
+    dup PRIM_MODULE = if(
+        drop
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-name?
+            name-is-module? if(
+                drop2,
+
+            name-undefined? if(
+                # just reserve the module name for now
+                nip DEF_MODULE swap name-sort!,
+
+                drop "module name is already taken" emit-fatal-error!
+            )),
+
+            "expected module name" emit-fatal-error!
+        ),
+
+    dup PRIM_IMPORT = if(
+        drop
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-name?
+            name-is-module? if(
+                drop2, # module is already loaded
+
+            name-undefined? if(
+                DEF_MODULE over name-sort!
+
+                name-load! ".mth" str-buf-push-str!
+                STR_BUF 0 0 posix-open!
+                dup 0 < if(
+                    drop "failed to open module" emit-fatal-error!,
+                    dip(drop num-tokens@)
+                    run-lexer!
+                    token-run! # run the imported module
+
+
+   #                 token-run!
+                ),
+
+                drop "module name is already taken" emit-fatal-error!
+            )),
+
+            "expected module name" emit-fatal-error!
+        ),
+
     dup PRIM_MIRTH_REVISION = if(
         drop
         0 1 arity-check!
@@ -2096,7 +2156,7 @@ def(token-run-prim!, Token --,
 
         drop
         "Dont know how to run prim yet." emit-fatal-error!
-    )))))))))))))))))))))))))))))))))))))))))))))))))))))))
+    )))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -2271,6 +2331,7 @@ def(DEF_WORD, Sort, 1 Int->U8)
 def(DEF_BUFFER, Sort, 2 Int->U8)
 def(DEF_TYPE, Sort, 3 Int->U8)
 def(DEF_EXTERNAL, Sort, 4 Int->U8)
+def(DEF_MODULE, Sort, 5 Int->U8)
 
 MAX_NAMES u8s def-static-buffer(DEF_SORT)
 MAX_NAMES quads def-static-buffer(DEF_VALUE)
@@ -2294,6 +2355,7 @@ def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD =)
 def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
 def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE =)
 def(name-is-external?, Name -- Name Bool, name-sort? DEF_EXTERNAL =)
+def(name-is-module?, Name -- Name Bool, name-sort? DEF_MODULE =)
 
 #################
 # Type Checking #
