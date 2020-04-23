@@ -1,0 +1,376 @@
+module(lexer)
+import(prelude)
+import(names)
+import(input)
+import(strings)
+import(tokens)
+
+#########
+# LEXER #
+#########
+
+u16 def-static-buffer(LEXER_ROW)
+def(lexer-row@, -- Row +Lexer, LEXER_ROW u16@)
+def(lexer-row!, Row -- +Lexer, LEXER_ROW u16!)
+
+u16 def-static-buffer(LEXER_COL)
+def(lexer-col@, -- Col +Lexer, LEXER_COL u16@)
+def(lexer-col!, Col -- +Lexer, LEXER_COL u16!)
+
+def(LEXER_STACK_SIZE, Size, 0x200)
+u16 def-static-buffer(LEXER_STACK_LENGTH)
+LEXER_STACK_SIZE quads def-static-buffer(LEXER_STACK_BUF)
+
+def(lexer-stack-length@, Size +Lexer,
+    LEXER_STACK_LENGTH u16@ U16->Int)
+
+def(lexer-stack-length!, Size -- +Lexer,
+    Int->U16 LEXER_STACK_LENGTH u16!)
+
+def(lexer-stack-clear!, +Lexer,
+    0 lexer-stack-length!)
+
+def(lexer-stack-empty?, Bool +Lexer,
+    lexer-stack-length@ 0 <=)
+
+def(lexer-stack-full?, Bool +Lexer,
+    lexer-stack-length@ LEXER_STACK_SIZE >=)
+
+def(lexer-stack-push!, Token -- +Lexer,
+    lexer-stack-full? if(
+        "lexer stack overflow" panic! drop,
+        lexer-stack-length@
+        dup 1+ lexer-stack-length!
+        LEXER_STACK_BUF quad!!
+    ))
+
+def(lexer-stack-pop!, -- Token +Lexer,
+    lexer-stack-empty? if(
+        "lexer stack underflow" panic! 0,
+        lexer-stack-length@ 1-
+        dup lexer-stack-length!
+        LEXER_STACK_BUF quad@@
+    ))
+
+def(run-lexer!, File -- +Lexer,
+
+    input-start!
+
+    1 Int->U16 lexer-row!
+    1 Int->U16 lexer-col!
+
+    while(lexer-done? not, lexer-next!)
+
+    input-end!
+
+    lexer-stack-empty? if(
+        TOKEN_NONE 0 Int->TokenValue lexer-emit!,
+
+        lexer-stack-pop!
+        "Mismatched left parenthesis."
+        emit-fatal-error!
+    ))
+
+# Is the lexer done?
+def(lexer-done?, Bool +Lexer, input-done?)
+
+# Create a token, and add it to the token buffer,
+# returning the new token.
+def(lexer-make!, TokenType TokenValue -- Token,
+    token-new
+    dup dip(token-value!)
+    dup dip(token-type!)
+    dip(lexer-row@) dup dip(token-row!)
+    dip(lexer-col@) dup dip(token-col!))
+
+# Create a token, and add it to the token buffer.
+def(lexer-emit!, TokenType TokenValue --, lexer-make! drop)
+
+# Lex the next token.
+def(lexer-next!, --,
+    lexer-peek
+
+    is-name-char? if(
+        drop
+        lexer-emit-name!,
+
+    is-newline? if(
+        drop
+        lexer-emit-newline!,
+
+    is-whitespace? if(
+        drop,
+
+    is-pound? if(
+        drop
+        lexer-skip-comment!,
+
+    is-comma? if(
+        drop
+        TOKEN_COMMA 0 Int->TokenValue lexer-emit!,
+
+    is-lparen? if(
+        drop
+        lexer-emit-lparen!,
+
+    is-rparen? if(
+        drop
+        lexer-emit-rparen!,
+
+    is-quote? if(
+        drop
+        lexer-emit-string!,
+
+        drop # LATER emit lexer error
+    )))))))
+
+    lexer-move!))
+
+
+def(lexer-emit-newline!, +Lexer,
+    lexer-row@ Row->Int 1+ Int->Row lexer-row!
+    0 Int->Col lexer-col!)
+
+def(lexer-emit-lparen!, +Lexer,
+    TOKEN_LPAREN 0 Int->TokenValue lexer-make!
+    lexer-stack-push!)
+
+def(lexer-emit-rparen!, +Lexer,
+    lexer-stack-empty? if(
+        "Mismatched right parenthesis." lexer-emit-fatal-error!,
+        TOKEN_RPAREN lexer-stack-pop! dup
+        dip(Token->TokenValue lexer-make!)
+        dip(Token->TokenValue) token-value!
+    ))
+
+def(lexer-emit-name!, +Lexer,
+    str-buf-clear!
+    str-buf-zero!
+    TOKEN_NAME 0 Int->TokenValue lexer-make!
+
+
+    lexer-peek while(is-name-char?,
+        str-buf-push!
+        lexer-move!
+        lexer-peek
+    )
+    drop
+
+    str-buf-is-int? if(
+        str-buf-int? over token-value!
+        TOKEN_INT swap token-type!,
+
+        name-save!
+        Name->TokenValue swap token-value!
+    ))
+
+def(str-buf-is-int?, Bool +StrBuf,
+    str-buf-is-dec-int? if(1, str-buf-is-hex-int?))
+
+def(str-buf-is-dec-int?, Bool +StrBuf,
+    0 # number of digits
+    0 # current index
+    dup str-buf-u8@ is-sign? nip if(
+        1+,
+        id
+    )
+    while(dup str-buf-u8@ is-digit? nip,
+        dip(1+) 1+)
+    swap 1 >= if(
+        str-buf-length? =,
+        drop 0
+    ))
+
+def(is-zero-char, Char -- Bool, U8->Int 48 =)
+def(is-xX-char, Char -- Bool, U8->Int dup 88 = dip(120 =) +)
+
+def(str-buf-is-hex-int?, Bool +StrBuf,
+    0 # number of digits
+    0 # current index
+    dup str-buf-u8@ is-sign? nip if(
+        1+,
+        id
+    )
+    dup str-buf-u8@ is-zero-char if(
+        1+
+        dup str-buf-u8@ is-xX-char if(
+            1+
+            while(dup str-buf-u8@ is-hexdigit? nip, dip(1+) 1+)
+            swap 1 >= if(
+                str-buf-length? =,
+                drop 0
+            ),
+
+            drop2 0
+        ),
+
+        drop2 0
+    ))
+
+def(str-buf-int?, Int +StrBuf,
+    str-buf-is-dec-int? if(
+        str-buf-dec-int?,
+        str-buf-hex-int?
+    ))
+
+def(str-buf-dec-int?, Int +StrBuf,
+    1 # sign multiplier
+    0 # accumulated value
+    0 # current index
+    dup str-buf-u8@ is-sign? if(
+        is-minus-sign? nip if(
+            dip(dip(drop -1)),
+            id
+        )
+        1+,
+        drop
+    )
+    while(dup str-buf-length? <,
+        dup dip(
+            str-buf-u8@ U8->Int
+            dip(10 *) 48 - +
+        )
+        1+)
+    drop *)
+
+def(str-buf-hex-int?, Int +StrBuf,
+    1 # sign multiplier
+    0 # accumulated value
+    0 # current index
+    dup str-buf-u8@ is-sign? if(
+        is-minus-sign? nip if(
+            dip(dip(drop -1)),
+            id
+        )
+        1+,
+        drop
+    )
+    2 + # skip 0x prefix
+    while(dup str-buf-length? <,
+        dup dip(
+            str-buf-u8@
+            dip(16 *) hexdigit-value +
+        )
+        1+)
+    drop *)
+
+def(hexdigit-value, Char -- Int,
+    is-digit? if(
+        U8->Int 48 -,
+        is-upper-hexdigit? if(
+            U8->Int 55 -,
+            U8->Int 87 -
+        )
+    ))
+
+def(lexer-emit-string!, +Lexer,
+    str-buf-clear!
+    TOKEN_STR 0 Int->TokenValue lexer-make!
+
+    lexer-move!
+    lexer-peek while(is-string-end? not,
+        lexer-push-string-char!
+        lexer-move!
+        lexer-peek
+    )
+    drop
+
+    strings-save!
+    Int->TokenValue swap token-value!)
+
+def(lexer-push-string-char!, Char -- +Lexer,
+    is-backslash? if(
+        drop lexer-move! lexer-peek
+
+        is-newline? if(
+            drop,
+
+        is-n? if(
+            drop 10 Int->U8 str-buf-push!,
+
+        is-r? if(
+            drop 13 Int->U8 str-buf-push!,
+
+        is-t? if(
+            drop 9 Int->U8 str-buf-push!,
+
+        is-quote? if(
+            str-buf-push!,
+
+        is-backslash? if(
+            str-buf-push!,
+
+            str-buf-push!
+
+            "Unknown character escape sequence."
+            lexer-emit-warning!
+
+        )))))),
+
+        str-buf-push!
+    ))
+
+def(lexer-skip-comment!, +Lexer,
+    while(lexer-comment-end? not, lexer-move!)
+    lexer-peek is-newline? if(
+        lexer-emit-newline! drop,
+        drop
+    ))
+
+def(lexer-comment-end?, Bool +Lexer,
+    lexer-done? if(
+        1,
+        lexer-peek is-newline? nip
+    ))
+
+def(lexer-peek, Char +Lexer, input-peek)
+def(lexer-move!, +Lexer, input-move!
+    lexer-col@ Col->Int 1+ Int->Col lexer-col!)
+
+def(is-newline?, Char -- Char Bool, dup U8->Int 10 =)
+def(is-whitespace?, Char -- Char Bool,
+    dup U8->Int 9 = dip(dup U8->Int 32 =) +)
+def(is-pound?, Char -- Char Bool, dup U8->Int 35 =)
+def(is-lparen?, Char -- Char Bool, dup U8->Int 40 =)
+def(is-rparen?, Char -- Char Bool, dup U8->Int 41 =)
+def(is-comma?, Char -- Char Bool, dup U8->Int 44 =)
+def(is-quote?, Char -- Char Bool, dup U8->Int 34 =)
+def(is-digit?, Char -- Char Bool, dup U8->Int 48 57 in-range)
+def(is-upper-hexdigit?, Char -- Char Bool, dup U8->Int 65 70 in-range)
+def(is-lower-hexdigit?, Char -- Char Bool, dup U8->Int 97 102 in-range)
+def(is-hexdigit?, Char -- Char Bool, is-digit? dip(is-upper-hexdigit?) + dip(is-lower-hexdigit?) +)
+def(is-nul?, Char -- Char Bool, dup U8->Int 0=)
+def(is-sign?, Char -- Char Bool, is-plus-sign? dip(is-minus-sign?) +)
+def(is-plus-sign?, Char -- Char Bool, dup U8->Int 43 =)
+def(is-minus-sign?, Char -- Char Bool, dup U8->Int 45 =)
+def(is-alpha?, Char -- Char Bool, is-lower? dip(is-upper?) +)
+def(is-upper?, Char -- Char Bool, dup U8->Int 65 90 in-range)
+def(is-lower?, Char -- Char Bool, dup U8->Int 97 122 in-range)
+
+def(is-string-end?, Char -- Char Bool, is-quote? dip(is-newline?) + dip(is-nul?) +)
+def(is-dash?, Char -- Char Bool, dup U8->Int 45 =)
+def(is-underscore?, Char -- Char Bool, dup U8->Int 95 =)
+def(is-backslash?, Char -- Char Bool, dup U8->Int 92 =)
+def(is-n?, Char -- Char Bool, dup U8->Int 110 =)
+def(is-r?, Char -- Char Bool, dup U8->Int 114 =)
+def(is-t?, Char -- Char Bool, dup U8->Int 116 =)
+def(underscore, Char, 95 Int->U8)
+
+def(is-name-char?, Char -- Char Bool,
+    is-special-char?
+    dip(dup U8->Int 33 126 in-range) -)
+
+def(is-special-char?, Char -- Char Bool,
+    is-quote?
+    dip(is-lparen?) +
+    dip(is-rparen?) +
+    dip(is-comma?) +
+    dip(is-pound?) +
+    )
+
+def(in-range, Int Int Int -- Bool,
+    dip(over dip(>=)) <= *)
+
+def(lexer-trace-prefix!, +IO,
+    lexer-row@ Row->Int int-trace! ":" str-trace!
+    lexer-col@ Col->Int int-trace! ":" str-trace-sp!)

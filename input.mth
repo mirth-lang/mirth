@@ -1,0 +1,81 @@
+module(input)
+import(prelude)
+
+#########
+# Input #
+#########
+
+def(INPUT_BUFFER_SIZE, Size, 0x200)
+quad def-static-buffer(INPUT_ISOPEN)
+quad def-static-buffer(INPUT_LENGTH)
+quad def-static-buffer(INPUT_OFFSET)
+quad def-static-buffer(INPUT_HANDLE)
+INPUT_BUFFER_SIZE def-static-buffer(INPUT_BUFFER)
+
+def(input-isopen@, Bool +Input, INPUT_ISOPEN @)
+def(input-length@, Size +Input, INPUT_LENGTH @)
+def(input-offset@, Size +Input, INPUT_OFFSET @)
+def(input-handle@, File +Input, INPUT_HANDLE @)
+def(input-isopen!, Bool -- +Input, INPUT_ISOPEN !)
+def(input-length!, Size -- +Input, INPUT_LENGTH !)
+def(input-offset!, Size -- +Input, INPUT_OFFSET !)
+def(input-handle!, File -- +Input, INPUT_HANDLE !)
+
+def(input-start!, File -- +Input,
+    input-handle!
+    0 input-length!
+    0 input-offset!
+    1 input-isopen!
+    input-fill-buffer!)
+
+def(input-end!, +Input,
+    input-isopen@ if(
+        input-handle@ close-file!,
+        id
+    )
+    0 input-handle!
+    0 input-length!
+    0 input-offset!
+    0 input-isopen!)
+
+def(input-done?, Bool +Input,
+    input-isopen@ not)
+
+def(input-fill-buffer!, +Input,
+    input-isopen@ if(
+        input-handle@
+        INPUT_BUFFER
+        INPUT_BUFFER_SIZE
+        posix-read!
+        dup 0 >= if(
+            dup 0 > if(
+                input-length!
+                0 input-offset!,
+                drop
+                input-end!
+            ),
+            drop "error: failed to read from file" panic!
+        ),
+        "error: attempted to fill input buffer when file is closed" panic!
+    ))
+
+
+# Return the current char in the input buffer.
+# Panics if file is exhausted.
+def(input-peek, Char +Input,
+    input-isopen@ if(
+        input-offset@ INPUT_BUFFER u8@@,
+        "error: attempted to read input buffer when file is already closed" panic! 0
+    ) Int->U8)
+
+# Move to next char in input buffer.
+# Panics if file is exhausted.
+def(input-move!, +Input,
+    input-isopen@ if(
+        input-offset@ 1+ dup input-offset!
+        input-length@ >= if(
+            input-fill-buffer!,
+            id
+        ),
+        "error: attempted to move input buffer when file is already closed" panic!
+    ))

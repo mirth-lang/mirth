@@ -1,0 +1,3 @@
+module(math)
+
+def(square, Int -- Int, dup *)
