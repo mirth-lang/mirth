@@ -102,8 +102,8 @@ def(str-buf-push!, U8 -- +StrBuf,
         str-buf-length? 1+ str-buf-length!
     ))
 def(str-buf-write!, File -- +StrBuf, STR_BUF str-buf-length? posix-write!)
-def(str-buf-print!, +StrBuf, file-out@ str-buf-write!)
-def(str-buf-trace!, +StrBuf, file-err@ str-buf-write!)
+def(str-buf-print!, +StrBuf, stdout str-buf-write!)
+def(str-buf-trace!, +StrBuf, stderr str-buf-write!)
 
 def(str-buf-read!, File -- +IO,
     str-buf-clear!
@@ -112,7 +112,7 @@ def(str-buf-read!, File -- +IO,
         "str-buf-read! failed" panic! drop,
         str-buf-length!
     ))
-def(str-buf-input!, -- +IO, file-in@ str-buf-read!)
+def(str-buf-input!, -- +IO, stdin str-buf-read!)
 
 # Set the STR_BUF to a given string. If the string is
 # too large (> STR_BUF_SIZE - 1) it gets truncated.
@@ -296,36 +296,17 @@ def(stdout, File, 1)
 def(stderr, File, 2)
 
 def(init!, +IO,
-    init-io!
     0 strings-size!
     0 num-tokens!
     init-names!
     init-buffers!
     init-heap!)
 
-def(init-io!, +IO,
-    stdin file-in!
-    stdout file-out!
-    stderr file-err!
-    )
-
-quad def-static-buffer(FILE_IN)
-def(file-in!, File -- +IO, FILE_IN !)
-def(file-in@, -- File +IO, FILE_IN @)
-
-quad def-static-buffer(FILE_OUT)
-def(file-out!, File -- +IO, FILE_OUT !)
-def(file-out@, -- File +IO, FILE_OUT @)
-
-quad def-static-buffer(FILE_ERR)
-def(file-err!, File -- +IO, FILE_ERR !)
-def(file-err@, -- File +IO, FILE_ERR @)
-
 def(str-write!, Str File -- +IO,
     swap dup str-length posix-write!)
 
-def(str-print!, Str -- +IO, file-out@ str-write!)
-def(str-trace!, Str -- +IO, file-err@ str-write!)
+def(str-print!, Str -- +IO, stdout str-write!)
+def(str-trace!, Str -- +IO, stderr str-write!)
 def(str-print-sp!, Str -- +IO, str-print! print-sp!)
 def(str-trace-sp!, Str -- +IO, str-trace! trace-sp!)
 def(str-print-ln!, Str -- +IO, str-print! print-ln!)
@@ -422,8 +403,8 @@ def(str-buf-int!, Int --,
     ))
 
 def(int-write!, Int File -- +IO, dip(str-buf-int!) str-buf-write!)
-def(int-print!, Int -- +IO, file-out@ int-write!)
-def(int-trace!, Int -- +IO, file-err@ int-write!)
+def(int-print!, Int -- +IO, stdout int-write!)
+def(int-trace!, Int -- +IO, stderr int-write!)
 def(int-print-sp!, Int -- +IO, int-print! print-sp!)
 def(int-trace-sp!, Int -- +IO, int-trace! trace-sp!)
 def(int-print-ln!, Int -- +IO, int-print! print-ln!)
