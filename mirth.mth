@@ -74,10 +74,11 @@ def(!!111, Int Int Int --, !!1 !!1 !!1)
 
 def(str-tail, Str -- Str, 1 +)
 def(str-length, Str -- Int,
-    dip(0) dup u8@ while(
-        drop str-tail dip(1+)
-        dup u8@
-    ) drop)
+    0 swap
+    while(dup u8@,
+        str-tail
+        dip(1+))
+    drop)
 
 def(STR_BUF_SIZE, Int, 0x80)
 quad def-static-buffer(STR_BUF_LEN)
@@ -116,12 +117,11 @@ def(str-buf-input!, -- +IO, file-in@ str-buf-read!)
 # Set the STR_BUF to a given string. If the string is
 # too large (> STR_BUF_SIZE - 1) it gets truncated.
 def(str-buf!, Str -- +StrBuf,
-    str-buf-clear! dup u8@
-    while(
-        str-buf-push!
-        str-tail
-        str-buf-full? if(0, dup u8@)
-    ) drop)
+    str-buf-clear!
+    while(str-buf-full? if(0, dup u8@),
+        dup u8@ str-buf-push!
+        str-tail)
+    drop)
 
 # Tests
 
@@ -289,7 +289,7 @@ def(test-str, --,
     )
 
 def(test-while, --,
-    999 10 20 while(1- dip(1+)) 30 !!= 999 !!=)
+    999 10 20 while(dup, 1- dip(1+)) drop 30 !!= 999 !!=)
 
 def(stdin,  File, 0)
 def(stdout, File, 1)
@@ -416,7 +416,7 @@ def(str-buf-int!, Int --,
         dup dip(
             abs
             str-buf-clear!
-            while(dup to-digit str-buf-push! 10 /)
+            while(dup, dup to-digit str-buf-push! 10 /) drop
         ) 0 < if(45 Int->U8 str-buf-push!, id)
         str-buf-reverse!
     ))
@@ -442,13 +442,12 @@ def(str-buf-swap-u8!, Int Int --,
 )
 
 def(str-buf-reverse!, --,
-    0 str-buf-length? 1- dup2 <
-    while(drop
+    0 str-buf-length? 1-
+    while(dup2 <,
         dup2 str-buf-swap-u8!
-        dip(1 +) 1- dup2 <
+        dip(1 +) 1-
     )
-    drop2
-)
+    drop2)
 
 ##########
 # System #
@@ -619,10 +618,10 @@ def(name-quads-eq, Name -- Bool,
 
 def(hash, Ptr -- Hash,
     0 swap
-    dup u8@ U8->Int while(
-        swap dip(5 * ^)
-        str-tail dup u8@ U8->Int
-    ) drop
+    while(dup u8@,
+        dup dip(u8@ U8->Int 5 * swap 18 * ^)
+        str-tail)
+    drop
     NAME_HASH_MAX &)
 
 def(name-hash, Name -- Hash,
@@ -682,11 +681,7 @@ def(name-save-keep-going?, Hash -- Hash Bool,
 # Load STR_BUF into name table. Performs deduplication.
 def(name-save!, -- Name,
     STR_BUF hash
-    name-save-keep-going? while(
-        drop
-        next-hash
-        name-save-keep-going?
-    )
+    while(name-save-keep-going?, next-hash)
     dup name-table@
     dup 0 < if(
         drop
@@ -699,16 +694,15 @@ def(name-save!, -- Name,
 quad def-static-buffer(name-bytes)
 def(show-names-table!, +Names +IO,
     0 name-bytes !
-    0 dup num-names@ <
-    while( # Name Bool -- Name Bool Bool
-        drop
+    0
+    while(dup num-names@ <,
         dup int-print!
         ": " str-print!
         dup name-load!
         str-buf-length? name-bytes @ + 1+ name-bytes !
         str-buf-print! print-sp!
         dup name-hash int-print! print-ln!
-        1+ dup num-names@ <
+        1+
     )
     drop
     "Total bytes: " str-print!
@@ -735,12 +729,10 @@ def(name-print-mangled!, Name -- +IO,
 def(name-mangle!, Name -- +StrBuf,
     str-buf-clear!
     NAME_SIZE * 0
-    dup NAME_SIZE < while(
-        drop
-        over NAME_BUF u8@@ str-buf-push-mangled!
-        dip(1+) 1+
-        dup NAME_SIZE <
-    )
+    while(dup NAME_SIZE <,
+        over NAME_BUF u8@@
+        str-buf-push-mangled!
+        dip(1+) 1+)
     drop2)
 
 def(str-buf-push-mangled!, Char -- +StrBuf,
@@ -862,18 +854,19 @@ def(def-prim!, Prim Str -- +Names,
 # deviation from the order above will be flagged
 # by def-prim!
 def(init-names!, +Names,
-    NAME_TABLE_SIZE while(
+    NAME_TABLE_SIZE
+    while(dup,
         1-
         0 over NAME_TABLE quad!!
-    )
+    ) drop
 
-    num-names@ while(
+    num-names@ while(dup,
         1-
         0 over name-checked!
         0 over name-sort!
         0 over name-value!
         0 over name-sig!
-    )
+    ) drop
 
     0 num-names!
     PRIM_END "end" def-prim!
@@ -995,12 +988,11 @@ def(strings-push!, U8 -- +StrTable,
 # returning the index of the new string.
 def(strings-save!, StringOffset +StrTable +StrBuf,
     strings-size@
-    0 dup str-buf-length? < while(
-        drop
+    0
+    while(dup str-buf-length? <,
         dup str-buf-u8@
         strings-push!
         1+
-        dup str-buf-length? <
     )
     drop
     0 Int->U8 strings-push!)
@@ -1143,11 +1135,10 @@ def(token-print!, Token -- +IO,
     print-ln!)
 
 def(show-tokens!, --,
-    0 dup num-tokens@ < while(
-        drop
-        dup token-print!
-        1+ dup num-tokens@ <
-    ) drop)
+    0
+    while(dup num-tokens@ <,
+        dup token-print! 1+)
+    drop)
 
 #########
 # LEXER #
@@ -1203,11 +1194,7 @@ def(run-lexer!, File -- +Lexer,
     1 Int->U16 lexer-row!
     1 Int->U16 lexer-col!
 
-    lexer-done? not while(
-        drop
-        lexer-next!
-        lexer-done? not
-    )
+    while(lexer-done? not, lexer-next!)
 
     input-end!
 
@@ -1296,11 +1283,11 @@ def(lexer-emit-name!, +Lexer,
     str-buf-zero!
     TOKEN_NAME 0 Int->TokenValue lexer-make!
 
-    lexer-peek 1 while(
-        drop
+
+    lexer-peek while(is-name-char?,
         str-buf-push!
         lexer-move!
-        lexer-peek is-name-char?
+        lexer-peek
     )
     drop
 
@@ -1322,11 +1309,8 @@ def(str-buf-is-dec-int?, Bool +StrBuf,
         1+,
         id
     )
-    dup str-buf-u8@ is-digit? nip while(
-        drop
-        dip(1+) 1+
-        dup str-buf-u8@ is-digit? nip
-    )
+    while(dup str-buf-u8@ is-digit? nip,
+        dip(1+) 1+)
     swap 1 >= if(
         str-buf-length? =,
         drop 0
@@ -1346,11 +1330,7 @@ def(str-buf-is-hex-int?, Bool +StrBuf,
         1+
         dup str-buf-u8@ is-xX-char if(
             1+
-            dup str-buf-u8@ is-hexdigit? nip while(
-                drop
-                dip(1+) 1+
-                dup str-buf-u8@ is-hexdigit? nip
-            )
+            while(dup str-buf-u8@ is-hexdigit? nip, dip(1+) 1+)
             swap 1 >= if(
                 str-buf-length? =,
                 drop 0
@@ -1380,15 +1360,12 @@ def(str-buf-dec-int?, Int +StrBuf,
         1+,
         drop
     )
-    dup str-buf-length? < while(
-        drop
+    while(dup str-buf-length? <,
         dup dip(
             str-buf-u8@ U8->Int
             dip(10 *) 48 - +
         )
-        1+
-        dup str-buf-length? <
-    )
+        1+)
     drop *)
 
 def(str-buf-hex-int?, Int +StrBuf,
@@ -1404,15 +1381,12 @@ def(str-buf-hex-int?, Int +StrBuf,
         drop
     )
     2 + # skip 0x prefix
-    dup str-buf-length? < while(
-        drop
+    while(dup str-buf-length? <,
         dup dip(
             str-buf-u8@
             dip(16 *) hexdigit-value +
         )
-        1+
-        dup str-buf-length? <
-    )
+        1+)
     drop *)
 
 def(hexdigit-value, Char -- Int,
@@ -1429,11 +1403,10 @@ def(lexer-emit-string!, +Lexer,
     TOKEN_STR 0 Int->TokenValue lexer-make!
 
     lexer-move!
-    lexer-peek is-string-end? not while(
-        drop
+    lexer-peek while(is-string-end? not,
         lexer-push-string-char!
         lexer-move!
-        lexer-peek is-string-end? not
+        lexer-peek
     )
     drop
 
@@ -1473,11 +1446,7 @@ def(lexer-push-string-char!, Char -- +Lexer,
     ))
 
 def(lexer-skip-comment!, +Lexer,
-    lexer-comment-end? not while(
-        drop
-        lexer-move!
-        lexer-comment-end? not
-    )
+    while(lexer-comment-end? not, lexer-move!)
     lexer-peek is-newline? if(
         lexer-emit-newline! drop,
         drop
@@ -1604,12 +1573,11 @@ def(vstack-top!, I64 -- +VSTACK,
     ))
 
 def(vstack-trace!, +VSTACK +IO,
-    0 dup vstack-len@ < while(
-        drop
+    0
+    while(dup vstack-len@ <,
         dup vstack-i64@
         int-trace-sp!
         1+
-        dup vstack-len@ <
     ) drop trace-ln!)
 
 ###############
@@ -1657,11 +1625,8 @@ def(lexer-emit-fatal-error!, Str -- +IO,
 # Run directly from tokens! (FIXME: Use this only for top-level code.)
 # No type checking. (FIXME: Add dynamic types.)
 def(token-run!, Token -- +Mirth,
-    token-run-end? not while(
-        drop
-        token-run-one!
-        token-run-end? not
-    ) drop)
+    while(token-run-end? not, token-run-one!)
+    drop)
 
 # Is this a token to stop running at?
 def(token-run-end?, Token -- Token Bool +Mirth,
@@ -1761,14 +1726,10 @@ def(token-run-prim!, Token --,
 
     dup PRIM_WHILE = if(
         drop
-        1 0 arity-check!
-        token-args-1
-        vstack-pop! while(
-            vstack-push!
-            dup token-run!
-            vstack-pop!
-        )
-        drop,
+        0 0 arity-check!
+        token-args-2
+        while(over token-run! vstack-pop!, dup token-run!)
+        drop2,
 
     dup PRIM_INT_ADD = if(
         drop
@@ -2255,11 +2216,7 @@ def(token-args-3, Token -- Token Token Token,
 # Get closest arg ending (COMMA or RPAREN),
 # while respecting the nesting of tokens.
 def(token-next-arg-end, Token -- Token,
-    token-is-arg-end? not while(
-        drop
-        token-next
-        token-is-arg-end? not
-    ))
+    while(token-is-arg-end? not, token-next))
 
 # Get next token, respecting nesting of tokens.
 def(token-next, Token -- Token,
@@ -2419,11 +2376,10 @@ def(tstack-leave!, --,
 def(tstack-frame-dup!, -- +TSTACK,
     tstack-len@ tstack-base@
     tstack-enter!
-    dup2 > while(
-        drop
+    while(dup2 >,
         dup tstack@ tstack-push!
-        1+ dup2 >
-    ) drop2)
+        1+)
+    drop2)
 
 quad def-static-buffer(TSTACK_NUM_STASHES)
 def(tstack-num-stashes@, Size +TSTACK, TSTACK_NUM_STASHES @)
@@ -2536,18 +2492,15 @@ def(typecheck-word-sig!, Token --,
     ))
 
 def(typecheck-sig-inputs!, Token -- Token,
-    token-is-dashes? not while(
-        drop
+    while(token-is-dashes? not,
         dup typecheck-sig-input-token!
-        1+ token-is-dashes? not
-    ))
+        1+))
 
 def(typecheck-sig-outputs!, Token --,
-    token-is-arg-end? not while(
-        drop
+    while(token-is-arg-end? not,
         dup typecheck-sig-output-token!
-        1+ token-is-arg-end? not
-    ) drop)
+        1+)
+    drop)
 
 def(typecheck-sig-input-token!, Token --,
     sig-token-is-type-con? if(
@@ -2583,12 +2536,10 @@ def(typecheck-buffer!, Name --,
     drop) # FIXME: check the type
 
 def(typecheck-run!, Token --,
-    token-is-arg-end? not while(
-        drop
+    while(token-is-arg-end? not,
         dup typecheck-run-one!
-        token-next
-        token-is-arg-end? not
-    ) drop)
+        token-next)
+    drop)
 
 def(typecheck-run-one!, Token --,
     dup typecheck-token!
@@ -2662,13 +2613,17 @@ def(typecheck-run-prim!, Token --,
         drop,
 
     dup PRIM_WHILE = if(
-        drop 1 0 tstack-arity-check! dup token-args-1
+        drop 0 0 tstack-arity-check! dup token-args-2
         # FIXME: check that tstack top is TYPE_BOOL
+        tstack-frame-dup!
+        tstack-frame-stash!
+        dip(typecheck-run!
+            tstack-pop! drop
+            tstack-frame-unify!)
         tstack-frame-dup!
         tstack-frame-stash!
         typecheck-run!
         tstack-frame-unify!
-        tstack-pop! drop
         drop,
 
     dup PRIM_INT_ADD = if(
@@ -2855,9 +2810,8 @@ def(sig-dashes-end?, Token -- Token Bool,
     ))
 
 def(sig-has-dashes, Token -- Bool,
-    sig-dashes-end? not while(
-        drop token-next sig-dashes-end? not
-    ) token-is-dashes)
+    while(sig-dashes-end? not, token-next)
+    token-is-dashes)
 
 def(sig-has-dashes?, Token -- Token Bool,
     dup sig-has-dashes)
@@ -2875,10 +2829,10 @@ def(sig-arity, Token -- Int Int,
     ))
 
 def(sig-count-types, Token -- Int Token,
-    dip(0) sig-dashes-end? not while(
-        drop
+    dip(0)
+    while(sig-dashes-end? not,
         sig-token-is-type? if(dip(1+), id)
-        token-next sig-dashes-end? not
+        token-next
     ))
 
 def(sig-token-is-type?, Token -- Token Bool,
@@ -2907,9 +2861,7 @@ def(sig-token-is-effect-con?, Token -- Token Bool,
 
 def(sig-push-inputs!, Token -- +TSTACK,
     sig-has-dashes? if(
-        sig-dashes-end? not while(
-            drop
-
+        while(sig-dashes-end? not,
             sig-token-is-type-con? if(
                 token-name? name-is-type? if(
                     name-value@ tstack-push!,
@@ -2924,7 +2876,7 @@ def(sig-push-inputs!, Token -- +TSTACK,
                 "Expected type."
                 emit-fatal-error! 0
             ))
-            token-next sig-dashes-end? not
+            token-next
         ) drop,
 
         drop
@@ -2932,9 +2884,7 @@ def(sig-push-inputs!, Token -- +TSTACK,
 
 def(sig-skip-dashes, Token -- Token,
     sig-has-dashes? if(
-        token-is-dashes? not while(
-            drop 1+ token-is-dashes? not
-        ) 1+,
+        while(token-is-dashes? not, 1+) 1+,
         id
     ))
 
@@ -3006,15 +2956,8 @@ def(sig-pop-inputs-aux!, Token -- +TSTACK,
 
 def(sig-push-outputs!, Token Token -- +TSTACK,
     dip(elab-token!)
-    sig-has-dashes? if(
-        token-is-dashes? not while(
-            drop 1+ token-is-dashes? not
-        ) 1+,
-        id
-    )
-
-    token-is-arg-end? not while(
-        drop
+    sig-skip-dashes
+    while(token-is-arg-end? not,
         sig-token-is-type-con? if(
             token-name? name-value@ tstack-push!,
 
@@ -3027,8 +2970,7 @@ def(sig-push-outputs!, Token Token -- +TSTACK,
             # unknown, but error is caught elsewhere
             0 tstack-push!
         )))
-        1+ token-is-arg-end? not
-    )
+        token-next)
     drop)
 
 #########
@@ -3388,7 +3330,7 @@ def(.b, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
     codegen-length@ dup 1+ codegen-length! codegen-u8!)
 
-def(., Str -- +Codegen, dup u8@ while(.b str-tail dup u8@) drop)
+def(., Str -- +Codegen, while(dup u8@, dup u8@ .b str-tail) drop)
 
 def(codegen-start!, File -- +Codegen,
     codegen-file! 0 codegen-length!)
@@ -3467,22 +3409,20 @@ def(c99-emit-header!, +IO,
 def(c99-emit-strings!, +IO,
     "#define STRINGS_SIZE " . strings-size@ .n "" ;
     "static const char strings[STRINGS_SIZE] = { " ;
-    0 dup strings-size@ < while(
-        drop
+    0
+    while(dup strings-size@ <,
         dup STRINGS_BUF u8@@ dup U8->Int .n "," .
         if(id, .lf)
-        1+ dup strings-size@ <
+        1+
     ) drop
     "};" ;;)
 
 def(c99-emit-buffers!, +IO,
     0
-    dup num-names@ < while(
-        drop
+    while(dup num-names@ <,
         dup c99-emit-buffer!
-        1+
-        dup num-names@ <
-    ) "" ; drop)
+        1+)
+    .lf drop)
 
 def(c99-emit-buffer!, Name -- +IO,
     name-is-buffer? if(
@@ -3826,14 +3766,11 @@ def(c99-emit-prims!, +IO,
     )
 
 def(c99-emit-externals!, +IO,
-    0 dup num-names@ < while(
-        drop
+    0
+    while(dup num-names@ <,
         dup c99-emit-external!
-        1+
-        dup num-names@ <
-    )
-    "" ;
-    drop)
+        1+)
+    .lf drop)
 
 def(c99-emit-external!, Name -- +IO,
     name-is-external? if(
@@ -3850,29 +3787,29 @@ def(c99-emit-external!, Name -- +IO,
         " (" .
         over dup if(
             "i64" .
-            1- while(
+            1- while(dup,
                 ", i64" .
                 1-
-            ),
+            ) drop,
             drop
         ) ");" ;
 
         " void mw" . dip(dip(dup .name)) " (void) {" ;
-        over while(
+        over while(dup,
             "    i64 x" . dup .n " = pop();" ;
             1-
-        )
+        ) drop
         dup if("    push(", "    ") .
         dip(dip(dup .name))
         "(" .
         dip(dup if(
             "x1" .
             dup 1-
-            while(
+            while(dup,
                 ", x" .
                 dup2 - 1+ .n
                 1-
-            ),
+            ) drop,
             id
         ))
         ")" .
@@ -3886,11 +3823,9 @@ def(c99-emit-external!, Name -- +IO,
 
 def(c99-emit-word-sigs!, +IO,
     0
-    dup num-names@ < while(
-        drop
+    while(dup num-names@ <,
         dup c99-emit-word-sig!
         1+
-        dup num-names@ <
     )
     "" ;
     drop)
@@ -3903,12 +3838,9 @@ def(c99-emit-word-sig!, Name -- +IO,
 
 def(c99-emit-word-defs!, +IO,
     0
-    dup num-names@ < while(
-        drop
+    while(dup num-names@ <,
         dup c99-emit-word-def!
-        1+
-        dup num-names@ <
-    )
+        1+)
     drop)
 
 def(c99-emit-word-def!, Name -- +IO,
@@ -3922,11 +3854,9 @@ def(c99-emit-word-def!, Name -- +IO,
 
 def(c99-emit-run!, Token -- +IO,
     c99-depth++
-    token-run-end? not while(
-        drop
+    while(token-run-end? not,
         dup c99-emit-token!
         token-next
-        token-run-end? not
     ) drop
     c99-depth--)
 
@@ -3961,11 +3891,10 @@ def(c99-emit-word!, Token -- +IO,
         "    }" ;,
 
     token-name? PRIM_WHILE = if(
-        token-args-1
-        "    for (i64 c" . .d
-        " = pop(); c" . .d
-        "; c" . .d " = pop()) {" ;
-        "    push(c" . .d ");" ;
+        token-args-2
+        "    while(1) {" ;
+        dip(c99-emit-run!)
+        "    if (!pop()) break;" ;
         c99-emit-run!
         "    }" ;,
 
@@ -4113,7 +4042,7 @@ def(main, +IO,
 def(NEW_MIRTH_REVISION, Int, 0)
 
 "mirth.c" output-c99(main)
-#"mirth_prof.c" output-c99(100 while(main 1-))
+#"mirth_prof.c" output-c99(100 while-old(main 1-))
 
 #################
 # SDL2 Bindings #
@@ -4364,10 +4293,10 @@ def(snake-grid@, XCoord YCoord -- State +Snake,
 def(snake-grid!, State XCoord YCoord -- +Snake,
     coords-offset SNAKE_GRID u8!!)
 def(snake-grid-clear!, +Snake,
-    SNAKE_W SNAKE_H * while(
+    SNAKE_W SNAKE_H * while(dup,
         1-
         0 Int->U8 over SNAKE_GRID u8!!
-    ))
+    ) drop)
 
 def(snake-queue-length@, -- Size +Snake, SNAKE_QUEUE_LENGTH @)
 def(snake-queue-length!, Size -- +Snake, SNAKE_QUEUE_LENGTH !)
@@ -4393,12 +4322,11 @@ def(snake-enqueue-xy!, XCoord YCoord -- +Snake,
 
 def(snake-dequeue-xy!, -- XCoord YCoord +Snake,
     0 snake-queue-xy@
-    0 dup 1+ snake-queue-length@ < while(
-        drop
+    0
+    while(dup 1+ snake-queue-length@ <,
         dup
-        dip(1+ snake-queue-xy?) snake-queue-xy!
-        dup 1+ snake-queue-length@ <
-    ) drop
+        dip(1+ snake-queue-xy?) snake-queue-xy!)
+    drop
     snake-queue-length@ 1- snake-queue-length!)
 
 def(SNAKE_CELL_SIZE, Int, 30)
@@ -4481,15 +4409,11 @@ def(snake-init!, +Snake,
 
 def(snake-loop!, +Snake,
     snake-process-events!
-    snake-done@ not while(
-        drop
+    while(snake-done@ not,
         snake-present!
         0 ms SDL_Delay # TODO: use a self-adjusting delay to interval reduce input latency.
         snake-process-events!
-        snake-done@ not if(
-            snake-update! 1,
-            0
-        )
+        snake-update!
     ))
 
 def(snake-quit!, +Snake,
@@ -4534,24 +4458,20 @@ def(snake-present!, +Snake,
     snake-renderer@ snake-foreground-color SDL_SetRenderDrawColor
     snake-xy@ snake-rect-cell!
     snake-renderer@ SNAKE_RECT SDL_RenderFillRect
-    0 dup snake-queue-length@ < while(
-        drop
+    0
+    while(dup snake-queue-length@ <,
         snake-queue-xy? snake-rect-cell!
         snake-renderer@ SNAKE_RECT SDL_RenderFillRect
-        1+ dup snake-queue-length@ <
-    ) drop
+        1+)
+    drop
     snake-mouse-xy@ snake-rect-cell!
     snake-renderer@ SNAKE_RECT SDL_RenderFillRect
 
     snake-renderer@ SDL_RenderPresent)
 
 def(snake-process-events!, +Snake,
-    SNAKE_EVENT SDL_PollEvent while(
-        drop
-        snake-process-event!
-        snake-done@ not
-        if(SNAKE_EVENT SDL_PollEvent, 0)
-    ))
+    while(SNAKE_EVENT SDL_PollEvent,
+        snake-process-event!))
 
 def(snake-process-event!, +Snake,
     SNAKE_EVENT SDL_Event.type
