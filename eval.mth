@@ -1,0 +1,744 @@
+module(eval)
+import(prelude)
+import(names)
+import(strings)
+import(tokens)
+
+###############
+# Value Stack #
+###############
+
+def(VSTACK_SIZE, Size, 0x100)
+quad def-static-buffer(VSTACK_LEN)
+VSTACK_SIZE quads def-static-buffer(VSTACK_BUF)
+
+def(vstack-len@, usize +VSTACK, VSTACK_LEN @)
+def(vstack-len!, usize -- +VSTACK, VSTACK_LEN !)
+def(vstack-empty?, Bool +VSTACK, vstack-len@ 0 <=)
+def(vstack-full?, Bool +VSTACK, vstack-len@ VSTACK_SIZE >=)
+def(vstack-i64@, usize -- v +VSTACK, VSTACK_BUF quad@@)
+def(vstack-i64!, v usize -- +VSTACK, VSTACK_BUF quad!!)
+
+def(vstack-pop!, v1 +VSTACK,
+    vstack-empty? if(
+        "stack underflow: attempted to pop on empty vstack" panic! 0,
+        vstack-len@ 1- vstack-len!
+        vstack-len@ vstack-i64@
+    ))
+
+def(vstack-pop2!, v1 v2 +VSTACK,
+    vstack-pop! dip(vstack-pop!))
+
+def(vstack-pop3!, v1 v2 v3 +VSTACK,
+    vstack-pop! dip(vstack-pop2!))
+
+def(vstack-pop4!, v1 v2 v3 v4 +VSTACK,
+    vstack-pop! dip(vstack-pop3!))
+
+def(vstack-pop5!, v1 v2 v3 v4 v5 +VSTACK,
+    vstack-pop! dip(vstack-pop4!))
+
+def(vstack-pop6!, v1 v2 v3 v4 v5 v6 +VSTACK,
+    vstack-pop! dip(vstack-pop5!))
+
+def(vstack-push!, v1 -- +VSTACK,
+    vstack-full? if(
+        "vstack overflow" panic! drop,
+        vstack-len@ vstack-i64!
+        vstack-len@ 1+ vstack-len!
+    ))
+
+def(vstack-push2!, v1 v2 -- +VSTACK,
+    dip(vstack-push!) vstack-push!)
+
+def(vstack-push3!, v1 v2 v3 -- +VSTACK,
+    dip(vstack-push2!) vstack-push!)
+
+def(vstack-top@, I64 +VSTACK,
+    vstack-empty? if(
+        "vstack underflow" panic! 0,
+        vstack-len@ 1- vstack-i64@
+    ))
+
+def(vstack-top!, I64 -- +VSTACK,
+    vstack-empty? if(
+        "stack underflow: attempted to write to top of empty vstack" panic! drop,
+        vstack-len@ 1- vstack-i64!
+    ))
+
+def(vstack-trace!, +VSTACK +IO,
+    0
+    while(dup vstack-len@ <,
+        dup vstack-i64@
+        int-trace-sp!
+        1+
+    ) drop trace-ln!)
+
+###########
+# Running #
+###########
+
+# Run directly from tokens! (FIXME: Use this only for top-level code.)
+# No type checking. (FIXME: Add dynamic types.)
+def(token-run!, Token -- +Mirth,
+    while(token-run-end? not, token-run-one!)
+    drop)
+
+# Is this a token to stop running at?
+def(token-run-end?, Token -- Token Bool +Mirth,
+    dup num-tokens@ >= if(
+        1,
+    token-type? TOKEN_NONE = if(
+        1,
+    token-type? TOKEN_COMMA = if(
+        1,
+        token-type? TOKEN_RPAREN =
+    ))))
+
+# Run a single token, return next token.
+def(token-run-one!, Token -- Token +Mirth,
+    dup typecheck-token!
+
+    token-type? TOKEN_INT = if(
+        0 1 arity-check!
+        token-int? vstack-push!,
+    token-type? TOKEN_STR = if(
+        0 1 arity-check!
+        token-str? vstack-push!,
+    token-type? TOKEN_LPAREN = if(
+        token-value@,
+    token-type? TOKEN_NAME = if(
+        dup token-run-name!,
+
+        dup "Unexpected token type in token-run!" emit-fatal-error!
+    )))) 1+)
+
+# Run a single name token.
+def(token-run-name!, Token -- +Mirth,
+    token-name?
+
+    name-is-prim? if(
+        drop token-run-prim!,
+
+    name-undefined? if(
+        drop "Word is undefined." emit-fatal-error!,
+
+    name-is-word? if(
+        nip name-value@ token-run!,
+
+    name-is-buffer? if(
+        nip name-value@ buffer-base@ vstack-push!,
+
+        drop "Don't know how to run word." emit-fatal-error!
+    )))))
+
+# Run a single primitive name token.
+def(token-run-prim!, Token --,
+
+    token-name?
+
+    dup PRIM_ID = if(
+        drop
+        0 0 arity-check!
+        token-args-0,
+
+    dup PRIM_SWAP = if(
+        drop
+        2 2 arity-check!
+        token-args-0
+        vstack-pop2!
+        swap
+        vstack-push2!,
+
+    dup PRIM_DUP = if(
+        drop
+        1 2 arity-check!
+        token-args-0
+        vstack-pop!
+        dup
+        vstack-push2!,
+
+    dup PRIM_DROP = if(
+        drop
+        1 0 arity-check!
+        token-args-0
+        vstack-pop!
+        drop,
+
+    dup PRIM_DIP = if(
+        drop
+        1 1 arity-check!
+        token-args-1
+        vstack-pop!
+        dip(token-run!)
+        vstack-push!,
+
+    dup PRIM_IF = if(
+        drop
+        1 0 arity-check!
+        token-args-2
+        vstack-pop!
+        if(drop, nip) token-run!,
+
+    dup PRIM_WHILE = if(
+        drop
+        0 0 arity-check!
+        token-args-2
+        while(over token-run! vstack-pop!, dup token-run!)
+        drop2,
+
+    dup PRIM_INT_ADD = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        +
+        vstack-push!,
+
+    dup PRIM_INT_SUB = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        -
+        vstack-push!,
+
+    dup PRIM_INT_MUL = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        *
+        vstack-push!,
+
+    dup PRIM_INT_DIV = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        /
+        vstack-push!,
+
+    dup PRIM_INT_MOD = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        %
+        vstack-push!,
+
+    dup PRIM_INT_EQ = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        =
+        vstack-push!,
+
+    dup PRIM_INT_LT = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        <
+        vstack-push!,
+
+    dup PRIM_INT_LE = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        <=
+        vstack-push!,
+
+    dup PRIM_INT_AND = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        &
+        vstack-push!,
+
+    dup PRIM_INT_OR = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        |
+        vstack-push!,
+
+    dup PRIM_INT_XOR = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        ^
+        vstack-push!,
+
+    dup PRIM_INT_SHL = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        <<
+        vstack-push!,
+
+    dup PRIM_INT_SHR = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        >>
+        vstack-push!,
+
+    dup PRIM_MEM_GET = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        @
+        vstack-push!,
+
+    dup PRIM_MEM_SET = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        !,
+
+    dup PRIM_MEM_GET_BYTE = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        u8@
+        vstack-push!,
+
+    dup PRIM_MEM_SET_BYTE = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        u8!,
+
+    dup PRIM_MEM_GET_U8 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        u8@
+        vstack-push!,
+    dup PRIM_MEM_GET_U16 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        u16@
+        vstack-push!,
+    dup PRIM_MEM_GET_U32 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        u32@
+        vstack-push!,
+    dup PRIM_MEM_GET_U64 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        u64@
+        vstack-push!,
+    dup PRIM_MEM_GET_I8 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        i8@
+        vstack-push!,
+    dup PRIM_MEM_GET_I16 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        i16@
+        vstack-push!,
+    dup PRIM_MEM_GET_I32 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        i32@
+        vstack-push!,
+    dup PRIM_MEM_GET_I64 = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        i64@
+        vstack-push!,
+
+    dup PRIM_MEM_SET_U8 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        u8!,
+
+    dup PRIM_MEM_SET_U16 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        u16!,
+
+    dup PRIM_MEM_SET_U32 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        u32!,
+
+    dup PRIM_MEM_SET_U64 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        u64!,
+
+    dup PRIM_MEM_SET_I8 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        i8!,
+
+    dup PRIM_MEM_SET_I16 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        i16!,
+
+    dup PRIM_MEM_SET_I32 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        i32!,
+
+    dup PRIM_MEM_SET_I64 = if(
+        drop
+        2 0 arity-check!
+        token-args-0
+        vstack-pop2!
+        i64!,
+
+    dup PRIM_POSIX_MMAP = if(
+        drop
+        6 1 arity-check!
+        token-args-0
+        vstack-pop6!
+        posix-mmap!
+        vstack-push!,
+
+    dup PRIM_POSIX_WRITE = if(
+        drop
+        3 0 arity-check!
+        token-args-0
+        vstack-pop3!
+        posix-write!,
+
+    dup PRIM_POSIX_READ = if(
+        drop
+        3 1 arity-check!
+        token-args-0
+        vstack-pop3!
+        posix-read!
+        vstack-push!,
+
+    dup PRIM_POSIX_OPEN = if(
+        drop
+        3 1 arity-check!
+        token-args-0
+        vstack-pop3!
+        posix-open!
+        vstack-push!,
+
+    dup PRIM_POSIX_CLOSE = if(
+        drop
+        1 1 arity-check!
+        token-args-0
+        vstack-pop!
+        posix-close!
+        vstack-push!,
+
+    dup PRIM_POSIX_EXIT = if(
+        drop 1 0 arity-check! token-args-0
+        vstack-pop! posix-exit!,
+
+    dup PRIM_DEBUG = if(
+        drop 0 0 arity-check! token-args-0
+        "?? " str-trace!
+        vstack-trace!,
+
+    dup PRIM_DEF = if(
+        drop
+        0 0 arity-check!
+        token-args-3
+        rotl token-type? TOKEN_NAME = if(
+            token-name? name-undefined? if(
+                nip
+                DEF_WORD over name-sort!
+                dup dip(name-value!)
+                name-sig!,
+                drop "word already defined" emit-fatal-error! drop2
+            ),
+            "expected word name" emit-fatal-error! drop2
+        ),
+
+    dup PRIM_DEF_TYPE = if(
+        drop
+        0 0 arity-check!
+        token-args-2
+        swap sig-token-is-type-con? if(
+            token-name? name-undefined? if(
+                nip swap
+                sig-token-is-type-con? if(
+                    token-name?
+                    name-is-type? if(
+                        name-value@ nip,
+                        drop "Unknown type." emit-error!
+                        TYPE_ERROR
+                    ),
+                    "Expected a type." emit-error!
+                    TYPE_ERROR
+                )
+                over name-value!
+                DEF_TYPE swap name-sort!,
+
+                drop "type already defined" emit-fatal-error! drop
+            ),
+            "expected type constructor" emit-fatal-error! drop
+        ),
+
+    dup PRIM_DEF_STATIC_BUFFER = if(
+        drop
+        1 0 arity-check!
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-name? name-undefined? if(
+                nip
+                DEF_BUFFER over name-sort!
+                vstack-pop! buffer-alloc! swap name-value!,
+                drop "buffer already defined" emit-fatal-error!
+            ),
+            "expected buffer name" emit-fatal-error!
+        ),
+
+    dup PRIM_DEF_EXTERNAL = if(
+        drop
+        token-args-2
+        swap token-type? TOKEN_NAME = if(
+            token-name? name-undefined? if(
+                nip DEF_EXTERNAL over name-sort!
+                name-sig!,
+                drop2 "word already defined" emit-fatal-error!
+            ),
+            nip "expected name" emit-fatal-error!
+        ),
+
+    dup PRIM_MODULE = if(
+        drop
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-name?
+            name-is-module? if(
+                drop2,
+
+            name-undefined? if(
+                # just reserve the module name for now
+                nip DEF_MODULE swap name-sort!,
+
+                drop "module name is already taken" emit-fatal-error!
+            )),
+
+            "expected module name" emit-fatal-error!
+        ),
+
+    dup PRIM_IMPORT = if(
+        drop
+        token-args-1
+        token-type? TOKEN_NAME = if(
+            token-name?
+            name-is-module? if(
+                drop2, # module is already loaded
+
+            name-undefined? if(
+                DEF_MODULE over name-sort!
+
+                name-load! ".mth" str-buf-push-str!
+                STR_BUF 0 0 posix-open!
+                dup 0 < if(
+                    drop "failed to open module" emit-fatal-error!,
+                    dip(drop num-tokens@)
+                    run-lexer!
+                    token-run! # run the imported module
+
+
+   #                 token-run!
+                ),
+
+                drop "module name is already taken" emit-fatal-error!
+            )),
+
+            "expected module name" emit-fatal-error!
+        ),
+
+    dup PRIM_MIRTH_REVISION = if(
+        drop
+        0 1 arity-check!
+        token-args-0
+        NEW_MIRTH_REVISION
+        vstack-push!,
+
+    dup PRIM_RUNNING_OS = if(
+        drop
+        0 1 arity-check!
+        token-args-0
+        RUNNING_OS
+        vstack-push!,
+
+    dup PRIM_OUTPUT_C99 = if(
+        drop
+        1 0 arity-check!
+        token-args-1
+        vstack-pop!
+        run-output-c99!,
+
+        drop
+        "Dont know how to run prim yet." emit-fatal-error!
+    )))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+
+# Assert stack arity of a primitive. If the
+# arity would result in underflow/overflow,
+# emits a fatal error.
+def(arity-check!, Token Size Size -- Token,
+    dip(dip(vstack-len@))
+    dip(dup2 <) swap if(
+        drop drop2 "Stack underflow." emit-fatal-error! 0,
+        dip(-) + VSTACK_SIZE > if(
+            "Stack overflow." emit-fatal-error! 0,
+            id
+        )
+    ))
+
+# Verify that token has 0 args, and return them.
+# Emits a fatal error if arity is wrong.
+def(token-args-0, Token --,
+    1+ token-type?
+    TOKEN_LPAREN = if(
+        "expected no args"
+        emit-fatal-error!,
+        drop
+    ))
+
+# Verify that token has 1 arg, and return it.
+# Emits a fatal error if arity is wrong.
+def(token-args-1, Token -- Token,
+    dup
+    1+ token-type?
+    TOKEN_LPAREN = if(
+        1+
+        tuck token-next-arg-end
+        token-type? TOKEN_RPAREN = if(
+            drop2,
+            drop
+            "expected 1 arg, got too many"
+            emit-fatal-error!
+        ),
+        drop
+        "expected 1 arg, got none"
+        emit-fatal-error! 0
+    ))
+
+# Verify that token has 2 args, and return them.
+# Emits a fatal error if arity is wrong.
+def(token-args-2, Token -- Token Token,
+    dup
+    1+ token-type?
+    TOKEN_LPAREN = if(
+        1+ tuck token-next-arg-end
+        token-type? TOKEN_COMMA = if(
+            1+ tuck token-next-arg-end
+            token-type? TOKEN_RPAREN = if(
+                drop2,
+                drop
+                "expected 2 args, got too many"
+                emit-fatal-error!
+            ),
+            drop
+            "expected 2 args, got only 1"
+            emit-fatal-error! 0
+        ),
+        drop
+        "expected 2 args, got none"
+        emit-fatal-error! 0 0
+    ))
+
+# Verify that token has 3 args, and return them.
+# Emits a fatal error if arity is wrong.
+def(token-args-3, Token -- Token Token Token,
+    dup
+    1+ token-type?
+    TOKEN_LPAREN = if(
+        1+ tuck token-next-arg-end
+        token-type? TOKEN_COMMA = if(
+            1+ tuck token-next-arg-end
+            token-type? TOKEN_COMMA = if(
+                1+ tuck token-next-arg-end
+                token-type? TOKEN_RPAREN = if(
+                    drop2,
+                    drop
+                    "expected 3 args, got too many"
+                    emit-fatal-error!
+                ),
+                drop
+                "expected 3 args, got only 2"
+                emit-fatal-error! 0
+            ),
+            drop
+            "expected 3 args, got only 1"
+            emit-fatal-error! 0 0
+        ),
+        drop
+        "expected 3 args, got none"
+        emit-fatal-error! 0 0 0
+    ))
+
+# Get closest arg ending (COMMA or RPAREN),
+# while respecting the nesting of tokens.
+def(token-next-arg-end, Token -- Token,
+    while(token-is-arg-end? not, token-next))
+
+# Get next token, respecting nesting of tokens.
+def(token-next, Token -- Token,
+    token-type? TOKEN_LPAREN = if(
+        token-token@ 1+,
+
+    token-type? TOKEN_NAME = if(
+        1+
+        token-type? TOKEN_LPAREN = if(
+            token-token@ 1+,
+            id
+        ),
+
+        1+
+    )))
+
+# Is this an arg ending (COMMA or RPAREN)?
+def(token-is-arg-end?, Token -- Token Bool,
+    token-type? TOKEN_COMMA = if(
+        1,
+        token-type? TOKEN_RPAREN =
+    ))

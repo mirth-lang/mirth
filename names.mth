@@ -392,3 +392,42 @@ def(init-names!, +Names,
     NUM_PRIMS num-names@ = if(id,
         "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
     )
+
+
+########
+# Defs #
+########
+
+def-type(Value, Int)
+
+def-type(Sort, U8)
+def(DEF_NONE, Sort, 0 Int->U8)
+def(DEF_WORD, Sort, 1 Int->U8)
+def(DEF_BUFFER, Sort, 2 Int->U8)
+def(DEF_TYPE, Sort, 3 Int->U8)
+def(DEF_EXTERNAL, Sort, 4 Int->U8)
+def(DEF_MODULE, Sort, 5 Int->U8)
+
+MAX_NAMES u8s def-static-buffer(DEF_SORT)
+MAX_NAMES quads def-static-buffer(DEF_VALUE)
+MAX_NAMES quads def-static-buffer(DEF_SIG)
+
+def(name-sort!, Sort Name --, DEF_SORT u8!!)
+def(name-sort@, Name -- Sort, DEF_SORT u8@@)
+def(name-sort?, Name -- Name Sort, dup name-sort@)
+
+def(name-value!, Value Name --, DEF_VALUE quad!!)
+def(name-value@, Name -- Value, DEF_VALUE quad@@)
+def(name-value?, Name -- Name Value, dup name-value@)
+
+def(name-sig!, Token Name --, DEF_SIG quad!!)
+def(name-sig@, Name -- Token, DEF_SIG quad@@)
+def(name-sig?, Name -- Name Token, dup name-sig@)
+
+def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
+def(name-defined?, Name -- Name Bool, name-undefined? not)
+def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD =)
+def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
+def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE =)
+def(name-is-external?, Name -- Name Bool, name-sort? DEF_EXTERNAL =)
+def(name-is-module?, Name -- Name Bool, name-sort? DEF_MODULE =)
