@@ -47,8 +47,9 @@ CORE_SIZE def-static-buffer(CORE_BUF)
 # Pointer to a core instruction. 28 bits wide.
 def-type(CorePtr, I32) # actually U28
 
-# Output value of core instruction.
-# The lower 4 bits are used to indicate which output
+# Output value of a core instruction.
+# The higher 28 bits indicate the instruction, the lower
+# 4 bits indicate which output to care about.
 def-type(CoreVal, U32)
 
 def(CoreVal->CorePtr, CoreVal -- CorePtr,

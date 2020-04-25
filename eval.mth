@@ -575,19 +575,13 @@ def(token-run-prim!, Token --,
                 drop2, # module is already loaded
 
             name-undefined? if(
-                DEF_MODULE over name-sort!
+                nip DEF_MODULE over name-sort!
 
                 name-load! ".mth" str-buf-push-str!
-                STR_BUF 0 0 posix-open!
-                dup 0 < if(
-                    drop "failed to open module" emit-fatal-error!,
-                    dip(drop num-tokens@)
-                    run-lexer!
-                    token-run! # run the imported module
 
-
-   #                 token-run!
-                ),
+                num-tokens@
+                STR_BUF run-lexer!
+                token-run!, # run the imported module
 
                 drop "module name is already taken" emit-fatal-error!
             )),

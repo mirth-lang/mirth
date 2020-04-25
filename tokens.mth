@@ -88,6 +88,10 @@ def(token-token@, Token -- Token,
     )))
 def(token-token?, Token -- Token Token, dup token-token@)
 
+MAX_TOKENS u16s def-static-buffer(TOKEN_MODULE)
+def(token-module!, Module Token --, TOKEN_MODULE u16!!)
+def(token-module@, Token -- Module, TOKEN_MODULE u16@@)
+def(token-module?, Token -- Token Module, dup token-module@)
 
 MAX_TOKENS u16s def-static-buffer(TOKEN_ROW)
 def(token-row!, Row Token --, TOKEN_ROW u16!!)
@@ -110,11 +114,13 @@ def(token-new, -- Token,
     ))
 
 def(token-trace-prefix!, Token -- +IO,
+    token-module? module-path@ str-trace! ":" str-trace!
     token-row? Row->Int int-trace! ":" str-trace!
     token-col? Col->Int int-trace! ":" str-trace-sp!
     drop)
 
 def(token-print-prefix!, Token -- +IO,
+    token-module? module-path@ str-print! ":" str-print!
     token-row? Row->Int int-print! ":" str-print!
     token-col? Col->Int int-print! ":" str-print-sp!
     drop)

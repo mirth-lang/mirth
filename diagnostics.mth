@@ -8,13 +8,11 @@ import(lexer) # probably should go the other way ...
 ###############
 
 def(emit-warning!, Token Str -- +IO,
-    "mirth.mth:" str-trace!
     dip(token-trace-prefix!)
     "warning: " str-trace!
     str-trace-ln!)
 
 def(emit-error!, Token Str -- +IO,
-    "mirth.mth:" str-trace!
     dip(token-trace-prefix!)
     "error: " str-trace!
     str-trace-ln!)
@@ -26,13 +24,11 @@ def(emit-fatal-error!, Token Str -- +IO,
     1 posix-exit!)
 
 def(lexer-emit-warning!, Str -- +IO,
-    "mirth.mth:" str-trace!
     lexer-trace-prefix!
     "warning: " str-trace!
     str-trace-ln!)
 
 def(lexer-emit-error!, Str -- +IO,
-    "mirth.mth:" str-trace!
     lexer-trace-prefix!
     "error: " str-trace!
     str-trace-ln!)

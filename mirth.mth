@@ -1,6 +1,7 @@
 module(mirth)
 
 import(prelude)
+import(modules)
 import(math)
 import(input)
 import(names)
@@ -15,6 +16,7 @@ import(elab)
 import(core)
 
 def(init!, +IO,
+    init-modules!
     init-strings!
     init-tokens!
     init-names!
@@ -29,7 +31,7 @@ def(init!, +IO,
 def(main, +IO,
     init!
     run-tests
-    open-mirth-src! run-lexer!
+    "mirth.mth" run-lexer!
 
     # show-names-table!
     # show-tokens!

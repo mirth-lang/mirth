@@ -9,6 +9,10 @@ import(tokens)
 # LEXER #
 #########
 
+u16 def-static-buffer(LEXER_MODULE)
+def(lexer-module@, -- Module +Lexer, LEXER_MODULE u16@)
+def(lexer-module!, Module -- +Lexer, LEXER_MODULE u16!)
+
 u16 def-static-buffer(LEXER_ROW)
 def(lexer-row@, -- Row +Lexer, LEXER_ROW u16@)
 def(lexer-row!, Row -- +Lexer, LEXER_ROW u16!)
@@ -52,12 +56,16 @@ def(lexer-stack-pop!, -- Token +Lexer,
         LEXER_STACK_BUF quad@@
     ))
 
-def(run-lexer!, File -- +Lexer,
+def(run-lexer!, Path -- +Lexer,
+    dup new-module! lexer-module!
 
+    open-file!
     input-start!
 
     1 Int->U16 lexer-row!
     1 Int->U16 lexer-col!
+
+    num-tokens@ lexer-module@ module-start!
 
     while(lexer-done? not, lexer-next!)
 
@@ -69,7 +77,10 @@ def(run-lexer!, File -- +Lexer,
         lexer-stack-pop!
         "Mismatched left parenthesis."
         emit-fatal-error!
-    ))
+    )
+
+    num-tokens@ lexer-module@ module-end!)
+
 
 # Is the lexer done?
 def(lexer-done?, Bool +Lexer, input-done?)
@@ -80,6 +91,7 @@ def(lexer-make!, TokenType TokenValue -- Token,
     token-new
     dup dip(token-value!)
     dup dip(token-type!)
+    dip(lexer-module@) dup dip(token-module!)
     dip(lexer-row@) dup dip(token-row!)
     dip(lexer-col@) dup dip(token-col!))
 
@@ -372,5 +384,6 @@ def(in-range, Int Int Int -- Bool,
     dip(over dip(>=)) <= *)
 
 def(lexer-trace-prefix!, +IO,
+    lexer-module@ module-path@ str-trace! ":" str-trace!
     lexer-row@ Row->Int int-trace! ":" str-trace!
     lexer-col@ Col->Int int-trace! ":" str-trace-sp!)

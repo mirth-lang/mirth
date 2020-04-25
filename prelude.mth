@@ -78,6 +78,13 @@ def(str-length, Str -- Int,
         dip(1+))
     drop)
 
+def(str-copy!, Str Str --,
+    while( over u8@,
+        over u8@ over u8!
+        dip(str-tail) str-tail
+    )
+    dip(drop 0 Int->U8) u8!)
+
 def(STR_BUF_SIZE, Int, 0x80)
 quad def-static-buffer(STR_BUF_LEN)
 STR_BUF_SIZE u8s def-static-buffer(STR_BUF)
