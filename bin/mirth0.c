@@ -1098,7 +1098,7 @@ void mwRUNNING_OS (void) {
  void mwTSTACK_STASH_LEN (void) { push((i64)bTSTACK_STASH_LEN); }
  volatile u8 bELAB_TOKEN[8] = {0};
  void mwELAB_TOKEN (void) { push((i64)bELAB_TOKEN); }
- volatile u8 bCORE_BUF[268435456] = {0};
+ volatile u8 bCORE_BUF[16777216] = {0};
  void mwCORE_BUF (void) { push((i64)bCORE_BUF); }
 
 
@@ -1297,7 +1297,6 @@ void mwRUNNING_OS (void) {
  void mwoutput_path_root_40_ (void);
  void mwpath_separator (void);
  void mwload_output_path_21_ (void);
- void mwsquare (void);
  void mwINPUT_BUFFER_SIZE (void);
  void mwinput_isopen_40_ (void);
  void mwinput_length_40_ (void);
@@ -1641,6 +1640,7 @@ void mwRUNNING_OS (void) {
  void mwMAP_ANON_7C_MAP_PRIVATE (void);
  void mwalign (void);
  void mwmax (void);
+ void mwsquare (void);
  void mwCODEGEN_BUF_SIZE (void);
  void mwcodegen_file_40_ (void);
  void mwcodegen_file_21_ (void);
@@ -1765,6 +1765,8 @@ void mwRUNNING_OS (void) {
  void mwexpect3 (void);
  void mwCORE_SIZE (void);
  void mwCoreVal__3E_CorePtr (void);
+ void mwcore_val_ptr (void);
+ void mwcore_val_output (void);
 
 void mwinit_21_ (void){
     mwinit_paths_21_();
@@ -4034,11 +4036,6 @@ void mwload_output_path_21_ (void){
     mwdrop();
     mwstr_buf_21_();
     }
-}
-
-void mwsquare (void){
-    mwdup();
-    mw_2A_();
 }
 
 void mwINPUT_BUFFER_SIZE (void){
@@ -8294,6 +8291,11 @@ void mwmax (void){
     }
 }
 
+void mwsquare (void){
+    mwdup();
+    mw_2A_();
+}
+
 void mwCODEGEN_BUF_SIZE (void){
     push(8192);
 }
@@ -11950,7 +11952,7 @@ void mwexpect3 (void){
 
 void mwCORE_SIZE (void){
     push(1);
-    push(28);
+    push(24);
     mw_3C__3C_();
 }
 
@@ -11959,6 +11961,19 @@ void mwCoreVal__3E_CorePtr (void){
     push(4);
     mw_3E__3E_();
     mwInt__3E_I32();
+}
+
+void mwcore_val_ptr (void){
+    mwU32__3E_Int();
+    push(8);
+    mw_3E__3E_();
+    mwInt__3E_I32();
+}
+
+void mwcore_val_output (void){
+    mwU32__3E_Int();
+    push(255);
+    mw_26_();
 }
 
 int main (int argc, char** argv) {
