@@ -1,0 +1,433 @@
+module(names)
+import(prelude)
+
+#########
+# Names #
+#########
+
+def-type(Name, Int)
+def-type(Hash, Int)
+
+def(MAX_NAMES, Size, 0x1000)
+def(NAME_HASH_MAX, Size, 0xFFF)
+def(NAME_TABLE_SIZE, Size, NAME_HASH_MAX 1+)
+quad def-static-buffer(NUM_NAMES)
+def(num-names@, Size, NUM_NAMES @)
+def(num-names!, Size --, NUM_NAMES !)
+
+def(NAME_QUADS, Size, 8)
+def(NAME_SIZE, Size, NAME_QUADS quads)
+def(NAME_BUF_SIZE, Size, NAME_SIZE MAX_NAMES *)
+NAME_BUF_SIZE def-static-buffer(NAME_BUF)
+
+NAME_TABLE_SIZE quads
+    def-static-buffer(NAME_TABLE)
+
+# Load a name into STR_BUF.
+def(name-load!, Name --,
+    name-quads-load!
+    NAME_SIZE str-buf-length!
+    STR_BUF str-length str-buf-length!)
+
+# Compare all quads in name to STR_BUF.
+# Note this code assumes NAME_QUADS is 8.
+def(name-quads-eq, Name -- Bool,
+    NAME_SIZE * NAME_BUF +
+    0 over quad@@ 0 STR_BUF quad@@ = if(
+    1 over quad@@ 1 STR_BUF quad@@ = if(
+    2 over quad@@ 2 STR_BUF quad@@ = if(
+    3 over quad@@ 3 STR_BUF quad@@ = if(
+    4 over quad@@ 4 STR_BUF quad@@ = if(
+    5 over quad@@ 5 STR_BUF quad@@ = if(
+    6 over quad@@ 6 STR_BUF quad@@ = if(
+    7 swap quad@@ 7 STR_BUF quad@@ =,
+    drop 0), drop 0), drop 0), drop 0),
+    drop 0), drop 0), drop 0))
+
+def(hash, Ptr -- Hash,
+    0 swap
+    while(dup u8@,
+        dup dip(u8@ U8->Int 5 * swap 18 * ^)
+        str-tail)
+    drop
+    NAME_HASH_MAX &)
+
+def(name-hash, Name -- Hash,
+    NAME_SIZE * NAME_BUF + hash)
+
+def(name-quads-eq?, Name -- Name Bool,
+    dup name-quads-eq)
+
+def(name-quad-save!, Name Int --,
+    dip(NAME_SIZE * NAME_BUF +) tuck
+    STR_BUF quad@@ rotr quad!!)
+
+def(name-quads-save!, Name -- ,
+    dup 0 name-quad-save!
+    dup 1 name-quad-save!
+    dup 2 name-quad-save!
+    dup 3 name-quad-save!
+    dup 4 name-quad-save!
+    dup 5 name-quad-save!
+    dup 6 name-quad-save!
+    7 name-quad-save!)
+
+def(name-quads-load!, Name --,
+    NAME_SIZE * NAME_BUF +
+    0 over quad@@ 0 STR_BUF quad!!
+    1 over quad@@ 1 STR_BUF quad!!
+    2 over quad@@ 2 STR_BUF quad!!
+    3 over quad@@ 3 STR_BUF quad!!
+    4 over quad@@ 4 STR_BUF quad!!
+    5 over quad@@ 5 STR_BUF quad!!
+    6 over quad@@ 6 STR_BUF quad!!
+    7 swap quad@@ 7 STR_BUF quad!!)
+
+# zero str-buf up to NAME_SIZE
+def(str-buf-zero!, --,
+    0 0 STR_BUF quad!!
+    0 1 STR_BUF quad!!
+    0 2 STR_BUF quad!!
+    0 3 STR_BUF quad!!
+    0 4 STR_BUF quad!!
+    0 5 STR_BUF quad!!
+    0 6 STR_BUF quad!!
+    0 7 STR_BUF quad!!)
+
+
+def(name-table@, Hash -- Name, NAME_TABLE quad@@ 1-)
+def(name-table!, Name Hash --, dip(1+) NAME_TABLE quad!!)
+def(next-hash, Hash -- Hash, 1+ NAME_HASH_MAX &)
+
+def(name-save-keep-going?, Hash -- Hash Bool,
+    dup name-table@
+    dup 0 < if(
+        drop 0,
+        name-quads-eq not
+    ))
+
+# Load STR_BUF into name table. Performs deduplication.
+def(name-save!, -- Name,
+    STR_BUF hash
+    while(name-save-keep-going?, next-hash)
+    dup name-table@
+    dup 0 < if(
+        drop
+        num-names@ swap name-table!
+        num-names@ name-quads-save!
+        num-names@ dup 1+ num-names!,
+        nip
+    ))
+
+quad def-static-buffer(name-bytes)
+def(show-names-table!, +Names +IO,
+    0 name-bytes !
+    0
+    while(dup num-names@ <,
+        dup int-print!
+        ": " str-print!
+        dup name-load!
+        str-buf-length? name-bytes @ + 1+ name-bytes !
+        str-buf-print! print-sp!
+        dup name-hash int-print! print-ln!
+        1+
+    )
+    drop
+    "Total bytes: " str-print!
+    name-bytes @ int-print-ln!)
+
+def(name-could-be-type, Name -- Bool,
+    NAME_SIZE * NAME_BUF u8@@ is-alpha? nip)
+
+def(name-could-be-type-var, Name -- Bool,
+    NAME_SIZE * NAME_BUF u8@@ is-lower? nip)
+
+def(name-could-be-type-con, Name -- Bool,
+    NAME_SIZE * NAME_BUF u8@@ is-upper? nip)
+
+def(name-could-be-effect-con, Name -- Bool,
+    NAME_SIZE * dup NAME_BUF u8@@ is-plus-sign? nip if(
+        1+ NAME_BUF u8@@ is-upper? nip,
+        drop 0
+    ))
+
+def(name-print-mangled!, Name -- +IO,
+    name-mangle! str-buf-print!)
+
+def(name-mangle!, Name -- +StrBuf,
+    str-buf-clear!
+    NAME_SIZE * 0
+    while(dup NAME_SIZE <,
+        over NAME_BUF u8@@
+        str-buf-push-mangled!
+        dip(1+) 1+)
+    drop2)
+
+def(str-buf-push-mangled!, Char -- +StrBuf,
+    is-nul? if(
+        drop,
+
+    is-alpha? if(
+        str-buf-push!,
+
+    is-digit? if(
+        str-buf-push!,
+
+    is-dash? if(
+        drop
+        underscore str-buf-push!, # technically bad but looks nice for now
+
+    is-underscore? if(
+        str-buf-push!, # technically bad but looks nice for now
+
+        underscore str-buf-push!
+        str-buf-push-hexdigits!
+        underscore str-buf-push!
+    ))))))
+
+def(str-buf-push-hexdigits!, Char -- +StrBuf,
+    U8->Int dup
+    16 / Int->U8 str-buf-push-hexdigit!
+    16 % Int->U8 str-buf-push-hexdigit!)
+
+def(str-buf-push-hexdigit!, Char -- +StrBuf,
+    U8->Int dup 10 >= if(
+        55 + Int->U8 str-buf-push!,
+        48 + Int->U8 str-buf-push!
+    ))
+
+###################
+# Primitive Names #
+###################
+
+def-type(Prim, Name)
+def(PRIM_END, Prim, 0)
+def(PRIM_ID, Prim, 1)
+def(PRIM_DUP, Prim, 2)
+def(PRIM_DROP, Prim, 3)
+def(PRIM_SWAP, Prim, 4)
+def(PRIM_DIP, Prim, 5)
+def(PRIM_IF, Prim, 6)
+def(PRIM_WHILE, Prim, 7)
+def(PRIM_INT_ADD, Prim, 8)
+def(PRIM_INT_SUB, Prim, 9)
+def(PRIM_INT_MUL, Prim, 10)
+def(PRIM_INT_DIV, Prim, 11)
+def(PRIM_INT_MOD, Prim, 12)
+def(PRIM_INT_EQ, Prim, 13)
+def(PRIM_INT_LT, Prim, 14)
+def(PRIM_INT_LE, Prim, 15)
+def(PRIM_INT_AND, Prim, 16)
+def(PRIM_INT_OR, Prim, 17)
+def(PRIM_INT_XOR, Prim, 18)
+def(PRIM_INT_SHL, Prim, 19)
+def(PRIM_INT_SHR, Prim, 20)
+def(PRIM_MEM_GET, Prim, 21)
+def(PRIM_MEM_SET, Prim, 22)
+def(PRIM_MEM_GET_BYTE, Prim, 23)
+def(PRIM_MEM_SET_BYTE, Prim, 24)
+def(PRIM_MEM_GET_U8, Prim, 25)
+def(PRIM_MEM_SET_U8, Prim, 26)
+def(PRIM_MEM_GET_U16, Prim, 27)
+def(PRIM_MEM_SET_U16, Prim, 28)
+def(PRIM_MEM_GET_U32, Prim, 29)
+def(PRIM_MEM_SET_U32, Prim, 30)
+def(PRIM_MEM_GET_U64, Prim, 31)
+def(PRIM_MEM_SET_U64, Prim, 32)
+def(PRIM_MEM_GET_I8, Prim, 33)
+def(PRIM_MEM_SET_I8, Prim, 34)
+def(PRIM_MEM_GET_I16, Prim, 35)
+def(PRIM_MEM_SET_I16, Prim, 36)
+def(PRIM_MEM_GET_I32, Prim, 37)
+def(PRIM_MEM_SET_I32, Prim, 38)
+def(PRIM_MEM_GET_I64, Prim, 39)
+def(PRIM_MEM_SET_I64, Prim, 40)
+def(PRIM_POSIX_READ, Prim, 41)
+def(PRIM_POSIX_WRITE, Prim, 42)
+def(PRIM_POSIX_OPEN, Prim, 43)
+def(PRIM_POSIX_CLOSE, Prim, 44)
+def(PRIM_POSIX_EXIT, Prim, 45)
+def(PRIM_POSIX_MMAP, Prim, 46)
+def(PRIM_DEBUG, Prim, 47)
+def(PRIM_MIRTH_REVISION, Prim, 48)
+def(PRIM_RUNNING_OS, Prim, 49)
+def(PRIM_DEF, Prim, 50)
+def(PRIM_DEF_TYPE, Prim, 51)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 52)
+def(PRIM_DEF_EXTERNAL, Prim, 53)
+def(PRIM_OUTPUT_ASM, Prim, 54)
+def(PRIM_OUTPUT_C99, Prim, 55)
+def(PRIM_DASHES, Prim, 56)
+def(PRIM_ARROW, Prim, 57)
+def(PRIM_INT, Prim, 58)
+def(PRIM_PTR, Prim, 59)
+def(PRIM_U8, Prim, 60)
+def(PRIM_U16, Prim, 61)
+def(PRIM_U32, Prim, 62)
+def(PRIM_U64, Prim, 63)
+def(PRIM_I8, Prim, 64)
+def(PRIM_I16, Prim, 65)
+def(PRIM_I32, Prim, 66)
+def(PRIM_I64, Prim, 67)
+def(PRIM_MODULE, Prim, 68)
+def(PRIM_IMPORT, Prim, 69)
+def(NUM_PRIMS, Prim, 70)
+
+def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
+
+def(def-prim!, Prim Str -- +Names,
+    str-buf-zero! str-buf! name-save! swap
+    = if(id, "primitive number mismatch" panic!))
+
+# Initialize name table with list of primitives.
+# Note that order matters very much here. Any
+# deviation from the order above will be flagged
+# by def-prim!
+def(init-names!, +Names,
+    NAME_TABLE_SIZE
+    while(dup,
+        1-
+        0 over NAME_TABLE quad!!
+    ) drop
+
+    num-names@ while(dup,
+        1-
+        0 over name-checked!
+        0 over name-sort!
+        0 over name-value!
+        0 over name-sig!
+    ) drop
+
+    0 num-names!
+    PRIM_END "end" def-prim!
+    PRIM_ID "id" def-prim!
+    PRIM_DUP "dup" def-prim!
+    PRIM_DROP "drop" def-prim!
+    PRIM_SWAP "swap" def-prim!
+    PRIM_DIP "dip" def-prim!
+    PRIM_IF "if" def-prim!
+    PRIM_WHILE "while" def-prim!
+    PRIM_INT_ADD "+" def-prim!
+    PRIM_INT_SUB "-" def-prim!
+    PRIM_INT_MUL "*" def-prim!
+    PRIM_INT_DIV "/" def-prim!
+    PRIM_INT_MOD "%" def-prim!
+    PRIM_INT_EQ "=" def-prim!
+    PRIM_INT_LT "<" def-prim!
+    PRIM_INT_LE "<=" def-prim!
+    PRIM_INT_AND "&" def-prim!
+    PRIM_INT_OR "|" def-prim!
+    PRIM_INT_XOR "^" def-prim!
+    PRIM_INT_SHL "<<" def-prim!
+    PRIM_INT_SHR ">>" def-prim!
+    PRIM_MEM_GET "@" def-prim!
+    PRIM_MEM_SET "!" def-prim!
+    PRIM_MEM_GET_BYTE "byte@" def-prim!
+    PRIM_MEM_SET_BYTE "byte!" def-prim!
+    PRIM_MEM_GET_U8 "u8@" def-prim!
+    PRIM_MEM_SET_U8 "u8!" def-prim!
+    PRIM_MEM_GET_U16 "u16@" def-prim!
+    PRIM_MEM_SET_U16 "u16!" def-prim!
+    PRIM_MEM_GET_U32 "u32@" def-prim!
+    PRIM_MEM_SET_U32 "u32!" def-prim!
+    PRIM_MEM_GET_U64 "u64@" def-prim!
+    PRIM_MEM_SET_U64 "u64!" def-prim!
+    PRIM_MEM_GET_I8 "i8@" def-prim!
+    PRIM_MEM_SET_I8 "i8!" def-prim!
+    PRIM_MEM_GET_I16 "i16@" def-prim!
+    PRIM_MEM_SET_I16 "i16!" def-prim!
+    PRIM_MEM_GET_I32 "i32@" def-prim!
+    PRIM_MEM_SET_I32 "i32!" def-prim!
+    PRIM_MEM_GET_I64 "i64@" def-prim!
+    PRIM_MEM_SET_I64 "i64!" def-prim!
+    PRIM_POSIX_READ "posix-read!" def-prim!
+    PRIM_POSIX_WRITE "posix-write!" def-prim!
+    PRIM_POSIX_OPEN "posix-open!" def-prim!
+    PRIM_POSIX_CLOSE "posix-close!" def-prim!
+    PRIM_POSIX_EXIT "posix-exit!" def-prim!
+    PRIM_POSIX_MMAP "posix-mmap!" def-prim!
+    PRIM_DEBUG "??" def-prim!
+    PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
+    PRIM_RUNNING_OS "RUNNING_OS" def-prim!
+    PRIM_DEF "def" def-prim!
+    PRIM_DEF_TYPE "def-type" def-prim!
+    PRIM_DEF_STATIC_BUFFER "def-static-buffer" def-prim!
+    PRIM_DEF_EXTERNAL "def-external" def-prim!
+    PRIM_OUTPUT_ASM "output-asm" def-prim!
+    PRIM_OUTPUT_C99 "output-c99" def-prim!
+    PRIM_DASHES "--" def-prim!
+    PRIM_ARROW "->" def-prim!
+    PRIM_INT "Int" def-prim!
+        DEF_TYPE PRIM_INT name-sort!
+        TYPE_INT PRIM_INT name-value!
+    PRIM_PTR "Ptr" def-prim!
+        DEF_TYPE PRIM_PTR name-sort!
+        TYPE_PTR PRIM_PTR name-value!
+    PRIM_U8 "U8" def-prim!
+        DEF_TYPE PRIM_U8 name-sort!
+        TYPE_U8 PRIM_U8 name-value!
+    PRIM_U16 "U16" def-prim!
+        DEF_TYPE PRIM_U16 name-sort!
+        TYPE_U16 PRIM_U16 name-value!
+    PRIM_U32 "U32" def-prim!
+        DEF_TYPE PRIM_U32 name-sort!
+        TYPE_U32 PRIM_U32 name-value!
+    PRIM_U64 "U64" def-prim!
+        DEF_TYPE PRIM_U64 name-sort!
+        TYPE_U64 PRIM_U64 name-value!
+    PRIM_I8 "I8" def-prim!
+        DEF_TYPE PRIM_I8 name-sort!
+        TYPE_I8 PRIM_I8 name-value!
+    PRIM_I16 "I16" def-prim!
+        DEF_TYPE PRIM_I16 name-sort!
+        TYPE_I16 PRIM_I16 name-value!
+    PRIM_I32 "I32" def-prim!
+        DEF_TYPE PRIM_I32 name-sort!
+        TYPE_I32 PRIM_I32 name-value!
+    PRIM_I64 "I64" def-prim!
+        DEF_TYPE PRIM_I64 name-sort!
+        TYPE_I64 PRIM_I64 name-value!
+    PRIM_MODULE "module" def-prim!
+    PRIM_IMPORT "import" def-prim!
+    NUM_PRIMS num-names@ = if(id,
+        "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
+    )
+
+
+########
+# Defs #
+########
+
+def-type(Value, Int)
+
+def-type(Sort, U8)
+def(DEF_NONE, Sort, 0 Int->U8)
+def(DEF_WORD, Sort, 1 Int->U8)
+def(DEF_BUFFER, Sort, 2 Int->U8)
+def(DEF_TYPE, Sort, 3 Int->U8)
+def(DEF_EXTERNAL, Sort, 4 Int->U8)
+def(DEF_MODULE, Sort, 5 Int->U8)
+
+MAX_NAMES u8s def-static-buffer(DEF_SORT)
+MAX_NAMES quads def-static-buffer(DEF_VALUE)
+MAX_NAMES quads def-static-buffer(DEF_SIG)
+
+def(name-sort!, Sort Name --, DEF_SORT u8!!)
+def(name-sort@, Name -- Sort, DEF_SORT u8@@)
+def(name-sort?, Name -- Name Sort, dup name-sort@)
+
+def(name-value!, Value Name --, DEF_VALUE quad!!)
+def(name-value@, Name -- Value, DEF_VALUE quad@@)
+def(name-value?, Name -- Name Value, dup name-value@)
+
+def(name-sig!, Token Name --, DEF_SIG quad!!)
+def(name-sig@, Name -- Token, DEF_SIG quad@@)
+def(name-sig?, Name -- Name Token, dup name-sig@)
+
+def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
+def(name-defined?, Name -- Name Bool, name-undefined? not)
+def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD =)
+def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
+def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE =)
+def(name-is-external?, Name -- Name Bool, name-sort? DEF_EXTERNAL =)
+def(name-is-module?, Name -- Name Bool, name-sort? DEF_MODULE =)

@@ -1,0 +1,144 @@
+module(buffers)
+import(prelude)
+
+
+###########
+# Buffers #
+###########
+
+def(MAX_BUFFERS, Size, 0x80)
+def-type(Buffer, Int)
+
+quad def-static-buffer(NUM_BUFFERS)
+def(num-buffers@, Size +Buffers, NUM_BUFFERS @)
+def(num-buffers!, Size -- +Buffers, NUM_BUFFERS !)
+
+def(init-buffers!, +Buffers,
+    0 num-buffers!)
+
+MAX_BUFFERS quads dup
+    def-static-buffer(BUFFER_SIZE)
+    def-static-buffer(BUFFER_BASE)
+
+def(buffer-size@, Buffer -- usize +Buffers,
+    BUFFER_SIZE quad@@)
+
+def(buffer-size!, usize Buffer -- +Buffers,
+    BUFFER_SIZE quad!!)
+
+def(buffer-alloc!, usize -- Buffer +Buffers,
+    num-buffers@ MAX_BUFFERS >= if(
+        "compiler error: ran out of buffers" panic!,
+        dup num-buffers@ buffer-size!
+        heap-alloc! num-buffers@ buffer-base!
+        num-buffers@ dup 1+ num-buffers!
+    ))
+
+def(buffer-base@, Buffer -- Ptr +Buffers,
+    BUFFER_BASE quad@@ Int->Ptr)
+
+def(buffer-base!, Ptr Buffer -- +Buffers,
+    dip(Ptr->Int) BUFFER_BASE quad!!)
+
+
+########
+# Heap #
+########
+
+def(BASE_HEAP_SIZE, Size, 0x1000)
+
+quad def-static-buffer(HEAP_INITIAL_LENGTH)
+def(heap-initial-length@, usize +Heap, HEAP_INITIAL_LENGTH @)
+def(heap-initial-length!, usize -- +Heap, HEAP_INITIAL_LENGTH !)
+
+quad def-static-buffer(HEAP_INITIAL_BASE)
+def(heap-initial-base@, Ptr +Heap, HEAP_INITIAL_BASE @)
+def(heap-initial-base!, Ptr -- +Heap, HEAP_INITIAL_BASE !)
+
+quad def-static-buffer(HEAP_LENGTH)
+def(heap-length@, usize +Heap, HEAP_LENGTH @)
+def(heap-length!, usize -- +Heap, HEAP_LENGTH !)
+
+quad def-static-buffer(HEAP_BASE)
+def(heap-base@, Ptr +Heap, HEAP_BASE @)
+def(heap-base!, Ptr -- +Heap, HEAP_BASE !)
+
+def(init-heap!, +Heap,
+    heap-initial-base@ heap-base!
+    heap-initial-length@ heap-length!)
+
+quad def-static-buffer(HEAP_TIMES_EXPANDED)
+def(heap-times-expanded@, Int +Heap, HEAP_TIMES_EXPANDED @)
+def(heap-times-expanded!, Int -- +Heap, HEAP_TIMES_EXPANDED !)
+def(++heap-times-expanded, Int +Heap,
+    heap-times-expanded@ 1+ dup heap-times-expanded!)
+
+# Ensure that at at least X space on the heap is available.
+#
+# If the space left is too small (or heap has not been allocated,
+# in which the space left is 0), then it tries to make the heap
+# larger in place. This usually works, but if it fails, we just
+# allocate a new buffer and forget about the old one, leaking
+# some memory and introducing fragmentation.
+#
+# Panics if reservation is impossible.
+def(heap-reserve!, Size -- +Heap,
+    dup heap-length@ <= if(
+        drop,
+
+        heap-new-size dup # size
+        heap-base@ heap-length@ + swap # pointer hint
+        PROT_READ|PROT_WRITE
+        MAP_ANON|MAP_PRIVATE
+        -1 # file descriptor (-1 for MAP_ANONYMOUS)
+        0 # offset
+        posix-mmap!
+        dup 0 > if(
+            dup heap-base@ heap-length@ + = if(
+                drop heap-length@ + heap-length!,
+                dup heap-initial-base! heap-base!
+                dup heap-initial-length! heap-length!
+            ),
+            "Failed to allocate heap buffer." panic! drop2
+        )
+    ))
+
+def(PROT_READ|PROT_WRITE, Int,
+    0x3) # PROT_READ = 0x1, PROT_WRITE = 0x2
+
+def(MAP_ANON|MAP_PRIVATE, Int,
+    RUNNING_OS MACOS = if(
+        0x1002, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
+    # RUNNING_OS LINUX = if(
+        0x22 # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
+        # ,
+        # "MAP_ANON|MAP_PRIVATE unknown for os" panic! 0
+    # )
+    ))
+
+# Aligns a by b, rounding upward. For instance,
+#
+#   10 64 align == 64
+#   64 64 align == 64
+#   70 64 align == 128
+def(align, Size Size -- Size,
+    # a:usize b:usize { a 0 >=, b 0 > } --
+    # c:usize { c a >=, c a b + <, c b % 0 = },
+    dup dip(1- + dup) % -)
+
+def(max, Int Int -- Int, dup2 < if(nip, drop))
+def(square, Int -- Int, dup *)
+
+# Figure out how much to expand heap size by, based on a minimum size
+# (= requested size aligned to 4096).
+# The expansion has a quadratic lower bound.
+def(heap-new-size, Size -- Size,
+    4096 align
+    BASE_HEAP_SIZE ++heap-times-expanded square *
+    max)
+
+def(heap-alloc!, Size -- Ptr +Heap,
+    64 align
+    dup heap-reserve!
+    dup heap-length@ swap - heap-length!
+    heap-base@ tuck + heap-base!)

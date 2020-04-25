@@ -5,23 +5,23 @@ CC=gcc $(C99FLAGS)
 
 default: show
 
-show: mirth0.c mirth1.c mirth2.c mirth3.c
-	diff --strip-trailing-cr mirth0.c mirth1.c | head -n 5
-	diff --strip-trailing-cr mirth1.c mirth2.c | head -n 10
-	diff --strip-trailing-cr mirth2.c mirth3.c
+show: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3.c
+	diff --strip-trailing-cr bin/mirth0.c bin/mirth1.c | head -n 5
+	diff --strip-trailing-cr bin/mirth1.c bin/mirth2.c | head -n 10
+	diff --strip-trailing-cr bin/mirth2.c bin/mirth3.c
 
-build: mirth0 mirth1 mirth2 mirth1.c mirth2.c mirth3.c
+build: bin/mirth0 bin/mirth1 bin/mirth2 bin/mirth1.c bin/mirth2.c bin/mirth3.c
 
-update: mirth0.c mirth3.c
-	cp mirth3.c mirth0.c
+update: bin/mirth0.c bin/mirth3.c
+	cp bin/mirth3.c bin/mirth0.c
 
 check:
-	diff --strip-trailing-cr mirth2.c mirth3.c
-	diff --strip-trailing-cr mirth1.c mirth3.c
-	diff --strip-trailing-cr mirth0.c mirth3.c
+	diff --strip-trailing-cr bin/mirth2.c bin/mirth3.c
+	diff --strip-trailing-cr bin/mirth1.c bin/mirth3.c
+	diff --strip-trailing-cr bin/mirth0.c bin/mirth3.c
 
 clean:
-	rm -f mirth1.c mirth2.c mirth3.c mirth0 mirth1 mirth2
+	rm -f bin/mirth1.c bin/mirth2.c bin/mirth3.c bin/mirth0 bin/mirth1 bin/mirth2 bin/mirth_prof bin/mirth_prof.c bin/snake.c bin/snake
 
 install-vim:
 	mkdir -p ~/.vim/bundle
@@ -31,44 +31,44 @@ install-vim:
 install-code:
 	code --install-extension tools/mirth-code/mirth-*.vsix
 
-profile: mirth_prof
-	time ./mirth_prof
-	rm -f mirth.c
+profile: bin/mirth_prof
+	time bin/mirth_prof
+	rm -f bin/mirth.c
 
-play-snake: snake
-	./snake
+play-snake: bin/snake
+	bin/snake
 
 #########
 
-mirth0: mirth0.c
-	$(CC) -o mirth0 mirth0.c
+bin/mirth0: bin/mirth0.c
+	$(CC) -o bin/mirth0 bin/mirth0.c
 
-mirth1: mirth1.c
-	$(CC) -o mirth1 mirth1.c
+bin/mirth1: bin/mirth1.c
+	$(CC) -o bin/mirth1 bin/mirth1.c
 
-mirth2: mirth2.c
-	$(CC) -o mirth2 mirth2.c
+bin/mirth2: bin/mirth2.c
+	$(CC) -o bin/mirth2 bin/mirth2.c
 
-mirth1.c: mirth0 mirth.mth
-	./mirth0
-	mv mirth.c mirth1.c
+bin/mirth1.c: bin/mirth0 src/*.mth
+	bin/mirth0
+	mv bin/mirth.c bin/mirth1.c
 
-mirth2.c: mirth1 mirth.mth
-	./mirth1
-	mv mirth.c mirth2.c
+bin/mirth2.c: bin/mirth1 src/*.mth
+	bin/mirth1
+	mv bin/mirth.c bin/mirth2.c
 
-mirth3.c: mirth2 mirth.mth
-	./mirth2
-	mv mirth.c mirth3.c
+bin/mirth3.c: bin/mirth2 src/*.mth
+	bin/mirth2
+	mv bin/mirth.c bin/mirth3.c
 
-mirth_prof.c: mirth3.c
+bin/mirth_prof.c: bin/mirth3.c
 
-mirth_prof: mirth_prof.c
-	$(CC) -g -fprofile-instr-generate -o mirth_prof mirth_prof.c
+bin/mirth_prof: bin/mirth_prof.c
+	$(CC) -g -fprofile-instr-generate -o bin/mirth_prof bin/mirth_prof.c
 
-snake.c: mirth2 mirth.mth
-	./mirth2
-	rm -f mirth.c
+bin/snake.c: bin/mirth2 src/*.mth
+	bin/mirth2
+	rm -f bin/mirth.c
 
-snake: snake.c
-	$(CC) -o snake snake.c `pkg-config --libs sdl2`
+bin/snake: bin/snake.c
+	$(CC) -o bin/snake bin/snake.c `pkg-config --libs sdl2`

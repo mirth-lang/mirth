@@ -1,0 +1,47 @@
+module(strings)
+import(prelude)
+
+def(init-strings!, --,
+    0 strings-size!)
+
+#################
+# Strings Table #
+#################
+
+def-type(StringOffset, Int)
+def-type(String, Str)
+
+def(MAX_STRINGS, Size, 0x4000)
+quad def-static-buffer(STRINGS_SIZE)
+MAX_STRINGS u8s def-static-buffer(STRINGS_BUF)
+
+# Size of strings table.
+def(strings-size@, -- Size +StrTable, STRINGS_SIZE @)
+
+# Size of strings table.
+def(strings-size!, Size -- +StrTable, STRINGS_SIZE !)
+
+# Push byte onto strings table.
+def(strings-push!, U8 -- +StrTable,
+    strings-size@ MAX_STRINGS >= if(
+        "strings buffer overflow" panic! drop,
+        strings-size@ STRINGS_BUF u8!!
+        strings-size@ 1+ strings-size!
+    ))
+
+# Load STR_BUF into strings table,
+# returning the index of the new string.
+def(strings-save!, StringOffset +StrTable +StrBuf,
+    strings-size@
+    0
+    while(dup str-buf-length? <,
+        dup str-buf-u8@
+        strings-push!
+        1+
+    )
+    drop
+    0 Int->U8 strings-push!)
+
+# Load string into STR_BUF.
+def(strings-load!, Str -- +StrBuf,
+    str-buf!)

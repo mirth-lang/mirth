@@ -1,0 +1,69 @@
+module(mirth)
+
+import(prelude)
+import(modules)
+import(input)
+import(names)
+import(strings)
+import(tokens)
+import(lexer)
+import(diagnostics)
+import(eval)
+import(buffers)
+import(codegen)
+import(elab)
+import(core)
+import(paths)
+
+def(init!, +IO,
+    init-paths!
+    init-modules!
+    init-strings!
+    init-tokens!
+    init-names!
+    init-buffers!
+    init-heap!
+    init-core!)
+
+########
+# Main #
+########
+
+def(main, +IO,
+    init!
+    run-tests
+    "mirth.mth" run-lexer!
+
+    # show-names-table!
+    # show-tokens!
+
+    "Building." str-trace-ln!
+
+    0 token-run!
+
+    "Done." str-trace-ln!
+
+    vstack-empty? if(
+        id,
+        "VSTACK = " str-trace! vstack-trace!
+    ))
+
+#########
+# Build #
+#########
+
+def(NEW_MIRTH_REVISION, Int, 0)
+
+"mirth.c" output-c99(main)
+#"mirth_prof.c" output-c99(100 while-old(main 1-))
+
+import(snake) # this is silly, but no way around this for now.
+    # there's two issues here:
+    #   1. snake imports sdl2, sdl2 declares a bunch of external functions.
+    #   under the current compilation approach ("just generate everything
+    #   and let the C compiler sort it out") this will cause the dependencies
+    #   to infect mirth if I move the import up above, resulting in undefined
+    #   symbol errors at link time. That could be avoided if we only generated
+    #   what was necessary each time.
+    #   2. I shouldn't have to import snake anyway just to be able to have
+    #   a separate build target (snake).
