@@ -41,16 +41,21 @@ def(init-core!, +Core, id)
 # In the end though, Mirth Core still looks a lot like Mirth,
 # just with a lot of craziness removed.
 
-def(CORE_SIZE, Size, 1 28 <<)
+def(CORE_SIZE, Size, 1 24 <<)
 CORE_SIZE def-static-buffer(CORE_BUF)
 
-# Pointer to a core instruction. 28 bits wide.
-def-type(CorePtr, I32) # actually U28
+# Pointer to a core instruction. 24 bits wide.
+def-type(CorePtr, I32) # actually U24
 
 # Output value of a core instruction.
-# The higher 28 bits indicate the instruction, the lower
-# 4 bits indicate which output to care about.
+# The higher 24 bits indicate the instruction (i.e. ), the lower
+# 8 bits select which instruction output we want.
 def-type(CoreVal, U32)
 
 def(CoreVal->CorePtr, CoreVal -- CorePtr,
     U32->Int 4 >> Int->I32)
+
+def(core-val-ptr, CoreVal -- CorePtr,
+    U32->Int 8 >> Int->I32)
+def(core-val-output, CoreVal -- Int,
+    U32->Int 0xFF &)

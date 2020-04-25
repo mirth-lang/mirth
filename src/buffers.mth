@@ -127,6 +127,7 @@ def(align, Size Size -- Size,
     dup dip(1- + dup) % -)
 
 def(max, Int Int -- Int, dup2 < if(nip, drop))
+def(square, Int -- Int, dup *)
 
 # Figure out how much to expand heap size by, based on a minimum size
 # (= requested size aligned to 4096).

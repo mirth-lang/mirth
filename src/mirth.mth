@@ -2,7 +2,6 @@ module(mirth)
 
 import(prelude)
 import(modules)
-import(math)
 import(input)
 import(names)
 import(strings)
