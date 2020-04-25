@@ -114,13 +114,13 @@ def(token-new, -- Token,
     ))
 
 def(token-trace-prefix!, Token -- +IO,
-    token-module? module-path@ str-trace! ":" str-trace!
+    token-module? load-module-source-path! str-buf-trace! ":" str-trace!
     token-row? Row->Int int-trace! ":" str-trace!
     token-col? Col->Int int-trace! ":" str-trace-sp!
     drop)
 
 def(token-print-prefix!, Token -- +IO,
-    token-module? module-path@ str-print! ":" str-print!
+    token-module? load-module-source-path! str-buf-print! ":" str-print!
     token-row? Row->Int int-print! ":" str-print!
     token-col? Col->Int int-print! ":" str-print-sp!
     drop)

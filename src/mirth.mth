@@ -14,8 +14,10 @@ import(buffers)
 import(codegen)
 import(elab)
 import(core)
+import(paths)
 
 def(init!, +IO,
+    init-paths!
     init-modules!
     init-strings!
     init-tokens!
@@ -45,9 +47,7 @@ def(main, +IO,
     vstack-empty? if(
         id,
         "VSTACK = " str-trace! vstack-trace!
-    )
-
-    )
+    ))
 
 #########
 # Build #

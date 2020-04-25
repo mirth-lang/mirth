@@ -57,9 +57,10 @@ def(lexer-stack-pop!, -- Token +Lexer,
     ))
 
 def(run-lexer!, Path -- +Lexer,
-    dup new-module! lexer-module!
+    new-module! lexer-module!
 
-    open-file!
+    lexer-module@ load-module-source-path!
+    STR_BUF open-file!
     input-start!
 
     1 Int->U16 lexer-row!
@@ -384,6 +385,6 @@ def(in-range, Int Int Int -- Bool,
     dip(over dip(>=)) <= *)
 
 def(lexer-trace-prefix!, +IO,
-    lexer-module@ module-path@ str-trace! ":" str-trace!
+    lexer-module@ load-module-source-path! str-buf-trace! ":" str-trace!
     lexer-row@ Row->Int int-trace! ":" str-trace!
     lexer-col@ Col->Int int-trace! ":" str-trace-sp!)

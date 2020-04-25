@@ -1,0 +1,31 @@
+module(paths)
+import(prelude)
+
+def-type(Path, Str)
+
+def(init-paths!, --,
+    "src" source-path-root!)
+
+quad def-static-buffer(SOURCE_PATH_ROOT)
+def(source-path-root@, -- Str, SOURCE_PATH_ROOT @ Int->Ptr)
+def(source-path-root!, Str --, Ptr->Int SOURCE_PATH_ROOT !)
+
+quad def-static-buffer(OUTPUT_PATH_ROOT)
+def(output-path-root@, -- Str, OUTPUT_PATH_ROOT @ Int->Ptr)
+def(output-path-root!, Str --, Ptr->Int OUTPUT_PATH_ROOT !)
+
+def(path-separator, Str, RUNNING_OS WIN32 = if("\\", "/"))
+
+# Load a source path into STR_BUF.
+def(load-source-path!, Path --,
+    source-path-root@ dup if(
+        str-buf! path-separator str-buf-push-str! str-buf-push-str!,
+        drop str-buf!
+    ))
+
+# Load an output path into STR_BUF.
+def(load-output-path!, Path --,
+    output-path-root@ dup if(
+        str-buf! path-separator str-buf-push-str! str-buf-push-str!,
+        drop str-buf!
+    ))

@@ -101,7 +101,6 @@ def(tstack-frame-unify!, Token -- Token +TSTACK,
     tstack-length? tstack-stash-len-pop!
     dup2 = if(
         drop2,
-        "mirth.mth:" str-trace!
         dip(dip(dup token-trace-prefix!))
         "error: Failed to unify branches. First branch has " str-trace!
         int-trace!
@@ -583,7 +582,6 @@ def(sig-match-outputs!, Token -- +TSTACK,
         sig-skip-dashes
         sig-match-outputs-aux,
 
-        "mirth.mth:" str-trace!
         swap token-trace-prefix!
         "error: Expected " str-trace!
         int-trace!

@@ -1,11 +1,11 @@
 module(modules)
 import(prelude)
+import(paths)
 
 def(init-modules!, --,
     0 num-modules!)
 
 def-type(Module, U16)
-def-type(Path, Str)
 
 def(MAX_MODULES, Size, 0x100)
 def(MODULE_PATH_SIZE, Size, 0x200)
@@ -45,3 +45,7 @@ def(module-path!, Path Module --,
         module-path@ str-copy!,
         "Module path is too long!" panic! drop2
     ))
+
+# Load a source path associated with a module into STR_BUF.
+def(load-module-source-path!, Module --,
+    module-path@ load-source-path!)

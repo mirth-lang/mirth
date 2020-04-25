@@ -474,7 +474,3 @@ def(close-file!, File -- +IO,
         "failed to close file" panic!,
         id
     ))
-
-def(open-mirth-src!, File +IO,
-    "Reading mirth.mth" str-trace-ln!
-    "mirth.mth" open-file!)
