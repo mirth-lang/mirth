@@ -4,7 +4,8 @@ import(prelude)
 def-type(Path, Str)
 
 def(init-paths!, --,
-    "src" source-path-root!)
+    "src" source-path-root!
+    "bin" output-path-root!)
 
 quad def-static-buffer(SOURCE_PATH_ROOT)
 def(source-path-root@, -- Str, SOURCE_PATH_ROOT @ Int->Ptr)

@@ -47,7 +47,8 @@ def(codegen-end!, +Codegen,
     0 codegen-length!)
 
 def(run-output-c99!, Token String -- +IO,
-    create-file! codegen-start!
+    load-output-path!
+    STR_BUF create-file! codegen-start!
     c99-emit-header!
     c99-emit-strings!
     c99-emit-prims!

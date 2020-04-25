@@ -17,3 +17,4 @@
 /default.profraw
 *.exe
 *.obj
+/bin/*
