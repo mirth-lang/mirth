@@ -12,13 +12,15 @@ import(eval)
 import(buffers)
 import(codegen)
 import(elab)
+import(core)
 
 def(init!, +IO,
     init-strings!
     init-tokens!
     init-names!
     init-buffers!
-    init-heap!)
+    init-heap!
+    init-core!)
 
 ########
 # Main #

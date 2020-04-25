@@ -49,15 +49,15 @@ mirth1: mirth1.c
 mirth2: mirth2.c
 	$(CC) -o mirth2 mirth2.c
 
-mirth1.c: mirth0 mirth.mth
+mirth1.c: mirth0 mirth.mth *.mth
 	./mirth0
 	mv mirth.c mirth1.c
 
-mirth2.c: mirth1 mirth.mth
+mirth2.c: mirth1 mirth.mth *.mth
 	./mirth1
 	mv mirth.c mirth2.c
 
-mirth3.c: mirth2 mirth.mth
+mirth3.c: mirth2 mirth.mth *.mth
 	./mirth2
 	mv mirth.c mirth3.c
 
@@ -66,7 +66,7 @@ mirth_prof.c: mirth3.c
 mirth_prof: mirth_prof.c
 	$(CC) -g -fprofile-instr-generate -o mirth_prof mirth_prof.c
 
-snake.c: mirth2 mirth.mth
+snake.c: mirth2 mirth.mth *.mth
 	./mirth2
 	rm -f mirth.c
 
