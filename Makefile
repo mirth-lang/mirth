@@ -10,7 +10,7 @@ show: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3.c
 	diff --strip-trailing-cr bin/mirth1.c bin/mirth2.c | head -n 10
 	diff --strip-trailing-cr bin/mirth2.c bin/mirth3.c
 
-build: mirth0 mirth1 mirth2 mirth1.c mirth2.c mirth3.c
+build: bin/mirth0 bin/mirth1 bin/mirth2 bin/mirth1.c bin/mirth2.c bin/mirth3.c
 
 update: bin/mirth0.c bin/mirth3.c
 	cp bin/mirth3.c bin/mirth0.c
