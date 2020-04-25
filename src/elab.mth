@@ -1,12 +1,12 @@
 module(elab)
 import(names)
 import(tokens)
+#import(types)
 
 #################
 # Type Checking #
 #################
 
-def-type(Type, Int)
 def-type(Stash, Int)
 
 MAX_NAMES def-static-buffer(DEF_CHECKED)
@@ -658,22 +658,6 @@ def(sig-push-outputs!, Token Token -- +TSTACK,
         )))
         token-next)
     drop)
-
-#########
-# Types #
-#########
-
-def(TYPE_ERROR, Type, 0)
-def(TYPE_INT, Type, 1) # generic integer type for integer literals)
-def(TYPE_PTR, Type, 2) # generic pointer type (e.g. void*)
-def(TYPE_U8, Type, 3) # fixed width integer type -- unsigned 8 bit
-def(TYPE_U16, Type, 4) # fixed width integer type -- unsigned 16 bit
-def(TYPE_U32, Type, 5) # fixed width integer type -- unsigned 32 bit
-def(TYPE_U64, Type, 6) # fixed width integer type -- unsigned 64 bit
-def(TYPE_I8, Type, 7) # fixed width integer type -- signed 8 bit
-def(TYPE_I16, Type, 8) # fixed width integer type -- signed 16 bit
-def(TYPE_I32, Type, 9) # fixed width integer type -- signed 32 bit
-def(TYPE_I64, Type, 10) # fixed width integer type -- signed 64 bit
 
 quad def-static-buffer(ELAB_TOKEN)
 def(elab-token@, -- Token +Elab, ELAB_TOKEN @)

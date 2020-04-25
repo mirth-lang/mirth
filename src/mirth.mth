@@ -14,6 +14,7 @@ import(codegen)
 import(elab)
 import(core)
 import(paths)
+import(types)
 
 def(init!, +IO,
     init-paths!
@@ -21,6 +22,7 @@ def(init!, +IO,
     init-strings!
     init-tokens!
     init-names!
+    init-types!
     init-buffers!
     init-heap!
     init-core!)
