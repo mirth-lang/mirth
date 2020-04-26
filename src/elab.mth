@@ -30,25 +30,29 @@ def(tstack-empty?, Bool, tstack-len@ tstack-base@ <=)
 def(tstack-full?, Bool, tstack-len@ TSTACK_SIZE >=)
 def(tstack-clear!, +TSTACK, tstack-base@ tstack-len!)
 
-def(tstack!, Type Offset --, TSTACK_BUF quad!!)
-def(tstack@, Offset -- Type, TSTACK_BUF quad@@)
-def(tstack-pop!, -- Type,
+def(tstack!, Int Offset --, TSTACK_BUF quad!!)
+def(tstack@, Offset -- Int, TSTACK_BUF quad@@)
+
+def(tstack-pop-int!, -- Int,
     tstack-empty? if(
         "tstack underflow" panic! 0,
         tstack-len@ 1- dup tstack-len! tstack@
     ))
-def(tstack-push!, Type --,
+def(tstack-push-int!, Int --,
     tstack-full? if(
         "tstack overflow" panic! drop,
         tstack-len@ dup 1+ tstack-len! tstack!
     ))
+
+def(tstack-pop!, -- Type, tstack-pop-int! Int->Type)
+def(tstack-push!, Type --, Type->Int tstack-push-int!)
 
 def(tstack-pop2!, -- Type Type, tstack-pop! dip(tstack-pop!))
 def(tstack-pop3!, -- Type Type Type, tstack-pop! dip(tstack-pop2!))
 def(tstack-push2!, Type Type --, dip(tstack-push!) tstack-push!)
 
 def(tstack-enter!, --,
-    tstack-base@ tstack-push!
+    tstack-base@ tstack-push-int!
     tstack-len@ tstack-base!
     )
 
@@ -65,7 +69,7 @@ def(tstack-frame-dup!, -- +TSTACK,
     tstack-len@ tstack-base@
     tstack-enter!
     while(dup2 >,
-        dup tstack@ tstack-push!
+        dup tstack@ tstack-push-int!
         1+)
     drop2)
 
@@ -551,13 +555,13 @@ def(sig-push-inputs!, Token -- +TSTACK,
         while(sig-dashes-end? not,
             sig-token-is-type-con? if(
                 token-name? name-is-type? if(
-                    name-value@ tstack-push!,
+                    name-type@ tstack-push!,
                     drop TYPE_ERROR tstack-push!
                 ),
 
             sig-token-is-type-var? if(
-                0 # FIXME: push rigid type var and
-                  # register it in context.
+                TYPE_ERROR # FIXME: push rigid type var and
+                           # register it in context.
                 tstack-push!,
 
                 "Expected type."
@@ -598,7 +602,7 @@ def(sig-match-outputs-aux, Token -- +TSTACK,
         dup token-next sig-match-outputs-aux
         sig-token-is-type-con? if(
             dup elab-token!
-            token-name@ name-value@
+            token-name@ name-type@
             tstack-pop! swap expect1 drop,
 
         sig-token-is-type-var? if(
@@ -628,7 +632,7 @@ def(sig-pop-inputs-aux!, Token -- +TSTACK,
             drop,
 
         sig-token-is-type-con? if(
-            token-name@ name-value@
+            token-name@ name-type@
             tstack-pop! swap expect1 drop,
 
         sig-token-is-type-var? if(
@@ -645,16 +649,16 @@ def(sig-push-outputs!, Token Token -- +TSTACK,
     sig-skip-dashes
     while(token-is-arg-end? not,
         sig-token-is-type-con? if(
-            token-name? name-value@ tstack-push!,
+            token-name? name-type@ tstack-push!,
 
         sig-token-is-type-var? if(
-            0 tstack-push!, # TODO
+            TYPE_ERROR tstack-push!, # TODO
 
         sig-token-is-effect-con? if(
             id, # TODO
 
             # unknown, but error is caught elsewhere
-            0 tstack-push!
+            TYPE_ERROR tstack-push!
         )))
         token-next)
     drop)

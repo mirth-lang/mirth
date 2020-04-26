@@ -1,0 +1,285 @@
+module(types)
+import(names)
+
+def(init-types!, --,
+    TYPE_INT PRIM_INT name-type!
+    TYPE_PTR PRIM_PTR name-type!
+    TYPE_U8 PRIM_U8 name-type!
+    TYPE_U16 PRIM_U16 name-type!
+    TYPE_U32 PRIM_U32 name-type!
+    TYPE_U64 PRIM_U64 name-type!
+    TYPE_I8 PRIM_I8 name-type!
+    TYPE_I16 PRIM_I16 name-type!
+    TYPE_I32 PRIM_I32 name-type!
+    TYPE_I64 PRIM_I64 name-type!)
+
+def(test-types!, --,
+    test-sorts!)
+
+###########
+# Context #
+###########
+
+# A context for types and terms.
+def-type(Ctx, U16) # index into context array
+
+def(MAX_CTX, Size, 0x1000)
+def(CTX_SIZE, Size, 8)
+
+quad def-static-buffer(NUM_CTX)
+MAX_CTX CTX_SIZE * i16s def-static-buffer(CTX_BUF)
+
+def(ctx-alloc!, Ctx,
+    NUM_CTX @ dup 1+ NUM_CTX !
+    dup MAX_CTX < if(
+        1+ Int->U16,
+        "compiler error: ran out of space for contexts, increase MAX_CTX" panic!
+    ))
+
+def(ctx-empty, Ctx, 0 Int->U16)
+def(ctx-is-empty, Ctx -- Bool, U16->Int 0 =)
+def(ctx-is-empty?, Ctx -- Ctx Bool, dup ctx-is-empty)
+
+def(ctx-base&, Ctx -- Ptr,
+    dup if(
+        U16->Int 1- CTX_SIZE * CTX_BUF +,
+        "compiler error: attempted to get base pointer of empty context" panic!
+        U16->Int Int->Ptr
+    ))
+def(ctx-prev&, Ctx -- Ptr, ctx-base&)
+def(ctx-name&, Ctx -- Ptr, ctx-base& 2 +)
+def(ctx-sort&, Ctx -- Ptr, ctx-base& 4 +)
+
+def(ctx-prev@, Ctx -- Ctx, ctx-prev& u16@)
+def(ctx-name@, Ctx -- Name, ctx-name& u16@ U16->Int)
+def(ctx-sort@, Ctx -- Sort, ctx-sort& u32@)
+
+def(ctx-prev!, Ctx Ctx --, ctx-prev& u16!)
+def(ctx-name!, Name Ctx --, dip(Int->U16) ctx-name& u16!)
+def(ctx-sort!, Sort Ctx --, ctx-sort& u32!)
+
+#########
+# Sorts #
+#########
+
+def-type(Sort, U32)
+def(Sort->Int, Sort -- Int, U32->Int)
+def(Int->Sort, Int -- Sort, Int->U32)
+
+def(SORT_FLAG_SHIFT, Int, 28)
+def(SORT_FLAG_MASK, Int, 0xF SORT_FLAG_SHIFT <<)
+def(SORT_FLAG_IMPLICIT, Int, 0x1 SORT_FLAG_SHIFT <<)
+
+
+def(SORT_TAG_SHIFT, Int, 24)
+def(SORT_TAG_MASK, Int, 0xF SORT_TAG_SHIFT <<)
+
+def(SORT_TAG_TYPE,   Int, 0x1 SORT_TAG_SHIFT <<)
+def(SORT_TAG_STACK,  Int, 0x2 SORT_TAG_SHIFT <<)
+def(SORT_TAG_EFFECT, Int, 0x3 SORT_TAG_SHIFT <<)
+def(SORT_TAG_WORD,   Int, 0x4 SORT_TAG_SHIFT <<)
+def(SORT_TAG_VALUE,  Int, 0x5 SORT_TAG_SHIFT <<)
+
+def(sort-tag, Sort -- Int, U32->Int SORT_TAG_MASK &)
+
+def(sort-is-implicit, Sort -- Bool, U32->Int SORT_FLAG_IMPLICIT & 0 >)
+def(sort-is-explicit, Sort -- Bool, sort-is-implicit not)
+def(sort-is-type, Sort -- Bool, sort-tag SORT_TAG_TYPE =)
+def(sort-is-stack, Sort -- Bool, sort-tag SORT_TAG_STACK =)
+def(sort-is-effect, Sort -- Bool, sort-tag SORT_TAG_EFFECT =)
+def(sort-is-word, Sort -- Bool, sort-tag SORT_TAG_WORD =)
+def(sort-is-value, Sort -- Bool, sort-tag SORT_TAG_VALUE =)
+
+def(sort-is-implicit?, Sort -- Sort Bool, dup sort-is-implicit)
+def(sort-is-explicit?, Sort -- Sort Bool, dup sort-is-explicit)
+def(sort-is-type?, Sort -- Sort Bool, dup sort-is-type)
+def(sort-is-stack?, Sort -- Sort Bool, dup sort-is-stack)
+def(sort-is-effect?, Sort -- Sort Bool, dup sort-is-effect)
+def(sort-is-word?, Sort -- Sort Bool, dup sort-is-word)
+def(sort-is-value?, Sort -- Sort Bool, dup sort-is-value)
+
+def(SORT_PAYLOAD_MASK, Int, 1 24 << 1-)
+
+# Get signature for word sort. Panic if not a word sort.
+def(sort-word-sig, Sort -- Token,
+    sort-is-word? if(
+        Sort->Int SORT_PAYLOAD_MASK &,
+        "compiler error: attempted to get sort word sig for non-word sort" panic! Sort->Int
+    ))
+def(sort-word-sig?, Sort -- Sort Token, dup sort-word-sig)
+
+# Get type for value sort. Panic if not a value sort.
+def(sort-value-type, Sort -- Type,
+    sort-is-value? if(
+        Sort->Int SORT_PAYLOAD_MASK & Int->Type,
+        "compiler error: attempted to get sort value type for non-type sort" panic!
+    ))
+def(sort-value-type?, Sort -- Sort Type, dup sort-value-type)
+
+# Sort constructors.
+def(sort-implicit, Sort -- Sort, Sort->Int SORT_FLAG_IMPLICIT | Int->Sort)
+def(sort-type, Sort, SORT_TAG_TYPE Int->Sort)
+def(sort-stack, Sort, SORT_TAG_STACK Int->Sort)
+def(sort-effect, Sort, SORT_TAG_EFFECT Int->Sort)
+def(sort-word, Token -- Sort, SORT_TAG_WORD | Int->Sort)
+def(sort-value, Type -- Sort, Type->Int SORT_TAG_VALUE | Int->Sort)
+
+# Unit tests for sort.
+def(test-sorts!, --,
+
+    sort-type
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!1
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!0
+        drop
+    sort-type sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!1
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!0
+        drop
+    sort-stack
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!0
+        sort-is-stack? !!1
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!0
+        drop
+    sort-stack sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!0
+        sort-is-stack? !!1
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!0
+        drop
+    sort-effect
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!1
+        sort-is-word? !!0
+        sort-is-value? !!0
+        drop
+    sort-effect sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!1
+        sort-is-word? !!0
+        sort-is-value? !!0
+        drop
+    0 sort-word
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!1
+        sort-is-value? !!0
+        sort-word-sig? 0 !!=
+        drop
+    0 sort-word sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!1
+        sort-is-value? !!0
+        sort-word-sig? 0 !!=
+        drop
+    1 sort-word
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!1
+        sort-is-value? !!0
+        sort-word-sig? 1 !!=
+        drop
+    1 sort-word sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!1
+        sort-is-value? !!0
+        sort-word-sig? 1 !!=
+        drop
+    TYPE_ERROR sort-value
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!1
+        sort-value-type? TYPE_ERROR !!=
+        drop
+    TYPE_ERROR sort-value sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!1
+        sort-value-type? TYPE_ERROR !!=
+        drop
+    TYPE_INT sort-value
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!1
+        sort-value-type? TYPE_INT !!=
+        drop
+    TYPE_INT sort-value sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!1
+        sort-value-type? TYPE_INT !!=
+        drop
+)
+
+
+#########
+# Types #
+#########
+
+def-type(Type, U32) # actually U24
+def(Type->Int, Type -- Int, U32->Int)
+def(Int->Type, Int -- Type, Int->U32) # TODO: enforce U24 size
+
+def(TYPE_ERROR, Type, 0 Int->U32)
+def(TYPE_INT, Type, 1 Int->U32) # generic integer type for integer literals)
+def(TYPE_PTR, Type, 2 Int->U32) # generic pointer type (e.g. void*)
+def(TYPE_U8, Type, 3 Int->U32) # fixed width integer type -- unsigned 8 bit
+def(TYPE_U16, Type, 4 Int->U32) # fixed width integer type -- unsigned 16 bit
+def(TYPE_U32, Type, 5 Int->U32) # fixed width integer type -- unsigned 32 bit
+def(TYPE_U64, Type, 6 Int->U32) # fixed width integer type -- unsigned 64 bit
+def(TYPE_I8, Type, 7 Int->U32) # fixed width integer type -- signed 8 bit
+def(TYPE_I16, Type, 8 Int->U32) # fixed width integer type -- signed 16 bit
+def(TYPE_I32, Type, 9 Int->U32) # fixed width integer type -- signed 32 bit
+def(TYPE_I64, Type, 10 Int->U32) # fixed width integer type -- signed 64 bit

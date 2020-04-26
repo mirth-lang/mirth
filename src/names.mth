@@ -380,21 +380,21 @@ def(init-names!, +Names,
 
 def-type(Value, Int)
 
-def-type(Sort, U8)
-def(DEF_NONE, Sort, 0 Int->U8)
-def(DEF_WORD, Sort, 1 Int->U8)
-def(DEF_BUFFER, Sort, 2 Int->U8)
-def(DEF_TYPE, Sort, 3 Int->U8)
-def(DEF_EXTERNAL, Sort, 4 Int->U8)
-def(DEF_MODULE, Sort, 5 Int->U8)
+def-type(NameSort, U8)
+def(DEF_NONE, NameSort, 0 Int->U8)
+def(DEF_WORD, NameSort, 1 Int->U8)
+def(DEF_BUFFER, NameSort, 2 Int->U8)
+def(DEF_TYPE, NameSort, 3 Int->U8)
+def(DEF_EXTERNAL, NameSort, 4 Int->U8)
+def(DEF_MODULE, NameSort, 5 Int->U8)
 
 MAX_NAMES u8s def-static-buffer(DEF_SORT)
 MAX_NAMES quads def-static-buffer(DEF_VALUE)
 MAX_NAMES quads def-static-buffer(DEF_SIG)
 
-def(name-sort!, Sort Name --, DEF_SORT u8!!)
-def(name-sort@, Name -- Sort, DEF_SORT u8@@)
-def(name-sort?, Name -- Name Sort, dup name-sort@)
+def(name-sort!, NameSort Name --, DEF_SORT u8!!)
+def(name-sort@, Name -- NameSort, DEF_SORT u8@@)
+def(name-sort?, Name -- Name NameSort, dup name-sort@)
 
 def(name-value!, Value Name --, DEF_VALUE quad!!)
 def(name-value@, Name -- Value, DEF_VALUE quad@@)
@@ -414,4 +414,10 @@ def(name-is-module?, Name -- Name Bool, name-sort? DEF_MODULE =)
 
 def(name-type!, Type Name --,
     DEF_TYPE over name-sort!
-    name-value!)
+    dip(Type->Int) name-value!)
+def(name-type@, Name -- Type,
+    name-is-type? if(
+        name-value@ Int->Type,
+        "compiler error: attempted to get type definition for non-type name" panic!
+        Int->Type
+    ))
