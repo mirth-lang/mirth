@@ -35,6 +35,8 @@ def(test!, +IO,
 # Main #
 ########
 
+def(NEW_MIRTH_REVISION, Int, 0)
+
 def(main, +IO,
     init!
     test!
@@ -59,12 +61,10 @@ def(main, +IO,
 # Build #
 #########
 
-def(NEW_MIRTH_REVISION, Int, 0)
-
 "mirth.c" output-c99(main)
 #"mirth_prof.c" output-c99(100 while-old(main 1-))
 
-import(snake) # this is silly, but no way around this for now.
+# import(snake) # this is silly, but no way around this for now.
     # there's two issues here:
     #   1. snake imports sdl2, sdl2 declares a bunch of external functions.
     #   under the current compilation approach ("just generate everything

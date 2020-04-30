@@ -1,3 +1,4 @@
+
 module(types)
 import(names)
 
@@ -29,17 +30,6 @@ def(CTX_SIZE, Size, 8)
 quad def-static-buffer(NUM_CTX)
 MAX_CTX CTX_SIZE * i16s def-static-buffer(CTX_BUF)
 
-def(ctx-alloc!, Ctx,
-    NUM_CTX @ dup 1+ NUM_CTX !
-    dup MAX_CTX < if(
-        1+ Int->U16,
-        "compiler error: ran out of space for contexts, increase MAX_CTX" panic!
-    ))
-
-def(ctx-empty, Ctx, 0 Int->U16)
-def(ctx-is-empty, Ctx -- Bool, U16->Int 0 =)
-def(ctx-is-empty?, Ctx -- Ctx Bool, dup ctx-is-empty)
-
 def(ctx-base&, Ctx -- Ptr,
     dup if(
         U16->Int 1- CTX_SIZE * CTX_BUF +,
@@ -58,6 +48,17 @@ def(ctx-prev!, Ctx Ctx --, ctx-prev& u16!)
 def(ctx-name!, Name Ctx --, dip(Int->U16) ctx-name& u16!)
 def(ctx-sort!, Sort Ctx --, ctx-sort& u32!)
 
+def(ctx-alloc!, Ctx,
+    NUM_CTX @ dup 1+ NUM_CTX !
+    dup MAX_CTX < if(
+        1+ Int->U16,
+        "compiler error: ran out of space for contexts, increase MAX_CTX" panic!
+    ))
+
+def(ctx-empty, Ctx, 0 Int->U16)
+def(ctx-is-empty, Ctx -- Bool, U16->Int 0 =)
+def(ctx-is-empty?, Ctx -- Ctx Bool, dup ctx-is-empty)
+
 #########
 # Sorts #
 #########
@@ -69,7 +70,6 @@ def(Int->Sort, Int -- Sort, Int->U32)
 def(SORT_FLAG_SHIFT, Int, 28)
 def(SORT_FLAG_MASK, Int, 0xF SORT_FLAG_SHIFT <<)
 def(SORT_FLAG_IMPLICIT, Int, 0x1 SORT_FLAG_SHIFT <<)
-
 
 def(SORT_TAG_SHIFT, Int, 24)
 def(SORT_TAG_MASK, Int, 0xF SORT_TAG_SHIFT <<)
@@ -272,14 +272,218 @@ def-type(Type, U32) # actually U24
 def(Type->Int, Type -- Int, U32->Int)
 def(Int->Type, Int -- Type, Int->U32) # TODO: enforce U24 size
 
-def(TYPE_ERROR, Type, 0 Int->U32)
-def(TYPE_INT, Type, 1 Int->U32) # generic integer type for integer literals)
-def(TYPE_PTR, Type, 2 Int->U32) # generic pointer type (e.g. void*)
-def(TYPE_U8, Type, 3 Int->U32) # fixed width integer type -- unsigned 8 bit
-def(TYPE_U16, Type, 4 Int->U32) # fixed width integer type -- unsigned 16 bit
-def(TYPE_U32, Type, 5 Int->U32) # fixed width integer type -- unsigned 32 bit
-def(TYPE_U64, Type, 6 Int->U32) # fixed width integer type -- unsigned 64 bit
-def(TYPE_I8, Type, 7 Int->U32) # fixed width integer type -- signed 8 bit
-def(TYPE_I16, Type, 8 Int->U32) # fixed width integer type -- signed 16 bit
-def(TYPE_I32, Type, 9 Int->U32) # fixed width integer type -- signed 32 bit
-def(TYPE_I64, Type, 10 Int->U32) # fixed width integer type -- signed 64 bit
+def(TYPE_TAG_SHIFT, Int, 20)
+def(TYPE_TAG_MASK, Int, 0xF TYPE_TAG_SHIFT <<)
+def(TYPE_TAG_PRIM, Int, 0)
+def(TYPE_TAG_VAR, Int, 1)
+def(TYPE_TAG_META, Int, 2)
+def(TYPE_TAG_TENSOR, Int, 3)
+
+def(TYPE_VALUE_MASK, Int, 1 TYPE_TAG_SHIFT << 1-)
+
+def(type-prim, Int -- Type, TYPE_TAG_PRIM | Int->Type)
+def(type-var, Name -- Type, TYPE_TAG_VAR | Int->Type)
+def(type-meta, MetaVar -- Type,
+    MetaVar->Int TYPE_TAG_META | Int->Type)
+def(type-tensor, TensorType -- Type,
+    TensorType->Int TYPE_TAG_TENSOR | Int->Type)
+
+def(type-tag, Type -- Int, U32->Int TYPE_TAG_MASK &)
+def(type-is-prim, Type -- Bool, type-tag TYPE_TAG_PRIM =)
+def(type-is-var, Type -- Bool, type-tag TYPE_TAG_VAR =)
+def(type-is-meta, Type -- Bool, type-tag TYPE_TAG_META =)
+def(type-is-tensor, Type -- Bool, type-tag TYPE_TAG_TENSOR =)
+def(type-is-prim?, Type -- Type Bool, dup type-is-prim)
+def(type-is-var?, Type -- Type Bool, dup type-is-var)
+def(type-is-meta?, Type -- Type Bool, dup type-is-meta)
+def(type-is-tensor?, Type -- Type Bool, dup type-is-tensor)
+
+def(type-get-value, Type -- Int, U32->Int TYPE_VALUE_MASK &)
+def(type-get-var, Type -- Name,
+    type-is-var? not if(
+        "compiler error: tried to get var value on non-var type" panic!,
+        type-get-value
+    ))
+def(type-get-meta, Type -- MetaVar,
+    type-is-meta? not if(
+        "compiler error: tried to get meta value on non-meta type" panic!,
+        type-get-value Int->MetaVar
+    ))
+def(type-get-tensor, Type -- TensorType,
+    type-is-tensor? not if(
+        "compiler error: tried to get type tensor value on non-tensor type" panic!,
+        type-get-value Int->TensorType
+    ))
+
+def(TYPE_ERROR, Type, 0 type-prim)
+def(TYPE_INT, Type, 1 type-prim) # generic integer type for integer literals)
+def(TYPE_PTR, Type, 2 type-prim) # generic pointer type (e.g. void*)
+def(TYPE_U8, Type, 3 type-prim) # fixed width integer type -- unsigned 8 bit
+def(TYPE_U16, Type, 4 type-prim) # fixed width integer type -- unsigned 16 bit
+def(TYPE_U32, Type, 5 type-prim) # fixed width integer type -- unsigned 32 bit
+def(TYPE_U64, Type, 6 type-prim) # fixed width integer type -- unsigned 64 bit
+def(TYPE_I8, Type, 7 type-prim) # fixed width integer type -- signed 8 bit
+def(TYPE_I16, Type, 8 type-prim) # fixed width integer type -- signed 16 bit
+def(TYPE_I32, Type, 9 type-prim) # fixed width integer type -- signed 32 bit
+def(TYPE_I64, Type, 10 type-prim) # fixed width integer type -- signed 64 bit
+def(TYPE_UNIT, Type, 11 type-prim) # unit type, also used for empty stack
+
+def(type-expand, Type -- Type,
+    type-is-meta? if(
+        type-get-meta meta-expand,
+
+        id
+    ))
+
+# Unify two types. Raises an elaboration error if unification is impossible.
+def(type-unify!, Type Type -- Type,
+    dip(type-expand) type-expand
+
+    dup2 = if(
+        drop, # types are equal
+
+    dup TYPE_ERROR = if(
+        drop2 TYPE_ERROR,
+
+    over TYPE_ERROR = if(
+        drop2 TYPE_ERROR,
+
+    type-is-prim? if( # other than TYPE_ERROR, primitive types need to be exact matches.
+        "failed to unify types" elab-emit-error! # TODO: improve error messages
+        drop2 TYPE_ERROR,
+
+    type-is-var? if( # type variables need to be exact matches.
+        "failed to unify types" elab-emit-error! # TODO: improve error messages
+        drop2 TYPE_ERROR,
+
+    type-is-tensor? if(
+        type-get-tensor swap
+        type-is-tensor? if(
+            type-get-tensor swap
+            tensor-type-unify! type-tensor,
+
+            "failed to unify types" elab-emit-error!  # TODO: improve error messages
+            drop2 TYPE_ERROR
+        ),
+
+        "type-unify: unknown type" panic! drop
+    )))))))
+
+def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
+    dup2 type-has-meta)
+
+def(type-has-meta, MetaVar Type -- Bool,
+    type-is-prim? if(
+        drop2 0,
+
+    type-is-var? if(
+        drop2 0,
+
+    type-is-meta? if(
+        type-get-meta =,
+
+    type-is-tensor? if(
+        type-get-tensor tensor-type-has-meta,
+
+        "type-has-meta: unknown type" panic! drop2 0
+    )))))
+
+################
+# Tensor Types #
+################
+
+def-type(TensorType, U16)
+def(Int->TensorType, Int -- TensorType, Int->U16)
+def(TensorType->Int, TensorType -- Int, U16->Int)
+
+def(MAX_TENSOR_TYPES, Size, 1 15 <<)
+def(TENSOR_TYPE_SIZE, Size, 8)
+
+quad def-static-buffer(NUM_TENSOR_TYPES)
+MAX_TENSOR_TYPES TENSOR_TYPE_SIZE * def-static-buffer(TENSOR_TYPE_BUF)
+
+def(tensor-type-alloc!, TensorType,
+    NUM_TENSOR_TYPES @ dup 1+ NUM_TENSOR_TYPES !
+    dup MAX_TENSOR_TYPES >= if(
+        "compiler error: too many tensor types -- increase MAX_TENSOR_TYPES" panic!,
+        Int->TensorType
+    ))
+
+def(tensor-type-base&, TensorType -- Ptr,
+    TensorType->Int TENSOR_TYPE_SIZE * TENSOR_TYPE_BUF +)
+def(tensor-type-fst&, TensorType -- Ptr, tensor-type-base&)
+def(tensor-type-snd&, TensorType -- Ptr, tensor-type-base& 4 +)
+def(tensor-type-fst@, TensorType -- Type, tensor-type-fst& u32@)
+def(tensor-type-snd@, TensorType -- Type, tensor-type-snd& u32@)
+def(tensor-type-fst!, Type TensorType --, tensor-type-fst& u32!)
+def(tensor-type-snd!, Type TensorType --, tensor-type-snd& u32!)
+
+def(tensor-type-unpack, TensorType -- Type Type,
+    dup dip(tensor-type-fst@) tensor-type-snd@)
+
+def(tensor-type-unify!, TensorType TensorType -- TensorType,
+    over tensor-type-fst@ over tensor-type-fst@ type-unify! over tensor-type-fst!
+    over tensor-type-snd@ over tensor-type-snd@ type-unify! over tensor-type-snd!
+    nip)
+
+def(tensor-type-has-meta, MetaVar TensorType -- Bool,
+    tensor-type-unpack
+    dip(over) type-has-meta if(
+        drop2 1,
+        type-has-meta
+    ))
+
+##################
+# Meta-var Types #
+##################
+
+def-type(MetaVar, U16)
+def(Int->MetaVar, Int -- MetaVar, Int->U16)
+def(MetaVar->Int, MetaVar -- Int, U16->Int)
+
+def(MAX_METAS, Size, 1 15 <<)
+def(META_SIZE, Size, 4)
+quad def-static-buffer(NUM_METAS)
+MAX_METAS META_SIZE * def-static-buffer(META_BUF)
+
+def(meta-value&, MetaVar -- Ptr, MetaVar->Int META_SIZE * META_BUF +)
+def(meta-value@, MetaVar -- Int, meta-value& u32@ U32->Int)
+def(meta-value!, Int MetaVar --, dip(Int->U32) meta-value& u32!)
+
+def(meta-is-defined, MetaVar -- Bool, meta-value@ 0 =)
+def(meta-is-defined?, MetaVar -- MetaVar Bool, dup meta-is-defined)
+
+def(meta-type@, MetaVar -- Type,
+    meta-is-defined? not if(
+        "compiler error: called meta-type@ on undefined meta-var" panic!,
+        meta-value@ 1- Int->U32
+    ))
+def(meta-type!, Type MetaVar --,
+    dip(U32->Int 1+) meta-value!)
+
+def(meta-expand, MetaVar -- Type,
+    meta-is-defined? if(
+        dup meta-type@ type-expand tuck meta-type!,
+        type-meta
+    ))
+
+def(meta-unify!, Type MetaVar -- Type,
+    meta-is-defined? if(
+        meta-expand type-unify!,
+
+    swap
+    type-has-meta? if(
+        "failed to unify types" elab-emit-error!
+        drop
+        TYPE_ERROR swap meta-type!
+        TYPE_ERROR,
+
+        swap dip(dup)
+        meta-type!
+    )))
+
+# TODO:
+#   - type unification
+#   - converting type signatures into types
+#   - hook up type system to elaborator
+#   - implement newtypes
