@@ -18,6 +18,7 @@ u8 def-static-buffer(SNAKE_Y)
 quad def-static-buffer(SNAKE_WINDOW)
 quad def-static-buffer(SNAKE_RENDERER)
 quad def-static-buffer(SNAKE_QUEUE_LENGTH)
+quad def-static-buffer(SNAKE_CONTROLLER)
 SNAKE_W SNAKE_H * def-static-buffer(SNAKE_QUEUE_X)
 SNAKE_W SNAKE_H * def-static-buffer(SNAKE_QUEUE_Y)
 SNAKE_W SNAKE_H * def-static-buffer(SNAKE_GRID)
@@ -68,6 +69,9 @@ def(snake-window!, SDL_Window* -- +Snake, Ptr->Int SNAKE_WINDOW !)
 
 def(snake-renderer@, -- SDL_Renderer* +Snake, SNAKE_RENDERER @ Int->Ptr)
 def(snake-renderer!, SDL_Renderer* -- +Snake, Ptr->Int SNAKE_RENDERER !)
+
+def(snake-controller@, -- SDL_JoystickID +Snake, SNAKE_CONTROLLER @)
+def(snake-controller!, SDL_JoystickID -- +Snake, SNAKE_CONTROLLER !)
 
 def(snake-grid@, XCoord YCoord -- State +Snake,
     coords-offset SNAKE_GRID u8@@)
@@ -143,6 +147,22 @@ def(SDL_Scancode->SnakeButton, SDL_Scancode -- SnakeButton,
         drop SNAKE_BUTTON_NONE
     ))))))
 
+def(SDL_GameControllerButton->SnakeButton, SDL_GameControllerButton -- SnakeButton,
+
+    dup SDL_CONTROLLER_BUTTON_DPAD_UP = if(
+        drop SNAKE_BUTTON_UP,
+    dup SDL_CONTROLLER_BUTTON_DPAD_DOWN = if(
+        drop SNAKE_BUTTON_DOWN,
+    dup SDL_CONTROLLER_BUTTON_DPAD_LEFT = if(
+        drop SNAKE_BUTTON_LEFT,
+    dup SDL_CONTROLLER_BUTTON_DPAD_RIGHT = if(
+        drop SNAKE_BUTTON_RIGHT,
+    dup SDL_CONTROLLER_BUTTON_START = if(
+        drop SNAKE_BUTTON_START,
+
+        drop SNAKE_BUTTON_NONE
+    ))))))
+
 def(snake!, +Snake,
     snake-init!
     snake-loop!
@@ -159,13 +179,26 @@ def(snake-reset!, +Snake,
     0 snake-points!
     0 tick-timer!)
 
+def(SNAKE_INIT_FLAGS, SDL_InitFlags,
+    SDL_INIT_VIDEO U32->Int
+    SDL_INIT_GAMECONTROLLER U32->Int |
+    Int->U32)
+
 def(snake-init!, +Snake,
     snake-reset!
 
-    SDL_INIT_VIDEO SDL_Init if(
+    SNAKE_INIT_FLAGS SDL_Init if(
         SDL_GetError panic!,
         id
     )
+
+    SDL_NumJoysticks 0 while(dup2 >,
+        dup SDL_IsGameController if(
+            snake-controller! dup
+            snake-controller@ SDL_GameControllerOpen drop,
+            1+
+        )
+    ) drop2
 
     "Snake!"
     100
@@ -270,8 +303,16 @@ def(snake-process-event!, +Snake,
             )
         ),
 
+    dup SDL_CONTROLLERBUTTONDOWN = if(
         drop
-    )))
+        SNAKE_EVENT SDL_Event.cbutton.which snake-controller@ = if(
+            SNAKE_EVENT SDL_Event.cbutton.button
+            SDL_GameControllerButton->SnakeButton snake-press!,
+            id
+        ),
+
+        drop
+    ))))
 
 def(snake-press!, SnakeButton -- +Snake,
     dup SNAKE_BUTTON_NONE = if(

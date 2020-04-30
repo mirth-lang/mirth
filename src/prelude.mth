@@ -135,7 +135,7 @@ def(str-buf-input!, -- +IO, stdin str-buf-read!)
 
 # Tests
 
-def(run-tests, --,
+def(test-prelude!, --,
     test-if test-drop test-dup test-swap test-dip
     test-trip test-rotr test-rotl test= test< test<= test> test>=
     test+ test- test* test/ test% test-str test-while

@@ -14,6 +14,7 @@ import(codegen)
 import(elab)
 import(core)
 import(paths)
+import(types)
 
 def(init!, +IO,
     init-paths!
@@ -21,17 +22,25 @@ def(init!, +IO,
     init-strings!
     init-tokens!
     init-names!
+    init-types!
     init-buffers!
     init-heap!
     init-core!)
+
+def(test!, +IO,
+    test-prelude!
+    test-types!)
 
 ########
 # Main #
 ########
 
+def(NEW_MIRTH_REVISION, Int, 0)
+
 def(main, +IO,
     init!
-    run-tests
+    test!
+
     "mirth.mth" run-lexer!
 
     # show-names-table!
@@ -52,12 +61,10 @@ def(main, +IO,
 # Build #
 #########
 
-def(NEW_MIRTH_REVISION, Int, 0)
-
 "mirth.c" output-c99(main)
 #"mirth_prof.c" output-c99(100 while-old(main 1-))
 
-import(snake) # this is silly, but no way around this for now.
+# import(snake) # this is silly, but no way around this for now.
     # there's two issues here:
     #   1. snake imports sdl2, sdl2 declares a bunch of external functions.
     #   under the current compilation approach ("just generate everything

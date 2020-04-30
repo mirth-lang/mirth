@@ -358,35 +358,15 @@ def(init-names!, +Names,
     PRIM_DASHES "--" def-prim!
     PRIM_ARROW "->" def-prim!
     PRIM_INT "Int" def-prim!
-        DEF_TYPE PRIM_INT name-sort!
-        TYPE_INT PRIM_INT name-value!
     PRIM_PTR "Ptr" def-prim!
-        DEF_TYPE PRIM_PTR name-sort!
-        TYPE_PTR PRIM_PTR name-value!
     PRIM_U8 "U8" def-prim!
-        DEF_TYPE PRIM_U8 name-sort!
-        TYPE_U8 PRIM_U8 name-value!
     PRIM_U16 "U16" def-prim!
-        DEF_TYPE PRIM_U16 name-sort!
-        TYPE_U16 PRIM_U16 name-value!
     PRIM_U32 "U32" def-prim!
-        DEF_TYPE PRIM_U32 name-sort!
-        TYPE_U32 PRIM_U32 name-value!
     PRIM_U64 "U64" def-prim!
-        DEF_TYPE PRIM_U64 name-sort!
-        TYPE_U64 PRIM_U64 name-value!
     PRIM_I8 "I8" def-prim!
-        DEF_TYPE PRIM_I8 name-sort!
-        TYPE_I8 PRIM_I8 name-value!
     PRIM_I16 "I16" def-prim!
-        DEF_TYPE PRIM_I16 name-sort!
-        TYPE_I16 PRIM_I16 name-value!
     PRIM_I32 "I32" def-prim!
-        DEF_TYPE PRIM_I32 name-sort!
-        TYPE_I32 PRIM_I32 name-value!
     PRIM_I64 "I64" def-prim!
-        DEF_TYPE PRIM_I64 name-sort!
-        TYPE_I64 PRIM_I64 name-value!
     PRIM_MODULE "module" def-prim!
     PRIM_IMPORT "import" def-prim!
     NUM_PRIMS num-names@ = if(id,
@@ -400,21 +380,21 @@ def(init-names!, +Names,
 
 def-type(Value, Int)
 
-def-type(Sort, U8)
-def(DEF_NONE, Sort, 0 Int->U8)
-def(DEF_WORD, Sort, 1 Int->U8)
-def(DEF_BUFFER, Sort, 2 Int->U8)
-def(DEF_TYPE, Sort, 3 Int->U8)
-def(DEF_EXTERNAL, Sort, 4 Int->U8)
-def(DEF_MODULE, Sort, 5 Int->U8)
+def-type(NameSort, U8)
+def(DEF_NONE, NameSort, 0 Int->U8)
+def(DEF_WORD, NameSort, 1 Int->U8)
+def(DEF_BUFFER, NameSort, 2 Int->U8)
+def(DEF_TYPE, NameSort, 3 Int->U8)
+def(DEF_EXTERNAL, NameSort, 4 Int->U8)
+def(DEF_MODULE, NameSort, 5 Int->U8)
 
 MAX_NAMES u8s def-static-buffer(DEF_SORT)
 MAX_NAMES quads def-static-buffer(DEF_VALUE)
 MAX_NAMES quads def-static-buffer(DEF_SIG)
 
-def(name-sort!, Sort Name --, DEF_SORT u8!!)
-def(name-sort@, Name -- Sort, DEF_SORT u8@@)
-def(name-sort?, Name -- Name Sort, dup name-sort@)
+def(name-sort!, NameSort Name --, DEF_SORT u8!!)
+def(name-sort@, Name -- NameSort, DEF_SORT u8@@)
+def(name-sort?, Name -- Name NameSort, dup name-sort@)
 
 def(name-value!, Value Name --, DEF_VALUE quad!!)
 def(name-value@, Name -- Value, DEF_VALUE quad@@)
@@ -431,3 +411,13 @@ def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
 def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE =)
 def(name-is-external?, Name -- Name Bool, name-sort? DEF_EXTERNAL =)
 def(name-is-module?, Name -- Name Bool, name-sort? DEF_MODULE =)
+
+def(name-type!, Type Name --,
+    DEF_TYPE over name-sort!
+    dip(Type->Int) name-value!)
+def(name-type@, Name -- Type,
+    name-is-type? if(
+        name-value@ Int->Type,
+        "compiler error: attempted to get type definition for non-type name" panic!
+        Int->Type
+    ))

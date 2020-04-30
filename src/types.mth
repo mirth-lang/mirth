@@ -1,0 +1,489 @@
+
+module(types)
+import(names)
+
+def(init-types!, --,
+    TYPE_INT PRIM_INT name-type!
+    TYPE_PTR PRIM_PTR name-type!
+    TYPE_U8 PRIM_U8 name-type!
+    TYPE_U16 PRIM_U16 name-type!
+    TYPE_U32 PRIM_U32 name-type!
+    TYPE_U64 PRIM_U64 name-type!
+    TYPE_I8 PRIM_I8 name-type!
+    TYPE_I16 PRIM_I16 name-type!
+    TYPE_I32 PRIM_I32 name-type!
+    TYPE_I64 PRIM_I64 name-type!)
+
+def(test-types!, --,
+    test-sorts!)
+
+###########
+# Context #
+###########
+
+# A context for types and terms.
+def-type(Ctx, U16) # index into context array
+
+def(MAX_CTX, Size, 0x1000)
+def(CTX_SIZE, Size, 8)
+
+quad def-static-buffer(NUM_CTX)
+MAX_CTX CTX_SIZE * i16s def-static-buffer(CTX_BUF)
+
+def(ctx-base&, Ctx -- Ptr,
+    dup if(
+        U16->Int 1- CTX_SIZE * CTX_BUF +,
+        "compiler error: attempted to get base pointer of empty context" panic!
+        U16->Int Int->Ptr
+    ))
+def(ctx-prev&, Ctx -- Ptr, ctx-base&)
+def(ctx-name&, Ctx -- Ptr, ctx-base& 2 +)
+def(ctx-sort&, Ctx -- Ptr, ctx-base& 4 +)
+
+def(ctx-prev@, Ctx -- Ctx, ctx-prev& u16@)
+def(ctx-name@, Ctx -- Name, ctx-name& u16@ U16->Int)
+def(ctx-sort@, Ctx -- Sort, ctx-sort& u32@)
+
+def(ctx-prev!, Ctx Ctx --, ctx-prev& u16!)
+def(ctx-name!, Name Ctx --, dip(Int->U16) ctx-name& u16!)
+def(ctx-sort!, Sort Ctx --, ctx-sort& u32!)
+
+def(ctx-alloc!, Ctx,
+    NUM_CTX @ dup 1+ NUM_CTX !
+    dup MAX_CTX < if(
+        1+ Int->U16,
+        "compiler error: ran out of space for contexts, increase MAX_CTX" panic!
+    ))
+
+def(ctx-empty, Ctx, 0 Int->U16)
+def(ctx-is-empty, Ctx -- Bool, U16->Int 0 =)
+def(ctx-is-empty?, Ctx -- Ctx Bool, dup ctx-is-empty)
+
+#########
+# Sorts #
+#########
+
+def-type(Sort, U32)
+def(Sort->Int, Sort -- Int, U32->Int)
+def(Int->Sort, Int -- Sort, Int->U32)
+
+def(SORT_FLAG_SHIFT, Int, 28)
+def(SORT_FLAG_MASK, Int, 0xF SORT_FLAG_SHIFT <<)
+def(SORT_FLAG_IMPLICIT, Int, 0x1 SORT_FLAG_SHIFT <<)
+
+def(SORT_TAG_SHIFT, Int, 24)
+def(SORT_TAG_MASK, Int, 0xF SORT_TAG_SHIFT <<)
+
+def(SORT_TAG_TYPE,   Int, 0x1 SORT_TAG_SHIFT <<)
+def(SORT_TAG_STACK,  Int, 0x2 SORT_TAG_SHIFT <<)
+def(SORT_TAG_EFFECT, Int, 0x3 SORT_TAG_SHIFT <<)
+def(SORT_TAG_WORD,   Int, 0x4 SORT_TAG_SHIFT <<)
+def(SORT_TAG_VALUE,  Int, 0x5 SORT_TAG_SHIFT <<)
+
+def(sort-tag, Sort -- Int, U32->Int SORT_TAG_MASK &)
+
+def(sort-is-implicit, Sort -- Bool, U32->Int SORT_FLAG_IMPLICIT & 0 >)
+def(sort-is-explicit, Sort -- Bool, sort-is-implicit not)
+def(sort-is-type, Sort -- Bool, sort-tag SORT_TAG_TYPE =)
+def(sort-is-stack, Sort -- Bool, sort-tag SORT_TAG_STACK =)
+def(sort-is-effect, Sort -- Bool, sort-tag SORT_TAG_EFFECT =)
+def(sort-is-word, Sort -- Bool, sort-tag SORT_TAG_WORD =)
+def(sort-is-value, Sort -- Bool, sort-tag SORT_TAG_VALUE =)
+
+def(sort-is-implicit?, Sort -- Sort Bool, dup sort-is-implicit)
+def(sort-is-explicit?, Sort -- Sort Bool, dup sort-is-explicit)
+def(sort-is-type?, Sort -- Sort Bool, dup sort-is-type)
+def(sort-is-stack?, Sort -- Sort Bool, dup sort-is-stack)
+def(sort-is-effect?, Sort -- Sort Bool, dup sort-is-effect)
+def(sort-is-word?, Sort -- Sort Bool, dup sort-is-word)
+def(sort-is-value?, Sort -- Sort Bool, dup sort-is-value)
+
+def(SORT_PAYLOAD_MASK, Int, 1 24 << 1-)
+
+# Get signature for word sort. Panic if not a word sort.
+def(sort-word-sig, Sort -- Token,
+    sort-is-word? if(
+        Sort->Int SORT_PAYLOAD_MASK &,
+        "compiler error: attempted to get sort word sig for non-word sort" panic! Sort->Int
+    ))
+def(sort-word-sig?, Sort -- Sort Token, dup sort-word-sig)
+
+# Get type for value sort. Panic if not a value sort.
+def(sort-value-type, Sort -- Type,
+    sort-is-value? if(
+        Sort->Int SORT_PAYLOAD_MASK & Int->Type,
+        "compiler error: attempted to get sort value type for non-type sort" panic!
+    ))
+def(sort-value-type?, Sort -- Sort Type, dup sort-value-type)
+
+# Sort constructors.
+def(sort-implicit, Sort -- Sort, Sort->Int SORT_FLAG_IMPLICIT | Int->Sort)
+def(sort-type, Sort, SORT_TAG_TYPE Int->Sort)
+def(sort-stack, Sort, SORT_TAG_STACK Int->Sort)
+def(sort-effect, Sort, SORT_TAG_EFFECT Int->Sort)
+def(sort-word, Token -- Sort, SORT_TAG_WORD | Int->Sort)
+def(sort-value, Type -- Sort, Type->Int SORT_TAG_VALUE | Int->Sort)
+
+# Unit tests for sort.
+def(test-sorts!, --,
+
+    sort-type
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!1
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!0
+        drop
+    sort-type sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!1
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!0
+        drop
+    sort-stack
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!0
+        sort-is-stack? !!1
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!0
+        drop
+    sort-stack sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!0
+        sort-is-stack? !!1
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!0
+        drop
+    sort-effect
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!1
+        sort-is-word? !!0
+        sort-is-value? !!0
+        drop
+    sort-effect sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!1
+        sort-is-word? !!0
+        sort-is-value? !!0
+        drop
+    0 sort-word
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!1
+        sort-is-value? !!0
+        sort-word-sig? 0 !!=
+        drop
+    0 sort-word sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!1
+        sort-is-value? !!0
+        sort-word-sig? 0 !!=
+        drop
+    1 sort-word
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!1
+        sort-is-value? !!0
+        sort-word-sig? 1 !!=
+        drop
+    1 sort-word sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!1
+        sort-is-value? !!0
+        sort-word-sig? 1 !!=
+        drop
+    TYPE_ERROR sort-value
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!1
+        sort-value-type? TYPE_ERROR !!=
+        drop
+    TYPE_ERROR sort-value sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!1
+        sort-value-type? TYPE_ERROR !!=
+        drop
+    TYPE_INT sort-value
+        sort-is-implicit? !!0
+        sort-is-explicit? !!1
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!1
+        sort-value-type? TYPE_INT !!=
+        drop
+    TYPE_INT sort-value sort-implicit
+        sort-is-implicit? !!1
+        sort-is-explicit? !!0
+        sort-is-type? !!0
+        sort-is-stack? !!0
+        sort-is-effect? !!0
+        sort-is-word? !!0
+        sort-is-value? !!1
+        sort-value-type? TYPE_INT !!=
+        drop
+)
+
+
+#########
+# Types #
+#########
+
+def-type(Type, U32) # actually U24
+def(Type->Int, Type -- Int, U32->Int)
+def(Int->Type, Int -- Type, Int->U32) # TODO: enforce U24 size
+
+def(TYPE_TAG_SHIFT, Int, 20)
+def(TYPE_TAG_MASK, Int, 0xF TYPE_TAG_SHIFT <<)
+def(TYPE_TAG_PRIM, Int, 0)
+def(TYPE_TAG_VAR, Int, 1)
+def(TYPE_TAG_META, Int, 2)
+def(TYPE_TAG_TENSOR, Int, 3)
+
+def(TYPE_VALUE_MASK, Int, 1 TYPE_TAG_SHIFT << 1-)
+
+def(type-prim, Int -- Type, TYPE_TAG_PRIM | Int->Type)
+def(type-var, Name -- Type, TYPE_TAG_VAR | Int->Type)
+def(type-meta, MetaVar -- Type,
+    MetaVar->Int TYPE_TAG_META | Int->Type)
+def(type-tensor, TensorType -- Type,
+    TensorType->Int TYPE_TAG_TENSOR | Int->Type)
+
+def(type-tag, Type -- Int, U32->Int TYPE_TAG_MASK &)
+def(type-is-prim, Type -- Bool, type-tag TYPE_TAG_PRIM =)
+def(type-is-var, Type -- Bool, type-tag TYPE_TAG_VAR =)
+def(type-is-meta, Type -- Bool, type-tag TYPE_TAG_META =)
+def(type-is-tensor, Type -- Bool, type-tag TYPE_TAG_TENSOR =)
+def(type-is-prim?, Type -- Type Bool, dup type-is-prim)
+def(type-is-var?, Type -- Type Bool, dup type-is-var)
+def(type-is-meta?, Type -- Type Bool, dup type-is-meta)
+def(type-is-tensor?, Type -- Type Bool, dup type-is-tensor)
+
+def(type-get-value, Type -- Int, U32->Int TYPE_VALUE_MASK &)
+def(type-get-var, Type -- Name,
+    type-is-var? not if(
+        "compiler error: tried to get var value on non-var type" panic!,
+        type-get-value
+    ))
+def(type-get-meta, Type -- MetaVar,
+    type-is-meta? not if(
+        "compiler error: tried to get meta value on non-meta type" panic!,
+        type-get-value Int->MetaVar
+    ))
+def(type-get-tensor, Type -- TensorType,
+    type-is-tensor? not if(
+        "compiler error: tried to get type tensor value on non-tensor type" panic!,
+        type-get-value Int->TensorType
+    ))
+
+def(TYPE_ERROR, Type, 0 type-prim)
+def(TYPE_INT, Type, 1 type-prim) # generic integer type for integer literals)
+def(TYPE_PTR, Type, 2 type-prim) # generic pointer type (e.g. void*)
+def(TYPE_U8, Type, 3 type-prim) # fixed width integer type -- unsigned 8 bit
+def(TYPE_U16, Type, 4 type-prim) # fixed width integer type -- unsigned 16 bit
+def(TYPE_U32, Type, 5 type-prim) # fixed width integer type -- unsigned 32 bit
+def(TYPE_U64, Type, 6 type-prim) # fixed width integer type -- unsigned 64 bit
+def(TYPE_I8, Type, 7 type-prim) # fixed width integer type -- signed 8 bit
+def(TYPE_I16, Type, 8 type-prim) # fixed width integer type -- signed 16 bit
+def(TYPE_I32, Type, 9 type-prim) # fixed width integer type -- signed 32 bit
+def(TYPE_I64, Type, 10 type-prim) # fixed width integer type -- signed 64 bit
+def(TYPE_UNIT, Type, 11 type-prim) # unit type, also used for empty stack
+
+def(type-expand, Type -- Type,
+    type-is-meta? if(
+        type-get-meta meta-expand,
+
+        id
+    ))
+
+# Unify two types. Raises an elaboration error if unification is impossible.
+def(type-unify!, Type Type -- Type,
+    dip(type-expand) type-expand
+
+    dup2 = if(
+        drop, # types are equal
+
+    dup TYPE_ERROR = if(
+        drop2 TYPE_ERROR,
+
+    over TYPE_ERROR = if(
+        drop2 TYPE_ERROR,
+
+    type-is-prim? if( # other than TYPE_ERROR, primitive types need to be exact matches.
+        "failed to unify types" elab-emit-error! # TODO: improve error messages
+        drop2 TYPE_ERROR,
+
+    type-is-var? if( # type variables need to be exact matches.
+        "failed to unify types" elab-emit-error! # TODO: improve error messages
+        drop2 TYPE_ERROR,
+
+    type-is-tensor? if(
+        type-get-tensor swap
+        type-is-tensor? if(
+            type-get-tensor swap
+            tensor-type-unify! type-tensor,
+
+            "failed to unify types" elab-emit-error!  # TODO: improve error messages
+            drop2 TYPE_ERROR
+        ),
+
+        "type-unify: unknown type" panic! drop
+    )))))))
+
+def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
+    dup2 type-has-meta)
+
+def(type-has-meta, MetaVar Type -- Bool,
+    type-is-prim? if(
+        drop2 0,
+
+    type-is-var? if(
+        drop2 0,
+
+    type-is-meta? if(
+        type-get-meta =,
+
+    type-is-tensor? if(
+        type-get-tensor tensor-type-has-meta,
+
+        "type-has-meta: unknown type" panic! drop2 0
+    )))))
+
+################
+# Tensor Types #
+################
+
+def-type(TensorType, U16)
+def(Int->TensorType, Int -- TensorType, Int->U16)
+def(TensorType->Int, TensorType -- Int, U16->Int)
+
+def(MAX_TENSOR_TYPES, Size, 1 15 <<)
+def(TENSOR_TYPE_SIZE, Size, 8)
+
+quad def-static-buffer(NUM_TENSOR_TYPES)
+MAX_TENSOR_TYPES TENSOR_TYPE_SIZE * def-static-buffer(TENSOR_TYPE_BUF)
+
+def(tensor-type-alloc!, TensorType,
+    NUM_TENSOR_TYPES @ dup 1+ NUM_TENSOR_TYPES !
+    dup MAX_TENSOR_TYPES >= if(
+        "compiler error: too many tensor types -- increase MAX_TENSOR_TYPES" panic!,
+        Int->TensorType
+    ))
+
+def(tensor-type-base&, TensorType -- Ptr,
+    TensorType->Int TENSOR_TYPE_SIZE * TENSOR_TYPE_BUF +)
+def(tensor-type-fst&, TensorType -- Ptr, tensor-type-base&)
+def(tensor-type-snd&, TensorType -- Ptr, tensor-type-base& 4 +)
+def(tensor-type-fst@, TensorType -- Type, tensor-type-fst& u32@)
+def(tensor-type-snd@, TensorType -- Type, tensor-type-snd& u32@)
+def(tensor-type-fst!, Type TensorType --, tensor-type-fst& u32!)
+def(tensor-type-snd!, Type TensorType --, tensor-type-snd& u32!)
+
+def(tensor-type-unpack, TensorType -- Type Type,
+    dup dip(tensor-type-fst@) tensor-type-snd@)
+
+def(tensor-type-unify!, TensorType TensorType -- TensorType,
+    over tensor-type-fst@ over tensor-type-fst@ type-unify! over tensor-type-fst!
+    over tensor-type-snd@ over tensor-type-snd@ type-unify! over tensor-type-snd!
+    nip)
+
+def(tensor-type-has-meta, MetaVar TensorType -- Bool,
+    tensor-type-unpack
+    dip(over) type-has-meta if(
+        drop2 1,
+        type-has-meta
+    ))
+
+##################
+# Meta-var Types #
+##################
+
+def-type(MetaVar, U16)
+def(Int->MetaVar, Int -- MetaVar, Int->U16)
+def(MetaVar->Int, MetaVar -- Int, U16->Int)
+
+def(MAX_METAS, Size, 1 15 <<)
+def(META_SIZE, Size, 4)
+quad def-static-buffer(NUM_METAS)
+MAX_METAS META_SIZE * def-static-buffer(META_BUF)
+
+def(meta-value&, MetaVar -- Ptr, MetaVar->Int META_SIZE * META_BUF +)
+def(meta-value@, MetaVar -- Int, meta-value& u32@ U32->Int)
+def(meta-value!, Int MetaVar --, dip(Int->U32) meta-value& u32!)
+
+def(meta-is-defined, MetaVar -- Bool, meta-value@ 0 =)
+def(meta-is-defined?, MetaVar -- MetaVar Bool, dup meta-is-defined)
+
+def(meta-type@, MetaVar -- Type,
+    meta-is-defined? not if(
+        "compiler error: called meta-type@ on undefined meta-var" panic!,
+        meta-value@ 1- Int->U32
+    ))
+def(meta-type!, Type MetaVar --,
+    dip(U32->Int 1+) meta-value!)
+
+def(meta-expand, MetaVar -- Type,
+    meta-is-defined? if(
+        dup meta-type@ type-expand tuck meta-type!,
+        type-meta
+    ))
+
+def(meta-unify!, Type MetaVar -- Type,
+    meta-is-defined? if(
+        meta-expand type-unify!,
+
+    swap
+    type-has-meta? if(
+        "failed to unify types" elab-emit-error!
+        drop
+        TYPE_ERROR swap meta-type!
+        TYPE_ERROR,
+
+        swap dip(dup)
+        meta-type!
+    )))
+
+# TODO:
+#   - type unification
+#   - converting type signatures into types
+#   - hook up type system to elaborator
+#   - implement newtypes
