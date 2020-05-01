@@ -54,6 +54,11 @@ def(ctx-alloc!, Ctx,
         1+ Int->U16,
         "compiler error: ran out of space for contexts, increase MAX_CTX" panic!
     ))
+def(ctx-new!, Ctx Name Sort -- Ctx,
+    ctx-alloc!
+    dup dip(ctx-sort!)
+    dup dip(ctx-name!)
+    dup dip(ctx-prev!))
 
 def(ctx-empty, Ctx, 0 Int->U16)
 def(ctx-is-empty, Ctx -- Bool, U16->Int 0 =)
@@ -424,6 +429,14 @@ def(META_SIZE, Size, 4)
 quad def-static-buffer(NUM_METAS)
 MAX_METAS META_SIZE * def-static-buffer(META_BUF)
 
+def(meta-alloc!, MetaVar,
+    NUM_METAS @ dup 1+ NUM_METAS !
+    dup MAX_METAS >= if(
+        "compiler error: ran out of meta variables, increase MAX_METAS" panic!,
+        Int->MetaVar
+        0 over meta-value!
+    ))
+
 def(meta-value&, MetaVar -- Ptr, MetaVar->Int META_SIZE * META_BUF +)
 def(meta-value@, MetaVar -- Int, meta-value& u32@ U32->Int)
 def(meta-value!, Int MetaVar --, dip(Int->U32) meta-value& u32!)
@@ -480,6 +493,10 @@ def(tensor-type-alloc!, TensorType,
         "compiler error: too many tensor types -- increase MAX_TENSOR_TYPES" panic!,
         Int->TensorType
     ))
+def(tensor-type-new!, Type Type -- TensorType,
+    tensor-type-alloc!
+    dup dip(tensor-type-snd!)
+    dup dip(tensor-type-fst!))
 
 def(tensor-type-base&, TensorType -- Ptr,
     TensorType->Int TENSOR_TYPE_SIZE * TENSOR_TYPE_BUF +)
@@ -524,6 +541,10 @@ def(morphism-type-alloc!, MorphismType,
         "compiler error: too many morphism types -- increase MAX_MORPHISM_TYPES" panic!,
         Int->MorphismType
     ))
+def(morphism-type-new!, Type Type -- MorphismType,
+    morphism-type-alloc!
+    dup dip(morphism-type-cod!)
+    dup dip(morphism-type-dom!))
 
 def(morphism-type-base&, MorphismType -- Ptr,
     MorphismType->Int MORPHISM_TYPE_SIZE * MORPHISM_TYPE_BUF +)
