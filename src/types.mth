@@ -64,6 +64,27 @@ def(ctx-empty, Ctx, 0 Int->U16)
 def(ctx-is-empty, Ctx -- Bool, U16->Int 0 =)
 def(ctx-is-empty?, Ctx -- Ctx Bool, dup ctx-is-empty)
 
+def(ctx-has-name?, Name Ctx -- Name Ctx Bool, dup2 ctx-has-name)
+def(ctx-has-name, Name Ctx -- Bool,
+    ctx-is-empty? if(
+        drop2 0,
+        dup ctx-name@ dip(over) = if(
+            drop2 1,
+            ctx-prev@ ctx-has-name
+        )
+    ))
+
+def(ctx-lookup-sort?, Name Ctx -- Name Ctx Sort, dup2 ctx-lookup-sort)
+def(ctx-lookup-sort, Name Ctx -- Sort,
+    ctx-is-empty? if(
+        drop2 SORT_ERROR,
+
+        dup ctx-name@ dip(over) = if(
+            ctx-sort@ nip,
+            ctx-prev@ ctx-lookup-sort
+        )
+    ))
+
 #########
 # Sorts #
 #########
@@ -72,6 +93,8 @@ def-type(Sort, U32)
 def(Sort->Int, Sort -- Int, U32->Int)
 def(Int->Sort, Int -- Sort, Int->U32)
 
+def(SORT_ERROR, Sort, 0 Int->Sort)
+
 def(SORT_FLAG_SHIFT, Int, 28)
 def(SORT_FLAG_MASK, Int, 0xF SORT_FLAG_SHIFT <<)
 def(SORT_FLAG_IMPLICIT, Int, 0x1 SORT_FLAG_SHIFT <<)
@@ -79,6 +102,7 @@ def(SORT_FLAG_IMPLICIT, Int, 0x1 SORT_FLAG_SHIFT <<)
 def(SORT_TAG_SHIFT, Int, 24)
 def(SORT_TAG_MASK, Int, 0xF SORT_TAG_SHIFT <<)
 
+def(SORT_TAG_ERROR,  Int, 0)
 def(SORT_TAG_TYPE,   Int, 0x1 SORT_TAG_SHIFT <<)
 def(SORT_TAG_STACK,  Int, 0x2 SORT_TAG_SHIFT <<)
 def(SORT_TAG_EFFECT, Int, 0x3 SORT_TAG_SHIFT <<)
@@ -87,6 +111,7 @@ def(SORT_TAG_VALUE,  Int, 0x5 SORT_TAG_SHIFT <<)
 
 def(sort-tag, Sort -- Int, U32->Int SORT_TAG_MASK &)
 
+def(sort-is-error, Sort -- Bool, U32->Int 0 =)
 def(sort-is-implicit, Sort -- Bool, U32->Int SORT_FLAG_IMPLICIT & 0 >)
 def(sort-is-explicit, Sort -- Bool, sort-is-implicit not)
 def(sort-is-type, Sort -- Bool, sort-tag SORT_TAG_TYPE =)
@@ -95,6 +120,7 @@ def(sort-is-effect, Sort -- Bool, sort-tag SORT_TAG_EFFECT =)
 def(sort-is-word, Sort -- Bool, sort-tag SORT_TAG_WORD =)
 def(sort-is-value, Sort -- Bool, sort-tag SORT_TAG_VALUE =)
 
+def(sort-is-error?, Sort -- Sort Bool, dup sort-is-error)
 def(sort-is-implicit?, Sort -- Sort Bool, dup sort-is-implicit)
 def(sort-is-explicit?, Sort -- Sort Bool, dup sort-is-explicit)
 def(sort-is-type?, Sort -- Sort Bool, dup sort-is-type)
@@ -105,13 +131,13 @@ def(sort-is-value?, Sort -- Sort Bool, dup sort-is-value)
 
 def(SORT_PAYLOAD_MASK, Int, 1 24 << 1-)
 
-# Get signature for word sort. Panic if not a word sort.
-def(sort-word-sig, Sort -- Token,
+# Get type for word sort. Panic if not a word sort.
+def(sort-word-type, Sort -- Token,
     sort-is-word? if(
         Sort->Int SORT_PAYLOAD_MASK &,
         "compiler error: attempted to get sort word sig for non-word sort" panic! Sort->Int
     ))
-def(sort-word-sig?, Sort -- Sort Token, dup sort-word-sig)
+def(sort-word-type?, Sort -- Sort Token, dup sort-word-type)
 
 # Get type for value sort. Panic if not a value sort.
 def(sort-value-type, Sort -- Type,
@@ -122,17 +148,17 @@ def(sort-value-type, Sort -- Type,
 def(sort-value-type?, Sort -- Sort Type, dup sort-value-type)
 
 # Sort constructors.
-def(sort-implicit, Sort -- Sort, Sort->Int SORT_FLAG_IMPLICIT | Int->Sort)
-def(sort-type, Sort, SORT_TAG_TYPE Int->Sort)
-def(sort-stack, Sort, SORT_TAG_STACK Int->Sort)
-def(sort-effect, Sort, SORT_TAG_EFFECT Int->Sort)
-def(sort-word, Token -- Sort, SORT_TAG_WORD | Int->Sort)
-def(sort-value, Type -- Sort, Type->Int SORT_TAG_VALUE | Int->Sort)
+def(SImplicit, Sort -- Sort, Sort->Int SORT_FLAG_IMPLICIT | Int->Sort)
+def(SType, Sort, SORT_TAG_TYPE Int->Sort)
+def(SStack, Sort, SORT_TAG_STACK Int->Sort)
+def(SEffect, Sort, SORT_TAG_EFFECT Int->Sort)
+def(SWord, Type -- Sort, Type->Int SORT_TAG_WORD | Int->Sort)
+def(SValue, Type -- Sort, Type->Int SORT_TAG_VALUE | Int->Sort)
 
 # Unit tests for sort.
 def(test-sorts!, --,
 
-    sort-type
+    SType
         sort-is-implicit? !!0
         sort-is-explicit? !!1
         sort-is-type? !!1
@@ -141,7 +167,7 @@ def(test-sorts!, --,
         sort-is-word? !!0
         sort-is-value? !!0
         drop
-    sort-type sort-implicit
+    SType SImplicit
         sort-is-implicit? !!1
         sort-is-explicit? !!0
         sort-is-type? !!1
@@ -150,7 +176,7 @@ def(test-sorts!, --,
         sort-is-word? !!0
         sort-is-value? !!0
         drop
-    sort-stack
+    SStack
         sort-is-implicit? !!0
         sort-is-explicit? !!1
         sort-is-type? !!0
@@ -159,7 +185,7 @@ def(test-sorts!, --,
         sort-is-word? !!0
         sort-is-value? !!0
         drop
-    sort-stack sort-implicit
+    SStack SImplicit
         sort-is-implicit? !!1
         sort-is-explicit? !!0
         sort-is-type? !!0
@@ -168,7 +194,7 @@ def(test-sorts!, --,
         sort-is-word? !!0
         sort-is-value? !!0
         drop
-    sort-effect
+    SEffect
         sort-is-implicit? !!0
         sort-is-explicit? !!1
         sort-is-type? !!0
@@ -177,7 +203,7 @@ def(test-sorts!, --,
         sort-is-word? !!0
         sort-is-value? !!0
         drop
-    sort-effect sort-implicit
+    SEffect SImplicit
         sort-is-implicit? !!1
         sort-is-explicit? !!0
         sort-is-type? !!0
@@ -186,7 +212,7 @@ def(test-sorts!, --,
         sort-is-word? !!0
         sort-is-value? !!0
         drop
-    0 sort-word
+    TYPE_ERROR SWord
         sort-is-implicit? !!0
         sort-is-explicit? !!1
         sort-is-type? !!0
@@ -194,9 +220,9 @@ def(test-sorts!, --,
         sort-is-effect? !!0
         sort-is-word? !!1
         sort-is-value? !!0
-        sort-word-sig? 0 !!=
+        sort-word-type? TYPE_ERROR !!=
         drop
-    0 sort-word sort-implicit
+    TYPE_ERROR SWord SImplicit
         sort-is-implicit? !!1
         sort-is-explicit? !!0
         sort-is-type? !!0
@@ -204,9 +230,9 @@ def(test-sorts!, --,
         sort-is-effect? !!0
         sort-is-word? !!1
         sort-is-value? !!0
-        sort-word-sig? 0 !!=
+        sort-word-type? TYPE_ERROR !!=
         drop
-    1 sort-word
+    TYPE_INT SWord
         sort-is-implicit? !!0
         sort-is-explicit? !!1
         sort-is-type? !!0
@@ -214,9 +240,9 @@ def(test-sorts!, --,
         sort-is-effect? !!0
         sort-is-word? !!1
         sort-is-value? !!0
-        sort-word-sig? 1 !!=
+        sort-word-type? TYPE_INT !!=
         drop
-    1 sort-word sort-implicit
+    TYPE_INT SWord SImplicit
         sort-is-implicit? !!1
         sort-is-explicit? !!0
         sort-is-type? !!0
@@ -224,9 +250,9 @@ def(test-sorts!, --,
         sort-is-effect? !!0
         sort-is-word? !!1
         sort-is-value? !!0
-        sort-word-sig? 1 !!=
+        sort-word-type? TYPE_INT !!=
         drop
-    TYPE_ERROR sort-value
+    TYPE_ERROR SValue
         sort-is-implicit? !!0
         sort-is-explicit? !!1
         sort-is-type? !!0
@@ -236,7 +262,7 @@ def(test-sorts!, --,
         sort-is-value? !!1
         sort-value-type? TYPE_ERROR !!=
         drop
-    TYPE_ERROR sort-value sort-implicit
+    TYPE_ERROR SValue SImplicit
         sort-is-implicit? !!1
         sort-is-explicit? !!0
         sort-is-type? !!0
@@ -246,7 +272,7 @@ def(test-sorts!, --,
         sort-is-value? !!1
         sort-value-type? TYPE_ERROR !!=
         drop
-    TYPE_INT sort-value
+    TYPE_INT SValue
         sort-is-implicit? !!0
         sort-is-explicit? !!1
         sort-is-type? !!0
@@ -256,7 +282,7 @@ def(test-sorts!, --,
         sort-is-value? !!1
         sort-value-type? TYPE_INT !!=
         drop
-    TYPE_INT sort-value sort-implicit
+    TYPE_INT SValue SImplicit
         sort-is-implicit? !!1
         sort-is-explicit? !!0
         sort-is-type? !!0
@@ -279,11 +305,11 @@ def(Int->Type, Int -- Type, Int->U32) # TODO: enforce U24 size
 
 def(TYPE_TAG_SHIFT, Int, 20)
 def(TYPE_TAG_MASK, Int, 0xF TYPE_TAG_SHIFT <<)
-def(TYPE_TAG_PRIM, Int, 0)
-def(TYPE_TAG_VAR, Int, 1)
-def(TYPE_TAG_META, Int, 2)
-def(TYPE_TAG_TENSOR, Int, 3)
-def(TYPE_TAG_MORPHISM, Int, 4)
+def(TYPE_TAG_PRIM, Int, 0 TYPE_TAG_SHIFT <<)
+def(TYPE_TAG_VAR, Int, 1 TYPE_TAG_SHIFT <<)
+def(TYPE_TAG_META, Int, 2 TYPE_TAG_SHIFT <<)
+def(TYPE_TAG_TENSOR, Int, 3 TYPE_TAG_SHIFT <<)
+def(TYPE_TAG_MORPHISM, Int, 4 TYPE_TAG_SHIFT <<)
 
 def(TYPE_VALUE_MASK, Int, 1 TYPE_TAG_SHIFT << 1-)
 
@@ -415,6 +441,104 @@ def(type-has-meta, MetaVar Type -- Bool,
 
         "type-has-meta: unknown type" panic! drop2 0
     ))))))
+
+
+def(type-trace-sig!, Type -- +IO,
+    type-get-morphism dup
+    morphism-type-dom@
+    dup TYPE_UNIT = if(
+        drop,
+        type-trace-stack!
+        " " str-trace!
+    )
+    "--" str-trace!
+    morphism-type-cod@
+    dup TYPE_UNIT = if(
+        drop,
+        " " str-trace!
+        type-trace-stack!
+    ))
+
+    #     morphism-type-cod@
+    #     dup TYPE_UNIT = if(
+    #         drop "--" str-trace!,
+    #         type-trace-stack!
+    #     ),
+
+    #     type-trace-stack!
+    #     " --" str-trace!
+    #     morphism-type-cod@
+    #     dup TYPE_UNIT = if(
+    #         drop,
+    #         " " str-trace!
+    #         type-trace-stack!
+    #     )
+    # ))
+
+def(type-trace-stack!, Type -- +IO,
+    type-is-tensor? if(
+        type-get-tensor dup
+        tensor-type-fst@
+        dup TYPE_UNIT = if(
+            drop,
+            type-trace-stack!
+            " " str-trace!
+        )
+        tensor-type-snd@ type-trace!,
+
+        type-trace! # TODO: check that it's a stack type var (and if it's not, display it in some other way)
+    ))
+
+def(type-trace!, Type -- +IO,
+    type-is-prim? if(
+        type-trace-prim!,
+
+    type-is-var? if(
+        type-get-var name-load! str-buf-trace!,
+
+    type-is-meta? if(
+        type-get-meta "?" str-trace! MetaVar->Int int-trace!,
+
+    type-is-tensor? if(
+        "[" str-trace!
+        type-trace-stack!
+        "]" str-trace!,
+
+    type-is-morphism? if(
+        "[" str-trace!
+        type-trace-sig!
+        "]" str-trace!,
+
+        "<UNKNOWN TYPE " str-trace! Type->Int int-trace! ">" str-trace!
+    ))))))
+
+def(type-trace-prim!, Type -- +IO,
+    dup TYPE_ERROR = if(
+        drop "ERROR" str-trace!,
+    dup TYPE_UNIT = if(
+        drop "[]" str-trace!,
+    dup TYPE_INT = if(
+        drop "Int" str-trace!,
+    dup TYPE_PTR = if(
+        drop "Ptr" str-trace!,
+    dup TYPE_U8 = if(
+        drop "U8" str-trace!,
+    dup TYPE_U16 = if(
+        drop "U16" str-trace!,
+    dup TYPE_U32 = if(
+        drop "U32" str-trace!,
+    dup TYPE_U64 = if(
+        drop "U64" str-trace!,
+    dup TYPE_I8 = if(
+        drop "I8" str-trace!,
+    dup TYPE_I16 = if(
+        drop "I16" str-trace!,
+    dup TYPE_I32 = if(
+        drop "I32" str-trace!,
+    dup TYPE_I64 = if(
+        drop "I64" str-trace!,
+        "<UNKNOWN PRIMITIVE TYPE " str-trace! Type->Int int-trace! ">" str-trace!
+    )))))))))))))
 
 ##################
 # Meta-var Types #
@@ -571,7 +695,6 @@ def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
     ))
 
 # TODO:
-#   - type unification
 #   - converting type signatures into types
 #   - hook up type system to elaborator
 #   - implement newtypes

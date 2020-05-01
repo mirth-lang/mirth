@@ -145,6 +145,12 @@ def(name-could-be-type-var, Name -- Bool,
 def(name-could-be-type-con, Name -- Bool,
     NAME_SIZE * NAME_BUF u8@@ is-upper? nip)
 
+def(name-could-be-stack-var, Name -- Bool,
+    NAME_SIZE * dup NAME_BUF u8@@ is-asterisk? nip if(
+        1+ NAME_BUF u8@@ is-lower? nip,
+        drop 0
+    ))
+
 def(name-could-be-effect-con, Name -- Bool,
     NAME_SIZE * dup NAME_BUF u8@@ is-plus-sign? nip if(
         1+ NAME_BUF u8@@ is-upper? nip,

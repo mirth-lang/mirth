@@ -150,3 +150,9 @@ def(show-tokens!, --,
     while(dup num-tokens@ <,
         dup token-print! 1+)
     drop)
+
+def(token-has-args?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        dup 1+ token-type@ TOKEN_LPAREN =,
+        0
+    ))
