@@ -145,6 +145,12 @@ def(name-could-be-type-var, Name -- Bool,
 def(name-could-be-type-con, Name -- Bool,
     NAME_SIZE * NAME_BUF u8@@ is-upper? nip)
 
+def(name-could-be-stack-var, Name -- Bool,
+    NAME_SIZE * dup NAME_BUF u8@@ is-asterisk? nip if(
+        1+ NAME_BUF u8@@ is-lower? nip,
+        drop 0
+    ))
+
 def(name-could-be-effect-con, Name -- Bool,
     NAME_SIZE * dup NAME_BUF u8@@ is-plus-sign? nip if(
         1+ NAME_BUF u8@@ is-upper? nip,
@@ -295,7 +301,6 @@ def(init-names!, +Names,
         0 over name-checked!
         0 over name-sort!
         0 over name-value!
-        0 over name-sig!
     ) drop
 
     0 num-names!
@@ -390,7 +395,7 @@ def(DEF_MODULE, NameSort, 5 Int->U8)
 
 MAX_NAMES u8s def-static-buffer(DEF_SORT)
 MAX_NAMES quads def-static-buffer(DEF_VALUE)
-MAX_NAMES quads def-static-buffer(DEF_SIG)
+MAX_NAMES u32s def-static-buffer(NAME_TYPE_BUF)
 
 def(name-sort!, NameSort Name --, DEF_SORT u8!!)
 def(name-sort@, Name -- NameSort, DEF_SORT u8@@)
@@ -400,8 +405,16 @@ def(name-value!, Value Name --, DEF_VALUE quad!!)
 def(name-value@, Name -- Value, DEF_VALUE quad@@)
 def(name-value?, Name -- Name Value, dup name-value@)
 
-def(name-sig!, Token Name --, DEF_SIG quad!!)
-def(name-sig@, Name -- Token, DEF_SIG quad@@)
+def(name-sig@, Name -- Token,
+    name-is-word? if(
+        name-word@ word-sig@,
+
+    name-is-external? if(
+        name-external@ external-sig@,
+
+        "compiler error: attempted to get name-sig for non-word, non-external name" panic!
+    )))
+
 def(name-sig?, Name -- Name Token, dup name-sig@)
 
 def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
@@ -421,3 +434,34 @@ def(name-type@, Name -- Type,
         "compiler error: attempted to get type definition for non-type name" panic!
         Int->Type
     ))
+
+def(name-word!, Word Name --,
+    DEF_WORD over name-sort!
+    dip(Word->Int) name-value!)
+def(name-word@, Name -- Word,
+    name-is-word? if(
+        name-value@ Int->Word,
+        "compiler error: attempted to get word definition for non-word name" panic!
+        Int->Word
+    ))
+
+def(name-external!, External Name --,
+    DEF_EXTERNAL over name-sort!
+    dip(External->Int) name-value!)
+def(name-external@, Name -- External,
+    name-is-external? if(
+        name-value@ Int->External,
+        "compiler error: attempted to get external definition for non-external name" panic!
+        Int->External
+    ))
+
+def(name-buffer!, Buffer Name --,
+    DEF_BUFFER over name-sort!
+    dip(Buffer->Int) name-value!)
+def(name-buffer@, Name -- Buffer,
+    name-is-buffer? if(
+        name-value@ Int->Buffer,
+        "compiler error: attempted to get buffer definition for non-buffer name" panic!
+        Int->Buffer
+    ))
+

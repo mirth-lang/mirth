@@ -1,7 +1,128 @@
 module(elab)
 import(names)
 import(tokens)
-#import(types)
+import(types)
+
+##############
+# Elaborator #
+##############
+
+quad def-static-buffer(ELAB_TOKEN)
+def(elab-token@, -- Token +Elab, ELAB_TOKEN @)
+def(elab-token!, Token -- +Elab, ELAB_TOKEN !)
+def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
+def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
+def(elab-emit-fatal-error!, Str -- +Elab, dip(elab-token@) emit-fatal-error!)
+
+u16 def-static-buffer(ELAB_CTX)
+def(elab-ctx@, -- Ctx +Elab, ELAB_CTX u16@)
+def(elab-ctx!, Ctx -- +Elab, ELAB_CTX u16!)
+
+####################
+# Type Elaboration #
+####################
+
+# Elaborate a type signature into a morphism type.
+def(elab-sig!, Token -- Type +Elab,
+    sig-has-dashes? if(
+        dup elab-stack!
+        swap sig-skip-dashes elab-stack!
+        morphism-type-new!
+        TMorphism,
+
+        dip(TYPE_UNIT)
+        elab-stack!
+        morphism-type-new!
+        TMorphism
+    ))
+
+# Elaborate a stack type into a tensor type.
+def(elab-stack!, Token -- Type +Elab,
+    sig-token-is-stack-var? if(
+        dup dip(SStack elab-type-var!) 1+,
+
+        dip(TYPE_UNIT)
+    )
+    while(sig-is-stack-end? if(0, sig-token-is-effect-con? not),
+        dup
+        dip(elab-type! tensor-type-new! TTensor)
+        1+
+    )
+    drop)
+
+# Elaborate a token into a (value) type.
+def(elab-type!, Token -- Type,
+    dup elab-token!
+    sig-token-is-stack-var? if(
+        "Expected type, not stack variable." elab-emit-error!
+        drop TYPE_ERROR,
+
+    sig-token-is-type-var? if(
+        SType elab-type-var!,
+
+    sig-token-is-type-con? if(
+        elab-type-con!,
+
+    sig-token-is-effect-con? if(
+        "Unexpected effect constructor." elab-emit-error!
+        drop TYPE_ERROR,
+
+        "Expected a type." elab-emit-error!
+        drop TYPE_ERROR
+    )))))
+
+# Elaborate a (potentially implicit) type variable with the given sort.
+# The only sorts we want here are SType, SStack, and SEffect.
+# This will add the type variable to the context if it isn't already there.
+def(elab-type-var!, Token Sort -- Type,
+    swap
+    token-type? TOKEN_NAME = if(
+        token-has-args? if(
+            "Variables with args are not supported." elab-emit-error!
+            drop2 TYPE_ERROR,
+
+            token-name@
+            elab-ctx@
+            ctx-has-name? if(
+                ctx-lookup-sort?
+                dip(drop swap) sort-match if(
+                    TVar,
+                    "Unexpected sort mismatch." elab-emit-error!
+                    drop TYPE_ERROR
+                ),
+
+                rotr dup dip(swap SImplicit ctx-new! elab-ctx!) TVar
+            )
+        ),
+
+        "elab-type-var! expects a name token." elab-emit-error!
+        drop2 TYPE_ERROR
+    ))
+
+# Elaborate a type constructor token.
+def(elab-type-con!, Token -- Type,
+    sig-token-is-type-con? if(
+        token-has-args? if(
+            "Types with args are not yet supported." elab-emit-error!
+            drop TYPE_ERROR,
+
+            token-name@
+            name-is-type? if(
+                name-type@,
+
+            name-undefined? if(
+                "Unknown type." elab-emit-error!,
+                "Not a type." elab-emit-error!
+            ))
+        ),
+
+        "elab-type-con! expects type constructor." elab-emit-error!
+        drop TYPE_ERROR
+    ))
+
+####################
+# Word Elaboration #
+####################
 
 #################
 # Type Checking #
@@ -165,17 +286,26 @@ def(typecheck-name!, Name --,
 def(typecheck-word!, Name --,
     name-sig? typecheck-word-sig!
 
+    # ctx-empty elab-ctx!
+    # name-sig? elab-sig! over name-type!
+    # over name-load! str-buf-trace!
+    # elab-ctx@ ctx-is-empty? if(
+    #     drop,
+    #     " (" str-trace! ctx-trace! ")" str-trace!
+    # )
+    # " : " str-trace!
+    # type-trace-sig! trace-ln!
+
     tstack-enter!
     name-sig? sig-push-inputs!
-    name-value? typecheck-run!
+    dup name-word@ word-body@ typecheck-run!
     name-sig? sig-match-outputs!
     # FIXME: sig-effects
     tstack-leave!
-    # drop
-
-    drop) # FIXME: check the body
+    drop)
 
 def(typecheck-word-sig!, Token --,
+
     sig-has-dashes? if(
         typecheck-sig-inputs! 1+
         typecheck-sig-outputs!,
@@ -494,14 +624,14 @@ def(token-is-dashes, Token -- Bool,
 def(token-is-dashes?, Token -- Token Bool,
     dup token-is-dashes)
 
-def(sig-dashes-end?, Token -- Token Bool,
+def(sig-is-stack-end?, Token -- Token Bool,
     token-is-dashes? if(
         1,
         token-run-end?
     ))
 
 def(sig-has-dashes, Token -- Bool,
-    while(sig-dashes-end? not, token-next)
+    while(sig-is-stack-end? not, token-next)
     token-is-dashes)
 
 def(sig-has-dashes?, Token -- Token Bool,
@@ -521,7 +651,7 @@ def(sig-arity, Token -- Int Int,
 
 def(sig-count-types, Token -- Int Token,
     dip(0)
-    while(sig-dashes-end? not,
+    while(sig-is-stack-end? not,
         sig-token-is-type? if(dip(1+), id)
         token-next
     ))
@@ -544,6 +674,12 @@ def(sig-token-is-type-var?, Token -- Token Bool,
         0
     ))
 
+def(sig-token-is-stack-var?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-name? name-could-be-stack-var,
+        0
+    ))
+
 def(sig-token-is-effect-con?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
         token-name? name-could-be-effect-con,
@@ -552,7 +688,7 @@ def(sig-token-is-effect-con?, Token -- Token Bool,
 
 def(sig-push-inputs!, Token -- +TSTACK,
     sig-has-dashes? if(
-        while(sig-dashes-end? not,
+        while(sig-is-stack-end? not,
             sig-token-is-type-con? if(
                 token-name? name-is-type? if(
                     name-type@ tstack-push!,
@@ -663,12 +799,6 @@ def(sig-push-outputs!, Token Token -- +TSTACK,
         token-next)
     drop)
 
-quad def-static-buffer(ELAB_TOKEN)
-def(elab-token@, -- Token +Elab, ELAB_TOKEN @)
-def(elab-token!, Token -- +Elab, ELAB_TOKEN !)
-def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
-def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
-def(elab-emit-fatal-error!, Str -- +Elab, dip(elab-token@) emit-fatal-error!)
 
 # elab type for + primitive
 def(elab+, Type Type -- Type,

@@ -132,7 +132,7 @@ def(c99-emit-buffers!, +IO,
 
 def(c99-emit-buffer!, Name -- +IO,
     name-is-buffer? if(
-        " volatile u8 b" . dup .name "[" . dup name-value@ buffer-size@ .n "] = {0};" ;
+        " volatile u8 b" . dup .name "[" . dup name-buffer@ buffer-size@ .n "] = {0};" ;
         " void mw" . dup .name " (void) { push((i64)b" . .name "); }" ;  ,
         drop
     ))
@@ -553,7 +553,7 @@ def(c99-emit-word-def!, Name -- +IO,
     name-is-word? if(
         dup typecheck-name!
         dup .w "{" ;
-        name-value@ c99-emit-run!
+        name-word@ word-body@ c99-emit-run!
         "}" ;;,
         drop
     ))
