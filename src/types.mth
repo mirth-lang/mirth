@@ -334,6 +334,13 @@ def(type-is-meta?, Type -- Type Bool, dup type-is-meta)
 def(type-is-tensor?, Type -- Type Bool, dup type-is-tensor)
 def(type-is-morphism?, Type -- Type Bool, dup type-is-morphism)
 
+def(type-is-stack-var, Type -- Bool,
+    type-is-var? if(
+        type-get-var name-could-be-stack-var,
+        drop 0
+    ))
+def(type-is-stack-var?, Type -- Type Bool, dup type-is-stack-var)
+
 def(type-get-value, Type -- Int, U32->Int TYPE_VALUE_MASK &)
 def(type-get-var, Type -- Name,
     type-is-var? not if(
@@ -459,22 +466,6 @@ def(type-trace-sig!, Type -- +IO,
         type-trace-stack!
     ))
 
-    #     morphism-type-cod@
-    #     dup TYPE_UNIT = if(
-    #         drop "--" str-trace!,
-    #         type-trace-stack!
-    #     ),
-
-    #     type-trace-stack!
-    #     " --" str-trace!
-    #     morphism-type-cod@
-    #     dup TYPE_UNIT = if(
-    #         drop,
-    #         " " str-trace!
-    #         type-trace-stack!
-    #     )
-    # ))
-
 def(type-trace-stack!, Type -- +IO,
     type-is-tensor? if(
         type-get-tensor dup
@@ -486,8 +477,12 @@ def(type-trace-stack!, Type -- +IO,
         )
         tensor-type-snd@ type-trace!,
 
-        type-trace! # TODO: check that it's a stack type var (and if it's not, display it in some other way)
-    ))
+    type-is-stack-var? if(
+        type-trace!,
+
+        type-trace!
+        " ." str-trace!
+    )))
 
 def(type-trace!, Type -- +IO,
     type-is-prim? if(
@@ -695,6 +690,5 @@ def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
     ))
 
 # TODO:
-#   - converting type signatures into types
 #   - hook up type system to elaborator
 #   - implement newtypes
