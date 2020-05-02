@@ -302,13 +302,10 @@ def(typecheck-word!, Name --,
     name-sig? sig-match-outputs!
     # FIXME: sig-effects
     tstack-leave!
-    # drop
-
-    drop) # FIXME: check the body
+    drop)
 
 def(typecheck-word-sig!, Token --,
 
-    # old-style thing
     sig-has-dashes? if(
         typecheck-sig-inputs! 1+
         typecheck-sig-outputs!,
