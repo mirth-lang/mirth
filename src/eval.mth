@@ -3,6 +3,8 @@ import(prelude)
 import(names)
 import(strings)
 import(tokens)
+import(words)
+import(externals)
 
 ###############
 # Value Stack #
@@ -12,12 +14,12 @@ def(VSTACK_SIZE, Size, 0x100)
 quad def-static-buffer(VSTACK_LEN)
 VSTACK_SIZE quads def-static-buffer(VSTACK_BUF)
 
-def(vstack-len@, usize +VSTACK, VSTACK_LEN @)
-def(vstack-len!, usize -- +VSTACK, VSTACK_LEN !)
+def(vstack-len@, Size +VSTACK, VSTACK_LEN @)
+def(vstack-len!, Size -- +VSTACK, VSTACK_LEN !)
 def(vstack-empty?, Bool +VSTACK, vstack-len@ 0 <=)
 def(vstack-full?, Bool +VSTACK, vstack-len@ VSTACK_SIZE >=)
-def(vstack-i64@, usize -- v +VSTACK, VSTACK_BUF quad@@)
-def(vstack-i64!, v usize -- +VSTACK, VSTACK_BUF quad!!)
+def(vstack-i64@, Size -- v +VSTACK, VSTACK_BUF quad@@)
+def(vstack-i64!, v Size -- +VSTACK, VSTACK_BUF quad!!)
 
 def(vstack-pop!, v1 +VSTACK,
     vstack-empty? if(
@@ -124,10 +126,10 @@ def(token-run-name!, Token -- +Mirth,
         drop "Word is undefined." emit-fatal-error!,
 
     name-is-word? if(
-        nip name-value@ token-run!,
+        nip name-word@ word-body@ token-run!,
 
     name-is-buffer? if(
-        nip name-value@ buffer-base@ vstack-push!,
+        nip name-buffer@ buffer-base@ vstack-push!,
 
         drop "Don't know how to run word." emit-fatal-error!
     )))))
@@ -485,17 +487,37 @@ def(token-run-prim!, Token --,
     dup PRIM_DEF = if(
         drop
         0 0 arity-check!
+
         token-args-3
         rotl token-type? TOKEN_NAME = if(
             token-name? name-undefined? if(
                 nip
-                DEF_WORD over name-sort!
-                dup dip(name-value!)
-                name-sig!,
+                word-alloc!
+                dup2 swap name-word!
+                dup dip(word-name!)
+                dup dip(word-body!)
+                word-sig!,
+
                 drop "word already defined" emit-fatal-error! drop2
             ),
             "expected word name" emit-fatal-error! drop2
         ),
+
+    dup PRIM_DEF_EXTERNAL = if(
+        drop
+        token-args-2
+        swap token-type? TOKEN_NAME = if(
+            token-name? name-undefined? if(
+                nip
+                external-alloc!
+                dup2 swap name-external!
+                dup dip(external-name!)
+                external-sig!,
+                drop2 "word already defined" emit-fatal-error!
+            ),
+            nip "expected name" emit-fatal-error!
+        ),
+
 
     dup PRIM_DEF_TYPE = if(
         drop
@@ -507,15 +529,14 @@ def(token-run-prim!, Token --,
                 sig-token-is-type-con? if(
                     token-name?
                     name-is-type? if(
-                        name-value@ nip,
+                        name-type@ nip,
                         drop "Unknown type." emit-error!
                         TYPE_ERROR
                     ),
                     "Expected a type." emit-error!
                     TYPE_ERROR
                 )
-                over name-value!
-                DEF_TYPE swap name-sort!,
+                swap name-type!,
 
                 drop "type already defined" emit-fatal-error! drop
             ),
@@ -529,23 +550,10 @@ def(token-run-prim!, Token --,
         token-type? TOKEN_NAME = if(
             token-name? name-undefined? if(
                 nip
-                DEF_BUFFER over name-sort!
-                vstack-pop! buffer-alloc! swap name-value!,
+                vstack-pop! buffer-alloc! swap name-buffer!,
                 drop "buffer already defined" emit-fatal-error!
             ),
             "expected buffer name" emit-fatal-error!
-        ),
-
-    dup PRIM_DEF_EXTERNAL = if(
-        drop
-        token-args-2
-        swap token-type? TOKEN_NAME = if(
-            token-name? name-undefined? if(
-                nip DEF_EXTERNAL over name-sort!
-                name-sig!,
-                drop2 "word already defined" emit-fatal-error!
-            ),
-            nip "expected name" emit-fatal-error!
         ),
 
     dup PRIM_MODULE = if(

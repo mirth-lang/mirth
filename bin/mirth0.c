@@ -33,7 +33,7 @@ extern void exit(int);
 static volatile usize sc = STACK_SIZE;
 static volatile i64 stack[STACK_SIZE] = {0};
 
-#define STRINGS_SIZE 11281
+#define STRINGS_SIZE 11688
 static const char strings[STRINGS_SIZE] = { 
 109,105,114,116,104,46,109,116,104,0,
 66,117,105,108,100,105,110,103,46,0,
@@ -143,7 +143,11 @@ static const char strings[STRINGS_SIZE] = {
 109,111,100,117,108,101,0,
 105,109,112,111,114,116,0,
 99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,78,85,77,95,80,82,73,77,83,32,97,110,100,32,110,117,109,45,110,97,109,101,115,64,32,100,111,32,110,111,116,32,109,97,116,99,104,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,97,116,116,101,109,112,116,101,100,32,116,111,32,103,101,116,32,110,97,109,101,45,115,105,103,32,102,111,114,32,110,111,110,45,119,111,114,100,44,32,110,111,110,45,101,120,116,101,114,110,97,108,32,110,97,109,101,0,
 99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,97,116,116,101,109,112,116,101,100,32,116,111,32,103,101,116,32,116,121,112,101,32,100,101,102,105,110,105,116,105,111,110,32,102,111,114,32,110,111,110,45,116,121,112,101,32,110,97,109,101,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,97,116,116,101,109,112,116,101,100,32,116,111,32,103,101,116,32,119,111,114,100,32,100,101,102,105,110,105,116,105,111,110,32,102,111,114,32,110,111,110,45,119,111,114,100,32,110,97,109,101,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,97,116,116,101,109,112,116,101,100,32,116,111,32,103,101,116,32,101,120,116,101,114,110,97,108,32,100,101,102,105,110,105,116,105,111,110,32,102,111,114,32,110,111,110,45,101,120,116,101,114,110,97,108,32,110,97,109,101,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,97,116,116,101,109,112,116,101,100,32,116,111,32,103,101,116,32,98,117,102,102,101,114,32,100,101,102,105,110,105,116,105,111,110,32,102,111,114,32,110,111,110,45,98,117,102,102,101,114,32,110,97,109,101,0,
 115,116,114,105,110,103,115,32,98,117,102,102,101,114,32,111,118,101,114,102,108,111,119,0,
 78,79,78,69,0,
 76,80,65,82,69,78,0,
@@ -187,14 +191,14 @@ static const char strings[STRINGS_SIZE] = {
 63,63,32,0,
 119,111,114,100,32,97,108,114,101,97,100,121,32,100,101,102,105,110,101,100,0,
 101,120,112,101,99,116,101,100,32,119,111,114,100,32,110,97,109,101,0,
+119,111,114,100,32,97,108,114,101,97,100,121,32,100,101,102,105,110,101,100,0,
+101,120,112,101,99,116,101,100,32,110,97,109,101,0,
 85,110,107,110,111,119,110,32,116,121,112,101,46,0,
 69,120,112,101,99,116,101,100,32,97,32,116,121,112,101,46,0,
 116,121,112,101,32,97,108,114,101,97,100,121,32,100,101,102,105,110,101,100,0,
 101,120,112,101,99,116,101,100,32,116,121,112,101,32,99,111,110,115,116,114,117,99,116,111,114,0,
 98,117,102,102,101,114,32,97,108,114,101,97,100,121,32,100,101,102,105,110,101,100,0,
 101,120,112,101,99,116,101,100,32,98,117,102,102,101,114,32,110,97,109,101,0,
-119,111,114,100,32,97,108,114,101,97,100,121,32,100,101,102,105,110,101,100,0,
-101,120,112,101,99,116,101,100,32,110,97,109,101,0,
 109,111,100,117,108,101,32,110,97,109,101,32,105,115,32,97,108,114,101,97,100,121,32,116,97,107,101,110,0,
 101,120,112,101,99,116,101,100,32,109,111,100,117,108,101,32,110,97,109,101,0,
 46,109,116,104,0,
@@ -213,6 +217,58 @@ static const char strings[STRINGS_SIZE] = {
 101,120,112,101,99,116,101,100,32,51,32,97,114,103,115,44,32,103,111,116,32,111,110,108,121,32,50,0,
 101,120,112,101,99,116,101,100,32,51,32,97,114,103,115,44,32,103,111,116,32,111,110,108,121,32,49,0,
 101,120,112,101,99,116,101,100,32,51,32,97,114,103,115,44,32,103,111,116,32,110,111,110,101,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,78,85,77,95,87,79,82,68,83,32,62,32,77,65,88,95,87,79,82,68,83,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,97,116,116,101,109,112,116,101,100,32,116,111,32,103,101,116,32,98,97,115,101,32,112,111,105,110,116,101,114,32,111,102,32,101,109,112,116,121,32,99,111,110,116,101,120,116,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,114,97,110,32,111,117,116,32,111,102,32,115,112,97,99,101,32,102,111,114,32,99,111,110,116,101,120,116,115,44,32,105,110,99,114,101,97,115,101,32,77,65,88,95,67,84,88,0,
+44,32,0,
+39,0,
+58,32,0,
+58,32,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,97,116,116,101,109,112,116,101,100,32,116,111,32,103,101,116,32,115,111,114,116,32,119,111,114,100,32,115,105,103,32,102,111,114,32,110,111,110,45,119,111,114,100,32,115,111,114,116,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,97,116,116,101,109,112,116,101,100,32,116,111,32,103,101,116,32,115,111,114,116,32,118,97,108,117,101,32,116,121,112,101,32,102,111,114,32,110,111,110,45,116,121,112,101,32,115,111,114,116,0,
+117,110,107,110,111,119,110,32,115,111,114,116,32,99,97,116,101,103,111,114,121,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,116,114,105,101,100,32,116,111,32,103,101,116,32,118,97,114,32,118,97,108,117,101,32,111,110,32,110,111,110,45,118,97,114,32,116,121,112,101,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,116,114,105,101,100,32,116,111,32,103,101,116,32,109,101,116,97,32,118,97,108,117,101,32,111,110,32,110,111,110,45,109,101,116,97,32,116,121,112,101,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,116,114,105,101,100,32,116,111,32,103,101,116,32,116,101,110,115,111,114,32,118,97,108,117,101,32,111,110,32,110,111,110,45,116,101,110,115,111,114,32,116,121,112,101,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,116,114,105,101,100,32,116,111,32,103,101,116,32,109,111,114,112,104,105,115,109,32,118,97,108,117,101,32,111,110,32,110,111,110,45,109,111,114,112,104,105,115,109,32,116,121,112,101,0,
+102,97,105,108,101,100,32,116,111,32,117,110,105,102,121,32,116,121,112,101,115,0,
+102,97,105,108,101,100,32,116,111,32,117,110,105,102,121,32,116,121,112,101,115,0,
+102,97,105,108,101,100,32,116,111,32,117,110,105,102,121,32,116,121,112,101,115,0,
+102,97,105,108,101,100,32,116,111,32,117,110,105,102,121,32,116,121,112,101,115,0,
+116,121,112,101,45,117,110,105,102,121,58,32,117,110,107,110,111,119,110,32,116,121,112,101,0,
+116,121,112,101,45,104,97,115,45,109,101,116,97,58,32,117,110,107,110,111,119,110,32,116,121,112,101,0,
+32,0,
+45,45,0,
+32,0,
+32,0,
+32,46,0,
+63,0,
+91,0,
+93,0,
+91,0,
+93,0,
+60,85,78,75,78,79,87,78,32,84,89,80,69,32,0,
+62,0,
+69,82,82,79,82,0,
+91,93,0,
+73,110,116,0,
+80,116,114,0,
+85,56,0,
+85,49,54,0,
+85,51,50,0,
+85,54,52,0,
+73,56,0,
+73,49,54,0,
+73,51,50,0,
+73,54,52,0,
+60,85,78,75,78,79,87,78,32,80,82,73,77,73,84,73,86,69,32,84,89,80,69,32,0,
+62,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,114,97,110,32,111,117,116,32,111,102,32,109,101,116,97,32,118,97,114,105,97,98,108,101,115,44,32,105,110,99,114,101,97,115,101,32,77,65,88,95,77,69,84,65,83,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,99,97,108,108,101,100,32,109,101,116,97,45,116,121,112,101,64,32,111,110,32,117,110,100,101,102,105,110,101,100,32,109,101,116,97,45,118,97,114,0,
+102,97,105,108,101,100,32,116,111,32,117,110,105,102,121,32,116,121,112,101,115,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,116,111,111,32,109,97,110,121,32,116,101,110,115,111,114,32,116,121,112,101,115,32,45,45,32,105,110,99,114,101,97,115,101,32,77,65,88,95,84,69,78,83,79,82,95,84,89,80,69,83,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,116,111,111,32,109,97,110,121,32,109,111,114,112,104,105,115,109,32,116,121,112,101,115,32,45,45,32,105,110,99,114,101,97,115,101,32,77,65,88,95,77,79,82,80,72,73,83,77,95,84,89,80,69,83,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,78,85,77,95,69,88,84,69,82,78,65,76,83,32,62,32,77,65,88,95,69,88,84,69,82,78,65,76,83,0,
 99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,114,97,110,32,111,117,116,32,111,102,32,98,117,102,102,101,114,115,0,
 70,97,105,108,101,100,32,116,111,32,97,108,108,111,99,97,116,101,32,104,101,97,112,32,98,117,102,102,101,114,46,0,
 118,111,105,100,32,109,119,0,
@@ -657,50 +713,6 @@ static const char strings[STRINGS_SIZE] = {
 97,116,116,101,109,112,116,101,100,32,116,111,32,108,111,97,100,32,102,114,111,109,32,110,111,110,45,112,111,105,110,116,101,114,0,
 97,116,116,101,109,112,116,101,100,32,116,111,32,115,116,111,114,101,32,116,111,32,110,111,110,45,112,111,105,110,116,101,114,0,
 116,121,112,101,32,101,114,114,111,114,0,
-99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,97,116,116,101,109,112,116,101,100,32,116,111,32,103,101,116,32,98,97,115,101,32,112,111,105,110,116,101,114,32,111,102,32,101,109,112,116,121,32,99,111,110,116,101,120,116,0,
-99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,114,97,110,32,111,117,116,32,111,102,32,115,112,97,99,101,32,102,111,114,32,99,111,110,116,101,120,116,115,44,32,105,110,99,114,101,97,115,101,32,77,65,88,95,67,84,88,0,
-99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,97,116,116,101,109,112,116,101,100,32,116,111,32,103,101,116,32,115,111,114,116,32,119,111,114,100,32,115,105,103,32,102,111,114,32,110,111,110,45,119,111,114,100,32,115,111,114,116,0,
-99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,97,116,116,101,109,112,116,101,100,32,116,111,32,103,101,116,32,115,111,114,116,32,118,97,108,117,101,32,116,121,112,101,32,102,111,114,32,110,111,110,45,116,121,112,101,32,115,111,114,116,0,
-99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,116,114,105,101,100,32,116,111,32,103,101,116,32,118,97,114,32,118,97,108,117,101,32,111,110,32,110,111,110,45,118,97,114,32,116,121,112,101,0,
-99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,116,114,105,101,100,32,116,111,32,103,101,116,32,109,101,116,97,32,118,97,108,117,101,32,111,110,32,110,111,110,45,109,101,116,97,32,116,121,112,101,0,
-99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,116,114,105,101,100,32,116,111,32,103,101,116,32,116,101,110,115,111,114,32,118,97,108,117,101,32,111,110,32,110,111,110,45,116,101,110,115,111,114,32,116,121,112,101,0,
-99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,116,114,105,101,100,32,116,111,32,103,101,116,32,109,111,114,112,104,105,115,109,32,118,97,108,117,101,32,111,110,32,110,111,110,45,109,111,114,112,104,105,115,109,32,116,121,112,101,0,
-102,97,105,108,101,100,32,116,111,32,117,110,105,102,121,32,116,121,112,101,115,0,
-102,97,105,108,101,100,32,116,111,32,117,110,105,102,121,32,116,121,112,101,115,0,
-102,97,105,108,101,100,32,116,111,32,117,110,105,102,121,32,116,121,112,101,115,0,
-102,97,105,108,101,100,32,116,111,32,117,110,105,102,121,32,116,121,112,101,115,0,
-116,121,112,101,45,117,110,105,102,121,58,32,117,110,107,110,111,119,110,32,116,121,112,101,0,
-116,121,112,101,45,104,97,115,45,109,101,116,97,58,32,117,110,107,110,111,119,110,32,116,121,112,101,0,
-32,0,
-45,45,0,
-32,0,
-32,0,
-63,0,
-91,0,
-93,0,
-91,0,
-93,0,
-60,85,78,75,78,79,87,78,32,84,89,80,69,32,0,
-62,0,
-69,82,82,79,82,0,
-91,93,0,
-73,110,116,0,
-80,116,114,0,
-85,56,0,
-85,49,54,0,
-85,51,50,0,
-85,54,52,0,
-73,56,0,
-73,49,54,0,
-73,51,50,0,
-73,54,52,0,
-60,85,78,75,78,79,87,78,32,80,82,73,77,73,84,73,86,69,32,84,89,80,69,32,0,
-62,0,
-99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,114,97,110,32,111,117,116,32,111,102,32,109,101,116,97,32,118,97,114,105,97,98,108,101,115,44,32,105,110,99,114,101,97,115,101,32,77,65,88,95,77,69,84,65,83,0,
-99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,99,97,108,108,101,100,32,109,101,116,97,45,116,121,112,101,64,32,111,110,32,117,110,100,101,102,105,110,101,100,32,109,101,116,97,45,118,97,114,0,
-102,97,105,108,101,100,32,116,111,32,117,110,105,102,121,32,116,121,112,101,115,0,
-99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,116,111,111,32,109,97,110,121,32,116,101,110,115,111,114,32,116,121,112,101,115,32,45,45,32,105,110,99,114,101,97,115,101,32,77,65,88,95,84,69,78,83,79,82,95,84,89,80,69,83,0,
-99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,116,111,111,32,109,97,110,121,32,109,111,114,112,104,105,115,109,32,116,121,112,101,115,32,45,45,32,105,110,99,114,101,97,115,101,32,77,65,88,95,77,79,82,80,72,73,83,77,95,84,89,80,69,83,0,
 };
 
  i64 pop (void) {
@@ -1083,8 +1095,8 @@ void mwRUNNING_OS (void) {
  void mwDEF_SORT (void) { push((i64)bDEF_SORT); }
  volatile u8 bDEF_VALUE[32768] = {0};
  void mwDEF_VALUE (void) { push((i64)bDEF_VALUE); }
- volatile u8 bDEF_SIG[32768] = {0};
- void mwDEF_SIG (void) { push((i64)bDEF_SIG); }
+ volatile u8 bNAME_TYPE_BUF[16384] = {0};
+ void mwNAME_TYPE_BUF (void) { push((i64)bNAME_TYPE_BUF); }
  volatile u8 bSTRINGS_SIZE[8] = {0};
  void mwSTRINGS_SIZE (void) { push((i64)bSTRINGS_SIZE); }
  volatile u8 bSTRINGS_BUF[16384] = {0};
@@ -1115,6 +1127,30 @@ void mwRUNNING_OS (void) {
  void mwVSTACK_LEN (void) { push((i64)bVSTACK_LEN); }
  volatile u8 bVSTACK_BUF[2048] = {0};
  void mwVSTACK_BUF (void) { push((i64)bVSTACK_BUF); }
+ volatile u8 bNUM_WORDS[8] = {0};
+ void mwNUM_WORDS (void) { push((i64)bNUM_WORDS); }
+ volatile u8 bWORD_METADATA_BUF[1048576] = {0};
+ void mwWORD_METADATA_BUF (void) { push((i64)bWORD_METADATA_BUF); }
+ volatile u8 bNUM_CTX[8] = {0};
+ void mwNUM_CTX (void) { push((i64)bNUM_CTX); }
+ volatile u8 bCTX_BUF[65536] = {0};
+ void mwCTX_BUF (void) { push((i64)bCTX_BUF); }
+ volatile u8 bNUM_METAS[8] = {0};
+ void mwNUM_METAS (void) { push((i64)bNUM_METAS); }
+ volatile u8 bMETA_BUF[131072] = {0};
+ void mwMETA_BUF (void) { push((i64)bMETA_BUF); }
+ volatile u8 bNUM_TENSOR_TYPES[8] = {0};
+ void mwNUM_TENSOR_TYPES (void) { push((i64)bNUM_TENSOR_TYPES); }
+ volatile u8 bTENSOR_TYPE_BUF[262144] = {0};
+ void mwTENSOR_TYPE_BUF (void) { push((i64)bTENSOR_TYPE_BUF); }
+ volatile u8 bNUM_MORPHISM_TYPES[8] = {0};
+ void mwNUM_MORPHISM_TYPES (void) { push((i64)bNUM_MORPHISM_TYPES); }
+ volatile u8 bMORPHISM_TYPE_BUF[262144] = {0};
+ void mwMORPHISM_TYPE_BUF (void) { push((i64)bMORPHISM_TYPE_BUF); }
+ volatile u8 bNUM_EXTERNALS[8] = {0};
+ void mwNUM_EXTERNALS (void) { push((i64)bNUM_EXTERNALS); }
+ volatile u8 bEXTERNAL_METADATA_BUF[65536] = {0};
+ void mwEXTERNAL_METADATA_BUF (void) { push((i64)bEXTERNAL_METADATA_BUF); }
  volatile u8 bNUM_BUFFERS[8] = {0};
  void mwNUM_BUFFERS (void) { push((i64)bNUM_BUFFERS); }
  volatile u8 bBUFFER_SIZE[1024] = {0};
@@ -1155,22 +1191,6 @@ void mwRUNNING_OS (void) {
  void mwTSTACK_NUM_STASHES (void) { push((i64)bTSTACK_NUM_STASHES); }
  volatile u8 bTSTACK_STASH_LEN[2048] = {0};
  void mwTSTACK_STASH_LEN (void) { push((i64)bTSTACK_STASH_LEN); }
- volatile u8 bNUM_CTX[8] = {0};
- void mwNUM_CTX (void) { push((i64)bNUM_CTX); }
- volatile u8 bCTX_BUF[65536] = {0};
- void mwCTX_BUF (void) { push((i64)bCTX_BUF); }
- volatile u8 bNUM_METAS[8] = {0};
- void mwNUM_METAS (void) { push((i64)bNUM_METAS); }
- volatile u8 bMETA_BUF[131072] = {0};
- void mwMETA_BUF (void) { push((i64)bMETA_BUF); }
- volatile u8 bNUM_TENSOR_TYPES[8] = {0};
- void mwNUM_TENSOR_TYPES (void) { push((i64)bNUM_TENSOR_TYPES); }
- volatile u8 bTENSOR_TYPE_BUF[262144] = {0};
- void mwTENSOR_TYPE_BUF (void) { push((i64)bTENSOR_TYPE_BUF); }
- volatile u8 bNUM_MORPHISM_TYPES[8] = {0};
- void mwNUM_MORPHISM_TYPES (void) { push((i64)bNUM_MORPHISM_TYPES); }
- volatile u8 bMORPHISM_TYPE_BUF[262144] = {0};
- void mwMORPHISM_TYPE_BUF (void) { push((i64)bMORPHISM_TYPE_BUF); }
 
 
  void mwinit_21_ (void);
@@ -1218,6 +1238,10 @@ void mwRUNNING_OS (void) {
  void mwu16s (void);
  void mwu16_40__40_ (void);
  void mwu16_21__21_ (void);
+ void mwu32 (void);
+ void mwu32s (void);
+ void mwu32_40__40_ (void);
+ void mwu32_21__21_ (void);
  void mwi16 (void);
  void mwi16s (void);
  void mwi16_40__40_ (void);
@@ -1505,7 +1529,6 @@ void mwRUNNING_OS (void) {
  void mwname_checked_21_ (void);
  void mwname_sort_21_ (void);
  void mwname_value_21_ (void);
- void mwname_sig_21_ (void);
  void mwDEF_NONE (void);
  void mwDEF_WORD (void);
  void mwDEF_BUFFER (void);
@@ -1517,18 +1540,32 @@ void mwRUNNING_OS (void) {
  void mwname_value_40_ (void);
  void mwname_value_3F_ (void);
  void mwname_sig_40_ (void);
+ void mwname_is_word_3F_ (void);
+ void mwname_word_40_ (void);
+ void mwword_sig_40_ (void);
+ void mwname_is_external_3F_ (void);
+ void mwname_external_40_ (void);
+ void mwexternal_sig_40_ (void);
  void mwname_sig_3F_ (void);
  void mwname_undefined_3F_ (void);
  void mwname_defined_3F_ (void);
- void mwname_is_word_3F_ (void);
  void mwname_is_buffer_3F_ (void);
  void mwname_is_type_3F_ (void);
- void mwname_is_external_3F_ (void);
  void mwname_is_module_3F_ (void);
  void mwname_type_21_ (void);
  void mwType__3E_Int (void);
  void mwname_type_40_ (void);
  void mwInt__3E_Type (void);
+ void mwname_word_21_ (void);
+ void mwWord__3E_Int (void);
+ void mwInt__3E_Word (void);
+ void mwname_external_21_ (void);
+ void mwExternal__3E_Int (void);
+ void mwInt__3E_External (void);
+ void mwname_buffer_21_ (void);
+ void mwBuffer__3E_Int (void);
+ void mwname_buffer_40_ (void);
+ void mwInt__3E_Buffer (void);
  void mwstrings_size_21_ (void);
  void mwMAX_STRINGS (void);
  void mwstrings_size_40_ (void);
@@ -1674,11 +1711,19 @@ void mwRUNNING_OS (void) {
  void mwarity_check_21_ (void);
  void mwtoken_run_name_21_ (void);
  void mwtoken_run_prim_21_ (void);
+ void mwword_body_40_ (void);
  void mwbuffer_base_40_ (void);
  void mwtoken_args_0 (void);
  void mwtoken_args_1 (void);
  void mwtoken_args_2 (void);
  void mwtoken_args_3 (void);
+ void mwword_alloc_21_ (void);
+ void mwword_name_21_ (void);
+ void mwword_body_21_ (void);
+ void mwword_sig_21_ (void);
+ void mwexternal_alloc_21_ (void);
+ void mwexternal_name_21_ (void);
+ void mwexternal_sig_21_ (void);
  void mwsig_token_is_type_con_3F_ (void);
  void mwTYPE_ERROR (void);
  void mwbuffer_alloc_21_ (void);
@@ -1686,6 +1731,193 @@ void mwRUNNING_OS (void) {
  void mwtoken_next_arg_end (void);
  void mwtoken_is_arg_end_3F_ (void);
  void mwtoken_next (void);
+ void mwinit_words_21_ (void);
+ void mwMAX_WORDS (void);
+ void mwctx_empty (void);
+ void mwword_ctx_21_ (void);
+ void mwword_type_21_ (void);
+ void mwWORD_METADATA_SIZE (void);
+ void mwword_metadata_26_ (void);
+ void mwword_name_26_ (void);
+ void mwword_name_40_ (void);
+ void mwword_sig_26_ (void);
+ void mwword_body_26_ (void);
+ void mwword_ctx_26_ (void);
+ void mwword_ctx_40_ (void);
+ void mwword_type_26_ (void);
+ void mwword_type_40_ (void);
+ void mwTYPE_INT (void);
+ void mwTYPE_PTR (void);
+ void mwTYPE_U8 (void);
+ void mwTYPE_U16 (void);
+ void mwTYPE_U32 (void);
+ void mwTYPE_U64 (void);
+ void mwTYPE_I8 (void);
+ void mwTYPE_I16 (void);
+ void mwTYPE_I32 (void);
+ void mwTYPE_I64 (void);
+ void mwtest_sorts_21_ (void);
+ void mwMAX_CTX (void);
+ void mwCTX_SIZE (void);
+ void mwctx_base_26_ (void);
+ void mwctx_prev_26_ (void);
+ void mwctx_name_26_ (void);
+ void mwctx_sort_26_ (void);
+ void mwctx_prev_40_ (void);
+ void mwctx_name_40_ (void);
+ void mwctx_sort_40_ (void);
+ void mwctx_prev_21_ (void);
+ void mwctx_name_21_ (void);
+ void mwctx_sort_21_ (void);
+ void mwctx_alloc_21_ (void);
+ void mwctx_new_21_ (void);
+ void mwctx_is_empty (void);
+ void mwctx_is_empty_3F_ (void);
+ void mwctx_has_name_3F_ (void);
+ void mwctx_has_name (void);
+ void mwctx_lookup_sort_3F_ (void);
+ void mwctx_lookup_sort (void);
+ void mwSORT_ERROR (void);
+ void mwctx_trace_21_ (void);
+ void mwsort_is_implicit (void);
+ void mwsort_is_word_3F_ (void);
+ void mwsort_word_type (void);
+ void mwtype_trace_sig_21_ (void);
+ void mwsort_is_value_3F_ (void);
+ void mwsort_value_type (void);
+ void mwtype_trace_21_ (void);
+ void mwSort__3E_Int (void);
+ void mwInt__3E_Sort (void);
+ void mwSORT_FLAG_SHIFT (void);
+ void mwSORT_FLAG_MASK (void);
+ void mwSORT_FLAG_IMPLICIT (void);
+ void mwSORT_TAG_SHIFT (void);
+ void mwSORT_TAG_MASK (void);
+ void mwSORT_TAG_ERROR (void);
+ void mwSORT_TAG_TYPE (void);
+ void mwSORT_TAG_STACK (void);
+ void mwSORT_TAG_EFFECT (void);
+ void mwSORT_TAG_WORD (void);
+ void mwSORT_TAG_VALUE (void);
+ void mwsort_tag (void);
+ void mwsort_is_error (void);
+ void mwsort_is_explicit (void);
+ void mwsort_is_type (void);
+ void mwsort_is_stack (void);
+ void mwsort_is_effect (void);
+ void mwsort_is_word (void);
+ void mwsort_is_value (void);
+ void mwsort_is_error_3F_ (void);
+ void mwsort_is_implicit_3F_ (void);
+ void mwsort_is_explicit_3F_ (void);
+ void mwsort_is_type_3F_ (void);
+ void mwsort_is_stack_3F_ (void);
+ void mwsort_is_effect_3F_ (void);
+ void mwSORT_PAYLOAD_MASK (void);
+ void mwsort_word_type_3F_ (void);
+ void mwsort_value_type_3F_ (void);
+ void mwsort_match (void);
+ void mwSImplicit (void);
+ void mwSType (void);
+ void mwSStack (void);
+ void mwSEffect (void);
+ void mwSWord (void);
+ void mwSValue (void);
+ void mwTYPE_TAG_SHIFT (void);
+ void mwTYPE_TAG_MASK (void);
+ void mwTYPE_TAG_PRIM (void);
+ void mwTYPE_TAG_VAR (void);
+ void mwTYPE_TAG_META (void);
+ void mwTYPE_TAG_TENSOR (void);
+ void mwTYPE_TAG_MORPHISM (void);
+ void mwTYPE_VALUE_MASK (void);
+ void mwTPrim (void);
+ void mwTVar (void);
+ void mwTMeta (void);
+ void mwMetaVar__3E_Int (void);
+ void mwTTensor (void);
+ void mwTensorType__3E_Int (void);
+ void mwTMorphism (void);
+ void mwMorphismType__3E_Int (void);
+ void mwtype_tag (void);
+ void mwtype_is_prim (void);
+ void mwtype_is_var (void);
+ void mwtype_is_meta (void);
+ void mwtype_is_tensor (void);
+ void mwtype_is_morphism (void);
+ void mwtype_is_prim_3F_ (void);
+ void mwtype_is_var_3F_ (void);
+ void mwtype_is_meta_3F_ (void);
+ void mwtype_is_tensor_3F_ (void);
+ void mwtype_is_morphism_3F_ (void);
+ void mwtype_is_stack_var (void);
+ void mwtype_get_var (void);
+ void mwtype_is_stack_var_3F_ (void);
+ void mwtype_get_value (void);
+ void mwtype_get_meta (void);
+ void mwInt__3E_MetaVar (void);
+ void mwtype_get_tensor (void);
+ void mwInt__3E_TensorType (void);
+ void mwtype_get_morphism (void);
+ void mwInt__3E_MorphismType (void);
+ void mwTYPE_UNIT (void);
+ void mwtype_expand (void);
+ void mwmeta_expand (void);
+ void mwtype_unify_21_ (void);
+ void mwelab_emit_error_21_ (void);
+ void mwtensor_type_unify_21_ (void);
+ void mwmorphism_type_unify_21_ (void);
+ void mwtype_has_meta_3F_ (void);
+ void mwtype_has_meta (void);
+ void mwtensor_type_has_meta (void);
+ void mwmorphism_type_has_meta (void);
+ void mwmorphism_type_dom_40_ (void);
+ void mwtype_trace_stack_21_ (void);
+ void mwmorphism_type_cod_40_ (void);
+ void mwtensor_type_fst_40_ (void);
+ void mwtensor_type_snd_40_ (void);
+ void mwtype_trace_prim_21_ (void);
+ void mwMAX_METAS (void);
+ void mwMETA_SIZE (void);
+ void mwmeta_alloc_21_ (void);
+ void mwmeta_value_21_ (void);
+ void mwmeta_value_26_ (void);
+ void mwmeta_value_40_ (void);
+ void mwmeta_is_defined (void);
+ void mwmeta_is_defined_3F_ (void);
+ void mwmeta_type_40_ (void);
+ void mwmeta_type_21_ (void);
+ void mwmeta_unify_21_ (void);
+ void mwMAX_TENSOR_TYPES (void);
+ void mwTENSOR_TYPE_SIZE (void);
+ void mwtensor_type_alloc_21_ (void);
+ void mwtensor_type_new_21_ (void);
+ void mwtensor_type_snd_21_ (void);
+ void mwtensor_type_fst_21_ (void);
+ void mwtensor_type_base_26_ (void);
+ void mwtensor_type_fst_26_ (void);
+ void mwtensor_type_snd_26_ (void);
+ void mwtensor_type_unpack (void);
+ void mwMAX_MORPHISM_TYPES (void);
+ void mwMORPHISM_TYPE_SIZE (void);
+ void mwmorphism_type_alloc_21_ (void);
+ void mwmorphism_type_new_21_ (void);
+ void mwmorphism_type_cod_21_ (void);
+ void mwmorphism_type_dom_21_ (void);
+ void mwmorphism_type_base_26_ (void);
+ void mwmorphism_type_dom_26_ (void);
+ void mwmorphism_type_cod_26_ (void);
+ void mwmorphism_type_unpack (void);
+ void mwinit_externals_21_ (void);
+ void mwMAX_EXTERNALS (void);
+ void mwexternal_type_21_ (void);
+ void mwEXTERNAL_METADATA_SIZE (void);
+ void mwexternal_metadata_26_ (void);
+ void mwexternal_name_26_ (void);
+ void mwexternal_name_40_ (void);
+ void mwexternal_sig_26_ (void);
+ void mwexternal_type_26_ (void);
+ void mwexternal_type_40_ (void);
  void mwMAX_BUFFERS (void);
  void mwnum_buffers_40_ (void);
  void mwnum_buffers_21_ (void);
@@ -1756,7 +1988,6 @@ void mwRUNNING_OS (void) {
  void mwelab_token_40_ (void);
  void mwelab_token_21_ (void);
  void mwelab_emit_warning_21_ (void);
- void mwelab_emit_error_21_ (void);
  void mwelab_emit_fatal_error_21_ (void);
  void mwelab_ctx_40_ (void);
  void mwelab_ctx_21_ (void);
@@ -1764,24 +1995,13 @@ void mwRUNNING_OS (void) {
  void mwsig_has_dashes_3F_ (void);
  void mwelab_stack_21_ (void);
  void mwsig_skip_dashes (void);
- void mwmorphism_type_new_21_ (void);
- void mwTMorphism (void);
- void mwTYPE_UNIT (void);
  void mwsig_token_is_stack_var_3F_ (void);
- void mwSStack (void);
  void mwelab_type_var_21_ (void);
  void mwsig_is_stack_end_3F_ (void);
  void mwsig_token_is_effect_con_3F_ (void);
  void mwelab_type_21_ (void);
- void mwtensor_type_new_21_ (void);
- void mwTTensor (void);
  void mwsig_token_is_type_var_3F_ (void);
- void mwSType (void);
  void mwelab_type_con_21_ (void);
- void mwctx_has_name_3F_ (void);
- void mwctx_lookup_sort_3F_ (void);
- void mwTVar (void);
- void mwctx_new_21_ (void);
  void mwname_checked_40_ (void);
  void mwname_checked_3F_ (void);
  void mwTSTACK_SIZE (void);
@@ -1819,8 +2039,6 @@ void mwRUNNING_OS (void) {
  void mwsig_push_inputs_21_ (void);
  void mwtypecheck_run_21_ (void);
  void mwsig_match_outputs_21_ (void);
- void mwctx_empty (void);
- void mwtype_trace_sig_21_ (void);
  void mwtypecheck_sig_inputs_21_ (void);
  void mwtypecheck_sig_outputs_21_ (void);
  void mwtoken_is_dashes_3F_ (void);
@@ -1828,8 +2046,6 @@ void mwRUNNING_OS (void) {
  void mwtypecheck_sig_output_token_21_ (void);
  void mwtypecheck_run_one_21_ (void);
  void mwtstack_arity_check_21_ (void);
- void mwTYPE_INT (void);
- void mwTYPE_PTR (void);
  void mwtypecheck_run_name_21_ (void);
  void mwtypecheck_run_prim_21_ (void);
  void mwsig_apply_21_ (void);
@@ -1843,14 +2059,6 @@ void mwRUNNING_OS (void) {
  void mwelab_40_ (void);
  void mwelab_21_ (void);
  void mwexpect1 (void);
- void mwTYPE_U8 (void);
- void mwTYPE_U16 (void);
- void mwTYPE_U32 (void);
- void mwTYPE_U64 (void);
- void mwTYPE_I8 (void);
- void mwTYPE_I16 (void);
- void mwTYPE_I32 (void);
- void mwTYPE_I64 (void);
  void mwexpect2 (void);
  void mwelab_posix_exit (void);
  void mwelab_posix_read (void);
@@ -1867,141 +2075,6 @@ void mwRUNNING_OS (void) {
  void mwsig_push_outputs_21_ (void);
  void mwsig_pop_inputs_aux_21_ (void);
  void mwexpect3 (void);
- void mwtest_sorts_21_ (void);
- void mwMAX_CTX (void);
- void mwCTX_SIZE (void);
- void mwctx_base_26_ (void);
- void mwctx_prev_26_ (void);
- void mwctx_name_26_ (void);
- void mwctx_sort_26_ (void);
- void mwctx_prev_40_ (void);
- void mwctx_name_40_ (void);
- void mwctx_sort_40_ (void);
- void mwctx_prev_21_ (void);
- void mwctx_name_21_ (void);
- void mwctx_sort_21_ (void);
- void mwctx_alloc_21_ (void);
- void mwctx_is_empty (void);
- void mwctx_is_empty_3F_ (void);
- void mwctx_has_name (void);
- void mwctx_lookup_sort (void);
- void mwSORT_ERROR (void);
- void mwSort__3E_Int (void);
- void mwInt__3E_Sort (void);
- void mwSORT_FLAG_SHIFT (void);
- void mwSORT_FLAG_MASK (void);
- void mwSORT_FLAG_IMPLICIT (void);
- void mwSORT_TAG_SHIFT (void);
- void mwSORT_TAG_MASK (void);
- void mwSORT_TAG_ERROR (void);
- void mwSORT_TAG_TYPE (void);
- void mwSORT_TAG_STACK (void);
- void mwSORT_TAG_EFFECT (void);
- void mwSORT_TAG_WORD (void);
- void mwSORT_TAG_VALUE (void);
- void mwsort_tag (void);
- void mwsort_is_error (void);
- void mwsort_is_implicit (void);
- void mwsort_is_explicit (void);
- void mwsort_is_type (void);
- void mwsort_is_stack (void);
- void mwsort_is_effect (void);
- void mwsort_is_word (void);
- void mwsort_is_value (void);
- void mwsort_is_error_3F_ (void);
- void mwsort_is_implicit_3F_ (void);
- void mwsort_is_explicit_3F_ (void);
- void mwsort_is_type_3F_ (void);
- void mwsort_is_stack_3F_ (void);
- void mwsort_is_effect_3F_ (void);
- void mwsort_is_word_3F_ (void);
- void mwsort_is_value_3F_ (void);
- void mwSORT_PAYLOAD_MASK (void);
- void mwsort_word_type (void);
- void mwsort_word_type_3F_ (void);
- void mwsort_value_type (void);
- void mwsort_value_type_3F_ (void);
- void mwSImplicit (void);
- void mwSEffect (void);
- void mwSWord (void);
- void mwSValue (void);
- void mwTYPE_TAG_SHIFT (void);
- void mwTYPE_TAG_MASK (void);
- void mwTYPE_TAG_PRIM (void);
- void mwTYPE_TAG_VAR (void);
- void mwTYPE_TAG_META (void);
- void mwTYPE_TAG_TENSOR (void);
- void mwTYPE_TAG_MORPHISM (void);
- void mwTYPE_VALUE_MASK (void);
- void mwTPrim (void);
- void mwTMeta (void);
- void mwMetaVar__3E_Int (void);
- void mwTensorType__3E_Int (void);
- void mwMorphismType__3E_Int (void);
- void mwtype_tag (void);
- void mwtype_is_prim (void);
- void mwtype_is_var (void);
- void mwtype_is_meta (void);
- void mwtype_is_tensor (void);
- void mwtype_is_morphism (void);
- void mwtype_is_prim_3F_ (void);
- void mwtype_is_var_3F_ (void);
- void mwtype_is_meta_3F_ (void);
- void mwtype_is_tensor_3F_ (void);
- void mwtype_is_morphism_3F_ (void);
- void mwtype_get_value (void);
- void mwtype_get_var (void);
- void mwtype_get_meta (void);
- void mwInt__3E_MetaVar (void);
- void mwtype_get_tensor (void);
- void mwInt__3E_TensorType (void);
- void mwtype_get_morphism (void);
- void mwInt__3E_MorphismType (void);
- void mwtype_expand (void);
- void mwmeta_expand (void);
- void mwtype_unify_21_ (void);
- void mwtensor_type_unify_21_ (void);
- void mwmorphism_type_unify_21_ (void);
- void mwtype_has_meta_3F_ (void);
- void mwtype_has_meta (void);
- void mwtensor_type_has_meta (void);
- void mwmorphism_type_has_meta (void);
- void mwmorphism_type_dom_40_ (void);
- void mwtype_trace_stack_21_ (void);
- void mwmorphism_type_cod_40_ (void);
- void mwtensor_type_fst_40_ (void);
- void mwtensor_type_snd_40_ (void);
- void mwtype_trace_21_ (void);
- void mwtype_trace_prim_21_ (void);
- void mwMAX_METAS (void);
- void mwMETA_SIZE (void);
- void mwmeta_alloc_21_ (void);
- void mwmeta_value_21_ (void);
- void mwmeta_value_26_ (void);
- void mwmeta_value_40_ (void);
- void mwmeta_is_defined (void);
- void mwmeta_is_defined_3F_ (void);
- void mwmeta_type_40_ (void);
- void mwmeta_type_21_ (void);
- void mwmeta_unify_21_ (void);
- void mwMAX_TENSOR_TYPES (void);
- void mwTENSOR_TYPE_SIZE (void);
- void mwtensor_type_alloc_21_ (void);
- void mwtensor_type_snd_21_ (void);
- void mwtensor_type_fst_21_ (void);
- void mwtensor_type_base_26_ (void);
- void mwtensor_type_fst_26_ (void);
- void mwtensor_type_snd_26_ (void);
- void mwtensor_type_unpack (void);
- void mwMAX_MORPHISM_TYPES (void);
- void mwMORPHISM_TYPE_SIZE (void);
- void mwmorphism_type_alloc_21_ (void);
- void mwmorphism_type_cod_21_ (void);
- void mwmorphism_type_dom_21_ (void);
- void mwmorphism_type_base_26_ (void);
- void mwmorphism_type_dom_26_ (void);
- void mwmorphism_type_cod_26_ (void);
- void mwmorphism_type_unpack (void);
 
 void mwinit_21_ (void){
     mwinit_paths_21_();
@@ -2063,9 +2136,6 @@ void mwinit_names_21_ (void){
     push(0);
     mwover();
     mwname_value_21_();
-    push(0);
-    mwover();
-    mwname_sig_21_();
     }
     mwdrop();
     push(0);
@@ -2430,7 +2500,7 @@ void mwrun_lexer_21_ (void){
     mwlexer_emit_21_();
     } else {
     mwlexer_stack_pop_21_();
-    push((i64)(strings + 1659));
+    push((i64)(strings + 1946));
     mwemit_fatal_error_21_();
     }
     mwnum_tokens_40_();
@@ -2611,6 +2681,31 @@ void mwu16_21__21_ (void){
       push(d1); }
     mw_2B_();
     mwu16_21_();
+}
+
+void mwu32 (void){
+    push(4);
+}
+
+void mwu32s (void){
+    mwu32();
+    mw_2A_();
+}
+
+void mwu32_40__40_ (void){
+    { i64 d1 = pop();
+    mwu32s();
+      push(d1); }
+    mw_2B_();
+    mwu32_40_();
+}
+
+void mwu32_21__21_ (void){
+    { i64 d1 = pop();
+    mwu32s();
+      push(d1); }
+    mw_2B_();
+    mwu32_21_();
 }
 
 void mwi16 (void){
@@ -5370,11 +5465,6 @@ void mwname_value_21_ (void){
     mwquad_21__21_();
 }
 
-void mwname_sig_21_ (void){
-    mwDEF_SIG();
-    mwquad_21__21_();
-}
-
 void mwDEF_NONE (void){
     push(0);
     mwInt__3E_U8();
@@ -5426,8 +5516,68 @@ void mwname_value_3F_ (void){
 }
 
 void mwname_sig_40_ (void){
-    mwDEF_SIG();
-    mwquad_40__40_();
+    mwname_is_word_3F_();
+    if (pop()) {
+    mwname_word_40_();
+    mwword_sig_40_();
+    } else {
+    mwname_is_external_3F_();
+    if (pop()) {
+    mwname_external_40_();
+    mwexternal_sig_40_();
+    } else {
+    push((i64)(strings + 1227));
+    mwpanic_21_();
+    }
+    }
+}
+
+void mwname_is_word_3F_ (void){
+    mwname_sort_3F_();
+    mwDEF_WORD();
+    mw_3D_();
+}
+
+void mwname_word_40_ (void){
+    mwname_is_word_3F_();
+    if (pop()) {
+    mwname_value_40_();
+    mwInt__3E_Word();
+    } else {
+    push((i64)(strings + 1368));
+    mwpanic_21_();
+    mwInt__3E_Word();
+    }
+}
+
+void mwword_sig_40_ (void){
+    mwword_sig_26_();
+    mwu32_40_();
+    mwU32__3E_Int();
+}
+
+void mwname_is_external_3F_ (void){
+    mwname_sort_3F_();
+    mwDEF_EXTERNAL();
+    mw_3D_();
+}
+
+void mwname_external_40_ (void){
+    mwname_is_external_3F_();
+    if (pop()) {
+    mwname_value_40_();
+    mwInt__3E_External();
+    } else {
+    push((i64)(strings + 1435));
+    mwpanic_21_();
+    mwInt__3E_External();
+    }
+}
+
+void mwexternal_sig_40_ (void){
+    mwexternal_sig_26_();
+    mwu32_40_();
+    mwU32__3E_Int();
 }
 
 void mwname_sig_3F_ (void){
@@ -5446,12 +5596,6 @@ void mwname_defined_3F_ (void){
     mwnot();
 }
 
-void mwname_is_word_3F_ (void){
-    mwname_sort_3F_();
-    mwDEF_WORD();
-    mw_3D_();
-}
-
 void mwname_is_buffer_3F_ (void){
     mwname_sort_3F_();
     mwDEF_BUFFER();
@@ -5461,12 +5605,6 @@ void mwname_is_buffer_3F_ (void){
 void mwname_is_type_3F_ (void){
     mwname_sort_3F_();
     mwDEF_TYPE();
-    mw_3D_();
-}
-
-void mwname_is_external_3F_ (void){
-    mwname_sort_3F_();
-    mwDEF_EXTERNAL();
     mw_3D_();
 }
 
@@ -5496,7 +5634,7 @@ void mwname_type_40_ (void){
     mwname_value_40_();
     mwInt__3E_Type();
     } else {
-    push((i64)(strings + 1227));
+    push((i64)(strings + 1301));
     mwpanic_21_();
     mwInt__3E_Type();
     }
@@ -5504,6 +5642,72 @@ void mwname_type_40_ (void){
 
 void mwInt__3E_Type (void){
     mwInt__3E_U32();
+}
+
+void mwname_word_21_ (void){
+    mwDEF_WORD();
+    mwover();
+    mwname_sort_21_();
+    { i64 d1 = pop();
+    mwWord__3E_Int();
+      push(d1); }
+    mwname_value_21_();
+}
+
+void mwWord__3E_Int (void){
+    mwU16__3E_Int();
+}
+
+void mwInt__3E_Word (void){
+    mwInt__3E_U16();
+}
+
+void mwname_external_21_ (void){
+    mwDEF_EXTERNAL();
+    mwover();
+    mwname_sort_21_();
+    { i64 d1 = pop();
+    mwExternal__3E_Int();
+      push(d1); }
+    mwname_value_21_();
+}
+
+void mwExternal__3E_Int (void){
+    mwU16__3E_Int();
+}
+
+void mwInt__3E_External (void){
+    mwInt__3E_U16();
+}
+
+void mwname_buffer_21_ (void){
+    mwDEF_BUFFER();
+    mwover();
+    mwname_sort_21_();
+    { i64 d1 = pop();
+    mwBuffer__3E_Int();
+      push(d1); }
+    mwname_value_21_();
+}
+
+void mwBuffer__3E_Int (void){
+    mwid();
+}
+
+void mwname_buffer_40_ (void){
+    mwname_is_buffer_3F_();
+    if (pop()) {
+    mwname_value_40_();
+    mwInt__3E_Buffer();
+    } else {
+    push((i64)(strings + 1510));
+    mwpanic_21_();
+    mwInt__3E_Buffer();
+    }
+}
+
+void mwInt__3E_Buffer (void){
+    mwid();
 }
 
 void mwstrings_size_21_ (void){
@@ -5525,7 +5729,7 @@ void mwstrings_push_21_ (void){
     mwMAX_STRINGS();
     mw_3E__3D_();
     if (pop()) {
-    push((i64)(strings + 1294));
+    push((i64)(strings + 1581));
     mwpanic_21_();
     mwdrop();
     } else {
@@ -5636,52 +5840,52 @@ void mwtoken_type_str (void){
     mw_3D_();
     if (pop()) {
     mwdrop();
-    push((i64)(strings + 1318));
+    push((i64)(strings + 1605));
     } else {
     mwdup();
     mwTOKEN_LPAREN();
     mw_3D_();
     if (pop()) {
     mwdrop();
-    push((i64)(strings + 1323));
+    push((i64)(strings + 1610));
     } else {
     mwdup();
     mwTOKEN_RPAREN();
     mw_3D_();
     if (pop()) {
     mwdrop();
-    push((i64)(strings + 1330));
+    push((i64)(strings + 1617));
     } else {
     mwdup();
     mwTOKEN_COMMA();
     mw_3D_();
     if (pop()) {
     mwdrop();
-    push((i64)(strings + 1337));
+    push((i64)(strings + 1624));
     } else {
     mwdup();
     mwTOKEN_NAME();
     mw_3D_();
     if (pop()) {
     mwdrop();
-    push((i64)(strings + 1343));
+    push((i64)(strings + 1630));
     } else {
     mwdup();
     mwTOKEN_INT();
     mw_3D_();
     if (pop()) {
     mwdrop();
-    push((i64)(strings + 1348));
+    push((i64)(strings + 1635));
     } else {
     mwdup();
     mwTOKEN_STR();
     mw_3D_();
     if (pop()) {
     mwdrop();
-    push((i64)(strings + 1352));
+    push((i64)(strings + 1639));
     } else {
     mwdrop();
-    push((i64)(strings + 1356));
+    push((i64)(strings + 1643));
     }
     }
     }
@@ -5749,7 +5953,7 @@ void mwtoken_int_40_ (void){
     mwtoken_value_40_();
     mwTokenValue__3E_Int();
     } else {
-    push((i64)(strings + 1370));
+    push((i64)(strings + 1657));
     mwemit_fatal_error_21_();
     push(0);
     }
@@ -5774,9 +5978,9 @@ void mwtoken_str_40_ (void){
     mwtoken_value_40_();
     mwTokenValue__3E_Str();
     } else {
-    push((i64)(strings + 1421));
+    push((i64)(strings + 1708));
     mwemit_fatal_error_21_();
-    push((i64)(strings + 1472));
+    push((i64)(strings + 1759));
     }
 }
 
@@ -5793,7 +5997,7 @@ void mwtoken_name_40_ (void){
     mwtoken_value_40_();
     mwTokenValue__3E_Name();
     } else {
-    push((i64)(strings + 1473));
+    push((i64)(strings + 1760));
     mwemit_fatal_error_21_();
     mwPRIM_ID();
     }
@@ -5819,7 +6023,7 @@ void mwtoken_token_40_ (void){
     mwtoken_value_40_();
     mwTokenValue__3E_Token();
     } else {
-    push((i64)(strings + 1526));
+    push((i64)(strings + 1813));
     mwemit_fatal_error_21_();
     push(0);
     }
@@ -5898,7 +6102,7 @@ void mwtoken_new (void){
     mwMAX_TOKENS();
     mw_3E__3D_();
     if (pop()) {
-    push((i64)(strings + 1581));
+    push((i64)(strings + 1868));
     mwpanic_21_();
     } else {
     mwdup();
@@ -5911,17 +6115,17 @@ void mwtoken_trace_prefix_21_ (void){
     mwtoken_module_3F_();
     mwload_module_source_path_21_();
     mwstr_buf_trace_21_();
-    push((i64)(strings + 1604));
+    push((i64)(strings + 1891));
     mwstr_trace_21_();
     mwtoken_row_3F_();
     mwRow__3E_Int();
     mwint_trace_21_();
-    push((i64)(strings + 1606));
+    push((i64)(strings + 1893));
     mwstr_trace_21_();
     mwtoken_col_3F_();
     mwCol__3E_Int();
     mwint_trace_21_();
-    push((i64)(strings + 1608));
+    push((i64)(strings + 1895));
     mwstr_trace_sp_21_();
     mwdrop();
 }
@@ -5930,17 +6134,17 @@ void mwtoken_print_prefix_21_ (void){
     mwtoken_module_3F_();
     mwload_module_source_path_21_();
     mwstr_buf_print_21_();
-    push((i64)(strings + 1610));
+    push((i64)(strings + 1897));
     mwstr_print_21_();
     mwtoken_row_3F_();
     mwRow__3E_Int();
     mwint_print_21_();
-    push((i64)(strings + 1612));
+    push((i64)(strings + 1899));
     mwstr_print_21_();
     mwtoken_col_3F_();
     mwCol__3E_Int();
     mwint_print_21_();
-    push((i64)(strings + 1614));
+    push((i64)(strings + 1901));
     mwstr_print_sp_21_();
     mwdrop();
 }
@@ -6076,7 +6280,7 @@ void mwlexer_stack_full_3F_ (void){
 void mwlexer_stack_push_21_ (void){
     mwlexer_stack_full_3F_();
     if (pop()) {
-    push((i64)(strings + 1616));
+    push((i64)(strings + 1903));
     mwpanic_21_();
     mwdrop();
     } else {
@@ -6092,7 +6296,7 @@ void mwlexer_stack_push_21_ (void){
 void mwlexer_stack_pop_21_ (void){
     mwlexer_stack_empty_3F_();
     if (pop()) {
-    push((i64)(strings + 1637));
+    push((i64)(strings + 1924));
     mwpanic_21_();
     push(0);
     } else {
@@ -6339,7 +6543,7 @@ void mwis_rparen_3F_ (void){
 void mwlexer_emit_rparen_21_ (void){
     mwlexer_stack_empty_3F_();
     if (pop()) {
-    push((i64)(strings + 1688));
+    push((i64)(strings + 1975));
     mwlexer_emit_fatal_error_21_();
     } else {
     mwTOKEN_RPAREN();
@@ -6726,7 +6930,7 @@ void mwlexer_push_string_char_21_ (void){
     mwstr_buf_push_21_();
     } else {
     mwstr_buf_push_21_();
-    push((i64)(strings + 1718));
+    push((i64)(strings + 2005));
     mwlexer_emit_warning_21_();
     }
     }
@@ -6769,7 +6973,7 @@ void mwis_t_3F_ (void){
 
 void mwlexer_emit_warning_21_ (void){
     mwlexer_trace_prefix_21_();
-    push((i64)(strings + 1777));
+    push((i64)(strings + 2064));
     mwstr_trace_21_();
     mwstr_trace_ln_21_();
 }
@@ -6817,17 +7021,17 @@ void mwlexer_trace_prefix_21_ (void){
     mwlexer_module_40_();
     mwload_module_source_path_21_();
     mwstr_buf_trace_21_();
-    push((i64)(strings + 1753));
+    push((i64)(strings + 2040));
     mwstr_trace_21_();
     mwlexer_row_40_();
     mwRow__3E_Int();
     mwint_trace_21_();
-    push((i64)(strings + 1755));
+    push((i64)(strings + 2042));
     mwstr_trace_21_();
     mwlexer_col_40_();
     mwCol__3E_Int();
     mwint_trace_21_();
-    push((i64)(strings + 1757));
+    push((i64)(strings + 2044));
     mwstr_trace_sp_21_();
 }
 
@@ -6835,7 +7039,7 @@ void mwemit_warning_21_ (void){
     { i64 d1 = pop();
     mwtoken_trace_prefix_21_();
       push(d1); }
-    push((i64)(strings + 1759));
+    push((i64)(strings + 2046));
     mwstr_trace_21_();
     mwstr_trace_ln_21_();
 }
@@ -6844,14 +7048,14 @@ void mwemit_error_21_ (void){
     { i64 d1 = pop();
     mwtoken_trace_prefix_21_();
       push(d1); }
-    push((i64)(strings + 1769));
+    push((i64)(strings + 2056));
     mwstr_trace_21_();
     mwstr_trace_ln_21_();
 }
 
 void mwlexer_emit_error_21_ (void){
     mwlexer_trace_prefix_21_();
-    push((i64)(strings + 1787));
+    push((i64)(strings + 2074));
     mwstr_trace_21_();
     mwstr_trace_ln_21_();
 }
@@ -6889,7 +7093,7 @@ void mwvstack_i64_21_ (void){
 void mwvstack_pop_21_ (void){
     mwvstack_empty_3F_();
     if (pop()) {
-    push((i64)(strings + 1795));
+    push((i64)(strings + 2082));
     mwpanic_21_();
     push(0);
     } else {
@@ -6939,7 +7143,7 @@ void mwvstack_pop6_21_ (void){
 void mwvstack_push_21_ (void){
     mwvstack_full_3F_();
     if (pop()) {
-    push((i64)(strings + 1845));
+    push((i64)(strings + 2132));
     mwpanic_21_();
     mwdrop();
     } else {
@@ -6968,7 +7172,7 @@ void mwvstack_push3_21_ (void){
 void mwvstack_top_40_ (void){
     mwvstack_empty_3F_();
     if (pop()) {
-    push((i64)(strings + 1861));
+    push((i64)(strings + 2148));
     mwpanic_21_();
     push(0);
     } else {
@@ -6981,7 +7185,7 @@ void mwvstack_top_40_ (void){
 void mwvstack_top_21_ (void){
     mwvstack_empty_3F_();
     if (pop()) {
-    push((i64)(strings + 1878));
+    push((i64)(strings + 2165));
     mwpanic_21_();
     mwdrop();
     } else {
@@ -7055,7 +7259,7 @@ void mwtoken_run_one_21_ (void){
     mwtoken_run_name_21_();
     } else {
     mwdup();
-    push((i64)(strings + 1937));
+    push((i64)(strings + 2224));
     mwemit_fatal_error_21_();
     }
     }
@@ -7077,7 +7281,7 @@ void mwtypecheck_token_21_ (void){
     mwname_undefined_3F_();
     if (pop()) {
     mwdrop();
-    push((i64)(strings + 8584));
+    push((i64)(strings + 10017));
     mwemit_fatal_error_21_();
     } else {
     mwnip();
@@ -7103,7 +7307,7 @@ void mwarity_check_21_ (void){
     if (pop()) {
     mwdrop();
     mwdrop2();
-    push((i64)(strings + 2357));
+    push((i64)(strings + 2644));
     mwemit_fatal_error_21_();
     push(0);
     } else {
@@ -7114,7 +7318,7 @@ void mwarity_check_21_ (void){
     mwVSTACK_SIZE();
     mw_3E_();
     if (pop()) {
-    push((i64)(strings + 2374));
+    push((i64)(strings + 2661));
     mwemit_fatal_error_21_();
     push(0);
     } else {
@@ -7133,24 +7337,25 @@ void mwtoken_run_name_21_ (void){
     mwname_undefined_3F_();
     if (pop()) {
     mwdrop();
-    push((i64)(strings + 1973));
+    push((i64)(strings + 2260));
     mwemit_fatal_error_21_();
     } else {
     mwname_is_word_3F_();
     if (pop()) {
     mwnip();
-    mwname_value_40_();
+    mwname_word_40_();
+    mwword_body_40_();
     mwtoken_run_21_();
     } else {
     mwname_is_buffer_3F_();
     if (pop()) {
     mwnip();
-    mwname_value_40_();
+    mwname_buffer_40_();
     mwbuffer_base_40_();
     mwvstack_push_21_();
     } else {
     mwdrop();
-    push((i64)(strings + 1992));
+    push((i64)(strings + 2279));
     mwemit_fatal_error_21_();
     }
     }
@@ -7763,7 +7968,7 @@ void mwtoken_run_prim_21_ (void){
     push(0);
     mwarity_check_21_();
     mwtoken_args_0();
-    push((i64)(strings + 2020));
+    push((i64)(strings + 2307));
     mwstr_trace_21_();
     mwvstack_trace_21_();
     } else {
@@ -7785,24 +7990,64 @@ void mwtoken_run_prim_21_ (void){
     mwname_undefined_3F_();
     if (pop()) {
     mwnip();
-    mwDEF_WORD();
-    mwover();
-    mwname_sort_21_();
+    mwword_alloc_21_();
+    mwdup2();
+    mwswap();
+    mwname_word_21_();
     mwdup();
     { i64 d51 = pop();
-    mwname_value_21_();
+    mwword_name_21_();
       push(d51); }
-    mwname_sig_21_();
+    mwdup();
+    { i64 d51 = pop();
+    mwword_body_21_();
+      push(d51); }
+    mwword_sig_21_();
     } else {
     mwdrop();
-    push((i64)(strings + 2024));
+    push((i64)(strings + 2311));
     mwemit_fatal_error_21_();
     mwdrop2();
     }
     } else {
-    push((i64)(strings + 2045));
+    push((i64)(strings + 2332));
     mwemit_fatal_error_21_();
     mwdrop2();
+    }
+    } else {
+    mwdup();
+    mwPRIM_DEF_EXTERNAL();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    mwtoken_args_2();
+    mwswap();
+    mwtoken_type_3F_();
+    mwTOKEN_NAME();
+    mw_3D_();
+    if (pop()) {
+    mwtoken_name_3F_();
+    mwname_undefined_3F_();
+    if (pop()) {
+    mwnip();
+    mwexternal_alloc_21_();
+    mwdup2();
+    mwswap();
+    mwname_external_21_();
+    mwdup();
+    { i64 d52 = pop();
+    mwexternal_name_21_();
+      push(d52); }
+    mwexternal_sig_21_();
+    } else {
+    mwdrop2();
+    push((i64)(strings + 2351));
+    mwemit_fatal_error_21_();
+    }
+    } else {
+    mwnip();
+    push((i64)(strings + 2372));
+    mwemit_fatal_error_21_();
     }
     } else {
     mwdup();
@@ -7827,32 +8072,29 @@ void mwtoken_run_prim_21_ (void){
     mwtoken_name_3F_();
     mwname_is_type_3F_();
     if (pop()) {
-    mwname_value_40_();
+    mwname_type_40_();
     mwnip();
     } else {
     mwdrop();
-    push((i64)(strings + 2064));
+    push((i64)(strings + 2386));
     mwemit_error_21_();
     mwTYPE_ERROR();
     }
     } else {
-    push((i64)(strings + 2078));
+    push((i64)(strings + 2400));
     mwemit_error_21_();
     mwTYPE_ERROR();
     }
-    mwover();
-    mwname_value_21_();
-    mwDEF_TYPE();
     mwswap();
-    mwname_sort_21_();
+    mwname_type_21_();
     } else {
     mwdrop();
-    push((i64)(strings + 2095));
+    push((i64)(strings + 2417));
     mwemit_fatal_error_21_();
     mwdrop();
     }
     } else {
-    push((i64)(strings + 2116));
+    push((i64)(strings + 2438));
     mwemit_fatal_error_21_();
     mwdrop();
     }
@@ -7874,50 +8116,17 @@ void mwtoken_run_prim_21_ (void){
     mwname_undefined_3F_();
     if (pop()) {
     mwnip();
-    mwDEF_BUFFER();
-    mwover();
-    mwname_sort_21_();
     mwvstack_pop_21_();
     mwbuffer_alloc_21_();
     mwswap();
-    mwname_value_21_();
+    mwname_buffer_21_();
     } else {
     mwdrop();
-    push((i64)(strings + 2142));
+    push((i64)(strings + 2464));
     mwemit_fatal_error_21_();
     }
     } else {
-    push((i64)(strings + 2165));
-    mwemit_fatal_error_21_();
-    }
-    } else {
-    mwdup();
-    mwPRIM_DEF_EXTERNAL();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    mwtoken_args_2();
-    mwswap();
-    mwtoken_type_3F_();
-    mwTOKEN_NAME();
-    mw_3D_();
-    if (pop()) {
-    mwtoken_name_3F_();
-    mwname_undefined_3F_();
-    if (pop()) {
-    mwnip();
-    mwDEF_EXTERNAL();
-    mwover();
-    mwname_sort_21_();
-    mwname_sig_21_();
-    } else {
-    mwdrop2();
-    push((i64)(strings + 2186));
-    mwemit_fatal_error_21_();
-    }
-    } else {
-    mwnip();
-    push((i64)(strings + 2207));
+    push((i64)(strings + 2487));
     mwemit_fatal_error_21_();
     }
     } else {
@@ -7944,12 +8153,12 @@ void mwtoken_run_prim_21_ (void){
     mwname_sort_21_();
     } else {
     mwdrop();
-    push((i64)(strings + 2221));
+    push((i64)(strings + 2508));
     mwemit_fatal_error_21_();
     }
     }
     } else {
-    push((i64)(strings + 2250));
+    push((i64)(strings + 2537));
     mwemit_fatal_error_21_();
     }
     } else {
@@ -7975,7 +8184,7 @@ void mwtoken_run_prim_21_ (void){
     mwover();
     mwname_sort_21_();
     mwname_load_21_();
-    push((i64)(strings + 2271));
+    push((i64)(strings + 2558));
     mwstr_buf_push_str_21_();
     mwnum_tokens_40_();
     mwSTR_BUF();
@@ -7983,12 +8192,12 @@ void mwtoken_run_prim_21_ (void){
     mwtoken_run_21_();
     } else {
     mwdrop();
-    push((i64)(strings + 2276));
+    push((i64)(strings + 2563));
     mwemit_fatal_error_21_();
     }
     }
     } else {
-    push((i64)(strings + 2305));
+    push((i64)(strings + 2592));
     mwemit_fatal_error_21_();
     }
     } else {
@@ -8029,7 +8238,7 @@ void mwtoken_run_prim_21_ (void){
     mwrun_output_c99_21_();
     } else {
     mwdrop();
-    push((i64)(strings + 2326));
+    push((i64)(strings + 2613));
     mwemit_fatal_error_21_();
     }
     }
@@ -8089,6 +8298,12 @@ void mwtoken_run_prim_21_ (void){
     }
 }
 
+void mwword_body_40_ (void){
+    mwword_body_26_();
+    mwu32_40_();
+    mwU32__3E_Int();
+}
+
 void mwbuffer_base_40_ (void){
     mwBUFFER_BASE();
     mwquad_40__40_();
@@ -8101,7 +8316,7 @@ void mwtoken_args_0 (void){
     mwTOKEN_LPAREN();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 2390));
+    push((i64)(strings + 2677));
     mwemit_fatal_error_21_();
     } else {
     mwdrop();
@@ -8125,12 +8340,12 @@ void mwtoken_args_1 (void){
     mwdrop2();
     } else {
     mwdrop();
-    push((i64)(strings + 2407));
+    push((i64)(strings + 2694));
     mwemit_fatal_error_21_();
     }
     } else {
     mwdrop();
-    push((i64)(strings + 2436));
+    push((i64)(strings + 2723));
     mwemit_fatal_error_21_();
     push(0);
     }
@@ -8160,18 +8375,18 @@ void mwtoken_args_2 (void){
     mwdrop2();
     } else {
     mwdrop();
-    push((i64)(strings + 2461));
+    push((i64)(strings + 2748));
     mwemit_fatal_error_21_();
     }
     } else {
     mwdrop();
-    push((i64)(strings + 2491));
+    push((i64)(strings + 2778));
     mwemit_fatal_error_21_();
     push(0);
     }
     } else {
     mwdrop();
-    push((i64)(strings + 2519));
+    push((i64)(strings + 2806));
     mwemit_fatal_error_21_();
     push(0);
     push(0);
@@ -8209,30 +8424,130 @@ void mwtoken_args_3 (void){
     mwdrop2();
     } else {
     mwdrop();
-    push((i64)(strings + 2545));
+    push((i64)(strings + 2832));
     mwemit_fatal_error_21_();
     }
     } else {
     mwdrop();
-    push((i64)(strings + 2575));
+    push((i64)(strings + 2862));
     mwemit_fatal_error_21_();
     push(0);
     }
     } else {
     mwdrop();
-    push((i64)(strings + 2603));
+    push((i64)(strings + 2890));
     mwemit_fatal_error_21_();
     push(0);
     push(0);
     }
     } else {
     mwdrop();
-    push((i64)(strings + 2631));
+    push((i64)(strings + 2918));
     mwemit_fatal_error_21_();
     push(0);
     push(0);
     push(0);
     }
+}
+
+void mwword_alloc_21_ (void){
+    mwNUM_WORDS();
+    mw_40_();
+    mwdup();
+    mw1_2B_();
+    mwNUM_WORDS();
+    mw_21_();
+    mwdup();
+    mwMAX_WORDS();
+    mw_3E__3D_();
+    if (pop()) {
+    push((i64)(strings + 2944));
+    mwpanic_21_();
+    } else {
+    mwid();
+    }
+    push(0);
+    mwover();
+    mwword_name_21_();
+    push(0);
+    mwover();
+    mwword_sig_21_();
+    push(0);
+    mwover();
+    mwword_body_21_();
+    mwctx_empty();
+    mwover();
+    mwword_ctx_21_();
+    mwTYPE_ERROR();
+    mwover();
+    mwword_type_21_();
+}
+
+void mwword_name_21_ (void){
+    { i64 d1 = pop();
+    mwInt__3E_U32();
+      push(d1); }
+    mwword_name_26_();
+    mwu32_21_();
+}
+
+void mwword_body_21_ (void){
+    { i64 d1 = pop();
+    mwInt__3E_U32();
+      push(d1); }
+    mwword_body_26_();
+    mwu32_21_();
+}
+
+void mwword_sig_21_ (void){
+    { i64 d1 = pop();
+    mwInt__3E_U32();
+      push(d1); }
+    mwword_sig_26_();
+    mwu32_21_();
+}
+
+void mwexternal_alloc_21_ (void){
+    mwNUM_EXTERNALS();
+    mw_40_();
+    mwdup();
+    mw1_2B_();
+    mwNUM_EXTERNALS();
+    mw_21_();
+    mwdup();
+    mwMAX_EXTERNALS();
+    mw_3E__3D_();
+    if (pop()) {
+    push((i64)(strings + 4044));
+    mwpanic_21_();
+    } else {
+    mwid();
+    }
+    push(0);
+    mwover();
+    mwexternal_name_21_();
+    push(0);
+    mwover();
+    mwexternal_sig_21_();
+    mwTYPE_ERROR();
+    mwover();
+    mwexternal_type_21_();
+}
+
+void mwexternal_name_21_ (void){
+    { i64 d1 = pop();
+    mwInt__3E_U32();
+      push(d1); }
+    mwexternal_name_26_();
+    mwu32_21_();
+}
+
+void mwexternal_sig_21_ (void){
+    { i64 d1 = pop();
+    mwInt__3E_U32();
+      push(d1); }
+    mwexternal_sig_26_();
+    mwu32_21_();
 }
 
 void mwsig_token_is_type_con_3F_ (void){
@@ -8257,7 +8572,7 @@ void mwbuffer_alloc_21_ (void){
     mwMAX_BUFFERS();
     mw_3E__3D_();
     if (pop()) {
-    push((i64)(strings + 2657));
+    push((i64)(strings + 4090));
     mwpanic_21_();
     } else {
     mwdup();
@@ -8337,6 +8652,1931 @@ void mwtoken_next (void){
     mw1_2B_();
     }
     }
+}
+
+void mwinit_words_21_ (void){
+    push(0);
+    mwNUM_WORDS();
+    mw_21_();
+}
+
+void mwMAX_WORDS (void){
+    push(16384);
+}
+
+void mwctx_empty (void){
+    push(0);
+    mwInt__3E_U16();
+}
+
+void mwword_ctx_21_ (void){
+    mwword_type_26_();
+    mwu32_21_();
+}
+
+void mwword_type_21_ (void){
+    mwword_type_26_();
+    mwu32_21_();
+}
+
+void mwWORD_METADATA_SIZE (void){
+    push(64);
+}
+
+void mwword_metadata_26_ (void){
+    mwWord__3E_Int();
+    mwWORD_METADATA_SIZE();
+    mw_2A_();
+    mwWORD_METADATA_BUF();
+    mw_2B_();
+}
+
+void mwword_name_26_ (void){
+    mwword_metadata_26_();
+}
+
+void mwword_name_40_ (void){
+    mwword_name_26_();
+    mwu32_40_();
+    mwU32__3E_Int();
+}
+
+void mwword_sig_26_ (void){
+    mwword_metadata_26_();
+    push(4);
+    mw_2B_();
+}
+
+void mwword_body_26_ (void){
+    mwword_metadata_26_();
+    push(8);
+    mw_2B_();
+}
+
+void mwword_ctx_26_ (void){
+    mwword_metadata_26_();
+    push(12);
+    mw_2B_();
+}
+
+void mwword_ctx_40_ (void){
+    mwword_type_26_();
+    mwu32_40_();
+}
+
+void mwword_type_26_ (void){
+    mwword_metadata_26_();
+    push(12);
+    mw_2B_();
+}
+
+void mwword_type_40_ (void){
+    mwword_type_26_();
+    mwu32_40_();
+}
+
+void mwTYPE_INT (void){
+    push(1);
+    mwTPrim();
+}
+
+void mwTYPE_PTR (void){
+    push(2);
+    mwTPrim();
+}
+
+void mwTYPE_U8 (void){
+    push(3);
+    mwTPrim();
+}
+
+void mwTYPE_U16 (void){
+    push(4);
+    mwTPrim();
+}
+
+void mwTYPE_U32 (void){
+    push(5);
+    mwTPrim();
+}
+
+void mwTYPE_U64 (void){
+    push(6);
+    mwTPrim();
+}
+
+void mwTYPE_I8 (void){
+    push(7);
+    mwTPrim();
+}
+
+void mwTYPE_I16 (void){
+    push(8);
+    mwTPrim();
+}
+
+void mwTYPE_I32 (void){
+    push(9);
+    mwTPrim();
+}
+
+void mwTYPE_I64 (void){
+    push(10);
+    mwTPrim();
+}
+
+void mwtest_sorts_21_ (void){
+    mwSType();
+    mwsort_is_implicit_3F_();
+    mw_21__21_0();
+    mwsort_is_explicit_3F_();
+    mw_21__21_1();
+    mwsort_is_type_3F_();
+    mw_21__21_1();
+    mwsort_is_stack_3F_();
+    mw_21__21_0();
+    mwsort_is_effect_3F_();
+    mw_21__21_0();
+    mwsort_is_word_3F_();
+    mw_21__21_0();
+    mwsort_is_value_3F_();
+    mw_21__21_0();
+    mwdrop();
+    mwSType();
+    mwSImplicit();
+    mwsort_is_implicit_3F_();
+    mw_21__21_1();
+    mwsort_is_explicit_3F_();
+    mw_21__21_0();
+    mwsort_is_type_3F_();
+    mw_21__21_1();
+    mwsort_is_stack_3F_();
+    mw_21__21_0();
+    mwsort_is_effect_3F_();
+    mw_21__21_0();
+    mwsort_is_word_3F_();
+    mw_21__21_0();
+    mwsort_is_value_3F_();
+    mw_21__21_0();
+    mwdrop();
+    mwSStack();
+    mwsort_is_implicit_3F_();
+    mw_21__21_0();
+    mwsort_is_explicit_3F_();
+    mw_21__21_1();
+    mwsort_is_type_3F_();
+    mw_21__21_0();
+    mwsort_is_stack_3F_();
+    mw_21__21_1();
+    mwsort_is_effect_3F_();
+    mw_21__21_0();
+    mwsort_is_word_3F_();
+    mw_21__21_0();
+    mwsort_is_value_3F_();
+    mw_21__21_0();
+    mwdrop();
+    mwSStack();
+    mwSImplicit();
+    mwsort_is_implicit_3F_();
+    mw_21__21_1();
+    mwsort_is_explicit_3F_();
+    mw_21__21_0();
+    mwsort_is_type_3F_();
+    mw_21__21_0();
+    mwsort_is_stack_3F_();
+    mw_21__21_1();
+    mwsort_is_effect_3F_();
+    mw_21__21_0();
+    mwsort_is_word_3F_();
+    mw_21__21_0();
+    mwsort_is_value_3F_();
+    mw_21__21_0();
+    mwdrop();
+    mwSEffect();
+    mwsort_is_implicit_3F_();
+    mw_21__21_0();
+    mwsort_is_explicit_3F_();
+    mw_21__21_1();
+    mwsort_is_type_3F_();
+    mw_21__21_0();
+    mwsort_is_stack_3F_();
+    mw_21__21_0();
+    mwsort_is_effect_3F_();
+    mw_21__21_1();
+    mwsort_is_word_3F_();
+    mw_21__21_0();
+    mwsort_is_value_3F_();
+    mw_21__21_0();
+    mwdrop();
+    mwSEffect();
+    mwSImplicit();
+    mwsort_is_implicit_3F_();
+    mw_21__21_1();
+    mwsort_is_explicit_3F_();
+    mw_21__21_0();
+    mwsort_is_type_3F_();
+    mw_21__21_0();
+    mwsort_is_stack_3F_();
+    mw_21__21_0();
+    mwsort_is_effect_3F_();
+    mw_21__21_1();
+    mwsort_is_word_3F_();
+    mw_21__21_0();
+    mwsort_is_value_3F_();
+    mw_21__21_0();
+    mwdrop();
+    mwTYPE_ERROR();
+    mwSWord();
+    mwsort_is_implicit_3F_();
+    mw_21__21_0();
+    mwsort_is_explicit_3F_();
+    mw_21__21_1();
+    mwsort_is_type_3F_();
+    mw_21__21_0();
+    mwsort_is_stack_3F_();
+    mw_21__21_0();
+    mwsort_is_effect_3F_();
+    mw_21__21_0();
+    mwsort_is_word_3F_();
+    mw_21__21_1();
+    mwsort_is_value_3F_();
+    mw_21__21_0();
+    mwsort_word_type_3F_();
+    mwTYPE_ERROR();
+    mw_21__21__3D_();
+    mwdrop();
+    mwTYPE_ERROR();
+    mwSWord();
+    mwSImplicit();
+    mwsort_is_implicit_3F_();
+    mw_21__21_1();
+    mwsort_is_explicit_3F_();
+    mw_21__21_0();
+    mwsort_is_type_3F_();
+    mw_21__21_0();
+    mwsort_is_stack_3F_();
+    mw_21__21_0();
+    mwsort_is_effect_3F_();
+    mw_21__21_0();
+    mwsort_is_word_3F_();
+    mw_21__21_1();
+    mwsort_is_value_3F_();
+    mw_21__21_0();
+    mwsort_word_type_3F_();
+    mwTYPE_ERROR();
+    mw_21__21__3D_();
+    mwdrop();
+    mwTYPE_INT();
+    mwSWord();
+    mwsort_is_implicit_3F_();
+    mw_21__21_0();
+    mwsort_is_explicit_3F_();
+    mw_21__21_1();
+    mwsort_is_type_3F_();
+    mw_21__21_0();
+    mwsort_is_stack_3F_();
+    mw_21__21_0();
+    mwsort_is_effect_3F_();
+    mw_21__21_0();
+    mwsort_is_word_3F_();
+    mw_21__21_1();
+    mwsort_is_value_3F_();
+    mw_21__21_0();
+    mwsort_word_type_3F_();
+    mwTYPE_INT();
+    mw_21__21__3D_();
+    mwdrop();
+    mwTYPE_INT();
+    mwSWord();
+    mwSImplicit();
+    mwsort_is_implicit_3F_();
+    mw_21__21_1();
+    mwsort_is_explicit_3F_();
+    mw_21__21_0();
+    mwsort_is_type_3F_();
+    mw_21__21_0();
+    mwsort_is_stack_3F_();
+    mw_21__21_0();
+    mwsort_is_effect_3F_();
+    mw_21__21_0();
+    mwsort_is_word_3F_();
+    mw_21__21_1();
+    mwsort_is_value_3F_();
+    mw_21__21_0();
+    mwsort_word_type_3F_();
+    mwTYPE_INT();
+    mw_21__21__3D_();
+    mwdrop();
+    mwTYPE_ERROR();
+    mwSValue();
+    mwsort_is_implicit_3F_();
+    mw_21__21_0();
+    mwsort_is_explicit_3F_();
+    mw_21__21_1();
+    mwsort_is_type_3F_();
+    mw_21__21_0();
+    mwsort_is_stack_3F_();
+    mw_21__21_0();
+    mwsort_is_effect_3F_();
+    mw_21__21_0();
+    mwsort_is_word_3F_();
+    mw_21__21_0();
+    mwsort_is_value_3F_();
+    mw_21__21_1();
+    mwsort_value_type_3F_();
+    mwTYPE_ERROR();
+    mw_21__21__3D_();
+    mwdrop();
+    mwTYPE_ERROR();
+    mwSValue();
+    mwSImplicit();
+    mwsort_is_implicit_3F_();
+    mw_21__21_1();
+    mwsort_is_explicit_3F_();
+    mw_21__21_0();
+    mwsort_is_type_3F_();
+    mw_21__21_0();
+    mwsort_is_stack_3F_();
+    mw_21__21_0();
+    mwsort_is_effect_3F_();
+    mw_21__21_0();
+    mwsort_is_word_3F_();
+    mw_21__21_0();
+    mwsort_is_value_3F_();
+    mw_21__21_1();
+    mwsort_value_type_3F_();
+    mwTYPE_ERROR();
+    mw_21__21__3D_();
+    mwdrop();
+    mwTYPE_INT();
+    mwSValue();
+    mwsort_is_implicit_3F_();
+    mw_21__21_0();
+    mwsort_is_explicit_3F_();
+    mw_21__21_1();
+    mwsort_is_type_3F_();
+    mw_21__21_0();
+    mwsort_is_stack_3F_();
+    mw_21__21_0();
+    mwsort_is_effect_3F_();
+    mw_21__21_0();
+    mwsort_is_word_3F_();
+    mw_21__21_0();
+    mwsort_is_value_3F_();
+    mw_21__21_1();
+    mwsort_value_type_3F_();
+    mwTYPE_INT();
+    mw_21__21__3D_();
+    mwdrop();
+    mwTYPE_INT();
+    mwSValue();
+    mwSImplicit();
+    mwsort_is_implicit_3F_();
+    mw_21__21_1();
+    mwsort_is_explicit_3F_();
+    mw_21__21_0();
+    mwsort_is_type_3F_();
+    mw_21__21_0();
+    mwsort_is_stack_3F_();
+    mw_21__21_0();
+    mwsort_is_effect_3F_();
+    mw_21__21_0();
+    mwsort_is_word_3F_();
+    mw_21__21_0();
+    mwsort_is_value_3F_();
+    mw_21__21_1();
+    mwsort_value_type_3F_();
+    mwTYPE_INT();
+    mw_21__21__3D_();
+    mwdrop();
+}
+
+void mwMAX_CTX (void){
+    push(4096);
+}
+
+void mwCTX_SIZE (void){
+    push(8);
+}
+
+void mwctx_base_26_ (void){
+    mwdup();
+    if (pop()) {
+    mwU16__3E_Int();
+    mw1_();
+    mwCTX_SIZE();
+    mw_2A_();
+    mwCTX_BUF();
+    mw_2B_();
+    } else {
+    push((i64)(strings + 2982));
+    mwpanic_21_();
+    mwU16__3E_Int();
+    mwInt__3E_Ptr();
+    }
+}
+
+void mwctx_prev_26_ (void){
+    mwctx_base_26_();
+}
+
+void mwctx_name_26_ (void){
+    mwctx_base_26_();
+    push(2);
+    mw_2B_();
+}
+
+void mwctx_sort_26_ (void){
+    mwctx_base_26_();
+    push(4);
+    mw_2B_();
+}
+
+void mwctx_prev_40_ (void){
+    mwctx_prev_26_();
+    mwu16_40_();
+}
+
+void mwctx_name_40_ (void){
+    mwctx_name_26_();
+    mwu16_40_();
+    mwU16__3E_Int();
+}
+
+void mwctx_sort_40_ (void){
+    mwctx_sort_26_();
+    mwu32_40_();
+}
+
+void mwctx_prev_21_ (void){
+    mwctx_prev_26_();
+    mwu16_21_();
+}
+
+void mwctx_name_21_ (void){
+    { i64 d1 = pop();
+    mwInt__3E_U16();
+      push(d1); }
+    mwctx_name_26_();
+    mwu16_21_();
+}
+
+void mwctx_sort_21_ (void){
+    mwctx_sort_26_();
+    mwu32_21_();
+}
+
+void mwctx_alloc_21_ (void){
+    mwNUM_CTX();
+    mw_40_();
+    mwdup();
+    mw1_2B_();
+    mwNUM_CTX();
+    mw_21_();
+    mwdup();
+    mwMAX_CTX();
+    mw_3C_();
+    if (pop()) {
+    mw1_2B_();
+    mwInt__3E_U16();
+    } else {
+    push((i64)(strings + 3045));
+    mwpanic_21_();
+    }
+}
+
+void mwctx_new_21_ (void){
+    mwctx_alloc_21_();
+    mwdup();
+    { i64 d1 = pop();
+    mwctx_sort_21_();
+      push(d1); }
+    mwdup();
+    { i64 d1 = pop();
+    mwctx_name_21_();
+      push(d1); }
+    mwdup();
+    { i64 d1 = pop();
+    mwctx_prev_21_();
+      push(d1); }
+}
+
+void mwctx_is_empty (void){
+    mwU16__3E_Int();
+    push(0);
+    mw_3D_();
+}
+
+void mwctx_is_empty_3F_ (void){
+    mwdup();
+    mwctx_is_empty();
+}
+
+void mwctx_has_name_3F_ (void){
+    mwdup2();
+    mwctx_has_name();
+}
+
+void mwctx_has_name (void){
+    mwctx_is_empty_3F_();
+    if (pop()) {
+    mwdrop2();
+    push(0);
+    } else {
+    mwdup();
+    mwctx_name_40_();
+    { i64 d2 = pop();
+    mwover();
+      push(d2); }
+    mw_3D_();
+    if (pop()) {
+    mwdrop2();
+    push(1);
+    } else {
+    mwctx_prev_40_();
+    mwctx_has_name();
+    }
+    }
+}
+
+void mwctx_lookup_sort_3F_ (void){
+    mwdup2();
+    mwctx_lookup_sort();
+}
+
+void mwctx_lookup_sort (void){
+    mwctx_is_empty_3F_();
+    if (pop()) {
+    mwdrop2();
+    mwSORT_ERROR();
+    } else {
+    mwdup();
+    mwctx_name_40_();
+    { i64 d2 = pop();
+    mwover();
+      push(d2); }
+    mw_3D_();
+    if (pop()) {
+    mwctx_sort_40_();
+    mwnip();
+    } else {
+    mwctx_prev_40_();
+    mwctx_lookup_sort();
+    }
+    }
+}
+
+void mwSORT_ERROR (void){
+    push(0);
+    mwInt__3E_Sort();
+}
+
+void mwctx_trace_21_ (void){
+    mwctx_is_empty_3F_();
+    if (pop()) {
+    mwdrop();
+    } else {
+    mwdup();
+    mwctx_prev_40_();
+    mwctx_is_empty_3F_();
+    if (pop()) {
+    mwdrop();
+    } else {
+    mwctx_trace_21_();
+    push((i64)(strings + 3109));
+    mwstr_trace_21_();
+    }
+    mwdup();
+    mwctx_sort_40_();
+    mwsort_is_implicit();
+    if (pop()) {
+    push((i64)(strings + 3112));
+    mwstr_trace_21_();
+    } else {
+    mwid();
+    }
+    mwdup();
+    mwctx_name_40_();
+    mwname_load_21_();
+    mwstr_buf_trace_21_();
+    mwctx_sort_40_();
+    mwsort_is_word_3F_();
+    if (pop()) {
+    push((i64)(strings + 3114));
+    mwstr_trace_21_();
+    mwsort_word_type();
+    mwtype_trace_sig_21_();
+    } else {
+    mwsort_is_value_3F_();
+    if (pop()) {
+    push((i64)(strings + 3117));
+    mwstr_trace_21_();
+    mwsort_value_type();
+    mwtype_trace_21_();
+    } else {
+    mwdrop();
+    }
+    }
+    }
+}
+
+void mwsort_is_implicit (void){
+    mwU32__3E_Int();
+    mwSORT_FLAG_IMPLICIT();
+    mw_26_();
+    push(0);
+    mw_3E_();
+}
+
+void mwsort_is_word_3F_ (void){
+    mwdup();
+    mwsort_is_word();
+}
+
+void mwsort_word_type (void){
+    mwsort_is_word_3F_();
+    if (pop()) {
+    mwSort__3E_Int();
+    mwSORT_PAYLOAD_MASK();
+    mw_26_();
+    mwInt__3E_Type();
+    } else {
+    push((i64)(strings + 3120));
+    mwpanic_21_();
+    }
+}
+
+void mwtype_trace_sig_21_ (void){
+    mwtype_get_morphism();
+    mwdup();
+    mwmorphism_type_dom_40_();
+    mwdup();
+    mwTYPE_UNIT();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    } else {
+    mwtype_trace_stack_21_();
+    push((i64)(strings + 3653));
+    mwstr_trace_21_();
+    }
+    push((i64)(strings + 3655));
+    mwstr_trace_21_();
+    mwmorphism_type_cod_40_();
+    mwdup();
+    mwTYPE_UNIT();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    } else {
+    push((i64)(strings + 3658));
+    mwstr_trace_21_();
+    mwtype_trace_stack_21_();
+    }
+}
+
+void mwsort_is_value_3F_ (void){
+    mwdup();
+    mwsort_is_value();
+}
+
+void mwsort_value_type (void){
+    mwsort_is_value_3F_();
+    if (pop()) {
+    mwSort__3E_Int();
+    mwSORT_PAYLOAD_MASK();
+    mw_26_();
+    mwInt__3E_Type();
+    } else {
+    push((i64)(strings + 3185));
+    mwpanic_21_();
+    }
+}
+
+void mwtype_trace_21_ (void){
+    mwtype_is_prim_3F_();
+    if (pop()) {
+    mwtype_trace_prim_21_();
+    } else {
+    mwtype_is_var_3F_();
+    if (pop()) {
+    mwtype_get_var();
+    mwname_load_21_();
+    mwstr_buf_trace_21_();
+    } else {
+    mwtype_is_meta_3F_();
+    if (pop()) {
+    mwtype_get_meta();
+    push((i64)(strings + 3665));
+    mwstr_trace_21_();
+    mwMetaVar__3E_Int();
+    mwint_trace_21_();
+    } else {
+    mwtype_is_tensor_3F_();
+    if (pop()) {
+    push((i64)(strings + 3667));
+    mwstr_trace_21_();
+    mwtype_trace_stack_21_();
+    push((i64)(strings + 3669));
+    mwstr_trace_21_();
+    } else {
+    mwtype_is_morphism_3F_();
+    if (pop()) {
+    push((i64)(strings + 3671));
+    mwstr_trace_21_();
+    mwtype_trace_sig_21_();
+    push((i64)(strings + 3673));
+    mwstr_trace_21_();
+    } else {
+    push((i64)(strings + 3675));
+    mwstr_trace_21_();
+    mwType__3E_Int();
+    mwint_trace_21_();
+    push((i64)(strings + 3690));
+    mwstr_trace_21_();
+    }
+    }
+    }
+    }
+    }
+}
+
+void mwSort__3E_Int (void){
+    mwU32__3E_Int();
+}
+
+void mwInt__3E_Sort (void){
+    mwInt__3E_U32();
+}
+
+void mwSORT_FLAG_SHIFT (void){
+    push(28);
+}
+
+void mwSORT_FLAG_MASK (void){
+    push(15);
+    mwSORT_FLAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwSORT_FLAG_IMPLICIT (void){
+    push(1);
+    mwSORT_FLAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwSORT_TAG_SHIFT (void){
+    push(24);
+}
+
+void mwSORT_TAG_MASK (void){
+    push(15);
+    mwSORT_TAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwSORT_TAG_ERROR (void){
+    push(0);
+}
+
+void mwSORT_TAG_TYPE (void){
+    push(1);
+    mwSORT_TAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwSORT_TAG_STACK (void){
+    push(2);
+    mwSORT_TAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwSORT_TAG_EFFECT (void){
+    push(3);
+    mwSORT_TAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwSORT_TAG_WORD (void){
+    push(4);
+    mwSORT_TAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwSORT_TAG_VALUE (void){
+    push(5);
+    mwSORT_TAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwsort_tag (void){
+    mwU32__3E_Int();
+    mwSORT_TAG_MASK();
+    mw_26_();
+}
+
+void mwsort_is_error (void){
+    mwU32__3E_Int();
+    push(0);
+    mw_3D_();
+}
+
+void mwsort_is_explicit (void){
+    mwsort_is_implicit();
+    mwnot();
+}
+
+void mwsort_is_type (void){
+    mwsort_tag();
+    mwSORT_TAG_TYPE();
+    mw_3D_();
+}
+
+void mwsort_is_stack (void){
+    mwsort_tag();
+    mwSORT_TAG_STACK();
+    mw_3D_();
+}
+
+void mwsort_is_effect (void){
+    mwsort_tag();
+    mwSORT_TAG_EFFECT();
+    mw_3D_();
+}
+
+void mwsort_is_word (void){
+    mwsort_tag();
+    mwSORT_TAG_WORD();
+    mw_3D_();
+}
+
+void mwsort_is_value (void){
+    mwsort_tag();
+    mwSORT_TAG_VALUE();
+    mw_3D_();
+}
+
+void mwsort_is_error_3F_ (void){
+    mwdup();
+    mwsort_is_error();
+}
+
+void mwsort_is_implicit_3F_ (void){
+    mwdup();
+    mwsort_is_implicit();
+}
+
+void mwsort_is_explicit_3F_ (void){
+    mwdup();
+    mwsort_is_explicit();
+}
+
+void mwsort_is_type_3F_ (void){
+    mwdup();
+    mwsort_is_type();
+}
+
+void mwsort_is_stack_3F_ (void){
+    mwdup();
+    mwsort_is_stack();
+}
+
+void mwsort_is_effect_3F_ (void){
+    mwdup();
+    mwsort_is_effect();
+}
+
+void mwSORT_PAYLOAD_MASK (void){
+    push(1);
+    push(24);
+    mw_3C__3C_();
+    mw1_();
+}
+
+void mwsort_word_type_3F_ (void){
+    mwdup();
+    mwsort_word_type();
+}
+
+void mwsort_value_type_3F_ (void){
+    mwdup();
+    mwsort_value_type();
+}
+
+void mwsort_match (void){
+    mwsort_is_type_3F_();
+    if (pop()) {
+    mwdrop();
+    mwsort_is_type();
+    } else {
+    mwsort_is_stack_3F_();
+    if (pop()) {
+    mwdrop();
+    mwsort_is_stack();
+    } else {
+    mwsort_is_effect_3F_();
+    if (pop()) {
+    mwdrop();
+    mwsort_is_effect();
+    } else {
+    mwsort_is_word_3F_();
+    if (pop()) {
+    mwdrop();
+    mwsort_is_word();
+    } else {
+    mwsort_is_value_3F_();
+    if (pop()) {
+    mwdrop();
+    mwsort_is_value();
+    } else {
+    push((i64)(strings + 3252));
+    mwpanic_21_();
+    mwdrop2();
+    push(0);
+    }
+    }
+    }
+    }
+    }
+}
+
+void mwSImplicit (void){
+    mwSort__3E_Int();
+    mwSORT_FLAG_IMPLICIT();
+    mw_7C_();
+    mwInt__3E_Sort();
+}
+
+void mwSType (void){
+    mwSORT_TAG_TYPE();
+    mwInt__3E_Sort();
+}
+
+void mwSStack (void){
+    mwSORT_TAG_STACK();
+    mwInt__3E_Sort();
+}
+
+void mwSEffect (void){
+    mwSORT_TAG_EFFECT();
+    mwInt__3E_Sort();
+}
+
+void mwSWord (void){
+    mwType__3E_Int();
+    mwSORT_TAG_WORD();
+    mw_7C_();
+    mwInt__3E_Sort();
+}
+
+void mwSValue (void){
+    mwType__3E_Int();
+    mwSORT_TAG_VALUE();
+    mw_7C_();
+    mwInt__3E_Sort();
+}
+
+void mwTYPE_TAG_SHIFT (void){
+    push(20);
+}
+
+void mwTYPE_TAG_MASK (void){
+    push(15);
+    mwTYPE_TAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwTYPE_TAG_PRIM (void){
+    push(0);
+    mwTYPE_TAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwTYPE_TAG_VAR (void){
+    push(1);
+    mwTYPE_TAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwTYPE_TAG_META (void){
+    push(2);
+    mwTYPE_TAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwTYPE_TAG_TENSOR (void){
+    push(3);
+    mwTYPE_TAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwTYPE_TAG_MORPHISM (void){
+    push(4);
+    mwTYPE_TAG_SHIFT();
+    mw_3C__3C_();
+}
+
+void mwTYPE_VALUE_MASK (void){
+    push(1);
+    mwTYPE_TAG_SHIFT();
+    mw_3C__3C_();
+    mw1_();
+}
+
+void mwTPrim (void){
+    mwTYPE_TAG_PRIM();
+    mw_7C_();
+    mwInt__3E_Type();
+}
+
+void mwTVar (void){
+    mwTYPE_TAG_VAR();
+    mw_7C_();
+    mwInt__3E_Type();
+}
+
+void mwTMeta (void){
+    mwMetaVar__3E_Int();
+    mwTYPE_TAG_META();
+    mw_7C_();
+    mwInt__3E_Type();
+}
+
+void mwMetaVar__3E_Int (void){
+    mwU16__3E_Int();
+}
+
+void mwTTensor (void){
+    mwTensorType__3E_Int();
+    mwTYPE_TAG_TENSOR();
+    mw_7C_();
+    mwInt__3E_Type();
+}
+
+void mwTensorType__3E_Int (void){
+    mwU16__3E_Int();
+}
+
+void mwTMorphism (void){
+    mwMorphismType__3E_Int();
+    mwTYPE_TAG_MORPHISM();
+    mw_7C_();
+    mwInt__3E_Type();
+}
+
+void mwMorphismType__3E_Int (void){
+    mwU16__3E_Int();
+}
+
+void mwtype_tag (void){
+    mwU32__3E_Int();
+    mwTYPE_TAG_MASK();
+    mw_26_();
+}
+
+void mwtype_is_prim (void){
+    mwtype_tag();
+    mwTYPE_TAG_PRIM();
+    mw_3D_();
+}
+
+void mwtype_is_var (void){
+    mwtype_tag();
+    mwTYPE_TAG_VAR();
+    mw_3D_();
+}
+
+void mwtype_is_meta (void){
+    mwtype_tag();
+    mwTYPE_TAG_META();
+    mw_3D_();
+}
+
+void mwtype_is_tensor (void){
+    mwtype_tag();
+    mwTYPE_TAG_TENSOR();
+    mw_3D_();
+}
+
+void mwtype_is_morphism (void){
+    mwtype_tag();
+    mwTYPE_TAG_MORPHISM();
+    mw_3D_();
+}
+
+void mwtype_is_prim_3F_ (void){
+    mwdup();
+    mwtype_is_prim();
+}
+
+void mwtype_is_var_3F_ (void){
+    mwdup();
+    mwtype_is_var();
+}
+
+void mwtype_is_meta_3F_ (void){
+    mwdup();
+    mwtype_is_meta();
+}
+
+void mwtype_is_tensor_3F_ (void){
+    mwdup();
+    mwtype_is_tensor();
+}
+
+void mwtype_is_morphism_3F_ (void){
+    mwdup();
+    mwtype_is_morphism();
+}
+
+void mwtype_is_stack_var (void){
+    mwtype_is_var_3F_();
+    if (pop()) {
+    mwtype_get_var();
+    mwname_could_be_stack_var();
+    } else {
+    mwdrop();
+    push(0);
+    }
+}
+
+void mwtype_get_var (void){
+    mwtype_is_var_3F_();
+    mwnot();
+    if (pop()) {
+    push((i64)(strings + 3274));
+    mwpanic_21_();
+    } else {
+    mwtype_get_value();
+    }
+}
+
+void mwtype_is_stack_var_3F_ (void){
+    mwdup();
+    mwtype_is_stack_var();
+}
+
+void mwtype_get_value (void){
+    mwU32__3E_Int();
+    mwTYPE_VALUE_MASK();
+    mw_26_();
+}
+
+void mwtype_get_meta (void){
+    mwtype_is_meta_3F_();
+    mwnot();
+    if (pop()) {
+    push((i64)(strings + 3329));
+    mwpanic_21_();
+    } else {
+    mwtype_get_value();
+    mwInt__3E_MetaVar();
+    }
+}
+
+void mwInt__3E_MetaVar (void){
+    mwInt__3E_U16();
+}
+
+void mwtype_get_tensor (void){
+    mwtype_is_tensor_3F_();
+    mwnot();
+    if (pop()) {
+    push((i64)(strings + 3386));
+    mwpanic_21_();
+    } else {
+    mwtype_get_value();
+    mwInt__3E_TensorType();
+    }
+}
+
+void mwInt__3E_TensorType (void){
+    mwInt__3E_U16();
+}
+
+void mwtype_get_morphism (void){
+    mwtype_is_morphism_3F_();
+    mwnot();
+    if (pop()) {
+    push((i64)(strings + 3447));
+    mwpanic_21_();
+    } else {
+    mwtype_get_value();
+    mwInt__3E_MorphismType();
+    }
+}
+
+void mwInt__3E_MorphismType (void){
+    mwInt__3E_U16();
+}
+
+void mwTYPE_UNIT (void){
+    push(11);
+    mwTPrim();
+}
+
+void mwtype_expand (void){
+    mwtype_is_meta_3F_();
+    if (pop()) {
+    mwtype_get_meta();
+    mwmeta_expand();
+    } else {
+    mwid();
+    }
+}
+
+void mwmeta_expand (void){
+    mwmeta_is_defined_3F_();
+    if (pop()) {
+    mwdup();
+    mwmeta_type_40_();
+    mwtype_expand();
+    mwtuck();
+    mwmeta_type_21_();
+    } else {
+    mwTMeta();
+    }
+}
+
+void mwtype_unify_21_ (void){
+    { i64 d1 = pop();
+    mwtype_expand();
+      push(d1); }
+    mwtype_expand();
+    mwdup2();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    } else {
+    mwdup();
+    mwTYPE_ERROR();
+    mw_3D_();
+    if (pop()) {
+    mwdrop2();
+    mwTYPE_ERROR();
+    } else {
+    mwover();
+    mwTYPE_ERROR();
+    mw_3D_();
+    if (pop()) {
+    mwdrop2();
+    mwTYPE_ERROR();
+    } else {
+    mwtype_is_prim_3F_();
+    if (pop()) {
+    push((i64)(strings + 3512));
+    mwelab_emit_error_21_();
+    mwdrop2();
+    mwTYPE_ERROR();
+    } else {
+    mwtype_is_var_3F_();
+    if (pop()) {
+    push((i64)(strings + 3534));
+    mwelab_emit_error_21_();
+    mwdrop2();
+    mwTYPE_ERROR();
+    } else {
+    mwtype_is_tensor_3F_();
+    if (pop()) {
+    mwtype_get_tensor();
+    mwswap();
+    mwtype_is_tensor_3F_();
+    if (pop()) {
+    mwtype_get_tensor();
+    mwswap();
+    mwtensor_type_unify_21_();
+    mwTTensor();
+    } else {
+    push((i64)(strings + 3556));
+    mwelab_emit_error_21_();
+    mwdrop2();
+    mwTYPE_ERROR();
+    }
+    } else {
+    mwtype_is_morphism_3F_();
+    if (pop()) {
+    mwtype_get_morphism();
+    mwswap();
+    mwtype_is_morphism_3F_();
+    if (pop()) {
+    mwtype_get_morphism();
+    mwswap();
+    mwmorphism_type_unify_21_();
+    mwTMorphism();
+    } else {
+    push((i64)(strings + 3578));
+    mwelab_emit_error_21_();
+    mwdrop2();
+    mwTYPE_ERROR();
+    }
+    } else {
+    push((i64)(strings + 3600));
+    mwpanic_21_();
+    mwdrop();
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+}
+
+void mwelab_emit_error_21_ (void){
+    { i64 d1 = pop();
+    mwelab_token_40_();
+      push(d1); }
+    mwemit_error_21_();
+}
+
+void mwtensor_type_unify_21_ (void){
+    mwover();
+    mwtensor_type_fst_40_();
+    mwover();
+    mwtensor_type_fst_40_();
+    mwtype_unify_21_();
+    mwover();
+    mwtensor_type_fst_21_();
+    mwover();
+    mwtensor_type_snd_40_();
+    mwover();
+    mwtensor_type_snd_40_();
+    mwtype_unify_21_();
+    mwover();
+    mwtensor_type_snd_21_();
+    mwnip();
+}
+
+void mwmorphism_type_unify_21_ (void){
+    mwover();
+    mwmorphism_type_dom_40_();
+    mwover();
+    mwmorphism_type_dom_40_();
+    mwtype_unify_21_();
+    mwover();
+    mwmorphism_type_dom_21_();
+    mwover();
+    mwmorphism_type_cod_40_();
+    mwover();
+    mwmorphism_type_cod_40_();
+    mwtype_unify_21_();
+    mwover();
+    mwmorphism_type_cod_21_();
+    mwnip();
+}
+
+void mwtype_has_meta_3F_ (void){
+    mwdup2();
+    mwtype_has_meta();
+}
+
+void mwtype_has_meta (void){
+    mwtype_is_prim_3F_();
+    if (pop()) {
+    mwdrop2();
+    push(0);
+    } else {
+    mwtype_is_var_3F_();
+    if (pop()) {
+    mwdrop2();
+    push(0);
+    } else {
+    mwtype_is_meta_3F_();
+    if (pop()) {
+    mwtype_get_meta();
+    mw_3D_();
+    } else {
+    mwtype_is_tensor_3F_();
+    if (pop()) {
+    mwtype_get_tensor();
+    mwtensor_type_has_meta();
+    } else {
+    mwtype_is_morphism_3F_();
+    if (pop()) {
+    mwtype_get_morphism();
+    mwmorphism_type_has_meta();
+    } else {
+    push((i64)(strings + 3625));
+    mwpanic_21_();
+    mwdrop2();
+    push(0);
+    }
+    }
+    }
+    }
+    }
+}
+
+void mwtensor_type_has_meta (void){
+    mwtensor_type_unpack();
+    { i64 d1 = pop();
+    mwover();
+      push(d1); }
+    mwtype_has_meta();
+    if (pop()) {
+    mwdrop2();
+    push(1);
+    } else {
+    mwtype_has_meta();
+    }
+}
+
+void mwmorphism_type_has_meta (void){
+    mwmorphism_type_unpack();
+    { i64 d1 = pop();
+    mwover();
+      push(d1); }
+    mwtype_has_meta();
+    if (pop()) {
+    mwdrop2();
+    push(1);
+    } else {
+    mwtype_has_meta();
+    }
+}
+
+void mwmorphism_type_dom_40_ (void){
+    mwmorphism_type_dom_26_();
+    mwu32_40_();
+}
+
+void mwtype_trace_stack_21_ (void){
+    mwtype_is_tensor_3F_();
+    if (pop()) {
+    mwtype_get_tensor();
+    mwdup();
+    mwtensor_type_fst_40_();
+    mwdup();
+    mwTYPE_UNIT();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    } else {
+    mwtype_trace_stack_21_();
+    push((i64)(strings + 3660));
+    mwstr_trace_21_();
+    }
+    mwtensor_type_snd_40_();
+    mwtype_trace_21_();
+    } else {
+    mwtype_is_stack_var_3F_();
+    if (pop()) {
+    mwtype_trace_21_();
+    } else {
+    mwtype_trace_21_();
+    push((i64)(strings + 3662));
+    mwstr_trace_21_();
+    }
+    }
+}
+
+void mwmorphism_type_cod_40_ (void){
+    mwmorphism_type_cod_26_();
+    mwu32_40_();
+}
+
+void mwtensor_type_fst_40_ (void){
+    mwtensor_type_fst_26_();
+    mwu32_40_();
+}
+
+void mwtensor_type_snd_40_ (void){
+    mwtensor_type_snd_26_();
+    mwu32_40_();
+}
+
+void mwtype_trace_prim_21_ (void){
+    mwdup();
+    mwTYPE_ERROR();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 3692));
+    mwstr_trace_21_();
+    } else {
+    mwdup();
+    mwTYPE_UNIT();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 3698));
+    mwstr_trace_21_();
+    } else {
+    mwdup();
+    mwTYPE_INT();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 3701));
+    mwstr_trace_21_();
+    } else {
+    mwdup();
+    mwTYPE_PTR();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 3705));
+    mwstr_trace_21_();
+    } else {
+    mwdup();
+    mwTYPE_U8();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 3709));
+    mwstr_trace_21_();
+    } else {
+    mwdup();
+    mwTYPE_U16();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 3712));
+    mwstr_trace_21_();
+    } else {
+    mwdup();
+    mwTYPE_U32();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 3716));
+    mwstr_trace_21_();
+    } else {
+    mwdup();
+    mwTYPE_U64();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 3720));
+    mwstr_trace_21_();
+    } else {
+    mwdup();
+    mwTYPE_I8();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 3724));
+    mwstr_trace_21_();
+    } else {
+    mwdup();
+    mwTYPE_I16();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 3727));
+    mwstr_trace_21_();
+    } else {
+    mwdup();
+    mwTYPE_I32();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 3731));
+    mwstr_trace_21_();
+    } else {
+    mwdup();
+    mwTYPE_I64();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 3735));
+    mwstr_trace_21_();
+    } else {
+    push((i64)(strings + 3739));
+    mwstr_trace_21_();
+    mwType__3E_Int();
+    mwint_trace_21_();
+    push((i64)(strings + 3764));
+    mwstr_trace_21_();
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+}
+
+void mwMAX_METAS (void){
+    push(1);
+    push(15);
+    mw_3C__3C_();
+}
+
+void mwMETA_SIZE (void){
+    push(4);
+}
+
+void mwmeta_alloc_21_ (void){
+    mwNUM_METAS();
+    mw_40_();
+    mwdup();
+    mw1_2B_();
+    mwNUM_METAS();
+    mw_21_();
+    mwdup();
+    mwMAX_METAS();
+    mw_3E__3D_();
+    if (pop()) {
+    push((i64)(strings + 3766));
+    mwpanic_21_();
+    } else {
+    mwInt__3E_MetaVar();
+    push(0);
+    mwover();
+    mwmeta_value_21_();
+    }
+}
+
+void mwmeta_value_21_ (void){
+    { i64 d1 = pop();
+    mwInt__3E_U32();
+      push(d1); }
+    mwmeta_value_26_();
+    mwu32_21_();
+}
+
+void mwmeta_value_26_ (void){
+    mwMetaVar__3E_Int();
+    mwMETA_SIZE();
+    mw_2A_();
+    mwMETA_BUF();
+    mw_2B_();
+}
+
+void mwmeta_value_40_ (void){
+    mwmeta_value_26_();
+    mwu32_40_();
+    mwU32__3E_Int();
+}
+
+void mwmeta_is_defined (void){
+    mwmeta_value_40_();
+    push(0);
+    mw_3D_();
+}
+
+void mwmeta_is_defined_3F_ (void){
+    mwdup();
+    mwmeta_is_defined();
+}
+
+void mwmeta_type_40_ (void){
+    mwmeta_is_defined_3F_();
+    mwnot();
+    if (pop()) {
+    push((i64)(strings + 3828));
+    mwpanic_21_();
+    } else {
+    mwmeta_value_40_();
+    mw1_();
+    mwInt__3E_U32();
+    }
+}
+
+void mwmeta_type_21_ (void){
+    { i64 d1 = pop();
+    mwU32__3E_Int();
+    mw1_2B_();
+      push(d1); }
+    mwmeta_value_21_();
+}
+
+void mwmeta_unify_21_ (void){
+    mwmeta_is_defined_3F_();
+    if (pop()) {
+    mwmeta_expand();
+    mwtype_unify_21_();
+    } else {
+    mwswap();
+    mwtype_has_meta_3F_();
+    if (pop()) {
+    push((i64)(strings + 3884));
+    mwelab_emit_error_21_();
+    mwdrop();
+    mwTYPE_ERROR();
+    mwswap();
+    mwmeta_type_21_();
+    mwTYPE_ERROR();
+    } else {
+    mwswap();
+    { i64 d3 = pop();
+    mwdup();
+      push(d3); }
+    mwmeta_type_21_();
+    }
+    }
+}
+
+void mwMAX_TENSOR_TYPES (void){
+    push(1);
+    push(15);
+    mw_3C__3C_();
+}
+
+void mwTENSOR_TYPE_SIZE (void){
+    push(8);
+}
+
+void mwtensor_type_alloc_21_ (void){
+    mwNUM_TENSOR_TYPES();
+    mw_40_();
+    mwdup();
+    mw1_2B_();
+    mwNUM_TENSOR_TYPES();
+    mw_21_();
+    mwdup();
+    mwMAX_TENSOR_TYPES();
+    mw_3E__3D_();
+    if (pop()) {
+    push((i64)(strings + 3906));
+    mwpanic_21_();
+    } else {
+    mwInt__3E_TensorType();
+    }
+}
+
+void mwtensor_type_new_21_ (void){
+    mwtensor_type_alloc_21_();
+    mwdup();
+    { i64 d1 = pop();
+    mwtensor_type_snd_21_();
+      push(d1); }
+    mwdup();
+    { i64 d1 = pop();
+    mwtensor_type_fst_21_();
+      push(d1); }
+}
+
+void mwtensor_type_snd_21_ (void){
+    mwtensor_type_snd_26_();
+    mwu32_21_();
+}
+
+void mwtensor_type_fst_21_ (void){
+    mwtensor_type_fst_26_();
+    mwu32_21_();
+}
+
+void mwtensor_type_base_26_ (void){
+    mwTensorType__3E_Int();
+    mwTENSOR_TYPE_SIZE();
+    mw_2A_();
+    mwTENSOR_TYPE_BUF();
+    mw_2B_();
+}
+
+void mwtensor_type_fst_26_ (void){
+    mwtensor_type_base_26_();
+}
+
+void mwtensor_type_snd_26_ (void){
+    mwtensor_type_base_26_();
+    push(4);
+    mw_2B_();
+}
+
+void mwtensor_type_unpack (void){
+    mwdup();
+    { i64 d1 = pop();
+    mwtensor_type_fst_40_();
+      push(d1); }
+    mwtensor_type_snd_40_();
+}
+
+void mwMAX_MORPHISM_TYPES (void){
+    push(1);
+    push(15);
+    mw_3C__3C_();
+}
+
+void mwMORPHISM_TYPE_SIZE (void){
+    push(8);
+}
+
+void mwmorphism_type_alloc_21_ (void){
+    mwNUM_MORPHISM_TYPES();
+    mw_40_();
+    mwdup();
+    mw1_2B_();
+    mwNUM_MORPHISM_TYPES();
+    mw_21_();
+    mwdup();
+    mwMAX_MORPHISM_TYPES();
+    mw_3E__3D_();
+    if (pop()) {
+    push((i64)(strings + 3973));
+    mwpanic_21_();
+    } else {
+    mwInt__3E_MorphismType();
+    }
+}
+
+void mwmorphism_type_new_21_ (void){
+    mwmorphism_type_alloc_21_();
+    mwdup();
+    { i64 d1 = pop();
+    mwmorphism_type_cod_21_();
+      push(d1); }
+    mwdup();
+    { i64 d1 = pop();
+    mwmorphism_type_dom_21_();
+      push(d1); }
+}
+
+void mwmorphism_type_cod_21_ (void){
+    mwmorphism_type_cod_26_();
+    mwu32_21_();
+}
+
+void mwmorphism_type_dom_21_ (void){
+    mwmorphism_type_dom_26_();
+    mwu32_21_();
+}
+
+void mwmorphism_type_base_26_ (void){
+    mwMorphismType__3E_Int();
+    mwMORPHISM_TYPE_SIZE();
+    mw_2A_();
+    mwMORPHISM_TYPE_BUF();
+    mw_2B_();
+}
+
+void mwmorphism_type_dom_26_ (void){
+    mwmorphism_type_base_26_();
+}
+
+void mwmorphism_type_cod_26_ (void){
+    mwmorphism_type_base_26_();
+    push(4);
+    mw_2B_();
+}
+
+void mwmorphism_type_unpack (void){
+    mwdup();
+    { i64 d1 = pop();
+    mwmorphism_type_dom_40_();
+      push(d1); }
+    mwmorphism_type_cod_40_();
+}
+
+void mwinit_externals_21_ (void){
+    push(0);
+    mwNUM_EXTERNALS();
+    mw_21_();
+}
+
+void mwMAX_EXTERNALS (void){
+    push(4096);
+}
+
+void mwexternal_type_21_ (void){
+    mwexternal_type_26_();
+    mwu32_21_();
+}
+
+void mwEXTERNAL_METADATA_SIZE (void){
+    push(16);
+}
+
+void mwexternal_metadata_26_ (void){
+    mwExternal__3E_Int();
+    mwEXTERNAL_METADATA_SIZE();
+    mw_2A_();
+    mwEXTERNAL_METADATA_BUF();
+    mw_2B_();
+}
+
+void mwexternal_name_26_ (void){
+    mwexternal_metadata_26_();
+}
+
+void mwexternal_name_40_ (void){
+    mwexternal_name_26_();
+    mwu32_40_();
+    mwU32__3E_Int();
+}
+
+void mwexternal_sig_26_ (void){
+    mwexternal_metadata_26_();
+    push(4);
+    mw_2B_();
+}
+
+void mwexternal_type_26_ (void){
+    mwexternal_metadata_26_();
+    push(8);
+    mw_2B_();
+}
+
+void mwexternal_type_40_ (void){
+    mwexternal_type_26_();
+    mwu32_40_();
 }
 
 void mwMAX_BUFFERS (void){
@@ -8467,8 +10707,6 @@ void mwheap_reserve_21_ (void){
     push(0);
     mwposix_mmap_21_();
     mwdup();
-    push(0);
-    mw_3E_();
     if (pop()) {
     mwdup();
     mwheap_base_40_();
@@ -8489,7 +10727,7 @@ void mwheap_reserve_21_ (void){
     mwheap_length_21_();
     }
     } else {
-    push((i64)(strings + 2692));
+    push((i64)(strings + 4125));
     mwpanic_21_();
     mwdrop2();
     }
@@ -8647,76 +10885,76 @@ void mwcodegen_end_21_ (void){
 }
 
 void mwc99_emit_header_21_ (void){
-    push((i64)(strings + 2740));
+    push((i64)(strings + 4173));
     mw_3B_();
-    push((i64)(strings + 2779));
+    push((i64)(strings + 4212));
     mw_3B_();
-    push((i64)(strings + 2858));
+    push((i64)(strings + 4291));
     mw_3B_();
-    push((i64)(strings + 2880));
+    push((i64)(strings + 4313));
     mw_3B_();
-    push((i64)(strings + 2905));
+    push((i64)(strings + 4338));
     mw_3B_();
-    push((i64)(strings + 2927));
+    push((i64)(strings + 4360));
     mw_3B_();
-    push((i64)(strings + 2952));
+    push((i64)(strings + 4385));
     mw_3B_();
-    push((i64)(strings + 2974));
+    push((i64)(strings + 4407));
     mw_3B_();
-    push((i64)(strings + 2980));
+    push((i64)(strings + 4413));
     mw_3B_();
-    push((i64)(strings + 3013));
+    push((i64)(strings + 4446));
     mw_3B__3B_();
-    push((i64)(strings + 3020));
+    push((i64)(strings + 4453));
     mw_3B__3B_();
-    push((i64)(strings + 3040));
+    push((i64)(strings + 4473));
     mw_3B_();
-    push((i64)(strings + 3060));
+    push((i64)(strings + 4493));
     mw_3B_();
-    push((i64)(strings + 3082));
+    push((i64)(strings + 4515));
     mw_3B_();
-    push((i64)(strings + 3104));
+    push((i64)(strings + 4537));
     mw_3B_();
-    push((i64)(strings + 3126));
+    push((i64)(strings + 4559));
     mw_3B_();
-    push((i64)(strings + 3145));
+    push((i64)(strings + 4578));
     mw_3B_();
-    push((i64)(strings + 3166));
+    push((i64)(strings + 4599));
     mw_3B_();
-    push((i64)(strings + 3187));
+    push((i64)(strings + 4620));
     mw_3B_();
-    push((i64)(strings + 3208));
+    push((i64)(strings + 4641));
     mw_3B__3B_();
-    push((i64)(strings + 3233));
+    push((i64)(strings + 4666));
     mw_3B_();
-    push((i64)(strings + 3284));
+    push((i64)(strings + 4717));
     mw_3B_();
-    push((i64)(strings + 3312));
+    push((i64)(strings + 4745));
     mw_3B_();
-    push((i64)(strings + 3348));
+    push((i64)(strings + 4781));
     mw_3B_();
-    push((i64)(strings + 3385));
+    push((i64)(strings + 4818));
     mw_3B_();
-    push((i64)(strings + 3408));
+    push((i64)(strings + 4841));
     mw_3B_();
-    push((i64)(strings + 3442));
+    push((i64)(strings + 4875));
     mw_3B__3B_();
-    push((i64)(strings + 3465));
+    push((i64)(strings + 4898));
     mw_3B_();
-    push((i64)(strings + 3489));
+    push((i64)(strings + 4922));
     mw_3B_();
-    push((i64)(strings + 3528));
+    push((i64)(strings + 4961));
     mw_3B__3B_();
 }
 
 void mwc99_emit_strings_21_ (void){
-    push((i64)(strings + 3573));
+    push((i64)(strings + 5006));
     mw_2E_();
     mwstrings_size_40_();
     mw_2E_n();
-    push((i64)(strings + 3595));
+    push((i64)(strings + 5028));
     mw_3B_();
-    push((i64)(strings + 3596));
+    push((i64)(strings + 5029));
     mw_3B_();
     push(0);
     while(1) {
@@ -8730,7 +10968,7 @@ void mwc99_emit_strings_21_ (void){
     mwdup();
     mwU8__3E_Int();
     mw_2E_n();
-    push((i64)(strings + 3641));
+    push((i64)(strings + 5074));
     mw_2E_();
     if (pop()) {
     mwid();
@@ -8740,688 +10978,688 @@ void mwc99_emit_strings_21_ (void){
     mw1_2B_();
     }
     mwdrop();
-    push((i64)(strings + 3643));
+    push((i64)(strings + 5076));
     mw_3B__3B_();
 }
 
 void mwc99_emit_prims_21_ (void){
-    push((i64)(strings + 3708));
-    mw_3B_();
-    push((i64)(strings + 3726));
-    mw_3B_();
-    push((i64)(strings + 3753));
-    mw_3B_();
-    push((i64)(strings + 3781));
-    mw_3B_();
-    push((i64)(strings + 3794));
-    mw_3B_();
-    push((i64)(strings + 3837));
-    mw_3B_();
-    push((i64)(strings + 3854));
-    mw_3B_();
-    push((i64)(strings + 3872));
-    mw_3B_();
-    push((i64)(strings + 3878));
-    mw_3B__3B_();
-    push((i64)(strings + 3880));
-    mw_3B_();
-    push((i64)(strings + 3904));
-    mw_3B_();
-    push((i64)(strings + 3928));
-    mw_3B_();
-    push((i64)(strings + 3949));
-    mw_3B__3B_();
-    push((i64)(strings + 3951));
-    mw_3B_();
-    push((i64)(strings + 3971));
-    mw_3B_();
-    push((i64)(strings + 3990));
-    mw_3B_();
-    push((i64)(strings + 4008));
-    mw_3B__3B_();
-    push((i64)(strings + 4010));
-    mw_3B_();
-    push((i64)(strings + 4032));
-    mw_3B_();
-    push((i64)(strings + 4051));
-    mw_3B_();
-    push((i64)(strings + 4070));
-    mw_3B__3B_();
-    push((i64)(strings + 4072));
-    mw_3B_();
-    push((i64)(strings + 4094));
-    mw_3B_();
-    push((i64)(strings + 4113));
-    mw_3B_();
-    push((i64)(strings + 4132));
-    mw_3B__3B_();
-    push((i64)(strings + 4134));
-    mw_3B_();
-    push((i64)(strings + 4156));
-    mw_3B_();
-    push((i64)(strings + 4175));
-    mw_3B_();
-    push((i64)(strings + 4194));
-    mw_3B__3B_();
-    push((i64)(strings + 4196));
-    mw_3B_();
-    push((i64)(strings + 4216));
-    mw_3B_();
-    push((i64)(strings + 4235));
-    mw_3B_();
-    push((i64)(strings + 4253));
-    mw_3B__3B_();
-    push((i64)(strings + 4255));
-    mw_3B_();
-    push((i64)(strings + 4277));
-    mw_3B_();
-    push((i64)(strings + 4296));
-    mw_3B_();
-    push((i64)(strings + 4315));
-    mw_3B__3B_();
-    push((i64)(strings + 4317));
-    mw_3B_();
-    push((i64)(strings + 4339));
-    mw_3B_();
-    push((i64)(strings + 4358));
-    mw_3B_();
-    push((i64)(strings + 4377));
-    mw_3B__3B_();
-    push((i64)(strings + 4379));
-    mw_3B_();
-    push((i64)(strings + 4401));
-    mw_3B_();
-    push((i64)(strings + 4419));
-    mw_3B__3B_();
-    push((i64)(strings + 4421));
-    mw_3B_();
-    push((i64)(strings + 4442));
-    mw_3B_();
-    push((i64)(strings + 4460));
-    mw_3B_();
-    push((i64)(strings + 4485));
-    mw_3B_();
-    push((i64)(strings + 4498));
-    mw_3B_();
-    push((i64)(strings + 4540));
-    mw_3B_();
-    push((i64)(strings + 4557));
-    mw_3B_();
-    push((i64)(strings + 4563));
-    mw_3B__3B_();
-    mwPRIM_ID();
-    mw_2E_w();
-    push((i64)(strings + 4565));
-    mw_3B_();
-    push((i64)(strings + 4568));
-    mw_3B__3B_();
-    mwPRIM_DUP();
-    mw_2E_w();
-    push((i64)(strings + 4570));
-    mw_3B_();
-    push((i64)(strings + 4573));
-    mw_3B_();
-    push((i64)(strings + 4592));
-    mw_3B_();
-    push((i64)(strings + 4614));
-    mw_3B__3B_();
-    mwPRIM_DROP();
-    mw_2E_w();
-    push((i64)(strings + 4616));
-    mw_3B_();
-    push((i64)(strings + 4619));
-    mw_3B_();
-    push((i64)(strings + 4630));
-    mw_3B__3B_();
-    mwPRIM_SWAP();
-    mw_2E_w();
-    push((i64)(strings + 4632));
-    mw_3B_();
-    push((i64)(strings + 4635));
-    mw_3B_();
-    push((i64)(strings + 4654));
-    mw_3B_();
-    push((i64)(strings + 4673));
-    mw_3B_();
-    push((i64)(strings + 4695));
-    mw_3B__3B_();
-    mwPRIM_INT_ADD();
-    mw_2E_w();
-    push((i64)(strings + 4697));
-    mw_3B_();
-    push((i64)(strings + 4700));
-    mw_3B_();
-    push((i64)(strings + 4719));
-    mw_3B_();
-    push((i64)(strings + 4738));
-    mw_3B_();
-    push((i64)(strings + 4755));
-    mw_3B__3B_();
-    mwPRIM_INT_SUB();
-    mw_2E_w();
-    push((i64)(strings + 4757));
-    mw_3B_();
-    push((i64)(strings + 4760));
-    mw_3B_();
-    push((i64)(strings + 4779));
-    mw_3B_();
-    push((i64)(strings + 4798));
-    mw_3B_();
-    push((i64)(strings + 4815));
-    mw_3B__3B_();
-    mwPRIM_INT_MUL();
-    mw_2E_w();
-    push((i64)(strings + 4817));
-    mw_3B_();
-    push((i64)(strings + 4820));
-    mw_3B_();
-    push((i64)(strings + 4839));
-    mw_3B_();
-    push((i64)(strings + 4858));
-    mw_3B_();
-    push((i64)(strings + 4875));
-    mw_3B__3B_();
-    mwPRIM_INT_DIV();
-    mw_2E_w();
-    push((i64)(strings + 4877));
-    mw_3B_();
-    push((i64)(strings + 4880));
-    mw_3B_();
-    push((i64)(strings + 4899));
-    mw_3B_();
-    push((i64)(strings + 4918));
-    mw_3B_();
-    push((i64)(strings + 4935));
-    mw_3B__3B_();
-    mwPRIM_INT_MOD();
-    mw_2E_w();
-    push((i64)(strings + 4937));
-    mw_3B_();
-    push((i64)(strings + 4940));
-    mw_3B_();
-    push((i64)(strings + 4959));
-    mw_3B_();
-    push((i64)(strings + 4978));
-    mw_3B_();
-    push((i64)(strings + 4995));
-    mw_3B__3B_();
-    mwPRIM_INT_EQ();
-    mw_2E_w();
-    push((i64)(strings + 4997));
-    mw_3B_();
-    push((i64)(strings + 5000));
-    mw_3B_();
-    push((i64)(strings + 5019));
-    mw_3B_();
-    push((i64)(strings + 5038));
-    mw_3B_();
-    push((i64)(strings + 5056));
-    mw_3B__3B_();
-    mwPRIM_INT_LT();
-    mw_2E_w();
-    push((i64)(strings + 5058));
-    mw_3B_();
-    push((i64)(strings + 5061));
-    mw_3B_();
-    push((i64)(strings + 5080));
-    mw_3B_();
-    push((i64)(strings + 5099));
-    mw_3B_();
-    push((i64)(strings + 5116));
-    mw_3B__3B_();
-    mwPRIM_INT_LE();
-    mw_2E_w();
-    push((i64)(strings + 5118));
-    mw_3B_();
-    push((i64)(strings + 5121));
-    mw_3B_();
-    push((i64)(strings + 5140));
+    push((i64)(strings + 5141));
     mw_3B_();
     push((i64)(strings + 5159));
     mw_3B_();
-    push((i64)(strings + 5177));
+    push((i64)(strings + 5186));
+    mw_3B_();
+    push((i64)(strings + 5214));
+    mw_3B_();
+    push((i64)(strings + 5227));
+    mw_3B_();
+    push((i64)(strings + 5270));
+    mw_3B_();
+    push((i64)(strings + 5287));
+    mw_3B_();
+    push((i64)(strings + 5305));
+    mw_3B_();
+    push((i64)(strings + 5311));
     mw_3B__3B_();
-    mwPRIM_INT_AND();
-    mw_2E_w();
-    push((i64)(strings + 5179));
+    push((i64)(strings + 5313));
     mw_3B_();
-    push((i64)(strings + 5182));
+    push((i64)(strings + 5337));
     mw_3B_();
-    push((i64)(strings + 5201));
+    push((i64)(strings + 5361));
     mw_3B_();
-    push((i64)(strings + 5220));
-    mw_3B_();
-    push((i64)(strings + 5237));
+    push((i64)(strings + 5382));
     mw_3B__3B_();
-    mwPRIM_INT_OR();
-    mw_2E_w();
-    push((i64)(strings + 5239));
+    push((i64)(strings + 5384));
     mw_3B_();
-    push((i64)(strings + 5242));
-    mw_3B_();
-    push((i64)(strings + 5261));
-    mw_3B_();
-    push((i64)(strings + 5280));
-    mw_3B_();
-    push((i64)(strings + 5297));
-    mw_3B__3B_();
-    mwPRIM_INT_XOR();
-    mw_2E_w();
-    push((i64)(strings + 5299));
-    mw_3B_();
-    push((i64)(strings + 5302));
-    mw_3B_();
-    push((i64)(strings + 5321));
-    mw_3B_();
-    push((i64)(strings + 5340));
-    mw_3B_();
-    push((i64)(strings + 5357));
-    mw_3B__3B_();
-    mwPRIM_INT_SHL();
-    mw_2E_w();
-    push((i64)(strings + 5359));
-    mw_3B_();
-    push((i64)(strings + 5362));
-    mw_3B_();
-    push((i64)(strings + 5381));
-    mw_3B_();
-    push((i64)(strings + 5400));
-    mw_3B_();
-    push((i64)(strings + 5418));
-    mw_3B__3B_();
-    mwPRIM_INT_SHR();
-    mw_2E_w();
-    push((i64)(strings + 5420));
+    push((i64)(strings + 5404));
     mw_3B_();
     push((i64)(strings + 5423));
     mw_3B_();
-    push((i64)(strings + 5442));
-    mw_3B_();
-    push((i64)(strings + 5461));
-    mw_3B_();
-    push((i64)(strings + 5479));
+    push((i64)(strings + 5441));
     mw_3B__3B_();
-    mwPRIM_POSIX_WRITE();
-    mw_2E_w();
-    push((i64)(strings + 5481));
+    push((i64)(strings + 5443));
+    mw_3B_();
+    push((i64)(strings + 5465));
     mw_3B_();
     push((i64)(strings + 5484));
     mw_3B_();
-    push((i64)(strings + 5512));
-    mw_3B_();
-    push((i64)(strings + 5537));
-    mw_3B_();
-    push((i64)(strings + 5561));
-    mw_3B_();
-    push((i64)(strings + 5581));
+    push((i64)(strings + 5503));
     mw_3B__3B_();
-    mwPRIM_POSIX_READ();
-    mw_2E_w();
-    push((i64)(strings + 5583));
+    push((i64)(strings + 5505));
     mw_3B_();
-    push((i64)(strings + 5586));
+    push((i64)(strings + 5527));
     mw_3B_();
-    push((i64)(strings + 5614));
+    push((i64)(strings + 5546));
     mw_3B_();
-    push((i64)(strings + 5639));
+    push((i64)(strings + 5565));
+    mw_3B__3B_();
+    push((i64)(strings + 5567));
     mw_3B_();
-    push((i64)(strings + 5663));
+    push((i64)(strings + 5589));
+    mw_3B_();
+    push((i64)(strings + 5608));
+    mw_3B_();
+    push((i64)(strings + 5627));
+    mw_3B__3B_();
+    push((i64)(strings + 5629));
+    mw_3B_();
+    push((i64)(strings + 5649));
+    mw_3B_();
+    push((i64)(strings + 5668));
     mw_3B_();
     push((i64)(strings + 5686));
     mw_3B__3B_();
-    mwPRIM_POSIX_OPEN();
-    mw_2E_w();
     push((i64)(strings + 5688));
     mw_3B_();
-    push((i64)(strings + 5691));
+    push((i64)(strings + 5710));
     mw_3B_();
-    push((i64)(strings + 5715));
+    push((i64)(strings + 5729));
     mw_3B_();
-    push((i64)(strings + 5739));
+    push((i64)(strings + 5748));
+    mw_3B__3B_();
+    push((i64)(strings + 5750));
     mw_3B_();
-    push((i64)(strings + 5764));
+    push((i64)(strings + 5772));
     mw_3B_();
-    push((i64)(strings + 5787));
+    push((i64)(strings + 5791));
+    mw_3B_();
+    push((i64)(strings + 5810));
+    mw_3B__3B_();
+    push((i64)(strings + 5812));
+    mw_3B_();
+    push((i64)(strings + 5834));
+    mw_3B_();
+    push((i64)(strings + 5852));
+    mw_3B__3B_();
+    push((i64)(strings + 5854));
+    mw_3B_();
+    push((i64)(strings + 5875));
+    mw_3B_();
+    push((i64)(strings + 5893));
+    mw_3B_();
+    push((i64)(strings + 5918));
+    mw_3B_();
+    push((i64)(strings + 5931));
+    mw_3B_();
+    push((i64)(strings + 5973));
+    mw_3B_();
+    push((i64)(strings + 5990));
+    mw_3B_();
+    push((i64)(strings + 5996));
+    mw_3B__3B_();
+    mwPRIM_ID();
+    mw_2E_w();
+    push((i64)(strings + 5998));
+    mw_3B_();
+    push((i64)(strings + 6001));
+    mw_3B__3B_();
+    mwPRIM_DUP();
+    mw_2E_w();
+    push((i64)(strings + 6003));
+    mw_3B_();
+    push((i64)(strings + 6006));
+    mw_3B_();
+    push((i64)(strings + 6025));
+    mw_3B_();
+    push((i64)(strings + 6047));
+    mw_3B__3B_();
+    mwPRIM_DROP();
+    mw_2E_w();
+    push((i64)(strings + 6049));
+    mw_3B_();
+    push((i64)(strings + 6052));
+    mw_3B_();
+    push((i64)(strings + 6063));
+    mw_3B__3B_();
+    mwPRIM_SWAP();
+    mw_2E_w();
+    push((i64)(strings + 6065));
+    mw_3B_();
+    push((i64)(strings + 6068));
+    mw_3B_();
+    push((i64)(strings + 6087));
+    mw_3B_();
+    push((i64)(strings + 6106));
+    mw_3B_();
+    push((i64)(strings + 6128));
+    mw_3B__3B_();
+    mwPRIM_INT_ADD();
+    mw_2E_w();
+    push((i64)(strings + 6130));
+    mw_3B_();
+    push((i64)(strings + 6133));
+    mw_3B_();
+    push((i64)(strings + 6152));
+    mw_3B_();
+    push((i64)(strings + 6171));
+    mw_3B_();
+    push((i64)(strings + 6188));
+    mw_3B__3B_();
+    mwPRIM_INT_SUB();
+    mw_2E_w();
+    push((i64)(strings + 6190));
+    mw_3B_();
+    push((i64)(strings + 6193));
+    mw_3B_();
+    push((i64)(strings + 6212));
+    mw_3B_();
+    push((i64)(strings + 6231));
+    mw_3B_();
+    push((i64)(strings + 6248));
+    mw_3B__3B_();
+    mwPRIM_INT_MUL();
+    mw_2E_w();
+    push((i64)(strings + 6250));
+    mw_3B_();
+    push((i64)(strings + 6253));
+    mw_3B_();
+    push((i64)(strings + 6272));
+    mw_3B_();
+    push((i64)(strings + 6291));
+    mw_3B_();
+    push((i64)(strings + 6308));
+    mw_3B__3B_();
+    mwPRIM_INT_DIV();
+    mw_2E_w();
+    push((i64)(strings + 6310));
+    mw_3B_();
+    push((i64)(strings + 6313));
+    mw_3B_();
+    push((i64)(strings + 6332));
+    mw_3B_();
+    push((i64)(strings + 6351));
+    mw_3B_();
+    push((i64)(strings + 6368));
+    mw_3B__3B_();
+    mwPRIM_INT_MOD();
+    mw_2E_w();
+    push((i64)(strings + 6370));
+    mw_3B_();
+    push((i64)(strings + 6373));
+    mw_3B_();
+    push((i64)(strings + 6392));
+    mw_3B_();
+    push((i64)(strings + 6411));
+    mw_3B_();
+    push((i64)(strings + 6428));
+    mw_3B__3B_();
+    mwPRIM_INT_EQ();
+    mw_2E_w();
+    push((i64)(strings + 6430));
+    mw_3B_();
+    push((i64)(strings + 6433));
+    mw_3B_();
+    push((i64)(strings + 6452));
+    mw_3B_();
+    push((i64)(strings + 6471));
+    mw_3B_();
+    push((i64)(strings + 6489));
+    mw_3B__3B_();
+    mwPRIM_INT_LT();
+    mw_2E_w();
+    push((i64)(strings + 6491));
+    mw_3B_();
+    push((i64)(strings + 6494));
+    mw_3B_();
+    push((i64)(strings + 6513));
+    mw_3B_();
+    push((i64)(strings + 6532));
+    mw_3B_();
+    push((i64)(strings + 6549));
+    mw_3B__3B_();
+    mwPRIM_INT_LE();
+    mw_2E_w();
+    push((i64)(strings + 6551));
+    mw_3B_();
+    push((i64)(strings + 6554));
+    mw_3B_();
+    push((i64)(strings + 6573));
+    mw_3B_();
+    push((i64)(strings + 6592));
+    mw_3B_();
+    push((i64)(strings + 6610));
+    mw_3B__3B_();
+    mwPRIM_INT_AND();
+    mw_2E_w();
+    push((i64)(strings + 6612));
+    mw_3B_();
+    push((i64)(strings + 6615));
+    mw_3B_();
+    push((i64)(strings + 6634));
+    mw_3B_();
+    push((i64)(strings + 6653));
+    mw_3B_();
+    push((i64)(strings + 6670));
+    mw_3B__3B_();
+    mwPRIM_INT_OR();
+    mw_2E_w();
+    push((i64)(strings + 6672));
+    mw_3B_();
+    push((i64)(strings + 6675));
+    mw_3B_();
+    push((i64)(strings + 6694));
+    mw_3B_();
+    push((i64)(strings + 6713));
+    mw_3B_();
+    push((i64)(strings + 6730));
+    mw_3B__3B_();
+    mwPRIM_INT_XOR();
+    mw_2E_w();
+    push((i64)(strings + 6732));
+    mw_3B_();
+    push((i64)(strings + 6735));
+    mw_3B_();
+    push((i64)(strings + 6754));
+    mw_3B_();
+    push((i64)(strings + 6773));
+    mw_3B_();
+    push((i64)(strings + 6790));
+    mw_3B__3B_();
+    mwPRIM_INT_SHL();
+    mw_2E_w();
+    push((i64)(strings + 6792));
+    mw_3B_();
+    push((i64)(strings + 6795));
+    mw_3B_();
+    push((i64)(strings + 6814));
+    mw_3B_();
+    push((i64)(strings + 6833));
+    mw_3B_();
+    push((i64)(strings + 6851));
+    mw_3B__3B_();
+    mwPRIM_INT_SHR();
+    mw_2E_w();
+    push((i64)(strings + 6853));
+    mw_3B_();
+    push((i64)(strings + 6856));
+    mw_3B_();
+    push((i64)(strings + 6875));
+    mw_3B_();
+    push((i64)(strings + 6894));
+    mw_3B_();
+    push((i64)(strings + 6912));
+    mw_3B__3B_();
+    mwPRIM_POSIX_WRITE();
+    mw_2E_w();
+    push((i64)(strings + 6914));
+    mw_3B_();
+    push((i64)(strings + 6917));
+    mw_3B_();
+    push((i64)(strings + 6945));
+    mw_3B_();
+    push((i64)(strings + 6970));
+    mw_3B_();
+    push((i64)(strings + 6994));
+    mw_3B_();
+    push((i64)(strings + 7014));
+    mw_3B__3B_();
+    mwPRIM_POSIX_READ();
+    mw_2E_w();
+    push((i64)(strings + 7016));
+    mw_3B_();
+    push((i64)(strings + 7019));
+    mw_3B_();
+    push((i64)(strings + 7047));
+    mw_3B_();
+    push((i64)(strings + 7072));
+    mw_3B_();
+    push((i64)(strings + 7096));
+    mw_3B_();
+    push((i64)(strings + 7119));
+    mw_3B__3B_();
+    mwPRIM_POSIX_OPEN();
+    mw_2E_w();
+    push((i64)(strings + 7121));
+    mw_3B_();
+    push((i64)(strings + 7124));
+    mw_3B_();
+    push((i64)(strings + 7148));
+    mw_3B_();
+    push((i64)(strings + 7172));
+    mw_3B_();
+    push((i64)(strings + 7197));
+    mw_3B_();
+    push((i64)(strings + 7220));
     mw_3B__3B_();
     mwPRIM_POSIX_CLOSE();
     mw_2E_w();
-    push((i64)(strings + 5789));
+    push((i64)(strings + 7222));
     mw_3B_();
-    push((i64)(strings + 5792));
+    push((i64)(strings + 7225));
     mw_3B_();
-    push((i64)(strings + 5816));
+    push((i64)(strings + 7249));
     mw_3B_();
-    push((i64)(strings + 5836));
+    push((i64)(strings + 7269));
     mw_3B__3B_();
     mwPRIM_POSIX_EXIT();
     mw_2E_w();
-    push((i64)(strings + 5838));
+    push((i64)(strings + 7271));
     mw_3B_();
-    push((i64)(strings + 5841));
+    push((i64)(strings + 7274));
     mw_3B_();
-    push((i64)(strings + 5865));
+    push((i64)(strings + 7298));
     mw_3B_();
-    push((i64)(strings + 5878));
+    push((i64)(strings + 7311));
     mw_3B__3B_();
     mwPRIM_POSIX_MMAP();
     mw_2E_w();
-    push((i64)(strings + 5880));
+    push((i64)(strings + 7313));
     mw_3B_();
-    push((i64)(strings + 5883));
+    push((i64)(strings + 7316));
     mw_3B_();
-    push((i64)(strings + 5906));
+    push((i64)(strings + 7339));
     mw_3B_();
-    push((i64)(strings + 5938));
+    push((i64)(strings + 7371));
     mw_3B_();
-    push((i64)(strings + 5966));
+    push((i64)(strings + 7399));
     mw_3B_();
-    push((i64)(strings + 5977));
+    push((i64)(strings + 7410));
     mw_3B_();
-    push((i64)(strings + 6003));
+    push((i64)(strings + 7436));
     mw_3B_();
-    push((i64)(strings + 6013));
+    push((i64)(strings + 7446));
     mw_3B_();
-    push((i64)(strings + 6037));
+    push((i64)(strings + 7470));
     mw_3B_();
-    push((i64)(strings + 6061));
+    push((i64)(strings + 7494));
     mw_3B_();
-    push((i64)(strings + 6085));
+    push((i64)(strings + 7518));
     mw_3B_();
-    push((i64)(strings + 6109));
+    push((i64)(strings + 7542));
     mw_3B_();
-    push((i64)(strings + 6137));
+    push((i64)(strings + 7570));
     mw_3B_();
-    push((i64)(strings + 6162));
+    push((i64)(strings + 7595));
     mw_3B_();
-    push((i64)(strings + 6195));
+    push((i64)(strings + 7628));
     mw_3B_();
-    push((i64)(strings + 6213));
+    push((i64)(strings + 7646));
     mw_3B_();
-    push((i64)(strings + 6224));
+    push((i64)(strings + 7657));
     mw_3B__3B_();
     mwPRIM_DEBUG();
     mw_2E_w();
-    push((i64)(strings + 6226));
+    push((i64)(strings + 7659));
     mw_3B_();
-    push((i64)(strings + 6229));
+    push((i64)(strings + 7662));
     mw_3B_();
-    push((i64)(strings + 6252));
+    push((i64)(strings + 7685));
     mw_3B_();
-    push((i64)(strings + 6274));
+    push((i64)(strings + 7707));
     mw_3B_();
-    push((i64)(strings + 6288));
+    push((i64)(strings + 7721));
     mw_3B_();
-    push((i64)(strings + 6301));
+    push((i64)(strings + 7734));
     mw_3B_();
-    push((i64)(strings + 6312));
+    push((i64)(strings + 7745));
     mw_3B_();
-    push((i64)(strings + 6366));
+    push((i64)(strings + 7799));
     mw_3B_();
-    push((i64)(strings + 6385));
+    push((i64)(strings + 7818));
     mw_3B_();
-    push((i64)(strings + 6412));
+    push((i64)(strings + 7845));
     mw_3B_();
-    push((i64)(strings + 6427));
+    push((i64)(strings + 7860));
     mw_3B_();
-    push((i64)(strings + 6490));
+    push((i64)(strings + 7923));
     mw_3B_();
-    push((i64)(strings + 6509));
+    push((i64)(strings + 7942));
     mw_3B_();
-    push((i64)(strings + 6534));
+    push((i64)(strings + 7967));
     mw_3B_();
-    push((i64)(strings + 6540));
+    push((i64)(strings + 7973));
     mw_3B_();
-    push((i64)(strings + 6563));
+    push((i64)(strings + 7996));
     mw_3B__3B_();
     mwPRIM_MIRTH_REVISION();
     mw_2E_w();
-    push((i64)(strings + 6565));
+    push((i64)(strings + 7998));
     mw_3B_();
-    push((i64)(strings + 6568));
+    push((i64)(strings + 8001));
     mw_2E_();
     mwNEW_MIRTH_REVISION();
     mw_2E_n();
-    push((i64)(strings + 6578));
+    push((i64)(strings + 8011));
     mw_3B_();
-    push((i64)(strings + 6581));
+    push((i64)(strings + 8014));
     mw_3B__3B_();
     mwPRIM_MEM_GET();
     mw_2E_w();
-    push((i64)(strings + 6583));
+    push((i64)(strings + 8016));
     mw_3B_();
-    push((i64)(strings + 6586));
+    push((i64)(strings + 8019));
     mw_3B_();
-    push((i64)(strings + 6622));
+    push((i64)(strings + 8055));
     mw_3B__3B_();
     mwPRIM_MEM_SET();
     mw_2E_w();
-    push((i64)(strings + 6624));
+    push((i64)(strings + 8057));
     mw_3B_();
-    push((i64)(strings + 6627));
+    push((i64)(strings + 8060));
     mw_3B_();
-    push((i64)(strings + 6651));
+    push((i64)(strings + 8084));
     mw_3B_();
-    push((i64)(strings + 6672));
+    push((i64)(strings + 8105));
     mw_3B__3B_();
     mwPRIM_MEM_GET_BYTE();
     mw_2E_w();
-    push((i64)(strings + 6674));
+    push((i64)(strings + 8107));
     mw_3B_();
-    push((i64)(strings + 6677));
+    push((i64)(strings + 8110));
     mw_3B_();
-    push((i64)(strings + 6700));
+    push((i64)(strings + 8133));
     mw_3B_();
-    push((i64)(strings + 6714));
+    push((i64)(strings + 8147));
     mw_3B__3B_();
     mwPRIM_MEM_SET_BYTE();
     mw_2E_w();
-    push((i64)(strings + 6716));
+    push((i64)(strings + 8149));
     mw_3B_();
-    push((i64)(strings + 6719));
+    push((i64)(strings + 8152));
     mw_3B_();
-    push((i64)(strings + 6742));
+    push((i64)(strings + 8175));
     mw_3B_();
-    push((i64)(strings + 6761));
+    push((i64)(strings + 8194));
     mw_3B__3B_();
     mwPRIM_MEM_GET_U8();
     mw_2E_w();
-    push((i64)(strings + 6763));
+    push((i64)(strings + 8196));
     mw_3B_();
-    push((i64)(strings + 6766));
+    push((i64)(strings + 8199));
     mw_3B_();
-    push((i64)(strings + 6789));
+    push((i64)(strings + 8222));
     mw_3B_();
-    push((i64)(strings + 6803));
+    push((i64)(strings + 8236));
     mw_3B__3B_();
     mwPRIM_MEM_SET_U8();
     mw_2E_w();
-    push((i64)(strings + 6805));
+    push((i64)(strings + 8238));
     mw_3B_();
-    push((i64)(strings + 6808));
+    push((i64)(strings + 8241));
     mw_3B_();
-    push((i64)(strings + 6831));
+    push((i64)(strings + 8264));
     mw_3B_();
-    push((i64)(strings + 6850));
+    push((i64)(strings + 8283));
     mw_3B__3B_();
     mwPRIM_MEM_GET_U16();
     mw_2E_w();
-    push((i64)(strings + 6852));
+    push((i64)(strings + 8285));
     mw_3B_();
-    push((i64)(strings + 6855));
+    push((i64)(strings + 8288));
     mw_3B_();
-    push((i64)(strings + 6879));
+    push((i64)(strings + 8312));
     mw_3B_();
-    push((i64)(strings + 6893));
+    push((i64)(strings + 8326));
     mw_3B__3B_();
     mwPRIM_MEM_SET_U16();
     mw_2E_w();
-    push((i64)(strings + 6895));
+    push((i64)(strings + 8328));
     mw_3B_();
-    push((i64)(strings + 6898));
+    push((i64)(strings + 8331));
     mw_3B_();
-    push((i64)(strings + 6922));
+    push((i64)(strings + 8355));
     mw_3B_();
-    push((i64)(strings + 6942));
+    push((i64)(strings + 8375));
     mw_3B__3B_();
     mwPRIM_MEM_GET_U32();
     mw_2E_w();
-    push((i64)(strings + 6944));
+    push((i64)(strings + 8377));
     mw_3B_();
-    push((i64)(strings + 6947));
+    push((i64)(strings + 8380));
     mw_3B_();
-    push((i64)(strings + 6971));
+    push((i64)(strings + 8404));
     mw_3B_();
-    push((i64)(strings + 6985));
+    push((i64)(strings + 8418));
     mw_3B__3B_();
     mwPRIM_MEM_SET_U32();
     mw_2E_w();
-    push((i64)(strings + 6987));
+    push((i64)(strings + 8420));
     mw_3B_();
-    push((i64)(strings + 6990));
+    push((i64)(strings + 8423));
     mw_3B_();
-    push((i64)(strings + 7014));
+    push((i64)(strings + 8447));
     mw_3B_();
-    push((i64)(strings + 7034));
+    push((i64)(strings + 8467));
     mw_3B__3B_();
     mwPRIM_MEM_GET_U64();
     mw_2E_w();
-    push((i64)(strings + 7036));
+    push((i64)(strings + 8469));
     mw_3B_();
-    push((i64)(strings + 7039));
+    push((i64)(strings + 8472));
     mw_3B_();
-    push((i64)(strings + 7063));
+    push((i64)(strings + 8496));
     mw_3B_();
-    push((i64)(strings + 7077));
+    push((i64)(strings + 8510));
     mw_3B__3B_();
     mwPRIM_MEM_SET_U64();
     mw_2E_w();
-    push((i64)(strings + 7079));
+    push((i64)(strings + 8512));
     mw_3B_();
-    push((i64)(strings + 7082));
+    push((i64)(strings + 8515));
     mw_3B_();
-    push((i64)(strings + 7106));
+    push((i64)(strings + 8539));
     mw_3B_();
-    push((i64)(strings + 7126));
+    push((i64)(strings + 8559));
     mw_3B__3B_();
     mwPRIM_MEM_GET_I8();
     mw_2E_w();
-    push((i64)(strings + 7128));
+    push((i64)(strings + 8561));
     mw_3B_();
-    push((i64)(strings + 7131));
+    push((i64)(strings + 8564));
     mw_3B_();
-    push((i64)(strings + 7154));
+    push((i64)(strings + 8587));
     mw_3B_();
-    push((i64)(strings + 7168));
+    push((i64)(strings + 8601));
     mw_3B__3B_();
     mwPRIM_MEM_SET_I8();
     mw_2E_w();
-    push((i64)(strings + 7170));
+    push((i64)(strings + 8603));
     mw_3B_();
-    push((i64)(strings + 7173));
+    push((i64)(strings + 8606));
     mw_3B_();
-    push((i64)(strings + 7196));
+    push((i64)(strings + 8629));
     mw_3B_();
-    push((i64)(strings + 7215));
+    push((i64)(strings + 8648));
     mw_3B__3B_();
     mwPRIM_MEM_GET_I16();
     mw_2E_w();
-    push((i64)(strings + 7217));
+    push((i64)(strings + 8650));
     mw_3B_();
-    push((i64)(strings + 7220));
+    push((i64)(strings + 8653));
     mw_3B_();
-    push((i64)(strings + 7244));
+    push((i64)(strings + 8677));
     mw_3B_();
-    push((i64)(strings + 7258));
+    push((i64)(strings + 8691));
     mw_3B__3B_();
     mwPRIM_MEM_SET_I16();
     mw_2E_w();
-    push((i64)(strings + 7260));
+    push((i64)(strings + 8693));
     mw_3B_();
-    push((i64)(strings + 7263));
+    push((i64)(strings + 8696));
     mw_3B_();
-    push((i64)(strings + 7287));
+    push((i64)(strings + 8720));
     mw_3B_();
-    push((i64)(strings + 7307));
+    push((i64)(strings + 8740));
     mw_3B__3B_();
     mwPRIM_MEM_GET_I32();
     mw_2E_w();
-    push((i64)(strings + 7309));
+    push((i64)(strings + 8742));
     mw_3B_();
-    push((i64)(strings + 7312));
+    push((i64)(strings + 8745));
     mw_3B_();
-    push((i64)(strings + 7336));
+    push((i64)(strings + 8769));
     mw_3B_();
-    push((i64)(strings + 7350));
+    push((i64)(strings + 8783));
     mw_3B__3B_();
     mwPRIM_MEM_SET_I32();
     mw_2E_w();
-    push((i64)(strings + 7352));
+    push((i64)(strings + 8785));
     mw_3B_();
-    push((i64)(strings + 7355));
+    push((i64)(strings + 8788));
     mw_3B_();
-    push((i64)(strings + 7379));
+    push((i64)(strings + 8812));
     mw_3B_();
-    push((i64)(strings + 7399));
+    push((i64)(strings + 8832));
     mw_3B__3B_();
     mwPRIM_MEM_GET_I64();
     mw_2E_w();
-    push((i64)(strings + 7401));
+    push((i64)(strings + 8834));
     mw_3B_();
-    push((i64)(strings + 7404));
+    push((i64)(strings + 8837));
     mw_3B_();
-    push((i64)(strings + 7428));
+    push((i64)(strings + 8861));
     mw_3B_();
-    push((i64)(strings + 7442));
+    push((i64)(strings + 8875));
     mw_3B__3B_();
     mwPRIM_MEM_SET_I64();
     mw_2E_w();
-    push((i64)(strings + 7444));
+    push((i64)(strings + 8877));
     mw_3B_();
-    push((i64)(strings + 7447));
+    push((i64)(strings + 8880));
     mw_3B_();
-    push((i64)(strings + 7471));
+    push((i64)(strings + 8904));
     mw_3B_();
-    push((i64)(strings + 7491));
+    push((i64)(strings + 8924));
     mw_3B__3B_();
     mwPRIM_RUNNING_OS();
     mw_2E_w();
-    push((i64)(strings + 7493));
+    push((i64)(strings + 8926));
     mw_3B_();
-    push((i64)(strings + 7496));
+    push((i64)(strings + 8929));
     mw_3B_();
-    push((i64)(strings + 7521));
+    push((i64)(strings + 8954));
     mw_2E_();
     mwWIN32();
     mw_2E_n();
-    push((i64)(strings + 7531));
+    push((i64)(strings + 8964));
     mw_3B_();
-    push((i64)(strings + 7534));
+    push((i64)(strings + 8967));
     mw_3B_();
-    push((i64)(strings + 7561));
+    push((i64)(strings + 8994));
     mw_2E_();
     mwLINUX();
     mw_2E_n();
-    push((i64)(strings + 7571));
+    push((i64)(strings + 9004));
     mw_3B_();
-    push((i64)(strings + 7574));
+    push((i64)(strings + 9007));
     mw_3B_();
-    push((i64)(strings + 7601));
+    push((i64)(strings + 9034));
     mw_2E_();
     mwMACOS();
     mw_2E_n();
-    push((i64)(strings + 7611));
+    push((i64)(strings + 9044));
     mw_3B_();
-    push((i64)(strings + 7614));
+    push((i64)(strings + 9047));
     mw_3B_();
-    push((i64)(strings + 7620));
+    push((i64)(strings + 9053));
     mw_2E_();
     mwUNKNOWN();
     mw_2E_n();
-    push((i64)(strings + 7630));
+    push((i64)(strings + 9063));
     mw_3B_();
-    push((i64)(strings + 7633));
+    push((i64)(strings + 9066));
     mw_3B_();
-    push((i64)(strings + 7640));
+    push((i64)(strings + 9073));
     mw_3B__3B_();
 }
 
@@ -9466,7 +11704,7 @@ void mwc99_emit_word_sigs_21_ (void){
     mwc99_emit_word_sig_21_();
     mw1_2B_();
     }
-    push((i64)(strings + 7792));
+    push((i64)(strings + 9225));
     mw_3B_();
     mwdrop();
 }
@@ -9486,12 +11724,12 @@ void mwc99_emit_word_defs_21_ (void){
 }
 
 void mwc99_emit_main_21_ (void){
-    push((i64)(strings + 7989));
+    push((i64)(strings + 9422));
     mw_3B_();
     mwc99_emit_run_21_();
-    push((i64)(strings + 8024));
+    push((i64)(strings + 9457));
     mw_3B_();
-    push((i64)(strings + 8038));
+    push((i64)(strings + 9471));
     mw_3B_();
 }
 
@@ -9552,36 +11790,36 @@ void mw_2E_name (void){
 }
 
 void mw_2E_w (void){
-    push((i64)(strings + 2724));
+    push((i64)(strings + 4157));
     mw_2E_();
     mw_2E_name();
-    push((i64)(strings + 2732));
+    push((i64)(strings + 4165));
     mw_2E_();
 }
 
 void mwc99_emit_buffer_21_ (void){
     mwname_is_buffer_3F_();
     if (pop()) {
-    push((i64)(strings + 3646));
+    push((i64)(strings + 5079));
     mw_2E_();
     mwdup();
     mw_2E_name();
-    push((i64)(strings + 3661));
+    push((i64)(strings + 5094));
     mw_2E_();
     mwdup();
-    mwname_value_40_();
+    mwname_buffer_40_();
     mwbuffer_size_40_();
     mw_2E_n();
-    push((i64)(strings + 3663));
+    push((i64)(strings + 5096));
     mw_3B_();
-    push((i64)(strings + 3672));
+    push((i64)(strings + 5105));
     mw_2E_();
     mwdup();
     mw_2E_name();
-    push((i64)(strings + 3681));
+    push((i64)(strings + 5114));
     mw_2E_();
     mw_2E_name();
-    push((i64)(strings + 3703));
+    push((i64)(strings + 5136));
     mw_3B_();
     } else {
     mwdrop();
@@ -9597,17 +11835,17 @@ void mwc99_emit_external_21_ (void){
     push(2);
     mw_3E__3D_();
     if (pop()) {
-    push((i64)(strings + 7642));
+    push((i64)(strings + 9075));
     mwpanic_21_();
     } else {
     mwdup();
     push(1);
     mw_3E__3D_();
     if (pop()) {
-    push((i64)(strings + 7693));
+    push((i64)(strings + 9126));
     mw_2E_();
     } else {
-    push((i64)(strings + 7698));
+    push((i64)(strings + 9131));
     mw_2E_();
     }
     }
@@ -9617,18 +11855,18 @@ void mwc99_emit_external_21_ (void){
     mw_2E_name();
       push(d3); }
       push(d2); }
-    push((i64)(strings + 7704));
+    push((i64)(strings + 9137));
     mw_2E_();
     mwover();
     mwdup();
     if (pop()) {
-    push((i64)(strings + 7707));
+    push((i64)(strings + 9140));
     mw_2E_();
     mw1_();
     while(1) {
     mwdup();
     if (!pop()) break;
-    push((i64)(strings + 7711));
+    push((i64)(strings + 9144));
     mw_2E_();
     mw1_();
     }
@@ -9636,9 +11874,9 @@ void mwc99_emit_external_21_ (void){
     } else {
     mwdrop();
     }
-    push((i64)(strings + 7717));
+    push((i64)(strings + 9150));
     mw_3B_();
-    push((i64)(strings + 7720));
+    push((i64)(strings + 9153));
     mw_2E_();
     { i64 d2 = pop();
     { i64 d3 = pop();
@@ -9646,26 +11884,26 @@ void mwc99_emit_external_21_ (void){
     mw_2E_name();
       push(d3); }
       push(d2); }
-    push((i64)(strings + 7729));
+    push((i64)(strings + 9162));
     mw_3B_();
     mwover();
     while(1) {
     mwdup();
     if (!pop()) break;
-    push((i64)(strings + 7739));
+    push((i64)(strings + 9172));
     mw_2E_();
     mwdup();
     mw_2E_n();
-    push((i64)(strings + 7749));
+    push((i64)(strings + 9182));
     mw_3B_();
     mw1_();
     }
     mwdrop();
     mwdup();
     if (pop()) {
-    push((i64)(strings + 7759));
+    push((i64)(strings + 9192));
     } else {
-    push((i64)(strings + 7769));
+    push((i64)(strings + 9202));
     }
     mw_2E_();
     { i64 d2 = pop();
@@ -9674,19 +11912,19 @@ void mwc99_emit_external_21_ (void){
     mw_2E_name();
       push(d3); }
       push(d2); }
-    push((i64)(strings + 7774));
+    push((i64)(strings + 9207));
     mw_2E_();
     { i64 d2 = pop();
     mwdup();
     if (pop()) {
-    push((i64)(strings + 7776));
+    push((i64)(strings + 9209));
     mw_2E_();
     mwdup();
     mw1_();
     while(1) {
     mwdup();
     if (!pop()) break;
-    push((i64)(strings + 7779));
+    push((i64)(strings + 9212));
     mw_2E_();
     mwdup2();
     mw_();
@@ -9699,16 +11937,16 @@ void mwc99_emit_external_21_ (void){
     mwid();
     }
       push(d2); }
-    push((i64)(strings + 7783));
+    push((i64)(strings + 9216));
     mw_2E_();
     mwdup();
     if (pop()) {
-    push((i64)(strings + 7785));
+    push((i64)(strings + 9218));
     } else {
-    push((i64)(strings + 7788));
+    push((i64)(strings + 9221));
     }
     mw_3B_();
-    push((i64)(strings + 7790));
+    push((i64)(strings + 9223));
     mw_3B_();
     mwdrop3();
     } else {
@@ -9735,10 +11973,10 @@ void mwsig_arity (void){
 void mwc99_emit_word_sig_21_ (void){
     mwname_is_word_3F_();
     if (pop()) {
-    push((i64)(strings + 7793));
+    push((i64)(strings + 9226));
     mw_2E_();
     mw_2E_name();
-    push((i64)(strings + 7802));
+    push((i64)(strings + 9235));
     mw_3B_();
     } else {
     mwdrop();
@@ -9752,11 +11990,12 @@ void mwc99_emit_word_def_21_ (void){
     mwtypecheck_name_21_();
     mwdup();
     mw_2E_w();
-    push((i64)(strings + 7811));
+    push((i64)(strings + 9244));
     mw_3B_();
-    mwname_value_40_();
+    mwname_word_40_();
+    mwword_body_40_();
     mwc99_emit_run_21_();
-    push((i64)(strings + 7813));
+    push((i64)(strings + 9246));
     mw_3B__3B_();
     } else {
     mwdrop();
@@ -9777,7 +12016,7 @@ void mwtypecheck_name_21_ (void){
     } else {
     mwname_undefined_3F_();
     if (pop()) {
-    push((i64)(strings + 8603));
+    push((i64)(strings + 10036));
     mwstr_trace_21_();
     mwname_load_21_();
     mwstr_buf_trace_21_();
@@ -9799,7 +12038,7 @@ void mwtypecheck_name_21_ (void){
     if (pop()) {
     mwdrop();
     } else {
-    push((i64)(strings + 8627));
+    push((i64)(strings + 10060));
     mwstr_trace_21_();
     mwname_load_21_();
     mwstr_buf_trace_21_();
@@ -9836,23 +12075,23 @@ void mwc99_emit_token_21_ (void){
     mwTOKEN_INT();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 7815));
+    push((i64)(strings + 9248));
     mw_2E_();
     mwtoken_int_40_();
     mw_2E_n();
-    push((i64)(strings + 7825));
+    push((i64)(strings + 9258));
     mw_3B_();
     } else {
     mwtoken_type_3F_();
     mwTOKEN_STR();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 7828));
+    push((i64)(strings + 9261));
     mw_2E_();
     mwtoken_value_40_();
     mwTokenValue__3E_Int();
     mw_2E_n();
-    push((i64)(strings + 7854));
+    push((i64)(strings + 9287));
     mw_3B_();
     } else {
     mwtoken_type_3F_();
@@ -9873,16 +12112,16 @@ void mwc99_emit_word_21_ (void){
     mw_3D_();
     if (pop()) {
     mwtoken_args_1();
-    push((i64)(strings + 7858));
+    push((i64)(strings + 9291));
     mw_2E_();
     mw_2E_d();
-    push((i64)(strings + 7870));
+    push((i64)(strings + 9303));
     mw_3B_();
     mwc99_emit_run_21_();
-    push((i64)(strings + 7880));
+    push((i64)(strings + 9313));
     mw_2E_();
     mw_2E_d();
-    push((i64)(strings + 7893));
+    push((i64)(strings + 9326));
     mw_3B_();
     } else {
     mwtoken_name_3F_();
@@ -9890,15 +12129,15 @@ void mwc99_emit_word_21_ (void){
     mw_3D_();
     if (pop()) {
     mwtoken_args_2();
-    push((i64)(strings + 7898));
+    push((i64)(strings + 9331));
     mw_3B_();
     { i64 d3 = pop();
     mwc99_emit_run_21_();
       push(d3); }
-    push((i64)(strings + 7915));
+    push((i64)(strings + 9348));
     mw_3B_();
     mwc99_emit_run_21_();
-    push((i64)(strings + 7928));
+    push((i64)(strings + 9361));
     mw_3B_();
     } else {
     mwtoken_name_3F_();
@@ -9906,22 +12145,22 @@ void mwc99_emit_word_21_ (void){
     mw_3D_();
     if (pop()) {
     mwtoken_args_2();
-    push((i64)(strings + 7934));
+    push((i64)(strings + 9367));
     mw_3B_();
     { i64 d4 = pop();
     mwc99_emit_run_21_();
       push(d4); }
-    push((i64)(strings + 7949));
+    push((i64)(strings + 9382));
     mw_3B_();
     mwc99_emit_run_21_();
-    push((i64)(strings + 7972));
+    push((i64)(strings + 9405));
     mw_3B_();
     } else {
     mwtoken_name_40_();
-    push((i64)(strings + 7978));
+    push((i64)(strings + 9411));
     mw_2E_();
     mw_2E_name();
-    push((i64)(strings + 7985));
+    push((i64)(strings + 9418));
     mw_3B_();
     }
     }
@@ -9943,13 +12182,6 @@ void mwelab_emit_warning_21_ (void){
     mwelab_token_40_();
       push(d1); }
     mwemit_warning_21_();
-}
-
-void mwelab_emit_error_21_ (void){
-    { i64 d1 = pop();
-    mwelab_token_40_();
-      push(d1); }
-    mwemit_error_21_();
 }
 
 void mwelab_emit_fatal_error_21_ (void){
@@ -10043,30 +12275,6 @@ void mwsig_skip_dashes (void){
     }
 }
 
-void mwmorphism_type_new_21_ (void){
-    mwmorphism_type_alloc_21_();
-    mwdup();
-    { i64 d1 = pop();
-    mwmorphism_type_cod_21_();
-      push(d1); }
-    mwdup();
-    { i64 d1 = pop();
-    mwmorphism_type_dom_21_();
-      push(d1); }
-}
-
-void mwTMorphism (void){
-    mwMorphismType__3E_Int();
-    mwTYPE_TAG_MORPHISM();
-    mw_7C_();
-    mwInt__3E_Type();
-}
-
-void mwTYPE_UNIT (void){
-    push(11);
-    mwTPrim();
-}
-
 void mwsig_token_is_stack_var_3F_ (void){
     mwtoken_type_3F_();
     mwTOKEN_NAME();
@@ -10079,11 +12287,6 @@ void mwsig_token_is_stack_var_3F_ (void){
     }
 }
 
-void mwSStack (void){
-    mwSORT_TAG_STACK();
-    mwInt__3E_Sort();
-}
-
 void mwelab_type_var_21_ (void){
     mwswap();
     mwtoken_type_3F_();
@@ -10092,7 +12295,7 @@ void mwelab_type_var_21_ (void){
     if (pop()) {
     mwtoken_has_args_3F_();
     if (pop()) {
-    push((i64)(strings + 8123));
+    push((i64)(strings + 9556));
     mwelab_emit_error_21_();
     mwdrop2();
     mwTYPE_ERROR();
@@ -10106,11 +12309,11 @@ void mwelab_type_var_21_ (void){
     mwdrop();
     mwswap();
       push(d4); }
-    mw_3D_();
+    mwsort_match();
     if (pop()) {
     mwTVar();
     } else {
-    push((i64)(strings + 8162));
+    push((i64)(strings + 9595));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -10120,6 +12323,7 @@ void mwelab_type_var_21_ (void){
     mwdup();
     { i64 d4 = pop();
     mwswap();
+    mwSImplicit();
     mwctx_new_21_();
     mwelab_ctx_21_();
       push(d4); }
@@ -10127,7 +12331,7 @@ void mwelab_type_var_21_ (void){
     }
     }
     } else {
-    push((i64)(strings + 8188));
+    push((i64)(strings + 9621));
     mwelab_emit_error_21_();
     mwdrop2();
     mwTYPE_ERROR();
@@ -10160,7 +12364,7 @@ void mwelab_type_21_ (void){
     mwelab_token_21_();
     mwsig_token_is_stack_var_3F_();
     if (pop()) {
-    push((i64)(strings + 8040));
+    push((i64)(strings + 9473));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -10176,12 +12380,12 @@ void mwelab_type_21_ (void){
     } else {
     mwsig_token_is_effect_con_3F_();
     if (pop()) {
-    push((i64)(strings + 8075));
+    push((i64)(strings + 9508));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
     } else {
-    push((i64)(strings + 8106));
+    push((i64)(strings + 9539));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -10189,25 +12393,6 @@ void mwelab_type_21_ (void){
     }
     }
     }
-}
-
-void mwtensor_type_new_21_ (void){
-    mwtensor_type_alloc_21_();
-    mwdup();
-    { i64 d1 = pop();
-    mwtensor_type_snd_21_();
-      push(d1); }
-    mwdup();
-    { i64 d1 = pop();
-    mwtensor_type_fst_21_();
-      push(d1); }
-}
-
-void mwTTensor (void){
-    mwTensorType__3E_Int();
-    mwTYPE_TAG_TENSOR();
-    mw_7C_();
-    mwInt__3E_Type();
 }
 
 void mwsig_token_is_type_var_3F_ (void){
@@ -10222,17 +12407,12 @@ void mwsig_token_is_type_var_3F_ (void){
     }
 }
 
-void mwSType (void){
-    mwSORT_TAG_TYPE();
-    mwInt__3E_Sort();
-}
-
 void mwelab_type_con_21_ (void){
     mwsig_token_is_type_con_3F_();
     if (pop()) {
     mwtoken_has_args_3F_();
     if (pop()) {
-    push((i64)(strings + 8225));
+    push((i64)(strings + 9658));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -10240,56 +12420,24 @@ void mwelab_type_con_21_ (void){
     mwtoken_name_40_();
     mwname_is_type_3F_();
     if (pop()) {
-    mwname_value_40_();
+    mwname_type_40_();
     } else {
     mwname_undefined_3F_();
     if (pop()) {
-    push((i64)(strings + 8264));
+    push((i64)(strings + 9697));
     mwelab_emit_error_21_();
     } else {
-    push((i64)(strings + 8278));
+    push((i64)(strings + 9711));
     mwelab_emit_error_21_();
     }
     }
     }
     } else {
-    push((i64)(strings + 8290));
+    push((i64)(strings + 9723));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
     }
-}
-
-void mwctx_has_name_3F_ (void){
-    mwdup2();
-    mwctx_has_name();
-}
-
-void mwctx_lookup_sort_3F_ (void){
-    mwdup2();
-    mwctx_lookup_sort();
-}
-
-void mwTVar (void){
-    mwTYPE_TAG_VAR();
-    mw_7C_();
-    mwInt__3E_Type();
-}
-
-void mwctx_new_21_ (void){
-    mwctx_alloc_21_();
-    mwdup();
-    { i64 d1 = pop();
-    mwctx_sort_21_();
-      push(d1); }
-    mwdup();
-    { i64 d1 = pop();
-    mwctx_name_21_();
-      push(d1); }
-    mwdup();
-    { i64 d1 = pop();
-    mwctx_prev_21_();
-      push(d1); }
 }
 
 void mwname_checked_40_ (void){
@@ -10363,7 +12511,7 @@ void mwtstack_40_ (void){
 void mwtstack_pop_int_21_ (void){
     mwtstack_empty_3F_();
     if (pop()) {
-    push((i64)(strings + 8331));
+    push((i64)(strings + 9764));
     mwpanic_21_();
     push(0);
     } else {
@@ -10378,7 +12526,7 @@ void mwtstack_pop_int_21_ (void){
 void mwtstack_push_int_21_ (void){
     mwtstack_full_3F_();
     if (pop()) {
-    push((i64)(strings + 8348));
+    push((i64)(strings + 9781));
     mwpanic_21_();
     mwdrop();
     } else {
@@ -10433,7 +12581,7 @@ void mwtstack_leave_21_ (void){
     push(0);
     mw_3C__3D_();
     if (pop()) {
-    push((i64)(strings + 8364));
+    push((i64)(strings + 9797));
     mwpanic_21_();
     } else {
     mwtstack_base_40_();
@@ -10492,7 +12640,7 @@ void mwtstack_stash_len_push_21_ (void){
     mw1_2B_();
     mwtstack_num_stashes_21_();
     } else {
-    push((i64)(strings + 8417));
+    push((i64)(strings + 9850));
     mwpanic_21_();
     mwdrop();
     }
@@ -10509,7 +12657,7 @@ void mwtstack_stash_len_pop_21_ (void){
     mwtstack_num_stashes_40_();
     mwtstack_stash_len_40_();
     } else {
-    push((i64)(strings + 8455));
+    push((i64)(strings + 9888));
     mwpanic_21_();
     push(0);
     }
@@ -10535,13 +12683,13 @@ void mwtstack_frame_unify_21_ (void){
     mwtoken_trace_prefix_21_();
       push(d3); }
       push(d2); }
-    push((i64)(strings + 8494));
+    push((i64)(strings + 9927));
     mwstr_trace_21_();
     mwint_trace_21_();
-    push((i64)(strings + 8545));
+    push((i64)(strings + 9978));
     mwstr_trace_21_();
     mwint_trace_21_();
-    push((i64)(strings + 8574));
+    push((i64)(strings + 10007));
     mwstr_trace_ln_21_();
     push(1);
     mwposix_exit_21_();
@@ -10554,7 +12702,9 @@ void mwtypecheck_word_21_ (void){
     mwtstack_enter_21_();
     mwname_sig_3F_();
     mwsig_push_inputs_21_();
-    mwname_value_3F_();
+    mwdup();
+    mwname_word_40_();
+    mwword_body_40_();
     mwtypecheck_run_21_();
     mwname_sig_3F_();
     mwsig_match_outputs_21_();
@@ -10567,12 +12717,6 @@ void mwtypecheck_buffer_21_ (void){
 }
 
 void mwtypecheck_word_sig_21_ (void){
-    mwdup();
-    mwctx_empty();
-    mwelab_ctx_21_();
-    mwelab_sig_21_();
-    mwtype_trace_sig_21_();
-    mwtrace_ln_21_();
     mwsig_has_dashes_3F_();
     if (pop()) {
     mwtypecheck_sig_inputs_21_();
@@ -10608,7 +12752,7 @@ void mwsig_push_inputs_21_ (void){
     mwTYPE_ERROR();
     mwtstack_push_21_();
     } else {
-    push((i64)(strings + 8878));
+    push((i64)(strings + 10311));
     mwemit_fatal_error_21_();
     push(0);
     }
@@ -10647,51 +12791,17 @@ void mwsig_match_outputs_21_ (void){
     } else {
     mwswap();
     mwtoken_trace_prefix_21_();
-    push((i64)(strings + 8893));
+    push((i64)(strings + 10326));
     mwstr_trace_21_();
     mwint_trace_21_();
-    push((i64)(strings + 8910));
+    push((i64)(strings + 10343));
     mwstr_trace_21_();
     mwtstack_length_3F_();
     mwint_trace_21_();
-    push((i64)(strings + 8929));
+    push((i64)(strings + 10362));
     mwstr_trace_ln_21_();
     push(1);
     mwposix_exit_21_();
-    }
-}
-
-void mwctx_empty (void){
-    push(0);
-    mwInt__3E_U16();
-}
-
-void mwtype_trace_sig_21_ (void){
-    mwtype_get_morphism();
-    mwdup();
-    mwmorphism_type_dom_40_();
-    mwdup();
-    mwTYPE_UNIT();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    } else {
-    mwtype_trace_stack_21_();
-    push((i64)(strings + 10893));
-    mwstr_trace_21_();
-    }
-    push((i64)(strings + 10895));
-    mwstr_trace_21_();
-    mwmorphism_type_cod_40_();
-    mwdup();
-    mwTYPE_UNIT();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    } else {
-    push((i64)(strings + 10898));
-    mwstr_trace_21_();
-    mwtype_trace_stack_21_();
     }
 }
 
@@ -10732,7 +12842,7 @@ void mwtypecheck_sig_input_token_21_ (void){
     if (pop()) {
     mwdrop();
     } else {
-    push((i64)(strings + 8668));
+    push((i64)(strings + 10101));
     mwemit_error_21_();
     }
     } else {
@@ -10740,7 +12850,7 @@ void mwtypecheck_sig_input_token_21_ (void){
     if (pop()) {
     mwdrop();
     } else {
-    push((i64)(strings + 8681));
+    push((i64)(strings + 10114));
     mwemit_error_21_();
     }
     }
@@ -10755,7 +12865,7 @@ void mwtypecheck_sig_output_token_21_ (void){
     if (pop()) {
     mwdrop();
     } else {
-    push((i64)(strings + 8710));
+    push((i64)(strings + 10143));
     mwemit_error_21_();
     }
     } else {
@@ -10767,7 +12877,7 @@ void mwtypecheck_sig_output_token_21_ (void){
     if (pop()) {
     mwdrop();
     } else {
-    push((i64)(strings + 8723));
+    push((i64)(strings + 10156));
     mwemit_error_21_();
     }
     }
@@ -10808,7 +12918,7 @@ void mwtypecheck_run_one_21_ (void){
     mwtoken_name_3F_();
     mwtypecheck_run_name_21_();
     } else {
-    push((i64)(strings + 8752));
+    push((i64)(strings + 10185));
     mwemit_fatal_error_21_();
     }
     }
@@ -10830,30 +12940,20 @@ void mwtstack_arity_check_21_ (void){
     if (pop()) {
     mwdrop2();
     mwdup();
-    push((i64)(strings + 8828));
+    push((i64)(strings + 10261));
     mwemit_error_21_();
     } else {
     mw_2B_();
     mwTSTACK_SIZE();
     mw_3E_();
     if (pop()) {
-    push((i64)(strings + 8845));
+    push((i64)(strings + 10278));
     mwemit_fatal_error_21_();
     push(0);
     } else {
     mwid();
     }
     }
-}
-
-void mwTYPE_INT (void){
-    push(1);
-    mwTPrim();
-}
-
-void mwTYPE_PTR (void){
-    push(2);
-    mwTPrim();
 }
 
 void mwtypecheck_run_name_21_ (void){
@@ -10884,7 +12984,7 @@ void mwtypecheck_run_name_21_ (void){
     mwtstack_push_21_();
     } else {
     mwdrop();
-    push((i64)(strings + 8775));
+    push((i64)(strings + 10208));
     mwemit_fatal_error_21_();
     }
     }
@@ -11604,7 +13704,7 @@ void mwtypecheck_run_prim_21_ (void){
     mwtstack_push_21_();
     } else {
     mwdrop();
-    push((i64)(strings + 8810));
+    push((i64)(strings + 10243));
     mwemit_error_21_();
     }
     }
@@ -11699,7 +13799,7 @@ void mwelab_2B_ (void){
     } else {
     mwdrop();
     mwTYPE_ERROR();
-    push((i64)(strings + 8955));
+    push((i64)(strings + 10388));
     mwelab_emit_error_21_();
     }
     }
@@ -11729,12 +13829,12 @@ void mwelab_2B_ (void){
     mw_3D_();
     if (pop()) {
     mwdrop();
-    push((i64)(strings + 8992));
+    push((i64)(strings + 10425));
     mwelab_emit_error_21_();
     mwTYPE_ERROR();
     } else {
     mwdrop();
-    push((i64)(strings + 9022));
+    push((i64)(strings + 10455));
     mwelab_emit_error_21_();
     mwTYPE_ERROR();
     }
@@ -11754,7 +13854,7 @@ void mwelab_2B_ (void){
     mw_3D_();
     if (pop()) {
     mwdrop();
-    push((i64)(strings + 9063));
+    push((i64)(strings + 10496));
     mwelab_emit_error_21_();
     mwTYPE_ERROR();
     } else {
@@ -11763,12 +13863,12 @@ void mwelab_2B_ (void){
     mw_3D_();
     if (pop()) {
     mwdrop();
-    push((i64)(strings + 9100));
+    push((i64)(strings + 10533));
     mwelab_emit_error_21_();
     mwTYPE_ERROR();
     } else {
     mwdrop();
-    push((i64)(strings + 9141));
+    push((i64)(strings + 10574));
     mwelab_emit_error_21_();
     mwTYPE_ERROR();
     }
@@ -11813,7 +13913,7 @@ void mwelab_ (void){
     mwdrop();
     mwTYPE_PTR();
     } else {
-    push((i64)(strings + 9176));
+    push((i64)(strings + 10609));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -11837,7 +13937,7 @@ void mwelab_ (void){
     mwTYPE_INT();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 9220));
+    push((i64)(strings + 10653));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -11846,12 +13946,12 @@ void mwelab_ (void){
     mwTYPE_PTR();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 9259));
+    push((i64)(strings + 10692));
     mwelab_emit_warning_21_();
     mwdrop();
     mwTYPE_INT();
     } else {
-    push((i64)(strings + 9297));
+    push((i64)(strings + 10730));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -11871,7 +13971,7 @@ void mwelab_ (void){
     mwTYPE_INT();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 9345));
+    push((i64)(strings + 10778));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -11880,12 +13980,12 @@ void mwelab_ (void){
     mwTYPE_PTR();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 9389));
+    push((i64)(strings + 10822));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
     } else {
-    push((i64)(strings + 9433));
+    push((i64)(strings + 10866));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -11924,7 +14024,7 @@ void mwelab_2A_ (void){
     mwdrop();
     mwTYPE_INT();
     } else {
-    push((i64)(strings + 9473));
+    push((i64)(strings + 10906));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -11943,12 +14043,12 @@ void mwelab_2A_ (void){
     mwTYPE_INT();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 9517));
+    push((i64)(strings + 10950));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
     } else {
-    push((i64)(strings + 9561));
+    push((i64)(strings + 10994));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -11985,7 +14085,7 @@ void mwelab_2F_ (void){
     mwdrop();
     mwTYPE_INT();
     } else {
-    push((i64)(strings + 9597));
+    push((i64)(strings + 11030));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -12004,12 +14104,12 @@ void mwelab_2F_ (void){
     mwTYPE_INT();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 9639));
+    push((i64)(strings + 11072));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
     } else {
-    push((i64)(strings + 9681));
+    push((i64)(strings + 11114));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -12053,7 +14153,7 @@ void mwelab_25_ (void){
     mwdrop();
     mwTYPE_INT();
     } else {
-    push((i64)(strings + 9715));
+    push((i64)(strings + 11148));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -12077,7 +14177,7 @@ void mwelab_25_ (void){
     mwTYPE_INT();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 9757));
+    push((i64)(strings + 11190));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -12086,12 +14186,12 @@ void mwelab_25_ (void){
     mwTYPE_PTR();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 9794));
+    push((i64)(strings + 11227));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
     } else {
-    push((i64)(strings + 9827));
+    push((i64)(strings + 11260));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -12111,7 +14211,7 @@ void mwelab_25_ (void){
     mwTYPE_INT();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 9873));
+    push((i64)(strings + 11306));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -12120,12 +14220,12 @@ void mwelab_25_ (void){
     mwTYPE_PTR();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 9915));
+    push((i64)(strings + 11348));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
     } else {
-    push((i64)(strings + 9957));
+    push((i64)(strings + 11390));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -12178,7 +14278,7 @@ void mwelab_26_ (void){
     mwdrop();
     mwTYPE_INT();
     } else {
-    push((i64)(strings + 9995));
+    push((i64)(strings + 11428));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -12197,12 +14297,12 @@ void mwelab_26_ (void){
     mwTYPE_INT();
     mw_3D_();
     if (pop()) {
-    push((i64)(strings + 10059));
+    push((i64)(strings + 11492));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
     } else {
-    push((i64)(strings + 10123));
+    push((i64)(strings + 11556));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -12227,7 +14327,7 @@ void mwelab_40_ (void){
     mwdrop();
     mwTYPE_ERROR();
     } else {
-    push((i64)(strings + 10175));
+    push((i64)(strings + 11608));
     mwelab_emit_error_21_();
     mwdrop();
     mwTYPE_ERROR();
@@ -12249,7 +14349,7 @@ void mwelab_21_ (void){
     mwdrop2();
     } else {
     mwdrop2();
-    push((i64)(strings + 10210));
+    push((i64)(strings + 11643));
     mwelab_emit_error_21_();
     }
     }
@@ -12271,50 +14371,10 @@ void mwexpect1 (void){
     } else {
     mwdrop2();
     push(0);
-    push((i64)(strings + 10244));
+    push((i64)(strings + 11677));
     mwelab_emit_error_21_();
     }
     }
-}
-
-void mwTYPE_U8 (void){
-    push(3);
-    mwTPrim();
-}
-
-void mwTYPE_U16 (void){
-    push(4);
-    mwTPrim();
-}
-
-void mwTYPE_U32 (void){
-    push(5);
-    mwTPrim();
-}
-
-void mwTYPE_U64 (void){
-    push(6);
-    mwTPrim();
-}
-
-void mwTYPE_I8 (void){
-    push(7);
-    mwTPrim();
-}
-
-void mwTYPE_I16 (void){
-    push(8);
-    mwTPrim();
-}
-
-void mwTYPE_I32 (void){
-    push(9);
-    mwTPrim();
-}
-
-void mwTYPE_I64 (void){
-    push(10);
-    mwTPrim();
 }
 
 void mwexpect2 (void){
@@ -12541,7 +14601,7 @@ void mwsig_pop_inputs_aux_21_ (void){
     mwsig_pop_inputs_aux_21_();
     mwtstack_empty_3F_();
     if (pop()) {
-    push((i64)(strings + 8939));
+    push((i64)(strings + 10372));
     mwelab_emit_fatal_error_21_();
     mwdrop();
     } else {
@@ -12579,1516 +14639,6 @@ void mwexpect3 (void){
     mwdrop2();
     push(0);
     }
-}
-
-void mwtest_sorts_21_ (void){
-    mwSType();
-    mwsort_is_implicit_3F_();
-    mw_21__21_0();
-    mwsort_is_explicit_3F_();
-    mw_21__21_1();
-    mwsort_is_type_3F_();
-    mw_21__21_1();
-    mwsort_is_stack_3F_();
-    mw_21__21_0();
-    mwsort_is_effect_3F_();
-    mw_21__21_0();
-    mwsort_is_word_3F_();
-    mw_21__21_0();
-    mwsort_is_value_3F_();
-    mw_21__21_0();
-    mwdrop();
-    mwSType();
-    mwSImplicit();
-    mwsort_is_implicit_3F_();
-    mw_21__21_1();
-    mwsort_is_explicit_3F_();
-    mw_21__21_0();
-    mwsort_is_type_3F_();
-    mw_21__21_1();
-    mwsort_is_stack_3F_();
-    mw_21__21_0();
-    mwsort_is_effect_3F_();
-    mw_21__21_0();
-    mwsort_is_word_3F_();
-    mw_21__21_0();
-    mwsort_is_value_3F_();
-    mw_21__21_0();
-    mwdrop();
-    mwSStack();
-    mwsort_is_implicit_3F_();
-    mw_21__21_0();
-    mwsort_is_explicit_3F_();
-    mw_21__21_1();
-    mwsort_is_type_3F_();
-    mw_21__21_0();
-    mwsort_is_stack_3F_();
-    mw_21__21_1();
-    mwsort_is_effect_3F_();
-    mw_21__21_0();
-    mwsort_is_word_3F_();
-    mw_21__21_0();
-    mwsort_is_value_3F_();
-    mw_21__21_0();
-    mwdrop();
-    mwSStack();
-    mwSImplicit();
-    mwsort_is_implicit_3F_();
-    mw_21__21_1();
-    mwsort_is_explicit_3F_();
-    mw_21__21_0();
-    mwsort_is_type_3F_();
-    mw_21__21_0();
-    mwsort_is_stack_3F_();
-    mw_21__21_1();
-    mwsort_is_effect_3F_();
-    mw_21__21_0();
-    mwsort_is_word_3F_();
-    mw_21__21_0();
-    mwsort_is_value_3F_();
-    mw_21__21_0();
-    mwdrop();
-    mwSEffect();
-    mwsort_is_implicit_3F_();
-    mw_21__21_0();
-    mwsort_is_explicit_3F_();
-    mw_21__21_1();
-    mwsort_is_type_3F_();
-    mw_21__21_0();
-    mwsort_is_stack_3F_();
-    mw_21__21_0();
-    mwsort_is_effect_3F_();
-    mw_21__21_1();
-    mwsort_is_word_3F_();
-    mw_21__21_0();
-    mwsort_is_value_3F_();
-    mw_21__21_0();
-    mwdrop();
-    mwSEffect();
-    mwSImplicit();
-    mwsort_is_implicit_3F_();
-    mw_21__21_1();
-    mwsort_is_explicit_3F_();
-    mw_21__21_0();
-    mwsort_is_type_3F_();
-    mw_21__21_0();
-    mwsort_is_stack_3F_();
-    mw_21__21_0();
-    mwsort_is_effect_3F_();
-    mw_21__21_1();
-    mwsort_is_word_3F_();
-    mw_21__21_0();
-    mwsort_is_value_3F_();
-    mw_21__21_0();
-    mwdrop();
-    mwTYPE_ERROR();
-    mwSWord();
-    mwsort_is_implicit_3F_();
-    mw_21__21_0();
-    mwsort_is_explicit_3F_();
-    mw_21__21_1();
-    mwsort_is_type_3F_();
-    mw_21__21_0();
-    mwsort_is_stack_3F_();
-    mw_21__21_0();
-    mwsort_is_effect_3F_();
-    mw_21__21_0();
-    mwsort_is_word_3F_();
-    mw_21__21_1();
-    mwsort_is_value_3F_();
-    mw_21__21_0();
-    mwsort_word_type_3F_();
-    mwTYPE_ERROR();
-    mw_21__21__3D_();
-    mwdrop();
-    mwTYPE_ERROR();
-    mwSWord();
-    mwSImplicit();
-    mwsort_is_implicit_3F_();
-    mw_21__21_1();
-    mwsort_is_explicit_3F_();
-    mw_21__21_0();
-    mwsort_is_type_3F_();
-    mw_21__21_0();
-    mwsort_is_stack_3F_();
-    mw_21__21_0();
-    mwsort_is_effect_3F_();
-    mw_21__21_0();
-    mwsort_is_word_3F_();
-    mw_21__21_1();
-    mwsort_is_value_3F_();
-    mw_21__21_0();
-    mwsort_word_type_3F_();
-    mwTYPE_ERROR();
-    mw_21__21__3D_();
-    mwdrop();
-    mwTYPE_INT();
-    mwSWord();
-    mwsort_is_implicit_3F_();
-    mw_21__21_0();
-    mwsort_is_explicit_3F_();
-    mw_21__21_1();
-    mwsort_is_type_3F_();
-    mw_21__21_0();
-    mwsort_is_stack_3F_();
-    mw_21__21_0();
-    mwsort_is_effect_3F_();
-    mw_21__21_0();
-    mwsort_is_word_3F_();
-    mw_21__21_1();
-    mwsort_is_value_3F_();
-    mw_21__21_0();
-    mwsort_word_type_3F_();
-    mwTYPE_INT();
-    mw_21__21__3D_();
-    mwdrop();
-    mwTYPE_INT();
-    mwSWord();
-    mwSImplicit();
-    mwsort_is_implicit_3F_();
-    mw_21__21_1();
-    mwsort_is_explicit_3F_();
-    mw_21__21_0();
-    mwsort_is_type_3F_();
-    mw_21__21_0();
-    mwsort_is_stack_3F_();
-    mw_21__21_0();
-    mwsort_is_effect_3F_();
-    mw_21__21_0();
-    mwsort_is_word_3F_();
-    mw_21__21_1();
-    mwsort_is_value_3F_();
-    mw_21__21_0();
-    mwsort_word_type_3F_();
-    mwTYPE_INT();
-    mw_21__21__3D_();
-    mwdrop();
-    mwTYPE_ERROR();
-    mwSValue();
-    mwsort_is_implicit_3F_();
-    mw_21__21_0();
-    mwsort_is_explicit_3F_();
-    mw_21__21_1();
-    mwsort_is_type_3F_();
-    mw_21__21_0();
-    mwsort_is_stack_3F_();
-    mw_21__21_0();
-    mwsort_is_effect_3F_();
-    mw_21__21_0();
-    mwsort_is_word_3F_();
-    mw_21__21_0();
-    mwsort_is_value_3F_();
-    mw_21__21_1();
-    mwsort_value_type_3F_();
-    mwTYPE_ERROR();
-    mw_21__21__3D_();
-    mwdrop();
-    mwTYPE_ERROR();
-    mwSValue();
-    mwSImplicit();
-    mwsort_is_implicit_3F_();
-    mw_21__21_1();
-    mwsort_is_explicit_3F_();
-    mw_21__21_0();
-    mwsort_is_type_3F_();
-    mw_21__21_0();
-    mwsort_is_stack_3F_();
-    mw_21__21_0();
-    mwsort_is_effect_3F_();
-    mw_21__21_0();
-    mwsort_is_word_3F_();
-    mw_21__21_0();
-    mwsort_is_value_3F_();
-    mw_21__21_1();
-    mwsort_value_type_3F_();
-    mwTYPE_ERROR();
-    mw_21__21__3D_();
-    mwdrop();
-    mwTYPE_INT();
-    mwSValue();
-    mwsort_is_implicit_3F_();
-    mw_21__21_0();
-    mwsort_is_explicit_3F_();
-    mw_21__21_1();
-    mwsort_is_type_3F_();
-    mw_21__21_0();
-    mwsort_is_stack_3F_();
-    mw_21__21_0();
-    mwsort_is_effect_3F_();
-    mw_21__21_0();
-    mwsort_is_word_3F_();
-    mw_21__21_0();
-    mwsort_is_value_3F_();
-    mw_21__21_1();
-    mwsort_value_type_3F_();
-    mwTYPE_INT();
-    mw_21__21__3D_();
-    mwdrop();
-    mwTYPE_INT();
-    mwSValue();
-    mwSImplicit();
-    mwsort_is_implicit_3F_();
-    mw_21__21_1();
-    mwsort_is_explicit_3F_();
-    mw_21__21_0();
-    mwsort_is_type_3F_();
-    mw_21__21_0();
-    mwsort_is_stack_3F_();
-    mw_21__21_0();
-    mwsort_is_effect_3F_();
-    mw_21__21_0();
-    mwsort_is_word_3F_();
-    mw_21__21_0();
-    mwsort_is_value_3F_();
-    mw_21__21_1();
-    mwsort_value_type_3F_();
-    mwTYPE_INT();
-    mw_21__21__3D_();
-    mwdrop();
-}
-
-void mwMAX_CTX (void){
-    push(4096);
-}
-
-void mwCTX_SIZE (void){
-    push(8);
-}
-
-void mwctx_base_26_ (void){
-    mwdup();
-    if (pop()) {
-    mwU16__3E_Int();
-    mw1_();
-    mwCTX_SIZE();
-    mw_2A_();
-    mwCTX_BUF();
-    mw_2B_();
-    } else {
-    push((i64)(strings + 10255));
-    mwpanic_21_();
-    mwU16__3E_Int();
-    mwInt__3E_Ptr();
-    }
-}
-
-void mwctx_prev_26_ (void){
-    mwctx_base_26_();
-}
-
-void mwctx_name_26_ (void){
-    mwctx_base_26_();
-    push(2);
-    mw_2B_();
-}
-
-void mwctx_sort_26_ (void){
-    mwctx_base_26_();
-    push(4);
-    mw_2B_();
-}
-
-void mwctx_prev_40_ (void){
-    mwctx_prev_26_();
-    mwu16_40_();
-}
-
-void mwctx_name_40_ (void){
-    mwctx_name_26_();
-    mwu16_40_();
-    mwU16__3E_Int();
-}
-
-void mwctx_sort_40_ (void){
-    mwctx_sort_26_();
-    mwu32_40_();
-}
-
-void mwctx_prev_21_ (void){
-    mwctx_prev_26_();
-    mwu16_21_();
-}
-
-void mwctx_name_21_ (void){
-    { i64 d1 = pop();
-    mwInt__3E_U16();
-      push(d1); }
-    mwctx_name_26_();
-    mwu16_21_();
-}
-
-void mwctx_sort_21_ (void){
-    mwctx_sort_26_();
-    mwu32_21_();
-}
-
-void mwctx_alloc_21_ (void){
-    mwNUM_CTX();
-    mw_40_();
-    mwdup();
-    mw1_2B_();
-    mwNUM_CTX();
-    mw_21_();
-    mwdup();
-    mwMAX_CTX();
-    mw_3C_();
-    if (pop()) {
-    mw1_2B_();
-    mwInt__3E_U16();
-    } else {
-    push((i64)(strings + 10318));
-    mwpanic_21_();
-    }
-}
-
-void mwctx_is_empty (void){
-    mwU16__3E_Int();
-    push(0);
-    mw_3D_();
-}
-
-void mwctx_is_empty_3F_ (void){
-    mwdup();
-    mwctx_is_empty();
-}
-
-void mwctx_has_name (void){
-    mwctx_is_empty_3F_();
-    if (pop()) {
-    mwdrop2();
-    push(0);
-    } else {
-    mwdup();
-    mwctx_name_40_();
-    { i64 d2 = pop();
-    mwover();
-      push(d2); }
-    mw_3D_();
-    if (pop()) {
-    mwdrop2();
-    push(1);
-    } else {
-    mwctx_prev_40_();
-    mwctx_has_name();
-    }
-    }
-}
-
-void mwctx_lookup_sort (void){
-    mwctx_is_empty_3F_();
-    if (pop()) {
-    mwdrop2();
-    mwSORT_ERROR();
-    } else {
-    mwdup();
-    mwctx_name_40_();
-    { i64 d2 = pop();
-    mwover();
-      push(d2); }
-    mw_3D_();
-    if (pop()) {
-    mwctx_sort_40_();
-    mwnip();
-    } else {
-    mwctx_prev_40_();
-    mwctx_lookup_sort();
-    }
-    }
-}
-
-void mwSORT_ERROR (void){
-    push(0);
-    mwInt__3E_Sort();
-}
-
-void mwSort__3E_Int (void){
-    mwU32__3E_Int();
-}
-
-void mwInt__3E_Sort (void){
-    mwInt__3E_U32();
-}
-
-void mwSORT_FLAG_SHIFT (void){
-    push(28);
-}
-
-void mwSORT_FLAG_MASK (void){
-    push(15);
-    mwSORT_FLAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwSORT_FLAG_IMPLICIT (void){
-    push(1);
-    mwSORT_FLAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwSORT_TAG_SHIFT (void){
-    push(24);
-}
-
-void mwSORT_TAG_MASK (void){
-    push(15);
-    mwSORT_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwSORT_TAG_ERROR (void){
-    push(0);
-}
-
-void mwSORT_TAG_TYPE (void){
-    push(1);
-    mwSORT_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwSORT_TAG_STACK (void){
-    push(2);
-    mwSORT_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwSORT_TAG_EFFECT (void){
-    push(3);
-    mwSORT_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwSORT_TAG_WORD (void){
-    push(4);
-    mwSORT_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwSORT_TAG_VALUE (void){
-    push(5);
-    mwSORT_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwsort_tag (void){
-    mwU32__3E_Int();
-    mwSORT_TAG_MASK();
-    mw_26_();
-}
-
-void mwsort_is_error (void){
-    mwU32__3E_Int();
-    push(0);
-    mw_3D_();
-}
-
-void mwsort_is_implicit (void){
-    mwU32__3E_Int();
-    mwSORT_FLAG_IMPLICIT();
-    mw_26_();
-    push(0);
-    mw_3E_();
-}
-
-void mwsort_is_explicit (void){
-    mwsort_is_implicit();
-    mwnot();
-}
-
-void mwsort_is_type (void){
-    mwsort_tag();
-    mwSORT_TAG_TYPE();
-    mw_3D_();
-}
-
-void mwsort_is_stack (void){
-    mwsort_tag();
-    mwSORT_TAG_STACK();
-    mw_3D_();
-}
-
-void mwsort_is_effect (void){
-    mwsort_tag();
-    mwSORT_TAG_EFFECT();
-    mw_3D_();
-}
-
-void mwsort_is_word (void){
-    mwsort_tag();
-    mwSORT_TAG_WORD();
-    mw_3D_();
-}
-
-void mwsort_is_value (void){
-    mwsort_tag();
-    mwSORT_TAG_VALUE();
-    mw_3D_();
-}
-
-void mwsort_is_error_3F_ (void){
-    mwdup();
-    mwsort_is_error();
-}
-
-void mwsort_is_implicit_3F_ (void){
-    mwdup();
-    mwsort_is_implicit();
-}
-
-void mwsort_is_explicit_3F_ (void){
-    mwdup();
-    mwsort_is_explicit();
-}
-
-void mwsort_is_type_3F_ (void){
-    mwdup();
-    mwsort_is_type();
-}
-
-void mwsort_is_stack_3F_ (void){
-    mwdup();
-    mwsort_is_stack();
-}
-
-void mwsort_is_effect_3F_ (void){
-    mwdup();
-    mwsort_is_effect();
-}
-
-void mwsort_is_word_3F_ (void){
-    mwdup();
-    mwsort_is_word();
-}
-
-void mwsort_is_value_3F_ (void){
-    mwdup();
-    mwsort_is_value();
-}
-
-void mwSORT_PAYLOAD_MASK (void){
-    push(1);
-    push(24);
-    mw_3C__3C_();
-    mw1_();
-}
-
-void mwsort_word_type (void){
-    mwsort_is_word_3F_();
-    if (pop()) {
-    mwSort__3E_Int();
-    mwSORT_PAYLOAD_MASK();
-    mw_26_();
-    } else {
-    push((i64)(strings + 10382));
-    mwpanic_21_();
-    mwSort__3E_Int();
-    }
-}
-
-void mwsort_word_type_3F_ (void){
-    mwdup();
-    mwsort_word_type();
-}
-
-void mwsort_value_type (void){
-    mwsort_is_value_3F_();
-    if (pop()) {
-    mwSort__3E_Int();
-    mwSORT_PAYLOAD_MASK();
-    mw_26_();
-    mwInt__3E_Type();
-    } else {
-    push((i64)(strings + 10447));
-    mwpanic_21_();
-    }
-}
-
-void mwsort_value_type_3F_ (void){
-    mwdup();
-    mwsort_value_type();
-}
-
-void mwSImplicit (void){
-    mwSort__3E_Int();
-    mwSORT_FLAG_IMPLICIT();
-    mw_7C_();
-    mwInt__3E_Sort();
-}
-
-void mwSEffect (void){
-    mwSORT_TAG_EFFECT();
-    mwInt__3E_Sort();
-}
-
-void mwSWord (void){
-    mwType__3E_Int();
-    mwSORT_TAG_WORD();
-    mw_7C_();
-    mwInt__3E_Sort();
-}
-
-void mwSValue (void){
-    mwType__3E_Int();
-    mwSORT_TAG_VALUE();
-    mw_7C_();
-    mwInt__3E_Sort();
-}
-
-void mwTYPE_TAG_SHIFT (void){
-    push(20);
-}
-
-void mwTYPE_TAG_MASK (void){
-    push(15);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwTYPE_TAG_PRIM (void){
-    push(0);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwTYPE_TAG_VAR (void){
-    push(1);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwTYPE_TAG_META (void){
-    push(2);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwTYPE_TAG_TENSOR (void){
-    push(3);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwTYPE_TAG_MORPHISM (void){
-    push(4);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwTYPE_VALUE_MASK (void){
-    push(1);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
-    mw1_();
-}
-
-void mwTPrim (void){
-    mwTYPE_TAG_PRIM();
-    mw_7C_();
-    mwInt__3E_Type();
-}
-
-void mwTMeta (void){
-    mwMetaVar__3E_Int();
-    mwTYPE_TAG_META();
-    mw_7C_();
-    mwInt__3E_Type();
-}
-
-void mwMetaVar__3E_Int (void){
-    mwU16__3E_Int();
-}
-
-void mwTensorType__3E_Int (void){
-    mwU16__3E_Int();
-}
-
-void mwMorphismType__3E_Int (void){
-    mwU16__3E_Int();
-}
-
-void mwtype_tag (void){
-    mwU32__3E_Int();
-    mwTYPE_TAG_MASK();
-    mw_26_();
-}
-
-void mwtype_is_prim (void){
-    mwtype_tag();
-    mwTYPE_TAG_PRIM();
-    mw_3D_();
-}
-
-void mwtype_is_var (void){
-    mwtype_tag();
-    mwTYPE_TAG_VAR();
-    mw_3D_();
-}
-
-void mwtype_is_meta (void){
-    mwtype_tag();
-    mwTYPE_TAG_META();
-    mw_3D_();
-}
-
-void mwtype_is_tensor (void){
-    mwtype_tag();
-    mwTYPE_TAG_TENSOR();
-    mw_3D_();
-}
-
-void mwtype_is_morphism (void){
-    mwtype_tag();
-    mwTYPE_TAG_MORPHISM();
-    mw_3D_();
-}
-
-void mwtype_is_prim_3F_ (void){
-    mwdup();
-    mwtype_is_prim();
-}
-
-void mwtype_is_var_3F_ (void){
-    mwdup();
-    mwtype_is_var();
-}
-
-void mwtype_is_meta_3F_ (void){
-    mwdup();
-    mwtype_is_meta();
-}
-
-void mwtype_is_tensor_3F_ (void){
-    mwdup();
-    mwtype_is_tensor();
-}
-
-void mwtype_is_morphism_3F_ (void){
-    mwdup();
-    mwtype_is_morphism();
-}
-
-void mwtype_get_value (void){
-    mwU32__3E_Int();
-    mwTYPE_VALUE_MASK();
-    mw_26_();
-}
-
-void mwtype_get_var (void){
-    mwtype_is_var_3F_();
-    mwnot();
-    if (pop()) {
-    push((i64)(strings + 10514));
-    mwpanic_21_();
-    } else {
-    mwtype_get_value();
-    }
-}
-
-void mwtype_get_meta (void){
-    mwtype_is_meta_3F_();
-    mwnot();
-    if (pop()) {
-    push((i64)(strings + 10569));
-    mwpanic_21_();
-    } else {
-    mwtype_get_value();
-    mwInt__3E_MetaVar();
-    }
-}
-
-void mwInt__3E_MetaVar (void){
-    mwInt__3E_U16();
-}
-
-void mwtype_get_tensor (void){
-    mwtype_is_tensor_3F_();
-    mwnot();
-    if (pop()) {
-    push((i64)(strings + 10626));
-    mwpanic_21_();
-    } else {
-    mwtype_get_value();
-    mwInt__3E_TensorType();
-    }
-}
-
-void mwInt__3E_TensorType (void){
-    mwInt__3E_U16();
-}
-
-void mwtype_get_morphism (void){
-    mwtype_is_morphism_3F_();
-    mwnot();
-    if (pop()) {
-    push((i64)(strings + 10687));
-    mwpanic_21_();
-    } else {
-    mwtype_get_value();
-    mwInt__3E_MorphismType();
-    }
-}
-
-void mwInt__3E_MorphismType (void){
-    mwInt__3E_U16();
-}
-
-void mwtype_expand (void){
-    mwtype_is_meta_3F_();
-    if (pop()) {
-    mwtype_get_meta();
-    mwmeta_expand();
-    } else {
-    mwid();
-    }
-}
-
-void mwmeta_expand (void){
-    mwmeta_is_defined_3F_();
-    if (pop()) {
-    mwdup();
-    mwmeta_type_40_();
-    mwtype_expand();
-    mwtuck();
-    mwmeta_type_21_();
-    } else {
-    mwTMeta();
-    }
-}
-
-void mwtype_unify_21_ (void){
-    { i64 d1 = pop();
-    mwtype_expand();
-      push(d1); }
-    mwtype_expand();
-    mwdup2();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    } else {
-    mwdup();
-    mwTYPE_ERROR();
-    mw_3D_();
-    if (pop()) {
-    mwdrop2();
-    mwTYPE_ERROR();
-    } else {
-    mwover();
-    mwTYPE_ERROR();
-    mw_3D_();
-    if (pop()) {
-    mwdrop2();
-    mwTYPE_ERROR();
-    } else {
-    mwtype_is_prim_3F_();
-    if (pop()) {
-    push((i64)(strings + 10752));
-    mwelab_emit_error_21_();
-    mwdrop2();
-    mwTYPE_ERROR();
-    } else {
-    mwtype_is_var_3F_();
-    if (pop()) {
-    push((i64)(strings + 10774));
-    mwelab_emit_error_21_();
-    mwdrop2();
-    mwTYPE_ERROR();
-    } else {
-    mwtype_is_tensor_3F_();
-    if (pop()) {
-    mwtype_get_tensor();
-    mwswap();
-    mwtype_is_tensor_3F_();
-    if (pop()) {
-    mwtype_get_tensor();
-    mwswap();
-    mwtensor_type_unify_21_();
-    mwTTensor();
-    } else {
-    push((i64)(strings + 10796));
-    mwelab_emit_error_21_();
-    mwdrop2();
-    mwTYPE_ERROR();
-    }
-    } else {
-    mwtype_is_morphism_3F_();
-    if (pop()) {
-    mwtype_get_morphism();
-    mwswap();
-    mwtype_is_morphism_3F_();
-    if (pop()) {
-    mwtype_get_morphism();
-    mwswap();
-    mwmorphism_type_unify_21_();
-    mwTMorphism();
-    } else {
-    push((i64)(strings + 10818));
-    mwelab_emit_error_21_();
-    mwdrop2();
-    mwTYPE_ERROR();
-    }
-    } else {
-    push((i64)(strings + 10840));
-    mwpanic_21_();
-    mwdrop();
-    }
-    }
-    }
-    }
-    }
-    }
-    }
-}
-
-void mwtensor_type_unify_21_ (void){
-    mwover();
-    mwtensor_type_fst_40_();
-    mwover();
-    mwtensor_type_fst_40_();
-    mwtype_unify_21_();
-    mwover();
-    mwtensor_type_fst_21_();
-    mwover();
-    mwtensor_type_snd_40_();
-    mwover();
-    mwtensor_type_snd_40_();
-    mwtype_unify_21_();
-    mwover();
-    mwtensor_type_snd_21_();
-    mwnip();
-}
-
-void mwmorphism_type_unify_21_ (void){
-    mwover();
-    mwmorphism_type_dom_40_();
-    mwover();
-    mwmorphism_type_dom_40_();
-    mwtype_unify_21_();
-    mwover();
-    mwmorphism_type_dom_21_();
-    mwover();
-    mwmorphism_type_cod_40_();
-    mwover();
-    mwmorphism_type_cod_40_();
-    mwtype_unify_21_();
-    mwover();
-    mwmorphism_type_cod_21_();
-    mwnip();
-}
-
-void mwtype_has_meta_3F_ (void){
-    mwdup2();
-    mwtype_has_meta();
-}
-
-void mwtype_has_meta (void){
-    mwtype_is_prim_3F_();
-    if (pop()) {
-    mwdrop2();
-    push(0);
-    } else {
-    mwtype_is_var_3F_();
-    if (pop()) {
-    mwdrop2();
-    push(0);
-    } else {
-    mwtype_is_meta_3F_();
-    if (pop()) {
-    mwtype_get_meta();
-    mw_3D_();
-    } else {
-    mwtype_is_tensor_3F_();
-    if (pop()) {
-    mwtype_get_tensor();
-    mwtensor_type_has_meta();
-    } else {
-    mwtype_is_morphism_3F_();
-    if (pop()) {
-    mwtype_get_morphism();
-    mwmorphism_type_has_meta();
-    } else {
-    push((i64)(strings + 10865));
-    mwpanic_21_();
-    mwdrop2();
-    push(0);
-    }
-    }
-    }
-    }
-    }
-}
-
-void mwtensor_type_has_meta (void){
-    mwtensor_type_unpack();
-    { i64 d1 = pop();
-    mwover();
-      push(d1); }
-    mwtype_has_meta();
-    if (pop()) {
-    mwdrop2();
-    push(1);
-    } else {
-    mwtype_has_meta();
-    }
-}
-
-void mwmorphism_type_has_meta (void){
-    mwmorphism_type_unpack();
-    { i64 d1 = pop();
-    mwover();
-      push(d1); }
-    mwtype_has_meta();
-    if (pop()) {
-    mwdrop2();
-    push(1);
-    } else {
-    mwtype_has_meta();
-    }
-}
-
-void mwmorphism_type_dom_40_ (void){
-    mwmorphism_type_dom_26_();
-    mwu32_40_();
-}
-
-void mwtype_trace_stack_21_ (void){
-    mwtype_is_tensor_3F_();
-    if (pop()) {
-    mwtype_get_tensor();
-    mwdup();
-    mwtensor_type_fst_40_();
-    mwdup();
-    mwTYPE_UNIT();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    } else {
-    mwtype_trace_stack_21_();
-    push((i64)(strings + 10900));
-    mwstr_trace_21_();
-    }
-    mwtensor_type_snd_40_();
-    mwtype_trace_21_();
-    } else {
-    mwtype_trace_21_();
-    }
-}
-
-void mwmorphism_type_cod_40_ (void){
-    mwmorphism_type_cod_26_();
-    mwu32_40_();
-}
-
-void mwtensor_type_fst_40_ (void){
-    mwtensor_type_fst_26_();
-    mwu32_40_();
-}
-
-void mwtensor_type_snd_40_ (void){
-    mwtensor_type_snd_26_();
-    mwu32_40_();
-}
-
-void mwtype_trace_21_ (void){
-    mwtype_is_prim_3F_();
-    if (pop()) {
-    mwtype_trace_prim_21_();
-    } else {
-    mwtype_is_var_3F_();
-    if (pop()) {
-    mwtype_get_var();
-    mwname_load_21_();
-    mwstr_buf_trace_21_();
-    } else {
-    mwtype_is_meta_3F_();
-    if (pop()) {
-    mwtype_get_meta();
-    push((i64)(strings + 10902));
-    mwstr_trace_21_();
-    mwMetaVar__3E_Int();
-    mwint_trace_21_();
-    } else {
-    mwtype_is_tensor_3F_();
-    if (pop()) {
-    push((i64)(strings + 10904));
-    mwstr_trace_21_();
-    mwtype_trace_stack_21_();
-    push((i64)(strings + 10906));
-    mwstr_trace_21_();
-    } else {
-    mwtype_is_morphism_3F_();
-    if (pop()) {
-    push((i64)(strings + 10908));
-    mwstr_trace_21_();
-    mwtype_trace_sig_21_();
-    push((i64)(strings + 10910));
-    mwstr_trace_21_();
-    } else {
-    push((i64)(strings + 10912));
-    mwstr_trace_21_();
-    mwType__3E_Int();
-    mwint_trace_21_();
-    push((i64)(strings + 10927));
-    mwstr_trace_21_();
-    }
-    }
-    }
-    }
-    }
-}
-
-void mwtype_trace_prim_21_ (void){
-    mwdup();
-    mwTYPE_ERROR();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    push((i64)(strings + 10929));
-    mwstr_trace_21_();
-    } else {
-    mwdup();
-    mwTYPE_UNIT();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    push((i64)(strings + 10935));
-    mwstr_trace_21_();
-    } else {
-    mwdup();
-    mwTYPE_INT();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    push((i64)(strings + 10938));
-    mwstr_trace_21_();
-    } else {
-    mwdup();
-    mwTYPE_PTR();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    push((i64)(strings + 10942));
-    mwstr_trace_21_();
-    } else {
-    mwdup();
-    mwTYPE_U8();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    push((i64)(strings + 10946));
-    mwstr_trace_21_();
-    } else {
-    mwdup();
-    mwTYPE_U16();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    push((i64)(strings + 10949));
-    mwstr_trace_21_();
-    } else {
-    mwdup();
-    mwTYPE_U32();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    push((i64)(strings + 10953));
-    mwstr_trace_21_();
-    } else {
-    mwdup();
-    mwTYPE_U64();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    push((i64)(strings + 10957));
-    mwstr_trace_21_();
-    } else {
-    mwdup();
-    mwTYPE_I8();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    push((i64)(strings + 10961));
-    mwstr_trace_21_();
-    } else {
-    mwdup();
-    mwTYPE_I16();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    push((i64)(strings + 10964));
-    mwstr_trace_21_();
-    } else {
-    mwdup();
-    mwTYPE_I32();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    push((i64)(strings + 10968));
-    mwstr_trace_21_();
-    } else {
-    mwdup();
-    mwTYPE_I64();
-    mw_3D_();
-    if (pop()) {
-    mwdrop();
-    push((i64)(strings + 10972));
-    mwstr_trace_21_();
-    } else {
-    push((i64)(strings + 10976));
-    mwstr_trace_21_();
-    mwType__3E_Int();
-    mwint_trace_21_();
-    push((i64)(strings + 11001));
-    mwstr_trace_21_();
-    }
-    }
-    }
-    }
-    }
-    }
-    }
-    }
-    }
-    }
-    }
-    }
-}
-
-void mwMAX_METAS (void){
-    push(1);
-    push(15);
-    mw_3C__3C_();
-}
-
-void mwMETA_SIZE (void){
-    push(4);
-}
-
-void mwmeta_alloc_21_ (void){
-    mwNUM_METAS();
-    mw_40_();
-    mwdup();
-    mw1_2B_();
-    mwNUM_METAS();
-    mw_21_();
-    mwdup();
-    mwMAX_METAS();
-    mw_3E__3D_();
-    if (pop()) {
-    push((i64)(strings + 11003));
-    mwpanic_21_();
-    } else {
-    mwInt__3E_MetaVar();
-    push(0);
-    mwover();
-    mwmeta_value_21_();
-    }
-}
-
-void mwmeta_value_21_ (void){
-    { i64 d1 = pop();
-    mwInt__3E_U32();
-      push(d1); }
-    mwmeta_value_26_();
-    mwu32_21_();
-}
-
-void mwmeta_value_26_ (void){
-    mwMetaVar__3E_Int();
-    mwMETA_SIZE();
-    mw_2A_();
-    mwMETA_BUF();
-    mw_2B_();
-}
-
-void mwmeta_value_40_ (void){
-    mwmeta_value_26_();
-    mwu32_40_();
-    mwU32__3E_Int();
-}
-
-void mwmeta_is_defined (void){
-    mwmeta_value_40_();
-    push(0);
-    mw_3D_();
-}
-
-void mwmeta_is_defined_3F_ (void){
-    mwdup();
-    mwmeta_is_defined();
-}
-
-void mwmeta_type_40_ (void){
-    mwmeta_is_defined_3F_();
-    mwnot();
-    if (pop()) {
-    push((i64)(strings + 11065));
-    mwpanic_21_();
-    } else {
-    mwmeta_value_40_();
-    mw1_();
-    mwInt__3E_U32();
-    }
-}
-
-void mwmeta_type_21_ (void){
-    { i64 d1 = pop();
-    mwU32__3E_Int();
-    mw1_2B_();
-      push(d1); }
-    mwmeta_value_21_();
-}
-
-void mwmeta_unify_21_ (void){
-    mwmeta_is_defined_3F_();
-    if (pop()) {
-    mwmeta_expand();
-    mwtype_unify_21_();
-    } else {
-    mwswap();
-    mwtype_has_meta_3F_();
-    if (pop()) {
-    push((i64)(strings + 11121));
-    mwelab_emit_error_21_();
-    mwdrop();
-    mwTYPE_ERROR();
-    mwswap();
-    mwmeta_type_21_();
-    mwTYPE_ERROR();
-    } else {
-    mwswap();
-    { i64 d3 = pop();
-    mwdup();
-      push(d3); }
-    mwmeta_type_21_();
-    }
-    }
-}
-
-void mwMAX_TENSOR_TYPES (void){
-    push(1);
-    push(15);
-    mw_3C__3C_();
-}
-
-void mwTENSOR_TYPE_SIZE (void){
-    push(8);
-}
-
-void mwtensor_type_alloc_21_ (void){
-    mwNUM_TENSOR_TYPES();
-    mw_40_();
-    mwdup();
-    mw1_2B_();
-    mwNUM_TENSOR_TYPES();
-    mw_21_();
-    mwdup();
-    mwMAX_TENSOR_TYPES();
-    mw_3E__3D_();
-    if (pop()) {
-    push((i64)(strings + 11143));
-    mwpanic_21_();
-    } else {
-    mwInt__3E_TensorType();
-    }
-}
-
-void mwtensor_type_snd_21_ (void){
-    mwtensor_type_snd_26_();
-    mwu32_21_();
-}
-
-void mwtensor_type_fst_21_ (void){
-    mwtensor_type_fst_26_();
-    mwu32_21_();
-}
-
-void mwtensor_type_base_26_ (void){
-    mwTensorType__3E_Int();
-    mwTENSOR_TYPE_SIZE();
-    mw_2A_();
-    mwTENSOR_TYPE_BUF();
-    mw_2B_();
-}
-
-void mwtensor_type_fst_26_ (void){
-    mwtensor_type_base_26_();
-}
-
-void mwtensor_type_snd_26_ (void){
-    mwtensor_type_base_26_();
-    push(4);
-    mw_2B_();
-}
-
-void mwtensor_type_unpack (void){
-    mwdup();
-    { i64 d1 = pop();
-    mwtensor_type_fst_40_();
-      push(d1); }
-    mwtensor_type_snd_40_();
-}
-
-void mwMAX_MORPHISM_TYPES (void){
-    push(1);
-    push(15);
-    mw_3C__3C_();
-}
-
-void mwMORPHISM_TYPE_SIZE (void){
-    push(8);
-}
-
-void mwmorphism_type_alloc_21_ (void){
-    mwNUM_MORPHISM_TYPES();
-    mw_40_();
-    mwdup();
-    mw1_2B_();
-    mwNUM_MORPHISM_TYPES();
-    mw_21_();
-    mwdup();
-    mwMAX_MORPHISM_TYPES();
-    mw_3E__3D_();
-    if (pop()) {
-    push((i64)(strings + 11210));
-    mwpanic_21_();
-    } else {
-    mwInt__3E_MorphismType();
-    }
-}
-
-void mwmorphism_type_cod_21_ (void){
-    mwmorphism_type_cod_26_();
-    mwu32_21_();
-}
-
-void mwmorphism_type_dom_21_ (void){
-    mwmorphism_type_dom_26_();
-    mwu32_21_();
-}
-
-void mwmorphism_type_base_26_ (void){
-    mwMorphismType__3E_Int();
-    mwMORPHISM_TYPE_SIZE();
-    mw_2A_();
-    mwMORPHISM_TYPE_BUF();
-    mw_2B_();
-}
-
-void mwmorphism_type_dom_26_ (void){
-    mwmorphism_type_base_26_();
-}
-
-void mwmorphism_type_cod_26_ (void){
-    mwmorphism_type_base_26_();
-    push(4);
-    mw_2B_();
-}
-
-void mwmorphism_type_unpack (void){
-    mwdup();
-    { i64 d1 = pop();
-    mwmorphism_type_dom_40_();
-      push(d1); }
-    mwmorphism_type_cod_40_();
 }
 
 int main (int argc, char** argv) {

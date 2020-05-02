@@ -1,0 +1,43 @@
+module(externals)
+import(prelude)
+import(names)
+import(types)
+
+def(init-externals!, --,
+    0 NUM_EXTERNALS !)
+
+#############
+# EXTERNALS #
+#############
+
+def-type(External, U16)
+def(External->Int, External -- Int, U16->Int)
+def(Int->External, Int -- External, Int->U16)
+
+def(MAX_EXTERNALS, Size, 0x1000)
+quad def-static-buffer(NUM_EXTERNALS)
+def(external-alloc!, External +Externals,
+    NUM_EXTERNALS @ dup 1+ NUM_EXTERNALS !
+    dup MAX_EXTERNALS >= if(
+        "compiler error: NUM_EXTERNALS > MAX_EXTERNALS" panic!,
+        id
+    )
+    0 over external-name!
+    0 over external-sig!
+    TYPE_ERROR over external-type!)
+
+def(EXTERNAL_METADATA_SIZE, Size, 16)
+MAX_EXTERNALS EXTERNAL_METADATA_SIZE * def-static-buffer(EXTERNAL_METADATA_BUF)
+def(external-metadata&, External -- Ptr, External->Int EXTERNAL_METADATA_SIZE * EXTERNAL_METADATA_BUF +)
+
+def(external-name&, External -- Ptr, external-metadata&)
+def(external-name@, External -- Name, external-name& u32@ U32->Int)
+def(external-name!, Name External --, dip(Int->U32) external-name& u32!)
+
+def(external-sig&, External -- Ptr, external-metadata& 4 +)
+def(external-sig@, External -- Token, external-sig& u32@ U32->Int)
+def(external-sig!, Token External --, dip(Int->U32) external-sig& u32!)
+
+def(external-type&, External -- Ptr, external-metadata& 8 +)
+def(external-type@, External -- Type, external-type& u32@)
+def(external-type!, Type External --, external-type& u32!)

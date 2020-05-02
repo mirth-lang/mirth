@@ -85,13 +85,13 @@ def(elab-type-var!, Token Sort -- Type,
             elab-ctx@
             ctx-has-name? if(
                 ctx-lookup-sort?
-                dip(drop swap) = if(
+                dip(drop swap) sort-match if(
                     TVar,
                     "Unexpected sort mismatch." elab-emit-error!
                     drop TYPE_ERROR
                 ),
 
-                rotr dup dip(swap ctx-new! elab-ctx!) TVar
+                rotr dup dip(swap SImplicit ctx-new! elab-ctx!) TVar
             )
         ),
 
@@ -108,7 +108,7 @@ def(elab-type-con!, Token -- Type,
 
             token-name@
             name-is-type? if(
-                name-value@,
+                name-type@,
 
             name-undefined? if(
                 "Unknown type." elab-emit-error!,
@@ -286,9 +286,19 @@ def(typecheck-name!, Name --,
 def(typecheck-word!, Name --,
     name-sig? typecheck-word-sig!
 
+    # ctx-empty elab-ctx!
+    # name-sig? elab-sig! over name-type!
+    # over name-load! str-buf-trace!
+    # elab-ctx@ ctx-is-empty? if(
+    #     drop,
+    #     " (" str-trace! ctx-trace! ")" str-trace!
+    # )
+    # " : " str-trace!
+    # type-trace-sig! trace-ln!
+
     tstack-enter!
     name-sig? sig-push-inputs!
-    name-value? typecheck-run!
+    dup name-word@ word-body@ typecheck-run!
     name-sig? sig-match-outputs!
     # FIXME: sig-effects
     tstack-leave!
@@ -297,11 +307,6 @@ def(typecheck-word!, Name --,
     drop) # FIXME: check the body
 
 def(typecheck-word-sig!, Token --,
-    # new-style thing
-    dup
-    ctx-empty elab-ctx!
-    elab-sig!
-    type-trace-sig! trace-ln!
 
     # old-style thing
     sig-has-dashes? if(

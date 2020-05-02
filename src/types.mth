@@ -85,6 +85,38 @@ def(ctx-lookup-sort, Name Ctx -- Sort,
         )
     ))
 
+def(ctx-trace!, Ctx -- +IO,
+    ctx-is-empty? if(
+        drop,
+
+        dup ctx-prev@
+        ctx-is-empty? if(
+            drop,
+            ctx-trace! ", " str-trace!
+        )
+
+        dup ctx-sort@
+        sort-is-implicit if(
+            "'" str-trace!,
+            id
+        )
+
+        dup ctx-name@
+        name-load! str-buf-trace!
+
+        ctx-sort@
+        sort-is-word? if(
+            ": " str-trace!
+            sort-word-type type-trace-sig!,
+
+        sort-is-value? if(
+            ": " str-trace!
+            sort-value-type type-trace!,
+
+            drop
+        ))
+    ))
+
 #########
 # Sorts #
 #########
@@ -132,12 +164,12 @@ def(sort-is-value?, Sort -- Sort Bool, dup sort-is-value)
 def(SORT_PAYLOAD_MASK, Int, 1 24 << 1-)
 
 # Get type for word sort. Panic if not a word sort.
-def(sort-word-type, Sort -- Token,
+def(sort-word-type, Sort -- Type,
     sort-is-word? if(
-        Sort->Int SORT_PAYLOAD_MASK &,
-        "compiler error: attempted to get sort word sig for non-word sort" panic! Sort->Int
+        Sort->Int SORT_PAYLOAD_MASK & Int->Type,
+        "compiler error: attempted to get sort word sig for non-word sort" panic!
     ))
-def(sort-word-type?, Sort -- Sort Token, dup sort-word-type)
+def(sort-word-type?, Sort -- Sort Type, dup sort-word-type)
 
 # Get type for value sort. Panic if not a value sort.
 def(sort-value-type, Sort -- Type,
@@ -146,6 +178,21 @@ def(sort-value-type, Sort -- Type,
         "compiler error: attempted to get sort value type for non-type sort" panic!
     ))
 def(sort-value-type?, Sort -- Sort Type, dup sort-value-type)
+
+# Check that two sorts have the same category.
+def(sort-match, Sort Sort -- Bool,
+    sort-is-type? if(
+        drop sort-is-type,
+    sort-is-stack? if(
+        drop sort-is-stack,
+    sort-is-effect? if(
+        drop sort-is-effect,
+    sort-is-word? if(
+        drop sort-is-word,
+    sort-is-value? if(
+        drop sort-is-value,
+        "unknown sort category" panic! drop2 0
+    ))))))
 
 # Sort constructors.
 def(SImplicit, Sort -- Sort, Sort->Int SORT_FLAG_IMPLICIT | Int->Sort)

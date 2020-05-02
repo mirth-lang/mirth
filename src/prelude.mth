@@ -42,6 +42,11 @@ def(u16s, Size -- Size, u16 *)
 def(u16@@, Offset Ptr -- U16, dip(u16s) + u16@)
 def(u16!!, U16 Offset Ptr --, dip(u16s) + u16!)
 
+def(u32, Size, 4)
+def(u32s, Size -- Size, u32 *)
+def(u32@@, Offset Ptr -- U32, dip(u32s) + u32@)
+def(u32!!, U32 Offset Ptr --, dip(u32s) + u32!)
+
 def(i16, Size, 2)
 def(i16s, Size -- Size, i16 *)
 def(i16@@, Offset Ptr -- I16, dip(i16s) + i16@)
