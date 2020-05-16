@@ -2,6 +2,7 @@ module(words)
 import(prelude)
 import(names)
 import(types)
+import(core)
 
 def(init-words!, --,
     0 NUM_WORDS !)
@@ -25,10 +26,11 @@ def(word-alloc!, Word +Words,
     0 over word-name!
     0 over word-sig!
     0 over word-body!
+    TYPE_ERROR over word-type!
     ctx-empty over word-ctx!
-    TYPE_ERROR over word-type!)
+    0 over word-status!)
 
-def(WORD_METADATA_SIZE, Size, 64)
+def(WORD_METADATA_SIZE, Size, 32)
 MAX_WORDS WORD_METADATA_SIZE * def-static-buffer(WORD_METADATA_BUF)
 def(word-metadata&, Word -- Ptr, Word->Int WORD_METADATA_SIZE * WORD_METADATA_BUF +)
 
@@ -44,10 +46,26 @@ def(word-body&, Word -- Ptr, word-metadata& 8 +)
 def(word-body@, Word -- Token, word-body& u32@ U32->Int)
 def(word-body!, Token Word --, dip(Int->U32) word-body& u32!)
 
-def(word-ctx&, Word -- Ptr, word-metadata& 12 +)
-def(word-ctx@, Word -- Type, word-type& u32@)
-def(word-ctx!, Type Word --, word-type& u32!)
-
 def(word-type&, Word -- Ptr, word-metadata& 12 +)
 def(word-type@, Word -- Type, word-type& u32@)
 def(word-type!, Type Word --, word-type& u32!)
+
+def(word-ctx&, Word -- Ptr, word-metadata& 16 +)
+def(word-ctx@, Word -- Ctx, word-ctx& u16@)
+def(word-ctx!, Ctx Word --, word-ctx& u16!)
+
+def-type(WordStatus, U16)
+
+def(word-status&, Word -- Ptr, word-metadata& 20 +)
+def(word-status@, Word -- WordStatus, word-status& u16@)
+def(word-status!, WordStatus Word --, word-status& u16!)
+
+def(word-sig-is-checked?, Word -- Word Bool,
+    dup word-status@ U16->Int 1 &)
+def(word-sig-is-checked!, Word --,
+    dup dip(word-status@ U16->Int 1 | Int->U16) word-status!)
+
+def(word-body-is-checked?, Word -- Word Bool,
+    dup word-status@ U16->Int 2 & if(1, 0))
+def(word-body-is-checked!, Word --,
+    dup dip(word-status@ U16->Int 2 | Int->U16) word-status!)

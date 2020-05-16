@@ -23,6 +23,8 @@ def(test-types!, --,
 
 # A context for types and terms.
 def-type(Ctx, U16) # index into context array
+def(Ctx->Int, Ctx -- Int, U16->Int)
+def(Int->Ctx, Int -- Ctx, Int->U16)
 
 def(MAX_CTX, Size, 0x1000)
 def(CTX_SIZE, Size, 8)
@@ -115,6 +117,73 @@ def(ctx-trace!, Ctx -- +IO,
 
             drop
         ))
+    ))
+
+def(ctx-length?, Ctx -- Ctx Size, dup ctx-length)
+def(ctx-length, Ctx -- Size,
+    0 swap
+    while(ctx-is-empty? not,
+        dip(1+) ctx-prev@
+    )
+    drop)
+
+def(ctx-lookup, Ctx Name -- Int Bool,
+    over ctx-is-empty if(
+        drop2 0 0,
+        over ctx-name@ over = if(
+            drop ctx-length 1- 1,
+            dip(ctx-prev@) ctx-lookup
+        )
+    ))
+
+#########
+# Subst #
+#########
+
+def-type(Subst, U32)
+def(Subst->Int, Subst -- Int, U32->Int)
+def(Int->Subst, Int -- Subst, Int->U32)
+
+def(SUBST_BUF_SIZE, Size, 1 18 <<)
+quad def-static-buffer(SUBST_BUF_LEN)
+SUBST_BUF_SIZE u32s def-static-buffer(SUBST_BUF)
+
+def(subst-alloc!, Ctx -- Subst,
+    ctx-length?
+    SUBST_BUF_LEN @ tuck
+    + 1+ SUBST_BUF_LEN !
+    dip(Ctx->Int Int->U32) tuck SUBST_BUF u32!! Int->Subst)
+
+def(subst-ctx@, Subst -- Ctx,
+    Subst->Int SUBST_BUF u32@@ U32->Int Int->Ctx)
+
+def(subst-ctx?, Subst -- Subst Ctx,
+    dup subst-ctx@)
+
+def(subst-item&, Subst Name -- Ptr,
+    dip(subst-ctx?) ctx-lookup if(
+        1+ swap Subst->Int + u32s SUBST_BUF +,
+        drop2 0 Int->Ptr
+    ))
+
+def(subst-lookup, Subst Name -- Type Bool,
+    subst-item& dup if(
+        u32@ dup if(
+            U32->Int 1- Int->Type 1,
+            drop TYPE_ERROR 0
+        ),
+        drop TYPE_ERROR 0
+    ))
+
+def(subst-unify!, Subst Name Type -- Type,
+    dip(tuck subst-item& dup) swap if(
+        over u32@ dup if(
+            U32->Int 1- Int->Type type-unify! nip,
+            drop dup dip(Type->Int 1+ Int->U32 swap u32!)
+        ) nip,
+        "compiler warning: weird subst-unify! case -- tell Sofia" elab-emit-warning!
+        dip(drop TVar) type-unify!
+        # variable not in subst context -- must be a bound variable
     ))
 
 #########
@@ -341,7 +410,6 @@ def(test-sorts!, --,
         drop
 )
 
-
 #########
 # Types #
 #########
@@ -430,6 +498,33 @@ def(type-expand, Type -- Type,
         id
     ))
 
+def(type-subst, Subst Type -- Subst Type,
+    type-expand
+    type-is-prim? if(
+        id,
+    type-is-meta? if(
+        id, # maybe panic instead?
+    type-is-var? if(
+        type-get-var
+        dup2 subst-lookup if(
+            nip,
+            drop TVar
+        ),
+
+    type-is-tensor? if(
+        type-get-tensor
+        tensor-type-subst
+        TTensor,
+
+    type-is-morphism? if(
+        type-get-morphism
+        morphism-type-subst
+        TMorphism,
+
+        "type-subst: unknown type" panic!
+    ))))))
+
+
 # Unify two types. Raises an elaboration error if unification is impossible.
 def(type-unify!, Type Type -- Type,
     dip(type-expand) type-expand
@@ -444,11 +539,11 @@ def(type-unify!, Type Type -- Type,
         drop2 TYPE_ERROR,
 
     type-is-prim? if( # other than TYPE_ERROR, primitive types need to be exact matches.
-        "failed to unify types" elab-emit-error! # TODO: improve error messages
+        "failed to unify types" elab-emit-error! # FIXME: improve error messages
         drop2 TYPE_ERROR,
 
     type-is-var? if( # type variables need to be exact matches.
-        "failed to unify types" elab-emit-error! # TODO: improve error messages
+        "failed to unify types" elab-emit-error! # FIXME: improve error messages
         drop2 TYPE_ERROR,
 
     type-is-tensor? if(
@@ -457,7 +552,7 @@ def(type-unify!, Type Type -- Type,
             type-get-tensor swap
             tensor-type-unify! TTensor,
 
-            "failed to unify types" elab-emit-error!  # TODO: improve error messages
+            "failed to unify types" elab-emit-error!  # FIXME: improve error messages
             drop2 TYPE_ERROR
         ),
 
@@ -467,7 +562,7 @@ def(type-unify!, Type Type -- Type,
             type-get-morphism swap
             morphism-type-unify! TMorphism,
 
-            "failed to unify types" elab-emit-error! # TODO: improve error messages
+            "failed to unify types" elab-emit-error! # FIXME: improve error messages
             drop2 TYPE_ERROR
         ),
 
@@ -498,19 +593,23 @@ def(type-has-meta, MetaVar Type -- Bool,
 
 
 def(type-trace-sig!, Type -- +IO,
-    type-get-morphism dup
-    morphism-type-dom@
-    dup TYPE_UNIT = if(
-        drop,
-        type-trace-stack!
-        " " str-trace!
-    )
-    "--" str-trace!
-    morphism-type-cod@
-    dup TYPE_UNIT = if(
-        drop,
-        " " str-trace!
-        type-trace-stack!
+    dup TYPE_ERROR = if(
+        "<ERROR>" str-trace! drop,
+
+        type-get-morphism dup
+        morphism-type-dom@
+        dup TYPE_UNIT = if(
+            drop,
+            type-trace-stack!
+            " " str-trace!
+        )
+        "--" str-trace!
+        morphism-type-cod@
+        dup TYPE_UNIT = if(
+            drop,
+            " " str-trace!
+            type-trace-stack!
+        )
     ))
 
 def(type-trace-stack!, Type -- +IO,
@@ -688,6 +787,9 @@ def(tensor-type-has-meta, MetaVar TensorType -- Bool,
         type-has-meta
     ))
 
+def(tensor-type-subst, Subst TensorType -- Subst TensorType,
+    id) # TODO
+
 ##################
 # Morphism Types #
 ##################
@@ -735,6 +837,9 @@ def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
         drop2 1,
         type-has-meta
     ))
+
+def(morphism-type-subst, Subst MorphismType -- Subst MorphismType,
+    id) # TODO
 
 # TODO:
 #   - hook up type system to elaborator

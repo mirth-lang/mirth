@@ -124,6 +124,31 @@ def(elab-type-con!, Token -- Type,
 # Word Elaboration #
 ####################
 
+def(elab-word-sig!, Word -- Type +Elab,
+    word-sig-is-checked? if(
+        word-type@,
+
+        elab-ctx@ dip(
+        elab-token@ dip(
+            ctx-empty elab-ctx!
+            dup word-sig@ elab-sig!
+            over word-sig-is-checked!
+            over dip(elab-ctx@) word-ctx!
+            dup dip(swap word-type!)
+        ) elab-token!
+        ) elab-ctx!
+    ))
+
+    # ctx-empty elab-ctx!
+    # name-sig? elab-sig! over name-type!
+    # over name-load! str-buf-trace!
+    # elab-ctx@ ctx-is-empty? if(
+    #     drop,
+    #     " (" str-trace! ctx-trace! ")" str-trace!
+    # )
+    # " : " str-trace!
+    # type-trace-sig! trace-ln!
+
 #################
 # Type Checking #
 #################
@@ -284,7 +309,11 @@ def(typecheck-name!, Name --,
     ))
 
 def(typecheck-word!, Name --,
+    dup name-word@ elab-word-sig! drop
     name-sig? typecheck-word-sig!
+
+#    dup name-load! str-buf-trace! " : " str-trace!
+#    dup name-word@ elab-word-type! type-trace-sig! trace-ln!
 
     # ctx-empty elab-ctx!
     # name-sig? elab-sig! over name-type!
