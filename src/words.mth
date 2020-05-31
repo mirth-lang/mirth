@@ -64,7 +64,7 @@ def(word-type!, Type Word --, word-type& u32!)
 
 def(word-morphism&, Word -- Ptr, word-metadata& 24 +)
 def(word-morphism@, Word -- Morphism, word-morphism& u64@)
-def(word-morphism@, Morphism Word --, word-morphism& u64!)
+def(word-morphism!, Morphism Word --, word-morphism& u64!)
 
 # def(word-core&, Word -- Ptr, word-metadata& 24 +)
 # def(word-core@, Word -- Core, word-core& u64@)
@@ -107,8 +107,8 @@ def(word-cod@, Word -- Type,
 # we represent it as a flat sequence.
 
 def-type(Morphism, U64)
-def(Morphism->Int, U64->Int)
-def(Int->Morphism, Int->U64)
+def(Morphism->Int, U64 -- Int, U64->Int)
+def(Int->Morphism, Int -- U64, Int->U64)
 
 def(MOPRHISM_ERROR, Morphism, 0 Int->Morphism)
 
