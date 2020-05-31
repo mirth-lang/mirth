@@ -58,6 +58,7 @@ def(i32@@, Offset Ptr -- I32, dip(i32s) + i32@)
 def(i32!!, I32 Offset Ptr --, dip(i32s) + i32!)
 
 def-type(Long, Int)
+def(u64, Size, 8)
 def(quad, Size, 8)
 def(quads, Size -- Size, quad *)
 def(quad@@, Offset Ptr -- Long, dip(quads) + @)

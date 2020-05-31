@@ -2,7 +2,6 @@ module(words)
 import(prelude)
 import(names)
 import(types)
-import(core)
 
 def(init-words!, --,
     0 NUM_WORDS !)
@@ -26,9 +25,9 @@ def(word-alloc!, Word +Words,
     0 over word-name!
     0 over word-sig!
     0 over word-body!
-    TYPE_ERROR over word-type!
+    0 over word-status!
     ctx-empty over word-ctx!
-    0 over word-status!)
+    TYPE_ERROR over word-type!)
 
 def(WORD_METADATA_SIZE, Size, 32)
 MAX_WORDS WORD_METADATA_SIZE * def-static-buffer(WORD_METADATA_BUF)
@@ -46,26 +45,33 @@ def(word-body&, Word -- Ptr, word-metadata& 8 +)
 def(word-body@, Word -- Token, word-body& u32@ U32->Int)
 def(word-body!, Token Word --, dip(Int->U32) word-body& u32!)
 
-def(word-type&, Word -- Ptr, word-metadata& 12 +)
-def(word-type@, Word -- Type, word-type& u32@)
-def(word-type!, Type Word --, word-type& u32!)
+def-type(WordStatus, U8)
+def(word-status&, Word -- Ptr, word-metadata& 12 +)
+def(word-status@, Word -- WordStatus, word-status& u8@)
+def(word-status!, WordStatus Word --, word-status& u8!)
 
-def(word-ctx&, Word -- Ptr, word-metadata& 16 +)
+# 1 byte unused
+
+def(word-ctx&, Word -- Ptr, word-metadata& 14 +)
 def(word-ctx@, Word -- Ctx, word-ctx& u16@)
 def(word-ctx!, Ctx Word --, word-ctx& u16!)
 
-def-type(WordStatus, U16)
+def(word-type&, Word -- Ptr, word-metadata& 16 +)
+def(word-type@, Word -- Type, word-type& u32@)
+def(word-type!, Type Word --, word-type& u32!)
 
-def(word-status&, Word -- Ptr, word-metadata& 20 +)
-def(word-status@, Word -- WordStatus, word-status& u16@)
-def(word-status!, WordStatus Word --, word-status& u16!)
+# 4 bytes unused
+
+# def(word-core&, Word -- Ptr, word-metadata& 24 +)
+# def(word-core@, Word -- Core, word-core& u64@)
+# def(word-core!, Core Word --, word-core& u64!)
 
 def(word-sig-is-checked?, Word -- Word Bool,
-    dup word-status@ U16->Int 1 &)
+    dup word-status@ U8->Int 1 &)
 def(word-sig-is-checked!, Word --,
-    dup dip(word-status@ U16->Int 1 | Int->U16) word-status!)
+    dup dip(word-status@ U8->Int 1 | Int->U8) word-status!)
 
 def(word-body-is-checked?, Word -- Word Bool,
-    dup word-status@ U16->Int 2 & if(1, 0))
+    dup word-status@ U8->Int 2 & if(1, 0))
 def(word-body-is-checked!, Word --,
-    dup dip(word-status@ U16->Int 2 | Int->U16) word-status!)
+    dup dip(word-status@ U8->Int 2 | Int->U8) word-status!)

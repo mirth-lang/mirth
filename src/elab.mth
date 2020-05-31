@@ -139,6 +139,12 @@ def(elab-word-sig!, Word -- Type +Elab,
         ) elab-ctx!
     ))
 
+# def(elab-word-body!, Word -- Morphism +Elab,
+#     word-body-is-checked? if(
+#         word-morphism@,
+#         drop MORPHISM_ERROR # TODO
+#     ))
+
     # ctx-empty elab-ctx!
     # name-sig? elab-sig! over name-type!
     # over name-load! str-buf-trace!
