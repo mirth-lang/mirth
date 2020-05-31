@@ -62,6 +62,10 @@ def(word-type!, Type Word --, word-type& u32!)
 
 # 4 bytes unused
 
+def(word-morphism&, Word -- Ptr, word-metadata& 24 +)
+def(word-morphism@, Word -- Morphism, word-morphism& u64@)
+def(word-morphism@, Morphism Word --, word-morphism& u64!)
+
 # def(word-core&, Word -- Ptr, word-metadata& 24 +)
 # def(word-core@, Word -- Core, word-core& u64@)
 # def(word-core!, Core Word --, word-core& u64!)
@@ -75,3 +79,36 @@ def(word-body-is-checked?, Word -- Word Bool,
     dup word-status@ U8->Int 2 & if(1, 0))
 def(word-body-is-checked!, Word --,
     dup dip(word-status@ U8->Int 2 | Int->U8) word-status!)
+
+def(word-dom@, Word -- Type,
+    word-type@ type-get-morphism morphism-type-dom@)
+
+def(word-cod@, Word -- Type,
+    word-type@ type-get-morphism morphism-type-cod@)
+
+#############
+# MORPHISMS #
+#############
+
+# Each Mirth word is represented by a morphism in some category
+# (or some class of categories). We provide special support for
+# the morphisms of symmetric monoidal category theory, since we
+# want to manipulate multiple pieces of data, like a string diagram,
+# but we do not assume commutativity (i.e. that dip(f) g == g dip(f)),
+# so that we can more easily represent computational effects like IO.
+# As such, we actually provide special support for premonoidal
+# categories, and we're really working with ordered string diagrams.
+
+# The representation, for now, involves building up morphisms as a
+# sequence of atomic morphisms. Atomic morphisms are morphisms that
+# can't be broken down into a composition. These include calling
+# words, primitives, control flow, and literal values. This is a
+# nested intermediate representation, but, to reduce indirection,
+# we represent it as a flat sequence.
+
+def-type(Morphism, U64)
+def(Morphism->Int, U64->Int)
+def(Int->Morphism, Int->U64)
+
+def(MOPRHISM_ERROR, Morphism, 0 Int->Morphism)
+

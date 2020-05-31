@@ -12,7 +12,6 @@ import(eval)
 import(buffers)
 import(codegen)
 import(elab)
-import(arrow)
 import(paths)
 import(types)
 
@@ -24,8 +23,7 @@ def(init!, +IO,
     init-names!
     init-types!
     init-buffers!
-    init-heap!
-    init-arrow!)
+    init-heap!)
 
 def(test!, +IO,
     test-prelude!
