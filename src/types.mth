@@ -3,6 +3,10 @@ module(types)
 import(names)
 
 def(init-types!, --,
+    0 NUM_METAS !
+    0 NUM_TENSOR_TYPES !
+    0 NUM_MORPHISM_TYPES !
+    0 NUM_NEWTYPES !
     TYPE_INT PRIM_INT name-type!
     TYPE_PTR PRIM_PTR name-type!
     TYPE_U8 PRIM_U8 name-type!
@@ -841,6 +845,42 @@ def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
 def(morphism-type-subst, Subst MorphismType -- Subst MorphismType,
     id) # TODO
 
-# TODO:
-#   - hook up type system to elaborator
-#   - implement newtypes
+############
+# Newtypes #
+############
+
+def-type(Newtype, U16)
+def(Int->Newtype, Int -- Newtype, Int->U16)
+def(Newtype->Int, Newtype -- Int, U16->Int)
+
+def(MAX_NEWTYPES, Size, 1 12 <<)
+quad def-static-buffer(NUM_NEWTYPES)
+MAX_NEWTYPES u32s def-static-buffer(NEWTYPE_TYPE)
+MAX_NEWTYPES quads def-static-buffer(NEWTYPE_NAME)
+MAX_NEWTYPES quads def-static-buffer(NEWTYPE_PACK)
+MAX_NEWTYPES quads def-static-buffer(NEWTYPE_UNPACK)
+
+def(newtype-type@, Newtype -- Type, Newtype->Int NEWTYPE_TYPE u32@@)
+def(newtype-name@, Newtype -- Name, Newtype->Int NEWTYPE_NAME quad@@)
+def(newtype-pack@, Newtype -- Name, Newtype->Int NEWTYPE_PACK quad@@)
+def(newtype-unpack@, Newtype -- Name, Newtype->Int NEWTYPE_UNPACK quad@@)
+
+def(newtype-type!, Type Newtype --, Newtype->Int NEWTYPE_TYPE u32!!)
+def(newtype-name!, Name Newtype --, Newtype->Int NEWTYPE_NAME quad!!)
+def(newtype-pack!, Name Newtype --, Newtype->Int NEWTYPE_PACK quad!!)
+def(newtype-unpack!, Name Newtype --, Newtype->Int NEWTYPE_UNPACK quad!!)
+
+def(newtype-alloc!, Size,
+    NUM_NEWTYPES @ dup 1+ NUM_NEWTYPES !
+    dup MAX_NEWTYPES >= if(
+        "NUM_NEWTYPES" panic!,
+        id
+    ))
+
+def(newtype-new!, Name Type -- Newtype,
+    newtype-alloc!
+    tuck newtype-type!
+    dup2 newtype-name!
+    over name-load! ".pack" str-buf-push-str! name-save! over newtype-pack!
+    swap name-load! ".unpack" str-buf-push-str! name-save! over newtype-unpack!)
+
