@@ -8,8 +8,12 @@ def(init-strings!, --,
 # Strings Table #
 #################
 
-def-type(StringOffset, Int)
-def-type(String, Str)
+# StringOffset represents the offset of a string into the string table.
+# This is enough to identify the string (for now ... because we just use
+# nul-termination as the implicit ending for the string)
+nominal(StringOffset, Int)
+def(StringOffset->Int, StringOffset -- Int, cast)
+def(Int->StringOffset, Int -- StringOffset, cast)
 
 def(MAX_STRINGS, Size, 0x4000)
 quad def-static-buffer(STRINGS_SIZE)
@@ -40,7 +44,8 @@ def(strings-save!, StringOffset +StrTable +StrBuf,
         1+
     )
     drop
-    0 Int->U8 strings-push!)
+    0 Int->U8 strings-push!
+    Int->StringOffset)
 
 # Load string into STR_BUF.
 def(strings-load!, Str -- +StrBuf,

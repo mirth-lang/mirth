@@ -46,7 +46,7 @@ def(codegen-end!, +Codegen,
     0 codegen-file!
     0 codegen-length!)
 
-def(run-output-c99!, Token String -- +IO,
+def(run-output-c99!, Token Str -- +IO,
     load-output-path!
     STR_BUF create-file! codegen-start!
     c99-emit-header!
