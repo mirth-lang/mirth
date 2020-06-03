@@ -7,9 +7,10 @@ import(prelude)
 ###########
 
 def(MAX_BUFFERS, Size, 0x80)
-def-type(Buffer, Int)
-def(Int->Buffer, Int -- Buffer, id)
-def(Buffer->Int, Buffer -- Int, id)
+
+nominal(Buffer, Int)
+def(Int->Buffer, Int -- Buffer, cast)
+def(Buffer->Int, Buffer -- Int, cast)
 
 quad def-static-buffer(NUM_BUFFERS)
 def(num-buffers@, Size +Buffers, NUM_BUFFERS @)
@@ -23,24 +24,25 @@ MAX_BUFFERS quads dup
     def-static-buffer(BUFFER_BASE)
 
 def(buffer-size@, Buffer -- Size +Buffers,
-    BUFFER_SIZE quad@@)
+    Buffer->Int BUFFER_SIZE quad@@)
 
 def(buffer-size!, Size Buffer -- +Buffers,
-    BUFFER_SIZE quad!!)
+    Buffer->Int BUFFER_SIZE quad!!)
 
 def(buffer-alloc!, Size -- Buffer +Buffers,
     num-buffers@ MAX_BUFFERS >= if(
         "compiler error: ran out of buffers" panic!,
-        dup num-buffers@ buffer-size!
-        heap-alloc! num-buffers@ buffer-base!
-        num-buffers@ dup 1+ num-buffers!
+        dup heap-alloc!
+        num-buffers@ dup 1+ num-buffers! Int->Buffer
+        tuck buffer-base!
+        tuck buffer-size!
     ))
 
 def(buffer-base@, Buffer -- Ptr +Buffers,
-    BUFFER_BASE quad@@ Int->Ptr)
+    Buffer->Int BUFFER_BASE quad@@ Int->Ptr)
 
 def(buffer-base!, Ptr Buffer -- +Buffers,
-    dip(Ptr->Int) BUFFER_BASE quad!!)
+    dip(Ptr->Int) Buffer->Int BUFFER_BASE quad!!)
 
 
 ########

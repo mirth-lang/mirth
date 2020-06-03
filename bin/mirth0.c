@@ -5780,7 +5780,7 @@ void mwname_buffer_21_ (void){
 }
 
 void mwBuffer__3E_Int (void){
-    mwid();
+    mwcast();
 }
 
 void mwname_buffer_40_ (void){
@@ -5796,7 +5796,7 @@ void mwname_buffer_40_ (void){
 }
 
 void mwInt__3E_Buffer (void){
-    mwid();
+    mwcast();
 }
 
 void mwstrings_size_21_ (void){
@@ -8458,6 +8458,7 @@ void mwword_body_40_ (void){
 }
 
 void mwbuffer_base_40_ (void){
+    mwBuffer__3E_Int();
     mwBUFFER_BASE();
     mwquad_40__40_();
     mwInt__3E_Ptr();
@@ -8747,15 +8748,16 @@ void mwbuffer_alloc_21_ (void){
     mwpanic_21_();
     } else {
     mwdup();
-    mwnum_buffers_40_();
-    mwbuffer_size_21_();
     mwheap_alloc_21_();
-    mwnum_buffers_40_();
-    mwbuffer_base_21_();
     mwnum_buffers_40_();
     mwdup();
     mw1_2B_();
     mwnum_buffers_21_();
+    mwInt__3E_Buffer();
+    mwtuck();
+    mwbuffer_base_21_();
+    mwtuck();
+    mwbuffer_size_21_();
     }
 }
 
@@ -11243,11 +11245,13 @@ void mwnum_buffers_21_ (void){
 }
 
 void mwbuffer_size_40_ (void){
+    mwBuffer__3E_Int();
     mwBUFFER_SIZE();
     mwquad_40__40_();
 }
 
 void mwbuffer_size_21_ (void){
+    mwBuffer__3E_Int();
     mwBUFFER_SIZE();
     mwquad_21__21_();
 }
@@ -11272,6 +11276,7 @@ void mwbuffer_base_21_ (void){
     { i64 d1 = pop();
     mwPtr__3E_Int();
       push(d1); }
+    mwBuffer__3E_Int();
     mwBUFFER_BASE();
     mwquad_21__21_();
 }
