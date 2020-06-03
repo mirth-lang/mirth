@@ -1589,6 +1589,8 @@ void mwRUNNING_OS (void) {
  void mwname_buffer_40_ (void);
  void mwInt__3E_Buffer (void);
  void mwstrings_size_21_ (void);
+ void mwStringOffset__3E_Int (void);
+ void mwInt__3E_StringOffset (void);
  void mwMAX_STRINGS (void);
  void mwstrings_size_40_ (void);
  void mwstrings_push_21_ (void);
@@ -5802,6 +5804,14 @@ void mwstrings_size_21_ (void){
     mw_21_();
 }
 
+void mwStringOffset__3E_Int (void){
+    mwcast();
+}
+
+void mwInt__3E_StringOffset (void){
+    mwcast();
+}
+
 void mwMAX_STRINGS (void){
     push(16384);
 }
@@ -5846,6 +5856,7 @@ void mwstrings_save_21_ (void){
     push(0);
     mwInt__3E_U8();
     mwstrings_push_21_();
+    mwInt__3E_StringOffset();
 }
 
 void mwstrings_load_21_ (void){
@@ -6672,6 +6683,7 @@ void mwlexer_emit_string_21_ (void){
     }
     mwdrop();
     mwstrings_save_21_();
+    mwStringOffset__3E_Int();
     mwInt__3E_TokenValue();
     mwswap();
     mwtoken_value_21_();
