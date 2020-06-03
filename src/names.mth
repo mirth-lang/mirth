@@ -277,7 +277,8 @@ def(PRIM_I32, Prim, 66)
 def(PRIM_I64, Prim, 67)
 def(PRIM_MODULE, Prim, 68)
 def(PRIM_IMPORT, Prim, 69)
-def(NUM_PRIMS, Prim, 70)
+def(PRIM_NOMINAL, Prim, 70)
+def(NUM_PRIMS, Prim, 71)
 
 def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
 
@@ -374,10 +375,10 @@ def(init-names!, +Names,
     PRIM_I64 "I64" def-prim!
     PRIM_MODULE "module" def-prim!
     PRIM_IMPORT "import" def-prim!
+    PRIM_NOMINAL "nominal" def-prim!
     NUM_PRIMS num-names@ = if(id,
         "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
     )
-
 
 ########
 # Defs #

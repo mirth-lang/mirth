@@ -6,7 +6,7 @@ def(init-types!, --,
     0 NUM_METAS !
     0 NUM_TENSOR_TYPES !
     0 NUM_MORPHISM_TYPES !
-    0 NUM_NEWTYPES !
+    0 NUM_NOMINALS !
     TYPE_INT PRIM_INT name-type!
     TYPE_PTR PRIM_PTR name-type!
     TYPE_U8 PRIM_U8 name-type!
@@ -429,6 +429,7 @@ def(TYPE_TAG_VAR, Int, 1 TYPE_TAG_SHIFT <<)
 def(TYPE_TAG_META, Int, 2 TYPE_TAG_SHIFT <<)
 def(TYPE_TAG_TENSOR, Int, 3 TYPE_TAG_SHIFT <<)
 def(TYPE_TAG_MORPHISM, Int, 4 TYPE_TAG_SHIFT <<)
+def(TYPE_TAG_NOMINAL, Int, 5 TYPE_TAG_SHIFT <<)
 
 def(TYPE_VALUE_MASK, Int, 1 TYPE_TAG_SHIFT << 1-)
 
@@ -440,6 +441,8 @@ def(TTensor, TensorType -- Type,
     TensorType->Int TYPE_TAG_TENSOR | Int->Type)
 def(TMorphism, MorphismType -- Type,
     MorphismType->Int TYPE_TAG_MORPHISM | Int->Type)
+def(TNominal, Nominal -- Type,
+    Nominal->Int TYPE_TAG_NOMINAL | Int->Type)
 
 def(type-tag, Type -- Int, U32->Int TYPE_TAG_MASK &)
 def(type-is-prim, Type -- Bool, type-tag TYPE_TAG_PRIM =)
@@ -447,11 +450,13 @@ def(type-is-var, Type -- Bool, type-tag TYPE_TAG_VAR =)
 def(type-is-meta, Type -- Bool, type-tag TYPE_TAG_META =)
 def(type-is-tensor, Type -- Bool, type-tag TYPE_TAG_TENSOR =)
 def(type-is-morphism, Type -- Bool, type-tag TYPE_TAG_MORPHISM =)
+def(type-is-nominal, Type -- Bool, type-tag TYPE_TAG_NOMINAL =)
 def(type-is-prim?, Type -- Type Bool, dup type-is-prim)
 def(type-is-var?, Type -- Type Bool, dup type-is-var)
 def(type-is-meta?, Type -- Type Bool, dup type-is-meta)
 def(type-is-tensor?, Type -- Type Bool, dup type-is-tensor)
 def(type-is-morphism?, Type -- Type Bool, dup type-is-morphism)
+def(type-is-nominal?, Type -- Type Bool, dup type-is-nominal)
 
 def(type-is-stack-var, Type -- Bool,
     type-is-var? if(
@@ -481,9 +486,14 @@ def(type-get-morphism, Type -- MorphismType,
         "compiler error: tried to get morphism value on non-morphism type" panic!,
         type-get-value Int->MorphismType
     ))
+def(type-get-nominal, Type -- Nominal,
+    type-is-nominal? not if(
+        "compiler error: tried to get nominal value on non-nominal type" panic!,
+        type-get-value Int->Nominal
+    ))
 
 def(TYPE_ERROR, Type, 0 TPrim)
-def(TYPE_INT, Type, 1 TPrim) # generic integer type for integer literals)
+def(TYPE_INT, Type, 1 TPrim) # generic integer type for integer literals
 def(TYPE_PTR, Type, 2 TPrim) # generic pointer type (e.g. void*)
 def(TYPE_U8, Type, 3 TPrim) # fixed width integer type -- unsigned 8 bit
 def(TYPE_U16, Type, 4 TPrim) # fixed width integer type -- unsigned 16 bit
@@ -525,8 +535,11 @@ def(type-subst, Subst Type -- Subst Type,
         morphism-type-subst
         TMorphism,
 
+    type-is-nominal? if(
+        id, # no type args yet.
+
         "type-subst: unknown type" panic!
-    ))))))
+    )))))))
 
 
 # Unify two types. Raises an elaboration error if unification is impossible.
@@ -541,6 +554,12 @@ def(type-unify!, Type Type -- Type,
 
     over TYPE_ERROR = if(
         drop2 TYPE_ERROR,
+
+    swap type-is-meta? if(
+        type-get-meta meta-unify!,
+
+    swap type-is-meta? if(
+        type-get-meta meta-unify!,
 
     type-is-prim? if( # other than TYPE_ERROR, primitive types need to be exact matches.
         "failed to unify types" elab-emit-error! # FIXME: improve error messages
@@ -570,8 +589,12 @@ def(type-unify!, Type Type -- Type,
             drop2 TYPE_ERROR
         ),
 
+    type-is-nominal? if( # nominals need to be exact matches (for now)
+        "failed to unify types" elab-emit-error! # FIXME: improve error messages
+        drop2 TYPE_ERROR,
+
         "type-unify: unknown type" panic! drop
-    ))))))))
+    )))))))))))
 
 def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
     dup2 type-has-meta)
@@ -592,8 +615,11 @@ def(type-has-meta, MetaVar Type -- Bool,
     type-is-morphism? if(
         type-get-morphism morphism-type-has-meta,
 
+    type-is-nominal? if(
+        drop2 0,
+
         "type-has-meta: unknown type" panic! drop2 0
-    ))))))
+    )))))))
 
 
 def(type-trace-sig!, Type -- +IO,
@@ -654,8 +680,14 @@ def(type-trace!, Type -- +IO,
         type-trace-sig!
         "]" str-trace!,
 
+    type-is-nominal? if(
+        type-get-nominal
+        nominal-name@
+        name-load!
+        str-buf-trace!,
+
         "<UNKNOWN TYPE " str-trace! Type->Int int-trace! ">" str-trace!
-    ))))))
+    )))))))
 
 def(type-trace-prim!, Type -- +IO,
     dup TYPE_ERROR = if(
@@ -846,41 +878,33 @@ def(morphism-type-subst, Subst MorphismType -- Subst MorphismType,
     id) # TODO
 
 ############
-# Newtypes #
+# Nominals #
 ############
 
-def-type(Newtype, U16)
-def(Int->Newtype, Int -- Newtype, Int->U16)
-def(Newtype->Int, Newtype -- Int, U16->Int)
+def-type(Nominal, U16)
+def(Int->Nominal, Int -- Nominal, Int->U16)
+def(Nominal->Int, Nominal -- Int, U16->Int)
 
-def(MAX_NEWTYPES, Size, 1 12 <<)
-quad def-static-buffer(NUM_NEWTYPES)
-MAX_NEWTYPES u32s def-static-buffer(NEWTYPE_TYPE)
-MAX_NEWTYPES quads def-static-buffer(NEWTYPE_NAME)
-MAX_NEWTYPES quads def-static-buffer(NEWTYPE_PACK)
-MAX_NEWTYPES quads def-static-buffer(NEWTYPE_UNPACK)
+def(MAX_NOMINALS, Size, 1 12 <<)
+quad def-static-buffer(NUM_NOMINALS)
+MAX_NOMINALS u32s def-static-buffer(NOMINAL_TYPE)
+MAX_NOMINALS quads def-static-buffer(NOMINAL_NAME)
 
-def(newtype-type@, Newtype -- Type, Newtype->Int NEWTYPE_TYPE u32@@)
-def(newtype-name@, Newtype -- Name, Newtype->Int NEWTYPE_NAME quad@@)
-def(newtype-pack@, Newtype -- Name, Newtype->Int NEWTYPE_PACK quad@@)
-def(newtype-unpack@, Newtype -- Name, Newtype->Int NEWTYPE_UNPACK quad@@)
+def(nominal-type@, Nominal -- Type, Nominal->Int NOMINAL_TYPE u32@@)
+def(nominal-name@, Nominal -- Name, Nominal->Int NOMINAL_NAME quad@@)
 
-def(newtype-type!, Type Newtype --, Newtype->Int NEWTYPE_TYPE u32!!)
-def(newtype-name!, Name Newtype --, Newtype->Int NEWTYPE_NAME quad!!)
-def(newtype-pack!, Name Newtype --, Newtype->Int NEWTYPE_PACK quad!!)
-def(newtype-unpack!, Name Newtype --, Newtype->Int NEWTYPE_UNPACK quad!!)
+def(nominal-type!, Type Nominal --, Nominal->Int NOMINAL_TYPE u32!!)
+def(nominal-name!, Name Nominal --, Nominal->Int NOMINAL_NAME quad!!)
 
-def(newtype-alloc!, Size,
-    NUM_NEWTYPES @ dup 1+ NUM_NEWTYPES !
-    dup MAX_NEWTYPES >= if(
-        "NUM_NEWTYPES" panic!,
+def(nominal-alloc!, Size,
+    NUM_NOMINALS @ dup 1+ NUM_NOMINALS !
+    dup MAX_NOMINALS >= if(
+        "NUM_NOMINALS" panic!,
         id
     ))
 
-def(newtype-new!, Name Type -- Newtype,
-    newtype-alloc!
-    tuck newtype-type!
-    dup2 newtype-name!
-    over name-load! ".pack" str-buf-push-str! name-save! over newtype-pack!
-    swap name-load! ".unpack" str-buf-push-str! name-save! over newtype-unpack!)
+def(nominal-new!, Name Type -- Nominal,
+    nominal-alloc!
+    tuck nominal-type!
+    tuck nominal-name!)
 
