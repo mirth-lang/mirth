@@ -103,31 +103,18 @@ def(str-buf-zero!, --,
     0 6 STR_BUF quad!!
     0 7 STR_BUF quad!!)
 
-nominal(MaybeName, Int)
-def(MaybeName->Int, MaybeName -- Int, cast)
-def(Int->MaybeName, Int -- MaybeName, cast)
-def(maybe-name@@, Int Ptr -- MaybeName, quad@@ Int->MaybeName)
-def(maybe-name!!, MaybeName Int Ptr --, dip(dip(MaybeName->Int)) quad!!)
-
-def(MaybeName.None, MaybeName, 0 Int->MaybeName)
-def(MaybeName.Some, Name -- MaybeName, Name->Int 1+ Int->MaybeName)
-def(maybe-name-is-name, MaybeName -- Bool, MaybeName->Int 0 >)
-def(maybe-name-is-name?, MaybeName -- MaybeName Bool, dup maybe-name-is-name)
-def(maybe-name-unwrap, MaybeName -- Name,
-    maybe-name-is-name? not if(
-        "compiler error: attempted to get Name from empty MaybeName" panic!,
-        MaybeName->Int 1- Int->Name
-    ))
-
-def(name-table@, Hash -- MaybeName, NAME_TABLE maybe-name@@)
-def(name-table!, MaybeName Hash --, NAME_TABLE maybe-name!!)
+def(name-table@, Hash -- Name, NAME_TABLE quad@@ Int->Name)
+def(name-table!, Name Hash --, dip(Name->Int) NAME_TABLE quad!!)
 def(next-hash, Hash -- Hash, 1+ NAME_HASH_MAX &)
+
+def(name-is-error, Name -- Bool, NAME_ERROR =)
+def(name-is-error?, Name -- Name Bool, dup name-is-error)
 
 def(name-save-keep-going?, Hash -- Hash Bool,
     dup name-table@
-    maybe-name-is-name? if(
-        maybe-name-unwrap name-quads-eq not,
-        drop 0
+    name-is-error? if(
+        drop 0,
+        name-quads-eq not
     ))
 
 # Load STR_BUF into name table. Performs deduplication.
@@ -135,12 +122,12 @@ def(name-save!, -- Name,
     STR_BUF hash
     while(name-save-keep-going?, next-hash)
     dup name-table@
-    maybe-name-is-name? if(
-        nip maybe-name-unwrap,
+    name-is-error? if(
         drop
         num-names@ dup 1+ num-names! Int->Name
-        dup dip(MaybeName.Some swap name-table!)
-        dup name-quads-save!
+        dup dip(swap name-table!)
+        dup name-quads-save!,
+        nip
     ))
 
 quad def-static-buffer(name-bytes)
@@ -230,9 +217,9 @@ def(str-buf-push-hexdigit!, Char -- +StrBuf,
 # Primitive Names #
 ###################
 
-def-type(Prim, Name)
 def(NAME_ERROR, Name, 0 Int->Name)
-def(PRIM_ERROR, Prim, 0 Int->Name)
+
+def-type(Prim, Name)
 def(PRIM_ID, Prim, 1 Int->Name)
 def(PRIM_DUP, Prim, 2 Int->Name)
 def(PRIM_DROP, Prim, 3 Int->Name)
@@ -329,8 +316,7 @@ def(init-names!, +Names,
         0 over name-value!
     ) drop
 
-    0 num-names!
-    PRIM_ERROR "<error>" def-prim!
+    1 num-names!
     PRIM_ID "id" def-prim!
     PRIM_DUP "dup" def-prim!
     PRIM_DROP "drop" def-prim!
