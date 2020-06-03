@@ -126,7 +126,7 @@ def(c99-emit-strings!, +IO,
 def(c99-emit-buffers!, +IO,
     0
     while(dup num-names@ <,
-        dup c99-emit-buffer!
+        dup Int->Name c99-emit-buffer!
         1+)
     .lf drop)
 
@@ -474,7 +474,7 @@ def(c99-emit-prims!, +IO,
 def(c99-emit-externals!, +IO,
     0
     while(dup num-names@ <,
-        dup c99-emit-external!
+        dup Int->Name c99-emit-external!
         1+)
     .lf drop)
 
@@ -530,7 +530,7 @@ def(c99-emit-external!, Name -- +IO,
 def(c99-emit-word-sigs!, +IO,
     0
     while(dup num-names@ <,
-        dup c99-emit-word-sig!
+        dup Int->Name c99-emit-word-sig!
         1+
     )
     "" ;
@@ -545,7 +545,7 @@ def(c99-emit-word-sig!, Name -- +IO,
 def(c99-emit-word-defs!, +IO,
     0
     while(dup num-names@ <,
-        dup c99-emit-word-def!
+        dup Int->Name c99-emit-word-def!
         1+)
     drop)
 

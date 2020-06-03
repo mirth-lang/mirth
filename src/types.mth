@@ -31,7 +31,7 @@ def(Ctx->Int, Ctx -- Int, U16->Int)
 def(Int->Ctx, Int -- Ctx, Int->U16)
 
 def(MAX_CTX, Size, 0x1000)
-def(CTX_SIZE, Size, 8)
+def(CTX_SIZE, Size, 12)
 
 quad def-static-buffer(NUM_CTX)
 MAX_CTX CTX_SIZE * i16s def-static-buffer(CTX_BUF)
@@ -43,15 +43,15 @@ def(ctx-base&, Ctx -- Ptr,
         U16->Int Int->Ptr
     ))
 def(ctx-prev&, Ctx -- Ptr, ctx-base&)
-def(ctx-name&, Ctx -- Ptr, ctx-base& 2 +)
-def(ctx-sort&, Ctx -- Ptr, ctx-base& 4 +)
+def(ctx-name&, Ctx -- Ptr, ctx-base& 4 +)
+def(ctx-sort&, Ctx -- Ptr, ctx-base& 8 +)
 
 def(ctx-prev@, Ctx -- Ctx, ctx-prev& u16@)
-def(ctx-name@, Ctx -- Name, ctx-name& u16@ U16->Int)
+def(ctx-name@, Ctx -- Name, ctx-name& u32@ U32->Name)
 def(ctx-sort@, Ctx -- Sort, ctx-sort& u32@)
 
 def(ctx-prev!, Ctx Ctx --, ctx-prev& u16!)
-def(ctx-name!, Name Ctx --, dip(Int->U16) ctx-name& u16!)
+def(ctx-name!, Name Ctx --, dip(Name->U32) ctx-name& u32!)
 def(ctx-sort!, Sort Ctx --, ctx-sort& u32!)
 
 def(ctx-alloc!, Ctx,
@@ -434,7 +434,7 @@ def(TYPE_TAG_NOMINAL, Int, 5 TYPE_TAG_SHIFT <<)
 def(TYPE_VALUE_MASK, Int, 1 TYPE_TAG_SHIFT << 1-)
 
 def(TPrim, Int -- Type, TYPE_TAG_PRIM | Int->Type)
-def(TVar, Name -- Type, TYPE_TAG_VAR | Int->Type)
+def(TVar, Name -- Type, Name->Int TYPE_TAG_VAR | Int->Type) # dangerous...
 def(TMeta, MetaVar -- Type,
     MetaVar->Int TYPE_TAG_META | Int->Type)
 def(TTensor, TensorType -- Type,
@@ -469,7 +469,7 @@ def(type-get-value, Type -- Int, U32->Int TYPE_VALUE_MASK &)
 def(type-get-var, Type -- Name,
     type-is-var? not if(
         "compiler error: tried to get var value on non-var type" panic!,
-        type-get-value
+        type-get-value Int->Name
     ))
 def(type-get-meta, Type -- MetaVar,
     type-is-meta? not if(
@@ -891,10 +891,10 @@ MAX_NOMINALS u32s def-static-buffer(NOMINAL_TYPE)
 MAX_NOMINALS quads def-static-buffer(NOMINAL_NAME)
 
 def(nominal-type@, Nominal -- Type, Nominal->Int NOMINAL_TYPE u32@@)
-def(nominal-name@, Nominal -- Name, Nominal->Int NOMINAL_NAME quad@@)
+def(nominal-name@, Nominal -- Name, Nominal->Int NOMINAL_NAME quad@@ Int->Name)
 
 def(nominal-type!, Type Nominal --, Nominal->Int NOMINAL_TYPE u32!!)
-def(nominal-name!, Name Nominal --, Nominal->Int NOMINAL_NAME quad!!)
+def(nominal-name!, Name Nominal --, dip(Name->Int) Nominal->Int NOMINAL_NAME quad!!)
 
 def(nominal-alloc!, Size,
     NUM_NOMINALS @ dup 1+ NUM_NOMINALS !

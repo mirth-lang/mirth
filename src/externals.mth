@@ -31,8 +31,8 @@ MAX_EXTERNALS EXTERNAL_METADATA_SIZE * def-static-buffer(EXTERNAL_METADATA_BUF)
 def(external-metadata&, External -- Ptr, External->Int EXTERNAL_METADATA_SIZE * EXTERNAL_METADATA_BUF +)
 
 def(external-name&, External -- Ptr, external-metadata&)
-def(external-name@, External -- Name, external-name& u32@ U32->Int)
-def(external-name!, Name External --, dip(Int->U32) external-name& u32!)
+def(external-name@, External -- Name, external-name& u32@ U32->Name)
+def(external-name!, Name External --, dip(Name->U32) external-name& u32!)
 
 def(external-sig&, External -- Ptr, external-metadata& 4 +)
 def(external-sig@, External -- Token, external-sig& u32@ U32->Int)

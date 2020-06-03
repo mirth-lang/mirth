@@ -162,8 +162,8 @@ def(elab-word-sig!, Word -- Type +Elab,
 def-type(Stash, Int)
 
 MAX_NAMES def-static-buffer(DEF_CHECKED)
-def(name-checked!, Bool Name --, dip(Int->U8) DEF_CHECKED u8!!)
-def(name-checked@, Name -- Bool, DEF_CHECKED u8@@ U8->Int)
+def(name-checked!, Bool Name --, dip(Int->U8) Name->Int DEF_CHECKED u8!!)
+def(name-checked@, Name -- Bool, Name->Int DEF_CHECKED u8@@ U8->Int)
 def(name-checked?, Name -- Name Bool, dup name-checked@)
 
 def(TSTACK_SIZE, Size, VSTACK_SIZE)

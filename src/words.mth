@@ -34,8 +34,8 @@ MAX_WORDS WORD_METADATA_SIZE * def-static-buffer(WORD_METADATA_BUF)
 def(word-metadata&, Word -- Ptr, Word->Int WORD_METADATA_SIZE * WORD_METADATA_BUF +)
 
 def(word-name&, Word -- Ptr, word-metadata&)
-def(word-name@, Word -- Name, word-name& u32@ U32->Int)
-def(word-name!, Name Word --, dip(Int->U32) word-name& u32!)
+def(word-name@, Word -- Name, word-name& u32@ U32->Name)
+def(word-name!, Name Word --, dip(Name->U32) word-name& u32!)
 
 def(word-sig&, Word -- Ptr, word-metadata& 4 +)
 def(word-sig@, Word -- Token, word-sig& u32@ U32->Int)

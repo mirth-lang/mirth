@@ -5,7 +5,12 @@ import(prelude)
 # Names #
 #########
 
-def-type(Name, Int)
+nominal(Name, Int)
+def(Name->Int, Name -- Int, cast)
+def(Int->Name, Int -- Name, cast)
+def(Name->U32, Name -- U32, Name->Int Int->U32)
+def(U32->Name, U32 -- Name, U32->Int Int->Name)
+
 def-type(Hash, Int)
 
 def(MAX_NAMES, Size, 0x1000)
@@ -29,10 +34,13 @@ def(name-load!, Name --,
     NAME_SIZE str-buf-length!
     STR_BUF str-length str-buf-length!)
 
+def(name-quads&, Name -- Ptr,
+    Name->Int NAME_SIZE * NAME_BUF +)
+
 # Compare all quads in name to STR_BUF.
 # Note this code assumes NAME_QUADS is 8.
 def(name-quads-eq, Name -- Bool,
-    NAME_SIZE * NAME_BUF +
+    name-quads&
     0 over quad@@ 0 STR_BUF quad@@ = if(
     1 over quad@@ 1 STR_BUF quad@@ = if(
     2 over quad@@ 2 STR_BUF quad@@ = if(
@@ -53,13 +61,13 @@ def(hash, Ptr -- Hash,
     NAME_HASH_MAX &)
 
 def(name-hash, Name -- Hash,
-    NAME_SIZE * NAME_BUF + hash)
+    name-quads& hash)
 
 def(name-quads-eq?, Name -- Name Bool,
     dup name-quads-eq)
 
 def(name-quad-save!, Name Int --,
-    dip(NAME_SIZE * NAME_BUF +) tuck
+    dip(name-quads&) tuck
     STR_BUF quad@@ rotr quad!!)
 
 def(name-quads-save!, Name -- ,
@@ -73,7 +81,7 @@ def(name-quads-save!, Name -- ,
     7 name-quad-save!)
 
 def(name-quads-load!, Name --,
-    NAME_SIZE * NAME_BUF +
+    name-quads&
     0 over quad@@ 0 STR_BUF quad!!
     1 over quad@@ 1 STR_BUF quad!!
     2 over quad@@ 2 STR_BUF quad!!
@@ -81,7 +89,8 @@ def(name-quads-load!, Name --,
     4 over quad@@ 4 STR_BUF quad!!
     5 over quad@@ 5 STR_BUF quad!!
     6 over quad@@ 6 STR_BUF quad!!
-    7 swap quad@@ 7 STR_BUF quad!!)
+    7 over quad@@ 7 STR_BUF quad!!
+    drop)
 
 # zero str-buf up to NAME_SIZE
 def(str-buf-zero!, --,
@@ -94,16 +103,31 @@ def(str-buf-zero!, --,
     0 6 STR_BUF quad!!
     0 7 STR_BUF quad!!)
 
+nominal(MaybeName, Int)
+def(MaybeName->Int, MaybeName -- Int, cast)
+def(Int->MaybeName, Int -- MaybeName, cast)
+def(maybe-name@@, Int Ptr -- MaybeName, quad@@ Int->MaybeName)
+def(maybe-name!!, MaybeName Int Ptr --, dip(dip(MaybeName->Int)) quad!!)
 
-def(name-table@, Hash -- Name, NAME_TABLE quad@@ 1-)
-def(name-table!, Name Hash --, dip(1+) NAME_TABLE quad!!)
+def(MaybeName.None, MaybeName, 0 Int->MaybeName)
+def(MaybeName.Some, Name -- MaybeName, Name->Int 1+ Int->MaybeName)
+def(maybe-name-is-name, MaybeName -- Bool, MaybeName->Int 0 >)
+def(maybe-name-is-name?, MaybeName -- MaybeName Bool, dup maybe-name-is-name)
+def(maybe-name-unwrap, MaybeName -- Name,
+    maybe-name-is-name? not if(
+        "compiler error: attempted to get Name from empty MaybeName" panic!,
+        MaybeName->Int 1- Int->Name
+    ))
+
+def(name-table@, Hash -- MaybeName, NAME_TABLE maybe-name@@)
+def(name-table!, MaybeName Hash --, NAME_TABLE maybe-name!!)
 def(next-hash, Hash -- Hash, 1+ NAME_HASH_MAX &)
 
 def(name-save-keep-going?, Hash -- Hash Bool,
     dup name-table@
-    dup 0 < if(
-        drop 0,
-        name-quads-eq not
+    maybe-name-is-name? if(
+        maybe-name-unwrap name-quads-eq not,
+        drop 0
     ))
 
 # Load STR_BUF into name table. Performs deduplication.
@@ -111,12 +135,12 @@ def(name-save!, -- Name,
     STR_BUF hash
     while(name-save-keep-going?, next-hash)
     dup name-table@
-    dup 0 < if(
+    maybe-name-is-name? if(
+        nip maybe-name-unwrap,
         drop
-        num-names@ swap name-table!
-        num-names@ name-quads-save!
-        num-names@ dup 1+ num-names!,
-        nip
+        num-names@ dup 1+ num-names! Int->Name
+        dup dip(MaybeName.Some swap name-table!)
+        dup name-quads-save!
     ))
 
 quad def-static-buffer(name-bytes)
@@ -126,10 +150,10 @@ def(show-names-table!, +Names +IO,
     while(dup num-names@ <,
         dup int-print!
         ": " str-print!
-        dup name-load!
+        dup Int->Name name-load!
         str-buf-length? name-bytes @ + 1+ name-bytes !
         str-buf-print! print-sp!
-        dup name-hash int-print! print-ln!
+        dup Int->Name name-hash int-print! print-ln!
         1+
     )
     drop
@@ -137,23 +161,23 @@ def(show-names-table!, +Names +IO,
     name-bytes @ int-print-ln!)
 
 def(name-could-be-type, Name -- Bool,
-    NAME_SIZE * NAME_BUF u8@@ is-alpha? nip)
+    name-quads& u8@ is-alpha? nip)
 
 def(name-could-be-type-var, Name -- Bool,
-    NAME_SIZE * NAME_BUF u8@@ is-lower? nip)
+    name-quads& u8@ is-lower? nip)
 
 def(name-could-be-type-con, Name -- Bool,
-    NAME_SIZE * NAME_BUF u8@@ is-upper? nip)
+    name-quads& u8@ is-upper? nip)
 
 def(name-could-be-stack-var, Name -- Bool,
-    NAME_SIZE * dup NAME_BUF u8@@ is-asterisk? nip if(
-        1+ NAME_BUF u8@@ is-lower? nip,
+    name-quads& dup u8@ is-asterisk? nip if(
+        str-tail u8@ is-lower? nip,
         drop 0
     ))
 
 def(name-could-be-effect-con, Name -- Bool,
-    NAME_SIZE * dup NAME_BUF u8@@ is-plus-sign? nip if(
-        1+ NAME_BUF u8@@ is-upper? nip,
+    name-quads& dup u8@ is-plus-sign? nip if(
+        str-tail u8@ is-upper? nip,
         drop 0
     ))
 
@@ -162,11 +186,11 @@ def(name-print-mangled!, Name -- +IO,
 
 def(name-mangle!, Name -- +StrBuf,
     str-buf-clear!
-    NAME_SIZE * 0
+    name-quads& 0
     while(dup NAME_SIZE <,
-        over NAME_BUF u8@@
+        over u8@
         str-buf-push-mangled!
-        dip(1+) 1+)
+        dip(str-tail) 1+)
     drop2)
 
 def(str-buf-push-mangled!, Char -- +StrBuf,
@@ -207,80 +231,81 @@ def(str-buf-push-hexdigit!, Char -- +StrBuf,
 ###################
 
 def-type(Prim, Name)
-def(PRIM_END, Prim, 0)
-def(PRIM_ID, Prim, 1)
-def(PRIM_DUP, Prim, 2)
-def(PRIM_DROP, Prim, 3)
-def(PRIM_SWAP, Prim, 4)
-def(PRIM_DIP, Prim, 5)
-def(PRIM_IF, Prim, 6)
-def(PRIM_WHILE, Prim, 7)
-def(PRIM_INT_ADD, Prim, 8)
-def(PRIM_INT_SUB, Prim, 9)
-def(PRIM_INT_MUL, Prim, 10)
-def(PRIM_INT_DIV, Prim, 11)
-def(PRIM_INT_MOD, Prim, 12)
-def(PRIM_INT_EQ, Prim, 13)
-def(PRIM_INT_LT, Prim, 14)
-def(PRIM_INT_LE, Prim, 15)
-def(PRIM_INT_AND, Prim, 16)
-def(PRIM_INT_OR, Prim, 17)
-def(PRIM_INT_XOR, Prim, 18)
-def(PRIM_INT_SHL, Prim, 19)
-def(PRIM_INT_SHR, Prim, 20)
-def(PRIM_MEM_GET, Prim, 21)
-def(PRIM_MEM_SET, Prim, 22)
-def(PRIM_MEM_GET_BYTE, Prim, 23)
-def(PRIM_MEM_SET_BYTE, Prim, 24)
-def(PRIM_MEM_GET_U8, Prim, 25)
-def(PRIM_MEM_SET_U8, Prim, 26)
-def(PRIM_MEM_GET_U16, Prim, 27)
-def(PRIM_MEM_SET_U16, Prim, 28)
-def(PRIM_MEM_GET_U32, Prim, 29)
-def(PRIM_MEM_SET_U32, Prim, 30)
-def(PRIM_MEM_GET_U64, Prim, 31)
-def(PRIM_MEM_SET_U64, Prim, 32)
-def(PRIM_MEM_GET_I8, Prim, 33)
-def(PRIM_MEM_SET_I8, Prim, 34)
-def(PRIM_MEM_GET_I16, Prim, 35)
-def(PRIM_MEM_SET_I16, Prim, 36)
-def(PRIM_MEM_GET_I32, Prim, 37)
-def(PRIM_MEM_SET_I32, Prim, 38)
-def(PRIM_MEM_GET_I64, Prim, 39)
-def(PRIM_MEM_SET_I64, Prim, 40)
-def(PRIM_POSIX_READ, Prim, 41)
-def(PRIM_POSIX_WRITE, Prim, 42)
-def(PRIM_POSIX_OPEN, Prim, 43)
-def(PRIM_POSIX_CLOSE, Prim, 44)
-def(PRIM_POSIX_EXIT, Prim, 45)
-def(PRIM_POSIX_MMAP, Prim, 46)
-def(PRIM_DEBUG, Prim, 47)
-def(PRIM_MIRTH_REVISION, Prim, 48)
-def(PRIM_RUNNING_OS, Prim, 49)
-def(PRIM_DEF, Prim, 50)
-def(PRIM_DEF_TYPE, Prim, 51)
-def(PRIM_DEF_STATIC_BUFFER, Prim, 52)
-def(PRIM_DEF_EXTERNAL, Prim, 53)
-def(PRIM_OUTPUT_ASM, Prim, 54)
-def(PRIM_OUTPUT_C99, Prim, 55)
-def(PRIM_DASHES, Prim, 56)
-def(PRIM_ARROW, Prim, 57)
-def(PRIM_INT, Prim, 58)
-def(PRIM_PTR, Prim, 59)
-def(PRIM_U8, Prim, 60)
-def(PRIM_U16, Prim, 61)
-def(PRIM_U32, Prim, 62)
-def(PRIM_U64, Prim, 63)
-def(PRIM_I8, Prim, 64)
-def(PRIM_I16, Prim, 65)
-def(PRIM_I32, Prim, 66)
-def(PRIM_I64, Prim, 67)
-def(PRIM_MODULE, Prim, 68)
-def(PRIM_IMPORT, Prim, 69)
-def(PRIM_NOMINAL, Prim, 70)
-def(NUM_PRIMS, Prim, 71)
+def(NAME_ERROR, Name, 0 Int->Name)
+def(PRIM_ERROR, Prim, 0 Int->Name)
+def(PRIM_ID, Prim, 1 Int->Name)
+def(PRIM_DUP, Prim, 2 Int->Name)
+def(PRIM_DROP, Prim, 3 Int->Name)
+def(PRIM_SWAP, Prim, 4 Int->Name)
+def(PRIM_DIP, Prim, 5 Int->Name)
+def(PRIM_IF, Prim, 6 Int->Name)
+def(PRIM_WHILE, Prim, 7 Int->Name)
+def(PRIM_INT_ADD, Prim, 8 Int->Name)
+def(PRIM_INT_SUB, Prim, 9 Int->Name)
+def(PRIM_INT_MUL, Prim, 10 Int->Name)
+def(PRIM_INT_DIV, Prim, 11 Int->Name)
+def(PRIM_INT_MOD, Prim, 12 Int->Name)
+def(PRIM_INT_EQ, Prim, 13 Int->Name)
+def(PRIM_INT_LT, Prim, 14 Int->Name)
+def(PRIM_INT_LE, Prim, 15 Int->Name)
+def(PRIM_INT_AND, Prim, 16 Int->Name)
+def(PRIM_INT_OR, Prim, 17 Int->Name)
+def(PRIM_INT_XOR, Prim, 18 Int->Name)
+def(PRIM_INT_SHL, Prim, 19 Int->Name)
+def(PRIM_INT_SHR, Prim, 20 Int->Name)
+def(PRIM_MEM_GET, Prim, 21 Int->Name)
+def(PRIM_MEM_SET, Prim, 22 Int->Name)
+def(PRIM_MEM_GET_BYTE, Prim, 23 Int->Name)
+def(PRIM_MEM_SET_BYTE, Prim, 24 Int->Name)
+def(PRIM_MEM_GET_U8, Prim, 25 Int->Name)
+def(PRIM_MEM_SET_U8, Prim, 26 Int->Name)
+def(PRIM_MEM_GET_U16, Prim, 27 Int->Name)
+def(PRIM_MEM_SET_U16, Prim, 28 Int->Name)
+def(PRIM_MEM_GET_U32, Prim, 29 Int->Name)
+def(PRIM_MEM_SET_U32, Prim, 30 Int->Name)
+def(PRIM_MEM_GET_U64, Prim, 31 Int->Name)
+def(PRIM_MEM_SET_U64, Prim, 32 Int->Name)
+def(PRIM_MEM_GET_I8, Prim, 33 Int->Name)
+def(PRIM_MEM_SET_I8, Prim, 34 Int->Name)
+def(PRIM_MEM_GET_I16, Prim, 35 Int->Name)
+def(PRIM_MEM_SET_I16, Prim, 36 Int->Name)
+def(PRIM_MEM_GET_I32, Prim, 37 Int->Name)
+def(PRIM_MEM_SET_I32, Prim, 38 Int->Name)
+def(PRIM_MEM_GET_I64, Prim, 39 Int->Name)
+def(PRIM_MEM_SET_I64, Prim, 40 Int->Name)
+def(PRIM_POSIX_READ, Prim, 41 Int->Name)
+def(PRIM_POSIX_WRITE, Prim, 42 Int->Name)
+def(PRIM_POSIX_OPEN, Prim, 43 Int->Name)
+def(PRIM_POSIX_CLOSE, Prim, 44 Int->Name)
+def(PRIM_POSIX_EXIT, Prim, 45 Int->Name)
+def(PRIM_POSIX_MMAP, Prim, 46 Int->Name)
+def(PRIM_DEBUG, Prim, 47 Int->Name)
+def(PRIM_MIRTH_REVISION, Prim, 48 Int->Name)
+def(PRIM_RUNNING_OS, Prim, 49 Int->Name)
+def(PRIM_DEF, Prim, 50 Int->Name)
+def(PRIM_DEF_TYPE, Prim, 51 Int->Name)
+def(PRIM_DEF_STATIC_BUFFER, Prim, 52 Int->Name)
+def(PRIM_DEF_EXTERNAL, Prim, 53 Int->Name)
+def(PRIM_OUTPUT_ASM, Prim, 54 Int->Name)
+def(PRIM_OUTPUT_C99, Prim, 55 Int->Name)
+def(PRIM_DASHES, Prim, 56 Int->Name)
+def(PRIM_ARROW, Prim, 57 Int->Name)
+def(PRIM_INT, Prim, 58 Int->Name)
+def(PRIM_PTR, Prim, 59 Int->Name)
+def(PRIM_U8, Prim, 60 Int->Name)
+def(PRIM_U16, Prim, 61 Int->Name)
+def(PRIM_U32, Prim, 62 Int->Name)
+def(PRIM_U64, Prim, 63 Int->Name)
+def(PRIM_I8, Prim, 64 Int->Name)
+def(PRIM_I16, Prim, 65 Int->Name)
+def(PRIM_I32, Prim, 66 Int->Name)
+def(PRIM_I64, Prim, 67 Int->Name)
+def(PRIM_MODULE, Prim, 68 Int->Name)
+def(PRIM_IMPORT, Prim, 69 Int->Name)
+def(PRIM_NOMINAL, Prim, 70 Int->Name)
+def(NUM_PRIMS, Size, 71)
 
-def(name-is-prim?, Name -- Name Bool, dup NUM_PRIMS <)
+def(name-is-prim?, Name -- Name Bool, dup Name->Int NUM_PRIMS <)
 
 def(def-prim!, Prim Str -- +Names,
     str-buf-zero! str-buf! name-save! swap
@@ -305,7 +330,7 @@ def(init-names!, +Names,
     ) drop
 
     0 num-names!
-    PRIM_END "end" def-prim!
+    PRIM_ERROR "<error>" def-prim!
     PRIM_ID "id" def-prim!
     PRIM_DUP "dup" def-prim!
     PRIM_DROP "drop" def-prim!
@@ -398,12 +423,12 @@ MAX_NAMES u8s def-static-buffer(DEF_SORT)
 MAX_NAMES quads def-static-buffer(DEF_VALUE)
 MAX_NAMES u32s def-static-buffer(NAME_TYPE_BUF)
 
-def(name-sort!, NameSort Name --, DEF_SORT u8!!)
-def(name-sort@, Name -- NameSort, DEF_SORT u8@@)
+def(name-sort!, NameSort Name --, Name->Int DEF_SORT u8!!)
+def(name-sort@, Name -- NameSort, Name->Int DEF_SORT u8@@)
 def(name-sort?, Name -- Name NameSort, dup name-sort@)
 
-def(name-value!, Value Name --, DEF_VALUE quad!!)
-def(name-value@, Name -- Value, DEF_VALUE quad@@)
+def(name-value!, Value Name --, Name->Int DEF_VALUE quad!!)
+def(name-value@, Name -- Value, Name->Int DEF_VALUE quad@@)
 def(name-value?, Name -- Name Value, dup name-value@)
 
 def(name-sig@, Name -- Token,
@@ -414,6 +439,7 @@ def(name-sig@, Name -- Token,
         name-external@ external-sig@,
 
         "compiler error: attempted to get name-sig for non-word, non-external name" panic!
+        drop 0
     )))
 
 def(name-sig?, Name -- Name Token, dup name-sig@)
@@ -433,7 +459,7 @@ def(name-type@, Name -- Type,
     name-is-type? if(
         name-value@ Int->Type,
         "compiler error: attempted to get type definition for non-type name" panic!
-        Int->Type
+        drop TYPE_ERROR
     ))
 
 def(name-word!, Word Name --,
@@ -443,7 +469,7 @@ def(name-word@, Name -- Word,
     name-is-word? if(
         name-value@ Int->Word,
         "compiler error: attempted to get word definition for non-word name" panic!
-        Int->Word
+        drop 0 Int->Word
     ))
 
 def(name-external!, External Name --,
@@ -453,7 +479,7 @@ def(name-external@, Name -- External,
     name-is-external? if(
         name-value@ Int->External,
         "compiler error: attempted to get external definition for non-external name" panic!
-        Int->External
+        drop 0 Int->External
     ))
 
 def(name-buffer!, Buffer Name --,
@@ -463,6 +489,6 @@ def(name-buffer@, Name -- Buffer,
     name-is-buffer? if(
         name-value@ Int->Buffer,
         "compiler error: attempted to get buffer definition for non-buffer name" panic!
-        Int->Buffer
+        drop 0 Int->Buffer
     ))
 
