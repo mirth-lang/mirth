@@ -5,7 +5,17 @@ import(paths)
 def(init-modules!, --,
     0 num-modules!)
 
-def-type(Module, U16)
+nominal(Module, Int)
+def(Module->Int, Module -- Int, cast)
+def(Int->Module, Int -- Module, cast)
+def(Module->U16, Module -- U16, Module->Int Int->U16)
+def(U16->Module, U16 -- Module, U16->Int Int->Module)
+
+def(|Module|, Size, 2)
+def(module@, Ptr -- Module, u16@ U16->Module)
+def(module!, Module Ptr --, dip(Module->U16) u16!)
+def(module@@, Int Ptr -- Module, u16@@ U16->Module)
+def(module!!, Module Int Ptr --, dip(dip(Module->U16)) u16!!)
 
 def(MAX_MODULES, Size, 0x100)
 def(MODULE_PATH_SIZE, Size, 0x200)
@@ -21,24 +31,24 @@ MAX_MODULES quads dup
 def(num-modules@, -- Size, NUM_MODULES @)
 def(num-modules!, Size --, NUM_MODULES !)
 def(alloc-module!, Module,
-    num-modules@ dup 1+
-    dup MAX_MODULES <= if(
-        num-modules! Int->U16,
-        "ran out of space to store module path" panic! drop Int->U16
+    num-modules@ dup 1+ num-modules!
+    dup MAX_MODULES >= if(
+        "ran out of space to store module path" panic!,
+        Int->Module
     ))
 
 def(new-module!, Path -- Module,
     alloc-module! dup dip(module-path!))
 
 def(module-start?, Module -- Module Token, dup module-start@)
-def(module-start@, Module -- Token, U16->Int MODULE_START quad@@)
-def(module-start!, Token Module --, U16->Int MODULE_START quad!!)
+def(module-start@, Module -- Token, Module->Int MODULE_START quad@@)
+def(module-start!, Token Module --, Module->Int MODULE_START quad!!)
 
 def(module-end?, Module -- Module Token, dup module-end@)
-def(module-end@, Module -- Token, U16->Int MODULE_END quad@@)
-def(module-end!, Token Module --, U16->Int MODULE_END quad!!)
+def(module-end@, Module -- Token, Module->Int MODULE_END quad@@)
+def(module-end!, Token Module --, Module->Int MODULE_END quad!!)
 
-def(module-path@, Module -- Path, U16->Int MODULE_PATH_SIZE * MODULE_PATH_BUF +)
+def(module-path@, Module -- Path, Module->Int MODULE_PATH_SIZE * MODULE_PATH_BUF +)
 def(module-path?, Module -- Module Path, dup module-path@)
 def(module-path!, Path Module --,
     over str-length 1+ MODULE_PATH_SIZE <= if(

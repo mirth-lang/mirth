@@ -10,9 +10,9 @@ def(init-externals!, --,
 # EXTERNALS #
 #############
 
-def-type(External, U16)
-def(External->Int, External -- Int, U16->Int)
-def(Int->External, Int -- External, Int->U16)
+nominal(External, Int)
+def(External->Int, External -- Int, cast)
+def(Int->External, Int -- External, cast)
 
 def(MAX_EXTERNALS, Size, 0x1000)
 quad def-static-buffer(NUM_EXTERNALS)

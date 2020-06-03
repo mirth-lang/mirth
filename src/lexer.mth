@@ -9,9 +9,9 @@ import(tokens)
 # LEXER #
 #########
 
-u16 def-static-buffer(LEXER_MODULE)
-def(lexer-module@, -- Module +Lexer, LEXER_MODULE u16@)
-def(lexer-module!, Module -- +Lexer, LEXER_MODULE u16!)
+|Module| def-static-buffer(LEXER_MODULE)
+def(lexer-module@, -- Module +Lexer, LEXER_MODULE module@)
+def(lexer-module!, Module -- +Lexer, LEXER_MODULE module!)
 
 u16 def-static-buffer(LEXER_ROW)
 def(lexer-row@, -- Row +Lexer, LEXER_ROW u16@)

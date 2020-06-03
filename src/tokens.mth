@@ -88,9 +88,9 @@ def(token-token@, Token -- Token,
     )))
 def(token-token?, Token -- Token Token, dup token-token@)
 
-MAX_TOKENS u16s def-static-buffer(TOKEN_MODULE)
-def(token-module!, Module Token --, TOKEN_MODULE u16!!)
-def(token-module@, Token -- Module, TOKEN_MODULE u16@@)
+MAX_TOKENS |Module| * def-static-buffer(TOKEN_MODULE)
+def(token-module!, Module Token --, TOKEN_MODULE module!!)
+def(token-module@, Token -- Module, TOKEN_MODULE module@@)
 def(token-module?, Token -- Token Module, dup token-module@)
 
 MAX_TOKENS u16s def-static-buffer(TOKEN_ROW)
