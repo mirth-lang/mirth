@@ -7,16 +7,16 @@ def(init-types!, --,
     0 NUM_TENSOR_TYPES !
     0 NUM_MORPHISM_TYPES !
     0 NUM_NOMINALS !
-    TYPE_INT PRIM_INT name-type!
-    TYPE_PTR PRIM_PTR name-type!
-    TYPE_U8 PRIM_U8 name-type!
-    TYPE_U16 PRIM_U16 name-type!
-    TYPE_U32 PRIM_U32 name-type!
-    TYPE_U64 PRIM_U64 name-type!
-    TYPE_I8 PRIM_I8 name-type!
-    TYPE_I16 PRIM_I16 name-type!
-    TYPE_I32 PRIM_I32 name-type!
-    TYPE_I64 PRIM_I64 name-type!)
+    TYPE_INT PRIM_INT Prim->Name name-type!
+    TYPE_PTR PRIM_PTR Prim->Name name-type!
+    TYPE_U8 PRIM_U8 Prim->Name name-type!
+    TYPE_U16 PRIM_U16 Prim->Name name-type!
+    TYPE_U32 PRIM_U32 Prim->Name name-type!
+    TYPE_U64 PRIM_U64 Prim->Name name-type!
+    TYPE_I8 PRIM_I8 Prim->Name name-type!
+    TYPE_I16 PRIM_I16 Prim->Name name-type!
+    TYPE_I32 PRIM_I32 Prim->Name name-type!
+    TYPE_I64 PRIM_I64 Prim->Name name-type!)
 
 def(test-types!, --,
     test-sorts!)
@@ -907,4 +907,3 @@ def(nominal-new!, Name Type -- Nominal,
     nominal-alloc!
     tuck nominal-type!
     tuck nominal-name!)
-

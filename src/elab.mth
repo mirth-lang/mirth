@@ -159,8 +159,6 @@ def(elab-word-sig!, Word -- Type +Elab,
 # Type Checking #
 #################
 
-def-type(Stash, Int)
-
 MAX_NAMES def-static-buffer(DEF_CHECKED)
 def(name-checked!, Bool Name --, dip(Int->U8) Name->Int DEF_CHECKED u8!!)
 def(name-checked@, Name -- Bool, Name->Int DEF_CHECKED u8@@ U8->Int)
@@ -229,13 +227,17 @@ quad def-static-buffer(TSTACK_NUM_STASHES)
 def(tstack-num-stashes@, Size +TSTACK, TSTACK_NUM_STASHES @)
 def(tstack-num-stashes!, Size -- +TSTACK, TSTACK_NUM_STASHES !)
 
+nominal(Stash, Int)
+def(Stash->Int, Stash -- Int, cast)
+def(Int->Stash, Int -- Stash, cast)
+
 TSTACK_SIZE quads def-static-buffer(TSTACK_STASH_LEN)
-def(tstack-stash-len@, Stash -- Size +TSTACK, TSTACK_STASH_LEN quad@@)
-def(tstack-stash-len!, Size Stash -- +TSTACK, TSTACK_STASH_LEN quad!!)
+def(tstack-stash-len@, Stash -- Size +TSTACK, Stash->Int TSTACK_STASH_LEN quad@@)
+def(tstack-stash-len!, Size Stash -- +TSTACK, Stash->Int TSTACK_STASH_LEN quad!!)
 
 def(tstack-stash-len-push!, Size -- +TSTACK,
     tstack-num-stashes@ TSTACK_SIZE < if(
-        tstack-num-stashes@ tstack-stash-len!
+        tstack-num-stashes@ Int->Stash tstack-stash-len!
         tstack-num-stashes@ 1+ tstack-num-stashes!,
         "compiler error: tstack stash overflow" panic! drop
     ))
@@ -243,7 +245,7 @@ def(tstack-stash-len-push!, Size -- +TSTACK,
 def(tstack-stash-len-pop!, Size +TSTACK,
     tstack-num-stashes@ 0 > if(
         tstack-num-stashes@ 1- tstack-num-stashes!
-        tstack-num-stashes@ tstack-stash-len@,
+        tstack-num-stashes@ Int->Stash tstack-stash-len@,
         "compiler error: tstack stash underflow" panic! 0
     ))
 
@@ -438,7 +440,7 @@ def(typecheck-run-name!, Token Name --,
     )))))
 
 def(typecheck-run-prim!, Token --,
-    token-name?
+    token-name? Name->Prim
     dup PRIM_ID = if(
         drop token-args-0,
 
@@ -652,7 +654,7 @@ def(tstack-arity-check!, Token Int Int -- Token +TSTACK,
 
 def(token-is-dashes, Token -- Bool,
     token-type? TOKEN_NAME = if(
-        token-name@ PRIM_DASHES =,
+        token-name@ PRIM_DASHES Prim->Name =,
         drop 0
     ))
 

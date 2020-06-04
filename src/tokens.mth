@@ -75,7 +75,7 @@ def(token-str?, Token -- Token Str, dup token-str@)
 def(token-name@, Token -- Name,
     token-type? TOKEN_NAME = if(
         token-value@ TokenValue->Name,
-        "compiler error: token-name@ called on non-name token" emit-fatal-error! PRIM_ID
+        "compiler error: token-name@ called on non-name token" emit-fatal-error! NAME_ERROR
     ))
 def(token-name?, Token -- Token Name, dup token-name@)
 

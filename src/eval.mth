@@ -137,7 +137,7 @@ def(token-run-name!, Token -- +Mirth,
 # Run a single primitive name token.
 def(token-run-prim!, Token --,
 
-    token-name?
+    token-name? Name->Prim
 
     dup PRIM_ID = if(
         drop
