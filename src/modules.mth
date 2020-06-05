@@ -48,12 +48,13 @@ def(module-end?, Module -- Module Token, dup module-end@)
 def(module-end@, Module -- Token, Module->Int MODULE_END quad@@)
 def(module-end!, Token Module --, Module->Int MODULE_END quad!!)
 
-def(module-path@, Module -- Path, Module->Int MODULE_PATH_SIZE * MODULE_PATH_BUF +)
+def(module-path@, Module -- Path,
+    Module->Int MODULE_PATH_SIZE * MODULE_PATH_BUF + Str->Path)
 def(module-path?, Module -- Module Path, dup module-path@)
 def(module-path!, Path Module --,
-    over str-length 1+ MODULE_PATH_SIZE <= if(
-        module-path@ str-copy!,
-        "Module path is too long!" panic! drop2
+    over Path->Str str-length MODULE_PATH_SIZE >= if(
+        "Module path is too long!" panic! drop2,
+        module-path@ dip(Path->Str) Path->Str str-copy!
     ))
 
 # Load a source path associated with a module into STR_BUF.

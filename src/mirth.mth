@@ -39,7 +39,7 @@ def(main, +IO,
     init!
     test!
 
-    "mirth.mth" run-lexer!
+    "mirth.mth" Str->Path run-lexer!
 
     # show-names-table!
     # show-tokens!

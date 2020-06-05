@@ -606,11 +606,9 @@ def(token-run-prim!, Token --,
 
             name-undefined? if(
                 nip DEF_MODULE over name-sort!
-
                 name-load! ".mth" str-buf-push-str!
-
                 num-tokens@
-                STR_BUF run-lexer!
+                STR_BUF Str->Path run-lexer!
                 token-run!, # run the imported module
 
                 drop "module name is already taken" emit-fatal-error!

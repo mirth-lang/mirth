@@ -101,6 +101,8 @@ def(str-buf-length!, Int -- +StrBuf,
     dip(0 Int->U8) str-buf-u8!)
 def(str-buf-u8@, Offset -- U8 +StrBuf, STR_BUF u8@@)
 def(str-buf-u8!, U8 Offset -- +StrBuf, STR_BUF u8!!)
+def(str-buf-empty?, Bool +StrBuf,
+    str-buf-length? 0 =)
 def(str-buf-full?, Bool +StrBuf,
     str-buf-length? 1+ STR_BUF_SIZE >=)
 def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
