@@ -19,7 +19,10 @@ def-type(Str, Ptr)
 def-type(Bool, Int)
 def-type(Size, Int)
 def-type(Offset, Int)
-def-type(File, Int)
+
+nominal(File, Int)
+def(File->Int, File -- Int, cast)
+def(Int->File, Int -- File, cast)
 
 def(>, Int Int -- Bool, swap <)
 def(>=, Int Int -- Bool, swap <=)
@@ -128,12 +131,12 @@ def(str-buf-push-str!, Str -- +StrBuf,
 def(str-buf!, Str -- +StrBuf, str-buf-clear! str-buf-push-str!)
 
 
-def(str-buf-write!, File -- +StrBuf, STR_BUF str-buf-length? posix-write!)
+def(str-buf-write!, File -- +StrBuf, File->Int STR_BUF str-buf-length? posix-write!)
 def(str-buf-print!, +StrBuf, stdout str-buf-write!)
 def(str-buf-trace!, +StrBuf, stderr str-buf-write!)
 
 def(str-buf-read!, File -- +IO,
-    str-buf-clear!
+    File->Int str-buf-clear!
     STR_BUF STR_BUF_SIZE 1- posix-read!
     dup 0< if(
         "str-buf-read! failed" panic! drop,
@@ -309,13 +312,13 @@ def(test-str, --,
 def(test-while, --,
     999 10 20 while(dup, 1- dip(1+)) drop 30 !!= 999 !!=)
 
-def(stdin,  File, 0)
-def(stdout, File, 1)
-def(stderr, File, 2)
+def(stdin,  File, 0 Int->File)
+def(stdout, File, 1 Int->File)
+def(stderr, File, 2 Int->File)
 
 
 def(str-write!, Str File -- +IO,
-    swap dup str-length posix-write!)
+    File->Int swap dup str-length posix-write!)
 
 def(str-print!, Str -- +IO, stdout str-write!)
 def(str-trace!, Str -- +IO, stderr str-write!)
@@ -454,7 +457,7 @@ def(MACOS, OS, 3)
 
 def(open-file!, Str -- File +IO,
     0 0 posix-open!
-    dup 0 < if("Failed to open file!" panic!, id))
+    dup 0 < if("Failed to open file!" panic!, Int->File))
 
 def(create-file!, Str -- File +IO,
     O_WRONLY|O_CREAT|O_TRUNC
@@ -463,7 +466,7 @@ def(create-file!, Str -- File +IO,
         # on unix, 666 in octal, i.e. owner can
         # read+write, everyone can read
     posix-open!
-    dup 0 < if("Failed to create file!" panic!, id))
+    dup 0 < if("Failed to create file!" panic!, Int->File))
 
 def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     RUNNING_OS MACOS = if(
@@ -477,7 +480,7 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
 
 
 def(close-file!, File -- +IO,
-    posix-close!
+    File->Int posix-close!
     0 < if(
         "failed to close file" panic!,
         id
