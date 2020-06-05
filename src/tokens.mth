@@ -17,22 +17,29 @@ def(num-tokens@, Int, NUM_TOKENS @)
 def(num-tokens!, Int --, NUM_TOKENS !)
 def(clear-tokens!, --, 0 num-tokens!)
 
-def-type(Token, Int)
-def-type(TokenType, U8)
-def-type(Row, U16)
-def-type(Col, U16)
+nominal(Token, Int)
+def(|Token|, Size, 8)
+def(Token->Int, Token -- Int, cast)
+def(Int->Token, Int -- Token, cast)
+def(token@, Ptr -- Token, @ Int->Token)
+def(token!, Token Ptr --, dip(Token->Int) !)
 
-MAX_TOKENS u8s def-static-buffer(TOKEN_TYPE)
-def(token-type!, TokenType Token --, TOKEN_TYPE u8!!)
-def(token-type@, Token -- TokenType, TOKEN_TYPE u8@@)
+nominal(TokenType, U8)
+def(|TokenType|, Size, 1)
+MAX_TOKENS |TokenType| * def-static-buffer(TOKEN_TYPE)
+def(TokenType->U8, TokenType -- U8, cast)
+def(U8->TokenType, U8 -- TokenType, cast)
+def(token-type&, Token -- Ptr, Token->Int |TokenType| * TOKEN_TYPE +)
+def(token-type!, TokenType Token --, dip(TokenType->U8) token-type& u8!)
+def(token-type@, Token -- TokenType, token-type& u8@ U8->TokenType)
 def(token-type?, Token -- Token TokenType, dup token-type@)
-def(TOKEN_NONE, TokenType, 0 Int->U8)
-def(TOKEN_LPAREN, TokenType, 1 Int->U8)
-def(TOKEN_RPAREN, TokenType, 2 Int->U8)
-def(TOKEN_COMMA, TokenType, 3 Int->U8)
-def(TOKEN_NAME, TokenType, 4 Int->U8)
-def(TOKEN_INT, TokenType, 5 Int->U8)
-def(TOKEN_STR, TokenType, 6 Int->U8)
+def(TOKEN_NONE, TokenType, 0 Int->U8 U8->TokenType)
+def(TOKEN_LPAREN, TokenType, 1 Int->U8 U8->TokenType)
+def(TOKEN_RPAREN, TokenType, 2 Int->U8 U8->TokenType)
+def(TOKEN_COMMA, TokenType, 3 Int->U8 U8->TokenType)
+def(TOKEN_NAME, TokenType, 4 Int->U8 U8->TokenType)
+def(TOKEN_INT, TokenType, 5 Int->U8 U8->TokenType)
+def(TOKEN_STR, TokenType, 6 Int->U8 U8->TokenType)
 def(token-type-str, TokenType -- Str,
     dup TOKEN_NONE = if(drop "NONE",
     dup TOKEN_LPAREN = if(drop "LPAREN",
@@ -45,18 +52,20 @@ def(token-type-str, TokenType -- Str,
 def(token-type-print!, TokenType --,
     token-type-str str-print!)
 
-MAX_TOKENS i16s def-static-buffer(TOKEN_VALUE)
-def-type(TokenValue, I16)
-def(token-value!, TokenValue Token --, TOKEN_VALUE i16!!)
-def(token-value@, Token -- TokenValue, TOKEN_VALUE i16@@)
+nominal(TokenValue, Int)
+def(|TokenValue|, Size, 8)
+MAX_TOKENS |TokenValue| * def-static-buffer(TOKEN_VALUE)
+def(TokenValue->Int, TokenValue -- Int, cast)
+def(Int->TokenValue, Int -- TokenValue, cast)
+def(Name->TokenValue, Name -- TokenValue, Name->Int Int->TokenValue)
+def(TokenValue->Name, TokenValue -- Name, TokenValue->Int Int->Name)
+def(Token->TokenValue, Token -- TokenValue, Token->Int Int->TokenValue)
+def(TokenValue->Token, TokenValue -- Token, TokenValue->Int Int->Token)
+def(TokenValue->Str, TokenValue -- Str, TokenValue->Int STRINGS_BUF +)
+def(token-value&, Token -- Ptr, Token->Int quads TOKEN_VALUE +)
+def(token-value!, TokenValue Token --, dip(TokenValue->Int) token-value& !)
+def(token-value@, Token -- TokenValue, token-value& @ Int->TokenValue)
 def(token-value?, Token -- Token TokenValue, dup token-value@)
-def(Int->TokenValue, Int -- TokenValue, Int->I16)
-def(Name->TokenValue, Name -- TokenValue, Name->Int Int->I16)
-def(Token->TokenValue, Token -- TokenValue, Int->I16)
-def(TokenValue->Int, TokenValue -- Int, I16->Int)
-def(TokenValue->Name, TokenValue -- Name, I16->Int Int->Name)
-def(TokenValue->Token, TokenValue -- Token, I16->Int)
-def(TokenValue->Str, TokenValue -- Str, I16->Int STRINGS_BUF +)
 
 def(token-int@, Token -- Int,
     token-type? TOKEN_INT = if(
@@ -84,50 +93,61 @@ def(token-token@, Token -- Token,
         token-value@ TokenValue->Token,
     token-type? TOKEN_RPAREN = if(
         token-value@ TokenValue->Token,
-        "compiler error: token-token@ called on non-paren token" emit-fatal-error! 0
+        "compiler error: token-token@ called on non-paren token" emit-fatal-error! 0 Int->Token
     )))
 def(token-token?, Token -- Token Token, dup token-token@)
 
 MAX_TOKENS |Module| * def-static-buffer(TOKEN_MODULE)
-def(token-module!, Module Token --, TOKEN_MODULE module!!)
-def(token-module@, Token -- Module, TOKEN_MODULE module@@)
+def(token-module&, Token -- Ptr, Token->Int |Module| * TOKEN_MODULE +)
+def(token-module!, Module Token --, token-module& module!)
+def(token-module@, Token -- Module, token-module& module@)
 def(token-module?, Token -- Token Module, dup token-module@)
 
-MAX_TOKENS u16s def-static-buffer(TOKEN_ROW)
-def(token-row!, Row Token --, TOKEN_ROW u16!!)
-def(token-row@, Token -- Row, TOKEN_ROW u16@@)
-def(token-row?, Token -- Token Row, dup token-row@)
-def(Row->Int, Row -- Int, U16->Int)
-def(Int->Row, Int -- Row, Int->U16)
+nominal(TokenRow, U16)
+def(|TokenRow|, Size, 2)
+MAX_TOKENS |TokenRow| * def-static-buffer(TOKEN_ROW)
+def(TokenRow->U16, TokenRow -- U16, cast)
+def(TokenRow->Int, TokenRow -- Int, TokenRow->U16 U16->Int)
+def(U16->TokenRow, U16 -- TokenRow, cast)
+def(Int->TokenRow, Int -- TokenRow, Int->U16 U16->TokenRow)
+def(token-row&, Token -- Ptr, Token->Int |TokenRow| * TOKEN_ROW +)
+def(token-row@, Token -- TokenRow, token-row& u16@ U16->TokenRow)
+def(token-row!, TokenRow Token --, dip(TokenRow->U16) token-row& u16!)
+def(token-row?, Token -- Token TokenRow, dup token-row@)
 
+nominal(TokenCol, U16)
+def(|TokenCol|, Size, 2)
 MAX_TOKENS u16s def-static-buffer(TOKEN_COL)
-def(token-col!, Col Token --, TOKEN_COL u16!!)
-def(token-col@, Token -- Col, TOKEN_COL u16@@)
-def(token-col?, Token -- Token Col, dup token-col@)
-def(Col->Int, Col -- Int, U16->Int)
-def(Int->Col, Int -- Col, Int->U16)
+def(TokenCol->U16, TokenCol -- U16, cast)
+def(TokenCol->Int, TokenCol -- Int, TokenCol->U16 U16->Int)
+def(U16->TokenCol, U16 -- TokenCol, cast)
+def(Int->TokenCol, Int -- TokenCol, Int->U16 U16->TokenCol)
+def(token-col&, Token -- Ptr, Token->Int |TokenCol| * TOKEN_COL +)
+def(token-col!, TokenCol Token --, dip(TokenCol->U16) token-col& u16!)
+def(token-col@, Token -- TokenCol, token-col& u16@ U16->TokenCol)
+def(token-col?, Token -- Token TokenCol, dup token-col@)
 
 def(token-new, -- Token,
     num-tokens@ dup MAX_TOKENS >= if(
         "tokens buffer overflow" panic!,
-        dup 1+ num-tokens!
+        dup 1+ num-tokens! Int->Token
     ))
 
 def(token-trace-prefix!, Token -- +IO,
     token-module? load-module-source-path! str-buf-trace! ":" str-trace!
-    token-row? Row->Int int-trace! ":" str-trace!
-    token-col? Col->Int int-trace! ":" str-trace-sp!
+    token-row? TokenRow->Int int-trace! ":" str-trace!
+    token-col? TokenCol->Int int-trace! ":" str-trace-sp!
     drop)
 
 def(token-print-prefix!, Token -- +IO,
     token-module? load-module-source-path! str-buf-print! ":" str-print!
-    token-row? Row->Int int-print! ":" str-print!
-    token-col? Col->Int int-print! ":" str-print-sp!
+    token-row? TokenRow->Int int-print! ":" str-print!
+    token-col? TokenCol->Int int-print! ":" str-print-sp!
     drop)
 
 def(token-print!, Token -- +IO,
     dup token-print-prefix!
-    dup int-print-sp!
+    dup Token->Int int-print-sp!
     token-type? token-type-print!
     token-type? TOKEN_NAME = if(
         print-sp!
@@ -148,11 +168,119 @@ def(token-print!, Token -- +IO,
 def(show-tokens!, --,
     0
     while(dup num-tokens@ <,
-        dup token-print! 1+)
+        dup Int->Token token-print! 1+)
     drop)
+
+# Get next token, without respecting nesting or arguments.
+def(token-succ, Token -- Token,
+    Token->Int 1+ Int->Token)
+
+# Get next token, respecting nesting of tokens.
+def(token-next, Token -- Token,
+    token-type? TOKEN_LPAREN = if(
+        token-token@ token-succ,
+
+    token-type? TOKEN_NAME = if(
+        token-succ
+        token-type? TOKEN_LPAREN = if(
+            token-token@ token-succ,
+            id
+        ),
+
+        token-succ
+    )))
+
+# Get closest arg ending (COMMA or RPAREN),
+# while respecting the nesting of tokens.
+def(token-next-arg-end, Token -- Token,
+    while(token-is-arg-end? not, token-next))
+
+# Is this an arg ending (COMMA or RPAREN)?
+def(token-is-arg-end?, Token -- Token Bool,
+    token-type? TOKEN_COMMA = if(
+        1,
+        token-type? TOKEN_RPAREN =
+    ))
 
 def(token-has-args?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
-        dup 1+ token-type@ TOKEN_LPAREN =,
+        dup token-succ token-type@ TOKEN_LPAREN =,
         0
+    ))
+
+# Verify that token has 0 args, and return them.
+# Emits a fatal error if arity is wrong.
+def(token-args-0, Token --,
+    token-has-args? if(
+        "expected no args" emit-fatal-error!,
+        drop
+    ))
+
+# Verify that token has 1 arg, and return it.
+# Emits a fatal error if arity is wrong.
+def(token-args-1, Token -- Token,
+    dup token-has-args? if(
+        token-succ token-succ
+        tuck token-next-arg-end
+        token-type? TOKEN_RPAREN = if(
+            drop2,
+            drop
+            "expected 1 arg, got too many"
+            emit-fatal-error!
+        ),
+        drop
+        "expected 1 arg, got none"
+        emit-fatal-error! 0 Int->Token
+    ))
+
+# Verify that token has 2 args, and return them.
+# Emits a fatal error if arity is wrong.
+def(token-args-2, Token -- Token Token,
+    dup token-has-args? if(
+        token-succ token-succ
+        tuck token-next-arg-end
+        token-type? TOKEN_COMMA = if(
+            token-succ tuck token-next-arg-end
+            token-type? TOKEN_RPAREN = if(
+                drop2,
+                drop
+                "expected 2 args, got too many"
+                emit-fatal-error!
+            ),
+            drop
+            "expected 2 args, got only 1"
+            emit-fatal-error! 0 Int->Token
+        ),
+        drop
+        "expected 2 args, got none"
+        emit-fatal-error! 0 Int->Token 0 Int->Token
+    ))
+
+# Verify that token has 3 args, and return them.
+# Emits a fatal error if arity is wrong.
+def(token-args-3, Token -- Token Token Token,
+    dup token-has-args? if(
+        token-succ token-succ
+        tuck token-next-arg-end
+        token-type? TOKEN_COMMA = if(
+            token-succ tuck token-next-arg-end
+            token-type? TOKEN_COMMA = if(
+                token-succ tuck token-next-arg-end
+                token-type? TOKEN_RPAREN = if(
+                    drop2,
+                    drop
+                    "expected 3 args, got too many"
+                    emit-fatal-error!
+                ),
+                drop
+                "expected 3 args, got only 2"
+                emit-fatal-error! 0 Int->Token
+            ),
+            drop
+            "expected 3 args, got only 1"
+            emit-fatal-error! 0 Int->Token 0 Int->Token
+        ),
+        drop
+        "expected 3 args, got none"
+        emit-fatal-error! 0 Int->Token 0 Int->Token 0 Int->Token
     ))

@@ -451,7 +451,7 @@ def(name-sig@, Name -- Token,
         name-external@ external-sig@,
 
         "compiler error: attempted to get name-sig for non-word, non-external name" panic!
-        drop 0
+        drop 0 Int->Token
     )))
 
 def(name-sig?, Name -- Name Token, dup name-sig@)

@@ -88,7 +88,7 @@ def(token-run!, Token -- +Mirth,
 
 # Is this a token to stop running at?
 def(token-run-end?, Token -- Token Bool +Mirth,
-    dup num-tokens@ >= if(
+    dup Token->Int num-tokens@ >= if(
         1,
     token-type? TOKEN_NONE = if(
         1,
@@ -113,7 +113,9 @@ def(token-run-one!, Token -- Token +Mirth,
         dup token-run-name!,
 
         dup "Unexpected token type in token-run!" emit-fatal-error!
-    )))) 1+)
+    ))))
+
+    token-succ)
 
 # Run a single name token.
 def(token-run-name!, Token -- +Mirth,
@@ -607,7 +609,7 @@ def(token-run-prim!, Token --,
             name-undefined? if(
                 nip DEF_MODULE over name-sort!
                 name-load! ".mth" str-buf-push-str!
-                num-tokens@
+                num-tokens@ Int->Token
                 STR_BUF Str->Path run-lexer!
                 token-run!, # run the imported module
 
@@ -653,114 +655,4 @@ def(arity-check!, Token Size Size -- Token,
             "Stack overflow." emit-fatal-error! 0,
             id
         )
-    ))
-
-# Verify that token has 0 args, and return them.
-# Emits a fatal error if arity is wrong.
-def(token-args-0, Token --,
-    1+ token-type?
-    TOKEN_LPAREN = if(
-        "expected no args"
-        emit-fatal-error!,
-        drop
-    ))
-
-# Verify that token has 1 arg, and return it.
-# Emits a fatal error if arity is wrong.
-def(token-args-1, Token -- Token,
-    dup
-    1+ token-type?
-    TOKEN_LPAREN = if(
-        1+
-        tuck token-next-arg-end
-        token-type? TOKEN_RPAREN = if(
-            drop2,
-            drop
-            "expected 1 arg, got too many"
-            emit-fatal-error!
-        ),
-        drop
-        "expected 1 arg, got none"
-        emit-fatal-error! 0
-    ))
-
-# Verify that token has 2 args, and return them.
-# Emits a fatal error if arity is wrong.
-def(token-args-2, Token -- Token Token,
-    dup
-    1+ token-type?
-    TOKEN_LPAREN = if(
-        1+ tuck token-next-arg-end
-        token-type? TOKEN_COMMA = if(
-            1+ tuck token-next-arg-end
-            token-type? TOKEN_RPAREN = if(
-                drop2,
-                drop
-                "expected 2 args, got too many"
-                emit-fatal-error!
-            ),
-            drop
-            "expected 2 args, got only 1"
-            emit-fatal-error! 0
-        ),
-        drop
-        "expected 2 args, got none"
-        emit-fatal-error! 0 0
-    ))
-
-# Verify that token has 3 args, and return them.
-# Emits a fatal error if arity is wrong.
-def(token-args-3, Token -- Token Token Token,
-    dup
-    1+ token-type?
-    TOKEN_LPAREN = if(
-        1+ tuck token-next-arg-end
-        token-type? TOKEN_COMMA = if(
-            1+ tuck token-next-arg-end
-            token-type? TOKEN_COMMA = if(
-                1+ tuck token-next-arg-end
-                token-type? TOKEN_RPAREN = if(
-                    drop2,
-                    drop
-                    "expected 3 args, got too many"
-                    emit-fatal-error!
-                ),
-                drop
-                "expected 3 args, got only 2"
-                emit-fatal-error! 0
-            ),
-            drop
-            "expected 3 args, got only 1"
-            emit-fatal-error! 0 0
-        ),
-        drop
-        "expected 3 args, got none"
-        emit-fatal-error! 0 0 0
-    ))
-
-# Get closest arg ending (COMMA or RPAREN),
-# while respecting the nesting of tokens.
-def(token-next-arg-end, Token -- Token,
-    while(token-is-arg-end? not, token-next))
-
-# Get next token, respecting nesting of tokens.
-def(token-next, Token -- Token,
-    token-type? TOKEN_LPAREN = if(
-        token-token@ 1+,
-
-    token-type? TOKEN_NAME = if(
-        1+
-        token-type? TOKEN_LPAREN = if(
-            token-token@ 1+,
-            id
-        ),
-
-        1+
-    )))
-
-# Is this an arg ending (COMMA or RPAREN)?
-def(token-is-arg-end?, Token -- Token Bool,
-    token-type? TOKEN_COMMA = if(
-        1,
-        token-type? TOKEN_RPAREN =
     ))

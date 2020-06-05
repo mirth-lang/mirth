@@ -40,13 +40,15 @@ def(alloc-module!, Module,
 def(new-module!, Path -- Module,
     alloc-module! dup dip(module-path!))
 
+def(module-start&, Module -- Ptr, Module->Int |Token| * MODULE_START +)
+def(module-start!, Token Module --, module-start& token!)
+def(module-start@, Module -- Token, module-start& token@)
 def(module-start?, Module -- Module Token, dup module-start@)
-def(module-start@, Module -- Token, Module->Int MODULE_START quad@@)
-def(module-start!, Token Module --, Module->Int MODULE_START quad!!)
 
+def(module-end&, Module -- Ptr, Module->Int |Token| * MODULE_END +)
+def(module-end!, Token Module --, module-end& token!)
+def(module-end@, Module -- Token, module-end& token@)
 def(module-end?, Module -- Module Token, dup module-end@)
-def(module-end@, Module -- Token, Module->Int MODULE_END quad@@)
-def(module-end!, Token Module --, Module->Int MODULE_END quad!!)
 
 def(module-path@, Module -- Path,
     Module->Int MODULE_PATH_SIZE * MODULE_PATH_BUF + Str->Path)

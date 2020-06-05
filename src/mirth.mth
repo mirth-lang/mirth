@@ -46,7 +46,7 @@ def(main, +IO,
 
     "Building." str-trace-ln!
 
-    0 token-run!
+    0 Int->Token token-run!
 
     "Done." str-trace-ln!
 

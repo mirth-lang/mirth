@@ -38,12 +38,12 @@ def(word-name@, Word -- Name, word-name& u32@ U32->Name)
 def(word-name!, Name Word --, dip(Name->U32) word-name& u32!)
 
 def(word-sig&, Word -- Ptr, word-metadata& 4 +)
-def(word-sig@, Word -- Token, word-sig& u32@ U32->Int)
-def(word-sig!, Token Word --, dip(Int->U32) word-sig& u32!)
+def(word-sig@, Word -- Token, word-sig& u32@ U32->Int Int->Token)
+def(word-sig!, Token Word --, dip(Token->Int Int->U32) word-sig& u32!)
 
 def(word-body&, Word -- Ptr, word-metadata& 8 +)
-def(word-body@, Word -- Token, word-body& u32@ U32->Int)
-def(word-body!, Token Word --, dip(Int->U32) word-body& u32!)
+def(word-body@, Word -- Token, word-body& u32@ U32->Int Int->Token)
+def(word-body!, Token Word --, dip(Token->Int Int->U32) word-body& u32!)
 
 def-type(WordStatus, U8)
 def(word-status&, Word -- Ptr, word-metadata& 12 +)

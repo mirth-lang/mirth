@@ -39,14 +39,14 @@ def(elab-sig!, Token -- Type +Elab,
 # Elaborate a stack type into a tensor type.
 def(elab-stack!, Token -- Type +Elab,
     sig-token-is-stack-var? if(
-        dup dip(SStack elab-type-var!) 1+,
+        dup dip(SStack elab-type-var!) token-succ,
 
         dip(TYPE_UNIT)
     )
     while(sig-is-stack-end? if(0, sig-token-is-effect-con? not),
         dup
         dip(elab-type! tensor-type-new! TTensor)
-        1+
+        token-succ
     )
     drop)
 
@@ -344,7 +344,7 @@ def(typecheck-word!, Name --,
 def(typecheck-word-sig!, Token --,
 
     sig-has-dashes? if(
-        typecheck-sig-inputs! 1+
+        typecheck-sig-inputs! token-succ
         typecheck-sig-outputs!,
         typecheck-sig-outputs!
     ))
@@ -352,12 +352,12 @@ def(typecheck-word-sig!, Token --,
 def(typecheck-sig-inputs!, Token -- Token,
     while(token-is-dashes? not,
         dup typecheck-sig-input-token!
-        1+))
+        token-succ))
 
 def(typecheck-sig-outputs!, Token --,
     while(token-is-arg-end? not,
         dup typecheck-sig-output-token!
-        1+)
+        token-succ)
     drop)
 
 def(typecheck-sig-input-token!, Token --,
@@ -738,7 +738,7 @@ def(sig-push-inputs!, Token -- +TSTACK,
                 tstack-push!,
 
                 "Expected type."
-                emit-fatal-error! 0
+                emit-fatal-error! 0 Int->Token
             ))
             token-next
         ) drop,
@@ -748,7 +748,7 @@ def(sig-push-inputs!, Token -- +TSTACK,
 
 def(sig-skip-dashes, Token -- Token,
     sig-has-dashes? if(
-        while(token-is-dashes? not, 1+) 1+,
+        while(token-is-dashes? not, token-next) token-next,
         id
     ))
 
