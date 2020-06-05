@@ -24,6 +24,7 @@ nominal(File, Int)
 def(File->Int, File -- Int, cast)
 def(Int->File, Int -- File, cast)
 
+def(!=, a a -- Bool, = not)
 def(>, Int Int -- Bool, swap <)
 def(>=, Int Int -- Bool, swap <=)
 

@@ -10,9 +10,9 @@ def(init-words!, --,
 # WORDS #
 #########
 
-def-type(Word, U16)
-def(Word->Int, Word -- Int, U16->Int)
-def(Int->Word, Int -- Word, Int->U16)
+nominal(Word, Int)
+def(Word->Int, Word -- Int, cast)
+def(Int->Word, Int -- Word, cast)
 
 def(MAX_WORDS, Size, 0x4000)
 quad def-static-buffer(NUM_WORDS)
@@ -45,10 +45,15 @@ def(word-body&, Word -- Ptr, word-metadata& 8 +)
 def(word-body@, Word -- Token, word-body& u32@ U32->Int Int->Token)
 def(word-body!, Token Word --, dip(Token->Int Int->U32) word-body& u32!)
 
-def-type(WordStatus, U8)
+nominal(WordStatus, U8)
+def(WordStatus->U8, WordStatus -- U8, cast)
+def(U8->WordStatus, U8 -- WordStatus, cast)
+def(WordStatus->Int, WordStatus -- Int, WordStatus->U8 U8->Int)
+def(Int->WordStatus, Int -- WordStatus, Int->U8 U8->WordStatus)
 def(word-status&, Word -- Ptr, word-metadata& 12 +)
-def(word-status@, Word -- WordStatus, word-status& u8@)
-def(word-status!, WordStatus Word --, word-status& u8!)
+def(word-status!, WordStatus Word --, dip(WordStatus->U8) word-status& u8!)
+def(word-status@, Word -- WordStatus, word-status& u8@ U8->WordStatus)
+def(word-status?, Word -- Word WordStatus, dup word-status@)
 
 # 1 byte unused
 
@@ -60,25 +65,22 @@ def(word-type&, Word -- Ptr, word-metadata& 16 +)
 def(word-type@, Word -- Type, word-type& u32@)
 def(word-type!, Type Word --, word-type& u32!)
 
-# 4 bytes unused
 
-def(word-morphism&, Word -- Ptr, word-metadata& 24 +)
-def(word-morphism@, Word -- Morphism, word-morphism& u64@)
-def(word-morphism!, Morphism Word --, word-morphism& u64!)
+nominal(WordStatusFlag, Int)
+def(Int->WordStatusFlag, Int -- WordStatusFlag, cast)
+def(WordStatusFlag->Int, WordStatusFlag -- Int, cast)
+def(word-status-get, WordStatus WordStatusFlag -- Bool,
+    dip(WordStatus->Int) WordStatusFlag->Int & 0 !=)
+def(word-status-set, WordStatus WordStatusFlag -- WordStatus,
+    dip(WordStatus->Int) WordStatusFlag->Int | Int->WordStatus)
 
-# def(word-core&, Word -- Ptr, word-metadata& 24 +)
-# def(word-core@, Word -- Core, word-core& u64@)
-# def(word-core!, Core Word --, word-core& u64!)
+def(WORD_SIG_CHECKED, WordStatusFlag, 0x01 Int->WordStatusFlag)
+def(word-sig-is-checked?, Word -- Word Bool, word-status? WORD_SIG_CHECKED word-status-get)
+def(word-sig-is-checked!, Word --, word-status? WORD_SIG_CHECKED word-status-set swap word-status!)
 
-def(word-sig-is-checked?, Word -- Word Bool,
-    dup word-status@ U8->Int 1 &)
-def(word-sig-is-checked!, Word --,
-    dup dip(word-status@ U8->Int 1 | Int->U8) word-status!)
-
-def(word-body-is-checked?, Word -- Word Bool,
-    dup word-status@ U8->Int 2 & if(1, 0))
-def(word-body-is-checked!, Word --,
-    dup dip(word-status@ U8->Int 2 | Int->U8) word-status!)
+def(WORD_BODY_CHECKED, WordStatusFlag, 0x02 Int->WordStatusFlag)
+def(word-body-is-checked?, Word -- Word Bool, word-status? WORD_BODY_CHECKED word-status-get)
+def(word-body-is-checked!, Word --, word-status? WORD_BODY_CHECKED word-status-set swap word-status!)
 
 def(word-dom@, Word -- Type,
     word-type@ type-get-morphism morphism-type-dom@)
@@ -105,10 +107,3 @@ def(word-cod@, Word -- Type,
 # words, primitives, control flow, and literal values. This is a
 # nested intermediate representation, but, to reduce indirection,
 # we represent it as a flat sequence.
-
-def-type(Morphism, U64)
-def(Morphism->Int, U64 -- Int, U64->Int)
-def(Int->Morphism, Int -- U64, Int->U64)
-
-def(MOPRHISM_ERROR, Morphism, 0 Int->Morphism)
-
