@@ -209,11 +209,11 @@ def(sort!, Sort Ptr --, dip(Sort->Int) !)
 
 def(SORT_ERROR, Sort, 0 Int->Sort)
 
-def(SORT_FLAG_SHIFT, Int, 28)
+def(SORT_FLAG_SHIFT, Int, 60)
 def(SORT_FLAG_MASK, Int, 0xF SORT_FLAG_SHIFT <<)
 def(SORT_FLAG_IMPLICIT, Int, 0x1 SORT_FLAG_SHIFT <<)
 
-def(SORT_TAG_SHIFT, Int, 24)
+def(SORT_TAG_SHIFT, Int, 56)
 def(SORT_TAG_MASK, Int, 0xF SORT_TAG_SHIFT <<)
 
 def(SORT_TAG_ERROR,  Int, 0)
@@ -429,7 +429,7 @@ def(test-sorts!, --,
 # Types #
 #########
 
-nominal(Type, Int)
+nominal(Type, Int) # actually U56
 def(Type->Int, Type -- Int, cast)
 def(Int->Type, Int -- Type, cast)
 def(|Type|, Size, 8)
@@ -438,7 +438,7 @@ def(type!, Type Ptr --, dip(Type->Int) int!)
 def(type@@, Int Ptr -- Type, dip(|Type| *) + type@)
 def(type!!, Type Int Ptr --, dip(|Type| *) + type!)
 
-def(TYPE_TAG_SHIFT, Int, 20)
+def(TYPE_TAG_SHIFT, Int, 48) # top 8 bits are tag
 def(TYPE_TAG_MASK, Int, 0xF TYPE_TAG_SHIFT <<)
 def(TYPE_TAG_PRIM, Int, 0 TYPE_TAG_SHIFT <<)
 def(TYPE_TAG_VAR, Int, 1 TYPE_TAG_SHIFT <<)
@@ -741,7 +741,7 @@ nominal(MetaVar, Int)
 def(Int->MetaVar, Int -- MetaVar, cast)
 def(MetaVar->Int, MetaVar -- Int, cast)
 
-def(MAX_METAS, Size, 1 15 <<)
+def(MAX_METAS, Size, 1 20 <<)
 def(META_SIZE, Size, 4)
 quad def-static-buffer(NUM_METAS)
 MAX_METAS META_SIZE * def-static-buffer(META_BUF)
@@ -798,8 +798,8 @@ nominal(TensorType, Int)
 def(Int->TensorType, Int -- TensorType, cast)
 def(TensorType->Int, TensorType -- Int, cast)
 
-def(MAX_TENSOR_TYPES, Size, 1 15 <<)
-def(TENSOR_TYPE_SIZE, Size, 8)
+def(MAX_TENSOR_TYPES, Size, 1 20 <<)
+def(TENSOR_TYPE_SIZE, Size, |Type| 2 *)
 
 quad def-static-buffer(NUM_TENSOR_TYPES)
 MAX_TENSOR_TYPES TENSOR_TYPE_SIZE * def-static-buffer(TENSOR_TYPE_BUF)
@@ -850,8 +850,8 @@ nominal(MorphismType, Int)
 def(Int->MorphismType, Int -- MorphismType, cast)
 def(MorphismType->Int, MorphismType -- Int, cast)
 
-def(MAX_MORPHISM_TYPES, Size, 1 15 <<)
-def(MORPHISM_TYPE_SIZE, Size, 8)
+def(MAX_MORPHISM_TYPES, Size, 1 20 <<)
+def(MORPHISM_TYPE_SIZE, Size, |Type| 2 *)
 quad def-static-buffer(NUM_MORPHISM_TYPES)
 MAX_MORPHISM_TYPES MORPHISM_TYPE_SIZE * def-static-buffer(MORPHISM_TYPE_BUF)
 
@@ -901,10 +901,10 @@ nominal(Nominal, Int)
 def(Int->Nominal, Int -- Nominal, cast)
 def(Nominal->Int, Nominal -- Int, cast)
 
-def(MAX_NOMINALS, Size, 1 12 <<)
+def(MAX_NOMINALS, Size,  1 20 <<)
 quad def-static-buffer(NUM_NOMINALS)
-MAX_NOMINALS u32s def-static-buffer(NOMINAL_TYPE)
-MAX_NOMINALS quads def-static-buffer(NOMINAL_NAME)
+MAX_NOMINALS |Type| * def-static-buffer(NOMINAL_TYPE)
+MAX_NOMINALS |Name| * def-static-buffer(NOMINAL_NAME)
 
 def(nominal-type@, Nominal -- Type, Nominal->Int NOMINAL_TYPE type@@)
 def(nominal-name@, Nominal -- Name, Nominal->Int NOMINAL_NAME quad@@ Int->Name)
