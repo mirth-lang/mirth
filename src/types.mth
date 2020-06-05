@@ -147,9 +147,12 @@ def(ctx-lookup, Ctx Name -- Int Bool,
 # Subst #
 #########
 
-def-type(Subst, U32)
-def(Subst->Int, Subst -- Int, U32->Int)
-def(Int->Subst, Int -- Subst, Int->U32)
+nominal(Subst, U32)
+def(Subst->Int, Subst -- Int, cast)
+def(Int->Subst, Int -- Subst, cast)
+def(|Subst|, Size, 8)
+def(subst@, Ptr -- Subst, int@ Int->Subst)
+def(subst!, Subst Ptr --, dip(Subst->Int) int!)
 
 def(SUBST_BUF_SIZE, Size, 1 18 <<)
 quad def-static-buffer(SUBST_BUF_LEN)
@@ -426,9 +429,14 @@ def(test-sorts!, --,
 # Types #
 #########
 
-def-type(Type, U32) # actually U24
-def(Type->Int, Type -- Int, U32->Int)
-def(Int->Type, Int -- Type, Int->U32) # TODO: enforce U24 size
+nominal(Type, Int)
+def(Type->Int, Type -- Int, cast)
+def(Int->Type, Int -- Type, cast)
+def(|Type|, Size, 8)
+def(type@, Ptr -- Type, int@ Int->Type)
+def(type!, Type Ptr --, dip(Type->Int) int!)
+def(type@@, Int Ptr -- Type, dip(|Type| *) + type@)
+def(type!!, Type Int Ptr --, dip(|Type| *) + type!)
 
 def(TYPE_TAG_SHIFT, Int, 20)
 def(TYPE_TAG_MASK, Int, 0xF TYPE_TAG_SHIFT <<)
@@ -452,7 +460,7 @@ def(TMorphism, MorphismType -- Type,
 def(TNominal, Nominal -- Type,
     Nominal->Int TYPE_TAG_NOMINAL | Int->Type)
 
-def(type-tag, Type -- Int, U32->Int TYPE_TAG_MASK &)
+def(type-tag, Type -- Int, Type->Int TYPE_TAG_MASK &)
 def(type-is-prim, Type -- Bool, type-tag TYPE_TAG_PRIM =)
 def(type-is-var, Type -- Bool, type-tag TYPE_TAG_VAR =)
 def(type-is-meta, Type -- Bool, type-tag TYPE_TAG_META =)
@@ -473,7 +481,7 @@ def(type-is-stack-var, Type -- Bool,
     ))
 def(type-is-stack-var?, Type -- Type Bool, dup type-is-stack-var)
 
-def(type-get-value, Type -- Int, U32->Int TYPE_VALUE_MASK &)
+def(type-get-value, Type -- Int, Type->Int TYPE_VALUE_MASK &)
 def(type-get-var, Type -- Name,
     type-is-var? not if(
         "compiler error: tried to get var value on non-var type" panic!,
@@ -729,9 +737,9 @@ def(type-trace-prim!, Type -- +IO,
 # Meta-var Types #
 ##################
 
-def-type(MetaVar, U16)
-def(Int->MetaVar, Int -- MetaVar, Int->U16)
-def(MetaVar->Int, MetaVar -- Int, U16->Int)
+nominal(MetaVar, Int)
+def(Int->MetaVar, Int -- MetaVar, cast)
+def(MetaVar->Int, MetaVar -- Int, cast)
 
 def(MAX_METAS, Size, 1 15 <<)
 def(META_SIZE, Size, 4)
@@ -756,10 +764,10 @@ def(meta-is-defined?, MetaVar -- MetaVar Bool, dup meta-is-defined)
 def(meta-type@, MetaVar -- Type,
     meta-is-defined? not if(
         "compiler error: called meta-type@ on undefined meta-var" panic!,
-        meta-value@ 1- Int->U32
+        meta-value@ 1- Int->Type
     ))
 def(meta-type!, Type MetaVar --,
-    dip(U32->Int 1+) meta-value!)
+    dip(Type->Int 1+) meta-value!)
 
 def(meta-expand, MetaVar -- Type,
     meta-is-defined? if(
@@ -786,9 +794,9 @@ def(meta-unify!, Type MetaVar -- Type,
 # Tensor Types #
 ################
 
-def-type(TensorType, U16)
-def(Int->TensorType, Int -- TensorType, Int->U16)
-def(TensorType->Int, TensorType -- Int, U16->Int)
+nominal(TensorType, Int)
+def(Int->TensorType, Int -- TensorType, cast)
+def(TensorType->Int, TensorType -- Int, cast)
 
 def(MAX_TENSOR_TYPES, Size, 1 15 <<)
 def(TENSOR_TYPE_SIZE, Size, 8)
@@ -811,10 +819,10 @@ def(tensor-type-base&, TensorType -- Ptr,
     TensorType->Int TENSOR_TYPE_SIZE * TENSOR_TYPE_BUF +)
 def(tensor-type-fst&, TensorType -- Ptr, tensor-type-base&)
 def(tensor-type-snd&, TensorType -- Ptr, tensor-type-base& 4 +)
-def(tensor-type-fst@, TensorType -- Type, tensor-type-fst& u32@)
-def(tensor-type-snd@, TensorType -- Type, tensor-type-snd& u32@)
-def(tensor-type-fst!, Type TensorType --, tensor-type-fst& u32!)
-def(tensor-type-snd!, Type TensorType --, tensor-type-snd& u32!)
+def(tensor-type-fst@, TensorType -- Type, tensor-type-fst& type@)
+def(tensor-type-snd@, TensorType -- Type, tensor-type-snd& type@)
+def(tensor-type-fst!, Type TensorType --, tensor-type-fst& type!)
+def(tensor-type-snd!, Type TensorType --, tensor-type-snd& type!)
 
 def(tensor-type-unify!, TensorType TensorType -- TensorType,
     over tensor-type-fst@ over tensor-type-fst@ type-unify! over tensor-type-fst!
@@ -838,9 +846,9 @@ def(tensor-type-subst, Subst TensorType -- Subst TensorType,
 # Morphism Types #
 ##################
 
-def-type(MorphismType, U16)
-def(Int->MorphismType, Int -- MorphismType, Int->U16)
-def(MorphismType->Int, MorphismType -- Int, U16->Int)
+nominal(MorphismType, Int)
+def(Int->MorphismType, Int -- MorphismType, cast)
+def(MorphismType->Int, MorphismType -- Int, cast)
 
 def(MAX_MORPHISM_TYPES, Size, 1 15 <<)
 def(MORPHISM_TYPE_SIZE, Size, 8)
@@ -862,10 +870,10 @@ def(morphism-type-base&, MorphismType -- Ptr,
     MorphismType->Int MORPHISM_TYPE_SIZE * MORPHISM_TYPE_BUF +)
 def(morphism-type-dom&, MorphismType -- Ptr, morphism-type-base&)
 def(morphism-type-cod&, MorphismType -- Ptr, morphism-type-base& 4 +)
-def(morphism-type-dom@, MorphismType -- Type, morphism-type-dom& u32@)
-def(morphism-type-cod@, MorphismType -- Type, morphism-type-cod& u32@)
-def(morphism-type-dom!, Type MorphismType --, morphism-type-dom& u32!)
-def(morphism-type-cod!, Type MorphismType --, morphism-type-cod& u32!)
+def(morphism-type-dom@, MorphismType -- Type, morphism-type-dom& type@)
+def(morphism-type-cod@, MorphismType -- Type, morphism-type-cod& type@)
+def(morphism-type-dom!, Type MorphismType --, morphism-type-dom& type!)
+def(morphism-type-cod!, Type MorphismType --, morphism-type-cod& type!)
 
 def(morphism-type-unify!, MorphismType MorphismType -- MorphismType,
     over morphism-type-dom@ over morphism-type-dom@ type-unify! over morphism-type-dom!
@@ -889,19 +897,19 @@ def(morphism-type-subst, Subst MorphismType -- Subst MorphismType,
 # Nominals #
 ############
 
-def-type(Nominal, U16)
-def(Int->Nominal, Int -- Nominal, Int->U16)
-def(Nominal->Int, Nominal -- Int, U16->Int)
+nominal(Nominal, Int)
+def(Int->Nominal, Int -- Nominal, cast)
+def(Nominal->Int, Nominal -- Int, cast)
 
 def(MAX_NOMINALS, Size, 1 12 <<)
 quad def-static-buffer(NUM_NOMINALS)
 MAX_NOMINALS u32s def-static-buffer(NOMINAL_TYPE)
 MAX_NOMINALS quads def-static-buffer(NOMINAL_NAME)
 
-def(nominal-type@, Nominal -- Type, Nominal->Int NOMINAL_TYPE u32@@)
+def(nominal-type@, Nominal -- Type, Nominal->Int NOMINAL_TYPE type@@)
 def(nominal-name@, Nominal -- Name, Nominal->Int NOMINAL_NAME quad@@ Int->Name)
 
-def(nominal-type!, Type Nominal --, Nominal->Int NOMINAL_TYPE u32!!)
+def(nominal-type!, Type Nominal --, Nominal->Int NOMINAL_TYPE type!!)
 def(nominal-name!, Name Nominal --, dip(Name->Int) Nominal->Int NOMINAL_NAME quad!!)
 
 def(nominal-alloc!, Size,

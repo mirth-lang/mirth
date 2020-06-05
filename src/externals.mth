@@ -39,5 +39,5 @@ def(external-sig@, External -- Token, external-sig& u32@ U32->Int Int->Token)
 def(external-sig!, Token External --, dip(Token->Int Int->U32) external-sig& u32!)
 
 def(external-type&, External -- Ptr, external-metadata& 8 +)
-def(external-type@, External -- Type, external-type& u32@)
-def(external-type!, Type External --, external-type& u32!)
+def(external-type@, External -- Type, external-type& type@)
+def(external-type!, Type External --, external-type& type!)
