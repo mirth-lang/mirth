@@ -10,12 +10,12 @@ import(tokens)
 
 def(CODEGEN_BUF_SIZE, Size, 0x2000)
 
-quad def-static-buffer(CODEGEN_FILE)
+|File| def-static-buffer(CODEGEN_FILE)
 quad def-static-buffer(CODEGEN_LENGTH)
 CODEGEN_BUF_SIZE def-static-buffer(CODEGEN_BUF)
 
-def(codegen-file@, -- File +Codegen, CODEGEN_FILE @)
-def(codegen-file!, File -- +Codegen, CODEGEN_FILE !)
+def(codegen-file@, -- File +Codegen, CODEGEN_FILE file@)
+def(codegen-file!, File -- +Codegen, CODEGEN_FILE file!)
 def(codegen-length@, -- Size +Codegen, CODEGEN_LENGTH @)
 def(codegen-length!, Size -- +Codegen, CODEGEN_LENGTH !)
 def(codegen-u8@, Offset -- Byte +Codegen, CODEGEN_BUF u8@@)

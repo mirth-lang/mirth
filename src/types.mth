@@ -26,39 +26,42 @@ def(test-types!, --,
 ###########
 
 # A context for types and terms.
-def-type(Ctx, U16) # index into context array
-def(Ctx->Int, Ctx -- Int, U16->Int)
-def(Int->Ctx, Int -- Ctx, Int->U16)
+nominal(Ctx, Int) # index into context array
+def(Ctx->Int, Ctx -- Int, cast)
+def(Int->Ctx, Int -- Ctx, cast)
 
+def(|Ctx|, Size, 8)
+def(ctx@, Ptr -- Ctx, @ Int->Ctx)
+def(ctx!, Ctx Ptr --, dip(Ctx->Int) !)
 def(MAX_CTX, Size, 0x1000)
-def(CTX_SIZE, Size, 12)
+def(CTX_SIZE, Size, 32)
 
 quad def-static-buffer(NUM_CTX)
 MAX_CTX CTX_SIZE * i16s def-static-buffer(CTX_BUF)
 
 def(ctx-base&, Ctx -- Ptr,
     dup if(
-        U16->Int 1- CTX_SIZE * CTX_BUF +,
+        Ctx->Int 1- CTX_SIZE * CTX_BUF +,
         "compiler error: attempted to get base pointer of empty context" panic!
-        U16->Int Int->Ptr
+        Ctx->Int Int->Ptr
     ))
 def(ctx-prev&, Ctx -- Ptr, ctx-base&)
-def(ctx-name&, Ctx -- Ptr, ctx-base& 4 +)
-def(ctx-sort&, Ctx -- Ptr, ctx-base& 8 +)
+def(ctx-name&, Ctx -- Ptr, ctx-base& 8 +)
+def(ctx-sort&, Ctx -- Ptr, ctx-base& 16 +)
 
-def(ctx-prev@, Ctx -- Ctx, ctx-prev& u16@)
-def(ctx-name@, Ctx -- Name, ctx-name& u32@ U32->Name)
-def(ctx-sort@, Ctx -- Sort, ctx-sort& u32@)
+def(ctx-prev@, Ctx -- Ctx, ctx-prev& ctx@)
+def(ctx-name@, Ctx -- Name, ctx-name& name@)
+def(ctx-sort@, Ctx -- Sort, ctx-sort& sort@)
 
-def(ctx-prev!, Ctx Ctx --, ctx-prev& u16!)
-def(ctx-name!, Name Ctx --, dip(Name->U32) ctx-name& u32!)
-def(ctx-sort!, Sort Ctx --, ctx-sort& u32!)
+def(ctx-prev!, Ctx Ctx --, ctx-prev& ctx!)
+def(ctx-name!, Name Ctx --, ctx-name& name!)
+def(ctx-sort!, Sort Ctx --, ctx-sort& sort!)
 
 def(ctx-alloc!, Ctx,
     NUM_CTX @ dup 1+ NUM_CTX !
-    dup MAX_CTX < if(
-        1+ Int->U16,
-        "compiler error: ran out of space for contexts, increase MAX_CTX" panic!
+    dup MAX_CTX >= if(
+        "compiler error: ran out of space for contexts, increase MAX_CTX" panic!,
+        1+ Int->Ctx
     ))
 def(ctx-new!, Ctx Name Sort -- Ctx,
     ctx-alloc!
@@ -66,8 +69,8 @@ def(ctx-new!, Ctx Name Sort -- Ctx,
     dup dip(ctx-name!)
     dup dip(ctx-prev!))
 
-def(ctx-empty, Ctx, 0 Int->U16)
-def(ctx-is-empty, Ctx -- Bool, U16->Int 0 =)
+def(ctx-empty, Ctx, 0 Int->Ctx)
+def(ctx-is-empty, Ctx -- Bool, Ctx->Int 0 =)
 def(ctx-is-empty?, Ctx -- Ctx Bool, dup ctx-is-empty)
 
 def(ctx-has-name?, Name Ctx -- Name Ctx Bool, dup2 ctx-has-name)
@@ -194,9 +197,12 @@ def(subst-unify!, Subst Name Type -- Type,
 # Sorts #
 #########
 
-def-type(Sort, U32)
-def(Sort->Int, Sort -- Int, U32->Int)
-def(Int->Sort, Int -- Sort, Int->U32)
+nominal(Sort, Int)
+def(Sort->Int, Sort -- Int, cast)
+def(Int->Sort, Int -- Sort, cast)
+def(|Sort|, Size, 8)
+def(sort@, Ptr -- Sort, @ Int->Sort)
+def(sort!, Sort Ptr --, dip(Sort->Int) !)
 
 def(SORT_ERROR, Sort, 0 Int->Sort)
 
@@ -214,10 +220,10 @@ def(SORT_TAG_EFFECT, Int, 0x3 SORT_TAG_SHIFT <<)
 def(SORT_TAG_WORD,   Int, 0x4 SORT_TAG_SHIFT <<)
 def(SORT_TAG_VALUE,  Int, 0x5 SORT_TAG_SHIFT <<)
 
-def(sort-tag, Sort -- Int, U32->Int SORT_TAG_MASK &)
+def(sort-tag, Sort -- Int, Sort->Int SORT_TAG_MASK &)
 
-def(sort-is-error, Sort -- Bool, U32->Int 0 =)
-def(sort-is-implicit, Sort -- Bool, U32->Int SORT_FLAG_IMPLICIT & 0 >)
+def(sort-is-error, Sort -- Bool, Sort->Int 0 =)
+def(sort-is-implicit, Sort -- Bool, Sort->Int SORT_FLAG_IMPLICIT & 0 >)
 def(sort-is-explicit, Sort -- Bool, sort-is-implicit not)
 def(sort-is-type, Sort -- Bool, sort-tag SORT_TAG_TYPE =)
 def(sort-is-stack, Sort -- Bool, sort-tag SORT_TAG_STACK =)
@@ -241,6 +247,7 @@ def(sort-word-type, Sort -- Type,
     sort-is-word? if(
         Sort->Int SORT_PAYLOAD_MASK & Int->Type,
         "compiler error: attempted to get sort word sig for non-word sort" panic!
+        drop TYPE_ERROR
     ))
 def(sort-word-type?, Sort -- Sort Type, dup sort-word-type)
 
@@ -249,6 +256,7 @@ def(sort-value-type, Sort -- Type,
     sort-is-value? if(
         Sort->Int SORT_PAYLOAD_MASK & Int->Type,
         "compiler error: attempted to get sort value type for non-type sort" panic!
+        drop TYPE_ERROR
     ))
 def(sort-value-type?, Sort -- Sort Type, dup sort-value-type)
 

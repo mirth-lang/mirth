@@ -8,15 +8,15 @@ import(types)
 ##############
 
 quad def-static-buffer(ELAB_TOKEN)
-def(elab-token@, -- Token +Elab, ELAB_TOKEN @)
-def(elab-token!, Token -- +Elab, ELAB_TOKEN !)
+def(elab-token@, -- Token +Elab, ELAB_TOKEN token@)
+def(elab-token!, Token -- +Elab, ELAB_TOKEN token!)
 def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
 def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
 def(elab-emit-fatal-error!, Str -- +Elab, dip(elab-token@) emit-fatal-error!)
 
-u16 def-static-buffer(ELAB_CTX)
-def(elab-ctx@, -- Ctx +Elab, ELAB_CTX u16@)
-def(elab-ctx!, Ctx -- +Elab, ELAB_CTX u16!)
+|Ctx| def-static-buffer(ELAB_CTX)
+def(elab-ctx@, -- Ctx +Elab, ELAB_CTX ctx@)
+def(elab-ctx!, Ctx -- +Elab, ELAB_CTX ctx!)
 
 ####################
 # Type Elaboration #
@@ -1077,7 +1077,7 @@ def(elab@, Type -- Type,
         drop TYPE_ERROR,
 
     dup TYPE_PTR = if(
-        drop TYPE_ERROR, # output type is unknown
+        drop TYPE_INT,
 
         "attempted to load from non-pointer" elab-emit-error!
         drop TYPE_ERROR
@@ -1088,7 +1088,16 @@ def(elab!, Type Type --,
         drop2,
 
     dup TYPE_PTR = if(
-        drop2, # can store anything
+        drop
+        dup TYPE_ERROR = if(
+            drop,
+
+        dup TYPE_INT = if(
+            drop,
+
+            "attempted to store unknown type" elab-emit-error!
+            drop
+        )),
 
         drop2
         "attempted to store to non-pointer" elab-emit-error!

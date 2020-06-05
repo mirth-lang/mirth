@@ -56,16 +56,16 @@ def(heap-initial-length@, Size +Heap, HEAP_INITIAL_LENGTH @)
 def(heap-initial-length!, Size -- +Heap, HEAP_INITIAL_LENGTH !)
 
 quad def-static-buffer(HEAP_INITIAL_BASE)
-def(heap-initial-base@, Ptr +Heap, HEAP_INITIAL_BASE @)
-def(heap-initial-base!, Ptr -- +Heap, HEAP_INITIAL_BASE !)
+def(heap-initial-base@, Ptr +Heap, HEAP_INITIAL_BASE ptr@)
+def(heap-initial-base!, Ptr -- +Heap, HEAP_INITIAL_BASE ptr!)
 
 quad def-static-buffer(HEAP_LENGTH)
 def(heap-length@, Size +Heap, HEAP_LENGTH @)
 def(heap-length!, Size -- +Heap, HEAP_LENGTH !)
 
 quad def-static-buffer(HEAP_BASE)
-def(heap-base@, Ptr +Heap, HEAP_BASE @)
-def(heap-base!, Ptr -- +Heap, HEAP_BASE !)
+def(heap-base@, Ptr +Heap, HEAP_BASE ptr@)
+def(heap-base!, Ptr -- +Heap, HEAP_BASE ptr!)
 
 def(init-heap!, +Heap,
     heap-initial-base@ heap-base!

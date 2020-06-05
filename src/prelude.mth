@@ -23,6 +23,9 @@ def-type(Offset, Int)
 nominal(File, Int)
 def(File->Int, File -- Int, cast)
 def(Int->File, Int -- File, cast)
+def(|File|, Size, 8)
+def(file@, Ptr -- File, int@ Int->File)
+def(file!, File Ptr --, dip(File->Int) int!)
 
 def(!=, a a -- Bool, = not)
 def(>, Int Int -- Bool, swap <)
@@ -35,6 +38,12 @@ def(1+, Int -- Int, 1 +)
 def(1-, Int -- Int, 1 -)
 
 def(not, Bool -- Bool, 0 =)
+
+def(int@, Ptr -- Int, @)
+def(int!, Int Ptr --, !)
+
+def(ptr@, Ptr -- Ptr, @ Int->Ptr)
+def(ptr!, Ptr Ptr --, dip(Ptr->Int) !)
 
 def(u8, Size, 1)
 def(u8s, Size -- Size, id)

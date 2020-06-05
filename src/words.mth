@@ -57,11 +57,11 @@ def(word-status?, Word -- Word WordStatus, dup word-status@)
 
 # 1 byte unused
 
-def(word-ctx&, Word -- Ptr, word-metadata& 14 +)
-def(word-ctx@, Word -- Ctx, word-ctx& u16@)
-def(word-ctx!, Ctx Word --, word-ctx& u16!)
+def(word-ctx&, Word -- Ptr, word-metadata& 16 +)
+def(word-ctx@, Word -- Ctx, word-ctx& ctx@)
+def(word-ctx!, Ctx Word --, word-ctx& ctx!)
 
-def(word-type&, Word -- Ptr, word-metadata& 16 +)
+def(word-type&, Word -- Ptr, word-metadata& 24 +)
 def(word-type@, Word -- Type, word-type& u32@)
 def(word-type!, Type Word --, word-type& u32!)
 
