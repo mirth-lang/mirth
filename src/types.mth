@@ -887,6 +887,64 @@ def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
 def(morphism-type-subst, Subst MorphismType -- Subst MorphismType,
     id) # TODO
 
+############################################
+# TyConApp -- A TyCon applied to arguments #
+############################################
+
+nominal(TyConApp, Int) # 48 bits [0-19: offset args, 20-27: num args, 28-47: tycon]
+def(TyConApp->Int, TyConApp -- Int, cast)
+def(Int->TyConApp, Int -- TyConApp, cast)
+
+def(TYCONAPP_MAX_ARGS, Size, 1 20 <<)
+quad def-static-buffer(TYCONAPP_NUM_ARGS)
+TYCONAPP_MAX_ARGS |Type| * def-static-buffer(TYCONAPP_ARGS)
+
+def(tyconapp-alloc!, TyCon Int -- TyConApp,
+    dup 0 > if(
+        dup TYCONAPP_NUM_ARGS @ tuck +
+        dup TYCONAPP_MAX_ARGS > if(
+            "compiler error: TYCONAPP_NUM_ARGS > TYCONAPP_MAX_ARGS" panic! drop,
+            TYCONAPP_NUM_ARGS !
+        ),
+        drop 0 0
+    )
+    dip(20 <<) | dip(TyCon->Int 28 <<) | Int->TyConApp)
+
+def(tyconapp-tycon, TyConApp -- TyCon, TyConApp->Int 28 >> Int->TyCon)
+def(tyconapp-args-len, TyConApp -- Int, TyConApp->Int 20 >> 0xFF &)
+def(tyconapp-args-ptr, TyConApp -- Ptr, TyConApp->Int 0xFFFFF & TYCONAPP_ARGS +)
+
+def(tyconapp-arg&, Int TyConApp -- Ptr,
+    dup2 tyconapp-args-len >= if(
+        "compiler error: attempted to get out-of-bounds TyConApp arg" panic! drop,
+        dip(|Type| *) tyconapp-args-ptr +
+    ))
+def(tyconapp-arg@, Int TyConApp -- Type, tyconapp-arg& type@)
+def(tyconapp-arg!, Type Int TyConApp --, tyconapp-arg& type!)
+def(tyconapp-arg0!, Type TyConApp --, dip(0) tyconapp-arg!)
+def(tyconapp-arg1!, Type TyConApp --, dip(1) tyconapp-arg!)
+def(tyconapp-arg2!, Type TyConApp --, dip(2) tyconapp-arg!)
+def(tyconapp-arg3!, Type TyConApp --, dip(3) tyconapp-arg!)
+def(tyconapp-arg0@, TyConApp -- Type, dip(0) tyconapp-arg@)
+def(tyconapp-arg1@, TyConApp -- Type, dip(1) tyconapp-arg@)
+def(tyconapp-arg2@, TyConApp -- Type, dip(2) tyconapp-arg@)
+def(tyconapp-arg3@, TyConApp -- Type, dip(3) tyconapp-arg@)
+def(tyconapp-arg0?, TyConApp -- TyConApp Type, dup tyconapp-arg0@)
+def(tyconapp-arg1?, TyConApp -- TyConApp Type, dup tyconapp-arg1@)
+def(tyconapp-arg2?, TyConApp -- TyConApp Type, dup tyconapp-arg2@)
+def(tyconapp-arg3?, TyConApp -- TyConApp Type, dup tyconapp-arg3@)
+
+
+
+##############################
+# TyCon -- Type Constructors #
+##############################
+
+nominal(TyCon, Int)
+def(Int->TyCon, Int -- TyCon, cast)
+def(TyCon->Int, TyCon -- Int, cast)
+
+
 ############
 # Nominals #
 ############
