@@ -37,24 +37,21 @@ def(MAX_CTX, Size, 0x1000)
 def(CTX_SIZE, Size, 32)
 
 quad def-static-buffer(NUM_CTX)
-MAX_CTX CTX_SIZE * i16s def-static-buffer(CTX_BUF)
 
-def(ctx-base&, Ctx -- Ptr,
-    dup if(
-        Ctx->Int 1- CTX_SIZE * CTX_BUF +,
-        "compiler error: attempted to get base pointer of empty context" panic!
-        Ctx->Int Int->Ptr
-    ))
-def(ctx-prev&, Ctx -- Ptr, ctx-base&)
-def(ctx-name&, Ctx -- Ptr, ctx-base& 8 +)
-def(ctx-sort&, Ctx -- Ptr, ctx-base& 16 +)
-
+MAX_CTX |Ctx| * def-static-buffer(CTX_PREV)
+def(ctx-prev&, Ctx -- Ptr, Ctx->Int |Ctx| * CTX_PREV +)
 def(ctx-prev@, Ctx -- Ctx, ctx-prev& ctx@)
-def(ctx-name@, Ctx -- Name, ctx-name& name@)
-def(ctx-sort@, Ctx -- Sort, ctx-sort& sort@)
-
 def(ctx-prev!, Ctx Ctx --, ctx-prev& ctx!)
+
+MAX_CTX |Name| * def-static-buffer(CTX_NAME)
+def(ctx-name&, Ctx -- Ptr, Ctx->Int |Name| * CTX_NAME +)
+def(ctx-name@, Ctx -- Name, ctx-name& name@)
 def(ctx-name!, Name Ctx --, ctx-name& name!)
+
+def(|Sort|, Size, 8)
+MAX_CTX |Sort| * def-static-buffer(CTX_SORT)
+def(ctx-sort&, Ctx -- Ptr, Ctx->Int |Sort| * CTX_SORT +)
+def(ctx-sort@, Ctx -- Sort, ctx-sort& sort@)
 def(ctx-sort!, Sort Ctx --, ctx-sort& sort!)
 
 def(ctx-alloc!, Ctx,
@@ -65,9 +62,9 @@ def(ctx-alloc!, Ctx,
     ))
 def(ctx-new!, Ctx Name Sort -- Ctx,
     ctx-alloc!
-    dup dip(ctx-sort!)
-    dup dip(ctx-name!)
-    dup dip(ctx-prev!))
+    tuck ctx-sort!
+    tuck ctx-name!
+    tuck ctx-prev!)
 
 def(ctx-empty, Ctx, 0 Int->Ctx)
 def(ctx-is-empty, Ctx -- Bool, Ctx->Int 0 =)
@@ -203,7 +200,6 @@ def(subst-unify!, Subst Name Type -- Type,
 nominal(Sort, Int)
 def(Sort->Int, Sort -- Int, cast)
 def(Int->Sort, Int -- Sort, cast)
-def(|Sort|, Size, 8)
 def(sort@, Ptr -- Sort, @ Int->Sort)
 def(sort!, Sort Ptr --, dip(Sort->Int) !)
 
@@ -742,9 +738,7 @@ def(Int->MetaVar, Int -- MetaVar, cast)
 def(MetaVar->Int, MetaVar -- Int, cast)
 
 def(MAX_METAS, Size, 1 20 <<)
-def(META_SIZE, Size, 4)
 quad def-static-buffer(NUM_METAS)
-MAX_METAS META_SIZE * def-static-buffer(META_BUF)
 
 def(meta-alloc!, MetaVar,
     NUM_METAS @ dup 1+ NUM_METAS !
@@ -754,9 +748,10 @@ def(meta-alloc!, MetaVar,
         0 over meta-value!
     ))
 
-def(meta-value&, MetaVar -- Ptr, MetaVar->Int META_SIZE * META_BUF +)
-def(meta-value@, MetaVar -- Int, meta-value& u32@ U32->Int)
-def(meta-value!, Int MetaVar --, dip(Int->U32) meta-value& u32!)
+MAX_METAS 8 * def-static-buffer(META_VALUE)
+def(meta-value&, MetaVar -- Ptr, MetaVar->Int 8 * META_VALUE +)
+def(meta-value@, MetaVar -- Int, meta-value& int@)
+def(meta-value!, Int MetaVar --, meta-value& int!)
 
 def(meta-is-defined, MetaVar -- Bool, meta-value@ 0 =)
 def(meta-is-defined?, MetaVar -- MetaVar Bool, dup meta-is-defined)
@@ -799,10 +794,8 @@ def(Int->TensorType, Int -- TensorType, cast)
 def(TensorType->Int, TensorType -- Int, cast)
 
 def(MAX_TENSOR_TYPES, Size, 1 20 <<)
-def(TENSOR_TYPE_SIZE, Size, |Type| 2 *)
 
 quad def-static-buffer(NUM_TENSOR_TYPES)
-MAX_TENSOR_TYPES TENSOR_TYPE_SIZE * def-static-buffer(TENSOR_TYPE_BUF)
 
 def(tensor-type-alloc!, TensorType,
     NUM_TENSOR_TYPES @ dup 1+ NUM_TENSOR_TYPES !
@@ -815,13 +808,14 @@ def(tensor-type-new!, Type Type -- TensorType,
     dup dip(tensor-type-snd!)
     dup dip(tensor-type-fst!))
 
-def(tensor-type-base&, TensorType -- Ptr,
-    TensorType->Int TENSOR_TYPE_SIZE * TENSOR_TYPE_BUF +)
-def(tensor-type-fst&, TensorType -- Ptr, tensor-type-base&)
-def(tensor-type-snd&, TensorType -- Ptr, tensor-type-base& 4 +)
+MAX_TENSOR_TYPES |Type| * def-static-buffer(TENSOR_TYPE_FST)
+def(tensor-type-fst&, TensorType -- Ptr, TensorType->Int |Type| * TENSOR_TYPE_FST +)
 def(tensor-type-fst@, TensorType -- Type, tensor-type-fst& type@)
-def(tensor-type-snd@, TensorType -- Type, tensor-type-snd& type@)
 def(tensor-type-fst!, Type TensorType --, tensor-type-fst& type!)
+
+MAX_TENSOR_TYPES |Type| * def-static-buffer(TENSOR_TYPE_SND)
+def(tensor-type-snd&, TensorType -- Ptr, TensorType->Int |Type| * TENSOR_TYPE_SND +)
+def(tensor-type-snd@, TensorType -- Type, tensor-type-snd& type@)
 def(tensor-type-snd!, Type TensorType --, tensor-type-snd& type!)
 
 def(tensor-type-unify!, TensorType TensorType -- TensorType,
@@ -853,7 +847,6 @@ def(MorphismType->Int, MorphismType -- Int, cast)
 def(MAX_MORPHISM_TYPES, Size, 1 20 <<)
 def(MORPHISM_TYPE_SIZE, Size, |Type| 2 *)
 quad def-static-buffer(NUM_MORPHISM_TYPES)
-MAX_MORPHISM_TYPES MORPHISM_TYPE_SIZE * def-static-buffer(MORPHISM_TYPE_BUF)
 
 def(morphism-type-alloc!, MorphismType,
     NUM_MORPHISM_TYPES @ dup 1+ NUM_MORPHISM_TYPES !
@@ -866,13 +859,14 @@ def(morphism-type-new!, Type Type -- MorphismType,
     dup dip(morphism-type-cod!)
     dup dip(morphism-type-dom!))
 
-def(morphism-type-base&, MorphismType -- Ptr,
-    MorphismType->Int MORPHISM_TYPE_SIZE * MORPHISM_TYPE_BUF +)
-def(morphism-type-dom&, MorphismType -- Ptr, morphism-type-base&)
-def(morphism-type-cod&, MorphismType -- Ptr, morphism-type-base& 4 +)
+MAX_MORPHISM_TYPES |Type| * def-static-buffer(MORPHISM_TYPE_DOM)
+def(morphism-type-dom&, MorphismType -- Ptr, MorphismType->Int |Type| * MORPHISM_TYPE_DOM +)
 def(morphism-type-dom@, MorphismType -- Type, morphism-type-dom& type@)
-def(morphism-type-cod@, MorphismType -- Type, morphism-type-cod& type@)
 def(morphism-type-dom!, Type MorphismType --, morphism-type-dom& type!)
+
+MAX_MORPHISM_TYPES |Type| * def-static-buffer(MORPHISM_TYPE_COD)
+def(morphism-type-cod&, MorphismType -- Ptr, MorphismType->Int |Type| * MORPHISM_TYPE_COD +)
+def(morphism-type-cod@, MorphismType -- Type, morphism-type-cod& type@)
 def(morphism-type-cod!, Type MorphismType --, morphism-type-cod& type!)
 
 def(morphism-type-unify!, MorphismType MorphismType -- MorphismType,
@@ -903,14 +897,16 @@ def(Nominal->Int, Nominal -- Int, cast)
 
 def(MAX_NOMINALS, Size,  1 20 <<)
 quad def-static-buffer(NUM_NOMINALS)
+
 MAX_NOMINALS |Type| * def-static-buffer(NOMINAL_TYPE)
+def(nominal-type&, Nominal -- Ptr, Nominal->Int |Type| * NOMINAL_TYPE +)
+def(nominal-type@, Nominal -- Type, nominal-type& type@)
+def(nominal-type!, Type Nominal --, nominal-type& type!)
+
 MAX_NOMINALS |Name| * def-static-buffer(NOMINAL_NAME)
-
-def(nominal-type@, Nominal -- Type, Nominal->Int NOMINAL_TYPE type@@)
-def(nominal-name@, Nominal -- Name, Nominal->Int NOMINAL_NAME quad@@ Int->Name)
-
-def(nominal-type!, Type Nominal --, Nominal->Int NOMINAL_TYPE type!!)
-def(nominal-name!, Name Nominal --, dip(Name->Int) Nominal->Int NOMINAL_NAME quad!!)
+def(nominal-name&, Nominal -- Ptr, Nominal->Int |Name| * NOMINAL_NAME +)
+def(nominal-name@, Nominal -- Name, nominal-type& name@)
+def(nominal-name!, Name Nominal --, nominal-type& name!)
 
 def(nominal-alloc!, Size,
     NUM_NOMINALS @ dup 1+ NUM_NOMINALS !
