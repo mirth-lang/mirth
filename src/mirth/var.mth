@@ -1,0 +1,26 @@
+module(mirth/var)
+import(mirth/names)
+
+nominal(Var, Int)
+def(Var->Int, Var -- Int, cast)
+def(Int->Var, Int -- Var, cast)
+def(Var->U32, Var -- U32, Var->Int Int->U32)
+def(U32->Var, U32 -- Var, U32->Int Int->Var)
+def(VAR_MAX, Size, 1 20 <<)
+def(|Var|, Size, 4)
+def(var@, Ptr -- Var, u32@ U32->Var)
+def(var!, Var Ptr --, dip(Var->U32) u32!)
+
+quad def-static-buffer(VAR_NUM)
+def(var-alloc!, Var,
+    VAR_NUM @ dup 1+ VAR_NUM !
+    dup VAR_MAX >= if(
+        "compiler error: VAR_NUM >= VAR_MAX" panic!,
+        Int->Var
+    ))
+
+|Name| VAR_MAX * def-static-buffer(VAR_NAME)
+def(var-name&, Var -- Ptr, Var->Int |Name| * VAR_NAME +)
+def(var-name!, Name Var --, var-name& name!)
+def(var-name@, Var -- Name, var-name& name@)
+def(var-name?, Var -- Var Name, dup var-name@)

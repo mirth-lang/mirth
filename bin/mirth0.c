@@ -33,7 +33,7 @@ extern void exit(int);
 static volatile usize sc = STACK_SIZE;
 static volatile i64 stack[STACK_SIZE] = {0};
 
-#define STRINGS_SIZE 12096
+#define STRINGS_SIZE 12131
 static const char strings[STRINGS_SIZE] = { 
 109,105,114,116,104,46,109,116,104,0,
 66,117,105,108,100,105,110,103,46,0,
@@ -726,6 +726,7 @@ static const char strings[STRINGS_SIZE] = {
 97,116,116,101,109,112,116,101,100,32,116,111,32,115,116,111,114,101,32,117,110,107,110,111,119,110,32,116,121,112,101,0,
 97,116,116,101,109,112,116,101,100,32,116,111,32,115,116,111,114,101,32,116,111,32,110,111,110,45,112,111,105,110,116,101,114,0,
 116,121,112,101,32,101,114,114,111,114,0,
+99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,86,65,82,95,78,85,77,32,62,61,32,86,65,82,95,77,65,88,0,
 };
 
  i64 pop (void) {
@@ -1236,6 +1237,10 @@ void mwRUNNING_OS (void) {
  void mwTSTACK_NUM_STASHES (void) { push((i64)bTSTACK_NUM_STASHES); }
  volatile u8 bTSTACK_STASH_LEN[2048] = {0};
  void mwTSTACK_STASH_LEN (void) { push((i64)bTSTACK_STASH_LEN); }
+ volatile u8 bVAR_NUM[8] = {0};
+ void mwVAR_NUM (void) { push((i64)bVAR_NUM); }
+ volatile u8 bVAR_NAME[8388608] = {0};
+ void mwVAR_NAME (void) { push((i64)bVAR_NAME); }
 
 
  void mwinit_21_ (void);
@@ -1292,6 +1297,8 @@ void mwRUNNING_OS (void) {
  void mw0_3D_ (void);
  void mw0_3C_ (void);
  void mw1_2B_ (void);
+ void mwmax (void);
+ void mwsquare (void);
  void mwint_40_ (void);
  void mwint_21_ (void);
  void mwptr_40_ (void);
@@ -1446,8 +1453,6 @@ void mwRUNNING_OS (void) {
  void mwPROT_READ_7C_PROT_WRITE (void);
  void mwMAP_ANON_7C_MAP_PRIVATE (void);
  void mwalign (void);
- void mwmax (void);
- void mwsquare (void);
  void mwheap_alloc_21_ (void);
  void mwPath__3E_Str (void);
  void mwpath_40_ (void);
@@ -2290,6 +2295,19 @@ void mwRUNNING_OS (void) {
  void mwsig_push_outputs_21_ (void);
  void mwsig_pop_inputs_aux_21_ (void);
  void mwexpect3 (void);
+ void mwVar__3E_Int (void);
+ void mwInt__3E_Var (void);
+ void mwVar__3E_U32 (void);
+ void mwU32__3E_Var (void);
+ void mwVAR_MAX (void);
+ void mw_7C_Var_7C_ (void);
+ void mwvar_40_ (void);
+ void mwvar_21_ (void);
+ void mwvar_alloc_21_ (void);
+ void mwvar_name_26_ (void);
+ void mwvar_name_21_ (void);
+ void mwvar_name_40_ (void);
+ void mwvar_name_3F_ (void);
 
 void mwinit_21_ (void){
     mwinit_paths_21_();
@@ -2969,6 +2987,21 @@ void mw0_3C_ (void){
 void mw1_2B_ (void){
     push(1);
     mw_2B_();
+}
+
+void mwmax (void){
+    mwdup2();
+    mw_3C_();
+    if (pop()) {
+    mwnip();
+    } else {
+    mwdrop();
+    }
+}
+
+void mwsquare (void){
+    mwdup();
+    mw_2A_();
 }
 
 void mwint_40_ (void){
@@ -4625,21 +4658,6 @@ void mwalign (void){
       push(d1); }
     mw_25_();
     mw_();
-}
-
-void mwmax (void){
-    mwdup2();
-    mw_3C_();
-    if (pop()) {
-    mwnip();
-    } else {
-    mwdrop();
-    }
-}
-
-void mwsquare (void){
-    mwdup();
-    mw_2A_();
 }
 
 void mwheap_alloc_21_ (void){
@@ -16333,6 +16351,87 @@ void mwexpect3 (void){
     mwdrop2();
     push(0);
     }
+}
+
+void mwVar__3E_Int (void){
+    mwcast();
+}
+
+void mwInt__3E_Var (void){
+    mwcast();
+}
+
+void mwVar__3E_U32 (void){
+    mwVar__3E_Int();
+    mwInt__3E_U32();
+}
+
+void mwU32__3E_Var (void){
+    mwU32__3E_Int();
+    mwInt__3E_Var();
+}
+
+void mwVAR_MAX (void){
+    push(1);
+    push(20);
+    mw_3C__3C_();
+}
+
+void mw_7C_Var_7C_ (void){
+    push(4);
+}
+
+void mwvar_40_ (void){
+    mwu32_40_();
+    mwU32__3E_Var();
+}
+
+void mwvar_21_ (void){
+    { i64 d1 = pop();
+    mwVar__3E_U32();
+      push(d1); }
+    mwu32_21_();
+}
+
+void mwvar_alloc_21_ (void){
+    mwVAR_NUM();
+    mw_40_();
+    mwdup();
+    mw1_2B_();
+    mwVAR_NUM();
+    mw_21_();
+    mwdup();
+    mwVAR_MAX();
+    mw_3E__3D_();
+    if (pop()) {
+    push((i64)(strings + 12096));
+    mwpanic_21_();
+    } else {
+    mwInt__3E_Var();
+    }
+}
+
+void mwvar_name_26_ (void){
+    mwVar__3E_Int();
+    mw_7C_Name_7C_();
+    mw_2A_();
+    mwVAR_NAME();
+    mw_2B_();
+}
+
+void mwvar_name_21_ (void){
+    mwvar_name_26_();
+    mwname_21_();
+}
+
+void mwvar_name_40_ (void){
+    mwvar_name_26_();
+    mwname_40_();
+}
+
+void mwvar_name_3F_ (void){
+    mwdup();
+    mwvar_name_40_();
 }
 
 int main (int argc, char** argv) {

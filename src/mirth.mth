@@ -14,6 +14,7 @@ import(mirth/buffers)
 import(mirth/codegen)
 import(mirth/elab)
 import(mirth/types)
+import(mirth/var)
 
 def(init!, +IO,
     init-paths!

@@ -31,13 +31,6 @@ def(|Err|, Size, 4)
 def(err@, Ptr -- Err, u32@ U32->Int Int->Err)
 def(err!, Err Ptr --, dip(Err->Int Int->U32) u32!)
 
-nominal(Var, Int)
-def(Var->Int, Var -- Int, cast)
-def(Int->Var, Int -- Var, cast)
-def(VAR_MAX, Size, 1 20 <<)
-def(|Var|, Size, 4)
-def(var@, Ptr -- Var, u32@ U32->Int Int->Var)
-def(var!, Var Ptr --, dip(Var->Int Int->U32) u32!)
 
 quad def-static-buffer(VAR_NUM)
 VAR_MAX |Name| * def-static-buffer(VAR_NAME)
