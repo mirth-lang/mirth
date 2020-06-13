@@ -1,4 +1,4 @@
-module(names)
+module(mirth/names)
 import(prelude)
 
 #########

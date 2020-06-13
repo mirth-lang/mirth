@@ -1,7 +1,7 @@
-module(elab)
-import(names)
-import(tokens)
-import(types)
+module(mirth/elab)
+import(mirth/names)
+import(mirth/tokens)
+import(mirth/types)
 
 ##############
 # Elaborator #

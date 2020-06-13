@@ -1,7 +1,7 @@
-module(diagnostics)
+module(mirth/diagnostics)
 import(prelude)
-import(tokens)
-import(lexer) # probably should go the other way ...
+import(mirth/tokens)
+import(mirth/lexer) # probably should go the other way ...
 
 ###############
 # Diagnostics #

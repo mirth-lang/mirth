@@ -488,7 +488,6 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
         "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic! 0
     ))))
 
-
 def(close-file!, File -- +IO,
     File->Int posix-close!
     0 < if(

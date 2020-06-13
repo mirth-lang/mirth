@@ -1,7 +1,7 @@
-module(codegen)
+module(mirth/codegen)
 import(prelude)
-import(names)
-import(tokens)
+import(mirth/names)
+import(mirth/tokens)
 
 
 ###########

@@ -1,6 +1,6 @@
-module(modules)
+module(mirth/modules)
 import(prelude)
-import(paths)
+import(mirth/paths)
 
 def(init-modules!, --,
     0 num-modules!)

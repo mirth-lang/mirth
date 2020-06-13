@@ -1,6 +1,6 @@
 
-module(types)
-import(names)
+module(mirth/types)
+import(mirth/names)
 
 def(init-types!, --,
     0 NUM_METAS !

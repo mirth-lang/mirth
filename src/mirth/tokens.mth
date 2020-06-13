@@ -1,7 +1,7 @@
-module(tokens)
+module(mirth/tokens)
 import(prelude)
-import(names)
-import(strings)
+import(mirth/names)
+import(mirth/strings)
 
 def(init-tokens!, --,
     0 num-tokens!)

@@ -1,10 +1,10 @@
-module(eval)
+module(mirth/eval)
 import(prelude)
-import(names)
-import(strings)
-import(tokens)
-import(words)
-import(externals)
+import(mirth/names)
+import(mirth/strings)
+import(mirth/tokens)
+import(mirth/words)
+import(mirth/externals)
 
 ###############
 # Value Stack #
