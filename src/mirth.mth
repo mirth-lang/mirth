@@ -1,7 +1,6 @@
 module(mirth)
 
 import(prelude)
-import(prelude/heap)
 import(mirth/paths)
 import(mirth/modules)
 import(mirth/input)
