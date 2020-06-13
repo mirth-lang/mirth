@@ -1,0 +1,85 @@
+module(prelude/str)
+import(prelude/common)
+
+def(str-tail, Str -- Str, 1 +)
+def(str-length, Str -- Int,
+    0 swap
+    while(dup u8@,
+        str-tail
+        dip(1+))
+    drop)
+
+def(str-copy!, Str Str --,
+    while( over u8@,
+        over u8@ over u8!
+        dip(str-tail) str-tail
+    )
+    dip(drop 0 Int->U8) u8!)
+
+def(STR_BUF_SIZE, Int, 0x80)
+quad def-static-buffer(STR_BUF_LEN)
+STR_BUF_SIZE u8s def-static-buffer(STR_BUF)
+
+def(str-buf-length?, Int +StrBuf, STR_BUF_LEN @)
+def(str-buf-length!, Int -- +StrBuf,
+    dup STR_BUF_LEN !
+    dip(0 Int->U8) str-buf-u8!)
+def(str-buf-u8@, Offset -- U8 +StrBuf, STR_BUF u8@@)
+def(str-buf-u8!, U8 Offset -- +StrBuf, STR_BUF u8!!)
+def(str-buf-empty?, Bool +StrBuf,
+    str-buf-length? 0 =)
+def(str-buf-full?, Bool +StrBuf,
+    str-buf-length? 1+ STR_BUF_SIZE >=)
+def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
+
+def(str-buf-push!, U8 -- +StrBuf,
+    str-buf-full? if(
+        "str-buf-push! but STR_BUF is already full" panic!
+        drop,
+        str-buf-length? str-buf-u8!
+        str-buf-length? 1+ str-buf-length!
+    ))
+
+# Append the given string into STR_BUF. If the string is
+# too large it gets truncated.
+def(str-buf-push-str!, Str -- +StrBuf,
+        while(str-buf-full? if(0, dup u8@),
+        dup u8@ str-buf-push!
+        str-tail)
+    drop)
+
+# Set the STR_BUF to a given string. If the string is
+# too large it gets truncated.
+def(str-buf!, Str -- +StrBuf, str-buf-clear! str-buf-push-str!)
+
+def(str-buf-char!, Char -- +StrBuf, 0 str-buf-u8! 1 str-buf-length!)
+
+def(to-digit, Int -- U8, 10 % 48 + Int->U8)
+
+# put integer into str buf
+def(str-buf-int!, Int --,
+    dup 0= if(
+        drop "0" str-buf!,
+        dup dip(
+            abs
+            str-buf-clear!
+            while(dup, dup to-digit str-buf-push! 10 /) drop
+        ) 0 < if(45 Int->U8 str-buf-push!, id)
+        str-buf-reverse!
+    ))
+
+def(str-buf-swap-u8!, Int Int --,
+    dup2 swap
+    dip(dip(dip(str-buf-u8@)))
+    dip(str-buf-u8@)
+    str-buf-u8! str-buf-u8!
+)
+
+# reverse contents of str buf
+def(str-buf-reverse!, --,
+    0 str-buf-length? 1-
+    while(dup2 <,
+        dup2 str-buf-swap-u8!
+        dip(1 +) 1-
+    )
+    drop2)

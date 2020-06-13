@@ -1,0 +1,141 @@
+module(prelude/common)
+
+def(trip, a -- a a a, dup dup)
+def(rotr, a b c -- c a b, swap dip(swap))
+def(rotl, a b c -- b c a, dip(swap) swap)
+def(over, a b -- a b a, dip(dup) swap)
+def(tuck, a b -- b a b, dup dip(swap))
+def(nip, a b -- b, dip(drop))
+def(dup2, a b -- a b a b, over over)
+def(drop2, a b --, drop drop)
+def(drop3, a b c --, drop drop drop)
+
+def-type(Byte, U8)
+def-type(Char, U8)
+def-type(Str, Ptr)
+def-type(Bool, Int)
+def-type(Size, Int)
+def-type(Offset, Int)
+
+def(cast, a -- b, id) # TODO make primitive?
+def(Int->Ptr, Int -- Ptr, cast)
+def(Ptr->Int, Ptr -- Int, cast)
+
+def(U8_MAX, Int, 0xFF)
+def(U16_MAX, Int, 1 16 << 1-)
+def(U32_MAX, Int, 1 32 << 1-)
+def(I8_MAX, Int, 127)
+def(I16_MAX, Int, 1 15 << 1-)
+def(I32_MAX, Int, 1 31 << 1-)
+
+def(U8_MIN, Int, 0)
+def(U16_MIN, Int, 0)
+def(U32_MIN, Int, 0)
+def(I8_MIN, Int, -128)
+def(I16_MIN, Int, 0 1 15 << -)
+def(I32_MIN, Int, 0 1 31 << -)
+
+def(!=, a a -- Bool, = not)
+def(>, Int Int -- Bool, swap <)
+def(>=, Int Int -- Bool, swap <=)
+
+def(0=, Int -- Bool, 0 =)
+def(0<, Int -- Bool, 0 <)
+
+def(1+, Int -- Int, 1 +)
+def(1-, Int -- Int, 1 -)
+
+def(max, Int Int -- Int, dup2 < if(nip, drop))
+def(square, Int -- Int, dup *)
+
+def(not, Bool -- Bool, 0 =)
+
+def(int@, Ptr -- Int, @)
+def(int!, Int Ptr --, !)
+
+def(ptr@, Ptr -- Ptr, @ Int->Ptr)
+def(ptr!, Ptr Ptr --, dip(Ptr->Int) !)
+
+def(u8, Size, 1)
+def(u8s, Size -- Size, id)
+def(u8@@, Offset Ptr -- Byte, + u8@)
+def(u8!!, Byte Offset Ptr --, + u8!)
+
+def(u16, Size, 2)
+def(u16s, Size -- Size, u16 *)
+def(u16@@, Offset Ptr -- U16, dip(u16s) + u16@)
+def(u16!!, U16 Offset Ptr --, dip(u16s) + u16!)
+
+def(u32, Size, 4)
+def(u32s, Size -- Size, u32 *)
+def(u32@@, Offset Ptr -- U32, dip(u32s) + u32@)
+def(u32!!, U32 Offset Ptr --, dip(u32s) + u32!)
+
+def(i16, Size, 2)
+def(i16s, Size -- Size, i16 *)
+def(i16@@, Offset Ptr -- I16, dip(i16s) + i16@)
+def(i16!!, I16 Offset Ptr --, dip(i16s) + i16!)
+
+def(i32, Size, 4)
+def(i32s, Size -- Size, i32 *)
+def(i32@@, Offset Ptr -- I32, dip(i32s) + i32@)
+def(i32!!, I32 Offset Ptr --, dip(i32s) + i32!)
+
+def-type(Long, Int)
+def(u64, Size, 8)
+def(quad, Size, 8)
+def(quads, Size -- Size, quad *)
+def(quad@@, Offset Ptr -- Long, dip(quads) + @)
+def(quad!!, Long Offset Ptr --, dip(quads) + !)
+
+def(Int->U8, Int -- U8,
+    dup U8_MIN U8_MAX in-range if(
+        cast,
+        "Int->U8 failed: out of bounds" panic! cast
+    ))
+def(Int->U16, Int -- U16,
+    dup U16_MIN U16_MAX in-range if(
+        cast,
+        "Int->U16 failed: out of bounds" panic! cast
+    ))
+def(Int->U32, Int -- U32,
+    dup U32_MIN U32_MAX in-range if(
+        cast,
+        "Int->U32 failed: out of bounds" panic! cast
+    ))
+def(Int->U64, Int -- U64, cast)
+
+def(Int->I8, Int -- I8,
+    dup I8_MIN I8_MAX in-range if(
+        cast,
+        "Int->I8 failed: out of bounds" panic! cast
+    ))
+def(Int->I16, Int -- I16,
+    dup I16_MIN I16_MAX in-range if(
+        cast,
+        "Int->I16 failed: out of bounds" panic! cast
+    ))
+def(Int->I32, Int -- I32,
+    dup I32_MIN I32_MAX in-range if(
+        cast,
+        "Int->I32 failed: out of bounds" panic! cast
+    ))
+def(Int->I64, Int -- I64, cast)
+
+def(U8->Int, U8 -- Int, cast)
+def(U16->Int, U16 -- Int, cast)
+def(U32->Int, U32 -- Int, cast)
+def(U64->Int, U64 -- Int, cast)
+def(I8->Int, I8 -- Int, cast)
+def(I16->Int, I16 -- Int, cast)
+def(I32->Int, I32 -- Int, cast)
+def(I64->Int, I64 -- Int, cast)
+
+def(negate, Int -- Int, -1 *)
+def(abs, Int -- Int, dup 0 < if(negate, id))
+
+def-type(OS, Int)
+def(UNKNOWN, OS, 0)
+def(WIN32, OS, 1)
+def(LINUX, OS, 2)
+def(MACOS, OS, 3)

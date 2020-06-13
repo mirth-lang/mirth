@@ -1,5 +1,5 @@
 module(prelude/heap)
-import(prelude)
+import(prelude/common)
 
 ########
 # Heap #
@@ -83,9 +83,6 @@ def(align, Size Size -- Size,
     # a:Size b:Size { a 0 >=, b 0 > } --
     # c:Size { c a >=, c a b + <, c b % 0 = },
     dup dip(1- + dup) % -)
-
-def(max, Int Int -- Int, dup2 < if(nip, drop))
-def(square, Int -- Int, dup *)
 
 # Figure out how much to expand heap size by, based on a minimum size
 # (= requested size aligned to 4096).
