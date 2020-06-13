@@ -1,6 +1,5 @@
 module(mirth/buffers)
 import(prelude)
-import(prelude/heap)
 
 ###########
 # Buffers #
