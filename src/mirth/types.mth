@@ -1,6 +1,7 @@
 
 module(mirth/types)
 import(mirth/names)
+import(mirth/ctx)
 
 def(init-types!, --,
     0 NUM_METAS !
@@ -21,177 +22,58 @@ def(init-types!, --,
 def(test-types!, --,
     test-sorts!)
 
-###########
-# Context #
-###########
-
-# A context for types and terms.
-nominal(Ctx, Int) # index into context array
-def(Ctx->Int, Ctx -- Int, cast)
-def(Int->Ctx, Int -- Ctx, cast)
-
-def(|Ctx|, Size, 8)
-def(ctx@, Ptr -- Ctx, @ Int->Ctx)
-def(ctx!, Ctx Ptr --, dip(Ctx->Int) !)
-def(MAX_CTX, Size, 0x1000)
-def(CTX_SIZE, Size, 32)
-
-quad def-static-buffer(NUM_CTX)
-
-MAX_CTX |Ctx| * def-static-buffer(CTX_PREV)
-def(ctx-prev&, Ctx -- Ptr, Ctx->Int |Ctx| * CTX_PREV +)
-def(ctx-prev@, Ctx -- Ctx, ctx-prev& ctx@)
-def(ctx-prev!, Ctx Ctx --, ctx-prev& ctx!)
-
-MAX_CTX |Name| * def-static-buffer(CTX_NAME)
-def(ctx-name&, Ctx -- Ptr, Ctx->Int |Name| * CTX_NAME +)
-def(ctx-name@, Ctx -- Name, ctx-name& name@)
-def(ctx-name!, Name Ctx --, ctx-name& name!)
-
-def(|Sort|, Size, 8)
-MAX_CTX |Sort| * def-static-buffer(CTX_SORT)
-def(ctx-sort&, Ctx -- Ptr, Ctx->Int |Sort| * CTX_SORT +)
-def(ctx-sort@, Ctx -- Sort, ctx-sort& sort@)
-def(ctx-sort!, Sort Ctx --, ctx-sort& sort!)
-
-def(ctx-alloc!, Ctx,
-    NUM_CTX @ dup 1+ NUM_CTX !
-    dup MAX_CTX >= if(
-        "compiler error: ran out of space for contexts, increase MAX_CTX" panic!,
-        1+ Int->Ctx
-    ))
-def(ctx-new!, Ctx Name Sort -- Ctx,
-    ctx-alloc!
-    tuck ctx-sort!
-    tuck ctx-name!
-    tuck ctx-prev!)
-
-def(ctx-empty, Ctx, 0 Int->Ctx)
-def(ctx-is-empty, Ctx -- Bool, Ctx->Int 0 =)
-def(ctx-is-empty?, Ctx -- Ctx Bool, dup ctx-is-empty)
-
-def(ctx-has-name?, Name Ctx -- Name Ctx Bool, dup2 ctx-has-name)
-def(ctx-has-name, Name Ctx -- Bool,
-    ctx-is-empty? if(
-        drop2 0,
-        dup ctx-name@ dip(over) = if(
-            drop2 1,
-            ctx-prev@ ctx-has-name
-        )
-    ))
-
-def(ctx-lookup-sort?, Name Ctx -- Name Ctx Sort, dup2 ctx-lookup-sort)
-def(ctx-lookup-sort, Name Ctx -- Sort,
-    ctx-is-empty? if(
-        drop2 SORT_ERROR,
-
-        dup ctx-name@ dip(over) = if(
-            ctx-sort@ nip,
-            ctx-prev@ ctx-lookup-sort
-        )
-    ))
-
-def(ctx-trace!, Ctx -- +IO,
-    ctx-is-empty? if(
-        drop,
-
-        dup ctx-prev@
-        ctx-is-empty? if(
-            drop,
-            ctx-trace! ", " str-trace!
-        )
-
-        dup ctx-sort@
-        sort-is-implicit if(
-            "'" str-trace!,
-            id
-        )
-
-        dup ctx-name@
-        name-load! str-buf-trace!
-
-        ctx-sort@
-        sort-is-word? if(
-            ": " str-trace!
-            sort-word-type type-trace-sig!,
-
-        sort-is-value? if(
-            ": " str-trace!
-            sort-value-type type-trace!,
-
-            drop
-        ))
-    ))
-
-def(ctx-length?, Ctx -- Ctx Size, dup ctx-length)
-def(ctx-length, Ctx -- Size,
-    0 swap
-    while(ctx-is-empty? not,
-        dip(1+) ctx-prev@
-    )
-    drop)
-
-def(ctx-lookup, Ctx Name -- Int Bool,
-    over ctx-is-empty if(
-        drop2 0 0,
-        over ctx-name@ over = if(
-            drop ctx-length 1- 1,
-            dip(ctx-prev@) ctx-lookup
-        )
-    ))
-
 #########
 # Subst #
 #########
 
-nominal(Subst, U32)
-def(Subst->Int, Subst -- Int, cast)
-def(Int->Subst, Int -- Subst, cast)
-def(|Subst|, Size, 8)
-def(subst@, Ptr -- Subst, int@ Int->Subst)
-def(subst!, Subst Ptr --, dip(Subst->Int) int!)
+# nominal(Subst, U32)
+# def(Subst->Int, Subst -- Int, cast)
+# def(Int->Subst, Int -- Subst, cast)
+# def(|Subst|, Size, 8)
+# def(subst@, Ptr -- Subst, int@ Int->Subst)
+# def(subst!, Subst Ptr --, dip(Subst->Int) int!)
 
-def(SUBST_BUF_SIZE, Size, 1 18 <<)
-quad def-static-buffer(SUBST_BUF_LEN)
-SUBST_BUF_SIZE u32s def-static-buffer(SUBST_BUF)
+# def(SUBST_BUF_SIZE, Size, 1 18 <<)
+# quad def-static-buffer(SUBST_BUF_LEN)
+# SUBST_BUF_SIZE u32s def-static-buffer(SUBST_BUF)
 
-def(subst-alloc!, Ctx -- Subst,
-    ctx-length?
-    SUBST_BUF_LEN @ tuck
-    + 1+ SUBST_BUF_LEN !
-    dip(Ctx->Int Int->U32) tuck SUBST_BUF u32!! Int->Subst)
+# def(subst-alloc!, Ctx -- Subst,
+#     ctx-length?
+#     SUBST_BUF_LEN @ tuck
+#     + 1+ SUBST_BUF_LEN !
+#     dip(Ctx->Int Int->U32) tuck SUBST_BUF u32!! Int->Subst)
 
-def(subst-ctx@, Subst -- Ctx,
-    Subst->Int SUBST_BUF u32@@ U32->Int Int->Ctx)
+# def(subst-ctx@, Subst -- Ctx,
+#     Subst->Int SUBST_BUF u32@@ U32->Int Int->Ctx)
 
-def(subst-ctx?, Subst -- Subst Ctx,
-    dup subst-ctx@)
+# def(subst-ctx?, Subst -- Subst Ctx,
+#     dup subst-ctx@)
 
-def(subst-item&, Subst Name -- Ptr,
-    dip(subst-ctx?) ctx-lookup if(
-        1+ swap Subst->Int + u32s SUBST_BUF +,
-        drop2 0 Int->Ptr
-    ))
+# def(subst-item&, Subst Name -- Ptr,
+#     dip(subst-ctx?) ctx-lookup if(
+#         1+ swap Subst->Int + u32s SUBST_BUF +,
+#         drop2 0 Int->Ptr
+#     ))
 
-def(subst-lookup, Subst Name -- Type Bool,
-    subst-item& dup if(
-        u32@ dup if(
-            U32->Int 1- Int->Type 1,
-            drop TYPE_ERROR 0
-        ),
-        drop TYPE_ERROR 0
-    ))
+# def(subst-lookup, Subst Name -- Type Bool,
+#     subst-item& dup if(
+#         u32@ dup if(
+#             U32->Int 1- Int->Type 1,
+#             drop TYPE_ERROR 0
+#         ),
+#         drop TYPE_ERROR 0
+#     ))
 
-def(subst-unify!, Subst Name Type -- Type,
-    dip(tuck subst-item& dup) swap if(
-        over u32@ dup if(
-            U32->Int 1- Int->Type type-unify! nip,
-            drop dup dip(Type->Int 1+ Int->U32 swap u32!)
-        ) nip,
-        "compiler warning: weird subst-unify! case -- tell Sofia" elab-emit-warning!
-        dip(drop TVar) type-unify!
-        # variable not in subst context -- must be a bound variable
-    ))
+# def(subst-unify!, Subst Name Type -- Type,
+#     dip(tuck subst-item& dup) swap if(
+#         over u32@ dup if(
+#             U32->Int 1- Int->Type type-unify! nip,
+#             drop dup dip(Type->Int 1+ Int->U32 swap u32!)
+#         ) nip,
+#         "compiler warning: weird subst-unify! case -- tell Sofia" elab-emit-warning!
+#         dip(drop TVar) type-unify!
+#         # variable not in subst context -- must be a bound variable
+#     ))
 
 #########
 # Sorts #
@@ -258,21 +140,6 @@ def(sort-value-type, Sort -- Type,
         drop TYPE_ERROR
     ))
 def(sort-value-type?, Sort -- Sort Type, dup sort-value-type)
-
-# Check that two sorts have the same category.
-def(sort-match, Sort Sort -- Bool,
-    sort-is-type? if(
-        drop sort-is-type,
-    sort-is-stack? if(
-        drop sort-is-stack,
-    sort-is-effect? if(
-        drop sort-is-effect,
-    sort-is-word? if(
-        drop sort-is-word,
-    sort-is-value? if(
-        drop sort-is-value,
-        "unknown sort category" panic! drop2 0
-    ))))))
 
 # Sort constructors.
 def(SImplicit, Sort -- Sort, Sort->Int SORT_FLAG_IMPLICIT | Int->Sort)
@@ -428,7 +295,7 @@ def(test-sorts!, --,
 nominal(Type, Int) # actually U56
 def(Type->Int, Type -- Int, cast)
 def(Int->Type, Int -- Type, cast)
-def(|Type|, Size, 8)
+# def(|Type|, Size, 8) # defined in mirth/var
 def(type@, Ptr -- Type, int@ Int->Type)
 def(type!, Type Ptr --, dip(Type->Int) int!)
 def(type@@, Int Ptr -- Type, dip(|Type| *) + type@)
@@ -524,34 +391,34 @@ def(type-expand, Type -- Type,
         id
     ))
 
-def(type-subst, Subst Type -- Subst Type,
-    type-expand
-    type-is-prim? if(
-        id,
-    type-is-meta? if(
-        id, # maybe panic instead?
-    type-is-var? if(
-        type-get-var
-        dup2 subst-lookup if(
-            nip,
-            drop TVar
-        ),
+# def(type-subst, Subst Type -- Subst Type,
+#     type-expand
+#     type-is-prim? if(
+#         id,
+#     type-is-meta? if(
+#         id, # maybe panic instead?
+#     type-is-var? if(
+#         type-get-var
+#         dup2 subst-lookup if(
+#             nip,
+#             drop TVar
+#         ),
 
-    type-is-tensor? if(
-        type-get-tensor
-        tensor-type-subst
-        TTensor,
+#     type-is-tensor? if(
+#         type-get-tensor
+#         tensor-type-subst
+#         TTensor,
 
-    type-is-morphism? if(
-        type-get-morphism
-        morphism-type-subst
-        TMorphism,
+#     type-is-morphism? if(
+#         type-get-morphism
+#         morphism-type-subst
+#         TMorphism,
 
-    type-is-nominal? if(
-        id, # no type args yet.
+#     type-is-nominal? if(
+#         id, # no type args yet.
 
-        "type-subst: unknown type" panic!
-    )))))))
+#         "type-subst: unknown type" panic!
+#     )))))))
 
 
 # Unify two types. Raises an elaboration error if unification is impossible.
@@ -833,8 +700,8 @@ def(tensor-type-has-meta, MetaVar TensorType -- Bool,
         type-has-meta
     ))
 
-def(tensor-type-subst, Subst TensorType -- Subst TensorType,
-    id) # TODO
+# def(tensor-type-subst, Subst TensorType -- Subst TensorType,
+#     id) # TODO
 
 ##################
 # Morphism Types #
@@ -884,8 +751,8 @@ def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
         type-has-meta
     ))
 
-def(morphism-type-subst, Subst MorphismType -- Subst MorphismType,
-    id) # TODO
+# def(morphism-type-subst, Subst MorphismType -- Subst MorphismType,
+#     id) # TODO
 
 ############################################
 # TyConApp -- A TyCon applied to arguments #

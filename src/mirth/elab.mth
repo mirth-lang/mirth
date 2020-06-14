@@ -75,28 +75,24 @@ def(elab-type!, Token -- Type,
 # The only sorts we want here are SType, SStack, and SEffect.
 # This will add the type variable to the context if it isn't already there.
 def(elab-type-var!, Token Sort -- Type,
-    swap
+    drop # don't care about sort at the moment...
     token-type? TOKEN_NAME = if(
         token-has-args? if(
             "Variables with args are not supported." elab-emit-error!
-            drop2 TYPE_ERROR,
+            drop TYPE_ERROR,
 
-            token-name@
-            elab-ctx@
-            ctx-has-name? if(
-                ctx-lookup-sort?
-                dip(drop swap) sort-match if(
-                    TVar,
-                    "Unexpected sort mismatch." elab-emit-error!
-                    drop TYPE_ERROR
-                ),
+            token-name? elab-ctx@ ctx-has-name if(
+                # TODO: check the variable is a type
+                token-name@ TVar,
 
-                rotr dup dip(swap SImplicit ctx-new! elab-ctx!) TVar
+                # TODO: declare the variable is a type
+                token-name? var-new-local-implicit! elab-ctx@ swap ctx-new! elab-ctx!
+                token-name@ TVar
             )
         ),
 
         "elab-type-var! expects a name token." elab-emit-error!
-        drop2 TYPE_ERROR
+        drop TYPE_ERROR
     ))
 
 # Elaborate a type constructor token.

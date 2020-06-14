@@ -13,6 +13,9 @@ def(init-words!, --,
 nominal(Word, Int)
 def(Word->Int, Word -- Int, cast)
 def(Int->Word, Int -- Word, cast)
+# def(|Word|, Size, 8) # defined in mirth/var
+def(word!, Word Ptr --, dip(Word->Int) !)
+def(word@, Ptr -- Word, @ Int->Word)
 
 def(MAX_WORDS, Size, 0x4000)
 quad def-static-buffer(NUM_WORDS)

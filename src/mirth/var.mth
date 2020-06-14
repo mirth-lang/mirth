@@ -6,6 +6,7 @@ def(Var->Int, Var -- Int, cast)
 def(Int->Var, Int -- Var, cast)
 def(Var->U32, Var -- U32, Var->Int Int->U32)
 def(U32->Var, U32 -- Var, U32->Int Int->Var)
+def(VAR_ERROR, Var, 0 Int->Var)
 def(VAR_MAX, Size, 1 20 <<)
 def(|Var|, Size, 4)
 def(var@, Ptr -- Var, u32@ U32->Var)
@@ -19,6 +20,24 @@ def(var-alloc!, Var,
         Int->Var
         0 Int->VarStatus over var-status!
     ))
+
+def(var-new-global!, Name -- Var,
+    var-alloc!
+    dup dip(var-name!)
+    dup VAR_FLAG_GLOBAL var-flag!)
+
+def(var-new-local!, Name -- Var,
+    var-alloc!
+    dup dip(var-name!)
+    dup VAR_FLAG_LOCAL var-flag!)
+
+def(var-new-local-implicit!, Name -- Var,
+    var-new-local!
+    dup VAR_FLAG_IMPLICIT var-flag!)
+
+def(var-new-meta!, Var,
+    var-alloc!
+    dup VAR_FLAG_META var-flag!)
 
 nominal(VarStatus, U32)
 def(|VarStatus|, Size, 4)
@@ -45,9 +64,13 @@ def(VAR_FLAG_PRIM, VarFlag, 0x0001 Int->VarFlag)
 def(VAR_FLAG_GLOBAL, VarFlag, 0x0002 Int->VarFlag)
 def(VAR_FLAG_LOCAL, VarFlag, 0x0004 Int->VarFlag)
 def(VAR_FLAG_META, VarFlag, 0x0008 Int->VarFlag)
-def(VAR_FLAG_HAS_NAME, VarFlag, 0x10000 Int->VarFlag)
-def(VAR_FLAG_HAS_TOKEN, VarFlag, 0x20000 Int->VarFlag)
-def(VAR_FLAG_HAS_TYPE, VarFlag, 0x40000 Int->VarFlag)
+def(VAR_FLAG_IMPLICIT, VarFlag, 0x0010 Int->VarFlag)
+def(VAR_FLAG_HAS_NAME, VarFlag, 0x010000 Int->VarFlag)
+def(VAR_FLAG_HAS_TYPE, VarFlag, 0x020000 Int->VarFlag)
+def(VAR_FLAG_HAS_WORD, VarFlag, 0x040000 Int->VarFlag)
+def(VAR_FLAG_HAS_NAME_TOKEN, VarFlag, 0x100000 Int->VarFlag)
+def(VAR_FLAG_HAS_TYPE_TOKEN, VarFlag, 0x200000 Int->VarFlag)
+def(VAR_FLAG_HAS_WORD_TOKEN, VarFlag, 0x400000 Int->VarFlag)
 
 |Name| VAR_MAX * def-static-buffer(VAR_NAME)
 def(var-has-name?, Var -- Var Bool, VAR_FLAG_HAS_NAME var-flag?)
@@ -60,26 +83,33 @@ def(var-name!, Name Var --,
     ))
 def(var-name@, Var -- Name,
     var-has-name? not if(
-        "compiler error: attempted to get name of variable without name" panic!,
+        var-has-name-token? not if(
+            "compiler error: attempted to get name of variable without name" panic!,
+            var-name-token? token-name@
+            tuck var-name!
+        ),
         var-name& name@
     ))
 def(var-name?, Var -- Var Name, dup var-name@)
 
-|Token| VAR_MAX * def-static-buffer(VAR_TOKEN)
-def(var-has-token?, Var -- Var Bool, VAR_FLAG_HAS_TOKEN var-flag?)
-def(var-token&, Var -- Ptr, Var->Int |Token| * VAR_TOKEN +)
-def(var-token!, Token Var --,
-    var-has-token? if(
-        "compiler error: attempted to set token of variable that already has token" panic! drop2,
-        dup VAR_FLAG_HAS_TOKEN var-flag!
-        var-token& token!
+|Token| VAR_MAX * def-static-buffer(VAR_NAME_TOKEN)
+def(var-has-name-token?, Var -- Var Bool, VAR_FLAG_HAS_NAME_TOKEN var-flag?)
+def(var-name-token&, Var -- Ptr, Var->Int |Token| * VAR_NAME_TOKEN +)
+def(var-name-token!, Token Var --,
+    var-has-name-token? if(
+        "compiler error: attempted to set name token of variable that already has name token" panic! drop2,
+        dup VAR_FLAG_HAS_NAME_TOKEN var-flag!
+        var-name-token& token!
     ))
-def(var-token@, Var -- Token,
-    var-has-token? not if(
-        "compiler error: attempted to get token of variable without token" panic!,
-        var-token& token@
+def(var-name-token@, Var -- Token,
+    var-has-name-token? not if(
+        "compiler error: attempted to get name token of variable without name token" panic!,
+        var-name-token& token@
     ))
+def(var-name-token?, Var -- Var Token,
+    dup var-name-token@)
 
+def(|Type|, Size, 8)
 |Type| VAR_MAX * def-static-buffer(VAR_TYPE)
 def(var-has-type?, Var -- Var Bool, VAR_FLAG_HAS_TYPE var-flag?)
 def(var-type&, Var -- Ptr, Var->Int |Type| * VAR_TYPE +)
@@ -94,3 +124,58 @@ def(var-type@, Var -- Type,
         "compiler error: attempted to get type of variable without type" panic!,
         var-type& type@
     ))
+def(var-type?, Var -- Var Type,
+    dup var-type@)
+
+|Token| VAR_MAX * def-static-buffer(VAR_TYPE_TOKEN)
+def(var-has-type-token?, Var -- Var Bool, VAR_FLAG_HAS_TYPE_TOKEN var-flag?)
+def(var-type-token&, Var -- Ptr, Var->Int |Token| * VAR_TYPE_TOKEN +)
+def(var-type-token!, Token Var --,
+    var-has-type-token? if(
+        "compiler error: attempted to set type token of variable that already has type token" panic! drop2,
+        dup VAR_FLAG_HAS_TYPE_TOKEN var-flag!
+        var-type-token& token!
+    ))
+def(var-type-token@, Var -- Token,
+    var-has-type-token? not if(
+        "compiler error: attempted to get type token of variable without type token" panic!,
+        var-type-token& token@
+    ))
+def(var-type-token?, Var -- Var Token,
+    dup var-type-token@)
+
+
+def(|Word|, Size, 8)
+|Word| VAR_MAX * def-static-buffer(VAR_WORD)
+def(var-has-word?, Var -- Var Bool, VAR_FLAG_HAS_WORD var-flag?)
+def(var-word&, Var -- Ptr, Var->Int |Word| * VAR_WORD +)
+def(var-word!, Word Var --,
+    var-has-word? if(
+        "compiler error: attempted to set word of variable that already has word" panic! drop2,
+        dup VAR_FLAG_HAS_WORD var-flag!
+        var-word& word!
+    ))
+def(var-word@, Var -- Word,
+    var-has-word? not if(
+        "compiler error: attempted to get word of variable without word" panic!,
+        var-word& word@
+    ))
+def(var-word?, Var -- Var Word,
+    dup var-word@)
+
+|Token| VAR_MAX * def-static-buffer(VAR_WORD_TOKEN)
+def(var-has-word-token?, Var -- Var Bool, VAR_FLAG_HAS_WORD_TOKEN var-flag?)
+def(var-word-token&, Var -- Ptr, Var->Int |Token| * VAR_WORD_TOKEN +)
+def(var-word-token!, Token Var --,
+    var-has-word-token? if(
+        "compiler error: attempted to set word token of variable that already has word token" panic! drop2,
+        dup VAR_FLAG_HAS_WORD_TOKEN var-flag!
+        var-word-token& token!
+    ))
+def(var-word-token@, Var -- Token,
+    var-has-word-token? not if(
+        "compiler error: attempted to get word token of variable without word token" panic!,
+        var-word-token& token@
+    ))
+def(var-word-token?, Var -- Var Token,
+    dup var-word-token@)
