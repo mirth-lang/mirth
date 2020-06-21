@@ -1,0 +1,181 @@
+import(prelude/common)
+
+# Assertions
+
+def(!!, Bool --, if(id, "Assertion failed" panic!))
+def(!!=, a a --, = !!)
+def(!!0, Bool --, 0 !!=)
+def(!!1, Bool --, 1 !!=)
+def(!!001, Int Int Int --, !!1 !!0 !!0)
+def(!!010, Int Int Int --, !!0 !!1 !!0)
+def(!!011, Int Int Int --, !!1 !!1 !!0)
+def(!!100, Int Int Int --, !!0 !!0 !!1)
+def(!!111, Int Int Int --, !!1 !!1 !!1)
+
+# Tests
+
+def(test-prelude!, --,
+    test-if test-drop test-dup test-swap test-dip
+    test-trip test-rotr test-rotl test= test< test<= test> test>=
+    test+ test- test* test/ test% test-str test-while
+    test@!)
+def(test-if, --, 0 !!0 1 !!1 0 1 !!1 !!0)
+def(test-drop, --, 0 1 drop !!0)
+def(test-dup, --, 0 1 dup !!011)
+def(test-swap, --, 0 1 0 swap !!001)
+def(test-dip, --, 0 0 dip(1) !!010)
+def(test-trip, --, 0 1 trip !!111 !!0)
+def(test-rotr, --,
+    1 0 0 rotr !!010
+    0 1 0 rotr !!001
+    0 0 1 rotr !!100)
+def(test-rotl, --,
+    1 0 0 rotl !!001
+    0 1 0 rotl !!100
+    0 0 1 rotl !!010)
+
+def(test=, --,
+    0 0 = !!1
+    0 1 = !!0
+    1 0 = !!0
+    1 1 = !!1
+    1 2 = !!0
+    2 1 = !!0
+    2 2 = !!1)
+def(test<, --,
+    0 0 < !!0
+    0 1 < !!1
+    1 0 < !!0
+    1 1 < !!0
+    1 2 < !!1
+    2 1 < !!0
+    2 2 < !!0)
+def(test<=, --,
+    0 0 <= !!1
+    0 1 <= !!1
+    1 0 <= !!0
+    1 1 <= !!1
+    1 2 <= !!1
+    2 1 <= !!0
+    2 2 <= !!1)
+def(test>, --,
+    0 0 > !!0
+    0 1 > !!0
+    1 0 > !!1
+    1 1 > !!0
+    1 2 > !!0
+    2 1 > !!1
+    2 2 > !!0)
+def(test>=, --,
+    0 0 >= !!1
+    0 1 >= !!0
+    1 0 >= !!1
+    1 1 >= !!1
+    1 2 >= !!0
+    2 1 >= !!1
+    2 2 >= !!1
+    -1 0 >= !!0
+    -1 -1 >= !!1
+    0 -1 >= !!1
+    -1 -2 >= !!1
+    -2 -2 >= !!1
+    -2 -1 >= !!0)
+
+def(test+, --,
+    0 0 + !!0
+    0 1 + !!1
+    1 0 + !!1
+    1 1 + 2 = !!1
+    2 2 + 4 = !!1
+    2 -2 + !!0)
+
+def(test-, --,
+    0 0 - !!0
+    1 0 - !!1
+    1 1 - !!0
+    0 1 - -1 !!=
+    2 2 - !!0
+    2 4 - -2 !!=
+    4 2 - 2 !!=)
+
+def(test*, --,
+    0 0 * !!0
+    2 1 * 2 !!=
+    2 2 * 4 !!=
+    2 4 * 8 !!=)
+
+def(test/, --,
+    1 1 / !!1
+    -5 2 / -2 !!=
+    -4 2 / -2 !!=
+    -3 2 / -1 !!=
+    -2 2 / -1 !!=
+    -1 2 / !!0
+    0 2 / !!0
+    1 2 / !!0
+    2 2 / !!1
+    3 2 / !!1
+    4 2 / 2 !!=
+    5 2 / 2 !!=
+    0 -2 / !!0
+    1 -2 / !!0
+    2 -2 / -1 !!=
+    3 -2 / -1 !!=
+    4 -2 / -2 !!=
+    5 -2 / -2 !!=)
+
+def(test%, --,
+    1 1 % !!0
+    -5 2 % -1 !!=
+    -4 2 % !!0
+    -3 2 % -1 !!=
+    -2 2 % !!0
+    -1 2 % -1 !!=
+    0 2 % !!0
+    1 2 % !!1
+    2 2 % !!0
+    3 2 % !!1
+    4 2 % !!0
+    5 2 % !!1)
+
+2 quads def-static-buffer(TEST_BUF)
+def(test@!, --,
+    # reset test buffer
+    0 0 TEST_BUF quad!!
+    0 1 TEST_BUF quad!!
+    # run test
+    0 TEST_BUF quad@@ !!0
+    1 TEST_BUF quad@@ !!0
+    99 0 TEST_BUF quad!!
+    0 TEST_BUF quad@@ 99 !!=
+    1 TEST_BUF quad@@ !!0
+    30 1 TEST_BUF quad!!
+    0 TEST_BUF quad@@ 99 !!=
+    1 TEST_BUF quad@@ 30 !!=
+    0 0 TEST_BUF quad!!
+    0 TEST_BUF u8@@ 0 !!=
+    1 TEST_BUF u8@@ 0 !!=
+    2 TEST_BUF u8@@ 0 !!=
+    3 TEST_BUF u8@@ 0 !!=
+    99 Int->U8 2 TEST_BUF u8!!
+    0 TEST_BUF u8@@ 0 !!=
+    1 TEST_BUF u8@@ 0 !!=
+    2 TEST_BUF u8@@ 99 !!=
+    3 TEST_BUF u8@@ 0 !!=)
+
+def(test-str, --,
+    "AaBb"
+    dup u8@ 65 !!=
+    dup str-tail u8@ 97 !!=
+    dup str-tail str-tail u8@ 66 !!=
+    dup str-tail str-tail str-tail u8@ 98 !!=
+    dup str-tail str-tail str-tail str-tail u8@ 0 !!=
+    drop
+
+    "" str-length 0 !!=
+    "hello" str-length 5 !!=
+    "hello, world!" str-length 13 !!=
+    )
+
+def(test-while, --,
+    999 10 20 while(dup, 1- dip(1+)) drop 30 !!= 999 !!=)

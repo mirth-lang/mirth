@@ -1,0 +1,47 @@
+module(mirth/data/path)
+import(prelude)
+
+nominal(Path, Str)
+def(Path->Str, Path -- Str, cast)
+def(Str->Path, Str -- Path, cast)
+def(path@, Ptr -- Path, @ Int->Ptr Str->Path)
+def(path!, Path Ptr --, dip(Path->Str Ptr->Int) !)
+
+def(init-paths!, --,
+    "src" Str->Path source-path-root!
+    "bin" Str->Path output-path-root!)
+
+quad def-static-buffer(SOURCE_PATH_ROOT)
+def(source-path-root@, -- Path, SOURCE_PATH_ROOT path@)
+def(source-path-root!, Path --, SOURCE_PATH_ROOT path!)
+
+quad def-static-buffer(OUTPUT_PATH_ROOT)
+def(output-path-root@, -- Path, OUTPUT_PATH_ROOT path@)
+def(output-path-root!, Path --, OUTPUT_PATH_ROOT path!)
+
+def(path-separator, Str, RUNNING_OS WIN32 = if("\\", "/"))
+
+# Load a path into STR_BUF. If the path is null,
+# clears STR_BUF instead.
+def(str-buf-path!, Path --,
+    path-null? if(
+        drop str-buf-clear!,
+        Path->Str str-buf!
+    ))
+
+# Is the path null?
+def(path-null?, Path -- Path Bool,
+    dup Path->Str Ptr->Int 0 =)
+
+# Push a path to STR_BUF, adding the path separator if
+# str-buf is non-empty. (TODO: Add path separator
+# only if it isn't already present.)
+def(str-buf-push-path!, Path --,
+    str-buf-empty? if(id, path-separator str-buf-push-str!)
+    Path->Str str-buf-push-str!)
+
+# Load a source path into STR_BUF.
+def(load-source-path!, Path --, source-path-root@ str-buf-path! str-buf-push-path!)
+
+# Load an output path into STR_BUF.
+def(load-output-path!, Path --, output-path-root@ str-buf-path! str-buf-push-path!)

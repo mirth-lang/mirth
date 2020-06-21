@@ -1,4 +1,4 @@
-module(input)
+module(mirth/input)
 import(prelude)
 
 #########
@@ -15,11 +15,11 @@ INPUT_BUFFER_SIZE def-static-buffer(INPUT_BUFFER)
 def(input-isopen@, Bool +Input, INPUT_ISOPEN @)
 def(input-length@, Size +Input, INPUT_LENGTH @)
 def(input-offset@, Size +Input, INPUT_OFFSET @)
-def(input-handle@, File +Input, INPUT_HANDLE @)
+def(input-handle@, File +Input, INPUT_HANDLE @ Int->File)
 def(input-isopen!, Bool -- +Input, INPUT_ISOPEN !)
 def(input-length!, Size -- +Input, INPUT_LENGTH !)
 def(input-offset!, Size -- +Input, INPUT_OFFSET !)
-def(input-handle!, File -- +Input, INPUT_HANDLE !)
+def(input-handle!, File -- +Input, File->Int INPUT_HANDLE !)
 
 def(input-start!, File -- +Input,
     input-handle!
@@ -33,7 +33,7 @@ def(input-end!, +Input,
         input-handle@ close-file!,
         id
     )
-    0 input-handle!
+    stdin input-handle!
     0 input-length!
     0 input-offset!
     0 input-isopen!)
@@ -43,7 +43,7 @@ def(input-done?, Bool +Input,
 
 def(input-fill-buffer!, +Input,
     input-isopen@ if(
-        input-handle@
+        input-handle@ File->Int
         INPUT_BUFFER
         INPUT_BUFFER_SIZE
         posix-read!

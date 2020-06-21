@@ -1,0 +1,25 @@
+module(mirth/data/error)
+import(mirth/data/location)
+import(mirth/data/token)
+
+####################
+# Errors, Warnings #
+####################
+
+def(emit-warning-at!, Module Row Col Str -- +IO,
+    dip(location-trace!)
+    ": warning: " str-trace!
+    str-trace-ln!)
+
+def(emit-error-at!, Module Row Col Str -- +IO,
+    dip(location-trace!)
+    ": error: " str-trace!
+    str-trace-ln!)
+
+def(emit-fatal-error-at!, Module Row Col Str -- +IO,
+    emit-error-at!
+    1 posix-exit!)
+
+def(emit-warning!, Token Str -- +IO, dip(token-location) emit-warning-at!)
+def(emit-error!, Token Str -- +IO, dip(token-location) emit-error-at!)
+def(emit-fatal-error!, Token Str -- +IO, dip(token-location) emit-fatal-error-at!)

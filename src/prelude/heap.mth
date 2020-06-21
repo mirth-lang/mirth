@@ -1,69 +1,25 @@
-module(buffers)
-import(prelude)
-
-
-###########
-# Buffers #
-###########
-
-def(MAX_BUFFERS, Size, 0x80)
-def-type(Buffer, Int)
-def(Int->Buffer, Int -- Buffer, id)
-def(Buffer->Int, Buffer -- Int, id)
-
-quad def-static-buffer(NUM_BUFFERS)
-def(num-buffers@, Size +Buffers, NUM_BUFFERS @)
-def(num-buffers!, Size -- +Buffers, NUM_BUFFERS !)
-
-def(init-buffers!, +Buffers,
-    0 num-buffers!)
-
-MAX_BUFFERS quads dup
-    def-static-buffer(BUFFER_SIZE)
-    def-static-buffer(BUFFER_BASE)
-
-def(buffer-size@, Buffer -- Size +Buffers,
-    BUFFER_SIZE quad@@)
-
-def(buffer-size!, Size Buffer -- +Buffers,
-    BUFFER_SIZE quad!!)
-
-def(buffer-alloc!, Size -- Buffer +Buffers,
-    num-buffers@ MAX_BUFFERS >= if(
-        "compiler error: ran out of buffers" panic!,
-        dup num-buffers@ buffer-size!
-        heap-alloc! num-buffers@ buffer-base!
-        num-buffers@ dup 1+ num-buffers!
-    ))
-
-def(buffer-base@, Buffer -- Ptr +Buffers,
-    BUFFER_BASE quad@@ Int->Ptr)
-
-def(buffer-base!, Ptr Buffer -- +Buffers,
-    dip(Ptr->Int) BUFFER_BASE quad!!)
-
+module(prelude/heap)
+import(prelude/common)
 
 ########
 # Heap #
 ########
-
-def(BASE_HEAP_SIZE, Size, 0x1000)
 
 quad def-static-buffer(HEAP_INITIAL_LENGTH)
 def(heap-initial-length@, Size +Heap, HEAP_INITIAL_LENGTH @)
 def(heap-initial-length!, Size -- +Heap, HEAP_INITIAL_LENGTH !)
 
 quad def-static-buffer(HEAP_INITIAL_BASE)
-def(heap-initial-base@, Ptr +Heap, HEAP_INITIAL_BASE @)
-def(heap-initial-base!, Ptr -- +Heap, HEAP_INITIAL_BASE !)
+def(heap-initial-base@, Ptr +Heap, HEAP_INITIAL_BASE ptr@)
+def(heap-initial-base!, Ptr -- +Heap, HEAP_INITIAL_BASE ptr!)
 
 quad def-static-buffer(HEAP_LENGTH)
 def(heap-length@, Size +Heap, HEAP_LENGTH @)
 def(heap-length!, Size -- +Heap, HEAP_LENGTH !)
 
 quad def-static-buffer(HEAP_BASE)
-def(heap-base@, Ptr +Heap, HEAP_BASE @)
-def(heap-base!, Ptr -- +Heap, HEAP_BASE !)
+def(heap-base@, Ptr +Heap, HEAP_BASE ptr@)
+def(heap-base!, Ptr -- +Heap, HEAP_BASE ptr!)
 
 def(init-heap!, +Heap,
     heap-initial-base@ heap-base!
@@ -128,15 +84,12 @@ def(align, Size Size -- Size,
     # c:Size { c a >=, c a b + <, c b % 0 = },
     dup dip(1- + dup) % -)
 
-def(max, Int Int -- Int, dup2 < if(nip, drop))
-def(square, Int -- Int, dup *)
-
 # Figure out how much to expand heap size by, based on a minimum size
 # (= requested size aligned to 4096).
 # The expansion has a quadratic lower bound.
 def(heap-new-size, Size -- Size,
     4096 align
-    BASE_HEAP_SIZE ++heap-times-expanded square *
+    4096 ++heap-times-expanded square *
     max)
 
 def(heap-alloc!, Size -- Ptr +Heap,

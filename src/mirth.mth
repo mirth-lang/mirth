@@ -1,31 +1,31 @@
 module(mirth)
 
 import(prelude)
-import(modules)
-import(input)
-import(names)
-import(strings)
-import(tokens)
-import(lexer)
-import(diagnostics)
-import(eval)
-import(buffers)
-import(codegen)
-import(elab)
-import(core)
-import(paths)
-import(types)
+import(mirth/data/path)
+import(mirth/data/module)
+import(mirth/input)
+import(mirth/data/name)
+import(mirth/data/string)
+import(mirth/data/token)
+import(mirth/lexer)
+import(mirth/data/error)
+import(mirth/eval)
+import(mirth/data/buffer)
+import(mirth/codegen)
+import(mirth/elab)
+import(mirth/data/type)
 
 def(init!, +IO,
     init-paths!
+    init-names!
+    init-ctx!
+    init-var!
     init-modules!
     init-strings!
     init-tokens!
-    init-names!
     init-types!
     init-buffers!
-    init-heap!
-    init-core!)
+    init-heap!)
 
 def(test!, +IO,
     test-prelude!
@@ -41,14 +41,14 @@ def(main, +IO,
     init!
     test!
 
-    "mirth.mth" run-lexer!
+    "mirth.mth" Str->Path run-lexer!
 
     # show-names-table!
     # show-tokens!
 
     "Building." str-trace-ln!
 
-    0 token-run!
+    0 Int->Token token-run!
 
     "Done." str-trace-ln!
 

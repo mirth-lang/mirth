@@ -1,7 +1,7 @@
-module(externals)
+module(mirth/data/external)
 import(prelude)
-import(names)
-import(types)
+import(mirth/data/name)
+import(mirth/data/type)
 
 def(init-externals!, --,
     0 NUM_EXTERNALS !)
@@ -10,9 +10,9 @@ def(init-externals!, --,
 # EXTERNALS #
 #############
 
-def-type(External, U16)
-def(External->Int, External -- Int, U16->Int)
-def(Int->External, Int -- External, Int->U16)
+nominal(External, Int)
+def(External->Int, External -- Int, cast)
+def(Int->External, Int -- External, cast)
 
 def(MAX_EXTERNALS, Size, 0x1000)
 quad def-static-buffer(NUM_EXTERNALS)
@@ -31,13 +31,13 @@ MAX_EXTERNALS EXTERNAL_METADATA_SIZE * def-static-buffer(EXTERNAL_METADATA_BUF)
 def(external-metadata&, External -- Ptr, External->Int EXTERNAL_METADATA_SIZE * EXTERNAL_METADATA_BUF +)
 
 def(external-name&, External -- Ptr, external-metadata&)
-def(external-name@, External -- Name, external-name& u32@ U32->Int)
-def(external-name!, Name External --, dip(Int->U32) external-name& u32!)
+def(external-name@, External -- Name, external-name& u32@ U32->Name)
+def(external-name!, Name External --, dip(Name->U32) external-name& u32!)
 
 def(external-sig&, External -- Ptr, external-metadata& 4 +)
-def(external-sig@, External -- Token, external-sig& u32@ U32->Int)
-def(external-sig!, Token External --, dip(Int->U32) external-sig& u32!)
+def(external-sig@, External -- Token, external-sig& u32@ U32->Int Int->Token)
+def(external-sig!, Token External --, dip(Token->Int Int->U32) external-sig& u32!)
 
 def(external-type&, External -- Ptr, external-metadata& 8 +)
-def(external-type@, External -- Type, external-type& u32@)
-def(external-type!, Type External --, external-type& u32!)
+def(external-type@, External -- Type, external-type& type@)
+def(external-type!, Type External --, external-type& type!)

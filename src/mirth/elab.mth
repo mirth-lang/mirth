@@ -1,22 +1,22 @@
-module(elab)
-import(names)
-import(tokens)
-import(types)
+module(mirth/elab)
+import(mirth/data/name)
+import(mirth/data/token)
+import(mirth/data/type)
 
 ##############
 # Elaborator #
 ##############
 
 quad def-static-buffer(ELAB_TOKEN)
-def(elab-token@, -- Token +Elab, ELAB_TOKEN @)
-def(elab-token!, Token -- +Elab, ELAB_TOKEN !)
+def(elab-token@, -- Token +Elab, ELAB_TOKEN token@)
+def(elab-token!, Token -- +Elab, ELAB_TOKEN token!)
 def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
 def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
 def(elab-emit-fatal-error!, Str -- +Elab, dip(elab-token@) emit-fatal-error!)
 
-u16 def-static-buffer(ELAB_CTX)
-def(elab-ctx@, -- Ctx +Elab, ELAB_CTX u16@)
-def(elab-ctx!, Ctx -- +Elab, ELAB_CTX u16!)
+|Ctx| def-static-buffer(ELAB_CTX)
+def(elab-ctx@, -- Ctx +Elab, ELAB_CTX ctx@)
+def(elab-ctx!, Ctx -- +Elab, ELAB_CTX ctx!)
 
 ####################
 # Type Elaboration #
@@ -36,21 +36,21 @@ def(elab-sig!, Token -- Type +Elab,
         TMorphism
     ))
 
-# Elaborate a stack type into a tensor type.
+# Elaborate a stack signature into a stack type.
 def(elab-stack!, Token -- Type +Elab,
     sig-token-is-stack-var? if(
-        dup dip(SStack elab-type-var!) 1+,
-
+        dup token-next
+        dip(elab-implicit-stack-var! TVar),
         dip(TYPE_UNIT)
     )
     while(sig-is-stack-end? if(0, sig-token-is-effect-con? not),
         dup
         dip(elab-type! tensor-type-new! TTensor)
-        1+
+        token-succ
     )
     drop)
 
-# Elaborate a token into a (value) type.
+# Elaborate an atom into a value type.
 def(elab-type!, Token -- Type,
     dup elab-token!
     sig-token-is-stack-var? if(
@@ -58,7 +58,7 @@ def(elab-type!, Token -- Type,
         drop TYPE_ERROR,
 
     sig-token-is-type-var? if(
-        SType elab-type-var!,
+        elab-implicit-type-var! TVar,
 
     sig-token-is-type-con? if(
         elab-type-con!,
@@ -71,33 +71,34 @@ def(elab-type!, Token -- Type,
         drop TYPE_ERROR
     )))))
 
-# Elaborate a (potentially implicit) type variable with the given sort.
-# The only sorts we want here are SType, SStack, and SEffect.
-# This will add the type variable to the context if it isn't already there.
-def(elab-type-var!, Token Sort -- Type,
-    swap
+def(elab-implicit-stack-var!, Token -- Var,
+    TYPE_STACK swap elab-implicit-var!)
+
+def(elab-implicit-type-var!, Token -- Var,
+    TYPE_TYPE swap elab-implicit-var!)
+
+# Elaborate a potentially implicit variable with the given type.
+# This will add the variable to the context if it doesn't yet exist.
+# If the variable already exists, this will unify the expected type.
+# Returns the resulting variable.
+def(elab-implicit-var!, Type Token -- Var,
     token-type? TOKEN_NAME = if(
-        token-has-args? if(
-            "Variables with args are not supported." elab-emit-error!
-            drop2 TYPE_ERROR,
+        token-name? elab-ctx@ ctx-has-name if(
+            token-name@ elab-ctx@ ctx-lookup
+            dup dip(var-type@ type-unify! drop),
 
-            token-name@
-            elab-ctx@
-            ctx-has-name? if(
-                ctx-lookup-sort?
-                dip(drop swap) sort-match if(
-                    TVar,
-                    "Unexpected sort mismatch." elab-emit-error!
-                    drop TYPE_ERROR
-                ),
-
-                rotr dup dip(swap SImplicit ctx-new! elab-ctx!) TVar
-            )
+            elab-new-implicit-var!
         ),
 
-        "elab-type-var! expects a name token." elab-emit-error!
-        drop2 TYPE_ERROR
+        "elab-implicit-var! expects a name token." elab-emit-error!
+        drop2 VAR_ERROR
     ))
+
+def(elab-new-implicit-var!, Type Token -- Var +Elab,
+    token-name? var-new-implicit!
+    tuck var-name-token!
+    tuck var-type!
+    elab-ctx@ over ctx-new! elab-ctx!)
 
 # Elaborate a type constructor token.
 def(elab-type-con!, Token -- Type,
@@ -124,15 +125,44 @@ def(elab-type-con!, Token -- Type,
 # Word Elaboration #
 ####################
 
+def(elab-word-sig!, Word -- Type +Elab,
+    word-sig-is-checked? if(
+        word-type@,
+
+        elab-ctx@ dip(
+        elab-token@ dip(
+            ctx-empty elab-ctx!
+            dup word-sig@ elab-sig!
+            over word-sig-is-checked!
+            over dip(elab-ctx@) word-ctx!
+            dup dip(swap word-type!)
+        ) elab-token!
+        ) elab-ctx!
+    ))
+
+# def(elab-word-body!, Word -- Morphism +Elab,
+#     word-body-is-checked? if(
+#         word-morphism@,
+#         drop MORPHISM_ERROR # TODO
+#     ))
+
+    # ctx-empty elab-ctx!
+    # name-sig? elab-sig! over name-type!
+    # over name-load! str-buf-trace!
+    # elab-ctx@ ctx-is-empty? if(
+    #     drop,
+    #     " (" str-trace! ctx-trace! ")" str-trace!
+    # )
+    # " : " str-trace!
+    # type-trace-sig! trace-ln!
+
 #################
 # Type Checking #
 #################
 
-def-type(Stash, Int)
-
 MAX_NAMES def-static-buffer(DEF_CHECKED)
-def(name-checked!, Bool Name --, dip(Int->U8) DEF_CHECKED u8!!)
-def(name-checked@, Name -- Bool, DEF_CHECKED u8@@ U8->Int)
+def(name-checked!, Bool Name --, dip(Int->U8) Name->Int DEF_CHECKED u8!!)
+def(name-checked@, Name -- Bool, Name->Int DEF_CHECKED u8@@ U8->Int)
 def(name-checked?, Name -- Name Bool, dup name-checked@)
 
 def(TSTACK_SIZE, Size, VSTACK_SIZE)
@@ -198,13 +228,17 @@ quad def-static-buffer(TSTACK_NUM_STASHES)
 def(tstack-num-stashes@, Size +TSTACK, TSTACK_NUM_STASHES @)
 def(tstack-num-stashes!, Size -- +TSTACK, TSTACK_NUM_STASHES !)
 
+nominal(Stash, Int)
+def(Stash->Int, Stash -- Int, cast)
+def(Int->Stash, Int -- Stash, cast)
+
 TSTACK_SIZE quads def-static-buffer(TSTACK_STASH_LEN)
-def(tstack-stash-len@, Stash -- Size +TSTACK, TSTACK_STASH_LEN quad@@)
-def(tstack-stash-len!, Size Stash -- +TSTACK, TSTACK_STASH_LEN quad!!)
+def(tstack-stash-len@, Stash -- Size +TSTACK, Stash->Int TSTACK_STASH_LEN quad@@)
+def(tstack-stash-len!, Size Stash -- +TSTACK, Stash->Int TSTACK_STASH_LEN quad!!)
 
 def(tstack-stash-len-push!, Size -- +TSTACK,
     tstack-num-stashes@ TSTACK_SIZE < if(
-        tstack-num-stashes@ tstack-stash-len!
+        tstack-num-stashes@ Int->Stash tstack-stash-len!
         tstack-num-stashes@ 1+ tstack-num-stashes!,
         "compiler error: tstack stash overflow" panic! drop
     ))
@@ -212,7 +246,7 @@ def(tstack-stash-len-push!, Size -- +TSTACK,
 def(tstack-stash-len-pop!, Size +TSTACK,
     tstack-num-stashes@ 0 > if(
         tstack-num-stashes@ 1- tstack-num-stashes!
-        tstack-num-stashes@ tstack-stash-len@,
+        tstack-num-stashes@ Int->Stash tstack-stash-len@,
         "compiler error: tstack stash underflow" panic! 0
     ))
 
@@ -226,7 +260,7 @@ def(tstack-frame-unify!, Token -- Token +TSTACK,
     tstack-length? tstack-stash-len-pop!
     dup2 = if(
         drop2,
-        dip(dip(dup token-trace-prefix!))
+        dip(dip(dup token-location location-trace! ": " str-trace!))
         "error: Failed to unify branches. First branch has " str-trace!
         int-trace!
         " outputs, second branch has " str-trace!
@@ -284,7 +318,11 @@ def(typecheck-name!, Name --,
     ))
 
 def(typecheck-word!, Name --,
+    dup name-word@ elab-word-sig! drop
     name-sig? typecheck-word-sig!
+
+#    dup name-load! str-buf-trace! " : " str-trace!
+#    dup name-word@ elab-word-type! type-trace-sig! trace-ln!
 
     # ctx-empty elab-ctx!
     # name-sig? elab-sig! over name-type!
@@ -307,7 +345,7 @@ def(typecheck-word!, Name --,
 def(typecheck-word-sig!, Token --,
 
     sig-has-dashes? if(
-        typecheck-sig-inputs! 1+
+        typecheck-sig-inputs! token-succ
         typecheck-sig-outputs!,
         typecheck-sig-outputs!
     ))
@@ -315,12 +353,12 @@ def(typecheck-word-sig!, Token --,
 def(typecheck-sig-inputs!, Token -- Token,
     while(token-is-dashes? not,
         dup typecheck-sig-input-token!
-        1+))
+        token-succ))
 
 def(typecheck-sig-outputs!, Token --,
     while(token-is-arg-end? not,
         dup typecheck-sig-output-token!
-        1+)
+        token-succ)
     drop)
 
 def(typecheck-sig-input-token!, Token --,
@@ -403,7 +441,7 @@ def(typecheck-run-name!, Token Name --,
     )))))
 
 def(typecheck-run-prim!, Token --,
-    token-name?
+    token-name? Name->Prim
     dup PRIM_ID = if(
         drop token-args-0,
 
@@ -617,7 +655,7 @@ def(tstack-arity-check!, Token Int Int -- Token +TSTACK,
 
 def(token-is-dashes, Token -- Bool,
     token-type? TOKEN_NAME = if(
-        token-name@ PRIM_DASHES =,
+        token-name@ PRIM_DASHES Prim->Name =,
         drop 0
     ))
 
@@ -701,7 +739,7 @@ def(sig-push-inputs!, Token -- +TSTACK,
                 tstack-push!,
 
                 "Expected type."
-                emit-fatal-error! 0
+                emit-fatal-error! 0 Int->Token
             ))
             token-next
         ) drop,
@@ -711,7 +749,7 @@ def(sig-push-inputs!, Token -- +TSTACK,
 
 def(sig-skip-dashes, Token -- Token,
     sig-has-dashes? if(
-        while(token-is-dashes? not, 1+) 1+,
+        while(token-is-dashes? not, token-next) token-next,
         id
     ))
 
@@ -722,8 +760,8 @@ def(sig-match-outputs!, Token -- +TSTACK,
         sig-skip-dashes
         sig-match-outputs-aux,
 
-        swap token-trace-prefix!
-        "error: Expected " str-trace!
+        swap token-location location-trace!
+        ": error: Expected " str-trace!
         int-trace!
         " outputs, but got " str-trace!
         tstack-length? int-trace!
@@ -1040,7 +1078,7 @@ def(elab@, Type -- Type,
         drop TYPE_ERROR,
 
     dup TYPE_PTR = if(
-        drop TYPE_ERROR, # output type is unknown
+        drop TYPE_INT,
 
         "attempted to load from non-pointer" elab-emit-error!
         drop TYPE_ERROR
@@ -1051,7 +1089,16 @@ def(elab!, Type Type --,
         drop2,
 
     dup TYPE_PTR = if(
-        drop2, # can store anything
+        drop
+        dup TYPE_ERROR = if(
+            drop,
+
+        dup TYPE_INT = if(
+            drop,
+
+            "attempted to store unknown type" elab-emit-error!
+            drop
+        )),
 
         drop2
         "attempted to store to non-pointer" elab-emit-error!
