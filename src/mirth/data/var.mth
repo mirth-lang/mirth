@@ -3,13 +3,15 @@ import(mirth/data/name)
 
 def(init-var!, --, 1 VAR_NUM !)
 
+# Var represents a local variable.
 nominal(Var, Int)
+
 def(Var->Int, Var -- Int, cast)
 def(Int->Var, Int -- Var, cast)
 def(Var->U32, Var -- U32, Var->Int Int->U32)
 def(U32->Var, U32 -- Var, U32->Int Int->Var)
 def(VAR_ERROR, Var, 0 Int->Var)
-def(VAR_MAX, Size, 1 20 <<)
+def(VAR_MAX, Size, 0x10000)
 def(|Var|, Size, 4)
 def(var@, Ptr -- Var, u32@ U32->Var)
 def(var!, Var Ptr --, dip(Var->U32) u32!)
@@ -97,7 +99,7 @@ def(var-name-token@, Var -- Token,
 def(var-name-token?, Var -- Var Token,
     dup var-name-token@)
 
-def(|Type|, Size, 8)
+def(|Type|, Size, 4)
 |Type| VAR_MAX * def-static-buffer(VAR_TYPE)
 def(var-has-type?, Var -- Var Bool, VAR_FLAG_HAS_TYPE var-flag?)
 def(var-type&, Var -- Ptr, Var->Int |Type| * VAR_TYPE +)

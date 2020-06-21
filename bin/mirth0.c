@@ -1120,15 +1120,15 @@ void mwRUNNING_OS (void) {
  void mwSTRINGS_BUF (void) { push((i64)bSTRINGS_BUF); }
  volatile u8 bNUM_TOKENS[8] = {0};
  void mwNUM_TOKENS (void) { push((i64)bNUM_TOKENS); }
- volatile u8 bTOKEN_TYPE[28672] = {0};
+ volatile u8 bTOKEN_TYPE[65536] = {0};
  void mwTOKEN_TYPE (void) { push((i64)bTOKEN_TYPE); }
- volatile u8 bTOKEN_VALUE[229376] = {0};
+ volatile u8 bTOKEN_VALUE[524288] = {0};
  void mwTOKEN_VALUE (void) { push((i64)bTOKEN_VALUE); }
- volatile u8 bTOKEN_MODULE[57344] = {0};
+ volatile u8 bTOKEN_MODULE[131072] = {0};
  void mwTOKEN_MODULE (void) { push((i64)bTOKEN_MODULE); }
- volatile u8 bTOKEN_ROW[57344] = {0};
+ volatile u8 bTOKEN_ROW[131072] = {0};
  void mwTOKEN_ROW (void) { push((i64)bTOKEN_ROW); }
- volatile u8 bTOKEN_COL[57344] = {0};
+ volatile u8 bTOKEN_COL[131072] = {0};
  void mwTOKEN_COL (void) { push((i64)bTOKEN_COL); }
  volatile u8 bLEXER_MODULE[2] = {0};
  void mwLEXER_MODULE (void) { push((i64)bLEXER_MODULE); }
@@ -1148,13 +1148,13 @@ void mwRUNNING_OS (void) {
  void mwNUM_WORDS (void) { push((i64)bNUM_WORDS); }
  volatile u8 bWORD_NAME[131072] = {0};
  void mwWORD_NAME (void) { push((i64)bWORD_NAME); }
- volatile u8 bWORD_SIG[131072] = {0};
+ volatile u8 bWORD_SIG[32768] = {0};
  void mwWORD_SIG (void) { push((i64)bWORD_SIG); }
- volatile u8 bWORD_BODY[131072] = {0};
+ volatile u8 bWORD_BODY[32768] = {0};
  void mwWORD_BODY (void) { push((i64)bWORD_BODY); }
  volatile u8 bWORD_CTX[32768] = {0};
  void mwWORD_CTX (void) { push((i64)bWORD_CTX); }
- volatile u8 bWORD_TYPE[131072] = {0};
+ volatile u8 bWORD_TYPE[65536] = {0};
  void mwWORD_TYPE (void) { push((i64)bWORD_TYPE); }
  volatile u8 bWORD_STATUS[16384] = {0};
  void mwWORD_STATUS (void) { push((i64)bWORD_STATUS); }
@@ -1168,17 +1168,17 @@ void mwRUNNING_OS (void) {
  void mwNUM_NOMINALS (void) { push((i64)bNUM_NOMINALS); }
  volatile u8 bMETA_VALUE[8388608] = {0};
  void mwMETA_VALUE (void) { push((i64)bMETA_VALUE); }
- volatile u8 bTENSOR_TYPE_FST[8388608] = {0};
+ volatile u8 bTENSOR_TYPE_FST[262144] = {0};
  void mwTENSOR_TYPE_FST (void) { push((i64)bTENSOR_TYPE_FST); }
- volatile u8 bTENSOR_TYPE_SND[8388608] = {0};
+ volatile u8 bTENSOR_TYPE_SND[262144] = {0};
  void mwTENSOR_TYPE_SND (void) { push((i64)bTENSOR_TYPE_SND); }
- volatile u8 bMORPHISM_TYPE_DOM[8388608] = {0};
+ volatile u8 bMORPHISM_TYPE_DOM[262144] = {0};
  void mwMORPHISM_TYPE_DOM (void) { push((i64)bMORPHISM_TYPE_DOM); }
- volatile u8 bMORPHISM_TYPE_COD[8388608] = {0};
+ volatile u8 bMORPHISM_TYPE_COD[262144] = {0};
  void mwMORPHISM_TYPE_COD (void) { push((i64)bMORPHISM_TYPE_COD); }
- volatile u8 bNOMINAL_TYPE[8388608] = {0};
+ volatile u8 bNOMINAL_TYPE[262144] = {0};
  void mwNOMINAL_TYPE (void) { push((i64)bNOMINAL_TYPE); }
- volatile u8 bNOMINAL_NAME[8388608] = {0};
+ volatile u8 bNOMINAL_NAME[524288] = {0};
  void mwNOMINAL_NAME (void) { push((i64)bNOMINAL_NAME); }
  volatile u8 bNUM_CTX[8] = {0};
  void mwNUM_CTX (void) { push((i64)bNUM_CTX); }
@@ -1188,13 +1188,13 @@ void mwRUNNING_OS (void) {
  void mwCTX_VAR (void) { push((i64)bCTX_VAR); }
  volatile u8 bVAR_NUM[8] = {0};
  void mwVAR_NUM (void) { push((i64)bVAR_NUM); }
- volatile u8 bVAR_STATUS[4194304] = {0};
+ volatile u8 bVAR_STATUS[262144] = {0};
  void mwVAR_STATUS (void) { push((i64)bVAR_STATUS); }
- volatile u8 bVAR_NAME[8388608] = {0};
+ volatile u8 bVAR_NAME[524288] = {0};
  void mwVAR_NAME (void) { push((i64)bVAR_NAME); }
- volatile u8 bVAR_NAME_TOKEN[8388608] = {0};
+ volatile u8 bVAR_NAME_TOKEN[131072] = {0};
  void mwVAR_NAME_TOKEN (void) { push((i64)bVAR_NAME_TOKEN); }
- volatile u8 bVAR_TYPE[8388608] = {0};
+ volatile u8 bVAR_TYPE[262144] = {0};
  void mwVAR_TYPE (void) { push((i64)bVAR_TYPE); }
  volatile u8 bNUM_EXTERNALS[8] = {0};
  void mwNUM_EXTERNALS (void) { push((i64)bNUM_EXTERNALS); }
@@ -1700,9 +1700,10 @@ void mwRUNNING_OS (void) {
  void mwstrings_save_21_ (void);
  void mwstrings_load_21_ (void);
  void mwnum_tokens_21_ (void);
- void mwMAX_TOKENS (void);
  void mwnum_tokens_40_ (void);
- void mwclear_tokens_21_ (void);
+ void mwMAX_TOKENS (void);
+ void mwToken__3E_U16 (void);
+ void mwU16__3E_Token (void);
  void mwToken__3E_Int (void);
  void mw_7C_TokenType_7C_ (void);
  void mwTokenType__3E_U8 (void);
@@ -1935,17 +1936,18 @@ void mwRUNNING_OS (void) {
  void mwTYPE_I16 (void);
  void mwTYPE_I32 (void);
  void mwTYPE_I64 (void);
+ void mwType__3E_U32 (void);
+ void mwU32__3E_Type (void);
  void mwtype_40__40_ (void);
  void mwtype_21__21_ (void);
- void mwTYPE_TAG_SHIFT (void);
  void mwTYPE_TAG_MASK (void);
+ void mwTYPE_VALUE_MASK (void);
  void mwTYPE_TAG_PRIM (void);
  void mwTYPE_TAG_VAR (void);
  void mwTYPE_TAG_META (void);
  void mwTYPE_TAG_TENSOR (void);
  void mwTYPE_TAG_MORPHISM (void);
  void mwTYPE_TAG_NOMINAL (void);
- void mwTYPE_VALUE_MASK (void);
  void mwTPrim (void);
  void mwTVar (void);
  void mwVar__3E_Int (void);
@@ -2020,7 +2022,6 @@ void mwRUNNING_OS (void) {
  void mwtensor_type_snd_26_ (void);
  void mwtensor_type_unpack (void);
  void mwMAX_MORPHISM_TYPES (void);
- void mwMORPHISM_TYPE_SIZE (void);
  void mwmorphism_type_alloc_21_ (void);
  void mwmorphism_type_new_21_ (void);
  void mwmorphism_type_cod_21_ (void);
@@ -2736,7 +2737,8 @@ void mwstr_trace_ln_21_ (void){
 }
 
 void mwInt__3E_Token (void){
-    mwcast();
+    mwInt__3E_U16();
+    mwU16__3E_Token();
 }
 
 void mwtoken_run_21_ (void){
@@ -4849,7 +4851,7 @@ void mwmodule_start_26_ (void){
 }
 
 void mw_7C_Token_7C_ (void){
-    push(8);
+    push(2);
 }
 
 void mwmodule_start_21_ (void){
@@ -4859,9 +4861,9 @@ void mwmodule_start_21_ (void){
 
 void mwtoken_21_ (void){
     { i64 d1 = pop();
-    mwToken__3E_Int();
+    mwToken__3E_U16();
       push(d1); }
-    mw_21_();
+    mwu16_21_();
 }
 
 void mwmodule_start_40_ (void){
@@ -4870,8 +4872,8 @@ void mwmodule_start_40_ (void){
 }
 
 void mwtoken_40_ (void){
-    mw_40_();
-    mwInt__3E_Token();
+    mwu16_40_();
+    mwU16__3E_Token();
 }
 
 void mwmodule_start_3F_ (void){
@@ -6198,7 +6200,8 @@ void mwNameValue__3E_Type (void){
 }
 
 void mwInt__3E_Type (void){
-    mwcast();
+    mwInt__3E_U32();
+    mwU32__3E_Type();
 }
 
 void mwNameValue__3E_Word (void){
@@ -6243,7 +6246,8 @@ void mwType__3E_NameValue (void){
 }
 
 void mwType__3E_Int (void){
-    mwcast();
+    mwType__3E_U32();
+    mwU32__3E_Int();
 }
 
 void mwWord__3E_NameValue (void){
@@ -6592,22 +6596,26 @@ void mwnum_tokens_21_ (void){
     mw_21_();
 }
 
-void mwMAX_TOKENS (void){
-    push(28672);
-}
-
 void mwnum_tokens_40_ (void){
     mwNUM_TOKENS();
     mw_40_();
 }
 
-void mwclear_tokens_21_ (void){
-    push(0);
-    mwnum_tokens_21_();
+void mwMAX_TOKENS (void){
+    push(65536);
+}
+
+void mwToken__3E_U16 (void){
+    mwcast();
+}
+
+void mwU16__3E_Token (void){
+    mwcast();
 }
 
 void mwToken__3E_Int (void){
-    mwcast();
+    mwToken__3E_U16();
+    mwU16__3E_Int();
 }
 
 void mw_7C_TokenType_7C_ (void){
@@ -9809,7 +9817,7 @@ void mwctx_21_ (void){
 }
 
 void mw_7C_Type_7C_ (void){
-    push(8);
+    push(4);
 }
 
 void mwword_type_26_ (void){
@@ -9826,15 +9834,15 @@ void mwword_type_40_ (void){
 }
 
 void mwtype_40_ (void){
-    mwint_40_();
-    mwInt__3E_Type();
+    mwu32_40_();
+    mwU32__3E_Type();
 }
 
 void mwtype_21_ (void){
     { i64 d1 = pop();
-    mwType__3E_Int();
+    mwType__3E_U32();
       push(d1); }
-    mwint_21_();
+    mwu32_21_();
 }
 
 void mwword_dom_40_ (void){
@@ -10021,6 +10029,14 @@ void mwTYPE_I64 (void){
     mwTPrim();
 }
 
+void mwType__3E_U32 (void){
+    mwcast();
+}
+
+void mwU32__3E_Type (void){
+    mwcast();
+}
+
 void mwtype_40__40_ (void){
     { i64 d1 = pop();
     mw_7C_Type_7C_();
@@ -10039,62 +10055,39 @@ void mwtype_21__21_ (void){
     mwtype_21_();
 }
 
-void mwTYPE_TAG_SHIFT (void){
-    push(48);
+void mwTYPE_TAG_MASK (void){
+    push(4026531840);
 }
 
-void mwTYPE_TAG_MASK (void){
-    push(15);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
+void mwTYPE_VALUE_MASK (void){
+    push(268435455);
 }
 
 void mwTYPE_TAG_PRIM (void){
     push(0);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
 }
 
 void mwTYPE_TAG_VAR (void){
-    push(1);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
+    push(268435456);
 }
 
 void mwTYPE_TAG_META (void){
-    push(2);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
+    push(536870912);
 }
 
 void mwTYPE_TAG_TENSOR (void){
-    push(3);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
+    push(805306368);
 }
 
 void mwTYPE_TAG_MORPHISM (void){
-    push(4);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
+    push(1073741824);
 }
 
 void mwTYPE_TAG_NOMINAL (void){
-    push(5);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
-}
-
-void mwTYPE_VALUE_MASK (void){
-    push(1);
-    mwTYPE_TAG_SHIFT();
-    mw_3C__3C_();
-    mw1_();
+    push(1342177280);
 }
 
 void mwTPrim (void){
-    mwTYPE_TAG_PRIM();
-    mw_7C_();
     mwInt__3E_Type();
 }
 
@@ -10855,9 +10848,7 @@ void mwnominal_name_40_ (void){
 }
 
 void mwMAX_METAS (void){
-    push(1);
-    push(20);
-    mw_3C__3C_();
+    push(1048576);
 }
 
 void mwmeta_alloc_21_ (void){
@@ -10932,9 +10923,7 @@ void mwmeta_type_21_ (void){
 }
 
 void mwMAX_TENSOR_TYPES (void){
-    push(1);
-    push(20);
-    mw_3C__3C_();
+    push(65536);
 }
 
 void mwtensor_type_alloc_21_ (void){
@@ -11002,15 +10991,7 @@ void mwtensor_type_unpack (void){
 }
 
 void mwMAX_MORPHISM_TYPES (void){
-    push(1);
-    push(20);
-    mw_3C__3C_();
-}
-
-void mwMORPHISM_TYPE_SIZE (void){
-    mw_7C_Type_7C_();
-    push(2);
-    mw_2A_();
+    push(65536);
 }
 
 void mwmorphism_type_alloc_21_ (void){
@@ -11078,9 +11059,7 @@ void mwmorphism_type_unpack (void){
 }
 
 void mwMAX_NOMINALS (void){
-    push(1);
-    push(20);
-    mw_3C__3C_();
+    push(65536);
 }
 
 void mwnominal_type_26_ (void){
@@ -11413,9 +11392,7 @@ void mwU32__3E_Var (void){
 }
 
 void mwVAR_MAX (void){
-    push(1);
-    push(20);
-    mw_3C__3C_();
+    push(65536);
 }
 
 void mwvar_alloc_21_ (void){
