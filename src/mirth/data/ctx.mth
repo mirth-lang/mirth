@@ -87,12 +87,3 @@ def(ctx-length, Ctx -- Size,
         dip(1+) ctx-prev@
     )
     drop)
-
-# def(ctx-lookup, Ctx Name -- Int Bool,
-#     over ctx-is-empty if(
-#         drop2 0 0,
-#         over ctx-name@ over = if(
-#             drop ctx-length 1- 1,
-#             dip(ctx-prev@) ctx-lookup
-#         )
-#     ))

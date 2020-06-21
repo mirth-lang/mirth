@@ -2,6 +2,7 @@ module(mirth/data/token)
 import(prelude)
 import(mirth/data/name)
 import(mirth/data/string)
+import(mirth/data/location)
 
 def(init-tokens!, --,
     0 num-tokens!)
@@ -103,29 +104,17 @@ def(token-module!, Module Token --, token-module& module!)
 def(token-module@, Token -- Module, token-module& module@)
 def(token-module?, Token -- Token Module, dup token-module@)
 
-nominal(TokenRow, U16)
-def(|TokenRow|, Size, 2)
-MAX_TOKENS |TokenRow| * def-static-buffer(TOKEN_ROW)
-def(TokenRow->U16, TokenRow -- U16, cast)
-def(TokenRow->Int, TokenRow -- Int, TokenRow->U16 U16->Int)
-def(U16->TokenRow, U16 -- TokenRow, cast)
-def(Int->TokenRow, Int -- TokenRow, Int->U16 U16->TokenRow)
-def(token-row&, Token -- Ptr, Token->Int |TokenRow| * TOKEN_ROW +)
-def(token-row@, Token -- TokenRow, token-row& u16@ U16->TokenRow)
-def(token-row!, TokenRow Token --, dip(TokenRow->U16) token-row& u16!)
-def(token-row?, Token -- Token TokenRow, dup token-row@)
+MAX_TOKENS |Row| * def-static-buffer(TOKEN_ROW)
+def(token-row&, Token -- Ptr, Token->Int |Row| * TOKEN_ROW +)
+def(token-row@, Token -- Row, token-row& u16@ U16->Row)
+def(token-row!, Row Token --, dip(Row->U16) token-row& u16!)
+def(token-row?, Token -- Token Row, dup token-row@)
 
-nominal(TokenCol, U16)
-def(|TokenCol|, Size, 2)
 MAX_TOKENS u16s def-static-buffer(TOKEN_COL)
-def(TokenCol->U16, TokenCol -- U16, cast)
-def(TokenCol->Int, TokenCol -- Int, TokenCol->U16 U16->Int)
-def(U16->TokenCol, U16 -- TokenCol, cast)
-def(Int->TokenCol, Int -- TokenCol, Int->U16 U16->TokenCol)
-def(token-col&, Token -- Ptr, Token->Int |TokenCol| * TOKEN_COL +)
-def(token-col!, TokenCol Token --, dip(TokenCol->U16) token-col& u16!)
-def(token-col@, Token -- TokenCol, token-col& u16@ U16->TokenCol)
-def(token-col?, Token -- Token TokenCol, dup token-col@)
+def(token-col&, Token -- Ptr, Token->Int |Col| * TOKEN_COL +)
+def(token-col!, Col Token --, dip(Col->U16) token-col& u16!)
+def(token-col@, Token -- Col, token-col& u16@ U16->Col)
+def(token-col?, Token -- Token Col, dup token-col@)
 
 def(token-new, -- Token,
     num-tokens@ dup MAX_TOKENS >= if(
@@ -133,20 +122,14 @@ def(token-new, -- Token,
         dup 1+ num-tokens! Int->Token
     ))
 
-def(token-trace-prefix!, Token -- +IO,
-    token-module? load-module-source-path! str-buf-trace! ":" str-trace!
-    token-row? TokenRow->Int int-trace! ":" str-trace!
-    token-col? TokenCol->Int int-trace! ":" str-trace-sp!
-    drop)
-
-def(token-print-prefix!, Token -- +IO,
-    token-module? load-module-source-path! str-buf-print! ":" str-print!
-    token-row? TokenRow->Int int-print! ":" str-print!
-    token-col? TokenCol->Int int-print! ":" str-print-sp!
-    drop)
+def(token-location, Token -- Module Row Col,
+    token-module? swap
+    token-row? swap
+    token-col@)
 
 def(token-print!, Token -- +IO,
-    dup token-print-prefix!
+    dup token-location location-print!
+    ": " str-print!
     dup Token->Int int-print-sp!
     token-type? token-type-print!
     token-type? TOKEN_NAME = if(

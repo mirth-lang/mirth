@@ -1,9 +1,9 @@
 module(mirth/lexer)
 import(prelude)
 import(mirth/data/name)
-import(mirth/input)
 import(mirth/data/string)
 import(mirth/data/token)
+import(mirth/input)
 
 #########
 # LEXER #
@@ -14,12 +14,12 @@ def(lexer-module@, -- Module +Lexer, LEXER_MODULE module@)
 def(lexer-module!, Module -- +Lexer, LEXER_MODULE module!)
 
 u16 def-static-buffer(LEXER_ROW)
-def(lexer-row@, -- TokenRow +Lexer, LEXER_ROW u16@ U16->TokenRow)
-def(lexer-row!, TokenRow -- +Lexer, TokenRow->U16 LEXER_ROW u16!)
+def(lexer-row@, -- Row +Lexer, LEXER_ROW u16@ U16->Row)
+def(lexer-row!, Row -- +Lexer, Row->U16 LEXER_ROW u16!)
 
 u16 def-static-buffer(LEXER_COL)
-def(lexer-col@, -- TokenCol +Lexer, LEXER_COL u16@ U16->TokenCol)
-def(lexer-col!, TokenCol -- +Lexer, TokenCol->U16 LEXER_COL u16!)
+def(lexer-col@, -- Col +Lexer, LEXER_COL u16@ U16->Col)
+def(lexer-col!, Col -- +Lexer, Col->U16 LEXER_COL u16!)
 
 def(LEXER_STACK_SIZE, Size, 0x200)
 u16 def-static-buffer(LEXER_STACK_LENGTH)
@@ -65,8 +65,8 @@ def(run-lexer!, Path -- +Lexer,
     STR_BUF open-file!
     input-start!
 
-    1 Int->TokenRow lexer-row!
-    1 Int->TokenCol lexer-col!
+    1 Int->Row lexer-row!
+    1 Int->Col lexer-col!
 
     num-tokens@ Int->Token lexer-module@ module-start!
 
@@ -143,8 +143,8 @@ def(lexer-next!, --,
 
 
 def(lexer-emit-newline!, +Lexer,
-    lexer-row@ TokenRow->Int 1+ Int->TokenRow lexer-row!
-    0 Int->TokenCol lexer-col!)
+    lexer-row@ Row->Int 1+ Int->Row lexer-row!
+    0 Int->Col lexer-col!)
 
 def(lexer-emit-lparen!, +Lexer,
     TOKEN_LPAREN 0 Int->TokenValue lexer-make!
@@ -340,7 +340,7 @@ def(lexer-comment-end?, Bool +Lexer,
 
 def(lexer-peek, Char +Lexer, input-peek)
 def(lexer-move!, +Lexer, input-move!
-    lexer-col@ TokenCol->Int 1+ Int->TokenCol lexer-col!)
+    lexer-col@ Col->Int 1+ Int->Col lexer-col!)
 
 def(is-newline?, Char -- Char Bool, dup U8->Int 10 =)
 def(is-whitespace?, Char -- Char Bool,
@@ -389,5 +389,12 @@ def(in-range, Int Int Int -- Bool,
 
 def(lexer-trace-prefix!, +IO,
     lexer-module@ load-module-source-path! str-buf-trace! ":" str-trace!
-    lexer-row@ TokenRow->Int int-trace! ":" str-trace!
-    lexer-col@ TokenCol->Int int-trace! ":" str-trace-sp!)
+    lexer-row@ Row->Int int-trace! ":" str-trace!
+    lexer-col@ Col->Int int-trace! ":" str-trace-sp!)
+
+def(lexer-location, Module Row Col +Lexer,
+    lexer-module@ lexer-row@ lexer-col@)
+
+def(lexer-emit-warning!, Str -- +IO, dip(lexer-location) emit-warning-at!)
+def(lexer-emit-error!, Str -- +IO, dip(lexer-location) emit-error-at!)
+def(lexer-emit-fatal-error!, Str -- +IO, dip(lexer-location) emit-fatal-error-at!)

@@ -260,7 +260,7 @@ def(tstack-frame-unify!, Token -- Token +TSTACK,
     tstack-length? tstack-stash-len-pop!
     dup2 = if(
         drop2,
-        dip(dip(dup token-trace-prefix!))
+        dip(dip(dup token-location location-trace! ": " str-trace!))
         "error: Failed to unify branches. First branch has " str-trace!
         int-trace!
         " outputs, second branch has " str-trace!
@@ -760,8 +760,8 @@ def(sig-match-outputs!, Token -- +TSTACK,
         sig-skip-dashes
         sig-match-outputs-aux,
 
-        swap token-trace-prefix!
-        "error: Expected " str-trace!
+        swap token-location location-trace!
+        ": error: Expected " str-trace!
         int-trace!
         " outputs, but got " str-trace!
         tstack-length? int-trace!

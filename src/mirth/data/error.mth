@@ -1,38 +1,25 @@
 module(mirth/data/error)
-import(prelude)
+import(mirth/data/location)
 import(mirth/data/token)
-import(mirth/lexer) # probably should go the other way ...
 
 ####################
 # Errors, Warnings #
 ####################
 
-def(emit-warning!, Token Str -- +IO,
-    dip(token-trace-prefix!)
-    "warning: " str-trace!
+def(emit-warning-at!, Module Row Col Str -- +IO,
+    dip(location-trace!)
+    ": warning: " str-trace!
     str-trace-ln!)
 
-def(emit-error!, Token Str -- +IO,
-    dip(token-trace-prefix!)
-    "error: " str-trace!
+def(emit-error-at!, Module Row Col Str -- +IO,
+    dip(location-trace!)
+    ": error: " str-trace!
     str-trace-ln!)
 
-def(emit-fatal-error!, Token Str -- +IO,
-    # FIXME: type sig should be *a Token Str -- *b +IO.
-    # or use a special syntax for "not returning".
-    emit-error!
+def(emit-fatal-error-at!, Module Row Col Str -- +IO,
+    emit-error-at!
     1 posix-exit!)
 
-def(lexer-emit-warning!, Str -- +IO,
-    lexer-trace-prefix!
-    "warning: " str-trace!
-    str-trace-ln!)
-
-def(lexer-emit-error!, Str -- +IO,
-    lexer-trace-prefix!
-    "error: " str-trace!
-    str-trace-ln!)
-
-def(lexer-emit-fatal-error!, Str -- +IO,
-    lexer-emit-error!
-    1 posix-exit!)
+def(emit-warning!, Token Str -- +IO, dip(token-location) emit-warning-at!)
+def(emit-error!, Token Str -- +IO, dip(token-location) emit-error-at!)
+def(emit-fatal-error!, Token Str -- +IO, dip(token-location) emit-fatal-error-at!)
