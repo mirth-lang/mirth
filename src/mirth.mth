@@ -1,27 +1,28 @@
 module(mirth)
 
 import(prelude)
-import(mirth/paths)
-import(mirth/modules)
+import(mirth/data/path)
+import(mirth/data/module)
 import(mirth/input)
-import(mirth/names)
-import(mirth/strings)
-import(mirth/tokens)
+import(mirth/data/name)
+import(mirth/data/string)
+import(mirth/data/token)
 import(mirth/lexer)
-import(mirth/diagnostics)
+import(mirth/data/error)
 import(mirth/eval)
-import(mirth/buffers)
+import(mirth/data/buffer)
 import(mirth/codegen)
 import(mirth/elab)
-import(mirth/types)
-import(mirth/var)
+import(mirth/data/type)
 
 def(init!, +IO,
     init-paths!
+    init-names!
+    init-ctx!
+    init-var!
     init-modules!
     init-strings!
     init-tokens!
-    init-names!
     init-types!
     init-buffers!
     init-heap!)

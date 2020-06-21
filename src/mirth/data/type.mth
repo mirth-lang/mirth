@@ -1,7 +1,7 @@
 
-module(mirth/types)
-import(mirth/names)
-import(mirth/ctx)
+module(mirth/data/type)
+import(mirth/data/name)
+import(mirth/data/ctx)
 
 def(init-types!, --,
     0 NUM_METAS !

@@ -1,4 +1,4 @@
-module(mirth/strings)
+module(mirth/data/string)
 import(prelude)
 
 def(init-strings!, --,

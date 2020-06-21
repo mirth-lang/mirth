@@ -1,5 +1,8 @@
-module(mirth/ctx)
-import(mirth/var)
+module(mirth/data/ctx)
+import(mirth/data/var)
+
+def(init-ctx!, --,
+    1 NUM_CTX !)
 
 ###########
 # Context #

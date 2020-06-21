@@ -1,4 +1,4 @@
-module(mirth/buffers)
+module(mirth/data/buffer)
 import(prelude)
 
 ###########

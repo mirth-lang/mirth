@@ -1,4 +1,4 @@
-module(mirth/paths)
+module(mirth/data/path)
 import(prelude)
 
 nominal(Path, Str)

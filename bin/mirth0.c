@@ -1260,10 +1260,12 @@ void mwRUNNING_OS (void) {
 
  void mwinit_21_ (void);
  void mwinit_paths_21_ (void);
+ void mwinit_names_21_ (void);
+ void mwinit_ctx_21_ (void);
+ void mwinit_var_21_ (void);
  void mwinit_modules_21_ (void);
  void mwinit_strings_21_ (void);
  void mwinit_tokens_21_ (void);
- void mwinit_names_21_ (void);
  void mwinit_types_21_ (void);
  void mwinit_buffers_21_ (void);
  void mwinit_heap_21_ (void);
@@ -2376,10 +2378,12 @@ void mwRUNNING_OS (void) {
 
 void mwinit_21_ (void){
     mwinit_paths_21_();
+    mwinit_names_21_();
+    mwinit_ctx_21_();
+    mwinit_var_21_();
     mwinit_modules_21_();
     mwinit_strings_21_();
     mwinit_tokens_21_();
-    mwinit_names_21_();
     mwinit_types_21_();
     mwinit_buffers_21_();
     mwinit_heap_21_();
@@ -2392,21 +2396,6 @@ void mwinit_paths_21_ (void){
     push((i64)(strings + 487));
     mwStr__3E_Path();
     mwoutput_path_root_21_();
-}
-
-void mwinit_modules_21_ (void){
-    push(0);
-    mwnum_modules_21_();
-}
-
-void mwinit_strings_21_ (void){
-    push(0);
-    mwstrings_size_21_();
-}
-
-void mwinit_tokens_21_ (void){
-    push(0);
-    mwnum_tokens_21_();
 }
 
 void mwinit_names_21_ (void){
@@ -2658,6 +2647,33 @@ void mwinit_names_21_ (void){
     push((i64)(strings + 1265));
     mwpanic_21_();
     }
+}
+
+void mwinit_ctx_21_ (void){
+    push(1);
+    mwNUM_CTX();
+    mw_21_();
+}
+
+void mwinit_var_21_ (void){
+    push(1);
+    mwVAR_NUM();
+    mw_21_();
+}
+
+void mwinit_modules_21_ (void){
+    push(0);
+    mwnum_modules_21_();
+}
+
+void mwinit_strings_21_ (void){
+    push(0);
+    mwstrings_size_21_();
+}
+
+void mwinit_tokens_21_ (void){
+    push(0);
+    mwnum_tokens_21_();
 }
 
 void mwinit_types_21_ (void){
@@ -12540,6 +12556,13 @@ void mwvar_type_21_ (void){
 }
 
 void mwvar_type_40_ (void){
+    mwdup();
+    mwVAR_ERROR();
+    mw_3D_();
+    if (pop()) {
+    mwdrop();
+    mwTYPE_ERROR();
+    } else {
     mwvar_has_type_3F_();
     mwnot();
     if (pop()) {
@@ -12548,6 +12571,7 @@ void mwvar_type_40_ (void){
     } else {
     mwvar_type_26_();
     mwtype_40_();
+    }
     }
 }
 

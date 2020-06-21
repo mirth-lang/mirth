@@ -1,9 +1,9 @@
 module(mirth/lexer)
 import(prelude)
-import(mirth/names)
+import(mirth/data/name)
 import(mirth/input)
-import(mirth/strings)
-import(mirth/tokens)
+import(mirth/data/string)
+import(mirth/data/token)
 
 #########
 # LEXER #

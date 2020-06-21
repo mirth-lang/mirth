@@ -1,5 +1,7 @@
-module(mirth/var)
-import(mirth/names)
+module(mirth/data/var)
+import(mirth/data/name)
+
+def(init-var!, --, 1 VAR_NUM !)
 
 nominal(Var, Int)
 def(Var->Int, Var -- Int, cast)
@@ -120,10 +122,14 @@ def(var-type!, Type Var --,
         var-type& type!
     ))
 def(var-type@, Var -- Type,
+    dup VAR_ERROR = if(
+        drop TYPE_ERROR,
+
     var-has-type? not if(
         "compiler error: attempted to get type of variable without type" panic!,
+
         var-type& type@
-    ))
+    )))
 def(var-type?, Var -- Var Type,
     dup var-type@)
 

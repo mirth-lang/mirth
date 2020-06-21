@@ -1,11 +1,11 @@
-module(mirth/diagnostics)
+module(mirth/data/error)
 import(prelude)
-import(mirth/tokens)
+import(mirth/data/token)
 import(mirth/lexer) # probably should go the other way ...
 
-###############
-# Diagnostics #
-###############
+####################
+# Errors, Warnings #
+####################
 
 def(emit-warning!, Token Str -- +IO,
     dip(token-trace-prefix!)

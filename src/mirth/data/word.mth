@@ -1,7 +1,7 @@
-module(mirth/words)
+module(mirth/data/word)
 import(prelude)
-import(mirth/names)
-import(mirth/types)
+import(mirth/data/name)
+import(mirth/data/type)
 
 def(init-words!, --,
     0 NUM_WORDS !)

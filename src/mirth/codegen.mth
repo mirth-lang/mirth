@@ -1,7 +1,7 @@
 module(mirth/codegen)
 import(prelude)
-import(mirth/names)
-import(mirth/tokens)
+import(mirth/data/name)
+import(mirth/data/token)
 
 
 ###########
