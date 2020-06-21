@@ -1,10 +1,12 @@
-This project is supported by our patrons on Patreon:
+This project is supported by our patrons:
 
-    https://patreon.com/mirth_lang
+    https://patreon.com/typeswitch
 
 Thank you for your generous support:
 
+    Al King
     Allele Dev
+    Andrew
     Art Yerkes
     Benjohn
     Callan McGill
@@ -14,13 +16,16 @@ Thank you for your generous support:
     Hécate
     Jesper Cockx
     John Hopper
-    Joseph Victor
     Joshua Mitchell
     Julie Moronuki
+    Klara
     Marko Mikulicic
+    Martijn Faassen
+    Moisés Ackerman
     Nickolay Kudasov
     Nikolai Mushegian
     Sam Raker
     Teodor Elstad
+    Theodoros Chatzigiannakis
     Tycho Luyben
     webstrand
