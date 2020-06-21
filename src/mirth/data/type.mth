@@ -25,27 +25,27 @@ def(test-types!, --, )
 # Types #
 #########
 
-nominal(Type, Int) # actually U56
-def(Type->Int, Type -- Int, cast)
-def(Int->Type, Int -- Type, cast)
-# def(|Type|, Size, 8) # defined in mirth/var
-def(type@, Ptr -- Type, int@ Int->Type)
-def(type!, Type Ptr --, dip(Type->Int) int!)
+nominal(Type, U32) # actually U32
+def(Type->U32, Type -- U32, cast)
+def(U32->Type, U32 -- Type, cast)
+def(Type->Int, Type -- Int, Type->U32 U32->Int)
+def(Int->Type, Int -- Type, Int->U32 U32->Type)
+# def(|Type|, Size, 4) # defined in mirth/var
+def(type@, Ptr -- Type, u32@ U32->Type)
+def(type!, Type Ptr --, dip(Type->U32) u32!)
 def(type@@, Int Ptr -- Type, dip(|Type| *) + type@)
 def(type!!, Type Int Ptr --, dip(|Type| *) + type!)
 
-def(TYPE_TAG_SHIFT, Int, 48) # top 8 bits are tag
-def(TYPE_TAG_MASK, Int, 0xF TYPE_TAG_SHIFT <<)
-def(TYPE_TAG_PRIM, Int, 0 TYPE_TAG_SHIFT <<)
-def(TYPE_TAG_VAR, Int, 1 TYPE_TAG_SHIFT <<)
-def(TYPE_TAG_META, Int, 2 TYPE_TAG_SHIFT <<)
-def(TYPE_TAG_TENSOR, Int, 3 TYPE_TAG_SHIFT <<)
-def(TYPE_TAG_MORPHISM, Int, 4 TYPE_TAG_SHIFT <<)
-def(TYPE_TAG_NOMINAL, Int, 5 TYPE_TAG_SHIFT <<)
+def(TYPE_TAG_MASK,     Int, 0xF0000000)
+def(TYPE_VALUE_MASK,   Int, 0x0FFFFFFF)
+def(TYPE_TAG_PRIM,     Int, 0x00000000)
+def(TYPE_TAG_VAR,      Int, 0x10000000)
+def(TYPE_TAG_META,     Int, 0x20000000)
+def(TYPE_TAG_TENSOR,   Int, 0x30000000)
+def(TYPE_TAG_MORPHISM, Int, 0x40000000)
+def(TYPE_TAG_NOMINAL,  Int, 0x50000000)
 
-def(TYPE_VALUE_MASK, Int, 1 TYPE_TAG_SHIFT << 1-)
-
-def(TPrim, Int -- Type, TYPE_TAG_PRIM | Int->Type)
+def(TPrim, Int -- Type, Int->Type)
 def(TVar, Var -- Type, Var->Int TYPE_TAG_VAR | Int->Type) # dangerous...
 def(TMeta, MetaVar -- Type,
     MetaVar->Int TYPE_TAG_META | Int->Type)
@@ -106,8 +106,8 @@ def(type-get-nominal, Type -- Nominal,
 
 def(TYPE_ERROR, Type, 0x00 TPrim)
 def(TYPE_TYPE, Type, 0x01 TPrim) # type of types
-def(TYPE_STACK, Type, 0x02 TPrim) # type of types
-def(TYPE_EFFECT, Type, 0x03 TPrim) # type of types
+def(TYPE_STACK, Type, 0x02 TPrim) # type of stack types
+def(TYPE_EFFECT, Type, 0x03 TPrim) # type of effect types
 def(TYPE_INT, Type, 0x10 TPrim) # generic integer type for integer literals
 def(TYPE_PTR, Type, 0x11 TPrim) # generic pointer type (e.g. void*)
 def(TYPE_U8, Type, 0x12 TPrim) # fixed width integer type -- unsigned 8 bit
@@ -311,7 +311,7 @@ nominal(MetaVar, Int)
 def(Int->MetaVar, Int -- MetaVar, cast)
 def(MetaVar->Int, MetaVar -- Int, cast)
 
-def(MAX_METAS, Size, 1 20 <<)
+def(MAX_METAS, Size, 0x100000)
 quad def-static-buffer(NUM_METAS)
 
 def(meta-alloc!, MetaVar,
@@ -367,7 +367,7 @@ nominal(TensorType, Int)
 def(Int->TensorType, Int -- TensorType, cast)
 def(TensorType->Int, TensorType -- Int, cast)
 
-def(MAX_TENSOR_TYPES, Size, 1 20 <<)
+def(MAX_TENSOR_TYPES, Size, 0x10000)
 
 quad def-static-buffer(NUM_TENSOR_TYPES)
 
@@ -418,8 +418,7 @@ nominal(MorphismType, Int)
 def(Int->MorphismType, Int -- MorphismType, cast)
 def(MorphismType->Int, MorphismType -- Int, cast)
 
-def(MAX_MORPHISM_TYPES, Size, 1 20 <<)
-def(MORPHISM_TYPE_SIZE, Size, |Type| 2 *)
+def(MAX_MORPHISM_TYPES, Size, 0x10000)
 quad def-static-buffer(NUM_MORPHISM_TYPES)
 
 def(morphism-type-alloc!, MorphismType,
@@ -466,7 +465,7 @@ nominal(Nominal, Int)
 def(Int->Nominal, Int -- Nominal, cast)
 def(Nominal->Int, Nominal -- Int, cast)
 
-def(MAX_NOMINALS, Size,  1 20 <<)
+def(MAX_NOMINALS, Size, 0x10000)
 quad def-static-buffer(NUM_NOMINALS)
 
 MAX_NOMINALS |Type| * def-static-buffer(NOMINAL_TYPE)

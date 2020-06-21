@@ -11,19 +11,20 @@ def(init-tokens!, --,
 # Tokens #
 ##########
 
-def(MAX_TOKENS, Size, 0x7000)
 
 quad def-static-buffer(NUM_TOKENS)
 def(num-tokens@, Int, NUM_TOKENS @)
 def(num-tokens!, Int --, NUM_TOKENS !)
-def(clear-tokens!, --, 0 num-tokens!)
 
-nominal(Token, Int)
-def(|Token|, Size, 8)
-def(Token->Int, Token -- Int, cast)
-def(Int->Token, Int -- Token, cast)
-def(token@, Ptr -- Token, @ Int->Token)
-def(token!, Token Ptr --, dip(Token->Int) !)
+nominal(Token, U16)
+def(MAX_TOKENS, Size, 0x10000)
+def(|Token|, Size, 2)
+def(Token->U16, Token -- U16, cast)
+def(U16->Token, U16 -- Token, cast)
+def(Token->Int, Token -- Int, Token->U16 U16->Int)
+def(Int->Token, Int -- Token, Int->U16 U16->Token)
+def(token@, Ptr -- Token, u16@ U16->Token)
+def(token!, Token Ptr --, dip(Token->U16) u16!)
 
 nominal(TokenType, U8)
 def(|TokenType|, Size, 1)
