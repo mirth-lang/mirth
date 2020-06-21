@@ -31,12 +31,6 @@ def(ctx-var!, Var Ctx --, ctx-var& var!)
 
 def(ctx-name@, Ctx -- Name, ctx-var@ var-name@)
 
-def(|Sort|, Size, 8)
-MAX_CTX |Sort| * def-static-buffer(CTX_SORT)
-def(ctx-sort&, Ctx -- Ptr, Ctx->Int |Sort| * CTX_SORT +)
-def(ctx-sort@, Ctx -- Sort, ctx-sort& sort@)
-def(ctx-sort!, Sort Ctx --, ctx-sort& sort!)
-
 def(ctx-alloc!, Ctx,
     NUM_CTX @ dup 1+ NUM_CTX !
     dup MAX_CTX >= if(
@@ -83,26 +77,7 @@ def(ctx-trace!, Ctx -- +IO,
             ctx-trace! ", " str-trace!
         )
 
-        dup ctx-sort@
-        sort-is-implicit if(
-            "'" str-trace!,
-            id
-        )
-
-        dup ctx-name@
-        name-load! str-buf-trace!
-
-        ctx-sort@
-        sort-is-word? if(
-            ": " str-trace!
-            sort-word-type type-trace-sig!,
-
-        sort-is-value? if(
-            ": " str-trace!
-            sort-value-type type-trace!,
-
-            drop
-        ))
+        ctx-var@ var-trace-binding!
     ))
 
 def(ctx-length?, Ctx -- Ctx Size, dup ctx-length)
