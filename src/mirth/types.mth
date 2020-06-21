@@ -313,7 +313,7 @@ def(TYPE_TAG_NOMINAL, Int, 5 TYPE_TAG_SHIFT <<)
 def(TYPE_VALUE_MASK, Int, 1 TYPE_TAG_SHIFT << 1-)
 
 def(TPrim, Int -- Type, TYPE_TAG_PRIM | Int->Type)
-def(TVar, Name -- Type, Name->Int TYPE_TAG_VAR | Int->Type) # dangerous...
+def(TVar, Var -- Type, Var->Int TYPE_TAG_VAR | Int->Type) # dangerous...
 def(TMeta, MetaVar -- Type,
     MetaVar->Int TYPE_TAG_META | Int->Type)
 def(TTensor, TensorType -- Type,
@@ -371,18 +371,21 @@ def(type-get-nominal, Type -- Nominal,
         type-get-value Int->Nominal
     ))
 
-def(TYPE_ERROR, Type, 0 TPrim)
-def(TYPE_INT, Type, 1 TPrim) # generic integer type for integer literals
-def(TYPE_PTR, Type, 2 TPrim) # generic pointer type (e.g. void*)
-def(TYPE_U8, Type, 3 TPrim) # fixed width integer type -- unsigned 8 bit
-def(TYPE_U16, Type, 4 TPrim) # fixed width integer type -- unsigned 16 bit
-def(TYPE_U32, Type, 5 TPrim) # fixed width integer type -- unsigned 32 bit
-def(TYPE_U64, Type, 6 TPrim) # fixed width integer type -- unsigned 64 bit
-def(TYPE_I8, Type, 7 TPrim) # fixed width integer type -- signed 8 bit
-def(TYPE_I16, Type, 8 TPrim) # fixed width integer type -- signed 16 bit
-def(TYPE_I32, Type, 9 TPrim) # fixed width integer type -- signed 32 bit
-def(TYPE_I64, Type, 10 TPrim) # fixed width integer type -- signed 64 bit
-def(TYPE_UNIT, Type, 11 TPrim) # unit type, also used for empty stack
+def(TYPE_ERROR, Type, 0x00 TPrim)
+def(TYPE_TYPE, Type, 0x01 TPrim) # type of types
+def(TYPE_STACK, Type, 0x02 TPrim) # type of types
+def(TYPE_EFFECT, Type, 0x03 TPrim) # type of types
+def(TYPE_INT, Type, 0x10 TPrim) # generic integer type for integer literals
+def(TYPE_PTR, Type, 0x11 TPrim) # generic pointer type (e.g. void*)
+def(TYPE_U8, Type, 0x12 TPrim) # fixed width integer type -- unsigned 8 bit
+def(TYPE_U16, Type, 0x13 TPrim) # fixed width integer type -- unsigned 16 bit
+def(TYPE_U32, Type, 0x14 TPrim) # fixed width integer type -- unsigned 32 bit
+def(TYPE_U64, Type, 0x15 TPrim) # fixed width integer type -- unsigned 64 bit
+def(TYPE_I8, Type, 0x16 TPrim) # fixed width integer type -- signed 8 bit
+def(TYPE_I16, Type, 0x17 TPrim) # fixed width integer type -- signed 16 bit
+def(TYPE_I32, Type, 0x18 TPrim) # fixed width integer type -- signed 32 bit
+def(TYPE_I64, Type, 0x19 TPrim) # fixed width integer type -- signed 64 bit
+def(TYPE_UNIT, Type, 0x1A TPrim) # unit type, also used for empty stack
 
 def(type-expand, Type -- Type,
     type-is-meta? if(

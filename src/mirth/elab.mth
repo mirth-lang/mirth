@@ -36,11 +36,11 @@ def(elab-sig!, Token -- Type +Elab,
         TMorphism
     ))
 
-# Elaborate a stack type into a tensor type.
+# Elaborate a stack signature into a stack type.
 def(elab-stack!, Token -- Type +Elab,
     sig-token-is-stack-var? if(
-        dup dip(SStack elab-type-var!) token-succ,
-
+        dup token-next
+        dip(elab-implicit-stack-var! TVar),
         dip(TYPE_UNIT)
     )
     while(sig-is-stack-end? if(0, sig-token-is-effect-con? not),
@@ -50,7 +50,7 @@ def(elab-stack!, Token -- Type +Elab,
     )
     drop)
 
-# Elaborate a token into a (value) type.
+# Elaborate an atom into a value type.
 def(elab-type!, Token -- Type,
     dup elab-token!
     sig-token-is-stack-var? if(
@@ -58,7 +58,7 @@ def(elab-type!, Token -- Type,
         drop TYPE_ERROR,
 
     sig-token-is-type-var? if(
-        SType elab-type-var!,
+        elab-implicit-type-var! TVar,
 
     sig-token-is-type-con? if(
         elab-type-con!,
@@ -71,29 +71,34 @@ def(elab-type!, Token -- Type,
         drop TYPE_ERROR
     )))))
 
-# Elaborate a (potentially implicit) type variable with the given sort.
-# The only sorts we want here are SType, SStack, and SEffect.
-# This will add the type variable to the context if it isn't already there.
-def(elab-type-var!, Token Sort -- Type,
-    drop # don't care about sort at the moment...
+def(elab-implicit-stack-var!, Token -- Var,
+    TYPE_STACK swap elab-implicit-var!)
+
+def(elab-implicit-type-var!, Token -- Var,
+    TYPE_TYPE swap elab-implicit-var!)
+
+# Elaborate a potentially implicit variable with the given type.
+# This will add the variable to the context if it doesn't yet exist.
+# If the variable already exists, this will unify the expected type.
+# Returns the resulting variable.
+def(elab-implicit-var!, Type Token -- Var,
     token-type? TOKEN_NAME = if(
-        token-has-args? if(
-            "Variables with args are not supported." elab-emit-error!
-            drop TYPE_ERROR,
+        token-name? elab-ctx@ ctx-has-name if(
+            token-name@ elab-ctx@ ctx-lookup
+            dup dip(var-type@ type-unify! drop),
 
-            token-name? elab-ctx@ ctx-has-name if(
-                # TODO: check the variable is a type
-                token-name@ TVar,
-
-                # TODO: declare the variable is a type
-                token-name? var-new-local-implicit! elab-ctx@ swap ctx-new! elab-ctx!
-                token-name@ TVar
-            )
+            elab-new-implicit-var!
         ),
 
-        "elab-type-var! expects a name token." elab-emit-error!
-        drop TYPE_ERROR
+        "elab-implicit-var! expects a name token." elab-emit-error!
+        drop2 VAR_ERROR
     ))
+
+def(elab-new-implicit-var!, Type Token -- Var +Elab,
+    token-name? var-new-local-implicit!
+    tuck var-name-token!
+    tuck var-type!
+    elab-ctx@ over ctx-new! elab-ctx!)
 
 # Elaborate a type constructor token.
 def(elab-type-con!, Token -- Type,

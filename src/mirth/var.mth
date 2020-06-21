@@ -144,7 +144,6 @@ def(var-type-token@, Var -- Token,
 def(var-type-token?, Var -- Var Token,
     dup var-type-token@)
 
-
 def(|Word|, Size, 8)
 |Word| VAR_MAX * def-static-buffer(VAR_WORD)
 def(var-has-word?, Var -- Var Bool, VAR_FLAG_HAS_WORD var-flag?)
