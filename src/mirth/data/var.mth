@@ -23,23 +23,13 @@ def(var-alloc!, Var,
         0 Int->VarStatus over var-status!
     ))
 
-def(var-new-global!, Name -- Var,
+def(var-new!, Name -- Var,
     var-alloc!
-    dup dip(var-name!)
-    dup VAR_FLAG_GLOBAL var-flag!)
+    tuck var-name!)
 
-def(var-new-local!, Name -- Var,
-    var-alloc!
-    dup dip(var-name!)
-    dup VAR_FLAG_LOCAL var-flag!)
-
-def(var-new-local-implicit!, Name -- Var,
-    var-new-local!
+def(var-new-implicit!, Name -- Var,
+    var-new!
     dup VAR_FLAG_IMPLICIT var-flag!)
-
-def(var-new-meta!, Var,
-    var-alloc!
-    dup VAR_FLAG_META var-flag!)
 
 nominal(VarStatus, U32)
 def(|VarStatus|, Size, 4)
@@ -62,17 +52,10 @@ def(var-flag@, Var VarFlag -- Bool, dip(var-status@ VarStatus->Int) VarFlag->Int
 def(var-flag?, Var VarFlag -- Var Bool, dip(dup) var-flag@)
 def(var-flag!, Var VarFlag -- , dip(var-status? VarStatus->Int) VarFlag->Int | Int->VarStatus swap var-status!)
 
-def(VAR_FLAG_PRIM, VarFlag, 0x0001 Int->VarFlag)
-def(VAR_FLAG_GLOBAL, VarFlag, 0x0002 Int->VarFlag)
-def(VAR_FLAG_LOCAL, VarFlag, 0x0004 Int->VarFlag)
-def(VAR_FLAG_META, VarFlag, 0x0008 Int->VarFlag)
-def(VAR_FLAG_IMPLICIT, VarFlag, 0x0010 Int->VarFlag)
-def(VAR_FLAG_HAS_NAME, VarFlag, 0x010000 Int->VarFlag)
-def(VAR_FLAG_HAS_TYPE, VarFlag, 0x020000 Int->VarFlag)
-def(VAR_FLAG_HAS_WORD, VarFlag, 0x040000 Int->VarFlag)
-def(VAR_FLAG_HAS_NAME_TOKEN, VarFlag, 0x100000 Int->VarFlag)
-def(VAR_FLAG_HAS_TYPE_TOKEN, VarFlag, 0x200000 Int->VarFlag)
-def(VAR_FLAG_HAS_WORD_TOKEN, VarFlag, 0x400000 Int->VarFlag)
+def(VAR_FLAG_IMPLICIT, VarFlag, 0x0001 Int->VarFlag)
+def(VAR_FLAG_HAS_NAME, VarFlag, 0x0010 Int->VarFlag)
+def(VAR_FLAG_HAS_TYPE, VarFlag, 0x0020 Int->VarFlag)
+def(VAR_FLAG_HAS_NAME_TOKEN, VarFlag, 0x100 Int->VarFlag)
 
 |Name| VAR_MAX * def-static-buffer(VAR_NAME)
 def(var-has-name?, Var -- Var Bool, VAR_FLAG_HAS_NAME var-flag?)
@@ -84,6 +67,9 @@ def(var-name!, Name Var --,
         var-name& name!
     ))
 def(var-name@, Var -- Name,
+    dup VAR_ERROR = if(
+        drop NAME_ERROR,
+
     var-has-name? not if(
         var-has-name-token? not if(
             "compiler error: attempted to get name of variable without name" panic!,
@@ -91,7 +77,7 @@ def(var-name@, Var -- Name,
             tuck var-name!
         ),
         var-name& name@
-    ))
+    )))
 def(var-name?, Var -- Var Name, dup var-name@)
 
 |Token| VAR_MAX * def-static-buffer(VAR_NAME_TOKEN)
@@ -132,58 +118,6 @@ def(var-type@, Var -- Type,
     )))
 def(var-type?, Var -- Var Type,
     dup var-type@)
-
-|Token| VAR_MAX * def-static-buffer(VAR_TYPE_TOKEN)
-def(var-has-type-token?, Var -- Var Bool, VAR_FLAG_HAS_TYPE_TOKEN var-flag?)
-def(var-type-token&, Var -- Ptr, Var->Int |Token| * VAR_TYPE_TOKEN +)
-def(var-type-token!, Token Var --,
-    var-has-type-token? if(
-        "compiler error: attempted to set type token of variable that already has type token" panic! drop2,
-        dup VAR_FLAG_HAS_TYPE_TOKEN var-flag!
-        var-type-token& token!
-    ))
-def(var-type-token@, Var -- Token,
-    var-has-type-token? not if(
-        "compiler error: attempted to get type token of variable without type token" panic!,
-        var-type-token& token@
-    ))
-def(var-type-token?, Var -- Var Token,
-    dup var-type-token@)
-
-def(|Word|, Size, 8)
-|Word| VAR_MAX * def-static-buffer(VAR_WORD)
-def(var-has-word?, Var -- Var Bool, VAR_FLAG_HAS_WORD var-flag?)
-def(var-word&, Var -- Ptr, Var->Int |Word| * VAR_WORD +)
-def(var-word!, Word Var --,
-    var-has-word? if(
-        "compiler error: attempted to set word of variable that already has word" panic! drop2,
-        dup VAR_FLAG_HAS_WORD var-flag!
-        var-word& word!
-    ))
-def(var-word@, Var -- Word,
-    var-has-word? not if(
-        "compiler error: attempted to get word of variable without word" panic!,
-        var-word& word@
-    ))
-def(var-word?, Var -- Var Word,
-    dup var-word@)
-
-|Token| VAR_MAX * def-static-buffer(VAR_WORD_TOKEN)
-def(var-has-word-token?, Var -- Var Bool, VAR_FLAG_HAS_WORD_TOKEN var-flag?)
-def(var-word-token&, Var -- Ptr, Var->Int |Token| * VAR_WORD_TOKEN +)
-def(var-word-token!, Token Var --,
-    var-has-word-token? if(
-        "compiler error: attempted to set word token of variable that already has word token" panic! drop2,
-        dup VAR_FLAG_HAS_WORD_TOKEN var-flag!
-        var-word-token& token!
-    ))
-def(var-word-token@, Var -- Token,
-    var-has-word-token? not if(
-        "compiler error: attempted to get word token of variable without word token" panic!,
-        var-word-token& token@
-    ))
-def(var-word-token?, Var -- Var Token,
-    dup var-word-token@)
 
 def(var-trace-binding!, Var -- +IO,
     var-name? name-load! str-buf-trace!

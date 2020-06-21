@@ -95,7 +95,7 @@ def(elab-implicit-var!, Type Token -- Var,
     ))
 
 def(elab-new-implicit-var!, Type Token -- Var +Elab,
-    token-name? var-new-local-implicit!
+    token-name? var-new-implicit!
     tuck var-name-token!
     tuck var-type!
     elab-ctx@ over ctx-new! elab-ctx!)
