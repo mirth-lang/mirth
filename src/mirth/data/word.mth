@@ -2,6 +2,7 @@ module(mirth/data/word)
 import(prelude)
 import(mirth/data/name)
 import(mirth/data/type)
+import(mirth/data/arrow)
 
 def(init-words!, --,
     0 NUM_WORDS !)
@@ -56,9 +57,14 @@ MAX_WORDS |Type| * def-static-buffer(WORD_TYPE)
 def(word-type&, Word -- Ptr, Word->Int |Type| * WORD_TYPE +)
 def(word-type@, Word -- Type, word-type& type@)
 def(word-type!, Type Word --, word-type& type!)
-
 def(word-dom@, Word -- Type, word-type@ type-get-morphism morphism-type-dom@)
 def(word-cod@, Word -- Type, word-type@ type-get-morphism morphism-type-cod@)
+
+MAX_WORDS |Arrow| * def-static-buffer(WORD_ARROW)
+def(word-arrow&, Word -- Ptr, Word->Int |Arrow| * WORD_ARROW +)
+def(word-arrow!, Arrow Word --, word-arrow& arrow!)
+def(word-arrow@, Word -- Arrow, word-arrow& arrow@)
+def(word-arrow?, Word -- Word Arrow, dup word-arrow@)
 
 MAX_WORDS def-static-buffer(WORD_STATUS)
 nominal(WordStatus, U8)
@@ -80,29 +86,13 @@ def(word-status-set, WordStatus WordStatusFlag -- WordStatus,
     dip(WordStatus->Int) WordStatusFlag->Int | Int->WordStatus)
 
 def(WORD_SIG_CHECKED, WordStatusFlag, 0x01 Int->WordStatusFlag)
-def(word-sig-is-checked?, Word -- Word Bool, word-status? WORD_SIG_CHECKED word-status-get)
-def(word-sig-is-checked!, Word --, word-status? WORD_SIG_CHECKED word-status-set swap word-status!)
+def(word-sig-is-checked?, Word -- Word Bool,
+    word-status? WORD_SIG_CHECKED word-status-get)
+def(word-sig-is-checked!, Word --,
+    word-status? WORD_SIG_CHECKED word-status-set swap word-status!)
 
 def(WORD_BODY_CHECKED, WordStatusFlag, 0x02 Int->WordStatusFlag)
-def(word-body-is-checked?, Word -- Word Bool, word-status? WORD_BODY_CHECKED word-status-get)
-def(word-body-is-checked!, Word --, word-status? WORD_BODY_CHECKED word-status-set swap word-status!)
-
-#############
-# MORPHISMS #
-#############
-
-# Each Mirth word is represented by a morphism in some category
-# (or some class of categories). We provide special support for
-# the morphisms of symmetric monoidal category theory, since we
-# want to manipulate multiple pieces of data, like a string diagram,
-# but we do not assume commutativity (i.e. that dip(f) g == g dip(f)),
-# so that we can more easily represent computational effects like IO.
-# As such, we actually provide special support for premonoidal
-# categories, and we're really working with ordered string diagrams.
-
-# The representation, for now, involves building up morphisms as a
-# sequence of atomic morphisms. Atomic morphisms are morphisms that
-# can't be broken down into a composition. These include calling
-# words, primitives, control flow, and literal values. This is a
-# nested intermediate representation, but, to reduce indirection,
-# we represent it as a flat sequence.
+def(word-body-is-checked?, Word -- Word Bool,
+    word-status? WORD_BODY_CHECKED word-status-get)
+def(word-body-is-checked!, Word --,
+    word-status? WORD_BODY_CHECKED word-status-set swap word-status!)

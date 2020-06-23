@@ -7,12 +7,17 @@ import(mirth/data/type)
 # Elaborator #
 ##############
 
-quad def-static-buffer(ELAB_TOKEN)
+|Token| def-static-buffer(ELAB_TOKEN)
 def(elab-token@, -- Token +Elab, ELAB_TOKEN token@)
 def(elab-token!, Token -- +Elab, ELAB_TOKEN token!)
 def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
 def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
 def(elab-emit-fatal-error!, Str -- +Elab, dip(elab-token@) emit-fatal-error!)
+
+
+|Type| def-static-buffer(ELAB_STACK)
+def(elab-stack@, -- Type +Elab, ELAB_STACK type@)
+def(elab-stack!, Type -- +Elab, ELAB_STACK type!)
 
 |Ctx| def-static-buffer(ELAB_CTX)
 def(elab-ctx@, -- Ctx +Elab, ELAB_CTX ctx@)
@@ -25,19 +30,19 @@ def(elab-ctx!, Ctx -- +Elab, ELAB_CTX ctx!)
 # Elaborate a type signature into a morphism type.
 def(elab-sig!, Token -- Type +Elab,
     sig-has-dashes? if(
-        dup elab-stack!
-        swap sig-skip-dashes elab-stack!
+        dup elab-stack-type!
+        swap sig-skip-dashes elab-stack-type!
         morphism-type-new!
         TMorphism,
 
         dip(TYPE_UNIT)
-        elab-stack!
+        elab-stack-type!
         morphism-type-new!
         TMorphism
     ))
 
 # Elaborate a stack signature into a stack type.
-def(elab-stack!, Token -- Type +Elab,
+def(elab-stack-type!, Token -- Type +Elab,
     sig-token-is-stack-var? if(
         dup token-next
         dip(elab-implicit-stack-var! TVar),
@@ -140,21 +145,103 @@ def(elab-word-sig!, Word -- Type +Elab,
         ) elab-ctx!
     ))
 
-# def(elab-word-body!, Word -- Morphism +Elab,
-#     word-body-is-checked? if(
-#         word-morphism@,
-#         drop MORPHISM_ERROR # TODO
-#     ))
 
-    # ctx-empty elab-ctx!
-    # name-sig? elab-sig! over name-type!
-    # over name-load! str-buf-trace!
-    # elab-ctx@ ctx-is-empty? if(
-    #     drop,
-    #     " (" str-trace! ctx-trace! ")" str-trace!
-    # )
-    # " : " str-trace!
-    # type-trace-sig! trace-ln!
+def(elab-word-body!, Word -- Arrow +Elab,
+    word-body-is-checked? if(
+        word-arrow@,
+        dup elab-word-sig! drop
+
+        elab-ctx@ dip(
+        elab-token@ dip(
+        elab-stack@ dip(
+            dup word-ctx@ elab-ctx!
+            dup word-body@ elab-token!
+            dup word-dom@ elab-stack!
+
+            dup word-body@ elab-arrow!
+
+            over word-cod@ elab-stack@ type-unify! drop
+            over word-body-is-checked!
+            tuck swap word-arrow!
+        ) elab-stack!
+        ) elab-token!
+        ) elab-ctx!
+    ))
+
+def(elab-stack-pop!, Type +Elab,
+    elab-stack@
+    type-expand
+    type-is-meta? if(
+        type-expand-tensor tensor-type-unpack,
+
+    type-is-tensor? if(
+        type-get-tensor tensor-type-unpack,
+
+        "stack underflow" elab-emit-error!
+        drop TYPE_ERROR TYPE_ERROR
+    ))
+    dip(elab-stack!))
+
+def(elab-stack-pop2!, Type Type +Elab,
+    elab-stack-pop! dip(elab-stack-pop!))
+
+def(elab-stack-pop3!, Type Type Type +Elab,
+    elab-stack-pop! dip(elab-stack-pop2!))
+
+def(elab-stack-push!, Type -- +Elab,
+    elab-stack@ swap tensor-type-new! TTensor elab-stack!)
+
+def(elab-stack-push2!, Type Type -- +Elab,
+    dip(elab-stack-push!) elab-stack-push!)
+
+def(elab-stack-push3!, Type Type Type -- +Elab,
+    dip(elab-stack-push2!) elab-stack-push!)
+
+def(elab-token-next!, +Elab,
+    elab-token@ token-next elab-token!)
+
+
+def(elab-arrow!, Token -- Arrow +Elab,
+    elab-token!
+    elab-arrow-step! dup
+    while(elab-token@ token-is-arg-end? nip not,
+        elab-token-next!
+        elab-arrow-step!
+        dup dip(swap arrow-next!))
+    drop)
+
+def(elab-arrow-step!, Arrow +Elab,
+    arrow-alloc!
+    elab-stack@ over arrow-dom!
+    elab-token@ over arrow-token!
+
+    elab-token@ token-type@
+    dup TOKEN_INT = if(
+        drop TYPE_INT elab-stack-push!, # TODO int push op in arrow
+
+    dup TOKEN_STR = if(
+        drop TYPE_PTR elab-stack-push!, # TODO str push op in arrow
+
+    dup TOKEN_NAME = if(
+        drop TYPE_ERROR elab-stack!,
+#        meta-alloc! TMeta elab-stack!
+
+    drop
+    elab-token@ token-is-arg-end? if(
+        drop,
+
+        drop "compiler error: unexpected token type" elab-emit-warning!
+    )))))
+
+    # elab@ arrow-dom@
+
+
+    # token-is-arg-end? if(
+    #     drop ARROW_END
+
+    #     while(token-is-arg-end? not,
+    #     )
+    # ))
 
 #################
 # Type Checking #
@@ -319,6 +406,7 @@ def(typecheck-name!, Name --,
 
 def(typecheck-word!, Name --,
     dup name-word@ elab-word-sig! drop
+    dup name-word@ elab-word-body! drop
     name-sig? typecheck-word-sig!
 
 #    dup name-load! str-buf-trace! " : " str-trace!

@@ -127,9 +127,44 @@ def(type-expand, Type -- Type,
         id
     ))
 
+# high level version of type-get-tensor that introduces metavars if needed
+def(type-expand-tensor, Type -- TensorType,
+    type-expand
+    type-is-meta? if( # undefined metavar -- introduce a tensor type
+        meta-alloc! TMeta
+        meta-alloc! TMeta
+        tensor-type-new! TTensor
+        swap type-unify!
+        type-get-tensor,
+
+        type-get-tensor
+    ))
+
+# high level version of type-get-morphism that introduces metavars if needed
+def(type-expand-morphism, Type -- MorphismType,
+    type-expand
+    type-is-meta? if( # undefined metavar -- introduce a morphism type
+        meta-alloc! TMeta
+        meta-alloc! TMeta
+        morphism-type-new! TMorphism
+        swap type-unify!
+        type-get-morphism,
+
+        type-get-morphism
+    ))
+
+# Raise a type unification error.
+def(type-unify-failed!, Type Type -- Type +Elab,
+    elab-token@ token-location location-trace!
+    ": error: Failed to unify " str-trace!
+    dip(type-trace!)
+    " with " str-trace!
+    type-trace!
+    trace-ln!
+    TYPE_ERROR)
 
 # Unify two types. Raises an elaboration error if unification is impossible.
-def(type-unify!, Type Type -- Type,
+def(type-unify!, Type Type -- Type +Elab,
     dip(type-expand) type-expand
 
     dup2 = if(
@@ -148,38 +183,35 @@ def(type-unify!, Type Type -- Type,
         type-get-meta meta-unify!,
 
     type-is-prim? if( # other than TYPE_ERROR, primitive types need to be exact matches.
-        "failed to unify types" elab-emit-error! # FIXME: improve error messages
-        drop2 TYPE_ERROR,
+        type-unify-failed!,
 
     type-is-var? if( # type variables need to be exact matches.
-        "failed to unify types" elab-emit-error! # FIXME: improve error messages
-        drop2 TYPE_ERROR,
+        type-unify-failed!,
+
+    type-is-nominal? if( # nominals need to be exact matches (for now)
+        type-unify-failed!,
 
     type-is-tensor? if(
-        type-get-tensor swap
+        swap
         type-is-tensor? if(
             type-get-tensor swap
+            type-get-tensor
             tensor-type-unify! TTensor,
 
-            "failed to unify types" elab-emit-error!  # FIXME: improve error messages
-            drop2 TYPE_ERROR
+            type-unify-failed!
         ),
 
     type-is-morphism? if(
-        type-get-morphism swap
+        swap
         type-is-morphism? if(
             type-get-morphism swap
+            type-get-morphism
             morphism-type-unify! TMorphism,
 
-            "failed to unify types" elab-emit-error! # FIXME: improve error messages
-            drop2 TYPE_ERROR
+            type-unify-failed!
         ),
 
-    type-is-nominal? if( # nominals need to be exact matches (for now)
-        "failed to unify types" elab-emit-error! # FIXME: improve error messages
-        drop2 TYPE_ERROR,
-
-        "type-unify: unknown type" panic! drop
+        type-unify-failed!
     )))))))))))
 
 def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
@@ -379,8 +411,8 @@ def(tensor-type-alloc!, TensorType,
     ))
 def(tensor-type-new!, Type Type -- TensorType,
     tensor-type-alloc!
-    dup dip(tensor-type-snd!)
-    dup dip(tensor-type-fst!))
+    tuck tensor-type-snd!
+    tuck tensor-type-fst!)
 
 MAX_TENSOR_TYPES |Type| * def-static-buffer(TENSOR_TYPE_FST)
 def(tensor-type-fst&, TensorType -- Ptr, TensorType->Int |Type| * TENSOR_TYPE_FST +)
@@ -465,7 +497,7 @@ nominal(Nominal, Int)
 def(Int->Nominal, Int -- Nominal, cast)
 def(Nominal->Int, Nominal -- Int, cast)
 
-def(MAX_NOMINALS, Size, 0x10000)
+def(MAX_NOMINALS, Size, 0x1000)
 quad def-static-buffer(NUM_NOMINALS)
 
 MAX_NOMINALS |Type| * def-static-buffer(NOMINAL_TYPE)
@@ -475,8 +507,8 @@ def(nominal-type!, Type Nominal --, nominal-type& type!)
 
 MAX_NOMINALS |Name| * def-static-buffer(NOMINAL_NAME)
 def(nominal-name&, Nominal -- Ptr, Nominal->Int |Name| * NOMINAL_NAME +)
-def(nominal-name@, Nominal -- Name, nominal-type& name@)
-def(nominal-name!, Name Nominal --, nominal-type& name!)
+def(nominal-name@, Nominal -- Name, nominal-name& name@)
+def(nominal-name!, Name Nominal --, nominal-name& name!)
 
 def(nominal-alloc!, Size,
     NUM_NOMINALS @ dup 1+ NUM_NOMINALS !
