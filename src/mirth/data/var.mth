@@ -21,7 +21,7 @@ quad def-static-buffer(VAR_NUM)
 def(var-alloc!, Var,
     VAR_NUM @ dup 1+ VAR_NUM !
     dup VAR_MAX >= if(
-        "compiler error: VAR_NUM >= VAR_MAX" panic!,
+        "compiler error: VAR_NUM >= VAR_MAX" panic! Int->Var,
         Int->Var
         0 Int->VarStatus over var-status!
     ))

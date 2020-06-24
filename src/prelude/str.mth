@@ -4,13 +4,13 @@ import(prelude/common)
 def(str-tail, Str -- Str, 1 +)
 def(str-length, Str -- Int,
     0 swap
-    while(dup u8@,
+    while(dup u8@ U8->Int,
         str-tail
         dip(1+))
     drop)
 
 def(str-copy!, Str Str --,
-    while( over u8@,
+    while( over u8@ U8->Int,
         over u8@ over u8!
         dip(str-tail) str-tail
     )
@@ -43,7 +43,7 @@ def(str-buf-push!, U8 -- +StrBuf,
 # Append the given string into STR_BUF. If the string is
 # too large it gets truncated.
 def(str-buf-push-str!, Str -- +StrBuf,
-        while(str-buf-full? if(0, dup u8@),
+        while(str-buf-full? if(0, dup u8@ U8->Int),
         dup u8@ str-buf-push!
         str-tail)
     drop)

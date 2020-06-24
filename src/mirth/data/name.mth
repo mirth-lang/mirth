@@ -60,7 +60,7 @@ def(name-quads-eq, Name -- Bool,
 
 def(hash, Ptr -- Hash,
     0 swap
-    while(dup u8@,
+    while(dup u8@ U8->Int,
         dup dip(u8@ U8->Int 5 * swap 18 * ^)
         str-tail)
     drop

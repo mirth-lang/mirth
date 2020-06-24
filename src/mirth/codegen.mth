@@ -35,7 +35,7 @@ def(.b, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
     codegen-length@ dup 1+ codegen-length! codegen-u8!)
 
-def(., Str -- +Codegen, while(dup u8@, dup u8@ .b str-tail) drop)
+def(., Str -- +Codegen, while(dup u8@ U8->Int, dup u8@ .b str-tail) drop)
 
 def(codegen-start!, File -- +Codegen,
     codegen-file! 0 codegen-length!)
@@ -118,7 +118,7 @@ def(c99-emit-strings!, +IO,
     "static const char strings[STRINGS_SIZE] = { " ;
     0
     while(dup strings-size@ <,
-        dup STRINGS_BUF u8@@ dup U8->Int .n "," .
+        dup STRINGS_BUF u8@@ U8->Int dup .n "," .
         if(id, .lf)
         1+
     ) drop

@@ -108,7 +108,7 @@ def(token-run-one!, Token -- Token +Mirth,
         0 1 arity-check!
         token-str? vstack-push!,
     token-type? TOKEN_LPAREN = if(
-        token-value@,
+        token-value@ TokenValue->Token,
     token-type? TOKEN_NAME = if(
         dup token-run-name!,
 
@@ -650,9 +650,9 @@ def(token-run-prim!, Token --,
 def(arity-check!, Token Size Size -- Token,
     dip(dip(vstack-len@))
     dip(dup2 <) swap if(
-        drop drop2 "Stack underflow." emit-fatal-error! 0,
+        drop drop2 "Stack underflow." emit-fatal-error! 0 Int->Token,
         dip(-) + VSTACK_SIZE > if(
-            "Stack overflow." emit-fatal-error! 0,
+            "Stack overflow." emit-fatal-error! 0 Int->Token,
             id
         )
     ))

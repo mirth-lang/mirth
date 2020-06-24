@@ -377,7 +377,7 @@ quad def-static-buffer(NUM_METAS)
 def(meta-alloc!, MetaVar,
     NUM_METAS @ dup 1+ NUM_METAS !
     dup MAX_METAS >= if(
-        "compiler error: ran out of meta variables, increase MAX_METAS" panic!,
+        "compiler error: ran out of meta variables, increase MAX_METAS" panic! Int->MetaVar,
         Int->MetaVar
     ))
 
@@ -434,7 +434,7 @@ quad def-static-buffer(NUM_TENSOR_TYPES)
 def(tensor-type-alloc!, TensorType,
     NUM_TENSOR_TYPES @ dup 1+ NUM_TENSOR_TYPES !
     dup MAX_TENSOR_TYPES >= if(
-        "compiler error: too many tensor types -- increase MAX_TENSOR_TYPES" panic!,
+        "compiler error: too many tensor types -- increase MAX_TENSOR_TYPES" panic! Int->TensorType,
         Int->TensorType
     ))
 def(tensor-type-new!, Type Type -- TensorType,
@@ -492,7 +492,7 @@ quad def-static-buffer(NUM_MORPHISM_TYPES)
 def(morphism-type-alloc!, MorphismType,
     NUM_MORPHISM_TYPES @ dup 1+ NUM_MORPHISM_TYPES !
     dup MAX_MORPHISM_TYPES >= if(
-        "compiler error: too many morphism types -- increase MAX_MORPHISM_TYPES" panic!,
+        "compiler error: too many morphism types -- increase MAX_MORPHISM_TYPES" panic! Int->MorphismType,
         Int->MorphismType
     ))
 def(morphism-type-new!, Type Type -- MorphismType,

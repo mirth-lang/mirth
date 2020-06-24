@@ -34,7 +34,7 @@ def(ctx-name@, Ctx -- Name, ctx-var@ var-name@)
 def(ctx-alloc!, Ctx,
     NUM_CTX @ dup 1+ NUM_CTX !
     dup MAX_CTX >= if(
-        "compiler error: ran out of space for contexts, increase MAX_CTX" panic!,
+        "compiler error: ran out of space for contexts, increase MAX_CTX" panic! Int->Ctx,
         1+ Int->Ctx
     ))
 def(ctx-new!, Ctx Var -- Ctx,

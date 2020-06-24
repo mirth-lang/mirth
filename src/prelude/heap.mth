@@ -51,7 +51,7 @@ def(heap-reserve!, Size -- +Heap,
         -1 # file descriptor (-1 for MAP_ANONYMOUS)
         0 # offset
         posix-mmap!
-        dup if(
+        dup Ptr->Int if(
             dup heap-base@ heap-length@ + = if(
                 drop heap-length@ + heap-length!,
                 dup heap-initial-base! heap-base!
@@ -96,4 +96,4 @@ def(heap-alloc!, Size -- Ptr +Heap,
     64 align
     dup heap-reserve!
     dup heap-length@ swap - heap-length!
-    heap-base@ tuck + heap-base!)
+    heap-base@ dup dip(swap) + heap-base!)

@@ -43,7 +43,7 @@ quad def-static-buffer(NUM_ARROWS)
 def(arrow-alloc!, Arrow,
     NUM_ARROWS @ dup 1+ dup NUM_ARROWS !
     MAX_ARROWS >= if(
-        "Compiler error: Ran out of arrows! Increase MAX_ARROWS!" panic!,
+        "Compiler error: Ran out of arrows! Increase MAX_ARROWS!" panic! Int->Arrow,
         Int->Arrow
     ))
 
