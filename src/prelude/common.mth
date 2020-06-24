@@ -101,6 +101,7 @@ def(Int->U16, Int -- U16,
 def(Int->U32, Int -- U32,
     dup U32_MIN U32_MAX in-range if(
         cast,
+        ??
         "Int->U32 failed: out of bounds" panic! cast
     ))
 def(Int->U64, Int -- U64, cast)

@@ -171,15 +171,18 @@ def(elab-word-body!, Word -- Arrow +Elab,
 def(elab-stack-pop!, Type +Elab,
     elab-stack@
     type-expand
+    dup TYPE_ERROR = if(
+        dup,
+
     type-is-meta? if(
         type-expand-tensor tensor-type-unpack,
 
     type-is-tensor? if(
         type-get-tensor tensor-type-unpack,
 
-        "stack underflow" elab-emit-error!
+        "(temporary?) stack underflow" elab-emit-warning!
         drop TYPE_ERROR TYPE_ERROR
-    ))
+    )))
     dip(elab-stack!))
 
 def(elab-stack-pop2!, Type Type +Elab,
@@ -215,33 +218,105 @@ def(elab-arrow-step!, Arrow +Elab,
     elab-stack@ over arrow-dom!
     elab-token@ over arrow-token!
 
-    elab-token@ token-type@
-    dup TOKEN_INT = if(
-        drop TYPE_INT elab-stack-push!, # TODO int push op in arrow
-
-    dup TOKEN_STR = if(
-        drop TYPE_PTR elab-stack-push!, # TODO str push op in arrow
-
-    dup TOKEN_NAME = if(
-        drop TYPE_ERROR elab-stack!,
-#        meta-alloc! TMeta elab-stack!
-
-    drop
-    elab-token@ token-is-arg-end? if(
+    elab-token@
+    token-is-arg-end? if(
         drop,
 
-        drop "compiler error: unexpected token type" elab-emit-warning!
+        token-type@
+        dup TOKEN_INT = if(
+            drop TYPE_INT elab-stack-push!, # TODO int push op in arrow
+
+        dup TOKEN_STR = if(
+            drop TYPE_PTR elab-stack-push!, # TODO str push op in arrow
+
+        dup TOKEN_NAME = if(
+            drop
+            elab-arrow-step-name!,
+
+            drop "compiler error: unexpected token type" elab-emit-fatal-error!
+        )))
+    ))
+
+def(elab-arrow-step-name!, Arrow -- Arrow +Elab,
+    elab-token@ token-name@
+    name-is-buffer? if(
+        drop TYPE_PTR elab-stack-push!, # TODO ptr push op in arrow
+
+    name-is-external? if(
+        drop TYPE_ERROR elab-stack!, # TODO apply type, external call op
+
+    name-is-word? if(
+        drop elab-arrow-step-word!,
+
+    name-is-prim? if(
+        drop elab-arrow-step-prim!,
+
+        drop
+        "compiler error: unknown name type in elaborator" elab-emit-error!
     )))))
 
-    # elab@ arrow-dom@
+def(elab-arrow-step-word!, Arrow -- Arrow +Elab,
+    elab-token@ token-args-0 # high order word not yet supported
+    elab-token@ token-name@ name-word@ # TODO save word call in op
+    elab-word-sig! elab-arrow-apply-sig-type!)
+
+def(elab-arrow-apply-sig-type!, Arrow Type -- Arrow +Elab,
+    drop TYPE_ERROR elab-stack!) # TODO
+
+#     type-freshen drop
+#     type-expand-morphism morphism-type-unpack
+
+#     dip(elab-stack@
+# "here> " str-trace! ??
 
 
-    # token-is-arg-end? if(
-    #     drop ARROW_END
+#      type-unify! drop) # elab-stack!
+#      drop TYPE_ERROR elab-stack!
+    
 
-    #     while(token-is-arg-end? not,
-    #     )
-    # ))
+def(elab-arrow-step-prim!, Arrow -- Arrow +Elab,
+    elab-token@ token-name@ Name->Prim
+    dup PRIM_DROP = if( # TODO drop op
+        drop elab-stack-pop! drop,
+
+    dup PRIM_SWAP = if( # TODO swap op
+        drop elab-stack-pop2! swap elab-stack-push2!,
+
+    dup PRIM_DUP = if( # TODO dup op
+        drop elab-stack@
+        dup TYPE_ERROR = if(
+            drop,
+            type-expand-tensor tensor-type-snd@ elab-stack-push!
+        ),
+
+    dup PRIM_DIP = if(
+        drop elab-arrow-step-dip!,
+
+    dup PRIM_IF = if(
+        drop elab-arrow-step-if!,
+
+        drop TYPE_ERROR elab-stack!
+        "compiler error: unknown prim in elaborator" elab-emit-warning!
+    ))))))
+
+def(elab-arrow-step-dip!, Arrow -- Arrow +Elab,
+    # TODO add dip op in arrow
+    elab-stack-pop! elab-token@
+    dup token-args-1
+    elab-arrow! drop # TODO don't drop, add operand in arrow
+    elab-token!
+    elab-stack-push!)
+
+def(elab-arrow-step-if!, Arrow -- Arrow +Elab,
+    # TODO add if op in arrow
+    elab-stack-pop! TYPE_INT type-unify! drop # use TYPE_BOOL
+    elab-token@ elab-stack@
+    over token-args-2
+    dip(elab-arrow! drop) # TODO dont drop, add operand in arrow
+    dip(elab-stack@ swap elab-stack!)
+    elab-arrow! drop # TODO dont drop, add operand in arrow
+    dip(elab-token!)
+    elab-stack@ type-unify! elab-stack!)
 
 #################
 # Type Checking #

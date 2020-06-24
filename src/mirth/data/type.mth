@@ -72,16 +72,16 @@ def(type-is-nominal?, Type -- Type Bool, dup type-is-nominal)
 
 def(type-is-stack-var, Type -- Bool,
     type-is-var? if(
-        type-get-var name-could-be-stack-var,
+        type-get-var var-name@ name-could-be-stack-var,
         drop 0
     ))
 def(type-is-stack-var?, Type -- Type Bool, dup type-is-stack-var)
 
 def(type-get-value, Type -- Int, Type->Int TYPE_VALUE_MASK &)
-def(type-get-var, Type -- Name,
+def(type-get-var, Type -- Var,
     type-is-var? not if(
         "compiler error: tried to get var value on non-var type" panic!,
-        type-get-value Int->Name
+        type-get-value Int->Var
     ))
 def(type-get-meta, Type -- MetaVar,
     type-is-meta? not if(
@@ -283,7 +283,7 @@ def(type-trace!, Type -- +IO,
         type-trace-prim!,
 
     type-is-var? if(
-        type-get-var name-load! str-buf-trace!,
+        type-get-var var-name@ name-load! str-buf-trace!,
 
     type-is-meta? if(
         type-get-meta "?" str-trace! MetaVar->Int int-trace!,
@@ -334,6 +334,31 @@ def(type-trace-prim!, Type -- +IO,
         drop "I64" str-trace!,
         "<UNKNOWN PRIMITIVE TYPE " str-trace! Type->Int int-trace! ">" str-trace!
     )))))))))))))
+
+def(type-freshen, Type -- Type Bool,
+    type-expand
+
+    type-is-var? if(
+        type-var-freshen,
+
+    type-is-tensor? if(
+        type-get-tensor
+        tensor-type-freshen
+        dip(TTensor),
+
+    type-is-morphism? if(
+        type-get-morphism
+        morphism-type-freshen
+        dip(TMorphism),
+
+        1
+    ))))
+
+def(type-var-freshen, Type -- Type Bool,
+    drop # TODO fix this -- same var should get same meta
+    meta-alloc!
+    TMeta
+    0)
 
 ##################
 # Meta-var Types #
@@ -439,6 +464,14 @@ def(tensor-type-has-meta, MetaVar TensorType -- Bool,
         type-has-meta
     ))
 
+def(tensor-type-freshen, TensorType -- TensorType Bool,
+    dup tensor-type-unpack
+    dip(type-freshen) type-freshen
+    dip(swap) & if(
+        drop2 1,
+        tensor-type-new! nip 0
+    ))
+
 # def(tensor-type-subst, Subst TensorType -- Subst TensorType,
 #     id) # TODO
 
@@ -487,6 +520,14 @@ def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
     dip(over) type-has-meta if(
         drop2 1,
         type-has-meta
+    ))
+
+def(morphism-type-freshen, MorphismType -- MorphismType Bool,
+    dup morphism-type-unpack
+    dip(type-freshen) type-freshen
+    dip(swap) & if(
+        drop2 1,
+        morphism-type-new! nip 0
     ))
 
 ############
