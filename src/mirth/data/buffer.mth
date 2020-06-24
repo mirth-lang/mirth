@@ -30,7 +30,7 @@ def(buffer-size!, Size Buffer -- +Buffers,
 
 def(buffer-alloc!, Size -- Buffer +Buffers,
     num-buffers@ MAX_BUFFERS >= if(
-        "compiler error: ran out of buffers" panic!,
+        "compiler error: ran out of buffers" panic! Int->Buffer,
         dup heap-alloc!
         num-buffers@ dup 1+ num-buffers! Int->Buffer
         tuck buffer-base!

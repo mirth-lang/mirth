@@ -117,8 +117,8 @@ def(elab-type-con!, Token -- Type,
                 name-type@,
 
             name-undefined? if(
-                "Unknown type." elab-emit-error!,
-                "Not a type." elab-emit-error!
+                "Unknown type." elab-emit-error! drop TYPE_ERROR,
+                "Not a type." elab-emit-error! drop TYPE_ERROR
             ))
         ),
 
@@ -261,18 +261,39 @@ def(elab-arrow-step-word!, Arrow -- Arrow +Elab,
     elab-word-sig! elab-arrow-apply-sig-type!)
 
 def(elab-arrow-apply-sig-type!, Arrow Type -- Arrow +Elab,
-    drop TYPE_ERROR elab-stack!) # TODO
+    type-expand-morphism morphism-type-unpack swap
+    type-expand
+    while(type-is-tensor?,
+        type-get-tensor
+        tensor-type-unpack
+        type-freshen drop elab-stack-pop! type-unify! drop # incorrect -- make pattern match subst
+        type-expand
+    )
+    dup TYPE_ERROR = if(
+        drop2 TYPE_ERROR elab-stack!,
 
-#     type-freshen drop
-#     type-expand-morphism morphism-type-unpack
+    dup TYPE_UNIT = if( # save arrow codip depth ?
+        drop type-freshen drop # incorrect -- use pattern match subst
+        elab-stack@ swap stack-type-concat elab-stack!,
 
-#     dip(elab-stack@
-# "here> " str-trace! ??
+        drop type-freshen drop elab-stack! # incorrect -- use pattern match subst
+    )))
 
+def(stack-type-concat, Type Type -- Type,
+    type-expand
+    dup TYPE_ERROR = if(
+        drop2 TYPE_ERROR,
 
-#      type-unify! drop) # elab-stack!
-#      drop TYPE_ERROR elab-stack!
-    
+    dup TYPE_UNIT = if(
+        drop,
+
+    type-is-tensor? if(
+        type-get-tensor tensor-type-unpack dip(stack-type-concat)
+        tensor-type-new! TTensor,
+
+        "compiler error: expected stack type in stack-type-concat" elab-emit-fatal-error!
+        nip
+    ))))
 
 def(elab-arrow-step-prim!, Arrow -- Arrow +Elab,
     elab-token@ token-name@ Name->Prim
@@ -357,7 +378,8 @@ def(tstack-push-int!, Int --,
         tstack-len@ dup 1+ tstack-len! tstack!
     ))
 
-def(tstack-pop!, -- Type, tstack-pop-int! Int->Type)
+def(tstack-pop!, -- Type,
+    tstack-pop-int! Int->Type)
 def(tstack-push!, Type --, Type->Int tstack-push-int!)
 
 def(tstack-pop2!, -- Type Type, tstack-pop! dip(tstack-pop!))

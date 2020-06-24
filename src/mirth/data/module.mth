@@ -33,7 +33,7 @@ def(num-modules!, Size --, NUM_MODULES !)
 def(alloc-module!, Module,
     num-modules@ dup 1+ num-modules!
     dup MAX_MODULES >= if(
-        "ran out of space to store module path" panic!,
+        "ran out of space to store module path" panic! Int->Module,
         Int->Module
     ))
 

@@ -29,7 +29,8 @@ nominal(Type, U32) # actually U32
 def(Type->U32, Type -- U32, cast)
 def(U32->Type, U32 -- Type, cast)
 def(Type->Int, Type -- Int, Type->U32 U32->Int)
-def(Int->Type, Int -- Type, Int->U32 U32->Type)
+def(Int->Type, Int -- Type,
+    Int->U32 U32->Type)
 # def(|Type|, Size, 4) # defined in mirth/var
 def(type@, Ptr -- Type, u32@ U32->Type)
 def(type!, Type Ptr --, dip(Type->U32) u32!)
@@ -45,8 +46,10 @@ def(TYPE_TAG_TENSOR,   Int, 0x30000000)
 def(TYPE_TAG_MORPHISM, Int, 0x40000000)
 def(TYPE_TAG_NOMINAL,  Int, 0x50000000)
 
-def(TPrim, Int -- Type, Int->Type)
-def(TVar, Var -- Type, Var->Int TYPE_TAG_VAR | Int->Type) # dangerous...
+def(TPrim, Int -- Type,
+    Int->Type)
+def(TVar, Var -- Type,
+    Var->Int TYPE_TAG_VAR | Int->Type) # dangerous...
 def(TMeta, MetaVar -- Type,
     MetaVar->Int TYPE_TAG_META | Int->Type)
 def(TTensor, TensorType -- Type,
@@ -80,27 +83,27 @@ def(type-is-stack-var?, Type -- Type Bool, dup type-is-stack-var)
 def(type-get-value, Type -- Int, Type->Int TYPE_VALUE_MASK &)
 def(type-get-var, Type -- Var,
     type-is-var? not if(
-        "compiler error: tried to get var value on non-var type" panic!,
+        "compiler error: tried to get var value on non-var type" panic! drop 0 Int->Var,
         type-get-value Int->Var
     ))
 def(type-get-meta, Type -- MetaVar,
     type-is-meta? not if(
-        "compiler error: tried to get meta value on non-meta type" panic!,
+        "compiler error: tried to get meta value on non-meta type" panic! drop 0 Int->MetaVar,
         type-get-value Int->MetaVar
     ))
 def(type-get-tensor, Type -- TensorType,
     type-is-tensor? not if(
-        "compiler error: tried to get tensor value on non-tensor type" panic!,
+        "compiler error: tried to get tensor value on non-tensor type" panic! drop 0 Int->TensorType,
         type-get-value Int->TensorType
     ))
 def(type-get-morphism, Type -- MorphismType,
     type-is-morphism? not if(
-        "compiler error: tried to get morphism value on non-morphism type" panic!,
+        "compiler error: tried to get morphism value on non-morphism type" panic! drop 0 Int->MorphismType,
         type-get-value Int->MorphismType
     ))
 def(type-get-nominal, Type -- Nominal,
     type-is-nominal? not if(
-        "compiler error: tried to get nominal value on non-nominal type" panic!,
+        "compiler error: tried to get nominal value on non-nominal type" panic! drop 0 Int->Nominal,
         type-get-value Int->Nominal
     ))
 
@@ -376,28 +379,28 @@ def(meta-alloc!, MetaVar,
     dup MAX_METAS >= if(
         "compiler error: ran out of meta variables, increase MAX_METAS" panic!,
         Int->MetaVar
-        0 over meta-value!
     ))
 
-MAX_METAS 8 * def-static-buffer(META_VALUE)
-def(meta-value&, MetaVar -- Ptr, MetaVar->Int 8 * META_VALUE +)
-def(meta-value@, MetaVar -- Int, meta-value& int@)
-def(meta-value!, Int MetaVar --, meta-value& int!)
-
-def(meta-is-defined, MetaVar -- Bool, meta-value@ 0 =)
+MAX_METAS def-static-buffer(META_DEF)
+def(meta-def-flag@, MetaVar -- Bool, MetaVar->Int META_DEF + u8@ U8->Int)
+def(meta-def-flag!, Bool MetaVar --, dip(Int->U8) MetaVar->Int META_DEF + u8!)
+def(meta-is-defined, MetaVar -- Bool, meta-def-flag@)
 def(meta-is-defined?, MetaVar -- MetaVar Bool, dup meta-is-defined)
 
+MAX_METAS |Type| * def-static-buffer(META_TYPE)
+def(meta-type&, MetaVar -- Ptr, MetaVar->Int |Type| * META_TYPE +)
+def(meta-type!, Type MetaVar --,
+    1 over meta-def-flag!
+    meta-type& type!)
 def(meta-type@, MetaVar -- Type,
     meta-is-defined? not if(
-        "compiler error: called meta-type@ on undefined meta-var" panic!,
-        meta-value@ 1- Int->Type
+        "attempted to access undefined metavar" panic! drop TYPE_ERROR,
+        meta-type& type@
     ))
-def(meta-type!, Type MetaVar --,
-    dip(Type->Int 1+) meta-value!)
 
 def(meta-expand, MetaVar -- Type,
     meta-is-defined? if(
-        dup meta-type@ type-expand tuck meta-type!,
+        dup dip(meta-type@ type-expand dup) meta-type!,
         TMeta
     ))
 

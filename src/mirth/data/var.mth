@@ -8,7 +8,8 @@ nominal(Var, Int)
 
 def(Var->Int, Var -- Int, cast)
 def(Int->Var, Int -- Var, cast)
-def(Var->U32, Var -- U32, Var->Int Int->U32)
+def(Var->U32, Var -- U32,
+    Var->Int Int->U32)
 def(U32->Var, U32 -- Var, U32->Int Int->Var)
 def(VAR_ERROR, Var, 0 Int->Var)
 def(VAR_MAX, Size, 0x10000)
@@ -37,7 +38,8 @@ nominal(VarStatus, U32)
 def(|VarStatus|, Size, 4)
 def(U32->VarStatus, U32 -- VarStatus, cast)
 def(VarStatus->U32, VarStatus -- U32, cast)
-def(Int->VarStatus, Int -- VarStatus, Int->U32 U32->VarStatus)
+def(Int->VarStatus, Int -- VarStatus,
+    Int->U32 U32->VarStatus)
 def(VarStatus->Int, VarStatus -- Int, VarStatus->U32 U32->Int)
 |VarStatus| VAR_MAX * def-static-buffer(VAR_STATUS)
 def(var-status&, Var -- Ptr, Var->Int |VarStatus| * VAR_STATUS +)
@@ -48,7 +50,8 @@ def(var-status?, Var -- Var VarStatus, dup var-status@)
 nominal(VarFlag, U32)
 def(U32->VarFlag, U32 -- VarFlag, cast)
 def(VarFlag->U32, VarFlag -- U32, cast)
-def(Int->VarFlag, Int -- VarFlag, Int->U32 U32->VarFlag)
+def(Int->VarFlag, Int -- VarFlag,
+    Int->U32 U32->VarFlag)
 def(VarFlag->Int, VarFlag -- Int, VarFlag->U32 U32->Int)
 def(var-flag@, Var VarFlag -- Bool, dip(var-status@ VarStatus->Int) VarFlag->Int & if(1, 0))
 def(var-flag?, Var VarFlag -- Var Bool, dip(dup) var-flag@)
@@ -74,7 +77,7 @@ def(var-name@, Var -- Name,
 
     var-has-name? not if(
         var-has-name-token? not if(
-            "compiler error: attempted to get name of variable without name" panic!,
+            "compiler error: attempted to get name of variable without name" panic! drop NAME_ERROR,
             var-name-token? token-name@
             tuck var-name!
         ),
@@ -93,7 +96,7 @@ def(var-name-token!, Token Var --,
     ))
 def(var-name-token@, Var -- Token,
     var-has-name-token? not if(
-        "compiler error: attempted to get name token of variable without name token" panic!,
+        "compiler error: attempted to get name token of variable without name token" panic! drop 0 Int->Token,
         var-name-token& token@
     ))
 def(var-name-token?, Var -- Var Token,
@@ -114,7 +117,7 @@ def(var-type@, Var -- Type,
         drop TYPE_ERROR,
 
     var-has-type? not if(
-        "compiler error: attempted to get type of variable without type" panic!,
+        "compiler error: attempted to get type of variable without type" panic! drop TYPE_ERROR,
 
         var-type& type@
     )))

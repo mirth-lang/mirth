@@ -29,7 +29,8 @@ def(init-arrow!, --,
 nominal(Arrow, Int)
 def(Arrow->Int, Arrow -- Int, cast)
 def(Int->Arrow, Int -- Arrow, cast)
-def(Arrow->U32, Arrow -- U32, Arrow->Int Int->U32)
+def(Arrow->U32, Arrow -- U32,
+    Arrow->Int Int->U32)
 def(U32->Arrow, U32 -- Arrow, U32->Int Int->Arrow)
 def(|Arrow|, Size, 4)
 def(arrow@, Ptr -- Arrow, u32@ U32->Arrow)

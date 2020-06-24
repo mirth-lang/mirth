@@ -8,7 +8,8 @@ import(prelude)
 nominal(Name, Int)
 def(Name->Int, Name -- Int, cast)
 def(Int->Name, Int -- Name, cast)
-def(Name->U32, Name -- U32, Name->Int Int->U32)
+def(Name->U32, Name -- U32,
+    Name->Int Int->U32)
 def(U32->Name, U32 -- Name, U32->Int Int->Name)
 def(|Name|, Size, 8)
 def(name@, Ptr -- Name, @ Int->Name)
@@ -229,7 +230,7 @@ nominal(Prim, Name)
 def(Prim->Name, Prim -- Name, cast)
 def(Name->Prim, Name -- Prim,
     dup Name->Int NUM_PRIMS >= if(
-        "compiler error: Name->Prim called on non-primitive name" panic!,
+        "compiler error: Name->Prim called on non-primitive name" panic! cast,
         cast
     ))
 def(Int->Prim, Int -- Prim, Int->Name Name->Prim)
@@ -411,7 +412,8 @@ def(init-names!, +Names,
 
 nominal(NameValue, Int)
 def(NameValue->Int, NameValue -- Int, cast)
-def(NameValue->Type, NameValue -- Type, NameValue->Int Int->Type)
+def(NameValue->Type, NameValue -- Type,
+    NameValue->Int Int->Type)
 def(NameValue->Word, NameValue -- Word, NameValue->Int Int->Word)
 def(NameValue->Buffer, NameValue -- Buffer, NameValue->Int Int->Buffer)
 def(NameValue->External, NameValue -- External, NameValue->Int Int->External)
