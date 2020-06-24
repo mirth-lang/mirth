@@ -61,7 +61,7 @@ def(ctx-lookup, Name Ctx -- Var,
     ctx-is-empty? if(
         drop2 VAR_ERROR,
 
-        dup ctx-var@ dip(over) = if(
+        dup ctx-var@ var-name@ dip(over) = if(
             ctx-var@ nip,
             ctx-prev@ ctx-lookup
         )

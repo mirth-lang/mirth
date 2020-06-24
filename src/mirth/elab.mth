@@ -160,7 +160,13 @@ def(elab-word-body!, Word -- Arrow +Elab,
 
             dup word-body@ elab-arrow!
 
-            over word-cod@ elab-stack@ type-unify! drop
+            over word-cod@
+
+            elab-token@ token-location location-trace!
+            ": warning: expect codomain = " str-trace!
+            dup type-trace! trace-ln!
+
+            elab-stack@ type-unify! drop
             over word-body-is-checked!
             tuck swap word-arrow!
         ) elab-stack!
@@ -203,7 +209,6 @@ def(elab-stack-push3!, Type Type Type -- +Elab,
 def(elab-token-next!, +Elab,
     elab-token@ token-next elab-token!)
 
-
 def(elab-arrow!, Token -- Arrow +Elab,
     elab-token!
     elab-arrow-step! dup
@@ -214,6 +219,8 @@ def(elab-arrow!, Token -- Arrow +Elab,
     drop)
 
 def(elab-arrow-step!, Arrow +Elab,
+    elab-token@ dip(
+
     arrow-alloc!
     elab-stack@ over arrow-dom!
     elab-token@ over arrow-token!
@@ -235,7 +242,11 @@ def(elab-arrow-step!, Arrow +Elab,
 
             drop "compiler error: unexpected token type" elab-emit-fatal-error!
         )))
-    ))
+    )
+
+    ) elab-token!
+    elab??
+    )
 
 def(elab-arrow-step-name!, Arrow -- Arrow +Elab,
     elab-token@ token-name@
@@ -295,6 +306,10 @@ def(stack-type-concat, Type Type -- Type,
         nip
     ))))
 
+def(elab??, +Elab,
+    elab-token@ token-location location-trace! ": warning: stack = " str-trace!
+    elab-stack@ type-trace! trace-ln!)
+
 def(elab-arrow-step-prim!, Arrow -- Arrow +Elab,
     elab-token@ token-name@ Name->Prim
     dup PRIM_DROP = if( # TODO drop op
@@ -308,7 +323,8 @@ def(elab-arrow-step-prim!, Arrow -- Arrow +Elab,
         dup TYPE_ERROR = if(
             drop,
             type-expand-tensor tensor-type-snd@ elab-stack-push!
-        ),
+        )
+        ,
 
     dup PRIM_DIP = if(
         drop elab-arrow-step-dip!,
