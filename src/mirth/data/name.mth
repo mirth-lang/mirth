@@ -41,7 +41,7 @@ def(name-load!, Name --,
     STR_BUF str-length str-buf-length!)
 
 def(name-quads&, Name -- Ptr,
-    Name->Int NAME_SIZE * NAME_BUF +)
+    Name->Int NAME_SIZE * NAME_BUF ptr+)
 
 # Compare all quads in name to STR_BUF.
 # Note this code assumes NAME_QUADS is 8.
@@ -305,7 +305,9 @@ def(PRIM_I64, Prim, 67 Int->Prim)
 def(PRIM_MODULE, Prim, 68 Int->Prim)
 def(PRIM_IMPORT, Prim, 69 Int->Prim)
 def(PRIM_NOMINAL, Prim, 70 Int->Prim)
-def(NUM_PRIMS, Size, 71)
+def(PRIM_CAST, Prim, 71 Int->Prim)
+def(PRIM_PTR+, Prim, 72 Int->Prim)
+def(NUM_PRIMS, Size, 73)
 
 def(name-is-prim?, Name -- Name Bool, dup Name->Int NUM_PRIMS <)
 
@@ -402,6 +404,8 @@ def(init-names!, +Names,
     PRIM_MODULE "module" def-prim!
     PRIM_IMPORT "import" def-prim!
     PRIM_NOMINAL "nominal" def-prim!
+    PRIM_CAST "prim.unsafe.cast" def-prim!
+    PRIM_PTR+ "prim.unsafe.ptr+" def-prim!
     NUM_PRIMS num-names@ = if(id,
         "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
     )

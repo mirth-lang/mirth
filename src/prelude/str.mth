@@ -1,7 +1,7 @@
 module(prelude/str)
 import(prelude/common)
 
-def(str-tail, Str -- Str, 1 +)
+def(str-tail, Str -- Str, 1 swap ptr+)
 def(str-length, Str -- Int,
     0 swap
     while(dup u8@ U8->Int,

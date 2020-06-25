@@ -474,10 +474,17 @@ def(elab-arrow-step-prim!, Arrow -- Arrow +Elab,
         drop elab-token@ token-args-0
         TYPE_INT elab-stack-push!,
 
+    dup PRIM_CAST = if(
+        drop elab-token@ token-args-0
+        elab-stack-pop! drop meta-alloc! TMeta elab-stack-push!,
+    dup PRIM_PTR+ = if(
+        drop elab-token@ token-args-0
+        elab-stack-pop2! TYPE_INT TYPE_PTR expect2
+        if(TYPE_PTR, TYPE_ERROR) elab-stack-push!,
 
         drop TYPE_ERROR elab-stack!
         "compiler error: unknown prim in elaborator" elab-emit-warning!
-    ))))))))))))))))))))))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))))))))))))))))))))))
 
 def(elab-arrow-step-dip!, Arrow -- Arrow +Elab,
     # TODO add dip op in arrow
@@ -990,8 +997,15 @@ def(typecheck-run-prim!, Token --,
         drop 0 1 tstack-arity-check! token-args-0
         TYPE_INT tstack-push!,
 
+    dup PRIM_CAST = if(
+        drop 1 1 tstack-arity-check! token-args-0
+        tstack-pop! drop TYPE_ERROR tstack-push!,
+    dup PRIM_PTR+ = if(
+        drop 2 1 tstack-arity-check! token-args-0
+        tstack-pop2! TYPE_INT TYPE_PTR expect2 if(TYPE_PTR, TYPE_ERROR) tstack-push!,
+
         drop "Unknown primitive" emit-error!
-    ))))))))))))))))))))))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))))))))))))))))))))))
 
 def(tstack-arity-check!, Token Int Int -- Token +TSTACK,
     dip(dip(tstack-len@))
@@ -1196,23 +1210,7 @@ def(sig-push-outputs!, Token Token -- +TSTACK,
 
 
 # elab type for + primitive
-def(elab+, Type Type -- Type,
-    dip(type-expand) type-expand
-
-    dup TYPE_PTR = if(
-        drop TYPE_INT type-unify!
-        TYPE_INT = if(TYPE_PTR, TYPE_ERROR),
-
-    over TYPE_PTR = if(
-        nip TYPE_INT type-unify!
-        TYPE_INT = if(TYPE_PTR, TYPE_ERROR),
-
-        TYPE_INT type-unify!
-        TYPE_INT = if(
-            TYPE_INT type-unify!,
-            drop TYPE_ERROR
-        )
-    )))
+def(elab+, Type Type -- Type, TYPE_INT type-unify! type-unify!)
 
 # elab type for - primitive
 def(elab-, Type Type -- Type, TYPE_INT type-unify! type-unify!)

@@ -48,19 +48,19 @@ def(arrow-alloc!, Arrow,
     ))
 
 MAX_ARROWS |Token| * def-static-buffer(ARROW_TOKEN)
-def(arrow-token&, Arrow -- Ptr, Arrow->Int |Token| * ARROW_DOM +)
+def(arrow-token&, Arrow -- Ptr, Arrow->Int |Token| * ARROW_DOM ptr+)
 def(arrow-token!, Token Arrow --, arrow-token& token!)
 def(arrow-token@, Arrow -- Token, arrow-token& token@)
 def(arrow-token?, Arrow -- Arrow Token, dup arrow-token@)
 
 MAX_ARROWS |Type| * def-static-buffer(ARROW_DOM)
-def(arrow-dom&, Arrow -- Ptr, Arrow->Int |Type| * ARROW_DOM +)
+def(arrow-dom&, Arrow -- Ptr, Arrow->Int |Type| * ARROW_DOM ptr+)
 def(arrow-dom!, Type Arrow --, arrow-dom& type!)
 def(arrow-dom@, Arrow -- Type, arrow-dom& type@)
 def(arrow-dom?, Arrow -- Arrow Type, dup arrow-dom@)
 
 MAX_ARROWS |Arrow| * def-static-buffer(ARROW_NEXT)
-def(arrow-next&, Arrow -- Ptr, Arrow->Int |Arrow| * ARROW_NEXT +)
+def(arrow-next&, Arrow -- Ptr, Arrow->Int |Arrow| * ARROW_NEXT ptr+)
 def(arrow-next!, Arrow Arrow --, arrow-next& arrow!)
 def(arrow-next@, Arrow -- Arrow, arrow-next& arrow@)
 def(arrow-next?, Arrow -- Arrow Arrow, dup arrow-next@)

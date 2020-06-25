@@ -20,12 +20,12 @@ def(MAX_CTX, Size, 0x4000)
 quad def-static-buffer(NUM_CTX)
 
 MAX_CTX |Ctx| * def-static-buffer(CTX_PREV)
-def(ctx-prev&, Ctx -- Ptr, Ctx->Int |Ctx| * CTX_PREV +)
+def(ctx-prev&, Ctx -- Ptr, Ctx->Int |Ctx| * CTX_PREV ptr+)
 def(ctx-prev@, Ctx -- Ctx, ctx-prev& ctx@)
 def(ctx-prev!, Ctx Ctx --, ctx-prev& ctx!)
 
 MAX_CTX |Var| * def-static-buffer(CTX_VAR)
-def(ctx-var&, Ctx -- Ptr, Ctx->Int |Var| * CTX_VAR +)
+def(ctx-var&, Ctx -- Ptr, Ctx->Int |Var| * CTX_VAR ptr+)
 def(ctx-var@, Ctx -- Var, ctx-var& var@)
 def(ctx-var!, Var Ctx --, ctx-var& var!)
 

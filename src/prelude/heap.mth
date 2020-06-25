@@ -45,14 +45,14 @@ def(heap-reserve!, Size -- +Heap,
         drop,
 
         heap-new-size dup # size
-        heap-base@ heap-length@ + swap # pointer hint
+        heap-length@ heap-base@ ptr+ swap # pointer hint
         PROT_READ|PROT_WRITE
         MAP_ANON|MAP_PRIVATE
         -1 # file descriptor (-1 for MAP_ANONYMOUS)
         0 # offset
         posix-mmap!
         dup Ptr->Int if(
-            dup heap-base@ heap-length@ + = if(
+            dup heap-length@ heap-base@ ptr+ = if(
                 drop heap-length@ + heap-length!,
                 dup heap-initial-base! heap-base!
                 dup heap-initial-length! heap-length!
@@ -96,4 +96,4 @@ def(heap-alloc!, Size -- Ptr +Heap,
     64 align
     dup heap-reserve!
     dup heap-length@ swap - heap-length!
-    heap-base@ dup dip(swap) + heap-base!)
+    heap-base@ dup dip(swap) ptr+ heap-base!)
