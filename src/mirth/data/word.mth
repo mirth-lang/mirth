@@ -26,10 +26,11 @@ def(word-alloc!, Word +Words,
         "compiler error: NUM_WORDS > MAX_WORDS" panic!,
         id
     )
-    0 over word-name!
-    0 over word-sig!
-    0 over word-body!
-    0 over word-status!
+    Int->Word
+    0 Int->Name over word-name!
+    0 Int->Token over word-sig!
+    0 Int->Token over word-body!
+    0 Int->WordStatus over word-status!
     ctx-empty over word-ctx!
     TYPE_ERROR over word-type!)
 

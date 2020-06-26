@@ -79,7 +79,7 @@ def(var-name@, Var -- Name,
         var-has-name-token? not if(
             "compiler error: attempted to get name of variable without name" panic! drop NAME_ERROR,
             var-name-token? token-name@
-            tuck var-name!
+            tuck swap var-name!
         ),
         var-name& name@
     )))

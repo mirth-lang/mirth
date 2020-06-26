@@ -1,4 +1,5 @@
 module(mirth/data/arrow)
+import(mirth/data/subst)
 
 def(init-arrow!, --,
     1 NUM_ARROWS !)

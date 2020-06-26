@@ -22,8 +22,9 @@ def(external-alloc!, External +Externals,
         "compiler error: NUM_EXTERNALS > MAX_EXTERNALS" panic!,
         id
     )
-    0 over external-name!
-    0 over external-sig!
+    Int->External
+    0 Int->Name over external-name!
+    0 Int->Token over external-sig!
     TYPE_ERROR over external-type!)
 
 def(EXTERNAL_METADATA_SIZE, Size, 16)

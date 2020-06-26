@@ -280,20 +280,25 @@ def(elab-arrow-step-word!, Arrow -- Arrow +Elab,
 def(elab-arrow-apply-sig-type!, Arrow Type -- Arrow +Elab,
     type-expand-morphism morphism-type-unpack swap
     type-expand
+    dip(SUBST_NIL)
     while(type-is-tensor?,
         type-get-tensor
         tensor-type-unpack
-        type-freshen drop elab-stack-pop! type-unify! drop # incorrect -- make pattern match subst
+        dip(swap) type-freshen drop dip(swap)
+        elab-stack-pop! type-unify! drop
         type-expand
     )
     dup TYPE_ERROR = if(
-        drop2 TYPE_ERROR elab-stack!,
+        dip(drop2) elab-stack!,
 
     dup TYPE_UNIT = if( # save arrow codip depth ?
-        drop type-freshen drop # incorrect -- use pattern match subst
+        drop swap type-freshen drop
+        nip # TODO save arrow subst
         elab-stack@ swap stack-type-concat elab-stack!,
 
-        drop type-freshen drop elab-stack! # incorrect -- use pattern match subst
+        drop swap type-freshen drop
+        nip # TODO save arrow subst
+        elab-stack!
     )))
 
 def(stack-type-concat, Type Type -- Type,

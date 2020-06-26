@@ -338,7 +338,7 @@ def(type-trace-prim!, Type -- +IO,
         "<UNKNOWN PRIMITIVE TYPE " str-trace! Type->Int int-trace! ">" str-trace!
     )))))))))))))
 
-def(type-freshen, Type -- Type Bool,
+def(type-freshen, Subst Type -- Subst Type Bool,
     type-expand
 
     type-is-var? if(
@@ -357,10 +357,13 @@ def(type-freshen, Type -- Type Bool,
         1
     ))))
 
-def(type-var-freshen, Type -- Type Bool,
-    drop # TODO fix this -- same var should get same meta
-    meta-alloc!
-    TMeta
+def(type-var-freshen, Subst Type -- Subst Type Bool,
+    type-get-var
+    swap subst-has-var? if(
+        tuck subst-get-var,
+        meta-alloc! TMeta dup
+        dip(rotr subst-new!)
+    )
     0)
 
 ##################
@@ -467,12 +470,17 @@ def(tensor-type-has-meta, MetaVar TensorType -- Bool,
         type-has-meta
     ))
 
-def(tensor-type-freshen, TensorType -- TensorType Bool,
-    dup tensor-type-unpack
-    dip(type-freshen) type-freshen
-    dip(swap) & if(
-        drop2 1,
-        tensor-type-new! nip 0
+def(tensor-type-freshen, Subst TensorType -- Subst TensorType Bool,
+    dup
+    dip(
+        tensor-type-unpack
+        dip(type-freshen)
+        dip(rotl) type-freshen
+        dip(dip(rotr) swap) &
+    )
+    swap if(
+        dip(drop2) 1,
+        drop tensor-type-new! 0
     ))
 
 # def(tensor-type-subst, Subst TensorType -- Subst TensorType,
@@ -525,12 +533,17 @@ def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
         type-has-meta
     ))
 
-def(morphism-type-freshen, MorphismType -- MorphismType Bool,
-    dup morphism-type-unpack
-    dip(type-freshen) type-freshen
-    dip(swap) & if(
-        drop2 1,
-        morphism-type-new! nip 0
+def(morphism-type-freshen, Subst MorphismType -- Subst MorphismType Bool,
+    dup
+    dip(
+        morphism-type-unpack
+        dip(type-freshen)
+        dip(rotl) type-freshen
+        dip(dip(rotr) swap) &
+    )
+    swap if(
+        dip(drop2) 1,
+        drop morphism-type-new! 0
     ))
 
 ############
@@ -554,12 +567,13 @@ def(nominal-name&, Nominal -- Ptr, Nominal->Int |Name| * NOMINAL_NAME ptr+)
 def(nominal-name@, Nominal -- Name, nominal-name& name@)
 def(nominal-name!, Name Nominal --, nominal-name& name!)
 
-def(nominal-alloc!, Size,
+def(nominal-alloc!, Nominal,
     NUM_NOMINALS @ dup 1+ NUM_NOMINALS !
     dup MAX_NOMINALS >= if(
         "NUM_NOMINALS" panic!,
         id
-    ))
+    )
+    Int->Nominal)
 
 def(nominal-new!, Name Type -- Nominal,
     nominal-alloc!

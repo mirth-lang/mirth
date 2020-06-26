@@ -327,10 +327,11 @@ def(init-names!, +Names,
     ) drop
 
     num-names@ while(dup,
-        1-
+        1- Int->Name
         0 over name-checked!
-        0 over name-sort!
-        0 over name-value!
+        DEF_NONE over name-sort!
+        0 Int->NameValue over name-value!
+        Name->Int
     ) drop
 
     1 num-names!

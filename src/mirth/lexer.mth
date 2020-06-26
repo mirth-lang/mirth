@@ -172,7 +172,7 @@ def(lexer-emit-name!, +Lexer,
     drop
 
     str-buf-is-int? if(
-        str-buf-int? over token-value!
+        str-buf-int? Int->TokenValue over token-value!
         TOKEN_INT swap token-type!,
 
         name-save!
