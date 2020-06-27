@@ -130,6 +130,22 @@ def(elab-type-con!, Token -- Type,
 # Word Elaboration #
 ####################
 
+
+def(elab-external-sig!, External -- Type +Elab,
+    external-sig-is-checked? if(
+        external-type@,
+
+        elab-ctx@ dip(
+        elab-token@ dip(
+            ctx-empty elab-ctx!
+            dup external-sig@ elab-sig!
+            over external-sig-is-checked!
+            over dip(elab-ctx@) external-ctx!
+            dup dip(swap external-type!)
+        ) elab-token!
+        ) elab-ctx!
+    ))
+
 def(elab-word-sig!, Word -- Type +Elab,
     word-sig-is-checked? if(
         word-type@,
@@ -260,7 +276,7 @@ def(elab-arrow-step-name!, Arrow -- Arrow +Elab,
         drop TYPE_PTR elab-stack-push!, # TODO ptr push op in arrow
 
     name-is-external? if(
-        drop TYPE_ERROR elab-stack!, # TODO apply type, external call op
+        drop elab-arrow-step-external!,
 
     name-is-word? if(
         drop elab-arrow-step-word!,
@@ -269,13 +285,23 @@ def(elab-arrow-step-name!, Arrow -- Arrow +Elab,
         drop elab-arrow-step-prim!,
 
         drop
-        "compiler error: unknown name type in elaborator" elab-emit-error!
+        "Unknown word" elab-emit-error!
+        TYPE_ERROR elab-stack!
     )))))
 
 def(elab-arrow-step-word!, Arrow -- Arrow +Elab,
     elab-token@ token-args-0 # high order word not yet supported
     elab-token@ token-name@ name-word@ # TODO save word call in op
     elab-word-sig! elab-arrow-apply-sig-type!)
+
+def(elab-arrow-step-external!, Arrow -- Arrow +Elab,
+    # "external" elab-emit-warning!
+#     TYPE_ERROR elab-stack! # TODO apply type, external call op
+
+    elab-token@ token-args-0
+    elab-token@ token-name@ name-external@
+    elab-external-sig! elab-arrow-apply-sig-type!)
+
 
 def(elab-arrow-apply-sig-type!, Arrow Type -- Arrow +Elab,
     type-expand-morphism morphism-type-unpack swap
