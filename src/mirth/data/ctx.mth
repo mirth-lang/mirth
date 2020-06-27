@@ -20,12 +20,12 @@ def(MAX_CTX, Size, 0x4000)
 quad def-static-buffer(NUM_CTX)
 
 MAX_CTX |Ctx| * def-static-buffer(CTX_PREV)
-def(ctx-prev&, Ctx -- Ptr, Ctx->Int |Ctx| * CTX_PREV +)
+def(ctx-prev&, Ctx -- Ptr, Ctx->Int |Ctx| * CTX_PREV ptr+)
 def(ctx-prev@, Ctx -- Ctx, ctx-prev& ctx@)
 def(ctx-prev!, Ctx Ctx --, ctx-prev& ctx!)
 
 MAX_CTX |Var| * def-static-buffer(CTX_VAR)
-def(ctx-var&, Ctx -- Ptr, Ctx->Int |Var| * CTX_VAR +)
+def(ctx-var&, Ctx -- Ptr, Ctx->Int |Var| * CTX_VAR ptr+)
 def(ctx-var@, Ctx -- Var, ctx-var& var@)
 def(ctx-var!, Var Ctx --, ctx-var& var!)
 
@@ -34,7 +34,7 @@ def(ctx-name@, Ctx -- Name, ctx-var@ var-name@)
 def(ctx-alloc!, Ctx,
     NUM_CTX @ dup 1+ NUM_CTX !
     dup MAX_CTX >= if(
-        "compiler error: ran out of space for contexts, increase MAX_CTX" panic!,
+        "compiler error: ran out of space for contexts, increase MAX_CTX" panic! Int->Ctx,
         1+ Int->Ctx
     ))
 def(ctx-new!, Ctx Var -- Ctx,
@@ -61,7 +61,7 @@ def(ctx-lookup, Name Ctx -- Var,
     ctx-is-empty? if(
         drop2 VAR_ERROR,
 
-        dup ctx-var@ dip(over) = if(
+        dup ctx-var@ var-name@ dip(over) = if(
             ctx-var@ nip,
             ctx-prev@ ctx-lookup
         )

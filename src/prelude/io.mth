@@ -57,7 +57,7 @@ def(panic!, Str -- +IO,
 
 def(open-file!, Str -- File +IO,
     0 0 posix-open!
-    dup 0 < if("Failed to open file!" panic!, Int->File))
+    dup 0 < if("Failed to open file!" panic! Int->File, Int->File))
 
 def(create-file!, Str -- File +IO,
     O_WRONLY|O_CREAT|O_TRUNC
@@ -66,7 +66,7 @@ def(create-file!, Str -- File +IO,
         # on unix, 666 in octal, i.e. owner can
         # read+write, everyone can read
     posix-open!
-    dup 0 < if("Failed to create file!" panic!, Int->File))
+    dup 0 < if("Failed to create file!" panic! Int->File, Int->File))
 
 def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     RUNNING_OS MACOS = if(

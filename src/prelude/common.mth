@@ -17,7 +17,7 @@ def-type(Bool, Int)
 def-type(Size, Int)
 def-type(Offset, Int)
 
-def(cast, a -- b, id) # TODO make primitive?
+def(cast, a -- b, prim.unsafe.cast)
 def(Int->Ptr, Int -- Ptr, cast)
 def(Ptr->Int, Ptr -- Int, cast)
 
@@ -50,43 +50,45 @@ def(square, Int -- Int, dup *)
 
 def(not, Bool -- Bool, 0 =)
 
+
 def(int@, Ptr -- Int, @)
 def(int!, Int Ptr --, !)
 
+def(ptr+, Int Ptr -- Ptr, prim.unsafe.ptr+)
 def(ptr@, Ptr -- Ptr, @ Int->Ptr)
 def(ptr!, Ptr Ptr --, dip(Ptr->Int) !)
 
 def(u8, Size, 1)
 def(u8s, Size -- Size, id)
-def(u8@@, Offset Ptr -- Byte, + u8@)
-def(u8!!, Byte Offset Ptr --, + u8!)
+def(u8@@, Offset Ptr -- Byte, ptr+ u8@)
+def(u8!!, Byte Offset Ptr --, ptr+ u8!)
 
 def(u16, Size, 2)
 def(u16s, Size -- Size, u16 *)
-def(u16@@, Offset Ptr -- U16, dip(u16s) + u16@)
-def(u16!!, U16 Offset Ptr --, dip(u16s) + u16!)
+def(u16@@, Offset Ptr -- U16, dip(u16s) ptr+ u16@)
+def(u16!!, U16 Offset Ptr --, dip(u16s) ptr+ u16!)
 
 def(u32, Size, 4)
 def(u32s, Size -- Size, u32 *)
-def(u32@@, Offset Ptr -- U32, dip(u32s) + u32@)
-def(u32!!, U32 Offset Ptr --, dip(u32s) + u32!)
+def(u32@@, Offset Ptr -- U32, dip(u32s) ptr+ u32@)
+def(u32!!, U32 Offset Ptr --, dip(u32s) ptr+ u32!)
 
 def(i16, Size, 2)
 def(i16s, Size -- Size, i16 *)
-def(i16@@, Offset Ptr -- I16, dip(i16s) + i16@)
-def(i16!!, I16 Offset Ptr --, dip(i16s) + i16!)
+def(i16@@, Offset Ptr -- I16, dip(i16s) ptr+ i16@)
+def(i16!!, I16 Offset Ptr --, dip(i16s) ptr+ i16!)
 
 def(i32, Size, 4)
 def(i32s, Size -- Size, i32 *)
-def(i32@@, Offset Ptr -- I32, dip(i32s) + i32@)
-def(i32!!, I32 Offset Ptr --, dip(i32s) + i32!)
+def(i32@@, Offset Ptr -- I32, dip(i32s) ptr+ i32@)
+def(i32!!, I32 Offset Ptr --, dip(i32s) ptr+ i32!)
 
 def-type(Long, Int)
 def(u64, Size, 8)
 def(quad, Size, 8)
 def(quads, Size -- Size, quad *)
-def(quad@@, Offset Ptr -- Long, dip(quads) + @)
-def(quad!!, Long Offset Ptr --, dip(quads) + !)
+def(quad@@, Offset Ptr -- Long, dip(quads) ptr+ @)
+def(quad!!, Long Offset Ptr --, dip(quads) ptr+ !)
 
 def(Int->U8, Int -- U8,
     dup U8_MIN U8_MAX in-range if(
@@ -101,6 +103,7 @@ def(Int->U16, Int -- U16,
 def(Int->U32, Int -- U32,
     dup U32_MIN U32_MAX in-range if(
         cast,
+        ??
         "Int->U32 failed: out of bounds" panic! cast
     ))
 def(Int->U64, Int -- U64, cast)

@@ -51,7 +51,7 @@ def(lexer-stack-push!, Token -- +Lexer,
 
 def(lexer-stack-pop!, -- Token +Lexer,
     lexer-stack-empty? if(
-        "lexer stack underflow" panic! 0,
+        "lexer stack underflow" panic! 0 Int->Token,
         lexer-stack-length@ 1-
         dup lexer-stack-length!
         LEXER_STACK_BUF quad@@
@@ -172,7 +172,7 @@ def(lexer-emit-name!, +Lexer,
     drop
 
     str-buf-is-int? if(
-        str-buf-int? over token-value!
+        str-buf-int? Int->TokenValue over token-value!
         TOKEN_INT swap token-type!,
 
         name-save!

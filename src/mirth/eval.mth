@@ -18,12 +18,12 @@ def(vstack-len@, Size +VSTACK, VSTACK_LEN @)
 def(vstack-len!, Size -- +VSTACK, VSTACK_LEN !)
 def(vstack-empty?, Bool +VSTACK, vstack-len@ 0 <=)
 def(vstack-full?, Bool +VSTACK, vstack-len@ VSTACK_SIZE >=)
-def(vstack-i64@, Size -- v +VSTACK, VSTACK_BUF quad@@)
-def(vstack-i64!, v Size -- +VSTACK, VSTACK_BUF quad!!)
+def(vstack-i64@, Size -- v +VSTACK, VSTACK_BUF quad@@ cast)
+def(vstack-i64!, v Size -- +VSTACK, dip(cast) VSTACK_BUF quad!!)
 
 def(vstack-pop!, v1 +VSTACK,
     vstack-empty? if(
-        "stack underflow: attempted to pop on empty vstack" panic! 0,
+        "stack underflow: attempted to pop on empty vstack" panic! 0 cast,
         vstack-len@ 1- vstack-len!
         vstack-len@ vstack-i64@
     ))
@@ -58,7 +58,7 @@ def(vstack-push3!, v1 v2 v3 -- +VSTACK,
 
 def(vstack-top@, I64 +VSTACK,
     vstack-empty? if(
-        "vstack underflow" panic! 0,
+        "vstack underflow" panic! 0 Int->I64,
         vstack-len@ 1- vstack-i64@
     ))
 
@@ -108,7 +108,7 @@ def(token-run-one!, Token -- Token +Mirth,
         0 1 arity-check!
         token-str? vstack-push!,
     token-type? TOKEN_LPAREN = if(
-        token-value@,
+        token-value@ TokenValue->Token,
     token-type? TOKEN_NAME = if(
         dup token-run-name!,
 
@@ -640,9 +640,22 @@ def(token-run-prim!, Token --,
         vstack-pop!
         run-output-c99!,
 
+    dup PRIM_CAST = if(
+        drop
+        1 1 arity-check!
+        token-args-0,
+
+    dup PRIM_PTR+ = if(
+        drop
+        2 1 arity-check!
+        token-args-0
+        vstack-pop2!
+        +
+        vstack-push!,
+
         drop
         "Dont know how to run prim yet." emit-fatal-error!
-    ))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
 # Assert stack arity of a primitive. If the
 # arity would result in underflow/overflow,
@@ -650,9 +663,9 @@ def(token-run-prim!, Token --,
 def(arity-check!, Token Size Size -- Token,
     dip(dip(vstack-len@))
     dip(dup2 <) swap if(
-        drop drop2 "Stack underflow." emit-fatal-error! 0,
+        drop drop2 "Stack underflow." emit-fatal-error! 0 Int->Token,
         dip(-) + VSTACK_SIZE > if(
-            "Stack overflow." emit-fatal-error! 0,
+            "Stack overflow." emit-fatal-error! 0 Int->Token,
             id
         )
     ))

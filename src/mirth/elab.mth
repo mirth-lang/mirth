@@ -7,12 +7,17 @@ import(mirth/data/type)
 # Elaborator #
 ##############
 
-quad def-static-buffer(ELAB_TOKEN)
+|Token| def-static-buffer(ELAB_TOKEN)
 def(elab-token@, -- Token +Elab, ELAB_TOKEN token@)
 def(elab-token!, Token -- +Elab, ELAB_TOKEN token!)
 def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
 def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
 def(elab-emit-fatal-error!, Str -- +Elab, dip(elab-token@) emit-fatal-error!)
+
+
+|Type| def-static-buffer(ELAB_STACK)
+def(elab-stack@, -- Type +Elab, ELAB_STACK type@)
+def(elab-stack!, Type -- +Elab, ELAB_STACK type!)
 
 |Ctx| def-static-buffer(ELAB_CTX)
 def(elab-ctx@, -- Ctx +Elab, ELAB_CTX ctx@)
@@ -25,19 +30,19 @@ def(elab-ctx!, Ctx -- +Elab, ELAB_CTX ctx!)
 # Elaborate a type signature into a morphism type.
 def(elab-sig!, Token -- Type +Elab,
     sig-has-dashes? if(
-        dup elab-stack!
-        swap sig-skip-dashes elab-stack!
+        dup elab-stack-type!
+        swap sig-skip-dashes elab-stack-type!
         morphism-type-new!
         TMorphism,
 
         dip(TYPE_UNIT)
-        elab-stack!
+        elab-stack-type!
         morphism-type-new!
         TMorphism
     ))
 
 # Elaborate a stack signature into a stack type.
-def(elab-stack!, Token -- Type +Elab,
+def(elab-stack-type!, Token -- Type +Elab,
     sig-token-is-stack-var? if(
         dup token-next
         dip(elab-implicit-stack-var! TVar),
@@ -112,8 +117,8 @@ def(elab-type-con!, Token -- Type,
                 name-type@,
 
             name-undefined? if(
-                "Unknown type." elab-emit-error!,
-                "Not a type." elab-emit-error!
+                "Unknown type." elab-emit-error! drop TYPE_ERROR,
+                "Not a type." elab-emit-error! drop TYPE_ERROR
             ))
         ),
 
@@ -124,6 +129,22 @@ def(elab-type-con!, Token -- Type,
 ####################
 # Word Elaboration #
 ####################
+
+
+def(elab-external-sig!, External -- Type +Elab,
+    external-sig-is-checked? if(
+        external-type@,
+
+        elab-ctx@ dip(
+        elab-token@ dip(
+            ctx-empty elab-ctx!
+            dup external-sig@ elab-sig!
+            over external-sig-is-checked!
+            over dip(elab-ctx@) external-ctx!
+            dup dip(swap external-type!)
+        ) elab-token!
+        ) elab-ctx!
+    ))
 
 def(elab-word-sig!, Word -- Type +Elab,
     word-sig-is-checked? if(
@@ -140,21 +161,393 @@ def(elab-word-sig!, Word -- Type +Elab,
         ) elab-ctx!
     ))
 
-# def(elab-word-body!, Word -- Morphism +Elab,
-#     word-body-is-checked? if(
-#         word-morphism@,
-#         drop MORPHISM_ERROR # TODO
-#     ))
 
-    # ctx-empty elab-ctx!
-    # name-sig? elab-sig! over name-type!
-    # over name-load! str-buf-trace!
-    # elab-ctx@ ctx-is-empty? if(
-    #     drop,
-    #     " (" str-trace! ctx-trace! ")" str-trace!
-    # )
-    # " : " str-trace!
-    # type-trace-sig! trace-ln!
+def(elab-word-body!, Word -- Arrow +Elab,
+    word-body-is-checked? if(
+        word-arrow@,
+        dup elab-word-sig! drop
+
+        elab-ctx@ dip(
+        elab-token@ dip(
+        elab-stack@ dip(
+            dup word-ctx@ elab-ctx!
+            dup word-body@ elab-token!
+            dup word-dom@ elab-stack!
+
+            dup word-body@
+
+            # dup token-location Col->Int 1- Int->Col location-trace!
+            # ": warning: domain = " str-trace!
+            # elab-stack@ type-trace! trace-ln!
+
+            elab-arrow!
+
+            over word-cod@
+
+            # elab-token@ token-location location-trace!
+            # ": warning: codomain = " str-trace!
+            # dup type-trace! trace-ln!
+
+            elab-stack@ type-unify! drop
+            over word-body-is-checked!
+            tuck swap word-arrow!
+        ) elab-stack!
+        ) elab-token!
+        ) elab-ctx!
+    ))
+
+def(elab-stack-pop!, Type +Elab,
+    elab-stack@
+    type-expand
+    dup TYPE_ERROR = if(
+        dup,
+
+    type-is-meta? if(
+        type-expand-tensor tensor-type-unpack,
+
+    type-is-tensor? if(
+        type-get-tensor tensor-type-unpack,
+
+        "(temporary?) stack underflow" elab-emit-warning!
+        drop TYPE_ERROR TYPE_ERROR
+    )))
+    dip(elab-stack!))
+
+def(elab-stack-pop2!, Type Type +Elab,
+    elab-stack-pop! dip(elab-stack-pop!))
+
+def(elab-stack-pop3!, Type Type Type +Elab,
+    elab-stack-pop! dip(elab-stack-pop2!))
+
+def(elab-stack-push!, Type -- +Elab,
+    elab-stack@ swap tensor-type-new! TTensor elab-stack!)
+
+def(elab-stack-push2!, Type Type -- +Elab,
+    dip(elab-stack-push!) elab-stack-push!)
+
+def(elab-stack-push3!, Type Type Type -- +Elab,
+    dip(elab-stack-push2!) elab-stack-push!)
+
+def(elab-token-next!, +Elab,
+    elab-token@ token-next elab-token!)
+
+def(elab-arrow!, Token -- Arrow +Elab,
+    elab-token!
+    elab-arrow-step! dup
+    while(elab-token@ token-is-arg-end? nip not,
+        elab-token-next!
+        elab-arrow-step!
+        dup dip(swap arrow-next!))
+    drop)
+
+def(elab-arrow-step!, Arrow +Elab,
+    elab-token@ dip(
+
+    arrow-alloc!
+    elab-stack@ over arrow-dom!
+    elab-token@ over arrow-token!
+
+    elab-token@
+    token-is-arg-end? if(
+        drop,
+
+        token-type@
+        dup TOKEN_INT = if(
+            drop TYPE_INT elab-stack-push!, # TODO int push op in arrow
+
+        dup TOKEN_STR = if(
+            drop TYPE_PTR elab-stack-push!, # TODO str push op in arrow
+
+        dup TOKEN_NAME = if(
+            drop
+            elab-arrow-step-name!,
+
+            drop "compiler error: unexpected token type" elab-emit-fatal-error!
+        )))
+    )
+
+    ) elab-token!
+    # elab??
+    )
+
+def(elab-arrow-step-name!, Arrow -- Arrow +Elab,
+    elab-token@ token-name@
+    name-is-buffer? if(
+        drop TYPE_PTR elab-stack-push!, # TODO ptr push op in arrow
+
+    name-is-external? if(
+        drop elab-arrow-step-external!,
+
+    name-is-word? if(
+        drop elab-arrow-step-word!,
+
+    name-is-prim? if(
+        drop elab-arrow-step-prim!,
+
+        drop
+        "Unknown word" elab-emit-error!
+        TYPE_ERROR elab-stack!
+    )))))
+
+def(elab-arrow-step-word!, Arrow -- Arrow +Elab,
+    elab-token@ token-args-0 # high order word not yet supported
+    elab-token@ token-name@ name-word@ # TODO save word call in op
+    elab-word-sig! elab-arrow-apply-sig-type!)
+
+def(elab-arrow-step-external!, Arrow -- Arrow +Elab,
+    # "external" elab-emit-warning!
+#     TYPE_ERROR elab-stack! # TODO apply type, external call op
+
+    elab-token@ token-args-0
+    elab-token@ token-name@ name-external@
+    elab-external-sig! elab-arrow-apply-sig-type!)
+
+
+def(elab-arrow-apply-sig-type!, Arrow Type -- Arrow +Elab,
+    type-expand-morphism morphism-type-unpack swap
+    type-expand
+    dip(SUBST_NIL)
+    while(type-is-tensor?,
+        type-get-tensor
+        tensor-type-unpack
+        dip(swap) type-freshen drop dip(swap)
+        elab-stack-pop! type-unify! drop
+        type-expand
+    )
+    dup TYPE_ERROR = if(
+        dip(drop2) elab-stack!,
+
+    dup TYPE_UNIT = if( # save arrow codip depth ?
+        drop swap type-freshen drop
+        nip # TODO save arrow subst
+        elab-stack@ swap stack-type-concat elab-stack!,
+
+        drop swap type-freshen drop
+        nip # TODO save arrow subst
+        elab-stack!
+    )))
+
+def(stack-type-concat, Type Type -- Type,
+    type-expand
+    dup TYPE_ERROR = if(
+        drop2 TYPE_ERROR,
+
+    dup TYPE_UNIT = if(
+        drop,
+
+    type-is-tensor? if(
+        type-get-tensor tensor-type-unpack dip(stack-type-concat)
+        tensor-type-new! TTensor,
+
+        "compiler error: expected stack type in stack-type-concat" elab-emit-fatal-error!
+        nip
+    ))))
+
+def(elab??, +Elab,
+    elab-token@ token-location location-trace! ": warning: stack = " str-trace!
+    elab-stack@ type-trace! trace-ln!)
+
+def(elab-arrow-step-prim!, Arrow -- Arrow +Elab,
+    elab-token@ token-name@ Name->Prim
+
+    dup PRIM_ID = if( # TODO id op
+        drop elab-token@ token-args-0,
+    dup PRIM_DROP = if( # TODO drop op
+        drop elab-token@ token-args-0
+        elab-stack-pop! drop,
+    dup PRIM_SWAP = if( # TODO swap op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! swap elab-stack-push2!,
+    dup PRIM_DUP = if( # TODO dup op
+        drop elab-token@ token-args-0
+        elab-stack@
+        dup TYPE_ERROR = if(
+            drop,
+            type-expand-tensor tensor-type-snd@ elab-stack-push!
+        ),
+    dup PRIM_DIP = if(
+        drop elab-arrow-step-dip!,
+    dup PRIM_IF = if(
+        drop elab-arrow-step-if!,
+    dup PRIM_WHILE = if(
+        drop elab-arrow-step-while!,
+
+    dup PRIM_INT_ADD = if( # TODO + op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab+ elab-stack-push!,
+    dup PRIM_INT_SUB = if( # TODO - op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab- elab-stack-push!,
+    dup PRIM_INT_MUL = if( # TODO * op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab* elab-stack-push!,
+    dup PRIM_INT_DIV = if( # TODO / op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab/ elab-stack-push!,
+    dup PRIM_INT_MOD = if( # TODO % op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab% elab-stack-push!,
+    dup PRIM_INT_EQ = if( # TODO = op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab= elab-stack-push!,
+    dup PRIM_INT_LT = if( # TODO < op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab= elab-stack-push!,
+    dup PRIM_INT_LE = if( # TODO <= op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab= elab-stack-push!,
+    dup PRIM_INT_AND = if( # TODO op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab& elab-stack-push!,
+    dup PRIM_INT_OR = if( # TODO op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab& elab-stack-push!,
+    dup PRIM_INT_XOR = if( # TODO op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab& elab-stack-push!,
+    dup PRIM_INT_SHL = if( # TODO op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab& elab-stack-push!,
+    dup PRIM_INT_SHR = if( # TODO op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab& elab-stack-push!,
+
+    dup PRIM_MEM_GET = if( # TODO @ op
+        drop elab-token@ token-args-0
+        elab-stack-pop! elab@ elab-stack-push!,
+    dup PRIM_MEM_GET_BYTE = if( # TODO @ op
+        drop elab-token@ token-args-0
+        elab-stack-pop! elab@ elab-stack-push!,
+    dup PRIM_MEM_SET = if( # TODO @ op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab!,
+    dup PRIM_MEM_SET_BYTE = if( # TODO @ op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab!,
+
+    dup PRIM_MEM_GET_U8 = if( # TODO @ op
+        drop elab-token@ token-args-0
+        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_U8 elab-stack-push!,
+    dup PRIM_MEM_GET_U16 = if( # TODO @ op
+        drop elab-token@ token-args-0
+        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_U16 elab-stack-push!,
+    dup PRIM_MEM_GET_U32 = if( # TODO @ op
+        drop elab-token@ token-args-0
+        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_U32 elab-stack-push!,
+    dup PRIM_MEM_GET_U64 = if( # TODO @ op
+        drop elab-token@ token-args-0
+        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_U64 elab-stack-push!,
+    dup PRIM_MEM_GET_I8 = if( # TODO @ op
+        drop elab-token@ token-args-0
+        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_I8 elab-stack-push!,
+    dup PRIM_MEM_GET_I16 = if( # TODO @ op
+        drop elab-token@ token-args-0
+        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_I16 elab-stack-push!,
+    dup PRIM_MEM_GET_I32 = if( # TODO @ op
+        drop elab-token@ token-args-0
+        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_I32 elab-stack-push!,
+    dup PRIM_MEM_GET_I64 = if( # TODO @ op
+        drop elab-token@ token-args-0
+        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_I64 elab-stack-push!,
+
+    dup PRIM_MEM_SET_U8 = if( # TODO ! op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_U8 type-unify! drop,
+    dup PRIM_MEM_SET_U16 = if( # TODO ! op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_U16 type-unify! drop,
+    dup PRIM_MEM_SET_U32 = if( # TODO ! op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_U32 type-unify! drop,
+    dup PRIM_MEM_SET_U64 = if( # TODO ! op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_U64 type-unify! drop,
+    dup PRIM_MEM_SET_I8 = if( # TODO ! op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_I8 type-unify! drop,
+    dup PRIM_MEM_SET_I16 = if( # TODO ! op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_I16 type-unify! drop,
+    dup PRIM_MEM_SET_I32 = if( # TODO ! op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_I32 type-unify! drop,
+    dup PRIM_MEM_SET_I64 = if( # TODO ! op
+        drop elab-token@ token-args-0
+        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_I64 type-unify! drop,
+
+    dup PRIM_POSIX_EXIT = if(
+        drop elab-token@ token-args-0
+        elab-stack-pop! TYPE_INT type-unify! drop
+        meta-alloc! TMeta elab-stack!,
+    dup PRIM_POSIX_READ = if(
+        drop elab-token@ token-args-0
+        elab-stack-pop3! elab-posix-read elab-stack-push!,
+    dup PRIM_POSIX_WRITE = if(
+        drop elab-token@ token-args-0
+        elab-stack-pop3! elab-posix-write,
+    dup PRIM_POSIX_OPEN = if(
+        drop elab-token@ token-args-0
+        elab-stack-pop3! elab-posix-open elab-stack-push!,
+    dup PRIM_POSIX_CLOSE = if(
+        drop elab-token@ token-args-0
+        elab-stack-pop! elab-posix-close elab-stack-push!,
+    dup PRIM_POSIX_MMAP = if(
+        drop elab-token@ token-args-0
+        elab-stack-pop3! dip(dip(dip(elab-stack-pop3!)))
+        elab-posix-mmap elab-stack-push!, # not always a pointer...
+
+    dup PRIM_DEBUG = if(
+        drop elab-token@ token-args-0,
+    dup PRIM_MIRTH_REVISION = if(
+        drop elab-token@ token-args-0
+        TYPE_INT elab-stack-push!,
+    dup PRIM_RUNNING_OS = if(
+        drop elab-token@ token-args-0
+        TYPE_INT elab-stack-push!,
+
+    dup PRIM_CAST = if(
+        drop elab-token@ token-args-0
+        elab-stack-pop! drop meta-alloc! TMeta elab-stack-push!,
+    dup PRIM_PTR+ = if(
+        drop elab-token@ token-args-0
+        elab-stack-pop2! TYPE_INT TYPE_PTR expect2
+        if(TYPE_PTR, TYPE_ERROR) elab-stack-push!,
+
+        drop TYPE_ERROR elab-stack!
+        "compiler error: unknown prim in elaborator" elab-emit-warning!
+    ))))))))))))))))))))))))))))))))))))))))))))))))))))
+
+def(elab-arrow-step-dip!, Arrow -- Arrow +Elab,
+    # TODO add dip op in arrow
+    elab-stack-pop! elab-token@
+    dup token-args-1
+    elab-arrow! drop # TODO don't drop, add operand in arrow
+    elab-token!
+    elab-stack-push!)
+
+def(elab-arrow-step-if!, Arrow -- Arrow +Elab,
+    # TODO add if op in arrow
+    elab-stack-pop! TYPE_INT type-unify! drop # use TYPE_BOOL
+    elab-token@ elab-stack@
+    over token-args-2
+    dip(elab-arrow! drop) # TODO dont drop, add operand in arrow
+    dip(elab-stack@ swap elab-stack!)
+    elab-arrow! drop # TODO dont drop, add operand in arrow
+    dip(elab-token!)
+    elab-stack@ type-unify! elab-stack!)
+
+def(elab-arrow-step-while!, Arrow -- Arrow +Elab,
+    # TODO add while op in arrow
+    elab-token@ elab-stack@
+    over token-args-2
+    dip(
+        elab-arrow! drop # TODO dont drop, add operand in arrow
+        elab-stack-pop! TYPE_INT type-unify! drop # use TYPE_BOOL instead
+        elab-stack@ type-unify! dup elab-stack!
+    )
+    elab-arrow! drop # TODO dont drop, add operand in arrow
+    elab-stack@ type-unify! elab-stack!
+    elab-token!)
 
 #################
 # Type Checking #
@@ -164,110 +557,6 @@ MAX_NAMES def-static-buffer(DEF_CHECKED)
 def(name-checked!, Bool Name --, dip(Int->U8) Name->Int DEF_CHECKED u8!!)
 def(name-checked@, Name -- Bool, Name->Int DEF_CHECKED u8@@ U8->Int)
 def(name-checked?, Name -- Name Bool, dup name-checked@)
-
-def(TSTACK_SIZE, Size, VSTACK_SIZE)
-quad def-static-buffer(TSTACK_LEN)
-quad def-static-buffer(TSTACK_BASE)
-TSTACK_SIZE quads def-static-buffer(TSTACK_BUF)
-
-def(tstack-len!, Size --, TSTACK_LEN !)
-def(tstack-len@, Size, TSTACK_LEN @)
-
-def(tstack-base!, Size --, TSTACK_BASE !)
-def(tstack-base@, Size, TSTACK_BASE @)
-
-def(tstack-length?, Size +TSTACK, tstack-len@ tstack-base@ -)
-def(tstack-empty?, Bool, tstack-len@ tstack-base@ <=)
-def(tstack-full?, Bool, tstack-len@ TSTACK_SIZE >=)
-def(tstack-clear!, +TSTACK, tstack-base@ tstack-len!)
-
-def(tstack!, Int Offset --, TSTACK_BUF quad!!)
-def(tstack@, Offset -- Int, TSTACK_BUF quad@@)
-
-def(tstack-pop-int!, -- Int,
-    tstack-empty? if(
-        "tstack underflow" panic! 0,
-        tstack-len@ 1- dup tstack-len! tstack@
-    ))
-def(tstack-push-int!, Int --,
-    tstack-full? if(
-        "tstack overflow" panic! drop,
-        tstack-len@ dup 1+ tstack-len! tstack!
-    ))
-
-def(tstack-pop!, -- Type, tstack-pop-int! Int->Type)
-def(tstack-push!, Type --, Type->Int tstack-push-int!)
-
-def(tstack-pop2!, -- Type Type, tstack-pop! dip(tstack-pop!))
-def(tstack-pop3!, -- Type Type Type, tstack-pop! dip(tstack-pop2!))
-def(tstack-push2!, Type Type --, dip(tstack-push!) tstack-push!)
-
-def(tstack-enter!, --,
-    tstack-base@ tstack-push-int!
-    tstack-len@ tstack-base!
-    )
-
-def(tstack-leave!, --,
-    tstack-base@ 0 <= if(
-        "Compiler error: Attempt to leave empty tstack frame." panic!,
-        tstack-base@
-        1- dup tstack-len!
-        tstack@ tstack-base!
-    ))
-
-# Create a copy of the current tstack frame as a new tstack frame.
-def(tstack-frame-dup!, -- +TSTACK,
-    tstack-len@ tstack-base@
-    tstack-enter!
-    while(dup2 >,
-        dup tstack@ tstack-push-int!
-        1+)
-    drop2)
-
-quad def-static-buffer(TSTACK_NUM_STASHES)
-def(tstack-num-stashes@, Size +TSTACK, TSTACK_NUM_STASHES @)
-def(tstack-num-stashes!, Size -- +TSTACK, TSTACK_NUM_STASHES !)
-
-nominal(Stash, Int)
-def(Stash->Int, Stash -- Int, cast)
-def(Int->Stash, Int -- Stash, cast)
-
-TSTACK_SIZE quads def-static-buffer(TSTACK_STASH_LEN)
-def(tstack-stash-len@, Stash -- Size +TSTACK, Stash->Int TSTACK_STASH_LEN quad@@)
-def(tstack-stash-len!, Size Stash -- +TSTACK, Stash->Int TSTACK_STASH_LEN quad!!)
-
-def(tstack-stash-len-push!, Size -- +TSTACK,
-    tstack-num-stashes@ TSTACK_SIZE < if(
-        tstack-num-stashes@ Int->Stash tstack-stash-len!
-        tstack-num-stashes@ 1+ tstack-num-stashes!,
-        "compiler error: tstack stash overflow" panic! drop
-    ))
-
-def(tstack-stash-len-pop!, Size +TSTACK,
-    tstack-num-stashes@ 0 > if(
-        tstack-num-stashes@ 1- tstack-num-stashes!
-        tstack-num-stashes@ Int->Stash tstack-stash-len@,
-        "compiler error: tstack stash underflow" panic! 0
-    ))
-
-# Stash the top tstack frame.
-def(tstack-frame-stash!, -- +TSTACK,
-    tstack-length? tstack-stash-len-push!
-    tstack-leave!) # FIXME: actually save the values
-
-# Pop the stashed tstack frame & unify it with the top tstack frame.
-def(tstack-frame-unify!, Token -- Token +TSTACK,
-    tstack-length? tstack-stash-len-pop!
-    dup2 = if(
-        drop2,
-        dip(dip(dup token-location location-trace! ": " str-trace!))
-        "error: Failed to unify branches. First branch has " str-trace!
-        int-trace!
-        " outputs, second branch has " str-trace!
-        int-trace!
-        " outputs." str-trace-ln!
-        1 posix-exit!
-    ))
 
 def(typecheck-token!, Token --,
     token-type? TOKEN_NAME = if(
@@ -302,7 +591,7 @@ def(typecheck-name!, Name --,
             typecheck-word!,
 
         name-is-buffer? if(
-            typecheck-buffer!,
+            drop,
 
         name-is-external? if(
             drop, # TODO: check the signature
@@ -318,336 +607,10 @@ def(typecheck-name!, Name --,
     ))
 
 def(typecheck-word!, Name --,
-    dup name-word@ elab-word-sig! drop
-    name-sig? typecheck-word-sig!
+    name-word@ dup
+    elab-word-sig! drop
+    elab-word-body! drop)
 
-#    dup name-load! str-buf-trace! " : " str-trace!
-#    dup name-word@ elab-word-type! type-trace-sig! trace-ln!
-
-    # ctx-empty elab-ctx!
-    # name-sig? elab-sig! over name-type!
-    # over name-load! str-buf-trace!
-    # elab-ctx@ ctx-is-empty? if(
-    #     drop,
-    #     " (" str-trace! ctx-trace! ")" str-trace!
-    # )
-    # " : " str-trace!
-    # type-trace-sig! trace-ln!
-
-    tstack-enter!
-    name-sig? sig-push-inputs!
-    dup name-word@ word-body@ typecheck-run!
-    name-sig? sig-match-outputs!
-    # FIXME: sig-effects
-    tstack-leave!
-    drop)
-
-def(typecheck-word-sig!, Token --,
-
-    sig-has-dashes? if(
-        typecheck-sig-inputs! token-succ
-        typecheck-sig-outputs!,
-        typecheck-sig-outputs!
-    ))
-
-def(typecheck-sig-inputs!, Token -- Token,
-    while(token-is-dashes? not,
-        dup typecheck-sig-input-token!
-        token-succ))
-
-def(typecheck-sig-outputs!, Token --,
-    while(token-is-arg-end? not,
-        dup typecheck-sig-output-token!
-        token-succ)
-    drop)
-
-def(typecheck-sig-input-token!, Token --,
-    sig-token-is-type-con? if(
-        token-name? name-is-type? nip if(
-            drop,
-            "Unknown type" emit-error!
-        ),
-
-    sig-token-is-type-var? if(
-        drop, # TODO: register variable?
-
-        "Unexpected token in type sig" emit-error!
-    )))
-
-def(typecheck-sig-output-token!, Token --,
-    sig-token-is-type-con? if(
-        token-name? name-is-type? nip if(
-            drop,
-            "Unknown type" emit-error!
-        ),
-
-    sig-token-is-type-var? if(
-        drop, # TODO: register variable?
-
-    sig-token-is-effect-con? if(
-        drop, # TODO: check if effect exists
-
-        "Unexpected token in type sig" emit-error!
-    ))))
-
-
-def(typecheck-buffer!, Name --,
-    drop) # FIXME: check the type
-
-def(typecheck-run!, Token --,
-    while(token-is-arg-end? not,
-        dup typecheck-run-one!
-        token-next)
-    drop)
-
-def(typecheck-run-one!, Token --,
-    dup typecheck-token!
-    dup elab-token!
-
-    token-type? TOKEN_INT = if(
-        0 1 tstack-arity-check!
-        token-args-0
-        TYPE_INT tstack-push!,
-
-    token-type? TOKEN_STR = if(
-        0 1 tstack-arity-check!
-        token-args-0
-        TYPE_PTR tstack-push!,
-
-    token-type? TOKEN_NAME = if(
-        token-name? typecheck-run-name!,
-
-        "Unexpected token type." emit-fatal-error!
-    ))))
-
-def(typecheck-run-name!, Token Name --,
-    name-is-prim? if(
-        drop typecheck-run-prim!,
-
-    name-is-word? if(
-        over token-args-0
-        name-sig@ sig-apply!,
-
-    name-is-external? if(
-        over token-args-0
-        name-sig@ sig-apply!,
-
-    name-is-buffer? if(
-        drop token-args-0
-        TYPE_PTR tstack-push!,
-
-        drop
-        "Don't know how to typecheck token." emit-fatal-error!
-    )))))
-
-def(typecheck-run-prim!, Token --,
-    token-name? Name->Prim
-    dup PRIM_ID = if(
-        drop token-args-0,
-
-    dup PRIM_DUP = if(
-        drop 1 2 tstack-arity-check! token-args-0
-        tstack-pop! dup tstack-push2!,
-
-    dup PRIM_DROP = if(
-        drop 1 0 tstack-arity-check! token-args-0
-        tstack-pop! drop,
-
-    dup PRIM_SWAP = if(
-        drop 2 2 tstack-arity-check! token-args-0
-        tstack-pop2! swap tstack-push2!,
-
-    dup PRIM_DIP = if(
-        drop 1 1 tstack-arity-check! token-args-1
-        tstack-pop! swap typecheck-run! tstack-push!,
-
-    dup PRIM_IF = if(
-        drop 1 0 tstack-arity-check! dup token-args-2
-        tstack-pop! drop # FIXME: check that it's TYPE_BOOL
-        tstack-frame-dup!
-        dip(typecheck-run!)
-        tstack-frame-stash!
-        typecheck-run!
-        tstack-frame-unify!
-        drop,
-
-    dup PRIM_WHILE = if(
-        drop 0 0 tstack-arity-check! dup token-args-2
-        # FIXME: check that tstack top is TYPE_BOOL
-        tstack-frame-dup!
-        tstack-frame-stash!
-        dip(typecheck-run!
-            tstack-pop! drop
-            tstack-frame-unify!)
-        tstack-frame-dup!
-        tstack-frame-stash!
-        typecheck-run!
-        tstack-frame-unify!
-        drop,
-
-    dup PRIM_INT_ADD = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab+ tstack-push!,
-    dup PRIM_INT_SUB = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab- tstack-push!,
-    dup PRIM_INT_MUL = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab* tstack-push!,
-    dup PRIM_INT_DIV = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab/ tstack-push!,
-    dup PRIM_INT_MOD = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab% tstack-push!,
-    dup PRIM_INT_EQ = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab= tstack-push!,
-    dup PRIM_INT_LT = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab= tstack-push!,
-    dup PRIM_INT_LE = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab= tstack-push!,
-    dup PRIM_INT_AND = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab& tstack-push!,
-    dup PRIM_INT_OR = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab& tstack-push!,
-    dup PRIM_INT_XOR = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab& tstack-push!,
-    dup PRIM_INT_SHL = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab& tstack-push!,
-    dup PRIM_INT_SHR = if(
-        drop 2 1 tstack-arity-check! token-args-0
-        tstack-pop2! elab& tstack-push!,
-
-    dup PRIM_MEM_GET = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop! elab@ tstack-push!,
-    dup PRIM_MEM_GET_BYTE = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop! elab@ tstack-push!,
-    dup PRIM_MEM_SET = if(
-        drop 2 0 tstack-arity-check! token-args-0
-        tstack-pop2! elab!,
-    dup PRIM_MEM_SET_BYTE = if(
-        drop 2 0 tstack-arity-check! token-args-0
-        tstack-pop2! elab!,
-
-    dup PRIM_MEM_GET_U8 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop! TYPE_PTR expect1 if(
-            TYPE_U8, TYPE_ERROR
-        ) tstack-push!,
-    dup PRIM_MEM_GET_U16 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop! TYPE_PTR expect1 if(
-            TYPE_U16, TYPE_ERROR
-        ) tstack-push!,
-    dup PRIM_MEM_GET_U32 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop! TYPE_PTR expect1 if(
-            TYPE_U32, TYPE_ERROR
-        ) tstack-push!,
-    dup PRIM_MEM_GET_U64 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop! TYPE_PTR expect1 if(
-            TYPE_U64, TYPE_ERROR
-        ) tstack-push!,
-    dup PRIM_MEM_GET_I8 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop! TYPE_PTR expect1 if(
-            TYPE_I8, TYPE_ERROR
-        ) tstack-push!,
-    dup PRIM_MEM_GET_I16 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop! TYPE_PTR expect1 if(
-            TYPE_I16, TYPE_ERROR
-        ) tstack-push!,
-    dup PRIM_MEM_GET_I32 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop! TYPE_PTR expect1 if(
-            TYPE_I32, TYPE_ERROR
-        ) tstack-push!,
-    dup PRIM_MEM_GET_I64 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop! TYPE_PTR expect1 if(
-            TYPE_I64, TYPE_ERROR
-        ) tstack-push!,
-
-    dup PRIM_MEM_SET_U8 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop2! TYPE_U8 TYPE_PTR expect2 drop,
-    dup PRIM_MEM_SET_U16 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop2! TYPE_U16 TYPE_PTR expect2 drop,
-    dup PRIM_MEM_SET_U32 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop2! TYPE_U32 TYPE_PTR expect2 drop,
-    dup PRIM_MEM_SET_U64 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop2! TYPE_U64 TYPE_PTR expect2 drop,
-    dup PRIM_MEM_SET_I8 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop2! TYPE_I8 TYPE_PTR expect2 drop,
-    dup PRIM_MEM_SET_I16 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop2! TYPE_I16 TYPE_PTR expect2 drop,
-    dup PRIM_MEM_SET_I32 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop2! TYPE_I32 TYPE_PTR expect2 drop,
-    dup PRIM_MEM_SET_I64 = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop2! TYPE_I64 TYPE_PTR expect2 drop,
-
-    dup PRIM_POSIX_EXIT = if(
-        drop 1 0 tstack-arity-check! token-args-0
-        tstack-pop! elab-posix-exit,
-    dup PRIM_POSIX_READ = if(
-        drop 3 1 tstack-arity-check! token-args-0
-        tstack-pop3! elab-posix-read tstack-push!,
-    dup PRIM_POSIX_WRITE = if(
-        drop 3 0 tstack-arity-check! token-args-0
-        tstack-pop3! elab-posix-write,
-    dup PRIM_POSIX_OPEN = if(
-        drop 3 1 tstack-arity-check! token-args-0
-        tstack-pop3! elab-posix-open tstack-push!,
-    dup PRIM_POSIX_CLOSE = if(
-        drop 1 1 tstack-arity-check! token-args-0
-        tstack-pop! elab-posix-close tstack-push!,
-    dup PRIM_POSIX_MMAP = if(
-        drop 6 1 tstack-arity-check! token-args-0
-        tstack-pop3! dip(dip(dip(tstack-pop3!)))
-        elab-posix-mmap tstack-push!, # not always a pointer...
-
-    dup PRIM_DEBUG = if(
-        drop token-args-0,
-    dup PRIM_MIRTH_REVISION = if(
-        drop 0 1 tstack-arity-check! token-args-0
-        TYPE_INT tstack-push!,
-    dup PRIM_RUNNING_OS = if(
-        drop 0 1 tstack-arity-check! token-args-0
-        TYPE_INT tstack-push!,
-
-        drop "Unknown primitive" emit-error!
-    ))))))))))))))))))))))))))))))))))))))))))))))))))
-
-def(tstack-arity-check!, Token Int Int -- Token +TSTACK,
-    dip(dip(tstack-len@))
-    dip(-) over tstack-base@ < if(
-        drop2
-        dup "Stack underflow." emit-error!, # FIXME: upgrade to error
-
-        + TSTACK_SIZE > if(
-            "compiler error: tstack overflow." emit-fatal-error! 0,
-
-            id
-        )
-    ))
 
 #############
 # Type Sigs #
@@ -724,385 +687,38 @@ def(sig-token-is-effect-con?, Token -- Token Bool,
         0
     ))
 
-def(sig-push-inputs!, Token -- +TSTACK,
-    sig-has-dashes? if(
-        while(sig-is-stack-end? not,
-            sig-token-is-type-con? if(
-                token-name? name-is-type? if(
-                    name-type@ tstack-push!,
-                    drop TYPE_ERROR tstack-push!
-                ),
-
-            sig-token-is-type-var? if(
-                TYPE_ERROR # FIXME: push rigid type var and
-                           # register it in context.
-                tstack-push!,
-
-                "Expected type."
-                emit-fatal-error! 0 Int->Token
-            ))
-            token-next
-        ) drop,
-
-        drop
-    ))
-
 def(sig-skip-dashes, Token -- Token,
     sig-has-dashes? if(
         while(token-is-dashes? not, token-next) token-next,
         id
     ))
 
-def(sig-match-outputs!, Token -- +TSTACK,
-    dup sig-arity nip dup
-    tstack-length? = if(
-        drop
-        sig-skip-dashes
-        sig-match-outputs-aux,
-
-        swap token-location location-trace!
-        ": error: Expected " str-trace!
-        int-trace!
-        " outputs, but got " str-trace!
-        tstack-length? int-trace!
-        " outputs." str-trace-ln!
-        1 posix-exit!
-    ))
-
-def(sig-match-outputs-aux, Token -- +TSTACK,
-    token-is-arg-end? if(
-        drop,
-
-        dup token-next sig-match-outputs-aux
-        sig-token-is-type-con? if(
-            dup elab-token!
-            token-name@ name-type@
-            tstack-pop! swap expect1 drop,
-
-        sig-token-is-type-var? if(
-            tstack-pop! drop2, # TODO
-            drop
-        ))
-    ))
-
-def(sig-apply!, Token Token -- +TSTACK,
-    dup2 sig-pop-inputs! sig-push-outputs!)
-
-def(sig-pop-inputs!, Token Token -- +TSTACK,
-    dip(elab-token!)
-    sig-has-dashes? if(
-        sig-pop-inputs-aux!,
-        drop
-    ))
-
-def(sig-pop-inputs-aux!, Token -- +TSTACK,
-    token-is-dashes? if(
-        drop,
-
-        dup token-next
-        sig-pop-inputs-aux!
-        tstack-empty? if(
-            "Stack underflow" elab-emit-fatal-error!
-            drop,
-
-        sig-token-is-type-con? if(
-            token-name@ name-type@
-            tstack-pop! swap expect1 drop,
-
-        sig-token-is-type-var? if(
-            tstack-pop! drop2,
-            # TODO: "define" the type variable
-
-            tstack-pop! drop2
-            # error in type sig, but it's caught elsewhere
-        )))
-    ))
-
-def(sig-push-outputs!, Token Token -- +TSTACK,
-    dip(elab-token!)
-    sig-skip-dashes
-    while(token-is-arg-end? not,
-        sig-token-is-type-con? if(
-            token-name? name-type@ tstack-push!,
-
-        sig-token-is-type-var? if(
-            TYPE_ERROR tstack-push!, # TODO
-
-        sig-token-is-effect-con? if(
-            id, # TODO
-
-            # unknown, but error is caught elsewhere
-            TYPE_ERROR tstack-push!
-        )))
-        token-next)
-    drop)
-
 
 # elab type for + primitive
-def(elab+, Type Type -- Type,
-    dup TYPE_ERROR = if(
-        drop2 TYPE_ERROR,
-
-    dup TYPE_INT = if(
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-        dup TYPE_INT = if(
-            drop TYPE_INT,
-        dup TYPE_PTR = if(
-            drop TYPE_PTR,
-            drop TYPE_ERROR
-            "attempted to add int to unknown type" elab-emit-error!
-        ))),
-
-    dup TYPE_PTR = if(
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-        dup TYPE_INT = if(
-            drop TYPE_PTR,
-        dup TYPE_PTR = if(
-            drop
-            "attempted to add two pointers" elab-emit-error!
-            TYPE_ERROR,
-
-            drop
-            "attempted to add pointer to unknown type" elab-emit-error!
-            TYPE_ERROR
-        ))),
-
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-        dup TYPE_INT = if(
-            drop
-            "attempted to add unkwown type to int" elab-emit-error!
-            TYPE_ERROR,
-        dup TYPE_PTR = if(
-            drop
-            "attempted to add unkwown type to pointer" elab-emit-error!
-            TYPE_ERROR,
-
-            drop
-            "attempted to add two unknown types" elab-emit-error!
-            TYPE_ERROR
-        )))
-    ))))
+def(elab+, Type Type -- Type, TYPE_INT type-unify! type-unify!)
 
 # elab type for - primitive
-def(elab-, Type Type -- Type,
-    dup TYPE_ERROR = if(
-        drop2 TYPE_ERROR,
-
-    dup TYPE_INT = if(
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-
-        dup TYPE_INT = if(
-            drop TYPE_INT,
-        dup TYPE_PTR = if(
-            drop TYPE_PTR,
-            "attempted to subtract int from unknown type" elab-emit-error!
-            drop TYPE_ERROR
-        ))),
-
-    dup TYPE_PTR = if(
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-        dup TYPE_INT = if(
-            "attempted to subtract pointer from int" elab-emit-error!
-            drop TYPE_ERROR,
-        dup TYPE_PTR = if(
-            "subtracting two pointers is dangerous" elab-emit-warning!
-            drop TYPE_INT,
-            "attempted to subtract pointer from unknown type" elab-emit-error!
-            drop TYPE_ERROR
-        ))),
-
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-        dup TYPE_INT = if(
-            "attempted to subtract unknown type from int" elab-emit-error!
-            drop TYPE_ERROR,
-        dup TYPE_PTR = if(
-            "attempted to subtract unknown type from ptr" elab-emit-error!
-            drop TYPE_ERROR,
-            "attempted to subtract two unknown types" elab-emit-error!
-            drop TYPE_ERROR
-        )))
-    ))))
+def(elab-, Type Type -- Type, TYPE_INT type-unify! type-unify!)
 
 # elab for * primitive
-def(elab*, Type Type -- Type,
-    dup TYPE_ERROR = if(
-        drop2 TYPE_ERROR,
-
-    dup TYPE_INT = if(
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-        dup TYPE_INT = if(
-            drop TYPE_INT,
-            "attempted to multiply int with unknown type" elab-emit-error!
-            drop TYPE_ERROR
-        )),
-
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-
-        dup TYPE_INT = if(
-            "attempted to multiply unknown type with int" elab-emit-error!
-            drop TYPE_ERROR,
-
-            "attempted to multiply unknown types" elab-emit-error!
-            drop TYPE_ERROR
-        ))
-    )))
+def(elab*, Type Type -- Type, TYPE_INT type-unify! type-unify!)
 
 # elab for / primitive
-def(elab/, Type Type -- Type,
-    dup TYPE_ERROR = if(
-        drop2 TYPE_ERROR,
-
-    dup TYPE_INT = if(
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-        dup TYPE_INT = if(
-            drop TYPE_INT,
-            "attempted to divide unknown type from int" elab-emit-error!
-            drop TYPE_ERROR
-        )),
-
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-
-        dup TYPE_INT = if(
-            "attempted to divide int from unknown type" elab-emit-error!
-            drop TYPE_ERROR,
-
-            "attempted to divide unknown types" elab-emit-error!
-            drop TYPE_ERROR
-        ))
-    )))
+def(elab/, Type Type -- Type, TYPE_INT type-unify! type-unify!)
 
 # elab type for % primitive
-def(elab%, Type Type -- Type,
-    dup TYPE_ERROR = if(
-        drop2 TYPE_ERROR,
-
-    dup TYPE_INT = if(
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-
-        dup TYPE_INT = if(
-            drop TYPE_INT,
-        dup TYPE_PTR = if(
-            drop TYPE_INT,
-            "attempted to modulo int from unknown type" elab-emit-error!
-            drop TYPE_ERROR
-        ))),
-
-    dup TYPE_PTR = if(
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-        dup TYPE_INT = if(
-            "attempted to modulo pointer from int" elab-emit-error!
-            drop TYPE_ERROR,
-        dup TYPE_PTR = if(
-            "attempted to module two pointers" elab-emit-error!
-            drop TYPE_ERROR,
-            "attempted to modulo pointer from unknown type" elab-emit-error!
-            drop TYPE_ERROR
-        ))),
-
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-        dup TYPE_INT = if(
-            "attempted to modulo unknown type from int" elab-emit-error!
-            drop TYPE_ERROR,
-        dup TYPE_PTR = if(
-            "attempted to modulo unknown type from ptr" elab-emit-error!
-            drop TYPE_ERROR,
-            "attempted to modulo two unknown types" elab-emit-error!
-            drop TYPE_ERROR
-        )))
-    ))))
+def(elab%, Type Type -- Type, TYPE_INT type-unify! type-unify!)
 
 # elab for =, <, <= primitives
-def(elab=, Type Type -- Type,
-    dup TYPE_ERROR = if(
-        drop2 TYPE_ERROR,
-        expect1 drop TYPE_INT
-    ))
+def(elab=, Type Type -- Type, type-unify! drop TYPE_INT) # use TYPE_BOOL
 
 # elab for &, ^, | primitives
-def(elab&, Type Type -- Type,
-    dup TYPE_ERROR = if(
-        drop2 TYPE_ERROR,
-
-    dup TYPE_INT = if(
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-        dup TYPE_INT = if(
-            drop TYPE_INT,
-            "attempted to use bitwise operation between unknown type and int" elab-emit-error!
-            drop TYPE_ERROR
-        )),
-
-        drop
-        dup TYPE_ERROR = if(
-            drop TYPE_ERROR,
-
-        dup TYPE_INT = if(
-            "attempted to use bitwise operation between int and unknown type" elab-emit-error!
-            drop TYPE_ERROR,
-
-            "attempted to use bitwise operation on unknown types" elab-emit-error!
-            drop TYPE_ERROR
-        ))
-    )))
+def(elab&, Type Type -- Type, TYPE_INT type-unify! type-unify!)
 
 # elab for @ primitive
-def(elab@, Type -- Type,
-    dup TYPE_ERROR = if(
-        drop TYPE_ERROR,
+def(elab@, Type -- Type, TYPE_PTR expect1 drop TYPE_INT)
 
-    dup TYPE_PTR = if(
-        drop TYPE_INT,
-
-        "attempted to load from non-pointer" elab-emit-error!
-        drop TYPE_ERROR
-    )))
-
-def(elab!, Type Type --,
-    dup TYPE_ERROR = if(
-        drop2,
-
-    dup TYPE_PTR = if(
-        drop
-        dup TYPE_ERROR = if(
-            drop,
-
-        dup TYPE_INT = if(
-            drop,
-
-            "attempted to store unknown type" elab-emit-error!
-            drop
-        )),
-
-        drop2
-        "attempted to store to non-pointer" elab-emit-error!
-    )))
+def(elab!, Type Type --, TYPE_INT TYPE_PTR expect2 drop)
 
 def(elab-posix-exit, Type -- +Elab,
     TYPE_INT expect1 drop) # TODO: set absurd flag
@@ -1131,14 +747,7 @@ def(elab-posix-mmap, Type Type Type Type Type Type -- Type +Elab,
     )) # TODO: improve diagnostics
 
 def(expect1, Type Type -- Bool +Elab,
-    over TYPE_ERROR = if(
-        drop2 0,
-    dup2 = if(
-        drop2 1,
-        drop2 0
-        "type error" elab-emit-error!
-        # TODO: improve diagnostics
-    )))
+    type-unify! TYPE_ERROR = not)
 
 def(expect2, Type Type Type Type -- Bool +Elab,
     dip(swap) expect1 if(expect1, drop2 0)

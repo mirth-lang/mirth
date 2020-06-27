@@ -24,6 +24,8 @@ def(init!, +IO,
     init-strings!
     init-tokens!
     init-types!
+    init-arrow!
+    init-words!
     init-buffers!
     init-heap!)
 

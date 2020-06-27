@@ -35,7 +35,7 @@ def(.b, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
     codegen-length@ dup 1+ codegen-length! codegen-u8!)
 
-def(., Str -- +Codegen, while(dup u8@, dup u8@ .b str-tail) drop)
+def(., Str -- +Codegen, while(dup u8@ U8->Int, dup u8@ .b str-tail) drop)
 
 def(codegen-start!, File -- +Codegen,
     codegen-file! 0 codegen-length!)
@@ -118,7 +118,7 @@ def(c99-emit-strings!, +IO,
     "static const char strings[STRINGS_SIZE] = { " ;
     0
     while(dup strings-size@ <,
-        dup STRINGS_BUF u8@@ dup U8->Int .n "," .
+        dup STRINGS_BUF u8@@ U8->Int dup .n "," .
         if(id, .lf)
         1+
     ) drop
@@ -343,12 +343,14 @@ def(c99-emit-prims!, +IO,
     "    char c[32] = {0};" ;
     "    char* cp;" ;
     "    usize n;" ;
-    "    i64 x;" ;
+    "    i64 x; i64 y;" ;
     "    for (long i = STACK_SIZE-1; i >= (long)sc; i--) {" ;
     "        cp = c+30;" ;
     "        x = (i64)stack[i];" ;
     "        n = 1;" ;
+    "        y = x; if (x < 0) { x = -x; }" ;
     "        do { *cp-- = '0' + (x % 10); x /= 10; n++; } while(x);" ;
+    "        if (y < 0) { *cp-- = '-'; n++; } " ;
     "        *cp = ' ';" ;
     "        write(2, cp, n);" ;
     "    }" ;
@@ -468,6 +470,14 @@ def(c99-emit-prims!, +IO,
     "#else" ;
     "    push(" . UNKNOWN .n ");" ;
     "#endif" ;
+    "}" ;;
+
+    PRIM_CAST .p " { }" ;;
+
+    PRIM_PTR+ .p " {" ;
+    "   u8* x = pop_ptr();" ;
+    "   i64 y = pop();" ;
+    "   push((i64)(x + y));" ;
     "}" ;;
 
     )

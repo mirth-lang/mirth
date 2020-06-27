@@ -207,7 +207,7 @@ def(snake-init!, +Snake,
     SNAKE_WINDOW_H
     SNAKE_WINDOW_FLAGS
     SDL_CreateWindow
-    dup if(
+    dup Ptr->Int if(
         snake-window!,
         SDL_GetError panic! drop
     )
@@ -216,7 +216,7 @@ def(snake-init!, +Snake,
     -1
     SNAKE_RENDERER_FLAGS
     SDL_CreateRenderer
-    dup if(
+    dup Ptr->Int if(
         snake-renderer!,
         SDL_GetError panic! drop
     ))
@@ -294,7 +294,7 @@ def(snake-process-event!, +Snake,
 
     dup SDL_KEYDOWN = if(
         drop
-        SNAKE_EVENT SDL_Event.key.repeat if(
+        SNAKE_EVENT SDL_Event.key.repeat U8->Int if(
             id,
             SNAKE_EVENT SDL_Event.key.keysym.scancode
             dup SDL_SCANCODE_ESCAPE = if(
@@ -375,7 +375,7 @@ def(snake-update!, +Snake,
         snake-apply-direction
         snake-xy!
 
-        snake-xy@ snake-grid@ if(
+        snake-xy@ snake-grid@ U8->Int if(
             1 snake-dead!,
 
             1 Int->U8 snake-xy@ snake-grid!
@@ -408,10 +408,10 @@ def(snake-mouse-xy@, XCoord YCoord +Snake,
 def-external(rand, Int +IO)
 
 def(snake-randomize-mouse!, +IO +Snake,
-    rand SNAKE_W % Int->XCoord SNAKE_MOUSE_X !
-    rand SNAKE_H % Int->YCoord SNAKE_MOUSE_Y !
+    rand SNAKE_W % Int->XCoord SNAKE_MOUSE_X u8!
+    rand SNAKE_H % Int->YCoord SNAKE_MOUSE_Y u8!
 
-    snake-mouse-xy@ snake-grid@ if(
+    snake-mouse-xy@ snake-grid@ U8->Int if(
         snake-randomize-mouse!, # TODO: avoid crashing ...
         id
     ))

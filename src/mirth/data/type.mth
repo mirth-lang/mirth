@@ -29,12 +29,13 @@ nominal(Type, U32) # actually U32
 def(Type->U32, Type -- U32, cast)
 def(U32->Type, U32 -- Type, cast)
 def(Type->Int, Type -- Int, Type->U32 U32->Int)
-def(Int->Type, Int -- Type, Int->U32 U32->Type)
+def(Int->Type, Int -- Type,
+    Int->U32 U32->Type)
 # def(|Type|, Size, 4) # defined in mirth/var
 def(type@, Ptr -- Type, u32@ U32->Type)
 def(type!, Type Ptr --, dip(Type->U32) u32!)
-def(type@@, Int Ptr -- Type, dip(|Type| *) + type@)
-def(type!!, Type Int Ptr --, dip(|Type| *) + type!)
+def(type@@, Int Ptr -- Type, dip(|Type| *) ptr+ type@)
+def(type!!, Type Int Ptr --, dip(|Type| *) ptr+ type!)
 
 def(TYPE_TAG_MASK,     Int, 0xF0000000)
 def(TYPE_VALUE_MASK,   Int, 0x0FFFFFFF)
@@ -45,8 +46,10 @@ def(TYPE_TAG_TENSOR,   Int, 0x30000000)
 def(TYPE_TAG_MORPHISM, Int, 0x40000000)
 def(TYPE_TAG_NOMINAL,  Int, 0x50000000)
 
-def(TPrim, Int -- Type, Int->Type)
-def(TVar, Var -- Type, Var->Int TYPE_TAG_VAR | Int->Type) # dangerous...
+def(TPrim, Int -- Type,
+    Int->Type)
+def(TVar, Var -- Type,
+    Var->Int TYPE_TAG_VAR | Int->Type) # dangerous...
 def(TMeta, MetaVar -- Type,
     MetaVar->Int TYPE_TAG_META | Int->Type)
 def(TTensor, TensorType -- Type,
@@ -72,35 +75,35 @@ def(type-is-nominal?, Type -- Type Bool, dup type-is-nominal)
 
 def(type-is-stack-var, Type -- Bool,
     type-is-var? if(
-        type-get-var name-could-be-stack-var,
+        type-get-var var-name@ name-could-be-stack-var,
         drop 0
     ))
 def(type-is-stack-var?, Type -- Type Bool, dup type-is-stack-var)
 
 def(type-get-value, Type -- Int, Type->Int TYPE_VALUE_MASK &)
-def(type-get-var, Type -- Name,
+def(type-get-var, Type -- Var,
     type-is-var? not if(
-        "compiler error: tried to get var value on non-var type" panic!,
-        type-get-value Int->Name
+        "compiler error: tried to get var value on non-var type" panic! drop 0 Int->Var,
+        type-get-value Int->Var
     ))
 def(type-get-meta, Type -- MetaVar,
     type-is-meta? not if(
-        "compiler error: tried to get meta value on non-meta type" panic!,
+        "compiler error: tried to get meta value on non-meta type" panic! drop 0 Int->MetaVar,
         type-get-value Int->MetaVar
     ))
 def(type-get-tensor, Type -- TensorType,
     type-is-tensor? not if(
-        "compiler error: tried to get tensor value on non-tensor type" panic!,
+        "compiler error: tried to get tensor value on non-tensor type" panic! drop 0 Int->TensorType,
         type-get-value Int->TensorType
     ))
 def(type-get-morphism, Type -- MorphismType,
     type-is-morphism? not if(
-        "compiler error: tried to get morphism value on non-morphism type" panic!,
+        "compiler error: tried to get morphism value on non-morphism type" panic! drop 0 Int->MorphismType,
         type-get-value Int->MorphismType
     ))
 def(type-get-nominal, Type -- Nominal,
     type-is-nominal? not if(
-        "compiler error: tried to get nominal value on non-nominal type" panic!,
+        "compiler error: tried to get nominal value on non-nominal type" panic! drop 0 Int->Nominal,
         type-get-value Int->Nominal
     ))
 
@@ -127,9 +130,44 @@ def(type-expand, Type -- Type,
         id
     ))
 
+# high level version of type-get-tensor that introduces metavars if needed
+def(type-expand-tensor, Type -- TensorType,
+    type-expand
+    type-is-meta? if( # undefined metavar -- introduce a tensor type
+        meta-alloc! TMeta
+        meta-alloc! TMeta
+        tensor-type-new! TTensor
+        swap type-unify!
+        type-get-tensor,
+
+        type-get-tensor
+    ))
+
+# high level version of type-get-morphism that introduces metavars if needed
+def(type-expand-morphism, Type -- MorphismType,
+    type-expand
+    type-is-meta? if( # undefined metavar -- introduce a morphism type
+        meta-alloc! TMeta
+        meta-alloc! TMeta
+        morphism-type-new! TMorphism
+        swap type-unify!
+        type-get-morphism,
+
+        type-get-morphism
+    ))
+
+# Raise a type unification error.
+def(type-unify-failed!, Type Type -- Type +Elab,
+    elab-token@ token-location location-trace!
+    ": error: Failed to unify " str-trace!
+    dip(type-trace!)
+    " with " str-trace!
+    type-trace!
+    trace-ln!
+    TYPE_ERROR)
 
 # Unify two types. Raises an elaboration error if unification is impossible.
-def(type-unify!, Type Type -- Type,
+def(type-unify!, Type Type -- Type +Elab,
     dip(type-expand) type-expand
 
     dup2 = if(
@@ -148,38 +186,35 @@ def(type-unify!, Type Type -- Type,
         type-get-meta meta-unify!,
 
     type-is-prim? if( # other than TYPE_ERROR, primitive types need to be exact matches.
-        "failed to unify types" elab-emit-error! # FIXME: improve error messages
-        drop2 TYPE_ERROR,
+        type-unify-failed!,
 
     type-is-var? if( # type variables need to be exact matches.
-        "failed to unify types" elab-emit-error! # FIXME: improve error messages
-        drop2 TYPE_ERROR,
+        type-unify-failed!,
+
+    type-is-nominal? if( # nominals need to be exact matches (for now)
+        type-unify-failed!,
 
     type-is-tensor? if(
-        type-get-tensor swap
+        swap
         type-is-tensor? if(
             type-get-tensor swap
+            type-get-tensor
             tensor-type-unify! TTensor,
 
-            "failed to unify types" elab-emit-error!  # FIXME: improve error messages
-            drop2 TYPE_ERROR
+            type-unify-failed!
         ),
 
     type-is-morphism? if(
-        type-get-morphism swap
+        swap
         type-is-morphism? if(
             type-get-morphism swap
+            type-get-morphism
             morphism-type-unify! TMorphism,
 
-            "failed to unify types" elab-emit-error! # FIXME: improve error messages
-            drop2 TYPE_ERROR
+            type-unify-failed!
         ),
 
-    type-is-nominal? if( # nominals need to be exact matches (for now)
-        "failed to unify types" elab-emit-error! # FIXME: improve error messages
-        drop2 TYPE_ERROR,
-
-        "type-unify: unknown type" panic! drop
+        type-unify-failed!
     )))))))))))
 
 def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
@@ -251,7 +286,7 @@ def(type-trace!, Type -- +IO,
         type-trace-prim!,
 
     type-is-var? if(
-        type-get-var name-load! str-buf-trace!,
+        type-get-var var-name@ name-load! str-buf-trace!,
 
     type-is-meta? if(
         type-get-meta "?" str-trace! MetaVar->Int int-trace!,
@@ -303,6 +338,34 @@ def(type-trace-prim!, Type -- +IO,
         "<UNKNOWN PRIMITIVE TYPE " str-trace! Type->Int int-trace! ">" str-trace!
     )))))))))))))
 
+def(type-freshen, Subst Type -- Subst Type Bool,
+    type-expand
+
+    type-is-var? if(
+        type-var-freshen,
+
+    type-is-tensor? if(
+        type-get-tensor
+        tensor-type-freshen
+        dip(TTensor),
+
+    type-is-morphism? if(
+        type-get-morphism
+        morphism-type-freshen
+        dip(TMorphism),
+
+        1
+    ))))
+
+def(type-var-freshen, Subst Type -- Subst Type Bool,
+    type-get-var
+    swap subst-has-var? if(
+        tuck subst-get-var,
+        meta-alloc! TMeta dup
+        dip(rotr subst-new!)
+    )
+    0)
+
 ##################
 # Meta-var Types #
 ##################
@@ -317,30 +380,30 @@ quad def-static-buffer(NUM_METAS)
 def(meta-alloc!, MetaVar,
     NUM_METAS @ dup 1+ NUM_METAS !
     dup MAX_METAS >= if(
-        "compiler error: ran out of meta variables, increase MAX_METAS" panic!,
+        "compiler error: ran out of meta variables, increase MAX_METAS" panic! Int->MetaVar,
         Int->MetaVar
-        0 over meta-value!
     ))
 
-MAX_METAS 8 * def-static-buffer(META_VALUE)
-def(meta-value&, MetaVar -- Ptr, MetaVar->Int 8 * META_VALUE +)
-def(meta-value@, MetaVar -- Int, meta-value& int@)
-def(meta-value!, Int MetaVar --, meta-value& int!)
-
-def(meta-is-defined, MetaVar -- Bool, meta-value@ 0 =)
+MAX_METAS def-static-buffer(META_DEF)
+def(meta-def-flag@, MetaVar -- Bool, MetaVar->Int META_DEF ptr+ u8@ U8->Int)
+def(meta-def-flag!, Bool MetaVar --, dip(Int->U8) MetaVar->Int META_DEF ptr+ u8!)
+def(meta-is-defined, MetaVar -- Bool, meta-def-flag@)
 def(meta-is-defined?, MetaVar -- MetaVar Bool, dup meta-is-defined)
 
+MAX_METAS |Type| * def-static-buffer(META_TYPE)
+def(meta-type&, MetaVar -- Ptr, MetaVar->Int |Type| * META_TYPE ptr+)
+def(meta-type!, Type MetaVar --,
+    1 over meta-def-flag!
+    meta-type& type!)
 def(meta-type@, MetaVar -- Type,
     meta-is-defined? not if(
-        "compiler error: called meta-type@ on undefined meta-var" panic!,
-        meta-value@ 1- Int->Type
+        "attempted to access undefined metavar" panic! drop TYPE_ERROR,
+        meta-type& type@
     ))
-def(meta-type!, Type MetaVar --,
-    dip(Type->Int 1+) meta-value!)
 
 def(meta-expand, MetaVar -- Type,
     meta-is-defined? if(
-        dup meta-type@ type-expand tuck meta-type!,
+        dup dip(meta-type@ type-expand dup) meta-type!,
         TMeta
     ))
 
@@ -374,21 +437,21 @@ quad def-static-buffer(NUM_TENSOR_TYPES)
 def(tensor-type-alloc!, TensorType,
     NUM_TENSOR_TYPES @ dup 1+ NUM_TENSOR_TYPES !
     dup MAX_TENSOR_TYPES >= if(
-        "compiler error: too many tensor types -- increase MAX_TENSOR_TYPES" panic!,
+        "compiler error: too many tensor types -- increase MAX_TENSOR_TYPES" panic! Int->TensorType,
         Int->TensorType
     ))
 def(tensor-type-new!, Type Type -- TensorType,
     tensor-type-alloc!
-    dup dip(tensor-type-snd!)
-    dup dip(tensor-type-fst!))
+    tuck tensor-type-snd!
+    tuck tensor-type-fst!)
 
 MAX_TENSOR_TYPES |Type| * def-static-buffer(TENSOR_TYPE_FST)
-def(tensor-type-fst&, TensorType -- Ptr, TensorType->Int |Type| * TENSOR_TYPE_FST +)
+def(tensor-type-fst&, TensorType -- Ptr, TensorType->Int |Type| * TENSOR_TYPE_FST ptr+)
 def(tensor-type-fst@, TensorType -- Type, tensor-type-fst& type@)
 def(tensor-type-fst!, Type TensorType --, tensor-type-fst& type!)
 
 MAX_TENSOR_TYPES |Type| * def-static-buffer(TENSOR_TYPE_SND)
-def(tensor-type-snd&, TensorType -- Ptr, TensorType->Int |Type| * TENSOR_TYPE_SND +)
+def(tensor-type-snd&, TensorType -- Ptr, TensorType->Int |Type| * TENSOR_TYPE_SND ptr+)
 def(tensor-type-snd@, TensorType -- Type, tensor-type-snd& type@)
 def(tensor-type-snd!, Type TensorType --, tensor-type-snd& type!)
 
@@ -405,6 +468,19 @@ def(tensor-type-has-meta, MetaVar TensorType -- Bool,
     dip(over) type-has-meta if(
         drop2 1,
         type-has-meta
+    ))
+
+def(tensor-type-freshen, Subst TensorType -- Subst TensorType Bool,
+    dup
+    dip(
+        tensor-type-unpack
+        dip(type-freshen)
+        dip(rotl) type-freshen
+        dip(dip(rotr) swap) &
+    )
+    swap if(
+        dip(drop2) 1,
+        drop tensor-type-new! 0
     ))
 
 # def(tensor-type-subst, Subst TensorType -- Subst TensorType,
@@ -424,7 +500,7 @@ quad def-static-buffer(NUM_MORPHISM_TYPES)
 def(morphism-type-alloc!, MorphismType,
     NUM_MORPHISM_TYPES @ dup 1+ NUM_MORPHISM_TYPES !
     dup MAX_MORPHISM_TYPES >= if(
-        "compiler error: too many morphism types -- increase MAX_MORPHISM_TYPES" panic!,
+        "compiler error: too many morphism types -- increase MAX_MORPHISM_TYPES" panic! Int->MorphismType,
         Int->MorphismType
     ))
 def(morphism-type-new!, Type Type -- MorphismType,
@@ -433,12 +509,12 @@ def(morphism-type-new!, Type Type -- MorphismType,
     dup dip(morphism-type-dom!))
 
 MAX_MORPHISM_TYPES |Type| * def-static-buffer(MORPHISM_TYPE_DOM)
-def(morphism-type-dom&, MorphismType -- Ptr, MorphismType->Int |Type| * MORPHISM_TYPE_DOM +)
+def(morphism-type-dom&, MorphismType -- Ptr, MorphismType->Int |Type| * MORPHISM_TYPE_DOM ptr+)
 def(morphism-type-dom@, MorphismType -- Type, morphism-type-dom& type@)
 def(morphism-type-dom!, Type MorphismType --, morphism-type-dom& type!)
 
 MAX_MORPHISM_TYPES |Type| * def-static-buffer(MORPHISM_TYPE_COD)
-def(morphism-type-cod&, MorphismType -- Ptr, MorphismType->Int |Type| * MORPHISM_TYPE_COD +)
+def(morphism-type-cod&, MorphismType -- Ptr, MorphismType->Int |Type| * MORPHISM_TYPE_COD ptr+)
 def(morphism-type-cod@, MorphismType -- Type, morphism-type-cod& type@)
 def(morphism-type-cod!, Type MorphismType --, morphism-type-cod& type!)
 
@@ -457,6 +533,19 @@ def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
         type-has-meta
     ))
 
+def(morphism-type-freshen, Subst MorphismType -- Subst MorphismType Bool,
+    dup
+    dip(
+        morphism-type-unpack
+        dip(type-freshen)
+        dip(rotl) type-freshen
+        dip(dip(rotr) swap) &
+    )
+    swap if(
+        dip(drop2) 1,
+        drop morphism-type-new! 0
+    ))
+
 ############
 # Nominals #
 ############
@@ -465,25 +554,26 @@ nominal(Nominal, Int)
 def(Int->Nominal, Int -- Nominal, cast)
 def(Nominal->Int, Nominal -- Int, cast)
 
-def(MAX_NOMINALS, Size, 0x10000)
+def(MAX_NOMINALS, Size, 0x1000)
 quad def-static-buffer(NUM_NOMINALS)
 
 MAX_NOMINALS |Type| * def-static-buffer(NOMINAL_TYPE)
-def(nominal-type&, Nominal -- Ptr, Nominal->Int |Type| * NOMINAL_TYPE +)
+def(nominal-type&, Nominal -- Ptr, Nominal->Int |Type| * NOMINAL_TYPE ptr+)
 def(nominal-type@, Nominal -- Type, nominal-type& type@)
 def(nominal-type!, Type Nominal --, nominal-type& type!)
 
 MAX_NOMINALS |Name| * def-static-buffer(NOMINAL_NAME)
-def(nominal-name&, Nominal -- Ptr, Nominal->Int |Name| * NOMINAL_NAME +)
-def(nominal-name@, Nominal -- Name, nominal-type& name@)
-def(nominal-name!, Name Nominal --, nominal-type& name!)
+def(nominal-name&, Nominal -- Ptr, Nominal->Int |Name| * NOMINAL_NAME ptr+)
+def(nominal-name@, Nominal -- Name, nominal-name& name@)
+def(nominal-name!, Name Nominal --, nominal-name& name!)
 
-def(nominal-alloc!, Size,
+def(nominal-alloc!, Nominal,
     NUM_NOMINALS @ dup 1+ NUM_NOMINALS !
     dup MAX_NOMINALS >= if(
         "NUM_NOMINALS" panic!,
         id
-    ))
+    )
+    Int->Nominal)
 
 def(nominal-new!, Name Type -- Nominal,
     nominal-alloc!

@@ -1,0 +1,67 @@
+module(mirth/data/arrow)
+import(mirth/data/subst)
+
+def(init-arrow!, --,
+    1 NUM_ARROWS !)
+
+##########
+# ARROWS #
+##########
+
+# Each Mirth word is represented by a morphism in some category
+# (or some class of categories). We provide special support for
+# the morphisms of symmetric monoidal category theory, since we
+# want to manipulate multiple pieces of data, like a string diagram,
+# but we do not assume commutativity (i.e. that dip(f) g == g dip(f)),
+# so that we can more easily represent computational effects like IO.
+# As such, we actually provide special support for premonoidal
+# categories, and we're really working with ordered string diagrams.
+
+# The representation, for now, involves building up morphisms as a
+# sequence of atomic morphisms. Atomic morphisms are morphisms that
+# can't be broken down into a composition. These include calling
+# words, primitives, control flow, and literal values. This is a
+# nested intermediate representation, but, to reduce indirection,
+# we represent it as a flat sequence.
+
+# Originally this type was called Morphism but that's hard to spell and
+# to type repeatedly so now they're called Arrow :-)
+
+nominal(Arrow, Int)
+def(Arrow->Int, Arrow -- Int, cast)
+def(Int->Arrow, Int -- Arrow, cast)
+def(Arrow->U32, Arrow -- U32,
+    Arrow->Int Int->U32)
+def(U32->Arrow, U32 -- Arrow, U32->Int Int->Arrow)
+def(|Arrow|, Size, 4)
+def(arrow@, Ptr -- Arrow, u32@ U32->Arrow)
+def(arrow!, Arrow Ptr --, dip(Arrow->U32) u32!)
+
+def(ARROW_NIL, Arrow, 0 Int->Arrow)
+
+def(MAX_ARROWS, Size, 0x20000)
+quad def-static-buffer(NUM_ARROWS)
+def(arrow-alloc!, Arrow,
+    NUM_ARROWS @ dup 1+ dup NUM_ARROWS !
+    MAX_ARROWS >= if(
+        "Compiler error: Ran out of arrows! Increase MAX_ARROWS!" panic! Int->Arrow,
+        Int->Arrow
+    ))
+
+MAX_ARROWS |Token| * def-static-buffer(ARROW_TOKEN)
+def(arrow-token&, Arrow -- Ptr, Arrow->Int |Token| * ARROW_DOM ptr+)
+def(arrow-token!, Token Arrow --, arrow-token& token!)
+def(arrow-token@, Arrow -- Token, arrow-token& token@)
+def(arrow-token?, Arrow -- Arrow Token, dup arrow-token@)
+
+MAX_ARROWS |Type| * def-static-buffer(ARROW_DOM)
+def(arrow-dom&, Arrow -- Ptr, Arrow->Int |Type| * ARROW_DOM ptr+)
+def(arrow-dom!, Type Arrow --, arrow-dom& type!)
+def(arrow-dom@, Arrow -- Type, arrow-dom& type@)
+def(arrow-dom?, Arrow -- Arrow Type, dup arrow-dom@)
+
+MAX_ARROWS |Arrow| * def-static-buffer(ARROW_NEXT)
+def(arrow-next&, Arrow -- Ptr, Arrow->Int |Arrow| * ARROW_NEXT ptr+)
+def(arrow-next!, Arrow Arrow --, arrow-next& arrow!)
+def(arrow-next@, Arrow -- Arrow, arrow-next& arrow@)
+def(arrow-next?, Arrow -- Arrow Arrow, dup arrow-next@)

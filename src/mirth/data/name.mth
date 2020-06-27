@@ -8,7 +8,8 @@ import(prelude)
 nominal(Name, Int)
 def(Name->Int, Name -- Int, cast)
 def(Int->Name, Int -- Name, cast)
-def(Name->U32, Name -- U32, Name->Int Int->U32)
+def(Name->U32, Name -- U32,
+    Name->Int Int->U32)
 def(U32->Name, U32 -- Name, U32->Int Int->Name)
 def(|Name|, Size, 8)
 def(name@, Ptr -- Name, @ Int->Name)
@@ -40,7 +41,7 @@ def(name-load!, Name --,
     STR_BUF str-length str-buf-length!)
 
 def(name-quads&, Name -- Ptr,
-    Name->Int NAME_SIZE * NAME_BUF +)
+    Name->Int NAME_SIZE * NAME_BUF ptr+)
 
 # Compare all quads in name to STR_BUF.
 # Note this code assumes NAME_QUADS is 8.
@@ -59,7 +60,7 @@ def(name-quads-eq, Name -- Bool,
 
 def(hash, Ptr -- Hash,
     0 swap
-    while(dup u8@,
+    while(dup u8@ U8->Int,
         dup dip(u8@ U8->Int 5 * swap 18 * ^)
         str-tail)
     drop
@@ -229,7 +230,7 @@ nominal(Prim, Name)
 def(Prim->Name, Prim -- Name, cast)
 def(Name->Prim, Name -- Prim,
     dup Name->Int NUM_PRIMS >= if(
-        "compiler error: Name->Prim called on non-primitive name" panic!,
+        "compiler error: Name->Prim called on non-primitive name" panic! cast,
         cast
     ))
 def(Int->Prim, Int -- Prim, Int->Name Name->Prim)
@@ -304,7 +305,9 @@ def(PRIM_I64, Prim, 67 Int->Prim)
 def(PRIM_MODULE, Prim, 68 Int->Prim)
 def(PRIM_IMPORT, Prim, 69 Int->Prim)
 def(PRIM_NOMINAL, Prim, 70 Int->Prim)
-def(NUM_PRIMS, Size, 71)
+def(PRIM_CAST, Prim, 71 Int->Prim)
+def(PRIM_PTR+, Prim, 72 Int->Prim)
+def(NUM_PRIMS, Size, 73)
 
 def(name-is-prim?, Name -- Name Bool, dup Name->Int NUM_PRIMS <)
 
@@ -324,10 +327,11 @@ def(init-names!, +Names,
     ) drop
 
     num-names@ while(dup,
-        1-
+        1- Int->Name
         0 over name-checked!
-        0 over name-sort!
-        0 over name-value!
+        DEF_NONE over name-sort!
+        0 Int->NameValue over name-value!
+        Name->Int
     ) drop
 
     1 num-names!
@@ -401,6 +405,8 @@ def(init-names!, +Names,
     PRIM_MODULE "module" def-prim!
     PRIM_IMPORT "import" def-prim!
     PRIM_NOMINAL "nominal" def-prim!
+    PRIM_CAST "prim.unsafe.cast" def-prim!
+    PRIM_PTR+ "prim.unsafe.ptr+" def-prim!
     NUM_PRIMS num-names@ = if(id,
         "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
     )
@@ -411,7 +417,8 @@ def(init-names!, +Names,
 
 nominal(NameValue, Int)
 def(NameValue->Int, NameValue -- Int, cast)
-def(NameValue->Type, NameValue -- Type, NameValue->Int Int->Type)
+def(NameValue->Type, NameValue -- Type,
+    NameValue->Int Int->Type)
 def(NameValue->Word, NameValue -- Word, NameValue->Int Int->Word)
 def(NameValue->Buffer, NameValue -- Buffer, NameValue->Int Int->Buffer)
 def(NameValue->External, NameValue -- External, NameValue->Int Int->External)

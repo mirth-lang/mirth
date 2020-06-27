@@ -153,23 +153,23 @@ def(test@!, --,
     0 TEST_BUF quad@@ 99 !!=
     1 TEST_BUF quad@@ 30 !!=
     0 0 TEST_BUF quad!!
-    0 TEST_BUF u8@@ 0 !!=
-    1 TEST_BUF u8@@ 0 !!=
-    2 TEST_BUF u8@@ 0 !!=
-    3 TEST_BUF u8@@ 0 !!=
+    0 TEST_BUF u8@@ U8->Int 0 !!=
+    1 TEST_BUF u8@@ U8->Int 0 !!=
+    2 TEST_BUF u8@@ U8->Int 0 !!=
+    3 TEST_BUF u8@@ U8->Int 0 !!=
     99 Int->U8 2 TEST_BUF u8!!
-    0 TEST_BUF u8@@ 0 !!=
-    1 TEST_BUF u8@@ 0 !!=
-    2 TEST_BUF u8@@ 99 !!=
-    3 TEST_BUF u8@@ 0 !!=)
+    0 TEST_BUF u8@@ U8->Int 0 !!=
+    1 TEST_BUF u8@@ U8->Int 0 !!=
+    2 TEST_BUF u8@@ U8->Int 99 !!=
+    3 TEST_BUF u8@@ U8->Int 0 !!=)
 
 def(test-str, --,
     "AaBb"
-    dup u8@ 65 !!=
-    dup str-tail u8@ 97 !!=
-    dup str-tail str-tail u8@ 66 !!=
-    dup str-tail str-tail str-tail u8@ 98 !!=
-    dup str-tail str-tail str-tail str-tail u8@ 0 !!=
+    dup u8@ U8->Int 65 !!=
+    dup str-tail u8@ U8->Int 97 !!=
+    dup str-tail str-tail u8@ U8->Int 66 !!=
+    dup str-tail str-tail str-tail u8@ U8->Int 98 !!=
+    dup str-tail str-tail str-tail str-tail u8@ U8->Int 0 !!=
     drop
 
     "" str-length 0 !!=

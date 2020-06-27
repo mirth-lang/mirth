@@ -33,25 +33,25 @@ def(num-modules!, Size --, NUM_MODULES !)
 def(alloc-module!, Module,
     num-modules@ dup 1+ num-modules!
     dup MAX_MODULES >= if(
-        "ran out of space to store module path" panic!,
+        "ran out of space to store module path" panic! Int->Module,
         Int->Module
     ))
 
 def(new-module!, Path -- Module,
     alloc-module! dup dip(module-path!))
 
-def(module-start&, Module -- Ptr, Module->Int |Token| * MODULE_START +)
+def(module-start&, Module -- Ptr, Module->Int |Token| * MODULE_START ptr+)
 def(module-start!, Token Module --, module-start& token!)
 def(module-start@, Module -- Token, module-start& token@)
 def(module-start?, Module -- Module Token, dup module-start@)
 
-def(module-end&, Module -- Ptr, Module->Int |Token| * MODULE_END +)
+def(module-end&, Module -- Ptr, Module->Int |Token| * MODULE_END ptr+)
 def(module-end!, Token Module --, module-end& token!)
 def(module-end@, Module -- Token, module-end& token@)
 def(module-end?, Module -- Module Token, dup module-end@)
 
 def(module-path@, Module -- Path,
-    Module->Int MODULE_PATH_SIZE * MODULE_PATH_BUF + Str->Path)
+    Module->Int MODULE_PATH_SIZE * MODULE_PATH_BUF ptr+ Str->Path)
 def(module-path?, Module -- Module Path, dup module-path@)
 def(module-path!, Path Module --,
     over Path->Str str-length MODULE_PATH_SIZE >= if(
