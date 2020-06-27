@@ -80,7 +80,4 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
 
 def(close-file!, File -- +IO,
     File->Int posix-close!
-    0 < if(
-        "failed to close file" panic!,
-        id
-    ))
+    0 < if("failed to close file" panic!, id))
