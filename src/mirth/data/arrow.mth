@@ -65,3 +65,97 @@ def(arrow-next&, Arrow -- Ptr, Arrow->Int |Arrow| * ARROW_NEXT ptr+)
 def(arrow-next!, Arrow Arrow --, arrow-next& arrow!)
 def(arrow-next@, Arrow -- Arrow, arrow-next& arrow@)
 def(arrow-next?, Arrow -- Arrow Arrow, dup arrow-next@)
+
+nominal(Op, U8)
+def(Op->U8, Op -- U8, cast)
+def(U8->Op, U8 -- Op, cast)
+def(Op->Int, Op -- Int, Op->U8 U8->Int)
+def(Int->Op, Int -- Op, Int->U8 U8->Op)
+def(|Op|, Size, 1)
+def(op@, Ptr -- Op, u8@ U8->Op)
+def(op!, Op Ptr --, dip(Op->U8) u8!)
+def(OP_NONE, Op, 0 Int->Op)
+def(OP_PRIM, Op, 1 Int->Op)
+def(OP_WORD, Op, 2 Int->Op)
+def(OP_EXTERNAL, Op, 3 Int->Op)
+def(OP_BUFFER, Op, 4 Int->Op)
+def(OP_INT, Op, 5 Int->Op)
+def(OP_STR, Op, 6 Int->Op)
+
+MAX_ARROWS |Op| * def-static-buffer(ARROW_OP)
+def(arrow-op&, Arrow -- Ptr, Arrow->Int |Op| * ARROW_OP ptr+)
+def(arrow-op!, Op Arrow --, arrow-op& op!)
+def(arrow-op@, Arrow -- Op, arrow-op& op@)
+def(arrow-op?, Arrow -- Arrow Op, dup arrow-op@)
+
+MAX_ARROWS quads def-static-buffer(ARROW_OP-VALUE)
+def(arrow-op-value&, Arrow -- Ptr, Arrow->Int quads ARROW_OP-VALUE ptr+)
+def(arrow-op-value!, Int Arrow --, arrow-op-value& !)
+def(arrow-op-value@, Arrow -- Int, arrow-op-value& @)
+def(arrow-op-value?, Arrow -- Arrow Int, dup arrow-op-value@)
+
+def(arrow-op-prim!, Prim Arrow --,
+    OP_PRIM over arrow-op!
+    dip(Prim->Int) arrow-op-value!)
+def(arrow-op-prim@, Arrow -- Prim,
+    arrow-op? OP_PRIM = if(
+        arrow-op-value@ Int->Prim,
+        "compiler error: attempted to get prim associated with non-prim arrow" panic! drop 0 Int->Prim
+    ))
+def(arrow-op-prim?, Arrow -- Arrow Prim,
+    dup arrow-op-prim@)
+
+def(arrow-op-word!, Word Arrow --,
+    OP_WORD over arrow-op!
+    dip(Word->Int) arrow-op-value!)
+def(arrow-op-word@, Arrow -- Word,
+    arrow-op? OP_WORD = if(
+        arrow-op-value@ Int->Word,
+        "compiler error: attempted to get word associated with non-word arrow" panic! drop 0 Int->Word
+    ))
+def(arrow-op-word?, Arrow -- Arrow Word,
+    dup arrow-op-word@)
+
+def(arrow-op-external!, External Arrow --,
+    OP_EXTERNAL over arrow-op!
+    dip(External->Int) arrow-op-value!)
+def(arrow-op-external@, Arrow -- External,
+    arrow-op? OP_EXTERNAL = if(
+        arrow-op-value@ Int->External,
+        "compiler error: attempted to get external associated with non-external arrow" panic! drop 0 Int->External
+    ))
+def(arrow-op-external?, Arrow -- Arrow External,
+    dup arrow-op-external@)
+
+def(arrow-op-buffer!, Buffer Arrow --,
+    OP_BUFFER over arrow-op!
+    dip(Buffer->Int) arrow-op-value!)
+def(arrow-op-buffer@, Arrow -- Buffer,
+    arrow-op? OP_BUFFER = if(
+        arrow-op-value@ Int->Buffer,
+        "compiler error: attempted to get external associated with non-external arrow" panic! drop 0 Int->Buffer
+    ))
+def(arrow-op-buffer?, Arrow -- Arrow Buffer,
+    dup arrow-op-buffer@)
+
+def(arrow-op-int!, Int Arrow --,
+    OP_INT over arrow-op!
+    arrow-op-value!)
+def(arrow-op-int@, Arrow -- Int,
+    arrow-op? OP_INT = if(
+        arrow-op-value@,
+        "compiler error: attempted to get int associated with non-int arrow" panic! drop 0
+    ))
+def(arrow-op-int?, Arrow -- Arrow Int,
+    dup arrow-op-int@)
+
+def(arrow-op-str!, StrLit Arrow --,
+    OP_STR over arrow-op!
+    dip(StrLit->Int) arrow-op-value!)
+def(arrow-op-str@, Arrow -- StrLit,
+    arrow-op? OP_STR = if(
+        arrow-op-value@ Int->StrLit,
+        "compiler error: attempted to get str associated with non-str arrow" panic! drop 0 Int->StrLit
+    ))
+def(arrow-op-str?, Arrow -- Arrow StrLit,
+    dup arrow-op-str@)

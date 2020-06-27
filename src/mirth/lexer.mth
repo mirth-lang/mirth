@@ -290,7 +290,7 @@ def(lexer-emit-string!, +Lexer,
     )
     drop
 
-    strings-save! StringOffset->Int
+    strings-save! StrLit->Int
     Int->TokenValue swap token-value!)
 
 def(lexer-push-string-char!, Char -- +Lexer,

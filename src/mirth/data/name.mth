@@ -234,6 +234,7 @@ def(Name->Prim, Name -- Prim,
         cast
     ))
 def(Int->Prim, Int -- Prim, Int->Name Name->Prim)
+def(Prim->Int, Prim -- Int, Prim->Name Name->Int)
 
 def(PRIM_ID, Prim, 1 Int->Prim)
 def(PRIM_DUP, Prim, 2 Int->Prim)
