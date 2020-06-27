@@ -65,7 +65,7 @@ def(input-fill-buffer!, +Input,
 def(input-peek, Char +Input,
     input-isopen@ if(
         input-offset@ INPUT_BUFFER u8@@,
-        "error: attempted to read input buffer when file is already closed" panic! 0 Int->U8
+        "error: attempted to read input buffer when file is already closed" panic!
     ))
 
 # Move to next char in input buffer.

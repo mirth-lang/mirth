@@ -83,27 +83,27 @@ def(type-is-stack-var?, Type -- Type Bool, dup type-is-stack-var)
 def(type-get-value, Type -- Int, Type->Int TYPE_VALUE_MASK &)
 def(type-get-var, Type -- Var,
     type-is-var? not if(
-        "compiler error: tried to get var value on non-var type" panic! drop 0 Int->Var,
+        "compiler error: tried to get var value on non-var type" panic!,
         type-get-value Int->Var
     ))
 def(type-get-meta, Type -- MetaVar,
     type-is-meta? not if(
-        "compiler error: tried to get meta value on non-meta type" panic! drop 0 Int->MetaVar,
+        "compiler error: tried to get meta value on non-meta type" panic!,
         type-get-value Int->MetaVar
     ))
 def(type-get-tensor, Type -- TensorType,
     type-is-tensor? not if(
-        "compiler error: tried to get tensor value on non-tensor type" panic! drop 0 Int->TensorType,
+        "compiler error: tried to get tensor value on non-tensor type" panic!,
         type-get-value Int->TensorType
     ))
 def(type-get-morphism, Type -- MorphismType,
     type-is-morphism? not if(
-        "compiler error: tried to get morphism value on non-morphism type" panic! drop 0 Int->MorphismType,
+        "compiler error: tried to get morphism value on non-morphism type" panic!,
         type-get-value Int->MorphismType
     ))
 def(type-get-nominal, Type -- Nominal,
     type-is-nominal? not if(
-        "compiler error: tried to get nominal value on non-nominal type" panic! drop 0 Int->Nominal,
+        "compiler error: tried to get nominal value on non-nominal type" panic!,
         type-get-value Int->Nominal
     ))
 
@@ -239,7 +239,7 @@ def(type-has-meta, MetaVar Type -- Bool,
     type-is-nominal? if(
         drop2 0,
 
-        "type-has-meta: unknown type" panic! drop2 0
+        "type-has-meta: unknown type" panic!
     )))))))
 
 
@@ -380,7 +380,7 @@ quad def-static-buffer(NUM_METAS)
 def(meta-alloc!, MetaVar,
     NUM_METAS @ dup 1+ NUM_METAS !
     dup MAX_METAS >= if(
-        "compiler error: ran out of meta variables, increase MAX_METAS" panic! Int->MetaVar,
+        "compiler error: ran out of meta variables, increase MAX_METAS" panic!,
         Int->MetaVar
     ))
 
@@ -397,7 +397,7 @@ def(meta-type!, Type MetaVar --,
     meta-type& type!)
 def(meta-type@, MetaVar -- Type,
     meta-is-defined? not if(
-        "attempted to access undefined metavar" panic! drop TYPE_ERROR,
+        "attempted to access undefined metavar" panic!,
         meta-type& type@
     ))
 
@@ -437,7 +437,7 @@ quad def-static-buffer(NUM_TENSOR_TYPES)
 def(tensor-type-alloc!, TensorType,
     NUM_TENSOR_TYPES @ dup 1+ NUM_TENSOR_TYPES !
     dup MAX_TENSOR_TYPES >= if(
-        "compiler error: too many tensor types -- increase MAX_TENSOR_TYPES" panic! Int->TensorType,
+        "compiler error: too many tensor types -- increase MAX_TENSOR_TYPES" panic!,
         Int->TensorType
     ))
 def(tensor-type-new!, Type Type -- TensorType,
@@ -500,7 +500,7 @@ quad def-static-buffer(NUM_MORPHISM_TYPES)
 def(morphism-type-alloc!, MorphismType,
     NUM_MORPHISM_TYPES @ dup 1+ NUM_MORPHISM_TYPES !
     dup MAX_MORPHISM_TYPES >= if(
-        "compiler error: too many morphism types -- increase MAX_MORPHISM_TYPES" panic! Int->MorphismType,
+        "compiler error: too many morphism types -- increase MAX_MORPHISM_TYPES" panic!,
         Int->MorphismType
     ))
 def(morphism-type-new!, Type Type -- MorphismType,
@@ -571,9 +571,8 @@ def(nominal-alloc!, Nominal,
     NUM_NOMINALS @ dup 1+ NUM_NOMINALS !
     dup MAX_NOMINALS >= if(
         "NUM_NOMINALS" panic!,
-        id
-    )
-    Int->Nominal)
+        Int->Nominal
+    ))
 
 def(nominal-new!, Name Type -- Nominal,
     nominal-alloc!

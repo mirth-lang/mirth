@@ -8,12 +8,12 @@ def(init-strings!, --,
 # Strings Table #
 #################
 
-# StringOffset represents the offset of a string into the string table.
+# StrLit represents the offset of a string into the string table.
 # This is enough to identify the string (for now ... because we just use
 # nul-termination as the implicit ending for the string)
-nominal(StringOffset, Int)
-def(StringOffset->Int, StringOffset -- Int, cast)
-def(Int->StringOffset, Int -- StringOffset, cast)
+nominal(StrLit, Int)
+def(StrLit->Int, StrLit -- Int, cast)
+def(Int->StrLit, Int -- StrLit, cast)
 
 def(MAX_STRINGS, Size, 0x4000)
 quad def-static-buffer(STRINGS_SIZE)
@@ -28,14 +28,14 @@ def(strings-size!, Size -- +StrTable, STRINGS_SIZE !)
 # Push byte onto strings table.
 def(strings-push!, U8 -- +StrTable,
     strings-size@ MAX_STRINGS >= if(
-        "strings buffer overflow" panic! drop,
+        "strings buffer overflow" panic!,
         strings-size@ STRINGS_BUF u8!!
         strings-size@ 1+ strings-size!
     ))
 
 # Load STR_BUF into strings table,
 # returning the index of the new string.
-def(strings-save!, StringOffset +StrTable +StrBuf,
+def(strings-save!, StrLit +StrTable +StrBuf,
     strings-size@
     0
     while(dup str-buf-length? <,
@@ -45,7 +45,7 @@ def(strings-save!, StringOffset +StrTable +StrBuf,
     )
     drop
     0 Int->U8 strings-push!
-    Int->StringOffset)
+    Int->StrLit)
 
 # Load string into STR_BUF.
 def(strings-load!, Str -- +StrBuf,

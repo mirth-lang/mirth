@@ -230,10 +230,11 @@ nominal(Prim, Name)
 def(Prim->Name, Prim -- Name, cast)
 def(Name->Prim, Name -- Prim,
     dup Name->Int NUM_PRIMS >= if(
-        "compiler error: Name->Prim called on non-primitive name" panic! cast,
+        "compiler error: Name->Prim called on non-primitive name" panic!,
         cast
     ))
 def(Int->Prim, Int -- Prim, Int->Name Name->Prim)
+def(Prim->Int, Prim -- Int, Prim->Name Name->Int)
 
 def(PRIM_ID, Prim, 1 Int->Prim)
 def(PRIM_DUP, Prim, 2 Int->Prim)
@@ -461,7 +462,6 @@ def(name-sig@, Name -- Token,
         name-external@ external-sig@,
 
         "compiler error: attempted to get name-sig for non-word, non-external name" panic!
-        drop 0 Int->Token
     )))
 
 def(name-sig?, Name -- Name Token, dup name-sig@)
@@ -481,7 +481,6 @@ def(name-type@, Name -- Type,
     name-is-type? if(
         name-value@ NameValue->Type,
         "compiler error: attempted to get type definition for non-type name" panic!
-        drop TYPE_ERROR
     ))
 
 def(name-word!, Word Name --,
@@ -491,7 +490,6 @@ def(name-word@, Name -- Word,
     name-is-word? if(
         name-value@ NameValue->Word,
         "compiler error: attempted to get word definition for non-word name" panic!
-        drop 0 Int->Word
     ))
 
 def(name-external!, External Name --,
@@ -501,7 +499,6 @@ def(name-external@, Name -- External,
     name-is-external? if(
         name-value@ NameValue->External,
         "compiler error: attempted to get external definition for non-external name" panic!
-        drop 0 Int->External
     ))
 
 def(name-buffer!, Buffer Name --,
@@ -511,5 +508,4 @@ def(name-buffer@, Name -- Buffer,
     name-is-buffer? if(
         name-value@ NameValue->Buffer,
         "compiler error: attempted to get buffer definition for non-buffer name" panic!
-        drop 0 Int->Buffer
     ))

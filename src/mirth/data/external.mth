@@ -20,12 +20,11 @@ def(external-alloc!, External +Externals,
     NUM_EXTERNALS @ dup 1+ NUM_EXTERNALS !
     dup MAX_EXTERNALS >= if(
         "compiler error: NUM_EXTERNALS > MAX_EXTERNALS" panic!,
-        id
-    )
-    Int->External
-    0 Int->Name over external-name!
-    0 Int->Token over external-sig!
-    TYPE_ERROR over external-type!)
+        Int->External
+        0 Int->Name over external-name!
+        0 Int->Token over external-sig!
+        TYPE_ERROR over external-type!
+    ))
 
 def(EXTERNAL_METADATA_SIZE, Size, 16)
 MAX_EXTERNALS EXTERNAL_METADATA_SIZE * def-static-buffer(EXTERNAL_METADATA_BUF)

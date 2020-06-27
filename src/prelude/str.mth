@@ -34,8 +34,7 @@ def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
 
 def(str-buf-push!, U8 -- +StrBuf,
     str-buf-full? if(
-        "str-buf-push! but STR_BUF is already full" panic!
-        drop,
+        "str-buf-push! but STR_BUF is already full" panic!,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     ))

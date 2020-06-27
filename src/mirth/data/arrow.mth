@@ -44,7 +44,7 @@ quad def-static-buffer(NUM_ARROWS)
 def(arrow-alloc!, Arrow,
     NUM_ARROWS @ dup 1+ dup NUM_ARROWS !
     MAX_ARROWS >= if(
-        "Compiler error: Ran out of arrows! Increase MAX_ARROWS!" panic! Int->Arrow,
+        "Compiler error: Ran out of arrows! Increase MAX_ARROWS!" panic!,
         Int->Arrow
     ))
 
@@ -65,3 +65,154 @@ def(arrow-next&, Arrow -- Ptr, Arrow->Int |Arrow| * ARROW_NEXT ptr+)
 def(arrow-next!, Arrow Arrow --, arrow-next& arrow!)
 def(arrow-next@, Arrow -- Arrow, arrow-next& arrow@)
 def(arrow-next?, Arrow -- Arrow Arrow, dup arrow-next@)
+
+nominal(Op, U8)
+def(Op->U8, Op -- U8, cast)
+def(U8->Op, U8 -- Op, cast)
+def(Op->Int, Op -- Int, Op->U8 U8->Int)
+def(Int->Op, Int -- Op, Int->U8 U8->Op)
+def(|Op|, Size, 1)
+def(op@, Ptr -- Op, u8@ U8->Op)
+def(op!, Op Ptr --, dip(Op->U8) u8!)
+def(OP_NONE, Op, 0 Int->Op)
+def(OP_PRIM, Op, 1 Int->Op)
+def(OP_WORD, Op, 2 Int->Op)
+def(OP_EXTERNAL, Op, 3 Int->Op)
+def(OP_BUFFER, Op, 4 Int->Op)
+def(OP_INT, Op, 5 Int->Op)
+def(OP_STR, Op, 6 Int->Op)
+
+MAX_ARROWS |Op| * def-static-buffer(ARROW_OP)
+def(arrow-op&, Arrow -- Ptr, Arrow->Int |Op| * ARROW_OP ptr+)
+def(arrow-op!, Op Arrow --, arrow-op& op!)
+def(arrow-op@, Arrow -- Op, arrow-op& op@)
+def(arrow-op?, Arrow -- Arrow Op, dup arrow-op@)
+
+MAX_ARROWS quads def-static-buffer(ARROW_OP-VALUE)
+def(arrow-op-value&, Arrow -- Ptr, Arrow->Int quads ARROW_OP-VALUE ptr+)
+def(arrow-op-value!, Int Arrow --, arrow-op-value& !)
+def(arrow-op-value@, Arrow -- Int, arrow-op-value& @)
+def(arrow-op-value?, Arrow -- Arrow Int, dup arrow-op-value@)
+
+def(arrow-op-prim!, Prim Arrow --,
+    OP_PRIM over arrow-op!
+    dip(Prim->Int) arrow-op-value!)
+def(arrow-op-prim@, Arrow -- Prim,
+    arrow-op? OP_PRIM = if(
+        arrow-op-value@ Int->Prim,
+        "compiler error: attempted to get prim associated with non-prim arrow" panic!
+    ))
+def(arrow-op-prim?, Arrow -- Arrow Prim,
+    dup arrow-op-prim@)
+
+def(arrow-op-word!, Word Arrow --,
+    OP_WORD over arrow-op!
+    dip(Word->Int) arrow-op-value!)
+def(arrow-op-word@, Arrow -- Word,
+    arrow-op? OP_WORD = if(
+        arrow-op-value@ Int->Word,
+        "compiler error: attempted to get word associated with non-word arrow" panic!
+    ))
+def(arrow-op-word?, Arrow -- Arrow Word,
+    dup arrow-op-word@)
+
+def(arrow-op-external!, External Arrow --,
+    OP_EXTERNAL over arrow-op!
+    dip(External->Int) arrow-op-value!)
+def(arrow-op-external@, Arrow -- External,
+    arrow-op? OP_EXTERNAL = if(
+        arrow-op-value@ Int->External,
+        "compiler error: attempted to get external associated with non-external arrow" panic!
+    ))
+def(arrow-op-external?, Arrow -- Arrow External,
+    dup arrow-op-external@)
+
+def(arrow-op-buffer!, Buffer Arrow --,
+    OP_BUFFER over arrow-op!
+    dip(Buffer->Int) arrow-op-value!)
+def(arrow-op-buffer@, Arrow -- Buffer,
+    arrow-op? OP_BUFFER = if(
+        arrow-op-value@ Int->Buffer,
+        "compiler error: attempted to get external associated with non-external arrow" panic!
+    ))
+def(arrow-op-buffer?, Arrow -- Arrow Buffer,
+    dup arrow-op-buffer@)
+
+def(arrow-op-int!, Int Arrow --,
+    OP_INT over arrow-op!
+    arrow-op-value!)
+def(arrow-op-int@, Arrow -- Int,
+    arrow-op? OP_INT = if(
+        arrow-op-value@,
+        "compiler error: attempted to get int associated with non-int arrow" panic!
+    ))
+def(arrow-op-int?, Arrow -- Arrow Int,
+    dup arrow-op-int@)
+
+def(arrow-op-str!, StrLit Arrow --,
+    OP_STR over arrow-op!
+    dip(StrLit->Int) arrow-op-value!)
+def(arrow-op-str@, Arrow -- StrLit,
+    arrow-op? OP_STR = if(
+        arrow-op-value@ Int->StrLit,
+        "compiler error: attempted to get str associated with non-str arrow" panic!
+    ))
+def(arrow-op-str?, Arrow -- Arrow StrLit,
+    dup arrow-op-str@)
+
+nominal(Arg, Arrow)
+def(Arrow->Arg, Arrow -- Arg, cast)
+def(Arg->Arrow, Arg -- Arrow, cast)
+def(|Arg|, Size, |Arrow|)
+def(arg@, Ptr -- Arg, arrow@ Arrow->Arg)
+def(arg!, Arg Ptr --, dip(Arg->Arrow) arrow!)
+
+nominal(Args, Int)
+def(Int->Args, Int -- Args, cast)
+def(Args->Int, Args -- Int, cast)
+def(U32->Args, U32 -- Args, U32->Int Int->Args)
+def(Args->U32, Args -- U32, Args->Int Int->U32)
+def(|Args|, Size, 4)
+def(args@, Ptr -- Args, u32@ U32->Args)
+def(args!, Args Ptr --, dip(Args->U32) u32!)
+def(MAX_ARGS, Size, 0x4000)
+quad def-static-buffer(NUM_ARGS)
+def(args-alloc!, Args,
+    NUM_ARGS @ 1+ dup NUM_ARGS !
+    dup MAX_ARGS >= if(
+        "compiler error: NUM_ARGS >= MAX_ARGS" panic!,
+        Int->Args
+    ))
+
+def(ARGS_NIL, Args, 0 Int->Args)
+def(args-is-nil, Args -- Bool, ARGS_NIL =)
+def(args-is-nil?, Args -- Args Bool, dup args-is-nil)
+
+MAX_ARGS |Arg| * def-static-buffer(ARGS_HEAD)
+def(args-head&, Args -- Ptr, Args->Int |Arg| * ARGS_HEAD ptr+)
+def(args-head!, Arg Args --, args-head& arg!)
+def(args-head@, Args -- Arg, args-head& arg@)
+def(args-head?, Args -- Args Arg, dup args-head@)
+
+MAX_ARGS |Args| * def-static-buffer(ARGS_TAIL)
+def(args-tail&, Args -- Ptr, Args->Int |Args| * ARGS_TAIL ptr+)
+def(args-tail!, Args Args --, args-tail& args!)
+def(args-tail@, Args -- Args, args-tail& args@)
+def(args-tail?, Args -- Args Args, dup args-tail@)
+
+MAX_ARROWS |Args| * def-static-buffer(ARROW_ARGS)
+def(arrow-args&, Arrow -- Ptr, Arrow->Int |Args| * ARROW_ARGS ptr+)
+def(arrow-args!, Args Arrow --, arrow-args& args!)
+def(arrow-args@, Arrow -- Args, arrow-args& args@)
+def(arrow-args?, Arrow -- Arrow Args, dup arrow-args@)
+
+# Get pointer to last args var in args list.
+def(arrow-args-last&, Arrow -- Ptr,
+    arrow-args& while(
+        dup args@ args-is-nil not,
+        args@ args-tail&
+    ))
+
+def(arrow-arg-add!, Arrow Arg -- Arrow,
+    args-alloc! tuck args-head!
+    over arrow-args-last& args!)

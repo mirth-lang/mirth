@@ -30,7 +30,7 @@ def(str-buf-read!, File -- +IO,
     File->Int str-buf-clear!
     STR_BUF STR_BUF_SIZE 1- posix-read!
     dup 0< if(
-        "str-buf-read! failed" panic! drop,
+        "str-buf-read! failed" panic!,
         str-buf-length!
     ))
 def(str-buf-input!, -- +IO, stdin str-buf-read!)
@@ -52,12 +52,12 @@ def(int-trace-sp!, Int -- +IO, int-trace! trace-sp!)
 def(int-print-ln!, Int -- +IO, int-print! print-ln!)
 def(int-trace-ln!, Int -- +IO, int-trace! trace-ln!)
 
-def(panic!, Str -- +IO,
+def(panic!, *a Str -- *b +IO,
     "panic: " str-trace! str-trace-ln! 1 posix-exit!)
 
 def(open-file!, Str -- File +IO,
     0 0 posix-open!
-    dup 0 < if("Failed to open file!" panic! Int->File, Int->File))
+    dup 0 < if("Failed to open file!" panic!, Int->File))
 
 def(create-file!, Str -- File +IO,
     O_WRONLY|O_CREAT|O_TRUNC
@@ -66,7 +66,7 @@ def(create-file!, Str -- File +IO,
         # on unix, 666 in octal, i.e. owner can
         # read+write, everyone can read
     posix-open!
-    dup 0 < if("Failed to create file!" panic! Int->File, Int->File))
+    dup 0 < if("Failed to create file!" panic!, Int->File))
 
 def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     RUNNING_OS MACOS = if(
@@ -75,12 +75,9 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
         0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
     RUNNING_OS WIN32 = if(
         0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
-        "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic! 0
+        "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic!
     ))))
 
 def(close-file!, File -- +IO,
     File->Int posix-close!
-    0 < if(
-        "failed to close file" panic!,
-        id
-    ))
+    0 < if("failed to close file" panic!, id))

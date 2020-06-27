@@ -69,6 +69,8 @@ def(token-value!, TokenValue Token --, dip(TokenValue->Int) token-value& !)
 def(token-value@, Token -- TokenValue, token-value& @ Int->TokenValue)
 def(token-value?, Token -- Token TokenValue, dup token-value@)
 
+def(token-is-int?, Token -- Token Bool,
+    token-type? TOKEN_INT =)
 def(token-int@, Token -- Int,
     token-type? TOKEN_INT = if(
         token-value@ TokenValue->Int,
@@ -76,6 +78,8 @@ def(token-int@, Token -- Int,
     ))
 def(token-int?, Token -- Token Int, dup token-int@)
 
+def(token-is-str?, Token -- Token Bool,
+    token-type? TOKEN_STR =)
 def(token-str@, Token -- Str,
     token-type? TOKEN_STR = if(
         token-value@ TokenValue->Str,
@@ -83,6 +87,8 @@ def(token-str@, Token -- Str,
     ))
 def(token-str?, Token -- Token Str, dup token-str@)
 
+def(token-is-name?, Token -- Token Bool,
+    token-type? TOKEN_NAME =)
 def(token-name@, Token -- Name,
     token-type? TOKEN_NAME = if(
         token-value@ TokenValue->Name,
@@ -119,7 +125,7 @@ def(token-col?, Token -- Token Col, dup token-col@)
 
 def(token-new, -- Token,
     num-tokens@ dup MAX_TOKENS >= if(
-        "tokens buffer overflow" panic! drop 0 Int->Token,
+        "tokens buffer overflow" panic!,
         dup 1+ num-tokens! Int->Token
     ))
 
