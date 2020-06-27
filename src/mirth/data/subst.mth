@@ -19,8 +19,8 @@ def(subst-alloc!, Subst,
     NUM_SUBST @ 1+ dup NUM_SUBST !
     dup MAX_SUBST >= if(
         "NUM_SUBST >= MAX_SUBST" panic!,
-        id)
-    Int->Subst)
+        Int->Subst
+    ))
 def(subst-new!, Type Var Subst -- Subst,
     subst-alloc!
     tuck subst-rest!

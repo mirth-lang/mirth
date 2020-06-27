@@ -57,7 +57,7 @@ def(heap-reserve!, Size -- +Heap,
                 dup heap-initial-base! heap-base!
                 dup heap-initial-length! heap-length!
             ),
-            "Failed to allocate heap buffer." panic! drop2
+            "Failed to allocate heap buffer." panic!
         )
     ))
 
@@ -70,7 +70,7 @@ def(MAP_ANON|MAP_PRIVATE, Int,
     # RUNNING_OS LINUX = if(
         0x22 # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
         # ,
-        # "MAP_ANON|MAP_PRIVATE unknown for os" panic! 0
+        # "MAP_ANON|MAP_PRIVATE unknown for os" panic!
     # )
     ))
 

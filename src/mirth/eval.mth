@@ -23,7 +23,7 @@ def(vstack-i64!, v Size -- +VSTACK, dip(cast) VSTACK_BUF quad!!)
 
 def(vstack-pop!, v1 +VSTACK,
     vstack-empty? if(
-        "stack underflow: attempted to pop on empty vstack" panic! 0 cast,
+        "stack underflow: attempted to pop on empty vstack" panic!,
         vstack-len@ 1- vstack-len!
         vstack-len@ vstack-i64@
     ))
@@ -45,7 +45,7 @@ def(vstack-pop6!, v1 v2 v3 v4 v5 v6 +VSTACK,
 
 def(vstack-push!, v1 -- +VSTACK,
     vstack-full? if(
-        "vstack overflow" panic! drop,
+        "vstack overflow" panic!,
         vstack-len@ vstack-i64!
         vstack-len@ 1+ vstack-len!
     ))
@@ -58,13 +58,13 @@ def(vstack-push3!, v1 v2 v3 -- +VSTACK,
 
 def(vstack-top@, I64 +VSTACK,
     vstack-empty? if(
-        "vstack underflow" panic! 0 Int->I64,
+        "vstack underflow" panic!,
         vstack-len@ 1- vstack-i64@
     ))
 
 def(vstack-top!, I64 -- +VSTACK,
     vstack-empty? if(
-        "stack underflow: attempted to write to top of empty vstack" panic! drop,
+        "stack underflow: attempted to write to top of empty vstack" panic!,
         vstack-len@ 1- vstack-i64!
     ))
 

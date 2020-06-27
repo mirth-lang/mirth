@@ -209,7 +209,7 @@ def(snake-init!, +Snake,
     SDL_CreateWindow
     dup Ptr->Int if(
         snake-window!,
-        SDL_GetError panic! drop
+        SDL_GetError panic!
     )
 
     snake-window@
@@ -218,7 +218,7 @@ def(snake-init!, +Snake,
     SDL_CreateRenderer
     dup Ptr->Int if(
         snake-renderer!,
-        SDL_GetError panic! drop
+        SDL_GetError panic!
     ))
 
 def(snake-loop!, +Snake,
@@ -436,7 +436,7 @@ def(snake-apply-direction, XCoord YCoord Direction -- XCoord YCoord,
     dup DWEST = if(
         drop dip(XCoord->Int 1- SNAKE_W + SNAKE_W % Int->XCoord),
 
-        "unknown direction in snake-apply-direction" panic! drop
+        "unknown direction in snake-apply-direction" panic!
     )))))
 
 "snake.c" output-c99(snake!)

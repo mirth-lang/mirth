@@ -125,7 +125,7 @@ def(token-col?, Token -- Token Col, dup token-col@)
 
 def(token-new, -- Token,
     num-tokens@ dup MAX_TOKENS >= if(
-        "tokens buffer overflow" panic! drop 0 Int->Token,
+        "tokens buffer overflow" panic!,
         dup 1+ num-tokens! Int->Token
     ))
 

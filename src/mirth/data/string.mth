@@ -28,7 +28,7 @@ def(strings-size!, Size -- +StrTable, STRINGS_SIZE !)
 # Push byte onto strings table.
 def(strings-push!, U8 -- +StrTable,
     strings-size@ MAX_STRINGS >= if(
-        "strings buffer overflow" panic! drop,
+        "strings buffer overflow" panic!,
         strings-size@ STRINGS_BUF u8!!
         strings-size@ 1+ strings-size!
     ))

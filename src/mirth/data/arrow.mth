@@ -44,7 +44,7 @@ quad def-static-buffer(NUM_ARROWS)
 def(arrow-alloc!, Arrow,
     NUM_ARROWS @ dup 1+ dup NUM_ARROWS !
     MAX_ARROWS >= if(
-        "Compiler error: Ran out of arrows! Increase MAX_ARROWS!" panic! Int->Arrow,
+        "Compiler error: Ran out of arrows! Increase MAX_ARROWS!" panic!,
         Int->Arrow
     ))
 
@@ -100,7 +100,7 @@ def(arrow-op-prim!, Prim Arrow --,
 def(arrow-op-prim@, Arrow -- Prim,
     arrow-op? OP_PRIM = if(
         arrow-op-value@ Int->Prim,
-        "compiler error: attempted to get prim associated with non-prim arrow" panic! drop 0 Int->Prim
+        "compiler error: attempted to get prim associated with non-prim arrow" panic!
     ))
 def(arrow-op-prim?, Arrow -- Arrow Prim,
     dup arrow-op-prim@)
@@ -111,7 +111,7 @@ def(arrow-op-word!, Word Arrow --,
 def(arrow-op-word@, Arrow -- Word,
     arrow-op? OP_WORD = if(
         arrow-op-value@ Int->Word,
-        "compiler error: attempted to get word associated with non-word arrow" panic! drop 0 Int->Word
+        "compiler error: attempted to get word associated with non-word arrow" panic!
     ))
 def(arrow-op-word?, Arrow -- Arrow Word,
     dup arrow-op-word@)
@@ -122,7 +122,7 @@ def(arrow-op-external!, External Arrow --,
 def(arrow-op-external@, Arrow -- External,
     arrow-op? OP_EXTERNAL = if(
         arrow-op-value@ Int->External,
-        "compiler error: attempted to get external associated with non-external arrow" panic! drop 0 Int->External
+        "compiler error: attempted to get external associated with non-external arrow" panic!
     ))
 def(arrow-op-external?, Arrow -- Arrow External,
     dup arrow-op-external@)
@@ -133,7 +133,7 @@ def(arrow-op-buffer!, Buffer Arrow --,
 def(arrow-op-buffer@, Arrow -- Buffer,
     arrow-op? OP_BUFFER = if(
         arrow-op-value@ Int->Buffer,
-        "compiler error: attempted to get external associated with non-external arrow" panic! drop 0 Int->Buffer
+        "compiler error: attempted to get external associated with non-external arrow" panic!
     ))
 def(arrow-op-buffer?, Arrow -- Arrow Buffer,
     dup arrow-op-buffer@)
@@ -144,7 +144,7 @@ def(arrow-op-int!, Int Arrow --,
 def(arrow-op-int@, Arrow -- Int,
     arrow-op? OP_INT = if(
         arrow-op-value@,
-        "compiler error: attempted to get int associated with non-int arrow" panic! drop 0
+        "compiler error: attempted to get int associated with non-int arrow" panic!
     ))
 def(arrow-op-int?, Arrow -- Arrow Int,
     dup arrow-op-int@)
@@ -155,7 +155,7 @@ def(arrow-op-str!, StrLit Arrow --,
 def(arrow-op-str@, Arrow -- StrLit,
     arrow-op? OP_STR = if(
         arrow-op-value@ Int->StrLit,
-        "compiler error: attempted to get str associated with non-str arrow" panic! drop 0 Int->StrLit
+        "compiler error: attempted to get str associated with non-str arrow" panic!
     ))
 def(arrow-op-str?, Arrow -- Arrow StrLit,
     dup arrow-op-str@)
