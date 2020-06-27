@@ -159,3 +159,60 @@ def(arrow-op-str@, Arrow -- StrLit,
     ))
 def(arrow-op-str?, Arrow -- Arrow StrLit,
     dup arrow-op-str@)
+
+nominal(Arg, Arrow)
+def(Arrow->Arg, Arrow -- Arg, cast)
+def(Arg->Arrow, Arg -- Arrow, cast)
+def(|Arg|, Size, |Arrow|)
+def(arg@, Ptr -- Arg, arrow@ Arrow->Arg)
+def(arg!, Arg Ptr --, dip(Arg->Arrow) arrow!)
+
+nominal(Args, Int)
+def(Int->Args, Int -- Args, cast)
+def(Args->Int, Args -- Int, cast)
+def(U32->Args, U32 -- Args, U32->Int Int->Args)
+def(Args->U32, Args -- U32, Args->Int Int->U32)
+def(|Args|, Size, 4)
+def(args@, Ptr -- Args, u32@ U32->Args)
+def(args!, Args Ptr --, dip(Args->U32) u32!)
+def(MAX_ARGS, Size, 0x4000)
+quad def-static-buffer(NUM_ARGS)
+def(args-alloc!, Args,
+    NUM_ARGS @ 1+ dup NUM_ARGS !
+    dup MAX_ARGS >= if(
+        "compiler error: NUM_ARGS >= MAX_ARGS" panic!,
+        Int->Args
+    ))
+
+def(ARGS_NIL, Args, 0 Int->Args)
+def(args-is-nil, Args -- Bool, ARGS_NIL =)
+def(args-is-nil?, Args -- Args Bool, dup args-is-nil)
+
+MAX_ARGS |Arg| * def-static-buffer(ARGS_HEAD)
+def(args-head&, Args -- Ptr, Args->Int |Arg| * ARGS_HEAD ptr+)
+def(args-head!, Arg Args --, args-head& arg!)
+def(args-head@, Args -- Arg, args-head& arg@)
+def(args-head?, Args -- Args Arg, dup args-head@)
+
+MAX_ARGS |Args| * def-static-buffer(ARGS_TAIL)
+def(args-tail&, Args -- Ptr, Args->Int |Args| * ARGS_TAIL ptr+)
+def(args-tail!, Args Args --, args-tail& args!)
+def(args-tail@, Args -- Args, args-tail& args@)
+def(args-tail?, Args -- Args Args, dup args-tail@)
+
+MAX_ARROWS |Args| * def-static-buffer(ARROW_ARGS)
+def(arrow-args&, Arrow -- Ptr, Arrow->Int |Args| * ARROW_ARGS ptr+)
+def(arrow-args!, Args Arrow --, arrow-args& args!)
+def(arrow-args@, Arrow -- Args, arrow-args& args@)
+def(arrow-args?, Arrow -- Arrow Args, dup arrow-args@)
+
+# Get pointer to last args var in args list.
+def(arrow-args-last&, Arrow -- Ptr,
+    arrow-args& while(
+        dup args@ args-is-nil not,
+        args@ args-tail&
+    ))
+
+def(arrow-arg-add!, Arrow Arg -- Arrow,
+    args-alloc! tuck args-head!
+    over arrow-args-last& args!)
