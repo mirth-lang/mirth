@@ -241,8 +241,6 @@ def(elab-arrow!, Token -- Arrow +Elab,
     drop)
 
 def(elab-arrow-step!, Arrow +Elab,
-    elab-token@ dip(
-
     arrow-alloc!
     elab-stack@ over arrow-dom!
     elab-token@ over arrow-token!
@@ -250,58 +248,51 @@ def(elab-arrow-step!, Arrow +Elab,
     elab-token@
     token-is-arg-end? if(
         drop,
+    token-is-int? if(
+        token-int@ elab-arrow-step-int!,
+    token-is-str? if(
+        token-value@ TokenValue->Int Int->StrLit elab-arrow-step-str!, # TODO: fix this
+    token-is-name? if(
+        token-name@ elab-arrow-step-name!,
+        drop "compiler error: unexpected token type" elab-emit-fatal-error!
+    )))))
 
-        token-type@
-        dup TOKEN_INT = if(
-            drop TYPE_INT elab-stack-push!, # TODO int push op in arrow
-
-        dup TOKEN_STR = if(
-            drop TYPE_PTR elab-stack-push!, # TODO str push op in arrow
-
-        dup TOKEN_NAME = if(
-            drop
-            elab-arrow-step-name!,
-
-            drop "compiler error: unexpected token type" elab-emit-fatal-error!
-        )))
-    )
-
-    ) elab-token!
-    # elab??
-    )
-
-def(elab-arrow-step-name!, Arrow -- Arrow +Elab,
-    elab-token@ token-name@
+def(elab-arrow-step-name!, Arrow Name -- Arrow +Elab,
     name-is-buffer? if(
-        drop TYPE_PTR elab-stack-push!, # TODO ptr push op in arrow
-
+        name-buffer@ elab-arrow-step-buffer!,
     name-is-external? if(
-        drop elab-arrow-step-external!,
-
+        name-external@ elab-arrow-step-external!,
     name-is-word? if(
-        drop elab-arrow-step-word!,
-
+        name-word@ elab-arrow-step-word!,
     name-is-prim? if(
-        drop elab-arrow-step-prim!,
+        Name->Prim elab-arrow-step-prim!,
 
         drop
         "Unknown word" elab-emit-error!
         TYPE_ERROR elab-stack!
     )))))
 
-def(elab-arrow-step-word!, Arrow -- Arrow +Elab,
-    elab-token@ token-args-0 # high order word not yet supported
-    elab-token@ token-name@ name-word@ # TODO save word call in op
-    elab-word-sig! elab-arrow-apply-sig-type!)
+def(elab-arrow-step-int!, Arrow Int -- Arrow +Elab,
+    over arrow-op-int!
+    TYPE_INT elab-stack-push!)
 
-def(elab-arrow-step-external!, Arrow -- Arrow +Elab,
-    # "external" elab-emit-warning!
-#     TYPE_ERROR elab-stack! # TODO apply type, external call op
+def(elab-arrow-step-str!, Arrow StrLit -- Arrow +Elab,
+    over arrow-op-str!
+    TYPE_PTR elab-stack-push!) # TODO: add primitive STR type?
 
-    elab-token@ token-args-0
-    elab-token@ token-name@ name-external@
+def(elab-arrow-step-buffer!, Arrow Buffer -- Arrow +Elab,
+    over arrow-op-buffer!
+    TYPE_PTR elab-stack-push!)
+
+def(elab-arrow-step-external!, Arrow External -- Arrow +Elab,
+    dup2 swap arrow-op-external!
+    elab-token@ token-args-0 # high order not yet supported
     elab-external-sig! elab-arrow-apply-sig-type!)
 
+def(elab-arrow-step-word!, Arrow Word -- Arrow +Elab,
+    dup2 swap arrow-op-word!
+    elab-token@ token-args-0 # high order not yet supported
+    elab-word-sig! elab-arrow-apply-sig-type!)
 
 def(elab-arrow-apply-sig-type!, Arrow Type -- Arrow +Elab,
     type-expand-morphism morphism-type-unpack swap
@@ -347,8 +338,8 @@ def(elab??, +Elab,
     elab-token@ token-location location-trace! ": warning: stack = " str-trace!
     elab-stack@ type-trace! trace-ln!)
 
-def(elab-arrow-step-prim!, Arrow -- Arrow +Elab,
-    elab-token@ token-name@ Name->Prim
+def(elab-arrow-step-prim!, Arrow Prim -- Arrow +Elab,
+    dup2 swap arrow-op-prim!
 
     dup PRIM_ID = if( # TODO id op
         drop elab-token@ token-args-0,
