@@ -180,7 +180,7 @@ def(lexer-emit-name!, +Lexer,
     ))
 
 def(str-buf-is-int?, Bool +StrBuf,
-    str-buf-is-dec-int? if(1, str-buf-is-hex-int?))
+    str-buf-is-dec-int? if(true, str-buf-is-hex-int?))
 
 def(str-buf-is-dec-int?, Bool +StrBuf,
     0 # number of digits
@@ -193,11 +193,11 @@ def(str-buf-is-dec-int?, Bool +StrBuf,
         dip(1+) 1+)
     swap 1 >= if(
         str-buf-length? =,
-        drop 0
+        drop false
     ))
 
 def(is-zero-char, Char -- Bool, U8->Int 48 =)
-def(is-xX-char, Char -- Bool, U8->Int dup 88 = dip(120 =) +)
+def(is-xX-char, Char -- Bool, U8->Int dup 88 = dip(120 =) ||)
 
 def(str-buf-is-hex-int?, Bool +StrBuf,
     0 # number of digits
@@ -213,13 +213,13 @@ def(str-buf-is-hex-int?, Bool +StrBuf,
             while(dup str-buf-u8@ is-hexdigit? nip, dip(1+) 1+)
             swap 1 >= if(
                 str-buf-length? =,
-                drop 0
+                drop false
             ),
 
-            drop2 0
+            drop2 false
         ),
 
-        drop2 0
+        drop2 false
     ))
 
 def(str-buf-int?, Int +StrBuf,
@@ -334,7 +334,7 @@ def(lexer-skip-comment!, +Lexer,
 
 def(lexer-comment-end?, Bool +Lexer,
     lexer-done? if(
-        1,
+        true,
         lexer-peek is-newline? nip
     ))
 
@@ -344,7 +344,7 @@ def(lexer-move!, +Lexer, input-move!
 
 def(is-newline?, Char -- Char Bool, dup U8->Int 10 =)
 def(is-whitespace?, Char -- Char Bool,
-    dup U8->Int 9 = dip(dup U8->Int 32 =) +)
+    dup U8->Int 9 = dip(dup U8->Int 32 =) ||)
 def(is-pound?, Char -- Char Bool, dup U8->Int 35 =)
 def(is-lparen?, Char -- Char Bool, dup U8->Int 40 =)
 def(is-rparen?, Char -- Char Bool, dup U8->Int 41 =)
@@ -353,17 +353,17 @@ def(is-quote?, Char -- Char Bool, dup U8->Int 34 =)
 def(is-digit?, Char -- Char Bool, dup U8->Int 48 57 in-range)
 def(is-upper-hexdigit?, Char -- Char Bool, dup U8->Int 65 70 in-range)
 def(is-lower-hexdigit?, Char -- Char Bool, dup U8->Int 97 102 in-range)
-def(is-hexdigit?, Char -- Char Bool, is-digit? dip(is-upper-hexdigit?) + dip(is-lower-hexdigit?) +)
+def(is-hexdigit?, Char -- Char Bool, is-digit? dip(is-upper-hexdigit?) || dip(is-lower-hexdigit?) ||)
 def(is-nul?, Char -- Char Bool, dup U8->Int 0=)
-def(is-sign?, Char -- Char Bool, is-plus-sign? dip(is-minus-sign?) +)
+def(is-sign?, Char -- Char Bool, is-plus-sign? dip(is-minus-sign?) ||)
 def(is-asterisk?, Char -- Char Bool, dup U8->Int 42 =)
 def(is-plus-sign?, Char -- Char Bool, dup U8->Int 43 =)
 def(is-minus-sign?, Char -- Char Bool, dup U8->Int 45 =)
-def(is-alpha?, Char -- Char Bool, is-lower? dip(is-upper?) +)
+def(is-alpha?, Char -- Char Bool, is-lower? dip(is-upper?) ||)
 def(is-upper?, Char -- Char Bool, dup U8->Int 65 90 in-range)
 def(is-lower?, Char -- Char Bool, dup U8->Int 97 122 in-range)
 
-def(is-string-end?, Char -- Char Bool, is-quote? dip(is-newline?) + dip(is-nul?) +)
+def(is-string-end?, Char -- Char Bool, is-quote? dip(is-newline?) || dip(is-nul?) ||)
 def(is-dash?, Char -- Char Bool, dup U8->Int 45 =)
 def(is-underscore?, Char -- Char Bool, dup U8->Int 95 =)
 def(is-backslash?, Char -- Char Bool, dup U8->Int 92 =)
@@ -373,19 +373,19 @@ def(is-t?, Char -- Char Bool, dup U8->Int 116 =)
 def(underscore, Char, 95 Int->U8)
 
 def(is-name-char?, Char -- Char Bool,
-    is-special-char?
-    dip(dup U8->Int 33 126 in-range) -)
+    is-special-char? not
+    dip(dup U8->Int 33 126 in-range) &&)
 
 def(is-special-char?, Char -- Char Bool,
     is-quote?
-    dip(is-lparen?) +
-    dip(is-rparen?) +
-    dip(is-comma?) +
-    dip(is-pound?) +
+    dip(is-lparen?) ||
+    dip(is-rparen?) ||
+    dip(is-comma?) ||
+    dip(is-pound?) ||
     )
 
 def(in-range, Int Int Int -- Bool,
-    dip(over dip(>=)) <= *)
+    dip(over dip(>=)) <= &&)
 
 def(lexer-trace-prefix!, +IO,
     lexer-module@ load-module-source-path! str-buf-trace! ":" str-trace!

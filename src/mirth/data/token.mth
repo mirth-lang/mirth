@@ -188,14 +188,14 @@ def(token-next-arg-end, Token -- Token,
 # Is this an arg ending (COMMA or RPAREN)?
 def(token-is-arg-end?, Token -- Token Bool,
     token-type? TOKEN_COMMA = if(
-        1,
+        true,
         token-type? TOKEN_RPAREN =
     ))
 
 def(token-has-args?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
         dup token-succ token-type@ TOKEN_LPAREN =,
-        0
+        false
     ))
 
 # Verify that token has 0 args, and return them.

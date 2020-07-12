@@ -12,11 +12,11 @@ quad def-static-buffer(INPUT_OFFSET)
 quad def-static-buffer(INPUT_HANDLE)
 INPUT_BUFFER_SIZE def-static-buffer(INPUT_BUFFER)
 
-def(input-isopen@, Bool +Input, INPUT_ISOPEN @)
+def(input-isopen@, Bool +Input, INPUT_ISOPEN @ nonzero)
 def(input-length@, Size +Input, INPUT_LENGTH @)
 def(input-offset@, Size +Input, INPUT_OFFSET @)
 def(input-handle@, File +Input, INPUT_HANDLE @ Int->File)
-def(input-isopen!, Bool -- +Input, INPUT_ISOPEN !)
+def(input-isopen!, Bool -- +Input, if(1,0) INPUT_ISOPEN !)
 def(input-length!, Size -- +Input, INPUT_LENGTH !)
 def(input-offset!, Size -- +Input, INPUT_OFFSET !)
 def(input-handle!, File -- +Input, File->Int INPUT_HANDLE !)
@@ -25,7 +25,7 @@ def(input-start!, File -- +Input,
     input-handle!
     0 input-length!
     0 input-offset!
-    1 input-isopen!
+    true input-isopen!
     input-fill-buffer!)
 
 def(input-end!, +Input,
@@ -36,7 +36,7 @@ def(input-end!, +Input,
     stdin input-handle!
     0 input-length!
     0 input-offset!
-    0 input-isopen!)
+    false input-isopen!)
 
 def(input-done?, Bool +Input,
     input-isopen@ not)

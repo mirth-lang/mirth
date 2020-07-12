@@ -13,7 +13,6 @@ def(drop3, a b c --, drop drop drop)
 def-type(Byte, U8)
 def-type(Char, U8)
 def-type(Str, Ptr)
-def-type(Bool, Int)
 def-type(Size, Int)
 def-type(Offset, Int)
 
@@ -48,8 +47,9 @@ def(1-, Int -- Int, 1 -)
 def(max, Int Int -- Int, dup2 < if(nip, drop))
 def(square, Int -- Int, dup *)
 
-def(not, Bool -- Bool, 0 =)
-
+def(not, Bool -- Bool, false =)
+def(bool, Bool -- Bool, id)
+def(nonzero, Int -- Bool, 0 !=)
 
 def(int@, Ptr -- Int, @)
 def(int!, Int Ptr --, !)

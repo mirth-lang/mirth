@@ -53,7 +53,7 @@ def(VarFlag->U32, VarFlag -- U32, cast)
 def(Int->VarFlag, Int -- VarFlag,
     Int->U32 U32->VarFlag)
 def(VarFlag->Int, VarFlag -- Int, VarFlag->U32 U32->Int)
-def(var-flag@, Var VarFlag -- Bool, dip(var-status@ VarStatus->Int) VarFlag->Int & if(1, 0))
+def(var-flag@, Var VarFlag -- Bool, dip(var-status@ VarStatus->Int) VarFlag->Int & nonzero)
 def(var-flag?, Var VarFlag -- Var Bool, dip(dup) var-flag@)
 def(var-flag!, Var VarFlag -- , dip(var-status? VarStatus->Int) VarFlag->Int | Int->VarStatus swap var-status!)
 

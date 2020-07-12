@@ -35,7 +35,7 @@ def(.b, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
     codegen-length@ dup 1+ codegen-length! codegen-u8!)
 
-def(., Str -- +Codegen, while(dup u8@ U8->Int, dup u8@ .b str-tail) drop)
+def(., Str -- +Codegen, while(dup u8@ U8->Int nonzero, dup u8@ .b str-tail) drop)
 
 def(codegen-start!, File -- +Codegen,
     codegen-file! 0 codegen-length!)
@@ -88,7 +88,8 @@ def(c99-emit-header!, +IO,
     "#error \"Platform not supported.\"" ;
     "#endif" ;;
 
-    "#include <stdint.h>";;
+    "#include <stdint.h>";
+    "#include <stdbool.h>";;
 
     "typedef uint8_t u8;";
     "typedef uint16_t u16;";
@@ -118,7 +119,7 @@ def(c99-emit-strings!, +IO,
     "static const char strings[STRINGS_SIZE] = { " ;
     0
     while(dup strings-size@ <,
-        dup STRINGS_BUF u8@@ U8->Int dup .n "," .
+        dup STRINGS_BUF u8@@ U8->Int dup .n "," . nonzero
         if(id, .lf)
         1+
     ) drop
@@ -480,6 +481,26 @@ def(c99-emit-prims!, +IO,
     "   push((i64)(x + y));" ;
     "}" ;;
 
+    PRIM_TRUE .p " {" ;
+    "    push(true);";
+    "}" ;
+
+    PRIM_FALSE .p " {" ;
+    "    push(false);";
+    "}" ;;
+
+    PRIM_BOOL_AND .p " {" ;
+    "    bool x = pop();" ;
+    "    bool y = pop();" ;
+    "    push(y && x);" ;
+    "}" ;
+
+    PRIM_BOOL_OR .p " {" ;
+    "    bool x = pop();" ;
+    "    bool y = pop();" ;
+    "    push(y || x);" ;
+    "}" ;;
+
     )
 
 def(c99-emit-externals!, +IO,
@@ -502,9 +523,9 @@ def(c99-emit-external!, Name -- +IO,
         )
         dip(dip(dup .name))
         " (" .
-        over dup if(
+        over dup nonzero if(
             "i64" .
-            1- while(dup,
+            1- while(dup nonzero,
                 ", i64" .
                 1-
             ) drop,
@@ -512,17 +533,17 @@ def(c99-emit-external!, Name -- +IO,
         ) ");" ;
 
         " void mw" . dip(dip(dup .name)) " (void) {" ;
-        over while(dup,
+        over while(dup nonzero,
             "    i64 x" . dup .n " = pop();" ;
             1-
         ) drop
-        dup if("    push(", "    ") .
+        dup nonzero if("    push(", "    ") .
         dip(dip(dup .name))
         "(" .
-        dip(dup if(
+        dip(dup nonzero if(
             "x1" .
             dup 1-
-            while(dup,
+            while(dup nonzero,
                 ", x" .
                 dup2 - 1+ .n
                 1-
@@ -530,7 +551,7 @@ def(c99-emit-external!, Name -- +IO,
             id
         ))
         ")" .
-        dup if(");", ";") ;
+        dup nonzero if(");", ";") ;
         "}" ;
 
         drop3,

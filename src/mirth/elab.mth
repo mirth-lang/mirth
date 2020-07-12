@@ -48,7 +48,7 @@ def(elab-stack-type!, Token -- Type +Elab,
         dip(elab-implicit-stack-var! TVar),
         dip(TYPE_UNIT)
     )
-    while(sig-is-stack-end? if(0, sig-token-is-effect-con? not),
+    while(sig-is-stack-end? if(false, sig-token-is-effect-con? not),
         dup
         dip(elab-type! tensor-type-new! TTensor)
         token-succ
@@ -504,9 +504,22 @@ def(elab-arrow-step-prim!, Arrow Prim -- Arrow +Elab,
         elab-stack-pop2! TYPE_INT TYPE_PTR expect2
         if(TYPE_PTR, TYPE_ERROR) elab-stack-push!,
 
+    dup PRIM_TRUE = if(
+        drop elab-token@ token-args-0
+        TYPE_BOOL elab-stack-push!,
+    dup PRIM_FALSE = if(
+        drop elab-token@ token-args-0
+        TYPE_BOOL elab-stack-push!,
+    dup PRIM_BOOL_AND = if(
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab&& elab-stack-push!,
+    dup PRIM_BOOL_OR = if(
+        drop elab-token@ token-args-0
+        elab-stack-pop2! elab&& elab-stack-push!,
+
         drop TYPE_ERROR elab-stack!
         "compiler error: unknown prim in elaborator" elab-emit-warning!
-    ))))))))))))))))))))))))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
 def(elab-arrow-step-dip!, Arrow -- Arrow +Elab,
     elab-token@ dip(
@@ -518,7 +531,7 @@ def(elab-arrow-step-dip!, Arrow -- Arrow +Elab,
     )
 
 def(elab-arrow-step-if!, Arrow -- Arrow +Elab,
-    elab-stack-pop! TYPE_INT type-unify! drop # use TYPE_BOOL
+    elab-stack-pop! TYPE_BOOL type-unify! drop
     elab-token@ dup dip(
         token-args-2
         elab-stack@ dip(
@@ -535,7 +548,7 @@ def(elab-arrow-step-while!, Arrow -- Arrow +Elab,
         elab-stack@ dip(
             elab-token@ token-args-2
             dip(elab-arrow! Arrow->Arg arrow-arg-add!)
-            elab-stack-pop! TYPE_INT type-unify! drop # use TYPE_BOOL instead
+            elab-stack-pop! TYPE_BOOL type-unify! drop
         )
         elab-stack@ type-unify! dip(
             elab-arrow! Arrow->Arg arrow-arg-add!
@@ -549,8 +562,8 @@ def(elab-arrow-step-while!, Arrow -- Arrow +Elab,
 #################
 
 MAX_NAMES def-static-buffer(DEF_CHECKED)
-def(name-checked!, Bool Name --, dip(Int->U8) Name->Int DEF_CHECKED u8!!)
-def(name-checked@, Name -- Bool, Name->Int DEF_CHECKED u8@@ U8->Int)
+def(name-checked!, Bool Name --, dip(if(1,0) Int->U8) Name->Int DEF_CHECKED u8!!)
+def(name-checked@, Name -- Bool, Name->Int DEF_CHECKED u8@@ U8->Int 0 = not)
 def(name-checked?, Name -- Name Bool, dup name-checked@)
 
 def(typecheck-token!, Token --,
@@ -573,7 +586,7 @@ def(typecheck-name!, Name --,
     name-checked? if(
         drop,
 
-        1 over name-checked!
+        true over name-checked!
 
         name-is-prim? if(
             drop,
@@ -614,7 +627,7 @@ def(typecheck-word!, Name --,
 def(token-is-dashes, Token -- Bool,
     token-type? TOKEN_NAME = if(
         token-name@ PRIM_DASHES Prim->Name =,
-        drop 0
+        drop false
     ))
 
 def(token-is-dashes?, Token -- Token Bool,
@@ -622,7 +635,7 @@ def(token-is-dashes?, Token -- Token Bool,
 
 def(sig-is-stack-end?, Token -- Token Bool,
     token-is-dashes? if(
-        1,
+        true,
         token-run-end?
     ))
 
@@ -655,31 +668,31 @@ def(sig-count-types, Token -- Int Token,
 def(sig-token-is-type?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
         token-name? name-could-be-type,
-        0
+        false
     ))
 
 def(sig-token-is-type-con?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
         token-name? name-could-be-type-con,
-        0
+        false
     ))
 
 def(sig-token-is-type-var?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
         token-name? name-could-be-type-var,
-        0
+        false
     ))
 
 def(sig-token-is-stack-var?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
         token-name? name-could-be-stack-var,
-        0
+        false
     ))
 
 def(sig-token-is-effect-con?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
         token-name? name-could-be-effect-con,
-        0
+        false
     ))
 
 def(sig-skip-dashes, Token -- Token,
@@ -705,10 +718,13 @@ def(elab/, Type Type -- Type, TYPE_INT type-unify! type-unify!)
 def(elab%, Type Type -- Type, TYPE_INT type-unify! type-unify!)
 
 # elab for =, <, <= primitives
-def(elab=, Type Type -- Type, type-unify! drop TYPE_INT) # use TYPE_BOOL
+def(elab=, Type Type -- Type, type-unify! drop TYPE_BOOL)
 
 # elab for &, ^, | primitives
 def(elab&, Type Type -- Type, TYPE_INT type-unify! type-unify!)
+
+# elab for &&, || primitives
+def(elab&&, Type Type -- Type, TYPE_BOOL type-unify! type-unify!)
 
 # elab for @ primitive
 def(elab@, Type -- Type, TYPE_PTR expect1 drop TYPE_INT)
@@ -745,11 +761,11 @@ def(expect1, Type Type -- Bool +Elab,
     type-unify! TYPE_ERROR = not)
 
 def(expect2, Type Type Type Type -- Bool +Elab,
-    dip(swap) expect1 if(expect1, drop2 0)
+    dip(swap) expect1 if(expect1, drop2 false)
     ) # TODO: improve diagnostics
 
 def(expect3, Type Type Type Type Type Type -- Bool +Elab,
     dip(rotl) expect1 if(
         expect2,
-        drop2 drop2 0
+        drop2 drop2 false
     )) # TODO: improve diagnostics

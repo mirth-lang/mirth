@@ -17,7 +17,8 @@ def(init-types!, --,
     TYPE_I8 PRIM_I8 Prim->Name name-type!
     TYPE_I16 PRIM_I16 Prim->Name name-type!
     TYPE_I32 PRIM_I32 Prim->Name name-type!
-    TYPE_I64 PRIM_I64 Prim->Name name-type!)
+    TYPE_I64 PRIM_I64 Prim->Name name-type!
+    TYPE_BOOL PRIM_BOOL Prim->Name name-type!)
 
 def(test-types!, --, )
 
@@ -76,7 +77,7 @@ def(type-is-nominal?, Type -- Type Bool, dup type-is-nominal)
 def(type-is-stack-var, Type -- Bool,
     type-is-var? if(
         type-get-var var-name@ name-could-be-stack-var,
-        drop 0
+        drop false
     ))
 def(type-is-stack-var?, Type -- Type Bool, dup type-is-stack-var)
 
@@ -122,6 +123,7 @@ def(TYPE_I16, Type, 0x17 TPrim) # fixed width integer type -- signed 16 bit
 def(TYPE_I32, Type, 0x18 TPrim) # fixed width integer type -- signed 32 bit
 def(TYPE_I64, Type, 0x19 TPrim) # fixed width integer type -- signed 64 bit
 def(TYPE_UNIT, Type, 0x1A TPrim) # unit type, also used for empty stack
+def(TYPE_BOOL, Type, 0x1B TPrim) # bool type
 
 def(type-expand, Type -- Type,
     type-is-meta? if(
@@ -222,10 +224,10 @@ def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
 
 def(type-has-meta, MetaVar Type -- Bool,
     type-is-prim? if(
-        drop2 0,
+        drop2 false,
 
     type-is-var? if(
-        drop2 0,
+        drop2 false,
 
     type-is-meta? if(
         type-get-meta =,
@@ -237,7 +239,7 @@ def(type-has-meta, MetaVar Type -- Bool,
         type-get-morphism morphism-type-has-meta,
 
     type-is-nominal? if(
-        drop2 0,
+        drop2 false,
 
         "type-has-meta: unknown type" panic!
     )))))))
@@ -315,6 +317,8 @@ def(type-trace-prim!, Type -- +IO,
         drop "ERROR" str-trace!,
     dup TYPE_UNIT = if(
         drop "[]" str-trace!,
+    dup TYPE_BOOL = if(
+        drop "Bool" str-trace!,
     dup TYPE_INT = if(
         drop "Int" str-trace!,
     dup TYPE_PTR = if(
@@ -336,7 +340,7 @@ def(type-trace-prim!, Type -- +IO,
     dup TYPE_I64 = if(
         drop "I64" str-trace!,
         "<UNKNOWN PRIMITIVE TYPE " str-trace! Type->Int int-trace! ">" str-trace!
-    )))))))))))))
+    ))))))))))))))
 
 def(type-freshen, Subst Type -- Subst Type Bool,
     type-expand
@@ -354,7 +358,7 @@ def(type-freshen, Subst Type -- Subst Type Bool,
         morphism-type-freshen
         dip(TMorphism),
 
-        1
+        true
     ))))
 
 def(type-var-freshen, Subst Type -- Subst Type Bool,
@@ -364,7 +368,7 @@ def(type-var-freshen, Subst Type -- Subst Type Bool,
         meta-alloc! TMeta dup
         dip(rotr subst-new!)
     )
-    0)
+    false)
 
 ##################
 # Meta-var Types #
@@ -385,15 +389,15 @@ def(meta-alloc!, MetaVar,
     ))
 
 MAX_METAS def-static-buffer(META_DEF)
-def(meta-def-flag@, MetaVar -- Bool, MetaVar->Int META_DEF ptr+ u8@ U8->Int)
-def(meta-def-flag!, Bool MetaVar --, dip(Int->U8) MetaVar->Int META_DEF ptr+ u8!)
+def(meta-def-flag@, MetaVar -- Bool, MetaVar->Int META_DEF ptr+ u8@ U8->Int nonzero)
+def(meta-def-flag!, Bool MetaVar --, dip(if(1,0) Int->U8) MetaVar->Int META_DEF ptr+ u8!)
 def(meta-is-defined, MetaVar -- Bool, meta-def-flag@)
 def(meta-is-defined?, MetaVar -- MetaVar Bool, dup meta-is-defined)
 
 MAX_METAS |Type| * def-static-buffer(META_TYPE)
 def(meta-type&, MetaVar -- Ptr, MetaVar->Int |Type| * META_TYPE ptr+)
 def(meta-type!, Type MetaVar --,
-    1 over meta-def-flag!
+    true over meta-def-flag!
     meta-type& type!)
 def(meta-type@, MetaVar -- Type,
     meta-is-defined? not if(
@@ -466,7 +470,7 @@ def(tensor-type-unpack, TensorType -- Type Type,
 def(tensor-type-has-meta, MetaVar TensorType -- Bool,
     tensor-type-unpack
     dip(over) type-has-meta if(
-        drop2 1,
+        drop2 true,
         type-has-meta
     ))
 
@@ -476,11 +480,11 @@ def(tensor-type-freshen, Subst TensorType -- Subst TensorType Bool,
         tensor-type-unpack
         dip(type-freshen)
         dip(rotl) type-freshen
-        dip(dip(rotr) swap) &
+        dip(dip(rotr) swap) &&
     )
     swap if(
-        dip(drop2) 1,
-        drop tensor-type-new! 0
+        dip(drop2) true,
+        drop tensor-type-new! false
     ))
 
 # def(tensor-type-subst, Subst TensorType -- Subst TensorType,
@@ -529,7 +533,7 @@ def(morphism-type-unpack, MorphismType -- Type Type,
 def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
     morphism-type-unpack
     dip(over) type-has-meta if(
-        drop2 1,
+        drop2 true,
         type-has-meta
     ))
 
@@ -539,11 +543,11 @@ def(morphism-type-freshen, Subst MorphismType -- Subst MorphismType Bool,
         morphism-type-unpack
         dip(type-freshen)
         dip(rotl) type-freshen
-        dip(dip(rotr) swap) &
+        dip(dip(rotr) swap) &&
     )
     swap if(
-        dip(drop2) 1,
-        drop morphism-type-new! 0
+        dip(drop2) true,
+        drop morphism-type-new! false
     ))
 
 ############
