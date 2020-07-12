@@ -49,9 +49,9 @@ def(ctx-is-empty?, Ctx -- Ctx Bool, dup ctx-is-empty)
 def(ctx-has-name?, Name Ctx -- Name Ctx Bool, dup2 ctx-has-name)
 def(ctx-has-name, Name Ctx -- Bool,
     ctx-is-empty? if(
-        drop2 0,
+        drop2 false,
         dup ctx-name@ dip(over) = if(
-            drop2 1,
+            drop2 true,
             ctx-prev@ ctx-has-name
         )
     ))

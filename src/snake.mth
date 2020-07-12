@@ -45,12 +45,12 @@ def(coords-offset, XCoord YCoord -- Offset,
 def-type(State, U8)
 def(state-occupy, State -- State, U8->Int 0x1 | Int->U8)
 def(state-vacate, State -- State, U8->Int 0xFE & Int->U8)
-def(state-is-occupied, State -- Bool, U8->Int 0x1 &)
+def(state-is-occupied, State -- Bool, U8->Int 0x1 & nonzero)
 def(state-is-occupied?, State -- State Bool, dup state-is-occupied)
 
-def(snake-done@, -- Bool +Snake, SNAKE_DONE u8@ U8->Int)
+def(snake-done@, -- Bool +Snake, SNAKE_DONE u8@ U8->Int nonzero)
 def(snake-done!, Bool -- +Snake, if(1,0) Int->U8 SNAKE_DONE u8!)
-def(snake-dead@, -- Bool +Snake, SNAKE_DEAD u8@ U8->Int)
+def(snake-dead@, -- Bool +Snake, SNAKE_DEAD u8@ U8->Int nonzero)
 def(snake-dead!, Bool -- +Snake, if(1,0) Int->U8 SNAKE_DEAD u8!)
 def(snake-direction@, -- Direction +Snake, SNAKE_DIRECTION u8@)
 def(snake-direction!, Direction -- +Snake, SNAKE_DIRECTION u8!)
@@ -78,7 +78,7 @@ def(snake-grid@, XCoord YCoord -- State +Snake,
 def(snake-grid!, State XCoord YCoord -- +Snake,
     coords-offset SNAKE_GRID u8!!)
 def(snake-grid-clear!, +Snake,
-    SNAKE_W SNAKE_H * while(dup,
+    SNAKE_W SNAKE_H * while(dup nonzero,
         1-
         0 Int->U8 over SNAKE_GRID u8!!
     ) drop)
@@ -175,7 +175,7 @@ def(snake-reset!, +Snake,
     0 snake-queue-length!
     snake-grid-clear!
     snake-randomize-mouse!
-    0 snake-dead!
+    false snake-dead!
     0 snake-points!
     0 tick-timer!)
 
@@ -187,7 +187,7 @@ def(SNAKE_INIT_FLAGS, SDL_InitFlags,
 def(snake-init!, +Snake,
     snake-reset!
 
-    SNAKE_INIT_FLAGS SDL_Init if(
+    SNAKE_INIT_FLAGS SDL_Init nonzero if(
         SDL_GetError panic!,
         id
     )
@@ -207,7 +207,7 @@ def(snake-init!, +Snake,
     SNAKE_WINDOW_H
     SNAKE_WINDOW_FLAGS
     SDL_CreateWindow
-    dup Ptr->Int if(
+    dup Ptr->Int nonzero if(
         snake-window!,
         SDL_GetError panic!
     )
@@ -216,7 +216,7 @@ def(snake-init!, +Snake,
     -1
     SNAKE_RENDERER_FLAGS
     SDL_CreateRenderer
-    dup Ptr->Int if(
+    dup Ptr->Int nonzero if(
         snake-renderer!,
         SDL_GetError panic!
     ))
@@ -284,21 +284,21 @@ def(snake-present!, +Snake,
     snake-renderer@ SDL_RenderPresent)
 
 def(snake-process-events!, +Snake,
-    while(SNAKE_EVENT SDL_PollEvent,
+    while(SNAKE_EVENT SDL_PollEvent nonzero,
         snake-process-event!))
 
 def(snake-process-event!, +Snake,
     SNAKE_EVENT SDL_Event.type
     dup SDL_QUIT = if(
-        drop 1 snake-done!,
+        drop true snake-done!,
 
     dup SDL_KEYDOWN = if(
         drop
-        SNAKE_EVENT SDL_Event.key.repeat U8->Int if(
+        SNAKE_EVENT SDL_Event.key.repeat U8->Int nonzero if(
             id,
             SNAKE_EVENT SDL_Event.key.keysym.scancode
             dup SDL_SCANCODE_ESCAPE = if(
-                drop 1 snake-done!,
+                drop true snake-done!,
                 SDL_Scancode->SnakeButton snake-press!
             )
         ),
@@ -359,8 +359,8 @@ def(TICK_FRAMES, Int, 7)
 def(snake-tick!, Bool +Snake,
     tick-timer@
     1+ dup TICK_FRAMES >= if(
-        drop 0 tick-timer! 1,
-        tick-timer! 0
+        drop 0 tick-timer! true,
+        tick-timer! false
     ))
 
 def(snake-update!, +Snake,
@@ -375,8 +375,8 @@ def(snake-update!, +Snake,
         snake-apply-direction
         snake-xy!
 
-        snake-xy@ snake-grid@ U8->Int if(
-            1 snake-dead!,
+        snake-xy@ snake-grid@ U8->Int nonzero if(
+            true snake-dead!,
 
             1 Int->U8 snake-xy@ snake-grid!
             snake-check-mouse!
@@ -411,14 +411,14 @@ def(snake-randomize-mouse!, +IO +Snake,
     rand SNAKE_W % Int->XCoord SNAKE_MOUSE_X u8!
     rand SNAKE_H % Int->YCoord SNAKE_MOUSE_Y u8!
 
-    snake-mouse-xy@ snake-grid@ U8->Int if(
+    snake-mouse-xy@ snake-grid@ U8->Int nonzero if(
         snake-randomize-mouse!, # TODO: avoid crashing ...
         id
     ))
 
 def(snake-check-mouse!, +Snake,
     snake-x@ snake-mouse-x@ =
-    snake-y@ snake-mouse-y@ = & if(
+    snake-y@ snake-mouse-y@ = && if(
         snake-randomize-mouse!
         snake-points-inc!,
 

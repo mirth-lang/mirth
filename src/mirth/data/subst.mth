@@ -51,9 +51,9 @@ def(subst-type?, Subst -- Subst Type, dup subst-type@)
 
 def(subst-has-var, Var Subst -- Bool,
     subst-is-nil? if(
-        drop2 0,
+        drop2 false,
         dup2 subst-var@ = if(
-            drop2 1,
+            drop2 true,
             subst-rest@ subst-has-var
         )
     ))

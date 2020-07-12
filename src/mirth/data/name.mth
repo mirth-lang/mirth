@@ -55,12 +55,12 @@ def(name-quads-eq, Name -- Bool,
     5 over quad@@ 5 STR_BUF quad@@ = if(
     6 over quad@@ 6 STR_BUF quad@@ = if(
     7 swap quad@@ 7 STR_BUF quad@@ =,
-    drop 0), drop 0), drop 0), drop 0),
-    drop 0), drop 0), drop 0))
+    drop false), drop false), drop false), drop false),
+    drop false), drop false), drop false))
 
 def(hash, Ptr -- Hash,
     0 swap
-    while(dup u8@ U8->Int,
+    while(dup u8@ U8->Int nonzero,
         dup dip(u8@ U8->Int 5 * swap 18 * ^)
         str-tail)
     drop
@@ -120,7 +120,7 @@ def(name-is-error?, Name -- Name Bool, dup name-is-error)
 def(name-save-keep-going?, Hash -- Hash Bool,
     dup name-table@
     name-is-error? if(
-        drop 0,
+        drop false,
         name-quads-eq not
     ))
 
@@ -166,13 +166,13 @@ def(name-could-be-type-con, Name -- Bool,
 def(name-could-be-stack-var, Name -- Bool,
     name-quads& dup u8@ is-asterisk? nip if(
         str-tail u8@ is-lower? nip,
-        drop 0
+        drop false
     ))
 
 def(name-could-be-effect-con, Name -- Bool,
     name-quads& dup u8@ is-plus-sign? nip if(
         str-tail u8@ is-upper? nip,
-        drop 0
+        drop false
     ))
 
 def(name-print-mangled!, Name -- +IO,
@@ -308,7 +308,12 @@ def(PRIM_IMPORT, Prim, 69 Int->Prim)
 def(PRIM_NOMINAL, Prim, 70 Int->Prim)
 def(PRIM_CAST, Prim, 71 Int->Prim)
 def(PRIM_PTR+, Prim, 72 Int->Prim)
-def(NUM_PRIMS, Size, 73)
+def(PRIM_BOOL, Prim, 73 Int->Prim)
+def(PRIM_TRUE, Prim, 74 Int->Prim)
+def(PRIM_FALSE, Prim, 75 Int->Prim)
+def(PRIM_BOOL_AND, Prim, 76 Int->Prim)
+def(PRIM_BOOL_OR, Prim, 77 Int->Prim)
+def(NUM_PRIMS, Size, 78)
 
 def(name-is-prim?, Name -- Name Bool, dup Name->Int NUM_PRIMS <)
 
@@ -322,14 +327,14 @@ def(def-prim!, Prim Str -- +Names,
 # by def-prim!
 def(init-names!, +Names,
     NAME_TABLE_SIZE
-    while(dup,
+    while(dup nonzero,
         1-
         0 over NAME_TABLE quad!!
     ) drop
 
-    num-names@ while(dup,
+    num-names@ while(dup nonzero,
         1- Int->Name
-        0 over name-checked!
+        false over name-checked!
         DEF_NONE over name-sort!
         0 Int->NameValue over name-value!
         Name->Int
@@ -408,6 +413,11 @@ def(init-names!, +Names,
     PRIM_NOMINAL "nominal" def-prim!
     PRIM_CAST "prim.unsafe.cast" def-prim!
     PRIM_PTR+ "prim.unsafe.ptr+" def-prim!
+    PRIM_BOOL "Bool" def-prim!
+    PRIM_TRUE "true" def-prim!
+    PRIM_FALSE "false" def-prim!
+    PRIM_BOOL_AND "&&" def-prim!
+    PRIM_BOOL_OR "||" def-prim!
     NUM_PRIMS num-names@ = if(id,
         "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
     )

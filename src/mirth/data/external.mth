@@ -52,6 +52,5 @@ def(external-flags&, External -- Ptr, External->Int EXTERNAL_FLAGS ptr+)
 def(external-flags@, External -- Int, external-flags& u8@ U8->Int)
 def(external-flags!, Int External --, dip(Int->U8) external-flags& u8!)
 def(EXTERNAL_FLAG_SIG_CHECKED, Int, 0x1)
-def(external-sig-is-checked?, External -- External Bool, dup external-flags@ EXTERNAL_FLAG_SIG_CHECKED & if(1,0))
+def(external-sig-is-checked?, External -- External Bool, dup external-flags@ EXTERNAL_FLAG_SIG_CHECKED & nonzero)
 def(external-sig-is-checked!, External --, dup external-flags@ EXTERNAL_FLAG_SIG_CHECKED | swap external-flags!)
-

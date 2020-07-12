@@ -4,13 +4,15 @@ import(prelude/common)
 
 def(!!, Bool --, if(id, "Assertion failed" panic!))
 def(!!=, a a --, = !!)
-def(!!0, Bool --, 0 !!=)
-def(!!1, Bool --, 1 !!=)
-def(!!001, Int Int Int --, !!1 !!0 !!0)
-def(!!010, Int Int Int --, !!0 !!1 !!0)
-def(!!011, Int Int Int --, !!1 !!1 !!0)
-def(!!100, Int Int Int --, !!0 !!0 !!1)
-def(!!111, Int Int Int --, !!1 !!1 !!1)
+def(!!false, Bool --, false !!=)
+def(!!true, Bool --, true !!=)
+def(!!0, Int --, 0 !!=)
+def(!!1, Int --, 1 !!=)
+def(!!001, Int Int Int --, 1 !!= 0 !!= 0 !!=)
+def(!!010, Int Int Int --, 0 !!= 1 !!= 0 !!=)
+def(!!011, Int Int Int --, 1 !!= 1 !!= 0 !!=)
+def(!!100, Int Int Int --, 0 !!= 0 !!= 1 !!=)
+def(!!111, Int Int Int --, 1 !!= 1 !!= 1 !!=)
 
 # Tests
 
@@ -35,58 +37,58 @@ def(test-rotl, --,
     0 0 1 rotl !!010)
 
 def(test=, --,
-    0 0 = !!1
-    0 1 = !!0
-    1 0 = !!0
-    1 1 = !!1
-    1 2 = !!0
-    2 1 = !!0
-    2 2 = !!1)
+    0 0 = !!true
+    0 1 = !!false
+    1 0 = !!false
+    1 1 = !!true
+    1 2 = !!false
+    2 1 = !!false
+    2 2 = !!true)
 def(test<, --,
-    0 0 < !!0
-    0 1 < !!1
-    1 0 < !!0
-    1 1 < !!0
-    1 2 < !!1
-    2 1 < !!0
-    2 2 < !!0)
+    0 0 < !!false
+    0 1 < !!true
+    1 0 < !!false
+    1 1 < !!false
+    1 2 < !!true
+    2 1 < !!false
+    2 2 < !!false)
 def(test<=, --,
-    0 0 <= !!1
-    0 1 <= !!1
-    1 0 <= !!0
-    1 1 <= !!1
-    1 2 <= !!1
-    2 1 <= !!0
-    2 2 <= !!1)
+    0 0 <= !!true
+    0 1 <= !!true
+    1 0 <= !!false
+    1 1 <= !!true
+    1 2 <= !!true
+    2 1 <= !!false
+    2 2 <= !!true)
 def(test>, --,
-    0 0 > !!0
-    0 1 > !!0
-    1 0 > !!1
-    1 1 > !!0
-    1 2 > !!0
-    2 1 > !!1
-    2 2 > !!0)
+    0 0 > !!false
+    0 1 > !!false
+    1 0 > !!true
+    1 1 > !!false
+    1 2 > !!false
+    2 1 > !!true
+    2 2 > !!false)
 def(test>=, --,
-    0 0 >= !!1
-    0 1 >= !!0
-    1 0 >= !!1
-    1 1 >= !!1
-    1 2 >= !!0
-    2 1 >= !!1
-    2 2 >= !!1
-    -1 0 >= !!0
-    -1 -1 >= !!1
-    0 -1 >= !!1
-    -1 -2 >= !!1
-    -2 -2 >= !!1
-    -2 -1 >= !!0)
+    0 0 >= !!true
+    0 1 >= !!false
+    1 0 >= !!true
+    1 1 >= !!true
+    1 2 >= !!false
+    2 1 >= !!true
+    2 2 >= !!true
+    -1 0 >= !!false
+    -1 -1 >= !!true
+    0 -1 >= !!true
+    -1 -2 >= !!true
+    -2 -2 >= !!true
+    -2 -1 >= !!false)
 
 def(test+, --,
     0 0 + !!0
     0 1 + !!1
     1 0 + !!1
-    1 1 + 2 = !!1
-    2 2 + 4 = !!1
+    1 1 + 2 = !!true
+    2 2 + 4 = !!true
     2 -2 + !!0)
 
 def(test-, --,
@@ -178,4 +180,4 @@ def(test-str, --,
     )
 
 def(test-while, --,
-    999 10 20 while(dup, 1- dip(1+)) drop 30 !!= 999 !!=)
+    999 10 20 while(dup nonzero, 1- dip(1+)) drop 30 !!= 999 !!=)
