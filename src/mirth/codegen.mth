@@ -568,6 +568,70 @@ def(c99-emit-word-sigs!, +IO,
     "" ;
     drop)
 
+def(c99-emit-arrow!, Arrow -- +IO,
+    c99-depth++
+    while(arrow-is-nil? not,
+        dup c99-emit-arrow-op!
+        arrow-next@)
+    drop
+    c99-depth--)
+
+def(c99-emit-arrow-op!, Arrow -- +IO,
+
+    arrow-op-is-none? if(
+        drop,
+
+    arrow-op-is-int? if(
+        arrow-op-int@
+        "    push(" . .n ");" ;,
+
+    arrow-op-is-str? if(
+        arrow-op-str@ StrLit->Int
+        "    push((i64)(strings + " . .n "));" ;, # FIXME: just push a string literal.
+
+    arrow-op-is-word? if(
+        arrow-op-word@ word-name@
+        "    mw" . .name "();" ;,
+
+    arrow-op-is-external? if(
+        arrow-op-external@ external-name@
+        "    mw" . .name "();" ;,
+
+    arrow-op-is-buffer? if(
+        arrow-op-buffer@ buffer-name@
+        "    mw" . .name "();" ;,
+
+    arrow-op-is-prim? if(
+        arrow-op-prim?
+        dup PRIM_DIP = if(
+            drop arrow-args-1
+            "    { i64 d" . .d " = pop();" ;
+            Arg->Arrow c99-emit-arrow!
+            "      push(d" . .d "); }" ;,
+
+        dup PRIM_IF = if(
+            drop arrow-args-2
+            "    if (pop()) {" ;
+            dip(Arg->Arrow c99-emit-arrow!)
+            "    } else {" ;
+            Arg->Arrow c99-emit-arrow!
+            "    }" ;,
+
+        dup PRIM_WHILE = if(
+            drop arrow-args-2
+            "    while(1) {" ;
+            dip(Arg->Arrow c99-emit-arrow!)
+            "    if (!pop()) break;" ;
+            Arg->Arrow c99-emit-arrow!
+            "    }" ;,
+
+            nip
+            "    mw" . Prim->Name .name "();" ;
+        ))),
+
+        arrow-token@ "compiler error: Unknown arrow op in c99-emit-arrow-op!" emit-fatal-error!
+    ))))))))
+
 def(c99-emit-word-sig!, Name -- +IO,
     name-is-word? if(
         " void mw" . .name " (void);" ;,
@@ -583,66 +647,19 @@ def(c99-emit-word-defs!, +IO,
 
 def(c99-emit-word-def!, Name -- +IO,
     name-is-word? if(
-        dup typecheck-name!
         dup .w "{" ;
-        name-word@ word-body@ c99-emit-run!
+        name-word@ elab-word-body! c99-emit-arrow!
         "}" ;;,
         drop
     ))
 
-def(c99-emit-run!, Token -- +IO,
-    c99-depth++
-    while(token-run-end? not,
-        dup c99-emit-token!
-        token-next
-    ) drop
-    c99-depth--)
-
-def(c99-emit-token!, Token -- +IO,
-    dup typecheck-token!
-
-    token-type? TOKEN_INT = if(
-        "    push(" . token-int@ .n ");" ;,
-
-    token-type? TOKEN_STR = if(
-        "    push((i64)(strings + " . token-value@ TokenValue->Int .n "));" ;, # FIXME: just push a string literal.
-
-    token-type? TOKEN_NAME = if(
-        c99-emit-word!,
-
-        drop
-    ))))
-
-def(c99-emit-word!, Token -- +IO,
-    token-name? PRIM_DIP Prim->Name = if(
-        token-args-1
-        "    { i64 d" . .d " = pop();" ;
-        c99-emit-run!
-        "      push(d" . .d "); }" ;,
-
-    token-name? PRIM_IF Prim->Name = if(
-        token-args-2
-        "    if (pop()) {" ;
-        dip(c99-emit-run!)
-        "    } else {" ;
-        c99-emit-run!
-        "    }" ;,
-
-    token-name? PRIM_WHILE Prim->Name = if(
-        token-args-2
-        "    while(1) {" ;
-        dip(c99-emit-run!)
-        "    if (!pop()) break;" ;
-        c99-emit-run!
-        "    }" ;,
-
-        token-name@
-        "    mw" . .name "();" ;
-    ))))
-
 def(c99-emit-main!, Token -- +IO,
+    ctx-empty elab-ctx!
+    TYPE_UNIT elab-stack!
+    elab-arrow!
+
     "int main (int argc, char** argv) {" ;
-    c99-emit-run!
+    c99-emit-arrow!
     "    return 0;" ;
     "}" ;
     )

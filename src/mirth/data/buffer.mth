@@ -28,13 +28,14 @@ def(buffer-size@, Buffer -- Size +Buffers,
 def(buffer-size!, Size Buffer -- +Buffers,
     Buffer->Int BUFFER_SIZE quad!!)
 
-def(buffer-alloc!, Size -- Buffer +Buffers,
+def(buffer-alloc!, Name Size -- Buffer +Buffers,
     num-buffers@ MAX_BUFFERS >= if(
         "compiler error: ran out of buffers" panic!,
         dup heap-alloc!
         num-buffers@ dup 1+ num-buffers! Int->Buffer
         tuck buffer-base!
         tuck buffer-size!
+        tuck buffer-name!
     ))
 
 def(buffer-base@, Buffer -- Ptr +Buffers,
@@ -43,3 +44,8 @@ def(buffer-base@, Buffer -- Ptr +Buffers,
 def(buffer-base!, Ptr Buffer -- +Buffers,
     dip(Ptr->Int) Buffer->Int BUFFER_BASE quad!!)
 
+MAX_BUFFERS |Name| * def-static-buffer(BUFFER_NAME)
+def(buffer-name&, Buffer -- Ptr, Buffer->Int |Name| * BUFFER_NAME ptr+)
+def(buffer-name!, Name Buffer -- +Buffers, buffer-name& name!)
+def(buffer-name@, Buffer -- Name +Buffers, buffer-name& name@)
+def(buffer-name?, Buffer -- Buffer Name +Buffers, dup buffer-name@)
