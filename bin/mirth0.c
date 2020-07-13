@@ -9679,11 +9679,8 @@ void mwtoken_run_prim_21_ (void){
     if (pop()) {
     mwnip();
     mwvstack_pop_21_();
-    mwover();
-    { i64 d55 = pop();
     mwbuffer_alloc_21_();
-      push(d55); }
-    mwname_buffer_21_();
+    mwdrop();
     } else {
     mwdrop();
     push((i64)(strings + 2941));
@@ -10110,7 +10107,10 @@ void mwbuffer_alloc_21_ (void){
     mwtuck();
     mwbuffer_size_21_();
     mwtuck();
+    mwdup2();
     mwbuffer_name_21_();
+    mwswap();
+    mwname_buffer_21_();
     }
 }
 
