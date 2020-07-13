@@ -38,6 +38,7 @@ def(arrow@, Ptr -- Arrow, u32@ U32->Arrow)
 def(arrow!, Arrow Ptr --, dip(Arrow->U32) u32!)
 
 def(ARROW_NIL, Arrow, 0 Int->Arrow)
+def(arrow-is-nil?, Arrow -- Arrow Bool, dup ARROW_NIL =)
 
 def(MAX_ARROWS, Size, 0x20000)
 quad def-static-buffer(NUM_ARROWS)
@@ -88,11 +89,20 @@ def(arrow-op!, Op Arrow --, arrow-op& op!)
 def(arrow-op@, Arrow -- Op, arrow-op& op@)
 def(arrow-op?, Arrow -- Arrow Op, dup arrow-op@)
 
+def(arrow-op-is-none?, Arrow -- Arrow Bool, arrow-op? OP_NONE =)
+def(arrow-op-is-prim?, Arrow -- Arrow Bool, arrow-op? OP_PRIM =)
+def(arrow-op-is-word?, Arrow -- Arrow Bool, arrow-op? OP_WORD =)
+def(arrow-op-is-external?, Arrow -- Arrow Bool, arrow-op? OP_EXTERNAL =)
+def(arrow-op-is-buffer?, Arrow -- Arrow Bool, arrow-op? OP_BUFFER =)
+def(arrow-op-is-int?, Arrow -- Arrow Bool, arrow-op? OP_INT =)
+def(arrow-op-is-str?, Arrow -- Arrow Bool, arrow-op? OP_STR =)
+
 MAX_ARROWS quads def-static-buffer(ARROW_OP-VALUE)
 def(arrow-op-value&, Arrow -- Ptr, Arrow->Int quads ARROW_OP-VALUE ptr+)
 def(arrow-op-value!, Int Arrow --, arrow-op-value& !)
 def(arrow-op-value@, Arrow -- Int, arrow-op-value& @)
 def(arrow-op-value?, Arrow -- Arrow Int, dup arrow-op-value@)
+
 
 def(arrow-op-prim!, Prim Arrow --,
     OP_PRIM over arrow-op!
@@ -206,6 +216,9 @@ def(arrow-args!, Args Arrow --, arrow-args& args!)
 def(arrow-args@, Arrow -- Args, arrow-args& args@)
 def(arrow-args?, Arrow -- Arrow Args, dup arrow-args@)
 
+def(args-len, Args -- Int,
+    0 swap while(args-is-nil? not, dip(1+) args-tail@) drop)
+
 # Get pointer to last args var in args list.
 def(arrow-args-last&, Arrow -- Ptr,
     arrow-args& while(
@@ -216,3 +229,26 @@ def(arrow-args-last&, Arrow -- Ptr,
 def(arrow-arg-add!, Arrow Arg -- Arrow,
     args-alloc! tuck args-head!
     over arrow-args-last& args!)
+
+def(arrow-args-0, Arrow --,
+    arrow-args?
+    args-len 0 = if(
+        drop,
+        arrow-token@ "compiler error: expected no args in arrow" emit-fatal-error!
+    ))
+
+def(arrow-args-1, Arrow -- Arg,
+    arrow-args?
+    args-len 1 = if(
+        arrow-args@ args-head@,
+        arrow-token@ "compiler error: expected 1 arg in arrow" emit-fatal-error!
+    ))
+
+def(arrow-args-2, Arrow -- Arg Arg,
+    arrow-args?
+    args-len 2 = if(
+        arrow-args@ args-head? swap
+        args-tail@ args-head@,
+
+        arrow-token@ "compiler error: expected 2 args in arrow" emit-fatal-error!
+    ))
