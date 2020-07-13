@@ -397,4 +397,4 @@ def(lexer-location, Module Row Col +Lexer,
 
 def(lexer-emit-warning!, Str -- +IO, dip(lexer-location) emit-warning-at!)
 def(lexer-emit-error!, Str -- +IO, dip(lexer-location) emit-error-at!)
-def(lexer-emit-fatal-error!, Str -- +IO, dip(lexer-location) emit-fatal-error-at!)
+def(lexer-emit-fatal-error!, *a Str -- *b +IO, dip(lexer-location) emit-fatal-error-at!)

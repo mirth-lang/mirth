@@ -74,7 +74,7 @@ def(token-is-int?, Token -- Token Bool,
 def(token-int@, Token -- Int,
     token-type? TOKEN_INT = if(
         token-value@ TokenValue->Int,
-        "compiler error: token-int@ called on non-int token" emit-fatal-error! 0
+        "compiler error: token-int@ called on non-int token" emit-fatal-error!
     ))
 def(token-int?, Token -- Token Int, dup token-int@)
 
@@ -83,7 +83,7 @@ def(token-is-str?, Token -- Token Bool,
 def(token-str@, Token -- Str,
     token-type? TOKEN_STR = if(
         token-value@ TokenValue->Str,
-        "compiler error: token-str@ called on non-str token" emit-fatal-error! ""
+        "compiler error: token-str@ called on non-str token" emit-fatal-error!
     ))
 def(token-str?, Token -- Token Str, dup token-str@)
 
@@ -92,7 +92,7 @@ def(token-is-name?, Token -- Token Bool,
 def(token-name@, Token -- Name,
     token-type? TOKEN_NAME = if(
         token-value@ TokenValue->Name,
-        "compiler error: token-name@ called on non-name token" emit-fatal-error! NAME_ERROR
+        "compiler error: token-name@ called on non-name token" emit-fatal-error!
     ))
 def(token-name?, Token -- Token Name, dup token-name@)
 
@@ -101,7 +101,7 @@ def(token-token@, Token -- Token,
         token-value@ TokenValue->Token,
     token-type? TOKEN_RPAREN = if(
         token-value@ TokenValue->Token,
-        "compiler error: token-token@ called on non-paren token" emit-fatal-error! 0 Int->Token
+        "compiler error: token-token@ called on non-paren token" emit-fatal-error!
     )))
 def(token-token?, Token -- Token Token, dup token-token@)
 
@@ -220,7 +220,7 @@ def(token-args-1, Token -- Token,
         ),
         drop
         "expected 1 arg, got none"
-        emit-fatal-error! 0 Int->Token
+        emit-fatal-error!
     ))
 
 # Verify that token has 2 args, and return them.
@@ -239,11 +239,11 @@ def(token-args-2, Token -- Token Token,
             ),
             drop
             "expected 2 args, got only 1"
-            emit-fatal-error! 0 Int->Token
+            emit-fatal-error!
         ),
         drop
         "expected 2 args, got none"
-        emit-fatal-error! 0 Int->Token 0 Int->Token
+        emit-fatal-error!
     ))
 
 # Verify that token has 3 args, and return them.
@@ -264,13 +264,13 @@ def(token-args-3, Token -- Token Token Token,
                 ),
                 drop
                 "expected 3 args, got only 2"
-                emit-fatal-error! 0 Int->Token
+                emit-fatal-error!
             ),
             drop
             "expected 3 args, got only 1"
-            emit-fatal-error! 0 Int->Token 0 Int->Token
+            emit-fatal-error!
         ),
         drop
         "expected 3 args, got none"
-        emit-fatal-error! 0 Int->Token 0 Int->Token 0 Int->Token
+        emit-fatal-error!
     ))

@@ -12,7 +12,7 @@ def(elab-token@, -- Token +Elab, ELAB_TOKEN token@)
 def(elab-token!, Token -- +Elab, ELAB_TOKEN token!)
 def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
 def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
-def(elab-emit-fatal-error!, Str -- +Elab, dip(elab-token@) emit-fatal-error!)
+def(elab-emit-fatal-error!, *a Str -- *b +Elab, dip(elab-token@) emit-fatal-error!)
 
 
 |Type| def-static-buffer(ELAB_STACK)
@@ -331,7 +331,6 @@ def(stack-type-concat, Type Type -- Type,
         tensor-type-new! TTensor,
 
         "compiler error: expected stack type in stack-type-concat" elab-emit-fatal-error!
-        nip
     ))))
 
 def(elab??, +Elab,
