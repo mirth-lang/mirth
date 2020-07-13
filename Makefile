@@ -33,6 +33,9 @@ install-vim:
 install-code:
 	code --install-extension tools/mirth-code/mirth-*.vsix
 
+install-atom:
+	apm link tools/mirth-atom
+
 profile: bin/mirth_prof
 	time bin/mirth_prof
 	rm -f bin/mirth.c

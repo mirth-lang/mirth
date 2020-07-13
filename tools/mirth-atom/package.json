@@ -1,0 +1,13 @@
+{
+  "name": "language-mirth",
+  "version": "0.0.1",
+  "description": "Language support for the Mirth programming language",
+  "keywords": [
+  ],
+  "repository": "mirth-lang/mirth",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  }
+}
