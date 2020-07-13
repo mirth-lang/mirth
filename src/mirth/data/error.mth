@@ -16,10 +16,10 @@ def(emit-error-at!, Module Row Col Str -- +IO,
     ": error: " str-trace!
     str-trace-ln!)
 
-def(emit-fatal-error-at!, Module Row Col Str -- +IO,
+def(emit-fatal-error-at!, *a Module Row Col Str -- *b +IO,
     emit-error-at!
     1 posix-exit!)
 
 def(emit-warning!, Token Str -- +IO, dip(token-location) emit-warning-at!)
 def(emit-error!, Token Str -- +IO, dip(token-location) emit-error-at!)
-def(emit-fatal-error!, Token Str -- +IO, dip(token-location) emit-fatal-error-at!)
+def(emit-fatal-error!, *a Token Str -- *b +IO, dip(token-location) emit-fatal-error-at!)

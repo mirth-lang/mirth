@@ -500,9 +500,9 @@ def(token-run-prim!, Token --,
                 dup dip(word-body!)
                 word-sig!,
 
-                drop "word already defined" emit-fatal-error! drop2
+                drop "word already defined" emit-fatal-error!
             ),
-            "expected word name" emit-fatal-error! drop2
+            "expected word name" emit-fatal-error!
         ),
 
     dup PRIM_DEF_EXTERNAL = if(
@@ -540,9 +540,9 @@ def(token-run-prim!, Token --,
                 )
                 swap name-type!,
 
-                drop "type already defined" emit-fatal-error! drop
+                drop "type already defined" emit-fatal-error!
             ),
-            "expected type constructor" emit-fatal-error! drop
+            "expected type constructor" emit-fatal-error!
         ),
 
     dup PRIM_NOMINAL = if(
@@ -562,9 +562,9 @@ def(token-run-prim!, Token --,
                 )
                 over dip(nominal-new! TNominal) name-type!,
 
-                drop "type already defined" emit-fatal-error! drop
+                drop "type already defined" emit-fatal-error!
             ),
-            "expected type constructor" emit-fatal-error! drop
+            "expected type constructor" emit-fatal-error!
         ),
 
     dup PRIM_DEF_STATIC_BUFFER = if(
@@ -693,9 +693,9 @@ def(token-run-prim!, Token --,
 def(arity-check!, Token Size Size -- Token,
     dip(dip(vstack-len@))
     dip(dup2 <) swap if(
-        drop drop2 "Stack underflow." emit-fatal-error! 0 Int->Token,
+        drop drop2 "Stack underflow." emit-fatal-error!,
         dip(-) + VSTACK_SIZE > if(
-            "Stack overflow." emit-fatal-error! 0 Int->Token,
+            "Stack overflow." emit-fatal-error!,
             id
         )
     ))
