@@ -35,7 +35,7 @@ def(buffer-alloc!, Name Size -- Buffer +Buffers,
         num-buffers@ dup 1+ num-buffers! Int->Buffer
         tuck buffer-base!
         tuck buffer-size!
-        tuck buffer-name!
+        tuck dup2 buffer-name! swap name-buffer!
     ))
 
 def(buffer-base@, Buffer -- Ptr +Buffers,

@@ -573,8 +573,7 @@ def(token-run-prim!, Token --,
         token-args-1
         token-type? TOKEN_NAME = if(
             token-name? name-undefined? if(
-                nip
-                vstack-pop! over dip(buffer-alloc!) name-buffer!,
+                nip vstack-pop! buffer-alloc! drop,
                 drop "buffer already defined" emit-fatal-error!
             ),
             "expected buffer name" emit-fatal-error!
