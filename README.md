@@ -10,9 +10,11 @@ This repository is a work-in-progress implementation of Mirth. If you are intere
 
 ## Tools
 
-Mirth syntax highlighting for Vim is available at `tools/mirth-vim`. To install it via Pathogen, run `make install-vim`.
-
-Mirth syntax highlighting for VS Code is available at `tools/mirth-code`. The extension is not yet published in the Marketplace, but you can install it locally. To do so, make sure `code` is in your `PATH`, then run `make install-code`.
+| Editor       | Source | Install                                                                                                                    | Syntax highlighting |
+| ------------ | ------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| Vim          | `tools/mirth-vim` | To install via Pathogen,           </br> run `make install-vim`.                                                           | :heavy_check_mark:  |
+| VS Code      | `tools/mirth-code` | Ensuring `code` is in your `PATH`, </br> run `make install-code`. </br> Not yet published in the Marketplace.              | :heavy_check_mark:  |
+| Atom         | `tools/mirth-atom` | Ensuring `apm` is in your `PATH`,  </br> run `make install-atom`. </br> Not yet published in the atom.io package registry. | :heavy_check_mark:  |
 
 ## License
 
