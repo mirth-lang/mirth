@@ -13,11 +13,6 @@ def(|Ctx|, Size, 2)
 def(ctx@, Ptr -- Ctx, u16@ U16->Int Int->Ctx)
 def(ctx!, Ctx Ptr --, dip(Ctx->Int Int->U16) u16!)
 
-def(MAX_CTX, Size, 0x4000)
-
-field(ctx-prev, Ctx, Ctx)
-field(ctx-var, Ctx, Var)
-
 def(ctx-name@, Ctx -- Name, ctx-var@ var-name@)
 
 def(ctx-new!, Ctx Var -- Ctx,

@@ -30,9 +30,6 @@ def(var-new-implicit!, Name -- Var,
     var-new!
     true over var-is-implicit!)
 
-field(var-is-implicit, Var, Bool)
-field(var-name, Var, Name)
-field(var-type, Var, Type)
 
 def(var-trace-binding!, Var -- +IO,
     var-name? name-load! str-buf-trace!

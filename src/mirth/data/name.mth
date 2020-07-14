@@ -425,7 +425,6 @@ def(init-names!, +Names,
 # Defs #
 ########
 
-nominal(NameValue, Int)
 def(NameValue->Int, NameValue -- Int, cast)
 def(NameValue->Type, NameValue -- Type,
     NameValue->Int Int->Type)
@@ -440,7 +439,6 @@ def(Buffer->NameValue, Buffer -- NameValue, Buffer->Int Int->NameValue)
 def(External->NameValue, External -- NameValue, External->Int Int->NameValue)
 def(Module->NameValue, Module -- NameValue, Module->Int Int->NameValue)
 
-nominal(NameSort, U8)
 def(NameSort->U8, NameSort -- U8, cast)
 def(U8->NameSort, U8 -- NameSort, cast)
 def(Int->NameSort, Int -- NameSort, Int->U8 U8->NameSort)
@@ -450,9 +448,6 @@ def(DEF_BUFFER, NameSort, 2 Int->NameSort)
 def(DEF_TYPE, NameSort, 3 Int->NameSort)
 def(DEF_EXTERNAL, NameSort, 4 Int->NameSort)
 def(DEF_MODULE, NameSort, 5 Int->NameSort)
-
-field(name-sort, Name, NameSort)
-field(name-value, Name, NameValue)
 
 def(name-sig@, Name -- Token,
     name-is-word? if(

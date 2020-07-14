@@ -8,15 +8,8 @@ import(mirth/data/name)
 
 def(Int->Buffer, Int -- Buffer, cast)
 def(Buffer->Int, Buffer -- Int, cast)
-def(|Buffer|, Size, 8)
-def(buffer!, Buffer Ptr --, dip(Buffer->Int) !)
-def(buffer@, Ptr -- Buffer, @ Int->Buffer)
 
 def(num-buffers@, Size +Buffers, Buffer.NUM @)
-
-field(buffer-size, Buffer, Size)
-field(buffer-base, Buffer, Ptr)
-field(buffer-name, Buffer, Name)
 
 def(buffer-alloc!, Name Size -- Buffer +Buffers,
     dup heap-alloc!

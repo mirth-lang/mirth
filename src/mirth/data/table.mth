@@ -12,10 +12,6 @@ def(|Table|, Size, 8)
 def(table@, Ptr -- Table, @ Int->Table)
 def(table!, Table Ptr --, dip(Table->Int) !)
 
-field(table-name, Table, Name)
-field(table-num-buffer, Table, Buffer)
-field(table-max-count, Table, Size)
-
 def(table-alloc!, Table,
     Table.alloc!
     dup Table->Int Table.MAX >= if(
@@ -86,12 +82,6 @@ def(Int->Field, Int -- Field, cast)
 def(|Field|, Size, 8)
 def(field@, Ptr -- Field, @ Int->Field)
 def(field!, Field Ptr --, dip(Field->Int) !)
-
-field(field-name, Field, Name)
-field(field-table, Field, Table)
-field(field-type, Field, Type)
-field(field-buffer, Field, Buffer)
-field(field-word-ptr, Field, Word)
 
 def(field-alloc!, Field,
     Field.alloc!
@@ -204,4 +194,3 @@ def(test-table-int-buffer', Ptr, test-table-int-buffer)
 def(test-table-int&', TestTable -- Ptr, test-table-int&)
 def(test-table-int@', TestTable -- Int, test-table-int@)
 def(test-table-int!', Int TestTable --, test-table-int!)
-

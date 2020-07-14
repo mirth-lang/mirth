@@ -21,12 +21,6 @@ def(token!, Token Ptr --, dip(Token->U16) u16!)
 
 def(token-alloc!, Token, Token.alloc!)
 
-field(token-type, Token, TokenType)
-field(token-value, Token, TokenValue)
-field(token-module, Token, Module)
-field(token-row, Token, Row)
-field(token-col, Token, Col)
-
 def(TokenType->U8, TokenType -- U8, cast)
 def(U8->TokenType, U8 -- TokenType, cast)
 def(TOKEN_NONE, TokenType, 0 Int->U8 U8->TokenType)

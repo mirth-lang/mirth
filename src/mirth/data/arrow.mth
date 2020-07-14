@@ -27,11 +27,6 @@ import(mirth/data/common)
 
 def(Arrow->Int, Arrow -- Int, cast)
 def(Int->Arrow, Int -- Arrow, cast)
-def(Arrow->U32, Arrow -- U32, Arrow->Int Int->U32)
-def(U32->Arrow, U32 -- Arrow, U32->Int Int->Arrow)
-def(|Arrow|, Size, 4)
-def(arrow@, Ptr -- Arrow, u32@ U32->Arrow)
-def(arrow!, Arrow Ptr --, dip(Arrow->U32) u32!)
 
 def(ARROW_NIL, Arrow, 0 Int->Arrow)
 def(arrow-is-nil?, Arrow -- Arrow Bool, dup ARROW_NIL =)
@@ -43,13 +38,6 @@ def(arrow-alloc!, Arrow,
         "Compiler error: Ran out of arrows! Increase MAX_ARROWS!" panic!,
         id
     ))
-
-field(arrow-token, Arrow, Token)
-field(arrow-dom, Arrow, Type)
-field(arrow-next, Arrow, Arrow)
-field(arrow-op, Arrow, Op)
-field(arrow-op-value, Arrow, Int)
-field(arrow-args, Arrow, Args)
 
 def(Op->U8, Op -- U8, cast)
 def(U8->Op, U8 -- Op, cast)
@@ -160,9 +148,6 @@ def(args-alloc!, Args, Args.alloc!)
 def(ARGS_NIL, Args, 0 Int->Args)
 def(args-is-nil, Args -- Bool, ARGS_NIL =)
 def(args-is-nil?, Args -- Args Bool, dup args-is-nil)
-
-field(args-head, Args, Arg)
-field(args-tail, Args, Args)
 
 def(args-len, Args -- Int,
     0 swap while(args-is-nil? not, dip(1+) args-tail@) drop)

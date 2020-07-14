@@ -12,12 +12,6 @@ def(Int->External, Int -- External, cast)
 
 def(external-alloc!, External +Externals, External.alloc!)
 
-field(external-name, External, Name)
-field(external-type, External, Type)
-field(external-sig, External, Token)
-field(external-ctx, External, Ctx)
-field(external-flags, External, Int)
-
 def(EXTERNAL_FLAG_SIG_CHECKED, Int, 0x1)
 def(external-sig-is-checked?, External -- External Bool, dup external-flags@ EXTERNAL_FLAG_SIG_CHECKED & nonzero)
 def(external-sig-is-checked!, External --, dup external-flags@ EXTERNAL_FLAG_SIG_CHECKED | swap external-flags!)

@@ -400,9 +400,6 @@ def(meta-alloc!, MetaVar,
         id
     ))
 
-field(meta-is-defined, MetaVar, Bool)
-field(meta-type-raw, MetaVar, Type)
-
 def(meta-type!, Type MetaVar --, true over meta-is-defined! meta-type-raw!)
 def(meta-type@, MetaVar -- Type,
     meta-is-defined? not if(
@@ -437,8 +434,6 @@ def(meta-unify!, Type MetaVar -- Type,
 
 def(Int->TensorType, Int -- TensorType, cast)
 def(TensorType->Int, TensorType -- Int, cast)
-field(tensor-type-snd, TensorType, Type)
-field(tensor-type-fst, TensorType, Type)
 def(tensor-type-new!, Type Type -- TensorType,
     TensorType.alloc!
     tuck tensor-type-snd!
@@ -478,8 +473,6 @@ def(tensor-type-freshen, Subst TensorType -- Subst TensorType Bool,
 
 def(Int->MorphismType, Int -- MorphismType, cast)
 def(MorphismType->Int, MorphismType -- Int, cast)
-field(morphism-type-cod, MorphismType, Type)
-field(morphism-type-dom, MorphismType, Type)
 def(morphism-type-new!, Type Type -- MorphismType,
     MorphismType.alloc!
     tuck morphism-type-cod!
@@ -519,8 +512,6 @@ def(morphism-type-freshen, Subst MorphismType -- Subst MorphismType Bool,
 
 def(Int->Nominal, Int -- Nominal, cast)
 def(Nominal->Int, Nominal -- Int, cast)
-field(nominal-type, Nominal, Type)
-field(nominal-name, Nominal, Name)
 def(nominal-new!, Name Type -- Nominal,
     Nominal.alloc!
     tuck nominal-type!

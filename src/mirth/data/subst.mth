@@ -24,10 +24,6 @@ def(SUBST_NIL, Subst, 0 Int->Subst)
 def(subst-is-nil, Subst -- Bool, SUBST_NIL =)
 def(subst-is-nil?, Subst -- Subst Bool, dup subst-is-nil)
 
-field(subst-rest, Subst, Subst)
-field(subst-var, Subst, Var)
-field(subst-type, Subst, Type)
-
 def(subst-has-var, Var Subst -- Bool,
     subst-is-nil? if(
         drop2 false,

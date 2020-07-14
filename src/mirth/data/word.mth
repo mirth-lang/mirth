@@ -16,13 +16,6 @@ def(word@, Ptr -- Word, @ Int->Word)
 
 def(word-alloc!, Word +Words, Word.alloc!)
 
-field(word-name, Word, Name)
-field(word-sig, Word, Token)
-field(word-body, Word, Token)
-field(word-ctx, Word, Ctx)
-field(word-type, Word, Type)
-field(word-arrow, Word, Arrow)
-
 def(word-dom@, Word -- Type, word-type@ type-get-morphism morphism-type-dom@)
 def(word-cod@, Word -- Type, word-type@ type-get-morphism morphism-type-cod@)
 
