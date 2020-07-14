@@ -2,9 +2,6 @@ module(mirth/data/arrow)
 import(mirth/data/subst)
 import(mirth/data/common)
 
-def(init-arrow!, --,
-    1 NUM_ARROWS !)
-
 ##########
 # ARROWS #
 ##########
@@ -40,7 +37,6 @@ def(ARROW_NIL, Arrow, 0 Int->Arrow)
 def(arrow-is-nil?, Arrow -- Arrow Bool, dup ARROW_NIL =)
 
 def(MAX_ARROWS, Size, 0x20000)
-quad def-static-buffer(NUM_ARROWS)
 def(arrow-alloc!, Arrow,
     Arrow.alloc!
     dup Arrow->Int MAX_ARROWS >= if(

@@ -1,8 +1,15 @@
 module(mirth/data/common)
 import(prelude)
 
+# mirth/data/name
+nominal(Name, Int)
+nominal(Prim, Name)
+
+# mirth/data/buffer
+table(Buffer)
+
 # mirth/data/module
-nominal(Module, Int)
+table(Module)
 
 # mirth/data/location
 nominal(Row, U16)
@@ -12,10 +19,6 @@ nominal(Col, U16)
 table(Token)
 nominal(TokenType, U8)
 nominal(TokenValue, Int)
-
-# mirth/data/name
-nominal(Name, Int)
-nominal(Prim, Name)
 
 # mitrh/data/word
 table(Word)
@@ -29,6 +32,9 @@ nominal(Type, U32)
 
 # mirth/data/var
 table(Var)
+
+# mirth/data/ctx
+table(Ctx)
 
 # mirth/data/subst
 table(Subst)

@@ -59,7 +59,7 @@ def(lexer-stack-pop!, -- Token +Lexer,
     ))
 
 def(run-lexer!, Path -- Module +Lexer,
-    new-module! lexer-module!
+    module-new! lexer-module!
 
     lexer-module@ load-module-source-path!
     STR_BUF open-file!

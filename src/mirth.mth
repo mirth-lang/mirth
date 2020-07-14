@@ -18,12 +18,8 @@ import(mirth/data/type)
 def(init!, +IO,
     init-paths!
     init-names!
-    init-ctx!
-    init-modules!
     init-strings!
     init-types!
-    init-arrow!
-    init-buffers!
     init-heap!)
 
 def(test!, +IO,
