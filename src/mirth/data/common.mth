@@ -1,0 +1,21 @@
+module(mirth/data/common)
+
+# mirth/data/type
+table(MetaVar)
+table(TensorType)
+table(MorphismType)
+table(Nominal)
+nominal(Type, U32)
+
+# mirth/data/var
+table(Var)
+
+# mirth/data/table
+table(Table)
+table(Field)
+
+# mirth/data/arrow
+table(Arrow)
+table(Args)
+nominal(Op, U8)
+nominal(Arg, Arrow)
