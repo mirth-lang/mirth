@@ -2,7 +2,7 @@ module(mirth/data/common)
 import(prelude)
 
 # mirth/data/name
-nominal(Name, Int)
+table(Name)
 nominal(Prim, Name)
 
 # mirth/data/buffer

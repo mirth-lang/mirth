@@ -7,8 +7,7 @@ import(mirth/data/common)
 
 def(Name->Int, Name -- Int, cast)
 def(Int->Name, Int -- Name, cast)
-def(Name->U32, Name -- U32,
-    Name->Int Int->U32)
+def(Name->U32, Name -- U32, Name->Int Int->U32)
 def(U32->Name, U32 -- Name, U32->Int Int->Name)
 def(|Name|, Size, 8)
 def(name@, Ptr -- Name, @ Int->Name)
@@ -18,12 +17,11 @@ nominal(Hash, Int)
 def(Int->Hash, Int -- Hash, cast)
 def(Hash->Int, Hash -- Int, cast)
 
-def(MAX_NAMES, Size, 0x1000)
-def(NAME_HASH_MAX, Size, 0xFFF)
+def(MAX_NAMES, Size, 0x4000)
+def(NAME_HASH_MAX, Size, 0x3FFF)
 def(NAME_TABLE_SIZE, Size, NAME_HASH_MAX 1+)
-quad def-static-buffer(NUM_NAMES)
-def(num-names@, Size, NUM_NAMES @)
-def(num-names!, Size --, NUM_NAMES !)
+
+def(num-names@, Size, Name.NUM @)
 
 def(NAME_QUADS, Size, 8)
 def(NAME_SIZE, Size, NAME_QUADS quads)
@@ -130,7 +128,7 @@ def(name-save!, -- Name,
     dup name-table@
     name-is-error? if(
         drop
-        num-names@ dup 1+ num-names! Int->Name
+        Name.alloc!
         dup dip(swap name-table!)
         dup name-quads-save!,
         nip
@@ -340,7 +338,6 @@ def(init-names!, +Names,
         Name->Int
     ) drop
 
-    1 num-names!
     PRIM_ID "id" def-prim!
     PRIM_DUP "dup" def-prim!
     PRIM_DROP "drop" def-prim!
@@ -420,7 +417,7 @@ def(init-names!, +Names,
     PRIM_BOOL_OR "||" def-prim!
     PRIM_TABLE "table" def-prim!
     PRIM_FIELD "field" def-prim!
-    NUM_PRIMS num-names@ = if(id,
+    NUM_PRIMS num-names@ 1+ = if(id,
         "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
     )
 
@@ -454,17 +451,8 @@ def(DEF_TYPE, NameSort, 3 Int->NameSort)
 def(DEF_EXTERNAL, NameSort, 4 Int->NameSort)
 def(DEF_MODULE, NameSort, 5 Int->NameSort)
 
-MAX_NAMES u8s def-static-buffer(DEF_SORT)
-MAX_NAMES quads def-static-buffer(DEF_VALUE)
-MAX_NAMES u32s def-static-buffer(NAME_TYPE_BUF)
-
-def(name-sort!, NameSort Name --, dip(NameSort->U8) Name->Int DEF_SORT u8!!)
-def(name-sort@, Name -- NameSort, Name->Int DEF_SORT u8@@ U8->NameSort)
-def(name-sort?, Name -- Name NameSort, dup name-sort@)
-
-def(name-value!, NameValue Name --, dip(NameValue->Int) Name->Int DEF_VALUE quad!!)
-def(name-value@, Name -- NameValue, Name->Int DEF_VALUE quad@@ Int->NameValue)
-def(name-value?, Name -- Name NameValue, dup name-value@)
+field(name-sort, Name, NameSort)
+field(name-value, Name, NameValue)
 
 def(name-sig@, Name -- Token,
     name-is-word? if(
