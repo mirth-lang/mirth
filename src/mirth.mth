@@ -21,7 +21,6 @@ def(init!, +IO,
     init-ctx!
     init-modules!
     init-strings!
-    init-tokens!
     init-types!
     init-arrow!
     init-buffers!
@@ -47,7 +46,7 @@ def(main, +IO,
 
     "Building." str-trace-ln!
 
-    0 Int->Token token-run!
+    module-start@ token-run!
 
     "Done." str-trace-ln!
 

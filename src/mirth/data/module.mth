@@ -1,11 +1,10 @@
 module(mirth/data/module)
-import(prelude)
+import(mirth/data/common)
 import(mirth/data/path)
 
 def(init-modules!, --,
     0 num-modules!)
 
-nominal(Module, Int)
 def(Module->Int, Module -- Int, cast)
 def(Int->Module, Int -- Module, cast)
 def(Module->U16, Module -- U16, Module->Int Int->U16)

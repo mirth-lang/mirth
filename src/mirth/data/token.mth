@@ -1,40 +1,34 @@
 module(mirth/data/token)
-import(prelude)
+import(mirth/data/common)
 import(mirth/data/name)
 import(mirth/data/string)
 import(mirth/data/location)
-
-def(init-tokens!, --,
-    0 num-tokens!)
 
 ##########
 # Tokens #
 ##########
 
+def(num-tokens@, Int, Token.NUM @)
 
-quad def-static-buffer(NUM_TOKENS)
-def(num-tokens@, Int, NUM_TOKENS @)
-def(num-tokens!, Int --, NUM_TOKENS !)
-
-nominal(Token, U16)
 def(MAX_TOKENS, Size, 0x10000)
 def(|Token|, Size, 2)
-def(Token->U16, Token -- U16, cast)
-def(U16->Token, U16 -- Token, cast)
-def(Token->Int, Token -- Int, Token->U16 U16->Int)
-def(Int->Token, Int -- Token, Int->U16 U16->Token)
+def(Token->U16, Token -- U16, Token->Int Int->U16)
+def(U16->Token, U16 -- Token, U16->Int Int->Token)
+def(Token->Int, Token -- Int, cast)
+def(Int->Token, Int -- Token, cast)
 def(token@, Ptr -- Token, u16@ U16->Token)
 def(token!, Token Ptr --, dip(Token->U16) u16!)
 
-nominal(TokenType, U8)
-def(|TokenType|, Size, 1)
-MAX_TOKENS |TokenType| * def-static-buffer(TOKEN_TYPE)
+def(token-alloc!, Token, Token.alloc!)
+
+field(token-type, Token, TokenType)
+field(token-value, Token, TokenValue)
+field(token-module, Token, Module)
+field(token-row, Token, Row)
+field(token-col, Token, Col)
+
 def(TokenType->U8, TokenType -- U8, cast)
 def(U8->TokenType, U8 -- TokenType, cast)
-def(token-type&, Token -- Ptr, Token->Int |TokenType| * TOKEN_TYPE ptr+)
-def(token-type!, TokenType Token --, dip(TokenType->U8) token-type& u8!)
-def(token-type@, Token -- TokenType, token-type& u8@ U8->TokenType)
-def(token-type?, Token -- Token TokenType, dup token-type@)
 def(TOKEN_NONE, TokenType, 0 Int->U8 U8->TokenType)
 def(TOKEN_LPAREN, TokenType, 1 Int->U8 U8->TokenType)
 def(TOKEN_RPAREN, TokenType, 2 Int->U8 U8->TokenType)
@@ -42,6 +36,7 @@ def(TOKEN_COMMA, TokenType, 3 Int->U8 U8->TokenType)
 def(TOKEN_NAME, TokenType, 4 Int->U8 U8->TokenType)
 def(TOKEN_INT, TokenType, 5 Int->U8 U8->TokenType)
 def(TOKEN_STR, TokenType, 6 Int->U8 U8->TokenType)
+
 def(token-type-str, TokenType -- Str,
     dup TOKEN_NONE = if(drop "NONE",
     dup TOKEN_LPAREN = if(drop "LPAREN",
@@ -54,20 +49,14 @@ def(token-type-str, TokenType -- Str,
 def(token-type-print!, TokenType --,
     token-type-str str-print!)
 
-nominal(TokenValue, Int)
-def(|TokenValue|, Size, 8)
-MAX_TOKENS |TokenValue| * def-static-buffer(TOKEN_VALUE)
 def(TokenValue->Int, TokenValue -- Int, cast)
-def(Int->TokenValue, Int -- TokenValue, cast)
-def(Name->TokenValue, Name -- TokenValue, Name->Int Int->TokenValue)
 def(TokenValue->Name, TokenValue -- Name, TokenValue->Int Int->Name)
-def(Token->TokenValue, Token -- TokenValue, Token->Int Int->TokenValue)
 def(TokenValue->Token, TokenValue -- Token, TokenValue->Int Int->Token)
 def(TokenValue->Str, TokenValue -- Str, TokenValue->Int STRINGS_BUF ptr+)
-def(token-value&, Token -- Ptr, Token->Int quads TOKEN_VALUE ptr+)
-def(token-value!, TokenValue Token --, dip(TokenValue->Int) token-value& !)
-def(token-value@, Token -- TokenValue, token-value& @ Int->TokenValue)
-def(token-value?, Token -- Token TokenValue, dup token-value@)
+
+def(Int->TokenValue, Int -- TokenValue, cast)
+def(Name->TokenValue, Name -- TokenValue, Name->Int Int->TokenValue)
+def(Token->TokenValue, Token -- TokenValue, Token->Int Int->TokenValue)
 
 def(token-is-int?, Token -- Token Bool,
     token-type? TOKEN_INT =)
@@ -105,29 +94,6 @@ def(token-token@, Token -- Token,
     )))
 def(token-token?, Token -- Token Token, dup token-token@)
 
-MAX_TOKENS |Module| * def-static-buffer(TOKEN_MODULE)
-def(token-module&, Token -- Ptr, Token->Int |Module| * TOKEN_MODULE ptr+)
-def(token-module!, Module Token --, token-module& module!)
-def(token-module@, Token -- Module, token-module& module@)
-def(token-module?, Token -- Token Module, dup token-module@)
-
-MAX_TOKENS |Row| * def-static-buffer(TOKEN_ROW)
-def(token-row&, Token -- Ptr, Token->Int |Row| * TOKEN_ROW ptr+)
-def(token-row@, Token -- Row, token-row& u16@ U16->Row)
-def(token-row!, Row Token --, dip(Row->U16) token-row& u16!)
-def(token-row?, Token -- Token Row, dup token-row@)
-
-MAX_TOKENS u16s def-static-buffer(TOKEN_COL)
-def(token-col&, Token -- Ptr, Token->Int |Col| * TOKEN_COL ptr+)
-def(token-col!, Col Token --, dip(Col->U16) token-col& u16!)
-def(token-col@, Token -- Col, token-col& u16@ U16->Col)
-def(token-col?, Token -- Token Col, dup token-col@)
-
-def(token-new, -- Token,
-    num-tokens@ dup MAX_TOKENS >= if(
-        "tokens buffer overflow" panic!,
-        dup 1+ num-tokens! Int->Token
-    ))
 
 def(token-location, Token -- Module Row Col,
     token-module? swap

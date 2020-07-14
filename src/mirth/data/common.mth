@@ -1,7 +1,19 @@
 module(mirth/data/common)
 import(prelude)
 
-# mitrh/data/name
+# mirth/data/module
+nominal(Module, Int)
+
+# mirth/data/location
+nominal(Row, U16)
+nominal(Col, U16)
+
+# mirth/data/token
+table(Token)
+nominal(TokenType, U8)
+nominal(TokenValue, Int)
+
+# mirth/data/name
 nominal(Name, Int)
 nominal(Prim, Name)
 

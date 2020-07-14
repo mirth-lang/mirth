@@ -49,6 +49,8 @@ def(codegen-end!, +Codegen,
 def(run-output-c99!, Token Path -- +IO,
     load-output-path!
     STR_BUF create-file! codegen-start!
+        # FIXME: implement and use create-binary-file!
+        # instead of create-file! here ... perhaps
     c99-emit-header!
     c99-emit-strings!
     c99-emit-prims!

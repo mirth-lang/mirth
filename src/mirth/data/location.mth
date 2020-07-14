@@ -1,14 +1,12 @@
 module(mirth/data/location)
 import(mirth/data/module)
 
-nominal(Row, U16)
 def(|Row|, Size, 2)
 def(Row->U16, Row -- U16, cast)
 def(Row->Int, Row -- Int, Row->U16 U16->Int)
 def(U16->Row, U16 -- Row, cast)
 def(Int->Row, Int -- Row, Int->U16 U16->Row)
 
-nominal(Col, U16)
 def(|Col|, Size, 2)
 def(Col->U16, Col -- U16, cast)
 def(Col->Int, Col -- Int, Col->U16 U16->Int)
