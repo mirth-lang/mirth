@@ -10,6 +10,9 @@ nominal(Type, U32)
 # mirth/data/var
 table(Var)
 
+# mirth/data/subst
+table(Subst)
+
 # mirth/data/table
 table(Table)
 table(Field)
