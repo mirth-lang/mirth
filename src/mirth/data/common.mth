@@ -20,8 +20,11 @@ table(Token)
 nominal(TokenType, U8)
 nominal(TokenValue, Int)
 
-# mitrh/data/word
+# mirth/data/word
 table(Word)
+
+# mirth/data/external
+table(External)
 
 # mirth/data/type
 table(MetaVar)

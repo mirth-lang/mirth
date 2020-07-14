@@ -3,54 +3,21 @@ import(prelude)
 import(mirth/data/name)
 import(mirth/data/type)
 
-def(init-externals!, --,
-    0 NUM_EXTERNALS !)
-
 #############
 # EXTERNALS #
 #############
 
-nominal(External, Int)
 def(External->Int, External -- Int, cast)
 def(Int->External, Int -- External, cast)
 
-def(MAX_EXTERNALS, Size, 0x1000)
-quad def-static-buffer(NUM_EXTERNALS)
-def(external-alloc!, External +Externals,
-    NUM_EXTERNALS @ dup 1+ NUM_EXTERNALS !
-    dup MAX_EXTERNALS >= if(
-        "compiler error: NUM_EXTERNALS > MAX_EXTERNALS" panic!,
-        Int->External
-        0 Int->Name over external-name!
-        0 Int->Token over external-sig!
-        TYPE_ERROR over external-type!
-    ))
+def(external-alloc!, External +Externals, External.alloc!)
 
-def(EXTERNAL_METADATA_SIZE, Size, 16)
-MAX_EXTERNALS EXTERNAL_METADATA_SIZE * def-static-buffer(EXTERNAL_METADATA_BUF)
-def(external-metadata&, External -- Ptr, External->Int EXTERNAL_METADATA_SIZE * EXTERNAL_METADATA_BUF ptr+)
+field(external-name, External, Name)
+field(external-type, External, Type)
+field(external-sig, External, Token)
+field(external-ctx, External, Ctx)
+field(external-flags, External, Int)
 
-def(external-name&, External -- Ptr, external-metadata&)
-def(external-name@, External -- Name, external-name& u32@ U32->Name)
-def(external-name!, Name External --, dip(Name->U32) external-name& u32!)
-
-def(external-sig&, External -- Ptr, external-metadata& 4 swap ptr+)
-def(external-sig@, External -- Token, external-sig& u32@ U32->Int Int->Token)
-def(external-sig!, Token External --,
-    dip(Token->Int Int->U32) external-sig& u32!)
-
-def(external-type&, External -- Ptr, external-metadata& 8 swap ptr+)
-def(external-type@, External -- Type, external-type& type@)
-def(external-type!, Type External --, external-type& type!)
-
-def(external-ctx&, External -- Ptr, external-metadata& 12 swap ptr+)
-def(external-ctx@, External -- Ctx, external-ctx& ctx@)
-def(external-ctx!, Ctx External --, external-ctx& ctx!)
-
-MAX_EXTERNALS def-static-buffer(EXTERNAL_FLAGS)
-def(external-flags&, External -- Ptr, External->Int EXTERNAL_FLAGS ptr+)
-def(external-flags@, External -- Int, external-flags& u8@ U8->Int)
-def(external-flags!, Int External --, dip(Int->U8) external-flags& u8!)
 def(EXTERNAL_FLAG_SIG_CHECKED, Int, 0x1)
 def(external-sig-is-checked?, External -- External Bool, dup external-flags@ EXTERNAL_FLAG_SIG_CHECKED & nonzero)
 def(external-sig-is-checked!, External --, dup external-flags@ EXTERNAL_FLAG_SIG_CHECKED | swap external-flags!)
