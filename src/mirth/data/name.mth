@@ -1,11 +1,10 @@
 module(mirth/data/name)
-import(prelude)
+import(mirth/data/common)
 
 #########
 # Names #
 #########
 
-nominal(Name, Int)
 def(Name->Int, Name -- Int, cast)
 def(Int->Name, Int -- Name, cast)
 def(Name->U32, Name -- U32,
@@ -226,7 +225,6 @@ def(str-buf-push-hexdigit!, Char -- +StrBuf,
 
 def(NAME_ERROR, Name, 0 Int->Name)
 
-nominal(Prim, Name)
 def(Prim->Name, Prim -- Name, cast)
 def(Name->Prim, Name -- Prim,
     dup Name->Int NUM_PRIMS >= if(

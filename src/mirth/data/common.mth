@@ -1,4 +1,12 @@
 module(mirth/data/common)
+import(prelude)
+
+# mitrh/data/name
+nominal(Name, Int)
+nominal(Prim, Name)
+
+# mitrh/data/word
+table(Word)
 
 # mirth/data/type
 table(MetaVar)
