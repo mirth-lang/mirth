@@ -1,9 +1,6 @@
 module(mirth/data/string)
 import(prelude)
 
-def(init-strings!, --,
-    0 strings-size!)
-
 #################
 # Strings Table #
 #################

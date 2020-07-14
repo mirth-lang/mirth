@@ -14,21 +14,7 @@ def(|Word|, Size, 8)
 def(word!, Word Ptr --, dip(Word->Int) !)
 def(word@, Ptr -- Word, @ Int->Word)
 
-def(MAX_WORDS, Size, 0x4000)
-quad def-static-buffer(NUM_WORDS)
-def(word-alloc!, Word +Words,
-    NUM_WORDS @ dup 1+ NUM_WORDS !
-    dup MAX_WORDS >= if(
-        "compiler error: NUM_WORDS > MAX_WORDS" panic!,
-        id
-    )
-    Int->Word
-    0 Int->Name over word-name!
-    0 Int->Token over word-sig!
-    0 Int->Token over word-body!
-    0 Int->WordStatus over word-status!
-    ctx-empty over word-ctx!
-    TYPE_ERROR over word-type!)
+def(word-alloc!, Word +Words, Word.alloc!)
 
 field(word-name, Word, Name)
 field(word-sig, Word, Token)

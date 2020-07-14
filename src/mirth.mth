@@ -18,9 +18,7 @@ import(mirth/data/type)
 def(init!, +IO,
     init-paths!
     init-names!
-    init-strings!
-    init-types!
-    init-heap!)
+    init-types!)
 
 def(test!, +IO,
     test-prelude!)
