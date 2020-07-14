@@ -313,7 +313,9 @@ def(PRIM_TRUE, Prim, 74 Int->Prim)
 def(PRIM_FALSE, Prim, 75 Int->Prim)
 def(PRIM_BOOL_AND, Prim, 76 Int->Prim)
 def(PRIM_BOOL_OR, Prim, 77 Int->Prim)
-def(NUM_PRIMS, Size, 78)
+def(PRIM_TABLE, Prim, 78 Int->Prim)
+def(PRIM_FIELD, Prim, 79 Int->Prim)
+def(NUM_PRIMS, Size, 80)
 
 def(name-is-prim?, Name -- Name Bool, dup Name->Int NUM_PRIMS <)
 
@@ -418,6 +420,8 @@ def(init-names!, +Names,
     PRIM_FALSE "false" def-prim!
     PRIM_BOOL_AND "&&" def-prim!
     PRIM_BOOL_OR "||" def-prim!
+    PRIM_TABLE "table" def-prim!
+    PRIM_FIELD "field" def-prim!
     NUM_PRIMS num-names@ = if(id,
         "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
     )
@@ -518,4 +522,10 @@ def(name-buffer@, Name -- Buffer,
     name-is-buffer? if(
         name-value@ NameValue->Buffer,
         "compiler error: attempted to get buffer definition for non-buffer name" panic!
+    ))
+
+def(name-is-table?, Name -- Name Bool,
+    name-is-type? if(
+        dup name-type@ type-is-table,
+        false
     ))

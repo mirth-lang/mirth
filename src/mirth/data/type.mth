@@ -1,13 +1,10 @@
 
 module(mirth/data/type)
+import(mirth/data/common)
 import(mirth/data/name)
 import(mirth/data/ctx)
 
 def(init-types!, --,
-    0 NUM_METAS !
-    0 NUM_TENSOR_TYPES !
-    0 NUM_MORPHISM_TYPES !
-    0 NUM_NOMINALS !
     TYPE_INT PRIM_INT Prim->Name name-type!
     TYPE_PTR PRIM_PTR Prim->Name name-type!
     TYPE_U8 PRIM_U8 Prim->Name name-type!
@@ -20,19 +17,16 @@ def(init-types!, --,
     TYPE_I64 PRIM_I64 Prim->Name name-type!
     TYPE_BOOL PRIM_BOOL Prim->Name name-type!)
 
-def(test-types!, --, )
-
 #########
 # Types #
 #########
 
-nominal(Type, U32) # actually U32
 def(Type->U32, Type -- U32, cast)
 def(U32->Type, U32 -- Type, cast)
 def(Type->Int, Type -- Int, Type->U32 U32->Int)
 def(Int->Type, Int -- Type,
     Int->U32 U32->Type)
-# def(|Type|, Size, 4) # defined in mirth/var
+def(|Type|, Size, 4)
 def(type@, Ptr -- Type, u32@ U32->Type)
 def(type!, Type Ptr --, dip(Type->U32) u32!)
 def(type@@, Int Ptr -- Type, dip(|Type| *) ptr+ type@)
@@ -46,6 +40,7 @@ def(TYPE_TAG_META,     Int, 0x20000000)
 def(TYPE_TAG_TENSOR,   Int, 0x30000000)
 def(TYPE_TAG_MORPHISM, Int, 0x40000000)
 def(TYPE_TAG_NOMINAL,  Int, 0x50000000)
+def(TYPE_TAG_TABLE,    Int, 0x60000000)
 
 def(TPrim, Int -- Type,
     Int->Type)
@@ -59,6 +54,8 @@ def(TMorphism, MorphismType -- Type,
     MorphismType->Int TYPE_TAG_MORPHISM | Int->Type)
 def(TNominal, Nominal -- Type,
     Nominal->Int TYPE_TAG_NOMINAL | Int->Type)
+def(TTable, Table -- Type,
+    Table->Int TYPE_TAG_TABLE | Int->Type)
 
 def(type-tag, Type -- Int, Type->Int TYPE_TAG_MASK &)
 def(type-is-prim, Type -- Bool, type-tag TYPE_TAG_PRIM =)
@@ -67,12 +64,14 @@ def(type-is-meta, Type -- Bool, type-tag TYPE_TAG_META =)
 def(type-is-tensor, Type -- Bool, type-tag TYPE_TAG_TENSOR =)
 def(type-is-morphism, Type -- Bool, type-tag TYPE_TAG_MORPHISM =)
 def(type-is-nominal, Type -- Bool, type-tag TYPE_TAG_NOMINAL =)
+def(type-is-table, Type -- Bool, type-tag TYPE_TAG_TABLE =)
 def(type-is-prim?, Type -- Type Bool, dup type-is-prim)
 def(type-is-var?, Type -- Type Bool, dup type-is-var)
 def(type-is-meta?, Type -- Type Bool, dup type-is-meta)
 def(type-is-tensor?, Type -- Type Bool, dup type-is-tensor)
 def(type-is-morphism?, Type -- Type Bool, dup type-is-morphism)
 def(type-is-nominal?, Type -- Type Bool, dup type-is-nominal)
+def(type-is-table?, Type -- Type Bool, dup type-is-table)
 
 def(type-is-stack-var, Type -- Bool,
     type-is-var? if(
@@ -106,6 +105,11 @@ def(type-get-nominal, Type -- Nominal,
     type-is-nominal? not if(
         "compiler error: tried to get nominal value on non-nominal type" panic!,
         type-get-value Int->Nominal
+    ))
+def(type-get-table, Type -- Table,
+    type-is-table? not if(
+        "compiler error: tried to get table value on non-table type" panic!,
+        type-get-value Int->Table
     ))
 
 def(TYPE_ERROR, Type, 0x00 TPrim)
@@ -196,6 +200,9 @@ def(type-unify!, Type Type -- Type +Elab,
     type-is-nominal? if( # nominals need to be exact matches (for now)
         type-unify-failed!,
 
+    type-is-table? if( # table types need to be exact matches
+        type-unify-failed!,
+
     type-is-tensor? if(
         swap
         type-is-tensor? if(
@@ -217,7 +224,7 @@ def(type-unify!, Type Type -- Type +Elab,
         ),
 
         type-unify-failed!
-    )))))))))))
+    ))))))))))))
 
 def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
     dup2 type-has-meta)
@@ -241,8 +248,11 @@ def(type-has-meta, MetaVar Type -- Bool,
     type-is-nominal? if(
         drop2 false,
 
+    type-is-table? if(
+        drop2 false,
+
         "type-has-meta: unknown type" panic!
-    )))))))
+    ))))))))
 
 
 def(type-trace-sig!, Type -- +IO,
@@ -309,8 +319,14 @@ def(type-trace!, Type -- +IO,
         name-load!
         str-buf-trace!,
 
+    type-is-table? if(
+        type-get-table
+        table-name@
+        name-load!
+        str-buf-trace!,
+
         "<UNKNOWN TYPE " str-trace! Type->Int int-trace! ">" str-trace!
-    )))))))
+    ))))))))
 
 def(type-trace-prim!, Type -- +IO,
     dup TYPE_ERROR = if(
@@ -374,35 +390,24 @@ def(type-var-freshen, Subst Type -- Subst Type Bool,
 # Meta-var Types #
 ##################
 
-nominal(MetaVar, Int)
 def(Int->MetaVar, Int -- MetaVar, cast)
 def(MetaVar->Int, MetaVar -- Int, cast)
 
-def(MAX_METAS, Size, 0x100000)
-quad def-static-buffer(NUM_METAS)
-
 def(meta-alloc!, MetaVar,
-    NUM_METAS @ dup 1+ NUM_METAS !
-    dup MAX_METAS >= if(
+    MetaVar.alloc!
+    dup MetaVar->Int MetaVar.MAX >= if(
         "compiler error: ran out of meta variables, increase MAX_METAS" panic!,
-        Int->MetaVar
+        id
     ))
 
-MAX_METAS def-static-buffer(META_DEF)
-def(meta-def-flag@, MetaVar -- Bool, MetaVar->Int META_DEF ptr+ u8@ U8->Int nonzero)
-def(meta-def-flag!, Bool MetaVar --, dip(if(1,0) Int->U8) MetaVar->Int META_DEF ptr+ u8!)
-def(meta-is-defined, MetaVar -- Bool, meta-def-flag@)
-def(meta-is-defined?, MetaVar -- MetaVar Bool, dup meta-is-defined)
+field(meta-is-defined, MetaVar, Bool)
+field(meta-type-raw, MetaVar, Type)
 
-MAX_METAS |Type| * def-static-buffer(META_TYPE)
-def(meta-type&, MetaVar -- Ptr, MetaVar->Int |Type| * META_TYPE ptr+)
-def(meta-type!, Type MetaVar --,
-    true over meta-def-flag!
-    meta-type& type!)
+def(meta-type!, Type MetaVar --, true over meta-is-defined! meta-type-raw!)
 def(meta-type@, MetaVar -- Type,
     meta-is-defined? not if(
         "attempted to access undefined metavar" panic!,
-        meta-type& type@
+        meta-type-raw@
     ))
 
 def(meta-expand, MetaVar -- Type,
@@ -430,34 +435,14 @@ def(meta-unify!, Type MetaVar -- Type,
 # Tensor Types #
 ################
 
-nominal(TensorType, Int)
 def(Int->TensorType, Int -- TensorType, cast)
 def(TensorType->Int, TensorType -- Int, cast)
-
-def(MAX_TENSOR_TYPES, Size, 0x10000)
-
-quad def-static-buffer(NUM_TENSOR_TYPES)
-
-def(tensor-type-alloc!, TensorType,
-    NUM_TENSOR_TYPES @ dup 1+ NUM_TENSOR_TYPES !
-    dup MAX_TENSOR_TYPES >= if(
-        "compiler error: too many tensor types -- increase MAX_TENSOR_TYPES" panic!,
-        Int->TensorType
-    ))
+field(tensor-type-snd, TensorType, Type)
+field(tensor-type-fst, TensorType, Type)
 def(tensor-type-new!, Type Type -- TensorType,
-    tensor-type-alloc!
+    TensorType.alloc!
     tuck tensor-type-snd!
     tuck tensor-type-fst!)
-
-MAX_TENSOR_TYPES |Type| * def-static-buffer(TENSOR_TYPE_FST)
-def(tensor-type-fst&, TensorType -- Ptr, TensorType->Int |Type| * TENSOR_TYPE_FST ptr+)
-def(tensor-type-fst@, TensorType -- Type, tensor-type-fst& type@)
-def(tensor-type-fst!, Type TensorType --, tensor-type-fst& type!)
-
-MAX_TENSOR_TYPES |Type| * def-static-buffer(TENSOR_TYPE_SND)
-def(tensor-type-snd&, TensorType -- Ptr, TensorType->Int |Type| * TENSOR_TYPE_SND ptr+)
-def(tensor-type-snd@, TensorType -- Type, tensor-type-snd& type@)
-def(tensor-type-snd!, Type TensorType --, tensor-type-snd& type!)
 
 def(tensor-type-unify!, TensorType TensorType -- TensorType,
     over tensor-type-fst@ over tensor-type-fst@ type-unify! over tensor-type-fst!
@@ -487,40 +472,18 @@ def(tensor-type-freshen, Subst TensorType -- Subst TensorType Bool,
         drop tensor-type-new! false
     ))
 
-# def(tensor-type-subst, Subst TensorType -- Subst TensorType,
-#     id) # TODO
-
 ##################
 # Morphism Types #
 ##################
 
-nominal(MorphismType, Int)
 def(Int->MorphismType, Int -- MorphismType, cast)
 def(MorphismType->Int, MorphismType -- Int, cast)
-
-def(MAX_MORPHISM_TYPES, Size, 0x10000)
-quad def-static-buffer(NUM_MORPHISM_TYPES)
-
-def(morphism-type-alloc!, MorphismType,
-    NUM_MORPHISM_TYPES @ dup 1+ NUM_MORPHISM_TYPES !
-    dup MAX_MORPHISM_TYPES >= if(
-        "compiler error: too many morphism types -- increase MAX_MORPHISM_TYPES" panic!,
-        Int->MorphismType
-    ))
+field(morphism-type-cod, MorphismType, Type)
+field(morphism-type-dom, MorphismType, Type)
 def(morphism-type-new!, Type Type -- MorphismType,
-    morphism-type-alloc!
-    dup dip(morphism-type-cod!)
-    dup dip(morphism-type-dom!))
-
-MAX_MORPHISM_TYPES |Type| * def-static-buffer(MORPHISM_TYPE_DOM)
-def(morphism-type-dom&, MorphismType -- Ptr, MorphismType->Int |Type| * MORPHISM_TYPE_DOM ptr+)
-def(morphism-type-dom@, MorphismType -- Type, morphism-type-dom& type@)
-def(morphism-type-dom!, Type MorphismType --, morphism-type-dom& type!)
-
-MAX_MORPHISM_TYPES |Type| * def-static-buffer(MORPHISM_TYPE_COD)
-def(morphism-type-cod&, MorphismType -- Ptr, MorphismType->Int |Type| * MORPHISM_TYPE_COD ptr+)
-def(morphism-type-cod@, MorphismType -- Type, morphism-type-cod& type@)
-def(morphism-type-cod!, Type MorphismType --, morphism-type-cod& type!)
+    MorphismType.alloc!
+    tuck morphism-type-cod!
+    tuck morphism-type-dom!)
 
 def(morphism-type-unify!, MorphismType MorphismType -- MorphismType,
     over morphism-type-dom@ over morphism-type-dom@ type-unify! over morphism-type-dom!
@@ -554,31 +517,11 @@ def(morphism-type-freshen, Subst MorphismType -- Subst MorphismType Bool,
 # Nominals #
 ############
 
-nominal(Nominal, Int)
 def(Int->Nominal, Int -- Nominal, cast)
 def(Nominal->Int, Nominal -- Int, cast)
-
-def(MAX_NOMINALS, Size, 0x1000)
-quad def-static-buffer(NUM_NOMINALS)
-
-MAX_NOMINALS |Type| * def-static-buffer(NOMINAL_TYPE)
-def(nominal-type&, Nominal -- Ptr, Nominal->Int |Type| * NOMINAL_TYPE ptr+)
-def(nominal-type@, Nominal -- Type, nominal-type& type@)
-def(nominal-type!, Type Nominal --, nominal-type& type!)
-
-MAX_NOMINALS |Name| * def-static-buffer(NOMINAL_NAME)
-def(nominal-name&, Nominal -- Ptr, Nominal->Int |Name| * NOMINAL_NAME ptr+)
-def(nominal-name@, Nominal -- Name, nominal-name& name@)
-def(nominal-name!, Name Nominal --, nominal-name& name!)
-
-def(nominal-alloc!, Nominal,
-    NUM_NOMINALS @ dup 1+ NUM_NOMINALS !
-    dup MAX_NOMINALS >= if(
-        "NUM_NOMINALS" panic!,
-        Int->Nominal
-    ))
-
+field(nominal-type, Nominal, Type)
+field(nominal-name, Nominal, Name)
 def(nominal-new!, Name Type -- Nominal,
-    nominal-alloc!
+    Nominal.alloc!
     tuck nominal-type!
     tuck nominal-name!)

@@ -19,7 +19,6 @@ def(init!, +IO,
     init-paths!
     init-names!
     init-ctx!
-    init-var!
     init-modules!
     init-strings!
     init-tokens!
@@ -30,8 +29,7 @@ def(init!, +IO,
     init-heap!)
 
 def(test!, +IO,
-    test-prelude!
-    test-types!)
+    test-prelude!)
 
 ########
 # Main #

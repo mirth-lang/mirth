@@ -1,4 +1,5 @@
 module(mirth/data/subst)
+import(mirth/data/type)
 
 #########
 # Subst #

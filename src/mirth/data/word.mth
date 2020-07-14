@@ -14,7 +14,7 @@ def(init-words!, --,
 nominal(Word, Int)
 def(Word->Int, Word -- Int, cast)
 def(Int->Word, Int -- Word, cast)
-# def(|Word|, Size, 8) # defined in mirth/var
+def(|Word|, Size, 8)
 def(word!, Word Ptr --, dip(Word->Int) !)
 def(word@, Ptr -- Word, @ Int->Word)
 
