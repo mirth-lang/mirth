@@ -1,51 +1,20 @@
 module(mirth/data/buffer)
-import(prelude)
+import(mirth/data/common)
+import(mirth/data/name)
 
 ###########
 # Buffers #
 ###########
 
-def(MAX_BUFFERS, Size, 0x80)
-
-nominal(Buffer, Int)
 def(Int->Buffer, Int -- Buffer, cast)
 def(Buffer->Int, Buffer -- Int, cast)
 
-quad def-static-buffer(NUM_BUFFERS)
-def(num-buffers@, Size +Buffers, NUM_BUFFERS @)
-def(num-buffers!, Size -- +Buffers, NUM_BUFFERS !)
-
-def(init-buffers!, +Buffers,
-    0 num-buffers!)
-
-MAX_BUFFERS quads dup
-    def-static-buffer(BUFFER_SIZE)
-    def-static-buffer(BUFFER_BASE)
-
-def(buffer-size@, Buffer -- Size +Buffers,
-    Buffer->Int BUFFER_SIZE quad@@)
-
-def(buffer-size!, Size Buffer -- +Buffers,
-    Buffer->Int BUFFER_SIZE quad!!)
+def(num-buffers@, Size +Buffers, Buffer.NUM @)
 
 def(buffer-alloc!, Name Size -- Buffer +Buffers,
-    num-buffers@ MAX_BUFFERS >= if(
-        "compiler error: ran out of buffers" panic!,
-        dup heap-alloc!
-        num-buffers@ dup 1+ num-buffers! Int->Buffer
-        tuck buffer-base!
-        tuck buffer-size!
-        tuck buffer-name!
-    ))
-
-def(buffer-base@, Buffer -- Ptr +Buffers,
-    Buffer->Int BUFFER_BASE quad@@ Int->Ptr)
-
-def(buffer-base!, Ptr Buffer -- +Buffers,
-    dip(Ptr->Int) Buffer->Int BUFFER_BASE quad!!)
-
-MAX_BUFFERS |Name| * def-static-buffer(BUFFER_NAME)
-def(buffer-name&, Buffer -- Ptr, Buffer->Int |Name| * BUFFER_NAME ptr+)
-def(buffer-name!, Name Buffer -- +Buffers, buffer-name& name!)
-def(buffer-name@, Buffer -- Name +Buffers, buffer-name& name@)
-def(buffer-name?, Buffer -- Buffer Name +Buffers, dup buffer-name@)
+    dup heap-alloc!
+    Buffer.alloc!
+    tuck buffer-base!
+    tuck buffer-size!
+    tuck dup2 buffer-name!
+    swap name-buffer!)

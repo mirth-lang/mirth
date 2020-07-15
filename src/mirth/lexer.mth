@@ -58,8 +58,8 @@ def(lexer-stack-pop!, -- Token +Lexer,
         Int->Token
     ))
 
-def(run-lexer!, Path -- +Lexer,
-    new-module! lexer-module!
+def(run-lexer!, Path -- Module +Lexer,
+    module-new! lexer-module!
 
     lexer-module@ load-module-source-path!
     STR_BUF open-file!
@@ -68,7 +68,7 @@ def(run-lexer!, Path -- +Lexer,
     1 Int->Row lexer-row!
     1 Int->Col lexer-col!
 
-    num-tokens@ Int->Token lexer-module@ module-start!
+    num-tokens@ 1+ Int->Token lexer-module@ module-start!
 
     while(lexer-done? not, lexer-next!)
 
@@ -82,7 +82,9 @@ def(run-lexer!, Path -- +Lexer,
         emit-fatal-error!
     )
 
-    num-tokens@ Int->Token lexer-module@ module-end!)
+    num-tokens@  Int->Token lexer-module@ module-end!
+
+    lexer-module@)
 
 
 # Is the lexer done?
@@ -91,7 +93,7 @@ def(lexer-done?, Bool +Lexer, input-done?)
 # Create a token, and add it to the token buffer,
 # returning the new token.
 def(lexer-make!, TokenType TokenValue -- Token,
-    token-new
+    token-alloc!
     dup dip(token-value!)
     dup dip(token-type!)
     dip(lexer-module@) dup dip(token-module!)

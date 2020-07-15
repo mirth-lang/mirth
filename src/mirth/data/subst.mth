@@ -1,25 +1,18 @@
 module(mirth/data/subst)
+import(mirth/data/type)
 
 #########
 # Subst #
 #########
 
-nominal(Subst, Int)
 def(Subst->Int, Subst -- Int, cast)
 def(Int->Subst, Int -- Subst, cast)
-def(Subst->U32, Subst -- U32, Subst->Int Int->U32)
-def(U32->Subst, U32 -- Subst, U32->Int Int->Subst)
-def(|Subst|, Size, 4)
-def(subst@, Ptr -- Subst, u32@ U32->Subst)
-def(subst!, Subst Ptr --, dip(Subst->U32) u32!)
 
-def(MAX_SUBST, Size, 0x8000)
-quad def-static-buffer(NUM_SUBST)
 def(subst-alloc!, Subst,
-    NUM_SUBST @ 1+ dup NUM_SUBST !
-    dup MAX_SUBST >= if(
+    Subst.alloc!
+    dup Subst->Int Subst.MAX >= if(
         "NUM_SUBST >= MAX_SUBST" panic!,
-        Int->Subst
+        id
     ))
 def(subst-new!, Type Var Subst -- Subst,
     subst-alloc!
@@ -30,24 +23,6 @@ def(subst-new!, Type Var Subst -- Subst,
 def(SUBST_NIL, Subst, 0 Int->Subst)
 def(subst-is-nil, Subst -- Bool, SUBST_NIL =)
 def(subst-is-nil?, Subst -- Subst Bool, dup subst-is-nil)
-
-MAX_SUBST |Subst| * def-static-buffer(SUBST_REST)
-def(subst-rest&, Subst -- Ptr, Subst->Int |Subst| * SUBST_REST ptr+)
-def(subst-rest!, Subst Subst --, subst-rest& subst!)
-def(subst-rest@, Subst -- Subst, subst-rest& subst@)
-def(subst-rest?, Subst -- Subst Subst, dup subst-rest@)
-
-MAX_SUBST |Var| * def-static-buffer(SUBST_VAR)
-def(subst-var&, Subst -- Ptr, Subst->Int |Var| * SUBST_VAR ptr+)
-def(subst-var!, Var Subst --, subst-var& var!)
-def(subst-var@, Subst -- Var, subst-var& var@)
-def(subst-var?, Subst -- Subst Var, dup subst-var@)
-
-MAX_SUBST |Type| * def-static-buffer(SUBST_TYPE)
-def(subst-type&, Subst -- Ptr, Subst->Int |Type| * SUBST_TYPE ptr+)
-def(subst-type!, Type Subst --, subst-type& type!)
-def(subst-type@, Subst -- Type, subst-type& type@)
-def(subst-type?, Subst -- Subst Type, dup subst-type@)
 
 def(subst-has-var, Var Subst -- Bool,
     subst-is-nil? if(

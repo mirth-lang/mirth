@@ -5,14 +5,6 @@ import(prelude/common)
 # Heap #
 ########
 
-quad def-static-buffer(HEAP_INITIAL_LENGTH)
-def(heap-initial-length@, Size +Heap, HEAP_INITIAL_LENGTH @)
-def(heap-initial-length!, Size -- +Heap, HEAP_INITIAL_LENGTH !)
-
-quad def-static-buffer(HEAP_INITIAL_BASE)
-def(heap-initial-base@, Ptr +Heap, HEAP_INITIAL_BASE ptr@)
-def(heap-initial-base!, Ptr -- +Heap, HEAP_INITIAL_BASE ptr!)
-
 quad def-static-buffer(HEAP_LENGTH)
 def(heap-length@, Size +Heap, HEAP_LENGTH @)
 def(heap-length!, Size -- +Heap, HEAP_LENGTH !)
@@ -20,10 +12,6 @@ def(heap-length!, Size -- +Heap, HEAP_LENGTH !)
 quad def-static-buffer(HEAP_BASE)
 def(heap-base@, Ptr +Heap, HEAP_BASE ptr@)
 def(heap-base!, Ptr -- +Heap, HEAP_BASE ptr!)
-
-def(init-heap!, +Heap,
-    heap-initial-base@ heap-base!
-    heap-initial-length@ heap-length!)
 
 quad def-static-buffer(HEAP_TIMES_EXPANDED)
 def(heap-times-expanded@, Int +Heap, HEAP_TIMES_EXPANDED @)
@@ -54,8 +42,7 @@ def(heap-reserve!, Size -- +Heap,
         dup Ptr->Int nonzero if(
             dup heap-length@ heap-base@ ptr+ = if(
                 drop heap-length@ + heap-length!,
-                dup heap-initial-base! heap-base!
-                dup heap-initial-length! heap-length!
+                heap-base! heap-length!
             ),
             "Failed to allocate heap buffer." panic!
         )

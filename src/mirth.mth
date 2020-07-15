@@ -18,20 +18,10 @@ import(mirth/data/type)
 def(init!, +IO,
     init-paths!
     init-names!
-    init-ctx!
-    init-var!
-    init-modules!
-    init-strings!
-    init-tokens!
-    init-types!
-    init-arrow!
-    init-words!
-    init-buffers!
-    init-heap!)
+    init-types!)
 
 def(test!, +IO,
-    test-prelude!
-    test-types!)
+    test-prelude!)
 
 ########
 # Main #
@@ -50,7 +40,7 @@ def(main, +IO,
 
     "Building." str-trace-ln!
 
-    0 Int->Token token-run!
+    module-start@ token-run!
 
     "Done." str-trace-ln!
 

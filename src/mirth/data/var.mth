@@ -1,29 +1,25 @@
 module(mirth/data/var)
+import(mirth/data/common)
 import(mirth/data/name)
 
-def(init-var!, --, 1 VAR_NUM !)
-
-# Var represents a local variable.
-nominal(Var, Int)
+#######
+# VAR #
+#######
 
 def(Var->Int, Var -- Int, cast)
 def(Int->Var, Int -- Var, cast)
-def(Var->U32, Var -- U32,
-    Var->Int Int->U32)
+def(Var->U32, Var -- U32, Var->Int Int->U32)
 def(U32->Var, U32 -- Var, U32->Int Int->Var)
 def(VAR_ERROR, Var, 0 Int->Var)
-def(VAR_MAX, Size, 0x10000)
 def(|Var|, Size, 4)
 def(var@, Ptr -- Var, u32@ U32->Var)
 def(var!, Var Ptr --, dip(Var->U32) u32!)
 
-quad def-static-buffer(VAR_NUM)
 def(var-alloc!, Var,
-    VAR_NUM @ dup 1+ VAR_NUM !
-    dup VAR_MAX >= if(
+    Var.alloc!
+    dup Var->Int Var.MAX >= if(
         "compiler error: VAR_NUM >= VAR_MAX" panic!,
-        Int->Var
-        0 Int->VarStatus over var-status!
+        id
     ))
 
 def(var-new!, Name -- Var,
@@ -32,97 +28,8 @@ def(var-new!, Name -- Var,
 
 def(var-new-implicit!, Name -- Var,
     var-new!
-    dup VAR_FLAG_IMPLICIT var-flag!)
+    true over var-is-implicit!)
 
-nominal(VarStatus, U32)
-def(|VarStatus|, Size, 4)
-def(U32->VarStatus, U32 -- VarStatus, cast)
-def(VarStatus->U32, VarStatus -- U32, cast)
-def(Int->VarStatus, Int -- VarStatus,
-    Int->U32 U32->VarStatus)
-def(VarStatus->Int, VarStatus -- Int, VarStatus->U32 U32->Int)
-|VarStatus| VAR_MAX * def-static-buffer(VAR_STATUS)
-def(var-status&, Var -- Ptr, Var->Int |VarStatus| * VAR_STATUS ptr+)
-def(var-status!, VarStatus Var --, dip(VarStatus->U32) var-status& u32!)
-def(var-status@, Var -- VarStatus, var-status& u32@ U32->VarStatus)
-def(var-status?, Var -- Var VarStatus, dup var-status@)
-
-nominal(VarFlag, U32)
-def(U32->VarFlag, U32 -- VarFlag, cast)
-def(VarFlag->U32, VarFlag -- U32, cast)
-def(Int->VarFlag, Int -- VarFlag,
-    Int->U32 U32->VarFlag)
-def(VarFlag->Int, VarFlag -- Int, VarFlag->U32 U32->Int)
-def(var-flag@, Var VarFlag -- Bool, dip(var-status@ VarStatus->Int) VarFlag->Int & nonzero)
-def(var-flag?, Var VarFlag -- Var Bool, dip(dup) var-flag@)
-def(var-flag!, Var VarFlag -- , dip(var-status? VarStatus->Int) VarFlag->Int | Int->VarStatus swap var-status!)
-
-def(VAR_FLAG_IMPLICIT, VarFlag, 0x0001 Int->VarFlag)
-def(VAR_FLAG_HAS_NAME, VarFlag, 0x0010 Int->VarFlag)
-def(VAR_FLAG_HAS_TYPE, VarFlag, 0x0020 Int->VarFlag)
-def(VAR_FLAG_HAS_NAME_TOKEN, VarFlag, 0x100 Int->VarFlag)
-
-|Name| VAR_MAX * def-static-buffer(VAR_NAME)
-def(var-has-name?, Var -- Var Bool, VAR_FLAG_HAS_NAME var-flag?)
-def(var-name&, Var -- Ptr, Var->Int |Name| * VAR_NAME ptr+)
-def(var-name!, Name Var --,
-    var-has-name? if(
-        "compiler error: attempted to set name of variable that already has name" panic!,
-        dup VAR_FLAG_HAS_NAME var-flag!
-        var-name& name!
-    ))
-def(var-name@, Var -- Name,
-    dup VAR_ERROR = if(
-        drop NAME_ERROR,
-
-    var-has-name? not if(
-        var-has-name-token? not if(
-            "compiler error: attempted to get name of variable without name" panic!,
-            var-name-token? token-name@
-            tuck swap var-name!
-        ),
-        var-name& name@
-    )))
-def(var-name?, Var -- Var Name, dup var-name@)
-
-|Token| VAR_MAX * def-static-buffer(VAR_NAME_TOKEN)
-def(var-has-name-token?, Var -- Var Bool, VAR_FLAG_HAS_NAME_TOKEN var-flag?)
-def(var-name-token&, Var -- Ptr, Var->Int |Token| * VAR_NAME_TOKEN ptr+)
-def(var-name-token!, Token Var --,
-    var-has-name-token? if(
-        "compiler error: attempted to set name token of variable that already has name token" panic!,
-        dup VAR_FLAG_HAS_NAME_TOKEN var-flag!
-        var-name-token& token!
-    ))
-def(var-name-token@, Var -- Token,
-    var-has-name-token? not if(
-        "compiler error: attempted to get name token of variable without name token" panic!,
-        var-name-token& token@
-    ))
-def(var-name-token?, Var -- Var Token,
-    dup var-name-token@)
-
-def(|Type|, Size, 4)
-|Type| VAR_MAX * def-static-buffer(VAR_TYPE)
-def(var-has-type?, Var -- Var Bool, VAR_FLAG_HAS_TYPE var-flag?)
-def(var-type&, Var -- Ptr, Var->Int |Type| * VAR_TYPE ptr+)
-def(var-type!, Type Var --,
-    var-has-type? if(
-        "compiler error: attempted to set type of variable that already has type" panic!,
-        dup VAR_FLAG_HAS_TYPE var-flag!
-        var-type& type!
-    ))
-def(var-type@, Var -- Type,
-    dup VAR_ERROR = if(
-        drop TYPE_ERROR,
-
-    var-has-type? not if(
-        "compiler error: attempted to get type of variable without type" panic!,
-
-        var-type& type@
-    )))
-def(var-type?, Var -- Var Type,
-    dup var-type@)
 
 def(var-trace-binding!, Var -- +IO,
     var-name? name-load! str-buf-trace!

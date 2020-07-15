@@ -1,0 +1,111 @@
+module(mirth/data/common)
+import(prelude)
+
+# mirth/data/name
+table(Name)
+nominal(Prim, Name)
+nominal(NameSort, U8)
+nominal(NameValue, Int)
+field(name-sort, Name, NameSort)
+field(name-value, Name, NameValue)
+
+# mirth/data/buffer
+table(Buffer)
+field(buffer-size, Buffer, Size)
+field(buffer-base, Buffer, Ptr)
+field(buffer-name, Buffer, Name)
+
+# mirth/data/location
+nominal(Row, U16)
+nominal(Col, U16)
+
+# mirth/data/module
+table(Module)
+table(Token)
+field(module-start, Module, Token)
+field(module-end, Module, Token)
+
+# mirth/data/token
+nominal(TokenType, U8)
+nominal(TokenValue, Int)
+field(token-type, Token, TokenType)
+field(token-value, Token, TokenValue)
+field(token-module, Token, Module)
+field(token-row, Token, Row)
+field(token-col, Token, Col)
+
+# mirth/data/type
+nominal(Type, U32)
+table(TensorType)
+table(MorphismType)
+table(MetaVar)
+table(Nominal)
+field(tensor-type-snd, TensorType, Type)
+field(tensor-type-fst, TensorType, Type)
+field(morphism-type-cod, MorphismType, Type)
+field(morphism-type-dom, MorphismType, Type)
+field(meta-is-defined, MetaVar, Bool)
+field(meta-type-raw, MetaVar, Type)
+field(nominal-type, Nominal, Type)
+field(nominal-name, Nominal, Name)
+
+
+# mirth/data/var
+table(Var)
+field(var-is-implicit, Var, Bool)
+field(var-name, Var, Name)
+field(var-type, Var, Type)
+
+# mirth/data/ctx
+table(Ctx)
+field(ctx-prev, Ctx, Ctx)
+field(ctx-var, Ctx, Var)
+
+# mirth/data/external
+table(External)
+field(external-name, External, Name)
+field(external-type, External, Type)
+field(external-sig, External, Token)
+field(external-ctx, External, Ctx)
+field(external-flags, External, Int)
+
+# mirth/data/subst
+table(Subst)
+field(subst-rest, Subst, Subst)
+field(subst-var, Subst, Var)
+field(subst-type, Subst, Type)
+
+# mirth/data/arrow
+table(Arrow)
+table(Args)
+nominal(Op, U8)
+nominal(Arg, Arrow)
+field(arrow-token, Arrow, Token)
+field(arrow-dom, Arrow, Type)
+field(arrow-next, Arrow, Arrow)
+field(arrow-op, Arrow, Op)
+field(arrow-op-value, Arrow, Int)
+field(arrow-args, Arrow, Args)
+field(args-head, Args, Arg)
+field(args-tail, Args, Args)
+
+# mirth/data/word
+table(Word)
+field(word-name, Word, Name)
+field(word-sig, Word, Token)
+field(word-body, Word, Token)
+field(word-ctx, Word, Ctx)
+field(word-type, Word, Type)
+field(word-arrow, Word, Arrow)
+
+# mirth/data/table
+table(Table)
+table(Field)
+field(table-name, Table, Name)
+field(table-num-buffer, Table, Buffer)
+field(table-max-count, Table, Size)
+field(field-name, Field, Name)
+field(field-table, Field, Table)
+field(field-type, Field, Type)
+field(field-buffer, Field, Buffer)
+field(field-word-ptr, Field, Word)

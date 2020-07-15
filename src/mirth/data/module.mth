@@ -1,11 +1,7 @@
 module(mirth/data/module)
-import(prelude)
+import(mirth/data/common)
 import(mirth/data/path)
 
-def(init-modules!, --,
-    0 num-modules!)
-
-nominal(Module, Int)
 def(Module->Int, Module -- Int, cast)
 def(Int->Module, Int -- Module, cast)
 def(Module->U16, Module -- U16, Module->Int Int->U16)
@@ -14,41 +10,24 @@ def(U16->Module, U16 -- Module, U16->Int Int->Module)
 def(|Module|, Size, 2)
 def(module@, Ptr -- Module, u16@ U16->Module)
 def(module!, Module Ptr --, dip(Module->U16) u16!)
-def(module@@, Int Ptr -- Module, u16@@ U16->Module)
-def(module!!, Module Int Ptr --, dip(dip(Module->U16)) u16!!)
 
-def(MAX_MODULES, Size, 0x100)
+def(MAX_MODULES, Size, 0x200)
 def(MODULE_PATH_SIZE, Size, 0x200)
-
-quad def-static-buffer(NUM_MODULES)
 
 MAX_MODULES MODULE_PATH_SIZE *
     def-static-buffer(MODULE_PATH_BUF)
-MAX_MODULES quads dup
-    def-static-buffer(MODULE_START)
-    def-static-buffer(MODULE_END)
 
-def(num-modules@, -- Size, NUM_MODULES @)
-def(num-modules!, Size --, NUM_MODULES !)
-def(alloc-module!, Module,
-    num-modules@ dup 1+ num-modules!
-    dup MAX_MODULES >= if(
-        "ran out of space to store module path" panic!,
-        Int->Module
+
+def(module-alloc!, Module,
+    Module.alloc!
+    dup Module->Int MAX_MODULES >= if(
+        "Module.NUM @ >= MAX_MODULES" panic!,
+        id
     ))
 
-def(new-module!, Path -- Module,
-    alloc-module! dup dip(module-path!))
-
-def(module-start&, Module -- Ptr, Module->Int |Token| * MODULE_START ptr+)
-def(module-start!, Token Module --, module-start& token!)
-def(module-start@, Module -- Token, module-start& token@)
-def(module-start?, Module -- Module Token, dup module-start@)
-
-def(module-end&, Module -- Ptr, Module->Int |Token| * MODULE_END ptr+)
-def(module-end!, Token Module --, module-end& token!)
-def(module-end@, Module -- Token, module-end& token@)
-def(module-end?, Module -- Module Token, dup module-end@)
+def(module-new!, Path -- Module,
+    module-alloc!
+    tuck module-path!)
 
 def(module-path@, Module -- Path,
     Module->Int MODULE_PATH_SIZE * MODULE_PATH_BUF ptr+ Str->Path)

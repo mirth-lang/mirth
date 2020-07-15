@@ -1,0 +1,196 @@
+module(mirth/data/table)
+import(mirth/data/common)
+import(mirth/data/buffer)
+
+#########
+# TABLE #
+#########
+
+def(Table->Int, Table -- Int, cast)
+def(Int->Table, Int -- Table, cast)
+def(|Table|, Size, 8)
+def(table@, Ptr -- Table, @ Int->Table)
+def(table!, Table Ptr --, dip(Table->Int) !)
+
+def(table-alloc!, Table,
+    Table.alloc!
+    dup Table->Int Table.MAX >= if(
+        "compiler error: NUM_TABLES >= MAX_TABLES" panic!,
+        id
+    ))
+
+def(table-new!, Name -- Table,
+    table-alloc!
+    dup2 TTable swap name-type!
+    tuck table-name!
+
+    0x20000 over table-max-count!
+
+    # Table.MAX
+    table-name? name-load! ".MAX" str-buf-push-str! name-save!
+    word-alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    TYPE_UNIT
+    TYPE_UNIT TYPE_INT tensor-type-new! TTensor
+    morphism-type-new! TMorphism
+    over word-type!
+    dup word-sig-is-checked!
+
+    0x20000 arrow-new-int!
+    over word-arrow!
+    word-body-is-checked!
+
+    # Table.NUM
+    table-name? name-load! ".NUM" str-buf-push-str! name-save!
+    8 buffer-alloc!
+    over table-num-buffer!
+
+    # Table.alloc!
+    table-name? name-load! ".alloc!" str-buf-push-str! name-save!
+    word-alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    over TTable
+    dip(TYPE_UNIT TYPE_UNIT) tensor-type-new! TTensor
+    morphism-type-new! TMorphism
+    over word-type!
+    dup word-sig-is-checked!
+
+    # TODO: perform bounds check in Table.alloc!
+    over table-num-buffer@ dup
+    dip(
+        arrow-new-buffer!
+        dup2 swap word-arrow!
+        PRIM_MEM_GET arrow-push-prim!
+        1 arrow-push-int!
+        PRIM_INT_ADD arrow-push-prim!
+        PRIM_DUP arrow-push-prim!
+    )
+    arrow-push-buffer!
+    PRIM_MEM_SET arrow-push-prim!
+    drop word-body-is-checked!)
+
+#########
+# FIELD #
+#########
+
+def(Field->Int, Field -- Int, cast)
+def(Int->Field, Int -- Field, cast)
+def(|Field|, Size, 8)
+def(field@, Ptr -- Field, @ Int->Field)
+def(field!, Field Ptr --, dip(Field->Int) !)
+
+def(field-alloc!, Field,
+    Field.alloc!
+    dup Field->Int Field.MAX >= if(
+        "compiler error: NUM_FIELDS >= MAX_FIELDS" panic!,
+        id
+    ))
+
+def(field-new!, Name Table Type -- Field,
+    field-alloc!
+    tuck field-type!
+    tuck field-table!
+    tuck field-name!
+
+    # define the buffer for the field
+    field-name? name-load! "-buffer" str-buf-push-str! name-save!
+    over field-table@ table-max-count@ 8 *
+    buffer-alloc! over field-buffer!
+
+    # field&
+    field-name? name-load! "&" str-buf-push-str! name-save!
+    word-alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    over field-table@ TTable
+    TYPE_UNIT swap tensor-type-new! TTensor
+    TYPE_UNIT TYPE_PTR tensor-type-new! TTensor
+    morphism-type-new! TMorphism
+    over word-type!
+    dup word-sig-is-checked!
+
+    # FIXME: need a better arrow-building inteface that tracks types
+    #  i.e. a better elaborator API.
+    8 arrow-new-int!
+    dup2 swap word-arrow!
+    PRIM_INT_MUL arrow-push-prim!
+    dip(over field-buffer@) swap arrow-push-buffer!
+    PRIM_PTR+ arrow-push-prim!
+    drop dup word-body-is-checked!
+    over field-word-ptr!
+
+    # field!
+    field-name? name-load! "!" str-buf-push-str! name-save!
+    word-alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    over field-table? TTable
+    dip(field-type@ dip(TYPE_UNIT) tensor-type-new! TTensor) tensor-type-new! TTensor
+    TYPE_UNIT morphism-type-new! TMorphism
+    over word-type!
+    dup word-sig-is-checked!
+
+    over field-word-ptr@ arrow-new-word!
+    dup2 swap word-arrow!
+    PRIM_MEM_SET arrow-push-prim!
+    drop word-body-is-checked!
+
+    # field@
+    field-name? name-load! "@" str-buf-push-str! name-save!
+    word-alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    over field-table? TTable swap field-type@
+    dip(TYPE_UNIT swap tensor-type-new! TTensor)
+    TYPE_UNIT swap tensor-type-new! TTensor
+    morphism-type-new! TMorphism
+    over word-type!
+    dup word-sig-is-checked!
+
+    over field-word-ptr@ arrow-new-word!
+    dup2 swap word-arrow!
+    PRIM_MEM_GET arrow-push-prim!
+    drop word-body-is-checked!
+
+    # field?
+    field-name? name-load! "?" str-buf-push-str! name-save!
+    word-alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    over field-table? TTable swap field-type@
+    dip(TYPE_UNIT swap tensor-type-new! TTensor)
+    dip(dup) tensor-type-new! TTensor
+    morphism-type-new! TMorphism
+    over word-type!
+    dup word-sig-is-checked!
+
+    over field-word-ptr@
+    dip(
+        PRIM_DUP arrow-new-prim!
+        dup2 swap word-arrow!
+    )
+    arrow-push-word!
+    PRIM_MEM_GET arrow-push-prim!
+    drop word-body-is-checked!)
+
+############
+### test ###
+############
+table(TestTable)
+def(TestTable.MAX', Size, TestTable.MAX)
+def(TestTable.NUM', Ptr, TestTable.NUM)
+def(TestTable.alloc!', TestTable, TestTable.alloc!)
+
+field(test-table-int, TestTable, Int)
+def(test-table-int-buffer', Ptr, test-table-int-buffer)
+def(test-table-int&', TestTable -- Ptr, test-table-int&)
+def(test-table-int@', TestTable -- Int, test-table-int@)
+def(test-table-int!', Int TestTable --, test-table-int!)
