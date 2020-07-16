@@ -163,8 +163,6 @@ def(lexer-emit-rparen!, +Lexer,
 def(lexer-emit-name!, +Lexer,
     str-buf-clear!
     str-buf-zero!
-    TOKEN_NAME 0 Int->TokenValue lexer-make!
-
 
     lexer-peek while(is-name-char?,
         str-buf-push!
@@ -173,13 +171,22 @@ def(lexer-emit-name!, +Lexer,
     )
     drop
 
+    str-buf-is-doc-start? if(
+        lexer-skip-comment!,
     str-buf-is-int? if(
-        str-buf-int? Int->TokenValue over token-value!
-        TOKEN_INT swap token-type!,
+        TOKEN_INT str-buf-int? Int->TokenValue lexer-make! drop,
+        TOKEN_NAME name-save! Name->TokenValue lexer-make! drop
+    )))
 
-        name-save!
-        Name->TokenValue swap token-value!
+def(str-buf-is-doc-start?, Bool +StrBuf,
+    str-buf-length? 3 = if(
+        0 str-buf-u8@ is-pipe-char
+        1 str-buf-u8@ is-pipe-char &&
+        2 str-buf-u8@ is-pipe-char &&,
+        false
     ))
+
+def(is-pipe-char, U8 -- Bool, U8->Int 0x7C =)
 
 def(str-buf-is-int?, Bool +StrBuf,
     str-buf-is-dec-int? if(true, str-buf-is-hex-int?))

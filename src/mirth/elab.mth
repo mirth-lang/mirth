@@ -705,3 +705,38 @@ def(expect3, Type Type Type Type Type Type -- Bool +Elab,
         expect2,
         drop2 drop2 false
     )) # TODO: improve diagnostics
+
+
+#############
+## ELAB V2 ##
+#############
+
+def(elab-module!, Module -- Module +Mirth,
+    module-start?
+    elab-module-header!
+#    elab-module-imports!
+ #   elab-module-body!)
+    drop)
+
+||| Check that the `module(M)` statement exists and matches
+||| the module name.
+def(elab-module-header!, Module Token -- Module Token +Mirth,
+    token-is-module-header? if(
+        dup2 elab-module-header-verify! token-next,
+        dup "Expected module header." emit-warning!
+    ))
+
+||| Check that the `module(M)` argument matches the current
+||| module name. Emit a warning if not.
+def(elab-module-header-verify!, Module Token -- +Mirth,
+    drop2) # TODO
+#    token-args-1 token-is-name? if(
+#        over
+#
+#   ))
+
+def(token-is-module-header?, Token -- Token Bool +Mirth,
+    token-is-name? if(
+        token-name? PRIM_MODULE Prim->Name =,
+        false
+    ))
