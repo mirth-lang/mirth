@@ -100,8 +100,6 @@ def(token-run-end?, Token -- Token Bool +Mirth,
 
 # Run a single token, return next token.
 def(token-run-one!, Token -- Token +Mirth,
-    dup typecheck-token!
-
     token-type? TOKEN_INT = if(
         0 1 arity-check!
         token-int? vstack-push!,

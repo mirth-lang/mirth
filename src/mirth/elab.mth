@@ -555,68 +555,6 @@ def(elab-arrow-step-while!, Arrow -- Arrow +Elab,
         elab-stack!
     ) elab-token!)
 
-#################
-# Type Checking #
-#################
-
-MAX_NAMES def-static-buffer(DEF_CHECKED)
-def(name-checked!, Bool Name --, dip(if(1,0) Int->U8) Name->Int DEF_CHECKED u8!!)
-def(name-checked@, Name -- Bool, Name->Int DEF_CHECKED u8@@ U8->Int 0 = not)
-def(name-checked?, Name -- Name Bool, dup name-checked@)
-
-def(typecheck-token!, Token --,
-    token-type? TOKEN_NAME = if(
-        token-name?
-
-        name-is-prim? if(
-            drop2,
-
-        name-undefined? if(
-            drop "Word is undefined." emit-fatal-error!,
-
-            nip typecheck-name!
-        )),
-
-        drop
-    ))
-
-def(typecheck-name!, Name --,
-    name-checked? if(
-        drop,
-
-        true over name-checked!
-
-        name-is-prim? if(
-            drop,
-
-        name-undefined? if(
-            "error: Name undefined: " str-trace!
-            name-load! str-buf-trace! trace-ln!,
-
-        name-is-word? if(
-            typecheck-word!,
-
-        name-is-buffer? if(
-            drop,
-
-        name-is-external? if(
-            drop, # TODO: check the signature
-
-        name-is-type? if(
-            drop, # TODO
-
-            "error: Dont know how to typecheck name: "
-            str-trace! name-load! str-buf-trace! trace-ln!
-            1 posix-exit!
-
-        ))))))
-    ))
-
-def(typecheck-word!, Name --,
-    name-word@ dup
-    elab-word-sig! drop
-    elab-word-body! drop)
-
 
 #############
 # Type Sigs #

@@ -324,20 +324,6 @@ def(def-prim!, Prim Str -- +Names,
 # deviation from the order above will be flagged
 # by def-prim!
 def(init-names!, +Names,
-    NAME_TABLE_SIZE
-    while(dup nonzero,
-        1-
-        0 over NAME_TABLE quad!!
-    ) drop
-
-    num-names@ while(dup nonzero,
-        1- Int->Name
-        false over name-checked!
-        DEF_NONE over name-sort!
-        0 Int->NameValue over name-value!
-        Name->Int
-    ) drop
-
     PRIM_ID "id" def-prim!
     PRIM_DUP "dup" def-prim!
     PRIM_DROP "drop" def-prim!
