@@ -34,7 +34,7 @@ extern void exit(int);
 static volatile usize sc = STACK_SIZE;
 static volatile i64 stack[STACK_SIZE] = {0};
 
-#define STRINGS_SIZE 10914
+#define STRINGS_SIZE 10963
 static const char strings[STRINGS_SIZE] = { 
 109,105,114,116,104,46,109,116,104,0,
 66,117,105,108,100,105,110,103,46,0,
@@ -720,6 +720,8 @@ static const char strings[STRINGS_SIZE] = {
 58,32,119,97,114,110,105,110,103,58,32,115,116,97,99,107,32,61,32,0,
 99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,117,110,107,110,111,119,110,32,112,114,105,109,32,105,110,32,101,108,97,98,111,114,97,116,111,114,0,
 69,120,112,101,99,116,101,100,32,109,111,100,117,108,101,32,104,101,97,100,101,114,46,0,
+109,111,100,117,108,101,32,110,97,109,101,32,97,108,114,101,97,100,121,32,100,101,102,105,110,101,100,0,
+101,120,112,101,99,116,101,100,32,109,111,100,117,108,101,32,110,97,109,101,0,
 };
 
  i64 pop (void) {
@@ -2005,6 +2007,7 @@ void mw_7C__7C_ (void) {
  void mwname_buffer_40_ (void);
  void mwname_is_table_3F_ (void);
  void mwtype_is_table (void);
+ void mwname_module_21_ (void);
  void mwStrLit__3E_Int (void);
  void mwInt__3E_StrLit (void);
  void mwMAX_STRINGS (void);
@@ -2553,6 +2556,7 @@ void mw_7C__7C_ (void) {
  void mwelab_module_21_ (void);
  void mwelab_module_header_21_ (void);
  void mwtoken_is_module_header_3F_ (void);
+ void mwelab_module_name_21_ (void);
 
 void mwinit_21_ (void){
     mwinit_paths_21_();
@@ -8206,6 +8210,16 @@ void mwtype_is_table (void){
     mwtype_tag();
     mwTYPE_TAG_TABLE();
     mw_3D_();
+}
+
+void mwname_module_21_ (void){
+    mwDEF_MODULE();
+    mwover();
+    mwname_sort_21_();
+    { i64 d1 = pop();
+    mwModule__3E_NameValue();
+      push(d1); }
+    mwname_value_21_();
 }
 
 void mwStrLit__3E_Int (void){
@@ -17134,6 +17148,8 @@ void mwelab_module_21_ (void){
 void mwelab_module_header_21_ (void){
     mwtoken_is_module_header_3F_();
     if (pop()) {
+    mwdup2();
+    mwelab_module_name_21_();
     mwtoken_next();
     } else {
     mwdup();
@@ -17151,6 +17167,29 @@ void mwtoken_is_module_header_3F_ (void){
     mw_3D_();
     } else {
     mwfalse();
+    }
+}
+
+void mwelab_module_name_21_ (void){
+    mwtoken_args_1();
+    mwtoken_is_name_3F_();
+    if (pop()) {
+    mwtoken_name_3F_();
+    mwname_defined_3F_();
+    if (pop()) {
+    mwdrop();
+    push((i64)(strings + 10914));
+    mwemit_fatal_error_21_();
+    } else {
+    mwnip();
+    mwdup2();
+    mwname_module_21_();
+    mwswap();
+    mwmodule_name_21_();
+    }
+    } else {
+    push((i64)(strings + 10942));
+    mwemit_fatal_error_21_();
     }
 }
 

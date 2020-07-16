@@ -496,3 +496,7 @@ def(name-is-table?, Name -- Name Bool,
         dup name-type@ type-is-table,
         false
     ))
+
+def(name-module!, Module Name --,
+    DEF_MODULE over name-sort!
+    dip(Module->NameValue) name-value!)
