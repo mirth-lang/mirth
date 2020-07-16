@@ -1126,6 +1126,8 @@ void mw_7C__7C_ (void) {
  void mwModule_2E_NUM (void) { push((i64)bModule_2E_NUM); }
  volatile u8 bToken_2E_NUM[8] = {0};
  void mwToken_2E_NUM (void) { push((i64)bToken_2E_NUM); }
+ volatile u8 bmodule_name_buffer[1048576] = {0};
+ void mwmodule_name_buffer (void) { push((i64)bmodule_name_buffer); }
  volatile u8 bmodule_start_buffer[1048576] = {0};
  void mwmodule_start_buffer (void) { push((i64)bmodule_start_buffer); }
  volatile u8 bmodule_end_buffer[1048576] = {0};
@@ -1570,6 +1572,10 @@ void mw_7C__7C_ (void) {
  void mwModule_2E_MAX (void);
  void mwToken_2E_MAX (void);
  void mwToken_2E_alloc_21_ (void);
+ void mwmodule_name_26_ (void);
+ void mwmodule_name_21_ (void);
+ void mwmodule_name_40_ (void);
+ void mwmodule_name_3F_ (void);
  void mwmodule_start_26_ (void);
  void mwmodule_start_21_ (void);
  void mwmodule_start_3F_ (void);
@@ -2107,6 +2113,7 @@ void mw_7C__7C_ (void) {
  void mwlexer_move_21_ (void);
  void mwlexer_emit_fatal_error_21_ (void);
  void mwstr_buf_is_doc_start_3F_ (void);
+ void mwlexer_skip_doc_21_ (void);
  void mwstr_buf_is_int_3F_ (void);
  void mwstr_buf_int_3F_ (void);
  void mwis_pipe_char (void);
@@ -2546,7 +2553,6 @@ void mw_7C__7C_ (void) {
  void mwelab_module_21_ (void);
  void mwelab_module_header_21_ (void);
  void mwtoken_is_module_header_3F_ (void);
- void mwelab_module_header_verify_21_ (void);
 
 void mwinit_21_ (void){
     mwinit_paths_21_();
@@ -5264,6 +5270,29 @@ void mwToken_2E_alloc_21_ (void){
     mwdup();
     mwToken_2E_NUM();
     mw_21_();
+}
+
+void mwmodule_name_26_ (void){
+    push(8);
+    mw_2A_();
+    mwmodule_name_buffer();
+    mwprim_2E_unsafe_2E_ptr_2B_();
+}
+
+void mwmodule_name_21_ (void){
+    mwmodule_name_26_();
+    mw_21_();
+}
+
+void mwmodule_name_40_ (void){
+    mwmodule_name_26_();
+    mw_40_();
+}
+
+void mwmodule_name_3F_ (void){
+    mwdup();
+    mwmodule_name_26_();
+    mw_40_();
 }
 
 void mwmodule_start_26_ (void){
@@ -9039,14 +9068,10 @@ void mwlexer_emit_21_ (void){
 
 void mwlexer_make_21_ (void){
     mwtoken_alloc_21_();
-    mwdup();
-    { i64 d1 = pop();
+    mwtuck();
     mwtoken_value_21_();
-      push(d1); }
-    mwdup();
-    { i64 d1 = pop();
+    mwtuck();
     mwtoken_type_21_();
-      push(d1); }
     { i64 d1 = pop();
     mwlexer_module_40_();
       push(d1); }
@@ -9090,6 +9115,9 @@ void mwis_name_char_3F_ (void){
 void mwlexer_emit_name_21_ (void){
     mwstr_buf_clear_21_();
     mwstr_buf_zero_21_();
+    mwlexer_module_40_();
+    mwlexer_row_40_();
+    mwlexer_col_40_();
     mwlexer_peek();
     while(1) {
     mwis_name_char_3F_();
@@ -9101,21 +9129,38 @@ void mwlexer_emit_name_21_ (void){
     mwdrop();
     mwstr_buf_is_doc_start_3F_();
     if (pop()) {
-    mwlexer_skip_comment_21_();
+    mwdrop3();
+    mwlexer_skip_doc_21_();
     } else {
     mwstr_buf_is_int_3F_();
     if (pop()) {
+    mwtoken_alloc_21_();
     mwTOKEN_INT();
+    mwover();
+    mwtoken_type_21_();
     mwstr_buf_int_3F_();
     mwInt__3E_TokenValue();
-    mwlexer_make_21_();
-    mwdrop();
+    mwover();
+    mwtoken_value_21_();
+    mwtuck();
+    mwtoken_col_21_();
+    mwtuck();
+    mwtoken_row_21_();
+    mwtoken_module_21_();
     } else {
+    mwtoken_alloc_21_();
     mwTOKEN_NAME();
+    mwover();
+    mwtoken_type_21_();
     mwname_save_21_();
     mwName__3E_TokenValue();
-    mwlexer_make_21_();
-    mwdrop();
+    mwover();
+    mwtoken_value_21_();
+    mwtuck();
+    mwtoken_col_21_();
+    mwtuck();
+    mwtoken_row_21_();
+    mwtoken_module_21_();
     }
     }
 }
@@ -9290,6 +9335,15 @@ void mwstr_buf_is_doc_start_3F_ (void){
     mw_26__26_();
     } else {
     mwfalse();
+    }
+}
+
+void mwlexer_skip_doc_21_ (void){
+    while(1) {
+    mwlexer_comment_end_3F_();
+    mwnot();
+    if (!pop()) break;
+    mwlexer_move_21_();
     }
 }
 
@@ -17080,13 +17134,11 @@ void mwelab_module_21_ (void){
 void mwelab_module_header_21_ (void){
     mwtoken_is_module_header_3F_();
     if (pop()) {
-    mwdup2();
-    mwelab_module_header_verify_21_();
     mwtoken_next();
     } else {
     mwdup();
     push((i64)(strings + 10890));
-    mwemit_warning_21_();
+    mwemit_error_21_();
     }
 }
 
@@ -17100,10 +17152,6 @@ void mwtoken_is_module_header_3F_ (void){
     } else {
     mwfalse();
     }
-}
-
-void mwelab_module_header_verify_21_ (void){
-    mwdrop2();
 }
 
 int main (int argc, char** argv) {

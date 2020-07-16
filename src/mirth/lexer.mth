@@ -94,8 +94,8 @@ def(lexer-done?, Bool +Lexer, input-done?)
 # returning the new token.
 def(lexer-make!, TokenType TokenValue -- Token,
     token-alloc!
-    dup dip(token-value!)
-    dup dip(token-type!)
+    tuck token-value!
+    tuck token-type!
     dip(lexer-module@) dup dip(token-module!)
     dip(lexer-row@) dup dip(token-row!)
     dip(lexer-col@) dup dip(token-col!))
@@ -164,6 +164,10 @@ def(lexer-emit-name!, +Lexer,
     str-buf-clear!
     str-buf-zero!
 
+    lexer-module@
+    lexer-row@
+    lexer-col@
+
     lexer-peek while(is-name-char?,
         str-buf-push!
         lexer-move!
@@ -172,10 +176,22 @@ def(lexer-emit-name!, +Lexer,
     drop
 
     str-buf-is-doc-start? if(
-        lexer-skip-comment!,
+        drop3
+        lexer-skip-doc!, # TODO: save the doc in a token-doc field for the proceeding token
     str-buf-is-int? if(
-        TOKEN_INT str-buf-int? Int->TokenValue lexer-make! drop,
-        TOKEN_NAME name-save! Name->TokenValue lexer-make! drop
+        token-alloc!
+        TOKEN_INT over token-type!
+        str-buf-int? Int->TokenValue over token-value!
+        tuck token-col!
+        tuck token-row!
+        token-module!,
+
+        token-alloc!
+        TOKEN_NAME over token-type!
+        name-save! Name->TokenValue over token-value!
+        tuck token-col!
+        tuck token-row!
+        token-module!
     )))
 
 def(str-buf-is-doc-start?, Bool +StrBuf,
@@ -340,6 +356,8 @@ def(lexer-skip-comment!, +Lexer,
         lexer-emit-newline! drop,
         drop
     ))
+
+def(lexer-skip-doc!, +Lexer, while(lexer-comment-end? not, lexer-move!))
 
 def(lexer-comment-end?, Bool +Lexer,
     lexer-done? if(
