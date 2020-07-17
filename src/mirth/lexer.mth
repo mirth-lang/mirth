@@ -9,21 +9,21 @@ import(mirth/input)
 # LEXER #
 #########
 
-|Module| def-static-buffer(LEXER_MODULE)
+buffer(LEXER_MODULE, 8)
 def(lexer-module@, -- Module +Lexer, LEXER_MODULE module@)
 def(lexer-module!, Module -- +Lexer, LEXER_MODULE module!)
 
-u16 def-static-buffer(LEXER_ROW)
+buffer(LEXER_ROW, 8)
 def(lexer-row@, -- Row +Lexer, LEXER_ROW u16@ U16->Row)
 def(lexer-row!, Row -- +Lexer, Row->U16 LEXER_ROW u16!)
 
-u16 def-static-buffer(LEXER_COL)
+buffer(LEXER_COL, 8)
 def(lexer-col@, -- Col +Lexer, LEXER_COL u16@ U16->Col)
 def(lexer-col!, Col -- +Lexer, Col->U16 LEXER_COL u16!)
 
+buffer(LEXER_STACK_LENGTH, 8)
+buffer(LEXER_STACK_BUF, 0x1000)
 def(LEXER_STACK_SIZE, Size, 0x200)
-u16 def-static-buffer(LEXER_STACK_LENGTH)
-LEXER_STACK_SIZE quads def-static-buffer(LEXER_STACK_BUF)
 
 def(lexer-stack-length@, Size +Lexer,
     LEXER_STACK_LENGTH u16@ U16->Int)

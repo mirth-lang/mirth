@@ -140,7 +140,7 @@ def(test%, --,
     4 2 % !!0
     5 2 % !!1)
 
-2 quads def-static-buffer(TEST_BUF)
+buffer(TEST_BUF, 16)
 def(test@!, --,
     # reset test buffer
     0 0 TEST_BUF quad!!

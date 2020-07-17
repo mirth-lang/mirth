@@ -5,12 +5,12 @@ import(prelude)
 # Input #
 #########
 
-def(INPUT_BUFFER_SIZE, Size, 0x200)
-quad def-static-buffer(INPUT_ISOPEN)
-quad def-static-buffer(INPUT_LENGTH)
-quad def-static-buffer(INPUT_OFFSET)
-quad def-static-buffer(INPUT_HANDLE)
-INPUT_BUFFER_SIZE def-static-buffer(INPUT_BUFFER)
+buffer(INPUT_ISOPEN, 8)
+buffer(INPUT_LENGTH, 8)
+buffer(INPUT_OFFSET, 8)
+buffer(INPUT_HANDLE, 8)
+buffer(INPUT_BUFFER, 0x800)
+def(INPUT_BUFFER_SIZE, Size, 0x800)
 
 def(input-isopen@, Bool +Input, INPUT_ISOPEN @ nonzero)
 def(input-length@, Size +Input, INPUT_LENGTH @)

@@ -13,10 +13,7 @@ def(module!, Module Ptr --, dip(Module->U16) u16!)
 
 def(MAX_MODULES, Size, 0x200)
 def(MODULE_PATH_SIZE, Size, 0x200)
-
-MAX_MODULES MODULE_PATH_SIZE *
-    def-static-buffer(MODULE_PATH_BUF)
-
+buffer(MODULE_PATH_BUF, 0x40000)
 
 def(module-alloc!, Module,
     Module.alloc!

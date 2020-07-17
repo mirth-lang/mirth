@@ -7,7 +7,7 @@ import(mirth/data/type)
 # Elaborator #
 ##############
 
-|Token| def-static-buffer(ELAB_TOKEN)
+buffer(ELAB_TOKEN, 8)
 def(elab-token@, -- Token +Elab, ELAB_TOKEN token@)
 def(elab-token!, Token -- +Elab, ELAB_TOKEN token!)
 def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
@@ -15,11 +15,11 @@ def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
 def(elab-emit-fatal-error!, *a Str -- *b +Elab, dip(elab-token@) emit-fatal-error!)
 
 
-|Type| def-static-buffer(ELAB_STACK)
+buffer(ELAB_STACK, 8)
 def(elab-stack@, -- Type +Elab, ELAB_STACK type@)
 def(elab-stack!, Type -- +Elab, ELAB_STACK type!)
 
-|Ctx| def-static-buffer(ELAB_CTX)
+buffer(ELAB_CTX, 8)
 def(elab-ctx@, -- Ctx +Elab, ELAB_CTX ctx@)
 def(elab-ctx!, Ctx -- +Elab, ELAB_CTX ctx!)
 
@@ -267,7 +267,7 @@ def(elab-arrow-step-name!, Arrow Name -- Arrow +Elab,
         Name->Prim elab-arrow-step-prim!,
 
         drop
-        "Unknown word" elab-emit-error!
+        "Unknown word" elab-emit-fatal-error!
         TYPE_ERROR elab-stack!
     )))))
 

@@ -55,6 +55,8 @@ def(main, +IO,
 # Build #
 #########
 
+#target-c99("mirth.c", main)
+
 "mirth.c" output-c99(main)
 #"mirth_prof.c" output-c99(100 while-old(main 1-))
 

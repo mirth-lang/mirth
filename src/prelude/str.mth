@@ -16,9 +16,9 @@ def(str-copy!, Str Str --,
     )
     dip(drop 0 Int->U8) u8!)
 
-def(STR_BUF_SIZE, Int, 0x80)
-quad def-static-buffer(STR_BUF_LEN)
-STR_BUF_SIZE u8s def-static-buffer(STR_BUF)
+def(STR_BUF_SIZE, Int, 0x1000)
+buffer(STR_BUF_LEN, 8)
+buffer(STR_BUF, 0x1000)
 
 def(str-buf-length?, Int +StrBuf, STR_BUF_LEN @)
 def(str-buf-length!, Int -- +StrBuf,

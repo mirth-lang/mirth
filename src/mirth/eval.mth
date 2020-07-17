@@ -12,8 +12,8 @@ import(mirth/data/table)
 ###############
 
 def(VSTACK_SIZE, Size, 0x100)
-quad def-static-buffer(VSTACK_LEN)
-VSTACK_SIZE quads def-static-buffer(VSTACK_BUF)
+buffer(VSTACK_LEN, 8)
+buffer(VSTACK_BUF, 0x800)
 
 def(vstack-len@, Size +VSTACK, VSTACK_LEN @)
 def(vstack-len!, Size -- +VSTACK, VSTACK_LEN !)
@@ -566,13 +566,16 @@ def(token-run-prim!, Token --,
             "expected type constructor" emit-fatal-error!
         ),
 
-    dup PRIM_DEF_STATIC_BUFFER = if(
+    dup PRIM_BUFFER = if(
         drop
-        1 0 arity-check!
-        token-args-1
-        token-type? TOKEN_NAME = if(
+        token-args-2
+        swap token-type? TOKEN_NAME = if(
             token-name? name-undefined? if(
-                nip vstack-pop! buffer-alloc! drop,
+                nip swap
+                token-type? TOKEN_INT = if(
+                    token-int@ buffer-alloc! drop,
+                    "expected buffer size" emit-fatal-error!
+                ),
                 drop "buffer already defined" emit-fatal-error!
             ),
             "expected buffer name" emit-fatal-error!

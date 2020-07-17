@@ -20,16 +20,14 @@ def(Hash->Int, Hash -- Int, cast)
 def(MAX_NAMES, Size, 0x4000)
 def(NAME_HASH_MAX, Size, 0x3FFF)
 def(NAME_TABLE_SIZE, Size, NAME_HASH_MAX 1+)
+buffer(NAME_TABLE, 0x20000)
 
 def(num-names@, Size, Name.NUM @)
 
 def(NAME_QUADS, Size, 8)
 def(NAME_SIZE, Size, NAME_QUADS quads)
 def(NAME_BUF_SIZE, Size, NAME_SIZE MAX_NAMES *)
-NAME_BUF_SIZE def-static-buffer(NAME_BUF)
-
-NAME_TABLE_SIZE quads
-    def-static-buffer(NAME_TABLE)
+buffer(NAME_BUF, 0x100000)
 
 # Load a name into STR_BUF.
 def(name-load!, Name --,
@@ -134,7 +132,7 @@ def(name-save!, -- Name,
         nip
     ))
 
-quad def-static-buffer(name-bytes)
+buffer(name-bytes, 8) # TODO: get rid of this
 def(show-names-table!, +Names +IO,
     0 name-bytes !
     0
@@ -283,7 +281,7 @@ def(PRIM_MIRTH_REVISION, Prim, 48 Int->Prim)
 def(PRIM_RUNNING_OS, Prim, 49 Int->Prim)
 def(PRIM_DEF, Prim, 50 Int->Prim)
 def(PRIM_DEF_TYPE, Prim, 51 Int->Prim)
-def(PRIM_DEF_STATIC_BUFFER, Prim, 52 Int->Prim)
+def(PRIM_BUFFER, Prim, 52 Int->Prim)
 def(PRIM_DEF_EXTERNAL, Prim, 53 Int->Prim)
 def(PRIM_OUTPUT_ASM, Prim, 54 Int->Prim)
 def(PRIM_OUTPUT_C99, Prim, 55 Int->Prim)
@@ -311,7 +309,8 @@ def(PRIM_BOOL_AND, Prim, 76 Int->Prim)
 def(PRIM_BOOL_OR, Prim, 77 Int->Prim)
 def(PRIM_TABLE, Prim, 78 Int->Prim)
 def(PRIM_FIELD, Prim, 79 Int->Prim)
-def(NUM_PRIMS, Size, 80)
+def(PRIM_TARGET_C99, Prim, 80 Int->Prim)
+def(NUM_PRIMS, Size, 81)
 
 def(name-is-prim?, Name -- Name Bool, dup Name->Int NUM_PRIMS <)
 
@@ -375,7 +374,7 @@ def(init-names!, +Names,
     PRIM_RUNNING_OS "RUNNING_OS" def-prim!
     PRIM_DEF "def" def-prim!
     PRIM_DEF_TYPE "def-type" def-prim!
-    PRIM_DEF_STATIC_BUFFER "def-static-buffer" def-prim!
+    PRIM_BUFFER "buffer" def-prim!
     PRIM_DEF_EXTERNAL "def-external" def-prim!
     PRIM_OUTPUT_ASM "output-asm" def-prim!
     PRIM_OUTPUT_C99 "output-c99" def-prim!
@@ -403,6 +402,7 @@ def(init-names!, +Names,
     PRIM_BOOL_OR "||" def-prim!
     PRIM_TABLE "table" def-prim!
     PRIM_FIELD "field" def-prim!
+    PRIM_TARGET_C99 "target-c99" def-prim!
     NUM_PRIMS num-names@ 1+ = if(id,
         "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
     )
