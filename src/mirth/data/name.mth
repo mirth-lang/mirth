@@ -1,5 +1,8 @@
 module(mirth/data/name)
 import(mirth/data/common)
+import(mirth/data/word)
+import(mirth/data/buffer)
+import(mirth/data/external)
 
 #########
 # Names #

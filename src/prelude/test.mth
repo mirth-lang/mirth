@@ -1,3 +1,4 @@
+module(prelude/test)
 import(prelude/common)
 
 # Assertions

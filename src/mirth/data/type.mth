@@ -3,6 +3,7 @@ module(mirth/data/type)
 import(mirth/data/common)
 import(mirth/data/name)
 import(mirth/data/ctx)
+import(mirth/data/table)
 
 def(init-types!, --,
     TYPE_INT PRIM_INT Prim->Name name-type!

@@ -3,6 +3,7 @@ import(prelude)
 import(mirth/data/name)
 import(mirth/data/string)
 import(mirth/data/token)
+import(mirth/data/error)
 import(mirth/input)
 
 #########

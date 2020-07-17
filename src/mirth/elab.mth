@@ -770,7 +770,12 @@ def(elab-module-decls!, Module Token -- Module Token +Mirth,
 def(elab-module-decl!, Module Token -- Module Token +Mirth,
     PRIM_DEF token-prim=? if( elab-def!,
     PRIM_DEF_TYPE token-prim=? if( elab-def-type!,
-    "unknown declaration" emit-fatal-error!)))
+    PRIM_NOMINAL token-prim=? if( elab-nominal!,
+    PRIM_BUFFER token-prim=? if( elab-buffer!,
+    PRIM_TABLE token-prim=? if( elab-table!,
+    PRIM_FIELD token-prim=? if( elab-field!,
+    PRIM_TARGET_C99 token-prim=? if(elab-target-c99!,
+    "unknown declaration" emit-fatal-error!))))))))
 
 ||| Elaborate a word definition `def(w, t, b)`.
 def(elab-def!, Module Token -- Module Token +Mirth,
@@ -812,9 +817,96 @@ def(elab-def-type!, Module Token -- Module Token +Mirth,
         "expected type constructor" emit-fatal-error!
     ))
 
+||| Elaborate a nominal type definition `nominal(t1, t2)`.
+def(elab-nominal!, Module Token -- Module Token +Mirth,
+    dup dip(token-next) token-args-2
+    swap sig-token-is-type-con? if(
+        token-name? name-undefined? if(
+            nip swap
+            sig-token-is-type-con? if(
+                token-name?
+                name-is-type? if(
+                    name-type@ nip,
+                    drop "Unknown type." emit-error! TYPE_ERROR
+                ),
+                "Expected a type." emit-error! TYPE_ERROR
+            )
+            over dip(nominal-new! TNominal) name-type!,
+
+            drop "type already defined" emit-fatal-error!
+        ),
+        "expected type constructor" emit-fatal-error!
+    ))
+
+||| Elaborate a buffer definition `buffer(B, size)`.
+def(elab-buffer!, Module Token -- Module Token +Mirth,
+    dup dip(token-next) token-args-2
+    swap token-type? TOKEN_NAME = if(
+        token-name? name-undefined? if(
+            nip swap
+            token-type? TOKEN_INT = if(
+                token-int@ buffer-alloc! drop,
+                "expected buffer size" emit-fatal-error!
+            ),
+            drop "buffer already defined" emit-fatal-error!
+        ),
+        "expected buffer name" emit-fatal-error!
+    ))
+
+||| Elaborate a table definition `table(T)`.
+def(elab-table!, Module Token -- Module Token +Mirth,
+    dup dip(token-next) token-args-1
+    sig-token-is-type-con? if(
+        token-name@ table-new! drop,
+        "expected table name" emit-fatal-error!
+    ))
+
+||| Elaborate a field definition `field(f, T1, T2)`.
+def(elab-field!, Module Token -- Module Token +Mirth,
+    dup dip(token-next) token-args-3
+    rotl token-type? TOKEN_NAME = if(
+        token-name@
+        rotl token-type? TOKEN_NAME = if(
+            token-name?
+            name-is-table? if(
+                nip name-type@ type-get-table
+                rotl sig-token-is-type-con? if(
+                    token-name?
+                    name-is-type? if(
+                        nip name-type@ field-new! drop,
+                        drop "unknown field type" emit-fatal-error!
+                    ),
+                    "expected field type" emit-fatal-error!
+                ),
+                drop "unknown table name" emit-fatal-error!
+            ),
+            "expected table name" emit-fatal-error!
+        ),
+        "expected field name" emit-fatal-error!
+    ))
+
+||| Elaborate C99 build target.
+def(elab-target-c99!, Module Token -- Module Token +Mirth,
+    dup dip(token-next) token-args-2
+    swap token-type? TOKEN_STR = if(
+        token-str@ Str->Path run-output-c99!,
+        "Expected relative C file path (a string)." emit-fatal-error!
+    ))
+
 ||| Is this the end of a module?
 def(token-is-module-end?, Token -- Token Bool,
     token-type? TOKEN_NONE =)
+
+# Is this a token to stop running at?
+def(token-run-end?, Token -- Token Bool +Mirth,
+    dup Token->Int num-tokens@ >= if(
+        true,
+    token-type? TOKEN_NONE = if(
+        true,
+    token-type? TOKEN_COMMA = if(
+        true,
+        token-type? TOKEN_RPAREN =
+    ))))
 
 ||| Does the token match the primitive?
 def(token-prim=?, Token Prim -- Token Bool,
