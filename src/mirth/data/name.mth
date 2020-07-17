@@ -284,7 +284,7 @@ def(PRIM_DEF_TYPE, Prim, 51 Int->Prim)
 def(PRIM_BUFFER, Prim, 52 Int->Prim)
 def(PRIM_DEF_EXTERNAL, Prim, 53 Int->Prim)
 def(PRIM_OUTPUT_ASM, Prim, 54 Int->Prim)
-def(PRIM_OUTPUT_C99, Prim, 55 Int->Prim)
+def(PRIM_TARGET_C99, Prim, 55 Int->Prim)
 def(PRIM_DASHES, Prim, 56 Int->Prim)
 def(PRIM_ARROW, Prim, 57 Int->Prim)
 def(PRIM_INT, Prim, 58 Int->Prim)
@@ -309,8 +309,7 @@ def(PRIM_BOOL_AND, Prim, 76 Int->Prim)
 def(PRIM_BOOL_OR, Prim, 77 Int->Prim)
 def(PRIM_TABLE, Prim, 78 Int->Prim)
 def(PRIM_FIELD, Prim, 79 Int->Prim)
-def(PRIM_TARGET_C99, Prim, 80 Int->Prim)
-def(NUM_PRIMS, Size, 81)
+def(NUM_PRIMS, Size, 80)
 
 def(name-is-prim?, Name -- Name Bool, dup Name->Int NUM_PRIMS <)
 
@@ -377,7 +376,7 @@ def(init-names!, +Names,
     PRIM_BUFFER "buffer" def-prim!
     PRIM_DEF_EXTERNAL "def-external" def-prim!
     PRIM_OUTPUT_ASM "output-asm" def-prim!
-    PRIM_OUTPUT_C99 "output-c99" def-prim!
+    PRIM_TARGET_C99 "target-c99" def-prim!
     PRIM_DASHES "--" def-prim!
     PRIM_ARROW "->" def-prim!
     PRIM_INT "Int" def-prim!
@@ -402,7 +401,6 @@ def(init-names!, +Names,
     PRIM_BOOL_OR "||" def-prim!
     PRIM_TABLE "table" def-prim!
     PRIM_FIELD "field" def-prim!
-    PRIM_TARGET_C99 "target-c99" def-prim!
     NUM_PRIMS num-names@ 1+ = if(id,
         "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
     )

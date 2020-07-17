@@ -438,4 +438,4 @@ def(snake-apply-direction, XCoord YCoord Direction -- XCoord YCoord,
         "unknown direction in snake-apply-direction" panic!
     )))))
 
-"snake.c" output-c99(snake!)
+target-c99("snake.c", snake!)

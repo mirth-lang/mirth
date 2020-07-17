@@ -55,12 +55,9 @@ def(main, +IO,
 # Build #
 #########
 
-#target-c99("mirth.c", main)
+target-c99("mirth.c", main)
 
-"mirth.c" output-c99(main)
-#"mirth_prof.c" output-c99(100 while-old(main 1-))
-
-# import(snake) # this is silly, but no way around this for now.
+import(snake) # this is silly, but no way around this for now.
     # there's two issues here:
     #   1. snake imports sdl2, sdl2 declares a bunch of external functions.
     #   under the current compilation approach ("just generate everything

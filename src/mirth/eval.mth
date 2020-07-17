@@ -633,12 +633,13 @@ def(token-run-prim!, Token --,
         RUNNING_OS
         vstack-push!,
 
-    dup PRIM_OUTPUT_C99 = if(
+    dup PRIM_TARGET_C99 = if(
         drop
-        1 0 arity-check!
-        token-args-1
-        vstack-pop!
-        run-output-c99!,
+        token-args-2
+        swap token-type? TOKEN_STR = if(
+            token-str@ Str->Path run-output-c99!,
+            "Expected relative C file path (a string)." emit-fatal-error!
+        ),
 
     dup PRIM_CAST = if(
         drop
