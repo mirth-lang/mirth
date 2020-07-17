@@ -715,13 +715,13 @@ def(expect3, Type Type Type Type Type Type -- Bool +Elab,
 def(elab-module!, Module -- Module +Mirth,
     module-start?
     elab-module-header!
-#    elab-module-imports!
-#    elab-module-body!)
+    elab-module-imports!
+    elab-module-decls!
     drop)
 
 ||| Check that the `module(M)` statement exists and save the name.
 def(elab-module-header!, Module Token -- Module Token +Mirth,
-    token-is-module-header? if(
+    PRIM_MODULE token-prim=? if(
         dup2 elab-module-name! token-next,
         dup "Expected module header." emit-error!
     ))
@@ -731,16 +731,96 @@ def(elab-module-name!, Module Token -- +Mirth,
     token-args-1 token-is-name? if(
         token-name?
         name-defined? if(
-            drop "module name already defined" emit-fatal-error!,
+            drop "module name already taken" emit-fatal-error!,
             nip dup2 name-module!
             swap module-name!
         ),
         "expected module name" emit-fatal-error!
     ))
 
-||| Is this token a module header `module(M)`?
-def(token-is-module-header?, Token -- Token Bool +Mirth,
-    token-is-name? if(
-        token-name? PRIM_MODULE Prim->Name =,
-        false
+
+||| Elaborate module imports. Return token after imports.
+def(elab-module-imports!, Module Token -- Module Token +Mirth,
+    while(PRIM_IMPORT token-prim=?, elab-module-import!))
+
+||| Elaborate `import(M)` statement. Return token after import.
+def(elab-module-import!, Module Token -- Module Token +Mirth,
+    dup dip(token-next)
+    token-args-1 token-is-name? if(
+        token-name?
+
+        name-is-module? if(
+            drop2, # module is already loaded (TODO: add import to a list)
+
+        name-undefined? if(
+            nip name-load! ".mth" str-buf-push-str!
+            STR_BUF Str->Path run-lexer!
+            elab-module! drop, # elab the imported module (TODO: add import to a list)
+
+            drop "module name already taken" emit-fatal-error!
+        )),
+        "expected module name" emit-fatal-error!
     ))
+
+||| Elaborate the rest of the module.
+def(elab-module-decls!, Module Token -- Module Token +Mirth,
+    while(token-is-module-end? not, elab-module-decl!))
+
+||| Elaborate a declaration. Returns the next token.
+def(elab-module-decl!, Module Token -- Module Token +Mirth,
+    PRIM_DEF token-prim=? if( elab-def!,
+    PRIM_DEF_TYPE token-prim=? if( elab-def-type!,
+    "unknown declaration" emit-fatal-error!)))
+
+||| Elaborate a word definition `def(w, t, b)`.
+def(elab-def!, Module Token -- Module Token +Mirth,
+    dup dip(token-next) token-args-3
+    rotl token-type? TOKEN_NAME = if(
+        token-name? name-undefined? if(
+            nip
+            word-alloc!
+            dup2 swap name-word!
+            dup dip(word-name!)
+            dup dip(word-body!)
+            word-sig!,
+
+            drop "word already defined" emit-fatal-error!
+        ),
+        "expected word name" emit-fatal-error!
+    ))
+
+||| Elaborate a type definition `def-type(t1, t2)`.
+def(elab-def-type!, Module Token -- Module Token +Mirth,
+    dup dip(token-next) token-args-2
+    swap sig-token-is-type-con? if(
+        token-name? name-undefined? if(
+            nip swap
+            sig-token-is-type-con? if(
+                token-name?
+                name-is-type? if(
+                    name-type@ nip,
+                    drop "Unknown type." emit-error!
+                    TYPE_ERROR
+                ),
+                "Expected a type." emit-error!
+                TYPE_ERROR
+            )
+            swap name-type!,
+
+            drop "type already defined" emit-fatal-error!
+        ),
+        "expected type constructor" emit-fatal-error!
+    ))
+
+||| Is this the end of a module?
+def(token-is-module-end?, Token -- Token Bool,
+    token-type? TOKEN_NONE =)
+
+||| Does the token match the primitive?
+def(token-prim=?, Token Prim -- Token Bool,
+    dip(token-is-name?) swap if(
+        dip(token-name?) Prim->Name =,
+        drop false
+    ))
+
+

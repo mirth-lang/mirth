@@ -34,7 +34,7 @@ extern void exit(int);
 static volatile usize sc = STACK_SIZE;
 static volatile i64 stack[STACK_SIZE] = {0};
 
-#define STRINGS_SIZE 10963
+#define STRINGS_SIZE 11151
 static const char strings[STRINGS_SIZE] = { 
 109,105,114,116,104,46,109,116,104,0,
 66,117,105,108,100,105,110,103,46,0,
@@ -720,8 +720,18 @@ static const char strings[STRINGS_SIZE] = {
 58,32,119,97,114,110,105,110,103,58,32,115,116,97,99,107,32,61,32,0,
 99,111,109,112,105,108,101,114,32,101,114,114,111,114,58,32,117,110,107,110,111,119,110,32,112,114,105,109,32,105,110,32,101,108,97,98,111,114,97,116,111,114,0,
 69,120,112,101,99,116,101,100,32,109,111,100,117,108,101,32,104,101,97,100,101,114,46,0,
-109,111,100,117,108,101,32,110,97,109,101,32,97,108,114,101,97,100,121,32,100,101,102,105,110,101,100,0,
+109,111,100,117,108,101,32,110,97,109,101,32,97,108,114,101,97,100,121,32,116,97,107,101,110,0,
 101,120,112,101,99,116,101,100,32,109,111,100,117,108,101,32,110,97,109,101,0,
+46,109,116,104,0,
+109,111,100,117,108,101,32,110,97,109,101,32,97,108,114,101,97,100,121,32,116,97,107,101,110,0,
+101,120,112,101,99,116,101,100,32,109,111,100,117,108,101,32,110,97,109,101,0,
+117,110,107,110,111,119,110,32,100,101,99,108,97,114,97,116,105,111,110,0,
+119,111,114,100,32,97,108,114,101,97,100,121,32,100,101,102,105,110,101,100,0,
+101,120,112,101,99,116,101,100,32,119,111,114,100,32,110,97,109,101,0,
+85,110,107,110,111,119,110,32,116,121,112,101,46,0,
+69,120,112,101,99,116,101,100,32,97,32,116,121,112,101,46,0,
+116,121,112,101,32,97,108,114,101,97,100,121,32,100,101,102,105,110,101,100,0,
+101,120,112,101,99,116,101,100,32,116,121,112,101,32,99,111,110,115,116,114,117,99,116,111,114,0,
 };
 
  i64 pop (void) {
@@ -2555,8 +2565,15 @@ void mw_7C__7C_ (void) {
  void mwexpect3 (void);
  void mwelab_module_21_ (void);
  void mwelab_module_header_21_ (void);
- void mwtoken_is_module_header_3F_ (void);
+ void mwelab_module_imports_21_ (void);
+ void mwelab_module_decls_21_ (void);
+ void mwtoken_prim_3D__3F_ (void);
  void mwelab_module_name_21_ (void);
+ void mwelab_module_import_21_ (void);
+ void mwtoken_is_module_end_3F_ (void);
+ void mwelab_module_decl_21_ (void);
+ void mwelab_def_21_ (void);
+ void mwelab_def_type_21_ (void);
 
 void mwinit_21_ (void){
     mwinit_paths_21_();
@@ -17142,11 +17159,14 @@ void mwexpect3 (void){
 void mwelab_module_21_ (void){
     mwmodule_start_3F_();
     mwelab_module_header_21_();
+    mwelab_module_imports_21_();
+    mwelab_module_decls_21_();
     mwdrop();
 }
 
 void mwelab_module_header_21_ (void){
-    mwtoken_is_module_header_3F_();
+    mwPRIM_MODULE();
+    mwtoken_prim_3D__3F_();
     if (pop()) {
     mwdup2();
     mwelab_module_name_21_();
@@ -17158,14 +17178,37 @@ void mwelab_module_header_21_ (void){
     }
 }
 
-void mwtoken_is_module_header_3F_ (void){
+void mwelab_module_imports_21_ (void){
+    while(1) {
+    mwPRIM_IMPORT();
+    mwtoken_prim_3D__3F_();
+    if (!pop()) break;
+    mwelab_module_import_21_();
+    }
+}
+
+void mwelab_module_decls_21_ (void){
+    while(1) {
+    mwtoken_is_module_end_3F_();
+    mwnot();
+    if (!pop()) break;
+    mwelab_module_decl_21_();
+    }
+}
+
+void mwtoken_prim_3D__3F_ (void){
+    { i64 d1 = pop();
     mwtoken_is_name_3F_();
+      push(d1); }
+    mwswap();
     if (pop()) {
+    { i64 d2 = pop();
     mwtoken_name_3F_();
-    mwPRIM_MODULE();
+      push(d2); }
     mwPrim__3E_Name();
     mw_3D_();
     } else {
+    mwdrop();
     mwfalse();
     }
 }
@@ -17188,7 +17231,150 @@ void mwelab_module_name_21_ (void){
     mwmodule_name_21_();
     }
     } else {
-    push((i64)(strings + 10942));
+    push((i64)(strings + 10940));
+    mwemit_fatal_error_21_();
+    }
+}
+
+void mwelab_module_import_21_ (void){
+    mwdup();
+    { i64 d1 = pop();
+    mwtoken_next();
+      push(d1); }
+    mwtoken_args_1();
+    mwtoken_is_name_3F_();
+    if (pop()) {
+    mwtoken_name_3F_();
+    mwname_is_module_3F_();
+    if (pop()) {
+    mwdrop2();
+    } else {
+    mwname_undefined_3F_();
+    if (pop()) {
+    mwnip();
+    mwname_load_21_();
+    push((i64)(strings + 10961));
+    mwstr_buf_push_str_21_();
+    mwSTR_BUF();
+    mwStr__3E_Path();
+    mwrun_lexer_21_();
+    mwelab_module_21_();
+    mwdrop();
+    } else {
+    mwdrop();
+    push((i64)(strings + 10966));
+    mwemit_fatal_error_21_();
+    }
+    }
+    } else {
+    push((i64)(strings + 10992));
+    mwemit_fatal_error_21_();
+    }
+}
+
+void mwtoken_is_module_end_3F_ (void){
+    mwtoken_type_3F_();
+    mwTOKEN_NONE();
+    mw_3D_();
+}
+
+void mwelab_module_decl_21_ (void){
+    mwPRIM_DEF();
+    mwtoken_prim_3D__3F_();
+    if (pop()) {
+    mwelab_def_21_();
+    } else {
+    mwPRIM_DEF_TYPE();
+    mwtoken_prim_3D__3F_();
+    if (pop()) {
+    mwelab_def_type_21_();
+    } else {
+    push((i64)(strings + 11013));
+    mwemit_fatal_error_21_();
+    }
+    }
+}
+
+void mwelab_def_21_ (void){
+    mwdup();
+    { i64 d1 = pop();
+    mwtoken_next();
+      push(d1); }
+    mwtoken_args_3();
+    mwrotl();
+    mwtoken_type_3F_();
+    mwTOKEN_NAME();
+    mw_3D_();
+    if (pop()) {
+    mwtoken_name_3F_();
+    mwname_undefined_3F_();
+    if (pop()) {
+    mwnip();
+    mwword_alloc_21_();
+    mwdup2();
+    mwswap();
+    mwname_word_21_();
+    mwdup();
+    { i64 d3 = pop();
+    mwword_name_21_();
+      push(d3); }
+    mwdup();
+    { i64 d3 = pop();
+    mwword_body_21_();
+      push(d3); }
+    mwword_sig_21_();
+    } else {
+    mwdrop();
+    push((i64)(strings + 11033));
+    mwemit_fatal_error_21_();
+    }
+    } else {
+    push((i64)(strings + 11054));
+    mwemit_fatal_error_21_();
+    }
+}
+
+void mwelab_def_type_21_ (void){
+    mwdup();
+    { i64 d1 = pop();
+    mwtoken_next();
+      push(d1); }
+    mwtoken_args_2();
+    mwswap();
+    mwsig_token_is_type_con_3F_();
+    if (pop()) {
+    mwtoken_name_3F_();
+    mwname_undefined_3F_();
+    if (pop()) {
+    mwnip();
+    mwswap();
+    mwsig_token_is_type_con_3F_();
+    if (pop()) {
+    mwtoken_name_3F_();
+    mwname_is_type_3F_();
+    if (pop()) {
+    mwname_type_40_();
+    mwnip();
+    } else {
+    mwdrop();
+    push((i64)(strings + 11073));
+    mwemit_error_21_();
+    mwTYPE_ERROR();
+    }
+    } else {
+    push((i64)(strings + 11087));
+    mwemit_error_21_();
+    mwTYPE_ERROR();
+    }
+    mwswap();
+    mwname_type_21_();
+    } else {
+    mwdrop();
+    push((i64)(strings + 11104));
+    mwemit_fatal_error_21_();
+    }
+    } else {
+    push((i64)(strings + 11125));
     mwemit_fatal_error_21_();
     }
 }

@@ -40,6 +40,8 @@ def(main, +IO,
 
     "Building." str-trace-ln!
 
+    # elab-module!
+
     module-start@ token-run!
 
     "Done." str-trace-ln!
