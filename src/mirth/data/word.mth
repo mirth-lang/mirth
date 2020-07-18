@@ -19,8 +19,6 @@ def(word-alloc!, Word +Words, Word.alloc!)
 def(word-dom@, Word -- Type, word-type@ type-get-morphism morphism-type-dom@)
 def(word-cod@, Word -- Type, word-type@ type-get-morphism morphism-type-cod@)
 
-nominal(WordStatus, U8)
-field(word-status, Word, WordStatus)
 def(WordStatus->U8, WordStatus -- U8, cast)
 def(U8->WordStatus, U8 -- WordStatus, cast)
 def(WordStatus->Int, WordStatus -- Int, WordStatus->U8 U8->Int)

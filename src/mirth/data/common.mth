@@ -50,7 +50,6 @@ field(meta-type-raw, MetaVar, Type)
 field(nominal-type, Nominal, Type)
 field(nominal-name, Nominal, Name)
 
-
 # mirth/data/var
 table(Var)
 field(var-is-implicit, Var, Bool)
@@ -92,12 +91,14 @@ field(args-tail, Args, Args)
 
 # mirth/data/word
 table(Word)
+nominal(WordStatus, U8)
 field(word-name, Word, Name)
 field(word-sig, Word, Token)
 field(word-body, Word, Token)
 field(word-ctx, Word, Ctx)
 field(word-type, Word, Type)
 field(word-arrow, Word, Arrow)
+field(word-status, Word, WordStatus)
 
 # mirth/data/table
 table(Table)
