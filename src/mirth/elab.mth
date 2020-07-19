@@ -27,139 +27,133 @@ def(elab-ctx!, Ctx -- +Elab, ELAB_CTX ctx!)
 # Type Elaboration #
 ####################
 
-# Elaborate a type signature into a morphism type.
-def(elab-sig!, Token -- Type +Elab,
-    sig-has-dashes? if(
-        dup elab-stack-type!
-        swap sig-skip-dashes elab-stack-type!
-        morphism-type-new!
-        TMorphism,
+def(elab-type-sig!, Ctx Token -- Ctx Type Token,
+    elab-type-stack!
+    token-is-dashes? if(
+        token-next
+        dip(swap) elab-type-stack!
+        dip(dip(swap) morphism-type-new! TMorphism),
 
+        dip(TYPE_UNIT swap morphism-type-new! TMorphism)
+    )) # TODO: elaborate effect type too
+
+def(elab-type-stack!, Ctx Token -- Ctx Type Token,
+    sig-token-is-stack-var? if(
+        elab-stack-var! dip(TVar),
         dip(TYPE_UNIT)
-        elab-stack-type!
-        morphism-type-new!
-        TMorphism
+    )
+    elab-type-stack-rest!)
+
+def(elab-type-stack-rest!, Ctx Type Token -- Ctx Type Token,
+    while(sig-is-stack-end2? not,
+        dip(swap)
+        elab-type-atom!
+        dip(dip(swap) tensor-type-new! TTensor)
     ))
 
-# Elaborate a stack signature into a stack type.
-def(elab-stack-type!, Token -- Type +Elab,
-    sig-token-is-stack-var? if(
-        dup token-next
-        dip(elab-implicit-stack-var! TVar),
-        dip(TYPE_UNIT)
-    )
-    while(sig-is-stack-end? if(false, sig-token-is-effect-con? not),
-        dup
-        dip(elab-type! tensor-type-new! TTensor)
-        token-succ
-    )
-    drop)
+def(sig-is-stack-end2?, Token -- Token Bool,
+    sig-is-stack-end? if(
+        true,
+        sig-token-is-effect-con?
+    ))
 
-# Elaborate an atom into a value type.
-def(elab-type!, Token -- Type,
-    dup elab-token!
-    sig-token-is-stack-var? if(
-        "Expected type, not stack variable." elab-emit-error!
-        drop TYPE_ERROR,
-
+def(elab-type-atom!, Ctx Token -- Ctx Type Token,
     sig-token-is-type-var? if(
-        elab-implicit-type-var! TVar,
+        elab-type-var! dip(TVar),
 
     sig-token-is-type-con? if(
         elab-type-con!,
 
-    sig-token-is-effect-con? if(
-        "Unexpected effect constructor." elab-emit-error!
-        drop TYPE_ERROR,
+        dup "Expected type, got unknown token." emit-error!
+        dip(TYPE_ERROR) token-next
+    )))
 
-        "Expected a type." elab-emit-error!
-        drop TYPE_ERROR
-    )))))
+def(elab-stack-var!, Ctx Token -- Ctx Var Token,
+    TYPE_STACK elab-implicit-var!)
 
-def(elab-implicit-stack-var!, Token -- Var,
-    TYPE_STACK swap elab-implicit-var!)
+def(elab-type-var!, Ctx Token -- Ctx Var Token,
+    TYPE_TYPE elab-implicit-var!)
 
-def(elab-implicit-type-var!, Token -- Var,
-    TYPE_TYPE swap elab-implicit-var!)
-
-# Elaborate a potentially implicit variable with the given type.
-# This will add the variable to the context if it doesn't yet exist.
-# If the variable already exists, this will unify the expected type.
-# Returns the resulting variable.
-def(elab-implicit-var!, Type Token -- Var,
-    token-type? TOKEN_NAME = if(
-        token-name? elab-ctx@ ctx-has-name if(
-            token-name@ elab-ctx@ ctx-lookup
-            dup dip(var-type@ type-unify! drop),
-
-            elab-new-implicit-var!
-        ),
-
-        "elab-implicit-var! expects a name token." elab-emit-error!
-        drop2 VAR_ERROR
+def(elab-implicit-var!, Ctx Token Type -- Ctx Var Token,
+    over
+    dip(dip(
+        token-name@
+        dup2 swap ctx-has-name
     ))
+    rotl if(
+        dip(dip(over ctx-lookup var-type?))
+        elab-type-unify! nip,
 
-def(elab-new-implicit-var!, Type Token -- Var +Elab,
-    token-name@ var-new-implicit!
-    tuck var-type!
-    elab-ctx@ over ctx-new! elab-ctx!)
+        dip(
+            dip(var-new-implicit!)
+            over var-type!
+            dup dip(ctx-new!)
+        )
+    )
+    token-next)
 
-# Elaborate a type constructor token.
-def(elab-type-con!, Token -- Type,
-    sig-token-is-type-con? if(
-        token-has-args? if(
-            "Types with args are not yet supported." elab-emit-error!
-            drop TYPE_ERROR,
+def(elab-type-con!, Ctx Token -- Ctx Type Token,
+    token-has-args? if(
+        dup "Types with args not yet supported." emit-error! TYPE_ERROR,
 
-            token-name@
-            name-is-type? if(
-                name-type@,
+        token-name?
+        name-is-type? if(
+            name-type@,
 
-            name-undefined? if(
-                "Unknown type." elab-emit-error! drop TYPE_ERROR,
-                "Not a type." elab-emit-error! drop TYPE_ERROR
-            ))
-        ),
+        name-undefined? if(
+            drop dup "Unknown type." emit-error! TYPE_ERROR,
+            drop dup "Not a type." emit-error! TYPE_ERROR
+        ))
+    )
+    swap token-next)
 
-        "elab-type-con! expects type constructor." elab-emit-error!
-        drop TYPE_ERROR
-    ))
+def(elab-type-unify!, Type Type Token -- Type Token,
+    dup elab-token! dip(type-unify!))
+    # TODO treat token as an input in type-unify
 
 ####################
 # Word Elaboration #
 ####################
 
-
 def(elab-external-sig!, External -- Type +Elab,
-    external-sig-is-checked? if(
-        external-type@,
+    elab-external-ctx-sig! nip)
 
-        elab-ctx@ dip(
-        elab-token@ dip(
-            ctx-empty elab-ctx!
-            dup external-sig@ elab-sig!
-            over external-sig-is-checked!
-            over dip(elab-ctx@) external-ctx!
-            dup dip(swap external-type!)
-        ) elab-token!
-        ) elab-ctx!
+def(elab-external-ctx!, External -- Ctx +Elab,
+    elab-external-ctx-sig! drop)
+
+def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
+    external-sig-is-checked? if(
+        external-type? dip(external-ctx@),
+
+        external-sig? ctx-empty swap
+        elab-type-sig! drop dup2
+        dip(dip(
+            rotl
+            tuck external-type!
+            tuck external-ctx!
+            external-sig-is-checked!
+        ))
     ))
 
 def(elab-word-sig!, Word -- Type +Elab,
+    elab-word-ctx-sig! nip)
+
+def(elab-word-ctx!, Word -- Ctx +Elab,
+    elab-word-ctx-sig! drop)
+
+def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
     word-sig-is-checked? if(
-        word-type@,
+        word-type? dip(word-ctx@),
 
-        elab-ctx@ dip(
-        elab-token@ dip(
-            ctx-empty elab-ctx!
-            dup word-sig@ elab-sig!
-            over word-sig-is-checked!
-            over dip(elab-ctx@) word-ctx!
-            dup dip(swap word-type!)
-        ) elab-token!
-        ) elab-ctx!
+        word-sig? ctx-empty swap
+        elab-type-sig! drop dup2
+        dip(dip(
+            rotl
+            tuck word-type!
+            tuck word-ctx!
+            word-sig-is-checked!
+        ))
     ))
-
 
 def(elab-word-body!, Word -- Arrow +Elab,
     word-body-is-checked? if(
