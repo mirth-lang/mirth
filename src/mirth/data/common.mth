@@ -22,6 +22,7 @@ nominal(Col, U16)
 # mirth/data/module
 table(Module)
 table(Token)
+field(module-name, Module, Name)
 field(module-start, Module, Token)
 field(module-end, Module, Token)
 
@@ -48,7 +49,6 @@ field(meta-is-defined, MetaVar, Bool)
 field(meta-type-raw, MetaVar, Type)
 field(nominal-type, Nominal, Type)
 field(nominal-name, Nominal, Name)
-
 
 # mirth/data/var
 table(Var)
@@ -91,12 +91,14 @@ field(args-tail, Args, Args)
 
 # mirth/data/word
 table(Word)
+nominal(WordStatus, U8)
 field(word-name, Word, Name)
 field(word-sig, Word, Token)
 field(word-body, Word, Token)
 field(word-ctx, Word, Ctx)
 field(word-type, Word, Type)
 field(word-arrow, Word, Arrow)
+field(word-status, Word, WordStatus)
 
 # mirth/data/table
 table(Table)

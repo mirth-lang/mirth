@@ -9,21 +9,20 @@ import(sdl2)
 def(SNAKE_W, Size, 20)
 def(SNAKE_H, Size, 20)
 
-u8 def-static-buffer(SNAKE_DONE)
-u8 def-static-buffer(SNAKE_DEAD)
-u8 def-static-buffer(SNAKE_DIRECTION)
-u8 def-static-buffer(SNAKE_LAST_DIRECTION)
-u8 def-static-buffer(SNAKE_X)
-u8 def-static-buffer(SNAKE_Y)
-quad def-static-buffer(SNAKE_WINDOW)
-quad def-static-buffer(SNAKE_RENDERER)
-quad def-static-buffer(SNAKE_QUEUE_LENGTH)
-quad def-static-buffer(SNAKE_CONTROLLER)
-SNAKE_W SNAKE_H * def-static-buffer(SNAKE_QUEUE_X)
-SNAKE_W SNAKE_H * def-static-buffer(SNAKE_QUEUE_Y)
-SNAKE_W SNAKE_H * def-static-buffer(SNAKE_GRID)
-
-SDL_EVENT_SIZE def-static-buffer(SNAKE_EVENT)
+buffer(SNAKE_DONE, 1)
+buffer(SNAKE_DEAD, 1)
+buffer(SNAKE_DIRECTION, 1)
+buffer(SNAKE_LAST_DIRECTION, 1)
+buffer(SNAKE_X, 1)
+buffer(SNAKE_Y, 1)
+buffer(SNAKE_WINDOW, 8)
+buffer(SNAKE_RENDERER, 8)
+buffer(SNAKE_CONTROLLER, 8)
+buffer(SNAKE_QUEUE_LENGTH, 8)
+buffer(SNAKE_QUEUE_X, 0x1000)
+buffer(SNAKE_QUEUE_Y, 0x1000)
+buffer(SNAKE_GRID, 0x1000)
+buffer(SNAKE_EVENT, 0x100)
 
 def-type(Direction, U8)
 def(DNORTH, Direction, 0 Int->U8)
@@ -249,7 +248,7 @@ def-type(Y, Int)
 def-type(W, Int)
 def-type(H, Int)
 
-4 i32s def-static-buffer(SNAKE_RECT)
+buffer(SNAKE_RECT, 16)
 def(snake-rect!, X Y W H -- +Snake,
     Int->I32 3 SNAKE_RECT i32!!
     Int->I32 2 SNAKE_RECT i32!!
@@ -351,7 +350,7 @@ def(snake-press!, SnakeButton -- +Snake,
         drop "Unhandled button press!" panic!
     )))))))
 
-quad def-static-buffer(TICK_TIMER)
+buffer(TICK_TIMER, 8)
 def(tick-timer@, Int +Snake, TICK_TIMER @)
 def(tick-timer!, Int -- +Snake, TICK_TIMER !)
 def(TICK_FRAMES, Int, 7)
@@ -391,14 +390,14 @@ def(snake-update!, +Snake,
         id
     )))
 
-quad def-static-buffer(SNAKE_POINTS)
+buffer(SNAKE_POINTS, 8)
 def(snake-points@, -- Int +Snake, SNAKE_POINTS @)
 def(snake-points!, Int -- +Snake, SNAKE_POINTS !)
 def(snake-points-inc!, +Snake, snake-points@ 1 + snake-points!)
 def(snake-desired-length, Int +Snake, snake-points@ 5 +)
 
-u8 def-static-buffer(SNAKE_MOUSE_X)
-u8 def-static-buffer(SNAKE_MOUSE_Y)
+buffer(SNAKE_MOUSE_X, 1)
+buffer(SNAKE_MOUSE_Y, 1)
 
 def(snake-mouse-x@, XCoord +Snake, SNAKE_MOUSE_X u8@)
 def(snake-mouse-y@, YCoord +Snake, SNAKE_MOUSE_Y u8@)
@@ -439,4 +438,4 @@ def(snake-apply-direction, XCoord YCoord Direction -- XCoord YCoord,
         "unknown direction in snake-apply-direction" panic!
     )))))
 
-"snake.c" output-c99(snake!)
+target-c99("snake.c", snake!)

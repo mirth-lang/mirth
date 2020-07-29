@@ -1,19 +1,10 @@
 module(mirth)
 
 import(prelude)
-import(mirth/data/path)
-import(mirth/data/module)
 import(mirth/input)
-import(mirth/data/name)
-import(mirth/data/string)
-import(mirth/data/token)
 import(mirth/lexer)
-import(mirth/data/error)
-import(mirth/eval)
-import(mirth/data/buffer)
 import(mirth/codegen)
 import(mirth/elab)
-import(mirth/data/type)
 
 def(init!, +IO,
     init-paths!
@@ -40,21 +31,14 @@ def(main, +IO,
 
     "Building." str-trace-ln!
 
-    module-start@ token-run!
-
-    "Done." str-trace-ln!
-
-    vstack-empty? if(
-        id,
-        "VSTACK = " str-trace! vstack-trace!
-    ))
+    elab-module! drop
+    "Done." str-trace-ln!)
 
 #########
 # Build #
 #########
 
-"mirth.c" output-c99(main)
-#"mirth_prof.c" output-c99(100 while-old(main 1-))
+target-c99("mirth.c", main)
 
 # import(snake) # this is silly, but no way around this for now.
     # there's two issues here:

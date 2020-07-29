@@ -12,9 +12,9 @@ nominal(StrLit, Int)
 def(StrLit->Int, StrLit -- Int, cast)
 def(Int->StrLit, Int -- StrLit, cast)
 
-def(MAX_STRINGS, Size, 0x4000)
-quad def-static-buffer(STRINGS_SIZE)
-MAX_STRINGS u8s def-static-buffer(STRINGS_BUF)
+def(MAX_STRINGS, Size, 0x8000)
+buffer(STRINGS_SIZE, 8)
+buffer(STRINGS_BUF, 0x8000)
 
 # Size of strings table.
 def(strings-size@, -- Size +StrTable, STRINGS_SIZE @)

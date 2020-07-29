@@ -5,15 +5,15 @@ import(prelude/common)
 # Heap #
 ########
 
-quad def-static-buffer(HEAP_LENGTH)
+buffer(HEAP_LENGTH, 8)
 def(heap-length@, Size +Heap, HEAP_LENGTH @)
 def(heap-length!, Size -- +Heap, HEAP_LENGTH !)
 
-quad def-static-buffer(HEAP_BASE)
+buffer(HEAP_BASE, 8)
 def(heap-base@, Ptr +Heap, HEAP_BASE ptr@)
 def(heap-base!, Ptr -- +Heap, HEAP_BASE ptr!)
 
-quad def-static-buffer(HEAP_TIMES_EXPANDED)
+buffer(HEAP_TIMES_EXPANDED, 8)
 def(heap-times-expanded@, Int +Heap, HEAP_TIMES_EXPANDED @)
 def(heap-times-expanded!, Int -- +Heap, HEAP_TIMES_EXPANDED !)
 def(++heap-times-expanded, Int +Heap,

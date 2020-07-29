@@ -9,10 +9,9 @@ import(mirth/data/token)
 ###########
 
 def(CODEGEN_BUF_SIZE, Size, 0x2000)
-
-|File| def-static-buffer(CODEGEN_FILE)
-quad def-static-buffer(CODEGEN_LENGTH)
-CODEGEN_BUF_SIZE def-static-buffer(CODEGEN_BUF)
+buffer(CODEGEN_FILE, 8)
+buffer(CODEGEN_LENGTH, 8)
+buffer(CODEGEN_BUF, 0x2000)
 
 def(codegen-file@, -- File +Codegen, CODEGEN_FILE file@)
 def(codegen-file!, File -- +Codegen, CODEGEN_FILE file!)
@@ -61,7 +60,7 @@ def(run-output-c99!, Token Path -- +IO,
     c99-emit-main!
     codegen-end!)
 
-quad def-static-buffer(C99_DEPTH)
+buffer(C99_DEPTH, 8)
 def(c99-depth@, -- Int +Codegen, C99_DEPTH @)
 def(c99-depth!, Int -- +Codegen, C99_DEPTH !)
 def(c99-depth++, +Codegen, c99-depth@ 1+ c99-depth!)
