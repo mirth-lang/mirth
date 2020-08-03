@@ -314,7 +314,8 @@ def(PRIM_TABLE, Prim, 78 Int->Prim)
 def(PRIM_FIELD, Prim, 79 Int->Prim)
 def(PRIM_ARGC, Prim, 80 Int->Prim)
 def(PRIM_ARGV, Prim, 81 Int->Prim)
-def(NUM_PRIMS, Size, 82)
+def(PRIM_PTR_SIZE, Prim, 82 Int->Prim)
+def(NUM_PRIMS, Size, 83)
 
 def(name-is-prim?, Name -- Name Bool, dup Name->Int NUM_PRIMS <)
 
@@ -408,6 +409,8 @@ def(init-names!, +Names,
     PRIM_FIELD "field" def-prim!
     PRIM_ARGC "argc" def-prim!
     PRIM_ARGV "argv" def-prim!
+    PRIM_ARGV "argv" def-prim!
+    PRIM_PTR_SIZE "prim.unsafe.|ptr|" def-prim!
     NUM_PRIMS num-names@ 1+ = if(id,
         "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
     )

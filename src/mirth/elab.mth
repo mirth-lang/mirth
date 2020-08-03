@@ -516,9 +516,13 @@ def(elab-arrow-step-prim!, Arrow Prim -- Arrow +Elab,
         drop elab-token@ token-args-0
         TYPE_PTR elab-stack-push!,
 
+    dup PRIM_PTR_SIZE = if (
+        drop elab-token@ token-args-0
+        TYPE_INT elab-stack-push!,
+
         drop TYPE_ERROR elab-stack!
         "compiler error: unknown prim in elaborator" elab-emit-warning!
-    ))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+    )))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
 def(elab-arrow-step-dip!, Arrow -- Arrow +Elab,
     elab-token@ dip(
