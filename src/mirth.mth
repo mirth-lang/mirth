@@ -20,19 +20,34 @@ def(test!, +IO,
 
 def(NEW_MIRTH_REVISION, Int, 0)
 
+def(compile!, Path -- +IO,
+  "Compiling " str-trace!
+  dup Path->Str str-trace-ln!
+
+  run-lexer!
+
+  # show-names-table!
+  # show-tokens!
+
+  "Building." str-trace-ln!
+
+  elab-module! drop
+  "Done." str-trace-ln!)
+
 def(main, +IO,
     init!
     test!
 
-    "mirth.mth" Str->Path run-lexer!
+    argc int-trace-ln!
+    0 while(dup argc <,
+      dup argv ptr@@ str-trace-ln!
+      1+
+    ) drop
 
-    # show-names-table!
-    # show-tokens!
-
-    "Building." str-trace-ln!
-
-    elab-module! drop
-    "Done." str-trace-ln!)
+    1 argc < if(
+      1 argv ptr@@ Str->Path compile!,
+      "Expected at least one argument" panic!)
+    )
 
 #########
 # Build #
