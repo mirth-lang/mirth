@@ -56,15 +56,15 @@ bin/mirth2: bin/mirth2.c
 	$(CC) -o bin/mirth2 bin/mirth2.c
 
 bin/mirth1.c: bin/mirth0 $(SRCS)
-	bin/mirth0
+	bin/mirth0 mirth.mth
 	mv bin/mirth.c bin/mirth1.c
 
 bin/mirth2.c: bin/mirth1 $(SRCS)
-	bin/mirth1
+	bin/mirth1 mirth.mth
 	mv bin/mirth.c bin/mirth2.c
 
 bin/mirth3.c: bin/mirth2 $(SRCS)
-	bin/mirth2
+	bin/mirth2 mirth.mth
 	mv bin/mirth.c bin/mirth3.c
 
 bin/mirth_prof.c: bin/mirth3.c
@@ -73,7 +73,7 @@ bin/mirth_prof: bin/mirth_prof.c
 	$(CC) -g -fprofile-instr-generate -o bin/mirth_prof bin/mirth_prof.c
 
 bin/snake.c: bin/mirth2 $(SRCS)
-	bin/mirth2
+	bin/mirth2 mirth.mth
 	rm -f bin/mirth.c
 
 bin/snake: bin/snake.c
