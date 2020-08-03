@@ -24,6 +24,12 @@ def(main, +IO,
     init!
     test!
 
+    argc int-trace-ln!
+    0 while(dup argc <,
+      dup argv ptr@@ str-trace-ln!
+      1+
+    ) drop
+
     "mirth.mth" Str->Path run-lexer!
 
     # show-names-table!
