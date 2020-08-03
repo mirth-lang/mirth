@@ -58,6 +58,11 @@ def(ptr+, Int Ptr -- Ptr, prim.unsafe.ptr+)
 def(ptr@, Ptr -- Ptr, @ Int->Ptr)
 def(ptr!, Ptr Ptr --, dip(Ptr->Int) !)
 
+def(ptr, Size, 8)
+def(ptrs, Size -- Size, ptr *)
+def(ptr@@, Offset Ptr -- Ptr, dip(ptrs) ptr+ ptr@)
+def(ptr!!, Ptr Offset Ptr --, dip(ptrs) ptr+ ptr!)
+
 def(u8, Size, 1)
 def(u8s, Size -- Size, id)
 def(u8@@, Offset Ptr -- Byte, ptr+ u8@)
