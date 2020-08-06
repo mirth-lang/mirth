@@ -135,12 +135,20 @@ def(lexer-next!, --,
         drop
         lexer-emit-rparen!,
 
+    is-lbracket? if(
+        drop
+        lexer-emit-lbracket!,
+
+    is-rbracket? if(
+        drop
+        lexer-emit-rbracket!,
+
     is-quote? if(
         drop
         lexer-emit-string!,
 
         drop # LATER emit lexer error
-    )))))))
+    )))))))))
 
     lexer-move!))
 
@@ -157,9 +165,25 @@ def(lexer-emit-rparen!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right parenthesis." lexer-emit-fatal-error!,
         TOKEN_RPAREN lexer-stack-pop! dup
-        dip(Token->TokenValue lexer-make!)
-        dip(Token->TokenValue) token-value!
-    ))
+        dup token-type@ TOKEN_LPAREN = if(
+          dip(Token->TokenValue lexer-make!)
+          dip(Token->TokenValue) token-value!,
+          "Mismatched right parenthesis." lexer-emit-fatal-error!
+    )))
+
+def(lexer-emit-lbracket!, +Lexer,
+    TOKEN_LBRACKET 0 Int->TokenValue lexer-make!
+    lexer-stack-push!)
+
+def(lexer-emit-rbracket!, +Lexer,
+    lexer-stack-empty? if(
+        "Mismatched right bracket." lexer-emit-fatal-error!,
+        TOKEN_RBRACKET lexer-stack-pop! dup
+        dup token-type@ TOKEN_LBRACKET = if(
+          dip(Token->TokenValue lexer-make!)
+          dip(Token->TokenValue) token-value!,
+          "Mismatched right bracket." lexer-emit-fatal-error!
+    )))
 
 def(lexer-emit-name!, +Lexer,
     str-buf-clear!
@@ -376,6 +400,8 @@ def(is-whitespace?, Char -- Char Bool,
 def(is-pound?, Char -- Char Bool, dup U8->Int 35 =)
 def(is-lparen?, Char -- Char Bool, dup U8->Int 40 =)
 def(is-rparen?, Char -- Char Bool, dup U8->Int 41 =)
+def(is-lbracket?, Char -- Char Bool, dup U8->Int 91 =)
+def(is-rbracket?, Char -- Char Bool, dup U8->Int 93 =)
 def(is-comma?, Char -- Char Bool, dup U8->Int 44 =)
 def(is-quote?, Char -- Char Bool, dup U8->Int 34 =)
 def(is-digit?, Char -- Char Bool, dup U8->Int 48 57 in-range)
@@ -408,6 +434,8 @@ def(is-special-char?, Char -- Char Bool,
     is-quote?
     dip(is-lparen?) ||
     dip(is-rparen?) ||
+    dip(is-lbracket?) ||
+    dip(is-rbracket?) ||
     dip(is-comma?) ||
     dip(is-pound?) ||
     )
