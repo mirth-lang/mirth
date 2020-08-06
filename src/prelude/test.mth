@@ -182,3 +182,13 @@ def(test-str, --,
 
 def(test-while, --,
     999 10 20 while(dup nonzero, 1- dip(1+)) drop 30 !!= 999 !!=)
+
+# Morphism quotes
+def(test-morphism-quote-id, [ Int -- Int ] -- [ Int -- Int ], id)
+def(test-morphism-quote-drop, [ Int -- Int ] -- , drop)
+def(test-morphism-quote-dup, [ Int -- Int ] -- [ Int -- Int ] [ Int -- Int ], dup)
+
+# Tensor quotes
+def(test-tensor-quote-id, [ Int ] -- [ Int ], id)
+def(test-tensor-quote-drop, [ Int ] -- , drop)
+def(test-tensor-quote-dup, [ Int ] -- [ Int ] [ Int ], dup)
