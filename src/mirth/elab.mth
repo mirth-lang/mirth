@@ -113,8 +113,8 @@ def(elab-type-con!, Ctx Token -- Ctx Type Token,
 def(elab-type-quote!, Ctx Token -- Ctx Type Token,
     token-bracket-arg
     sig-has-dashes? if(
-      elab-type-sig!,
-      elab-type-stack!
+        elab-type-sig!,
+        elab-type-stack!
     )
     token-next
 )

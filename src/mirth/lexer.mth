@@ -165,10 +165,10 @@ def(lexer-emit-rparen!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right parenthesis." lexer-emit-fatal-error!,
         TOKEN_RPAREN lexer-stack-pop! dup
-        dup token-type@ TOKEN_LPAREN = if(
-          dip(Token->TokenValue lexer-make!)
-          dip(Token->TokenValue) token-value!,
-          "Mismatched right parenthesis." lexer-emit-fatal-error!
+        token-type? TOKEN_LPAREN = if(
+            dip(Token->TokenValue lexer-make!)
+            dip(Token->TokenValue) token-value!,
+            "Mismatched right parenthesis." lexer-emit-fatal-error!
     )))
 
 def(lexer-emit-lbracket!, +Lexer,
@@ -179,10 +179,10 @@ def(lexer-emit-rbracket!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right bracket." lexer-emit-fatal-error!,
         TOKEN_RBRACKET lexer-stack-pop! dup
-        dup token-type@ TOKEN_LBRACKET = if(
-          dip(Token->TokenValue lexer-make!)
-          dip(Token->TokenValue) token-value!,
-          "Mismatched right bracket." lexer-emit-fatal-error!
+        token-type? TOKEN_LBRACKET = if(
+            dip(Token->TokenValue lexer-make!)
+            dip(Token->TokenValue) token-value!,
+            "Mismatched right bracket." lexer-emit-fatal-error!
     )))
 
 def(lexer-emit-name!, +Lexer,
