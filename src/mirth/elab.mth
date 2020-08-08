@@ -259,8 +259,10 @@ def(elab-arrow-step!, Arrow +Elab,
         token-value@ TokenValue->Int Int->StrLit elab-arrow-step-str!, # TODO: fix this
     token-is-name? if(
         token-name@ elab-arrow-step-name!,
+    token-is-lbrace? if(
+        elab-arrow-step-stack-assertion!,
         drop "compiler error: unexpected token type" elab-emit-fatal-error!
-    )))))
+    ))))))
 
 def(elab-arrow-step-name!, Arrow Name -- Arrow +Elab,
     name-is-buffer? if(
@@ -298,6 +300,14 @@ def(elab-arrow-step-word!, Arrow Word -- Arrow +Elab,
     dup2 swap arrow-op-word!
     elab-token@ token-args-0 # high order not yet supported
     elab-word-sig! elab-arrow-apply-sig-type!)
+
+def(elab-arrow-step-stack-assertion!, Arrow Token -- Arrow +Elab,
+    token-brace-arg
+    dip(elab-ctx@)
+    elab-type-stack! drop nip
+    dup morphism-type-new! TMorphism
+    elab-arrow-apply-sig-type!
+    )
 
 def(elab-arrow-apply-sig-type!, Arrow Type -- Arrow +Elab,
     type-expand-morphism morphism-type-unpack swap
@@ -924,8 +934,10 @@ def(token-run-end?, Token -- Token Bool +Mirth,
         true,
     token-type? TOKEN_RPAREN = if(
         true,
-        token-type? TOKEN_RBRACKET =
-    )))))
+    token-type? TOKEN_RBRACKET = if(
+        true,
+        token-type? TOKEN_RBRACE =
+    ))))))
 
 ||| Does the token match the primitive?
 def(token-prim=?, Token Prim -- Token Bool,
