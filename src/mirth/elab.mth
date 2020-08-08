@@ -64,9 +64,12 @@ def(elab-type-atom!, Ctx Token -- Ctx Type Token,
     sig-token-is-type-con? if(
         elab-type-con!,
 
+    token-is-lbracket? if(
+        elab-type-quote!,
+
         dup "Expected type, got unknown token." emit-error!
         dip(TYPE_ERROR) token-next
-    )))
+    ))))
 
 def(elab-stack-var!, Ctx Token -- Ctx Var Token,
     TYPE_STACK elab-implicit-var!)
@@ -106,6 +109,15 @@ def(elab-type-con!, Ctx Token -- Ctx Type Token,
         ))
     )
     swap token-next)
+
+def(elab-type-quote!, Ctx Token -- Ctx Type Token,
+    token-bracket-arg
+    sig-has-dashes? if(
+        elab-type-sig!,
+        elab-type-stack!
+    )
+    token-next
+)
 
 def(elab-type-unify!, Type Type Token -- Type Token,
     dup elab-token! dip(type-unify!))
@@ -910,8 +922,10 @@ def(token-run-end?, Token -- Token Bool +Mirth,
         true,
     token-type? TOKEN_COMMA = if(
         true,
-        token-type? TOKEN_RPAREN =
-    ))))
+    token-type? TOKEN_RPAREN = if(
+        true,
+        token-type? TOKEN_RBRACKET =
+    )))))
 
 ||| Does the token match the primitive?
 def(token-prim=?, Token Prim -- Token Bool,
@@ -919,5 +933,3 @@ def(token-prim=?, Token Prim -- Token Bool,
         dip(token-name?) Prim->Name =,
         drop false
     ))
-
-
