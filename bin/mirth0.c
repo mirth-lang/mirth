@@ -2536,6 +2536,8 @@ void mwprim_2E_unsafe_2E__7C_ptr_7C_ (void) {
  void mwelab_arrow_step_if_21_ (void);
  void mwelab_arrow_step_while_21_ (void);
  void mwelab_3D_ (void);
+ void mwelab_posix_exit (void);
+ void mwexpect1 (void);
  void mwtoken_is_dashes (void);
  void mwPRIM_DASHES (void);
  void mwtoken_run_end_3F_ (void);
@@ -2543,24 +2545,6 @@ void mwprim_2E_unsafe_2E__7C_ptr_7C_ (void) {
  void mwsig_count_types (void);
  void mwsig_token_is_type_3F_ (void);
  void mwsig_skip_dashes (void);
- void mwelab_2B_ (void);
- void mwelab_ (void);
- void mwelab_2A_ (void);
- void mwelab_2F_ (void);
- void mwelab_25_ (void);
- void mwelab_26_ (void);
- void mwelab_26__26_ (void);
- void mwelab_40_ (void);
- void mwexpect1 (void);
- void mwelab_21_ (void);
- void mwexpect2 (void);
- void mwelab_posix_exit (void);
- void mwelab_posix_read (void);
- void mwexpect3 (void);
- void mwelab_posix_write (void);
- void mwelab_posix_open (void);
- void mwelab_posix_close (void);
- void mwelab_posix_mmap (void);
  void mwelab_module_header_21_ (void);
  void mwelab_module_imports_21_ (void);
  void mwelab_module_decls_21_ (void);
@@ -15625,6 +15609,19 @@ void mwelab_3D_ (void){
     mwTYPE_BOOL();
 }
 
+void mwelab_posix_exit (void){
+    mwTYPE_INT();
+    mwexpect1();
+    mwdrop();
+}
+
+void mwexpect1 (void){
+    mwtype_unify_21_();
+    mwTYPE_ERROR();
+    mw_3D_();
+    mwnot();
+}
+
 void mwtoken_is_dashes (void){
     mwtoken_type_3F_();
     mwTOKEN_NAME();
@@ -15741,165 +15738,6 @@ void mwsig_skip_dashes (void){
     mwtoken_next();
     } else {
     mwid();
-    }
-}
-
-void mwelab_2B_ (void){
-    mwTYPE_INT();
-    mwtype_unify_21_();
-    mwtype_unify_21_();
-}
-
-void mwelab_ (void){
-    mwTYPE_INT();
-    mwtype_unify_21_();
-    mwtype_unify_21_();
-}
-
-void mwelab_2A_ (void){
-    mwTYPE_INT();
-    mwtype_unify_21_();
-    mwtype_unify_21_();
-}
-
-void mwelab_2F_ (void){
-    mwTYPE_INT();
-    mwtype_unify_21_();
-    mwtype_unify_21_();
-}
-
-void mwelab_25_ (void){
-    mwTYPE_INT();
-    mwtype_unify_21_();
-    mwtype_unify_21_();
-}
-
-void mwelab_26_ (void){
-    mwTYPE_INT();
-    mwtype_unify_21_();
-    mwtype_unify_21_();
-}
-
-void mwelab_26__26_ (void){
-    mwTYPE_BOOL();
-    mwtype_unify_21_();
-    mwtype_unify_21_();
-}
-
-void mwelab_40_ (void){
-    mwTYPE_PTR();
-    mwexpect1();
-    mwdrop();
-    mwTYPE_INT();
-}
-
-void mwexpect1 (void){
-    mwtype_unify_21_();
-    mwTYPE_ERROR();
-    mw_3D_();
-    mwnot();
-}
-
-void mwelab_21_ (void){
-    mwTYPE_INT();
-    mwTYPE_PTR();
-    mwexpect2();
-    mwdrop();
-}
-
-void mwexpect2 (void){
-    { i64 d1 = pop();
-    mwswap();
-      push(d1); }
-    mwexpect1();
-    if (pop()) {
-    mwexpect1();
-    } else {
-    mwdrop2();
-    mwfalse();
-    }
-}
-
-void mwelab_posix_exit (void){
-    mwTYPE_INT();
-    mwexpect1();
-    mwdrop();
-}
-
-void mwelab_posix_read (void){
-    mwTYPE_INT();
-    mwTYPE_PTR();
-    mwTYPE_INT();
-    mwexpect3();
-    if (pop()) {
-    mwTYPE_INT();
-    } else {
-    mwTYPE_ERROR();
-    }
-}
-
-void mwexpect3 (void){
-    { i64 d1 = pop();
-    mwrotl();
-      push(d1); }
-    mwexpect1();
-    if (pop()) {
-    mwexpect2();
-    } else {
-    mwdrop2();
-    mwdrop2();
-    mwfalse();
-    }
-}
-
-void mwelab_posix_write (void){
-    mwTYPE_INT();
-    mwTYPE_PTR();
-    mwTYPE_INT();
-    mwexpect3();
-    mwdrop();
-}
-
-void mwelab_posix_open (void){
-    mwTYPE_PTR();
-    mwTYPE_INT();
-    mwTYPE_INT();
-    mwexpect3();
-    if (pop()) {
-    mwTYPE_INT();
-    } else {
-    mwTYPE_ERROR();
-    }
-}
-
-void mwelab_posix_close (void){
-    mwTYPE_INT();
-    mwexpect1();
-    if (pop()) {
-    mwTYPE_INT();
-    } else {
-    mwTYPE_ERROR();
-    }
-}
-
-void mwelab_posix_mmap (void){
-    mwTYPE_INT();
-    mwTYPE_INT();
-    mwTYPE_INT();
-    mwexpect3();
-    if (pop()) {
-    mwTYPE_PTR();
-    mwTYPE_INT();
-    mwTYPE_INT();
-    mwexpect3();
-    if (pop()) {
-    mwTYPE_PTR();
-    } else {
-    mwTYPE_ERROR();
-    }
-    } else {
-    mwdrop3();
-    mwTYPE_ERROR();
     }
 }
 
