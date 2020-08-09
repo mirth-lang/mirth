@@ -192,3 +192,13 @@ def(test-morphism-quote-dup, [ Int -- Int ] -- [ Int -- Int ] [ Int -- Int ], du
 def(test-tensor-quote-id, [ Int ] -- [ Int ], id)
 def(test-tensor-quote-drop, [ Int ] -- , drop)
 def(test-tensor-quote-dup, [ Int ] -- [ Int ] [ Int ], dup)
+
+# Stack assertions
+def(test-stack-assertions, -- ,
+    1 2 { Int Int }
+    3 4 { Int Int Int Int }
+    + + + { Int }
+    10 =
+    { Bool }
+    drop
+)
