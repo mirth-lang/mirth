@@ -432,6 +432,16 @@ def(elab-arrow-step-while!, Arrow -- Arrow +Elab,
     ) elab-token!)
 
 
+# elab for =
+def(elab=, Type Type -- Type, type-unify! drop TYPE_BOOL)
+
+def(elab-posix-exit, Type -- +Elab,
+    TYPE_INT expect1 drop) # TODO: set absurd flag
+
+def(expect1, Type Type -- Bool +Elab,
+    type-unify! TYPE_ERROR = not)
+
+
 #############
 # Type Sigs #
 #############
@@ -513,15 +523,6 @@ def(sig-skip-dashes, Token -- Token,
         id
     ))
 
-
-# elab for =, <, <= primitives
-def(elab=, Type Type -- Type, type-unify! drop TYPE_BOOL)
-
-def(elab-posix-exit, Type -- +Elab,
-    TYPE_INT expect1 drop) # TODO: set absurd flag
-
-def(expect1, Type Type -- Bool +Elab,
-    type-unify! TYPE_ERROR = not)
 
 #############
 ## ELAB V2 ##
