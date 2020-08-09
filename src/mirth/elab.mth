@@ -302,8 +302,15 @@ def(elab-arrow-step-word!, Arrow Word -- Arrow +Elab,
 
 def(elab-arrow-step-stack-assertion!, Arrow Token -- Arrow +Elab,
     token-brace-arg
-    dip(elab-ctx@)
-    elab-type-stack! drop nip
+    dip(elab-ctx@ dup)
+    elab-type-stack! drop
+    rotr swap dup2 = if(drop2,
+        "stack assertion introduced new type variables:" elab-emit-warning!
+        "\tbefore: " str-trace! ctx-trace! trace-ln!
+        "\tafter:  " str-trace! ctx-trace! trace-ln!
+        drop
+        TYPE_ERROR
+    )
     dup morphism-type-new! TMorphism
     elab-arrow-apply-sig-type!
     )
