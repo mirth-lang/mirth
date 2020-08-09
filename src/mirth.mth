@@ -6,9 +6,13 @@ import(mirth/lexer)
 import(mirth/codegen)
 import(mirth/elab)
 
+import(mirth/data/path)
+import(mirth/data/prim)
+import(mirth/data/type)
+
 def(init!, +IO,
     init-paths!
-    init-names!
+    init-prims!
     init-types!)
 
 def(test!, +IO,
