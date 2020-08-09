@@ -14,7 +14,6 @@ def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
 def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
 def(elab-emit-fatal-error!, *a Str -- *b +Elab, dip(elab-token@) emit-fatal-error!)
 
-
 buffer(ELAB_STACK, 8)
 def(elab-stack@, -- Type +Elab, ELAB_STACK type@)
 def(elab-stack!, Type -- +Elab, ELAB_STACK type!)
@@ -362,8 +361,6 @@ def(elab-arrow-step-prim!, Arrow Prim -- Arrow +Elab,
     dup PRIM_WHILE = if(
         drop elab-arrow-step-while!,
 
-    dup PRIM_ID = if(
-        drop elab-token@ token-args-0,
     dup PRIM_DROP = if(
         drop elab-token@ token-args-0
         elab-stack-pop! drop,
@@ -377,171 +374,26 @@ def(elab-arrow-step-prim!, Arrow Prim -- Arrow +Elab,
             drop,
             type-expand-tensor tensor-type-snd@ elab-stack-push!
         ),
-    dup PRIM_INT_ADD = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab+ elab-stack-push!,
-    dup PRIM_INT_SUB = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab- elab-stack-push!,
-    dup PRIM_INT_MUL = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab* elab-stack-push!,
-    dup PRIM_INT_DIV = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab/ elab-stack-push!,
-    dup PRIM_INT_MOD = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab% elab-stack-push!,
+
     dup PRIM_INT_EQ = if(
         drop elab-token@ token-args-0
         elab-stack-pop2! elab= elab-stack-push!,
-    dup PRIM_INT_LT = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab= elab-stack-push!,
-    dup PRIM_INT_LE = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab= elab-stack-push!,
-    dup PRIM_INT_AND = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab& elab-stack-push!,
-    dup PRIM_INT_OR = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab& elab-stack-push!,
-    dup PRIM_INT_XOR = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab& elab-stack-push!,
-    dup PRIM_INT_SHL = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab& elab-stack-push!,
-    dup PRIM_INT_SHR = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab& elab-stack-push!,
 
-    dup PRIM_MEM_GET = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! elab@ elab-stack-push!,
-    dup PRIM_MEM_GET_BYTE = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! elab@ elab-stack-push!,
-    dup PRIM_MEM_SET = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab!,
-    dup PRIM_MEM_SET_BYTE = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab!,
-
-    dup PRIM_MEM_GET_U8 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_U8 elab-stack-push!,
-    dup PRIM_MEM_GET_U16 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_U16 elab-stack-push!,
-    dup PRIM_MEM_GET_U32 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_U32 elab-stack-push!,
-    dup PRIM_MEM_GET_U64 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_U64 elab-stack-push!,
-    dup PRIM_MEM_GET_I8 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_I8 elab-stack-push!,
-    dup PRIM_MEM_GET_I16 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_I16 elab-stack-push!,
-    dup PRIM_MEM_GET_I32 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_I32 elab-stack-push!,
-    dup PRIM_MEM_GET_I64 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! TYPE_PTR type-unify! drop TYPE_I64 elab-stack-push!,
-
-    dup PRIM_MEM_SET_U8 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_U8 type-unify! drop,
-    dup PRIM_MEM_SET_U16 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_U16 type-unify! drop,
-    dup PRIM_MEM_SET_U32 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_U32 type-unify! drop,
-    dup PRIM_MEM_SET_U64 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_U64 type-unify! drop,
-    dup PRIM_MEM_SET_I8 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_I8 type-unify! drop,
-    dup PRIM_MEM_SET_I16 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_I16 type-unify! drop,
-    dup PRIM_MEM_SET_I32 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_I32 type-unify! drop,
-    dup PRIM_MEM_SET_I64 = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! TYPE_PTR type-unify! drop TYPE_I64 type-unify! drop,
 
     dup PRIM_POSIX_EXIT = if(
         drop elab-token@ token-args-0
         elab-stack-pop! TYPE_INT type-unify! drop
         meta-alloc! TMeta elab-stack!,
-    dup PRIM_POSIX_READ = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop3! elab-posix-read elab-stack-push!,
-    dup PRIM_POSIX_WRITE = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop3! elab-posix-write,
-    dup PRIM_POSIX_OPEN = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop3! elab-posix-open elab-stack-push!,
-    dup PRIM_POSIX_CLOSE = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! elab-posix-close elab-stack-push!,
-    dup PRIM_POSIX_MMAP = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop3! dip(dip(dip(elab-stack-pop3!)))
-        elab-posix-mmap elab-stack-push!, # not always a pointer...
-
     dup PRIM_DEBUG = if(
         drop elab-token@ token-args-0,
-    dup PRIM_SYS_OS = if(
-        drop elab-token@ token-args-0
-        TYPE_INT elab-stack-push!,
 
     dup PRIM_CAST = if(
         drop elab-token@ token-args-0
         elab-stack-pop! drop meta-alloc! TMeta elab-stack-push!,
-    dup PRIM_PTR_ADD = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! TYPE_INT TYPE_PTR expect2
-        if(TYPE_PTR, TYPE_ERROR) elab-stack-push!,
 
-    dup PRIM_BOOL_TRUE = if(
-        drop elab-token@ token-args-0
-        TYPE_BOOL elab-stack-push!,
-    dup PRIM_BOOL_FALSE = if(
-        drop elab-token@ token-args-0
-        TYPE_BOOL elab-stack-push!,
-    dup PRIM_BOOL_AND = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab&& elab-stack-push!,
-    dup PRIM_BOOL_OR = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab&& elab-stack-push!,
-
-    dup PRIM_SYS_ARGC = if (
-        drop elab-token@ token-args-0
-        TYPE_INT elab-stack-push!,
-    dup PRIM_SYS_ARGV = if (
-        drop elab-token@ token-args-0
-        TYPE_PTR elab-stack-push!,
-
-    dup PRIM_PTR_SIZE = if (
-        drop elab-token@ token-args-0
-        TYPE_INT elab-stack-push!,
-
-        drop TYPE_ERROR elab-stack!
-        "compiler error: unknown prim in elaborator" elab-emit-warning!
-    ))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+        elab-token@ token-args-0
+        prim-type@ elab-arrow-apply-sig-type!
+    )))))))))))
 
 def(elab-arrow-step-dip!, Arrow -- Arrow +Elab,
     elab-token@ dip(

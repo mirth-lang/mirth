@@ -202,3 +202,7 @@ def(test-stack-assertions, -- ,
     { Bool }
     drop
 )
+
+
+def(test-dup2, -- Int Str Int Str,
+    10 "hello" dup2)

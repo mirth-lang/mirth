@@ -135,6 +135,9 @@ def(name-save!, -- Name,
         nip
     ))
 
+def(name-new!, Str -- Name,
+    str-buf-zero! str-buf! name-save!)
+
 buffer(name-bytes, 8) # TODO: get rid of this
 def(show-names-table!, +Names +IO,
     0 name-bytes !
