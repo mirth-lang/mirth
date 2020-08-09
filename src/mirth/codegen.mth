@@ -371,16 +371,6 @@ def(c99-emit-prims!, +IO,
     "    *x = (i64)pop();" ;
     "}" ;;
 
-    PRIM_MEM_GET_BYTE .p " {" ;
-    "    u8* x = pop_ptr();" ;
-    "    push(*x);" ;
-    "}" ;;
-
-    PRIM_MEM_SET_BYTE .p " {" ;
-    "    u8* x = pop_ptr();" ;
-    "    *x = pop_u8();" ;
-    "}" ;;
-
     PRIM_MEM_GET_U8 .p " {" ;
     "    u8* x = pop_ptr();" ;
     "    push(*x);" ;

@@ -27,8 +27,7 @@ def(PRIM_INT_SHL, Prim, 19 Int->Prim)
 def(PRIM_INT_SHR, Prim, 20 Int->Prim)
 def(PRIM_MEM_GET, Prim, 21 Int->Prim)
 def(PRIM_MEM_SET, Prim, 22 Int->Prim)
-def(PRIM_MEM_GET_BYTE, Prim, 23 Int->Prim)
-def(PRIM_MEM_SET_BYTE, Prim, 24 Int->Prim)
+
 def(PRIM_MEM_GET_U8, Prim, 25 Int->Prim)
 def(PRIM_MEM_SET_U8, Prim, 26 Int->Prim)
 def(PRIM_MEM_GET_U16, Prim, 27 Int->Prim)
@@ -79,8 +78,7 @@ def(PRIM_SYS_ARGV, Prim, 81 Int->Prim)
 def(PRIM_PTR_SIZE, Prim, 82 Int->Prim)
 
 def(def-prim!, Prim Str -- +Names,
-    str-buf-zero! str-buf! name-save!
-    dup2 name-prim! swap prim-name!)
+    name-new! dup2 name-prim! swap prim-name!)
 
 # Initialize name table with list of primitives.
 # Note that order matters very much here. Any
@@ -117,8 +115,6 @@ def(init-prims!, +Names,
 
     PRIM_MEM_GET "@" def-prim!
     PRIM_MEM_SET "!" def-prim!
-    PRIM_MEM_GET_BYTE "byte@" def-prim!
-    PRIM_MEM_SET_BYTE "byte!" def-prim!
     PRIM_MEM_GET_U8 "u8@" def-prim!
     PRIM_MEM_SET_U8 "u8!" def-prim!
     PRIM_MEM_GET_U16 "u16@" def-prim!
@@ -165,8 +161,179 @@ def(init-prims!, +Names,
     PRIM_DASHES "--" def-prim!
     PRIM_ARROW "->" def-prim!
 
+    #
+    # monomorphic prims
+    #
+
     TYPE_UNIT TYPE_UNIT T->
     PRIM_ID prim-type!
+
+    TYPE_UNIT TYPE_INT T* TYPE_INT T*
+    TYPE_UNIT TYPE_INT T* T->
+    dup PRIM_INT_ADD prim-type!
+    dup PRIM_INT_SUB prim-type!
+    dup PRIM_INT_MUL prim-type!
+    dup PRIM_INT_DIV prim-type!
+    dup PRIM_INT_MOD prim-type!
+    dup PRIM_INT_AND prim-type!
+    dup PRIM_INT_OR prim-type!
+    dup PRIM_INT_XOR prim-type!
+    dup PRIM_INT_SHL prim-type!
+    dup PRIM_INT_SHR prim-type!
+    drop
+
+    TYPE_UNIT TYPE_INT T* TYPE_INT T*
+    TYPE_UNIT TYPE_BOOL T* T->
+    # dup PRIM_INT_EQ prim-type! # actually polymorphic
+    dup PRIM_INT_LT prim-type!
+    dup PRIM_INT_LE prim-type!
+    drop
+
+    TYPE_UNIT TYPE_PTR T*
+    TYPE_UNIT TYPE_INT T* T->
+    PRIM_MEM_GET prim-type!
+
+    TYPE_UNIT TYPE_INT T* TYPE_PTR T*
+    TYPE_UNIT T->
+    PRIM_MEM_SET prim-type!
+
+    TYPE_UNIT TYPE_PTR T*
+    TYPE_UNIT TYPE_U8 T* T->
+    PRIM_MEM_GET_U8 prim-type!
+
+    TYPE_UNIT TYPE_U8 T* TYPE_PTR T*
+    TYPE_UNIT T->
+    PRIM_MEM_SET_U8 prim-type!
+
+    TYPE_UNIT TYPE_PTR T*
+    TYPE_UNIT TYPE_U16 T* T->
+    PRIM_MEM_GET_U16 prim-type!
+
+    TYPE_UNIT TYPE_U16 T* TYPE_PTR T*
+    TYPE_UNIT T->
+    PRIM_MEM_SET_U16 prim-type!
+
+    TYPE_UNIT TYPE_PTR T*
+    TYPE_UNIT TYPE_U32 T* T->
+    PRIM_MEM_GET_U32 prim-type!
+
+    TYPE_UNIT TYPE_U32 T* TYPE_PTR T*
+    TYPE_UNIT T->
+    PRIM_MEM_SET_U32 prim-type!
+
+    TYPE_UNIT TYPE_PTR T*
+    TYPE_UNIT TYPE_U64 T* T->
+    PRIM_MEM_GET_U64 prim-type!
+
+    TYPE_UNIT TYPE_U64 T* TYPE_PTR T*
+    TYPE_UNIT T->
+    PRIM_MEM_SET_U64 prim-type!
+
+    TYPE_UNIT TYPE_PTR T*
+    TYPE_UNIT TYPE_I8 T* T->
+    PRIM_MEM_GET_I8 prim-type!
+
+    TYPE_UNIT TYPE_I8 T* TYPE_PTR T*
+    TYPE_UNIT T->
+    PRIM_MEM_SET_I8 prim-type!
+
+    TYPE_UNIT TYPE_PTR T*
+    TYPE_UNIT TYPE_I16 T* T->
+    PRIM_MEM_GET_I16 prim-type!
+
+    TYPE_UNIT TYPE_I16 T* TYPE_PTR T*
+    TYPE_UNIT T->
+    PRIM_MEM_SET_I16 prim-type!
+
+    TYPE_UNIT TYPE_PTR T*
+    TYPE_UNIT TYPE_I32 T* T->
+    PRIM_MEM_GET_I32 prim-type!
+
+    TYPE_UNIT TYPE_I32 T* TYPE_PTR T*
+    TYPE_UNIT T->
+    PRIM_MEM_SET_I32 prim-type!
+
+    TYPE_UNIT TYPE_PTR T*
+    TYPE_UNIT TYPE_I64 T* T->
+    PRIM_MEM_GET_I64 prim-type!
+
+    TYPE_UNIT TYPE_I64 T* TYPE_PTR T*
+    TYPE_UNIT T->
+    PRIM_MEM_SET_I64 prim-type!
+
+    TYPE_UNIT TYPE_INT T* TYPE_PTR T* TYPE_INT T*
+    TYPE_UNIT TYPE_INT T* T->
+    PRIM_POSIX_READ prim-type!
+
+    TYPE_UNIT TYPE_INT T* TYPE_PTR T* TYPE_INT T*
+    TYPE_UNIT T->
+    PRIM_POSIX_WRITE prim-type!
+
+    TYPE_UNIT TYPE_PTR T* TYPE_INT T* TYPE_INT T*
+    TYPE_UNIT TYPE_INT T* T->
+    PRIM_POSIX_OPEN prim-type!
+
+    TYPE_UNIT TYPE_INT T*
+    TYPE_UNIT TYPE_INT T* T->
+    PRIM_POSIX_CLOSE prim-type!
+
+    TYPE_UNIT
+    TYPE_PTR T* TYPE_INT T* TYPE_INT T*
+    TYPE_INT T* TYPE_INT T* TYPE_INT T*
+    TYPE_UNIT TYPE_PTR T* T->
+    PRIM_POSIX_MMAP prim-type!
+
+    TYPE_UNIT TYPE_INT T* TYPE_PTR T*
+    TYPE_UNIT TYPE_PTR T* T->
+    PRIM_PTR_ADD prim-type!
+
+    TYPE_UNIT
+    TYPE_UNIT TYPE_INT T* T->
+    PRIM_PTR_SIZE prim-type!
+
+    TYPE_UNIT
+    TYPE_UNIT TYPE_INT T* T->
+    PRIM_SYS_OS prim-type!
+
+    TYPE_UNIT
+    TYPE_UNIT TYPE_INT T* T->
+    PRIM_SYS_ARGC prim-type!
+
+    TYPE_UNIT
+    TYPE_UNIT TYPE_PTR T* T->
+    PRIM_SYS_ARGV prim-type!
+
+    TYPE_UNIT
+    TYPE_UNIT TYPE_BOOL T* T->
+    dup PRIM_BOOL_TRUE prim-type!
+    dup PRIM_BOOL_FALSE prim-type!
+    drop
+
+    TYPE_UNIT TYPE_BOOL T* TYPE_BOOL T*
+    TYPE_UNIT TYPE_BOOL T* T->
+    dup PRIM_BOOL_AND prim-type!
+    dup PRIM_BOOL_OR prim-type!
+    drop
+
+    #
+    # polymorphic (single type variable) prims
+    #
+
+    # ctx-empty
+    # "a" name-new! var-new-implicit!
+    # dup dip(ctx-new!) TVar
+
+    # dup2
+    # TYPE_UNIT over T* tuck swap T* T->
+    # PRIM_DUP prim-type!
+    # PRIM_DUP prim-ctx!
+
+    # dup2
+    # TYPE_UNIT swap T* TYPE_UNIT T->
+    # PRIM_DROP prim-type!
+    # PRIM_DROP prim-ctx!
+
+    # drop2
 
     )
 

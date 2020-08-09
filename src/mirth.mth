@@ -40,11 +40,11 @@ def(main, +IO,
     init!
     test!
 
-    argc int-trace-ln!
-    0 while(dup argc <,
-        dup argv ptr@@ str-trace-ln!
-        1+
-    ) drop
+    # argc int-trace-ln!
+    # 0 while(dup argc <,
+    #     dup argv ptr@@ str-trace-ln!
+    #     1+
+    # ) drop
 
     1 argc < if(
         1 argv ptr@@ Str->Path compile!,

@@ -5,7 +5,7 @@ import(mirth/data/name)
 import(mirth/data/ctx)
 import(mirth/data/table)
 
-def(def-type!, Type Str --, str-buf-zero! str-buf! name-save! name-type!)
+def(def-type!, Type Str --, name-new! name-type!)
 
 def(init-types!, --,
     TYPE_INT "Int" def-type!
