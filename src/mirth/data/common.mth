@@ -3,7 +3,6 @@ import(prelude)
 
 # mirth/data/name
 table(Name)
-nominal(Prim, Name)
 nominal(NameSort, U8)
 nominal(NameValue, Int)
 field(name-sort, Name, NameSort)
@@ -88,6 +87,12 @@ field(arrow-op-value, Arrow, Int)
 field(arrow-args, Arrow, Args)
 field(args-head, Args, Arg)
 field(args-tail, Args, Args)
+
+# mirth/data/prim
+table(Prim)
+field(prim-name, Prim, Name)
+field(prim-ctx, Prim, Ctx)
+field(prim-type, Prim, Type)
 
 # mirth/data/word
 table(Word)

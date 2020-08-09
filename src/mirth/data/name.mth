@@ -224,214 +224,26 @@ def(str-buf-push-hexdigit!, Char -- +StrBuf,
 
 def(NAME_ERROR, Name, 0 Int->Name)
 
-def(Prim->Name, Prim -- Name, cast)
-def(Name->Prim, Name -- Prim,
-    dup Name->Int NUM_PRIMS >= if(
-        "compiler error: Name->Prim called on non-primitive name" panic!,
-        cast
-    ))
-def(Int->Prim, Int -- Prim, Int->Name Name->Prim)
-def(Prim->Int, Prim -- Int, Prim->Name Name->Int)
 
-def(PRIM_ID, Prim, 1 Int->Prim)
-def(PRIM_DUP, Prim, 2 Int->Prim)
-def(PRIM_DROP, Prim, 3 Int->Prim)
-def(PRIM_SWAP, Prim, 4 Int->Prim)
-def(PRIM_DIP, Prim, 5 Int->Prim)
-def(PRIM_IF, Prim, 6 Int->Prim)
-def(PRIM_WHILE, Prim, 7 Int->Prim)
-def(PRIM_INT_ADD, Prim, 8 Int->Prim)
-def(PRIM_INT_SUB, Prim, 9 Int->Prim)
-def(PRIM_INT_MUL, Prim, 10 Int->Prim)
-def(PRIM_INT_DIV, Prim, 11 Int->Prim)
-def(PRIM_INT_MOD, Prim, 12 Int->Prim)
-def(PRIM_INT_EQ, Prim, 13 Int->Prim)
-def(PRIM_INT_LT, Prim, 14 Int->Prim)
-def(PRIM_INT_LE, Prim, 15 Int->Prim)
-def(PRIM_INT_AND, Prim, 16 Int->Prim)
-def(PRIM_INT_OR, Prim, 17 Int->Prim)
-def(PRIM_INT_XOR, Prim, 18 Int->Prim)
-def(PRIM_INT_SHL, Prim, 19 Int->Prim)
-def(PRIM_INT_SHR, Prim, 20 Int->Prim)
-def(PRIM_MEM_GET, Prim, 21 Int->Prim)
-def(PRIM_MEM_SET, Prim, 22 Int->Prim)
-def(PRIM_MEM_GET_BYTE, Prim, 23 Int->Prim)
-def(PRIM_MEM_SET_BYTE, Prim, 24 Int->Prim)
-def(PRIM_MEM_GET_U8, Prim, 25 Int->Prim)
-def(PRIM_MEM_SET_U8, Prim, 26 Int->Prim)
-def(PRIM_MEM_GET_U16, Prim, 27 Int->Prim)
-def(PRIM_MEM_SET_U16, Prim, 28 Int->Prim)
-def(PRIM_MEM_GET_U32, Prim, 29 Int->Prim)
-def(PRIM_MEM_SET_U32, Prim, 30 Int->Prim)
-def(PRIM_MEM_GET_U64, Prim, 31 Int->Prim)
-def(PRIM_MEM_SET_U64, Prim, 32 Int->Prim)
-def(PRIM_MEM_GET_I8, Prim, 33 Int->Prim)
-def(PRIM_MEM_SET_I8, Prim, 34 Int->Prim)
-def(PRIM_MEM_GET_I16, Prim, 35 Int->Prim)
-def(PRIM_MEM_SET_I16, Prim, 36 Int->Prim)
-def(PRIM_MEM_GET_I32, Prim, 37 Int->Prim)
-def(PRIM_MEM_SET_I32, Prim, 38 Int->Prim)
-def(PRIM_MEM_GET_I64, Prim, 39 Int->Prim)
-def(PRIM_MEM_SET_I64, Prim, 40 Int->Prim)
-def(PRIM_POSIX_READ, Prim, 41 Int->Prim)
-def(PRIM_POSIX_WRITE, Prim, 42 Int->Prim)
-def(PRIM_POSIX_OPEN, Prim, 43 Int->Prim)
-def(PRIM_POSIX_CLOSE, Prim, 44 Int->Prim)
-def(PRIM_POSIX_EXIT, Prim, 45 Int->Prim)
-def(PRIM_POSIX_MMAP, Prim, 46 Int->Prim)
-def(PRIM_DEBUG, Prim, 47 Int->Prim)
-def(PRIM_MIRTH_REVISION, Prim, 48 Int->Prim)
-def(PRIM_RUNNING_OS, Prim, 49 Int->Prim)
-def(PRIM_DEF, Prim, 50 Int->Prim)
-def(PRIM_DEF_TYPE, Prim, 51 Int->Prim)
-def(PRIM_BUFFER, Prim, 52 Int->Prim)
-def(PRIM_DEF_EXTERNAL, Prim, 53 Int->Prim)
-def(PRIM_OUTPUT_ASM, Prim, 54 Int->Prim)
-def(PRIM_TARGET_C99, Prim, 55 Int->Prim)
-def(PRIM_DASHES, Prim, 56 Int->Prim)
-def(PRIM_ARROW, Prim, 57 Int->Prim)
-def(PRIM_INT, Prim, 58 Int->Prim)
-def(PRIM_PTR, Prim, 59 Int->Prim)
-def(PRIM_U8, Prim, 60 Int->Prim)
-def(PRIM_U16, Prim, 61 Int->Prim)
-def(PRIM_U32, Prim, 62 Int->Prim)
-def(PRIM_U64, Prim, 63 Int->Prim)
-def(PRIM_I8, Prim, 64 Int->Prim)
-def(PRIM_I16, Prim, 65 Int->Prim)
-def(PRIM_I32, Prim, 66 Int->Prim)
-def(PRIM_I64, Prim, 67 Int->Prim)
-def(PRIM_MODULE, Prim, 68 Int->Prim)
-def(PRIM_IMPORT, Prim, 69 Int->Prim)
-def(PRIM_NOMINAL, Prim, 70 Int->Prim)
-def(PRIM_CAST, Prim, 71 Int->Prim)
-def(PRIM_PTR+, Prim, 72 Int->Prim)
-def(PRIM_BOOL, Prim, 73 Int->Prim)
-def(PRIM_TRUE, Prim, 74 Int->Prim)
-def(PRIM_FALSE, Prim, 75 Int->Prim)
-def(PRIM_BOOL_AND, Prim, 76 Int->Prim)
-def(PRIM_BOOL_OR, Prim, 77 Int->Prim)
-def(PRIM_TABLE, Prim, 78 Int->Prim)
-def(PRIM_FIELD, Prim, 79 Int->Prim)
-def(PRIM_ARGC, Prim, 80 Int->Prim)
-def(PRIM_ARGV, Prim, 81 Int->Prim)
-def(PRIM_PTR_SIZE, Prim, 82 Int->Prim)
-def(NUM_PRIMS, Size, 83)
-
-def(name-is-prim?, Name -- Name Bool, dup Name->Int NUM_PRIMS <)
-
-def(def-prim!, Prim Str -- +Names,
-    str-buf-zero! str-buf! name-save! swap
-    Prim->Name = if(id, "primitive number mismatch" panic!))
-
-# Initialize name table with list of primitives.
-# Note that order matters very much here. Any
-# deviation from the order above will be flagged
-# by def-prim!
-def(init-names!, +Names,
-    PRIM_ID "id" def-prim!
-    PRIM_DUP "dup" def-prim!
-    PRIM_DROP "drop" def-prim!
-    PRIM_SWAP "swap" def-prim!
-    PRIM_DIP "dip" def-prim!
-    PRIM_IF "if" def-prim!
-    PRIM_WHILE "while" def-prim!
-    PRIM_INT_ADD "+" def-prim!
-    PRIM_INT_SUB "-" def-prim!
-    PRIM_INT_MUL "*" def-prim!
-    PRIM_INT_DIV "/" def-prim!
-    PRIM_INT_MOD "%" def-prim!
-    PRIM_INT_EQ "=" def-prim!
-    PRIM_INT_LT "<" def-prim!
-    PRIM_INT_LE "<=" def-prim!
-    PRIM_INT_AND "&" def-prim!
-    PRIM_INT_OR "|" def-prim!
-    PRIM_INT_XOR "^" def-prim!
-    PRIM_INT_SHL "<<" def-prim!
-    PRIM_INT_SHR ">>" def-prim!
-    PRIM_MEM_GET "@" def-prim!
-    PRIM_MEM_SET "!" def-prim!
-    PRIM_MEM_GET_BYTE "byte@" def-prim!
-    PRIM_MEM_SET_BYTE "byte!" def-prim!
-    PRIM_MEM_GET_U8 "u8@" def-prim!
-    PRIM_MEM_SET_U8 "u8!" def-prim!
-    PRIM_MEM_GET_U16 "u16@" def-prim!
-    PRIM_MEM_SET_U16 "u16!" def-prim!
-    PRIM_MEM_GET_U32 "u32@" def-prim!
-    PRIM_MEM_SET_U32 "u32!" def-prim!
-    PRIM_MEM_GET_U64 "u64@" def-prim!
-    PRIM_MEM_SET_U64 "u64!" def-prim!
-    PRIM_MEM_GET_I8 "i8@" def-prim!
-    PRIM_MEM_SET_I8 "i8!" def-prim!
-    PRIM_MEM_GET_I16 "i16@" def-prim!
-    PRIM_MEM_SET_I16 "i16!" def-prim!
-    PRIM_MEM_GET_I32 "i32@" def-prim!
-    PRIM_MEM_SET_I32 "i32!" def-prim!
-    PRIM_MEM_GET_I64 "i64@" def-prim!
-    PRIM_MEM_SET_I64 "i64!" def-prim!
-    PRIM_POSIX_READ "posix-read!" def-prim!
-    PRIM_POSIX_WRITE "posix-write!" def-prim!
-    PRIM_POSIX_OPEN "posix-open!" def-prim!
-    PRIM_POSIX_CLOSE "posix-close!" def-prim!
-    PRIM_POSIX_EXIT "posix-exit!" def-prim!
-    PRIM_POSIX_MMAP "posix-mmap!" def-prim!
-    PRIM_DEBUG "??" def-prim!
-    PRIM_MIRTH_REVISION "MIRTH_REVISION" def-prim!
-    PRIM_RUNNING_OS "RUNNING_OS" def-prim!
-    PRIM_DEF "def" def-prim!
-    PRIM_DEF_TYPE "def-type" def-prim!
-    PRIM_BUFFER "buffer" def-prim!
-    PRIM_DEF_EXTERNAL "def-external" def-prim!
-    PRIM_OUTPUT_ASM "output-asm" def-prim!
-    PRIM_TARGET_C99 "target-c99" def-prim!
-    PRIM_DASHES "--" def-prim!
-    PRIM_ARROW "->" def-prim!
-    PRIM_INT "Int" def-prim!
-    PRIM_PTR "Ptr" def-prim!
-    PRIM_U8 "U8" def-prim!
-    PRIM_U16 "U16" def-prim!
-    PRIM_U32 "U32" def-prim!
-    PRIM_U64 "U64" def-prim!
-    PRIM_I8 "I8" def-prim!
-    PRIM_I16 "I16" def-prim!
-    PRIM_I32 "I32" def-prim!
-    PRIM_I64 "I64" def-prim!
-    PRIM_MODULE "module" def-prim!
-    PRIM_IMPORT "import" def-prim!
-    PRIM_NOMINAL "nominal" def-prim!
-    PRIM_CAST "prim.unsafe.cast" def-prim!
-    PRIM_PTR+ "prim.unsafe.ptr+" def-prim!
-    PRIM_BOOL "Bool" def-prim!
-    PRIM_TRUE "true" def-prim!
-    PRIM_FALSE "false" def-prim!
-    PRIM_BOOL_AND "&&" def-prim!
-    PRIM_BOOL_OR "||" def-prim!
-    PRIM_TABLE "table" def-prim!
-    PRIM_FIELD "field" def-prim!
-    PRIM_ARGC "argc" def-prim!
-    PRIM_ARGV "argv" def-prim!
-    PRIM_ARGV "argv" def-prim!
-    PRIM_PTR_SIZE "prim.unsafe.|ptr|" def-prim!
-    NUM_PRIMS num-names@ 1+ = if(id,
-        "compiler error: NUM_PRIMS and num-names@ do not match" panic!)
-    )
 
 ########
 # Defs #
 ########
 
 def(NameValue->Int, NameValue -- Int, cast)
-def(NameValue->Type, NameValue -- Type,
-    NameValue->Int Int->Type)
+def(NameValue->Type, NameValue -- Type, NameValue->Int Int->Type)
 def(NameValue->Word, NameValue -- Word, NameValue->Int Int->Word)
 def(NameValue->Buffer, NameValue -- Buffer, NameValue->Int Int->Buffer)
 def(NameValue->External, NameValue -- External, NameValue->Int Int->External)
 def(NameValue->Module, NameValue -- Module, NameValue->Int Int->Module)
+def(NameValue->Prim, NameValue -- Prim, NameValue->Int Int->Prim)
 def(Int->NameValue, Int -- NameValue, cast)
 def(Type->NameValue, Type -- NameValue, Type->Int Int->NameValue)
 def(Word->NameValue, Word -- NameValue, Word->Int Int->NameValue)
 def(Buffer->NameValue, Buffer -- NameValue, Buffer->Int Int->NameValue)
 def(External->NameValue, External -- NameValue, External->Int Int->NameValue)
 def(Module->NameValue, Module -- NameValue, Module->Int Int->NameValue)
+def(Prim->NameValue, Prim -- NameValue, Prim->Int Int->NameValue)
 
 def(NameSort->U8, NameSort -- U8, cast)
 def(U8->NameSort, U8 -- NameSort, cast)
@@ -442,6 +254,7 @@ def(DEF_BUFFER, NameSort, 2 Int->NameSort)
 def(DEF_TYPE, NameSort, 3 Int->NameSort)
 def(DEF_EXTERNAL, NameSort, 4 Int->NameSort)
 def(DEF_MODULE, NameSort, 5 Int->NameSort)
+def(DEF_PRIM, NameSort, 6 Int->NameSort)
 
 def(name-sig@, Name -- Token,
     name-is-word? if(
@@ -462,6 +275,7 @@ def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
 def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE =)
 def(name-is-external?, Name -- Name Bool, name-sort? DEF_EXTERNAL =)
 def(name-is-module?, Name -- Name Bool, name-sort? DEF_MODULE =)
+def(name-is-prim?, Name -- Name Bool, name-sort? DEF_PRIM =)
 
 def(name-type!, Type Name --,
     DEF_TYPE over name-sort!
@@ -508,3 +322,12 @@ def(name-is-table?, Name -- Name Bool,
 def(name-module!, Module Name --,
     DEF_MODULE over name-sort!
     dip(Module->NameValue) name-value!)
+
+def(name-prim!, Prim Name --,
+    DEF_PRIM over name-sort!
+    dip(Prim->NameValue) name-value!)
+def(name-prim@, Name -- Prim,
+    name-is-prim? if(
+        name-value@ NameValue->Prim,
+        "compiler error: attempted to get prim definition for non-prim name" panic!
+    ))
