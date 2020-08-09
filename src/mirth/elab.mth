@@ -514,74 +514,14 @@ def(sig-skip-dashes, Token -- Token,
     ))
 
 
-# elab type for + primitive
-def(elab+, Type Type -- Type, TYPE_INT type-unify! type-unify!)
-
-# elab type for - primitive
-def(elab-, Type Type -- Type, TYPE_INT type-unify! type-unify!)
-
-# elab for * primitive
-def(elab*, Type Type -- Type, TYPE_INT type-unify! type-unify!)
-
-# elab for / primitive
-def(elab/, Type Type -- Type, TYPE_INT type-unify! type-unify!)
-
-# elab type for % primitive
-def(elab%, Type Type -- Type, TYPE_INT type-unify! type-unify!)
-
 # elab for =, <, <= primitives
 def(elab=, Type Type -- Type, type-unify! drop TYPE_BOOL)
-
-# elab for &, ^, | primitives
-def(elab&, Type Type -- Type, TYPE_INT type-unify! type-unify!)
-
-# elab for &&, || primitives
-def(elab&&, Type Type -- Type, TYPE_BOOL type-unify! type-unify!)
-
-# elab for @ primitive
-def(elab@, Type -- Type, TYPE_PTR expect1 drop TYPE_INT)
-
-def(elab!, Type Type --, TYPE_INT TYPE_PTR expect2 drop)
 
 def(elab-posix-exit, Type -- +Elab,
     TYPE_INT expect1 drop) # TODO: set absurd flag
 
-def(elab-posix-read, Type Type Type -- Type +Elab,
-    TYPE_INT TYPE_PTR TYPE_INT expect3
-    if(TYPE_INT, TYPE_ERROR))
-
-def(elab-posix-write, Type Type Type -- +Elab,
-    TYPE_INT TYPE_PTR TYPE_INT expect3 drop)
-
-def(elab-posix-open, Type Type Type -- Type +Elab,
-    TYPE_PTR TYPE_INT TYPE_INT expect3
-    if(TYPE_INT, TYPE_ERROR))
-
-def(elab-posix-close, Type -- Type +Elab,
-    TYPE_INT expect1 if(TYPE_INT, TYPE_ERROR))
-
-def(elab-posix-mmap, Type Type Type Type Type Type -- Type +Elab,
-    TYPE_INT TYPE_INT TYPE_INT expect3 if(
-        TYPE_PTR TYPE_INT TYPE_INT expect3 if(
-            TYPE_PTR,
-            TYPE_ERROR
-        ),
-        drop3 TYPE_ERROR
-    )) # TODO: improve diagnostics
-
 def(expect1, Type Type -- Bool +Elab,
     type-unify! TYPE_ERROR = not)
-
-def(expect2, Type Type Type Type -- Bool +Elab,
-    dip(swap) expect1 if(expect1, drop2 false)
-    ) # TODO: improve diagnostics
-
-def(expect3, Type Type Type Type Type Type -- Bool +Elab,
-    dip(rotl) expect1 if(
-        expect2,
-        drop2 drop2 false
-    )) # TODO: improve diagnostics
-
 
 #############
 ## ELAB V2 ##
