@@ -22,8 +22,6 @@ def(test!, +IO,
 # Main #
 ########
 
-def(NEW_MIRTH_REVISION, Int, 0)
-
 def(compile!, Path -- +IO,
     "Compiling " str-trace!
     dup Path->Str str-trace-ln!

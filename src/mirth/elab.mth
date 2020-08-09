@@ -272,7 +272,7 @@ def(elab-arrow-step-name!, Arrow Name -- Arrow +Elab,
     name-is-word? if(
         name-word@ elab-arrow-step-word!,
     name-is-prim? if(
-        Name->Prim elab-arrow-step-prim!,
+        name-prim@ elab-arrow-step-prim!,
 
         drop
         "Unknown word" elab-emit-fatal-error!
@@ -503,25 +503,22 @@ def(elab-arrow-step-prim!, Arrow Prim -- Arrow +Elab,
 
     dup PRIM_DEBUG = if(
         drop elab-token@ token-args-0,
-    dup PRIM_MIRTH_REVISION = if(
-        drop elab-token@ token-args-0
-        TYPE_INT elab-stack-push!,
-    dup PRIM_RUNNING_OS = if(
+    dup PRIM_SYS_OS = if(
         drop elab-token@ token-args-0
         TYPE_INT elab-stack-push!,
 
     dup PRIM_CAST = if(
         drop elab-token@ token-args-0
         elab-stack-pop! drop meta-alloc! TMeta elab-stack-push!,
-    dup PRIM_PTR+ = if(
+    dup PRIM_PTR_ADD = if(
         drop elab-token@ token-args-0
         elab-stack-pop2! TYPE_INT TYPE_PTR expect2
         if(TYPE_PTR, TYPE_ERROR) elab-stack-push!,
 
-    dup PRIM_TRUE = if(
+    dup PRIM_BOOL_TRUE = if(
         drop elab-token@ token-args-0
         TYPE_BOOL elab-stack-push!,
-    dup PRIM_FALSE = if(
+    dup PRIM_BOOL_FALSE = if(
         drop elab-token@ token-args-0
         TYPE_BOOL elab-stack-push!,
     dup PRIM_BOOL_AND = if(
@@ -531,10 +528,10 @@ def(elab-arrow-step-prim!, Arrow Prim -- Arrow +Elab,
         drop elab-token@ token-args-0
         elab-stack-pop2! elab&& elab-stack-push!,
 
-    dup PRIM_ARGC = if (
+    dup PRIM_SYS_ARGC = if (
         drop elab-token@ token-args-0
         TYPE_INT elab-stack-push!,
-    dup PRIM_ARGV = if (
+    dup PRIM_SYS_ARGV = if (
         drop elab-token@ token-args-0
         TYPE_PTR elab-stack-push!,
 
@@ -544,7 +541,7 @@ def(elab-arrow-step-prim!, Arrow Prim -- Arrow +Elab,
 
         drop TYPE_ERROR elab-stack!
         "compiler error: unknown prim in elaborator" elab-emit-warning!
-    )))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+    ))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
 def(elab-arrow-step-dip!, Arrow -- Arrow +Elab,
     elab-token@ dip(
@@ -589,7 +586,7 @@ def(elab-arrow-step-while!, Arrow -- Arrow +Elab,
 
 def(token-is-dashes, Token -- Bool,
     token-type? TOKEN_NAME = if(
-        token-name@ PRIM_DASHES Prim->Name =,
+        token-name@ PRIM_DASHES prim-name@ =,
         drop false
     ))
 
@@ -942,6 +939,6 @@ def(token-run-end?, Token -- Token Bool +Mirth,
 ||| Does the token match the primitive?
 def(token-prim=?, Token Prim -- Token Bool,
     dip(token-is-name?) swap if(
-        dip(token-name?) Prim->Name =,
+        dip(token-name?) prim-name@ =,
         drop false
     ))

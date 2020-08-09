@@ -120,7 +120,7 @@ def(field-new!, Name Table Type -- Field,
     dup2 swap word-arrow!
     PRIM_INT_MUL arrow-push-prim!
     dip(over field-buffer@) swap arrow-push-buffer!
-    PRIM_PTR+ arrow-push-prim!
+    PRIM_PTR_ADD arrow-push-prim!
     drop dup word-body-is-checked!
     over field-word-ptr!
 

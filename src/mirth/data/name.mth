@@ -231,18 +231,19 @@ def(NAME_ERROR, Name, 0 Int->Name)
 ########
 
 def(NameValue->Int, NameValue -- Int, cast)
-def(NameValue->Type, NameValue -- Type,
-    NameValue->Int Int->Type)
+def(NameValue->Type, NameValue -- Type, NameValue->Int Int->Type)
 def(NameValue->Word, NameValue -- Word, NameValue->Int Int->Word)
 def(NameValue->Buffer, NameValue -- Buffer, NameValue->Int Int->Buffer)
 def(NameValue->External, NameValue -- External, NameValue->Int Int->External)
 def(NameValue->Module, NameValue -- Module, NameValue->Int Int->Module)
+def(NameValue->Prim, NameValue -- Prim, NameValue->Int Int->Prim)
 def(Int->NameValue, Int -- NameValue, cast)
 def(Type->NameValue, Type -- NameValue, Type->Int Int->NameValue)
 def(Word->NameValue, Word -- NameValue, Word->Int Int->NameValue)
 def(Buffer->NameValue, Buffer -- NameValue, Buffer->Int Int->NameValue)
 def(External->NameValue, External -- NameValue, External->Int Int->NameValue)
 def(Module->NameValue, Module -- NameValue, Module->Int Int->NameValue)
+def(Prim->NameValue, Prim -- NameValue, Prim->Int Int->NameValue)
 
 def(NameSort->U8, NameSort -- U8, cast)
 def(U8->NameSort, U8 -- NameSort, cast)
@@ -321,3 +322,12 @@ def(name-is-table?, Name -- Name Bool,
 def(name-module!, Module Name --,
     DEF_MODULE over name-sort!
     dip(Module->NameValue) name-value!)
+
+def(name-prim!, Prim Name --,
+    DEF_PRIM over name-sort!
+    dip(Prim->NameValue) name-value!)
+def(name-prim@, Name -- Prim,
+    name-is-prim? if(
+        name-value@ NameValue->Prim,
+        "compiler error: attempted to get prim definition for non-prim name" panic!
+    ))
