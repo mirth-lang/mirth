@@ -206,9 +206,15 @@ def(test-stack-assertions, -- ,
 def(test-stack-assertions-var, a b -- a b,
     { a b }
     swap
-    { a b } # this and the following assertions are clearly wrong, but
+    { b a }
     swap
-    { b a } # for some reason they are not rejected
+    { a b }
+)
+
+def(test-stack-assertions-var-2, a b -- a b,
+    swap
+    { b a }
+    swap
     { a b }
 )
 
