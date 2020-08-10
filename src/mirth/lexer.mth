@@ -466,9 +466,6 @@ def(is-special-char?, Char -- Char Bool,
     dip(is-pound?) ||
     )
 
-def(in-range, Int Int Int -- Bool,
-    dip(over dip(>=)) <= &&)
-
 def(lexer-trace-prefix!, +IO,
     lexer-module@ load-module-source-path! str-buf-trace! ":" str-trace!
     lexer-row@ Row->Int int-trace! ":" str-trace!

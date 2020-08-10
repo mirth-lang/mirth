@@ -95,6 +95,9 @@ def(quads, Size -- Size, quad *)
 def(quad@@, Offset Ptr -- Long, dip(quads) ptr+ @)
 def(quad!!, Long Offset Ptr --, dip(quads) ptr+ !)
 
+def(in-range, Int Int Int -- Bool,
+    dip(over dip(>=)) <= &&)
+
 def(Int->U8, Int -- U8,
     dup U8_MIN U8_MAX in-range if(
         cast,

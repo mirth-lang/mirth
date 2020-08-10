@@ -72,9 +72,8 @@ bin/mirth_prof.c: bin/mirth3.c
 bin/mirth_prof: bin/mirth_prof.c
 	$(CC) -g -fprofile-instr-generate -o bin/mirth_prof bin/mirth_prof.c
 
-bin/snake.c: bin/mirth2 $(SRCS)
-	bin/mirth2 mirth.mth
-	rm -f bin/mirth.c
+bin/snake.c: bin/mirth0 $(SRCS)
+	bin/mirth0 snake.mth
 
 bin/snake: bin/snake.c
 	$(CC) -o bin/snake bin/snake.c `pkg-config --libs sdl2`
