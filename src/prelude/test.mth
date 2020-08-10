@@ -203,6 +203,21 @@ def(test-stack-assertions, -- ,
     drop
 )
 
+def(test-stack-assertions-var, a b -- a b,
+    { a b }
+    swap
+    { b a }
+    swap
+    { a b }
+)
+
+def(test-stack-assertions-var-2, a b -- a b,
+    swap
+    { b a }
+    swap
+    { a b }
+)
+
 
 def(test-dup2, -- Int Str Int Str,
     10 "hello" dup2)
