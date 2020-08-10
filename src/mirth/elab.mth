@@ -115,11 +115,12 @@ def(elab-type-quote!, Ctx Token -- Ctx Type Token,
         elab-type-sig!,
         elab-type-stack!
     )
-    token-next
-)
+    token-next)
 
 def(elab-type-unify!, Type Type Token -- Type Token,
-    dup elab-token! dip(type-unify!))
+    elab-token@ dip(
+        dup elab-token! dip(type-unify!)
+    ) elab-token!)
     # TODO treat token as an input in type-unify
 
 ####################

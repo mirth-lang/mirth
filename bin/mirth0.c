@@ -15020,11 +15020,15 @@ void mwelab_implicit_var_21_ (void){
 }
 
 void mwelab_type_unify_21_ (void){
+    mwelab_token_40_();
+    { i64 d1 = pop();
     mwdup();
     mwelab_token_21_();
-    { i64 d1 = pop();
+    { i64 d2 = pop();
     mwtype_unify_21_();
+      push(d2); }
       push(d1); }
+    mwelab_token_21_();
 }
 
 void mwsig_has_dashes_3F_ (void){
