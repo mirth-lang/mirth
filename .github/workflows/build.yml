@@ -20,6 +20,8 @@ jobs:
       run: make build
     - name: make check
       run: make check
+    - name: make bin/snake.c
+      run: make bin/snake.c
 
   build-bat:
     strategy:

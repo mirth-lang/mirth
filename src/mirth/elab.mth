@@ -598,13 +598,14 @@ def(elab-module-decls!, Module Token -- Module Token +Mirth,
 ||| Elaborate a declaration. Returns the next token.
 def(elab-module-decl!, Module Token -- Module Token +Mirth,
     PRIM_DEF token-prim=? if( elab-def!,
+    PRIM_DEF_EXTERNAL token-prim=? if( elab-def-external!,
     PRIM_DEF_TYPE token-prim=? if( elab-def-type!,
     PRIM_NOMINAL token-prim=? if( elab-nominal!,
     PRIM_BUFFER token-prim=? if( elab-buffer!,
     PRIM_TABLE token-prim=? if( elab-table!,
     PRIM_FIELD token-prim=? if( elab-field!,
     PRIM_TARGET_C99 token-prim=? if(elab-target-c99!,
-    "unknown declaration" emit-fatal-error!))))))))
+    "unknown declaration" emit-fatal-error!)))))))))
 
 ||| Elaborate a word definition `def(w, t, b)`.
 def(elab-def!, Module Token -- Module Token +Mirth,
@@ -617,6 +618,22 @@ def(elab-def!, Module Token -- Module Token +Mirth,
             dup dip(word-name!)
             dup dip(word-body!)
             word-sig!,
+
+            drop "word already defined" emit-fatal-error!
+        ),
+        "expected word name" emit-fatal-error!
+    ))
+
+||| Elaborate an external declaration `def-external(w, t)`
+def(elab-def-external!, Module Token -- Module Token +Mirth,
+    dup dip(token-next) token-args-2
+    swap token-type? TOKEN_NAME = if(
+        token-name? name-undefined? if(
+            nip
+            external-alloc!
+            dup2 swap name-external!
+            tuck external-name!
+            external-sig!,
 
             drop "word already defined" emit-fatal-error!
         ),
