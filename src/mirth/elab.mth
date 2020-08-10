@@ -301,6 +301,7 @@ def(elab-arrow-step-word!, Arrow Word -- Arrow +Elab,
     elab-word-sig! elab-arrow-freshen-apply-sig-type!)
 
 def(elab-arrow-step-stack-assertion!, Arrow Token -- Arrow +Elab,
+    tuck
     token-brace-arg
     dip(elab-ctx@ dup)
     elab-type-stack! drop
@@ -313,6 +314,7 @@ def(elab-arrow-step-stack-assertion!, Arrow Token -- Arrow +Elab,
     )
     dup morphism-type-new! TMorphism
     elab-arrow-apply-sig-type!
+    dip(elab-token!)
     )
 
 def(elab-arrow-apply-sig-type!, Arrow Type -- Arrow +Elab,
