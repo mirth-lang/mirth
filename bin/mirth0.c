@@ -1517,6 +1517,7 @@ void mwprim_2E_unsafe_2E__7C_ptr_7C_ (void) {
  void mwtest_tensor_quote_dup (void);
  void mwtest_stack_assertions (void);
  void mwtest_stack_assertions_var (void);
+ void mwtest_stack_assertions_var_2 (void);
  void mwtest_dup2 (void);
  void mwheap_length_40_ (void);
  void mwheap_length_21_ (void);
@@ -5141,6 +5142,13 @@ void mwtest_stack_assertions (void){
 }
 
 void mwtest_stack_assertions_var (void){
+    mwswap();
+    mwswap();
+}
+
+void mwtest_stack_assertions_var_2 (void){
+    mwswap();
+    mwswap();
 }
 
 void mwtest_dup2 (void){
@@ -15263,6 +15271,7 @@ void mwelab_arrow_step_name_21_ (void){
 }
 
 void mwelab_arrow_step_stack_assertion_21_ (void){
+    mwtuck();
     mwtoken_brace_arg();
     { i64 d1 = pop();
     mwelab_ctx_40_();
@@ -15294,6 +15303,9 @@ void mwelab_arrow_step_stack_assertion_21_ (void){
     mwmorphism_type_new_21_();
     mwTMorphism();
     mwelab_arrow_apply_sig_type_21_();
+    { i64 d1 = pop();
+    mwelab_token_21_();
+      push(d1); }
 }
 
 void mwelab_arrow_step_buffer_21_ (void){
