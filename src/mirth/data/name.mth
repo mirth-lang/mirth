@@ -159,14 +159,31 @@ def(name-could-be-type, Name -- Bool,
     name-quads& u8@ is-alpha? nip)
 
 def(name-could-be-type-var, Name -- Bool,
-    name-quads& u8@ is-lower? nip)
+    name-quads& str-could-be-type-var)
+
+def(str-could-be-type-var, Str -- Bool,
+    u8@ is-lower? nip)
 
 def(name-could-be-type-con, Name -- Bool,
     name-quads& u8@ is-upper? nip)
 
+def(name-is-type-hole, Name -- Bool,
+    name-quads& dup u8@ is-question-mark? nip if(
+        str-tail dup str-null if(
+            drop true,
+            str-could-be-type-var),
+        drop false
+    ))
+
+def(name-is-type-dont-care, Name -- Bool,
+    name-quads& dup u8@ is-underscore? nip if(
+        str-tail str-null,
+        drop false
+    ))
+
 def(name-could-be-stack-var, Name -- Bool,
     name-quads& dup u8@ is-asterisk? nip if(
-        str-tail u8@ is-lower? nip,
+        str-tail str-could-be-type-var,
         drop false
     ))
 

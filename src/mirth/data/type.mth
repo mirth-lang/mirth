@@ -44,6 +44,7 @@ def(TYPE_TAG_TENSOR,   Int, 0x30000000)
 def(TYPE_TAG_MORPHISM, Int, 0x40000000)
 def(TYPE_TAG_NOMINAL,  Int, 0x50000000)
 def(TYPE_TAG_TABLE,    Int, 0x60000000)
+def(TYPE_TAG_HOLE,     Int, 0x70000000)
 
 def(TPrim, Int -- Type,
     Int->Type)
@@ -59,6 +60,8 @@ def(TNominal, Nominal -- Type,
     Nominal->Int TYPE_TAG_NOMINAL | Int->Type)
 def(TTable, Table -- Type,
     Table->Int TYPE_TAG_TABLE | Int->Type)
+def(THole, Name -- Type,
+    Name->Int TYPE_TAG_HOLE | Int->Type)
 
 def(T*, Type Type -- Type, tensor-type-new! TTensor)
 def(T->, Type Type -- Type, morphism-type-new! TMorphism)
@@ -71,6 +74,7 @@ def(type-is-tensor, Type -- Bool, type-tag TYPE_TAG_TENSOR =)
 def(type-is-morphism, Type -- Bool, type-tag TYPE_TAG_MORPHISM =)
 def(type-is-nominal, Type -- Bool, type-tag TYPE_TAG_NOMINAL =)
 def(type-is-table, Type -- Bool, type-tag TYPE_TAG_TABLE =)
+def(type-is-hole, Type -- Bool, type-tag TYPE_TAG_HOLE =)
 def(type-is-prim?, Type -- Type Bool, dup type-is-prim)
 def(type-is-var?, Type -- Type Bool, dup type-is-var)
 def(type-is-meta?, Type -- Type Bool, dup type-is-meta)
@@ -78,6 +82,7 @@ def(type-is-tensor?, Type -- Type Bool, dup type-is-tensor)
 def(type-is-morphism?, Type -- Type Bool, dup type-is-morphism)
 def(type-is-nominal?, Type -- Type Bool, dup type-is-nominal)
 def(type-is-table?, Type -- Type Bool, dup type-is-table)
+def(type-is-hole?, Type -- Type Bool, dup type-is-hole)
 
 def(type-is-stack-var, Type -- Bool,
     type-is-var? if(
@@ -117,6 +122,11 @@ def(type-get-table, Type -- Table,
         "compiler error: tried to get table value on non-table type" panic!,
         type-get-value Int->Table
     ))
+def(type-get-hole-name, Type -- Name,
+    type-is-hole? not if(
+        "compiler error: tried to get hole name value on non-hole type" panic!,
+        type-get-value Int->Name
+    ))
 
 def(TYPE_ERROR, Type, 0x00 TPrim)
 def(TYPE_TYPE, Type, 0x01 TPrim) # type of types
@@ -134,6 +144,7 @@ def(TYPE_I32, Type, 0x18 TPrim) # fixed width integer type -- signed 32 bit
 def(TYPE_I64, Type, 0x19 TPrim) # fixed width integer type -- signed 64 bit
 def(TYPE_UNIT, Type, 0x1A TPrim) # unit type, also used for empty stack
 def(TYPE_BOOL, Type, 0x1B TPrim) # bool type
+def(TYPE_DONT_CARE, Type, 0xFF TPrim) # don't care type, _.
 
 def(type-expand, Type -- Type,
     type-is-meta? if(
@@ -181,6 +192,21 @@ def(type-unify-failed!, Type Type -- Type +Elab,
 # Unify two types. Raises an elaboration error if unification is impossible.
 def(type-unify!, Type Type -- Type +Elab,
     dip(type-expand) type-expand
+
+    dup type-is-hole if(
+        type-get-hole-name
+        type-hole-unify!,
+
+    over type-is-hole if(
+        swap
+        type-get-hole-name
+        type-hole-unify!,
+
+    dup TYPE_DONT_CARE = if(
+        drop,
+
+    over TYPE_DONT_CARE = if(
+        nip,
 
     dup2 = if(
         drop, # types are equal
@@ -230,7 +256,7 @@ def(type-unify!, Type Type -- Type +Elab,
         ),
 
         type-unify-failed!
-    ))))))))))))
+    ))))))))))))))))
 
 def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
     dup2 type-has-meta)
@@ -331,8 +357,13 @@ def(type-trace!, Type -- +IO,
         name-load!
         str-buf-trace!,
 
+    type-is-hole? if(
+        type-get-hole-name
+        name-load!
+        str-buf-trace!,
+
         "<UNKNOWN TYPE " str-trace! Type->Int int-trace! ">" str-trace!
-    ))))))))
+    )))))))))
 
 def(type-trace-prim!, Type -- +IO,
     dup TYPE_ERROR = if(
@@ -361,8 +392,10 @@ def(type-trace-prim!, Type -- +IO,
         drop "I32" str-trace!,
     dup TYPE_I64 = if(
         drop "I64" str-trace!,
+    dup TYPE_DONT_CARE = if(
+        drop "_" str-trace!,
         "<UNKNOWN PRIMITIVE TYPE " str-trace! Type->Int int-trace! ">" str-trace!
-    ))))))))))))))
+    )))))))))))))))
 
 def(type-freshen, Subst Type -- Subst Type Bool,
     type-expand
@@ -522,3 +555,15 @@ def(nominal-new!, Name Type -- Nominal,
     Nominal.alloc!
     tuck nominal-type!
     tuck nominal-name!)
+
+#############
+# Type Holes #
+#############
+def(type-hole-unify!, Type Name -- Type,
+    dup 0 Int->Name = if(
+        drop,
+        THole type-trace!
+        " ~ " str-trace!
+        dup type-trace!
+        trace-ln!
+    ))

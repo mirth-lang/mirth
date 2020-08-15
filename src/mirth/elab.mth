@@ -26,28 +26,26 @@ def(elab-ctx!, Ctx -- +Elab, ELAB_CTX ctx!)
 # Type Elaboration #
 ####################
 
-def(elab-type-sig!, Ctx Token -- Ctx Type Token,
+def(elab-type-sig!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
     elab-type-stack!
     token-is-dashes? if(
         token-next
-        dip(swap) elab-type-stack!
-        dip(dip(swap) morphism-type-new! TMorphism),
+        swap dip(elab-type-stack!) swap,
+        dip(TYPE_UNIT))
+    dip(swap morphism-type-new! TMorphism)
+    ) # TODO: elaborate effect type too
 
-        dip(TYPE_UNIT swap morphism-type-new! TMorphism)
-    )) # TODO: elaborate effect type too
-
-def(elab-type-stack!, Ctx Token -- Ctx Type Token,
+def(elab-type-stack!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
     sig-token-is-stack-var? if(
         elab-stack-var! dip(TVar),
         dip(TYPE_UNIT)
     )
     elab-type-stack-rest!)
 
-def(elab-type-stack-rest!, Ctx Type Token -- Ctx Type Token,
+def(elab-type-stack-rest!, HolesAllowed Ctx Type Token -- HolesAllowed Ctx Type Token,
     while(sig-is-stack-end2? not,
-        dip(swap)
-        elab-type-atom!
-        dip(dip(swap) tensor-type-new! TTensor)
+        swap dip(elab-type-atom!) swap
+        dip(swap tensor-type-new! TTensor)
     ))
 
 def(sig-is-stack-end2?, Token -- Token Bool,
@@ -56,19 +54,25 @@ def(sig-is-stack-end2?, Token -- Token Bool,
         sig-token-is-effect-con?
     ))
 
-def(elab-type-atom!, Ctx Token -- Ctx Type Token,
+def(elab-type-atom!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
     sig-token-is-type-var? if(
         elab-type-var! dip(TVar),
 
     sig-token-is-type-con? if(
         elab-type-con!,
 
+    sig-token-is-type-dont-care? if(
+        elab-type-dont-care!,
+
+    sig-token-is-type-hole? if(
+        elab-type-hole!,
+
     token-is-lbracket? if(
         elab-type-quote!,
 
         dup "Expected type, got unknown token." emit-error!
         dip(TYPE_ERROR) token-next
-    ))))
+    ))))))
 
 def(elab-stack-var!, Ctx Token -- Ctx Var Token,
     TYPE_STACK elab-implicit-var!)
@@ -109,7 +113,30 @@ def(elab-type-con!, Ctx Token -- Ctx Type Token,
     )
     swap token-next)
 
-def(elab-type-quote!, Ctx Token -- Ctx Type Token,
+nominal(HolesAllowed, Bool)
+def(HolesAllowed->Bool, HolesAllowed -- Bool, cast)
+def(allow-holes, HolesAllowed, true cast)
+def(forbid-holes, HolesAllowed, true cast)
+
+def(elab-type-hole!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
+    dip(dip(dup)) rotl HolesAllowed->Bool if(
+        token-has-args? if(
+            dup "Types with args not yet supported." emit-error! TYPE_ERROR,
+            token-name? THole)
+        swap token-next,
+        "type holes are not allowed here" emit-fatal-error!
+    ))
+
+def(elab-type-dont-care!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
+    dip(dip(dup)) rotl HolesAllowed->Bool if(
+        token-has-args? if(
+            dup "Types with args not yet supported." emit-error! TYPE_ERROR,
+            TYPE_DONT_CARE)
+        swap token-next,
+        "type don't care is not allowed here" emit-fatal-error!
+    ))
+
+def(elab-type-quote!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
     token-bracket-arg
     sig-has-dashes? if(
         elab-type-sig!,
@@ -138,7 +165,8 @@ def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
         external-type? dip(external-ctx@),
 
         external-sig? ctx-empty swap
-        elab-type-sig! drop dup2
+        dip(dip(forbid-holes))
+        elab-type-sig! drop dip(dip(drop)) dup2
         dip(dip(
             rotl
             tuck external-type!
@@ -158,7 +186,9 @@ def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
         word-type? dip(word-ctx@),
 
         word-sig? ctx-empty swap
-        elab-type-sig! drop dup2
+
+        dip(dip(forbid-holes))
+        elab-type-sig! drop dip(dip(drop)) dup2
         dip(dip(
             rotl
             tuck word-type!
@@ -302,10 +332,11 @@ def(elab-arrow-step-word!, Arrow Word -- Arrow +Elab,
     elab-word-sig! elab-arrow-freshen-apply-sig-type!)
 
 def(elab-arrow-step-stack-assertion!, Arrow Token -- Arrow +Elab,
-    tuck
     token-brace-arg
     dip(elab-ctx@ dup)
+    dip(dip(allow-holes))
     elab-type-stack! drop
+    dip(dip(drop))
     rotr swap dup2 = if(drop2,
         "stack assertion introduced new type variables:" elab-emit-warning!
         "\tbefore: " str-trace! ctx-trace! trace-ln!
@@ -315,7 +346,6 @@ def(elab-arrow-step-stack-assertion!, Arrow Token -- Arrow +Elab,
     )
     dup morphism-type-new! TMorphism
     elab-arrow-apply-sig-type!
-    dip(elab-token!)
     )
 
 def(elab-arrow-apply-sig-type!, Arrow Type -- Arrow +Elab,
@@ -508,6 +538,18 @@ def(sig-token-is-type?, Token -- Token Bool,
 def(sig-token-is-type-con?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
         token-name? name-could-be-type-con,
+        false
+    ))
+
+def(sig-token-is-type-hole?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-name? name-is-type-hole,
+        false
+    ))
+
+def(sig-token-is-type-dont-care?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-name? name-is-type-dont-care,
         false
     ))
 

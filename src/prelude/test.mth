@@ -218,6 +218,19 @@ def(test-stack-assertions-var-2, a b -- a b,
     { a b }
 )
 
+def(test-stack-assertions-dont-care, a b -- a b,
+    { a b }
+    { a _ }
+    { _ b }
+    swap
+    { b a }
+    { b _ }
+    { _ a }
+    swap
+    { a b }
+    { a _ }
+    { _ b }
+)
 
 def(test-dup2, -- Int Str Int Str,
     10 "hello" dup2)

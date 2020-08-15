@@ -4,10 +4,12 @@ import(prelude/common)
 def(str-tail, Str -- Str, 1 swap ptr+)
 def(str-length, Str -- Int,
     0 swap
-    while(dup u8@ U8->Int nonzero,
+    while(dup str-null not,
         str-tail
         dip(1+))
     drop)
+def(str-null, Str -- Bool,
+    u8@ U8->Int 0=)
 
 def(str-copy!, Str Str --,
     while( over u8@ U8->Int nonzero,
