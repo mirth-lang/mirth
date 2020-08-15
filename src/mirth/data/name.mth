@@ -176,6 +176,12 @@ def(name-is-type-hole, Name -- Bool,
         drop false
     ))
 
+def(name-is-type-dont-care, Name -- Bool,
+    name-quads& dup u8@ is-underscore? nip if(
+        str-tail str-null,
+        drop false
+    ))
+
 def(name-could-be-stack-var, Name -- Bool,
     name-quads& dup u8@ is-asterisk? nip if(
         str-tail str-could-be-type-var,
