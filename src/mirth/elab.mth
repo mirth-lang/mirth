@@ -30,11 +30,10 @@ def(elab-type-sig!, Ctx Token -- Ctx Type Token,
     elab-type-stack!
     token-is-dashes? if(
         token-next
-        dip(swap) elab-type-stack!
-        dip(dip(swap) morphism-type-new! TMorphism),
-
-        dip(TYPE_UNIT swap morphism-type-new! TMorphism)
-    )) # TODO: elaborate effect type too
+        swap dip(elab-type-stack!) swap,
+        dip(TYPE_UNIT))
+    dip(swap morphism-type-new! TMorphism)
+    ) # TODO: elaborate effect type too
 
 def(elab-type-stack!, Ctx Token -- Ctx Type Token,
     sig-token-is-stack-var? if(
@@ -45,9 +44,8 @@ def(elab-type-stack!, Ctx Token -- Ctx Type Token,
 
 def(elab-type-stack-rest!, Ctx Type Token -- Ctx Type Token,
     while(sig-is-stack-end2? not,
-        dip(swap)
-        elab-type-atom!
-        dip(dip(swap) tensor-type-new! TTensor)
+        swap dip(elab-type-atom!) swap
+        dip(swap tensor-type-new! TTensor)
     ))
 
 def(sig-is-stack-end2?, Token -- Token Bool,
