@@ -162,8 +162,7 @@ def(name-could-be-type-var, Name -- Bool,
     name-quads& str-could-be-type-var)
 
 def(str-could-be-type-var, Str -- Bool,
-    u8@ is-lower? nip
-)
+    u8@ is-lower? nip)
 
 def(name-could-be-type-con, Name -- Bool,
     name-quads& u8@ is-upper? nip)

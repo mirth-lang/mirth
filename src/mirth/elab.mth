@@ -124,7 +124,7 @@ def(elab-type-hole!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
             dup "Types with args not yet supported." emit-error! TYPE_ERROR,
             token-name? THole)
         swap token-next,
-        token-location "type holes are not allowed here" emit-fatal-error-at!
+        "type holes are not allowed here" emit-fatal-error!
     ))
 
 def(elab-type-dont-care!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
@@ -133,7 +133,7 @@ def(elab-type-dont-care!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
             dup "Types with args not yet supported." emit-error! TYPE_ERROR,
             TYPE_DONT_CARE)
         swap token-next,
-        token-location "type don't care is not allowed here" emit-fatal-error-at!
+        "type don't care is not allowed here" emit-fatal-error!
     ))
 
 def(elab-type-quote!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
