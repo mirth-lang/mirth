@@ -61,6 +61,9 @@ def(elab-type-atom!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
     sig-token-is-type-con? if(
         elab-type-con!,
 
+    sig-token-is-type-dont-care? if(
+        elab-type-dont-care!,
+
     sig-token-is-type-hole? if(
         elab-type-hole!,
 
@@ -69,7 +72,7 @@ def(elab-type-atom!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
 
         dup "Expected type, got unknown token." emit-error!
         dip(TYPE_ERROR) token-next
-    )))))
+    ))))))
 
 def(elab-stack-var!, Ctx Token -- Ctx Var Token,
     TYPE_STACK elab-implicit-var!)
@@ -122,6 +125,15 @@ def(elab-type-hole!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
             token-name? THole)
         swap token-next,
         token-location "type holes are not allowed here" emit-fatal-error-at!
+    ))
+
+def(elab-type-dont-care!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
+    dip(dip(dup)) rotl HolesAllowed->Bool if(
+        token-has-args? if(
+            dup "Types with args not yet supported." emit-error! TYPE_ERROR,
+            TYPE_DONT_CARE)
+        swap token-next,
+        token-location "type don't care is not allowed here" emit-fatal-error-at!
     ))
 
 def(elab-type-quote!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
@@ -532,6 +544,12 @@ def(sig-token-is-type-con?, Token -- Token Bool,
 def(sig-token-is-type-hole?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
         token-name? name-is-type-hole,
+        false
+    ))
+
+def(sig-token-is-type-dont-care?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-name? name-is-type-dont-care,
         false
     ))
 
