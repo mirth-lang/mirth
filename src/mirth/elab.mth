@@ -107,6 +107,20 @@ def(elab-type-con!, Ctx Token -- Ctx Type Token,
     )
     swap token-next)
 
+nominal(HolesAllowed, Bool)
+def(HolesAllowed->Bool, HolesAllowed -- Bool, cast)
+def(allow-holes, HolesAllowed, true cast)
+def(forbid-holes, HolesAllowed, true cast)
+
+def(elab-type-hole!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
+    dip(dip(dup)) rotl HolesAllowed->Bool if(
+        token-has-args? if(
+            dup "Types with args not yet supported." emit-error! TYPE_ERROR,
+            token-name? THole)
+        swap token-next,
+        token-location "type holes are not allowed here" emit-fatal-error-at!
+    ))
+
 def(elab-type-quote!, Ctx Token -- Ctx Type Token,
     token-bracket-arg
     sig-has-dashes? if(
