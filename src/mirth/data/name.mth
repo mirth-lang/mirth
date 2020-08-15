@@ -168,6 +168,14 @@ def(str-could-be-type-var, Str -- Bool,
 def(name-could-be-type-con, Name -- Bool,
     name-quads& u8@ is-upper? nip)
 
+def(name-is-type-hole, Name -- Bool,
+    name-quads& dup u8@ is-question-mark? nip if(
+        str-tail dup str-null if(
+            drop true,
+            str-could-be-type-var),
+        drop false
+    ))
+
 def(name-could-be-stack-var, Name -- Bool,
     name-quads& dup u8@ is-asterisk? nip if(
         str-tail str-could-be-type-var,
