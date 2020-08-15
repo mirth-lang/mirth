@@ -144,6 +144,7 @@ def(TYPE_I32, Type, 0x18 TPrim) # fixed width integer type -- signed 32 bit
 def(TYPE_I64, Type, 0x19 TPrim) # fixed width integer type -- signed 64 bit
 def(TYPE_UNIT, Type, 0x1A TPrim) # unit type, also used for empty stack
 def(TYPE_BOOL, Type, 0x1B TPrim) # bool type
+def(TYPE_DONT_CARE, Type, 0xFF TPrim) # don't care type, _.
 
 def(type-expand, Type -- Type,
     type-is-meta? if(
@@ -201,6 +202,12 @@ def(type-unify!, Type Type -- Type +Elab,
         type-get-hole-name
         type-hole-unify!,
 
+    dup TYPE_DONT_CARE = if(
+        drop,
+
+    over TYPE_DONT_CARE = if(
+        nip,
+
     dup2 = if(
         drop, # types are equal
 
@@ -249,7 +256,7 @@ def(type-unify!, Type Type -- Type +Elab,
         ),
 
         type-unify-failed!
-    ))))))))))))))
+    ))))))))))))))))
 
 def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
     dup2 type-has-meta)
@@ -385,8 +392,10 @@ def(type-trace-prim!, Type -- +IO,
         drop "I32" str-trace!,
     dup TYPE_I64 = if(
         drop "I64" str-trace!,
+    dup TYPE_DONT_CARE = if(
+        drop "_" str-trace!,
         "<UNKNOWN PRIMITIVE TYPE " str-trace! Type->Int int-trace! ">" str-trace!
-    ))))))))))))))
+    )))))))))))))))
 
 def(type-freshen, Subst Type -- Subst Type Bool,
     type-expand
