@@ -11,7 +11,7 @@ case "$1" in
   -v ) VERIFY=1 ;;
   * )
     echo "USAGE: ./mirth-test [-v|-u]"
-    echo "  -v  Run tests (i.e. verify program)."
+    echo "  -v  Run tests."
     echo "  -u  Update tests."
     exit 1 ;;
 esac
