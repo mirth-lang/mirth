@@ -80,7 +80,8 @@ done
 rm -rf $TMP
 
 if [ "$FAILED" == "1" ] ; then
-    echo "Golden tests failed. Update golden tests with:"
-    echo "  make test-update"
+    echo "Golden tests failed."
+    echo "Update golden tests with:"
+    echo "    make test-update"
     exit 1
 fi
