@@ -1,2 +1,2 @@
-||| Module name should match file path.
-module(error-module-name-mismatch-ok)
+||| Module name should match file name.
+module(error-module-name-mismatch-is-bad)
