@@ -65,7 +65,7 @@ do
 
     if [ "$VERIFY" == "1" ] ; then
         cat src/tests/$filename | grep "mirth-test" > $TMP/test/expected || echo -n
-        diff $TMP/test/expected $TMP/test/actual
+        diff --strip-trailing-cr $TMP/test/expected $TMP/test/actual
         DIFF_FAILED=$?
         if [ "$DIFF_FAILED" != "0" ] ; then
             echo "tests/$filename FAILED"
