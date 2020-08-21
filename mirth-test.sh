@@ -38,11 +38,15 @@ do
     cat $TMP/test/merr | egrep ': (error|warning):' | sed 's/^[^:]*:/# mirth-test # merr # /' >> $TMP/test/actual
     if [ "$MIRTH_BUILD_FAILED" != "0" ] ; then
         echo "# mirth-test # mret # $MIRTH_BUILD_FAILED" >> $TMP/test/actual
+        for c99target in $(cat src/tests/$filename | grep "target-c99" | sed 's/[^"]*"//' | sed 's/".*//') ; do
+            rm -f bin/$c99target
+        done
     else
         for c99target in $(cat src/tests/$filename | grep "target-c99" | sed 's/[^"]*"//' | sed 's/".*//') ; do
             echo "=> bin/$c99target"
             $CC -o $TMP/test/ctarget bin/$c99target > $TMP/test/cout 2> $TMP/test/cerr
             TARGET_FAILED=$?
+            rm -f bin/$c99target
             cat $TMP/test/cout | sed "s/^/# mirth-test # cout # /" >> $TMP/test/actual
             cat $TMP/test/cerr | sed "s/^/# mirth-test # cerr # /" >> $TMP/test/actual
             if [ "$TARGET_FAILED" != "0" ] ; then

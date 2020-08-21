@@ -23,7 +23,9 @@ check:
 	diff --strip-trailing-cr bin/mirth0.c bin/mirth3.c
 
 clean:
-	rm -f bin/mirth1.c bin/mirth2.c bin/mirth3.c bin/mirth0 bin/mirth1 bin/mirth2 bin/mirth_prof bin/mirth_prof.c bin/snake.c bin/snake
+	cp bin/mirth0.c mirth0.c
+	rm -f bin/*
+	mv mirth0.c bin/
 
 install-vim:
 	mkdir -p ~/.vim/bundle
