@@ -3,6 +3,7 @@ import(mirth/data/common)
 import(mirth/data/name)
 import(mirth/data/string)
 import(mirth/data/location)
+import(mirth/data/error)
 
 ##########
 # Tokens #
@@ -302,3 +303,7 @@ def(token-brace-arg, Token -- Token,
         "brace expected 1 arg, got none"
         emit-fatal-error!
     ))
+
+def(emit-warning!, Token Str -- +IO, dip(token-location) emit-warning-at!)
+def(emit-error!, Token Str -- +IO, dip(token-location) emit-error-at!)
+def(emit-fatal-error!, *a Token Str -- *b +IO, dip(token-location) emit-fatal-error-at!)

@@ -1,23 +1,11 @@
 module(mirth/data/table)
 import(mirth/data/common)
 import(mirth/data/buffer)
+import(mirth/data/type)
 
 #########
 # TABLE #
 #########
-
-def(Table->Int, Table -- Int, cast)
-def(Int->Table, Int -- Table, cast)
-def(|Table|, Size, 8)
-def(table@, Ptr -- Table, @ Int->Table)
-def(table!, Table Ptr --, dip(Table->Int) !)
-
-def(table-alloc!, Table,
-    Table.alloc!
-    dup Table->Int Table.MAX >= if(
-        "compiler error: NUM_TABLES >= MAX_TABLES" panic!,
-        id
-    ))
 
 def(table-new!, Name -- Table,
     table-alloc!

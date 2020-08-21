@@ -4,6 +4,16 @@ import(mirth/data/type)
 
 def(Int->Prim, Int -- Prim, cast)
 def(Prim->Int, Prim -- Int, cast)
+def(NameValue->Prim, NameValue -- Prim, NameValue->Int Int->Prim)
+def(Prim->NameValue, Prim -- NameValue, Prim->Int Int->NameValue)
+def(name-prim!, Prim Name --,
+    DEF_PRIM over name-sort!
+    dip(Prim->NameValue) name-value!)
+def(name-prim@, Name -- Prim,
+    name-is-prim? if(
+        name-value@ NameValue->Prim,
+        "compiler error: attempted to get prim definition for non-prim name" panic!
+    ))
 
 def(PRIM_ID, Prim, 1 Int->Prim)
 def(PRIM_DUP, Prim, 2 Int->Prim)
@@ -344,4 +354,3 @@ def(init-prims!, +Names,
     # drop2
 
     )
-

@@ -18,3 +18,14 @@ def(buffer-alloc!, Name Size -- Buffer +Buffers,
     tuck buffer-size!
     tuck dup2 buffer-name!
     swap name-buffer!)
+
+def(NameValue->Buffer, NameValue -- Buffer, NameValue->Int Int->Buffer)
+def(Buffer->NameValue, Buffer -- NameValue, Buffer->Int Int->NameValue)
+def(name-buffer!, Buffer Name --,
+    DEF_BUFFER over name-sort!
+    dip(Buffer->NameValue) name-value!)
+def(name-buffer@, Name -- Buffer,
+    name-is-buffer? if(
+        name-value@ NameValue->Buffer,
+        "compiler error: attempted to get buffer definition for non-buffer name" panic!
+    ))

@@ -38,3 +38,9 @@ def(module-path!, Path Module --,
 # Load a source path associated with a module into STR_BUF.
 def(load-module-source-path!, Module --,
     module-path@ load-source-path!)
+
+def(NameValue->Module, NameValue -- Module, NameValue->Int Int->Module)
+def(Module->NameValue, Module -- NameValue, Module->Int Int->NameValue)
+def(name-module!, Module Name --,
+    DEF_MODULE over name-sort!
+    dip(Module->NameValue) name-value!)

@@ -55,5 +55,3 @@ def(prim-mem-set-i8, I8 Ptr --, i8!)
 def(prim-mem-set-i16, I16 Ptr --, i16!)
 def(prim-mem-set-i32, I32 Ptr --, i32!)
 def(prim-mem-set-i64, I64 Ptr --, i64!)
-
-target-c99("prim-types.c", id)

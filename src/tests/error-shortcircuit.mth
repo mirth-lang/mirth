@@ -6,4 +6,4 @@ def(foo, Int, "hello")
 target-c99("error-shortcircuit.c", "this should not run" str-trace-ln!)
 
 # mirth-test # merr # 5:22: error: Failed to unify Int with Ptr
-# mirth-test # perr # this should not run
+# mirth-test # mret # 1

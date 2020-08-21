@@ -1,8 +1,12 @@
 module(mirth/codegen)
 import(prelude)
-import(mirth/data/name)
 import(mirth/data/token)
-
+import(mirth/data/name)
+import(mirth/data/word)
+import(mirth/data/external)
+import(mirth/data/buffer)
+import(mirth/data/arrow)
+import(mirth/data/sig)
 
 ###########
 # Codegen #
@@ -45,20 +49,24 @@ def(codegen-end!, +Codegen,
     stdout codegen-file!
     0 codegen-length!)
 
-def(run-output-c99!, Token Path -- +IO,
-    load-output-path!
-    STR_BUF create-file! codegen-start!
-        # FIXME: implement and use create-binary-file!
-        # instead of create-file! here ... perhaps
-    c99-emit-header!
-    c99-emit-strings!
-    c99-emit-prims!
-    c99-emit-buffers!
-    c99-emit-externals!
-    c99-emit-word-sigs!
-    c99-emit-word-defs!
-    c99-emit-main!
-    codegen-end!)
+def(run-output-c99!, Arrow Path -- +IO,
+    num-errors@ 0 > if(
+        drop2,
+
+        load-output-path!
+        STR_BUF create-file! codegen-start!
+            # FIXME: implement and use create-binary-file!
+            # instead of create-file! here ... perhaps
+        c99-emit-header!
+        c99-emit-strings!
+        c99-emit-prims!
+        c99-emit-buffers!
+        c99-emit-externals!
+        c99-emit-word-sigs!
+        c99-emit-word-defs!
+        c99-emit-main!
+        codegen-end!
+    ))
 
 buffer(C99_DEPTH, 8)
 def(c99-depth@, -- Int +Codegen, C99_DEPTH @)
@@ -512,6 +520,18 @@ def(c99-emit-externals!, +IO,
         1+)
     .lf drop)
 
+def(name-sig@, Name -- Token,
+    name-is-word? if(
+        name-word@ word-sig@,
+
+    name-is-external? if(
+        name-external@ external-sig@,
+
+        "compiler error: attempted to get name-sig for non-word, non-external name" panic!
+    )))
+
+def(name-sig?, Name -- Name Token, dup name-sig@)
+
 def(c99-emit-external!, Name -- +IO,
     name-is-external? if(
         name-sig? sig-arity
@@ -650,15 +670,12 @@ def(c99-emit-word-defs!, +IO,
 def(c99-emit-word-def!, Name -- +IO,
     name-is-word? if(
         dup .w "{" ;
-        name-word@ elab-word-body! c99-emit-arrow!
+        name-word@ word-arrow@ c99-emit-arrow!
         "}" ;;,
         drop
     ))
 
-def(c99-emit-main!, Token -- +IO,
-    ctx-empty elab-ctx!
-    TYPE_UNIT elab-stack!
-    elab-arrow!
+def(c99-emit-main!, Arrow -- +IO,
 
     "int main (int argc, char** argv) {" ;
     "    global_argc = argc;";

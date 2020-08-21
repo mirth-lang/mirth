@@ -45,19 +45,6 @@ def(ctx-lookup, Name Ctx -- Var,
         )
    ))
 
-def(ctx-trace!, Ctx -- +IO,
-    ctx-is-empty? if(
-        drop,
-
-        dup ctx-prev@
-        ctx-is-empty? if(
-            drop,
-            ctx-trace! ", " str-trace!
-        )
-
-        ctx-var@ var-trace-binding!
-    ))
-
 def(ctx-length?, Ctx -- Ctx Size, dup ctx-length)
 def(ctx-length, Ctx -- Size,
     0 swap

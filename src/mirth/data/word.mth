@@ -2,7 +2,6 @@ module(mirth/data/word)
 import(prelude)
 import(mirth/data/name)
 import(mirth/data/type)
-import(mirth/data/arrow)
 
 #########
 # WORDS #
@@ -43,3 +42,15 @@ def(word-body-is-checked?, Word -- Word Bool,
     word-status? WORD_BODY_CHECKED word-status-get)
 def(word-body-is-checked!, Word --,
     word-status? WORD_BODY_CHECKED word-status-set swap word-status!)
+
+def(NameValue->Word, NameValue -- Word, NameValue->Int Int->Word)
+def(Word->NameValue, Word -- NameValue, Word->Int Int->NameValue)
+
+def(name-word!, Word Name --,
+    DEF_WORD over name-sort!
+    dip(Word->NameValue) name-value!)
+def(name-word@, Name -- Word,
+    name-is-word? if(
+        name-value@ NameValue->Word,
+        "compiler error: attempted to get word definition for non-word name" panic!
+    ))

@@ -2,3 +2,4 @@
 def(my-id, Int -- Int, id)
 
 # mirth-test # merr # 2:1: error: Expected module header.
+# mirth-test # mret # 1
