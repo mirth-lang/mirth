@@ -1,0 +1,121 @@
+module(mirth/data/sig)
+
+#############
+# Type Sigs #
+#############
+
+def(token-is-dashes, Token -- Bool,
+    token-type? TOKEN_NAME = if(
+        token-name@ PRIM_DASHES prim-name@ =,
+        drop false
+    ))
+
+def(token-is-dashes?, Token -- Token Bool,
+    dup token-is-dashes)
+
+def(sig-is-stack-end?, Token -- Token Bool,
+    token-is-dashes? if(
+        true,
+        token-run-end?
+    ))
+
+def(sig-has-dashes, Token -- Bool,
+    while(sig-is-stack-end? not, token-next)
+    token-is-dashes)
+
+def(sig-has-dashes?, Token -- Token Bool,
+    dup sig-has-dashes)
+
+def(sig-arity, Token -- Int Int,
+    sig-has-dashes? if(
+        sig-count-types
+        token-next
+        sig-count-types
+        drop,
+
+        dip(0)
+        sig-count-types
+        drop
+    ))
+
+def(sig-count-types, Token -- Int Token,
+    dip(0)
+    while(sig-is-stack-end? not,
+        sig-token-is-type? if(dip(1+), id)
+        token-next
+    ))
+
+def(sig-token-is-type?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-name? name-could-be-type,
+        false
+    ))
+
+def(sig-token-is-type-con?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-name? name-could-be-type-con,
+        false
+    ))
+
+def(sig-token-is-type-hole?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-name? name-is-type-hole,
+        false
+    ))
+
+def(sig-token-is-type-dont-care?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-name? name-is-type-dont-care,
+        false
+    ))
+
+def(sig-token-is-type-var?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-name? name-could-be-type-var,
+        false
+    ))
+
+def(sig-token-is-stack-var?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-name? name-could-be-stack-var,
+        false
+    ))
+
+def(sig-token-is-effect-con?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        token-name? name-could-be-effect-con,
+        false
+    ))
+
+def(sig-skip-dashes, Token -- Token,
+    sig-has-dashes? if(
+        while(token-is-dashes? not, token-next) token-next,
+        id
+    ))
+
+
+||| Is this the end of a module?
+def(token-is-module-end?, Token -- Token Bool,
+    token-type? TOKEN_NONE =)
+
+# Is this a token to stop running at?
+def(token-run-end?, Token -- Token Bool +Mirth,
+    dup Token->Int num-tokens@ >= if(
+        true,
+    token-type? TOKEN_NONE = if(
+        true,
+    token-type? TOKEN_COMMA = if(
+        true,
+    token-type? TOKEN_RPAREN = if(
+        true,
+    token-type? TOKEN_RBRACKET = if(
+        true,
+        token-type? TOKEN_RBRACE =
+    ))))))
+
+||| Does the token match the primitive?
+def(token-prim=?, Token Prim -- Token Bool,
+    dip(token-is-name?) swap if(
+        dip(token-name?) prim-name@ =,
+        drop false
+    ))

@@ -3,7 +3,7 @@ CC=gcc $(C99FLAGS)
 
 SRCS=src/*.mth src/prelude/*.mth src/mirth/*.mth src/mirth/data/*.mth
 
-.PHONY: default show build update check update-mirth install-vim install-code profile play-snake
+.PHONY: default show build update check update-mirth install-vim install-code profile play-snake test test-update
 
 default: show
 
@@ -23,7 +23,9 @@ check:
 	diff --strip-trailing-cr bin/mirth0.c bin/mirth3.c
 
 clean:
-	rm -f bin/mirth1.c bin/mirth2.c bin/mirth3.c bin/mirth0 bin/mirth1 bin/mirth2 bin/mirth_prof bin/mirth_prof.c bin/snake.c bin/snake
+	cp bin/mirth0.c mirth0.c
+	rm -f bin/*
+	mv mirth0.c bin/
 
 install-vim:
 	mkdir -p ~/.vim/bundle
@@ -42,6 +44,12 @@ profile: bin/mirth_prof
 
 play-snake: bin/snake
 	bin/snake
+
+test-verify:
+	bash mirth-test.sh -v
+
+test-update:
+	bash mirth-test.sh -u
 
 #########
 

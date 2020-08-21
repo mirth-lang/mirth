@@ -1,0 +1,6 @@
+||| Typechecker should run even when there's no target.
+module(tests/error-typechecker)
+def(foo, Int, "hello")
+
+# mirth-test # merr # 3:22: error: Failed to unify Int with Ptr
+# mirth-test # mret # 1

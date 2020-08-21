@@ -1,8 +1,6 @@
 module(mirth/data/name)
 import(mirth/data/common)
-import(mirth/data/word)
-import(mirth/data/buffer)
-import(mirth/data/external)
+import(mirth/lexer/char)
 
 #########
 # Names #
@@ -251,19 +249,7 @@ def(NAME_ERROR, Name, 0 Int->Name)
 ########
 
 def(NameValue->Int, NameValue -- Int, cast)
-def(NameValue->Type, NameValue -- Type, NameValue->Int Int->Type)
-def(NameValue->Word, NameValue -- Word, NameValue->Int Int->Word)
-def(NameValue->Buffer, NameValue -- Buffer, NameValue->Int Int->Buffer)
-def(NameValue->External, NameValue -- External, NameValue->Int Int->External)
-def(NameValue->Module, NameValue -- Module, NameValue->Int Int->Module)
-def(NameValue->Prim, NameValue -- Prim, NameValue->Int Int->Prim)
 def(Int->NameValue, Int -- NameValue, cast)
-def(Type->NameValue, Type -- NameValue, Type->Int Int->NameValue)
-def(Word->NameValue, Word -- NameValue, Word->Int Int->NameValue)
-def(Buffer->NameValue, Buffer -- NameValue, Buffer->Int Int->NameValue)
-def(External->NameValue, External -- NameValue, External->Int Int->NameValue)
-def(Module->NameValue, Module -- NameValue, Module->Int Int->NameValue)
-def(Prim->NameValue, Prim -- NameValue, Prim->Int Int->NameValue)
 
 def(NameSort->U8, NameSort -- U8, cast)
 def(U8->NameSort, U8 -- NameSort, cast)
@@ -276,18 +262,6 @@ def(DEF_EXTERNAL, NameSort, 4 Int->NameSort)
 def(DEF_MODULE, NameSort, 5 Int->NameSort)
 def(DEF_PRIM, NameSort, 6 Int->NameSort)
 
-def(name-sig@, Name -- Token,
-    name-is-word? if(
-        name-word@ word-sig@,
-
-    name-is-external? if(
-        name-external@ external-sig@,
-
-        "compiler error: attempted to get name-sig for non-word, non-external name" panic!
-    )))
-
-def(name-sig?, Name -- Name Token, dup name-sig@)
-
 def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
 def(name-defined?, Name -- Name Bool, name-undefined? not)
 def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD =)
@@ -296,58 +270,3 @@ def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE =)
 def(name-is-external?, Name -- Name Bool, name-sort? DEF_EXTERNAL =)
 def(name-is-module?, Name -- Name Bool, name-sort? DEF_MODULE =)
 def(name-is-prim?, Name -- Name Bool, name-sort? DEF_PRIM =)
-
-def(name-type!, Type Name --,
-    DEF_TYPE over name-sort!
-    dip(Type->NameValue) name-value!)
-def(name-type@, Name -- Type,
-    name-is-type? if(
-        name-value@ NameValue->Type,
-        "compiler error: attempted to get type definition for non-type name" panic!
-    ))
-
-def(name-word!, Word Name --,
-    DEF_WORD over name-sort!
-    dip(Word->NameValue) name-value!)
-def(name-word@, Name -- Word,
-    name-is-word? if(
-        name-value@ NameValue->Word,
-        "compiler error: attempted to get word definition for non-word name" panic!
-    ))
-
-def(name-external!, External Name --,
-    DEF_EXTERNAL over name-sort!
-    dip(External->NameValue) name-value!)
-def(name-external@, Name -- External,
-    name-is-external? if(
-        name-value@ NameValue->External,
-        "compiler error: attempted to get external definition for non-external name" panic!
-    ))
-
-def(name-buffer!, Buffer Name --,
-    DEF_BUFFER over name-sort!
-    dip(Buffer->NameValue) name-value!)
-def(name-buffer@, Name -- Buffer,
-    name-is-buffer? if(
-        name-value@ NameValue->Buffer,
-        "compiler error: attempted to get buffer definition for non-buffer name" panic!
-    ))
-
-def(name-is-table?, Name -- Name Bool,
-    name-is-type? if(
-        dup name-type@ type-is-table,
-        false
-    ))
-
-def(name-module!, Module Name --,
-    DEF_MODULE over name-sort!
-    dip(Module->NameValue) name-value!)
-
-def(name-prim!, Prim Name --,
-    DEF_PRIM over name-sort!
-    dip(Prim->NameValue) name-value!)
-def(name-prim@, Name -- Prim,
-    name-is-prim? if(
-        name-value@ NameValue->Prim,
-        "compiler error: attempted to get prim definition for non-prim name" panic!
-    ))

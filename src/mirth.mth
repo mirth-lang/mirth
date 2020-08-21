@@ -34,6 +34,15 @@ def(compile!, Path -- +IO,
     "Building." str-trace-ln!
 
     elab-module! drop
+
+    num-errors@ 0 > if(
+        num-errors@ int-trace!
+        " errors." str-trace-ln!
+        1 posix-exit!,
+        
+        id
+    )
+
     "Done." str-trace-ln!)
 
 def(main, +IO,
@@ -49,6 +58,8 @@ def(main, +IO,
     1 argc < if(
         1 argv ptr@@ Str->Path compile!,
         "Expected at least one argument" panic!)
+
+
     )
 
 #########

@@ -1,6 +1,4 @@
 module(prelude)
 import(prelude/common)
-import(prelude/str)
-import(prelude/io)
 import(prelude/test)
 import(prelude/heap)

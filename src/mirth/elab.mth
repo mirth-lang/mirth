@@ -2,17 +2,11 @@ module(mirth/elab)
 import(mirth/data/name)
 import(mirth/data/token)
 import(mirth/data/type)
+import(mirth/data/table)
 
 ##############
 # Elaborator #
 ##############
-
-buffer(ELAB_TOKEN, 8)
-def(elab-token@, -- Token +Elab, ELAB_TOKEN token@)
-def(elab-token!, Token -- +Elab, ELAB_TOKEN token!)
-def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
-def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
-def(elab-emit-fatal-error!, *a Str -- *b +Elab, dip(elab-token@) emit-fatal-error!)
 
 buffer(ELAB_STACK, 8)
 def(elab-stack@, -- Type +Elab, ELAB_STACK type@)
@@ -485,100 +479,6 @@ def(expect1, Type Type -- Bool +Elab,
 
 
 #############
-# Type Sigs #
-#############
-
-def(token-is-dashes, Token -- Bool,
-    token-type? TOKEN_NAME = if(
-        token-name@ PRIM_DASHES prim-name@ =,
-        drop false
-    ))
-
-def(token-is-dashes?, Token -- Token Bool,
-    dup token-is-dashes)
-
-def(sig-is-stack-end?, Token -- Token Bool,
-    token-is-dashes? if(
-        true,
-        token-run-end?
-    ))
-
-def(sig-has-dashes, Token -- Bool,
-    while(sig-is-stack-end? not, token-next)
-    token-is-dashes)
-
-def(sig-has-dashes?, Token -- Token Bool,
-    dup sig-has-dashes)
-
-def(sig-arity, Token -- Int Int,
-    sig-has-dashes? if(
-        sig-count-types
-        token-next
-        sig-count-types
-        drop,
-
-        dip(0)
-        sig-count-types
-        drop
-    ))
-
-def(sig-count-types, Token -- Int Token,
-    dip(0)
-    while(sig-is-stack-end? not,
-        sig-token-is-type? if(dip(1+), id)
-        token-next
-    ))
-
-def(sig-token-is-type?, Token -- Token Bool,
-    token-type? TOKEN_NAME = if(
-        token-name? name-could-be-type,
-        false
-    ))
-
-def(sig-token-is-type-con?, Token -- Token Bool,
-    token-type? TOKEN_NAME = if(
-        token-name? name-could-be-type-con,
-        false
-    ))
-
-def(sig-token-is-type-hole?, Token -- Token Bool,
-    token-type? TOKEN_NAME = if(
-        token-name? name-is-type-hole,
-        false
-    ))
-
-def(sig-token-is-type-dont-care?, Token -- Token Bool,
-    token-type? TOKEN_NAME = if(
-        token-name? name-is-type-dont-care,
-        false
-    ))
-
-def(sig-token-is-type-var?, Token -- Token Bool,
-    token-type? TOKEN_NAME = if(
-        token-name? name-could-be-type-var,
-        false
-    ))
-
-def(sig-token-is-stack-var?, Token -- Token Bool,
-    token-type? TOKEN_NAME = if(
-        token-name? name-could-be-stack-var,
-        false
-    ))
-
-def(sig-token-is-effect-con?, Token -- Token Bool,
-    token-type? TOKEN_NAME = if(
-        token-name? name-could-be-effect-con,
-        false
-    ))
-
-def(sig-skip-dashes, Token -- Token,
-    sig-has-dashes? if(
-        while(token-is-dashes? not, token-next) token-next,
-        id
-    ))
-
-
-#############
 ## ELAB V2 ##
 #############
 
@@ -588,6 +488,7 @@ def(elab-module!, Module -- Module +Mirth,
     elab-module-header!
     elab-module-imports!
     elab-module-decls!
+    typecheck-everything!
     drop)
 
 ||| Check that the `module(M)` statement exists and save the name.
@@ -602,11 +503,19 @@ def(elab-module-name!, Module Token -- +Mirth,
     token-args-1 token-is-name? if(
         token-name?
         name-defined? if(
-            drop "module name already taken" emit-fatal-error!,
-            nip dup2 name-module!
-            swap module-name!
+            drop "Module name already taken." emit-fatal-error!,
+            dip(swap)
+            dup2 swap module-name!
+            dup2 name-module!
+
+            # check module name matches module path
+            name-load! ".mth" str-buf-push-str!
+            module-path@ Path->Str STR_BUF str-eq if(
+                drop,
+                "Module name should match path." emit-error!
+            )
         ),
-        "expected module name" emit-fatal-error!
+        "Expected module name." emit-fatal-error!
     ))
 
 
@@ -775,34 +684,34 @@ def(elab-field!, Module Token -- Module Token +Mirth,
 
 ||| Elaborate C99 build target.
 def(elab-target-c99!, Module Token -- Module Token +Mirth,
+    typecheck-everything!
+
     dup dip(token-next) token-args-2
     swap token-type? TOKEN_STR = if(
+        dip(
+            ctx-empty elab-ctx!
+            TYPE_UNIT elab-stack!
+            elab-arrow!
+        )
+
         token-str@ Str->Path run-output-c99!,
         "Expected relative C file path (a string)." emit-fatal-error!
     ))
 
-||| Is this the end of a module?
-def(token-is-module-end?, Token -- Token Bool,
-    token-type? TOKEN_NONE =)
+||| Ensure that everything so far has been typechecked.
+def(typecheck-everything!, --,
+    1
+    while(dup num-names@ <=,
+        dup Int->Name
+        typecheck-name!
+        1+)
+    drop)
 
-# Is this a token to stop running at?
-def(token-run-end?, Token -- Token Bool +Mirth,
-    dup Token->Int num-tokens@ >= if(
-        true,
-    token-type? TOKEN_NONE = if(
-        true,
-    token-type? TOKEN_COMMA = if(
-        true,
-    token-type? TOKEN_RPAREN = if(
-        true,
-    token-type? TOKEN_RBRACKET = if(
-        true,
-        token-type? TOKEN_RBRACE =
-    ))))))
-
-||| Does the token match the primitive?
-def(token-prim=?, Token Prim -- Token Bool,
-    dip(token-is-name?) swap if(
-        dip(token-name?) prim-name@ =,
-        drop false
-    ))
+||| Typecheck name.
+def(typecheck-name!, Name --,
+    name-is-external? if(
+        name-external@ elab-external-sig! drop,
+    name-is-word? if(
+        name-word@ elab-word-body! drop,
+        drop
+    )))

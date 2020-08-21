@@ -3,7 +3,8 @@ module(mirth/data/type)
 import(mirth/data/common)
 import(mirth/data/name)
 import(mirth/data/ctx)
-import(mirth/data/table)
+import(mirth/data/var)
+import(mirth/data/subst)
 
 def(def-type!, Type Str --, name-new! name-type!)
 
@@ -35,6 +36,22 @@ def(type!, Type Ptr --, dip(Type->U32) u32!)
 def(type@@, Int Ptr -- Type, dip(|Type| *) ptr+ type@)
 def(type!!, Type Int Ptr --, dip(|Type| *) ptr+ type!)
 
+def(NameValue->Type, NameValue -- Type, NameValue->Int Int->Type)
+def(Type->NameValue, Type -- NameValue, Type->Int Int->NameValue)
+def(name-type!, Type Name --,
+    DEF_TYPE over name-sort!
+    dip(Type->NameValue) name-value!)
+def(name-type@, Name -- Type,
+    name-is-type? if(
+        name-value@ NameValue->Type,
+        "compiler error: attempted to get type definition for non-type name" panic!
+    ))
+def(name-is-table?, Name -- Name Bool,
+    name-is-type? if(
+        dup name-type@ type-is-table,
+        false
+    ))
+
 def(TYPE_TAG_MASK,     Int, 0xF0000000)
 def(TYPE_VALUE_MASK,   Int, 0x0FFFFFFF)
 def(TYPE_TAG_PRIM,     Int, 0x00000000)
@@ -45,6 +62,32 @@ def(TYPE_TAG_MORPHISM, Int, 0x40000000)
 def(TYPE_TAG_NOMINAL,  Int, 0x50000000)
 def(TYPE_TAG_TABLE,    Int, 0x60000000)
 def(TYPE_TAG_HOLE,     Int, 0x70000000)
+
+def(ctx-trace!, Ctx -- +IO,
+    ctx-is-empty? if(
+        drop,
+
+        dup ctx-prev@
+        ctx-is-empty? if(
+            drop,
+            ctx-trace! ", " str-trace!
+        )
+
+        ctx-var@ var-trace-binding!
+    ))
+
+def(var-trace-binding!, Var -- +IO,
+    var-name? name-load! str-buf-trace!
+    var-type? TYPE_TYPE = if(
+        drop,
+    var-type? TYPE_STACK = if(
+        drop,
+    var-type? TYPE_EFFECT = if(
+        drop,
+        " : " str-trace!
+        var-type@ type-trace-sig!
+    ))))
+
 
 def(TPrim, Int -- Type,
     Int->Type)
@@ -179,6 +222,13 @@ def(type-expand-morphism, Type -- MorphismType,
         type-get-morphism
     ))
 
+buffer(ELAB_TOKEN, 8)
+def(elab-token@, -- Token +Elab, ELAB_TOKEN token@)
+def(elab-token!, Token -- +Elab, ELAB_TOKEN token!)
+def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
+def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
+def(elab-emit-fatal-error!, *a Str -- *b +Elab, dip(elab-token@) emit-fatal-error!)
+
 # Raise a type unification error.
 def(type-unify-failed!, Type Type -- Type +Elab,
     elab-token@ token-location location-trace!
@@ -187,7 +237,8 @@ def(type-unify-failed!, Type Type -- Type +Elab,
     " with " str-trace!
     type-trace!
     trace-ln!
-    TYPE_ERROR)
+    TYPE_ERROR
+    num-errors++)
 
 # Unify two types. Raises an elaboration error if unification is impossible.
 def(type-unify!, Type Type -- Type +Elab,
@@ -556,9 +607,10 @@ def(nominal-new!, Name Type -- Nominal,
     tuck nominal-type!
     tuck nominal-name!)
 
-#############
+##############
 # Type Holes #
-#############
+##############
+
 def(type-hole-unify!, Type Name -- Type,
     dup 0 Int->Name = if(
         drop,
@@ -566,4 +618,74 @@ def(type-hole-unify!, Type Name -- Type,
         " ~ " str-trace!
         dup type-trace!
         trace-ln!
+    ))
+
+##########
+# Tables #
+##########
+
+def(Table->Int, Table -- Int, cast)
+def(Int->Table, Int -- Table, cast)
+def(|Table|, Size, 8)
+def(table@, Ptr -- Table, @ Int->Table)
+def(table!, Table Ptr --, dip(Table->Int) !)
+
+def(table-alloc!, Table,
+    Table.alloc!
+    dup Table->Int Table.MAX >= if(
+        "compiler error: NUM_TABLES >= MAX_TABLES" panic!,
+        id
+    ))
+
+#########
+# Subst #
+#########
+
+def(Subst->Int, Subst -- Int, cast)
+def(Int->Subst, Int -- Subst, cast)
+
+def(subst-alloc!, Subst,
+    Subst.alloc!
+    dup Subst->Int Subst.MAX >= if(
+        "NUM_SUBST >= MAX_SUBST" panic!,
+        id
+    ))
+def(subst-new!, Type Var Subst -- Subst,
+    subst-alloc!
+    tuck subst-rest!
+    tuck subst-var!
+    tuck subst-type!)
+
+def(SUBST_NIL, Subst, 0 Int->Subst)
+def(subst-is-nil, Subst -- Bool, SUBST_NIL =)
+def(subst-is-nil?, Subst -- Subst Bool, dup subst-is-nil)
+
+def(subst-has-var, Var Subst -- Bool,
+    subst-is-nil? if(
+        drop2 false,
+        dup2 subst-var@ = if(
+            drop2 true,
+            subst-rest@ subst-has-var
+        )
+    ))
+def(subst-has-var?, Var Subst -- Var Subst Bool,
+    dup2 subst-has-var)
+
+def(subst-get-var, Var Subst -- Type,
+    subst-is-nil? if(
+        drop2 TYPE_ERROR,
+        dup2 subst-var@ = if(
+            subst-type@ nip,
+            subst-rest@ subst-get-var
+        )
+    ))
+def(subst-get-var?, Var Subst -- Var Subst Type,
+    dup2 subst-get-var)
+
+# If variable is in subst, unify new type with type in subst.
+# Otherwise, create larger subst with new binding.
+def(subst-match-var, Type Var Subst -- Subst,
+    subst-has-var? if(
+        dup dip(subst-get-var type-unify! drop),
+        subst-new!
     ))

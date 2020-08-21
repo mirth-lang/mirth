@@ -29,15 +29,3 @@ def(var-new!, Name -- Var,
 def(var-new-implicit!, Name -- Var,
     var-new!
     true over var-is-implicit!)
-
-def(var-trace-binding!, Var -- +IO,
-    var-name? name-load! str-buf-trace!
-    var-type? TYPE_TYPE = if(
-        drop,
-    var-type? TYPE_STACK = if(
-        drop,
-    var-type? TYPE_EFFECT = if(
-        drop,
-        " : " str-trace!
-        var-type@ type-trace-sig!
-    ))))

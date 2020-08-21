@@ -6,20 +6,24 @@ import(mirth/data/token)
 # Errors, Warnings #
 ####################
 
+buffer(num-warnings, 8)
+def(num-warnings@, Int, num-warnings @)
+def(num-warnings++, --, num-warnings@ 1+ num-warnings !)
 def(emit-warning-at!, Module Row Col Str -- +IO,
     dip(location-trace!)
     ": warning: " str-trace!
-    str-trace-ln!)
+    str-trace-ln!
+    num-warnings++)
 
+buffer(num-errors, 8)
+def(num-errors@, Int, num-errors @)
+def(num-errors++, --, num-errors@ 1+ num-errors !)
 def(emit-error-at!, Module Row Col Str -- +IO,
     dip(location-trace!)
     ": error: " str-trace!
-    str-trace-ln!)
+    str-trace-ln!
+    num-errors++)
 
 def(emit-fatal-error-at!, *a Module Row Col Str -- *b +IO,
     emit-error-at!
     1 posix-exit!)
-
-def(emit-warning!, Token Str -- +IO, dip(token-location) emit-warning-at!)
-def(emit-error!, Token Str -- +IO, dip(token-location) emit-error-at!)
-def(emit-fatal-error!, *a Token Str -- *b +IO, dip(token-location) emit-fatal-error-at!)
