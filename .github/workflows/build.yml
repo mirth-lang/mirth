@@ -22,6 +22,8 @@ jobs:
       run: make check
     - name: make bin/snake.c
       run: make bin/snake.c
+    - name: make test-verify
+      run: make test-verify
 
   build-bat:
     strategy:
@@ -34,3 +36,4 @@ jobs:
       run: .\cibuild.bat ${{ matrix.arch }}
     - name: make check
       run: make check
+

@@ -1,6 +1,0 @@
-
-# mirth-test # merr # Compiling tests/empty.mth
-# mirth-test # merr # Building.
-# mirth-test # merr # src/tests/empty.mth:7:1: error: Expected module header.
-# mirth-test # merr # Done.
-# mirth-test # exit # 0

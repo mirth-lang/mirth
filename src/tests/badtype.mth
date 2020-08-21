@@ -1,6 +1,0 @@
-module(badtype)
-def(foo, Int, "hello")
-# mirth-test # merr # Compiling tests/badtype.mth
-# mirth-test # merr # Building.
-# mirth-test # merr # Done.
-# mirth-test # exit # 0

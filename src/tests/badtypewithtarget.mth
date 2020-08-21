@@ -1,8 +1,0 @@
-module(badtypewithtarget)
-def(foo, Int, "hello")
-target-c99("badtypewithtarget", )
-# mirth-test # merr # Compiling tests/badtypewithtarget.mth
-# mirth-test # merr # Building.
-# mirth-test # merr # src/tests/badtypewithtarget.mth:2:22: error: Failed to unify Int with Ptr
-# mirth-test # merr # Done.
-# mirth-test # exit # 0

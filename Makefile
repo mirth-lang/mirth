@@ -3,7 +3,7 @@ CC=gcc $(C99FLAGS)
 
 SRCS=src/*.mth src/prelude/*.mth src/mirth/*.mth src/mirth/data/*.mth
 
-.PHONY: default show build update check update-mirth install-vim install-code profile play-snake
+.PHONY: default show build update check update-mirth install-vim install-code profile play-snake test test-update
 
 default: show
 
@@ -42,6 +42,12 @@ profile: bin/mirth_prof
 
 play-snake: bin/snake
 	bin/snake
+
+test-verify:
+	bash mirth-test.sh -v
+
+test-update:
+	bash mirth-test.sh -u
 
 #########
 

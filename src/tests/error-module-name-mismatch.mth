@@ -1,0 +1,2 @@
+||| Module name should match file path.
+module(error-module-name-mismatch-ok)
