@@ -1,0 +1,6 @@
+module(identity)
+def(my-id, --, )
+# mirth-test # merr # Compiling tests/identity.mth
+# mirth-test # merr # Building.
+# mirth-test # merr # Done.
+# mirth-test # exit # 0
