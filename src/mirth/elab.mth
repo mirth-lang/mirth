@@ -603,8 +603,16 @@ def(elab-module-name!, Module Token -- +Mirth,
         token-name?
         name-defined? if(
             drop "module name already taken" emit-fatal-error!,
-            nip dup2 name-module!
-            swap module-name!
+            dip(swap)
+            dup2 swap module-name!
+            dup2 name-module!
+
+            # check module name matches module path
+            name-load! ".mth" str-buf-push-str!
+            module-path@ Path->Str STR_BUF str-eq if(
+                drop,
+                "module name should match path" emit-error!
+            )
         ),
         "expected module name" emit-fatal-error!
     ))

@@ -1,6 +1,7 @@
 module(prelude/str)
 import(prelude/common)
 
+def(str-head, Str -- U8, u8@)
 def(str-tail, Str -- Str, 1 swap ptr+)
 def(str-length, Str -- Int,
     0 swap
@@ -10,6 +11,8 @@ def(str-length, Str -- Int,
     drop)
 def(str-null, Str -- Bool,
     u8@ U8->Int 0=)
+def(str-null?, Str -- Str Bool,
+    dup str-null)
 
 def(str-copy!, Str Str --,
     while( over u8@ U8->Int nonzero,
@@ -84,3 +87,14 @@ def(str-buf-reverse!, --,
         dip(1 +) 1-
     )
     drop2)
+
+def(str-eq, Str Str -- Bool,
+    str-null? if(
+        drop str-null,
+        dup2 str-head swap str-head = if(
+            str-tail swap str-tail str-eq,
+            drop2 false
+        )
+    ))
+
+def(str-eq?, Str Str -- Str Str Bool, dup2 str-eq)

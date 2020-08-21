@@ -1,5 +1,5 @@
 ||| Errors should short-circuit the codegen.
-module(error-shortcircuit)
+module(tests/error-shortcircuit)
 import(prelude)
 
 def(foo, Int, "hello")

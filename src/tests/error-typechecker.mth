@@ -1,3 +1,3 @@
 ||| Typechecker should run even when there's no target.
-module(error-typechecker)
+module(tests/error-typechecker)
 def(foo, Int, "hello")

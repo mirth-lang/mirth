@@ -1,2 +1,3 @@
-||| Module name should match file name.
-module(error-module-name-mismatch-is-bad)
+||| Module name should match file path.
+module(error-module-name-mismatch)
+# mirth-test # merr # 2:8: error: module name should match path
