@@ -2,10 +2,11 @@
 module(tests/def-external)
 import(prelude)
 
-def-external(puts, Str -- Int)
+def-external(putchar, Int -- Int)
 target-c99("def-external.c",
-    "Hello world" puts
-    int-trace-ln!)
+    97 putchar drop
+    98 putchar drop
+    99 putchar drop
+    32 putchar drop)
 
-# mirth-test # pout # Hello world
-# mirth-test # perr # 10
+# mirth-test # pout # abc 
