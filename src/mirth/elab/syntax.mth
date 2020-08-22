@@ -1,8 +1,38 @@
-module(mirth/data/sig)
+module(mirth/elab/syntax)
 
-#############
-# Type Sigs #
-#############
+###############
+# Token Types #
+###############
+
+||| Is this the end of a module?
+def(token-is-module-end?, Token -- Token Bool,
+    token-type? TOKEN_NONE =)
+
+||| Is this a token to stop running at?
+def(token-run-end?, Token -- Token Bool +Mirth,
+    dup Token->Int num-tokens@ >= if(
+        true,
+    token-type? TOKEN_NONE = if(
+        true,
+    token-type? TOKEN_COMMA = if(
+        true,
+    token-type? TOKEN_RPAREN = if(
+        true,
+    token-type? TOKEN_RBRACKET = if(
+        true,
+        token-type? TOKEN_RBRACE =
+    ))))))
+
+||| Does the token match the primitive?
+def(token-prim=?, Token Prim -- Token Bool,
+    dip(token-is-name?) swap if(
+        dip(token-name?) prim-name@ =,
+        drop false
+    ))
+
+###################
+# Type Signatures #
+###################
 
 def(token-is-dashes, Token -- Bool,
     token-type? TOKEN_NAME = if(
@@ -91,31 +121,4 @@ def(sig-skip-dashes, Token -- Token,
     sig-has-dashes? if(
         while(token-is-dashes? not, token-next) token-next,
         id
-    ))
-
-
-||| Is this the end of a module?
-def(token-is-module-end?, Token -- Token Bool,
-    token-type? TOKEN_NONE =)
-
-# Is this a token to stop running at?
-def(token-run-end?, Token -- Token Bool +Mirth,
-    dup Token->Int num-tokens@ >= if(
-        true,
-    token-type? TOKEN_NONE = if(
-        true,
-    token-type? TOKEN_COMMA = if(
-        true,
-    token-type? TOKEN_RPAREN = if(
-        true,
-    token-type? TOKEN_RBRACKET = if(
-        true,
-        token-type? TOKEN_RBRACE =
-    ))))))
-
-||| Does the token match the primitive?
-def(token-prim=?, Token Prim -- Token Bool,
-    dip(token-is-name?) swap if(
-        dip(token-name?) prim-name@ =,
-        drop false
     ))
