@@ -1,0 +1,21 @@
+||| This is mostly a test of the testing harness.
+||| We want to make sure it captures output from
+||| each program that is generated, incl. stderr,
+||| and exit codes.
+module(tests/hello-world)
+import(prelude)
+
+target-c99("hello-world.c",
+    "Hello, world!" str-print-ln!)
+target-c99("hello-world-2.c",
+    "Hello, world, too!" str-trace-ln!)
+target-c99("goodbye.c",
+    "Goodbye!" str-print-ln! 1 posix-exit!)
+target-c99("answer.c",
+    42 posix-exit!)
+
+# mirth-test # pout # Hello, world!
+# mirth-test # perr # Hello, world, too!
+# mirth-test # pout # Goodbye!
+# mirth-test # pret # 1
+# mirth-test # pret # 42
