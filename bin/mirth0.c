@@ -2523,6 +2523,8 @@ void mwprim_2E_unsafe_2E__7C_ptr_7C_ (void) {
  void mwtoken_is_dashes (void);
  void mwtoken_is_dashes_3F_ (void);
  void mwsig_is_stack_end_3F_ (void);
+ void mwsig_is_stack_end2_3F_ (void);
+ void mwsig_token_is_effect_con_3F_ (void);
  void mwsig_has_dashes (void);
  void mwsig_has_dashes_3F_ (void);
  void mwsig_count_types (void);
@@ -2532,7 +2534,6 @@ void mwprim_2E_unsafe_2E__7C_ptr_7C_ (void) {
  void mwsig_token_is_type_dont_care_3F_ (void);
  void mwsig_token_is_type_var_3F_ (void);
  void mwsig_token_is_stack_var_3F_ (void);
- void mwsig_token_is_effect_con_3F_ (void);
  void mwsig_skip_dashes (void);
  void mwelab_stack_40_ (void);
  void mwelab_stack_21_ (void);
@@ -2542,7 +2543,6 @@ void mwprim_2E_unsafe_2E__7C_ptr_7C_ (void) {
  void mwelab_type_stack_21_ (void);
  void mwelab_stack_var_21_ (void);
  void mwelab_type_stack_rest_21_ (void);
- void mwsig_is_stack_end2_3F_ (void);
  void mwelab_type_atom_21_ (void);
  void mwelab_type_var_21_ (void);
  void mwelab_type_con_21_ (void);
@@ -14730,6 +14730,27 @@ void mwsig_is_stack_end_3F_ (void){
     }
 }
 
+void mwsig_is_stack_end2_3F_ (void){
+    mwsig_is_stack_end_3F_();
+    if (pop()) {
+    mwtrue();
+    } else {
+    mwsig_token_is_effect_con_3F_();
+    }
+}
+
+void mwsig_token_is_effect_con_3F_ (void){
+    mwtoken_type_3F_();
+    mwTOKEN_NAME();
+    mw_3D_();
+    if (pop()) {
+    mwtoken_name_3F_();
+    mwname_could_be_effect_con();
+    } else {
+    mwfalse();
+    }
+}
+
 void mwsig_has_dashes (void){
     while(1) {
     mwsig_is_stack_end_3F_();
@@ -14837,18 +14858,6 @@ void mwsig_token_is_stack_var_3F_ (void){
     }
 }
 
-void mwsig_token_is_effect_con_3F_ (void){
-    mwtoken_type_3F_();
-    mwTOKEN_NAME();
-    mw_3D_();
-    if (pop()) {
-    mwtoken_name_3F_();
-    mwname_could_be_effect_con();
-    } else {
-    mwfalse();
-    }
-}
-
 void mwsig_skip_dashes (void){
     mwsig_has_dashes_3F_();
     if (pop()) {
@@ -14941,15 +14950,6 @@ void mwelab_type_stack_rest_21_ (void){
     mwtensor_type_new_21_();
     mwTTensor();
       push(d2); }
-    }
-}
-
-void mwsig_is_stack_end2_3F_ (void){
-    mwsig_is_stack_end_3F_();
-    if (pop()) {
-    mwtrue();
-    } else {
-    mwsig_token_is_effect_con_3F_();
     }
 }
 

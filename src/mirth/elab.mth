@@ -42,12 +42,6 @@ def(elab-type-stack-rest!, HolesAllowed Ctx Type Token -- HolesAllowed Ctx Type 
         dip(swap tensor-type-new! TTensor)
     ))
 
-def(sig-is-stack-end2?, Token -- Token Bool,
-    sig-is-stack-end? if(
-        true,
-        sig-token-is-effect-con?
-    ))
-
 def(elab-type-atom!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
     sig-token-is-type-var? if(
         elab-type-var! dip(TVar),

@@ -49,6 +49,12 @@ def(sig-is-stack-end?, Token -- Token Bool,
         token-run-end?
     ))
 
+def(sig-is-stack-end2?, Token -- Token Bool,
+    sig-is-stack-end? if(
+        true,
+        sig-token-is-effect-con?
+    ))
+
 def(sig-has-dashes, Token -- Bool,
     while(sig-is-stack-end? not, token-next)
     token-is-dashes)
