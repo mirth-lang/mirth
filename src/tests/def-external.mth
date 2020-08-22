@@ -1,0 +1,11 @@
+||| [#87] Test that def-external works.
+module(tests/def-external)
+import(prelude)
+
+def-external(puts, Str -- Int)
+target-c99("def-external.c",
+    "Hello world" puts
+    int-trace-ln!)
+
+# mirth-test # pout # Hello world
+# mirth-test # perr # 10
