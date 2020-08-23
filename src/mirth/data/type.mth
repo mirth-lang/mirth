@@ -28,8 +28,7 @@ def(init-types!, --,
 def(Type->U32, Type -- U32, cast)
 def(U32->Type, U32 -- Type, cast)
 def(Type->Int, Type -- Int, Type->U32 U32->Int)
-def(Int->Type, Int -- Type,
-    Int->U32 U32->Type)
+def(Int->Type, Int -- Type, Int->U32 U32->Type)
 def(|Type|, Size, 4)
 def(type@, Ptr -- Type, u32@ U32->Type)
 def(type!, Type Ptr --, dip(Type->U32) u32!)
@@ -62,6 +61,7 @@ def(TYPE_TAG_MORPHISM, Int, 0x40000000)
 def(TYPE_TAG_NOMINAL,  Int, 0x50000000)
 def(TYPE_TAG_TABLE,    Int, 0x60000000)
 def(TYPE_TAG_HOLE,     Int, 0x70000000)
+def(TYPE_TAG_PARAM,    Int, 0x80000000)
 
 def(ctx-trace!, Ctx -- +IO,
     ctx-is-empty? if(
@@ -105,9 +105,20 @@ def(TTable, Table -- Type,
     Table->Int TYPE_TAG_TABLE | Int->Type)
 def(THole, Name -- Type,
     Name->Int TYPE_TAG_HOLE | Int->Type)
+def(TParam, ParamType -- Type,
+    ParamType->Int TYPE_TAG_PARAM | Int->Type)
 
 def(T*, Type Type -- Type, tensor-type-new! TTensor)
 def(T->, Type Type -- Type, morphism-type-new! TMorphism)
+def(T=>, Param Type -- Type, param-type-new! TParam)
+
+def(T0, Type, TYPE_UNIT)
+def(T1, Type -- Type, dip(T0) T*)
+def(T2, Type Type -- Type, dip(T1) T*)
+def(T3, Type Type Type -- Type, dip(T2) T*)
+def(T4, Type Type Type Type -- Type, dip(T3) T*)
+def(T5, Type Type Type Type Type -- Type, dip(T4) T*)
+def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
 
 def(type-tag, Type -- Int, Type->Int TYPE_TAG_MASK &)
 def(type-is-prim, Type -- Bool, type-tag TYPE_TAG_PRIM =)
@@ -118,6 +129,8 @@ def(type-is-morphism, Type -- Bool, type-tag TYPE_TAG_MORPHISM =)
 def(type-is-nominal, Type -- Bool, type-tag TYPE_TAG_NOMINAL =)
 def(type-is-table, Type -- Bool, type-tag TYPE_TAG_TABLE =)
 def(type-is-hole, Type -- Bool, type-tag TYPE_TAG_HOLE =)
+def(type-is-param, Type -- Bool, type-tag TYPE_TAG_PARAM =)
+
 def(type-is-prim?, Type -- Type Bool, dup type-is-prim)
 def(type-is-var?, Type -- Type Bool, dup type-is-var)
 def(type-is-meta?, Type -- Type Bool, dup type-is-meta)
@@ -126,6 +139,7 @@ def(type-is-morphism?, Type -- Type Bool, dup type-is-morphism)
 def(type-is-nominal?, Type -- Type Bool, dup type-is-nominal)
 def(type-is-table?, Type -- Type Bool, dup type-is-table)
 def(type-is-hole?, Type -- Type Bool, dup type-is-hole)
+def(type-is-param?, Type -- Type Bool, dup type-is-param)
 
 def(type-is-stack-var, Type -- Bool,
     type-is-var? if(
@@ -170,6 +184,11 @@ def(type-get-hole-name, Type -- Name,
         "compiler error: tried to get hole name value on non-hole type" panic!,
         type-get-value Int->Name
     ))
+def(type-get-param, Type -- ParamType,
+    type-is-param? not if(
+        "compiler error: tried to get param type value on non-param type" panic!,
+        type-get-value Int->ParamType
+    ))
 
 def(TYPE_ERROR, Type, 0x00 TPrim)
 def(TYPE_TYPE, Type, 0x01 TPrim) # type of types
@@ -199,6 +218,9 @@ def(type-expand, Type -- Type,
 # high level version of type-get-tensor that introduces metavars if needed
 def(type-expand-tensor, Type -- TensorType,
     type-expand
+    dup TYPE_ERROR = if(
+        drop 0 Int->TensorType,
+
     type-is-meta? if( # undefined metavar -- introduce a tensor type
         meta-alloc! TMeta
         meta-alloc! TMeta
@@ -207,7 +229,7 @@ def(type-expand-tensor, Type -- TensorType,
         type-get-tensor,
 
         type-get-tensor
-    ))
+    )))
 
 # high level version of type-get-morphism that introduces metavars if needed
 def(type-expand-morphism, Type -- MorphismType,
@@ -448,7 +470,49 @@ def(type-trace-prim!, Type -- +IO,
         "<UNKNOWN PRIMITIVE TYPE " str-trace! Type->Int int-trace! ">" str-trace!
     )))))))))))))))
 
-def(type-freshen, Subst Type -- Subst Type Bool,
+||| Freshen a type signature in preparation for type sig application.
+def(type-freshen-sig, Subst Type -- Subst Type,
+    type-sig-needs-fresh-stack-rest? if(
+        type-freshen-sig-aux,
+
+        type-freshen
+    ))
+
+def(type-sig-needs-fresh-stack-rest?, Type -- Type Bool,
+    dup
+    type-expand type-is-param? if(type-get-param param-type-body@, id)
+    type-expand-morphism morphism-type-dom@
+    while(type-expand type-is-tensor?, type-get-tensor tensor-type-fst@)
+    TYPE_UNIT =)
+
+def(type-freshen-sig-aux, Subst Type -- Subst Type,
+    type-expand type-is-param? if(
+        type-get-param param-type-unpack
+        dip(param-freshen-aux drop) swap
+        dip(type-freshen-sig-aux) swap
+        T=>,
+
+        meta-alloc! TMeta rotr
+        type-expand-morphism morphism-type-unpack
+        dip(type-freshen-sig-stack) swap
+        dip(type-freshen-sig-stack) swap
+        T-> dip(nip)
+    ))
+
+def(type-freshen-sig-stack, Type Subst Type -- Type Subst Type,
+    type-expand
+    type-is-tensor? if(
+        type-get-tensor tensor-type-unpack
+        dip(type-freshen-sig-stack) swap
+        dip(type-freshen) swap
+        T*,
+        drop over
+    ))
+
+def(type-freshen, Subst Type -- Subst Type,
+    type-freshen-aux drop)
+
+def(type-freshen-aux, Subst Type -- Subst Type Bool,
     type-expand
 
     type-is-var? if(
@@ -456,16 +520,21 @@ def(type-freshen, Subst Type -- Subst Type Bool,
 
     type-is-tensor? if(
         type-get-tensor
-        tensor-type-freshen
+        tensor-type-freshen-aux
         dip(TTensor),
 
     type-is-morphism? if(
         type-get-morphism
-        morphism-type-freshen
+        morphism-type-freshen-aux
         dip(TMorphism),
 
+    type-is-param? if(
+        type-get-param
+        param-type-freshen-aux
+        dip(TParam),
+
         true
-    ))))
+    )))))
 
 def(type-var-freshen, Subst Type -- Subst Type Bool,
     type-get-var
@@ -544,12 +613,12 @@ def(tensor-type-has-meta, MetaVar TensorType -- Bool,
         type-has-meta
     ))
 
-def(tensor-type-freshen, Subst TensorType -- Subst TensorType Bool,
+def(tensor-type-freshen-aux, Subst TensorType -- Subst TensorType Bool,
     dup
     dip(
         tensor-type-unpack
-        dip(type-freshen)
-        dip(rotl) type-freshen
+        dip(type-freshen-aux)
+        dip(rotl) type-freshen-aux
         dip(dip(rotr) swap) &&
     )
     swap if(
@@ -583,12 +652,12 @@ def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
         type-has-meta
     ))
 
-def(morphism-type-freshen, Subst MorphismType -- Subst MorphismType Bool,
+def(morphism-type-freshen-aux, Subst MorphismType -- Subst MorphismType Bool,
     dup
     dip(
         morphism-type-unpack
-        dip(type-freshen)
-        dip(rotl) type-freshen
+        dip(type-freshen-aux)
+        dip(rotl) type-freshen-aux
         dip(dip(rotr) swap) &&
     )
     swap if(
@@ -626,9 +695,6 @@ def(type-hole-unify!, Type Name -- Type,
 
 def(Table->Int, Table -- Int, cast)
 def(Int->Table, Int -- Table, cast)
-def(|Table|, Size, 8)
-def(table@, Ptr -- Table, @ Int->Table)
-def(table!, Table Ptr --, dip(Table->Int) !)
 
 def(table-alloc!, Table,
     Table.alloc!
@@ -636,6 +702,70 @@ def(table-alloc!, Table,
         "compiler error: NUM_TABLES >= MAX_TABLES" panic!,
         id
     ))
+
+##########
+# Params #
+##########
+
+
+def(ParamType->Int, ParamType -- Int, cast)
+def(Int->ParamType, Int -- ParamType, cast)
+def(param-type-new!, Param Type -- ParamType,
+    ParamType.alloc!
+    tuck param-type-body!
+    tuck param-type-params!)
+def(param-type-unpack, ParamType -- Param Type,
+    param-type-params? swap
+    param-type-body@)
+
+def(Param->Int, Param -- Int, cast)
+def(Int->Param, Int -- Param, cast)
+def(param-new!, Type Param -- Param,
+    Param.alloc!
+    tuck param-next!
+    tuck param-type!)
+def(param-unpack, Param -- Type Param,
+    param-type? swap
+    param-next@)
+def(P0, Param, 0 Int->Param)
+def(P1, Type -- Param, P0 param-new!)
+def(P2, Type Type -- Param, P1 param-new!)
+def(P3, Type Type Type -- Param, P2 param-new!)
+def(param-empty?, Param -- Param Bool,
+    dup P0 =)
+def(param-len, Param -- Int,
+    dip(0)
+    while(param-empty? not,
+        dip(1+) param-next@)
+    drop)
+
+def(type-num-params, Type -- Int,
+    type-expand
+    type-is-param? if(
+        type-get-param param-type-num-params,
+        drop 0
+    ))
+def(param-type-num-params, ParamType -- Int,
+    param-type-params@ param-len)
+
+def(param-type-freshen-aux, Subst ParamType -- Subst ParamType Bool,
+    param-type-unpack
+    dip(param-freshen-aux drop) swap
+    dip(type-freshen-aux drop) swap
+    param-type-new! false)
+    # TODO: only generate new param-type when needed
+
+def(param-freshen-aux, Subst Param -- Subst Param Bool,
+    param-empty? if(
+        true,
+
+        param-unpack
+        dip(type-freshen-aux drop)
+        swap dip(param-freshen-aux drop)
+        swap param-new!
+        false
+    ))
+    # TODO: only generate new param when needed
 
 #########
 # Subst #

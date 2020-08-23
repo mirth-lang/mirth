@@ -4,18 +4,6 @@ import(mirth/data/token)
 import(mirth/data/type)
 import(mirth/data/table)
 
-##############
-# Elaborator #
-##############
-
-buffer(ELAB_STACK, 8)
-def(elab-stack@, -- Type +Elab, ELAB_STACK type@)
-def(elab-stack!, Type -- +Elab, ELAB_STACK type!)
-
-buffer(ELAB_CTX, 8)
-def(elab-ctx@, -- Ctx +Elab, ELAB_CTX ctx@)
-def(elab-ctx!, Ctx -- +Elab, ELAB_CTX ctx!)
-
 ####################
 # Type Elaboration #
 ####################
@@ -40,12 +28,6 @@ def(elab-type-stack-rest!, HolesAllowed Ctx Type Token -- HolesAllowed Ctx Type 
     while(sig-is-stack-end2? not,
         swap dip(elab-type-atom!) swap
         dip(swap tensor-type-new! TTensor)
-    ))
-
-def(sig-is-stack-end2?, Token -- Token Bool,
-    sig-is-stack-end? if(
-        true,
-        sig-token-is-effect-con?
     ))
 
 def(elab-type-atom!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
@@ -194,293 +176,166 @@ def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
 def(elab-word-body!, Word -- Arrow +Elab,
     word-body-is-checked? if(
         word-arrow@,
-        dup elab-word-sig! drop
-
-        elab-ctx@ dip(
-        elab-token@ dip(
-        elab-stack@ dip(
-            dup word-ctx@ elab-ctx!
-            dup word-body@ elab-token!
-            dup word-dom@ elab-stack!
-
-            dup word-body@
-
-            # dup token-location Col->Int 1- Int->Col location-trace!
-            # ": warning: domain = " str-trace!
-            # elab-stack@ type-trace! trace-ln!
-
-            elab-arrow!
-
-            over word-cod@
-
-            # elab-token@ token-location location-trace!
-            # ": warning: codomain = " str-trace!
-            # dup type-trace! trace-ln!
-
-            elab-stack@ type-unify! drop
-            over word-body-is-checked!
-            tuck swap word-arrow!
-        ) elab-stack!
-        ) elab-token!
-        ) elab-ctx!
+        dup dip(elab-word-ctx-sig!)
+        dup dip(word-body@ elab-arrow!)
+        dup2 word-arrow!
+        word-body-is-checked!
     ))
 
-def(elab-stack-pop!, Type +Elab,
-    elab-stack@
-    type-expand
-    dup TYPE_ERROR = if(
-        dup,
+def(elab-arrow!, Ctx Type Token -- Arrow,
+    dip(type-get-morphism morphism-type-unpack) swap
+    dip(elab-arrow-fwd! arrow-dom? swap arrow-token@)
+    swap elab-type-unify! drop2)
 
-    type-is-meta? if(
-        type-expand-tensor tensor-type-unpack,
-
-    type-is-tensor? if(
-        type-get-tensor tensor-type-unpack,
-
-        "(temporary?) stack underflow" elab-emit-warning!
-        drop TYPE_ERROR TYPE_ERROR
-    )))
-    dip(elab-stack!))
-
-def(elab-stack-pop2!, Type Type +Elab,
-    elab-stack-pop! dip(elab-stack-pop!))
-
-def(elab-stack-pop3!, Type Type Type +Elab,
-    elab-stack-pop! dip(elab-stack-pop2!))
-
-def(elab-stack-push!, Type -- +Elab,
-    elab-stack@ swap tensor-type-new! TTensor elab-stack!)
-
-def(elab-stack-push2!, Type Type -- +Elab,
-    dip(elab-stack-push!) elab-stack-push!)
-
-def(elab-stack-push3!, Type Type Type -- +Elab,
-    dip(elab-stack-push2!) elab-stack-push!)
-
-def(elab-token-next!, +Elab,
-    elab-token@ token-next elab-token!)
-
-def(elab-arrow!, Token -- Arrow +Elab,
-    elab-token!
-    elab-arrow-step! dup
-    while(elab-token@ token-is-arg-end? nip not,
-        elab-token-next!
-        elab-arrow-step!
-        dup dip(swap arrow-next!))
-    drop)
-
-def(elab-arrow-step!, Arrow +Elab,
+def(elab-arrow-fwd!, Ctx Type Token -- Arrow Arrow,
     arrow-alloc!
-    elab-stack@ over arrow-dom!
-    elab-token@ over arrow-token!
+    tuck arrow-token!
+    tuck arrow-dom!
+    tuck arrow-ctx!
+    dup
+    while(elab-arrow-done? not,
+        elab-arrow-step!))
 
-    elab-token@
-    token-is-arg-end? if(
-        drop,
-    token-is-int? if(
-        token-int@ elab-arrow-step-int!,
-    token-is-str? if(
-        token-value@ TokenValue->Int Int->StrLit elab-arrow-step-str!, # TODO: fix this
+||| Is this arrow at the end of a run?
+def(elab-arrow-done?, Arrow -- Arrow Bool,
+    arrow-token? token-run-end? nip)
+
+||| From the {ctx, dom, token} fields, elaborate the
+||| arrow's {op, arg, next} fields, returning
+||| the next arrow with {ctx, dom, token} set.
+def(elab-arrow-step!, Arrow -- Arrow,
+    dup elab-arrow-op!
+    arrow-alloc! tuck arrow-dom!
+    dip(arrow-token? token-next) tuck arrow-token!
+    dip(arrow-ctx?) tuck arrow-ctx!
+    tuck dip(arrow-next!))
+
+||| From the {ctx, dom, token} fields, elaborate the
+||| arrow's {op, arg} fields, returning the
+||| codomain of the operation.
+def(elab-arrow-op!, Arrow -- Type,
+    arrow-token?
     token-is-name? if(
-        token-name@ elab-arrow-step-name!,
+        token-name@
+        elab-arrow-op-name!,
+    token-is-int? if(
+        token-int@
+        elab-arrow-op-int!,
+    token-is-str? if(
+        token-strlit@
+        elab-arrow-op-str!,
     token-is-lbrace? if(
-        elab-arrow-step-stack-assertion!,
-        drop "compiler error: unexpected token type" elab-emit-fatal-error!
-    ))))))
-
-def(elab-arrow-step-name!, Arrow Name -- Arrow +Elab,
-    name-is-buffer? if(
-        name-buffer@ elab-arrow-step-buffer!,
-    name-is-external? if(
-        name-external@ elab-arrow-step-external!,
-    name-is-word? if(
-        name-word@ elab-arrow-step-word!,
-    name-is-prim? if(
-        name-prim@ elab-arrow-step-prim!,
-
-        drop
-        "Unknown word" elab-emit-fatal-error!
-        TYPE_ERROR elab-stack!
+        elab-arrow-op-stack-assertion!,
+        "compiler error: Unknown token in elab-arrow-step!" emit-fatal-error!
     )))))
 
-def(elab-arrow-step-int!, Arrow Int -- Arrow +Elab,
-    over arrow-op-int!
-    TYPE_INT elab-stack-push!)
+def(elab-arrow-op-name!, Arrow Name -- Type,
+    name-is-buffer? if(
+        name-buffer@ elab-arrow-op-buffer!,
+    name-is-external? if(
+        name-external@ elab-arrow-op-external!,
+    name-is-word? if(
+        name-word@ elab-arrow-op-word!,
+    name-is-prim? if(
+        name-prim@ elab-arrow-op-prim!,
 
-def(elab-arrow-step-str!, Arrow StrLit -- Arrow +Elab,
-    over arrow-op-str!
-    TYPE_PTR elab-stack-push!) # TODO: add primitive STR type?
-
-def(elab-arrow-step-buffer!, Arrow Buffer -- Arrow +Elab,
-    over arrow-op-buffer!
-    TYPE_PTR elab-stack-push!)
-
-def(elab-arrow-step-external!, Arrow External -- Arrow +Elab,
-    dup2 swap arrow-op-external!
-    elab-token@ token-args-0 # high order not yet supported
-    elab-external-sig! elab-arrow-freshen-apply-sig-type!)
-
-def(elab-arrow-step-word!, Arrow Word -- Arrow +Elab,
-    dup2 swap arrow-op-word!
-    elab-token@ token-args-0 # high order not yet supported
-    elab-word-sig! elab-arrow-freshen-apply-sig-type!)
-
-def(elab-arrow-step-stack-assertion!, Arrow Token -- Arrow +Elab,
-    token-brace-arg
-    dip(elab-ctx@ dup)
-    dip(dip(allow-holes))
-    elab-type-stack! drop
-    dip(dip(drop))
-    rotr swap dup2 = if(drop2,
-        "stack assertion introduced new type variables:" elab-emit-warning!
-        "\tbefore: " str-trace! ctx-trace! trace-ln!
-        "\tafter:  " str-trace! ctx-trace! trace-ln!
         drop
+        arrow-token@ "Unknown word." emit-error!
         TYPE_ERROR
-    )
-    dup morphism-type-new! TMorphism
-    elab-arrow-apply-sig-type!
-    )
+    )))))
 
-def(elab-arrow-apply-sig-type!, Arrow Type -- Arrow +Elab,
-    type-expand-morphism morphism-type-unpack swap
+def(elab-arrow-op-int!, Arrow Int -- Type,
+    over arrow-op-int!
+    arrow-dom@ TYPE_INT T*)
+
+def(elab-arrow-op-str!, Arrow StrLit -- Type,
+    over arrow-op-str!
+    arrow-dom@ TYPE_PTR T*)
+
+def(elab-arrow-op-buffer!, Arrow Buffer -- Type,
+    over arrow-op-buffer!
+    arrow-dom@ TYPE_PTR T*)
+
+def(elab-arrow-op-stack-assertion!, Arrow Token -- Type,
+    dip(allow-holes over arrow-ctx@)
+    token-succ elab-type-stack!
+    drop dip(drop2)
+    over arrow-token@
+    dip(dip(arrow-dom@ dup))
+    elab-type-unify! drop2)
+
+def(elab-arrow-op-external!, Arrow External -- Type,
+    dup2 swap arrow-op-external!
+    elab-external-sig! elab-arrow-op-apply-fresh!)
+
+def(elab-arrow-op-word!, Arrow Word -- Type,
+    dup2 swap arrow-op-word!
+    elab-word-sig! elab-arrow-op-apply-fresh!)
+
+def(elab-arrow-op-prim!, Arrow Prim -- Type,
+    prim-type? TYPE_ERROR = if(
+        drop arrow-token@ "compiler error: prim type missing" emit-fatal-error!,
+
+        dup2 swap arrow-op-prim!
+        prim-type@ elab-arrow-op-apply-fresh!
+    ))
+
+def(elab-arrow-op-dip!, Arrow -- Type,
+    arrow-token? token-args-1 dip(arrow-dom? dip(arrow-ctx?))
+    dip(type-expand-tensor tensor-type-unpack) swap
+    dip(elab-arrow-fwd! arrow-dom@) T*
+    dip(Arrow->Arg arrow-arg-add! drop))
+
+||| Apply a type signature after freshening to get a codomain.
+def(elab-arrow-op-apply-fresh!, Arrow Type -- Type,
+    SUBST_NIL swap type-freshen-sig
+    dip(over arrow-subst!)
+    elab-arrow-op-apply!)
+
+||| Apply a type signature to get a codomain.
+def(elab-arrow-op-apply!, Arrow Type -- Type,
     type-expand
-    while(type-is-tensor?,
-        type-get-tensor
-        tensor-type-unpack
-        elab-stack-pop! type-unify! {Type} drop
-        type-expand
-    )
-    dup TYPE_ERROR = if(
-        dip(drop) elab-stack!,
 
-    dup TYPE_UNIT = if( # save arrow codip depth ?
-        drop
-        elab-stack@ swap stack-type-concat elab-stack!,
+    over arrow-token@ token-num-args
+    over type-num-params != if(
+        over arrow-token@
+        "Wrong number of arguments." emit-fatal-error!
+        drop2 TYPE_ERROR, # TODO: improve error message
 
-        drop
-        elab-stack!
+    type-is-param? if(
+        type-get-param param-type-unpack
+        type-expand-morphism morphism-type-unpack
+        dip(swap dip(elab-arrow-unify-dom!))
+        dip(elab-arrow-op-args! drop),
+
+        type-expand-morphism morphism-type-unpack
+        dip(elab-arrow-unify-dom! drop)
     )))
 
-def(elab-arrow-freshen-apply-sig-type!, Arrow Type -- Arrow +Elab,
-    dip(SUBST_NIL) type-freshen drop
-    nip # TODO save arrow subst
-    elab-arrow-apply-sig-type!
-)
 
-def(stack-type-concat, Type Type -- Type,
-    type-expand
-    dup TYPE_ERROR = if(
-        drop2 TYPE_ERROR,
+||| Unify a type with the dom of an arrow, returning the original arrow.
+def(elab-arrow-unify-dom!, Arrow Type -- Arrow,
+    over arrow-dom? swap arrow-token@ elab-type-unify! drop2)
 
-    dup TYPE_UNIT = if(
-        drop,
-
-    type-is-tensor? if(
-        type-get-tensor tensor-type-unpack dip(stack-type-concat)
-        tensor-type-new! TTensor,
-
-        "compiler error: expected stack type in stack-type-concat" elab-emit-fatal-error!
-    ))))
-
-def(elab??, +Elab,
-    elab-token@ token-location location-trace! ": warning: stack = " str-trace!
-    elab-stack@ type-trace! trace-ln!)
-
-def(elab-arrow-step-prim!, Arrow Prim -- Arrow +Elab,
-    dup2 swap arrow-op-prim!
-
-    dup PRIM_DIP = if(
-        drop elab-arrow-step-dip!,
-    dup PRIM_IF = if(
-        drop elab-arrow-step-if!,
-    dup PRIM_WHILE = if(
-        drop elab-arrow-step-while!,
-
-    dup PRIM_DROP = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! drop,
-    dup PRIM_SWAP = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! swap elab-stack-push2!,
-    dup PRIM_DUP = if(
-        drop elab-token@ token-args-0
-        elab-stack@
-        dup TYPE_ERROR = if(
-            drop,
-            type-expand-tensor tensor-type-snd@ elab-stack-push!
-        ),
-
-    dup PRIM_INT_EQ = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop2! elab= elab-stack-push!,
-
-
-    dup PRIM_POSIX_EXIT = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! TYPE_INT type-unify! drop
-        meta-alloc! TMeta elab-stack!,
-    dup PRIM_DEBUG = if(
-        drop elab-token@ token-args-0,
-
-    dup PRIM_CAST = if(
-        drop elab-token@ token-args-0
-        elab-stack-pop! drop meta-alloc! TMeta elab-stack-push!,
-
-        elab-token@ token-args-0
-        prim-type@ elab-arrow-apply-sig-type!
-    )))))))))))
-
-def(elab-arrow-step-dip!, Arrow -- Arrow +Elab,
-    elab-token@ dip(
-    elab-stack-pop! dip(
-        elab-token@ token-args-1
-        elab-arrow! Arrow->Arg arrow-arg-add!
-    ) elab-stack-push!
-    ) elab-token!
+||| Elaborate the args of an arrow.
+def(elab-arrow-op-args!, Arrow Param -- Arrow,
+    dip(arrow-token? token-succ)
+    while(param-empty? not,
+        dip(token-succ)
+        param-unpack
+        dip(
+            over
+            dip(dip(over arrow-ctx@))
+            elab-arrow! Arrow->Arg
+            swap token-next-arg-end
+            dip(arrow-arg-add!)
+        )
     )
+    drop2)
 
-def(elab-arrow-step-if!, Arrow -- Arrow +Elab,
-    elab-stack-pop! TYPE_BOOL type-unify! drop
-    elab-token@ dup dip(
-        token-args-2
-        elab-stack@ dip(
-            dip(elab-arrow! Arrow->Arg arrow-arg-add!)
-        )
-        elab-stack@ dip(
-            elab-stack! elab-arrow! Arrow->Arg arrow-arg-add!
-        )
-    ) elab-token!
-    elab-stack@ type-unify! drop)
-
-def(elab-arrow-step-while!, Arrow -- Arrow +Elab,
-    elab-token@ dip(
-        elab-stack@ dip(
-            elab-token@ token-args-2
-            dip(elab-arrow! Arrow->Arg arrow-arg-add!)
-            elab-stack-pop! TYPE_BOOL type-unify! drop
-        )
-        elab-stack@ type-unify! dip(
-            elab-arrow! Arrow->Arg arrow-arg-add!
-        )
-        elab-stack@ type-unify!
-        elab-stack!
-    ) elab-token!)
-
-
-# elab for =
-def(elab=, Type Type -- Type, type-unify! drop TYPE_BOOL)
-
-def(elab-posix-exit, Type -- +Elab,
-    TYPE_INT expect1 drop) # TODO: set absurd flag
-
-def(expect1, Type Type -- Bool +Elab,
-    type-unify! TYPE_ERROR = not)
-
-
-#############
-## ELAB V2 ##
-#############
+######################
+# Module Elaboration #
+######################
 
 ||| Elaborate all of a module.
 def(elab-module!, Module -- Module +Mirth,
@@ -689,8 +544,7 @@ def(elab-target-c99!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-2
     swap token-type? TOKEN_STR = if(
         dip(
-            ctx-empty elab-ctx!
-            TYPE_UNIT elab-stack!
+            dip(ctx-empty T0 T0 T->)
             elab-arrow!
         )
 

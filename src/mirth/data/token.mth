@@ -55,9 +55,11 @@ def(token-type-print!, TokenType --,
 def(TokenValue->Int, TokenValue -- Int, cast)
 def(TokenValue->Name, TokenValue -- Name, TokenValue->Int Int->Name)
 def(TokenValue->Token, TokenValue -- Token, TokenValue->Int Int->Token)
+def(TokenValue->StrLit, TokenValue -- StrLit, TokenValue->Int Int->StrLit)
 def(TokenValue->Str, TokenValue -- Str, TokenValue->Int STRINGS_BUF ptr+)
 
 def(Int->TokenValue, Int -- TokenValue, cast)
+def(StrLit->TokenValue, StrLit -- TokenValue, StrLit->Int Int->TokenValue)
 def(Name->TokenValue, Name -- TokenValue, Name->Int Int->TokenValue)
 def(Token->TokenValue, Token -- TokenValue, Token->Int Int->TokenValue)
 
@@ -72,6 +74,13 @@ def(token-int?, Token -- Token Int, dup token-int@)
 
 def(token-is-str?, Token -- Token Bool,
     token-type? TOKEN_STR =)
+def(token-strlit@, Token -- StrLit,
+    token-type? TOKEN_STR = if(
+        token-value@ TokenValue->StrLit,
+        "compiler error: token-str@ called on non-str token" emit-fatal-error!
+    ))
+def(token-strlit?, Token -- Token StrLit, dup token-strlit@)
+
 def(token-str@, Token -- Str,
     token-type? TOKEN_STR = if(
         token-value@ TokenValue->Str,
@@ -183,6 +192,34 @@ def(token-has-args?, Token -- Token Bool,
     token-type? TOKEN_NAME = if(
         dup token-succ token-type@ TOKEN_LPAREN =,
         false
+    ))
+
+def(token-is-left-enclosure?, Token -- Token Bool,
+    token-type? TOKEN_LPAREN = if(
+        true,
+    token-type? TOKEN_LBRACKET = if(
+        true,
+        token-type? TOKEN_LBRACE =
+    )))
+
+def(token-is-right-enclosure?, Token -- Token Bool,
+    token-type? TOKEN_RPAREN = if(
+        true,
+    token-type? TOKEN_RBRACKET = if(
+        true,
+        token-type? TOKEN_RBRACE =
+    )))
+
+
+||| Get number of arguments or number of components in enclosed token.
+def(token-num-args, Token -- Int,
+    token-type? TOKEN_NAME = if(token-has-args? if(token-succ, id), id)
+    token-is-left-enclosure? if(
+        dip(0)
+        while(token-is-right-enclosure? not,
+            dip(1+) token-succ token-next-arg-end)
+        drop,
+        drop 0
     ))
 
 # Verify that token has 0 args, and return them.
