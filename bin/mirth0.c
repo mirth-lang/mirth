@@ -16274,8 +16274,27 @@ void mwelab_arrow_op_str_21_ (void){
 }
 
 void mwelab_arrow_op_stack_assertion_21_ (void){
+    { i64 d1 = pop();
+    mwallow_holes();
+    mwover();
+    mwarrow_ctx_40_();
+      push(d1); }
+    mwtoken_succ();
+    mwelab_type_stack_21_();
     mwdrop();
+    { i64 d1 = pop();
+    mwdrop2();
+      push(d1); }
+    mwover();
+    mwarrow_token_40_();
+    { i64 d1 = pop();
+    { i64 d2 = pop();
     mwarrow_dom_40_();
+    mwdup();
+      push(d2); }
+      push(d1); }
+    mwelab_type_unify_21_();
+    mwdrop2();
 }
 
 void mwelab_arrow_op_buffer_21_ (void){

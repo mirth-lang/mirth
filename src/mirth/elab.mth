@@ -257,7 +257,12 @@ def(elab-arrow-op-buffer!, Arrow Buffer -- Type,
     arrow-dom@ TYPE_PTR T*)
 
 def(elab-arrow-op-stack-assertion!, Arrow Token -- Type,
-    drop arrow-dom@) # TODO
+    dip(allow-holes over arrow-ctx@)
+    token-succ elab-type-stack!
+    drop dip(drop2)
+    over arrow-token@
+    dip(dip(arrow-dom@ dup))
+    elab-type-unify! drop2)
 
 def(elab-arrow-op-external!, Arrow External -- Type,
     dup2 swap arrow-op-external!
