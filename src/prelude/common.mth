@@ -7,6 +7,7 @@ def(over, a b -- a b a, dip(dup) swap)
 def(tuck, a b -- b a b, dup dip(swap))
 def(nip, a b -- b, dip(drop))
 def(dup2, a b -- a b a b, over over)
+def(dup3, a b c -- a b c a b c, dip(dup2) dup dip(rotr))
 def(drop2, a b --, drop drop)
 def(drop3, a b c --, drop drop drop)
 

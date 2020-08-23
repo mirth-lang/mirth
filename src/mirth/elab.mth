@@ -311,16 +311,12 @@ def(elab2-arrow-op-word!, Arrow Word -- Type,
     elab-word-sig! elab2-arrow-op-apply-fresh!)
 
 def(elab2-arrow-op-prim!, Arrow Prim -- Type,
-    dup2 swap arrow-op-prim!
-
-    dup PRIM_DIP = if(
-        drop elab2-arrow-op-dip!,
-
     prim-type? TYPE_ERROR = if(
-        drop arrow-token@ "not yet implemented" emit-fatal-error!,
+        drop arrow-token@ "compiler error: prim type missing" emit-fatal-error!,
 
+        dup2 swap arrow-op-prim!
         prim-type@ elab2-arrow-op-apply-fresh!
-    )))
+    ))
 
 def(elab2-arrow-op-dip!, Arrow -- Type,
     arrow-token? token-args-1 dip(arrow-dom? dip(arrow-ctx?))

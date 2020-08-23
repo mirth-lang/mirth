@@ -183,7 +183,10 @@ def(init-prims!, +Names,
     # monomorphic prims
     #
 
-    T0 T0 T-> PRIM_ID prim-type!
+    T0 T0 T->
+    dup PRIM_ID prim-type!
+    dup PRIM_DEBUG prim-type!
+    drop
 
     TYPE_INT TYPE_INT T2 TYPE_INT T1 T->
     dup PRIM_INT_ADD prim-type!
@@ -199,7 +202,6 @@ def(init-prims!, +Names,
     drop
 
     TYPE_INT TYPE_INT T2 TYPE_BOOL T1 T->
-    # dup PRIM_INT_EQ prim-type! # actually polymorphic
     dup PRIM_INT_LT prim-type!
     dup PRIM_INT_LE prim-type!
     drop
@@ -316,11 +318,21 @@ def(init-prims!, +Names,
     dip(TYPE_INT T*) T->
     PRIM_POSIX_EXIT prim-type!
 
+    "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
+    "*b" name-new! var-new-implicit! TYPE_STACK over var-type!
+    "c" name-new! var-new-implicit! TYPE_TYPE over var-type!
+    dup3 ctx-empty swap ctx-new! swap ctx-new! swap ctx-new!
+    PRIM_DIP prim-ctx!
+
+    dip(dip(TVar) TVar) TVar
+    dip(dup2 T-> P1 rotr)
+    tuck T* dip(T*) T-> T=>
+    PRIM_DIP prim-type!
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
     "*b" name-new! var-new-implicit! TYPE_STACK over var-type!
     dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_POSIX_EXIT prim-ctx!
+    PRIM_IF prim-ctx!
 
     dip(TVar) TVar
     dup2 T-> dup P2
@@ -328,17 +340,14 @@ def(init-prims!, +Names,
     swap T=>
     PRIM_IF prim-type!
 
+    "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
+    dup ctx-empty swap ctx-new!
+    PRIM_WHILE prim-ctx!
 
-    # dup2
-    # TYPE_UNIT over T* tuck swap T* T->
-    # PRIM_DUP prim-type!
-    # PRIM_DUP prim-ctx!
-
-    # dup2
-    # TYPE_UNIT swap T* TYPE_UNIT T->
-    # PRIM_DROP prim-type!
-    # PRIM_DROP prim-ctx!
-
-    # drop2
+    TVar
+    dup dup TYPE_BOOL T* T->
+    over dup T-> P2
+    swap dup T-> T=>
+    PRIM_WHILE prim-type!
 
     )

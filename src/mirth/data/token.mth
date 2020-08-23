@@ -213,7 +213,7 @@ def(token-is-right-enclosure?, Token -- Token Bool,
 
 ||| Get number of arguments or number of components in enclosed token.
 def(token-num-args, Token -- Int,
-    token-type? TOKEN_NAME = if(token-succ, id)
+    token-type? TOKEN_NAME = if(token-has-args? if(token-succ, id), id)
     token-is-left-enclosure? if(
         dip(0)
         while(token-is-right-enclosure? not,
