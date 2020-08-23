@@ -4,18 +4,6 @@ import(mirth/data/token)
 import(mirth/data/type)
 import(mirth/data/table)
 
-##############
-# Elaborator #
-##############
-
-buffer(ELAB_STACK, 8)
-def(elab-stack@, -- Type +Elab, ELAB_STACK type@)
-def(elab-stack!, Type -- +Elab, ELAB_STACK type!)
-
-buffer(ELAB_CTX, 8)
-def(elab-ctx@, -- Ctx +Elab, ELAB_CTX ctx@)
-def(elab-ctx!, Ctx -- +Elab, ELAB_CTX ctx!)
-
 ####################
 # Type Elaboration #
 ####################
