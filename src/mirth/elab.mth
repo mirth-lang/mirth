@@ -188,36 +188,161 @@ def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
 def(elab-word-body!, Word -- Arrow +Elab,
     word-body-is-checked? if(
         word-arrow@,
-        dup elab-word-sig! drop
-
-        elab-ctx@ dip(
-        elab-token@ dip(
-        elab-stack@ dip(
-            dup word-ctx@ elab-ctx!
-            dup word-body@ elab-token!
-            dup word-dom@ elab-stack!
-
-            dup word-body@
-
-            # dup token-location Col->Int 1- Int->Col location-trace!
-            # ": warning: domain = " str-trace!
-            # elab-stack@ type-trace! trace-ln!
-
-            elab-arrow!
-
-            over word-cod@
-
-            # elab-token@ token-location location-trace!
-            # ": warning: codomain = " str-trace!
-            # dup type-trace! trace-ln!
-
-            elab-stack@ type-unify! drop
-            over word-body-is-checked!
-            tuck swap word-arrow!
-        ) elab-stack!
-        ) elab-token!
-        ) elab-ctx!
+        dup dip(elab-word-ctx-sig!)
+        dup dip(word-body@ elab2-arrow!)
+        dup2 word-arrow!
+        word-body-is-checked!
     ))
+
+
+        # elab-ctx@ dip(
+        # elab-token@ dip(
+        # elab-stack@ dip(
+        #     dup word-ctx@ elab-ctx!
+        #     dup word-body@ elab-token!
+        #     dup word-dom@ elab-stack!
+
+        #     dup word-body@
+
+        #     # dup token-location Col->Int 1- Int->Col location-trace!
+        #     # ": warning: domain = " str-trace!
+        #     # elab-stack@ type-trace! trace-ln!
+
+        #     elab-arrow!
+
+        #     over word-cod@
+
+        #     # elab-token@ token-location location-trace!
+        #     # ": warning: codomain = " str-trace!
+        #     # dup type-trace! trace-ln!
+
+        #     elab-stack@ type-unify! drop
+        #     over word-body-is-checked!
+        #     tuck swap word-arrow!
+        # ) elab-stack!
+        # ) elab-token!
+        # ) elab-ctx!
+        # ))
+
+
+def(elab2-arrow!, Ctx Type Token -- Arrow,
+    dip(type-get-morphism morphism-type-unpack) swap
+    dip(elab2-arrow-fwd! arrow-dom? swap arrow-token@)
+    swap elab-type-unify! drop2)
+
+def(elab2-arrow-fwd!, Ctx Type Token -- Arrow Arrow,
+    arrow-alloc!
+    tuck arrow-token!
+    tuck arrow-dom!
+    tuck arrow-ctx!
+    dup
+    while(elab2-arrow-done? not,
+        elab2-arrow-step!))
+
+||| Is this arrow at the end of a run?
+def(elab2-arrow-done?, Arrow -- Arrow Bool,
+    arrow-token? token-run-end? nip)
+
+||| From the {ctx, dom, token} fields, elaborate the
+||| arrow's {op, arg, next} fields, returning
+||| the next arrow with {ctx, dom, token} set.
+def(elab2-arrow-step!, Arrow -- Arrow,
+    dup elab2-arrow-op!
+    arrow-alloc! tuck arrow-dom!
+    dip(arrow-token? token-next) tuck arrow-token!
+    dip(arrow-ctx?) tuck arrow-ctx!
+    tuck dip(arrow-next!))
+
+||| From the {ctx, dom, token} fields, elaborate the
+||| arrow's {op, arg} fields, returning the
+||| codomain of the operation.
+def(elab2-arrow-op!, Arrow -- Type,
+    arrow-token?
+    token-is-name? if(
+        token-name@
+        elab2-arrow-op-name!,
+    token-is-int? if(
+        token-int@
+        elab2-arrow-op-int!,
+    token-is-str? if(
+        token-strlit@
+        elab2-arrow-op-str!,
+    token-is-lbrace? if(
+        elab2-arrow-op-stack-assertion!,
+        "compiler error: Unknown token in elab2-arrow-step!" emit-fatal-error!
+    )))))
+
+def(elab2-arrow-op-name!, Arrow Name -- Type,
+    name-is-buffer? if(
+        name-buffer@ elab2-arrow-op-buffer!,
+    name-is-external? if(
+        name-external@ elab2-arrow-op-external!,
+    name-is-word? if(
+        name-word@ elab2-arrow-op-word!,
+    name-is-prim? if(
+        name-prim@ elab2-arrow-op-prim!,
+
+        drop
+        arrow-token@ "Unknown word." emit-error!
+        TYPE_ERROR
+    )))))
+
+def(elab2-arrow-op-int!, Arrow Int -- Type,
+    over arrow-op-int!
+    arrow-dom@ TYPE_INT T*)
+
+def(elab2-arrow-op-str!, Arrow StrLit -- Type,
+    over arrow-op-str!
+    arrow-dom@ TYPE_PTR T*)
+
+def(elab2-arrow-op-buffer!, Arrow Buffer -- Type,
+    over arrow-op-buffer!
+    arrow-dom@ TYPE_PTR T*)
+
+def(elab2-arrow-op-stack-assertion!, Arrow Token -- Type,
+    drop arrow-dom@) # TODO
+
+def(elab2-arrow-op-external!, Arrow External -- Type,
+    dup2 swap arrow-op-external!
+    elab-external-sig! elab2-arrow-op-apply-fresh!)
+
+def(elab2-arrow-op-word!, Arrow Word -- Type,
+    dup2 swap arrow-op-word!
+    elab-word-sig! elab2-arrow-op-apply-fresh!)
+
+def(elab2-arrow-op-prim!, Arrow Prim -- Type,
+    dup2 swap arrow-op-prim!
+
+    dup PRIM_DIP = if(
+        drop elab2-arrow-op-dip!,
+
+    prim-type? TYPE_ERROR = if(
+        drop arrow-token@ "not yet implemented" emit-fatal-error!,
+
+        prim-type@ elab2-arrow-op-apply-fresh!
+    )))
+
+def(elab2-arrow-op-dip!, Arrow -- Type,
+    arrow-token? token-args-1 dip(arrow-dom? dip(arrow-ctx?))
+    dip(type-expand-tensor tensor-type-unpack) swap
+    dip(elab2-arrow-fwd! arrow-dom@) T*
+    dip(Arrow->Arg arrow-arg-add! drop))
+
+||| Apply a type signature after freshening to get a codomain.
+def(elab2-arrow-op-apply-fresh!, Arrow Type -- Type,
+    SUBST_NIL swap type-freshen-sig
+    dip(over arrow-subst!)
+    elab2-arrow-op-apply!)
+
+||| Apply a type signature to get a codomain.
+def(elab2-arrow-op-apply!, Arrow Type -- Type,
+
+    # TODO: allow for params in type
+    dip(arrow-token? token-args-0)
+
+    dip(arrow-dom? swap arrow-token@)
+    type-expand-morphism morphism-type-unpack
+    dip(swap elab-type-unify! drop2))
 
 def(elab-stack-pop!, Type +Elab,
     elab-stack@
@@ -274,7 +399,7 @@ def(elab-arrow-step!, Arrow +Elab,
     token-is-int? if(
         token-int@ elab-arrow-step-int!,
     token-is-str? if(
-        token-value@ TokenValue->Int Int->StrLit elab-arrow-step-str!, # TODO: fix this
+        token-strlit@ elab-arrow-step-str!,
     token-is-name? if(
         token-name@ elab-arrow-step-name!,
     token-is-lbrace? if(
@@ -357,7 +482,7 @@ def(elab-arrow-apply-sig-type!, Arrow Type -- Arrow +Elab,
     )))
 
 def(elab-arrow-freshen-apply-sig-type!, Arrow Type -- Arrow +Elab,
-    dip(SUBST_NIL) type-freshen drop
+    dip(SUBST_NIL) type-freshen
     nip # TODO save arrow subst
     elab-arrow-apply-sig-type!
 )

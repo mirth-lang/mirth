@@ -109,6 +109,14 @@ def(THole, Name -- Type,
 def(T*, Type Type -- Type, tensor-type-new! TTensor)
 def(T->, Type Type -- Type, morphism-type-new! TMorphism)
 
+def(T0, Type, TYPE_UNIT)
+def(T1, Type -- Type, dip(T0) T*)
+def(T2, Type Type -- Type, dip(T1) T*)
+def(T3, Type Type Type -- Type, dip(T2) T*)
+def(T4, Type Type Type Type -- Type, dip(T3) T*)
+def(T5, Type Type Type Type Type -- Type, dip(T4) T*)
+def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
+
 def(type-tag, Type -- Int, Type->Int TYPE_TAG_MASK &)
 def(type-is-prim, Type -- Bool, type-tag TYPE_TAG_PRIM =)
 def(type-is-var, Type -- Bool, type-tag TYPE_TAG_VAR =)
@@ -199,6 +207,9 @@ def(type-expand, Type -- Type,
 # high level version of type-get-tensor that introduces metavars if needed
 def(type-expand-tensor, Type -- TensorType,
     type-expand
+    dup TYPE_ERROR = if(
+        drop 0 Int->TensorType,
+
     type-is-meta? if( # undefined metavar -- introduce a tensor type
         meta-alloc! TMeta
         meta-alloc! TMeta
@@ -207,7 +218,7 @@ def(type-expand-tensor, Type -- TensorType,
         type-get-tensor,
 
         type-get-tensor
-    ))
+    )))
 
 # high level version of type-get-morphism that introduces metavars if needed
 def(type-expand-morphism, Type -- MorphismType,
@@ -448,7 +459,42 @@ def(type-trace-prim!, Type -- +IO,
         "<UNKNOWN PRIMITIVE TYPE " str-trace! Type->Int int-trace! ">" str-trace!
     )))))))))))))))
 
-def(type-freshen, Subst Type -- Subst Type Bool,
+||| Freshen a type signature in preparation for type sig application.
+def(type-freshen-sig, Subst Type -- Subst Type,
+    type-sig-needs-fresh-stack-rest? if(
+        type-freshen-sig-aux,
+
+        type-freshen
+    ))
+
+def(type-sig-needs-fresh-stack-rest?, Type -- Type Bool,
+    # TODO ignore params
+    dup type-expand-morphism morphism-type-dom@
+    while(type-expand type-is-tensor?, type-get-tensor tensor-type-fst@)
+    TYPE_UNIT =)
+
+def(type-freshen-sig-aux, Subst Type -- Subst Type,
+    # TODO ignore params (but pass them along)
+    meta-alloc! TMeta rotr
+    type-expand-morphism morphism-type-unpack
+    dip(type-freshen-sig-stack) swap
+    dip(type-freshen-sig-stack) swap
+    T-> dip(nip))
+
+def(type-freshen-sig-stack, Type Subst Type -- Type Subst Type,
+    type-expand
+    type-is-tensor? if(
+        type-get-tensor tensor-type-unpack
+        dip(type-freshen-sig-stack) swap
+        dip(type-freshen) swap
+        T*,
+        drop over
+    ))
+
+def(type-freshen, Subst Type -- Subst Type,
+    type-freshen-aux drop)
+
+def(type-freshen-aux, Subst Type -- Subst Type Bool,
     type-expand
 
     type-is-var? if(
@@ -456,12 +502,12 @@ def(type-freshen, Subst Type -- Subst Type Bool,
 
     type-is-tensor? if(
         type-get-tensor
-        tensor-type-freshen
+        tensor-type-freshen-aux
         dip(TTensor),
 
     type-is-morphism? if(
         type-get-morphism
-        morphism-type-freshen
+        morphism-type-freshen-aux
         dip(TMorphism),
 
         true
@@ -544,12 +590,12 @@ def(tensor-type-has-meta, MetaVar TensorType -- Bool,
         type-has-meta
     ))
 
-def(tensor-type-freshen, Subst TensorType -- Subst TensorType Bool,
+def(tensor-type-freshen-aux, Subst TensorType -- Subst TensorType Bool,
     dup
     dip(
         tensor-type-unpack
-        dip(type-freshen)
-        dip(rotl) type-freshen
+        dip(type-freshen-aux)
+        dip(rotl) type-freshen-aux
         dip(dip(rotr) swap) &&
     )
     swap if(
@@ -583,12 +629,12 @@ def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
         type-has-meta
     ))
 
-def(morphism-type-freshen, Subst MorphismType -- Subst MorphismType Bool,
+def(morphism-type-freshen-aux, Subst MorphismType -- Subst MorphismType Bool,
     dup
     dip(
         morphism-type-unpack
-        dip(type-freshen)
-        dip(rotl) type-freshen
+        dip(type-freshen-aux)
+        dip(rotl) type-freshen-aux
         dip(dip(rotr) swap) &&
     )
     swap if(
