@@ -2,5 +2,5 @@
 module(tests/error-typechecker)
 def(foo, Int, "hello")
 
-# mirth-test # merr # 3:22: error: Failed to unify Int with Ptr
+# mirth-test # merr # 3:22: error: Failed to unify Ptr with Int
 # mirth-test # mret # 1
