@@ -194,6 +194,34 @@ def(token-has-args?, Token -- Token Bool,
         false
     ))
 
+def(token-is-left-enclosure?, Token -- Token Bool,
+    token-type? TOKEN_LPAREN = if(
+        true,
+    token-type? TOKEN_LBRACKET = if(
+        true,
+        token-type? TOKEN_LBRACE =
+    )))
+
+def(token-is-right-enclosure?, Token -- Token Bool,
+    token-type? TOKEN_RPAREN = if(
+        true,
+    token-type? TOKEN_RBRACKET = if(
+        true,
+        token-type? TOKEN_RBRACE =
+    )))
+
+
+||| Get number of arguments or number of components in enclosed token.
+def(token-num-args, Token -- Int,
+    token-type? TOKEN_NAME = if(token-succ, id)
+    token-is-left-enclosure? if(
+        dip(0)
+        while(token-is-right-enclosure? not,
+            dip(1+) token-succ token-next-arg-end)
+        drop,
+        drop 0
+    ))
+
 # Verify that token has 0 args, and return them.
 # Emits a fatal error if arity is wrong.
 def(token-args-0, Token --,

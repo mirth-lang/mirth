@@ -336,13 +336,52 @@ def(elab2-arrow-op-apply-fresh!, Arrow Type -- Type,
 
 ||| Apply a type signature to get a codomain.
 def(elab2-arrow-op-apply!, Arrow Type -- Type,
+    type-expand
 
-    # TODO: allow for params in type
-    dip(arrow-token? token-args-0)
+    over arrow-token@ token-num-args
+    over type-num-params != if(
+        over arrow-token@
+        "Wrong number of arguments." emit-fatal-error!
+        drop2 TYPE_ERROR, # TODO: improve error message
 
-    dip(arrow-dom? swap arrow-token@)
-    type-expand-morphism morphism-type-unpack
-    dip(swap elab-type-unify! drop2))
+    type-is-param? if(
+        type-get-param param-type-unpack
+        type-expand-morphism morphism-type-unpack
+        dip(swap dip(elab2-arrow-unify-dom!))
+        dip(elab2-arrow-op-args! drop),
+
+        type-expand-morphism morphism-type-unpack
+        dip(elab2-arrow-unify-dom! drop)
+    )))
+
+
+||| Unify a type with the dom of an arrow, returning the original arrow.
+def(elab2-arrow-unify-dom!, Arrow Type -- Arrow,
+    over arrow-dom? swap arrow-token@ elab-type-unify! drop2)
+
+||| Elaborate the args of an arrow.
+def(elab2-arrow-op-args!, Arrow Param -- Arrow,
+    dip(arrow-token? token-succ)
+    while(param-empty? not,
+        dip(token-succ)
+        param-unpack
+        dip(
+            over
+            dip(dip(over arrow-ctx@))
+            elab2-arrow! Arrow->Arg
+            swap token-next-arg-end
+            dip(arrow-arg-add!)
+        )
+    )
+    drop2)
+
+    # param-empty? if(
+    #     drop,
+
+    #     elab2-arrow-op-args!
+    #     ">> not yet implemented here <<" panic!
+    # ))
+
 
 def(elab-stack-pop!, Type +Elab,
     elab-stack@

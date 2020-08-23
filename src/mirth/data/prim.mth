@@ -317,6 +317,18 @@ def(init-prims!, +Names,
     PRIM_POSIX_EXIT prim-type!
 
 
+    "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
+    "*b" name-new! var-new-implicit! TYPE_STACK over var-type!
+    dup2 ctx-empty swap ctx-new! swap ctx-new!
+    PRIM_POSIX_EXIT prim-ctx!
+
+    dip(TVar) TVar
+    dup2 T-> dup P2
+    dip(dip(TYPE_BOOL T*) T->)
+    swap T=>
+    PRIM_IF prim-type!
+
+
     # dup2
     # TYPE_UNIT over T* tuck swap T* T->
     # PRIM_DUP prim-type!
