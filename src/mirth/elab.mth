@@ -340,10 +340,9 @@ def(elab-arrow-op-args!, Arrow Param -- Arrow,
     )
     drop2)
 
-
-#############
-## ELAB V2 ##
-#############
+######################
+# Module Elaboration #
+######################
 
 ||| Elaborate all of a module.
 def(elab-module!, Module -- Module +Mirth,
@@ -552,10 +551,7 @@ def(elab-target-c99!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-2
     swap token-type? TOKEN_STR = if(
         dip(
-            dip(
-                ctx-empty
-                T0 T0 T->
-            )
+            dip(ctx-empty T0 T0 T->)
             elab-arrow!
         )
 
