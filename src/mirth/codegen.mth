@@ -122,6 +122,7 @@ def(c99-emit-header!, +IO,
     "   VT_NONE = 0," ;
     "   VT_PTR  = 1," ;
     "   VT_BOOL = 2," ;
+    "   VT_CELL = 3," ;
     "   VT_I64  = 0x10," ;
     "   VT_I32  = 0x11," ;
     "   VT_I16  = 0x12," ;
@@ -150,9 +151,20 @@ def(c99-emit-header!, +IO,
     "   value_payload_t payload;" ;
     "} value_t; " ;;
 
-    "#define STACK_SIZE 2000" ;
+    "typedef struct cell_t {" ;
+    "   u32 refs;" ; # reference count
+    "   value_t car;" ;
+    "   value_t cdr;" ;
+    "} cell_t;" ;;
+
+    "#define STACK_SIZE 0x1000" ;
     "static volatile usize stack_counter = STACK_SIZE;" ;
     "static volatile value_t stack [STACK_SIZE] = {0};" ;;
+
+    "#define HEAP_SIZE 0x8000" ;
+    "#define HEAP_MASK 0x7FFF" ;
+    "static volatile usize heap_count = 0;" ;
+    "static volatile cell_t heap [HEAP_SIZE] = {0};" ;;
 
     "int global_argc;" ;
     "char** global_argv;" ;;
@@ -184,6 +196,70 @@ def(c99-emit-buffer!, Name -- +IO,
     ))
 
 def(c99-emit-prims!, +IO,
+    "void decref (value_t v) { " ;
+    "    while (v.tag == VT_CELL) {" ;
+    "        volatile cell_t *cell = heap + (usize)v.payload.vp_u64;" ;
+    "        if (cell->refs >= 1) {";
+    "            cell->refs--;" ;
+    "            if (cell->refs == 0) {" ;
+    "                decref(cell->cdr);" ;
+    "                v = cell->car;" ;
+    "                cell->cdr.tag = 0; cell->cdr.payload.vp_u64 = 0;" ;
+    "                cell->car.tag = 0; cell->car.payload.vp_u64 = 0;" ;
+    "                heap_count--;" ;
+    "            } else {" ;
+    "                break;" ;
+    "            }" ;
+    "        } else {" ;
+    "            break;" ;
+    "        }" ;
+    "    }" ;
+    "}" ;;
+
+    "void incref (value_t v) {" ;
+    "    if (v.tag == VT_CELL) {" ;
+    "        volatile cell_t *cell = heap + (usize)v.payload.vp_u64;" ;
+    "        cell->refs++;" ;
+    "    }" ;
+    "}" ;;
+
+    # create a cons cell, while taking ownership of car and cdr's refs
+    "value_t mkcell (value_t car, value_t cdr) {" ;
+    "    if (heap_count * 8 >= HEAP_SIZE * 7) {" ;
+    "        write(2, \"HEAP OVERFLOW\\n\", 14);" ;
+    "        exit(1);" ;
+    "    }" ;
+    "    u64 hash = ((u64)car.tag * 0x1A9108A185251)" ;
+    "             ^ ((u64)cdr.tag * 0x25B911B138183)" ;
+    "             ^ (car.payload.vp_u64 * 0x1890028B227842A5)" ;
+    "             ^ (car.payload.vp_u64 * 0x9981012240B11127);" ; # some really silly hash function
+    "    u64 cell_index;" ;
+    "    volatile cell_t *cell;" ;
+    "    while (1) { " ;
+    "        cell_index = (hash >> 17) & HEAP_MASK;" ;
+    "        cell = heap + cell_index;" ;
+    "        if (cell_index && !cell->refs) {" ;
+    "            heap_count++;" ;
+    "            cell->refs = 1;" ;
+    "            cell->car = car;" ;
+    "            cell->cdr = cdr;" ;
+    "            break;" ;
+    "        }" ;
+    "        if (cell->car.tag == car.tag" ;
+    "          && cell->car.payload.vp_u64 == car.payload.vp_u64" ;
+    "          && cell->cdr.tag == cdr.tag" ;
+    "          && cell->cdr.payload.vp_u64 == cdr.payload.vp_u64) {" ;
+    "            cell->refs++; decref(car); decref(cdr);" ;
+    "            break;" ;
+    "        }" ;
+    "        hash = (hash >> 7) ^ (hash << 57) + 0x1251;" ; # rotate & mix
+    "    }" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_CELL;" ;
+    "    v.payload.vp_u64 = cell_index;" ;
+    "    return v;" ;
+    "}" ;;
+
     "value_t pop_value (void) {" ;
     "    if (stack_counter >= STACK_SIZE) {" ;
     "        write(2, \"STACK UNDERFLOW\\n\", 16);" ;
@@ -312,11 +388,13 @@ def(c99-emit-prims!, +IO,
 
     PRIM_DUP .p " {" ;
     "    value_t v = pop_value();" ;
+    "    incref(v);" ;
     "    push_value(v); push_value(v);" ;
     "}" ;;
 
     PRIM_DROP .p " {" ;
-    "    pop_value();" ;
+    "    value_t v = pop_value();" ;
+    "    decref(v);" ;
     "}" ;;
 
     PRIM_SWAP .p " {" ;
@@ -613,6 +691,25 @@ def(c99-emit-prims!, +IO,
     "    push_u64((u64)sizeof(void*));";
     "}" ;;
 
+    PRIM_PACK_NIL .p " {" ;
+    "    value_t v = {0};" ;
+    "    push_value(v);" ;
+    "}" ;;
+
+    PRIM_PACK_CONS .p " {" ;
+    "    value_t cdr = pop_value();" ;
+    "    value_t car = pop_value();" ;
+    "    push_value(mkcell(car, cdr));" ;
+    "}" ;;
+
+    PRIM_PACK_UNCONS .p " {" ;
+    "    value_t val = pop_value();" ;
+    "    volatile cell_t* cell = heap + val.payload.vp_u64;" ;
+    "    value_t car = cell->car;" ;
+    "    value_t cdr = cell->cdr;" ;
+    "    incref(car); incref(cdr); decref(val);" ;
+    "    push_value(car); push_value(cdr);" ;
+    "}" ;;
     )
 
 def(c99-emit-externals!, +IO,
