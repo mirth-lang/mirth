@@ -118,9 +118,41 @@ def(c99-emit-header!, +IO,
     "extern int open(void*, int, int);" ;
     "extern void exit(int);" ;;
 
+    "typedef enum value_tag_t {" ;
+    "   VT_NONE = 0," ;
+    "   VT_PTR  = 1," ;
+    "   VT_BOOL = 2," ;
+    "   VT_I64  = 0x10," ;
+    "   VT_I32  = 0x11," ;
+    "   VT_I16  = 0x12," ;
+    "   VT_I8   = 0x13," ;
+    "   VT_U64  = 0x14," ;
+    "   VT_U32  = 0x15," ;
+    "   VT_U16  = 0x16," ;
+    "   VT_U8   = 0x17," ;
+    "} value_tag_t;" ;;
+
+    "typedef union value_payload_t {" ;
+    "    void* vp_ptr;" ;
+    "    u8 vp_u8;" ;
+    "    u16 vp_u16;" ;
+    "    u32 vp_u32;" ;
+    "    u64 vp_u64;" ;
+    "    i8 vp_i8;" ;
+    "    i16 vp_i16;" ;
+    "    i32 vp_i32;" ;
+    "    i64 vp_i64;" ;
+    "    bool vp_bool;" ;
+    "} value_payload_t;" ;;
+
+    "typedef struct value_t {" ;
+    "   value_tag_t tag; ";
+    "   value_payload_t payload;" ;
+    "} value_t; " ;;
+
     "#define STACK_SIZE 2000" ;
-    "static volatile usize sc = STACK_SIZE;" ;
-    "static volatile i64 stack[STACK_SIZE] = {0};" ;;
+    "static volatile usize stack_counter = STACK_SIZE;" ;
+    "static volatile value_t stack [STACK_SIZE] = {0};" ;;
 
     "int global_argc;" ;
     "char** global_argv;" ;;
@@ -147,207 +179,276 @@ def(c99-emit-buffers!, +IO,
 def(c99-emit-buffer!, Name -- +IO,
     name-is-buffer? if(
         " volatile u8 b" . dup .name "[" . dup name-buffer@ buffer-size@ .n "] = {0};" ;
-        " void mw" . dup .name " (void) { push((i64)b" . .name "); }" ;  ,
+        " void mw" . dup .name " (void) { push_ptr((void*)b" . .name "); }" ;  ,
         drop
     ))
 
 def(c99-emit-prims!, +IO,
-    " i64 pop (void) {" ;
-    "    if (sc < STACK_SIZE) {" ;
-    "        return stack[sc++];" ;
-    "    } else {" ;
+    "value_t pop_value (void) {" ;
+    "    if (stack_counter >= STACK_SIZE) {" ;
     "        write(2, \"STACK UNDERFLOW\\n\", 16);" ;
     "        exit(1);" ;
-    "        return 0;" ;
     "    }" ;
+    "    return stack[stack_counter++];" ;
     "}" ;;
-    " void* pop_ptr (void) {" ;
-    "    i64 x = (i64)pop();" ;
-    "    return (void*)x;" ;
+    "void* pop_ptr (void) {" ;
+    "    value_t v = pop_value();" ;
+    "    return v.payload.vp_ptr;" ;
     "}";;
-    " u8 pop_u8 (void) {" ;
-    "    i64 x = pop();" ;
-    "    return (u8)x;" ;
+    "u8 pop_u8 (void) {" ;
+    "    value_t v = pop_value();" ;
+    "    return v.payload.vp_u8;" ;
     "}";;
-    " u16 pop_u16 (void) {" ;
-    "    i64 x = pop();" ;
-    "    return (u16)x;" ;
+    "u16 pop_u16 (void) {" ;
+    "    value_t v = pop_value();" ;
+    "    return v.payload.vp_u16;" ;
     "}";;
-    " u32 pop_u32 (void) {" ;
-    "    i64 x = pop();" ;
-    "    return (u32)x;" ;
+    "u32 pop_u32 (void) {" ;
+    "    value_t v = pop_value();" ;
+    "    return v.payload.vp_u32;" ;
     "}";;
-    " u64 pop_u64 (void) {" ;
-    "    i64 x = pop();" ;
-    "    return (u64)x;" ;
+    "u64 pop_u64 (void) {" ;
+    "    value_t v = pop_value();" ;
+    "    return v.payload.vp_u64;" ;
     "}";;
-    " i8 pop_i8 (void) {" ;
-    "    i64 x = pop();" ;
-    "    return (i8)x;" ;
+    "i8 pop_i8 (void) {" ;
+    "    value_t v = pop_value();" ;
+    "    return v.payload.vp_i8;" ;
     "}";;
-    " i16 pop_i16 (void) {" ;
-    "    i64 x = pop();" ;
-    "    return (i16)x;" ;
+    "i16 pop_i16 (void) {" ;
+    "    value_t v = pop_value();" ;
+    "    return v.payload.vp_i16;" ;
     "}";;
-    " i32 pop_i32 (void) {" ;
-    "    i64 x = pop();" ;
-    "    return (i32)x;" ;
+    "i32 pop_i32 (void) {" ;
+    "    value_t v = pop_value();" ;
+    "    return v.payload.vp_i32;" ;
     "}";;
-    " i64 pop_i64 (void) {" ;
-    "    return pop();" ;
-    "}";;
+    "i64 pop_i64 (void) {" ;
+    "    value_t v = pop_value();" ;
+    "    return v.payload.vp_i64;" ;
+    "}" ;;
+    "bool pop_bool (void) {" ;
+    "    value_t v = pop_value();" ;
+    "    return v.payload.vp_bool;" ;
+    "}" ;;
 
-    " void push (i64 x) {" ;
-    "    if (sc > 0) {" ;
-    "        stack[--sc] = x;" ;
-    "    } else {" ;
+    "void push_value (value_t v) {" ;
+    "    if (stack_counter < 1) {" ;
     "        write(2, \"STACK OVERFLOW\\n\", 15);" ;
     "        exit(1);" ;
     "    }" ;
+    "    stack[--stack_counter] = v;" ;
+    "}" ;;
+    "void push_ptr (void* x) {" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_PTR;" ;
+    "    v.payload.vp_ptr = x;" ;
+    "    push_value(v);" ;
+    "}" ;;
+    "void push_u8 (u8 x) {" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_U8;" ;
+    "    v.payload.vp_u64 = 0;" ;
+    "    v.payload.vp_u8 = x;" ;
+    "    push_value(v);" ;
+    "}" ;;
+    "void push_u16 (u16 x) {" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_U16;" ;
+    "    v.payload.vp_u64 = 0;" ;
+    "    v.payload.vp_u16 = x;" ;
+    "    push_value(v);" ;
+    "}" ;;
+    "void push_u32 (u32 x) {" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_U32;" ;
+    "    v.payload.vp_u64 = 0;" ;
+    "    v.payload.vp_u32 = x;" ;
+    "    push_value(v);" ;
+    "}" ;;
+    "void push_u64 (u64 x) {" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_U64;" ;
+    "    v.payload.vp_u64 = x;" ;
+    "    push_value(v);" ;
+    "}" ;;
+    "void push_i8 (i8 x) {" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_I8;" ;
+    "    v.payload.vp_u64 = 0;" ;
+    "    v.payload.vp_i8 = x;" ;
+    "    push_value(v);" ;
+    "}" ;;
+    "void push_i16 (i16 x) {" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_I16;" ;
+    "    v.payload.vp_u64 = 0;" ;
+    "    v.payload.vp_i16 = x;" ;
+    "    push_value(v);" ;
+    "}" ;;
+    "void push_i32 (i32 x) {" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_I32;" ;
+    "    v.payload.vp_u64 = 0;" ;
+    "    v.payload.vp_i32 = x;" ;
+    "    push_value(v);" ;
+    "}" ;;
+    "void push_i64 (i64 x) {" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_I64;" ;
+    "    v.payload.vp_i64 = x;" ;
+    "    push_value(v);" ;
+    "}" ;;
+    "void push_bool (bool x) {" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_BOOL;" ;
+    "    v.payload.vp_u64 = 0;" ;
+    "    v.payload.vp_bool = x;" ;
+    "    push_value(v);" ;
     "}" ;;
 
     PRIM_ID .p " {" ;
     "}" ;;
 
     PRIM_DUP .p " {" ;
-    "    i64 x = pop();" ;
-    "    push(x); push(x);" ;
+    "    value_t v = pop_value();" ;
+    "    push_value(v); push_value(v);" ;
     "}" ;;
 
     PRIM_DROP .p " {" ;
-    "    pop();" ;
+    "    pop_value();" ;
     "}" ;;
 
     PRIM_SWAP .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(x); push(y);" ;
+    "    value_t x = pop_value();" ;
+    "    value_t y = pop_value();" ;
+    "    push_value(x); push_value(y);" ;
     "}" ;;
 
     PRIM_INT_ADD .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(x + y);" ;
+    "    u64 x = pop_u64();" ;
+    "    u64 y = pop_u64();" ;
+    "    push_u64(x + y);" ;
     "}" ;;
 
     PRIM_INT_SUB .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(y - x);" ;
+    "    u64 x = pop_u64();" ;
+    "    u64 y = pop_u64();" ;
+    "    push_u64(y - x);" ;
     "}" ;;
 
     PRIM_INT_MUL .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(x * y);" ;
+    "    i64 x = pop_i64();" ;
+    "    i64 y = pop_i64();" ;
+    "    push_i64(x * y);" ;
     "}" ;;
 
     PRIM_INT_DIV .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(y / x);" ;
+    "    i64 x = pop_i64();" ;
+    "    i64 y = pop_i64();" ;
+    "    push_i64(y / x);" ;
     "}" ;;
 
     PRIM_INT_MOD .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(y % x);" ;
+    "    i64 x = pop_i64();" ;
+    "    i64 y = pop_i64();" ;
+    "    push_i64(y % x);" ;
     "}" ;;
 
     PRIM_INT_EQ .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(x == y);" ;
+    "    i64 x = pop_i64();" ;
+    "    i64 y = pop_i64();" ;
+    "    push_bool(x == y);" ;
     "}" ;;
 
     PRIM_INT_LT .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(y < x);" ;
+    "    i64 x = pop_i64();" ;
+    "    i64 y = pop_i64();" ;
+    "    push_bool(y < x);" ;
     "}" ;;
 
     PRIM_INT_LE .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(y <= x);" ;
+    "    i64 x = pop_i64();" ;
+    "    i64 y = pop_i64();" ;
+    "    push_bool(y <= x);" ;
     "}" ;;
 
     PRIM_INT_AND .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(y & x);" ;
+    "    u64 x = pop_u64();" ;
+    "    u64 y = pop_u64();" ;
+    "    push_u64(y & x);" ;
     "}" ;;
 
     PRIM_INT_OR .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(y | x);" ;
+    "    u64 x = pop_u64();" ;
+    "    u64 y = pop_u64();" ;
+    "    push_u64(y | x);" ;
     "}" ;;
 
     PRIM_INT_XOR .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(y ^ x);" ;
+    "    u64 x = pop_u64();" ;
+    "    u64 y = pop_u64();" ;
+    "    push_u64(y ^ x);" ;
     "}" ;;
 
     PRIM_INT_SHL .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(y << x);" ;
+    "    u64 x = pop_u64();" ;
+    "    u64 y = pop_u64();" ;
+    "    push_u64(y << x);" ;
     "}" ;;
 
     PRIM_INT_SHR .p " {" ;
-    "    i64 x = pop();" ;
-    "    i64 y = pop();" ;
-    "    push(y >> x);" ;
+    "    u64 x = pop_u64();" ;
+    "    u64 y = pop_u64();" ;
+    "    push_u64(y >> x);" ;
     "}" ;;
 
     PRIM_POSIX_WRITE .p " {" ;
-    "    usize n = (usize)pop();" ;
+    "    usize n = (usize)pop_u64();" ;
     "    void* p = pop_ptr();" ;
-    "    int f = (int)pop();" ;
+    "    int f = (int)pop_i64();" ;
     "    write(f, p, n);" ; # TODO: push return code
     "}" ;;
 
     PRIM_POSIX_READ .p " {" ;
-    "    usize n = (usize)pop();" ;
+    "    usize n = (usize)pop_u64();" ;
     "    void* p = pop_ptr();" ;
-    "    int f = (int)pop();" ;
-    "    push(read(f,p,n));" ;
+    "    int f = (int)pop_i64();" ;
+    "    push_i64((i64)read(f,p,n));" ;
     "}" ;;
 
     PRIM_POSIX_OPEN .p " {" ;
-    "    int m = (int)pop();" ;
-    "    int f = (int)pop();" ;
+    "    int m = (int)pop_i64();" ;
+    "    int f = (int)pop_i64();" ;
     "    void* p = pop_ptr();" ;
-    "    push(open(p,f,m));" ;
+    "    push_i64((i64)open(p,f,m));" ;
     "}" ;;
 
     PRIM_POSIX_CLOSE .p " {" ;
-    "    int x = (int)pop();" ;
-    "    push(close(x));" ;
+    "    int x = (int)pop_i64();" ;
+    "    push_i64((i64)close(x));" ;
     "}" ;;
 
     PRIM_POSIX_EXIT .p " {" ;
-    "    int x = (int)pop();" ;
+    "    int x = (int)pop_i64();" ;
     "    exit(x);" ;
     "}" ;;
 
     PRIM_POSIX_MMAP .p " {" ;
     "    #ifdef MIRTH_WIN32" ;
-    "    pop(); pop(); pop(); pop();" ;
-    "    usize b = (usize)pop();" ;
-    "    pop();" ;
-    "    push((i64)malloc(b));" ;
+    "    pop_value(); pop_value(); pop_value(); pop_value();" ;
+    "    usize b = (usize)pop_u64();" ;
+    "    pop_value();" ;
+    "    push_ptr(malloc(b));" ;
     "    #else" ;
-    "    int f = (int)pop();" ;
-    "    int e = (int)pop();" ;
-    "    int d = (int)pop();" ;
-    "    int c = (int)pop();" ;
-    "    usize b = (usize)pop();" ;
+    "    int f = (int)pop_i64();" ;
+    "    int e = (int)pop_i64();" ;
+    "    int d = (int)pop_i64();" ;
+    "    int c = (int)pop_i64();" ;
+    "    usize b = (usize)pop_u64();" ;
     "    void* a = pop_ptr();" ;
     "    void* p = mmap(a,b,c,d,e,f);" ;
-    "    push((i64)p);" ;
+    "    push_ptr(p);" ;
     "    #endif" ;
     "}" ;;
 
@@ -357,9 +458,9 @@ def(c99-emit-prims!, +IO,
     "    char* cp;" ;
     "    usize n;" ;
     "    i64 x; i64 y;" ;
-    "    for (long i = STACK_SIZE-1; i >= (long)sc; i--) {" ;
+    "    for (long i = STACK_SIZE-1; i >= (long)stack_counter; i--) {" ;
     "        cp = c+30;" ;
-    "        x = (i64)stack[i];" ;
+    "        x = stack[i].payload.vp_i64;" ;
     "        n = 1;" ;
     "        y = x; if (x < 0) { x = -x; }" ;
     "        do { *cp-- = '0' + (x % 10); x /= 10; n++; } while(x);" ;
@@ -371,17 +472,18 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_MEM_GET .p " {" ;
-    "    stack[sc] = *(i64*)(stack[sc]);" ;
+    "    i64* p = pop_ptr();" ;
+    "    push_i64(*p);" ;
     "}" ;;
 
     PRIM_MEM_SET .p " {" ;
     "    i64* x = pop_ptr();" ;
-    "    *x = (i64)pop();" ;
+    "    *x = (i64)pop_i64();" ;
     "}" ;;
 
     PRIM_MEM_GET_U8 .p " {" ;
     "    u8* x = pop_ptr();" ;
-    "    push(*x);" ;
+    "    push_u8(*x);" ;
     "}" ;;
 
     PRIM_MEM_SET_U8 .p " {" ;
@@ -391,7 +493,7 @@ def(c99-emit-prims!, +IO,
 
     PRIM_MEM_GET_U16 .p " {" ;
     "    u16* x = pop_ptr();" ;
-    "    push(*x);" ;
+    "    push_u16(*x);" ;
     "}" ;;
 
     PRIM_MEM_SET_U16 .p " {" ;
@@ -401,7 +503,7 @@ def(c99-emit-prims!, +IO,
 
     PRIM_MEM_GET_U32 .p " {" ;
     "    u32* x = pop_ptr();" ;
-    "    push(*x);" ;
+    "    push_u32(*x);" ;
     "}" ;;
 
     PRIM_MEM_SET_U32 .p " {" ;
@@ -411,7 +513,7 @@ def(c99-emit-prims!, +IO,
 
     PRIM_MEM_GET_U64 .p " {" ;
     "    u64* x = pop_ptr();" ;
-    "    push(*x);" ;
+    "    push_u64(*x);" ;
     "}" ;;
 
     PRIM_MEM_SET_U64 .p " {" ;
@@ -421,7 +523,7 @@ def(c99-emit-prims!, +IO,
 
     PRIM_MEM_GET_I8 .p " {" ;
     "    i8* x = pop_ptr();" ;
-    "    push(*x);" ;
+    "    push_i8(*x);" ;
     "}" ;;
 
     PRIM_MEM_SET_I8 .p " {" ;
@@ -431,7 +533,7 @@ def(c99-emit-prims!, +IO,
 
     PRIM_MEM_GET_I16 .p " {" ;
     "    i16* x = pop_ptr();" ;
-    "    push(*x);" ;
+    "    push_i16(*x);" ;
     "}" ;;
 
     PRIM_MEM_SET_I16 .p " {" ;
@@ -441,7 +543,7 @@ def(c99-emit-prims!, +IO,
 
     PRIM_MEM_GET_I32 .p " {" ;
     "    i32* x = pop_ptr();" ;
-    "    push(*x);" ;
+    "    push_i32(*x);" ;
     "}" ;;
 
     PRIM_MEM_SET_I32 .p " {" ;
@@ -451,7 +553,7 @@ def(c99-emit-prims!, +IO,
 
     PRIM_MEM_GET_I64 .p " {" ;
     "    i64* x = pop_ptr();" ;
-    "    push(*x);" ;
+    "    push_i64(*x);" ;
     "}" ;;
 
     PRIM_MEM_SET_I64 .p " {" ;
@@ -461,13 +563,13 @@ def(c99-emit-prims!, +IO,
 
     PRIM_SYS_OS .p " {" ;
     "#if defined(MIRTH_WIN32)" ;
-    "    push(" . WIN32 .n ");" ;
+    "    push_u64(" . WIN32 .n ");" ;
     "#elif defined(MIRTH_LINUX)" ;
-    "    push(" . LINUX .n ");" ;
+    "    push_u64(" . LINUX .n ");" ;
     "#elif defined(MIRTH_MACOS)" ;
-    "    push(" . MACOS .n ");" ;
+    "    push_u64(" . MACOS .n ");" ;
     "#else" ;
-    "    push(" . UNKNOWN .n ");" ;
+    "    push_u64(" . UNKNOWN .n ");" ;
     "#endif" ;
     "}" ;;
 
@@ -475,40 +577,40 @@ def(c99-emit-prims!, +IO,
 
     PRIM_PTR_ADD .p " {" ;
     "   u8* x = pop_ptr();" ;
-    "   i64 y = pop();" ;
-    "   push((i64)(x + y));" ;
+    "   i64 y = pop_i64();" ;
+    "   push_ptr(x + y);" ;
     "}" ;;
 
     PRIM_BOOL_TRUE .p " {" ;
-    "    push(true);";
+    "    push_bool(true);";
     "}" ;
 
     PRIM_BOOL_FALSE .p " {" ;
-    "    push(false);";
+    "    push_bool(false);";
     "}" ;;
 
     PRIM_BOOL_AND .p " {" ;
-    "    bool x = pop();" ;
-    "    bool y = pop();" ;
-    "    push(y && x);" ;
+    "    bool x = pop_bool();" ;
+    "    bool y = pop_bool();" ;
+    "    push_bool(y && x);" ;
     "}" ;
 
     PRIM_BOOL_OR .p " {" ;
-    "    bool x = pop();" ;
-    "    bool y = pop();" ;
-    "    push(y || x);" ;
+    "    bool x = pop_bool();" ;
+    "    bool y = pop_bool();" ;
+    "    push_bool(y || x);" ;
     "}" ;;
 
     PRIM_SYS_ARGC .p " {" ;
-    "    push(global_argc);";
+    "    push_i64(global_argc);";
     "}" ;
 
     PRIM_SYS_ARGV .p " {" ;
-    "    push((i64)global_argv);";
+    "    push_ptr(global_argv);";
     "}" ;;
 
     PRIM_PTR_SIZE .p " {" ;
-    "    push((i64)sizeof(void*));";
+    "    push_u64((u64)sizeof(void*));";
     "}" ;;
 
     )
@@ -556,10 +658,10 @@ def(c99-emit-external!, Name -- +IO,
 
         " void mw" . dip(dip(dup .name)) " (void) {" ;
         over while(dup nonzero,
-            "    i64 x" . dup .n " = pop();" ;
+            "    i64 x" . dup .n " = pop_i64();" ;
             1-
         ) drop
-        dup nonzero if("    push(", "    ") .
+        dup nonzero if("    push_i64(", "    ") .
         dip(dip(dup .name))
         "(" .
         dip(dup nonzero if(
@@ -605,11 +707,11 @@ def(c99-emit-arrow-op!, Arrow -- +IO,
 
     arrow-op-is-int? if(
         arrow-op-int@
-        "    push(" . .n ");" ;,
+        "    push_i64(" . .n ");" ;,
 
     arrow-op-is-str? if(
         arrow-op-str@ StrLit->Int
-        "    push((i64)(strings + " . .n "));" ;, # FIXME: just push a string literal.
+        "    push_ptr((void*)(strings + " . .n "));" ;, # FIXME: just push a string literal.
 
     arrow-op-is-word? if(
         arrow-op-word@ word-name@
@@ -627,13 +729,13 @@ def(c99-emit-arrow-op!, Arrow -- +IO,
         arrow-op-prim?
         dup PRIM_DIP = if(
             drop arrow-args-1
-            "    { i64 d" . .d " = pop();" ;
+            "    { value_t d" . .d " = pop_value();" ;
             Arg->Arrow c99-emit-arrow!
-            "      push(d" . .d "); }" ;,
+            "      push_value(d" . .d "); }" ;,
 
         dup PRIM_IF = if(
             drop arrow-args-2
-            "    if (pop()) {" ;
+            "    if (pop_u64()) {" ;
             dip(Arg->Arrow c99-emit-arrow!)
             "    } else {" ;
             Arg->Arrow c99-emit-arrow!
@@ -643,7 +745,7 @@ def(c99-emit-arrow-op!, Arrow -- +IO,
             drop arrow-args-2
             "    while(1) {" ;
             dip(Arg->Arrow c99-emit-arrow!)
-            "    if (!pop()) break;" ;
+            "    if (!pop_u64()) break;" ;
             Arg->Arrow c99-emit-arrow!
             "    }" ;,
 
