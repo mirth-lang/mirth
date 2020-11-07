@@ -90,9 +90,9 @@ def(elab-type-con!, Ctx Token -- Ctx Type Token,
     swap token-next)
 
 nominal(HolesAllowed, Bool)
-def(HolesAllowed->Bool, HolesAllowed -- Bool, cast)
-def(allow-holes, HolesAllowed, true cast)
-def(forbid-holes, HolesAllowed, true cast)
+def(HolesAllowed->Bool, HolesAllowed -- Bool, HolesAllowed.unwrap)
+def(allow-holes, HolesAllowed, true HolesAllowed.wrap)
+def(forbid-holes, HolesAllowed, false HolesAllowed.wrap)
 
 def(elab-type-hole!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
     dip(dip(dup)) rotl HolesAllowed->Bool if(
@@ -471,12 +471,29 @@ def(elab-nominal!, Module Token -- Module Token +Mirth,
             dip(forbid-holes ctx-empty) elab-type-atom!
             # TODO ensure token is end run
             drop dip(drop2)
-            over dip(nominal-new! TNominal) name-type!,
+            over dip(nominal-new! elab-nominal-words! TNominal) name-type!,
 
             drop "type already defined" emit-fatal-error!
         ),
         "expected type constructor" emit-fatal-error!
     ))
+
+def(elab-nominal-words!, Nominal -- Nominal +Mirth,
+    nominal-name? name-load! ".wrap" str-buf-push-str! name-save!
+    word-alloc! dup2 swap name-word! tuck word-name!
+    over dup nominal-type@ T1 swap TNominal T1 T->
+    over word-type!
+    arrow-alloc! over word-arrow!
+    dup word-sig-is-checked!
+    word-body-is-checked!
+
+    nominal-name? name-load! ".unwrap" str-buf-push-str! name-save!
+    word-alloc! dup2 swap name-word! tuck word-name!
+    over dup nominal-type@ T1 swap TNominal T1 swap T->
+    over word-type!
+    arrow-alloc! over word-arrow!
+    dup word-sig-is-checked!
+    word-body-is-checked!)
 
 ||| Elaborate a buffer definition `buffer(B, size)`.
 def(elab-buffer!, Module Token -- Module Token +Mirth,

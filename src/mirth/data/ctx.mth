@@ -7,11 +7,6 @@ import(mirth/data/var)
 ###########
 
 # A context for types and terms.
-def(Ctx->Int, Ctx -- Int, cast)
-def(Int->Ctx, Int -- Ctx, cast)
-def(|Ctx|, Size, 2)
-def(ctx@, Ptr -- Ctx, u16@ U16->Int Int->Ctx)
-def(ctx!, Ctx Ptr --, dip(Ctx->Int Int->U16) u16!)
 
 def(ctx-name@, Ctx -- Name, ctx-var@ var-name@)
 
@@ -20,8 +15,8 @@ def(ctx-new!, Ctx Var -- Ctx,
     tuck ctx-var!
     tuck ctx-prev!)
 
-def(ctx-empty, Ctx, 0 Int->Ctx)
-def(ctx-is-empty, Ctx -- Bool, Ctx->Int 0 =)
+def(ctx-empty, Ctx, 0 cast)
+def(ctx-is-empty, Ctx -- Bool, ctx-empty =)
 def(ctx-is-empty?, Ctx -- Ctx Bool, dup ctx-is-empty)
 
 def(ctx-has-name?, Name Ctx -- Name Ctx Bool, dup2 ctx-has-name)

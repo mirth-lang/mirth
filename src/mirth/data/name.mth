@@ -15,8 +15,8 @@ def(name@, Ptr -- Name, @ Int->Name)
 def(name!, Name Ptr --, dip(Name->Int) !)
 
 nominal(Hash, Int)
-def(Int->Hash, Int -- Hash, cast)
-def(Hash->Int, Hash -- Int, cast)
+def(Int->Hash, Int -- Hash, Hash.wrap)
+def(Hash->Int, Hash -- Int, Hash.unwrap)
 
 def(MAX_NAMES, Size, 0x4000)
 def(NAME_HASH_MAX, Size, 0x3FFF)
@@ -248,11 +248,11 @@ def(NAME_ERROR, Name, 0 Int->Name)
 # Defs #
 ########
 
-def(NameValue->Int, NameValue -- Int, cast)
-def(Int->NameValue, Int -- NameValue, cast)
+def(NameValue->Int, NameValue -- Int, NameValue.unwrap)
+def(Int->NameValue, Int -- NameValue, NameValue.wrap)
 
-def(NameSort->U8, NameSort -- U8, cast)
-def(U8->NameSort, U8 -- NameSort, cast)
+def(NameSort->U8, NameSort -- U8, NameSort.unwrap)
+def(U8->NameSort, U8 -- NameSort, NameSort.wrap)
 def(Int->NameSort, Int -- NameSort, Int->U8 U8->NameSort)
 def(DEF_NONE, NameSort, 0 Int->NameSort)
 def(DEF_WORD, NameSort, 1 Int->NameSort)
