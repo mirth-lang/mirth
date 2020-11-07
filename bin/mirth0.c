@@ -1895,6 +1895,20 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwstr_buf_swap_u8_21_ (void);
  void mwstr_eq (void);
  void mwstr_eq_3F_ (void);
+ void mwpack_cons (void);
+ void mwpack_uncons (void);
+ void mwpack0 (void);
+ void mwpack1 (void);
+ void mwpack2 (void);
+ void mwpack3 (void);
+ void mwpack4 (void);
+ void mwpack5 (void);
+ void mwunpack0 (void);
+ void mwunpack1 (void);
+ void mwunpack2 (void);
+ void mwunpack3 (void);
+ void mwunpack4 (void);
+ void mwunpack5 (void);
  void mwFile__3E_Int (void);
  void mwInt__3E_File (void);
  void mw_7C_File_7C_ (void);
@@ -4996,6 +5010,92 @@ void mwstr_eq (void){
 void mwstr_eq_3F_ (void){
     mwdup2();
     mwstr_eq();
+}
+
+void mwpack_cons (void){
+    mwprim_2E_pack_2E_cons();
+}
+
+void mwpack_uncons (void){
+    mwprim_2E_pack_2E_uncons();
+}
+
+void mwpack0 (void){
+    mwprim_2E_pack_2E_nil();
+}
+
+void mwpack1 (void){
+    { value_t d1 = pop_value();
+    mwpack0();
+      push_value(d1); }
+    mwpack_cons();
+}
+
+void mwpack2 (void){
+    { value_t d1 = pop_value();
+    mwpack1();
+      push_value(d1); }
+    mwpack_cons();
+}
+
+void mwpack3 (void){
+    { value_t d1 = pop_value();
+    mwpack2();
+      push_value(d1); }
+    mwpack_cons();
+}
+
+void mwpack4 (void){
+    { value_t d1 = pop_value();
+    mwpack3();
+      push_value(d1); }
+    mwpack_cons();
+}
+
+void mwpack5 (void){
+    { value_t d1 = pop_value();
+    mwpack4();
+      push_value(d1); }
+    mwpack_cons();
+}
+
+void mwunpack0 (void){
+    mwdrop();
+}
+
+void mwunpack1 (void){
+    mwpack_uncons();
+    { value_t d1 = pop_value();
+    mwunpack0();
+      push_value(d1); }
+}
+
+void mwunpack2 (void){
+    mwpack_uncons();
+    { value_t d1 = pop_value();
+    mwunpack1();
+      push_value(d1); }
+}
+
+void mwunpack3 (void){
+    mwpack_uncons();
+    { value_t d1 = pop_value();
+    mwunpack2();
+      push_value(d1); }
+}
+
+void mwunpack4 (void){
+    mwpack_uncons();
+    { value_t d1 = pop_value();
+    mwunpack3();
+      push_value(d1); }
+}
+
+void mwunpack5 (void){
+    mwpack_uncons();
+    { value_t d1 = pop_value();
+    mwunpack4();
+      push_value(d1); }
 }
 
 void mwFile__3E_Int (void){
