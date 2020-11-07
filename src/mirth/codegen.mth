@@ -199,16 +199,19 @@ def(c99-emit-buffer!, Name -- +IO,
 def(c99-emit-prims!, +IO,
     "void decref (value_t v) { " ;
     "    while (v.tag == VT_CELL) {" ;
-    "        volatile cell_t *cell = heap + (usize)v.payload.vp_u64;" ;
+    "        usize cell_index = (usize)v.payload.vp_u64;";
+    "        volatile cell_t *cell = heap + cell_index;";
     "        if (cell->refs >= 1) {";
     "            cell->refs--;" ;
     "            if (cell->refs == 0) {" ;
-    "                decref(cell->cdr);" ;
-    "                v = cell->car;" ;
-    "                cell->cdr.tag = 0; cell->cdr.payload.vp_u64 = heap_next;" ;
+    "                value_t car = cell->car;" ;
+    "                value_t cdr = cell->cdr;" ;
     "                cell->car.tag = 0; cell->car.payload.vp_u64 = 0;" ;
+    "                cell->cdr.tag = 0; cell->cdr.payload.vp_u64 = heap_next;" ;
+    "                heap_next = cell_index;" ;
     "                heap_count--;" ;
-    "                heap_next = (usize)v.payload.vp_u64;" ;
+    "                decref(cdr);" ;
+    "                v = car;" ;
     "            } else {" ;
     "                break;" ;
     "            }" ;
@@ -227,6 +230,8 @@ def(c99-emit-prims!, +IO,
 
     # create a cons cell, while taking ownership of car and cdr's refs
     "value_t mkcell (value_t car, value_t cdr) {" ;
+    "    if ((car.tag == VT_NONE) && (car.payload.vp_u64 == 0) && (cdr.tag != VT_CELL))" ;
+    "        return cdr;" ;
     "    if (heap_count >= HEAP_SIZE - 1) {" ;
     "        write(2, \"HEAP OVERFLOW\\n\", 14);" ;
     "        exit(1);" ;
@@ -694,6 +699,12 @@ def(c99-emit-prims!, +IO,
 
     PRIM_PACK_UNCONS .p " {" ;
     "    value_t val = pop_value();" ;
+    "    if (val.tag != VT_CELL) {" ;
+    "        value_t nil = { 0 };" ;
+    "        push_value(nil);" ;
+    "        push_value(val);" ;
+    "        return;" ;
+    "    }" ;
     "    volatile cell_t* cell = heap + val.payload.vp_u64;" ;
     "    value_t car = cell->car;" ;
     "    value_t cdr = cell->cdr;" ;
