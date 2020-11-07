@@ -163,6 +163,7 @@ def(c99-emit-header!, +IO,
 
     "#define HEAP_SIZE 0x8000" ;
     "#define HEAP_MASK 0x7FFF" ;
+    "static volatile usize heap_next = 1;" ;
     "static volatile usize heap_count = 0;" ;
     "static volatile cell_t heap [HEAP_SIZE] = {0};" ;;
 
@@ -204,9 +205,10 @@ def(c99-emit-prims!, +IO,
     "            if (cell->refs == 0) {" ;
     "                decref(cell->cdr);" ;
     "                v = cell->car;" ;
-    "                cell->cdr.tag = 0; cell->cdr.payload.vp_u64 = 0;" ;
+    "                cell->cdr.tag = 0; cell->cdr.payload.vp_u64 = heap_next;" ;
     "                cell->car.tag = 0; cell->car.payload.vp_u64 = 0;" ;
     "                heap_count--;" ;
+    "                heap_next = v.payload.vp_u64;" ;
     "            } else {" ;
     "                break;" ;
     "            }" ;
@@ -225,35 +227,23 @@ def(c99-emit-prims!, +IO,
 
     # create a cons cell, while taking ownership of car and cdr's refs
     "value_t mkcell (value_t car, value_t cdr) {" ;
-    "    if (heap_count * 8 >= HEAP_SIZE * 7) {" ;
+    "    if (heap_count >= HEAP_SIZE - 1) {" ;
     "        write(2, \"HEAP OVERFLOW\\n\", 14);" ;
     "        exit(1);" ;
     "    }" ;
-    "    u64 hash = ((u64)car.tag * 0x1A9108A185251)" ;
-    "             ^ ((u64)cdr.tag * 0x25B911B138183)" ;
-    "             ^ (car.payload.vp_u64 * 0x1890028B227842A5)" ;
-    "             ^ (car.payload.vp_u64 * 0x9981012240B11127);" ; # some really silly hash function
-    "    u64 cell_index;" ;
-    "    volatile cell_t *cell;" ;
-    "    while (1) { " ;
-    "        cell_index = (hash >> 17) & HEAP_MASK;" ;
-    "        cell = heap + cell_index;" ;
-    "        if (cell_index && !cell->refs) {" ;
-    "            heap_count++;" ;
-    "            cell->refs = 1;" ;
-    "            cell->car = car;" ;
-    "            cell->cdr = cdr;" ;
-    "            break;" ;
-    "        }" ;
-    "        if (cell->car.tag == car.tag" ;
-    "          && cell->car.payload.vp_u64 == car.payload.vp_u64" ;
-    "          && cell->cdr.tag == cdr.tag" ;
-    "          && cell->cdr.payload.vp_u64 == cdr.payload.vp_u64) {" ;
-    "            cell->refs++; decref(car); decref(cdr);" ;
-    "            break;" ;
-    "        }" ;
-    "        hash = (hash >> 7) ^ (hash << 57) + 0x1251;" ; # rotate & mix
+    "    u64 cell_index = heap_next;" ;
+    "    volatile cell_t *cell = heap + cell_index;" ;
+    "    while ((cell->refs > 0) && (cell_index < HEAP_SIZE)) { cell++; cell_index++; }" ;
+    "    if (cell_index >= HEAP_SIZE - 1) {" ;
+    "        write(2, \"HEAP OVERFLOW\\n\", 14);" ;
+    "        exit(1);" ;
     "    }" ;
+    "    u64 saved_index = cell->cdr.payload.vp_u64;" ;
+    "    heap_next = saved_index ? saved_index : cell_index+1;" ;
+    "    heap_count++;" ;
+    "    cell->refs = 1;" ;
+    "    cell->car = car;" ;
+    "    cell->cdr = cdr;" ;
     "    value_t v = {0};" ;
     "    v.tag = VT_CELL;" ;
     "    v.payload.vp_u64 = cell_index;" ;
