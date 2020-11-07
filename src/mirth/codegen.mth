@@ -208,7 +208,7 @@ def(c99-emit-prims!, +IO,
     "                cell->cdr.tag = 0; cell->cdr.payload.vp_u64 = heap_next;" ;
     "                cell->car.tag = 0; cell->car.payload.vp_u64 = 0;" ;
     "                heap_count--;" ;
-    "                heap_next = v.payload.vp_u64;" ;
+    "                heap_next = (usize)v.payload.vp_u64;" ;
     "            } else {" ;
     "                break;" ;
     "            }" ;
@@ -239,7 +239,7 @@ def(c99-emit-prims!, +IO,
     "        exit(1);" ;
     "    }" ;
     "    u64 saved_index = cell->cdr.payload.vp_u64;" ;
-    "    heap_next = saved_index ? saved_index : cell_index+1;" ;
+    "    heap_next = (usize)(saved_index ? saved_index : cell_index+1);" ;
     "    heap_count++;" ;
     "    cell->refs = 1;" ;
     "    cell->car = car;" ;
