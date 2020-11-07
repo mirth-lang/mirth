@@ -44,6 +44,10 @@ def(PRIM_BOOL_FALSE, Prim, 75 Int->Prim)
 def(PRIM_BOOL_AND, Prim, 76 Int->Prim)
 def(PRIM_BOOL_OR, Prim, 77 Int->Prim)
 
+def(PRIM_PACK_NIL, Prim, 83 Int->Prim)
+def(PRIM_PACK_CONS, Prim, 84 Int->Prim)
+def(PRIM_PACK_UNCONS, Prim, 85 Int->Prim)
+
 def(PRIM_PTR_ADD, Prim, 72 Int->Prim)
 def(PRIM_PTR_SIZE, Prim, 82 Int->Prim)
 
@@ -91,7 +95,7 @@ def(PRIM_TARGET_C99, Prim, 55 Int->Prim)
 def(PRIM_TABLE, Prim, 78 Int->Prim)
 def(PRIM_FIELD, Prim, 79 Int->Prim)
 
-# next primitive is 83
+# next primitive is 86
 
 def(def-prim!, Prim Str -- +Names,
     name-new! dup2 name-prim! swap prim-name!)
@@ -131,6 +135,10 @@ def(init-prims!, +Names,
     PRIM_BOOL_FALSE "false" def-prim!
     PRIM_BOOL_AND "&&" def-prim!
     PRIM_BOOL_OR "||" def-prim!
+
+    PRIM_PACK_NIL "prim.pack.nil" def-prim!
+    PRIM_PACK_CONS "prim.pack.cons" def-prim!
+    PRIM_PACK_UNCONS "prim.pack.uncons" def-prim!
 
     PRIM_PTR_ADD "prim.unsafe.ptr+" def-prim!
     PRIM_PTR_SIZE "prim.unsafe.|ptr|" def-prim!
@@ -267,6 +275,9 @@ def(init-prims!, +Names,
     dup PRIM_BOOL_OR prim-type!
     drop
 
+    T0 T0 T1 T->
+    PRIM_PACK_NIL prim-type!
+
     #
     # polymorphic prims -- we really need better technology to notate these
     #
@@ -349,5 +360,24 @@ def(init-prims!, +Names,
     over dup T-> P2
     swap dup T-> T=>
     PRIM_WHILE prim-type!
+
+
+    "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
+    "b" name-new! var-new-implicit! TYPE_TYPE over var-type!
+    dup2 ctx-empty swap ctx-new! swap ctx-new!
+    PRIM_PACK_CONS prim-ctx!
+
+    dip(TVar) TVar
+    dup2 T2 rotr T* T1 T->
+    PRIM_PACK_CONS prim-type!
+
+    "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
+    "b" name-new! var-new-implicit! TYPE_TYPE over var-type!
+    dup2 ctx-empty swap ctx-new! swap ctx-new!
+    PRIM_PACK_UNCONS prim-ctx!
+
+    dip(TVar) TVar
+    dup2 T* T1 rotr T2 T->
+    PRIM_PACK_UNCONS prim-type!
 
     )
