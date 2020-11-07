@@ -227,6 +227,8 @@ def(c99-emit-prims!, +IO,
 
     # create a cons cell, while taking ownership of car and cdr's refs
     "value_t mkcell (value_t car, value_t cdr) {" ;
+    "    if ((car.tag == VT_NONE) && (car.payload.vp_u64 == 0) && (cdr.tag != VT_CELL))" ;
+    "        return cdr;" ;
     "    if (heap_count >= HEAP_SIZE - 1) {" ;
     "        write(2, \"HEAP OVERFLOW\\n\", 14);" ;
     "        exit(1);" ;
@@ -694,6 +696,12 @@ def(c99-emit-prims!, +IO,
 
     PRIM_PACK_UNCONS .p " {" ;
     "    value_t val = pop_value();" ;
+    "    if (val.tag != VT_CELL) {" ;
+    "        value_t nil = { 0 };" ;
+    "        push_value(nil);" ;
+    "        push_value(val);" ;
+    "        return;" ;
+    "    }" ;
     "    volatile cell_t* cell = heap + val.payload.vp_u64;" ;
     "    value_t car = cell->car;" ;
     "    value_t cdr = cell->cdr;" ;
