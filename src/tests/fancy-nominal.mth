@@ -1,0 +1,11 @@
+module(tests/fancy-nominal)
+import(prelude)
+
+nominal(IntPair, [Int Int])
+def(mkIntPair, Int Int -- IntPair, pack2 cast)
+def(unIntPair, IntPair -- Int Int, cast unpack2)
+def(fancy-nominal, --, 10 20 ?? mkIntPair ?? unIntPair ?? drop2)
+target-c99("fancy-nominal.c", fancy-nominal)
+# mirth-test # perr # ?? 10 20
+# mirth-test # perr # ?? 1
+# mirth-test # perr # ?? 10 20

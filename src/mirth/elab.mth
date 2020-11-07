@@ -452,16 +452,9 @@ def(elab-def-type!, Module Token -- Module Token +Mirth,
     swap sig-token-is-type-con? if(
         token-name? name-undefined? if(
             nip swap
-            sig-token-is-type-con? if(
-                token-name?
-                name-is-type? if(
-                    name-type@ nip,
-                    drop "Unknown type." emit-error!
-                    TYPE_ERROR
-                ),
-                "Expected a type." emit-error!
-                TYPE_ERROR
-            )
+            dip(forbid-holes ctx-empty) elab-type-atom!
+            # TODO ensure token is end run
+            drop dip(drop2)
             swap name-type!,
 
             drop "type already defined" emit-fatal-error!
@@ -475,14 +468,9 @@ def(elab-nominal!, Module Token -- Module Token +Mirth,
     swap sig-token-is-type-con? if(
         token-name? name-undefined? if(
             nip swap
-            sig-token-is-type-con? if(
-                token-name?
-                name-is-type? if(
-                    name-type@ nip,
-                    drop "Unknown type." emit-error! TYPE_ERROR
-                ),
-                "Expected a type." emit-error! TYPE_ERROR
-            )
+            dip(forbid-holes ctx-empty) elab-type-atom!
+            # TODO ensure token is end run
+            drop dip(drop2)
             over dip(nominal-new! TNominal) name-type!,
 
             drop "type already defined" emit-fatal-error!
