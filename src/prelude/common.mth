@@ -255,6 +255,27 @@ def(str-eq, Str Str -- Bool,
 
 def(str-eq?, Str Str -- Str Str Bool, dup2 str-eq)
 
+##########
+# TUPLES #
+##########
+
+def(pack-cons, [*a] b -- [*a b], prim.pack.cons)
+def(pack-uncons, [*a b] -- [*a] b, prim.pack.uncons)
+
+def(pack0, [], prim.pack.nil)
+def(pack1, a -- [a], dip(pack0) pack-cons)
+def(pack2, a b -- [a b], dip(pack1) pack-cons)
+def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
+def(pack4, a b c d -- [a b c d], dip(pack3) pack-cons)
+def(pack5, a b c d e -- [a b c d e], dip(pack4) pack-cons)
+
+def(unpack0, [] --, drop)
+def(unpack1, [a] -- a, pack-uncons dip(unpack0))
+def(unpack2, [a b] -- a b, pack-uncons dip(unpack1))
+def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
+def(unpack4, [a b c d] -- a b c d, pack-uncons dip(unpack3))
+def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
+
 ######
 # IO #
 ######
