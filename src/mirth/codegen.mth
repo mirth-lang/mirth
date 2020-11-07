@@ -199,16 +199,19 @@ def(c99-emit-buffer!, Name -- +IO,
 def(c99-emit-prims!, +IO,
     "void decref (value_t v) { " ;
     "    while (v.tag == VT_CELL) {" ;
-    "        volatile cell_t *cell = heap + (usize)v.payload.vp_u64;" ;
+    "        usize cell_index = (usize)v.payload.vp_u64;";
+    "        volatile cell_t *cell = heap + cell_index;";
     "        if (cell->refs >= 1) {";
     "            cell->refs--;" ;
     "            if (cell->refs == 0) {" ;
-    "                decref(cell->cdr);" ;
-    "                v = cell->car;" ;
-    "                cell->cdr.tag = 0; cell->cdr.payload.vp_u64 = heap_next;" ;
+    "                value_t car = cell->car;" ;
+    "                value_t cdr = cell->cdr;" ;
     "                cell->car.tag = 0; cell->car.payload.vp_u64 = 0;" ;
+    "                cell->cdr.tag = 0; cell->cdr.payload.vp_u64 = heap_next;" ;
+    "                heap_next = cell_index;" ;
     "                heap_count--;" ;
-    "                heap_next = (usize)v.payload.vp_u64;" ;
+    "                decref(cdr);" ;
+    "                v = car;" ;
     "            } else {" ;
     "                break;" ;
     "            }" ;
