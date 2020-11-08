@@ -1908,6 +1908,21 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwunpack3 (void);
  void mwunpack4 (void);
  void mwunpack5 (void);
+ void mw_2E_0 (void);
+ void mw_2E_1 (void);
+ void mw_2E_2 (void);
+ void mw_2E_3 (void);
+ void mw_2E_4 (void);
+ void mw_2E_0_3F_ (void);
+ void mw_2E_1_3F_ (void);
+ void mw_2E_2_3F_ (void);
+ void mw_2E_3_3F_ (void);
+ void mw_2E_4_3F_ (void);
+ void mw_2E_0_21_ (void);
+ void mw_2E_1_21_ (void);
+ void mw_2E_2_21_ (void);
+ void mw_2E_3_21_ (void);
+ void mw_2E_4_21_ (void);
  void mwFile__3E_Int (void);
  void mwInt__3E_File (void);
  void mw_7C_File_7C_ (void);
@@ -3067,6 +3082,20 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwsig_token_is_type_var_3F_ (void);
  void mwsig_token_is_stack_var_3F_ (void);
  void mwsig_skip_dashes (void);
+ void mwHolesAllowed__3E_Bool (void);
+ void mwHolesAllowed_2E_unwrap (void);
+ void mwallow_holes (void);
+ void mwHolesAllowed_2E_wrap (void);
+ void mwforbid_holes (void);
+ void mwtype_elab_default (void);
+ void mwTypeElab_2E_wrap (void);
+ void mwtype_elab_stack_assertion (void);
+ void mwtype_elab_holes_allowed_3F_ (void);
+ void mwTypeElab_2E_unwrap (void);
+ void mwtype_elab_ctx (void);
+ void mwtype_elab_ctx_3F_ (void);
+ void mwtype_elab_holes_allowed_21_ (void);
+ void mwtype_elab_ctx_21_ (void);
  void mwelab_type_sig_21_ (void);
  void mwelab_type_stack_21_ (void);
  void mwelab_stack_var_21_ (void);
@@ -3079,11 +3108,6 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwelab_type_quote_21_ (void);
  void mwelab_implicit_var_21_ (void);
  void mwelab_type_unify_21_ (void);
- void mwHolesAllowed__3E_Bool (void);
- void mwHolesAllowed_2E_unwrap (void);
- void mwallow_holes (void);
- void mwHolesAllowed_2E_wrap (void);
- void mwforbid_holes (void);
  void mwelab_external_sig_21_ (void);
  void mwelab_external_ctx_sig_21_ (void);
  void mwelab_external_ctx_21_ (void);
@@ -5115,6 +5139,112 @@ void mwunpack5 (void){
     { value_t d1 = pop_value();
     mwunpack4();
       push_value(d1); }
+}
+
+void mw_2E_0 (void){
+    mwpack_uncons();
+    mwnip();
+}
+
+void mw_2E_1 (void){
+    mwpack_uncons();
+    mwdrop();
+    mw_2E_0();
+}
+
+void mw_2E_2 (void){
+    mwpack_uncons();
+    mwdrop();
+    mw_2E_1();
+}
+
+void mw_2E_3 (void){
+    mwpack_uncons();
+    mwdrop();
+    mw_2E_2();
+}
+
+void mw_2E_4 (void){
+    mwpack_uncons();
+    mwdrop();
+    mw_2E_3();
+}
+
+void mw_2E_0_3F_ (void){
+    mwdup();
+    mw_2E_0();
+}
+
+void mw_2E_1_3F_ (void){
+    mwdup();
+    mw_2E_1();
+}
+
+void mw_2E_2_3F_ (void){
+    mwdup();
+    mw_2E_2();
+}
+
+void mw_2E_3_3F_ (void){
+    mwdup();
+    mw_2E_3();
+}
+
+void mw_2E_4_3F_ (void){
+    mwdup();
+    mw_2E_4();
+}
+
+void mw_2E_0_21_ (void){
+    { value_t d1 = pop_value();
+    mwpack_uncons();
+    mwdrop();
+      push_value(d1); }
+    mwpack_cons();
+}
+
+void mw_2E_1_21_ (void){
+    { value_t d1 = pop_value();
+    mwpack_uncons();
+      push_value(d1); }
+    mwswap();
+    { value_t d1 = pop_value();
+    mw_2E_0_21_();
+      push_value(d1); }
+    mwpack_cons();
+}
+
+void mw_2E_2_21_ (void){
+    { value_t d1 = pop_value();
+    mwpack_uncons();
+      push_value(d1); }
+    mwswap();
+    { value_t d1 = pop_value();
+    mw_2E_1_21_();
+      push_value(d1); }
+    mwpack_cons();
+}
+
+void mw_2E_3_21_ (void){
+    { value_t d1 = pop_value();
+    mwpack_uncons();
+      push_value(d1); }
+    mwswap();
+    { value_t d1 = pop_value();
+    mw_2E_2_21_();
+      push_value(d1); }
+    mwpack_cons();
+}
+
+void mw_2E_4_21_ (void){
+    { value_t d1 = pop_value();
+    mwpack_uncons();
+      push_value(d1); }
+    mwswap();
+    { value_t d1 = pop_value();
+    mw_2E_3_21_();
+      push_value(d1); }
+    mwpack_cons();
 }
 
 void mwFile__3E_Int (void){
@@ -16776,6 +16906,79 @@ void mwsig_skip_dashes (void){
     }
 }
 
+void mwHolesAllowed__3E_Bool (void){
+    mwHolesAllowed_2E_unwrap();
+}
+
+void mwHolesAllowed_2E_unwrap (void){
+}
+
+void mwallow_holes (void){
+    mwtrue();
+    mwHolesAllowed_2E_wrap();
+}
+
+void mwHolesAllowed_2E_wrap (void){
+}
+
+void mwforbid_holes (void){
+    mwfalse();
+    mwHolesAllowed_2E_wrap();
+}
+
+void mwtype_elab_default (void){
+    mwforbid_holes();
+    mwctx_empty();
+    mwpack2();
+    mwTypeElab_2E_wrap();
+}
+
+void mwTypeElab_2E_wrap (void){
+}
+
+void mwtype_elab_stack_assertion (void){
+    { value_t d1 = pop_value();
+    mwallow_holes();
+      push_value(d1); }
+    mwpack2();
+    mwTypeElab_2E_wrap();
+}
+
+void mwtype_elab_holes_allowed_3F_ (void){
+    mwdup();
+    mwTypeElab_2E_unwrap();
+    mw_2E_1();
+}
+
+void mwTypeElab_2E_unwrap (void){
+}
+
+void mwtype_elab_ctx (void){
+    mwTypeElab_2E_unwrap();
+    mw_2E_0();
+}
+
+void mwtype_elab_ctx_3F_ (void){
+    mwdup();
+    mwtype_elab_ctx();
+}
+
+void mwtype_elab_holes_allowed_21_ (void){
+    { value_t d1 = pop_value();
+    mwTypeElab_2E_unwrap();
+      push_value(d1); }
+    mw_2E_1_21_();
+    mwTypeElab_2E_wrap();
+}
+
+void mwtype_elab_ctx_21_ (void){
+    { value_t d1 = pop_value();
+    mwTypeElab_2E_unwrap();
+      push_value(d1); }
+    mw_2E_0_21_();
+    mwTypeElab_2E_wrap();
+}
+
 void mwelab_type_sig_21_ (void){
     mwelab_type_stack_21_();
     mwtoken_is_dashes_3F_();
@@ -16914,11 +17117,9 @@ void mwelab_type_con_21_ (void){
 
 void mwelab_type_dont_care_21_ (void){
     { value_t d1 = pop_value();
-    { value_t d2 = pop_value();
-    mwdup();
-      push_value(d2); }
+    mwtype_elab_holes_allowed_3F_();
       push_value(d1); }
-    mwrotl();
+    mwswap();
     mwHolesAllowed__3E_Bool();
     if (pop_u64()) {
     mwtoken_has_args_3F_();
@@ -16940,11 +17141,9 @@ void mwelab_type_dont_care_21_ (void){
 
 void mwelab_type_hole_21_ (void){
     { value_t d1 = pop_value();
-    { value_t d2 = pop_value();
-    mwdup();
-      push_value(d2); }
+    mwtype_elab_holes_allowed_3F_();
       push_value(d1); }
-    mwrotl();
+    mwswap();
     mwHolesAllowed__3E_Bool();
     if (pop_u64()) {
     mwtoken_has_args_3F_();
@@ -16977,6 +17176,11 @@ void mwelab_type_quote_21_ (void){
 }
 
 void mwelab_implicit_var_21_ (void){
+    { value_t d1 = pop_value();
+    { value_t d2 = pop_value();
+    mwtype_elab_ctx_3F_();
+      push_value(d2); }
+      push_value(d1); }
     mwover();
     { value_t d1 = pop_value();
     { value_t d2 = pop_value();
@@ -17011,6 +17215,11 @@ void mwelab_implicit_var_21_ (void){
       push_value(d2); }
     }
     mwtoken_next();
+    { value_t d1 = pop_value();
+    { value_t d2 = pop_value();
+    mwtype_elab_ctx_21_();
+      push_value(d2); }
+      push_value(d1); }
 }
 
 void mwelab_type_unify_21_ (void){
@@ -17023,26 +17232,6 @@ void mwelab_type_unify_21_ (void){
       push_value(d2); }
       push_value(d1); }
     mwelab_token_21_();
-}
-
-void mwHolesAllowed__3E_Bool (void){
-    mwHolesAllowed_2E_unwrap();
-}
-
-void mwHolesAllowed_2E_unwrap (void){
-}
-
-void mwallow_holes (void){
-    mwtrue();
-    mwHolesAllowed_2E_wrap();
-}
-
-void mwHolesAllowed_2E_wrap (void){
-}
-
-void mwforbid_holes (void){
-    mwfalse();
-    mwHolesAllowed_2E_wrap();
 }
 
 void mwelab_external_sig_21_ (void){
@@ -17059,19 +17248,13 @@ void mwelab_external_ctx_sig_21_ (void){
       push_value(d2); }
     } else {
     mwexternal_sig_3F_();
-    mwctx_empty();
-    mwswap();
     { value_t d2 = pop_value();
-    { value_t d3 = pop_value();
-    mwforbid_holes();
-      push_value(d3); }
+    mwtype_elab_default();
       push_value(d2); }
     mwelab_type_sig_21_();
     mwdrop();
     { value_t d2 = pop_value();
-    { value_t d3 = pop_value();
-    mwdrop();
-      push_value(d3); }
+    mwtype_elab_ctx();
       push_value(d2); }
     mwdup2();
     { value_t d2 = pop_value();
@@ -17106,19 +17289,13 @@ void mwelab_word_ctx_sig_21_ (void){
       push_value(d2); }
     } else {
     mwword_sig_3F_();
-    mwctx_empty();
-    mwswap();
     { value_t d2 = pop_value();
-    { value_t d3 = pop_value();
-    mwforbid_holes();
-      push_value(d3); }
+    mwtype_elab_default();
       push_value(d2); }
     mwelab_type_sig_21_();
     mwdrop();
     { value_t d2 = pop_value();
-    { value_t d3 = pop_value();
-    mwdrop();
-      push_value(d3); }
+    mwtype_elab_ctx();
       push_value(d2); }
     mwdup2();
     { value_t d2 = pop_value();
@@ -17301,16 +17478,13 @@ void mwelab_arrow_op_str_21_ (void){
 
 void mwelab_arrow_op_stack_assertion_21_ (void){
     { value_t d1 = pop_value();
-    mwallow_holes();
-    mwover();
-    mwarrow_ctx_40_();
+    mwarrow_ctx_3F_();
+    mwtype_elab_stack_assertion();
       push_value(d1); }
     mwtoken_succ();
     mwelab_type_stack_21_();
     mwdrop();
-    { value_t d1 = pop_value();
-    mwdrop2();
-      push_value(d1); }
+    mwnip();
     mwover();
     mwarrow_token_40_();
     { value_t d1 = pop_value();
@@ -17749,14 +17923,11 @@ void mwelab_def_type_21_ (void){
     mwnip();
     mwswap();
     { value_t d3 = pop_value();
-    mwforbid_holes();
-    mwctx_empty();
+    mwtype_elab_default();
       push_value(d3); }
     mwelab_type_atom_21_();
     mwdrop();
-    { value_t d3 = pop_value();
-    mwdrop2();
-      push_value(d3); }
+    mwnip();
     mwswap();
     mwname_type_21_();
     } else {
@@ -17785,14 +17956,11 @@ void mwelab_nominal_21_ (void){
     mwnip();
     mwswap();
     { value_t d3 = pop_value();
-    mwforbid_holes();
-    mwctx_empty();
+    mwtype_elab_default();
       push_value(d3); }
     mwelab_type_atom_21_();
     mwdrop();
-    { value_t d3 = pop_value();
-    mwdrop2();
-      push_value(d3); }
+    mwnip();
     mwover();
     { value_t d3 = pop_value();
     mwnominal_new_21_();

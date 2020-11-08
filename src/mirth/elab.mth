@@ -8,7 +8,23 @@ import(mirth/data/table)
 # Type Elaboration #
 ####################
 
-def(elab-type-sig!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
+nominal(HolesAllowed, Bool)
+def(HolesAllowed->Bool, HolesAllowed -- Bool, HolesAllowed.unwrap)
+def(allow-holes, HolesAllowed, true HolesAllowed.wrap)
+def(forbid-holes, HolesAllowed, false HolesAllowed.wrap)
+
+nominal(TypeElab, [HolesAllowed Ctx])
+def(type-elab-default, TypeElab, forbid-holes ctx-empty pack2 TypeElab.wrap)
+def(type-elab-stack-assertion, Ctx -- TypeElab, dip(allow-holes) pack2 TypeElab.wrap)
+def(type-elab-holes-allowed?, TypeElab -- TypeElab HolesAllowed, dup TypeElab.unwrap .1)
+def(type-elab-ctx, TypeElab -- Ctx, TypeElab.unwrap .0)
+def(type-elab-ctx?, TypeElab -- TypeElab Ctx, dup type-elab-ctx)
+def(type-elab-holes-allowed!, TypeElab HolesAllowed -- TypeElab,
+    dip(TypeElab.unwrap) .1! TypeElab.wrap)
+def(type-elab-ctx!, TypeElab Ctx -- TypeElab,
+    dip(TypeElab.unwrap) .0! TypeElab.wrap)
+
+def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
     elab-type-stack!
     token-is-dashes? if(
         token-next
@@ -17,20 +33,20 @@ def(elab-type-sig!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
     dip(swap morphism-type-new! TMorphism)
     ) # TODO: elaborate effect type too
 
-def(elab-type-stack!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
+def(elab-type-stack!, TypeElab Token -- TypeElab Type Token,
     sig-token-is-stack-var? if(
         elab-stack-var! dip(TVar),
         dip(TYPE_UNIT)
     )
     elab-type-stack-rest!)
 
-def(elab-type-stack-rest!, HolesAllowed Ctx Type Token -- HolesAllowed Ctx Type Token,
+def(elab-type-stack-rest!, TypeElab Type Token -- TypeElab Type Token,
     while(sig-is-stack-end2? not,
         swap dip(elab-type-atom!) swap
         dip(swap tensor-type-new! TTensor)
     ))
 
-def(elab-type-atom!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
+def(elab-type-atom!, TypeElab Token -- TypeElab Type Token,
     sig-token-is-type-var? if(
         elab-type-var! dip(TVar),
 
@@ -50,13 +66,14 @@ def(elab-type-atom!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
         dip(TYPE_ERROR) token-next
     ))))))
 
-def(elab-stack-var!, Ctx Token -- Ctx Var Token,
+def(elab-stack-var!, TypeElab Token -- TypeElab Var Token,
     TYPE_STACK elab-implicit-var!)
 
-def(elab-type-var!, Ctx Token -- Ctx Var Token,
+def(elab-type-var!, TypeElab Token -- TypeElab Var Token,
     TYPE_TYPE elab-implicit-var!)
 
-def(elab-implicit-var!, Ctx Token Type -- Ctx Var Token,
+def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
+    dip(dip(type-elab-ctx?))
     over
     dip(dip(
         token-name@
@@ -72,9 +89,10 @@ def(elab-implicit-var!, Ctx Token Type -- Ctx Var Token,
             dup dip(ctx-new!)
         )
     )
-    token-next)
+    token-next
+    dip(dip(type-elab-ctx!)))
 
-def(elab-type-con!, Ctx Token -- Ctx Type Token,
+def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
     token-has-args? if(
         dup "Types with args not yet supported." emit-error! TYPE_ERROR,
 
@@ -89,13 +107,8 @@ def(elab-type-con!, Ctx Token -- Ctx Type Token,
     )
     swap token-next)
 
-nominal(HolesAllowed, Bool)
-def(HolesAllowed->Bool, HolesAllowed -- Bool, HolesAllowed.unwrap)
-def(allow-holes, HolesAllowed, true HolesAllowed.wrap)
-def(forbid-holes, HolesAllowed, false HolesAllowed.wrap)
-
-def(elab-type-hole!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
-    dip(dip(dup)) rotl HolesAllowed->Bool if(
+def(elab-type-hole!, TypeElab Token -- TypeElab Type Token,
+    dip(type-elab-holes-allowed?) swap HolesAllowed->Bool if(
         token-has-args? if(
             dup "Types with args not yet supported." emit-error! TYPE_ERROR,
             token-name? THole)
@@ -103,8 +116,8 @@ def(elab-type-hole!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
         "type holes are not allowed here" emit-fatal-error!
     ))
 
-def(elab-type-dont-care!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
-    dip(dip(dup)) rotl HolesAllowed->Bool if(
+def(elab-type-dont-care!, TypeElab Token -- TypeElab Type Token,
+    dip(type-elab-holes-allowed?) swap HolesAllowed->Bool if(
         token-has-args? if(
             dup "Types with args not yet supported." emit-error! TYPE_ERROR,
             TYPE_DONT_CARE)
@@ -112,7 +125,7 @@ def(elab-type-dont-care!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
         "type don't care is not allowed here" emit-fatal-error!
     ))
 
-def(elab-type-quote!, HolesAllowed Ctx Token -- HolesAllowed Ctx Type Token,
+def(elab-type-quote!, TypeElab Token -- TypeElab Type Token,
     token-bracket-arg
     sig-has-dashes? if(
         elab-type-sig!,
@@ -140,10 +153,10 @@ def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
     external-sig-is-checked? if(
         external-type? dip(external-ctx@),
 
-        external-sig? ctx-empty swap
-        dip(dip(forbid-holes))
-        elab-type-sig! drop dip(dip(drop)) dup2
-        dip(dip(
+        external-sig?
+        dip(type-elab-default)
+        elab-type-sig! drop dip(type-elab-ctx)
+        dup2 dip(dip(
             rotl
             tuck external-type!
             tuck external-ctx!
@@ -161,11 +174,10 @@ def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
     word-sig-is-checked? if(
         word-type? dip(word-ctx@),
 
-        word-sig? ctx-empty swap
-
-        dip(dip(forbid-holes))
-        elab-type-sig! drop dip(dip(drop)) dup2
-        dip(dip(
+        word-sig?
+        dip(type-elab-default)
+        elab-type-sig! drop dip(type-elab-ctx)
+        dup2 dip(dip(
             rotl
             tuck word-type!
             tuck word-ctx!
@@ -257,9 +269,9 @@ def(elab-arrow-op-buffer!, Arrow Buffer -- Type,
     arrow-dom@ TYPE_PTR T*)
 
 def(elab-arrow-op-stack-assertion!, Arrow Token -- Type,
-    dip(allow-holes over arrow-ctx@)
+    dip(arrow-ctx? type-elab-stack-assertion)
     token-succ elab-type-stack!
-    drop dip(drop2)
+    drop nip
     over arrow-token@
     dip(dip(arrow-dom@ dup))
     elab-type-unify! drop2)
@@ -452,9 +464,9 @@ def(elab-def-type!, Module Token -- Module Token +Mirth,
     swap sig-token-is-type-con? if(
         token-name? name-undefined? if(
             nip swap
-            dip(forbid-holes ctx-empty) elab-type-atom!
+            dip(type-elab-default) elab-type-atom!
             # TODO ensure token is end run
-            drop dip(drop2)
+            drop nip
             swap name-type!,
 
             drop "type already defined" emit-fatal-error!
@@ -468,9 +480,9 @@ def(elab-nominal!, Module Token -- Module Token +Mirth,
     swap sig-token-is-type-con? if(
         token-name? name-undefined? if(
             nip swap
-            dip(forbid-holes ctx-empty) elab-type-atom!
+            dip(type-elab-default) elab-type-atom!
             # TODO ensure token is end run
-            drop dip(drop2)
+            drop nip
             over dip(nominal-new! elab-nominal-words! TNominal) name-type!,
 
             drop "type already defined" emit-fatal-error!

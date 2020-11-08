@@ -276,6 +276,24 @@ def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
 def(unpack4, [a b c d] -- a b c d, pack-uncons dip(unpack3))
 def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
 
+def(.0, [*a b] -- b, pack-uncons nip)
+def(.1, [*a b c] -- b, pack-uncons drop .0)
+def(.2, [*a b c d] -- b, pack-uncons drop .1)
+def(.3, [*a b c d e] -- b, pack-uncons drop .2)
+def(.4, [*a b c d e f] -- b, pack-uncons drop .3)
+
+def(.0?, [*a b] -- [*a b] b, dup .0)
+def(.1?, [*a b c] -- [*a b c] b, dup .1)
+def(.2?, [*a b c d] -- [*a b c d] b, dup .2)
+def(.3?, [*a b c d e] -- [*a b c d e] b, dup .3)
+def(.4?, [*a b c d e f] -- [*a b c d e f] b, dup .4)
+
+def(.0!, [*a b] b -- [*a b], dip(pack-uncons drop) pack-cons)
+def(.1!, [*a b c] b  -- [*a b c], dip(pack-uncons) swap dip(.0!) pack-cons)
+def(.2!, [*a b c d] b  -- [*a b c d], dip(pack-uncons) swap dip(.1!) pack-cons)
+def(.3!, [*a b c d e] b  -- [*a b c d e], dip(pack-uncons) swap dip(.2!) pack-cons)
+def(.4!, [*a b c d e f] b  -- [*a b c d e f], dip(pack-uncons) swap dip(.3!) pack-cons)
+
 ######
 # IO #
 ######
