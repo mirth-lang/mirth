@@ -39,7 +39,7 @@ def(compile!, Path -- +IO,
         num-errors@ int-trace!
         " errors." str-trace-ln!
         1 posix-exit!,
-        
+
         id
     )
 
@@ -67,14 +67,3 @@ def(main, +IO,
 #########
 
 target-c99("mirth.c", main)
-
-# import(snake) # this is silly, but no way around this for now.
-    # there's two issues here:
-    #   1. snake imports sdl2, sdl2 declares a bunch of external functions.
-    #   under the current compilation approach ("just generate everything
-    #   and let the C compiler sort it out") this will cause the dependencies
-    #   to infect mirth if I move the import up above, resulting in undefined
-    #   symbol errors at link time. That could be avoided if we only generated
-    #   what was necessary each time.
-    #   2. I shouldn't have to import snake anyway just to be able to have
-    #   a separate build target (snake).
