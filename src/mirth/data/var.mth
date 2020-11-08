@@ -8,12 +8,7 @@ import(mirth/data/name)
 
 def(Var->Int, Var -- Int, cast)
 def(Int->Var, Int -- Var, cast)
-def(Var->U32, Var -- U32, Var->Int Int->U32)
-def(U32->Var, U32 -- Var, U32->Int Int->Var)
 def(VAR_ERROR, Var, 0 Int->Var)
-def(|Var|, Size, 4)
-def(var@, Ptr -- Var, u32@ U32->Var)
-def(var!, Var Ptr --, dip(Var->U32) u32!)
 
 def(var-alloc!, Var,
     Var.alloc!

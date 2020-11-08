@@ -27,22 +27,13 @@ import(mirth/data/prim)
 # Originally this type was called Morphism but that's hard to spell and
 # to type repeatedly so now they're called Arrow :-)
 
-def(Arrow->Int, Arrow -- Int, cast)
-def(Int->Arrow, Int -- Arrow, cast)
-
-def(ARROW_NIL, Arrow, 0 Int->Arrow)
+def(ARROW_NIL, Arrow, 0 cast)
 def(arrow-is-nil?, Arrow -- Arrow Bool, dup ARROW_NIL =)
 
-def(MAX_ARROWS, Size, 0x20000)
-def(arrow-alloc!, Arrow,
-    Arrow.alloc!
-    dup Arrow->Int MAX_ARROWS >= if(
-        "Compiler error: Ran out of arrows! Increase MAX_ARROWS!" panic!,
-        id
-    ))
+def(arrow-alloc!, Arrow, Arrow.alloc!)
 
-def(Op->U8, Op -- U8, cast)
-def(U8->Op, U8 -- Op, cast)
+def(Op->U8, Op -- U8, Op.unwrap)
+def(U8->Op, U8 -- Op, Op.wrap)
 def(Op->Int, Op -- Int, Op->U8 U8->Int)
 def(Int->Op, Int -- Op, Int->U8 U8->Op)
 def(|Op|, Size, 1)
@@ -134,8 +125,8 @@ def(arrow-op-str?, Arrow -- Arrow StrLit,
 # ARG #
 #######
 
-def(Arrow->Arg, Arrow -- Arg, cast)
-def(Arg->Arrow, Arg -- Arrow, cast)
+def(Arrow->Arg, Arrow -- Arg, Arg.wrap)
+def(Arg->Arrow, Arg -- Arrow, Arg.unwrap)
 
 ########
 # ARGS #

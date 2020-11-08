@@ -2,15 +2,15 @@ module(mirth/data/location)
 import(mirth/data/module)
 
 def(|Row|, Size, 2)
-def(Row->U16, Row -- U16, cast)
+def(Row->U16, Row -- U16, Row.unwrap)
 def(Row->Int, Row -- Int, Row->U16 U16->Int)
-def(U16->Row, U16 -- Row, cast)
+def(U16->Row, U16 -- Row, Row.wrap)
 def(Int->Row, Int -- Row, Int->U16 U16->Row)
 
 def(|Col|, Size, 2)
-def(Col->U16, Col -- U16, cast)
+def(Col->U16, Col -- U16, Col.unwrap)
 def(Col->Int, Col -- Int, Col->U16 U16->Int)
-def(U16->Col, U16 -- Col, cast)
+def(U16->Col, U16 -- Col, Col.wrap)
 def(Int->Col, Int -- Col, Int->U16 U16->Col)
 
 def(location-trace!, Module Row Col -- +IO,
@@ -28,4 +28,3 @@ def(location-print!, Module Row Col -- +IO,
     Row->Int int-print!
     ":" str-print!
     Col->Int int-print!)
-

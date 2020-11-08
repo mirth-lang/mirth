@@ -2,8 +2,8 @@ module(mirth/data/path)
 import(prelude)
 
 nominal(Path, Str)
-def(Path->Str, Path -- Str, cast)
-def(Str->Path, Str -- Path, cast)
+def(Path->Str, Path -- Str, Path.unwrap)
+def(Str->Path, Str -- Path, Path.wrap)
 def(path@, Ptr -- Path, @ Int->Ptr Str->Path)
 def(path!, Path Ptr --, dip(Path->Str Ptr->Int) !)
 

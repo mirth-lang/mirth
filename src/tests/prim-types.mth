@@ -34,6 +34,10 @@ def(prim-bool-false, Bool, false)
 def(prim-bool-and, Bool Bool -- Bool, &&)
 def(prim-bool-or, Bool Bool -- Bool, ||)
 
+def(prim-pack-nil, [], prim.pack.nil)
+def(prim-pack-cons, [*a] b -- [*a b], prim.pack.cons)
+def(prim-pack-uncons, [*a b] -- [*a] b, prim.pack.uncons)
+
 def(prim-ptr-add, Int Ptr -- Ptr, prim.unsafe.ptr+)
 def(prim-ptr-size, Int, prim.unsafe.|ptr|)
 

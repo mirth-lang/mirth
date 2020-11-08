@@ -22,8 +22,8 @@ def(token!, Token Ptr --, dip(Token->U16) u16!)
 
 def(token-alloc!, Token, Token.alloc!)
 
-def(TokenType->U8, TokenType -- U8, cast)
-def(U8->TokenType, U8 -- TokenType, cast)
+def(TokenType->U8, TokenType -- U8, TokenType.unwrap)
+def(U8->TokenType, U8 -- TokenType, TokenType.wrap)
 def(TOKEN_NONE, TokenType, 0 Int->U8 U8->TokenType)
 def(TOKEN_LPAREN, TokenType, 1 Int->U8 U8->TokenType)
 def(TOKEN_RPAREN, TokenType, 2 Int->U8 U8->TokenType)
@@ -52,13 +52,13 @@ def(token-type-str, TokenType -- Str,
 def(token-type-print!, TokenType --,
     token-type-str str-print!)
 
-def(TokenValue->Int, TokenValue -- Int, cast)
+def(TokenValue->Int, TokenValue -- Int, TokenValue.unwrap)
 def(TokenValue->Name, TokenValue -- Name, TokenValue->Int Int->Name)
 def(TokenValue->Token, TokenValue -- Token, TokenValue->Int Int->Token)
 def(TokenValue->StrLit, TokenValue -- StrLit, TokenValue->Int Int->StrLit)
 def(TokenValue->Str, TokenValue -- Str, TokenValue->Int STRINGS_BUF ptr+)
 
-def(Int->TokenValue, Int -- TokenValue, cast)
+def(Int->TokenValue, Int -- TokenValue, TokenValue.wrap)
 def(StrLit->TokenValue, StrLit -- TokenValue, StrLit->Int Int->TokenValue)
 def(Name->TokenValue, Name -- TokenValue, Name->Int Int->TokenValue)
 def(Token->TokenValue, Token -- TokenValue, Token->Int Int->TokenValue)
