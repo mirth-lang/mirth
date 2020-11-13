@@ -8,9 +8,7 @@ main : --
 main =
     "Hello world!" str-print-ln!
 
-target-c99("bare-decls.c", main)
-
 my-trip : a -- a a a
 my-trip = dup dup
 
-# mirth-test # pout # Hello world!
+target-c99("bare-decls.c", main)
