@@ -215,11 +215,17 @@ def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
 def(elab-word-body!, Word -- Arrow +Elab,
     word-body-is-checked? if(
         word-arrow@,
+
+    word-has-body? if(
         dup dip(elab-word-ctx-sig!)
         dup dip(word-body@ elab-arrow!)
         dup2 word-arrow!
-        word-body-is-checked!
-    ))
+        word-body-is-checked!,
+
+        word-sig@ token-prev token-prev # not very good :-/
+        "Missing word definition."
+        emit-fatal-error!
+    )))
 
 def(elab-arrow!, Ctx Type Token -- Arrow,
     dip(type-get-morphism morphism-type-unpack) swap
