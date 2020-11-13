@@ -580,6 +580,14 @@ def(type-var-freshen, Subst Type -- Subst Type Bool,
     )
     false)
 
+def(type-arity, Type -- Int,
+    type-expand
+    type-is-nominal? if(
+        type-get-nominal nominal-arity@,
+
+        drop 0
+    ))
+
 ##################
 # Meta-var Types #
 ##################
@@ -706,9 +714,10 @@ def(morphism-type-freshen-aux, Subst MorphismType -- Subst MorphismType Bool,
 
 def(Int->Nominal, Int -- Nominal, cast)
 def(Nominal->Int, Nominal -- Int, cast)
-def(nominal-new!, Name Type -- Nominal,
+def(nominal-new!, Name Int Type -- Nominal,
     Nominal.alloc!
     tuck nominal-type!
+    tuck nominal-arity!
     tuck nominal-name!)
 
 ##############

@@ -46,6 +46,13 @@ def(elab-type-stack-rest!, TypeElab Type Token -- TypeElab Type Token,
         dip(swap tensor-type-new! TTensor)
     ))
 
+def(elab-type-arg!, TypeElab Token -- TypeElab Type Token,
+    elab-type-atom!
+    token-is-arg-end? if(
+        id,
+        "Unexpected token after type." emit-fatal-error!
+    ))
+
 def(elab-type-atom!, TypeElab Token -- TypeElab Type Token,
     sig-token-is-type-var? if(
         elab-type-var! dip(TVar),
@@ -93,19 +100,36 @@ def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
     dip(dip(type-elab-ctx!)))
 
 def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
-    token-has-args? if(
-        dup "Types with args not yet supported." emit-error! TYPE_ERROR,
+    token-name?
+    name-is-type? if(
+        name-type@
+        over token-num-args
+        over type-arity = if(
+            elab-type-args!,
 
-        token-name?
-        name-is-type? if(
-            name-type@,
+            drop dup
+            "Wrong number of arguments for type." emit-error!
+            TYPE_ERROR
+        ),
 
-        name-undefined? if(
-            drop dup "Unknown type." emit-error! TYPE_ERROR,
-            drop dup "Not a type." emit-error! TYPE_ERROR
-        ))
-    )
+    name-undefined? if(
+        drop dup "Unknown type." emit-error! TYPE_ERROR,
+
+        drop dup "Not a type." emit-error! TYPE_ERROR
+    ))
     swap token-next)
+
+def(elab-type-args!, TypeElab Token Type -- TypeElab Token Type,
+    dip(token-has-args?) swap if(
+        dip(tuck) swap token-succ
+        while(token-is-right-enclosure? not,
+            token-succ swap
+            dip(elab-type-arg!) swap
+            dip(swap app-type-new! TApp))
+        drop dip(swap),
+
+        id
+    ))
 
 def(elab-type-hole!, TypeElab Token -- TypeElab Type Token,
     dip(type-elab-holes-allowed?) swap HolesAllowed->Bool if(
@@ -139,12 +163,8 @@ def(elab-type-unify!, Type Type Token -- Type Token,
     ) elab-token!)
     # TODO treat token as an input in type-unify
 
-def(elab-simple-type!, Token -- Type,
-    dip(type-elab-default) elab-type-atom!
-    token-run-end? if(
-        drop nip,
-        "unexpected token after type" emit-fatal-error!
-    ))
+def(elab-simple-type-arg!, Token -- Type,
+    dip(type-elab-default) elab-type-arg! drop nip)
 
 ####################
 # Word Elaboration #
@@ -471,7 +491,7 @@ def(elab-def-type!, Module Token -- Module Token +Mirth,
     swap sig-token-is-type-con? if(
         token-name? name-undefined? if(
             nip swap
-            elab-simple-type!
+            elab-simple-type-arg!
             swap name-type!,
 
             drop "type already defined" emit-fatal-error!
@@ -484,9 +504,14 @@ def(elab-nominal!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-2
     swap sig-token-is-type-con? if(
         token-name? name-undefined? if(
-            nip swap
-            elab-simple-type!
-            over dip(nominal-new! elab-nominal-words! TNominal) name-type!,
+            { Module Token Token Token Name }
+            dup dip(
+                swap token-num-args
+                rotl elab-simple-type-arg!
+                    # TODO use params to infer a ctx
+                    # and actually use that ctx here
+                nominal-new! elab-nominal-words! TNominal
+            ) name-type!,
 
             drop "type already defined" emit-fatal-error!
         ),
@@ -494,21 +519,25 @@ def(elab-nominal!, Module Token -- Module Token +Mirth,
     ))
 
 def(elab-nominal-words!, Nominal -- Nominal +Mirth,
-    nominal-name? name-load! ".wrap" str-buf-push-str! name-save!
-    word-alloc! dup2 swap name-word! tuck word-name!
-    over dup nominal-type@ T1 swap TNominal T1 T->
-    over word-type!
-    arrow-alloc! over word-arrow!
-    dup word-sig-is-checked!
-    word-body-is-checked!
+    nominal-arity? 0 = if(
+        nominal-name? name-load! ".wrap" str-buf-push-str! name-save!
+        word-alloc! dup2 swap name-word! tuck word-name!
+        over dup nominal-type@ T1 swap TNominal T1 T->
+        over word-type!
+        arrow-alloc! over word-arrow!
+        dup word-sig-is-checked!
+        word-body-is-checked!
 
-    nominal-name? name-load! ".unwrap" str-buf-push-str! name-save!
-    word-alloc! dup2 swap name-word! tuck word-name!
-    over dup nominal-type@ T1 swap TNominal T1 swap T->
-    over word-type!
-    arrow-alloc! over word-arrow!
-    dup word-sig-is-checked!
-    word-body-is-checked!)
+        nominal-name? name-load! ".unwrap" str-buf-push-str! name-save!
+        word-alloc! dup2 swap name-word! tuck word-name!
+        over dup nominal-type@ T1 swap TNominal T1 swap T->
+        over word-type!
+        arrow-alloc! over word-arrow!
+        dup word-sig-is-checked!
+        word-body-is-checked!,
+
+        id # TODO, possibly.
+    ))
 
 ||| Elaborate a buffer definition `buffer(B, size)`.
 def(elab-buffer!, Module Token -- Module Token +Mirth,
@@ -542,7 +571,7 @@ def(elab-field!, Module Token -- Module Token +Mirth,
             token-name?
             name-is-table? if(
                 nip name-type@ type-get-table rotl
-                elab-simple-type!
+                elab-simple-type-arg!
                 field-new! drop,
 
                 drop "unknown table name" emit-fatal-error!
