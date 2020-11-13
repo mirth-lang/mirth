@@ -139,6 +139,13 @@ def(elab-type-unify!, Type Type Token -- Type Token,
     ) elab-token!)
     # TODO treat token as an input in type-unify
 
+def(elab-simple-type!, Token -- Type,
+    dip(type-elab-default) elab-type-atom!
+    token-run-end? if(
+        drop nip,
+        "unexpected token after type" emit-fatal-error!
+    ))
+
 ####################
 # Word Elaboration #
 ####################
@@ -464,9 +471,7 @@ def(elab-def-type!, Module Token -- Module Token +Mirth,
     swap sig-token-is-type-con? if(
         token-name? name-undefined? if(
             nip swap
-            dip(type-elab-default) elab-type-atom!
-            # TODO ensure token is end run
-            drop nip
+            elab-simple-type!
             swap name-type!,
 
             drop "type already defined" emit-fatal-error!
@@ -480,9 +485,7 @@ def(elab-nominal!, Module Token -- Module Token +Mirth,
     swap sig-token-is-type-con? if(
         token-name? name-undefined? if(
             nip swap
-            dip(type-elab-default) elab-type-atom!
-            # TODO ensure token is end run
-            drop nip
+            elab-simple-type!
             over dip(nominal-new! elab-nominal-words! TNominal) name-type!,
 
             drop "type already defined" emit-fatal-error!
@@ -539,9 +542,7 @@ def(elab-field!, Module Token -- Module Token +Mirth,
             token-name?
             name-is-table? if(
                 nip name-type@ type-get-table rotl
-                dip(type-elab-default) elab-type-atom!
-                # TODO ensure token is end run
-                drop nip
+                elab-simple-type!
                 field-new! drop,
 
                 drop "unknown table name" emit-fatal-error!
