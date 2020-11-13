@@ -12,3 +12,4 @@ my-trip : a -- a a a
 my-trip = dup dup
 
 target-c99("bare-decls.c", main)
+# mirth-test # pout # Hello world!
