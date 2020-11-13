@@ -1,15 +1,34 @@
 module(prelude/common)
 
-def(trip, a -- a a a, dup dup)
-def(rotr, a b c -- c a b, swap dip(swap))
-def(rotl, a b c -- b c a, dip(swap) swap)
-def(over, a b -- a b a, dip(dup) swap)
-def(tuck, a b -- b a b, dup dip(swap))
-def(nip, a b -- b, dip(drop))
-def(dup2, a b -- a b a b, over over)
-def(dup3, a b c -- a b c a b c, dip(dup2) dup dip(rotr))
-def(drop2, a b --, drop drop)
-def(drop3, a b c --, drop drop drop)
+trip : a -- a a a
+trip = dup dup
+
+rotr : a b c -- c a b
+rotr = swap dip(swap)
+
+rotl : a b c -- b c a
+rotl = dip(swap) swap
+
+over : a b -- a b a
+over = dip(dup) swap
+
+tuck : a b -- b a b
+tuck = dup dip(swap)
+
+nip : a b -- b
+nip = dip(drop)
+
+dup2 : a b -- a b a b
+dup2 = over over
+
+dup3 : a b c -- a b c a b c
+dup3 = dip(dup2) dup dip(rotr)
+
+drop2 : a b --
+drop2 = drop drop
+
+drop3 : a b c --
+drop3 = drop drop drop
 
 def-type(Byte, U8)
 def-type(Char, U8)
