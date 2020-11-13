@@ -14,6 +14,8 @@ def(token-run-end?, Token -- Token Bool +Mirth,
         true,
     token-type? TOKEN_NONE = if(
         true,
+    token-type? TOKEN_NEWLINE = if(
+        true,
     token-type? TOKEN_COMMA = if(
         true,
     token-type? TOKEN_RPAREN = if(
@@ -21,7 +23,7 @@ def(token-run-end?, Token -- Token Bool +Mirth,
     token-type? TOKEN_RBRACKET = if(
         true,
         token-type? TOKEN_RBRACE =
-    ))))))
+    )))))))
 
 ||| Does the token match the primitive?
 def(token-prim=?, Token Prim -- Token Bool,
@@ -29,6 +31,11 @@ def(token-prim=?, Token Prim -- Token Bool,
         dip(token-name?) prim-name@ =,
         drop false
     ))
+
+def(token-is-newline?, Token -- Token Bool,
+    token-type? TOKEN_NEWLINE =)
+def(token-skip-newlines, Token -- Token,
+    while(token-is-newline?, token-succ))
 
 ###################
 # Type Signatures #
@@ -127,4 +134,21 @@ def(sig-skip-dashes, Token -- Token,
     sig-has-dashes? if(
         while(token-is-dashes? not, token-next) token-next,
         id
+    ))
+
+##############
+# BARE DECLS #
+##############
+
+def(token-could-be-word-sig?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        dup token-next PRIM_COLON token-prim=? nip,
+        false
+    ))
+
+# TODO eventually figure out how to deal w/ pattern matching...
+def(token-could-be-word-def?, Token -- Token Bool,
+    token-type? TOKEN_NAME = if(
+        dup token-next PRIM_INT_EQ token-prim=? nip,
+        false
     ))

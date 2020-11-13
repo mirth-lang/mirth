@@ -35,6 +35,7 @@ def(TOKEN_LBRACKET, TokenType, 7 Int->U8 U8->TokenType)
 def(TOKEN_RBRACKET, TokenType, 8 Int->U8 U8->TokenType)
 def(TOKEN_LBRACE, TokenType, 9 Int->U8 U8->TokenType)
 def(TOKEN_RBRACE, TokenType, 10 Int->U8 U8->TokenType)
+def(TOKEN_NEWLINE, TokenType, 11 Int->U8 U8->TokenType)
 
 def(token-type-str, TokenType -- Str,
     dup TOKEN_NONE = if(drop "NONE",

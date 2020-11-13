@@ -1,0 +1,16 @@
+module(tests/bare-decls)
+import(prelude)
+
+hello : Int -- Int
+hello = 10 +
+
+main : --
+main =
+    "Hello world!" str-print-ln!
+
+target-c99("bare-decls.c", main)
+
+my-trip : a -- a a a
+my-trip = dup dup
+
+# mirth-test # pout # Hello world!

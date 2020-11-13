@@ -379,6 +379,7 @@ def(elab-arrow-op-args!, Arrow Param -- Arrow,
 ||| Elaborate all of a module.
 def(elab-module!, Module -- Module +Mirth,
     module-start?
+    token-skip-newlines
     elab-module-header!
     elab-module-imports!
     elab-module-decls!
@@ -390,7 +391,8 @@ def(elab-module-header!, Module Token -- Module Token +Mirth,
     PRIM_MODULE token-prim=? if(
         dup2 elab-module-name! token-next,
         dup "Expected module header." emit-error!
-    ))
+    )
+    token-skip-newlines)
 
 ||| Check & save the module name from the module header `module(M)`.
 def(elab-module-name!, Module Token -- +Mirth,
@@ -434,7 +436,8 @@ def(elab-module-import!, Module Token -- Module Token +Mirth,
             drop "module name already taken" emit-fatal-error!
         )),
         "expected module name" emit-fatal-error!
-    ))
+    )
+    token-skip-newlines)
 
 ||| Elaborate the rest of the module.
 def(elab-module-decls!, Module Token -- Module Token +Mirth,
@@ -450,7 +453,10 @@ def(elab-module-decl!, Module Token -- Module Token +Mirth,
     PRIM_TABLE token-prim=? if( elab-table!,
     PRIM_FIELD token-prim=? if( elab-field!,
     PRIM_TARGET_C99 token-prim=? if(elab-target-c99!,
-    "unknown declaration" emit-fatal-error!)))))))))
+    token-could-be-word-sig? if(elab-decl-word-sig!,
+    token-could-be-word-def? if(elab-decl-word-def!,
+    "unknown declaration" emit-fatal-error!))))))))))
+    token-skip-newlines)
 
 ||| Elaborate a word definition `def(w, t, b)`.
 def(elab-def!, Module Token -- Module Token +Mirth,
@@ -468,6 +474,35 @@ def(elab-def!, Module Token -- Module Token +Mirth,
         ),
         "expected word name" emit-fatal-error!
     ))
+
+||| Elaborate a word signature "foo : Bar -- Baz"
+def(elab-decl-word-sig!, Module Token -- Module Token +Mirth,
+    token-name? name-undefined? if(
+        word-alloc! tuck
+        dup2 word-name!
+        swap name-word!
+        dip(token-next token-succ dup) word-sig!
+        while(token-is-newline? not, token-next) token-skip-newlines,
+
+        drop "word already defined" emit-fatal-error!
+    ))
+
+||| Elaborate a word definition "foo = bar"
+def(elab-decl-word-def!, Module Token -- Module Token +Mirth,
+    token-name?
+    name-is-word? if(
+        name-word@
+        word-has-body? if(
+            drop "word already defined" emit-fatal-error!,
+            dip(token-next token-succ token-skip-newlines dup) word-body!
+            while(token-is-newline? not, token-next) token-skip-newlines
+        ),
+
+    name-undefined? if(
+        drop "missing word signature" emit-fatal-error!,
+
+        drop "name already defined, not a word" emit-fatal-error!
+    )))
 
 ||| Elaborate an external declaration `def-external(w, t)`
 def(elab-def-external!, Module Token -- Module Token +Mirth,

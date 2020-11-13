@@ -94,8 +94,9 @@ def(PRIM_DEF_EXTERNAL, Prim, 53 Int->Prim)
 def(PRIM_TARGET_C99, Prim, 55 Int->Prim)
 def(PRIM_TABLE, Prim, 78 Int->Prim)
 def(PRIM_FIELD, Prim, 79 Int->Prim)
+def(PRIM_COLON, Prim, 86 Int->Prim)
 
-# next primitive is 86
+# next primitive is 87
 
 def(def-prim!, Prim Str -- +Names,
     name-new! dup2 name-prim! swap prim-name!)
@@ -186,6 +187,7 @@ def(init-prims!, +Names,
     PRIM_TABLE "table" def-prim!
     PRIM_FIELD "field" def-prim!
     PRIM_TARGET_C99 "target-c99" def-prim!
+    PRIM_COLON ":" def-prim!
 
     #
     # monomorphic prims
