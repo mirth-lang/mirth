@@ -194,7 +194,7 @@ def(type-get-param, Type -- ParamType,
         type-get-value Int->ParamType
     ))
 def(type-get-app, Type -- AppType,
-    type-is-param? not if(
+    type-is-app? not if(
         "compiler error: tried to get app type value on non-app type" panic!,
         type-get-value Int->AppType
     ))

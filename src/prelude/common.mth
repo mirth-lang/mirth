@@ -259,10 +259,17 @@ def(str-eq?, Str Str -- Str Str Bool, dup2 str-eq)
 # TUPLES #
 ##########
 
-def(pack-cons, [*a] b -- [*a b], prim.pack.cons)
-def(pack-uncons, [*a b] -- [*a] b, prim.pack.uncons)
+def(pack-nil, [*a], prim.pack.nil cast)
+def(pack-nil?, [*a] -- [*a] Bool, dup pack-nil =)
 
-def(pack0, [], prim.pack.nil)
+def(pack-cons, [*a] b -- [*a b], prim.pack.cons)
+def(pack-uncons, [*a b] -- [*a] b,
+    pack-nil? if(
+        "attempted to uncons nil" panic!,
+        prim.pack.uncons
+    ))
+
+def(pack0, [], pack-nil)
 def(pack1, a -- [a], dip(pack0) pack-cons)
 def(pack2, a b -- [a b], dip(pack1) pack-cons)
 def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
@@ -293,6 +300,20 @@ def(.1!, [*a b c] b  -- [*a b c], dip(pack-uncons) swap dip(.0!) pack-cons)
 def(.2!, [*a b c d] b  -- [*a b c d], dip(pack-uncons) swap dip(.1!) pack-cons)
 def(.3!, [*a b c d e] b  -- [*a b c d e], dip(pack-uncons) swap dip(.2!) pack-cons)
 def(.4!, [*a b c d e f] b  -- [*a b c d e f], dip(pack-uncons) swap dip(.3!) pack-cons)
+
+#########
+# LISTS #
+#########
+
+nominal(List(t), [])
+def(nil, List(t), pack-nil cast)
+def(nil?, List(t) -- List(t) Bool, dup nil =)
+def(cons, List(t) t -- List(t), dip(cast) pack-cons cast)
+def(uncons, List(t) -- List(t) t,
+    nil? if(
+        "tried to uncons on nil value" panic!,
+        cast pack-uncons
+    ))
 
 ######
 # IO #
