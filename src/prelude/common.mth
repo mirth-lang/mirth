@@ -306,14 +306,23 @@ def(.4!, [*a b c d e f] b  -- [*a b c d e f], dip(pack-uncons) swap dip(.3!) pac
 #########
 
 nominal(List(t), [])
-def(nil, List(t), pack-nil cast)
+def(list->pack, List(t) -- [List(t) t], cast)
+def(pack->list, [List(t) t] -- List(t), cast)
+def(nil, List(t), pack-nil pack->list)
 def(nil?, List(t) -- List(t) Bool, dup nil =)
-def(cons, List(t) t -- List(t), dip(cast) pack-cons cast)
+def(cons, List(t) t -- List(t), pack2 pack->list)
 def(uncons, List(t) -- List(t) t,
     nil? if(
-        "tried to uncons on nil value" panic!,
-        cast pack-uncons
+        "uncons on nil value" panic!,
+        list->pack unpack2
     ))
+def(head, List(t) -- t, uncons nip)
+def(tail, List(t) -- List(t), uncons drop)
+def(length, List(t) -- Int,
+    0 swap
+    while(nil? not, dip(1+) tail)
+    drop)
+def(length?, List(t) -- List(t) Int, dup length)
 
 ######
 # IO #
