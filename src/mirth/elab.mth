@@ -538,15 +538,12 @@ def(elab-field!, Module Token -- Module Token +Mirth,
         rotl token-type? TOKEN_NAME = if(
             token-name?
             name-is-table? if(
-                nip name-type@ type-get-table
-                rotl sig-token-is-type-con? if(
-                    token-name?
-                    name-is-type? if(
-                        nip name-type@ field-new! drop,
-                        drop "unknown field type" emit-fatal-error!
-                    ),
-                    "expected field type" emit-fatal-error!
-                ),
+                nip name-type@ type-get-table rotl
+                dip(type-elab-default) elab-type-atom!
+                # TODO ensure token is end run
+                drop nip
+                field-new! drop,
+
                 drop "unknown table name" emit-fatal-error!
             ),
             "expected table name" emit-fatal-error!
