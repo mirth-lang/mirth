@@ -334,6 +334,9 @@ def(token-bracket-arg, Token -- Token,
         emit-fatal-error!
     ))
 
+token-is-lparen? : Token -- Token Bool
+token-is-lparen? = token-type? TOKEN_LPAREN ==
+
 def(token-is-lbrace?, Token -- Token Bool,
     token-type? TOKEN_LBRACE ==)
 

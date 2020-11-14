@@ -6,26 +6,40 @@ import(mirth/data/name)
 # Buffers #
 ###########
 
-def(Int->Buffer, Int -- Buffer, cast)
-def(Buffer->Int, Buffer -- Int, cast)
+Int->Buffer : Int -- Buffer
+Int->Buffer = cast
 
-def(num-buffers@, Size +Buffers, Buffer.NUM @)
+Buffer->Int : Buffer -- Int
+Buffer->Int = cast
 
-def(buffer-alloc!, Name Size -- Buffer +Buffers,
+num-buffers@ : Size
+num-buffers@ = Buffer.NUM @
+
+buffer-alloc! : Name Size -- Buffer +Buffers
+buffer-alloc! = (
     dup heap-alloc!
     Buffer.alloc!
     tuck buffer-base!
     tuck buffer-size!
     tuck dup2 buffer-name!
-    swap name-buffer!)
+    swap name-buffer!
+)
 
-def(NameValue->Buffer, NameValue -- Buffer, NameValue->Int Int->Buffer)
-def(Buffer->NameValue, Buffer -- NameValue, Buffer->Int Int->NameValue)
-def(name-buffer!, Buffer Name --,
+NameValue->Buffer : NameValue -- Buffer
+NameValue->Buffer = NameValue->Int Int->Buffer
+
+Buffer->NameValue : Buffer -- NameValue
+Buffer->NameValue = Buffer->Int Int->NameValue
+
+name-buffer! : Buffer Name --
+name-buffer! = (
     DEF_BUFFER over name-sort!
-    dip(Buffer->NameValue) name-value!)
-def(name-buffer@, Name -- Buffer,
+    dip(Buffer->NameValue) name-value!
+)
+
+name-buffer@ : Name -- Buffer
+name-buffer@ =
     name-is-buffer? if(
         name-value@ NameValue->Buffer,
         "compiler error: attempted to get buffer definition for non-buffer name" panic!
-    ))
+    )

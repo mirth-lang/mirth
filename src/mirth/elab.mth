@@ -500,7 +500,9 @@ def(elab-decl-word-def!, Module Token -- Module Token +Mirth,
         name-word@
         word-has-body? if(
             drop "word already defined" emit-fatal-error!,
-            dip(token-next token-succ token-skip-newlines dup) word-body!
+            dip(token-next token-succ
+                token-is-lparen? if(token-succ, token-skip-newlines)
+                dup) word-body!
             while(token-is-newline? not, token-next) token-skip-newlines
         ),
 

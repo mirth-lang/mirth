@@ -2649,6 +2649,7 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwtoken_args_3 (void);
  void mwtoken_is_lbracket_3F_ (void);
  void mwtoken_bracket_arg (void);
+ void mwtoken_is_lparen_3F_ (void);
  void mwtoken_is_lbrace_3F_ (void);
  void mwtoken_brace_arg (void);
  void mwemit_warning_21_ (void);
@@ -11596,6 +11597,12 @@ void mwtoken_bracket_arg (void){
     }
 }
 
+void mwtoken_is_lparen_3F_ (void){
+    mwtoken_type_3F_();
+    mwTOKEN_LPAREN();
+    mw_3D__3D_();
+}
+
 void mwtoken_is_lbrace_3F_ (void){
     mwtoken_type_3F_();
     mwTOKEN_LBRACE();
@@ -18731,7 +18738,12 @@ void mwelab_decl_word_def_21_ (void){
     { value_t d3 = pop_value();
     mwtoken_next();
     mwtoken_succ();
+    mwtoken_is_lparen_3F_();
+    if (pop_u64()) {
+    mwtoken_succ();
+    } else {
     mwtoken_skip_newlines();
+    }
     mwdup();
       push_value(d3); }
     mwword_body_21_();
