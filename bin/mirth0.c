@@ -2671,8 +2671,9 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwsource_path_root_40_ (void);
  void mwoutput_path_root_40_ (void);
  void mwpath_separator (void);
+ void mwpath_nil (void);
+ void mwpath_nil_3F_ (void);
  void mwstr_buf_path_21_ (void);
- void mwpath_null_3F_ (void);
  void mwstr_buf_push_path_21_ (void);
  void mwload_output_path_21_ (void);
  void mwnum_warnings_40_ (void);
@@ -11710,17 +11711,15 @@ void mwPath_2E_wrap (void){
 }
 
 void mwpath_40_ (void){
-    mw_40_();
-    mwInt__3E_Ptr();
+    mwptr_40_();
     mwStr__3E_Path();
 }
 
 void mwpath_21_ (void){
     { value_t d1 = pop_value();
     mwPath__3E_Str();
-    mwPtr__3E_Int();
       push_value(d1); }
-    mw_21_();
+    mwptr_21_();
 }
 
 void mwsource_path_root_21_ (void){
@@ -11754,8 +11753,19 @@ void mwpath_separator (void){
     }
 }
 
+void mwpath_nil (void){
+    push_i64(0);
+    mwcast();
+}
+
+void mwpath_nil_3F_ (void){
+    mwdup();
+    mwpath_nil();
+    mw_3D__3D_();
+}
+
 void mwstr_buf_path_21_ (void){
-    mwpath_null_3F_();
+    mwpath_nil_3F_();
     if (pop_u64()) {
     mwdrop();
     mwstr_buf_clear_21_();
@@ -11763,14 +11773,6 @@ void mwstr_buf_path_21_ (void){
     mwPath__3E_Str();
     mwstr_buf_21_();
     }
-}
-
-void mwpath_null_3F_ (void){
-    mwdup();
-    mwPath__3E_Str();
-    mwPtr__3E_Int();
-    push_i64(0);
-    mw_3D__3D_();
 }
 
 void mwstr_buf_push_path_21_ (void){

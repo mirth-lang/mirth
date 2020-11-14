@@ -2,46 +2,80 @@ module(mirth/data/path)
 import(prelude)
 
 nominal(Path, Str)
-def(Path->Str, Path -- Str, Path.unwrap)
-def(Str->Path, Str -- Path, Path.wrap)
-def(path@, Ptr -- Path, @ Int->Ptr Str->Path)
-def(path!, Path Ptr --, dip(Path->Str Ptr->Int) !)
 
-def(init-paths!, --,
+Path->Str : Path -- Str
+Path->Str = Path.unwrap
+
+Str->Path : Str -- Path
+Str->Path = Path.wrap
+
+path@ : Ptr -- Path
+path@ = ptr@ Str->Path
+
+path! : Path Ptr --
+path! = dip(Path->Str) ptr!
+
+init-paths! : --
+init-paths! = (
     "src" Str->Path source-path-root!
-    "bin" Str->Path output-path-root!)
+    "bin" Str->Path output-path-root!
+)
 
 buffer(SOURCE_PATH_ROOT, 8)
-def(source-path-root@, -- Path, SOURCE_PATH_ROOT path@)
-def(source-path-root!, Path --, SOURCE_PATH_ROOT path!)
+
+source-path-root@ : Path
+source-path-root@ = SOURCE_PATH_ROOT path@
+
+source-path-root! : Path --
+source-path-root! = SOURCE_PATH_ROOT path!
 
 buffer(OUTPUT_PATH_ROOT, 8)
-def(output-path-root@, -- Path, OUTPUT_PATH_ROOT path@)
-def(output-path-root!, Path --, OUTPUT_PATH_ROOT path!)
 
-def(path-separator, Str, RUNNING_OS WIN32 == if("\\", "/"))
+output-path-root@ : Path
+output-path-root@ = OUTPUT_PATH_ROOT path@
 
-# Load a path into STR_BUF. If the path is null,
-# clears STR_BUF instead.
-def(str-buf-path!, Path --,
-    path-null? if(
+output-path-root! : Path --
+output-path-root! = OUTPUT_PATH_ROOT path!
+
+path-separator : Str
+path-separator = RUNNING_OS WIN32 == if("\\", "/")
+
+||| The nil path.
+path-nil : Path
+path-nil = 0 cast
+
+||| Is the path nil?
+path-nil? : Path -- Path Bool
+path-nil? = dup path-nil ==
+
+||| Load a path into STR_BUF. If the path is null,
+||| clears STR_BUF instead.
+str-buf-path! : Path --
+str-buf-path! =
+    path-nil? if(
         drop str-buf-clear!,
         Path->Str str-buf!
-    ))
+    )
 
-# Is the path null?
-def(path-null?, Path -- Path Bool,
-    dup Path->Str Ptr->Int 0 ==)
-
-# Push a path to STR_BUF, adding the path separator if
-# str-buf is non-empty. (TODO: Add path separator
-# only if it isn't already present.)
-def(str-buf-push-path!, Path --,
+||| Push a path to STR_BUF, adding the path separator if
+||| str-buf is non-empty. (TODO: Add path separator
+||| only if it isn't already present.)
+str-buf-push-path! : Path --
+str-buf-push-path! = (
     str-buf-empty? if(id, path-separator str-buf-push-str!)
-    Path->Str str-buf-push-str!)
+    Path->Str str-buf-push-str!
+)
 
-# Load a source path into STR_BUF.
-def(load-source-path!, Path --, source-path-root@ str-buf-path! str-buf-push-path!)
+||| Load a source path into STR_BUF.
+load-source-path! : Path --
+load-source-path! = (
+    source-path-root@ str-buf-path!
+    str-buf-push-path!
+)
 
 # Load an output path into STR_BUF.
-def(load-output-path!, Path --, output-path-root@ str-buf-path! str-buf-push-path!)
+load-output-path! : Path --
+load-output-path! = (
+    output-path-root@ str-buf-path!
+    str-buf-push-path!
+)
