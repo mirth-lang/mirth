@@ -3031,17 +3031,17 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwsubst_has_var (void);
  void mwsubst_get_var_3F_ (void);
  void mwsubst_match_var (void);
- void mwctx_name_40_ (void);
  void mwctx_new_21_ (void);
+ void mwctx_name_40_ (void);
  void mwctx_empty (void);
  void mwctx_is_empty (void);
- void mwctx_has_name_3F_ (void);
  void mwctx_has_name (void);
- void mwctx_lookup_3F_ (void);
+ void mwctx_has_name_3F_ (void);
  void mwctx_lookup (void);
  void mwVAR_ERROR (void);
- void mwctx_length_3F_ (void);
+ void mwctx_lookup_3F_ (void);
  void mwctx_length (void);
+ void mwctx_length_3F_ (void);
  void mwvar_alloc_21_ (void);
  void mwvar_new_21_ (void);
  void mwvar_new_implicit_21_ (void);
@@ -16477,17 +16477,17 @@ void mwsubst_match_var (void){
     }
 }
 
-void mwctx_name_40_ (void){
-    mwctx_var_40_();
-    mwvar_name_40_();
-}
-
 void mwctx_new_21_ (void){
     mwCtx_2E_alloc_21_();
     mwtuck();
     mwctx_var_21_();
     mwtuck();
     mwctx_prev_21_();
+}
+
+void mwctx_name_40_ (void){
+    mwctx_var_40_();
+    mwvar_name_40_();
 }
 
 void mwctx_empty (void){
@@ -16498,11 +16498,6 @@ void mwctx_empty (void){
 void mwctx_is_empty (void){
     mwctx_empty();
     mw_3D__3D_();
-}
-
-void mwctx_has_name_3F_ (void){
-    mwdup2();
-    mwctx_has_name();
 }
 
 void mwctx_has_name (void){
@@ -16527,9 +16522,9 @@ void mwctx_has_name (void){
     }
 }
 
-void mwctx_lookup_3F_ (void){
+void mwctx_has_name_3F_ (void){
     mwdup2();
-    mwctx_lookup();
+    mwctx_has_name();
 }
 
 void mwctx_lookup (void){
@@ -16538,8 +16533,7 @@ void mwctx_lookup (void){
     mwdrop2();
     mwVAR_ERROR();
     } else {
-    mwdup();
-    mwctx_var_40_();
+    mwctx_var_3F_();
     mwvar_name_40_();
     { value_t d2 = pop_value();
     mwover();
@@ -16560,9 +16554,9 @@ void mwVAR_ERROR (void){
     mwInt__3E_Var();
 }
 
-void mwctx_length_3F_ (void){
-    mwdup();
-    mwctx_length();
+void mwctx_lookup_3F_ (void){
+    mwdup2();
+    mwctx_lookup();
 }
 
 void mwctx_length (void){
@@ -16578,6 +16572,11 @@ void mwctx_length (void){
     mwctx_prev_40_();
     }
     mwdrop();
+}
+
+void mwctx_length_3F_ (void){
+    mwdup();
+    mwctx_length();
 }
 
 void mwvar_alloc_21_ (void){

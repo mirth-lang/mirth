@@ -8,42 +8,53 @@ import(mirth/data/var)
 
 # A context for types and terms.
 
-def(ctx-name@, Ctx -- Name, ctx-var@ var-name@)
-
-def(ctx-new!, Ctx Var -- Ctx,
+ctx-new! : Ctx Var -- Ctx
+ctx-new! = (
     Ctx.alloc!
     tuck ctx-var!
-    tuck ctx-prev!)
+    tuck ctx-prev!
+)
 
-def(ctx-empty, Ctx, 0 cast)
-def(ctx-is-empty, Ctx -- Bool, ctx-empty ==)
-def(ctx-is-empty?, Ctx -- Ctx Bool, dup ctx-is-empty)
+ctx-name@ : Ctx -- Name
+ctx-name@ = ctx-var@ var-name@
 
-def(ctx-has-name?, Name Ctx -- Name Ctx Bool, dup2 ctx-has-name)
-def(ctx-has-name, Name Ctx -- Bool,
+ctx-empty : Ctx
+ctx-empty = 0 cast
+
+ctx-is-empty : Ctx -- Bool
+ctx-is-empty = ctx-empty ==
+
+ctx-is-empty? : Ctx -- Ctx Bool
+ctx-is-empty? = dup ctx-is-empty
+
+ctx-has-name : Name Ctx -- Bool
+ctx-has-name =
     ctx-is-empty? if(
         drop2 false,
         dup ctx-name@ dip(over) == if(
             drop2 true,
             ctx-prev@ ctx-has-name
         )
-    ))
+    )
 
-def(ctx-lookup?, Name Ctx -- Name Ctx Var, dup2 ctx-lookup)
-def(ctx-lookup, Name Ctx -- Var,
+ctx-has-name? : Name Ctx -- Name Ctx Bool
+ctx-has-name? = dup2 ctx-has-name
+
+ctx-lookup : Name Ctx -- Var
+ctx-lookup =
     ctx-is-empty? if(
         drop2 VAR_ERROR,
-
-        dup ctx-var@ var-name@ dip(over) == if(
+        ctx-var? var-name@ dip(over) == if(
             ctx-var@ nip,
             ctx-prev@ ctx-lookup
         )
-   ))
-
-def(ctx-length?, Ctx -- Ctx Size, dup ctx-length)
-def(ctx-length, Ctx -- Size,
-    0 swap
-    while(ctx-is-empty? not,
-        dip(1+) ctx-prev@
     )
-    drop)
+
+ctx-lookup? : Name Ctx -- Name Ctx Var
+ctx-lookup? = dup2 ctx-lookup
+
+ctx-length : Ctx -- Size
+ctx-length = 0 swap while(ctx-is-empty? not, dip(1+) ctx-prev@) drop
+
+ctx-length? : Ctx -- Ctx Size
+ctx-length? = dup ctx-length
