@@ -54,11 +54,11 @@ def(I8_MIN, Int, -128)
 def(I16_MIN, Int, 0 1 15 << -)
 def(I32_MIN, Int, 0 1 31 << -)
 
-def(!=, a a -- Bool, = not)
+def(!=, a a -- Bool, == not)
 def(>, Int Int -- Bool, swap <)
 def(>=, Int Int -- Bool, swap <=)
 
-def(0=, Int -- Bool, 0 =)
+def(0=, Int -- Bool, 0 ==)
 def(0<, Int -- Bool, 0 <)
 
 def(1+, Int -- Int, 1 +)
@@ -67,7 +67,7 @@ def(1-, Int -- Int, 1 -)
 def(max, Int Int -- Int, dup2 < if(nip, drop))
 def(square, Int -- Int, dup *)
 
-def(not, Bool -- Bool, false =)
+def(not, Bool -- Bool, false ==)
 def(bool, Bool -- Bool, id)
 def(nonzero, Int -- Bool, 0 !=)
 
@@ -207,7 +207,7 @@ def(str-buf-length!, Int -- +StrBuf,
 def(str-buf-u8@, Offset -- U8 +StrBuf, STR_BUF u8@@)
 def(str-buf-u8!, U8 Offset -- +StrBuf, STR_BUF u8!!)
 def(str-buf-empty?, Bool +StrBuf,
-    str-buf-length? 0 =)
+    str-buf-length? 0 ==)
 def(str-buf-full?, Bool +StrBuf,
     str-buf-length? 1+ STR_BUF_SIZE >=)
 def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
@@ -266,7 +266,7 @@ def(str-buf-reverse!, --,
 def(str-eq, Str Str -- Bool,
     str-null? if(
         drop str-null,
-        dup2 str-head swap str-head = if(
+        dup2 str-head swap str-head == if(
             str-tail swap str-tail str-eq,
             drop2 false
         )
@@ -279,7 +279,7 @@ def(str-eq?, Str Str -- Str Str Bool, dup2 str-eq)
 ##########
 
 def(pack-nil, [*a], prim.pack.nil cast)
-def(pack-nil?, [*a] -- [*a] Bool, dup pack-nil =)
+def(pack-nil?, [*a] -- [*a] Bool, dup pack-nil ==)
 
 def(pack-cons, [*a] b -- [*a b], prim.pack.cons)
 def(pack-uncons, [*a b] -- [*a] b,
@@ -328,7 +328,7 @@ nominal(List(t), [])
 def(list->pack, List(t) -- [List(t) t], cast)
 def(pack->list, [List(t) t] -- List(t), cast)
 def(nil, List(t), pack-nil pack->list)
-def(nil?, List(t) -- List(t) Bool, dup nil =)
+def(nil?, List(t) -- List(t) Bool, dup nil ==)
 def(cons, List(t) t -- List(t), pack2 pack->list)
 def(uncons, List(t) -- List(t) t,
     nil? if(
@@ -414,11 +414,11 @@ def(create-file!, Str -- File +IO,
     dup 0 < if("Failed to create file!" panic!, Int->File))
 
 def(O_WRONLY|O_CREAT|O_TRUNC, Int,
-    RUNNING_OS MACOS = if(
+    RUNNING_OS MACOS == if(
         0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
-    RUNNING_OS LINUX = if(
+    RUNNING_OS LINUX == if(
         0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
-    RUNNING_OS WIN32 = if(
+    RUNNING_OS WIN32 == if(
         0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
         "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic!
     ))))

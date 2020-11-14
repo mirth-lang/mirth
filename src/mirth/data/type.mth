@@ -79,11 +79,11 @@ def(ctx-trace!, Ctx -- +IO,
 
 def(var-trace-binding!, Var -- +IO,
     var-name? name-load! str-buf-trace!
-    var-type? TYPE_TYPE = if(
+    var-type? TYPE_TYPE == if(
         drop,
-    var-type? TYPE_STACK = if(
+    var-type? TYPE_STACK == if(
         drop,
-    var-type? TYPE_EFFECT = if(
+    var-type? TYPE_EFFECT == if(
         drop,
         " : " str-trace!
         var-type@ type-trace-sig!
@@ -123,16 +123,16 @@ def(T5, Type Type Type Type Type -- Type, dip(T4) T*)
 def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
 
 def(type-tag, Type -- Int, Type->Int TYPE_TAG_MASK &)
-def(type-is-prim, Type -- Bool, type-tag TYPE_TAG_PRIM =)
-def(type-is-var, Type -- Bool, type-tag TYPE_TAG_VAR =)
-def(type-is-meta, Type -- Bool, type-tag TYPE_TAG_META =)
-def(type-is-tensor, Type -- Bool, type-tag TYPE_TAG_TENSOR =)
-def(type-is-morphism, Type -- Bool, type-tag TYPE_TAG_MORPHISM =)
-def(type-is-nominal, Type -- Bool, type-tag TYPE_TAG_NOMINAL =)
-def(type-is-table, Type -- Bool, type-tag TYPE_TAG_TABLE =)
-def(type-is-hole, Type -- Bool, type-tag TYPE_TAG_HOLE =)
-def(type-is-param, Type -- Bool, type-tag TYPE_TAG_PARAM =)
-def(type-is-app, Type -- Bool, type-tag TYPE_TAG_APP =)
+def(type-is-prim, Type -- Bool, type-tag TYPE_TAG_PRIM ==)
+def(type-is-var, Type -- Bool, type-tag TYPE_TAG_VAR ==)
+def(type-is-meta, Type -- Bool, type-tag TYPE_TAG_META ==)
+def(type-is-tensor, Type -- Bool, type-tag TYPE_TAG_TENSOR ==)
+def(type-is-morphism, Type -- Bool, type-tag TYPE_TAG_MORPHISM ==)
+def(type-is-nominal, Type -- Bool, type-tag TYPE_TAG_NOMINAL ==)
+def(type-is-table, Type -- Bool, type-tag TYPE_TAG_TABLE ==)
+def(type-is-hole, Type -- Bool, type-tag TYPE_TAG_HOLE ==)
+def(type-is-param, Type -- Bool, type-tag TYPE_TAG_PARAM ==)
+def(type-is-app, Type -- Bool, type-tag TYPE_TAG_APP ==)
 
 def(type-is-prim?, Type -- Type Bool, dup type-is-prim)
 def(type-is-var?, Type -- Type Bool, dup type-is-var)
@@ -229,7 +229,7 @@ def(type-expand, Type -- Type,
 # high level version of type-get-tensor that introduces metavars if needed
 def(type-expand-tensor, Type -- TensorType,
     type-expand
-    dup TYPE_ERROR = if(
+    dup TYPE_ERROR == if(
         drop 0 Int->TensorType,
 
     type-is-meta? if( # undefined metavar -- introduce a tensor type
@@ -286,19 +286,19 @@ def(type-unify!, Type Type -- Type +Elab,
         type-get-hole-name
         type-hole-unify!,
 
-    dup TYPE_DONT_CARE = if(
+    dup TYPE_DONT_CARE == if(
         drop,
 
-    over TYPE_DONT_CARE = if(
+    over TYPE_DONT_CARE == if(
         nip,
 
-    dup2 = if(
+    dup2 == if(
         drop, # types are equal
 
-    dup TYPE_ERROR = if(
+    dup TYPE_ERROR == if(
         drop2 TYPE_ERROR,
 
-    over TYPE_ERROR = if(
+    over TYPE_ERROR == if(
         drop2 TYPE_ERROR,
 
     swap type-is-meta? if(
@@ -365,7 +365,7 @@ def(type-has-meta, MetaVar Type -- Bool,
         drop2 false,
 
     type-is-meta? if(
-        type-get-meta =,
+        type-get-meta ==,
 
     type-is-tensor? if(
         type-get-tensor tensor-type-has-meta,
@@ -387,19 +387,19 @@ def(type-has-meta, MetaVar Type -- Bool,
 
 
 def(type-trace-sig!, Type -- +IO,
-    dup TYPE_ERROR = if(
+    dup TYPE_ERROR == if(
         "<ERROR>" str-trace! drop,
 
         type-get-morphism dup
         morphism-type-dom@
-        dup TYPE_UNIT = if(
+        dup TYPE_UNIT == if(
             drop,
             type-trace-stack!
             " " str-trace!
         )
         "--" str-trace!
         morphism-type-cod@
-        dup TYPE_UNIT = if(
+        dup TYPE_UNIT == if(
             drop,
             " " str-trace!
             type-trace-stack!
@@ -410,7 +410,7 @@ def(type-trace-stack!, Type -- +IO,
     type-is-tensor? if(
         type-get-tensor dup
         tensor-type-fst@
-        dup TYPE_UNIT = if(
+        dup TYPE_UNIT == if(
             drop,
             type-trace-stack!
             " " str-trace!
@@ -469,33 +469,33 @@ def(type-trace!, Type -- +IO,
     ))))))))))
 
 def(type-trace-prim!, Type -- +IO,
-    dup TYPE_ERROR = if(
+    dup TYPE_ERROR == if(
         drop "ERROR" str-trace!,
-    dup TYPE_UNIT = if(
+    dup TYPE_UNIT == if(
         drop "[]" str-trace!,
-    dup TYPE_BOOL = if(
+    dup TYPE_BOOL == if(
         drop "Bool" str-trace!,
-    dup TYPE_INT = if(
+    dup TYPE_INT == if(
         drop "Int" str-trace!,
-    dup TYPE_PTR = if(
+    dup TYPE_PTR == if(
         drop "Ptr" str-trace!,
-    dup TYPE_U8 = if(
+    dup TYPE_U8 == if(
         drop "U8" str-trace!,
-    dup TYPE_U16 = if(
+    dup TYPE_U16 == if(
         drop "U16" str-trace!,
-    dup TYPE_U32 = if(
+    dup TYPE_U32 == if(
         drop "U32" str-trace!,
-    dup TYPE_U64 = if(
+    dup TYPE_U64 == if(
         drop "U64" str-trace!,
-    dup TYPE_I8 = if(
+    dup TYPE_I8 == if(
         drop "I8" str-trace!,
-    dup TYPE_I16 = if(
+    dup TYPE_I16 == if(
         drop "I16" str-trace!,
-    dup TYPE_I32 = if(
+    dup TYPE_I32 == if(
         drop "I32" str-trace!,
-    dup TYPE_I64 = if(
+    dup TYPE_I64 == if(
         drop "I64" str-trace!,
-    dup TYPE_DONT_CARE = if(
+    dup TYPE_DONT_CARE == if(
         drop "_" str-trace!,
         "<UNKNOWN PRIMITIVE TYPE " str-trace! Type->Int int-trace! ">" str-trace!
     )))))))))))))))
@@ -513,7 +513,7 @@ def(type-sig-needs-fresh-stack-rest?, Type -- Type Bool,
     type-expand type-is-param? if(type-get-param param-type-body@, id)
     type-expand-morphism morphism-type-dom@
     while(type-expand type-is-tensor?, type-get-tensor tensor-type-fst@)
-    TYPE_UNIT =)
+    TYPE_UNIT ==)
 
 def(type-freshen-sig-aux, Subst Type -- Subst Type,
     type-expand type-is-param? if(
@@ -725,7 +725,7 @@ def(nominal-new!, Name Int Type -- Nominal,
 ##############
 
 def(type-hole-unify!, Type Name -- Type,
-    dup 0 Int->Name = if(
+    dup 0 Int->Name == if(
         drop,
         THole type-trace!
         " ~ " str-trace!
@@ -776,7 +776,7 @@ def(P1, Type -- Param, P0 param-new!)
 def(P2, Type Type -- Param, P1 param-new!)
 def(P3, Type Type Type -- Param, P2 param-new!)
 def(param-empty?, Param -- Param Bool,
-    dup P0 =)
+    dup P0 ==)
 def(param-len, Param -- Int,
     dip(0)
     while(param-empty? not,
@@ -886,13 +886,13 @@ def(subst-new!, Type Var Subst -- Subst,
     tuck subst-type!)
 
 def(SUBST_NIL, Subst, 0 Int->Subst)
-def(subst-is-nil, Subst -- Bool, SUBST_NIL =)
+def(subst-is-nil, Subst -- Bool, SUBST_NIL ==)
 def(subst-is-nil?, Subst -- Subst Bool, dup subst-is-nil)
 
 def(subst-has-var, Var Subst -- Bool,
     subst-is-nil? if(
         drop2 false,
-        dup2 subst-var@ = if(
+        dup2 subst-var@ == if(
             drop2 true,
             subst-rest@ subst-has-var
         )
@@ -903,7 +903,7 @@ def(subst-has-var?, Var Subst -- Var Subst Bool,
 def(subst-get-var, Var Subst -- Type,
     subst-is-nil? if(
         drop2 TYPE_ERROR,
-        dup2 subst-var@ = if(
+        dup2 subst-var@ == if(
             subst-type@ nip,
             subst-rest@ subst-get-var
         )

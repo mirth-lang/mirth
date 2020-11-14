@@ -13,7 +13,7 @@ endif
 syntax iskeyword 33,36-39,42-43,45-57,59-90,94-95,97-122,124,126
 
 " reserved words -- these have special syntactic meaning
-syntax keyword mirthReserved export import type data end = == --
+syntax keyword mirthReserved export import type data end = --
 syntax keyword mirthSpecial ->
 
 " prelude words
@@ -70,4 +70,3 @@ highlight def link mirthString String
 highlight def link mirthNumber Number
 
 let b:current_syntax = "mirth"
-

@@ -16,14 +16,14 @@ def(ctx-new!, Ctx Var -- Ctx,
     tuck ctx-prev!)
 
 def(ctx-empty, Ctx, 0 cast)
-def(ctx-is-empty, Ctx -- Bool, ctx-empty =)
+def(ctx-is-empty, Ctx -- Bool, ctx-empty ==)
 def(ctx-is-empty?, Ctx -- Ctx Bool, dup ctx-is-empty)
 
 def(ctx-has-name?, Name Ctx -- Name Ctx Bool, dup2 ctx-has-name)
 def(ctx-has-name, Name Ctx -- Bool,
     ctx-is-empty? if(
         drop2 false,
-        dup ctx-name@ dip(over) = if(
+        dup ctx-name@ dip(over) == if(
             drop2 true,
             ctx-prev@ ctx-has-name
         )
@@ -34,7 +34,7 @@ def(ctx-lookup, Name Ctx -- Var,
     ctx-is-empty? if(
         drop2 VAR_ERROR,
 
-        dup ctx-var@ var-name@ dip(over) = if(
+        dup ctx-var@ var-name@ dip(over) == if(
             ctx-var@ nip,
             ctx-prev@ ctx-lookup
         )

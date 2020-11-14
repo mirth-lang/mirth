@@ -19,7 +19,7 @@ buffer(OUTPUT_PATH_ROOT, 8)
 def(output-path-root@, -- Path, OUTPUT_PATH_ROOT path@)
 def(output-path-root!, Path --, OUTPUT_PATH_ROOT path!)
 
-def(path-separator, Str, RUNNING_OS WIN32 = if("\\", "/"))
+def(path-separator, Str, RUNNING_OS WIN32 == if("\\", "/"))
 
 # Load a path into STR_BUF. If the path is null,
 # clears STR_BUF instead.
@@ -31,7 +31,7 @@ def(str-buf-path!, Path --,
 
 # Is the path null?
 def(path-null?, Path -- Path Bool,
-    dup Path->Str Ptr->Int 0 =)
+    dup Path->Str Ptr->Int 0 ==)
 
 # Push a path to STR_BUF, adding the path separator if
 # str-buf is non-empty. (TODO: Add path separator

@@ -4,7 +4,7 @@ import(prelude/common)
 # Assertions
 
 def(!!, Bool --, if(id, "Assertion failed" panic!))
-def(!!=, a a --, = !!)
+def(!!=, a a --, == !!)
 def(!!false, Bool --, false !!=)
 def(!!true, Bool --, true !!=)
 def(!!0, Int --, 0 !!=)
@@ -38,13 +38,13 @@ def(test-rotl, --,
     0 0 1 rotl !!010)
 
 def(test=, --,
-    0 0 = !!true
-    0 1 = !!false
-    1 0 = !!false
-    1 1 = !!true
-    1 2 = !!false
-    2 1 = !!false
-    2 2 = !!true)
+    0 0 == !!true
+    0 1 == !!false
+    1 0 == !!false
+    1 1 == !!true
+    1 2 == !!false
+    2 1 == !!false
+    2 2 == !!true)
 def(test<, --,
     0 0 < !!false
     0 1 < !!true
@@ -88,8 +88,8 @@ def(test+, --,
     0 0 + !!0
     0 1 + !!1
     1 0 + !!1
-    1 1 + 2 = !!true
-    2 2 + 4 = !!true
+    1 1 + 2 == !!true
+    2 2 + 4 == !!true
     2 -2 + !!0)
 
 def(test-, --,
@@ -198,7 +198,7 @@ def(test-stack-assertions, -- ,
     1 2 { Int Int }
     3 4 { Int Int Int Int }
     + + + { Int }
-    10 =
+    10 ==
     { Bool }
     drop
 )

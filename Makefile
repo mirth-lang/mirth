@@ -1,7 +1,7 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Werror -pedantic
 CC=gcc $(C99FLAGS)
 
-SRCS=src/*.mth src/prelude/*.mth src/mirth/*.mth src/mirth/data/*.mth
+SRCS=src/*.mth src/prelude/*.mth src/mirth/*.mth src/mirth/data/*.mth src/mirth/elab/*.mth src/mirth/lexer/*.mth
 
 .PHONY: default show build update check update-mirth install-vim install-code profile play-snake test test-update
 

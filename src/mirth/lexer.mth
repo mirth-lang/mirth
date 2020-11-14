@@ -178,11 +178,12 @@ def(lexer-emit-rparen!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right parenthesis." lexer-emit-fatal-error!,
         TOKEN_RPAREN lexer-stack-pop! dup
-        token-type? TOKEN_LPAREN = if(
+        token-type? TOKEN_LPAREN == if(
             dip(Token->TokenValue lexer-make!)
             dip(Token->TokenValue) token-value!,
             "Mismatched right parenthesis." lexer-emit-fatal-error!
-    )))
+        )
+    ))
 
 def(lexer-emit-lbracket!, +Lexer,
     TOKEN_LBRACKET 0 Int->TokenValue lexer-make!
@@ -192,11 +193,12 @@ def(lexer-emit-rbracket!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right bracket." lexer-emit-fatal-error!,
         TOKEN_RBRACKET lexer-stack-pop! dup
-        token-type? TOKEN_LBRACKET = if(
+        token-type? TOKEN_LBRACKET == if(
             dip(Token->TokenValue lexer-make!)
             dip(Token->TokenValue) token-value!,
             "Mismatched right bracket." lexer-emit-fatal-error!
-    )))
+        )
+    ))
 
 def(lexer-emit-lbrace!, +Lexer,
     TOKEN_LBRACE 0 Int->TokenValue lexer-make!
@@ -206,11 +208,12 @@ def(lexer-emit-rbrace!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right brace." lexer-emit-fatal-error!,
         TOKEN_RBRACE lexer-stack-pop! dup
-        token-type? TOKEN_LBRACE = if(
+        token-type? TOKEN_LBRACE == if(
             dip(Token->TokenValue lexer-make!)
             dip(Token->TokenValue) token-value!,
             "Mismatched right brace." lexer-emit-fatal-error!
-    )))
+        )
+    ))
 
 def(lexer-emit-name!, +Lexer,
     str-buf-clear!
@@ -247,14 +250,14 @@ def(lexer-emit-name!, +Lexer,
     )))
 
 def(str-buf-is-doc-start?, Bool +StrBuf,
-    str-buf-length? 3 = if(
+    str-buf-length? 3 == if(
         0 str-buf-u8@ is-pipe-char
         1 str-buf-u8@ is-pipe-char &&
         2 str-buf-u8@ is-pipe-char &&,
         false
     ))
 
-def(is-pipe-char, U8 -- Bool, U8->Int 0x7C =)
+def(is-pipe-char, U8 -- Bool, U8->Int 0x7C ==)
 
 def(str-buf-is-int?, Bool +StrBuf,
     str-buf-is-dec-int? if(true, str-buf-is-hex-int?))
@@ -269,12 +272,12 @@ def(str-buf-is-dec-int?, Bool +StrBuf,
     while(dup str-buf-u8@ is-digit? nip,
         dip(1+) 1+)
     swap 1 >= if(
-        str-buf-length? =,
+        str-buf-length? ==,
         drop false
     ))
 
-def(is-zero-char, Char -- Bool, U8->Int 48 =)
-def(is-xX-char, Char -- Bool, U8->Int dup 88 = dip(120 =) ||)
+def(is-zero-char, Char -- Bool, U8->Int 48 ==)
+def(is-xX-char, Char -- Bool, U8->Int dup 88 == dip(120 ==) ||)
 
 def(str-buf-is-hex-int?, Bool +StrBuf,
     0 # number of digits
@@ -289,7 +292,7 @@ def(str-buf-is-hex-int?, Bool +StrBuf,
             1+
             while(dup str-buf-u8@ is-hexdigit? nip, dip(1+) 1+)
             swap 1 >= if(
-                str-buf-length? =,
+                str-buf-length? ==,
                 drop false
             ),
 
