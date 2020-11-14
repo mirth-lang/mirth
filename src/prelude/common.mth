@@ -36,207 +36,313 @@ def-type(Str, Ptr)
 def-type(Size, Int)
 def-type(Offset, Int)
 
-def(cast, a -- b, prim.unsafe.cast)
-def(Int->Ptr, Int -- Ptr, cast)
-def(Ptr->Int, Ptr -- Int, cast)
+cast : a -- b
+cast = prim.unsafe.cast
 
-def(U8_MAX, Int, 0xFF)
-def(U16_MAX, Int, 1 16 << 1-)
-def(U32_MAX, Int, 1 32 << 1-)
-def(I8_MAX, Int, 127)
-def(I16_MAX, Int, 1 15 << 1-)
-def(I32_MAX, Int, 1 31 << 1-)
+Int->Ptr : Int -- Ptr
+Int->Ptr = cast
 
-def(U8_MIN, Int, 0)
-def(U16_MIN, Int, 0)
-def(U32_MIN, Int, 0)
-def(I8_MIN, Int, -128)
-def(I16_MIN, Int, 0 1 15 << -)
-def(I32_MIN, Int, 0 1 31 << -)
+Ptr->Int : Ptr -- Int
+Ptr->Int = cast
 
-def(!=, a a -- Bool, == not)
-def(>, Int Int -- Bool, swap <)
-def(>=, Int Int -- Bool, swap <=)
+U8_MAX : Int
+U8_MAX = 0xFF
 
-def(0=, Int -- Bool, 0 ==)
-def(0<, Int -- Bool, 0 <)
+U16_MAX : Int
+U16_MAX = 0xFFFF
 
-def(1+, Int -- Int, 1 +)
-def(1-, Int -- Int, 1 -)
+U32_MAX : Int
+U32_MAX = 0xFFFFFFFF
 
-def(max, Int Int -- Int, dup2 < if(nip, drop))
-def(square, Int -- Int, dup *)
+I8_MAX : Int
+I8_MAX = 0x7F
 
-def(not, Bool -- Bool, false ==)
-def(bool, Bool -- Bool, id)
-def(nonzero, Int -- Bool, 0 !=)
+I16_MAX : Int
+I16_MAX = 0x7FFF
 
-def(int@, Ptr -- Int, @)
-def(int!, Int Ptr --, !)
+I32_MAX : Int
+I32_MAX = 0x7FFFFFFF
 
-def(ptr+, Int Ptr -- Ptr, prim.unsafe.ptr+)
-def(ptr@, Ptr -- Ptr, @ Int->Ptr)
-def(ptr!, Ptr Ptr --, dip(Ptr->Int) !)
 
-def(ptr, Size, prim.unsafe.|ptr|)
-def(ptrs, Size -- Size, ptr *)
-def(ptr@@, Offset Ptr -- Ptr, dip(ptrs) ptr+ ptr@)
-def(ptr!!, Ptr Offset Ptr --, dip(ptrs) ptr+ ptr!)
+U8_MIN : Int
+U8_MIN = 0
 
-def(u8, Size, 1)
-def(u8s, Size -- Size, id)
-def(u8@@, Offset Ptr -- Byte, ptr+ u8@)
-def(u8!!, Byte Offset Ptr --, ptr+ u8!)
+U16_MIN : Int
+U16_MIN = 0
 
-def(u16, Size, 2)
-def(u16s, Size -- Size, u16 *)
-def(u16@@, Offset Ptr -- U16, dip(u16s) ptr+ u16@)
-def(u16!!, U16 Offset Ptr --, dip(u16s) ptr+ u16!)
+U32_MIN : Int
+U32_MIN = 0
 
-def(u32, Size, 4)
-def(u32s, Size -- Size, u32 *)
-def(u32@@, Offset Ptr -- U32, dip(u32s) ptr+ u32@)
-def(u32!!, U32 Offset Ptr --, dip(u32s) ptr+ u32!)
+I8_MIN : Int
+I8_MIN = -0x80
 
-def(i16, Size, 2)
-def(i16s, Size -- Size, i16 *)
-def(i16@@, Offset Ptr -- I16, dip(i16s) ptr+ i16@)
-def(i16!!, I16 Offset Ptr --, dip(i16s) ptr+ i16!)
+I16_MIN : Int
+I16_MIN = -0x8000
 
-def(i32, Size, 4)
-def(i32s, Size -- Size, i32 *)
-def(i32@@, Offset Ptr -- I32, dip(i32s) ptr+ i32@)
-def(i32!!, I32 Offset Ptr --, dip(i32s) ptr+ i32!)
+I32_MIN : Int
+I32_MIN = -0x80000000
 
-def-type(Long, Int)
-def(u64, Size, 8)
-def(quad, Size, 8)
-def(quads, Size -- Size, quad *)
-def(quad@@, Offset Ptr -- Long, dip(quads) ptr+ @)
-def(quad!!, Long Offset Ptr --, dip(quads) ptr+ !)
+not : Bool -- Bool
+not = false ==
 
-def(in-range, Int Int Int -- Bool,
-    dip(over dip(>=)) <= &&)
+!= : a a -- Bool
+!= = == not
 
-def(Int->U8, Int -- U8,
+> : Int Int -- Bool
+> = swap <
+
+>= : Int Int -- Bool
+>= = swap <=
+
+0= : Int -- Bool
+0= = 0 ==
+
+0< : Int -- Bool
+0< = 0 <
+
+1+ : Int -- Int
+1+ = 1 +
+
+1- : Int -- Int
+1- = 1 -
+
+max : Int Int -- Int
+max = dup2 < if(nip, drop)
+
+min : Int Int -- Int
+min = dup2 < if(drop, nip)
+
+square : Int -- Int
+square = dup *
+
+nonzero : Int -- Bool
+nonzero = 0 !=
+
+ptr+ : Int Ptr -- Ptr
+ptr+ = prim.unsafe.ptr+
+
+ptr@ : Ptr -- Ptr
+ptr@ = @ Int->Ptr
+
+ptr! : Ptr Ptr --
+ptr! = dip(Ptr->Int) !
+
+ptrs : Size -- Size
+ptrs = prim.unsafe.|ptr| *
+
+ptr@@ : Offset Ptr -- Ptr
+ptr@@ = dip(ptrs) ptr+ ptr@
+
+ptr!! : Ptr Offset Ptr --
+ptr!! = dip(ptrs) ptr+ ptr!
+
+u8@@ : Offset Ptr -- Byte
+u8@@ = ptr+ u8@
+
+u8!! : Byte Offset Ptr --
+u8!! = ptr+ u8!
+
+ints : Size -- Size
+ints = 8 *
+
+@@ : Offset Ptr -- Int
+@@ = dip(ints) ptr+ @
+
+!! : Int Offset Ptr --
+!! = dip(ints) ptr+ !
+
+in-range : Int Int Int -- Bool
+in-range = dip(over dip(>=)) <= &&
+
+Int->U8 : Int -- U8
+Int->U8 =
     dup U8_MIN U8_MAX in-range if(
         cast,
         "Int->U8 failed: out of bounds" panic!
-    ))
-def(Int->U16, Int -- U16,
+    )
+
+Int->U16 : Int -- U16
+Int->U16 =
     dup U16_MIN U16_MAX in-range if(
         cast,
         "Int->U16 failed: out of bounds" panic!
-    ))
-def(Int->U32, Int -- U32,
+    )
+
+Int->U32 : Int -- U32
+Int->U32 =
     dup U32_MIN U32_MAX in-range if(
         cast,
         ??
         "Int->U32 failed: out of bounds" panic!
-    ))
-def(Int->U64, Int -- U64, cast)
+    )
 
-def(Int->I8, Int -- I8,
+Int->U64 : Int -- U64
+Int->U64 = cast
+
+Int->I8 : Int -- I8
+Int->I8 =
     dup I8_MIN I8_MAX in-range if(
         cast,
         "Int->I8 failed: out of bounds" panic!
-    ))
-def(Int->I16, Int -- I16,
+    )
+
+Int->I16 : Int -- I16
+Int->I16 =
     dup I16_MIN I16_MAX in-range if(
         cast,
         "Int->I16 failed: out of bounds" panic!
-    ))
-def(Int->I32, Int -- I32,
+    )
+
+Int->I32 : Int -- I32
+Int->I32 =
     dup I32_MIN I32_MAX in-range if(
         cast,
         "Int->I32 failed: out of bounds" panic!
-    ))
-def(Int->I64, Int -- I64, cast)
+    )
 
-def(U8->Int, U8 -- Int, cast)
-def(U16->Int, U16 -- Int, cast)
-def(U32->Int, U32 -- Int, cast)
-def(U64->Int, U64 -- Int, cast)
-def(I8->Int, I8 -- Int, cast)
-def(I16->Int, I16 -- Int, cast)
-def(I32->Int, I32 -- Int, cast)
-def(I64->Int, I64 -- Int, cast)
+Int->I64 : Int -- I64
+Int->I64 = cast
 
-def(negate, Int -- Int, -1 *)
-def(abs, Int -- Int, dup 0 < if(negate, id))
+U8->Int : U8 -- Int
+U8->Int = cast
+
+U16->Int : U16 -- Int
+U16->Int = cast
+
+U32->Int : U32 -- Int
+U32->Int = cast
+
+U64->Int : U64 -- Int
+U64->Int = cast
+
+I8->Int : I8 -- Int
+I8->Int = cast
+
+I16->Int : I16 -- Int
+I16->Int = cast
+
+I32->Int : I32 -- Int
+I32->Int = cast
+
+I64->Int : I64 -- Int
+I64->Int = cast
+
+negate : Int -- Int
+negate = -1 *
+
+abs : Int -- Int
+abs = dup 0< if(negate, id)
 
 def-type(OS, Int)
-def(UNKNOWN, OS, 0)
-def(WIN32, OS, 1)
-def(LINUX, OS, 2)
-def(MACOS, OS, 3)
+
+UNKNOWN : OS
+UNKNOWN = 0
+
+WIN32 : OS
+WIN32 = 1
+
+LINUX : OS
+LINUX = 2
+
+MACOS : OS
+MACOS = 3
 
 ###########
 # STRINGS #
 ###########
 
+# TODO: UTF8 support
+str-head : Str -- U8
+str-head = u8@
 
-def(str-head, Str -- U8, u8@)
-def(str-tail, Str -- Str, 1 swap ptr+)
-def(str-length, Str -- Int,
-    0 swap
-    while(dup str-null not,
-        str-tail
-        dip(1+))
-    drop)
-def(str-null, Str -- Bool,
-    u8@ U8->Int 0=)
-def(str-null?, Str -- Str Bool,
-    dup str-null)
+# TODO: UTF8 support
+str-tail : Str -- Str
+str-tail = 1 swap ptr+
 
-def(str-copy!, Str Str --,
+str-length : Str -- Int
+str-length =
+    0 swap while(
+        str-null? not,
+        dip(1+) str-tail
+    ) drop
+
+str-null : Str -- Bool
+str-null = u8@ U8->Int 0=
+
+str-null? : Str -- Str Bool
+str-null? = dup str-null
+
+str-copy! : Str Str --
+str-copy! = (
     while( over u8@ U8->Int nonzero,
         over u8@ over u8!
         dip(str-tail) str-tail
     )
-    dip(drop 0 Int->U8) u8!)
+    dip(drop 0 Int->U8) u8!
+)
 
-def(STR_BUF_SIZE, Int, 0x1000)
-buffer(STR_BUF_LEN, 8)
+STR_BUF_SIZE : Int
+STR_BUF_SIZE = 0x1000
 buffer(STR_BUF, 0x1000)
+buffer(STR_BUF_LEN, 8)
 
-def(str-buf-length?, Int +StrBuf, STR_BUF_LEN @)
-def(str-buf-length!, Int -- +StrBuf,
+str-buf-length? : Int +StrBuf
+str-buf-length? = STR_BUF_LEN @
+
+str-buf-length! : Int -- +StrBuf
+str-buf-length! = (
     dup STR_BUF_LEN !
-    dip(0 Int->U8) str-buf-u8!)
-def(str-buf-u8@, Offset -- U8 +StrBuf, STR_BUF u8@@)
-def(str-buf-u8!, U8 Offset -- +StrBuf, STR_BUF u8!!)
-def(str-buf-empty?, Bool +StrBuf,
-    str-buf-length? 0 ==)
-def(str-buf-full?, Bool +StrBuf,
-    str-buf-length? 1+ STR_BUF_SIZE >=)
-def(str-buf-clear!, +StrBuf, 0 str-buf-length!)
+    dip(0 Int->U8) str-buf-u8!
+)
 
-def(str-buf-push!, U8 -- +StrBuf,
+str-buf-u8@ : Offset -- U8 +StrBuf
+str-buf-u8@ = STR_BUF u8@@
+
+str-buf-u8! : U8 Offset -- +StrBuf
+str-buf-u8! = STR_BUF u8!!
+
+str-buf-empty? : Bool +StrBuf
+str-buf-empty? = str-buf-length? 0=
+
+str-buf-full? : Bool +StrBuf
+str-buf-full? = str-buf-length? 1+ STR_BUF_SIZE >=
+
+str-buf-clear! : +StrBuf
+str-buf-clear! = 0 str-buf-length!
+
+str-buf-push! : U8 -- +StrBuf
+str-buf-push! =
     str-buf-full? if(
         "str-buf-push! but STR_BUF is already full" panic!,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
-    ))
+    )
 
-# Append the given string into STR_BUF. If the string is
-# too large it gets truncated.
-def(str-buf-push-str!, Str -- +StrBuf,
-        while(str-buf-full? if(false, dup u8@ U8->Int nonzero),
+||| Append the given string into STR_BUF. If the string is
+||| too large it gets truncated.
+str-buf-push-str! : Str -- +StrBuf
+str-buf-push-str! =
+    while(
+        str-buf-full? if(false, dup u8@ U8->Int nonzero),
         dup u8@ str-buf-push!
-        str-tail)
-    drop)
+        str-tail
+    ) drop
 
-# Set the STR_BUF to a given string. If the string is
-# too large it gets truncated.
-def(str-buf!, Str -- +StrBuf, str-buf-clear! str-buf-push-str!)
+||| Set the STR_BUF to a given string. If the string is
+||| too large it gets truncated.
+str-buf! : Str -- +StrBuf
+str-buf! = str-buf-clear! str-buf-push-str!
 
-def(str-buf-char!, Char -- +StrBuf, 0 str-buf-u8! 1 str-buf-length!)
+# TODO UTF8 support?
+str-buf-char! : Char -- +StrBuf
+str-buf-char! = 0 str-buf-u8! 1 str-buf-length!
 
-def(to-digit, Int -- U8, 10 % 48 + Int->U8)
+to-digit : Int -- U8
+to-digit = 10 % 48 + Int->U8
 
-# put integer into str buf
-def(str-buf-int!, Int --,
+||| Put integer into STR_BUF.
+str-buf-int! : Int -- +StrBuf
+str-buf-int! =
     dup 0= if(
         drop "0" str-buf!,
         dup dip(
@@ -245,48 +351,67 @@ def(str-buf-int!, Int --,
             while(dup nonzero, dup to-digit str-buf-push! 10 /) drop
         ) 0 < if(45 Int->U8 str-buf-push!, id)
         str-buf-reverse!
-    ))
+    )
 
-def(str-buf-swap-u8!, Int Int --,
+||| Swap two bytes in STR_BUF.
+str-buf-swap-u8! : Int Int -- +StrBuf
+str-buf-swap-u8! = (
     dup2 swap
     dip(dip(dip(str-buf-u8@)))
     dip(str-buf-u8@)
     str-buf-u8! str-buf-u8!
 )
 
-# reverse contents of str buf
-def(str-buf-reverse!, --,
+||| Reverse contents of STR_BUF bytewise.
+str-buf-reverse! : +StrBuf
+str-buf-reverse! = (
     0 str-buf-length? 1-
     while(dup2 <,
         dup2 str-buf-swap-u8!
-        dip(1 +) 1-
+        dip(1+) 1-
     )
-    drop2)
+    drop2
+)
 
-def(str-eq, Str Str -- Bool,
+||| Are two strings equal?
+str-eq : Str Str -- Bool
+str-eq =
     str-null? if(
         drop str-null,
         dup2 str-head swap str-head == if(
             str-tail swap str-tail str-eq,
             drop2 false
         )
-    ))
+    )
 
-def(str-eq?, Str Str -- Str Str Bool, dup2 str-eq)
+||| Are two strings equal? Preserve pointers.
+str-eq? : Str Str -- Str Str Bool
+str-eq? = dup2 str-eq
 
 ##########
 # TUPLES #
 ##########
 
-def(pack-nil, [*a], prim.pack.nil cast)
-def(pack-nil?, [*a] -- [*a] Bool, dup pack-nil ==)
+||| Return the "nil" pack, i.e. null.
+||| Attempts to uncons "nil" will result in a panic.
+pack-nil : [*a]
+pack-nil = prim.pack.nil cast
 
-def(pack-cons, [*a] b -- [*a b], prim.pack.cons)
-def(pack-uncons, [*a b] -- [*a] b,
+||| Is this a nil pack?
+pack-nil? : [*a] -- [*a] Bool
+pack-nil? = dup pack-nil ==
+
+||| Construct a tuple by appending an element.
+pack-cons : [*a] b -- [*a b]
+pack-cons = prim.pack.cons
+
+||| Deconstruct a tuple by splitting it at its last element.
+pack-uncons : [*a b] -- [*a] b
+pack-uncons =
     pack-nil? if(
         "attempted to uncons nil" panic!,
         prim.pack.uncons
-    ))
+    )
 
 def(pack0, [], pack-nil)
 def(pack1, a -- [a], dip(pack0) pack-cons)
@@ -354,8 +479,8 @@ nominal(File, Int)
 def(File->Int, File -- Int, cast)
 def(Int->File, Int -- File, cast)
 def(|File|, Size, 8)
-def(file@, Ptr -- File, int@ Int->File)
-def(file!, File Ptr --, dip(File->Int) int!)
+def(file@, Ptr -- File, @ Int->File)
+def(file!, File Ptr --, dip(File->Int) !)
 
 def(stdin,  File, 0 Int->File)
 def(stdout, File, 1 Int->File)

@@ -3,10 +3,9 @@ import(prelude/common)
 
 # Assertions
 
-def(!!, Bool --, if(id, "Assertion failed" panic!))
-def(!!=, a a --, == !!)
-def(!!false, Bool --, false !!=)
-def(!!true, Bool --, true !!=)
+def(!!true, Bool --, if(id, "Assertion failed" panic!))
+def(!!false, Bool --, not !!true)
+def(!!=, a a --, == !!true)
 def(!!0, Int --, 0 !!=)
 def(!!1, Int --, 1 !!=)
 def(!!001, Int Int Int --, 1 !!= 0 !!= 0 !!=)
@@ -144,18 +143,18 @@ def(test%, --,
 buffer(TEST_BUF, 16)
 def(test@!, --,
     # reset test buffer
-    0 0 TEST_BUF quad!!
-    0 1 TEST_BUF quad!!
+    0 0 TEST_BUF !!
+    0 1 TEST_BUF !!
     # run test
-    0 TEST_BUF quad@@ !!0
-    1 TEST_BUF quad@@ !!0
-    99 0 TEST_BUF quad!!
-    0 TEST_BUF quad@@ 99 !!=
-    1 TEST_BUF quad@@ !!0
-    30 1 TEST_BUF quad!!
-    0 TEST_BUF quad@@ 99 !!=
-    1 TEST_BUF quad@@ 30 !!=
-    0 0 TEST_BUF quad!!
+    0 TEST_BUF @@ !!0
+    1 TEST_BUF @@ !!0
+    99 0 TEST_BUF !!
+    0 TEST_BUF @@ 99 !!=
+    1 TEST_BUF @@ !!0
+    30 1 TEST_BUF !!
+    0 TEST_BUF @@ 99 !!=
+    1 TEST_BUF @@ 30 !!=
+    0 0 TEST_BUF !!
     0 TEST_BUF u8@@ U8->Int 0 !!=
     1 TEST_BUF u8@@ U8->Int 0 !!=
     2 TEST_BUF u8@@ U8->Int 0 !!=

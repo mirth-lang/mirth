@@ -48,7 +48,7 @@ def(lexer-stack-push!, Token -- +Lexer,
         Token->Int
         lexer-stack-length@
         dup 1+ lexer-stack-length!
-        LEXER_STACK_BUF quad!!
+        LEXER_STACK_BUF !!
     ))
 
 def(lexer-stack-pop!, -- Token +Lexer,
@@ -56,7 +56,7 @@ def(lexer-stack-pop!, -- Token +Lexer,
         "lexer stack underflow" panic!,
         lexer-stack-length@ 1-
         dup lexer-stack-length!
-        LEXER_STACK_BUF quad@@
+        LEXER_STACK_BUF @@
         Int->Token
     ))
 
