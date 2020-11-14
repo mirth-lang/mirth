@@ -375,7 +375,7 @@ def(print-ln!, +IO, 10 Int->U8 print-char!)
 def(trace-ln!, +IO, 10 Int->U8 trace-char!)
 def(print-sp!, +IO, 32 Int->U8 print-char!)
 def(trace-sp!, +IO, 32 Int->U8 trace-char!)
-def(print-quote!, +IO, 34 Int->U8 print-char!)
+def(trace-quote!, +IO, 34 Int->U8 trace-char!)
 
 def(str-buf-write!, File -- +StrBuf, File->Int STR_BUF str-buf-length? posix-write!)
 def(str-buf-print!, +StrBuf, stdout str-buf-write!)

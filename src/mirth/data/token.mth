@@ -50,8 +50,8 @@ def(token-type-str, TokenType -- Str,
     dup TOKEN_LBRACE == if(drop "LBRACE",
     dup TOKEN_RBRACE == if(drop "RBRACE",
     drop "???UNKNOWN???"))))))))))))
-def(token-type-print!, TokenType --,
-    token-type-str str-print!)
+def(token-type-trace!, TokenType --,
+    token-type-str str-trace!)
 
 def(TokenValue->Int, TokenValue -- Int, TokenValue.unwrap)
 def(TokenValue->Name, TokenValue -- Name, TokenValue->Int Int->Name)
@@ -122,31 +122,31 @@ def(token-location, Token -- Location,
     token-col@
     location-pack)
 
-def(token-print!, Token -- +IO,
-    dup token-location location-print!
-    ": " str-print!
-    dup Token->Int int-print-sp!
-    token-type? token-type-print!
+def(token-trace!, Token -- +IO,
+    dup token-location location-trace!
+    ": " str-trace!
+    dup Token->Int int-trace-sp!
+    token-type? token-type-trace!
     token-type? TOKEN_NAME == if(
-        print-sp!
-        token-name? name-load! str-buf-print!,
+        trace-sp!
+        token-name? name-load! str-buf-trace!,
 
     token-type? TOKEN_STR == if(
-        print-sp!
-        print-quote!
-        token-str? str-print! print-quote!,
+        trace-sp!
+        trace-quote!
+        token-str? str-trace! trace-quote!,
         # FIXME: print escaped
 
-        print-sp!
-        token-value? TokenValue->Int int-print!))
+        trace-sp!
+        token-value? TokenValue->Int int-trace!))
 
     drop
-    print-ln!)
+    trace-ln!)
 
 def(show-tokens!, --,
     0
     while(dup num-tokens@ <,
-        dup Int->Token token-print! 1+)
+        dup Int->Token token-trace! 1+)
     drop)
 
 # Get next token, without respecting nesting or arguments.
