@@ -3095,6 +3095,7 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwarrow_new_external_21_ (void);
  void mwarrow_new_prim_21_ (void);
  void mwarrow_new_word_21_ (void);
+ void mwarrow_push_21_ (void);
  void mwarrow_push_int_21_ (void);
  void mwarrow_push_buffer_21_ (void);
  void mwarrow_push_external_21_ (void);
@@ -16942,39 +16943,37 @@ void mwarrow_new_word_21_ (void){
     mwarrow_op_word_21_();
 }
 
-void mwarrow_push_int_21_ (void){
-    mwarrow_new_int_21_();
-    mwtuck();
+void mwarrow_push_21_ (void){
+    mwdup();
+    { value_t d1 = pop_value();
     mwswap();
     mwarrow_next_21_();
+      push_value(d1); }
+}
+
+void mwarrow_push_int_21_ (void){
+    mwarrow_new_int_21_();
+    mwarrow_push_21_();
 }
 
 void mwarrow_push_buffer_21_ (void){
     mwarrow_new_buffer_21_();
-    mwtuck();
-    mwswap();
-    mwarrow_next_21_();
+    mwarrow_push_21_();
 }
 
 void mwarrow_push_external_21_ (void){
     mwarrow_new_external_21_();
-    mwtuck();
-    mwswap();
-    mwarrow_next_21_();
+    mwarrow_push_21_();
 }
 
 void mwarrow_push_prim_21_ (void){
     mwarrow_new_prim_21_();
-    mwtuck();
-    mwswap();
-    mwarrow_next_21_();
+    mwarrow_push_21_();
 }
 
 void mwarrow_push_word_21_ (void){
     mwarrow_new_word_21_();
-    mwtuck();
-    mwswap();
-    mwarrow_next_21_();
+    mwarrow_push_21_();
 }
 
 void mwNameValue__3E_Prim (void){

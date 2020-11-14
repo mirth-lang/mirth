@@ -165,65 +165,121 @@ Arg->Arrow = Arg.unwrap
 # ARGS #
 ########
 
-def(Int->Args, Int -- Args, cast)
-def(Args->Int, Args -- Int, cast)
-def(args@, Ptr -- Args, @ Int->Args)
-def(args!, Args Ptr --, dip(Args->Int) !)
-def(args-alloc!, Args, Args.alloc!)
+Int->Args : Int -- Args
+Int->Args = cast
 
-def(ARGS_NIL, Args, 0 Int->Args)
-def(args-is-nil, Args -- Bool, ARGS_NIL ==)
-def(args-is-nil?, Args -- Args Bool, dup args-is-nil)
+Args->Int : Args -- Int
+Args->Int = cast
 
-def(args-len, Args -- Int,
-    0 swap while(args-is-nil? not, dip(1+) args-tail@) drop)
+args@ : Ptr -- Args
+args@ = @ Int->Args
 
-# Get pointer to last args var in args list.
-def(arrow-args-last&, Arrow -- Ptr,
+args! : Args Ptr --
+args! = dip(Args->Int) !
+
+args-alloc! : Args
+args-alloc! = Args.alloc!
+
+ARGS_NIL : Args
+ARGS_NIL = 0 Int->Args
+
+args-is-nil : Args -- Bool
+args-is-nil = ARGS_NIL ==
+
+args-is-nil? : Args -- Args Bool
+args-is-nil? = dup args-is-nil
+
+args-len : Args -- Int
+args-len = 0 swap while(args-is-nil? not, dip(1+) args-tail@) drop
+
+arrow-args-last& : Arrow -- Ptr
+arrow-args-last& =
     arrow-args& while(
         dup args@ args-is-nil not,
         args@ args-tail&
-    ))
+    )
 
-def(arrow-arg-add!, Arrow Arg -- Arrow,
-    args-alloc! tuck args-head!
-    over arrow-args-last& args!)
+arrow-arg-add! : Arrow Arg -- Arrow
+arrow-arg-add! = (
+    args-alloc!
+    tuck args-head!
+    over arrow-args-last& args!
+)
 
-def(arrow-args-0, Arrow --,
-    arrow-args?
-    args-len 0 == if(
+arrow-args-0 : Arrow --
+arrow-args-0 =
+    arrow-args? args-len 0 == if(
         drop,
-        arrow-token@ "compiler error: expected no args in arrow" emit-fatal-error!
-    ))
+        arrow-token@ "compiler error: expected no args in arrow"
+        emit-fatal-error!
+    )
 
-def(arrow-args-1, Arrow -- Arg,
-    arrow-args?
-    args-len 1 == if(
+arrow-args-1 : Arrow -- Arg
+arrow-args-1 =
+    arrow-args? args-len 1 == if(
         arrow-args@ args-head@,
-        arrow-token@ "compiler error: expected 1 arg in arrow" emit-fatal-error!
-    ))
+        arrow-token@ "compiler error: expected 1 arg in arrow"
+        emit-fatal-error!
+    )
 
-def(arrow-args-2, Arrow -- Arg Arg,
-    arrow-args?
-    args-len 2 == if(
+arrow-args-2 : Arrow -- Arg Arg
+arrow-args-2 =
+    arrow-args? args-len 2 == if(
         arrow-args@ args-head? swap
         args-tail@ args-head@,
-
-        arrow-token@ "compiler error: expected 2 args in arrow" emit-fatal-error!
-    ))
+        arrow-token@ "compiler error: expected 2 args in arrow"
+        emit-fatal-error!
+    )
 
 ####################################
 # Helpers for constructing arrows. #
 ####################################
+# TODO: Use an effect, or something, to elaborate these with types.
 
-def(arrow-new-int!, Int -- Arrow,  arrow-alloc! tuck arrow-op-int!)
-def(arrow-new-buffer!, Buffer -- Arrow, arrow-alloc! tuck arrow-op-buffer!)
-def(arrow-new-external!, External -- Arrow, arrow-alloc! tuck arrow-op-external!)
-def(arrow-new-prim!, Prim -- Arrow, arrow-alloc! tuck arrow-op-prim!)
-def(arrow-new-word!, Word -- Arrow,  arrow-alloc! tuck arrow-op-word!)
+arrow-new-int! : Int -- Arrow
+arrow-new-int! = (
+    arrow-alloc!
+    tuck arrow-op-int!
+)
 
-def(arrow-push-int!, Arrow Int -- Arrow, arrow-new-int! tuck swap arrow-next!)
-def(arrow-push-buffer!, Arrow Buffer -- Arrow, arrow-new-buffer! tuck swap arrow-next!)
-def(arrow-push-external!, Arrow External -- Arrow, arrow-new-external! tuck swap arrow-next!)
-def(arrow-push-prim!, Arrow Prim -- Arrow, arrow-new-prim! tuck swap arrow-next!)
-def(arrow-push-word!, Arrow Word -- Arrow, arrow-new-word! tuck swap arrow-next!)
+arrow-new-buffer! : Buffer -- Arrow
+arrow-new-buffer! = (
+    arrow-alloc!
+    tuck arrow-op-buffer!
+)
+
+arrow-new-external! : External -- Arrow
+arrow-new-external! = (
+    arrow-alloc!
+    tuck arrow-op-external!
+)
+
+arrow-new-prim! : Prim -- Arrow
+arrow-new-prim! = (
+    arrow-alloc!
+    tuck arrow-op-prim!
+)
+
+arrow-new-word! : Word -- Arrow
+arrow-new-word! = (
+    arrow-alloc!
+    tuck arrow-op-word!
+)
+
+arrow-push! : Arrow Arrow -- Arrow
+arrow-push! = dup dip(swap arrow-next!)
+
+arrow-push-int! : Arrow Int -- Arrow
+arrow-push-int! = arrow-new-int! arrow-push!
+
+arrow-push-buffer! : Arrow Buffer -- Arrow
+arrow-push-buffer! = arrow-new-buffer! arrow-push!
+
+arrow-push-external! : Arrow External -- Arrow
+arrow-push-external! = arrow-new-external! arrow-push!
+
+arrow-push-prim! : Arrow Prim -- Arrow
+arrow-push-prim! = arrow-new-prim! arrow-push!
+
+arrow-push-word! : Arrow Word -- Arrow
+arrow-push-word! = arrow-new-word! arrow-push!
