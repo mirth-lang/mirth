@@ -15,6 +15,14 @@ def(name-prim@, Name -- Prim,
         "compiler error: attempted to get prim definition for non-prim name" panic!
     ))
 
+||| Does this name refer to this primitive?
+name-prim= : Name Prim -- Bool
+name-prim= =
+    swap name-is-prim? if(
+        name-prim@ ==,
+        drop2 false
+    )
+
 def(PRIM_ID, Prim, 1 Int->Prim)
 def(PRIM_DUP, Prim, 2 Int->Prim)
 def(PRIM_DROP, Prim, 3 Int->Prim)
@@ -100,13 +108,11 @@ def(PRIM_COLON, Prim, 86 Int->Prim)
 
 # next primitive is 88
 
+||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str -- +Names,
     name-new! dup2 name-prim! swap prim-name!)
 
-# Initialize name table with list of primitives.
-# Note that order matters very much here. Any
-# deviation from the order above will be flagged
-# by def-prim!
+||| Initialize name table with list of primitives.
 def(init-prims!, +Names,
 
     PRIM_ID "id" def-prim!
