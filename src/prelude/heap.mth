@@ -40,7 +40,7 @@ def(heap-reserve!, Size -- +Heap,
         0 # offset
         posix-mmap!
         dup Ptr->Int nonzero if(
-            dup heap-length@ heap-base@ ptr+ = if(
+            dup heap-length@ heap-base@ ptr+ == if(
                 drop heap-length@ + heap-length!,
                 heap-base! heap-length!
             ),
@@ -52,9 +52,9 @@ def(PROT_READ|PROT_WRITE, Int,
     0x3) # PROT_READ = 0x1, PROT_WRITE = 0x2
 
 def(MAP_ANON|MAP_PRIVATE, Int,
-    RUNNING_OS MACOS = if(
+    RUNNING_OS MACOS == if(
         0x1002, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
-    # RUNNING_OS LINUX = if(
+    # RUNNING_OS LINUX == if(
         0x22 # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
         # ,
         # "MAP_ANON|MAP_PRIVATE unknown for os" panic!
@@ -72,7 +72,7 @@ def(align, Size Size -- Size,
     dup dip(1- + dup) % -)
 
 # Figure out how much to expand heap size by, based on a minimum size
-# (= requested size aligned to 4096).
+# (i.e. requested size aligned to 4096).
 # The expansion has a quadratic lower bound.
 def(heap-new-size, Size -- Size,
     4096 align

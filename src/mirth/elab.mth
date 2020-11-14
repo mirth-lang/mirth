@@ -104,7 +104,7 @@ def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
     name-is-type? if(
         name-type@
         over token-num-args
-        over type-arity = if(
+        over type-arity == if(
             elab-type-args!,
 
             drop dup
@@ -318,7 +318,7 @@ def(elab-arrow-op-word!, Arrow Word -- Type,
     elab-word-sig! elab-arrow-op-apply-fresh!)
 
 def(elab-arrow-op-prim!, Arrow Prim -- Type,
-    prim-type? TYPE_ERROR = if(
+    prim-type? TYPE_ERROR == if(
         drop arrow-token@ "compiler error: prim type missing" emit-fatal-error!,
 
         dup2 swap arrow-op-prim!
@@ -467,7 +467,7 @@ def(elab-module-decl!, Module Token -- Module Token +Mirth,
 ||| Elaborate a word definition `def(w, t, b)`.
 def(elab-def!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-3
-    rotl token-type? TOKEN_NAME = if(
+    rotl token-type? TOKEN_NAME == if(
         token-name? name-undefined? if(
             nip
             word-alloc!
@@ -513,7 +513,7 @@ def(elab-decl-word-def!, Module Token -- Module Token +Mirth,
 ||| Elaborate an external declaration `def-external(w, t)`
 def(elab-def-external!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-2
-    swap token-type? TOKEN_NAME = if(
+    swap token-type? TOKEN_NAME == if(
         token-name? name-undefined? if(
             nip
             external-alloc!
@@ -560,7 +560,7 @@ def(elab-nominal!, Module Token -- Module Token +Mirth,
     ))
 
 def(elab-nominal-words!, Nominal -- Nominal +Mirth,
-    nominal-arity? 0 = if(
+    nominal-arity? 0 == if(
         nominal-name? name-load! ".wrap" str-buf-push-str! name-save!
         word-alloc! dup2 swap name-word! tuck word-name!
         over dup nominal-type@ T1 swap TNominal T1 T->
@@ -583,10 +583,10 @@ def(elab-nominal-words!, Nominal -- Nominal +Mirth,
 ||| Elaborate a buffer definition `buffer(B, size)`.
 def(elab-buffer!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-2
-    swap token-type? TOKEN_NAME = if(
+    swap token-type? TOKEN_NAME == if(
         token-name? name-undefined? if(
             nip swap
-            token-type? TOKEN_INT = if(
+            token-type? TOKEN_INT == if(
                 token-int@ buffer-alloc! drop,
                 "expected buffer size" emit-fatal-error!
             ),
@@ -606,9 +606,9 @@ def(elab-table!, Module Token -- Module Token +Mirth,
 ||| Elaborate a field definition `field(f, T1, T2)`.
 def(elab-field!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-3
-    rotl token-type? TOKEN_NAME = if(
+    rotl token-type? TOKEN_NAME == if(
         token-name@
-        rotl token-type? TOKEN_NAME = if(
+        rotl token-type? TOKEN_NAME == if(
             token-name?
             name-is-table? if(
                 nip name-type@ type-get-table rotl
@@ -627,7 +627,7 @@ def(elab-target-c99!, Module Token -- Module Token +Mirth,
     typecheck-everything!
 
     dup dip(token-next) token-args-2
-    swap token-type? TOKEN_STR = if(
+    swap token-type? TOKEN_STR == if(
         dip(
             dip(ctx-empty T0 T0 T->)
             elab-arrow!

@@ -132,15 +132,15 @@ def(SNAKE_BUTTON_LEFT, SnakeButton, 4 Int->U8)
 def(SNAKE_BUTTON_START, SnakeButton, 5 Int->U8)
 
 def(SDL_Scancode->SnakeButton, SDL_Scancode -- SnakeButton,
-    dup SDL_SCANCODE_UP = if(
+    dup SDL_SCANCODE_UP == if(
         drop SNAKE_BUTTON_UP,
-    dup SDL_SCANCODE_RIGHT = if(
+    dup SDL_SCANCODE_RIGHT == if(
         drop SNAKE_BUTTON_RIGHT,
-    dup SDL_SCANCODE_DOWN = if(
+    dup SDL_SCANCODE_DOWN == if(
         drop SNAKE_BUTTON_DOWN,
-    dup SDL_SCANCODE_LEFT = if(
+    dup SDL_SCANCODE_LEFT == if(
         drop SNAKE_BUTTON_LEFT,
-    dup SDL_SCANCODE_SPACE = if(
+    dup SDL_SCANCODE_SPACE == if(
         drop SNAKE_BUTTON_START,
 
         drop SNAKE_BUTTON_NONE
@@ -148,15 +148,15 @@ def(SDL_Scancode->SnakeButton, SDL_Scancode -- SnakeButton,
 
 def(SDL_GameControllerButton->SnakeButton, SDL_GameControllerButton -- SnakeButton,
 
-    dup SDL_CONTROLLER_BUTTON_DPAD_UP = if(
+    dup SDL_CONTROLLER_BUTTON_DPAD_UP == if(
         drop SNAKE_BUTTON_UP,
-    dup SDL_CONTROLLER_BUTTON_DPAD_DOWN = if(
+    dup SDL_CONTROLLER_BUTTON_DPAD_DOWN == if(
         drop SNAKE_BUTTON_DOWN,
-    dup SDL_CONTROLLER_BUTTON_DPAD_LEFT = if(
+    dup SDL_CONTROLLER_BUTTON_DPAD_LEFT == if(
         drop SNAKE_BUTTON_LEFT,
-    dup SDL_CONTROLLER_BUTTON_DPAD_RIGHT = if(
+    dup SDL_CONTROLLER_BUTTON_DPAD_RIGHT == if(
         drop SNAKE_BUTTON_RIGHT,
-    dup SDL_CONTROLLER_BUTTON_START = if(
+    dup SDL_CONTROLLER_BUTTON_START == if(
         drop SNAKE_BUTTON_START,
 
         drop SNAKE_BUTTON_NONE
@@ -288,23 +288,23 @@ def(snake-process-events!, +Snake,
 
 def(snake-process-event!, +Snake,
     SNAKE_EVENT SDL_Event.type
-    dup SDL_QUIT = if(
+    dup SDL_QUIT == if(
         drop true snake-done!,
 
-    dup SDL_KEYDOWN = if(
+    dup SDL_KEYDOWN == if(
         drop
         SNAKE_EVENT SDL_Event.key.repeat U8->Int nonzero if(
             id,
             SNAKE_EVENT SDL_Event.key.keysym.scancode
-            dup SDL_SCANCODE_ESCAPE = if(
+            dup SDL_SCANCODE_ESCAPE == if(
                 drop true snake-done!,
                 SDL_Scancode->SnakeButton snake-press!
             )
         ),
 
-    dup SDL_CONTROLLERBUTTONDOWN = if(
+    dup SDL_CONTROLLERBUTTONDOWN == if(
         drop
-        SNAKE_EVENT SDL_Event.cbutton.which snake-controller@ = if(
+        SNAKE_EVENT SDL_Event.cbutton.which snake-controller@ == if(
             SNAKE_EVENT SDL_Event.cbutton.button
             SDL_GameControllerButton->SnakeButton snake-press!,
             id
@@ -314,33 +314,33 @@ def(snake-process-event!, +Snake,
     ))))
 
 def(snake-press!, SnakeButton -- +Snake,
-    dup SNAKE_BUTTON_NONE = if(
+    dup SNAKE_BUTTON_NONE == if(
         drop,
-    dup SNAKE_BUTTON_UP = if(
+    dup SNAKE_BUTTON_UP == if(
         drop
-        DSOUTH snake-last-direction@ = if(
+        DSOUTH snake-last-direction@ == if(
             id,
             DNORTH snake-direction!
         ),
-    dup SNAKE_BUTTON_RIGHT = if(
+    dup SNAKE_BUTTON_RIGHT == if(
         drop
-        DWEST snake-last-direction@ = if(
+        DWEST snake-last-direction@ == if(
             id,
             DEAST snake-direction!
         ),
-    dup SNAKE_BUTTON_DOWN = if(
+    dup SNAKE_BUTTON_DOWN == if(
         drop
-        DNORTH snake-last-direction@ = if(
+        DNORTH snake-last-direction@ == if(
             id,
             DSOUTH snake-direction!
         ),
-    dup SNAKE_BUTTON_LEFT = if(
+    dup SNAKE_BUTTON_LEFT == if(
         drop
-        DEAST snake-last-direction@ = if(
+        DEAST snake-last-direction@ == if(
             id,
             DWEST snake-direction!
         ),
-    dup SNAKE_BUTTON_START = if(
+    dup SNAKE_BUTTON_START == if(
         drop
         snake-dead@ if(
             snake-reset!,
@@ -416,8 +416,8 @@ def(snake-randomize-mouse!, +IO +Snake,
     ))
 
 def(snake-check-mouse!, +Snake,
-    snake-x@ snake-mouse-x@ =
-    snake-y@ snake-mouse-y@ = && if(
+    snake-x@ snake-mouse-x@ ==
+    snake-y@ snake-mouse-y@ == && if(
         snake-randomize-mouse!
         snake-points-inc!,
 
@@ -426,13 +426,13 @@ def(snake-check-mouse!, +Snake,
 
 
 def(snake-apply-direction, XCoord YCoord Direction -- XCoord YCoord,
-    dup DNORTH = if(
+    dup DNORTH == if(
         drop YCoord->Int 1- SNAKE_H + SNAKE_H % Int->YCoord,
-    dup DEAST = if(
+    dup DEAST == if(
         drop dip(XCoord->Int 1+ SNAKE_W % Int->XCoord),
-    dup DSOUTH = if(
+    dup DSOUTH == if(
         drop YCoord->Int 1+ SNAKE_H % Int->YCoord,
-    dup DWEST = if(
+    dup DWEST == if(
         drop dip(XCoord->Int 1- SNAKE_W + SNAKE_W % Int->XCoord),
 
         "unknown direction in snake-apply-direction" panic!

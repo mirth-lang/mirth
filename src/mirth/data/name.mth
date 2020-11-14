@@ -43,14 +43,14 @@ def(name-quads&, Name -- Ptr,
 # Note this code assumes NAME_QUADS is 8.
 def(name-quads-eq, Name -- Bool,
     name-quads&
-    0 over quad@@ 0 STR_BUF quad@@ = if(
-    1 over quad@@ 1 STR_BUF quad@@ = if(
-    2 over quad@@ 2 STR_BUF quad@@ = if(
-    3 over quad@@ 3 STR_BUF quad@@ = if(
-    4 over quad@@ 4 STR_BUF quad@@ = if(
-    5 over quad@@ 5 STR_BUF quad@@ = if(
-    6 over quad@@ 6 STR_BUF quad@@ = if(
-    7 swap quad@@ 7 STR_BUF quad@@ =,
+    0 over quad@@ 0 STR_BUF quad@@ == if(
+    1 over quad@@ 1 STR_BUF quad@@ == if(
+    2 over quad@@ 2 STR_BUF quad@@ == if(
+    3 over quad@@ 3 STR_BUF quad@@ == if(
+    4 over quad@@ 4 STR_BUF quad@@ == if(
+    5 over quad@@ 5 STR_BUF quad@@ == if(
+    6 over quad@@ 6 STR_BUF quad@@ == if(
+    7 swap quad@@ 7 STR_BUF quad@@ ==,
     drop false), drop false), drop false), drop false),
     drop false), drop false), drop false))
 
@@ -110,7 +110,7 @@ def(name-table@, Hash -- Name, Hash->Int NAME_TABLE quad@@ Int->Name)
 def(name-table!, Name Hash --, dip(Name->Int) Hash->Int NAME_TABLE quad!!)
 def(next-hash, Hash -- Hash, Hash->Int 1+ NAME_HASH_MAX & Int->Hash)
 
-def(name-is-error, Name -- Bool, NAME_ERROR =)
+def(name-is-error, Name -- Bool, NAME_ERROR ==)
 def(name-is-error?, Name -- Name Bool, dup name-is-error)
 
 def(name-save-keep-going?, Hash -- Hash Bool,
@@ -262,11 +262,11 @@ def(DEF_EXTERNAL, NameSort, 4 Int->NameSort)
 def(DEF_MODULE, NameSort, 5 Int->NameSort)
 def(DEF_PRIM, NameSort, 6 Int->NameSort)
 
-def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE =)
+def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE ==)
 def(name-defined?, Name -- Name Bool, name-undefined? not)
-def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD =)
-def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER =)
-def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE =)
-def(name-is-external?, Name -- Name Bool, name-sort? DEF_EXTERNAL =)
-def(name-is-module?, Name -- Name Bool, name-sort? DEF_MODULE =)
-def(name-is-prim?, Name -- Name Bool, name-sort? DEF_PRIM =)
+def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD ==)
+def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER ==)
+def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE ==)
+def(name-is-external?, Name -- Name Bool, name-sort? DEF_EXTERNAL ==)
+def(name-is-module?, Name -- Name Bool, name-sort? DEF_MODULE ==)
+def(name-is-prim?, Name -- Name Bool, name-sort? DEF_PRIM ==)

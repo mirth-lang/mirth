@@ -831,13 +831,13 @@ def(c99-emit-arrow-op!, Arrow -- +IO,
 
     arrow-op-is-prim? if(
         arrow-op-prim?
-        dup PRIM_DIP = if(
+        dup PRIM_DIP == if(
             drop arrow-args-1
             "    { value_t d" . .d " = pop_value();" ;
             Arg->Arrow c99-emit-arrow!
             "      push_value(d" . .d "); }" ;,
 
-        dup PRIM_IF = if(
+        dup PRIM_IF == if(
             drop arrow-args-2
             "    if (pop_u64()) {" ;
             dip(Arg->Arrow c99-emit-arrow!)
@@ -845,7 +845,7 @@ def(c99-emit-arrow-op!, Arrow -- +IO,
             Arg->Arrow c99-emit-arrow!
             "    }" ;,
 
-        dup PRIM_WHILE = if(
+        dup PRIM_WHILE == if(
             drop arrow-args-2
             "    while(1) {" ;
             dip(Arg->Arrow c99-emit-arrow!)
