@@ -1653,6 +1653,14 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwvar_name_buffer (void) { push_ptr((void*)bvar_name_buffer); }
  volatile u8 bvar_type_buffer[1048576] = {0};
  void mwvar_type_buffer (void) { push_ptr((void*)bvar_type_buffer); }
+ volatile u8 bSubst_2E_NUM[8] = {0};
+ void mwSubst_2E_NUM (void) { push_ptr((void*)bSubst_2E_NUM); }
+ volatile u8 bsubst_rest_buffer[1048576] = {0};
+ void mwsubst_rest_buffer (void) { push_ptr((void*)bsubst_rest_buffer); }
+ volatile u8 bsubst_var_buffer[1048576] = {0};
+ void mwsubst_var_buffer (void) { push_ptr((void*)bsubst_var_buffer); }
+ volatile u8 bsubst_type_buffer[1048576] = {0};
+ void mwsubst_type_buffer (void) { push_ptr((void*)bsubst_type_buffer); }
  volatile u8 bCtx_2E_NUM[8] = {0};
  void mwCtx_2E_NUM (void) { push_ptr((void*)bCtx_2E_NUM); }
  volatile u8 bctx_prev_buffer[1048576] = {0};
@@ -1671,14 +1679,6 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwexternal_ctx_buffer (void) { push_ptr((void*)bexternal_ctx_buffer); }
  volatile u8 bexternal_flags_buffer[1048576] = {0};
  void mwexternal_flags_buffer (void) { push_ptr((void*)bexternal_flags_buffer); }
- volatile u8 bSubst_2E_NUM[8] = {0};
- void mwSubst_2E_NUM (void) { push_ptr((void*)bSubst_2E_NUM); }
- volatile u8 bsubst_rest_buffer[1048576] = {0};
- void mwsubst_rest_buffer (void) { push_ptr((void*)bsubst_rest_buffer); }
- volatile u8 bsubst_var_buffer[1048576] = {0};
- void mwsubst_var_buffer (void) { push_ptr((void*)bsubst_var_buffer); }
- volatile u8 bsubst_type_buffer[1048576] = {0};
- void mwsubst_type_buffer (void) { push_ptr((void*)bsubst_type_buffer); }
  volatile u8 bArrow_2E_NUM[8] = {0};
  void mwArrow_2E_NUM (void) { push_ptr((void*)bArrow_2E_NUM); }
  volatile u8 bArgs_2E_NUM[8] = {0};
@@ -2413,6 +2413,20 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwvar_type_21_ (void);
  void mwvar_type_40_ (void);
  void mwvar_type_3F_ (void);
+ void mwSubst_2E_MAX (void);
+ void mwSubst_2E_alloc_21_ (void);
+ void mwsubst_rest_26_ (void);
+ void mwsubst_rest_21_ (void);
+ void mwsubst_rest_40_ (void);
+ void mwsubst_rest_3F_ (void);
+ void mwsubst_var_26_ (void);
+ void mwsubst_var_21_ (void);
+ void mwsubst_var_40_ (void);
+ void mwsubst_var_3F_ (void);
+ void mwsubst_type_26_ (void);
+ void mwsubst_type_21_ (void);
+ void mwsubst_type_40_ (void);
+ void mwsubst_type_3F_ (void);
  void mwCtx_2E_MAX (void);
  void mwCtx_2E_alloc_21_ (void);
  void mwctx_prev_26_ (void);
@@ -2445,20 +2459,6 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwexternal_flags_21_ (void);
  void mwexternal_flags_40_ (void);
  void mwexternal_flags_3F_ (void);
- void mwSubst_2E_MAX (void);
- void mwSubst_2E_alloc_21_ (void);
- void mwsubst_rest_26_ (void);
- void mwsubst_rest_21_ (void);
- void mwsubst_rest_40_ (void);
- void mwsubst_rest_3F_ (void);
- void mwsubst_var_26_ (void);
- void mwsubst_var_21_ (void);
- void mwsubst_var_40_ (void);
- void mwsubst_var_3F_ (void);
- void mwsubst_type_26_ (void);
- void mwsubst_type_21_ (void);
- void mwsubst_type_40_ (void);
- void mwsubst_type_3F_ (void);
  void mwArrow_2E_MAX (void);
  void mwArrow_2E_alloc_21_ (void);
  void mwArgs_2E_MAX (void);
@@ -9769,6 +9769,89 @@ void mwvar_type_3F_ (void){
     mw_40_();
 }
 
+void mwSubst_2E_MAX (void){
+    push_i64(131072);
+}
+
+void mwSubst_2E_alloc_21_ (void){
+    mwSubst_2E_NUM();
+    mw_40_();
+    push_i64(1);
+    mw_2B_();
+    mwdup();
+    mwSubst_2E_NUM();
+    mw_21_();
+}
+
+void mwsubst_rest_26_ (void){
+    push_i64(8);
+    mw_2A_();
+    mwsubst_rest_buffer();
+    mwprim_2E_unsafe_2E_ptr_2B_();
+}
+
+void mwsubst_rest_21_ (void){
+    mwsubst_rest_26_();
+    mw_21_();
+}
+
+void mwsubst_rest_40_ (void){
+    mwsubst_rest_26_();
+    mw_40_();
+}
+
+void mwsubst_rest_3F_ (void){
+    mwdup();
+    mwsubst_rest_26_();
+    mw_40_();
+}
+
+void mwsubst_var_26_ (void){
+    push_i64(8);
+    mw_2A_();
+    mwsubst_var_buffer();
+    mwprim_2E_unsafe_2E_ptr_2B_();
+}
+
+void mwsubst_var_21_ (void){
+    mwsubst_var_26_();
+    mw_21_();
+}
+
+void mwsubst_var_40_ (void){
+    mwsubst_var_26_();
+    mw_40_();
+}
+
+void mwsubst_var_3F_ (void){
+    mwdup();
+    mwsubst_var_26_();
+    mw_40_();
+}
+
+void mwsubst_type_26_ (void){
+    push_i64(8);
+    mw_2A_();
+    mwsubst_type_buffer();
+    mwprim_2E_unsafe_2E_ptr_2B_();
+}
+
+void mwsubst_type_21_ (void){
+    mwsubst_type_26_();
+    mw_21_();
+}
+
+void mwsubst_type_40_ (void){
+    mwsubst_type_26_();
+    mw_40_();
+}
+
+void mwsubst_type_3F_ (void){
+    mwdup();
+    mwsubst_type_26_();
+    mw_40_();
+}
+
 void mwCtx_2E_MAX (void){
     push_i64(131072);
 }
@@ -9955,89 +10038,6 @@ void mwexternal_flags_40_ (void){
 void mwexternal_flags_3F_ (void){
     mwdup();
     mwexternal_flags_26_();
-    mw_40_();
-}
-
-void mwSubst_2E_MAX (void){
-    push_i64(131072);
-}
-
-void mwSubst_2E_alloc_21_ (void){
-    mwSubst_2E_NUM();
-    mw_40_();
-    push_i64(1);
-    mw_2B_();
-    mwdup();
-    mwSubst_2E_NUM();
-    mw_21_();
-}
-
-void mwsubst_rest_26_ (void){
-    push_i64(8);
-    mw_2A_();
-    mwsubst_rest_buffer();
-    mwprim_2E_unsafe_2E_ptr_2B_();
-}
-
-void mwsubst_rest_21_ (void){
-    mwsubst_rest_26_();
-    mw_21_();
-}
-
-void mwsubst_rest_40_ (void){
-    mwsubst_rest_26_();
-    mw_40_();
-}
-
-void mwsubst_rest_3F_ (void){
-    mwdup();
-    mwsubst_rest_26_();
-    mw_40_();
-}
-
-void mwsubst_var_26_ (void){
-    push_i64(8);
-    mw_2A_();
-    mwsubst_var_buffer();
-    mwprim_2E_unsafe_2E_ptr_2B_();
-}
-
-void mwsubst_var_21_ (void){
-    mwsubst_var_26_();
-    mw_21_();
-}
-
-void mwsubst_var_40_ (void){
-    mwsubst_var_26_();
-    mw_40_();
-}
-
-void mwsubst_var_3F_ (void){
-    mwdup();
-    mwsubst_var_26_();
-    mw_40_();
-}
-
-void mwsubst_type_26_ (void){
-    push_i64(8);
-    mw_2A_();
-    mwsubst_type_buffer();
-    mwprim_2E_unsafe_2E_ptr_2B_();
-}
-
-void mwsubst_type_21_ (void){
-    mwsubst_type_26_();
-    mw_21_();
-}
-
-void mwsubst_type_40_ (void){
-    mwsubst_type_26_();
-    mw_40_();
-}
-
-void mwsubst_type_3F_ (void){
-    mwdup();
-    mwsubst_type_26_();
     mw_40_();
 }
 

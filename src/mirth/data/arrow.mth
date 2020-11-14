@@ -1,5 +1,4 @@
 module(mirth/data/arrow)
-import(mirth/data/subst)
 import(mirth/data/common)
 import(mirth/data/word)
 import(mirth/data/prim)

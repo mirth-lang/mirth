@@ -67,6 +67,12 @@ field(var-is-implicit, Var, Bool)
 field(var-name, Var, Name)
 field(var-type, Var, Type)
 
+# mirth/data/type
+table(Subst)
+field(subst-rest, Subst, Subst)
+field(subst-var, Subst, Var)
+field(subst-type, Subst, Type)
+
 # mirth/data/ctx
 table(Ctx)
 field(ctx-prev, Ctx, Ctx)
@@ -79,12 +85,6 @@ field(external-type, External, Type)
 field(external-sig, External, Token)
 field(external-ctx, External, Ctx)
 field(external-flags, External, Int)
-
-# mirth/data/subst
-table(Subst)
-field(subst-rest, Subst, Subst)
-field(subst-var, Subst, Var)
-field(subst-type, Subst, Type)
 
 # mirth/data/arrow
 table(Arrow)
