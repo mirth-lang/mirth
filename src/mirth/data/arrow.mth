@@ -20,11 +20,10 @@ import(mirth/data/prim)
 # sequence of atomic morphisms. Atomic morphisms are morphisms that
 # can't be broken down into a composition. These include calling
 # words, primitives, control flow, and literal values. This is a
-# nested intermediate representation, but, to reduce indirection,
-# we represent it as a flat sequence.
+# nested intermediate representation.
 
 # Originally this type was called Morphism but that's hard to spell and
-# to type repeatedly so now they're called Arrow :-)
+# to type repeatedly so now it's called Arrow :-)
 
 ARROW_NIL : Arrow
 ARROW_NIL = 0 cast
