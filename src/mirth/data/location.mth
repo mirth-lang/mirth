@@ -1,19 +1,26 @@
 module(mirth/data/location)
 import(mirth/data/module)
 
-def(|Row|, Size, 2)
-def(Row->U16, Row -- U16, Row.unwrap)
-def(Row->Int, Row -- Int, Row->U16 U16->Int)
-def(U16->Row, U16 -- Row, Row.wrap)
-def(Int->Row, Int -- Row, Int->U16 U16->Row)
+Int->Row : Int -- Row
+Int->Row = Row.wrap
 
-def(|Col|, Size, 2)
-def(Col->U16, Col -- U16, Col.unwrap)
-def(Col->Int, Col -- Int, Col->U16 U16->Int)
-def(U16->Col, U16 -- Col, Col.wrap)
-def(Int->Col, Int -- Col, Int->U16 U16->Col)
+Row->Int : Row -- Int
+Row->Int = Row.unwrap
 
-def(location-trace!, Module Row Col -- +IO,
+Int->Col : Int -- Col
+Int->Col = Col.wrap
+
+Col->Int : Col -- Int
+Col->Int = Col.unwrap
+
+def(location-pack, Module Row Col -- Location,
+    pack3 Location.wrap)
+
+def(location-unpack, Location -- Module Row Col,
+    Location.unwrap unpack3)
+
+def(location-trace!, Location -- +IO,
+    location-unpack
     rotr swap
     load-module-source-path! str-buf-trace!
     ":" str-trace!
@@ -21,7 +28,8 @@ def(location-trace!, Module Row Col -- +IO,
     ":" str-trace!
     Col->Int int-trace!)
 
-def(location-print!, Module Row Col -- +IO,
+def(location-print!, Location -- +IO,
+    location-unpack
     rotr swap
     load-module-source-path! str-buf-print!
     ":" str-print!

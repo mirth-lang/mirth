@@ -116,10 +116,11 @@ def(token-token@, Token -- Token,
 def(token-token?, Token -- Token Token, dup token-token@)
 
 
-def(token-location, Token -- Module Row Col,
+def(token-location, Token -- Location,
     token-module? swap
     token-row? swap
-    token-col@)
+    token-col@
+    location-pack)
 
 def(token-print!, Token -- +IO,
     dup token-location location-print!

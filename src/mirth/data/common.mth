@@ -14,9 +14,6 @@ field(buffer-size, Buffer, Size)
 field(buffer-base, Buffer, Ptr)
 field(buffer-name, Buffer, Name)
 
-# mirth/data/location
-nominal(Row, U16)
-nominal(Col, U16)
 
 # mirth/data/module
 table(Module)
@@ -24,6 +21,11 @@ table(Token)
 field(module-name, Module, Name)
 field(module-start, Module, Token)
 field(module-end, Module, Token)
+
+# mirth/data/location
+nominal(Row, Int)
+nominal(Col, Int)
+nominal(Location, [Module Row Col])
 
 # mirth/data/token
 nominal(TokenType, U8)

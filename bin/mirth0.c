@@ -2177,6 +2177,7 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwCol__3E_Int (void);
  void mwlexer_trace_prefix_21_ (void);
  void mwlexer_location (void);
+ void mwlocation_pack (void);
  void mwemit_warning_at_21_ (void);
  void mwlexer_emit_error_21_ (void);
  void mwemit_error_at_21_ (void);
@@ -2290,10 +2291,6 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwbuffer_name_21_ (void);
  void mwbuffer_name_40_ (void);
  void mwbuffer_name_3F_ (void);
- void mwRow_2E_wrap (void);
- void mwRow_2E_unwrap (void);
- void mwCol_2E_wrap (void);
- void mwCol_2E_unwrap (void);
  void mwModule_2E_MAX (void);
  void mwModule_2E_alloc_21_ (void);
  void mwToken_2E_MAX (void);
@@ -2308,6 +2305,12 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwmodule_end_26_ (void);
  void mwmodule_end_40_ (void);
  void mwmodule_end_3F_ (void);
+ void mwRow_2E_wrap (void);
+ void mwRow_2E_unwrap (void);
+ void mwCol_2E_wrap (void);
+ void mwCol_2E_unwrap (void);
+ void mwLocation_2E_wrap (void);
+ void mwLocation_2E_unwrap (void);
  void mwTokenType_2E_wrap (void);
  void mwTokenType_2E_unwrap (void);
  void mwTokenValue_2E_wrap (void);
@@ -2656,6 +2659,7 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwemit_error_21_ (void);
  void mw_7C_Row_7C_ (void);
  void mw_7C_Col_7C_ (void);
+ void mwlocation_unpack (void);
  void mwlocation_trace_21_ (void);
  void mwModule__3E_Int (void);
  void mwInt__3E_Module (void);
@@ -8049,6 +8053,12 @@ void mwlexer_location (void){
     mwlexer_module_40_();
     mwlexer_row_40_();
     mwlexer_col_40_();
+    mwlocation_pack();
+}
+
+void mwlocation_pack (void){
+    mwpack3();
+    mwLocation_2E_wrap();
 }
 
 void mwemit_warning_at_21_ (void){
@@ -9062,18 +9072,6 @@ void mwbuffer_name_3F_ (void){
     mw_40_();
 }
 
-void mwRow_2E_wrap (void){
-}
-
-void mwRow_2E_unwrap (void){
-}
-
-void mwCol_2E_wrap (void){
-}
-
-void mwCol_2E_unwrap (void){
-}
-
 void mwModule_2E_MAX (void){
     push_i64(131072);
 }
@@ -9159,6 +9157,24 @@ void mwmodule_end_3F_ (void){
     mwdup();
     mwmodule_end_26_();
     mw_40_();
+}
+
+void mwRow_2E_wrap (void){
+}
+
+void mwRow_2E_unwrap (void){
+}
+
+void mwCol_2E_wrap (void){
+}
+
+void mwCol_2E_unwrap (void){
+}
+
+void mwLocation_2E_wrap (void){
+}
+
+void mwLocation_2E_unwrap (void){
 }
 
 void mwTokenType_2E_wrap (void){
@@ -11172,6 +11188,7 @@ void mwtoken_location (void){
     mwtoken_row_3F_();
     mwswap();
     mwtoken_col_40_();
+    mwlocation_pack();
 }
 
 void mwtoken_print_21_ (void){
@@ -11215,6 +11232,7 @@ void mwtoken_print_21_ (void){
 }
 
 void mwlocation_print_21_ (void){
+    mwlocation_unpack();
     mwrotr();
     mwswap();
     mwload_module_source_path_21_();
@@ -11643,7 +11661,13 @@ void mw_7C_Col_7C_ (void){
     push_i64(2);
 }
 
+void mwlocation_unpack (void){
+    mwLocation_2E_unwrap();
+    mwunpack3();
+}
+
 void mwlocation_trace_21_ (void){
+    mwlocation_unpack();
     mwrotr();
     mwswap();
     mwload_module_source_path_21_();
