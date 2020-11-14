@@ -2062,9 +2062,9 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwinput_peek (void);
  void mwinput_move_21_ (void);
  void mwlexer_module_40_ (void);
- void mwmodule_40_ (void);
+ void mwInt__3E_Module (void);
  void mwlexer_module_21_ (void);
- void mwmodule_21_ (void);
+ void mwModule__3E_Int (void);
  void mwlexer_row_40_ (void);
  void mwInt__3E_Row (void);
  void mwlexer_row_21_ (void);
@@ -2652,11 +2652,6 @@ void mwprim_2E_pack_2E_uncons (void) {
  void mwemit_warning_21_ (void);
  void mwemit_error_21_ (void);
  void mwlocation_unpack (void);
- void mwModule__3E_Int (void);
- void mwInt__3E_Module (void);
- void mwModule__3E_U16 (void);
- void mwU16__3E_Module (void);
- void mw_7C_Module_7C_ (void);
  void mwMAX_MODULES (void);
  void mwMODULE_PATH_SIZE (void);
  void mwmodule_alloc_21_ (void);
@@ -6744,24 +6739,22 @@ void mwinput_move_21_ (void){
 
 void mwlexer_module_40_ (void){
     mwLEXER_MODULE();
-    mwmodule_40_();
+    mw_40_();
+    mwInt__3E_Module();
 }
 
-void mwmodule_40_ (void){
-    mwu16_40_();
-    mwU16__3E_Module();
+void mwInt__3E_Module (void){
+    mwcast();
 }
 
 void mwlexer_module_21_ (void){
+    mwModule__3E_Int();
     mwLEXER_MODULE();
-    mwmodule_21_();
+    mw_21_();
 }
 
-void mwmodule_21_ (void){
-    { value_t d1 = pop_value();
-    mwModule__3E_U16();
-      push_value(d1); }
-    mwu16_21_();
+void mwModule__3E_Int (void){
+    mwcast();
 }
 
 void mwlexer_row_40_ (void){
@@ -11627,28 +11620,6 @@ void mwemit_error_21_ (void){
 void mwlocation_unpack (void){
     mwLocation_2E_unwrap();
     mwunpack3();
-}
-
-void mwModule__3E_Int (void){
-    mwcast();
-}
-
-void mwInt__3E_Module (void){
-    mwcast();
-}
-
-void mwModule__3E_U16 (void){
-    mwModule__3E_Int();
-    mwInt__3E_U16();
-}
-
-void mwU16__3E_Module (void){
-    mwU16__3E_Int();
-    mwInt__3E_Module();
-}
-
-void mw_7C_Module_7C_ (void){
-    push_i64(2);
 }
 
 void mwMAX_MODULES (void){

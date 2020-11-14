@@ -12,8 +12,8 @@ import(mirth/input)
 #########
 
 buffer(LEXER_MODULE, 8)
-def(lexer-module@, -- Module +Lexer, LEXER_MODULE module@)
-def(lexer-module!, Module -- +Lexer, LEXER_MODULE module!)
+def(lexer-module@, -- Module +Lexer, LEXER_MODULE @ Int->Module)
+def(lexer-module!, Module -- +Lexer, Module->Int LEXER_MODULE !)
 
 buffer(LEXER_ROW, 8)
 def(lexer-row@, -- Row +Lexer, LEXER_ROW @ Int->Row)
