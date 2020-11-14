@@ -25,6 +25,9 @@ def(PRIM_WHILE, Prim, 7 Int->Prim)
 def(PRIM_DEBUG, Prim, 47 Int->Prim)
 def(PRIM_CAST, Prim, 71 Int->Prim)
 
+def(PRIM_INT_EQ, Prim, 13 Int->Prim)
+def(PRIM_EQUALS, Prim, 87 Int->Prim)
+
 def(PRIM_INT_ADD, Prim, 8 Int->Prim)
 def(PRIM_INT_SUB, Prim, 9 Int->Prim)
 def(PRIM_INT_MUL, Prim, 10 Int->Prim)
@@ -35,7 +38,6 @@ def(PRIM_INT_OR, Prim, 17 Int->Prim)
 def(PRIM_INT_XOR, Prim, 18 Int->Prim)
 def(PRIM_INT_SHL, Prim, 19 Int->Prim)
 def(PRIM_INT_SHR, Prim, 20 Int->Prim)
-def(PRIM_INT_EQ, Prim, 13 Int->Prim)
 def(PRIM_INT_LT, Prim, 14 Int->Prim)
 def(PRIM_INT_LE, Prim, 15 Int->Prim)
 
@@ -96,7 +98,7 @@ def(PRIM_TABLE, Prim, 78 Int->Prim)
 def(PRIM_FIELD, Prim, 79 Int->Prim)
 def(PRIM_COLON, Prim, 86 Int->Prim)
 
-# next primitive is 87
+# next primitive is 88
 
 def(def-prim!, Prim Str -- +Names,
     name-new! dup2 name-prim! swap prim-name!)
@@ -117,6 +119,9 @@ def(init-prims!, +Names,
     PRIM_DEBUG "??" def-prim!
     PRIM_CAST "prim.unsafe.cast" def-prim!
 
+    PRIM_INT_EQ "=" def-prim!
+    PRIM_EQUALS "==" def-prim!
+
     PRIM_INT_ADD "+" def-prim!
     PRIM_INT_SUB "-" def-prim!
     PRIM_INT_MUL "*" def-prim!
@@ -127,8 +132,6 @@ def(init-prims!, +Names,
     PRIM_INT_XOR "^" def-prim!
     PRIM_INT_SHL "<<" def-prim!
     PRIM_INT_SHR ">>" def-prim!
-
-    PRIM_INT_EQ "=" def-prim!
     PRIM_INT_LT "<" def-prim!
     PRIM_INT_LE "<=" def-prim!
 
@@ -304,6 +307,13 @@ def(init-prims!, +Names,
 
     TVar dup T2 TYPE_BOOL T1 T->
     PRIM_INT_EQ prim-type!
+
+    "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
+    dup ctx-empty swap ctx-new!
+    PRIM_EQUALS prim-ctx!
+
+    TVar dup T2 TYPE_BOOL T1 T->
+    PRIM_EQUALS prim-type!
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
     "b" name-new! var-new-implicit! TYPE_TYPE over var-type!

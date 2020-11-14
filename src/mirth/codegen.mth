@@ -434,6 +434,12 @@ def(c99-emit-prims!, +IO,
     "    push_bool(x == y);" ;
     "}" ;;
 
+    PRIM_EQUALS .p " {" ;
+    "    i64 x = pop_i64();" ;
+    "    i64 y = pop_i64();" ;
+    "    push_bool(x == y);" ;
+    "}" ;;
+
     PRIM_INT_LT .p " {" ;
     "    i64 x = pop_i64();" ;
     "    i64 y = pop_i64();" ;

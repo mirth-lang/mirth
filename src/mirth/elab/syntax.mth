@@ -140,15 +140,17 @@ def(sig-skip-dashes, Token -- Token,
 # BARE DECLS #
 ##############
 
-def(token-could-be-word-sig?, Token -- Token Bool,
+token-could-be-word-sig? : Token -- Token Bool
+token-could-be-word-sig? =
     token-type? TOKEN_NAME = if(
         dup token-next PRIM_COLON token-prim=? nip,
         false
-    ))
+    )
 
 # TODO eventually figure out how to deal w/ pattern matching...
-def(token-could-be-word-def?, Token -- Token Bool,
+token-could-be-word-def? : Token -- Token Bool
+token-could-be-word-def? =
     token-type? TOKEN_NAME = if(
         dup token-next PRIM_INT_EQ token-prim=? nip,
         false
-    ))
+    )
