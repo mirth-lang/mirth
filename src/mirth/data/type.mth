@@ -62,6 +62,7 @@ def(TYPE_TAG_NOMINAL,  Int, 0x50000000)
 def(TYPE_TAG_TABLE,    Int, 0x60000000)
 def(TYPE_TAG_HOLE,     Int, 0x70000000)
 def(TYPE_TAG_PARAM,    Int, 0x80000000)
+def(TYPE_TAG_APP,      Int, 0x90000000)
 
 def(ctx-trace!, Ctx -- +IO,
     ctx-is-empty? if(
@@ -88,7 +89,6 @@ def(var-trace-binding!, Var -- +IO,
         var-type@ type-trace-sig!
     ))))
 
-
 def(TPrim, Int -- Type,
     Int->Type)
 def(TVar, Var -- Type,
@@ -107,6 +107,8 @@ def(THole, Name -- Type,
     Name->Int TYPE_TAG_HOLE | Int->Type)
 def(TParam, ParamType -- Type,
     ParamType->Int TYPE_TAG_PARAM | Int->Type)
+def(TApp, AppType -- Type,
+    AppType->Int TYPE_TAG_APP | Int->Type)
 
 def(T*, Type Type -- Type, tensor-type-new! TTensor)
 def(T->, Type Type -- Type, morphism-type-new! TMorphism)
@@ -130,6 +132,7 @@ def(type-is-nominal, Type -- Bool, type-tag TYPE_TAG_NOMINAL =)
 def(type-is-table, Type -- Bool, type-tag TYPE_TAG_TABLE =)
 def(type-is-hole, Type -- Bool, type-tag TYPE_TAG_HOLE =)
 def(type-is-param, Type -- Bool, type-tag TYPE_TAG_PARAM =)
+def(type-is-app, Type -- Bool, type-tag TYPE_TAG_APP =)
 
 def(type-is-prim?, Type -- Type Bool, dup type-is-prim)
 def(type-is-var?, Type -- Type Bool, dup type-is-var)
@@ -140,6 +143,7 @@ def(type-is-nominal?, Type -- Type Bool, dup type-is-nominal)
 def(type-is-table?, Type -- Type Bool, dup type-is-table)
 def(type-is-hole?, Type -- Type Bool, dup type-is-hole)
 def(type-is-param?, Type -- Type Bool, dup type-is-param)
+def(type-is-app?, Type -- Type Bool, dup type-is-app)
 
 def(type-is-stack-var, Type -- Bool,
     type-is-var? if(
@@ -189,6 +193,11 @@ def(type-get-param, Type -- ParamType,
         "compiler error: tried to get param type value on non-param type" panic!,
         type-get-value Int->ParamType
     ))
+def(type-get-app, Type -- AppType,
+    type-is-app? not if(
+        "compiler error: tried to get app type value on non-app type" panic!,
+        type-get-value Int->AppType
+    ))
 
 def(TYPE_ERROR, Type, 0x00 TPrim)
 def(TYPE_TYPE, Type, 0x01 TPrim) # type of types
@@ -211,6 +220,8 @@ def(TYPE_DONT_CARE, Type, 0xFF TPrim) # don't care type, _.
 def(type-expand, Type -- Type,
     type-is-meta? if(
         type-get-meta meta-expand,
+
+    # TODO: expand app type if this is reasonable
 
         id
     ))
@@ -328,8 +339,20 @@ def(type-unify!, Type Type -- Type +Elab,
             type-unify-failed!
         ),
 
+    type-is-app? if(
+        swap
+        type-is-app? if(
+            type-get-app swap
+            type-get-app
+            app-type-unify! TApp,
+
+            type-unify-failed!
+        ),
+
+    # TODO: unify param types
+
         type-unify-failed!
-    ))))))))))))))))
+    )))))))))))))))))
 
 def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
     dup2 type-has-meta)
@@ -350,6 +373,9 @@ def(type-has-meta, MetaVar Type -- Bool,
     type-is-morphism? if(
         type-get-morphism morphism-type-has-meta,
 
+    type-is-app? if(
+        type-get-app app-type-has-meta,
+
     type-is-nominal? if(
         drop2 false,
 
@@ -357,7 +383,7 @@ def(type-has-meta, MetaVar Type -- Bool,
         drop2 false,
 
         "type-has-meta: unknown type" panic!
-    ))))))))
+    )))))))))
 
 
 def(type-trace-sig!, Type -- +IO,
@@ -435,8 +461,12 @@ def(type-trace!, Type -- +IO,
         name-load!
         str-buf-trace!,
 
+    type-is-app? if(
+        type-get-app
+        app-type-trace!,
+
         "<UNKNOWN TYPE " str-trace! Type->Int int-trace! ">" str-trace!
-    )))))))))
+    ))))))))))
 
 def(type-trace-prim!, Type -- +IO,
     dup TYPE_ERROR = if(
@@ -533,8 +563,13 @@ def(type-freshen-aux, Subst Type -- Subst Type Bool,
         param-type-freshen-aux
         dip(TParam),
 
+    type-is-app? if(
+        type-get-app
+        app-type-freshen-aux
+        dip(TApp),
+
         true
-    )))))
+    ))))))
 
 def(type-var-freshen, Subst Type -- Subst Type Bool,
     type-get-var
@@ -544,6 +579,14 @@ def(type-var-freshen, Subst Type -- Subst Type Bool,
         dip(rotr subst-new!)
     )
     false)
+
+def(type-arity, Type -- Int,
+    type-expand
+    type-is-nominal? if(
+        type-get-nominal nominal-arity@,
+
+        drop 0
+    ))
 
 ##################
 # Meta-var Types #
@@ -671,9 +714,10 @@ def(morphism-type-freshen-aux, Subst MorphismType -- Subst MorphismType Bool,
 
 def(Int->Nominal, Int -- Nominal, cast)
 def(Nominal->Int, Nominal -- Int, cast)
-def(nominal-new!, Name Type -- Nominal,
+def(nominal-new!, Name Int Type -- Nominal,
     Nominal.alloc!
     tuck nominal-type!
+    tuck nominal-arity!
     tuck nominal-name!)
 
 ##############
@@ -766,6 +810,61 @@ def(param-freshen-aux, Subst Param -- Subst Param Bool,
         false
     ))
     # TODO: only generate new param when needed
+
+############
+# APP TYPE #
+############
+
+def(AppType->Int, AppType -- Int, cast)
+def(Int->AppType, Int -- AppType, cast)
+def(app-type-new!, Type Type -- AppType,
+    AppType.alloc!
+    tuck app-type-arg!
+    tuck app-type-fun!)
+def(app-type-unpack, AppType -- Type Type,
+    app-type-fun? swap
+    app-type-arg@)
+
+def(app-type-unify!, AppType AppType -- AppType,
+    over app-type-fun@ over app-type-fun@ type-unify! over app-type-fun!
+    over app-type-arg@ over app-type-arg@ type-unify! over app-type-arg!
+    nip)
+
+def(app-type-has-meta, MetaVar AppType -- Bool,
+    app-type-unpack
+    dip(over) type-has-meta if(
+        drop2 true,
+        type-has-meta
+    ))
+
+def(app-type-trace!, AppType --,
+    app-type-trace-open! ")" str-trace!)
+
+def(app-type-trace-open!, AppType --,
+    app-type-unpack swap
+    type-is-app? if(
+        type-get-app
+        app-type-trace-open!
+        ", " str-trace!
+        type-trace!,
+
+        type-trace!
+        "(" str-trace!
+        type-trace!
+    ))
+
+def(app-type-freshen-aux, Subst AppType -- Subst AppType Bool,
+    dup
+    dip(
+        app-type-unpack
+        dip(type-freshen-aux)
+        dip(rotl) type-freshen-aux
+        dip(dip(rotr) swap) &&
+    )
+    swap if(
+        dip(drop2) true,
+        drop app-type-new! false
+    ))
 
 #########
 # Subst #

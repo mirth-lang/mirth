@@ -35,6 +35,7 @@ def(TOKEN_LBRACKET, TokenType, 7 Int->U8 U8->TokenType)
 def(TOKEN_RBRACKET, TokenType, 8 Int->U8 U8->TokenType)
 def(TOKEN_LBRACE, TokenType, 9 Int->U8 U8->TokenType)
 def(TOKEN_RBRACE, TokenType, 10 Int->U8 U8->TokenType)
+def(TOKEN_NEWLINE, TokenType, 11 Int->U8 U8->TokenType)
 
 def(token-type-str, TokenType -- Str,
     dup TOKEN_NONE = if(drop "NONE",
@@ -151,15 +152,13 @@ def(show-tokens!, --,
 def(token-succ, Token -- Token,
     Token->Int 1+ Int->Token)
 
-# Get next token, respecting nesting of tokens.
+# Get prev token, without respecting nesting or arguments.
+def(token-pred, Token -- Token,
+    Token->Int 1- Int->Token)
+
+# Get next token, respecting nesting of tokens and arguments.
 def(token-next, Token -- Token,
-    token-type? TOKEN_LPAREN = if(
-        token-token@ token-succ,
-
-    token-type? TOKEN_LBRACKET = if(
-        token-token@ token-succ,
-
-    token-type? TOKEN_LBRACE = if(
+    token-is-left-enclosure? if(
         token-token@ token-succ,
 
     token-type? TOKEN_NAME = if(
@@ -170,7 +169,23 @@ def(token-next, Token -- Token,
         ),
 
         token-succ
-    )))))
+    )))
+
+# Get prev token, respecting nesting of tokens and arguments.
+def(token-prev, Token -- Token,
+    token-pred
+    token-is-right-enclosure? if(
+        token-token@
+        token-type? TOKEN_LPAREN = if(
+            dup token-pred token-is-name? if(
+                nip,
+                drop
+            ),
+            id
+        ),
+
+        id
+    ))
 
 # Get closest arg ending (COMMA, RPAREN or RBRACKET),
 # while respecting the nesting of tokens.

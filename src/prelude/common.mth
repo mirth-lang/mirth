@@ -1,15 +1,34 @@
 module(prelude/common)
 
-def(trip, a -- a a a, dup dup)
-def(rotr, a b c -- c a b, swap dip(swap))
-def(rotl, a b c -- b c a, dip(swap) swap)
-def(over, a b -- a b a, dip(dup) swap)
-def(tuck, a b -- b a b, dup dip(swap))
-def(nip, a b -- b, dip(drop))
-def(dup2, a b -- a b a b, over over)
-def(dup3, a b c -- a b c a b c, dip(dup2) dup dip(rotr))
-def(drop2, a b --, drop drop)
-def(drop3, a b c --, drop drop drop)
+trip : a -- a a a
+trip = dup dup
+
+rotr : a b c -- c a b
+rotr = swap dip(swap)
+
+rotl : a b c -- b c a
+rotl = dip(swap) swap
+
+over : a b -- a b a
+over = dip(dup) swap
+
+tuck : a b -- b a b
+tuck = dup dip(swap)
+
+nip : a b -- b
+nip = dip(drop)
+
+dup2 : a b -- a b a b
+dup2 = over over
+
+dup3 : a b c -- a b c a b c
+dup3 = dip(dup2) dup dip(rotr)
+
+drop2 : a b --
+drop2 = drop drop
+
+drop3 : a b c --
+drop3 = drop drop drop
 
 def-type(Byte, U8)
 def-type(Char, U8)
@@ -259,10 +278,17 @@ def(str-eq?, Str Str -- Str Str Bool, dup2 str-eq)
 # TUPLES #
 ##########
 
-def(pack-cons, [*a] b -- [*a b], prim.pack.cons)
-def(pack-uncons, [*a b] -- [*a] b, prim.pack.uncons)
+def(pack-nil, [*a], prim.pack.nil cast)
+def(pack-nil?, [*a] -- [*a] Bool, dup pack-nil =)
 
-def(pack0, [], prim.pack.nil)
+def(pack-cons, [*a] b -- [*a b], prim.pack.cons)
+def(pack-uncons, [*a b] -- [*a] b,
+    pack-nil? if(
+        "attempted to uncons nil" panic!,
+        prim.pack.uncons
+    ))
+
+def(pack0, [], pack-nil)
 def(pack1, a -- [a], dip(pack0) pack-cons)
 def(pack2, a b -- [a b], dip(pack1) pack-cons)
 def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
@@ -293,6 +319,29 @@ def(.1!, [*a b c] b  -- [*a b c], dip(pack-uncons) swap dip(.0!) pack-cons)
 def(.2!, [*a b c d] b  -- [*a b c d], dip(pack-uncons) swap dip(.1!) pack-cons)
 def(.3!, [*a b c d e] b  -- [*a b c d e], dip(pack-uncons) swap dip(.2!) pack-cons)
 def(.4!, [*a b c d e f] b  -- [*a b c d e f], dip(pack-uncons) swap dip(.3!) pack-cons)
+
+#########
+# LISTS #
+#########
+
+nominal(List(t), [])
+def(list->pack, List(t) -- [List(t) t], cast)
+def(pack->list, [List(t) t] -- List(t), cast)
+def(nil, List(t), pack-nil pack->list)
+def(nil?, List(t) -- List(t) Bool, dup nil =)
+def(cons, List(t) t -- List(t), pack2 pack->list)
+def(uncons, List(t) -- List(t) t,
+    nil? if(
+        "uncons on nil value" panic!,
+        list->pack unpack2
+    ))
+def(head, List(t) -- t, uncons nip)
+def(tail, List(t) -- List(t), uncons drop)
+def(length, List(t) -- Int,
+    0 swap
+    while(nil? not, dip(1+) tail)
+    drop)
+def(length?, List(t) -- List(t) Int, dup length)
 
 ######
 # IO #

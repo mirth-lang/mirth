@@ -16,10 +16,10 @@ def(main, --,
 target-c99("pack-unpack.c", main)
 # mirth-test # perr # ?? 1
 # mirth-test # perr # ?? 10 20
-# mirth-test # perr # ?? 1
+# mirth-test # perr # ?? 2
 # mirth-test # perr # ?? 10 20
-# mirth-test # perr # ?? 1
+# mirth-test # perr # ?? 3
 # mirth-test # perr # ?? 10 20
-# mirth-test # perr # ?? 1 10 20
-# mirth-test # perr # ?? 1 20 10
-# mirth-test # perr # ?? 1 10 20
+# mirth-test # perr # ?? 4 10 20
+# mirth-test # perr # ?? 5 20 10
+# mirth-test # perr # ?? 6 10 20

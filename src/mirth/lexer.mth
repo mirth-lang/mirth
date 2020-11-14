@@ -163,6 +163,10 @@ def(lexer-next!, --,
 
 
 def(lexer-emit-newline!, +Lexer,
+    lexer-stack-empty? if(
+        TOKEN_NEWLINE 0 Int->TokenValue lexer-make! drop,
+        id
+    )
     lexer-row@ Row->Int 1+ Int->Row lexer-row!
     0 Int->Col lexer-col!)
 
