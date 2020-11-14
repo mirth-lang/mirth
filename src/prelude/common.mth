@@ -80,7 +80,7 @@ I16_MIN : Int
 I16_MIN = -0x8000
 
 I32_MIN : Int
-I32_MIN = -0x80000000
+I32_MIN = -0x40000000 2 *
 
 not : Bool -- Bool
 not = false ==
