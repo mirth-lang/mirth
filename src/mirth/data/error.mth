@@ -7,23 +7,39 @@ import(mirth/data/token)
 ####################
 
 buffer(num-warnings, 8)
-def(num-warnings@, Int, num-warnings @)
-def(num-warnings++, --, num-warnings@ 1+ num-warnings !)
-def(emit-warning-at!, Module Row Col Str -- +IO,
+
+num-warnings@ : Int
+num-warnings@ = num-warnings @
+
+num-warnings++ : --
+num-warnings++ = num-warnings@ 1+ num-warnings !
+
+emit-warning-at! : Location Str -- +IO
+emit-warning-at! = (
     dip(location-trace!)
     ": warning: " str-trace!
     str-trace-ln!
-    num-warnings++)
+    num-warnings++
+)
 
 buffer(num-errors, 8)
-def(num-errors@, Int, num-errors @)
-def(num-errors++, --, num-errors@ 1+ num-errors !)
-def(emit-error-at!, Module Row Col Str -- +IO,
+
+num-errors@ : Int
+num-errors@ = num-errors @
+
+num-errors++ : --
+num-errors++ = num-errors@ 1+ num-errors !
+
+emit-error-at! : Location Str -- +IO
+emit-error-at! = (
     dip(location-trace!)
     ": error: " str-trace!
     str-trace-ln!
-    num-errors++)
+    num-errors++
+)
 
-def(emit-fatal-error-at!, *a Module Row Col Str -- *b +IO,
+emit-fatal-error-at! : *a Location Str -- *b +IO
+emit-fatal-error-at! = (
     emit-error-at!
-    1 posix-exit!)
+    1 posix-exit!
+)

@@ -8,8 +8,6 @@ import(mirth/lexer/char)
 
 def(Name->Int, Name -- Int, cast)
 def(Int->Name, Int -- Name, cast)
-def(Name->U32, Name -- U32, Name->Int Int->U32)
-def(U32->Name, U32 -- Name, U32->Int Int->Name)
 def(|Name|, Size, 8)
 def(name@, Ptr -- Name, @ Int->Name)
 def(name!, Name Ptr --, dip(Name->Int) !)
@@ -26,7 +24,7 @@ buffer(NAME_TABLE, 0x20000)
 def(num-names@, Size, Name.NUM @)
 
 def(NAME_QUADS, Size, 8)
-def(NAME_SIZE, Size, NAME_QUADS quads)
+def(NAME_SIZE, Size, NAME_QUADS ints)
 def(NAME_BUF_SIZE, Size, NAME_SIZE MAX_NAMES *)
 buffer(NAME_BUF, 0x100000)
 
@@ -43,14 +41,14 @@ def(name-quads&, Name -- Ptr,
 # Note this code assumes NAME_QUADS is 8.
 def(name-quads-eq, Name -- Bool,
     name-quads&
-    0 over quad@@ 0 STR_BUF quad@@ == if(
-    1 over quad@@ 1 STR_BUF quad@@ == if(
-    2 over quad@@ 2 STR_BUF quad@@ == if(
-    3 over quad@@ 3 STR_BUF quad@@ == if(
-    4 over quad@@ 4 STR_BUF quad@@ == if(
-    5 over quad@@ 5 STR_BUF quad@@ == if(
-    6 over quad@@ 6 STR_BUF quad@@ == if(
-    7 swap quad@@ 7 STR_BUF quad@@ ==,
+    0 over @@ 0 STR_BUF @@ == if(
+    1 over @@ 1 STR_BUF @@ == if(
+    2 over @@ 2 STR_BUF @@ == if(
+    3 over @@ 3 STR_BUF @@ == if(
+    4 over @@ 4 STR_BUF @@ == if(
+    5 over @@ 5 STR_BUF @@ == if(
+    6 over @@ 6 STR_BUF @@ == if(
+    7 swap @@ 7 STR_BUF @@ ==,
     drop false), drop false), drop false), drop false),
     drop false), drop false), drop false))
 
@@ -71,7 +69,7 @@ def(name-quads-eq?, Name -- Name Bool,
 
 def(name-quad-save!, Name Int --,
     dip(name-quads&) tuck
-    STR_BUF quad@@ rotr quad!!)
+    STR_BUF @@ rotr !!)
 
 def(name-quads-save!, Name -- ,
     dup 0 name-quad-save!
@@ -85,29 +83,29 @@ def(name-quads-save!, Name -- ,
 
 def(name-quads-load!, Name --,
     name-quads&
-    0 over quad@@ 0 STR_BUF quad!!
-    1 over quad@@ 1 STR_BUF quad!!
-    2 over quad@@ 2 STR_BUF quad!!
-    3 over quad@@ 3 STR_BUF quad!!
-    4 over quad@@ 4 STR_BUF quad!!
-    5 over quad@@ 5 STR_BUF quad!!
-    6 over quad@@ 6 STR_BUF quad!!
-    7 over quad@@ 7 STR_BUF quad!!
+    0 over @@ 0 STR_BUF !!
+    1 over @@ 1 STR_BUF !!
+    2 over @@ 2 STR_BUF !!
+    3 over @@ 3 STR_BUF !!
+    4 over @@ 4 STR_BUF !!
+    5 over @@ 5 STR_BUF !!
+    6 over @@ 6 STR_BUF !!
+    7 over @@ 7 STR_BUF !!
     drop)
 
 # zero str-buf up to NAME_SIZE
 def(str-buf-zero!, --,
-    0 0 STR_BUF quad!!
-    0 1 STR_BUF quad!!
-    0 2 STR_BUF quad!!
-    0 3 STR_BUF quad!!
-    0 4 STR_BUF quad!!
-    0 5 STR_BUF quad!!
-    0 6 STR_BUF quad!!
-    0 7 STR_BUF quad!!)
+    0 0 STR_BUF !!
+    0 1 STR_BUF !!
+    0 2 STR_BUF !!
+    0 3 STR_BUF !!
+    0 4 STR_BUF !!
+    0 5 STR_BUF !!
+    0 6 STR_BUF !!
+    0 7 STR_BUF !!)
 
-def(name-table@, Hash -- Name, Hash->Int NAME_TABLE quad@@ Int->Name)
-def(name-table!, Name Hash --, dip(Name->Int) Hash->Int NAME_TABLE quad!!)
+def(name-table@, Hash -- Name, Hash->Int NAME_TABLE @@ Int->Name)
+def(name-table!, Name Hash --, dip(Name->Int) Hash->Int NAME_TABLE !!)
 def(next-hash, Hash -- Hash, Hash->Int 1+ NAME_HASH_MAX & Int->Hash)
 
 def(name-is-error, Name -- Bool, NAME_ERROR ==)

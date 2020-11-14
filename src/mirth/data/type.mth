@@ -4,7 +4,6 @@ import(mirth/data/common)
 import(mirth/data/name)
 import(mirth/data/ctx)
 import(mirth/data/var)
-import(mirth/data/subst)
 
 def(def-type!, Type Str --, name-new! name-type!)
 

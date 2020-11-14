@@ -800,30 +800,30 @@ def(c99-emit-arrow!, Arrow -- +IO,
 
 def(c99-emit-arrow-op!, Arrow -- +IO,
 
-    arrow-op-is-none? if(
+    OP_NONE arrow-op=? if(
         drop,
 
-    arrow-op-is-int? if(
+    OP_INT arrow-op=? if(
         arrow-op-int@
-        "    push_i64(" . .n ");" ;,
+        "    push_i64(" . .n "LL);" ;,
 
-    arrow-op-is-str? if(
+    OP_STR arrow-op=? if(
         arrow-op-str@ StrLit->Int
         "    push_ptr((void*)(strings + " . .n "));" ;, # FIXME: just push a string literal.
 
-    arrow-op-is-word? if(
+    OP_WORD arrow-op=? if(
         arrow-op-word@ word-name@
         "    mw" . .name "();" ;,
 
-    arrow-op-is-external? if(
+    OP_EXTERNAL arrow-op=? if(
         arrow-op-external@ external-name@
         "    mw" . .name "();" ;,
 
-    arrow-op-is-buffer? if(
+    OP_BUFFER arrow-op=? if(
         arrow-op-buffer@ buffer-name@
         "    mw" . .name "();" ;,
 
-    arrow-op-is-prim? if(
+    OP_PRIM arrow-op=? if(
         arrow-op-prim?
         dup PRIM_DIP == if(
             drop arrow-args-1

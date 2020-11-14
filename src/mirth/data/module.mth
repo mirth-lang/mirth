@@ -2,45 +2,61 @@ module(mirth/data/module)
 import(mirth/data/common)
 import(mirth/data/path)
 
-def(Module->Int, Module -- Int, cast)
-def(Int->Module, Int -- Module, cast)
-def(Module->U16, Module -- U16, Module->Int Int->U16)
-def(U16->Module, U16 -- Module, U16->Int Int->Module)
+Module->Int : Module -- Int
+Module->Int = cast
 
-def(|Module|, Size, 2)
-def(module@, Ptr -- Module, u16@ U16->Module)
-def(module!, Module Ptr --, dip(Module->U16) u16!)
+Int->Module : Int -- Module
+Int->Module = cast
 
-def(MAX_MODULES, Size, 0x200)
-def(MODULE_PATH_SIZE, Size, 0x200)
+MAX_MODULES : Size
+MAX_MODULES = 0x200
+
+MODULE_PATH_SIZE : Size
+MODULE_PATH_SIZE = 0x200
+
 buffer(MODULE_PATH_BUF, 0x40000)
 
-def(module-alloc!, Module,
+module-alloc! : Module
+module-alloc! = (
     Module.alloc!
     dup Module->Int MAX_MODULES >= if(
         "Module.NUM @ >= MAX_MODULES" panic!,
         id
-    ))
+    )
+)
 
-def(module-new!, Path -- Module,
+module-new! : Path -- Module
+module-new! = (
     module-alloc!
-    tuck module-path!)
+    tuck module-path!
+)
 
-def(module-path@, Module -- Path,
-    Module->Int MODULE_PATH_SIZE * MODULE_PATH_BUF ptr+ Str->Path)
-def(module-path?, Module -- Module Path, dup module-path@)
-def(module-path!, Path Module --,
+module-path@ : Module -- Path
+module-path@ = Module->Int MODULE_PATH_SIZE * MODULE_PATH_BUF ptr+ Str->Path
+
+module-path? : Module -- Module Path
+module-path? = dup module-path@
+
+module-path! : Path Module --
+module-path! =
     over Path->Str str-length MODULE_PATH_SIZE >= if(
         "Module path is too long!" panic!,
         module-path@ dip(Path->Str) Path->Str str-copy!
-    ))
+    )
 
 # Load a source path associated with a module into STR_BUF.
-def(load-module-source-path!, Module --,
-    module-path@ load-source-path!)
+load-module-source-path! : Module --
+load-module-source-path! =
+    module-path@ load-source-path!
 
-def(NameValue->Module, NameValue -- Module, NameValue->Int Int->Module)
-def(Module->NameValue, Module -- NameValue, Module->Int Int->NameValue)
-def(name-module!, Module Name --,
+NameValue->Module : NameValue -- Module
+NameValue->Module = NameValue->Int Int->Module
+
+Module->NameValue : Module -- NameValue
+Module->NameValue = Module->Int Int->NameValue
+
+name-module! : Module Name --
+name-module! = (
     DEF_MODULE over name-sort!
-    dip(Module->NameValue) name-value!)
+    dip(Module->NameValue) name-value!
+)

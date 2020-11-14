@@ -14,9 +14,6 @@ field(buffer-size, Buffer, Size)
 field(buffer-base, Buffer, Ptr)
 field(buffer-name, Buffer, Name)
 
-# mirth/data/location
-nominal(Row, U16)
-nominal(Col, U16)
 
 # mirth/data/module
 table(Module)
@@ -24,6 +21,11 @@ table(Token)
 field(module-name, Module, Name)
 field(module-start, Module, Token)
 field(module-end, Module, Token)
+
+# mirth/data/location
+nominal(Row, Int)
+nominal(Col, Int)
+nominal(Location, [Module Row Col])
 
 # mirth/data/token
 nominal(TokenType, U8)
@@ -65,6 +67,12 @@ field(var-is-implicit, Var, Bool)
 field(var-name, Var, Name)
 field(var-type, Var, Type)
 
+# mirth/data/type
+table(Subst)
+field(subst-rest, Subst, Subst)
+field(subst-var, Subst, Var)
+field(subst-type, Subst, Type)
+
 # mirth/data/ctx
 table(Ctx)
 field(ctx-prev, Ctx, Ctx)
@@ -77,12 +85,6 @@ field(external-type, External, Type)
 field(external-sig, External, Token)
 field(external-ctx, External, Ctx)
 field(external-flags, External, Int)
-
-# mirth/data/subst
-table(Subst)
-field(subst-rest, Subst, Subst)
-field(subst-var, Subst, Var)
-field(subst-type, Subst, Type)
 
 # mirth/data/arrow
 table(Arrow)
