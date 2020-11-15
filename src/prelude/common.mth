@@ -413,132 +413,257 @@ pack-uncons =
         prim.pack.uncons
     )
 
-def(pack0, [], pack-nil)
-def(pack1, a -- [a], dip(pack0) pack-cons)
-def(pack2, a b -- [a b], dip(pack1) pack-cons)
-def(pack3, a b c -- [a b c], dip(pack2) pack-cons)
-def(pack4, a b c d -- [a b c d], dip(pack3) pack-cons)
-def(pack5, a b c d e -- [a b c d e], dip(pack4) pack-cons)
+pack0 : []
+pack0 = pack-nil
 
-def(unpack0, [] --, drop)
-def(unpack1, [a] -- a, pack-uncons dip(unpack0))
-def(unpack2, [a b] -- a b, pack-uncons dip(unpack1))
-def(unpack3, [a b c] -- a b c, pack-uncons dip(unpack2))
-def(unpack4, [a b c d] -- a b c d, pack-uncons dip(unpack3))
-def(unpack5, [a b c d e] -- a b c d e, pack-uncons dip(unpack4))
+pack1 : a -- [a]
+pack1 = dip(pack0) pack-cons
 
-def(.0, [*a b] -- b, pack-uncons nip)
-def(.1, [*a b c] -- b, pack-uncons drop .0)
-def(.2, [*a b c d] -- b, pack-uncons drop .1)
-def(.3, [*a b c d e] -- b, pack-uncons drop .2)
-def(.4, [*a b c d e f] -- b, pack-uncons drop .3)
+pack2 : a b -- [a b]
+pack2 = dip(pack1) pack-cons
 
-def(.0?, [*a b] -- [*a b] b, dup .0)
-def(.1?, [*a b c] -- [*a b c] b, dup .1)
-def(.2?, [*a b c d] -- [*a b c d] b, dup .2)
-def(.3?, [*a b c d e] -- [*a b c d e] b, dup .3)
-def(.4?, [*a b c d e f] -- [*a b c d e f] b, dup .4)
+pack3 : a b c -- [a b c]
+pack3 = dip(pack2) pack-cons
 
-def(.0!, [*a b] b -- [*a b], dip(pack-uncons drop) pack-cons)
-def(.1!, [*a b c] b  -- [*a b c], dip(pack-uncons) swap dip(.0!) pack-cons)
-def(.2!, [*a b c d] b  -- [*a b c d], dip(pack-uncons) swap dip(.1!) pack-cons)
-def(.3!, [*a b c d e] b  -- [*a b c d e], dip(pack-uncons) swap dip(.2!) pack-cons)
-def(.4!, [*a b c d e f] b  -- [*a b c d e f], dip(pack-uncons) swap dip(.3!) pack-cons)
+pack4 : a b c d -- [a b c d]
+pack4 = dip(pack3) pack-cons
+
+pack5 : a b c d e -- [a b c d e]
+pack5 = dip(pack4) pack-cons
+
+unpack0 : [] --
+unpack0 = drop
+
+unpack1 : [a] -- a
+unpack1 = pack-uncons nip
+
+unpack2 : [a b] -- a b
+unpack2 = pack-uncons dip(unpack1)
+
+unpack3 : [a b c] -- a b c
+unpack3 = pack-uncons dip(unpack2)
+
+unpack4 : [a b c d] -- a b c d
+unpack4 = pack-uncons dip(unpack3)
+
+unpack5 : [a b c d e] -- a b c d e
+unpack5 = pack-uncons dip(unpack4)
+
+.0 : [*a b] -- b
+.0 = pack-uncons nip
+
+.1 : [*a b c] -- b
+.1 = pack-uncons drop .0
+
+.2 : [*a b c d] -- b
+.2 = pack-uncons drop .1
+
+.3 : [*a b c d e] -- b
+.3 = pack-uncons drop .2
+
+.4 : [*a b c d e f] -- b
+.4 = pack-uncons drop .3
+
+.0? : [*a b] -- [*a b] b
+.0? = dup .0
+
+.1? : [*a b c] -- [*a b c] b
+.1? = dup .1
+
+.2? : [*a b c d] -- [*a b c d] b
+.2? = dup .2
+
+.3? : [*a b c d e] -- [*a b c d e] b
+.3? = dup .3
+
+.4? : [*a b c d e f] -- [*a b c d e f] b
+.4? = dup .4
+
+.0! : [*a b] b -- [*a b]
+.0! = dip(pack-uncons drop) pack-cons
+
+.1! : [*a b c] b -- [*a b c]
+.1! = dip(pack-uncons) swap dip(.0!) pack-cons
+
+.2! : [*a b c d] b -- [*a b c d]
+.2! = dip(pack-uncons) swap dip(.1!) pack-cons
+
+.3! : [*a b c d e] b -- [*a b c d e]
+.3! = dip(pack-uncons) swap dip(.2!) pack-cons
+
+.4! : [*a b c d e f] b -- [*a b c d e f]
+.4! = dip(pack-uncons) swap dip(.3!) pack-cons
 
 #########
 # LISTS #
 #########
 
 nominal(List(t), [])
-def(list->pack, List(t) -- [List(t) t], cast)
-def(pack->list, [List(t) t] -- List(t), cast)
-def(nil, List(t), pack-nil pack->list)
-def(nil?, List(t) -- List(t) Bool, dup nil ==)
-def(cons, List(t) t -- List(t), pack2 pack->list)
-def(uncons, List(t) -- List(t) t,
+
+list->pack : List(t) -- [List(t) t]
+list->pack = cast
+
+pack->list : [List(t) t] -- List(t)
+pack->list = cast
+
+nil : List(t)
+nil = pack-nil pack->list
+
+nil? : List(t) -- List(t) Bool
+nil? = list->pack pack-nil? dip(pack->list)
+
+cons : List(t) t -- List(t)
+cons = pack2 pack->list
+
+uncons : List(t) -- List(t) t
+uncons =
     nil? if(
-        "uncons on nil value" panic!,
+        "uncons on nil list" panic!,
         list->pack unpack2
-    ))
-def(head, List(t) -- t, uncons nip)
-def(tail, List(t) -- List(t), uncons drop)
-def(length, List(t) -- Int,
-    0 swap
-    while(nil? not, dip(1+) tail)
-    drop)
-def(length?, List(t) -- List(t) Int, dup length)
+    )
+
+head : List(t) -- t
+head = uncons nip
+
+head? : List(t) -- List(t) t
+head? = dup head
+
+tail : List(t) -- List(t)
+tail = uncons drop
+
+tail? : List(t) -- List(t) List(t)
+tail? = dup tail
+
+length : List(t) -- Int
+length =
+    0 swap while(
+        nil? not,
+        dip(1+) tail
+    ) drop
+
+length? : List(t) -- List(t) Int
+length? = dup length
 
 ######
 # IO #
 ######
 
-def(panic!, *a Str -- *b +IO,
-    "panic: " str-trace! str-trace-ln! 1 posix-exit!)
+panic! : *a Str -- *b
+panic! = "panic: " str-trace! str-trace-ln! 1 posix-exit!
 
 nominal(File, Int)
-def(File->Int, File -- Int, cast)
-def(Int->File, Int -- File, cast)
-def(|File|, Size, 8)
-def(file@, Ptr -- File, @ Int->File)
-def(file!, File Ptr --, dip(File->Int) !)
 
-def(stdin,  File, 0 Int->File)
-def(stdout, File, 1 Int->File)
-def(stderr, File, 2 Int->File)
+File->Int : File -- Int
+File->Int = File.unwrap
 
-def(str-write!, Str File -- +IO,
-    File->Int swap dup str-length posix-write!)
+Int->File : Int -- File
+Int->File = File.wrap
 
-def(str-print!, Str -- +IO, stdout str-write!)
-def(str-trace!, Str -- +IO, stderr str-write!)
-def(str-print-sp!, Str -- +IO, str-print! print-sp!)
-def(str-trace-sp!, Str -- +IO, str-trace! trace-sp!)
-def(str-print-ln!, Str -- +IO, str-print! print-ln!)
-def(str-trace-ln!, Str -- +IO, str-trace! trace-ln!)
+file@ : Ptr -- File
+file@ = @ Int->File
 
-def(print-ln!, +IO, 10 Int->U8 print-char!)
-def(trace-ln!, +IO, 10 Int->U8 trace-char!)
-def(print-sp!, +IO, 32 Int->U8 print-char!)
-def(trace-sp!, +IO, 32 Int->U8 trace-char!)
-def(trace-quote!, +IO, 34 Int->U8 trace-char!)
+file! : File Ptr --
+file! = dip(File->Int) !
 
-def(str-buf-write!, File -- +StrBuf, File->Int STR_BUF str-buf-length? posix-write!)
-def(str-buf-print!, +StrBuf, stdout str-buf-write!)
-def(str-buf-trace!, +StrBuf, stderr str-buf-write!)
-def(str-buf-read!, File -- +IO,
+stdin : File
+stdin = 0 Int->File
+
+stdout : File
+stdout = 1 Int->File
+
+stderr : File
+stderr = 2 Int->File
+
+str-write! : Str File -- +IO
+str-write! = File->Int swap dup str-length posix-write!
+
+str-print! : Str -- +IO
+str-print! = stdout str-write!
+
+str-trace! : Str -- +IO
+str-trace! = stderr str-write!
+
+str-print-ln! : Str -- +IO
+str-print-ln! = str-print! print-ln!
+
+str-trace-ln! : Str -- +IO
+str-trace-ln! = str-trace! trace-ln!
+
+print-ln! : +IO
+print-ln! = "\n" str-print!
+
+trace-ln! : +IO
+trace-ln! = "\n" str-trace!
+
+str-buf-write! : File -- +StrBuf +IO
+str-buf-write! = File->Int STR_BUF str-buf-length? posix-write!
+
+str-buf-print! : +StrBuf +IO
+str-buf-print! = stdout str-buf-write!
+
+str-buf-trace! : +StrBuf +IO
+str-buf-trace! = stderr str-buf-write!
+
+str-buf-read! : File -- +IO
+str-buf-read! = (
     File->Int str-buf-clear!
     STR_BUF STR_BUF_SIZE 1- posix-read!
     dup 0< if(
         "str-buf-read! failed" panic!,
         str-buf-length!
-    ))
-def(str-buf-input!, -- +IO, stdin str-buf-read!)
+    )
+)
 
-def(print-char!, Char -- +IO, str-buf-char! str-buf-print!)
-def(trace-char!, Char -- +IO, str-buf-char! str-buf-trace!)
+str-buf-input! : -- +IO
+str-buf-input! = stdin str-buf-read!
 
-def(int-write!, Int File -- +IO, dip(str-buf-int!) str-buf-write!)
-def(int-print!, Int -- +IO, stdout int-write!)
-def(int-trace!, Int -- +IO, stderr int-write!)
-def(int-print-sp!, Int -- +IO, int-print! print-sp!)
-def(int-trace-sp!, Int -- +IO, int-trace! trace-sp!)
-def(int-print-ln!, Int -- +IO, int-print! print-ln!)
-def(int-trace-ln!, Int -- +IO, int-trace! trace-ln!)
+print-char! : Char -- +IO
+print-char! = str-buf-char! str-buf-print!
 
-def(open-file!, Str -- File +IO,
+trace-char! : Char -- +IO
+trace-char! = str-buf-char! str-buf-trace!
+
+int-write! : Int File -- +IO
+int-write! = dip(str-buf-int!) str-buf-write!
+
+int-print! : Int -- +IO
+int-print! = stdout int-write!
+
+int-trace! : Int -- +IO
+int-trace! = stderr int-write!
+
+int-print-ln! : Int -- +IO
+int-print-ln! = int-print! print-ln!
+
+int-trace-ln! : Int -- +IO
+int-trace-ln! = int-trace! trace-ln!
+
+open-file! : Str -- File +IO
+open-file! = (
     0 0 posix-open!
-    dup 0 < if("Failed to open file!" panic!, Int->File))
+    dup 0 < if(
+        "Failed to open file!" panic!,
+        Int->File
+    )
+)
 
-def(create-file!, Str -- File +IO,
+create-file! : Str -- File +IO
+create-file! = (
     O_WRONLY|O_CREAT|O_TRUNC
     0x1B6
         # this is the default mode for creating a file
         # on unix, 666 in octal, i.e. owner can
         # read+write, everyone can read
+        #  ---- NB: this is inaccurate . . .
     posix-open!
-    dup 0 < if("Failed to create file!" panic!, Int->File))
+    dup 0 < if(
+        "Failed to create file!" panic!,
+        Int->File
+    )
+)
 
-def(O_WRONLY|O_CREAT|O_TRUNC, Int,
+O_WRONLY|O_CREAT|O_TRUNC : Int
+O_WRONLY|O_CREAT|O_TRUNC =
     RUNNING_OS MACOS == if(
         0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
     RUNNING_OS LINUX == if(
@@ -546,8 +671,13 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     RUNNING_OS WIN32 == if(
         0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
         "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic!
-    ))))
+    )))
 
-def(close-file!, File -- +IO,
+close-file! : File -- +IO
+close-file! = (
     File->Int posix-close!
-    0 < if("failed to close file" panic!, id))
+    0 < if(
+        "failed to close file." panic!,
+        id
+    )
+)

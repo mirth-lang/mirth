@@ -125,19 +125,19 @@ def(token-location, Token -- Location,
 def(token-trace!, Token -- +IO,
     dup token-location location-trace!
     ": " str-trace!
-    dup Token->Int int-trace-sp!
+    dup Token->Int int-trace! " " str-trace!
     token-type? token-type-trace!
     token-type? TOKEN_NAME == if(
-        trace-sp!
+        " " str-trace!
         token-name? name-load! str-buf-trace!,
 
     token-type? TOKEN_STR == if(
-        trace-sp!
-        trace-quote!
-        token-str? str-trace! trace-quote!,
+        " \"" str-trace!
+        token-str? str-trace!
+        "\"" str-trace!,
         # FIXME: print escaped
 
-        trace-sp!
+        " " str-trace!
         token-value? TokenValue->Int int-trace!))
 
     drop
