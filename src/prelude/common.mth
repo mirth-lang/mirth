@@ -584,10 +584,10 @@ str-trace! : Str -- +IO
 str-trace! = stderr str-write!
 
 str-print-ln! : Str -- +IO
-str-print-ln! = str-print!
+str-print-ln! = str-print! print-ln!
 
 str-trace-ln! : Str -- +IO
-str-trace-ln! = str-trace! "\n" str-trace!
+str-trace-ln! = str-trace! trace-ln!
 
 print-ln! : +IO
 print-ln! = "\n" str-print!
