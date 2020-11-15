@@ -427,7 +427,7 @@ def(lexer-move!, +Lexer, input-move!
 def(lexer-trace-prefix!, +IO,
     lexer-module@ load-module-source-path! str-buf-trace! ":" str-trace!
     lexer-row@ Row->Int int-trace! ":" str-trace!
-    lexer-col@ Col->Int int-trace! ":" str-trace-sp!)
+    lexer-col@ Col->Int int-trace! ": " str-trace!)
 
 def(lexer-location, Location +Lexer,
     lexer-module@ lexer-row@ lexer-col@ location-pack)

@@ -6,29 +6,44 @@ import(prelude/common)
 ########
 
 buffer(HEAP_LENGTH, 8)
-def(heap-length@, Size +Heap, HEAP_LENGTH @)
-def(heap-length!, Size -- +Heap, HEAP_LENGTH !)
+
+heap-length@ : Size
+heap-length@ = HEAP_LENGTH @
+
+heap-length! : Size --
+heap-length! = HEAP_LENGTH !
 
 buffer(HEAP_BASE, 8)
-def(heap-base@, Ptr +Heap, HEAP_BASE ptr@)
-def(heap-base!, Ptr -- +Heap, HEAP_BASE ptr!)
+
+heap-base@ : Ptr
+heap-base@ = HEAP_BASE ptr@
+
+heap-base! : Ptr --
+heap-base! = HEAP_BASE ptr!
 
 buffer(HEAP_TIMES_EXPANDED, 8)
-def(heap-times-expanded@, Int +Heap, HEAP_TIMES_EXPANDED @)
-def(heap-times-expanded!, Int -- +Heap, HEAP_TIMES_EXPANDED !)
-def(++heap-times-expanded, Int +Heap,
-    heap-times-expanded@ 1+ dup heap-times-expanded!)
 
-# Ensure that at at least X space on the heap is available.
-#
-# If the space left is too small (or heap has not been allocated,
-# in which the space left is 0), then it tries to make the heap
-# larger in place. This usually works, but if it fails, we just
-# allocate a new buffer and forget about the old one, leaking
-# some memory and introducing fragmentation.
-#
-# Panics if reservation is impossible.
-def(heap-reserve!, Size -- +Heap,
+heap-times-expanded@ : Int
+heap-times-expanded@ = HEAP_TIMES_EXPANDED @
+
+heap-times-expanded! : Int --
+heap-times-expanded! = HEAP_TIMES_EXPANDED !
+
+++heap-times-expanded : Int
+++heap-times-expanded =
+    heap-times-expanded@ 1+ dup heap-times-expanded!
+
+||| Ensure that at at least X space on the heap is available.
+|||
+||| If the space left is too small (or heap has not been allocated,
+||| in which the space left is 0), then it tries to make the heap
+||| larger in place. This usually works, but if it fails, we just
+||| allocate a new buffer and forget about the old one, leaking
+||| some memory and introducing fragmentation.
+|||
+||| Panics if reservation is impossible.
+heap-reserve! : Size --
+heap-reserve! =
     dup heap-length@ <= if(
         drop,
 
@@ -46,12 +61,14 @@ def(heap-reserve!, Size -- +Heap,
             ),
             "Failed to allocate heap buffer." panic!
         )
-    ))
+    )
 
-def(PROT_READ|PROT_WRITE, Int,
-    0x3) # PROT_READ = 0x1, PROT_WRITE = 0x2
+PROT_READ|PROT_WRITE : Int
+PROT_READ|PROT_WRITE = 0x3
+    # PROT_READ = 0x1, PROT_WRITE = 0x2
 
-def(MAP_ANON|MAP_PRIVATE, Int,
+MAP_ANON|MAP_PRIVATE : Int
+MAP_ANON|MAP_PRIVATE =
     RUNNING_OS MACOS == if(
         0x1002, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
     # RUNNING_OS LINUX == if(
@@ -59,28 +76,31 @@ def(MAP_ANON|MAP_PRIVATE, Int,
         # ,
         # "MAP_ANON|MAP_PRIVATE unknown for os" panic!
     # )
-    ))
+    )
 
-# Aligns a by b, rounding upward. For instance,
-#
-#   10 64 align == 64
-#   64 64 align == 64
-#   70 64 align == 128
-def(align, Size Size -- Size,
-    # a:Size b:Size { a 0 >=, b 0 > } --
-    # c:Size { c a >=, c a b + <, c b % 0 = },
-    dup dip(1- + dup) % -)
+||| Aligns a by b, rounding upward. For instance,
+|||
+|||   10 64 align == 64
+|||   64 64 align == 64
+|||   70 64 align == 128
+align : Size Size -- Size
+align = dup dip(1- + dup) % -
 
-# Figure out how much to expand heap size by, based on a minimum size
-# (i.e. requested size aligned to 4096).
-# The expansion has a quadratic lower bound.
-def(heap-new-size, Size -- Size,
+||| Figure out how much to expand heap size by, based on a minimum size
+||| (i.e. requested size aligned to 4096).
+||| The expansion has a quadratic lower bound.
+heap-new-size : Size -- Size
+heap-new-size = (
     4096 align
     4096 ++heap-times-expanded square *
-    max)
+    max
+)
 
-def(heap-alloc!, Size -- Ptr +Heap,
+||| Allocate a buffer on the heap.
+heap-alloc! : Size -- Ptr +Heap
+heap-alloc! = (
     64 align
     dup heap-reserve!
     dup heap-length@ swap - heap-length!
-    heap-base@ dup dip(swap) ptr+ heap-base!)
+    heap-base@ dup dip(swap) ptr+ heap-base!
+)
