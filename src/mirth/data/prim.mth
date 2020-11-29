@@ -105,8 +105,10 @@ def(PRIM_TARGET_C99, Prim, 55 Int->Prim)
 def(PRIM_TABLE, Prim, 78 Int->Prim)
 def(PRIM_FIELD, Prim, 79 Int->Prim)
 def(PRIM_COLON, Prim, 86 Int->Prim)
+def(PRIM_DATA, Prim, 88 Int->Prim)
+def(PRIM_END, Prim, 89 Int->Prim)
 
-# next primitive is 88
+# next primitive is 90
 
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str -- +Names,
@@ -197,6 +199,8 @@ def(init-prims!, +Names,
     PRIM_FIELD "field" def-prim!
     PRIM_TARGET_C99 "target-c99" def-prim!
     PRIM_COLON ":" def-prim!
+    PRIM_DATA "data" def-prim!
+    PRIM_END "end" def-prim!
 
     #
     # monomorphic prims

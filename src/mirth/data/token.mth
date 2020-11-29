@@ -335,8 +335,14 @@ def(token-bracket-arg, Token -- Token,
         emit-fatal-error!
     ))
 
+token-is-comma? : Token -- Token Bool
+token-is-comma? = token-type? TOKEN_COMMA ==
+
 token-is-lparen? : Token -- Token Bool
 token-is-lparen? = token-type? TOKEN_LPAREN ==
+
+token-is-rparen? : Token -- Token Bool
+token-is-rparen? = token-type? TOKEN_RPAREN ==
 
 def(token-is-lbrace?, Token -- Token Bool,
     token-type? TOKEN_LBRACE ==)

@@ -3,6 +3,7 @@ import(mirth/data/name)
 import(mirth/data/token)
 import(mirth/data/type)
 import(mirth/data/table)
+import(mirth/data/data)
 
 ####################
 # Type Elaboration #
@@ -170,6 +171,42 @@ def(elab-simple-type-arg!, Token -- Type,
 # Word Elaboration #
 ####################
 
+def(elab-tag-sig!, Tag -- Type +Elab,
+    elab-tag-ctx-sig! nip)
+
+def(elab-tag-ctx!, Tag -- Ctx +Elab,
+    elab-tag-ctx-sig! drop)
+
+def(elab-tag-ctx-sig!, Tag -- Ctx Type +Elab,
+    tag-sig-is-checked? if(
+        tag-type? dip(tag-ctx@),
+
+        type-elab-default over
+
+        { Tag TypeElab Tag }
+        tag-data@ data-header@ elab-type-atom! drop T1
+        { Tag TypeElab Type }
+        dip(
+            over tag-has-sig?
+            if(
+                tag-sig@ T0 swap elab-type-stack-rest!
+                token-run-end? if(drop, "syntax error" emit-fatal-error!),
+
+                drop T0
+            )
+        )
+        { Tag TypeElab Type Type }
+        T-> dip(type-elab-ctx)
+        { Tag Ctx Type }
+        dup2 dip(dip(
+            rotl
+            tuck tag-type!
+            tuck tag-ctx!
+            true swap tag-sig-is-checked!
+        ))
+    ))
+
+
 def(elab-external-sig!, External -- Type +Elab,
     elab-external-ctx-sig! nip)
 
@@ -283,11 +320,13 @@ def(elab-arrow-op-name!, Arrow Name -- Type,
         name-word@ elab-arrow-op-word!,
     name-is-prim? if(
         name-prim@ elab-arrow-op-prim!,
+    name-is-tag? if(
+        name-tag@ elab-arrow-op-tag!,
 
         drop
         arrow-token@ "Unknown word." emit-error!
         TYPE_ERROR
-    )))))
+    ))))))
 
 def(elab-arrow-op-int!, Arrow Int -- Type,
     over arrow-op-int!
@@ -316,6 +355,10 @@ def(elab-arrow-op-external!, Arrow External -- Type,
 def(elab-arrow-op-word!, Arrow Word -- Type,
     dup2 swap arrow-op-word!
     elab-word-sig! elab-arrow-op-apply-fresh!)
+
+def(elab-arrow-op-tag!, Arrow Tag -- Type,
+    dup2 swap arrow-op-tag!
+    elab-tag-sig! elab-arrow-op-apply-fresh!)
 
 def(elab-arrow-op-prim!, Arrow Prim -- Type,
     prim-type? TYPE_ERROR == if(
@@ -459,10 +502,113 @@ def(elab-module-decl!, Module Token -- Module Token +Mirth,
     PRIM_TABLE token-prim=? if( elab-table!,
     PRIM_FIELD token-prim=? if( elab-field!,
     PRIM_TARGET_C99 token-prim=? if(elab-target-c99!,
+    PRIM_DATA token-prim=? if( elab-data!,
     token-could-be-word-sig? if(elab-decl-word-sig!,
     token-could-be-word-def? if(elab-decl-word-def!,
-    "unknown declaration" emit-fatal-error!))))))))))
+    "unknown declaration" emit-fatal-error!)))))))))))
     token-skip-newlines)
+
+||| Elaborate a data definition `data T ... end` or `data(T, ...)`
+def(elab-data!, Module Token -- Module Token +Mirth,
+    Data.alloc! swap
+    elab-data-header!
+    elab-data-tags!)
+
+||| Get the header, name, arity for a data type. Doesn't move the Token.
+def(elab-data-header!, Module Data Token -- Module Data Token +Mirth,
+    dup2 token-has-args? if(
+        token-succ token-succ,
+        token-succ
+    )
+    dup2 swap data-header!
+    sig-token-is-type-con? if(
+        token-name?
+        name-undefined? if(
+            dip(over)
+            dup2 swap data-name!
+            dip(TData) name-type!,
+            drop "Name already defined." emit-fatal-error!
+        ),
+        drop2 "Expected type name." emit-fatal-error!
+    )
+
+    token-has-args? if(
+        # TODO check arguments are well-formed / elaborate them properly
+        token-num-args swap data-arity!,
+        drop2
+    ))
+
+||| Get the tags (i.e. constructors) associated with a data type.
+||| Moves the Token to after the data declaration.
+def(elab-data-tags!, Module Data Token -- Module Token +Mirth,
+    token-has-args? if(
+        token-succ token-succ token-next
+        expect-token-comma token-succ
+        elab-data-tags-body!
+        expect-token-rparen token-succ,
+
+        token-succ token-next
+        expect-token-newline token-skip-newlines
+        elab-data-tags-body!
+        expect-token-end token-succ
+    )
+    nip)
+
+expect-token-comma : Token -- Token
+expect-token-comma = token-is-comma? if(id, "Expected comma." emit-fatal-error!)
+
+expect-token-rparen : Token -- Token
+expect-token-rparen = token-is-rparen? if(id, "Expected right parenthesis." emit-fatal-error!)
+
+expect-token-newline : Token -- Token
+expect-token-newline = token-is-newline? if(id, "Expected newline." emit-fatal-error!)
+
+expect-token-end : Token -- Token
+expect-token-end = PRIM_END token-prim=? if(id, "Expected 'end'" emit-fatal-error!)
+
+||| Get the tags (i.e. constructors) associated with a data type,
+||| from inside the data declaration, one at a time. Moves the Token
+||| to just after the last tag.
+elab-data-tags-body! : Module Data Token -- Module Data Token
+elab-data-tags-body! = while(elab-data-tags-done? not, elab-data-tag!)
+
+elab-data-tags-done? : Token -- Token Bool
+elab-data-tags-done? = token-is-rparen? if(true, PRIM_END token-prim=?)
+
+||| Get a tag associated with a data type.
+||| This looks like either "TAG" or "TAG -> TYPE1 ... TYPEN".
+||| Moves the Token to after the tag declaration.
+elab-data-tag! : Module Data Token -- Module Data Token +Mirth
+elab-data-tag! = (
+    token-is-name? if(
+        token-name? name-undefined? if(
+            Tag.alloc!
+            dup2 swap name-tag!
+            tuck tag-name!,
+            drop "Name already defined. (Overlapping tags not yet supported.)" emit-fatal-error!
+        )
+        { Module Data Token Tag }
+        dip(over) dup2 tag-data!
+        tuck dip(data-add-tag!)
+        { Module Data Token Tag }
+        swap token-succ
+        PRIM_ARROW token-prim=? if(
+            dip(true over tag-has-sig!)
+            token-succ tuck dip(tag-sig!)
+            while(token-run-end? not, token-next),
+        token-is-newline? if(
+            nip,
+        token-is-comma? if(
+            nip,
+            "Expected arrow, comma, or newline." emit-fatal-error!
+        )))
+        { Module Data Token },
+
+        "Expected tag name." emit-fatal-error!
+    )
+    token-is-comma? if(token-succ, id)
+    token-skip-newlines
+)
 
 ||| Elaborate a word definition `def(w, t, b)`.
 def(elab-def!, Module Token -- Module Token +Mirth,
