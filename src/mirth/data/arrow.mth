@@ -41,6 +41,7 @@ OP_EXTERNAL : Op
 OP_BUFFER : Op
 OP_INT : Op
 OP_STR : Op
+OP_TAG : Op
 
 OP_NONE = 0 cast
 OP_PRIM = 1 cast
@@ -49,6 +50,7 @@ OP_EXTERNAL = 3 cast
 OP_BUFFER = 4 cast
 OP_INT = 5 cast
 OP_STR = 6 cast
+OP_TAG = 7 cast
 
 arrow-op=? : Arrow Op -- Arrow Bool
 arrow-op=? = dip(arrow-op?) ==
@@ -84,6 +86,19 @@ arrow-op-word@ =
 
 arrow-op-word? : Arrow -- Arrow Word
 arrow-op-word? = dup arrow-op-word@
+
+arrow-op-tag! :  Tag Arrow --
+arrow-op-tag! = (
+    OP_TAG over arrow-op!
+    dip(cast) arrow-op-value!
+)
+
+arrow-op-tag@ : Arrow -- Tag
+arrow-op-tag@ =
+    OP_TAG arrow-op=? if(
+        arrow-op-value@ cast,
+        "compiler error: attempted to get tag associated with non-tag arrow" panic!
+    )
 
 arrow-op-external! : External Arrow --
 arrow-op-external! = (

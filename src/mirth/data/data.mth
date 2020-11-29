@@ -1,0 +1,69 @@
+module(mirth/data/data)
+import(mirth/data/name)
+import(mirth/elab/syntax)
+
+#######
+# TAG #
+#######
+
+NameValue->Tag : NameValue -- Tag
+NameValue->Tag = cast
+
+Tag->NameValue : Tag -- NameValue
+Tag->NameValue = cast
+
+name-tag! : Tag Name --
+name-tag! = (
+    DEF_TAG over name-sort!
+    dip(Tag->NameValue) name-value!
+)
+
+name-tag@ : Name -- Tag
+name-tag@ =
+    name-is-tag? if(
+        name-value@ NameValue->Tag,
+        "compiler error: attempted to get tag definition for non-tag name" panic!
+    )
+
+name-tag? : Name -- Name Tag
+name-tag? = dup name-tag@
+
+tag-nil : Tag
+tag-nil = 0 cast
+
+tag-is-nil : Tag -- Bool
+tag-is-nil = tag-nil ==
+
+tag-is-nil? : Tag -- Tag Bool
+tag-is-nil? = dup tag-is-nil
+
+tag-num-inputs? : Tag -- Tag Int
+tag-num-inputs? =
+    # TODO: this should actually be calculated & stored during elaboration based on the type
+    tag-has-sig? if(
+        tag-sig? 0 swap
+        while(token-run-end? not, token-next dip(1+)) drop,
+        0
+    )
+
+########
+# DATA #
+########
+
+data-add-tag! : Tag Data -- +Mirth
+data-add-tag! =
+    data-tags? tag-is-nil if(
+        data-tags!,
+        data-tags@
+        while(tag-next? tag-is-nil not, tag-next@)
+        tag-next!
+    )
+
+data MyList(t)
+    NIL
+    CON -> t
+    CAT -> MyList(t) MyList(t)
+end
+
+makeMyList : t -- MyList(t)
+makeMyList = CON NIL CAT

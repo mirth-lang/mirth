@@ -45,21 +45,46 @@ table(Param)
 table(MetaVar)
 table(Nominal)
 table(AppType)
+table(Data)
+table(Tag)
+table(Ctx)
+
 field(tensor-type-snd, TensorType, Type)
 field(tensor-type-fst, TensorType, Type)
+
 field(morphism-type-cod, MorphismType, Type)
 field(morphism-type-dom, MorphismType, Type)
+
 field(meta-is-defined, MetaVar, Bool)
 field(meta-type-raw, MetaVar, Type)
+
 field(nominal-type, Nominal, Type)
 field(nominal-name, Nominal, Name)
 field(nominal-arity, Nominal, Int)
+
 field(param-type-params, ParamType, Param)
 field(param-type-body, ParamType, Type)
+
+field(param-name, Param, Name)
 field(param-type, Param, Type)
 field(param-next, Param, Param)
+
 field(app-type-fun, AppType, Type)
 field(app-type-arg, AppType, Type)
+
+field(data-header, Data, Token)
+field(data-name, Data, Name)
+field(data-arity, Data, Int)
+field(data-tags, Data, Tag)
+
+field(tag-data, Tag, Data)
+field(tag-name, Tag, Name)
+field(tag-sig, Tag, Token)
+field(tag-has-sig, Tag, Bool)
+field(tag-sig-is-checked, Tag, Bool)
+field(tag-ctx, Tag, Ctx)
+field(tag-type, Tag, Type)
+field(tag-next, Tag, Tag)
 
 # mirth/data/var
 table(Var)
@@ -74,7 +99,6 @@ field(subst-var, Subst, Var)
 field(subst-type, Subst, Type)
 
 # mirth/data/ctx
-table(Ctx)
 field(ctx-prev, Ctx, Ctx)
 field(ctx-var, Ctx, Var)
 

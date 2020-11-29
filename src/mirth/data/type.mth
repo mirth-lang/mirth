@@ -62,6 +62,7 @@ def(TYPE_TAG_TABLE,    Int, 0x60000000)
 def(TYPE_TAG_HOLE,     Int, 0x70000000)
 def(TYPE_TAG_PARAM,    Int, 0x80000000)
 def(TYPE_TAG_APP,      Int, 0x90000000)
+def(TYPE_TAG_DATA,     Int, 0xA0000000)
 
 def(ctx-trace!, Ctx -- +IO,
     ctx-is-empty? if(
@@ -108,6 +109,8 @@ def(TParam, ParamType -- Type,
     ParamType->Int TYPE_TAG_PARAM | Int->Type)
 def(TApp, AppType -- Type,
     AppType->Int TYPE_TAG_APP | Int->Type)
+def(TData, Data -- Type,
+    Data->Int TYPE_TAG_DATA | Int->Type)
 
 def(T*, Type Type -- Type, tensor-type-new! TTensor)
 def(T->, Type Type -- Type, morphism-type-new! TMorphism)
@@ -132,6 +135,7 @@ def(type-is-table, Type -- Bool, type-tag TYPE_TAG_TABLE ==)
 def(type-is-hole, Type -- Bool, type-tag TYPE_TAG_HOLE ==)
 def(type-is-param, Type -- Bool, type-tag TYPE_TAG_PARAM ==)
 def(type-is-app, Type -- Bool, type-tag TYPE_TAG_APP ==)
+def(type-is-data, Type -- Bool, type-tag TYPE_TAG_DATA ==)
 
 def(type-is-prim?, Type -- Type Bool, dup type-is-prim)
 def(type-is-var?, Type -- Type Bool, dup type-is-var)
@@ -143,6 +147,7 @@ def(type-is-table?, Type -- Type Bool, dup type-is-table)
 def(type-is-hole?, Type -- Type Bool, dup type-is-hole)
 def(type-is-param?, Type -- Type Bool, dup type-is-param)
 def(type-is-app?, Type -- Type Bool, dup type-is-app)
+def(type-is-data?, Type -- Type Bool, dup type-is-data)
 
 def(type-is-stack-var, Type -- Bool,
     type-is-var? if(
@@ -196,6 +201,11 @@ def(type-get-app, Type -- AppType,
     type-is-app? not if(
         "compiler error: tried to get app type value on non-app type" panic!,
         type-get-value Int->AppType
+    ))
+def(type-get-data, Type -- Data,
+    type-is-data? not if(
+        "compiler error: tried to get data type value on non-data type" panic!,
+        type-get-value Int->Data
     ))
 
 def(TYPE_ERROR, Type, 0x00 TPrim)
@@ -312,7 +322,10 @@ def(type-unify!, Type Type -- Type +Elab,
     type-is-var? if( # type variables need to be exact matches.
         type-unify-failed!,
 
-    type-is-nominal? if( # nominals need to be exact matches (for now)
+    type-is-nominal? if( # nominals need to be exact matches
+        type-unify-failed!,
+
+    type-is-data? if( # data types are just like nominal types
         type-unify-failed!,
 
     type-is-table? if( # table types need to be exact matches
@@ -351,7 +364,7 @@ def(type-unify!, Type Type -- Type +Elab,
     # TODO: unify param types
 
         type-unify-failed!
-    )))))))))))))))))
+    ))))))))))))))))))
 
 def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
     dup2 type-has-meta)
@@ -378,12 +391,14 @@ def(type-has-meta, MetaVar Type -- Bool,
     type-is-nominal? if(
         drop2 false,
 
+    type-is-data? if(
+        drop2 false,
+
     type-is-table? if(
         drop2 false,
 
         "type-has-meta: unknown type" panic!
-    )))))))))
-
+    ))))))))))
 
 def(type-trace-sig!, Type -- +IO,
     dup TYPE_ERROR == if(
@@ -449,6 +464,12 @@ def(type-trace!, Type -- +IO,
         name-load!
         str-buf-trace!,
 
+    type-is-data? if(
+        type-get-data
+        data-name@
+        name-load!
+        str-buf-trace!,
+
     type-is-table? if(
         type-get-table
         table-name@
@@ -465,7 +486,7 @@ def(type-trace!, Type -- +IO,
         app-type-trace!,
 
         "<UNKNOWN TYPE " str-trace! Type->Int int-trace! ">" str-trace!
-    ))))))))))
+    )))))))))))
 
 def(type-trace-prim!, Type -- +IO,
     dup TYPE_ERROR == if(
@@ -584,8 +605,11 @@ def(type-arity, Type -- Int,
     type-is-nominal? if(
         type-get-nominal nominal-arity@,
 
+    type-is-data? if(
+        type-get-data data-arity@,
+
         drop 0
-    ))
+    )))
 
 ##################
 # Meta-var Types #
@@ -718,6 +742,13 @@ def(nominal-new!, Name Int Type -- Nominal,
     tuck nominal-type!
     tuck nominal-arity!
     tuck nominal-name!)
+
+########
+# Data #
+########
+
+def(Data->Int, Data -- Int, cast)
+def(Int->Data, Int -- Data, cast)
 
 ##############
 # Type Holes #
