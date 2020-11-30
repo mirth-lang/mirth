@@ -20,7 +20,7 @@ module-alloc! : Module
 module-alloc! = (
     Module.alloc!
     dup Module->Int MAX_MODULES >= if(
-        "Module.NUM @ >= MAX_MODULES" panic!,
+        "Module.NUM int@ >= MAX_MODULES" panic!,
         id
     )
 )

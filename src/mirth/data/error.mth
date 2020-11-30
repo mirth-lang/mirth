@@ -9,10 +9,10 @@ import(mirth/data/token)
 buffer(num-warnings, 8)
 
 num-warnings@ : Int
-num-warnings@ = num-warnings @
+num-warnings@ = num-warnings int@
 
 num-warnings++ : --
-num-warnings++ = num-warnings@ 1+ num-warnings !
+num-warnings++ = num-warnings@ 1+ num-warnings int!
 
 emit-warning-at! : Location Str -- +IO
 emit-warning-at! = (
@@ -25,10 +25,10 @@ emit-warning-at! = (
 buffer(num-errors, 8)
 
 num-errors@ : Int
-num-errors@ = num-errors @
+num-errors@ = num-errors int@
 
 num-errors++ : --
-num-errors++ = num-errors@ 1+ num-errors !
+num-errors++ = num-errors@ 1+ num-errors int!
 
 emit-error-at! : Location Str -- +IO
 emit-error-at! = (

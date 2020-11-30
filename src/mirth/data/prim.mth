@@ -61,8 +61,12 @@ def(PRIM_PACK_UNCONS, Prim, 85 Int->Prim)
 def(PRIM_PTR_ADD, Prim, 72 Int->Prim)
 def(PRIM_PTR_SIZE, Prim, 82 Int->Prim)
 
-def(PRIM_MEM_GET, Prim, 21 Int->Prim)
-def(PRIM_MEM_SET, Prim, 22 Int->Prim)
+def(PRIM_MEM_GET_VALUE, Prim, 92 Int->Prim)
+def(PRIM_MEM_SET_VALUE, Prim, 93 Int->Prim)
+def(PRIM_MEM_GET_INT, Prim, 21 Int->Prim)
+def(PRIM_MEM_SET_INT, Prim, 22 Int->Prim)
+def(PRIM_MEM_GET_PTR, Prim, 90 Int->Prim)
+def(PRIM_MEM_SET_PTR, Prim, 91 Int->Prim)
 def(PRIM_MEM_GET_U8, Prim, 25 Int->Prim)
 def(PRIM_MEM_SET_U8, Prim, 26 Int->Prim)
 def(PRIM_MEM_GET_U16, Prim, 27 Int->Prim)
@@ -108,7 +112,7 @@ def(PRIM_COLON, Prim, 86 Int->Prim)
 def(PRIM_DATA, Prim, 88 Int->Prim)
 def(PRIM_END, Prim, 89 Int->Prim)
 
-# next primitive is 90
+# next primitive is 94
 
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str -- +Names,
@@ -155,8 +159,12 @@ def(init-prims!, +Names,
     PRIM_PTR_ADD "prim.unsafe.ptr+" def-prim!
     PRIM_PTR_SIZE "prim.unsafe.|ptr|" def-prim!
 
-    PRIM_MEM_GET "@" def-prim!
-    PRIM_MEM_SET "!" def-prim!
+    PRIM_MEM_GET_INT "int@" def-prim!
+    PRIM_MEM_SET_INT "int!" def-prim!
+    PRIM_MEM_GET_PTR "ptr@" def-prim!
+    PRIM_MEM_SET_PTR "ptr!" def-prim!
+    PRIM_MEM_GET_VALUE "value@" def-prim!
+    PRIM_MEM_SET_VALUE "value!" def-prim!
     PRIM_MEM_GET_U8 "u8@" def-prim!
     PRIM_MEM_SET_U8 "u8!" def-prim!
     PRIM_MEM_GET_U16 "u16@" def-prim!
@@ -229,7 +237,8 @@ def(init-prims!, +Names,
     dup PRIM_INT_LE prim-type!
     drop
 
-    TYPE_PTR T1 TYPE_INT T1 T-> PRIM_MEM_GET     prim-type!
+    TYPE_PTR T1 TYPE_INT T1 T-> PRIM_MEM_GET_INT prim-type!
+    TYPE_PTR T1 TYPE_PTR T1 T-> PRIM_MEM_GET_PTR prim-type!
     TYPE_PTR T1 TYPE_U8  T1 T-> PRIM_MEM_GET_U8  prim-type!
     TYPE_PTR T1 TYPE_U16 T1 T-> PRIM_MEM_GET_U16 prim-type!
     TYPE_PTR T1 TYPE_U32 T1 T-> PRIM_MEM_GET_U32 prim-type!
@@ -239,7 +248,8 @@ def(init-prims!, +Names,
     TYPE_PTR T1 TYPE_I32 T1 T-> PRIM_MEM_GET_I32 prim-type!
     TYPE_PTR T1 TYPE_I64 T1 T-> PRIM_MEM_GET_I64 prim-type!
 
-    TYPE_INT TYPE_PTR T2 T0 T-> PRIM_MEM_SET     prim-type!
+    TYPE_INT TYPE_PTR T2 T0 T-> PRIM_MEM_SET_INT prim-type!
+    TYPE_PTR TYPE_PTR T2 T0 T-> PRIM_MEM_SET_PTR prim-type!
     TYPE_U8  TYPE_PTR T2 T0 T-> PRIM_MEM_SET_U8  prim-type!
     TYPE_U16 TYPE_PTR T2 T0 T-> PRIM_MEM_SET_U16 prim-type!
     TYPE_U32 TYPE_PTR T2 T0 T-> PRIM_MEM_SET_U32 prim-type!
@@ -395,4 +405,19 @@ def(init-prims!, +Names,
     dup2 T* T1 rotr T2 T->
     PRIM_PACK_UNCONS prim-type!
 
+    "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
+    dup ctx-empty swap ctx-new!
+    PRIM_MEM_GET_VALUE prim-ctx!
+
+    TVar
+    dip(TYPE_PTR T1) T1 T->
+    PRIM_MEM_GET_VALUE prim-type!
+
+    "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
+    dup ctx-empty swap ctx-new!
+    PRIM_MEM_SET_VALUE prim-ctx!
+
+    TVar
+    TYPE_PTR T2 T0 T->
+    PRIM_MEM_SET_VALUE prim-type!
     )

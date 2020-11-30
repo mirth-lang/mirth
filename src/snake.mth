@@ -63,14 +63,14 @@ def(snake-y!, YCoord -- +Snake, SNAKE_Y u8!)
 def(snake-xy@, -- XCoord YCoord +Snake, snake-x@ snake-y@)
 def(snake-xy!, XCoord YCoord -- +Snake, snake-y! snake-x!)
 
-def(snake-window@, -- SDL_Window* +Snake, SNAKE_WINDOW @ Int->Ptr)
-def(snake-window!, SDL_Window* -- +Snake, Ptr->Int SNAKE_WINDOW !)
+def(snake-window@, -- SDL_Window* +Snake, SNAKE_WINDOW ptr@)
+def(snake-window!, SDL_Window* -- +Snake, SNAKE_WINDOW ptr!)
 
-def(snake-renderer@, -- SDL_Renderer* +Snake, SNAKE_RENDERER @ Int->Ptr)
-def(snake-renderer!, SDL_Renderer* -- +Snake, Ptr->Int SNAKE_RENDERER !)
+def(snake-renderer@, -- SDL_Renderer* +Snake, SNAKE_RENDERER ptr@)
+def(snake-renderer!, SDL_Renderer* -- +Snake, SNAKE_RENDERER ptr!)
 
-def(snake-controller@, -- SDL_JoystickID +Snake, SNAKE_CONTROLLER @)
-def(snake-controller!, SDL_JoystickID -- +Snake, SNAKE_CONTROLLER !)
+def(snake-controller@, -- SDL_JoystickID +Snake, SNAKE_CONTROLLER int@)
+def(snake-controller!, SDL_JoystickID -- +Snake, SNAKE_CONTROLLER int!)
 
 def(snake-grid@, XCoord YCoord -- State +Snake,
     coords-offset SNAKE_GRID u8@@)
@@ -82,8 +82,8 @@ def(snake-grid-clear!, +Snake,
         0 Int->U8 over SNAKE_GRID u8!!
     ) drop)
 
-def(snake-queue-length@, -- Size +Snake, SNAKE_QUEUE_LENGTH @)
-def(snake-queue-length!, Size -- +Snake, SNAKE_QUEUE_LENGTH !)
+def(snake-queue-length@, -- Size +Snake, SNAKE_QUEUE_LENGTH int@)
+def(snake-queue-length!, Size -- +Snake, SNAKE_QUEUE_LENGTH int!)
 
 def(snake-queue-x?, Offset -- Offset XCoord +Snake, dup snake-queue-x@)
 def(snake-queue-x@, Offset -- XCoord +Snake, SNAKE_QUEUE_X u8@@)
@@ -354,8 +354,8 @@ def(snake-press!, SnakeButton -- +Snake,
     )))))))
 
 buffer(TICK_TIMER, 8)
-def(tick-timer@, Int +Snake, TICK_TIMER @)
-def(tick-timer!, Int -- +Snake, TICK_TIMER !)
+def(tick-timer@, Int +Snake, TICK_TIMER int@)
+def(tick-timer!, Int -- +Snake, TICK_TIMER int!)
 def(TICK_FRAMES, Int, 7)
 
 def(snake-tick!, Bool +Snake,
@@ -394,8 +394,8 @@ def(snake-update!, +Snake,
     )))
 
 buffer(SNAKE_POINTS, 8)
-def(snake-points@, -- Int +Snake, SNAKE_POINTS @)
-def(snake-points!, Int -- +Snake, SNAKE_POINTS !)
+def(snake-points@, -- Int +Snake, SNAKE_POINTS int@)
+def(snake-points!, Int -- +Snake, SNAKE_POINTS int!)
 def(snake-points-inc!, +Snake, snake-points@ 1 + snake-points!)
 def(snake-desired-length, Int +Snake, snake-points@ 5 +)
 

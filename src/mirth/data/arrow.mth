@@ -185,10 +185,10 @@ Args->Int : Args -- Int
 Args->Int = cast
 
 args@ : Ptr -- Args
-args@ = @ Int->Args
+args@ = value@
 
 args! : Args Ptr --
-args! = dip(Args->Int) !
+args! = value!
 
 args-alloc! : Args
 args-alloc! = Args.alloc!
