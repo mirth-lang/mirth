@@ -13,7 +13,7 @@ Buffer->Int : Buffer -- Int
 Buffer->Int = cast
 
 num-buffers@ : Size
-num-buffers@ = Buffer.NUM @
+num-buffers@ = Buffer.NUM int@
 
 buffer-alloc! : Name Size -- Buffer +Buffers
 buffer-alloc! = (

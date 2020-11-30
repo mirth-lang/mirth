@@ -7,12 +7,14 @@ import(mirth/data/type)
 # TABLE #
 #########
 
+def(TABLE_MAX_SIZE, Int, 0x20000)
+
 def(table-new!, Name -- Table,
     table-alloc!
     dup2 TTable swap name-type!
     tuck table-name!
 
-    0x20000 over table-max-count!
+    TABLE_MAX_SIZE over table-max-count!
 
     # Table.MAX
     table-name? name-load! ".MAX" str-buf-push-str! name-save!
@@ -26,7 +28,7 @@ def(table-new!, Name -- Table,
     over word-type!
     dup word-sig-is-checked!
 
-    0x20000 arrow-new-int!
+    TABLE_MAX_SIZE arrow-new-int!
     over word-arrow!
     word-body-is-checked!
 
@@ -41,9 +43,7 @@ def(table-new!, Name -- Table,
     dup2 swap name-word!
     tuck word-name!
 
-    over TTable
-    dip(TYPE_UNIT TYPE_UNIT) tensor-type-new! TTensor
-    morphism-type-new! TMorphism
+    over dip(T0) TTable T1 T->
     over word-type!
     dup word-sig-is-checked!
 
@@ -52,13 +52,13 @@ def(table-new!, Name -- Table,
     dip(
         arrow-new-buffer!
         dup2 swap word-arrow!
-        PRIM_MEM_GET arrow-push-prim!
+        PRIM_MEM_GET_INT arrow-push-prim!
         1 arrow-push-int!
         PRIM_INT_ADD arrow-push-prim!
         PRIM_DUP arrow-push-prim!
     )
     arrow-push-buffer!
-    PRIM_MEM_SET arrow-push-prim!
+    PRIM_MEM_SET_INT arrow-push-prim!
     drop word-body-is-checked!)
 
 #########
@@ -66,11 +66,6 @@ def(table-new!, Name -- Table,
 #########
 
 def(Field->Int, Field -- Int, cast)
-def(Int->Field, Int -- Field, cast)
-def(|Field|, Size, 8)
-def(field@, Ptr -- Field, @ Int->Field)
-def(field!, Field Ptr --, dip(Field->Int) !)
-
 def(field-alloc!, Field,
     Field.alloc!
     dup Field->Int Field.MAX >= if(
@@ -86,7 +81,7 @@ def(field-new!, Name Table Type -- Field,
 
     # define the buffer for the field
     field-name? name-load! "-buffer" str-buf-push-str! name-save!
-    over field-table@ table-max-count@ 8 *
+    over field-table@ table-max-count@ 16 *
     buffer-alloc! over field-buffer!
 
     # field&
@@ -104,7 +99,7 @@ def(field-new!, Name Table Type -- Field,
 
     # FIXME: need a better arrow-building inteface that tracks types
     #  i.e. a better elaborator API.
-    8 arrow-new-int!
+    16 arrow-new-int!
     dup2 swap word-arrow!
     PRIM_INT_MUL arrow-push-prim!
     dip(over field-buffer@) swap arrow-push-buffer!
@@ -126,7 +121,7 @@ def(field-new!, Name Table Type -- Field,
 
     over field-word-ptr@ arrow-new-word!
     dup2 swap word-arrow!
-    PRIM_MEM_SET arrow-push-prim!
+    PRIM_MEM_SET_VALUE arrow-push-prim!
     drop word-body-is-checked!
 
     # field@
@@ -144,7 +139,7 @@ def(field-new!, Name Table Type -- Field,
 
     over field-word-ptr@ arrow-new-word!
     dup2 swap word-arrow!
-    PRIM_MEM_GET arrow-push-prim!
+    PRIM_MEM_GET_VALUE arrow-push-prim!
     drop word-body-is-checked!
 
     # field?
@@ -166,7 +161,7 @@ def(field-new!, Name Table Type -- Field,
         dup2 swap word-arrow!
     )
     arrow-push-word!
-    PRIM_MEM_GET arrow-push-prim!
+    PRIM_MEM_GET_VALUE arrow-push-prim!
     drop word-body-is-checked!)
 
 ############

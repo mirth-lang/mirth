@@ -10,8 +10,8 @@ import(mirth/data/type)
 def(Word->Int, Word -- Int, cast)
 def(Int->Word, Int -- Word, cast)
 def(|Word|, Size, 8)
-def(word!, Word Ptr --, dip(Word->Int) !)
-def(word@, Ptr -- Word, @ Int->Word)
+def(word!, Word Ptr --, dip(Word->Int) int!)
+def(word@, Ptr -- Word, int@ Int->Word)
 
 def(word-alloc!, Word +Words, Word.alloc!)
 

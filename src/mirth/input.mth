@@ -12,14 +12,14 @@ buffer(INPUT_HANDLE, 8)
 buffer(INPUT_BUFFER, 0x800)
 def(INPUT_BUFFER_SIZE, Size, 0x800)
 
-def(input-isopen@, Bool +Input, INPUT_ISOPEN @ nonzero)
-def(input-length@, Size +Input, INPUT_LENGTH @)
-def(input-offset@, Size +Input, INPUT_OFFSET @)
-def(input-handle@, File +Input, INPUT_HANDLE @ Int->File)
-def(input-isopen!, Bool -- +Input, if(1,0) INPUT_ISOPEN !)
-def(input-length!, Size -- +Input, INPUT_LENGTH !)
-def(input-offset!, Size -- +Input, INPUT_OFFSET !)
-def(input-handle!, File -- +Input, File->Int INPUT_HANDLE !)
+def(input-isopen@, Bool +Input, INPUT_ISOPEN int@ nonzero)
+def(input-length@, Size +Input, INPUT_LENGTH int@)
+def(input-offset@, Size +Input, INPUT_OFFSET int@)
+def(input-handle@, File +Input, INPUT_HANDLE int@ Int->File)
+def(input-isopen!, Bool -- +Input, if(1,0) INPUT_ISOPEN int!)
+def(input-length!, Size -- +Input, INPUT_LENGTH int!)
+def(input-offset!, Size -- +Input, INPUT_OFFSET int!)
+def(input-handle!, File -- +Input, File->Int INPUT_HANDLE int!)
 
 def(input-start!, File -- +Input,
     input-handle!

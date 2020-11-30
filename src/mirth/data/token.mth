@@ -9,7 +9,7 @@ import(mirth/data/error)
 # Tokens #
 ##########
 
-def(num-tokens@, Int, Token.NUM @)
+def(num-tokens@, Int, Token.NUM int@)
 
 def(MAX_TOKENS, Size, 0x10000)
 def(|Token|, Size, 2)

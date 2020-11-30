@@ -121,12 +121,6 @@ nonzero = 0 !=
 ptr+ : Int Ptr -- Ptr
 ptr+ = prim.unsafe.ptr+
 
-ptr@ : Ptr -- Ptr
-ptr@ = @ Int->Ptr
-
-ptr! : Ptr Ptr --
-ptr! = dip(Ptr->Int) !
-
 ptrs : Size -- Size
 ptrs = prim.unsafe.|ptr| *
 
@@ -145,11 +139,11 @@ u8!! = ptr+ u8!
 ints : Size -- Size
 ints = 8 *
 
-@@ : Offset Ptr -- Int
-@@ = dip(ints) ptr+ @
+int@@ : Offset Ptr -- Int
+int@@ = dip(ints) ptr+ int@
 
-!! : Int Offset Ptr --
-!! = dip(ints) ptr+ !
+int!! : Int Offset Ptr --
+int!! = dip(ints) ptr+ int!
 
 in-range : Int Int Int -- Bool
 in-range = dip(over dip(>=)) <= &&
@@ -287,11 +281,11 @@ buffer(STR_BUF, 0x1000)
 buffer(STR_BUF_LEN, 8)
 
 str-buf-length? : Int +StrBuf
-str-buf-length? = STR_BUF_LEN @
+str-buf-length? = STR_BUF_LEN int@
 
 str-buf-length! : Int -- +StrBuf
 str-buf-length! = (
-    dup STR_BUF_LEN !
+    dup STR_BUF_LEN int!
     dip(0 Int->U8) str-buf-u8!
 )
 
@@ -560,10 +554,10 @@ Int->File : Int -- File
 Int->File = File.wrap
 
 file@ : Ptr -- File
-file@ = @ Int->File
+file@ = int@ Int->File
 
 file! : File Ptr --
-file! = dip(File->Int) !
+file! = dip(File->Int) int!
 
 stdin : File
 stdin = 0 Int->File

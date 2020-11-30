@@ -20,8 +20,8 @@ buffer(CODEGEN_BUF, 0x2000)
 
 def(codegen-file@, -- File +Codegen, CODEGEN_FILE file@)
 def(codegen-file!, File -- +Codegen, CODEGEN_FILE file!)
-def(codegen-length@, -- Size +Codegen, CODEGEN_LENGTH @)
-def(codegen-length!, Size -- +Codegen, CODEGEN_LENGTH !)
+def(codegen-length@, -- Size +Codegen, CODEGEN_LENGTH int@)
+def(codegen-length!, Size -- +Codegen, CODEGEN_LENGTH int!)
 def(codegen-u8@, Offset -- Byte +Codegen, CODEGEN_BUF u8@@)
 def(codegen-u8!, Byte Offset -- +Codegen, CODEGEN_BUF u8!!)
 
@@ -71,8 +71,8 @@ def(run-output-c99!, Arrow Path -- +IO,
     ))
 
 buffer(C99_DEPTH, 8)
-def(c99-depth@, -- Int +Codegen, C99_DEPTH @)
-def(c99-depth!, Int -- +Codegen, C99_DEPTH !)
+def(c99-depth@, -- Int +Codegen, C99_DEPTH int@)
+def(c99-depth!, Int -- +Codegen, C99_DEPTH int!)
 def(c99-depth++, +Codegen, c99-depth@ 1+ c99-depth!)
 def(c99-depth--, +Codegen, c99-depth@ 1- c99-depth!)
 
@@ -149,8 +149,8 @@ def(c99-emit-header!, +IO,
     "} value_payload_t;" ;;
 
     "typedef struct value_t {" ;
-    "   value_tag_t tag; ";
     "   value_payload_t payload;" ;
+    "   value_tag_t tag; ";
     "} value_t; " ;;
 
     "typedef struct cell_t {" ;
@@ -566,14 +566,38 @@ def(c99-emit-prims!, +IO,
     "    write(2, \"\\n\", 1);" ;
     "}" ;;
 
-    PRIM_MEM_GET .p " {" ;
+    PRIM_MEM_GET_VALUE .p " {" ;
+    "    value_t* p = pop_ptr();" ;
+    "    value_t v = *p;" ;
+    "    push_value(v);" ;
+    "}" ;;
+
+    PRIM_MEM_SET_VALUE .p " {" ;
+    "    value_t* p = pop_ptr();" ;
+    "    value_t v = pop_value();" ;
+    "    value_t old_v = *p;" ;
+    "    *p = v;" ;
+    "    decref(old_v);" ;
+    "}" ;;
+
+    PRIM_MEM_GET_INT .p " {" ;
     "    i64* p = pop_ptr();" ;
     "    push_i64(*p);" ;
     "}" ;;
 
-    PRIM_MEM_SET .p " {" ;
+    PRIM_MEM_SET_INT .p " {" ;
     "    i64* x = pop_ptr();" ;
     "    *x = (i64)pop_i64();" ;
+    "}" ;;
+
+    PRIM_MEM_GET_PTR .p " {" ;
+    "    void** p = pop_ptr();" ;
+    "    push_ptr(*p);" ;
+    "}" ;;
+
+    PRIM_MEM_SET_PTR .p " {" ;
+    "    void** x = pop_ptr();" ;
+    "    *x = pop_ptr();" ;
     "}" ;;
 
     PRIM_MEM_GET_U8 .p " {" ;

@@ -17,10 +17,10 @@ buffer(STRINGS_SIZE, 8)
 buffer(STRINGS_BUF, 0x8000)
 
 # Size of strings table.
-def(strings-size@, -- Size +StrTable, STRINGS_SIZE @)
+def(strings-size@, -- Size +StrTable, STRINGS_SIZE int@)
 
 # Size of strings table.
-def(strings-size!, Size -- +StrTable, STRINGS_SIZE !)
+def(strings-size!, Size -- +StrTable, STRINGS_SIZE int!)
 
 # Push byte onto strings table.
 def(strings-push!, U8 -- +StrTable,

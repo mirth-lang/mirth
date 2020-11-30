@@ -9,8 +9,8 @@ import(mirth/lexer/char)
 def(Name->Int, Name -- Int, cast)
 def(Int->Name, Int -- Name, cast)
 def(|Name|, Size, 8)
-def(name@, Ptr -- Name, @ Int->Name)
-def(name!, Name Ptr --, dip(Name->Int) !)
+def(name@, Ptr -- Name, int@ Int->Name)
+def(name!, Name Ptr --, dip(Name->Int) int!)
 
 nominal(Hash, Int)
 def(Int->Hash, Int -- Hash, Hash.wrap)
@@ -21,7 +21,7 @@ def(NAME_HASH_MAX, Size, 0x3FFF)
 def(NAME_TABLE_SIZE, Size, NAME_HASH_MAX 1+)
 buffer(NAME_TABLE, 0x20000)
 
-def(num-names@, Size, Name.NUM @)
+def(num-names@, Size, Name.NUM int@)
 
 def(NAME_QUADS, Size, 8)
 def(NAME_SIZE, Size, NAME_QUADS ints)
@@ -41,14 +41,14 @@ def(name-quads&, Name -- Ptr,
 # Note this code assumes NAME_QUADS is 8.
 def(name-quads-eq, Name -- Bool,
     name-quads&
-    0 over @@ 0 STR_BUF @@ == if(
-    1 over @@ 1 STR_BUF @@ == if(
-    2 over @@ 2 STR_BUF @@ == if(
-    3 over @@ 3 STR_BUF @@ == if(
-    4 over @@ 4 STR_BUF @@ == if(
-    5 over @@ 5 STR_BUF @@ == if(
-    6 over @@ 6 STR_BUF @@ == if(
-    7 swap @@ 7 STR_BUF @@ ==,
+    0 over int@@ 0 STR_BUF int@@ == if(
+    1 over int@@ 1 STR_BUF int@@ == if(
+    2 over int@@ 2 STR_BUF int@@ == if(
+    3 over int@@ 3 STR_BUF int@@ == if(
+    4 over int@@ 4 STR_BUF int@@ == if(
+    5 over int@@ 5 STR_BUF int@@ == if(
+    6 over int@@ 6 STR_BUF int@@ == if(
+    7 swap int@@ 7 STR_BUF int@@ ==,
     drop false), drop false), drop false), drop false),
     drop false), drop false), drop false))
 
@@ -69,7 +69,7 @@ def(name-quads-eq?, Name -- Name Bool,
 
 def(name-quad-save!, Name Int --,
     dip(name-quads&) tuck
-    STR_BUF @@ rotr !!)
+    STR_BUF int@@ rotr int!!)
 
 def(name-quads-save!, Name -- ,
     dup 0 name-quad-save!
@@ -83,29 +83,29 @@ def(name-quads-save!, Name -- ,
 
 def(name-quads-load!, Name --,
     name-quads&
-    0 over @@ 0 STR_BUF !!
-    1 over @@ 1 STR_BUF !!
-    2 over @@ 2 STR_BUF !!
-    3 over @@ 3 STR_BUF !!
-    4 over @@ 4 STR_BUF !!
-    5 over @@ 5 STR_BUF !!
-    6 over @@ 6 STR_BUF !!
-    7 over @@ 7 STR_BUF !!
+    0 over int@@ 0 STR_BUF int!!
+    1 over int@@ 1 STR_BUF int!!
+    2 over int@@ 2 STR_BUF int!!
+    3 over int@@ 3 STR_BUF int!!
+    4 over int@@ 4 STR_BUF int!!
+    5 over int@@ 5 STR_BUF int!!
+    6 over int@@ 6 STR_BUF int!!
+    7 over int@@ 7 STR_BUF int!!
     drop)
 
 # zero str-buf up to NAME_SIZE
 def(str-buf-zero!, --,
-    0 0 STR_BUF !!
-    0 1 STR_BUF !!
-    0 2 STR_BUF !!
-    0 3 STR_BUF !!
-    0 4 STR_BUF !!
-    0 5 STR_BUF !!
-    0 6 STR_BUF !!
-    0 7 STR_BUF !!)
+    0 0 STR_BUF int!!
+    0 1 STR_BUF int!!
+    0 2 STR_BUF int!!
+    0 3 STR_BUF int!!
+    0 4 STR_BUF int!!
+    0 5 STR_BUF int!!
+    0 6 STR_BUF int!!
+    0 7 STR_BUF int!!)
 
-def(name-table@, Hash -- Name, Hash->Int NAME_TABLE @@ Int->Name)
-def(name-table!, Name Hash --, dip(Name->Int) Hash->Int NAME_TABLE !!)
+def(name-table@, Hash -- Name, Hash->Int NAME_TABLE int@@ Int->Name)
+def(name-table!, Name Hash --, dip(Name->Int) Hash->Int NAME_TABLE int!!)
 def(next-hash, Hash -- Hash, Hash->Int 1+ NAME_HASH_MAX & Int->Hash)
 
 def(name-is-error, Name -- Bool, NAME_ERROR ==)
@@ -136,20 +136,20 @@ def(name-new!, Str -- Name,
 
 buffer(name-bytes, 8) # TODO: get rid of this
 def(show-names-table!, +Names +IO,
-    0 name-bytes !
+    0 name-bytes int!
     0
     while(dup num-names@ <,
         dup int-print!
         ": " str-print!
         dup Int->Name name-load!
-        str-buf-length? name-bytes @ + 1+ name-bytes !
+        str-buf-length? name-bytes int@ + 1+ name-bytes int!
         STR_BUF str-print! " " str-print!
         dup Int->Name name-hash Hash->Int int-print! print-ln!
         1+
     )
     drop
     "Total bytes: " str-print!
-    name-bytes @ int-print-ln!)
+    name-bytes int@ int-print-ln!)
 
 def(name-could-be-type, Name -- Bool,
     name-quads& u8@ is-alpha? nip)

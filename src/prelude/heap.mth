@@ -8,10 +8,10 @@ import(prelude/common)
 buffer(HEAP_LENGTH, 8)
 
 heap-length@ : Size
-heap-length@ = HEAP_LENGTH @
+heap-length@ = HEAP_LENGTH int@
 
 heap-length! : Size --
-heap-length! = HEAP_LENGTH !
+heap-length! = HEAP_LENGTH int!
 
 buffer(HEAP_BASE, 8)
 
@@ -24,10 +24,10 @@ heap-base! = HEAP_BASE ptr!
 buffer(HEAP_TIMES_EXPANDED, 8)
 
 heap-times-expanded@ : Int
-heap-times-expanded@ = HEAP_TIMES_EXPANDED @
+heap-times-expanded@ = HEAP_TIMES_EXPANDED int@
 
 heap-times-expanded! : Int --
-heap-times-expanded! = HEAP_TIMES_EXPANDED !
+heap-times-expanded! = HEAP_TIMES_EXPANDED int!
 
 ++heap-times-expanded : Int
 ++heap-times-expanded =
