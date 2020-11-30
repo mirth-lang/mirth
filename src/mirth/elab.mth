@@ -382,51 +382,86 @@ def(elab-arrow-op-match!, Arrow -- Type,
     dup2 swap arrow-op-match!
     over arrow-ctx@ over match-ctx!
     over arrow-dom@ over match-dom!
-    swap arrow-token@
-    token-has-args? if(
-        token-succ token-succ elab-match!,
+    dip(arrow-token@) tuck match-token!
+    meta-alloc! TMeta over match-cod!
+    elab-match!)
+
+||| Elaborate `match(...)` expression.
+def(elab-match!, Match -- Type,
+    elab-match-cases!
+    elab-match-exhaustive!
+    match-cod@)
+
+||| Check that match is exhaustive.
+def(elab-match-exhaustive!, Match -- Match,
+    id) # TODO
+
+||| Elaborate match cases.
+def(elab-match-cases!, Match -- Match,
+    match-token? token-has-args? if(
+        token-succ token-succ
+        while(token-is-rparen? not, elab-match-case!)
+        drop,
         "match expects an arg" emit-fatal-error!
     ))
 
-def(elab-match!, Match Token -- Type,
-    meta-alloc! TMeta swap
-    while(elab-match-done? not, elab-case!)
-    drop dip(drop2))
+||| Elaborate a single match case `pattern -> body ,`
+def(elab-match-case!, Match Token -- Match Token,
+    Case.alloc!
+    dup2 case-token!
+    swap dip(dup2 case-match!)
+    elab-case-pattern!
+    expect-token-arrow token-succ
+    elab-case-body!
+    dip(match-add-case!)
+    token-is-comma? if(token-succ, id))
 
-elab-match-done? : Token -- Token Bool
-elab-match-done? = token-is-rparen?
+||| Elaborate case pattern.
+def(elab-case-pattern!, Case Token -- Case Token,
+    token-is-underscore? if(
+        # set case pattern
+        dip(pattern-underscore over case-pattern!)
 
-elab-match-case! : Match Arrow Type Token -- Match Arrow Type Token
-elab-match-case! = (
-    elab-match-case-pattern!
+        # set case mid
+        dip(case-match? match-dom@ TYPE_DONT_CARE TYPE_DONT_CARE T*)
+        elab-type-unify! dip(over case-mid!)
 
-    elab-match-case-body!
-    token-is-comma? if(token-succ, id)
-    dip(dip(dip(Match.alloc! tuck match-next!)))
-)
+        # advance token
+        token-succ,
 
-elab-match-case-pattern! : Match Arrow Type Token -- Match Arrow Type Token
-elab-match-case-pattern! =
     token-is-name? if(
-        token-name?
-        name-is-tag? if(
-            name-tag@
-            { Match Arrow Type Token Tag}
-            dup dip(rot4r dip(dip(dip(over match-tag!))))
-            { Match Arrow Type Token Tag}
+        token-name? name-is-tag? if(
+            name-tag@ { Case Token Tag }
 
-        name-is-underscore? if(
-            { Match Arrow Type Token }
-            drop dip(dip(dip(true over match-is-default!))),
+            # set case pattern
+            dup Tag->Pattern rotr
+            dip(dip(over case-pattern!))
 
-            "expected tag name or underscore" emit-fatal-error!
-        )),
-        "expected tag name or underscore" emit-fatal-error!
-    ) token-succ expect-token-arrow token-succ
+            # set case mid
+            dip(dip(case-match? match-dom@)) { Case Type Token Tag }
+            tag-type@ SUBST_NIL swap type-freshen-sig
+            { Case Type Token Subst Type }
+            rotr dip(
+                dip(type-expand-morphism morphism-type-unpack dip(swap))
+                elab-type-unify! nip dip(over case-mid!)
+            )
+            swap dip(over case-subst!)
 
-elab-match-case-body! : Match Arrow Type Token -- Match Arrow Type Token
-elab-match-case-body! =
+            # advance token
+            token-succ,
 
+            drop "expected tag or underscore" emit-fatal-error!
+        ),
+
+        "expected tag or underscore" emit-fatal-error!
+    )))
+
+||| Elaborate case body.
+def(elab-case-body!, Case Token -- Case Token,
+    dip(case-mid? dip(case-match? match-ctx@)) elab-arrow-fwd!
+    arrow-token? dip(arrow-dom@) { Case Arrow Type Token }
+    dip(dip(over case-body!)) { Case Type Token }
+    dip(dip(case-match? match-cod@)) elab-type-unify! nip)
 
 ||| Apply a type signature after freshening to get a codomain.
 def(elab-arrow-op-apply-fresh!, Arrow Type -- Type,
