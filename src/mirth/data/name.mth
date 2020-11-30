@@ -171,7 +171,7 @@ def(name-is-type-hole, Name -- Bool,
         drop false
     ))
 
-def(name-is-type-dont-care, Name -- Bool,
+def(name-is-underscore, Name -- Bool,
     name-quads& dup u8@ is-underscore? nip if(
         str-tail str-null,
         drop false

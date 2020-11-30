@@ -115,10 +115,10 @@ sig-token-is-type-hole? =
         false
     )
 
-sig-token-is-type-dont-care? : Token -- Token Bool
-sig-token-is-type-dont-care? =
+token-is-underscore? : Token -- Token Bool
+token-is-underscore? =
     token-is-name? if(
-        token-name? name-is-type-dont-care,
+        token-name? name-is-underscore,
         false
     )
 

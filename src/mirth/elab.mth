@@ -61,7 +61,7 @@ def(elab-type-atom!, TypeElab Token -- TypeElab Type Token,
     sig-token-is-type-con? if(
         elab-type-con!,
 
-    sig-token-is-type-dont-care? if(
+    token-is-underscore? if(
         elab-type-dont-care!,
 
     sig-token-is-type-hole? if(
@@ -361,18 +361,72 @@ def(elab-arrow-op-tag!, Arrow Tag -- Type,
     elab-tag-sig! elab-arrow-op-apply-fresh!)
 
 def(elab-arrow-op-prim!, Arrow Prim -- Type,
+    dup PRIM_MATCH == if(
+        drop elab-arrow-op-match!,
+
     prim-type? TYPE_ERROR == if(
         drop arrow-token@ "compiler error: prim type missing" emit-fatal-error!,
 
         dup2 swap arrow-op-prim!
         prim-type@ elab-arrow-op-apply-fresh!
-    ))
+    )))
 
 def(elab-arrow-op-dip!, Arrow -- Type,
     arrow-token? token-args-1 dip(arrow-dom? dip(arrow-ctx?))
     dip(type-expand-tensor tensor-type-unpack) swap
     dip(elab-arrow-fwd! arrow-dom@) T*
     dip(Arrow->Arg arrow-arg-add! drop))
+
+def(elab-arrow-op-match!, Arrow -- Type,
+    Match.alloc!
+    dup2 swap arrow-op-match!
+    over arrow-ctx@ over match-ctx!
+    over arrow-dom@ over match-dom!
+    swap arrow-token@
+    token-has-args? if(
+        token-succ token-succ elab-match!,
+        "match expects an arg" emit-fatal-error!
+    ))
+
+def(elab-match!, Match Token -- Type,
+    meta-alloc! TMeta swap
+    while(elab-match-done? not, elab-case!)
+    drop dip(drop2))
+
+elab-match-done? : Token -- Token Bool
+elab-match-done? = token-is-rparen?
+
+elab-match-case! : Match Arrow Type Token -- Match Arrow Type Token
+elab-match-case! = (
+    elab-match-case-pattern!
+
+    elab-match-case-body!
+    token-is-comma? if(token-succ, id)
+    dip(dip(dip(Match.alloc! tuck match-next!)))
+)
+
+elab-match-case-pattern! : Match Arrow Type Token -- Match Arrow Type Token
+elab-match-case-pattern! =
+    token-is-name? if(
+        token-name?
+        name-is-tag? if(
+            name-tag@
+            { Match Arrow Type Token Tag}
+            dup dip(rot4r dip(dip(dip(over match-tag!))))
+            { Match Arrow Type Token Tag}
+
+        name-is-underscore? if(
+            { Match Arrow Type Token }
+            drop dip(dip(dip(true over match-is-default!))),
+
+            "expected tag name or underscore" emit-fatal-error!
+        )),
+        "expected tag name or underscore" emit-fatal-error!
+    ) token-succ expect-token-arrow token-succ
+
+elab-match-case-body! : Match Arrow Type Token -- Match Arrow Type Token
+elab-match-case-body! =
+
 
 ||| Apply a type signature after freshening to get a codomain.
 def(elab-arrow-op-apply-fresh!, Arrow Type -- Type,
@@ -565,6 +619,9 @@ expect-token-newline = token-is-newline? if(id, "Expected newline." emit-fatal-e
 
 expect-token-end : Token -- Token
 expect-token-end = PRIM_END token-prim=? if(id, "Expected 'end'" emit-fatal-error!)
+
+expect-token-arrow : Token -- Token
+expect-token-arrow = PRIM_ARROW token-prim=? if(id, "Expected arrow." emit-fatal-error!)
 
 ||| Get the tags (i.e. constructors) associated with a data type,
 ||| from inside the data declaration, one at a time. Moves the Token
@@ -800,5 +857,7 @@ def(typecheck-name!, Name --,
         name-external@ elab-external-sig! drop,
     name-is-word? if(
         name-word@ elab-word-body! drop,
+    name-is-tag? if(
+        name-tag@ elab-tag-sig! drop,
         drop
-    )))
+    ))))

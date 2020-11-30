@@ -42,6 +42,7 @@ OP_BUFFER : Op
 OP_INT : Op
 OP_STR : Op
 OP_TAG : Op
+OP_MATCH : Op
 
 OP_NONE = 0 cast
 OP_PRIM = 1 cast
@@ -51,6 +52,7 @@ OP_BUFFER = 4 cast
 OP_INT = 5 cast
 OP_STR = 6 cast
 OP_TAG = 7 cast
+OP_MATCH = 8 cast
 
 arrow-op=? : Arrow Op -- Arrow Bool
 arrow-op=? = dip(arrow-op?) ==
@@ -96,6 +98,19 @@ arrow-op-tag! = (
 arrow-op-tag@ : Arrow -- Tag
 arrow-op-tag@ =
     OP_TAG arrow-op=? if(
+        arrow-op-value@ cast,
+        "compiler error: attempted to get tag associated with non-tag arrow" panic!
+    )
+
+arrow-op-match! : Match Arrow --
+arrow-op-match! = (
+    OP_MATCH over arrow-op!
+    dip(cast) arrow-op-value!
+)
+
+arrow-op-match@ : Arrow -- Match
+arrow-op-match@ =
+    OP_MATCH arrow-op=? if(
         arrow-op-value@ cast,
         "compiler error: attempted to get tag associated with non-tag arrow" panic!
     )
