@@ -53,6 +53,16 @@ tag-num-inputs? =
 # DATA #
 ########
 
+data-num-tags : Data -- Int
+data-num-tags = (
+    0 swap data-tags@
+    while(
+        tag-is-nil? not,
+        dip(1+) tag-next@
+    )
+    drop
+)
+
 data-add-tag! : Tag Data -- +Mirth
 data-add-tag! =
     data-tags? tag-is-nil if(
@@ -69,12 +79,40 @@ data-add-tag! =
 match-is-empty? : Match -- Match Bool
 match-is-empty? = match-cases? case-is-nil
 
+match-num-cases? : Match -- Match Int
+match-num-cases? = (
+    match-cases? dip(0)
+    while(
+        case-is-nil? not,
+        case-next@ dip(1+)
+    )
+    drop
+)
+
 match-add-case! : Match Case -- Match
 match-add-case! =
     over match-cases? case-is-nil if(
         match-cases!,
         match-cases@ swap case-add-case!
     )
+
+match-has-default-case : Match -- Bool
+match-has-default-case = match-cases@ cases-have-default-case
+
+match-has-default-case? : Match -- Match Bool
+match-has-default-case? = dup match-has-default-case
+
+||| Get type we're matching over.
+match-scrutinee-type? : Match -- Match Type
+match-scrutinee-type? = match-dom? type-expand-tensor tensor-type-snd@
+
+||| Is this a pattern match over a "data" type?
+match-scrutinee-is-data? : Match -- Match Bool
+match-scrutinee-is-data? = match-scrutinee-type? type-head type-is-data
+
+||| Get "data" associated with scrutinee.
+match-scrutinee-data? : Match -- Match Data
+match-scrutinee-data? = match-scrutinee-type? type-head type-get-data
 
 ########
 # CASE #
@@ -108,6 +146,21 @@ case-is-covered = dip(case-pattern@) case-pattern@ pattern-is-covered
 case-is-covered? : Case Case -- Case Case Bool
 case-is-covered? = dup2 case-is-covered
 
+cases-have-default-case : Case -- Bool
+cases-have-default-case =
+    case-is-nil? if(
+        drop false,
+        case-is-default-case? if(
+            drop true,
+            case-next@ cases-have-default-case
+        )
+    )
+
+case-is-default-case? : Case -- Case Bool
+case-is-default-case? = dup case-is-default-case
+
+case-is-default-case : Case -- Bool
+case-is-default-case = case-pattern@ pattern-is-underscore
 
 ###########
 # PATTERN #

@@ -611,6 +611,14 @@ def(type-arity, Type -- Int,
         drop 0
     )))
 
+||| Get head of type.
+def(type-head, Type -- Type,
+    type-expand
+    while(
+        type-is-app?,
+        type-get-app app-type-fun@ type-expand
+    ))
+
 ##################
 # Meta-var Types #
 ##################
@@ -652,6 +660,7 @@ def(meta-unify!, Type MetaVar -- Type,
         swap dip(dup)
         meta-type!
     )))
+
 
 ################
 # Tensor Types #

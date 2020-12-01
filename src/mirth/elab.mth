@@ -394,7 +394,18 @@ def(elab-match!, Match -- Type,
 
 ||| Check that match is exhaustive.
 def(elab-match-exhaustive!, Match -- Match,
-    id) # TODO
+    match-has-default-case? if(
+        id,
+        match-scrutinee-is-data? if(
+            match-scrutinee-data? data-num-tags
+            dip(match-num-cases?) == if(
+                id,
+                match-token? "Pattern match not exhaustive." emit-error!
+                # TODO -- print missing patterns.
+            ),
+            id
+        )
+    ))
 
 ||| Elaborate match cases.
 def(elab-match-cases!, Match -- Match,

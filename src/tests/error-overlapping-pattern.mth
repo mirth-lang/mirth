@@ -1,0 +1,18 @@
+module(tests/error-overlapping-pattern)
+
+data T
+    A
+    B
+end
+
+f : T --
+f = match(A -> id, B -> id)
+
+g : T --
+g = match(A -> id, A -> id, B -> id)
+
+h : T --
+h = match(_ -> drop, A -> id)
+# mirth-test # merr # 12:20: error: Case is unreachable.
+# mirth-test # merr # 15:22: error: Case is unreachable.
+# mirth-test # mret # 1
