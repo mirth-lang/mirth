@@ -29,9 +29,26 @@ foo-tag =
 
 foo-display : Foo -- +IO
 foo-display = (
-    dup
-    foo-tag str-print! ", sum = " str-print!
-    foo-sum int-print-ln!
+    dup foo-tag str-print!
+    ", sum = " str-print!
+    dup foo-sum int-print!
+    ", values = " str-print!
+    match(
+        FOO0 ->
+            "[]" str-print-ln!,
+        FOO1 ->
+            "[ " str-print!
+            int-print! " ]" str-print-ln!,
+        FOO2 ->
+            "[ " str-print!
+            dip(int-print!) " " str-print!
+            int-print! " ]" str-print-ln!,
+        FOO3 ->
+            "[ " str-print!
+            dip(dip(int-print!)) " " str-print!
+            dip(int-print!) " " str-print!
+            int-print! " ]" str-print-ln!,
+    )
 )
 
 main : +IO
@@ -46,10 +63,10 @@ main = (
 )
 
 target-c99("pattern-matching.c", main)
-# mirth-test # pout # FOO0, sum = 0
-# mirth-test # pout # FOO1, sum = 10
-# mirth-test # pout # FOO1, sum = 20
-# mirth-test # pout # FOO2, sum = 42
-# mirth-test # pout # FOO2, sum = 100
-# mirth-test # pout # FOO3, sum = 200
-# mirth-test # pout # FOO3, sum = 9001
+# mirth-test # pout # FOO0, sum = 0, values = []
+# mirth-test # pout # FOO1, sum = 10, values = [ 10 ]
+# mirth-test # pout # FOO1, sum = 20, values = [ 20 ]
+# mirth-test # pout # FOO2, sum = 42, values = [ 30 12 ]
+# mirth-test # pout # FOO2, sum = 100, values = [ 40 60 ]
+# mirth-test # pout # FOO3, sum = 200, values = [ 90 90 20 ]
+# mirth-test # pout # FOO3, sum = 9001, values = [ 9000 0 1 ]
