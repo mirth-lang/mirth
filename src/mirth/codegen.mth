@@ -400,6 +400,19 @@ def(c99-emit-prims!, +IO,
     "    push_value(v);" ;
     "}" ;;
 
+    "u64 get_top_data_tag() {" ;
+    "    value_t v = pop_value();" ;
+    "    u64 result = 0;" ;
+    "    if (v.tag == VT_CELL) {" ;
+    "        cell_t c = heap[v.payload.vp_u64];" ;
+    "        result = c.cdr.payload.vp_u64;" ;
+    "    } else {" ;
+    "        result = v.payload.vp_u64;" ;
+    "    }" ;
+    "    push_value(v);" ;
+    "    return result;" ;
+    "}" ;;
+
     PRIM_ID .p " {" ;
     "}" ;;
 
@@ -409,16 +422,20 @@ def(c99-emit-prims!, +IO,
     "    push_value(v); push_value(v);" ;
     "}" ;;
 
-    PRIM_DROP .p " {" ;
+    "void do_drop() {" ;
     "    value_t v = pop_value();" ;
     "    decref(v);" ;
     "}" ;;
 
-    PRIM_SWAP .p " {" ;
+    PRIM_DROP .p " { do_drop(); }" ;;
+
+    "void do_swap() {" ;
     "    value_t x = pop_value();" ;
     "    value_t y = pop_value();" ;
     "    push_value(x); push_value(y);" ;
     "}" ;;
+
+    PRIM_SWAP .p " { do_swap(); }" ;;
 
     PRIM_INT_ADD .p " {" ;
     "    u64 x = pop_u64();" ;
@@ -737,13 +754,17 @@ def(c99-emit-prims!, +IO,
     "    push_value(v);" ;
     "}" ;;
 
-    PRIM_PACK_CONS .p " {" ;
+    "void do_pack_cons() {" ;
     "    value_t cdr = pop_value();" ;
     "    value_t car = pop_value();" ;
     "    push_value(mkcell(car, cdr));" ;
     "}" ;;
 
-    PRIM_PACK_UNCONS .p " {" ;
+    PRIM_PACK_CONS .p " {" ;
+    "    do_pack_cons();" ;
+    "}" ;;
+
+    "void do_pack_uncons() {" ;
     "    value_t val = pop_value();" ;
     "    if (val.tag != VT_CELL) {" ;
     "        value_t nil = { 0 };" ;
@@ -756,6 +777,10 @@ def(c99-emit-prims!, +IO,
     "    value_t cdr = cell->cdr;" ;
     "    incref(car); incref(cdr); decref(val);" ;
     "    push_value(car); push_value(cdr);" ;
+    "}" ;;
+
+    PRIM_PACK_UNCONS .p " {" ;
+    "    do_pack_uncons();" ;
     "}" ;;
     )
 
@@ -901,8 +926,41 @@ def(c99-emit-arrow-op!, Arrow -- +IO,
             "    mw" . prim-name@ .name "();" ;
         ))),
 
+    OP_MATCH arrow-op=? if(
+        arrow-op-match@ c99-emit-match!,
+
         arrow-token@ "compiler error: Unknown arrow op in c99-emit-arrow-op!" emit-fatal-error!
-    )))))))))
+    ))))))))))
+
+def(c99-emit-match!, Match -- +IO,
+    "    switch (get_top_data_tag()) {" ;
+    match-cases@ while(case-is-nil? not,
+        dup c99-emit-case! case-next@
+    ) drop
+    "    }" ;)
+
+def(c99-emit-case!, Case -- +IO,
+    case-pattern? c99-emit-pattern!
+    case-body@ c99-emit-arrow!
+    "    break;" ;)
+
+def(c99-emit-pattern!, Pattern -- +IO,
+    pattern-is-underscore? if(
+        drop
+        "    default:" ; ,
+
+        Pattern->Tag
+        "    case " . dup Tag->Int .n "LL:" ;
+        tag-num-inputs? nip
+        dup 0 > if(
+            "    do_pack_uncons(); do_drop();" ;
+            while(dup 1 >,
+                "    do_pack_uncons(); do_swap();" ;
+                1-)
+            drop,
+            drop "    do_drop();" ;
+        )
+    ))
 
 def(c99-emit-word-sig!, Name -- +IO,
     name-is-word? if(

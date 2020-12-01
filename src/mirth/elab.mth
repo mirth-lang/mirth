@@ -61,7 +61,7 @@ def(elab-type-atom!, TypeElab Token -- TypeElab Type Token,
     sig-token-is-type-con? if(
         elab-type-con!,
 
-    sig-token-is-type-dont-care? if(
+    token-is-underscore? if(
         elab-type-dont-care!,
 
     sig-token-is-type-hole? if(
@@ -361,18 +361,107 @@ def(elab-arrow-op-tag!, Arrow Tag -- Type,
     elab-tag-sig! elab-arrow-op-apply-fresh!)
 
 def(elab-arrow-op-prim!, Arrow Prim -- Type,
+    dup PRIM_MATCH == if(
+        drop elab-arrow-op-match!,
+
     prim-type? TYPE_ERROR == if(
         drop arrow-token@ "compiler error: prim type missing" emit-fatal-error!,
 
         dup2 swap arrow-op-prim!
         prim-type@ elab-arrow-op-apply-fresh!
-    ))
+    )))
 
 def(elab-arrow-op-dip!, Arrow -- Type,
     arrow-token? token-args-1 dip(arrow-dom? dip(arrow-ctx?))
     dip(type-expand-tensor tensor-type-unpack) swap
     dip(elab-arrow-fwd! arrow-dom@) T*
     dip(Arrow->Arg arrow-arg-add! drop))
+
+def(elab-arrow-op-match!, Arrow -- Type,
+    Match.alloc!
+    dup2 swap arrow-op-match!
+    over arrow-ctx@ over match-ctx!
+    over arrow-dom@ over match-dom!
+    dip(arrow-token@) tuck match-token!
+    meta-alloc! TMeta over match-cod!
+    elab-match!)
+
+||| Elaborate `match(...)` expression.
+def(elab-match!, Match -- Type,
+    elab-match-cases!
+    elab-match-exhaustive!
+    match-cod@)
+
+||| Check that match is exhaustive.
+def(elab-match-exhaustive!, Match -- Match,
+    id) # TODO
+
+||| Elaborate match cases.
+def(elab-match-cases!, Match -- Match,
+    match-token? token-has-args? if(
+        token-succ token-succ
+        while(token-is-rparen? not, elab-match-case!)
+        drop,
+        "match expects an arg" emit-fatal-error!
+    ))
+
+||| Elaborate a single match case `pattern -> body ,`
+def(elab-match-case!, Match Token -- Match Token,
+    Case.alloc!
+    dup2 case-token!
+    swap dip(dup2 case-match!)
+    elab-case-pattern!
+    expect-token-arrow token-succ
+    elab-case-body!
+    dip(match-add-case!)
+    token-is-comma? if(token-succ, id))
+
+||| Elaborate case pattern.
+def(elab-case-pattern!, Case Token -- Case Token,
+    token-is-underscore? if(
+        # set case pattern
+        dip(pattern-underscore over case-pattern!)
+
+        # set case mid
+        dip(case-match? match-dom@ TYPE_DONT_CARE TYPE_DONT_CARE T*)
+        elab-type-unify! dip(over case-mid!)
+
+        # advance token
+        token-succ,
+
+    token-is-name? if(
+        token-name? name-is-tag? if(
+            name-tag@ { Case Token Tag }
+
+            # set case pattern
+            dup Tag->Pattern rotr
+            dip(dip(over case-pattern!))
+
+            # set case mid
+            dip(dip(case-match? match-dom@)) { Case Type Token Tag }
+            tag-type@ SUBST_NIL swap type-freshen-sig
+            { Case Type Token Subst Type }
+            rotr dip(
+                dip(type-expand-morphism morphism-type-unpack dip(swap))
+                elab-type-unify! nip dip(over case-mid!)
+            )
+            swap dip(over case-subst!)
+
+            # advance token
+            token-succ,
+
+            drop "expected tag or underscore" emit-fatal-error!
+        ),
+
+        "expected tag or underscore" emit-fatal-error!
+    )))
+
+||| Elaborate case body.
+def(elab-case-body!, Case Token -- Case Token,
+    dip(case-mid? dip(case-match? match-ctx@)) elab-arrow-fwd!
+    arrow-token? dip(arrow-dom@) { Case Arrow Type Token }
+    dip(dip(over case-body!)) { Case Type Token }
+    dip(dip(case-match? match-cod@)) elab-type-unify! nip)
 
 ||| Apply a type signature after freshening to get a codomain.
 def(elab-arrow-op-apply-fresh!, Arrow Type -- Type,
@@ -565,6 +654,9 @@ expect-token-newline = token-is-newline? if(id, "Expected newline." emit-fatal-e
 
 expect-token-end : Token -- Token
 expect-token-end = PRIM_END token-prim=? if(id, "Expected 'end'" emit-fatal-error!)
+
+expect-token-arrow : Token -- Token
+expect-token-arrow = PRIM_ARROW token-prim=? if(id, "Expected arrow." emit-fatal-error!)
 
 ||| Get the tags (i.e. constructors) associated with a data type,
 ||| from inside the data declaration, one at a time. Moves the Token
@@ -800,5 +892,7 @@ def(typecheck-name!, Name --,
         name-external@ elab-external-sig! drop,
     name-is-word? if(
         name-word@ elab-word-body! drop,
+    name-is-tag? if(
+        name-tag@ elab-tag-sig! drop,
         drop
-    )))
+    ))))

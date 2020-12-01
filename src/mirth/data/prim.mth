@@ -32,6 +32,7 @@ def(PRIM_IF, Prim, 6 Int->Prim)
 def(PRIM_WHILE, Prim, 7 Int->Prim)
 def(PRIM_DEBUG, Prim, 47 Int->Prim)
 def(PRIM_CAST, Prim, 71 Int->Prim)
+def(PRIM_MATCH, Prim, 94 Int->Prim)
 
 def(PRIM_DEFINE, Prim, 13 Int->Prim)
 def(PRIM_EQUALS, Prim, 87 Int->Prim)
@@ -112,7 +113,7 @@ def(PRIM_COLON, Prim, 86 Int->Prim)
 def(PRIM_DATA, Prim, 88 Int->Prim)
 def(PRIM_END, Prim, 89 Int->Prim)
 
-# next primitive is 94
+# next primitive is 95
 
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str -- +Names,
@@ -130,6 +131,7 @@ def(init-prims!, +Names,
     PRIM_WHILE "while" def-prim!
     PRIM_DEBUG "??" def-prim!
     PRIM_CAST "prim.unsafe.cast" def-prim!
+    PRIM_MATCH "match" def-prim!
 
     PRIM_DEFINE "=" def-prim!
     PRIM_EQUALS "==" def-prim!

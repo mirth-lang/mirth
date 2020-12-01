@@ -12,6 +12,9 @@ NameValue->Tag = cast
 Tag->NameValue : Tag -- NameValue
 Tag->NameValue = cast
 
+Tag->Int : Tag -- Int
+Tag->Int = cast
+
 name-tag! : Tag Name --
 name-tag! = (
     DEF_TAG over name-sort!
@@ -59,6 +62,86 @@ data-add-tag! =
         tag-next!
     )
 
+#########
+# MATCH #
+#########
+
+match-is-empty? : Match -- Match Bool
+match-is-empty? = match-cases? case-is-nil
+
+match-add-case! : Match Case -- Match
+match-add-case! =
+    over match-cases? case-is-nil if(
+        match-cases!,
+        match-cases@ swap case-add-case!
+    )
+
+########
+# CASE #
+########
+
+case-nil : Case
+case-nil = 0 cast
+
+case-is-nil : Case -- Bool
+case-is-nil = case-nil ==
+
+case-is-nil? : Case -- Case Bool
+case-is-nil? = dup case-is-nil
+
+||| Add the second case at the end of the list of the first case.
+||| Raises an error if case is unreachable.
+||| O(n^2) time, sadly, where n is the number of cases.
+case-add-case! : Case Case --
+case-add-case! =
+    case-is-covered? if(
+        case-token@ "Case is unreachable." emit-error! drop,
+        swap case-next? case-is-nil if(
+            case-next!,
+            case-next@ swap case-add-case!
+        )
+    )
+
+case-is-covered : Case Case -- Bool
+case-is-covered = dip(case-pattern@) case-pattern@ pattern-is-covered
+
+case-is-covered? : Case Case -- Case Case Bool
+case-is-covered? = dup2 case-is-covered
+
+
+###########
+# PATTERN #
+###########
+
+Tag->Pattern : Tag -- Pattern
+Tag->Pattern = Pattern.wrap
+
+Pattern->Tag : Pattern -- Tag
+Pattern->Tag =
+    pattern-is-underscore? if(
+        "compiler error: tried to call Pattern->Tag on underscore pattern" panic!,
+        Pattern.unwrap
+    )
+
+pattern-underscore : Pattern
+pattern-underscore = 0 cast
+
+pattern-is-underscore : Pattern -- Bool
+pattern-is-underscore = pattern-underscore ==
+
+pattern-is-underscore? : Pattern -- Pattern Bool
+pattern-is-underscore? = dup pattern-is-underscore
+
+pattern-is-covered : Pattern Pattern -- Bool
+pattern-is-covered = swap pattern-is-underscore? if(drop2 true, ==)
+
+pattern-is-covered? : Pattern Pattern -- Pattern Pattern Bool
+pattern-is-covered? = dup2 pattern-is-covered
+
+###########
+# example #
+###########
+
 data MyList(t)
     NIL
     CON -> t
@@ -67,3 +150,11 @@ end
 
 makeMyList : t -- MyList(t)
 makeMyList = CON NIL CAT
+
+mylen : MyList(t) -- Int
+mylen =
+    match(
+        NIL -> 0,
+        CON -> drop 1,
+        CAT -> dip(mylen) mylen +
+    )
