@@ -587,6 +587,7 @@ def(c99-emit-prims!, +IO,
     "    value_t* p = pop_ptr();" ;
     "    value_t v = *p;" ;
     "    push_value(v);" ;
+    "    incref(v);" ;
     "}" ;;
 
     PRIM_MEM_SET_VALUE .p " {" ;
