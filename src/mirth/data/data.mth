@@ -190,24 +190,3 @@ pattern-is-covered = swap pattern-is-underscore? if(drop2 true, ==)
 
 pattern-is-covered? : Pattern Pattern -- Pattern Pattern Bool
 pattern-is-covered? = dup2 pattern-is-covered
-
-###########
-# example #
-###########
-
-data MyList(t)
-    NIL
-    CON -> t
-    CAT -> MyList(t) MyList(t)
-end
-
-makeMyList : t -- MyList(t)
-makeMyList = CON NIL CAT
-
-mylen : MyList(t) -- Int
-mylen =
-    match(
-        NIL -> 0,
-        CON -> drop 1,
-        CAT -> dip(mylen) mylen +
-    )

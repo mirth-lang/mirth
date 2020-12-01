@@ -163,8 +163,8 @@ def(c99-emit-header!, +IO,
     "static volatile usize stack_counter = STACK_SIZE;" ;
     "static volatile value_t stack [STACK_SIZE] = {0};" ;;
 
-    "#define HEAP_SIZE 0x8000" ;
-    "#define HEAP_MASK 0x7FFF" ;
+    "#define HEAP_SIZE 0x80000" ;
+    "#define HEAP_MASK 0x7FFFF" ;
     "static volatile usize heap_next = 1;" ;
     "static volatile usize heap_count = 0;" ;
     "static volatile cell_t heap [HEAP_SIZE] = {0};" ;;
