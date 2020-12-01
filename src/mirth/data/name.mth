@@ -240,33 +240,23 @@ def(str-buf-push-hexdigit!, Char -- +StrBuf,
 
 def(NAME_ERROR, Name, 0 Int->Name)
 
-
-
 ########
 # Defs #
 ########
 
-def(NameValue->Int, NameValue -- Int, NameValue.unwrap)
-def(Int->NameValue, Int -- NameValue, NameValue.wrap)
-
-def(NameSort->U8, NameSort -- U8, NameSort.unwrap)
-def(U8->NameSort, U8 -- NameSort, NameSort.wrap)
-def(Int->NameSort, Int -- NameSort, Int->U8 U8->NameSort)
-def(DEF_NONE, NameSort, 0 Int->NameSort)
-def(DEF_WORD, NameSort, 1 Int->NameSort)
-def(DEF_BUFFER, NameSort, 2 Int->NameSort)
-def(DEF_TYPE, NameSort, 3 Int->NameSort)
-def(DEF_EXTERNAL, NameSort, 4 Int->NameSort)
-def(DEF_MODULE, NameSort, 5 Int->NameSort)
-def(DEF_PRIM, NameSort, 6 Int->NameSort)
-def(DEF_TAG, NameSort, 7 Int->NameSort)
-
-def(name-undefined?, Name -- Name Bool, name-sort? DEF_NONE ==)
+def(name-undefined?, Name -- Name Bool, name-value? 0 cast ==)
 def(name-defined?, Name -- Name Bool, name-undefined? not)
-def(name-is-word?, Name -- Name Bool, name-sort? DEF_WORD ==)
-def(name-is-buffer?, Name -- Name Bool, name-sort? DEF_BUFFER ==)
-def(name-is-type?, Name -- Name Bool, name-sort? DEF_TYPE ==)
-def(name-is-external?, Name -- Name Bool, name-sort? DEF_EXTERNAL ==)
-def(name-is-module?, Name -- Name Bool, name-sort? DEF_MODULE ==)
-def(name-is-prim?, Name -- Name Bool, name-sort? DEF_PRIM ==)
-def(name-is-tag?, Name -- Name Bool, name-sort? DEF_TAG ==)
+def(name-is-word?, Name -- Name Bool,
+    name-value? match(DEF_WORD -> drop true, _ -> drop false))
+def(name-is-buffer?, Name -- Name Bool,
+    name-value? match(DEF_BUFFER -> drop true, _ -> drop false))
+def(name-is-type?, Name -- Name Bool,
+    name-value? match(DEF_TYPE -> drop true, _ -> drop false))
+def(name-is-external?, Name -- Name Bool,
+    name-value? match(DEF_EXTERNAL -> drop true, _ -> drop false))
+def(name-is-module?, Name -- Name Bool,
+    name-value? match(DEF_MODULE -> drop true, _ -> drop false))
+def(name-is-prim?, Name -- Name Bool,
+    name-value? match(DEF_PRIM -> drop true, _ -> drop false))
+def(name-is-tag?, Name -- Name Bool,
+    name-value? match(DEF_TAG -> drop true, _ -> drop false))

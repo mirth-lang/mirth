@@ -4,23 +4,22 @@ import(mirth/data/type)
 
 def(Int->Prim, Int -- Prim, cast)
 def(Prim->Int, Prim -- Int, cast)
-def(NameValue->Prim, NameValue -- Prim, NameValue->Int Int->Prim)
-def(Prim->NameValue, Prim -- NameValue, Prim->Int Int->NameValue)
-def(name-prim!, Prim Name --,
-    DEF_PRIM over name-sort!
-    dip(Prim->NameValue) name-value!)
-def(name-prim@, Name -- Prim,
-    name-is-prim? if(
-        name-value@ NameValue->Prim,
-        "compiler error: attempted to get prim definition for non-prim name" panic!
+def(NameValue->Prim, NameValue -- Prim,
+    match(
+        DEF_PRIM -> id,
+        _ -> "attempted to get prim value from non-prim name" panic!
     ))
+
+def(Prim->NameValue, Prim -- NameValue, DEF_PRIM)
+def(name-prim!, Prim Name --, dip(Prim->NameValue) name-value!)
+def(name-prim@, Name -- Prim, name-value@ NameValue->Prim)
 
 ||| Does this name refer to this primitive?
 name-prim= : Name Prim -- Bool
 name-prim= =
-    swap name-is-prim? if(
-        name-prim@ ==,
-        drop2 false
+    swap name-value@ match(
+        DEF_PRIM -> ==,
+        _ -> drop2 false
     )
 
 def(PRIM_ID, Prim, 1 Int->Prim)

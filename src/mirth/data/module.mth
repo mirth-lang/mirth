@@ -50,13 +50,14 @@ load-module-source-path! =
     module-path@ load-source-path!
 
 NameValue->Module : NameValue -- Module
-NameValue->Module = NameValue->Int Int->Module
+NameValue->Module =
+    match(
+        DEF_MODULE -> id,
+        _ -> "attempted to get module value from non-module name" panic!
+    )
 
 Module->NameValue : Module -- NameValue
-Module->NameValue = Module->Int Int->NameValue
+Module->NameValue = DEF_MODULE
 
 name-module! : Module Name --
-name-module! = (
-    DEF_MODULE over name-sort!
-    dip(Module->NameValue) name-value!
-)
+name-module! = dip(Module->NameValue) name-value!

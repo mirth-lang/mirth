@@ -46,14 +46,11 @@ def(word-body-is-checked?, Word -- Word Bool,
 def(word-body-is-checked!, Word --,
     word-status? WORD_BODY_CHECKED word-status-set swap word-status!)
 
-def(NameValue->Word, NameValue -- Word, NameValue->Int Int->Word)
-def(Word->NameValue, Word -- NameValue, Word->Int Int->NameValue)
-
-def(name-word!, Word Name --,
-    DEF_WORD over name-sort!
-    dip(Word->NameValue) name-value!)
-def(name-word@, Name -- Word,
-    name-is-word? if(
-        name-value@ NameValue->Word,
-        "compiler error: attempted to get word definition for non-word name" panic!
+def(NameValue->Word, NameValue -- Word,
+    match(
+        DEF_WORD -> id,
+        _ -> "name value is type!" panic!
     ))
+def(Word->NameValue, Word -- NameValue, DEF_WORD)
+def(name-word!, Word Name --, dip(Word->NameValue) name-value!)
+def(name-word@, Name -- Word, name-value@ NameValue->Word)

@@ -16,14 +16,11 @@ def(EXTERNAL_FLAG_SIG_CHECKED, Int, 0x1)
 def(external-sig-is-checked?, External -- External Bool, dup external-flags@ EXTERNAL_FLAG_SIG_CHECKED & nonzero)
 def(external-sig-is-checked!, External --, dup external-flags@ EXTERNAL_FLAG_SIG_CHECKED | swap external-flags!)
 
-def(NameValue->External, NameValue -- External, NameValue->Int Int->External)
-def(External->NameValue, External -- NameValue, External->Int Int->NameValue)
-
-def(name-external!, External Name --,
-    DEF_EXTERNAL over name-sort!
-    dip(External->NameValue) name-value!)
-def(name-external@, Name -- External,
-    name-is-external? if(
-        name-value@ NameValue->External,
-        "compiler error: attempted to get external definition for non-external name" panic!
+def(NameValue->External, NameValue -- External,
+    match(
+        DEF_EXTERNAL -> id,
+        _ -> "attempted to get external value from non-external name" panic!
     ))
+def(External->NameValue, External -- NameValue, DEF_EXTERNAL)
+def(name-external!, External Name --, dip(External->NameValue) name-value!)
+def(name-external@, Name -- External, name-value@ NameValue->External)
