@@ -398,10 +398,10 @@ def(elab-match-exhaustive!, Match -- Match,
         id,
         match-scrutinee-is-data? if(
             match-scrutinee-data? data-num-tags
-            dip(match-num-cases?) == if(
-                id,
-                match-token? "Pattern match not exhaustive." emit-error!
-                # TODO -- print missing patterns.
+            dip(match-num-cases?) < if(
+                match-token? "Pattern match not exhaustive." emit-error!,
+                    # TODO -- print missing patterns.
+                id
             ),
             id
         )

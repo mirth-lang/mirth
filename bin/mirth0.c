@@ -19824,13 +19824,13 @@ void mwelab_match_exhaustive_21_ (void){
     { value_t d3 = pop_value();
     mwmatch_num_cases_3F_();
       push_value(d3); }
-    mw_3D__3D_();
+    mw_3C_();
     if (pop_u64()) {
-    mwid();
-    } else {
     mwmatch_token_3F_();
     push_ptr((void*)(strings + 17262));
     mwemit_error_21_();
+    } else {
+    mwid();
     }
     } else {
     mwid();
