@@ -32,152 +32,34 @@ arrow-is-nil? : Arrow -- Arrow Bool
 arrow-is-nil? = dup ARROW_NIL ==
 
 arrow-alloc! : Arrow
-arrow-alloc! = Arrow.alloc!
-
-OP_NONE : Op
-OP_PRIM : Op
-OP_WORD : Op
-OP_EXTERNAL : Op
-OP_BUFFER : Op
-OP_INT : Op
-OP_STR : Op
-OP_TAG : Op
-OP_MATCH : Op
-
-OP_NONE = 0 cast
-OP_PRIM = 1 cast
-OP_WORD = 2 cast
-OP_EXTERNAL = 3 cast
-OP_BUFFER = 4 cast
-OP_INT = 5 cast
-OP_STR = 6 cast
-OP_TAG = 7 cast
-OP_MATCH = 8 cast
-
-arrow-op=? : Arrow Op -- Arrow Bool
-arrow-op=? = dip(arrow-op?) ==
+arrow-alloc! = (
+    Arrow.alloc!
+    OP_NONE over arrow-op!
+)
 
 arrow-op-prim! : Prim Arrow --
-arrow-op-prim! = (
-    OP_PRIM over arrow-op!
-    dip(Prim->Int) arrow-op-value!
-)
-
-arrow-op-prim@ : Arrow -- Prim
-arrow-op-prim@ =
-    OP_PRIM arrow-op=? if(
-        arrow-op-value@ Int->Prim,
-        "compiler error: attempted to get prim associated with non-prim arrow" panic!
-    )
-
-arrow-op-prim? : Arrow -- Arrow Prim
-arrow-op-prim? = dup arrow-op-prim@
+arrow-op-prim! = dip(OP_PRIM) arrow-op!
 
 arrow-op-word! : Word Arrow --
-arrow-op-word! = (
-    OP_WORD over arrow-op!
-    dip(Word->Int) arrow-op-value!
-)
-
-arrow-op-word@ : Arrow -- Word
-arrow-op-word@ =
-    OP_WORD arrow-op=? if(
-        arrow-op-value@ Int->Word,
-        "compiler error: attempted to get word associated with non-word arrow" panic!
-    )
-
-arrow-op-word? : Arrow -- Arrow Word
-arrow-op-word? = dup arrow-op-word@
+arrow-op-word! = dip(OP_WORD) arrow-op!
 
 arrow-op-tag! :  Tag Arrow --
-arrow-op-tag! = (
-    OP_TAG over arrow-op!
-    dip(cast) arrow-op-value!
-)
-
-arrow-op-tag@ : Arrow -- Tag
-arrow-op-tag@ =
-    OP_TAG arrow-op=? if(
-        arrow-op-value@ cast,
-        "compiler error: attempted to get tag associated with non-tag arrow" panic!
-    )
+arrow-op-tag! = dip(OP_TAG) arrow-op!
 
 arrow-op-match! : Match Arrow --
-arrow-op-match! = (
-    OP_MATCH over arrow-op!
-    dip(cast) arrow-op-value!
-)
-
-arrow-op-match@ : Arrow -- Match
-arrow-op-match@ =
-    OP_MATCH arrow-op=? if(
-        arrow-op-value@ cast,
-        "compiler error: attempted to get tag associated with non-tag arrow" panic!
-    )
+arrow-op-match! = dip(OP_MATCH) arrow-op!
 
 arrow-op-external! : External Arrow --
-arrow-op-external! = (
-    OP_EXTERNAL over arrow-op!
-    dip(External->Int) arrow-op-value!
-)
-
-arrow-op-external@ : Arrow -- External
-arrow-op-external@ =
-    OP_EXTERNAL arrow-op=? if(
-        arrow-op-value@ Int->External,
-        "compiler error: attempted to get external associated with non-external arrow" panic!
-    )
-
-arrow-op-external? : Arrow -- Arrow External
-arrow-op-external? = dup arrow-op-external@
+arrow-op-external! = dip(OP_EXTERNAL) arrow-op!
 
 arrow-op-buffer! : Buffer Arrow --
-arrow-op-buffer! = (
-    OP_BUFFER over arrow-op!
-    dip(Buffer->Int) arrow-op-value!
-)
-
-arrow-op-buffer@ : Arrow -- Buffer
-arrow-op-buffer@ =
-    OP_BUFFER arrow-op=? if(
-        arrow-op-value@ Int->Buffer,
-        "compiler error: attempted to get external associated with non-external arrow" panic!
-    )
-
-arrow-op-buffer? : Arrow -- Arrow Buffer
-arrow-op-buffer? = dup arrow-op-buffer@
+arrow-op-buffer! = dip(OP_BUFFER) arrow-op!
 
 arrow-op-int! : Int Arrow --
-arrow-op-int! = (
-    OP_INT over arrow-op!
-    arrow-op-value!
-)
-
-arrow-op-int@ : Arrow -- Int
-arrow-op-int@ =
-    OP_INT arrow-op=? if(
-        arrow-op-value@,
-        "compiler error: attempted to get int associated with non-int arrow" panic!
-    )
-
-arrow-op-int? : Arrow -- Arrow Int
-arrow-op-int? = dup arrow-op-int@
+arrow-op-int! = dip(OP_INT) arrow-op!
 
 arrow-op-str! : StrLit Arrow --
-arrow-op-str! = (
-    OP_STR over arrow-op!
-    dip(StrLit->Int) arrow-op-value!
-)
-
-arrow-op-str@ : Arrow -- StrLit
-arrow-op-str@ =
-    OP_STR arrow-op=? if(
-        arrow-op-value@ Int->StrLit,
-        "compiler error: attempted to get str associated with non-str arrow" panic!
-    )
-
-arrow-op-str? : Arrow -- Arrow StrLit
-arrow-op-str? = dup arrow-op-str@
+arrow-op-str! = dip(OP_STR) arrow-op!
 
 #######
 # ARG #

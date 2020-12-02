@@ -53,7 +53,6 @@ test-update:
 
 #########
 
-
 bin/mirth0: bin/mirth0.c
 	$(CC) -o bin/mirth0 bin/mirth0.c
 

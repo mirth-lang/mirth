@@ -151,7 +151,7 @@ def(elab-type-dont-care!, TypeElab Token -- TypeElab Type Token,
     ))
 
 def(elab-type-quote!, TypeElab Token -- TypeElab Type Token,
-    token-bracket-arg
+    token-args-1
     sig-has-dashes? if(
         elab-type-sig!,
         elab-type-stack!
@@ -296,37 +296,26 @@ def(elab-arrow-step!, Arrow -- Arrow,
 ||| arrow's {op, arg} fields, returning the
 ||| codomain of the operation.
 def(elab-arrow-op!, Arrow -- Type,
-    arrow-token?
-    token-is-name? if(
-        token-name@
-        elab-arrow-op-name!,
-    token-is-int? if(
-        token-int@
-        elab-arrow-op-int!,
-    token-is-str? if(
-        token-strlit@
-        elab-arrow-op-str!,
-    token-is-lbrace? if(
-        elab-arrow-op-stack-assertion!,
-        "compiler error: Unknown token in elab-arrow-step!" emit-fatal-error!
-    )))))
+    arrow-token? token-value@ match(
+        TOKEN_NAME -> elab-arrow-op-name!,
+        TOKEN_INT -> elab-arrow-op-int!,
+        TOKEN_STR -> elab-arrow-op-str!,
+        TOKEN_LBRACE -> drop arrow-token? elab-arrow-op-stack-assertion!,
+        _ ->
+            drop arrow-token?
+            "Unexpected token in elab-arrow-op!"
+            emit-fatal-error!
+    ))
 
 def(elab-arrow-op-name!, Arrow Name -- Type,
-    name-is-buffer? if(
-        name-buffer@ elab-arrow-op-buffer!,
-    name-is-external? if(
-        name-external@ elab-arrow-op-external!,
-    name-is-word? if(
-        name-word@ elab-arrow-op-word!,
-    name-is-prim? if(
-        name-prim@ elab-arrow-op-prim!,
-    name-is-tag? if(
-        name-tag@ elab-arrow-op-tag!,
-
-        drop
-        arrow-token@ "Unknown word." emit-error!
-        TYPE_ERROR
-    ))))))
+    name-value@ match(
+        DEF_BUFFER -> elab-arrow-op-buffer!,
+        DEF_EXTERNAL -> elab-arrow-op-external!,
+        DEF_WORD -> elab-arrow-op-word!,
+        DEF_PRIM -> elab-arrow-op-prim!,
+        DEF_TAG -> elab-arrow-op-tag!,
+        _ -> drop arrow-token@ "Unknown word." emit-error! TYPE_ERROR
+    ))
 
 def(elab-arrow-op-int!, Arrow Int -- Type,
     over arrow-op-int!
@@ -716,7 +705,7 @@ elab-data-tag! = (
 ||| Elaborate a word definition `def(w, t, b)`.
 def(elab-def!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-3
-    rotl token-type? TOKEN_NAME == if(
+    rotl token-is-name? if(
         token-name? name-undefined? if(
             nip
             word-alloc!
@@ -764,7 +753,7 @@ def(elab-decl-word-def!, Module Token -- Module Token +Mirth,
 ||| Elaborate an external declaration `def-external(w, t)`
 def(elab-def-external!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-2
-    swap token-type? TOKEN_NAME == if(
+    swap token-is-name? if(
         token-name? name-undefined? if(
             nip
             external-alloc!
@@ -834,13 +823,10 @@ def(elab-nominal-words!, Nominal -- Nominal +Mirth,
 ||| Elaborate a buffer definition `buffer(B, size)`.
 def(elab-buffer!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-2
-    swap token-type? TOKEN_NAME == if(
+    swap token-is-name? if(
         token-name? name-undefined? if(
             nip swap
-            token-type? TOKEN_INT == if(
-                token-int@ buffer-alloc! drop,
-                "expected buffer size" emit-fatal-error!
-            ),
+            token-int@ buffer-alloc! drop,
             drop "buffer already defined" emit-fatal-error!
         ),
         "expected buffer name" emit-fatal-error!
@@ -857,9 +843,9 @@ def(elab-table!, Module Token -- Module Token +Mirth,
 ||| Elaborate a field definition `field(f, T1, T2)`.
 def(elab-field!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-3
-    rotl token-type? TOKEN_NAME == if(
+    rotl token-is-name? if(
         token-name@
-        rotl token-type? TOKEN_NAME == if(
+        rotl token-is-name? if(
             token-name?
             name-is-table? if(
                 nip name-type@ type-get-table rotl
@@ -878,15 +864,10 @@ def(elab-target-c99!, Module Token -- Module Token +Mirth,
     typecheck-everything!
 
     dup dip(token-next) token-args-2
-    swap token-type? TOKEN_STR == if(
-        dip(
-            dip(ctx-empty T0 T0 T->)
-            elab-arrow!
-        )
-
-        token-str@ Str->Path run-output-c99!,
-        "Expected relative C file path (a string)." emit-fatal-error!
-    ))
+    dip(token-strlit@ StrLit->Str Str->Path)
+    dip(ctx-empty T0 T0 T->)
+    elab-arrow!
+    swap run-output-c99!)
 
 ||| Ensure that everything so far has been typechecked.
 def(typecheck-everything!, --,

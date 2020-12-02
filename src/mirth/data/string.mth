@@ -8,9 +8,9 @@ import(prelude)
 # StrLit represents the offset of a string into the string table.
 # This is enough to identify the string (for now ... because we just use
 # nul-termination as the implicit ending for the string)
-nominal(StrLit, Int)
 def(StrLit->Int, StrLit -- Int, StrLit.unwrap)
 def(Int->StrLit, Int -- StrLit, StrLit.wrap)
+def(StrLit->Str, StrLit -- Str, StrLit->Int STRINGS_BUF ptr+)
 
 def(MAX_STRINGS, Size, 0x8000)
 buffer(STRINGS_SIZE, 8)

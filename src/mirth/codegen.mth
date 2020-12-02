@@ -870,68 +870,58 @@ def(c99-emit-arrow!, Arrow -- +IO,
     drop
     c99-depth--)
 
-def(c99-emit-arrow-op!, Arrow -- +IO,
-
-    OP_NONE arrow-op=? if(
-        drop,
-
-    OP_INT arrow-op=? if(
-        arrow-op-int@
-        "    push_i64(" . .n "LL);" ;,
-
-    OP_STR arrow-op=? if(
-        arrow-op-str@ StrLit->Int
-        "    push_ptr((void*)(strings + " . .n "));" ;, # FIXME: just push a string literal.
-
-    OP_WORD arrow-op=? if(
-        arrow-op-word@ word-name@
-        "    mw" . .name "();" ;,
-
-    OP_EXTERNAL arrow-op=? if(
-        arrow-op-external@ external-name@
-        "    mw" . .name "();" ;,
-
-    OP_BUFFER arrow-op=? if(
-        arrow-op-buffer@ buffer-name@
-        "    mw" . .name "();" ;,
-
-    OP_TAG arrow-op=? if(
-        arrow-op-tag@ tag-name@
-        "    mw" . .name "();" ;,
-
-    OP_PRIM arrow-op=? if(
-        arrow-op-prim?
-        dup PRIM_DIP == if(
-            drop arrow-args-1
-            "    { value_t d" . .d " = pop_value();" ;
-            Arg->Arrow c99-emit-arrow!
-            "      push_value(d" . .d "); }" ;,
-
-        dup PRIM_IF == if(
-            drop arrow-args-2
-            "    if (pop_u64()) {" ;
-            dip(Arg->Arrow c99-emit-arrow!)
-            "    } else {" ;
-            Arg->Arrow c99-emit-arrow!
-            "    }" ;,
-
-        dup PRIM_WHILE == if(
-            drop arrow-args-2
-            "    while(1) {" ;
-            dip(Arg->Arrow c99-emit-arrow!)
-            "    if (!pop_u64()) break;" ;
-            Arg->Arrow c99-emit-arrow!
-            "    }" ;,
-
+c99-emit-arrow-op! : Arrow -- +IO,
+c99-emit-arrow-op! =
+    arrow-op? match(
+        OP_NONE -> drop,
+        OP_INT ->
             nip
-            "    mw" . prim-name@ .name "();" ;
-        ))),
+            "    push_i64(" . .n "LL);" ;,
+        OP_STR ->
+            nip StrLit->Int
+            "    push_ptr((void*)(strings + " . .n "));" ;,
+            # FIXME: just push a string literal.
+        OP_WORD ->
+            nip word-name@
+            "    mw" . .name "();" ;,
+        OP_EXTERNAL ->
+            nip external-name@
+            "    mw" . .name "();" ;,
+        OP_BUFFER ->
+            nip buffer-name@
+            "    mw" . .name "();" ;,
+        OP_TAG ->
+            nip tag-name@
+            "    mw" . .name "();" ;,
+        OP_PRIM ->
+            dup PRIM_DIP == if(
+                drop arrow-args-1
+                "    { value_t d" . .d " = pop_value();" ;
+                Arg->Arrow c99-emit-arrow!
+                "      push_value(d" . .d "); }" ;,
 
-    OP_MATCH arrow-op=? if(
-        arrow-op-match@ c99-emit-match!,
+            dup PRIM_IF == if(
+                drop arrow-args-2
+                "    if (pop_u64()) {" ;
+                dip(Arg->Arrow c99-emit-arrow!)
+                "    } else {" ;
+                Arg->Arrow c99-emit-arrow!
+                "    }" ;,
 
-        arrow-token@ "compiler error: Unknown arrow op in c99-emit-arrow-op!" emit-fatal-error!
-    ))))))))))
+            dup PRIM_WHILE == if(
+                drop arrow-args-2
+                "    while(1) {" ;
+                dip(Arg->Arrow c99-emit-arrow!)
+                "    if (!pop_u64()) break;" ;
+                Arg->Arrow c99-emit-arrow!
+                "    }" ;,
+
+                nip
+                "    mw" . prim-name@ .name "();" ;
+            ))),
+        OP_MATCH ->
+            nip c99-emit-match!,
+    )
 
 def(c99-emit-match!, Match -- +IO,
     "    switch (get_top_data_tag()) {" ;
