@@ -99,6 +99,7 @@ def(c99-emit-header!, +IO,
     "#error \"Platform not supported.\"" ;
     "#endif" ;;
 
+    "#include <stdio.h>" ;
     "#include <stdint.h>";
     "#include <stdbool.h>";;
 
@@ -981,9 +982,13 @@ c99-emit-arrow-op! =
 
 def(c99-emit-match!, Match -- +IO,
     "    switch (get_top_data_tag()) {" ;
-    match-cases@ while(case-is-nil? not,
+    match-cases? while(case-is-nil? not,
         dup c99-emit-case! case-next@
     ) drop
+    match-has-default-case if(
+        id,
+        "    default: exit(99);" ;
+    )
     "    }" ;)
 
 def(c99-emit-case!, Case -- +IO,
@@ -1031,7 +1036,6 @@ def(c99-emit-word-def!, Name -- +IO,
     ))
 
 def(c99-emit-main!, Arrow -- +IO,
-#    "#include <stdio.h>" ;
     "int main (int argc, char** argv) {" ;
     "    global_argc = argc;";
     "    global_argv = argv;";
