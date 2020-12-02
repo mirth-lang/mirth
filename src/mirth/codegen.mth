@@ -636,7 +636,7 @@ def(c99-emit-prims!, +IO,
     "    #endif" ;
     "}" ;;
 
-    PRIM_DEBUG .p " {" ;
+    "void do_debug() {" ;
     "    write(2, \"??\", 2);" ;
     "    char c[32] = {0};" ;
     "    char* cp;" ;
@@ -653,6 +653,10 @@ def(c99-emit-prims!, +IO,
     "        write(2, cp, n);" ;
     "    }" ;
     "    write(2, \"\\n\", 1);" ;
+    "}" ;;
+
+    PRIM_DEBUG .p " {" ;
+    "   do_debug();" ;
     "}" ;;
 
     PRIM_MEM_GET_VALUE .p " {" ;
@@ -987,7 +991,7 @@ def(c99-emit-match!, Match -- +IO,
     ) drop
     match-has-default-case if(
         id,
-        "    default: exit(99);" ;
+        "    default: fprintf(stderr, \"unexpected fallthrough in match\\n\"); do_debug(); exit(99);" ;
     )
     "    }" ;)
 
