@@ -123,7 +123,8 @@ def(c99-emit-header!, +IO,
     "typedef enum value_tag_t {" ;
     "   VT_U64 = 0x00," ; # u64
     "   VT_U32 = 0x01," ; # u32 u32
-    "   VT_C64 = 0x10," ;
+    "   VT_C64 = 0x02," ; # c64
+    "   VT_C32 = 0x03," ; # c32 u32
     "} value_tag_t;" ;;
 
     "typedef union value_payload_t {" ;
@@ -210,9 +211,17 @@ def(c99-emit-tag!, Name -- +IO,
     ))
 
 def(c99-emit-prims!, +IO,
+    "static usize get_cell_index (value_t v) {" ;
+    "    switch (v.tag) {" ;
+    "        case VT_C64: return (usize)v.payload.vp_u64;" ;
+    "        case VT_C32: return (usize)(v.payload.vp_u64 >> 32);" ;
+    "        default: return 0;" ;
+    "    }" ;
+    "}" ;;
+
     "void decref (value_t v) { " ;
-    "    while (v.tag == VT_C64) {" ;
-    "        usize cell_index = (usize)v.payload.vp_u64;";
+    "    usize cell_index;" ;
+    "    while ((cell_index = get_cell_index(v))) {" ;
     "        volatile cell_t *cell = heap + cell_index;";
     "        if (cell->refs >= 1) {";
     "            cell->refs--;" ;
@@ -235,8 +244,9 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     "void incref (value_t v) {" ;
-    "    if (v.tag == VT_C64) {" ;
-    "        volatile cell_t *cell = heap + (usize)v.payload.vp_u64;" ;
+    "    usize cell_index = get_cell_index(v);" ;
+    "    if (cell_index) {" ;
+    "        volatile cell_t *cell = heap + cell_index;" ;
     "        cell->refs++;" ;
     "    }" ;
     "}" ;;
@@ -365,7 +375,7 @@ def(c99-emit-prims!, +IO,
     "}" ;;
     # create a cons cell, while taking ownership of car and cdr's refs
     "value_t mkcell (value_t car, value_t cdr) {" ;
-    "    if ((car.payload.vp_u64 == 0) && (cdr.tag != VT_C64))" ;
+    "    if ((car.payload.vp_u64 == 0) && (cdr.tag == VT_U64))" ;
     "        return cdr;" ;
     "    if (cdr.tag == VT_U64) {" ;
     "        switch (car.tag) {" ;
@@ -377,6 +387,18 @@ def(c99-emit-prims!, +IO,
     "                if ((x0 == y0) && (x1 == y1)) {" ;
     "                    value_t r;" ;
     "                    r.tag = VT_U32;" ;
+    "                    r.payload.vp_u64 = (y0 << 32) | y1;" ;
+    "                    return r;" ;
+    "                }" ;
+    "            } break;" ;
+    "            case VT_C64: {" ;
+    "                u64 x0 = car.payload.vp_u64;" ;
+    "                u64 x1 = cdr.payload.vp_u64;" ;
+    "                u64 y0 = x0 & 0xFFFFFFFFLL;" ;
+    "                u64 y1 = x1 & 0xFFFFFFFFLL;" ;
+    "                if ((x0 == y0) && (x1 == y1)) {" ;
+    "                    value_t r;" ;
+    "                    r.tag = VT_C32;" ;
     "                    r.payload.vp_u64 = (y0 << 32) | y1;" ;
     "                    return r;" ;
     "                }" ;
@@ -428,6 +450,15 @@ def(c99-emit-prims!, +IO,
     "            incref(car); incref(cdr); decref(val);" ;
     "            push_value(car); push_value(cdr);" ;
     "        } break;" ;
+    "        case VT_C32: {" ;
+    "            u64 vv = val.payload.vp_u64;" ;
+    "            u64 lo = vv & 0xFFFFFFFF;" ;
+    "            u64 hi = vv >> 32;" ;
+    "            value_t car;" ;
+    "            car.tag = VT_C64;" ;
+    "            car.payload.vp_u64 = hi;" ;
+    "            push_value(car); push_u64(lo);" ;
+    "        } break;" ;
     "    }" ;
     "}" ;;
 
@@ -443,6 +474,9 @@ def(c99-emit-prims!, +IO,
     "            result = v.payload.vp_u64;" ;
     "        } break;" ;
     "        case VT_U32: {" ;
+    "            result = v.payload.vp_u64 & 0xFFFFFFFF;" ;
+    "        } break;" ;
+    "        case VT_C32: {" ;
     "            result = v.payload.vp_u64 & 0xFFFFFFFF;" ;
     "        } break;" ;
     "    }" ;
