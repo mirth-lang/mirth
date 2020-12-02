@@ -1,6 +1,6 @@
 module(tests/error-word-already-defined)
 import(prelude)
 
-nil : List(t)
+NIL : List(t)
 # mirth-test # merr # 4:1: error: word already defined
 # mirth-test # mret # 1

@@ -26,20 +26,17 @@ buffer-alloc! = (
 )
 
 NameValue->Buffer : NameValue -- Buffer
-NameValue->Buffer = NameValue->Int Int->Buffer
+NameValue->Buffer =
+    match(
+        DEF_BUFFER -> id,
+        _ -> "attempted to get buffer value from non-buffer name" panic!,
+    )
 
 Buffer->NameValue : Buffer -- NameValue
-Buffer->NameValue = Buffer->Int Int->NameValue
+Buffer->NameValue = DEF_BUFFER
 
 name-buffer! : Buffer Name --
-name-buffer! = (
-    DEF_BUFFER over name-sort!
-    dip(Buffer->NameValue) name-value!
-)
+name-buffer! = dip(Buffer->NameValue) name-value!
 
 name-buffer@ : Name -- Buffer
-name-buffer@ =
-    name-is-buffer? if(
-        name-value@ NameValue->Buffer,
-        "compiler error: attempted to get buffer definition for non-buffer name" panic!
-    )
+name-buffer@ = name-value@ NameValue->Buffer

@@ -7,26 +7,23 @@ import(mirth/elab/syntax)
 #######
 
 NameValue->Tag : NameValue -- Tag
-NameValue->Tag = cast
+NameValue->Tag =
+    match(
+        DEF_TAG -> id,
+        _ -> "attempted to get tag value from non-tag name" panic!
+    )
 
 Tag->NameValue : Tag -- NameValue
-Tag->NameValue = cast
+Tag->NameValue = DEF_TAG
 
 Tag->Int : Tag -- Int
 Tag->Int = cast
 
 name-tag! : Tag Name --
-name-tag! = (
-    DEF_TAG over name-sort!
-    dip(Tag->NameValue) name-value!
-)
+name-tag! = dip(Tag->NameValue) name-value!
 
 name-tag@ : Name -- Tag
-name-tag@ =
-    name-is-tag? if(
-        name-value@ NameValue->Tag,
-        "compiler error: attempted to get tag definition for non-tag name" panic!
-    )
+name-tag@ = name-value@ NameValue->Tag
 
 name-tag? : Name -- Name Tag
 name-tag? = dup name-tag@
@@ -190,24 +187,3 @@ pattern-is-covered = swap pattern-is-underscore? if(drop2 true, ==)
 
 pattern-is-covered? : Pattern Pattern -- Pattern Pattern Bool
 pattern-is-covered? = dup2 pattern-is-covered
-
-###########
-# example #
-###########
-
-data MyList(t)
-    NIL
-    CON -> t
-    CAT -> MyList(t) MyList(t)
-end
-
-makeMyList : t -- MyList(t)
-makeMyList = CON NIL CAT
-
-mylen : MyList(t) -- Int
-mylen =
-    match(
-        NIL -> 0,
-        CON -> drop 1,
-        CAT -> dip(mylen) mylen +
-    )

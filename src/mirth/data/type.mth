@@ -34,16 +34,14 @@ def(type!, Type Ptr --, dip(Type->U32) u32!)
 def(type@@, Int Ptr -- Type, dip(|Type| *) ptr+ type@)
 def(type!!, Type Int Ptr --, dip(|Type| *) ptr+ type!)
 
-def(NameValue->Type, NameValue -- Type, NameValue->Int Int->Type)
-def(Type->NameValue, Type -- NameValue, Type->Int Int->NameValue)
-def(name-type!, Type Name --,
-    DEF_TYPE over name-sort!
-    dip(Type->NameValue) name-value!)
-def(name-type@, Name -- Type,
-    name-is-type? if(
-        name-value@ NameValue->Type,
-        "compiler error: attempted to get type definition for non-type name" panic!
+def(NameValue->Type, NameValue -- Type,
+    match(
+        DEF_TYPE -> id,
+        _ -> "attempted to get type value from non-type name" panic!
     ))
+def(Type->NameValue, Type -- NameValue, DEF_TYPE)
+def(name-type!, Type Name --, dip(Type->NameValue) name-value!)
+def(name-type@, Name -- Type, name-value@ NameValue->Type)
 def(name-is-table?, Name -- Name Bool,
     name-is-type? if(
         dup name-type@ type-is-table,

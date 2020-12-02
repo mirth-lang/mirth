@@ -1,11 +1,18 @@
 module(mirth/data/common)
 import(prelude)
 
+
 # mirth/data/name
+data NameValue
+    DEF_MODULE -> Module,
+    DEF_TYPE -> Type,
+    DEF_TAG -> Tag,
+    DEF_PRIM -> Prim,
+    DEF_WORD -> Word,
+    DEF_BUFFER -> Buffer,
+    DEF_EXTERNAL -> External,
+end
 table(Name)
-nominal(NameSort, U8)
-nominal(NameValue, Int)
-field(name-sort, Name, NameSort)
 field(name-value, Name, NameValue)
 
 # mirth/data/buffer

@@ -489,54 +489,108 @@ unpack5 = pack-uncons dip(unpack4)
 .4! = dip(pack-uncons) swap dip(.3!) pack-cons
 
 #########
+# MAYBE #
+#########
+
+data Maybe(t)
+    NONE
+    SOME -> t
+end
+
+maybe-is-none? : Maybe(t) -- Maybe(t) Bool
+maybe-is-none? =
+    match(
+        NONE -> NONE true,
+        SOME -> SOME false
+    )
+
+maybe-is-some? : Maybe(t) -- Maybe(t) Bool
+maybe-is-some? = maybe-is-none? not
+
+maybe-len : Maybe(t) -- Int
+maybe-len =
+    match(
+        NONE -> 0,
+        SOME -> drop 1
+    )
+
+maybe-unwrap : Maybe(t) -- t
+maybe-unwrap =
+    match(
+        NONE -> "maybe-unwrap on NONE" panic!,
+        SOME -> id
+    )
+
+#########
 # LISTS #
 #########
 
-nominal(List(t), [])
+data List(t)
+    NIL
+    ETC -> List1(t)
+end
 
-list->pack : List(t) -- [List(t) t]
-list->pack = cast
+data List1(t)
+    CON -> t
+    CAT -> List1(t) List1(t)
+end
 
-pack->list : [List(t) t] -- List(t)
-pack->list = cast
+con : t -- List(t)
+con = CON ETC
 
-nil : List(t)
-nil = pack-nil pack->list
-
-nil? : List(t) -- List(t) Bool
-nil? = list->pack pack-nil? dip(pack->list)
-
-cons : List(t) t -- List(t)
-cons = pack2 pack->list
-
-uncons : List(t) -- List(t) t
-uncons =
-    nil? if(
-        "uncons on nil list" panic!,
-        list->pack unpack2
+cat : List(t) List(t) -- List(t)
+cat =
+    match(
+        NIL -> id,
+        ETC ->
+            swap match(
+                NIL -> ETC,
+                ETC -> swap CAT ETC
+            )
     )
 
-head : List(t) -- t
-head = uncons nip
+cons : t List(t) -- List(t)
+cons = match(NIL -> con, ETC -> list1-cons ETC)
 
-head? : List(t) -- List(t) t
-head? = dup head
+snoc : List(t) t -- List(t)
+snoc = swap match(NIL -> con, ETC -> swap list1-snoc ETC)
 
-tail : List(t) -- List(t)
-tail = uncons drop
+is-nil? : List(t) -- List(t) Bool
+is-nil? = dup is-nil
 
-tail? : List(t) -- List(t) List(t)
-tail? = dup tail
+is-nil : List(t) -- Bool
+is-nil = match(NIL -> true, _ -> drop false)
 
-length : List(t) -- Int
-length =
-    0 swap while(
-        nil? not,
-        dip(1+) tail
-    ) drop
+len? : List(t) -- List(t) Int
+len? = dup len
 
-length? : List(t) -- List(t) Int
-length? = dup length
+len : List(t) -- Int
+len = match(NIL -> 0, ETC -> list1-len)
+
+list1-cons : t List1(t) -- List1(t)
+list1-cons = dip(CON) CAT
+
+list1-snoc : List1(t) t -- List1(t)
+list1-snoc = CON CAT
+
+list1-len? : List1(t) -- List1(t) Int
+list1-len? = dup list1-len
+
+list1-len : List1(t) -- Int
+list1-len = 0 swap list1-len+
+
+list1-len+ : Int List1(t) -- Int
+list1-len+ =
+    match(
+        CON -> drop 1+,
+        CAT -> dip(list1-len+) list1-len+
+    )
+
+list1-first : List1(t) -- t
+list1-first = match(CON -> id, CAT -> drop list1-first)
+
+list1-last : List1(t) -- t
+list1-last = match(CON -> id, CAT -> nip list1-last)
 
 ######
 # IO #
