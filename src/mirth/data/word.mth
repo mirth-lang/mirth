@@ -21,31 +21,6 @@ def(word-has-body?, Word -- Word Bool,
 def(word-dom@, Word -- Type, word-type@ type-get-morphism morphism-type-dom@)
 def(word-cod@, Word -- Type, word-type@ type-get-morphism morphism-type-cod@)
 
-def(WordStatus->U8, WordStatus -- U8, WordStatus.unwrap)
-def(U8->WordStatus, U8 -- WordStatus, WordStatus.wrap)
-def(WordStatus->Int, WordStatus -- Int, WordStatus->U8 U8->Int)
-def(Int->WordStatus, Int -- WordStatus, Int->U8 U8->WordStatus)
-
-nominal(WordStatusFlag, Int)
-def(Int->WordStatusFlag, Int -- WordStatusFlag, WordStatusFlag.wrap)
-def(WordStatusFlag->Int, WordStatusFlag -- Int, WordStatusFlag.unwrap)
-def(word-status-get, WordStatus WordStatusFlag -- Bool,
-    dip(WordStatus->Int) WordStatusFlag->Int & 0 !=)
-def(word-status-set, WordStatus WordStatusFlag -- WordStatus,
-    dip(WordStatus->Int) WordStatusFlag->Int | Int->WordStatus)
-
-def(WORD_SIG_CHECKED, WordStatusFlag, 0x01 Int->WordStatusFlag)
-def(word-sig-is-checked?, Word -- Word Bool,
-    word-status? WORD_SIG_CHECKED word-status-get)
-def(word-sig-is-checked!, Word --,
-    word-status? WORD_SIG_CHECKED word-status-set swap word-status!)
-
-def(WORD_BODY_CHECKED, WordStatusFlag, 0x02 Int->WordStatusFlag)
-def(word-body-is-checked?, Word -- Word Bool,
-    word-status? WORD_BODY_CHECKED word-status-get)
-def(word-body-is-checked!, Word --,
-    word-status? WORD_BODY_CHECKED word-status-set swap word-status!)
-
 def(NameValue->Word, NameValue -- Word,
     match(
         DEF_WORD -> id,

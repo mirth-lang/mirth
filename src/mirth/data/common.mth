@@ -163,14 +163,14 @@ field(prim-type, Prim, Type)
 
 # mirth/data/word
 table(Word)
-nominal(WordStatus, U8)
 field(word-name, Word, Name)
 field(word-sig, Word, Token)
 field(word-body, Word, Token)
 field(word-ctx, Word, Ctx)
 field(word-type, Word, Type)
 field(word-arrow, Word, Arrow)
-field(word-status, Word, WordStatus)
+field(word-sig-is-checked, Word, Bool)
+field(word-body-is-checked, Word, Bool)
 
 # mirth/data/table
 table(Table)

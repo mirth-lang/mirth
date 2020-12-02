@@ -245,7 +245,7 @@ def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
             rotl
             tuck word-type!
             tuck word-ctx!
-            word-sig-is-checked!
+            true swap word-sig-is-checked!
         ))
     ))
 
@@ -257,7 +257,7 @@ def(elab-word-body!, Word -- Arrow +Elab,
         dup dip(elab-word-ctx-sig!)
         dup dip(word-body@ elab-arrow!)
         dup2 word-arrow!
-        word-body-is-checked!,
+        true swap word-body-is-checked!,
 
         word-sig@ token-prev token-prev # not very good :-/
         "Missing word definition."
@@ -806,16 +806,16 @@ def(elab-nominal-words!, Nominal -- Nominal +Mirth,
         over dup nominal-type@ T1 swap TNominal T1 T->
         over word-type!
         arrow-alloc! over word-arrow!
-        dup word-sig-is-checked!
-        word-body-is-checked!
+        true over word-sig-is-checked!
+        true swap word-body-is-checked!
 
         nominal-name? name-load! ".unwrap" str-buf-push-str! name-save!
         word-alloc! dup2 swap name-word! tuck word-name!
         over dup nominal-type@ T1 swap TNominal T1 swap T->
         over word-type!
         arrow-alloc! over word-arrow!
-        dup word-sig-is-checked!
-        word-body-is-checked!,
+        true over word-sig-is-checked!
+        true swap word-body-is-checked!,
 
         id # TODO, possibly.
     ))
