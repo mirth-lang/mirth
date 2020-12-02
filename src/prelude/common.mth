@@ -387,7 +387,6 @@ str-eq? = dup2 str-eq
 ##########
 
 ||| Return the "nil" pack, i.e. null.
-||| Attempts to uncons "nil" will result in a panic.
 pack-nil : [*a]
 pack-nil = prim.pack.nil cast
 
@@ -401,11 +400,7 @@ pack-cons = prim.pack.cons
 
 ||| Deconstruct a tuple by splitting it at its last element.
 pack-uncons : [*a b] -- [*a] b
-pack-uncons =
-    pack-nil? if(
-        "attempted to uncons nil" panic!,
-        prim.pack.uncons
-    )
+pack-uncons = prim.pack.uncons
 
 pack0 : []
 pack0 = pack-nil

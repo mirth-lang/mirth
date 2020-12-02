@@ -121,18 +121,9 @@ def(c99-emit-header!, +IO,
     "extern void exit(int);" ;;
 
     "typedef enum value_tag_t {" ;
-    "   VT_NONE = 0," ;
-    "   VT_PTR  = 1," ;
-    "   VT_BOOL = 2," ;
-    "   VT_CELL = 3," ;
-    "   VT_I64  = 0x10," ;
-    "   VT_I32  = 0x11," ;
-    "   VT_I16  = 0x12," ;
-    "   VT_I8   = 0x13," ;
-    "   VT_U64  = 0x14," ;
-    "   VT_U32  = 0x15," ;
-    "   VT_U16  = 0x16," ;
-    "   VT_U8   = 0x17," ;
+    "   VT_U64 = 0x00," ; # u64
+    "   VT_U32 = 0x01," ; # u32 u32
+    "   VT_C64 = 0x10," ;
     "} value_tag_t;" ;;
 
     "typedef union value_payload_t {" ;
@@ -211,7 +202,7 @@ def(c99-emit-tag!, Name -- +IO,
         "    value_t car = {0};" ;
         name-tag@
         tag-num-inputs? while(dup 0 >, "    car = mkcell(car, pop_value());" ;  1-) drop
-        "    value_t tag = { .tag = VT_I64, .payload = { .vp_i64 = " . cast .n "LL } };" ;
+        "    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = " . cast .n "LL } };" ;
         "    car = mkcell(car, tag);" ;
         "    push_value(car);" ;
         "}" ;;,
@@ -220,7 +211,7 @@ def(c99-emit-tag!, Name -- +IO,
 
 def(c99-emit-prims!, +IO,
     "void decref (value_t v) { " ;
-    "    while (v.tag == VT_CELL) {" ;
+    "    while (v.tag == VT_C64) {" ;
     "        usize cell_index = (usize)v.payload.vp_u64;";
     "        volatile cell_t *cell = heap + cell_index;";
     "        if (cell->refs >= 1) {";
@@ -244,37 +235,10 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     "void incref (value_t v) {" ;
-    "    if (v.tag == VT_CELL) {" ;
+    "    if (v.tag == VT_C64) {" ;
     "        volatile cell_t *cell = heap + (usize)v.payload.vp_u64;" ;
     "        cell->refs++;" ;
     "    }" ;
-    "}" ;;
-
-    # create a cons cell, while taking ownership of car and cdr's refs
-    "value_t mkcell (value_t car, value_t cdr) {" ;
-    "    if ((car.tag == VT_NONE) && (car.payload.vp_u64 == 0) && (cdr.tag != VT_CELL))" ;
-    "        return cdr;" ;
-    "    if (heap_count >= HEAP_SIZE - 1) {" ;
-    "        write(2, \"HEAP OVERFLOW\\n\", 14);" ;
-    "        exit(1);" ;
-    "    }" ;
-    "    u64 cell_index = heap_next;" ;
-    "    volatile cell_t *cell = heap + cell_index;" ;
-    "    while ((cell->refs > 0) && (cell_index < HEAP_SIZE)) { cell++; cell_index++; }" ;
-    "    if (cell_index >= HEAP_SIZE - 1) {" ;
-    "        write(2, \"HEAP OVERFLOW\\n\", 14);" ;
-    "        exit(1);" ;
-    "    }" ;
-    "    u64 saved_index = cell->cdr.payload.vp_u64;" ;
-    "    heap_next = (usize)(saved_index ? saved_index : cell_index+1);" ;
-    "    heap_count++;" ;
-    "    cell->refs = 1;" ;
-    "    cell->car = car;" ;
-    "    cell->cdr = cdr;" ;
-    "    value_t v = {0};" ;
-    "    v.tag = VT_CELL;" ;
-    "    v.payload.vp_u64 = cell_index;" ;
-    "    return v;" ;
     "}" ;;
 
     "value_t pop_value (void) {" ;
@@ -334,27 +298,27 @@ def(c99-emit-prims!, +IO,
     "}" ;;
     "void push_ptr (void* x) {" ;
     "    value_t v = {0};" ;
-    "    v.tag = VT_PTR;" ;
+    "    v.tag = VT_U64;" ;
     "    v.payload.vp_ptr = x;" ;
     "    push_value(v);" ;
     "}" ;;
     "void push_u8 (u8 x) {" ;
     "    value_t v = {0};" ;
-    "    v.tag = VT_U8;" ;
+    "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_u8 = x;" ;
     "    push_value(v);" ;
     "}" ;;
     "void push_u16 (u16 x) {" ;
     "    value_t v = {0};" ;
-    "    v.tag = VT_U16;" ;
+    "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_u16 = x;" ;
     "    push_value(v);" ;
     "}" ;;
     "void push_u32 (u32 x) {" ;
     "    value_t v = {0};" ;
-    "    v.tag = VT_U32;" ;
+    "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_u32 = x;" ;
     "    push_value(v);" ;
@@ -367,47 +331,120 @@ def(c99-emit-prims!, +IO,
     "}" ;;
     "void push_i8 (i8 x) {" ;
     "    value_t v = {0};" ;
-    "    v.tag = VT_I8;" ;
+    "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_i8 = x;" ;
     "    push_value(v);" ;
     "}" ;;
     "void push_i16 (i16 x) {" ;
     "    value_t v = {0};" ;
-    "    v.tag = VT_I16;" ;
+    "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_i16 = x;" ;
     "    push_value(v);" ;
     "}" ;;
     "void push_i32 (i32 x) {" ;
     "    value_t v = {0};" ;
-    "    v.tag = VT_I32;" ;
+    "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_i32 = x;" ;
     "    push_value(v);" ;
     "}" ;;
     "void push_i64 (i64 x) {" ;
     "    value_t v = {0};" ;
-    "    v.tag = VT_I64;" ;
+    "    v.tag = VT_U64;" ;
     "    v.payload.vp_i64 = x;" ;
     "    push_value(v);" ;
     "}" ;;
     "void push_bool (bool x) {" ;
     "    value_t v = {0};" ;
-    "    v.tag = VT_BOOL;" ;
+    "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_bool = x;" ;
     "    push_value(v);" ;
+    "}" ;;
+    # create a cons cell, while taking ownership of car and cdr's refs
+    "value_t mkcell (value_t car, value_t cdr) {" ;
+    "    if ((car.payload.vp_u64 == 0) && (cdr.tag != VT_C64))" ;
+    "        return cdr;" ;
+    "    if (cdr.tag == VT_U64) {" ;
+    "        switch (car.tag) {" ;
+    "            case VT_U64: {" ;
+    "                u64 x0 = car.payload.vp_u64;" ;
+    "                u64 x1 = cdr.payload.vp_u64;" ;
+    "                u64 y0 = x0 & 0xFFFFFFFFLL;" ;
+    "                u64 y1 = x1 & 0xFFFFFFFFLL;" ;
+    "                if ((x0 == y0) && (x1 == y1)) {" ;
+    "                    value_t r;" ;
+    "                    r.tag = VT_U32;" ;
+    "                    r.payload.vp_u64 = (y0 << 32) | y1;" ;
+    "                    return r;" ;
+    "                }" ;
+    "            } break;" ;
+    "            default: break;" ;
+    "        }" ;
+    "    }" ;
+    "    if (heap_count >= HEAP_SIZE - 1) {" ;
+    "        write(2, \"HEAP OVERFLOW\\n\", 14);" ;
+    "        exit(1);" ;
+    "    }" ;
+    "    u64 cell_index = heap_next;" ;
+    "    volatile cell_t *cell = heap + cell_index;" ;
+    "    while ((cell->refs > 0) && (cell_index < HEAP_SIZE)) { cell++; cell_index++; }" ;
+    "    if (cell_index >= HEAP_SIZE - 1) {" ;
+    "        write(2, \"HEAP OVERFLOW\\n\", 14);" ;
+    "        exit(1);" ;
+    "    }" ;
+    "    u64 saved_index = cell->cdr.payload.vp_u64;" ;
+    "    heap_next = (usize)(saved_index ? saved_index : cell_index+1);" ;
+    "    heap_count++;" ;
+    "    cell->refs = 1;" ;
+    "    cell->car = car;" ;
+    "    cell->cdr = cdr;" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_C64;" ;
+    "    v.payload.vp_u64 = cell_index;" ;
+    "    return v;" ;
+    "}" ;;
+
+    "void do_pack_uncons() {" ;
+    "    value_t val = pop_value();" ;
+    "    switch (val.tag) {" ;
+    "        case VT_U64: {" ;
+    "            value_t nil = { 0 };" ;
+    "            push_value(nil);" ;
+    "            push_value(val);" ;
+    "        } break;" ;
+    "        case VT_U32: {" ;
+    "            u64 vv = val.payload.vp_u64;" ;
+    "            u64 lo = vv & 0xFFFFFFFF;" ;
+    "            u64 hi = vv >> 32;" ;
+    "            push_u64(hi); push_u64(lo);" ;
+    "        } break;" ;
+    "        case VT_C64: {" ;
+    "            volatile cell_t* cell = heap + val.payload.vp_u64;" ;
+    "            value_t car = cell->car;" ;
+    "            value_t cdr = cell->cdr;" ;
+    "            incref(car); incref(cdr); decref(val);" ;
+    "            push_value(car); push_value(cdr);" ;
+    "        } break;" ;
+    "    }" ;
     "}" ;;
 
     "u64 get_top_data_tag() {" ;
     "    value_t v = pop_value();" ;
     "    u64 result = 0;" ;
-    "    if (v.tag == VT_CELL) {" ;
-    "        cell_t c = heap[v.payload.vp_u64];" ;
-    "        result = c.cdr.payload.vp_u64;" ;
-    "    } else {" ;
-    "        result = v.payload.vp_u64;" ;
+    "    switch (v.tag) {" ;
+    "        case VT_C64: {" ;
+    "            volatile cell_t *c = heap + v.payload.vp_u64;" ;
+    "            result = c->cdr.payload.vp_u64;" ;
+    "        } break;" ;
+    "        case VT_U64: {" ;
+    "            result = v.payload.vp_u64;" ;
+    "        } break;" ;
+    "        case VT_U32: {" ;
+    "            result = v.payload.vp_u64 & 0xFFFFFFFF;" ;
+    "        } break;" ;
     "    }" ;
     "    push_value(v);" ;
     "    return result;" ;
@@ -765,21 +802,6 @@ def(c99-emit-prims!, +IO,
     "    do_pack_cons();" ;
     "}" ;;
 
-    "void do_pack_uncons() {" ;
-    "    value_t val = pop_value();" ;
-    "    if (val.tag != VT_CELL) {" ;
-    "        value_t nil = { 0 };" ;
-    "        push_value(nil);" ;
-    "        push_value(val);" ;
-    "        return;" ;
-    "    }" ;
-    "    volatile cell_t* cell = heap + val.payload.vp_u64;" ;
-    "    value_t car = cell->car;" ;
-    "    value_t cdr = cell->cdr;" ;
-    "    incref(car); incref(cdr); decref(val);" ;
-    "    push_value(car); push_value(cdr);" ;
-    "}" ;;
-
     PRIM_PACK_UNCONS .p " {" ;
     "    do_pack_uncons();" ;
     "}" ;;
@@ -975,11 +997,12 @@ def(c99-emit-word-def!, Name -- +IO,
     ))
 
 def(c99-emit-main!, Arrow -- +IO,
-
+#    "#include <stdio.h>" ;
     "int main (int argc, char** argv) {" ;
     "    global_argc = argc;";
     "    global_argv = argv;";
     c99-emit-arrow!
+#    "    fprintf(stderr, \"heap count = 0x%lX\\n\", heap_count);" ;
     "    return 0;" ;
     "}" ;
     )
