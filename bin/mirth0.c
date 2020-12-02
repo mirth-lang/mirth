@@ -2080,10 +2080,10 @@ void mwOP_MATCH (void) {
  void mwexternal_type_buffer (void) { push_ptr((void*)bexternal_type_buffer); }
  volatile u8 bexternal_sig_buffer[2097152] = {0};
  void mwexternal_sig_buffer (void) { push_ptr((void*)bexternal_sig_buffer); }
+ volatile u8 bexternal_sig_is_checked_buffer[2097152] = {0};
+ void mwexternal_sig_is_checked_buffer (void) { push_ptr((void*)bexternal_sig_is_checked_buffer); }
  volatile u8 bexternal_ctx_buffer[2097152] = {0};
  void mwexternal_ctx_buffer (void) { push_ptr((void*)bexternal_ctx_buffer); }
- volatile u8 bexternal_flags_buffer[2097152] = {0};
- void mwexternal_flags_buffer (void) { push_ptr((void*)bexternal_flags_buffer); }
  volatile u8 bArrow_2E_NUM[8] = {0};
  void mwArrow_2E_NUM (void) { push_ptr((void*)bArrow_2E_NUM); }
  volatile u8 bArgs_2E_NUM[8] = {0};
@@ -2875,14 +2875,14 @@ void mwOP_MATCH (void) {
  void mwexternal_sig_21_ (void);
  void mwexternal_sig_40_ (void);
  void mwexternal_sig_3F_ (void);
+ void mwexternal_sig_is_checked_26_ (void);
+ void mwexternal_sig_is_checked_21_ (void);
+ void mwexternal_sig_is_checked_40_ (void);
+ void mwexternal_sig_is_checked_3F_ (void);
  void mwexternal_ctx_26_ (void);
  void mwexternal_ctx_21_ (void);
  void mwexternal_ctx_40_ (void);
  void mwexternal_ctx_3F_ (void);
- void mwexternal_flags_26_ (void);
- void mwexternal_flags_21_ (void);
- void mwexternal_flags_40_ (void);
- void mwexternal_flags_3F_ (void);
  void mwArrow_2E_MAX (void);
  void mwArrow_2E_alloc_21_ (void);
  void mwArgs_2E_MAX (void);
@@ -3490,9 +3490,6 @@ void mwOP_MATCH (void) {
  void mwExternal__3E_Int (void);
  void mwInt__3E_External (void);
  void mwexternal_alloc_21_ (void);
- void mwEXTERNAL_FLAG_SIG_CHECKED (void);
- void mwexternal_sig_is_checked_3F_ (void);
- void mwexternal_sig_is_checked_21_ (void);
  void mwNameValue__3E_External (void);
  void mwExternal__3E_NameValue (void);
  void mwname_external_21_ (void);
@@ -10704,6 +10701,29 @@ void mwexternal_sig_3F_ (void){
     mwvalue_40_();
 }
 
+void mwexternal_sig_is_checked_26_ (void){
+    push_i64(16LL);
+    mw_2A_();
+    mwexternal_sig_is_checked_buffer();
+    mwprim_2E_unsafe_2E_ptr_2B_();
+}
+
+void mwexternal_sig_is_checked_21_ (void){
+    mwexternal_sig_is_checked_26_();
+    mwvalue_21_();
+}
+
+void mwexternal_sig_is_checked_40_ (void){
+    mwexternal_sig_is_checked_26_();
+    mwvalue_40_();
+}
+
+void mwexternal_sig_is_checked_3F_ (void){
+    mwdup();
+    mwexternal_sig_is_checked_26_();
+    mwvalue_40_();
+}
+
 void mwexternal_ctx_26_ (void){
     push_i64(16LL);
     mw_2A_();
@@ -10724,29 +10744,6 @@ void mwexternal_ctx_40_ (void){
 void mwexternal_ctx_3F_ (void){
     mwdup();
     mwexternal_ctx_26_();
-    mwvalue_40_();
-}
-
-void mwexternal_flags_26_ (void){
-    push_i64(16LL);
-    mw_2A_();
-    mwexternal_flags_buffer();
-    mwprim_2E_unsafe_2E_ptr_2B_();
-}
-
-void mwexternal_flags_21_ (void){
-    mwexternal_flags_26_();
-    mwvalue_21_();
-}
-
-void mwexternal_flags_40_ (void){
-    mwexternal_flags_26_();
-    mwvalue_40_();
-}
-
-void mwexternal_flags_3F_ (void){
-    mwdup();
-    mwexternal_flags_26_();
     mwvalue_40_();
 }
 
@@ -17484,27 +17481,6 @@ void mwexternal_alloc_21_ (void){
     mwExternal_2E_alloc_21_();
 }
 
-void mwEXTERNAL_FLAG_SIG_CHECKED (void){
-    push_i64(1LL);
-}
-
-void mwexternal_sig_is_checked_3F_ (void){
-    mwdup();
-    mwexternal_flags_40_();
-    mwEXTERNAL_FLAG_SIG_CHECKED();
-    mw_26_();
-    mwnonzero();
-}
-
-void mwexternal_sig_is_checked_21_ (void){
-    mwdup();
-    mwexternal_flags_40_();
-    mwEXTERNAL_FLAG_SIG_CHECKED();
-    mw_7C_();
-    mwswap();
-    mwexternal_flags_21_();
-}
-
 void mwNameValue__3E_External (void){
     switch (get_top_data_tag()) {
     case 13LL:
@@ -18972,6 +18948,8 @@ void mwelab_external_ctx_sig_21_ (void){
     mwexternal_type_21_();
     mwtuck();
     mwexternal_ctx_21_();
+    mwtrue();
+    mwswap();
     mwexternal_sig_is_checked_21_();
       push_value(d3); }
       push_value(d2); }

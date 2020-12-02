@@ -9,12 +9,7 @@ import(mirth/data/type)
 
 def(External->Int, External -- Int, cast)
 def(Int->External, Int -- External, cast)
-
 def(external-alloc!, External +Externals, External.alloc!)
-
-def(EXTERNAL_FLAG_SIG_CHECKED, Int, 0x1)
-def(external-sig-is-checked?, External -- External Bool, dup external-flags@ EXTERNAL_FLAG_SIG_CHECKED & nonzero)
-def(external-sig-is-checked!, External --, dup external-flags@ EXTERNAL_FLAG_SIG_CHECKED | swap external-flags!)
 
 def(NameValue->External, NameValue -- External,
     match(

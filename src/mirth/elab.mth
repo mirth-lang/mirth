@@ -224,7 +224,7 @@ def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
             rotl
             tuck external-type!
             tuck external-ctx!
-            external-sig-is-checked!
+            true swap external-sig-is-checked!
         ))
     ))
 
