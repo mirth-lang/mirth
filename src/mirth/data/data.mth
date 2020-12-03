@@ -101,7 +101,7 @@ match-has-default-case? = dup match-has-default-case
 
 ||| Get type we're matching over.
 match-scrutinee-type? : Match -- Match Type
-match-scrutinee-type? = match-dom? type-expand-tensor tensor-type-snd@
+match-scrutinee-type? = match-dom? type-expand-tensor nip
 
 ||| Is this a pattern match over a "data" type?
 match-scrutinee-is-data? : Match -- Match Bool

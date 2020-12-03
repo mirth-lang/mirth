@@ -23,8 +23,8 @@ def(table-new!, Name -- Table,
     tuck word-name!
 
     TYPE_UNIT
-    TYPE_UNIT TYPE_INT tensor-type-new! TTensor
-    morphism-type-new! TMorphism
+    TYPE_UNIT TYPE_INT TTensor
+    TMorphism
     over word-type!
     true over word-sig-is-checked!
 
@@ -91,9 +91,9 @@ def(field-new!, Name Table Type -- Field,
     tuck word-name!
 
     over field-table@ TTable
-    TYPE_UNIT swap tensor-type-new! TTensor
-    TYPE_UNIT TYPE_PTR tensor-type-new! TTensor
-    morphism-type-new! TMorphism
+    TYPE_UNIT swap TTensor
+    TYPE_UNIT TYPE_PTR TTensor
+    TMorphism
     over word-type!
     true over word-sig-is-checked!
 
@@ -114,8 +114,8 @@ def(field-new!, Name Table Type -- Field,
     tuck word-name!
 
     over field-table? TTable
-    dip(field-type@ dip(TYPE_UNIT) tensor-type-new! TTensor) tensor-type-new! TTensor
-    TYPE_UNIT morphism-type-new! TMorphism
+    dip(field-type@ dip(TYPE_UNIT) TTensor) TTensor
+    TYPE_UNIT TMorphism
     over word-type!
     true over word-sig-is-checked!
 
@@ -131,9 +131,9 @@ def(field-new!, Name Table Type -- Field,
     tuck word-name!
 
     over field-table? TTable swap field-type@
-    dip(TYPE_UNIT swap tensor-type-new! TTensor)
-    TYPE_UNIT swap tensor-type-new! TTensor
-    morphism-type-new! TMorphism
+    dip(TYPE_UNIT swap TTensor)
+    TYPE_UNIT swap TTensor
+    TMorphism
     over word-type!
     true over word-sig-is-checked!
 
@@ -149,9 +149,9 @@ def(field-new!, Name Table Type -- Field,
     tuck word-name!
 
     over field-table? TTable swap field-type@
-    dip(TYPE_UNIT swap tensor-type-new! TTensor)
-    dip(dup) tensor-type-new! TTensor
-    morphism-type-new! TMorphism
+    dip(TYPE_UNIT swap TTensor)
+    dip(dup) TTensor
+    TMorphism
     over word-type!
     true over word-sig-is-checked!
 

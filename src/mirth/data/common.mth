@@ -67,10 +67,15 @@ data Type
     TTable -> Table
     TNominal -> Nominal
     TData -> Data
-    TTensor -> TensorType
-    TMorphism -> MorphismType
-    TApp -> AppType
-    TParam -> ParamType
+    TTensor -> Type Type
+    TMorphism -> Type Type
+    TApp -> Type Type
+    TParam -> Param Type
+end
+
+data Param
+    P0
+    P1+ -> Type Param
 end
 
 data PrimType
@@ -90,22 +95,11 @@ data PrimType
     PRIM_TYPE_I8
 end
 
-table(TensorType)
-table(MorphismType)
-table(ParamType)
-table(Param)
 table(MetaVar)
 table(Nominal)
-table(AppType)
 table(Data)
 table(Tag)
 table(Ctx)
-
-field(tensor-type-snd, TensorType, Type)
-field(tensor-type-fst, TensorType, Type)
-
-field(morphism-type-cod, MorphismType, Type)
-field(morphism-type-dom, MorphismType, Type)
 
 field(meta-is-defined, MetaVar, Bool)
 field(meta-type-raw, MetaVar, Type)
@@ -113,16 +107,6 @@ field(meta-type-raw, MetaVar, Type)
 field(nominal-type, Nominal, Type)
 field(nominal-name, Nominal, Name)
 field(nominal-arity, Nominal, Int)
-
-field(param-type-params, ParamType, Param)
-field(param-type-body, ParamType, Type)
-
-field(param-name, Param, Name)
-field(param-type, Param, Type)
-field(param-next, Param, Param)
-
-field(app-type-fun, AppType, Type)
-field(app-type-arg, AppType, Type)
 
 field(data-header, Data, Token)
 field(data-name, Data, Name)

@@ -31,7 +31,7 @@ def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
         token-next
         swap dip(elab-type-stack!) swap,
         dip(TYPE_UNIT))
-    dip(swap morphism-type-new! TMorphism)
+    dip(swap TMorphism)
     ) # TODO: elaborate effect type too
 
 def(elab-type-stack!, TypeElab Token -- TypeElab Type Token,
@@ -44,7 +44,7 @@ def(elab-type-stack!, TypeElab Token -- TypeElab Type Token,
 def(elab-type-stack-rest!, TypeElab Type Token -- TypeElab Type Token,
     while(sig-is-stack-end2? not,
         swap dip(elab-type-atom!) swap
-        dip(swap tensor-type-new! TTensor)
+        dip(swap TTensor)
     ))
 
 def(elab-type-arg!, TypeElab Token -- TypeElab Type Token,
@@ -126,7 +126,7 @@ def(elab-type-args!, TypeElab Token Type -- TypeElab Token Type,
         while(token-is-right-enclosure? not,
             token-succ swap
             dip(elab-type-arg!) swap
-            dip(swap app-type-new! TApp))
+            dip(swap TApp))
         drop dip(swap),
 
         id
@@ -265,7 +265,7 @@ def(elab-word-body!, Word -- Arrow +Elab,
     )))
 
 def(elab-arrow!, Ctx Type Token -- Arrow,
-    dip(type-get-morphism morphism-type-unpack) swap
+    dip(type-get-morphism) swap
     dip(elab-arrow-fwd! arrow-dom? swap arrow-token@)
     swap elab-type-unify! drop2)
 
@@ -362,7 +362,7 @@ def(elab-arrow-op-prim!, Arrow Prim -- Type,
 
 def(elab-arrow-op-dip!, Arrow -- Type,
     arrow-token? token-args-1 dip(arrow-dom? dip(arrow-ctx?))
-    dip(type-expand-tensor tensor-type-unpack) swap
+    dip(type-expand-tensor) swap
     dip(elab-arrow-fwd! arrow-dom@) T*
     dip(Arrow->Arg arrow-arg-add! drop))
 
@@ -442,7 +442,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
             tag-type@ SUBST_NIL swap type-freshen-sig
             { Case Type Token Subst Type }
             rotr dip(
-                dip(type-expand-morphism morphism-type-unpack dip(swap))
+                dip(type-expand-morphism dip(swap))
                 elab-type-unify! nip dip(over case-mid!)
             )
             swap dip(over case-subst!)
@@ -480,12 +480,12 @@ def(elab-arrow-op-apply!, Arrow Type -- Type,
         drop2 TYPE_ERROR, # TODO: improve error message
 
     type-is-param? if(
-        type-get-param param-type-unpack
-        type-expand-morphism morphism-type-unpack
+        type-get-param
+        type-expand-morphism
         dip(swap dip(elab-arrow-unify-dom!))
         dip(elab-arrow-op-args! drop),
 
-        type-expand-morphism morphism-type-unpack
+        type-expand-morphism
         dip(elab-arrow-unify-dom! drop)
     )))
 

@@ -18,8 +18,8 @@ def(word-alloc!, Word +Words, Word.alloc!)
 def(word-has-body?, Word -- Word Bool,
     word-body? 0 cast == not)
 
-def(word-dom@, Word -- Type, word-type@ type-get-morphism morphism-type-dom@)
-def(word-cod@, Word -- Type, word-type@ type-get-morphism morphism-type-cod@)
+def(word-dom@, Word -- Type, word-type@ type-get-morphism drop)
+def(word-cod@, Word -- Type, word-type@ type-get-morphism nip)
 
 def(NameValue->Word, NameValue -- Word,
     match(

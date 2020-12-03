@@ -460,6 +460,7 @@ def(c99-emit-prims!, +IO,
     "                }" ;
     "            } break;" ;
     "            case VT_C21: {" ;
+#    "                fprintf(stderr, \"turbo mode!\\n\");" ;
     "                u64 x0 = car.payload.vp_u64 >> 42;" ;
     "                u64 x1 = (car.payload.vp_u64 >> 21) & 0x1FFFFFLL;" ;
     "                u64 x2 = car.payload.vp_u64 & 0x1FFFFFLL;" ;
@@ -1169,7 +1170,7 @@ def(c99-emit-main!, Arrow -- +IO,
     "    global_argc = argc;";
     "    global_argv = argv;";
     c99-emit-arrow!
-#    "    fprintf(stderr, \"heap count = 0x%lX\\n\", heap_count);" ;
+    "    fprintf(stderr, \"heap count = 0x%lX\\n\", heap_count);" ;
     "    return 0;" ;
     "}" ;
     )
