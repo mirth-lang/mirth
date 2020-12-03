@@ -65,7 +65,7 @@ def(var-trace-binding!, Var -- +IO,
 
 def(T*, Type Type -- Type, TTensor)
 def(T->, Type Type -- Type, TMorphism)
-def(T=>, Param Type -- Type, TParam)
+def(T=>, List(Type) Type -- Type, TParam)
 
 def(T0, Type, TYPE_UNIT)
 def(T1, Type -- Type, dip(T0) T*)
@@ -154,7 +154,7 @@ def(type-get-hole, Type -- Name,
         THole -> id,
         _ -> "compiler error: tried to get hole name value on non-hole type" panic!,
     ))
-def(type-get-param, Type -- Param Type,
+def(type-get-param, Type -- List(Type) Type,
     match(
         TParam -> id,
         _ -> "compiler error: tried to get param type value on non-param type" panic!,
@@ -744,24 +744,14 @@ def(table-alloc!, Table,
 # Params #
 ##########
 
-def(P1, Type -- Param, P0 P1+)
-def(P2, Type Type -- Param, P0 P1+ P1+)
-def(P3, Type Type Type -- Param, P0 P1+ P1+ P1+)
-
-def(param-empty?, Param -- Param Bool,
-    dup match(P0 -> true, _ -> drop false))
-def(param-len, Param -- Int,
-    match(P0 -> 0, P1+ -> nip param-len 1+))
-def(param-unpack, Param -- Type Param,
-    match(
-        P0 -> TYPE_ERROR P0,
-        P1+ -> id
-    ))
+def(P1, Type -- List(Type), L0 L1+)
+def(P2, Type Type -- List(Type), L0 L2+)
+def(P3, Type Type Type -- List(Type), L0 L3+)
 
 def(type-num-params, Type -- Int,
     type-expand
     type-is-param? if(
-        type-get-param drop param-len,
+        type-get-param drop len,
         drop 0
     ))
 
@@ -772,13 +762,14 @@ def(type-num-params, Type -- Int,
 #     param-type-new! false)
 #     # TODO: only generate new param-type when needed
 
-def(param-freshen-aux, Subst Param -- Subst Param Bool,
-    match(
-        P0 -> P0 true,
-        P1+ ->
-            dip(type-freshen-aux)
-            rotr dip(dip(param-freshen-aux) swap) &&
-            dip(swap P1+)
+def(param-freshen-aux, Subst List(Type) -- Subst List(Type) Bool,
+    is-nil? if(
+        true,
+
+        uncons
+        dip(type-freshen-aux)
+        rotr dip(dip(param-freshen-aux) swap) &&
+        dip(swap cons)
     ))
 
 ############

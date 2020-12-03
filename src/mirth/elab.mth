@@ -495,11 +495,10 @@ def(elab-arrow-unify-dom!, Arrow Type -- Arrow,
     over arrow-dom? swap arrow-token@ elab-type-unify! drop2)
 
 ||| Elaborate the args of an arrow.
-def(elab-arrow-op-args!, Arrow Param -- Arrow,
+def(elab-arrow-op-args!, Arrow List(Type) -- Arrow,
     dip(arrow-token? token-succ)
-    while(param-empty? not,
-        dip(token-succ)
-        param-unpack
+    while(is-cons?,
+        dip(token-succ) uncons
         dip(
             over
             dip(dip(over arrow-ctx@))

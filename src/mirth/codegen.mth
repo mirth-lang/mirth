@@ -1170,7 +1170,7 @@ def(c99-emit-main!, Arrow -- +IO,
     "    global_argc = argc;";
     "    global_argv = argv;";
     c99-emit-arrow!
-    "    fprintf(stderr, \"heap count = 0x%lX\\n\", heap_count);" ;
+#    "    fprintf(stderr, \"heap count = 0x%lX\\n\", heap_count);" ;
     "    return 0;" ;
     "}" ;
     )

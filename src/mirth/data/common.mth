@@ -70,12 +70,7 @@ data Type
     TTensor -> Type Type
     TMorphism -> Type Type
     TApp -> Type Type
-    TParam -> Param Type
-end
-
-data Param
-    P0
-    P1+ -> Type Param
+    TParam -> List(Type) Type
 end
 
 data PrimType
