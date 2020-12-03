@@ -23,14 +23,14 @@ def(table-new!, Name -- Table,
     tuck word-name!
 
     TYPE_UNIT
-    TYPE_UNIT TYPE_INT tensor-type-new! TTensor
-    morphism-type-new! TMorphism
+    TYPE_UNIT TYPE_INT TTensor
+    TMorphism
     over word-type!
-    dup word-sig-is-checked!
+    true over word-sig-is-checked!
 
     TABLE_MAX_SIZE arrow-new-int!
     over word-arrow!
-    word-body-is-checked!
+    true swap word-body-is-checked!
 
     # Table.NUM
     table-name? name-load! ".NUM" str-buf-push-str! name-save!
@@ -45,7 +45,7 @@ def(table-new!, Name -- Table,
 
     over dip(T0) TTable T1 T->
     over word-type!
-    dup word-sig-is-checked!
+    true over word-sig-is-checked!
 
     # TODO: perform bounds check in Table.alloc!
     over table-num-buffer@ dup
@@ -59,7 +59,7 @@ def(table-new!, Name -- Table,
     )
     arrow-push-buffer!
     PRIM_MEM_SET_INT arrow-push-prim!
-    drop word-body-is-checked!)
+    drop true swap word-body-is-checked!)
 
 #########
 # FIELD #
@@ -91,11 +91,11 @@ def(field-new!, Name Table Type -- Field,
     tuck word-name!
 
     over field-table@ TTable
-    TYPE_UNIT swap tensor-type-new! TTensor
-    TYPE_UNIT TYPE_PTR tensor-type-new! TTensor
-    morphism-type-new! TMorphism
+    TYPE_UNIT swap TTensor
+    TYPE_UNIT TYPE_PTR TTensor
+    TMorphism
     over word-type!
-    dup word-sig-is-checked!
+    true over word-sig-is-checked!
 
     # FIXME: need a better arrow-building inteface that tracks types
     #  i.e. a better elaborator API.
@@ -104,7 +104,7 @@ def(field-new!, Name Table Type -- Field,
     PRIM_INT_MUL arrow-push-prim!
     dip(over field-buffer@) swap arrow-push-buffer!
     PRIM_PTR_ADD arrow-push-prim!
-    drop dup word-body-is-checked!
+    drop true over word-body-is-checked!
     over field-word-ptr!
 
     # field!
@@ -114,15 +114,15 @@ def(field-new!, Name Table Type -- Field,
     tuck word-name!
 
     over field-table? TTable
-    dip(field-type@ dip(TYPE_UNIT) tensor-type-new! TTensor) tensor-type-new! TTensor
-    TYPE_UNIT morphism-type-new! TMorphism
+    dip(field-type@ dip(TYPE_UNIT) TTensor) TTensor
+    TYPE_UNIT TMorphism
     over word-type!
-    dup word-sig-is-checked!
+    true over word-sig-is-checked!
 
     over field-word-ptr@ arrow-new-word!
     dup2 swap word-arrow!
     PRIM_MEM_SET_VALUE arrow-push-prim!
-    drop word-body-is-checked!
+    drop true swap word-body-is-checked!
 
     # field@
     field-name? name-load! "@" str-buf-push-str! name-save!
@@ -131,16 +131,16 @@ def(field-new!, Name Table Type -- Field,
     tuck word-name!
 
     over field-table? TTable swap field-type@
-    dip(TYPE_UNIT swap tensor-type-new! TTensor)
-    TYPE_UNIT swap tensor-type-new! TTensor
-    morphism-type-new! TMorphism
+    dip(TYPE_UNIT swap TTensor)
+    TYPE_UNIT swap TTensor
+    TMorphism
     over word-type!
-    dup word-sig-is-checked!
+    true over word-sig-is-checked!
 
     over field-word-ptr@ arrow-new-word!
     dup2 swap word-arrow!
     PRIM_MEM_GET_VALUE arrow-push-prim!
-    drop word-body-is-checked!
+    drop true swap word-body-is-checked!
 
     # field?
     field-name? name-load! "?" str-buf-push-str! name-save!
@@ -149,11 +149,11 @@ def(field-new!, Name Table Type -- Field,
     tuck word-name!
 
     over field-table? TTable swap field-type@
-    dip(TYPE_UNIT swap tensor-type-new! TTensor)
-    dip(dup) tensor-type-new! TTensor
-    morphism-type-new! TMorphism
+    dip(TYPE_UNIT swap TTensor)
+    dip(dup) TTensor
+    TMorphism
     over word-type!
-    dup word-sig-is-checked!
+    true over word-sig-is-checked!
 
     over field-word-ptr@
     dip(
@@ -162,7 +162,7 @@ def(field-new!, Name Table Type -- Field,
     )
     arrow-push-word!
     PRIM_MEM_GET_VALUE arrow-push-prim!
-    drop word-body-is-checked!)
+    drop true swap word-body-is-checked!)
 
 ############
 ### test ###

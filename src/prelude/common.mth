@@ -30,6 +30,9 @@ drop2 = drop drop
 drop3 : a b c --
 drop3 = drop drop drop
 
+drop4 : a b c d --
+drop4 = drop drop drop drop
+
 def-type(Byte, U8)
 def-type(Char, U8)
 def-type(Str, Ptr)
@@ -387,7 +390,6 @@ str-eq? = dup2 str-eq
 ##########
 
 ||| Return the "nil" pack, i.e. null.
-||| Attempts to uncons "nil" will result in a panic.
 pack-nil : [*a]
 pack-nil = prim.pack.nil cast
 
@@ -401,11 +403,7 @@ pack-cons = prim.pack.cons
 
 ||| Deconstruct a tuple by splitting it at its last element.
 pack-uncons : [*a b] -- [*a] b
-pack-uncons =
-    pack-nil? if(
-        "attempted to uncons nil" panic!,
-        prim.pack.uncons
-    )
+pack-uncons = prim.pack.uncons
 
 pack0 : []
 pack0 = pack-nil
@@ -526,71 +524,75 @@ maybe-unwrap =
 #########
 
 data List(t)
-    NIL
-    ETC -> List1(t)
+    L0
+    L1+ -> t List(t)
+    L2+ -> t t List(t)
+    L3+ -> t t t List(t)
+    L4+ -> t t t t List(t)
 end
-
-data List1(t)
-    CON -> t
-    CAT -> List1(t) List1(t)
-end
-
-con : t -- List(t)
-con = CON ETC
-
-cat : List(t) List(t) -- List(t)
-cat =
-    match(
-        NIL -> id,
-        ETC ->
-            swap match(
-                NIL -> ETC,
-                ETC -> swap CAT ETC
-            )
-    )
-
-cons : t List(t) -- List(t)
-cons = match(NIL -> con, ETC -> list1-cons ETC)
-
-snoc : List(t) t -- List(t)
-snoc = swap match(NIL -> con, ETC -> swap list1-snoc ETC)
-
-is-nil? : List(t) -- List(t) Bool
-is-nil? = dup is-nil
-
-is-nil : List(t) -- Bool
-is-nil = match(NIL -> true, _ -> drop false)
-
-len? : List(t) -- List(t) Int
-len? = dup len
 
 len : List(t) -- Int
-len = match(NIL -> 0, ETC -> list1-len)
+len =
+    dip(0) while(is-cons?,
+        match(
+            L0 -> L0,
+            L1+ -> dip(drop  1 +),
+            L2+ -> dip(drop2 2 +),
+            L3+ -> dip(drop3 3 +),
+            L4+ -> dip(drop4 4 +),
+        )
+    ) drop
 
-list1-cons : t List1(t) -- List1(t)
-list1-cons = dip(CON) CAT
+nil : List(t)
+nil = L0
 
-list1-snoc : List1(t) t -- List1(t)
-list1-snoc = CON CAT
+is-nil? : List(t) -- List(t) Bool
+is-nil? = match(L0 -> L0 true, _ -> false)
 
-list1-len? : List1(t) -- List1(t) Int
-list1-len? = dup list1-len
+is-cons? : List(t) -- List(t) Bool
+is-cons? = is-nil? not
 
-list1-len : List1(t) -- Int
-list1-len = 0 swap list1-len+
+is-nil : List(t) -- Bool
+is-nil = is-nil? nip
 
-list1-len+ : Int List1(t) -- Int
-list1-len+ =
+is-cons : List(t) -- Bool
+is-cons = is-cons? nip
+
+cons : t List(t) -- List(t)
+cons =
     match(
-        CON -> drop 1+,
-        CAT -> dip(list1-len+) list1-len+
+        L1+ -> L2+,
+        L2+ -> L3+,
+        L3+ -> L4+,
+        _ -> L1+
     )
 
-list1-first : List1(t) -- t
-list1-first = match(CON -> id, CAT -> drop list1-first)
+uncons : List(t) -- t List(t)
+uncons =
+    match(
+        L0 -> "uncons on empty list" panic!,
+        L1+ -> id,
+        L2+ -> L1+,
+        L3+ -> L2+,
+        L4+ -> L3+,
+    )
 
-list1-last : List1(t) -- t
-list1-last = match(CON -> id, CAT -> nip list1-last)
+snoc : List(t) t -- List(t)
+snoc =
+    swap is-nil? if(
+        L1+,
+        uncons rotl snoc cons
+    )
+
+unsnoc : List(t) -- List(t) t
+unsnoc =
+    is-nil? if(
+        "unsnoc on empty list" panic!,
+        uncons is-nil? if(
+            swap,
+            unsnoc dip(cons)
+        )
+    )
 
 ######
 # IO #

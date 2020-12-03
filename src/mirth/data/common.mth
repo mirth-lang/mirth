@@ -1,6 +1,8 @@
 module(mirth/data/common)
 import(prelude)
 
+# mirth/data/string
+nominal(StrLit, Int)
 
 # mirth/data/name
 data NameValue
@@ -21,7 +23,6 @@ field(buffer-size, Buffer, Size)
 field(buffer-base, Buffer, Ptr)
 field(buffer-name, Buffer, Name)
 
-
 # mirth/data/module
 table(Module)
 table(Token)
@@ -35,32 +36,65 @@ nominal(Col, Int)
 nominal(Location, [Module Row Col])
 
 # mirth/data/token
-nominal(TokenType, U8)
-nominal(TokenValue, Int)
-field(token-type, Token, TokenType)
+data TokenValue
+    TOKEN_NONE
+    TOKEN_COMMA
+    TOKEN_NEWLINE
+    TOKEN_LPAREN -> Token
+    TOKEN_RPAREN -> Token
+    TOKEN_LBRACKET -> Token
+    TOKEN_RBRACKET -> Token
+    TOKEN_LBRACE -> Token
+    TOKEN_RBRACE -> Token
+    TOKEN_INT -> Int
+    TOKEN_STR -> StrLit
+    TOKEN_NAME -> Name
+end
 field(token-value, Token, TokenValue)
 field(token-module, Token, Module)
 field(token-row, Token, Row)
 field(token-col, Token, Col)
 
 # mirth/data/type
-nominal(Type, U32)
-table(TensorType)
-table(MorphismType)
-table(ParamType)
-table(Param)
+data Type
+    TYPE_ERROR
+    TYPE_DONT_CARE
+    TYPE_UNIT
+    TPrim -> PrimType
+    TMeta -> MetaVar
+    THole -> Name
+    TVar -> Var
+    TTable -> Table
+    TNominal -> Nominal
+    TData -> Data
+    TTensor -> Type Type
+    TMorphism -> Type Type
+    TApp -> Type Type
+    TParam -> List(Type) Type
+end
+
+data PrimType
+    PRIM_TYPE_TYPE
+    PRIM_TYPE_STACK
+    PRIM_TYPE_EFFECT
+    PRIM_TYPE_INT
+    PRIM_TYPE_PTR
+    PRIM_TYPE_BOOL
+    PRIM_TYPE_U64
+    PRIM_TYPE_U32
+    PRIM_TYPE_U16
+    PRIM_TYPE_U8
+    PRIM_TYPE_I64
+    PRIM_TYPE_I32
+    PRIM_TYPE_I16
+    PRIM_TYPE_I8
+end
+
 table(MetaVar)
 table(Nominal)
-table(AppType)
 table(Data)
 table(Tag)
 table(Ctx)
-
-field(tensor-type-snd, TensorType, Type)
-field(tensor-type-fst, TensorType, Type)
-
-field(morphism-type-cod, MorphismType, Type)
-field(morphism-type-dom, MorphismType, Type)
 
 field(meta-is-defined, MetaVar, Bool)
 field(meta-type-raw, MetaVar, Type)
@@ -68,16 +102,6 @@ field(meta-type-raw, MetaVar, Type)
 field(nominal-type, Nominal, Type)
 field(nominal-name, Nominal, Name)
 field(nominal-arity, Nominal, Int)
-
-field(param-type-params, ParamType, Param)
-field(param-type-body, ParamType, Type)
-
-field(param-name, Param, Name)
-field(param-type, Param, Type)
-field(param-next, Param, Param)
-
-field(app-type-fun, AppType, Type)
-field(app-type-arg, AppType, Type)
 
 field(data-header, Data, Token)
 field(data-name, Data, Name)
@@ -114,20 +138,30 @@ table(External)
 field(external-name, External, Name)
 field(external-type, External, Type)
 field(external-sig, External, Token)
+field(external-sig-is-checked, External, Bool)
 field(external-ctx, External, Ctx)
-field(external-flags, External, Int)
 
 # mirth/data/arrow
 table(Arrow)
 table(Args)
-nominal(Op, U8)
 nominal(Arg, Arrow)
+data Op
+    OP_NONE
+    OP_PRIM -> Prim
+    OP_WORD -> Word
+    OP_EXTERNAL -> External
+    OP_BUFFER -> Buffer
+    OP_INT -> Int
+    OP_STR -> StrLit
+    OP_TAG -> Tag
+    OP_MATCH -> Match
+end
+
 field(arrow-token, Arrow, Token)
 field(arrow-ctx, Arrow, Ctx)
 field(arrow-dom, Arrow, Type)
 field(arrow-next, Arrow, Arrow)
 field(arrow-op, Arrow, Op)
-field(arrow-op-value, Arrow, Int)
 field(arrow-subst, Arrow, Subst)
 field(arrow-args, Arrow, Args)
 field(args-head, Args, Arg)
@@ -141,14 +175,14 @@ field(prim-type, Prim, Type)
 
 # mirth/data/word
 table(Word)
-nominal(WordStatus, U8)
 field(word-name, Word, Name)
 field(word-sig, Word, Token)
 field(word-body, Word, Token)
 field(word-ctx, Word, Ctx)
 field(word-type, Word, Type)
 field(word-arrow, Word, Arrow)
-field(word-status, Word, WordStatus)
+field(word-sig-is-checked, Word, Bool)
+field(word-body-is-checked, Word, Bool)
 
 # mirth/data/table
 table(Table)

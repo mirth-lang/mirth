@@ -77,7 +77,8 @@ def(run-lexer!, Path -- Module +Lexer,
     input-end!
 
     lexer-stack-empty? if(
-        TOKEN_NONE 0 Int->TokenValue lexer-emit!,
+        TOKEN_NEWLINE lexer-emit!
+        TOKEN_NONE lexer-emit!,
 
         lexer-stack-pop!
         "Mismatched left parenthesis."
@@ -94,16 +95,15 @@ def(lexer-done?, Bool +Lexer, input-done?)
 
 # Create a token, and add it to the token buffer,
 # returning the new token.
-def(lexer-make!, TokenType TokenValue -- Token,
+def(lexer-make!, TokenValue -- Token,
     token-alloc!
     tuck token-value!
-    tuck token-type!
     dip(lexer-module@) dup dip(token-module!)
     dip(lexer-row@) dup dip(token-row!)
     dip(lexer-col@) dup dip(token-col!))
 
 # Create a token, and add it to the token buffer.
-def(lexer-emit!, TokenType TokenValue --, lexer-make! drop)
+def(lexer-emit!, TokenValue --, lexer-make! drop)
 
 # Lex the next token.
 def(lexer-next!, --,
@@ -126,7 +126,7 @@ def(lexer-next!, --,
 
     is-comma? if(
         drop
-        TOKEN_COMMA 0 Int->TokenValue lexer-emit!,
+        TOKEN_COMMA lexer-emit!,
 
     is-lparen? if(
         drop
@@ -164,53 +164,47 @@ def(lexer-next!, --,
 
 def(lexer-emit-newline!, +Lexer,
     lexer-stack-empty? if(
-        TOKEN_NEWLINE 0 Int->TokenValue lexer-make! drop,
+        TOKEN_NEWLINE lexer-emit!,
         id
     )
     lexer-row@ Row->Int 1+ Int->Row lexer-row!
     0 Int->Col lexer-col!)
 
 def(lexer-emit-lparen!, +Lexer,
-    TOKEN_LPAREN 0 Int->TokenValue lexer-make!
+    0 Int->Token TOKEN_LPAREN lexer-make!
     lexer-stack-push!)
-
 def(lexer-emit-rparen!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right parenthesis." lexer-emit-fatal-error!,
-        TOKEN_RPAREN lexer-stack-pop! dup
-        token-type? TOKEN_LPAREN == if(
-            dip(Token->TokenValue lexer-make!)
-            dip(Token->TokenValue) token-value!,
+        lexer-stack-pop! token-is-lparen? if(
+            dup TOKEN_RPAREN lexer-make!
+            TOKEN_LPAREN swap token-value!,
             "Mismatched right parenthesis." lexer-emit-fatal-error!
         )
     ))
 
 def(lexer-emit-lbracket!, +Lexer,
-    TOKEN_LBRACKET 0 Int->TokenValue lexer-make!
+    0 Int->Token TOKEN_LBRACKET lexer-make!
     lexer-stack-push!)
-
 def(lexer-emit-rbracket!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right bracket." lexer-emit-fatal-error!,
-        TOKEN_RBRACKET lexer-stack-pop! dup
-        token-type? TOKEN_LBRACKET == if(
-            dip(Token->TokenValue lexer-make!)
-            dip(Token->TokenValue) token-value!,
+        lexer-stack-pop! token-is-lbracket? if(
+            dup TOKEN_RBRACKET lexer-make!
+            TOKEN_LBRACKET swap token-value!,
             "Mismatched right bracket." lexer-emit-fatal-error!
         )
     ))
 
 def(lexer-emit-lbrace!, +Lexer,
-    TOKEN_LBRACE 0 Int->TokenValue lexer-make!
+    0 Int->Token TOKEN_LBRACE lexer-make!
     lexer-stack-push!)
-
 def(lexer-emit-rbrace!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right brace." lexer-emit-fatal-error!,
-        TOKEN_RBRACE lexer-stack-pop! dup
-        token-type? TOKEN_LBRACE == if(
-            dip(Token->TokenValue lexer-make!)
-            dip(Token->TokenValue) token-value!,
+        lexer-stack-pop! token-is-lbrace? if(
+            dup TOKEN_RBRACE lexer-make!
+            TOKEN_LBRACE swap token-value!,
             "Mismatched right brace." lexer-emit-fatal-error!
         )
     ))
@@ -232,18 +226,18 @@ def(lexer-emit-name!, +Lexer,
 
     str-buf-is-doc-start? if(
         drop3
-        lexer-skip-doc!, # TODO: save the doc in a token-doc field for the proceeding token
+        lexer-skip-doc!,
+        # TODO: save the doc in a token-doc field for the proceeding token
+
     str-buf-is-int? if(
         token-alloc!
-        TOKEN_INT over token-type!
-        str-buf-int? Int->TokenValue over token-value!
+        str-buf-int? TOKEN_INT over token-value!
         tuck token-col!
         tuck token-row!
         token-module!,
 
         token-alloc!
-        TOKEN_NAME over token-type!
-        name-save! Name->TokenValue over token-value!
+        name-save! TOKEN_NAME over token-value!
         tuck token-col!
         tuck token-row!
         token-module!
@@ -360,7 +354,7 @@ def(hexdigit-value, Char -- Int,
 
 def(lexer-emit-string!, +Lexer,
     str-buf-clear!
-    TOKEN_STR 0 Int->TokenValue lexer-make!
+    TOKEN_NONE lexer-make!
 
     lexer-move!
     lexer-peek while(is-string-end? not,
@@ -370,8 +364,8 @@ def(lexer-emit-string!, +Lexer,
     )
     drop
 
-    strings-save! StrLit->Int
-    Int->TokenValue swap token-value!)
+    strings-save! TOKEN_STR
+    swap token-value!)
 
 def(lexer-push-string-char!, Char -- +Lexer,
     is-backslash? if(

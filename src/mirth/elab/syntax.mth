@@ -6,21 +6,30 @@ module(mirth/elab/syntax)
 
 ||| Is this the end of a module?
 token-is-module-end? : Token -- Token Bool
-token-is-module-end? = token-type? TOKEN_NONE ==
+token-is-module-end? =
+    dup Token->Int num-tokens@ >= if(
+        true,
+        token-value? match(
+            TOKEN_NONE -> true,
+            _ -> drop false
+        )
+    )
 
 ||| Is this a token to stop running at?
 token-run-end? : Token -- Token Bool
 token-run-end? =
     dup Token->Int num-tokens@ >= if(
         true,
-    token-type? TOKEN_NONE == if(
-        true,
-    token-type? TOKEN_NEWLINE == if(
-        true,
-    token-type? TOKEN_COMMA == if(
-        true,
-        token-is-right-enclosure?
-    ))))
+        token-value? match(
+            TOKEN_NONE -> true,
+            TOKEN_NEWLINE -> true,
+            TOKEN_COMMA -> true,
+            TOKEN_RPAREN -> drop true,
+            TOKEN_RBRACKET -> drop true,
+            TOKEN_RBRACE -> drop true,
+            _ -> drop false
+        )
+    )
 
 ||| Does the token refer to this primitive? Preserves the token.
 token-prim=? : Token Prim -- Token Bool
@@ -29,14 +38,12 @@ token-prim=? = dip(dup) token-prim=
 ||| Does the token refer to this primitive?
 token-prim= : Token Prim -- Bool
 token-prim= =
-    dip(token-is-name?) swap if(
-        dip(token-name@) name-prim=,
-        drop2 false
+    swap token-value@ match(
+        TOKEN_NAME ->
+            swap name-prim=,
+        _ ->
+            drop2 false
     )
-
-||| Is this a newline token?
-token-is-newline? : Token -- Token Bool
-token-is-newline? = token-type? TOKEN_NEWLINE ==
 
 ||| Skip all the newlines.
 token-skip-newlines : Token -- Token
@@ -96,51 +103,51 @@ sig-count-types =
 
 sig-token-is-type? : Token -- Token Bool
 sig-token-is-type? =
-    token-is-name? if(
-        token-name? name-could-be-type,
-        false
+    token-value? match(
+        TOKEN_NAME -> name-could-be-type,
+        _ -> drop false
     )
 
 sig-token-is-type-con? : Token -- Token Bool
 sig-token-is-type-con? =
-    token-is-name? if(
-        token-name? name-could-be-type-con,
-        false
+    token-value? match(
+        TOKEN_NAME -> name-could-be-type-con,
+        _ -> drop false
     )
 
 sig-token-is-type-hole? : Token -- Token Bool
 sig-token-is-type-hole? =
-    token-is-name? if(
-        token-name? name-is-type-hole,
-        false
+    token-value? match(
+        TOKEN_NAME -> name-is-type-hole,
+        _ -> drop false
     )
 
 token-is-underscore? : Token -- Token Bool
 token-is-underscore? =
-    token-is-name? if(
-        token-name? name-is-underscore,
-        false
+    token-value? match(
+        TOKEN_NAME -> name-is-underscore,
+        _ -> drop false
     )
 
 sig-token-is-type-var? : Token -- Token Bool
 sig-token-is-type-var? =
-    token-is-name? if(
-        token-name? name-could-be-type-var,
-        false
+    token-value? match(
+        TOKEN_NAME -> name-could-be-type-var,
+        _ -> drop false
     )
 
 sig-token-is-stack-var? : Token -- Token Bool
 sig-token-is-stack-var? =
-    token-is-name? if(
-        token-name? name-could-be-stack-var,
-        false
+    token-value? match(
+        TOKEN_NAME -> name-could-be-stack-var,
+        _ -> drop false
     )
 
 sig-token-is-effect-con? : Token -- Token Bool
 sig-token-is-effect-con? =
-    token-is-name? if(
-        token-name? name-could-be-effect-con,
-        false
+    token-value? match(
+        TOKEN_NAME -> name-could-be-effect-con,
+        _ -> drop false
     )
 
 sig-skip-dashes : Token -- Token
@@ -156,7 +163,7 @@ sig-skip-dashes =
 
 token-could-be-word-sig? : Token -- Token Bool
 token-could-be-word-sig? =
-    token-type? TOKEN_NAME == if(
+    token-is-name? if(
         dup token-next PRIM_COLON token-prim=? nip,
         false
     )
@@ -164,7 +171,7 @@ token-could-be-word-sig? =
 # TODO eventually figure out how to deal w/ pattern matching...
 token-could-be-word-def? : Token -- Token Bool
 token-could-be-word-def? =
-    token-type? TOKEN_NAME == if(
+    token-is-name? if(
         dup token-next PRIM_DEFINE token-prim=? nip,
         false
     )
