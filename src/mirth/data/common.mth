@@ -56,7 +56,40 @@ field(token-row, Token, Row)
 field(token-col, Token, Col)
 
 # mirth/data/type
-nominal(Type, U32)
+data Type
+    TYPE_ERROR
+    TYPE_DONT_CARE
+    TYPE_UNIT
+    TPrim -> PrimType
+    TMeta -> MetaVar
+    THole -> Name
+    TVar -> Var
+    TTable -> Table
+    TNominal -> Nominal
+    TData -> Data
+    TTensor -> TensorType
+    TMorphism -> MorphismType
+    TApp -> AppType
+    TParam -> ParamType
+end
+
+data PrimType
+    PRIM_TYPE_TYPE
+    PRIM_TYPE_STACK
+    PRIM_TYPE_EFFECT
+    PRIM_TYPE_INT
+    PRIM_TYPE_PTR
+    PRIM_TYPE_BOOL
+    PRIM_TYPE_U64
+    PRIM_TYPE_U32
+    PRIM_TYPE_U16
+    PRIM_TYPE_U8
+    PRIM_TYPE_I64
+    PRIM_TYPE_I32
+    PRIM_TYPE_I16
+    PRIM_TYPE_I8
+end
+
 table(TensorType)
 table(MorphismType)
 table(ParamType)

@@ -353,7 +353,7 @@ def(elab-arrow-op-prim!, Arrow Prim -- Type,
     dup PRIM_MATCH == if(
         drop elab-arrow-op-match!,
 
-    prim-type? TYPE_ERROR == if(
+    prim-type? type-is-error if(
         drop arrow-token@ "compiler error: prim type missing" emit-fatal-error!,
 
         dup2 swap arrow-op-prim!
