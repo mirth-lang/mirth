@@ -77,7 +77,11 @@ match-num-cases? : Match -- Match Int
 match-num-cases? = match-cases? len
 
 match-add-case! : Match Case -- Match
-match-add-case! = dip(match-cases?) snoc over match-cases!
+match-add-case! =
+    dip(match-cases?) cases-cover-case? if(
+        case-token@ "Case is unreachable." emit-error! drop,
+        snoc over match-cases!
+    )
 
 match-has-default-case : Match -- Bool
 match-has-default-case = match-cases@ cases-have-default-case
@@ -101,11 +105,24 @@ match-scrutinee-data? = match-scrutinee-type? type-head type-get-data
 # CASE #
 ########
 
-case-is-covered : Case Case -- Bool
-case-is-covered = dip(case-pattern@) case-pattern@ pattern-is-covered
+cases-cover-case? : List(Case) Case -- List(Case) Case Bool
+cases-cover-case? = dup2 cases-cover-case
+
+cases-cover-case : List(Case) Case -- Bool
+cases-cover-case =
+    over is-nil if(
+        drop2 false,
+        dip(unsnoc) case-is-covered? if(
+            drop3 true,
+            nip cases-cover-case
+        )
+    )
 
 case-is-covered? : Case Case -- Case Case Bool
 case-is-covered? = dup2 case-is-covered
+
+case-is-covered : Case Case -- Bool
+case-is-covered = dip(case-pattern@) case-pattern@ pattern-is-covered
 
 cases-have-default-case : List(Case) -- Bool
 cases-have-default-case =
