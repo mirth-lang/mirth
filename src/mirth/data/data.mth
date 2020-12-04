@@ -50,6 +50,7 @@ tag-num-inputs? =
 data-num-tags : Data -- Int
 data-num-tags = data-tags@ len
 
+||| Adds constructor to data type, and gives tag its rank.
 data-add-tag! : Tag Data -- +Mirth
 data-add-tag! = (
     dup2 data-num-tags swap tag-value!

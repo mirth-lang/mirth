@@ -119,7 +119,7 @@ field(var-name, Var, Name)
 field(var-type, Var, Type)
 
 # mirth/data/type
-table(Subst)
+table(Subst) # TODO replace Subst with a map type
 field(subst-rest, Subst, Subst)
 field(subst-var, Subst, Var)
 field(subst-type, Subst, Type)
@@ -152,7 +152,7 @@ end
 field(arrow-token, Arrow, Token)
 field(arrow-ctx, Arrow, Ctx)
 field(arrow-dom, Arrow, Type)
-field(arrow-next, Arrow, Arrow)
+field(arrow-next, Arrow, Arrow) # TODO: rethink arrows as a list of operators
 field(arrow-op, Arrow, Op)
 field(arrow-subst, Arrow, Subst)
 field(arrow-args, Arrow, List(Arg))
