@@ -71,24 +71,13 @@ data-add-tag! =
 #########
 
 match-is-empty? : Match -- Match Bool
-match-is-empty? = match-cases? case-is-nil
+match-is-empty? = match-cases? is-nil
 
 match-num-cases? : Match -- Match Int
-match-num-cases? = (
-    match-cases? dip(0)
-    while(
-        case-is-nil? not,
-        case-next@ dip(1+)
-    )
-    drop
-)
+match-num-cases? = match-cases? len
 
 match-add-case! : Match Case -- Match
-match-add-case! =
-    over match-cases? case-is-nil if(
-        match-cases!,
-        match-cases@ swap case-add-case!
-    )
+match-add-case! = dip(match-cases?) snoc over match-cases!
 
 match-has-default-case : Match -- Bool
 match-has-default-case = match-cases@ cases-have-default-case
@@ -112,41 +101,19 @@ match-scrutinee-data? = match-scrutinee-type? type-head type-get-data
 # CASE #
 ########
 
-case-nil : Case
-case-nil = 0 cast
-
-case-is-nil : Case -- Bool
-case-is-nil = case-nil ==
-
-case-is-nil? : Case -- Case Bool
-case-is-nil? = dup case-is-nil
-
-||| Add the second case at the end of the list of the first case.
-||| Raises an error if case is unreachable.
-||| O(n^2) time, sadly, where n is the number of cases.
-case-add-case! : Case Case --
-case-add-case! =
-    case-is-covered? if(
-        case-token@ "Case is unreachable." emit-error! drop,
-        swap case-next? case-is-nil if(
-            case-next!,
-            case-next@ swap case-add-case!
-        )
-    )
-
 case-is-covered : Case Case -- Bool
 case-is-covered = dip(case-pattern@) case-pattern@ pattern-is-covered
 
 case-is-covered? : Case Case -- Case Case Bool
 case-is-covered? = dup2 case-is-covered
 
-cases-have-default-case : Case -- Bool
+cases-have-default-case : List(Case) -- Bool
 cases-have-default-case =
-    case-is-nil? if(
+    is-nil? if(
         drop false,
-        case-is-default-case? if(
+        unsnoc case-is-default-case if(
             drop true,
-            case-next@ cases-have-default-case
+            cases-have-default-case
         )
     )
 

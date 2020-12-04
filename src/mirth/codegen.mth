@@ -1118,8 +1118,8 @@ c99-emit-arrow-op! =
 
 def(c99-emit-match!, Match -- +IO,
     "    switch (get_top_data_tag()) {" ;
-    match-cases? while(case-is-nil? not,
-        dup c99-emit-case! case-next@
+    match-cases? while(is-cons?,
+        uncons dip(c99-emit-case!)
     ) drop
     match-has-default-case if(
         id,
