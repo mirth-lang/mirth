@@ -102,7 +102,6 @@ def(PRIM_MODULE, Prim, 68 Int->Prim)
 def(PRIM_IMPORT, Prim, 69 Int->Prim)
 def(PRIM_DEF, Prim, 50 Int->Prim)
 def(PRIM_DEF_TYPE, Prim, 51 Int->Prim)
-def(PRIM_NOMINAL, Prim, 70 Int->Prim)
 def(PRIM_BUFFER, Prim, 52 Int->Prim)
 def(PRIM_DEF_EXTERNAL, Prim, 53 Int->Prim)
 def(PRIM_TARGET_C99, Prim, 55 Int->Prim)
@@ -203,7 +202,6 @@ def(init-prims!, +Names,
     PRIM_DEF_TYPE "def-type" def-prim!
     PRIM_BUFFER "buffer" def-prim!
     PRIM_DEF_EXTERNAL "def-external" def-prim!
-    PRIM_NOMINAL "nominal" def-prim!
     PRIM_TABLE "table" def-prim!
     PRIM_FIELD "field" def-prim!
     PRIM_TARGET_C99 "target-c99" def-prim!

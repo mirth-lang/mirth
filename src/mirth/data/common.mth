@@ -65,7 +65,6 @@ data Type
     THole -> Name
     TVar -> Var
     TTable -> Table
-    TNominal -> Nominal
     TData -> Data
     TTensor -> Type Type
     TMorphism -> Type Type
@@ -91,17 +90,12 @@ data PrimType
 end
 
 table(MetaVar)
-table(Nominal)
 table(Data)
 table(Tag)
 table(Ctx)
 
 field(meta-is-defined, MetaVar, Bool)
 field(meta-type-raw, MetaVar, Type)
-
-field(nominal-type, Nominal, Type)
-field(nominal-name, Nominal, Name)
-field(nominal-arity, Nominal, Int)
 
 field(data-header, Data, Token)
 field(data-name, Data, Name)

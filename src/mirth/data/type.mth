@@ -86,7 +86,6 @@ def(type-is-var, Type -- Bool, match(TVar -> drop true, _ -> drop false))
 def(type-is-meta, Type -- Bool, match(TMeta -> drop true, _ -> drop false))
 def(type-is-tensor, Type -- Bool, match(TTensor -> drop2 true, _ -> drop false))
 def(type-is-morphism, Type -- Bool, match(TMorphism -> drop2 true, _ -> drop false))
-def(type-is-nominal, Type -- Bool, match(TNominal -> drop true, _ -> drop false))
 def(type-is-table, Type -- Bool, match(TTable -> drop true, _ -> drop false))
 def(type-is-hole, Type -- Bool, match(THole -> drop true, _ -> drop false))
 def(type-is-param, Type -- Bool, match(TParam -> drop2 true, _ -> drop false))
@@ -100,7 +99,6 @@ def(type-is-var?, Type -- Type Bool, dup type-is-var)
 def(type-is-meta?, Type -- Type Bool, dup type-is-meta)
 def(type-is-tensor?, Type -- Type Bool, dup type-is-tensor)
 def(type-is-morphism?, Type -- Type Bool, dup type-is-morphism)
-def(type-is-nominal?, Type -- Type Bool, dup type-is-nominal)
 def(type-is-table?, Type -- Type Bool, dup type-is-table)
 def(type-is-hole?, Type -- Type Bool, dup type-is-hole)
 def(type-is-param?, Type -- Type Bool, dup type-is-param)
@@ -138,11 +136,6 @@ def(type-get-morphism, Type -- Type Type,
     match(
         TMorphism -> id,
         _ ->  "compiler error: tried to get morphism value on non-morphism type" panic!,
-    ))
-def(type-get-nominal, Type -- Nominal,
-    match(
-        TNominal -> id,
-        _ -> "compiler error: tried to get nominal value on non-nominal type" panic!,
     ))
 def(type-get-table, Type -- Table,
     match(
@@ -287,14 +280,7 @@ def(type-unify!, Type Type -- Type +Elab,
             swap type-unify-failed!
         ),
 
-    type-is-nominal? if( # nominals need to be exact matches
-        swap type-is-nominal? if(
-            type-get-nominal swap type-get-nominal
-            type-nominal-unify!,
-            swap type-unify-failed!
-        ),
-
-    type-is-data? if( # data types are just like nominal types
+    type-is-data? if( # data types neet to be exact matches
         swap type-is-data? if(
             type-get-data swap type-get-data
             type-data-unify!,
@@ -347,7 +333,7 @@ def(type-unify!, Type Type -- Type +Elab,
     # TODO: unify param types
 
         type-unify-failed!
-    ))))))))))))))))))
+    )))))))))))))))))
 
 def(type-prim-unify!, PrimType PrimType -- Type,
     dup2 == if(
@@ -358,11 +344,6 @@ def(type-data-unify!, Data Data -- Type,
     dup2 == if(
         drop TData,
         dip(TData) TData type-unify-failed!
-    ))
-def(type-nominal-unify!, Nominal Nominal -- Type,
-    dup2 == if(
-        drop TNominal,
-        dip(TNominal) TNominal type-unify-failed!
     ))
 def(type-table-unify!, Table Table -- Type,
     dup2 == if(
@@ -392,7 +373,6 @@ def(type-has-meta, MetaVar Type -- Bool,
             TTensor -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
             TMorphism -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
             TApp -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
-            TNominal -> drop2 false,
             TData -> drop2 false,
             TTable -> drop2 false,
             TParam -> drop3 false, # param-type-has-meta ## TODO
@@ -446,7 +426,6 @@ def(type-trace!, Type -- +IO,
             TMeta -> "?" str-trace! MetaVar->Int int-trace!,
             TTensor -> "[" str-trace! TTensor type-trace-stack! "]" str-trace!,
             TMorphism -> "[" str-trace! TMorphism type-trace-sig! "]" str-trace!,
-            TNominal -> nominal-name@ name-load! str-buf-trace!,
             TData -> data-name@ name-load! str-buf-trace!,
             TTable -> table-name@ name-load! str-buf-trace!,
             THole -> name-load! str-buf-trace!,
@@ -559,14 +538,11 @@ def(type-var-freshen, Subst Type -- Subst Type Bool,
 
 def(type-arity, Type -- Int,
     type-expand
-    type-is-nominal? if(
-        type-get-nominal nominal-arity@,
-
     type-is-data? if(
         type-get-data data-arity@,
 
         drop 0
-    )))
+    ))
 
 ||| Get head of type.
 def(type-head, Type -- Type,
@@ -614,18 +590,6 @@ def(meta-unify!, Type MetaVar -- Type,
         swap dip(dup)
         meta-type!
     )))
-
-############
-# Nominals #
-############
-
-def(Int->Nominal, Int -- Nominal, cast)
-def(Nominal->Int, Nominal -- Int, cast)
-def(nominal-new!, Name Int Type -- Nominal,
-    Nominal.alloc!
-    tuck nominal-type!
-    tuck nominal-arity!
-    tuck nominal-name!)
 
 ########
 # Data #
