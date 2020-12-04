@@ -2461,6 +2461,13 @@ void mwPATTERN_TAG (void) {
     push_value(car);
 }
 
+void mwPATH (void) {
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 73LL } };
+    car = mkcell(car, tag);
+    push_value(car);
+}
+
  volatile u8 bSTR_BUF[4096] = {0};
  void mwSTR_BUF (void) { push_ptr((void*)bSTR_BUF); }
  volatile u8 bSTR_BUF_LEN[8] = {0};
@@ -3565,8 +3572,6 @@ void mwPATTERN_TAG (void) {
  void mwNameValue__3E_Module (void);
  void mwModule__3E_NameValue (void);
  void mwname_module_21_ (void);
- void mwPath_2E_unwrap (void);
- void mwPath_2E_wrap (void);
  void mwpath_40_ (void);
  void mwpath_21_ (void);
  void mwsource_path_root_21_ (void);
@@ -5139,7 +5144,13 @@ void mwstr_trace_21_ (void){
 }
 
 void mwPath__3E_Str (void){
-    mwPath_2E_unwrap();
+    switch (get_top_data_tag()) {
+    case 73LL:
+    do_pack_uncons(); do_drop();
+    mwid();
+    break;
+    default: fprintf(stderr, "unexpected fallthrough in match\n"); do_debug(); exit(99);
+    }
 }
 
 void mwstr_trace_ln_21_ (void){
@@ -5243,7 +5254,7 @@ void mwptr_40__40_ (void){
 }
 
 void mwStr__3E_Path (void){
-    mwPath_2E_wrap();
+    mwPATH();
 }
 
 void mwpanic_21_ (void){
@@ -12571,12 +12582,6 @@ void mwname_module_21_ (void){
     mwModule__3E_NameValue();
       push_value(d1); }
     mwname_value_21_();
-}
-
-void mwPath_2E_unwrap (void){
-}
-
-void mwPath_2E_wrap (void){
 }
 
 void mwpath_40_ (void){

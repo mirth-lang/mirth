@@ -1,13 +1,13 @@
 module(mirth/data/path)
 import(prelude)
 
-nominal(Path, Str)
-
-Path->Str : Path -- Str
-Path->Str = Path.unwrap
+data(Path, PATH -> Str)
 
 Str->Path : Str -- Path
-Str->Path = Path.wrap
+Str->Path = PATH
+
+Path->Str : Path -- Str
+Path->Str = match(PATH -> id)
 
 path@ : Ptr -- Path
 path@ = ptr@ Str->Path
