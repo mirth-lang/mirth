@@ -48,23 +48,13 @@ tag-num-inputs? =
 ########
 
 data-num-tags : Data -- Int
-data-num-tags = (
-    0 swap data-tags@
-    while(
-        tag-is-nil? not,
-        dip(1+) tag-next@
-    )
-    drop
-)
+data-num-tags = data-tags@ len
 
 data-add-tag! : Tag Data -- +Mirth
-data-add-tag! =
-    data-tags? tag-is-nil if(
-        0 swap dip(over tag-value!) data-tags!,
-        1 swap data-tags@ { Tag Int Tag }
-        while(tag-next? tag-is-nil not, tag-next@ dip(1+))
-        dip(over tag-value!) tag-next!
-    )
+data-add-tag! = (
+    dup2 data-num-tags swap tag-value!
+    data-tags? rotr dip(snoc) data-tags!
+)
 
 #########
 # MATCH #

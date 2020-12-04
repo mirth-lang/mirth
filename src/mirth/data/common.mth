@@ -101,7 +101,7 @@ field(meta-type-raw, MetaVar, Type)
 field(data-header, Data, Token)
 field(data-name, Data, Name)
 field(data-arity, Data, Int)
-field(data-tags, Data, Tag)
+field(data-tags, Data, List(Tag))
 
 field(tag-data, Tag, Data)
 field(tag-name, Tag, Name)
@@ -111,7 +111,6 @@ field(tag-has-sig, Tag, Bool)
 field(tag-sig-is-checked, Tag, Bool)
 field(tag-ctx, Tag, Ctx)
 field(tag-type-raw, Tag, Type)
-field(tag-next, Tag, Tag)
 
 # mirth/data/var
 table(Var)
