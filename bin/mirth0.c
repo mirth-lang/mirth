@@ -15545,9 +15545,7 @@ void mwc99_emit_arrow_21_ (void){
 }
 
 void mwarrow_is_nil_3F_ (void){
-    mwdup();
-    mwARROW_NIL();
-    mw_3D__3D_();
+    mwis_nil_3F_();
 }
 
 void mwc99_emit_arrow_op_21_ (void){
@@ -17797,15 +17795,11 @@ void mwBuffer__3E_NameValue (void){
 }
 
 void mwARROW_NIL (void){
-    push_i64(0LL);
-    mwcast();
+    mwnil();
 }
 
 void mwarrow_alloc_21_ (void){
     mwArrow_2E_alloc_21_();
-    mwOP_NONE();
-    mwover();
-    mwarrow_op_21_();
 }
 
 void mwarrow_op_prim_21_ (void){
@@ -17869,59 +17863,53 @@ void mwArrow__3E_Arg (void){
 }
 
 void mwarrow_arg_add_21_ (void){
-    mwover();
-    mwarrow_args_40_();
-    mwdup();
-    push_i64(0LL);
-    mwcast();
-    mw_3D__3D_();
-    if (pop_u64()) {
-    mwdrop();
-    mwL1();
-    } else {
-    mwswap();
+    { value_t d1 = pop_value();
+    mwarrow_args_3F_();
+      push_value(d1); }
     mwsnoc();
-    }
     mwover();
     mwarrow_args_21_();
 }
 
 void mwarrow_new_int_21_ (void){
+    mwOP_INT();
     mwarrow_alloc_21_();
     mwtuck();
-    mwarrow_op_int_21_();
+    mwarrow_op_21_();
 }
 
 void mwarrow_new_buffer_21_ (void){
+    mwOP_BUFFER();
     mwarrow_alloc_21_();
     mwtuck();
-    mwarrow_op_buffer_21_();
+    mwarrow_op_21_();
 }
 
 void mwarrow_new_external_21_ (void){
+    mwOP_EXTERNAL();
     mwarrow_alloc_21_();
     mwtuck();
-    mwarrow_op_external_21_();
+    mwarrow_op_21_();
 }
 
 void mwarrow_new_prim_21_ (void){
+    mwOP_PRIM();
     mwarrow_alloc_21_();
     mwtuck();
-    mwarrow_op_prim_21_();
+    mwarrow_op_21_();
 }
 
 void mwarrow_new_word_21_ (void){
+    mwOP_WORD();
     mwarrow_alloc_21_();
     mwtuck();
-    mwarrow_op_word_21_();
+    mwarrow_op_21_();
 }
 
 void mwarrow_push_21_ (void){
-    mwdup();
-    { value_t d1 = pop_value();
+    mwtuck();
     mwswap();
     mwarrow_next_21_();
-      push_value(d1); }
 }
 
 void mwarrow_push_int_21_ (void){

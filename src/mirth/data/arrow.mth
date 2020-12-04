@@ -26,16 +26,13 @@ import(mirth/data/prim)
 # to type repeatedly so now it's called Arrow :-)
 
 ARROW_NIL : Arrow
-ARROW_NIL = 0 cast
+ARROW_NIL = nil
 
 arrow-is-nil? : Arrow -- Arrow Bool
-arrow-is-nil? = dup ARROW_NIL ==
+arrow-is-nil? = is-nil?
 
 arrow-alloc! : Arrow
-arrow-alloc! = (
-    Arrow.alloc!
-    OP_NONE over arrow-op!
-)
+arrow-alloc! = Arrow.alloc!
 
 arrow-op-prim! : Prim Arrow --
 arrow-op-prim! = dip(OP_PRIM) arrow-op!
@@ -72,11 +69,7 @@ Arg->Arrow : Arg -- Arrow
 Arg->Arrow = match(ARG_ARROW -> id)
 
 arrow-arg-add! : Arrow Arg -- Arrow
-arrow-arg-add! =
-    over arrow-args@ dup 0 cast == if( # TODO remove
-        drop L1,
-        swap snoc
-    ) over arrow-args!
+arrow-arg-add! = dip(arrow-args?) snoc over arrow-args!
 
 ####################################
 # Helpers for constructing arrows. #
@@ -84,37 +77,22 @@ arrow-arg-add! =
 # TODO: Use an effect, or something, to elaborate these with types.
 
 arrow-new-int! : Int -- Arrow
-arrow-new-int! = (
-    arrow-alloc!
-    tuck arrow-op-int!
-)
+arrow-new-int! = OP_INT arrow-alloc! tuck arrow-op!
 
 arrow-new-buffer! : Buffer -- Arrow
-arrow-new-buffer! = (
-    arrow-alloc!
-    tuck arrow-op-buffer!
-)
+arrow-new-buffer! = OP_BUFFER arrow-alloc! tuck arrow-op!
 
 arrow-new-external! : External -- Arrow
-arrow-new-external! = (
-    arrow-alloc!
-    tuck arrow-op-external!
-)
+arrow-new-external! = OP_EXTERNAL arrow-alloc! tuck arrow-op!
 
 arrow-new-prim! : Prim -- Arrow
-arrow-new-prim! = (
-    arrow-alloc!
-    tuck arrow-op-prim!
-)
+arrow-new-prim! = OP_PRIM arrow-alloc! tuck arrow-op!
 
 arrow-new-word! : Word -- Arrow
-arrow-new-word! = (
-    arrow-alloc!
-    tuck arrow-op-word!
-)
+arrow-new-word! = OP_WORD arrow-alloc! tuck arrow-op!
 
 arrow-push! : Arrow Arrow -- Arrow
-arrow-push! = dup dip(swap arrow-next!)
+arrow-push! = tuck swap arrow-next!
 
 arrow-push-int! : Arrow Int -- Arrow
 arrow-push-int! = arrow-new-int! arrow-push!
