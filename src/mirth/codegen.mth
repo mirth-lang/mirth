@@ -31,8 +31,13 @@ def(codegen-full?, Bool +Codegen,
 def(codegen-flush!, +Codegen,
     codegen-length@ 0 > if(
         codegen-file@ File->Int CODEGEN_BUF codegen-length@
-        posix-write! drop # TODO check return value
-        0 codegen-length!,
+        posix-write! dup 0 < if(
+            "error: codegen write failed" panic!,
+            codegen-length@ < if(
+                "error: codegen write wrote fewer bytes than expected" panic!,
+                0 codegen-length!
+            )
+        ),
         id
     ))
 

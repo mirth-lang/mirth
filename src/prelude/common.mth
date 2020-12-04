@@ -626,8 +626,15 @@ stderr = 2 Int->File
 
 str-write! : Str File -- +IO
 str-write! = (
-    File->Int swap dup str-length
-    posix-write! drop # TODO check return value
+    File->Int swap dup str-length dup
+    dip(posix-write!) swap
+    dup 0 < if(
+        "error: write failed!" panic!,
+        swap < if(
+            "error: write output fewer bytes than expected!" panic!,
+            id
+        )
+    )
 )
 
 str-print! : Str -- +IO
@@ -651,7 +658,14 @@ trace-ln! = "\n" str-trace!
 str-buf-write! : File -- +StrBuf +IO
 str-buf-write! = (
     File->Int STR_BUF str-buf-length?
-    posix-write! drop # TODO check return value
+    posix-write!
+    dup 0 < if(
+        "error: str-buf write failed!" panic!,
+        str-buf-length? < if(
+            "error: str-buf write wrote fewer bytes than expected!" panic!,
+            id
+        )
+    )
 )
 
 str-buf-print! : +StrBuf +IO
