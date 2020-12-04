@@ -31,9 +31,9 @@ field(module-start, Module, Token)
 field(module-end, Module, Token)
 
 # mirth/data/location
-nominal(Row, Int)
-nominal(Col, Int)
-nominal(Location, [Module Row Col])
+data(Row, ROW -> Int)
+data(Col, COL -> Int)
+data(Location, LOCATION -> Module Row Col)
 
 # mirth/data/token
 data TokenValue
