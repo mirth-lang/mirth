@@ -733,6 +733,27 @@ split-half-ish =
         LCAT -> drop
     )
 
+first : List(t) -- t
+first =
+    match(
+        L0 -> "first on empty list" panic!,
+        L1 -> id,
+        L2 -> drop,
+        L3 -> drop2,
+        LCAT -> drop2 first
+    )
+
+last : List(t) -- t
+last =
+    match(
+        L0 -> "last on empty list" panic!,
+        L1 -> id,
+        L2 -> dip(drop),
+        L3 -> dip(drop2),
+        LCAT -> drop nip last
+    )
+
+
 ||| Show the structure of the list.
 trace-list-struc! : List(t) -- +IO
 trace-list-struc! =

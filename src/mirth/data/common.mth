@@ -93,7 +93,7 @@ end
 table(MetaVar)
 table(Data)
 table(Tag)
-table(Ctx)
+data(Ctx, CTX -> List(Var))
 
 field(meta-is-defined, MetaVar, Bool)
 field(meta-type-raw, MetaVar, Type)
@@ -124,10 +124,6 @@ table(Subst)
 field(subst-rest, Subst, Subst)
 field(subst-var, Subst, Var)
 field(subst-type, Subst, Type)
-
-# mirth/data/ctx
-field(ctx-prev, Ctx, Ctx)
-field(ctx-var, Ctx, Var)
 
 # mirth/data/external
 table(External)

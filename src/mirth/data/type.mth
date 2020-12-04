@@ -2,7 +2,6 @@
 module(mirth/data/type)
 import(mirth/data/common)
 import(mirth/data/name)
-import(mirth/data/ctx)
 import(mirth/data/var)
 
 def(def-type!, Type Str --, name-new! name-type!)
@@ -37,31 +36,6 @@ def(name-is-table?, Name -- Name Bool,
         dup name-type@ type-is-table,
         false
     ))
-
-def(ctx-trace!, Ctx -- +IO,
-    ctx-is-empty? if(
-        drop,
-
-        dup ctx-prev@
-        ctx-is-empty? if(
-            drop,
-            ctx-trace! ", " str-trace!
-        )
-
-        ctx-var@ var-trace-binding!
-    ))
-
-def(var-trace-binding!, Var -- +IO,
-    var-name? name-load! str-buf-trace!
-    var-type? TYPE_TYPE == if(
-        drop,
-    var-type? TYPE_STACK == if(
-        drop,
-    var-type? TYPE_EFFECT == if(
-        drop,
-        " : " str-trace!
-        var-type@ type-trace-sig!
-    ))))
 
 def(T*, Type Type -- Type, TTensor)
 def(T->, Type Type -- Type, TMorphism)
