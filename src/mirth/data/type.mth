@@ -76,7 +76,7 @@ def(T5, Type Type Type Type Type -- Type, dip(T4) T*)
 def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
 
 def(type-is-error, Type -- Bool,
-    dup 0 cast == if(
+    dup 0 cast == if( # TODO get rid of this?
         drop true,
         match(TYPE_ERROR -> true, _ -> drop false)
     ))

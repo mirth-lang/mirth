@@ -4,13 +4,13 @@ import(mirth/data/type)
 
 def(Int->Prim, Int -- Prim, cast)
 def(Prim->Int, Prim -- Int, cast)
+def(Prim->NameValue, Prim -- NameValue, DEF_PRIM)
 def(NameValue->Prim, NameValue -- Prim,
     match(
         DEF_PRIM -> id,
         _ -> "attempted to get prim value from non-prim name" panic!
     ))
 
-def(Prim->NameValue, Prim -- NameValue, DEF_PRIM)
 def(name-prim!, Prim Name --, dip(Prim->NameValue) name-value!)
 def(name-prim@, Name -- Prim, name-value@ NameValue->Prim)
 
