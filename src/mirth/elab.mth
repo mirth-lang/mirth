@@ -439,7 +439,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
 
             # set case mid
             dip(dip(case-match? match-dom@)) { Case Type Token Tag }
-            tag-type@ SUBST_NIL swap type-freshen-sig
+            elab-tag-sig! SUBST_NIL swap type-freshen-sig
             { Case Type Token Subst Type }
             rotr dip(
                 dip(type-expand-morphism dip(swap))

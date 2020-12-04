@@ -40,22 +40,10 @@ output-path-root! = OUTPUT_PATH_ROOT path!
 path-separator : Str
 path-separator = RUNNING_OS WIN32 == if("\\", "/")
 
-||| The nil path.
-path-nil : Path
-path-nil = 0 cast
-
-||| Is the path nil?
-path-nil? : Path -- Path Bool
-path-nil? = dup path-nil ==
-
 ||| Load a path into STR_BUF. If the path is null,
 ||| clears STR_BUF instead.
 str-buf-path! : Path --
-str-buf-path! =
-    path-nil? if(
-        drop str-buf-clear!,
-        Path->Str str-buf!
-    )
+str-buf-path! = Path->Str str-buf!
 
 ||| Push a path to STR_BUF, adding the path separator if
 ||| str-buf is non-empty. (TODO: Add path separator
