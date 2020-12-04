@@ -213,12 +213,12 @@ def(c99-emit-tag!, Name -- +IO,
         "void mw" . dup .name " (void) {" ;
 
         name-tag@ tag-num-inputs? 0 == if(
-            "    push_u64(" . Tag->Int .n "LL);" ;,
+            "    push_u64(" . tag-value@ .n "LL);" ;,
 
             "    value_t car = pop_value();" ;
             tag-num-inputs? 1-
             while(dup 0 >, "    car = mkcell(car, pop_value());" ;  1-) drop
-            "    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = " . Tag->Int .n "LL } };" ;
+            "    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = " . tag-value@ .n "LL } };" ;
             "    car = mkcell(car, tag);" ;
             "    push_value(car);" ;
         )
@@ -1138,7 +1138,7 @@ def(c99-emit-pattern!, Pattern -- +IO,
             "    default:" ; ,
 
         PATTERN_TAG ->
-            "    case " . dup Tag->Int .n "LL:" ;
+            "    case " . tag-value? .n "LL:" ;
             tag-num-inputs? nip
             dup 0 > if(
                 "    do_pack_uncons(); do_drop();" ;

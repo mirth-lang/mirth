@@ -2016,23 +2016,23 @@ void mwprim_2E_pack_2E_uncons (void) {
 }
 
 void mwNONE (void) {
-    push_u64(1LL);
+    push_u64(0LL);
 }
 
 void mwSOME (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwL0 (void) {
-    push_u64(3LL);
+    push_u64(0LL);
 }
 
 void mwL1 (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -2040,7 +2040,7 @@ void mwL1 (void) {
 void mwL2 (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -2049,7 +2049,7 @@ void mwL3 (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -2058,166 +2058,170 @@ void mwLCAT (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwFILE (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTOKEN_NEWLINE (void) {
-    push_u64(22LL);
+    push_u64(2LL);
 }
 
 void mwTOKEN_NONE (void) {
-    push_u64(20LL);
+    push_u64(0LL);
 }
 
 void mwTOKEN_COMMA (void) {
-    push_u64(21LL);
+    push_u64(1LL);
 }
 
 void mwTOKEN_LPAREN (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 23LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTOKEN_RPAREN (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 24LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTOKEN_LBRACKET (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 25LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTOKEN_RBRACKET (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 26LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTOKEN_LBRACE (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 27LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTOKEN_RBRACE (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 28LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTOKEN_INT (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 29LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTOKEN_NAME (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 31LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTOKEN_STR (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 30LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwHASH (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 71LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
+void mwDEF_NONE (void) {
+    push_u64(0LL);
+}
+
 void mwDEF_WORD (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 14LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwDEF_BUFFER (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 15LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwDEF_TYPE (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwDEF_EXTERNAL (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 16LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwDEF_MODULE (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwDEF_PRIM (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 13LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwDEF_TAG (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 12LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwSTRLIT (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwROW (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 17LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwCOL (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 18LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -2226,61 +2230,61 @@ void mwLOCATION (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 19LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTYPE_ERROR (void) {
-    push_u64(32LL);
+    push_u64(0LL);
 }
 
 void mwTYPE_DONT_CARE (void) {
-    push_u64(33LL);
+    push_u64(1LL);
 }
 
 void mwTYPE_UNIT (void) {
-    push_u64(34LL);
+    push_u64(2LL);
 }
 
 void mwTPrim (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 35LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTMeta (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 36LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTHole (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 37LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTVar (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 38LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTTable (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 39LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwTData (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 40LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -2288,7 +2292,7 @@ void mwTData (void) {
 void mwTTensor (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 41LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -2296,7 +2300,7 @@ void mwTTensor (void) {
 void mwTMorphism (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 42LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -2304,7 +2308,7 @@ void mwTMorphism (void) {
 void mwTApp (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 43LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -2312,164 +2316,164 @@ void mwTApp (void) {
 void mwTParam (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 44LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 12LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwPRIM_TYPE_TYPE (void) {
-    push_u64(45LL);
+    push_u64(0LL);
 }
 
 void mwPRIM_TYPE_STACK (void) {
-    push_u64(46LL);
+    push_u64(1LL);
 }
 
 void mwPRIM_TYPE_EFFECT (void) {
-    push_u64(47LL);
+    push_u64(2LL);
 }
 
 void mwPRIM_TYPE_INT (void) {
-    push_u64(48LL);
+    push_u64(3LL);
 }
 
 void mwPRIM_TYPE_PTR (void) {
-    push_u64(49LL);
+    push_u64(4LL);
 }
 
 void mwPRIM_TYPE_BOOL (void) {
-    push_u64(50LL);
+    push_u64(5LL);
 }
 
 void mwPRIM_TYPE_U64 (void) {
-    push_u64(51LL);
+    push_u64(6LL);
 }
 
 void mwPRIM_TYPE_U32 (void) {
-    push_u64(52LL);
+    push_u64(7LL);
 }
 
 void mwPRIM_TYPE_U16 (void) {
-    push_u64(53LL);
+    push_u64(8LL);
 }
 
 void mwPRIM_TYPE_U8 (void) {
-    push_u64(54LL);
+    push_u64(9LL);
 }
 
 void mwPRIM_TYPE_I64 (void) {
-    push_u64(55LL);
+    push_u64(10LL);
 }
 
 void mwPRIM_TYPE_I32 (void) {
-    push_u64(56LL);
+    push_u64(11LL);
 }
 
 void mwPRIM_TYPE_I16 (void) {
-    push_u64(57LL);
+    push_u64(12LL);
 }
 
 void mwPRIM_TYPE_I8 (void) {
-    push_u64(58LL);
+    push_u64(13LL);
 }
 
 void mwARG_ARROW (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 59LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwOP_NONE (void) {
-    push_u64(60LL);
+    push_u64(0LL);
 }
 
 void mwOP_PRIM (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 61LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwOP_WORD (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 62LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwOP_EXTERNAL (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 63LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwOP_BUFFER (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 64LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwOP_INT (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 65LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwOP_STR (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 66LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwOP_TAG (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 67LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwOP_MATCH (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 68LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwPATTERN_UNDERSCORE (void) {
-    push_u64(69LL);
+    push_u64(0LL);
 }
 
 void mwPATTERN_TAG (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 70LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwPATH (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 72LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
 void mwALLOW_HOLES (void) {
-    push_u64(73LL);
+    push_u64(0LL);
 }
 
 void mwFORBID_HOLES (void) {
-    push_u64(74LL);
+    push_u64(1LL);
 }
 
 void mwTYPE_ELAB (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 75LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -3633,7 +3637,6 @@ void mwTYPE_ELAB (void) {
  void mwc99_emit_tag_21_ (void);
  void mwname_tag_40_ (void);
  void mwtag_num_inputs_3F_ (void);
- void mwTag__3E_Int (void);
  void mwPRIM_ID (void);
  void mwPRIM_DUP (void);
  void mwPRIM_DROP (void);
@@ -5120,7 +5123,7 @@ void mwstr_trace_21_ (void){
 
 void mwPath__3E_Str (void){
     switch (get_top_data_tag()) {
-    case 72LL:
+    case 0LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -6203,12 +6206,12 @@ void mw_2E_4_21_ (void){
 
 void mwmaybe_is_none_3F_ (void){
     switch (get_top_data_tag()) {
-    case 1LL:
+    case 0LL:
     do_drop();
     mwNONE();
     mwtrue();
     break;
-    case 2LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwSOME();
     mwfalse();
@@ -6224,11 +6227,11 @@ void mwmaybe_is_some_3F_ (void){
 
 void mwmaybe_len (void){
     switch (get_top_data_tag()) {
-    case 1LL:
+    case 0LL:
     do_drop();
     push_i64(0LL);
     break;
-    case 2LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     push_i64(1LL);
@@ -6239,12 +6242,12 @@ void mwmaybe_len (void){
 
 void mwmaybe_unwrap (void){
     switch (get_top_data_tag()) {
-    case 1LL:
+    case 0LL:
     do_drop();
     push_ptr((void*)(strings + 303));
     mwpanic_21_();
     break;
-    case 2LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -6335,7 +6338,7 @@ void mwL12 (void){
 
 void mwis_nil_3F_ (void){
     switch (get_top_data_tag()) {
-    case 3LL:
+    case 0LL:
     do_drop();
     mwL0();
     mwtrue();
@@ -6373,30 +6376,30 @@ void mwis_snoc (void){
 
 void mwlen_3F_ (void){
     switch (get_top_data_tag()) {
-    case 3LL:
+    case 0LL:
     do_drop();
     mwL0();
     push_i64(0LL);
     break;
-    case 4LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwL1();
     push_i64(1LL);
     break;
-    case 5LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwL2();
     push_i64(2LL);
     break;
-    case 6LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
     mwL3();
     push_i64(3LL);
     break;
-    case 7LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6420,26 +6423,26 @@ void mwnil (void){
 
 void mwcons (void){
     switch (get_top_data_tag()) {
-    case 3LL:
+    case 0LL:
     do_drop();
     mwL1();
     break;
-    case 4LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwL2();
     break;
-    case 5LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwL3();
     break;
-    case 6LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
     mwL4();
     break;
-    case 7LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6494,29 +6497,29 @@ void mwrebalance (void){
 void mwsnoc (void){
     mwswap();
     switch (get_top_data_tag()) {
-    case 3LL:
+    case 0LL:
     do_drop();
     mwL1();
     break;
-    case 4LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwswap();
     mwL2();
     break;
-    case 5LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwrot3l();
     mwL3();
     break;
-    case 6LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
     mwrot4l();
     mwL4();
     break;
-    case 7LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6534,27 +6537,27 @@ void mwsnoc (void){
 
 void mwuncons (void){
     switch (get_top_data_tag()) {
-    case 3LL:
+    case 0LL:
     do_drop();
     push_ptr((void*)(strings + 324));
     mwpanic_21_();
     break;
-    case 4LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwL0();
     break;
-    case 5LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwL1();
     break;
-    case 6LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
     mwL2();
     break;
-    case 7LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6571,34 +6574,34 @@ void mwuncons (void){
 void mwcat (void){
     mwswap();
     switch (get_top_data_tag()) {
-    case 3LL:
+    case 0LL:
     do_drop();
     mwid();
     break;
-    case 4LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwswap();
     mwcons();
     break;
-    case 5LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwrot3l();
     switch (get_top_data_tag()) {
-    case 3LL:
+    case 0LL:
     do_drop();
     mwL2();
     break;
-    case 4LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwL3();
     break;
-    case 5LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwL4();
     break;
-    case 6LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6612,26 +6615,26 @@ void mwcat (void){
     break;
     }
     break;
-    case 6LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
     mwrot4l();
     switch (get_top_data_tag()) {
-    case 3LL:
+    case 0LL:
     do_drop();
     mwL3();
     break;
-    case 4LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwL4();
     break;
-    case 5LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwL5();
     break;
-    case 6LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6648,11 +6651,11 @@ void mwcat (void){
     default:
     mwswap();
     switch (get_top_data_tag()) {
-    case 3LL:
+    case 0LL:
     do_drop();
     mwid();
     break;
-    case 4LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwsnoc();
     break;
@@ -6666,25 +6669,25 @@ void mwcat (void){
 
 void mwunsnoc (void){
     switch (get_top_data_tag()) {
-    case 3LL:
+    case 0LL:
     do_drop();
     push_ptr((void*)(strings + 345));
     mwpanic_21_();
     break;
-    case 4LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     { value_t d2 = pop_value();
     mwL0();
       push_value(d2); }
     break;
-    case 5LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     { value_t d2 = pop_value();
     mwL1();
       push_value(d2); }
     break;
-    case 6LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6692,7 +6695,7 @@ void mwunsnoc (void){
     mwL2();
       push_value(d2); }
     break;
-    case 7LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6719,19 +6722,19 @@ void mwcat_aux (void){
 
 void mwsplit_half_ish (void){
     switch (get_top_data_tag()) {
-    case 3LL:
+    case 0LL:
     do_drop();
     mwL0();
     mwL0();
     break;
-    case 4LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwL1();
     { value_t d2 = pop_value();
     mwL0();
       push_value(d2); }
     break;
-    case 5LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwL1();
@@ -6739,7 +6742,7 @@ void mwsplit_half_ish (void){
     mwL1();
       push_value(d2); }
     break;
-    case 6LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6748,7 +6751,7 @@ void mwsplit_half_ish (void){
     mwL1();
       push_value(d2); }
     break;
-    case 7LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6760,25 +6763,25 @@ void mwsplit_half_ish (void){
 
 void mwtrace_list_struc_21_ (void){
     switch (get_top_data_tag()) {
-    case 3LL:
+    case 0LL:
     do_drop();
     push_ptr((void*)(strings + 366));
     mwstr_trace_21_();
     break;
-    case 4LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     push_ptr((void*)(strings + 369));
     mwstr_trace_21_();
     break;
-    case 5LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwdrop2();
     push_ptr((void*)(strings + 372));
     mwstr_trace_21_();
     break;
-    case 6LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6786,7 +6789,7 @@ void mwtrace_list_struc_21_ (void){
     push_ptr((void*)(strings + 375));
     mwstr_trace_21_();
     break;
-    case 7LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6812,7 +6815,7 @@ void mwtrace_list_struc_21_ (void){
 
 void mwunL1 (void){
     switch (get_top_data_tag()) {
-    case 4LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -6825,7 +6828,7 @@ void mwunL1 (void){
 
 void mwunL2 (void){
     switch (get_top_data_tag()) {
-    case 5LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwid();
@@ -6839,7 +6842,7 @@ void mwunL2 (void){
 
 void mwunL3 (void){
     switch (get_top_data_tag()) {
-    case 6LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -6858,7 +6861,7 @@ void mwInt__3E_File (void){
 
 void mwFile__3E_Int (void){
     switch (get_top_data_tag()) {
-    case 8LL:
+    case 0LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -8220,7 +8223,7 @@ void mwlexer_row_21_ (void){
 
 void mwRow__3E_Int (void){
     switch (get_top_data_tag()) {
-    case 17LL:
+    case 0LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -8246,7 +8249,7 @@ void mwlexer_col_21_ (void){
 
 void mwCol__3E_Int (void){
     switch (get_top_data_tag()) {
-    case 18LL:
+    case 0LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -8814,7 +8817,7 @@ void mwlexer_emit_fatal_error_21_ (void){
 void mwtoken_is_lparen_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 23LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -8829,7 +8832,7 @@ void mwtoken_is_lparen_3F_ (void){
 void mwtoken_is_lbracket_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 25LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -8844,7 +8847,7 @@ void mwtoken_is_lbracket_3F_ (void){
 void mwtoken_is_lbrace_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 27LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -9571,7 +9574,7 @@ void mwInt__3E_Hash (void){
 
 void mwHash__3E_Int (void){
     switch (get_top_data_tag()) {
-    case 71LL:
+    case 0LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -10152,9 +10155,16 @@ void mwstr_buf_push_hexdigit_21_ (void){
 
 void mwname_undefined_3F_ (void){
     mwname_value_3F_();
-    push_i64(0LL);
-    mwcast();
-    mw_3D__3D_();
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_drop();
+    mwtrue();
+    break;
+    default:
+    mwdrop();
+    mwfalse();
+    break;
+    }
 }
 
 void mwname_value_3F_ (void){
@@ -10171,7 +10181,7 @@ void mwname_defined_3F_ (void){
 void mwname_is_word_3F_ (void){
     mwname_value_3F_();
     switch (get_top_data_tag()) {
-    case 14LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -10186,7 +10196,7 @@ void mwname_is_word_3F_ (void){
 void mwname_is_buffer_3F_ (void){
     mwname_value_3F_();
     switch (get_top_data_tag()) {
-    case 15LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -10201,7 +10211,7 @@ void mwname_is_buffer_3F_ (void){
 void mwname_is_type_3F_ (void){
     mwname_value_3F_();
     switch (get_top_data_tag()) {
-    case 11LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -10216,7 +10226,7 @@ void mwname_is_type_3F_ (void){
 void mwname_is_external_3F_ (void){
     mwname_value_3F_();
     switch (get_top_data_tag()) {
-    case 16LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -10231,7 +10241,7 @@ void mwname_is_external_3F_ (void){
 void mwname_is_module_3F_ (void){
     mwname_value_3F_();
     switch (get_top_data_tag()) {
-    case 10LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -10246,7 +10256,7 @@ void mwname_is_module_3F_ (void){
 void mwname_is_prim_3F_ (void){
     mwname_value_3F_();
     switch (get_top_data_tag()) {
-    case 13LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -10261,7 +10271,7 @@ void mwname_is_prim_3F_ (void){
 void mwname_is_tag_3F_ (void){
     mwname_value_3F_();
     switch (get_top_data_tag()) {
-    case 12LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -12256,7 +12266,7 @@ void mwInt__3E_StrLit (void){
 
 void mwStrLit__3E_Int (void){
     switch (get_top_data_tag()) {
-    case 9LL:
+    case 0LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -12338,7 +12348,7 @@ void mwtoken_21_ (void){
 void mwtoken_is_int_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 29LL:
+    case 9LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -12353,7 +12363,7 @@ void mwtoken_is_int_3F_ (void){
 void mwtoken_is_str_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 30LL:
+    case 10LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -12368,7 +12378,7 @@ void mwtoken_is_str_3F_ (void){
 void mwtoken_is_name_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 31LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -12383,7 +12393,7 @@ void mwtoken_is_name_3F_ (void){
 void mwtoken_is_comma_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 21LL:
+    case 1LL:
     do_drop();
     mwtrue();
     break;
@@ -12397,7 +12407,7 @@ void mwtoken_is_comma_3F_ (void){
 void mwtoken_is_rparen_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 24LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -12412,7 +12422,7 @@ void mwtoken_is_rparen_3F_ (void){
 void mwtoken_is_newline_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 22LL:
+    case 2LL:
     do_drop();
     mwtrue();
     break;
@@ -12426,7 +12436,7 @@ void mwtoken_is_newline_3F_ (void){
 void mwtoken_name_40_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 31LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwnip();
     break;
@@ -12446,7 +12456,7 @@ void mwtoken_name_3F_ (void){
 void mwtoken_strlit_40_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 30LL:
+    case 10LL:
     do_pack_uncons(); do_drop();
     mwnip();
     break;
@@ -12466,7 +12476,7 @@ void mwtoken_strlit_3F_ (void){
 void mwtoken_int_40_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 29LL:
+    case 9LL:
     do_pack_uncons(); do_drop();
     mwnip();
     break;
@@ -12486,21 +12496,21 @@ void mwtoken_int_3F_ (void){
 void mwtoken_is_arg_end_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 21LL:
+    case 1LL:
     do_drop();
     mwtrue();
     break;
-    case 24LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
     break;
-    case 26LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
     break;
-    case 28LL:
+    case 8LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -12515,17 +12525,17 @@ void mwtoken_is_arg_end_3F_ (void){
 void mwtoken_is_left_enclosure_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 23LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
     break;
-    case 25LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
     break;
-    case 27LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -12540,17 +12550,17 @@ void mwtoken_is_left_enclosure_3F_ (void){
 void mwtoken_is_right_enclosure_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 24LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
     break;
-    case 26LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
     break;
-    case 28LL:
+    case 8LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -12591,28 +12601,28 @@ void mwtoken_pred (void){
 void mwtoken_next (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 23LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwtoken_succ();
     break;
-    case 25LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwtoken_succ();
     break;
-    case 27LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwtoken_succ();
     break;
-    case 31LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtoken_succ();
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 23LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwtoken_succ();
@@ -12633,15 +12643,15 @@ void mwtoken_prev (void){
     mwtoken_pred();
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 26LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwnip();
     break;
-    case 28LL:
+    case 8LL:
     do_pack_uncons(); do_drop();
     mwnip();
     break;
-    case 24LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwdup();
@@ -12834,7 +12844,7 @@ void mwemit_error_21_ (void){
 
 void mwlocation_unpack (void){
     switch (get_top_data_tag()) {
-    case 19LL:
+    case 0LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
@@ -12923,7 +12933,7 @@ void mwload_source_path_21_ (void){
 
 void mwNameValue__3E_Module (void){
     switch (get_top_data_tag()) {
-    case 10LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -15055,7 +15065,7 @@ void mwc99_emit_tag_21_ (void){
     if (pop_u64()) {
     push_ptr((void*)(strings + 3648));
     mw_2E_();
-    mwTag__3E_Int();
+    mwtag_value_40_();
     mw_2E_n();
     push_ptr((void*)(strings + 3662));
     mw_3B_();
@@ -15076,7 +15086,7 @@ void mwc99_emit_tag_21_ (void){
     mwdrop();
     push_ptr((void*)(strings + 3734));
     mw_2E_();
-    mwTag__3E_Int();
+    mwtag_value_40_();
     mw_2E_n();
     push_ptr((void*)(strings + 3793));
     mw_3B_();
@@ -15116,10 +15126,6 @@ void mwtag_num_inputs_3F_ (void){
     } else {
     push_i64(0LL);
     }
-}
-
-void mwTag__3E_Int (void){
-    mwcast();
 }
 
 void mwPRIM_ID (void){
@@ -15635,11 +15641,11 @@ void mwarrow_is_nil_3F_ (void){
 void mwc99_emit_arrow_op_21_ (void){
     mwarrow_op_3F_();
     switch (get_top_data_tag()) {
-    case 60LL:
+    case 0LL:
     do_drop();
     mwdrop();
     break;
-    case 65LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwnip();
     push_ptr((void*)(strings + 19944));
@@ -15648,7 +15654,7 @@ void mwc99_emit_arrow_op_21_ (void){
     push_ptr((void*)(strings + 19958));
     mw_3B_();
     break;
-    case 66LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwStrLit__3E_Int();
@@ -15658,7 +15664,7 @@ void mwc99_emit_arrow_op_21_ (void){
     push_ptr((void*)(strings + 19995));
     mw_3B_();
     break;
-    case 62LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwword_name_40_();
@@ -15668,7 +15674,7 @@ void mwc99_emit_arrow_op_21_ (void){
     push_ptr((void*)(strings + 20006));
     mw_3B_();
     break;
-    case 63LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwexternal_name_40_();
@@ -15678,7 +15684,7 @@ void mwc99_emit_arrow_op_21_ (void){
     push_ptr((void*)(strings + 20017));
     mw_3B_();
     break;
-    case 64LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwbuffer_name_40_();
@@ -15688,7 +15694,7 @@ void mwc99_emit_arrow_op_21_ (void){
     push_ptr((void*)(strings + 20028));
     mw_3B_();
     break;
-    case 67LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwtag_name_40_();
@@ -15698,7 +15704,7 @@ void mwc99_emit_arrow_op_21_ (void){
     push_ptr((void*)(strings + 20039));
     mw_3B_();
     break;
-    case 61LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwdup();
     mwPRIM_DIP();
@@ -15771,7 +15777,7 @@ void mwc99_emit_arrow_op_21_ (void){
     }
     }
     break;
-    case 68LL:
+    case 8LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwc99_emit_match_21_();
@@ -15787,7 +15793,7 @@ void mwPRIM_DIP (void){
 
 void mwArg__3E_Arrow (void){
     switch (get_top_data_tag()) {
-    case 59LL:
+    case 0LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -15850,17 +15856,16 @@ void mwmatch_has_default_case (void){
 
 void mwc99_emit_pattern_21_ (void){
     switch (get_top_data_tag()) {
-    case 69LL:
+    case 0LL:
     do_drop();
     push_ptr((void*)(strings + 20338));
     mw_3B_();
     break;
-    case 70LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     push_ptr((void*)(strings + 20351));
     mw_2E_();
-    mwdup();
-    mwTag__3E_Int();
+    mwtag_value_3F_();
     mw_2E_n();
     push_ptr((void*)(strings + 20361));
     mw_3B_();
@@ -15952,7 +15957,7 @@ void mwword_dom_40_ (void){
 
 void mwtype_get_morphism (void){
     switch (get_top_data_tag()) {
-    case 42LL:
+    case 10LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwid();
@@ -15972,7 +15977,7 @@ void mwword_cod_40_ (void){
 
 void mwNameValue__3E_Word (void){
     switch (get_top_data_tag()) {
-    case 14LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -16063,7 +16068,7 @@ void mwTYPE_BOOL (void){
 
 void mwNameValue__3E_Type (void){
     switch (get_top_data_tag()) {
-    case 11LL:
+    case 2LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -16096,7 +16101,7 @@ void mwname_is_table_3F_ (void){
 
 void mwtype_is_table (void){
     switch (get_top_data_tag()) {
-    case 39LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -16272,16 +16277,8 @@ void mwT6 (void){
 }
 
 void mwtype_is_error (void){
-    mwdup();
-    push_i64(0LL);
-    mwcast();
-    mw_3D__3D_();
-    if (pop_u64()) {
-    mwdrop();
-    mwtrue();
-    } else {
     switch (get_top_data_tag()) {
-    case 32LL:
+    case 0LL:
     do_drop();
     mwtrue();
     break;
@@ -16290,12 +16287,11 @@ void mwtype_is_error (void){
     mwfalse();
     break;
     }
-    }
 }
 
 void mwtype_is_dont_care (void){
     switch (get_top_data_tag()) {
-    case 33LL:
+    case 1LL:
     do_drop();
     mwtrue();
     break;
@@ -16308,7 +16304,7 @@ void mwtype_is_dont_care (void){
 
 void mwtype_is_prim (void){
     switch (get_top_data_tag()) {
-    case 35LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -16322,7 +16318,7 @@ void mwtype_is_prim (void){
 
 void mwtype_is_var (void){
     switch (get_top_data_tag()) {
-    case 38LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -16336,7 +16332,7 @@ void mwtype_is_var (void){
 
 void mwtype_is_meta (void){
     switch (get_top_data_tag()) {
-    case 36LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -16350,7 +16346,7 @@ void mwtype_is_meta (void){
 
 void mwtype_is_tensor (void){
     switch (get_top_data_tag()) {
-    case 41LL:
+    case 9LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwdrop2();
@@ -16365,7 +16361,7 @@ void mwtype_is_tensor (void){
 
 void mwtype_is_morphism (void){
     switch (get_top_data_tag()) {
-    case 42LL:
+    case 10LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwdrop2();
@@ -16380,7 +16376,7 @@ void mwtype_is_morphism (void){
 
 void mwtype_is_hole (void){
     switch (get_top_data_tag()) {
-    case 37LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -16394,7 +16390,7 @@ void mwtype_is_hole (void){
 
 void mwtype_is_param (void){
     switch (get_top_data_tag()) {
-    case 44LL:
+    case 12LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwdrop2();
@@ -16409,7 +16405,7 @@ void mwtype_is_param (void){
 
 void mwtype_is_app (void){
     switch (get_top_data_tag()) {
-    case 43LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwdrop2();
@@ -16424,7 +16420,7 @@ void mwtype_is_app (void){
 
 void mwtype_is_data (void){
     switch (get_top_data_tag()) {
-    case 40LL:
+    case 8LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -16510,7 +16506,7 @@ void mwtype_is_stack_var (void){
 
 void mwtype_get_var (void){
     switch (get_top_data_tag()) {
-    case 38LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -16528,7 +16524,7 @@ void mwtype_is_stack_var_3F_ (void){
 
 void mwtype_get_prim (void){
     switch (get_top_data_tag()) {
-    case 35LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -16541,7 +16537,7 @@ void mwtype_get_prim (void){
 
 void mwtype_get_meta (void){
     switch (get_top_data_tag()) {
-    case 36LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -16554,7 +16550,7 @@ void mwtype_get_meta (void){
 
 void mwtype_get_tensor (void){
     switch (get_top_data_tag()) {
-    case 41LL:
+    case 9LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwid();
@@ -16568,7 +16564,7 @@ void mwtype_get_tensor (void){
 
 void mwtype_get_table (void){
     switch (get_top_data_tag()) {
-    case 39LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -16581,7 +16577,7 @@ void mwtype_get_table (void){
 
 void mwtype_get_hole (void){
     switch (get_top_data_tag()) {
-    case 37LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -16594,7 +16590,7 @@ void mwtype_get_hole (void){
 
 void mwtype_get_param (void){
     switch (get_top_data_tag()) {
-    case 44LL:
+    case 12LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwid();
@@ -16608,7 +16604,7 @@ void mwtype_get_param (void){
 
 void mwtype_get_app (void){
     switch (get_top_data_tag()) {
-    case 43LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwid();
@@ -16622,7 +16618,7 @@ void mwtype_get_app (void){
 
 void mwtype_get_data (void){
     switch (get_top_data_tag()) {
-    case 40LL:
+    case 8LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -16635,7 +16631,7 @@ void mwtype_get_data (void){
 
 void mwtype_expand (void){
     switch (get_top_data_tag()) {
-    case 36LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwmeta_expand();
     break;
@@ -16970,39 +16966,39 @@ void mwtype_trace_21_ (void){
     mwstr_trace_21_();
     } else {
     switch (get_top_data_tag()) {
-    case 32LL:
+    case 0LL:
     do_drop();
     push_ptr((void*)(strings + 21345));
     mwstr_trace_21_();
     break;
-    case 33LL:
+    case 1LL:
     do_drop();
     push_ptr((void*)(strings + 21351));
     mwstr_trace_21_();
     break;
-    case 34LL:
+    case 2LL:
     do_drop();
     push_ptr((void*)(strings + 21353));
     mwstr_trace_21_();
     break;
-    case 35LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwtype_trace_prim_21_();
     break;
-    case 38LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwvar_name_40_();
     mwname_load_21_();
     mwstr_buf_trace_21_();
     break;
-    case 36LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     push_ptr((void*)(strings + 21356));
     mwstr_trace_21_();
     mwMetaVar__3E_Int();
     mwint_trace_21_();
     break;
-    case 41LL:
+    case 9LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     push_ptr((void*)(strings + 21358));
@@ -17012,7 +17008,7 @@ void mwtype_trace_21_ (void){
     push_ptr((void*)(strings + 21360));
     mwstr_trace_21_();
     break;
-    case 42LL:
+    case 10LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     push_ptr((void*)(strings + 21362));
@@ -17022,31 +17018,31 @@ void mwtype_trace_21_ (void){
     push_ptr((void*)(strings + 21364));
     mwstr_trace_21_();
     break;
-    case 40LL:
+    case 8LL:
     do_pack_uncons(); do_drop();
     mwdata_name_40_();
     mwname_load_21_();
     mwstr_buf_trace_21_();
     break;
-    case 39LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwtable_name_40_();
     mwname_load_21_();
     mwstr_buf_trace_21_();
     break;
-    case 37LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwname_load_21_();
     mwstr_buf_trace_21_();
     break;
-    case 44LL:
+    case 12LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     push_ptr((void*)(strings + 21366));
     mwstr_trace_21_();
     mwdrop2();
     break;
-    case 43LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwapp_type_trace_21_();
@@ -17169,41 +17165,41 @@ void mwtype_has_meta (void){
     mwfalse();
     } else {
     switch (get_top_data_tag()) {
-    case 32LL:
+    case 0LL:
     do_drop();
     mwdrop();
     mwfalse();
     break;
-    case 33LL:
+    case 1LL:
     do_drop();
     mwdrop();
     mwfalse();
     break;
-    case 34LL:
+    case 2LL:
     do_drop();
     mwdrop();
     mwfalse();
     break;
-    case 35LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwdrop2();
     mwfalse();
     break;
-    case 38LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwdrop2();
     mwfalse();
     break;
-    case 37LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwdrop2();
     mwfalse();
     break;
-    case 36LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mw_3D__3D_();
     break;
-    case 41LL:
+    case 9LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     { value_t d3 = pop_value();
@@ -17218,7 +17214,7 @@ void mwtype_has_meta (void){
     mwtype_has_meta();
     }
     break;
-    case 42LL:
+    case 10LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     { value_t d3 = pop_value();
@@ -17233,7 +17229,7 @@ void mwtype_has_meta (void){
     mwtype_has_meta();
     }
     break;
-    case 43LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     { value_t d3 = pop_value();
@@ -17248,17 +17244,17 @@ void mwtype_has_meta (void){
     mwtype_has_meta();
     }
     break;
-    case 40LL:
+    case 8LL:
     do_pack_uncons(); do_drop();
     mwdrop2();
     mwfalse();
     break;
-    case 39LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwdrop2();
     mwfalse();
     break;
-    case 44LL:
+    case 12LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwdrop3();
@@ -17299,59 +17295,59 @@ void mwtype_trace_stack_21_ (void){
 
 void mwtype_trace_prim_21_ (void){
     switch (get_top_data_tag()) {
-    case 45LL:
+    case 0LL:
     do_drop();
     push_ptr((void*)(strings + 21373));
     break;
-    case 46LL:
+    case 1LL:
     do_drop();
     push_ptr((void*)(strings + 21380));
     break;
-    case 47LL:
+    case 2LL:
     do_drop();
     push_ptr((void*)(strings + 21388));
     break;
-    case 50LL:
+    case 5LL:
     do_drop();
     push_ptr((void*)(strings + 21397));
     break;
-    case 48LL:
+    case 3LL:
     do_drop();
     push_ptr((void*)(strings + 21402));
     break;
-    case 49LL:
+    case 4LL:
     do_drop();
     push_ptr((void*)(strings + 21406));
     break;
-    case 54LL:
+    case 9LL:
     do_drop();
     push_ptr((void*)(strings + 21410));
     break;
-    case 53LL:
+    case 8LL:
     do_drop();
     push_ptr((void*)(strings + 21413));
     break;
-    case 52LL:
+    case 7LL:
     do_drop();
     push_ptr((void*)(strings + 21417));
     break;
-    case 51LL:
+    case 6LL:
     do_drop();
     push_ptr((void*)(strings + 21421));
     break;
-    case 58LL:
+    case 13LL:
     do_drop();
     push_ptr((void*)(strings + 21425));
     break;
-    case 57LL:
+    case 12LL:
     do_drop();
     push_ptr((void*)(strings + 21428));
     break;
-    case 56LL:
+    case 11LL:
     do_drop();
     push_ptr((void*)(strings + 21432));
     break;
-    case 55LL:
+    case 10LL:
     do_drop();
     push_ptr((void*)(strings + 21436));
     break;
@@ -17972,7 +17968,7 @@ void mwexternal_alloc_21_ (void){
 
 void mwNameValue__3E_External (void){
     switch (get_top_data_tag()) {
-    case 16LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -18031,7 +18027,7 @@ void mwname_buffer_21_ (void){
 
 void mwNameValue__3E_Buffer (void){
     switch (get_top_data_tag()) {
-    case 15LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -18213,7 +18209,7 @@ void mwPrim__3E_NameValue (void){
 
 void mwNameValue__3E_Prim (void){
     switch (get_top_data_tag()) {
-    case 13LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -18240,7 +18236,7 @@ void mwname_prim_3D_ (void){
     mwswap();
     mwname_value_40_();
     switch (get_top_data_tag()) {
-    case 13LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mw_3D__3D_();
     break;
@@ -18341,7 +18337,7 @@ void mwdef_prim_21_ (void){
 
 void mwNameValue__3E_Tag (void){
     switch (get_top_data_tag()) {
-    case 12LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -18393,29 +18389,29 @@ void mwtoken_run_end_3F_ (void){
     } else {
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 20LL:
+    case 0LL:
     do_drop();
     mwtrue();
     break;
-    case 22LL:
+    case 2LL:
     do_drop();
     mwtrue();
     break;
-    case 21LL:
+    case 1LL:
     do_drop();
     mwtrue();
     break;
-    case 24LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
     break;
-    case 26LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
     break;
-    case 28LL:
+    case 8LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -18628,11 +18624,11 @@ void mwTag__3E_Pattern (void){
 
 void mwPattern__3E_Tag (void){
     switch (get_top_data_tag()) {
-    case 70LL:
+    case 1LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
-    case 69LL:
+    case 0LL:
     do_drop();
     push_ptr((void*)(strings + 22398));
     mwpanic_21_();
@@ -18661,7 +18657,7 @@ void mwtoken_is_module_end_3F_ (void){
     } else {
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 20LL:
+    case 0LL:
     do_drop();
     mwtrue();
     break;
@@ -18684,7 +18680,7 @@ void mwtoken_prim_3D_ (void){
     mwswap();
     mwtoken_value_40_();
     switch (get_top_data_tag()) {
-    case 31LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwswap();
     mwname_prim_3D_();
@@ -18735,7 +18731,7 @@ void mwsig_is_stack_end2_3F_ (void){
 void mwsig_token_is_effect_con_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 31LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwname_could_be_effect_con();
     break;
@@ -18787,7 +18783,7 @@ void mwsig_count_types (void){
 void mwsig_token_is_type_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 31LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwname_could_be_type();
     break;
@@ -18801,7 +18797,7 @@ void mwsig_token_is_type_3F_ (void){
 void mwsig_token_is_type_con_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 31LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwname_could_be_type_con();
     break;
@@ -18815,7 +18811,7 @@ void mwsig_token_is_type_con_3F_ (void){
 void mwsig_token_is_type_hole_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 31LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwname_is_type_hole();
     break;
@@ -18829,7 +18825,7 @@ void mwsig_token_is_type_hole_3F_ (void){
 void mwtoken_is_underscore_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 31LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwname_is_underscore();
     break;
@@ -18843,7 +18839,7 @@ void mwtoken_is_underscore_3F_ (void){
 void mwsig_token_is_type_var_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 31LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwname_could_be_type_var();
     break;
@@ -18857,7 +18853,7 @@ void mwsig_token_is_type_var_3F_ (void){
 void mwsig_token_is_stack_var_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
-    case 31LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwname_could_be_stack_var();
     break;
@@ -18925,7 +18921,7 @@ void mwtype_elab_stack_assertion (void){
 void mwtype_elab_holes_allowed_3F_ (void){
     mwdup();
     switch (get_top_data_tag()) {
-    case 75LL:
+    case 0LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwdrop();
@@ -18936,7 +18932,7 @@ void mwtype_elab_holes_allowed_3F_ (void){
 
 void mwtype_elab_ctx (void){
     switch (get_top_data_tag()) {
-    case 75LL:
+    case 0LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwnip();
@@ -18953,7 +18949,7 @@ void mwtype_elab_ctx_3F_ (void){
 void mwtype_elab_ctx_21_ (void){
     mwswap();
     switch (get_top_data_tag()) {
-    case 75LL:
+    case 0LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwdrop();
@@ -19526,19 +19522,19 @@ void mwelab_arrow_op_21_ (void){
     mwarrow_token_3F_();
     mwtoken_value_40_();
     switch (get_top_data_tag()) {
-    case 31LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwelab_arrow_op_name_21_();
     break;
-    case 29LL:
+    case 9LL:
     do_pack_uncons(); do_drop();
     mwelab_arrow_op_int_21_();
     break;
-    case 30LL:
+    case 10LL:
     do_pack_uncons(); do_drop();
     mwelab_arrow_op_str_21_();
     break;
-    case 27LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwarrow_token_3F_();
@@ -19556,23 +19552,23 @@ void mwelab_arrow_op_21_ (void){
 void mwelab_arrow_op_name_21_ (void){
     mwname_value_40_();
     switch (get_top_data_tag()) {
-    case 15LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwelab_arrow_op_buffer_21_();
     break;
-    case 16LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwelab_arrow_op_external_21_();
     break;
-    case 14LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwelab_arrow_op_word_21_();
     break;
-    case 13LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwelab_arrow_op_prim_21_();
     break;
-    case 12LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwelab_arrow_op_tag_21_();
     break;

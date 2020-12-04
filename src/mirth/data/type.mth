@@ -75,11 +75,7 @@ def(T4, Type Type Type Type -- Type, dip(T3) T*)
 def(T5, Type Type Type Type Type -- Type, dip(T4) T*)
 def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
 
-def(type-is-error, Type -- Bool,
-    dup 0 cast == if( # TODO get rid of this?
-        drop true,
-        match(TYPE_ERROR -> true, _ -> drop false)
-    ))
+def(type-is-error, Type -- Bool, match(TYPE_ERROR -> true, _ -> drop false))
 def(type-is-dont-care, Type -- Bool, match(TYPE_DONT_CARE -> true, _ -> drop false))
 def(type-is-prim, Type -- Bool, match(TPrim -> drop true, _ -> drop false))
 def(type-is-var, Type -- Bool, match(TVar -> drop true, _ -> drop false))

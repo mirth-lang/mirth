@@ -6,6 +6,7 @@ data(StrLit, STRLIT -> Int)
 
 # mirth/data/name
 data NameValue
+    DEF_NONE
     DEF_MODULE -> Module,
     DEF_TYPE -> Type,
     DEF_TAG -> Tag,
