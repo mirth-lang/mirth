@@ -179,7 +179,7 @@ def(elab-tag-ctx!, Tag -- Ctx +Elab,
 
 def(elab-tag-ctx-sig!, Tag -- Ctx Type +Elab,
     tag-sig-is-checked? if(
-        tag-type? dip(tag-ctx@),
+        tag-type-raw? dip(tag-ctx@),
 
         type-elab-default over
 
@@ -200,7 +200,7 @@ def(elab-tag-ctx-sig!, Tag -- Ctx Type +Elab,
         { Tag Ctx Type }
         dup2 dip(dip(
             rotl
-            tuck tag-type!
+            tuck tag-type-raw!
             tuck tag-ctx!
             true swap tag-sig-is-checked!
         ))

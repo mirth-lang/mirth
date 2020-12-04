@@ -114,7 +114,7 @@ field(tag-sig, Tag, Token)
 field(tag-has-sig, Tag, Bool)
 field(tag-sig-is-checked, Tag, Bool)
 field(tag-ctx, Tag, Ctx)
-field(tag-type, Tag, Type)
+field(tag-type-raw, Tag, Type)
 field(tag-next, Tag, Tag)
 
 # mirth/data/var

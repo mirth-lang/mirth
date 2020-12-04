@@ -2514,8 +2514,8 @@ void mwOP_MATCH (void) {
  void mwtag_sig_is_checked_buffer (void) { push_ptr((void*)btag_sig_is_checked_buffer); }
  volatile u8 btag_ctx_buffer[2097152] = {0};
  void mwtag_ctx_buffer (void) { push_ptr((void*)btag_ctx_buffer); }
- volatile u8 btag_type_buffer[2097152] = {0};
- void mwtag_type_buffer (void) { push_ptr((void*)btag_type_buffer); }
+ volatile u8 btag_type_raw_buffer[2097152] = {0};
+ void mwtag_type_raw_buffer (void) { push_ptr((void*)btag_type_raw_buffer); }
  volatile u8 btag_next_buffer[2097152] = {0};
  void mwtag_next_buffer (void) { push_ptr((void*)btag_next_buffer); }
  volatile u8 bVar_2E_NUM[8] = {0};
@@ -3221,10 +3221,10 @@ void mwOP_MATCH (void) {
  void mwtag_ctx_21_ (void);
  void mwtag_ctx_40_ (void);
  void mwtag_ctx_3F_ (void);
- void mwtag_type_26_ (void);
- void mwtag_type_21_ (void);
- void mwtag_type_40_ (void);
- void mwtag_type_3F_ (void);
+ void mwtag_type_raw_26_ (void);
+ void mwtag_type_raw_21_ (void);
+ void mwtag_type_raw_40_ (void);
+ void mwtag_type_raw_3F_ (void);
  void mwtag_next_26_ (void);
  void mwtag_next_21_ (void);
  void mwtag_next_40_ (void);
@@ -10432,26 +10432,26 @@ void mwtag_ctx_3F_ (void){
     mwvalue_40_();
 }
 
-void mwtag_type_26_ (void){
+void mwtag_type_raw_26_ (void){
     push_i64(16LL);
     mw_2A_();
-    mwtag_type_buffer();
+    mwtag_type_raw_buffer();
     mwprim_2E_unsafe_2E_ptr_2B_();
 }
 
-void mwtag_type_21_ (void){
-    mwtag_type_26_();
+void mwtag_type_raw_21_ (void){
+    mwtag_type_raw_26_();
     mwvalue_21_();
 }
 
-void mwtag_type_40_ (void){
-    mwtag_type_26_();
+void mwtag_type_raw_40_ (void){
+    mwtag_type_raw_26_();
     mwvalue_40_();
 }
 
-void mwtag_type_3F_ (void){
+void mwtag_type_raw_3F_ (void){
     mwdup();
-    mwtag_type_26_();
+    mwtag_type_raw_26_();
     mwvalue_40_();
 }
 
@@ -19084,7 +19084,7 @@ void mwelab_tag_sig_21_ (void){
 void mwelab_tag_ctx_sig_21_ (void){
     mwtag_sig_is_checked_3F_();
     if (pop_u64()) {
-    mwtag_type_3F_();
+    mwtag_type_raw_3F_();
     { value_t d2 = pop_value();
     mwtag_ctx_40_();
       push_value(d2); }
@@ -19125,7 +19125,7 @@ void mwelab_tag_ctx_sig_21_ (void){
     { value_t d3 = pop_value();
     mwrotl();
     mwtuck();
-    mwtag_type_21_();
+    mwtag_type_raw_21_();
     mwtuck();
     mwtag_ctx_21_();
     mwtrue();
