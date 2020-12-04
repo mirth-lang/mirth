@@ -25,15 +25,6 @@ name-tag@ = name-value@ NameValue->Tag
 name-tag? : Name -- Name Tag
 name-tag? = dup name-tag@
 
-tag-nil : Tag
-tag-nil = 0 cast
-
-tag-is-nil : Tag -- Bool
-tag-is-nil = tag-nil ==
-
-tag-is-nil? : Tag -- Tag Bool
-tag-is-nil? = dup tag-is-nil
-
 tag-num-inputs? : Tag -- Tag Int
 tag-num-inputs? =
     # TODO: this should actually be calculated & stored during elaboration based on the type

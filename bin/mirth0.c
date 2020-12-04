@@ -3159,9 +3159,6 @@ void mwTYPE_ELAB (void) {
  void mwname_table_40_ (void);
  void mwname_table_21_ (void);
  void mwnext_hash (void);
- void mwname_is_error (void);
- void mwNAME_ERROR (void);
- void mwname_is_error_3F_ (void);
  void mwname_save_keep_going_3F_ (void);
  void mwName_2E_alloc_21_ (void);
  void mwname_new_21_ (void);
@@ -3919,9 +3916,6 @@ void mwTYPE_ELAB (void) {
  void mwTag__3E_NameValue (void);
  void mwname_tag_21_ (void);
  void mwname_tag_3F_ (void);
- void mwtag_nil (void);
- void mwtag_is_nil (void);
- void mwtag_is_nil_3F_ (void);
  void mwtoken_run_end_3F_ (void);
  void mwdata_num_tags (void);
  void mwdata_add_tag_21_ (void);
@@ -5606,7 +5600,6 @@ void mwInt__3E_U32 (void){
     if (pop_u64()) {
     mwcast();
     } else {
-    mw_3F__3F_();
     push_ptr((void*)(strings + 136));
     mwpanic_21_();
     }
@@ -6000,8 +5993,7 @@ void mwis_nil_3F_ (void){
 }
 
 void mwpack_nil (void){
-    mwprim_2E_pack_2E_nil();
-    mwcast();
+    mwnil();
 }
 
 void mwpack_nil_3F_ (void){
@@ -8970,7 +8962,7 @@ void mwname_save_21_ (void){
     }
     mwdup();
     mwname_table_40_();
-    mwname_is_error_3F_();
+    mwis_nil_3F_();
     if (pop_u64()) {
     mwdrop();
     mwName_2E_alloc_21_();
@@ -9897,25 +9889,10 @@ void mwnext_hash (void){
     mwInt__3E_Hash();
 }
 
-void mwname_is_error (void){
-    mwNAME_ERROR();
-    mw_3D__3D_();
-}
-
-void mwNAME_ERROR (void){
-    push_i64(0LL);
-    mwInt__3E_Name();
-}
-
-void mwname_is_error_3F_ (void){
-    mwdup();
-    mwname_is_error();
-}
-
 void mwname_save_keep_going_3F_ (void){
     mwdup();
     mwname_table_40_();
-    mwname_is_error_3F_();
+    mwis_nil_3F_();
     if (pop_u64()) {
     mwdrop();
     mwfalse();
@@ -18230,21 +18207,6 @@ void mwname_tag_21_ (void){
 void mwname_tag_3F_ (void){
     mwdup();
     mwname_tag_40_();
-}
-
-void mwtag_nil (void){
-    push_i64(0LL);
-    mwcast();
-}
-
-void mwtag_is_nil (void){
-    mwtag_nil();
-    mw_3D__3D_();
-}
-
-void mwtag_is_nil_3F_ (void){
-    mwdup();
-    mwtag_is_nil();
 }
 
 void mwtoken_run_end_3F_ (void){

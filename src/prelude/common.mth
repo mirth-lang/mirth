@@ -203,7 +203,6 @@ Int->U32 : Int -- U32
 Int->U32 =
     dup U32_MIN U32_MAX in-range if(
         cast,
-        ??
         "Int->U32 failed: out of bounds" panic!
     )
 
@@ -460,7 +459,7 @@ is-nil? = dup nil ==
 
 ||| Return the "nil" pack, i.e. null.
 pack-nil : [*a]
-pack-nil = prim.pack.nil cast
+pack-nil = nil
 
 ||| Is this a nil pack?
 pack-nil? : [*a] -- [*a] Bool
