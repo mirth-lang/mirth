@@ -66,10 +66,10 @@ arrow-op-str! = dip(OP_STR) arrow-op!
 #######
 
 Arrow->Arg : Arrow -- Arg
-Arrow->Arg = Arg.wrap
+Arrow->Arg = ARG_ARROW
 
 Arg->Arrow : Arg -- Arrow
-Arg->Arrow = Arg.unwrap
+Arg->Arrow = match(ARG_ARROW -> id)
 
 ########
 # ARGS #

@@ -2143,7 +2143,7 @@ void mwTOKEN_STR (void) {
 
 void mwHASH (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 69LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 70LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -2369,73 +2369,80 @@ void mwPRIM_TYPE_I8 (void) {
     push_u64(57LL);
 }
 
-void mwOP_NONE (void) {
-    push_u64(58LL);
-}
-
-void mwOP_PRIM (void) {
+void mwARG_ARROW (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 59LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 58LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
-void mwOP_WORD (void) {
+void mwOP_NONE (void) {
+    push_u64(59LL);
+}
+
+void mwOP_PRIM (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 60LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
-void mwOP_EXTERNAL (void) {
+void mwOP_WORD (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 61LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
-void mwOP_BUFFER (void) {
+void mwOP_EXTERNAL (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 62LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
-void mwOP_INT (void) {
+void mwOP_BUFFER (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 63LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
-void mwOP_STR (void) {
+void mwOP_INT (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 64LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
-void mwOP_TAG (void) {
+void mwOP_STR (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 65LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
-void mwOP_MATCH (void) {
+void mwOP_TAG (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 66LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
+void mwOP_MATCH (void) {
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 67LL } };
+    car = mkcell(car, tag);
+    push_value(car);
+}
+
 void mwPATTERN_UNDERSCORE (void) {
-    push_u64(67LL);
+    push_u64(68LL);
 }
 
 void mwPATTERN_TAG (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 68LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 69LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -3319,8 +3326,6 @@ void mwPATTERN_TAG (void) {
  void mwArrow_2E_alloc_21_ (void);
  void mwArgs_2E_MAX (void);
  void mwArgs_2E_alloc_21_ (void);
- void mwArg_2E_wrap (void);
- void mwArg_2E_unwrap (void);
  void mwarrow_token_26_ (void);
  void mwarrow_token_21_ (void);
  void mwarrow_token_40_ (void);
@@ -9064,7 +9069,7 @@ void mwInt__3E_Hash (void){
 
 void mwHash__3E_Int (void){
     switch (get_top_data_tag()) {
-    case 69LL:
+    case 70LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -10863,12 +10868,6 @@ void mwArgs_2E_alloc_21_ (void){
     mwdup();
     mwArgs_2E_NUM();
     mwint_21_();
-}
-
-void mwArg_2E_wrap (void){
-}
-
-void mwArg_2E_unwrap (void){
 }
 
 void mwarrow_token_26_ (void){
@@ -15260,11 +15259,11 @@ void mwarrow_is_nil_3F_ (void){
 void mwc99_emit_arrow_op_21_ (void){
     mwarrow_op_3F_();
     switch (get_top_data_tag()) {
-    case 58LL:
+    case 59LL:
     do_drop();
     mwdrop();
     break;
-    case 63LL:
+    case 64LL:
     do_pack_uncons(); do_drop();
     mwnip();
     push_ptr((void*)(strings + 19871));
@@ -15273,7 +15272,7 @@ void mwc99_emit_arrow_op_21_ (void){
     push_ptr((void*)(strings + 19885));
     mw_3B_();
     break;
-    case 64LL:
+    case 65LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwStrLit__3E_Int();
@@ -15283,7 +15282,7 @@ void mwc99_emit_arrow_op_21_ (void){
     push_ptr((void*)(strings + 19922));
     mw_3B_();
     break;
-    case 60LL:
+    case 61LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwword_name_40_();
@@ -15293,7 +15292,7 @@ void mwc99_emit_arrow_op_21_ (void){
     push_ptr((void*)(strings + 19933));
     mw_3B_();
     break;
-    case 61LL:
+    case 62LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwexternal_name_40_();
@@ -15303,7 +15302,7 @@ void mwc99_emit_arrow_op_21_ (void){
     push_ptr((void*)(strings + 19944));
     mw_3B_();
     break;
-    case 62LL:
+    case 63LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwbuffer_name_40_();
@@ -15313,7 +15312,7 @@ void mwc99_emit_arrow_op_21_ (void){
     push_ptr((void*)(strings + 19955));
     mw_3B_();
     break;
-    case 65LL:
+    case 66LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwtag_name_40_();
@@ -15323,7 +15322,7 @@ void mwc99_emit_arrow_op_21_ (void){
     push_ptr((void*)(strings + 19966));
     mw_3B_();
     break;
-    case 59LL:
+    case 60LL:
     do_pack_uncons(); do_drop();
     mwdup();
     mwPRIM_DIP();
@@ -15393,7 +15392,7 @@ void mwc99_emit_arrow_op_21_ (void){
     }
     }
     break;
-    case 66LL:
+    case 67LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwc99_emit_match_21_();
@@ -15423,7 +15422,13 @@ void mwarrow_args_1 (void){
 }
 
 void mwArg__3E_Arrow (void){
-    mwArg_2E_unwrap();
+    switch (get_top_data_tag()) {
+    case 58LL:
+    do_pack_uncons(); do_drop();
+    mwid();
+    break;
+    default: fprintf(stderr, "unexpected fallthrough in match\n"); do_debug(); exit(99);
+    }
 }
 
 void mwPRIM_IF (void){
@@ -15499,12 +15504,12 @@ void mwmatch_has_default_case (void){
 
 void mwc99_emit_pattern_21_ (void){
     switch (get_top_data_tag()) {
-    case 67LL:
+    case 68LL:
     do_drop();
     push_ptr((void*)(strings + 20265));
     mw_3B_();
     break;
-    case 68LL:
+    case 69LL:
     do_pack_uncons(); do_drop();
     push_ptr((void*)(strings + 20278));
     mw_2E_();
@@ -17864,7 +17869,7 @@ void mwarrow_op_str_21_ (void){
 }
 
 void mwArrow__3E_Arg (void){
-    mwArg_2E_wrap();
+    mwARG_ARROW();
 }
 
 void mwInt__3E_Args (void){
@@ -18435,11 +18440,11 @@ void mwTag__3E_Pattern (void){
 
 void mwPattern__3E_Tag (void){
     switch (get_top_data_tag()) {
-    case 68LL:
+    case 69LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
-    case 67LL:
+    case 68LL:
     do_drop();
     push_ptr((void*)(strings + 22519));
     mwpanic_21_();

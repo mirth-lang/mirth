@@ -144,7 +144,9 @@ field(external-ctx, External, Ctx)
 # mirth/data/arrow
 table(Arrow)
 table(Args)
-nominal(Arg, Arrow)
+data Arg
+    ARG_ARROW -> Arrow
+end
 data Op
     OP_NONE
     OP_PRIM -> Prim
