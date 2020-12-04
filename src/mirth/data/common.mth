@@ -2,7 +2,7 @@ module(mirth/data/common)
 import(prelude)
 
 # mirth/data/string
-nominal(StrLit, Int)
+data(StrLit, STRLIT -> Int)
 
 # mirth/data/name
 data NameValue
