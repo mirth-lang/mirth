@@ -12,9 +12,11 @@ def(|Name|, Size, 8)
 def(name@, Ptr -- Name, int@ Int->Name)
 def(name!, Name Ptr --, dip(Name->Int) int!)
 
-nominal(Hash, Int)
-def(Int->Hash, Int -- Hash, Hash.wrap)
-def(Hash->Int, Hash -- Int, Hash.unwrap)
+data Hash
+    HASH -> Int
+end
+def(Int->Hash, Int -- Hash, HASH)
+def(Hash->Int, Hash -- Int, match(HASH -> id))
 
 def(MAX_NAMES, Size, 0x4000)
 def(NAME_HASH_MAX, Size, 0x3FFF)

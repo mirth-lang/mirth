@@ -2141,6 +2141,13 @@ void mwTOKEN_STR (void) {
     push_value(car);
 }
 
+void mwHASH (void) {
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 64LL } };
+    car = mkcell(car, tag);
+    push_value(car);
+}
+
 void mwDEF_WORD (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 12LL } };
@@ -3042,9 +3049,7 @@ void mwOP_MATCH (void) {
  void mwname_40_ (void);
  void mwname_21_ (void);
  void mwInt__3E_Hash (void);
- void mwHash_2E_wrap (void);
  void mwHash__3E_Int (void);
- void mwHash_2E_unwrap (void);
  void mwMAX_NAMES (void);
  void mwNAME_HASH_MAX (void);
  void mwNAME_TABLE_SIZE (void);
@@ -9020,17 +9025,17 @@ void mwname_21_ (void){
 }
 
 void mwInt__3E_Hash (void){
-    mwHash_2E_wrap();
-}
-
-void mwHash_2E_wrap (void){
+    mwHASH();
 }
 
 void mwHash__3E_Int (void){
-    mwHash_2E_unwrap();
-}
-
-void mwHash_2E_unwrap (void){
+    switch (get_top_data_tag()) {
+    case 64LL:
+    do_pack_uncons(); do_drop();
+    mwid();
+    break;
+    default: fprintf(stderr, "unexpected fallthrough in match\n"); do_debug(); exit(99);
+    }
 }
 
 void mwMAX_NAMES (void){
@@ -14696,7 +14701,7 @@ void mwc99_emit_tag_21_ (void){
     mwdrop();
     push_ptr((void*)(strings + 3661));
     mw_2E_();
-    mwcast();
+    mwTag__3E_Int();
     mw_2E_n();
     push_ptr((void*)(strings + 3720));
     mw_3B_();

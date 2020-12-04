@@ -218,7 +218,7 @@ def(c99-emit-tag!, Name -- +IO,
             "    value_t car = pop_value();" ;
             tag-num-inputs? 1-
             while(dup 0 >, "    car = mkcell(car, pop_value());" ;  1-) drop
-            "    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = " . cast .n "LL } };" ;
+            "    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = " . Tag->Int .n "LL } };" ;
             "    car = mkcell(car, tag);" ;
             "    push_value(car);" ;
         )
