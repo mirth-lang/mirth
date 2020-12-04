@@ -615,85 +615,6 @@ def(meta-unify!, Type MetaVar -- Type,
         meta-type!
     )))
 
-
-################
-# Tensor Types #
-# ################
-
-# def(Int->TensorType, Int -- TensorType, cast)
-# def(TensorType->Int, TensorType -- Int, cast)
-# def(tensor-type-new!, Type Type -- TensorType,
-#     TensorType.alloc!
-#     tuck tensor-type-snd!
-#     tuck tensor-type-fst!)
-
-# def(tensor-type-unify!, TensorType TensorType -- TensorType,
-#     over tensor-type-fst@ over tensor-type-fst@ type-unify! over tensor-type-fst!
-#     over tensor-type-snd@ over tensor-type-snd@ type-unify! over tensor-type-snd!
-#     nip)
-
-# def(tensor-type-unpack, TensorType -- Type Type,
-#     dup dip(tensor-type-fst@) tensor-type-snd@)
-
-# def(tensor-type-has-meta, MetaVar TensorType -- Bool,
-#     tensor-type-unpack
-#     dip(over) type-has-meta if(
-#         drop2 true,
-#         type-has-meta
-#     ))
-
-# def(tensor-type-freshen-aux, Subst TensorType -- Subst TensorType Bool,
-#     dup
-#     dip(
-#         tensor-type-unpack
-#         dip(type-freshen-aux)
-#         dip(rotl) type-freshen-aux
-#         dip(dip(rotr) swap) &&
-#     )
-#     swap if(
-#         dip(drop2) true,
-#         drop tensor-type-new! false
-#     ))
-
-##################
-# Morphism Types #
-##################
-
-# def(Int->MorphismType, Int -- MorphismType, cast)
-# def(MorphismType->Int, MorphismType -- Int, cast)
-# def(morphism-type-new!, Type Type -- MorphismType,
-#     MorphismType.alloc!
-#     tuck morphism-type-cod!
-#     tuck morphism-type-dom!)
-
-# def(morphism-type-unify!, MorphismType MorphismType -- MorphismType,
-#     over morphism-type-dom@ over morphism-type-dom@ type-unify! over morphism-type-dom!
-#     over morphism-type-cod@ over morphism-type-cod@ type-unify! over morphism-type-cod!
-#     nip)
-
-# def(morphism-type-unpack, MorphismType -- Type Type,
-#     dup dip(morphism-type-dom@) morphism-type-cod@)
-
-# def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
-#     morphism-type-unpack
-#     dip(over) type-has-meta if(
-#         drop2 true,
-#         type-has-meta
-#     ))
-
-# def(morphism-type-freshen-aux, Subst MorphismType -- Subst MorphismType Bool,
-#     dup
-#     dip(
-#         morphism-type-unpack
-#         dip(type-freshen-aux)
-#         dip(rotl) type-freshen-aux
-#         dip(dip(rotr) swap) &&
-#     )
-#     swap if(
-#         dip(drop2) true,
-#         drop morphism-type-new! false
-#     ))
-
 ############
 # Nominals #
 ############
@@ -755,13 +676,6 @@ def(type-num-params, Type -- Int,
         drop 0
     ))
 
-# def(param-type-freshen-aux, Subst ParamType -- Subst ParamType Bool,
-#     param-type-unpack
-#     dip(param-freshen-aux drop) swap
-#     dip(type-freshen-aux drop) swap
-#     param-type-new! false)
-#     # TODO: only generate new param-type when needed
-
 def(param-freshen-aux, Subst List(Type) -- Subst List(Type) Bool,
     is-nil? if(
         true,
@@ -775,28 +689,6 @@ def(param-freshen-aux, Subst List(Type) -- Subst List(Type) Bool,
 ############
 # APP TYPE #
 ############
-
-# def(AppType->Int, AppType -- Int, cast)
-# def(Int->AppType, Int -- AppType, cast)
-# def(app-type-new!, Type Type -- AppType,
-#     AppType.alloc!
-#     tuck app-type-arg!
-#     tuck app-type-fun!)
-# def(app-type-unpack, AppType -- Type Type,
-#     app-type-fun? swap
-#     app-type-arg@)
-
-# def(app-type-unify!, AppType AppType -- AppType,
-#     over app-type-fun@ over app-type-fun@ type-unify! over app-type-fun!
-#     over app-type-arg@ over app-type-arg@ type-unify! over app-type-arg!
-#     nip)
-
-# def(app-type-has-meta, MetaVar AppType -- Bool,
-#     app-type-unpack
-#     dip(over) type-has-meta if(
-#         drop2 true,
-#         type-has-meta
-#     ))
 
 def(app-type-trace!, Type Type --,
     app-type-trace-open! ")" str-trace!)
@@ -813,19 +705,6 @@ def(app-type-trace-open!, Type Type --,
         "(" str-trace!
         type-trace!
     ))
-
-# def(app-type-freshen-aux, Subst AppType -- Subst AppType Bool,
-#     dup
-#     dip(
-#         app-type-unpack
-#         dip(type-freshen-aux)
-#         dip(rotl) type-freshen-aux
-#         dip(dip(rotr) swap) &&
-#     )
-#     swap if(
-#         dip(drop2) true,
-#         drop app-type-new! false
-#     ))
 
 #########
 # Subst #
