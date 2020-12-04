@@ -583,7 +583,6 @@ def(elab-module-decl!, Module Token -- Module Token +Mirth,
     PRIM_DEF token-prim=? if( elab-def!,
     PRIM_DEF_EXTERNAL token-prim=? if( elab-def-external!,
     PRIM_DEF_TYPE token-prim=? if( elab-def-type!,
-    PRIM_NOMINAL token-prim=? if( elab-nominal!,
     PRIM_BUFFER token-prim=? if( elab-buffer!,
     PRIM_TABLE token-prim=? if( elab-table!,
     PRIM_FIELD token-prim=? if( elab-field!,
@@ -591,7 +590,7 @@ def(elab-module-decl!, Module Token -- Module Token +Mirth,
     PRIM_DATA token-prim=? if( elab-data!,
     token-could-be-word-sig? if(elab-decl-word-sig!,
     token-could-be-word-def? if(elab-decl-word-def!,
-    "unknown declaration" emit-fatal-error!)))))))))))
+    "unknown declaration" emit-fatal-error!))))))))))
     token-skip-newlines)
 
 ||| Elaborate a data definition `data T ... end` or `data(T, ...)`
@@ -775,46 +774,6 @@ def(elab-def-type!, Module Token -- Module Token +Mirth,
             drop "type already defined" emit-fatal-error!
         ),
         "expected type constructor" emit-fatal-error!
-    ))
-
-||| Elaborate a nominal type definition `nominal(t1, t2)`.
-def(elab-nominal!, Module Token -- Module Token +Mirth,
-    dup dip(token-next) token-args-2
-    swap sig-token-is-type-con? if(
-        token-name? name-undefined? if(
-            { Module Token Token Token Name }
-            dup dip(
-                swap token-num-args
-                rotl elab-simple-type-arg!
-                    # TODO use params to infer a ctx
-                    # and actually use that ctx here
-                nominal-new! elab-nominal-words! TNominal
-            ) name-type!,
-
-            drop "type already defined" emit-fatal-error!
-        ),
-        "expected type constructor" emit-fatal-error!
-    ))
-
-def(elab-nominal-words!, Nominal -- Nominal +Mirth,
-    nominal-arity? 0 == if(
-        nominal-name? name-load! ".wrap" str-buf-push-str! name-save!
-        word-alloc! dup2 swap name-word! tuck word-name!
-        over dup nominal-type@ T1 swap TNominal T1 T->
-        over word-type!
-        arrow-alloc! over word-arrow!
-        true over word-sig-is-checked!
-        true swap word-body-is-checked!
-
-        nominal-name? name-load! ".unwrap" str-buf-push-str! name-save!
-        word-alloc! dup2 swap name-word! tuck word-name!
-        over dup nominal-type@ T1 swap TNominal T1 swap T->
-        over word-type!
-        arrow-alloc! over word-arrow!
-        true over word-sig-is-checked!
-        true swap word-body-is-checked!,
-
-        id # TODO, possibly.
     ))
 
 ||| Elaborate a buffer definition `buffer(B, size)`.
