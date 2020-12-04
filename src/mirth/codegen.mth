@@ -1088,13 +1088,13 @@ c99-emit-arrow-op! =
             "    mw" . .name "();" ;,
         OP_PRIM ->
             dup PRIM_DIP == if(
-                drop arrow-args-1
+                drop arrow-args@ unL1
                 "    { value_t d" . .d " = pop_value();" ;
                 Arg->Arrow c99-emit-arrow!
                 "      push_value(d" . .d "); }" ;,
 
             dup PRIM_IF == if(
-                drop arrow-args-2
+                drop arrow-args@ unL2
                 "    if (pop_u64()) {" ;
                 dip(Arg->Arrow c99-emit-arrow!)
                 "    } else {" ;
@@ -1102,7 +1102,7 @@ c99-emit-arrow-op! =
                 "    }" ;,
 
             dup PRIM_WHILE == if(
-                drop arrow-args-2
+                drop arrow-args@ unL2
                 "    while(1) {" ;
                 dip(Arg->Arrow c99-emit-arrow!)
                 "    if (!pop_u64()) break;" ;

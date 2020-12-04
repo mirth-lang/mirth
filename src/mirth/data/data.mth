@@ -63,10 +63,10 @@ data-num-tags = (
 data-add-tag! : Tag Data -- +Mirth
 data-add-tag! =
     data-tags? tag-is-nil if(
-        data-tags!,
-        data-tags@
-        while(tag-next? tag-is-nil not, tag-next@)
-        tag-next!
+        0 swap dip(over tag-value!) data-tags!,
+        1 swap data-tags@ { Tag Int Tag }
+        while(tag-next? tag-is-nil not, tag-next@ dip(1+))
+        dip(over tag-value!) tag-next!
     )
 
 #########

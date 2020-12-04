@@ -104,6 +104,7 @@ field(data-tags, Data, Tag)
 
 field(tag-data, Tag, Data)
 field(tag-name, Tag, Name)
+field(tag-value, Tag, Int)
 field(tag-sig, Tag, Token)
 field(tag-has-sig, Tag, Bool)
 field(tag-sig-is-checked, Tag, Bool)
@@ -137,7 +138,6 @@ field(external-ctx, External, Ctx)
 
 # mirth/data/arrow
 table(Arrow)
-table(Args)
 data Arg
     ARG_ARROW -> Arrow
 end
@@ -159,9 +159,7 @@ field(arrow-dom, Arrow, Type)
 field(arrow-next, Arrow, Arrow)
 field(arrow-op, Arrow, Op)
 field(arrow-subst, Arrow, Subst)
-field(arrow-args, Arrow, Args)
-field(args-head, Args, Arg)
-field(args-tail, Args, Args)
+field(arrow-args, Arrow, List(Arg))
 
 # mirth/data/prim
 table(Prim)

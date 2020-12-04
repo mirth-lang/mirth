@@ -732,6 +732,27 @@ trace-list-struc! =
             int-trace! " LCAT" str-trace!
     )
 
+unL1 : List(t) -- t
+unL1 =
+    match(
+        L1 -> id,
+        _ -> "expected L1 list" panic!
+    )
+
+unL2 : List(t) -- t t
+unL2 =
+    match(
+        L2 -> id,
+        _ -> "expected L2 list" panic!
+    )
+
+unL3 : List(t) -- t t t
+unL3 =
+    match(
+        L3 -> id,
+        _ -> "expected L3 list" panic!
+    )
+
 ######
 # IO #
 ######
