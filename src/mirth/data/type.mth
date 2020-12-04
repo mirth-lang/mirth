@@ -629,9 +629,9 @@ def(table-alloc!, Table,
 # Params #
 ##########
 
-def(P1, Type -- List(Type), L0 L1+)
-def(P2, Type Type -- List(Type), L0 L2+)
-def(P3, Type Type Type -- List(Type), L0 L3+)
+def(P1, Type -- List(Type), L1)
+def(P2, Type Type -- List(Type), L2)
+def(P3, Type Type Type -- List(Type), L3)
 
 def(type-num-params, Type -- Int,
     type-expand
