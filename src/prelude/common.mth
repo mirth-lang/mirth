@@ -601,13 +601,13 @@ unsnoc =
 panic! : *a Str -- *b
 panic! = "panic: " str-trace! str-trace-ln! 1 posix-exit!
 
-nominal(File, Int)
-
-File->Int : File -- Int
-File->Int = File.unwrap
+data(File, FILE -> Int)
 
 Int->File : Int -- File
-Int->File = File.wrap
+Int->File = FILE
+
+File->Int : File -- Int
+File->Int = match(FILE -> id)
 
 file@ : Ptr -- File
 file@ = int@ Int->File
