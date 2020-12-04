@@ -9,14 +9,12 @@ import(mirth/data/data)
 # Type Elaboration #
 ####################
 
-nominal(HolesAllowed, Bool)
-def(HolesAllowed->Bool, HolesAllowed -- Bool, HolesAllowed.unwrap)
-def(allow-holes, HolesAllowed, true HolesAllowed.wrap)
-def(forbid-holes, HolesAllowed, false HolesAllowed.wrap)
+data(HolesAllowed, ALLOW_HOLES, FORBID_HOLES,) # TODO make comma unnecessary
+def(HolesAllowed->Bool, HolesAllowed -- Bool, ALLOW_HOLES ==)
 
 nominal(TypeElab, [HolesAllowed Ctx])
-def(type-elab-default, TypeElab, forbid-holes ctx-empty pack2 TypeElab.wrap)
-def(type-elab-stack-assertion, Ctx -- TypeElab, dip(allow-holes) pack2 TypeElab.wrap)
+def(type-elab-default, TypeElab, FORBID_HOLES ctx-empty pack2 TypeElab.wrap)
+def(type-elab-stack-assertion, Ctx -- TypeElab, dip(ALLOW_HOLES) pack2 TypeElab.wrap)
 def(type-elab-holes-allowed?, TypeElab -- TypeElab HolesAllowed, dup TypeElab.unwrap .1)
 def(type-elab-ctx, TypeElab -- Ctx, TypeElab.unwrap .0)
 def(type-elab-ctx?, TypeElab -- TypeElab Ctx, dup type-elab-ctx)

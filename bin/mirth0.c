@@ -2468,6 +2468,14 @@ void mwPATH (void) {
     push_value(car);
 }
 
+void mwALLOW_HOLES (void) {
+    push_u64(74LL);
+}
+
+void mwFORBID_HOLES (void) {
+    push_u64(75LL);
+}
+
  volatile u8 bSTR_BUF[4096] = {0};
  void mwSTR_BUF (void) { push_ptr((void*)bSTR_BUF); }
  volatile u8 bSTR_BUF_LEN[8] = {0};
@@ -3998,10 +4006,6 @@ void mwPATH (void) {
  void mwtoken_could_be_word_sig_3F_ (void);
  void mwtoken_could_be_word_def_3F_ (void);
  void mwHolesAllowed__3E_Bool (void);
- void mwHolesAllowed_2E_unwrap (void);
- void mwallow_holes (void);
- void mwHolesAllowed_2E_wrap (void);
- void mwforbid_holes (void);
  void mwtype_elab_default (void);
  void mwTypeElab_2E_wrap (void);
  void mwtype_elab_stack_assertion (void);
@@ -18732,27 +18736,12 @@ void mwtoken_could_be_word_def_3F_ (void){
 }
 
 void mwHolesAllowed__3E_Bool (void){
-    mwHolesAllowed_2E_unwrap();
-}
-
-void mwHolesAllowed_2E_unwrap (void){
-}
-
-void mwallow_holes (void){
-    mwtrue();
-    mwHolesAllowed_2E_wrap();
-}
-
-void mwHolesAllowed_2E_wrap (void){
-}
-
-void mwforbid_holes (void){
-    mwfalse();
-    mwHolesAllowed_2E_wrap();
+    mwALLOW_HOLES();
+    mw_3D__3D_();
 }
 
 void mwtype_elab_default (void){
-    mwforbid_holes();
+    mwFORBID_HOLES();
     mwctx_empty();
     mwpack2();
     mwTypeElab_2E_wrap();
@@ -18763,7 +18752,7 @@ void mwTypeElab_2E_wrap (void){
 
 void mwtype_elab_stack_assertion (void){
     { value_t d1 = pop_value();
-    mwallow_holes();
+    mwALLOW_HOLES();
       push_value(d1); }
     mwpack2();
     mwTypeElab_2E_wrap();
