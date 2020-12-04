@@ -9,7 +9,7 @@ import(mirth/data/data)
 # Type Elaboration #
 ####################
 
-data(HolesAllowed, ALLOW_HOLES, FORBID_HOLES,) # TODO make comma unnecessary
+data(HolesAllowed, ALLOW_HOLES, FORBID_HOLES)
 def(HolesAllowed->Bool, HolesAllowed -- Bool, ALLOW_HOLES ==)
 
 data(TypeElab, TYPE_ELAB -> HolesAllowed Ctx)
@@ -628,9 +628,14 @@ def(elab-data-header!, Module Data Token -- Module Data Token +Mirth,
 def(elab-data-tags!, Module Data Token -- Module Token +Mirth,
     token-has-args? if(
         token-succ token-succ token-next
-        expect-token-comma token-succ
-        elab-data-tags-body!
-        expect-token-rparen token-succ,
+        token-is-rparen? if(
+            token-succ,
+        token-is-comma? if(
+            token-succ
+            elab-data-tags-body!
+            expect-token-rparen token-succ,
+            "Expected comma or right parenthesis." emit-fatal-error!
+        )),
 
         token-succ token-next
         expect-token-newline token-skip-newlines
@@ -684,12 +689,10 @@ elab-data-tag! = (
             dip(true over tag-has-sig!)
             token-succ tuck dip(tag-sig!)
             while(token-run-end? not, token-next),
-        token-is-newline? if(
+        token-run-end? if(
             nip,
-        token-is-comma? if(
-            nip,
-            "Expected arrow, comma, or newline." emit-fatal-error!
-        )))
+            "Expected arrow, comma, right paren, or newline." emit-fatal-error!
+        ))
         { Module Data Token },
 
         "Expected tag name." emit-fatal-error!
