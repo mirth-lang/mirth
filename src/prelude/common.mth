@@ -419,6 +419,41 @@ str-eq =
 str-eq? : Str Str -- Str Str Bool
 str-eq? = dup2 str-eq
 
+#######
+# NIL #
+#######
+
+||| Default value for any type. This is the 0-filled memory
+||| version of the type (hence "nil"). Best practice is to
+||| set up your types such that 0-filled memory is a sensible
+||| default value.
+|||
+||| Use nil with care! Don't confuse it for an "optional"
+||| value, use `Option(t)` instead. Rather, `nil` should
+||| be a value within the acceptable range of the type, and
+||| a sensible default value for fields of this type.
+|||
+||| In the future, there will be better control over which
+||| types admit a `nil` value.
+|||
+||| - For booleans, this is false.
+||| - For integers, this is zero.
+||| - For pointers, this is NULL.
+||| - For table typess, this is the 0th row, which you never alloc.
+|||   Its fields have nil value unless you override them.
+||| - For data types, this is the first constructor, applied to nil values.
+||| - For n-tuples, this is [ nil ... nil ]
+nil : a
+nil = 0 cast
+
+||| Test for nil.
+is-nil : a -- Bool
+is-nil = nil ==
+
+||| Test for nil.
+is-nil? : a -- a Bool
+is-nil? = dup nil ==
+
 ##########
 # TUPLES #
 ##########
@@ -520,36 +555,25 @@ unpack5 = pack-uncons dip(unpack4)
 .4! : [*a b c d e f] b -- [*a b c d e f]
 .4! = dip(pack-uncons) swap dip(.3!) pack-cons
 
-#########
-# MAYBE #
-#########
+##########
+# OPTION #
+##########
 
-data Maybe(t)
+data Option(t)
     NONE
     SOME -> t
 end
 
-maybe-is-none? : Maybe(t) -- Maybe(t) Bool
-maybe-is-none? =
-    match(
-        NONE -> NONE true,
-        SOME -> SOME false
-    )
+is-none? : Option(t) -- Option(t) Bool
+is-none? = is-nil?
 
-maybe-is-some? : Maybe(t) -- Maybe(t) Bool
-maybe-is-some? = maybe-is-none? not
+is-some? : Option(t) -- Option(t) Bool
+is-some? = is-none? not
 
-maybe-len : Maybe(t) -- Int
-maybe-len =
+unSOME : Option(t) -- t
+unSOME =
     match(
-        NONE -> 0,
-        SOME -> drop 1
-    )
-
-maybe-unwrap : Maybe(t) -- t
-maybe-unwrap =
-    match(
-        NONE -> "maybe-unwrap on NONE" panic!,
+        NONE -> "unSOME on NONE" panic!,
         SOME -> id
     )
 
@@ -592,17 +616,11 @@ L11 = L6 dip(L5) 11 LCAT
 L12 : t t t  t t t  t t t  t t t -- List(t)
 L12 = L6 dip(L6) 12 LCAT
 
-is-nil? : List(t) -- List(t) Bool
-is-nil? = match(L0 -> L0 true, _ -> false)
-
 is-cons? : List(t) -- List(t) Bool
 is-cons? = is-nil? not
 
 is-snoc? : List(t) -- List(t) Bool
 is-snoc? = is-nil? not
-
-is-nil : List(t) -- Bool
-is-nil = is-nil? nip
 
 is-cons : List(t) -- Bool
 is-cons = is-cons? nip
@@ -622,9 +640,6 @@ len? =
 
 len : List(t) -- Int
 len = len? nip
-
-nil : List(t)
-nil = L0
 
 cons : t List(t) -- List(t)
 cons =
