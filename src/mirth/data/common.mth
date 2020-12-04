@@ -199,7 +199,11 @@ field(field-word-ptr, Field, Word)
 # mirth/data/data
 table(Match)
 table(Case)
-nominal(Pattern, Tag)
+data Pattern
+    PATTERN_UNDERSCORE
+    PATTERN_TAG -> Tag
+end
+
 field(match-ctx, Match, Ctx)
 field(match-dom, Match, Type)
 field(match-cod, Match, Type)

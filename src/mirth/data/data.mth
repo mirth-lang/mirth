@@ -164,20 +164,18 @@ case-is-default-case = case-pattern@ pattern-is-underscore
 ###########
 
 Tag->Pattern : Tag -- Pattern
-Tag->Pattern = Pattern.wrap
+Tag->Pattern = PATTERN_TAG
 
 Pattern->Tag : Pattern -- Tag
 Pattern->Tag =
-    pattern-is-underscore? if(
-        "compiler error: tried to call Pattern->Tag on underscore pattern" panic!,
-        Pattern.unwrap
+    match(
+        PATTERN_TAG -> id,
+        PATTERN_UNDERSCORE ->
+            "compiler error: tried to call Pattern->Tag on underscore pattern" panic!,
     )
 
-pattern-underscore : Pattern
-pattern-underscore = 0 cast
-
 pattern-is-underscore : Pattern -- Bool
-pattern-is-underscore = pattern-underscore ==
+pattern-is-underscore = PATTERN_UNDERSCORE ==
 
 pattern-is-underscore? : Pattern -- Pattern Bool
 pattern-is-underscore? = dup pattern-is-underscore

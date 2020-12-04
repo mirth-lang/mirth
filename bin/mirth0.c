@@ -2143,7 +2143,7 @@ void mwTOKEN_STR (void) {
 
 void mwHASH (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 64LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 66LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -2402,6 +2402,17 @@ void mwOP_TAG (void) {
 void mwOP_MATCH (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 63LL } };
+    car = mkcell(car, tag);
+    push_value(car);
+}
+
+void mwPATTERN_UNDERSCORE (void) {
+    push_u64(64LL);
+}
+
+void mwPATTERN_TAG (void) {
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 65LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -3417,8 +3428,6 @@ void mwOP_MATCH (void) {
  void mwMatch_2E_alloc_21_ (void);
  void mwCase_2E_MAX (void);
  void mwCase_2E_alloc_21_ (void);
- void mwPattern_2E_wrap (void);
- void mwPattern_2E_unwrap (void);
  void mwmatch_ctx_26_ (void);
  void mwmatch_ctx_21_ (void);
  void mwmatch_ctx_40_ (void);
@@ -3660,8 +3669,6 @@ void mwOP_MATCH (void) {
  void mwc99_emit_case_21_ (void);
  void mwmatch_has_default_case (void);
  void mwc99_emit_pattern_21_ (void);
- void mwpattern_is_underscore_3F_ (void);
- void mwPattern__3E_Tag (void);
  void mwc99_emit_word_def_21_ (void);
  void mwWord__3E_Int (void);
  void mwInt__3E_Word (void);
@@ -3877,8 +3884,8 @@ void mwOP_MATCH (void) {
  void mwarrow_push_word_21_ (void);
  void mwInt__3E_Prim (void);
  void mwPrim__3E_Int (void);
- void mwNameValue__3E_Prim (void);
  void mwPrim__3E_NameValue (void);
+ void mwNameValue__3E_Prim (void);
  void mwname_prim_21_ (void);
  void mwname_prim_40_ (void);
  void mwname_prim_3D_ (void);
@@ -3928,7 +3935,8 @@ void mwOP_MATCH (void) {
  void mwcase_is_default_case (void);
  void mwpattern_is_underscore (void);
  void mwTag__3E_Pattern (void);
- void mwpattern_underscore (void);
+ void mwPattern__3E_Tag (void);
+ void mwpattern_is_underscore_3F_ (void);
  void mwpattern_is_covered_3F_ (void);
  void mwtoken_is_module_end_3F_ (void);
  void mwtoken_prim_3D__3F_ (void);
@@ -9028,7 +9036,7 @@ void mwInt__3E_Hash (void){
 
 void mwHash__3E_Int (void){
     switch (get_top_data_tag()) {
-    case 64LL:
+    case 66LL:
     do_pack_uncons(); do_drop();
     mwid();
     break;
@@ -11579,12 +11587,6 @@ void mwCase_2E_alloc_21_ (void){
     mwdup();
     mwCase_2E_NUM();
     mwint_21_();
-}
-
-void mwPattern_2E_wrap (void){
-}
-
-void mwPattern_2E_unwrap (void){
 }
 
 void mwmatch_ctx_26_ (void){
@@ -15479,13 +15481,14 @@ void mwmatch_has_default_case (void){
 }
 
 void mwc99_emit_pattern_21_ (void){
-    mwpattern_is_underscore_3F_();
-    if (pop_u64()) {
-    mwdrop();
+    switch (get_top_data_tag()) {
+    case 64LL:
+    do_drop();
     push_ptr((void*)(strings + 20265));
     mw_3B_();
-    } else {
-    mwPattern__3E_Tag();
+    break;
+    case 65LL:
+    do_pack_uncons(); do_drop();
     push_ptr((void*)(strings + 20278));
     mw_2E_();
     mwdup();
@@ -15516,21 +15519,8 @@ void mwc99_emit_pattern_21_ (void){
     push_ptr((void*)(strings + 20358));
     mw_3B_();
     }
-    }
-}
-
-void mwpattern_is_underscore_3F_ (void){
-    mwdup();
-    mwpattern_is_underscore();
-}
-
-void mwPattern__3E_Tag (void){
-    mwpattern_is_underscore_3F_();
-    if (pop_u64()) {
-    push_ptr((void*)(strings + 22519));
-    mwpanic_21_();
-    } else {
-    mwPattern_2E_unwrap();
+    break;
+    default: fprintf(stderr, "unexpected fallthrough in match\n"); do_debug(); exit(99);
     }
 }
 
@@ -18017,6 +18007,10 @@ void mwPrim__3E_Int (void){
     mwcast();
 }
 
+void mwPrim__3E_NameValue (void){
+    mwDEF_PRIM();
+}
+
 void mwNameValue__3E_Prim (void){
     switch (get_top_data_tag()) {
     case 11LL:
@@ -18028,10 +18022,6 @@ void mwNameValue__3E_Prim (void){
     mwpanic_21_();
     break;
     }
-}
-
-void mwPrim__3E_NameValue (void){
-    mwDEF_PRIM();
 }
 
 void mwname_prim_21_ (void){
@@ -18418,17 +18408,32 @@ void mwcase_is_default_case (void){
 }
 
 void mwpattern_is_underscore (void){
-    mwpattern_underscore();
+    mwPATTERN_UNDERSCORE();
     mw_3D__3D_();
 }
 
 void mwTag__3E_Pattern (void){
-    mwPattern_2E_wrap();
+    mwPATTERN_TAG();
 }
 
-void mwpattern_underscore (void){
-    push_i64(0LL);
-    mwcast();
+void mwPattern__3E_Tag (void){
+    switch (get_top_data_tag()) {
+    case 65LL:
+    do_pack_uncons(); do_drop();
+    mwid();
+    break;
+    case 64LL:
+    do_drop();
+    push_ptr((void*)(strings + 22519));
+    mwpanic_21_();
+    break;
+    default: fprintf(stderr, "unexpected fallthrough in match\n"); do_debug(); exit(99);
+    }
+}
+
+void mwpattern_is_underscore_3F_ (void){
+    mwdup();
+    mwpattern_is_underscore();
 }
 
 void mwpattern_is_covered_3F_ (void){
@@ -19618,7 +19623,7 @@ void mwelab_case_pattern_21_ (void){
     mwtoken_is_underscore_3F_();
     if (pop_u64()) {
     { value_t d2 = pop_value();
-    mwpattern_underscore();
+    mwPATTERN_UNDERSCORE();
     mwover();
     mwcase_pattern_21_();
       push_value(d2); }

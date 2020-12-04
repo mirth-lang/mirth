@@ -19,7 +19,7 @@ ctx-name@ : Ctx -- Name
 ctx-name@ = ctx-var@ var-name@
 
 ctx-empty : Ctx
-ctx-empty = 0 cast
+ctx-empty = 0 cast # TODO remove?
 
 ctx-is-empty : Ctx -- Bool
 ctx-is-empty = ctx-empty ==

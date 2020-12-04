@@ -246,7 +246,7 @@ def(NAME_ERROR, Name, 0 Int->Name)
 # Defs #
 ########
 
-def(name-undefined?, Name -- Name Bool, name-value? 0 cast ==)
+def(name-undefined?, Name -- Name Bool, name-value? 0 cast ==) # TODO remove?
 def(name-defined?, Name -- Name Bool, name-undefined? not)
 def(name-is-word?, Name -- Name Bool,
     name-value? match(DEF_WORD -> drop true, _ -> drop false))

@@ -1133,21 +1133,21 @@ def(c99-emit-case!, Case -- +IO,
     "    break;" ;)
 
 def(c99-emit-pattern!, Pattern -- +IO,
-    pattern-is-underscore? if(
-        drop
-        "    default:" ; ,
+    match(
+        PATTERN_UNDERSCORE ->
+            "    default:" ; ,
 
-        Pattern->Tag
-        "    case " . dup Tag->Int .n "LL:" ;
-        tag-num-inputs? nip
-        dup 0 > if(
-            "    do_pack_uncons(); do_drop();" ;
-            while(dup 1 >,
-                "    do_pack_uncons(); do_swap();" ;
-                1-)
-            drop,
-            drop "    do_drop();" ;
-        )
+        PATTERN_TAG ->
+            "    case " . dup Tag->Int .n "LL:" ;
+            tag-num-inputs? nip
+            dup 0 > if(
+                "    do_pack_uncons(); do_drop();" ;
+                while(dup 1 >,
+                    "    do_pack_uncons(); do_swap();" ;
+                    1-)
+                drop,
+                drop "    do_drop();" ;
+            )
     ))
 
 def(c99-emit-word-sig!, Name -- +IO,

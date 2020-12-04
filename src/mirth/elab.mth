@@ -420,7 +420,7 @@ def(elab-match-case!, Match Token -- Match Token,
 def(elab-case-pattern!, Case Token -- Case Token,
     token-is-underscore? if(
         # set case pattern
-        dip(pattern-underscore over case-pattern!)
+        dip(PATTERN_UNDERSCORE over case-pattern!)
 
         # set case mid
         dip(case-match? match-dom@ TYPE_DONT_CARE TYPE_DONT_CARE T*)
