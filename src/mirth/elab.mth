@@ -12,16 +12,16 @@ import(mirth/data/data)
 data(HolesAllowed, ALLOW_HOLES, FORBID_HOLES,) # TODO make comma unnecessary
 def(HolesAllowed->Bool, HolesAllowed -- Bool, ALLOW_HOLES ==)
 
-nominal(TypeElab, [HolesAllowed Ctx])
-def(type-elab-default, TypeElab, FORBID_HOLES ctx-empty pack2 TypeElab.wrap)
-def(type-elab-stack-assertion, Ctx -- TypeElab, dip(ALLOW_HOLES) pack2 TypeElab.wrap)
-def(type-elab-holes-allowed?, TypeElab -- TypeElab HolesAllowed, dup TypeElab.unwrap .1)
-def(type-elab-ctx, TypeElab -- Ctx, TypeElab.unwrap .0)
+data(TypeElab, TYPE_ELAB -> HolesAllowed Ctx)
+def(type-elab-default, TypeElab, FORBID_HOLES ctx-empty TYPE_ELAB)
+def(type-elab-stack-assertion, Ctx -- TypeElab, dip(ALLOW_HOLES) TYPE_ELAB)
+def(type-elab-holes-allowed?, TypeElab -- TypeElab HolesAllowed,
+    dup match(TYPE_ELAB -> drop))
+def(type-elab-ctx, TypeElab -- Ctx,
+    match(TYPE_ELAB -> nip))
 def(type-elab-ctx?, TypeElab -- TypeElab Ctx, dup type-elab-ctx)
-def(type-elab-holes-allowed!, TypeElab HolesAllowed -- TypeElab,
-    dip(TypeElab.unwrap) .1! TypeElab.wrap)
 def(type-elab-ctx!, TypeElab Ctx -- TypeElab,
-    dip(TypeElab.unwrap) .0! TypeElab.wrap)
+    swap match(TYPE_ELAB -> drop swap TYPE_ELAB))
 
 def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
     elab-type-stack!

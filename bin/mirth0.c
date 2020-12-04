@@ -2476,6 +2476,14 @@ void mwFORBID_HOLES (void) {
     push_u64(75LL);
 }
 
+void mwTYPE_ELAB (void) {
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 76LL } };
+    car = mkcell(car, tag);
+    push_value(car);
+}
+
  volatile u8 bSTR_BUF[4096] = {0};
  void mwSTR_BUF (void) { push_ptr((void*)bSTR_BUF); }
  volatile u8 bSTR_BUF_LEN[8] = {0};
@@ -4007,13 +4015,10 @@ void mwFORBID_HOLES (void) {
  void mwtoken_could_be_word_def_3F_ (void);
  void mwHolesAllowed__3E_Bool (void);
  void mwtype_elab_default (void);
- void mwTypeElab_2E_wrap (void);
  void mwtype_elab_stack_assertion (void);
  void mwtype_elab_holes_allowed_3F_ (void);
- void mwTypeElab_2E_unwrap (void);
  void mwtype_elab_ctx (void);
  void mwtype_elab_ctx_3F_ (void);
- void mwtype_elab_holes_allowed_21_ (void);
  void mwtype_elab_ctx_21_ (void);
  void mwelab_type_sig_21_ (void);
  void mwelab_type_stack_21_ (void);
@@ -18743,33 +18748,37 @@ void mwHolesAllowed__3E_Bool (void){
 void mwtype_elab_default (void){
     mwFORBID_HOLES();
     mwctx_empty();
-    mwpack2();
-    mwTypeElab_2E_wrap();
-}
-
-void mwTypeElab_2E_wrap (void){
+    mwTYPE_ELAB();
 }
 
 void mwtype_elab_stack_assertion (void){
     { value_t d1 = pop_value();
     mwALLOW_HOLES();
       push_value(d1); }
-    mwpack2();
-    mwTypeElab_2E_wrap();
+    mwTYPE_ELAB();
 }
 
 void mwtype_elab_holes_allowed_3F_ (void){
     mwdup();
-    mwTypeElab_2E_unwrap();
-    mw_2E_1();
-}
-
-void mwTypeElab_2E_unwrap (void){
+    switch (get_top_data_tag()) {
+    case 76LL:
+    do_pack_uncons(); do_drop();
+    do_pack_uncons(); do_swap();
+    mwdrop();
+    break;
+    default: fprintf(stderr, "unexpected fallthrough in match\n"); do_debug(); exit(99);
+    }
 }
 
 void mwtype_elab_ctx (void){
-    mwTypeElab_2E_unwrap();
-    mw_2E_0();
+    switch (get_top_data_tag()) {
+    case 76LL:
+    do_pack_uncons(); do_drop();
+    do_pack_uncons(); do_swap();
+    mwnip();
+    break;
+    default: fprintf(stderr, "unexpected fallthrough in match\n"); do_debug(); exit(99);
+    }
 }
 
 void mwtype_elab_ctx_3F_ (void){
@@ -18777,20 +18786,18 @@ void mwtype_elab_ctx_3F_ (void){
     mwtype_elab_ctx();
 }
 
-void mwtype_elab_holes_allowed_21_ (void){
-    { value_t d1 = pop_value();
-    mwTypeElab_2E_unwrap();
-      push_value(d1); }
-    mw_2E_1_21_();
-    mwTypeElab_2E_wrap();
-}
-
 void mwtype_elab_ctx_21_ (void){
-    { value_t d1 = pop_value();
-    mwTypeElab_2E_unwrap();
-      push_value(d1); }
-    mw_2E_0_21_();
-    mwTypeElab_2E_wrap();
+    mwswap();
+    switch (get_top_data_tag()) {
+    case 76LL:
+    do_pack_uncons(); do_drop();
+    do_pack_uncons(); do_swap();
+    mwdrop();
+    mwswap();
+    mwTYPE_ELAB();
+    break;
+    default: fprintf(stderr, "unexpected fallthrough in match\n"); do_debug(); exit(99);
+    }
 }
 
 void mwelab_type_sig_21_ (void){
