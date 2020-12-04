@@ -224,7 +224,7 @@ def(snake-loop!, +Snake,
     snake-process-events!
     while(snake-done@ not,
         snake-present!
-        0 ms SDL_Delay # TODO: use a self-adjusting delay to interval reduce input latency.
+        0 ms SDL_Delay # maybe use a self-adjusting delay to interval reduce input latency.
         snake-process-events!
         snake-update!
     ))
@@ -414,7 +414,7 @@ def(snake-randomize-mouse!, +IO +Snake,
     rand SNAKE_H % Int->YCoord SNAKE_MOUSE_Y u8!
 
     snake-mouse-xy@ snake-grid@ U8->Int nonzero if(
-        snake-randomize-mouse!, # TODO: avoid crashing ...
+        snake-randomize-mouse!, # might lead to crash if there is no empty space ...
         id
     ))
 

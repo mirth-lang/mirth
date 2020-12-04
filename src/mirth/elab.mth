@@ -4,26 +4,25 @@ import(mirth/data/token)
 import(mirth/data/type)
 import(mirth/data/table)
 import(mirth/data/data)
+import(mirth/data/ctx)
 
 ####################
 # Type Elaboration #
 ####################
 
-nominal(HolesAllowed, Bool)
-def(HolesAllowed->Bool, HolesAllowed -- Bool, HolesAllowed.unwrap)
-def(allow-holes, HolesAllowed, true HolesAllowed.wrap)
-def(forbid-holes, HolesAllowed, false HolesAllowed.wrap)
+data(HolesAllowed, ALLOW_HOLES, FORBID_HOLES)
+def(HolesAllowed->Bool, HolesAllowed -- Bool, ALLOW_HOLES ==)
 
-nominal(TypeElab, [HolesAllowed Ctx])
-def(type-elab-default, TypeElab, forbid-holes ctx-empty pack2 TypeElab.wrap)
-def(type-elab-stack-assertion, Ctx -- TypeElab, dip(allow-holes) pack2 TypeElab.wrap)
-def(type-elab-holes-allowed?, TypeElab -- TypeElab HolesAllowed, dup TypeElab.unwrap .1)
-def(type-elab-ctx, TypeElab -- Ctx, TypeElab.unwrap .0)
+data(TypeElab, TYPE_ELAB -> HolesAllowed Ctx)
+def(type-elab-default, TypeElab, FORBID_HOLES ctx-empty TYPE_ELAB)
+def(type-elab-stack-assertion, Ctx -- TypeElab, dip(ALLOW_HOLES) TYPE_ELAB)
+def(type-elab-holes-allowed?, TypeElab -- TypeElab HolesAllowed,
+    dup match(TYPE_ELAB -> drop))
+def(type-elab-ctx, TypeElab -- Ctx,
+    match(TYPE_ELAB -> nip))
 def(type-elab-ctx?, TypeElab -- TypeElab Ctx, dup type-elab-ctx)
-def(type-elab-holes-allowed!, TypeElab HolesAllowed -- TypeElab,
-    dip(TypeElab.unwrap) .1! TypeElab.wrap)
 def(type-elab-ctx!, TypeElab Ctx -- TypeElab,
-    dip(TypeElab.unwrap) .0! TypeElab.wrap)
+    swap match(TYPE_ELAB -> drop swap TYPE_ELAB))
 
 def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
     elab-type-stack!
@@ -179,7 +178,7 @@ def(elab-tag-ctx!, Tag -- Ctx +Elab,
 
 def(elab-tag-ctx-sig!, Tag -- Ctx Type +Elab,
     tag-sig-is-checked? if(
-        tag-type? dip(tag-ctx@),
+        tag-type-raw? dip(tag-ctx@),
 
         type-elab-default over
 
@@ -200,7 +199,7 @@ def(elab-tag-ctx-sig!, Tag -- Ctx Type +Elab,
         { Tag Ctx Type }
         dup2 dip(dip(
             rotl
-            tuck tag-type!
+            tuck tag-type-raw!
             tuck tag-ctx!
             true swap tag-sig-is-checked!
         ))
@@ -420,7 +419,7 @@ def(elab-match-case!, Match Token -- Match Token,
 def(elab-case-pattern!, Case Token -- Case Token,
     token-is-underscore? if(
         # set case pattern
-        dip(pattern-underscore over case-pattern!)
+        dip(PATTERN_UNDERSCORE over case-pattern!)
 
         # set case mid
         dip(case-match? match-dom@ TYPE_DONT_CARE TYPE_DONT_CARE T*)
@@ -439,7 +438,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
 
             # set case mid
             dip(dip(case-match? match-dom@)) { Case Type Token Tag }
-            tag-type@ SUBST_NIL swap type-freshen-sig
+            elab-tag-sig! SUBST_NIL swap type-freshen-sig
             { Case Type Token Subst Type }
             rotr dip(
                 dip(type-expand-morphism dip(swap))
@@ -585,7 +584,6 @@ def(elab-module-decl!, Module Token -- Module Token +Mirth,
     PRIM_DEF token-prim=? if( elab-def!,
     PRIM_DEF_EXTERNAL token-prim=? if( elab-def-external!,
     PRIM_DEF_TYPE token-prim=? if( elab-def-type!,
-    PRIM_NOMINAL token-prim=? if( elab-nominal!,
     PRIM_BUFFER token-prim=? if( elab-buffer!,
     PRIM_TABLE token-prim=? if( elab-table!,
     PRIM_FIELD token-prim=? if( elab-field!,
@@ -593,7 +591,7 @@ def(elab-module-decl!, Module Token -- Module Token +Mirth,
     PRIM_DATA token-prim=? if( elab-data!,
     token-could-be-word-sig? if(elab-decl-word-sig!,
     token-could-be-word-def? if(elab-decl-word-def!,
-    "unknown declaration" emit-fatal-error!)))))))))))
+    "unknown declaration" emit-fatal-error!))))))))))
     token-skip-newlines)
 
 ||| Elaborate a data definition `data T ... end` or `data(T, ...)`
@@ -631,9 +629,14 @@ def(elab-data-header!, Module Data Token -- Module Data Token +Mirth,
 def(elab-data-tags!, Module Data Token -- Module Token +Mirth,
     token-has-args? if(
         token-succ token-succ token-next
-        expect-token-comma token-succ
-        elab-data-tags-body!
-        expect-token-rparen token-succ,
+        token-is-rparen? if(
+            token-succ,
+        token-is-comma? if(
+            token-succ
+            elab-data-tags-body!
+            expect-token-rparen token-succ,
+            "Expected comma or right parenthesis." emit-fatal-error!
+        )),
 
         token-succ token-next
         expect-token-newline token-skip-newlines
@@ -687,12 +690,10 @@ elab-data-tag! = (
             dip(true over tag-has-sig!)
             token-succ tuck dip(tag-sig!)
             while(token-run-end? not, token-next),
-        token-is-newline? if(
+        token-run-end? if(
             nip,
-        token-is-comma? if(
-            nip,
-            "Expected arrow, comma, or newline." emit-fatal-error!
-        )))
+            "Expected arrow, comma, right paren, or newline." emit-fatal-error!
+        ))
         { Module Data Token },
 
         "Expected tag name." emit-fatal-error!
@@ -777,46 +778,6 @@ def(elab-def-type!, Module Token -- Module Token +Mirth,
             drop "type already defined" emit-fatal-error!
         ),
         "expected type constructor" emit-fatal-error!
-    ))
-
-||| Elaborate a nominal type definition `nominal(t1, t2)`.
-def(elab-nominal!, Module Token -- Module Token +Mirth,
-    dup dip(token-next) token-args-2
-    swap sig-token-is-type-con? if(
-        token-name? name-undefined? if(
-            { Module Token Token Token Name }
-            dup dip(
-                swap token-num-args
-                rotl elab-simple-type-arg!
-                    # TODO use params to infer a ctx
-                    # and actually use that ctx here
-                nominal-new! elab-nominal-words! TNominal
-            ) name-type!,
-
-            drop "type already defined" emit-fatal-error!
-        ),
-        "expected type constructor" emit-fatal-error!
-    ))
-
-def(elab-nominal-words!, Nominal -- Nominal +Mirth,
-    nominal-arity? 0 == if(
-        nominal-name? name-load! ".wrap" str-buf-push-str! name-save!
-        word-alloc! dup2 swap name-word! tuck word-name!
-        over dup nominal-type@ T1 swap TNominal T1 T->
-        over word-type!
-        arrow-alloc! over word-arrow!
-        true over word-sig-is-checked!
-        true swap word-body-is-checked!
-
-        nominal-name? name-load! ".unwrap" str-buf-push-str! name-save!
-        word-alloc! dup2 swap name-word! tuck word-name!
-        over dup nominal-type@ T1 swap TNominal T1 swap T->
-        over word-type!
-        arrow-alloc! over word-arrow!
-        true over word-sig-is-checked!
-        true swap word-body-is-checked!,
-
-        id # TODO, possibly.
     ))
 
 ||| Elaborate a buffer definition `buffer(B, size)`.

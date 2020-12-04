@@ -14,9 +14,8 @@ def(word!, Word Ptr --, dip(Word->Int) int!)
 def(word@, Ptr -- Word, int@ Int->Word)
 
 def(word-alloc!, Word +Words, Word.alloc!)
-
 def(word-has-body?, Word -- Word Bool,
-    word-body? 0 cast == not)
+    word-body? 0 Int->Token !=)
 
 def(word-dom@, Word -- Type, word-type@ type-get-morphism drop)
 def(word-cod@, Word -- Type, word-type@ type-get-morphism nip)

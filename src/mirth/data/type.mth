@@ -2,7 +2,6 @@
 module(mirth/data/type)
 import(mirth/data/common)
 import(mirth/data/name)
-import(mirth/data/ctx)
 import(mirth/data/var)
 
 def(def-type!, Type Str --, name-new! name-type!)
@@ -38,31 +37,6 @@ def(name-is-table?, Name -- Name Bool,
         false
     ))
 
-def(ctx-trace!, Ctx -- +IO,
-    ctx-is-empty? if(
-        drop,
-
-        dup ctx-prev@
-        ctx-is-empty? if(
-            drop,
-            ctx-trace! ", " str-trace!
-        )
-
-        ctx-var@ var-trace-binding!
-    ))
-
-def(var-trace-binding!, Var -- +IO,
-    var-name? name-load! str-buf-trace!
-    var-type? TYPE_TYPE == if(
-        drop,
-    var-type? TYPE_STACK == if(
-        drop,
-    var-type? TYPE_EFFECT == if(
-        drop,
-        " : " str-trace!
-        var-type@ type-trace-sig!
-    ))))
-
 def(T*, Type Type -- Type, TTensor)
 def(T->, Type Type -- Type, TMorphism)
 def(T=>, List(Type) Type -- Type, TParam)
@@ -75,18 +49,13 @@ def(T4, Type Type Type Type -- Type, dip(T3) T*)
 def(T5, Type Type Type Type Type -- Type, dip(T4) T*)
 def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
 
-def(type-is-error, Type -- Bool,
-    dup 0 cast == if(
-        drop true,
-        match(TYPE_ERROR -> true, _ -> drop false)
-    ))
+def(type-is-error, Type -- Bool, match(TYPE_ERROR -> true, _ -> drop false))
 def(type-is-dont-care, Type -- Bool, match(TYPE_DONT_CARE -> true, _ -> drop false))
 def(type-is-prim, Type -- Bool, match(TPrim -> drop true, _ -> drop false))
 def(type-is-var, Type -- Bool, match(TVar -> drop true, _ -> drop false))
 def(type-is-meta, Type -- Bool, match(TMeta -> drop true, _ -> drop false))
 def(type-is-tensor, Type -- Bool, match(TTensor -> drop2 true, _ -> drop false))
 def(type-is-morphism, Type -- Bool, match(TMorphism -> drop2 true, _ -> drop false))
-def(type-is-nominal, Type -- Bool, match(TNominal -> drop true, _ -> drop false))
 def(type-is-table, Type -- Bool, match(TTable -> drop true, _ -> drop false))
 def(type-is-hole, Type -- Bool, match(THole -> drop true, _ -> drop false))
 def(type-is-param, Type -- Bool, match(TParam -> drop2 true, _ -> drop false))
@@ -100,7 +69,6 @@ def(type-is-var?, Type -- Type Bool, dup type-is-var)
 def(type-is-meta?, Type -- Type Bool, dup type-is-meta)
 def(type-is-tensor?, Type -- Type Bool, dup type-is-tensor)
 def(type-is-morphism?, Type -- Type Bool, dup type-is-morphism)
-def(type-is-nominal?, Type -- Type Bool, dup type-is-nominal)
 def(type-is-table?, Type -- Type Bool, dup type-is-table)
 def(type-is-hole?, Type -- Type Bool, dup type-is-hole)
 def(type-is-param?, Type -- Type Bool, dup type-is-param)
@@ -138,11 +106,6 @@ def(type-get-morphism, Type -- Type Type,
     match(
         TMorphism -> id,
         _ ->  "compiler error: tried to get morphism value on non-morphism type" panic!,
-    ))
-def(type-get-nominal, Type -- Nominal,
-    match(
-        TNominal -> id,
-        _ -> "compiler error: tried to get nominal value on non-nominal type" panic!,
     ))
 def(type-get-table, Type -- Table,
     match(
@@ -287,14 +250,7 @@ def(type-unify!, Type Type -- Type +Elab,
             swap type-unify-failed!
         ),
 
-    type-is-nominal? if( # nominals need to be exact matches
-        swap type-is-nominal? if(
-            type-get-nominal swap type-get-nominal
-            type-nominal-unify!,
-            swap type-unify-failed!
-        ),
-
-    type-is-data? if( # data types are just like nominal types
+    type-is-data? if( # data types neet to be exact matches
         swap type-is-data? if(
             type-get-data swap type-get-data
             type-data-unify!,
@@ -347,7 +303,7 @@ def(type-unify!, Type Type -- Type +Elab,
     # TODO: unify param types
 
         type-unify-failed!
-    ))))))))))))))))))
+    )))))))))))))))))
 
 def(type-prim-unify!, PrimType PrimType -- Type,
     dup2 == if(
@@ -358,11 +314,6 @@ def(type-data-unify!, Data Data -- Type,
     dup2 == if(
         drop TData,
         dip(TData) TData type-unify-failed!
-    ))
-def(type-nominal-unify!, Nominal Nominal -- Type,
-    dup2 == if(
-        drop TNominal,
-        dip(TNominal) TNominal type-unify-failed!
     ))
 def(type-table-unify!, Table Table -- Type,
     dup2 == if(
@@ -392,7 +343,6 @@ def(type-has-meta, MetaVar Type -- Bool,
             TTensor -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
             TMorphism -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
             TApp -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
-            TNominal -> drop2 false,
             TData -> drop2 false,
             TTable -> drop2 false,
             TParam -> drop3 false, # param-type-has-meta ## TODO
@@ -446,7 +396,6 @@ def(type-trace!, Type -- +IO,
             TMeta -> "?" str-trace! MetaVar->Int int-trace!,
             TTensor -> "[" str-trace! TTensor type-trace-stack! "]" str-trace!,
             TMorphism -> "[" str-trace! TMorphism type-trace-sig! "]" str-trace!,
-            TNominal -> nominal-name@ name-load! str-buf-trace!,
             TData -> data-name@ name-load! str-buf-trace!,
             TTable -> table-name@ name-load! str-buf-trace!,
             THole -> name-load! str-buf-trace!,
@@ -559,14 +508,11 @@ def(type-var-freshen, Subst Type -- Subst Type Bool,
 
 def(type-arity, Type -- Int,
     type-expand
-    type-is-nominal? if(
-        type-get-nominal nominal-arity@,
-
     type-is-data? if(
         type-get-data data-arity@,
 
         drop 0
-    )))
+    ))
 
 ||| Get head of type.
 def(type-head, Type -- Type,
@@ -615,97 +561,6 @@ def(meta-unify!, Type MetaVar -- Type,
         meta-type!
     )))
 
-
-################
-# Tensor Types #
-# ################
-
-# def(Int->TensorType, Int -- TensorType, cast)
-# def(TensorType->Int, TensorType -- Int, cast)
-# def(tensor-type-new!, Type Type -- TensorType,
-#     TensorType.alloc!
-#     tuck tensor-type-snd!
-#     tuck tensor-type-fst!)
-
-# def(tensor-type-unify!, TensorType TensorType -- TensorType,
-#     over tensor-type-fst@ over tensor-type-fst@ type-unify! over tensor-type-fst!
-#     over tensor-type-snd@ over tensor-type-snd@ type-unify! over tensor-type-snd!
-#     nip)
-
-# def(tensor-type-unpack, TensorType -- Type Type,
-#     dup dip(tensor-type-fst@) tensor-type-snd@)
-
-# def(tensor-type-has-meta, MetaVar TensorType -- Bool,
-#     tensor-type-unpack
-#     dip(over) type-has-meta if(
-#         drop2 true,
-#         type-has-meta
-#     ))
-
-# def(tensor-type-freshen-aux, Subst TensorType -- Subst TensorType Bool,
-#     dup
-#     dip(
-#         tensor-type-unpack
-#         dip(type-freshen-aux)
-#         dip(rotl) type-freshen-aux
-#         dip(dip(rotr) swap) &&
-#     )
-#     swap if(
-#         dip(drop2) true,
-#         drop tensor-type-new! false
-#     ))
-
-##################
-# Morphism Types #
-##################
-
-# def(Int->MorphismType, Int -- MorphismType, cast)
-# def(MorphismType->Int, MorphismType -- Int, cast)
-# def(morphism-type-new!, Type Type -- MorphismType,
-#     MorphismType.alloc!
-#     tuck morphism-type-cod!
-#     tuck morphism-type-dom!)
-
-# def(morphism-type-unify!, MorphismType MorphismType -- MorphismType,
-#     over morphism-type-dom@ over morphism-type-dom@ type-unify! over morphism-type-dom!
-#     over morphism-type-cod@ over morphism-type-cod@ type-unify! over morphism-type-cod!
-#     nip)
-
-# def(morphism-type-unpack, MorphismType -- Type Type,
-#     dup dip(morphism-type-dom@) morphism-type-cod@)
-
-# def(morphism-type-has-meta, MetaVar MorphismType -- Bool,
-#     morphism-type-unpack
-#     dip(over) type-has-meta if(
-#         drop2 true,
-#         type-has-meta
-#     ))
-
-# def(morphism-type-freshen-aux, Subst MorphismType -- Subst MorphismType Bool,
-#     dup
-#     dip(
-#         morphism-type-unpack
-#         dip(type-freshen-aux)
-#         dip(rotl) type-freshen-aux
-#         dip(dip(rotr) swap) &&
-#     )
-#     swap if(
-#         dip(drop2) true,
-#         drop morphism-type-new! false
-#     ))
-
-############
-# Nominals #
-############
-
-def(Int->Nominal, Int -- Nominal, cast)
-def(Nominal->Int, Nominal -- Int, cast)
-def(nominal-new!, Name Int Type -- Nominal,
-    Nominal.alloc!
-    tuck nominal-type!
-    tuck nominal-arity!
-    tuck nominal-name!)
-
 ########
 # Data #
 ########
@@ -744,9 +599,9 @@ def(table-alloc!, Table,
 # Params #
 ##########
 
-def(P1, Type -- List(Type), L0 L1+)
-def(P2, Type Type -- List(Type), L0 L2+)
-def(P3, Type Type Type -- List(Type), L0 L3+)
+def(P1, Type -- List(Type), L1)
+def(P2, Type Type -- List(Type), L2)
+def(P3, Type Type Type -- List(Type), L3)
 
 def(type-num-params, Type -- Int,
     type-expand
@@ -754,13 +609,6 @@ def(type-num-params, Type -- Int,
         type-get-param drop len,
         drop 0
     ))
-
-# def(param-type-freshen-aux, Subst ParamType -- Subst ParamType Bool,
-#     param-type-unpack
-#     dip(param-freshen-aux drop) swap
-#     dip(type-freshen-aux drop) swap
-#     param-type-new! false)
-#     # TODO: only generate new param-type when needed
 
 def(param-freshen-aux, Subst List(Type) -- Subst List(Type) Bool,
     is-nil? if(
@@ -775,28 +623,6 @@ def(param-freshen-aux, Subst List(Type) -- Subst List(Type) Bool,
 ############
 # APP TYPE #
 ############
-
-# def(AppType->Int, AppType -- Int, cast)
-# def(Int->AppType, Int -- AppType, cast)
-# def(app-type-new!, Type Type -- AppType,
-#     AppType.alloc!
-#     tuck app-type-arg!
-#     tuck app-type-fun!)
-# def(app-type-unpack, AppType -- Type Type,
-#     app-type-fun? swap
-#     app-type-arg@)
-
-# def(app-type-unify!, AppType AppType -- AppType,
-#     over app-type-fun@ over app-type-fun@ type-unify! over app-type-fun!
-#     over app-type-arg@ over app-type-arg@ type-unify! over app-type-arg!
-#     nip)
-
-# def(app-type-has-meta, MetaVar AppType -- Bool,
-#     app-type-unpack
-#     dip(over) type-has-meta if(
-#         drop2 true,
-#         type-has-meta
-#     ))
 
 def(app-type-trace!, Type Type --,
     app-type-trace-open! ")" str-trace!)
@@ -813,19 +639,6 @@ def(app-type-trace-open!, Type Type --,
         "(" str-trace!
         type-trace!
     ))
-
-# def(app-type-freshen-aux, Subst AppType -- Subst AppType Bool,
-#     dup
-#     dip(
-#         app-type-unpack
-#         dip(type-freshen-aux)
-#         dip(rotl) type-freshen-aux
-#         dip(dip(rotr) swap) &&
-#     )
-#     swap if(
-#         dip(drop2) true,
-#         drop app-type-new! false
-#     ))
 
 #########
 # Subst #

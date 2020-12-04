@@ -2,10 +2,11 @@ module(mirth/data/common)
 import(prelude)
 
 # mirth/data/string
-nominal(StrLit, Int)
+data(StrLit, STRLIT -> Int)
 
 # mirth/data/name
 data NameValue
+    DEF_NONE
     DEF_MODULE -> Module,
     DEF_TYPE -> Type,
     DEF_TAG -> Tag,
@@ -31,9 +32,9 @@ field(module-start, Module, Token)
 field(module-end, Module, Token)
 
 # mirth/data/location
-nominal(Row, Int)
-nominal(Col, Int)
-nominal(Location, [Module Row Col])
+data(Row, ROW -> Int)
+data(Col, COL -> Int)
+data(Location, LOCATION -> Module Row Col)
 
 # mirth/data/token
 data TokenValue
@@ -65,7 +66,6 @@ data Type
     THole -> Name
     TVar -> Var
     TTable -> Table
-    TNominal -> Nominal
     TData -> Data
     TTensor -> Type Type
     TMorphism -> Type Type
@@ -91,31 +91,26 @@ data PrimType
 end
 
 table(MetaVar)
-table(Nominal)
 table(Data)
 table(Tag)
-table(Ctx)
+data(Ctx, CTX -> List(Var))
 
 field(meta-is-defined, MetaVar, Bool)
 field(meta-type-raw, MetaVar, Type)
 
-field(nominal-type, Nominal, Type)
-field(nominal-name, Nominal, Name)
-field(nominal-arity, Nominal, Int)
-
 field(data-header, Data, Token)
 field(data-name, Data, Name)
 field(data-arity, Data, Int)
-field(data-tags, Data, Tag)
+field(data-tags, Data, List(Tag))
 
 field(tag-data, Tag, Data)
 field(tag-name, Tag, Name)
+field(tag-value, Tag, Int)
 field(tag-sig, Tag, Token)
 field(tag-has-sig, Tag, Bool)
 field(tag-sig-is-checked, Tag, Bool)
 field(tag-ctx, Tag, Ctx)
-field(tag-type, Tag, Type)
-field(tag-next, Tag, Tag)
+field(tag-type-raw, Tag, Type)
 
 # mirth/data/var
 table(Var)
@@ -124,14 +119,10 @@ field(var-name, Var, Name)
 field(var-type, Var, Type)
 
 # mirth/data/type
-table(Subst)
+table(Subst) # TODO replace Subst with a map type
 field(subst-rest, Subst, Subst)
 field(subst-var, Subst, Var)
 field(subst-type, Subst, Type)
-
-# mirth/data/ctx
-field(ctx-prev, Ctx, Ctx)
-field(ctx-var, Ctx, Var)
 
 # mirth/data/external
 table(External)
@@ -143,8 +134,9 @@ field(external-ctx, External, Ctx)
 
 # mirth/data/arrow
 table(Arrow)
-table(Args)
-nominal(Arg, Arrow)
+data Arg
+    ARG_ARROW -> Arrow
+end
 data Op
     OP_NONE
     OP_PRIM -> Prim
@@ -160,12 +152,10 @@ end
 field(arrow-token, Arrow, Token)
 field(arrow-ctx, Arrow, Ctx)
 field(arrow-dom, Arrow, Type)
-field(arrow-next, Arrow, Arrow)
+field(arrow-next, Arrow, Arrow) # TODO: rethink arrows as a list of operators
 field(arrow-op, Arrow, Op)
 field(arrow-subst, Arrow, Subst)
-field(arrow-args, Arrow, Args)
-field(args-head, Args, Arg)
-field(args-tail, Args, Args)
+field(arrow-args, Arrow, List(Arg))
 
 # mirth/data/prim
 table(Prim)
@@ -199,16 +189,19 @@ field(field-word-ptr, Field, Word)
 # mirth/data/data
 table(Match)
 table(Case)
-nominal(Pattern, Tag)
+data Pattern
+    PATTERN_UNDERSCORE
+    PATTERN_TAG -> Tag
+end
+
 field(match-ctx, Match, Ctx)
 field(match-dom, Match, Type)
 field(match-cod, Match, Type)
 field(match-token, Match, Token)
-field(match-cases, Match, Case)
+field(match-cases, Match, List(Case))
 field(case-match, Case, Match)
 field(case-token, Case, Token)
 field(case-pattern, Case, Pattern)
 field(case-subst, Case, Subst)
 field(case-mid, Case, Type)
 field(case-body, Case, Arrow)
-field(case-next, Case, Case)

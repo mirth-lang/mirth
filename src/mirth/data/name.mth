@@ -12,9 +12,11 @@ def(|Name|, Size, 8)
 def(name@, Ptr -- Name, int@ Int->Name)
 def(name!, Name Ptr --, dip(Name->Int) int!)
 
-nominal(Hash, Int)
-def(Int->Hash, Int -- Hash, Hash.wrap)
-def(Hash->Int, Hash -- Int, Hash.unwrap)
+data Hash
+    HASH -> Int
+end
+def(Int->Hash, Int -- Hash, HASH)
+def(Hash->Int, Hash -- Int, match(HASH -> id))
 
 def(MAX_NAMES, Size, 0x4000)
 def(NAME_HASH_MAX, Size, 0x3FFF)
@@ -108,12 +110,9 @@ def(name-table@, Hash -- Name, Hash->Int NAME_TABLE int@@ Int->Name)
 def(name-table!, Name Hash --, dip(Name->Int) Hash->Int NAME_TABLE int!!)
 def(next-hash, Hash -- Hash, Hash->Int 1+ NAME_HASH_MAX & Int->Hash)
 
-def(name-is-error, Name -- Bool, NAME_ERROR ==)
-def(name-is-error?, Name -- Name Bool, dup name-is-error)
-
 def(name-save-keep-going?, Hash -- Hash Bool,
     dup name-table@
-    name-is-error? if(
+    is-nil? if(
         drop false,
         name-quads-eq not
     ))
@@ -123,7 +122,7 @@ def(name-save!, -- Name,
     STR_BUF hash
     while(name-save-keep-going?, next-hash)
     dup name-table@
-    name-is-error? if(
+    is-nil? if(
         drop
         Name.alloc!
         dup dip(swap name-table!)
@@ -234,17 +233,12 @@ def(str-buf-push-hexdigit!, Char -- +StrBuf,
         48 + Int->U8 str-buf-push!
     ))
 
-###################
-# Primitive Names #
-###################
-
-def(NAME_ERROR, Name, 0 Int->Name)
-
 ########
 # Defs #
 ########
 
-def(name-undefined?, Name -- Name Bool, name-value? 0 cast ==)
+def(name-undefined?, Name -- Name Bool,
+    name-value? match(DEF_NONE -> true, _ -> drop false))
 def(name-defined?, Name -- Name Bool, name-undefined? not)
 def(name-is-word?, Name -- Name Bool,
     name-value? match(DEF_WORD -> drop true, _ -> drop false))

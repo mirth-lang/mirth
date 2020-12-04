@@ -16,9 +16,6 @@ NameValue->Tag =
 Tag->NameValue : Tag -- NameValue
 Tag->NameValue = DEF_TAG
 
-Tag->Int : Tag -- Int
-Tag->Int = cast
-
 name-tag! : Tag Name --
 name-tag! = dip(Tag->NameValue) name-value!
 
@@ -27,15 +24,6 @@ name-tag@ = name-value@ NameValue->Tag
 
 name-tag? : Name -- Name Tag
 name-tag? = dup name-tag@
-
-tag-nil : Tag
-tag-nil = 0 cast
-
-tag-is-nil : Tag -- Bool
-tag-is-nil = tag-nil ==
-
-tag-is-nil? : Tag -- Tag Bool
-tag-is-nil? = dup tag-is-nil
 
 tag-num-inputs? : Tag -- Tag Int
 tag-num-inputs? =
@@ -51,46 +39,30 @@ tag-num-inputs? =
 ########
 
 data-num-tags : Data -- Int
-data-num-tags = (
-    0 swap data-tags@
-    while(
-        tag-is-nil? not,
-        dip(1+) tag-next@
-    )
-    drop
-)
+data-num-tags = data-tags@ len
 
+||| Adds constructor to data type, and gives tag its rank.
 data-add-tag! : Tag Data -- +Mirth
-data-add-tag! =
-    data-tags? tag-is-nil if(
-        data-tags!,
-        data-tags@
-        while(tag-next? tag-is-nil not, tag-next@)
-        tag-next!
-    )
+data-add-tag! = (
+    dup2 data-num-tags swap tag-value!
+    data-tags? rotr dip(snoc) data-tags!
+)
 
 #########
 # MATCH #
 #########
 
 match-is-empty? : Match -- Match Bool
-match-is-empty? = match-cases? case-is-nil
+match-is-empty? = match-cases? is-nil
 
 match-num-cases? : Match -- Match Int
-match-num-cases? = (
-    match-cases? dip(0)
-    while(
-        case-is-nil? not,
-        case-next@ dip(1+)
-    )
-    drop
-)
+match-num-cases? = match-cases? len
 
 match-add-case! : Match Case -- Match
 match-add-case! =
-    over match-cases? case-is-nil if(
-        match-cases!,
-        match-cases@ swap case-add-case!
+    dip(match-cases?) cases-cover-case? if(
+        case-token@ "Case is unreachable." emit-error! drop,
+        snoc over match-cases!
     )
 
 match-has-default-case : Match -- Bool
@@ -115,41 +87,32 @@ match-scrutinee-data? = match-scrutinee-type? type-head type-get-data
 # CASE #
 ########
 
-case-nil : Case
-case-nil = 0 cast
+cases-cover-case? : List(Case) Case -- List(Case) Case Bool
+cases-cover-case? = dup2 cases-cover-case
 
-case-is-nil : Case -- Bool
-case-is-nil = case-nil ==
-
-case-is-nil? : Case -- Case Bool
-case-is-nil? = dup case-is-nil
-
-||| Add the second case at the end of the list of the first case.
-||| Raises an error if case is unreachable.
-||| O(n^2) time, sadly, where n is the number of cases.
-case-add-case! : Case Case --
-case-add-case! =
-    case-is-covered? if(
-        case-token@ "Case is unreachable." emit-error! drop,
-        swap case-next? case-is-nil if(
-            case-next!,
-            case-next@ swap case-add-case!
+cases-cover-case : List(Case) Case -- Bool
+cases-cover-case =
+    over is-nil if(
+        drop2 false,
+        dip(unsnoc) case-is-covered? if(
+            drop3 true,
+            nip cases-cover-case
         )
     )
-
-case-is-covered : Case Case -- Bool
-case-is-covered = dip(case-pattern@) case-pattern@ pattern-is-covered
 
 case-is-covered? : Case Case -- Case Case Bool
 case-is-covered? = dup2 case-is-covered
 
-cases-have-default-case : Case -- Bool
+case-is-covered : Case Case -- Bool
+case-is-covered = dip(case-pattern@) case-pattern@ pattern-is-covered
+
+cases-have-default-case : List(Case) -- Bool
 cases-have-default-case =
-    case-is-nil? if(
+    is-nil? if(
         drop false,
-        case-is-default-case? if(
+        unsnoc case-is-default-case if(
             drop true,
-            case-next@ cases-have-default-case
+            cases-have-default-case
         )
     )
 
@@ -164,20 +127,18 @@ case-is-default-case = case-pattern@ pattern-is-underscore
 ###########
 
 Tag->Pattern : Tag -- Pattern
-Tag->Pattern = Pattern.wrap
+Tag->Pattern = PATTERN_TAG
 
 Pattern->Tag : Pattern -- Tag
 Pattern->Tag =
-    pattern-is-underscore? if(
-        "compiler error: tried to call Pattern->Tag on underscore pattern" panic!,
-        Pattern.unwrap
+    match(
+        PATTERN_TAG -> id,
+        PATTERN_UNDERSCORE ->
+            "compiler error: tried to call Pattern->Tag on underscore pattern" panic!,
     )
 
-pattern-underscore : Pattern
-pattern-underscore = 0 cast
-
 pattern-is-underscore : Pattern -- Bool
-pattern-is-underscore = pattern-underscore ==
+pattern-is-underscore = PATTERN_UNDERSCORE ==
 
 pattern-is-underscore? : Pattern -- Pattern Bool
 pattern-is-underscore? = dup pattern-is-underscore

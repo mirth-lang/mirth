@@ -8,24 +8,32 @@ import(mirth/data/var)
 
 # A context for types and terms.
 
+unCTX : Ctx -- List(Var)
+unCTX = match(CTX -> id)
+
 ctx-new! : Ctx Var -- Ctx
-ctx-new! = (
-    Ctx.alloc!
-    tuck ctx-var!
-    tuck ctx-prev!
-)
+ctx-new! = dip(unCTX) snoc CTX
+
+ctx-var@ : Ctx -- Var
+ctx-var@ = unCTX last
+
+ctx-var? : Ctx -- Ctx Var
+ctx-var? = dup ctx-var@
+
+ctx-prev@ : Ctx -- Ctx
+ctx-prev@ = unCTX unsnoc drop CTX
 
 ctx-name@ : Ctx -- Name
 ctx-name@ = ctx-var@ var-name@
 
 ctx-empty : Ctx
-ctx-empty = 0 cast
+ctx-empty = nil
 
 ctx-is-empty : Ctx -- Bool
-ctx-is-empty = ctx-empty ==
+ctx-is-empty = is-nil
 
 ctx-is-empty? : Ctx -- Ctx Bool
-ctx-is-empty? = dup ctx-is-empty
+ctx-is-empty? = is-nil?
 
 ctx-has-name : Name Ctx -- Bool
 ctx-has-name =

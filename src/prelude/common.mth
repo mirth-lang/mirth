@@ -18,6 +18,9 @@ tuck = dup dip(swap)
 nip : a b -- b
 nip = dip(drop)
 
+swap2 : a b c d -- c d a b
+swap2 = dip(rotr) rotr
+
 dup2 : a b -- a b a b
 dup2 = over over
 
@@ -32,6 +35,37 @@ drop3 = drop drop drop
 
 drop4 : a b c d --
 drop4 = drop drop drop drop
+
+drop5 : a b c d e --
+drop5 = drop drop drop drop drop
+
+rot3r : a b c -- c a b
+rot4r : a b c d -- d a b c
+rot5r : a b c d e -- e a b c d
+rot6r : a b c d e f -- f a b c d e
+rot7r : a b c d e f g -- g a b c d e f
+rot8r : a b c d e f g h -- h a b c d e f g
+
+rot3l : a b c -- b c a
+rot4l : a b c d -- b c d a
+rot5l : a b c d e -- b c d e a
+rot6l : a b c d e f -- b c d e f a
+rot7l : a b c d e f g -- b c d e f g a
+rot8l : a b c d e f g h -- b c d e f g h a
+
+rot3r = rotr
+rot4r = swap dip(rot3r)
+rot5r = swap dip(rot4r)
+rot6r = swap dip(rot5r)
+rot7r = swap dip(rot6r)
+rot8r = swap dip(rot7r)
+
+rot3l = rotl
+rot4l = dip(rot3l) swap
+rot5l = dip(rot4l) swap
+rot6l = dip(rot5l) swap
+rot7l = dip(rot6l) swap
+rot8l = dip(rot7l) swap
 
 def-type(Byte, U8)
 def-type(Char, U8)
@@ -169,7 +203,6 @@ Int->U32 : Int -- U32
 Int->U32 =
     dup U32_MIN U32_MAX in-range if(
         cast,
-        ??
         "Int->U32 failed: out of bounds" panic!
     )
 
@@ -385,13 +418,48 @@ str-eq =
 str-eq? : Str Str -- Str Str Bool
 str-eq? = dup2 str-eq
 
+#######
+# NIL #
+#######
+
+||| Default value for any type. This is the 0-filled memory
+||| version of the type (hence "nil"). Best practice is to
+||| set up your types such that 0-filled memory is a sensible
+||| default value.
+|||
+||| Use nil with care! Don't confuse it for an "optional"
+||| value, use `Option(t)` instead. Rather, `nil` should
+||| be a value within the acceptable range of the type, and
+||| a sensible default value for fields of this type.
+|||
+||| In the future, there will be better control over which
+||| types admit a `nil` value.
+|||
+||| - For booleans, this is false.
+||| - For integers, this is zero.
+||| - For pointers, this is NULL.
+||| - For table typess, this is the 0th row, which you never alloc.
+|||   Its fields have nil value unless you override them.
+||| - For data types, this is the first constructor, applied to nil values.
+||| - For n-tuples, this is [ nil ... nil ]
+nil : a
+nil = 0 cast
+
+||| Test for nil.
+is-nil : a -- Bool
+is-nil = nil ==
+
+||| Test for nil.
+is-nil? : a -- a Bool
+is-nil? = dup nil ==
+
 ##########
 # TUPLES #
 ##########
 
 ||| Return the "nil" pack, i.e. null.
 pack-nil : [*a]
-pack-nil = prim.pack.nil cast
+pack-nil = nil
 
 ||| Is this a nil pack?
 pack-nil? : [*a] -- [*a] Bool
@@ -486,36 +554,25 @@ unpack5 = pack-uncons dip(unpack4)
 .4! : [*a b c d e f] b -- [*a b c d e f]
 .4! = dip(pack-uncons) swap dip(.3!) pack-cons
 
-#########
-# MAYBE #
-#########
+##########
+# OPTION #
+##########
 
-data Maybe(t)
+data Option(t)
     NONE
     SOME -> t
 end
 
-maybe-is-none? : Maybe(t) -- Maybe(t) Bool
-maybe-is-none? =
-    match(
-        NONE -> NONE true,
-        SOME -> SOME false
-    )
+is-none? : Option(t) -- Option(t) Bool
+is-none? = is-nil?
 
-maybe-is-some? : Maybe(t) -- Maybe(t) Bool
-maybe-is-some? = maybe-is-none? not
+is-some? : Option(t) -- Option(t) Bool
+is-some? = is-none? not
 
-maybe-len : Maybe(t) -- Int
-maybe-len =
+unSOME : Option(t) -- t
+unSOME =
     match(
-        NONE -> 0,
-        SOME -> drop 1
-    )
-
-maybe-unwrap : Maybe(t) -- t
-maybe-unwrap =
-    match(
-        NONE -> "maybe-unwrap on NONE" panic!,
+        NONE -> "unSOME on NONE" panic!,
         SOME -> id
     )
 
@@ -525,73 +582,210 @@ maybe-unwrap =
 
 data List(t)
     L0
-    L1+ -> t List(t)
-    L2+ -> t t List(t)
-    L3+ -> t t t List(t)
-    L4+ -> t t t t List(t)
+    L1 -> t
+    L2 -> t t
+    L3 -> t t t
+    LCAT -> List(t) List(t) Int
 end
 
-len : List(t) -- Int
-len =
-    dip(0) while(is-cons?,
-        match(
-            L0 -> L0,
-            L1+ -> dip(drop  1 +),
-            L2+ -> dip(drop2 2 +),
-            L3+ -> dip(drop3 3 +),
-            L4+ -> dip(drop4 4 +),
-        )
-    ) drop
+L4 : t t  t t -- List(t)
+L4 = L2 dip(L2) 4 LCAT
 
-nil : List(t)
-nil = L0
+L5 : t t  t t t -- List(t)
+L5 = L3 dip(L2) 5 LCAT
 
-is-nil? : List(t) -- List(t) Bool
-is-nil? = match(L0 -> L0 true, _ -> false)
+L6 : t t t  t t t -- List(t)
+L6 = L3 dip(L3) 6 LCAT
+
+L7 : t t t   t t  t t  -- List(t)
+L7 = L4 dip(L3) 7 LCAT
+
+L8 : t t t   t t  t t t  -- List(t)
+L8 = L5 dip(L3) 8 LCAT
+
+L9 : t t t   t t t  t t t -- List(t)
+L9 = L6 dip(L3) 9 LCAT
+
+L10 : t t  t t t   t t  t t t -- List(t)
+L10 = L5 dip(L5) 10 LCAT
+
+L11 : t t  t t t   t t t  t t t -- List(t)
+L11 = L6 dip(L5) 11 LCAT
+
+L12 : t t t  t t t  t t t  t t t -- List(t)
+L12 = L6 dip(L6) 12 LCAT
 
 is-cons? : List(t) -- List(t) Bool
 is-cons? = is-nil? not
 
-is-nil : List(t) -- Bool
-is-nil = is-nil? nip
+is-snoc? : List(t) -- List(t) Bool
+is-snoc? = is-nil? not
 
 is-cons : List(t) -- Bool
 is-cons = is-cons? nip
 
+is-snoc : List(t) -- Bool
+is-snoc = is-snoc? nip
+
+len? : List(t) -- List(t) Int
+len? =
+    match(
+        L0 -> L0 0,
+        L1 -> L1 1,
+        L2 -> L2 2,
+        L3 -> L3 3,
+        LCAT -> dup dip(LCAT)
+    )
+
+len : List(t) -- Int
+len = len? nip
+
 cons : t List(t) -- List(t)
 cons =
     match(
-        L1+ -> L2+,
-        L2+ -> L3+,
-        L3+ -> L4+,
-        _ -> L1+
+        L0 -> L1,
+        L1 -> L2,
+        L2 -> L3,
+        L3 -> L4,
+        LCAT -> 1+ dip(dip(cons) rebalance) LCAT
+    )
+
+snoc : List(t) t -- List(t)
+snoc =
+    swap match(
+        L0 -> L1,
+        L1 -> swap L2,
+        L2 -> rot3l L3,
+        L3 -> rot4l L4,
+        LCAT -> 1+ dip(rot3l snoc rebalance) LCAT
     )
 
 uncons : List(t) -- t List(t)
 uncons =
     match(
         L0 -> "uncons on empty list" panic!,
-        L1+ -> id,
-        L2+ -> L1+,
-        L3+ -> L2+,
-        L4+ -> L3+,
-    )
-
-snoc : List(t) t -- List(t)
-snoc =
-    swap is-nil? if(
-        L1+,
-        uncons rotl snoc cons
+        L1 -> L0,
+        L2 -> L1,
+        L3 -> L2,
+        LCAT -> drop dip(uncons) cat
     )
 
 unsnoc : List(t) -- List(t) t
 unsnoc =
-    is-nil? if(
-        "unsnoc on empty list" panic!,
-        uncons is-nil? if(
-            swap,
-            unsnoc dip(cons)
+    match(
+        L0 -> "unsnoc on empty list" panic!,
+        L1 -> dip(L0),
+        L2 -> dip(L1),
+        L3 -> dip(L2),
+        LCAT -> drop unsnoc dip(cat)
+    )
+
+cat : List(t) List(t) -- List(t)
+cat =
+    swap match(
+        L0 -> id,
+        L1 -> swap cons,
+        L2 ->
+            rot3l match(
+                L0 -> L2,
+                L1 -> L3,
+                L2 -> L4,
+                L3 -> L5,
+                _ -> dip(L2) cat-aux
+            ),
+        L3 ->
+            rot4l match(
+                L0 -> L3,
+                L1 -> L4,
+                L2 -> L5,
+                L3 -> L6,
+                _ -> dip(L3) cat-aux
+            ),
+        _ ->
+            swap match(
+                L0 -> id,
+                L1 -> snoc,
+                _ -> cat-aux
+            )
+    )
+
+cat-aux : List(t) List(t) -- List(t)
+cat-aux = rebalance dup2 dip(len) len + LCAT
+
+rebalance : List(t) List(t) -- List(t) List(t)
+rebalance =
+    dup2 dip(len) len dup2 3 * > if(
+        drop2 dip(split-half-ish) cat rebalance,
+        dip(3 *) < if(
+            split-half-ish dip(cat) rebalance,
+            id
         )
+    )
+
+split-half-ish : List(t) -- List(t) List(t)
+split-half-ish =
+    match(
+        L0 -> L0 L0,
+        L1 -> L1 dip(L0),
+        L2 -> L1 dip(L1),
+        L3 -> L2 dip(L1),
+        LCAT -> drop
+    )
+
+first : List(t) -- t
+first =
+    match(
+        L0 -> "first on empty list" panic!,
+        L1 -> id,
+        L2 -> drop,
+        L3 -> drop2,
+        LCAT -> drop2 first
+    )
+
+last : List(t) -- t
+last =
+    match(
+        L0 -> "last on empty list" panic!,
+        L1 -> id,
+        L2 -> dip(drop),
+        L3 -> dip(drop2),
+        LCAT -> drop nip last
+    )
+
+
+||| Show the structure of the list.
+trace-list-struc! : List(t) -- +IO
+trace-list-struc! =
+    match(
+        L0 -> "L0" str-trace!,
+        L1 -> drop "L1" str-trace!,
+        L2 -> drop2 "L2" str-trace!,
+        L3 -> drop3 "L3" str-trace!,
+        LCAT ->
+            dip(dip(trace-list-struc! " " str-trace!))
+            dip(trace-list-struc! " " str-trace!)
+            int-trace! " LCAT" str-trace!
+    )
+
+unL1 : List(t) -- t
+unL1 =
+    match(
+        L1 -> id,
+        _ -> "expected L1 list" panic!
+    )
+
+unL2 : List(t) -- t t
+unL2 =
+    match(
+        L2 -> id,
+        _ -> "expected L2 list" panic!
+    )
+
+unL3 : List(t) -- t t t
+unL3 =
+    match(
+        L3 -> id,
+        _ -> "expected L3 list" panic!
     )
 
 ######
@@ -601,13 +795,13 @@ unsnoc =
 panic! : *a Str -- *b
 panic! = "panic: " str-trace! str-trace-ln! 1 posix-exit!
 
-nominal(File, Int)
-
-File->Int : File -- Int
-File->Int = File.unwrap
+data(File, FILE -> Int)
 
 Int->File : Int -- File
-Int->File = File.wrap
+Int->File = FILE
+
+File->Int : File -- Int
+File->Int = match(FILE -> id)
 
 file@ : Ptr -- File
 file@ = int@ Int->File
@@ -625,7 +819,17 @@ stderr : File
 stderr = 2 Int->File
 
 str-write! : Str File -- +IO
-str-write! = File->Int swap dup str-length posix-write!
+str-write! = (
+    File->Int swap dup str-length dup
+    dip(posix-write!) swap
+    dup 0 < if(
+        "error: write failed!" panic!,
+        swap < if(
+            "error: write output fewer bytes than expected!" panic!,
+            id
+        )
+    )
+)
 
 str-print! : Str -- +IO
 str-print! = stdout str-write!
@@ -646,7 +850,17 @@ trace-ln! : +IO
 trace-ln! = "\n" str-trace!
 
 str-buf-write! : File -- +StrBuf +IO
-str-buf-write! = File->Int STR_BUF str-buf-length? posix-write!
+str-buf-write! = (
+    File->Int STR_BUF str-buf-length?
+    posix-write!
+    dup 0 < if(
+        "error: str-buf write failed!" panic!,
+        str-buf-length? < if(
+            "error: str-buf write wrote fewer bytes than expected!" panic!,
+            id
+        )
+    )
+)
 
 str-buf-print! : +StrBuf +IO
 str-buf-print! = stdout str-buf-write!

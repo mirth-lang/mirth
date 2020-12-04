@@ -30,8 +30,14 @@ def(codegen-full?, Bool +Codegen,
 
 def(codegen-flush!, +Codegen,
     codegen-length@ 0 > if(
-        codegen-file@ File->Int CODEGEN_BUF codegen-length@ posix-write!
-        0 codegen-length!,
+        codegen-file@ File->Int CODEGEN_BUF codegen-length@
+        posix-write! dup 0 < if(
+            "error: codegen write failed" panic!,
+            codegen-length@ < if(
+                "error: codegen write wrote fewer bytes than expected" panic!,
+                0 codegen-length!
+            )
+        ),
         id
     ))
 
@@ -207,12 +213,12 @@ def(c99-emit-tag!, Name -- +IO,
         "void mw" . dup .name " (void) {" ;
 
         name-tag@ tag-num-inputs? 0 == if(
-            "    push_u64(" . Tag->Int .n "LL);" ;,
+            "    push_u64(" . tag-value@ .n "LL);" ;,
 
             "    value_t car = pop_value();" ;
             tag-num-inputs? 1-
             while(dup 0 >, "    car = mkcell(car, pop_value());" ;  1-) drop
-            "    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = " . cast .n "LL } };" ;
+            "    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = " . tag-value@ .n "LL } };" ;
             "    car = mkcell(car, tag);" ;
             "    push_value(car);" ;
         )
@@ -717,7 +723,7 @@ def(c99-emit-prims!, +IO,
     "    usize n = (usize)pop_u64();" ;
     "    void* p = pop_ptr();" ;
     "    int f = (int)pop_i64();" ;
-    "    write(f, p, n);" ; # TODO: push return code
+    "    push_i64((i64)write(f, p, n));" ;
     "}" ;;
 
     PRIM_POSIX_READ .p " {" ;
@@ -1082,13 +1088,13 @@ c99-emit-arrow-op! =
             "    mw" . .name "();" ;,
         OP_PRIM ->
             dup PRIM_DIP == if(
-                drop arrow-args-1
+                drop arrow-args@ unL1
                 "    { value_t d" . .d " = pop_value();" ;
                 Arg->Arrow c99-emit-arrow!
                 "      push_value(d" . .d "); }" ;,
 
             dup PRIM_IF == if(
-                drop arrow-args-2
+                drop arrow-args@ unL2
                 "    if (pop_u64()) {" ;
                 dip(Arg->Arrow c99-emit-arrow!)
                 "    } else {" ;
@@ -1096,7 +1102,7 @@ c99-emit-arrow-op! =
                 "    }" ;,
 
             dup PRIM_WHILE == if(
-                drop arrow-args-2
+                drop arrow-args@ unL2
                 "    while(1) {" ;
                 dip(Arg->Arrow c99-emit-arrow!)
                 "    if (!pop_u64()) break;" ;
@@ -1112,8 +1118,8 @@ c99-emit-arrow-op! =
 
 def(c99-emit-match!, Match -- +IO,
     "    switch (get_top_data_tag()) {" ;
-    match-cases? while(case-is-nil? not,
-        dup c99-emit-case! case-next@
+    match-cases? while(is-cons?,
+        uncons dip(c99-emit-case!)
     ) drop
     match-has-default-case if(
         id,
@@ -1127,21 +1133,21 @@ def(c99-emit-case!, Case -- +IO,
     "    break;" ;)
 
 def(c99-emit-pattern!, Pattern -- +IO,
-    pattern-is-underscore? if(
-        drop
-        "    default:" ; ,
+    match(
+        PATTERN_UNDERSCORE ->
+            "    default:" ; ,
 
-        Pattern->Tag
-        "    case " . dup Tag->Int .n "LL:" ;
-        tag-num-inputs? nip
-        dup 0 > if(
-            "    do_pack_uncons(); do_drop();" ;
-            while(dup 1 >,
-                "    do_pack_uncons(); do_swap();" ;
-                1-)
-            drop,
-            drop "    do_drop();" ;
-        )
+        PATTERN_TAG ->
+            "    case " . tag-value? .n "LL:" ;
+            tag-num-inputs? nip
+            dup 0 > if(
+                "    do_pack_uncons(); do_drop();" ;
+                while(dup 1 >,
+                    "    do_pack_uncons(); do_swap();" ;
+                    1-)
+                drop,
+                drop "    do_drop();" ;
+            )
     ))
 
 def(c99-emit-word-sig!, Name -- +IO,

@@ -1,16 +1,17 @@
 module(mirth/data/prim)
 import(mirth/data/name)
 import(mirth/data/type)
+import(mirth/data/ctx)
 
 def(Int->Prim, Int -- Prim, cast)
 def(Prim->Int, Prim -- Int, cast)
+def(Prim->NameValue, Prim -- NameValue, DEF_PRIM)
 def(NameValue->Prim, NameValue -- Prim,
     match(
         DEF_PRIM -> id,
         _ -> "attempted to get prim value from non-prim name" panic!
     ))
 
-def(Prim->NameValue, Prim -- NameValue, DEF_PRIM)
 def(name-prim!, Prim Name --, dip(Prim->NameValue) name-value!)
 def(name-prim@, Name -- Prim, name-value@ NameValue->Prim)
 
@@ -102,7 +103,6 @@ def(PRIM_MODULE, Prim, 68 Int->Prim)
 def(PRIM_IMPORT, Prim, 69 Int->Prim)
 def(PRIM_DEF, Prim, 50 Int->Prim)
 def(PRIM_DEF_TYPE, Prim, 51 Int->Prim)
-def(PRIM_NOMINAL, Prim, 70 Int->Prim)
 def(PRIM_BUFFER, Prim, 52 Int->Prim)
 def(PRIM_DEF_EXTERNAL, Prim, 53 Int->Prim)
 def(PRIM_TARGET_C99, Prim, 55 Int->Prim)
@@ -203,7 +203,6 @@ def(init-prims!, +Names,
     PRIM_DEF_TYPE "def-type" def-prim!
     PRIM_BUFFER "buffer" def-prim!
     PRIM_DEF_EXTERNAL "def-external" def-prim!
-    PRIM_NOMINAL "nominal" def-prim!
     PRIM_TABLE "table" def-prim!
     PRIM_FIELD "field" def-prim!
     PRIM_TARGET_C99 "target-c99" def-prim!
@@ -263,7 +262,7 @@ def(init-prims!, +Names,
     TYPE_INT TYPE_PTR TYPE_INT T3 TYPE_INT T1 T->
     PRIM_POSIX_READ prim-type!
 
-    TYPE_INT TYPE_PTR TYPE_INT T3 T0 T->
+    TYPE_INT TYPE_PTR TYPE_INT T3 TYPE_INT T1 T->
     PRIM_POSIX_WRITE prim-type!
 
     TYPE_PTR TYPE_INT TYPE_INT T3 TYPE_INT T1 T->
