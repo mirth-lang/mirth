@@ -30,7 +30,8 @@ def(codegen-full?, Bool +Codegen,
 
 def(codegen-flush!, +Codegen,
     codegen-length@ 0 > if(
-        codegen-file@ File->Int CODEGEN_BUF codegen-length@ posix-write!
+        codegen-file@ File->Int CODEGEN_BUF codegen-length@
+        posix-write! drop # TODO check return value
         0 codegen-length!,
         id
     ))
@@ -717,7 +718,7 @@ def(c99-emit-prims!, +IO,
     "    usize n = (usize)pop_u64();" ;
     "    void* p = pop_ptr();" ;
     "    int f = (int)pop_i64();" ;
-    "    write(f, p, n);" ; # TODO: push return code
+    "    push_i64((i64)write(f, p, n));" ;
     "}" ;;
 
     PRIM_POSIX_READ .p " {" ;
