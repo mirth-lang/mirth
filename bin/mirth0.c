@@ -3633,6 +3633,26 @@ void mwTYPE_ELAB (void) {
  void mwtoken_args_3 (void);
  void mwemit_warning_21_ (void);
  void mwemit_error_21_ (void);
+ void mwtoken_is_module_end_3F_ (void);
+ void mwtoken_run_end_3F_ (void);
+ void mwtoken_skip_newlines (void);
+ void mwsig_is_stack_end_3F_ (void);
+ void mwsig_is_stack_end2_3F_ (void);
+ void mwsig_token_is_effect_con_3F_ (void);
+ void mwsig_next_stack_end (void);
+ void mwsig_has_dashes (void);
+ void mwsig_has_dashes_3F_ (void);
+ void mwsig_arity (void);
+ void mwsig_count_types (void);
+ void mwsig_token_is_type_3F_ (void);
+ void mwsig_token_is_type_con_3F_ (void);
+ void mwsig_token_is_type_hole_3F_ (void);
+ void mwtoken_is_underscore_3F_ (void);
+ void mwsig_token_is_type_var_3F_ (void);
+ void mwsig_token_is_stack_var_3F_ (void);
+ void mwsig_skip_dashes (void);
+ void mwtoken_could_be_word_sig_3F_ (void);
+ void mwtoken_could_be_word_def_3F_ (void);
  void mwlocation_unpack (void);
  void mwlocation_trace_21_ (void);
  void mwMAX_MODULES (void);
@@ -3762,7 +3782,6 @@ void mwTYPE_ELAB (void) {
  void mwname_word_40_ (void);
  void mwname_external_40_ (void);
  void mwname_sig_3F_ (void);
- void mwsig_arity (void);
  void mwc99_emit_word_sig_21_ (void);
  void mwc99_emit_arrow_21_ (void);
  void mwc99_emit_arrow_op_21_ (void);
@@ -3951,6 +3970,8 @@ void mwTYPE_ELAB (void) {
  void mwname_prim_21_ (void);
  void mwname_prim_40_ (void);
  void mwname_prim_3D_ (void);
+ void mwtoken_prim_3D__3F_ (void);
+ void mwtoken_prim_3D_ (void);
  void mwPRIM_MATCH (void);
  void mwPRIM_MODULE (void);
  void mwPRIM_IMPORT (void);
@@ -3983,7 +4004,6 @@ void mwTYPE_ELAB (void) {
  void mwTag__3E_NameValue (void);
  void mwname_tag_21_ (void);
  void mwname_tag_3F_ (void);
- void mwtoken_run_end_3F_ (void);
  void mwdata_num_tags (void);
  void mwdata_add_tag_21_ (void);
  void mwmatch_is_empty_3F_ (void);
@@ -4006,26 +4026,6 @@ void mwTYPE_ELAB (void) {
  void mwPattern__3E_Tag (void);
  void mwpattern_is_underscore_3F_ (void);
  void mwpattern_is_covered_3F_ (void);
- void mwtoken_is_module_end_3F_ (void);
- void mwtoken_prim_3D__3F_ (void);
- void mwtoken_prim_3D_ (void);
- void mwtoken_skip_newlines (void);
- void mwsig_is_stack_end_3F_ (void);
- void mwsig_is_stack_end2_3F_ (void);
- void mwsig_token_is_effect_con_3F_ (void);
- void mwsig_next_stack_end (void);
- void mwsig_has_dashes (void);
- void mwsig_has_dashes_3F_ (void);
- void mwsig_count_types (void);
- void mwsig_token_is_type_3F_ (void);
- void mwsig_token_is_type_con_3F_ (void);
- void mwsig_token_is_type_hole_3F_ (void);
- void mwtoken_is_underscore_3F_ (void);
- void mwsig_token_is_type_var_3F_ (void);
- void mwsig_token_is_stack_var_3F_ (void);
- void mwsig_skip_dashes (void);
- void mwtoken_could_be_word_sig_3F_ (void);
- void mwtoken_could_be_word_def_3F_ (void);
  void mwHolesAllowed__3E_Bool (void);
  void mwtype_elab_default (void);
  void mwtype_elab_stack_assertion (void);
@@ -12609,6 +12609,285 @@ void mwemit_error_21_ (void){
     mwemit_error_at_21_();
 }
 
+void mwtoken_is_module_end_3F_ (void){
+    mwdup();
+    mwToken__3E_Int();
+    mwnum_tokens_40_();
+    mw_3E__3D_();
+    if (pop_u64()) {
+    mwtrue();
+    } else {
+    mwtoken_value_3F_();
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_drop();
+    mwtrue();
+    break;
+    default:
+    mwdrop();
+    mwfalse();
+    break;
+    }
+    }
+}
+
+void mwtoken_run_end_3F_ (void){
+    mwdup();
+    mwToken__3E_Int();
+    mwnum_tokens_40_();
+    mw_3E__3D_();
+    if (pop_u64()) {
+    mwtrue();
+    } else {
+    mwtoken_value_3F_();
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_drop();
+    mwtrue();
+    break;
+    case 2LL:
+    do_drop();
+    mwtrue();
+    break;
+    case 1LL:
+    do_drop();
+    mwtrue();
+    break;
+    case 8LL:
+    do_pack_uncons(); do_drop();
+    mwdrop();
+    mwtrue();
+    break;
+    case 10LL:
+    do_pack_uncons(); do_drop();
+    mwdrop();
+    mwtrue();
+    break;
+    case 12LL:
+    do_pack_uncons(); do_drop();
+    mwdrop();
+    mwtrue();
+    break;
+    default:
+    mwdrop();
+    mwfalse();
+    break;
+    }
+    }
+}
+
+void mwtoken_skip_newlines (void){
+    while(1) {
+    mwtoken_is_newline_3F_();
+    if (!pop_u64()) break;
+    mwtoken_succ();
+    }
+}
+
+void mwsig_is_stack_end_3F_ (void){
+    mwtoken_is_dashes_3F_();
+    if (pop_u64()) {
+    mwtrue();
+    } else {
+    mwtoken_run_end_3F_();
+    }
+}
+
+void mwsig_is_stack_end2_3F_ (void){
+    mwsig_is_stack_end_3F_();
+    if (pop_u64()) {
+    mwtrue();
+    } else {
+    mwsig_token_is_effect_con_3F_();
+    }
+}
+
+void mwsig_token_is_effect_con_3F_ (void){
+    mwtoken_value_3F_();
+    switch (get_top_data_tag()) {
+    case 15LL:
+    do_pack_uncons(); do_drop();
+    mwname_could_be_effect_con();
+    break;
+    default:
+    mwdrop();
+    mwfalse();
+    break;
+    }
+}
+
+void mwsig_next_stack_end (void){
+    while(1) {
+    mwsig_is_stack_end_3F_();
+    mwnot();
+    if (!pop_u64()) break;
+    mwtoken_next();
+    }
+}
+
+void mwsig_has_dashes (void){
+    mwsig_next_stack_end();
+    mwtoken_is_dashes_3F_();
+    mwnip();
+}
+
+void mwsig_has_dashes_3F_ (void){
+    mwdup();
+    mwsig_has_dashes();
+}
+
+void mwsig_arity (void){
+    mwsig_has_dashes_3F_();
+    if (pop_u64()) {
+    mwsig_count_types();
+    mwtoken_next();
+    mwsig_count_types();
+    mwdrop();
+    } else {
+    mwsig_count_types();
+    mwdrop();
+    push_i64(0LL);
+    mwswap();
+    }
+}
+
+void mwsig_count_types (void){
+    push_i64(0LL);
+    mwswap();
+    while(1) {
+    mwsig_is_stack_end_3F_();
+    mwnot();
+    if (!pop_u64()) break;
+    mwsig_token_is_type_3F_();
+    if (pop_u64()) {
+    { value_t d3 = pop_value();
+    mw1_2B_();
+      push_value(d3); }
+    } else {
+    mwid();
+    }
+    mwtoken_next();
+    }
+}
+
+void mwsig_token_is_type_3F_ (void){
+    mwtoken_value_3F_();
+    switch (get_top_data_tag()) {
+    case 15LL:
+    do_pack_uncons(); do_drop();
+    mwname_could_be_type();
+    break;
+    default:
+    mwdrop();
+    mwfalse();
+    break;
+    }
+}
+
+void mwsig_token_is_type_con_3F_ (void){
+    mwtoken_value_3F_();
+    switch (get_top_data_tag()) {
+    case 15LL:
+    do_pack_uncons(); do_drop();
+    mwname_could_be_type_con();
+    break;
+    default:
+    mwdrop();
+    mwfalse();
+    break;
+    }
+}
+
+void mwsig_token_is_type_hole_3F_ (void){
+    mwtoken_value_3F_();
+    switch (get_top_data_tag()) {
+    case 15LL:
+    do_pack_uncons(); do_drop();
+    mwname_is_type_hole();
+    break;
+    default:
+    mwdrop();
+    mwfalse();
+    break;
+    }
+}
+
+void mwtoken_is_underscore_3F_ (void){
+    mwtoken_value_3F_();
+    switch (get_top_data_tag()) {
+    case 15LL:
+    do_pack_uncons(); do_drop();
+    mwname_is_underscore();
+    break;
+    default:
+    mwdrop();
+    mwfalse();
+    break;
+    }
+}
+
+void mwsig_token_is_type_var_3F_ (void){
+    mwtoken_value_3F_();
+    switch (get_top_data_tag()) {
+    case 15LL:
+    do_pack_uncons(); do_drop();
+    mwname_could_be_type_var();
+    break;
+    default:
+    mwdrop();
+    mwfalse();
+    break;
+    }
+}
+
+void mwsig_token_is_stack_var_3F_ (void){
+    mwtoken_value_3F_();
+    switch (get_top_data_tag()) {
+    case 15LL:
+    do_pack_uncons(); do_drop();
+    mwname_could_be_stack_var();
+    break;
+    default:
+    mwdrop();
+    mwfalse();
+    break;
+    }
+}
+
+void mwsig_skip_dashes (void){
+    mwsig_has_dashes_3F_();
+    if (pop_u64()) {
+    mwsig_next_stack_end();
+    mwtoken_next();
+    } else {
+    mwid();
+    }
+}
+
+void mwtoken_could_be_word_sig_3F_ (void){
+    mwtoken_is_name_3F_();
+    if (pop_u64()) {
+    mwdup();
+    mwtoken_next();
+    mwtoken_is_colon_3F_();
+    mwnip();
+    } else {
+    mwfalse();
+    }
+}
+
+void mwtoken_could_be_word_def_3F_ (void){
+    mwtoken_is_name_3F_();
+    if (pop_u64()) {
+    mwdup();
+    mwtoken_next();
+    mwtoken_is_equal_3F_();
+    mwnip();
+    } else {
+    mwfalse();
+    }
+}
+
 void mwlocation_unpack (void){
     switch (get_top_data_tag()) {
     case 0LL:
@@ -15397,21 +15676,6 @@ void mwname_sig_3F_ (void){
     mwname_sig_40_();
 }
 
-void mwsig_arity (void){
-    mwsig_has_dashes_3F_();
-    if (pop_u64()) {
-    mwsig_count_types();
-    mwtoken_next();
-    mwsig_count_types();
-    mwdrop();
-    } else {
-    mwsig_count_types();
-    mwdrop();
-    push_i64(0LL);
-    mwswap();
-    }
-}
-
 void mwc99_emit_word_sig_21_ (void){
     mwname_is_word_3F_();
     if (pop_u64()) {
@@ -17784,6 +18048,29 @@ void mwname_prim_3D_ (void){
     }
 }
 
+void mwtoken_prim_3D__3F_ (void){
+    { value_t d1 = pop_value();
+    mwdup();
+      push_value(d1); }
+    mwtoken_prim_3D_();
+}
+
+void mwtoken_prim_3D_ (void){
+    mwswap();
+    mwtoken_value_40_();
+    switch (get_top_data_tag()) {
+    case 15LL:
+    do_pack_uncons(); do_drop();
+    mwswap();
+    mwname_prim_3D_();
+    break;
+    default:
+    mwdrop2();
+    mwfalse();
+    break;
+    }
+}
+
 void mwPRIM_MATCH (void){
     push_i64(94LL);
     mwInt__3E_Prim();
@@ -18007,51 +18294,6 @@ void mwname_tag_3F_ (void){
     mwname_tag_40_();
 }
 
-void mwtoken_run_end_3F_ (void){
-    mwdup();
-    mwToken__3E_Int();
-    mwnum_tokens_40_();
-    mw_3E__3D_();
-    if (pop_u64()) {
-    mwtrue();
-    } else {
-    mwtoken_value_3F_();
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_drop();
-    mwtrue();
-    break;
-    case 2LL:
-    do_drop();
-    mwtrue();
-    break;
-    case 1LL:
-    do_drop();
-    mwtrue();
-    break;
-    case 8LL:
-    do_pack_uncons(); do_drop();
-    mwdrop();
-    mwtrue();
-    break;
-    case 10LL:
-    do_pack_uncons(); do_drop();
-    mwdrop();
-    mwtrue();
-    break;
-    case 12LL:
-    do_pack_uncons(); do_drop();
-    mwdrop();
-    mwtrue();
-    break;
-    default:
-    mwdrop();
-    mwfalse();
-    break;
-    }
-    }
-}
-
 void mwdata_num_tags (void){
     mwdata_tags_40_();
     mwlen();
@@ -18229,248 +18471,6 @@ void mwpattern_is_underscore_3F_ (void){
 void mwpattern_is_covered_3F_ (void){
     mwdup2();
     mwpattern_is_covered();
-}
-
-void mwtoken_is_module_end_3F_ (void){
-    mwdup();
-    mwToken__3E_Int();
-    mwnum_tokens_40_();
-    mw_3E__3D_();
-    if (pop_u64()) {
-    mwtrue();
-    } else {
-    mwtoken_value_3F_();
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_drop();
-    mwtrue();
-    break;
-    default:
-    mwdrop();
-    mwfalse();
-    break;
-    }
-    }
-}
-
-void mwtoken_prim_3D__3F_ (void){
-    { value_t d1 = pop_value();
-    mwdup();
-      push_value(d1); }
-    mwtoken_prim_3D_();
-}
-
-void mwtoken_prim_3D_ (void){
-    mwswap();
-    mwtoken_value_40_();
-    switch (get_top_data_tag()) {
-    case 15LL:
-    do_pack_uncons(); do_drop();
-    mwswap();
-    mwname_prim_3D_();
-    break;
-    default:
-    mwdrop2();
-    mwfalse();
-    break;
-    }
-}
-
-void mwtoken_skip_newlines (void){
-    while(1) {
-    mwtoken_is_newline_3F_();
-    if (!pop_u64()) break;
-    mwtoken_succ();
-    }
-}
-
-void mwsig_is_stack_end_3F_ (void){
-    mwtoken_is_dashes_3F_();
-    if (pop_u64()) {
-    mwtrue();
-    } else {
-    mwtoken_run_end_3F_();
-    }
-}
-
-void mwsig_is_stack_end2_3F_ (void){
-    mwsig_is_stack_end_3F_();
-    if (pop_u64()) {
-    mwtrue();
-    } else {
-    mwsig_token_is_effect_con_3F_();
-    }
-}
-
-void mwsig_token_is_effect_con_3F_ (void){
-    mwtoken_value_3F_();
-    switch (get_top_data_tag()) {
-    case 15LL:
-    do_pack_uncons(); do_drop();
-    mwname_could_be_effect_con();
-    break;
-    default:
-    mwdrop();
-    mwfalse();
-    break;
-    }
-}
-
-void mwsig_next_stack_end (void){
-    while(1) {
-    mwsig_is_stack_end_3F_();
-    mwnot();
-    if (!pop_u64()) break;
-    mwtoken_next();
-    }
-}
-
-void mwsig_has_dashes (void){
-    mwsig_next_stack_end();
-    mwtoken_is_dashes_3F_();
-    mwnip();
-}
-
-void mwsig_has_dashes_3F_ (void){
-    mwdup();
-    mwsig_has_dashes();
-}
-
-void mwsig_count_types (void){
-    push_i64(0LL);
-    mwswap();
-    while(1) {
-    mwsig_is_stack_end_3F_();
-    mwnot();
-    if (!pop_u64()) break;
-    mwsig_token_is_type_3F_();
-    if (pop_u64()) {
-    { value_t d3 = pop_value();
-    mw1_2B_();
-      push_value(d3); }
-    } else {
-    mwid();
-    }
-    mwtoken_next();
-    }
-}
-
-void mwsig_token_is_type_3F_ (void){
-    mwtoken_value_3F_();
-    switch (get_top_data_tag()) {
-    case 15LL:
-    do_pack_uncons(); do_drop();
-    mwname_could_be_type();
-    break;
-    default:
-    mwdrop();
-    mwfalse();
-    break;
-    }
-}
-
-void mwsig_token_is_type_con_3F_ (void){
-    mwtoken_value_3F_();
-    switch (get_top_data_tag()) {
-    case 15LL:
-    do_pack_uncons(); do_drop();
-    mwname_could_be_type_con();
-    break;
-    default:
-    mwdrop();
-    mwfalse();
-    break;
-    }
-}
-
-void mwsig_token_is_type_hole_3F_ (void){
-    mwtoken_value_3F_();
-    switch (get_top_data_tag()) {
-    case 15LL:
-    do_pack_uncons(); do_drop();
-    mwname_is_type_hole();
-    break;
-    default:
-    mwdrop();
-    mwfalse();
-    break;
-    }
-}
-
-void mwtoken_is_underscore_3F_ (void){
-    mwtoken_value_3F_();
-    switch (get_top_data_tag()) {
-    case 15LL:
-    do_pack_uncons(); do_drop();
-    mwname_is_underscore();
-    break;
-    default:
-    mwdrop();
-    mwfalse();
-    break;
-    }
-}
-
-void mwsig_token_is_type_var_3F_ (void){
-    mwtoken_value_3F_();
-    switch (get_top_data_tag()) {
-    case 15LL:
-    do_pack_uncons(); do_drop();
-    mwname_could_be_type_var();
-    break;
-    default:
-    mwdrop();
-    mwfalse();
-    break;
-    }
-}
-
-void mwsig_token_is_stack_var_3F_ (void){
-    mwtoken_value_3F_();
-    switch (get_top_data_tag()) {
-    case 15LL:
-    do_pack_uncons(); do_drop();
-    mwname_could_be_stack_var();
-    break;
-    default:
-    mwdrop();
-    mwfalse();
-    break;
-    }
-}
-
-void mwsig_skip_dashes (void){
-    mwsig_has_dashes_3F_();
-    if (pop_u64()) {
-    mwsig_next_stack_end();
-    mwtoken_next();
-    } else {
-    mwid();
-    }
-}
-
-void mwtoken_could_be_word_sig_3F_ (void){
-    mwtoken_is_name_3F_();
-    if (pop_u64()) {
-    mwdup();
-    mwtoken_next();
-    mwtoken_is_colon_3F_();
-    mwnip();
-    } else {
-    mwfalse();
-    }
-}
-
-void mwtoken_could_be_word_def_3F_ (void){
-    mwtoken_is_name_3F_();
-    if (pop_u64()) {
-    mwdup();
-    mwtoken_next();
-    mwtoken_is_equal_3F_();
-    mwnip();
-    } else {
-    mwfalse();
-    }
 }
 
 void mwHolesAllowed__3E_Bool (void){

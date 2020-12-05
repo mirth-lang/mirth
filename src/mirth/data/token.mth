@@ -263,3 +263,159 @@ def(token-args-3, Token -- Token Token Token,
 def(emit-warning!, Token Str -- +IO, dip(token-location) emit-warning-at!)
 def(emit-error!, Token Str -- +IO, dip(token-location) emit-error-at!)
 def(emit-fatal-error!, *a Token Str -- *b +IO, dip(token-location) emit-fatal-error-at!)
+
+###############
+# Token Types #
+###############
+
+||| Is this the end of a module?
+token-is-module-end? : Token -- Token Bool
+token-is-module-end? =
+    dup Token->Int num-tokens@ >= if(
+        true,
+        token-value? match(
+            TOKEN_NONE -> true,
+            _ -> drop false
+        )
+    )
+
+||| Is this a token to stop running at?
+token-run-end? : Token -- Token Bool
+token-run-end? =
+    dup Token->Int num-tokens@ >= if(
+        true,
+        token-value? match(
+            TOKEN_NONE -> true,
+            TOKEN_NEWLINE -> true,
+            TOKEN_COMMA -> true,
+            TOKEN_RPAREN -> drop true,
+            TOKEN_RSQUARE -> drop true,
+            TOKEN_RCURLY -> drop true,
+            _ -> drop false
+        )
+    )
+
+||| Skip all the newlines.
+token-skip-newlines : Token -- Token
+token-skip-newlines = while(token-is-newline?, token-succ)
+
+###################
+# Type Signatures #
+###################
+
+sig-is-stack-end? : Token -- Token Bool
+sig-is-stack-end? =
+    token-is-dashes? if(
+        true,
+        token-run-end?
+    )
+
+sig-is-stack-end2? : Token -- Token Bool
+sig-is-stack-end2? =
+    sig-is-stack-end? if(
+        true,
+        sig-token-is-effect-con?
+    )
+
+sig-next-stack-end : Token -- Token
+sig-next-stack-end = while(sig-is-stack-end? not, token-next)
+
+sig-has-dashes : Token -- Bool
+sig-has-dashes = sig-next-stack-end token-is-dashes? nip
+
+sig-has-dashes? : Token -- Token Bool
+sig-has-dashes? = dup sig-has-dashes
+
+sig-arity : Token -- Int Int
+sig-arity =
+    sig-has-dashes? if(
+        sig-count-types
+        token-next
+        sig-count-types
+        drop,
+
+        sig-count-types
+        drop 0 swap
+    )
+
+sig-count-types : Token -- Int Token
+sig-count-types =
+    0 swap while(sig-is-stack-end? not,
+        sig-token-is-type? if(dip(1+), id)
+        token-next
+    )
+
+sig-token-is-type? : Token -- Token Bool
+sig-token-is-type? =
+    token-value? match(
+        TOKEN_NAME -> name-could-be-type,
+        _ -> drop false
+    )
+
+sig-token-is-type-con? : Token -- Token Bool
+sig-token-is-type-con? =
+    token-value? match(
+        TOKEN_NAME -> name-could-be-type-con,
+        _ -> drop false
+    )
+
+sig-token-is-type-hole? : Token -- Token Bool
+sig-token-is-type-hole? =
+    token-value? match(
+        TOKEN_NAME -> name-is-type-hole,
+        _ -> drop false
+    )
+
+token-is-underscore? : Token -- Token Bool
+token-is-underscore? =
+    token-value? match(
+        TOKEN_NAME -> name-is-underscore,
+        _ -> drop false
+    )
+
+sig-token-is-type-var? : Token -- Token Bool
+sig-token-is-type-var? =
+    token-value? match(
+        TOKEN_NAME -> name-could-be-type-var,
+        _ -> drop false
+    )
+
+sig-token-is-stack-var? : Token -- Token Bool
+sig-token-is-stack-var? =
+    token-value? match(
+        TOKEN_NAME -> name-could-be-stack-var,
+        _ -> drop false
+    )
+
+sig-token-is-effect-con? : Token -- Token Bool
+sig-token-is-effect-con? =
+    token-value? match(
+        TOKEN_NAME -> name-could-be-effect-con,
+        _ -> drop false
+    )
+
+sig-skip-dashes : Token -- Token
+sig-skip-dashes =
+    sig-has-dashes? if(
+        sig-next-stack-end token-next,
+        id
+    )
+
+##############
+# BARE DECLS #
+##############
+
+token-could-be-word-sig? : Token -- Token Bool
+token-could-be-word-sig? =
+    token-is-name? if(
+        dup token-next token-is-colon? nip,
+        false
+    )
+
+# TODO eventually figure out how to deal w/ pattern matching...
+token-could-be-word-def? : Token -- Token Bool
+token-could-be-word-def? =
+    token-is-name? if(
+        dup token-next token-is-equal? nip,
+        false
+    )

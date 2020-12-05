@@ -23,6 +23,20 @@ name-prim= =
         _ -> drop2 false
     )
 
+||| Does the token refer to this primitive? Preserves the token.
+token-prim=? : Token Prim -- Token Bool
+token-prim=? = dip(dup) token-prim=
+
+||| Does the token refer to this primitive?
+token-prim= : Token Prim -- Bool
+token-prim= =
+    swap token-value@ match(
+        TOKEN_NAME ->
+            swap name-prim=,
+        _ ->
+            drop2 false
+    )
+
 def(PRIM_ID, Prim, 1 Int->Prim)
 def(PRIM_DUP, Prim, 2 Int->Prim)
 def(PRIM_DROP, Prim, 3 Int->Prim)
