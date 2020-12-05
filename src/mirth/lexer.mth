@@ -128,6 +128,10 @@ def(lexer-next!, --,
         drop
         TOKEN_COMMA lexer-emit!,
 
+    is-colon? if(
+        drop
+        TOKEN_COLON lexer-emit!,
+
     is-lparen? if(
         drop
         lexer-emit-lparen!,
@@ -156,8 +160,9 @@ def(lexer-next!, --,
         drop
         lexer-emit-string!,
 
+
         drop # LATER emit lexer error
-    )))))))))))
+    ))))))))))))
 
     lexer-move!))
 
@@ -229,6 +234,20 @@ def(lexer-emit-name!, +Lexer,
         lexer-skip-doc!,
         # TODO: save the doc in a token-doc field for the proceeding token
 
+    str-buf-is-dashes? if(
+        token-alloc!
+        TOKEN_DASHES over token-value!
+        tuck token-col!
+        tuck token-row!
+        token-module!,
+
+    str-buf-is-arrow? if(
+        token-alloc!
+        TOKEN_ARROW over token-value!
+        tuck token-col!
+        tuck token-row!
+        token-module!,
+
     str-buf-is-int? if(
         token-alloc!
         str-buf-int? TOKEN_INT over token-value!
@@ -241,13 +260,27 @@ def(lexer-emit-name!, +Lexer,
         tuck token-col!
         tuck token-row!
         token-module!
-    )))
+    )))))
 
 def(str-buf-is-doc-start?, Bool +StrBuf,
     str-buf-length? 3 == if(
         0 str-buf-u8@ is-pipe-char
         1 str-buf-u8@ is-pipe-char &&
         2 str-buf-u8@ is-pipe-char &&,
+        false
+    ))
+
+def(str-buf-is-arrow?, Bool +StrBuf,
+    str-buf-length? 2 == if(
+        0 str-buf-u8@ is-dash? nip
+        1 str-buf-u8@ is-gt? nip &&,
+        false
+    ))
+
+def(str-buf-is-dashes?, Bool +StrBuf,
+    str-buf-length? 2 == if(
+        0 str-buf-u8@ is-dash? nip
+        1 str-buf-u8@ is-dash? nip &&,
         false
     ))
 

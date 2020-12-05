@@ -41,6 +41,10 @@ data TokenValue
     TOKEN_NONE
     TOKEN_COMMA
     TOKEN_NEWLINE
+    TOKEN_COLON
+    TOKEN_EQUAL
+    TOKEN_ARROW
+    TOKEN_DASHES
     TOKEN_LPAREN -> Token
     TOKEN_RPAREN -> Token
     TOKEN_LSQUARE -> Token

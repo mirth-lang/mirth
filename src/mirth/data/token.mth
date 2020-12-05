@@ -24,32 +24,29 @@ def(token-alloc!, Token,
     Token.alloc!
     TOKEN_NONE over token-value!)
 
-def(token-is-int?, Token -- Token Bool,
-    token-value? match(TOKEN_INT -> drop true, _ -> drop false))
-def(token-is-str?, Token -- Token Bool,
-    token-value? match(TOKEN_STR -> drop true, _ -> drop false))
-def(token-is-name?, Token -- Token Bool,
-    token-value? match(TOKEN_NAME -> drop true, _ -> drop false))
-
-token-is-lsquare? : Token -- Token Bool
-token-is-lsquare? =
-    token-value? match(TOKEN_LSQUARE -> drop true, _ -> drop false)
-
+token-is-int? : Token -- Token Bool
+token-is-str? : Token -- Token Bool
+token-is-name? : Token -- Token Bool
 token-is-comma? : Token -- Token Bool
-token-is-comma? =
-    token-value? match(TOKEN_COMMA -> true, _ -> drop false)
-
+token-is-colon? : Token -- Token Bool
+token-is-arrow? : Token -- Token Bool
+token-is-dashes? : Token -- Token Bool
 token-is-lparen? : Token -- Token Bool
-token-is-lparen? =
-    token-value? match(TOKEN_LPAREN -> drop true, _ -> drop false)
-
 token-is-rparen? : Token -- Token Bool
-token-is-rparen? =
-    token-value? match(TOKEN_RPAREN -> drop true, _ -> drop false)
-
+token-is-lsquare? : Token -- Token Bool
 token-is-lcurly? : Token -- Token Bool
-token-is-lcurly? =
-    token-value? match(TOKEN_LCURLY -> drop true, _ -> drop false)
+
+token-is-int? = token-value? match(TOKEN_INT -> drop true, _ -> drop false)
+token-is-str? = token-value? match(TOKEN_STR -> drop true, _ -> drop false)
+token-is-name? = token-value? match(TOKEN_NAME -> drop true, _ -> drop false)
+token-is-comma? = token-value? match(TOKEN_COMMA -> true, _ -> drop false)
+token-is-colon? = token-value? match(TOKEN_COLON -> true, _ -> drop false)
+token-is-arrow? = token-value? match(TOKEN_ARROW -> true, _ -> drop false)
+token-is-dashes? = token-value? match(TOKEN_DASHES -> true, _ -> drop false)
+token-is-lparen? = token-value? match(TOKEN_LPAREN -> drop true, _ -> drop false)
+token-is-rparen? = token-value? match(TOKEN_RPAREN -> drop true, _ -> drop false)
+token-is-lcurly? = token-value? match(TOKEN_LCURLY -> drop true, _ -> drop false)
+token-is-lsquare? = token-value? match(TOKEN_LSQUARE -> drop true, _ -> drop false)
 
 ||| Is this a newline token?
 token-is-newline? : Token -- Token Bool

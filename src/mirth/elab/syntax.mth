@@ -53,12 +53,6 @@ token-skip-newlines = while(token-is-newline?, token-succ)
 # Type Signatures #
 ###################
 
-token-is-dashes : Token -- Bool
-token-is-dashes = PRIM_DASHES token-prim=
-
-token-is-dashes? : Token -- Token Bool
-token-is-dashes? = dup token-is-dashes
-
 sig-is-stack-end? : Token -- Token Bool
 sig-is-stack-end? =
     token-is-dashes? if(
@@ -77,7 +71,7 @@ sig-next-stack-end : Token -- Token
 sig-next-stack-end = while(sig-is-stack-end? not, token-next)
 
 sig-has-dashes : Token -- Bool
-sig-has-dashes = sig-next-stack-end token-is-dashes
+sig-has-dashes = sig-next-stack-end token-is-dashes? nip
 
 sig-has-dashes? : Token -- Token Bool
 sig-has-dashes? = dup sig-has-dashes
@@ -164,7 +158,7 @@ sig-skip-dashes =
 token-could-be-word-sig? : Token -- Token Bool
 token-could-be-word-sig? =
     token-is-name? if(
-        dup token-next PRIM_COLON token-prim=? nip,
+        dup token-next token-is-colon? nip,
         false
     )
 

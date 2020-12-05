@@ -652,7 +652,7 @@ expect-token-end : Token -- Token
 expect-token-end = PRIM_END token-prim=? if(id, "Expected 'end'" emit-fatal-error!)
 
 expect-token-arrow : Token -- Token
-expect-token-arrow = PRIM_ARROW token-prim=? if(id, "Expected arrow." emit-fatal-error!)
+expect-token-arrow = token-is-arrow? if(id, "Expected arrow." emit-fatal-error!)
 
 ||| Get the tags (i.e. constructors) associated with a data type,
 ||| from inside the data declaration, one at a time. Moves the Token
@@ -680,7 +680,7 @@ elab-data-tag! = (
         tuck dip(data-add-tag!)
         { Module Data Token Tag }
         swap token-succ
-        PRIM_ARROW token-prim=? if(
+        token-is-arrow? if(
             dip(true over tag-has-sig!)
             token-succ tuck dip(tag-sig!)
             while(token-run-end? not, token-next),
