@@ -3,7 +3,7 @@ CC=gcc $(C99FLAGS)
 
 SRCS=src/*.mth src/prelude/*.mth src/mirth/*.mth src/mirth/data/*.mth src/mirth/elab/*.mth src/mirth/lexer/*.mth
 
-.PHONY: default show build update check update-mirth install-vim install-code profile play-snake test test-update
+.PHONY: default show build update check update-mirth install-vim install-code install profile play-snake test test-update
 
 default: show
 
@@ -37,6 +37,9 @@ install-code:
 
 install-atom:
 	apm link tools/mirth-atom
+
+install: bin/mirth0
+	./install.sh bin/mirth0
 
 profile: bin/mirth_prof
 	time bin/mirth_prof
