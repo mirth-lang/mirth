@@ -1,6 +1,6 @@
 module(mirth/data/name)
 import(mirth/data/common)
-import(mirth/lexer/char)
+import(mirth/data/char)
 
 #########
 # Names #

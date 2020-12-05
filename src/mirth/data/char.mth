@@ -1,4 +1,4 @@
-module(mirth/lexer/char)
+module(mirth/data/char)
 
 def(is-newline?, Char -- Char Bool, dup U8->Int 10 ==)
 def(is-whitespace?, Char -- Char Bool,

@@ -1,6 +1,6 @@
 module(mirth/lexer)
-import(mirth/lexer/char)
 import(prelude)
+import(mirth/data/char)
 import(mirth/data/name)
 import(mirth/data/string)
 import(mirth/data/token)
