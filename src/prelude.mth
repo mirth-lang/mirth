@@ -1,4 +1,1363 @@
 module(prelude)
-import(prelude/common)
-import(prelude/test)
-import(prelude/heap)
+
+trip : a -- a a a
+trip = dup dup
+
+rotr : a b c -- c a b
+rotr = swap dip(swap)
+
+rotl : a b c -- b c a
+rotl = dip(swap) swap
+
+over : a b -- a b a
+over = dip(dup) swap
+
+tuck : a b -- b a b
+tuck = dup dip(swap)
+
+nip : a b -- b
+nip = dip(drop)
+
+swap2 : a b c d -- c d a b
+swap2 = dip(rotr) rotr
+
+dup2 : a b -- a b a b
+dup2 = over over
+
+dup3 : a b c -- a b c a b c
+dup3 = dip(dup2) dup dip(rotr)
+
+drop2 : a b --
+drop2 = drop drop
+
+drop3 : a b c --
+drop3 = drop drop drop
+
+drop4 : a b c d --
+drop4 = drop drop drop drop
+
+drop5 : a b c d e --
+drop5 = drop drop drop drop drop
+
+rot3r : a b c -- c a b
+rot4r : a b c d -- d a b c
+rot5r : a b c d e -- e a b c d
+rot6r : a b c d e f -- f a b c d e
+rot7r : a b c d e f g -- g a b c d e f
+rot8r : a b c d e f g h -- h a b c d e f g
+
+rot3l : a b c -- b c a
+rot4l : a b c d -- b c d a
+rot5l : a b c d e -- b c d e a
+rot6l : a b c d e f -- b c d e f a
+rot7l : a b c d e f g -- b c d e f g a
+rot8l : a b c d e f g h -- b c d e f g h a
+
+rot3r = rotr
+rot4r = swap dip(rot3r)
+rot5r = swap dip(rot4r)
+rot6r = swap dip(rot5r)
+rot7r = swap dip(rot6r)
+rot8r = swap dip(rot7r)
+
+rot3l = rotl
+rot4l = dip(rot3l) swap
+rot5l = dip(rot4l) swap
+rot6l = dip(rot5l) swap
+rot7l = dip(rot6l) swap
+rot8l = dip(rot7l) swap
+
+def-type(Byte, U8)
+def-type(Char, U8)
+def-type(Str, Ptr)
+def-type(Size, Int)
+def-type(Offset, Int)
+
+cast : a -- b
+cast = prim.unsafe.cast
+
+Int->Ptr : Int -- Ptr
+Int->Ptr = cast
+
+Ptr->Int : Ptr -- Int
+Ptr->Int = cast
+
+U8_MAX : Int
+U8_MAX = 0xFF
+
+U16_MAX : Int
+U16_MAX = 0xFFFF
+
+U32_MAX : Int
+U32_MAX = 0xFFFFFFFF
+
+I8_MAX : Int
+I8_MAX = 0x7F
+
+I16_MAX : Int
+I16_MAX = 0x7FFF
+
+I32_MAX : Int
+I32_MAX = 0x7FFFFFFF
+
+
+U8_MIN : Int
+U8_MIN = 0
+
+U16_MIN : Int
+U16_MIN = 0
+
+U32_MIN : Int
+U32_MIN = 0
+
+I8_MIN : Int
+I8_MIN = -0x80
+
+I16_MIN : Int
+I16_MIN = -0x8000
+
+I32_MIN : Int
+I32_MIN = -0x80000000
+
+not : Bool -- Bool
+not = false ==
+
+!= : a a -- Bool
+!= = == not
+
+> : Int Int -- Bool
+> = swap <
+
+>= : Int Int -- Bool
+>= = swap <=
+
+0= : Int -- Bool
+0= = 0 ==
+
+0< : Int -- Bool
+0< = 0 <
+
+1+ : Int -- Int
+1+ = 1 +
+
+1- : Int -- Int
+1- = 1 -
+
+max : Int Int -- Int
+max = dup2 < if(nip, drop)
+
+min : Int Int -- Int
+min = dup2 < if(drop, nip)
+
+square : Int -- Int
+square = dup *
+
+nonzero : Int -- Bool
+nonzero = 0 !=
+
+ptr+ : Int Ptr -- Ptr
+ptr+ = prim.unsafe.ptr+
+
+ptrs : Size -- Size
+ptrs = prim.unsafe.|ptr| *
+
+ptr@@ : Offset Ptr -- Ptr
+ptr@@ = dip(ptrs) ptr+ ptr@
+
+ptr!! : Ptr Offset Ptr --
+ptr!! = dip(ptrs) ptr+ ptr!
+
+u8@@ : Offset Ptr -- Byte
+u8@@ = ptr+ u8@
+
+u8!! : Byte Offset Ptr --
+u8!! = ptr+ u8!
+
+ints : Size -- Size
+ints = 8 *
+
+int@@ : Offset Ptr -- Int
+int@@ = dip(ints) ptr+ int@
+
+int!! : Int Offset Ptr --
+int!! = dip(ints) ptr+ int!
+
+in-range : Int Int Int -- Bool
+in-range = dip(over dip(>=)) <= &&
+
+Int->U8 : Int -- U8
+Int->U8 =
+    dup U8_MIN U8_MAX in-range if(
+        cast,
+        "Int->U8 failed: out of bounds" panic!
+    )
+
+Int->U16 : Int -- U16
+Int->U16 =
+    dup U16_MIN U16_MAX in-range if(
+        cast,
+        "Int->U16 failed: out of bounds" panic!
+    )
+
+Int->U32 : Int -- U32
+Int->U32 =
+    dup U32_MIN U32_MAX in-range if(
+        cast,
+        "Int->U32 failed: out of bounds" panic!
+    )
+
+Int->U64 : Int -- U64
+Int->U64 = cast
+
+Int->I8 : Int -- I8
+Int->I8 =
+    dup I8_MIN I8_MAX in-range if(
+        cast,
+        "Int->I8 failed: out of bounds" panic!
+    )
+
+Int->I16 : Int -- I16
+Int->I16 =
+    dup I16_MIN I16_MAX in-range if(
+        cast,
+        "Int->I16 failed: out of bounds" panic!
+    )
+
+Int->I32 : Int -- I32
+Int->I32 =
+    dup I32_MIN I32_MAX in-range if(
+        cast,
+        "Int->I32 failed: out of bounds" panic!
+    )
+
+Int->I64 : Int -- I64
+Int->I64 = cast
+
+U8->Int : U8 -- Int
+U8->Int = cast
+
+U16->Int : U16 -- Int
+U16->Int = cast
+
+U32->Int : U32 -- Int
+U32->Int = cast
+
+U64->Int : U64 -- Int
+U64->Int = cast
+
+I8->Int : I8 -- Int
+I8->Int = cast
+
+I16->Int : I16 -- Int
+I16->Int = cast
+
+I32->Int : I32 -- Int
+I32->Int = cast
+
+I64->Int : I64 -- Int
+I64->Int = cast
+
+negate : Int -- Int
+negate = -1 *
+
+abs : Int -- Int
+abs = dup 0< if(negate, id)
+
+def-type(OS, Int)
+
+UNKNOWN : OS
+UNKNOWN = 0
+
+WIN32 : OS
+WIN32 = 1
+
+LINUX : OS
+LINUX = 2
+
+MACOS : OS
+MACOS = 3
+
+###########
+# STRINGS #
+###########
+
+# TODO: UTF8 support
+str-head : Str -- U8
+str-head = u8@
+
+# TODO: UTF8 support
+str-tail : Str -- Str
+str-tail = 1 swap ptr+
+
+str-length : Str -- Int
+str-length =
+    0 swap while(
+        str-null? not,
+        dip(1+) str-tail
+    ) drop
+
+str-null : Str -- Bool
+str-null = u8@ U8->Int 0=
+
+str-null? : Str -- Str Bool
+str-null? = dup str-null
+
+str-copy! : Str Str --
+str-copy! = (
+    while( over u8@ U8->Int nonzero,
+        over u8@ over u8!
+        dip(str-tail) str-tail
+    )
+    dip(drop 0 Int->U8) u8!
+)
+
+STR_BUF_SIZE : Int
+STR_BUF_SIZE = 0x1000
+buffer(STR_BUF, 0x1000)
+buffer(STR_BUF_LEN, 8)
+
+str-buf-length? : Int +StrBuf
+str-buf-length? = STR_BUF_LEN int@
+
+str-buf-length! : Int -- +StrBuf
+str-buf-length! = (
+    dup STR_BUF_LEN int!
+    dip(0 Int->U8) str-buf-u8!
+)
+
+str-buf-u8@ : Offset -- U8 +StrBuf
+str-buf-u8@ = STR_BUF u8@@
+
+str-buf-u8! : U8 Offset -- +StrBuf
+str-buf-u8! = STR_BUF u8!!
+
+str-buf-empty? : Bool +StrBuf
+str-buf-empty? = str-buf-length? 0=
+
+str-buf-full? : Bool +StrBuf
+str-buf-full? = str-buf-length? 1+ STR_BUF_SIZE >=
+
+str-buf-clear! : +StrBuf
+str-buf-clear! = 0 str-buf-length!
+
+str-buf-push! : U8 -- +StrBuf
+str-buf-push! =
+    str-buf-full? if(
+        "str-buf-push! but STR_BUF is already full" panic!,
+        str-buf-length? str-buf-u8!
+        str-buf-length? 1+ str-buf-length!
+    )
+
+||| Append the given string into STR_BUF. If the string is
+||| too large it gets truncated.
+str-buf-push-str! : Str -- +StrBuf
+str-buf-push-str! =
+    while(
+        str-buf-full? if(false, dup u8@ U8->Int nonzero),
+        dup u8@ str-buf-push!
+        str-tail
+    ) drop
+
+||| Set the STR_BUF to a given string. If the string is
+||| too large it gets truncated.
+str-buf! : Str -- +StrBuf
+str-buf! = str-buf-clear! str-buf-push-str!
+
+# TODO UTF8 support?
+str-buf-char! : Char -- +StrBuf
+str-buf-char! = 0 str-buf-u8! 1 str-buf-length!
+
+to-digit : Int -- U8
+to-digit = 10 % 48 + Int->U8
+
+||| Put integer into STR_BUF.
+str-buf-int! : Int -- +StrBuf
+str-buf-int! =
+    dup 0= if(
+        drop "0" str-buf!,
+        dup dip(
+            abs
+            str-buf-clear!
+            while(dup nonzero, dup to-digit str-buf-push! 10 /) drop
+        ) 0 < if(45 Int->U8 str-buf-push!, id)
+        str-buf-reverse!
+    )
+
+||| Swap two bytes in STR_BUF.
+str-buf-swap-u8! : Int Int -- +StrBuf
+str-buf-swap-u8! = (
+    dup2 swap
+    dip(dip(dip(str-buf-u8@)))
+    dip(str-buf-u8@)
+    str-buf-u8! str-buf-u8!
+)
+
+||| Reverse contents of STR_BUF bytewise.
+str-buf-reverse! : +StrBuf
+str-buf-reverse! = (
+    0 str-buf-length? 1-
+    while(dup2 <,
+        dup2 str-buf-swap-u8!
+        dip(1+) 1-
+    )
+    drop2
+)
+
+||| Are two strings equal?
+str-eq : Str Str -- Bool
+str-eq =
+    str-null? if(
+        drop str-null,
+        dup2 str-head swap str-head == if(
+            str-tail swap str-tail str-eq,
+            drop2 false
+        )
+    )
+
+||| Are two strings equal? Preserve pointers.
+str-eq? : Str Str -- Str Str Bool
+str-eq? = dup2 str-eq
+
+#######
+# NIL #
+#######
+
+||| Default value for any type. This is the 0-filled memory
+||| version of the type (hence "nil"). Best practice is to
+||| set up your types such that 0-filled memory is a sensible
+||| default value.
+|||
+||| Use nil with care! Don't confuse it for an "optional"
+||| value, use `Maybe(t)` instead. Rather, `nil` should
+||| be a value within the acceptable range of the type, and
+||| a sensible default value for fields of this type.
+|||
+||| In the future, there will be better control over which
+||| types admit a `nil` value.
+|||
+||| - For booleans, this is false.
+||| - For integers, this is zero.
+||| - For pointers, this is NULL.
+||| - For table typess, this is the 0th row, which you never alloc.
+|||   Its fields have nil value unless you override them.
+||| - For data types, this is the first constructor, applied to nil values.
+||| - For n-tuples, this is [ nil ... nil ]
+nil : a
+nil = 0 cast
+
+||| Test for nil.
+is-nil : a -- Bool
+is-nil = nil ==
+
+||| Test for nil.
+is-nil? : a -- a Bool
+is-nil? = dup nil ==
+
+##########
+# TUPLES #
+##########
+
+||| Return the "nil" pack, i.e. null.
+pack-nil : [*a]
+pack-nil = nil
+
+||| Is this a nil pack?
+pack-nil? : [*a] -- [*a] Bool
+pack-nil? = dup pack-nil ==
+
+||| Construct a tuple by appending an element.
+pack-cons : [*a] b -- [*a b]
+pack-cons = prim.pack.cons
+
+||| Deconstruct a tuple by splitting it at its last element.
+pack-uncons : [*a b] -- [*a] b
+pack-uncons = prim.pack.uncons
+
+pack0 : []
+pack0 = pack-nil
+
+pack1 : a -- [a]
+pack1 = dip(pack0) pack-cons
+
+pack2 : a b -- [a b]
+pack2 = dip(pack1) pack-cons
+
+pack3 : a b c -- [a b c]
+pack3 = dip(pack2) pack-cons
+
+pack4 : a b c d -- [a b c d]
+pack4 = dip(pack3) pack-cons
+
+pack5 : a b c d e -- [a b c d e]
+pack5 = dip(pack4) pack-cons
+
+unpack0 : [] --
+unpack0 = drop
+
+unpack1 : [a] -- a
+unpack1 = pack-uncons nip
+
+unpack2 : [a b] -- a b
+unpack2 = pack-uncons dip(unpack1)
+
+unpack3 : [a b c] -- a b c
+unpack3 = pack-uncons dip(unpack2)
+
+unpack4 : [a b c d] -- a b c d
+unpack4 = pack-uncons dip(unpack3)
+
+unpack5 : [a b c d e] -- a b c d e
+unpack5 = pack-uncons dip(unpack4)
+
+.0 : [*a b] -- b
+.0 = pack-uncons nip
+
+.1 : [*a b c] -- b
+.1 = pack-uncons drop .0
+
+.2 : [*a b c d] -- b
+.2 = pack-uncons drop .1
+
+.3 : [*a b c d e] -- b
+.3 = pack-uncons drop .2
+
+.4 : [*a b c d e f] -- b
+.4 = pack-uncons drop .3
+
+.0? : [*a b] -- [*a b] b
+.0? = dup .0
+
+.1? : [*a b c] -- [*a b c] b
+.1? = dup .1
+
+.2? : [*a b c d] -- [*a b c d] b
+.2? = dup .2
+
+.3? : [*a b c d e] -- [*a b c d e] b
+.3? = dup .3
+
+.4? : [*a b c d e f] -- [*a b c d e f] b
+.4? = dup .4
+
+.0! : [*a b] b -- [*a b]
+.0! = dip(pack-uncons drop) pack-cons
+
+.1! : [*a b c] b -- [*a b c]
+.1! = dip(pack-uncons) swap dip(.0!) pack-cons
+
+.2! : [*a b c d] b -- [*a b c d]
+.2! = dip(pack-uncons) swap dip(.1!) pack-cons
+
+.3! : [*a b c d e] b -- [*a b c d e]
+.3! = dip(pack-uncons) swap dip(.2!) pack-cons
+
+.4! : [*a b c d e f] b -- [*a b c d e f]
+.4! = dip(pack-uncons) swap dip(.3!) pack-cons
+
+#########
+# Maybe #
+#########
+
+data Maybe(t)
+    NONE
+    SOME -> t
+end
+
+is-none : Maybe(t) -- Bool
+is-none = is-nil
+
+is-some : Maybe(t) -- Bool
+is-some = is-nil not
+
+is-none? : Maybe(t) -- Maybe(t) Bool
+is-none? = is-nil?
+
+is-some? : Maybe(t) -- Maybe(t) Bool
+is-some? = is-nil? not
+
+unSOME : Maybe(t) -- t
+unSOME =
+    match(
+        NONE -> "unSOME on NONE" panic!,
+        SOME -> id
+    )
+
+#########
+# LISTS #
+#########
+
+data List(t)
+    L0
+    L1 -> t
+    L2 -> t t
+    L3 -> t t t
+    LCAT -> List(t) List(t) Int
+end
+
+L4 : t t  t t -- List(t)
+L4 = L2 dip(L2) 4 LCAT
+
+L5 : t t  t t t -- List(t)
+L5 = L3 dip(L2) 5 LCAT
+
+L6 : t t t  t t t -- List(t)
+L6 = L3 dip(L3) 6 LCAT
+
+L7 : t t t   t t  t t  -- List(t)
+L7 = L4 dip(L3) 7 LCAT
+
+L8 : t t t   t t  t t t  -- List(t)
+L8 = L5 dip(L3) 8 LCAT
+
+L9 : t t t   t t t  t t t -- List(t)
+L9 = L6 dip(L3) 9 LCAT
+
+L10 : t t  t t t   t t  t t t -- List(t)
+L10 = L5 dip(L5) 10 LCAT
+
+L11 : t t  t t t   t t t  t t t -- List(t)
+L11 = L6 dip(L5) 11 LCAT
+
+L12 : t t t  t t t  t t t  t t t -- List(t)
+L12 = L6 dip(L6) 12 LCAT
+
+is-cons? : List(t) -- List(t) Bool
+is-cons? = is-nil? not
+
+is-snoc? : List(t) -- List(t) Bool
+is-snoc? = is-nil? not
+
+is-cons : List(t) -- Bool
+is-cons = is-cons? nip
+
+is-snoc : List(t) -- Bool
+is-snoc = is-snoc? nip
+
+len? : List(t) -- List(t) Int
+len? =
+    match(
+        L0 -> L0 0,
+        L1 -> L1 1,
+        L2 -> L2 2,
+        L3 -> L3 3,
+        LCAT -> dup dip(LCAT)
+    )
+
+len : List(t) -- Int
+len = len? nip
+
+cons : t List(t) -- List(t)
+cons =
+    match(
+        L0 -> L1,
+        L1 -> L2,
+        L2 -> L3,
+        L3 -> L4,
+        LCAT -> 1+ dip(dip(cons) rebalance) LCAT
+    )
+
+snoc : List(t) t -- List(t)
+snoc =
+    swap match(
+        L0 -> L1,
+        L1 -> swap L2,
+        L2 -> rot3l L3,
+        L3 -> rot4l L4,
+        LCAT -> 1+ dip(rot3l snoc rebalance) LCAT
+    )
+
+uncons : List(t) -- t List(t)
+uncons =
+    match(
+        L0 -> "uncons on empty list" panic!,
+        L1 -> L0,
+        L2 -> L1,
+        L3 -> L2,
+        LCAT -> drop dip(uncons) cat
+    )
+
+unsnoc : List(t) -- List(t) t
+unsnoc =
+    match(
+        L0 -> "unsnoc on empty list" panic!,
+        L1 -> dip(L0),
+        L2 -> dip(L1),
+        L3 -> dip(L2),
+        LCAT -> drop unsnoc dip(cat)
+    )
+
+cat : List(t) List(t) -- List(t)
+cat =
+    swap match(
+        L0 -> id,
+        L1 -> swap cons,
+        L2 ->
+            rot3l match(
+                L0 -> L2,
+                L1 -> L3,
+                L2 -> L4,
+                L3 -> L5,
+                _ -> dip(L2) cat-aux
+            ),
+        L3 ->
+            rot4l match(
+                L0 -> L3,
+                L1 -> L4,
+                L2 -> L5,
+                L3 -> L6,
+                _ -> dip(L3) cat-aux
+            ),
+        _ ->
+            swap match(
+                L0 -> id,
+                L1 -> snoc,
+                _ -> cat-aux
+            )
+    )
+
+cat-aux : List(t) List(t) -- List(t)
+cat-aux = rebalance dup2 dip(len) len + LCAT
+
+rebalance : List(t) List(t) -- List(t) List(t)
+rebalance =
+    dup2 dip(len) len dup2 3 * > if(
+        drop2 dip(split-half) cat rebalance,
+        dip(3 *) < if(
+            split-half dip(cat) rebalance,
+            id
+        )
+    )
+
+split-half : List(t) -- List(t) List(t)
+split-half =
+    match(
+        L0 -> L0 L0,
+        L1 -> L1 dip(L0),
+        L2 -> L1 dip(L1),
+        L3 -> L2 dip(L1),
+        LCAT -> drop
+    )
+
+first : List(t) -- t
+first =
+    match(
+        L0 -> "first on empty list" panic!,
+        L1 -> id,
+        L2 -> drop,
+        L3 -> drop2,
+        LCAT -> drop2 first
+    )
+
+last : List(t) -- t
+last =
+    match(
+        L0 -> "last on empty list" panic!,
+        L1 -> id,
+        L2 -> dip(drop),
+        L3 -> dip(drop2),
+        LCAT -> drop nip last
+    )
+
+middle : List(t) -- t
+middle =
+    match(
+        L0 -> "middle on empty list" panic!,
+        L1 -> id,
+        L2 -> nip,
+        L3 -> drop nip,
+        LCAT -> drop nip first
+    )
+
+
+||| Show the structure of the list.
+trace-list-struc! : List(t) -- +IO
+trace-list-struc! =
+    match(
+        L0 -> "L0" str-trace!,
+        L1 -> drop "L1" str-trace!,
+        L2 -> drop2 "L2" str-trace!,
+        L3 -> drop3 "L3" str-trace!,
+        LCAT ->
+            dip(dip(trace-list-struc! " " str-trace!))
+            dip(trace-list-struc! " " str-trace!)
+            int-trace! " LCAT" str-trace!
+    )
+
+unL1 : List(t) -- t
+unL1 =
+    match(
+        L1 -> id,
+        _ -> "expected L1 list" panic!
+    )
+
+unL2 : List(t) -- t t
+unL2 =
+    match(
+        L2 -> id,
+        _ -> "expected L2 list" panic!
+    )
+
+unL3 : List(t) -- t t t
+unL3 =
+    match(
+        L3 -> id,
+        _ -> "expected L3 list" panic!
+    )
+
+||| Project top item of tuples. A specialized `map(f)` while we can't write an actual `map(f)`
+map.0 : List([*a b]) -- List(b)
+map.0 =
+    match(
+        L0 -> L0,
+        L1 -> .0 L1,
+        L2 -> dip(.0) .0 L2,
+        L3 -> dip(dip(.0) .0) .0 L3,
+        LCAT -> dip(dip(map.0) map.0) LCAT
+    )
+
+#######
+# BAG #
+#######
+
+||| A bag is a set where items can appear more than once.
+||| Bags are represented by sorted lists, where the sorting
+||| is done by the generic order relation on values (<=).
+data Bag(v)
+    BAG -> List(v)
+end
+
+unBAG : Bag(v) -- List(v)
+unBAG = match(BAG -> id)
+
+B0 : Bag(v)
+B0 = nil
+
+B1 : v -- Bag(v)
+B1 = L1 BAG
+
+B2 : v v -- Bag(v)
+B2 = order2 L2 BAG
+
+B3 : v v v -- Bag(v)
+B3 = order3 L3 BAG
+
+bag-empty : Bag(v)
+bag-empty = nil
+
+bag-is-empty : Bag(v) -- Bool
+bag-is-empty = is-nil
+
+bag-is-empty? : Bag(v) -- Bag(v) Bool
+bag-is-empty? = is-nil?
+
+bag-singleton : v -- Bag(v)
+bag-singleton = B1
+
+bag-is-singleton : Bag(v) -- Bool
+bag-is-singleton = bag-len 1 ==
+
+bag-is-singleton? : Bag(v) -- Bag(v) Bool
+bag-is-singleton? = dup bag-is-singleton
+
+bag-len : Bag(v) -- Int
+bag-len = unBAG len
+
+bag-len? : Bag(v) -- Bag(v) Int
+bag-len? = dup bag-len
+
+bag-first : Bag(v) -- v
+bag-first = unBAG first
+
+bag-first? : Bag(v) -- Bag(v) v
+bag-first? = dup bag-first
+
+bag-last : Bag(v) -- v
+bag-last = unBAG last
+
+bag-last? : Bag(v) -- Bag(v) v
+bag-last? = dup bag-last
+
+bag-middle : Bag(v) -- v
+bag-middle = unBAG middle
+
+bag-middle? : Bag(v) -- Bag(v) v
+bag-middle? = dup bag-middle
+
+bag-split-half : Bag(v) -- Bag(v) Bag(v)
+bag-split-half = unBAG split-half dip(BAG) BAG
+
+bag-uncons : Bag(v) -- v Bag(v)
+bag-uncons = unBAG uncons BAG
+
+bag-unsnoc : Bag(v) -- Bag(v) v
+bag-unsnoc = unBAG unsnoc dip(BAG)
+
+bag-cons : v Bag(v) -- Bag(v)
+bag-cons = swap bag-insert
+
+bag-snoc : Bag(v) v -- Bag(v)
+bag-snoc = bag-insert
+
+bag-has : Bag(v) v -- Bool
+bag-has =
+    over bag-is-empty if(
+        drop2 false,
+        dip(bag-split-half bag-uncons swap)
+        dup2 == if(
+            drop4 true,
+            dup2 <= if(
+                dip(drop nip),
+                dip(drop2)
+            ) bag-has
+        )
+    )
+
+bag-has? : Bag(v) v -- Bag(v) v Bool
+bag-has? = dup2 bag-has
+
+||| Insert a value into the bag in the proper location.
+||| Note that `bag-insert` will happily insert duplicates.
+||| Use `bag-replace` to prevent duplicate insertion.
+bag-insert : Bag(v) v -- Bag(v)
+bag-insert =
+    over bag-is-empty if(
+        nip bag-singleton,
+
+    over bag-is-singleton if(
+        dip(bag-first) B2,
+
+        dip(bag-split-half bag-first?)
+        dup2 <= if(
+            nip bag-insert bag-cat-unsafe,
+            nip swap dip(bag-insert) bag-cat-unsafe
+        )
+    ))
+
+||| Insert a value into the bag in the proper location,
+||| unless the bag already contains this value. This
+||| prevents introducing new duplicates. Use `bag-insert`
+||| instead if duplicates are desirable.
+bag-replace : Bag(v) v -- Bag(v)
+bag-replace = bag-has? if(drop, bag-insert)
+
+||| Concatenate two bags. To maintain the bag invariant,
+||| it is necessary for the last item of the first bag
+||| be less than or equal to the first item of the
+||| second bag. In normal code it is recommended to
+||| use `bag-merge` instead.
+bag-cat-unsafe : Bag(v) Bag(v) -- Bag(v)
+bag-cat-unsafe = dip(unBAG) unBAG cat BAG
+
+||| Put two stack items in order.
+order2 : v v -- v v
+order2 = dup2 <= if(id, swap)
+
+||| Put three stack items in order.
+order3 : v v v -- v v v
+order3 = dip(order2) dup2 <= if(id, swap dip(order2))
+
+||| Prerform lookup as an ordered map. Use the key to
+||| find a corresponding item. Note: If multiple items
+||| match the key, you may get any of them. There's
+||| no guarantee it'll be the first item, last item,
+||| middle item, etc, to match the key.
+bag-lookup-key : Bag([v k]) k -- Maybe(v)
+bag-lookup-key =
+    over bag-is-empty if(
+        drop2 NONE,
+        dip(bag-split-half bag-uncons swap unpack2)
+        dup2 == if(
+            drop2 SOME dip(drop2),
+            dup2 <= if(
+                dip(drop2 nip),
+                dip(drop3)
+            ) bag-lookup-key
+        )
+    )
+
+||| See `bag-lookup-key`.
+bag-lookup-key? : Bag([v k]) k -- Bag([v k]) k Maybe(v)
+bag-lookup-key? = dup2 bag-lookup-key
+
+||| Insert key/value pair in bag, but replace an item
+||| with a matching key if it exists.
+bag-replace-key : Bag([v k]) [v k] -- Bag([v k])
+bag-replace-key =
+    over bag-is-empty if(
+        nip bag-singleton,
+
+    over bag-is-singleton if(
+        dip(bag-first)
+        dup2 ==key if(
+            nip bag-singleton,
+            B2
+        ),
+
+        dip(bag-split-half bag-first?)
+        dup2 <=key if(
+            nip bag-replace-key bag-cat-unsafe,
+            nip swap dip(bag-replace-key) bag-cat-unsafe
+        )
+    ))
+
+||| Compare two pairs by their top item (the "key").
+==key : [v k] [v k] -- Bool
+==key = dip(.0) .0 ==
+
+||| Compare two pairs by their top item (the "key").
+<=key : [v k] [v k] -- Bool
+<=key = dip(.0) .0 <=
+
+||| Get underlying list of values from bag.
+bag-values : Bag(v) -- List(v)
+bag-values = unBAG
+
+#######
+# SET #
+#######
+
+||| A set is a bag without duplicates. It's stored as
+||| sorted list, where items are strictly increasing.
+data Set(v)
+    SET -> Bag(v)
+end
+
+#######
+# MAP #
+#######
+
+||| A map associates keys with values. A single key
+||| has at most one value it corresponds to. Maps are
+||| represented as bags, but with the condition that
+||| no two pairs share the same key.
+data Map(k,v)
+    MAP -> Bag([v k])
+end
+
+unMAP : Map(k,v) -- Bag([v k])
+unMAP = match(MAP -> id)
+
+map-empty : Map(k,v)
+map-empty = nil
+
+map-is-empty : Map(k,v) -- Bool
+map-is-empty = is-nil
+
+map-is-empty? : Map(k,v) -- Map(k,v) Bool
+map-is-empty? = is-nil?
+
+map-singleton : [v k] -- Map(k,v)
+map-singleton = B1 MAP
+
+map-is-singleton : Map(k,v) -- Bool
+map-is-singleton = unMAP bag-is-singleton
+
+map-is-singleton? : Map(k,v) -- Bool
+map-is-singleton? = unMAP bag-is-singleton
+
+map-has : Map(k,v) k -- Bool
+map-has = map-lookup is-some
+
+map-has? : Map(k,v) k -- Map(k,v) k Bool
+map-has? = dup2 map-has
+
+map-lookup : Map(k,v) k -- Maybe(v)
+map-lookup = dip(unMAP) bag-lookup-key
+
+map-lookup? : Map(k,v) k -- Map(k,v) k Maybe(v)
+map-lookup? = dup2 map-lookup
+
+map-insert : Map(k,v) [v k] -- Map(k,v)
+map-insert = dip(unMAP) bag-replace-key MAP
+
+map-first : Map(k,v) -- [v k]
+map-first = unMAP bag-first
+
+map-last : Map(k,v) -- [v k]
+map-last = unMAP bag-last
+
+map-first-key : Map(k,v) -- k
+map-first-key = map-first .0
+
+map-last-key : Map(k,v) -- k
+map-last-key = map-last .0
+
+map-uncons : Map(k,v) -- [v k] Map(k,v)
+map-uncons = unMAP bag-uncons MAP
+
+map-unsnoc : Map(k,v) -- Map(k,v) [v k]
+map-unsnoc = unMAP bag-unsnoc dip(MAP)
+
+map-cons : [v k] Map(k,v) -- Map(k,v)
+map-cons = swap map-insert
+
+map-snoc : Map(k,v) [v k] -- Map(k,v)
+map-snoc = map-insert
+
+map-pairs : Map(k,v) -- List([v k])
+map-pairs = unMAP bag-values
+
+map-keys : Map(k,v) -- List(k)
+map-keys = map-pairs map.0
+
+######
+# IO #
+######
+
+panic! : *a Str -- *b
+panic! = "panic: " str-trace! str-trace-ln! 1 posix-exit!
+
+data(File, FILE -> Int)
+
+Int->File : Int -- File
+Int->File = FILE
+
+File->Int : File -- Int
+File->Int = match(FILE -> id)
+
+file@ : Ptr -- File
+file@ = int@ Int->File
+
+file! : File Ptr --
+file! = dip(File->Int) int!
+
+stdin : File
+stdin = 0 Int->File
+
+stdout : File
+stdout = 1 Int->File
+
+stderr : File
+stderr = 2 Int->File
+
+str-write! : Str File -- +IO
+str-write! = (
+    File->Int swap dup str-length dup
+    dip(posix-write!) swap
+    dup 0 < if(
+        "error: write failed!" panic!,
+        swap < if(
+            "error: write output fewer bytes than expected!" panic!,
+            id
+        )
+    )
+)
+
+str-print! : Str -- +IO
+str-print! = stdout str-write!
+
+str-trace! : Str -- +IO
+str-trace! = stderr str-write!
+
+str-print-ln! : Str -- +IO
+str-print-ln! = str-print! print-ln!
+
+str-trace-ln! : Str -- +IO
+str-trace-ln! = str-trace! trace-ln!
+
+print-ln! : +IO
+print-ln! = "\n" str-print!
+
+trace-ln! : +IO
+trace-ln! = "\n" str-trace!
+
+str-buf-write! : File -- +StrBuf +IO
+str-buf-write! = (
+    File->Int STR_BUF str-buf-length?
+    posix-write!
+    dup 0 < if(
+        "error: str-buf write failed!" panic!,
+        str-buf-length? < if(
+            "error: str-buf write wrote fewer bytes than expected!" panic!,
+            id
+        )
+    )
+)
+
+str-buf-print! : +StrBuf +IO
+str-buf-print! = stdout str-buf-write!
+
+str-buf-trace! : +StrBuf +IO
+str-buf-trace! = stderr str-buf-write!
+
+str-buf-read! : File -- +IO
+str-buf-read! = (
+    File->Int str-buf-clear!
+    STR_BUF STR_BUF_SIZE 1- posix-read!
+    dup 0< if(
+        "str-buf-read! failed" panic!,
+        str-buf-length!
+    )
+)
+
+str-buf-input! : -- +IO
+str-buf-input! = stdin str-buf-read!
+
+print-char! : Char -- +IO
+print-char! = str-buf-char! str-buf-print!
+
+trace-char! : Char -- +IO
+trace-char! = str-buf-char! str-buf-trace!
+
+int-write! : Int File -- +IO
+int-write! = dip(str-buf-int!) str-buf-write!
+
+int-print! : Int -- +IO
+int-print! = stdout int-write!
+
+int-trace! : Int -- +IO
+int-trace! = stderr int-write!
+
+int-print-ln! : Int -- +IO
+int-print-ln! = int-print! print-ln!
+
+int-trace-ln! : Int -- +IO
+int-trace-ln! = int-trace! trace-ln!
+
+open-file! : Str -- File +IO
+open-file! = (
+    0 0 posix-open!
+    dup 0 < if(
+        "Failed to open file!" panic!,
+        Int->File
+    )
+)
+
+create-file! : Str -- File +IO
+create-file! = (
+    O_WRONLY|O_CREAT|O_TRUNC
+    0x1B6
+        # this is the default mode for creating a file
+        # on unix, 666 in octal, i.e. owner can
+        # read+write, everyone can read
+        #  ---- NB: this is inaccurate . . .
+    posix-open!
+    dup 0 < if(
+        "Failed to create file!" panic!,
+        Int->File
+    )
+)
+
+O_WRONLY|O_CREAT|O_TRUNC : Int
+O_WRONLY|O_CREAT|O_TRUNC =
+    RUNNING_OS MACOS == if(
+        0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
+    RUNNING_OS LINUX == if(
+        0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
+    RUNNING_OS WIN32 == if(
+        0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
+        "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic!
+    )))
+
+close-file! : File -- +IO
+close-file! = (
+    File->Int posix-close!
+    0 < if(
+        "failed to close file." panic!,
+        id
+    )
+)
+
+########
+# Heap #
+########
+
+buffer(HEAP_LENGTH, 8)
+
+heap-length@ : Size
+heap-length@ = HEAP_LENGTH int@
+
+heap-length! : Size --
+heap-length! = HEAP_LENGTH int!
+
+buffer(HEAP_BASE, 8)
+
+heap-base@ : Ptr
+heap-base@ = HEAP_BASE ptr@
+
+heap-base! : Ptr --
+heap-base! = HEAP_BASE ptr!
+
+buffer(HEAP_TIMES_EXPANDED, 8)
+
+heap-times-expanded@ : Int
+heap-times-expanded@ = HEAP_TIMES_EXPANDED int@
+
+heap-times-expanded! : Int --
+heap-times-expanded! = HEAP_TIMES_EXPANDED int!
+
+++heap-times-expanded : Int
+++heap-times-expanded =
+    heap-times-expanded@ 1+ dup heap-times-expanded!
+
+||| Ensure that at at least X space on the heap is available.
+|||
+||| If the space left is too small (or heap has not been allocated,
+||| in which the space left is 0), then it tries to make the heap
+||| larger in place. This usually works, but if it fails, we just
+||| allocate a new buffer and forget about the old one, leaking
+||| some memory and introducing fragmentation.
+|||
+||| Panics if reservation is impossible.
+heap-reserve! : Size --
+heap-reserve! =
+    dup heap-length@ <= if(
+        drop,
+
+        heap-new-size dup # size
+        heap-length@ heap-base@ ptr+ swap # pointer hint
+        PROT_READ|PROT_WRITE
+        MAP_ANON|MAP_PRIVATE
+        -1 # file descriptor (-1 for MAP_ANONYMOUS)
+        0 # offset
+        posix-mmap!
+        dup Ptr->Int nonzero if(
+            dup heap-length@ heap-base@ ptr+ == if(
+                drop heap-length@ + heap-length!,
+                heap-base! heap-length!
+            ),
+            "Failed to allocate heap buffer." panic!
+        )
+    )
+
+PROT_READ|PROT_WRITE : Int
+PROT_READ|PROT_WRITE = 0x3
+    # PROT_READ = 0x1, PROT_WRITE = 0x2
+
+MAP_ANON|MAP_PRIVATE : Int
+MAP_ANON|MAP_PRIVATE =
+    RUNNING_OS MACOS == if(
+        0x1002, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
+    # RUNNING_OS LINUX == if(
+        0x22 # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
+        # ,
+        # "MAP_ANON|MAP_PRIVATE unknown for os" panic!
+    # )
+    )
+
+||| Aligns a by b, rounding upward. For instance,
+|||
+|||   10 64 align == 64
+|||   64 64 align == 64
+|||   70 64 align == 128
+align : Size Size -- Size
+align = dup dip(1- + dup) % -
+
+||| Figure out how much to expand heap size by, based on a minimum size
+||| (i.e. requested size aligned to 4096).
+||| The expansion has a quadratic lower bound.
+heap-new-size : Size -- Size
+heap-new-size = (
+    4096 align
+    4096 ++heap-times-expanded square *
+    max
+)
+
+||| Allocate a buffer on the heap.
+heap-alloc! : Size -- Ptr +Heap
+heap-alloc! = (
+    64 align
+    dup heap-reserve!
+    dup heap-length@ swap - heap-length!
+    heap-base@ dup dip(swap) ptr+ heap-base!
+)
