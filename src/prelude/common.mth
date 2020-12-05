@@ -563,11 +563,17 @@ data Maybe(t)
     SOME -> t
 end
 
+is-none : Maybe(t) -- Bool
+is-none = is-nil
+
+is-some : Maybe(t) -- Bool
+is-some = is-nil not
+
 is-none? : Maybe(t) -- Maybe(t) Bool
 is-none? = is-nil?
 
 is-some? : Maybe(t) -- Maybe(t) Bool
-is-some? = is-none? not
+is-some? = is-nil? not
 
 unSOME : Maybe(t) -- t
 unSOME =
@@ -798,6 +804,16 @@ unL3 =
         _ -> "expected L3 list" panic!
     )
 
+||| Project top item of tuples. A specialized `map(f)` while we can't write an actual `map(f)`
+map.0 : List([*a b]) -- List(b)
+map.0 =
+    match(
+        L0 -> L0,
+        L1 -> .0 L1,
+        L2 -> dip(.0) .0 L2,
+        L3 -> dip(dip(.0) .0) .0 L3,
+        LCAT -> dip(dip(map.0) map.0) LCAT
+    )
 
 #######
 # BAG #
@@ -992,8 +1008,97 @@ bag-replace-key =
 <=key : [v k] [v k] -- Bool
 <=key = dip(.0) .0 <=
 
+||| Get underlying list of values from bag.
+bag-values : Bag(v) -- List(v)
+bag-values = unBAG
 
+#######
+# SET #
+#######
 
+||| A set is a bag without duplicates. It's stored as
+||| sorted list, where items are strictly increasing.
+data Set(v)
+    SET -> Bag(v)
+end
+
+#######
+# MAP #
+#######
+
+||| A map associates keys with values. A single key
+||| has at most one value it corresponds to. Maps are
+||| represented as bags, but with the condition that
+||| no two pairs share the same key.
+data Map(k,v)
+    MAP -> Bag([v k])
+end
+
+unMAP : Map(k,v) -- Bag([v k])
+unMAP = match(MAP -> id)
+
+map-empty : Map(k,v)
+map-empty = nil
+
+map-is-empty : Map(k,v) -- Bool
+map-is-empty = is-nil
+
+map-is-empty? : Map(k,v) -- Map(k,v) Bool
+map-is-empty? = is-nil?
+
+map-singleton : [v k] -- Map(k,v)
+map-singleton = B1 MAP
+
+map-is-singleton : Map(k,v) -- Bool
+map-is-singleton = unMAP bag-is-singleton
+
+map-is-singleton? : Map(k,v) -- Bool
+map-is-singleton? = unMAP bag-is-singleton
+
+map-has : Map(k,v) k -- Bool
+map-has = map-lookup is-some
+
+map-has? : Map(k,v) k -- Map(k,v) k Bool
+map-has? = dup2 map-has
+
+map-lookup : Map(k,v) k -- Maybe(v)
+map-lookup = dip(unMAP) bag-lookup-key
+
+map-lookup? : Map(k,v) k -- Map(k,v) k Maybe(v)
+map-lookup? = dup2 map-lookup
+
+map-insert : Map(k,v) [v k] -- Map(k,v)
+map-insert = dip(unMAP) bag-replace-key MAP
+
+map-first : Map(k,v) -- [v k]
+map-first = unMAP bag-first
+
+map-last : Map(k,v) -- [v k]
+map-last = unMAP bag-last
+
+map-first-key : Map(k,v) -- k
+map-first-key = map-first .0
+
+map-last-key : Map(k,v) -- k
+map-last-key = map-last .0
+
+map-uncons : Map(k,v) -- [v k] Map(k,v)
+map-uncons = unMAP bag-uncons MAP
+
+map-unsnoc : Map(k,v) -- Map(k,v) [v k]
+map-unsnoc = unMAP bag-unsnoc dip(MAP)
+
+map-cons : [v k] Map(k,v) -- Map(k,v)
+map-cons = swap map-insert
+
+map-snoc : Map(k,v) [v k] -- Map(k,v)
+map-snoc = map-insert
+
+map-pairs : Map(k,v) -- List([v k])
+map-pairs = unMAP bag-values
+
+map-keys : Map(k,v) -- List(k)
+map-keys = map-pairs map.0
 
 ######
 # IO #

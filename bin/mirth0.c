@@ -2112,6 +2112,20 @@ void mwBAG (void) {
     push_value(car);
 }
 
+void mwSET (void) {
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    car = mkcell(car, tag);
+    push_value(car);
+}
+
+void mwMAP (void) {
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    car = mkcell(car, tag);
+    push_value(car);
+}
+
 void mwFILE (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
@@ -2941,6 +2955,8 @@ void mwTYPE_ELAB (void) {
  void mw_2E_2_21_ (void);
  void mw_2E_3_21_ (void);
  void mw_2E_4_21_ (void);
+ void mwis_none (void);
+ void mwis_some (void);
  void mwis_none_3F_ (void);
  void mwis_some_3F_ (void);
  void mwunSOME (void);
@@ -2974,6 +2990,7 @@ void mwTYPE_ELAB (void) {
  void mwunL1 (void);
  void mwunL2 (void);
  void mwunL3 (void);
+ void mwmap_2E_0 (void);
  void mwunBAG (void);
  void mwB0 (void);
  void mwB1 (void);
@@ -3010,6 +3027,29 @@ void mwTYPE_ELAB (void) {
  void mwbag_replace_key (void);
  void mw_3D__3D_key (void);
  void mw_3C__3D_key (void);
+ void mwbag_values (void);
+ void mwunMAP (void);
+ void mwmap_empty (void);
+ void mwmap_is_empty (void);
+ void mwmap_is_empty_3F_ (void);
+ void mwmap_singleton (void);
+ void mwmap_is_singleton (void);
+ void mwmap_is_singleton_3F_ (void);
+ void mwmap_has (void);
+ void mwmap_lookup (void);
+ void mwmap_has_3F_ (void);
+ void mwmap_lookup_3F_ (void);
+ void mwmap_insert (void);
+ void mwmap_first (void);
+ void mwmap_last (void);
+ void mwmap_first_key (void);
+ void mwmap_last_key (void);
+ void mwmap_uncons (void);
+ void mwmap_unsnoc (void);
+ void mwmap_cons (void);
+ void mwmap_snoc (void);
+ void mwmap_pairs (void);
+ void mwmap_keys (void);
  void mwInt__3E_File (void);
  void mwFile__3E_Int (void);
  void mwfile_40_ (void);
@@ -6281,12 +6321,21 @@ void mw_2E_4_21_ (void){
     mwpack_cons();
 }
 
+void mwis_none (void){
+    mwis_nil();
+}
+
+void mwis_some (void){
+    mwis_nil();
+    mwnot();
+}
+
 void mwis_none_3F_ (void){
     mwis_nil_3F_();
 }
 
 void mwis_some_3F_ (void){
-    mwis_none_3F_();
+    mwis_nil_3F_();
     mwnot();
 }
 
@@ -6989,6 +7038,55 @@ void mwunL3 (void){
     }
 }
 
+void mwmap_2E_0 (void){
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_drop();
+    mwL0();
+    break;
+    case 1LL:
+    do_pack_uncons(); do_drop();
+    mw_2E_0();
+    mwL1();
+    break;
+    case 2LL:
+    do_pack_uncons(); do_drop();
+    do_pack_uncons(); do_swap();
+    { value_t d2 = pop_value();
+    mw_2E_0();
+      push_value(d2); }
+    mw_2E_0();
+    mwL2();
+    break;
+    case 3LL:
+    do_pack_uncons(); do_drop();
+    do_pack_uncons(); do_swap();
+    do_pack_uncons(); do_swap();
+    { value_t d2 = pop_value();
+    { value_t d3 = pop_value();
+    mw_2E_0();
+      push_value(d3); }
+    mw_2E_0();
+      push_value(d2); }
+    mw_2E_0();
+    mwL3();
+    break;
+    case 4LL:
+    do_pack_uncons(); do_drop();
+    do_pack_uncons(); do_swap();
+    do_pack_uncons(); do_swap();
+    { value_t d2 = pop_value();
+    { value_t d3 = pop_value();
+    mwmap_2E_0();
+      push_value(d3); }
+    mwmap_2E_0();
+      push_value(d2); }
+    mwLCAT();
+    break;
+    default: fprintf(stderr, "unexpected fallthrough in match\n"); do_debug(); exit(99);
+    }
+}
+
 void mwunBAG (void){
     switch (get_top_data_tag()) {
     case 0LL:
@@ -7342,6 +7440,130 @@ void mw_3C__3D_key (void){
       push_value(d1); }
     mw_2E_0();
     mw_3C__3D_();
+}
+
+void mwbag_values (void){
+    mwunBAG();
+}
+
+void mwunMAP (void){
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_pack_uncons(); do_drop();
+    mwid();
+    break;
+    default: fprintf(stderr, "unexpected fallthrough in match\n"); do_debug(); exit(99);
+    }
+}
+
+void mwmap_empty (void){
+    mwnil();
+}
+
+void mwmap_is_empty (void){
+    mwis_nil();
+}
+
+void mwmap_is_empty_3F_ (void){
+    mwis_nil_3F_();
+}
+
+void mwmap_singleton (void){
+    mwB1();
+    mwMAP();
+}
+
+void mwmap_is_singleton (void){
+    mwunMAP();
+    mwbag_is_singleton();
+}
+
+void mwmap_is_singleton_3F_ (void){
+    mwunMAP();
+    mwbag_is_singleton();
+}
+
+void mwmap_has (void){
+    mwmap_lookup();
+    mwis_some();
+}
+
+void mwmap_lookup (void){
+    { value_t d1 = pop_value();
+    mwunMAP();
+      push_value(d1); }
+    mwbag_lookup_key();
+}
+
+void mwmap_has_3F_ (void){
+    mwdup2();
+    mwmap_has();
+}
+
+void mwmap_lookup_3F_ (void){
+    mwdup2();
+    mwmap_lookup();
+}
+
+void mwmap_insert (void){
+    { value_t d1 = pop_value();
+    mwunMAP();
+      push_value(d1); }
+    mwbag_replace_key();
+    mwMAP();
+}
+
+void mwmap_first (void){
+    mwunMAP();
+    mwbag_first();
+}
+
+void mwmap_last (void){
+    mwunMAP();
+    mwbag_last();
+}
+
+void mwmap_first_key (void){
+    mwmap_first();
+    mw_2E_0();
+}
+
+void mwmap_last_key (void){
+    mwmap_last();
+    mw_2E_0();
+}
+
+void mwmap_uncons (void){
+    mwunMAP();
+    mwbag_uncons();
+    mwMAP();
+}
+
+void mwmap_unsnoc (void){
+    mwunMAP();
+    mwbag_unsnoc();
+    { value_t d1 = pop_value();
+    mwMAP();
+      push_value(d1); }
+}
+
+void mwmap_cons (void){
+    mwswap();
+    mwmap_insert();
+}
+
+void mwmap_snoc (void){
+    mwmap_insert();
+}
+
+void mwmap_pairs (void){
+    mwunMAP();
+    mwbag_values();
+}
+
+void mwmap_keys (void){
+    mwmap_pairs();
+    mwmap_2E_0();
 }
 
 void mwInt__3E_File (void){
