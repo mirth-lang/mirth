@@ -614,6 +614,7 @@ def(c99-emit-prims!, +IO,
     "            return v.payload.vp_u64 & 0xFFFF;" ;
     "        } break;" ;
     "    }" ;
+    "    return 0;" ;
     "}" ;;
 
     "u64 get_top_data_tag() {" ;
