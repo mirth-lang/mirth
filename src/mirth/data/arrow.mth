@@ -25,39 +25,6 @@ import(mirth/data/prim)
 # Originally this type was called Morphism but that's hard to spell and
 # to type repeatedly so now it's called Arrow :-)
 
-ARROW_NIL : Arrow
-ARROW_NIL = nil
-
-arrow-is-nil? : Arrow -- Arrow Bool
-arrow-is-nil? = is-nil?
-
-arrow-alloc! : Arrow
-arrow-alloc! = Arrow.alloc!
-
-arrow-op-prim! : Prim Arrow --
-arrow-op-prim! = dip(OP_PRIM) arrow-op!
-
-arrow-op-word! : Word Arrow --
-arrow-op-word! = dip(OP_WORD) arrow-op!
-
-arrow-op-tag! :  Tag Arrow --
-arrow-op-tag! = dip(OP_TAG) arrow-op!
-
-arrow-op-match! : Match Arrow --
-arrow-op-match! = dip(OP_MATCH) arrow-op!
-
-arrow-op-external! : External Arrow --
-arrow-op-external! = dip(OP_EXTERNAL) arrow-op!
-
-arrow-op-buffer! : Buffer Arrow --
-arrow-op-buffer! = dip(OP_BUFFER) arrow-op!
-
-arrow-op-int! : Int Arrow --
-arrow-op-int! = dip(OP_INT) arrow-op!
-
-arrow-op-str! : StrLit Arrow --
-arrow-op-str! = dip(OP_STR) arrow-op!
-
 #######
 # ARG #
 #######
@@ -77,19 +44,19 @@ arrow-arg-add! = dip(arrow-args?) snoc over arrow-args!
 # TODO: Use an effect, or something, to elaborate these with types.
 
 arrow-new-int! : Int -- Arrow
-arrow-new-int! = OP_INT arrow-alloc! tuck arrow-op!
+arrow-new-int! = OP_INT Arrow.alloc! tuck arrow-op!
 
 arrow-new-buffer! : Buffer -- Arrow
-arrow-new-buffer! = OP_BUFFER arrow-alloc! tuck arrow-op!
+arrow-new-buffer! = OP_BUFFER Arrow.alloc! tuck arrow-op!
 
 arrow-new-external! : External -- Arrow
-arrow-new-external! = OP_EXTERNAL arrow-alloc! tuck arrow-op!
+arrow-new-external! = OP_EXTERNAL Arrow.alloc! tuck arrow-op!
 
 arrow-new-prim! : Prim -- Arrow
-arrow-new-prim! = OP_PRIM arrow-alloc! tuck arrow-op!
+arrow-new-prim! = OP_PRIM Arrow.alloc! tuck arrow-op!
 
 arrow-new-word! : Word -- Arrow
-arrow-new-word! = OP_WORD arrow-alloc! tuck arrow-op!
+arrow-new-word! = OP_WORD Arrow.alloc! tuck arrow-op!
 
 arrow-push! : Arrow Arrow -- Arrow
 arrow-push! = tuck swap arrow-next!

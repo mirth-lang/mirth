@@ -269,7 +269,7 @@ def(elab-arrow!, Ctx Type Token -- Arrow,
     swap elab-type-unify! drop2)
 
 def(elab-arrow-fwd!, Ctx Type Token -- Arrow Arrow,
-    arrow-alloc!
+    Arrow.alloc!
     tuck arrow-token!
     tuck arrow-dom!
     tuck arrow-ctx!
@@ -286,7 +286,7 @@ def(elab-arrow-done?, Arrow -- Arrow Bool,
 ||| the next arrow with {ctx, dom, token} set.
 def(elab-arrow-step!, Arrow -- Arrow,
     dup elab-arrow-op!
-    arrow-alloc! tuck arrow-dom!
+    Arrow.alloc! tuck arrow-dom!
     dip(arrow-token? token-next) tuck arrow-token!
     dip(arrow-ctx?) tuck arrow-ctx!
     tuck dip(arrow-next!))
@@ -317,15 +317,15 @@ def(elab-arrow-op-name!, Arrow Name -- Type,
     ))
 
 def(elab-arrow-op-int!, Arrow Int -- Type,
-    over arrow-op-int!
+    OP_INT over arrow-op!
     arrow-dom@ TYPE_INT T*)
 
 def(elab-arrow-op-str!, Arrow StrLit -- Type,
-    over arrow-op-str!
+    OP_STR over arrow-op!
     arrow-dom@ TYPE_PTR T*)
 
 def(elab-arrow-op-buffer!, Arrow Buffer -- Type,
-    over arrow-op-buffer!
+    OP_BUFFER over arrow-op!
     arrow-dom@ TYPE_PTR T*)
 
 def(elab-arrow-op-stack-assertion!, Arrow Token -- Type,
@@ -337,15 +337,15 @@ def(elab-arrow-op-stack-assertion!, Arrow Token -- Type,
     elab-type-unify! drop2)
 
 def(elab-arrow-op-external!, Arrow External -- Type,
-    dup2 swap arrow-op-external!
+    dup2 OP_EXTERNAL swap arrow-op!
     elab-external-sig! elab-arrow-op-apply-fresh!)
 
 def(elab-arrow-op-word!, Arrow Word -- Type,
-    dup2 swap arrow-op-word!
+    dup2 OP_WORD swap arrow-op!
     elab-word-sig! elab-arrow-op-apply-fresh!)
 
 def(elab-arrow-op-tag!, Arrow Tag -- Type,
-    dup2 swap arrow-op-tag!
+    dup2 OP_TAG swap arrow-op!
     elab-tag-sig! elab-arrow-op-apply-fresh!)
 
 def(elab-arrow-op-prim!, Arrow Prim -- Type,
@@ -355,19 +355,13 @@ def(elab-arrow-op-prim!, Arrow Prim -- Type,
     prim-type? type-is-error if(
         drop arrow-token@ "compiler error: prim type missing" emit-fatal-error!,
 
-        dup2 swap arrow-op-prim!
+        dup2 OP_PRIM swap arrow-op!
         prim-type@ elab-arrow-op-apply-fresh!
     )))
 
-def(elab-arrow-op-dip!, Arrow -- Type,
-    arrow-token? token-args-1 dip(arrow-dom? dip(arrow-ctx?))
-    dip(type-expand-tensor) swap
-    dip(elab-arrow-fwd! arrow-dom@) T*
-    dip(Arrow->Arg arrow-arg-add! drop))
-
 def(elab-arrow-op-match!, Arrow -- Type,
     Match.alloc!
-    dup2 swap arrow-op-match!
+    dup2 OP_MATCH swap arrow-op!
     over arrow-ctx@ over match-ctx!
     over arrow-dom@ over match-dom!
     dip(arrow-token@) tuck match-token!
@@ -438,7 +432,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
 
             # set case mid
             dip(dip(case-match? match-dom@)) { Case Type Token Tag }
-            elab-tag-sig! SUBST_NIL swap type-freshen-sig
+            elab-tag-sig! subst-nil swap type-freshen-sig
             { Case Type Token Subst Type }
             rotr dip(
                 dip(type-expand-morphism dip(swap))
@@ -464,7 +458,7 @@ def(elab-case-body!, Case Token -- Case Token,
 
 ||| Apply a type signature after freshening to get a codomain.
 def(elab-arrow-op-apply-fresh!, Arrow Type -- Type,
-    SUBST_NIL swap type-freshen-sig
+    subst-nil swap type-freshen-sig
     dip(over arrow-subst!)
     elab-arrow-op-apply!)
 

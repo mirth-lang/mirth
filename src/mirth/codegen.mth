@@ -1080,7 +1080,7 @@ def(c99-emit-word-sigs!, +IO,
 
 def(c99-emit-arrow!, Arrow -- +IO,
     c99-depth++
-    while(arrow-is-nil? not,
+    while(is-nil? not,
         dup c99-emit-arrow-op!
         arrow-next@)
     drop

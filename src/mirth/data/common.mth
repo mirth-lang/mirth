@@ -119,10 +119,9 @@ field(var-name, Var, Name)
 field(var-type, Var, Type)
 
 # mirth/data/type
-table(Subst) # TODO replace Subst with a map type
-field(subst-rest, Subst, Subst)
-field(subst-var, Subst, Var)
-field(subst-type, Subst, Type)
+data Subst
+    SUBST -> Map(Var, Type)
+end
 
 # mirth/data/external
 table(External)
