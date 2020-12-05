@@ -1112,6 +1112,8 @@ static const char strings[STRINGS_SIZE] = {
 109,97,116,99,104,0,
 61,0,
 61,61,0,
+60,0,
+60,61,0,
 43,0,
 45,0,
 42,0,
@@ -1122,8 +1124,6 @@ static const char strings[STRINGS_SIZE] = {
 94,0,
 60,60,0,
 62,62,0,
-60,0,
-60,61,0,
 116,114,117,101,0,
 102,97,108,115,101,0,
 38,38,0,
@@ -4159,40 +4159,40 @@ void mwinit_prims_21_ (void){
     mwPRIM_EQ();
     push_ptr((void*)(strings + 22728));
     mwdef_prim_21_();
-    mwPRIM_INT_ADD();
+    mwPRIM_LT();
     push_ptr((void*)(strings + 22731));
     mwdef_prim_21_();
-    mwPRIM_INT_SUB();
+    mwPRIM_LE();
     push_ptr((void*)(strings + 22733));
     mwdef_prim_21_();
+    mwPRIM_INT_ADD();
+    push_ptr((void*)(strings + 22736));
+    mwdef_prim_21_();
+    mwPRIM_INT_SUB();
+    push_ptr((void*)(strings + 22738));
+    mwdef_prim_21_();
     mwPRIM_INT_MUL();
-    push_ptr((void*)(strings + 22735));
+    push_ptr((void*)(strings + 22740));
     mwdef_prim_21_();
     mwPRIM_INT_DIV();
-    push_ptr((void*)(strings + 22737));
+    push_ptr((void*)(strings + 22742));
     mwdef_prim_21_();
     mwPRIM_INT_MOD();
-    push_ptr((void*)(strings + 22739));
+    push_ptr((void*)(strings + 22744));
     mwdef_prim_21_();
     mwPRIM_INT_AND();
-    push_ptr((void*)(strings + 22741));
+    push_ptr((void*)(strings + 22746));
     mwdef_prim_21_();
     mwPRIM_INT_OR();
-    push_ptr((void*)(strings + 22743));
+    push_ptr((void*)(strings + 22748));
     mwdef_prim_21_();
     mwPRIM_INT_XOR();
-    push_ptr((void*)(strings + 22745));
-    mwdef_prim_21_();
-    mwPRIM_INT_SHL();
-    push_ptr((void*)(strings + 22747));
-    mwdef_prim_21_();
-    mwPRIM_INT_SHR();
     push_ptr((void*)(strings + 22750));
     mwdef_prim_21_();
-    mwPRIM_LT();
-    push_ptr((void*)(strings + 22753));
+    mwPRIM_INT_SHL();
+    push_ptr((void*)(strings + 22752));
     mwdef_prim_21_();
-    mwPRIM_LE();
+    mwPRIM_INT_SHR();
     push_ptr((void*)(strings + 22755));
     mwdef_prim_21_();
     mwPRIM_BOOL_TRUE();
@@ -4402,19 +4402,6 @@ void mwinit_prims_21_ (void){
     mwprim_type_21_();
     mwdup();
     mwPRIM_INT_SHR();
-    mwprim_type_21_();
-    mwdrop();
-    mwTYPE_INT();
-    mwTYPE_INT();
-    mwT2();
-    mwTYPE_BOOL();
-    mwT1();
-    mwT__3E_();
-    mwdup();
-    mwPRIM_LT();
-    mwprim_type_21_();
-    mwdup();
-    mwPRIM_LE();
     mwprim_type_21_();
     mwdrop();
     mwTYPE_PTR();
@@ -4714,16 +4701,32 @@ void mwinit_prims_21_ (void){
     mwctx_empty();
     mwswap();
     mwctx_new_21_();
+    mwdup();
     mwPRIM_EQ();
     mwprim_ctx_21_();
+    mwdup();
+    mwPRIM_LT();
+    mwprim_ctx_21_();
+    mwdup();
+    mwPRIM_LE();
+    mwprim_ctx_21_();
+    mwdrop();
     mwTVar();
     mwdup();
     mwT2();
     mwTYPE_BOOL();
     mwT1();
     mwT__3E_();
+    mwdup();
     mwPRIM_EQ();
     mwprim_type_21_();
+    mwdup();
+    mwPRIM_LT();
+    mwprim_type_21_();
+    mwdup();
+    mwPRIM_LE();
+    mwprim_type_21_();
+    mwdrop();
     push_ptr((void*)(strings + 23154));
     mwname_new_21_();
     mwvar_new_implicit_21_();

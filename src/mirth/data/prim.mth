@@ -133,7 +133,10 @@ def(init-prims!, +Names,
     PRIM_MATCH "match" def-prim!
 
     PRIM_DEFINE "=" def-prim!
+
     PRIM_EQ "==" def-prim!
+    PRIM_LT "<" def-prim!
+    PRIM_LE "<=" def-prim!
 
     PRIM_INT_ADD "+" def-prim!
     PRIM_INT_SUB "-" def-prim!
@@ -145,8 +148,6 @@ def(init-prims!, +Names,
     PRIM_INT_XOR "^" def-prim!
     PRIM_INT_SHL "<<" def-prim!
     PRIM_INT_SHR ">>" def-prim!
-    PRIM_LT "<" def-prim!
-    PRIM_LE "<=" def-prim!
 
     PRIM_BOOL_TRUE "true" def-prim!
     PRIM_BOOL_FALSE "false" def-prim!
@@ -230,11 +231,6 @@ def(init-prims!, +Names,
     dup PRIM_INT_XOR prim-type!
     dup PRIM_INT_SHL prim-type!
     dup PRIM_INT_SHR prim-type!
-    drop
-
-    TYPE_INT TYPE_INT T2 TYPE_BOOL T1 T->
-    dup PRIM_LT prim-type!
-    dup PRIM_LE prim-type!
     drop
 
     TYPE_PTR T1 TYPE_INT T1 T-> PRIM_MEM_GET_INT prim-type!
@@ -323,10 +319,17 @@ def(init-prims!, +Names,
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
     dup ctx-empty swap ctx-new!
-    PRIM_EQ prim-ctx!
+
+    dup PRIM_EQ prim-ctx!
+    dup PRIM_LT prim-ctx!
+    dup PRIM_LE prim-ctx!
+    drop
 
     TVar dup T2 TYPE_BOOL T1 T->
-    PRIM_EQ prim-type!
+    dup PRIM_EQ prim-type!
+    dup PRIM_LT prim-type!
+    dup PRIM_LE prim-type!
+    drop
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
     "b" name-new! var-new-implicit! TYPE_TYPE over var-type!
