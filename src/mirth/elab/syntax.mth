@@ -25,8 +25,8 @@ token-run-end? =
             TOKEN_NEWLINE -> true,
             TOKEN_COMMA -> true,
             TOKEN_RPAREN -> drop true,
-            TOKEN_RBRACKET -> drop true,
-            TOKEN_RBRACE -> drop true,
+            TOKEN_RSQUARE -> drop true,
+            TOKEN_RCURLY -> drop true,
             _ -> drop false
         )
     )

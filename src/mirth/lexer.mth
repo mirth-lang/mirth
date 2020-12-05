@@ -136,21 +136,21 @@ def(lexer-next!, --,
         drop
         lexer-emit-rparen!,
 
-    is-lbracket? if(
+    is-lsquare? if(
         drop
-        lexer-emit-lbracket!,
+        lexer-emit-lsquare!,
 
-    is-rbracket? if(
+    is-rsquare? if(
         drop
-        lexer-emit-rbracket!,
+        lexer-emit-rsquare!,
 
-    is-lbrace? if(
+    is-lcurly? if(
         drop
-        lexer-emit-lbrace!,
+        lexer-emit-lcurly!,
 
-    is-rbrace? if(
+    is-rcurly? if(
         drop
-        lexer-emit-rbrace!,
+        lexer-emit-rcurly!,
 
     is-quote? if(
         drop
@@ -183,28 +183,28 @@ def(lexer-emit-rparen!, +Lexer,
         )
     ))
 
-def(lexer-emit-lbracket!, +Lexer,
-    0 Int->Token TOKEN_LBRACKET lexer-make!
+def(lexer-emit-lsquare!, +Lexer,
+    0 Int->Token TOKEN_LSQUARE lexer-make!
     lexer-stack-push!)
-def(lexer-emit-rbracket!, +Lexer,
+def(lexer-emit-rsquare!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right bracket." lexer-emit-fatal-error!,
-        lexer-stack-pop! token-is-lbracket? if(
-            dup TOKEN_RBRACKET lexer-make!
-            TOKEN_LBRACKET swap token-value!,
+        lexer-stack-pop! token-is-lsquare? if(
+            dup TOKEN_RSQUARE lexer-make!
+            TOKEN_LSQUARE swap token-value!,
             "Mismatched right bracket." lexer-emit-fatal-error!
         )
     ))
 
-def(lexer-emit-lbrace!, +Lexer,
-    0 Int->Token TOKEN_LBRACE lexer-make!
+def(lexer-emit-lcurly!, +Lexer,
+    0 Int->Token TOKEN_LCURLY lexer-make!
     lexer-stack-push!)
-def(lexer-emit-rbrace!, +Lexer,
+def(lexer-emit-rcurly!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right brace." lexer-emit-fatal-error!,
-        lexer-stack-pop! token-is-lbrace? if(
-            dup TOKEN_RBRACE lexer-make!
-            TOKEN_LBRACE swap token-value!,
+        lexer-stack-pop! token-is-lcurly? if(
+            dup TOKEN_RCURLY lexer-make!
+            TOKEN_LCURLY swap token-value!,
             "Mismatched right brace." lexer-emit-fatal-error!
         )
     ))

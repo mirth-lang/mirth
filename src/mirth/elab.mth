@@ -66,7 +66,7 @@ def(elab-type-atom!, TypeElab Token -- TypeElab Type Token,
     sig-token-is-type-hole? if(
         elab-type-hole!,
 
-    token-is-lbracket? if(
+    token-is-lsquare? if(
         elab-type-quote!,
 
         dup "Expected type, got unknown token." emit-error!
@@ -299,7 +299,7 @@ def(elab-arrow-op!, Arrow -- Type,
         TOKEN_NAME -> elab-arrow-op-name!,
         TOKEN_INT -> elab-arrow-op-int!,
         TOKEN_STR -> elab-arrow-op-str!,
-        TOKEN_LBRACE -> drop arrow-token? elab-arrow-op-stack-assertion!,
+        TOKEN_LCURLY -> drop arrow-token? elab-arrow-op-stack-assertion!,
         _ ->
             drop arrow-token?
             "Unexpected token in elab-arrow-op!"

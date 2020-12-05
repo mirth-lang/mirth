@@ -2154,28 +2154,28 @@ void mwTOKEN_RPAREN (void) {
     push_value(car);
 }
 
-void mwTOKEN_LBRACKET (void) {
+void mwTOKEN_LSQUARE (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
-void mwTOKEN_RBRACKET (void) {
+void mwTOKEN_RSQUARE (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
-void mwTOKEN_LBRACE (void) {
+void mwTOKEN_LCURLY (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
 
-void mwTOKEN_RBRACE (void) {
+void mwTOKEN_RCURLY (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
     car = mkcell(car, tag);
@@ -3145,21 +3145,21 @@ void mwTYPE_ELAB (void) {
  void mwlexer_emit_lparen_21_ (void);
  void mwis_rparen_3F_ (void);
  void mwlexer_emit_rparen_21_ (void);
- void mwis_lbracket_3F_ (void);
- void mwlexer_emit_lbracket_21_ (void);
- void mwis_rbracket_3F_ (void);
- void mwlexer_emit_rbracket_21_ (void);
- void mwis_lbrace_3F_ (void);
- void mwlexer_emit_lbrace_21_ (void);
- void mwis_rbrace_3F_ (void);
- void mwlexer_emit_rbrace_21_ (void);
+ void mwis_lsquare_3F_ (void);
+ void mwlexer_emit_lsquare_21_ (void);
+ void mwis_rsquare_3F_ (void);
+ void mwlexer_emit_rsquare_21_ (void);
+ void mwis_lcurly_3F_ (void);
+ void mwlexer_emit_lcurly_21_ (void);
+ void mwis_rcurly_3F_ (void);
+ void mwlexer_emit_rcurly_21_ (void);
  void mwis_quote_3F_ (void);
  void mwlexer_emit_string_21_ (void);
  void mwlexer_move_21_ (void);
  void mwlexer_emit_fatal_error_21_ (void);
  void mwtoken_is_lparen_3F_ (void);
- void mwtoken_is_lbracket_3F_ (void);
- void mwtoken_is_lbrace_3F_ (void);
+ void mwtoken_is_lsquare_3F_ (void);
+ void mwtoken_is_lcurly_3F_ (void);
  void mwstr_buf_zero_21_ (void);
  void mwstr_buf_is_doc_start_3F_ (void);
  void mwlexer_skip_doc_21_ (void);
@@ -8196,25 +8196,25 @@ void mwlexer_next_21_ (void){
     mwdrop();
     mwlexer_emit_rparen_21_();
     } else {
-    mwis_lbracket_3F_();
+    mwis_lsquare_3F_();
     if (pop_u64()) {
     mwdrop();
-    mwlexer_emit_lbracket_21_();
+    mwlexer_emit_lsquare_21_();
     } else {
-    mwis_rbracket_3F_();
+    mwis_rsquare_3F_();
     if (pop_u64()) {
     mwdrop();
-    mwlexer_emit_rbracket_21_();
+    mwlexer_emit_rsquare_21_();
     } else {
-    mwis_lbrace_3F_();
+    mwis_lcurly_3F_();
     if (pop_u64()) {
     mwdrop();
-    mwlexer_emit_lbrace_21_();
+    mwlexer_emit_lcurly_21_();
     } else {
-    mwis_rbrace_3F_();
+    mwis_rcurly_3F_();
     if (pop_u64()) {
     mwdrop();
-    mwlexer_emit_rbrace_21_();
+    mwlexer_emit_rcurly_21_();
     } else {
     mwis_quote_3F_();
     if (pop_u64()) {
@@ -8486,41 +8486,41 @@ void mwlexer_emit_rparen_21_ (void){
     }
 }
 
-void mwis_lbracket_3F_ (void){
+void mwis_lsquare_3F_ (void){
     mwdup();
     mwU8__3E_Int();
     push_i64(91LL);
     mw_3D__3D_();
 }
 
-void mwlexer_emit_lbracket_21_ (void){
+void mwlexer_emit_lsquare_21_ (void){
     push_i64(0LL);
     mwInt__3E_Token();
-    mwTOKEN_LBRACKET();
+    mwTOKEN_LSQUARE();
     mwlexer_make_21_();
     mwlexer_stack_push_21_();
 }
 
-void mwis_rbracket_3F_ (void){
+void mwis_rsquare_3F_ (void){
     mwdup();
     mwU8__3E_Int();
     push_i64(93LL);
     mw_3D__3D_();
 }
 
-void mwlexer_emit_rbracket_21_ (void){
+void mwlexer_emit_rsquare_21_ (void){
     mwlexer_stack_empty_3F_();
     if (pop_u64()) {
     push_ptr((void*)(strings + 1171));
     mwlexer_emit_fatal_error_21_();
     } else {
     mwlexer_stack_pop_21_();
-    mwtoken_is_lbracket_3F_();
+    mwtoken_is_lsquare_3F_();
     if (pop_u64()) {
     mwdup();
-    mwTOKEN_RBRACKET();
+    mwTOKEN_RSQUARE();
     mwlexer_make_21_();
-    mwTOKEN_LBRACKET();
+    mwTOKEN_LSQUARE();
     mwswap();
     mwtoken_value_21_();
     } else {
@@ -8530,41 +8530,41 @@ void mwlexer_emit_rbracket_21_ (void){
     }
 }
 
-void mwis_lbrace_3F_ (void){
+void mwis_lcurly_3F_ (void){
     mwdup();
     mwU8__3E_Int();
     push_i64(123LL);
     mw_3D__3D_();
 }
 
-void mwlexer_emit_lbrace_21_ (void){
+void mwlexer_emit_lcurly_21_ (void){
     push_i64(0LL);
     mwInt__3E_Token();
-    mwTOKEN_LBRACE();
+    mwTOKEN_LCURLY();
     mwlexer_make_21_();
     mwlexer_stack_push_21_();
 }
 
-void mwis_rbrace_3F_ (void){
+void mwis_rcurly_3F_ (void){
     mwdup();
     mwU8__3E_Int();
     push_i64(125LL);
     mw_3D__3D_();
 }
 
-void mwlexer_emit_rbrace_21_ (void){
+void mwlexer_emit_rcurly_21_ (void){
     mwlexer_stack_empty_3F_();
     if (pop_u64()) {
     push_ptr((void*)(strings + 1223));
     mwlexer_emit_fatal_error_21_();
     } else {
     mwlexer_stack_pop_21_();
-    mwtoken_is_lbrace_3F_();
+    mwtoken_is_lcurly_3F_();
     if (pop_u64()) {
     mwdup();
-    mwTOKEN_RBRACE();
+    mwTOKEN_RCURLY();
     mwlexer_make_21_();
-    mwTOKEN_LBRACE();
+    mwTOKEN_LCURLY();
     mwswap();
     mwtoken_value_21_();
     } else {
@@ -8633,7 +8633,7 @@ void mwtoken_is_lparen_3F_ (void){
     }
 }
 
-void mwtoken_is_lbracket_3F_ (void){
+void mwtoken_is_lsquare_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
     case 5LL:
@@ -8648,7 +8648,7 @@ void mwtoken_is_lbracket_3F_ (void){
     }
 }
 
-void mwtoken_is_lbrace_3F_ (void){
+void mwtoken_is_lcurly_3F_ (void){
     mwtoken_value_3F_();
     switch (get_top_data_tag()) {
     case 7LL:
@@ -9323,19 +9323,19 @@ void mwis_special_char_3F_ (void){
       push_value(d1); }
     mw_7C__7C_();
     { value_t d1 = pop_value();
-    mwis_lbracket_3F_();
+    mwis_lsquare_3F_();
       push_value(d1); }
     mw_7C__7C_();
     { value_t d1 = pop_value();
-    mwis_rbracket_3F_();
+    mwis_rsquare_3F_();
       push_value(d1); }
     mw_7C__7C_();
     { value_t d1 = pop_value();
-    mwis_lbrace_3F_();
+    mwis_lcurly_3F_();
       push_value(d1); }
     mw_7C__7C_();
     { value_t d1 = pop_value();
-    mwis_rbrace_3F_();
+    mwis_rcurly_3F_();
       push_value(d1); }
     mw_7C__7C_();
     { value_t d1 = pop_value();
@@ -18475,7 +18475,7 @@ void mwelab_type_atom_21_ (void){
     if (pop_u64()) {
     mwelab_type_hole_21_();
     } else {
-    mwtoken_is_lbracket_3F_();
+    mwtoken_is_lsquare_3F_();
     if (pop_u64()) {
     mwelab_type_quote_21_();
     } else {

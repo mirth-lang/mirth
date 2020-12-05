@@ -6,10 +6,10 @@ def(is-whitespace?, Char -- Char Bool,
 def(is-pound?, Char -- Char Bool, dup U8->Int 35 ==)
 def(is-lparen?, Char -- Char Bool, dup U8->Int 40 ==)
 def(is-rparen?, Char -- Char Bool, dup U8->Int 41 ==)
-def(is-lbracket?, Char -- Char Bool, dup U8->Int 91 ==)
-def(is-rbracket?, Char -- Char Bool, dup U8->Int 93 ==)
-def(is-lbrace?, Char -- Char Bool, dup U8->Int 123 ==)
-def(is-rbrace?, Char -- Char Bool, dup U8->Int 125 ==)
+def(is-lsquare?, Char -- Char Bool, dup U8->Int 91 ==)
+def(is-rsquare?, Char -- Char Bool, dup U8->Int 93 ==)
+def(is-lcurly?, Char -- Char Bool, dup U8->Int 123 ==)
+def(is-rcurly?, Char -- Char Bool, dup U8->Int 125 ==)
 def(is-comma?, Char -- Char Bool, dup U8->Int 44 ==)
 def(is-quote?, Char -- Char Bool, dup U8->Int 34 ==)
 def(is-digit?, Char -- Char Bool, dup U8->Int 48 57 in-range)
@@ -43,10 +43,10 @@ def(is-special-char?, Char -- Char Bool,
     is-quote?
     dip(is-lparen?) ||
     dip(is-rparen?) ||
-    dip(is-lbracket?) ||
-    dip(is-rbracket?) ||
-    dip(is-lbrace?) ||
-    dip(is-rbrace?) ||
+    dip(is-lsquare?) ||
+    dip(is-rsquare?) ||
+    dip(is-lcurly?) ||
+    dip(is-rcurly?) ||
     dip(is-comma?) ||
     dip(is-pound?) ||
     )
