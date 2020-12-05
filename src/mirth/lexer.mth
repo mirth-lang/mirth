@@ -234,33 +234,23 @@ def(lexer-emit-name!, +Lexer,
         lexer-skip-doc!,
         # TODO: save the doc in a token-doc field for the proceeding token
 
-    str-buf-is-dashes? if(
-        token-alloc!
-        TOKEN_DASHES over token-value!
-        tuck token-col!
-        tuck token-row!
-        token-module!,
-
-    str-buf-is-arrow? if(
-        token-alloc!
-        TOKEN_ARROW over token-value!
-        tuck token-col!
-        tuck token-row!
-        token-module!,
-
-    str-buf-is-int? if(
-        token-alloc!
-        str-buf-int? TOKEN_INT over token-value!
-        tuck token-col!
-        tuck token-row!
-        token-module!,
+        str-buf-is-dashes? if(
+            TOKEN_DASHES,
+        str-buf-is-arrow? if(
+            TOKEN_ARROW,
+        str-buf-is-equal? if(
+            TOKEN_EQUAL,
+        str-buf-is-int? if(
+            str-buf-int? TOKEN_INT,
+            name-save! TOKEN_NAME
+        ))))
 
         token-alloc!
-        name-save! TOKEN_NAME over token-value!
+        tuck token-value!
         tuck token-col!
         tuck token-row!
         token-module!
-    )))))
+    ))
 
 def(str-buf-is-doc-start?, Bool +StrBuf,
     str-buf-length? 3 == if(
@@ -281,6 +271,12 @@ def(str-buf-is-dashes?, Bool +StrBuf,
     str-buf-length? 2 == if(
         0 str-buf-u8@ is-dash? nip
         1 str-buf-u8@ is-dash? nip &&,
+        false
+    ))
+
+def(str-buf-is-equal?, Bool +StrBuf,
+    str-buf-length? 1 == if(
+        0 str-buf-u8@ is-eq? nip,
         false
     ))
 

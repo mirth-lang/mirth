@@ -166,6 +166,6 @@ token-could-be-word-sig? =
 token-could-be-word-def? : Token -- Token Bool
 token-could-be-word-def? =
     token-is-name? if(
-        dup token-next PRIM_DEFINE token-prim=? nip,
+        dup token-next token-is-equal? nip,
         false
     )

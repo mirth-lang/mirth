@@ -29,6 +29,7 @@ token-is-str? : Token -- Token Bool
 token-is-name? : Token -- Token Bool
 token-is-comma? : Token -- Token Bool
 token-is-colon? : Token -- Token Bool
+token-is-equal? : Token -- Token Bool
 token-is-arrow? : Token -- Token Bool
 token-is-dashes? : Token -- Token Bool
 token-is-lparen? : Token -- Token Bool
@@ -41,6 +42,7 @@ token-is-str? = token-value? match(TOKEN_STR -> drop true, _ -> drop false)
 token-is-name? = token-value? match(TOKEN_NAME -> drop true, _ -> drop false)
 token-is-comma? = token-value? match(TOKEN_COMMA -> true, _ -> drop false)
 token-is-colon? = token-value? match(TOKEN_COLON -> true, _ -> drop false)
+token-is-equal? = token-value? match(TOKEN_EQUAL -> true, _ -> drop false)
 token-is-arrow? = token-value? match(TOKEN_ARROW -> true, _ -> drop false)
 token-is-dashes? = token-value? match(TOKEN_DASHES -> true, _ -> drop false)
 token-is-lparen? = token-value? match(TOKEN_LPAREN -> drop true, _ -> drop false)

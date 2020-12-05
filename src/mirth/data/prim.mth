@@ -34,8 +34,9 @@ def(PRIM_DEBUG, Prim, 47 Int->Prim)
 def(PRIM_CAST, Prim, 71 Int->Prim)
 def(PRIM_MATCH, Prim, 94 Int->Prim)
 
-def(PRIM_DEFINE, Prim, 13 Int->Prim)
 def(PRIM_EQ, Prim, 87 Int->Prim)
+def(PRIM_LT, Prim, 14 Int->Prim)
+def(PRIM_LE, Prim, 15 Int->Prim)
 
 def(PRIM_INT_ADD, Prim, 8 Int->Prim)
 def(PRIM_INT_SUB, Prim, 9 Int->Prim)
@@ -47,8 +48,6 @@ def(PRIM_INT_OR, Prim, 17 Int->Prim)
 def(PRIM_INT_XOR, Prim, 18 Int->Prim)
 def(PRIM_INT_SHL, Prim, 19 Int->Prim)
 def(PRIM_INT_SHR, Prim, 20 Int->Prim)
-def(PRIM_LT, Prim, 14 Int->Prim)
-def(PRIM_LE, Prim, 15 Int->Prim)
 
 def(PRIM_BOOL_TRUE, Prim, 74 Int->Prim)
 def(PRIM_BOOL_FALSE, Prim, 75 Int->Prim)
@@ -127,8 +126,6 @@ def(init-prims!, +Names,
     PRIM_DEBUG "??" def-prim!
     PRIM_CAST "prim.unsafe.cast" def-prim!
     PRIM_MATCH "match" def-prim!
-
-    PRIM_DEFINE "=" def-prim!
 
     PRIM_EQ "==" def-prim!
     PRIM_LT "<" def-prim!
