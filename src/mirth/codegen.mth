@@ -690,21 +690,21 @@ def(c99-emit-prims!, +IO,
     "    push_i64(y % x);" ;
     "}" ;;
 
-    PRIM_EQUALS .p " {" ;
+    PRIM_EQ .p " {" ;
     "    value_t v2 = pop_value();" ;
     "    value_t v1 = pop_value();" ;
     "    push_bool(value_cmp(v1, v2) == 0);" ;
     "    decref(v1); decref(v2);" ;
     "}" ;;
 
-    PRIM_INT_LT .p " {" ;
+    PRIM_LT .p " {" ;
     "    value_t v2 = pop_value();" ;
     "    value_t v1 = pop_value();" ;
     "    push_bool(value_cmp(v1, v2) < 0);" ;
     "    decref(v1); decref(v2);" ;
     "}" ;;
 
-    PRIM_INT_LE .p " {" ;
+    PRIM_LE .p " {" ;
     "    value_t v2 = pop_value();" ;
     "    value_t v1 = pop_value();" ;
     "    push_bool(value_cmp(v1, v2) <= 0);" ;
