@@ -12,9 +12,9 @@ def(Int->StrLit, Int -- StrLit, STRLIT)
 def(StrLit->Int, StrLit -- Int, match(STRLIT -> id))
 def(StrLit->Str, StrLit -- Str, StrLit->Int STRINGS_BUF ptr+)
 
-def(MAX_STRINGS, Size, 0x8000)
+def(MAX_STRINGS, Size, 0x10000)
 buffer(STRINGS_SIZE, 8)
-buffer(STRINGS_BUF, 0x8000)
+buffer(STRINGS_BUF, 0x10000)
 
 # Size of strings table.
 def(strings-size@, -- Size +StrTable, STRINGS_SIZE int@)

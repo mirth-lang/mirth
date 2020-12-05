@@ -428,7 +428,7 @@ str-eq? = dup2 str-eq
 ||| default value.
 |||
 ||| Use nil with care! Don't confuse it for an "optional"
-||| value, use `Option(t)` instead. Rather, `nil` should
+||| value, use `Maybe(t)` instead. Rather, `nil` should
 ||| be a value within the acceptable range of the type, and
 ||| a sensible default value for fields of this type.
 |||
@@ -554,22 +554,22 @@ unpack5 = pack-uncons dip(unpack4)
 .4! : [*a b c d e f] b -- [*a b c d e f]
 .4! = dip(pack-uncons) swap dip(.3!) pack-cons
 
-##########
-# OPTION #
-##########
+#########
+# Maybe #
+#########
 
-data Option(t)
+data Maybe(t)
     NONE
     SOME -> t
 end
 
-is-none? : Option(t) -- Option(t) Bool
+is-none? : Maybe(t) -- Maybe(t) Bool
 is-none? = is-nil?
 
-is-some? : Option(t) -- Option(t) Bool
+is-some? : Maybe(t) -- Maybe(t) Bool
 is-some? = is-none? not
 
-unSOME : Option(t) -- t
+unSOME : Maybe(t) -- t
 unSOME =
     match(
         NONE -> "unSOME on NONE" panic!,
@@ -715,15 +715,15 @@ cat-aux = rebalance dup2 dip(len) len + LCAT
 rebalance : List(t) List(t) -- List(t) List(t)
 rebalance =
     dup2 dip(len) len dup2 3 * > if(
-        drop2 dip(split-half-ish) cat rebalance,
+        drop2 dip(split-half) cat rebalance,
         dip(3 *) < if(
-            split-half-ish dip(cat) rebalance,
+            split-half dip(cat) rebalance,
             id
         )
     )
 
-split-half-ish : List(t) -- List(t) List(t)
-split-half-ish =
+split-half : List(t) -- List(t) List(t)
+split-half =
     match(
         L0 -> L0 L0,
         L1 -> L1 dip(L0),
@@ -750,6 +750,16 @@ last =
         L2 -> dip(drop),
         L3 -> dip(drop2),
         LCAT -> drop nip last
+    )
+
+middle : List(t) -- t
+middle =
+    match(
+        L0 -> "middle on empty list" panic!,
+        L1 -> id,
+        L2 -> nip,
+        L3 -> drop nip,
+        LCAT -> drop nip first
     )
 
 
@@ -787,6 +797,203 @@ unL3 =
         L3 -> id,
         _ -> "expected L3 list" panic!
     )
+
+
+#######
+# BAG #
+#######
+
+||| A bag is a set where items can appear more than once.
+||| Bags are represented by sorted lists, where the sorting
+||| is done by the generic order relation on values (<=).
+data Bag(v)
+    BAG -> List(v)
+end
+
+unBAG : Bag(v) -- List(v)
+unBAG = match(BAG -> id)
+
+B0 : Bag(v)
+B0 = nil
+
+B1 : v -- Bag(v)
+B1 = L1 BAG
+
+B2 : v v -- Bag(v)
+B2 = order2 L2 BAG
+
+B3 : v v v -- Bag(v)
+B3 = order3 L3 BAG
+
+bag-empty : Bag(v)
+bag-empty = nil
+
+bag-is-empty : Bag(v) -- Bool
+bag-is-empty = is-nil
+
+bag-is-empty? : Bag(v) -- Bag(v) Bool
+bag-is-empty? = is-nil?
+
+bag-singleton : v -- Bag(v)
+bag-singleton = B1
+
+bag-is-singleton : Bag(v) -- Bool
+bag-is-singleton = bag-len 1 ==
+
+bag-is-singleton? : Bag(v) -- Bag(v) Bool
+bag-is-singleton? = dup bag-is-singleton
+
+bag-len : Bag(v) -- Int
+bag-len = unBAG len
+
+bag-len? : Bag(v) -- Bag(v) Int
+bag-len? = dup bag-len
+
+bag-first : Bag(v) -- v
+bag-first = unBAG first
+
+bag-first? : Bag(v) -- Bag(v) v
+bag-first? = dup bag-first
+
+bag-last : Bag(v) -- v
+bag-last = unBAG last
+
+bag-last? : Bag(v) -- Bag(v) v
+bag-last? = dup bag-last
+
+bag-middle : Bag(v) -- v
+bag-middle = unBAG middle
+
+bag-middle? : Bag(v) -- Bag(v) v
+bag-middle? = dup bag-middle
+
+bag-split-half : Bag(v) -- Bag(v) Bag(v)
+bag-split-half = unBAG split-half dip(BAG) BAG
+
+bag-uncons : Bag(v) -- v Bag(v)
+bag-uncons = unBAG uncons BAG
+
+bag-unsnoc : Bag(v) -- Bag(v) v
+bag-unsnoc = unBAG unsnoc dip(BAG)
+
+bag-cons : v Bag(v) -- Bag(v)
+bag-cons = swap bag-insert
+
+bag-snoc : Bag(v) v -- Bag(v)
+bag-snoc = bag-insert
+
+bag-has : Bag(v) v -- Bool
+bag-has =
+    over bag-is-empty if(
+        drop2 false,
+        dip(bag-split-half bag-uncons swap)
+        dup2 == if(
+            drop4 true,
+            dup2 <= if(
+                dip(drop nip),
+                dip(drop2)
+            ) bag-has
+        )
+    )
+
+bag-has? : Bag(v) v -- Bag(v) v Bool
+bag-has? = dup2 bag-has
+
+||| Insert a value into the bag in the proper location.
+||| Note that `bag-insert` will happily insert duplicates.
+||| Use `bag-replace` to prevent duplicate insertion.
+bag-insert : Bag(v) v -- Bag(v)
+bag-insert =
+    over bag-is-empty if(
+        nip bag-singleton,
+
+    over bag-is-singleton if(
+        dip(bag-first) B2,
+
+        dip(bag-split-half bag-first?)
+        dup2 <= if(
+            nip bag-insert bag-cat-unsafe,
+            nip swap dip(bag-insert) bag-cat-unsafe
+        )
+    ))
+
+||| Insert a value into the bag in the proper location,
+||| unless the bag already contains this value. This
+||| prevents introducing new duplicates. Use `bag-insert`
+||| instead if duplicates are desirable.
+bag-replace : Bag(v) v -- Bag(v)
+bag-replace = bag-has? if(drop, bag-insert)
+
+||| Concatenate two bags. To maintain the bag invariant,
+||| it is necessary for the last item of the first bag
+||| be less than or equal to the first item of the
+||| second bag. In normal code it is recommended to
+||| use `bag-merge` instead.
+bag-cat-unsafe : Bag(v) Bag(v) -- Bag(v)
+bag-cat-unsafe = dip(unBAG) unBAG cat BAG
+
+||| Put two stack items in order.
+order2 : v v -- v v
+order2 = dup2 <= if(id, swap)
+
+||| Put three stack items in order.
+order3 : v v v -- v v v
+order3 = dip(order2) dup2 <= if(id, swap dip(order2))
+
+||| Prerform lookup as an ordered map. Use the key to
+||| find a corresponding item. Note: If multiple items
+||| match the key, you may get any of them. There's
+||| no guarantee it'll be the first item, last item,
+||| middle item, etc, to match the key.
+bag-lookup-key : Bag([v k]) k -- Maybe(v)
+bag-lookup-key =
+    over bag-is-empty if(
+        drop2 NONE,
+        dip(bag-split-half bag-uncons swap unpack2)
+        dup2 == if(
+            drop2 SOME dip(drop2),
+            dup2 <= if(
+                dip(drop2 nip),
+                dip(drop3)
+            ) bag-lookup-key
+        )
+    )
+
+||| See `bag-lookup-key`.
+bag-lookup-key? : Bag([v k]) k -- Bag([v k]) k Maybe(v)
+bag-lookup-key? = dup2 bag-lookup-key
+
+||| Insert key/value pair in bag, but replace an item
+||| with a matching key if it exists.
+bag-replace-key : Bag([v k]) [v k] -- Bag([v k])
+bag-replace-key =
+    over bag-is-empty if(
+        nip bag-singleton,
+
+    over bag-is-singleton if(
+        dip(bag-first)
+        dup2 ==key if(
+            nip bag-singleton,
+            B2
+        ),
+
+        dip(bag-split-half bag-first?)
+        dup2 <=key if(
+            nip bag-replace-key bag-cat-unsafe,
+            nip swap dip(bag-replace-key) bag-cat-unsafe
+        )
+    ))
+
+||| Compare two pairs by their top item (the "key").
+==key : [v k] [v k] -- Bool
+==key = dip(.0) .0 ==
+
+||| Compare two pairs by their top item (the "key").
+<=key : [v k] [v k] -- Bool
+<=key = dip(.0) .0 <=
+
+
+
 
 ######
 # IO #
