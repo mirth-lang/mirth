@@ -644,51 +644,42 @@ def(app-type-trace-open!, Type Type --,
 # Subst #
 #########
 
-def(Subst->Int, Subst -- Int, cast)
-def(Int->Subst, Int -- Subst, cast)
+unSUBST : Subst -- Map(Var, Type)
+unSUBST = match(SUBST -> id)
 
-def(subst-alloc!, Subst,
-    Subst.alloc!
-    dup Subst->Int Subst.MAX >= if(
-        "NUM_SUBST >= MAX_SUBST" panic!,
-        id
-    ))
-def(subst-new!, Type Var Subst -- Subst,
-    subst-alloc!
-    tuck subst-rest!
-    tuck subst-var!
-    tuck subst-type!)
+subst-nil : Subst
+subst-nil = nil
 
-def(SUBST_NIL, Subst, 0 Int->Subst)
-def(subst-is-nil, Subst -- Bool, SUBST_NIL ==)
-def(subst-is-nil?, Subst -- Subst Bool, dup subst-is-nil)
+subst-is-nil : Subst -- Bool
+subst-is-nil = is-nil
 
-def(subst-has-var, Var Subst -- Bool,
-    subst-is-nil? if(
-        drop2 false,
-        dup2 subst-var@ == if(
-            drop2 true,
-            subst-rest@ subst-has-var
-        )
-    ))
-def(subst-has-var?, Var Subst -- Var Subst Bool,
-    dup2 subst-has-var)
+subst-is-nil? : Subst -- Subst Bool
+subst-is-nil? = is-nil?
 
-def(subst-get-var, Var Subst -- Type,
-    subst-is-nil? if(
-        drop2 TYPE_ERROR,
-        dup2 subst-var@ == if(
-            subst-type@ nip,
-            subst-rest@ subst-get-var
-        )
-    ))
-def(subst-get-var?, Var Subst -- Var Subst Type,
-    dup2 subst-get-var)
+subst-new! : Type Var Subst -- Subst
+subst-new! = unSUBST rotr pack2 map-insert SUBST
 
-# If variable is in subst, unify new type with type in subst.
-# Otherwise, create larger subst with new binding.
-def(subst-match-var, Type Var Subst -- Subst,
+subst-has-var : Var Subst -- Bool
+subst-has-var = unSUBST swap map-has
+
+subst-has-var? : Var Subst -- Var Subst Bool
+subst-has-var? = dup2 subst-has-var
+
+subst-get-var : Var Subst -- Type
+subst-get-var =
+    unSUBST swap map-lookup match(
+        NONE -> TYPE_ERROR,
+        SOME -> id
+    )
+
+subst-get-var? : Var Subst -- Var Subst Type
+subst-get-var? = dup2 subst-get-var
+
+||| If variable is in subst, unify new type with type in subst.
+||| Otherwise, create larger subst with new binding.
+subst-match-var : Type Var Subst -- Subst
+subst-match-var =
     subst-has-var? if(
         dup dip(subst-get-var type-unify! drop),
         subst-new!
-    ))
+    )

@@ -1,6 +1,6 @@
 module(mirth/lexer)
-import(mirth/lexer/char)
 import(prelude)
+import(mirth/data/char)
 import(mirth/data/name)
 import(mirth/data/string)
 import(mirth/data/token)
@@ -128,6 +128,10 @@ def(lexer-next!, --,
         drop
         TOKEN_COMMA lexer-emit!,
 
+    is-colon? if(
+        drop
+        TOKEN_COLON lexer-emit!,
+
     is-lparen? if(
         drop
         lexer-emit-lparen!,
@@ -136,28 +140,29 @@ def(lexer-next!, --,
         drop
         lexer-emit-rparen!,
 
-    is-lbracket? if(
+    is-lsquare? if(
         drop
-        lexer-emit-lbracket!,
+        lexer-emit-lsquare!,
 
-    is-rbracket? if(
+    is-rsquare? if(
         drop
-        lexer-emit-rbracket!,
+        lexer-emit-rsquare!,
 
-    is-lbrace? if(
+    is-lcurly? if(
         drop
-        lexer-emit-lbrace!,
+        lexer-emit-lcurly!,
 
-    is-rbrace? if(
+    is-rcurly? if(
         drop
-        lexer-emit-rbrace!,
+        lexer-emit-rcurly!,
 
     is-quote? if(
         drop
         lexer-emit-string!,
 
+
         drop # LATER emit lexer error
-    )))))))))))
+    ))))))))))))
 
     lexer-move!))
 
@@ -183,28 +188,28 @@ def(lexer-emit-rparen!, +Lexer,
         )
     ))
 
-def(lexer-emit-lbracket!, +Lexer,
-    0 Int->Token TOKEN_LBRACKET lexer-make!
+def(lexer-emit-lsquare!, +Lexer,
+    0 Int->Token TOKEN_LSQUARE lexer-make!
     lexer-stack-push!)
-def(lexer-emit-rbracket!, +Lexer,
+def(lexer-emit-rsquare!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right bracket." lexer-emit-fatal-error!,
-        lexer-stack-pop! token-is-lbracket? if(
-            dup TOKEN_RBRACKET lexer-make!
-            TOKEN_LBRACKET swap token-value!,
+        lexer-stack-pop! token-is-lsquare? if(
+            dup TOKEN_RSQUARE lexer-make!
+            TOKEN_LSQUARE swap token-value!,
             "Mismatched right bracket." lexer-emit-fatal-error!
         )
     ))
 
-def(lexer-emit-lbrace!, +Lexer,
-    0 Int->Token TOKEN_LBRACE lexer-make!
+def(lexer-emit-lcurly!, +Lexer,
+    0 Int->Token TOKEN_LCURLY lexer-make!
     lexer-stack-push!)
-def(lexer-emit-rbrace!, +Lexer,
+def(lexer-emit-rcurly!, +Lexer,
     lexer-stack-empty? if(
         "Mismatched right brace." lexer-emit-fatal-error!,
-        lexer-stack-pop! token-is-lbrace? if(
-            dup TOKEN_RBRACE lexer-make!
-            TOKEN_LBRACE swap token-value!,
+        lexer-stack-pop! token-is-lcurly? if(
+            dup TOKEN_RCURLY lexer-make!
+            TOKEN_LCURLY swap token-value!,
             "Mismatched right brace." lexer-emit-fatal-error!
         )
     ))
@@ -229,25 +234,49 @@ def(lexer-emit-name!, +Lexer,
         lexer-skip-doc!,
         # TODO: save the doc in a token-doc field for the proceeding token
 
-    str-buf-is-int? if(
-        token-alloc!
-        str-buf-int? TOKEN_INT over token-value!
-        tuck token-col!
-        tuck token-row!
-        token-module!,
+        str-buf-is-dashes? if(
+            TOKEN_DASHES,
+        str-buf-is-arrow? if(
+            TOKEN_ARROW,
+        str-buf-is-equal? if(
+            TOKEN_EQUAL,
+        str-buf-is-int? if(
+            str-buf-int? TOKEN_INT,
+            name-save! TOKEN_NAME
+        ))))
 
         token-alloc!
-        name-save! TOKEN_NAME over token-value!
+        tuck token-value!
         tuck token-col!
         tuck token-row!
         token-module!
-    )))
+    ))
 
 def(str-buf-is-doc-start?, Bool +StrBuf,
     str-buf-length? 3 == if(
         0 str-buf-u8@ is-pipe-char
         1 str-buf-u8@ is-pipe-char &&
         2 str-buf-u8@ is-pipe-char &&,
+        false
+    ))
+
+def(str-buf-is-arrow?, Bool +StrBuf,
+    str-buf-length? 2 == if(
+        0 str-buf-u8@ is-dash? nip
+        1 str-buf-u8@ is-gt? nip &&,
+        false
+    ))
+
+def(str-buf-is-dashes?, Bool +StrBuf,
+    str-buf-length? 2 == if(
+        0 str-buf-u8@ is-dash? nip
+        1 str-buf-u8@ is-dash? nip &&,
+        false
+    ))
+
+def(str-buf-is-equal?, Bool +StrBuf,
+    str-buf-length? 1 == if(
+        0 str-buf-u8@ is-eq? nip,
         false
     ))
 

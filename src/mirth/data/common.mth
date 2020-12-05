@@ -41,12 +41,16 @@ data TokenValue
     TOKEN_NONE
     TOKEN_COMMA
     TOKEN_NEWLINE
+    TOKEN_COLON
+    TOKEN_EQUAL
+    TOKEN_ARROW
+    TOKEN_DASHES
     TOKEN_LPAREN -> Token
     TOKEN_RPAREN -> Token
-    TOKEN_LBRACKET -> Token
-    TOKEN_RBRACKET -> Token
-    TOKEN_LBRACE -> Token
-    TOKEN_RBRACE -> Token
+    TOKEN_LSQUARE -> Token
+    TOKEN_RSQUARE -> Token
+    TOKEN_LCURLY -> Token
+    TOKEN_RCURLY -> Token
     TOKEN_INT -> Int
     TOKEN_STR -> StrLit
     TOKEN_NAME -> Name
@@ -119,10 +123,9 @@ field(var-name, Var, Name)
 field(var-type, Var, Type)
 
 # mirth/data/type
-table(Subst) # TODO replace Subst with a map type
-field(subst-rest, Subst, Subst)
-field(subst-var, Subst, Var)
-field(subst-type, Subst, Type)
+data Subst
+    SUBST -> Map(Var, Type)
+end
 
 # mirth/data/external
 table(External)

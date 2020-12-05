@@ -15,9 +15,6 @@ def(init!, +IO,
     init-prims!
     init-types!)
 
-def(test!, +IO,
-    test-prelude!)
-
 ########
 # Main #
 ########
@@ -47,7 +44,6 @@ def(compile!, Path -- +IO,
 
 def(main, +IO,
     init!
-    test!
 
     # argc int-trace-ln!
     # 0 while(dup argc <,

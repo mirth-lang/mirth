@@ -23,6 +23,20 @@ name-prim= =
         _ -> drop2 false
     )
 
+||| Does the token refer to this primitive? Preserves the token.
+token-prim=? : Token Prim -- Token Bool
+token-prim=? = dip(dup) token-prim=
+
+||| Does the token refer to this primitive?
+token-prim= : Token Prim -- Bool
+token-prim= =
+    swap token-value@ match(
+        TOKEN_NAME ->
+            swap name-prim=,
+        _ ->
+            drop2 false
+    )
+
 def(PRIM_ID, Prim, 1 Int->Prim)
 def(PRIM_DUP, Prim, 2 Int->Prim)
 def(PRIM_DROP, Prim, 3 Int->Prim)
@@ -34,8 +48,9 @@ def(PRIM_DEBUG, Prim, 47 Int->Prim)
 def(PRIM_CAST, Prim, 71 Int->Prim)
 def(PRIM_MATCH, Prim, 94 Int->Prim)
 
-def(PRIM_DEFINE, Prim, 13 Int->Prim)
 def(PRIM_EQ, Prim, 87 Int->Prim)
+def(PRIM_LT, Prim, 14 Int->Prim)
+def(PRIM_LE, Prim, 15 Int->Prim)
 
 def(PRIM_INT_ADD, Prim, 8 Int->Prim)
 def(PRIM_INT_SUB, Prim, 9 Int->Prim)
@@ -47,8 +62,6 @@ def(PRIM_INT_OR, Prim, 17 Int->Prim)
 def(PRIM_INT_XOR, Prim, 18 Int->Prim)
 def(PRIM_INT_SHL, Prim, 19 Int->Prim)
 def(PRIM_INT_SHR, Prim, 20 Int->Prim)
-def(PRIM_LT, Prim, 14 Int->Prim)
-def(PRIM_LE, Prim, 15 Int->Prim)
 
 def(PRIM_BOOL_TRUE, Prim, 74 Int->Prim)
 def(PRIM_BOOL_FALSE, Prim, 75 Int->Prim)
@@ -96,9 +109,6 @@ def(PRIM_POSIX_CLOSE, Prim, 44 Int->Prim)
 def(PRIM_POSIX_EXIT, Prim, 45 Int->Prim)
 def(PRIM_POSIX_MMAP, Prim, 46 Int->Prim)
 
-def(PRIM_DASHES, Prim, 56 Int->Prim)
-def(PRIM_ARROW, Prim, 57 Int->Prim)
-
 def(PRIM_MODULE, Prim, 68 Int->Prim)
 def(PRIM_IMPORT, Prim, 69 Int->Prim)
 def(PRIM_DEF, Prim, 50 Int->Prim)
@@ -108,7 +118,6 @@ def(PRIM_DEF_EXTERNAL, Prim, 53 Int->Prim)
 def(PRIM_TARGET_C99, Prim, 55 Int->Prim)
 def(PRIM_TABLE, Prim, 78 Int->Prim)
 def(PRIM_FIELD, Prim, 79 Int->Prim)
-def(PRIM_COLON, Prim, 86 Int->Prim)
 def(PRIM_DATA, Prim, 88 Int->Prim)
 def(PRIM_END, Prim, 89 Int->Prim)
 
@@ -131,8 +140,6 @@ def(init-prims!, +Names,
     PRIM_DEBUG "??" def-prim!
     PRIM_CAST "prim.unsafe.cast" def-prim!
     PRIM_MATCH "match" def-prim!
-
-    PRIM_DEFINE "=" def-prim!
 
     PRIM_EQ "==" def-prim!
     PRIM_LT "<" def-prim!
@@ -195,9 +202,6 @@ def(init-prims!, +Names,
     PRIM_POSIX_EXIT "posix-exit!" def-prim!
     PRIM_POSIX_MMAP "posix-mmap!" def-prim!
 
-    PRIM_DASHES "--" def-prim!
-    PRIM_ARROW "->" def-prim!
-
     PRIM_MODULE "module" def-prim!
     PRIM_IMPORT "import" def-prim!
     PRIM_DEF "def" def-prim!
@@ -207,7 +211,6 @@ def(init-prims!, +Names,
     PRIM_TABLE "table" def-prim!
     PRIM_FIELD "field" def-prim!
     PRIM_TARGET_C99 "target-c99" def-prim!
-    PRIM_COLON ":" def-prim!
     PRIM_DATA "data" def-prim!
     PRIM_END "end" def-prim!
 

@@ -1,6 +1,5 @@
 module(mirth/data/data)
 import(mirth/data/name)
-import(mirth/elab/syntax)
 
 #######
 # TAG #
