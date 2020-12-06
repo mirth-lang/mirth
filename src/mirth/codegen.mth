@@ -951,6 +951,12 @@ def(c99-emit-prims!, +IO,
 
     PRIM_CAST .p " { }" ;;
 
+    PRIM_RUN .p " {" ;
+    "    do_pack_uncons();" ;
+    "    fnptr fp = pop_fnptr();" ;
+    "    fp();" ;
+    "}" ;
+
     PRIM_PTR_ADD .p " {" ;
     "   u8* x = pop_ptr();" ;
     "   i64 y = pop_i64();" ;
