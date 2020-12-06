@@ -15,6 +15,9 @@ NameValue->Tag =
 Tag->NameValue : Tag -- NameValue
 Tag->NameValue = DEF_TAG
 
+Int->Tag : Int -- Tag
+Int->Tag = cast
+
 name-tag! : Tag Name --
 name-tag! = dip(Tag->NameValue) name-value!
 

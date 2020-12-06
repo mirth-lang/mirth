@@ -14,6 +14,12 @@ unCTX = match(CTX -> id)
 ctx-new! : Ctx Var -- Ctx
 ctx-new! = dip(unCTX) snoc CTX
 
+ctx-vars@ : Ctx -- List(Var)
+ctx-vars@ = unCTX
+
+ctx-vars? : Ctx -- Ctx List(Var)
+ctx-vars? = dup unCTX
+
 ctx-var@ : Ctx -- Var
 ctx-var@ = unCTX last
 
@@ -60,6 +66,13 @@ ctx-lookup =
 
 ctx-lookup? : Name Ctx -- Name Ctx Var
 ctx-lookup? = dup2 ctx-lookup
+
+ctx-lookup-maybe : Name Ctx -- Maybe(Var)
+ctx-lookup-maybe =
+    ctx-lookup dup VAR_ERROR == if(
+        drop NONE,
+        SOME
+    )
 
 ctx-length : Ctx -- Size
 ctx-length = 0 swap while(ctx-is-empty? not, dip(1+) ctx-prev@) drop
