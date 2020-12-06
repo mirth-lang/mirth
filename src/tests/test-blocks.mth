@@ -1,0 +1,37 @@
+module(tests/test-blocks)
+import(prelude)
+
+run : *a [*a -- *b] -- *b
+run = prim.run
+
+run1 : a [a -- b] -- b
+run1 = run
+
+add10 : [Int -- Int]
+add10 = [10 +]
+
+compose : [*a -- *b] [*b -- *c] -- [*a -- *c]
+compose = \(f g -> [f run g run])
+
+add20 : [Int -- Int]
+add20 = add10 add10 compose
+
+add30 : [Int -- Int]
+add30 = add10 add20 compose
+
+main : --
+main = (
+    10 ??
+    add10 run1 ??
+    add10 run1 ??
+    add20 run1 ??
+    add30 run1 ??
+    drop
+)
+
+target-c99("blocktest.c", main)
+# mirth-test # perr # ?? 10
+# mirth-test # perr # ?? 20
+# mirth-test # perr # ?? 30
+# mirth-test # perr # ?? 50
+# mirth-test # perr # ?? 80

@@ -322,16 +322,6 @@ def(elab-arrow-op-name!, Arrow Name -- Type,
             nip elab-arrow-op-var!
     ))
 
-def(run-block, *a [*a -- *b] -- *b,
-    #"" panic!)
-    prim.run)
-
-def(my-block-user, Int a -- [Int -- Int],
-    #"" panic!)
-    [drop] prim.run
-    \(x -> [x +]))
-    #[10 +])
-
 def(elab-arrow-op-block!, Arrow Token -- Type,
     dip(arrow-ctx?) meta-alloc! TMeta tuck
     dip(token-args-1 elab-arrow!
