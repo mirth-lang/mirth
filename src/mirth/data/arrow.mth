@@ -29,14 +29,27 @@ import(mirth/data/prim)
 # ARG #
 #######
 
-Arrow->Arg : Arrow -- Arg
-Arrow->Arg = ARG_ARROW
+Block->Arg : Block -- Arg
+Block->Arg = ARG_BLOCK
+
+Arg->Block : Arg -- Block
+Arg->Block = match(ARG_BLOCK -> id)
 
 Arg->Arrow : Arg -- Arrow
-Arg->Arrow = match(ARG_ARROW -> id)
+Arg->Arrow = match(ARG_BLOCK -> block-arrow@)
 
 arrow-arg-add! : Arrow Arg -- Arrow
 arrow-arg-add! = dip(arrow-args?) snoc over arrow-args!
+
+#########
+# BLOCK #
+#########
+
+Int->Block : Int -- Block
+Int->Block = cast
+
+Block->Int : Block -- Int
+Block->Int = cast
 
 ####################################
 # Helpers for constructing arrows. #

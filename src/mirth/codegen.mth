@@ -70,6 +70,7 @@ def(run-output-c99!, Arrow Path -- +IO,
         c99-emit-buffers!
         c99-emit-externals!
         c99-emit-word-sigs!
+        c99-emit-block-sigs!
         c99-emit-word-defs!
         c99-emit-main!
         codegen-end!
@@ -1178,6 +1179,23 @@ def(c99-emit-word-sigs!, +IO,
 
 def(c99-emit-word-sig!, Word -- +IO,
     " void mw" . word-name@ .name " (void);" ;)
+
+def(c99-emit-block-sigs!, +IO,
+    1
+    while(dup Block.NUM int@ <=,
+        dup Int->Block c99-emit-block-sig!
+        1+
+    )
+    drop .lf)
+
+def(c99-emit-block-sig!, Block -- +IO,
+    " void " . .block " (void);" ;)
+
+def(.block, Block -- +IO,
+    block-arrow@ arrow-token@ "mb_" .
+    token-module? module-name@ .name "_" .
+    token-row? Row->Int .n "_" .
+    token-col@ Col->Int .n)
 
 def(c99-emit-word-defs!, +IO,
     1

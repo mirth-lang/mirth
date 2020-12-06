@@ -138,9 +138,10 @@ field(external-ctx, External, Ctx)
 # mirth/data/arrow
 table(Arrow)
 table(Lambda)
+table(Block)
 
 data Arg
-    ARG_ARROW -> Arrow
+    ARG_BLOCK -> Block
 end
 data Op
     OP_NONE
@@ -172,6 +173,8 @@ field(lambda-mid, Lambda, Type)
 field(lambda-cod, Lambda, Type)
 field(lambda-params, Lambda, List(Var))
 field(lambda-body, Lambda, Arrow)
+
+field(block-arrow, Block, Arrow)
 
 # mirth/data/prim
 table(Prim)

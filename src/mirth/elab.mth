@@ -544,7 +544,7 @@ def(elab-arrow-op-args!, Arrow List(Type) -- Arrow,
         dip(
             over
             dip(dip(over arrow-ctx@))
-            elab-arrow! Arrow->Arg
+            elab-arrow! Block.alloc! tuck block-arrow! Block->Arg
             swap token-next-arg-end
             dip(arrow-arg-add!)
         )
