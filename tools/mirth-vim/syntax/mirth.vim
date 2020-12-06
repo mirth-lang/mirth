@@ -14,7 +14,7 @@ syntax iskeyword 33,36-39,42-43,45-57,59-90,94-95,97-122,124,126
 
 " reserved words -- these have special syntactic meaning
 syntax keyword mirthReserved export import type data end = --
-syntax keyword mirthSpecial ->
+syntax keyword mirthSpecial -> \\
 
 " prelude words
 syntax keyword mirthWord dup drop id swap dip nip tuck over rotl rotr par both
