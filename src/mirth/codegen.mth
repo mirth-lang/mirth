@@ -1115,17 +1115,22 @@ c99-emit-arrow-op! =
 
 def(c99-emit-var!, Var -- +IO,
     "    push_value(var_" . var-name? .name ");" ;
-    "    incref(var_" . var-name@ .name ");" ;
+    "    if (ref_" . var-name? .name ")" ;
+    "        incref(var_" . var-name? .name ");" ;
+    "    else" ;
+    "        ref_" . var-name@ .name " = true;" ;
     )
 
 def(c99-emit-lambda!, Lambda -- +IO,
     "    {" ;
     lambda-params? while(is-snoc?, unsnoc
-        "    value_t var_" . var-name@ .name " = pop_value();" ;
+        "    value_t var_" . var-name? .name " = pop_value();" ;
+        "    bool ref_" . var-name@ .name " = false;" ;
         ) drop
     lambda-body? c99-emit-arrow!
     lambda-params@ while(is-snoc?, unsnoc
-        "    decref(var_" . var-name@ .name ");" ;
+        "    if (!ref_" . var-name? .name ")" ;
+        "        decref(var_" . var-name@ .name ");" ;
         ) drop
     "    }" ;)
 
