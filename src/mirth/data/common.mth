@@ -137,6 +137,8 @@ field(external-ctx, External, Ctx)
 
 # mirth/data/arrow
 table(Arrow)
+table(Lambda)
+
 data Arg
     ARG_ARROW -> Arrow
 end
@@ -150,6 +152,8 @@ data Op
     OP_STR -> StrLit
     OP_TAG -> Tag
     OP_MATCH -> Match
+    OP_LAMBDA -> Lambda
+    OP_VAR -> Var
 end
 
 field(arrow-token, Arrow, Token)
@@ -159,6 +163,15 @@ field(arrow-next, Arrow, Arrow) # TODO: rethink arrows as a list of operators
 field(arrow-op, Arrow, Op)
 field(arrow-subst, Arrow, Subst)
 field(arrow-args, Arrow, List(Arg))
+
+field(lambda-token, Lambda, Token)
+field(lambda-outer-ctx, Lambda, Ctx)
+field(lambda-inner-ctx, Lambda, Ctx)
+field(lambda-dom, Lambda, Type)
+field(lambda-mid, Lambda, Type)
+field(lambda-cod, Lambda, Type)
+field(lambda-params, Lambda, List(Var))
+field(lambda-body, Lambda, Arrow)
 
 # mirth/data/prim
 table(Prim)

@@ -307,14 +307,25 @@ def(elab-arrow-op!, Arrow -- Type,
     ))
 
 def(elab-arrow-op-name!, Arrow Name -- Type,
-    name-value@ match(
-        DEF_BUFFER -> elab-arrow-op-buffer!,
-        DEF_EXTERNAL -> elab-arrow-op-external!,
-        DEF_WORD -> elab-arrow-op-word!,
-        DEF_PRIM -> elab-arrow-op-prim!,
-        DEF_TAG -> elab-arrow-op-tag!,
-        _ -> drop arrow-token@ "Unknown word." emit-error! TYPE_ERROR
+    over arrow-ctx@ dip(dup) ctx-lookup-maybe match(
+        NONE ->
+            name-value@ match(
+                DEF_BUFFER -> elab-arrow-op-buffer!,
+                DEF_EXTERNAL -> elab-arrow-op-external!,
+                DEF_WORD -> elab-arrow-op-word!,
+                DEF_PRIM -> elab-arrow-op-prim!,
+                DEF_TAG -> elab-arrow-op-tag!,
+                _ -> drop arrow-token@ "Unknown word." emit-error! TYPE_ERROR
+            ),
+        SOME ->
+            nip elab-arrow-op-var!
     ))
+
+def(elab-arrow-op-var!, Arrow Var -- Type,
+    # TODO: distinguish "push" vars from "run" vars (and from "type" vars)
+    var-type?
+    dip(OP_VAR over arrow-op!)
+    dip(arrow-dom@) T*)
 
 def(elab-arrow-op-int!, Arrow Int -- Type,
     OP_INT over arrow-op!
@@ -352,12 +363,50 @@ def(elab-arrow-op-prim!, Arrow Prim -- Type,
     dup PRIM_MATCH == if(
         drop elab-arrow-op-match!,
 
+    dup PRIM_LAMBDA == if(
+        drop elab-arrow-op-lambda!,
+
     prim-type? type-is-error if(
         drop arrow-token@ "compiler error: prim type missing" emit-fatal-error!,
 
         dup2 OP_PRIM swap arrow-op!
         prim-type@ elab-arrow-op-apply-fresh!
-    )))
+    ))))
+
+def(elab-arrow-op-lambda!, Arrow -- Type,
+    Lambda.alloc!
+    dup2 OP_LAMBDA swap arrow-op!
+    over arrow-ctx@ over lambda-outer-ctx!
+    over arrow-dom@ over lambda-dom!
+    dip(arrow-token@) tuck lambda-token!
+    elab-lambda!)
+
+def(elab-lambda!, Lambda -- Type,
+    elab-lambda-params!
+    elab-lambda-body!
+    lambda-cod@)
+
+def(elab-lambda-params!, Lambda -- Lambda,
+    lambda-outer-ctx? over lambda-inner-ctx!
+    lambda-dom? over lambda-mid!
+    lambda-token? token-args-1
+    while(sig-token-is-type-var?, token-succ)
+    expect-token-arrow token-pred
+    while(sig-token-is-type-var?,
+        dip(lambda-mid? type-expand-tensor dip(over lambda-mid!))
+        dup dip(
+            token-name@ var-new! tuck var-type!
+            dip(lambda-params?) dup dip(snoc over lambda-params!)
+            dip(lambda-inner-ctx?) ctx-new! over lambda-inner-ctx!
+        )
+        token-pred)
+    drop)
+def(elab-lambda-body!, Lambda -- Lambda,
+    lambda-token? token-args-1 while(sig-token-is-type-var?, token-succ) token-succ
+    dip(lambda-mid? dip(lambda-inner-ctx?))
+    elab-arrow-fwd!
+    dip(over lambda-body!)
+    arrow-dom@ over lambda-cod!)
 
 def(elab-arrow-op-match!, Arrow -- Type,
     Match.alloc!

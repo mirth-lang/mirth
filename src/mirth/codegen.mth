@@ -1107,7 +1107,27 @@ c99-emit-arrow-op! =
             ))),
         OP_MATCH ->
             nip c99-emit-match!,
+        OP_LAMBDA ->
+            nip c99-emit-lambda!,
+        OP_VAR ->
+            nip c99-emit-var!,
     )
+
+def(c99-emit-var!, Var -- +IO,
+    "    push_value(var_" . var-name? .name ");" ;
+    "    incref(var_" . var-name@ .name ");" ;
+    )
+
+def(c99-emit-lambda!, Lambda -- +IO,
+    "    {" ;
+    lambda-params? while(is-snoc?, unsnoc
+        "    value_t var_" . var-name@ .name " = pop_value();" ;
+        ) drop
+    lambda-body? c99-emit-arrow!
+    lambda-params@ while(is-snoc?, unsnoc
+        "    decref(var_" . var-name@ .name ");" ;
+        ) drop
+    "    }" ;)
 
 def(c99-emit-match!, Match -- +IO,
     "    switch (get_top_data_tag()) {" ;
