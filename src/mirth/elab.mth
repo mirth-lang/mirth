@@ -396,7 +396,7 @@ def(elab-lambda-params!, Lambda -- Lambda,
         dip(lambda-mid? type-expand-tensor dip(over lambda-mid!))
         dup dip(
             token-name@ var-new! tuck var-type!
-            dip(lambda-params?) dup dip(snoc over lambda-params!)
+            dip(lambda-params?) dup dip(swap cons over lambda-params!)
             dip(lambda-inner-ctx?) ctx-new! over lambda-inner-ctx!
         )
         token-pred)

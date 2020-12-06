@@ -20004,7 +20004,8 @@ void mwelab_lambda_params_21_ (void){
       push_value(d3); }
     mwdup();
     { value_t d3 = pop_value();
-    mwsnoc();
+    mwswap();
+    mwcons();
     mwover();
     mwlambda_params_21_();
       push_value(d3); }
