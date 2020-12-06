@@ -2841,25 +2841,31 @@ void mwTYPE_ELAB (void) {
  void mwtest_table_int_buffer (void) { push_ptr((void*)btest_table_int_buffer); }
 
 
- void mwtrip (void);
  void mwrotr (void);
  void mwrotl (void);
  void mwover (void);
  void mwtuck (void);
  void mwnip (void);
+ void mwtrip (void);
+ void mwquad (void);
  void mwswap2 (void);
+ void mwswap3 (void);
+ void mwswap4 (void);
  void mwdup2 (void);
  void mwdup3 (void);
+ void mwdup4 (void);
  void mwdrop2 (void);
  void mwdrop3 (void);
  void mwdrop4 (void);
  void mwdrop5 (void);
+ void mwrot2r (void);
  void mwrot3r (void);
  void mwrot4r (void);
  void mwrot5r (void);
  void mwrot6r (void);
  void mwrot7r (void);
  void mwrot8r (void);
+ void mwrot2l (void);
  void mwrot3l (void);
  void mwrot4l (void);
  void mwrot5l (void);
@@ -4213,11 +4219,6 @@ void mwTYPE_ELAB (void) {
  void mwcompile_21_ (void);
  void mwmain (void);
 
-void mwtrip (void){
-    mwdup();
-    mwdup();
-}
-
 void mwrotr (void){
     mwswap();
     { value_t d1 = pop_value();
@@ -4252,130 +4253,586 @@ void mwnip (void){
       push_value(d1); }
 }
 
+void mwtrip (void){
+    {
+    value_t var_a = pop_value();
+    push_value(var_a);
+    incref(var_a);
+    push_value(var_a);
+    incref(var_a);
+    push_value(var_a);
+    incref(var_a);
+    decref(var_a);
+    }
+}
+
+void mwquad (void){
+    {
+    value_t var_a = pop_value();
+    push_value(var_a);
+    incref(var_a);
+    push_value(var_a);
+    incref(var_a);
+    push_value(var_a);
+    incref(var_a);
+    push_value(var_a);
+    incref(var_a);
+    decref(var_a);
+    }
+}
+
 void mwswap2 (void){
-    { value_t d1 = pop_value();
-    mwrotr();
-      push_value(d1); }
-    mwrotr();
+    {
+    value_t var_b2 = pop_value();
+    value_t var_b1 = pop_value();
+    value_t var_a2 = pop_value();
+    value_t var_a1 = pop_value();
+    push_value(var_b1);
+    incref(var_b1);
+    push_value(var_b2);
+    incref(var_b2);
+    push_value(var_a1);
+    incref(var_a1);
+    push_value(var_a2);
+    incref(var_a2);
+    decref(var_b2);
+    decref(var_b1);
+    decref(var_a2);
+    decref(var_a1);
+    }
+}
+
+void mwswap3 (void){
+    {
+    value_t var_b3 = pop_value();
+    value_t var_b2 = pop_value();
+    value_t var_b1 = pop_value();
+    value_t var_a3 = pop_value();
+    value_t var_a2 = pop_value();
+    value_t var_a1 = pop_value();
+    push_value(var_b1);
+    incref(var_b1);
+    push_value(var_b2);
+    incref(var_b2);
+    push_value(var_b3);
+    incref(var_b3);
+    push_value(var_a1);
+    incref(var_a1);
+    push_value(var_a2);
+    incref(var_a2);
+    push_value(var_a3);
+    incref(var_a3);
+    decref(var_b3);
+    decref(var_b2);
+    decref(var_b1);
+    decref(var_a3);
+    decref(var_a2);
+    decref(var_a1);
+    }
+}
+
+void mwswap4 (void){
+    {
+    value_t var_b4 = pop_value();
+    value_t var_b3 = pop_value();
+    value_t var_b2 = pop_value();
+    value_t var_b1 = pop_value();
+    value_t var_a4 = pop_value();
+    value_t var_a3 = pop_value();
+    value_t var_a2 = pop_value();
+    value_t var_a1 = pop_value();
+    push_value(var_b1);
+    incref(var_b1);
+    push_value(var_b2);
+    incref(var_b2);
+    push_value(var_b3);
+    incref(var_b3);
+    push_value(var_b4);
+    incref(var_b4);
+    push_value(var_a1);
+    incref(var_a1);
+    push_value(var_a2);
+    incref(var_a2);
+    push_value(var_a3);
+    incref(var_a3);
+    push_value(var_a4);
+    incref(var_a4);
+    decref(var_b4);
+    decref(var_b3);
+    decref(var_b2);
+    decref(var_b1);
+    decref(var_a4);
+    decref(var_a3);
+    decref(var_a2);
+    decref(var_a1);
+    }
 }
 
 void mwdup2 (void){
-    mwover();
-    mwover();
+    {
+    value_t var_a2 = pop_value();
+    value_t var_a1 = pop_value();
+    push_value(var_a1);
+    incref(var_a1);
+    push_value(var_a2);
+    incref(var_a2);
+    push_value(var_a1);
+    incref(var_a1);
+    push_value(var_a2);
+    incref(var_a2);
+    decref(var_a2);
+    decref(var_a1);
+    }
 }
 
 void mwdup3 (void){
-    { value_t d1 = pop_value();
-    mwdup2();
-      push_value(d1); }
-    mwdup();
-    { value_t d1 = pop_value();
-    mwrotr();
-      push_value(d1); }
+    {
+    value_t var_a3 = pop_value();
+    value_t var_a2 = pop_value();
+    value_t var_a1 = pop_value();
+    push_value(var_a1);
+    incref(var_a1);
+    push_value(var_a2);
+    incref(var_a2);
+    push_value(var_a3);
+    incref(var_a3);
+    push_value(var_a1);
+    incref(var_a1);
+    push_value(var_a2);
+    incref(var_a2);
+    push_value(var_a3);
+    incref(var_a3);
+    decref(var_a3);
+    decref(var_a2);
+    decref(var_a1);
+    }
+}
+
+void mwdup4 (void){
+    {
+    value_t var_a4 = pop_value();
+    value_t var_a3 = pop_value();
+    value_t var_a2 = pop_value();
+    value_t var_a1 = pop_value();
+    push_value(var_a1);
+    incref(var_a1);
+    push_value(var_a2);
+    incref(var_a2);
+    push_value(var_a3);
+    incref(var_a3);
+    push_value(var_a4);
+    incref(var_a4);
+    push_value(var_a1);
+    incref(var_a1);
+    push_value(var_a2);
+    incref(var_a2);
+    push_value(var_a3);
+    incref(var_a3);
+    push_value(var_a4);
+    incref(var_a4);
+    decref(var_a4);
+    decref(var_a3);
+    decref(var_a2);
+    decref(var_a1);
+    }
 }
 
 void mwdrop2 (void){
-    mwdrop();
-    mwdrop();
+    {
+    value_t var_b = pop_value();
+    value_t var_a = pop_value();
+    decref(var_b);
+    decref(var_a);
+    }
 }
 
 void mwdrop3 (void){
-    mwdrop();
-    mwdrop();
-    mwdrop();
+    {
+    value_t var_c = pop_value();
+    value_t var_b = pop_value();
+    value_t var_a = pop_value();
+    decref(var_c);
+    decref(var_b);
+    decref(var_a);
+    }
 }
 
 void mwdrop4 (void){
-    mwdrop();
-    mwdrop();
-    mwdrop();
-    mwdrop();
+    {
+    value_t var_d = pop_value();
+    value_t var_c = pop_value();
+    value_t var_b = pop_value();
+    value_t var_a = pop_value();
+    decref(var_d);
+    decref(var_c);
+    decref(var_b);
+    decref(var_a);
+    }
 }
 
 void mwdrop5 (void){
-    mwdrop();
-    mwdrop();
-    mwdrop();
-    mwdrop();
-    mwdrop();
+    {
+    value_t var_e = pop_value();
+    value_t var_d = pop_value();
+    value_t var_c = pop_value();
+    value_t var_b = pop_value();
+    value_t var_a = pop_value();
+    decref(var_e);
+    decref(var_d);
+    decref(var_c);
+    decref(var_b);
+    decref(var_a);
+    }
+}
+
+void mwrot2r (void){
+    {
+    value_t var_y = pop_value();
+    value_t var_x = pop_value();
+    push_value(var_y);
+    incref(var_y);
+    push_value(var_x);
+    incref(var_x);
+    decref(var_y);
+    decref(var_x);
+    }
 }
 
 void mwrot3r (void){
-    mwrotr();
+    {
+    value_t var_y = pop_value();
+    value_t var_x2 = pop_value();
+    value_t var_x1 = pop_value();
+    push_value(var_y);
+    incref(var_y);
+    push_value(var_x1);
+    incref(var_x1);
+    push_value(var_x2);
+    incref(var_x2);
+    decref(var_y);
+    decref(var_x2);
+    decref(var_x1);
+    }
 }
 
 void mwrot4r (void){
-    mwswap();
-    { value_t d1 = pop_value();
-    mwrot3r();
-      push_value(d1); }
+    {
+    value_t var_y = pop_value();
+    value_t var_x3 = pop_value();
+    value_t var_x2 = pop_value();
+    value_t var_x1 = pop_value();
+    push_value(var_y);
+    incref(var_y);
+    push_value(var_x1);
+    incref(var_x1);
+    push_value(var_x2);
+    incref(var_x2);
+    push_value(var_x3);
+    incref(var_x3);
+    decref(var_y);
+    decref(var_x3);
+    decref(var_x2);
+    decref(var_x1);
+    }
 }
 
 void mwrot5r (void){
-    mwswap();
-    { value_t d1 = pop_value();
-    mwrot4r();
-      push_value(d1); }
+    {
+    value_t var_y = pop_value();
+    value_t var_x4 = pop_value();
+    value_t var_x3 = pop_value();
+    value_t var_x2 = pop_value();
+    value_t var_x1 = pop_value();
+    push_value(var_y);
+    incref(var_y);
+    push_value(var_x1);
+    incref(var_x1);
+    push_value(var_x2);
+    incref(var_x2);
+    push_value(var_x3);
+    incref(var_x3);
+    push_value(var_x4);
+    incref(var_x4);
+    decref(var_y);
+    decref(var_x4);
+    decref(var_x3);
+    decref(var_x2);
+    decref(var_x1);
+    }
 }
 
 void mwrot6r (void){
-    mwswap();
-    { value_t d1 = pop_value();
-    mwrot5r();
-      push_value(d1); }
+    {
+    value_t var_y = pop_value();
+    value_t var_x5 = pop_value();
+    value_t var_x4 = pop_value();
+    value_t var_x3 = pop_value();
+    value_t var_x2 = pop_value();
+    value_t var_x1 = pop_value();
+    push_value(var_y);
+    incref(var_y);
+    push_value(var_x1);
+    incref(var_x1);
+    push_value(var_x2);
+    incref(var_x2);
+    push_value(var_x3);
+    incref(var_x3);
+    push_value(var_x4);
+    incref(var_x4);
+    push_value(var_x5);
+    incref(var_x5);
+    decref(var_y);
+    decref(var_x5);
+    decref(var_x4);
+    decref(var_x3);
+    decref(var_x2);
+    decref(var_x1);
+    }
 }
 
 void mwrot7r (void){
-    mwswap();
-    { value_t d1 = pop_value();
-    mwrot6r();
-      push_value(d1); }
+    {
+    value_t var_y = pop_value();
+    value_t var_x6 = pop_value();
+    value_t var_x5 = pop_value();
+    value_t var_x4 = pop_value();
+    value_t var_x3 = pop_value();
+    value_t var_x2 = pop_value();
+    value_t var_x1 = pop_value();
+    push_value(var_y);
+    incref(var_y);
+    push_value(var_x1);
+    incref(var_x1);
+    push_value(var_x2);
+    incref(var_x2);
+    push_value(var_x3);
+    incref(var_x3);
+    push_value(var_x4);
+    incref(var_x4);
+    push_value(var_x5);
+    incref(var_x5);
+    push_value(var_x6);
+    incref(var_x6);
+    decref(var_y);
+    decref(var_x6);
+    decref(var_x5);
+    decref(var_x4);
+    decref(var_x3);
+    decref(var_x2);
+    decref(var_x1);
+    }
 }
 
 void mwrot8r (void){
-    mwswap();
-    { value_t d1 = pop_value();
-    mwrot7r();
-      push_value(d1); }
+    {
+    value_t var_y = pop_value();
+    value_t var_x7 = pop_value();
+    value_t var_x6 = pop_value();
+    value_t var_x5 = pop_value();
+    value_t var_x4 = pop_value();
+    value_t var_x3 = pop_value();
+    value_t var_x2 = pop_value();
+    value_t var_x1 = pop_value();
+    push_value(var_y);
+    incref(var_y);
+    push_value(var_x1);
+    incref(var_x1);
+    push_value(var_x2);
+    incref(var_x2);
+    push_value(var_x3);
+    incref(var_x3);
+    push_value(var_x4);
+    incref(var_x4);
+    push_value(var_x5);
+    incref(var_x5);
+    push_value(var_x6);
+    incref(var_x6);
+    push_value(var_x7);
+    incref(var_x7);
+    decref(var_y);
+    decref(var_x7);
+    decref(var_x6);
+    decref(var_x5);
+    decref(var_x4);
+    decref(var_x3);
+    decref(var_x2);
+    decref(var_x1);
+    }
+}
+
+void mwrot2l (void){
+    {
+    value_t var_x = pop_value();
+    value_t var_y = pop_value();
+    push_value(var_x);
+    incref(var_x);
+    push_value(var_y);
+    incref(var_y);
+    decref(var_x);
+    decref(var_y);
+    }
 }
 
 void mwrot3l (void){
-    mwrotl();
+    {
+    value_t var_x2 = pop_value();
+    value_t var_x1 = pop_value();
+    value_t var_y = pop_value();
+    push_value(var_x1);
+    incref(var_x1);
+    push_value(var_x2);
+    incref(var_x2);
+    push_value(var_y);
+    incref(var_y);
+    decref(var_x2);
+    decref(var_x1);
+    decref(var_y);
+    }
 }
 
 void mwrot4l (void){
-    { value_t d1 = pop_value();
-    mwrot3l();
-      push_value(d1); }
-    mwswap();
+    {
+    value_t var_x3 = pop_value();
+    value_t var_x2 = pop_value();
+    value_t var_x1 = pop_value();
+    value_t var_y = pop_value();
+    push_value(var_x1);
+    incref(var_x1);
+    push_value(var_x2);
+    incref(var_x2);
+    push_value(var_x3);
+    incref(var_x3);
+    push_value(var_y);
+    incref(var_y);
+    decref(var_x3);
+    decref(var_x2);
+    decref(var_x1);
+    decref(var_y);
+    }
 }
 
 void mwrot5l (void){
-    { value_t d1 = pop_value();
-    mwrot4l();
-      push_value(d1); }
-    mwswap();
+    {
+    value_t var_x4 = pop_value();
+    value_t var_x3 = pop_value();
+    value_t var_x2 = pop_value();
+    value_t var_x1 = pop_value();
+    value_t var_y = pop_value();
+    push_value(var_x1);
+    incref(var_x1);
+    push_value(var_x2);
+    incref(var_x2);
+    push_value(var_x3);
+    incref(var_x3);
+    push_value(var_x4);
+    incref(var_x4);
+    push_value(var_y);
+    incref(var_y);
+    decref(var_x4);
+    decref(var_x3);
+    decref(var_x2);
+    decref(var_x1);
+    decref(var_y);
+    }
 }
 
 void mwrot6l (void){
-    { value_t d1 = pop_value();
-    mwrot5l();
-      push_value(d1); }
-    mwswap();
+    {
+    value_t var_x5 = pop_value();
+    value_t var_x4 = pop_value();
+    value_t var_x3 = pop_value();
+    value_t var_x2 = pop_value();
+    value_t var_x1 = pop_value();
+    value_t var_y = pop_value();
+    push_value(var_x1);
+    incref(var_x1);
+    push_value(var_x2);
+    incref(var_x2);
+    push_value(var_x3);
+    incref(var_x3);
+    push_value(var_x4);
+    incref(var_x4);
+    push_value(var_x5);
+    incref(var_x5);
+    push_value(var_y);
+    incref(var_y);
+    decref(var_x5);
+    decref(var_x4);
+    decref(var_x3);
+    decref(var_x2);
+    decref(var_x1);
+    decref(var_y);
+    }
 }
 
 void mwrot7l (void){
-    { value_t d1 = pop_value();
-    mwrot6l();
-      push_value(d1); }
-    mwswap();
+    {
+    value_t var_x6 = pop_value();
+    value_t var_x5 = pop_value();
+    value_t var_x4 = pop_value();
+    value_t var_x3 = pop_value();
+    value_t var_x2 = pop_value();
+    value_t var_x1 = pop_value();
+    value_t var_y = pop_value();
+    push_value(var_x1);
+    incref(var_x1);
+    push_value(var_x2);
+    incref(var_x2);
+    push_value(var_x3);
+    incref(var_x3);
+    push_value(var_x4);
+    incref(var_x4);
+    push_value(var_x5);
+    incref(var_x5);
+    push_value(var_x6);
+    incref(var_x6);
+    push_value(var_y);
+    incref(var_y);
+    decref(var_x6);
+    decref(var_x5);
+    decref(var_x4);
+    decref(var_x3);
+    decref(var_x2);
+    decref(var_x1);
+    decref(var_y);
+    }
 }
 
 void mwrot8l (void){
-    { value_t d1 = pop_value();
-    mwrot7l();
-      push_value(d1); }
-    mwswap();
+    {
+    value_t var_x7 = pop_value();
+    value_t var_x6 = pop_value();
+    value_t var_x5 = pop_value();
+    value_t var_x4 = pop_value();
+    value_t var_x3 = pop_value();
+    value_t var_x2 = pop_value();
+    value_t var_x1 = pop_value();
+    value_t var_y = pop_value();
+    push_value(var_x1);
+    incref(var_x1);
+    push_value(var_x2);
+    incref(var_x2);
+    push_value(var_x3);
+    incref(var_x3);
+    push_value(var_x4);
+    incref(var_x4);
+    push_value(var_x5);
+    incref(var_x5);
+    push_value(var_x6);
+    incref(var_x6);
+    push_value(var_x7);
+    incref(var_x7);
+    push_value(var_y);
+    incref(var_y);
+    decref(var_x7);
+    decref(var_x6);
+    decref(var_x5);
+    decref(var_x4);
+    decref(var_x3);
+    decref(var_x2);
+    decref(var_x1);
+    decref(var_y);
+    }
 }
 
 void mwcast (void){

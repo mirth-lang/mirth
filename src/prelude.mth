@@ -1,8 +1,5 @@
 module(prelude)
 
-trip : a -- a a a
-trip = dup dup
-
 rotr : a b c -- c a b
 rotr = swap dip(swap)
 
@@ -18,54 +15,69 @@ tuck = dup dip(swap)
 nip : a b -- b
 nip = dip(drop)
 
-swap2 : a b c d -- c d a b
-swap2 = dip(rotr) rotr
+trip : a -- a a a
+quad : a -- a a a a
 
-dup2 : a b -- a b a b
-dup2 = over over
+trip = \(a -> a a a)
+quad = \(a -> a a a a)
 
-dup3 : a b c -- a b c a b c
-dup3 = dip(dup2) dup dip(rotr)
+swap2 : a1 a2 b1 b2 -- b1 b2 a1 a2
+swap3 : a1 a2 a3 b1 b2 b3 -- b1 b2 b3 a1 a2 a3
+swap4 : a1 a2 a3 a4 b1 b2 b3 b4 -- b1 b2 b3 b4 a1 a2 a3 a4
+
+swap2 = \(a1 a2 b1 b2 -> b1 b2 a1 a2)
+swap3 = \(a1 a2 a3 b1 b2 b3 -> b1 b2 b3 a1 a2 a3)
+swap4 = \(a1 a2 a3 a4 b1 b2 b3 b4 -> b1 b2 b3 b4 a1 a2 a3 a4)
+
+dup2 : a1 a2 -- a1 a2 a1 a2
+dup3 : a1 a2 a3 -- a1 a2 a3 a1 a2 a3
+dup4 : a1 a2 a3 a4 -- a1 a2 a3 a4 a1 a2 a3 a4
+
+dup2 = \(a1 a2 -> a1 a2 a1 a2)
+dup3 = \(a1 a2 a3 -> a1 a2 a3 a1 a2 a3)
+dup4 = \(a1 a2 a3 a4 -> a1 a2 a3 a4 a1 a2 a3 a4)
 
 drop2 : a b --
-drop2 = drop drop
-
 drop3 : a b c --
-drop3 = drop drop drop
-
 drop4 : a b c d --
-drop4 = drop drop drop drop
-
 drop5 : a b c d e --
-drop5 = drop drop drop drop drop
 
-rot3r : a b c -- c a b
-rot4r : a b c d -- d a b c
-rot5r : a b c d e -- e a b c d
-rot6r : a b c d e f -- f a b c d e
-rot7r : a b c d e f g -- g a b c d e f
-rot8r : a b c d e f g h -- h a b c d e f g
+drop2 = \(a b ->)
+drop3 = \(a b c ->)
+drop4 = \(a b c d ->)
+drop5 = \(a b c d e ->)
 
-rot3l : a b c -- b c a
-rot4l : a b c d -- b c d a
-rot5l : a b c d e -- b c d e a
-rot6l : a b c d e f -- b c d e f a
-rot7l : a b c d e f g -- b c d e f g a
-rot8l : a b c d e f g h -- b c d e f g h a
+rot2r : x y -- y x
+rot3r : x1 x2 y -- y x1 x2
+rot4r : x1 x2 x3 y -- y x1 x2 x3
+rot5r : x1 x2 x3 x4 y -- y x1 x2 x3 x4
+rot6r : x1 x2 x3 x4 x5 y -- y x1 x2 x3 x4 x5
+rot7r : x1 x2 x3 x4 x5 x6 y -- y x1 x2 x3 x4 x5 x6
+rot8r : x1 x2 x3 x4 x5 x6 x7 y -- y x1 x2 x3 x4 x5 x6 x7
 
-rot3r = rotr
-rot4r = swap dip(rot3r)
-rot5r = swap dip(rot4r)
-rot6r = swap dip(rot5r)
-rot7r = swap dip(rot6r)
-rot8r = swap dip(rot7r)
+rot2l : y x -- x y
+rot3l : y x1 x2 -- x1 x2 y
+rot4l : y x1 x2 x3 -- x1 x2 x3 y
+rot5l : y x1 x2 x3 x4 -- x1 x2 x3 x4 y
+rot6l : y x1 x2 x3 x4 x5 -- x1 x2 x3 x4 x5 y
+rot7l : y x1 x2 x3 x4 x5 x6 -- x1 x2 x3 x4 x5 x6 y
+rot8l : y x1 x2 x3 x4 x5 x6 x7 -- x1 x2 x3 x4 x5 x6 x7 y
 
-rot3l = rotl
-rot4l = dip(rot3l) swap
-rot5l = dip(rot4l) swap
-rot6l = dip(rot5l) swap
-rot7l = dip(rot6l) swap
-rot8l = dip(rot7l) swap
+rot2r = \(x y -> y x)
+rot3r = \(x1 x2 y -> y x1 x2)
+rot4r = \(x1 x2 x3 y -> y x1 x2 x3)
+rot5r = \(x1 x2 x3 x4 y -> y x1 x2 x3 x4)
+rot6r = \(x1 x2 x3 x4 x5 y -> y x1 x2 x3 x4 x5)
+rot7r = \(x1 x2 x3 x4 x5 x6 y -> y x1 x2 x3 x4 x5 x6)
+rot8r = \(x1 x2 x3 x4 x5 x6 x7 y -> y x1 x2 x3 x4 x5 x6 x7)
+
+rot2l = \(y x -> x y)
+rot3l = \(y x1 x2 -> x1 x2 y)
+rot4l = \(y x1 x2 x3 -> x1 x2 x3 y)
+rot5l = \(y x1 x2 x3 x4 -> x1 x2 x3 x4 y)
+rot6l = \(y x1 x2 x3 x4 x5 -> x1 x2 x3 x4 x5 y)
+rot7l = \(y x1 x2 x3 x4 x5 x6 -> x1 x2 x3 x4 x5 x6 y)
+rot8l = \(y x1 x2 x3 x4 x5 x6 x7 -> x1 x2 x3 x4 x5 x6 x7 y)
 
 def-type(Byte, U8)
 def-type(Char, U8)
