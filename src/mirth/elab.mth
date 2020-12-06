@@ -264,7 +264,7 @@ def(elab-word-body!, Word -- Arrow +Elab,
     )))
 
 def(elab-arrow!, Ctx Type Token -- Arrow,
-    dip(type-get-morphism) swap
+    dip(type-expand-morphism) swap
     dip(elab-arrow-fwd! arrow-dom? swap arrow-token@)
     swap elab-type-unify! drop2)
 
@@ -299,6 +299,7 @@ def(elab-arrow-op!, Arrow -- Type,
         TOKEN_NAME -> elab-arrow-op-name!,
         TOKEN_INT -> elab-arrow-op-int!,
         TOKEN_STR -> elab-arrow-op-str!,
+        TOKEN_LSQUARE -> drop arrow-token? elab-arrow-op-block!,
         TOKEN_LCURLY -> drop arrow-token? elab-arrow-op-stack-assertion!,
         _ ->
             drop arrow-token?
@@ -320,6 +321,20 @@ def(elab-arrow-op-name!, Arrow Name -- Type,
         SOME ->
             nip elab-arrow-op-var!
     ))
+
+def(my-block-user, Int a -- [Int -- Int],
+    #"" panic!)
+    drop
+    \(x -> [x +]))
+    #[10 +])
+
+def(elab-arrow-op-block!, Arrow Token -- Type,
+    dip(arrow-ctx?) meta-alloc! TMeta tuck
+    dip(token-args-1 elab-arrow!
+        Block.alloc! tuck block-arrow!
+        OP_BLOCK over arrow-op!
+        arrow-dom@)
+    type-expand T*)
 
 def(elab-arrow-op-var!, Arrow Var -- Type,
     # TODO: distinguish "push" vars from "run" vars (and from "type" vars)
@@ -386,6 +401,15 @@ def(elab-lambda!, Lambda -- Type,
     elab-lambda-body!
     lambda-cod@)
 
+def(elab-type-expand-tensor!, Type Token -- Type Type Token,
+    dip(dip(meta-alloc! TMeta meta-alloc! TMeta dup2 T*))
+    elab-type-unify! nip dip(dip(type-expand) type-expand))
+
+def(elab-lambda-pop-from-mid!, Lambda Token -- Lambda Type Token,
+    dip(lambda-mid?)
+    elab-type-expand-tensor!
+    dip(dip(over lambda-mid!)))
+
 def(elab-lambda-params!, Lambda -- Lambda,
     lambda-outer-ctx? over lambda-inner-ctx!
     lambda-dom? over lambda-mid!
@@ -393,8 +417,7 @@ def(elab-lambda-params!, Lambda -- Lambda,
     while(sig-token-is-type-var?, token-succ)
     expect-token-arrow token-pred
     while(sig-token-is-type-var?,
-        dip(lambda-mid? type-expand-tensor dip(over lambda-mid!))
-        dup dip(
+        elab-lambda-pop-from-mid! dup dip(
             token-name@ var-new! tuck var-type!
             dip(lambda-params?) dup dip(swap cons over lambda-params!)
             dip(lambda-inner-ctx?) ctx-new! over lambda-inner-ctx!

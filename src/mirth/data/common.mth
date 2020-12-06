@@ -155,6 +155,7 @@ data Op
     OP_MATCH -> Match
     OP_LAMBDA -> Lambda
     OP_VAR -> Var
+    OP_BLOCK -> Block
 end
 
 field(arrow-token, Arrow, Token)
@@ -175,6 +176,7 @@ field(lambda-params, Lambda, List(Var))
 field(lambda-body, Lambda, Arrow)
 
 field(block-arrow, Block, Arrow)
+field(block-needed, Block, Bool)
 
 # mirth/data/prim
 table(Prim)

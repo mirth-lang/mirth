@@ -72,6 +72,7 @@ def(run-output-c99!, Arrow Path -- +IO,
         c99-emit-word-sigs!
         c99-emit-block-sigs!
         c99-emit-word-defs!
+        c99-emit-block-defs!
         c99-emit-main!
         codegen-end!
     ))
@@ -138,6 +139,8 @@ def(c99-emit-header!, +IO,
     "   VT_C64 = 0x07," ; # c64
     "} value_tag_t;" ;;
 
+    "typedef void (*fnptr)(void);" ;;
+
     "typedef union value_payload_t {" ;
     "    void* vp_ptr;" ;
     "    u8 vp_u8;" ;
@@ -149,6 +152,7 @@ def(c99-emit-header!, +IO,
     "    i32 vp_i32;" ;
     "    i64 vp_i64;" ;
     "    bool vp_bool;" ;
+    "    fnptr vp_fnptr;" ;
     "} value_payload_t;" ;;
 
     "typedef struct value_t {" ;
@@ -274,6 +278,10 @@ def(c99-emit-prims!, +IO,
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_ptr;" ;
     "}";;
+    "fnptr pop_fnptr (void) {" ;
+    "    value_t v = pop_value();" ;
+    "    return v.payload.vp_fnptr;" ;
+    "}";;
     "u8 pop_u8 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_u8;" ;
@@ -322,6 +330,12 @@ def(c99-emit-prims!, +IO,
     "    value_t v = {0};" ;
     "    v.tag = VT_U64;" ;
     "    v.payload.vp_ptr = x;" ;
+    "    push_value(v);" ;
+    "}" ;;
+    "void push_fnptr (fnptr x) {" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_U64;" ;
+    "    v.payload.vp_fnptr = x;" ;
     "    push_value(v);" ;
     "}" ;;
     "void push_u8 (u8 x) {" ;
@@ -1070,7 +1084,7 @@ c99-emit-arrow-op! =
             # FIXME: just push a string literal.
         OP_WORD ->
             nip word-name@
-            "    mw" . .name "();" ;,
+            "    mw" . .name "();" ;, # TODO handle args
         OP_EXTERNAL ->
             nip external-name@
             "    mw" . .name "();" ;,
@@ -1112,26 +1126,72 @@ c99-emit-arrow-op! =
             nip c99-emit-lambda!,
         OP_VAR ->
             nip c99-emit-var!,
+        OP_BLOCK ->
+            nip c99-emit-block!,
+    )
+
+def(.var-val, Var -- +IO, "var_" . var-name? .name "_" . Var->Int .n)
+def(.var-ref, Var -- +IO, "ref_" . var-name? .name "_" . Var->Int .n)
+
+def(c99-pack-ctx!, Ctx -- +IO,
+    "    push_u64(0);" ;
+    ctx-vars@ while(is-cons?, uncons # TODO restrict to physical vars
+        swap var-is-physical? if(
+            c99-emit-var-push!
+            "    do_pack_cons();" ; ,
+            drop
+        )) drop
+    )
+
+def(c99-unpack-ctx!, Ctx -- +IO,
+    ctx-vars@ while(is-snoc?, unsnoc
+        var-is-physical? if(
+            "    do_pack_uncons();" ;
+            "    value_t " . dup .var-val " = pop_value();" ;
+            "    bool " . .var-ref " = false;" ; ,
+            drop
+        )) drop
+    "    do_drop();" ;
+    )
+
+def(c99-decref-ctx!, Ctx -- +IO,
+    ctx-vars@ while(is-snoc?, unsnoc
+        var-is-physical? if(
+            "    if (!" . dup .var-ref ")" ;
+            "        decref(" . .var-val ");" ; ,
+            drop
+        )) drop
+    )
+
+def(c99-emit-block!, Block -- +IO,
+    true over block-needed!
+    block-arrow? arrow-ctx@ c99-pack-ctx!
+    "    push_fnptr(&" . .block ");" ;
+    "    do_pack_cons();" ;
     )
 
 def(c99-emit-var!, Var -- +IO,
-    "    push_value(var_" . var-name? .name ");" ;
-    "    if (ref_" . var-name? .name ")" ;
-    "        incref(var_" . var-name? .name ");" ;
+    c99-emit-var-push!
+    ) # TODO: distinguish push var from run var
+
+def(c99-emit-var-push!, Var -- +IO,
+    "    push_value(" . dup .var-val ");" ;
+    "    if (" . dup .var-ref  ")" ;
+    "        incref(" . dup .var-val ");" ;
     "    else" ;
-    "        ref_" . var-name@ .name " = true;" ;
+    "        " . .var-ref " = true;" ;
     )
 
 def(c99-emit-lambda!, Lambda -- +IO,
     "    {" ;
     lambda-params? while(is-snoc?, unsnoc
-        "    value_t var_" . var-name? .name " = pop_value();" ;
-        "    bool ref_" . var-name@ .name " = false;" ;
+        "    value_t " . dup .var-val " = pop_value();" ;
+        "    bool " . .var-ref " = false;" ;
         ) drop
     lambda-body? c99-emit-arrow!
     lambda-params@ while(is-snoc?, unsnoc
-        "    if (!ref_" . var-name? .name ")" ;
-        "        decref(var_" . var-name@ .name ");" ;
+        "    if (!" . dup .var-ref ")" ;
+        "        decref(" . .var-val ");" ;
         ) drop
     "    }" ;)
 
@@ -1190,6 +1250,26 @@ def(c99-emit-block-sigs!, +IO,
 
 def(c99-emit-block-sig!, Block -- +IO,
     " void " . .block " (void);" ;)
+
+def(c99-emit-block-defs!, +IO,
+    1
+    while(dup Block.NUM int@ <=,
+        dup Int->Block c99-emit-block-def!
+        1+
+    )
+    drop .lf)
+
+def(c99-emit-block-def!, Block -- +IO,
+    block-needed? if(
+        "void " . dup .block " (void) {" ;
+        block-arrow@
+        arrow-ctx? c99-unpack-ctx!
+        dup c99-emit-arrow!
+        arrow-ctx@ c99-decref-ctx!
+        "}" ;,
+
+        drop
+    ))
 
 def(.block, Block -- +IO,
     block-arrow@ arrow-token@ "mb_" .

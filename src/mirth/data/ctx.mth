@@ -14,6 +14,12 @@ unCTX = match(CTX -> id)
 ctx-new! : Ctx Var -- Ctx
 ctx-new! = dip(unCTX) snoc CTX
 
+ctx-vars@ : Ctx -- List(Var)
+ctx-vars@ = unCTX
+
+ctx-vars? : Ctx -- Ctx List(Var)
+ctx-vars? = dup unCTX
+
 ctx-var@ : Ctx -- Var
 ctx-var@ = unCTX last
 
