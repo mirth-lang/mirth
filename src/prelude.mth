@@ -41,9 +41,9 @@ dip2 : *a c1 c2 [*a -- *b] -- *b c1 c2
 dip3 : *a c1 c2 c3 [*a -- *b] -- *b c1 c2 c3
 dip4 : *a c1 c2 c3 c4 [*a -- *b] -- *b c1 c2 c3 c4
 
-dip2 = \\(c1 c2 f -> f c1 c2)
-dip3 = \\(c1 c2 c3 f -> f c1 c2 c3)
-dip4 = \\(c1 c2 c3 c4 f -> f c1 c2 c3 c4)
+dip2 = \(c1 c2 [f] -> f c1 c2)
+dip3 = \(c1 c2 c3 [f] -> f c1 c2 c3)
+dip4 = \(c1 c2 c3 c4 [f] -> f c1 c2 c3 c4)
 
 drop2 : a b --
 drop3 : a b c --
@@ -851,7 +851,7 @@ unL3 =
 
 map : *c List(a) [*c a -- *c b] -- *c List(b)
 map =
-    \\(f ->
+    \([f] ->
         match(
             L0 -> L0,
             L1 -> f L1,
@@ -863,7 +863,7 @@ map =
 
 for : *c List(a) [*c a -- *c] -- *c
 for =
-    \\(f ->
+    \([f] ->
         match(
             L0 -> id,
             L1 -> f,
@@ -875,7 +875,7 @@ for =
 
 filter : *c List(a) [*c a -- *c a Bool] -- *c List(a)
 filter =
-    \\(f ->
+    \([f] ->
         match(
             LCAT -> drop dip(filter(f)) swap dip(filter(f)) swap cat,
             L0 -> L0,
@@ -889,7 +889,7 @@ filter =
 
 find : *c List(a) [*c a -- *c a Bool] -- *c Maybe(a)
 find =
-    \\(f ->
+    \([f] ->
         match(
             L0 -> NONE,
             L1 -> f if(SOME, drop NONE),

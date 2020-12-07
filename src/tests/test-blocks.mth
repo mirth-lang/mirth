@@ -8,7 +8,7 @@ add10 : [Int -- Int]
 add10 = [10 +]
 
 compose : [*a -- *b] [*b -- *c] -- [*a -- *c]
-compose = \\(f g -> [f g])
+compose = \([f] [g] -> [f g])
 
 add20 : [Int -- Int]
 add20 = add10 add10 compose

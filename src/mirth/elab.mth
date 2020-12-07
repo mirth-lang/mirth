@@ -419,13 +419,24 @@ def(elab-lambda-pop-from-mid!, Lambda Token -- Lambda Type Token,
     elab-type-expand-tensor!
     dip2(over lambda-mid!))
 
+def(token-is-lambda-param?, Token -- Token Bool,
+    sig-token-is-type-var? if(
+        token-has-args? not,
+    token-is-lsquare? if(
+        dup true
+        dip(token-succ sig-token-is-type-var?) &&
+        dip(token-succ token-is-rsquare?) &&
+        nip,
+        false
+    )))
+
 def(elab-new-lambda-params!, Lambda -- Lambda,
     lambda-outer-ctx? over lambda-inner-ctx!
     lambda-dom? over lambda-mid!
     lambda-token? token-args-1
-    while(sig-token-is-type-var?, token-succ)
+    while(token-is-lambda-param?, token-next)
     expect-token-arrow token-pred
-    while(sig-token-is-type-var?,
+    while(token-is-lambda-param?,
         elab-lambda-pop-from-mid! dup dip(
             token-name@ var-new!
             dip(type-expand type-is-morphism?)
@@ -434,24 +445,35 @@ def(elab-new-lambda-params!, Lambda -- Lambda,
             dip(lambda-params?) dup dip(swap cons over lambda-params!)
             dip(lambda-inner-ctx?) ctx-new! over lambda-inner-ctx!
         )
-        token-pred)
+        token-prev)
     drop)
 def(elab-lambda-params!, Lambda -- Lambda,
     lambda-outer-ctx? over lambda-inner-ctx!
     lambda-dom? over lambda-mid!
     lambda-token? token-args-1
-    while(sig-token-is-type-var?, token-succ)
-    expect-token-arrow token-pred
-    while(sig-token-is-type-var?,
+    while(token-is-lambda-param?, token-next)
+    expect-token-arrow token-prev
+    while(token-is-lambda-param?,
         elab-lambda-pop-from-mid! dup dip(
-            token-name@ var-new! tuck var-type!
+            sig-token-is-type-var? if(
+                token-name@ var-new! tuck var-type!,
+
+                token-succ dip(type-expand type-is-morphism?) swap if(
+                    token-name@ var-new!
+                    true over var-auto-run!
+                    tuck var-type!,
+
+                    "block pattern on non-block argument" emit-fatal-error!
+                )
+            )
             dip(lambda-params?) dup dip(swap cons over lambda-params!)
             dip(lambda-inner-ctx?) ctx-new! over lambda-inner-ctx!
         )
-        token-pred)
+        token-prev)
     drop)
 def(elab-lambda-body!, Lambda -- Lambda,
-    lambda-token? token-args-1 while(sig-token-is-type-var?, token-succ) token-succ
+    lambda-token? token-args-1
+    while(token-is-lambda-param?, token-next) token-succ
     dip(lambda-mid? dip(lambda-inner-ctx?))
     elab-arrow-fwd!
     dip(over lambda-body!)
