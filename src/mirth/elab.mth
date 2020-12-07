@@ -533,21 +533,15 @@ def(elab-arrow-op-apply!, Arrow Type -- Type,
     type-expand
 
     over arrow-token@ token-num-args
-    over type-num-params != if(
+    over type-max-num-params > if(
         over arrow-token@
-        "Wrong number of arguments." emit-fatal-error!
+        "Too many arguments." emit-fatal-error!
         drop2 TYPE_ERROR, # TODO: improve error message
 
-    type-is-param? if(
-        type-get-param
-        type-expand-morphism
-        dip(swap dip(elab-arrow-unify-dom!))
-        dip(elab-arrow-op-args! drop),
-
-        type-expand-morphism
-        dip(elab-arrow-unify-dom! drop)
-    )))
-
+    over arrow-token@ token-num-args
+    type-expand-params type-expand-morphism
+    dip(swap dip(elab-arrow-unify-dom!))
+    dip(elab-arrow-op-args! drop)))
 
 ||| Unify a type with the dom of an arrow, returning the original arrow.
 def(elab-arrow-unify-dom!, Arrow Type -- Arrow,

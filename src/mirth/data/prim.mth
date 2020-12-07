@@ -382,8 +382,8 @@ def(init-prims!, +Names,
     PRIM_DIP prim-ctx!
 
     dip(dip(TVar) TVar) TVar
-    dip(dup2 T-> P1 rotr)
-    tuck T* dip(T*) T-> T=>
+    dip(dup2) tuck T* dip(T*)
+    dip(dip(T->) swap T*) T->
     PRIM_DIP prim-type!
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
@@ -392,9 +392,8 @@ def(init-prims!, +Names,
     PRIM_IF prim-ctx!
 
     dip(TVar) TVar
-    dup2 T-> dup P2
-    dip(dip(TYPE_BOOL T*) T->)
-    swap T=>
+    dup2 T-> swap
+    dip(dip(TYPE_BOOL T*) dup dip(T*) T*) T->
     PRIM_IF prim-type!
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
@@ -402,11 +401,11 @@ def(init-prims!, +Names,
     PRIM_WHILE prim-ctx!
 
     TVar
-    dup dup TYPE_BOOL T* T->
-    over dup T-> P2
-    swap dup T-> T=>
+    dup
+    dup dip(dup T-> T*)
+    dup dip(dup TYPE_BOOL T* T-> T*)
+    T->
     PRIM_WHILE prim-type!
-
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
     "b" name-new! var-new-implicit! TYPE_TYPE over var-type!

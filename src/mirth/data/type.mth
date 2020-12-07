@@ -39,7 +39,6 @@ def(name-is-table?, Name -- Name Bool,
 
 def(T*, Type Type -- Type, TTensor)
 def(T->, Type Type -- Type, TMorphism)
-def(T=>, List(Type) Type -- Type, TParam)
 
 def(T0, Type, TYPE_UNIT)
 def(T1, Type -- Type, dip(T0) T*)
@@ -438,18 +437,11 @@ def(type-sig-needs-fresh-stack-rest?, Type -- Type Bool,
     TYPE_UNIT ==)
 
 def(type-freshen-sig-aux, Subst Type -- Subst Type,
-    type-expand type-is-param? if(
-        type-get-param
-        dip(param-freshen-aux drop) swap
-        dip(type-freshen-sig-aux) swap
-        T=>,
-
-        meta-alloc! TMeta rotr
-        type-expand-morphism
-        dip(type-freshen-sig-stack) swap
-        dip(type-freshen-sig-stack) swap
-        T-> dip(nip)
-    ))
+    meta-alloc! TMeta rotr
+    type-expand-morphism
+    dip(type-freshen-sig-stack) swap
+    dip(type-freshen-sig-stack) swap
+    T-> dip(nip))
 
 def(type-freshen-sig-stack, Type Subst Type -- Type Subst Type,
     type-expand
@@ -599,15 +591,47 @@ def(table-alloc!, Table,
 # Params #
 ##########
 
-def(P1, Type -- List(Type), L1)
-def(P2, Type Type -- List(Type), L2)
-def(P3, Type Type Type -- List(Type), L3)
-
-def(type-num-params, Type -- Int,
+def(type-max-num-params, Type -- Int,
     type-expand
     type-is-param? if(
         type-get-param drop len,
+    type-is-meta? if(
+        drop 1000000, # infinity params
+    type-is-morphism? if(
+        type-get-morphism drop 0 swap
+        while(type-expand type-is-tensor?,
+            type-get-tensor type-expand
+            type-is-morphism? if(
+                drop dip(1+),
+            type-is-meta? if(
+                drop dip(1+),
+                drop2 TYPE_UNIT
+            )))
+        type-is-meta? if(
+            drop 1000000 +, # infinity params
+            drop
+        ),
         drop 0
+    ))))
+
+def(type-expand-params, Type Int -- List(Type) Type,
+    dup 0 > if(
+        swap type-expand
+        type-is-param? if(
+            nip type-get-param, # imprecise ... but TParam is on the way out
+
+            type-expand-morphism
+            dip(
+                swap nil rotr
+                while(dup 0 >, 1-
+                    dip(
+                        type-expand-tensor
+                        swap dip(snoc)
+                    )) drop
+            ) T->
+        ),
+
+        drop nil swap
     ))
 
 def(param-freshen-aux, Subst List(Type) -- Subst List(Type) Bool,
