@@ -4568,18 +4568,22 @@ void mwTYPE_ELAB (void) {
  void mb_prelude_884_21 (void);
  void mb_prelude_885_32 (void);
  void mb_prelude_885_21 (void);
- void mb_prelude_895_28 (void);
- void mb_prelude_895_34 (void);
+ void mb_prelude_895_24 (void);
+ void mb_prelude_895_30 (void);
  void mb_prelude_897_21 (void);
  void mb_prelude_898_21 (void);
+ void mb_prelude_899_33 (void);
  void mb_prelude_899_21 (void);
  void mb_prelude_902_25 (void);
  void mb_prelude_902_21 (void);
  void mb_prelude_903_21 (void);
  void mb_prelude_904_25 (void);
+ void mb_prelude_904_38 (void);
  void mb_prelude_904_21 (void);
+ void mb_prelude_907_31 (void);
  void mb_prelude_907_26 (void);
  void mb_prelude_909_21 (void);
+ void mb_prelude_910_31 (void);
  void mb_prelude_910_21 (void);
  void mb_prelude_1052_21 (void);
  void mb_prelude_1052_25 (void);
@@ -8950,7 +8954,7 @@ void mwfind (void){
         incref(var_f_456);
     else
         ref_f_456 = true;
-    mwrun();
+    do_run();
     if (pop_u64()) {
     mwSOME();
     } else {
@@ -8967,7 +8971,7 @@ void mwfind (void){
         incref(var_f_456);
     else
         ref_f_456 = true;
-    mwrun();
+    do_run();
       push_value(d3); }
     mwswap();
     if (pop_u64()) {
@@ -8976,11 +8980,15 @@ void mwfind (void){
     } else {
     mwnip();
     mwL1();
+    push_u64(0);
     push_value(var_f_456);
     if (ref_f_456)
         incref(var_f_456);
     else
         ref_f_456 = true;
+    do_pack_cons();
+    push_fnptr(&mb_prelude_899_33);
+    do_pack_cons();
     mwfind();
     }
     break;
@@ -8995,7 +9003,7 @@ void mwfind (void){
         incref(var_f_456);
     else
         ref_f_456 = true;
-    mwrun();
+    do_run();
       push_value(d4); }
       push_value(d3); }
     mwrotl();
@@ -9007,11 +9015,15 @@ void mwfind (void){
     mwnip();
       push_value(d4); }
     mwL2();
+    push_u64(0);
     push_value(var_f_456);
     if (ref_f_456)
         incref(var_f_456);
     else
         ref_f_456 = true;
+    do_pack_cons();
+    push_fnptr(&mb_prelude_904_38);
+    do_pack_cons();
     mwfind();
     }
     break;
@@ -9021,11 +9033,15 @@ void mwfind (void){
     do_pack_uncons(); do_swap();
     mwdrop();
     { value_t d3 = pop_value();
+    push_u64(0);
     push_value(var_f_456);
     if (ref_f_456)
         incref(var_f_456);
     else
         ref_f_456 = true;
+    do_pack_cons();
+    push_fnptr(&mb_prelude_907_31);
+    do_pack_cons();
     mwfind();
       push_value(d3); }
     mwswap();
@@ -9034,11 +9050,15 @@ void mwfind (void){
     mwnip();
     } else {
     mwdrop();
+    push_u64(0);
     push_value(var_f_456);
     if (ref_f_456)
         incref(var_f_456);
     else
         ref_f_456 = true;
+    do_pack_cons();
+    push_fnptr(&mb_prelude_910_31);
+    do_pack_cons();
     mwfind();
     }
     break;
@@ -24994,6 +25014,62 @@ void mb_prelude_885_32 (void) {
     do_run();
     if (!ref_f_453)
         decref(var_f_453);
+}
+void mb_prelude_899_33 (void) {
+    do_pack_uncons();
+    value_t var_f_456 = pop_value();
+    bool ref_f_456 = false;
+    do_drop();
+    push_value(var_f_456);
+    if (ref_f_456)
+        incref(var_f_456);
+    else
+        ref_f_456 = true;
+    do_run();
+    if (!ref_f_456)
+        decref(var_f_456);
+}
+void mb_prelude_904_38 (void) {
+    do_pack_uncons();
+    value_t var_f_456 = pop_value();
+    bool ref_f_456 = false;
+    do_drop();
+    push_value(var_f_456);
+    if (ref_f_456)
+        incref(var_f_456);
+    else
+        ref_f_456 = true;
+    do_run();
+    if (!ref_f_456)
+        decref(var_f_456);
+}
+void mb_prelude_907_31 (void) {
+    do_pack_uncons();
+    value_t var_f_456 = pop_value();
+    bool ref_f_456 = false;
+    do_drop();
+    push_value(var_f_456);
+    if (ref_f_456)
+        incref(var_f_456);
+    else
+        ref_f_456 = true;
+    do_run();
+    if (!ref_f_456)
+        decref(var_f_456);
+}
+void mb_prelude_910_31 (void) {
+    do_pack_uncons();
+    value_t var_f_456 = pop_value();
+    bool ref_f_456 = false;
+    do_drop();
+    push_value(var_f_456);
+    if (ref_f_456)
+        incref(var_f_456);
+    else
+        ref_f_456 = true;
+    do_run();
+    if (!ref_f_456)
+        decref(var_f_456);
 }
 void mb_prelude_1201_23 (void) {
     do_drop();
