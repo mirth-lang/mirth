@@ -374,28 +374,12 @@ def(elab-arrow-op-prim!, Arrow Prim -- Type,
     dup PRIM_LAMBDA == if(
         drop elab-arrow-op-lambda!,
 
-    dup PRIM_NEW_LAMBDA == if(
-        drop elab-arrow-op-new-lambda!,
-
     prim-type? type-is-error if(
         drop arrow-token@ "compiler error: prim type missing" emit-fatal-error!,
 
         dup2 OP_PRIM swap arrow-op!
         prim-type@ elab-arrow-op-apply-fresh!
-    )))))
-
-def(elab-arrow-op-new-lambda!, Arrow -- Type,
-    Lambda.alloc!
-    dup2 OP_LAMBDA swap arrow-op!
-    over arrow-ctx@ over lambda-outer-ctx!
-    over arrow-dom@ over lambda-dom!
-    dip(arrow-token@) tuck lambda-token!
-    elab-new-lambda!)
-
-def(elab-new-lambda!, Lambda -- Type,
-    elab-new-lambda-params!
-    elab-lambda-body!
-    lambda-cod@)
+    ))))
 
 def(elab-arrow-op-lambda!, Arrow -- Type,
     Lambda.alloc!
@@ -430,23 +414,6 @@ def(token-is-lambda-param?, Token -- Token Bool,
         false
     )))
 
-def(elab-new-lambda-params!, Lambda -- Lambda,
-    lambda-outer-ctx? over lambda-inner-ctx!
-    lambda-dom? over lambda-mid!
-    lambda-token? token-args-1
-    while(token-is-lambda-param?, token-next)
-    expect-token-arrow token-pred
-    while(token-is-lambda-param?,
-        elab-lambda-pop-from-mid! dup dip(
-            token-name@ var-new!
-            dip(type-expand type-is-morphism?)
-            tuck var-auto-run!
-            tuck var-type!
-            dip(lambda-params?) dup dip(swap cons over lambda-params!)
-            dip(lambda-inner-ctx?) ctx-new! over lambda-inner-ctx!
-        )
-        token-prev)
-    drop)
 def(elab-lambda-params!, Lambda -- Lambda,
     lambda-outer-ctx? over lambda-inner-ctx!
     lambda-dom? over lambda-mid!
