@@ -590,15 +590,38 @@ def(elab-arrow-op-args!, Arrow List(Type) -- Arrow,
     dip(arrow-token? token-succ)
     while(is-cons?,
         dip(token-succ) uncons
-        dip(
-            over
-            dip2(over arrow-ctx@)
-            elab-arrow! Block.alloc! tuck block-arrow! Block->Arg
-            swap token-next-arg-end
-            dip(arrow-arg-add!)
-        )
+        dip(elab-arrow-arg!)
     )
     drop2)
+
+||| Elaborate one arg of a given type, move token to the end of the argument.
+def(elab-arrow-arg!, Arrow Token Type -- Arrow Token,
+    over token-is-name? dip(token-succ token-is-arg-end? nip) && if(
+        dup3 drop token-name@
+        dip(arrow-ctx@) swap ctx-lookup-maybe
+        match(
+            SOME ->
+                var-auto-run? if(
+                    elab-arrow-arg-var-run!,
+                    drop elab-arrow-arg-block!
+                ),
+            NONE -> elab-arrow-arg-block!
+        ),
+        elab-arrow-arg-block!
+    ))
+
+||| Elaborate ARG_BLOCK argument, move token to the end of the argument.
+def(elab-arrow-arg-block!, Arrow Token Type -- Arrow Token,
+    over dip2(over arrow-ctx@) elab-arrow!
+    Block.alloc! tuck block-arrow! ARG_BLOCK
+    swap token-next-arg-end
+    dip(arrow-arg-add!))
+
+||| Elaborate ARG_VAR_RUN argument, move token to the end of the argument.
+def(elab-arrow-arg-var-run!, Arrow Token Type Var -- Arrow Token,
+    dup dip(var-type@ rotl elab-type-unify! nip)
+    swap token-next-arg-end
+    dip(ARG_VAR_RUN arrow-arg-add!))
 
 ######################
 # Module Elaboration #

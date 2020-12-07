@@ -142,6 +142,7 @@ table(Block)
 
 data Arg
     ARG_BLOCK -> Block
+    ARG_VAR_RUN -> Var
 end
 data Op
     OP_NONE
