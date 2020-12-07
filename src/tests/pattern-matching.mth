@@ -45,7 +45,7 @@ foo-display = (
             int-print! " ]" str-print-ln!,
         FOO3 ->
             "[ " str-print!
-            dip(dip(int-print!)) " " str-print!
+            dip2(int-print!) " " str-print!
             dip(int-print!) " " str-print!
             int-print! " ]" str-print-ln!,
     )

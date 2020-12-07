@@ -80,16 +80,11 @@ def(elab-type-var!, TypeElab Token -- TypeElab Var Token,
     TYPE_TYPE elab-implicit-var!)
 
 def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
-    dip(dip(type-elab-ctx?))
-    over
-    dip(dip(
-        token-name@
-        dup2 swap ctx-has-name
-    ))
+    dip2(type-elab-ctx?) over
+    dip2(token-name@ dup2 swap ctx-has-name)
     rotl if(
-        dip(dip(over ctx-lookup var-type?))
+        dip2(over ctx-lookup var-type?)
         elab-type-unify! nip,
-
         dip(
             dip(var-new-implicit!)
             over var-type!
@@ -97,7 +92,7 @@ def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
         )
     )
     token-next
-    dip(dip(type-elab-ctx!)))
+    dip2(type-elab-ctx!))
 
 def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
     token-name?
@@ -197,12 +192,12 @@ def(elab-tag-ctx-sig!, Tag -- Ctx Type +Elab,
         { Tag TypeElab Type Type }
         T-> dip(type-elab-ctx)
         { Tag Ctx Type }
-        dup2 dip(dip(
+        dup2 dip2(
             rotl
             tuck tag-type-raw!
             tuck tag-ctx!
             true swap tag-sig-is-checked!
-        ))
+        )
     ))
 
 
@@ -219,12 +214,12 @@ def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
         external-sig?
         dip(type-elab-default)
         elab-type-sig! drop dip(type-elab-ctx)
-        dup2 dip(dip(
+        dup2 dip2(
             rotl
             tuck external-type!
             tuck external-ctx!
             true swap external-sig-is-checked!
-        ))
+        )
     ))
 
 def(elab-word-sig!, Word -- Type +Elab,
@@ -240,12 +235,12 @@ def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
         word-sig?
         dip(type-elab-default)
         elab-type-sig! drop dip(type-elab-ctx)
-        dup2 dip(dip(
+        dup2 dip2(
             rotl
             tuck word-type!
             tuck word-ctx!
             true swap word-sig-is-checked!
-        ))
+        )
     ))
 
 def(elab-word-body!, Word -- Arrow +Elab,
@@ -353,7 +348,7 @@ def(elab-arrow-op-stack-assertion!, Arrow Token -- Type,
     token-succ elab-type-stack!
     drop nip
     over arrow-token@
-    dip(dip(arrow-dom@ dup))
+    dip2(arrow-dom@ dup)
     elab-type-unify! drop2)
 
 def(elab-arrow-op-external!, Arrow External -- Type,
@@ -396,13 +391,13 @@ def(elab-lambda!, Lambda -- Type,
     lambda-cod@)
 
 def(elab-type-expand-tensor!, Type Token -- Type Type Token,
-    dip(dip(meta-alloc! TMeta meta-alloc! TMeta dup2 T*))
+    dip2(meta-alloc! TMeta meta-alloc! TMeta dup2 T*)
     elab-type-unify! nip dip(dip(type-expand) type-expand))
 
 def(elab-lambda-pop-from-mid!, Lambda Token -- Lambda Type Token,
     dip(lambda-mid?)
     elab-type-expand-tensor!
-    dip(dip(over lambda-mid!)))
+    dip2(over lambda-mid!))
 
 def(elab-lambda-params!, Lambda -- Lambda,
     lambda-outer-ctx? over lambda-inner-ctx!
@@ -494,10 +489,10 @@ def(elab-case-pattern!, Case Token -- Case Token,
 
             # set case pattern
             dup Tag->Pattern rotr
-            dip(dip(over case-pattern!))
+            dip2(over case-pattern!)
 
             # set case mid
-            dip(dip(case-match? match-dom@)) { Case Type Token Tag }
+            dip2(case-match? match-dom@) { Case Type Token Tag }
             elab-tag-sig! subst-nil swap type-freshen-sig
             { Case Type Token Subst Type }
             rotr dip(
@@ -519,8 +514,8 @@ def(elab-case-pattern!, Case Token -- Case Token,
 def(elab-case-body!, Case Token -- Case Token,
     dip(case-mid? dip(case-match? match-ctx@)) elab-arrow-fwd!
     arrow-token? dip(arrow-dom@) { Case Arrow Type Token }
-    dip(dip(over case-body!)) { Case Type Token }
-    dip(dip(case-match? match-cod@)) elab-type-unify! nip)
+    dip2(over case-body!) { Case Type Token }
+    dip2(case-match? match-cod@) elab-type-unify! nip)
 
 ||| Apply a type signature after freshening to get a codomain.
 def(elab-arrow-op-apply-fresh!, Arrow Type -- Type,
@@ -554,7 +549,7 @@ def(elab-arrow-op-args!, Arrow List(Type) -- Arrow,
         dip(token-succ) uncons
         dip(
             over
-            dip(dip(over arrow-ctx@))
+            dip2(over arrow-ctx@)
             elab-arrow! Block.alloc! tuck block-arrow! Block->Arg
             swap token-next-arg-end
             dip(arrow-arg-add!)

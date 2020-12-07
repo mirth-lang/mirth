@@ -37,6 +37,14 @@ dup2 = \(a1 a2 -> a1 a2 a1 a2)
 dup3 = \(a1 a2 a3 -> a1 a2 a3 a1 a2 a3)
 dup4 = \(a1 a2 a3 a4 -> a1 a2 a3 a4 a1 a2 a3 a4)
 
+dip2 : *a c1 c2 [*a -- *b] -- *b c1 c2
+dip3 : *a c1 c2 c3 [*a -- *b] -- *b c1 c2 c3
+dip4 : *a c1 c2 c3 c4 [*a -- *b] -- *b c1 c2 c3 c4
+
+dip2 = \(c1 c2 f -> f run c1 c2)
+dip3 = \(c1 c2 c3 f -> f run c1 c2 c3)
+dip4 = \(c1 c2 c3 c4 f -> f run c1 c2 c3 c4)
+
 drop2 : a b --
 drop3 : a b c --
 drop4 : a b c d --
@@ -403,7 +411,7 @@ str-buf-int! =
 str-buf-swap-u8! : Int Int -- +StrBuf
 str-buf-swap-u8! = (
     dup2 swap
-    dip(dip(dip(str-buf-u8@)))
+    dip3(str-buf-u8@)
     dip(str-buf-u8@)
     str-buf-u8! str-buf-u8!
 )
@@ -815,7 +823,7 @@ trace-list-struc! =
         L2 -> drop2 "L2" str-trace!,
         L3 -> drop3 "L3" str-trace!,
         LCAT ->
-            dip(dip(trace-list-struc! " " str-trace!))
+            dip2(trace-list-struc! " " str-trace!)
             dip(trace-list-struc! " " str-trace!)
             int-trace! " LCAT" str-trace!
     )
@@ -1040,7 +1048,7 @@ order3 = dip(order2) dup2 <= if(id, swap dip(order2))
 ||| no guarantee it'll be the first item, last item,
 ||| middle item, etc, to match the key.
 bag-lookup-key : Bag([v k]) k -- Maybe(v)
-bag-lookup-key = swap unBAG [dup2 .0 ==] find nip [.1] maybe-map
+bag-lookup-key = swap unBAG find(dup2 .0 ==) nip maybe-map(.1)
 
 ||| See `bag-lookup-key`.
 bag-lookup-key? : Bag([v k]) k -- Bag([v k]) k Maybe(v)

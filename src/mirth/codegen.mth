@@ -1071,7 +1071,7 @@ def(c99-emit-external!, External -- +IO,
         )
     )
 
-    dip(dip(external-name? .name))
+    dip2(external-name? .name)
 
     " (" .
     over dup nonzero if(
@@ -1083,13 +1083,13 @@ def(c99-emit-external!, External -- +IO,
         drop
     ) ");" ;
 
-    " void mw" . dip(dip(external-name? .name)) " (void) {" ;
+    " void mw" . dip2(external-name? .name) " (void) {" ;
     over while(dup nonzero,
         "    i64 x" . dup .n " = pop_i64();" ;
         1-
     ) drop
     dup nonzero if("    push_i64(", "    ") .
-    dip(dip(external-name? .name))
+    dip2(external-name? .name)
     "(" .
     dip(dup nonzero if(
         "x1" .
@@ -1125,13 +1125,13 @@ c99-emit-arrow-op! =
         OP_STR ->
             nip StrLit->Int
             "    push_ptr((void*)(strings + " . .n "));" ;,
-            # FIXME: just push a string literal.
+            # TODO: just push a string literal.
         OP_WORD ->
-            nip word-name@
-            "    mw" . .name "();" ;, # TODO handle args
+            dip(arrow-args@ c99-emit-args-push!)
+            "    mw" . word-name@ .name "();" ;,
         OP_EXTERNAL ->
-            nip external-name@
-            "    mw" . .name "();" ;,
+            dip(arrow-args@ c99-emit-args-push!) # this is probably never desirable
+            "    mw" . external-name@ .name "();" ;,
         OP_BUFFER ->
             nip buffer-name@
             "    mw" . .name "();" ;,
