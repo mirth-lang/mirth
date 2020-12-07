@@ -50,6 +50,7 @@ def(PRIM_RUN, Prim, 96 Int->Prim)
 
 def(PRIM_MATCH, Prim, 94 Int->Prim)
 def(PRIM_LAMBDA, Prim, 95 Int->Prim)
+def(PRIM_NEW_LAMBDA, Prim, 97 Int->Prim)
 
 def(PRIM_EQ, Prim, 87 Int->Prim)
 def(PRIM_LT, Prim, 14 Int->Prim)
@@ -124,7 +125,7 @@ def(PRIM_FIELD, Prim, 79 Int->Prim)
 def(PRIM_DATA, Prim, 88 Int->Prim)
 def(PRIM_END, Prim, 89 Int->Prim)
 
-# next primitive is 97
+# next primitive is 98
 
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str -- +Names,
@@ -146,6 +147,7 @@ def(init-prims!, +Names,
 
     PRIM_MATCH "match" def-prim!
     PRIM_LAMBDA "\\" def-prim!
+    PRIM_NEW_LAMBDA "\\\\" def-prim!
 
     PRIM_EQ "==" def-prim!
     PRIM_LT "<" def-prim!

@@ -41,9 +41,9 @@ dip2 : *a c1 c2 [*a -- *b] -- *b c1 c2
 dip3 : *a c1 c2 c3 [*a -- *b] -- *b c1 c2 c3
 dip4 : *a c1 c2 c3 c4 [*a -- *b] -- *b c1 c2 c3 c4
 
-dip2 = \(c1 c2 f -> f run c1 c2)
-dip3 = \(c1 c2 c3 f -> f run c1 c2 c3)
-dip4 = \(c1 c2 c3 c4 f -> f run c1 c2 c3 c4)
+dip2 = \\(c1 c2 f -> f c1 c2)
+dip3 = \\(c1 c2 c3 f -> f c1 c2 c3)
+dip4 = \\(c1 c2 c3 c4 f -> f c1 c2 c3 c4)
 
 drop2 : a b --
 drop3 : a b c --
@@ -851,38 +851,38 @@ unL3 =
 
 map : *c List(a) [*c a -- *c b] -- *c List(b)
 map =
-    \(f ->
+    \\(f ->
         match(
             L0 -> L0,
-            L1 -> f run L1,
-            L2 -> dip(f run) swap dip(f run) swap L2,
-            L3 -> dip(dip(f run)) rotr dip(dip(f run)) rotr dip(dip(f run)) rotr L3,
-            LCAT -> dip(dip(f map) swap dip(f map) swap) LCAT
+            L1 -> f L1,
+            L2 -> dip(f) swap dip(f) swap L2,
+            L3 -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3,
+            LCAT -> dip(dip(map(f)) swap dip(map(f)) swap) LCAT
         )
     )
 
 for : *c List(a) [*c a -- *c] -- *c
 for =
-    \(f ->
+    \\(f ->
         match(
             L0 -> id,
-            L1 -> f run,
-            L2 -> dip(f run) f run,
-            L3 -> dip(dip(f run) f run) f run,
-            LCAT -> drop dip(f for) f for
+            L1 -> f,
+            L2 -> dip(f) f,
+            L3 -> dip(dip(f) f) f,
+            LCAT -> drop dip(for(f)) for(f)
         )
     )
 
 filter : *c List(a) [*c a -- *c a Bool] -- *c List(a)
 filter =
-    \(f ->
+    \\(f ->
         match(
-            LCAT -> drop dip(f filter) swap dip(f filter) swap cat,
+            LCAT -> drop dip(filter(f)) swap dip(filter(f)) swap cat,
             L0 -> L0,
             _ ->
-                uncons dip(f run) swap if(
-                    swap dip(f filter) swap cons,
-                    nip f filter
+                uncons dip(f) swap if(
+                    swap dip(filter(f)) swap cons,
+                    nip filter(f)
                 )
         )
     )
@@ -996,7 +996,20 @@ bag-snoc : Bag(v) v -- Bag(v)
 bag-snoc = bag-insert
 
 bag-has : Bag(v) v -- Bool
-bag-has = swap unBAG [dup2 ==] find nip is-some
+bag-has =
+    over bag-is-empty if(
+        drop2 false,
+    over bag-is-singleton if(
+        dip(bag-first) ==,
+
+        dip(bag-split-half bag-first?)
+        dup2 == if(
+            drop4 true,
+        dup2 <= if(
+            nip dip(nip) bag-has,
+            nip nip bag-has
+        ))
+    ))
 
 bag-has? : Bag(v) v -- Bag(v) v Bool
 bag-has? = dup2 bag-has
@@ -1048,7 +1061,19 @@ order3 = dip(order2) dup2 <= if(id, swap dip(order2))
 ||| no guarantee it'll be the first item, last item,
 ||| middle item, etc, to match the key.
 bag-lookup-key : Bag([v k]) k -- Maybe(v)
-bag-lookup-key = swap unBAG find(dup2 .0 ==) nip maybe-map(.1)
+bag-lookup-key =
+    over bag-is-empty if(
+        drop2 NONE,
+    over bag-is-singleton if(
+        dip(bag-first unpack2) == if(SOME, drop NONE),
+        dip(bag-split-half bag-first? unpack2)
+        dup2 == if(
+            drop2 SOME dip(drop2),
+        dup2 <= if(
+            dip(drop2 nip) bag-lookup-key,
+            dip(drop3) bag-lookup-key
+        ))
+    ))
 
 ||| See `bag-lookup-key`.
 bag-lookup-key? : Bag([v k]) k -- Bag([v k]) k Maybe(v)

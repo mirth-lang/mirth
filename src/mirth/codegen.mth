@@ -1239,8 +1239,8 @@ def(c99-emit-block-push!, Block -- +IO,
     )
 
 def(c99-emit-var!, Var -- +IO,
-    c99-emit-var-push!
-    ) # TODO: distinguish push var from run var
+    var-auto-run? dip(c99-emit-var-push!)
+    if("    do_run();" ;, id))
 
 def(c99-emit-var-push!, Var -- +IO,
     "    push_value(" . dup .var-val ");" ;

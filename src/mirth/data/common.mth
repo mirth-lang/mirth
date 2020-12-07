@@ -120,6 +120,7 @@ table(Var)
 field(var-is-implicit, Var, Bool)
 field(var-name, Var, Name)
 field(var-type, Var, Type)
+field(var-auto-run, Var, Bool) # run variable by default
 
 # mirth/data/type
 data Subst
