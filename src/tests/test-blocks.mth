@@ -8,7 +8,7 @@ add10 : [Int -- Int]
 add10 = [10 +]
 
 compose : [*a -- *b] [*b -- *c] -- [*a -- *c]
-compose = \(f g -> [f run g run])
+compose = \\(f g -> [f g])
 
 add20 : [Int -- Int]
 add20 = add10 add10 compose
@@ -24,6 +24,15 @@ main = (
     add20 run1 ??
     add30 run1 ??
     drop
+
+    10 20 30 L3
+    "[" over for(swap str-trace! int-trace! " ") drop "]" str-trace-ln!
+    map(10 +)
+    "[" over for(swap str-trace! int-trace! " ") drop "]" str-trace-ln!
+    find(dup 25 >) match(
+        SOME -> int-trace! " found" str-trace-ln!,
+        NONE -> "not found" str-trace-ln!
+    )
 )
 
 target-c99("blocktest.c", main)
@@ -32,3 +41,6 @@ target-c99("blocktest.c", main)
 # mirth-test # perr # ?? 30
 # mirth-test # perr # ?? 50
 # mirth-test # perr # ?? 80
+# mirth-test # perr # [10 20 30]
+# mirth-test # perr # [20 30 40]
+# mirth-test # perr # 30 found

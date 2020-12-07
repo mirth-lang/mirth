@@ -889,25 +889,25 @@ filter =
 
 find : *c List(a) [*c a -- *c a Bool] -- *c Maybe(a)
 find =
-    \(f ->
+    \\(f ->
         match(
             L0 -> NONE,
-            L1 -> f run if(SOME, drop NONE),
+            L1 -> f if(SOME, drop NONE),
             L2 ->
-                dip(f run) swap if(
+                dip(f) swap if(
                     drop SOME,
-                    nip L1 f find
+                    nip L1 find(f)
                 ),
             L3 ->
-                dip(dip(f run)) rotl if(
+                dip(dip(f)) rotl if(
                     drop2 SOME,
-                    dip(nip) L2 f find
+                    dip(nip) L2 find(f)
                 ),
             LCAT ->
-                drop dip(f find) swap
+                drop dip(find(f)) swap
                 is-some? if(
                     nip,
-                    drop f find
+                    drop find(f)
                 )
         )
     )
