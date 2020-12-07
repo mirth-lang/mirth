@@ -21,11 +21,27 @@ def(test-prelude!, --,
     test-trip test-rotr test-rotl test= test< test<= test> test>=
     test+ test- test* test/ test% test-str test-while
     test@!)
-def(test-if, --, 0 !!0 1 !!1 0 1 !!1 !!0)
+def(test-if, --,
+    0 !!0 1 !!1 0 1 !!1 !!0
+    true  [ 10 ] [ 20 ] if 20 !!=
+    false [ 10 ] [ 20 ] if 10 !!=
+    true  [ 30 ] if(20) 20 !!=
+    false [ 30 ] if(20) 30 !!=
+    # TODO: curried "if" is truly awful :-(
+    # ... if ever there was a reason to have arity-sensitive primitives, this is it?
+    # if should be special syntax, like match...
+    #   if(cond1 -> then1, cond2 -> then2, cond3 -> then3, else ...)
+    # with
+    #   if(then, else) as a special case???
+    )
+
 def(test-drop, --, 0 1 drop !!0)
 def(test-dup, --, 0 1 dup !!011)
 def(test-swap, --, 0 1 0 swap !!001)
-def(test-dip, --, 0 0 dip(1) !!010)
+def(test-dip, --,
+    0 0 dip(1) !!010
+    0 0 [1] dip !!010
+    0 0 [1 +] dip !!0 !!1)
 def(test-trip, --, 0 1 trip !!111 !!0)
 def(test-rotr, --,
     1 0 0 rotr !!010
@@ -180,7 +196,10 @@ def(test-str, --,
     )
 
 def(test-while, --,
-    999 10 20 while(dup nonzero, 1- dip(1+)) drop 30 !!= 999 !!=)
+    999 10 20 while(dup nonzero, 1- dip(1+)) drop 30 !!= 999 !!=
+    10 20 [1- dip(1+)] while(dup 0 >) drop 30 !!=
+    30 40 [1- dip(1+)] [dup 0 >] while drop 70 !!=
+    )
 
 # Morphism quotes
 def(test-morphism-quote-id, [ Int -- Int ] -- [ Int -- Int ], id)

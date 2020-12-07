@@ -645,6 +645,12 @@ def(c99-emit-prims!, +IO,
     "    }" ;
     "}" ;;
 
+    "void do_run() {" ;
+    "    do_pack_uncons();" ;
+    "    fnptr fp = pop_fnptr();" ;
+    "    fp();" ;
+    "}" ;;
+
     PRIM_ID .p " {" ;
     "}" ;;
 
@@ -668,6 +674,40 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_SWAP .p " { do_swap(); }" ;;
+
+    PRIM_DIP .p " {" ;
+    "    value_t f = pop_value();" ;
+    "    value_t x = pop_value();" ;
+    "    push_value(f);" ;
+    "    do_run();" ;
+    "    push_value(x);" ;
+    "}" ;;
+
+    PRIM_IF .p " {" ;
+    "    value_t then_branch = pop_value();" ;
+    "    value_t else_branch = pop_value();" ;
+    "    bool b = pop_bool();" ;
+    "    if (b) {" ;
+    "        push_value(then_branch);" ;
+    "        decref(else_branch);" ;
+    "    } else {" ;
+    "        push_value(else_branch);" ;
+    "        decref(then_branch);" ;
+    "    }" ;
+    "    do_run();" ;
+    "}" ;;
+
+    PRIM_WHILE .p " {" ;
+    "    value_t cond = pop_value();" ;
+    "    value_t body = pop_value();" ;
+    "    while(1) {" ;
+    "        push_value(cond); incref(cond); do_run();" ;
+    "        bool b = pop_bool();" ;
+    "        if (!b) break;" ;
+    "        push_value(body); incref(body); do_run();" ;
+    "    }" ;
+    "    decref(cond); decref(body);" ;
+    "}" ;;
 
     PRIM_INT_ADD .p " {" ;
     "    u64 x = pop_u64();" ;
@@ -952,10 +992,8 @@ def(c99-emit-prims!, +IO,
     PRIM_CAST .p " { }" ;;
 
     PRIM_RUN .p " {" ;
-    "    do_pack_uncons();" ;
-    "    fnptr fp = pop_fnptr();" ;
-    "    fp();" ;
-    "}" ;
+    "    do_run();" ;
+    "}" ;;
 
     PRIM_PTR_ADD .p " {" ;
     "   u8* x = pop_ptr();" ;
@@ -1101,31 +1139,7 @@ c99-emit-arrow-op! =
             nip tag-name@
             "    mw" . .name "();" ;,
         OP_PRIM ->
-            dup PRIM_DIP == if(
-                drop arrow-args@ unL1
-                "    { value_t d" . .d " = pop_value();" ;
-                Arg->Arrow c99-emit-arrow!
-                "      push_value(d" . .d "); }" ;,
-
-            dup PRIM_IF == if(
-                drop arrow-args@ unL2
-                "    if (pop_u64()) {" ;
-                dip(Arg->Arrow c99-emit-arrow!)
-                "    } else {" ;
-                Arg->Arrow c99-emit-arrow!
-                "    }" ;,
-
-            dup PRIM_WHILE == if(
-                drop arrow-args@ unL2
-                "    while(1) {" ;
-                dip(Arg->Arrow c99-emit-arrow!)
-                "    if (!pop_u64()) break;" ;
-                Arg->Arrow c99-emit-arrow!
-                "    }" ;,
-
-                nip
-                "    mw" . prim-name@ .name "();" ;
-            ))),
+            c99-emit-arrow-op-prim!,
         OP_MATCH ->
             nip c99-emit-match!,
         OP_LAMBDA ->
@@ -1133,7 +1147,55 @@ c99-emit-arrow-op! =
         OP_VAR ->
             nip c99-emit-var!,
         OP_BLOCK ->
-            nip c99-emit-block!,
+            nip c99-emit-block-push!,
+    )
+
+c99-emit-arrow-op-prim! : Arrow Prim -- +IO
+c99-emit-arrow-op-prim! = (
+    dip(arrow-args@ len?)
+    dup2 PRIM_DIP == dip(1 ==) && if(
+        drop2 unL1
+        "    { value_t d" . .d " = pop_value();" ;
+        c99-emit-arg-run!
+        "      push_value(d" . .d "); }" ;,
+
+    dup2 PRIM_IF == dip(2 ==) && if(
+        drop2 unL2
+        "    if (pop_u64()) {" ;
+        dip(c99-emit-arg-run!)
+        "    } else {" ;
+        c99-emit-arg-run!
+        "    }" ;,
+
+    dup2 PRIM_WHILE == dip(2 ==) && if(
+        drop2 unL2
+        "    while(1) {" ;
+        dip(c99-emit-arg-run!)
+        "    if (!pop_u64()) break;" ;
+        c99-emit-arg-run!
+        "    }" ;,
+
+        nip dip(c99-emit-args-push!)
+        "    mw" . prim-name@ .name "();" ;
+    )))
+)
+
+c99-emit-args-push! : List(Arg) -- +IO
+c99-emit-args-push! =
+    while(is-snoc?, unsnoc
+        c99-emit-arg-push!
+        ) drop
+
+c99-emit-arg-push! : Arg -- +IO
+c99-emit-arg-push! =
+    match(
+        ARG_BLOCK -> c99-emit-block-push!,
+    )
+
+c99-emit-arg-run! : Arg -- +IO
+c99-emit-arg-run! =
+    match(
+        ARG_BLOCK -> block-arrow@ c99-emit-arrow!,
     )
 
 def(.var-val, Var -- +IO, "var_" . var-name? .name "_" . Var->Int .n)
@@ -1169,7 +1231,7 @@ def(c99-decref-ctx!, Ctx -- +IO,
         )) drop
     )
 
-def(c99-emit-block!, Block -- +IO,
+def(c99-emit-block-push!, Block -- +IO,
     true over block-needed!
     block-arrow? arrow-ctx@ c99-pack-ctx!
     "    push_fnptr(&" . .block ");" ;
