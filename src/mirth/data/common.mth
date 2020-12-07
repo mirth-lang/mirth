@@ -74,7 +74,6 @@ data Type
     TTensor -> Type Type
     TMorphism -> Type Type
     TApp -> Type Type
-    TParam -> List(Type) Type
 end
 
 data PrimType

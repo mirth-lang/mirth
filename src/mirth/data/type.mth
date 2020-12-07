@@ -57,7 +57,6 @@ def(type-is-tensor, Type -- Bool, match(TTensor -> drop2 true, _ -> drop false))
 def(type-is-morphism, Type -- Bool, match(TMorphism -> drop2 true, _ -> drop false))
 def(type-is-table, Type -- Bool, match(TTable -> drop true, _ -> drop false))
 def(type-is-hole, Type -- Bool, match(THole -> drop true, _ -> drop false))
-def(type-is-param, Type -- Bool, match(TParam -> drop2 true, _ -> drop false))
 def(type-is-app, Type -- Bool, match(TApp -> drop2 true, _ -> drop false))
 def(type-is-data, Type -- Bool, match(TData -> drop true, _ -> drop false))
 
@@ -70,7 +69,6 @@ def(type-is-tensor?, Type -- Type Bool, dup type-is-tensor)
 def(type-is-morphism?, Type -- Type Bool, dup type-is-morphism)
 def(type-is-table?, Type -- Type Bool, dup type-is-table)
 def(type-is-hole?, Type -- Type Bool, dup type-is-hole)
-def(type-is-param?, Type -- Type Bool, dup type-is-param)
 def(type-is-app?, Type -- Type Bool, dup type-is-app)
 def(type-is-data?, Type -- Type Bool, dup type-is-data)
 
@@ -115,11 +113,6 @@ def(type-get-hole, Type -- Name,
     match(
         THole -> id,
         _ -> "compiler error: tried to get hole name value on non-hole type" panic!,
-    ))
-def(type-get-param, Type -- List(Type) Type,
-    match(
-        TParam -> id,
-        _ -> "compiler error: tried to get param type value on non-param type" panic!,
     ))
 def(type-get-app, Type -- Type Type,
     match(
@@ -344,7 +337,6 @@ def(type-has-meta, MetaVar Type -- Bool,
             TApp -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
             TData -> drop2 false,
             TTable -> drop2 false,
-            TParam -> drop3 false, # param-type-has-meta ## TODO
         )
     ))
 
@@ -398,7 +390,6 @@ def(type-trace!, Type -- +IO,
             TData -> data-name@ name-load! str-buf-trace!,
             TTable -> table-name@ name-load! str-buf-trace!,
             THole -> name-load! str-buf-trace!,
-            TParam -> "(..).." str-trace! drop2, #TODO
             TApp -> app-type-trace!
         )
     ))
@@ -430,9 +421,7 @@ def(type-freshen-sig, Subst Type -- Subst Type,
     ))
 
 def(type-sig-needs-fresh-stack-rest?, Type -- Type Bool,
-    dup
-    type-expand type-is-param? if(type-get-param nip, id)
-    type-expand-morphism drop
+    dup type-expand-morphism drop
     while(type-expand type-is-tensor?, type-get-tensor drop)
     TYPE_UNIT ==)
 
@@ -480,14 +469,8 @@ def(type-freshen-aux, Subst Type -- Subst Type Bool,
         dip(dip(type-freshen-aux) swap) &&
         dip(swap TApp),
 
-    type-is-param? if(
-        type-get-param
-        dip(param-freshen-aux) rotr
-        dip(dip(type-freshen-aux) swap) &&
-        dip(swap TParam),
-
         true
-    ))))))
+    )))))
 
 def(type-var-freshen, Subst Type -- Subst Type Bool,
     type-get-var
@@ -593,8 +576,6 @@ def(table-alloc!, Table,
 
 def(type-max-num-params, Type -- Int,
     type-expand
-    type-is-param? if(
-        type-get-param drop len,
     type-is-meta? if(
         drop 1000000, # infinity params
     type-is-morphism? if(
@@ -612,36 +593,21 @@ def(type-max-num-params, Type -- Int,
             drop
         ),
         drop 0
-    ))))
+    )))
 
 def(type-expand-params, Type Int -- List(Type) Type,
     dup 0 > if(
-        swap type-expand
-        type-is-param? if(
-            nip type-get-param, # imprecise ... but TParam is on the way out
-
-            type-expand-morphism
-            dip(
-                swap nil rotr
-                while(dup 0 >, 1-
-                    dip(
-                        type-expand-tensor
-                        swap dip(snoc)
-                    )) drop
-            ) T->
-        ),
+        swap type-expand-morphism
+        dip(
+            swap nil rotr
+            while(dup 0 >, 1-
+                dip(
+                    type-expand-tensor
+                    swap dip(snoc)
+                )) drop
+        ) T->,
 
         drop nil swap
-    ))
-
-def(param-freshen-aux, Subst List(Type) -- Subst List(Type) Bool,
-    is-nil? if(
-        true,
-
-        uncons
-        dip(type-freshen-aux)
-        rotr dip(dip(param-freshen-aux) swap) &&
-        dip(swap cons)
     ))
 
 ############
