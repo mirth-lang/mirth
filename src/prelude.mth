@@ -79,6 +79,10 @@ rot6l = \(y x1 x2 x3 x4 x5 -> x1 x2 x3 x4 x5 y)
 rot7l = \(y x1 x2 x3 x4 x5 x6 -> x1 x2 x3 x4 x5 x6 y)
 rot8l = \(y x1 x2 x3 x4 x5 x6 x7 -> x1 x2 x3 x4 x5 x6 x7 y)
 
+run : *a [ *a -- *b ] -- *b
+run = prim.run
+
+
 def-type(Byte, U8)
 def-type(Char, U8)
 def-type(Str, Ptr)
@@ -594,6 +598,27 @@ unSOME =
         SOME -> id
     )
 
+maybe-map : *c Maybe(a) [*c a -- *c b] -- *c Maybe(b)
+maybe-map =
+    swap match(
+        NONE -> drop NONE,
+        SOME -> swap run SOME,
+    )
+
+maybe-for : *c Maybe(a) [*c a -- *c] -- *c
+maybe-for =
+    swap match(
+        NONE -> drop,
+        SOME -> swap run
+    )
+
+maybe-filter : *c Maybe(a) [*c a -- *c a Bool] -- *c Maybe(a)
+maybe-filter =
+    swap match(
+        NONE -> drop NONE,
+        SOME -> swap run if(SOME, drop NONE)
+    )
+
 #########
 # LISTS #
 #########
@@ -816,15 +841,67 @@ unL3 =
         _ -> "expected L3 list" panic!
     )
 
-||| Project top item of tuples. A specialized `map(f)` while we can't write an actual `map(f)`
-map.0 : List([*a b]) -- List(b)
-map.0 =
-    match(
-        L0 -> L0,
-        L1 -> .0 L1,
-        L2 -> dip(.0) .0 L2,
-        L3 -> dip(dip(.0) .0) .0 L3,
-        LCAT -> dip(dip(map.0) map.0) LCAT
+map : *c List(a) [*c a -- *c b] -- *c List(b)
+map =
+    \(f ->
+        match(
+            L0 -> L0,
+            L1 -> f run L1,
+            L2 -> dip(f run) swap dip(f run) swap L2,
+            L3 -> dip(dip(f run)) rotr dip(dip(f run)) rotr dip(dip(f run)) rotr L3,
+            LCAT -> dip(dip(f map) swap dip(f map) swap) LCAT
+        )
+    )
+
+for : *c List(a) [*c a -- *c] -- *c
+for =
+    \(f ->
+        match(
+            L0 -> id,
+            L1 -> f run,
+            L2 -> dip(f run) f run,
+            L3 -> dip(dip(f run) f run) f run,
+            LCAT -> drop dip(f for) f for
+        )
+    )
+
+filter : *c List(a) [*c a -- *c a Bool] -- *c List(a)
+filter =
+    \(f ->
+        match(
+            LCAT -> drop dip(f filter) swap dip(f filter) swap cat,
+            L0 -> L0,
+            _ ->
+                uncons dip(f run) swap if(
+                    swap dip(f filter) swap cons,
+                    nip f filter
+                )
+        )
+    )
+
+find : *c List(a) [*c a -- *c a Bool] -- *c Maybe(a)
+find =
+    \(f ->
+        match(
+            L0 -> NONE,
+            L1 -> f run if(SOME, drop NONE),
+            L2 ->
+                dip(f run) swap if(
+                    drop SOME,
+                    nip L1 f find
+                ),
+            L3 ->
+                dip(dip(f run)) rotl if(
+                    drop2 SOME,
+                    dip(nip) L2 f find
+                ),
+            LCAT ->
+                drop dip(f find) swap
+                is-some? if(
+                    nip,
+                    drop f find
+                )
+        )
     )
 
 #######
@@ -911,18 +988,7 @@ bag-snoc : Bag(v) v -- Bag(v)
 bag-snoc = bag-insert
 
 bag-has : Bag(v) v -- Bool
-bag-has =
-    over bag-is-empty if(
-        drop2 false,
-        dip(bag-split-half bag-uncons swap)
-        dup2 == if(
-            drop4 true,
-            dup2 <= if(
-                dip(drop nip),
-                dip(drop2)
-            ) bag-has
-        )
-    )
+bag-has = swap unBAG [dup2 ==] find nip is-some
 
 bag-has? : Bag(v) v -- Bag(v) v Bool
 bag-has? = dup2 bag-has
@@ -974,18 +1040,7 @@ order3 = dip(order2) dup2 <= if(id, swap dip(order2))
 ||| no guarantee it'll be the first item, last item,
 ||| middle item, etc, to match the key.
 bag-lookup-key : Bag([v k]) k -- Maybe(v)
-bag-lookup-key =
-    over bag-is-empty if(
-        drop2 NONE,
-        dip(bag-split-half bag-uncons swap unpack2)
-        dup2 == if(
-            drop2 SOME dip(drop2),
-            dup2 <= if(
-                dip(drop2 nip),
-                dip(drop3)
-            ) bag-lookup-key
-        )
-    )
+bag-lookup-key = swap unBAG [dup2 .0 ==] find nip [.1] maybe-map
 
 ||| See `bag-lookup-key`.
 bag-lookup-key? : Bag([v k]) k -- Bag([v k]) k Maybe(v)
@@ -1110,7 +1165,10 @@ map-pairs : Map(k,v) -- List([v k])
 map-pairs = unMAP bag-values
 
 map-keys : Map(k,v) -- List(k)
-map-keys = map-pairs map.0
+map-keys = map-pairs [.0] map
+
+map-values : Map(k,v) -- List(v)
+map-values = map-pairs [.1] map
 
 ######
 # IO #

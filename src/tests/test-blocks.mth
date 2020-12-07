@@ -1,9 +1,6 @@
 module(tests/test-blocks)
 import(prelude)
 
-run : *a [*a -- *b] -- *b
-run = prim.run
-
 run1 : a [a -- b] -- b
 run1 = run
 
