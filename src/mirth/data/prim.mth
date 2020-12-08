@@ -37,23 +37,23 @@ token-prim= =
             drop2 false
     )
 
-def(PRIM_ID, Prim, 1 Int->Prim)
-def(PRIM_DUP, Prim, 2 Int->Prim)
-def(PRIM_DROP, Prim, 3 Int->Prim)
-def(PRIM_SWAP, Prim, 4 Int->Prim)
-def(PRIM_DIP, Prim, 5 Int->Prim)
-def(PRIM_IF, Prim, 6 Int->Prim)
-def(PRIM_WHILE, Prim, 7 Int->Prim)
-def(PRIM_DEBUG, Prim, 47 Int->Prim)
-def(PRIM_CAST, Prim, 71 Int->Prim)
-def(PRIM_RUN, Prim, 96 Int->Prim)
+def(PRIM_CORE_ID, Prim, 1 Int->Prim)
+def(PRIM_CORE_DUP, Prim, 2 Int->Prim)
+def(PRIM_CORE_DROP, Prim, 3 Int->Prim)
+def(PRIM_CORE_SWAP, Prim, 4 Int->Prim)
+def(PRIM_CORE_DIP, Prim, 5 Int->Prim)
+def(PRIM_CORE_IF, Prim, 6 Int->Prim)
+def(PRIM_CORE_WHILE, Prim, 7 Int->Prim)
+def(PRIM_CORE_DEBUG, Prim, 47 Int->Prim)
+def(PRIM_VALUE_CAST, Prim, 71 Int->Prim)
+def(PRIM_CORE_RUN, Prim, 96 Int->Prim)
 
-def(PRIM_MATCH, Prim, 94 Int->Prim)
-def(PRIM_LAMBDA, Prim, 95 Int->Prim)
+def(PRIM_CORE_MATCH, Prim, 94 Int->Prim)
+def(PRIM_CORE_LAMBDA, Prim, 95 Int->Prim)
 
-def(PRIM_EQ, Prim, 87 Int->Prim)
-def(PRIM_LT, Prim, 14 Int->Prim)
-def(PRIM_LE, Prim, 15 Int->Prim)
+def(PRIM_VALUE_EQ, Prim, 87 Int->Prim)
+def(PRIM_VALUE_LT, Prim, 14 Int->Prim)
+def(PRIM_VALUE_LE, Prim, 15 Int->Prim)
 
 def(PRIM_INT_ADD, Prim, 8 Int->Prim)
 def(PRIM_INT_SUB, Prim, 9 Int->Prim)
@@ -78,28 +78,28 @@ def(PRIM_PACK_UNCONS, Prim, 85 Int->Prim)
 def(PRIM_PTR_ADD, Prim, 72 Int->Prim)
 def(PRIM_PTR_SIZE, Prim, 82 Int->Prim)
 
-def(PRIM_MEM_GET_VALUE, Prim, 92 Int->Prim)
-def(PRIM_MEM_SET_VALUE, Prim, 93 Int->Prim)
-def(PRIM_MEM_GET_INT, Prim, 21 Int->Prim)
-def(PRIM_MEM_SET_INT, Prim, 22 Int->Prim)
-def(PRIM_MEM_GET_PTR, Prim, 90 Int->Prim)
-def(PRIM_MEM_SET_PTR, Prim, 91 Int->Prim)
-def(PRIM_MEM_GET_U8, Prim, 25 Int->Prim)
-def(PRIM_MEM_SET_U8, Prim, 26 Int->Prim)
-def(PRIM_MEM_GET_U16, Prim, 27 Int->Prim)
-def(PRIM_MEM_SET_U16, Prim, 28 Int->Prim)
-def(PRIM_MEM_GET_U32, Prim, 29 Int->Prim)
-def(PRIM_MEM_SET_U32, Prim, 30 Int->Prim)
-def(PRIM_MEM_GET_U64, Prim, 31 Int->Prim)
-def(PRIM_MEM_SET_U64, Prim, 32 Int->Prim)
-def(PRIM_MEM_GET_I8, Prim, 33 Int->Prim)
-def(PRIM_MEM_SET_I8, Prim, 34 Int->Prim)
-def(PRIM_MEM_GET_I16, Prim, 35 Int->Prim)
-def(PRIM_MEM_SET_I16, Prim, 36 Int->Prim)
-def(PRIM_MEM_GET_I32, Prim, 37 Int->Prim)
-def(PRIM_MEM_SET_I32, Prim, 38 Int->Prim)
-def(PRIM_MEM_GET_I64, Prim, 39 Int->Prim)
-def(PRIM_MEM_SET_I64, Prim, 40 Int->Prim)
+def(PRIM_VALUE_GET, Prim, 92 Int->Prim)
+def(PRIM_VALUE_SET, Prim, 93 Int->Prim)
+def(PRIM_INT_GET, Prim, 21 Int->Prim)
+def(PRIM_INT_SET, Prim, 22 Int->Prim)
+def(PRIM_PTR_GET, Prim, 90 Int->Prim)
+def(PRIM_PTR_SET, Prim, 91 Int->Prim)
+def(PRIM_U8_GET, Prim, 25 Int->Prim)
+def(PRIM_U8_SET, Prim, 26 Int->Prim)
+def(PRIM_U16_GET, Prim, 27 Int->Prim)
+def(PRIM_U16_SET, Prim, 28 Int->Prim)
+def(PRIM_U32_GET, Prim, 29 Int->Prim)
+def(PRIM_U32_SET, Prim, 30 Int->Prim)
+def(PRIM_U64_GET, Prim, 31 Int->Prim)
+def(PRIM_U64_SET, Prim, 32 Int->Prim)
+def(PRIM_I8_GET, Prim, 33 Int->Prim)
+def(PRIM_I8_SET, Prim, 34 Int->Prim)
+def(PRIM_I16_GET, Prim, 35 Int->Prim)
+def(PRIM_I16_SET, Prim, 36 Int->Prim)
+def(PRIM_I32_GET, Prim, 37 Int->Prim)
+def(PRIM_I32_SET, Prim, 38 Int->Prim)
+def(PRIM_I64_GET, Prim, 39 Int->Prim)
+def(PRIM_I64_SET, Prim, 40 Int->Prim)
 
 def(PRIM_SYS_OS, Prim, 49 Int->Prim)
 def(PRIM_SYS_ARGC, Prim, 80 Int->Prim)
@@ -112,17 +112,17 @@ def(PRIM_POSIX_CLOSE, Prim, 44 Int->Prim)
 def(PRIM_POSIX_EXIT, Prim, 45 Int->Prim)
 def(PRIM_POSIX_MMAP, Prim, 46 Int->Prim)
 
-def(PRIM_MODULE, Prim, 68 Int->Prim)
-def(PRIM_IMPORT, Prim, 69 Int->Prim)
-def(PRIM_DEF, Prim, 50 Int->Prim)
-def(PRIM_DEF_TYPE, Prim, 51 Int->Prim)
-def(PRIM_BUFFER, Prim, 52 Int->Prim)
-def(PRIM_DEF_EXTERNAL, Prim, 53 Int->Prim)
-def(PRIM_TARGET_C99, Prim, 55 Int->Prim)
-def(PRIM_TABLE, Prim, 78 Int->Prim)
-def(PRIM_FIELD, Prim, 79 Int->Prim)
-def(PRIM_DATA, Prim, 88 Int->Prim)
-def(PRIM_END, Prim, 89 Int->Prim)
+def(PRIM_SYNTAX_MODULE, Prim, 68 Int->Prim)
+def(PRIM_SYNTAX_IMPORT, Prim, 69 Int->Prim)
+def(PRIM_SYNTAX_DEF, Prim, 50 Int->Prim)
+def(PRIM_SYNTAX_DEF_TYPE, Prim, 51 Int->Prim)
+def(PRIM_SYNTAX_BUFFER, Prim, 52 Int->Prim)
+def(PRIM_SYNTAX_DEF_EXTERNAL, Prim, 53 Int->Prim)
+def(PRIM_SYNTAX_TARGET_C99, Prim, 55 Int->Prim)
+def(PRIM_SYNTAX_TABLE, Prim, 78 Int->Prim)
+def(PRIM_SYNTAX_FIELD, Prim, 79 Int->Prim)
+def(PRIM_SYNTAX_DATA, Prim, 88 Int->Prim)
+def(PRIM_SYNTAX_END, Prim, 89 Int->Prim)
 
 # next primitive is 98
 
@@ -133,54 +133,54 @@ def(def-prim!, Prim Str -- +Names,
 ||| Initialize name table with list of primitives.
 def(init-prims!, +Names,
 
-    PRIM_MODULE "module" def-prim!
-    PRIM_IMPORT "import" def-prim!
-    PRIM_DEF "def" def-prim!
-    PRIM_DEF_TYPE "def-type" def-prim!
-    PRIM_BUFFER "buffer" def-prim!
-    PRIM_DEF_EXTERNAL "def-external" def-prim!
-    PRIM_TABLE "table" def-prim!
-    PRIM_FIELD "field" def-prim!
-    PRIM_TARGET_C99 "target-c99" def-prim!
-    PRIM_DATA "data" def-prim!
-    PRIM_END "end" def-prim!
+    PRIM_SYNTAX_MODULE "module" def-prim!
+    PRIM_SYNTAX_IMPORT "import" def-prim!
+    PRIM_SYNTAX_DEF "def" def-prim!
+    PRIM_SYNTAX_DEF_TYPE "def-type" def-prim!
+    PRIM_SYNTAX_BUFFER "buffer" def-prim!
+    PRIM_SYNTAX_DEF_EXTERNAL "def-external" def-prim!
+    PRIM_SYNTAX_TABLE "table" def-prim!
+    PRIM_SYNTAX_FIELD "field" def-prim!
+    PRIM_SYNTAX_TARGET_C99 "target-c99" def-prim!
+    PRIM_SYNTAX_DATA "data" def-prim!
+    PRIM_SYNTAX_END "end" def-prim!
 
-    PRIM_MODULE "prim.syntax.module" def-prim!
-    PRIM_IMPORT "prim.syntax.import" def-prim!
-    PRIM_DEF "prim.syntax.def" def-prim!
-    PRIM_DEF_TYPE "prim.syntax.def-type" def-prim!
-    PRIM_BUFFER "prim.syntax.buffer" def-prim!
-    PRIM_DEF_EXTERNAL "prim.syntax.def-external" def-prim!
-    PRIM_TABLE "prim.syntax.table" def-prim!
-    PRIM_FIELD "prim.syntax.field" def-prim!
-    PRIM_TARGET_C99 "prim.syntax.target-c99" def-prim!
-    PRIM_DATA "prim.syntax.data" def-prim!
-    PRIM_END "prim.syntax.end" def-prim!
+    PRIM_SYNTAX_MODULE "prim.syntax.module" def-prim!
+    PRIM_SYNTAX_IMPORT "prim.syntax.import" def-prim!
+    PRIM_SYNTAX_DEF "prim.syntax.def" def-prim!
+    PRIM_SYNTAX_DEF_TYPE "prim.syntax.def-type" def-prim!
+    PRIM_SYNTAX_BUFFER "prim.syntax.buffer" def-prim!
+    PRIM_SYNTAX_DEF_EXTERNAL "prim.syntax.def-external" def-prim!
+    PRIM_SYNTAX_TABLE "prim.syntax.table" def-prim!
+    PRIM_SYNTAX_FIELD "prim.syntax.field" def-prim!
+    PRIM_SYNTAX_TARGET_C99 "prim.syntax.target-c99" def-prim!
+    PRIM_SYNTAX_DATA "prim.syntax.data" def-prim!
+    PRIM_SYNTAX_END "prim.syntax.end" def-prim!
 
-    PRIM_DIP "dip" def-prim!
-    PRIM_IF "if" def-prim!
-    PRIM_WHILE "while" def-prim!
-    PRIM_MATCH "match" def-prim!
-    PRIM_LAMBDA "\\" def-prim!
+    PRIM_CORE_DIP "dip" def-prim!
+    PRIM_CORE_IF "if" def-prim!
+    PRIM_CORE_WHILE "while" def-prim!
+    PRIM_CORE_MATCH "match" def-prim!
+    PRIM_CORE_LAMBDA "\\" def-prim!
 
-    PRIM_ID "prim.core.id" def-prim!
-    PRIM_DUP "prim.core.dup" def-prim!
-    PRIM_DROP "prim.core.drop" def-prim!
-    PRIM_SWAP "prim.core.swap" def-prim!
-    PRIM_DIP "prim.core.dip" def-prim!
-    PRIM_IF "prim.core.if" def-prim!
-    PRIM_WHILE "prim.core.while" def-prim!
-    PRIM_DEBUG "prim.core.debug" def-prim!
-    PRIM_RUN "prim.core.run" def-prim!
-    PRIM_MATCH "prim.core.match" def-prim!
-    PRIM_LAMBDA "prim.core.lambda" def-prim!
+    PRIM_CORE_ID "prim.core.id" def-prim!
+    PRIM_CORE_DUP "prim.core.dup" def-prim!
+    PRIM_CORE_DROP "prim.core.drop" def-prim!
+    PRIM_CORE_SWAP "prim.core.swap" def-prim!
+    PRIM_CORE_DIP "prim.core.dip" def-prim!
+    PRIM_CORE_IF "prim.core.if" def-prim!
+    PRIM_CORE_WHILE "prim.core.while" def-prim!
+    PRIM_CORE_DEBUG "prim.core.debug" def-prim!
+    PRIM_CORE_RUN "prim.core.run" def-prim!
+    PRIM_CORE_MATCH "prim.core.match" def-prim!
+    PRIM_CORE_LAMBDA "prim.core.lambda" def-prim!
 
-    PRIM_EQ "prim.value.eq" def-prim!
-    PRIM_LT "prim.value.lt" def-prim!
-    PRIM_LE "prim.value.le" def-prim!
-    PRIM_CAST "prim.value.cast" def-prim!
-    PRIM_MEM_GET_VALUE "prim.value.get" def-prim!
-    PRIM_MEM_SET_VALUE "prim.value.set" def-prim!
+    PRIM_VALUE_EQ "prim.value.eq" def-prim!
+    PRIM_VALUE_LT "prim.value.lt" def-prim!
+    PRIM_VALUE_LE "prim.value.le" def-prim!
+    PRIM_VALUE_CAST "prim.value.cast" def-prim!
+    PRIM_VALUE_GET "prim.value.get" def-prim!
+    PRIM_VALUE_SET "prim.value.set" def-prim!
 
     PRIM_INT_ADD "prim.int.add" def-prim!
     PRIM_INT_SUB "prim.int.sub" def-prim!
@@ -192,8 +192,8 @@ def(init-prims!, +Names,
     PRIM_INT_XOR "prim.int.xor" def-prim!
     PRIM_INT_SHL "prim.int.shl" def-prim!
     PRIM_INT_SHR "prim.int.shr" def-prim!
-    PRIM_MEM_GET_INT "prim.int.get" def-prim!
-    PRIM_MEM_SET_INT "prim.int.set" def-prim!
+    PRIM_INT_GET "prim.int.get" def-prim!
+    PRIM_INT_SET "prim.int.set" def-prim!
 
     PRIM_BOOL_TRUE "prim.bool.true" def-prim!
     PRIM_BOOL_FALSE "prim.bool.false" def-prim!
@@ -206,26 +206,26 @@ def(init-prims!, +Names,
 
     PRIM_PTR_ADD "prim.ptr.add" def-prim!
     PRIM_PTR_SIZE "prim.ptr.size" def-prim!
-    PRIM_MEM_GET_PTR "prim.ptr.get" def-prim!
-    PRIM_MEM_SET_PTR "prim.ptr.set" def-prim!
+    PRIM_PTR_GET "prim.ptr.get" def-prim!
+    PRIM_PTR_SET "prim.ptr.set" def-prim!
 
-    PRIM_MEM_GET_U8 "prim.u8.get" def-prim!
-    PRIM_MEM_SET_U8 "prim.u8.set" def-prim!
-    PRIM_MEM_GET_U16 "prim.u16.get" def-prim!
-    PRIM_MEM_SET_U16 "prim.u16.set" def-prim!
-    PRIM_MEM_GET_U32 "prim.u32.get" def-prim!
-    PRIM_MEM_SET_U32 "prim.u32.set" def-prim!
-    PRIM_MEM_GET_U64 "prim.u64.get" def-prim!
-    PRIM_MEM_SET_U64 "prim.u64.set" def-prim!
+    PRIM_U8_GET "prim.u8.get" def-prim!
+    PRIM_U8_SET "prim.u8.set" def-prim!
+    PRIM_U16_GET "prim.u16.get" def-prim!
+    PRIM_U16_SET "prim.u16.set" def-prim!
+    PRIM_U32_GET "prim.u32.get" def-prim!
+    PRIM_U32_SET "prim.u32.set" def-prim!
+    PRIM_U64_GET "prim.u64.get" def-prim!
+    PRIM_U64_SET "prim.u64.set" def-prim!
 
-    PRIM_MEM_GET_I8 "prim.i8.get" def-prim!
-    PRIM_MEM_SET_I8 "prim.i8.set" def-prim!
-    PRIM_MEM_GET_I16 "prim.i16.get" def-prim!
-    PRIM_MEM_SET_I16 "prim.i16.set" def-prim!
-    PRIM_MEM_GET_I32 "prim.i32.get" def-prim!
-    PRIM_MEM_SET_I32 "prim.i32.set" def-prim!
-    PRIM_MEM_GET_I64 "prim.i64.get" def-prim!
-    PRIM_MEM_SET_I64 "prim.i64.set" def-prim!
+    PRIM_I8_GET "prim.i8.get" def-prim!
+    PRIM_I8_SET "prim.i8.set" def-prim!
+    PRIM_I16_GET "prim.i16.get" def-prim!
+    PRIM_I16_SET "prim.i16.set" def-prim!
+    PRIM_I32_GET "prim.i32.get" def-prim!
+    PRIM_I32_SET "prim.i32.set" def-prim!
+    PRIM_I64_GET "prim.i64.get" def-prim!
+    PRIM_I64_SET "prim.i64.set" def-prim!
 
     PRIM_SYS_OS "prim.sys.os" def-prim!
     PRIM_SYS_ARGC "prim.sys.argc" def-prim!
@@ -243,8 +243,8 @@ def(init-prims!, +Names,
     #
 
     T0 T0 T->
-    dup PRIM_ID prim-type!
-    dup PRIM_DEBUG prim-type!
+    dup PRIM_CORE_ID prim-type!
+    dup PRIM_CORE_DEBUG prim-type!
     drop
 
     TYPE_INT TYPE_INT T2 TYPE_INT T1 T->
@@ -260,27 +260,27 @@ def(init-prims!, +Names,
     dup PRIM_INT_SHR prim-type!
     drop
 
-    TYPE_PTR T1 TYPE_INT T1 T-> PRIM_MEM_GET_INT prim-type!
-    TYPE_PTR T1 TYPE_PTR T1 T-> PRIM_MEM_GET_PTR prim-type!
-    TYPE_PTR T1 TYPE_U8  T1 T-> PRIM_MEM_GET_U8  prim-type!
-    TYPE_PTR T1 TYPE_U16 T1 T-> PRIM_MEM_GET_U16 prim-type!
-    TYPE_PTR T1 TYPE_U32 T1 T-> PRIM_MEM_GET_U32 prim-type!
-    TYPE_PTR T1 TYPE_U64 T1 T-> PRIM_MEM_GET_U64 prim-type!
-    TYPE_PTR T1 TYPE_I8  T1 T-> PRIM_MEM_GET_I8  prim-type!
-    TYPE_PTR T1 TYPE_I16 T1 T-> PRIM_MEM_GET_I16 prim-type!
-    TYPE_PTR T1 TYPE_I32 T1 T-> PRIM_MEM_GET_I32 prim-type!
-    TYPE_PTR T1 TYPE_I64 T1 T-> PRIM_MEM_GET_I64 prim-type!
+    TYPE_PTR T1 TYPE_INT T1 T-> PRIM_INT_GET prim-type!
+    TYPE_PTR T1 TYPE_PTR T1 T-> PRIM_PTR_GET prim-type!
+    TYPE_PTR T1 TYPE_U8  T1 T-> PRIM_U8_GET  prim-type!
+    TYPE_PTR T1 TYPE_U16 T1 T-> PRIM_U16_GET prim-type!
+    TYPE_PTR T1 TYPE_U32 T1 T-> PRIM_U32_GET prim-type!
+    TYPE_PTR T1 TYPE_U64 T1 T-> PRIM_U64_GET prim-type!
+    TYPE_PTR T1 TYPE_I8  T1 T-> PRIM_I8_GET  prim-type!
+    TYPE_PTR T1 TYPE_I16 T1 T-> PRIM_I16_GET prim-type!
+    TYPE_PTR T1 TYPE_I32 T1 T-> PRIM_I32_GET prim-type!
+    TYPE_PTR T1 TYPE_I64 T1 T-> PRIM_I64_GET prim-type!
 
-    TYPE_INT TYPE_PTR T2 T0 T-> PRIM_MEM_SET_INT prim-type!
-    TYPE_PTR TYPE_PTR T2 T0 T-> PRIM_MEM_SET_PTR prim-type!
-    TYPE_U8  TYPE_PTR T2 T0 T-> PRIM_MEM_SET_U8  prim-type!
-    TYPE_U16 TYPE_PTR T2 T0 T-> PRIM_MEM_SET_U16 prim-type!
-    TYPE_U32 TYPE_PTR T2 T0 T-> PRIM_MEM_SET_U32 prim-type!
-    TYPE_U64 TYPE_PTR T2 T0 T-> PRIM_MEM_SET_U64 prim-type!
-    TYPE_I8  TYPE_PTR T2 T0 T-> PRIM_MEM_SET_I8  prim-type!
-    TYPE_I16 TYPE_PTR T2 T0 T-> PRIM_MEM_SET_I16 prim-type!
-    TYPE_I32 TYPE_PTR T2 T0 T-> PRIM_MEM_SET_I32 prim-type!
-    TYPE_I64 TYPE_PTR T2 T0 T-> PRIM_MEM_SET_I64 prim-type!
+    TYPE_INT TYPE_PTR T2 T0 T-> PRIM_INT_SET prim-type!
+    TYPE_PTR TYPE_PTR T2 T0 T-> PRIM_PTR_SET prim-type!
+    TYPE_U8  TYPE_PTR T2 T0 T-> PRIM_U8_SET  prim-type!
+    TYPE_U16 TYPE_PTR T2 T0 T-> PRIM_U16_SET prim-type!
+    TYPE_U32 TYPE_PTR T2 T0 T-> PRIM_U32_SET prim-type!
+    TYPE_U64 TYPE_PTR T2 T0 T-> PRIM_U64_SET prim-type!
+    TYPE_I8  TYPE_PTR T2 T0 T-> PRIM_I8_SET  prim-type!
+    TYPE_I16 TYPE_PTR T2 T0 T-> PRIM_I16_SET prim-type!
+    TYPE_I32 TYPE_PTR T2 T0 T-> PRIM_I32_SET prim-type!
+    TYPE_I64 TYPE_PTR T2 T0 T-> PRIM_I64_SET prim-type!
 
     TYPE_INT TYPE_PTR TYPE_INT T3 TYPE_INT T1 T->
     PRIM_POSIX_READ prim-type!
@@ -332,57 +332,57 @@ def(init-prims!, +Names,
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
     dup ctx-empty swap ctx-new!
-    PRIM_DROP prim-ctx!
+    PRIM_CORE_DROP prim-ctx!
 
     TVar T1 T0 T->
-    PRIM_DROP prim-type!
+    PRIM_CORE_DROP prim-type!
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
     dup ctx-empty swap ctx-new!
-    PRIM_DUP prim-ctx!
+    PRIM_CORE_DUP prim-ctx!
 
     TVar dup T1 dup rotl T* T->
-    PRIM_DUP prim-type!
+    PRIM_CORE_DUP prim-type!
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
     dup ctx-empty swap ctx-new!
 
-    dup PRIM_EQ prim-ctx!
-    dup PRIM_LT prim-ctx!
-    dup PRIM_LE prim-ctx!
+    dup PRIM_VALUE_EQ prim-ctx!
+    dup PRIM_VALUE_LT prim-ctx!
+    dup PRIM_VALUE_LE prim-ctx!
     drop
 
     TVar dup T2 TYPE_BOOL T1 T->
-    dup PRIM_EQ prim-type!
-    dup PRIM_LT prim-type!
-    dup PRIM_LE prim-type!
+    dup PRIM_VALUE_EQ prim-type!
+    dup PRIM_VALUE_LT prim-type!
+    dup PRIM_VALUE_LE prim-type!
     drop
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
     "b" name-new! var-new-implicit! TYPE_TYPE over var-type!
     dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_SWAP prim-ctx!
+    PRIM_CORE_SWAP prim-ctx!
 
     dip(TVar) TVar
     dup2 T2 rotr swap T2 T->
-    PRIM_SWAP prim-type!
+    PRIM_CORE_SWAP prim-type!
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
     "b" name-new! var-new-implicit! TYPE_TYPE over var-type!
     dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_CAST prim-ctx!
+    PRIM_VALUE_CAST prim-ctx!
 
     dip(TVar T1) TVar T1 T->
-    PRIM_CAST prim-type!
+    PRIM_VALUE_CAST prim-type!
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
     "*b" name-new! var-new-implicit! TYPE_STACK over var-type!
     dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_RUN prim-ctx!
+    PRIM_CORE_RUN prim-ctx!
 
     dip(TVar) TVar
     dup2 T-> swap dip(T*) T->
-    PRIM_RUN prim-type!
+    PRIM_CORE_RUN prim-type!
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
     "*b" name-new! var-new-implicit! TYPE_STACK over var-type!
@@ -397,33 +397,33 @@ def(init-prims!, +Names,
     "*b" name-new! var-new-implicit! TYPE_STACK over var-type!
     "c" name-new! var-new-implicit! TYPE_TYPE over var-type!
     dup3 ctx-empty swap ctx-new! swap ctx-new! swap ctx-new!
-    PRIM_DIP prim-ctx!
+    PRIM_CORE_DIP prim-ctx!
 
     dip(dip(TVar) TVar) TVar
     dip(dup2) tuck T* dip(T*)
     dip(dip(T->) swap T*) T->
-    PRIM_DIP prim-type!
+    PRIM_CORE_DIP prim-type!
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
     "*b" name-new! var-new-implicit! TYPE_STACK over var-type!
     dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_IF prim-ctx!
+    PRIM_CORE_IF prim-ctx!
 
     dip(TVar) TVar
     dup2 T-> swap
     dip(dip(TYPE_BOOL T*) dup dip(T*) T*) T->
-    PRIM_IF prim-type!
+    PRIM_CORE_IF prim-type!
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
     dup ctx-empty swap ctx-new!
-    PRIM_WHILE prim-ctx!
+    PRIM_CORE_WHILE prim-ctx!
 
     TVar
     dup
     dup dip(dup T-> T*)
     dup dip(dup TYPE_BOOL T* T-> T*)
     T->
-    PRIM_WHILE prim-type!
+    PRIM_CORE_WHILE prim-type!
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
     "b" name-new! var-new-implicit! TYPE_TYPE over var-type!
@@ -445,17 +445,17 @@ def(init-prims!, +Names,
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
     dup ctx-empty swap ctx-new!
-    PRIM_MEM_GET_VALUE prim-ctx!
+    PRIM_VALUE_GET prim-ctx!
 
     TVar
     dip(TYPE_PTR T1) T1 T->
-    PRIM_MEM_GET_VALUE prim-type!
+    PRIM_VALUE_GET prim-type!
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
     dup ctx-empty swap ctx-new!
-    PRIM_MEM_SET_VALUE prim-ctx!
+    PRIM_VALUE_SET prim-ctx!
 
     TVar
     TYPE_PTR T2 T0 T->
-    PRIM_MEM_SET_VALUE prim-type!
+    PRIM_VALUE_SET prim-type!
     )

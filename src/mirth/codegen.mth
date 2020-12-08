@@ -651,10 +651,10 @@ def(c99-emit-prims!, +IO,
     "    fp();" ;
     "}" ;;
 
-    PRIM_ID .p " {" ;
+    PRIM_CORE_ID .p " {" ;
     "}" ;;
 
-    PRIM_DUP .p " {" ;
+    PRIM_CORE_DUP .p " {" ;
     "    value_t v = pop_value();" ;
     "    incref(v);" ;
     "    push_value(v); push_value(v);" ;
@@ -665,7 +665,7 @@ def(c99-emit-prims!, +IO,
     "    decref(v);" ;
     "}" ;;
 
-    PRIM_DROP .p " { do_drop(); }" ;;
+    PRIM_CORE_DROP .p " { do_drop(); }" ;;
 
     "void do_swap() {" ;
     "    value_t x = pop_value();" ;
@@ -673,9 +673,9 @@ def(c99-emit-prims!, +IO,
     "    push_value(x); push_value(y);" ;
     "}" ;;
 
-    PRIM_SWAP .p " { do_swap(); }" ;;
+    PRIM_CORE_SWAP .p " { do_swap(); }" ;;
 
-    PRIM_DIP .p " {" ;
+    PRIM_CORE_DIP .p " {" ;
     "    value_t f = pop_value();" ;
     "    value_t x = pop_value();" ;
     "    push_value(f);" ;
@@ -683,7 +683,7 @@ def(c99-emit-prims!, +IO,
     "    push_value(x);" ;
     "}" ;;
 
-    PRIM_IF .p " {" ;
+    PRIM_CORE_IF .p " {" ;
     "    value_t then_branch = pop_value();" ;
     "    value_t else_branch = pop_value();" ;
     "    bool b = pop_bool();" ;
@@ -697,7 +697,7 @@ def(c99-emit-prims!, +IO,
     "    do_run();" ;
     "}" ;;
 
-    PRIM_WHILE .p " {" ;
+    PRIM_CORE_WHILE .p " {" ;
     "    value_t cond = pop_value();" ;
     "    value_t body = pop_value();" ;
     "    while(1) {" ;
@@ -739,21 +739,21 @@ def(c99-emit-prims!, +IO,
     "    push_i64(y % x);" ;
     "}" ;;
 
-    PRIM_EQ .p " {" ;
+    PRIM_VALUE_EQ .p " {" ;
     "    value_t v2 = pop_value();" ;
     "    value_t v1 = pop_value();" ;
     "    push_bool(value_cmp(v1, v2) == 0);" ;
     "    decref(v1); decref(v2);" ;
     "}" ;;
 
-    PRIM_LT .p " {" ;
+    PRIM_VALUE_LT .p " {" ;
     "    value_t v2 = pop_value();" ;
     "    value_t v1 = pop_value();" ;
     "    push_bool(value_cmp(v1, v2) < 0);" ;
     "    decref(v1); decref(v2);" ;
     "}" ;;
 
-    PRIM_LE .p " {" ;
+    PRIM_VALUE_LE .p " {" ;
     "    value_t v2 = pop_value();" ;
     "    value_t v1 = pop_value();" ;
     "    push_bool(value_cmp(v1, v2) <= 0);" ;
@@ -858,18 +858,18 @@ def(c99-emit-prims!, +IO,
     "    write(2, \"\\n\", 1);" ;
     "}" ;;
 
-    PRIM_DEBUG .p " {" ;
+    PRIM_CORE_DEBUG .p " {" ;
     "   do_debug();" ;
     "}" ;;
 
-    PRIM_MEM_GET_VALUE .p " {" ;
+    PRIM_VALUE_GET .p " {" ;
     "    value_t* p = pop_ptr();" ;
     "    value_t v = *p;" ;
     "    push_value(v);" ;
     "    incref(v);" ;
     "}" ;;
 
-    PRIM_MEM_SET_VALUE .p " {" ;
+    PRIM_VALUE_SET .p " {" ;
     "    value_t* p = pop_ptr();" ;
     "    value_t v = pop_value();" ;
     "    value_t old_v = *p;" ;
@@ -877,102 +877,102 @@ def(c99-emit-prims!, +IO,
     "    decref(old_v);" ;
     "}" ;;
 
-    PRIM_MEM_GET_INT .p " {" ;
+    PRIM_INT_GET .p " {" ;
     "    i64* p = pop_ptr();" ;
     "    push_i64(*p);" ;
     "}" ;;
 
-    PRIM_MEM_SET_INT .p " {" ;
+    PRIM_INT_SET .p " {" ;
     "    i64* x = pop_ptr();" ;
     "    *x = (i64)pop_i64();" ;
     "}" ;;
 
-    PRIM_MEM_GET_PTR .p " {" ;
+    PRIM_PTR_GET .p " {" ;
     "    void** p = pop_ptr();" ;
     "    push_ptr(*p);" ;
     "}" ;;
 
-    PRIM_MEM_SET_PTR .p " {" ;
+    PRIM_PTR_SET .p " {" ;
     "    void** x = pop_ptr();" ;
     "    *x = pop_ptr();" ;
     "}" ;;
 
-    PRIM_MEM_GET_U8 .p " {" ;
+    PRIM_U8_GET .p " {" ;
     "    u8* x = pop_ptr();" ;
     "    push_u8(*x);" ;
     "}" ;;
 
-    PRIM_MEM_SET_U8 .p " {" ;
+    PRIM_U8_SET .p " {" ;
     "    u8* x = pop_ptr();" ;
     "    *x = pop_u8();" ;
     "}" ;;
 
-    PRIM_MEM_GET_U16 .p " {" ;
+    PRIM_U16_GET .p " {" ;
     "    u16* x = pop_ptr();" ;
     "    push_u16(*x);" ;
     "}" ;;
 
-    PRIM_MEM_SET_U16 .p " {" ;
+    PRIM_U16_SET .p " {" ;
     "    u16* x = pop_ptr();" ;
     "    *x = pop_u16();" ;
     "}" ;;
 
-    PRIM_MEM_GET_U32 .p " {" ;
+    PRIM_U32_GET .p " {" ;
     "    u32* x = pop_ptr();" ;
     "    push_u32(*x);" ;
     "}" ;;
 
-    PRIM_MEM_SET_U32 .p " {" ;
+    PRIM_U32_SET .p " {" ;
     "    u32* x = pop_ptr();" ;
     "    *x = pop_u32();" ;
     "}" ;;
 
-    PRIM_MEM_GET_U64 .p " {" ;
+    PRIM_U64_GET .p " {" ;
     "    u64* x = pop_ptr();" ;
     "    push_u64(*x);" ;
     "}" ;;
 
-    PRIM_MEM_SET_U64 .p " {" ;
+    PRIM_U64_SET .p " {" ;
     "    u64* x = pop_ptr();" ;
     "    *x = pop_u64();" ;
     "}" ;;
 
-    PRIM_MEM_GET_I8 .p " {" ;
+    PRIM_I8_GET .p " {" ;
     "    i8* x = pop_ptr();" ;
     "    push_i8(*x);" ;
     "}" ;;
 
-    PRIM_MEM_SET_I8 .p " {" ;
+    PRIM_I8_SET .p " {" ;
     "    i8* x = pop_ptr();" ;
     "    *x = pop_i8();" ;
     "}" ;;
 
-    PRIM_MEM_GET_I16 .p " {" ;
+    PRIM_I16_GET .p " {" ;
     "    i16* x = pop_ptr();" ;
     "    push_i16(*x);" ;
     "}" ;;
 
-    PRIM_MEM_SET_I16 .p " {" ;
+    PRIM_I16_SET .p " {" ;
     "    i16* x = pop_ptr();" ;
     "    *x = pop_i16();" ;
     "}" ;;
 
-    PRIM_MEM_GET_I32 .p " {" ;
+    PRIM_I32_GET .p " {" ;
     "    i32* x = pop_ptr();" ;
     "    push_i32(*x);" ;
     "}" ;;
 
-    PRIM_MEM_SET_I32 .p " {" ;
+    PRIM_I32_SET .p " {" ;
     "    i32* x = pop_ptr();" ;
     "    *x = pop_i32();" ;
     "}" ;;
 
-    PRIM_MEM_GET_I64 .p " {" ;
+    PRIM_I64_GET .p " {" ;
     "    i64* x = pop_ptr();" ;
     "    push_i64(*x);" ;
     "}" ;;
 
-    PRIM_MEM_SET_I64 .p " {" ;
+    PRIM_I64_SET .p " {" ;
     "    i64* x = pop_ptr();" ;
     "    *x = pop_i64();" ;
     "}" ;;
@@ -989,9 +989,9 @@ def(c99-emit-prims!, +IO,
     "#endif" ;
     "}" ;;
 
-    PRIM_CAST .p " { }" ;;
+    PRIM_VALUE_CAST .p " { }" ;;
 
-    PRIM_RUN .p " {" ;
+    PRIM_CORE_RUN .p " {" ;
     "    do_run();" ;
     "}" ;;
 
@@ -1153,13 +1153,13 @@ c99-emit-arrow-op! =
 c99-emit-arrow-op-prim! : Arrow Prim -- +IO
 c99-emit-arrow-op-prim! = (
     dip(arrow-args@ len?)
-    dup2 PRIM_DIP == dip(1 ==) && if(
+    dup2 PRIM_CORE_DIP == dip(1 ==) && if(
         drop2 unL1
         "    { value_t d" . .d " = pop_value();" ;
         c99-emit-arg-run!
         "      push_value(d" . .d "); }" ;,
 
-    dup2 PRIM_IF == dip(2 ==) && if(
+    dup2 PRIM_CORE_IF == dip(2 ==) && if(
         drop2 unL2
         "    if (pop_u64()) {" ;
         dip(c99-emit-arg-run!)
@@ -1167,7 +1167,7 @@ c99-emit-arrow-op-prim! = (
         c99-emit-arg-run!
         "    }" ;,
 
-    dup2 PRIM_WHILE == dip(2 ==) && if(
+    dup2 PRIM_CORE_WHILE == dip(2 ==) && if(
         drop2 unL2
         "    while(1) {" ;
         dip(c99-emit-arg-run!)

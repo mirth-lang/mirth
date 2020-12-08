@@ -52,13 +52,13 @@ def(table-new!, Name -- Table,
     dip(
         arrow-new-buffer!
         dup2 swap word-arrow!
-        PRIM_MEM_GET_INT arrow-push-prim!
+        PRIM_INT_GET arrow-push-prim!
         1 arrow-push-int!
         PRIM_INT_ADD arrow-push-prim!
-        PRIM_DUP arrow-push-prim!
+        PRIM_CORE_DUP arrow-push-prim!
     )
     arrow-push-buffer!
-    PRIM_MEM_SET_INT arrow-push-prim!
+    PRIM_INT_SET arrow-push-prim!
     drop true swap word-body-is-checked!)
 
 #########
@@ -121,7 +121,7 @@ def(field-new!, Name Table Type -- Field,
 
     over field-word-ptr@ arrow-new-word!
     dup2 swap word-arrow!
-    PRIM_MEM_SET_VALUE arrow-push-prim!
+    PRIM_VALUE_SET arrow-push-prim!
     drop true swap word-body-is-checked!
 
     # field@
@@ -139,7 +139,7 @@ def(field-new!, Name Table Type -- Field,
 
     over field-word-ptr@ arrow-new-word!
     dup2 swap word-arrow!
-    PRIM_MEM_GET_VALUE arrow-push-prim!
+    PRIM_VALUE_GET arrow-push-prim!
     drop true swap word-body-is-checked!
 
     # field?
@@ -157,11 +157,11 @@ def(field-new!, Name Table Type -- Field,
 
     over field-word-ptr@
     dip(
-        PRIM_DUP arrow-new-prim!
+        PRIM_CORE_DUP arrow-new-prim!
         dup2 swap word-arrow!
     )
     arrow-push-word!
-    PRIM_MEM_GET_VALUE arrow-push-prim!
+    PRIM_VALUE_GET arrow-push-prim!
     drop true swap word-body-is-checked!)
 
 ############
