@@ -1,4 +1,9 @@
-module(prelude)
+prim.syntax.module(prelude)
+
+def(swap, a b -- b a, prim.core.swap)
+def(dup, a -- a a, prim.core.dup)
+def(drop, a --, prim.core.drop)
+#def(dip, *a c [*a -- *b] -- *b c, \(x [f] -> f x))
 
 rotr : a b c -- c a b
 rotr = swap dip(swap)
@@ -88,7 +93,7 @@ rot7l = \(y x1 x2 x3 x4 x5 x6 -> x1 x2 x3 x4 x5 x6 y)
 rot8l = \(y x1 x2 x3 x4 x5 x6 x7 -> x1 x2 x3 x4 x5 x6 x7 y)
 
 run : *a [ *a -- *b ] -- *b
-run = prim.run
+run = prim.core.run
 
 
 def-type(Byte, U8)

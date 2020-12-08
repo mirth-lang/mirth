@@ -133,92 +133,171 @@ def(def-prim!, Prim Str -- +Names,
 ||| Initialize name table with list of primitives.
 def(init-prims!, +Names,
 
-    PRIM_ID "id" def-prim!
-    PRIM_DUP "dup" def-prim!
-    PRIM_DROP "drop" def-prim!
-    PRIM_SWAP "swap" def-prim!
-    PRIM_DIP "dip" def-prim!
-    PRIM_IF "if" def-prim!
-    PRIM_WHILE "while" def-prim!
-    PRIM_DEBUG "??" def-prim!
-    PRIM_CAST "prim.unsafe.cast" def-prim!
-    PRIM_RUN "prim.run" def-prim!
+    PRIM_MODULE "module" def-prim!
+    PRIM_MODULE "prim.syntax.module" def-prim!
+    PRIM_IMPORT "import" def-prim!
+    PRIM_IMPORT "prim.syntax.import" def-prim!
+    PRIM_DEF "def" def-prim!
+    PRIM_DEF "prim.syntax.def" def-prim!
+    PRIM_DEF_TYPE "def-type" def-prim!
+    PRIM_DEF_TYPE "prim.syntax.def-type" def-prim!
+    PRIM_BUFFER "buffer" def-prim!
+    PRIM_BUFFER "prim.syntax.buffer" def-prim!
+    PRIM_DEF_EXTERNAL "def-external" def-prim!
+    PRIM_DEF_EXTERNAL "prim.syntax.def-external" def-prim!
+    PRIM_TABLE "table" def-prim!
+    PRIM_TABLE "prim.syntax.table" def-prim!
+    PRIM_FIELD "field" def-prim!
+    PRIM_FIELD "prim.syntax.field" def-prim!
+    PRIM_TARGET_C99 "target-c99" def-prim!
+    PRIM_TARGET_C99 "prim.syntax.target-c99" def-prim!
+    PRIM_DATA "data" def-prim!
+    PRIM_DATA "prim.syntax.data" def-prim!
+    PRIM_END "end" def-prim!
+    PRIM_END "prim.syntax.end" def-prim!
 
+    PRIM_ID "id" def-prim!
+    PRIM_ID "prim.core.id" def-prim!
+    PRIM_DUP "dup" def-prim!
+    PRIM_DUP "prim.core.dup" def-prim!
+    PRIM_DROP "drop" def-prim!
+    PRIM_DROP "prim.core.drop" def-prim!
+    PRIM_SWAP "swap" def-prim!
+    PRIM_SWAP "prim.core.swap" def-prim!
+    PRIM_DIP "dip" def-prim!
+    PRIM_DIP "prim.core.dip" def-prim!
+    PRIM_IF "if" def-prim!
+    PRIM_IF "prim.core.if" def-prim!
+    PRIM_WHILE "while" def-prim!
+    PRIM_WHILE "prim.core.while" def-prim!
+    PRIM_DEBUG "??" def-prim!
+    PRIM_DEBUG "prim.core.debug" def-prim!
+    PRIM_RUN "prim.run" def-prim!
+    PRIM_RUN "prim.core.run" def-prim!
     PRIM_MATCH "match" def-prim!
+    PRIM_MATCH "prim.core.match" def-prim!
     PRIM_LAMBDA "\\" def-prim!
+    PRIM_LAMBDA "prim.core.lambda" def-prim!
 
     PRIM_EQ "==" def-prim!
+    PRIM_EQ "prim.value.eq" def-prim!
     PRIM_LT "<" def-prim!
+    PRIM_LT "prim.value.lt" def-prim!
     PRIM_LE "<=" def-prim!
+    PRIM_LE "prim.value.le" def-prim!
+    PRIM_CAST "prim.unsafe.cast" def-prim!
+    PRIM_CAST "prim.value.cast" def-prim!
+    PRIM_MEM_GET_VALUE "value@" def-prim!
+    PRIM_MEM_GET_VALUE "prim.value.get" def-prim!
+    PRIM_MEM_SET_VALUE "value!" def-prim!
+    PRIM_MEM_SET_VALUE "prim.value.set" def-prim!
 
     PRIM_INT_ADD "+" def-prim!
+    PRIM_INT_ADD "prim.int.add" def-prim!
     PRIM_INT_SUB "-" def-prim!
+    PRIM_INT_SUB "prim.int.sub" def-prim!
     PRIM_INT_MUL "*" def-prim!
+    PRIM_INT_MUL "prim.int.mul" def-prim!
     PRIM_INT_DIV "/" def-prim!
+    PRIM_INT_DIV "prim.int.div" def-prim!
     PRIM_INT_MOD "%" def-prim!
+    PRIM_INT_MOD "prim.int.mod" def-prim!
     PRIM_INT_AND "&" def-prim!
+    PRIM_INT_AND "prim.int.and" def-prim!
     PRIM_INT_OR "|" def-prim!
+    PRIM_INT_OR "prim.int.or" def-prim!
     PRIM_INT_XOR "^" def-prim!
+    PRIM_INT_XOR "prim.int.xor" def-prim!
     PRIM_INT_SHL "<<" def-prim!
+    PRIM_INT_SHL "prim.int.shl" def-prim!
     PRIM_INT_SHR ">>" def-prim!
+    PRIM_INT_SHR "prim.int.shr" def-prim!
+    PRIM_MEM_GET_INT "int@" def-prim!
+    PRIM_MEM_GET_INT "prim.int.get" def-prim!
+    PRIM_MEM_SET_INT "int!" def-prim!
+    PRIM_MEM_SET_INT "prim.int.set" def-prim!
 
     PRIM_BOOL_TRUE "true" def-prim!
+    PRIM_BOOL_TRUE "prim.bool.true" def-prim!
     PRIM_BOOL_FALSE "false" def-prim!
+    PRIM_BOOL_FALSE "prim.bool.false" def-prim!
     PRIM_BOOL_AND "&&" def-prim!
+    PRIM_BOOL_AND "prim.bool.and" def-prim!
     PRIM_BOOL_OR "||" def-prim!
+    PRIM_BOOL_OR "prim.bool.or" def-prim!
 
     PRIM_PACK_NIL "prim.pack.nil" def-prim!
     PRIM_PACK_CONS "prim.pack.cons" def-prim!
     PRIM_PACK_UNCONS "prim.pack.uncons" def-prim!
 
     PRIM_PTR_ADD "prim.unsafe.ptr+" def-prim!
+    PRIM_PTR_ADD "prim.ptr.add" def-prim!
     PRIM_PTR_SIZE "prim.unsafe.|ptr|" def-prim!
-
-    PRIM_MEM_GET_INT "int@" def-prim!
-    PRIM_MEM_SET_INT "int!" def-prim!
+    PRIM_PTR_SIZE "prim.ptr.size" def-prim!
     PRIM_MEM_GET_PTR "ptr@" def-prim!
+    PRIM_MEM_GET_PTR "prim.ptr.get" def-prim!
     PRIM_MEM_SET_PTR "ptr!" def-prim!
-    PRIM_MEM_GET_VALUE "value@" def-prim!
-    PRIM_MEM_SET_VALUE "value!" def-prim!
+    PRIM_MEM_SET_PTR "prim.ptr.set" def-prim!
+
     PRIM_MEM_GET_U8 "u8@" def-prim!
+    PRIM_MEM_GET_U8 "prim.u8.get" def-prim!
     PRIM_MEM_SET_U8 "u8!" def-prim!
+    PRIM_MEM_SET_U8 "prim.u8.set" def-prim!
+
     PRIM_MEM_GET_U16 "u16@" def-prim!
+    PRIM_MEM_GET_U16 "prim.u16.get" def-prim!
     PRIM_MEM_SET_U16 "u16!" def-prim!
+    PRIM_MEM_SET_U16 "prim.u16.set" def-prim!
+
     PRIM_MEM_GET_U32 "u32@" def-prim!
+    PRIM_MEM_GET_U32 "prim.u32.get" def-prim!
     PRIM_MEM_SET_U32 "u32!" def-prim!
+    PRIM_MEM_SET_U32 "prim.u32.set" def-prim!
+
     PRIM_MEM_GET_U64 "u64@" def-prim!
+    PRIM_MEM_GET_U64 "prim.u64.get" def-prim!
     PRIM_MEM_SET_U64 "u64!" def-prim!
+    PRIM_MEM_SET_U64 "prim.u64.set" def-prim!
+
     PRIM_MEM_GET_I8 "i8@" def-prim!
+    PRIM_MEM_GET_I8 "prim.i8.get" def-prim!
     PRIM_MEM_SET_I8 "i8!" def-prim!
+    PRIM_MEM_SET_I8 "prim.i8.set" def-prim!
+
     PRIM_MEM_GET_I16 "i16@" def-prim!
+    PRIM_MEM_GET_I16 "prim.i16.get" def-prim!
     PRIM_MEM_SET_I16 "i16!" def-prim!
+    PRIM_MEM_SET_I16 "prim.i16.set" def-prim!
+
     PRIM_MEM_GET_I32 "i32@" def-prim!
+    PRIM_MEM_GET_I32 "prim.i32.get" def-prim!
     PRIM_MEM_SET_I32 "i32!" def-prim!
+    PRIM_MEM_SET_I32 "prim.i32.set" def-prim!
+
     PRIM_MEM_GET_I64 "i64@" def-prim!
+    PRIM_MEM_GET_I64 "prim.i64.get" def-prim!
     PRIM_MEM_SET_I64 "i64!" def-prim!
+    PRIM_MEM_SET_I64 "prim.i64.set" def-prim!
 
     PRIM_SYS_OS "RUNNING_OS" def-prim!
+    PRIM_SYS_OS "prim.sys.os" def-prim!
     PRIM_SYS_ARGC "argc" def-prim!
+    PRIM_SYS_ARGC "prim.sys.argc" def-prim!
     PRIM_SYS_ARGV "argv" def-prim!
+    PRIM_SYS_ARGV "prim.sys.argv" def-prim!
 
     PRIM_POSIX_READ "posix-read!" def-prim!
+    PRIM_POSIX_READ "prim.posix.read" def-prim!
     PRIM_POSIX_WRITE "posix-write!" def-prim!
+    PRIM_POSIX_WRITE "prim.posix.write" def-prim!
     PRIM_POSIX_OPEN "posix-open!" def-prim!
+    PRIM_POSIX_OPEN "prim.posix.open" def-prim!
     PRIM_POSIX_CLOSE "posix-close!" def-prim!
+    PRIM_POSIX_CLOSE "prim.posix.close" def-prim!
     PRIM_POSIX_EXIT "posix-exit!" def-prim!
+    PRIM_POSIX_EXIT "prim.posix.exit" def-prim!
     PRIM_POSIX_MMAP "posix-mmap!" def-prim!
-
-    PRIM_MODULE "module" def-prim!
-    PRIM_IMPORT "import" def-prim!
-    PRIM_DEF "def" def-prim!
-    PRIM_DEF_TYPE "def-type" def-prim!
-    PRIM_BUFFER "buffer" def-prim!
-    PRIM_DEF_EXTERNAL "def-external" def-prim!
-    PRIM_TABLE "table" def-prim!
-    PRIM_FIELD "field" def-prim!
-    PRIM_TARGET_C99 "target-c99" def-prim!
-    PRIM_DATA "data" def-prim!
-    PRIM_END "end" def-prim!
+    PRIM_POSIX_MMAP "prim.posix.mmap" def-prim!
 
     #
     # monomorphic prims

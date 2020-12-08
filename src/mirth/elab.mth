@@ -319,8 +319,9 @@ def(elab-arrow-op-name!, Arrow Name -- Type,
 
 def(elab-arrow-op-block!, Arrow Token -- Type,
     dip(arrow-ctx?) meta-alloc! TMeta tuck
-    dip(token-args-1 elab-arrow!
-        Block.alloc! tuck block-arrow!
+    dip(token-args-1
+        Block.alloc! dip(elab-arrow!)
+        tuck block-arrow!
         OP_BLOCK over arrow-op!
         arrow-dom@)
     type-expand T*)
@@ -601,8 +602,9 @@ def(elab-arrow-arg!, Arrow Token Type -- Arrow Token,
 
 ||| Elaborate ARG_BLOCK argument, move token to the end of the argument.
 def(elab-arrow-arg-block!, Arrow Token Type -- Arrow Token,
-    over dip2(over arrow-ctx@) elab-arrow!
-    Block.alloc! tuck block-arrow! ARG_BLOCK
+    over dip2(over arrow-ctx@)
+    Block.alloc! dip(elab-arrow!)
+    tuck block-arrow! ARG_BLOCK
     swap token-next-arg-end
     dip(arrow-arg-add!))
 
@@ -810,7 +812,8 @@ elab-data-tag! = (
 def(elab-def!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-3
     rotl token-is-name? if(
-        token-name? name-undefined? if(
+        token-name?
+    # name-undefined? if(
             nip
             word-alloc!
             dup2 swap name-word!
@@ -818,8 +821,8 @@ def(elab-def!, Module Token -- Module Token +Mirth,
             dup dip(word-body!)
             word-sig!,
 
-            drop "word already defined" emit-fatal-error!
-        ),
+#            drop "word already defined" emit-fatal-error!
+ #       ),
         "expected word name" emit-fatal-error!
     ))
 
