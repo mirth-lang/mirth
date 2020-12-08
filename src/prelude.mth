@@ -255,7 +255,7 @@ nonzero : Int -- Bool
 nonzero = 0 !=
 
 ptrs : Size -- Size
-ptrs = prim.unsafe.|ptr| *
+ptrs = |ptr| *
 
 ptr@@ : Offset Ptr -- Ptr
 ptr@@ = dip(ptrs) ptr+ ptr@
