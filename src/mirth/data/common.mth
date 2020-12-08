@@ -74,7 +74,6 @@ data Type
     TTensor -> Type Type
     TMorphism -> Type Type
     TApp -> Type Type
-    TParam -> List(Type) Type
 end
 
 data PrimType
@@ -121,6 +120,7 @@ table(Var)
 field(var-is-implicit, Var, Bool)
 field(var-name, Var, Name)
 field(var-type, Var, Type)
+field(var-auto-run, Var, Bool) # run variable by default
 
 # mirth/data/type
 data Subst
@@ -142,6 +142,7 @@ table(Block)
 
 data Arg
     ARG_BLOCK -> Block
+    ARG_VAR_RUN -> Var
 end
 data Op
     OP_NONE

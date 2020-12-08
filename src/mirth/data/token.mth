@@ -35,7 +35,9 @@ token-is-dashes? : Token -- Token Bool
 token-is-lparen? : Token -- Token Bool
 token-is-rparen? : Token -- Token Bool
 token-is-lsquare? : Token -- Token Bool
+token-is-rsquare? : Token -- Token Bool
 token-is-lcurly? : Token -- Token Bool
+token-is-rcurly? : Token -- Token Bool
 
 token-is-int? = token-value? match(TOKEN_INT -> drop true, _ -> drop false)
 token-is-str? = token-value? match(TOKEN_STR -> drop true, _ -> drop false)
@@ -47,8 +49,10 @@ token-is-arrow? = token-value? match(TOKEN_ARROW -> true, _ -> drop false)
 token-is-dashes? = token-value? match(TOKEN_DASHES -> true, _ -> drop false)
 token-is-lparen? = token-value? match(TOKEN_LPAREN -> drop true, _ -> drop false)
 token-is-rparen? = token-value? match(TOKEN_RPAREN -> drop true, _ -> drop false)
-token-is-lcurly? = token-value? match(TOKEN_LCURLY -> drop true, _ -> drop false)
 token-is-lsquare? = token-value? match(TOKEN_LSQUARE -> drop true, _ -> drop false)
+token-is-rsquare? = token-value? match(TOKEN_RSQUARE -> drop true, _ -> drop false)
+token-is-lcurly? = token-value? match(TOKEN_LCURLY -> drop true, _ -> drop false)
+token-is-rcurly? = token-value? match(TOKEN_RCURLY -> drop true, _ -> drop false)
 
 ||| Is this a newline token?
 token-is-newline? : Token -- Token Bool

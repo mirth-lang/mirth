@@ -80,16 +80,11 @@ def(elab-type-var!, TypeElab Token -- TypeElab Var Token,
     TYPE_TYPE elab-implicit-var!)
 
 def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
-    dip(dip(type-elab-ctx?))
-    over
-    dip(dip(
-        token-name@
-        dup2 swap ctx-has-name
-    ))
+    dip2(type-elab-ctx?) over
+    dip2(token-name@ dup2 swap ctx-has-name)
     rotl if(
-        dip(dip(over ctx-lookup var-type?))
+        dip2(over ctx-lookup var-type?)
         elab-type-unify! nip,
-
         dip(
             dip(var-new-implicit!)
             over var-type!
@@ -97,7 +92,7 @@ def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
         )
     )
     token-next
-    dip(dip(type-elab-ctx!)))
+    dip2(type-elab-ctx!))
 
 def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
     token-name?
@@ -197,12 +192,12 @@ def(elab-tag-ctx-sig!, Tag -- Ctx Type +Elab,
         { Tag TypeElab Type Type }
         T-> dip(type-elab-ctx)
         { Tag Ctx Type }
-        dup2 dip(dip(
+        dup2 dip2(
             rotl
             tuck tag-type-raw!
             tuck tag-ctx!
             true swap tag-sig-is-checked!
-        ))
+        )
     ))
 
 
@@ -219,12 +214,12 @@ def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
         external-sig?
         dip(type-elab-default)
         elab-type-sig! drop dip(type-elab-ctx)
-        dup2 dip(dip(
+        dup2 dip2(
             rotl
             tuck external-type!
             tuck external-ctx!
             true swap external-sig-is-checked!
-        ))
+        )
     ))
 
 def(elab-word-sig!, Word -- Type +Elab,
@@ -240,12 +235,12 @@ def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
         word-sig?
         dip(type-elab-default)
         elab-type-sig! drop dip(type-elab-ctx)
-        dup2 dip(dip(
+        dup2 dip2(
             rotl
             tuck word-type!
             tuck word-ctx!
             true swap word-sig-is-checked!
-        ))
+        )
     ))
 
 def(elab-word-body!, Word -- Arrow +Elab,
@@ -331,10 +326,14 @@ def(elab-arrow-op-block!, Arrow Token -- Type,
     type-expand T*)
 
 def(elab-arrow-op-var!, Arrow Var -- Type,
-    # TODO: distinguish "push" vars from "run" vars (and from "type" vars)
-    var-type?
-    dip(OP_VAR over arrow-op!)
-    dip(arrow-dom@) T*)
+    dup2 OP_VAR swap arrow-op!
+    var-auto-run? if(
+        # run var
+        var-type@ elab-arrow-op-apply-semifresh!,
+
+        # push var
+        dip(arrow-dom@) var-type@ T*
+    ))
 
 def(elab-arrow-op-int!, Arrow Int -- Type,
     OP_INT over arrow-op!
@@ -353,7 +352,7 @@ def(elab-arrow-op-stack-assertion!, Arrow Token -- Type,
     token-succ elab-type-stack!
     drop nip
     over arrow-token@
-    dip(dip(arrow-dom@ dup))
+    dip2(arrow-dom@ dup)
     elab-type-unify! drop2)
 
 def(elab-arrow-op-external!, Arrow External -- Type,
@@ -396,30 +395,52 @@ def(elab-lambda!, Lambda -- Type,
     lambda-cod@)
 
 def(elab-type-expand-tensor!, Type Token -- Type Type Token,
-    dip(dip(meta-alloc! TMeta meta-alloc! TMeta dup2 T*))
+    dip2(meta-alloc! TMeta meta-alloc! TMeta dup2 T*)
     elab-type-unify! nip dip(dip(type-expand) type-expand))
 
 def(elab-lambda-pop-from-mid!, Lambda Token -- Lambda Type Token,
     dip(lambda-mid?)
     elab-type-expand-tensor!
-    dip(dip(over lambda-mid!)))
+    dip2(over lambda-mid!))
+
+def(token-is-lambda-param?, Token -- Token Bool,
+    sig-token-is-type-var? if(
+        token-has-args? not,
+    token-is-lsquare? if(
+        dup true
+        dip(token-succ sig-token-is-type-var?) &&
+        dip(token-succ token-is-rsquare?) &&
+        nip,
+        false
+    )))
 
 def(elab-lambda-params!, Lambda -- Lambda,
     lambda-outer-ctx? over lambda-inner-ctx!
     lambda-dom? over lambda-mid!
     lambda-token? token-args-1
-    while(sig-token-is-type-var?, token-succ)
-    expect-token-arrow token-pred
-    while(sig-token-is-type-var?,
+    while(token-is-lambda-param?, token-next)
+    expect-token-arrow token-prev
+    while(token-is-lambda-param?,
         elab-lambda-pop-from-mid! dup dip(
-            token-name@ var-new! tuck var-type!
+            sig-token-is-type-var? if(
+                token-name@ var-new! tuck var-type!,
+
+                token-succ dip(type-expand type-is-morphism?) swap if(
+                    token-name@ var-new!
+                    true over var-auto-run!
+                    tuck var-type!,
+
+                    "block pattern on non-block argument" emit-fatal-error!
+                )
+            )
             dip(lambda-params?) dup dip(swap cons over lambda-params!)
             dip(lambda-inner-ctx?) ctx-new! over lambda-inner-ctx!
         )
-        token-pred)
+        token-prev)
     drop)
 def(elab-lambda-body!, Lambda -- Lambda,
-    lambda-token? token-args-1 while(sig-token-is-type-var?, token-succ) token-succ
+    lambda-token? token-args-1
+    while(token-is-lambda-param?, token-next) token-succ
     dip(lambda-mid? dip(lambda-inner-ctx?))
     elab-arrow-fwd!
     dip(over lambda-body!)
@@ -494,10 +515,10 @@ def(elab-case-pattern!, Case Token -- Case Token,
 
             # set case pattern
             dup Tag->Pattern rotr
-            dip(dip(over case-pattern!))
+            dip2(over case-pattern!)
 
             # set case mid
-            dip(dip(case-match? match-dom@)) { Case Type Token Tag }
+            dip2(case-match? match-dom@) { Case Type Token Tag }
             elab-tag-sig! subst-nil swap type-freshen-sig
             { Case Type Token Subst Type }
             rotr dip(
@@ -519,8 +540,8 @@ def(elab-case-pattern!, Case Token -- Case Token,
 def(elab-case-body!, Case Token -- Case Token,
     dip(case-mid? dip(case-match? match-ctx@)) elab-arrow-fwd!
     arrow-token? dip(arrow-dom@) { Case Arrow Type Token }
-    dip(dip(over case-body!)) { Case Type Token }
-    dip(dip(case-match? match-cod@)) elab-type-unify! nip)
+    dip2(over case-body!) { Case Type Token }
+    dip2(case-match? match-cod@) elab-type-unify! nip)
 
 ||| Apply a type signature after freshening to get a codomain.
 def(elab-arrow-op-apply-fresh!, Arrow Type -- Type,
@@ -528,26 +549,26 @@ def(elab-arrow-op-apply-fresh!, Arrow Type -- Type,
     dip(over arrow-subst!)
     elab-arrow-op-apply!)
 
+||| Same as elab-arrow-op-apply! but it uses a fresh stack var
+||| if the morphism has unit type.
+def(elab-arrow-op-apply-semifresh!, Arrow Type -- Type,
+    # TODO implement type-semifreshen-sig
+    elab-arrow-op-apply!)
+
 ||| Apply a type signature to get a codomain.
 def(elab-arrow-op-apply!, Arrow Type -- Type,
     type-expand
 
     over arrow-token@ token-num-args
-    over type-num-params != if(
+    over type-max-num-params > if(
         over arrow-token@
-        "Wrong number of arguments." emit-fatal-error!
+        "Too many arguments." emit-fatal-error!
         drop2 TYPE_ERROR, # TODO: improve error message
 
-    type-is-param? if(
-        type-get-param
-        type-expand-morphism
-        dip(swap dip(elab-arrow-unify-dom!))
-        dip(elab-arrow-op-args! drop),
-
-        type-expand-morphism
-        dip(elab-arrow-unify-dom! drop)
-    )))
-
+    over arrow-token@ token-num-args
+    type-expand-params type-expand-morphism
+    dip(swap dip(elab-arrow-unify-dom!))
+    dip(elab-arrow-op-args! drop)))
 
 ||| Unify a type with the dom of an arrow, returning the original arrow.
 def(elab-arrow-unify-dom!, Arrow Type -- Arrow,
@@ -558,15 +579,38 @@ def(elab-arrow-op-args!, Arrow List(Type) -- Arrow,
     dip(arrow-token? token-succ)
     while(is-cons?,
         dip(token-succ) uncons
-        dip(
-            over
-            dip(dip(over arrow-ctx@))
-            elab-arrow! Block.alloc! tuck block-arrow! Block->Arg
-            swap token-next-arg-end
-            dip(arrow-arg-add!)
-        )
+        dip(elab-arrow-arg!)
     )
     drop2)
+
+||| Elaborate one arg of a given type, move token to the end of the argument.
+def(elab-arrow-arg!, Arrow Token Type -- Arrow Token,
+    over token-is-name? dip(token-succ token-is-arg-end? nip) && if(
+        dup3 drop token-name@
+        dip(arrow-ctx@) swap ctx-lookup-maybe
+        match(
+            SOME ->
+                var-auto-run? if(
+                    elab-arrow-arg-var-run!,
+                    drop elab-arrow-arg-block!
+                ),
+            NONE -> elab-arrow-arg-block!
+        ),
+        elab-arrow-arg-block!
+    ))
+
+||| Elaborate ARG_BLOCK argument, move token to the end of the argument.
+def(elab-arrow-arg-block!, Arrow Token Type -- Arrow Token,
+    over dip2(over arrow-ctx@) elab-arrow!
+    Block.alloc! tuck block-arrow! ARG_BLOCK
+    swap token-next-arg-end
+    dip(arrow-arg-add!))
+
+||| Elaborate ARG_VAR_RUN argument, move token to the end of the argument.
+def(elab-arrow-arg-var-run!, Arrow Token Type Var -- Arrow Token,
+    dup dip(var-type@ rotl elab-type-unify! nip)
+    swap token-next-arg-end
+    dip(ARG_VAR_RUN arrow-arg-add!))
 
 ######################
 # Module Elaboration #

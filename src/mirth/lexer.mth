@@ -337,7 +337,7 @@ def(str-buf-dec-int?, Int +StrBuf,
     0 # current index
     dup str-buf-u8@ is-sign? if(
         is-minus-sign? nip if(
-            dip(dip(drop -1)),
+            dip2(drop -1),
             id
         )
         1+,
@@ -357,7 +357,7 @@ def(str-buf-hex-int?, Int +StrBuf,
     0 # current index
     dup str-buf-u8@ is-sign? if(
         is-minus-sign? nip if(
-            dip(dip(drop -1)),
+            dip2(drop -1),
             id
         )
         1+,
