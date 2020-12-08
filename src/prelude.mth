@@ -1,19 +1,101 @@
 module(prelude)
 
+############################################
+# not re-exported because of optimisations #
+############################################
+# def(dip, *a c [*a -- *b] -- *b c, prim.core.dip)
+# def(if, *a Bool [*a -- *b] [*a -- *b] -- *b, prim.core.if)
+# def(while, *a [*a -- *a] [*a -- *a Bool] -- *a, prim.core.while)
+############################################
+
+##################################################
+# not re-exported because they're special syntax #
+##################################################
+# match
+# lambda
+##################################################
+
+# Re-exported primitives.
+def(id, --, prim.core.id)
+def(dup, a -- a a, prim.core.dup)
+def(drop, a --, prim.core.drop)
+def(swap, a b -- b a, prim.core.swap)
+def(??, --, prim.core.debug)
+def(run, *a [ *a -- *b ] -- *b, prim.core.run)
+
+def(==, a a -- Bool, prim.value.eq)
+def(<=, a a -- Bool, prim.value.le)
+def(<,  a a -- Bool, prim.value.lt)
+def(cast, a -- b, prim.value.cast)
+def(value@, Ptr -- a, prim.value.get)
+def(value!, a Ptr --, prim.value.set)
+
+def(+, Int Int -- Int, prim.int.add)
+def(-, Int Int -- Int, prim.int.sub)
+def(*, Int Int -- Int, prim.int.mul)
+def(/, Int Int -- Int, prim.int.div)
+def(%, Int Int -- Int, prim.int.mod)
+def(&, Int Int -- Int, prim.int.and)
+def(|, Int Int -- Int, prim.int.or)
+def(^, Int Int -- Int, prim.int.xor)
+def(<<, Int Int -- Int, prim.int.shl)
+def(>>, Int Int -- Int, prim.int.shr)
+def(int@, Ptr -- Int, prim.int.get)
+def(int!, Int Ptr --, prim.int.set)
+
+def(true, Bool, prim.bool.true)
+def(false, Bool, prim.bool.false)
+def(&&, Bool Bool -- Bool, prim.bool.and)
+def(||, Bool Bool -- Bool, prim.bool.or)
+
+def(ptr+, Int Ptr -- Ptr, prim.ptr.add)
+def(|ptr|, Int, prim.ptr.size)
+def(ptr@, Ptr -- Ptr, prim.ptr.get)
+def(ptr!, Ptr Ptr --,prim.ptr.set)
+
+def(u8@, Ptr -- U8, prim.u8.get)
+def(u8!, U8 Ptr --, prim.u8.set)
+def(u16@, Ptr -- U16, prim.u16.get)
+def(u16!, U16 Ptr --, prim.u16.set)
+def(u32@, Ptr -- U32, prim.u32.get)
+def(u32!, U32 Ptr --, prim.u32.set)
+def(u64@, Ptr -- U64, prim.u64.get)
+def(u64!, U64 Ptr --, prim.u64.set)
+
+def(i8@, Ptr -- I8, prim.i8.get)
+def(i8!, I8 Ptr --, prim.i8.set)
+def(i16@, Ptr -- I16, prim.i16.get)
+def(i16!, I16 Ptr --, prim.i16.set)
+def(i32@, Ptr -- I32, prim.i32.get)
+def(i32!, I32 Ptr --, prim.i32.set)
+def(i64@, Ptr -- I64, prim.i64.get)
+def(i64!, I64 Ptr --, prim.i64.set)
+
+def(RUNNING_OS, Int, prim.sys.os)
+def(argc, Int, prim.sys.argc)
+def(argv, Ptr, prim.sys.argv)
+
+def(posix-read!, Int Ptr Int -- Int, prim.posix.read)
+def(posix-write!, Int Ptr Int -- Int, prim.posix.write)
+def(posix-open!, Ptr Int Int -- Int, prim.posix.open)
+def(posix-close!, Int -- Int, prim.posix.close)
+def(posix-exit!, *a Int -- *b, prim.posix.exit)
+def(posix-mmap!, Ptr Int Int Int Int Int -- Ptr, prim.posix.mmap)
+
 rotr : a b c -- c a b
-rotr = swap dip(swap)
+rotr = \(a b c -> c a b)
 
 rotl : a b c -- b c a
-rotl = dip(swap) swap
+rotl = \(a b c -> b c a)
 
 over : a b -- a b a
-over = dip(dup) swap
+over = \(a b -> a b a)
 
 tuck : a b -- b a b
-tuck = dup dip(swap)
+tuck = \(a b -> b a b)
 
 nip : a b -- b
-nip = dip(drop)
+nip = \(a b -> b)
 
 trip : a -- a a a
 quad : a -- a a a a
@@ -87,18 +169,11 @@ rot6l = \(y x1 x2 x3 x4 x5 -> x1 x2 x3 x4 x5 y)
 rot7l = \(y x1 x2 x3 x4 x5 x6 -> x1 x2 x3 x4 x5 x6 y)
 rot8l = \(y x1 x2 x3 x4 x5 x6 x7 -> x1 x2 x3 x4 x5 x6 x7 y)
 
-run : *a [ *a -- *b ] -- *b
-run = prim.run
-
-
 def-type(Byte, U8)
 def-type(Char, U8)
 def-type(Str, Ptr)
 def-type(Size, Int)
 def-type(Offset, Int)
-
-cast : a -- b
-cast = prim.unsafe.cast
 
 Int->Ptr : Int -- Ptr
 Int->Ptr = cast
@@ -179,11 +254,8 @@ square = dup *
 nonzero : Int -- Bool
 nonzero = 0 !=
 
-ptr+ : Int Ptr -- Ptr
-ptr+ = prim.unsafe.ptr+
-
 ptrs : Size -- Size
-ptrs = prim.unsafe.|ptr| *
+ptrs = |ptr| *
 
 ptr@@ : Offset Ptr -- Ptr
 ptr@@ = dip(ptrs) ptr+ ptr@

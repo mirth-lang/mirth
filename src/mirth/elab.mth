@@ -319,8 +319,9 @@ def(elab-arrow-op-name!, Arrow Name -- Type,
 
 def(elab-arrow-op-block!, Arrow Token -- Type,
     dip(arrow-ctx?) meta-alloc! TMeta tuck
-    dip(token-args-1 elab-arrow!
-        Block.alloc! tuck block-arrow!
+    dip(token-args-1
+        Block.alloc! dip(elab-arrow!)
+        tuck block-arrow!
         OP_BLOCK over arrow-op!
         arrow-dom@)
     type-expand T*)
@@ -368,10 +369,10 @@ def(elab-arrow-op-tag!, Arrow Tag -- Type,
     elab-tag-sig! elab-arrow-op-apply-fresh!)
 
 def(elab-arrow-op-prim!, Arrow Prim -- Type,
-    dup PRIM_MATCH == if(
+    dup PRIM_CORE_MATCH == if(
         drop elab-arrow-op-match!,
 
-    dup PRIM_LAMBDA == if(
+    dup PRIM_CORE_LAMBDA == if(
         drop elab-arrow-op-lambda!,
 
     prim-type? type-is-error if(
@@ -601,8 +602,9 @@ def(elab-arrow-arg!, Arrow Token Type -- Arrow Token,
 
 ||| Elaborate ARG_BLOCK argument, move token to the end of the argument.
 def(elab-arrow-arg-block!, Arrow Token Type -- Arrow Token,
-    over dip2(over arrow-ctx@) elab-arrow!
-    Block.alloc! tuck block-arrow! ARG_BLOCK
+    over dip2(over arrow-ctx@)
+    Block.alloc! dip(elab-arrow!)
+    tuck block-arrow! ARG_BLOCK
     swap token-next-arg-end
     dip(arrow-arg-add!))
 
@@ -628,7 +630,7 @@ def(elab-module!, Module -- Module +Mirth,
 
 ||| Check that the `module(M)` statement exists and save the name.
 def(elab-module-header!, Module Token -- Module Token +Mirth,
-    PRIM_MODULE token-prim=? if(
+    PRIM_SYNTAX_MODULE token-prim=? if(
         dup2 elab-module-name! token-next,
         dup "Expected module header." emit-error!
     )
@@ -657,7 +659,7 @@ def(elab-module-name!, Module Token -- +Mirth,
 
 ||| Elaborate module imports. Return token after imports.
 def(elab-module-imports!, Module Token -- Module Token +Mirth,
-    while(PRIM_IMPORT token-prim=?, elab-module-import!))
+    while(PRIM_SYNTAX_IMPORT token-prim=?, elab-module-import!))
 
 ||| Elaborate `import(M)` statement. Return token after import.
 def(elab-module-import!, Module Token -- Module Token +Mirth,
@@ -685,14 +687,14 @@ def(elab-module-decls!, Module Token -- Module Token +Mirth,
 
 ||| Elaborate a declaration. Returns the next token.
 def(elab-module-decl!, Module Token -- Module Token +Mirth,
-    PRIM_DEF token-prim=? if( elab-def!,
-    PRIM_DEF_EXTERNAL token-prim=? if( elab-def-external!,
-    PRIM_DEF_TYPE token-prim=? if( elab-def-type!,
-    PRIM_BUFFER token-prim=? if( elab-buffer!,
-    PRIM_TABLE token-prim=? if( elab-table!,
-    PRIM_FIELD token-prim=? if( elab-field!,
-    PRIM_TARGET_C99 token-prim=? if(elab-target-c99!,
-    PRIM_DATA token-prim=? if( elab-data!,
+    PRIM_SYNTAX_DEF token-prim=? if( elab-def!,
+    PRIM_SYNTAX_DEF_EXTERNAL token-prim=? if( elab-def-external!,
+    PRIM_SYNTAX_DEF_TYPE token-prim=? if( elab-def-type!,
+    PRIM_SYNTAX_BUFFER token-prim=? if( elab-buffer!,
+    PRIM_SYNTAX_TABLE token-prim=? if( elab-table!,
+    PRIM_SYNTAX_FIELD token-prim=? if( elab-field!,
+    PRIM_SYNTAX_TARGET_C99 token-prim=? if(elab-target-c99!,
+    PRIM_SYNTAX_DATA token-prim=? if( elab-data!,
     token-could-be-word-sig? if(elab-decl-word-sig!,
     token-could-be-word-def? if(elab-decl-word-def!,
     "unknown declaration" emit-fatal-error!))))))))))
@@ -759,7 +761,7 @@ expect-token-newline : Token -- Token
 expect-token-newline = token-is-newline? if(id, "Expected newline." emit-fatal-error!)
 
 expect-token-end : Token -- Token
-expect-token-end = PRIM_END token-prim=? if(id, "Expected 'end'" emit-fatal-error!)
+expect-token-end = PRIM_SYNTAX_END token-prim=? if(id, "Expected 'end'" emit-fatal-error!)
 
 expect-token-arrow : Token -- Token
 expect-token-arrow = token-is-arrow? if(id, "Expected arrow." emit-fatal-error!)
@@ -771,7 +773,7 @@ elab-data-tags-body! : Module Data Token -- Module Data Token
 elab-data-tags-body! = while(elab-data-tags-done? not, elab-data-tag!)
 
 elab-data-tags-done? : Token -- Token Bool
-elab-data-tags-done? = token-is-rparen? if(true, PRIM_END token-prim=?)
+elab-data-tags-done? = token-is-rparen? if(true, PRIM_SYNTAX_END token-prim=?)
 
 ||| Get a tag associated with a data type.
 ||| This looks like either "TAG" or "TAG -> TYPE1 ... TYPEN".
@@ -810,7 +812,8 @@ elab-data-tag! = (
 def(elab-def!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-3
     rotl token-is-name? if(
-        token-name? name-undefined? if(
+        token-name?
+        name-undefined? if(
             nip
             word-alloc!
             dup2 swap name-word!

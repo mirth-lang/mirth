@@ -1,4 +1,5 @@
 module(tests/prim-types)
+import(prelude)
 
 def(int-lit, Int, 10)
 def(str-lit, Ptr, "Hello")
@@ -9,11 +10,11 @@ def(prim-dip-1, a b c -- a c, dip(drop))
 def(prim-dip-2, a b c -- a b b c, dip(dup))
 def(prim-dip-3, a b c -- b a c, dip(swap))
 def(prim-if-1, Int Int Bool -- Int, if(+, -))
-def(prim-if-2, Int Ptr Bool -- Ptr, if(prim.unsafe.ptr+, swap drop))
+def(prim-if-2, Int Ptr Bool -- Ptr, if(prim.ptr.add, swap drop))
 def(prim-while-1, Int, 0 10 while(dup 0 swap <, dup dip(+) 1 -) drop)
 def(prim-while-2, Int -- Int, while(true, id))
 def(prim-debug, *a -- *a, ??)
-def(prim-cast, a -- b, prim.unsafe.cast)
+def(prim-cast, a -- b, prim.value.cast)
 
 def(prim-equals, a a -- Bool, ==)
 
@@ -39,8 +40,8 @@ def(prim-pack-nil, [], prim.pack.nil)
 def(prim-pack-cons, [*a] b -- [*a b], prim.pack.cons)
 def(prim-pack-uncons, [*a b] -- [*a] b, prim.pack.uncons)
 
-def(prim-ptr-add, Int Ptr -- Ptr, prim.unsafe.ptr+)
-def(prim-ptr-size, Int, prim.unsafe.|ptr|)
+def(prim-ptr-add, Int Ptr -- Ptr, prim.ptr.add)
+def(prim-ptr-size, Int, prim.ptr.size)
 
 def(prim-mem-get, Ptr -- Int, int@)
 def(prim-mem-set, Int Ptr --, int!)
