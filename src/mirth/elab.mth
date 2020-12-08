@@ -813,7 +813,7 @@ def(elab-def!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-3
     rotl token-is-name? if(
         token-name?
-    # name-undefined? if(
+        name-undefined? if(
             nip
             word-alloc!
             dup2 swap name-word!
@@ -821,8 +821,8 @@ def(elab-def!, Module Token -- Module Token +Mirth,
             dup dip(word-body!)
             word-sig!,
 
-#            drop "word already defined" emit-fatal-error!
- #       ),
+            drop "word already defined" emit-fatal-error!
+        ),
         "expected word name" emit-fatal-error!
     ))
 
