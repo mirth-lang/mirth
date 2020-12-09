@@ -3,7 +3,6 @@ import(mirth/data/name)
 import(mirth/data/token)
 import(mirth/data/type)
 import(mirth/data/table)
-import(mirth/data/data)
 import(mirth/data/ctx)
 
 ####################
@@ -911,18 +910,16 @@ def(elab-table!, Module Token -- Module Token +Mirth,
 def(elab-field!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-3
     rotl token-is-name? if(
-        token-name@
-        rotl token-is-name? if(
-            token-name?
-            name-is-table? if(
-                nip name-type@ type-get-table rotl
-                elab-simple-type-arg!
-                field-new! drop,
 
-                drop "unknown table name" emit-fatal-error!
-            ),
-            "expected table name" emit-fatal-error!
+        token-name@ rotl
+        dup elab-simple-type-arg!
+        type-can-have-field? if(
+            nip rotl
+            elab-simple-type-arg!
+            field-new! drop,
+            drop "expected table type or an enum" emit-fatal-error!
         ),
+
         "expected field name" emit-fatal-error!
     ))
 

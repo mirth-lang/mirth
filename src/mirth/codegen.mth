@@ -6,7 +6,6 @@ import(mirth/data/word)
 import(mirth/data/external)
 import(mirth/data/buffer)
 import(mirth/data/arrow)
-import(mirth/data/data)
 
 ###########
 # Codegen #

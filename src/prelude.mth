@@ -119,13 +119,40 @@ dup2 = \(a1 a2 -> a1 a2 a1 a2)
 dup3 = \(a1 a2 a3 -> a1 a2 a3 a1 a2 a3)
 dup4 = \(a1 a2 a3 a4 -> a1 a2 a3 a4 a1 a2 a3 a4)
 
-dip2 : *a c1 c2 [*a -- *b] -- *b c1 c2
-dip3 : *a c1 c2 c3 [*a -- *b] -- *b c1 c2 c3
+dip2 : *a c1 c2       [*a -- *b] -- *b c1 c2
+dip3 : *a c1 c2 c3    [*a -- *b] -- *b c1 c2 c3
 dip4 : *a c1 c2 c3 c4 [*a -- *b] -- *b c1 c2 c3 c4
 
-dip2 = \(c1 c2 [f] -> f c1 c2)
-dip3 = \(c1 c2 c3 [f] -> f c1 c2 c3)
+dip2 = \(c1 c2       [f] -> f c1 c2)
+dip3 = \(c1 c2 c3    [f] -> f c1 c2 c3)
 dip4 = \(c1 c2 c3 c4 [f] -> f c1 c2 c3 c4)
+
+dip'  : *a1 c1 a2          [*a1 a2 -- *b1 b2] -- *b1 c1 b2
+dip2' : *a1 c1 a2 c2       [*a1 a2 -- *b1 b2] -- *b1 c1 b2 c2
+dip3' : *a1 c1 a2 c2 c3    [*a1 a2 -- *b1 b2] -- *b1 c1 b2 c2 c3
+dip4' : *a1 c1 a2 c2 c3 c4 [*a1 a2 -- *b1 b2] -- *b1 c1 b2 c2 c3 c4
+
+dip'   = \([f] -> swap dip(f) swap)
+dip2'  = \([f] -> dip(swap dip(f) swap))
+dip3'  = \([f] -> dip(dip(swap dip(f) swap)))
+dip4'  = \([f] -> dip(dip(dip(swap dip(f) swap))))
+
+dip2'' : *a1 c1 c2 a2       [*a1 a2 -- *b1 b2] -- *b1 c1 c2 b2
+dip3'' : *a1 c1 c2 a2 c3    [*a1 a2 -- *b1 b2] -- *b1 c1 c2 b2 c3
+dip4'' : *a1 c1 c2 a2 c3 c4 [*a1 a2 -- *b1 b2] -- *b1 c1 c2 b2 c3 c4
+
+dip2'' = \([f] -> rotr dip(dip(f)) rotl)
+dip3'' = \([f] -> dip(rotr dip(dip(f)) rotl))
+dip4'' = \([f] -> dip(dip(rotr dip(dip(f)) rotl)))
+
+dip3''' : *a1 c1 c2 c3 a2    [*a1 a2 -- *b1 b2] -- *b1 c1 c2 c3 b2
+dip4''' : *a1 c1 c2 c3 a2 c4 [*a1 a2 -- *b1 b2] -- *b1 c1 c2 c3 b2 c4
+
+dip3''' = \([f] -> rot4r dip3(f) rot4l)
+dip4''' = \([f] -> dip(dip3'''(f)))
+
+dip4'''' : *a1 c1 c2 c3 c4 a2 [*a1 a2 -- *b1 b2] -- *b1 c1 c2 c3 c4 b2
+dip4'''' = \([f] -> rot5r dip4(f) rot5l)
 
 drop2 : a b --
 drop3 : a b c --
@@ -921,68 +948,120 @@ unL3 =
         _ -> "expected L3 list" panic!
     )
 
+||| Reverse the list.
+reverse : List(a) -- List(a)
+reverse =
+    match(
+        L0 -> L0,
+        L1 -> L1,
+        L2 -> swap L2,
+        L3 -> rotr swap L3,
+        LCAT -> dip(reverse swap reverse) LCAT
+    )
+
+||| Transform each element of the list.
 map : *c List(a) [*c a -- *c b] -- *c List(b)
-map =
-    \([f] ->
-        match(
-            L0 -> L0,
-            L1 -> f L1,
-            L2 -> dip(f) swap dip(f) swap L2,
-            L3 -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3,
-            LCAT -> dip(dip(map(f)) swap dip(map(f)) swap) LCAT
-        )
+map = \( [f] ->
+    match(
+        L0 -> L0,
+        L1 -> f L1,
+        L2 -> dip(f) swap dip(f) swap L2,
+        L3 -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3,
+        LCAT -> dip(dip(map(f)) swap dip(map(f)) swap) LCAT
     )
+)
 
+||| Traverse the list, left to right.
 for : *c List(a) [*c a -- *c] -- *c
-for =
-    \([f] ->
-        match(
-            L0 -> id,
-            L1 -> f,
-            L2 -> dip(f) f,
-            L3 -> dip(dip(f) f) f,
-            LCAT -> drop dip(for(f)) for(f)
-        )
+for = \([f] ->
+    match(
+        L0 -> id,
+        L1 -> f,
+        L2 -> dip(f) f,
+        L3 -> dip(dip(f) f) f,
+        LCAT -> drop dip(for(f)) for(f)
     )
+)
 
+||| Traverse the list, right to left.
+reverse-for : *c List(a) [*c a -- *c] -- *c
+reverse-for = \([f] ->
+    match(
+        L0 -> id,
+        L1 -> f,
+        L2 -> swap dip(f) f,
+        L3 -> rotr dip2(f) swap dip(f) f,
+        LCAT -> drop swap dip(for(f)) for(f)
+    )
+)
+
+||| Reduce a list in a bottom-up manner.
+reduce : List(a) a [a a -- a] -- a
+reduce = map-reduce(id)
+
+||| Reduce a list in a bottom-up manner, after mapping its elements.
+map-reduce : List(a) b [b b -- b] [a -- b] -- b
+map-reduce = \( b [g] [f] ->
+    match(
+        L0 -> b,
+        L1 -> f,
+        L2 -> dip(f) dip'(f) g,
+        L3 -> dip2(f) dip2'(f) dip2''(f) dip(g) g,
+        LCAT -> drop b map-reduce(f,g) dip(b map-reduce(f,g)) g
+    )
+)
+
+
+||| Filter away any list elements that don't satisfy the predicate.
 filter : *c List(a) [*c a -- *c a Bool] -- *c List(a)
-filter =
-    \([f] ->
-        match(
-            LCAT -> drop dip(filter(f)) swap dip(filter(f)) swap cat,
-            L0 -> L0,
-            _ ->
-                uncons dip(f) swap if(
-                    swap dip(filter(f)) swap cons,
-                    nip filter(f)
-                )
-        )
+filter = \( [f] ->
+    match(
+        LCAT -> drop dip(filter(f)) swap dip(filter(f)) swap cat,
+        L0 -> L0,
+        _ ->
+            uncons dip(f) swap if(
+                swap dip(filter(f)) swap cons,
+                nip filter(f)
+            )
     )
+)
 
+||| Find the first element that satisfies the predicate, if it exists.
 find : *c List(a) [*c a -- *c a Bool] -- *c Maybe(a)
-find =
-    \([f] ->
-        match(
-            L0 -> NONE,
-            L1 -> f if(SOME, drop NONE),
-            L2 ->
-                dip(f) swap if(
-                    drop SOME,
-                    nip L1 find(f)
-                ),
-            L3 ->
-                dip(dip(f)) rotl if(
-                    drop2 SOME,
-                    dip(nip) L2 find(f)
-                ),
-            LCAT ->
-                drop dip(find(f)) swap
-                is-some? if(
-                    nip,
-                    drop find(f)
-                )
-        )
+find = \([f] ->
+    match(
+        L0 -> NONE,
+        L1 -> f if(SOME, drop NONE),
+        L2 ->
+            dip(f) swap if(
+                drop SOME,
+                nip L1 find(f)
+            ),
+        L3 ->
+            dip(dip(f)) rotl if(
+                drop2 SOME,
+                dip(nip) L2 find(f)
+            ),
+        LCAT ->
+            drop dip(find(f)) swap
+            is-some? if(
+                nip,
+                drop find(f)
+            )
     )
+)
+
+||| Like `find` but preserves the list.
+find? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Maybe(a)
+find? = over dip(find) swap
+
+||| Is the predicate true for any element of the list?
+any? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool
+any? = find? is-some
+
+||| Is the predicate true for all elements of the list?
+all? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool
+all? = find? is-none not
 
 #######
 # BAG #

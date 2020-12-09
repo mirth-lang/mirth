@@ -497,6 +497,26 @@ def(type-head, Type -- Type,
         type-get-app drop type-expand
     ))
 
+def(type-can-have-field?, Type -- Type Bool,
+    dup match(
+        TApp -> drop type-can-have-field? nip,
+        TData -> data-is-enum? nip,
+        TTable -> drop true,
+        _ -> drop false
+    ))
+
+def(type-max-count, Type -- Int,
+    match(
+        TApp -> drop type-max-count,
+        TData ->
+            data-is-enum? if(
+                data-tags@ len,
+                "compiler error: cant determine max count for non-enum data type" panic!
+            ),
+        TTable -> table-max-count@,
+        _ -> "compiler error: cant determine max count for non-fieldable type" panic!
+    ))
+
 ##################
 # Meta-var Types #
 ##################
@@ -673,3 +693,158 @@ subst-match-var =
         dup dip(subst-get-var type-unify! drop),
         subst-new!
     )
+
+
+
+#######
+# TAG #
+#######
+
+NameValue->Tag : NameValue -- Tag
+NameValue->Tag =
+    match(
+        DEF_TAG -> id,
+        _ -> "attempted to get tag value from non-tag name" panic!
+    )
+
+Tag->NameValue : Tag -- NameValue
+Tag->NameValue = DEF_TAG
+
+Int->Tag : Int -- Tag
+Int->Tag = cast
+
+name-tag! : Tag Name --
+name-tag! = dip(Tag->NameValue) name-value!
+
+name-tag@ : Name -- Tag
+name-tag@ = name-value@ NameValue->Tag
+
+name-tag? : Name -- Name Tag
+name-tag? = dup name-tag@
+
+tag-num-inputs? : Tag -- Tag Int
+tag-num-inputs? =
+    # TODO: this should actually be calculated & stored during elaboration based on the type
+    tag-has-sig? if(
+        tag-sig? 0 swap
+        while(token-run-end? not, token-next dip(1+)) drop,
+        0
+    )
+
+########
+# DATA #
+########
+
+data-num-tags : Data -- Int
+data-num-tags = data-tags@ len
+
+||| Adds constructor to data type, and gives tag its rank.
+data-add-tag! : Tag Data -- +Mirth
+data-add-tag! = (
+    dup2 data-num-tags swap tag-value!
+    data-tags? rotr dip(snoc) data-tags!
+)
+
+data-is-enum? : Data -- Data Bool
+data-is-enum? = data-tags? all?(tag-num-inputs? 0 ==) nip
+
+#########
+# MATCH #
+#########
+
+match-is-empty? : Match -- Match Bool
+match-is-empty? = match-cases? is-nil
+
+match-num-cases? : Match -- Match Int
+match-num-cases? = match-cases? len
+
+match-add-case! : Match Case -- Match
+match-add-case! =
+    dip(match-cases?) cases-cover-case? if(
+        case-token@ "Case is unreachable." emit-error! drop,
+        snoc over match-cases!
+    )
+
+match-has-default-case : Match -- Bool
+match-has-default-case = match-cases@ cases-have-default-case
+
+match-has-default-case? : Match -- Match Bool
+match-has-default-case? = dup match-has-default-case
+
+||| Get type we're matching over.
+match-scrutinee-type? : Match -- Match Type
+match-scrutinee-type? = match-dom? type-expand-tensor nip
+
+||| Is this a pattern match over a "data" type?
+match-scrutinee-is-data? : Match -- Match Bool
+match-scrutinee-is-data? = match-scrutinee-type? type-head type-is-data
+
+||| Get "data" associated with scrutinee.
+match-scrutinee-data? : Match -- Match Data
+match-scrutinee-data? = match-scrutinee-type? type-head type-get-data
+
+########
+# CASE #
+########
+
+cases-cover-case? : List(Case) Case -- List(Case) Case Bool
+cases-cover-case? = dup2 cases-cover-case
+
+cases-cover-case : List(Case) Case -- Bool
+cases-cover-case =
+    over is-nil if(
+        drop2 false,
+        dip(unsnoc) case-is-covered? if(
+            drop3 true,
+            nip cases-cover-case
+        )
+    )
+
+case-is-covered? : Case Case -- Case Case Bool
+case-is-covered? = dup2 case-is-covered
+
+case-is-covered : Case Case -- Bool
+case-is-covered = dip(case-pattern@) case-pattern@ pattern-is-covered
+
+cases-have-default-case : List(Case) -- Bool
+cases-have-default-case =
+    is-nil? if(
+        drop false,
+        unsnoc case-is-default-case if(
+            drop true,
+            cases-have-default-case
+        )
+    )
+
+case-is-default-case? : Case -- Case Bool
+case-is-default-case? = dup case-is-default-case
+
+case-is-default-case : Case -- Bool
+case-is-default-case = case-pattern@ pattern-is-underscore
+
+###########
+# PATTERN #
+###########
+
+Tag->Pattern : Tag -- Pattern
+Tag->Pattern = PATTERN_TAG
+
+Pattern->Tag : Pattern -- Tag
+Pattern->Tag =
+    match(
+        PATTERN_TAG -> id,
+        PATTERN_UNDERSCORE ->
+            "compiler error: tried to call Pattern->Tag on underscore pattern" panic!,
+    )
+
+pattern-is-underscore : Pattern -- Bool
+pattern-is-underscore = PATTERN_UNDERSCORE ==
+
+pattern-is-underscore? : Pattern -- Pattern Bool
+pattern-is-underscore? = dup pattern-is-underscore
+
+pattern-is-covered : Pattern Pattern -- Bool
+pattern-is-covered = swap pattern-is-underscore? if(drop2 true, ==)
+
+pattern-is-covered? : Pattern Pattern -- Pattern Pattern Bool
+pattern-is-covered? = dup2 pattern-is-covered

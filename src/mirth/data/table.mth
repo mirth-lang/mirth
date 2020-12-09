@@ -73,7 +73,7 @@ def(field-alloc!, Field,
         id
     ))
 
-def(field-new!, Name Table Type -- Field,
+def(field-new!, Name Type Type -- Field,
     field-alloc!
     tuck field-type!
     tuck field-table!
@@ -81,7 +81,7 @@ def(field-new!, Name Table Type -- Field,
 
     # define the buffer for the field
     field-name? name-load! "-buffer" str-buf-push-str! name-save!
-    over field-table@ table-max-count@ 16 *
+    over field-table@ type-max-count 16 *
     buffer-alloc! over field-buffer!
 
     # field&
@@ -90,7 +90,7 @@ def(field-new!, Name Table Type -- Field,
     dup2 swap name-word!
     tuck word-name!
 
-    over field-table@ TTable
+    over field-table@
     TYPE_UNIT swap TTensor
     TYPE_UNIT TYPE_PTR TTensor
     TMorphism
@@ -113,7 +113,7 @@ def(field-new!, Name Table Type -- Field,
     dup2 swap name-word!
     tuck word-name!
 
-    over field-table? TTable
+    over field-table?
     dip(field-type@ dip(TYPE_UNIT) TTensor) TTensor
     TYPE_UNIT TMorphism
     over word-type!
@@ -130,7 +130,7 @@ def(field-new!, Name Table Type -- Field,
     dup2 swap name-word!
     tuck word-name!
 
-    over field-table? TTable swap field-type@
+    over field-table? swap field-type@
     dip(TYPE_UNIT swap TTensor)
     TYPE_UNIT swap TTensor
     TMorphism
@@ -148,7 +148,7 @@ def(field-new!, Name Table Type -- Field,
     dup2 swap name-word!
     tuck word-name!
 
-    over field-table? TTable swap field-type@
+    over field-table? swap field-type@
     dip(TYPE_UNIT swap TTensor)
     dip(dup) TTensor
     TMorphism
