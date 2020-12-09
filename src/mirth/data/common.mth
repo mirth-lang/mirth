@@ -64,7 +64,6 @@ field(token-col, Token, Col)
 data Type
     TYPE_ERROR
     TYPE_DONT_CARE
-    TYPE_UNIT
     TPrim -> PrimType
     TMeta -> MetaVar
     THole -> Name
@@ -77,6 +76,7 @@ data Type
 end
 
 data PrimType
+    PRIM_TYPE_UNIT
     PRIM_TYPE_TYPE
     PRIM_TYPE_STACK
     PRIM_TYPE_EFFECT

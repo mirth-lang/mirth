@@ -462,14 +462,15 @@ def(elab-match!, Match -- Type,
 def(elab-match-exhaustive!, Match -- Match,
     match-has-default-case? if(
         id,
-        match-scrutinee-is-data? if(
-            match-scrutinee-data? data-num-tags
-            dip(match-num-cases?) < if(
-                match-token? "Pattern match not exhaustive." emit-error!,
+        match-scrutinee-data? match(
+            SOME ->
+                data-num-tags dip(match-num-cases?) < if(
+                    match-token? "Pattern match not exhaustive." emit-error!,
                     # TODO -- print missing patterns.
+                    id
+                ),
+            NONE ->
                 id
-            ),
-            id
         )
     ))
 
@@ -527,10 +528,10 @@ def(elab-case-pattern!, Case Token -- Case Token,
             # advance token
             token-succ,
 
-            drop "expected tag or underscore" emit-fatal-error!
+            drop "Unknown constructor." emit-fatal-error!
         ),
 
-        "expected tag or underscore" emit-fatal-error!
+        "Expected constructor name." emit-fatal-error!
     )))
 
 ||| Elaborate case body.
@@ -549,7 +550,7 @@ def(elab-arrow-op-apply-fresh!, Arrow Type -- Type,
 ||| Same as elab-arrow-op-apply! but it uses a fresh stack var
 ||| if the morphism has unit type.
 def(elab-arrow-op-apply-semifresh!, Arrow Type -- Type,
-    # TODO implement type-semifreshen-sig
+    type-semifreshen-sig
     elab-arrow-op-apply!)
 
 ||| Apply a type signature to get a codomain.
@@ -798,7 +799,7 @@ elab-data-tag! = (
         ))
         { Module Data Token },
 
-        "Expected tag name." emit-fatal-error!
+        "Expected constructor name." emit-fatal-error!
     )
     token-is-comma? if(token-succ, id)
     token-skip-newlines
