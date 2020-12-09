@@ -72,13 +72,6 @@ def(type-is-hole?, Type -- Type Bool, dup type-is-hole)
 def(type-is-app?, Type -- Type Bool, dup type-is-app)
 def(type-is-data?, Type -- Type Bool, dup type-is-data)
 
-def(type-is-stack-var, Type -- Bool,
-    match(
-        TVar -> var-type@ TYPE_STACK ==,
-        _ -> drop false
-    ))
-def(type-is-stack-var?, Type -- Type Bool, dup type-is-stack-var)
-
 def(TYPE_TYPE, Type, PRIM_TYPE_TYPE TPrim) # type of types
 def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
 def(TYPE_EFFECT, Type, PRIM_TYPE_EFFECT TPrim) # type of effect types
@@ -253,21 +246,18 @@ def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
     dup2 type-has-meta)
 
 def(type-has-meta, MetaVar Type -- Bool,
-    type-expand type-is-error? if(
-        drop2 false,
-        match(
-            TYPE_ERROR -> drop false,
-            TYPE_DONT_CARE -> drop false,
-            TPrim -> drop2 false,
-            TVar -> drop2 false,
-            THole -> drop2 false,
-            TMeta -> ==,
-            TTensor -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
-            TMorphism -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
-            TApp -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
-            TData -> drop2 false,
-            TTable -> drop2 false,
-        )
+    type-expand match(
+        TYPE_ERROR -> drop false,
+        TYPE_DONT_CARE -> drop false,
+        TPrim -> drop2 false,
+        TVar -> drop2 false,
+        THole -> drop2 false,
+        TMeta -> ==,
+        TTensor -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
+        TMorphism -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
+        TApp -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
+        TData -> drop2 false,
+        TTable -> drop2 false,
     ))
 
 def(type-trace-sig!, Type -- +IO,
@@ -299,11 +289,13 @@ def(type-trace-stack!, Type -- +IO,
     match(
         TTensor ->
             swap type-trace-stack-dom! type-trace!,
+        TVar ->
+            var-name@
+            dup name-load! str-buf-trace!
+            name-could-be-stack-var
+            if(id, " ." str-trace!),
         _ ->
-            type-is-stack-var? if(
-                type-trace!,
-                type-trace! " ." str-trace!
-            ),
+            type-trace!
     ))
 
 def(type-trace!, Type -- +IO,
