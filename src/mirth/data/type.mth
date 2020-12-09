@@ -154,11 +154,12 @@ def(type-expand-tensor, Type -- Type Type,
         drop TYPE_ERROR TYPE_ERROR,
 
     type-is-meta? if( # undefined metavar -- introduce a tensor type
-        meta-alloc! TMeta
-        meta-alloc! TMeta
-        TTensor
-        swap type-unify!
-        type-get-tensor,
+        dip(
+            meta-alloc! TMeta
+            meta-alloc! TMeta
+            dup2 TTensor
+        )
+        type-get-meta meta-type!,
 
         type-get-tensor
     )))
@@ -166,26 +167,30 @@ def(type-expand-tensor, Type -- Type Type,
 # high level version of type-get-morphism that introduces metavars if needed
 def(type-expand-morphism, Type -- Type Type,
     type-expand
+    type-is-error? if(
+        drop TYPE_ERROR TYPE_ERROR,
+
     type-is-meta? if( # undefined metavar -- introduce a morphism type
-        meta-alloc! TMeta
-        meta-alloc! TMeta
-        TMorphism
-        swap type-unify!
-        type-get-morphism,
+        dip(
+            meta-alloc! TMeta
+            meta-alloc! TMeta
+            dup2 TMorphism
+        )
+        type-get-meta meta-type!,
 
         type-get-morphism
-    ))
+    )))
 
-buffer(ELAB_TOKEN, 8)
-def(elab-token@, -- Token +Elab, ELAB_TOKEN token@)
-def(elab-token!, Token -- +Elab, ELAB_TOKEN token!)
-def(elab-emit-warning!, Str -- +Elab, dip(elab-token@) emit-warning!)
-def(elab-emit-error!, Str -- +Elab, dip(elab-token@) emit-error!)
-def(elab-emit-fatal-error!, *a Str -- *b +Elab, dip(elab-token@) emit-fatal-error!)
+data Gamma
+    GAMMA -> Token
+end
+
+gamma-token? : Gamma -- Gamma Token
+gamma-token? = dup match(GAMMA -> id)
 
 # Raise a type unification error.
-def(type-unify-failed!, Type Type -- Type +Elab,
-    elab-token@ token-location location-trace!
+def(type-unify-failed!, Gamma Type Type -- Gamma Type +Elab,
+    dip2(gamma-token? token-location location-trace!)
     ": error: Failed to unify " str-trace!
     dip(type-trace!)
     " with " str-trace!
@@ -195,7 +200,7 @@ def(type-unify-failed!, Type Type -- Type +Elab,
     num-errors++)
 
 # Unify two types. Raises an elaboration error if unification is impossible.
-def(type-unify!, Type Type -- Type +Elab,
+def(type-unify!, Gamma Type Type -- Gamma Type +Elab,
     dip(type-expand) type-expand
 
     dup type-is-hole if(
@@ -260,10 +265,8 @@ def(type-unify!, Type Type -- Type +Elab,
         swap
         type-is-tensor? if(
             swap
-            dip(type-get-tensor)
-            type-get-tensor dip(swap)
-            type-unify! dip(type-unify!)
-            TTensor,
+            dip(type-get-tensor) type-get-tensor
+            type-unify-pair! TTensor,
 
             type-unify-failed!
         ),
@@ -272,10 +275,8 @@ def(type-unify!, Type Type -- Type +Elab,
         swap
         type-is-morphism? if(
             swap
-            dip(type-get-morphism)
-            type-get-morphism dip(swap)
-            type-unify! dip(type-unify!)
-            TMorphism,
+            dip(type-get-morphism) type-get-morphism
+            type-unify-pair! TMorphism,
 
             type-unify-failed!
         ),
@@ -284,35 +285,34 @@ def(type-unify!, Type Type -- Type +Elab,
         swap
         type-is-app? if(
             swap
-            dip(type-get-app)
-            type-get-app dip(swap)
-            type-unify! dip(type-unify!)
-            TApp,
+            dip(type-get-app) type-get-app
+            type-unify-pair! TApp,
 
             type-unify-failed!
         ),
 
-    # TODO: unify param types
-
         type-unify-failed!
     )))))))))))))))))
 
-def(type-prim-unify!, PrimType PrimType -- Type,
+def(type-unify-pair!, Gamma Type Type Type Type -- Gamma Type Type,
+    dip(swap dip(type-unify! swap)) type-unify! dip(swap))
+
+def(type-prim-unify!, Gamma PrimType PrimType -- Gamma Type,
     dup2 == if(
         drop TPrim,
         dip(TPrim) TPrim type-unify-failed!
     ))
-def(type-data-unify!, Data Data -- Type,
+def(type-data-unify!, Gamma Data Data -- Gamma Type,
     dup2 == if(
         drop TData,
         dip(TData) TData type-unify-failed!
     ))
-def(type-table-unify!, Table Table -- Type,
+def(type-table-unify!, Gamma Table Table -- Gamma Type,
     dup2 == if(
         drop TTable,
         dip(TTable) TTable type-unify-failed!
     ))
-def(type-var-unify!, Var Var -- Type,
+def(type-var-unify!, Gamma Var Var -- Gamma Type,
     dup2 == if(
         drop TVar,
         dip(TVar) TVar type-unify-failed!
@@ -544,7 +544,7 @@ def(meta-expand, MetaVar -- Type,
         TMeta
     ))
 
-def(meta-unify!, Type MetaVar -- Type,
+def(meta-unify!, Gamma Type MetaVar -- Gamma Type,
     meta-is-defined? if(
         meta-expand type-unify!,
 
@@ -687,7 +687,7 @@ subst-get-var? = dup2 subst-get-var
 
 ||| If variable is in subst, unify new type with type in subst.
 ||| Otherwise, create larger subst with new binding.
-subst-match-var : Type Var Subst -- Subst
+subst-match-var : Gamma Type Var Subst -- Gamma Subst
 subst-match-var =
     subst-has-var? if(
         dup dip(subst-get-var type-unify! drop),

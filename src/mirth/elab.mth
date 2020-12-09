@@ -152,10 +152,7 @@ def(elab-type-quote!, TypeElab Token -- TypeElab Type Token,
     token-next)
 
 def(elab-type-unify!, Type Type Token -- Type Token,
-    elab-token@ dip(
-        dup elab-token! dip(type-unify!)
-    ) elab-token!)
-    # TODO treat token as an input in type-unify
+    dup dip(GAMMA rotr type-unify! nip))
 
 def(elab-simple-type-arg!, Token -- Type,
     dip(type-elab-default) elab-type-arg! drop nip)
