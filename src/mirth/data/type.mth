@@ -31,11 +31,6 @@ def(NameValue->Type, NameValue -- Type,
 def(Type->NameValue, Type -- NameValue, DEF_TYPE)
 def(name-type!, Type Name --, dip(Type->NameValue) name-value!)
 def(name-type@, Name -- Type, name-value@ NameValue->Type)
-def(name-is-table?, Name -- Name Bool,
-    name-is-type? if(
-        dup name-type@ type-is-table,
-        false
-    ))
 
 def(T*, Type Type -- Type, TTensor)
 def(T->, Type Type -- Type, TMorphism)
@@ -48,29 +43,29 @@ def(T4, Type Type Type Type -- Type, dip(T3) T*)
 def(T5, Type Type Type Type Type -- Type, dip(T4) T*)
 def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
 
-def(type-is-error, Type -- Bool, match(TYPE_ERROR -> true, _ -> drop false))
-def(type-is-dont-care, Type -- Bool, match(TYPE_DONT_CARE -> true, _ -> drop false))
-def(type-is-prim, Type -- Bool, match(TPrim -> drop true, _ -> drop false))
-def(type-is-var, Type -- Bool, match(TVar -> drop true, _ -> drop false))
-def(type-is-meta, Type -- Bool, match(TMeta -> drop true, _ -> drop false))
-def(type-is-tensor, Type -- Bool, match(TTensor -> drop2 true, _ -> drop false))
+# def(type-is-error, Type -- Bool, match(TYPE_ERROR -> true, _ -> drop false))
+# def(type-is-dont-care, Type -- Bool, match(TYPE_DONT_CARE -> true, _ -> drop false))
+# def(type-is-prim, Type -- Bool, match(TPrim -> drop true, _ -> drop false))
+# def(type-is-var, Type -- Bool, match(TVar -> drop true, _ -> drop false))
+# def(type-is-meta, Type -- Bool, match(TMeta -> drop true, _ -> drop false))
+# def(type-is-tensor, Type -- Bool, match(TTensor -> drop2 true, _ -> drop false))
 def(type-is-morphism, Type -- Bool, match(TMorphism -> drop2 true, _ -> drop false))
-def(type-is-table, Type -- Bool, match(TTable -> drop true, _ -> drop false))
-def(type-is-hole, Type -- Bool, match(THole -> drop true, _ -> drop false))
-def(type-is-app, Type -- Bool, match(TApp -> drop2 true, _ -> drop false))
-def(type-is-data, Type -- Bool, match(TData -> drop true, _ -> drop false))
+# def(type-is-table, Type -- Bool, match(TTable -> drop true, _ -> drop false))
+# def(type-is-hole, Type -- Bool, match(THole -> drop true, _ -> drop false))
+# def(type-is-app, Type -- Bool, match(TApp -> drop2 true, _ -> drop false))
+# def(type-is-data, Type -- Bool, match(TData -> drop true, _ -> drop false))
 
-def(type-is-error?, Type -- Type Bool, dup type-is-error)
-def(type-is-dont-care?, Type -- Type Bool, dup type-is-dont-care)
-def(type-is-prim?, Type -- Type Bool, dup type-is-prim)
-def(type-is-var?, Type -- Type Bool, dup type-is-var)
-def(type-is-meta?, Type -- Type Bool, dup type-is-meta)
-def(type-is-tensor?, Type -- Type Bool, dup type-is-tensor)
+# def(type-is-error?, Type -- Type Bool, dup type-is-error)
+# def(type-is-dont-care?, Type -- Type Bool, dup type-is-dont-care)
+# def(type-is-prim?, Type -- Type Bool, dup type-is-prim)
+# def(type-is-var?, Type -- Type Bool, dup type-is-var)
+# def(type-is-meta?, Type -- Type Bool, dup type-is-meta)
+# def(type-is-tensor?, Type -- Type Bool, dup type-is-tensor)
 def(type-is-morphism?, Type -- Type Bool, dup type-is-morphism)
-def(type-is-table?, Type -- Type Bool, dup type-is-table)
-def(type-is-hole?, Type -- Type Bool, dup type-is-hole)
-def(type-is-app?, Type -- Type Bool, dup type-is-app)
-def(type-is-data?, Type -- Type Bool, dup type-is-data)
+# def(type-is-table?, Type -- Type Bool, dup type-is-table)
+# def(type-is-hole?, Type -- Type Bool, dup type-is-hole)
+# def(type-is-app?, Type -- Type Bool, dup type-is-app)
+# def(type-is-data?, Type -- Type Bool, dup type-is-data)
 
 def(TYPE_TYPE, Type, PRIM_TYPE_TYPE TPrim) # type of types
 def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
@@ -370,11 +365,10 @@ def(type-freshen-sig, Subst Type -- Subst Type,
     ))
 
 def(type-stack-rest, Type -- Type,
-    while(type-expand type-is-tensor?,
-        match(
-            TTensor -> drop,
-            _ ->
-        )))
+    type-expand match(
+        TTensor -> drop type-stack-rest,
+        _ -> id
+    ))
 
 def(type-sig-needs-fresh-stack-rest?, Type -- Type Bool,
     dup type-expand match(
@@ -452,11 +446,9 @@ def(type-arity, Type -- Int,
 
 ||| Get head of type.
 def(type-head, Type -- Type,
-    while(type-expand type-is-app?,
-        match(
-            TApp -> drop,
-            _ -> id,
-        )
+    type-expand match(
+        TApp -> drop type-head,
+        _ -> id
     ))
 
 def(type-can-have-field?, Type -- Type Bool,
@@ -568,12 +560,11 @@ def(type-max-num-params, Type -- Int,
 def(type-num-morphisms-on-top, Type -- Int,
     type-expand match(
         TTensor ->
-            type-expand type-is-morphism if(
-                type-num-morphisms-on-top 1+,
-                drop 0
+            type-expand match(
+                TMorphism -> drop2 type-num-morphisms-on-top 1+,
+                _ -> drop2 0
             ),
-        _ ->
-            drop 0
+        _ -> drop 0
     ))
 
 def(type-expand-params, Type Int -- List(Type) Type,
