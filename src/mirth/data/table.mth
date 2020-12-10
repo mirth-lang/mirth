@@ -66,13 +66,7 @@ def(table-new!, Name -- Table,
 #########
 
 def(Field->Int, Field -- Int, cast)
-def(field-alloc!, Field,
-    Field.alloc!
-    dup Field->Int Field.MAX >= if(
-        "compiler error: NUM_FIELDS >= MAX_FIELDS" panic!,
-        id
-    ))
-
+def(field-alloc!, Field, Field.alloc!)
 def(field-new!, Name Type Type -- Field,
     field-alloc!
     tuck field-type!

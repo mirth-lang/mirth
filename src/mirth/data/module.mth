@@ -17,13 +17,7 @@ MODULE_PATH_SIZE = 0x200
 buffer(MODULE_PATH_BUF, 0x40000)
 
 module-alloc! : Module
-module-alloc! = (
-    Module.alloc!
-    dup Module->Int MAX_MODULES >= if(
-        "Module.NUM int@ >= MAX_MODULES" panic!,
-        id
-    )
-)
+module-alloc! = Module.alloc!
 
 module-new! : Path -- Module
 module-new! = (

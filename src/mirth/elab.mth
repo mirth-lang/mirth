@@ -518,7 +518,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
             DEF_TAG -> { Case Token Tag }
 
                 # set case pattern
-                dup Tag->Pattern rotr
+                dup PATTERN_TAG rotr
                 dip2(over case-pattern!)
 
                 # set case mid

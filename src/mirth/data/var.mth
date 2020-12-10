@@ -10,12 +10,7 @@ def(Var->Int, Var -- Int, cast)
 def(Int->Var, Int -- Var, cast)
 def(VAR_ERROR, Var, 0 Int->Var)
 
-def(var-alloc!, Var,
-    Var.alloc!
-    dup Var->Int Var.MAX >= if(
-        "compiler error: VAR_NUM >= VAR_MAX" panic!,
-        id
-    ))
+def(var-alloc!, Var, Var.alloc!)
 
 def(var-new!, Name -- Var,
     var-alloc!

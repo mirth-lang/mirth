@@ -441,23 +441,11 @@ def(type-can-have-field?, Type -- Type Bool,
 def(Int->MetaVar, Int -- MetaVar, cast)
 def(MetaVar->Int, MetaVar -- Int, cast)
 
-def(meta-alloc!, MetaVar,
-    MetaVar.alloc!
-    dup MetaVar->Int MetaVar.MAX >= if(
-        "compiler error: ran out of meta variables, increase MAX_METAS" panic!,
-        id
-    ))
-
+def(meta-alloc!, MetaVar, MetaVar.alloc!)
 def(meta-type!, Type MetaVar --, true over meta-is-defined! meta-type-raw!)
-def(meta-type@, MetaVar -- Type,
-    meta-is-defined? not if(
-        "attempted to access undefined metavar" panic!,
-        meta-type-raw@
-    ))
-
 def(meta-expand, MetaVar -- Type,
     meta-is-defined? if(
-        dup dip(meta-type@ type-expand dup) meta-type!,
+        dup dip(meta-type-raw@ type-expand dup) meta-type-raw!,
         TMeta
     ))
 
@@ -502,13 +490,7 @@ def(type-hole-unify!, Type Name -- Type,
 
 def(Table->Int, Table -- Int, cast)
 def(Int->Table, Int -- Table, cast)
-
-def(table-alloc!, Table,
-    Table.alloc!
-    dup Table->Int Table.MAX >= if(
-        "compiler error: NUM_TABLES >= MAX_TABLES" panic!,
-        id
-    ))
+def(table-alloc!, Table, Table.alloc!)
 
 ##########
 # Params #
@@ -693,29 +675,12 @@ case-is-default-case? : Case -- Case Bool
 case-is-default-case? = dup case-is-default-case
 
 case-is-default-case : Case -- Bool
-case-is-default-case = case-pattern@ pattern-is-underscore
+case-is-default-case = case-pattern@ PATTERN_UNDERSCORE ==
 
 ###########
 # PATTERN #
 ###########
 
-Tag->Pattern : Tag -- Pattern
-Tag->Pattern = PATTERN_TAG
-
-Pattern->Tag : Pattern -- Tag
-Pattern->Tag =
-    match(
-        PATTERN_TAG -> id,
-        PATTERN_UNDERSCORE ->
-            "compiler error: tried to call Pattern->Tag on underscore pattern" panic!,
-    )
-
-pattern-is-underscore : Pattern -- Bool
-pattern-is-underscore = PATTERN_UNDERSCORE ==
-
-pattern-is-underscore? : Pattern -- Pattern Bool
-pattern-is-underscore? = dup pattern-is-underscore
-
 ||| Asks whether the second pattern already covers the case of the first pattern.
 pattern-is-covered : Pattern Pattern -- Bool
-pattern-is-covered = pattern-is-underscore? if(drop2 true, ==)
+pattern-is-covered = dup dip(==) PATTERN_UNDERSCORE == ||
