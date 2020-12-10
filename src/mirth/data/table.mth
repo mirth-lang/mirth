@@ -67,19 +67,17 @@ def(table-new!, Name -- Table,
 
 def(Field->Int, Field -- Int, cast)
 def(field-alloc!, Field, Field.alloc!)
-def(field-new!, Name Type Type -- Field,
-    field-alloc!
-    tuck field-type!
-    tuck field-table!
-    tuck field-name!
+def(field-new!, Name Type Type Int -- Field,
+    dip(
+        field-alloc!
+        tuck field-type!
+        tuck field-table!
+        tuck field-name!
 
-    # define the buffer for the field
-    field-name? name-load! "-buffer" str-buf-push-str! name-save!
-    over field-table@ type-max-count? match(
-        NONE -> "compiler error: attempted to create field for invalid type" panic!,
-        SOME -> nip
-    ) 16 *
-    buffer-alloc! over field-buffer!
+        # define the buffer for the field
+        field-name? name-load! "-buffer" str-buf-push-str! name-save!
+    )
+    16 * buffer-alloc! over field-buffer!
 
     # field&
     field-name? name-load! "&" str-buf-push-str! name-save!

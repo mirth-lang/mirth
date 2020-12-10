@@ -929,18 +929,17 @@ def(elab-table!, Module Token -- Module Token +Mirth,
 ||| Elaborate a field definition `field(f, T1, T2)`.
 def(elab-field!, Module Token -- Module Token +Mirth,
     dup dip(token-next) token-args-3
-    rotl token-is-name? if(
-
-        token-name@ rotl
-        dup elab-simple-type-arg!
-        type-can-have-field? if(
-            nip rotl
-            elab-simple-type-arg!
-            field-new! drop,
-            drop "expected table type or an enum" emit-fatal-error!
-        ),
-
-        "expected field name" emit-fatal-error!
+    rotl token-value? match(
+        TOKEN_NAME ->
+            nip rotl dup elab-simple-type-arg!
+            type-max-count? match(
+                NONE -> drop "expected table type or enum" emit-fatal-error!,
+                SOME ->
+                    dip(nip rotl elab-simple-type-arg!)
+                    field-new! drop,
+            ),
+        _ ->
+            drop "expected field name" emit-fatal-error!
     ))
 
 ||| Elaborate C99 build target.

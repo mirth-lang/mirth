@@ -419,6 +419,8 @@ def(type-head, Type -- Type,
 ||| For types that can have a field associated with them,
 ||| get the number of values n, where the type's values
 ||| range from 0 to (n-1). This should not be too large.
+|||
+||| Do NOT return SOME(n) unless the type has values 0..n-1
 def(type-max-count?, Type -- Type Maybe(Int),
     dup match(
         TApp -> drop type-max-count? nip,
@@ -430,9 +432,6 @@ def(type-max-count?, Type -- Type Maybe(Int),
             ),
         _ -> drop NONE
     ))
-
-def(type-can-have-field?, Type -- Type Bool,
-    type-max-count? is-some)
 
 ##################
 # Meta-var Types #
