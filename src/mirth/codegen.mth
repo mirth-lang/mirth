@@ -1216,9 +1216,6 @@ c99-emit-arg-run! =
 def(.var-val, Var -- +IO, "var_" . var-name? .name "_" . Var->Int .n)
 def(.var-ref, Var -- +IO, "ref_" . var-name? .name "_" . Var->Int .n)
 
-def(ctx-physical-vars, Ctx -- List(Var),
-    ctx-vars@ filter(var-is-physical?))
-
 def(c99-pack-ctx!, Ctx -- +IO,
     "    push_u64(0);" ;
     ctx-physical-vars for(
