@@ -71,7 +71,13 @@ def(i32!, I32 Ptr --, prim.i32.set)
 def(i64@, Ptr -- I64, prim.i64.get)
 def(i64!, I64 Ptr --, prim.i64.set)
 
-def(RUNNING_OS, Int, prim.sys.os)
+data OS
+    OS_UNKNOWN
+    OS_WINDOWS
+    OS_LINUX
+    OS_MACOS
+end
+def(RUNNING_OS, OS, prim.sys.os cast)
 def(argc, Int, prim.sys.argc)
 def(argv, Ptr, prim.sys.argv)
 
@@ -404,20 +410,6 @@ negate = -1 *
 
 abs : Int -- Int
 abs = dup 0< if(negate, id)
-
-def-type(OS, Int)
-
-UNKNOWN : OS
-UNKNOWN = 0
-
-WIN32 : OS
-WIN32 = 1
-
-LINUX : OS
-LINUX = 2
-
-MACOS : OS
-MACOS = 3
 
 ###########
 # STRINGS #
@@ -1744,14 +1736,13 @@ create-file! = (
 
 O_WRONLY|O_CREAT|O_TRUNC : Int
 O_WRONLY|O_CREAT|O_TRUNC =
-    RUNNING_OS MACOS == if(
-        0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
-    RUNNING_OS LINUX == if(
-        0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
-    RUNNING_OS WIN32 == if(
-        0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
-        "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic!
-    )))
+    RUNNING_OS match(
+        OS_MACOS -> 0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
+        OS_LINUX -> 0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
+        OS_WINDOWS -> 0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
+        OS_UNKNOWN -> "O_WRONLY|O_CREAT|O_TRUNC on unknown os" panic!
+    )
+
 
 close-file! : File -- +IO
 close-file! = (
@@ -1830,13 +1821,11 @@ PROT_READ|PROT_WRITE = 0x3
 
 MAP_ANON|MAP_PRIVATE : Int
 MAP_ANON|MAP_PRIVATE =
-    RUNNING_OS MACOS == if(
-        0x1002, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
-    # RUNNING_OS LINUX == if(
-        0x22 # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
-        # ,
-        # "MAP_ANON|MAP_PRIVATE unknown for os" panic!
-    # )
+    RUNNING_OS match(
+        OS_MACOS ->
+            0x1002, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
+        _ ->
+            drop 0x22, # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
     )
 
 ||| Aligns a by b, rounding upward. For instance,

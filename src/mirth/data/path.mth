@@ -38,7 +38,7 @@ output-path-root! : Path --
 output-path-root! = OUTPUT_PATH_ROOT path!
 
 path-separator : Str
-path-separator = RUNNING_OS WIN32 == if("\\", "/")
+path-separator = RUNNING_OS OS_WINDOWS == if("\\", "/")
 
 ||| Load a path into STR_BUF. If the path is null,
 ||| clears STR_BUF instead.
