@@ -81,32 +81,6 @@ def(type-expand, Type -- Type,
         _ -> id
     ))
 
-# high level version of type-get-tensor that introduces metavars if needed
-def(type-expand-tensor, Type -- Type Type,
-    type-expand match(
-        TYPE_ERROR -> TYPE_ERROR TYPE_ERROR,
-        TMeta ->
-            meta-alloc! TMeta
-            meta-alloc! TMeta
-            dup2 TTensor
-            rot4l meta-type!,
-        TTensor -> id,
-        _ -> "tried to get tensor value from non-tensor type" panic!
-    ))
-
-# high level version of type-get-morphism that introduces metavars if needed
-def(type-expand-morphism, Type -- Type Type,
-    type-expand match(
-        TYPE_ERROR -> TYPE_ERROR TYPE_ERROR,
-        TMeta ->
-            meta-alloc! TMeta
-            meta-alloc! TMeta
-            dup2 TMorphism
-            rot4l meta-type!,
-        TMorphism -> id,
-        _ -> "tried to get morphism value from non-morphism type" panic!
-    ))
-
 data Gamma
     GAMMA -> Token
 end
@@ -554,21 +528,6 @@ def(type-num-morphisms-on-top, Type -- Int,
                 _ -> drop2 0
             ),
         _ -> drop 0
-    ))
-
-def(type-expand-params, Type Int -- List(Type) Type,
-    dup 0 > if(
-        swap type-expand-morphism
-        dip(
-            swap nil rotr
-            while(dup 0 >, 1-
-                dip(
-                    type-expand-tensor
-                    swap dip(snoc)
-                )) drop
-        ) T->,
-
-        drop nil swap
     ))
 
 ############

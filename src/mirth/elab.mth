@@ -255,8 +255,10 @@ def(elab-word-body!, Word -- Arrow +Elab,
     )))
 
 def(elab-arrow!, Ctx Type Token -- Arrow,
-    dip(type-expand-morphism) swap
-    dip(elab-arrow-fwd! arrow-dom? swap arrow-token@)
+    elab-expand-morphism! elab-arrow-hom!)
+
+def(elab-arrow-hom!, Ctx Type Type Token -- Arrow,
+    swap dip(elab-arrow-fwd! arrow-dom? swap arrow-token@)
     swap elab-type-unify! drop2)
 
 def(elab-arrow-fwd!, Ctx Type Token -- Arrow Arrow,
@@ -391,13 +393,17 @@ def(elab-lambda!, Lambda -- Type,
     elab-lambda-body!
     lambda-cod@)
 
-def(elab-type-expand-tensor!, Type Token -- Type Type Token,
+def(elab-expand-tensor!, Type Token -- Type Type Token,
     dip2(meta-alloc! TMeta meta-alloc! TMeta dup2 T*)
+    elab-type-unify! nip dip(dip(type-expand) type-expand))
+
+def(elab-expand-morphism!, Type Token -- Type Type Token,
+    dip2(meta-alloc! TMeta meta-alloc! TMeta dup2 T->)
     elab-type-unify! nip dip(dip(type-expand) type-expand))
 
 def(elab-lambda-pop-from-mid!, Lambda Token -- Lambda Type Token,
     dip(lambda-mid?)
-    elab-type-expand-tensor!
+    elab-expand-tensor!
     dip2(over lambda-mid!))
 
 def(token-is-lambda-param?, Token -- Token Bool,
@@ -520,8 +526,9 @@ def(elab-case-pattern!, Case Token -- Case Token,
                 elab-tag-sig! subst-nil swap type-freshen-sig
                 { Case Type Token Subst Type }
                 rotr dip(
-                    dip(type-expand-morphism dip(swap))
-                    elab-type-unify! nip dip(over case-mid!)
+                    elab-expand-morphism!
+                    dip2(swap) elab-type-unify! nip
+                    dip(over case-mid!)
                 )
                 swap dip(over case-subst!)
 
@@ -567,10 +574,23 @@ def(elab-arrow-op-apply!, Arrow Type -- Type,
         "Too many arguments." emit-fatal-error!
         drop2 TYPE_ERROR, # TODO: improve error message
 
-    over arrow-token@ token-num-args
-    type-expand-params type-expand-morphism
+    over arrow-token@ dup token-num-args
+    elab-expand-params! drop
     dip(swap dip(elab-arrow-unify-dom!))
     dip(elab-arrow-op-args! drop)))
+
+def(elab-expand-params!, Type Token Int -- List(Type) Type Type Token,
+    dip(elab-expand-morphism! dip(swap))
+    elab-expand-tensors!
+    dip(rotr swap))
+
+def(elab-expand-tensors!, Type Token Int -- Type List(Type) Token,
+    dup 0 > if(
+        dip(elab-expand-tensor!) rotl
+        dip(1- elab-expand-tensors!) rotr
+        dip(cons),
+        drop nil swap
+    ))
 
 ||| Unify a type with the dom of an arrow, returning the original arrow.
 def(elab-arrow-unify-dom!, Arrow Type -- Arrow,
