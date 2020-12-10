@@ -10,12 +10,3 @@ import(mirth/data/type)
 def(External->Int, External -- Int, cast)
 def(Int->External, Int -- External, cast)
 def(external-alloc!, External +Externals, External.alloc!)
-
-def(NameValue->External, NameValue -- External,
-    match(
-        DEF_EXTERNAL -> id,
-        _ -> "attempted to get external value from non-external name" panic!
-    ))
-def(External->NameValue, External -- NameValue, DEF_EXTERNAL)
-def(name-external!, External Name --, dip(External->NameValue) name-value!)
-def(name-external@, Name -- External, name-value@ NameValue->External)

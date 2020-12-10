@@ -23,15 +23,6 @@ def(init-types!, --,
 # Types #
 #########
 
-def(NameValue->Type, NameValue -- Type,
-    match(
-        DEF_TYPE -> id,
-        _ -> "attempted to get type value from non-type name" panic!
-    ))
-def(Type->NameValue, Type -- NameValue, DEF_TYPE)
-def(name-type!, Type Name --, dip(Type->NameValue) name-value!)
-def(name-type@, Name -- Type, name-value@ NameValue->Type)
-
 def(T*, Type Type -- Type, TTensor)
 def(T->, Type Type -- Type, TMorphism)
 
@@ -651,27 +642,8 @@ subst-match-var =
 # TAG #
 #######
 
-NameValue->Tag : NameValue -- Tag
-NameValue->Tag =
-    match(
-        DEF_TAG -> id,
-        _ -> "attempted to get tag value from non-tag name" panic!
-    )
-
-Tag->NameValue : Tag -- NameValue
-Tag->NameValue = DEF_TAG
-
 Int->Tag : Int -- Tag
 Int->Tag = cast
-
-name-tag! : Tag Name --
-name-tag! = dip(Tag->NameValue) name-value!
-
-name-tag@ : Name -- Tag
-name-tag@ = name-value@ NameValue->Tag
-
-name-tag? : Name -- Name Tag
-name-tag? = dup name-tag@
 
 tag-num-inputs? : Tag -- Tag Int
 tag-num-inputs? =

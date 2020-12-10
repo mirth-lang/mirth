@@ -3,16 +3,6 @@ import(mirth/data/name)
 import(mirth/data/type)
 import(mirth/data/ctx)
 
-def(Prim->NameValue, Prim -- NameValue, DEF_PRIM)
-def(NameValue->Prim, NameValue -- Prim,
-    match(
-        DEF_PRIM -> id,
-        _ -> "attempted to get prim value from non-prim name" panic!
-    ))
-
-def(name-prim!, Prim Name --, dip(Prim->NameValue) name-value!)
-def(name-prim@, Name -- Prim, name-value@ NameValue->Prim)
-
 ||| Does this name refer to this primitive?
 name-prim= : Name Prim -- Bool
 name-prim= =

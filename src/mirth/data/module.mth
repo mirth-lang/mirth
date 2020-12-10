@@ -48,16 +48,3 @@ module-path! =
 load-module-source-path! : Module --
 load-module-source-path! =
     module-path@ load-source-path!
-
-NameValue->Module : NameValue -- Module
-NameValue->Module =
-    match(
-        DEF_MODULE -> id,
-        _ -> "attempted to get module value from non-module name" panic!
-    )
-
-Module->NameValue : Module -- NameValue
-Module->NameValue = DEF_MODULE
-
-name-module! : Module Name --
-name-module! = dip(Module->NameValue) name-value!

@@ -254,3 +254,95 @@ def(name-is-prim?, Name -- Name Bool,
     name-value? match(DEF_PRIM -> drop true, _ -> drop false))
 def(name-is-tag?, Name -- Name Bool,
     name-value? match(DEF_TAG -> drop true, _ -> drop false))
+
+
+def(NameValue->Word, NameValue -- Word,
+    match(
+        DEF_WORD -> id,
+        _ -> "name value is type!" panic!
+    ))
+def(Word->NameValue, Word -- NameValue, DEF_WORD)
+def(name-word!, Word Name --, dip(Word->NameValue) name-value!)
+def(name-word@, Name -- Word, name-value@ NameValue->Word)
+
+
+NameValue->Buffer : NameValue -- Buffer
+NameValue->Buffer =
+    match(
+        DEF_BUFFER -> id,
+        _ -> "attempted to get buffer value from non-buffer name" panic!,
+    )
+
+Buffer->NameValue : Buffer -- NameValue
+Buffer->NameValue = DEF_BUFFER
+
+name-buffer! : Buffer Name --
+name-buffer! = dip(Buffer->NameValue) name-value!
+
+name-buffer@ : Name -- Buffer
+name-buffer@ = name-value@ NameValue->Buffer
+
+
+def(NameValue->Type, NameValue -- Type,
+    match(
+        DEF_TYPE -> id,
+        _ -> "attempted to get type value from non-type name" panic!
+    ))
+def(Type->NameValue, Type -- NameValue, DEF_TYPE)
+def(name-type!, Type Name --, dip(Type->NameValue) name-value!)
+def(name-type@, Name -- Type, name-value@ NameValue->Type)
+
+
+def(NameValue->External, NameValue -- External,
+    match(
+        DEF_EXTERNAL -> id,
+        _ -> "attempted to get external value from non-external name" panic!
+    ))
+def(External->NameValue, External -- NameValue, DEF_EXTERNAL)
+def(name-external!, External Name --, dip(External->NameValue) name-value!)
+def(name-external@, Name -- External, name-value@ NameValue->External)
+
+
+NameValue->Module : NameValue -- Module
+NameValue->Module =
+    match(
+        DEF_MODULE -> id,
+        _ -> "attempted to get module value from non-module name" panic!
+    )
+
+Module->NameValue : Module -- NameValue
+Module->NameValue = DEF_MODULE
+
+name-module! : Module Name --
+name-module! = dip(Module->NameValue) name-value!
+
+
+def(Prim->NameValue, Prim -- NameValue, DEF_PRIM)
+def(NameValue->Prim, NameValue -- Prim,
+    match(
+        DEF_PRIM -> id,
+        _ -> "attempted to get prim value from non-prim name" panic!
+    ))
+
+def(name-prim!, Prim Name --, dip(Prim->NameValue) name-value!)
+def(name-prim@, Name -- Prim, name-value@ NameValue->Prim)
+
+
+NameValue->Tag : NameValue -- Tag
+NameValue->Tag =
+    match(
+        DEF_TAG -> id,
+        _ -> "attempted to get tag value from non-tag name" panic!
+    )
+
+Tag->NameValue : Tag -- NameValue
+Tag->NameValue = DEF_TAG
+
+name-tag! : Tag Name --
+name-tag! = dip(Tag->NameValue) name-value!
+
+name-tag@ : Name -- Tag
+name-tag@ = name-value@ NameValue->Tag
+
+name-tag? : Name -- Name Tag
+name-tag? = dup name-tag@
