@@ -970,7 +970,7 @@ reverse-for = \([f] ->
         L1 -> f,
         L2 -> swap dip(f) f,
         L3 -> rotr dip2(f) swap dip(f) f,
-        LCAT -> drop swap dip(for(f)) for(f)
+        LCAT -> drop swap dip(reverse-for(f)) reverse-for(f)
     )
 )
 

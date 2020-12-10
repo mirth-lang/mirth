@@ -1267,22 +1267,20 @@ def(c99-emit-var-push!, Var -- +IO,
 
 def(c99-emit-lambda!, Lambda -- +IO,
     "    {" ;
-    lambda-params? while(is-snoc?, unsnoc
+    lambda-params? reverse-for(
         "    value_t " . dup .var-val " = pop_value();" ;
         "    bool " . .var-ref " = false;" ;
-        ) drop
+        )
     lambda-body? c99-emit-arrow!
-    lambda-params@ while(is-snoc?, unsnoc
+    lambda-params@ reverse-for(
         "    if (!" . dup .var-ref ")" ;
         "        decref(" . .var-val ");" ;
-        ) drop
+        )
     "    }" ;)
 
 def(c99-emit-match!, Match -- +IO,
     "    switch (get_top_data_tag()) {" ;
-    match-cases? while(is-cons?,
-        uncons dip(c99-emit-case!)
-    ) drop
+    match-cases? for(c99-emit-case!)
     match-has-default-case if(
         id,
         "    default: fprintf(stderr, \"unexpected fallthrough in match\\n\"); do_debug(); exit(99);" ;
