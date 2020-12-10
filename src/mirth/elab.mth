@@ -96,23 +96,21 @@ def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
     dip2(type-elab-ctx!))
 
 def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
-    token-name?
-    name-is-type? if(
-        name-type@
-        over token-num-args
-        over type-arity == if(
-            elab-type-args!,
+    token-name? name-value@ match(
+        DEF_TYPE ->
+            over token-num-args
+            over type-arity == if(
+                elab-type-args!,
 
-            drop dup
-            "Wrong number of arguments for type." emit-error!
-            TYPE_ERROR
-        ),
-
-    name-undefined? if(
-        drop dup "Unknown type." emit-error! TYPE_ERROR,
-
-        drop dup "Not a type." emit-error! TYPE_ERROR
-    ))
+                drop dup
+                "Wrong number of arguments for type." emit-error!
+                TYPE_ERROR
+            ),
+        DEF_NONE ->
+            dup "Unknown type." emit-error! TYPE_ERROR,
+        _ ->
+            drop dup "Not a type." emit-error! TYPE_ERROR
+    )
     swap token-next)
 
 def(elab-type-args!, TypeElab Token Type -- TypeElab Token Type,
@@ -510,27 +508,31 @@ def(elab-case-pattern!, Case Token -- Case Token,
         token-succ,
 
     token-is-name? if(
-        token-name? name-is-tag? if(
-            name-tag@ { Case Token Tag }
+        token-name? name-value@ match(
+            DEF_TAG -> { Case Token Tag }
 
-            # set case pattern
-            dup Tag->Pattern rotr
-            dip2(over case-pattern!)
+                # set case pattern
+                dup Tag->Pattern rotr
+                dip2(over case-pattern!)
 
-            # set case mid
-            dip2(case-match? match-dom@) { Case Type Token Tag }
-            elab-tag-sig! subst-nil swap type-freshen-sig
-            { Case Type Token Subst Type }
-            rotr dip(
-                dip(type-expand-morphism dip(swap))
-                elab-type-unify! nip dip(over case-mid!)
-            )
-            swap dip(over case-subst!)
+                # set case mid
+                dip2(case-match? match-dom@) { Case Type Token Tag }
+                elab-tag-sig! subst-nil swap type-freshen-sig
+                { Case Type Token Subst Type }
+                rotr dip(
+                    dip(type-expand-morphism dip(swap))
+                    elab-type-unify! nip dip(over case-mid!)
+                )
+                swap dip(over case-subst!)
 
-            # advance token
-            token-succ,
+                # advance token
+                token-succ,
 
-            drop "Unknown constructor." emit-fatal-error!
+            DEF_NONE ->
+                "Unknown constructor." emit-fatal-error!,
+
+            _ ->
+                drop "Not a constructor." emit-fatal-error!
         ),
 
         "Expected constructor name." emit-fatal-error!
@@ -659,20 +661,24 @@ def(elab-module-imports!, Module Token -- Module Token +Mirth,
 ||| Elaborate `import(M)` statement. Return token after import.
 def(elab-module-import!, Module Token -- Module Token +Mirth,
     dup dip(token-next)
-    token-args-1 token-is-name? if(
-        token-name?
+    token-args-1 token-value? match(
+        TOKEN_NAME ->
+            name-value? match(
+                DEF_MODULE ->
+                    drop3,
+                    # module is already loaded (TODO: add import to a list)
 
-        name-is-module? if(
-            drop2, # module is already loaded (TODO: add import to a list)
+                DEF_NONE ->
+                    name-load! ".mth" str-buf-push-str!
+                    STR_BUF Str->Path run-lexer!
+                    elab-module! drop2,
+                    # elab the imported module (TODO: add import to a list)
 
-        name-undefined? if(
-            nip name-load! ".mth" str-buf-push-str!
-            STR_BUF Str->Path run-lexer!
-            elab-module! drop, # elab the imported module (TODO: add import to a list)
-
-            drop "module name already taken" emit-fatal-error!
-        )),
-        "expected module name" emit-fatal-error!
+                _ ->
+                    drop2 "module name already taken" emit-fatal-error!
+            ),
+        _ ->
+            drop "expected module name" emit-fatal-error!
     )
     token-skip-newlines)
 
@@ -835,22 +841,20 @@ def(elab-decl-word-sig!, Module Token -- Module Token +Mirth,
 
 ||| Elaborate a word definition "foo = bar"
 def(elab-decl-word-def!, Module Token -- Module Token +Mirth,
-    token-name?
-    name-is-word? if(
-        name-word@
-        word-has-body? if(
-            drop "word already defined" emit-fatal-error!,
-            dip(token-next token-succ
-                token-is-lparen? if(token-succ, token-skip-newlines)
-                dup) word-body!
-            while(token-is-newline? not, token-next) token-skip-newlines
-        ),
-
-    name-undefined? if(
-        drop "missing word signature" emit-fatal-error!,
-
-        drop "name already defined, not a word" emit-fatal-error!
-    )))
+    token-name? name-value@ match(
+        DEF_WORD ->
+            word-has-body? if(
+                drop "word already defined" emit-fatal-error!,
+                dip(token-next token-succ
+                    token-is-lparen? if(token-succ, token-skip-newlines)
+                    dup) word-body!
+                while(token-is-newline? not, token-next) token-skip-newlines
+            ),
+        DEF_NONE ->
+            "missing word signature" emit-fatal-error!,
+        _ ->
+            drop "name already defined, not a word" emit-fatal-error!
+    ))
 
 ||| Elaborate an external declaration `def-external(w, t)`
 def(elab-def-external!, Module Token -- Module Token +Mirth,
@@ -940,11 +944,13 @@ def(typecheck-everything!, --,
 
 ||| Typecheck name.
 def(typecheck-name!, Name --,
-    name-is-external? if(
-        name-external@ elab-external-sig! drop,
-    name-is-word? if(
-        name-word@ elab-word-body! drop,
-    name-is-tag? if(
-        name-tag@ elab-tag-sig! drop,
-        drop
-    ))))
+    name-value@ match(
+        DEF_NONE -> id,
+        DEF_MODULE -> drop,
+        DEF_BUFFER -> drop,
+        DEF_PRIM -> drop,
+        DEF_TYPE -> drop,
+        DEF_EXTERNAL -> elab-external-sig! drop,
+        DEF_WORD -> elab-word-body! drop,
+        DEF_TAG -> elab-tag-sig! drop,
+    ))
