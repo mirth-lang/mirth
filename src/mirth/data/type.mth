@@ -714,43 +714,23 @@ cases-cover-case? : List(Case) Case -- List(Case) Case Bool
 cases-cover-case? = dup2 cases-cover-case
 
 cases-cover-case : List(Case) Case -- Bool
-cases-cover-case =
-    over is-nil if(
-        drop2 false,
-        dip(unsnoc) case-is-covered? if(
-            drop3 true,
-            nip cases-cover-case
-        )
-    )
+cases-cover-case = swap any(case-is-covered?) nip
 
 case-is-covered? : Case Case -- Case Case Bool
 case-is-covered? = dup2 case-is-covered
 
+||| Ask whether the second case covers the first case already.
 case-is-covered : Case Case -- Bool
 case-is-covered = dip(case-pattern@) case-pattern@ pattern-is-covered
 
 cases-have-default-case : List(Case) -- Bool
-cases-have-default-case =
-    is-nil? if(
-        drop false,
-        unsnoc case-is-default-case if(
-            drop true,
-            cases-have-default-case
-        )
-    )
+cases-have-default-case = any(case-is-default-case?)
 
 case-is-default-case? : Case -- Case Bool
 case-is-default-case? = dup case-is-default-case
 
 case-is-default-case : Case -- Bool
 case-is-default-case = case-pattern@ pattern-is-underscore
-
-# cases-cover-case : List(Case) Case -- Bool
-# cases-cover-case = swap any?(dup2 swap case-is-covered) dip(drop2)
-
-# cases-have-default-case : List(Case) -- Bool
-# cases-have-default-case = any?(case-is-default-case?) nip
-
 
 ###########
 # PATTERN #
@@ -773,8 +753,6 @@ pattern-is-underscore = PATTERN_UNDERSCORE ==
 pattern-is-underscore? : Pattern -- Pattern Bool
 pattern-is-underscore? = dup pattern-is-underscore
 
+||| Asks whether the second pattern already covers the case of the first pattern.
 pattern-is-covered : Pattern Pattern -- Bool
-pattern-is-covered = swap pattern-is-underscore? if(drop2 true, ==)
-
-pattern-is-covered? : Pattern Pattern -- Pattern Pattern Bool
-pattern-is-covered? = dup2 pattern-is-covered
+pattern-is-covered = pattern-is-underscore? if(drop2 true, ==)
