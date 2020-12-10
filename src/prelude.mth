@@ -1030,13 +1030,30 @@ find = \([f] ->
     )
 )
 
+
 ||| Like `find` but preserves the list.
 find? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Maybe(a)
 find? = over dip(find) swap
 
+||| Like `find` but goes backward through the list.
+reverse-find : *c List(a) [*c a -- *c a Bool] -- *c Maybe(a)
+reverse-find = dip(reverse) find
+
+||| Like `find?` but goes backward through the list.
+reverse-find? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Maybe(a)
+reverse-find? = over dip(reverse-find) swap
+
+||| Is the predicate true for any element of the list?
+any : *c List(a) [*c a -- *c a Bool] -- *c Bool
+any = find is-some
+
 ||| Is the predicate true for any element of the list?
 any? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool
 any? = find? is-some
+
+||| Is the predicate true for all elements of the list?
+all : *c List(a) [*c a -- *c a Bool] -- *c Bool
+all = find is-none not
 
 ||| Is the predicate true for all elements of the list?
 all? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool

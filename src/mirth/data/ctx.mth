@@ -54,25 +54,11 @@ ctx-has-name =
 ctx-has-name? : Name Ctx -- Name Ctx Bool
 ctx-has-name? = dup2 ctx-has-name
 
-ctx-lookup : Name Ctx -- Var
-ctx-lookup =
-    ctx-is-empty? if(
-        drop2 VAR_ERROR,
-        ctx-var? var-name@ dip(over) == if(
-            ctx-var@ nip,
-            ctx-prev@ ctx-lookup
-        )
-    )
+ctx-lookup : Name Ctx -- Maybe(Var)
+ctx-lookup = unCTX reverse-find(dup2 var-name@ ==) nip
 
-ctx-lookup? : Name Ctx -- Name Ctx Var
+ctx-lookup? : Name Ctx -- Name Ctx Maybe(Var)
 ctx-lookup? = dup2 ctx-lookup
-
-ctx-lookup-maybe : Name Ctx -- Maybe(Var)
-ctx-lookup-maybe =
-    ctx-lookup dup VAR_ERROR == if(
-        drop NONE,
-        SOME
-    )
 
 ctx-length : Ctx -- Size
 ctx-length = 0 swap while(ctx-is-empty? not, dip(1+) ctx-prev@) drop

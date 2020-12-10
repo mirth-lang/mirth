@@ -80,15 +80,17 @@ def(elab-type-var!, TypeElab Token -- TypeElab Var Token,
 
 def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
     dip2(type-elab-ctx?) over
-    dip2(token-name@ dup2 swap ctx-has-name)
-    rotl if(
-        dip2(over ctx-lookup var-type?)
-        elab-type-unify! nip,
-        dip(
-            dip(var-new-implicit!)
-            over var-type!
-            dup dip(ctx-new!)
-        )
+    dip2(token-name@ dup2 swap ctx-lookup)
+    rotl match(
+        SOME ->
+            rotr dip2(nip var-type?)
+            elab-type-unify! nip,
+        NONE ->
+            dip(
+                dip(var-new-implicit!)
+                over var-type!
+                dup dip(ctx-new!)
+            )
     )
     token-next
     dip2(type-elab-ctx!))
@@ -299,7 +301,7 @@ def(elab-arrow-op!, Arrow -- Type,
     ))
 
 def(elab-arrow-op-name!, Arrow Name -- Type,
-    over arrow-ctx@ dip(dup) ctx-lookup-maybe match(
+    over arrow-ctx@ dip(dup) ctx-lookup match(
         NONE ->
             name-value@ match(
                 DEF_BUFFER -> elab-arrow-op-buffer!,
@@ -575,17 +577,13 @@ def(elab-arrow-unify-dom!, Arrow Type -- Arrow,
 ||| Elaborate the args of an arrow.
 def(elab-arrow-op-args!, Arrow List(Type) -- Arrow,
     dip(arrow-token? token-succ)
-    while(is-cons?,
-        dip(token-succ) uncons
-        dip(elab-arrow-arg!)
-    )
-    drop2)
+    for(dip(token-succ) elab-arrow-arg!) drop)
 
 ||| Elaborate one arg of a given type, move token to the end of the argument.
 def(elab-arrow-arg!, Arrow Token Type -- Arrow Token,
     over token-is-name? dip(token-succ token-is-arg-end? nip) && if(
         dup3 drop token-name@
-        dip(arrow-ctx@) swap ctx-lookup-maybe
+        dip(arrow-ctx@) swap ctx-lookup
         match(
             SOME ->
                 var-auto-run? if(

@@ -773,6 +773,13 @@ case-is-default-case? = dup case-is-default-case
 case-is-default-case : Case -- Bool
 case-is-default-case = case-pattern@ pattern-is-underscore
 
+# cases-cover-case : List(Case) Case -- Bool
+# cases-cover-case = swap any?(dup2 swap case-is-covered) dip(drop2)
+
+# cases-have-default-case : List(Case) -- Bool
+# cases-have-default-case = any?(case-is-default-case?) nip
+
+
 ###########
 # PATTERN #
 ###########
