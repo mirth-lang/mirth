@@ -5423,9 +5423,6 @@ void mwTYPE_ELAB (void) {
  void mb_mirth_2F_data_2F_buffer_39_20 (void);
  void mb_mirth_2F_data_2F_ctx_15_16 (void);
  void mb_mirth_2F_data_2F_ctx_51_33 (void);
- void mb_mirth_2F_data_2F_ctx_57_27 (void);
- void mb_mirth_2F_data_2F_ctx_57_46 (void);
- void mb_mirth_2F_data_2F_ctx_57_50 (void);
  void mb_mirth_2F_data_2F_prim_275_9 (void);
  void mb_mirth_2F_data_2F_prim_284_9 (void);
  void mb_mirth_2F_data_2F_prim_292_9 (void);
@@ -18818,18 +18815,8 @@ void mwctx_lookup_3F_ (void){
 }
 
 void mwctx_length (void){
-    push_i64(0LL);
-    mwswap();
-    while(1) {
-    mwctx_is_empty_3F_();
-    mwnot();
-    if (!pop_u64()) break;
-    { value_t d2 = pop_value();
-    mw1_2B_();
-      push_value(d2); }
-    mwctx_prev_40_();
-    }
-    mwdrop();
+    mwunCTX();
+    mwlen();
 }
 
 void mwctx_length_3F_ (void){

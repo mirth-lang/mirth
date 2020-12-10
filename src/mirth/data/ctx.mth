@@ -54,7 +54,7 @@ ctx-lookup? : Name Ctx -- Name Ctx Maybe(Var)
 ctx-lookup? = dup2 ctx-lookup
 
 ctx-length : Ctx -- Size
-ctx-length = 0 swap while(ctx-is-empty? not, dip(1+) ctx-prev@) drop
+ctx-length = unCTX len
 
 ctx-length? : Ctx -- Ctx Size
 ctx-length? = dup ctx-length
