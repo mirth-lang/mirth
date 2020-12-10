@@ -724,6 +724,13 @@ maybe-map =
         SOME -> swap run SOME,
     )
 
+maybe-bind : *c Maybe(a) [*c a -- *c Maybe(b)] -- *c Maybe(b)
+maybe-bind =
+    swap match(
+        NONE -> drop NONE,
+        SOME -> swap run
+    )
+
 maybe-for : *c Maybe(a) [*c a -- *c] -- *c
 maybe-for =
     swap match(

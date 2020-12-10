@@ -693,15 +693,21 @@ match-has-default-case? : Match -- Match Bool
 match-has-default-case? = dup match-has-default-case
 
 ||| Get type we're matching over.
-match-scrutinee-type? : Match -- Match Type
-match-scrutinee-type? = match-dom? type-expand-tensor nip
+match-scrutinee-type? : Match -- Match Maybe(Type)
+match-scrutinee-type? =
+    match-dom? type-expand match(
+        TTensor -> nip SOME,
+        _ -> drop NONE
+    )
 
 ||| Get "data" associated with scrutinee.
 match-scrutinee-data? : Match -- Match Maybe(Data)
 match-scrutinee-data? =
-    match-scrutinee-type? type-head match(
-        TData -> SOME,
-        _ -> drop NONE
+    match-scrutinee-type? maybe-bind(
+        type-head match(
+            TData -> SOME,
+            _ -> drop NONE
+        )
     )
 
 ########
