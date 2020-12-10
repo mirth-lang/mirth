@@ -81,7 +81,10 @@ def(field-new!, Name Type Type -- Field,
 
     # define the buffer for the field
     field-name? name-load! "-buffer" str-buf-push-str! name-save!
-    over field-table@ type-max-count 16 *
+    over field-table@ type-max-count? match(
+        NONE -> "compiler error: attempted to create field for invalid type" panic!,
+        SOME -> nip
+    ) 16 *
     buffer-alloc! over field-buffer!
 
     # field&

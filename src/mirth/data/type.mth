@@ -442,25 +442,23 @@ def(type-head, Type -- Type,
         _ -> id
     ))
 
-def(type-can-have-field?, Type -- Type Bool,
+||| For types that can have a field associated with them,
+||| get the number of values n, where the type's values
+||| range from 0 to (n-1). This should not be too large.
+def(type-max-count?, Type -- Type Maybe(Int),
     dup match(
-        TApp -> drop type-can-have-field? nip,
-        TData -> data-is-enum? nip,
-        TTable -> drop true,
-        _ -> drop false
-    ))
-
-def(type-max-count, Type -- Int,
-    match(
-        TApp -> drop type-max-count,
+        TApp -> drop type-max-count? nip,
+        TTable -> table-max-count@ 1+ SOME,
         TData ->
             data-is-enum? if(
-                data-tags@ len,
-                "compiler error: cant determine max count for non-enum data type" panic!
+                data-tags@ len SOME,
+                drop NONE
             ),
-        TTable -> table-max-count@,
-        _ -> "compiler error: cant determine max count for non-fieldable type" panic!
+        _ -> drop NONE
     ))
+
+def(type-can-have-field?, Type -- Type Bool,
+    type-max-count? is-some)
 
 ##################
 # Meta-var Types #
