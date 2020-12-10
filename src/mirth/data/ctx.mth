@@ -41,18 +41,11 @@ ctx-is-empty = is-nil
 ctx-is-empty? : Ctx -- Ctx Bool
 ctx-is-empty? = is-nil?
 
-ctx-has-name : Name Ctx -- Bool
-ctx-has-name =
-    ctx-is-empty? if(
-        drop2 false,
-        dup ctx-name@ dip(over) == if(
-            drop2 true,
-            ctx-prev@ ctx-has-name
-        )
-    )
+ctx-has : Name Ctx -- Bool
+ctx-has = ctx-lookup is-some
 
-ctx-has-name? : Name Ctx -- Name Ctx Bool
-ctx-has-name? = dup2 ctx-has-name
+ctx-has? : Name Ctx -- Name Ctx Bool
+ctx-has? = dup2 ctx-has
 
 ctx-lookup : Name Ctx -- Maybe(Var)
 ctx-lookup = unCTX reverse-find(dup2 var-name@ ==) nip
