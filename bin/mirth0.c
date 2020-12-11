@@ -5437,7 +5437,6 @@ void mwTYPE_ELAB (void) {
  void mb_mirth_2F_data_2F_type_647_9 (void);
  void mb_mirth_2F_data_2F_type_661_29 (void);
  void mb_mirth_2F_data_2F_type_668_23 (void);
- void mb_mirth_2F_data_2F_type_685_30 (void);
  void mb_mirth_2F_data_2F_word_13_29 (void);
  void mb_mirth_2F_data_2F_ctx_24_37 (void);
  void mb_mirth_2F_data_2F_ctx_18_16 (void);
@@ -18914,13 +18913,16 @@ void mwcase_is_default_case (void){
 }
 
 void mwpattern_is_covered (void){
-    mwdup();
-    { value_t d1 = pop_value();
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_drop();
+    mwdrop();
+    mwtrue();
+    break;
+    default:
     mw_3D__3D_();
-      push_value(d1); }
-    mwPATTERN_UNDERSCORE();
-    mw_3D__3D_();
-    mw_7C__7C_();
+    break;
+    }
 }
 
 void mwWord__3E_Int (void){

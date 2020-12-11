@@ -682,4 +682,8 @@ case-is-default-case = case-pattern@ PATTERN_UNDERSCORE ==
 
 ||| Asks whether the second pattern already covers the case of the first pattern.
 pattern-is-covered : Pattern Pattern -- Bool
-pattern-is-covered = dup dip(==) PATTERN_UNDERSCORE == ||
+pattern-is-covered =
+    match(
+        PATTERN_UNDERSCORE -> drop true,
+        _ -> ==
+    )
