@@ -161,6 +161,72 @@ def(elab-simple-type-arg!, Token -- Type,
 # Word Elaboration #
 ####################
 
+data WordElab
+    WORD_ELAB -> Ctx Type Token
+end
+
+def(word-elab-pack, Ctx Type Token -- WordElab, WORD_ELAB)
+def(word-elab-unpack, WordElab -- Ctx Type Token, match(WORD_ELAB -> id))
+
+def(word-elab-ctx@, WordElab -- Ctx, word-elab-unpack drop2)
+def(word-elab-stack@, WordElab -- Type, word-elab-unpack drop nip)
+def(word-elab-token@, WordElab -- Token, word-elab-unpack dip(drop2))
+
+def(word-elab-ctx?, WordElab -- WordElab Ctx, dup word-elab-ctx@)
+def(word-elab-stack?, WordElab -- WordElab Type, dup word-elab-stack@)
+def(word-elab-token?, WordElab -- WordElab Token, dup word-elab-token@)
+
+def(word-elab-ctx!, WordElab Ctx -- WordElab,
+    dip(word-elab-unpack dip2(drop)) rotr word-elab-pack)
+def(word-elab-stack!, WordElab Type -- WordElab,
+    dip(word-elab-unpack nip) swap word-elab-pack)
+def(word-elab-token!, WordElab Token -- WordElab,
+    dip(word-elab-unpack drop) word-elab-pack)
+
+def(word-elab-gamma?, WordElab -- WordElab Gamma,
+    word-elab-token? GAMMA)
+def(word-elab-unify!, WordElab Type Type -- WordElab Type,
+    dip2(word-elab-gamma?) type-unify! nip)
+def(word-elab-expand-tensor!, WordElab Type -- WordElab Type Type,
+    type-expand match(
+        TYPE_ERROR ->
+            TYPE_ERROR TYPE_ERROR,
+        TTensor ->
+            id,
+        _ ->
+            meta-alloc! TMeta
+            meta-alloc! TMeta
+            dup2 dip2(T* word-elab-unify! drop)
+    ))
+def(word-elab-expand-morphism!, WordElab Type -- WordElab Type Type,
+    type-expand match(
+        TYPE_ERROR ->
+            TYPE_ERROR TYPE_ERROR,
+        TMorphism ->
+            id,
+        _ ->
+            meta-alloc! TMeta
+            meta-alloc! TMeta
+            dup2 dip2(T-> word-elab-unify! drop)
+    ))
+def(word-elab-pop!, WordElab -- WordElab Type,
+    word-elab-stack? word-elab-expand-tensor!
+    dip(word-elab-stack!))
+def(word-elab-push!, WordElab Type -- WordElab,
+    dip(word-elab-stack?) T* word-elab-stack!)
+
+def(word-elab-warning!, WordElab Str -- WordElab,
+    dip(word-elab-token?) emit-warning!)
+def(word-elab-error!, WordElab Str -- WordElab,
+    dip(word-elab-token?) emit-error!)
+def(word-elab-fatal-error, *a WordElab Str -- *b,
+    dip(word-elab-token@) emit-fatal-error!)
+
+def(word-elab-token-value?, WordElab -- WordElab TokenValue,
+    word-elab-token? token-value@)
+#def(word-elab-token-next!, WordElab -- WordElab)
+#def(word-elab-token-succ!, WordElab -- WordElab)
+
 def(elab-tag-sig!, Tag -- Type +Elab,
     elab-tag-ctx-sig! nip)
 

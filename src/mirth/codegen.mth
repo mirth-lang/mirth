@@ -90,7 +90,7 @@ def(.d, +Codegen, c99-depth@ .n)
 def(.name, Name -- +Codegen, name-mangle! STR_BUF .)
 
 def(.w, Name -- +IO,
-    "void mw" . .name " (void)" .)
+    "static void mw" . .name " (void)" .)
 def(.p, Prim -- +IO, prim-name@ .w)
 
 def(c99-emit-header!, +IO,
@@ -199,7 +199,7 @@ def(c99-emit-buffers!, +IO,
 
 def(c99-emit-buffer!, Buffer -- +IO,
     " volatile u8 b" . buffer-name? .name "[" . buffer-size? .n "] = {0};" ;
-    " void mw" . buffer-name? .name " (void) { push_ptr((void*)b" . buffer-name@ .name "); }" ;)
+    " static void mw" . buffer-name? .name " (void) { push_ptr((void*)b" . buffer-name@ .name "); }" ;)
 
 def(c99-emit-tags!, +IO,
     1
@@ -209,7 +209,7 @@ def(c99-emit-tags!, +IO,
     drop)
 
 def(c99-emit-tag!, Tag -- +IO,
-    "void mw" . tag-name? .name " (void) {" ;
+    "static void mw" . tag-name? .name " (void) {" ;
 
     tag-num-inputs? 0 == if(
         "    push_u64(" . tag-value@ .n "LL);" ;,
@@ -1082,7 +1082,7 @@ def(c99-emit-external!, External -- +IO,
         drop
     ) ");" ;
 
-    " void mw" . dip2(external-name? .name) " (void) {" ;
+    " static void mw" . dip2(external-name? .name) " (void) {" ;
     over while(dup nonzero,
         "    i64 x" . dup .n " = pop_i64();" ;
         1-
@@ -1311,7 +1311,7 @@ def(c99-emit-word-sigs!, +IO,
     drop .lf)
 
 def(c99-emit-word-sig!, Word -- +IO,
-    " void mw" . word-name@ .name " (void);" ;)
+    " static void mw" . word-name@ .name " (void);" ;)
 
 def(c99-emit-block-sigs!, +IO,
     1
@@ -1322,7 +1322,7 @@ def(c99-emit-block-sigs!, +IO,
     drop .lf)
 
 def(c99-emit-block-sig!, Block -- +IO,
-    " void " . .block " (void);" ;)
+    " static void " . .block " (void);" ;)
 
 def(c99-emit-block-defs!, +IO,
     1
@@ -1334,7 +1334,7 @@ def(c99-emit-block-defs!, +IO,
 
 def(c99-emit-block-def!, Block -- +IO,
     block-needed? if(
-        "void " . dup .block " (void) {" ;
+        "static void " . dup .block " (void) {" ;
         block-arrow@
         arrow-ctx? c99-unpack-ctx!
         dup c99-emit-arrow!
