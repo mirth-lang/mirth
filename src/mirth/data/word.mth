@@ -16,15 +16,3 @@ def(word@, Ptr -- Word, int@ Int->Word)
 def(word-alloc!, Word +Words, Word.alloc!)
 def(word-has-body?, Word -- Word Bool,
     word-body? 0 Int->Token !=)
-
-def(word-dom@, Word -- Type, word-type@ type-get-morphism drop)
-def(word-cod@, Word -- Type, word-type@ type-get-morphism nip)
-
-def(NameValue->Word, NameValue -- Word,
-    match(
-        DEF_WORD -> id,
-        _ -> "name value is type!" panic!
-    ))
-def(Word->NameValue, Word -- NameValue, DEF_WORD)
-def(name-word!, Word Name --, dip(Word->NameValue) name-value!)
-def(name-word@, Name -- Word, name-value@ NameValue->Word)

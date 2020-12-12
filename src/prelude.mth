@@ -71,7 +71,13 @@ def(i32!, I32 Ptr --, prim.i32.set)
 def(i64@, Ptr -- I64, prim.i64.get)
 def(i64!, I64 Ptr --, prim.i64.set)
 
-def(RUNNING_OS, Int, prim.sys.os)
+data OS
+    OS_UNKNOWN
+    OS_WINDOWS
+    OS_LINUX
+    OS_MACOS
+end
+def(RUNNING_OS, OS, prim.sys.os cast)
 def(argc, Int, prim.sys.argc)
 def(argv, Ptr, prim.sys.argv)
 
@@ -119,13 +125,40 @@ dup2 = \(a1 a2 -> a1 a2 a1 a2)
 dup3 = \(a1 a2 a3 -> a1 a2 a3 a1 a2 a3)
 dup4 = \(a1 a2 a3 a4 -> a1 a2 a3 a4 a1 a2 a3 a4)
 
-dip2 : *a c1 c2 [*a -- *b] -- *b c1 c2
-dip3 : *a c1 c2 c3 [*a -- *b] -- *b c1 c2 c3
+dip2 : *a c1 c2       [*a -- *b] -- *b c1 c2
+dip3 : *a c1 c2 c3    [*a -- *b] -- *b c1 c2 c3
 dip4 : *a c1 c2 c3 c4 [*a -- *b] -- *b c1 c2 c3 c4
 
-dip2 = \(c1 c2 [f] -> f c1 c2)
-dip3 = \(c1 c2 c3 [f] -> f c1 c2 c3)
+dip2 = \(c1 c2       [f] -> f c1 c2)
+dip3 = \(c1 c2 c3    [f] -> f c1 c2 c3)
 dip4 = \(c1 c2 c3 c4 [f] -> f c1 c2 c3 c4)
+
+dip'  : *a1 c1 a2          [*a1 a2 -- *b1 b2] -- *b1 c1 b2
+dip2' : *a1 c1 a2 c2       [*a1 a2 -- *b1 b2] -- *b1 c1 b2 c2
+dip3' : *a1 c1 a2 c2 c3    [*a1 a2 -- *b1 b2] -- *b1 c1 b2 c2 c3
+dip4' : *a1 c1 a2 c2 c3 c4 [*a1 a2 -- *b1 b2] -- *b1 c1 b2 c2 c3 c4
+
+dip'   = \([f] -> swap dip(f) swap)
+dip2'  = \([f] -> dip(swap dip(f) swap))
+dip3'  = \([f] -> dip(dip(swap dip(f) swap)))
+dip4'  = \([f] -> dip(dip(dip(swap dip(f) swap))))
+
+dip2'' : *a1 c1 c2 a2       [*a1 a2 -- *b1 b2] -- *b1 c1 c2 b2
+dip3'' : *a1 c1 c2 a2 c3    [*a1 a2 -- *b1 b2] -- *b1 c1 c2 b2 c3
+dip4'' : *a1 c1 c2 a2 c3 c4 [*a1 a2 -- *b1 b2] -- *b1 c1 c2 b2 c3 c4
+
+dip2'' = \([f] -> rotr dip(dip(f)) rotl)
+dip3'' = \([f] -> dip(rotr dip(dip(f)) rotl))
+dip4'' = \([f] -> dip(dip(rotr dip(dip(f)) rotl)))
+
+dip3''' : *a1 c1 c2 c3 a2    [*a1 a2 -- *b1 b2] -- *b1 c1 c2 c3 b2
+dip4''' : *a1 c1 c2 c3 a2 c4 [*a1 a2 -- *b1 b2] -- *b1 c1 c2 c3 b2 c4
+
+dip3''' = \([f] -> rot4r dip3(f) rot4l)
+dip4''' = \([f] -> dip(dip3'''(f)))
+
+dip4'''' : *a1 c1 c2 c3 c4 a2 [*a1 a2 -- *b1 b2] -- *b1 c1 c2 c3 c4 b2
+dip4'''' = \([f] -> rot5r dip4(f) rot5l)
 
 drop2 : a b --
 drop3 : a b c --
@@ -224,10 +257,29 @@ not = false ==
 != : a a -- Bool
 != = == not
 
-> : Int Int -- Bool
+data Comparison
+    EQ
+    LT
+    GT
+end
+
+cmp : a a -- Comparison
+cmp =
+    dup2 == if(
+        drop2 EQ,
+        < if(
+            LT,
+            GT
+        )
+    )
+
+cmp? : a a -- a a Comparison
+cmp? = dup2 cmp
+
+> : a a -- Bool
 > = swap <
 
->= : Int Int -- Bool
+>= : a a -- Bool
 >= = swap <=
 
 0= : Int -- Bool
@@ -358,20 +410,6 @@ negate = -1 *
 
 abs : Int -- Int
 abs = dup 0< if(negate, id)
-
-def-type(OS, Int)
-
-UNKNOWN : OS
-UNKNOWN = 0
-
-WIN32 : OS
-WIN32 = 1
-
-LINUX : OS
-LINUX = 2
-
-MACOS : OS
-MACOS = 3
 
 ###########
 # STRINGS #
@@ -671,18 +709,18 @@ is-none? = is-nil?
 is-some? : Maybe(t) -- Maybe(t) Bool
 is-some? = is-nil? not
 
-unSOME : Maybe(t) -- t
-unSOME =
-    match(
-        NONE -> "unSOME on NONE" panic!,
-        SOME -> id
-    )
-
 maybe-map : *c Maybe(a) [*c a -- *c b] -- *c Maybe(b)
 maybe-map =
     swap match(
         NONE -> drop NONE,
         SOME -> swap run SOME,
+    )
+
+maybe-bind : *c Maybe(a) [*c a -- *c Maybe(b)] -- *c Maybe(b)
+maybe-bind =
+    swap match(
+        NONE -> drop NONE,
+        SOME -> swap run
     )
 
 maybe-for : *c Maybe(a) [*c a -- *c] -- *c
@@ -708,141 +746,243 @@ data List(t)
     L1 -> t
     L2 -> t t
     L3 -> t t t
-    LCAT -> List(t) List(t) Int
+    LCAT -> List+(t) List+(t) Int
 end
 
 L4 : t t  t t -- List(t)
-L4 = L2 dip(L2) 4 LCAT
+L4 = L4+ List+->List
 
 L5 : t t  t t t -- List(t)
-L5 = L3 dip(L2) 5 LCAT
+L5 = L5+ List+->List
 
 L6 : t t t  t t t -- List(t)
-L6 = L3 dip(L3) 6 LCAT
+L6 = L6+ List+->List
 
 L7 : t t t   t t  t t  -- List(t)
-L7 = L4 dip(L3) 7 LCAT
+L7 = L7+ List+->List
 
 L8 : t t t   t t  t t t  -- List(t)
-L8 = L5 dip(L3) 8 LCAT
+L8 = L8+ List+->List
 
 L9 : t t t   t t t  t t t -- List(t)
-L9 = L6 dip(L3) 9 LCAT
+L9 = L9+ List+->List
 
 L10 : t t  t t t   t t  t t t -- List(t)
-L10 = L5 dip(L5) 10 LCAT
+L10 = L10+ List+->List
 
 L11 : t t  t t t   t t t  t t t -- List(t)
-L11 = L6 dip(L5) 11 LCAT
+L11 = L11+ List+->List
 
 L12 : t t t  t t t  t t t  t t t -- List(t)
-L12 = L6 dip(L6) 12 LCAT
+L12 = L12+ List+->List
 
-is-cons? : List(t) -- List(t) Bool
-is-cons? = is-nil? not
+data List+(t)
+    L1+ -> t
+    L2+ -> t t
+    L3+ -> t t t
+    LCAT+ -> List+(t) List+(t) Int
+end
 
-is-snoc? : List(t) -- List(t) Bool
-is-snoc? = is-nil? not
+L4+ : t t  t t -- List+(t)
+L4+ = L2+ dip(L2+) 4 LCAT+
 
-is-cons : List(t) -- Bool
-is-cons = is-cons? nip
+L5+ : t t  t t t -- List+(t)
+L5+ = L3+ dip(L2+) 5 LCAT+
 
-is-snoc : List(t) -- Bool
-is-snoc = is-snoc? nip
+L6+ : t t t  t t t -- List+(t)
+L6+ = L3+ dip(L3+) 6 LCAT+
 
-len? : List(t) -- List(t) Int
-len? =
+L7+ : t t t   t t  t t  -- List+(t)
+L7+ = L4+ dip(L3+) 7 LCAT+
+
+L8+ : t t t   t t  t t t  -- List+(t)
+L8+ = L5+ dip(L3+) 8 LCAT+
+
+L9+ : t t t   t t t  t t t -- List+(t)
+L9+ = L6+ dip(L3+) 9 LCAT+
+
+L10+ : t t  t t t   t t  t t t -- List+(t)
+L10+ = L5+ dip(L5+) 10 LCAT+
+
+L11+ : t t  t t t   t t t  t t t -- List+(t)
+L11+ = L6+ dip(L5+) 11 LCAT+
+
+L12+ : t t t  t t t  t t t  t t t -- List+(t)
+L12+ = L6+ dip(L6+) 12 LCAT+
+
+List+->List : List+(t) -- List(t)
+List+->List =
     match(
-        L0 -> L0 0,
-        L1 -> L1 1,
-        L2 -> L2 2,
-        L3 -> L3 3,
-        LCAT -> dup dip(LCAT)
+        L1+ -> L1,
+        L2+ -> L2,
+        L3+ -> L3,
+        LCAT+ -> LCAT,
+    )
+
+List->List+ : List(t) -- Maybe(List+(t))
+List->List+ =
+    match(
+        L0 -> NONE,
+        L1 -> L1+ SOME,
+        L2 -> L2+ SOME,
+        L3 -> L3+ SOME,
+        LCAT -> LCAT+ SOME
     )
 
 len : List(t) -- Int
-len = len? nip
+len =
+    match(
+        L0 -> 0,
+        L1 -> drop 1,
+        L2 -> drop2 2,
+        L3 -> drop3 3,
+        LCAT -> dip(drop2)
+    )
+
+len+ : List+(t) -- Int
+len+ =
+    match(
+        L1+ -> drop 1,
+        L2+ -> drop2 2,
+        L3+ -> drop3 3,
+        LCAT+ -> dip(drop2)
+    )
+
+len? : List(t) -- List(t) Int
+len? = dup len
+
+len+? : List+(t) -- List+(t) Int
+len+? = dup len+
+
+cons+ : t List(t) -- List+(t)
+cons+ =
+    match(
+        L0 -> L1+,
+        L1 -> L2+,
+        L2 -> L3+,
+        L3 -> L4+,
+        LCAT -> 1+ dip(dip(cons++) rebalance+) LCAT+
+    )
+
+snoc+ : List(t) t -- List+(t)
+snoc+ =
+    swap match(
+        L0 -> L1+,
+        L1 -> rot2l L2+,
+        L2 -> rot3l L3+,
+        L3 -> rot4l L4+,
+        LCAT -> 1+ dip(rot3l snoc++ rebalance+) LCAT+
+    )
+
+cons++ : t List+(t) -- List+(t)
+cons++ = List+->List cons+
+
+snoc++ : List+(t) t -- List+(t)
+snoc++ = dip(List+->List) snoc+
 
 cons : t List(t) -- List(t)
-cons =
-    match(
-        L0 -> L1,
-        L1 -> L2,
-        L2 -> L3,
-        L3 -> L4,
-        LCAT -> 1+ dip(dip(cons) rebalance) LCAT
-    )
+cons = cons+ List+->List
 
 snoc : List(t) t -- List(t)
-snoc =
-    swap match(
-        L0 -> L1,
-        L1 -> swap L2,
-        L2 -> rot3l L3,
-        L3 -> rot4l L4,
-        LCAT -> 1+ dip(rot3l snoc rebalance) LCAT
-    )
+snoc = snoc+ List+->List
 
-uncons : List(t) -- t List(t)
+uncons : List+(t) -- t List(t)
 uncons =
     match(
-        L0 -> "uncons on empty list" panic!,
-        L1 -> L0,
-        L2 -> L1,
-        L3 -> L2,
-        LCAT -> drop dip(uncons) cat
+        L1+ -> L0,
+        L2+ -> L1,
+        L3+ -> L2,
+        LCAT+ -> drop dip(uncons) cat_+ List+->List
     )
 
-unsnoc : List(t) -- List(t) t
+unsnoc : List+(t) -- List(t) t
 unsnoc =
     match(
-        L0 -> "unsnoc on empty list" panic!,
-        L1 -> dip(L0),
-        L2 -> dip(L1),
-        L3 -> dip(L2),
-        LCAT -> drop unsnoc dip(cat)
+        L1+ -> dip(L0),
+        L2+ -> dip(L1),
+        L3+ -> dip(L2),
+        LCAT+ -> drop unsnoc dip(cat+_ List+->List)
     )
 
 cat : List(t) List(t) -- List(t)
 cat =
+    swap List->List+ match(
+        NONE -> id,
+        SOME ->
+            swap List->List+ match(
+                NONE -> List+->List,
+                SOME -> cat+ List+->List
+            )
+    )
+
+cat_+ : List(t) List+(t) -- List+(t)
+cat_+ =
+    swap List->List+ match(
+        NONE -> id,
+        SOME -> swap cat+
+    )
+
+cat+_ : List+(t) List(t) -- List+(t)
+cat+_ =
+    List->List+ match(
+        NONE -> id,
+        SOME -> cat+
+    )
+
+cat+ : List+(t) List+(t) -- List+(t)
+cat+ =
     swap match(
-        L0 -> id,
-        L1 -> swap cons,
-        L2 ->
+        L1+ -> swap cons++,
+        L2+ ->
             rot3l match(
-                L0 -> L2,
-                L1 -> L3,
-                L2 -> L4,
-                L3 -> L5,
-                _ -> dip(L2) cat-aux
+                L1+ -> L3+,
+                L2+ -> L4+,
+                L3+ -> L5+,
+                _ -> dip(L2+) cat-aux
             ),
-        L3 ->
+        L3+ ->
             rot4l match(
-                L0 -> L3,
-                L1 -> L4,
-                L2 -> L5,
-                L3 -> L6,
-                _ -> dip(L3) cat-aux
+                L1+ -> L4+,
+                L2+ -> L5+,
+                L3+ -> L6+,
+                _ -> dip(L3+) cat-aux
             ),
         _ ->
             swap match(
-                L0 -> id,
-                L1 -> snoc,
+                L1+ -> snoc++,
                 _ -> cat-aux
             )
     )
 
-cat-aux : List(t) List(t) -- List(t)
-cat-aux = rebalance dup2 dip(len) len + LCAT
+cat-aux : List+(t) List+(t) -- List+(t)
+cat-aux = rebalance+ dup2 dip(len+) len+ + LCAT+
 
-rebalance : List(t) List(t) -- List(t) List(t)
-rebalance =
-    dup2 dip(len) len dup2 3 * > if(
-        drop2 dip(split-half) cat rebalance,
+rebalance+ : List+(t) List+(t) -- List+(t) List+(t)
+rebalance+ =
+    dup2 dip(len+) len+ dup2 3 * > if(
+        drop2 dip(split-half-left) cat_+ rebalance+,
         dip(3 *) < if(
-            split-half dip(cat) rebalance,
+            split-half-right dip(cat+_) rebalance+,
             id
         )
+    )
+
+split-half-left : List+(t) -- List+(t) List(t)
+split-half-left =
+    match(
+        L1+ -> L0 dip(L1+),
+        L2+ -> L1 dip(L1+),
+        L3+ -> L1 dip(L2+),
+        LCAT+ -> drop List+->List
+    )
+
+split-half-right : List+(t) -- List(t) List+(t)
+split-half-right =
+    match(
+        L1+ -> L1+ dip(L0),
+        L2+ -> L1+ dip(L1),
+        L3+ -> L2+ dip(L1),
+        LCAT+ -> drop dip(List+->List)
     )
 
 split-half : List(t) -- List(t) List(t)
@@ -852,37 +992,44 @@ split-half =
         L1 -> L1 dip(L0),
         L2 -> L1 dip(L1),
         L3 -> L2 dip(L1),
-        LCAT -> drop
+        LCAT -> drop dip(List+->List) List+->List
     )
 
-first : List(t) -- t
-first =
+
+first : List(t) -- Maybe(t)
+first = List->List+ maybe-map(first+)
+
+last : List(t) -- Maybe(t)
+last = List->List+ maybe-map(last+)
+
+middle : List(t) -- Maybe(t)
+middle = List->List+ maybe-map(middle+)
+
+first+ : List+(t) -- t
+first+ =
     match(
-        L0 -> "first on empty list" panic!,
-        L1 -> id,
-        L2 -> drop,
-        L3 -> drop2,
-        LCAT -> drop2 first
+        L1+ -> id,
+        L2+ -> drop,
+        L3+ -> drop2,
+        LCAT+ -> drop2 first+
     )
 
-last : List(t) -- t
-last =
+last+ : List+(t) -- t
+last+ =
     match(
-        L0 -> "last on empty list" panic!,
-        L1 -> id,
-        L2 -> dip(drop),
-        L3 -> dip(drop2),
-        LCAT -> drop nip last
+        L1+ -> id,
+        L2+ -> dip(drop),
+        L3+ -> dip(drop2),
+        LCAT+ -> drop nip last+
     )
 
-middle : List(t) -- t
-middle =
+middle+ : List+(t) -- t
+middle+ =
     match(
-        L0 -> "middle on empty list" panic!,
-        L1 -> id,
-        L2 -> nip,
-        L3 -> drop nip,
-        LCAT -> drop nip first
+        L1+ -> id,
+        L2+ -> nip,
+        L3+ -> drop nip,
+        LCAT+ -> drop nip first+
     )
 
 
@@ -895,94 +1042,201 @@ trace-list-struc! =
         L2 -> drop2 "L2" str-trace!,
         L3 -> drop3 "L3" str-trace!,
         LCAT ->
-            dip2(trace-list-struc! " " str-trace!)
-            dip(trace-list-struc! " " str-trace!)
+            dip2(List+->List trace-list-struc! " " str-trace!)
+            dip(List+->List trace-list-struc! " " str-trace!)
             int-trace! " LCAT" str-trace!
     )
 
-unL1 : List(t) -- t
-unL1 =
+||| Reverse the list.
+reverse : List(a) -- List(a)
+reverse =
     match(
-        L1 -> id,
-        _ -> "expected L1 list" panic!
+        L0 -> L0,
+        L1 -> L1,
+        L2 -> swap L2,
+        L3 -> rotr swap L3,
+        LCAT -> dip(reverse+ swap reverse+) LCAT
     )
 
-unL2 : List(t) -- t t
-unL2 =
+||| Reverse the list.
+reverse+ : List+(a) -- List+(a)
+reverse+ =
     match(
-        L2 -> id,
-        _ -> "expected L2 list" panic!
+        L1+ -> L1+,
+        L2+ -> swap L2+,
+        L3+ -> rotr swap L3+,
+        LCAT+ -> dip(reverse+ swap reverse+) LCAT+
     )
 
-unL3 : List(t) -- t t t
-unL3 =
-    match(
-        L3 -> id,
-        _ -> "expected L3 list" panic!
-    )
-
+||| Transform each element of the list.
 map : *c List(a) [*c a -- *c b] -- *c List(b)
-map =
-    \([f] ->
-        match(
-            L0 -> L0,
-            L1 -> f L1,
-            L2 -> dip(f) swap dip(f) swap L2,
-            L3 -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3,
-            LCAT -> dip(dip(map(f)) swap dip(map(f)) swap) LCAT
-        )
+map = \( [f] ->
+    match(
+        L0 -> L0,
+        L1 -> f L1,
+        L2 -> dip(f) swap dip(f) swap L2,
+        L3 -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3,
+        LCAT -> dip(dip(map+(f)) swap dip(map+(f)) swap) LCAT
     )
+)
 
+||| Transform each element of the list.
+map+ : *c List+(a) [*c a -- *c b] -- *c List+(b)
+map+ = \( [f] ->
+    match(
+        L1+ -> f L1+,
+        L2+ -> dip(f) swap dip(f) swap L2+,
+        L3+ -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3+,
+        LCAT+ -> dip(dip(map+(f)) swap dip(map+(f)) swap) LCAT+
+    )
+)
+
+||| Traverse the list, left to right.
 for : *c List(a) [*c a -- *c] -- *c
-for =
-    \([f] ->
-        match(
-            L0 -> id,
-            L1 -> f,
-            L2 -> dip(f) f,
-            L3 -> dip(dip(f) f) f,
-            LCAT -> drop dip(for(f)) for(f)
-        )
+for = \([f] ->
+    match(
+        L0 -> id,
+        L1 -> f,
+        L2 -> dip(f) f,
+        L3 -> dip(dip(f) f) f,
+        LCAT -> drop dip(for+(f)) for+(f)
     )
+)
 
+||| Traverse the list, left to right.
+for+ : *c List+(a) [*c a -- *c] -- *c
+for+ = \([f] ->
+    match(
+        L1+ -> f,
+        L2+ -> dip(f) f,
+        L3+ -> dip(dip(f) f) f,
+        LCAT+ -> drop dip(for+(f)) for+(f)
+    )
+)
+
+||| Traverse the list, right to left.
+reverse-for : *c List(a) [*c a -- *c] -- *c
+reverse-for = \([f] ->
+    match(
+        L0 -> id,
+        L1 -> f,
+        L2 -> swap dip(f) f,
+        L3 -> rotr dip2(f) swap dip(f) f,
+        LCAT -> drop swap dip(reverse-for+(f)) reverse-for+(f)
+    )
+)
+
+||| Traverse the list, right to left.
+reverse-for+ : *c List+(a) [*c a -- *c] -- *c
+reverse-for+ = \([f] ->
+    match(
+        L1+ -> f,
+        L2+ -> swap dip(f) f,
+        L3+ -> rotr dip2(f) swap dip(f) f,
+        LCAT+ -> drop swap dip(reverse-for+(f)) reverse-for+(f)
+    )
+)
+
+||| Reduce a list in a bottom-up manner.
+reduce : List(a) [a a -- a] -- Maybe(a)
+reduce = \([g] -> List->List+ maybe-map(reduce+(g)))
+
+||| Reduce a list in a bottom-up manner.
+reduce+ : List+(a) [a a -- a] -- a
+reduce+ = \( [g] ->
+    match(
+        L1+ -> id,
+        L2+ -> g,
+        L3+ -> g g,
+        LCAT+ -> drop dip(reduce+(g)) reduce+(g) g
+    )
+)
+
+||| Reduce a list in a bottom-up manner, after mapping its elements.
+map-reduce : List(a) [b b -- b] [a -- b] -- Maybe(b)
+map-reduce = \([g] [f] -> map(f) reduce(g))
+
+||| Reduce a list in a bottom-up manner, after mapping its elements.
+map-reduce+ : List+(a) [b b -- b] [a -- b] -- b
+map-reduce+ = \([g] [f] -> map+(f) reduce+(g))
+
+||| Filter away any list elements that don't satisfy the predicate.
 filter : *c List(a) [*c a -- *c a Bool] -- *c List(a)
-filter =
-    \([f] ->
-        match(
-            LCAT -> drop dip(filter(f)) swap dip(filter(f)) swap cat,
-            L0 -> L0,
-            _ ->
-                uncons dip(f) swap if(
-                    swap dip(filter(f)) swap cons,
-                    nip filter(f)
-                )
-        )
+filter = \([f] ->
+    List->List+ match(
+        NONE -> L0,
+        SOME -> filter+(f)
     )
+)
 
-find : *c List(a) [*c a -- *c a Bool] -- *c Maybe(a)
-find =
-    \([f] ->
-        match(
-            L0 -> NONE,
-            L1 -> f if(SOME, drop NONE),
-            L2 ->
-                dip(f) swap if(
-                    drop SOME,
-                    nip L1 find(f)
-                ),
-            L3 ->
-                dip(dip(f)) rotl if(
-                    drop2 SOME,
-                    dip(nip) L2 find(f)
-                ),
-            LCAT ->
-                drop dip(find(f)) swap
-                is-some? if(
-                    nip,
-                    drop find(f)
-                )
-        )
+||| Filter away any list elements that don't satisfy the predicate.
+filter+ : *c List+(a) [*c a -- *c a Bool] -- *c List(a)
+filter+ = \([f] ->
+    match(
+        LCAT+ -> drop dip(filter+(f)) dip'(filter+(f)) cat,
+        _ ->
+            uncons dip(f) swap if(
+                dip'(filter(f)) cons,
+                nip filter(f)
+            )
     )
+)
+
+||| Find the first element that satisfies the predicate, if it exists.
+find : *c List(a) [*c a -- *c a Bool] -- *c Maybe(a)
+find = \([f] ->
+    List->List+ match(
+        NONE -> NONE,
+        SOME -> find+(f)
+    )
+)
+
+||| Find the first element that satisfies the predicate, if it exists.
+find+ : *c List+(a) [*c a -- *c a Bool] -- *c Maybe(a)
+find+ = \([f] ->
+    match(
+        LCAT+ ->
+            drop dip(find+(f)) swap
+            match(
+                SOME -> nip SOME,
+                NONE -> find+(f)
+            ),
+
+        _ ->
+            uncons dip(f) swap if(
+                drop SOME,
+                nip find(f)
+            )
+    )
+)
+
+||| Like `find` but preserves the list.
+find? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Maybe(a)
+find? = over dip(find) swap
+
+||| Like `find` but goes backward through the list.
+reverse-find : *c List(a) [*c a -- *c a Bool] -- *c Maybe(a)
+reverse-find = dip(reverse) find # TODO: implement directly?
+
+||| Like `find?` but goes backward through the list.
+reverse-find? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Maybe(a)
+reverse-find? = over dip(reverse-find) swap
+
+||| Is the predicate true for any element of the list?
+any : *c List(a) [*c a -- *c a Bool] -- *c Bool
+any = find is-some
+
+||| Is the predicate true for any element of the list?
+any? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool
+any? = find? is-some
+
+||| Is the predicate true for all elements of the list?
+all : *c List(a) [*c a -- *c a Bool] -- *c Bool
+all = find is-none not
+
+||| Is the predicate true for all elements of the list?
+all? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool
+all? = find? is-none not
 
 #######
 # BAG #
@@ -1010,6 +1264,30 @@ B2 = order2 L2 BAG
 B3 : v v v -- Bag(v)
 B3 = order3 L3 BAG
 
+
+||| Same as `Bag(v)` but non-empty.
+data Bag+(v)
+    BAG+ -> List+(v)
+end
+
+unBAG+ : Bag+(v) -- List+(v)
+unBAG+ = match(BAG+ -> id)
+
+B1+ : v -- Bag+(v)
+B1+ = L1+ BAG+
+
+B2+ : v v -- Bag+(v)
+B2+ = order2 L2+ BAG+
+
+B3+ : v v v -- Bag+(v)
+B3+ = order3 L3+ BAG+
+
+Bag+->Bag : Bag+(v) -- Bag(v)
+Bag+->Bag = unBAG+ List+->List BAG
+
+Bag->Bag+ : Bag(v) -- Maybe(Bag+(v))
+Bag->Bag+ = unBAG List->List+ maybe-map(BAG+)
+
 bag-empty : Bag(v)
 bag-empty = nil
 
@@ -1025,8 +1303,8 @@ bag-singleton = B1
 bag-is-singleton : Bag(v) -- Bool
 bag-is-singleton = bag-len 1 ==
 
-bag-is-singleton? : Bag(v) -- Bag(v) Bool
-bag-is-singleton? = dup bag-is-singleton
+bag-is-singleton+ : Bag+(v) -- Bool
+bag-is-singleton+ = bag-len+ 1 ==
 
 bag-len : Bag(v) -- Int
 bag-len = unBAG len
@@ -1034,32 +1312,44 @@ bag-len = unBAG len
 bag-len? : Bag(v) -- Bag(v) Int
 bag-len? = dup bag-len
 
-bag-first : Bag(v) -- v
+bag-len+ : Bag+(v) -- Int
+bag-len+ = unBAG+ len+
+
+bag-len+? : Bag+(v) -- Bag+(v) Int
+bag-len+? = dup bag-len+
+
+bag-first : Bag(v) -- Maybe(v)
 bag-first = unBAG first
 
-bag-first? : Bag(v) -- Bag(v) v
-bag-first? = dup bag-first
-
-bag-last : Bag(v) -- v
+bag-last : Bag(v) -- Maybe(v)
 bag-last = unBAG last
 
-bag-last? : Bag(v) -- Bag(v) v
-bag-last? = dup bag-last
-
-bag-middle : Bag(v) -- v
+bag-middle : Bag(v) -- Maybe(v)
 bag-middle = unBAG middle
 
-bag-middle? : Bag(v) -- Bag(v) v
-bag-middle? = dup bag-middle
+bag-first+ : Bag+(v) -- v
+bag-first+ = unBAG+ first+
+
+bag-last+ : Bag+(v) -- v
+bag-last+ = unBAG+ last+
+
+bag-middle+ : Bag+(v) -- v
+bag-middle+ = unBAG+ middle+
+
+bag-split-half-left : Bag+(v) -- Bag+(v) Bag(v)
+bag-split-half-left = unBAG+ split-half-left dip(BAG+) BAG
+
+bag-split-half-right : Bag+(v) -- Bag(v) Bag+(v)
+bag-split-half-right = unBAG+ split-half-right dip(BAG) BAG+
 
 bag-split-half : Bag(v) -- Bag(v) Bag(v)
 bag-split-half = unBAG split-half dip(BAG) BAG
 
-bag-uncons : Bag(v) -- v Bag(v)
-bag-uncons = unBAG uncons BAG
+bag-uncons : Bag+(v) -- v Bag(v)
+bag-uncons = unBAG+ uncons BAG
 
-bag-unsnoc : Bag(v) -- Bag(v) v
-bag-unsnoc = unBAG unsnoc dip(BAG)
+bag-unsnoc : Bag+(v) -- Bag(v) v
+bag-unsnoc = unBAG+ unsnoc dip(BAG)
 
 bag-cons : v Bag(v) -- Bag(v)
 bag-cons = swap bag-insert
@@ -1067,21 +1357,38 @@ bag-cons = swap bag-insert
 bag-snoc : Bag(v) v -- Bag(v)
 bag-snoc = bag-insert
 
+bag-cons+ : v Bag(v) -- Bag+(v)
+bag-cons+ = swap bag-insert+
+
+bag-snoc+ : Bag(v) v -- Bag+(v)
+bag-snoc+ = bag-insert+
+
+bag-cons++ : v Bag+(v) -- Bag+(v)
+bag-cons++ = swap bag-insert++
+
+bag-snoc++ : Bag+(v) v -- Bag+(v)
+bag-snoc++ = bag-insert++
+
 bag-has : Bag(v) v -- Bool
 bag-has =
-    over bag-is-empty if(
-        drop2 false,
-    over bag-is-singleton if(
-        dip(bag-first) ==,
+    swap Bag->Bag+ match(
+        NONE -> drop false,
+        SOME -> swap bag-has+
+    )
 
-        dip(bag-split-half bag-first?)
-        dup2 == if(
-            drop4 true,
-        dup2 <= if(
-            nip dip(nip) bag-has,
-            nip nip bag-has
-        ))
-    ))
+bag-has+ : Bag+(v) v -- Bool
+bag-has+ =
+    over bag-is-singleton+ if(
+        dip(bag-first+) ==,
+
+        dip(bag-split-half-right)
+        over bag-first+
+        cmp? match(
+            EQ -> drop4 true,
+            LT -> drop nip bag-has,
+            GT -> drop dip(nip) bag-has+
+        )
+    )
 
 bag-has? : Bag(v) v -- Bag(v) v Bool
 bag-has? = dup2 bag-has
@@ -1090,19 +1397,29 @@ bag-has? = dup2 bag-has
 ||| Note that `bag-insert` will happily insert duplicates.
 ||| Use `bag-replace` to prevent duplicate insertion.
 bag-insert : Bag(v) v -- Bag(v)
-bag-insert =
-    over bag-is-empty if(
-        nip bag-singleton,
+bag-insert = bag-insert+ Bag+->Bag
 
-    over bag-is-singleton if(
-        dip(bag-first) B2,
+||| Same as `bag-insert` but returns a `Bag+`.
+bag-insert+ : Bag(v) v -- Bag+(v)
+bag-insert+ =
+    swap Bag->Bag+ match(
+        NONE -> B1+,
+        SOME -> swap bag-insert++
+    )
 
-        dip(bag-split-half bag-first?)
-        dup2 <= if(
-            nip bag-insert bag-cat-unsafe,
-            nip swap dip(bag-insert) bag-cat-unsafe
+||| Same as `bag-insert` but takes and returns a `Bag+`.
+bag-insert++ : Bag+(v) v -- Bag+(v)
+bag-insert++ =
+    over bag-is-singleton+ if(
+        dip(bag-first+) B2+,
+
+        dip(bag-split-half-right)
+        over bag-first+
+        dup2 >= if(
+            drop bag-insert++ bag-cat-unsafe_+,
+            drop swap dip(bag-insert+) bag-cat-unsafe+
         )
-    ))
+    )
 
 ||| Insert a value into the bag in the proper location,
 ||| unless the bag already contains this value. This
@@ -1119,6 +1436,12 @@ bag-replace = bag-has? if(drop, bag-insert)
 bag-cat-unsafe : Bag(v) Bag(v) -- Bag(v)
 bag-cat-unsafe = dip(unBAG) unBAG cat BAG
 
+bag-cat-unsafe_+ : Bag(v) Bag+(v) -- Bag+(v)
+bag-cat-unsafe_+ = dip(unBAG) unBAG+ cat_+ BAG+
+
+bag-cat-unsafe+ : Bag+(v) Bag+(v) -- Bag+(v)
+bag-cat-unsafe+ = dip(unBAG+) unBAG+ cat+ BAG+
+
 ||| Put two stack items in order.
 order2 : v v -- v v
 order2 = dup2 <= if(id, swap)
@@ -1134,43 +1457,58 @@ order3 = dip(order2) dup2 <= if(id, swap dip(order2))
 ||| middle item, etc, to match the key.
 bag-lookup-key : Bag([v k]) k -- Maybe(v)
 bag-lookup-key =
-    over bag-is-empty if(
-        drop2 NONE,
-    over bag-is-singleton if(
-        dip(bag-first unpack2) == if(SOME, drop NONE),
-        dip(bag-split-half bag-first? unpack2)
-        dup2 == if(
-            drop2 SOME dip(drop2),
-        dup2 <= if(
-            dip(drop2 nip) bag-lookup-key,
-            dip(drop3) bag-lookup-key
-        ))
-    ))
+    swap Bag->Bag+ match(
+        NONE -> drop NONE,
+        SOME -> swap bag-lookup-key+
+    )
+
+||| Same as `bag-lookup-key` for non-empty bags.
+bag-lookup-key+ : Bag+([v k]) k -- Maybe(v)
+bag-lookup-key+ =
+    over bag-is-singleton+ if(
+        dip(bag-first+ unpack2) == if(SOME, drop NONE),
+
+        dip(bag-split-half-right dup bag-first+ unpack2)
+        cmp? match(
+            EQ -> drop2 SOME dip(drop2),
+            LT -> dip(drop2 nip) bag-lookup-key+,
+            GT -> dip(drop3) bag-lookup-key
+        )
+    )
 
 ||| See `bag-lookup-key`.
 bag-lookup-key? : Bag([v k]) k -- Bag([v k]) k Maybe(v)
 bag-lookup-key? = dup2 bag-lookup-key
 
+
 ||| Insert key/value pair in bag, but replace an item
 ||| with a matching key if it exists.
 bag-replace-key : Bag([v k]) [v k] -- Bag([v k])
-bag-replace-key =
-    over bag-is-empty if(
-        nip bag-singleton,
+bag-replace-key = bag-replace-key+ Bag+->Bag
 
-    over bag-is-singleton if(
-        dip(bag-first)
-        dup2 ==key if(
-            nip bag-singleton,
-            B2
+||| Same as `bag-replace-key` but returns a `Bag+`.
+bag-replace-key+ : Bag([v k]) [v k] -- Bag+([v k])
+bag-replace-key+ =
+    swap Bag->Bag+ match(
+        NONE -> B1+,
+        SOME -> swap bag-replace-key++
+    )
+
+||| Same as `bag-replace-key` but takes and returns a `Bag+`.
+bag-replace-key++ : Bag+([v k]) [v k] -- Bag+([v k])
+bag-replace-key++ =
+    over bag-is-singleton+ if(
+        dip(bag-first+) dup2 ==key if(
+            nip B1+,
+            B2+
         ),
 
-        dip(bag-split-half bag-first?)
+        dip(bag-split-half-right dup bag-first+)
         dup2 <=key if(
-            nip bag-replace-key bag-cat-unsafe,
-            nip swap dip(bag-replace-key) bag-cat-unsafe
+            nip bag-replace-key++ bag-cat-unsafe_+,
+            nip swap dip(bag-replace-key+) bag-cat-unsafe+
         )
-    ))
+    )
 
 ||| Compare two pairs by their top item (the "key").
 ==key : [v k] [v k] -- Bool
@@ -1183,6 +1521,10 @@ bag-replace-key =
 ||| Get underlying list of values from bag.
 bag-values : Bag(v) -- List(v)
 bag-values = unBAG
+
+||| Get underlying non-empty list of values from non-empty bag.
+bag-values+ : Bag+(v) -- List+(v)
+bag-values+ = unBAG+
 
 #######
 # SET #
@@ -1224,9 +1566,6 @@ map-singleton = B1 MAP
 map-is-singleton : Map(k,v) -- Bool
 map-is-singleton = unMAP bag-is-singleton
 
-map-is-singleton? : Map(k,v) -- Bool
-map-is-singleton? = unMAP bag-is-singleton
-
 map-has : Map(k,v) k -- Bool
 map-has = map-lookup is-some
 
@@ -1241,24 +1580,6 @@ map-lookup? = dup2 map-lookup
 
 map-insert : Map(k,v) [v k] -- Map(k,v)
 map-insert = dip(unMAP) bag-replace-key MAP
-
-map-first : Map(k,v) -- [v k]
-map-first = unMAP bag-first
-
-map-last : Map(k,v) -- [v k]
-map-last = unMAP bag-last
-
-map-first-key : Map(k,v) -- k
-map-first-key = map-first .0
-
-map-last-key : Map(k,v) -- k
-map-last-key = map-last .0
-
-map-uncons : Map(k,v) -- [v k] Map(k,v)
-map-uncons = unMAP bag-uncons MAP
-
-map-unsnoc : Map(k,v) -- Map(k,v) [v k]
-map-unsnoc = unMAP bag-unsnoc dip(MAP)
 
 map-cons : [v k] Map(k,v) -- Map(k,v)
 map-cons = swap map-insert
@@ -1415,14 +1736,13 @@ create-file! = (
 
 O_WRONLY|O_CREAT|O_TRUNC : Int
 O_WRONLY|O_CREAT|O_TRUNC =
-    RUNNING_OS MACOS == if(
-        0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
-    RUNNING_OS LINUX == if(
-        0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
-    RUNNING_OS WIN32 == if(
-        0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
-        "O_WRONLY|O_CREAT|O_TRUNC not known for os" panic!
-    )))
+    RUNNING_OS match(
+        OS_MACOS -> 0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
+        OS_LINUX -> 0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
+        OS_WINDOWS -> 0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
+        OS_UNKNOWN -> "O_WRONLY|O_CREAT|O_TRUNC on unknown os" panic!
+    )
+
 
 close-file! : File -- +IO
 close-file! = (
@@ -1501,13 +1821,11 @@ PROT_READ|PROT_WRITE = 0x3
 
 MAP_ANON|MAP_PRIVATE : Int
 MAP_ANON|MAP_PRIVATE =
-    RUNNING_OS MACOS == if(
-        0x1002, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
-    # RUNNING_OS LINUX == if(
-        0x22 # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
-        # ,
-        # "MAP_ANON|MAP_PRIVATE unknown for os" panic!
-    # )
+    RUNNING_OS match(
+        OS_MACOS ->
+            0x1002, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
+        _ ->
+            drop 0x22, # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
     )
 
 ||| Aligns a by b, rounding upward. For instance,

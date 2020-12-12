@@ -240,17 +240,19 @@ def(str-buf-push-hexdigit!, Char -- +StrBuf,
 def(name-undefined?, Name -- Name Bool,
     name-value? match(DEF_NONE -> true, _ -> drop false))
 def(name-defined?, Name -- Name Bool, name-undefined? not)
-def(name-is-word?, Name -- Name Bool,
-    name-value? match(DEF_WORD -> drop true, _ -> drop false))
-def(name-is-buffer?, Name -- Name Bool,
-    name-value? match(DEF_BUFFER -> drop true, _ -> drop false))
-def(name-is-type?, Name -- Name Bool,
-    name-value? match(DEF_TYPE -> drop true, _ -> drop false))
-def(name-is-external?, Name -- Name Bool,
-    name-value? match(DEF_EXTERNAL -> drop true, _ -> drop false))
-def(name-is-module?, Name -- Name Bool,
-    name-value? match(DEF_MODULE -> drop true, _ -> drop false))
-def(name-is-prim?, Name -- Name Bool,
-    name-value? match(DEF_PRIM -> drop true, _ -> drop false))
-def(name-is-tag?, Name -- Name Bool,
-    name-value? match(DEF_TAG -> drop true, _ -> drop false))
+
+name-word! : Word Name --
+name-buffer! : Buffer Name --
+name-type! : Type Name --
+name-external! : External Name --
+name-module! : Module Name --
+name-prim! : Prim Name --
+name-tag! : Tag Name --
+
+name-word! = dip(DEF_WORD) name-value!
+name-buffer! = dip(DEF_BUFFER) name-value!
+name-type! = dip(DEF_TYPE) name-value!
+name-external! = dip(DEF_EXTERNAL) name-value!
+name-module! = dip(DEF_MODULE) name-value!
+name-prim! = dip(DEF_PRIM) name-value!
+name-tag! = dip(DEF_TAG) name-value!

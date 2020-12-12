@@ -11,71 +11,17 @@ import(mirth/data/var)
 unCTX : Ctx -- List(Var)
 unCTX = match(CTX -> id)
 
-ctx-new! : Ctx Var -- Ctx
-ctx-new! = dip(unCTX) snoc CTX
-
-ctx-vars@ : Ctx -- List(Var)
-ctx-vars@ = unCTX
-
-ctx-vars? : Ctx -- Ctx List(Var)
-ctx-vars? = dup unCTX
-
-ctx-var@ : Ctx -- Var
-ctx-var@ = unCTX last
-
-ctx-var? : Ctx -- Ctx Var
-ctx-var? = dup ctx-var@
-
-ctx-prev@ : Ctx -- Ctx
-ctx-prev@ = unCTX unsnoc drop CTX
-
-ctx-name@ : Ctx -- Name
-ctx-name@ = ctx-var@ var-name@
-
 ctx-empty : Ctx
 ctx-empty = nil
 
-ctx-is-empty : Ctx -- Bool
-ctx-is-empty = is-nil
+ctx-new! : Ctx Var -- Ctx
+ctx-new! = dip(unCTX) snoc CTX
 
-ctx-is-empty? : Ctx -- Ctx Bool
-ctx-is-empty? = is-nil?
+ctx-vars : Ctx -- List(Var)
+ctx-vars = unCTX
 
-ctx-has-name : Name Ctx -- Bool
-ctx-has-name =
-    ctx-is-empty? if(
-        drop2 false,
-        dup ctx-name@ dip(over) == if(
-            drop2 true,
-            ctx-prev@ ctx-has-name
-        )
-    )
+ctx-physical-vars : Ctx -- List(Var)
+ctx-physical-vars = ctx-vars filter(var-is-physical?)
 
-ctx-has-name? : Name Ctx -- Name Ctx Bool
-ctx-has-name? = dup2 ctx-has-name
-
-ctx-lookup : Name Ctx -- Var
-ctx-lookup =
-    ctx-is-empty? if(
-        drop2 VAR_ERROR,
-        ctx-var? var-name@ dip(over) == if(
-            ctx-var@ nip,
-            ctx-prev@ ctx-lookup
-        )
-    )
-
-ctx-lookup? : Name Ctx -- Name Ctx Var
-ctx-lookup? = dup2 ctx-lookup
-
-ctx-lookup-maybe : Name Ctx -- Maybe(Var)
-ctx-lookup-maybe =
-    ctx-lookup dup VAR_ERROR == if(
-        drop NONE,
-        SOME
-    )
-
-ctx-length : Ctx -- Size
-ctx-length = 0 swap while(ctx-is-empty? not, dip(1+) ctx-prev@) drop
-
-ctx-length? : Ctx -- Ctx Size
-ctx-length? = dup ctx-length
+ctx-lookup : Name Ctx -- Maybe(Var)
+ctx-lookup = unCTX reverse-find(dup2 var-name@ ==) nip

@@ -3,18 +3,6 @@ import(mirth/data/name)
 import(mirth/data/type)
 import(mirth/data/ctx)
 
-def(Int->Prim, Int -- Prim, cast)
-def(Prim->Int, Prim -- Int, cast)
-def(Prim->NameValue, Prim -- NameValue, DEF_PRIM)
-def(NameValue->Prim, NameValue -- Prim,
-    match(
-        DEF_PRIM -> id,
-        _ -> "attempted to get prim value from non-prim name" panic!
-    ))
-
-def(name-prim!, Prim Name --, dip(Prim->NameValue) name-value!)
-def(name-prim@, Name -- Prim, name-value@ NameValue->Prim)
-
 ||| Does this name refer to this primitive?
 name-prim= : Name Prim -- Bool
 name-prim= =
@@ -36,95 +24,6 @@ token-prim= =
         _ ->
             drop2 false
     )
-
-def(PRIM_CORE_ID, Prim, 1 Int->Prim)
-def(PRIM_CORE_DUP, Prim, 2 Int->Prim)
-def(PRIM_CORE_DROP, Prim, 3 Int->Prim)
-def(PRIM_CORE_SWAP, Prim, 4 Int->Prim)
-def(PRIM_CORE_DIP, Prim, 5 Int->Prim)
-def(PRIM_CORE_IF, Prim, 6 Int->Prim)
-def(PRIM_CORE_WHILE, Prim, 7 Int->Prim)
-def(PRIM_CORE_DEBUG, Prim, 47 Int->Prim)
-def(PRIM_VALUE_CAST, Prim, 71 Int->Prim)
-def(PRIM_CORE_RUN, Prim, 96 Int->Prim)
-
-def(PRIM_CORE_MATCH, Prim, 94 Int->Prim)
-def(PRIM_CORE_LAMBDA, Prim, 95 Int->Prim)
-
-def(PRIM_VALUE_EQ, Prim, 87 Int->Prim)
-def(PRIM_VALUE_LT, Prim, 14 Int->Prim)
-def(PRIM_VALUE_LE, Prim, 15 Int->Prim)
-
-def(PRIM_INT_ADD, Prim, 8 Int->Prim)
-def(PRIM_INT_SUB, Prim, 9 Int->Prim)
-def(PRIM_INT_MUL, Prim, 10 Int->Prim)
-def(PRIM_INT_DIV, Prim, 11 Int->Prim)
-def(PRIM_INT_MOD, Prim, 12 Int->Prim)
-def(PRIM_INT_AND, Prim, 16 Int->Prim)
-def(PRIM_INT_OR, Prim, 17 Int->Prim)
-def(PRIM_INT_XOR, Prim, 18 Int->Prim)
-def(PRIM_INT_SHL, Prim, 19 Int->Prim)
-def(PRIM_INT_SHR, Prim, 20 Int->Prim)
-
-def(PRIM_BOOL_TRUE, Prim, 74 Int->Prim)
-def(PRIM_BOOL_FALSE, Prim, 75 Int->Prim)
-def(PRIM_BOOL_AND, Prim, 76 Int->Prim)
-def(PRIM_BOOL_OR, Prim, 77 Int->Prim)
-
-def(PRIM_PACK_NIL, Prim, 83 Int->Prim)
-def(PRIM_PACK_CONS, Prim, 84 Int->Prim)
-def(PRIM_PACK_UNCONS, Prim, 85 Int->Prim)
-
-def(PRIM_PTR_ADD, Prim, 72 Int->Prim)
-def(PRIM_PTR_SIZE, Prim, 82 Int->Prim)
-
-def(PRIM_VALUE_GET, Prim, 92 Int->Prim)
-def(PRIM_VALUE_SET, Prim, 93 Int->Prim)
-def(PRIM_INT_GET, Prim, 21 Int->Prim)
-def(PRIM_INT_SET, Prim, 22 Int->Prim)
-def(PRIM_PTR_GET, Prim, 90 Int->Prim)
-def(PRIM_PTR_SET, Prim, 91 Int->Prim)
-def(PRIM_U8_GET, Prim, 25 Int->Prim)
-def(PRIM_U8_SET, Prim, 26 Int->Prim)
-def(PRIM_U16_GET, Prim, 27 Int->Prim)
-def(PRIM_U16_SET, Prim, 28 Int->Prim)
-def(PRIM_U32_GET, Prim, 29 Int->Prim)
-def(PRIM_U32_SET, Prim, 30 Int->Prim)
-def(PRIM_U64_GET, Prim, 31 Int->Prim)
-def(PRIM_U64_SET, Prim, 32 Int->Prim)
-def(PRIM_I8_GET, Prim, 33 Int->Prim)
-def(PRIM_I8_SET, Prim, 34 Int->Prim)
-def(PRIM_I16_GET, Prim, 35 Int->Prim)
-def(PRIM_I16_SET, Prim, 36 Int->Prim)
-def(PRIM_I32_GET, Prim, 37 Int->Prim)
-def(PRIM_I32_SET, Prim, 38 Int->Prim)
-def(PRIM_I64_GET, Prim, 39 Int->Prim)
-def(PRIM_I64_SET, Prim, 40 Int->Prim)
-
-def(PRIM_SYS_OS, Prim, 49 Int->Prim)
-def(PRIM_SYS_ARGC, Prim, 80 Int->Prim)
-def(PRIM_SYS_ARGV, Prim, 81 Int->Prim)
-
-def(PRIM_POSIX_READ, Prim, 41 Int->Prim)
-def(PRIM_POSIX_WRITE, Prim, 42 Int->Prim)
-def(PRIM_POSIX_OPEN, Prim, 43 Int->Prim)
-def(PRIM_POSIX_CLOSE, Prim, 44 Int->Prim)
-def(PRIM_POSIX_EXIT, Prim, 45 Int->Prim)
-def(PRIM_POSIX_MMAP, Prim, 46 Int->Prim)
-
-def(PRIM_SYNTAX_MODULE, Prim, 68 Int->Prim)
-def(PRIM_SYNTAX_IMPORT, Prim, 69 Int->Prim)
-def(PRIM_SYNTAX_DEF, Prim, 50 Int->Prim)
-def(PRIM_SYNTAX_DEF_TYPE, Prim, 51 Int->Prim)
-def(PRIM_SYNTAX_BUFFER, Prim, 52 Int->Prim)
-def(PRIM_SYNTAX_DEF_EXTERNAL, Prim, 53 Int->Prim)
-def(PRIM_SYNTAX_TARGET_C99, Prim, 55 Int->Prim)
-def(PRIM_SYNTAX_TABLE, Prim, 78 Int->Prim)
-def(PRIM_SYNTAX_FIELD, Prim, 79 Int->Prim)
-def(PRIM_SYNTAX_DATA, Prim, 88 Int->Prim)
-def(PRIM_SYNTAX_END, Prim, 89 Int->Prim)
-
-# next primitive is 98
 
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str -- +Names,

@@ -24,19 +24,3 @@ buffer-alloc! = (
     tuck dup2 buffer-name!
     swap name-buffer!
 )
-
-NameValue->Buffer : NameValue -- Buffer
-NameValue->Buffer =
-    match(
-        DEF_BUFFER -> id,
-        _ -> "attempted to get buffer value from non-buffer name" panic!,
-    )
-
-Buffer->NameValue : Buffer -- NameValue
-Buffer->NameValue = DEF_BUFFER
-
-name-buffer! : Buffer Name --
-name-buffer! = dip(Buffer->NameValue) name-value!
-
-name-buffer@ : Name -- Buffer
-name-buffer@ = name-value@ NameValue->Buffer
