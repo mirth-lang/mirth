@@ -592,6 +592,9 @@ tag-num-inputs? =
         0
     )
 
+tag-is-transparent? : Tag -- Tag Bool
+tag-is-transparent? = tag-data? data-is-transparent? nip
+
 ########
 # DATA #
 ########
@@ -609,9 +612,18 @@ data-add-tag! = (
 data-is-enum? : Data -- Data Bool
 data-is-enum? = data-tags? all?(tag-num-inputs? 0 ==) nip
 
+data-is-transparent? : Data -- Data Bool
+data-is-transparent? =
+    data-tags? match(
+        L1 -> tag-num-inputs? 1 == nip,
+        _ -> drop false
+    )
+
 #########
 # MATCH #
 #########
+
+
 
 match-is-empty? : Match -- Match Bool
 match-is-empty? = match-cases? is-nil
@@ -648,6 +660,13 @@ match-scrutinee-data? =
             TData -> SOME,
             _ -> drop NONE
         )
+    )
+
+match-is-transparent? : Match -- Match Bool
+match-is-transparent? =
+    match-scrutinee-data? match(
+        SOME -> data-is-transparent? nip,
+        NONE -> false
     )
 
 ########

@@ -209,16 +209,18 @@ def(c99-emit-tags!, +IO,
 
 def(c99-emit-tag!, Tag -- +IO,
     "static void mw" . tag-name? .name " (void) {" ;
+    tag-is-transparent? if(
+        drop,
+        tag-num-inputs? 0 == if(
+            "    push_u64(" . tag-value@ .n "LL);" ;,
 
-    tag-num-inputs? 0 == if(
-        "    push_u64(" . tag-value@ .n "LL);" ;,
-
-        "    value_t car = pop_value();" ;
-        tag-num-inputs? 1-
-        while(dup 0 >, "    car = mkcell(car, pop_value());" ;  1-) drop
-        "    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = " . tag-value@ .n "LL } };" ;
-        "    car = mkcell(car, tag);" ;
-        "    push_value(car);" ;
+            "    value_t car = pop_value();" ;
+            tag-num-inputs? 1-
+            while(dup 0 >, "    car = mkcell(car, pop_value());" ;  1-) drop
+            "    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = " . tag-value@ .n "LL } };" ;
+            "    car = mkcell(car, tag);" ;
+            "    push_value(car);" ;
+        )
     )
     "}" ;;)
 
@@ -1290,13 +1292,22 @@ def(c99-emit-lambda!, Lambda -- +IO,
     "    }" ;)
 
 def(c99-emit-match!, Match -- +IO,
-    "    switch (get_top_data_tag()) {" ;
-    match-cases? for(c99-emit-case!)
-    match-has-default-case if(
-        id,
-        "    default: fprintf(stderr, \"unexpected fallthrough in match\\n\"); do_debug(); exit(99);" ;
-    )
-    "    }" ;)
+    match-is-transparent? if(
+        match-cases? first match(
+            NONE -> match-token@
+                "codegen: unexpected number of cases in transparent match" emit-fatal-error!,
+            SOME ->
+                case-body@ c99-emit-arrow! drop
+        ),
+
+        "    switch (get_top_data_tag()) {" ;
+        match-cases? for(c99-emit-case!)
+        match-has-default-case if(
+            id,
+            "    default: fprintf(stderr, \"unexpected fallthrough in match\\n\"); do_debug(); exit(99);" ;
+        )
+        "    }" ;
+    ))
 
 def(c99-emit-case!, Case -- +IO,
     case-pattern? c99-emit-pattern!
