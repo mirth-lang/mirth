@@ -89,8 +89,7 @@ def(.n, Int -- +Codegen, str-buf-int! STR_BUF .)
 def(.d, +Codegen, c99-depth@ .n)
 def(.name, Name -- +Codegen, name-mangle! STR_BUF .)
 
-def(.w, Name -- +IO,
-    "static void mw" . .name " (void)" .)
+def(.w, Name -- +IO, "static void mw" . .name " (void)" .)
 def(.p, Prim -- +IO, prim-name@ .w)
 
 def(c99-emit-header!, +IO,
@@ -175,8 +174,8 @@ def(c99-emit-header!, +IO,
     "static volatile usize heap_count = 0;" ;
     "static volatile cell_t heap [HEAP_SIZE] = {0};" ;;
 
-    "int global_argc;" ;
-    "char** global_argv;" ;;
+    "static int global_argc;" ;
+    "static char** global_argv;" ;;
     )
 
 def(c99-emit-strings!, +IO,
@@ -198,7 +197,7 @@ def(c99-emit-buffers!, +IO,
     .lf drop)
 
 def(c99-emit-buffer!, Buffer -- +IO,
-    " volatile u8 b" . buffer-name? .name "[" . buffer-size? .n "] = {0};" ;
+    " static volatile u8 b" . buffer-name? .name "[" . buffer-size? .n "] = {0};" ;
     " static void mw" . buffer-name? .name " (void) { push_ptr((void*)b" . buffer-name@ .name "); }" ;)
 
 def(c99-emit-tags!, +IO,
@@ -313,105 +312,105 @@ def(c99-emit-prims!, +IO,
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_u32;" ;
     "}";;
-    "u64 pop_u64 (void) {" ;
+    "static u64 pop_u64 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_u64;" ;
     "}";;
-    "i8 pop_i8 (void) {" ;
+    "static i8 pop_i8 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_i8;" ;
     "}";;
-    "i16 pop_i16 (void) {" ;
+    "static i16 pop_i16 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_i16;" ;
     "}";;
-    "i32 pop_i32 (void) {" ;
+    "static i32 pop_i32 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_i32;" ;
     "}";;
-    "i64 pop_i64 (void) {" ;
+    "static i64 pop_i64 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_i64;" ;
     "}" ;;
-    "bool pop_bool (void) {" ;
+    "static bool pop_bool (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_bool;" ;
     "}" ;;
 
-    "void push_value (value_t v) {" ;
+    "static void push_value (value_t v) {" ;
     "    if (stack_counter < 1) {" ;
     "        write(2, \"STACK OVERFLOW\\n\", 15);" ;
     "        exit(1);" ;
     "    }" ;
     "    stack[--stack_counter] = v;" ;
     "}" ;;
-    "void push_ptr (void* x) {" ;
+    "static void push_ptr (void* x) {" ;
     "    value_t v = {0};" ;
     "    v.tag = VT_U64;" ;
     "    v.payload.vp_ptr = x;" ;
     "    push_value(v);" ;
     "}" ;;
-    "void push_fnptr (fnptr x) {" ;
+    "static void push_fnptr (fnptr x) {" ;
     "    value_t v = {0};" ;
     "    v.tag = VT_U64;" ;
     "    v.payload.vp_fnptr = x;" ;
     "    push_value(v);" ;
     "}" ;;
-    "void push_u8 (u8 x) {" ;
+    "static void push_u8 (u8 x) {" ;
     "    value_t v = {0};" ;
     "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_u8 = x;" ;
     "    push_value(v);" ;
     "}" ;;
-    "void push_u16 (u16 x) {" ;
+    "static void push_u16 (u16 x) {" ;
     "    value_t v = {0};" ;
     "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_u16 = x;" ;
     "    push_value(v);" ;
     "}" ;;
-    "void push_u32 (u32 x) {" ;
+    "static void push_u32 (u32 x) {" ;
     "    value_t v = {0};" ;
     "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_u32 = x;" ;
     "    push_value(v);" ;
     "}" ;;
-    "void push_u64 (u64 x) {" ;
+    "static void push_u64 (u64 x) {" ;
     "    value_t v = {0};" ;
     "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = x;" ;
     "    push_value(v);" ;
     "}" ;;
-    "void push_i8 (i8 x) {" ;
+    "static void push_i8 (i8 x) {" ;
     "    value_t v = {0};" ;
     "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_i8 = x;" ;
     "    push_value(v);" ;
     "}" ;;
-    "void push_i16 (i16 x) {" ;
+    "static void push_i16 (i16 x) {" ;
     "    value_t v = {0};" ;
     "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_i16 = x;" ;
     "    push_value(v);" ;
     "}" ;;
-    "void push_i32 (i32 x) {" ;
+    "static void push_i32 (i32 x) {" ;
     "    value_t v = {0};" ;
     "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
     "    v.payload.vp_i32 = x;" ;
     "    push_value(v);" ;
     "}" ;;
-    "void push_i64 (i64 x) {" ;
+    "static void push_i64 (i64 x) {" ;
     "    value_t v = {0};" ;
     "    v.tag = VT_U64;" ;
     "    v.payload.vp_i64 = x;" ;
     "    push_value(v);" ;
     "}" ;;
-    "void push_bool (bool x) {" ;
+    "static void push_bool (bool x) {" ;
     "    value_t v = {0};" ;
     "    v.tag = VT_U64;" ;
     "    v.payload.vp_u64 = 0;" ;
@@ -419,7 +418,7 @@ def(c99-emit-prims!, +IO,
     "    push_value(v);" ;
     "}" ;;
     # create a cons cell, while taking ownership of car and cdr's refs
-    "value_t mkcell (value_t car, value_t cdr) {" ;
+    "static value_t mkcell (value_t car, value_t cdr) {" ;
     "    if ((car.payload.vp_u64 == 0) && (cdr.tag == VT_U64))" ;
     "        return cdr;" ;
     "    if (cdr.tag == VT_U64) {" ;
@@ -535,7 +534,7 @@ def(c99-emit-prims!, +IO,
     "    return v;" ;
     "}" ;;
 
-    "void value_uncons(value_t val, value_t* car, value_t* cdr) {" ;
+    "static void value_uncons(value_t val, value_t* car, value_t* cdr) {" ;
     "    switch (val.tag) {" ;
     "        case VT_U64: {" ;
     "            value_t nil = { 0 };" ;
@@ -602,7 +601,7 @@ def(c99-emit-prims!, +IO,
     "    }" ;
     "}" ;;
 
-    "void do_pack_uncons() {" ;
+    "static void do_pack_uncons() {" ;
     "    value_t car, cdr, val;" ;
     "    val = pop_value();" ;
     "    value_uncons(val, &car, &cdr);" ;
@@ -612,7 +611,7 @@ def(c99-emit-prims!, +IO,
     "    }" ;
     "}" ;;
 
-    "i64 get_value_tag(value_t v) {" ;
+    "static i64 get_value_tag(value_t v) {" ;
     "    switch (v.tag) {" ;
     "        case VT_C64: {" ;
     "            volatile cell_t *c = heap + v.payload.vp_u64;" ;
@@ -644,11 +643,11 @@ def(c99-emit-prims!, +IO,
     "    return 0;" ;
     "}" ;;
 
-    "u64 get_top_data_tag() {" ;
+    "static u64 get_top_data_tag() {" ;
     "    return get_value_tag(stack[stack_counter]);" ;
     "}" ;;
 
-    "int value_cmp(value_t v1, value_t v2) {" ;
+    "static int value_cmp(value_t v1, value_t v2) {" ;
     "    while(1) {" ;
     "        i64 t1 = get_value_tag(v1);" ;
     "        i64 t2 = get_value_tag(v2);" ;
@@ -664,7 +663,7 @@ def(c99-emit-prims!, +IO,
     "    }" ;
     "}" ;;
 
-    "void do_run() {" ;
+    "static void do_run() {" ;
     "    do_pack_uncons();" ;
     "    fnptr fp = pop_fnptr();" ;
     "    fp();" ;
@@ -679,14 +678,14 @@ def(c99-emit-prims!, +IO,
     "    push_value(v); push_value(v);" ;
     "}" ;;
 
-    "void do_drop() {" ;
+    "static void do_drop() {" ;
     "    value_t v = pop_value();" ;
     "    decref(v);" ;
     "}" ;;
 
     PRIM_CORE_DROP .p " { do_drop(); }" ;;
 
-    "void do_swap() {" ;
+    "static void do_swap() {" ;
     "    value_t x = pop_value();" ;
     "    value_t y = pop_value();" ;
     "    push_value(x); push_value(y);" ;
@@ -858,7 +857,7 @@ def(c99-emit-prims!, +IO,
     "    #endif" ;
     "}" ;;
 
-    "void do_debug() {" ;
+    "static void do_debug() {" ;
     "    write(2, \"??\", 2);" ;
     "    char c[32] = {0};" ;
     "    char* cp;" ;
@@ -1057,7 +1056,7 @@ def(c99-emit-prims!, +IO,
     "    push_value(v);" ;
     "}" ;;
 
-    "void do_pack_cons() {" ;
+    "static void do_pack_cons() {" ;
     "    value_t cdr = pop_value();" ;
     "    value_t car = pop_value();" ;
     "    push_value(mkcell(car, cdr));" ;
@@ -1102,7 +1101,7 @@ def(c99-emit-external!, External -- +IO,
         drop
     ) ");" ;
 
-    " static void mw" . dip2(external-name? .name) " (void) {" ;
+    "static void mw" . dip2(external-name? .name) " (void) {" ;
     over while(dup nonzero,
         "    i64 x" . dup .n " = pop_i64();" ;
         1-
