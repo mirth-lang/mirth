@@ -165,14 +165,14 @@ def(c99-emit-header!, +IO,
     "} cell_t;" ;;
 
     "#define STACK_SIZE 0x1000" ;
-    "static volatile usize stack_counter = STACK_SIZE;" ;
-    "static volatile value_t stack [STACK_SIZE] = {0};" ;;
+    "static usize stack_counter = STACK_SIZE;" ;
+    "static value_t stack [STACK_SIZE] = {0};" ;;
 
     "#define HEAP_SIZE 0x80000" ;
     "#define HEAP_MASK 0x7FFFF" ;
-    "static volatile usize heap_next = 1;" ;
-    "static volatile usize heap_count = 0;" ;
-    "static volatile cell_t heap [HEAP_SIZE] = {0};" ;;
+    "static usize heap_next = 1;" ;
+    "static usize heap_count = 0;" ;
+    "static cell_t heap [HEAP_SIZE] = {0};" ;;
 
     "static int global_argc;" ;
     "static char** global_argv;" ;;
@@ -197,7 +197,7 @@ def(c99-emit-buffers!, +IO,
     .lf drop)
 
 def(c99-emit-buffer!, Buffer -- +IO,
-    " static volatile u8 b" . buffer-name? .name "[" . buffer-size? .n "] = {0};" ;
+    " static u8 b" . buffer-name? .name "[" . buffer-size? .n "] = {0};" ;
     " static void mw" . buffer-name? .name " (void) { push_ptr((void*)b" . buffer-name@ .name "); }" ;)
 
 def(c99-emit-tags!, +IO,
@@ -236,7 +236,7 @@ def(c99-emit-prims!, +IO,
     "static void incref (value_t v) {" ;
     "    usize cell_index = get_cell_index(v);" ;
     "    if (cell_index) {" ;
-    "        volatile cell_t *cell = heap + cell_index;" ;
+    "        cell_t *cell = heap + cell_index;" ;
     "        cell->refs++;" ;
     "    }" ;
     "}" ;;
@@ -244,7 +244,7 @@ def(c99-emit-prims!, +IO,
     "static void decref (value_t v) { " ;
     "    usize cell_index;" ;
     "    while ((cell_index = get_cell_index(v))) {" ;
-    "        volatile cell_t *cell = heap + cell_index;";
+    "        cell_t *cell = heap + cell_index;";
     "        if (cell->refs >= 1) {";
     "            cell->refs--;" ;
     "            if (cell->refs == 0) {" ;
@@ -270,7 +270,7 @@ def(c99-emit-prims!, +IO,
     ||| but it avoids unnecessary increfs/decrefs on the car/cdr.
     "static void decref_for_uncons (value_t v) { " ;
     "    usize cell_index = get_cell_index(v);" ;
-    "    volatile cell_t *cell = heap + cell_index;" ;
+    "    cell_t *cell = heap + cell_index;" ;
     "    if (cell->refs >= 1) {" ;
     "        cell->refs--;" ;
     "        if (cell->refs == 0) {" ;
@@ -516,7 +516,7 @@ def(c99-emit-prims!, +IO,
     "        exit(1);" ;
     "    }" ;
     "    u64 cell_index = heap_next;" ;
-    "    volatile cell_t *cell = heap + cell_index;" ;
+    "    cell_t *cell = heap + cell_index;" ;
     "    while ((cell->refs > 0) && (cell_index < HEAP_SIZE)) { cell++; cell_index++; }" ;
     "    if (cell_index >= HEAP_SIZE - 1) {" ;
     "        write(2, \"HEAP OVERFLOW\\n\", 14);" ;
@@ -549,7 +549,7 @@ def(c99-emit-prims!, +IO,
     "            cdr->tag = VT_U64; cdr->payload.vp_u64 = lo;" ;
     "        } break;" ;
     "        case VT_C64: {" ;
-    "            volatile cell_t* cell = heap + val.payload.vp_u64;" ;
+    "            cell_t* cell = heap + val.payload.vp_u64;" ;
     "            *car = cell->car;" ;
     "            *cdr = cell->cdr;" ;
     "        } break;" ;
@@ -614,7 +614,7 @@ def(c99-emit-prims!, +IO,
     "static i64 get_value_tag(value_t v) {" ;
     "    switch (v.tag) {" ;
     "        case VT_C64: {" ;
-    "            volatile cell_t *c = heap + v.payload.vp_u64;" ;
+    "            cell_t *c = heap + v.payload.vp_u64;" ;
     "            if (c->cdr.tag == VT_U64) return c->cdr.payload.vp_i64;" ;
     "            return 0;" ;
     "        } break;" ;
