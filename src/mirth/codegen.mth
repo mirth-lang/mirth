@@ -234,7 +234,15 @@ def(c99-emit-prims!, +IO,
     "    }" ;
     "}" ;;
 
-    "void decref (value_t v) { " ;
+    "static void incref (value_t v) {" ;
+    "    usize cell_index = get_cell_index(v);" ;
+    "    if (cell_index) {" ;
+    "        volatile cell_t *cell = heap + cell_index;" ;
+    "        cell->refs++;" ;
+    "    }" ;
+    "}" ;;
+
+    "static void decref (value_t v) { " ;
     "    usize cell_index;" ;
     "    while ((cell_index = get_cell_index(v))) {" ;
     "        volatile cell_t *cell = heap + cell_index;";
@@ -258,38 +266,50 @@ def(c99-emit-prims!, +IO,
     "    }" ;
     "}" ;;
 
-    "void incref (value_t v) {" ;
+    ||| Decrement reference after a cons. This is equivalent to:
+    |||     incref(car), incref(cdr), decref(cell)
+    ||| but it avoids unnecessary increfs/decrefs on the car/cdr.
+    "static void decref_for_uncons (value_t v) { " ;
     "    usize cell_index = get_cell_index(v);" ;
-    "    if (cell_index) {" ;
-    "        volatile cell_t *cell = heap + cell_index;" ;
-    "        cell->refs++;" ;
+    "    volatile cell_t *cell = heap + cell_index;" ;
+    "    if (cell->refs >= 1) {" ;
+    "        cell->refs--;" ;
+    "        if (cell->refs == 0) {" ;
+    "            cell->cdr.tag = 0; cell->car.payload.vp_u64 = 0;" ;
+    "            cell->car.tag = 0; cell->cdr.payload.vp_u64 = heap_next;" ;
+    "            heap_next = cell_index;" ;
+    "            heap_count--;" ;
+    "        } else {" ;
+    "            incref(cell->car);" ;
+    "            incref(cell->cdr);" ;
+    "        }" ;
     "    }" ;
     "}" ;;
 
-    "value_t pop_value (void) {" ;
+    "static value_t pop_value (void) {" ;
     "    if (stack_counter >= STACK_SIZE) {" ;
     "        write(2, \"STACK UNDERFLOW\\n\", 16);" ;
     "        exit(1);" ;
     "    }" ;
     "    return stack[stack_counter++];" ;
     "}" ;;
-    "void* pop_ptr (void) {" ;
+    "static void* pop_ptr (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_ptr;" ;
     "}";;
-    "fnptr pop_fnptr (void) {" ;
+    "static fnptr pop_fnptr (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_fnptr;" ;
     "}";;
-    "u8 pop_u8 (void) {" ;
+    "static u8 pop_u8 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_u8;" ;
     "}";;
-    "u16 pop_u16 (void) {" ;
+    "static u16 pop_u16 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_u16;" ;
     "}";;
-    "u32 pop_u32 (void) {" ;
+    "static u32 pop_u32 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_u32;" ;
     "}";;
@@ -588,7 +608,7 @@ def(c99-emit-prims!, +IO,
     "    value_uncons(val, &car, &cdr);" ;
     "    push_value(car); push_value(cdr);" ;
     "    if (val.tag == VT_C64) {" ;
-    "        incref(car); incref(cdr); decref(val);" ;
+    "        decref_for_uncons(val);" ;
     "    }" ;
     "}" ;;
 
