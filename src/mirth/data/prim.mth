@@ -107,6 +107,8 @@ def(init-prims!, +Names,
     PRIM_PTR_SIZE "prim.ptr.size" def-prim!
     PRIM_PTR_GET "prim.ptr.get" def-prim!
     PRIM_PTR_SET "prim.ptr.set" def-prim!
+    PRIM_PTR_ALLOC "prim.ptr.alloc" def-prim!
+    PRIM_PTR_NUMBYTES "prim.ptr.numbytes" def-prim!
 
     PRIM_U8_GET "prim.u8.get" def-prim!
     PRIM_U8_SET "prim.u8.set" def-prim!
@@ -202,6 +204,12 @@ def(init-prims!, +Names,
 
     T0 TYPE_INT T1 T->
     PRIM_PTR_SIZE prim-type!
+
+    TYPE_INT T1 TYPE_PTR T1 T->
+    PRIM_PTR_ALLOC prim-type!
+
+    TYPE_PTR T1 TYPE_INT T1 T->
+    PRIM_PTR_NUMBYTES prim-type!
 
     T0 TYPE_INT T1 T->
     PRIM_SYS_OS prim-type!
