@@ -31,8 +31,11 @@
 		},
 		"keyword": {
 			"patterns": [{
+				"name": "keyword.control.mirth",
+				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])(module|import|data|end|def|table|field|buffer|def-type)(?![^\\s\\\":()\\[\\]\\{\\},])"
+			}, {
 				"name": "keyword.operator.mirth",
-				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])(\\$|->|--|\\\\|=)(?![^\\s\\\":()\\[\\]\\{\\},])"
+				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])(\\$|->|--|\\\\|=|_)(?![^\\s\\\":()\\[\\]\\{\\},])"
 			}, {
 				"name": "keyword.operator.mirth",
 				"match": "[:\\(\\)\\[\\]\\{\\},]"
@@ -46,8 +49,8 @@
 				"name": "constant.numeric.hex.mirth",
 				"match": "(?<![^\\s\\\":()\\[\\]\\{\\},])([+-]?0[xX][a-zA-Z0-9]+)(?![^\\s\\\":()\\[\\]\\{\\},])"
 			}, {
-				"name": "keyword.operator.mirth",
-				"match": "\\+[a-zA-Z][^\\s\\\":()\\[\\]\\{\\},]*"
+				"name": "entity.name.type.mirth",
+				"match": "[\\?!][A-Z][^\\s\\\":()\\[\\]\\{\\},]*"
 			}, {
 				"name": "entity.name.function.mirth",
 				"match": "[A-Z][^\\s\\\":()\\[\\]\\{\\},]*"
