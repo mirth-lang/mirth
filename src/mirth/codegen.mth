@@ -306,7 +306,7 @@ def(c99-emit-prims!, +IO,
 
     "static void* value_ptr (value_t v) {" ;
     "    if (v.tag == VT_C64) {" ;
-    "        usize cell_index = v.payload.vp_u64;" ;
+    "        usize cell_index = (usize)v.payload.vp_u64;" ;
     "        struct cell_t * cell = heap + cell_index;" ;
     "        return cell->cdr.payload.vp_ptr;" ;
     "    } else {" ;
@@ -315,7 +315,7 @@ def(c99-emit-prims!, +IO,
     "}" ;;
     "static u64 value_ptr_len (value_t v) {" ;
     "    if (v.tag == VT_C64) {" ;
-    "        usize cell_index = v.payload.vp_u64;" ;
+    "        usize cell_index = (usize)v.payload.vp_u64;" ;
     "        struct cell_t * cell = heap + cell_index;" ;
     "        return cell->car.payload.vp_u64;" ;
     "    } else if (v.payload.vp_u64) {" ;
