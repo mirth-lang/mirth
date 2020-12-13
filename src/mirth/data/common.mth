@@ -7,13 +7,13 @@ data(StrLit, STRLIT -> Int)
 # mirth/data/name
 data NameValue
     DEF_NONE
-    DEF_MODULE -> Module,
-    DEF_TYPE -> Type,
-    DEF_TAG -> Tag,
-    DEF_PRIM -> Prim,
-    DEF_WORD -> Word,
-    DEF_BUFFER -> Buffer,
-    DEF_EXTERNAL -> External,
+    DEF_MODULE -> Module
+    DEF_TYPE -> Type
+    DEF_TAG -> Tag
+    DEF_PRIM -> Prim
+    DEF_WORD -> Word
+    DEF_BUFFER -> Buffer
+    DEF_EXTERNAL -> External
 end
 table(Name)
 field(name-value, Name, NameValue)
