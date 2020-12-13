@@ -426,12 +426,15 @@ str-tail = 1 swap ptr+
 str-numbytes : Str -- Int
 str-numbytes = prim.ptr.numbytes
 
-str-length : Str -- Int
-str-length =
-    0 swap while(
+str-length? : Str -- Str Int
+str-length? =
+    dup 0 swap while(
         str-null? not,
         dip(1+) str-tail
     ) drop
+
+str-length : Str -- Int
+str-length = str-length? nip
 
 str-cat : Str Str -- Str
 str-cat = (
@@ -447,20 +450,24 @@ str-null? = dup str-null
 
 str-copy! : Str Str --
 str-copy! = (
-    while( over u8@ U8->Int nonzero,
-        over u8@ over u8!
-        dip(str-tail) str-tail
-    )
-    dip(drop 0 Int->U8) u8!
+    dup2 dip2(
+        while( over u8@ U8->Int nonzero,
+            over u8@ over u8!
+            dip(str-tail) str-tail
+        )
+        dip(drop 0 Int->U8) u8!
+    ) drop2
 )
 
 str-copy-partial! : Str Str -- Str
 str-copy-partial! = (
-    while( over u8@ U8->Int nonzero,
-        over u8@ over u8!
-        dip(str-tail) str-tail
-    )
-    nip
+    dup2 dip2(
+        while( over u8@ U8->Int nonzero,
+            over u8@ over u8!
+            dip(str-tail) str-tail
+        )
+        nip
+    ) drop2
 )
 
 STR_BUF_SIZE : Int
