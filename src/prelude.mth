@@ -426,15 +426,15 @@ str-tail = 1 swap ptr+
 str-numbytes : Str -- Int
 str-numbytes = prim.ptr.numbytes
 
-str-length? : Str -- Str Int
-str-length? =
-    dup 0 swap while(
+str-length : Str -- Int
+str-length =
+    0 swap while(
         str-null? not,
         dip(1+) str-tail
     ) drop
 
-str-length : Str -- Int
-str-length = str-length? nip
+str-length? : Str -- Str Int
+str-length? = dup str-length
 
 str-cat : Str Str -- Str
 str-cat = (

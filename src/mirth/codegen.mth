@@ -426,7 +426,7 @@ def(c99-emit-prims!, +IO,
 
     "static void* value_ptr (value_t v) {" ;
     "    char* ptr = value_ptr_base(v);" ;
-    "    usize offset = value_ptr_offset(v);" ;
+    "    i64 offset = value_ptr_offset(v);" ;
     "    return (void*)(ptr + offset);" ;
     "}" ;;
 
