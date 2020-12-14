@@ -1,8 +1,10 @@
 module(tests/prim-types)
 import(prelude)
 
+buffer(MY_BUFFER, 128)
 def(int-lit, Int, 10)
-def(str-lit, Ptr, "Hello")
+def(str-lit, Str, "Hello")
+def(buffer-lit, Ptr, MY_BUFFER)
 def(prim-dup, a -- a a, dup)
 def(prim-drop, a --, drop)
 def(prim-swap, a b -- b a, swap)
