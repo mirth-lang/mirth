@@ -467,7 +467,7 @@ def(elab-arrow-op-int!, Arrow Int -- Type,
 
 def(elab-arrow-op-str!, Arrow StrLit -- Type,
     OP_STR over arrow-op!
-    arrow-dom@ TYPE_PTR T*)
+    arrow-dom@ TYPE_STR T*)
 
 def(elab-arrow-op-buffer!, Arrow Buffer -- Type,
     OP_BUFFER over arrow-op!
@@ -792,7 +792,7 @@ def(elab-module-name!, Module Token -- +Mirth,
 
             # check module name matches module path
             name-load! ".mth" str-buf-push-str!
-            module-path@ Path->Str STR_BUF str-eq if(
+            module-path@ Path->Str STR_BUF Ptr->Str str-eq if(
                 drop,
                 "Module name should match path." emit-error!
             )
@@ -817,7 +817,7 @@ def(elab-module-import!, Module Token -- Module Token +Mirth,
 
                 DEF_NONE ->
                     name-load! ".mth" str-buf-push-str!
-                    STR_BUF Str->Path run-lexer!
+                    STR_BUF Ptr->Str Str->Path run-lexer!
                     elab-module! drop2,
                     # elab the imported module (TODO: add import to a list)
 

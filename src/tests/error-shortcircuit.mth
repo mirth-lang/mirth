@@ -5,5 +5,5 @@ import(prelude)
 def(foo, Int, "hello")
 target-c99("error-shortcircuit.c", "this should not run" str-trace-ln!)
 
-# mirth-test # merr # 5:22: error: Failed to unify Ptr with Int
+# mirth-test # merr # 5:22: error: Failed to unify Str with Int
 # mirth-test # mret # 1

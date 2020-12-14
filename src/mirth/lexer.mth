@@ -64,7 +64,7 @@ def(run-lexer!, Path -- Module +Lexer,
     module-new! lexer-module!
 
     lexer-module@ load-module-source-path!
-    STR_BUF open-file!
+    STR_BUF Ptr->Str open-file!
     input-start!
 
     1 Int->Row lexer-row!

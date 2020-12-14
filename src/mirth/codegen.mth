@@ -43,7 +43,7 @@ def(.b, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
     codegen-length@ dup 1+ codegen-length! codegen-u8!)
 
-def(., Str -- +Codegen, while(dup u8@ U8->Int nonzero, dup u8@ .b str-tail) drop)
+def(., Str -- +Codegen, while(dup str-head U8->Int nonzero, dup str-head .b str-tail) drop)
 
 def(codegen-start!, File -- +Codegen,
     codegen-file! 0 codegen-length!)
@@ -59,7 +59,7 @@ def(run-output-c99!, Arrow Path -- +IO,
         drop2,
 
         load-output-path!
-        STR_BUF create-file! codegen-start!
+        STR_BUF Ptr->Str create-file! codegen-start!
             # FIXME: implement and use create-binary-file!
             # instead of create-file! here ... perhaps
         c99-emit-header!
@@ -85,9 +85,9 @@ def(c99-depth--, +Codegen, c99-depth@ 1- c99-depth!)
 def(.lf, +Codegen, 10 Int->U8 .b)
 def(;, Str -- +Codegen, . .lf)
 def(;;, Str -- +Codegen, . .lf .lf)
-def(.n, Int -- +Codegen, str-buf-int! STR_BUF .)
+def(.n, Int -- +Codegen, str-buf-int! STR_BUF Ptr->Str .)
 def(.d, +Codegen, c99-depth@ .n)
-def(.name, Name -- +Codegen, name-mangle! STR_BUF .)
+def(.name, Name -- +Codegen, name-mangle! STR_BUF Ptr->Str .)
 
 def(.w, Name -- +IO, "static void mw" . .name " (void)" .)
 def(.p, Prim -- +IO, prim-name@ .w)
@@ -104,18 +104,18 @@ def(c99-emit-header!, +IO,
     "#error \"Platform not supported.\"" ;
     "#endif" ;;
 
-    "#include <stdint.h>";
-    "#include <stdbool.h>";;
+    "#include <stdint.h>" ;
+    "#include <stdbool.h>" ;;
 
-    "typedef uint8_t u8;";
-    "typedef uint16_t u16;";
-    "typedef uint32_t u32;";
-    "typedef uint64_t u64;";
-    "typedef int8_t i8;";
-    "typedef int16_t i16;";
-    "typedef int32_t i32;";
-    "typedef int64_t i64;";
-    "typedef uintptr_t usize;";;
+    "typedef uint8_t u8;" ;
+    "typedef uint16_t u16;" ;
+    "typedef uint32_t u32;" ;
+    "typedef uint64_t u64;" ;
+    "typedef int8_t i8;" ;
+    "typedef int16_t i16;" ;
+    "typedef int32_t i32;" ;
+    "typedef int64_t i64;" ;
+    "typedef uintptr_t usize;" ;;
 
     "extern void* mmap(void*, int, int, int, int, int);" ;
     "extern void* malloc(usize);" ;
@@ -157,7 +157,7 @@ def(c99-emit-header!, +IO,
 
     "typedef struct value_t {" ;
     "   value_payload_t payload;" ;
-    "   value_tag_t tag; ";
+    "   value_tag_t tag; " ;
     "} value_t; " ;;
 
     "typedef struct cell_t {" ;
@@ -249,8 +249,8 @@ def(c99-emit-prims!, +IO,
     "static void decref (value_t v) { " ;
     "    usize cell_index;" ;
     "    while ((cell_index = get_cell_index(v))) {" ;
-    "        cell_t *cell = heap + cell_index;";
-    "        if (cell->refs >= 1) {";
+    "        cell_t *cell = heap + cell_index;" ;
+    "        if (cell->refs >= 1) {" ;
     "            cell->refs--;" ;
     "            if (cell->refs == 0) {" ;
     "                value_t car = cell->car;" ;
@@ -433,35 +433,35 @@ def(c99-emit-prims!, +IO,
     "static fnptr pop_fnptr (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_fnptr;" ;
-    "}";;
+    "}" ;;
     "static u8 pop_u8 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_u8;" ;
-    "}";;
+    "}" ;;
     "static u16 pop_u16 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_u16;" ;
-    "}";;
+    "}" ;;
     "static u32 pop_u32 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_u32;" ;
-    "}";;
+    "}" ;;
     "static u64 pop_u64 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_u64;" ;
-    "}";;
+    "}" ;;
     "static i8 pop_i8 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_i8;" ;
-    "}";;
+    "}" ;;
     "static i16 pop_i16 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_i16;" ;
-    "}";;
+    "}" ;;
     "static i32 pop_i32 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_i32;" ;
-    "}";;
+    "}" ;;
     "static i64 pop_i64 (void) {" ;
     "    value_t v = pop_value();" ;
     "    return v.payload.vp_i64;" ;
@@ -1176,11 +1176,11 @@ def(c99-emit-prims!, +IO,
     "}" ;
 
     PRIM_BOOL_TRUE .p " {" ;
-    "    push_bool(true);";
+    "    push_bool(true);" ;
     "}" ;
 
     PRIM_BOOL_FALSE .p " {" ;
-    "    push_bool(false);";
+    "    push_bool(false);" ;
     "}" ;;
 
     PRIM_BOOL_AND .p " {" ;
@@ -1196,15 +1196,15 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     PRIM_SYS_ARGC .p " {" ;
-    "    push_i64(global_argc);";
+    "    push_i64(global_argc);" ;
     "}" ;
 
     PRIM_SYS_ARGV .p " {" ;
-    "    push_ptr(global_argv);";
+    "    push_ptr(global_argv);" ;
     "}" ;;
 
     PRIM_PTR_SIZE .p " {" ;
-    "    push_u64((u64)sizeof(void*));";
+    "    push_u64((u64)sizeof(void*));" ;
     "}" ;;
 
     PRIM_PTR_ALLOC .p " {" ;
@@ -1296,7 +1296,7 @@ def(c99-emit-external!, External -- +IO,
         id
     ))
     ")" .
-    dup nonzero if(");", ";") ;
+    dup nonzero if(");", " ;") ;
     "}" ;
 
     drop3)
@@ -1567,8 +1567,8 @@ def(c99-emit-word-def!, Word -- +IO,
 
 def(c99-emit-main!, Arrow -- +IO,
     "int main (int argc, char** argv) {" ;
-    "    global_argc = argc;";
-    "    global_argv = argv;";
+    "    global_argc = argc;" ;
+    "    global_argv = argv;" ;
     c99-emit-arrow!
     "    return 0;" ;
     "}" ;

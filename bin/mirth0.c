@@ -85,7 +85,7 @@ static cell_t heap [HEAP_SIZE] = {0};
 static int global_argc;
 static char** global_argv;
 
-#define STRINGS_SIZE 30905
+#define STRINGS_SIZE 30914
 static const char strings[STRINGS_SIZE] = { 
 67,111,109,112,105,108,105,110,103,32,0,
 66,117,105,108,100,105,110,103,46,0,
@@ -1208,7 +1208,7 @@ static const char strings[STRINGS_SIZE] = {
 44,32,120,0,
 41,0,
 41,59,0,
-59,0,
+32,59,0,
 125,0,
 32,32,32,32,112,117,115,104,95,105,54,52,40,0,
 76,76,41,59,0,
@@ -1303,6 +1303,7 @@ static const char strings[STRINGS_SIZE] = {
 125,0,
 73,110,116,0,
 80,116,114,0,
+83,116,114,0,
 85,56,0,
 85,49,54,0,
 85,51,50,0,
@@ -1333,6 +1334,7 @@ static const char strings[STRINGS_SIZE] = {
 66,79,79,76,0,
 73,110,116,0,
 80,116,114,0,
+83,116,114,0,
 85,56,0,
 85,49,54,0,
 85,51,50,0,
@@ -2942,40 +2944,44 @@ static void mwPRIM_TYPE_PTR (void) {
     push_u64(5LL);
 }
 
-static void mwPRIM_TYPE_BOOL (void) {
+static void mwPRIM_TYPE_STR (void) {
     push_u64(6LL);
 }
 
-static void mwPRIM_TYPE_U64 (void) {
+static void mwPRIM_TYPE_BOOL (void) {
     push_u64(7LL);
 }
 
-static void mwPRIM_TYPE_U32 (void) {
+static void mwPRIM_TYPE_U64 (void) {
     push_u64(8LL);
 }
 
-static void mwPRIM_TYPE_U16 (void) {
+static void mwPRIM_TYPE_U32 (void) {
     push_u64(9LL);
 }
 
-static void mwPRIM_TYPE_U8 (void) {
+static void mwPRIM_TYPE_U16 (void) {
     push_u64(10LL);
 }
 
-static void mwPRIM_TYPE_I64 (void) {
+static void mwPRIM_TYPE_U8 (void) {
     push_u64(11LL);
 }
 
-static void mwPRIM_TYPE_I32 (void) {
+static void mwPRIM_TYPE_I64 (void) {
     push_u64(12LL);
 }
 
-static void mwPRIM_TYPE_I16 (void) {
+static void mwPRIM_TYPE_I32 (void) {
     push_u64(13LL);
 }
 
-static void mwPRIM_TYPE_I8 (void) {
+static void mwPRIM_TYPE_I16 (void) {
     push_u64(14LL);
+}
+
+static void mwPRIM_TYPE_I8 (void) {
+    push_u64(15LL);
 }
 
 static void mwCTX (void) {
@@ -3788,6 +3794,8 @@ static void mwTYPE_ELAB (void) {
  static void mwrot6l (void);
  static void mwrot7l (void);
  static void mwrot8l (void);
+ static void mwStr__3E_Ptr (void);
+ static void mwPtr__3E_Str (void);
  static void mwInt__3E_Ptr (void);
  static void mwPtr__3E_Int (void);
  static void mwU8_MAX (void);
@@ -3848,11 +3856,13 @@ static void mwTYPE_ELAB (void) {
  static void mwstr_numbytes (void);
  static void mwstr_length (void);
  static void mwstr_length_3F_ (void);
+ static void mwstr_concat (void);
  static void mwstr_cat (void);
- static void mwstr_null (void);
- static void mwstr_null_3F_ (void);
- static void mwstr_copy_21_ (void);
+ static void mwstr_is_empty (void);
+ static void mwstr_is_empty_3F_ (void);
+ static void mwptr_copy_nonzero_21_ (void);
  static void mwstr_copy_partial_21_ (void);
+ static void mwstr_copy_21_ (void);
  static void mwSTR_BUF_SIZE (void);
  static void mwstr_buf_length_3F_ (void);
  static void mwstr_buf_length_21_ (void);
@@ -3863,6 +3873,7 @@ static void mwTYPE_ELAB (void) {
  static void mwstr_buf_clear_21_ (void);
  static void mwstr_buf_push_21_ (void);
  static void mwstr_buf_push_str_21_ (void);
+ static void mwstr_buf_push_ptr_21_ (void);
  static void mwstr_buf_21_ (void);
  static void mwstr_buf_char_21_ (void);
  static void mwto_digit (void);
@@ -4547,6 +4558,7 @@ static void mwTYPE_ELAB (void) {
  static void mwname_save_21_ (void);
  static void mwname_new_21_ (void);
  static void mwshow_names_table_21_ (void);
+ static void mwname_str_40_ (void);
  static void mwname_could_be_type (void);
  static void mwname_could_be_type_var (void);
  static void mwstr_could_be_type_var (void);
@@ -4598,6 +4610,7 @@ static void mwTYPE_ELAB (void) {
  static void mwMODULE_PATH_SIZE (void);
  static void mwmodule_alloc_21_ (void);
  static void mwmodule_new_21_ (void);
+ static void mwmodule_path_26_ (void);
  static void mwmodule_path_40_ (void);
  static void mwmodule_path_3F_ (void);
  static void mwmodule_path_21_ (void);
@@ -4767,6 +4780,7 @@ static void mwTYPE_ELAB (void) {
  static void mwTYPE_BOOL (void);
  static void mwTYPE_INT (void);
  static void mwTYPE_PTR (void);
+ static void mwTYPE_STR (void);
  static void mwTYPE_U8 (void);
  static void mwTYPE_U16 (void);
  static void mwTYPE_U32 (void);
@@ -5084,7 +5098,8 @@ static void mwTYPE_ELAB (void) {
  static void mwcompile_21_ (void);
  static void mwmain (void);
 
- static void mb_prelude_313_13 (void);
+ static void mb_prelude_318_13 (void);
+ static void mb_prelude_86_43 (void);
  static void mb_prelude_142_23 (void);
  static void mb_prelude_143_23 (void);
  static void mb_prelude_143_27 (void);
@@ -5098,249 +5113,251 @@ static void mwTYPE_ELAB (void) {
  static void mb_prelude_152_27 (void);
  static void mb_prelude_152_36 (void);
  static void mb_prelude_158_24 (void);
- static void mb_prelude_269_9 (void);
- static void mb_prelude_270_9 (void);
- static void mb_prelude_271_13 (void);
- static void mb_prelude_272_13 (void);
- static void mb_prelude_298_17 (void);
- static void mb_prelude_298_22 (void);
- static void mb_prelude_301_17 (void);
- static void mb_prelude_301_23 (void);
- static void mb_prelude_316_13 (void);
- static void mb_prelude_328_13 (void);
- static void mb_prelude_331_13 (void);
- static void mb_prelude_334_16 (void);
- static void mb_prelude_334_25 (void);
- static void mb_prelude_339_9 (void);
- static void mb_prelude_340_9 (void);
- static void mb_prelude_346_9 (void);
- static void mb_prelude_347_9 (void);
- static void mb_prelude_353_9 (void);
- static void mb_prelude_354_9 (void);
- static void mb_prelude_363_9 (void);
- static void mb_prelude_364_9 (void);
- static void mb_prelude_370_9 (void);
- static void mb_prelude_371_9 (void);
- static void mb_prelude_377_9 (void);
- static void mb_prelude_378_9 (void);
- static void mb_prelude_412_17 (void);
- static void mb_prelude_412_25 (void);
- static void mb_prelude_432_9 (void);
- static void mb_prelude_433_9 (void);
- static void mb_prelude_433_13 (void);
- static void mb_prelude_442_13 (void);
- static void mb_prelude_442_18 (void);
- static void mb_prelude_462_12 (void);
- static void mb_prelude_463_9 (void);
- static void mb_prelude_464_13 (void);
- static void mb_prelude_453_12 (void);
- static void mb_prelude_454_9 (void);
- static void mb_prelude_455_13 (void);
- static void mb_prelude_457_9 (void);
- static void mb_prelude_480_9 (void);
- static void mb_prelude_501_9 (void);
- static void mb_prelude_502_9 (void);
- static void mb_prelude_511_9 (void);
- static void mb_prelude_511_26 (void);
- static void mb_prelude_511_33 (void);
- static void mb_prelude_512_9 (void);
+ static void mb_prelude_274_9 (void);
+ static void mb_prelude_275_9 (void);
+ static void mb_prelude_276_13 (void);
+ static void mb_prelude_277_13 (void);
+ static void mb_prelude_303_17 (void);
+ static void mb_prelude_303_22 (void);
+ static void mb_prelude_306_17 (void);
+ static void mb_prelude_306_23 (void);
+ static void mb_prelude_321_13 (void);
+ static void mb_prelude_333_13 (void);
+ static void mb_prelude_336_13 (void);
+ static void mb_prelude_339_16 (void);
+ static void mb_prelude_339_25 (void);
+ static void mb_prelude_344_9 (void);
+ static void mb_prelude_345_9 (void);
+ static void mb_prelude_351_9 (void);
+ static void mb_prelude_352_9 (void);
+ static void mb_prelude_358_9 (void);
+ static void mb_prelude_359_9 (void);
+ static void mb_prelude_368_9 (void);
+ static void mb_prelude_369_9 (void);
+ static void mb_prelude_375_9 (void);
+ static void mb_prelude_376_9 (void);
+ static void mb_prelude_382_9 (void);
+ static void mb_prelude_383_9 (void);
+ static void mb_prelude_417_17 (void);
+ static void mb_prelude_417_25 (void);
+ static void mb_prelude_437_9 (void);
+ static void mb_prelude_438_9 (void);
+ static void mb_prelude_438_13 (void);
+ static void mb_prelude_446_20 (void);
+ static void mb_prelude_448_9 (void);
+ static void mb_prelude_448_18 (void);
+ static void mb_prelude_1142_19 (void);
+ static void mb_prelude_1143_26 (void);
+ static void mb_prelude_476_25 (void);
+ static void mb_prelude_457_27 (void);
+ static void mb_prelude_457_38 (void);
+ static void mb_prelude_467_12 (void);
+ static void mb_prelude_468_9 (void);
+ static void mb_prelude_469_13 (void);
+ static void mb_prelude_481_9 (void);
+ static void mb_prelude_497_9 (void);
+ static void mb_prelude_518_9 (void);
+ static void mb_prelude_519_9 (void);
+ static void mb_prelude_531_9 (void);
+ static void mb_prelude_531_26 (void);
+ static void mb_prelude_531_33 (void);
  static void mb_prelude_532_9 (void);
- static void mb_prelude_533_9 (void);
- static void mb_prelude_534_13 (void);
- static void mb_prelude_536_19 (void);
- static void mb_prelude_536_32 (void);
- static void mb_prelude_537_18 (void);
- static void mb_prelude_537_44 (void);
- static void mb_prelude_554_11 (void);
- static void mb_prelude_555_9 (void);
- static void mb_prelude_556_13 (void);
- static void mb_prelude_545_10 (void);
- static void mb_prelude_546_9 (void);
- static void mb_prelude_565_9 (void);
+ static void mb_prelude_552_9 (void);
+ static void mb_prelude_553_9 (void);
+ static void mb_prelude_554_13 (void);
+ static void mb_prelude_556_19 (void);
+ static void mb_prelude_556_32 (void);
+ static void mb_prelude_557_18 (void);
+ static void mb_prelude_557_44 (void);
+ static void mb_prelude_574_11 (void);
+ static void mb_prelude_575_9 (void);
+ static void mb_prelude_576_13 (void);
+ static void mb_prelude_565_10 (void);
  static void mb_prelude_566_9 (void);
- static void mb_prelude_567_13 (void);
- static void mb_prelude_568_13 (void);
- static void mb_prelude_635_13 (void);
- static void mb_prelude_638_13 (void);
- static void mb_prelude_641_13 (void);
- static void mb_prelude_644_13 (void);
- static void mb_prelude_647_13 (void);
- static void mb_prelude_656_27 (void);
- static void mb_prelude_659_27 (void);
- static void mb_prelude_662_27 (void);
- static void mb_prelude_665_27 (void);
- static void mb_prelude_698_11 (void);
- static void mb_prelude_701_11 (void);
- static void mb_prelude_701_33 (void);
- static void mb_prelude_704_11 (void);
- static void mb_prelude_704_33 (void);
- static void mb_prelude_707_11 (void);
- static void mb_prelude_707_33 (void);
- static void mb_prelude_710_11 (void);
- static void mb_prelude_710_33 (void);
- static void mb_prelude_758_29 (void);
- static void mb_prelude_758_35 (void);
- static void mb_prelude_808_15 (void);
- static void mb_prelude_811_15 (void);
- static void mb_prelude_814_15 (void);
- static void mb_prelude_817_15 (void);
- static void mb_prelude_820_15 (void);
- static void mb_prelude_823_15 (void);
- static void mb_prelude_826_16 (void);
- static void mb_prelude_829_16 (void);
- static void mb_prelude_832_16 (void);
- static void mb_prelude_860_21 (void);
- static void mb_prelude_869_22 (void);
- static void mb_prelude_885_24 (void);
- static void mb_prelude_885_28 (void);
- static void mb_prelude_983_14 (void);
- static void mb_prelude_984_9 (void);
- static void mb_prelude_984_19 (void);
- static void mb_prelude_985_9 (void);
- static void mb_prelude_985_13 (void);
- static void mb_prelude_986_13 (void);
- static void mb_prelude_986_34 (void);
- static void mb_prelude_987_13 (void);
- static void mb_prelude_895_24 (void);
- static void mb_prelude_902_14 (void);
- static void mb_prelude_916_27 (void);
- static void mb_prelude_922_20 (void);
- static void mb_prelude_923_20 (void);
- static void mb_prelude_924_20 (void);
- static void mb_prelude_925_34 (void);
- static void mb_prelude_962_26 (void);
- static void mb_prelude_969_26 (void);
- static void mb_prelude_979_31 (void);
- static void mb_prelude_994_23 (void);
- static void mb_prelude_995_23 (void);
- static void mb_prelude_996_23 (void);
- static void mb_prelude_1003_24 (void);
- static void mb_prelude_1004_24 (void);
- static void mb_prelude_1005_24 (void);
- static void mb_prelude_1006_27 (void);
- static void mb_prelude_1013_22 (void);
- static void mb_prelude_1014_22 (void);
- static void mb_prelude_1015_22 (void);
- static void mb_prelude_1016_26 (void);
- static void mb_prelude_1021_31 (void);
- static void mb_prelude_1024_30 (void);
- static void mb_prelude_1042_20 (void);
- static void mb_prelude_1043_20 (void);
- static void mb_prelude_1027_32 (void);
- static void mb_prelude_1066_18 (void);
- static void mb_prelude_1067_17 (void);
- static void mb_prelude_1079_21 (void);
- static void mb_prelude_1089_22 (void);
- static void mb_prelude_1099_19 (void);
- static void mb_prelude_1099_36 (void);
- static void mb_prelude_1099_53 (void);
- static void mb_prelude_1100_21 (void);
- static void mb_prelude_1100_25 (void);
- static void mb_prelude_1100_43 (void);
- static void mb_prelude_1110_20 (void);
- static void mb_prelude_1110_37 (void);
- static void mb_prelude_1110_54 (void);
- static void mb_prelude_1111_22 (void);
- static void mb_prelude_1111_26 (void);
- static void mb_prelude_1111_44 (void);
- static void mb_prelude_1122_19 (void);
- static void mb_prelude_1123_26 (void);
- static void mb_prelude_1133_20 (void);
- static void mb_prelude_1134_27 (void);
- static void mb_prelude_1146_31 (void);
- static void mb_prelude_1157_32 (void);
- static void mb_prelude_1163_41 (void);
- static void mb_prelude_1172_27 (void);
- static void mb_prelude_1197_27 (void);
- static void mb_prelude_1197_44 (void);
- static void mb_prelude_1200_17 (void);
- static void mb_prelude_1200_22 (void);
- static void mb_prelude_1201_17 (void);
+ static void mb_prelude_585_9 (void);
+ static void mb_prelude_586_9 (void);
+ static void mb_prelude_587_13 (void);
+ static void mb_prelude_588_13 (void);
+ static void mb_prelude_655_13 (void);
+ static void mb_prelude_658_13 (void);
+ static void mb_prelude_661_13 (void);
+ static void mb_prelude_664_13 (void);
+ static void mb_prelude_667_13 (void);
+ static void mb_prelude_676_27 (void);
+ static void mb_prelude_679_27 (void);
+ static void mb_prelude_682_27 (void);
+ static void mb_prelude_685_27 (void);
+ static void mb_prelude_718_11 (void);
+ static void mb_prelude_721_11 (void);
+ static void mb_prelude_721_33 (void);
+ static void mb_prelude_724_11 (void);
+ static void mb_prelude_724_33 (void);
+ static void mb_prelude_727_11 (void);
+ static void mb_prelude_727_33 (void);
+ static void mb_prelude_730_11 (void);
+ static void mb_prelude_730_33 (void);
+ static void mb_prelude_778_29 (void);
+ static void mb_prelude_778_35 (void);
+ static void mb_prelude_828_15 (void);
+ static void mb_prelude_831_15 (void);
+ static void mb_prelude_834_15 (void);
+ static void mb_prelude_837_15 (void);
+ static void mb_prelude_840_15 (void);
+ static void mb_prelude_843_15 (void);
+ static void mb_prelude_846_16 (void);
+ static void mb_prelude_849_16 (void);
+ static void mb_prelude_852_16 (void);
+ static void mb_prelude_880_21 (void);
+ static void mb_prelude_889_22 (void);
+ static void mb_prelude_905_24 (void);
+ static void mb_prelude_905_28 (void);
+ static void mb_prelude_1003_14 (void);
+ static void mb_prelude_1004_9 (void);
+ static void mb_prelude_1004_19 (void);
+ static void mb_prelude_1005_9 (void);
+ static void mb_prelude_1005_13 (void);
+ static void mb_prelude_1006_13 (void);
+ static void mb_prelude_1006_34 (void);
+ static void mb_prelude_1007_13 (void);
+ static void mb_prelude_915_24 (void);
+ static void mb_prelude_922_14 (void);
+ static void mb_prelude_936_27 (void);
+ static void mb_prelude_942_20 (void);
+ static void mb_prelude_943_20 (void);
+ static void mb_prelude_944_20 (void);
+ static void mb_prelude_945_34 (void);
+ static void mb_prelude_982_26 (void);
+ static void mb_prelude_989_26 (void);
+ static void mb_prelude_999_31 (void);
+ static void mb_prelude_1014_23 (void);
+ static void mb_prelude_1015_23 (void);
+ static void mb_prelude_1016_23 (void);
+ static void mb_prelude_1023_24 (void);
+ static void mb_prelude_1024_24 (void);
+ static void mb_prelude_1025_24 (void);
+ static void mb_prelude_1026_27 (void);
+ static void mb_prelude_1033_22 (void);
+ static void mb_prelude_1034_22 (void);
+ static void mb_prelude_1035_22 (void);
+ static void mb_prelude_1036_26 (void);
+ static void mb_prelude_1041_31 (void);
+ static void mb_prelude_1044_30 (void);
+ static void mb_prelude_1062_20 (void);
+ static void mb_prelude_1063_20 (void);
+ static void mb_prelude_1047_32 (void);
+ static void mb_prelude_1086_18 (void);
+ static void mb_prelude_1087_17 (void);
+ static void mb_prelude_1099_21 (void);
+ static void mb_prelude_1109_22 (void);
+ static void mb_prelude_1119_19 (void);
+ static void mb_prelude_1119_36 (void);
+ static void mb_prelude_1119_53 (void);
+ static void mb_prelude_1120_21 (void);
+ static void mb_prelude_1120_25 (void);
+ static void mb_prelude_1120_43 (void);
+ static void mb_prelude_1130_20 (void);
+ static void mb_prelude_1130_37 (void);
+ static void mb_prelude_1130_54 (void);
+ static void mb_prelude_1131_22 (void);
+ static void mb_prelude_1131_26 (void);
+ static void mb_prelude_1131_44 (void);
+ static void mb_prelude_1153_20 (void);
+ static void mb_prelude_1154_27 (void);
+ static void mb_prelude_1166_31 (void);
+ static void mb_prelude_1177_32 (void);
+ static void mb_prelude_1183_41 (void);
+ static void mb_prelude_1192_27 (void);
+ static void mb_prelude_1217_27 (void);
+ static void mb_prelude_1217_44 (void);
+ static void mb_prelude_1220_17 (void);
  static void mb_prelude_1220_22 (void);
- static void mb_prelude_1228_17 (void);
- static void mb_prelude_1229_17 (void);
- static void mb_prelude_1236_18 (void);
- static void mb_prelude_1240_20 (void);
- static void mb_prelude_1244_26 (void);
- static void mb_prelude_1468_21 (void);
- static void mb_prelude_1468_25 (void);
- static void mb_prelude_1472_14 (void);
- static void mb_prelude_1472_33 (void);
- static void mb_prelude_1472_37 (void);
- static void mb_prelude_1472_46 (void);
- static void mb_prelude_1310_41 (void);
- static void mb_prelude_1361_50 (void);
- static void mb_prelude_1364_52 (void);
- static void mb_prelude_1367_39 (void);
- static void mb_prelude_1373_32 (void);
- static void mb_prelude_1435_9 (void);
- static void mb_prelude_1435_13 (void);
- static void mb_prelude_1437_9 (void);
- static void mb_prelude_1437_13 (void);
- static void mb_prelude_1440_13 (void);
- static void mb_prelude_1441_13 (void);
- static void mb_prelude_1441_27 (void);
- static void mb_prelude_1403_9 (void);
- static void mb_prelude_1403_13 (void);
- static void mb_prelude_1405_9 (void);
- static void mb_prelude_1405_13 (void);
- static void mb_prelude_1410_28 (void);
- static void mb_prelude_1461_24 (void);
- static void mb_prelude_1464_23 (void);
- static void mb_prelude_1450_27 (void);
- static void mb_prelude_1450_33 (void);
- static void mb_prelude_1458_22 (void);
- static void mb_prelude_1490_9 (void);
- static void mb_prelude_1490_13 (void);
- static void mb_prelude_1490_39 (void);
- static void mb_prelude_1490_45 (void);
- static void mb_prelude_1492_9 (void);
- static void mb_prelude_1492_13 (void);
- static void mb_prelude_1494_34 (void);
- static void mb_prelude_1495_23 (void);
- static void mb_prelude_1496_23 (void);
- static void mb_prelude_1522_9 (void);
- static void mb_prelude_1522_13 (void);
- static void mb_prelude_1523_13 (void);
- static void mb_prelude_1524_13 (void);
- static void mb_prelude_1527_9 (void);
- static void mb_prelude_1527_13 (void);
- static void mb_prelude_1529_13 (void);
- static void mb_prelude_1530_13 (void);
- static void mb_prelude_1530_26 (void);
- static void mb_prelude_1536_13 (void);
- static void mb_prelude_1540_13 (void);
- static void mb_prelude_1597_18 (void);
- static void mb_prelude_1603_18 (void);
- static void mb_prelude_1615_23 (void);
- static void mb_prelude_1618_25 (void);
- static void mb_prelude_1639_13 (void);
- static void mb_prelude_1653_9 (void);
- static void mb_prelude_1655_9 (void);
- static void mb_prelude_1656_9 (void);
- static void mb_prelude_1657_13 (void);
- static void mb_prelude_1658_13 (void);
- static void mb_prelude_1686_9 (void);
- static void mb_prelude_1687_9 (void);
- static void mb_prelude_1688_13 (void);
- static void mb_prelude_1689_13 (void);
- static void mb_prelude_1705_9 (void);
+ static void mb_prelude_1221_17 (void);
+ static void mb_prelude_1240_22 (void);
+ static void mb_prelude_1248_17 (void);
+ static void mb_prelude_1249_17 (void);
+ static void mb_prelude_1256_18 (void);
+ static void mb_prelude_1260_20 (void);
+ static void mb_prelude_1264_26 (void);
+ static void mb_prelude_1488_21 (void);
+ static void mb_prelude_1488_25 (void);
+ static void mb_prelude_1492_14 (void);
+ static void mb_prelude_1492_33 (void);
+ static void mb_prelude_1492_37 (void);
+ static void mb_prelude_1492_46 (void);
+ static void mb_prelude_1330_41 (void);
+ static void mb_prelude_1381_50 (void);
+ static void mb_prelude_1384_52 (void);
+ static void mb_prelude_1387_39 (void);
+ static void mb_prelude_1393_32 (void);
+ static void mb_prelude_1455_9 (void);
+ static void mb_prelude_1455_13 (void);
+ static void mb_prelude_1457_9 (void);
+ static void mb_prelude_1457_13 (void);
+ static void mb_prelude_1460_13 (void);
+ static void mb_prelude_1461_13 (void);
+ static void mb_prelude_1461_27 (void);
+ static void mb_prelude_1423_9 (void);
+ static void mb_prelude_1423_13 (void);
+ static void mb_prelude_1425_9 (void);
+ static void mb_prelude_1425_13 (void);
+ static void mb_prelude_1430_28 (void);
+ static void mb_prelude_1481_24 (void);
+ static void mb_prelude_1484_23 (void);
+ static void mb_prelude_1470_27 (void);
+ static void mb_prelude_1470_33 (void);
+ static void mb_prelude_1478_22 (void);
+ static void mb_prelude_1510_9 (void);
+ static void mb_prelude_1510_13 (void);
+ static void mb_prelude_1510_39 (void);
+ static void mb_prelude_1510_45 (void);
+ static void mb_prelude_1512_9 (void);
+ static void mb_prelude_1512_13 (void);
+ static void mb_prelude_1514_34 (void);
+ static void mb_prelude_1515_23 (void);
+ static void mb_prelude_1516_23 (void);
+ static void mb_prelude_1542_9 (void);
+ static void mb_prelude_1542_13 (void);
+ static void mb_prelude_1543_13 (void);
+ static void mb_prelude_1544_13 (void);
+ static void mb_prelude_1547_9 (void);
+ static void mb_prelude_1547_13 (void);
+ static void mb_prelude_1549_13 (void);
+ static void mb_prelude_1550_13 (void);
+ static void mb_prelude_1550_26 (void);
+ static void mb_prelude_1556_13 (void);
+ static void mb_prelude_1560_13 (void);
+ static void mb_prelude_1617_18 (void);
+ static void mb_prelude_1623_18 (void);
+ static void mb_prelude_1635_23 (void);
+ static void mb_prelude_1638_25 (void);
+ static void mb_prelude_1659_13 (void);
+ static void mb_prelude_1673_9 (void);
+ static void mb_prelude_1673_13 (void);
+ static void mb_prelude_1675_9 (void);
+ static void mb_prelude_1676_9 (void);
+ static void mb_prelude_1677_13 (void);
+ static void mb_prelude_1678_13 (void);
  static void mb_prelude_1706_9 (void);
- static void mb_prelude_1720_18 (void);
- static void mb_prelude_1738_9 (void);
- static void mb_prelude_1739_9 (void);
- static void mb_prelude_1753_9 (void);
- static void mb_prelude_1754_9 (void);
- static void mb_prelude_1772_9 (void);
+ static void mb_prelude_1707_9 (void);
+ static void mb_prelude_1708_13 (void);
+ static void mb_prelude_1709_13 (void);
+ static void mb_prelude_1725_9 (void);
+ static void mb_prelude_1726_9 (void);
+ static void mb_prelude_1740_18 (void);
+ static void mb_prelude_1758_9 (void);
+ static void mb_prelude_1759_9 (void);
  static void mb_prelude_1773_9 (void);
- static void mb_prelude_1821_9 (void);
- static void mb_prelude_1823_9 (void);
- static void mb_prelude_1831_13 (void);
- static void mb_prelude_1832_17 (void);
- static void mb_prelude_1833_17 (void);
- static void mb_prelude_1835_13 (void);
- static void mb_prelude_1858_17 (void);
- static void mb_prelude_1876_24 (void);
+ static void mb_prelude_1774_9 (void);
+ static void mb_prelude_1792_9 (void);
+ static void mb_prelude_1793_9 (void);
+ static void mb_prelude_1841_9 (void);
+ static void mb_prelude_1843_9 (void);
+ static void mb_prelude_1851_13 (void);
+ static void mb_prelude_1852_17 (void);
+ static void mb_prelude_1853_17 (void);
+ static void mb_prelude_1855_13 (void);
+ static void mb_prelude_1878_17 (void);
+ static void mb_prelude_1896_24 (void);
  static void mb_mirth_2F_input_19_39 (void);
  static void mb_mirth_2F_input_19_41 (void);
  static void mb_mirth_2F_input_46_9 (void);
@@ -5403,38 +5420,38 @@ static void mwTYPE_ELAB (void) {
  static void mb_mirth_2F_data_2F_name_117_9 (void);
  static void mb_mirth_2F_data_2F_name_140_11 (void);
  static void mb_mirth_2F_data_2F_name_141_9 (void);
- static void mb_mirth_2F_data_2F_name_167_9 (void);
- static void mb_mirth_2F_data_2F_name_168_13 (void);
- static void mb_mirth_2F_data_2F_name_169_13 (void);
  static void mb_mirth_2F_data_2F_name_170_9 (void);
- static void mb_mirth_2F_data_2F_name_175_9 (void);
- static void mb_mirth_2F_data_2F_name_176_9 (void);
- static void mb_mirth_2F_data_2F_name_181_9 (void);
- static void mb_mirth_2F_data_2F_name_182_9 (void);
- static void mb_mirth_2F_data_2F_name_187_9 (void);
- static void mb_mirth_2F_data_2F_name_188_9 (void);
- static void mb_mirth_2F_data_2F_name_197_11 (void);
- static void mb_mirth_2F_data_2F_name_198_9 (void);
- static void mb_mirth_2F_data_2F_name_200_13 (void);
- static void mb_mirth_2F_data_2F_name_205_9 (void);
- static void mb_mirth_2F_data_2F_name_207_5 (void);
+ static void mb_mirth_2F_data_2F_name_171_13 (void);
+ static void mb_mirth_2F_data_2F_name_172_13 (void);
+ static void mb_mirth_2F_data_2F_name_173_9 (void);
+ static void mb_mirth_2F_data_2F_name_178_9 (void);
+ static void mb_mirth_2F_data_2F_name_179_9 (void);
+ static void mb_mirth_2F_data_2F_name_184_9 (void);
+ static void mb_mirth_2F_data_2F_name_185_9 (void);
+ static void mb_mirth_2F_data_2F_name_190_9 (void);
+ static void mb_mirth_2F_data_2F_name_191_9 (void);
+ static void mb_mirth_2F_data_2F_name_200_11 (void);
+ static void mb_mirth_2F_data_2F_name_201_9 (void);
+ static void mb_mirth_2F_data_2F_name_203_13 (void);
  static void mb_mirth_2F_data_2F_name_208_9 (void);
  static void mb_mirth_2F_data_2F_name_210_5 (void);
  static void mb_mirth_2F_data_2F_name_211_9 (void);
  static void mb_mirth_2F_data_2F_name_213_5 (void);
  static void mb_mirth_2F_data_2F_name_214_9 (void);
- static void mb_mirth_2F_data_2F_name_217_5 (void);
- static void mb_mirth_2F_data_2F_name_218_9 (void);
- static void mb_mirth_2F_data_2F_name_220_9 (void);
- static void mb_mirth_2F_data_2F_name_232_9 (void);
- static void mb_mirth_2F_data_2F_name_233_9 (void);
- static void mb_mirth_2F_data_2F_name_252_18 (void);
- static void mb_mirth_2F_data_2F_name_253_20 (void);
- static void mb_mirth_2F_data_2F_name_254_18 (void);
- static void mb_mirth_2F_data_2F_name_255_22 (void);
+ static void mb_mirth_2F_data_2F_name_216_5 (void);
+ static void mb_mirth_2F_data_2F_name_217_9 (void);
+ static void mb_mirth_2F_data_2F_name_220_5 (void);
+ static void mb_mirth_2F_data_2F_name_221_9 (void);
+ static void mb_mirth_2F_data_2F_name_223_9 (void);
+ static void mb_mirth_2F_data_2F_name_235_9 (void);
+ static void mb_mirth_2F_data_2F_name_236_9 (void);
+ static void mb_mirth_2F_data_2F_name_255_18 (void);
  static void mb_mirth_2F_data_2F_name_256_20 (void);
  static void mb_mirth_2F_data_2F_name_257_18 (void);
- static void mb_mirth_2F_data_2F_name_258_17 (void);
+ static void mb_mirth_2F_data_2F_name_258_22 (void);
+ static void mb_mirth_2F_data_2F_name_259_20 (void);
+ static void mb_mirth_2F_data_2F_name_260_18 (void);
+ static void mb_mirth_2F_data_2F_name_261_17 (void);
  static void mb_mirth_2F_data_2F_string_38_11 (void);
  static void mb_mirth_2F_data_2F_string_39_9 (void);
  static void mb_mirth_2F_data_2F_string_28_9 (void);
@@ -5444,9 +5461,9 @@ static void mwTYPE_ELAB (void) {
  static void mb_mirth_2F_data_2F_path_41_52 (void);
  static void mb_mirth_2F_data_2F_path_53_23 (void);
  static void mb_mirth_2F_data_2F_path_53_27 (void);
- static void mb_mirth_2F_data_2F_module_37_9 (void);
- static void mb_mirth_2F_data_2F_module_38_9 (void);
- static void mb_mirth_2F_data_2F_module_38_26 (void);
+ static void mb_mirth_2F_data_2F_module_40_9 (void);
+ static void mb_mirth_2F_data_2F_module_41_9 (void);
+ static void mb_mirth_2F_data_2F_module_41_13 (void);
  static void mb_mirth_2F_data_2F_error_19_9 (void);
  static void mb_mirth_2F_data_2F_error_35_9 (void);
  static void mb_mirth_2F_data_2F_token_269_52 (void);
@@ -5663,118 +5680,118 @@ static void mwTYPE_ELAB (void) {
  static void mb_mirth_2F_data_2F_var_25_9 (void);
  static void mb_mirth_2F_data_2F_var_26_9 (void);
  static void mb_mirth_2F_data_2F_var_27_9 (void);
- static void mb_mirth_2F_data_2F_type_590_9 (void);
- static void mb_mirth_2F_data_2F_type_591_15 (void);
- static void mb_mirth_2F_data_2F_type_591_35 (void);
- static void mb_mirth_2F_data_2F_type_591_50 (void);
- static void mb_mirth_2F_data_2F_type_592_9 (void);
- static void mb_mirth_2F_data_2F_type_30_27 (void);
- static void mb_mirth_2F_data_2F_type_31_32 (void);
- static void mb_mirth_2F_data_2F_type_32_37 (void);
- static void mb_mirth_2F_data_2F_type_33_42 (void);
- static void mb_mirth_2F_data_2F_type_34_47 (void);
- static void mb_mirth_2F_data_2F_type_35_52 (void);
- static void mb_mirth_2F_data_2F_type_447_9 (void);
- static void mb_mirth_2F_data_2F_type_447_17 (void);
- static void mb_mirth_2F_data_2F_type_448_9 (void);
- static void mb_mirth_2F_data_2F_type_93_10 (void);
- static void mb_mirth_2F_data_2F_type_95_9 (void);
- static void mb_mirth_2F_data_2F_type_112_30 (void);
- static void mb_mirth_2F_data_2F_type_119_30 (void);
- static void mb_mirth_2F_data_2F_type_120_30 (void);
- static void mb_mirth_2F_data_2F_type_122_26 (void);
- static void mb_mirth_2F_data_2F_type_128_30 (void);
- static void mb_mirth_2F_data_2F_type_129_30 (void);
- static void mb_mirth_2F_data_2F_type_131_26 (void);
- static void mb_mirth_2F_data_2F_type_137_30 (void);
- static void mb_mirth_2F_data_2F_type_138_30 (void);
- static void mb_mirth_2F_data_2F_type_140_26 (void);
- static void mb_mirth_2F_data_2F_type_146_30 (void);
- static void mb_mirth_2F_data_2F_type_147_30 (void);
- static void mb_mirth_2F_data_2F_type_149_26 (void);
- static void mb_mirth_2F_data_2F_type_155_30 (void);
- static void mb_mirth_2F_data_2F_type_156_30 (void);
- static void mb_mirth_2F_data_2F_type_158_26 (void);
- static void mb_mirth_2F_data_2F_type_164_30 (void);
- static void mb_mirth_2F_data_2F_type_165_30 (void);
- static void mb_mirth_2F_data_2F_type_167_26 (void);
- static void mb_mirth_2F_data_2F_type_173_30 (void);
- static void mb_mirth_2F_data_2F_type_174_30 (void);
- static void mb_mirth_2F_data_2F_type_176_26 (void);
- static void mb_mirth_2F_data_2F_type_479_9 (void);
- static void mb_mirth_2F_data_2F_type_480_9 (void);
- static void mb_mirth_2F_data_2F_type_453_9 (void);
- static void mb_mirth_2F_data_2F_type_455_5 (void);
+ static void mb_mirth_2F_data_2F_type_593_9 (void);
+ static void mb_mirth_2F_data_2F_type_594_15 (void);
+ static void mb_mirth_2F_data_2F_type_594_35 (void);
+ static void mb_mirth_2F_data_2F_type_594_50 (void);
+ static void mb_mirth_2F_data_2F_type_595_9 (void);
+ static void mb_mirth_2F_data_2F_type_31_27 (void);
+ static void mb_mirth_2F_data_2F_type_32_32 (void);
+ static void mb_mirth_2F_data_2F_type_33_37 (void);
+ static void mb_mirth_2F_data_2F_type_34_42 (void);
+ static void mb_mirth_2F_data_2F_type_35_47 (void);
+ static void mb_mirth_2F_data_2F_type_36_52 (void);
+ static void mb_mirth_2F_data_2F_type_450_9 (void);
+ static void mb_mirth_2F_data_2F_type_450_17 (void);
+ static void mb_mirth_2F_data_2F_type_451_9 (void);
+ static void mb_mirth_2F_data_2F_type_95_10 (void);
+ static void mb_mirth_2F_data_2F_type_97_9 (void);
+ static void mb_mirth_2F_data_2F_type_114_30 (void);
+ static void mb_mirth_2F_data_2F_type_121_30 (void);
+ static void mb_mirth_2F_data_2F_type_122_30 (void);
+ static void mb_mirth_2F_data_2F_type_124_26 (void);
+ static void mb_mirth_2F_data_2F_type_130_30 (void);
+ static void mb_mirth_2F_data_2F_type_131_30 (void);
+ static void mb_mirth_2F_data_2F_type_133_26 (void);
+ static void mb_mirth_2F_data_2F_type_139_30 (void);
+ static void mb_mirth_2F_data_2F_type_140_30 (void);
+ static void mb_mirth_2F_data_2F_type_142_26 (void);
+ static void mb_mirth_2F_data_2F_type_148_30 (void);
+ static void mb_mirth_2F_data_2F_type_149_30 (void);
+ static void mb_mirth_2F_data_2F_type_151_26 (void);
+ static void mb_mirth_2F_data_2F_type_157_30 (void);
+ static void mb_mirth_2F_data_2F_type_158_30 (void);
+ static void mb_mirth_2F_data_2F_type_160_26 (void);
+ static void mb_mirth_2F_data_2F_type_166_30 (void);
+ static void mb_mirth_2F_data_2F_type_167_30 (void);
+ static void mb_mirth_2F_data_2F_type_169_26 (void);
+ static void mb_mirth_2F_data_2F_type_175_30 (void);
+ static void mb_mirth_2F_data_2F_type_176_30 (void);
+ static void mb_mirth_2F_data_2F_type_178_26 (void);
+ static void mb_mirth_2F_data_2F_type_482_9 (void);
+ static void mb_mirth_2F_data_2F_type_483_9 (void);
  static void mb_mirth_2F_data_2F_type_456_9 (void);
  static void mb_mirth_2F_data_2F_type_458_5 (void);
- static void mb_mirth_2F_data_2F_type_460_9 (void);
- static void mb_mirth_2F_data_2F_type_462_9 (void);
- static void mb_mirth_2F_data_2F_type_462_18 (void);
- static void mb_mirth_2F_data_2F_type_201_9 (void);
- static void mb_mirth_2F_data_2F_type_202_9 (void);
- static void mb_mirth_2F_data_2F_type_202_13 (void);
- static void mb_mirth_2F_data_2F_type_186_9 (void);
- static void mb_mirth_2F_data_2F_type_187_9 (void);
- static void mb_mirth_2F_data_2F_type_187_13 (void);
- static void mb_mirth_2F_data_2F_type_191_9 (void);
- static void mb_mirth_2F_data_2F_type_192_9 (void);
- static void mb_mirth_2F_data_2F_type_192_13 (void);
- static void mb_mirth_2F_data_2F_type_196_9 (void);
- static void mb_mirth_2F_data_2F_type_197_9 (void);
- static void mb_mirth_2F_data_2F_type_197_13 (void);
- static void mb_mirth_2F_data_2F_type_181_9 (void);
- static void mb_mirth_2F_data_2F_type_181_18 (void);
- static void mb_mirth_2F_data_2F_type_182_21 (void);
- static void mb_mirth_2F_data_2F_type_216_24 (void);
- static void mb_mirth_2F_data_2F_type_216_52 (void);
- static void mb_mirth_2F_data_2F_type_216_64 (void);
- static void mb_mirth_2F_data_2F_type_217_26 (void);
- static void mb_mirth_2F_data_2F_type_217_54 (void);
- static void mb_mirth_2F_data_2F_type_217_66 (void);
- static void mb_mirth_2F_data_2F_type_218_21 (void);
- static void mb_mirth_2F_data_2F_type_218_49 (void);
- static void mb_mirth_2F_data_2F_type_218_61 (void);
- static void mb_mirth_2F_data_2F_type_236_9 (void);
- static void mb_mirth_2F_data_2F_type_237_9 (void);
- static void mb_mirth_2F_data_2F_type_243_9 (void);
- static void mb_mirth_2F_data_2F_type_244_9 (void);
- static void mb_mirth_2F_data_2F_type_256_16 (void);
- static void mb_mirth_2F_data_2F_type_256_20 (void);
- static void mb_mirth_2F_data_2F_type_298_9 (void);
- static void mb_mirth_2F_data_2F_type_299_9 (void);
- static void mb_mirth_2F_data_2F_type_342_17 (void);
- static void mb_mirth_2F_data_2F_type_343_17 (void);
- static void mb_mirth_2F_data_2F_type_306_17 (void);
- static void mb_mirth_2F_data_2F_type_307_17 (void);
- static void mb_mirth_2F_data_2F_type_315_24 (void);
- static void mb_mirth_2F_data_2F_type_327_9 (void);
- static void mb_mirth_2F_data_2F_type_329_9 (void);
- static void mb_mirth_2F_data_2F_type_352_17 (void);
- static void mb_mirth_2F_data_2F_type_353_17 (void);
- static void mb_mirth_2F_data_2F_type_354_27 (void);
- static void mb_mirth_2F_data_2F_type_362_17 (void);
- static void mb_mirth_2F_data_2F_type_363_17 (void);
- static void mb_mirth_2F_data_2F_type_400_9 (void);
- static void mb_mirth_2F_data_2F_type_401_9 (void);
- static void mb_mirth_2F_data_2F_type_402_13 (void);
- static void mb_mirth_2F_data_2F_type_394_9 (void);
- static void mb_mirth_2F_data_2F_type_395_9 (void);
- static void mb_mirth_2F_data_2F_type_390_9 (void);
- static void mb_mirth_2F_data_2F_type_390_45 (void);
- static void mb_mirth_2F_data_2F_type_430_17 (void);
- static void mb_mirth_2F_data_2F_type_431_17 (void);
- static void mb_mirth_2F_data_2F_type_613_33 (void);
- static void mb_mirth_2F_data_2F_type_573_9 (void);
- static void mb_mirth_2F_data_2F_type_573_17 (void);
- static void mb_mirth_2F_data_2F_type_574_9 (void);
- static void mb_mirth_2F_data_2F_type_609_25 (void);
- static void mb_mirth_2F_data_2F_type_636_9 (void);
- static void mb_mirth_2F_data_2F_type_637_9 (void);
- static void mb_mirth_2F_data_2F_type_638_9 (void);
- static void mb_mirth_2F_data_2F_type_690_31 (void);
- static void mb_mirth_2F_data_2F_type_659_9 (void);
- static void mb_mirth_2F_data_2F_type_680_29 (void);
- static void mb_mirth_2F_data_2F_type_687_23 (void);
+ static void mb_mirth_2F_data_2F_type_459_9 (void);
+ static void mb_mirth_2F_data_2F_type_461_5 (void);
+ static void mb_mirth_2F_data_2F_type_463_9 (void);
+ static void mb_mirth_2F_data_2F_type_465_9 (void);
+ static void mb_mirth_2F_data_2F_type_465_18 (void);
+ static void mb_mirth_2F_data_2F_type_203_9 (void);
+ static void mb_mirth_2F_data_2F_type_204_9 (void);
+ static void mb_mirth_2F_data_2F_type_204_13 (void);
+ static void mb_mirth_2F_data_2F_type_188_9 (void);
+ static void mb_mirth_2F_data_2F_type_189_9 (void);
+ static void mb_mirth_2F_data_2F_type_189_13 (void);
+ static void mb_mirth_2F_data_2F_type_193_9 (void);
+ static void mb_mirth_2F_data_2F_type_194_9 (void);
+ static void mb_mirth_2F_data_2F_type_194_13 (void);
+ static void mb_mirth_2F_data_2F_type_198_9 (void);
+ static void mb_mirth_2F_data_2F_type_199_9 (void);
+ static void mb_mirth_2F_data_2F_type_199_13 (void);
+ static void mb_mirth_2F_data_2F_type_183_9 (void);
+ static void mb_mirth_2F_data_2F_type_183_18 (void);
+ static void mb_mirth_2F_data_2F_type_184_21 (void);
+ static void mb_mirth_2F_data_2F_type_218_24 (void);
+ static void mb_mirth_2F_data_2F_type_218_52 (void);
+ static void mb_mirth_2F_data_2F_type_218_64 (void);
+ static void mb_mirth_2F_data_2F_type_219_26 (void);
+ static void mb_mirth_2F_data_2F_type_219_54 (void);
+ static void mb_mirth_2F_data_2F_type_219_66 (void);
+ static void mb_mirth_2F_data_2F_type_220_21 (void);
+ static void mb_mirth_2F_data_2F_type_220_49 (void);
+ static void mb_mirth_2F_data_2F_type_220_61 (void);
+ static void mb_mirth_2F_data_2F_type_238_9 (void);
+ static void mb_mirth_2F_data_2F_type_239_9 (void);
+ static void mb_mirth_2F_data_2F_type_245_9 (void);
+ static void mb_mirth_2F_data_2F_type_246_9 (void);
+ static void mb_mirth_2F_data_2F_type_258_16 (void);
+ static void mb_mirth_2F_data_2F_type_258_20 (void);
+ static void mb_mirth_2F_data_2F_type_301_9 (void);
+ static void mb_mirth_2F_data_2F_type_302_9 (void);
+ static void mb_mirth_2F_data_2F_type_345_17 (void);
+ static void mb_mirth_2F_data_2F_type_346_17 (void);
+ static void mb_mirth_2F_data_2F_type_309_17 (void);
+ static void mb_mirth_2F_data_2F_type_310_17 (void);
+ static void mb_mirth_2F_data_2F_type_318_24 (void);
+ static void mb_mirth_2F_data_2F_type_330_9 (void);
+ static void mb_mirth_2F_data_2F_type_332_9 (void);
+ static void mb_mirth_2F_data_2F_type_355_17 (void);
+ static void mb_mirth_2F_data_2F_type_356_17 (void);
+ static void mb_mirth_2F_data_2F_type_357_27 (void);
+ static void mb_mirth_2F_data_2F_type_365_17 (void);
+ static void mb_mirth_2F_data_2F_type_366_17 (void);
+ static void mb_mirth_2F_data_2F_type_403_9 (void);
+ static void mb_mirth_2F_data_2F_type_404_9 (void);
+ static void mb_mirth_2F_data_2F_type_405_13 (void);
+ static void mb_mirth_2F_data_2F_type_397_9 (void);
+ static void mb_mirth_2F_data_2F_type_398_9 (void);
+ static void mb_mirth_2F_data_2F_type_393_9 (void);
+ static void mb_mirth_2F_data_2F_type_393_45 (void);
+ static void mb_mirth_2F_data_2F_type_433_17 (void);
+ static void mb_mirth_2F_data_2F_type_434_17 (void);
+ static void mb_mirth_2F_data_2F_type_616_33 (void);
+ static void mb_mirth_2F_data_2F_type_576_9 (void);
+ static void mb_mirth_2F_data_2F_type_576_17 (void);
+ static void mb_mirth_2F_data_2F_type_577_9 (void);
+ static void mb_mirth_2F_data_2F_type_612_25 (void);
+ static void mb_mirth_2F_data_2F_type_639_9 (void);
+ static void mb_mirth_2F_data_2F_type_640_9 (void);
+ static void mb_mirth_2F_data_2F_type_641_9 (void);
+ static void mb_mirth_2F_data_2F_type_693_31 (void);
+ static void mb_mirth_2F_data_2F_type_662_9 (void);
+ static void mb_mirth_2F_data_2F_type_683_29 (void);
+ static void mb_mirth_2F_data_2F_type_690_23 (void);
  static void mb_mirth_2F_data_2F_word_13_29 (void);
  static void mb_mirth_2F_data_2F_ctx_24_37 (void);
  static void mb_mirth_2F_data_2F_ctx_18_16 (void);
@@ -5811,7 +5828,7 @@ static void mwTYPE_ELAB (void) {
  static void mb_mirth_2F_codegen_43_22 (void);
  static void mb_mirth_2F_codegen_43_38 (void);
  static void mb_mirth_2F_codegen_46_31 (void);
- static void mb_mirth_2F_codegen_46_56 (void);
+ static void mb_mirth_2F_codegen_46_61 (void);
  static void mb_mirth_2F_codegen_59_9 (void);
  static void mb_mirth_2F_codegen_61_9 (void);
  static void mb_mirth_2F_codegen_188_11 (void);
@@ -6443,6 +6460,10 @@ static void mwposix_write_21_ (void){
 }
 
 static void mwposix_open_21_ (void){
+    push_u64(0);
+    push_fnptr(&mb_prelude_86_43);
+    do_pack_cons();
+    mwdip2();
     mwprim_2E_posix_2E_open();
 }
 
@@ -6460,543 +6481,543 @@ static void mwposix_mmap_21_ (void){
 
 static void mwrotr (void){
     {
-    value_t var_c_45 = pop_value();
-    bool ref_c_45 = false;
-    value_t var_b_46 = pop_value();
-    bool ref_b_46 = false;
-    value_t var_a_47 = pop_value();
-    bool ref_a_47 = false;
-    push_value(var_c_45);
-    if (ref_c_45)
-        incref(var_c_45);
+    value_t var_c_52 = pop_value();
+    bool ref_c_52 = false;
+    value_t var_b_53 = pop_value();
+    bool ref_b_53 = false;
+    value_t var_a_54 = pop_value();
+    bool ref_a_54 = false;
+    push_value(var_c_52);
+    if (ref_c_52)
+        incref(var_c_52);
     else
-        ref_c_45 = true;
-    push_value(var_a_47);
-    if (ref_a_47)
-        incref(var_a_47);
+        ref_c_52 = true;
+    push_value(var_a_54);
+    if (ref_a_54)
+        incref(var_a_54);
     else
-        ref_a_47 = true;
-    push_value(var_b_46);
-    if (ref_b_46)
-        incref(var_b_46);
+        ref_a_54 = true;
+    push_value(var_b_53);
+    if (ref_b_53)
+        incref(var_b_53);
     else
-        ref_b_46 = true;
-    if (!ref_c_45)
-        decref(var_c_45);
-    if (!ref_b_46)
-        decref(var_b_46);
-    if (!ref_a_47)
-        decref(var_a_47);
+        ref_b_53 = true;
+    if (!ref_c_52)
+        decref(var_c_52);
+    if (!ref_b_53)
+        decref(var_b_53);
+    if (!ref_a_54)
+        decref(var_a_54);
     }
 }
 
 static void mwrotl (void){
     {
-    value_t var_c_51 = pop_value();
-    bool ref_c_51 = false;
-    value_t var_b_52 = pop_value();
-    bool ref_b_52 = false;
-    value_t var_a_53 = pop_value();
-    bool ref_a_53 = false;
-    push_value(var_b_52);
-    if (ref_b_52)
-        incref(var_b_52);
+    value_t var_c_58 = pop_value();
+    bool ref_c_58 = false;
+    value_t var_b_59 = pop_value();
+    bool ref_b_59 = false;
+    value_t var_a_60 = pop_value();
+    bool ref_a_60 = false;
+    push_value(var_b_59);
+    if (ref_b_59)
+        incref(var_b_59);
     else
-        ref_b_52 = true;
-    push_value(var_c_51);
-    if (ref_c_51)
-        incref(var_c_51);
+        ref_b_59 = true;
+    push_value(var_c_58);
+    if (ref_c_58)
+        incref(var_c_58);
     else
-        ref_c_51 = true;
-    push_value(var_a_53);
-    if (ref_a_53)
-        incref(var_a_53);
+        ref_c_58 = true;
+    push_value(var_a_60);
+    if (ref_a_60)
+        incref(var_a_60);
     else
-        ref_a_53 = true;
-    if (!ref_c_51)
-        decref(var_c_51);
-    if (!ref_b_52)
-        decref(var_b_52);
-    if (!ref_a_53)
-        decref(var_a_53);
+        ref_a_60 = true;
+    if (!ref_c_58)
+        decref(var_c_58);
+    if (!ref_b_59)
+        decref(var_b_59);
+    if (!ref_a_60)
+        decref(var_a_60);
     }
 }
 
 static void mwover (void){
     {
-    value_t var_b_56 = pop_value();
-    bool ref_b_56 = false;
-    value_t var_a_57 = pop_value();
-    bool ref_a_57 = false;
-    push_value(var_a_57);
-    if (ref_a_57)
-        incref(var_a_57);
+    value_t var_b_63 = pop_value();
+    bool ref_b_63 = false;
+    value_t var_a_64 = pop_value();
+    bool ref_a_64 = false;
+    push_value(var_a_64);
+    if (ref_a_64)
+        incref(var_a_64);
     else
-        ref_a_57 = true;
-    push_value(var_b_56);
-    if (ref_b_56)
-        incref(var_b_56);
+        ref_a_64 = true;
+    push_value(var_b_63);
+    if (ref_b_63)
+        incref(var_b_63);
     else
-        ref_b_56 = true;
-    push_value(var_a_57);
-    if (ref_a_57)
-        incref(var_a_57);
+        ref_b_63 = true;
+    push_value(var_a_64);
+    if (ref_a_64)
+        incref(var_a_64);
     else
-        ref_a_57 = true;
-    if (!ref_b_56)
-        decref(var_b_56);
-    if (!ref_a_57)
-        decref(var_a_57);
+        ref_a_64 = true;
+    if (!ref_b_63)
+        decref(var_b_63);
+    if (!ref_a_64)
+        decref(var_a_64);
     }
 }
 
 static void mwtuck (void){
     {
-    value_t var_b_60 = pop_value();
-    bool ref_b_60 = false;
-    value_t var_a_61 = pop_value();
-    bool ref_a_61 = false;
-    push_value(var_b_60);
-    if (ref_b_60)
-        incref(var_b_60);
+    value_t var_b_67 = pop_value();
+    bool ref_b_67 = false;
+    value_t var_a_68 = pop_value();
+    bool ref_a_68 = false;
+    push_value(var_b_67);
+    if (ref_b_67)
+        incref(var_b_67);
     else
-        ref_b_60 = true;
-    push_value(var_a_61);
-    if (ref_a_61)
-        incref(var_a_61);
+        ref_b_67 = true;
+    push_value(var_a_68);
+    if (ref_a_68)
+        incref(var_a_68);
     else
-        ref_a_61 = true;
-    push_value(var_b_60);
-    if (ref_b_60)
-        incref(var_b_60);
+        ref_a_68 = true;
+    push_value(var_b_67);
+    if (ref_b_67)
+        incref(var_b_67);
     else
-        ref_b_60 = true;
-    if (!ref_b_60)
-        decref(var_b_60);
-    if (!ref_a_61)
-        decref(var_a_61);
+        ref_b_67 = true;
+    if (!ref_b_67)
+        decref(var_b_67);
+    if (!ref_a_68)
+        decref(var_a_68);
     }
 }
 
 static void mwnip (void){
     {
-    value_t var_b_64 = pop_value();
-    bool ref_b_64 = false;
-    value_t var_a_65 = pop_value();
-    bool ref_a_65 = false;
-    push_value(var_b_64);
-    if (ref_b_64)
-        incref(var_b_64);
+    value_t var_b_71 = pop_value();
+    bool ref_b_71 = false;
+    value_t var_a_72 = pop_value();
+    bool ref_a_72 = false;
+    push_value(var_b_71);
+    if (ref_b_71)
+        incref(var_b_71);
     else
-        ref_b_64 = true;
-    if (!ref_b_64)
-        decref(var_b_64);
-    if (!ref_a_65)
-        decref(var_a_65);
+        ref_b_71 = true;
+    if (!ref_b_71)
+        decref(var_b_71);
+    if (!ref_a_72)
+        decref(var_a_72);
     }
 }
 
 static void mwtrip (void){
     {
-    value_t var_a_67 = pop_value();
-    bool ref_a_67 = false;
-    push_value(var_a_67);
-    if (ref_a_67)
-        incref(var_a_67);
+    value_t var_a_74 = pop_value();
+    bool ref_a_74 = false;
+    push_value(var_a_74);
+    if (ref_a_74)
+        incref(var_a_74);
     else
-        ref_a_67 = true;
-    push_value(var_a_67);
-    if (ref_a_67)
-        incref(var_a_67);
+        ref_a_74 = true;
+    push_value(var_a_74);
+    if (ref_a_74)
+        incref(var_a_74);
     else
-        ref_a_67 = true;
-    push_value(var_a_67);
-    if (ref_a_67)
-        incref(var_a_67);
+        ref_a_74 = true;
+    push_value(var_a_74);
+    if (ref_a_74)
+        incref(var_a_74);
     else
-        ref_a_67 = true;
-    if (!ref_a_67)
-        decref(var_a_67);
+        ref_a_74 = true;
+    if (!ref_a_74)
+        decref(var_a_74);
     }
 }
 
 static void mwquad (void){
     {
-    value_t var_a_69 = pop_value();
-    bool ref_a_69 = false;
-    push_value(var_a_69);
-    if (ref_a_69)
-        incref(var_a_69);
+    value_t var_a_76 = pop_value();
+    bool ref_a_76 = false;
+    push_value(var_a_76);
+    if (ref_a_76)
+        incref(var_a_76);
     else
-        ref_a_69 = true;
-    push_value(var_a_69);
-    if (ref_a_69)
-        incref(var_a_69);
+        ref_a_76 = true;
+    push_value(var_a_76);
+    if (ref_a_76)
+        incref(var_a_76);
     else
-        ref_a_69 = true;
-    push_value(var_a_69);
-    if (ref_a_69)
-        incref(var_a_69);
+        ref_a_76 = true;
+    push_value(var_a_76);
+    if (ref_a_76)
+        incref(var_a_76);
     else
-        ref_a_69 = true;
-    push_value(var_a_69);
-    if (ref_a_69)
-        incref(var_a_69);
+        ref_a_76 = true;
+    push_value(var_a_76);
+    if (ref_a_76)
+        incref(var_a_76);
     else
-        ref_a_69 = true;
-    if (!ref_a_69)
-        decref(var_a_69);
+        ref_a_76 = true;
+    if (!ref_a_76)
+        decref(var_a_76);
     }
 }
 
 static void mwswap2 (void){
     {
-    value_t var_b2_74 = pop_value();
-    bool ref_b2_74 = false;
-    value_t var_b1_75 = pop_value();
-    bool ref_b1_75 = false;
-    value_t var_a2_76 = pop_value();
-    bool ref_a2_76 = false;
-    value_t var_a1_77 = pop_value();
-    bool ref_a1_77 = false;
-    push_value(var_b1_75);
-    if (ref_b1_75)
-        incref(var_b1_75);
+    value_t var_b2_81 = pop_value();
+    bool ref_b2_81 = false;
+    value_t var_b1_82 = pop_value();
+    bool ref_b1_82 = false;
+    value_t var_a2_83 = pop_value();
+    bool ref_a2_83 = false;
+    value_t var_a1_84 = pop_value();
+    bool ref_a1_84 = false;
+    push_value(var_b1_82);
+    if (ref_b1_82)
+        incref(var_b1_82);
     else
-        ref_b1_75 = true;
-    push_value(var_b2_74);
-    if (ref_b2_74)
-        incref(var_b2_74);
+        ref_b1_82 = true;
+    push_value(var_b2_81);
+    if (ref_b2_81)
+        incref(var_b2_81);
     else
-        ref_b2_74 = true;
-    push_value(var_a1_77);
-    if (ref_a1_77)
-        incref(var_a1_77);
+        ref_b2_81 = true;
+    push_value(var_a1_84);
+    if (ref_a1_84)
+        incref(var_a1_84);
     else
-        ref_a1_77 = true;
-    push_value(var_a2_76);
-    if (ref_a2_76)
-        incref(var_a2_76);
+        ref_a1_84 = true;
+    push_value(var_a2_83);
+    if (ref_a2_83)
+        incref(var_a2_83);
     else
-        ref_a2_76 = true;
-    if (!ref_b2_74)
-        decref(var_b2_74);
-    if (!ref_b1_75)
-        decref(var_b1_75);
-    if (!ref_a2_76)
-        decref(var_a2_76);
-    if (!ref_a1_77)
-        decref(var_a1_77);
+        ref_a2_83 = true;
+    if (!ref_b2_81)
+        decref(var_b2_81);
+    if (!ref_b1_82)
+        decref(var_b1_82);
+    if (!ref_a2_83)
+        decref(var_a2_83);
+    if (!ref_a1_84)
+        decref(var_a1_84);
     }
 }
 
 static void mwswap3 (void){
     {
-    value_t var_b3_84 = pop_value();
-    bool ref_b3_84 = false;
-    value_t var_b2_85 = pop_value();
-    bool ref_b2_85 = false;
-    value_t var_b1_86 = pop_value();
-    bool ref_b1_86 = false;
-    value_t var_a3_87 = pop_value();
-    bool ref_a3_87 = false;
-    value_t var_a2_88 = pop_value();
-    bool ref_a2_88 = false;
-    value_t var_a1_89 = pop_value();
-    bool ref_a1_89 = false;
-    push_value(var_b1_86);
-    if (ref_b1_86)
-        incref(var_b1_86);
+    value_t var_b3_91 = pop_value();
+    bool ref_b3_91 = false;
+    value_t var_b2_92 = pop_value();
+    bool ref_b2_92 = false;
+    value_t var_b1_93 = pop_value();
+    bool ref_b1_93 = false;
+    value_t var_a3_94 = pop_value();
+    bool ref_a3_94 = false;
+    value_t var_a2_95 = pop_value();
+    bool ref_a2_95 = false;
+    value_t var_a1_96 = pop_value();
+    bool ref_a1_96 = false;
+    push_value(var_b1_93);
+    if (ref_b1_93)
+        incref(var_b1_93);
     else
-        ref_b1_86 = true;
-    push_value(var_b2_85);
-    if (ref_b2_85)
-        incref(var_b2_85);
+        ref_b1_93 = true;
+    push_value(var_b2_92);
+    if (ref_b2_92)
+        incref(var_b2_92);
     else
-        ref_b2_85 = true;
-    push_value(var_b3_84);
-    if (ref_b3_84)
-        incref(var_b3_84);
+        ref_b2_92 = true;
+    push_value(var_b3_91);
+    if (ref_b3_91)
+        incref(var_b3_91);
     else
-        ref_b3_84 = true;
-    push_value(var_a1_89);
-    if (ref_a1_89)
-        incref(var_a1_89);
+        ref_b3_91 = true;
+    push_value(var_a1_96);
+    if (ref_a1_96)
+        incref(var_a1_96);
     else
-        ref_a1_89 = true;
-    push_value(var_a2_88);
-    if (ref_a2_88)
-        incref(var_a2_88);
+        ref_a1_96 = true;
+    push_value(var_a2_95);
+    if (ref_a2_95)
+        incref(var_a2_95);
     else
-        ref_a2_88 = true;
-    push_value(var_a3_87);
-    if (ref_a3_87)
-        incref(var_a3_87);
+        ref_a2_95 = true;
+    push_value(var_a3_94);
+    if (ref_a3_94)
+        incref(var_a3_94);
     else
-        ref_a3_87 = true;
-    if (!ref_b3_84)
-        decref(var_b3_84);
-    if (!ref_b2_85)
-        decref(var_b2_85);
-    if (!ref_b1_86)
-        decref(var_b1_86);
-    if (!ref_a3_87)
-        decref(var_a3_87);
-    if (!ref_a2_88)
-        decref(var_a2_88);
-    if (!ref_a1_89)
-        decref(var_a1_89);
+        ref_a3_94 = true;
+    if (!ref_b3_91)
+        decref(var_b3_91);
+    if (!ref_b2_92)
+        decref(var_b2_92);
+    if (!ref_b1_93)
+        decref(var_b1_93);
+    if (!ref_a3_94)
+        decref(var_a3_94);
+    if (!ref_a2_95)
+        decref(var_a2_95);
+    if (!ref_a1_96)
+        decref(var_a1_96);
     }
 }
 
 static void mwswap4 (void){
     {
-    value_t var_b4_98 = pop_value();
-    bool ref_b4_98 = false;
-    value_t var_b3_99 = pop_value();
-    bool ref_b3_99 = false;
-    value_t var_b2_100 = pop_value();
-    bool ref_b2_100 = false;
-    value_t var_b1_101 = pop_value();
-    bool ref_b1_101 = false;
-    value_t var_a4_102 = pop_value();
-    bool ref_a4_102 = false;
-    value_t var_a3_103 = pop_value();
-    bool ref_a3_103 = false;
-    value_t var_a2_104 = pop_value();
-    bool ref_a2_104 = false;
-    value_t var_a1_105 = pop_value();
-    bool ref_a1_105 = false;
-    push_value(var_b1_101);
-    if (ref_b1_101)
-        incref(var_b1_101);
+    value_t var_b4_105 = pop_value();
+    bool ref_b4_105 = false;
+    value_t var_b3_106 = pop_value();
+    bool ref_b3_106 = false;
+    value_t var_b2_107 = pop_value();
+    bool ref_b2_107 = false;
+    value_t var_b1_108 = pop_value();
+    bool ref_b1_108 = false;
+    value_t var_a4_109 = pop_value();
+    bool ref_a4_109 = false;
+    value_t var_a3_110 = pop_value();
+    bool ref_a3_110 = false;
+    value_t var_a2_111 = pop_value();
+    bool ref_a2_111 = false;
+    value_t var_a1_112 = pop_value();
+    bool ref_a1_112 = false;
+    push_value(var_b1_108);
+    if (ref_b1_108)
+        incref(var_b1_108);
     else
-        ref_b1_101 = true;
-    push_value(var_b2_100);
-    if (ref_b2_100)
-        incref(var_b2_100);
+        ref_b1_108 = true;
+    push_value(var_b2_107);
+    if (ref_b2_107)
+        incref(var_b2_107);
     else
-        ref_b2_100 = true;
-    push_value(var_b3_99);
-    if (ref_b3_99)
-        incref(var_b3_99);
+        ref_b2_107 = true;
+    push_value(var_b3_106);
+    if (ref_b3_106)
+        incref(var_b3_106);
     else
-        ref_b3_99 = true;
-    push_value(var_b4_98);
-    if (ref_b4_98)
-        incref(var_b4_98);
+        ref_b3_106 = true;
+    push_value(var_b4_105);
+    if (ref_b4_105)
+        incref(var_b4_105);
     else
-        ref_b4_98 = true;
-    push_value(var_a1_105);
-    if (ref_a1_105)
-        incref(var_a1_105);
+        ref_b4_105 = true;
+    push_value(var_a1_112);
+    if (ref_a1_112)
+        incref(var_a1_112);
     else
-        ref_a1_105 = true;
-    push_value(var_a2_104);
-    if (ref_a2_104)
-        incref(var_a2_104);
+        ref_a1_112 = true;
+    push_value(var_a2_111);
+    if (ref_a2_111)
+        incref(var_a2_111);
     else
-        ref_a2_104 = true;
-    push_value(var_a3_103);
-    if (ref_a3_103)
-        incref(var_a3_103);
+        ref_a2_111 = true;
+    push_value(var_a3_110);
+    if (ref_a3_110)
+        incref(var_a3_110);
     else
-        ref_a3_103 = true;
-    push_value(var_a4_102);
-    if (ref_a4_102)
-        incref(var_a4_102);
+        ref_a3_110 = true;
+    push_value(var_a4_109);
+    if (ref_a4_109)
+        incref(var_a4_109);
     else
-        ref_a4_102 = true;
-    if (!ref_b4_98)
-        decref(var_b4_98);
-    if (!ref_b3_99)
-        decref(var_b3_99);
-    if (!ref_b2_100)
-        decref(var_b2_100);
-    if (!ref_b1_101)
-        decref(var_b1_101);
-    if (!ref_a4_102)
-        decref(var_a4_102);
-    if (!ref_a3_103)
-        decref(var_a3_103);
-    if (!ref_a2_104)
-        decref(var_a2_104);
-    if (!ref_a1_105)
-        decref(var_a1_105);
+        ref_a4_109 = true;
+    if (!ref_b4_105)
+        decref(var_b4_105);
+    if (!ref_b3_106)
+        decref(var_b3_106);
+    if (!ref_b2_107)
+        decref(var_b2_107);
+    if (!ref_b1_108)
+        decref(var_b1_108);
+    if (!ref_a4_109)
+        decref(var_a4_109);
+    if (!ref_a3_110)
+        decref(var_a3_110);
+    if (!ref_a2_111)
+        decref(var_a2_111);
+    if (!ref_a1_112)
+        decref(var_a1_112);
     }
 }
 
 static void mwdup2 (void){
     {
-    value_t var_a2_108 = pop_value();
-    bool ref_a2_108 = false;
-    value_t var_a1_109 = pop_value();
-    bool ref_a1_109 = false;
-    push_value(var_a1_109);
-    if (ref_a1_109)
-        incref(var_a1_109);
+    value_t var_a2_115 = pop_value();
+    bool ref_a2_115 = false;
+    value_t var_a1_116 = pop_value();
+    bool ref_a1_116 = false;
+    push_value(var_a1_116);
+    if (ref_a1_116)
+        incref(var_a1_116);
     else
-        ref_a1_109 = true;
-    push_value(var_a2_108);
-    if (ref_a2_108)
-        incref(var_a2_108);
+        ref_a1_116 = true;
+    push_value(var_a2_115);
+    if (ref_a2_115)
+        incref(var_a2_115);
     else
-        ref_a2_108 = true;
-    push_value(var_a1_109);
-    if (ref_a1_109)
-        incref(var_a1_109);
+        ref_a2_115 = true;
+    push_value(var_a1_116);
+    if (ref_a1_116)
+        incref(var_a1_116);
     else
-        ref_a1_109 = true;
-    push_value(var_a2_108);
-    if (ref_a2_108)
-        incref(var_a2_108);
+        ref_a1_116 = true;
+    push_value(var_a2_115);
+    if (ref_a2_115)
+        incref(var_a2_115);
     else
-        ref_a2_108 = true;
-    if (!ref_a2_108)
-        decref(var_a2_108);
-    if (!ref_a1_109)
-        decref(var_a1_109);
+        ref_a2_115 = true;
+    if (!ref_a2_115)
+        decref(var_a2_115);
+    if (!ref_a1_116)
+        decref(var_a1_116);
     }
 }
 
 static void mwdup3 (void){
     {
-    value_t var_a3_113 = pop_value();
-    bool ref_a3_113 = false;
-    value_t var_a2_114 = pop_value();
-    bool ref_a2_114 = false;
-    value_t var_a1_115 = pop_value();
-    bool ref_a1_115 = false;
-    push_value(var_a1_115);
-    if (ref_a1_115)
-        incref(var_a1_115);
+    value_t var_a3_120 = pop_value();
+    bool ref_a3_120 = false;
+    value_t var_a2_121 = pop_value();
+    bool ref_a2_121 = false;
+    value_t var_a1_122 = pop_value();
+    bool ref_a1_122 = false;
+    push_value(var_a1_122);
+    if (ref_a1_122)
+        incref(var_a1_122);
     else
-        ref_a1_115 = true;
-    push_value(var_a2_114);
-    if (ref_a2_114)
-        incref(var_a2_114);
+        ref_a1_122 = true;
+    push_value(var_a2_121);
+    if (ref_a2_121)
+        incref(var_a2_121);
     else
-        ref_a2_114 = true;
-    push_value(var_a3_113);
-    if (ref_a3_113)
-        incref(var_a3_113);
+        ref_a2_121 = true;
+    push_value(var_a3_120);
+    if (ref_a3_120)
+        incref(var_a3_120);
     else
-        ref_a3_113 = true;
-    push_value(var_a1_115);
-    if (ref_a1_115)
-        incref(var_a1_115);
+        ref_a3_120 = true;
+    push_value(var_a1_122);
+    if (ref_a1_122)
+        incref(var_a1_122);
     else
-        ref_a1_115 = true;
-    push_value(var_a2_114);
-    if (ref_a2_114)
-        incref(var_a2_114);
+        ref_a1_122 = true;
+    push_value(var_a2_121);
+    if (ref_a2_121)
+        incref(var_a2_121);
     else
-        ref_a2_114 = true;
-    push_value(var_a3_113);
-    if (ref_a3_113)
-        incref(var_a3_113);
+        ref_a2_121 = true;
+    push_value(var_a3_120);
+    if (ref_a3_120)
+        incref(var_a3_120);
     else
-        ref_a3_113 = true;
-    if (!ref_a3_113)
-        decref(var_a3_113);
-    if (!ref_a2_114)
-        decref(var_a2_114);
-    if (!ref_a1_115)
-        decref(var_a1_115);
+        ref_a3_120 = true;
+    if (!ref_a3_120)
+        decref(var_a3_120);
+    if (!ref_a2_121)
+        decref(var_a2_121);
+    if (!ref_a1_122)
+        decref(var_a1_122);
     }
 }
 
 static void mwdup4 (void){
     {
-    value_t var_a4_120 = pop_value();
-    bool ref_a4_120 = false;
-    value_t var_a3_121 = pop_value();
-    bool ref_a3_121 = false;
-    value_t var_a2_122 = pop_value();
-    bool ref_a2_122 = false;
-    value_t var_a1_123 = pop_value();
-    bool ref_a1_123 = false;
-    push_value(var_a1_123);
-    if (ref_a1_123)
-        incref(var_a1_123);
+    value_t var_a4_127 = pop_value();
+    bool ref_a4_127 = false;
+    value_t var_a3_128 = pop_value();
+    bool ref_a3_128 = false;
+    value_t var_a2_129 = pop_value();
+    bool ref_a2_129 = false;
+    value_t var_a1_130 = pop_value();
+    bool ref_a1_130 = false;
+    push_value(var_a1_130);
+    if (ref_a1_130)
+        incref(var_a1_130);
     else
-        ref_a1_123 = true;
-    push_value(var_a2_122);
-    if (ref_a2_122)
-        incref(var_a2_122);
+        ref_a1_130 = true;
+    push_value(var_a2_129);
+    if (ref_a2_129)
+        incref(var_a2_129);
     else
-        ref_a2_122 = true;
-    push_value(var_a3_121);
-    if (ref_a3_121)
-        incref(var_a3_121);
+        ref_a2_129 = true;
+    push_value(var_a3_128);
+    if (ref_a3_128)
+        incref(var_a3_128);
     else
-        ref_a3_121 = true;
-    push_value(var_a4_120);
-    if (ref_a4_120)
-        incref(var_a4_120);
+        ref_a3_128 = true;
+    push_value(var_a4_127);
+    if (ref_a4_127)
+        incref(var_a4_127);
     else
-        ref_a4_120 = true;
-    push_value(var_a1_123);
-    if (ref_a1_123)
-        incref(var_a1_123);
+        ref_a4_127 = true;
+    push_value(var_a1_130);
+    if (ref_a1_130)
+        incref(var_a1_130);
     else
-        ref_a1_123 = true;
-    push_value(var_a2_122);
-    if (ref_a2_122)
-        incref(var_a2_122);
+        ref_a1_130 = true;
+    push_value(var_a2_129);
+    if (ref_a2_129)
+        incref(var_a2_129);
     else
-        ref_a2_122 = true;
-    push_value(var_a3_121);
-    if (ref_a3_121)
-        incref(var_a3_121);
+        ref_a2_129 = true;
+    push_value(var_a3_128);
+    if (ref_a3_128)
+        incref(var_a3_128);
     else
-        ref_a3_121 = true;
-    push_value(var_a4_120);
-    if (ref_a4_120)
-        incref(var_a4_120);
+        ref_a3_128 = true;
+    push_value(var_a4_127);
+    if (ref_a4_127)
+        incref(var_a4_127);
     else
-        ref_a4_120 = true;
-    if (!ref_a4_120)
-        decref(var_a4_120);
-    if (!ref_a3_121)
-        decref(var_a3_121);
-    if (!ref_a2_122)
-        decref(var_a2_122);
-    if (!ref_a1_123)
-        decref(var_a1_123);
+        ref_a4_127 = true;
+    if (!ref_a4_127)
+        decref(var_a4_127);
+    if (!ref_a3_128)
+        decref(var_a3_128);
+    if (!ref_a2_129)
+        decref(var_a2_129);
+    if (!ref_a1_130)
+        decref(var_a1_130);
     }
 }
 
 static void mwdip2 (void){
     {
-    value_t var_f_128 = pop_value();
-    bool ref_f_128 = false;
-    value_t var_c2_129 = pop_value();
-    bool ref_c2_129 = false;
-    value_t var_c1_130 = pop_value();
-    bool ref_c1_130 = false;
-    push_value(var_f_128);
-    if (ref_f_128)
-        incref(var_f_128);
+    value_t var_f_46 = pop_value();
+    bool ref_f_46 = false;
+    value_t var_c2_47 = pop_value();
+    bool ref_c2_47 = false;
+    value_t var_c1_48 = pop_value();
+    bool ref_c1_48 = false;
+    push_value(var_f_46);
+    if (ref_f_46)
+        incref(var_f_46);
     else
-        ref_f_128 = true;
+        ref_f_46 = true;
     do_run();
-    push_value(var_c1_130);
-    if (ref_c1_130)
-        incref(var_c1_130);
+    push_value(var_c1_48);
+    if (ref_c1_48)
+        incref(var_c1_48);
     else
-        ref_c1_130 = true;
-    push_value(var_c2_129);
-    if (ref_c2_129)
-        incref(var_c2_129);
+        ref_c1_48 = true;
+    push_value(var_c2_47);
+    if (ref_c2_47)
+        incref(var_c2_47);
     else
-        ref_c2_129 = true;
-    if (!ref_f_128)
-        decref(var_f_128);
-    if (!ref_c2_129)
-        decref(var_c2_129);
-    if (!ref_c1_130)
-        decref(var_c1_130);
+        ref_c2_47 = true;
+    if (!ref_f_46)
+        decref(var_f_46);
+    if (!ref_c2_47)
+        decref(var_c2_47);
+    if (!ref_c1_48)
+        decref(var_c1_48);
     }
 }
 
@@ -8077,6 +8098,14 @@ static void mwrot8l (void){
     }
 }
 
+static void mwStr__3E_Ptr (void){
+    mwcast();
+}
+
+static void mwPtr__3E_Str (void){
+    mwcast();
+}
+
 static void mwInt__3E_Ptr (void){
     mwcast();
 }
@@ -8421,16 +8450,20 @@ static void mwabs (void){
 }
 
 static void mwstr_head (void){
+    mwStr__3E_Ptr();
     mwu8_40_();
 }
 
 static void mwstr_tail (void){
+    mwStr__3E_Ptr();
     push_i64(1LL);
     mwswap();
     mwptr_2B_();
+    mwPtr__3E_Str();
 }
 
 static void mwstr_numbytes (void){
+    mwStr__3E_Ptr();
     mwprim_2E_ptr_2E_numbytes();
 }
 
@@ -8438,7 +8471,7 @@ static void mwstr_length (void){
     push_i64(0LL);
     mwswap();
     while(1) {
-    mwstr_null_3F_();
+    mwstr_is_empty_3F_();
     mwnot();
     if (!pop_u64()) break;
     { value_t d2 = pop_value();
@@ -8454,36 +8487,51 @@ static void mwstr_length_3F_ (void){
     mwstr_length();
 }
 
-static void mwstr_cat (void){
-    mwover();
-    mwstr_numbytes();
-    mwover();
-    mwstr_numbytes();
-    mw_2B_();
-    mw1_();
+static void mwstr_concat (void){
+    mwdup();
+    push_i64(1LL);
+    mwswap();
+    push_u64(0);
+    push_fnptr(&mb_prelude_446_20);
+    do_pack_cons();
+    mwfor();
     mwprim_2E_ptr_2E_alloc();
     mwdup();
     { value_t d1 = pop_value();
+    mwswap();
     push_u64(0);
-    push_fnptr(&mb_prelude_442_18);
+    push_fnptr(&mb_prelude_448_18);
     do_pack_cons();
-    mwdip_27_();
-    mwstr_copy_21_();
+    mwfor();
+    mwnil();
+    mwswap();
+    mwu8_21_();
       push_value(d1); }
+    mwPtr__3E_Str();
 }
 
-static void mwstr_null (void){
-    mwu8_40_();
-    mwU8__3E_Int();
-    mw0_3D_();
+static void mwstr_cat (void){
+    mwL2();
+    mwstr_concat();
 }
 
-static void mwstr_null_3F_ (void){
+static void mwstr_is_empty (void){
+    mwis_nil_3F_();
+    if (pop_u64()) {
+    mwdrop();
+    mwtrue();
+    } else {
+    mwstr_head();
+    mwis_nil();
+    }
+}
+
+static void mwstr_is_empty_3F_ (void){
     mwdup();
-    mwstr_null();
+    mwstr_is_empty();
 }
 
-static void mwstr_copy_21_ (void){
+static void mwptr_copy_nonzero_21_ (void){
     while(1) {
     mwover();
     mwu8_40_();
@@ -8495,35 +8543,32 @@ static void mwstr_copy_21_ (void){
     mwover();
     mwu8_21_();
     { value_t d2 = pop_value();
-    mwstr_tail();
+    push_i64(1LL);
+    mwswap();
+    mwptr_2B_();
       push_value(d2); }
-    mwstr_tail();
+    push_i64(1LL);
+    mwswap();
+    mwptr_2B_();
     }
-    { value_t d1 = pop_value();
-    mwdrop();
-    push_i64(0LL);
-    mwInt__3E_U8();
-      push_value(d1); }
-    mwu8_21_();
+    mwnip();
 }
 
 static void mwstr_copy_partial_21_ (void){
-    while(1) {
-    mwover();
-    mwu8_40_();
-    mwU8__3E_Int();
-    mwnonzero();
-    if (!pop_u64()) break;
-    mwover();
-    mwu8_40_();
-    mwover();
+    { value_t d1 = pop_value();
+    mwStr__3E_Ptr();
+      push_value(d1); }
+    mwptr_copy_nonzero_21_();
+}
+
+static void mwstr_copy_21_ (void){
+    { value_t d1 = pop_value();
+    mwStr__3E_Ptr();
+      push_value(d1); }
+    mwptr_copy_nonzero_21_();
+    mwnil();
+    mwswap();
     mwu8_21_();
-    { value_t d2 = pop_value();
-    mwstr_tail();
-      push_value(d2); }
-    mwstr_tail();
-    }
-    mwnip();
 }
 
 static void mwSTR_BUF_SIZE (void){
@@ -8588,6 +8633,11 @@ static void mwstr_buf_push_21_ (void){
 }
 
 static void mwstr_buf_push_str_21_ (void){
+    mwStr__3E_Ptr();
+    mwstr_buf_push_ptr_21_();
+}
+
+static void mwstr_buf_push_ptr_21_ (void){
     while(1) {
     mwstr_buf_full_3F_();
     if (pop_u64()) {
@@ -8602,7 +8652,9 @@ static void mwstr_buf_push_str_21_ (void){
     mwdup();
     mwu8_40_();
     mwstr_buf_push_21_();
-    mwstr_tail();
+    push_i64(1LL);
+    mwswap();
+    mwptr_2B_();
     }
     mwdrop();
 }
@@ -8668,7 +8720,7 @@ static void mwstr_buf_swap_u8_21_ (void){
     mwdup2();
     mwswap();
     push_u64(0);
-    push_fnptr(&mb_prelude_545_10);
+    push_fnptr(&mb_prelude_565_10);
     do_pack_cons();
     mwdip3();
     { value_t d1 = pop_value();
@@ -8697,10 +8749,10 @@ static void mwstr_buf_reverse_21_ (void){
 }
 
 static void mwstr_eq (void){
-    mwstr_null_3F_();
+    mwstr_is_empty_3F_();
     if (pop_u64()) {
     mwdrop();
-    mwstr_null();
+    mwstr_is_empty();
     } else {
     mwdup2();
     mwstr_head();
@@ -9780,7 +9832,7 @@ static void mwsplit_half (void){
 static void mwfirst (void){
     mwList__3E_List_2B_();
     push_u64(0);
-    push_fnptr(&mb_prelude_1021_31);
+    push_fnptr(&mb_prelude_1041_31);
     do_pack_cons();
     mwmaybe_map();
 }
@@ -9788,7 +9840,7 @@ static void mwfirst (void){
 static void mwlast (void){
     mwList__3E_List_2B_();
     push_u64(0);
-    push_fnptr(&mb_prelude_1024_30);
+    push_fnptr(&mb_prelude_1044_30);
     do_pack_cons();
     mwmaybe_map();
 }
@@ -9796,7 +9848,7 @@ static void mwlast (void){
 static void mwmiddle (void){
     mwList__3E_List_2B_();
     push_u64(0);
-    push_fnptr(&mb_prelude_1027_32);
+    push_fnptr(&mb_prelude_1047_32);
     do_pack_cons();
     mwmaybe_map();
 }
@@ -9925,7 +9977,7 @@ static void mwtrace_list_struc_21_ (void){
     do_pack_uncons(); do_swap();
     do_pack_uncons(); do_swap();
     push_u64(0);
-    push_fnptr(&mb_prelude_1066_18);
+    push_fnptr(&mb_prelude_1086_18);
     do_pack_cons();
     mwdip2();
     { value_t d2 = pop_value();
@@ -10018,8 +10070,8 @@ static void mwreverse_2B_ (void){
 
 static void mwmap (void){
     {
-    value_t var_f_580 = pop_value();
-    bool ref_f_580 = false;
+    value_t var_f_585 = pop_value();
+    bool ref_f_585 = false;
     switch (get_top_data_tag()) {
     case 0LL:
     do_drop();
@@ -10027,11 +10079,11 @@ static void mwmap (void){
     break;
     case 1LL:
     do_pack_uncons(); do_drop();
-    push_value(var_f_580);
-    if (ref_f_580)
-        incref(var_f_580);
+    push_value(var_f_585);
+    if (ref_f_585)
+        incref(var_f_585);
     else
-        ref_f_580 = true;
+        ref_f_585 = true;
     do_run();
     mwL1();
     break;
@@ -10039,20 +10091,20 @@ static void mwmap (void){
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     { value_t d3 = pop_value();
-    push_value(var_f_580);
-    if (ref_f_580)
-        incref(var_f_580);
+    push_value(var_f_585);
+    if (ref_f_585)
+        incref(var_f_585);
     else
-        ref_f_580 = true;
+        ref_f_585 = true;
     do_run();
       push_value(d3); }
     mwswap();
     { value_t d3 = pop_value();
-    push_value(var_f_580);
-    if (ref_f_580)
-        incref(var_f_580);
+    push_value(var_f_585);
+    if (ref_f_585)
+        incref(var_f_585);
     else
-        ref_f_580 = true;
+        ref_f_585 = true;
     do_run();
       push_value(d3); }
     mwswap();
@@ -10064,33 +10116,33 @@ static void mwmap (void){
     do_pack_uncons(); do_swap();
     { value_t d3 = pop_value();
     { value_t d4 = pop_value();
-    push_value(var_f_580);
-    if (ref_f_580)
-        incref(var_f_580);
+    push_value(var_f_585);
+    if (ref_f_585)
+        incref(var_f_585);
     else
-        ref_f_580 = true;
+        ref_f_585 = true;
     do_run();
       push_value(d4); }
       push_value(d3); }
     mwrotr();
     { value_t d3 = pop_value();
     { value_t d4 = pop_value();
-    push_value(var_f_580);
-    if (ref_f_580)
-        incref(var_f_580);
+    push_value(var_f_585);
+    if (ref_f_585)
+        incref(var_f_585);
     else
-        ref_f_580 = true;
+        ref_f_585 = true;
     do_run();
       push_value(d4); }
       push_value(d3); }
     mwrotr();
     { value_t d3 = pop_value();
     { value_t d4 = pop_value();
-    push_value(var_f_580);
-    if (ref_f_580)
-        incref(var_f_580);
+    push_value(var_f_585);
+    if (ref_f_585)
+        incref(var_f_585);
     else
-        ref_f_580 = true;
+        ref_f_585 = true;
     do_run();
       push_value(d4); }
       push_value(d3); }
@@ -10103,20 +10155,20 @@ static void mwmap (void){
     do_pack_uncons(); do_swap();
     { value_t d3 = pop_value();
     { value_t d4 = pop_value();
-    push_value(var_f_580);
-    if (ref_f_580)
-        incref(var_f_580);
+    push_value(var_f_585);
+    if (ref_f_585)
+        incref(var_f_585);
     else
-        ref_f_580 = true;
+        ref_f_585 = true;
     mwmap_2B_();
       push_value(d4); }
     mwswap();
     { value_t d4 = pop_value();
-    push_value(var_f_580);
-    if (ref_f_580)
-        incref(var_f_580);
+    push_value(var_f_585);
+    if (ref_f_585)
+        incref(var_f_585);
     else
-        ref_f_580 = true;
+        ref_f_585 = true;
     mwmap_2B_();
       push_value(d4); }
     mwswap();
@@ -10125,23 +10177,23 @@ static void mwmap (void){
     break;
     default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
-    if (!ref_f_580)
-        decref(var_f_580);
+    if (!ref_f_585)
+        decref(var_f_585);
     }
 }
 
 static void mwmap_2B_ (void){
     {
-    value_t var_f_584 = pop_value();
-    bool ref_f_584 = false;
+    value_t var_f_589 = pop_value();
+    bool ref_f_589 = false;
     switch (get_top_data_tag()) {
     case 0LL:
     do_pack_uncons(); do_drop();
-    push_value(var_f_584);
-    if (ref_f_584)
-        incref(var_f_584);
+    push_value(var_f_589);
+    if (ref_f_589)
+        incref(var_f_589);
     else
-        ref_f_584 = true;
+        ref_f_589 = true;
     do_run();
     mwL1_2B_();
     break;
@@ -10149,20 +10201,20 @@ static void mwmap_2B_ (void){
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     { value_t d3 = pop_value();
-    push_value(var_f_584);
-    if (ref_f_584)
-        incref(var_f_584);
+    push_value(var_f_589);
+    if (ref_f_589)
+        incref(var_f_589);
     else
-        ref_f_584 = true;
+        ref_f_589 = true;
     do_run();
       push_value(d3); }
     mwswap();
     { value_t d3 = pop_value();
-    push_value(var_f_584);
-    if (ref_f_584)
-        incref(var_f_584);
+    push_value(var_f_589);
+    if (ref_f_589)
+        incref(var_f_589);
     else
-        ref_f_584 = true;
+        ref_f_589 = true;
     do_run();
       push_value(d3); }
     mwswap();
@@ -10174,33 +10226,33 @@ static void mwmap_2B_ (void){
     do_pack_uncons(); do_swap();
     { value_t d3 = pop_value();
     { value_t d4 = pop_value();
-    push_value(var_f_584);
-    if (ref_f_584)
-        incref(var_f_584);
+    push_value(var_f_589);
+    if (ref_f_589)
+        incref(var_f_589);
     else
-        ref_f_584 = true;
+        ref_f_589 = true;
     do_run();
       push_value(d4); }
       push_value(d3); }
     mwrotr();
     { value_t d3 = pop_value();
     { value_t d4 = pop_value();
-    push_value(var_f_584);
-    if (ref_f_584)
-        incref(var_f_584);
+    push_value(var_f_589);
+    if (ref_f_589)
+        incref(var_f_589);
     else
-        ref_f_584 = true;
+        ref_f_589 = true;
     do_run();
       push_value(d4); }
       push_value(d3); }
     mwrotr();
     { value_t d3 = pop_value();
     { value_t d4 = pop_value();
-    push_value(var_f_584);
-    if (ref_f_584)
-        incref(var_f_584);
+    push_value(var_f_589);
+    if (ref_f_589)
+        incref(var_f_589);
     else
-        ref_f_584 = true;
+        ref_f_589 = true;
     do_run();
       push_value(d4); }
       push_value(d3); }
@@ -10213,20 +10265,20 @@ static void mwmap_2B_ (void){
     do_pack_uncons(); do_swap();
     { value_t d3 = pop_value();
     { value_t d4 = pop_value();
-    push_value(var_f_584);
-    if (ref_f_584)
-        incref(var_f_584);
+    push_value(var_f_589);
+    if (ref_f_589)
+        incref(var_f_589);
     else
-        ref_f_584 = true;
+        ref_f_589 = true;
     mwmap_2B_();
       push_value(d4); }
     mwswap();
     { value_t d4 = pop_value();
-    push_value(var_f_584);
-    if (ref_f_584)
-        incref(var_f_584);
+    push_value(var_f_589);
+    if (ref_f_589)
+        incref(var_f_589);
     else
-        ref_f_584 = true;
+        ref_f_589 = true;
     mwmap_2B_();
       push_value(d4); }
     mwswap();
@@ -10235,15 +10287,15 @@ static void mwmap_2B_ (void){
     break;
     default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
-    if (!ref_f_584)
-        decref(var_f_584);
+    if (!ref_f_589)
+        decref(var_f_589);
     }
 }
 
 static void mwfor (void){
     {
-    value_t var_f_587 = pop_value();
-    bool ref_f_587 = false;
+    value_t var_f_406 = pop_value();
+    bool ref_f_406 = false;
     switch (get_top_data_tag()) {
     case 0LL:
     do_drop();
@@ -10251,29 +10303,29 @@ static void mwfor (void){
     break;
     case 1LL:
     do_pack_uncons(); do_drop();
-    push_value(var_f_587);
-    if (ref_f_587)
-        incref(var_f_587);
+    push_value(var_f_406);
+    if (ref_f_406)
+        incref(var_f_406);
     else
-        ref_f_587 = true;
+        ref_f_406 = true;
     do_run();
     break;
     case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     { value_t d3 = pop_value();
-    push_value(var_f_587);
-    if (ref_f_587)
-        incref(var_f_587);
+    push_value(var_f_406);
+    if (ref_f_406)
+        incref(var_f_406);
     else
-        ref_f_587 = true;
+        ref_f_406 = true;
     do_run();
       push_value(d3); }
-    push_value(var_f_587);
-    if (ref_f_587)
-        incref(var_f_587);
+    push_value(var_f_406);
+    if (ref_f_406)
+        incref(var_f_406);
     else
-        ref_f_587 = true;
+        ref_f_406 = true;
     do_run();
     break;
     case 3LL:
@@ -10282,25 +10334,25 @@ static void mwfor (void){
     do_pack_uncons(); do_swap();
     { value_t d3 = pop_value();
     { value_t d4 = pop_value();
-    push_value(var_f_587);
-    if (ref_f_587)
-        incref(var_f_587);
+    push_value(var_f_406);
+    if (ref_f_406)
+        incref(var_f_406);
     else
-        ref_f_587 = true;
+        ref_f_406 = true;
     do_run();
       push_value(d4); }
-    push_value(var_f_587);
-    if (ref_f_587)
-        incref(var_f_587);
+    push_value(var_f_406);
+    if (ref_f_406)
+        incref(var_f_406);
     else
-        ref_f_587 = true;
+        ref_f_406 = true;
     do_run();
       push_value(d3); }
-    push_value(var_f_587);
-    if (ref_f_587)
-        incref(var_f_587);
+    push_value(var_f_406);
+    if (ref_f_406)
+        incref(var_f_406);
     else
-        ref_f_587 = true;
+        ref_f_406 = true;
     do_run();
     break;
     case 4LL:
@@ -10309,24 +10361,24 @@ static void mwfor (void){
     do_pack_uncons(); do_swap();
     mwdrop();
     { value_t d3 = pop_value();
-    push_value(var_f_587);
-    if (ref_f_587)
-        incref(var_f_587);
+    push_value(var_f_406);
+    if (ref_f_406)
+        incref(var_f_406);
     else
-        ref_f_587 = true;
+        ref_f_406 = true;
     mwfor_2B_();
       push_value(d3); }
-    push_value(var_f_587);
-    if (ref_f_587)
-        incref(var_f_587);
+    push_value(var_f_406);
+    if (ref_f_406)
+        incref(var_f_406);
     else
-        ref_f_587 = true;
+        ref_f_406 = true;
     mwfor_2B_();
     break;
     default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
-    if (!ref_f_587)
-        decref(var_f_587);
+    if (!ref_f_406)
+        decref(var_f_406);
     }
 }
 
@@ -10608,7 +10660,7 @@ static void mwreduce (void){
     else
         ref_g_598 = true;
     do_pack_cons();
-    push_fnptr(&mb_prelude_1163_41);
+    push_fnptr(&mb_prelude_1183_41);
     do_pack_cons();
     mwmaybe_map();
     if (!ref_g_598)
@@ -10786,7 +10838,7 @@ static void mwfilter_2B_ (void){
     else
         ref_f_614 = true;
     do_pack_cons();
-    push_fnptr(&mb_prelude_1197_44);
+    push_fnptr(&mb_prelude_1217_44);
     do_pack_cons();
     mwdip_27_();
     mwcat();
@@ -10810,7 +10862,7 @@ static void mwfilter_2B_ (void){
     else
         ref_f_614 = true;
     do_pack_cons();
-    push_fnptr(&mb_prelude_1200_22);
+    push_fnptr(&mb_prelude_1220_22);
     do_pack_cons();
     mwdip_27_();
     mwcons();
@@ -11024,7 +11076,7 @@ static void mwBag__3E_Bag_2B_ (void){
     mwunBAG();
     mwList__3E_List_2B_();
     push_u64(0);
-    push_fnptr(&mb_prelude_1310_41);
+    push_fnptr(&mb_prelude_1330_41);
     do_pack_cons();
     mwmaybe_map();
 }
@@ -11585,7 +11637,7 @@ static void mwmap_pairs (void){
 static void mwmap_keys (void){
     mwmap_pairs();
     push_u64(0);
-    push_fnptr(&mb_prelude_1615_23);
+    push_fnptr(&mb_prelude_1635_23);
     do_pack_cons();
     mwmap();
 }
@@ -11593,7 +11645,7 @@ static void mwmap_keys (void){
 static void mwmap_values (void){
     mwmap_pairs();
     push_u64(0);
-    push_fnptr(&mb_prelude_1618_25);
+    push_fnptr(&mb_prelude_1638_25);
     do_pack_cons();
     mwmap();
 }
@@ -11648,6 +11700,9 @@ static void mwstr_write_21_ (void){
     mwstr_length();
     mwdup();
     { value_t d1 = pop_value();
+    { value_t d2 = pop_value();
+    mwStr__3E_Ptr();
+      push_value(d2); }
     mwposix_write_21_();
       push_value(d1); }
     mwswap();
@@ -14652,6 +14707,7 @@ static void mwname_load_21_ (void){
     mwNAME_SIZE();
     mwstr_buf_length_21_();
     mwSTR_BUF();
+    mwPtr__3E_Str();
     mwstr_length();
     mwstr_buf_length_21_();
 }
@@ -14779,7 +14835,9 @@ static void mwhash (void){
     mw_2A_();
     mw_5E_();
       push_value(d2); }
-    mwstr_tail();
+    push_i64(1LL);
+    mwswap();
+    mwptr_2B_();
     }
     mwdrop();
     mwNAME_HASH_MAX();
@@ -15016,6 +15074,7 @@ static void mwshow_names_table_21_ (void){
     mwname_bytes();
     mwint_21_();
     mwSTR_BUF();
+    mwPtr__3E_Str();
     mwstr_print_21_();
     push_ptr((void*)(strings + 1145));
     mwstr_print_21_();
@@ -15035,6 +15094,11 @@ static void mwshow_names_table_21_ (void){
     mwint_print_ln_21_();
 }
 
+static void mwname_str_40_ (void){
+    mwname_quads_26_();
+    mwPtr__3E_Str();
+}
+
 static void mwname_could_be_type (void){
     mwname_quads_26_();
     mwu8_40_();
@@ -15043,33 +15107,32 @@ static void mwname_could_be_type (void){
 }
 
 static void mwname_could_be_type_var (void){
-    mwname_quads_26_();
+    mwname_str_40_();
     mwstr_could_be_type_var();
 }
 
 static void mwstr_could_be_type_var (void){
-    mwu8_40_();
+    mwstr_head();
     mwis_lower_3F_();
     mwnip();
 }
 
 static void mwname_could_be_type_con (void){
-    mwname_quads_26_();
-    mwu8_40_();
+    mwname_str_40_();
+    mwstr_head();
     mwis_upper_3F_();
     mwnip();
 }
 
 static void mwname_is_type_hole (void){
-    mwname_quads_26_();
+    mwname_str_40_();
     mwdup();
-    mwu8_40_();
+    mwstr_head();
     mwis_question_mark_3F_();
     mwnip();
     if (pop_u64()) {
     mwstr_tail();
-    mwdup();
-    mwstr_null();
+    mwstr_is_empty_3F_();
     if (pop_u64()) {
     mwdrop();
     mwtrue();
@@ -15083,14 +15146,14 @@ static void mwname_is_type_hole (void){
 }
 
 static void mwname_is_underscore (void){
-    mwname_quads_26_();
+    mwname_str_40_();
     mwdup();
-    mwu8_40_();
+    mwstr_head();
     mwis_underscore_3F_();
     mwnip();
     if (pop_u64()) {
     mwstr_tail();
-    mwstr_null();
+    mwstr_is_empty();
     } else {
     mwdrop();
     mwfalse();
@@ -15098,9 +15161,9 @@ static void mwname_is_underscore (void){
 }
 
 static void mwname_could_be_stack_var (void){
-    mwname_quads_26_();
+    mwname_str_40_();
     mwdup();
-    mwu8_40_();
+    mwstr_head();
     mwis_asterisk_3F_();
     mwnip();
     if (pop_u64()) {
@@ -15113,14 +15176,14 @@ static void mwname_could_be_stack_var (void){
 }
 
 static void mwname_could_be_effect_con (void){
-    mwname_quads_26_();
+    mwname_str_40_();
     mwdup();
-    mwu8_40_();
+    mwstr_head();
     mwis_plus_sign_3F_();
     mwnip();
     if (pop_u64()) {
     mwstr_tail();
-    mwu8_40_();
+    mwstr_head();
     mwis_upper_3F_();
     mwnip();
     } else {
@@ -15132,12 +15195,13 @@ static void mwname_could_be_effect_con (void){
 static void mwname_print_mangled_21_ (void){
     mwname_mangle_21_();
     mwSTR_BUF();
+    mwPtr__3E_Str();
     mwstr_print_21_();
 }
 
 static void mwname_mangle_21_ (void){
     mwstr_buf_clear_21_();
-    mwname_quads_26_();
+    mwname_str_40_();
     push_i64(0LL);
     while(1) {
     mwdup();
@@ -15145,7 +15209,7 @@ static void mwname_mangle_21_ (void){
     mw_3C_();
     if (!pop_u64()) break;
     mwover();
-    mwu8_40_();
+    mwstr_head();
     mwstr_buf_push_mangled_21_();
     { value_t d2 = pop_value();
     mwstr_tail();
@@ -15301,6 +15365,7 @@ static void mwStrLit__3E_Str (void){
     mwStrLit__3E_Int();
     mwSTRINGS_BUF();
     mwptr_2B_();
+    mwPtr__3E_Str();
 }
 
 static void mwMAX_STRINGS (void){
@@ -15368,12 +15433,14 @@ static void mwPath__3E_Str (void){
 
 static void mwpath_40_ (void){
     mwptr_40_();
+    mwPtr__3E_Str();
     mwStr__3E_Path();
 }
 
 static void mwpath_21_ (void){
     { value_t d1 = pop_value();
     mwPath__3E_Str();
+    mwStr__3E_Ptr();
       push_value(d1); }
     mwptr_21_();
 }
@@ -15473,12 +15540,17 @@ static void mwmodule_new_21_ (void){
     mwmodule_path_21_();
 }
 
-static void mwmodule_path_40_ (void){
+static void mwmodule_path_26_ (void){
     mwModule__3E_Int();
     mwMODULE_PATH_SIZE();
     mw_2A_();
     mwMODULE_PATH_BUF();
     mwptr_2B_();
+}
+
+static void mwmodule_path_40_ (void){
+    mwmodule_path_26_();
+    mwPtr__3E_Str();
     mwStr__3E_Path();
 }
 
@@ -15497,11 +15569,10 @@ static void mwmodule_path_21_ (void){
     push_ptr((void*)(strings + 1421));
     mwpanic_21_();
     } else {
-    mwmodule_path_40_();
     { value_t d2 = pop_value();
     mwPath__3E_Str();
       push_value(d2); }
-    mwPath__3E_Str();
+    mwmodule_path_26_();
     mwstr_copy_21_();
     }
 }
@@ -16680,6 +16751,7 @@ static void mwrun_lexer_21_ (void){
     mwlexer_module_40_();
     mwload_module_source_path_21_();
     mwSTR_BUF();
+    mwPtr__3E_Str();
     mwopen_file_21_();
     mwinput_start_21_();
     push_i64(1LL);
@@ -17546,37 +17618,40 @@ static void mwdef_type_21_ (void){
 
 static void mwinit_types_21_ (void){
     mwTYPE_INT();
-    push_ptr((void*)(strings + 27966));
+    push_ptr((void*)(strings + 27967));
     mwdef_type_21_();
     mwTYPE_PTR();
-    push_ptr((void*)(strings + 27970));
+    push_ptr((void*)(strings + 27971));
+    mwdef_type_21_();
+    mwTYPE_STR();
+    push_ptr((void*)(strings + 27975));
     mwdef_type_21_();
     mwTYPE_U8();
-    push_ptr((void*)(strings + 27974));
+    push_ptr((void*)(strings + 27979));
     mwdef_type_21_();
     mwTYPE_U16();
-    push_ptr((void*)(strings + 27977));
+    push_ptr((void*)(strings + 27982));
     mwdef_type_21_();
     mwTYPE_U32();
-    push_ptr((void*)(strings + 27981));
+    push_ptr((void*)(strings + 27986));
     mwdef_type_21_();
     mwTYPE_U64();
-    push_ptr((void*)(strings + 27985));
+    push_ptr((void*)(strings + 27990));
     mwdef_type_21_();
     mwTYPE_I8();
-    push_ptr((void*)(strings + 27989));
+    push_ptr((void*)(strings + 27994));
     mwdef_type_21_();
     mwTYPE_I16();
-    push_ptr((void*)(strings + 27992));
+    push_ptr((void*)(strings + 27997));
     mwdef_type_21_();
     mwTYPE_I32();
-    push_ptr((void*)(strings + 27996));
+    push_ptr((void*)(strings + 28001));
     mwdef_type_21_();
     mwTYPE_I64();
-    push_ptr((void*)(strings + 28000));
+    push_ptr((void*)(strings + 28005));
     mwdef_type_21_();
     mwTYPE_BOOL();
-    push_ptr((void*)(strings + 28004));
+    push_ptr((void*)(strings + 28009));
     mwdef_type_21_();
 }
 
@@ -17689,6 +17764,11 @@ static void mwTYPE_PTR (void){
     mwTPrim();
 }
 
+static void mwTYPE_STR (void){
+    mwPRIM_TYPE_STR();
+    mwTPrim();
+}
+
 static void mwTYPE_U8 (void){
     mwPRIM_TYPE_U8();
     mwTPrim();
@@ -17748,15 +17828,15 @@ static void mwgamma_token_3F_ (void){
 
 static void mwtype_unify_failed_21_ (void){
     push_u64(0);
-    push_fnptr(&mb_mirth_2F_data_2F_type_93_10);
+    push_fnptr(&mb_mirth_2F_data_2F_type_95_10);
     do_pack_cons();
     mwdip2();
-    push_ptr((void*)(strings + 28009));
+    push_ptr((void*)(strings + 28014));
     mwstr_trace_21_();
     { value_t d1 = pop_value();
     mwtype_trace_21_();
       push_value(d1); }
-    push_ptr((void*)(strings + 28035));
+    push_ptr((void*)(strings + 28040));
     mwstr_trace_21_();
     mwtype_trace_21_();
     mwtrace_ln_21_();
@@ -18275,7 +18355,7 @@ static void mwtype_trace_sig_21_ (void){
     switch (get_top_data_tag()) {
     case 0LL:
     do_drop();
-    push_ptr((void*)(strings + 28042));
+    push_ptr((void*)(strings + 28047));
     mwstr_trace_21_();
     break;
     case 9LL:
@@ -18283,7 +18363,7 @@ static void mwtype_trace_sig_21_ (void){
     do_pack_uncons(); do_swap();
     mwswap();
     mwtype_trace_stack_dom_21_();
-    push_ptr((void*)(strings + 28050));
+    push_ptr((void*)(strings + 28055));
     mwstr_trace_21_();
     mwtype_trace_stack_cod_21_();
     break;
@@ -18301,7 +18381,7 @@ static void mwtype_trace_stack_dom_21_ (void){
     mwdrop();
     } else {
     mwtype_trace_stack_21_();
-    push_ptr((void*)(strings + 28053));
+    push_ptr((void*)(strings + 28058));
     mwstr_trace_21_();
     }
 }
@@ -18313,7 +18393,7 @@ static void mwtype_trace_stack_cod_21_ (void){
     if (pop_u64()) {
     mwdrop();
     } else {
-    push_ptr((void*)(strings + 28055));
+    push_ptr((void*)(strings + 28060));
     mwstr_trace_21_();
     mwtype_trace_stack_21_();
     }
@@ -18338,7 +18418,7 @@ static void mwtype_trace_stack_21_ (void){
     if (pop_u64()) {
     mwid();
     } else {
-    push_ptr((void*)(strings + 28057));
+    push_ptr((void*)(strings + 28062));
     mwstr_trace_21_();
     }
     break;
@@ -18352,12 +18432,12 @@ static void mwtype_trace_21_ (void){
     switch (get_top_data_tag()) {
     case 0LL:
     do_drop();
-    push_ptr((void*)(strings + 28060));
+    push_ptr((void*)(strings + 28065));
     mwstr_trace_21_();
     break;
     case 1LL:
     do_drop();
-    push_ptr((void*)(strings + 28068));
+    push_ptr((void*)(strings + 28073));
     mwstr_trace_21_();
     break;
     case 2LL:
@@ -18372,7 +18452,7 @@ static void mwtype_trace_21_ (void){
     break;
     case 3LL:
     do_pack_uncons(); do_drop();
-    push_ptr((void*)(strings + 28070));
+    push_ptr((void*)(strings + 28075));
     mwstr_trace_21_();
     mwMetaVar__3E_Int();
     mwint_trace_21_();
@@ -18380,21 +18460,21 @@ static void mwtype_trace_21_ (void){
     case 8LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
-    push_ptr((void*)(strings + 28072));
+    push_ptr((void*)(strings + 28077));
     mwstr_trace_21_();
     mwTTensor();
     mwtype_trace_stack_21_();
-    push_ptr((void*)(strings + 28074));
+    push_ptr((void*)(strings + 28079));
     mwstr_trace_21_();
     break;
     case 9LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
-    push_ptr((void*)(strings + 28076));
+    push_ptr((void*)(strings + 28081));
     mwstr_trace_21_();
     mwTMorphism();
     mwtype_trace_sig_21_();
-    push_ptr((void*)(strings + 28078));
+    push_ptr((void*)(strings + 28083));
     mwstr_trace_21_();
     break;
     case 7LL:
@@ -18427,63 +18507,67 @@ static void mwtype_trace_prim_21_ (void){
     switch (get_top_data_tag()) {
     case 1LL:
     do_drop();
-    push_ptr((void*)(strings + 28080));
+    push_ptr((void*)(strings + 28085));
     break;
     case 2LL:
     do_drop();
-    push_ptr((void*)(strings + 28087));
+    push_ptr((void*)(strings + 28092));
     break;
     case 3LL:
     do_drop();
-    push_ptr((void*)(strings + 28095));
+    push_ptr((void*)(strings + 28100));
     break;
     case 0LL:
     do_drop();
-    push_ptr((void*)(strings + 28104));
-    break;
-    case 6LL:
-    do_drop();
-    push_ptr((void*)(strings + 28107));
-    break;
-    case 4LL:
-    do_drop();
-    push_ptr((void*)(strings + 28112));
-    break;
-    case 5LL:
-    do_drop();
-    push_ptr((void*)(strings + 28116));
-    break;
-    case 10LL:
-    do_drop();
-    push_ptr((void*)(strings + 28120));
-    break;
-    case 9LL:
-    do_drop();
-    push_ptr((void*)(strings + 28123));
-    break;
-    case 8LL:
-    do_drop();
-    push_ptr((void*)(strings + 28127));
+    push_ptr((void*)(strings + 28109));
     break;
     case 7LL:
     do_drop();
-    push_ptr((void*)(strings + 28131));
+    push_ptr((void*)(strings + 28112));
     break;
-    case 14LL:
+    case 4LL:
     do_drop();
-    push_ptr((void*)(strings + 28135));
+    push_ptr((void*)(strings + 28117));
     break;
-    case 13LL:
+    case 5LL:
     do_drop();
-    push_ptr((void*)(strings + 28138));
+    push_ptr((void*)(strings + 28121));
     break;
-    case 12LL:
+    case 6LL:
     do_drop();
-    push_ptr((void*)(strings + 28142));
+    push_ptr((void*)(strings + 28125));
     break;
     case 11LL:
     do_drop();
-    push_ptr((void*)(strings + 28146));
+    push_ptr((void*)(strings + 28129));
+    break;
+    case 10LL:
+    do_drop();
+    push_ptr((void*)(strings + 28132));
+    break;
+    case 9LL:
+    do_drop();
+    push_ptr((void*)(strings + 28136));
+    break;
+    case 8LL:
+    do_drop();
+    push_ptr((void*)(strings + 28140));
+    break;
+    case 15LL:
+    do_drop();
+    push_ptr((void*)(strings + 28144));
+    break;
+    case 14LL:
+    do_drop();
+    push_ptr((void*)(strings + 28147));
+    break;
+    case 13LL:
+    do_drop();
+    push_ptr((void*)(strings + 28151));
+    break;
+    case 12LL:
+    do_drop();
+    push_ptr((void*)(strings + 28155));
     break;
     default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
@@ -18914,7 +18998,7 @@ static void mwtype_hole_unify_21_ (void){
     } else {
     mwTHole();
     mwtype_trace_21_();
-    push_ptr((void*)(strings + 28150));
+    push_ptr((void*)(strings + 28159));
     mwstr_trace_21_();
     mwdup();
     mwtype_trace_21_();
@@ -18980,7 +19064,7 @@ static void mwtype_num_morphisms_on_top (void){
 
 static void mwapp_type_trace_21_ (void){
     mwapp_type_trace_open_21_();
-    push_ptr((void*)(strings + 28154));
+    push_ptr((void*)(strings + 28163));
     mwstr_trace_21_();
 }
 
@@ -18991,13 +19075,13 @@ static void mwapp_type_trace_open_21_ (void){
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwapp_type_trace_open_21_();
-    push_ptr((void*)(strings + 28156));
+    push_ptr((void*)(strings + 28165));
     mwstr_trace_21_();
     mwtype_trace_21_();
     break;
     default:
     mwtype_trace_21_();
-    push_ptr((void*)(strings + 28159));
+    push_ptr((void*)(strings + 28168));
     mwstr_trace_21_();
     mwtype_trace_21_();
     break;
@@ -19127,7 +19211,7 @@ static void mwdata_add_tag_21_ (void){
 static void mwdata_is_enum_3F_ (void){
     mwdata_tags_3F_();
     push_u64(0);
-    push_fnptr(&mb_mirth_2F_data_2F_type_613_33);
+    push_fnptr(&mb_mirth_2F_data_2F_type_616_33);
     do_pack_cons();
     mwall_3F_();
     mwnip();
@@ -19167,7 +19251,7 @@ static void mwmatch_add_case_21_ (void){
     mwcases_cover_case_3F_();
     if (pop_u64()) {
     mwcase_token_40_();
-    push_ptr((void*)(strings + 28161));
+    push_ptr((void*)(strings + 28170));
     mwemit_error_21_();
     mwdrop();
     } else {
@@ -19207,7 +19291,7 @@ static void mwmatch_scrutinee_type_3F_ (void){
 static void mwmatch_scrutinee_data_3F_ (void){
     mwmatch_scrutinee_type_3F_();
     push_u64(0);
-    push_fnptr(&mb_mirth_2F_data_2F_type_659_9);
+    push_fnptr(&mb_mirth_2F_data_2F_type_662_9);
     do_pack_cons();
     mwmaybe_bind();
 }
@@ -19236,7 +19320,7 @@ static void mwcases_cover_case_3F_ (void){
 static void mwcases_cover_case (void){
     mwswap();
     push_u64(0);
-    push_fnptr(&mb_mirth_2F_data_2F_type_680_29);
+    push_fnptr(&mb_mirth_2F_data_2F_type_683_29);
     do_pack_cons();
     mwany();
     mwnip();
@@ -19257,7 +19341,7 @@ static void mwcase_is_covered (void){
 
 static void mwcases_have_default_case (void){
     push_u64(0);
-    push_fnptr(&mb_mirth_2F_data_2F_type_690_31);
+    push_fnptr(&mb_mirth_2F_data_2F_type_693_31);
     do_pack_cons();
     mwany();
 }
@@ -19446,286 +19530,286 @@ static void mwdef_prim_21_ (void){
 
 static void mwinit_prims_21_ (void){
     mwPRIM_SYNTAX_MODULE();
-    push_ptr((void*)(strings + 28182));
+    push_ptr((void*)(strings + 28191));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_IMPORT();
-    push_ptr((void*)(strings + 28189));
+    push_ptr((void*)(strings + 28198));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_DEF();
-    push_ptr((void*)(strings + 28196));
+    push_ptr((void*)(strings + 28205));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_DEF_TYPE();
-    push_ptr((void*)(strings + 28200));
-    mwdef_prim_21_();
-    mwPRIM_SYNTAX_BUFFER();
     push_ptr((void*)(strings + 28209));
     mwdef_prim_21_();
+    mwPRIM_SYNTAX_BUFFER();
+    push_ptr((void*)(strings + 28218));
+    mwdef_prim_21_();
     mwPRIM_SYNTAX_DEF_EXTERNAL();
-    push_ptr((void*)(strings + 28216));
+    push_ptr((void*)(strings + 28225));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_TABLE();
-    push_ptr((void*)(strings + 28229));
+    push_ptr((void*)(strings + 28238));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_FIELD();
-    push_ptr((void*)(strings + 28235));
+    push_ptr((void*)(strings + 28244));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_TARGET_C99();
-    push_ptr((void*)(strings + 28241));
+    push_ptr((void*)(strings + 28250));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_DATA();
-    push_ptr((void*)(strings + 28252));
-    mwdef_prim_21_();
-    mwPRIM_SYNTAX_END();
-    push_ptr((void*)(strings + 28257));
-    mwdef_prim_21_();
-    mwPRIM_SYNTAX_MODULE();
     push_ptr((void*)(strings + 28261));
     mwdef_prim_21_();
+    mwPRIM_SYNTAX_END();
+    push_ptr((void*)(strings + 28266));
+    mwdef_prim_21_();
+    mwPRIM_SYNTAX_MODULE();
+    push_ptr((void*)(strings + 28270));
+    mwdef_prim_21_();
     mwPRIM_SYNTAX_IMPORT();
-    push_ptr((void*)(strings + 28280));
+    push_ptr((void*)(strings + 28289));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_DEF();
-    push_ptr((void*)(strings + 28299));
+    push_ptr((void*)(strings + 28308));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_DEF_TYPE();
-    push_ptr((void*)(strings + 28315));
+    push_ptr((void*)(strings + 28324));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_BUFFER();
-    push_ptr((void*)(strings + 28336));
+    push_ptr((void*)(strings + 28345));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_DEF_EXTERNAL();
-    push_ptr((void*)(strings + 28355));
+    push_ptr((void*)(strings + 28364));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_TABLE();
-    push_ptr((void*)(strings + 28380));
+    push_ptr((void*)(strings + 28389));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_FIELD();
-    push_ptr((void*)(strings + 28398));
+    push_ptr((void*)(strings + 28407));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_TARGET_C99();
-    push_ptr((void*)(strings + 28416));
+    push_ptr((void*)(strings + 28425));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_DATA();
-    push_ptr((void*)(strings + 28439));
+    push_ptr((void*)(strings + 28448));
     mwdef_prim_21_();
     mwPRIM_SYNTAX_END();
-    push_ptr((void*)(strings + 28456));
+    push_ptr((void*)(strings + 28465));
     mwdef_prim_21_();
     mwPRIM_CORE_DIP();
-    push_ptr((void*)(strings + 28472));
+    push_ptr((void*)(strings + 28481));
     mwdef_prim_21_();
     mwPRIM_CORE_IF();
-    push_ptr((void*)(strings + 28476));
-    mwdef_prim_21_();
-    mwPRIM_CORE_WHILE();
-    push_ptr((void*)(strings + 28479));
-    mwdef_prim_21_();
-    mwPRIM_CORE_MATCH();
     push_ptr((void*)(strings + 28485));
     mwdef_prim_21_();
-    mwPRIM_CORE_LAMBDA();
-    push_ptr((void*)(strings + 28491));
-    mwdef_prim_21_();
-    mwPRIM_CORE_ID();
-    push_ptr((void*)(strings + 28493));
-    mwdef_prim_21_();
-    mwPRIM_CORE_DUP();
-    push_ptr((void*)(strings + 28506));
-    mwdef_prim_21_();
-    mwPRIM_CORE_DROP();
-    push_ptr((void*)(strings + 28520));
-    mwdef_prim_21_();
-    mwPRIM_CORE_SWAP();
-    push_ptr((void*)(strings + 28535));
-    mwdef_prim_21_();
-    mwPRIM_CORE_DIP();
-    push_ptr((void*)(strings + 28550));
-    mwdef_prim_21_();
-    mwPRIM_CORE_IF();
-    push_ptr((void*)(strings + 28564));
-    mwdef_prim_21_();
     mwPRIM_CORE_WHILE();
-    push_ptr((void*)(strings + 28577));
-    mwdef_prim_21_();
-    mwPRIM_CORE_DEBUG();
-    push_ptr((void*)(strings + 28593));
-    mwdef_prim_21_();
-    mwPRIM_CORE_RUN();
-    push_ptr((void*)(strings + 28609));
+    push_ptr((void*)(strings + 28488));
     mwdef_prim_21_();
     mwPRIM_CORE_MATCH();
-    push_ptr((void*)(strings + 28623));
+    push_ptr((void*)(strings + 28494));
     mwdef_prim_21_();
     mwPRIM_CORE_LAMBDA();
-    push_ptr((void*)(strings + 28639));
+    push_ptr((void*)(strings + 28500));
+    mwdef_prim_21_();
+    mwPRIM_CORE_ID();
+    push_ptr((void*)(strings + 28502));
+    mwdef_prim_21_();
+    mwPRIM_CORE_DUP();
+    push_ptr((void*)(strings + 28515));
+    mwdef_prim_21_();
+    mwPRIM_CORE_DROP();
+    push_ptr((void*)(strings + 28529));
+    mwdef_prim_21_();
+    mwPRIM_CORE_SWAP();
+    push_ptr((void*)(strings + 28544));
+    mwdef_prim_21_();
+    mwPRIM_CORE_DIP();
+    push_ptr((void*)(strings + 28559));
+    mwdef_prim_21_();
+    mwPRIM_CORE_IF();
+    push_ptr((void*)(strings + 28573));
+    mwdef_prim_21_();
+    mwPRIM_CORE_WHILE();
+    push_ptr((void*)(strings + 28586));
+    mwdef_prim_21_();
+    mwPRIM_CORE_DEBUG();
+    push_ptr((void*)(strings + 28602));
+    mwdef_prim_21_();
+    mwPRIM_CORE_RUN();
+    push_ptr((void*)(strings + 28618));
+    mwdef_prim_21_();
+    mwPRIM_CORE_MATCH();
+    push_ptr((void*)(strings + 28632));
+    mwdef_prim_21_();
+    mwPRIM_CORE_LAMBDA();
+    push_ptr((void*)(strings + 28648));
     mwdef_prim_21_();
     mwPRIM_VALUE_EQ();
-    push_ptr((void*)(strings + 28656));
+    push_ptr((void*)(strings + 28665));
     mwdef_prim_21_();
     mwPRIM_VALUE_LT();
-    push_ptr((void*)(strings + 28670));
+    push_ptr((void*)(strings + 28679));
     mwdef_prim_21_();
     mwPRIM_VALUE_LE();
-    push_ptr((void*)(strings + 28684));
+    push_ptr((void*)(strings + 28693));
     mwdef_prim_21_();
     mwPRIM_VALUE_CAST();
-    push_ptr((void*)(strings + 28698));
+    push_ptr((void*)(strings + 28707));
     mwdef_prim_21_();
     mwPRIM_VALUE_GET();
-    push_ptr((void*)(strings + 28714));
+    push_ptr((void*)(strings + 28723));
     mwdef_prim_21_();
     mwPRIM_VALUE_SET();
-    push_ptr((void*)(strings + 28729));
+    push_ptr((void*)(strings + 28738));
     mwdef_prim_21_();
     mwPRIM_INT_ADD();
-    push_ptr((void*)(strings + 28744));
+    push_ptr((void*)(strings + 28753));
     mwdef_prim_21_();
     mwPRIM_INT_SUB();
-    push_ptr((void*)(strings + 28757));
+    push_ptr((void*)(strings + 28766));
     mwdef_prim_21_();
     mwPRIM_INT_MUL();
-    push_ptr((void*)(strings + 28770));
+    push_ptr((void*)(strings + 28779));
     mwdef_prim_21_();
     mwPRIM_INT_DIV();
-    push_ptr((void*)(strings + 28783));
+    push_ptr((void*)(strings + 28792));
     mwdef_prim_21_();
     mwPRIM_INT_MOD();
-    push_ptr((void*)(strings + 28796));
+    push_ptr((void*)(strings + 28805));
     mwdef_prim_21_();
     mwPRIM_INT_AND();
-    push_ptr((void*)(strings + 28809));
+    push_ptr((void*)(strings + 28818));
     mwdef_prim_21_();
     mwPRIM_INT_OR();
-    push_ptr((void*)(strings + 28822));
+    push_ptr((void*)(strings + 28831));
     mwdef_prim_21_();
     mwPRIM_INT_XOR();
-    push_ptr((void*)(strings + 28834));
+    push_ptr((void*)(strings + 28843));
     mwdef_prim_21_();
     mwPRIM_INT_SHL();
-    push_ptr((void*)(strings + 28847));
+    push_ptr((void*)(strings + 28856));
     mwdef_prim_21_();
     mwPRIM_INT_SHR();
-    push_ptr((void*)(strings + 28860));
+    push_ptr((void*)(strings + 28869));
     mwdef_prim_21_();
     mwPRIM_INT_GET();
-    push_ptr((void*)(strings + 28873));
+    push_ptr((void*)(strings + 28882));
     mwdef_prim_21_();
     mwPRIM_INT_SET();
-    push_ptr((void*)(strings + 28886));
+    push_ptr((void*)(strings + 28895));
     mwdef_prim_21_();
     mwPRIM_BOOL_TRUE();
-    push_ptr((void*)(strings + 28899));
+    push_ptr((void*)(strings + 28908));
     mwdef_prim_21_();
     mwPRIM_BOOL_FALSE();
-    push_ptr((void*)(strings + 28914));
+    push_ptr((void*)(strings + 28923));
     mwdef_prim_21_();
     mwPRIM_BOOL_AND();
-    push_ptr((void*)(strings + 28930));
+    push_ptr((void*)(strings + 28939));
     mwdef_prim_21_();
     mwPRIM_BOOL_OR();
-    push_ptr((void*)(strings + 28944));
+    push_ptr((void*)(strings + 28953));
     mwdef_prim_21_();
     mwPRIM_PACK_NIL();
-    push_ptr((void*)(strings + 28957));
+    push_ptr((void*)(strings + 28966));
     mwdef_prim_21_();
     mwPRIM_PACK_CONS();
-    push_ptr((void*)(strings + 28971));
+    push_ptr((void*)(strings + 28980));
     mwdef_prim_21_();
     mwPRIM_PACK_UNCONS();
-    push_ptr((void*)(strings + 28986));
+    push_ptr((void*)(strings + 28995));
     mwdef_prim_21_();
     mwPRIM_PTR_ADD();
-    push_ptr((void*)(strings + 29003));
+    push_ptr((void*)(strings + 29012));
     mwdef_prim_21_();
     mwPRIM_PTR_SIZE();
-    push_ptr((void*)(strings + 29016));
+    push_ptr((void*)(strings + 29025));
     mwdef_prim_21_();
     mwPRIM_PTR_GET();
-    push_ptr((void*)(strings + 29030));
+    push_ptr((void*)(strings + 29039));
     mwdef_prim_21_();
     mwPRIM_PTR_SET();
-    push_ptr((void*)(strings + 29043));
+    push_ptr((void*)(strings + 29052));
     mwdef_prim_21_();
     mwPRIM_PTR_ALLOC();
-    push_ptr((void*)(strings + 29056));
+    push_ptr((void*)(strings + 29065));
     mwdef_prim_21_();
     mwPRIM_PTR_NUMBYTES();
-    push_ptr((void*)(strings + 29071));
+    push_ptr((void*)(strings + 29080));
     mwdef_prim_21_();
     mwPRIM_U8_GET();
-    push_ptr((void*)(strings + 29089));
+    push_ptr((void*)(strings + 29098));
     mwdef_prim_21_();
     mwPRIM_U8_SET();
-    push_ptr((void*)(strings + 29101));
+    push_ptr((void*)(strings + 29110));
     mwdef_prim_21_();
     mwPRIM_U16_GET();
-    push_ptr((void*)(strings + 29113));
+    push_ptr((void*)(strings + 29122));
     mwdef_prim_21_();
     mwPRIM_U16_SET();
-    push_ptr((void*)(strings + 29126));
+    push_ptr((void*)(strings + 29135));
     mwdef_prim_21_();
     mwPRIM_U32_GET();
-    push_ptr((void*)(strings + 29139));
+    push_ptr((void*)(strings + 29148));
     mwdef_prim_21_();
     mwPRIM_U32_SET();
-    push_ptr((void*)(strings + 29152));
+    push_ptr((void*)(strings + 29161));
     mwdef_prim_21_();
     mwPRIM_U64_GET();
-    push_ptr((void*)(strings + 29165));
+    push_ptr((void*)(strings + 29174));
     mwdef_prim_21_();
     mwPRIM_U64_SET();
-    push_ptr((void*)(strings + 29178));
+    push_ptr((void*)(strings + 29187));
     mwdef_prim_21_();
     mwPRIM_I8_GET();
-    push_ptr((void*)(strings + 29191));
+    push_ptr((void*)(strings + 29200));
     mwdef_prim_21_();
     mwPRIM_I8_SET();
-    push_ptr((void*)(strings + 29203));
+    push_ptr((void*)(strings + 29212));
     mwdef_prim_21_();
     mwPRIM_I16_GET();
-    push_ptr((void*)(strings + 29215));
+    push_ptr((void*)(strings + 29224));
     mwdef_prim_21_();
     mwPRIM_I16_SET();
-    push_ptr((void*)(strings + 29228));
+    push_ptr((void*)(strings + 29237));
     mwdef_prim_21_();
     mwPRIM_I32_GET();
-    push_ptr((void*)(strings + 29241));
+    push_ptr((void*)(strings + 29250));
     mwdef_prim_21_();
     mwPRIM_I32_SET();
-    push_ptr((void*)(strings + 29254));
+    push_ptr((void*)(strings + 29263));
     mwdef_prim_21_();
     mwPRIM_I64_GET();
-    push_ptr((void*)(strings + 29267));
+    push_ptr((void*)(strings + 29276));
     mwdef_prim_21_();
     mwPRIM_I64_SET();
-    push_ptr((void*)(strings + 29280));
+    push_ptr((void*)(strings + 29289));
     mwdef_prim_21_();
     mwPRIM_SYS_OS();
-    push_ptr((void*)(strings + 29293));
+    push_ptr((void*)(strings + 29302));
     mwdef_prim_21_();
     mwPRIM_SYS_ARGC();
-    push_ptr((void*)(strings + 29305));
+    push_ptr((void*)(strings + 29314));
     mwdef_prim_21_();
     mwPRIM_SYS_ARGV();
-    push_ptr((void*)(strings + 29319));
+    push_ptr((void*)(strings + 29328));
     mwdef_prim_21_();
     mwPRIM_POSIX_READ();
-    push_ptr((void*)(strings + 29333));
+    push_ptr((void*)(strings + 29342));
     mwdef_prim_21_();
     mwPRIM_POSIX_WRITE();
-    push_ptr((void*)(strings + 29349));
+    push_ptr((void*)(strings + 29358));
     mwdef_prim_21_();
     mwPRIM_POSIX_OPEN();
-    push_ptr((void*)(strings + 29366));
+    push_ptr((void*)(strings + 29375));
     mwdef_prim_21_();
     mwPRIM_POSIX_CLOSE();
-    push_ptr((void*)(strings + 29382));
+    push_ptr((void*)(strings + 29391));
     mwdef_prim_21_();
     mwPRIM_POSIX_EXIT();
-    push_ptr((void*)(strings + 29399));
+    push_ptr((void*)(strings + 29408));
     mwdef_prim_21_();
     mwPRIM_POSIX_MMAP();
-    push_ptr((void*)(strings + 29415));
+    push_ptr((void*)(strings + 29424));
     mwdef_prim_21_();
     mwT0();
     mwT0();
@@ -20036,7 +20120,7 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwPRIM_PACK_NIL();
     mwprim_type_21_();
-    push_ptr((void*)(strings + 29431));
+    push_ptr((void*)(strings + 29440));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
@@ -20054,7 +20138,7 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwPRIM_CORE_DROP();
     mwprim_type_21_();
-    push_ptr((void*)(strings + 29433));
+    push_ptr((void*)(strings + 29442));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
@@ -20075,7 +20159,7 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwPRIM_CORE_DUP();
     mwprim_type_21_();
-    push_ptr((void*)(strings + 29435));
+    push_ptr((void*)(strings + 29444));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
@@ -20111,13 +20195,13 @@ static void mwinit_prims_21_ (void){
     mwPRIM_VALUE_LE();
     mwprim_type_21_();
     mwdrop();
-    push_ptr((void*)(strings + 29437));
+    push_ptr((void*)(strings + 29446));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
     mwvar_type_21_();
-    push_ptr((void*)(strings + 29439));
+    push_ptr((void*)(strings + 29448));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
@@ -20143,13 +20227,13 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwPRIM_CORE_SWAP();
     mwprim_type_21_();
-    push_ptr((void*)(strings + 29441));
+    push_ptr((void*)(strings + 29450));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
     mwvar_type_21_();
-    push_ptr((void*)(strings + 29443));
+    push_ptr((void*)(strings + 29452));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
@@ -20172,13 +20256,13 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwPRIM_VALUE_CAST();
     mwprim_type_21_();
-    push_ptr((void*)(strings + 29445));
+    push_ptr((void*)(strings + 29454));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
     mwvar_type_21_();
-    push_ptr((void*)(strings + 29448));
+    push_ptr((void*)(strings + 29457));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
@@ -20205,13 +20289,13 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwPRIM_CORE_RUN();
     mwprim_type_21_();
-    push_ptr((void*)(strings + 29451));
+    push_ptr((void*)(strings + 29460));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
     mwvar_type_21_();
-    push_ptr((void*)(strings + 29454));
+    push_ptr((void*)(strings + 29463));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
@@ -20236,19 +20320,19 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwPRIM_POSIX_EXIT();
     mwprim_type_21_();
-    push_ptr((void*)(strings + 29457));
+    push_ptr((void*)(strings + 29466));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
     mwvar_type_21_();
-    push_ptr((void*)(strings + 29460));
+    push_ptr((void*)(strings + 29469));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
     mwvar_type_21_();
-    push_ptr((void*)(strings + 29463));
+    push_ptr((void*)(strings + 29472));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
@@ -20289,78 +20373,6 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwPRIM_CORE_DIP();
     mwprim_type_21_();
-    push_ptr((void*)(strings + 29465));
-    mwname_new_21_();
-    mwvar_new_implicit_21_();
-    mwTYPE_STACK();
-    mwover();
-    mwvar_type_21_();
-    push_ptr((void*)(strings + 29468));
-    mwname_new_21_();
-    mwvar_new_implicit_21_();
-    mwTYPE_STACK();
-    mwover();
-    mwvar_type_21_();
-    mwdup2();
-    mwctx_empty();
-    mwswap();
-    mwctx_new_21_();
-    mwswap();
-    mwctx_new_21_();
-    mwPRIM_CORE_IF();
-    mwprim_ctx_21_();
-    { value_t d1 = pop_value();
-    mwTVar();
-      push_value(d1); }
-    mwTVar();
-    mwdup2();
-    mwT__3E_();
-    mwswap();
-    { value_t d1 = pop_value();
-    { value_t d2 = pop_value();
-    mwTYPE_BOOL();
-    mwT_2A_();
-      push_value(d2); }
-    mwdup();
-    { value_t d2 = pop_value();
-    mwT_2A_();
-      push_value(d2); }
-    mwT_2A_();
-      push_value(d1); }
-    mwT__3E_();
-    mwPRIM_CORE_IF();
-    mwprim_type_21_();
-    push_ptr((void*)(strings + 29471));
-    mwname_new_21_();
-    mwvar_new_implicit_21_();
-    mwTYPE_STACK();
-    mwover();
-    mwvar_type_21_();
-    mwdup();
-    mwctx_empty();
-    mwswap();
-    mwctx_new_21_();
-    mwPRIM_CORE_WHILE();
-    mwprim_ctx_21_();
-    mwTVar();
-    mwdup();
-    mwdup();
-    { value_t d1 = pop_value();
-    mwdup();
-    mwT__3E_();
-    mwT_2A_();
-      push_value(d1); }
-    mwdup();
-    { value_t d1 = pop_value();
-    mwdup();
-    mwTYPE_BOOL();
-    mwT_2A_();
-    mwT__3E_();
-    mwT_2A_();
-      push_value(d1); }
-    mwT__3E_();
-    mwPRIM_CORE_WHILE();
-    mwprim_type_21_();
     push_ptr((void*)(strings + 29474));
     mwname_new_21_();
     mwvar_new_implicit_21_();
@@ -20370,7 +20382,7 @@ static void mwinit_prims_21_ (void){
     push_ptr((void*)(strings + 29477));
     mwname_new_21_();
     mwvar_new_implicit_21_();
-    mwTYPE_TYPE();
+    mwTYPE_STACK();
     mwover();
     mwvar_type_21_();
     mwdup2();
@@ -20379,27 +20391,99 @@ static void mwinit_prims_21_ (void){
     mwctx_new_21_();
     mwswap();
     mwctx_new_21_();
-    mwPRIM_PACK_CONS();
+    mwPRIM_CORE_IF();
     mwprim_ctx_21_();
     { value_t d1 = pop_value();
     mwTVar();
       push_value(d1); }
     mwTVar();
     mwdup2();
-    mwT2();
-    mwrotr();
-    mwT_2A_();
-    mwT1();
     mwT__3E_();
-    mwPRIM_PACK_CONS();
+    mwswap();
+    { value_t d1 = pop_value();
+    { value_t d2 = pop_value();
+    mwTYPE_BOOL();
+    mwT_2A_();
+      push_value(d2); }
+    mwdup();
+    { value_t d2 = pop_value();
+    mwT_2A_();
+      push_value(d2); }
+    mwT_2A_();
+      push_value(d1); }
+    mwT__3E_();
+    mwPRIM_CORE_IF();
     mwprim_type_21_();
-    push_ptr((void*)(strings + 29479));
+    push_ptr((void*)(strings + 29480));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
     mwvar_type_21_();
-    push_ptr((void*)(strings + 29482));
+    mwdup();
+    mwctx_empty();
+    mwswap();
+    mwctx_new_21_();
+    mwPRIM_CORE_WHILE();
+    mwprim_ctx_21_();
+    mwTVar();
+    mwdup();
+    mwdup();
+    { value_t d1 = pop_value();
+    mwdup();
+    mwT__3E_();
+    mwT_2A_();
+      push_value(d1); }
+    mwdup();
+    { value_t d1 = pop_value();
+    mwdup();
+    mwTYPE_BOOL();
+    mwT_2A_();
+    mwT__3E_();
+    mwT_2A_();
+      push_value(d1); }
+    mwT__3E_();
+    mwPRIM_CORE_WHILE();
+    mwprim_type_21_();
+    push_ptr((void*)(strings + 29483));
+    mwname_new_21_();
+    mwvar_new_implicit_21_();
+    mwTYPE_STACK();
+    mwover();
+    mwvar_type_21_();
+    push_ptr((void*)(strings + 29486));
+    mwname_new_21_();
+    mwvar_new_implicit_21_();
+    mwTYPE_TYPE();
+    mwover();
+    mwvar_type_21_();
+    mwdup2();
+    mwctx_empty();
+    mwswap();
+    mwctx_new_21_();
+    mwswap();
+    mwctx_new_21_();
+    mwPRIM_PACK_CONS();
+    mwprim_ctx_21_();
+    { value_t d1 = pop_value();
+    mwTVar();
+      push_value(d1); }
+    mwTVar();
+    mwdup2();
+    mwT2();
+    mwrotr();
+    mwT_2A_();
+    mwT1();
+    mwT__3E_();
+    mwPRIM_PACK_CONS();
+    mwprim_type_21_();
+    push_ptr((void*)(strings + 29488));
+    mwname_new_21_();
+    mwvar_new_implicit_21_();
+    mwTYPE_STACK();
+    mwover();
+    mwvar_type_21_();
+    push_ptr((void*)(strings + 29491));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
@@ -20425,7 +20509,7 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwPRIM_PACK_UNCONS();
     mwprim_type_21_();
-    push_ptr((void*)(strings + 29484));
+    push_ptr((void*)(strings + 29493));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
@@ -20446,7 +20530,7 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwPRIM_VALUE_GET();
     mwprim_type_21_();
-    push_ptr((void*)(strings + 29486));
+    push_ptr((void*)(strings + 29495));
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
@@ -20639,12 +20723,12 @@ static void mw_2E_b (void){
 static void mw_2E_ (void){
     while(1) {
     mwdup();
-    mwu8_40_();
+    mwstr_head();
     mwU8__3E_Int();
     mwnonzero();
     if (!pop_u64()) break;
     mwdup();
-    mwu8_40_();
+    mwstr_head();
     mw_2E_b();
     mwstr_tail();
     }
@@ -20676,6 +20760,7 @@ static void mwrun_output_c99_21_ (void){
     } else {
     mwload_output_path_21_();
     mwSTR_BUF();
+    mwPtr__3E_Str();
     mwcreate_file_21_();
     mwcodegen_start_21_();
     mwc99_emit_header_21_();
@@ -20735,6 +20820,7 @@ static void mw_3B__3B_ (void){
 static void mw_2E_n (void){
     mwstr_buf_int_21_();
     mwSTR_BUF();
+    mwPtr__3E_Str();
     mw_2E_();
 }
 
@@ -20746,6 +20832,7 @@ static void mw_2E_d (void){
 static void mw_2E_name (void){
     mwname_mangle_21_();
     mwSTR_BUF();
+    mwPtr__3E_Str();
     mw_2E_();
 }
 
@@ -23196,7 +23283,7 @@ static void mwc99_emit_external_21_ (void){
     push_ptr((void*)(strings + 26832));
     }
     mw_3B_();
-    push_ptr((void*)(strings + 26834));
+    push_ptr((void*)(strings + 26835));
     mw_3B_();
     mwdrop3();
 }
@@ -23225,20 +23312,20 @@ static void mwc99_emit_arrow_op_21_ (void){
     case 5LL:
     do_pack_uncons(); do_drop();
     mwnip();
-    push_ptr((void*)(strings + 26836));
+    push_ptr((void*)(strings + 26837));
     mw_2E_();
     mw_2E_n();
-    push_ptr((void*)(strings + 26850));
+    push_ptr((void*)(strings + 26851));
     mw_3B_();
     break;
     case 6LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwStrLit__3E_Int();
-    push_ptr((void*)(strings + 26855));
+    push_ptr((void*)(strings + 26856));
     mw_2E_();
     mw_2E_n();
-    push_ptr((void*)(strings + 26887));
+    push_ptr((void*)(strings + 26888));
     mw_3B_();
     break;
     case 2LL:
@@ -23247,11 +23334,11 @@ static void mwc99_emit_arrow_op_21_ (void){
     mwarrow_args_40_();
     mwc99_emit_args_push_21_();
       push_value(d2); }
-    push_ptr((void*)(strings + 26891));
+    push_ptr((void*)(strings + 26892));
     mw_2E_();
     mwword_name_40_();
     mw_2E_name();
-    push_ptr((void*)(strings + 26898));
+    push_ptr((void*)(strings + 26899));
     mw_3B_();
     break;
     case 3LL:
@@ -23260,31 +23347,31 @@ static void mwc99_emit_arrow_op_21_ (void){
     mwarrow_args_40_();
     mwc99_emit_args_push_21_();
       push_value(d2); }
-    push_ptr((void*)(strings + 26902));
+    push_ptr((void*)(strings + 26903));
     mw_2E_();
     mwexternal_name_40_();
     mw_2E_name();
-    push_ptr((void*)(strings + 26909));
+    push_ptr((void*)(strings + 26910));
     mw_3B_();
     break;
     case 4LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwbuffer_name_40_();
-    push_ptr((void*)(strings + 26913));
+    push_ptr((void*)(strings + 26914));
     mw_2E_();
     mw_2E_name();
-    push_ptr((void*)(strings + 26920));
+    push_ptr((void*)(strings + 26921));
     mw_3B_();
     break;
     case 7LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwtag_name_40_();
-    push_ptr((void*)(strings + 26924));
+    push_ptr((void*)(strings + 26925));
     mw_2E_();
     mw_2E_name();
-    push_ptr((void*)(strings + 26931));
+    push_ptr((void*)(strings + 26932));
     mw_3B_();
     break;
     case 1LL:
@@ -23325,16 +23412,16 @@ static void mwc99_emit_arrow_op_prim_21_ (void){
     switch (get_top_data_tag()) {
     case 1LL:
     do_pack_uncons(); do_drop();
-    push_ptr((void*)(strings + 26935));
+    push_ptr((void*)(strings + 26936));
     mw_2E_();
     mw_2E_d();
-    push_ptr((void*)(strings + 26951));
+    push_ptr((void*)(strings + 26952));
     mw_3B_();
     mwc99_emit_arg_run_21_();
-    push_ptr((void*)(strings + 26967));
+    push_ptr((void*)(strings + 26968));
     mw_2E_();
     mw_2E_d();
-    push_ptr((void*)(strings + 26986));
+    push_ptr((void*)(strings + 26987));
     mw_3B_();
     break;
     default:
@@ -23349,15 +23436,15 @@ static void mwc99_emit_arrow_op_prim_21_ (void){
     case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
-    push_ptr((void*)(strings + 26991));
+    push_ptr((void*)(strings + 26992));
     mw_3B_();
     { value_t d3 = pop_value();
     mwc99_emit_arg_run_21_();
       push_value(d3); }
-    push_ptr((void*)(strings + 27012));
+    push_ptr((void*)(strings + 27013));
     mw_3B_();
     mwc99_emit_arg_run_21_();
-    push_ptr((void*)(strings + 27025));
+    push_ptr((void*)(strings + 27026));
     mw_3B_();
     break;
     default:
@@ -23372,15 +23459,15 @@ static void mwc99_emit_arrow_op_prim_21_ (void){
     case 2LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
-    push_ptr((void*)(strings + 27031));
+    push_ptr((void*)(strings + 27032));
     mw_3B_();
     { value_t d3 = pop_value();
     mwc99_emit_arg_run_21_();
       push_value(d3); }
-    push_ptr((void*)(strings + 27046));
+    push_ptr((void*)(strings + 27047));
     mw_3B_();
     mwc99_emit_arg_run_21_();
-    push_ptr((void*)(strings + 27073));
+    push_ptr((void*)(strings + 27074));
     mw_3B_();
     break;
     default:
@@ -23399,11 +23486,11 @@ static void mwc99_emit_arrow_op_prim_default_21_ (void){
     { value_t d1 = pop_value();
     mwc99_emit_args_push_21_();
       push_value(d1); }
-    push_ptr((void*)(strings + 27079));
+    push_ptr((void*)(strings + 27080));
     mw_2E_();
     mwprim_name_40_();
     mw_2E_name();
-    push_ptr((void*)(strings + 27086));
+    push_ptr((void*)(strings + 27087));
     mw_3B_();
 }
 
@@ -23444,29 +23531,29 @@ static void mwc99_emit_arg_run_21_ (void){
 }
 
 static void mw_2E_var_val (void){
-    push_ptr((void*)(strings + 27090));
+    push_ptr((void*)(strings + 27091));
     mw_2E_();
     mwvar_name_3F_();
     mw_2E_name();
-    push_ptr((void*)(strings + 27095));
+    push_ptr((void*)(strings + 27096));
     mw_2E_();
     mwVar__3E_Int();
     mw_2E_n();
 }
 
 static void mw_2E_var_ref (void){
-    push_ptr((void*)(strings + 27097));
+    push_ptr((void*)(strings + 27098));
     mw_2E_();
     mwvar_name_3F_();
     mw_2E_name();
-    push_ptr((void*)(strings + 27102));
+    push_ptr((void*)(strings + 27103));
     mw_2E_();
     mwVar__3E_Int();
     mw_2E_n();
 }
 
 static void mwc99_pack_ctx_21_ (void){
-    push_ptr((void*)(strings + 27104));
+    push_ptr((void*)(strings + 27105));
     mw_3B_();
     mwctx_physical_vars();
     push_u64(0);
@@ -23481,7 +23568,7 @@ static void mwc99_unpack_ctx_21_ (void){
     push_fnptr(&mb_mirth_2F_codegen_1423_9);
     do_pack_cons();
     mwreverse_for();
-    push_ptr((void*)(strings + 27212));
+    push_ptr((void*)(strings + 27213));
     mw_3B_();
 }
 
@@ -23500,12 +23587,12 @@ static void mwc99_emit_block_push_21_ (void){
     mwblock_arrow_3F_();
     mwarrow_ctx_40_();
     mwc99_pack_ctx_21_();
-    push_ptr((void*)(strings + 27258));
+    push_ptr((void*)(strings + 27259));
     mw_2E_();
     mw_2E_block();
-    push_ptr((void*)(strings + 27275));
+    push_ptr((void*)(strings + 27276));
     mw_3B_();
-    push_ptr((void*)(strings + 27278));
+    push_ptr((void*)(strings + 27279));
     mw_3B_();
 }
 
@@ -23515,7 +23602,7 @@ static void mwc99_emit_var_21_ (void){
     mwc99_emit_var_push_21_();
       push_value(d1); }
     if (pop_u64()) {
-    push_ptr((void*)(strings + 27298));
+    push_ptr((void*)(strings + 27299));
     mw_3B_();
     } else {
     mwid();
@@ -23523,35 +23610,35 @@ static void mwc99_emit_var_21_ (void){
 }
 
 static void mwc99_emit_var_push_21_ (void){
-    push_ptr((void*)(strings + 27312));
+    push_ptr((void*)(strings + 27313));
     mw_2E_();
     mwdup();
     mw_2E_var_val();
-    push_ptr((void*)(strings + 27328));
+    push_ptr((void*)(strings + 27329));
     mw_3B_();
-    push_ptr((void*)(strings + 27331));
+    push_ptr((void*)(strings + 27332));
     mw_2E_();
     mwdup();
     mw_2E_var_ref();
-    push_ptr((void*)(strings + 27340));
+    push_ptr((void*)(strings + 27341));
     mw_3B_();
-    push_ptr((void*)(strings + 27342));
+    push_ptr((void*)(strings + 27343));
     mw_2E_();
     mwdup();
     mw_2E_var_val();
-    push_ptr((void*)(strings + 27358));
+    push_ptr((void*)(strings + 27359));
     mw_3B_();
-    push_ptr((void*)(strings + 27361));
+    push_ptr((void*)(strings + 27362));
     mw_3B_();
-    push_ptr((void*)(strings + 27370));
+    push_ptr((void*)(strings + 27371));
     mw_2E_();
     mw_2E_var_ref();
-    push_ptr((void*)(strings + 27379));
+    push_ptr((void*)(strings + 27380));
     mw_3B_();
 }
 
 static void mwc99_emit_lambda_21_ (void){
-    push_ptr((void*)(strings + 27388));
+    push_ptr((void*)(strings + 27389));
     mw_3B_();
     mwlambda_params_3F_();
     push_u64(0);
@@ -23565,7 +23652,7 @@ static void mwc99_emit_lambda_21_ (void){
     push_fnptr(&mb_mirth_2F_codegen_1463_9);
     do_pack_cons();
     mwreverse_for();
-    push_ptr((void*)(strings + 27474));
+    push_ptr((void*)(strings + 27475));
     mw_3B_();
 }
 
@@ -23578,7 +23665,7 @@ static void mwc99_emit_match_21_ (void){
     case 0LL:
     do_drop();
     mwmatch_token_40_();
-    push_ptr((void*)(strings + 27480));
+    push_ptr((void*)(strings + 27481));
     mwemit_fatal_error_21_();
     break;
     case 1LL:
@@ -23590,7 +23677,7 @@ static void mwc99_emit_match_21_ (void){
     default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
     } else {
-    push_ptr((void*)(strings + 27537));
+    push_ptr((void*)(strings + 27538));
     mw_3B_();
     mwmatch_cases_3F_();
     push_u64(0);
@@ -23601,10 +23688,10 @@ static void mwc99_emit_match_21_ (void){
     if (pop_u64()) {
     mwid();
     } else {
-    push_ptr((void*)(strings + 27571));
+    push_ptr((void*)(strings + 27572));
     mw_3B_();
     }
-    push_ptr((void*)(strings + 27657));
+    push_ptr((void*)(strings + 27658));
     mw_3B_();
     }
 }
@@ -23614,7 +23701,7 @@ static void mwc99_emit_case_21_ (void){
     mwc99_emit_pattern_21_();
     mwcase_body_40_();
     mwc99_emit_arrow_21_();
-    push_ptr((void*)(strings + 27663));
+    push_ptr((void*)(strings + 27664));
     mw_3B_();
 }
 
@@ -23622,16 +23709,16 @@ static void mwc99_emit_pattern_21_ (void){
     switch (get_top_data_tag()) {
     case 0LL:
     do_drop();
-    push_ptr((void*)(strings + 27674));
+    push_ptr((void*)(strings + 27675));
     mw_3B_();
     break;
     case 1LL:
     do_pack_uncons(); do_drop();
-    push_ptr((void*)(strings + 27687));
+    push_ptr((void*)(strings + 27688));
     mw_2E_();
     mwtag_value_3F_();
     mw_2E_n();
-    push_ptr((void*)(strings + 27697));
+    push_ptr((void*)(strings + 27698));
     mw_3B_();
     mwtag_num_inputs_3F_();
     mwnip();
@@ -23639,21 +23726,21 @@ static void mwc99_emit_pattern_21_ (void){
     push_i64(0LL);
     mw_3E_();
     if (pop_u64()) {
-    push_ptr((void*)(strings + 27701));
+    push_ptr((void*)(strings + 27702));
     mw_3B_();
     while(1) {
     mwdup();
     push_i64(1LL);
     mw_3E_();
     if (!pop_u64()) break;
-    push_ptr((void*)(strings + 27734));
+    push_ptr((void*)(strings + 27735));
     mw_3B_();
     mw1_();
     }
     mwdrop();
     } else {
     mwdrop();
-    push_ptr((void*)(strings + 27767));
+    push_ptr((void*)(strings + 27768));
     mw_3B_();
     }
     break;
@@ -23679,11 +23766,11 @@ static void mwc99_emit_word_sigs_21_ (void){
 }
 
 static void mwc99_emit_word_sig_21_ (void){
-    push_ptr((void*)(strings + 27782));
+    push_ptr((void*)(strings + 27783));
     mw_2E_();
     mwword_name_40_();
     mw_2E_name();
-    push_ptr((void*)(strings + 27798));
+    push_ptr((void*)(strings + 27799));
     mw_3B_();
 }
 
@@ -23705,10 +23792,10 @@ static void mwc99_emit_block_sigs_21_ (void){
 }
 
 static void mwc99_emit_block_sig_21_ (void){
-    push_ptr((void*)(strings + 27807));
+    push_ptr((void*)(strings + 27808));
     mw_2E_();
     mw_2E_block();
-    push_ptr((void*)(strings + 27821));
+    push_ptr((void*)(strings + 27822));
     mw_3B_();
 }
 
@@ -23732,11 +23819,11 @@ static void mwc99_emit_block_defs_21_ (void){
 static void mwc99_emit_block_def_21_ (void){
     mwblock_needed_3F_();
     if (pop_u64()) {
-    push_ptr((void*)(strings + 27830));
+    push_ptr((void*)(strings + 27831));
     mw_2E_();
     mwdup();
     mw_2E_block();
-    push_ptr((void*)(strings + 27843));
+    push_ptr((void*)(strings + 27844));
     mw_3B_();
     mwblock_arrow_40_();
     mwarrow_ctx_3F_();
@@ -23745,7 +23832,7 @@ static void mwc99_emit_block_def_21_ (void){
     mwc99_emit_arrow_21_();
     mwarrow_ctx_40_();
     mwc99_decref_ctx_21_();
-    push_ptr((void*)(strings + 27853));
+    push_ptr((void*)(strings + 27854));
     mw_3B_();
     } else {
     mwdrop();
@@ -23755,17 +23842,17 @@ static void mwc99_emit_block_def_21_ (void){
 static void mw_2E_block (void){
     mwblock_arrow_40_();
     mwarrow_token_40_();
-    push_ptr((void*)(strings + 27855));
+    push_ptr((void*)(strings + 27856));
     mw_2E_();
     mwtoken_module_3F_();
     mwmodule_name_40_();
     mw_2E_name();
-    push_ptr((void*)(strings + 27859));
+    push_ptr((void*)(strings + 27860));
     mw_2E_();
     mwtoken_row_3F_();
     mwRow__3E_Int();
     mw_2E_n();
-    push_ptr((void*)(strings + 27861));
+    push_ptr((void*)(strings + 27862));
     mw_2E_();
     mwtoken_col_40_();
     mwCol__3E_Int();
@@ -23791,25 +23878,25 @@ static void mwc99_emit_word_defs_21_ (void){
 static void mwc99_emit_word_def_21_ (void){
     mwword_name_3F_();
     mw_2E_w();
-    push_ptr((void*)(strings + 27863));
+    push_ptr((void*)(strings + 27864));
     mw_3B_();
     mwword_arrow_40_();
     mwc99_emit_arrow_21_();
-    push_ptr((void*)(strings + 27865));
+    push_ptr((void*)(strings + 27866));
     mw_3B__3B_();
 }
 
 static void mwc99_emit_main_21_ (void){
-    push_ptr((void*)(strings + 27867));
+    push_ptr((void*)(strings + 27868));
     mw_3B_();
-    push_ptr((void*)(strings + 27902));
+    push_ptr((void*)(strings + 27903));
     mw_3B_();
-    push_ptr((void*)(strings + 27926));
+    push_ptr((void*)(strings + 27927));
     mw_3B_();
     mwc99_emit_arrow_21_();
-    push_ptr((void*)(strings + 27950));
+    push_ptr((void*)(strings + 27951));
     mw_3B_();
-    push_ptr((void*)(strings + 27964));
+    push_ptr((void*)(strings + 27965));
     mw_3B_();
 }
 
@@ -23830,7 +23917,7 @@ static void mwtable_new_21_ (void){
     mwtable_max_count_21_();
     mwtable_name_3F_();
     mwname_load_21_();
-    push_ptr((void*)(strings + 30871));
+    push_ptr((void*)(strings + 30880));
     mwstr_buf_push_str_21_();
     mwname_save_21_();
     mwword_alloc_21_();
@@ -23858,7 +23945,7 @@ static void mwtable_new_21_ (void){
     mwword_body_is_checked_21_();
     mwtable_name_3F_();
     mwname_load_21_();
-    push_ptr((void*)(strings + 30876));
+    push_ptr((void*)(strings + 30885));
     mwstr_buf_push_str_21_();
     mwname_save_21_();
     push_i64(8LL);
@@ -23867,7 +23954,7 @@ static void mwtable_new_21_ (void){
     mwtable_num_buffer_21_();
     mwtable_name_3F_();
     mwname_load_21_();
-    push_ptr((void*)(strings + 30881));
+    push_ptr((void*)(strings + 30890));
     mwstr_buf_push_str_21_();
     mwname_save_21_();
     mwword_alloc_21_();
@@ -23933,7 +24020,7 @@ static void mwfield_new_21_ (void){
     mwfield_name_21_();
     mwfield_name_3F_();
     mwname_load_21_();
-    push_ptr((void*)(strings + 30889));
+    push_ptr((void*)(strings + 30898));
     mwstr_buf_push_str_21_();
     mwname_save_21_();
       push_value(d1); }
@@ -23944,7 +24031,7 @@ static void mwfield_new_21_ (void){
     mwfield_buffer_21_();
     mwfield_name_3F_();
     mwname_load_21_();
-    push_ptr((void*)(strings + 30897));
+    push_ptr((void*)(strings + 30906));
     mwstr_buf_push_str_21_();
     mwname_save_21_();
     mwword_alloc_21_();
@@ -23990,7 +24077,7 @@ static void mwfield_new_21_ (void){
     mwfield_word_ptr_21_();
     mwfield_name_3F_();
     mwname_load_21_();
-    push_ptr((void*)(strings + 30899));
+    push_ptr((void*)(strings + 30908));
     mwstr_buf_push_str_21_();
     mwname_save_21_();
     mwword_alloc_21_();
@@ -24030,7 +24117,7 @@ static void mwfield_new_21_ (void){
     mwword_body_is_checked_21_();
     mwfield_name_3F_();
     mwname_load_21_();
-    push_ptr((void*)(strings + 30901));
+    push_ptr((void*)(strings + 30910));
     mwstr_buf_push_str_21_();
     mwname_save_21_();
     mwword_alloc_21_();
@@ -24071,7 +24158,7 @@ static void mwfield_new_21_ (void){
     mwword_body_is_checked_21_();
     mwfield_name_3F_();
     mwname_load_21_();
-    push_ptr((void*)(strings + 30903));
+    push_ptr((void*)(strings + 30912));
     mwstr_buf_push_str_21_();
     mwname_save_21_();
     mwword_alloc_21_();
@@ -24301,7 +24388,7 @@ static void mwelab_type_arg_21_ (void){
     if (pop_u64()) {
     mwid();
     } else {
-    push_ptr((void*)(strings + 29488));
+    push_ptr((void*)(strings + 29497));
     mwemit_fatal_error_21_();
     }
 }
@@ -24331,7 +24418,7 @@ static void mwelab_type_atom_21_ (void){
     mwelab_type_quote_21_();
     } else {
     mwdup();
-    push_ptr((void*)(strings + 29517));
+    push_ptr((void*)(strings + 29526));
     mwemit_error_21_();
     { value_t d6 = pop_value();
     mwTYPE_ERROR();
@@ -24415,7 +24502,7 @@ static void mwelab_type_con_21_ (void){
     } else {
     mwdrop();
     mwdup();
-    push_ptr((void*)(strings + 29551));
+    push_ptr((void*)(strings + 29560));
     mwemit_error_21_();
     mwTYPE_ERROR();
     }
@@ -24423,14 +24510,14 @@ static void mwelab_type_con_21_ (void){
     case 0LL:
     do_drop();
     mwdup();
-    push_ptr((void*)(strings + 29587));
+    push_ptr((void*)(strings + 29596));
     mwemit_error_21_();
     mwTYPE_ERROR();
     break;
     default:
     mwdrop();
     mwdup();
-    push_ptr((void*)(strings + 29601));
+    push_ptr((void*)(strings + 29610));
     mwemit_error_21_();
     mwTYPE_ERROR();
     break;
@@ -24484,7 +24571,7 @@ static void mwelab_type_hole_21_ (void){
     mwtoken_has_args_3F_();
     if (pop_u64()) {
     mwdup();
-    push_ptr((void*)(strings + 29613));
+    push_ptr((void*)(strings + 29622));
     mwemit_error_21_();
     mwTYPE_ERROR();
     } else {
@@ -24494,7 +24581,7 @@ static void mwelab_type_hole_21_ (void){
     mwswap();
     mwtoken_next();
     } else {
-    push_ptr((void*)(strings + 29648));
+    push_ptr((void*)(strings + 29657));
     mwemit_fatal_error_21_();
     }
 }
@@ -24509,7 +24596,7 @@ static void mwelab_type_dont_care_21_ (void){
     mwtoken_has_args_3F_();
     if (pop_u64()) {
     mwdup();
-    push_ptr((void*)(strings + 29680));
+    push_ptr((void*)(strings + 29689));
     mwemit_error_21_();
     mwTYPE_ERROR();
     } else {
@@ -24518,7 +24605,7 @@ static void mwelab_type_dont_care_21_ (void){
     mwswap();
     mwtoken_next();
     } else {
-    push_ptr((void*)(strings + 29715));
+    push_ptr((void*)(strings + 29724));
     mwemit_fatal_error_21_();
     }
 }
@@ -24590,7 +24677,7 @@ static void mwelab_tag_ctx_sig_21_ (void){
     if (pop_u64()) {
     mwdrop();
     } else {
-    push_ptr((void*)(strings + 29751));
+    push_ptr((void*)(strings + 29760));
     mwemit_fatal_error_21_();
     }
     } else {
@@ -24705,7 +24792,7 @@ static void mwelab_word_body_21_ (void){
     mwword_sig_40_();
     mwtoken_prev();
     mwtoken_prev();
-    push_ptr((void*)(strings + 29764));
+    push_ptr((void*)(strings + 29773));
     mwemit_fatal_error_21_();
     }
     }
@@ -24806,7 +24893,7 @@ static void mwelab_arrow_op_21_ (void){
     default:
     mwdrop();
     mwarrow_token_3F_();
-    push_ptr((void*)(strings + 29789));
+    push_ptr((void*)(strings + 29798));
     mwemit_fatal_error_21_();
     break;
     }
@@ -24847,7 +24934,7 @@ static void mwelab_arrow_op_name_21_ (void){
     default:
     mwdrop();
     mwarrow_token_40_();
-    push_ptr((void*)(strings + 29824));
+    push_ptr((void*)(strings + 29833));
     mwemit_error_21_();
     mwTYPE_ERROR();
     break;
@@ -24918,7 +25005,7 @@ static void mwelab_arrow_op_str_21_ (void){
     mwover();
     mwarrow_op_21_();
     mwarrow_dom_40_();
-    mwTYPE_PTR();
+    mwTYPE_STR();
     mwT_2A_();
 }
 
@@ -24997,7 +25084,7 @@ static void mwelab_arrow_op_prim_21_ (void){
     if (pop_u64()) {
     mwdrop();
     mwarrow_token_40_();
-    push_ptr((void*)(strings + 29838));
+    push_ptr((void*)(strings + 29847));
     mwemit_fatal_error_21_();
     } else {
     mwdup2();
@@ -25151,7 +25238,7 @@ static void mwelab_lambda_params_21_ (void){
     mwtuck();
     mwvar_type_21_();
     } else {
-    push_ptr((void*)(strings + 29872));
+    push_ptr((void*)(strings + 29881));
     mwemit_fatal_error_21_();
     }
     }
@@ -25250,7 +25337,7 @@ static void mwelab_match_exhaustive_21_ (void){
     mw_3C_();
     if (pop_u64()) {
     mwmatch_token_3F_();
-    push_ptr((void*)(strings + 29908));
+    push_ptr((void*)(strings + 29917));
     mwemit_error_21_();
     } else {
     mwid();
@@ -25279,7 +25366,7 @@ static void mwelab_match_cases_21_ (void){
     }
     mwdrop();
     } else {
-    push_ptr((void*)(strings + 29938));
+    push_ptr((void*)(strings + 29947));
     mwemit_fatal_error_21_();
     }
 }
@@ -25375,17 +25462,17 @@ static void mwelab_case_pattern_21_ (void){
     break;
     case 0LL:
     do_drop();
-    push_ptr((void*)(strings + 29959));
+    push_ptr((void*)(strings + 29968));
     mwemit_fatal_error_21_();
     break;
     default:
     mwdrop();
-    push_ptr((void*)(strings + 29980));
+    push_ptr((void*)(strings + 29989));
     mwemit_fatal_error_21_();
     break;
     }
     } else {
-    push_ptr((void*)(strings + 29999));
+    push_ptr((void*)(strings + 30008));
     mwemit_fatal_error_21_();
     }
     }
@@ -25443,7 +25530,7 @@ static void mwelab_arrow_op_apply_21_ (void){
     if (pop_u64()) {
     mwover();
     mwarrow_token_40_();
-    push_ptr((void*)(strings + 30026));
+    push_ptr((void*)(strings + 30035));
     mwemit_fatal_error_21_();
     mwdrop2();
     mwTYPE_ERROR();
@@ -25621,7 +25708,7 @@ static void mwelab_module_header_21_ (void){
     mwtoken_next();
     } else {
     mwdup();
-    push_ptr((void*)(strings + 30046));
+    push_ptr((void*)(strings + 30055));
     mwemit_error_21_();
     }
     mwtoken_skip_newlines();
@@ -25635,7 +25722,7 @@ static void mwelab_module_name_21_ (void){
     mwname_defined_3F_();
     if (pop_u64()) {
     mwdrop();
-    push_ptr((void*)(strings + 30070));
+    push_ptr((void*)(strings + 30079));
     mwemit_fatal_error_21_();
     } else {
     { value_t d3 = pop_value();
@@ -25647,21 +25734,22 @@ static void mwelab_module_name_21_ (void){
     mwdup2();
     mwname_module_21_();
     mwname_load_21_();
-    push_ptr((void*)(strings + 30097));
+    push_ptr((void*)(strings + 30106));
     mwstr_buf_push_str_21_();
     mwmodule_path_40_();
     mwPath__3E_Str();
     mwSTR_BUF();
+    mwPtr__3E_Str();
     mwstr_eq();
     if (pop_u64()) {
     mwdrop();
     } else {
-    push_ptr((void*)(strings + 30102));
+    push_ptr((void*)(strings + 30111));
     mwemit_error_21_();
     }
     }
     } else {
-    push_ptr((void*)(strings + 30133));
+    push_ptr((void*)(strings + 30142));
     mwemit_fatal_error_21_();
     }
 }
@@ -25694,9 +25782,10 @@ static void mwelab_module_import_21_ (void){
     case 0LL:
     do_drop();
     mwname_load_21_();
-    push_ptr((void*)(strings + 30155));
+    push_ptr((void*)(strings + 30164));
     mwstr_buf_push_str_21_();
     mwSTR_BUF();
+    mwPtr__3E_Str();
     mwStr__3E_Path();
     mwrun_lexer_21_();
     mwelab_module_21_();
@@ -25704,14 +25793,14 @@ static void mwelab_module_import_21_ (void){
     break;
     default:
     mwdrop2();
-    push_ptr((void*)(strings + 30160));
+    push_ptr((void*)(strings + 30169));
     mwemit_fatal_error_21_();
     break;
     }
     break;
     default:
     mwdrop();
-    push_ptr((void*)(strings + 30186));
+    push_ptr((void*)(strings + 30195));
     mwemit_fatal_error_21_();
     break;
     }
@@ -25776,7 +25865,7 @@ static void mwelab_module_decl_21_ (void){
     if (pop_u64()) {
     mwelab_decl_word_def_21_();
     } else {
-    push_ptr((void*)(strings + 30207));
+    push_ptr((void*)(strings + 30216));
     mwemit_fatal_error_21_();
     }
     }
@@ -25827,12 +25916,12 @@ static void mwelab_data_header_21_ (void){
     mwname_type_21_();
     } else {
     mwdrop();
-    push_ptr((void*)(strings + 30227));
+    push_ptr((void*)(strings + 30236));
     mwemit_fatal_error_21_();
     }
     } else {
     mwdrop2();
-    push_ptr((void*)(strings + 30249));
+    push_ptr((void*)(strings + 30258));
     mwemit_fatal_error_21_();
     }
     mwtoken_has_args_3F_();
@@ -25862,7 +25951,7 @@ static void mwelab_data_tags_21_ (void){
     mwexpect_token_rparen();
     mwtoken_succ();
     } else {
-    push_ptr((void*)(strings + 30269));
+    push_ptr((void*)(strings + 30278));
     mwemit_fatal_error_21_();
     }
     }
@@ -25883,7 +25972,7 @@ static void mwexpect_token_comma (void){
     if (pop_u64()) {
     mwid();
     } else {
-    push_ptr((void*)(strings + 30306));
+    push_ptr((void*)(strings + 30315));
     mwemit_fatal_error_21_();
     }
 }
@@ -25893,7 +25982,7 @@ static void mwexpect_token_rparen (void){
     if (pop_u64()) {
     mwid();
     } else {
-    push_ptr((void*)(strings + 30322));
+    push_ptr((void*)(strings + 30331));
     mwemit_fatal_error_21_();
     }
 }
@@ -25903,7 +25992,7 @@ static void mwexpect_token_newline (void){
     if (pop_u64()) {
     mwid();
     } else {
-    push_ptr((void*)(strings + 30350));
+    push_ptr((void*)(strings + 30359));
     mwemit_fatal_error_21_();
     }
 }
@@ -25914,7 +26003,7 @@ static void mwexpect_token_end (void){
     if (pop_u64()) {
     mwid();
     } else {
-    push_ptr((void*)(strings + 30368));
+    push_ptr((void*)(strings + 30377));
     mwemit_fatal_error_21_();
     }
 }
@@ -25924,7 +26013,7 @@ static void mwexpect_token_arrow (void){
     if (pop_u64()) {
     mwid();
     } else {
-    push_ptr((void*)(strings + 30383));
+    push_ptr((void*)(strings + 30392));
     mwemit_fatal_error_21_();
     }
 }
@@ -25962,7 +26051,7 @@ static void mwelab_data_tag_21_ (void){
     mwtag_name_21_();
     } else {
     mwdrop();
-    push_ptr((void*)(strings + 30399));
+    push_ptr((void*)(strings + 30408));
     mwemit_fatal_error_21_();
     }
     { value_t d2 = pop_value();
@@ -25999,12 +26088,12 @@ static void mwelab_data_tag_21_ (void){
     if (pop_u64()) {
     mwnip();
     } else {
-    push_ptr((void*)(strings + 30459));
+    push_ptr((void*)(strings + 30468));
     mwemit_fatal_error_21_();
     }
     }
     } else {
-    push_ptr((void*)(strings + 30507));
+    push_ptr((void*)(strings + 30516));
     mwemit_fatal_error_21_();
     }
     mwtoken_is_comma_3F_();
@@ -26044,11 +26133,11 @@ static void mwelab_def_21_ (void){
     mwword_sig_21_();
     } else {
     mwdrop();
-    push_ptr((void*)(strings + 30534));
+    push_ptr((void*)(strings + 30543));
     mwemit_fatal_error_21_();
     }
     } else {
-    push_ptr((void*)(strings + 30555));
+    push_ptr((void*)(strings + 30564));
     mwemit_fatal_error_21_();
     }
 }
@@ -26078,7 +26167,7 @@ static void mwelab_decl_word_sig_21_ (void){
     mwtoken_skip_newlines();
     } else {
     mwdrop();
-    push_ptr((void*)(strings + 30574));
+    push_ptr((void*)(strings + 30583));
     mwemit_fatal_error_21_();
     }
 }
@@ -26092,7 +26181,7 @@ static void mwelab_decl_word_def_21_ (void){
     mwword_has_body_3F_();
     if (pop_u64()) {
     mwdrop();
-    push_ptr((void*)(strings + 30595));
+    push_ptr((void*)(strings + 30604));
     mwemit_fatal_error_21_();
     } else {
     { value_t d3 = pop_value();
@@ -26118,12 +26207,12 @@ static void mwelab_decl_word_def_21_ (void){
     break;
     case 0LL:
     do_drop();
-    push_ptr((void*)(strings + 30616));
+    push_ptr((void*)(strings + 30625));
     mwemit_fatal_error_21_();
     break;
     default:
     mwdrop();
-    push_ptr((void*)(strings + 30639));
+    push_ptr((void*)(strings + 30648));
     mwemit_fatal_error_21_();
     break;
     }
@@ -26151,11 +26240,11 @@ static void mwelab_def_external_21_ (void){
     mwexternal_sig_21_();
     } else {
     mwdrop();
-    push_ptr((void*)(strings + 30672));
+    push_ptr((void*)(strings + 30681));
     mwemit_fatal_error_21_();
     }
     } else {
-    push_ptr((void*)(strings + 30693));
+    push_ptr((void*)(strings + 30702));
     mwemit_fatal_error_21_();
     }
 }
@@ -26179,11 +26268,11 @@ static void mwelab_def_type_21_ (void){
     mwname_type_21_();
     } else {
     mwdrop();
-    push_ptr((void*)(strings + 30712));
+    push_ptr((void*)(strings + 30721));
     mwemit_fatal_error_21_();
     }
     } else {
-    push_ptr((void*)(strings + 30733));
+    push_ptr((void*)(strings + 30742));
     mwemit_fatal_error_21_();
     }
 }
@@ -26207,11 +26296,11 @@ static void mwelab_buffer_21_ (void){
     mwdrop();
     } else {
     mwdrop();
-    push_ptr((void*)(strings + 30759));
+    push_ptr((void*)(strings + 30768));
     mwemit_fatal_error_21_();
     }
     } else {
-    push_ptr((void*)(strings + 30782));
+    push_ptr((void*)(strings + 30791));
     mwemit_fatal_error_21_();
     }
 }
@@ -26228,7 +26317,7 @@ static void mwelab_table_21_ (void){
     mwtable_new_21_();
     mwdrop();
     } else {
-    push_ptr((void*)(strings + 30803));
+    push_ptr((void*)(strings + 30812));
     mwemit_fatal_error_21_();
     }
 }
@@ -26253,7 +26342,7 @@ static void mwelab_field_21_ (void){
     case 0LL:
     do_drop();
     mwdrop();
-    push_ptr((void*)(strings + 30823));
+    push_ptr((void*)(strings + 30832));
     mwemit_fatal_error_21_();
     break;
     case 1LL:
@@ -26271,7 +26360,7 @@ static void mwelab_field_21_ (void){
     break;
     default:
     mwdrop();
-    push_ptr((void*)(strings + 30851));
+    push_ptr((void*)(strings + 30860));
     mwemit_fatal_error_21_();
     break;
     }
@@ -26400,6 +26489,7 @@ static void mwmain (void){
     push_i64(1LL);
     mwargv();
     mwptr_40__40_();
+    mwPtr__3E_Str();
     mwStr__3E_Path();
     mwcompile_21_();
     } else {
@@ -26408,34 +26498,45 @@ static void mwmain (void){
     }
 }
 
-static void mb_prelude_442_18 (void) {
+static void mb_prelude_86_43 (void) {
     do_drop();
+    mwStr__3E_Ptr();
+}
+static void mb_prelude_446_20 (void) {
+    do_drop();
+    mwstr_numbytes();
+    mw_2B_();
+    mw1_();
+}
+static void mb_prelude_448_18 (void) {
+    do_drop();
+    mwswap();
     mwstr_copy_partial_21_();
 }
-static void mb_prelude_545_10 (void) {
+static void mb_prelude_565_10 (void) {
     do_drop();
     mwstr_buf_u8_40_();
 }
-static void mb_prelude_1021_31 (void) {
+static void mb_prelude_1041_31 (void) {
     do_drop();
     mwfirst_2B_();
 }
-static void mb_prelude_1024_30 (void) {
+static void mb_prelude_1044_30 (void) {
     do_drop();
     mwlast_2B_();
 }
-static void mb_prelude_1027_32 (void) {
+static void mb_prelude_1047_32 (void) {
     do_drop();
     mwmiddle_2B_();
 }
-static void mb_prelude_1066_18 (void) {
+static void mb_prelude_1086_18 (void) {
     do_drop();
     mwList_2B___3E_List();
     mwtrace_list_struc_21_();
     push_ptr((void*)(strings + 315));
     mwstr_trace_21_();
 }
-static void mb_prelude_1163_41 (void) {
+static void mb_prelude_1183_41 (void) {
     do_pack_uncons();
     value_t var_g_598 = pop_value();
     bool ref_g_598 = false;
@@ -26449,7 +26550,7 @@ static void mb_prelude_1163_41 (void) {
     if (!ref_g_598)
         decref(var_g_598);
 }
-static void mb_prelude_1197_44 (void) {
+static void mb_prelude_1217_44 (void) {
     do_pack_uncons();
     value_t var_f_614 = pop_value();
     bool ref_f_614 = false;
@@ -26463,7 +26564,7 @@ static void mb_prelude_1197_44 (void) {
     if (!ref_f_614)
         decref(var_f_614);
 }
-static void mb_prelude_1200_22 (void) {
+static void mb_prelude_1220_22 (void) {
     do_pack_uncons();
     value_t var_f_614 = pop_value();
     bool ref_f_614 = false;
@@ -26477,15 +26578,15 @@ static void mb_prelude_1200_22 (void) {
     if (!ref_f_614)
         decref(var_f_614);
 }
-static void mb_prelude_1310_41 (void) {
+static void mb_prelude_1330_41 (void) {
     do_drop();
     mwBAG_2B_();
 }
-static void mb_prelude_1615_23 (void) {
+static void mb_prelude_1635_23 (void) {
     do_drop();
     mw_2E_0();
 }
-static void mb_prelude_1618_25 (void) {
+static void mb_prelude_1638_25 (void) {
     do_drop();
     mw_2E_1();
 }
@@ -26499,23 +26600,23 @@ static void mb_mirth_2F_lexer_360_18 (void) {
     mwdrop();
     push_i64(-1LL);
 }
-static void mb_mirth_2F_data_2F_type_93_10 (void) {
+static void mb_mirth_2F_data_2F_type_95_10 (void) {
     do_drop();
     mwgamma_token_3F_();
     mwtoken_location();
     mwlocation_trace_21_();
 }
-static void mb_mirth_2F_data_2F_type_613_33 (void) {
+static void mb_mirth_2F_data_2F_type_616_33 (void) {
     do_drop();
     mwtag_num_inputs_3F_();
     push_i64(0LL);
     mw_3D__3D_();
 }
-static void mb_mirth_2F_data_2F_type_690_31 (void) {
+static void mb_mirth_2F_data_2F_type_693_31 (void) {
     do_drop();
     mwcase_is_default_case_3F_();
 }
-static void mb_mirth_2F_data_2F_type_659_9 (void) {
+static void mb_mirth_2F_data_2F_type_662_9 (void) {
     do_drop();
     mwtype_head();
     switch (get_top_data_tag()) {
@@ -26529,7 +26630,7 @@ static void mb_mirth_2F_data_2F_type_659_9 (void) {
     break;
     }
 }
-static void mb_mirth_2F_data_2F_type_680_29 (void) {
+static void mb_mirth_2F_data_2F_type_683_29 (void) {
     do_drop();
     mwcase_is_covered_3F_();
 }
@@ -26568,66 +26669,66 @@ static void mb_mirth_2F_codegen_1478_26 (void) {
 }
 static void mb_mirth_2F_codegen_1458_9 (void) {
     do_drop();
-    push_ptr((void*)(strings + 27394));
+    push_ptr((void*)(strings + 27395));
     mw_2E_();
     mwdup();
     mw_2E_var_val();
-    push_ptr((void*)(strings + 27407));
+    push_ptr((void*)(strings + 27408));
     mw_3B_();
-    push_ptr((void*)(strings + 27423));
+    push_ptr((void*)(strings + 27424));
     mw_2E_();
     mw_2E_var_ref();
-    push_ptr((void*)(strings + 27433));
+    push_ptr((void*)(strings + 27434));
     mw_3B_();
 }
 static void mb_mirth_2F_codegen_1463_9 (void) {
     do_drop();
-    push_ptr((void*)(strings + 27443));
+    push_ptr((void*)(strings + 27444));
     mw_2E_();
     mwdup();
     mw_2E_var_ref();
-    push_ptr((void*)(strings + 27453));
+    push_ptr((void*)(strings + 27454));
     mw_3B_();
-    push_ptr((void*)(strings + 27455));
+    push_ptr((void*)(strings + 27456));
     mw_2E_();
     mw_2E_var_val();
-    push_ptr((void*)(strings + 27471));
+    push_ptr((void*)(strings + 27472));
     mw_3B_();
 }
 static void mb_mirth_2F_codegen_1417_9 (void) {
     do_drop();
     mwc99_emit_var_push_21_();
-    push_ptr((void*)(strings + 27121));
+    push_ptr((void*)(strings + 27122));
     mw_3B_();
 }
 static void mb_mirth_2F_codegen_1423_9 (void) {
     do_drop();
-    push_ptr((void*)(strings + 27141));
+    push_ptr((void*)(strings + 27142));
     mw_3B_();
-    push_ptr((void*)(strings + 27163));
+    push_ptr((void*)(strings + 27164));
     mw_2E_();
     mwdup();
     mw_2E_var_val();
-    push_ptr((void*)(strings + 27176));
+    push_ptr((void*)(strings + 27177));
     mw_3B_();
-    push_ptr((void*)(strings + 27192));
+    push_ptr((void*)(strings + 27193));
     mw_2E_();
     mw_2E_var_ref();
-    push_ptr((void*)(strings + 27202));
+    push_ptr((void*)(strings + 27203));
     mw_3B_();
 }
 static void mb_mirth_2F_codegen_1432_9 (void) {
     do_drop();
-    push_ptr((void*)(strings + 27227));
+    push_ptr((void*)(strings + 27228));
     mw_2E_();
     mwdup();
     mw_2E_var_ref();
-    push_ptr((void*)(strings + 27237));
+    push_ptr((void*)(strings + 27238));
     mw_3B_();
-    push_ptr((void*)(strings + 27239));
+    push_ptr((void*)(strings + 27240));
     mw_2E_();
     mw_2E_var_val();
-    push_ptr((void*)(strings + 27255));
+    push_ptr((void*)(strings + 27256));
     mw_3B_();
 }
 static void mb_mirth_2F_elab_82_10 (void) {

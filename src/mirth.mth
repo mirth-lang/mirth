@@ -52,7 +52,7 @@ def(main, +IO,
     # ) drop
 
     1 argc < if(
-        1 argv ptr@@ Str->Path compile!,
+        1 argv ptr@@ Ptr->Str Str->Path compile!,
         "Expected at least one argument" panic!)
 
 

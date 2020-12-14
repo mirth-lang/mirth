@@ -10,10 +10,10 @@ Path->Str : Path -- Str
 Path->Str = match(PATH -> id)
 
 path@ : Ptr -- Path
-path@ = ptr@ Str->Path
+path@ = ptr@ Ptr->Str Str->Path
 
 path! : Path Ptr --
-path! = dip(Path->Str) ptr!
+path! = dip(Path->Str Str->Ptr) ptr!
 
 init-paths! : --
 init-paths! = (

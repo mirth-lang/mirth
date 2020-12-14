@@ -83,7 +83,7 @@ def(argv, Ptr, prim.sys.argv)
 
 def(posix-read!, Int Ptr Int -- Int, prim.posix.read)
 def(posix-write!, Int Ptr Int -- Int, prim.posix.write)
-def(posix-open!, Ptr Int Int -- Int, prim.posix.open)
+def(posix-open!, Str Int Int -- Int, dip2(Str->Ptr) prim.posix.open)
 def(posix-close!, Int -- Int, prim.posix.close)
 def(posix-exit!, *a Int -- *b, prim.posix.exit)
 def(posix-mmap!, Ptr Int Int Int Int Int -- Ptr, prim.posix.mmap)
@@ -204,9 +204,14 @@ rot8l = \(y x1 x2 x3 x4 x5 x6 x7 -> x1 x2 x3 x4 x5 x6 x7 y)
 
 def-type(Byte, U8)
 def-type(Char, U8)
-def-type(Str, Ptr)
 def-type(Size, Int)
 def-type(Offset, Int)
+
+Str->Ptr : Str -- Ptr
+Str->Ptr = cast
+
+Ptr->Str : Ptr -- Str
+Ptr->Str = cast
 
 Int->Ptr : Int -- Ptr
 Int->Ptr = cast
@@ -417,53 +422,65 @@ abs = dup 0< if(negate, id)
 
 # TODO: UTF8 support
 str-head : Str -- U8
-str-head = u8@
+str-head = Str->Ptr u8@
 
 # TODO: UTF8 support
 str-tail : Str -- Str
-str-tail = 1 swap ptr+
+str-tail = Str->Ptr 1 swap ptr+ Ptr->Str
 
 str-numbytes : Str -- Int
-str-numbytes = prim.ptr.numbytes
+str-numbytes = Str->Ptr prim.ptr.numbytes
 
 str-length : Str -- Int
 str-length =
     0 swap while(
-        str-null? not,
+        str-is-empty? not,
         dip(1+) str-tail
     ) drop
 
 str-length? : Str -- Str Int
 str-length? = dup str-length
 
+str-concat : List(Str) -- Str
+str-concat = (
+    dup 1 swap for(str-numbytes + 1-) prim.ptr.alloc
+    dup dip(
+        swap for(swap str-copy-partial!)
+        nil swap u8!
+    ) Ptr->Str
+)
+
 str-cat : Str Str -- Str
-str-cat = (
-    over str-numbytes over str-numbytes + 1- prim.ptr.alloc
-    dup dip(dip'(str-copy-partial!) str-copy!)
-)
+str-cat = L2 str-concat
 
-str-null : Str -- Bool
-str-null = u8@ U8->Int 0=
+str-is-empty : Str -- Bool
+str-is-empty = is-nil? if(drop true, str-head is-nil)
 
-str-null? : Str -- Str Bool
-str-null? = dup str-null
+str-is-empty? : Str -- Str Bool
+str-is-empty? = dup str-is-empty
 
-str-copy! : Str Str --
-str-copy! = (
+||| Copy first argument to second argument until a zero byte
+||| is reached in first argument. Return first unwritten
+||| location in second argument.
+ptr-copy-nonzero! : Ptr Ptr -- Ptr
+ptr-copy-nonzero! = (
     while( over u8@ U8->Int nonzero,
         over u8@ over u8!
-        dip(str-tail) str-tail
-    )
-    dip(drop 0 Int->U8) u8!
-)
-
-str-copy-partial! : Str Str -- Str
-str-copy-partial! = (
-    while( over u8@ U8->Int nonzero,
-        over u8@ over u8!
-        dip(str-tail) str-tail
-    )
+        dip(1 swap ptr+) 1 swap ptr+)
     nip
+)
+
+||| Copy string bytes to second argument without adding 0 at end.
+||| Return first unwritten location in second argument.
+str-copy-partial! : Str Ptr -- Ptr
+str-copy-partial! = dip(Str->Ptr) ptr-copy-nonzero!
+
+||| Copy string to second argument, and add the 0 byte at the end.
+str-copy! : Str Ptr --
+str-copy! = (
+    dip(Str->Ptr)
+    ptr-copy-nonzero!
+    nil swap u8!
 )
 
 STR_BUF_SIZE : Int
@@ -506,11 +523,14 @@ str-buf-push! =
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
 str-buf-push-str! : Str -- +StrBuf
-str-buf-push-str! =
+str-buf-push-str! = Str->Ptr str-buf-push-ptr!
+
+str-buf-push-ptr! : Ptr -- +StrBuf
+str-buf-push-ptr! =
     while(
         str-buf-full? if(false, dup u8@ U8->Int nonzero),
         dup u8@ str-buf-push!
-        str-tail
+        1 swap ptr+
     ) drop
 
 ||| Set the STR_BUF to a given string. If the string is
@@ -561,8 +581,8 @@ str-buf-reverse! = (
 ||| Are two strings equal?
 str-eq : Str Str -- Bool
 str-eq =
-    str-null? if(
-        drop str-null,
+    str-is-empty? if(
+        drop str-is-empty,
         dup2 str-head swap str-head == if(
             str-tail swap str-tail str-eq,
             drop2 false
@@ -1650,7 +1670,7 @@ stderr = 2 Int->File
 str-write! : Str File -- +IO
 str-write! = (
     File->Int swap dup str-length dup
-    dip(posix-write!) swap
+    dip(dip(Str->Ptr) posix-write!) swap
     dup 0 < if(
         "error: write failed!" panic!,
         swap < if(
