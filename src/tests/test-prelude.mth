@@ -193,6 +193,8 @@ def(test-str, --,
     "" str-length 0 !!=
     "hello" str-length 5 !!=
     "hello, world!" str-length 13 !!=
+    "hello, " "world!" str-cat str-length int-trace! "\n" str-trace!
+    "hello, " "world!\n" str-cat str-trace!
     )
 
 def(test-while, --,
@@ -254,3 +256,5 @@ def(test-dup2, -- Int Str Int Str,
     10 "hello" dup2)
 
 target-c99("prelude-test.c", test-prelude!)
+# mirth-test # perr # 13
+# mirth-test # perr # hello, world!

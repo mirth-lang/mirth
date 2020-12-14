@@ -423,12 +423,24 @@ str-head = u8@
 str-tail : Str -- Str
 str-tail = 1 swap ptr+
 
+str-numbytes : Str -- Int
+str-numbytes = prim.ptr.numbytes
+
 str-length : Str -- Int
 str-length =
     0 swap while(
         str-null? not,
         dip(1+) str-tail
     ) drop
+
+str-length? : Str -- Str Int
+str-length? = dup str-length
+
+str-cat : Str Str -- Str
+str-cat = (
+    over str-numbytes over str-numbytes + 1- prim.ptr.alloc
+    dup dip(dip'(str-copy-partial!) str-copy!)
+)
 
 str-null : Str -- Bool
 str-null = u8@ U8->Int 0=
@@ -443,6 +455,15 @@ str-copy! = (
         dip(str-tail) str-tail
     )
     dip(drop 0 Int->U8) u8!
+)
+
+str-copy-partial! : Str Str -- Str
+str-copy-partial! = (
+    while( over u8@ U8->Int nonzero,
+        over u8@ over u8!
+        dip(str-tail) str-tail
+    )
+    nip
 )
 
 STR_BUF_SIZE : Int
