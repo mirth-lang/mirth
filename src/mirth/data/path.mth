@@ -10,15 +10,15 @@ Path->Str : Path -- Str
 Path->Str = match(PATH -> id)
 
 path@ : Ptr -- Path
-path@ = ptr@ Str->Path
+path@ = ptr@ Ptr->Str Str->Path
 
 path! : Path Ptr --
-path! = dip(Path->Str) ptr!
+path! = dip(Path->Str Str->Ptr) ptr!
 
 init-paths! : --
 init-paths! = (
-    "src" Str->Path source-path-root!
-    "bin" Str->Path output-path-root!
+    "src" caststr Str->Path source-path-root!
+    "bin" caststr Str->Path output-path-root!
 )
 
 buffer(SOURCE_PATH_ROOT, 8)
@@ -38,7 +38,7 @@ output-path-root! : Path --
 output-path-root! = OUTPUT_PATH_ROOT path!
 
 path-separator : Str
-path-separator = RUNNING_OS OS_WINDOWS == if("\\", "/")
+path-separator = RUNNING_OS OS_WINDOWS == if("\\", "/") caststr
 
 ||| Load a path into STR_BUF. If the path is null,
 ||| clears STR_BUF instead.

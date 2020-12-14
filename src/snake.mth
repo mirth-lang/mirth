@@ -187,7 +187,7 @@ def(snake-init!, +Snake,
     snake-reset!
 
     SNAKE_INIT_FLAGS SDL_Init nonzero if(
-        SDL_GetError panic!,
+        SDL_GetError cast panic!,
         id
     )
 
@@ -208,7 +208,7 @@ def(snake-init!, +Snake,
     SDL_CreateWindow
     dup Ptr->Int nonzero if(
         snake-window!,
-        SDL_GetError panic!
+        SDL_GetError cast panic!
     )
 
     snake-window@
@@ -217,7 +217,7 @@ def(snake-init!, +Snake,
     SDL_CreateRenderer
     dup Ptr->Int nonzero if(
         snake-renderer!,
-        SDL_GetError panic!
+        SDL_GetError cast panic!
     ))
 
 def(snake-loop!, +Snake,
@@ -350,7 +350,7 @@ def(snake-press!, SnakeButton -- +Snake,
             id
         ),
 
-        drop "Unhandled button press!" panic!
+        drop "Unhandled button press!" caststr panic!
     )))))))
 
 buffer(TICK_TIMER, 8)
@@ -438,7 +438,7 @@ def(snake-apply-direction, XCoord YCoord Direction -- XCoord YCoord,
     dup DWEST == if(
         drop dip(XCoord->Int 1- SNAKE_W + SNAKE_W % Int->XCoord),
 
-        "unknown direction in snake-apply-direction" panic!
+        "unknown direction in snake-apply-direction" caststr panic!
     )))))
 
 target-c99("snake.c", snake!)

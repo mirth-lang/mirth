@@ -83,7 +83,7 @@ def(argv, Ptr, prim.sys.argv)
 
 def(posix-read!, Int Ptr Int -- Int, prim.posix.read)
 def(posix-write!, Int Ptr Int -- Int, prim.posix.write)
-def(posix-open!, Ptr Int Int -- Int, prim.posix.open)
+def(posix-open!, Str Int Int -- Int, dip2(Str->Ptr) prim.posix.open)
 def(posix-close!, Int -- Int, prim.posix.close)
 def(posix-exit!, *a Int -- *b, prim.posix.exit)
 def(posix-mmap!, Ptr Int Int Int Int Int -- Ptr, prim.posix.mmap)
@@ -204,9 +204,21 @@ rot8l = \(y x1 x2 x3 x4 x5 x6 x7 -> x1 x2 x3 x4 x5 x6 x7 y)
 
 def-type(Byte, U8)
 def-type(Char, U8)
-def-type(Str, Ptr)
 def-type(Size, Int)
 def-type(Offset, Int)
+
+data Str
+    STR -> Ptr
+end
+
+caststr : Ptr -- Str
+caststr = cast
+
+Str->Ptr : Str -- Ptr
+Str->Ptr = cast
+
+Ptr->Str : Ptr -- Str
+Ptr->Str = cast
 
 Int->Ptr : Int -- Ptr
 Int->Ptr = cast
@@ -337,21 +349,21 @@ Int->U8 : Int -- U8
 Int->U8 =
     dup U8_MIN U8_MAX in-range if(
         cast,
-        "Int->U8 failed: out of bounds" panic!
+        "Int->U8 failed: out of bounds" caststr panic!
     )
 
 Int->U16 : Int -- U16
 Int->U16 =
     dup U16_MIN U16_MAX in-range if(
         cast,
-        "Int->U16 failed: out of bounds" panic!
+        "Int->U16 failed: out of bounds" caststr panic!
     )
 
 Int->U32 : Int -- U32
 Int->U32 =
     dup U32_MIN U32_MAX in-range if(
         cast,
-        "Int->U32 failed: out of bounds" panic!
+        "Int->U32 failed: out of bounds" caststr panic!
     )
 
 Int->U64 : Int -- U64
@@ -361,21 +373,21 @@ Int->I8 : Int -- I8
 Int->I8 =
     dup I8_MIN I8_MAX in-range if(
         cast,
-        "Int->I8 failed: out of bounds" panic!
+        "Int->I8 failed: out of bounds" caststr panic!
     )
 
 Int->I16 : Int -- I16
 Int->I16 =
     dup I16_MIN I16_MAX in-range if(
         cast,
-        "Int->I16 failed: out of bounds" panic!
+        "Int->I16 failed: out of bounds" caststr panic!
     )
 
 Int->I32 : Int -- I32
 Int->I32 =
     dup I32_MIN I32_MAX in-range if(
         cast,
-        "Int->I32 failed: out of bounds" panic!
+        "Int->I32 failed: out of bounds" caststr panic!
     )
 
 Int->I64 : Int -- I64
@@ -417,53 +429,65 @@ abs = dup 0< if(negate, id)
 
 # TODO: UTF8 support
 str-head : Str -- U8
-str-head = u8@
+str-head = Str->Ptr u8@
 
 # TODO: UTF8 support
 str-tail : Str -- Str
-str-tail = 1 swap ptr+
+str-tail = Str->Ptr 1 swap ptr+ Ptr->Str
 
 str-numbytes : Str -- Int
-str-numbytes = prim.ptr.numbytes
+str-numbytes = Str->Ptr prim.ptr.numbytes
 
 str-length : Str -- Int
 str-length =
     0 swap while(
-        str-null? not,
+        str-is-empty? not,
         dip(1+) str-tail
     ) drop
 
 str-length? : Str -- Str Int
 str-length? = dup str-length
 
+str-concat : List(Str) -- Str
+str-concat = (
+    dup 1 swap for(str-numbytes + 1-) prim.ptr.alloc
+    dup dip(
+        swap for(swap str-copy-partial!)
+        nil swap u8!
+    ) Ptr->Str
+)
+
 str-cat : Str Str -- Str
-str-cat = (
-    over str-numbytes over str-numbytes + 1- prim.ptr.alloc
-    dup dip(dip'(str-copy-partial!) str-copy!)
-)
+str-cat = L2 str-concat
 
-str-null : Str -- Bool
-str-null = u8@ U8->Int 0=
+str-is-empty : Str -- Bool
+str-is-empty = is-nil? if(drop true, str-head is-nil)
 
-str-null? : Str -- Str Bool
-str-null? = dup str-null
+str-is-empty? : Str -- Str Bool
+str-is-empty? = dup str-is-empty
 
-str-copy! : Str Str --
-str-copy! = (
+||| Copy first argument to second argument until a zero byte
+||| is reached in first argument. Return first unwritten
+||| location in second argument.
+ptr-copy-nonzero! : Ptr Ptr -- Ptr
+ptr-copy-nonzero! = (
     while( over u8@ U8->Int nonzero,
         over u8@ over u8!
-        dip(str-tail) str-tail
-    )
-    dip(drop 0 Int->U8) u8!
-)
-
-str-copy-partial! : Str Str -- Str
-str-copy-partial! = (
-    while( over u8@ U8->Int nonzero,
-        over u8@ over u8!
-        dip(str-tail) str-tail
-    )
+        dip(1 swap ptr+) 1 swap ptr+)
     nip
+)
+
+||| Copy string bytes to second argument without adding 0 at end.
+||| Return first unwritten location in second argument.
+str-copy-partial! : Str Ptr -- Ptr
+str-copy-partial! = dip(Str->Ptr) ptr-copy-nonzero!
+
+||| Copy string to second argument, and add the 0 byte at the end.
+str-copy! : Str Ptr --
+str-copy! = (
+    dip(Str->Ptr)
+    ptr-copy-nonzero!
+    nil swap u8!
 )
 
 STR_BUF_SIZE : Int
@@ -498,7 +522,7 @@ str-buf-clear! = 0 str-buf-length!
 str-buf-push! : U8 -- +StrBuf
 str-buf-push! =
     str-buf-full? if(
-        "str-buf-push! but STR_BUF is already full" panic!,
+        "str-buf-push! but STR_BUF is already full" caststr panic!,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     )
@@ -506,11 +530,14 @@ str-buf-push! =
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
 str-buf-push-str! : Str -- +StrBuf
-str-buf-push-str! =
+str-buf-push-str! = Str->Ptr str-buf-push-ptr!
+
+str-buf-push-ptr! : Ptr -- +StrBuf
+str-buf-push-ptr! =
     while(
         str-buf-full? if(false, dup u8@ U8->Int nonzero),
         dup u8@ str-buf-push!
-        str-tail
+        1 swap ptr+
     ) drop
 
 ||| Set the STR_BUF to a given string. If the string is
@@ -529,7 +556,7 @@ to-digit = 10 % 48 + Int->U8
 str-buf-int! : Int -- +StrBuf
 str-buf-int! =
     dup 0= if(
-        drop "0" str-buf!,
+        drop "0" caststr str-buf!,
         dup dip(
             abs
             str-buf-clear!
@@ -561,8 +588,8 @@ str-buf-reverse! = (
 ||| Are two strings equal?
 str-eq : Str Str -- Bool
 str-eq =
-    str-null? if(
-        drop str-null,
+    str-is-empty? if(
+        drop str-is-empty,
         dup2 str-head swap str-head == if(
             str-tail swap str-tail str-eq,
             drop2 false
@@ -1058,14 +1085,14 @@ middle+ =
 trace-list-struc! : List(t) -- +IO
 trace-list-struc! =
     match(
-        L0 -> "L0" str-trace!,
-        L1 -> drop "L1" str-trace!,
-        L2 -> drop2 "L2" str-trace!,
-        L3 -> drop3 "L3" str-trace!,
+        L0 -> "L0" caststr str-trace!,
+        L1 -> drop "L1" caststr str-trace!,
+        L2 -> drop2 "L2" caststr str-trace!,
+        L3 -> drop3 "L3" caststr str-trace!,
         LCAT ->
-            dip2(List+->List trace-list-struc! " " str-trace!)
-            dip(List+->List trace-list-struc! " " str-trace!)
-            int-trace! " LCAT" str-trace!
+            dip2(List+->List trace-list-struc! " " caststr str-trace!)
+            dip(List+->List trace-list-struc! " " caststr str-trace!)
+            int-trace! " LCAT" caststr str-trace!
     )
 
 ||| Reverse the list.
@@ -1622,7 +1649,7 @@ map-values = map-pairs [.1] map
 ######
 
 panic! : *a Str -- *b
-panic! = "panic: " str-trace! str-trace-ln! 1 posix-exit!
+panic! = "panic: " caststr str-trace! str-trace-ln! 1 posix-exit!
 
 data(File, FILE -> Int)
 
@@ -1650,11 +1677,11 @@ stderr = 2 Int->File
 str-write! : Str File -- +IO
 str-write! = (
     File->Int swap dup str-length dup
-    dip(posix-write!) swap
+    dip(dip(Str->Ptr) posix-write!) swap
     dup 0 < if(
-        "error: write failed!" panic!,
+        "error: write failed!" caststr panic!,
         swap < if(
-            "error: write output fewer bytes than expected!" panic!,
+            "error: write output fewer bytes than expected!" caststr panic!,
             id
         )
     )
@@ -1673,19 +1700,19 @@ str-trace-ln! : Str -- +IO
 str-trace-ln! = str-trace! trace-ln!
 
 print-ln! : +IO
-print-ln! = "\n" str-print!
+print-ln! = "\n" caststr str-print!
 
 trace-ln! : +IO
-trace-ln! = "\n" str-trace!
+trace-ln! = "\n" caststr str-trace!
 
 str-buf-write! : File -- +StrBuf +IO
 str-buf-write! = (
     File->Int STR_BUF str-buf-length?
     posix-write!
     dup 0 < if(
-        "error: str-buf write failed!" panic!,
+        "error: str-buf write failed!" caststr panic!,
         str-buf-length? < if(
-            "error: str-buf write wrote fewer bytes than expected!" panic!,
+            "error: str-buf write wrote fewer bytes than expected!" caststr panic!,
             id
         )
     )
@@ -1702,7 +1729,7 @@ str-buf-read! = (
     File->Int str-buf-clear!
     STR_BUF STR_BUF_SIZE 1- posix-read!
     dup 0< if(
-        "str-buf-read! failed" panic!,
+        "str-buf-read! failed" caststr panic!,
         str-buf-length!
     )
 )
@@ -1735,7 +1762,7 @@ open-file! : Str -- File +IO
 open-file! = (
     0 0 posix-open!
     dup 0 < if(
-        "Failed to open file!" panic!,
+        "Failed to open file!" caststr panic!,
         Int->File
     )
 )
@@ -1750,7 +1777,7 @@ create-file! = (
         #  ---- NB: this is inaccurate . . .
     posix-open!
     dup 0 < if(
-        "Failed to create file!" panic!,
+        "Failed to create file!" caststr panic!,
         Int->File
     )
 )
@@ -1761,7 +1788,7 @@ O_WRONLY|O_CREAT|O_TRUNC =
         OS_MACOS -> 0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
         OS_LINUX -> 0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
         OS_WINDOWS -> 0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
-        OS_UNKNOWN -> "O_WRONLY|O_CREAT|O_TRUNC on unknown os" panic!
+        OS_UNKNOWN -> "O_WRONLY|O_CREAT|O_TRUNC on unknown os" caststr panic!
     )
 
 
@@ -1769,7 +1796,7 @@ close-file! : File -- +IO
 close-file! = (
     File->Int posix-close!
     0 < if(
-        "failed to close file." panic!,
+        "failed to close file." caststr panic!,
         id
     )
 )
@@ -1832,7 +1859,7 @@ heap-reserve! =
                 drop heap-length@ + heap-length!,
                 heap-base! heap-length!
             ),
-            "Failed to allocate heap buffer." panic!
+            "Failed to allocate heap buffer." caststr panic!
         )
     )
 

@@ -24,8 +24,8 @@ location-trace! = (
     location-unpack
     rotr swap
     load-module-source-path! str-buf-trace!
-    ":" str-trace!
+    ":" caststr str-trace!
     Row->Int int-trace!
-    ":" str-trace!
+    ":" caststr str-trace!
     Col->Int int-trace!
 )

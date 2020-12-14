@@ -67,7 +67,7 @@ token-name@ : Token -- Name
 token-name@ =
     token-value? match(
         TOKEN_NAME -> nip,
-        _ -> drop "expected name" emit-fatal-error!
+        _ -> drop "expected name" caststr emit-fatal-error!
     )
 
 ||| Get token name value, or raise a fatal error.
@@ -80,7 +80,7 @@ token-strlit@ : Token -- StrLit
 token-strlit@ =
     token-value? match(
         TOKEN_STR -> nip,
-        _ -> drop "expected string" emit-fatal-error!
+        _ -> drop "expected string" caststr emit-fatal-error!
     )
 
 ||| Get token string literal, or raise a fatal error.
@@ -92,7 +92,7 @@ token-int@ : Token -- Int
 token-int@ =
     token-value? match(
         TOKEN_INT -> nip,
-        _ -> drop "expected int" emit-fatal-error!
+        _ -> drop "expected int" caststr emit-fatal-error!
     )
 
 ||| Get token integer, or raise a fatal error.
@@ -135,15 +135,15 @@ def(token-location?, Token -- Token Location,
 
 # def(token-trace!, Token -- +IO,
 #     token-location? location-trace!
-#     ": " str-trace!
-#     dup Token->Int int-trace! " " str-trace!
+#     ": " caststr str-trace!
+#     dup Token->Int int-trace! " " caststr str-trace!
 #     token-value@ match(
 #         TOKEN_INT ->
-#             "INT " str-trace! int-trace!,
+#             "INT " caststr str-trace! int-trace!,
 #         TOKEN_STR ->
-#             "STR \"" str-trace!
+#             "STR \"" caststr str-trace!
 #             StrLit->Str int-trace!
-#             "\"" str-trace!,
+#             "\"" caststr str-trace!,
 #     ))
 
 # def(show-tokens!, --,
@@ -220,7 +220,7 @@ def(token-num-args?, Token -- Token Int,
 def(token-args-0, Token --,
     token-num-args? 0 == if(
         drop,
-        "expected no args" emit-fatal-error!
+        "expected no args" caststr emit-fatal-error!
     ))
 
 ||| Verify that token has 1 arg, and return it.
@@ -230,8 +230,8 @@ def(token-args-1, Token -- Token,
         token-is-name? if(token-succ, id)
         token-succ,
         token-num-args? 1 < if(
-            "expected 1 arg, got none" emit-fatal-error!,
-            "expected 1 arg, got too many" emit-fatal-error!
+            "expected 1 arg, got none" caststr emit-fatal-error!,
+            "expected 1 arg, got too many" caststr emit-fatal-error!
         )
     ))
 
@@ -244,8 +244,8 @@ def(token-args-2, Token -- Token Token,
         dup token-next-arg-end token-succ,
 
         token-num-args? 2 < if(
-            "expected 2 args, got too few" emit-fatal-error!,
-            "expected 2 args, got too many" emit-fatal-error!
+            "expected 2 args, got too few" caststr emit-fatal-error!,
+            "expected 2 args, got too many" caststr emit-fatal-error!
         )
     ))
 
@@ -259,8 +259,8 @@ def(token-args-3, Token -- Token Token Token,
         dup token-next-arg-end token-succ,
 
         token-num-args? 3 < if(
-            "expected 3 args, got too few" emit-fatal-error!,
-            "expected 3 args, got too many" emit-fatal-error!
+            "expected 3 args, got too few" caststr emit-fatal-error!,
+            "expected 3 args, got too many" caststr emit-fatal-error!
         )
     ))
 

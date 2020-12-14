@@ -10,7 +10,7 @@ import(prelude)
 # nul-termination as the implicit ending for the string)
 def(Int->StrLit, Int -- StrLit, STRLIT)
 def(StrLit->Int, StrLit -- Int, match(STRLIT -> id))
-def(StrLit->Str, StrLit -- Str, StrLit->Int STRINGS_BUF ptr+)
+def(StrLit->Str, StrLit -- Str, StrLit->Int STRINGS_BUF ptr+ Ptr->Str)
 
 def(MAX_STRINGS, Size, 0x10000)
 buffer(STRINGS_SIZE, 8)
@@ -25,7 +25,7 @@ def(strings-size!, Size -- +StrTable, STRINGS_SIZE int!)
 # Push byte onto strings table.
 def(strings-push!, U8 -- +StrTable,
     strings-size@ MAX_STRINGS >= if(
-        "strings buffer overflow" panic!,
+        "strings buffer overflow" caststr panic!,
         strings-size@ STRINGS_BUF u8!!
         strings-size@ 1+ strings-size!
     ))

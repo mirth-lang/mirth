@@ -44,7 +44,7 @@ def(lexer-stack-full?, Bool +Lexer,
 
 def(lexer-stack-push!, Token -- +Lexer,
     lexer-stack-full? if(
-        "lexer stack overflow" panic!,
+        "lexer stack overflow" caststr panic!,
         Token->Int
         lexer-stack-length@
         dup 1+ lexer-stack-length!
@@ -53,7 +53,7 @@ def(lexer-stack-push!, Token -- +Lexer,
 
 def(lexer-stack-pop!, -- Token +Lexer,
     lexer-stack-empty? if(
-        "lexer stack underflow" panic!,
+        "lexer stack underflow" caststr panic!,
         lexer-stack-length@ 1-
         dup lexer-stack-length!
         LEXER_STACK_BUF int@@
@@ -64,7 +64,7 @@ def(run-lexer!, Path -- Module +Lexer,
     module-new! lexer-module!
 
     lexer-module@ load-module-source-path!
-    STR_BUF open-file!
+    STR_BUF Ptr->Str open-file!
     input-start!
 
     1 Int->Row lexer-row!
@@ -81,7 +81,7 @@ def(run-lexer!, Path -- Module +Lexer,
         TOKEN_NONE lexer-emit!,
 
         lexer-stack-pop!
-        "Mismatched left parenthesis."
+        "Mismatched left parenthesis." caststr
         emit-fatal-error!
     )
 
@@ -180,11 +180,11 @@ def(lexer-emit-lparen!, +Lexer,
     lexer-stack-push!)
 def(lexer-emit-rparen!, +Lexer,
     lexer-stack-empty? if(
-        "Mismatched right parenthesis." lexer-emit-fatal-error!,
+        "Mismatched right parenthesis." caststr lexer-emit-fatal-error!,
         lexer-stack-pop! token-is-lparen? if(
             dup TOKEN_RPAREN lexer-make!
             TOKEN_LPAREN swap token-value!,
-            "Mismatched right parenthesis." lexer-emit-fatal-error!
+            "Mismatched right parenthesis." caststr lexer-emit-fatal-error!
         )
     ))
 
@@ -193,11 +193,11 @@ def(lexer-emit-lsquare!, +Lexer,
     lexer-stack-push!)
 def(lexer-emit-rsquare!, +Lexer,
     lexer-stack-empty? if(
-        "Mismatched right bracket." lexer-emit-fatal-error!,
+        "Mismatched right bracket." caststr lexer-emit-fatal-error!,
         lexer-stack-pop! token-is-lsquare? if(
             dup TOKEN_RSQUARE lexer-make!
             TOKEN_LSQUARE swap token-value!,
-            "Mismatched right bracket." lexer-emit-fatal-error!
+            "Mismatched right bracket." caststr lexer-emit-fatal-error!
         )
     ))
 
@@ -206,11 +206,11 @@ def(lexer-emit-lcurly!, +Lexer,
     lexer-stack-push!)
 def(lexer-emit-rcurly!, +Lexer,
     lexer-stack-empty? if(
-        "Mismatched right brace." lexer-emit-fatal-error!,
+        "Mismatched right brace." caststr lexer-emit-fatal-error!,
         lexer-stack-pop! token-is-lcurly? if(
             dup TOKEN_RCURLY lexer-make!
             TOKEN_LCURLY swap token-value!,
-            "Mismatched right brace." lexer-emit-fatal-error!
+            "Mismatched right brace." caststr lexer-emit-fatal-error!
         )
     ))
 
@@ -420,7 +420,7 @@ def(lexer-push-string-char!, Char -- +Lexer,
 
             str-buf-push!
 
-            "Unknown character escape sequence."
+            "Unknown character escape sequence." caststr
             lexer-emit-warning!
 
         )))))),
@@ -448,9 +448,9 @@ def(lexer-move!, +Lexer, input-move!
     lexer-col@ Col->Int 1+ Int->Col lexer-col!)
 
 def(lexer-trace-prefix!, +IO,
-    lexer-module@ load-module-source-path! str-buf-trace! ":" str-trace!
-    lexer-row@ Row->Int int-trace! ":" str-trace!
-    lexer-col@ Col->Int int-trace! ": " str-trace!)
+    lexer-module@ load-module-source-path! str-buf-trace! ":" caststr str-trace!
+    lexer-row@ Row->Int int-trace! ":" caststr str-trace!
+    lexer-col@ Col->Int int-trace! ": " caststr str-trace!)
 
 def(lexer-location, Location +Lexer,
     lexer-module@ lexer-row@ lexer-col@ location-pack)

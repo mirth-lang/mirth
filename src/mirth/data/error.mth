@@ -17,7 +17,7 @@ num-warnings++ = num-warnings@ 1+ num-warnings int!
 emit-warning-at! : Location Str -- +IO
 emit-warning-at! = (
     dip(location-trace!)
-    ": warning: " str-trace!
+    ": warning: " caststr str-trace!
     str-trace-ln!
     num-warnings++
 )
@@ -33,7 +33,7 @@ num-errors++ = num-errors@ 1+ num-errors int!
 emit-error-at! : Location Str -- +IO
 emit-error-at! = (
     dip(location-trace!)
-    ": error: " str-trace!
+    ": error: " caststr str-trace!
     str-trace-ln!
     num-errors++
 )

@@ -25,8 +25,11 @@ module-new! = (
     tuck module-path!
 )
 
+module-path& : Module -- Ptr
+module-path& = Module->Int MODULE_PATH_SIZE * MODULE_PATH_BUF ptr+
+
 module-path@ : Module -- Path
-module-path@ = Module->Int MODULE_PATH_SIZE * MODULE_PATH_BUF ptr+ Str->Path
+module-path@ = module-path& Ptr->Str Str->Path
 
 module-path? : Module -- Module Path
 module-path? = dup module-path@
@@ -34,8 +37,8 @@ module-path? = dup module-path@
 module-path! : Path Module --
 module-path! =
     over Path->Str str-length MODULE_PATH_SIZE >= if(
-        "Module path is too long!" panic!,
-        module-path@ dip(Path->Str) Path->Str str-copy!
+        "Module path is too long!" caststr panic!,
+        dip(Path->Str) module-path& str-copy!
     )
 
 # Load a source path associated with a module into STR_BUF.

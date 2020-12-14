@@ -1,7 +1,7 @@
 module(tests/pack-unpack)
 import(prelude)
 
-def(!!true, Bool --, if(id, "Assertion failed" panic!))
+def(!!true, Bool --, if(id, "Assertion failed" caststr panic!))
 def(!!=, a a --, == !!true)
 
 def(mk-int-pack, [Int Int], 10 20 pack2)

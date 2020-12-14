@@ -20,7 +20,7 @@ def(init!, +IO,
 ########
 
 def(compile!, Path -- +IO,
-    "Compiling " str-trace!
+    "Compiling " caststr str-trace!
     dup Path->Str str-trace-ln!
 
     run-lexer!
@@ -28,19 +28,19 @@ def(compile!, Path -- +IO,
     # show-names-table!
     # show-tokens!
 
-    "Building." str-trace-ln!
+    "Building." caststr str-trace-ln!
 
     elab-module! drop
 
     num-errors@ 0 > if(
         num-errors@ int-trace!
-        " errors." str-trace-ln!
+        " errors." caststr str-trace-ln!
         1 posix-exit!,
 
         id
     )
 
-    "Done." str-trace-ln!)
+    "Done." caststr str-trace-ln!)
 
 def(main, +IO,
     init!
@@ -52,8 +52,8 @@ def(main, +IO,
     # ) drop
 
     1 argc < if(
-        1 argv ptr@@ Str->Path compile!,
-        "Expected at least one argument" panic!)
+        1 argv ptr@@ Ptr->Str Str->Path compile!,
+        "Expected at least one argument" caststr panic!)
 
 
     )

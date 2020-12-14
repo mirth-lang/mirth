@@ -7,17 +7,17 @@ import(mirth/data/var)
 def(def-type!, Type Str --, name-new! name-type!)
 
 def(init-types!, --,
-    TYPE_INT "Int" def-type!
-    TYPE_PTR "Ptr" def-type!
-    TYPE_U8 "U8" def-type!
-    TYPE_U16 "U16" def-type!
-    TYPE_U32 "U32" def-type!
-    TYPE_U64 "U64" def-type!
-    TYPE_I8 "I8" def-type!
-    TYPE_I16 "I16" def-type!
-    TYPE_I32 "I32" def-type!
-    TYPE_I64 "I64" def-type!
-    TYPE_BOOL "Bool" def-type!)
+    TYPE_INT "Int" caststr def-type!
+    TYPE_PTR "Ptr" caststr def-type!
+    TYPE_U8 "U8" caststr def-type!
+    TYPE_U16 "U16" caststr def-type!
+    TYPE_U32 "U32" caststr def-type!
+    TYPE_U64 "U64" caststr def-type!
+    TYPE_I8 "I8" caststr def-type!
+    TYPE_I16 "I16" caststr def-type!
+    TYPE_I32 "I32" caststr def-type!
+    TYPE_I64 "I64" caststr def-type!
+    TYPE_BOOL "Bool" caststr def-type!)
 
 #########
 # Types #
@@ -91,9 +91,9 @@ gamma-token? = dup match(GAMMA -> id)
 # Raise a type unification error.
 def(type-unify-failed!, Gamma Type Type -- Gamma Type +Elab,
     dip2(gamma-token? token-location location-trace!)
-    ": error: Failed to unify " str-trace!
+    ": error: Failed to unify " caststr str-trace!
     dip(type-trace!)
-    " with " str-trace!
+    " with " caststr str-trace!
     type-trace!
     trace-ln!
     TYPE_ERROR
@@ -222,11 +222,11 @@ def(type-has-meta, MetaVar Type -- Bool,
 
 def(type-trace-sig!, Type -- +IO,
     match(
-        TYPE_ERROR -> "<ERROR>" str-trace!,
+        TYPE_ERROR -> "<ERROR>" caststr str-trace!,
         TMorphism ->
             swap
             type-trace-stack-dom!
-            "--" str-trace!
+            "--" caststr str-trace!
             type-trace-stack-cod!,
         _ -> type-trace-stack!
     ))
@@ -235,13 +235,13 @@ def(type-trace-stack-dom!, Type -- +IO,
     dup TYPE_UNIT == if(
         drop,
         type-trace-stack!
-        " " str-trace!
+        " " caststr str-trace!
     ))
 
 def(type-trace-stack-cod!, Type -- +IO,
     dup TYPE_UNIT == if(
         drop,
-        " " str-trace!
+        " " caststr str-trace!
         type-trace-stack!
     ))
 
@@ -253,20 +253,20 @@ def(type-trace-stack!, Type -- +IO,
             var-name@
             dup name-load! str-buf-trace!
             name-could-be-stack-var
-            if(id, " ." str-trace!),
+            if(id, " ." caststr str-trace!),
         _ ->
             type-trace!
     ))
 
 def(type-trace!, Type -- +IO,
     match(
-        TYPE_ERROR -> "<ERROR>" str-trace!,
-        TYPE_DONT_CARE -> "_" str-trace!,
+        TYPE_ERROR -> "<ERROR>" caststr str-trace!,
+        TYPE_DONT_CARE -> "_" caststr str-trace!,
         TPrim -> type-trace-prim!,
         TVar -> var-name@ name-load! str-buf-trace!,
-        TMeta -> "?" str-trace! MetaVar->Int int-trace!,
-        TTensor -> "[" str-trace! TTensor type-trace-stack! "]" str-trace!,
-        TMorphism -> "[" str-trace! TMorphism type-trace-sig! "]" str-trace!,
+        TMeta -> "?" caststr str-trace! MetaVar->Int int-trace!,
+        TTensor -> "[" caststr str-trace! TTensor type-trace-stack! "]" caststr str-trace!,
+        TMorphism -> "[" caststr str-trace! TMorphism type-trace-sig! "]" caststr str-trace!,
         TData -> data-name@ name-load! str-buf-trace!,
         TTable -> table-name@ name-load! str-buf-trace!,
         THole -> name-load! str-buf-trace!,
@@ -290,7 +290,7 @@ def(type-trace-prim!, PrimType -- +IO,
         PRIM_TYPE_I16 -> "I16",
         PRIM_TYPE_I32 -> "I32",
         PRIM_TYPE_I64 -> "I64",
-    ) str-trace!)
+    ) caststr str-trace!)
 
 ||| Replace the stack rest with a metavar, if it's unit.
 def(type-semifreshen-sig, Type -- Type,
@@ -478,7 +478,7 @@ def(type-hole-unify!, Type Name -- Type,
     dup 0 Int->Name == if(
         drop,
         THole type-trace!
-        " ~ " str-trace!
+        " ~ " caststr str-trace!
         dup type-trace!
         trace-ln!
     ))
@@ -516,17 +516,17 @@ def(type-num-morphisms-on-top, Type -- Int,
 ############
 
 def(app-type-trace!, Type Type --,
-    app-type-trace-open! ")" str-trace!)
+    app-type-trace-open! ")" caststr str-trace!)
 
 def(app-type-trace-open!, Type Type --,
     swap match(
         TApp ->
             app-type-trace-open!
-            ", " str-trace!
+            ", " caststr str-trace!
             type-trace!,
         _ ->
             type-trace!
-            "(" str-trace!
+            "(" caststr str-trace!
             type-trace!
     ))
 
@@ -634,7 +634,7 @@ match-num-cases? = match-cases? len
 match-add-case! : Match Case -- Match
 match-add-case! =
     dip(match-cases?) cases-cover-case? if(
-        case-token@ "Case is unreachable." emit-error! drop,
+        case-token@ "Case is unreachable." caststr emit-error! drop,
         snoc over match-cases!
     )
 

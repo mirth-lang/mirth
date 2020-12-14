@@ -30,24 +30,24 @@ foo-tag =
 foo-display : Foo -- +IO
 foo-display = (
     dup foo-tag str-print!
-    ", sum = " str-print!
+    ", sum = " caststr str-print!
     dup foo-sum int-print!
-    ", values = " str-print!
+    ", values = " caststr str-print!
     match(
         FOO0 ->
-            "[]" str-print-ln!,
+            "[]" caststr str-print-ln!,
         FOO1 ->
-            "[ " str-print!
-            int-print! " ]" str-print-ln!,
+            "[ " caststr str-print!
+            int-print! " ]" caststr str-print-ln!,
         FOO2 ->
-            "[ " str-print!
-            dip(int-print!) " " str-print!
-            int-print! " ]" str-print-ln!,
+            "[ " caststr str-print!
+            dip(int-print!) " " caststr str-print!
+            int-print! " ]" caststr str-print-ln!,
         FOO3 ->
-            "[ " str-print!
-            dip2(int-print!) " " str-print!
-            dip(int-print!) " " str-print!
-            int-print! " ]" str-print-ln!,
+            "[ " caststr str-print!
+            dip2(int-print!) " " caststr str-print!
+            dip(int-print!) " " caststr str-print!
+            int-print! " ]" caststr str-print-ln!,
     )
 )
 

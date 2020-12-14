@@ -34,7 +34,7 @@ buffer(NAME_BUF, 0x100000)
 def(name-load!, Name --,
     name-quads-load!
     NAME_SIZE str-buf-length!
-    STR_BUF str-length str-buf-length!)
+    STR_BUF Ptr->Str str-length str-buf-length!)
 
 def(name-quads&, Name -- Ptr,
     Name->Int NAME_SIZE * NAME_BUF ptr+)
@@ -58,7 +58,7 @@ def(hash, Ptr -- Hash,
     0 swap
     while(dup u8@ U8->Int nonzero,
         dup dip(u8@ U8->Int 5 * swap 18 * ^)
-        str-tail)
+        1 swap ptr+)
     drop
     NAME_HASH_MAX &
     Int->Hash)
@@ -139,63 +139,66 @@ def(show-names-table!, +Names +IO,
     0
     while(dup num-names@ <,
         dup int-print!
-        ": " str-print!
+        ": " caststr str-print!
         dup Int->Name name-load!
         str-buf-length? name-bytes int@ + 1+ name-bytes int!
-        STR_BUF str-print! " " str-print!
+        STR_BUF Ptr->Str str-print! " " caststr str-print!
         dup Int->Name name-hash Hash->Int int-print! print-ln!
         1+
     )
     drop
-    "Total bytes: " str-print!
+    "Total bytes: " caststr str-print!
     name-bytes int@ int-print-ln!)
+
+def(name-str@, Name -- Str,
+    name-quads& Ptr->Str)
 
 def(name-could-be-type, Name -- Bool,
     name-quads& u8@ is-alpha? nip)
 
 def(name-could-be-type-var, Name -- Bool,
-    name-quads& str-could-be-type-var)
+    name-str@ str-could-be-type-var)
 
 def(str-could-be-type-var, Str -- Bool,
-    u8@ is-lower? nip)
+    str-head is-lower? nip)
 
 def(name-could-be-type-con, Name -- Bool,
-    name-quads& u8@ is-upper? nip)
+    name-str@ str-head is-upper? nip)
 
 def(name-is-type-hole, Name -- Bool,
-    name-quads& dup u8@ is-question-mark? nip if(
-        str-tail dup str-null if(
+    name-str@ dup str-head is-question-mark? nip if(
+        str-tail str-is-empty? if(
             drop true,
             str-could-be-type-var),
         drop false
     ))
 
 def(name-is-underscore, Name -- Bool,
-    name-quads& dup u8@ is-underscore? nip if(
-        str-tail str-null,
+    name-str@ dup str-head is-underscore? nip if(
+        str-tail str-is-empty,
         drop false
     ))
 
 def(name-could-be-stack-var, Name -- Bool,
-    name-quads& dup u8@ is-asterisk? nip if(
+    name-str@ dup str-head is-asterisk? nip if(
         str-tail str-could-be-type-var,
         drop false
     ))
 
 def(name-could-be-effect-con, Name -- Bool,
-    name-quads& dup u8@ is-plus-sign? nip if(
-        str-tail u8@ is-upper? nip,
+    name-str@ dup str-head is-plus-sign? nip if(
+        str-tail str-head is-upper? nip,
         drop false
     ))
 
 def(name-print-mangled!, Name -- +IO,
-    name-mangle! STR_BUF str-print!)
+    name-mangle! STR_BUF Ptr->Str str-print!)
 
 def(name-mangle!, Name -- +StrBuf,
     str-buf-clear!
-    name-quads& 0
+    name-str@ 0
     while(dup NAME_SIZE <,
-        over u8@
+        over str-head
         str-buf-push-mangled!
         dip(str-tail) 1+)
     drop2)
