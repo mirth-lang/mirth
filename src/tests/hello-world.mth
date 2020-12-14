@@ -6,11 +6,11 @@ module(tests/hello-world)
 import(prelude)
 
 target-c99("hello-world.c",
-    "Hello, world!" caststr str-print-ln!)
+    "Hello, world!" str-print-ln!)
 target-c99("hello-world-2.c",
-    "Hello, world, too!" caststr str-trace-ln!)
+    "Hello, world, too!" str-trace-ln!)
 target-c99("goodbye.c",
-    "Goodbye!" caststr str-print-ln! 1 posix-exit!)
+    "Goodbye!" str-print-ln! 1 posix-exit!)
 target-c99("answer.c",
     42 posix-exit!)
 

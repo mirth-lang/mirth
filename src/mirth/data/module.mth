@@ -37,7 +37,7 @@ module-path? = dup module-path@
 module-path! : Path Module --
 module-path! =
     over Path->Str str-length MODULE_PATH_SIZE >= if(
-        "Module path is too long!" caststr panic!,
+        "Module path is too long!" panic!,
         dip(Path->Str) module-path& str-copy!
     )
 

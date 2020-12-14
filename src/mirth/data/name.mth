@@ -139,15 +139,15 @@ def(show-names-table!, +Names +IO,
     0
     while(dup num-names@ <,
         dup int-print!
-        ": " caststr str-print!
+        ": " str-print!
         dup Int->Name name-load!
         str-buf-length? name-bytes int@ + 1+ name-bytes int!
-        STR_BUF Ptr->Str str-print! " " caststr str-print!
+        STR_BUF Ptr->Str str-print! " " str-print!
         dup Int->Name name-hash Hash->Int int-print! print-ln!
         1+
     )
     drop
-    "Total bytes: " caststr str-print!
+    "Total bytes: " str-print!
     name-bytes int@ int-print-ln!)
 
 def(name-str@, Name -- Str,

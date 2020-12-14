@@ -26,12 +26,12 @@ main = (
     drop
 
     10 20 30 L3
-    "[" over for(swap str-trace! int-trace! " ") drop "]" caststr str-trace-ln!
+    "[" over for(swap str-trace! int-trace! " ") drop "]" str-trace-ln!
     map(10 +)
-    "[" over for(swap str-trace! int-trace! " ") drop "]" caststr str-trace-ln!
+    "[" over for(swap str-trace! int-trace! " ") drop "]" str-trace-ln!
     find(dup 25 >) match(
-        SOME -> int-trace! " found" caststr str-trace-ln!,
-        NONE -> "not found" caststr str-trace-ln!
+        SOME -> int-trace! " found" str-trace-ln!,
+        NONE -> "not found" str-trace-ln!
     )
 )
 

@@ -17,7 +17,7 @@ def(table-new!, Name -- Table,
     TABLE_MAX_SIZE over table-max-count!
 
     # Table.MAX
-    table-name? name-load! ".MAX" caststr str-buf-push-str! name-save!
+    table-name? name-load! ".MAX" str-buf-push-str! name-save!
     word-alloc!
     dup2 swap name-word!
     tuck word-name!
@@ -33,12 +33,12 @@ def(table-new!, Name -- Table,
     true swap word-body-is-checked!
 
     # Table.NUM
-    table-name? name-load! ".NUM" caststr str-buf-push-str! name-save!
+    table-name? name-load! ".NUM" str-buf-push-str! name-save!
     8 buffer-alloc!
     over table-num-buffer!
 
     # Table.alloc!
-    table-name? name-load! ".alloc!" caststr str-buf-push-str! name-save!
+    table-name? name-load! ".alloc!" str-buf-push-str! name-save!
     word-alloc!
     dup2 swap name-word!
     tuck word-name!
@@ -75,12 +75,12 @@ def(field-new!, Name Type Type Int -- Field,
         tuck field-name!
 
         # define the buffer for the field
-        field-name? name-load! "-buffer" caststr str-buf-push-str! name-save!
+        field-name? name-load! "-buffer" str-buf-push-str! name-save!
     )
     16 * buffer-alloc! over field-buffer!
 
     # field&
-    field-name? name-load! "&" caststr str-buf-push-str! name-save!
+    field-name? name-load! "&" str-buf-push-str! name-save!
     word-alloc!
     dup2 swap name-word!
     tuck word-name!
@@ -103,7 +103,7 @@ def(field-new!, Name Type Type Int -- Field,
     over field-word-ptr!
 
     # field!
-    field-name? name-load! "!" caststr str-buf-push-str! name-save!
+    field-name? name-load! "!" str-buf-push-str! name-save!
     word-alloc!
     dup2 swap name-word!
     tuck word-name!
@@ -120,7 +120,7 @@ def(field-new!, Name Type Type Int -- Field,
     drop true swap word-body-is-checked!
 
     # field@
-    field-name? name-load! "@" caststr str-buf-push-str! name-save!
+    field-name? name-load! "@" str-buf-push-str! name-save!
     word-alloc!
     dup2 swap name-word!
     tuck word-name!
@@ -138,7 +138,7 @@ def(field-new!, Name Type Type Int -- Field,
     drop true swap word-body-is-checked!
 
     # field?
-    field-name? name-load! "?" caststr str-buf-push-str! name-save!
+    field-name? name-load! "?" str-buf-push-str! name-save!
     word-alloc!
     dup2 swap name-word!
     tuck word-name!

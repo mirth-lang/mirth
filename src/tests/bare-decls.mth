@@ -6,7 +6,7 @@ hello = 10 +
 
 main : --
 main =
-    "Hello world!" caststr str-print-ln!
+    "Hello world!" str-print-ln!
 
 my-trip : a -- a a a
 my-trip = dup dup

@@ -54,9 +54,9 @@ def(input-fill-buffer!, +Input,
                 drop
                 input-end!
             ),
-            drop "error: failed to read from file" caststr panic!
+            drop "error: failed to read from file" panic!
         ),
-        "error: attempted to fill input buffer when file is closed" caststr panic!
+        "error: attempted to fill input buffer when file is closed" panic!
     ))
 
 
@@ -65,7 +65,7 @@ def(input-fill-buffer!, +Input,
 def(input-peek, Char +Input,
     input-isopen@ if(
         input-offset@ INPUT_BUFFER u8@@,
-        "error: attempted to read input buffer when file is already closed" caststr panic!
+        "error: attempted to read input buffer when file is already closed" panic!
     ))
 
 # Move to next char in input buffer.
@@ -77,5 +77,5 @@ def(input-move!, +Input,
             input-fill-buffer!,
             id
         ),
-        "error: attempted to move input buffer when file is already closed" caststr panic!
+        "error: attempted to move input buffer when file is already closed" panic!
     ))

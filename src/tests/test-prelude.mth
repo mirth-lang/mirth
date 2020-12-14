@@ -3,7 +3,7 @@ import(prelude)
 
 # Assertions
 
-def(!!true, Bool --, if(id, "Assertion failed" caststr panic!))
+def(!!true, Bool --, if(id, "Assertion failed" panic!))
 def(!!false, Bool --, not !!true)
 def(!!=, a a --, == !!true)
 def(!!0, Int --, 0 !!=)
@@ -193,7 +193,7 @@ def(test-str, --,
     "" str-length 0 !!=
     "hello" str-length 5 !!=
     "hello, world!" str-length 13 !!=
-    "hello, " "world!" str-cat str-length int-trace! "\n" caststr str-trace!
+    "hello, " "world!" str-cat str-length int-trace! "\n" str-trace!
     "hello, " "world!\n" str-cat str-trace!
     )
 

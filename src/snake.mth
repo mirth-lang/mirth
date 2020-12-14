@@ -350,7 +350,7 @@ def(snake-press!, SnakeButton -- +Snake,
             id
         ),
 
-        drop "Unhandled button press!" caststr panic!
+        drop "Unhandled button press!" panic!
     )))))))
 
 buffer(TICK_TIMER, 8)
@@ -438,7 +438,7 @@ def(snake-apply-direction, XCoord YCoord Direction -- XCoord YCoord,
     dup DWEST == if(
         drop dip(XCoord->Int 1- SNAKE_W + SNAKE_W % Int->XCoord),
 
-        "unknown direction in snake-apply-direction" caststr panic!
+        "unknown direction in snake-apply-direction" panic!
     )))))
 
 target-c99("snake.c", snake!)
