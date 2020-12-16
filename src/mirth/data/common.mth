@@ -2,9 +2,6 @@ module(mirth/data/common)
 import(prelude)
 import(mirth/data/path)
 
-# mirth/data/string
-data(StrLit, STRLIT -> Int)
-
 # mirth/data/name
 data NameValue
     DEF_NONE
@@ -55,7 +52,7 @@ data TokenValue
     TOKEN_LCURLY -> Token
     TOKEN_RCURLY -> Token
     TOKEN_INT -> Int
-    TOKEN_STR -> StrLit
+    TOKEN_STR -> Str
     TOKEN_NAME -> Name
 end
 field(token-value, Token, TokenValue)
@@ -155,7 +152,7 @@ data Op
     OP_EXTERNAL -> External
     OP_BUFFER -> Buffer
     OP_INT -> Int
-    OP_STR -> StrLit
+    OP_STR -> Str
     OP_TAG -> Tag
     OP_MATCH -> Match
     OP_LAMBDA -> Lambda

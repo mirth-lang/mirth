@@ -1763,11 +1763,33 @@ str-buf-read! = (
 str-buf-input! : -- +IO
 str-buf-input! = stdin str-buf-read!
 
+data TransducerStep
+    TS_STOP
+    TS_SKIP
+    TS_CHAR -> Char
+    TS_PUSH -> List(Char)
+end
+
+str-transduce : *a Str [ *a Char -- *a TransducerStep ] -- *a Str
+str-transduce = \([f] ->
+    build-str!(
+        while(str-is-empty? not,
+            dup dip(str-head f) str-tail
+            swap match(
+                TS_STOP -> drop "",
+                TS_SKIP -> id,
+                TS_CHAR -> str-buf-push!,
+                TS_PUSH -> for(str-buf-push!)
+            )
+        ) drop
+    )
+)
+
 print-char! : Char -- +IO
-print-char! = str-buf-char! str-buf-print!
+print-char! = build-str!(str-buf-push!) str-print!
 
 trace-char! : Char -- +IO
-trace-char! = str-buf-char! str-buf-trace!
+trace-char! = build-str!(str-buf-push!) str-trace!
 
 int-write! : Int File -- +IO
 int-write! = dip(str-buf-int!) str-buf-write!

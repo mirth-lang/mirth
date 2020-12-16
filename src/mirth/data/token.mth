@@ -1,7 +1,6 @@
 module(mirth/data/token)
 import(mirth/data/common)
 import(mirth/data/name)
-import(mirth/data/string)
 import(mirth/data/location)
 import(mirth/data/error)
 
@@ -76,16 +75,16 @@ token-name? = dup token-name@
 
 
 ||| Get token string literal, or raise a fatal error.
-token-strlit@ : Token -- StrLit
-token-strlit@ =
+token-str@ : Token -- Str
+token-str@ =
     token-value? match(
         TOKEN_STR -> nip,
         _ -> drop "expected string" emit-fatal-error!
     )
 
 ||| Get token string literal, or raise a fatal error.
-token-strlit? : Token -- Token StrLit
-token-strlit? = dup token-strlit@
+token-str? : Token -- Token Str
+token-str? = dup token-str@
 
 ||| Get token integer, or raise a fatal error.
 token-int@ : Token -- Int

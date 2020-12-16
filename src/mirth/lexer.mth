@@ -2,7 +2,6 @@ module(mirth/lexer)
 import(prelude)
 import(mirth/data/char)
 import(mirth/data/name)
-import(mirth/data/string)
 import(mirth/data/token)
 import(mirth/data/error)
 import(mirth/input)
@@ -386,7 +385,7 @@ def(lexer-emit-string!, +Lexer,
     )
     drop
 
-    strings-save! TOKEN_STR
+    str-buf-dup! TOKEN_STR
     swap token-value!)
 
 def(lexer-push-string-char!, Char -- +Lexer,

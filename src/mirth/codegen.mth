@@ -1291,7 +1291,7 @@ c99-emit-arrow-op! =
             nip
             "    push_i64(" . .n "LL);" ;,
         OP_STR ->
-            nip StrLit->Str c99-emit-string!,
+            nip c99-emit-string!,
         OP_WORD ->
             dip(arrow-args@ c99-emit-args-push!)
             "    mw" . word-name@ .name "();" ;,
@@ -1405,7 +1405,6 @@ c99-emit-arg-run! =
     )
 
 def(.var-val, Var -- +IO, "var_" . var-name? .name "_" . Var->Int .n)
-def(.var-ref, Var -- +IO, "ref_" . var-name? .name "_" . Var->Int .n)
 
 def(c99-pack-ctx!, Ctx -- +IO,
     "    push_u64(0);" ;
@@ -1417,16 +1416,14 @@ def(c99-pack-ctx!, Ctx -- +IO,
 def(c99-unpack-ctx!, Ctx -- +IO,
     ctx-physical-vars reverse-for(
         "    do_pack_uncons();" ;
-        "    value_t " . dup .var-val " = pop_value();" ;
-        "    bool " . .var-ref " = false;" ;
+        "    value_t " . .var-val " = pop_value();" ;
         )
     "    do_drop();" ;
     )
 
 def(c99-decref-ctx!, Ctx -- +IO,
     ctx-physical-vars reverse-for(
-        "    if (!" . dup .var-ref ")" ;
-        "        decref(" . .var-val ");" ;
+        "    decref(" . .var-val ");" ;
     ))
 
 def(c99-emit-block-push!, Block -- +IO,
@@ -1442,22 +1439,17 @@ def(c99-emit-var!, Var -- +IO,
 
 def(c99-emit-var-push!, Var -- +IO,
     "    push_value(" . dup .var-val ");" ;
-    "    if (" . dup .var-ref  ")" ;
-    "        incref(" . dup .var-val ");" ;
-    "    else" ;
-    "        " . .var-ref " = true;" ;
+    "    incref(" . .var-val ");" ;
     )
 
 def(c99-emit-lambda!, Lambda -- +IO,
     "    {" ;
     lambda-params? reverse-for(
-        "    value_t " . dup .var-val " = pop_value();" ;
-        "    bool " . .var-ref " = false;" ;
+        "    value_t " . .var-val " = pop_value();" ;
         )
     lambda-body? c99-emit-arrow!
     lambda-params@ reverse-for(
-        "    if (!" . dup .var-ref ")" ;
-        "        decref(" . .var-val ");" ;
+        "    decref(" . .var-val ");" ;
         )
     "    }" ;)
 
