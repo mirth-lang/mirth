@@ -370,15 +370,15 @@ def(elab-word-body!, Word -- Arrow +Elab,
     word-body-is-checked? if(
         word-arrow@,
 
-    word-has-body? if(
+    word-body? is-nil if(
+        word-sig@ token-prev token-prev # not very good :-/
+        "Missing word definition."
+        emit-fatal-error!,
+
         dup dip(elab-word-ctx-sig!)
         dup dip(word-body@ elab-arrow!)
         dup2 word-arrow!
-        true swap word-body-is-checked!,
-
-        word-sig@ token-prev token-prev # not very good :-/
-        "Missing word definition."
-        emit-fatal-error!
+        true swap word-body-is-checked!
     )))
 
 def(elab-arrow!, Ctx Type Token -- Arrow,
@@ -963,7 +963,7 @@ def(elab-def!, Module Token -- Module Token +Mirth,
         token-name?
         name-undefined? if(
             nip
-            word-alloc!
+            Word.alloc!
             dup2 swap name-word!
             dup dip(word-name!)
             dup dip(word-body!)
@@ -977,7 +977,7 @@ def(elab-def!, Module Token -- Module Token +Mirth,
 ||| Elaborate a word signature "foo : Bar -- Baz"
 def(elab-decl-word-sig!, Module Token -- Module Token +Mirth,
     token-name? name-undefined? if(
-        word-alloc! tuck
+        Word.alloc! tuck
         dup2 word-name!
         swap name-word!
         dip(token-next token-succ dup) word-sig!
@@ -990,12 +990,12 @@ def(elab-decl-word-sig!, Module Token -- Module Token +Mirth,
 def(elab-decl-word-def!, Module Token -- Module Token +Mirth,
     token-name? name-value@ match(
         DEF_WORD ->
-            word-has-body? if(
-                drop "word already defined" emit-fatal-error!,
+            word-body? is-nil if(
                 dip(token-next token-succ
                     token-is-lparen? if(token-succ, token-skip-newlines)
                     dup) word-body!
-                while(token-is-newline? not, token-next) token-skip-newlines
+                while(token-is-newline? not, token-next) token-skip-newlines,
+                drop "word already defined" emit-fatal-error!
             ),
         DEF_NONE ->
             "missing word signature" emit-fatal-error!,
@@ -1009,7 +1009,7 @@ def(elab-def-external!, Module Token -- Module Token +Mirth,
     swap token-is-name? if(
         token-name? name-undefined? if(
             nip
-            external-alloc!
+            External.alloc!
             dup2 swap name-external!
             tuck external-name!
             external-sig!,
@@ -1081,12 +1081,7 @@ def(elab-target-c99!, Module Token -- Module Token +Mirth,
 
 ||| Ensure that everything so far has been typechecked.
 def(typecheck-everything!, --,
-    1
-    while(dup Name.NUM int@ <=,
-        dup Int->Name
-        typecheck-name!
-        1+)
-    drop)
+    Name.for(typecheck-name!))
 
 ||| Typecheck name.
 def(typecheck-name!, Name --,

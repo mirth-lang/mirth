@@ -8,14 +8,6 @@ Module->Int = cast
 Int->Module : Int -- Module
 Int->Module = cast
 
-MAX_MODULES : Size
-MAX_MODULES = 0x200
-
-MODULE_PATH_SIZE : Size
-MODULE_PATH_SIZE = 0x200
-
-buffer(MODULE_PATH_BUF, 0x40000)
-
 module-alloc! : Module
 module-alloc! = Module.alloc!
 
@@ -24,22 +16,6 @@ module-new! = (
     module-alloc!
     tuck module-path!
 )
-
-module-path& : Module -- Ptr
-module-path& = Module->Int MODULE_PATH_SIZE * MODULE_PATH_BUF ptr+
-
-module-path@ : Module -- Path
-module-path@ = module-path& Ptr->Str Str->Path
-
-module-path? : Module -- Module Path
-module-path? = dup module-path@
-
-module-path! : Path Module --
-module-path! =
-    over Path->Str str-length MODULE_PATH_SIZE >= if(
-        "Module path is too long!" panic!,
-        dip(Path->Str) module-path& str-copy!
-    )
 
 ||| Get source path associated with module.
 module-source-path : Module -- Path

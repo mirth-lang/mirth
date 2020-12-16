@@ -11,27 +11,24 @@ import(mirth/input)
 # LEXER #
 #########
 
-buffer(LEXER_MODULE, 8)
-def(lexer-module@, -- Module +Lexer, LEXER_MODULE int@ Int->Module)
-def(lexer-module!, Module -- +Lexer, Module->Int LEXER_MODULE int!)
+buffer(LEXER_MODULE, 16)
+def(lexer-module@, -- Module +Lexer, LEXER_MODULE value@)
+def(lexer-module!, Module -- +Lexer, LEXER_MODULE value!)
 
-buffer(LEXER_ROW, 8)
-def(lexer-row@, -- Row +Lexer, LEXER_ROW int@ Int->Row)
-def(lexer-row!, Row -- +Lexer, Row->Int LEXER_ROW int!)
+buffer(LEXER_ROW, 16)
+def(lexer-row@, -- Row +Lexer, LEXER_ROW value@)
+def(lexer-row!, Row -- +Lexer, LEXER_ROW value!)
 
-buffer(LEXER_COL, 8)
-def(lexer-col@, -- Col +Lexer, LEXER_COL int@ Int->Col)
-def(lexer-col!, Col -- +Lexer, Col->Int LEXER_COL int!)
+buffer(LEXER_COL, 16)
+def(lexer-col@, -- Col +Lexer, LEXER_COL value@)
+def(lexer-col!, Col -- +Lexer, LEXER_COL value!)
 
-buffer(LEXER_STACK_LENGTH, 8)
-buffer(LEXER_STACK_BUF, 0x1000)
+buffer(LEXER_STACK_LENGTH, 16)
+def(lexer-stack-length@, Size +Lexer, LEXER_STACK_LENGTH value@)
+def(lexer-stack-length!, Size -- +Lexer, LEXER_STACK_LENGTH value!)
+
 def(LEXER_STACK_SIZE, Size, 0x200)
-
-def(lexer-stack-length@, Size +Lexer,
-    LEXER_STACK_LENGTH u16@ U16->Int)
-
-def(lexer-stack-length!, Size -- +Lexer,
-    Int->U16 LEXER_STACK_LENGTH u16!)
+buffer(LEXER_STACK_BUF, 0x2000)
 
 def(lexer-stack-clear!, +Lexer,
     0 lexer-stack-length!)
@@ -45,10 +42,9 @@ def(lexer-stack-full?, Bool +Lexer,
 def(lexer-stack-push!, Token -- +Lexer,
     lexer-stack-full? if(
         "lexer stack overflow" panic!,
-        Token->Int
         lexer-stack-length@
         dup 1+ lexer-stack-length!
-        LEXER_STACK_BUF int!!
+        LEXER_STACK_BUF value!!
     ))
 
 def(lexer-stack-pop!, -- Token +Lexer,
@@ -56,8 +52,7 @@ def(lexer-stack-pop!, -- Token +Lexer,
         "lexer stack underflow" panic!,
         lexer-stack-length@ 1-
         dup lexer-stack-length!
-        LEXER_STACK_BUF int@@
-        Int->Token
+        LEXER_STACK_BUF value@@
     ))
 
 def(run-lexer!, Path -- Module +Lexer,

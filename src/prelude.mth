@@ -335,6 +335,15 @@ int@@ = dip(ints) ptr+ int@
 int!! : Int Offset Ptr --
 int!! = dip(ints) ptr+ int!
 
+values : Size -- Size
+values = 16 *
+
+value@@ : Offset Ptr -- a
+value@@ = dip(values) ptr+ value@
+
+value!! : a Offset Ptr --
+value!! = dip(values) ptr+ value!
+
 in-range : Int Int Int -- Bool
 in-range = dip(over dip(>=)) <= &&
 

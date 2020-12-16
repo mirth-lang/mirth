@@ -18,7 +18,7 @@ def(table-new!, Name -- Table,
 
     # Table.MAX
     table-name? ".MAX" name-cat!
-    word-alloc!
+    Word.alloc!
     dup2 swap name-word!
     tuck word-name!
 
@@ -37,9 +37,66 @@ def(table-new!, Name -- Table,
     8 buffer-alloc!
     over table-num-buffer!
 
+    # Table.for
+    table-name? ".for" name-cat!
+    Word.alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    \(t w ->
+
+        "a" name-new! var-new-implicit!
+        "x" name-new! var-new!
+        \(a x ->
+            TYPE_STACK a var-type!
+            ctx-empty a ctx-new!
+            w word-ctx!
+
+            a TVar a TVar t TTable T* a TVar T-> T*
+            a TVar T->
+            w word-type!
+
+            true w word-sig-is-checked!
+            true w word-body-is-checked!
+
+            a TVar t TTable T* a TVar T-> x var-type!
+            true x var-auto-run!
+
+            Lambda.alloc!
+            x L1 over lambda-params!
+
+            1 arrow-new-int!
+            dup2 swap lambda-body!
+
+            PRIM_CORE_WHILE arrow-push-prim!
+                PRIM_CORE_DUP arrow-new-prim!
+                dup block-new! ARG_BLOCK swap
+                t table-num-buffer@ arrow-push-buffer!
+                PRIM_INT_GET arrow-push-prim!
+                PRIM_VALUE_LE arrow-push-prim!
+                drop
+
+                PRIM_CORE_DUP arrow-new-prim!
+                dup block-new! ARG_BLOCK swap
+                PRIM_CORE_DIP arrow-push-prim!
+                    x ARG_VAR_RUN
+                L1 over arrow-args!
+                1 arrow-push-int!
+                PRIM_INT_ADD arrow-push-prim!
+                drop
+            L2 over arrow-args!
+
+            PRIM_CORE_DROP arrow-push-prim!
+            drop
+
+            arrow-new-lambda!
+            w word-arrow!)
+
+        t)
+
     # Table.alloc!
     table-name? ".alloc!" name-cat!
-    word-alloc!
+    Word.alloc!
     dup2 swap name-word!
     tuck word-name!
 
@@ -81,7 +138,7 @@ def(field-new!, Name Type Type Int -- Field,
 
     # field&
     field-name? "&" name-cat!
-    word-alloc!
+    Word.alloc!
     dup2 swap name-word!
     tuck word-name!
 
@@ -104,7 +161,7 @@ def(field-new!, Name Type Type Int -- Field,
 
     # field!
     field-name? "!" name-cat!
-    word-alloc!
+    Word.alloc!
     dup2 swap name-word!
     tuck word-name!
 
@@ -121,7 +178,7 @@ def(field-new!, Name Type Type Int -- Field,
 
     # field@
     field-name? "@" name-cat!
-    word-alloc!
+    Word.alloc!
     dup2 swap name-word!
     tuck word-name!
 
@@ -139,7 +196,7 @@ def(field-new!, Name Type Type Int -- Field,
 
     # field?
     field-name? "?" name-cat!
-    word-alloc!
+    Word.alloc!
     dup2 swap name-word!
     tuck word-name!
 

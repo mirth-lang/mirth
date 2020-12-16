@@ -1,5 +1,6 @@
 module(mirth/data/common)
 import(prelude)
+import(mirth/data/path)
 
 # mirth/data/string
 data(StrLit, STRLIT -> Int)
@@ -29,6 +30,7 @@ field(buffer-name, Buffer, Name)
 table(Module)
 table(Token)
 field(module-name, Module, Name)
+field(module-path, Module, Path)
 field(module-start, Module, Token)
 field(module-end, Module, Token)
 

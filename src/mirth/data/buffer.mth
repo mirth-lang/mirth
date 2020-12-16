@@ -6,15 +6,6 @@ import(mirth/data/name)
 # Buffers #
 ###########
 
-Int->Buffer : Int -- Buffer
-Int->Buffer = cast
-
-Buffer->Int : Buffer -- Int
-Buffer->Int = cast
-
-num-buffers@ : Size
-num-buffers@ = Buffer.NUM int@
-
 buffer-alloc! : Name Size -- Buffer +Buffers
 buffer-alloc! = (
     dup heap-alloc!

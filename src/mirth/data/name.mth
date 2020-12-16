@@ -6,9 +6,6 @@ import(mirth/data/char)
 # Names #
 #########
 
-def(Int->Name, Int -- Name, cast)
-def(Name->Int, Name -- Int, cast)
-
 table(Hash)
 field(hash-name, Hash, Name)
 def(Int->Hash, Int -- Hash, cast)
