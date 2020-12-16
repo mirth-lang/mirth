@@ -63,7 +63,6 @@ def(run-output-c99!, Arrow Path -- +IO,
             # FIXME: implement and use create-binary-file!
             # instead of create-file! here ... perhaps
         c99-emit-header!
-        c99-emit-strings!
         c99-emit-prims!
         c99-emit-tags!
         c99-emit-buffers!
@@ -180,17 +179,6 @@ def(c99-emit-header!, +IO,
     "static int global_argc;" ;
     "static char** global_argv;" ;;
     )
-
-def(c99-emit-strings!, +IO,
-    "#define STRINGS_SIZE " . strings-size@ .n "" ;
-    "static const char strings[STRINGS_SIZE] = { " ;
-    0
-    while(dup strings-size@ <,
-        dup STRINGS_BUF u8@@ U8->Int dup .n "," . nonzero
-        if(id, .lf)
-        1+
-    ) drop
-    "};" ;;)
 
 def(c99-emit-buffers!, +IO,
     1
@@ -1317,9 +1305,7 @@ c99-emit-arrow-op! =
             nip
             "    push_i64(" . .n "LL);" ;,
         OP_STR ->
-            nip StrLit->Int
-            "    push_ptr((void*)(strings + " . .n "));" ;,
-            # TODO: just push a string literal.
+            nip StrLit->Str c99-emit-string!,
         OP_WORD ->
             dip(arrow-args@ c99-emit-args-push!)
             "    mw" . word-name@ .name "();" ;,
@@ -1343,6 +1329,30 @@ c99-emit-arrow-op! =
         OP_BLOCK ->
             nip c99-emit-block-push!,
     )
+
+c99-emit-string! : Str -- +IO
+c99-emit-string! = (
+    "    push_ptr(\"" .
+    str-for(c99-emit-string-char!)
+    "\");" ;
+)
+
+c99-emit-string-char! : Char -- +IO
+c99-emit-string-char! =
+    is-backslash? if(
+        drop "\\\\" .,
+    is-quote? if(
+        drop "\\\"" .,
+    dup U8->Int 32 127 in-range if(
+        .b,
+    dup U8->Int 9 == if(
+        drop "\\t" .,
+    dup U8->Int 10 == if(
+        drop "\\n" .,
+    dup U8->Int 13 == if(
+        drop "\\r" .,
+        "unexpected character in c99 string" panic!
+    ))))))
 
 c99-emit-arrow-op-prim! : Arrow Prim -- +IO
 c99-emit-arrow-op-prim! =

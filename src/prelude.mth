@@ -608,6 +608,15 @@ str-eq =
 str-eq? : Str Str -- Str Str Bool
 str-eq? = dup2 str-eq
 
+||| Traverse string characters.
+str-for : *a Str [*a Char -- *a] -- *a
+str-for = \([f] ->
+    while(str-is-empty? not,
+        dup str-tail
+        dip(str-head f)
+    ) drop
+)
+
 #######
 # NIL #
 #######
