@@ -6,155 +6,55 @@ import(mirth/data/char)
 # Names #
 #########
 
-def(Name->Int, Name -- Int, cast)
-def(Int->Name, Int -- Name, cast)
-def(|Name|, Size, 8)
-def(name@, Ptr -- Name, int@ Int->Name)
-def(name!, Name Ptr --, dip(Name->Int) int!)
+table(Hash)
+field(hash-name, Hash, Name)
+def(Int->Hash, Int -- Hash, cast)
+def(Hash->Int, Hash -- Int, cast)
 
-data Hash
-    HASH -> Int
-end
-def(Int->Hash, Int -- Hash, HASH)
-def(Hash->Int, Hash -- Int, match(HASH -> id))
+def(NAME_HASH_MAX, Size, 0x7FFF)
 
-def(MAX_NAMES, Size, 0x4000)
-def(NAME_HASH_MAX, Size, 0x3FFF)
-def(NAME_TABLE_SIZE, Size, NAME_HASH_MAX 1+)
-buffer(NAME_TABLE, 0x20000)
-
-def(num-names@, Size, Name.NUM int@)
-
-def(NAME_QUADS, Size, 8)
-def(NAME_SIZE, Size, NAME_QUADS ints)
-def(NAME_BUF_SIZE, Size, NAME_SIZE MAX_NAMES *)
-buffer(NAME_BUF, 0x100000)
-
-# Load a name into STR_BUF.
-def(name-load!, Name --,
-    name-quads-load!
-    NAME_SIZE str-buf-length!
-    STR_BUF Ptr->Str str-length str-buf-length!)
-
-def(name-quads&, Name -- Ptr,
-    Name->Int NAME_SIZE * NAME_BUF ptr+)
-
-# Compare all quads in name to STR_BUF.
-# Note this code assumes NAME_QUADS is 8.
-def(name-quads-eq, Name -- Bool,
-    name-quads&
-    0 over int@@ 0 STR_BUF int@@ == if(
-    1 over int@@ 1 STR_BUF int@@ == if(
-    2 over int@@ 2 STR_BUF int@@ == if(
-    3 over int@@ 3 STR_BUF int@@ == if(
-    4 over int@@ 4 STR_BUF int@@ == if(
-    5 over int@@ 5 STR_BUF int@@ == if(
-    6 over int@@ 6 STR_BUF int@@ == if(
-    7 swap int@@ 7 STR_BUF int@@ ==,
-    drop false), drop false), drop false), drop false),
-    drop false), drop false), drop false))
-
-def(hash, Ptr -- Hash,
+||| Get hash for string.
+def(hash, Str -- Hash,
     0 swap
-    while(dup u8@ U8->Int nonzero,
-        dup dip(u8@ U8->Int 5 * swap 18 * ^)
-        1 swap ptr+)
+    while(str-is-empty? not,
+        dup str-tail
+        dip(str-head U8->Int 5 * swap 18 * ^))
     drop
     NAME_HASH_MAX &
     Int->Hash)
 
-def(name-hash, Name -- Hash,
-    name-quads& hash)
-
-def(name-quads-eq?, Name -- Name Bool,
-    dup name-quads-eq)
-
-def(name-quad-save!, Name Int --,
-    dip(name-quads&) tuck
-    STR_BUF int@@ rotr int!!)
-
-def(name-quads-save!, Name -- ,
-    dup 0 name-quad-save!
-    dup 1 name-quad-save!
-    dup 2 name-quad-save!
-    dup 3 name-quad-save!
-    dup 4 name-quad-save!
-    dup 5 name-quad-save!
-    dup 6 name-quad-save!
-    7 name-quad-save!)
-
-def(name-quads-load!, Name --,
-    name-quads&
-    0 over int@@ 0 STR_BUF int!!
-    1 over int@@ 1 STR_BUF int!!
-    2 over int@@ 2 STR_BUF int!!
-    3 over int@@ 3 STR_BUF int!!
-    4 over int@@ 4 STR_BUF int!!
-    5 over int@@ 5 STR_BUF int!!
-    6 over int@@ 6 STR_BUF int!!
-    7 over int@@ 7 STR_BUF int!!
-    drop)
-
-# zero str-buf up to NAME_SIZE
-def(str-buf-zero!, --,
-    0 0 STR_BUF int!!
-    0 1 STR_BUF int!!
-    0 2 STR_BUF int!!
-    0 3 STR_BUF int!!
-    0 4 STR_BUF int!!
-    0 5 STR_BUF int!!
-    0 6 STR_BUF int!!
-    0 7 STR_BUF int!!)
-
-def(name-table@, Hash -- Name, Hash->Int NAME_TABLE int@@ Int->Name)
-def(name-table!, Name Hash --, dip(Name->Int) Hash->Int NAME_TABLE int!!)
+def(name-hash, Name -- Hash, name-str@ hash)
 def(next-hash, Hash -- Hash, Hash->Int 1+ NAME_HASH_MAX & Int->Hash)
 
-def(name-save-keep-going?, Hash -- Hash Bool,
-    dup name-table@
-    is-nil? if(
+def(name-keep-going?, Str Hash -- Str Hash Bool,
+    hash-name? is-nil? if(
         drop false,
-        name-quads-eq not
+        dip(over) name-str@ str-eq not
     ))
 
-# Load STR_BUF into name table. Performs deduplication.
-def(name-save!, -- Name,
-    STR_BUF hash
-    while(name-save-keep-going?, next-hash)
-    dup name-table@
-    is-nil? if(
-        drop
-        Name.alloc!
-        dup dip(swap name-table!)
-        dup name-quads-save!,
-        nip
-    ))
 
 def(name-new!, Str -- Name,
-    str-buf-zero! str-buf! name-save!)
+    dup hash
+    while(name-keep-going?, next-hash)
+    hash-name? is-nil? if(
+        drop Name.alloc!
+        tuck swap hash-name!
+        tuck name-str!,
+        nip nip
+    ))
 
-buffer(name-bytes, 8) # TODO: get rid of this
-def(show-names-table!, +Names +IO,
-    0 name-bytes int!
-    0
-    while(dup num-names@ <,
-        dup int-print!
-        ": " str-print!
-        dup Int->Name name-load!
-        str-buf-length? name-bytes int@ + 1+ name-bytes int!
-        STR_BUF Ptr->Str str-print! " " str-print!
-        dup Int->Name name-hash Hash->Int int-print! print-ln!
-        1+
-    )
-    drop
-    "Total bytes: " str-print!
-    name-bytes int@ int-print-ln!)
+||| Add string to name, creating new name.
+name-cat! : Name Str -- Name
+name-cat! = dip(name-str@) str-cat name-new!
 
-def(name-str@, Name -- Str,
-    name-quads& Ptr->Str)
+name-trace! : Name -- +IO
+name-trace! = name-str@ str-trace!
+
+name-print! : Name -- +IO
+name-print! = name-str@ str-print!
 
 def(name-could-be-type, Name -- Bool,
-    name-quads& u8@ is-alpha? nip)
+    name-str@ str-head is-alpha? nip)
 
 def(name-could-be-type-var, Name -- Bool,
     name-str@ str-could-be-type-var)
@@ -192,48 +92,27 @@ def(name-could-be-effect-con, Name -- Bool,
     ))
 
 def(name-print-mangled!, Name -- +IO,
-    name-mangle! STR_BUF Ptr->Str str-print!)
+    name-mangle! str-print!)
 
-def(name-mangle!, Name -- +StrBuf,
-    str-buf-clear!
-    name-str@ 0
-    while(dup NAME_SIZE <,
-        over str-head
-        str-buf-push-mangled!
-        dip(str-tail) 1+)
-    drop2)
+def(name-mangle!, Name -- Str,
+    name-str@ str-transduce(
+        is-alpha? if( TS_CHAR,
+        is-digit? if( TS_CHAR,
+        is-underscore? if( TS_CHAR,
+        is-dash? if( drop underscore TS_CHAR,
+            dip(underscore) char-hexdigits underscore L4 TS_PUSH
+        ))))
+    ))
 
-def(str-buf-push-mangled!, Char -- +StrBuf,
-    is-nul? if(
-        drop,
+def(char-hexdigits, Char -- Char Char,
+    U8->Int
+    dup  16 / hexdigit
+    swap 16 % hexdigit)
 
-    is-alpha? if(
-        str-buf-push!,
-
-    is-digit? if(
-        str-buf-push!,
-
-    is-dash? if(
-        drop
-        underscore str-buf-push!, # technically bad but looks nice for now
-
-    is-underscore? if(
-        str-buf-push!, # technically bad but looks nice for now
-
-        underscore str-buf-push!
-        str-buf-push-hexdigits!
-        underscore str-buf-push!
-    ))))))
-
-def(str-buf-push-hexdigits!, Char -- +StrBuf,
-    U8->Int dup
-    16 / Int->U8 str-buf-push-hexdigit!
-    16 % Int->U8 str-buf-push-hexdigit!)
-
-def(str-buf-push-hexdigit!, Char -- +StrBuf,
-    U8->Int dup 10 >= if(
-        55 + Int->U8 str-buf-push!,
-        48 + Int->U8 str-buf-push!
+def(hexdigit, Int -- Char,
+    dup 10 >= if(
+        55 + Int->U8,
+        48 + Int->U8
     ))
 
 ########

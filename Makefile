@@ -1,4 +1,4 @@
-C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-missing-braces -Werror -pedantic -g
+C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-missing-braces -Werror -pedantic -O1 -g
 CC=gcc $(C99FLAGS)
 
 SRCS=src/*.mth src/mirth/*.mth src/mirth/data/*.mth

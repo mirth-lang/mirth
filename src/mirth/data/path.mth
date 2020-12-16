@@ -40,30 +40,21 @@ output-path-root! = OUTPUT_PATH_ROOT path!
 path-separator : Str
 path-separator = RUNNING_OS OS_WINDOWS == if("\\", "/")
 
-||| Load a path into STR_BUF. If the path is null,
-||| clears STR_BUF instead.
-str-buf-path! : Path --
-str-buf-path! = Path->Str str-buf!
+path-is-empty? : Path -- Path Bool
+path-is-empty? = dup Path->Str str-is-empty
 
-||| Push a path to STR_BUF, adding the path separator if
-||| str-buf is non-empty. (TODO: Add path separator
-||| only if it isn't already present.)
-str-buf-push-path! : Path --
-str-buf-push-path! = (
-    str-buf-empty? if(id, path-separator str-buf-push-str!)
-    Path->Str str-buf-push-str!
-)
+path-join : Path Path -- Path
+path-join =
+    swap path-is-empty? if(
+        drop,
+        Path->Str path-separator rotl Path->Str
+        L3 str-concat Str->Path
+    )
 
-||| Load a source path into STR_BUF.
-load-source-path! : Path --
-load-source-path! = (
-    source-path-root@ str-buf-path!
-    str-buf-push-path!
-)
+||| Make a source path from a project-relative path.
+make-source-path : Path -- Path
+make-source-path = source-path-root@ swap path-join
 
-# Load an output path into STR_BUF.
-load-output-path! : Path --
-load-output-path! = (
-    output-path-root@ str-buf-path!
-    str-buf-push-path!
-)
+||| Make an output path from a project-relative path.
+make-output-path : Path -- Path
+make-output-path = output-path-root@ swap path-join

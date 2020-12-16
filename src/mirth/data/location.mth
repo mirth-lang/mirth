@@ -23,7 +23,7 @@ location-trace! : Location -- +IO
 location-trace! = (
     location-unpack
     rotr swap
-    load-module-source-path! str-buf-trace!
+    module-source-path Path->Str str-trace!
     ":" str-trace!
     Row->Int int-trace!
     ":" str-trace!

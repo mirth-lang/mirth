@@ -2,7 +2,6 @@ module(mirth/lexer)
 import(prelude)
 import(mirth/data/char)
 import(mirth/data/name)
-import(mirth/data/string)
 import(mirth/data/token)
 import(mirth/data/error)
 import(mirth/input)
@@ -11,27 +10,24 @@ import(mirth/input)
 # LEXER #
 #########
 
-buffer(LEXER_MODULE, 8)
-def(lexer-module@, -- Module +Lexer, LEXER_MODULE int@ Int->Module)
-def(lexer-module!, Module -- +Lexer, Module->Int LEXER_MODULE int!)
+buffer(LEXER_MODULE, 16)
+def(lexer-module@, -- Module +Lexer, LEXER_MODULE value@)
+def(lexer-module!, Module -- +Lexer, LEXER_MODULE value!)
 
-buffer(LEXER_ROW, 8)
-def(lexer-row@, -- Row +Lexer, LEXER_ROW int@ Int->Row)
-def(lexer-row!, Row -- +Lexer, Row->Int LEXER_ROW int!)
+buffer(LEXER_ROW, 16)
+def(lexer-row@, -- Row +Lexer, LEXER_ROW value@)
+def(lexer-row!, Row -- +Lexer, LEXER_ROW value!)
 
-buffer(LEXER_COL, 8)
-def(lexer-col@, -- Col +Lexer, LEXER_COL int@ Int->Col)
-def(lexer-col!, Col -- +Lexer, Col->Int LEXER_COL int!)
+buffer(LEXER_COL, 16)
+def(lexer-col@, -- Col +Lexer, LEXER_COL value@)
+def(lexer-col!, Col -- +Lexer, LEXER_COL value!)
 
-buffer(LEXER_STACK_LENGTH, 8)
-buffer(LEXER_STACK_BUF, 0x1000)
+buffer(LEXER_STACK_LENGTH, 16)
+def(lexer-stack-length@, Size +Lexer, LEXER_STACK_LENGTH value@)
+def(lexer-stack-length!, Size -- +Lexer, LEXER_STACK_LENGTH value!)
+
 def(LEXER_STACK_SIZE, Size, 0x200)
-
-def(lexer-stack-length@, Size +Lexer,
-    LEXER_STACK_LENGTH u16@ U16->Int)
-
-def(lexer-stack-length!, Size -- +Lexer,
-    Int->U16 LEXER_STACK_LENGTH u16!)
+buffer(LEXER_STACK_BUF, 0x2000)
 
 def(lexer-stack-clear!, +Lexer,
     0 lexer-stack-length!)
@@ -45,10 +41,9 @@ def(lexer-stack-full?, Bool +Lexer,
 def(lexer-stack-push!, Token -- +Lexer,
     lexer-stack-full? if(
         "lexer stack overflow" panic!,
-        Token->Int
         lexer-stack-length@
         dup 1+ lexer-stack-length!
-        LEXER_STACK_BUF int!!
+        LEXER_STACK_BUF value!!
     ))
 
 def(lexer-stack-pop!, -- Token +Lexer,
@@ -56,16 +51,14 @@ def(lexer-stack-pop!, -- Token +Lexer,
         "lexer stack underflow" panic!,
         lexer-stack-length@ 1-
         dup lexer-stack-length!
-        LEXER_STACK_BUF int@@
-        Int->Token
+        LEXER_STACK_BUF value@@
     ))
 
 def(run-lexer!, Path -- Module +Lexer,
     module-new! lexer-module!
 
-    lexer-module@ load-module-source-path!
-    STR_BUF Ptr->Str open-file!
-    input-start!
+    lexer-module@ module-source-path
+    Path->Str open-file! input-start!
 
     1 Int->Row lexer-row!
     1 Int->Col lexer-col!
@@ -216,7 +209,6 @@ def(lexer-emit-rcurly!, +Lexer,
 
 def(lexer-emit-name!, +Lexer,
     str-buf-clear!
-    str-buf-zero!
 
     lexer-module@
     lexer-row@
@@ -242,7 +234,7 @@ def(lexer-emit-name!, +Lexer,
             TOKEN_EQUAL,
         str-buf-is-int? if(
             str-buf-int? TOKEN_INT,
-            name-save! TOKEN_NAME
+            str-buf-dup! name-new! TOKEN_NAME
         ))))
 
         token-alloc!
@@ -393,7 +385,7 @@ def(lexer-emit-string!, +Lexer,
     )
     drop
 
-    strings-save! TOKEN_STR
+    str-buf-dup! TOKEN_STR
     swap token-value!)
 
 def(lexer-push-string-char!, Char -- +Lexer,
@@ -446,11 +438,6 @@ def(lexer-comment-end?, Bool +Lexer,
 def(lexer-peek, Char +Lexer, input-peek)
 def(lexer-move!, +Lexer, input-move!
     lexer-col@ Col->Int 1+ Int->Col lexer-col!)
-
-def(lexer-trace-prefix!, +IO,
-    lexer-module@ load-module-source-path! str-buf-trace! ":" str-trace!
-    lexer-row@ Row->Int int-trace! ":" str-trace!
-    lexer-col@ Col->Int int-trace! ": " str-trace!)
 
 def(lexer-location, Location +Lexer,
     lexer-module@ lexer-row@ lexer-col@ location-pack)

@@ -7,13 +7,9 @@ import(mirth/data/name)
 #######
 
 def(Var->Int, Var -- Int, cast)
-def(Int->Var, Int -- Var, cast)
-def(VAR_ERROR, Var, 0 Int->Var)
-
-def(var-alloc!, Var, Var.alloc!)
 
 def(var-new!, Name -- Var,
-    var-alloc!
+    Var.alloc!
     tuck var-name!)
 
 def(var-new-implicit!, Name -- Var,
