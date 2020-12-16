@@ -253,7 +253,7 @@ def(type-trace-stack!, Type -- +IO,
             swap type-trace-stack-dom! type-trace!,
         TVar ->
             var-name@
-            dup name-load! str-buf-trace!
+            dup name-trace!
             name-could-be-stack-var
             if(id, " ." str-trace!),
         _ ->
@@ -265,13 +265,13 @@ def(type-trace!, Type -- +IO,
         TYPE_ERROR -> "<ERROR>" str-trace!,
         TYPE_DONT_CARE -> "_" str-trace!,
         TPrim -> type-trace-prim!,
-        TVar -> var-name@ name-load! str-buf-trace!,
+        TVar -> var-name@ name-trace!,
         TMeta -> "?" str-trace! MetaVar->Int int-trace!,
         TTensor -> "[" str-trace! TTensor type-trace-stack! "]" str-trace!,
         TMorphism -> "[" str-trace! TMorphism type-trace-sig! "]" str-trace!,
-        TData -> data-name@ name-load! str-buf-trace!,
-        TTable -> table-name@ name-load! str-buf-trace!,
-        THole -> name-load! str-buf-trace!,
+        TData -> data-name@ name-trace!,
+        TTable -> table-name@ name-trace!,
+        THole -> name-trace!,
         TApp -> app-type-trace!
     ))
 
@@ -478,7 +478,7 @@ def(Int->Data, Int -- Data, cast)
 ##############
 
 def(type-hole-unify!, Type Name -- Type,
-    dup 0 Int->Name == if(
+    is-nil? if(
         drop,
         THole type-trace!
         " ~ " str-trace!

@@ -16,6 +16,7 @@ data NameValue
     DEF_EXTERNAL -> External
 end
 table(Name)
+field(name-str, Name, Str)
 field(name-value, Name, NameValue)
 
 # mirth/data/buffer

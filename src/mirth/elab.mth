@@ -791,8 +791,8 @@ def(elab-module-name!, Module Token -- +Mirth,
             dup2 name-module!
 
             # check module name matches module path
-            name-load! ".mth" str-buf-push-str!
-            module-path@ Path->Str STR_BUF Ptr->Str str-eq if(
+            dip(module-path@ Path->Str)
+            name-str@ ".mth" str-cat str-eq if(
                 drop,
                 "Module name should match path." emit-error!
             )
@@ -816,8 +816,8 @@ def(elab-module-import!, Module Token -- Module Token +Mirth,
                     # module is already loaded (TODO: add import to a list)
 
                 DEF_NONE ->
-                    name-load! ".mth" str-buf-push-str!
-                    STR_BUF Ptr->Str Str->Path run-lexer!
+                    name-str@ ".mth" str-cat
+                    Str->Path run-lexer!
                     elab-module! drop2,
                     # elab the imported module (TODO: add import to a list)
 
@@ -1082,7 +1082,7 @@ def(elab-target-c99!, Module Token -- Module Token +Mirth,
 ||| Ensure that everything so far has been typechecked.
 def(typecheck-everything!, --,
     1
-    while(dup num-names@ <=,
+    while(dup Name.NUM int@ <=,
         dup Int->Name
         typecheck-name!
         1+)

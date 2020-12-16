@@ -488,6 +488,18 @@ STR_BUF_SIZE = 0x1000
 buffer(STR_BUF, 0x1000)
 buffer(STR_BUF_LEN, 8)
 
+build-str! : *a [ *a -- *b ] -- *b Str
+build-str! =
+    str-buf-dup! str-buf-clear! dip(
+        run str-buf-dup!
+    ) str-buf!
+
+str-buf-dup! : Str
+str-buf-dup! = (
+    str-buf-length? 1+ prim.ptr.alloc
+    dup Ptr->Str dip(STR_BUF swap ptr-copy-nonzero! nil swap u8!)
+)
+
 str-buf-length? : Int +StrBuf
 str-buf-length? = STR_BUF_LEN int@
 
@@ -557,6 +569,9 @@ str-buf-int! =
         ) 0 < if(45 Int->U8 str-buf-push!, id)
         str-buf-reverse!
     )
+
+int-show : Int -- Str
+int-show = build-str!(str-buf-int!)
 
 ||| Swap two bytes in STR_BUF.
 str-buf-swap-u8! : Int Int -- +StrBuf

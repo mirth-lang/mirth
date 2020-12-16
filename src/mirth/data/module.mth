@@ -41,7 +41,6 @@ module-path! =
         dip(Path->Str) module-path& str-copy!
     )
 
-# Load a source path associated with a module into STR_BUF.
-load-module-source-path! : Module --
-load-module-source-path! =
-    module-path@ load-source-path!
+||| Get source path associated with module.
+module-source-path : Module -- Path
+module-source-path = module-path@ make-source-path

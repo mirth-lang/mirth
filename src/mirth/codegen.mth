@@ -58,8 +58,8 @@ def(run-output-c99!, Arrow Path -- +IO,
     num-errors@ 0 > if(
         drop2,
 
-        load-output-path!
-        STR_BUF Ptr->Str create-file! codegen-start!
+        make-output-path Path->Str
+        create-file! codegen-start!
             # FIXME: implement and use create-binary-file!
             # instead of create-file! here ... perhaps
         c99-emit-header!
@@ -85,9 +85,9 @@ def(c99-depth--, +Codegen, c99-depth@ 1- c99-depth!)
 def(.lf, +Codegen, 10 Int->U8 .b)
 def(;, Str -- +Codegen, . .lf)
 def(;;, Str -- +Codegen, . .lf .lf)
-def(.n, Int -- +Codegen, str-buf-int! STR_BUF Ptr->Str .)
+def(.n, Int -- +Codegen, int-show .)
 def(.d, +Codegen, c99-depth@ .n)
-def(.name, Name -- +Codegen, name-mangle! STR_BUF Ptr->Str .)
+def(.name, Name -- +Codegen, name-mangle! .)
 
 def(.w, Name -- +IO, "static void mw" . .name " (void)" .)
 def(.p, Prim -- +IO, prim-name@ .w)

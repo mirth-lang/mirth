@@ -63,9 +63,8 @@ def(lexer-stack-pop!, -- Token +Lexer,
 def(run-lexer!, Path -- Module +Lexer,
     module-new! lexer-module!
 
-    lexer-module@ load-module-source-path!
-    STR_BUF Ptr->Str open-file!
-    input-start!
+    lexer-module@ module-source-path
+    Path->Str open-file! input-start!
 
     1 Int->Row lexer-row!
     1 Int->Col lexer-col!
@@ -216,7 +215,6 @@ def(lexer-emit-rcurly!, +Lexer,
 
 def(lexer-emit-name!, +Lexer,
     str-buf-clear!
-    str-buf-zero!
 
     lexer-module@
     lexer-row@
@@ -242,7 +240,7 @@ def(lexer-emit-name!, +Lexer,
             TOKEN_EQUAL,
         str-buf-is-int? if(
             str-buf-int? TOKEN_INT,
-            name-save! TOKEN_NAME
+            str-buf-dup! name-new! TOKEN_NAME
         ))))
 
         token-alloc!
@@ -446,11 +444,6 @@ def(lexer-comment-end?, Bool +Lexer,
 def(lexer-peek, Char +Lexer, input-peek)
 def(lexer-move!, +Lexer, input-move!
     lexer-col@ Col->Int 1+ Int->Col lexer-col!)
-
-def(lexer-trace-prefix!, +IO,
-    lexer-module@ load-module-source-path! str-buf-trace! ":" str-trace!
-    lexer-row@ Row->Int int-trace! ":" str-trace!
-    lexer-col@ Col->Int int-trace! ": " str-trace!)
 
 def(lexer-location, Location +Lexer,
     lexer-module@ lexer-row@ lexer-col@ location-pack)
