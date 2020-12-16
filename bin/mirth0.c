@@ -3227,7 +3227,7 @@ static void mwTYPE_ELAB (void) {
  static void mwtoken_name_40_ (void);
  static void mwtoken_name_3F_ (void);
  static void mwtoken_str_40_ (void);
- static void mwtoken_strlit_3F_ (void);
+ static void mwtoken_str_3F_ (void);
  static void mwtoken_int_40_ (void);
  static void mwtoken_int_3F_ (void);
  static void mwtoken_is_arg_end_3F_ (void);
@@ -3324,9 +3324,6 @@ static void mwTYPE_ELAB (void) {
  static void mwlexer_emit_fatal_error_21_ (void);
  static void mwbuffer_alloc_21_ (void);
  static void mwVar__3E_Int (void);
- static void mwInt__3E_Var (void);
- static void mwVAR_ERROR (void);
- static void mwvar_alloc_21_ (void);
  static void mwvar_new_21_ (void);
  static void mwvar_new_implicit_21_ (void);
  static void mwvar_is_physical_3F_ (void);
@@ -4257,9 +4254,9 @@ static void mwTYPE_ELAB (void) {
  static void mb_mirth_2F_lexer_434_9 (void);
  static void mb_mirth_2F_lexer_435_9 (void);
  static void mb_mirth_2F_lexer_446_40 (void);
- static void mb_mirth_2F_data_2F_var_25_9 (void);
- static void mb_mirth_2F_data_2F_var_26_9 (void);
- static void mb_mirth_2F_data_2F_var_27_9 (void);
+ static void mb_mirth_2F_data_2F_var_21_9 (void);
+ static void mb_mirth_2F_data_2F_var_22_9 (void);
+ static void mb_mirth_2F_data_2F_var_23_9 (void);
  static void mb_mirth_2F_data_2F_type_593_9 (void);
  static void mb_mirth_2F_data_2F_type_594_15 (void);
  static void mb_mirth_2F_data_2F_type_594_35 (void);
@@ -13682,7 +13679,7 @@ static void mwtoken_str_40_ (void){
     }
 }
 
-static void mwtoken_strlit_3F_ (void){
+static void mwtoken_str_3F_ (void){
     mwdup();
     mwtoken_str_40_();
 }
@@ -15244,21 +15241,8 @@ static void mwVar__3E_Int (void){
     mwcast();
 }
 
-static void mwInt__3E_Var (void){
-    mwcast();
-}
-
-static void mwVAR_ERROR (void){
-    push_i64(0LL);
-    mwInt__3E_Var();
-}
-
-static void mwvar_alloc_21_ (void){
-    mwVar_2E_alloc_21_();
-}
-
 static void mwvar_new_21_ (void){
-    mwvar_alloc_21_();
+    mwVar_2E_alloc_21_();
     mwtuck();
     mwvar_name_21_();
 }
