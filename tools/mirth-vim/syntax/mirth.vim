@@ -42,7 +42,7 @@ syntax match mirthWord "\v0[A-WYZa-wyz_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!
 syntax match mirthWord "\v0[0-9][0-9]*[A-Za-z_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
 syntax match mirthWord "\v0[xX][0-9a-fA-F]*[G-Zg-z_\-?+*~!\@\$%\^&=/\|<>'][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
 syntax match mirthType "\v[A-Z][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
-syntax match mirthTag "\v\+[A-Z][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
+syntax match mirthTag "\v[\?!\+][A-Z][0-9a-zA-Z_\-?+*~!\@\$%\^&=/\|<>']*"
 
 " operators
 syntax match mirthColon "\v:"
