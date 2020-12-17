@@ -258,140 +258,140 @@ def(elab-arrow!, Ctx Type Token -- Arrow,
     elab-expand-morphism! elab-arrow-hom!)
 
 def(elab-arrow-hom!, Ctx Type Type Token -- Arrow,
-    swap dip(elab-arrow-fwd! arrow-dom? swap arrow-token@)
-    swap elab-type-unify! drop2)
+    swap dip(
+        elab-arrow-fwd!
+        arrow-token-end? GAMMA
+        over arrow-cod@
+    )
+    type-unify! drop2)
 
-def(elab-arrow-fwd!, Ctx Type Token -- Arrow Arrow,
+def(elab-arrow-fwd!, Ctx Type Token -- Arrow,
     Arrow.alloc!
-    tuck arrow-token!
-    tuck arrow-dom!
+    tuck dup2 arrow-token-start! arrow-token-end!
+    tuck dup2 arrow-dom! arrow-cod!
     tuck arrow-ctx!
-    dup
     while(elab-arrow-done? not,
         elab-arrow-step!))
 
 ||| Is this arrow at the end of a run?
 def(elab-arrow-done?, Arrow -- Arrow Bool,
-    arrow-token? token-run-end? nip)
+    arrow-token-end? token-run-end? nip)
 
 ||| From the {ctx, dom, token} fields, elaborate the
 ||| arrow's {op, arg, next} fields, returning
 ||| the next arrow with {ctx, dom, token} set.
 def(elab-arrow-step!, Arrow -- Arrow,
-    dup elab-arrow-op!
-    Arrow.alloc! tuck arrow-dom!
-    dip(arrow-token? token-next) tuck arrow-token!
-    dip(arrow-ctx?) tuck arrow-ctx!
-    tuck dip(arrow-next!))
+    Atom.alloc!
+    over arrow-ctx@ over atom-ctx!
+    over arrow-cod@ over atom-dom!
+    over arrow-token-end@ over atom-token!
+    elab-atom-op! over
+    over atom-cod@ over arrow-cod!
+    arrow-token-end? token-next over arrow-token-end!
+    arrow-atoms@ swap snoc over arrow-atoms!)
 
-||| From the {ctx, dom, token} fields, elaborate the
-||| arrow's {op, arg} fields, returning the
-||| codomain of the operation.
-def(elab-arrow-op!, Arrow -- Type,
-    arrow-token? token-value@ match(
-        TOKEN_NAME -> elab-arrow-op-name!,
-        TOKEN_INT -> elab-arrow-op-int!,
-        TOKEN_STR -> elab-arrow-op-str!,
-        TOKEN_LSQUARE -> drop arrow-token? elab-arrow-op-block!,
-        TOKEN_LCURLY -> drop arrow-token? elab-arrow-op-stack-assertion!,
+||| From the atom's {ctx, dom, token} fields, elaborate
+||| the atom's {op, args, cod} fields.
+def(elab-atom-op!, Atom -- Atom,
+    atom-token? token-value@ match(
+        TOKEN_NAME -> elab-atom-op-name!,
+        TOKEN_INT -> elab-atom-op-int!,
+        TOKEN_STR -> elab-atom-op-str!,
+        TOKEN_LSQUARE -> drop atom-token? elab-atom-op-block!,
+        TOKEN_LCURLY -> drop atom-token? elab-atom-op-stack-assertion!,
         _ ->
-            drop arrow-token?
-            "Unexpected token in elab-arrow-op!"
+            drop atom-token?
+            "Unexpected token in elab-atom-op!"
             emit-fatal-error!
     ))
 
-def(elab-arrow-op-name!, Arrow Name -- Type,
-    over arrow-ctx@ dip(dup) ctx-lookup match(
+def(elab-atom-op-name!, Atom Name -- Atom,
+    dup2 swap atom-ctx@ ctx-lookup match(
         NONE ->
             name-value@ match(
-                DEF_BUFFER -> elab-arrow-op-buffer!,
-                DEF_EXTERNAL -> elab-arrow-op-external!,
-                DEF_WORD -> elab-arrow-op-word!,
-                DEF_PRIM -> elab-arrow-op-prim!,
-                DEF_TAG -> elab-arrow-op-tag!,
-                _ -> drop arrow-token@ "Unknown word." emit-error! TYPE_ERROR
+                DEF_BUFFER -> elab-atom-op-buffer!,
+                DEF_EXTERNAL -> elab-atom-op-external!,
+                DEF_WORD -> elab-atom-op-word!,
+                DEF_PRIM -> elab-atom-op-prim!,
+                DEF_TAG -> elab-atom-op-tag!,
+                _ -> drop atom-token? "Unknown word." emit-error!
             ),
         SOME ->
-            nip elab-arrow-op-var!
+            nip elab-atom-op-var!
     ))
 
-def(elab-arrow-op-block!, Arrow Token -- Type,
-    dip(arrow-ctx?) meta-alloc! TMeta tuck
-    dip(token-args-1
-        Block.alloc! dip(elab-arrow!)
-        tuck block-arrow!
-        OP_BLOCK over arrow-op!
-        arrow-dom@)
-    type-expand T*)
+def(elab-atom-op-block!, Atom Token -- Atom,
+    dip(atom-ctx?) meta-alloc! TMeta tuck
+    dip(token-args-1 Block.alloc! dip(elab-arrow!)
+        tuck block-arrow! OP_BLOCK over atom-op!
+        atom-dom?)
+    T* over atom-cod!)
 
-def(elab-arrow-op-var!, Arrow Var -- Type,
-    dup2 OP_VAR swap arrow-op!
+def(elab-atom-op-var!, Atom Var -- Atom,
+    dup2 OP_VAR swap atom-op!
     var-auto-run? if(
-        # run var
-        var-type@ elab-arrow-op-apply-semifresh!,
-
-        # push var
-        dip(arrow-dom@) var-type@ T*
+        var-type@ elab-atom-op-apply-semifresh!, # run var
+        dip(atom-dom?) var-type@ T* over atom-cod! # push var
     ))
 
-def(elab-arrow-op-int!, Arrow Int -- Type,
-    OP_INT over arrow-op!
-    arrow-dom@ TYPE_INT T*)
+def(elab-atom-op-int!, Atom Int -- Atom,
+    OP_INT over atom-op!
+    atom-dom? TYPE_INT T* over atom-cod!)
 
-def(elab-arrow-op-str!, Arrow Str -- Type,
-    OP_STR over arrow-op!
-    arrow-dom@ TYPE_STR T*)
+def(elab-atom-op-str!, Atom Str -- Atom,
+    OP_STR over atom-op!
+    atom-dom? TYPE_STR T* over atom-cod!)
 
-def(elab-arrow-op-buffer!, Arrow Buffer -- Type,
-    OP_BUFFER over arrow-op!
-    arrow-dom@ TYPE_PTR T*)
+def(elab-atom-op-buffer!, Atom Buffer -- Atom,
+    OP_BUFFER over atom-op!
+    atom-dom? TYPE_PTR T* over atom-cod!)
 
-def(elab-arrow-op-stack-assertion!, Arrow Token -- Type,
-    dip(arrow-ctx? type-elab-stack-assertion)
-    token-succ elab-type-stack!
+def(elab-atom-op-stack-assertion!, Atom Token -- Atom,
+    dip(atom-ctx? type-elab-stack-assertion)
+    token-args-1 elab-type-stack!
     drop nip
-    over arrow-token@
-    dip2(arrow-dom@ dup)
-    elab-type-unify! drop2)
+    over atom-token@
+    dip2(atom-dom?)
+    elab-type-unify! drop2
+    atom-dom? over atom-cod!)
 
-def(elab-arrow-op-external!, Arrow External -- Type,
-    dup2 OP_EXTERNAL swap arrow-op!
-    elab-external-sig! elab-arrow-op-apply-fresh!)
+def(elab-atom-op-external!, Atom External -- Atom,
+    dup2 OP_EXTERNAL swap atom-op!
+    elab-external-sig! elab-atom-op-apply-fresh!)
 
-def(elab-arrow-op-word!, Arrow Word -- Type,
-    dup2 OP_WORD swap arrow-op!
-    elab-word-sig! elab-arrow-op-apply-fresh!)
+def(elab-atom-op-word!, Atom Word -- Atom,
+    dup2 OP_WORD swap atom-op!
+    elab-word-sig! elab-atom-op-apply-fresh!)
 
-def(elab-arrow-op-tag!, Arrow Tag -- Type,
-    dup2 OP_TAG swap arrow-op!
-    elab-tag-sig! elab-arrow-op-apply-fresh!)
+def(elab-atom-op-tag!, Atom Tag -- Atom,
+    dup2 OP_TAG swap atom-op!
+    elab-tag-sig! elab-atom-op-apply-fresh!)
 
-def(elab-arrow-op-prim!, Arrow Prim -- Type,
+def(elab-atom-op-prim!, Atom Prim -- Atom,
     dup PRIM_CORE_MATCH == if(
-        drop elab-arrow-op-match!,
+        drop elab-atom-op-match!,
 
     dup PRIM_CORE_LAMBDA == if(
-        drop elab-arrow-op-lambda!,
+        drop elab-atom-op-lambda!,
 
     prim-type? is-nil if(
-        drop arrow-token@ "compiler error: prim type missing" emit-fatal-error!,
+        drop atom-token@ "compiler error: prim type missing" emit-fatal-error!,
 
-        dup2 OP_PRIM swap arrow-op!
-        prim-type@ elab-arrow-op-apply-fresh!
+        dup2 OP_PRIM swap atom-op!
+        prim-type@ elab-atom-op-apply-fresh!
     ))))
 
-def(elab-arrow-op-lambda!, Arrow -- Type,
+def(elab-atom-op-lambda!, Atom -- Atom,
     Lambda.alloc!
-    dup2 OP_LAMBDA swap arrow-op!
-    over arrow-ctx@ over lambda-outer-ctx!
-    over arrow-dom@ over lambda-dom!
-    dip(arrow-token@) tuck lambda-token!
-    elab-lambda!)
+    dup2 OP_LAMBDA swap atom-op!
+    over atom-ctx@ over lambda-outer-ctx!
+    over atom-dom@ over lambda-dom!
+    dip(atom-token?) tuck lambda-token!
+    elab-lambda! lambda-cod@ over atom-cod!)
 
-def(elab-lambda!, Lambda -- Type,
+def(elab-lambda!, Lambda -- Lambda,
     elab-lambda-params!
-    elab-lambda-body!
-    lambda-cod@)
+    elab-lambda-body!)
 
 def(elab-expand-tensor!, Type Token -- Type Type Token,
     dip2(meta-alloc! TMeta meta-alloc! TMeta dup2 T*)
@@ -446,23 +446,22 @@ def(elab-lambda-body!, Lambda -- Lambda,
     while(token-is-lambda-param?, token-next) token-succ
     dip(lambda-mid? dip(lambda-inner-ctx?))
     elab-arrow-fwd!
-    dip(over lambda-body!)
-    arrow-dom@ over lambda-cod!)
+    dup2 swap lambda-body!
+    arrow-cod@ over lambda-cod!)
 
-def(elab-arrow-op-match!, Arrow -- Type,
+def(elab-atom-op-match!, Atom -- Atom,
     Match.alloc!
-    dup2 OP_MATCH swap arrow-op!
-    over arrow-ctx@ over match-ctx!
-    over arrow-dom@ over match-dom!
-    dip(arrow-token@) tuck match-token!
+    dup2 OP_MATCH swap atom-op!
+    over atom-ctx@ over match-ctx!
+    over atom-dom@ over match-dom!
+    dip(atom-token?) tuck match-token!
     meta-alloc! TMeta over match-cod!
-    elab-match!)
+    elab-match! match-cod@ over atom-cod!)
 
 ||| Elaborate `match(...)` expression.
-def(elab-match!, Match -- Type,
+def(elab-match!, Match -- Match,
     elab-match-cases!
-    elab-match-exhaustive!
-    match-cod@)
+    elab-match-exhaustive!)
 
 ||| Check that match is exhaustive.
 def(elab-match-exhaustive!, Match -- Match,
@@ -548,36 +547,37 @@ def(elab-case-pattern!, Case Token -- Case Token,
 ||| Elaborate case body.
 def(elab-case-body!, Case Token -- Case Token,
     dip(case-mid? dip(case-match? match-ctx@)) elab-arrow-fwd!
-    arrow-token? dip(arrow-dom@) { Case Arrow Type Token }
+    arrow-token-end? dip(arrow-cod?) { Case Arrow Type Token }
     dip2(over case-body!) { Case Type Token }
     dip2(case-match? match-cod@) elab-type-unify! nip)
 
 ||| Apply a type signature after freshening to get a codomain.
-def(elab-arrow-op-apply-fresh!, Arrow Type -- Type,
+def(elab-atom-op-apply-fresh!, Atom Type -- Atom,
     subst-nil swap type-freshen-sig
-    dip(over arrow-subst!)
-    elab-arrow-op-apply!)
+    dip(over atom-subst!)
+    elab-atom-op-apply!)
 
 ||| Same as elab-arrow-op-apply! but it uses a fresh stack var
 ||| if the morphism has unit type.
-def(elab-arrow-op-apply-semifresh!, Arrow Type -- Type,
+def(elab-atom-op-apply-semifresh!, Atom Type -- Atom,
     type-semifreshen-sig
-    elab-arrow-op-apply!)
+    elab-atom-op-apply!)
 
 ||| Apply a type signature to get a codomain.
-def(elab-arrow-op-apply!, Arrow Type -- Type,
+def(elab-atom-op-apply!, Atom Type -- Atom,
     type-expand
 
-    over arrow-token@ token-num-args
+    over atom-token@ token-num-args
     over type-max-num-params > if(
-        over arrow-token@
+        over atom-token@
         "Too many arguments." emit-fatal-error!
         drop2 TYPE_ERROR, # TODO: improve error message
 
-    over arrow-token@ dup token-num-args
+    over atom-token@ dup token-num-args
     elab-expand-params! drop
-    dip(swap dip(elab-arrow-unify-dom!))
-    dip(elab-arrow-op-args! drop)))
+    dip(swap dip(elab-atom-unify-dom!))
+    dip(elab-atom-op-args!))
+    over atom-cod!)
 
 def(elab-expand-params!, Type Token Int -- List(Type) Type Type Token,
     dip(elab-expand-morphism! dip(swap))
@@ -593,43 +593,43 @@ def(elab-expand-tensors!, Type Token Int -- Type List(Type) Token,
     ))
 
 ||| Unify a type with the dom of an arrow, returning the original arrow.
-def(elab-arrow-unify-dom!, Arrow Type -- Arrow,
-    over arrow-dom? swap arrow-token@ elab-type-unify! drop2)
+def(elab-atom-unify-dom!, Atom Type -- Atom,
+    over atom-dom? swap atom-token@ elab-type-unify! drop2)
 
 ||| Elaborate the args of an arrow.
-def(elab-arrow-op-args!, Arrow List(Type) -- Arrow,
-    dip(arrow-token? token-succ)
-    for(dip(token-succ) elab-arrow-arg!) drop)
+def(elab-atom-op-args!, Atom List(Type) -- Atom,
+    dip(atom-token? token-succ)
+    for(dip(token-succ) elab-atom-arg!) drop)
 
 ||| Elaborate one arg of a given type, move token to the end of the argument.
-def(elab-arrow-arg!, Arrow Token Type -- Arrow Token,
+def(elab-atom-arg!, Atom Token Type -- Atom Token,
     over token-is-name? dip(token-succ token-is-arg-end? nip) && if(
         dup3 drop token-name@
-        dip(arrow-ctx@) swap ctx-lookup
+        dip(atom-ctx@) swap ctx-lookup
         match(
             SOME ->
                 var-auto-run? if(
-                    elab-arrow-arg-var-run!,
-                    drop elab-arrow-arg-block!
+                    elab-atom-arg-var-run!,
+                    drop elab-atom-arg-block!
                 ),
-            NONE -> elab-arrow-arg-block!
+            NONE -> elab-atom-arg-block!
         ),
-        elab-arrow-arg-block!
+        elab-atom-arg-block!
     ))
 
 ||| Elaborate ARG_BLOCK argument, move token to the end of the argument.
-def(elab-arrow-arg-block!, Arrow Token Type -- Arrow Token,
-    over dip2(over arrow-ctx@)
+def(elab-atom-arg-block!, Atom Token Type -- Atom Token,
+    over dip2(over atom-ctx@)
     Block.alloc! dip(elab-arrow!)
     tuck block-arrow! ARG_BLOCK
     swap token-next-arg-end
-    dip(arrow-arg-add!))
+    dip(atom-arg-add!))
 
 ||| Elaborate ARG_VAR_RUN argument, move token to the end of the argument.
-def(elab-arrow-arg-var-run!, Arrow Token Type Var -- Arrow Token,
+def(elab-atom-arg-var-run!, Atom Token Type Var -- Atom Token,
     dup dip(var-type@ rotl elab-type-unify! nip)
     swap token-next-arg-end
-    dip(ARG_VAR_RUN arrow-arg-add!))
+    dip(ARG_VAR_RUN atom-arg-add!))
 
 ######################
 # Module Elaboration #

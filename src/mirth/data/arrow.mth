@@ -28,8 +28,22 @@ import(mirth/data/prim)
 # ARG #
 #######
 
+||| Add arg to atom.
+atom-arg-add! : Atom Arg -- Atom
+atom-arg-add! = dip(atom-args?) snoc over atom-args!
+
+||| Add arg to last atom of arrow.
+||| Will panic if arrow has no atoms.
 arrow-arg-add! : Arrow Arg -- Arrow
-arrow-arg-add! = dip(arrow-args?) snoc over arrow-args!
+arrow-arg-add! =
+    over arrow-atoms@ last match(
+        NONE -> "arrow-arg-add! on empty arrow" panic!,
+        SOME -> swap atom-arg-add! drop
+    )
+
+||| Add atom to arrow.
+arrow-atom-add! : Arrow Atom -- Arrow
+arrow-atom-add! = dip(arrow-atoms?) snoc over arrow-atoms!
 
 #########
 # BLOCK #
@@ -43,38 +57,56 @@ block-new! = Block.alloc! tuck block-arrow!
 ####################################
 # TODO: Use an effect, or something, to elaborate these with types.
 
+atom-new-lambda! : Lambda -- Atom
+atom-new-lambda! = OP_LAMBDA Atom.alloc! tuck atom-op!
+
+atom-new-int! : Int -- Atom
+atom-new-int! = OP_INT Atom.alloc! tuck atom-op!
+
+atom-new-buffer! : Buffer -- Atom
+atom-new-buffer! = OP_BUFFER Atom.alloc! tuck atom-op!
+
+atom-new-external! : External -- Atom
+atom-new-external! = OP_EXTERNAL Atom.alloc! tuck atom-op!
+
+atom-new-prim! : Prim -- Atom
+atom-new-prim! = OP_PRIM Atom.alloc! tuck atom-op!
+
+atom-new-word! : Word -- Atom
+atom-new-word! = OP_WORD Atom.alloc! tuck atom-op!
+
 arrow-new-lambda! : Lambda -- Arrow
-arrow-new-lambda! = OP_LAMBDA Arrow.alloc! tuck arrow-op!
+arrow-new-lambda! = Arrow.alloc! swap arrow-push-lambda!
 
 arrow-new-int! : Int -- Arrow
-arrow-new-int! = OP_INT Arrow.alloc! tuck arrow-op!
+arrow-new-int! = Arrow.alloc! swap arrow-push-int!
 
 arrow-new-buffer! : Buffer -- Arrow
-arrow-new-buffer! = OP_BUFFER Arrow.alloc! tuck arrow-op!
+arrow-new-buffer! = Arrow.alloc! swap arrow-push-buffer!
 
 arrow-new-external! : External -- Arrow
-arrow-new-external! = OP_EXTERNAL Arrow.alloc! tuck arrow-op!
+arrow-new-external! = Arrow.alloc! swap arrow-push-external!
 
 arrow-new-prim! : Prim -- Arrow
-arrow-new-prim! = OP_PRIM Arrow.alloc! tuck arrow-op!
+arrow-new-prim! = Arrow.alloc! swap arrow-push-prim!
 
 arrow-new-word! : Word -- Arrow
-arrow-new-word! = OP_WORD Arrow.alloc! tuck arrow-op!
+arrow-new-word! = Arrow.alloc! swap arrow-push-word!
 
-arrow-push! : Arrow Arrow -- Arrow
-arrow-push! = tuck swap arrow-next!
+arrow-push-lambda! : Arrow Lambda -- Arrow
+arrow-push-lambda! = atom-new-lambda! arrow-atom-add!
 
 arrow-push-int! : Arrow Int -- Arrow
-arrow-push-int! = arrow-new-int! arrow-push!
+arrow-push-int! = atom-new-int! arrow-atom-add!
 
 arrow-push-buffer! : Arrow Buffer -- Arrow
-arrow-push-buffer! = arrow-new-buffer! arrow-push!
+arrow-push-buffer! = atom-new-buffer! arrow-atom-add!
 
 arrow-push-external! : Arrow External -- Arrow
-arrow-push-external! = arrow-new-external! arrow-push!
+arrow-push-external! = atom-new-external! arrow-atom-add!
 
 arrow-push-prim! : Arrow Prim -- Arrow
-arrow-push-prim! = arrow-new-prim! arrow-push!
+arrow-push-prim! = atom-new-prim! arrow-atom-add!
 
 arrow-push-word! : Arrow Word -- Arrow
-arrow-push-word! = arrow-new-word! arrow-push!
+arrow-push-word! = atom-new-word! arrow-atom-add!

@@ -28,7 +28,9 @@ def(table-new!, Name -- Table,
     over word-type!
     true over word-sig-is-checked!
 
-    TABLE_MAX_SIZE arrow-new-int!
+    TABLE_MAX_SIZE OP_INT Atom.alloc! tuck atom-op!
+    L1 Arrow.alloc! tuck arrow-atoms!
+
     over word-arrow!
     true swap word-body-is-checked!
 
@@ -80,11 +82,11 @@ def(table-new!, Name -- Table,
                 dup block-new! ARG_BLOCK swap
                 PRIM_CORE_DIP arrow-push-prim!
                     x ARG_VAR_RUN
-                L1 over arrow-args!
+                arrow-arg-add!
                 1 arrow-push-int!
                 PRIM_INT_ADD arrow-push-prim!
                 drop
-            L2 over arrow-args!
+            dip(arrow-arg-add!) arrow-arg-add!
 
             PRIM_CORE_DROP arrow-push-prim!
             drop

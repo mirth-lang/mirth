@@ -1277,15 +1277,12 @@ def(c99-emit-external!, External -- +IO,
 
 def(c99-emit-arrow!, Arrow -- +IO,
     c99-depth++
-    while(is-nil? not,
-        dup c99-emit-arrow-op!
-        arrow-next@)
-    drop
+    arrow-atoms@ for(c99-emit-atom!)
     c99-depth--)
 
-c99-emit-arrow-op! : Arrow -- +IO,
-c99-emit-arrow-op! =
-    arrow-op? match(
+c99-emit-atom! : Atom -- +IO,
+c99-emit-atom! =
+    atom-op? match(
         OP_NONE -> drop,
         OP_INT ->
             nip
@@ -1293,10 +1290,10 @@ c99-emit-arrow-op! =
         OP_STR ->
             nip c99-emit-string!,
         OP_WORD ->
-            dip(arrow-args@ c99-emit-args-push!)
+            dip(atom-args@ c99-emit-args-push!)
             "    mw" . word-name@ .name "();" ;,
         OP_EXTERNAL ->
-            dip(arrow-args@ c99-emit-args-push!) # this is probably never desirable
+            dip(atom-args@ c99-emit-args-push!) # this is probably never desirable
             "    mw" . external-name@ .name "();" ;,
         OP_BUFFER ->
             nip buffer-name@
@@ -1305,7 +1302,7 @@ c99-emit-arrow-op! =
             nip tag-name@
             "    mw" . .name "();" ;,
         OP_PRIM ->
-            c99-emit-arrow-op-prim!,
+            dip(atom-args@) c99-emit-prim!,
         OP_MATCH ->
             nip c99-emit-match!,
         OP_LAMBDA ->
@@ -1340,9 +1337,9 @@ c99-emit-string-char! =
         "unexpected character in c99 string" panic!
     ))))))
 
-c99-emit-arrow-op-prim! : Arrow Prim -- +IO
-c99-emit-arrow-op-prim! =
-    dip(arrow-args@) match(
+c99-emit-prim! : List(Arg) Prim -- +IO
+c99-emit-prim! =
+    match(
         PRIM_CORE_DIP ->
             match(
                 L1 ->
@@ -1350,7 +1347,7 @@ c99-emit-arrow-op-prim! =
                     c99-emit-arg-run!
                     "      push_value(d" . .d "); }" ;,
                 _ ->
-                    PRIM_CORE_DIP c99-emit-arrow-op-prim-default!
+                    PRIM_CORE_DIP c99-emit-prim-default!
             ),
 
         PRIM_CORE_IF ->
@@ -1362,7 +1359,7 @@ c99-emit-arrow-op-prim! =
                     c99-emit-arg-run!
                     "    }" ;,
                 _ ->
-                    PRIM_CORE_IF c99-emit-arrow-op-prim-default!
+                    PRIM_CORE_IF c99-emit-prim-default!
             ),
 
         PRIM_CORE_WHILE ->
@@ -1375,14 +1372,14 @@ c99-emit-arrow-op-prim! =
                     "    }" ;,
 
                 _ ->
-                    PRIM_CORE_WHILE c99-emit-arrow-op-prim-default!
+                    PRIM_CORE_WHILE c99-emit-prim-default!
             ),
 
-        _ -> c99-emit-arrow-op-prim-default!
+        _ -> c99-emit-prim-default!
     )
 
-c99-emit-arrow-op-prim-default! : List(Arg) Prim -- +IO
-c99-emit-arrow-op-prim-default! = (
+c99-emit-prim-default! : List(Arg) Prim -- +IO
+c99-emit-prim-default! = (
     dip(c99-emit-args-push!)
     "    mw" . prim-name@ .name "();" ;
 )
@@ -1522,7 +1519,7 @@ def(c99-emit-block-def!, Block -- +IO,
     ))
 
 def(.block, Block -- +IO,
-    block-arrow@ arrow-token@ "mb_" .
+    block-arrow@ arrow-token-start@ "mb_" .
     token-module? module-name@ .name "_" .
     token-row? Row->Int .n "_" .
     token-col@ Col->Int .n)

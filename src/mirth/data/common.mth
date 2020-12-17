@@ -138,6 +138,7 @@ field(external-ctx, External, Ctx)
 
 # mirth/data/arrow
 table(Arrow)
+table(Atom)
 table(Lambda)
 table(Block)
 
@@ -160,13 +161,20 @@ data Op
     OP_BLOCK -> Block
 end
 
-field(arrow-token, Arrow, Token)
+field(arrow-token-start, Arrow, Token)
+field(arrow-token-end, Arrow, Token)
 field(arrow-ctx, Arrow, Ctx)
 field(arrow-dom, Arrow, Type)
-field(arrow-next, Arrow, Arrow) # TODO: rethink arrows as a list of operators
-field(arrow-op, Arrow, Op)
-field(arrow-subst, Arrow, Subst)
-field(arrow-args, Arrow, List(Arg))
+field(arrow-cod, Arrow, Type)
+field(arrow-atoms, Arrow, List(Atom))
+
+field(atom-token, Atom, Token)
+field(atom-ctx, Atom, Ctx)
+field(atom-op, Atom, Op)
+field(atom-args, Atom, List(Arg))
+field(atom-dom, Atom, Type)
+field(atom-cod, Atom, Type)
+field(atom-subst, Atom, Subst)
 
 field(lambda-token, Lambda, Token)
 field(lambda-outer-ctx, Lambda, Ctx)
