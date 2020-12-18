@@ -195,8 +195,14 @@ ab-build-for-word! = (
         word-ctx? swap
         word-type? swap
         word-body? swap
+        dip(elab-expand-morphism! swap)
     )
-    swap dip(ab-build!)
+    { *a Ctx Type Token Type Word [ *a -- *b +AB ] }
+    rotr dip(
+        dip(ab-build!) over
+        arrow-cod? swap arrow-token-end@
+        elab-type-unify! drop2
+    )
     tuck word-arrow!
 )
 
