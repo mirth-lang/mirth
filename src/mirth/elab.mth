@@ -1268,14 +1268,14 @@ def(field-new!, Name Type Type Int -- Field,
     over word-type!
     true over word-sig-is-checked!
 
-    # FIXME: need a better arrow-building inteface that tracks types
-    #  i.e. a better elaborator API.
-    16 arrow-new-int!
-    dup2 swap word-arrow!
-    PRIM_INT_MUL arrow-push-prim!
-    dip(over field-buffer@) swap arrow-push-buffer!
-    PRIM_PTR_ADD arrow-push-prim!
-    drop true over word-body-is-checked!
+    ab-build-for-word! (
+        PRIM_VALUE_CAST ab-prim!
+        16 ab-int!
+        PRIM_INT_MUL ab-prim!
+        field-buffer? ab-buffer!
+        PRIM_PTR_ADD ab-prim!
+    )
+    true over word-body-is-checked!
     over field-word-ptr!
 
     # field!
