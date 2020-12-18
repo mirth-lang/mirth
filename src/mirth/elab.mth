@@ -1233,19 +1233,21 @@ def(table-new!, Name -- Table,
 def(Field->Int, Field -- Int, cast)
 def(field-alloc!, Field, Field.alloc!)
 def(field-new!, Name Type Type Int -- Field,
-    dip(
-        field-alloc!
-        tuck field-type!
-        tuck field-table!
-        tuck field-name!
+    drop
 
-        # define the buffer for the field
-        field-name? "-buffer" name-cat!
-    )
-    16 * buffer-alloc! over field-buffer!
+    field-alloc!
+    tuck field-type!
+    tuck field-table!
+    tuck field-name!
+
+    # define the buffers for the field
+    field-name? "-buffer-size" name-cat!
+    16 buffer-alloc! over field-buffer-size!
+    field-name? "-buffer-ptr" name-cat!
+    16 buffer-alloc! over field-buffer-ptr!
 
     # field&
-    field-name? "&" name-cat!
+    field-name? "&-unsafe" name-cat!
     Word.alloc!
     dup2 swap name-word!
     tuck word-name!
@@ -1261,7 +1263,30 @@ def(field-new!, Name Type Type Int -- Field,
         PRIM_VALUE_CAST ab-prim!
         16 ab-int!
         PRIM_INT_MUL ab-prim!
-        field-buffer? ab-buffer!
+        ab-while!(
+            PRIM_CORE_DUP ab-prim!
+            field-buffer-size? ab-buffer!
+            PRIM_INT_GET ab-prim!
+            PRIM_CORE_SWAP ab-prim!
+            PRIM_VALUE_LE ab-prim!,
+
+            field-buffer-size? ab-buffer!
+            PRIM_INT_GET ab-prim!
+            2 ab-int! PRIM_INT_MUL ab-prim!
+            0x1000 ab-int! PRIM_INT_ADD ab-prim!
+            PRIM_CORE_DUP ab-prim!
+            field-buffer-size? ab-buffer!
+            PRIM_INT_SET ab-prim!
+
+            field-buffer-ptr? ab-buffer!
+            PRIM_VALUE_GET ab-prim!
+            PRIM_CORE_SWAP ab-prim!
+            PRIM_PTR_REALLOC ab-prim!
+            field-buffer-ptr? ab-buffer!
+            PRIM_VALUE_SET ab-prim!
+        )
+        field-buffer-ptr? ab-buffer!
+        PRIM_VALUE_GET ab-prim!
         PRIM_PTR_ADD ab-prim!
     )
     true over word-body-is-checked!

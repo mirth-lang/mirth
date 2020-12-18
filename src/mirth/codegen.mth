@@ -1234,7 +1234,7 @@ def(c99-emit-prims!, +IO,
     "       void* new_ptr = realloc(old_ptr, new_size);" ;
     "       cell->car.payload.vp_i64 = psize;" ;
     "       cell->cdr.payload.vp_ptr = new_ptr;" ;
-    "       if ((old_ptr != new_ptr) && (old_size < new_size)) {" ;
+    "       if (old_size < new_size) {" ;
     "           memset((char*)new_ptr + old_size, 0, new_size - old_size);" ;
     "       }" ;
     "       push_value(vptr);" ;
