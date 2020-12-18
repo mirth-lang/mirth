@@ -241,7 +241,11 @@ atom-is-coercion? =
         atom-op? match(
             OP_PRIM -> dup PRIM_VALUE_CAST == swap PRIM_CORE_ID == ||,
             OP_TAG -> tag-is-transparent? nip,
-            OP_MATCH -> match-is-transparent? nip,
+            OP_MATCH ->
+                match-is-transparent? if(
+                    match-cases@ all(case-body? arrow-atoms@ is-nil),
+                    drop false
+                ),
             OP_WORD -> word-body-is-checked? if(word-arrow@ arrow-atoms@ is-nil, drop false),
             _ -> drop false
         ),
