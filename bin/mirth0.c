@@ -1129,7 +1129,7 @@ static void mwprim_2E_ptr_2E_realloc (void) {
        push_value(vptr);
     } else {
         void* old_ptr = value_ptr(vptr);
-        usize old_size = value_ptr_size(vptr);
+        usize old_size = (usize)value_ptr_size(vptr);
         void* new_ptr = alloc_but_copy(new_size, old_ptr, old_size);
         value_t vsize = { .tag = VT_U64, .payload = { .vp_i64 = psize } };
         value_t vnew = { .tag = VT_U64, .payload = { .vp_ptr = new_ptr } };
@@ -24338,7 +24338,7 @@ static void mwc99_emit_prims_21_ (void){
     mw_3B_();
     push_ptr("        void* old_ptr = value_ptr(vptr);");
     mw_3B_();
-    push_ptr("        usize old_size = value_ptr_size(vptr);");
+    push_ptr("        usize old_size = (usize)value_ptr_size(vptr);");
     mw_3B_();
     push_ptr("        void* new_ptr = alloc_but_copy(new_size, old_ptr, old_size);");
     mw_3B_();

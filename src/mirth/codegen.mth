@@ -1240,7 +1240,7 @@ def(c99-emit-prims!, +IO,
     "       push_value(vptr);" ;
     "    } else {" ; # nondestructive "realloc"
     "        void* old_ptr = value_ptr(vptr);" ;
-    "        usize old_size = value_ptr_size(vptr);" ;
+    "        usize old_size = (usize)value_ptr_size(vptr);" ;
     "        void* new_ptr = alloc_but_copy(new_size, old_ptr, old_size);" ;
     "        value_t vsize = { .tag = VT_U64, .payload = { .vp_i64 = psize } };" ;
     "        value_t vnew = { .tag = VT_U64, .payload = { .vp_ptr = new_ptr } };" ;
