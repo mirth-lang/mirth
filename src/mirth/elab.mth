@@ -1263,27 +1263,31 @@ def(field-new!, Name Type Type Int -- Field,
         PRIM_VALUE_CAST ab-prim!
         16 ab-int!
         PRIM_INT_MUL ab-prim!
-        ab-while!(
-            PRIM_CORE_DUP ab-prim!
-            field-buffer-size? ab-buffer!
-            PRIM_INT_GET ab-prim!
-            PRIM_CORE_SWAP ab-prim!
-            PRIM_VALUE_LE ab-prim!,
 
-            field-buffer-size? ab-buffer!
-            PRIM_INT_GET ab-prim!
-            2 ab-int! PRIM_INT_MUL ab-prim!
-            0x1000 ab-int! PRIM_INT_ADD ab-prim!
-            PRIM_CORE_DUP ab-prim!
-            field-buffer-size? ab-buffer!
-            PRIM_INT_SET ab-prim!
+        PRIM_CORE_DUP ab-prim!
+        field-buffer-size? ab-buffer!
+        PRIM_INT_GET ab-prim!
+        PRIM_VALUE_LT ab-prim!
+        ab-if! (
+            id,
 
-            field-buffer-ptr? ab-buffer!
-            PRIM_VALUE_GET ab-prim!
-            PRIM_CORE_SWAP ab-prim!
+            ab-while!(
+                PRIM_CORE_DUP ab-prim!
+                field-buffer-size? ab-buffer!
+                PRIM_INT_GET ab-prim!
+                PRIM_CORE_SWAP ab-prim!
+                PRIM_VALUE_LE ab-prim!,
+
+                field-buffer-size? ab-buffer! PRIM_INT_GET ab-prim!
+                2 ab-int! PRIM_INT_MUL ab-prim!
+                0x1000 ab-int! PRIM_INT_ADD ab-prim!
+                field-buffer-size? ab-buffer! PRIM_INT_SET ab-prim!
+            )
+
+            field-buffer-ptr? ab-buffer! PRIM_VALUE_GET ab-prim!
+            field-buffer-size? ab-buffer! PRIM_INT_GET ab-prim!
             PRIM_PTR_REALLOC ab-prim!
-            field-buffer-ptr? ab-buffer!
-            PRIM_VALUE_SET ab-prim!
+            field-buffer-ptr? ab-buffer! PRIM_VALUE_SET ab-prim!
         )
         field-buffer-ptr? ab-buffer!
         PRIM_VALUE_GET ab-prim!
