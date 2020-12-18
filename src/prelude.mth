@@ -438,7 +438,7 @@ str-tail : Str -- Str
 str-tail = Str->Ptr 1 swap ptr+ Ptr->Str
 
 str-numbytes : Str -- Int
-str-numbytes = Str->Ptr prim.ptr.numbytes
+str-numbytes = is-nil? if(drop 0, Str->Ptr prim.ptr.numbytes)
 
 str-length : Str -- Int
 str-length =
@@ -473,10 +473,13 @@ str-is-empty? = dup str-is-empty
 ||| location in second argument.
 ptr-copy-nonzero! : Ptr Ptr -- Ptr
 ptr-copy-nonzero! = (
-    while( over u8@ U8->Int nonzero,
-        over u8@ over u8!
-        dip(1 swap ptr+) 1 swap ptr+)
-    nip
+    over is-nil if(
+        nip,
+        while( over u8@ U8->Int nonzero,
+            over u8@ over u8!
+            dip(1 swap ptr+) 1 swap ptr+)
+        nip
+    )
 )
 
 ||| Copy string bytes to second argument without adding 0 at end.
