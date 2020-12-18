@@ -188,11 +188,10 @@ ab-build! =
         ab-arrow@
     )
 
-ab-build-for-word! : *a Word [ *a -- *b +AB ] -- *b Word +AB
-ab-build-for-word! = (
+ab-build-word! : *a Word [ *a -- *b +AB ] -- *b Word +AB
+ab-build-word! = (
     dip (
-        word-ctx? swap
-        word-type? swap
+        dup dip(elab-word-ctx-sig!)
         word-body? swap
         dip(elab-expand-morphism! swap)
     )
@@ -203,6 +202,7 @@ ab-build-for-word! = (
         elab-type-unify! drop2
     )
     tuck word-arrow!
+    true over word-body-is-checked!
 )
 
 ab-unify-type! : Type -- +AB
@@ -1107,8 +1107,9 @@ def(table-new!, Name -- Table,
     over word-type!
     true over word-sig-is-checked!
 
-    ab-build-for-word!( TABLE_MAX_SIZE ab-int! )
-    true swap word-body-is-checked!
+    ab-build-word!(
+        TABLE_MAX_SIZE ab-int!
+    ) drop
 
     # Table.NUM
     table-name? ".NUM" name-cat!
@@ -1120,22 +1121,20 @@ def(table-new!, Name -- Table,
     Word.alloc!
     dup2 swap name-word!
     tuck word-name!
-    "a" name-new! var-new-implicit!
+    \(t w ->
 
-    \(t w a ->
-
-        TYPE_STACK a var-type!
-        ctx-empty a ctx-new!
+        "a" name-new! var-new-implicit!
+        TYPE_STACK over var-type!
+        ctx-empty over ctx-new!
         w word-ctx!
 
-        a TVar a TVar t TTable T* a TVar T-> T*
-        a TVar T->
-        w word-type!
-
+        TVar \( a ->
+            a a t TTable T* a T-> T* a T->
+            w word-type!
+        )
         true w word-sig-is-checked!
-        true w word-body-is-checked!
 
-        w ab-build-for-word! (
+        w ab-build-word! (
             1 ab-int!
             ab-while! (
                 PRIM_CORE_DUP ab-prim!
@@ -1171,19 +1170,18 @@ def(table-new!, Name -- Table,
     over word-type!
     true over word-sig-is-checked!
 
-    # TODO: perform bounds check in Table.alloc!
-    over table-num-buffer@
-    swap ab-build-for-word! (
-        dup ab-buffer!
+    ab-build-word! (
+        table-num-buffer? ab-buffer!
         PRIM_INT_GET ab-prim!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         PRIM_CORE_DUP ab-prim!
-        ab-buffer!
+        table-num-buffer? ab-buffer!
         PRIM_INT_SET ab-prim!
         PRIM_VALUE_CAST ab-prim!
     )
-    true swap word-body-is-checked!)
+    drop
+    )
 
 #########
 # FIELD #
@@ -1218,7 +1216,7 @@ def(field-new!, Name Type Type Int -- Field,
     over word-type!
     true over word-sig-is-checked!
 
-    ab-build-for-word! (
+    ab-build-word! (
         PRIM_VALUE_CAST ab-prim!
         16 ab-int!
         PRIM_INT_MUL ab-prim!
@@ -1252,7 +1250,6 @@ def(field-new!, Name Type Type Int -- Field,
         PRIM_VALUE_GET ab-prim!
         PRIM_PTR_ADD ab-prim!
     )
-    true over word-body-is-checked!
     over field-word-ptr!
 
     # field!
@@ -1267,11 +1264,11 @@ def(field-new!, Name Type Type Int -- Field,
     over word-type!
     true over word-sig-is-checked!
 
-    ab-build-for-word!(
+    ab-build-word!(
         field-word-ptr? ab-word!
         PRIM_VALUE_SET ab-prim!
     )
-    true swap word-body-is-checked!
+    drop
 
     # field@
     field-name? "@" name-cat!
@@ -1286,11 +1283,11 @@ def(field-new!, Name Type Type Int -- Field,
     over word-type!
     true over word-sig-is-checked!
 
-    ab-build-for-word!(
+    ab-build-word!(
         field-word-ptr? ab-word!
         PRIM_VALUE_GET ab-prim!
     )
-    true swap word-body-is-checked!
+    drop
 
     # field?
     field-name? "?" name-cat!
@@ -1305,9 +1302,9 @@ def(field-new!, Name Type Type Int -- Field,
     over word-type!
     true over word-sig-is-checked!
 
-    ab-build-for-word!(
+    ab-build-word!(
         PRIM_CORE_DUP ab-prim!
         field-word-ptr? ab-word!
         PRIM_VALUE_GET ab-prim!
     )
-    true swap word-body-is-checked!)
+    drop)
