@@ -1519,10 +1519,15 @@ def(c99-emit-block-def!, Block -- +IO,
     ))
 
 def(.block, Block -- +IO,
-    block-arrow@ arrow-token-start@ "mb_" .
-    token-module? module-name@ .name "_" .
-    token-row? Row->Int .n "_" .
-    token-col@ Col->Int .n)
+    "mb_" .
+    block-arrow? arrow-token-start@
+    is-nil? if(
+        drop cast .n,
+        token-module? module-name@ .name "_" .
+        token-row? Row->Int .n "_" .
+        token-col@ Col->Int .n
+        drop
+    ))
 
 def(c99-emit-word-defs!, +IO,
     Word.for(c99-emit-word-def!))
