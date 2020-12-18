@@ -161,6 +161,152 @@ def(elab-simple-type-arg!, Token -- Type,
 # Word Elaboration #
 ####################
 
+# AB = Arrow Builder = Arrow Elaborator
+buffer(AB_ARROW, 16)
+def(ab-arrow@, Arrow +AB, AB_ARROW value@)
+def(ab-arrow!, Arrow -- +AB, AB_ARROW value!)
+def(ab-ctx@, Ctx +AB, ab-arrow@ arrow-ctx@)
+def(ab-ctx!, Ctx -- +AB, ab-arrow@ arrow-ctx!)
+def(ab-token@, Token +AB, ab-arrow@ arrow-token-end@)
+def(ab-token!, Token -- +AB, ab-arrow@ arrow-token-end!)
+def(ab-type@, Type +AB, ab-arrow@ arrow-cod@)
+def(ab-type!, Type -- +AB, ab-arrow@ arrow-cod!)
+
+ab-save! : *a [ *a -- *b +AB ] -- *b +AB
+ab-save! = ab-arrow@ dip(run) ab-arrow!
+
+ab-build! : *a Ctx Type Token [ *a -- *b +AB ] -- *b Arrow +AB
+ab-build! =
+    ab-save!(
+        dip(
+            Arrow.alloc!
+            tuck dup2 arrow-token-start! arrow-token-end!
+            tuck dup2 arrow-dom! arrow-cod!
+            tuck arrow-ctx!
+            ab-arrow!
+        )
+        run
+        ab-arrow@
+    )
+
+ab-build-for-word! : *a Word [ *a -- *b +AB ] -- *b Word +AB
+ab-build-for-word! = (
+    dip (
+        word-ctx? swap
+        word-type? swap
+        word-body? swap
+    )
+    swap dip(ab-build!)
+    tuck word-arrow!
+)
+
+ab-unify-type! : Type -- +AB
+ab-unify-type! = dip(ab-token@ GAMMA ab-type@) type-unify! ab-type! drop
+
+ab-atom! : Atom -- +AB
+ab-atom! = (
+    atom-token? ab-token!
+    atom-dom? ab-unify-type!
+        # ^ a sanity check to make sure
+        # atom dom matches ab-arrow cod
+    atom-cod? ab-type!
+    dip(ab-arrow@ arrow-atoms@)
+    snoc ab-arrow@ arrow-atoms!
+)
+
+ab-op! : Op -- +AB
+ab-op! = (
+    Atom.alloc!
+    ab-ctx@ over atom-ctx!
+    ab-token@ over atom-token!
+    dup2 atom-op!
+    swap elab-op-fresh-sig! dip(over atom-subst!)
+    ab-token@ elab-expand-morphism! drop
+    dip(over atom-dom!) over atom-cod!
+    ab-atom!
+)
+
+ab-int! : Int -- +AB
+ab-int! = OP_INT ab-op!
+
+ab-str! : Str -- +AB
+ab-str! = OP_STR ab-op!
+
+ab-buffer! : Buffer -- +AB
+ab-buffer! = OP_BUFFER ab-op!
+
+ab-var! : Var -- +AB
+ab-var! = OP_VAR ab-op!
+
+ab-tag! : Tag -- +AB
+ab-tag! = OP_TAG ab-op!
+
+ab-prim! : Prim -- +AB
+ab-prim! = OP_PRIM ab-op!
+
+ab-word! : Word -- +AB
+ab-word! = OP_WORD ab-op!
+
+ab-external! : External -- +AB
+ab-external! = OP_EXTERNAL ab-op!
+
+ab-block! : *a [ *a -- *b +AB ] -- *b +AB
+ab-block! =
+    Block.alloc! dip(
+        dip( ab-ctx@ meta-alloc! TMeta ab-token@ ) ab-build!
+    ) tuck block-arrow! OP_BLOCK ab-op!
+
+ab-dip! : *a [ *a -- *b +AB ] -- *b +AB
+ab-dip! = ab-block! PRIM_CORE_DIP ab-prim!
+
+ab-if! : *a [ *a -- *b +AB ] [ *b -- *c +AB ] -- *c +AB
+ab-if! = dip(ab-block!) ab-block! PRIM_CORE_IF ab-prim!
+
+ab-while! : *a [ *a -- *b +AB ] [ *b -- *c +AB ] -- *c +AB
+ab-while! = dip(ab-block!) ab-block! PRIM_CORE_WHILE ab-prim!
+
+elab-op-fresh-sig! : Op -- Subst Type +AB
+elab-op-fresh-sig! =
+    subst-nil swap match(
+        OP_NONE -> elab-id-sig!,
+        OP_INT -> drop TYPE_INT elab-push-sig!,
+        OP_STR -> drop TYPE_STR elab-push-sig!,
+        OP_BUFFER -> drop TYPE_PTR elab-push-sig!,
+        OP_BLOCK -> elab-block-sig!,
+        OP_VAR -> elab-var-sig!,
+        OP_TAG -> elab-tag-sig! type-freshen-sig,
+        OP_WORD -> elab-word-sig! type-freshen-sig,
+        OP_PRIM -> prim-type@ type-freshen-sig,
+        OP_EXTERNAL -> elab-external-sig! type-freshen-sig,
+        OP_MATCH -> elab-match-sig!,
+        OP_LAMBDA -> elab-lambda-sig!,
+    )
+
+elab-id-sig! : Type
+elab-id-sig! = meta-alloc! TMeta dup T->
+
+elab-push-sig! : Type -- Type
+elab-push-sig! = meta-alloc! TMeta tuck dip(T*) T->
+
+elab-block-sig! : Block -- Type
+elab-block-sig! = block-arrow@ elab-arrow-sig! elab-push-sig!
+
+elab-arrow-sig! : Arrow -- Type
+elab-arrow-sig! = arrow-dom? swap arrow-cod@ T->
+
+elab-match-sig! : Match -- Type
+elab-match-sig! = match-dom? swap match-cod@ T->
+
+elab-lambda-sig! : Lambda -- Type
+elab-lambda-sig! = lambda-dom? swap lambda-cod@ T->
+
+elab-var-sig! : Var -- Type
+elab-var-sig! =
+    var-auto-run? if(
+        var-type@ type-semifreshen-sig,
+        var-type@ elab-push-sig!
+    )
+
 def(elab-tag-sig!, Tag -- Type +Elab,
     elab-tag-ctx-sig! nip)
 
