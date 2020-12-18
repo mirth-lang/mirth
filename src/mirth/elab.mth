@@ -1224,18 +1224,18 @@ def(table-new!, Name -- Table,
     true over word-sig-is-checked!
 
     # TODO: perform bounds check in Table.alloc!
-    over table-num-buffer@ dup
-    dip(
-        arrow-new-buffer!
-        dup2 swap word-arrow!
-        PRIM_INT_GET arrow-push-prim!
-        1 arrow-push-int!
-        PRIM_INT_ADD arrow-push-prim!
-        PRIM_CORE_DUP arrow-push-prim!
+    over table-num-buffer@
+    swap ab-build-for-word! (
+        dup ab-buffer!
+        PRIM_INT_GET ab-prim!
+        1 ab-int!
+        PRIM_INT_ADD ab-prim!
+        PRIM_CORE_DUP ab-prim!
+        ab-buffer!
+        PRIM_INT_SET ab-prim!
+        PRIM_VALUE_CAST ab-prim!
     )
-    arrow-push-buffer!
-    PRIM_INT_SET arrow-push-prim!
-    drop true swap word-body-is-checked!)
+    true swap word-body-is-checked!)
 
 #########
 # FIELD #
