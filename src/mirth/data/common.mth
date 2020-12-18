@@ -138,6 +138,7 @@ field(external-ctx, External, Ctx)
 
 # mirth/data/arrow
 table(Arrow)
+table(Atom)
 table(Lambda)
 table(Block)
 
@@ -160,13 +161,20 @@ data Op
     OP_BLOCK -> Block
 end
 
-field(arrow-token, Arrow, Token)
+field(arrow-token-start, Arrow, Token)
+field(arrow-token-end, Arrow, Token)
 field(arrow-ctx, Arrow, Ctx)
 field(arrow-dom, Arrow, Type)
-field(arrow-next, Arrow, Arrow) # TODO: rethink arrows as a list of operators
-field(arrow-op, Arrow, Op)
-field(arrow-subst, Arrow, Subst)
-field(arrow-args, Arrow, List(Arg))
+field(arrow-cod, Arrow, Type)
+field(arrow-atoms, Arrow, List(Atom))
+
+field(atom-token, Atom, Token)
+field(atom-ctx, Atom, Ctx)
+field(atom-op, Atom, Op)
+field(atom-args, Atom, List(Arg))
+field(atom-dom, Atom, Type)
+field(atom-cod, Atom, Type)
+field(atom-subst, Atom, Subst)
 
 field(lambda-token, Lambda, Token)
 field(lambda-outer-ctx, Lambda, Ctx)
@@ -228,6 +236,7 @@ data Prim
     PRIM_PTR_GET
     PRIM_PTR_SET
     PRIM_PTR_ALLOC
+    PRIM_PTR_REALLOC
     PRIM_PTR_NUMBYTES
 
     PRIM_U8_GET
@@ -295,7 +304,8 @@ field(table-max-count, Table, Size)
 field(field-name, Field, Name)
 field(field-table, Field, Type)
 field(field-type, Field, Type)
-field(field-buffer, Field, Buffer)
+field(field-buffer-size, Field, Buffer)
+field(field-buffer-ptr, Field, Buffer)
 field(field-word-ptr, Field, Word)
 
 # mirth/data/type
