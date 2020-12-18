@@ -117,6 +117,9 @@ def(c99-emit-header!, +IO,
     "extern void* mmap(void*, int, int, int, int, int);" ;
     "extern void* malloc(usize);" ;
     "extern void* calloc(usize, usize);" ;
+    "extern void* realloc(void*, usize);" ;
+    "extern void* memset(void*, int, usize);" ;
+    "extern void* memcpy(void*, const void*, usize);" ;
     "extern void free(void*);" ;
     "extern usize strlen(const char*);" ;
     "extern int read(int, void*, usize);" ;
@@ -370,7 +373,13 @@ def(c99-emit-prims!, +IO,
     "        value_uncons(v, &car, &cdr);" ;
     "        value_t car2, cdr2;" ;
     "        value_uncons(car, &car2, &cdr2);" ;
-    "        return car2.payload.vp_u64;" ;
+    "        u64 size = car2.payload.vp_u64;" ;
+    "        u64 offset = cdr.payload.vp_u64;" ;
+    "        if (size >= offset) {" ;
+    "            return offset - size;" ;
+    "        } else {" ;
+    "            return 0;" ;
+    "        }" ;
     "    } else {" ;
     "        value_t car, cdr;" ;
     "        value_uncons(v, &car, &cdr);" ;
@@ -1196,6 +1205,48 @@ def(c99-emit-prims!, +IO,
     "        push_value(v);" ;
     "    } else {" ;
     "        push_u64(0);" ;
+    "    }" ;
+    "}" ;;
+
+    "static void* alloc_but_copy (usize dstn, void* src, usize srcn) {" ;
+    "    void* dst = calloc(1,dstn);" ;
+    "    if (src) {" ;
+    "        usize cpyn = (dstn > srcn) ? srcn : dstn;" ;
+    "        memcpy(dst, src, cpyn);" ;
+    "    }" ;
+    "    return dst;" ;
+    "}" ;
+
+    PRIM_PTR_REALLOC .p " {" ;
+    "    i64 psize = pop_i64();" ;
+    "    value_t vptr = pop_value();" ;
+    "    if (psize <= 0) { " ;
+    "        decref(vptr);" ;
+    "        push_u64(0);" ;
+    "        return;" ;
+    "    }" ;
+    "    usize new_size = (usize)psize;" ;
+    "    if ((vptr.tag == VT_C64) && !value_has_ptr_offset(vptr)) {" ; # destructive realloc
+    "       usize cell_index = get_cell_index(vptr);" ;
+    "       cell_t *cell = heap + cell_index;" ;
+    "       usize old_size = (usize)cell->car.payload.vp_u64;" ;
+    "       void* old_ptr = cell->cdr.payload.vp_ptr;" ;
+    "       void* new_ptr = realloc(old_ptr, new_size);" ;
+    "       cell->car.payload.vp_i64 = psize;" ;
+    "       cell->cdr.payload.vp_ptr = new_ptr;" ;
+    "       if ((old_ptr != new_ptr) && (old_size < new_size)) {" ;
+    "           memset((char*)new_ptr + old_size, 0, new_size - old_size);" ;
+    "       }" ;
+    "       push_value(vptr);" ;
+    "    } else {" ; # nondestructive "realloc"
+    "        void* old_ptr = value_ptr(vptr);" ;
+    "        usize old_size = value_ptr_size(vptr);" ;
+    "        void* new_ptr = alloc_but_copy(new_size, old_ptr, old_size);" ;
+    "        value_t vsize = { .tag = VT_U64, .payload = { .vp_i64 = psize } };" ;
+    "        value_t vnew = { .tag = VT_U64, .payload = { .vp_ptr = new_ptr } };" ;
+    "        value_t v = mkcell_freecdr(vsize, vnew);" ;
+    "        push_value(v);" ;
+    "        decref(vptr);" ;
     "    }" ;
     "}" ;;
 
