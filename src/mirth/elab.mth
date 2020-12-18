@@ -29,8 +29,8 @@ def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
         token-next
         swap dip(elab-type-stack!) swap,
         dip(TYPE_UNIT))
-    dip(swap TMorphism)
-    ) # TODO: elaborate effect type too
+    while(sig-token-is-effect-con?, token-next) # TODO: elaborate effect type
+    dip(swap TMorphism))
 
 def(elab-type-stack!, TypeElab Token -- TypeElab Type Token,
     sig-token-is-stack-var? if(

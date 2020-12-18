@@ -4551,7 +4551,9 @@ static void mwTYPE_ELAB (void) {
  static void mb_mirth_2F_elab_30_18 (void);
  static void mb_mirth_2F_elab_31_9 (void);
  static void mb_mirth_2F_elab_31_13 (void);
- static void mb_mirth_2F_elab_32_9 (void);
+ static void mb_mirth_2F_elab_32_11 (void);
+ static void mb_mirth_2F_elab_32_37 (void);
+ static void mb_mirth_2F_elab_33_9 (void);
  static void mb_mirth_2F_elab_37_9 (void);
  static void mb_mirth_2F_elab_37_29 (void);
  static void mb_mirth_2F_elab_38_9 (void);
@@ -22315,6 +22317,11 @@ static void mwelab_type_sig_21_ (void){
     { value_t d2 = pop_value();
     mwTYPE_UNIT();
       push_value(d2); }
+    }
+    while(1) {
+    mwsig_token_is_effect_con_3F_();
+    if (!pop_u64()) break;
+    mwtoken_next();
     }
     { value_t d1 = pop_value();
     mwswap();
