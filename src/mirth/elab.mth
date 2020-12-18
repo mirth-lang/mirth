@@ -313,7 +313,11 @@ ab-tag! : Tag -- +AB
 ab-tag! = OP_TAG ab-op!
 
 ab-prim! : Prim -- +AB
-ab-prim! = OP_PRIM ab-op!
+ab-prim! =
+    prim-type? is-nil if(
+        ab-token@ "compiler error: prim type missing" emit-fatal-error!,
+        OP_PRIM ab-op!
+    )
 
 ab-word! : Word -- +AB
 ab-word! = OP_WORD ab-op!
@@ -321,11 +325,14 @@ ab-word! = OP_WORD ab-op!
 ab-external! : External -- +AB
 ab-external! = OP_EXTERNAL ab-op!
 
-ab-block! : *a [ *a -- *b +AB ] -- *b +AB
-ab-block! =
+ab-block-at! : *a Token [ *a -- *b +AB ] -- *b +AB
+ab-block-at! =
     Block.alloc! dip(
-        dip( ab-ctx@ meta-alloc! TMeta ab-token@ ) ab-build!
+        dip(ab-ctx@ meta-alloc! TMeta rotl) ab-build!
     ) tuck block-arrow! OP_BLOCK ab-op!
+
+ab-block! : *a [ *a -- *b +AB ] -- *b +AB
+ab-block! = ab-token@ swap ab-block-at!
 
 ab-dip! : *a [ *a -- *b +AB ] -- *b +AB
 ab-dip! = ab-block! PRIM_CORE_DIP ab-prim!
@@ -482,129 +489,101 @@ def(elab-arrow-hom!, Ctx Type Type Token -- Arrow,
     )
     type-unify! drop2)
 
-def(elab-arrow-fwd!, Ctx Type Token -- Arrow,
-    Arrow.alloc!
-    tuck dup2 arrow-token-start! arrow-token-end!
-    tuck dup2 arrow-dom! arrow-cod!
-    tuck arrow-ctx!
-    while(elab-arrow-done? not,
-        elab-arrow-step!))
+elab-arrow-fwd! : Ctx Type Token -- Arrow
+elab-arrow-fwd! = ab-build!(elab-atoms!)
 
-||| Is this arrow at the end of a run?
-def(elab-arrow-done?, Arrow -- Arrow Bool,
-    arrow-token-end? token-run-end? nip)
+elab-atoms! : +AB
+elab-atoms! =
+    while(
+        elab-atoms-done? not,
+        elab-atom! ab-token@ token-next ab-token!
+    )
 
-||| From the {ctx, dom, token} fields, elaborate the
-||| arrow's {op, arg, next} fields, returning
-||| the next arrow with {ctx, dom, token} set.
-def(elab-arrow-step!, Arrow -- Arrow,
-    Atom.alloc!
-    over arrow-ctx@ over atom-ctx!
-    over arrow-cod@ over atom-dom!
-    over arrow-token-end@ over atom-token!
-    elab-atom-op! over
-    over atom-cod@ over arrow-cod!
-    arrow-token-end? token-next over arrow-token-end!
-    arrow-atoms@ swap snoc over arrow-atoms!)
+elab-atoms-done? : Bool +AB
+elab-atoms-done? = ab-token@ token-run-end? nip
 
-||| From the atom's {ctx, dom, token} fields, elaborate
-||| the atom's {op, args, cod} fields.
-def(elab-atom-op!, Atom -- Atom,
-    atom-token? token-value@ match(
-        TOKEN_NAME -> elab-atom-op-name!,
-        TOKEN_INT -> elab-atom-op-int!,
-        TOKEN_STR -> elab-atom-op-str!,
-        TOKEN_LSQUARE -> drop atom-token? elab-atom-op-block!,
-        TOKEN_LCURLY -> drop atom-token? elab-atom-op-stack-assertion!,
-        _ ->
-            drop atom-token?
-            "Unexpected token in elab-atom-op!"
-            emit-fatal-error!
-    ))
+elab-atom! : +AB
+elab-atom! =
+    ab-token@ token-value@ match(
+        TOKEN_NAME -> elab-atom-name!,
+        TOKEN_INT -> ab-int!,
+        TOKEN_STR -> ab-str!,
+        TOKEN_LSQUARE -> drop elab-atom-block!,
+        TOKEN_LCURLY -> drop elab-atom-assert!,
+        _ -> ab-token@ "Unexpected token in elab-atom!" emit-fatal-error!
+    )
 
-def(elab-atom-op-name!, Atom Name -- Atom,
-    dup2 swap atom-ctx@ ctx-lookup match(
-        NONE ->
-            name-value@ match(
-                DEF_BUFFER -> elab-atom-op-buffer!,
-                DEF_EXTERNAL -> elab-atom-op-external!,
-                DEF_WORD -> elab-atom-op-word!,
-                DEF_PRIM -> elab-atom-op-prim!,
-                DEF_TAG -> elab-atom-op-tag!,
-                _ -> drop atom-token? "Unknown word." emit-error!
-            ),
-        SOME ->
-            nip elab-atom-op-var!
-    ))
+elab-atom-block! : +AB
+elab-atom-block! = ab-token@ token-args-1 elab-block-at!
 
-def(elab-atom-op-block!, Atom Token -- Atom,
-    dip(atom-ctx?) meta-alloc! TMeta tuck
-    dip(token-args-1 Block.alloc! dip(elab-arrow!)
-        tuck block-arrow! OP_BLOCK over atom-op!
-        atom-dom?)
-    T* over atom-cod!)
+elab-block-at! : Token -- +AB
+elab-block-at! = ab-block-at!(elab-atoms!)
 
-def(elab-atom-op-var!, Atom Var -- Atom,
-    dup2 OP_VAR swap atom-op!
-    var-auto-run? if(
-        var-type@ elab-atom-op-apply-semifresh!, # run var
-        dip(atom-dom?) var-type@ T* over atom-cod! # push var
-    ))
+token-args : Token -- List(Token)
+token-args =
+    token-has-args? if(
+        token-is-name? if(token-succ, id)
+        L0 swap while (
+            token-is-right-enclosure? not,
+            token-succ dup dip(snoc)
+            token-next-arg-end
+        ) drop,
+        drop L0
+    )
 
-def(elab-atom-op-int!, Atom Int -- Atom,
-    OP_INT over atom-op!
-    atom-dom? TYPE_INT T* over atom-cod!)
+elab-args! : +AB
+elab-args! = ab-token@ token-args reverse-for(elab-block-at!)
 
-def(elab-atom-op-str!, Atom Str -- Atom,
-    OP_STR over atom-op!
-    atom-dom? TYPE_STR T* over atom-cod!)
+elab-no-args! : +AB
+elab-no-args! = ab-token@ token-args-0
 
-def(elab-atom-op-buffer!, Atom Buffer -- Atom,
-    OP_BUFFER over atom-op!
-    atom-dom? TYPE_PTR T* over atom-cod!)
+elab-atom-name! : Name -- +AB
+elab-atom-name! =
+    dup ab-ctx@ ctx-lookup match(
+        SOME -> nip elab-args! ab-var!,
+        NONE -> name-value@ match(
+            DEF_BUFFER -> elab-no-args! ab-buffer!,
+            DEF_EXTERNAL -> elab-no-args! ab-external!,
+            DEF_WORD -> elab-args! ab-word!,
+            DEF_TAG -> elab-args! ab-tag!,
+            DEF_PRIM -> elab-prim!,
+            _ -> drop ab-token@ "Unknown word." emit-error! TYPE_ERROR ab-type!
+        )
+    )
 
-def(elab-atom-op-stack-assertion!, Atom Token -- Atom,
-    dip(atom-ctx? type-elab-stack-assertion)
-    token-args-1 elab-type-stack!
-    drop nip
-    over atom-token@
-    dip2(atom-dom?)
-    elab-type-unify! drop2
-    atom-dom? over atom-cod!)
+elab-prim! : Prim -- +AB
+elab-prim! =
+    match(
+        PRIM_CORE_MATCH -> elab-atom-match!,
+        PRIM_CORE_LAMBDA -> elab-atom-lambda!,
+        _ -> elab-args! ab-prim!
+    )
 
-def(elab-atom-op-external!, Atom External -- Atom,
-    dup2 OP_EXTERNAL swap atom-op!
-    elab-external-sig! elab-atom-op-apply-fresh!)
+elab-atom-assert! : +AB
+elab-atom-assert! = (
+    ab-token@ GAMMA
+    ab-ctx@ type-elab-stack-assertion
+    ab-token@ token-args-1 elab-type-stack!
+    drop nip ab-type@ swap type-unify! drop2
+)
 
-def(elab-atom-op-word!, Atom Word -- Atom,
-    dup2 OP_WORD swap atom-op!
-    elab-word-sig! elab-atom-op-apply-fresh!)
-
-def(elab-atom-op-tag!, Atom Tag -- Atom,
-    dup2 OP_TAG swap atom-op!
-    elab-tag-sig! elab-atom-op-apply-fresh!)
-
-def(elab-atom-op-prim!, Atom Prim -- Atom,
-    dup PRIM_CORE_MATCH == if(
-        drop elab-atom-op-match!,
-
-    dup PRIM_CORE_LAMBDA == if(
-        drop elab-atom-op-lambda!,
-
-    prim-type? is-nil if(
-        drop atom-token@ "compiler error: prim type missing" emit-fatal-error!,
-
-        dup2 OP_PRIM swap atom-op!
-        prim-type@ elab-atom-op-apply-fresh!
-    ))))
-
-def(elab-atom-op-lambda!, Atom -- Atom,
+elab-atom-lambda! : +AB
+elab-atom-lambda! = (
     Lambda.alloc!
-    dup2 OP_LAMBDA swap atom-op!
-    over atom-ctx@ over lambda-outer-ctx!
-    over atom-dom@ over lambda-dom!
-    dip(atom-token?) tuck lambda-token!
-    elab-lambda! lambda-cod@ over atom-cod!)
+    ab-ctx@ over lambda-outer-ctx!
+    ab-type@ over lambda-dom!
+    ab-token@ over lambda-token!
+    elab-lambda!
+    OP_LAMBDA ab-op!
+)
+
+# def(elab-atom-op-lambda!, Atom -- Atom,
+#     Lambda.alloc!
+#     dup2 OP_LAMBDA swap atom-op!
+#     over atom-ctx@ over lambda-outer-ctx!
+#     over atom-dom@ over lambda-dom!
+#     dip(atom-token?) tuck lambda-token!
+#     elab-lambda! lambda-cod@ over atom-cod!)
 
 def(elab-lambda!, Lambda -- Lambda,
     elab-lambda-params!
@@ -665,6 +644,17 @@ def(elab-lambda-body!, Lambda -- Lambda,
     elab-arrow-fwd!
     dup2 swap lambda-body!
     arrow-cod@ over lambda-cod!)
+
+elab-atom-match! : +AB
+elab-atom-match! = (
+    Match.alloc!
+    ab-ctx@ over match-ctx!
+    ab-type@ over match-dom!
+    ab-token@ over match-token!
+    meta-alloc! TMeta over match-cod!
+    elab-match!
+    OP_MATCH ab-op!
+)
 
 def(elab-atom-op-match!, Atom -- Atom,
     Match.alloc!
