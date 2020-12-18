@@ -216,14 +216,48 @@ ab-atom! = (
         # ^ a sanity check to make sure
         # atom dom matches ab-arrow cod
     atom-cod? ab-type!
-
     dip(ab-arrow@ arrow-atoms@)
+    ab-optimized-snoc!
+    ab-arrow@ arrow-atoms!
+)
+
+||| Add an atom to a list of atoms ... smartly.
+ab-optimized-snoc! : List(Atom) Atom -- List(Atom)
+ab-optimized-snoc! = (
     atom-accepts-args? if(
         swap atoms-turn-blocks-to-arg swap,
         id
     )
-    snoc ab-arrow@ arrow-atoms!
+
+    atom-is-coercion? if(
+        atom-cod@ ab-type!,
+        snoc
+    )
 )
+
+atom-is-coercion? : Atom -- Atom Bool
+atom-is-coercion? =
+    atom-args? is-nil if(
+        atom-op? match(
+            OP_PRIM -> dup PRIM_VALUE_CAST == swap PRIM_CORE_ID == ||,
+            OP_TAG -> tag-is-transparent? nip,
+            OP_MATCH -> match-is-transparent? nip,
+            OP_WORD -> word-body-is-checked? if(word-arrow@ arrow-atoms@ is-nil, drop false),
+            _ -> drop false
+        ),
+        false
+    )
+
+# atom-prim=? : Atom Prim -- Atom Bool
+# atom-prim=? =
+#     over atom-op@ match(
+#         OP_PRIM -> ==,
+#         _ -> drop2 false
+#     )
+
+#inline(rotr) inline(rotl)
+#rewrite(swap swap, id)
+#rewrite(dup swap, id)
 
 atom-accepts-args? : Atom -- Atom Bool
 atom-accepts-args? =
