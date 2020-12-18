@@ -216,9 +216,74 @@ ab-atom! = (
         # ^ a sanity check to make sure
         # atom dom matches ab-arrow cod
     atom-cod? ab-type!
+
     dip(ab-arrow@ arrow-atoms@)
+    atom-accepts-args? if(
+        swap atoms-turn-blocks-to-arg swap,
+        id
+    )
     snoc ab-arrow@ arrow-atoms!
 )
+
+atom-accepts-args? : Atom -- Atom Bool
+atom-accepts-args? =
+    atom-op? match(
+        OP_TAG -> drop true,
+        OP_WORD -> drop true,
+        OP_PRIM -> drop true,
+        _ -> drop false
+    )
+
+atoms-turn-blocks-to-arg : Atom List(Atom) -- Atom List(Atom)
+atoms-turn-blocks-to-arg = while(atoms-has-last-block?, atoms-turn-last-block-to-arg)
+
+atoms-has-last-block? : List(Atom) -- List(Atom) Bool
+atoms-has-last-block? =
+    dup last match(
+        NONE -> false,
+        SOME ->
+            atom-op@ match(
+                OP_BLOCK -> drop true,
+                _ -> drop false
+            )
+    )
+
+atoms-turn-last-block-to-arg : Atom List(Atom) -- Atom List(Atom)
+atoms-turn-last-block-to-arg =
+    List->List+ match(
+        NONE -> L0,
+        SOME ->
+            unsnoc atom-op? match(
+                OP_BLOCK ->
+                    { Atom List(Atom) Atom Block }
+                    dip(atom-cod@ rotl tuck atom-dom!)
+                    { List(Atom) Atom Block }
+                    block-to-arg atom-arg-add!
+                    swap,
+                _ -> drop snoc
+            )
+    )
+
+block-to-arg : Block -- Arg
+block-to-arg =
+    block-arrow? arrow-to-run-var match(
+        NONE -> ARG_BLOCK,
+        SOME -> ARG_VAR_RUN nip
+    )
+
+arrow-to-run-var : Arrow -- Maybe(Var)
+arrow-to-run-var =
+    arrow-atoms@ match(
+        L1 -> atom-to-run-var,
+        _ -> drop NONE
+    )
+
+atom-to-run-var : Atom -- Maybe(Var)
+atom-to-run-var =
+    atom-op@ match(
+        OP_VAR -> var-auto-run? if(SOME, drop NONE),
+        _ -> drop NONE
+    )
 
 ab-op! : Op -- +AB
 ab-op! = (
@@ -1280,7 +1345,7 @@ def(field-new!, Name Type Type Int -- Field,
 
                 field-buffer-size? ab-buffer! PRIM_INT_GET ab-prim!
                 2 ab-int! PRIM_INT_MUL ab-prim!
-                0x1000 ab-int! PRIM_INT_ADD ab-prim!
+                0x2000 ab-int! PRIM_INT_ADD ab-prim!
                 field-buffer-size? ab-buffer! PRIM_INT_SET ab-prim!
             )
 
