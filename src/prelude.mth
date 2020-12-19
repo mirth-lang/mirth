@@ -485,13 +485,15 @@ ptr-copy-nonzero! = (
 ||| Copy string bytes to second argument without adding 0 at end.
 ||| Return first unwritten location in second argument.
 str-copy-partial! : Str Ptr -- Ptr
-str-copy-partial! = dip(Str->Ptr) ptr-copy-nonzero!
+str-copy-partial! = (
+    dip(str-length? dip(Str->Ptr))
+    dup2 ptr+ dip(prim.ptr.copy)
+)
 
 ||| Copy string to second argument, and add the 0 byte at the end.
 str-copy! : Str Ptr --
 str-copy! = (
-    dip(Str->Ptr)
-    ptr-copy-nonzero!
+    str-copy-partial!
     nil swap u8!
 )
 
@@ -508,8 +510,8 @@ build-str! =
 
 str-buf-dup! : Str
 str-buf-dup! = (
-    str-buf-length? 1+ prim.ptr.alloc
-    dup Ptr->Str dip(STR_BUF swap ptr-copy-nonzero! nil swap u8!)
+    STR_BUF str-buf-length? 1+ dup prim.ptr.alloc
+    dup dip(prim.ptr.copy) Ptr->Str
 )
 
 str-buf-length? : Int +StrBuf

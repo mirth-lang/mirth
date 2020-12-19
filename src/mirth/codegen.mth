@@ -9,10 +9,10 @@ import(mirth/data/arrow)
 # Codegen #
 ###########
 
-def(CODEGEN_BUF_SIZE, Size, 0x2000)
+def(CODEGEN_BUF_SIZE, Size, 0x100)
 buffer(CODEGEN_FILE, 8)
 buffer(CODEGEN_LENGTH, 8)
-buffer(CODEGEN_BUF, 0x2000)
+buffer(CODEGEN_BUF, 0x100)
 
 def(codegen-file@, -- File +Codegen, CODEGEN_FILE file@)
 def(codegen-file!, File -- +Codegen, CODEGEN_FILE file!)
@@ -41,7 +41,22 @@ def(.b, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
     codegen-length@ dup 1+ codegen-length! codegen-u8!)
 
-def(., Str -- +Codegen, while(dup str-head U8->Int nonzero, dup str-head .b str-tail) drop)
+def(., Str -- +Codegen,
+    Str->Ptr dup prim.ptr.numbytes 1-
+    dup codegen-length@ + CODEGEN_BUF_SIZE > if(
+        codegen-flush!
+        while(dup CODEGEN_BUF_SIZE >,
+            over CODEGEN_BUF_SIZE CODEGEN_BUF prim.ptr.copy
+            CODEGEN_BUF_SIZE codegen-length!
+            codegen-flush!
+            dip(CODEGEN_BUF_SIZE swap ptr+)
+            CODEGEN_BUF_SIZE -
+        )
+        dup codegen-length! CODEGEN_BUF prim.ptr.copy,
+
+        dup dip(codegen-length@ CODEGEN_BUF ptr+ prim.ptr.copy)
+        codegen-length@ + codegen-length!
+    ))
 
 def(codegen-start!, File -- +Codegen,
     codegen-file! 0 codegen-length!)
@@ -1254,6 +1269,30 @@ def(c99-emit-prims!, +IO,
     "    value_t v = pop_value();" ;
     "    push_i64(value_ptr_size(v));" ;
     "    decref(v);" ;
+    "}" ;;
+
+    PRIM_PTR_COPY .p " {" ;
+    "    value_t vdst = pop_value();" ;
+    "    i64 ilen = pop_i64();" ;
+    "    value_t vsrc = pop_value();" ;
+    "    void* src = value_ptr(vsrc);" ;
+    "    void* dst = value_ptr(vdst);" ;
+    "    if (src && dst && (ilen > 0)) {" ;
+    "        memcpy(dst, src, (usize)ilen);" ;
+    "    }" ;
+    "    decref(vsrc);" ;
+    "    decref(vdst);" ;
+    "}" ;;
+
+    PRIM_PTR_FILL .p " {" ;
+    "    value_t vdst = pop_value();" ;
+    "    i64 ilen = pop_i64();" ;
+    "    i64 val = pop_i64();" ;
+    "    void* dst = value_ptr(vdst);" ;
+    "    if (dst && (ilen > 0)) {" ;
+    "        memset(dst, (int)val, (usize)ilen);" ;
+    "    }" ;
+    "    decref(vdst);" ;
     "}" ;;
 
     PRIM_PACK_NIL .p " {" ;
