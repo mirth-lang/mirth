@@ -9,10 +9,10 @@ import(mirth/data/arrow)
 # Codegen #
 ###########
 
-def(CODEGEN_BUF_SIZE, Size, 0x2000)
+def(CODEGEN_BUF_SIZE, Size, 0x100)
 buffer(CODEGEN_FILE, 8)
 buffer(CODEGEN_LENGTH, 8)
-buffer(CODEGEN_BUF, 0x2000)
+buffer(CODEGEN_BUF, 0x100)
 
 def(codegen-file@, -- File +Codegen, CODEGEN_FILE file@)
 def(codegen-file!, File -- +Codegen, CODEGEN_FILE file!)
@@ -45,7 +45,13 @@ def(., Str -- +Codegen,
     Str->Ptr dup prim.ptr.numbytes 1-
     dup codegen-length@ + CODEGEN_BUF_SIZE > if(
         codegen-flush!
-        dup CODEGEN_BUF_SIZE > if(". too big" panic!, id)
+        while(dup CODEGEN_BUF_SIZE >,
+            over CODEGEN_BUF_SIZE CODEGEN_BUF prim.ptr.copy
+            CODEGEN_BUF_SIZE codegen-length!
+            codegen-flush!
+            dip(CODEGEN_BUF_SIZE swap ptr+)
+            CODEGEN_BUF_SIZE -
+        )
         dup codegen-length! CODEGEN_BUF prim.ptr.copy,
 
         dup dip(codegen-length@ CODEGEN_BUF ptr+ prim.ptr.copy)
