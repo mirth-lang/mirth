@@ -16,6 +16,7 @@ end
 table(Name)
 field(name-str, Name, Str)
 field(name-value, Name, NameValue)
+field(name-mangle-cached, Name, Str)
 
 # mirth/data/buffer
 table(Buffer)
@@ -238,6 +239,8 @@ data Prim
     PRIM_PTR_ALLOC
     PRIM_PTR_REALLOC
     PRIM_PTR_NUMBYTES
+    PRIM_PTR_COPY
+    PRIM_PTR_FILL
 
     PRIM_U8_GET
     PRIM_U8_SET
