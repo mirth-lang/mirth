@@ -1295,6 +1295,12 @@ def(c99-emit-prims!, +IO,
     "    decref(vdst);" ;
     "}" ;;
 
+    PRIM_PTR_RAW .p "{" ;
+    "    value_t vptr = pop_value();" ;
+    "    push_value(vptr);" ;
+    "    push_ptr(value_ptr(vptr));" ;
+    "}" ;;
+
     PRIM_PACK_NIL .p " {" ;
     "    value_t v = {0};" ;
     "    push_value(v);" ;

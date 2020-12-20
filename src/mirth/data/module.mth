@@ -24,3 +24,16 @@ module-source-path =
         drop "<generated>" Str->Path,
         module-path@ make-source-path
     )
+
+||| Get expected module path from module name, relative to src.
+module-path-from-name : Name -- Path
+module-path-from-name =
+    name-str@ str-transduce(
+        is-dot? if(
+            drop path-separator TS_COPY,
+        is-upper? if(
+            U8->Int 32 + Int->U8 TS_CHAR,
+            TS_CHAR
+#            "--///error///--" TS_COPY
+        ))
+    ) ".mth" str-cat Str->Path

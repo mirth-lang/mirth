@@ -112,6 +112,7 @@ def(init-prims!, +Names,
     PRIM_PTR_NUMBYTES "prim.ptr.numbytes" def-prim!
     PRIM_PTR_FILL "prim.ptr.fill" def-prim!
     PRIM_PTR_COPY "prim.ptr.copy" def-prim!
+    PRIM_PTR_RAW "prim.ptr.raw" def-prim!
 
     PRIM_U8_GET "prim.u8.get" def-prim!
     PRIM_U8_SET "prim.u8.set" def-prim!
@@ -222,6 +223,9 @@ def(init-prims!, +Names,
 
     TYPE_INT TYPE_INT TYPE_PTR T3 T0 T->
     PRIM_PTR_FILL prim-type!
+
+    TYPE_PTR T1 TYPE_PTR TYPE_INT T2 T->
+    PRIM_PTR_RAW prim-type!
 
     T0 TYPE_INT T1 T->
     PRIM_SYS_OS prim-type!

@@ -1,6 +1,7 @@
 module(platform.posix)
 import(prelude)
 import(data.str)
+import(data.path)
 
 panic! : *a Str -- *b
 panic! = "panic: " str-trace! str-trace-ln! 1 posix-exit!
@@ -154,6 +155,42 @@ close-file! = (
         id
     )
 )
+
+
+########
+# STAT #
+########
+
+def-external(stat, RawPtr RawPtr -- Int)
+def-external(lstat, RawPtr RawPtr -- Int)
+def-external(fstat, Int RawPtr -- Int)
+
+def(with-raw-path, *a Path [*a RawPtr -- *b] -- *b Path,
+    dip(Path->Str Str->Ptr) with-raw-ptr Ptr->Str Str->Path)
+
+def(is-directory?, Path -- Path Bool,
+    with-raw-path(
+        256 prim.ptr.alloc with-raw-ptr(lstat)
+        swap 0 == if(
+            8 swap ptr+ u32@ S_ISDIR,
+            drop false
+        )
+    ) swap)
+
+def(S_ISDIR, U32 -- Bool, U32->Int S_IFDIR & S_IFDIR ==)
+def(S_IFDIR, Int, 0x4000)
+
+# def(path-raw?, Path -- Path Path,
+#     cast prim.ptr.raw dip(cast) cast)
+
+# def(is-directory?, Path -- Path Bool,
+#     dup Path->Str Str->Ptr prim.ptr.raw lstat
+#     lstat File->Str Str->Ptr prim.ptr.raw
+#     dup File->Str Str->Ptr prim.ptr.raw
+
+
+#     256 prim.ptr.alloc fstat
+#     is-dir ptr+)
 
 ########
 # Heap #

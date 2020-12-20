@@ -53,6 +53,10 @@ def(|ptr|, Int, prim.ptr.size)
 def(ptr@, Ptr -- Ptr, prim.ptr.get)
 def(ptr!, Ptr Ptr --,prim.ptr.set)
 
+data(RawPtr, RAWPTR -> Int)
+def(with-raw-ptr, *a Ptr [*a RawPtr -- *b] -- *b Ptr,
+    \([f] -> prim.ptr.raw RAWPTR swap dip(f)))
+
 def(u8@, Ptr -- U8, prim.u8.get)
 def(u8!, U8 Ptr --, prim.u8.set)
 def(u16@, Ptr -- U16, prim.u16.get)
