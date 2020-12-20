@@ -193,7 +193,7 @@ def(S_ISDIR, U32 -- Bool, U32->Int S_IFMT & S_IFDIR ==)
 
 def(st_mode&, Ptr -- Ptr,
     RUNNING_OS match(
-        OS_LINUX -> 16, # ... this is all terrible and brittle
+        OS_LINUX -> 12, # ... this is all terrible and brittle
         _ -> drop 8
     ) swap ptr+)
 

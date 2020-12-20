@@ -9927,7 +9927,7 @@ static void mwst_mode_26_ (void){
     switch (get_top_data_tag()) {
     case 2LL:
     do_drop();
-    push_i64(16LL);
+    push_i64(12LL);
     break;
     default:
     mwdrop();
