@@ -170,13 +170,12 @@ def(with-raw-path, *a Path [*a RawPtr -- *b] -- *b Path,
 
 def(is-directory?, Path -- Path Bool,
     with-raw-path(
-        256 prim.ptr.alloc with-raw-ptr(lstat)
+        256 prim.ptr.alloc with-raw-ptr(stat)
         swap 0 == if(
-            st_mode& u32@ S_ISDIR,
+            st_mode@ S_ISDIR,
             drop false
         )
     ) swap)
-
 
 #define S_IFMT  00170000
 #define S_IFSOCK 0140000
@@ -191,11 +190,11 @@ def(S_IFREG, Int, 0x8000)
 
 def(S_ISDIR, U32 -- Bool, U32->Int S_IFMT & S_IFDIR ==)
 
-def(st_mode&, Ptr -- Ptr,
+def(st_mode@, Ptr -- U32,
     RUNNING_OS match(
-        OS_LINUX -> 12, # ... this is all terrible and brittle
+        OS_LINUX -> 8, # ... this is all terrible and brittle
         _ -> drop 8
-    ) swap ptr+)
+    ) swap ptr+ u32@)
 
 # def(path-raw?, Path -- Path Path,
 #     cast prim.ptr.raw dip(cast) cast)

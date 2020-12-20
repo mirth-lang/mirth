@@ -2971,7 +2971,7 @@ static void mwfstat (void) {
  static void mwS_IFDIR (void);
  static void mwS_IFREG (void);
  static void mwS_ISDIR (void);
- static void mwst_mode_26_ (void);
+ static void mwst_mode_40_ (void);
  static void mwheap_length_40_ (void);
  static void mwheap_length_21_ (void);
  static void mwheap_base_40_ (void);
@@ -4658,14 +4658,14 @@ static void mwfstat (void) {
  static void mb_platform_2E_posix_173_41 (void);
  static void mb_platform_2E_posix_176_13 (void);
  static void mb_platform_2E_posix_175_13 (void);
- static void mb_platform_2E_posix_258_9 (void);
- static void mb_platform_2E_posix_270_13 (void);
- static void mb_platform_2E_posix_266_13 (void);
- static void mb_platform_2E_posix_268_17 (void);
+ static void mb_platform_2E_posix_257_9 (void);
+ static void mb_platform_2E_posix_269_13 (void);
+ static void mb_platform_2E_posix_265_13 (void);
  static void mb_platform_2E_posix_267_17 (void);
- static void mb_platform_2E_posix_256_9 (void);
- static void mb_platform_2E_posix_293_17 (void);
- static void mb_platform_2E_posix_311_24 (void);
+ static void mb_platform_2E_posix_266_17 (void);
+ static void mb_platform_2E_posix_255_9 (void);
+ static void mb_platform_2E_posix_292_17 (void);
+ static void mb_platform_2E_posix_310_24 (void);
  static void mb_data_2E_str_14_35 (void);
  static void mb_data_2E_str_14_27 (void);
  static void mb_data_2E_str_28_20 (void);
@@ -9922,12 +9922,12 @@ static void mwS_ISDIR (void){
     mw_3D__3D_();
 }
 
-static void mwst_mode_26_ (void){
+static void mwst_mode_40_ (void){
     mwRUNNING_OS();
     switch (get_top_data_tag()) {
     case 2LL:
     do_drop();
-    push_i64(12LL);
+    push_i64(8LL);
     break;
     default:
     mwdrop();
@@ -9936,6 +9936,7 @@ static void mwst_mode_26_ (void){
     }
     mwswap();
     mwptr_2B_();
+    mwu32_40_();
 }
 
 static void mwheap_length_40_ (void){
@@ -28441,8 +28442,7 @@ static void mb_platform_2E_posix_173_9 (void) {
     push_i64(0LL);
     mw_3D__3D_();
     if (pop_u64()) {
-    mwst_mode_26_();
-    mwu32_40_();
+    mwst_mode_40_();
     mwS_ISDIR();
     } else {
     mwdrop();
@@ -28451,7 +28451,7 @@ static void mb_platform_2E_posix_173_9 (void) {
 }
 static void mb_platform_2E_posix_173_41 (void) {
     do_drop();
-    mwlstat();
+    mwstat();
 }
 static void mb_data_2E_str_28_20 (void) {
     do_drop();
