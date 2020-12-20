@@ -2967,8 +2967,11 @@ static void mwfstat (void) {
  static void mwclose_file_21_ (void);
  static void mwwith_raw_path (void);
  static void mwis_directory_3F_ (void);
- static void mwS_ISDIR (void);
+ static void mwS_IFMT (void);
  static void mwS_IFDIR (void);
+ static void mwS_IFREG (void);
+ static void mwS_ISDIR (void);
+ static void mwst_mode_26_ (void);
  static void mwheap_length_40_ (void);
  static void mwheap_length_21_ (void);
  static void mwheap_base_40_ (void);
@@ -4655,14 +4658,14 @@ static void mwfstat (void) {
  static void mb_platform_2E_posix_173_41 (void);
  static void mb_platform_2E_posix_176_13 (void);
  static void mb_platform_2E_posix_175_13 (void);
- static void mb_platform_2E_posix_241_9 (void);
- static void mb_platform_2E_posix_253_13 (void);
- static void mb_platform_2E_posix_249_13 (void);
- static void mb_platform_2E_posix_251_17 (void);
- static void mb_platform_2E_posix_250_17 (void);
- static void mb_platform_2E_posix_239_9 (void);
- static void mb_platform_2E_posix_276_17 (void);
- static void mb_platform_2E_posix_294_24 (void);
+ static void mb_platform_2E_posix_258_9 (void);
+ static void mb_platform_2E_posix_270_13 (void);
+ static void mb_platform_2E_posix_266_13 (void);
+ static void mb_platform_2E_posix_268_17 (void);
+ static void mb_platform_2E_posix_267_17 (void);
+ static void mb_platform_2E_posix_256_9 (void);
+ static void mb_platform_2E_posix_293_17 (void);
+ static void mb_platform_2E_posix_311_24 (void);
  static void mb_data_2E_str_14_35 (void);
  static void mb_data_2E_str_14_27 (void);
  static void mb_data_2E_str_28_20 (void);
@@ -9900,15 +9903,39 @@ static void mwis_directory_3F_ (void){
     mwswap();
 }
 
+static void mwS_IFMT (void){
+    push_i64(61440LL);
+}
+
+static void mwS_IFDIR (void){
+    push_i64(16384LL);
+}
+
+static void mwS_IFREG (void){
+    push_i64(32768LL);
+}
+
 static void mwS_ISDIR (void){
-    mwS_IFDIR();
+    mwS_IFMT();
     mw_26_();
     mwS_IFDIR();
     mw_3D__3D_();
 }
 
-static void mwS_IFDIR (void){
-    push_i64(16384LL);
+static void mwst_mode_26_ (void){
+    mwRUNNING_OS();
+    switch (get_top_data_tag()) {
+    case 2LL:
+    do_drop();
+    push_i64(16LL);
+    break;
+    default:
+    mwdrop();
+    push_i64(8LL);
+    break;
+    }
+    mwswap();
+    mwptr_2B_();
 }
 
 static void mwheap_length_40_ (void){
@@ -28414,9 +28441,7 @@ static void mb_platform_2E_posix_173_9 (void) {
     push_i64(0LL);
     mw_3D__3D_();
     if (pop_u64()) {
-    push_i64(8LL);
-    mwswap();
-    mwptr_2B_();
+    mwst_mode_26_();
     mwu32_40_();
     mwS_ISDIR();
     } else {
