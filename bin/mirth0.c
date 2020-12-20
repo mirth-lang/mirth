@@ -4658,14 +4658,14 @@ static void mwfstat (void) {
  static void mb_platform_2E_posix_173_41 (void);
  static void mb_platform_2E_posix_176_13 (void);
  static void mb_platform_2E_posix_175_13 (void);
- static void mb_platform_2E_posix_257_9 (void);
- static void mb_platform_2E_posix_269_13 (void);
- static void mb_platform_2E_posix_265_13 (void);
- static void mb_platform_2E_posix_267_17 (void);
- static void mb_platform_2E_posix_266_17 (void);
- static void mb_platform_2E_posix_255_9 (void);
- static void mb_platform_2E_posix_292_17 (void);
- static void mb_platform_2E_posix_310_24 (void);
+ static void mb_platform_2E_posix_245_9 (void);
+ static void mb_platform_2E_posix_257_13 (void);
+ static void mb_platform_2E_posix_253_13 (void);
+ static void mb_platform_2E_posix_255_17 (void);
+ static void mb_platform_2E_posix_254_17 (void);
+ static void mb_platform_2E_posix_243_9 (void);
+ static void mb_platform_2E_posix_280_17 (void);
+ static void mb_platform_2E_posix_298_24 (void);
  static void mb_data_2E_str_14_35 (void);
  static void mb_data_2E_str_14_27 (void);
  static void mb_data_2E_str_28_20 (void);
@@ -9927,7 +9927,7 @@ static void mwst_mode_40_ (void){
     switch (get_top_data_tag()) {
     case 2LL:
     do_drop();
-    push_i64(8LL);
+    push_i64(16LL);
     break;
     default:
     mwdrop();
