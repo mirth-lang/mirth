@@ -1,5 +1,5 @@
 ||| [#87] Test that def-external in recognized.
-module(tests/def-external-is-recognized)
+module(tests.def-external-is-recognized)
 import(prelude)
 
 def-external(my-external, Int Str -- Int)

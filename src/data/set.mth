@@ -1,0 +1,13 @@
+module(data.set)
+
+||| A set is a bag without duplicates. It's stored as
+||| sorted list, where items are strictly increasing.
+data Set(v)
+    SET -> Bag(v)
+end
+
+unSET : Set(v) -- Bag(v)
+unSET = match(SET -> id)
+
+set-insert : Set(v) v -- Set(v)
+set-insert = dip(unSET) bag-replace SET

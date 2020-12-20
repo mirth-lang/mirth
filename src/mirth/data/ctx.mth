@@ -1,6 +1,5 @@
-module(mirth/data/ctx)
-import(mirth/data/common)
-import(mirth/data/var)
+module(mirth.data.ctx)
+import(mirth.data.var)
 
 ###########
 # Context #

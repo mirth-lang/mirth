@@ -1,5 +1,6 @@
-module(tests/pack-unpack)
+module(tests.pack-unpack)
 import(prelude)
+import(platform.posix)
 
 def(!!true, Bool --, if(id, "Assertion failed" panic!))
 def(!!=, a a --, == !!true)

@@ -1,9 +1,9 @@
-module(mirth/codegen)
+module(mirth.codegen)
 import(prelude)
-import(mirth/data/token)
-import(mirth/data/name)
-import(mirth/data/buffer)
-import(mirth/data/arrow)
+import(mirth.data.token)
+import(mirth.data.name)
+import(mirth.data.buffer)
+import(mirth.data.arrow)
 
 ###########
 # Codegen #
@@ -1295,6 +1295,12 @@ def(c99-emit-prims!, +IO,
     "    decref(vdst);" ;
     "}" ;;
 
+    PRIM_PTR_RAW .p "{" ;
+    "    value_t vptr = pop_value();" ;
+    "    push_value(vptr);" ;
+    "    push_ptr(value_ptr(vptr));" ;
+    "}" ;;
+
     PRIM_PACK_NIL .p " {" ;
     "    value_t v = {0};" ;
     "    push_value(v);" ;
@@ -1532,11 +1538,11 @@ def(c99-emit-var-push!, Var -- +IO,
 def(c99-emit-lambda!, Lambda -- +IO,
     "    {" ;
     lambda-params? reverse-for(
-        "    value_t " . .var-val " = pop_value();" ;
+        "    value_t " . Param->Var .var-val " = pop_value();" ;
         )
     lambda-body? c99-emit-arrow!
     lambda-params@ reverse-for(
-        "    decref(" . .var-val ");" ;
+        "    decref(" . Param->Var .var-val ");" ;
         )
     "    }" ;)
 

@@ -1,0 +1,26 @@
+module(tests.test-is-directory)
+import(platform.posix)
+
+should-be-directory : Str --
+should-be-directory = Str->Path is-directory? nip if("ok", "err") str-trace-ln!
+
+should-not-be-directory : Str --
+should-not-be-directory = Str->Path is-directory? nip if("err", "ok") str-trace-ln!
+
+main : --
+main = (
+    "src" should-be-directory
+    "bin" should-be-directory
+    "tools" should-be-directory
+    "src/mirth" should-be-directory
+    "src/mirth.mth" should-not-be-directory
+    "nonsense" should-not-be-directory
+)
+
+target-c99("test-is-directory.c", main)
+# mirth-test # perr # ok
+# mirth-test # perr # ok
+# mirth-test # perr # ok
+# mirth-test # perr # ok
+# mirth-test # perr # ok
+# mirth-test # perr # ok

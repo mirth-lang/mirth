@@ -1,10 +1,16 @@
-module(mirth/data/var)
-import(mirth/data/common)
-import(mirth/data/name)
+module(mirth.data.var)
+import(mirth.data.name)
 
 #######
 # VAR #
 #######
+
+# mirth/data/var
+table(Var)
+field(var-is-implicit, Var, Bool)
+field(var-name, Var, Name)
+field(var-type, Var, Type)
+field(var-auto-run, Var, Bool) # run variable by default
 
 def(Var->Int, Var -- Int, cast)
 

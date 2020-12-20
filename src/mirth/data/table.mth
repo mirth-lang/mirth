@@ -1,0 +1,19 @@
+module(mirth.data.table)
+import(mirth.data.name)
+import(mirth.data.type)
+import(mirth.data.buffer)
+import(mirth.data.word)
+
+# mirth/data/table
+table(Table)
+field(table-name, Table, Name)
+field(table-num-buffer, Table, Buffer)
+field(table-max-count, Table, Size)
+
+table(Field)
+field(field-name, Field, Name)
+field(field-table, Field, Type)
+field(field-type, Field, Type)
+field(field-buffer-size, Field, Buffer)
+field(field-buffer-ptr, Field, Buffer)
+field(field-word-ptr, Field, Word)

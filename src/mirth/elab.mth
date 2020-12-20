@@ -1,8 +1,15 @@
-module(mirth/elab)
-import(mirth/data/name)
-import(mirth/data/token)
-import(mirth/data/type)
-import(mirth/data/ctx)
+module(mirth.elab)
+import(mirth.data.name)
+import(mirth.data.token)
+import(mirth.data.type)
+import(mirth.data.ctx)
+import(mirth.data.external)
+import(mirth.data.word)
+import(mirth.data.var)
+import(mirth.data.buffer)
+import(mirth.data.table)
+import(mirth.data.var)
+import(mirth.data.arrow)
 
 ####################
 # Type Elaboration #
@@ -212,7 +219,7 @@ ab-unify-type! =
 ab-atom! : Atom -- +AB
 ab-atom! = (
     atom-token? ab-token!
-    atom-dom? ab-unify-type!
+    # atom-dom? ab-unify-type!     # moved to ab-expand-opsig!
         # ^ a sanity check to make sure
         # atom dom matches ab-arrow cod
     atom-cod? ab-type!
@@ -329,11 +336,23 @@ ab-op! = (
     ab-ctx@ over atom-ctx!
     ab-token@ over atom-token!
     dup2 atom-op!
-    swap elab-op-fresh-sig! dip(over atom-subst!)
-    ab-token@ elab-expand-morphism! drop
+    swap elab-op-fresh-sig!
+    dip(over atom-subst!)
+    ab-expand-opsig!
     dip(over atom-dom!) over atom-cod!
     ab-atom!
 )
+
+ab-expand-opsig! : OpSig -- Type Type
+ab-expand-opsig! =
+    match(
+        OPSIG_ID -> ab-type@ dup,
+        OPSIG_PUSH -> dip(ab-type@ dup) TTensor,
+        OPSIG_APPLY ->
+            dip(ab-type@)
+            ab-token@ elab-expand-morphism!
+            swap dip(elab-type-unify! drop)
+    )
 
 ab-int! : Int -- +AB
 ab-int! = OP_INT ab-op!
@@ -381,46 +400,45 @@ ab-if! = dip(ab-block!) ab-block! PRIM_CORE_IF ab-prim!
 ab-while! : *a [ *a -- *b +AB ] [ *b -- *c +AB ] -- *c +AB
 ab-while! = dip(ab-block!) ab-block! PRIM_CORE_WHILE ab-prim!
 
-elab-op-fresh-sig! : Op -- Subst Type +AB
+
+data OpSig
+    OPSIG_ID
+    OPSIG_PUSH -> Type
+    OPSIG_APPLY -> Type
+end
+
+
+elab-op-fresh-sig! : Op -- Subst OpSig +AB
 elab-op-fresh-sig! =
     subst-nil swap match(
-        OP_NONE -> elab-id-sig!,
-        OP_INT -> drop TYPE_INT elab-push-sig!,
-        OP_STR -> drop TYPE_STR elab-push-sig!,
-        OP_BUFFER -> drop TYPE_PTR elab-push-sig!,
+        OP_NONE -> OPSIG_ID,
+        OP_INT -> drop TYPE_INT OPSIG_PUSH,
+        OP_STR -> drop TYPE_STR OPSIG_PUSH,
+        OP_BUFFER -> drop TYPE_PTR OPSIG_PUSH,
+        OP_TAG -> elab-tag-sig! type-freshen-sig OPSIG_APPLY,
+        OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
+        OP_PRIM -> prim-type@ type-freshen-sig OPSIG_APPLY,
+        OP_EXTERNAL -> elab-external-sig! type-freshen-sig OPSIG_APPLY,
         OP_BLOCK -> elab-block-sig!,
         OP_VAR -> elab-var-sig!,
-        OP_TAG -> elab-tag-sig! type-freshen-sig,
-        OP_WORD -> elab-word-sig! type-freshen-sig,
-        OP_PRIM -> prim-type@ type-freshen-sig,
-        OP_EXTERNAL -> elab-external-sig! type-freshen-sig,
         OP_MATCH -> elab-match-sig!,
         OP_LAMBDA -> elab-lambda-sig!,
     )
 
-elab-id-sig! : Type
-elab-id-sig! = meta-alloc! TMeta dup T->
+elab-block-sig! : Block -- OpSig
+elab-block-sig! = block-arrow@ arrow-dom? swap arrow-cod@ T-> OPSIG_PUSH
 
-elab-push-sig! : Type -- Type
-elab-push-sig! = dip(meta-alloc! TMeta dup) T* T->
+elab-match-sig! : Match -- OpSig
+elab-match-sig! = match-dom? swap match-cod@ T-> OPSIG_APPLY
 
-elab-block-sig! : Block -- Type
-elab-block-sig! = block-arrow@ elab-arrow-sig! elab-push-sig!
+elab-lambda-sig! : Lambda -- OpSig
+elab-lambda-sig! = lambda-dom? swap lambda-cod@ T-> OPSIG_APPLY
 
-elab-arrow-sig! : Arrow -- Type
-elab-arrow-sig! = arrow-dom? swap arrow-cod@ T->
-
-elab-match-sig! : Match -- Type
-elab-match-sig! = match-dom? swap match-cod@ T->
-
-elab-lambda-sig! : Lambda -- Type
-elab-lambda-sig! = lambda-dom? swap lambda-cod@ T->
-
-elab-var-sig! : Var -- Type
+elab-var-sig! : Var -- OpSig
 elab-var-sig! =
     var-auto-run? if(
-        var-type@ type-semifreshen-sig,
-        var-type@ elab-push-sig!
+        var-type@ type-semifreshen-sig OPSIG_APPLY,
+        var-type@ OPSIG_PUSH
     )
 
 def(elab-tag-sig!, Tag -- Type +Elab,
@@ -631,12 +649,32 @@ def(elab-lambda!, Lambda -- Lambda,
     elab-lambda-body!)
 
 def(elab-expand-tensor!, Type Token -- Type Type Token,
-    dip2(meta-alloc! TMeta meta-alloc! TMeta dup2 T*)
-    elab-type-unify! nip dip(dip(type-expand) type-expand))
+    swap type-expand match(
+        TYPE_ERROR -> dip(TYPE_ERROR TYPE_ERROR),
+        TTensor -> id rotl,
+        TMeta ->
+            dip(meta-alloc! TMeta
+                meta-alloc! TMeta
+                dup2 TTensor)
+            meta-type! rotl,
+        _ ->
+            drop dup "expected tuple type" emit-error!
+            dip(TYPE_ERROR TYPE_ERROR)
+    ))
 
 def(elab-expand-morphism!, Type Token -- Type Type Token,
-    dip2(meta-alloc! TMeta meta-alloc! TMeta dup2 T->)
-    elab-type-unify! nip dip(dip(type-expand) type-expand))
+    swap type-expand match(
+        TYPE_ERROR -> dip(TYPE_ERROR TYPE_ERROR),
+        TMorphism -> id rotl,
+        TMeta ->
+            dip(meta-alloc! TMeta
+                meta-alloc! TMeta
+                dup2 TMorphism)
+            meta-type! rotl,
+        _ ->
+            drop dup "expected block type" emit-error!
+            dip(TYPE_ERROR TYPE_ERROR)
+    ))
 
 def(elab-lambda-pop-from-mid!, Lambda Token -- Lambda Type Token,
     dip(lambda-mid?)
@@ -673,7 +711,7 @@ def(elab-lambda-params!, Lambda -- Lambda,
                     "block pattern on non-block argument" emit-fatal-error!
                 )
             )
-            dip(lambda-params?) dup dip(swap cons over lambda-params!)
+            dip(lambda-params?) dup dip(Var->Param swap cons over lambda-params!)
             dip(lambda-inner-ctx?) ctx-new! over lambda-inner-ctx!
         )
         token-prev)
@@ -791,7 +829,7 @@ def(elab-module!, Module -- Module +Mirth,
     elab-module-header!
     elab-module-imports!
     elab-module-decls!
-    typecheck-everything!
+#    typecheck-everything!
     drop)
 
 ||| Check that the `module(M)` statement exists and save the name.
@@ -814,7 +852,7 @@ def(elab-module-name!, Module Token -- +Mirth,
 
             # check module name matches module path
             dip(module-path@ Path->Str)
-            name-str@ ".mth" str-cat str-eq if(
+            module-path-from-name Path->Str str-eq if(
                 drop,
                 "Module name should match path." emit-error!
             )
@@ -827,6 +865,10 @@ def(elab-module-name!, Module Token -- +Mirth,
 def(elab-module-imports!, Module Token -- Module Token +Mirth,
     while(PRIM_SYNTAX_IMPORT token-prim=?, elab-module-import!))
 
+||| Add right module as import to left module.
+def(module-add-import!, Module Module --,
+    dip(module-imports?) set-insert swap module-imports!)
+
 ||| Elaborate `import(M)` statement. Return token after import.
 def(elab-module-import!, Module Token -- Module Token +Mirth,
     dup dip(token-next)
@@ -834,14 +876,17 @@ def(elab-module-import!, Module Token -- Module Token +Mirth,
         TOKEN_NAME ->
             name-value? match(
                 DEF_MODULE ->
-                    drop3,
-                    # module is already loaded (TODO: add import to a list)
+                    dip(drop2 over)
+                    module-add-import!,
+                    # module is already loaded
 
                 DEF_NONE ->
-                    name-str@ ".mth" str-cat
-                    Str->Path run-lexer!
-                    elab-module! drop2,
-                    # elab the imported module (TODO: add import to a list)
+                    module-path-from-name run-lexer!
+                    elab-module!
+                    dip(drop over) module-add-import!,
+                    # elab the imported module
+                    # TODO: avoid elaborating here,
+                    # use a single loop to dispatch top-level module elaboration.
 
                 _ ->
                     drop2 "module name already taken" emit-fatal-error!

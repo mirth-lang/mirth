@@ -1,16 +1,13 @@
-module(mirth/data/buffer)
-import(mirth/data/common)
-import(mirth/data/name)
+module(mirth.data.buffer)
 
-###########
-# Buffers #
-###########
+# mirth/data/buffer
+table(Buffer)
+field(buffer-size, Buffer, Size)
+field(buffer-name, Buffer, Name)
 
 buffer-alloc! : Name Size -- Buffer +Buffers
 buffer-alloc! = (
-    dup heap-alloc!
     Buffer.alloc!
-    tuck buffer-base!
     tuck buffer-size!
     tuck dup2 buffer-name!
     swap name-buffer!

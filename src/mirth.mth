@@ -1,14 +1,15 @@
 module(mirth)
 
 import(prelude)
-import(mirth/input)
-import(mirth/lexer)
-import(mirth/codegen)
-import(mirth/elab)
+import(platform.posix)
+import(mirth.input)
+import(mirth.lexer)
+import(mirth.codegen)
+import(mirth.elab)
 
-import(mirth/data/path)
-import(mirth/data/prim)
-import(mirth/data/type)
+import(data.path)
+import(mirth.data.prim)
+import(mirth.data.type)
 
 def(init!, +IO,
     init-paths!
@@ -31,16 +32,15 @@ def(compile!, Path -- +IO,
     "Building." str-trace-ln!
 
     elab-module! drop
+    typecheck-everything!
 
     num-errors@ 0 > if(
         num-errors@ int-trace!
         " errors." str-trace-ln!
         1 posix-exit!,
 
-        id
-    )
-
-    "Done." str-trace-ln!)
+        "Done." str-trace-ln!
+    ))
 
 def(main, +IO,
     init!

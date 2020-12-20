@@ -1,4 +1,4 @@
-module(tests/data-syntax)
+module(tests.data-syntax)
 
 data(A, A1)
 data(B, B1,)

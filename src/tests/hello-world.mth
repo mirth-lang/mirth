@@ -2,8 +2,9 @@
 ||| We want to make sure it captures output from
 ||| each program that is generated, incl. stderr,
 ||| and exit codes.
-module(tests/hello-world)
+module(tests.hello-world)
 import(prelude)
+import(platform.posix)
 
 target-c99("hello-world.c",
     "Hello, world!" str-print-ln!)

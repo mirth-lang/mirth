@@ -1,4 +1,4 @@
-module(tests/error-missing-patterns)
+module(tests.error-missing-patterns)
 import(prelude)
 
 data T

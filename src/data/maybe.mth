@@ -1,0 +1,47 @@
+module(data.maybe)
+import(prelude)
+
+data Maybe(t)
+    NONE
+    SOME -> t
+end
+
+is-none : Maybe(t) -- Bool
+is-none = is-nil
+
+is-some : Maybe(t) -- Bool
+is-some = is-nil not
+
+is-none? : Maybe(t) -- Maybe(t) Bool
+is-none? = is-nil?
+
+is-some? : Maybe(t) -- Maybe(t) Bool
+is-some? = is-nil? not
+
+maybe-map : *c Maybe(a) [*c a -- *c b] -- *c Maybe(b)
+maybe-map =
+    swap match(
+        NONE -> drop NONE,
+        SOME -> swap run SOME,
+    )
+
+maybe-bind : *c Maybe(a) [*c a -- *c Maybe(b)] -- *c Maybe(b)
+maybe-bind =
+    swap match(
+        NONE -> drop NONE,
+        SOME -> swap run
+    )
+
+maybe-for : *c Maybe(a) [*c a -- *c] -- *c
+maybe-for =
+    swap match(
+        NONE -> drop,
+        SOME -> swap run
+    )
+
+maybe-filter : *c Maybe(a) [*c a -- *c a Bool] -- *c Maybe(a)
+maybe-filter =
+    swap match(
+        NONE -> drop NONE,
+        SOME -> swap run if(SOME, drop NONE)
+    )

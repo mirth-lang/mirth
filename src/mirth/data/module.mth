@@ -1,6 +1,15 @@
-module(mirth/data/module)
-import(mirth/data/common)
-import(mirth/data/path)
+module(mirth.data.module)
+import(data.path)
+import(data.set)
+
+# mirth/data/module
+table(Module)
+table(Token)
+field(module-name, Module, Name)
+field(module-path, Module, Path)
+field(module-start, Module, Token)
+field(module-end, Module, Token)
+field(module-imports, Module, Set(Module))
 
 Module->Int : Module -- Int
 Module->Int = cast
@@ -24,3 +33,17 @@ module-source-path =
         drop "<generated>" Str->Path,
         module-path@ make-source-path
     )
+
+||| Get expected module path from module name, relative to src.
+module-path-from-name : Name -- Path
+module-path-from-name =
+    name-str@ str-transduce(
+        is-dot? if(
+            drop "/" # path-separator # TODO: this should be path-separator, but breaks module import check on MSYS2 ... fix module import check / paths?
+            TS_COPY,
+        is-upper? if(
+            U8->Int 32 + Int->U8 TS_CHAR,
+            TS_CHAR
+#            "--///error///--" TS_COPY
+        ))
+    ) ".mth" str-cat Str->Path

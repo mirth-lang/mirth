@@ -1,10 +1,10 @@
-module(mirth/lexer)
+module(mirth.lexer)
 import(prelude)
-import(mirth/data/char)
-import(mirth/data/name)
-import(mirth/data/token)
-import(mirth/data/error)
-import(mirth/input)
+import(data.char)
+import(mirth.data.name)
+import(mirth.data.token)
+import(mirth.data.error)
+import(mirth.input)
 
 #########
 # LEXER #
@@ -245,18 +245,16 @@ def(lexer-emit-name!, +Lexer,
     ))
 
 def(str-buf-is-doc-start?, Bool +StrBuf,
-    str-buf-length? 3 == if(
-        0 str-buf-u8@ is-pipe-char
-        1 str-buf-u8@ is-pipe-char &&
-        2 str-buf-u8@ is-pipe-char &&,
-        false
+    str-buf-length? 3 == and(
+        0 str-buf-u8@ is-pipe? nip
+        and(1 str-buf-u8@ is-pipe? nip)
+        and(2 str-buf-u8@ is-pipe? nip)
     ))
 
 def(str-buf-is-arrow?, Bool +StrBuf,
-    str-buf-length? 2 == if(
+    str-buf-length? 2 == and(
         0 str-buf-u8@ is-dash? nip
-        1 str-buf-u8@ is-gt? nip &&,
-        false
+        1 str-buf-u8@ is-gt? nip &&
     ))
 
 def(str-buf-is-dashes?, Bool +StrBuf,
@@ -272,7 +270,6 @@ def(str-buf-is-equal?, Bool +StrBuf,
         false
     ))
 
-def(is-pipe-char, U8 -- Bool, U8->Int 0x7C ==)
 
 def(str-buf-is-int?, Bool +StrBuf,
     str-buf-is-dec-int? if(true, str-buf-is-hex-int?))
@@ -328,7 +325,7 @@ def(str-buf-dec-int?, Int +StrBuf,
     0 # accumulated value
     0 # current index
     dup str-buf-u8@ is-sign? if(
-        is-minus-sign? nip if(
+        is-dash? nip if(
             dip2(drop -1),
             id
         )
@@ -348,7 +345,7 @@ def(str-buf-hex-int?, Int +StrBuf,
     0 # accumulated value
     0 # current index
     dup str-buf-u8@ is-sign? if(
-        is-minus-sign? nip if(
+        is-dash? nip if(
             dip2(drop -1),
             id
         )
