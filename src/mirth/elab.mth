@@ -336,11 +336,20 @@ ab-op! = (
     ab-ctx@ over atom-ctx!
     ab-token@ over atom-token!
     dup2 atom-op!
-    swap elab-op-fresh-sig! dip(over atom-subst!)
-    ab-token@ elab-expand-morphism! drop
+    swap elab-op-fresh-sig!
+    dip(over atom-subst!)
+    ab-expand-opsig!
     dip(over atom-dom!) over atom-cod!
     ab-atom!
 )
+
+ab-expand-opsig! : OpSig -- Type Type
+ab-expand-opsig! =
+    match(
+        OPSIG_ID -> ab-type@ dup,
+        OPSIG_PUSH -> dip(ab-type@ dup) TTensor,
+        OPSIG_APPLY -> ab-token@ elab-expand-morphism! drop
+    )
 
 ab-int! : Int -- +AB
 ab-int! = OP_INT ab-op!
@@ -388,46 +397,45 @@ ab-if! = dip(ab-block!) ab-block! PRIM_CORE_IF ab-prim!
 ab-while! : *a [ *a -- *b +AB ] [ *b -- *c +AB ] -- *c +AB
 ab-while! = dip(ab-block!) ab-block! PRIM_CORE_WHILE ab-prim!
 
-elab-op-fresh-sig! : Op -- Subst Type +AB
+
+data OpSig
+    OPSIG_ID
+    OPSIG_PUSH -> Type
+    OPSIG_APPLY -> Type
+end
+
+
+elab-op-fresh-sig! : Op -- Subst OpSig +AB
 elab-op-fresh-sig! =
     subst-nil swap match(
-        OP_NONE -> elab-id-sig!,
-        OP_INT -> drop TYPE_INT elab-push-sig!,
-        OP_STR -> drop TYPE_STR elab-push-sig!,
-        OP_BUFFER -> drop TYPE_PTR elab-push-sig!,
+        OP_NONE -> OPSIG_ID,
+        OP_INT -> drop TYPE_INT OPSIG_PUSH,
+        OP_STR -> drop TYPE_STR OPSIG_PUSH,
+        OP_BUFFER -> drop TYPE_PTR OPSIG_PUSH,
+        OP_TAG -> elab-tag-sig! type-freshen-sig OPSIG_APPLY,
+        OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
+        OP_PRIM -> prim-type@ type-freshen-sig OPSIG_APPLY,
+        OP_EXTERNAL -> elab-external-sig! type-freshen-sig OPSIG_APPLY,
         OP_BLOCK -> elab-block-sig!,
         OP_VAR -> elab-var-sig!,
-        OP_TAG -> elab-tag-sig! type-freshen-sig,
-        OP_WORD -> elab-word-sig! type-freshen-sig,
-        OP_PRIM -> prim-type@ type-freshen-sig,
-        OP_EXTERNAL -> elab-external-sig! type-freshen-sig,
         OP_MATCH -> elab-match-sig!,
         OP_LAMBDA -> elab-lambda-sig!,
     )
 
-elab-id-sig! : Type
-elab-id-sig! = meta-alloc! TMeta dup T->
+elab-block-sig! : Block -- OpSig
+elab-block-sig! = block-arrow@ arrow-dom? swap arrow-cod@ T-> OPSIG_PUSH
 
-elab-push-sig! : Type -- Type
-elab-push-sig! = dip(meta-alloc! TMeta dup) T* T->
+elab-match-sig! : Match -- OpSig
+elab-match-sig! = match-dom? swap match-cod@ T-> OPSIG_APPLY
 
-elab-block-sig! : Block -- Type
-elab-block-sig! = block-arrow@ elab-arrow-sig! elab-push-sig!
+elab-lambda-sig! : Lambda -- OpSig
+elab-lambda-sig! = lambda-dom? swap lambda-cod@ T-> OPSIG_APPLY
 
-elab-arrow-sig! : Arrow -- Type
-elab-arrow-sig! = arrow-dom? swap arrow-cod@ T->
-
-elab-match-sig! : Match -- Type
-elab-match-sig! = match-dom? swap match-cod@ T->
-
-elab-lambda-sig! : Lambda -- Type
-elab-lambda-sig! = lambda-dom? swap lambda-cod@ T->
-
-elab-var-sig! : Var -- Type
+elab-var-sig! : Var -- OpSig
 elab-var-sig! =
     var-auto-run? if(
-        var-type@ type-semifreshen-sig,
-        var-type@ elab-push-sig!
+        var-type@ type-semifreshen-sig OPSIG_APPLY,
+        var-type@ OPSIG_PUSH
     )
 
 def(elab-tag-sig!, Tag -- Type +Elab,
