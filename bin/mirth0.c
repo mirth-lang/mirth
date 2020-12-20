@@ -2592,18 +2592,6 @@ static void mwstat (void) {
     i64 x1 = pop_i64();
     push_i64(stat(x1, x2));
 }
-i64 lstat (i64, i64);
-static void mwlstat (void) {
-    i64 x2 = pop_i64();
-    i64 x1 = pop_i64();
-    push_i64(lstat(x1, x2));
-}
-i64 fstat (i64, i64);
-static void mwfstat (void) {
-    i64 x2 = pop_i64();
-    i64 x1 = pop_i64();
-    push_i64(fstat(x1, x2));
-}
 
  static void mwid (void);
  static void mwdup (void);
@@ -4653,19 +4641,19 @@ static void mwfstat (void) {
  static void mb_platform_2E_posix_135_9 (void);
  static void mb_platform_2E_posix_155_9 (void);
  static void mb_platform_2E_posix_154_9 (void);
- static void mb_platform_2E_posix_169_9 (void);
- static void mb_platform_2E_posix_173_9 (void);
- static void mb_platform_2E_posix_173_41 (void);
- static void mb_platform_2E_posix_176_13 (void);
- static void mb_platform_2E_posix_175_13 (void);
- static void mb_platform_2E_posix_245_9 (void);
- static void mb_platform_2E_posix_257_13 (void);
- static void mb_platform_2E_posix_253_13 (void);
- static void mb_platform_2E_posix_255_17 (void);
- static void mb_platform_2E_posix_254_17 (void);
+ static void mb_platform_2E_posix_167_9 (void);
+ static void mb_platform_2E_posix_171_9 (void);
+ static void mb_platform_2E_posix_171_41 (void);
+ static void mb_platform_2E_posix_174_13 (void);
+ static void mb_platform_2E_posix_173_13 (void);
  static void mb_platform_2E_posix_243_9 (void);
- static void mb_platform_2E_posix_280_17 (void);
- static void mb_platform_2E_posix_298_24 (void);
+ static void mb_platform_2E_posix_255_13 (void);
+ static void mb_platform_2E_posix_251_13 (void);
+ static void mb_platform_2E_posix_253_17 (void);
+ static void mb_platform_2E_posix_252_17 (void);
+ static void mb_platform_2E_posix_241_9 (void);
+ static void mb_platform_2E_posix_278_17 (void);
+ static void mb_platform_2E_posix_296_24 (void);
  static void mb_data_2E_str_14_35 (void);
  static void mb_data_2E_str_14_27 (void);
  static void mb_data_2E_str_28_20 (void);
@@ -9897,7 +9885,7 @@ static void mwwith_raw_path (void){
 
 static void mwis_directory_3F_ (void){
     push_u64(0);
-    push_fnptr(&mb_platform_2E_posix_173_9);
+    push_fnptr(&mb_platform_2E_posix_171_9);
     do_pack_cons();
     mwwith_raw_path();
     mwswap();
@@ -28430,12 +28418,12 @@ static void mb_platform_2E_posix_99_26 (void) {
     do_drop();
     mwstr_buf_push_21_();
 }
-static void mb_platform_2E_posix_173_9 (void) {
+static void mb_platform_2E_posix_171_9 (void) {
     do_drop();
     push_i64(256LL);
     mwprim_2E_ptr_2E_alloc();
     push_u64(0);
-    push_fnptr(&mb_platform_2E_posix_173_41);
+    push_fnptr(&mb_platform_2E_posix_171_41);
     do_pack_cons();
     mwwith_raw_ptr();
     mwswap();
@@ -28449,7 +28437,7 @@ static void mb_platform_2E_posix_173_9 (void) {
     mwfalse();
     }
 }
-static void mb_platform_2E_posix_173_41 (void) {
+static void mb_platform_2E_posix_171_41 (void) {
     do_drop();
     mwstat();
 }

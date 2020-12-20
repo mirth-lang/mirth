@@ -162,8 +162,6 @@ close-file! = (
 ########
 
 def-external(stat, RawPtr RawPtr -- Int)
-def-external(lstat, RawPtr RawPtr -- Int)
-def-external(fstat, Int RawPtr -- Int)
 
 def(with-raw-path, *a Path [*a RawPtr -- *b] -- *b Path,
     dip(Path->Str Str->Ptr) with-raw-ptr Ptr->Str Str->Path)
