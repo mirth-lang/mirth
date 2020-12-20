@@ -1,4 +1,4 @@
-module(tests/error-missing-word-definition)
+module(tests.error-missing-word-definition)
 
 foo : Int -- Int
 # mirth-test # merr # 3:1: error: Missing word definition.

@@ -1,9 +1,9 @@
-module(mirth/codegen)
+module(mirth.codegen)
 import(prelude)
-import(mirth/data/token)
-import(mirth/data/name)
-import(mirth/data/buffer)
-import(mirth/data/arrow)
+import(mirth.data.token)
+import(mirth.data.name)
+import(mirth.data.buffer)
+import(mirth.data.arrow)
 
 ###########
 # Codegen #

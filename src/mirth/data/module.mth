@@ -1,6 +1,6 @@
-module(mirth/data/module)
-import(mirth/data/common)
-import(mirth/data/path)
+module(mirth.data.module)
+import(mirth.data.common)
+import(mirth.data.path)
 
 Module->Int : Module -- Int
 Module->Int = cast

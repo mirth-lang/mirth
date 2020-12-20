@@ -1,1 +1,1 @@
-module(tests/empty-module)
+module(tests.empty-module)

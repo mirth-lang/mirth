@@ -1,8 +1,8 @@
 
-module(mirth/data/type)
-import(mirth/data/common)
-import(mirth/data/name)
-import(mirth/data/var)
+module(mirth.data.type)
+import(mirth.data.common)
+import(mirth.data.name)
+import(mirth.data.var)
 
 def(def-type!, Type Str --, name-new! name-type!)
 

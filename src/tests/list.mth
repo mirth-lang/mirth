@@ -1,4 +1,4 @@
-module(tests/list)
+module(tests.list)
 import(prelude)
 
 list1 : List(Int)

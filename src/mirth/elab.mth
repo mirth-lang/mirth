@@ -1,8 +1,8 @@
-module(mirth/elab)
-import(mirth/data/name)
-import(mirth/data/token)
-import(mirth/data/type)
-import(mirth/data/ctx)
+module(mirth.elab)
+import(mirth.data.name)
+import(mirth.data.token)
+import(mirth.data.type)
+import(mirth.data.ctx)
 
 ####################
 # Type Elaboration #
@@ -814,7 +814,7 @@ def(elab-module-name!, Module Token -- +Mirth,
 
             # check module name matches module path
             dip(module-path@ Path->Str)
-            name-str@ ".mth" str-cat str-eq if(
+            module-path-from-name Path->Str str-eq if(
                 drop,
                 "Module name should match path." emit-error!
             )
@@ -843,8 +843,7 @@ def(elab-module-import!, Module Token -- Module Token +Mirth,
                     # module is already loaded
 
                 DEF_NONE ->
-                    name-str@ ".mth" str-cat
-                    Str->Path run-lexer!
+                    module-path-from-name run-lexer!
                     elab-module!
                     dip(drop over) module-add-import!,
                     # elab the imported module

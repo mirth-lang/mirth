@@ -1,4 +1,4 @@
-module(tests/error-overlapping-pattern)
+module(tests.error-overlapping-pattern)
 import(prelude)
 
 data T

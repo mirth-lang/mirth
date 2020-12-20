@@ -1,4 +1,4 @@
-module(tests/pack-unpack)
+module(tests.pack-unpack)
 import(prelude)
 
 def(!!true, Bool --, if(id, "Assertion failed" panic!))

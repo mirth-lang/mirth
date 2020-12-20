@@ -1,4 +1,4 @@
-module(mirth/input)
+module(mirth.input)
 import(prelude)
 
 #########

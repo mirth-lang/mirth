@@ -1,10 +1,10 @@
-module(mirth/lexer)
+module(mirth.lexer)
 import(prelude)
-import(mirth/data/char)
-import(mirth/data/name)
-import(mirth/data/token)
-import(mirth/data/error)
-import(mirth/input)
+import(mirth.data.char)
+import(mirth.data.name)
+import(mirth.data.token)
+import(mirth.data.error)
+import(mirth.input)
 
 #########
 # LEXER #
@@ -328,7 +328,7 @@ def(str-buf-dec-int?, Int +StrBuf,
     0 # accumulated value
     0 # current index
     dup str-buf-u8@ is-sign? if(
-        is-minus-sign? nip if(
+        is-dash? nip if(
             dip2(drop -1),
             id
         )
@@ -348,7 +348,7 @@ def(str-buf-hex-int?, Int +StrBuf,
     0 # accumulated value
     0 # current index
     dup str-buf-u8@ is-sign? if(
-        is-minus-sign? nip if(
+        is-dash? nip if(
             dip2(drop -1),
             id
         )

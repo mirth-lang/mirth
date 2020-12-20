@@ -1,4 +1,4 @@
-module(tests/prim-types)
+module(tests.prim-types)
 import(prelude)
 
 buffer(MY_BUFFER, 128)

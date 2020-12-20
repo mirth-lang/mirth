@@ -1,6 +1,6 @@
-module(mirth/data/buffer)
-import(mirth/data/common)
-import(mirth/data/name)
+module(mirth.data.buffer)
+import(mirth.data.common)
+import(mirth.data.name)
 
 ###########
 # Buffers #

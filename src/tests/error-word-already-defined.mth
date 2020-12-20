@@ -1,4 +1,4 @@
-module(tests/error-word-already-defined)
+module(tests.error-word-already-defined)
 import(prelude)
 
 nil : List(t)

@@ -1,4 +1,4 @@
-module(mirth/data/path)
+module(mirth.data.path)
 import(prelude)
 
 data(Path, PATH -> Str)
@@ -58,3 +58,16 @@ make-source-path = source-path-root@ swap path-join
 ||| Make an output path from a project-relative path.
 make-output-path : Path -- Path
 make-output-path = output-path-root@ swap path-join
+
+||| Get expected module path from module name, relative to src.
+module-path-from-name : Name -- Path
+module-path-from-name =
+    name-str@ str-transduce(
+        is-dot? if(
+            drop path-separator TS_COPY,
+        is-upper? if(
+            U8->Int 32 + Int->U8 TS_CHAR,
+            TS_CHAR
+#            "--///error///--" TS_COPY
+        ))
+    ) ".mth" str-cat Str->Path

@@ -1,6 +1,6 @@
-module(mirth/data/error)
-import(mirth/data/location)
-import(mirth/data/token)
+module(mirth.data.error)
+import(mirth.data.location)
+import(mirth.data.token)
 
 ####################
 # Errors, Warnings #

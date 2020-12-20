@@ -1,4 +1,4 @@
-module(tests/test-prelude)
+module(tests.test-prelude)
 import(prelude)
 
 # Assertions

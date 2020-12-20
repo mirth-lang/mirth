@@ -1,6 +1,6 @@
-module(mirth/data/var)
-import(mirth/data/common)
-import(mirth/data/name)
+module(mirth.data.var)
+import(mirth.data.common)
+import(mirth.data.name)
 
 #######
 # VAR #

@@ -1,14 +1,14 @@
 module(mirth)
 
 import(prelude)
-import(mirth/input)
-import(mirth/lexer)
-import(mirth/codegen)
-import(mirth/elab)
+import(mirth.input)
+import(mirth.lexer)
+import(mirth.codegen)
+import(mirth.elab)
 
-import(mirth/data/path)
-import(mirth/data/prim)
-import(mirth/data/type)
+import(mirth.data.path)
+import(mirth.data.prim)
+import(mirth.data.type)
 
 def(init!, +IO,
     init-paths!

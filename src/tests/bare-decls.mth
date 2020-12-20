@@ -1,4 +1,4 @@
-module(tests/bare-decls)
+module(tests.bare-decls)
 import(prelude)
 
 hello : Int -- Int

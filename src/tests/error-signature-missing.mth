@@ -1,4 +1,4 @@
-module(tests/error-signature-missing)
+module(tests.error-signature-missing)
 
 foo = 10
 # mirth-test # merr # 3:1: error: missing word signature

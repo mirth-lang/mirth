@@ -1,5 +1,5 @@
-module(mirth/data/location)
-import(mirth/data/module)
+module(mirth.data.location)
+import(mirth.data.module)
 
 Int->Row : Int -- Row
 Int->Row = ROW

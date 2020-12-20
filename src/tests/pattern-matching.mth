@@ -1,5 +1,5 @@
 
-module(tests/pattern-matching)
+module(tests.pattern-matching)
 import(prelude)
 
 data Foo

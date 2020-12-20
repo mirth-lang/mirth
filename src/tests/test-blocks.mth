@@ -1,4 +1,4 @@
-module(tests/test-blocks)
+module(tests.test-blocks)
 import(prelude)
 
 run1 : a [a -- b] -- b

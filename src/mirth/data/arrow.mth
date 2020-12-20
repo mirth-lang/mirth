@@ -1,6 +1,6 @@
-module(mirth/data/arrow)
-import(mirth/data/common)
-import(mirth/data/prim)
+module(mirth.data.arrow)
+import(mirth.data.common)
+import(mirth.data.prim)
 
 ##########
 # ARROWS #
