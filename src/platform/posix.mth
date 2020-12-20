@@ -192,21 +192,9 @@ def(S_ISDIR, U32 -- Bool, U32->Int S_IFMT & S_IFDIR ==)
 
 def(st_mode@, Ptr -- U32,
     RUNNING_OS match(
-        OS_LINUX -> 8, # ... this is all terrible and brittle
+        OS_LINUX -> 16, # ... this is all terrible and brittle
         _ -> drop 8
     ) swap ptr+ u32@)
-
-# def(path-raw?, Path -- Path Path,
-#     cast prim.ptr.raw dip(cast) cast)
-
-# def(is-directory?, Path -- Path Bool,
-#     dup Path->Str Str->Ptr prim.ptr.raw lstat
-#     lstat File->Str Str->Ptr prim.ptr.raw
-#     dup File->Str Str->Ptr prim.ptr.raw
-
-
-#     256 prim.ptr.alloc fstat
-#     is-dir ptr+)
 
 ########
 # Heap #
