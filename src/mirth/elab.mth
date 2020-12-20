@@ -219,7 +219,7 @@ ab-unify-type! =
 ab-atom! : Atom -- +AB
 ab-atom! = (
     atom-token? ab-token!
-    atom-dom? ab-unify-type!
+    # atom-dom? ab-unify-type!     # moved to ab-expand-opsig!
         # ^ a sanity check to make sure
         # atom dom matches ab-arrow cod
     atom-cod? ab-type!
@@ -348,7 +348,10 @@ ab-expand-opsig! =
     match(
         OPSIG_ID -> ab-type@ dup,
         OPSIG_PUSH -> dip(ab-type@ dup) TTensor,
-        OPSIG_APPLY -> ab-token@ elab-expand-morphism! drop
+        OPSIG_APPLY ->
+            dip(ab-type@)
+            ab-token@ elab-expand-morphism!
+            swap dip(elab-type-unify! drop)
     )
 
 ab-int! : Int -- +AB
