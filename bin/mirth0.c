@@ -9919,7 +9919,7 @@ static void mwst_mode_40_ (void){
     break;
     case 1LL:
     do_drop();
-    push_i64(20LL);
+    push_i64(16LL);
     break;
     default:
     mwdrop();
