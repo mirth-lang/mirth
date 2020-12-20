@@ -1,6 +1,7 @@
 
 module(tests.pattern-matching)
 import(prelude)
+import(platform.posix)
 
 data Foo
     FOO0

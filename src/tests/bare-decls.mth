@@ -1,5 +1,6 @@
 module(tests.bare-decls)
 import(prelude)
+import(platform.posix)
 
 hello : Int -- Int
 hello = 10 +

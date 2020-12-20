@@ -1,4 +1,5 @@
 module(data.list)
+import(data.maybe)
 import(prelude)
 
 data List(t)
@@ -290,21 +291,6 @@ middle+ =
         L2+ -> nip,
         L3+ -> drop nip,
         LCAT+ -> drop nip first+
-    )
-
-
-||| Show the structure of the list.
-trace-list-struc! : List(t) -- +IO
-trace-list-struc! =
-    match(
-        L0 -> "L0" str-trace!,
-        L1 -> drop "L1" str-trace!,
-        L2 -> drop2 "L2" str-trace!,
-        L3 -> drop3 "L3" str-trace!,
-        LCAT ->
-            dip2(List+->List trace-list-struc! " " str-trace!)
-            dip(List+->List trace-list-struc! " " str-trace!)
-            int-trace! " LCAT" str-trace!
     )
 
 ||| Reverse the list.

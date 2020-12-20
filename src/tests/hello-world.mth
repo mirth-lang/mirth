@@ -4,6 +4,7 @@
 ||| and exit codes.
 module(tests.hello-world)
 import(prelude)
+import(platform.posix)
 
 target-c99("hello-world.c",
     "Hello, world!" str-print-ln!)

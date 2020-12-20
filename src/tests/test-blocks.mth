@@ -1,5 +1,6 @@
 module(tests.test-blocks)
 import(prelude)
+import(platform.posix)
 
 run1 : a [a -- b] -- b
 run1 = run

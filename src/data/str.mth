@@ -1,4 +1,5 @@
 module(data.str)
+import(data.list)
 import(prelude)
 
 # TODO: UTF8 support

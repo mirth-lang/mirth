@@ -1,5 +1,6 @@
 module(tests.test-prelude)
 import(prelude)
+import(platform.posix)
 
 # Assertions
 

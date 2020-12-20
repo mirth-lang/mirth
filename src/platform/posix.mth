@@ -1,4 +1,5 @@
 module(platform.posix)
+import(prelude)
 import(data.str)
 
 panic! : *a Str -- *b
