@@ -638,12 +638,32 @@ def(elab-lambda!, Lambda -- Lambda,
     elab-lambda-body!)
 
 def(elab-expand-tensor!, Type Token -- Type Type Token,
-    dip2(meta-alloc! TMeta meta-alloc! TMeta dup2 T*)
-    elab-type-unify! nip dip(dip(type-expand) type-expand))
+    swap type-expand match(
+        TYPE_ERROR -> dip(TYPE_ERROR TYPE_ERROR),
+        TTensor -> id rotl,
+        TMeta ->
+            dip(meta-alloc! TMeta
+                meta-alloc! TMeta
+                dup2 TTensor)
+            meta-type! rotl,
+        _ ->
+            drop dup "expected tuple type" emit-error!
+            dip(TYPE_ERROR TYPE_ERROR)
+    ))
 
 def(elab-expand-morphism!, Type Token -- Type Type Token,
-    dip2(meta-alloc! TMeta meta-alloc! TMeta dup2 T->)
-    elab-type-unify! nip dip(dip(type-expand) type-expand))
+    swap type-expand match(
+        TYPE_ERROR -> dip(TYPE_ERROR TYPE_ERROR),
+        TMorphism -> id rotl,
+        TMeta ->
+            dip(meta-alloc! TMeta
+                meta-alloc! TMeta
+                dup2 TMorphism)
+            meta-type! rotl,
+        _ ->
+            drop dup "expected block type" emit-error!
+            dip(TYPE_ERROR TYPE_ERROR)
+    ))
 
 def(elab-lambda-pop-from-mid!, Lambda Token -- Lambda Type Token,
     dip(lambda-mid?)
