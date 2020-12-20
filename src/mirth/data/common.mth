@@ -21,7 +21,6 @@ field(name-mangle-cached, Name, Str)
 # mirth/data/buffer
 table(Buffer)
 field(buffer-size, Buffer, Size)
-field(buffer-base, Buffer, Ptr)
 field(buffer-name, Buffer, Name)
 
 # mirth/data/module
@@ -31,6 +30,7 @@ field(module-name, Module, Name)
 field(module-path, Module, Path)
 field(module-start, Module, Token)
 field(module-end, Module, Token)
+field(module-imports, Module, Set(Module))
 
 # mirth/data/location
 data(Row, ROW -> Int)

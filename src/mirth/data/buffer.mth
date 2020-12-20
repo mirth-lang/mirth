@@ -8,9 +8,7 @@ import(mirth/data/name)
 
 buffer-alloc! : Name Size -- Buffer +Buffers
 buffer-alloc! = (
-    dup heap-alloc!
     Buffer.alloc!
-    tuck buffer-base!
     tuck buffer-size!
     tuck dup2 buffer-name!
     swap name-buffer!

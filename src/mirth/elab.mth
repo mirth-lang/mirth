@@ -791,7 +791,7 @@ def(elab-module!, Module -- Module +Mirth,
     elab-module-header!
     elab-module-imports!
     elab-module-decls!
-    typecheck-everything!
+#    typecheck-everything!
     drop)
 
 ||| Check that the `module(M)` statement exists and save the name.
@@ -827,6 +827,10 @@ def(elab-module-name!, Module Token -- +Mirth,
 def(elab-module-imports!, Module Token -- Module Token +Mirth,
     while(PRIM_SYNTAX_IMPORT token-prim=?, elab-module-import!))
 
+||| Add right module as import to left module.
+def(module-add-import!, Module Module --,
+    dip(module-imports?) set-insert swap module-imports!)
+
 ||| Elaborate `import(M)` statement. Return token after import.
 def(elab-module-import!, Module Token -- Module Token +Mirth,
     dup dip(token-next)
@@ -834,14 +838,18 @@ def(elab-module-import!, Module Token -- Module Token +Mirth,
         TOKEN_NAME ->
             name-value? match(
                 DEF_MODULE ->
-                    drop3,
-                    # module is already loaded (TODO: add import to a list)
+                    dip(drop2 over)
+                    module-add-import!,
+                    # module is already loaded
 
                 DEF_NONE ->
                     name-str@ ".mth" str-cat
                     Str->Path run-lexer!
-                    elab-module! drop2,
-                    # elab the imported module (TODO: add import to a list)
+                    elab-module!
+                    dip(drop over) module-add-import!,
+                    # elab the imported module
+                    # TODO: avoid elaborating here,
+                    # use a single loop to dispatch top-level module elaboration.
 
                 _ ->
                     drop2 "module name already taken" emit-fatal-error!
