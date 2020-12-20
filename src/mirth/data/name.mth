@@ -1,6 +1,6 @@
 module(mirth.data.name)
 import(mirth.data.common)
-import(mirth.data.char)
+import(data.char)
 
 #########
 # Names #

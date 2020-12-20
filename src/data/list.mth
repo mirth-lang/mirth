@@ -1,0 +1,499 @@
+module(data.list)
+import(prelude)
+
+data List(t)
+    L0
+    L1 -> t
+    L2 -> t t
+    L3 -> t t t
+    LCAT -> List+(t) List+(t) Int
+end
+
+L4 : t t  t t -- List(t)
+L4 = L4+ List+->List
+
+L5 : t t  t t t -- List(t)
+L5 = L5+ List+->List
+
+L6 : t t t  t t t -- List(t)
+L6 = L6+ List+->List
+
+L7 : t t t   t t  t t  -- List(t)
+L7 = L7+ List+->List
+
+L8 : t t t   t t  t t t  -- List(t)
+L8 = L8+ List+->List
+
+L9 : t t t   t t t  t t t -- List(t)
+L9 = L9+ List+->List
+
+L10 : t t  t t t   t t  t t t -- List(t)
+L10 = L10+ List+->List
+
+L11 : t t  t t t   t t t  t t t -- List(t)
+L11 = L11+ List+->List
+
+L12 : t t t  t t t  t t t  t t t -- List(t)
+L12 = L12+ List+->List
+
+data List+(t)
+    L1+ -> t
+    L2+ -> t t
+    L3+ -> t t t
+    LCAT+ -> List+(t) List+(t) Int
+end
+
+L4+ : t t  t t -- List+(t)
+L4+ = L2+ dip(L2+) 4 LCAT+
+
+L5+ : t t  t t t -- List+(t)
+L5+ = L3+ dip(L2+) 5 LCAT+
+
+L6+ : t t t  t t t -- List+(t)
+L6+ = L3+ dip(L3+) 6 LCAT+
+
+L7+ : t t t   t t  t t  -- List+(t)
+L7+ = L4+ dip(L3+) 7 LCAT+
+
+L8+ : t t t   t t  t t t  -- List+(t)
+L8+ = L5+ dip(L3+) 8 LCAT+
+
+L9+ : t t t   t t t  t t t -- List+(t)
+L9+ = L6+ dip(L3+) 9 LCAT+
+
+L10+ : t t  t t t   t t  t t t -- List+(t)
+L10+ = L5+ dip(L5+) 10 LCAT+
+
+L11+ : t t  t t t   t t t  t t t -- List+(t)
+L11+ = L6+ dip(L5+) 11 LCAT+
+
+L12+ : t t t  t t t  t t t  t t t -- List+(t)
+L12+ = L6+ dip(L6+) 12 LCAT+
+
+List+->List : List+(t) -- List(t)
+List+->List =
+    match(
+        L1+ -> L1,
+        L2+ -> L2,
+        L3+ -> L3,
+        LCAT+ -> LCAT,
+    )
+
+List->List+ : List(t) -- Maybe(List+(t))
+List->List+ =
+    match(
+        L0 -> NONE,
+        L1 -> L1+ SOME,
+        L2 -> L2+ SOME,
+        L3 -> L3+ SOME,
+        LCAT -> LCAT+ SOME
+    )
+
+len : List(t) -- Int
+len =
+    match(
+        L0 -> 0,
+        L1 -> drop 1,
+        L2 -> drop2 2,
+        L3 -> drop3 3,
+        LCAT -> dip(drop2)
+    )
+
+len+ : List+(t) -- Int
+len+ =
+    match(
+        L1+ -> drop 1,
+        L2+ -> drop2 2,
+        L3+ -> drop3 3,
+        LCAT+ -> dip(drop2)
+    )
+
+len? : List(t) -- List(t) Int
+len? = dup len
+
+len+? : List+(t) -- List+(t) Int
+len+? = dup len+
+
+cons+ : t List(t) -- List+(t)
+cons+ =
+    match(
+        L0 -> L1+,
+        L1 -> L2+,
+        L2 -> L3+,
+        L3 -> L4+,
+        LCAT -> 1+ dip(dip(cons++) rebalance+) LCAT+
+    )
+
+snoc+ : List(t) t -- List+(t)
+snoc+ =
+    swap match(
+        L0 -> L1+,
+        L1 -> rot2l L2+,
+        L2 -> rot3l L3+,
+        L3 -> rot4l L4+,
+        LCAT -> 1+ dip(rot3l snoc++ rebalance+) LCAT+
+    )
+
+cons++ : t List+(t) -- List+(t)
+cons++ = List+->List cons+
+
+snoc++ : List+(t) t -- List+(t)
+snoc++ = dip(List+->List) snoc+
+
+cons : t List(t) -- List(t)
+cons = cons+ List+->List
+
+snoc : List(t) t -- List(t)
+snoc = snoc+ List+->List
+
+uncons : List+(t) -- t List(t)
+uncons =
+    match(
+        L1+ -> L0,
+        L2+ -> L1,
+        L3+ -> L2,
+        LCAT+ -> drop dip(uncons) cat_+ List+->List
+    )
+
+unsnoc : List+(t) -- List(t) t
+unsnoc =
+    match(
+        L1+ -> dip(L0),
+        L2+ -> dip(L1),
+        L3+ -> dip(L2),
+        LCAT+ -> drop unsnoc dip(cat+_ List+->List)
+    )
+
+cat : List(t) List(t) -- List(t)
+cat =
+    swap List->List+ match(
+        NONE -> id,
+        SOME ->
+            swap List->List+ match(
+                NONE -> List+->List,
+                SOME -> cat+ List+->List
+            )
+    )
+
+cat_+ : List(t) List+(t) -- List+(t)
+cat_+ =
+    swap List->List+ match(
+        NONE -> id,
+        SOME -> swap cat+
+    )
+
+cat+_ : List+(t) List(t) -- List+(t)
+cat+_ =
+    List->List+ match(
+        NONE -> id,
+        SOME -> cat+
+    )
+
+cat+ : List+(t) List+(t) -- List+(t)
+cat+ =
+    swap match(
+        L1+ -> swap cons++,
+        L2+ ->
+            rot3l match(
+                L1+ -> L3+,
+                L2+ -> L4+,
+                L3+ -> L5+,
+                _ -> dip(L2+) cat-aux
+            ),
+        L3+ ->
+            rot4l match(
+                L1+ -> L4+,
+                L2+ -> L5+,
+                L3+ -> L6+,
+                _ -> dip(L3+) cat-aux
+            ),
+        _ ->
+            swap match(
+                L1+ -> snoc++,
+                _ -> cat-aux
+            )
+    )
+
+cat-aux : List+(t) List+(t) -- List+(t)
+cat-aux = rebalance+ dup2 dip(len+) len+ + LCAT+
+
+rebalance+ : List+(t) List+(t) -- List+(t) List+(t)
+rebalance+ =
+    dup2 dip(len+) len+ dup2 3 * > if(
+        drop2 dip(split-half-left) cat_+ rebalance+,
+        dip(3 *) < if(
+            split-half-right dip(cat+_) rebalance+,
+            id
+        )
+    )
+
+split-half-left : List+(t) -- List+(t) List(t)
+split-half-left =
+    match(
+        L1+ -> L0 dip(L1+),
+        L2+ -> L1 dip(L1+),
+        L3+ -> L1 dip(L2+),
+        LCAT+ -> drop List+->List
+    )
+
+split-half-right : List+(t) -- List(t) List+(t)
+split-half-right =
+    match(
+        L1+ -> L1+ dip(L0),
+        L2+ -> L1+ dip(L1),
+        L3+ -> L2+ dip(L1),
+        LCAT+ -> drop dip(List+->List)
+    )
+
+split-half : List(t) -- List(t) List(t)
+split-half =
+    match(
+        L0 -> L0 L0,
+        L1 -> L1 dip(L0),
+        L2 -> L1 dip(L1),
+        L3 -> L2 dip(L1),
+        LCAT -> drop dip(List+->List) List+->List
+    )
+
+
+first : List(t) -- Maybe(t)
+first = List->List+ maybe-map(first+)
+
+last : List(t) -- Maybe(t)
+last = List->List+ maybe-map(last+)
+
+middle : List(t) -- Maybe(t)
+middle = List->List+ maybe-map(middle+)
+
+first+ : List+(t) -- t
+first+ =
+    match(
+        L1+ -> id,
+        L2+ -> drop,
+        L3+ -> drop2,
+        LCAT+ -> drop2 first+
+    )
+
+last+ : List+(t) -- t
+last+ =
+    match(
+        L1+ -> id,
+        L2+ -> dip(drop),
+        L3+ -> dip(drop2),
+        LCAT+ -> drop nip last+
+    )
+
+middle+ : List+(t) -- t
+middle+ =
+    match(
+        L1+ -> id,
+        L2+ -> nip,
+        L3+ -> drop nip,
+        LCAT+ -> drop nip first+
+    )
+
+
+||| Show the structure of the list.
+trace-list-struc! : List(t) -- +IO
+trace-list-struc! =
+    match(
+        L0 -> "L0" str-trace!,
+        L1 -> drop "L1" str-trace!,
+        L2 -> drop2 "L2" str-trace!,
+        L3 -> drop3 "L3" str-trace!,
+        LCAT ->
+            dip2(List+->List trace-list-struc! " " str-trace!)
+            dip(List+->List trace-list-struc! " " str-trace!)
+            int-trace! " LCAT" str-trace!
+    )
+
+||| Reverse the list.
+reverse : List(a) -- List(a)
+reverse =
+    match(
+        L0 -> L0,
+        L1 -> L1,
+        L2 -> swap L2,
+        L3 -> rotr swap L3,
+        LCAT -> dip(reverse+ swap reverse+) LCAT
+    )
+
+||| Reverse the list.
+reverse+ : List+(a) -- List+(a)
+reverse+ =
+    match(
+        L1+ -> L1+,
+        L2+ -> swap L2+,
+        L3+ -> rotr swap L3+,
+        LCAT+ -> dip(reverse+ swap reverse+) LCAT+
+    )
+
+||| Transform each element of the list.
+map : *c List(a) [*c a -- *c b] -- *c List(b)
+map = \( [f] ->
+    match(
+        L0 -> L0,
+        L1 -> f L1,
+        L2 -> dip(f) swap dip(f) swap L2,
+        L3 -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3,
+        LCAT -> dip(dip(map+(f)) swap dip(map+(f)) swap) LCAT
+    )
+)
+
+||| Transform each element of the list.
+map+ : *c List+(a) [*c a -- *c b] -- *c List+(b)
+map+ = \( [f] ->
+    match(
+        L1+ -> f L1+,
+        L2+ -> dip(f) swap dip(f) swap L2+,
+        L3+ -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3+,
+        LCAT+ -> dip(dip(map+(f)) swap dip(map+(f)) swap) LCAT+
+    )
+)
+
+||| Traverse the list, left to right.
+for : *c List(a) [*c a -- *c] -- *c
+for = \([f] ->
+    match(
+        L0 -> id,
+        L1 -> f,
+        L2 -> dip(f) f,
+        L3 -> dip(dip(f) f) f,
+        LCAT -> drop dip(for+(f)) for+(f)
+    )
+)
+
+||| Traverse the list, left to right.
+for+ : *c List+(a) [*c a -- *c] -- *c
+for+ = \([f] ->
+    match(
+        L1+ -> f,
+        L2+ -> dip(f) f,
+        L3+ -> dip(dip(f) f) f,
+        LCAT+ -> drop dip(for+(f)) for+(f)
+    )
+)
+
+||| Traverse the list, right to left.
+reverse-for : *c List(a) [*c a -- *c] -- *c
+reverse-for = \([f] ->
+    match(
+        L0 -> id,
+        L1 -> f,
+        L2 -> swap dip(f) f,
+        L3 -> rotr dip2(f) swap dip(f) f,
+        LCAT -> drop swap dip(reverse-for+(f)) reverse-for+(f)
+    )
+)
+
+||| Traverse the list, right to left.
+reverse-for+ : *c List+(a) [*c a -- *c] -- *c
+reverse-for+ = \([f] ->
+    match(
+        L1+ -> f,
+        L2+ -> swap dip(f) f,
+        L3+ -> rotr dip2(f) swap dip(f) f,
+        LCAT+ -> drop swap dip(reverse-for+(f)) reverse-for+(f)
+    )
+)
+
+||| Reduce a list in a bottom-up manner.
+reduce : List(a) [a a -- a] -- Maybe(a)
+reduce = \([g] -> List->List+ maybe-map(reduce+(g)))
+
+||| Reduce a list in a bottom-up manner.
+reduce+ : List+(a) [a a -- a] -- a
+reduce+ = \( [g] ->
+    match(
+        L1+ -> id,
+        L2+ -> g,
+        L3+ -> g g,
+        LCAT+ -> drop dip(reduce+(g)) reduce+(g) g
+    )
+)
+
+||| Reduce a list in a bottom-up manner, after mapping its elements.
+map-reduce : List(a) [b b -- b] [a -- b] -- Maybe(b)
+map-reduce = \([g] [f] -> map(f) reduce(g))
+
+||| Reduce a list in a bottom-up manner, after mapping its elements.
+map-reduce+ : List+(a) [b b -- b] [a -- b] -- b
+map-reduce+ = \([g] [f] -> map+(f) reduce+(g))
+
+||| Filter away any list elements that don't satisfy the predicate.
+filter : *c List(a) [*c a -- *c a Bool] -- *c List(a)
+filter = \([f] ->
+    List->List+ match(
+        NONE -> L0,
+        SOME -> filter+(f)
+    )
+)
+
+||| Filter away any list elements that don't satisfy the predicate.
+filter+ : *c List+(a) [*c a -- *c a Bool] -- *c List(a)
+filter+ = \([f] ->
+    match(
+        LCAT+ -> drop dip(filter+(f)) dip'(filter+(f)) cat,
+        _ ->
+            uncons dip(f) swap if(
+                dip'(filter(f)) cons,
+                nip filter(f)
+            )
+    )
+)
+
+||| Find the first element that satisfies the predicate, if it exists.
+find : *c List(a) [*c a -- *c a Bool] -- *c Maybe(a)
+find = \([f] ->
+    List->List+ match(
+        NONE -> NONE,
+        SOME -> find+(f)
+    )
+)
+
+||| Find the first element that satisfies the predicate, if it exists.
+find+ : *c List+(a) [*c a -- *c a Bool] -- *c Maybe(a)
+find+ = \([f] ->
+    match(
+        LCAT+ ->
+            drop dip(find+(f)) swap
+            match(
+                SOME -> nip SOME,
+                NONE -> find+(f)
+            ),
+
+        _ ->
+            uncons dip(f) swap if(
+                drop SOME,
+                nip find(f)
+            )
+    )
+)
+
+||| Like `find` but preserves the list.
+find? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Maybe(a)
+find? = over dip(find) swap
+
+||| Like `find` but goes backward through the list.
+reverse-find : *c List(a) [*c a -- *c a Bool] -- *c Maybe(a)
+reverse-find = dip(reverse) find # TODO: implement directly?
+
+||| Like `find?` but goes backward through the list.
+reverse-find? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Maybe(a)
+reverse-find? = over dip(reverse-find) swap
+
+||| Is the predicate true for any element of the list?
+any : *c List(a) [*c a -- *c a Bool] -- *c Bool
+any = find is-some
+
+||| Is the predicate true for any element of the list?
+any? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool
+any? = find? is-some
+
+||| Is the predicate true for all elements of the list?
+all : *c List(a) [*c a -- *c a Bool] -- *c Bool
+all = find is-none not
+
+||| Is the predicate true for all elements of the list?
+all? : *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool
+all? = find? is-none not

@@ -1,4 +1,5 @@
-module(mirth.data.path)
+module(data.path)
+import(data.str)
 import(prelude)
 
 data(Path, PATH -> Str)

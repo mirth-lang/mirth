@@ -1,4 +1,5 @@
-module(mirth.data.char)
+module(data.char)
+import(prelude)
 
 def(Int->Char, Int -- Char, Int->U8)
 def(Char->Int, Char -- Int, U8->Int)

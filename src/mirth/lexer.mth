@@ -1,6 +1,6 @@
 module(mirth.lexer)
 import(prelude)
-import(mirth.data.char)
+import(data.char)
 import(mirth.data.name)
 import(mirth.data.token)
 import(mirth.data.error)

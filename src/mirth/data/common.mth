@@ -1,6 +1,8 @@
 module(mirth.data.common)
 import(prelude)
-import(mirth.data.path)
+import(data.set)
+import(data.map)
+import(data.path)
 
 # mirth/data/name
 data NameValue
