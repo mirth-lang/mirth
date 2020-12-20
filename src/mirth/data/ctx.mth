@@ -1,5 +1,4 @@
 module(mirth.data.ctx)
-import(mirth.data.common)
 import(mirth.data.var)
 
 ###########

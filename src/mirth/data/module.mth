@@ -1,6 +1,15 @@
 module(mirth.data.module)
-import(mirth.data.common)
 import(data.path)
+import(data.set)
+
+# mirth/data/module
+table(Module)
+table(Token)
+field(module-name, Module, Name)
+field(module-path, Module, Path)
+field(module-start, Module, Token)
+field(module-end, Module, Token)
+field(module-imports, Module, Set(Module))
 
 Module->Int : Module -- Int
 Module->Int = cast

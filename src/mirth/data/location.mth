@@ -1,6 +1,11 @@
 module(mirth.data.location)
 import(mirth.data.module)
 
+# mirth/data/location
+data(Row, ROW -> Int)
+data(Col, COL -> Int)
+data(Location, LOCATION -> Module Row Col)
+
 Int->Row : Int -- Row
 Int->Row = ROW
 

@@ -3,6 +3,13 @@ import(mirth.data.name)
 import(mirth.data.token)
 import(mirth.data.type)
 import(mirth.data.ctx)
+import(mirth.data.external)
+import(mirth.data.word)
+import(mirth.data.var)
+import(mirth.data.buffer)
+import(mirth.data.table)
+import(mirth.data.var)
+import(mirth.data.arrow)
 
 ####################
 # Type Elaboration #
@@ -673,7 +680,7 @@ def(elab-lambda-params!, Lambda -- Lambda,
                     "block pattern on non-block argument" emit-fatal-error!
                 )
             )
-            dip(lambda-params?) dup dip(swap cons over lambda-params!)
+            dip(lambda-params?) dup dip(Var->Param swap cons over lambda-params!)
             dip(lambda-inner-ctx?) ctx-new! over lambda-inner-ctx!
         )
         token-prev)

@@ -1,6 +1,5 @@
 module(mirth.data.arrow)
-import(mirth.data.common)
-import(mirth.data.prim)
+import(mirth.data.type)
 
 ##########
 # ARROWS #
@@ -23,6 +22,62 @@ import(mirth.data.prim)
 
 # Originally this type was called Morphism but that's hard to spell and
 # to type repeatedly so now it's called Arrow :-)
+
+
+# mirth/data/arrow
+table(Atom)
+table(Arrow)
+table(Lambda)
+table(Block)
+
+data Arg
+    ARG_BLOCK -> Block
+    ARG_VAR_RUN -> Var
+end
+data Op
+    OP_NONE
+    OP_PRIM -> Prim
+    OP_WORD -> Word
+    OP_EXTERNAL -> External
+    OP_BUFFER -> Buffer
+    OP_INT -> Int
+    OP_STR -> Str
+    OP_TAG -> Tag
+    OP_MATCH -> Match
+    OP_LAMBDA -> Lambda
+    OP_VAR -> Var
+    OP_BLOCK -> Block
+end
+data(Param, PARAM -> Var)
+def(Var->Param, Var -- Param, PARAM)
+def(Param->Var, Param -- Var, match(PARAM -> id))
+
+field(arrow-token-start, Arrow, Token)
+field(arrow-token-end, Arrow, Token)
+field(arrow-ctx, Arrow, Ctx)
+field(arrow-dom, Arrow, Type)
+field(arrow-cod, Arrow, Type)
+field(arrow-atoms, Arrow, List(Atom))
+
+field(atom-token, Atom, Token)
+field(atom-ctx, Atom, Ctx)
+field(atom-op, Atom, Op)
+field(atom-args, Atom, List(Arg))
+field(atom-dom, Atom, Type)
+field(atom-cod, Atom, Type)
+field(atom-subst, Atom, Subst)
+
+field(lambda-token, Lambda, Token)
+field(lambda-outer-ctx, Lambda, Ctx)
+field(lambda-inner-ctx, Lambda, Ctx)
+field(lambda-dom, Lambda, Type)
+field(lambda-mid, Lambda, Type)
+field(lambda-cod, Lambda, Type)
+field(lambda-params, Lambda, List(Param))
+field(lambda-body, Lambda, Arrow)
+
+field(block-arrow, Block, Arrow)
+field(block-needed, Block, Bool)
 
 #######
 # ARG #
@@ -110,3 +165,110 @@ arrow-push-prim! = atom-new-prim! arrow-atom-add!
 
 arrow-push-word! : Arrow Word -- Arrow
 arrow-push-word! = atom-new-word! arrow-atom-add!
+
+
+#########
+# MATCH #
+#########
+
+# mirth/data/type
+table(Match)
+table(Case)
+data Pattern
+    PATTERN_UNDERSCORE
+    PATTERN_TAG -> Tag
+end
+
+field(match-ctx, Match, Ctx)
+field(match-dom, Match, Type)
+field(match-cod, Match, Type)
+field(match-token, Match, Token)
+field(match-cases, Match, List(Case))
+field(case-match, Case, Match)
+field(case-token, Case, Token)
+field(case-pattern, Case, Pattern)
+field(case-subst, Case, Subst)
+field(case-mid, Case, Type)
+field(case-body, Case, Arrow)
+
+match-is-empty? : Match -- Match Bool
+match-is-empty? = match-cases? is-nil
+
+match-num-cases? : Match -- Match Int
+match-num-cases? = match-cases? len
+
+match-add-case! : Match Case -- Match
+match-add-case! =
+    dip(match-cases?) cases-cover-case? if(
+        case-token@ "Case is unreachable." emit-error! drop,
+        snoc over match-cases!
+    )
+
+match-has-default-case : Match -- Bool
+match-has-default-case = match-cases@ cases-have-default-case
+
+match-has-default-case? : Match -- Match Bool
+match-has-default-case? = dup match-has-default-case
+
+||| Get type we're matching over.
+match-scrutinee-type? : Match -- Match Maybe(Type)
+match-scrutinee-type? =
+    match-dom? type-expand match(
+        TTensor -> nip SOME,
+        _ -> drop NONE
+    )
+
+||| Get "data" associated with scrutinee.
+match-scrutinee-data? : Match -- Match Maybe(Data)
+match-scrutinee-data? =
+    match-scrutinee-type? maybe-bind(
+        type-head match(
+            TData -> SOME,
+            _ -> drop NONE
+        )
+    )
+
+match-is-transparent? : Match -- Match Bool
+match-is-transparent? =
+    match-scrutinee-data? match(
+        SOME -> data-is-transparent? nip,
+        NONE -> false
+    )
+
+########
+# CASE #
+########
+
+cases-cover-case? : List(Case) Case -- List(Case) Case Bool
+cases-cover-case? = dup2 cases-cover-case
+
+cases-cover-case : List(Case) Case -- Bool
+cases-cover-case = swap any(case-is-covered?) nip
+
+case-is-covered? : Case Case -- Case Case Bool
+case-is-covered? = dup2 case-is-covered
+
+||| Ask whether the second case covers the first case already.
+case-is-covered : Case Case -- Bool
+case-is-covered = dip(case-pattern@) case-pattern@ pattern-is-covered
+
+cases-have-default-case : List(Case) -- Bool
+cases-have-default-case = any(case-is-default-case?)
+
+case-is-default-case? : Case -- Case Bool
+case-is-default-case? = dup case-is-default-case
+
+case-is-default-case : Case -- Bool
+case-is-default-case = case-pattern@ PATTERN_UNDERSCORE ==
+
+###########
+# PATTERN #
+###########
+
+||| Asks whether the second pattern already covers the case of the first pattern.
+pattern-is-covered : Pattern Pattern -- Bool
+pattern-is-covered =
+    match(
+        PATTERN_UNDERSCORE -> drop true,
+        _ -> ==
+    )

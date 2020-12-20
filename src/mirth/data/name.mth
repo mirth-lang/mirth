@@ -1,10 +1,25 @@
 module(mirth.data.name)
-import(mirth.data.common)
 import(data.char)
 
 #########
 # Names #
 #########
+
+# mirth/data/name
+data NameValue
+    DEF_NONE
+    DEF_MODULE -> Module
+    DEF_TYPE -> Type
+    DEF_TAG -> Tag
+    DEF_PRIM -> Prim
+    DEF_WORD -> Word
+    DEF_BUFFER -> Buffer
+    DEF_EXTERNAL -> External
+end
+table(Name)
+field(name-str, Name, Str)
+field(name-value, Name, NameValue)
+field(name-mangle-cached, Name, Str)
 
 table(Hash)
 field(hash-name, Hash, Name)

@@ -1,8 +1,64 @@
 
 module(mirth.data.type)
-import(mirth.data.common)
 import(mirth.data.name)
-import(mirth.data.var)
+import(data.map)
+
+# mirth/data/type
+data Type
+    TYPE_ERROR
+    TYPE_DONT_CARE
+    TPrim -> PrimType
+    TMeta -> MetaVar
+    THole -> Name
+    TVar -> Var
+    TTable -> Table
+    TData -> Data
+    TTensor -> Type Type
+    TMorphism -> Type Type
+    TApp -> Type Type
+end
+
+data PrimType
+    PRIM_TYPE_UNIT
+    PRIM_TYPE_TYPE
+    PRIM_TYPE_STACK
+    PRIM_TYPE_EFFECT
+    PRIM_TYPE_INT
+    PRIM_TYPE_PTR
+    PRIM_TYPE_STR
+    PRIM_TYPE_BOOL
+    PRIM_TYPE_U64
+    PRIM_TYPE_U32
+    PRIM_TYPE_U16
+    PRIM_TYPE_U8
+    PRIM_TYPE_I64
+    PRIM_TYPE_I32
+    PRIM_TYPE_I16
+    PRIM_TYPE_I8
+end
+
+table(MetaVar)
+table(Data)
+table(Tag)
+data(Ctx, CTX -> List(Var))
+
+field(meta-is-defined, MetaVar, Bool)
+field(meta-type-raw, MetaVar, Type)
+
+field(data-header, Data, Token)
+field(data-name, Data, Name)
+field(data-arity, Data, Int)
+field(data-tags, Data, List(Tag))
+
+field(tag-data, Tag, Data)
+field(tag-name, Tag, Name)
+field(tag-value, Tag, Int)
+field(tag-sig, Tag, Token)
+field(tag-has-sig, Tag, Bool)
+field(tag-sig-is-checked, Tag, Bool)
+field(tag-ctx, Tag, Ctx)
+field(tag-type-raw, Tag, Type)
+
 
 def(def-type!, Type Str --, name-new! name-type!)
 
@@ -537,6 +593,11 @@ def(app-type-trace-open!, Type Type --,
 # Subst #
 #########
 
+# mirth/data/type
+data Subst
+    SUBST -> Map(Var, Type)
+end
+
 unSUBST : Subst -- Map(Var, Type)
 unSUBST = match(SUBST -> id)
 
@@ -620,92 +681,4 @@ data-is-transparent? =
     data-tags? match(
         L1 -> tag-num-inputs? 1 == nip,
         _ -> drop false
-    )
-
-#########
-# MATCH #
-#########
-
-
-
-match-is-empty? : Match -- Match Bool
-match-is-empty? = match-cases? is-nil
-
-match-num-cases? : Match -- Match Int
-match-num-cases? = match-cases? len
-
-match-add-case! : Match Case -- Match
-match-add-case! =
-    dip(match-cases?) cases-cover-case? if(
-        case-token@ "Case is unreachable." emit-error! drop,
-        snoc over match-cases!
-    )
-
-match-has-default-case : Match -- Bool
-match-has-default-case = match-cases@ cases-have-default-case
-
-match-has-default-case? : Match -- Match Bool
-match-has-default-case? = dup match-has-default-case
-
-||| Get type we're matching over.
-match-scrutinee-type? : Match -- Match Maybe(Type)
-match-scrutinee-type? =
-    match-dom? type-expand match(
-        TTensor -> nip SOME,
-        _ -> drop NONE
-    )
-
-||| Get "data" associated with scrutinee.
-match-scrutinee-data? : Match -- Match Maybe(Data)
-match-scrutinee-data? =
-    match-scrutinee-type? maybe-bind(
-        type-head match(
-            TData -> SOME,
-            _ -> drop NONE
-        )
-    )
-
-match-is-transparent? : Match -- Match Bool
-match-is-transparent? =
-    match-scrutinee-data? match(
-        SOME -> data-is-transparent? nip,
-        NONE -> false
-    )
-
-########
-# CASE #
-########
-
-cases-cover-case? : List(Case) Case -- List(Case) Case Bool
-cases-cover-case? = dup2 cases-cover-case
-
-cases-cover-case : List(Case) Case -- Bool
-cases-cover-case = swap any(case-is-covered?) nip
-
-case-is-covered? : Case Case -- Case Case Bool
-case-is-covered? = dup2 case-is-covered
-
-||| Ask whether the second case covers the first case already.
-case-is-covered : Case Case -- Bool
-case-is-covered = dip(case-pattern@) case-pattern@ pattern-is-covered
-
-cases-have-default-case : List(Case) -- Bool
-cases-have-default-case = any(case-is-default-case?)
-
-case-is-default-case? : Case -- Case Bool
-case-is-default-case? = dup case-is-default-case
-
-case-is-default-case : Case -- Bool
-case-is-default-case = case-pattern@ PATTERN_UNDERSCORE ==
-
-###########
-# PATTERN #
-###########
-
-||| Asks whether the second pattern already covers the case of the first pattern.
-pattern-is-covered : Pattern Pattern -- Bool
-pattern-is-covered =
-    match(
-        PATTERN_UNDERSCORE -> drop true,
-        _ -> ==
     )

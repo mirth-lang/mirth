@@ -1,5 +1,4 @@
 module(mirth.data.token)
-import(mirth.data.common)
 import(mirth.data.name)
 import(mirth.data.location)
 import(mirth.data.error)
@@ -7,6 +6,30 @@ import(mirth.data.error)
 ##########
 # Tokens #
 ##########
+
+# mirth/data/token
+data TokenValue
+    TOKEN_NONE
+    TOKEN_COMMA
+    TOKEN_NEWLINE
+    TOKEN_COLON
+    TOKEN_EQUAL
+    TOKEN_ARROW
+    TOKEN_DASHES
+    TOKEN_LPAREN -> Token
+    TOKEN_RPAREN -> Token
+    TOKEN_LSQUARE -> Token
+    TOKEN_RSQUARE -> Token
+    TOKEN_LCURLY -> Token
+    TOKEN_RCURLY -> Token
+    TOKEN_INT -> Int
+    TOKEN_STR -> Str
+    TOKEN_NAME -> Name
+end
+field(token-value, Token, TokenValue)
+field(token-module, Token, Module)
+field(token-row, Token, Row)
+field(token-col, Token, Col)
 
 def(num-tokens@, Int, Token.NUM int@)
 

@@ -1,0 +1,11 @@
+module(mirth.data.external)
+import(mirth.data.type)
+import(mirth.data.token)
+
+# mirth/data/external
+table(External)
+field(external-name, External, Name)
+field(external-type, External, Type)
+field(external-sig, External, Token)
+field(external-sig-is-checked, External, Bool)
+field(external-ctx, External, Ctx)

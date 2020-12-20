@@ -1538,11 +1538,11 @@ def(c99-emit-var-push!, Var -- +IO,
 def(c99-emit-lambda!, Lambda -- +IO,
     "    {" ;
     lambda-params? reverse-for(
-        "    value_t " . .var-val " = pop_value();" ;
+        "    value_t " . Param->Var .var-val " = pop_value();" ;
         )
     lambda-body? c99-emit-arrow!
     lambda-params@ reverse-for(
-        "    decref(" . .var-val ");" ;
+        "    decref(" . Param->Var .var-val ");" ;
         )
     "    }" ;)
 

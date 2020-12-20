@@ -1,10 +1,9 @@
 module(mirth.data.buffer)
-import(mirth.data.common)
-import(mirth.data.name)
 
-###########
-# Buffers #
-###########
+# mirth/data/buffer
+table(Buffer)
+field(buffer-size, Buffer, Size)
+field(buffer-name, Buffer, Name)
 
 buffer-alloc! : Name Size -- Buffer +Buffers
 buffer-alloc! = (
