@@ -5121,9 +5121,9 @@ static void mwstat (void) {
  static void mb_mirth_2E_data_2E_token_446_9 (void);
  static void mb_mirth_2E_data_2E_token_445_9 (void);
  static void mb_mirth_2E_data_2E_module_41_9 (void);
- static void mb_mirth_2E_data_2E_module_43_9 (void);
+ static void mb_mirth_2E_data_2E_module_44_9 (void);
+ static void mb_mirth_2E_data_2E_module_46_13 (void);
  static void mb_mirth_2E_data_2E_module_45_13 (void);
- static void mb_mirth_2E_data_2E_module_44_13 (void);
  static void mb_mirth_2E_data_2E_module_42_13 (void);
  static void mb_data_2E_set_13_18 (void);
  static void mb_data_2E_bag_190_33 (void);
@@ -28738,7 +28738,7 @@ static void mb_mirth_2E_data_2E_module_41_9 (void) {
     mwis_dot_3F_();
     if (pop_u64()) {
     mwdrop();
-    mwpath_separator();
+    push_ptr("/");
     mwTS_COPY();
     } else {
     mwis_upper_3F_();

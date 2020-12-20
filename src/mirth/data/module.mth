@@ -39,7 +39,8 @@ module-path-from-name : Name -- Path
 module-path-from-name =
     name-str@ str-transduce(
         is-dot? if(
-            drop path-separator TS_COPY,
+            drop "/" # path-separator # TODO: this should be path-separator, but breaks module import check on MSYS2 ... fix module import check / paths?
+            TS_COPY,
         is-upper? if(
             U8->Int 32 + Int->U8 TS_CHAR,
             TS_CHAR
