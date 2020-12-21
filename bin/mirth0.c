@@ -16392,6 +16392,7 @@ static void mwtype_has_meta (void){
 }
 
 static void mwtype_trace_sig_21_ (void){
+    mwtype_expand();
     switch (get_top_data_tag()) {
     case 0LL:
     do_drop();
@@ -16414,6 +16415,7 @@ static void mwtype_trace_sig_21_ (void){
 }
 
 static void mwtype_trace_stack_dom_21_ (void){
+    mwtype_expand();
     mwdup();
     mwTYPE_UNIT();
     mw_3D__3D_();
@@ -16427,6 +16429,7 @@ static void mwtype_trace_stack_dom_21_ (void){
 }
 
 static void mwtype_trace_stack_cod_21_ (void){
+    mwtype_expand();
     mwdup();
     mwTYPE_UNIT();
     mw_3D__3D_();
@@ -16440,6 +16443,7 @@ static void mwtype_trace_stack_cod_21_ (void){
 }
 
 static void mwtype_trace_stack_21_ (void){
+    mwtype_expand();
     switch (get_top_data_tag()) {
     case 8LL:
     do_pack_uncons(); do_drop();
@@ -16467,6 +16471,7 @@ static void mwtype_trace_stack_21_ (void){
 }
 
 static void mwtype_trace_21_ (void){
+    mwtype_expand();
     switch (get_top_data_tag()) {
     case 0LL:
     do_drop();
@@ -16583,7 +16588,7 @@ static void mwtype_trace_prim_21_ (void){
     break;
     case 7LL:
     do_drop();
-    push_ptr("BOOL");
+    push_ptr("Bool");
     break;
     case 4LL:
     do_drop();

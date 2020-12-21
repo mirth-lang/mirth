@@ -378,7 +378,7 @@ def(type-has-meta, MetaVar Type -- Bool,
     ))
 
 def(type-trace-sig!, Type -- +IO,
-    match(
+    type-expand match(
         TYPE_ERROR -> "<ERROR>" str-trace!,
         TMorphism ->
             swap
@@ -389,21 +389,21 @@ def(type-trace-sig!, Type -- +IO,
     ))
 
 def(type-trace-stack-dom!, Type -- +IO,
-    dup TYPE_UNIT == if(
+    type-expand dup TYPE_UNIT == if(
         drop,
         type-trace-stack!
         " " str-trace!
     ))
 
 def(type-trace-stack-cod!, Type -- +IO,
-    dup TYPE_UNIT == if(
+    type-expand dup TYPE_UNIT == if(
         drop,
         " " str-trace!
         type-trace-stack!
     ))
 
 def(type-trace-stack!, Type -- +IO,
-    match(
+    type-expand match(
         TTensor ->
             swap type-trace-stack-dom! type-trace!,
         TVar ->
@@ -444,7 +444,7 @@ def(type-trace-prim!, PrimType -- +IO,
         PRIM_TYPE_STACK -> "<STACK>",
         PRIM_TYPE_EFFECT -> "<EFFECT>",
         PRIM_TYPE_UNIT -> "[]",
-        PRIM_TYPE_BOOL -> "BOOL",
+        PRIM_TYPE_BOOL -> "Bool",
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
