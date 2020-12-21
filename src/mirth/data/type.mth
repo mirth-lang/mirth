@@ -16,6 +16,13 @@ data Type
     TTensor -> Type Type
     TMorphism -> Type Type
     TApp -> Type Type
+    TValue -> Value
+end
+
+data Value
+    VALUE_INT -> Int
+    VALUE_STR -> Str
+    VALUE_BLOCK -> Block
 end
 
 data PrimType
@@ -185,6 +192,7 @@ def(type-unify!, Gamma Type Type -- Gamma Type +Elab,
                 TYPE_DONT_CARE -> TPrim,
                 THole -> dip(TPrim) type-hole-unify!,
                 TMeta -> dip(TPrim) meta-unify!,
+                TValue -> dip(TPrim) type-value-unify!,
                 TPrim -> type-prim-unify!,
                 _ -> dip(TPrim) type-unify-failed!,
             ),
@@ -194,6 +202,7 @@ def(type-unify!, Gamma Type Type -- Gamma Type +Elab,
                 TYPE_DONT_CARE -> TData,
                 THole -> dip(TData) type-hole-unify!,
                 TMeta -> dip(TData) meta-unify!,
+                TValue -> dip(TData) type-value-unify!,
                 TData -> type-data-unify!,
                 _ -> dip(TData) type-unify-failed!,
             ),
@@ -203,6 +212,7 @@ def(type-unify!, Gamma Type Type -- Gamma Type +Elab,
                 TYPE_DONT_CARE -> TTable,
                 THole -> dip(TTable) type-hole-unify!,
                 TMeta -> dip(TTable) meta-unify!,
+                TValue -> dip(TTable) type-value-unify!,
                 TTable -> type-table-unify!,
                 _ -> dip(TTable) type-unify-failed!,
             ),
@@ -212,6 +222,7 @@ def(type-unify!, Gamma Type Type -- Gamma Type +Elab,
                 TYPE_DONT_CARE -> TTensor,
                 THole -> dip(TTensor) type-hole-unify!,
                 TMeta -> dip(TTensor) meta-unify!,
+                TValue -> dip(TTensor) type-value-unify!,
                 TTensor -> type-unify-pair! TTensor,
                 _ -> dip(TTensor) type-unify-failed!,
             ),
@@ -221,6 +232,7 @@ def(type-unify!, Gamma Type Type -- Gamma Type +Elab,
                 TYPE_DONT_CARE -> TMorphism,
                 THole -> dip(TMorphism) type-hole-unify!,
                 TMeta -> dip(TMorphism) meta-unify!,
+                TValue -> dip(TMorphism) type-value-unify!,
                 TMorphism -> type-unify-pair! TMorphism,
                 _ -> dip(TMorphism) type-unify-failed!,
             ),
@@ -230,10 +242,93 @@ def(type-unify!, Gamma Type Type -- Gamma Type +Elab,
                 TYPE_DONT_CARE -> TApp,
                 THole -> dip(TApp) type-hole-unify!,
                 TMeta -> dip(TApp) meta-unify!,
+                TValue -> dip(TApp) type-value-unify!,
                 TApp -> type-unify-pair! TApp,
                 _ -> dip(TApp) type-unify-failed!,
             ),
+        TValue ->
+            swap type-expand match(
+                TYPE_ERROR -> drop TYPE_ERROR,
+                TYPE_DONT_CARE -> TValue,
+                THole -> dip(TValue) type-hole-unify!,
+                TMeta -> dip(TValue) meta-unify!, # this might be bad?
+                TValue -> value-unify!,
+                _ -> value-type-unify!
+            ),
     ))
+
+value-unify! : Gamma Value Value -- Gamma Type
+value-unify! =
+    swap match(
+        VALUE_INT -> swap match(
+            VALUE_INT -> dup2 == if(drop VALUE_INT TValue, drop2 TYPE_INT),
+            VALUE_STR ->
+                drop2 gamma-token?
+                "Can't unify int value with string value."
+                emit-error! TYPE_ERROR,
+            VALUE_BLOCK ->
+                drop2 gamma-token?
+                "Can't unify int value with block."
+                emit-error! TYPE_ERROR,
+        ),
+
+        VALUE_STR -> swap match(
+            VALUE_STR -> dup2 == if(drop VALUE_STR TValue, drop2 TYPE_STR),
+            VALUE_INT ->
+                drop2 gamma-token?
+                "Can't unify string value with int value."
+                emit-error! TYPE_ERROR,
+            VALUE_BLOCK ->
+                drop2 gamma-token?
+                "Can't unify string value with block."
+                emit-error! TYPE_ERROR,
+        ),
+
+        VALUE_BLOCK -> swap match(
+            VALUE_BLOCK ->
+                dup2 == if(
+                    drop VALUE_BLOCK TValue,
+                    block-infer-type!
+                    block-unify-type!
+                ),
+            VALUE_INT ->
+                drop2 gamma-token?
+                "Can't unify block with int value."
+                emit-error! TYPE_ERROR,
+            VALUE_STR ->
+                drop2 gamma-token?
+                "Can't unify block with string value."
+                emit-error! TYPE_ERROR
+        ),
+    )
+
+type-value-unify! : Gamma Type Value -- Gamma Type,
+type-value-unify! =
+    match(
+        VALUE_INT -> drop TYPE_INT type-unify!,
+        VALUE_STR -> drop TYPE_STR type-unify!,
+        VALUE_BLOCK -> swap block-unify-type!, # technically inaccurate?
+    )
+
+value-type-unify! : Gamma Value Type -- Gamma Type
+value-type-unify! =
+    swap match(
+        VALUE_INT -> drop TYPE_INT swap type-unify!,
+        VALUE_STR -> drop TYPE_STR swap type-unify!,
+        VALUE_BLOCK -> swap block-unify-type!,
+    )
+
+arrow-type : Arrow -- Type
+arrow-type = arrow-dom? swap arrow-cod@ TMorphism
+    # TODO effects
+
+block-infer-type! : Block -- Type
+block-infer-type! = block-arrow@ arrow-type
+    # TODO deal with deferred blocks
+
+block-unify-type! : Gamma Block Type -- Gamma Type
+block-unify-type! = dip(block-infer-type!) type-unify!
+    # TODO deal with deferred blocks
 
 def(type-unify-pair!, Gamma Type Type Type Type -- Gamma Type Type,
     dip(swap dip(rotl))
@@ -276,6 +371,12 @@ def(type-has-meta, MetaVar Type -- Bool,
         TApp -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
         TData -> drop2 false,
         TTable -> drop2 false,
+        TValue -> match(
+            VALUE_INT -> drop2 false,
+            VALUE_STR -> drop2 false,
+            VALUE_BLOCK -> block-infer-type! type-has-meta
+                # TODO: handle deferred blocks
+        )
     ))
 
 def(type-trace-sig!, Type -- +IO,
@@ -328,7 +429,15 @@ def(type-trace!, Type -- +IO,
         TData -> data-name@ name-trace!,
         TTable -> table-name@ name-trace!,
         THole -> name-trace!,
-        TApp -> app-type-trace!
+        TApp -> app-type-trace!,
+        TValue -> value-trace!
+    ))
+
+def(value-trace!, Value -- +IO,
+    match(
+        VALUE_INT -> int-trace!,
+        VALUE_STR -> drop "\"...\"" str-trace!,
+        VALUE_BLOCK -> drop "[...]" str-trace!,
     ))
 
 def(type-trace-prim!, PrimType -- +IO,
@@ -438,6 +547,7 @@ def(type-freshen, Subst Type -- Subst Type,
         THole -> THole,
         TData -> TData,
         TTable -> TTable,
+        TValue -> TValue, # no need to freshen values
         TVar -> type-var-freshen,
         TMeta -> meta-freshen,
         TTensor -> type-pair-freshen TTensor,

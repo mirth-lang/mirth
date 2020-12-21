@@ -412,8 +412,8 @@ elab-op-fresh-sig! : Op -- Subst OpSig +AB
 elab-op-fresh-sig! =
     subst-nil swap match(
         OP_NONE -> OPSIG_ID,
-        OP_INT -> drop TYPE_INT OPSIG_PUSH,
-        OP_STR -> drop TYPE_STR OPSIG_PUSH,
+        OP_INT -> VALUE_INT TValue OPSIG_PUSH,
+        OP_STR -> VALUE_STR TValue OPSIG_PUSH,
         OP_BUFFER -> drop TYPE_PTR OPSIG_PUSH,
         OP_TAG -> elab-tag-sig! type-freshen-sig OPSIG_APPLY,
         OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
@@ -426,7 +426,7 @@ elab-op-fresh-sig! =
     )
 
 elab-block-sig! : Block -- OpSig
-elab-block-sig! = block-arrow@ arrow-dom? swap arrow-cod@ T-> OPSIG_PUSH
+elab-block-sig! = VALUE_BLOCK TValue OPSIG_PUSH
 
 elab-match-sig! : Match -- OpSig
 elab-match-sig! = match-dom? swap match-cod@ T-> OPSIG_APPLY
