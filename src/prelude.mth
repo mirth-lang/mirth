@@ -584,31 +584,3 @@ unpack5 = pack-uncons dip(unpack4)
 
 .5! : y [*a x b c d e f] -- [*a y b c d e f]
 .5! = pack-uncons dip(.4!) pack-cons
-
-#########
-# Maybe #
-#########
-
-
-#########
-# LISTS #
-#########
-
-
-#######
-# BAG #
-#######
-
-
-#######
-# SET #
-#######
-
-
-#######
-# MAP #
-#######
-
-######
-# IO #
-######
