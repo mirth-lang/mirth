@@ -1,0 +1,12 @@
+module(tests.error-specific-block-error)
+import(prelude)
+
+# Check that type error is on the "bar".
+def(foo, Int -- Int,
+    100 dip(
+        0 dip(bar) drop
+    ) drop)
+
+def( bar, Str -- Int, drop 0)
+# mirth-test # merr # 7:15: error: Failed to unify Int with Str
+# mirth-test # mret # 1

@@ -1,0 +1,8 @@
+module(tests.error-recursive-block-type)
+import(prelude)
+
+def( diverge, *a -- *b,
+    [ dup run ] dup run)
+# mirth-test # merr # 5:11: error: Failed to unify [?4 ?5 -- ?7] with ?5
+# mirth-test # merr # 5:21: error: Failed to unify [...] with ?5
+# mirth-test # mret # 1

@@ -329,8 +329,7 @@ block-infer-type! : Block -- Type
 block-infer-type! = block-arrow@ arrow-type
 
 def(type-unify-pair!, Gamma Type Type Type Type -- Gamma Type Type,
-    dip(swap dip(rotl))
-    type-unify! dip(rotr type-unify!))
+    dip(swap dip(type-unify! swap)) type-unify! dip(swap))
 
 def(type-prim-unify!, Gamma PrimType PrimType -- Gamma Type,
     dup2 == if(
