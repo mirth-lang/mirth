@@ -386,7 +386,7 @@ ab-block-at! : *a Token [ *a -- *b +AB ] -- *b +AB
 ab-block-at! =
     Block.alloc! dip(
         dip(ab-ctx@ meta-alloc! TMeta rotl) ab-build!
-    ) tuck block-arrow! OP_BLOCK ab-op!
+    ) tuck block-arrow-raw! OP_BLOCK ab-op!
 
 ab-block! : *a [ *a -- *b +AB ] -- *b +AB
 ab-block! = ab-token@ swap ab-block-at!
@@ -573,7 +573,7 @@ elab-atom-block! : +AB
 elab-atom-block! = ab-token@ token-args-1 elab-block-at!
 
 elab-block-at! : Token -- +AB
-elab-block-at! = ab-block-at!(elab-atoms!)
+elab-block-at! = ab-ctx@ swap block-new-deferred! OP_BLOCK ab-op!
 
 token-args : Token -- List(Token)
 token-args =

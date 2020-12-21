@@ -150,8 +150,11 @@ data Gamma
     GAMMA -> Token
 end
 
+gamma-token@ : Gamma -- Token
+gamma-token@ = match(GAMMA -> id)
+
 gamma-token? : Gamma -- Gamma Token
-gamma-token? = dup match(GAMMA -> id)
+gamma-token? = dup gamma-token@
 
 # Raise a type unification error.
 def(type-unify-failed!, Gamma Type Type -- Gamma Type +Elab,
@@ -324,11 +327,6 @@ arrow-type = arrow-dom? swap arrow-cod@ TMorphism
 
 block-infer-type! : Block -- Type
 block-infer-type! = block-arrow@ arrow-type
-    # TODO deal with deferred blocks
-
-block-unify-type! : Gamma Block Type -- Gamma Type
-block-unify-type! = dip(block-infer-type!) type-unify!
-    # TODO deal with deferred blocks
 
 def(type-unify-pair!, Gamma Type Type Type Type -- Gamma Type Type,
     dip(swap dip(rotl))
@@ -418,7 +416,7 @@ def(type-trace-stack!, Type -- +IO,
     ))
 
 def(type-trace!, Type -- +IO,
-    match(
+    type-expand match(
         TYPE_ERROR -> "<ERROR>" str-trace!,
         TYPE_DONT_CARE -> "_" str-trace!,
         TPrim -> type-trace-prim!,
