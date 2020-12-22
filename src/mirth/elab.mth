@@ -179,32 +179,30 @@ def(ab-type@, Type +AB, ab-arrow@ arrow-cod@)
 def(ab-type!, Type -- +AB, ab-arrow@ arrow-cod!)
 
 ab-save! : *a [ *a -- *b +AB ] -- *b +AB
-ab-save! = ab-arrow@ dip(run) ab-arrow!
+ab-save! = \([f] -> ab-arrow@ dip(f) ab-arrow!)
 
 ab-build! : *a Ctx Type Token [ *a -- *b +AB ] -- *b Arrow +AB
-ab-build! =
+ab-build! = \([f] ->
     ab-save!(
-        dip(
-            Arrow.alloc!
-            tuck dup2 arrow-token-start! arrow-token-end!
-            tuck dup2 arrow-dom! arrow-cod!
-            tuck arrow-ctx!
-            ab-arrow!
-        )
-        run
+        Arrow.alloc!
+        tuck dup2 arrow-token-start! arrow-token-end!
+        tuck dup2 arrow-dom! arrow-cod!
+        tuck arrow-ctx!
+        ab-arrow!
+        f
         ab-arrow@
     )
+)
 
 ab-build-word! : *a Word [ *a -- *b +AB ] -- *b Word +AB
-ab-build-word! = (
-    dip (
-        dup dip(elab-word-ctx-sig!)
-        word-body? swap
-        dip(elab-expand-morphism! swap)
-    )
-    { *a Ctx Type Token Type Word [ *a -- *b +AB ] }
-    rotr dip(
-        dip(ab-build!) over
+ab-build-word! = \([f] ->
+    dup dip(elab-word-ctx-sig!)
+    word-body? swap
+    dip(elab-expand-morphism! swap)
+
+    { *a Ctx Type Token Type Word }
+    dip(
+        dip(ab-build!(f)) over
         arrow-cod? swap arrow-token-end@
         elab-type-unify! drop2
     )
@@ -433,22 +431,26 @@ ab-external! : External -- +AB
 ab-external! = OP_EXTERNAL ab-op!
 
 ab-block-at! : *a Token [ *a -- *b +AB ] -- *b +AB
-ab-block-at! =
+ab-block-at! = \([f] ->
     Block.alloc! dip(
-        dip(ab-ctx@ meta-alloc! TMeta rotl) ab-build!
+        ab-ctx@ meta-alloc! TMeta rotl ab-build!(f)
     ) tuck block-arrow-raw! OP_BLOCK ab-op!
+)
 
 ab-block! : *a [ *a -- *b +AB ] -- *b +AB
-ab-block! = ab-token@ swap ab-block-at!
+ab-block! = \([f] -> ab-token@ ab-block-at!(f))
 
 ab-dip! : *a [ *a -- *b +AB ] -- *b +AB
-ab-dip! = ab-block! PRIM_CORE_DIP ab-prim!
+ab-dip! = \([f] -> ab-block!(f) PRIM_CORE_DIP ab-prim!)
 
 ab-if! : *a [ *a -- *b +AB ] [ *b -- *c +AB ] -- *c +AB
 ab-if! = dip(ab-block!) ab-block! PRIM_CORE_IF ab-prim!
+    # FIXME TODO there's a problem with multiples somewhere ...
 
 ab-while! : *a [ *a -- *b +AB ] [ *b -- *c +AB ] -- *c +AB
 ab-while! = dip(ab-block!) ab-block! PRIM_CORE_WHILE ab-prim!
+    # FIXME TODO there's a problem with multiples somewhere ...
+    # I probably got the InlineKey's backwards :-(
 
 ab-lambda! : *a List(Param) [*a -- *b +AB] -- *b +AB
 ab-lambda! = \([f] ->

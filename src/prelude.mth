@@ -21,7 +21,7 @@ def(dup, a -- a a, prim.core.dup)
 def(drop, a --, prim.core.drop)
 def(swap, a b -- b a, prim.core.swap)
 def(??, --, prim.core.debug)
-def(run, *a [ *a -- *b ] -- *b, prim.core.run)
+def(run, *a [ *a -- *b ] -- *b, \([f] -> f))
 
 def(==, a a -- Bool, prim.value.eq)
 def(<=, a a -- Bool, prim.value.le)

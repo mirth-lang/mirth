@@ -75,10 +75,11 @@ buffer(STR_BUF, 0x1000)
 buffer(STR_BUF_LEN, 8)
 
 build-str! : *a [ *a -- *b ] -- *b Str
-build-str! =
+build-str! = \([f] ->
     str-buf-dup! str-buf-clear! dip(
-        run str-buf-dup!
+        f str-buf-dup!
     ) str-buf!
+)
 
 str-buf-dup! : Str
 str-buf-dup! = (
