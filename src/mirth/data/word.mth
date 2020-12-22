@@ -119,7 +119,113 @@ word-inline-aux = (
     true over word-sig-is-checked!
     dup3 dip2(word-inline-map?) swap pack2 map-insert swap word-inline-map!
     ab-build-word!(
-        inline-key-blocks for(OP_BLOCK ab-op!)
-        word-arrow@ arrow-atoms@ for(ab-atom!) # these types are also not correct...
+        swap word-arrow@ arrow-atoms@ match(
+            L1 -> atom-op@ match(
+                OP_LAMBDA -> word-inline-outer-lambda!,
+                _ -> "unexpected in word-inline-aux (1)" panic!
+            ),
+            _ -> "unexpected in word-inline-aux (2)" panic!
+        )
     )
 )
+
+word-inline-outer-lambda! : InlineKey Lambda -- +AB
+word-inline-outer-lambda! = (
+    lambda-params? dip(lambda-body@ arrow-atoms@ swap)
+    swap build-inline-map!
+    rotr is-nil? if(
+        # consumed all params, so build stuff directly
+        drop inline-atoms!,
+
+        # did not consume all params, so wrap everything in a lambda
+        ab-lambda!(inline-atoms!)
+    ) drop
+)
+
+inline-atoms! : InlineMap List(Atom) -- InlineMap
+inline-atoms! = for(inline-atom!)
+
+inline-atom! : InlineMap Atom -- InlineMap
+inline-atom! = (
+    TYPE_ERROR ab-type! # a crutch
+    tuck atom-args@ reverse-for(inline-arg!) swap atom-op@ inline-op!
+)
+
+inline-arg! : InlineMap Arg -- InlineMap
+inline-arg! =
+    match(
+        ARG_VAR_RUN -> inline-var-push!,
+        ARG_BLOCK -> inline-block!
+    )
+
+inline-var-push! : InlineMap Var -- InlineMap
+inline-var-push! =
+    dup2 map-lookup match(
+        NONE -> ab-block!(ab-var!), # this is fine, see block-to-arg
+        SOME -> nip OP_BLOCK ab-op!
+    )
+
+inline-block! : InlineMap Block -- InlineMap
+inline-block! = ab-block!(block-arrow@ arrow-atoms@ inline-atoms!)
+
+inline-op! : InlineMap Op -- InlineMap
+inline-op! =
+    match(
+        OP_LAMBDA -> inline-lambda!,
+        OP_MATCH -> inline-match!,
+        OP_VAR -> inline-var-op!,
+        _ -> ab-op!
+    )
+
+inline-var-op! : InlineMap Var -- InlineMap
+inline-var-op! =
+    dup2 map-lookup match(
+        NONE -> ab-var!,
+        SOME -> nip block-arrow@ arrow-atoms@ for(ab-atom!) # is this ok?
+    )
+
+inline-lambda! : InlineMap Lambda -- InlineMap
+inline-lambda! =
+    lambda-params? ab-lambda!(
+        lambda-body@ arrow-atoms@ inline-atoms!
+    )
+
+inline-match! : InlineMap Match -- InlineMap
+inline-match! = (
+    match-cases@ map(inline-case!)
+    Match.alloc! tuck match-cases!
+    OP_MATCH ab-op!
+)
+
+inline-case! : InlineMap Case -- InlineMap Case
+inline-case! = (
+    tuck case-body@ arrow-atoms@
+    ab-ctx@ TYPE_ERROR ab-token@ ab-build!(
+        inline-atoms!
+    )
+    Case.alloc!
+    tuck case-body!
+    dip(swap case-pattern@) tuck case-pattern!
+)
+
+def-type(InlineMap, Map(Var, Block))
+
+build-inline-map! : List(Param) InlineKey -- List(Param) InlineMap +AB
+build-inline-map! =
+    swap List->List+ match(
+        NONE ->
+            inline-key-blocks for(OP_BLOCK ab-op!)
+            L0 map-empty,
+        SOME ->
+            unsnoc Param->Var var-auto-run? if(
+                rotl match(
+                    IK_NIL ->
+                        Var->Param snoc map-empty,
+                    IK_BLOCK ->
+                        dip(swap dip(build-inline-map!))
+                        swap pack2 map-insert
+                ),
+                Var->Param snoc swap inline-key-blocks for(OP_BLOCK ab-op!)
+                map-empty
+            )
+    )

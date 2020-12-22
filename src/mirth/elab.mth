@@ -246,13 +246,13 @@ ab-optimized-snoc! = (
 
 atom-has-inlinable-block-args? : Atom -- Atom Bool
 atom-has-inlinable-block-args? =
-    atom-ctx? ctx-is-empty if(
+    atom-ctx? ctx-is-physically-empty if(
         atom-op? match(
             OP_WORD ->
                 word-num-inlinable-block-params 0 > if(
                     atom-args? last match(
                         SOME -> match(
-                            ARG_BLOCK -> block-ctx@ ctx-is-empty,
+                            ARG_BLOCK -> drop true,
                             _ -> drop false
                         ),
                         NONE -> false,
@@ -446,6 +446,32 @@ ab-if! = dip(ab-block!) ab-block! PRIM_CORE_IF ab-prim!
 ab-while! : *a [ *a -- *b +AB ] [ *b -- *c +AB ] -- *c +AB
 ab-while! = dip(ab-block!) ab-block! PRIM_CORE_WHILE ab-prim!
 
+ab-lambda! : *a List(Param) [*a -- *b +AB] -- *b +AB
+ab-lambda! = \([f] ->
+    Lambda.alloc!
+    ab-ctx@ over lambda-outer-ctx!
+    ab-type@ over lambda-dom!
+    ab-token@ over lambda-token!
+    dup2 lambda-params!
+    dip(ab-ctx@ ab-type@ rotl for(
+        swap dip(Param->Var ctx-new!)
+        ab-token@ elab-expand-tensor! drop2
+    ))
+    tuck lambda-mid!
+    tuck lambda-inner-ctx!
+
+    { *a Lambda }
+
+    lambda-inner-ctx?
+    over lambda-mid@
+    ab-token@
+    ab-build!(
+        dip(f)
+        ab-type@ over lambda-cod!
+    )
+    over lambda-body!
+    OP_LAMBDA ab-op!
+)
 
 data OpSig
     OPSIG_ID
