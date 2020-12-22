@@ -15,53 +15,27 @@ field(word-type, Word, Type)
 field(word-arrow, Word, Arrow)
 field(word-sig-is-checked, Word, Bool)
 field(word-body-is-checked, Word, Bool)
+field(word-body-is-checking, Word, Bool)
 field(word-inline-map, Word, Map(InlineKey, Word))
 field(word-inlining, Word, Bool)
 
 word-can-inline-block-arg? : Word -- Word Bool
 word-can-inline-block-arg? =
-    word-body-is-checked? if(
-        word-arrow? arrow-atoms@ match(
-            L1 -> atom-op@ match(
-                OP_LAMBDA ->
-                    lambda-params@ last match(
-                        NONE -> false,
-                        SOME -> unPARAM var-auto-run? nip
-                    ),
+    dup try-elab-word-body! match(
+        NONE -> false,
+        SOME ->
+            arrow-atoms@ match(
+                L1 -> atom-op@ match(
+                    OP_LAMBDA ->
+                        lambda-params@ last match(
+                            NONE -> false,
+                            SOME -> is-inlinable-block-param
+                        ),
+                    _ -> drop false
+                ),
                 _ -> drop false
-            ),
-            _ -> drop false
-        ),
-        false
+            )
     )
-
-||| How many block params are inlinable for this word.
-word-num-inlinable-block-params : Word -- Int
-word-num-inlinable-block-params =
-    word-body-is-checked? if(
-        word-arrow@ arrow-atoms@ match(
-            L1 -> atom-op@ match(
-                OP_LAMBDA -> lambda-params@ params-num-inlinable-block-params,
-                _ -> drop 0
-            ),
-            _ -> drop 0
-        ),
-        drop 0
-    )
-
-||| Number of inlinable block params counting from last.
-params-num-inlinable-block-params : List(Param) -- Int
-params-num-inlinable-block-params =
-    0 swap while(is-nil? not,
-        List->List+ match(
-            NONE -> L0,
-            SOME ->
-                unsnoc is-inlinable-block-param if(
-                    dip(1+),
-                    drop L0
-                )
-        )
-    ) drop
 
 is-inlinable-block-param : Param -- Bool
 is-inlinable-block-param = unPARAM var-auto-run? nip

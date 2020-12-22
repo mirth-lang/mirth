@@ -249,7 +249,7 @@ atom-has-inlinable-block-args? =
     atom-ctx? ctx-is-physically-empty if(
         atom-op? match(
             OP_WORD ->
-                word-num-inlinable-block-params 0 > if(
+                word-can-inline-block-arg? nip if(
                     atom-args? last match(
                         SOME -> match(
                             ARG_BLOCK -> drop true,
@@ -591,6 +591,14 @@ def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
         )
     ))
 
+def(try-elab-word-body!, Word -- Maybe(Arrow) +Elab,
+    word-body-is-checked? if(
+        word-arrow@ SOME,
+    word-body-is-checking? if(
+        drop NONE,
+        elab-word-body! SOME
+    )))
+
 def(elab-word-body!, Word -- Arrow +Elab,
     word-body-is-checked? if(
         word-arrow@,
@@ -600,11 +608,17 @@ def(elab-word-body!, Word -- Arrow +Elab,
         "Missing word definition."
         emit-fatal-error!,
 
+    word-body-is-checking? if(
+        word-sig@ token-prev token-prev
+        "compiler error: elab-word-body! called on word already checking"
+        emit-fatal-error!,
+
+        true over word-body-is-checking!
         dup dip(elab-word-ctx-sig!)
         dup dip(word-body@ elab-arrow!)
         dup2 word-arrow!
         true swap word-body-is-checked!
-    )))
+    ))))
 
 def(elab-arrow!, Ctx Type Token -- Arrow,
     elab-expand-morphism! elab-arrow-hom!)
