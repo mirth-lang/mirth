@@ -299,7 +299,11 @@ atom-is-coercion? =
                     match-cases@ all(case-body? arrow-atoms@ is-nil),
                     drop false
                 ),
-            OP_WORD -> word-body-is-checked? if(word-arrow@ arrow-atoms@ is-nil, drop false),
+            OP_WORD ->
+                try-elab-word-body! match(
+                    NONE -> false,
+                    SOME -> arrow-atoms@ is-nil
+                ),
             _ -> drop false
         ),
         false
@@ -1290,7 +1294,8 @@ def(table-new!, Name -- Table,
     Word.alloc!
     dup2 swap name-word!
     tuck word-name!
-    \(t w ->
+    "x" name-new! var-new!
+    \(t w x ->
 
         "a" name-new! var-new-implicit!
         TYPE_STACK over var-type!
@@ -1300,31 +1305,31 @@ def(table-new!, Name -- Table,
         TVar \( a ->
             a a t TTable T* a T-> T* a T->
             w word-type!
+
+            a t TTable T* a T-> x var-type!
+            true x var-auto-run!
         )
         true w word-sig-is-checked!
 
         w ab-build-word! (
-            1 ab-int!
-            ab-while! (
-                PRIM_CORE_DUP ab-prim!
-                t table-num-buffer@ ab-buffer!
-                PRIM_INT_GET ab-prim!
-                PRIM_VALUE_LE ab-prim!,
+            x Var->Param L1 ab-lambda! (
+                1 ab-int!
+                ab-while! (
+                    PRIM_CORE_DUP ab-prim!
+                    t table-num-buffer@ ab-buffer!
+                    PRIM_INT_GET ab-prim!
+                    PRIM_VALUE_LE ab-prim!,
 
-                PRIM_CORE_DUP ab-prim!
-                ab-dip! (
-                    PRIM_VALUE_CAST ab-prim!
-                    PRIM_CORE_SWAP ab-prim!
                     PRIM_CORE_DUP ab-prim!
                     ab-dip! (
-                        PRIM_CORE_RUN ab-prim!
+                        PRIM_VALUE_CAST ab-prim!
+                        x ab-var!
                     )
+                    1 ab-int!
+                    PRIM_INT_ADD ab-prim!
                 )
-                1 ab-int!
-                PRIM_INT_ADD ab-prim!
+                PRIM_CORE_DROP ab-prim!
             )
-            PRIM_CORE_DROP ab-prim!
-            PRIM_CORE_DROP ab-prim!
         ) drop
 
     t)
