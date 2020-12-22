@@ -182,14 +182,7 @@ str-buf-reverse! = (
 
 ||| Are two strings equal?
 str-eq : Str Str -- Bool
-str-eq =
-    str-is-empty? if(
-        drop str-is-empty,
-        dup2 str-head swap str-head == if(
-            str-tail swap str-tail str-eq,
-            drop2 false
-        )
-    )
+str-eq = prim.str.eq
 
 ||| Are two strings equal? Preserve pointers.
 str-eq? : Str Str -- Str Str Bool

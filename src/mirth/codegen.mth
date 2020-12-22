@@ -141,6 +141,7 @@ def(c99-emit-header!, +IO,
     "extern int write(int, void*, usize);" ;
     "extern int close(int);" ;
     "extern int open(void*, int, int);" ;
+    "extern int strcmp(const char*, const char*);" ;
     "extern void exit(int);" ;;
 
     "typedef enum value_tag_t {" ;
@@ -1299,6 +1300,16 @@ def(c99-emit-prims!, +IO,
     "    value_t vptr = pop_value();" ;
     "    push_value(vptr);" ;
     "    push_ptr(value_ptr(vptr));" ;
+    "}" ;;
+
+    PRIM_STR_EQ .p "{" ;
+    "    value_t vptr1 = pop_value();" ;
+    "    value_t vptr2 = pop_value();" ;
+    "    const char* ptr1 = value_ptr(vptr1);" ;
+    "    const char* ptr2 = value_ptr(vptr2);" ;
+    "    bool result = (!ptr1 || !ptr2) ? (ptr1 == ptr2) : strcmp(ptr1,ptr2) == 0;" ;
+    "    push_bool(result);" ;
+    "    decref(vptr1); decref(vptr2);" ;
     "}" ;;
 
     PRIM_PACK_NIL .p " {" ;
