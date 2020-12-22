@@ -41,6 +41,9 @@ def(.b, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
     codegen-length@ dup 1+ codegen-length! codegen-u8!)
 
+def(.c, Char -- +Codegen,
+    cast .b) # TODO: UTF8 support
+
 def(., Str -- +Codegen,
     Str->Ptr dup prim.ptr.numbytes 1-
     dup codegen-length@ + CODEGEN_BUF_SIZE > if(
@@ -1433,13 +1436,13 @@ c99-emit-string-char! =
         drop "\\\\" .,
     is-quote? if(
         drop "\\\"" .,
-    dup U8->Int 32 127 in-range if(
-        .b,
-    dup U8->Int 9 == if(
+    dup Char->Int 32 127 in-range if(
+        .c,
+    dup Char->Int 9 == if(
         drop "\\t" .,
-    dup U8->Int 10 == if(
+    dup Char->Int 10 == if(
         drop "\\n" .,
-    dup U8->Int 13 == if(
+    dup Char->Int 13 == if(
         drop "\\r" .,
         "unexpected character in c99 string" panic!
     ))))))

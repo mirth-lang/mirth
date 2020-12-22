@@ -1,14 +1,24 @@
 module(data.str)
 import(data.list)
+import(data.char)
 import(prelude)
 
-# TODO: UTF8 support
-str-head : Str -- U8
-str-head = Str->Ptr u8@
+str-uncons : Str -- Char Str
+str-uncons =
+    Str->Ptr dup u8@ U8->Int dup 128 < if(
+        is-nil? if(
+            Int->Char swap Ptr->Str,
+            Int->Char 1 rotl ptr+ Ptr->Str
+        ),
+        "unexpected unicode (not supported yet)" panic!
+        # TODO: UTF8 support
+    )
 
-# TODO: UTF8 support
+str-head : Str -- Char
+str-head = str-uncons drop
+
 str-tail : Str -- Str
-str-tail = Str->Ptr 1 swap ptr+ Ptr->Str
+str-tail = str-uncons nip
 
 str-numbytes : Str -- Int
 str-numbytes = is-nil? if(drop 0, Str->Ptr prim.ptr.numbytes)
@@ -102,6 +112,9 @@ str-buf-u8@ = STR_BUF u8@@
 str-buf-u8! : U8 Offset -- +StrBuf
 str-buf-u8! = STR_BUF u8!!
 
+str-buf-char@ : Offset -- Char +StrBuf
+str-buf-char@ = str-buf-u8@ cast # TODO UTF8
+
 str-buf-empty? : Bool +StrBuf
 str-buf-empty? = str-buf-length? 0=
 
@@ -111,13 +124,17 @@ str-buf-full? = str-buf-length? 1+ STR_BUF_SIZE >=
 str-buf-clear! : +StrBuf
 str-buf-clear! = 0 str-buf-length!
 
-str-buf-push! : U8 -- +StrBuf
-str-buf-push! =
+str-buf-push-u8! : U8 -- +StrBuf
+str-buf-push-u8! =
     str-buf-full? if(
         "str-buf-push! but STR_BUF is already full" panic!,
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     )
+
+# TODO: UTF8 support
+str-buf-push-char! : Char -- +StrBuf
+str-buf-push-char! = cast str-buf-push-u8!
 
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
@@ -125,10 +142,10 @@ str-buf-push-str! : Str -- +StrBuf
 str-buf-push-str! = Str->Ptr str-buf-push-ptr!
 
 str-buf-push-ptr! : Ptr -- +StrBuf
-str-buf-push-ptr! =
+str-buf-push-ptr! = # TODO: use prim.ptr.copy
     while(
         str-buf-full? if(false, dup u8@ U8->Int nonzero),
-        dup u8@ str-buf-push!
+        dup u8@ str-buf-push-u8!
         1 swap ptr+
     ) drop
 
@@ -137,12 +154,12 @@ str-buf-push-ptr! =
 str-buf! : Str -- +StrBuf
 str-buf! = str-buf-clear! str-buf-push-str!
 
-# TODO UTF8 support?
+# TODO UTF8 support
 str-buf-char! : Char -- +StrBuf
-str-buf-char! = 0 str-buf-u8! 1 str-buf-length!
+str-buf-char! = cast 0 str-buf-u8! 1 str-buf-length!
 
-to-digit : Int -- U8
-to-digit = 10 % 48 + Int->U8
+to-digit : Int -- Char
+to-digit = 10 % 48 + Int->Char
 
 ||| Put integer into STR_BUF.
 str-buf-int! : Int -- +StrBuf
@@ -152,8 +169,8 @@ str-buf-int! =
         dup dip(
             abs
             str-buf-clear!
-            while(dup nonzero, dup to-digit str-buf-push! 10 /) drop
-        ) 0 < if(45 Int->U8 str-buf-push!, id)
+            while(dup nonzero, dup to-digit str-buf-push-char! 10 /) drop
+        ) 0 < if(45 Int->Char str-buf-push-char!, id)
         str-buf-reverse!
     )
 
@@ -213,9 +230,9 @@ str-transduce = \([f] ->
             swap match(
                 TS_STOP -> drop "",
                 TS_SKIP -> id,
-                TS_CHAR -> str-buf-push!,
-                TS_PUSH -> for(str-buf-push!),
-                TS_COPY -> str-for(str-buf-push!)
+                TS_CHAR -> str-buf-push-char!,
+                TS_PUSH -> for(str-buf-push-char!),
+                TS_COPY -> str-buf-push-str!
             )
         ) drop
     )

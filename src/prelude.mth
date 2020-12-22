@@ -213,7 +213,6 @@ and : *a Bool [*a -- *a Bool] -- *a Bool
 and = swap if(run, drop false)
 
 def-type(Byte, U8)
-def-type(Char, U8)
 def-type(Size, Int)
 def-type(Offset, Int)
 

@@ -93,10 +93,10 @@ str-buf-input! : -- +IO
 str-buf-input! = stdin str-buf-read!
 
 print-char! : Char -- +IO
-print-char! = build-str!(str-buf-push!) str-print!
+print-char! = build-str!(str-buf-push-char!) str-print!
 
 trace-char! : Char -- +IO
-trace-char! = build-str!(str-buf-push!) str-trace!
+trace-char! = build-str!(str-buf-push-char!) str-trace!
 
 int-write! : Int File -- +IO
 int-write! = dip(str-buf-int!) str-buf-write!

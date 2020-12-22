@@ -215,7 +215,7 @@ def(lexer-emit-name!, +Lexer,
     lexer-col@
 
     lexer-peek while(is-name-char?,
-        str-buf-push!
+        str-buf-push-char!
         lexer-move!
         lexer-peek
     )
@@ -246,27 +246,27 @@ def(lexer-emit-name!, +Lexer,
 
 def(str-buf-is-doc-start?, Bool +StrBuf,
     str-buf-length? 3 == and(
-        0 str-buf-u8@ is-pipe? nip
-        and(1 str-buf-u8@ is-pipe? nip)
-        and(2 str-buf-u8@ is-pipe? nip)
+        0 str-buf-char@ is-pipe? nip
+        and(1 str-buf-char@ is-pipe? nip)
+        and(2 str-buf-char@ is-pipe? nip)
     ))
 
 def(str-buf-is-arrow?, Bool +StrBuf,
     str-buf-length? 2 == and(
-        0 str-buf-u8@ is-dash? nip
-        1 str-buf-u8@ is-gt? nip &&
+        0 str-buf-char@ is-dash? nip
+        1 str-buf-char@ is-gt? nip &&
     ))
 
 def(str-buf-is-dashes?, Bool +StrBuf,
     str-buf-length? 2 == if(
-        0 str-buf-u8@ is-dash? nip
-        1 str-buf-u8@ is-dash? nip &&,
+        0 str-buf-char@ is-dash? nip
+        1 str-buf-char@ is-dash? nip &&,
         false
     ))
 
 def(str-buf-is-equal?, Bool +StrBuf,
     str-buf-length? 1 == if(
-        0 str-buf-u8@ is-eq? nip,
+        0 str-buf-char@ is-eq? nip,
         false
     ))
 
@@ -277,32 +277,32 @@ def(str-buf-is-int?, Bool +StrBuf,
 def(str-buf-is-dec-int?, Bool +StrBuf,
     0 # number of digits
     0 # current index
-    dup str-buf-u8@ is-sign? nip if(
+    dup str-buf-char@ is-sign? nip if(
         1+,
         id
     )
-    while(dup str-buf-u8@ is-digit? nip,
+    while(dup str-buf-char@ is-digit? nip,
         dip(1+) 1+)
     swap 1 >= if(
         str-buf-length? ==,
         drop false
     ))
 
-def(is-zero-char, Char -- Bool, U8->Int 48 ==)
-def(is-xX-char, Char -- Bool, U8->Int dup 88 == dip(120 ==) ||)
+def(is-zero-char, Char -- Bool, Char->Int 48 ==)
+def(is-xX-char, Char -- Bool, Char->Int dup 88 == dip(120 ==) ||)
 
 def(str-buf-is-hex-int?, Bool +StrBuf,
     0 # number of digits
     0 # current index
-    dup str-buf-u8@ is-sign? nip if(
+    dup str-buf-char@ is-sign? nip if(
         1+,
         id
     )
-    dup str-buf-u8@ is-zero-char if(
+    dup str-buf-char@ is-zero-char if(
         1+
-        dup str-buf-u8@ is-xX-char if(
+        dup str-buf-char@ is-xX-char if(
             1+
-            while(dup str-buf-u8@ is-hexdigit? nip, dip(1+) 1+)
+            while(dup str-buf-char@ is-hexdigit? nip, dip(1+) 1+)
             swap 1 >= if(
                 str-buf-length? ==,
                 drop false
@@ -324,7 +324,7 @@ def(str-buf-dec-int?, Int +StrBuf,
     1 # sign multiplier
     0 # accumulated value
     0 # current index
-    dup str-buf-u8@ is-sign? if(
+    dup str-buf-char@ is-sign? if(
         is-dash? nip if(
             dip2(drop -1),
             id
@@ -334,7 +334,7 @@ def(str-buf-dec-int?, Int +StrBuf,
     )
     while(dup str-buf-length? <,
         dup dip(
-            str-buf-u8@ U8->Int
+            str-buf-char@ Char->Int
             dip(10 *) 48 - +
         )
         1+)
@@ -344,7 +344,7 @@ def(str-buf-hex-int?, Int +StrBuf,
     1 # sign multiplier
     0 # accumulated value
     0 # current index
-    dup str-buf-u8@ is-sign? if(
+    dup str-buf-char@ is-sign? if(
         is-dash? nip if(
             dip2(drop -1),
             id
@@ -355,7 +355,7 @@ def(str-buf-hex-int?, Int +StrBuf,
     2 + # skip 0x prefix
     while(dup str-buf-length? <,
         dup dip(
-            str-buf-u8@
+            str-buf-char@
             dip(16 *) hexdigit-value +
         )
         1+)
@@ -363,10 +363,10 @@ def(str-buf-hex-int?, Int +StrBuf,
 
 def(hexdigit-value, Char -- Int,
     is-digit? if(
-        U8->Int 48 -,
+        Char->Int 48 -,
         is-upper-hexdigit? if(
-            U8->Int 55 -,
-            U8->Int 87 -
+            Char->Int 55 -,
+            Char->Int 87 -
         )
     ))
 
@@ -393,28 +393,28 @@ def(lexer-push-string-char!, Char -- +Lexer,
             drop,
 
         is-n? if(
-            drop 10 Int->U8 str-buf-push!,
+            drop 10 Int->Char str-buf-push-char!,
 
         is-r? if(
-            drop 13 Int->U8 str-buf-push!,
+            drop 13 Int->Char str-buf-push-char!,
 
         is-t? if(
-            drop 9 Int->U8 str-buf-push!,
+            drop 9 Int->Char str-buf-push-char!,
 
         is-quote? if(
-            str-buf-push!,
+            str-buf-push-char!,
 
         is-backslash? if(
-            str-buf-push!,
+            str-buf-push-char!,
 
-            str-buf-push!
+            str-buf-push-char!
 
             "Unknown character escape sequence."
             lexer-emit-warning!
 
         )))))),
 
-        str-buf-push!
+        str-buf-push-char!
     ))
 
 def(lexer-skip-comment!, +Lexer,
