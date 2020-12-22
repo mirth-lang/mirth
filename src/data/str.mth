@@ -3,22 +3,11 @@ import(data.list)
 import(data.char)
 import(prelude)
 
-str-uncons : Str -- Char Str
-str-uncons =
-    Str->Ptr dup u8@ U8->Int dup 128 < if(
-        is-nil? if(
-            Int->Char swap Ptr->Str,
-            Int->Char 1 rotl ptr+ Ptr->Str
-        ),
-        "unexpected unicode (not supported yet)" panic!
-        # TODO: UTF8 support
-    )
-
 str-head : Str -- Char
-str-head = str-uncons drop
+str-head = Str->Ptr u8@ cast # TODO UTF8 support
 
 str-tail : Str -- Str
-str-tail = str-uncons nip
+str-tail = Str->Ptr 1 swap ptr+ Ptr->Str # TODO UTF8 support
 
 str-numbytes : Str -- Int
 str-numbytes = is-nil? if(drop 0, Str->Ptr prim.ptr.numbytes)
