@@ -4,6 +4,7 @@ import(mirth.data.token)
 import(mirth.data.name)
 import(mirth.data.buffer)
 import(mirth.data.arrow)
+import(mirth.data.word)
 
 ###########
 # Codegen #
@@ -85,9 +86,8 @@ def(run-output-c99!, Arrow Path -- +IO,
         c99-emit-externals!
         c99-emit-word-sigs!
         c99-emit-block-sigs!
-        c99-emit-word-defs!
-        c99-emit-block-defs!
         c99-emit-main!
+        c99-emit-needs!
         codegen-end!
     ))
 
@@ -1400,6 +1400,7 @@ c99-emit-atom! =
         OP_STR ->
             nip c99-emit-string!,
         OP_WORD ->
+            need-word!
             dip(atom-args@ c99-emit-args-push!)
             "    mw" . word-name@ .name "();" ;,
         OP_EXTERNAL ->
@@ -1533,8 +1534,53 @@ def(c99-decref-ctx!, Ctx -- +IO,
         "    decref(" . .var-val ");" ;
     ))
 
+data(Need,
+    NEED_BLOCK -> Block,
+    NEED_WORD -> Word
+)
+
+buffer(C99_NEED_STACK, 16)
+def(need-push!, Need --, C99_NEED_STACK value@ cons C99_NEED_STACK value!)
+def(need-pop!, -- Maybe(Need),
+    C99_NEED_STACK value@
+    List->List+ match(
+        NONE -> NONE,
+        SOME -> uncons C99_NEED_STACK value! SOME
+    ))
+def(has-need?, Bool,
+    C99_NEED_STACK value@ is-nil not)
+
+field(c99-word-needed, Word, Bool)
+def(need-word!, Word -- Word,
+    c99-word-needed? if(
+        id,
+        true over c99-word-needed!
+        dup NEED_WORD need-push!
+    ))
+
+def(need-block!, Block -- Block,
+    block-needed? if(
+        id,
+        true over block-needed!
+        dup NEED_BLOCK need-push!
+    ))
+
+def(c99-emit-needs!, +IO,
+    while(has-need?,
+        need-pop! match(
+            NONE -> "unexpected branch in c99-emit-needs!" panic!,
+            SOME -> c99-emit-need!
+        )
+    ))
+
+def(c99-emit-need!, Need -- +IO,
+    match(
+        NEED_WORD -> c99-emit-word-def!,
+        NEED_BLOCK -> c99-emit-block-def!,
+    ))
+
 def(c99-emit-block-push!, Block -- +IO,
-    true over block-needed!
+    need-block!
     block-arrow? arrow-ctx@ c99-pack-ctx!
     "    push_fnptr(&" . .block ");" ;
     "    do_pack_cons();" ;
@@ -1616,15 +1662,20 @@ def(c99-emit-block-sig!, Block -- +IO,
 def(c99-emit-block-defs!, +IO,
     Block.for(c99-emit-block-def!) .lf)
 
+field(c99-block-emitted, Block, Bool)
 def(c99-emit-block-def!, Block -- +IO,
     block-needed? if(
-        "static void " . dup .block " (void) {" ;
-        block-arrow@
-        arrow-ctx? c99-unpack-ctx!
-        dup c99-emit-arrow!
-        arrow-ctx@ c99-decref-ctx!
-        "}" ;,
+        c99-block-emitted? if(
+            drop,
 
+            true over c99-block-emitted!
+            "static void " . dup .block " (void) {" ;
+            block-arrow@
+            arrow-ctx? c99-unpack-ctx!
+            dup c99-emit-arrow!
+            arrow-ctx@ c99-decref-ctx!
+            "}" ;
+        ),
         drop
     ))
 
@@ -1642,10 +1693,19 @@ def(.block, Block -- +IO,
 def(c99-emit-word-defs!, +IO,
     Word.for(c99-emit-word-def!))
 
+field(c99-word-emitted, Word, Bool)
 def(c99-emit-word-def!, Word -- +IO,
-    word-name? .w "{" ;
-    word-arrow@ c99-emit-arrow!
-    "}" ;;)
+    c99-word-needed? if(
+        c99-word-emitted? if(
+            drop,
+
+            true over c99-word-emitted!
+            word-name? .w "{" ;
+            word-arrow@ c99-emit-arrow!
+            "}" ;;
+        ),
+        drop
+    ))
 
 def(c99-emit-main!, Arrow -- +IO,
     "int main (int argc, char** argv) {" ;

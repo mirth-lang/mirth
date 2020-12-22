@@ -1,5 +1,6 @@
 module(mirth.data.word)
 import(data.map)
+import(mirth.data.var)
 
 data InlineKey
     IK_NIL
