@@ -207,10 +207,12 @@ rot7l = \(y x1 x2 x3 x4 x5 x6 -> x1 x2 x3 x4 x5 x6 y)
 rot8l = \(y x1 x2 x3 x4 x5 x6 x7 -> x1 x2 x3 x4 x5 x6 x7 y)
 
 or : *a Bool [*a -- *a Bool] -- *a Bool
-or = swap if(drop true, run)
+or = \([f] -> if(true, f))
+# or(f) = if(true, f)
 
 and : *a Bool [*a -- *a Bool] -- *a Bool
-and = swap if(run, drop false)
+and = \([f] -> if(f, false))
+# and(f) = if(f, false)
 
 def-type(Byte, U8)
 def-type(Size, Int)

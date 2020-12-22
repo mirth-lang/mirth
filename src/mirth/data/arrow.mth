@@ -49,6 +49,7 @@ data Op
     OP_BLOCK -> Block
 end
 data(Param, PARAM -> Var)
+def(unPARAM, Param -- Var, match(PARAM -> id))
 def(Var->Param, Var -- Param, PARAM)
 def(Param->Var, Param -- Var, match(PARAM -> id))
 
@@ -354,3 +355,6 @@ pattern-is-covered =
         PATTERN_UNDERSCORE -> drop true,
         _ -> ==
     )
+
+int-false-prime : Int -- Int Bool
+int-false-prime = dup 2 == or(dup 2 % 1 ==)

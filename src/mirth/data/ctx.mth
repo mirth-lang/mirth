@@ -13,6 +13,9 @@ unCTX = match(CTX -> id)
 ctx-empty : Ctx
 ctx-empty = nil
 
+ctx-is-empty : Ctx -- Bool
+ctx-is-empty = is-nil
+
 ctx-new! : Ctx Var -- Ctx
 ctx-new! = dip(unCTX) snoc CTX
 

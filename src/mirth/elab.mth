@@ -238,7 +238,53 @@ ab-optimized-snoc! = (
 
     atom-is-coercion? if(
         atom-cod@ ab-type!,
+    atom-has-inlinable-block-args? if(
+        atom-inline-block-args,
         snoc
+    ))
+)
+
+atom-has-inlinable-block-args? : Atom -- Atom Bool
+atom-has-inlinable-block-args? =
+    atom-ctx? ctx-is-empty if(
+        atom-op? match(
+            OP_WORD ->
+                word-num-inlinable-block-params 0 > if(
+                    atom-args? last match(
+                        SOME -> match(
+                            ARG_BLOCK -> block-ctx@ ctx-is-empty,
+                            _ -> drop false
+                        ),
+                        NONE -> false,
+                    ),
+                    false
+                ),
+            _ -> drop false
+        ),
+        false
+    )
+
+atom-inline-block-args : List(Atom) Atom -- List(Atom)
+atom-inline-block-args = (
+    atom-op? match(
+        OP_WORD ->
+            over atom-args@ args-to-blocks inline-key-from-blocks
+            word-inline match(
+                NONE -> id,
+                SOME ->
+                    OP_WORD over atom-op!
+                    L0 over atom-args!
+            ),
+        _ -> drop
+    )
+    snoc
+)
+
+args-to-blocks : List(Arg) -- List(Block)
+args-to-blocks = map(
+    match(
+        ARG_BLOCK -> id,
+        ARG_VAR_RUN -> "unexpected variable in args-to-blocks" panic!
     )
 )
 

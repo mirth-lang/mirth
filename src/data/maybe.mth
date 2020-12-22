@@ -19,29 +19,33 @@ is-some? : Maybe(t) -- Maybe(t) Bool
 is-some? = is-nil? not
 
 maybe-map : *c Maybe(a) [*c a -- *c b] -- *c Maybe(b)
-maybe-map =
-    swap match(
-        NONE -> drop NONE,
-        SOME -> swap run SOME,
+maybe-map = \([f] ->
+    match(
+        NONE -> NONE,
+        SOME -> f SOME,
     )
+)
 
 maybe-bind : *c Maybe(a) [*c a -- *c Maybe(b)] -- *c Maybe(b)
-maybe-bind =
-    swap match(
-        NONE -> drop NONE,
-        SOME -> swap run
+maybe-bind = \([f] ->
+    match(
+        NONE -> NONE,
+        SOME -> f
     )
+)
 
 maybe-for : *c Maybe(a) [*c a -- *c] -- *c
-maybe-for =
-    swap match(
-        NONE -> drop,
-        SOME -> swap run
+maybe-for = \([f] ->
+    match(
+        NONE -> id,
+        SOME -> f
     )
+)
 
 maybe-filter : *c Maybe(a) [*c a -- *c a Bool] -- *c Maybe(a)
-maybe-filter =
-    swap match(
-        NONE -> drop NONE,
-        SOME -> swap run if(SOME, drop NONE)
+maybe-filter = \([f] ->
+    match(
+        NONE -> NONE,
+        SOME -> f if(SOME, drop NONE)
     )
+)
