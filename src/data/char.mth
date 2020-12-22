@@ -49,33 +49,107 @@ def(is-pipe?, U8 -- U8 Bool, dup U8->Int 124 ==)
 def(is-rcurly?, Char -- Char Bool, dup U8->Int 125 ==)
 
 is-whitespace? : Char -- Char Bool
-is-whitespace? = is-space? or(is-tab?) or(is-return?) or(is-newline?) or(is-vtab?)
+is-whitespace? = (
+    dup U8->Int dup 33 <
+    dip(dip(0x100020E00) >> 0x1 & 0 !=) &&
+# Equivalent to:
+#    is-space? or(is-tab?) or(is-return?) or(is-newline?) or(is-vtab?)
+)
 
 is-hexdigit? : Char -- Char Bool
-is-hexdigit? = is-digit? or(is-upper-hexdigit?) or(is-lower-hexdigit?)
+is-hexdigit? = is-digit? dip(is-upper-hexdigit?) || dip(is-lower-hexdigit?) ||
 
 is-sign? : Char -- Char Bool
-is-sign? = is-plus? or(is-minus?)
+is-sign? = is-plus? dip(is-minus?) ||
 
 is-alpha? : Char -- Char Bool
-is-alpha? = is-lower? or(is-upper?)
+is-alpha? = is-lower? dip(is-upper?) ||
 
 is-string-end? : Char -- Char Bool
-is-string-end? = is-quote? or(is-newline?) or(is-nul?)
+is-string-end? = (
+    dup U8->Int dup 64 <
+    dip(dip(0x400000401) >> 0x1 & 0 !=) &&
+# Equivalent to:
+#   is-quote? or(is-newline?) or(is-nul?)
+)
 
 underscore : Char
 underscore = 95 Int->Char
 
-is-name-char? : Char -- Char Bool
-is-name-char? = is-visible? and(is-special-char? not)
-
 is-visible? : Char -- Char Bool
 is-visible? = dup U8->Int 33 126 in-range
 
+is-name-char? : Char -- Char Bool
+is-name-char? = (
+    dup U8->Int dup 64 < if(
+        0xFBFFECF200000000,
+        64 - 0x57FFFFFFD7FFFFFF
+    ) swap >> 0x1 & 0 !=
+
+# Equivalent to:
+#   is-visible? dip(is-special-char? not) &&
+)
+
 is-special-char? : Char -- Char Bool
 is-special-char? = (
-    is-quote? or(is-comma?) or(is-colon?) or(is-pound?)
-    or(is-lparen?) or(is-rparen?)
-    or(is-lsquare?) or(is-rsquare?)
-    or(is-lcurly?) or(is-rcurly?)
+    dup U8->Int dup 64 < if(
+        0x0400130C00000000,
+        64 - 0x2800000028000000
+    ) swap >> 0x1 & 0 !=
+
+# Equivalent to:
+    # dup U8->Int 64 < if(
+    #     dup U8->Int dip(0x0400130C00000000) >> 0x1 & 0 !=,
+    #     dup U8->Int 64 - dip(0x2800000028000000) >> 0x1 & 0 !=
+    # )
+
+# Equivalent to:
+    # dup U8->Int 64 < if(
+    #     is-quote? or(is-comma?) or(is-colon?) or(is-pound?)
+    #     or(is-lparen?) or(is-rparen?),
+
+    #     is-lsquare? or(is-rsquare?)
+    #     or(is-lcurly?) or(is-rcurly?)
+    # )
+
+# Equivalent to:
+
+    # is-quote? or(is-comma?) or(is-colon?) or(is-pound?)
+    # or(is-lparen?) or(is-rparen?)
+    # or(is-lsquare?) or(is-rsquare?)
+    # or(is-lcurly?) or(is-rcurly?)
 )
+
+# This number:
+#
+#    0x0400130C00000000
+#
+# Codes for:
+#
+#     quote = 34
+#     pound = 35
+#     lparen = 40
+#     rparen = 41
+#     comma = 44
+#     colon = 58
+#
+# Via (python code):
+#
+#    hex((1 << 34) | (1 << 35) | (1 << 40)
+#      | (1 << 41) | (1 << 44) | (1 << 58))
+
+# This number:
+#
+#     0x2800000028000000
+#
+# Codes for:
+#
+#    lsquare = 91
+#    rsquare = 93
+#    lcurly = 123
+#    rcurly = 125
+#
+# Via (python code):
+#
+#    hex(((1 << 91) | (1 << 93)
+#       | (1 << 123) | (1 << 125)) >> 64)
