@@ -317,22 +317,24 @@ def(c99-emit-prims!, +IO,
     ||| Decrement reference after a cons. This is equivalent to:
     |||     incref(car), incref(cdr), decref(cell)
     ||| but it avoids unnecessary increfs/decrefs on the car/cdr.
-    "static void decref_for_uncons (value_t v) { " ;
-    "    usize cell_index = get_cell_index(v);" ;
-    "    cell_t *cell = heap + cell_index;" ;
-    "    if (cell->refs >= 1) {" ;
-    "        cell->refs--;" ;
-    "        if (cell->refs == 0) {" ;
-    "            cell->cdr.tag = 0; cell->car.payload.vp_u64 = 0;" ;
-    "            cell->car.tag = 0; cell->cdr.payload.vp_u64 = heap_next;" ;
-    "            heap_next = cell_index;" ;
-    "            heap_count--;" ;
-    "        } else {" ;
-    "            incref(cell->car);" ;
-    "            incref(cell->cdr);" ;
-    "        }" ;
-    "    }" ;
-    "}" ;;
+    "#define decref_for_uncons(v) do{ value_t w = (v); usize i = get_cell_index(w); if(i) { if (heap[i].refs) { heap[i].refs--; if (heap[i].refs == 0) { memset(heap+i, 0, sizeof(cell_t)); heap[i].cdr.payload.vp_u64 = heap_next; heap_next = i; heap_count--; } else { cell_t cell = heap[i]; incref(cell.car); incref(cell.cdr); } } } } while(0)" ;
+
+    # "static void decref_for_uncons (value_t v) { " ;
+    # "    usize cell_index = get_cell_index(v);" ;
+    # "    cell_t *cell = heap + cell_index;" ;
+    # "    if (cell->refs >= 1) {" ;
+    # "        cell->refs--;" ;
+    # "        if (cell->refs == 0) {" ;
+    # "            cell->cdr.tag = 0; cell->car.payload.vp_u64 = 0;" ;
+    # "            cell->car.tag = 0; cell->cdr.payload.vp_u64 = heap_next;" ;
+    # "            heap_next = cell_index;" ;
+    # "            heap_count--;" ;
+    # "        } else {" ;
+    # "            incref(cell->car);" ;
+    # "            incref(cell->cdr);" ;
+    # "        }" ;
+    # "    }" ;
+    # "}" ;;
 
 
     "static void value_uncons(value_t val, value_t* car, value_t* cdr) {" ;
