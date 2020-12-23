@@ -241,13 +241,106 @@ ab-optimized-snoc! = (
     )
 
     atom-is-coercion? if(
-        OP_NONE over atom-op!
-        L0 over atom-args!,
-        id
+        drop,
+        # OP_NONE over atom-op!
+        # L0 over atom-args!,
+
+    atom-args? match(
+        L0 ->
+            atom-op? match(
+                OP_WORD -> try-elab-word-body! match(
+                    SOME ->
+                        arrow-should-inline? if(
+                            nip arrow-atoms@ for(ab-optimized-snoc!), # unsafe..
+                            drop snoc
+                        ),
+                    NONE -> snoc,
+                ),
+                _ -> drop snoc
+            ),
+
+        _ ->
+            drop snoc
+    ))
+)
+
+INLINE_WEIGHT_LIMIT : Int
+INLINE_WEIGHT_LIMIT = 1
+
+arrow-should-inline? : Arrow -- Arrow Bool
+arrow-should-inline? = dup arrow-weight INLINE_WEIGHT_LIMIT <=
+
+field(arrow-weighted, Arrow, Bool)
+field(arrow-weight-cached, Arrow, Int)
+arrow-weight : Arrow -- Int
+arrow-weight =
+    arrow-weighted? if(
+        arrow-weight-cached@,
+        true over arrow-weighted!
+        DONT_INLINE over arrow-weight-cached!
+        arrow-atoms? atoms-weight over arrow-weight-cached!
+        arrow-weight-cached@
     )
 
-    snoc
-)
+atoms-weight : List(Atom) -- Int
+atoms-weight = 0 swap for(atom-weight +)
+
+DONT_INLINE : Int
+DONT_INLINE = INLINE_WEIGHT_LIMIT 1+
+
+atom-weight : Atom -- Int
+atom-weight =
+    atom-op? match(
+        OP_NONE -> drop 0,
+        OP_INT -> drop2 0,
+        OP_STR -> drop2 0,
+        OP_TAG -> drop2 0,
+        OP_VAR -> drop2 0,
+        OP_BUFFER -> drop2 0,
+        OP_EXTERNAL -> drop2 0,
+
+        OP_BLOCK -> drop2 1,
+
+        OP_MATCH ->
+            drop2 DONT_INLINE,
+
+        OP_LAMBDA ->
+            drop2 DONT_INLINE,
+
+        OP_WORD ->
+            word-body-is-checked? if(
+                drop 1 swap atom-args@ for(arg-weight +),
+                drop2 DONT_INLINE
+            ),
+
+        OP_PRIM ->
+            match(
+                PRIM_CORE_IF ->
+                    atom-args@ match(
+                        L2 -> arg-weight swap arg-weight + 1+,
+                        _ -> drop 1
+                    ),
+                PRIM_CORE_WHILE ->
+                    atom-args@ match(
+                        L2 -> arg-weight swap arg-weight + 1+,
+                        _ -> drop 1
+                    ),
+                PRIM_CORE_DIP ->
+                    atom-args@ match(
+                        L1 -> arg-weight,
+                        _ -> drop 1
+                    ),
+                _ ->
+                    drop 0 swap atom-args@ for(arg-weight + 1+),
+            ),
+    )
+
+arg-weight : Arg -- Int
+arg-weight =
+    match(
+        ARG_BLOCK -> block-arrow@ arrow-weight,
+        ARG_VAR_RUN -> drop 1,
+    )
 
 atom-has-inlinable-block-args? : Atom -- Atom Bool
 atom-has-inlinable-block-args? =
