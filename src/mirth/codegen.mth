@@ -785,6 +785,45 @@ def(c99-emit-prims!, +IO,
     "    }" ;
     "}" ;;
 
+    "static bool value_eq(value_t v1, value_t v2) {" ;
+    "    usize c1_index, c2_index; cell_t *c1, *c2;" ;
+    "    while (1) {" ;
+    "        if (v1.tag != v2.tag) return false;" ;
+    "        if (v1.payload.vp_u64 == v2.payload.vp_u64) return true;" ;
+    "        switch (v1.tag) {" ;
+    "            case VT_U64: return false;" ;
+    "            case VT_U32: return false;" ;
+    "            case VT_U21: return false;" ;
+    "            case VT_U16: return false;" ;
+    "            case VT_C64:" ;
+    "               c1_index = v1.payload.vp_u64;" ;
+    "               c2_index = v2.payload.vp_u64;" ;
+    "               break;" ;
+    "            case VT_C32:";
+    "               if (v1.payload.vp_u32 != v2.payload.vp_u32) return false;" ;
+    "               c1_index = (usize)(v1.payload.vp_u64 >> 32);" ;
+    "               c2_index = (usize)(v2.payload.vp_u64 >> 32);" ;
+    "               break;" ;
+    "            case VT_C21:";
+    "               if (  (v1.payload.vp_u64 & 0x03FFFFFFFFFF)" ;
+    "                  != (v2.payload.vp_u64 & 0x03FFFFFFFFFF)) return false;" ;
+    "               c1_index = (usize)(v1.payload.vp_u64 >> 42);" ;
+    "               c2_index = (usize)(v2.payload.vp_u64 >> 42);" ;
+    "               break;" ;
+    "            case VT_C16:";
+    "               if (  (v1.payload.vp_u64 & 0xFFFFFFFFFFFF)" ;
+    "                  != (v2.payload.vp_u64 & 0xFFFFFFFFFFFF)) return false;" ;
+    "               c1_index = (usize)(v1.payload.vp_u64 >> 48);" ;
+    "               c2_index = (usize)(v2.payload.vp_u64 >> 48);" ;
+    "               break;" ;
+    "        }" ;
+    "        c1 = heap + c1_index;" ;
+    "        c2 = heap + c2_index;" ;
+    "        if (!value_eq(c1->cdr, c2->cdr)) return false;" ;
+    "        v1 = c1->car; v2 = c2->car;" ;
+    "    }" ;
+    "}" ;;
+
     "static void do_run() {" ;
     "    do_pack_uncons();" ;
     "    fnptr fp = pop_fnptr();" ;
@@ -882,7 +921,7 @@ def(c99-emit-prims!, +IO,
     PRIM_VALUE_EQ .p " {" ;
     "    value_t v2 = pop_value();" ;
     "    value_t v1 = pop_value();" ;
-    "    push_bool(value_cmp(v1, v2) == 0);" ;
+    "    push_bool(value_eq(v1, v2));" ;
     "    decref(v1); decref(v2);" ;
     "}" ;;
 
