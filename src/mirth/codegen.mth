@@ -431,9 +431,32 @@ def(c99-emit-prims!, +IO,
     "}" ;;
 
     "static void* value_ptr (value_t v) {" ;
-    "    char* ptr = value_ptr_base(v);" ;
-    "    i64 offset = value_ptr_offset(v);" ;
-    "    return (void*)(ptr + offset);" ;
+    "    usize cell_index; cell_t* cell; usize offset;" ;
+    "    switch (v.tag) {" ;
+    "        case VT_U64: return v.payload.vp_ptr;" ;
+    "        case VT_C64: " ;
+    "            cell_index = (usize)v.payload.vp_u64;" ;
+    "            cell = heap + cell_index;" ;
+    "            if (cell->freecdr) {" ;
+    "                return cell->cdr.payload.vp_ptr;" ;
+    "            } else {" ;
+    "                offset = (usize)cell->cdr.payload.vp_u64;" ;
+    "                cell_index = (usize)cell->car.payload.vp_u64;" ;
+    "                break;" ;
+    "            }" ;
+    "       case VT_C32: " ;
+    "            offset = (usize)v.payload.vp_u32;" ;
+    "            cell_index = (usize)(v.payload.vp_u64 >> 32);" ;
+    "            break;" ;
+    "       default: " ;
+    "            return (void*)0;" ;
+    "    }" ;
+    "    cell = heap + cell_index;" ;
+    "    if (cell->freecdr) {" ;
+    "        char* base = cell->cdr.payload.vp_ptr;" ;
+    "        return (void*)(base + offset);" ;
+    "    }" ;
+    "    return (void*)0;" ;
     "}" ;;
 
     "static fnptr pop_fnptr (void) {" ;
