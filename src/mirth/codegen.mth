@@ -668,6 +668,7 @@ def(c99-emit-prims!, +IO,
     "    return v;" ;
     "}" ;;
 
+    # "#define do_pack_uncons() do{ value_t dpucar, dpucdr, dpuval=pop_value(); value_uncons(dpuval, &dpucar, &dpucdr); push_value(dpucar); push_value(dpucdr); if(dpuval.tag == VT_C64) { decref_for_uncons(dpuval); } }while(0)" ;
 
     "static void do_pack_uncons() {" ;
     "    value_t car, cdr, val;" ;
