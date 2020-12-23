@@ -340,31 +340,54 @@ ab-optimized-snoc-drop! =
 ab-optimized-snoc-dip-drop! : List(Atom) Atom List(Atom) Atom -- List(Atom)
 ab-optimized-snoc-dip-drop! =
     atom-args? match(
-        L1 -> dip(drop swap ab-optimized-snoc!) match(
-            ARG_BLOCK -> block-arrow@ arrow-atoms@ for(ab-optimized-snoc!),
-            ARG_VAR_RUN -> OP_VAR Atom.alloc! tuck atom-op! snoc,
-        ) nip,
-        _ -> drop3 snoc
+        L1 -> dip(drop swap ab-optimized-snoc!) atoms-from-arg for(ab-optimized-snoc!) nip,
+        _ -> drop3 snoc,
     )
 
 ab-optimized-snoc-dup! : List(Atom) Atom -- List(Atom)
 ab-optimized-snoc-dup! = snoc # TODO
 
 ab-optimized-snoc-dip! : List(Atom) Atom Arg -- List(Atom)
-ab-optimized-snoc-dip! = drop snoc # TODO
-    # dip(over) swap List->List+ match(
-    #     NONE -> drop snoc,
-    #     SOME ->
-    #         unsnoc atom-op? match(
-    #             OP_PRIM -> match(
-    #                 PRIM_CORE_DIP ->
-    #                     ab-optimized-snoc-merge-dips!,
-    #                 _ ->
-    #                     drop3
-    #             ),
-    #             _ -> drop
-    #         )
-    # )
+ab-optimized-snoc-dip! =
+    dip(over) swap List->List+ match(
+        NONE -> drop snoc,
+        SOME ->
+            unsnoc atom-op? match(
+                OP_PRIM -> match(
+                    PRIM_CORE_DIP -> ab-optimized-snoc-dip-dip!,
+                    _ -> drop4 snoc,
+                ),
+                _ -> drop4 snoc
+            )
+    )
+
+ab-optimized-snoc-dip-dip! : List(Atom) Atom Arg List(Atom) Atom -- List(Atom)
+ab-optimized-snoc-dip-dip! =
+    atom-args@ match(
+        L1 ->
+            atoms-from-arg rotl atoms-from-arg for(ab-optimized-snoc!)
+            dip-from-atoms ab-optimized-snoc! dip(drop2),
+
+        _ ->
+            drop3 snoc
+    )
+
+dip-from-atoms : List(Atom) -- Atom
+dip-from-atoms = (
+    Arrow.alloc! tuck arrow-atoms!
+    Block.alloc! tuck block-arrow-raw!
+    block-to-arg
+    PRIM_CORE_DIP OP_PRIM
+    Atom.alloc! tuck atom-op!
+    swap atom-arg-add!
+)
+
+atoms-from-arg : Arg -- List(Atom)
+atoms-from-arg =
+    match(
+        ARG_BLOCK -> block-arrow@ arrow-atoms@,
+        ARG_VAR_RUN -> OP_VAR Atom.alloc! tuck atom-op! L1
+    )
 
 INLINE_WEIGHT_LIMIT : Int
 INLINE_WEIGHT_LIMIT = 1

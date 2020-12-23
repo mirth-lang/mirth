@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-C99FLAGS="-std=c99 -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Werror -pedantic"
+C99FLAGS="-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Werror -pedantic"
 CC="gcc $C99FLAGS"
 
 UPDATE=0
