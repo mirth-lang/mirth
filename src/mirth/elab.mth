@@ -256,13 +256,58 @@ ab-optimized-snoc! = (
                         ),
                     NONE -> snoc,
                 ),
+
+                OP_PRIM ->
+                    match(
+                        PRIM_CORE_SWAP -> ab-optimized-snoc-swap!,
+                        PRIM_CORE_DROP -> ab-optimized-snoc-drop!,
+                        PRIM_CORE_DUP -> ab-optimized-snoc-dup!,
+                        _ -> drop snoc
+                    ),
+
                 _ -> drop snoc
+            ),
+
+        L1 ->
+            over atom-op@ match(
+                OP_PRIM ->
+                    match(
+                        PRIM_CORE_DIP -> ab-optimized-snoc-dip!,
+                        _ -> drop2 snoc
+                    ),
+                _ -> drop2 snoc
             ),
 
         _ ->
             drop snoc
     ))
 )
+
+ab-optimized-snoc-swap! : List(Atom) Atom -- List(Atom)
+ab-optimized-snoc-swap! =
+    over List->List+ match(
+        NONE -> snoc,
+        SOME ->
+            unsnoc atom-op? match(
+                OP_PRIM -> match(
+                    PRIM_CORE_DUP -> drop3,
+                    PRIM_CORE_SWAP -> drop dip(drop2),
+                    _ -> drop3 snoc
+                ),
+                _ -> drop3 snoc
+            ),
+    )
+
+ab-optimized-snoc-drop! : List(Atom) Atom -- List(Atom)
+ab-optimized-snoc-drop! = snoc # TODO
+
+ab-optimized-snoc-dup! : List(Atom) Atom -- List(Atom)
+ab-optimized-snoc-dup! = snoc # TODO
+
+ab-optimized-snoc-dip! : List(Atom) Atom Arg -- List(Atom)
+ab-optimized-snoc-dip! = drop snoc # TODO
+
+
 
 INLINE_WEIGHT_LIMIT : Int
 INLINE_WEIGHT_LIMIT = 1
@@ -390,24 +435,40 @@ atom-is-nop? = atom-op? match(OP_NONE -> true, _ -> drop false)
 
 atom-is-coercion? : Atom -- Atom Bool
 atom-is-coercion? =
-    atom-args? is-nil if(
-        atom-op? match(
-            OP_NONE -> true,
-            OP_PRIM -> dup PRIM_VALUE_CAST == swap PRIM_CORE_ID == ||,
-            OP_TAG -> tag-is-transparent? nip,
-            OP_MATCH ->
-                match-is-transparent? if(
-                    match-cases@ all(case-body? arrow-atoms@ all(atom-is-nop?)),
-                    drop false
+    atom-args? match(
+        L0 ->
+            atom-op? match(
+                OP_NONE -> true,
+                OP_PRIM -> dup PRIM_VALUE_CAST == swap PRIM_CORE_ID == ||,
+                OP_TAG -> tag-is-transparent? nip,
+                OP_MATCH ->
+                    match-is-transparent? if(
+                        match-cases@ all(case-body? arrow-atoms@ is-nil),
+                        drop false
+                    ),
+                OP_WORD ->
+                    try-elab-word-body! match(
+                        NONE -> false,
+                        SOME -> arrow-atoms@ is-nil,
+                    ),
+                _ -> drop false
+            ),
+        L1 ->
+            arg-is-empty if(
+                atom-op? match(
+                    OP_PRIM -> dup PRIM_CORE_DIP == swap PRIM_CORE_RUN == ||,
+                    _ -> drop false
                 ),
-            OP_WORD ->
-                try-elab-word-body! match(
-                    NONE -> false,
-                    SOME -> arrow-atoms@ all(atom-is-nop?)
-                ),
-            _ -> drop false
-        ),
-        false
+                false
+            ),
+        _ -> drop false
+    )
+
+arg-is-empty : Arg -- Bool
+arg-is-empty =
+    match(
+        ARG_BLOCK -> block-arrow@ arrow-atoms@ is-nil,
+        ARG_VAR_RUN -> drop false
     )
 
 # atom-prim=? : Atom Prim -- Atom Bool
