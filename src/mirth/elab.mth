@@ -201,6 +201,7 @@ ab-build-word! = \([f] ->
     dip(elab-expand-morphism! swap)
 
     { *a Ctx Type Token Type Word }
+    true over word-body-is-checking!
     dip(
         dip(ab-build!(f)) over
         arrow-cod? swap arrow-token-end@
@@ -234,12 +235,18 @@ ab-optimized-snoc! = (
         id
     )
 
-    atom-is-coercion? if(
-        atom-cod@ ab-type!,
     atom-has-inlinable-block-args? if(
         atom-inline-block-args,
-        snoc
-    ))
+        id
+    )
+
+    atom-is-coercion? if(
+        OP_NONE over atom-op!
+        L0 over atom-args!,
+        id
+    )
+
+    snoc
 )
 
 atom-has-inlinable-block-args? : Atom -- Atom Bool
@@ -262,7 +269,7 @@ atom-has-inlinable-block-args? =
         false
     )
 
-atom-inline-block-args : List(Atom) Atom -- List(Atom)
+atom-inline-block-args : Atom -- Atom
 atom-inline-block-args = (
     atom-op? match(
         OP_WORD ->
@@ -275,7 +282,6 @@ atom-inline-block-args = (
             ),
         _ -> drop
     )
-    snoc
 )
 
 args-to-blocks : List(Arg) -- List(Block)
@@ -286,21 +292,25 @@ args-to-blocks = map(
     )
 )
 
+atom-is-nop? : Atom -- Atom Bool
+atom-is-nop? = atom-op? match(OP_NONE -> true, _ -> drop false)
+
 atom-is-coercion? : Atom -- Atom Bool
 atom-is-coercion? =
     atom-args? is-nil if(
         atom-op? match(
+            OP_NONE -> true,
             OP_PRIM -> dup PRIM_VALUE_CAST == swap PRIM_CORE_ID == ||,
             OP_TAG -> tag-is-transparent? nip,
             OP_MATCH ->
                 match-is-transparent? if(
-                    match-cases@ all(case-body? arrow-atoms@ is-nil),
+                    match-cases@ all(case-body? arrow-atoms@ all(atom-is-nop?)),
                     drop false
                 ),
             OP_WORD ->
                 try-elab-word-body! match(
                     NONE -> false,
-                    SOME -> arrow-atoms@ is-nil
+                    SOME -> arrow-atoms@ all(atom-is-nop?)
                 ),
             _ -> drop false
         ),
@@ -609,14 +619,14 @@ def(elab-word-body!, Word -- Arrow +Elab,
     word-body-is-checked? if(
         word-arrow@,
 
-    word-body? is-nil if(
-        word-sig@ token-prev token-prev # not very good :-/
-        "Missing word definition."
-        emit-fatal-error!,
-
     word-body-is-checking? if(
         word-sig@ token-prev token-prev
         "compiler error: elab-word-body! called on word already checking"
+        emit-fatal-error!,
+
+    word-body? is-nil if(
+        word-sig@ token-prev token-prev # not very good :-/
+        "Missing word definition."
         emit-fatal-error!,
 
         true over word-body-is-checking!

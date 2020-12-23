@@ -1651,12 +1651,16 @@ def(c99-emit-word-sigs!, +IO,
     Word.for(c99-emit-word-sig!) .lf)
 
 def(c99-emit-word-sig!, Word -- +IO,
+    false over c99-word-needed!
+    false over c99-word-emitted!
     " static void mw" . word-name@ .name " (void);" ;)
 
 def(c99-emit-block-sigs!, +IO,
     Block.for(c99-emit-block-sig!) .lf)
 
 def(c99-emit-block-sig!, Block -- +IO,
+    false over block-needed!
+    false over c99-block-emitted!
     " static void " . .block " (void);" ;)
 
 def(c99-emit-block-defs!, +IO,
