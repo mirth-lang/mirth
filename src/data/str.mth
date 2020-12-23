@@ -70,8 +70,8 @@ str-copy! = (
 )
 
 STR_BUF_SIZE : Int
-STR_BUF_SIZE = 0x1000
-buffer(STR_BUF, 0x1000)
+STR_BUF_SIZE = 0x2000
+buffer(STR_BUF, 0x2000)
 buffer(STR_BUF_LEN, 8)
 
 build-str! : *a [ *a -- *b ] -- *b Str
@@ -115,12 +115,13 @@ str-buf-clear! : +StrBuf
 str-buf-clear! = 0 str-buf-length!
 
 str-buf-push-u8! : U8 -- +StrBuf
-str-buf-push-u8! =
-    str-buf-full? if(
-        "str-buf-push! but STR_BUF is already full" panic!,
+str-buf-push-u8! = (
+    # str-buf-full? not if(
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
-    )
+    #     "str-buf-push! but STR_BUF is already full" panic!
+    # )
+)
 
 # TODO: UTF8 support
 str-buf-push-char! : Char -- +StrBuf
