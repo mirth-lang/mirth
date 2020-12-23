@@ -251,35 +251,51 @@ def(c99-emit-prims!, +IO,
     # "    }" ;
     # "}" ;;
 
-    "static void decref (value_t v) { " ;
-    "    usize cell_index;" ;
-    "    while ((cell_index = get_cell_index(v))) {" ;
-    "        cell_t *cell = heap + cell_index;" ;
-    "        if (cell->refs >= 1) {" ;
-    "            cell->refs--;" ;
-    "            if (cell->refs == 0) {" ;
-    "                value_t car = cell->car;" ;
-    "                value_t cdr = cell->cdr;" ;
-    "                bool freecdr = cell->freecdr;" ;
-    "                cell->freecdr = false;" ;
-    "                cell->car.tag = 0; cell->car.payload.vp_u64 = 0;" ;
-    "                cell->cdr.tag = 0; cell->cdr.payload.vp_u64 = heap_next;" ;
-    "                heap_next = cell_index;" ;
-    "                heap_count--;" ;
-    "                if (freecdr && cell->cdr.tag == VT_U64) {" ;
-    "                    free(cdr.payload.vp_ptr);" ;
-    "                } else {" ;
-    "                    decref(cdr);" ;
-    "                }" ;
-    "                v = car;" ;
-    "            } else {" ;
-    "                break;" ;
-    "            }" ;
-    "        } else {" ;
-    "            break;" ;
-    "        }" ;
-    "    }" ;
+    "#define decref(v) do{ value_t w = (v); usize i = get_cell_index(w); if(i) { if(heap[i].refs) { heap[i].refs--; if (heap[i].refs == 0) heap_free(i); } }} while(0)" ;;
+
+    "static void heap_free(usize i) {" ;
+    "    cell_t *cell = heap + i;" ;
+    "    cell_t contents = *cell;" ;
+    "    memset(cell, 0, sizeof(cell_t));" ;
+    "    cell->cdr.payload.vp_u64 = heap_next;" ;
+    "    heap_next = i;" ;
+    "    heap_count--;" ;
+    "    if (contents.freecdr) { free(contents.cdr.payload.vp_ptr); }" ;
+    "    else { decref(contents.cdr); }" ;
+    "    decref(contents.car);" ;
     "}" ;;
+
+#     "static void decref (value_t v) { " ;
+#     "    usize cell_index;" ;
+#     "    while ((cell_index = get_cell_index(v))) {" ;
+#     "        cell_t *cell = heap + cell_index;" ;
+#     "        if (cell->refs >= 1) {" ;
+#     "            cell->refs--; break;" ;
+# #     "            if (cell->refs == 0) {" ;
+# #     "                value_t car = cell->car;" ;
+# #     "                value_t cdr = cell->cdr;" ;
+# #     "                bool freecdr = cell->freecdr;" ;
+# #     "                cell->freecdr = false;" ;
+# #     "                cell->car.tag = 0; cell->car.payload.vp_u64 = 0;" ;
+# #     "                cell->cdr.tag = 0; cell->cdr.payload.vp_u64 = heap_next;" ;
+# #     "                heap_next = cell_index;" ;
+# #     "                heap_count--;" ;
+# #     "                if (freecdr && cell->cdr.tag == VT_U64) {" ;
+# #     "                    free(cdr.payload.vp_ptr);" ;
+# #     "                } else {" ;
+# # #    "                    decref(cdr);" ;
+# #     "                }" ;
+# # #    "                v = car;" ;
+# #     "                break;" ;
+
+#     # "            } else {" ;
+#     # "                break;" ;
+#     # "            }" ;
+#     "        } else {" ;
+#     "            break;" ;
+#     "        }" ;
+#     "    }" ;
+#     "}" ;;
 
     ||| Decrement reference after a cons. This is equivalent to:
     |||     incref(car), incref(cdr), decref(cell)
