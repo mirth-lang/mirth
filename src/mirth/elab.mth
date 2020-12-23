@@ -308,21 +308,63 @@ ab-optimized-snoc-drop! =
                 OP_STR -> drop2 dip(drop2),
                 OP_BLOCK -> drop2 dip(drop2),
                 OP_PRIM -> match(
+                    PRIM_CORE_DIP -> ab-optimized-snoc-dip-drop!,
                     PRIM_CORE_DUP -> drop dip(drop2),
+                    PRIM_VALUE_GET -> drop swap ab-optimized-snoc-drop! nip,
+                    PRIM_PTR_GET -> drop swap ab-optimized-snoc-drop! nip,
+                    PRIM_INT_GET -> drop swap ab-optimized-snoc-drop! nip,
+                    PRIM_U8_GET -> drop swap ab-optimized-snoc-drop! nip,
+                    PRIM_U16_GET -> drop swap ab-optimized-snoc-drop! nip,
+                    PRIM_U32_GET -> drop swap ab-optimized-snoc-drop! nip,
+                    PRIM_U64_GET -> drop swap ab-optimized-snoc-drop! nip,
+                    PRIM_I8_GET -> drop swap ab-optimized-snoc-drop! nip,
+                    PRIM_I16_GET -> drop swap ab-optimized-snoc-drop! nip,
+                    PRIM_I32_GET -> drop swap ab-optimized-snoc-drop! nip,
+                    PRIM_I64_GET -> drop swap ab-optimized-snoc-drop! nip,
+                    PRIM_INT_ADD -> drop over ab-optimized-snoc-drop! swap ab-optimized-snoc-drop! nip,
+                    PRIM_INT_SUB -> drop over ab-optimized-snoc-drop! swap ab-optimized-snoc-drop! nip,
+                    PRIM_INT_MUL -> drop over ab-optimized-snoc-drop! swap ab-optimized-snoc-drop! nip,
+                    PRIM_INT_DIV -> drop over ab-optimized-snoc-drop! swap ab-optimized-snoc-drop! nip,
+                    PRIM_INT_MOD -> drop over ab-optimized-snoc-drop! swap ab-optimized-snoc-drop! nip,
+                    PRIM_INT_AND -> drop over ab-optimized-snoc-drop! swap ab-optimized-snoc-drop! nip,
+                    PRIM_INT_OR -> drop over ab-optimized-snoc-drop! swap ab-optimized-snoc-drop! nip,
+                    PRIM_INT_XOR -> drop over ab-optimized-snoc-drop! swap ab-optimized-snoc-drop! nip,
+                    PRIM_INT_SHL -> drop over ab-optimized-snoc-drop! swap ab-optimized-snoc-drop! nip,
+                    PRIM_INT_SHR -> drop over ab-optimized-snoc-drop! swap ab-optimized-snoc-drop! nip,
                     _ -> drop3 snoc
                 ),
                 _ -> drop3 snoc
             ),
     )
 
+ab-optimized-snoc-dip-drop! : List(Atom) Atom List(Atom) Atom -- List(Atom)
+ab-optimized-snoc-dip-drop! =
+    atom-args? match(
+        L1 -> dip(drop swap ab-optimized-snoc!) match(
+            ARG_BLOCK -> block-arrow@ arrow-atoms@ for(ab-optimized-snoc!),
+            ARG_VAR_RUN -> OP_VAR Atom.alloc! tuck atom-op! snoc,
+        ) nip,
+        _ -> drop3 snoc
+    )
 
 ab-optimized-snoc-dup! : List(Atom) Atom -- List(Atom)
 ab-optimized-snoc-dup! = snoc # TODO
 
 ab-optimized-snoc-dip! : List(Atom) Atom Arg -- List(Atom)
 ab-optimized-snoc-dip! = drop snoc # TODO
-
-
+    # dip(over) swap List->List+ match(
+    #     NONE -> drop snoc,
+    #     SOME ->
+    #         unsnoc atom-op? match(
+    #             OP_PRIM -> match(
+    #                 PRIM_CORE_DIP ->
+    #                     ab-optimized-snoc-merge-dips!,
+    #                 _ ->
+    #                     drop3
+    #             ),
+    #             _ -> drop
+    #         )
+    # )
 
 INLINE_WEIGHT_LIMIT : Int
 INLINE_WEIGHT_LIMIT = 1
