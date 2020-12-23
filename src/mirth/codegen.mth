@@ -205,8 +205,8 @@ def(c99-emit-buffers!, +IO,
     Buffer.for(c99-emit-buffer!) .lf)
 
 def(c99-emit-buffer!, Buffer -- +IO,
-    " static u8 b" . buffer-name? .name "[" . buffer-size? .n "] = {0};" ;
-    " static void mw" . buffer-name? .name " (void) { push_ptr((void*)b" . buffer-name@ .name "); }" ;)
+    "static u8 b" . buffer-name? .name "[" . buffer-size? .n "] = {0};" ;
+    "#define mw" . buffer-name? .name "() push_ptr((void*)b" . buffer-name@ .name ")" ;)
 
 def(c99-emit-tags!, +IO,
     Tag.for(c99-emit-tag!) .lf)

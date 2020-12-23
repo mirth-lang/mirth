@@ -1336,510 +1336,510 @@ static void mwOPSIG_APPLY (void) {
 #define mwPRIM_SYNTAX_DATA() push_u64(81)
 #define mwPRIM_SYNTAX_END() push_u64(82)
 
- static u8 bSTR_BUF[4096] = {0};
- static void mwSTR_BUF (void) { push_ptr((void*)bSTR_BUF); }
- static u8 bSTR_BUF_LEN[8] = {0};
- static void mwSTR_BUF_LEN (void) { push_ptr((void*)bSTR_BUF_LEN); }
- static u8 bSOURCE_PATH_ROOT[8] = {0};
- static void mwSOURCE_PATH_ROOT (void) { push_ptr((void*)bSOURCE_PATH_ROOT); }
- static u8 bOUTPUT_PATH_ROOT[8] = {0};
- static void mwOUTPUT_PATH_ROOT (void) { push_ptr((void*)bOUTPUT_PATH_ROOT); }
- static u8 bHEAP_LENGTH[8] = {0};
- static void mwHEAP_LENGTH (void) { push_ptr((void*)bHEAP_LENGTH); }
- static u8 bHEAP_BASE[8] = {0};
- static void mwHEAP_BASE (void) { push_ptr((void*)bHEAP_BASE); }
- static u8 bHEAP_TIMES_EXPANDED[8] = {0};
- static void mwHEAP_TIMES_EXPANDED (void) { push_ptr((void*)bHEAP_TIMES_EXPANDED); }
- static u8 bINPUT_ISOPEN[8] = {0};
- static void mwINPUT_ISOPEN (void) { push_ptr((void*)bINPUT_ISOPEN); }
- static u8 bINPUT_LENGTH[8] = {0};
- static void mwINPUT_LENGTH (void) { push_ptr((void*)bINPUT_LENGTH); }
- static u8 bINPUT_OFFSET[8] = {0};
- static void mwINPUT_OFFSET (void) { push_ptr((void*)bINPUT_OFFSET); }
- static u8 bINPUT_HANDLE[8] = {0};
- static void mwINPUT_HANDLE (void) { push_ptr((void*)bINPUT_HANDLE); }
- static u8 bINPUT_BUFFER[2048] = {0};
- static void mwINPUT_BUFFER (void) { push_ptr((void*)bINPUT_BUFFER); }
- static u8 bName_2E_NUM[8] = {0};
- static void mwName_2E_NUM (void) { push_ptr((void*)bName_2E_NUM); }
- static u8 bname_str_buffer_size[16] = {0};
- static void mwname_str_buffer_size (void) { push_ptr((void*)bname_str_buffer_size); }
- static u8 bname_str_buffer_ptr[16] = {0};
- static void mwname_str_buffer_ptr (void) { push_ptr((void*)bname_str_buffer_ptr); }
- static u8 bname_value_buffer_size[16] = {0};
- static void mwname_value_buffer_size (void) { push_ptr((void*)bname_value_buffer_size); }
- static u8 bname_value_buffer_ptr[16] = {0};
- static void mwname_value_buffer_ptr (void) { push_ptr((void*)bname_value_buffer_ptr); }
- static u8 bname_mangle_cached_buffer_size[16] = {0};
- static void mwname_mangle_cached_buffer_size (void) { push_ptr((void*)bname_mangle_cached_buffer_size); }
- static u8 bname_mangle_cached_buffer_ptr[16] = {0};
- static void mwname_mangle_cached_buffer_ptr (void) { push_ptr((void*)bname_mangle_cached_buffer_ptr); }
- static u8 bHash_2E_NUM[8] = {0};
- static void mwHash_2E_NUM (void) { push_ptr((void*)bHash_2E_NUM); }
- static u8 bhash_name_buffer_size[16] = {0};
- static void mwhash_name_buffer_size (void) { push_ptr((void*)bhash_name_buffer_size); }
- static u8 bhash_name_buffer_ptr[16] = {0};
- static void mwhash_name_buffer_ptr (void) { push_ptr((void*)bhash_name_buffer_ptr); }
- static u8 bModule_2E_NUM[8] = {0};
- static void mwModule_2E_NUM (void) { push_ptr((void*)bModule_2E_NUM); }
- static u8 bToken_2E_NUM[8] = {0};
- static void mwToken_2E_NUM (void) { push_ptr((void*)bToken_2E_NUM); }
- static u8 bmodule_name_buffer_size[16] = {0};
- static void mwmodule_name_buffer_size (void) { push_ptr((void*)bmodule_name_buffer_size); }
- static u8 bmodule_name_buffer_ptr[16] = {0};
- static void mwmodule_name_buffer_ptr (void) { push_ptr((void*)bmodule_name_buffer_ptr); }
- static u8 bmodule_path_buffer_size[16] = {0};
- static void mwmodule_path_buffer_size (void) { push_ptr((void*)bmodule_path_buffer_size); }
- static u8 bmodule_path_buffer_ptr[16] = {0};
- static void mwmodule_path_buffer_ptr (void) { push_ptr((void*)bmodule_path_buffer_ptr); }
- static u8 bmodule_start_buffer_size[16] = {0};
- static void mwmodule_start_buffer_size (void) { push_ptr((void*)bmodule_start_buffer_size); }
- static u8 bmodule_start_buffer_ptr[16] = {0};
- static void mwmodule_start_buffer_ptr (void) { push_ptr((void*)bmodule_start_buffer_ptr); }
- static u8 bmodule_end_buffer_size[16] = {0};
- static void mwmodule_end_buffer_size (void) { push_ptr((void*)bmodule_end_buffer_size); }
- static u8 bmodule_end_buffer_ptr[16] = {0};
- static void mwmodule_end_buffer_ptr (void) { push_ptr((void*)bmodule_end_buffer_ptr); }
- static u8 bmodule_imports_buffer_size[16] = {0};
- static void mwmodule_imports_buffer_size (void) { push_ptr((void*)bmodule_imports_buffer_size); }
- static u8 bmodule_imports_buffer_ptr[16] = {0};
- static void mwmodule_imports_buffer_ptr (void) { push_ptr((void*)bmodule_imports_buffer_ptr); }
- static u8 bnum_warnings[8] = {0};
- static void mwnum_warnings (void) { push_ptr((void*)bnum_warnings); }
- static u8 bnum_errors[8] = {0};
- static void mwnum_errors (void) { push_ptr((void*)bnum_errors); }
- static u8 btoken_value_buffer_size[16] = {0};
- static void mwtoken_value_buffer_size (void) { push_ptr((void*)btoken_value_buffer_size); }
- static u8 btoken_value_buffer_ptr[16] = {0};
- static void mwtoken_value_buffer_ptr (void) { push_ptr((void*)btoken_value_buffer_ptr); }
- static u8 btoken_module_buffer_size[16] = {0};
- static void mwtoken_module_buffer_size (void) { push_ptr((void*)btoken_module_buffer_size); }
- static u8 btoken_module_buffer_ptr[16] = {0};
- static void mwtoken_module_buffer_ptr (void) { push_ptr((void*)btoken_module_buffer_ptr); }
- static u8 btoken_row_buffer_size[16] = {0};
- static void mwtoken_row_buffer_size (void) { push_ptr((void*)btoken_row_buffer_size); }
- static u8 btoken_row_buffer_ptr[16] = {0};
- static void mwtoken_row_buffer_ptr (void) { push_ptr((void*)btoken_row_buffer_ptr); }
- static u8 btoken_col_buffer_size[16] = {0};
- static void mwtoken_col_buffer_size (void) { push_ptr((void*)btoken_col_buffer_size); }
- static u8 btoken_col_buffer_ptr[16] = {0};
- static void mwtoken_col_buffer_ptr (void) { push_ptr((void*)btoken_col_buffer_ptr); }
- static u8 bLEXER_MODULE[16] = {0};
- static void mwLEXER_MODULE (void) { push_ptr((void*)bLEXER_MODULE); }
- static u8 bLEXER_ROW[16] = {0};
- static void mwLEXER_ROW (void) { push_ptr((void*)bLEXER_ROW); }
- static u8 bLEXER_COL[16] = {0};
- static void mwLEXER_COL (void) { push_ptr((void*)bLEXER_COL); }
- static u8 bLEXER_STACK_LENGTH[16] = {0};
- static void mwLEXER_STACK_LENGTH (void) { push_ptr((void*)bLEXER_STACK_LENGTH); }
- static u8 bLEXER_STACK_BUF[8192] = {0};
- static void mwLEXER_STACK_BUF (void) { push_ptr((void*)bLEXER_STACK_BUF); }
- static u8 bBuffer_2E_NUM[8] = {0};
- static void mwBuffer_2E_NUM (void) { push_ptr((void*)bBuffer_2E_NUM); }
- static u8 bbuffer_size_buffer_size[16] = {0};
- static void mwbuffer_size_buffer_size (void) { push_ptr((void*)bbuffer_size_buffer_size); }
- static u8 bbuffer_size_buffer_ptr[16] = {0};
- static void mwbuffer_size_buffer_ptr (void) { push_ptr((void*)bbuffer_size_buffer_ptr); }
- static u8 bbuffer_name_buffer_size[16] = {0};
- static void mwbuffer_name_buffer_size (void) { push_ptr((void*)bbuffer_name_buffer_size); }
- static u8 bbuffer_name_buffer_ptr[16] = {0};
- static void mwbuffer_name_buffer_ptr (void) { push_ptr((void*)bbuffer_name_buffer_ptr); }
- static u8 bMetaVar_2E_NUM[8] = {0};
- static void mwMetaVar_2E_NUM (void) { push_ptr((void*)bMetaVar_2E_NUM); }
- static u8 bData_2E_NUM[8] = {0};
- static void mwData_2E_NUM (void) { push_ptr((void*)bData_2E_NUM); }
- static u8 bTag_2E_NUM[8] = {0};
- static void mwTag_2E_NUM (void) { push_ptr((void*)bTag_2E_NUM); }
- static u8 bmeta_is_defined_buffer_size[16] = {0};
- static void mwmeta_is_defined_buffer_size (void) { push_ptr((void*)bmeta_is_defined_buffer_size); }
- static u8 bmeta_is_defined_buffer_ptr[16] = {0};
- static void mwmeta_is_defined_buffer_ptr (void) { push_ptr((void*)bmeta_is_defined_buffer_ptr); }
- static u8 bmeta_type_raw_buffer_size[16] = {0};
- static void mwmeta_type_raw_buffer_size (void) { push_ptr((void*)bmeta_type_raw_buffer_size); }
- static u8 bmeta_type_raw_buffer_ptr[16] = {0};
- static void mwmeta_type_raw_buffer_ptr (void) { push_ptr((void*)bmeta_type_raw_buffer_ptr); }
- static u8 bdata_header_buffer_size[16] = {0};
- static void mwdata_header_buffer_size (void) { push_ptr((void*)bdata_header_buffer_size); }
- static u8 bdata_header_buffer_ptr[16] = {0};
- static void mwdata_header_buffer_ptr (void) { push_ptr((void*)bdata_header_buffer_ptr); }
- static u8 bdata_name_buffer_size[16] = {0};
- static void mwdata_name_buffer_size (void) { push_ptr((void*)bdata_name_buffer_size); }
- static u8 bdata_name_buffer_ptr[16] = {0};
- static void mwdata_name_buffer_ptr (void) { push_ptr((void*)bdata_name_buffer_ptr); }
- static u8 bdata_arity_buffer_size[16] = {0};
- static void mwdata_arity_buffer_size (void) { push_ptr((void*)bdata_arity_buffer_size); }
- static u8 bdata_arity_buffer_ptr[16] = {0};
- static void mwdata_arity_buffer_ptr (void) { push_ptr((void*)bdata_arity_buffer_ptr); }
- static u8 bdata_tags_buffer_size[16] = {0};
- static void mwdata_tags_buffer_size (void) { push_ptr((void*)bdata_tags_buffer_size); }
- static u8 bdata_tags_buffer_ptr[16] = {0};
- static void mwdata_tags_buffer_ptr (void) { push_ptr((void*)bdata_tags_buffer_ptr); }
- static u8 btag_data_buffer_size[16] = {0};
- static void mwtag_data_buffer_size (void) { push_ptr((void*)btag_data_buffer_size); }
- static u8 btag_data_buffer_ptr[16] = {0};
- static void mwtag_data_buffer_ptr (void) { push_ptr((void*)btag_data_buffer_ptr); }
- static u8 btag_name_buffer_size[16] = {0};
- static void mwtag_name_buffer_size (void) { push_ptr((void*)btag_name_buffer_size); }
- static u8 btag_name_buffer_ptr[16] = {0};
- static void mwtag_name_buffer_ptr (void) { push_ptr((void*)btag_name_buffer_ptr); }
- static u8 btag_value_buffer_size[16] = {0};
- static void mwtag_value_buffer_size (void) { push_ptr((void*)btag_value_buffer_size); }
- static u8 btag_value_buffer_ptr[16] = {0};
- static void mwtag_value_buffer_ptr (void) { push_ptr((void*)btag_value_buffer_ptr); }
- static u8 btag_sig_buffer_size[16] = {0};
- static void mwtag_sig_buffer_size (void) { push_ptr((void*)btag_sig_buffer_size); }
- static u8 btag_sig_buffer_ptr[16] = {0};
- static void mwtag_sig_buffer_ptr (void) { push_ptr((void*)btag_sig_buffer_ptr); }
- static u8 btag_has_sig_buffer_size[16] = {0};
- static void mwtag_has_sig_buffer_size (void) { push_ptr((void*)btag_has_sig_buffer_size); }
- static u8 btag_has_sig_buffer_ptr[16] = {0};
- static void mwtag_has_sig_buffer_ptr (void) { push_ptr((void*)btag_has_sig_buffer_ptr); }
- static u8 btag_sig_is_checked_buffer_size[16] = {0};
- static void mwtag_sig_is_checked_buffer_size (void) { push_ptr((void*)btag_sig_is_checked_buffer_size); }
- static u8 btag_sig_is_checked_buffer_ptr[16] = {0};
- static void mwtag_sig_is_checked_buffer_ptr (void) { push_ptr((void*)btag_sig_is_checked_buffer_ptr); }
- static u8 btag_ctx_buffer_size[16] = {0};
- static void mwtag_ctx_buffer_size (void) { push_ptr((void*)btag_ctx_buffer_size); }
- static u8 btag_ctx_buffer_ptr[16] = {0};
- static void mwtag_ctx_buffer_ptr (void) { push_ptr((void*)btag_ctx_buffer_ptr); }
- static u8 btag_type_raw_buffer_size[16] = {0};
- static void mwtag_type_raw_buffer_size (void) { push_ptr((void*)btag_type_raw_buffer_size); }
- static u8 btag_type_raw_buffer_ptr[16] = {0};
- static void mwtag_type_raw_buffer_ptr (void) { push_ptr((void*)btag_type_raw_buffer_ptr); }
- static u8 bAtom_2E_NUM[8] = {0};
- static void mwAtom_2E_NUM (void) { push_ptr((void*)bAtom_2E_NUM); }
- static u8 bArrow_2E_NUM[8] = {0};
- static void mwArrow_2E_NUM (void) { push_ptr((void*)bArrow_2E_NUM); }
- static u8 bLambda_2E_NUM[8] = {0};
- static void mwLambda_2E_NUM (void) { push_ptr((void*)bLambda_2E_NUM); }
- static u8 bBlock_2E_NUM[8] = {0};
- static void mwBlock_2E_NUM (void) { push_ptr((void*)bBlock_2E_NUM); }
- static u8 barrow_token_start_buffer_size[16] = {0};
- static void mwarrow_token_start_buffer_size (void) { push_ptr((void*)barrow_token_start_buffer_size); }
- static u8 barrow_token_start_buffer_ptr[16] = {0};
- static void mwarrow_token_start_buffer_ptr (void) { push_ptr((void*)barrow_token_start_buffer_ptr); }
- static u8 barrow_token_end_buffer_size[16] = {0};
- static void mwarrow_token_end_buffer_size (void) { push_ptr((void*)barrow_token_end_buffer_size); }
- static u8 barrow_token_end_buffer_ptr[16] = {0};
- static void mwarrow_token_end_buffer_ptr (void) { push_ptr((void*)barrow_token_end_buffer_ptr); }
- static u8 barrow_ctx_buffer_size[16] = {0};
- static void mwarrow_ctx_buffer_size (void) { push_ptr((void*)barrow_ctx_buffer_size); }
- static u8 barrow_ctx_buffer_ptr[16] = {0};
- static void mwarrow_ctx_buffer_ptr (void) { push_ptr((void*)barrow_ctx_buffer_ptr); }
- static u8 barrow_dom_buffer_size[16] = {0};
- static void mwarrow_dom_buffer_size (void) { push_ptr((void*)barrow_dom_buffer_size); }
- static u8 barrow_dom_buffer_ptr[16] = {0};
- static void mwarrow_dom_buffer_ptr (void) { push_ptr((void*)barrow_dom_buffer_ptr); }
- static u8 barrow_cod_buffer_size[16] = {0};
- static void mwarrow_cod_buffer_size (void) { push_ptr((void*)barrow_cod_buffer_size); }
- static u8 barrow_cod_buffer_ptr[16] = {0};
- static void mwarrow_cod_buffer_ptr (void) { push_ptr((void*)barrow_cod_buffer_ptr); }
- static u8 barrow_atoms_buffer_size[16] = {0};
- static void mwarrow_atoms_buffer_size (void) { push_ptr((void*)barrow_atoms_buffer_size); }
- static u8 barrow_atoms_buffer_ptr[16] = {0};
- static void mwarrow_atoms_buffer_ptr (void) { push_ptr((void*)barrow_atoms_buffer_ptr); }
- static u8 batom_token_buffer_size[16] = {0};
- static void mwatom_token_buffer_size (void) { push_ptr((void*)batom_token_buffer_size); }
- static u8 batom_token_buffer_ptr[16] = {0};
- static void mwatom_token_buffer_ptr (void) { push_ptr((void*)batom_token_buffer_ptr); }
- static u8 batom_ctx_buffer_size[16] = {0};
- static void mwatom_ctx_buffer_size (void) { push_ptr((void*)batom_ctx_buffer_size); }
- static u8 batom_ctx_buffer_ptr[16] = {0};
- static void mwatom_ctx_buffer_ptr (void) { push_ptr((void*)batom_ctx_buffer_ptr); }
- static u8 batom_op_buffer_size[16] = {0};
- static void mwatom_op_buffer_size (void) { push_ptr((void*)batom_op_buffer_size); }
- static u8 batom_op_buffer_ptr[16] = {0};
- static void mwatom_op_buffer_ptr (void) { push_ptr((void*)batom_op_buffer_ptr); }
- static u8 batom_args_buffer_size[16] = {0};
- static void mwatom_args_buffer_size (void) { push_ptr((void*)batom_args_buffer_size); }
- static u8 batom_args_buffer_ptr[16] = {0};
- static void mwatom_args_buffer_ptr (void) { push_ptr((void*)batom_args_buffer_ptr); }
- static u8 batom_dom_buffer_size[16] = {0};
- static void mwatom_dom_buffer_size (void) { push_ptr((void*)batom_dom_buffer_size); }
- static u8 batom_dom_buffer_ptr[16] = {0};
- static void mwatom_dom_buffer_ptr (void) { push_ptr((void*)batom_dom_buffer_ptr); }
- static u8 batom_cod_buffer_size[16] = {0};
- static void mwatom_cod_buffer_size (void) { push_ptr((void*)batom_cod_buffer_size); }
- static u8 batom_cod_buffer_ptr[16] = {0};
- static void mwatom_cod_buffer_ptr (void) { push_ptr((void*)batom_cod_buffer_ptr); }
- static u8 batom_subst_buffer_size[16] = {0};
- static void mwatom_subst_buffer_size (void) { push_ptr((void*)batom_subst_buffer_size); }
- static u8 batom_subst_buffer_ptr[16] = {0};
- static void mwatom_subst_buffer_ptr (void) { push_ptr((void*)batom_subst_buffer_ptr); }
- static u8 blambda_token_buffer_size[16] = {0};
- static void mwlambda_token_buffer_size (void) { push_ptr((void*)blambda_token_buffer_size); }
- static u8 blambda_token_buffer_ptr[16] = {0};
- static void mwlambda_token_buffer_ptr (void) { push_ptr((void*)blambda_token_buffer_ptr); }
- static u8 blambda_outer_ctx_buffer_size[16] = {0};
- static void mwlambda_outer_ctx_buffer_size (void) { push_ptr((void*)blambda_outer_ctx_buffer_size); }
- static u8 blambda_outer_ctx_buffer_ptr[16] = {0};
- static void mwlambda_outer_ctx_buffer_ptr (void) { push_ptr((void*)blambda_outer_ctx_buffer_ptr); }
- static u8 blambda_inner_ctx_buffer_size[16] = {0};
- static void mwlambda_inner_ctx_buffer_size (void) { push_ptr((void*)blambda_inner_ctx_buffer_size); }
- static u8 blambda_inner_ctx_buffer_ptr[16] = {0};
- static void mwlambda_inner_ctx_buffer_ptr (void) { push_ptr((void*)blambda_inner_ctx_buffer_ptr); }
- static u8 blambda_dom_buffer_size[16] = {0};
- static void mwlambda_dom_buffer_size (void) { push_ptr((void*)blambda_dom_buffer_size); }
- static u8 blambda_dom_buffer_ptr[16] = {0};
- static void mwlambda_dom_buffer_ptr (void) { push_ptr((void*)blambda_dom_buffer_ptr); }
- static u8 blambda_mid_buffer_size[16] = {0};
- static void mwlambda_mid_buffer_size (void) { push_ptr((void*)blambda_mid_buffer_size); }
- static u8 blambda_mid_buffer_ptr[16] = {0};
- static void mwlambda_mid_buffer_ptr (void) { push_ptr((void*)blambda_mid_buffer_ptr); }
- static u8 blambda_cod_buffer_size[16] = {0};
- static void mwlambda_cod_buffer_size (void) { push_ptr((void*)blambda_cod_buffer_size); }
- static u8 blambda_cod_buffer_ptr[16] = {0};
- static void mwlambda_cod_buffer_ptr (void) { push_ptr((void*)blambda_cod_buffer_ptr); }
- static u8 blambda_params_buffer_size[16] = {0};
- static void mwlambda_params_buffer_size (void) { push_ptr((void*)blambda_params_buffer_size); }
- static u8 blambda_params_buffer_ptr[16] = {0};
- static void mwlambda_params_buffer_ptr (void) { push_ptr((void*)blambda_params_buffer_ptr); }
- static u8 blambda_body_buffer_size[16] = {0};
- static void mwlambda_body_buffer_size (void) { push_ptr((void*)blambda_body_buffer_size); }
- static u8 blambda_body_buffer_ptr[16] = {0};
- static void mwlambda_body_buffer_ptr (void) { push_ptr((void*)blambda_body_buffer_ptr); }
- static u8 bblock_deferred_buffer_size[16] = {0};
- static void mwblock_deferred_buffer_size (void) { push_ptr((void*)bblock_deferred_buffer_size); }
- static u8 bblock_deferred_buffer_ptr[16] = {0};
- static void mwblock_deferred_buffer_ptr (void) { push_ptr((void*)bblock_deferred_buffer_ptr); }
- static u8 bblock_forcing_buffer_size[16] = {0};
- static void mwblock_forcing_buffer_size (void) { push_ptr((void*)bblock_forcing_buffer_size); }
- static u8 bblock_forcing_buffer_ptr[16] = {0};
- static void mwblock_forcing_buffer_ptr (void) { push_ptr((void*)bblock_forcing_buffer_ptr); }
- static u8 bblock_ctx_buffer_size[16] = {0};
- static void mwblock_ctx_buffer_size (void) { push_ptr((void*)bblock_ctx_buffer_size); }
- static u8 bblock_ctx_buffer_ptr[16] = {0};
- static void mwblock_ctx_buffer_ptr (void) { push_ptr((void*)bblock_ctx_buffer_ptr); }
- static u8 bblock_token_buffer_size[16] = {0};
- static void mwblock_token_buffer_size (void) { push_ptr((void*)bblock_token_buffer_size); }
- static u8 bblock_token_buffer_ptr[16] = {0};
- static void mwblock_token_buffer_ptr (void) { push_ptr((void*)bblock_token_buffer_ptr); }
- static u8 bblock_arrow_raw_buffer_size[16] = {0};
- static void mwblock_arrow_raw_buffer_size (void) { push_ptr((void*)bblock_arrow_raw_buffer_size); }
- static u8 bblock_arrow_raw_buffer_ptr[16] = {0};
- static void mwblock_arrow_raw_buffer_ptr (void) { push_ptr((void*)bblock_arrow_raw_buffer_ptr); }
- static u8 bblock_needed_buffer_size[16] = {0};
- static void mwblock_needed_buffer_size (void) { push_ptr((void*)bblock_needed_buffer_size); }
- static u8 bblock_needed_buffer_ptr[16] = {0};
- static void mwblock_needed_buffer_ptr (void) { push_ptr((void*)bblock_needed_buffer_ptr); }
- static u8 bMatch_2E_NUM[8] = {0};
- static void mwMatch_2E_NUM (void) { push_ptr((void*)bMatch_2E_NUM); }
- static u8 bCase_2E_NUM[8] = {0};
- static void mwCase_2E_NUM (void) { push_ptr((void*)bCase_2E_NUM); }
- static u8 bmatch_ctx_buffer_size[16] = {0};
- static void mwmatch_ctx_buffer_size (void) { push_ptr((void*)bmatch_ctx_buffer_size); }
- static u8 bmatch_ctx_buffer_ptr[16] = {0};
- static void mwmatch_ctx_buffer_ptr (void) { push_ptr((void*)bmatch_ctx_buffer_ptr); }
- static u8 bmatch_dom_buffer_size[16] = {0};
- static void mwmatch_dom_buffer_size (void) { push_ptr((void*)bmatch_dom_buffer_size); }
- static u8 bmatch_dom_buffer_ptr[16] = {0};
- static void mwmatch_dom_buffer_ptr (void) { push_ptr((void*)bmatch_dom_buffer_ptr); }
- static u8 bmatch_cod_buffer_size[16] = {0};
- static void mwmatch_cod_buffer_size (void) { push_ptr((void*)bmatch_cod_buffer_size); }
- static u8 bmatch_cod_buffer_ptr[16] = {0};
- static void mwmatch_cod_buffer_ptr (void) { push_ptr((void*)bmatch_cod_buffer_ptr); }
- static u8 bmatch_token_buffer_size[16] = {0};
- static void mwmatch_token_buffer_size (void) { push_ptr((void*)bmatch_token_buffer_size); }
- static u8 bmatch_token_buffer_ptr[16] = {0};
- static void mwmatch_token_buffer_ptr (void) { push_ptr((void*)bmatch_token_buffer_ptr); }
- static u8 bmatch_cases_buffer_size[16] = {0};
- static void mwmatch_cases_buffer_size (void) { push_ptr((void*)bmatch_cases_buffer_size); }
- static u8 bmatch_cases_buffer_ptr[16] = {0};
- static void mwmatch_cases_buffer_ptr (void) { push_ptr((void*)bmatch_cases_buffer_ptr); }
- static u8 bcase_match_buffer_size[16] = {0};
- static void mwcase_match_buffer_size (void) { push_ptr((void*)bcase_match_buffer_size); }
- static u8 bcase_match_buffer_ptr[16] = {0};
- static void mwcase_match_buffer_ptr (void) { push_ptr((void*)bcase_match_buffer_ptr); }
- static u8 bcase_token_buffer_size[16] = {0};
- static void mwcase_token_buffer_size (void) { push_ptr((void*)bcase_token_buffer_size); }
- static u8 bcase_token_buffer_ptr[16] = {0};
- static void mwcase_token_buffer_ptr (void) { push_ptr((void*)bcase_token_buffer_ptr); }
- static u8 bcase_pattern_buffer_size[16] = {0};
- static void mwcase_pattern_buffer_size (void) { push_ptr((void*)bcase_pattern_buffer_size); }
- static u8 bcase_pattern_buffer_ptr[16] = {0};
- static void mwcase_pattern_buffer_ptr (void) { push_ptr((void*)bcase_pattern_buffer_ptr); }
- static u8 bcase_subst_buffer_size[16] = {0};
- static void mwcase_subst_buffer_size (void) { push_ptr((void*)bcase_subst_buffer_size); }
- static u8 bcase_subst_buffer_ptr[16] = {0};
- static void mwcase_subst_buffer_ptr (void) { push_ptr((void*)bcase_subst_buffer_ptr); }
- static u8 bcase_mid_buffer_size[16] = {0};
- static void mwcase_mid_buffer_size (void) { push_ptr((void*)bcase_mid_buffer_size); }
- static u8 bcase_mid_buffer_ptr[16] = {0};
- static void mwcase_mid_buffer_ptr (void) { push_ptr((void*)bcase_mid_buffer_ptr); }
- static u8 bcase_body_buffer_size[16] = {0};
- static void mwcase_body_buffer_size (void) { push_ptr((void*)bcase_body_buffer_size); }
- static u8 bcase_body_buffer_ptr[16] = {0};
- static void mwcase_body_buffer_ptr (void) { push_ptr((void*)bcase_body_buffer_ptr); }
- static u8 bVar_2E_NUM[8] = {0};
- static void mwVar_2E_NUM (void) { push_ptr((void*)bVar_2E_NUM); }
- static u8 bvar_is_implicit_buffer_size[16] = {0};
- static void mwvar_is_implicit_buffer_size (void) { push_ptr((void*)bvar_is_implicit_buffer_size); }
- static u8 bvar_is_implicit_buffer_ptr[16] = {0};
- static void mwvar_is_implicit_buffer_ptr (void) { push_ptr((void*)bvar_is_implicit_buffer_ptr); }
- static u8 bvar_name_buffer_size[16] = {0};
- static void mwvar_name_buffer_size (void) { push_ptr((void*)bvar_name_buffer_size); }
- static u8 bvar_name_buffer_ptr[16] = {0};
- static void mwvar_name_buffer_ptr (void) { push_ptr((void*)bvar_name_buffer_ptr); }
- static u8 bvar_type_buffer_size[16] = {0};
- static void mwvar_type_buffer_size (void) { push_ptr((void*)bvar_type_buffer_size); }
- static u8 bvar_type_buffer_ptr[16] = {0};
- static void mwvar_type_buffer_ptr (void) { push_ptr((void*)bvar_type_buffer_ptr); }
- static u8 bvar_auto_run_buffer_size[16] = {0};
- static void mwvar_auto_run_buffer_size (void) { push_ptr((void*)bvar_auto_run_buffer_size); }
- static u8 bvar_auto_run_buffer_ptr[16] = {0};
- static void mwvar_auto_run_buffer_ptr (void) { push_ptr((void*)bvar_auto_run_buffer_ptr); }
- static u8 bWord_2E_NUM[8] = {0};
- static void mwWord_2E_NUM (void) { push_ptr((void*)bWord_2E_NUM); }
- static u8 bword_name_buffer_size[16] = {0};
- static void mwword_name_buffer_size (void) { push_ptr((void*)bword_name_buffer_size); }
- static u8 bword_name_buffer_ptr[16] = {0};
- static void mwword_name_buffer_ptr (void) { push_ptr((void*)bword_name_buffer_ptr); }
- static u8 bword_sig_buffer_size[16] = {0};
- static void mwword_sig_buffer_size (void) { push_ptr((void*)bword_sig_buffer_size); }
- static u8 bword_sig_buffer_ptr[16] = {0};
- static void mwword_sig_buffer_ptr (void) { push_ptr((void*)bword_sig_buffer_ptr); }
- static u8 bword_body_buffer_size[16] = {0};
- static void mwword_body_buffer_size (void) { push_ptr((void*)bword_body_buffer_size); }
- static u8 bword_body_buffer_ptr[16] = {0};
- static void mwword_body_buffer_ptr (void) { push_ptr((void*)bword_body_buffer_ptr); }
- static u8 bword_ctx_buffer_size[16] = {0};
- static void mwword_ctx_buffer_size (void) { push_ptr((void*)bword_ctx_buffer_size); }
- static u8 bword_ctx_buffer_ptr[16] = {0};
- static void mwword_ctx_buffer_ptr (void) { push_ptr((void*)bword_ctx_buffer_ptr); }
- static u8 bword_type_buffer_size[16] = {0};
- static void mwword_type_buffer_size (void) { push_ptr((void*)bword_type_buffer_size); }
- static u8 bword_type_buffer_ptr[16] = {0};
- static void mwword_type_buffer_ptr (void) { push_ptr((void*)bword_type_buffer_ptr); }
- static u8 bword_arrow_buffer_size[16] = {0};
- static void mwword_arrow_buffer_size (void) { push_ptr((void*)bword_arrow_buffer_size); }
- static u8 bword_arrow_buffer_ptr[16] = {0};
- static void mwword_arrow_buffer_ptr (void) { push_ptr((void*)bword_arrow_buffer_ptr); }
- static u8 bword_sig_is_checked_buffer_size[16] = {0};
- static void mwword_sig_is_checked_buffer_size (void) { push_ptr((void*)bword_sig_is_checked_buffer_size); }
- static u8 bword_sig_is_checked_buffer_ptr[16] = {0};
- static void mwword_sig_is_checked_buffer_ptr (void) { push_ptr((void*)bword_sig_is_checked_buffer_ptr); }
- static u8 bword_body_is_checked_buffer_size[16] = {0};
- static void mwword_body_is_checked_buffer_size (void) { push_ptr((void*)bword_body_is_checked_buffer_size); }
- static u8 bword_body_is_checked_buffer_ptr[16] = {0};
- static void mwword_body_is_checked_buffer_ptr (void) { push_ptr((void*)bword_body_is_checked_buffer_ptr); }
- static u8 bword_body_is_checking_buffer_size[16] = {0};
- static void mwword_body_is_checking_buffer_size (void) { push_ptr((void*)bword_body_is_checking_buffer_size); }
- static u8 bword_body_is_checking_buffer_ptr[16] = {0};
- static void mwword_body_is_checking_buffer_ptr (void) { push_ptr((void*)bword_body_is_checking_buffer_ptr); }
- static u8 bword_inline_map_buffer_size[16] = {0};
- static void mwword_inline_map_buffer_size (void) { push_ptr((void*)bword_inline_map_buffer_size); }
- static u8 bword_inline_map_buffer_ptr[16] = {0};
- static void mwword_inline_map_buffer_ptr (void) { push_ptr((void*)bword_inline_map_buffer_ptr); }
- static u8 bword_inlining_buffer_size[16] = {0};
- static void mwword_inlining_buffer_size (void) { push_ptr((void*)bword_inlining_buffer_size); }
- static u8 bword_inlining_buffer_ptr[16] = {0};
- static void mwword_inlining_buffer_ptr (void) { push_ptr((void*)bword_inlining_buffer_ptr); }
- static u8 bCODEGEN_FILE[8] = {0};
- static void mwCODEGEN_FILE (void) { push_ptr((void*)bCODEGEN_FILE); }
- static u8 bCODEGEN_LENGTH[8] = {0};
- static void mwCODEGEN_LENGTH (void) { push_ptr((void*)bCODEGEN_LENGTH); }
- static u8 bCODEGEN_BUF[256] = {0};
- static void mwCODEGEN_BUF (void) { push_ptr((void*)bCODEGEN_BUF); }
- static u8 bC99_DEPTH[8] = {0};
- static void mwC99_DEPTH (void) { push_ptr((void*)bC99_DEPTH); }
- static u8 bC99_NEED_STACK[16] = {0};
- static void mwC99_NEED_STACK (void) { push_ptr((void*)bC99_NEED_STACK); }
- static u8 bc99_word_needed_buffer_size[16] = {0};
- static void mwc99_word_needed_buffer_size (void) { push_ptr((void*)bc99_word_needed_buffer_size); }
- static u8 bc99_word_needed_buffer_ptr[16] = {0};
- static void mwc99_word_needed_buffer_ptr (void) { push_ptr((void*)bc99_word_needed_buffer_ptr); }
- static u8 bc99_block_emitted_buffer_size[16] = {0};
- static void mwc99_block_emitted_buffer_size (void) { push_ptr((void*)bc99_block_emitted_buffer_size); }
- static u8 bc99_block_emitted_buffer_ptr[16] = {0};
- static void mwc99_block_emitted_buffer_ptr (void) { push_ptr((void*)bc99_block_emitted_buffer_ptr); }
- static u8 bc99_word_emitted_buffer_size[16] = {0};
- static void mwc99_word_emitted_buffer_size (void) { push_ptr((void*)bc99_word_emitted_buffer_size); }
- static u8 bc99_word_emitted_buffer_ptr[16] = {0};
- static void mwc99_word_emitted_buffer_ptr (void) { push_ptr((void*)bc99_word_emitted_buffer_ptr); }
- static u8 bExternal_2E_NUM[8] = {0};
- static void mwExternal_2E_NUM (void) { push_ptr((void*)bExternal_2E_NUM); }
- static u8 bexternal_name_buffer_size[16] = {0};
- static void mwexternal_name_buffer_size (void) { push_ptr((void*)bexternal_name_buffer_size); }
- static u8 bexternal_name_buffer_ptr[16] = {0};
- static void mwexternal_name_buffer_ptr (void) { push_ptr((void*)bexternal_name_buffer_ptr); }
- static u8 bexternal_type_buffer_size[16] = {0};
- static void mwexternal_type_buffer_size (void) { push_ptr((void*)bexternal_type_buffer_size); }
- static u8 bexternal_type_buffer_ptr[16] = {0};
- static void mwexternal_type_buffer_ptr (void) { push_ptr((void*)bexternal_type_buffer_ptr); }
- static u8 bexternal_sig_buffer_size[16] = {0};
- static void mwexternal_sig_buffer_size (void) { push_ptr((void*)bexternal_sig_buffer_size); }
- static u8 bexternal_sig_buffer_ptr[16] = {0};
- static void mwexternal_sig_buffer_ptr (void) { push_ptr((void*)bexternal_sig_buffer_ptr); }
- static u8 bexternal_sig_is_checked_buffer_size[16] = {0};
- static void mwexternal_sig_is_checked_buffer_size (void) { push_ptr((void*)bexternal_sig_is_checked_buffer_size); }
- static u8 bexternal_sig_is_checked_buffer_ptr[16] = {0};
- static void mwexternal_sig_is_checked_buffer_ptr (void) { push_ptr((void*)bexternal_sig_is_checked_buffer_ptr); }
- static u8 bexternal_ctx_buffer_size[16] = {0};
- static void mwexternal_ctx_buffer_size (void) { push_ptr((void*)bexternal_ctx_buffer_size); }
- static u8 bexternal_ctx_buffer_ptr[16] = {0};
- static void mwexternal_ctx_buffer_ptr (void) { push_ptr((void*)bexternal_ctx_buffer_ptr); }
- static u8 bTable_2E_NUM[8] = {0};
- static void mwTable_2E_NUM (void) { push_ptr((void*)bTable_2E_NUM); }
- static u8 btable_name_buffer_size[16] = {0};
- static void mwtable_name_buffer_size (void) { push_ptr((void*)btable_name_buffer_size); }
- static u8 btable_name_buffer_ptr[16] = {0};
- static void mwtable_name_buffer_ptr (void) { push_ptr((void*)btable_name_buffer_ptr); }
- static u8 btable_num_buffer_buffer_size[16] = {0};
- static void mwtable_num_buffer_buffer_size (void) { push_ptr((void*)btable_num_buffer_buffer_size); }
- static u8 btable_num_buffer_buffer_ptr[16] = {0};
- static void mwtable_num_buffer_buffer_ptr (void) { push_ptr((void*)btable_num_buffer_buffer_ptr); }
- static u8 btable_max_count_buffer_size[16] = {0};
- static void mwtable_max_count_buffer_size (void) { push_ptr((void*)btable_max_count_buffer_size); }
- static u8 btable_max_count_buffer_ptr[16] = {0};
- static void mwtable_max_count_buffer_ptr (void) { push_ptr((void*)btable_max_count_buffer_ptr); }
- static u8 bField_2E_NUM[8] = {0};
- static void mwField_2E_NUM (void) { push_ptr((void*)bField_2E_NUM); }
- static u8 bfield_name_buffer_size[16] = {0};
- static void mwfield_name_buffer_size (void) { push_ptr((void*)bfield_name_buffer_size); }
- static u8 bfield_name_buffer_ptr[16] = {0};
- static void mwfield_name_buffer_ptr (void) { push_ptr((void*)bfield_name_buffer_ptr); }
- static u8 bfield_table_buffer_size[16] = {0};
- static void mwfield_table_buffer_size (void) { push_ptr((void*)bfield_table_buffer_size); }
- static u8 bfield_table_buffer_ptr[16] = {0};
- static void mwfield_table_buffer_ptr (void) { push_ptr((void*)bfield_table_buffer_ptr); }
- static u8 bfield_type_buffer_size[16] = {0};
- static void mwfield_type_buffer_size (void) { push_ptr((void*)bfield_type_buffer_size); }
- static u8 bfield_type_buffer_ptr[16] = {0};
- static void mwfield_type_buffer_ptr (void) { push_ptr((void*)bfield_type_buffer_ptr); }
- static u8 bfield_buffer_size_buffer_size[16] = {0};
- static void mwfield_buffer_size_buffer_size (void) { push_ptr((void*)bfield_buffer_size_buffer_size); }
- static u8 bfield_buffer_size_buffer_ptr[16] = {0};
- static void mwfield_buffer_size_buffer_ptr (void) { push_ptr((void*)bfield_buffer_size_buffer_ptr); }
- static u8 bfield_buffer_ptr_buffer_size[16] = {0};
- static void mwfield_buffer_ptr_buffer_size (void) { push_ptr((void*)bfield_buffer_ptr_buffer_size); }
- static u8 bfield_buffer_ptr_buffer_ptr[16] = {0};
- static void mwfield_buffer_ptr_buffer_ptr (void) { push_ptr((void*)bfield_buffer_ptr_buffer_ptr); }
- static u8 bfield_word_ptr_buffer_size[16] = {0};
- static void mwfield_word_ptr_buffer_size (void) { push_ptr((void*)bfield_word_ptr_buffer_size); }
- static u8 bfield_word_ptr_buffer_ptr[16] = {0};
- static void mwfield_word_ptr_buffer_ptr (void) { push_ptr((void*)bfield_word_ptr_buffer_ptr); }
- static u8 bAB_ARROW[16] = {0};
- static void mwAB_ARROW (void) { push_ptr((void*)bAB_ARROW); }
- static u8 barrow_weighted_buffer_size[16] = {0};
- static void mwarrow_weighted_buffer_size (void) { push_ptr((void*)barrow_weighted_buffer_size); }
- static u8 barrow_weighted_buffer_ptr[16] = {0};
- static void mwarrow_weighted_buffer_ptr (void) { push_ptr((void*)barrow_weighted_buffer_ptr); }
- static u8 barrow_weight_cached_buffer_size[16] = {0};
- static void mwarrow_weight_cached_buffer_size (void) { push_ptr((void*)barrow_weight_cached_buffer_size); }
- static u8 barrow_weight_cached_buffer_ptr[16] = {0};
- static void mwarrow_weight_cached_buffer_ptr (void) { push_ptr((void*)barrow_weight_cached_buffer_ptr); }
- static u8 bprim_name_buffer_size[16] = {0};
- static void mwprim_name_buffer_size (void) { push_ptr((void*)bprim_name_buffer_size); }
- static u8 bprim_name_buffer_ptr[16] = {0};
- static void mwprim_name_buffer_ptr (void) { push_ptr((void*)bprim_name_buffer_ptr); }
- static u8 bprim_ctx_buffer_size[16] = {0};
- static void mwprim_ctx_buffer_size (void) { push_ptr((void*)bprim_ctx_buffer_size); }
- static u8 bprim_ctx_buffer_ptr[16] = {0};
- static void mwprim_ctx_buffer_ptr (void) { push_ptr((void*)bprim_ctx_buffer_ptr); }
- static u8 bprim_type_buffer_size[16] = {0};
- static void mwprim_type_buffer_size (void) { push_ptr((void*)bprim_type_buffer_size); }
- static u8 bprim_type_buffer_ptr[16] = {0};
- static void mwprim_type_buffer_ptr (void) { push_ptr((void*)bprim_type_buffer_ptr); }
+static u8 bSTR_BUF[4096] = {0};
+#define mwSTR_BUF() push_ptr((void*)bSTR_BUF)
+static u8 bSTR_BUF_LEN[8] = {0};
+#define mwSTR_BUF_LEN() push_ptr((void*)bSTR_BUF_LEN)
+static u8 bSOURCE_PATH_ROOT[8] = {0};
+#define mwSOURCE_PATH_ROOT() push_ptr((void*)bSOURCE_PATH_ROOT)
+static u8 bOUTPUT_PATH_ROOT[8] = {0};
+#define mwOUTPUT_PATH_ROOT() push_ptr((void*)bOUTPUT_PATH_ROOT)
+static u8 bHEAP_LENGTH[8] = {0};
+#define mwHEAP_LENGTH() push_ptr((void*)bHEAP_LENGTH)
+static u8 bHEAP_BASE[8] = {0};
+#define mwHEAP_BASE() push_ptr((void*)bHEAP_BASE)
+static u8 bHEAP_TIMES_EXPANDED[8] = {0};
+#define mwHEAP_TIMES_EXPANDED() push_ptr((void*)bHEAP_TIMES_EXPANDED)
+static u8 bINPUT_ISOPEN[8] = {0};
+#define mwINPUT_ISOPEN() push_ptr((void*)bINPUT_ISOPEN)
+static u8 bINPUT_LENGTH[8] = {0};
+#define mwINPUT_LENGTH() push_ptr((void*)bINPUT_LENGTH)
+static u8 bINPUT_OFFSET[8] = {0};
+#define mwINPUT_OFFSET() push_ptr((void*)bINPUT_OFFSET)
+static u8 bINPUT_HANDLE[8] = {0};
+#define mwINPUT_HANDLE() push_ptr((void*)bINPUT_HANDLE)
+static u8 bINPUT_BUFFER[2048] = {0};
+#define mwINPUT_BUFFER() push_ptr((void*)bINPUT_BUFFER)
+static u8 bName_2E_NUM[8] = {0};
+#define mwName_2E_NUM() push_ptr((void*)bName_2E_NUM)
+static u8 bname_str_buffer_size[16] = {0};
+#define mwname_str_buffer_size() push_ptr((void*)bname_str_buffer_size)
+static u8 bname_str_buffer_ptr[16] = {0};
+#define mwname_str_buffer_ptr() push_ptr((void*)bname_str_buffer_ptr)
+static u8 bname_value_buffer_size[16] = {0};
+#define mwname_value_buffer_size() push_ptr((void*)bname_value_buffer_size)
+static u8 bname_value_buffer_ptr[16] = {0};
+#define mwname_value_buffer_ptr() push_ptr((void*)bname_value_buffer_ptr)
+static u8 bname_mangle_cached_buffer_size[16] = {0};
+#define mwname_mangle_cached_buffer_size() push_ptr((void*)bname_mangle_cached_buffer_size)
+static u8 bname_mangle_cached_buffer_ptr[16] = {0};
+#define mwname_mangle_cached_buffer_ptr() push_ptr((void*)bname_mangle_cached_buffer_ptr)
+static u8 bHash_2E_NUM[8] = {0};
+#define mwHash_2E_NUM() push_ptr((void*)bHash_2E_NUM)
+static u8 bhash_name_buffer_size[16] = {0};
+#define mwhash_name_buffer_size() push_ptr((void*)bhash_name_buffer_size)
+static u8 bhash_name_buffer_ptr[16] = {0};
+#define mwhash_name_buffer_ptr() push_ptr((void*)bhash_name_buffer_ptr)
+static u8 bModule_2E_NUM[8] = {0};
+#define mwModule_2E_NUM() push_ptr((void*)bModule_2E_NUM)
+static u8 bToken_2E_NUM[8] = {0};
+#define mwToken_2E_NUM() push_ptr((void*)bToken_2E_NUM)
+static u8 bmodule_name_buffer_size[16] = {0};
+#define mwmodule_name_buffer_size() push_ptr((void*)bmodule_name_buffer_size)
+static u8 bmodule_name_buffer_ptr[16] = {0};
+#define mwmodule_name_buffer_ptr() push_ptr((void*)bmodule_name_buffer_ptr)
+static u8 bmodule_path_buffer_size[16] = {0};
+#define mwmodule_path_buffer_size() push_ptr((void*)bmodule_path_buffer_size)
+static u8 bmodule_path_buffer_ptr[16] = {0};
+#define mwmodule_path_buffer_ptr() push_ptr((void*)bmodule_path_buffer_ptr)
+static u8 bmodule_start_buffer_size[16] = {0};
+#define mwmodule_start_buffer_size() push_ptr((void*)bmodule_start_buffer_size)
+static u8 bmodule_start_buffer_ptr[16] = {0};
+#define mwmodule_start_buffer_ptr() push_ptr((void*)bmodule_start_buffer_ptr)
+static u8 bmodule_end_buffer_size[16] = {0};
+#define mwmodule_end_buffer_size() push_ptr((void*)bmodule_end_buffer_size)
+static u8 bmodule_end_buffer_ptr[16] = {0};
+#define mwmodule_end_buffer_ptr() push_ptr((void*)bmodule_end_buffer_ptr)
+static u8 bmodule_imports_buffer_size[16] = {0};
+#define mwmodule_imports_buffer_size() push_ptr((void*)bmodule_imports_buffer_size)
+static u8 bmodule_imports_buffer_ptr[16] = {0};
+#define mwmodule_imports_buffer_ptr() push_ptr((void*)bmodule_imports_buffer_ptr)
+static u8 bnum_warnings[8] = {0};
+#define mwnum_warnings() push_ptr((void*)bnum_warnings)
+static u8 bnum_errors[8] = {0};
+#define mwnum_errors() push_ptr((void*)bnum_errors)
+static u8 btoken_value_buffer_size[16] = {0};
+#define mwtoken_value_buffer_size() push_ptr((void*)btoken_value_buffer_size)
+static u8 btoken_value_buffer_ptr[16] = {0};
+#define mwtoken_value_buffer_ptr() push_ptr((void*)btoken_value_buffer_ptr)
+static u8 btoken_module_buffer_size[16] = {0};
+#define mwtoken_module_buffer_size() push_ptr((void*)btoken_module_buffer_size)
+static u8 btoken_module_buffer_ptr[16] = {0};
+#define mwtoken_module_buffer_ptr() push_ptr((void*)btoken_module_buffer_ptr)
+static u8 btoken_row_buffer_size[16] = {0};
+#define mwtoken_row_buffer_size() push_ptr((void*)btoken_row_buffer_size)
+static u8 btoken_row_buffer_ptr[16] = {0};
+#define mwtoken_row_buffer_ptr() push_ptr((void*)btoken_row_buffer_ptr)
+static u8 btoken_col_buffer_size[16] = {0};
+#define mwtoken_col_buffer_size() push_ptr((void*)btoken_col_buffer_size)
+static u8 btoken_col_buffer_ptr[16] = {0};
+#define mwtoken_col_buffer_ptr() push_ptr((void*)btoken_col_buffer_ptr)
+static u8 bLEXER_MODULE[16] = {0};
+#define mwLEXER_MODULE() push_ptr((void*)bLEXER_MODULE)
+static u8 bLEXER_ROW[16] = {0};
+#define mwLEXER_ROW() push_ptr((void*)bLEXER_ROW)
+static u8 bLEXER_COL[16] = {0};
+#define mwLEXER_COL() push_ptr((void*)bLEXER_COL)
+static u8 bLEXER_STACK_LENGTH[16] = {0};
+#define mwLEXER_STACK_LENGTH() push_ptr((void*)bLEXER_STACK_LENGTH)
+static u8 bLEXER_STACK_BUF[8192] = {0};
+#define mwLEXER_STACK_BUF() push_ptr((void*)bLEXER_STACK_BUF)
+static u8 bBuffer_2E_NUM[8] = {0};
+#define mwBuffer_2E_NUM() push_ptr((void*)bBuffer_2E_NUM)
+static u8 bbuffer_size_buffer_size[16] = {0};
+#define mwbuffer_size_buffer_size() push_ptr((void*)bbuffer_size_buffer_size)
+static u8 bbuffer_size_buffer_ptr[16] = {0};
+#define mwbuffer_size_buffer_ptr() push_ptr((void*)bbuffer_size_buffer_ptr)
+static u8 bbuffer_name_buffer_size[16] = {0};
+#define mwbuffer_name_buffer_size() push_ptr((void*)bbuffer_name_buffer_size)
+static u8 bbuffer_name_buffer_ptr[16] = {0};
+#define mwbuffer_name_buffer_ptr() push_ptr((void*)bbuffer_name_buffer_ptr)
+static u8 bMetaVar_2E_NUM[8] = {0};
+#define mwMetaVar_2E_NUM() push_ptr((void*)bMetaVar_2E_NUM)
+static u8 bData_2E_NUM[8] = {0};
+#define mwData_2E_NUM() push_ptr((void*)bData_2E_NUM)
+static u8 bTag_2E_NUM[8] = {0};
+#define mwTag_2E_NUM() push_ptr((void*)bTag_2E_NUM)
+static u8 bmeta_is_defined_buffer_size[16] = {0};
+#define mwmeta_is_defined_buffer_size() push_ptr((void*)bmeta_is_defined_buffer_size)
+static u8 bmeta_is_defined_buffer_ptr[16] = {0};
+#define mwmeta_is_defined_buffer_ptr() push_ptr((void*)bmeta_is_defined_buffer_ptr)
+static u8 bmeta_type_raw_buffer_size[16] = {0};
+#define mwmeta_type_raw_buffer_size() push_ptr((void*)bmeta_type_raw_buffer_size)
+static u8 bmeta_type_raw_buffer_ptr[16] = {0};
+#define mwmeta_type_raw_buffer_ptr() push_ptr((void*)bmeta_type_raw_buffer_ptr)
+static u8 bdata_header_buffer_size[16] = {0};
+#define mwdata_header_buffer_size() push_ptr((void*)bdata_header_buffer_size)
+static u8 bdata_header_buffer_ptr[16] = {0};
+#define mwdata_header_buffer_ptr() push_ptr((void*)bdata_header_buffer_ptr)
+static u8 bdata_name_buffer_size[16] = {0};
+#define mwdata_name_buffer_size() push_ptr((void*)bdata_name_buffer_size)
+static u8 bdata_name_buffer_ptr[16] = {0};
+#define mwdata_name_buffer_ptr() push_ptr((void*)bdata_name_buffer_ptr)
+static u8 bdata_arity_buffer_size[16] = {0};
+#define mwdata_arity_buffer_size() push_ptr((void*)bdata_arity_buffer_size)
+static u8 bdata_arity_buffer_ptr[16] = {0};
+#define mwdata_arity_buffer_ptr() push_ptr((void*)bdata_arity_buffer_ptr)
+static u8 bdata_tags_buffer_size[16] = {0};
+#define mwdata_tags_buffer_size() push_ptr((void*)bdata_tags_buffer_size)
+static u8 bdata_tags_buffer_ptr[16] = {0};
+#define mwdata_tags_buffer_ptr() push_ptr((void*)bdata_tags_buffer_ptr)
+static u8 btag_data_buffer_size[16] = {0};
+#define mwtag_data_buffer_size() push_ptr((void*)btag_data_buffer_size)
+static u8 btag_data_buffer_ptr[16] = {0};
+#define mwtag_data_buffer_ptr() push_ptr((void*)btag_data_buffer_ptr)
+static u8 btag_name_buffer_size[16] = {0};
+#define mwtag_name_buffer_size() push_ptr((void*)btag_name_buffer_size)
+static u8 btag_name_buffer_ptr[16] = {0};
+#define mwtag_name_buffer_ptr() push_ptr((void*)btag_name_buffer_ptr)
+static u8 btag_value_buffer_size[16] = {0};
+#define mwtag_value_buffer_size() push_ptr((void*)btag_value_buffer_size)
+static u8 btag_value_buffer_ptr[16] = {0};
+#define mwtag_value_buffer_ptr() push_ptr((void*)btag_value_buffer_ptr)
+static u8 btag_sig_buffer_size[16] = {0};
+#define mwtag_sig_buffer_size() push_ptr((void*)btag_sig_buffer_size)
+static u8 btag_sig_buffer_ptr[16] = {0};
+#define mwtag_sig_buffer_ptr() push_ptr((void*)btag_sig_buffer_ptr)
+static u8 btag_has_sig_buffer_size[16] = {0};
+#define mwtag_has_sig_buffer_size() push_ptr((void*)btag_has_sig_buffer_size)
+static u8 btag_has_sig_buffer_ptr[16] = {0};
+#define mwtag_has_sig_buffer_ptr() push_ptr((void*)btag_has_sig_buffer_ptr)
+static u8 btag_sig_is_checked_buffer_size[16] = {0};
+#define mwtag_sig_is_checked_buffer_size() push_ptr((void*)btag_sig_is_checked_buffer_size)
+static u8 btag_sig_is_checked_buffer_ptr[16] = {0};
+#define mwtag_sig_is_checked_buffer_ptr() push_ptr((void*)btag_sig_is_checked_buffer_ptr)
+static u8 btag_ctx_buffer_size[16] = {0};
+#define mwtag_ctx_buffer_size() push_ptr((void*)btag_ctx_buffer_size)
+static u8 btag_ctx_buffer_ptr[16] = {0};
+#define mwtag_ctx_buffer_ptr() push_ptr((void*)btag_ctx_buffer_ptr)
+static u8 btag_type_raw_buffer_size[16] = {0};
+#define mwtag_type_raw_buffer_size() push_ptr((void*)btag_type_raw_buffer_size)
+static u8 btag_type_raw_buffer_ptr[16] = {0};
+#define mwtag_type_raw_buffer_ptr() push_ptr((void*)btag_type_raw_buffer_ptr)
+static u8 bAtom_2E_NUM[8] = {0};
+#define mwAtom_2E_NUM() push_ptr((void*)bAtom_2E_NUM)
+static u8 bArrow_2E_NUM[8] = {0};
+#define mwArrow_2E_NUM() push_ptr((void*)bArrow_2E_NUM)
+static u8 bLambda_2E_NUM[8] = {0};
+#define mwLambda_2E_NUM() push_ptr((void*)bLambda_2E_NUM)
+static u8 bBlock_2E_NUM[8] = {0};
+#define mwBlock_2E_NUM() push_ptr((void*)bBlock_2E_NUM)
+static u8 barrow_token_start_buffer_size[16] = {0};
+#define mwarrow_token_start_buffer_size() push_ptr((void*)barrow_token_start_buffer_size)
+static u8 barrow_token_start_buffer_ptr[16] = {0};
+#define mwarrow_token_start_buffer_ptr() push_ptr((void*)barrow_token_start_buffer_ptr)
+static u8 barrow_token_end_buffer_size[16] = {0};
+#define mwarrow_token_end_buffer_size() push_ptr((void*)barrow_token_end_buffer_size)
+static u8 barrow_token_end_buffer_ptr[16] = {0};
+#define mwarrow_token_end_buffer_ptr() push_ptr((void*)barrow_token_end_buffer_ptr)
+static u8 barrow_ctx_buffer_size[16] = {0};
+#define mwarrow_ctx_buffer_size() push_ptr((void*)barrow_ctx_buffer_size)
+static u8 barrow_ctx_buffer_ptr[16] = {0};
+#define mwarrow_ctx_buffer_ptr() push_ptr((void*)barrow_ctx_buffer_ptr)
+static u8 barrow_dom_buffer_size[16] = {0};
+#define mwarrow_dom_buffer_size() push_ptr((void*)barrow_dom_buffer_size)
+static u8 barrow_dom_buffer_ptr[16] = {0};
+#define mwarrow_dom_buffer_ptr() push_ptr((void*)barrow_dom_buffer_ptr)
+static u8 barrow_cod_buffer_size[16] = {0};
+#define mwarrow_cod_buffer_size() push_ptr((void*)barrow_cod_buffer_size)
+static u8 barrow_cod_buffer_ptr[16] = {0};
+#define mwarrow_cod_buffer_ptr() push_ptr((void*)barrow_cod_buffer_ptr)
+static u8 barrow_atoms_buffer_size[16] = {0};
+#define mwarrow_atoms_buffer_size() push_ptr((void*)barrow_atoms_buffer_size)
+static u8 barrow_atoms_buffer_ptr[16] = {0};
+#define mwarrow_atoms_buffer_ptr() push_ptr((void*)barrow_atoms_buffer_ptr)
+static u8 batom_token_buffer_size[16] = {0};
+#define mwatom_token_buffer_size() push_ptr((void*)batom_token_buffer_size)
+static u8 batom_token_buffer_ptr[16] = {0};
+#define mwatom_token_buffer_ptr() push_ptr((void*)batom_token_buffer_ptr)
+static u8 batom_ctx_buffer_size[16] = {0};
+#define mwatom_ctx_buffer_size() push_ptr((void*)batom_ctx_buffer_size)
+static u8 batom_ctx_buffer_ptr[16] = {0};
+#define mwatom_ctx_buffer_ptr() push_ptr((void*)batom_ctx_buffer_ptr)
+static u8 batom_op_buffer_size[16] = {0};
+#define mwatom_op_buffer_size() push_ptr((void*)batom_op_buffer_size)
+static u8 batom_op_buffer_ptr[16] = {0};
+#define mwatom_op_buffer_ptr() push_ptr((void*)batom_op_buffer_ptr)
+static u8 batom_args_buffer_size[16] = {0};
+#define mwatom_args_buffer_size() push_ptr((void*)batom_args_buffer_size)
+static u8 batom_args_buffer_ptr[16] = {0};
+#define mwatom_args_buffer_ptr() push_ptr((void*)batom_args_buffer_ptr)
+static u8 batom_dom_buffer_size[16] = {0};
+#define mwatom_dom_buffer_size() push_ptr((void*)batom_dom_buffer_size)
+static u8 batom_dom_buffer_ptr[16] = {0};
+#define mwatom_dom_buffer_ptr() push_ptr((void*)batom_dom_buffer_ptr)
+static u8 batom_cod_buffer_size[16] = {0};
+#define mwatom_cod_buffer_size() push_ptr((void*)batom_cod_buffer_size)
+static u8 batom_cod_buffer_ptr[16] = {0};
+#define mwatom_cod_buffer_ptr() push_ptr((void*)batom_cod_buffer_ptr)
+static u8 batom_subst_buffer_size[16] = {0};
+#define mwatom_subst_buffer_size() push_ptr((void*)batom_subst_buffer_size)
+static u8 batom_subst_buffer_ptr[16] = {0};
+#define mwatom_subst_buffer_ptr() push_ptr((void*)batom_subst_buffer_ptr)
+static u8 blambda_token_buffer_size[16] = {0};
+#define mwlambda_token_buffer_size() push_ptr((void*)blambda_token_buffer_size)
+static u8 blambda_token_buffer_ptr[16] = {0};
+#define mwlambda_token_buffer_ptr() push_ptr((void*)blambda_token_buffer_ptr)
+static u8 blambda_outer_ctx_buffer_size[16] = {0};
+#define mwlambda_outer_ctx_buffer_size() push_ptr((void*)blambda_outer_ctx_buffer_size)
+static u8 blambda_outer_ctx_buffer_ptr[16] = {0};
+#define mwlambda_outer_ctx_buffer_ptr() push_ptr((void*)blambda_outer_ctx_buffer_ptr)
+static u8 blambda_inner_ctx_buffer_size[16] = {0};
+#define mwlambda_inner_ctx_buffer_size() push_ptr((void*)blambda_inner_ctx_buffer_size)
+static u8 blambda_inner_ctx_buffer_ptr[16] = {0};
+#define mwlambda_inner_ctx_buffer_ptr() push_ptr((void*)blambda_inner_ctx_buffer_ptr)
+static u8 blambda_dom_buffer_size[16] = {0};
+#define mwlambda_dom_buffer_size() push_ptr((void*)blambda_dom_buffer_size)
+static u8 blambda_dom_buffer_ptr[16] = {0};
+#define mwlambda_dom_buffer_ptr() push_ptr((void*)blambda_dom_buffer_ptr)
+static u8 blambda_mid_buffer_size[16] = {0};
+#define mwlambda_mid_buffer_size() push_ptr((void*)blambda_mid_buffer_size)
+static u8 blambda_mid_buffer_ptr[16] = {0};
+#define mwlambda_mid_buffer_ptr() push_ptr((void*)blambda_mid_buffer_ptr)
+static u8 blambda_cod_buffer_size[16] = {0};
+#define mwlambda_cod_buffer_size() push_ptr((void*)blambda_cod_buffer_size)
+static u8 blambda_cod_buffer_ptr[16] = {0};
+#define mwlambda_cod_buffer_ptr() push_ptr((void*)blambda_cod_buffer_ptr)
+static u8 blambda_params_buffer_size[16] = {0};
+#define mwlambda_params_buffer_size() push_ptr((void*)blambda_params_buffer_size)
+static u8 blambda_params_buffer_ptr[16] = {0};
+#define mwlambda_params_buffer_ptr() push_ptr((void*)blambda_params_buffer_ptr)
+static u8 blambda_body_buffer_size[16] = {0};
+#define mwlambda_body_buffer_size() push_ptr((void*)blambda_body_buffer_size)
+static u8 blambda_body_buffer_ptr[16] = {0};
+#define mwlambda_body_buffer_ptr() push_ptr((void*)blambda_body_buffer_ptr)
+static u8 bblock_deferred_buffer_size[16] = {0};
+#define mwblock_deferred_buffer_size() push_ptr((void*)bblock_deferred_buffer_size)
+static u8 bblock_deferred_buffer_ptr[16] = {0};
+#define mwblock_deferred_buffer_ptr() push_ptr((void*)bblock_deferred_buffer_ptr)
+static u8 bblock_forcing_buffer_size[16] = {0};
+#define mwblock_forcing_buffer_size() push_ptr((void*)bblock_forcing_buffer_size)
+static u8 bblock_forcing_buffer_ptr[16] = {0};
+#define mwblock_forcing_buffer_ptr() push_ptr((void*)bblock_forcing_buffer_ptr)
+static u8 bblock_ctx_buffer_size[16] = {0};
+#define mwblock_ctx_buffer_size() push_ptr((void*)bblock_ctx_buffer_size)
+static u8 bblock_ctx_buffer_ptr[16] = {0};
+#define mwblock_ctx_buffer_ptr() push_ptr((void*)bblock_ctx_buffer_ptr)
+static u8 bblock_token_buffer_size[16] = {0};
+#define mwblock_token_buffer_size() push_ptr((void*)bblock_token_buffer_size)
+static u8 bblock_token_buffer_ptr[16] = {0};
+#define mwblock_token_buffer_ptr() push_ptr((void*)bblock_token_buffer_ptr)
+static u8 bblock_arrow_raw_buffer_size[16] = {0};
+#define mwblock_arrow_raw_buffer_size() push_ptr((void*)bblock_arrow_raw_buffer_size)
+static u8 bblock_arrow_raw_buffer_ptr[16] = {0};
+#define mwblock_arrow_raw_buffer_ptr() push_ptr((void*)bblock_arrow_raw_buffer_ptr)
+static u8 bblock_needed_buffer_size[16] = {0};
+#define mwblock_needed_buffer_size() push_ptr((void*)bblock_needed_buffer_size)
+static u8 bblock_needed_buffer_ptr[16] = {0};
+#define mwblock_needed_buffer_ptr() push_ptr((void*)bblock_needed_buffer_ptr)
+static u8 bMatch_2E_NUM[8] = {0};
+#define mwMatch_2E_NUM() push_ptr((void*)bMatch_2E_NUM)
+static u8 bCase_2E_NUM[8] = {0};
+#define mwCase_2E_NUM() push_ptr((void*)bCase_2E_NUM)
+static u8 bmatch_ctx_buffer_size[16] = {0};
+#define mwmatch_ctx_buffer_size() push_ptr((void*)bmatch_ctx_buffer_size)
+static u8 bmatch_ctx_buffer_ptr[16] = {0};
+#define mwmatch_ctx_buffer_ptr() push_ptr((void*)bmatch_ctx_buffer_ptr)
+static u8 bmatch_dom_buffer_size[16] = {0};
+#define mwmatch_dom_buffer_size() push_ptr((void*)bmatch_dom_buffer_size)
+static u8 bmatch_dom_buffer_ptr[16] = {0};
+#define mwmatch_dom_buffer_ptr() push_ptr((void*)bmatch_dom_buffer_ptr)
+static u8 bmatch_cod_buffer_size[16] = {0};
+#define mwmatch_cod_buffer_size() push_ptr((void*)bmatch_cod_buffer_size)
+static u8 bmatch_cod_buffer_ptr[16] = {0};
+#define mwmatch_cod_buffer_ptr() push_ptr((void*)bmatch_cod_buffer_ptr)
+static u8 bmatch_token_buffer_size[16] = {0};
+#define mwmatch_token_buffer_size() push_ptr((void*)bmatch_token_buffer_size)
+static u8 bmatch_token_buffer_ptr[16] = {0};
+#define mwmatch_token_buffer_ptr() push_ptr((void*)bmatch_token_buffer_ptr)
+static u8 bmatch_cases_buffer_size[16] = {0};
+#define mwmatch_cases_buffer_size() push_ptr((void*)bmatch_cases_buffer_size)
+static u8 bmatch_cases_buffer_ptr[16] = {0};
+#define mwmatch_cases_buffer_ptr() push_ptr((void*)bmatch_cases_buffer_ptr)
+static u8 bcase_match_buffer_size[16] = {0};
+#define mwcase_match_buffer_size() push_ptr((void*)bcase_match_buffer_size)
+static u8 bcase_match_buffer_ptr[16] = {0};
+#define mwcase_match_buffer_ptr() push_ptr((void*)bcase_match_buffer_ptr)
+static u8 bcase_token_buffer_size[16] = {0};
+#define mwcase_token_buffer_size() push_ptr((void*)bcase_token_buffer_size)
+static u8 bcase_token_buffer_ptr[16] = {0};
+#define mwcase_token_buffer_ptr() push_ptr((void*)bcase_token_buffer_ptr)
+static u8 bcase_pattern_buffer_size[16] = {0};
+#define mwcase_pattern_buffer_size() push_ptr((void*)bcase_pattern_buffer_size)
+static u8 bcase_pattern_buffer_ptr[16] = {0};
+#define mwcase_pattern_buffer_ptr() push_ptr((void*)bcase_pattern_buffer_ptr)
+static u8 bcase_subst_buffer_size[16] = {0};
+#define mwcase_subst_buffer_size() push_ptr((void*)bcase_subst_buffer_size)
+static u8 bcase_subst_buffer_ptr[16] = {0};
+#define mwcase_subst_buffer_ptr() push_ptr((void*)bcase_subst_buffer_ptr)
+static u8 bcase_mid_buffer_size[16] = {0};
+#define mwcase_mid_buffer_size() push_ptr((void*)bcase_mid_buffer_size)
+static u8 bcase_mid_buffer_ptr[16] = {0};
+#define mwcase_mid_buffer_ptr() push_ptr((void*)bcase_mid_buffer_ptr)
+static u8 bcase_body_buffer_size[16] = {0};
+#define mwcase_body_buffer_size() push_ptr((void*)bcase_body_buffer_size)
+static u8 bcase_body_buffer_ptr[16] = {0};
+#define mwcase_body_buffer_ptr() push_ptr((void*)bcase_body_buffer_ptr)
+static u8 bVar_2E_NUM[8] = {0};
+#define mwVar_2E_NUM() push_ptr((void*)bVar_2E_NUM)
+static u8 bvar_is_implicit_buffer_size[16] = {0};
+#define mwvar_is_implicit_buffer_size() push_ptr((void*)bvar_is_implicit_buffer_size)
+static u8 bvar_is_implicit_buffer_ptr[16] = {0};
+#define mwvar_is_implicit_buffer_ptr() push_ptr((void*)bvar_is_implicit_buffer_ptr)
+static u8 bvar_name_buffer_size[16] = {0};
+#define mwvar_name_buffer_size() push_ptr((void*)bvar_name_buffer_size)
+static u8 bvar_name_buffer_ptr[16] = {0};
+#define mwvar_name_buffer_ptr() push_ptr((void*)bvar_name_buffer_ptr)
+static u8 bvar_type_buffer_size[16] = {0};
+#define mwvar_type_buffer_size() push_ptr((void*)bvar_type_buffer_size)
+static u8 bvar_type_buffer_ptr[16] = {0};
+#define mwvar_type_buffer_ptr() push_ptr((void*)bvar_type_buffer_ptr)
+static u8 bvar_auto_run_buffer_size[16] = {0};
+#define mwvar_auto_run_buffer_size() push_ptr((void*)bvar_auto_run_buffer_size)
+static u8 bvar_auto_run_buffer_ptr[16] = {0};
+#define mwvar_auto_run_buffer_ptr() push_ptr((void*)bvar_auto_run_buffer_ptr)
+static u8 bWord_2E_NUM[8] = {0};
+#define mwWord_2E_NUM() push_ptr((void*)bWord_2E_NUM)
+static u8 bword_name_buffer_size[16] = {0};
+#define mwword_name_buffer_size() push_ptr((void*)bword_name_buffer_size)
+static u8 bword_name_buffer_ptr[16] = {0};
+#define mwword_name_buffer_ptr() push_ptr((void*)bword_name_buffer_ptr)
+static u8 bword_sig_buffer_size[16] = {0};
+#define mwword_sig_buffer_size() push_ptr((void*)bword_sig_buffer_size)
+static u8 bword_sig_buffer_ptr[16] = {0};
+#define mwword_sig_buffer_ptr() push_ptr((void*)bword_sig_buffer_ptr)
+static u8 bword_body_buffer_size[16] = {0};
+#define mwword_body_buffer_size() push_ptr((void*)bword_body_buffer_size)
+static u8 bword_body_buffer_ptr[16] = {0};
+#define mwword_body_buffer_ptr() push_ptr((void*)bword_body_buffer_ptr)
+static u8 bword_ctx_buffer_size[16] = {0};
+#define mwword_ctx_buffer_size() push_ptr((void*)bword_ctx_buffer_size)
+static u8 bword_ctx_buffer_ptr[16] = {0};
+#define mwword_ctx_buffer_ptr() push_ptr((void*)bword_ctx_buffer_ptr)
+static u8 bword_type_buffer_size[16] = {0};
+#define mwword_type_buffer_size() push_ptr((void*)bword_type_buffer_size)
+static u8 bword_type_buffer_ptr[16] = {0};
+#define mwword_type_buffer_ptr() push_ptr((void*)bword_type_buffer_ptr)
+static u8 bword_arrow_buffer_size[16] = {0};
+#define mwword_arrow_buffer_size() push_ptr((void*)bword_arrow_buffer_size)
+static u8 bword_arrow_buffer_ptr[16] = {0};
+#define mwword_arrow_buffer_ptr() push_ptr((void*)bword_arrow_buffer_ptr)
+static u8 bword_sig_is_checked_buffer_size[16] = {0};
+#define mwword_sig_is_checked_buffer_size() push_ptr((void*)bword_sig_is_checked_buffer_size)
+static u8 bword_sig_is_checked_buffer_ptr[16] = {0};
+#define mwword_sig_is_checked_buffer_ptr() push_ptr((void*)bword_sig_is_checked_buffer_ptr)
+static u8 bword_body_is_checked_buffer_size[16] = {0};
+#define mwword_body_is_checked_buffer_size() push_ptr((void*)bword_body_is_checked_buffer_size)
+static u8 bword_body_is_checked_buffer_ptr[16] = {0};
+#define mwword_body_is_checked_buffer_ptr() push_ptr((void*)bword_body_is_checked_buffer_ptr)
+static u8 bword_body_is_checking_buffer_size[16] = {0};
+#define mwword_body_is_checking_buffer_size() push_ptr((void*)bword_body_is_checking_buffer_size)
+static u8 bword_body_is_checking_buffer_ptr[16] = {0};
+#define mwword_body_is_checking_buffer_ptr() push_ptr((void*)bword_body_is_checking_buffer_ptr)
+static u8 bword_inline_map_buffer_size[16] = {0};
+#define mwword_inline_map_buffer_size() push_ptr((void*)bword_inline_map_buffer_size)
+static u8 bword_inline_map_buffer_ptr[16] = {0};
+#define mwword_inline_map_buffer_ptr() push_ptr((void*)bword_inline_map_buffer_ptr)
+static u8 bword_inlining_buffer_size[16] = {0};
+#define mwword_inlining_buffer_size() push_ptr((void*)bword_inlining_buffer_size)
+static u8 bword_inlining_buffer_ptr[16] = {0};
+#define mwword_inlining_buffer_ptr() push_ptr((void*)bword_inlining_buffer_ptr)
+static u8 bCODEGEN_FILE[8] = {0};
+#define mwCODEGEN_FILE() push_ptr((void*)bCODEGEN_FILE)
+static u8 bCODEGEN_LENGTH[8] = {0};
+#define mwCODEGEN_LENGTH() push_ptr((void*)bCODEGEN_LENGTH)
+static u8 bCODEGEN_BUF[256] = {0};
+#define mwCODEGEN_BUF() push_ptr((void*)bCODEGEN_BUF)
+static u8 bC99_DEPTH[8] = {0};
+#define mwC99_DEPTH() push_ptr((void*)bC99_DEPTH)
+static u8 bC99_NEED_STACK[16] = {0};
+#define mwC99_NEED_STACK() push_ptr((void*)bC99_NEED_STACK)
+static u8 bc99_word_needed_buffer_size[16] = {0};
+#define mwc99_word_needed_buffer_size() push_ptr((void*)bc99_word_needed_buffer_size)
+static u8 bc99_word_needed_buffer_ptr[16] = {0};
+#define mwc99_word_needed_buffer_ptr() push_ptr((void*)bc99_word_needed_buffer_ptr)
+static u8 bc99_block_emitted_buffer_size[16] = {0};
+#define mwc99_block_emitted_buffer_size() push_ptr((void*)bc99_block_emitted_buffer_size)
+static u8 bc99_block_emitted_buffer_ptr[16] = {0};
+#define mwc99_block_emitted_buffer_ptr() push_ptr((void*)bc99_block_emitted_buffer_ptr)
+static u8 bc99_word_emitted_buffer_size[16] = {0};
+#define mwc99_word_emitted_buffer_size() push_ptr((void*)bc99_word_emitted_buffer_size)
+static u8 bc99_word_emitted_buffer_ptr[16] = {0};
+#define mwc99_word_emitted_buffer_ptr() push_ptr((void*)bc99_word_emitted_buffer_ptr)
+static u8 bExternal_2E_NUM[8] = {0};
+#define mwExternal_2E_NUM() push_ptr((void*)bExternal_2E_NUM)
+static u8 bexternal_name_buffer_size[16] = {0};
+#define mwexternal_name_buffer_size() push_ptr((void*)bexternal_name_buffer_size)
+static u8 bexternal_name_buffer_ptr[16] = {0};
+#define mwexternal_name_buffer_ptr() push_ptr((void*)bexternal_name_buffer_ptr)
+static u8 bexternal_type_buffer_size[16] = {0};
+#define mwexternal_type_buffer_size() push_ptr((void*)bexternal_type_buffer_size)
+static u8 bexternal_type_buffer_ptr[16] = {0};
+#define mwexternal_type_buffer_ptr() push_ptr((void*)bexternal_type_buffer_ptr)
+static u8 bexternal_sig_buffer_size[16] = {0};
+#define mwexternal_sig_buffer_size() push_ptr((void*)bexternal_sig_buffer_size)
+static u8 bexternal_sig_buffer_ptr[16] = {0};
+#define mwexternal_sig_buffer_ptr() push_ptr((void*)bexternal_sig_buffer_ptr)
+static u8 bexternal_sig_is_checked_buffer_size[16] = {0};
+#define mwexternal_sig_is_checked_buffer_size() push_ptr((void*)bexternal_sig_is_checked_buffer_size)
+static u8 bexternal_sig_is_checked_buffer_ptr[16] = {0};
+#define mwexternal_sig_is_checked_buffer_ptr() push_ptr((void*)bexternal_sig_is_checked_buffer_ptr)
+static u8 bexternal_ctx_buffer_size[16] = {0};
+#define mwexternal_ctx_buffer_size() push_ptr((void*)bexternal_ctx_buffer_size)
+static u8 bexternal_ctx_buffer_ptr[16] = {0};
+#define mwexternal_ctx_buffer_ptr() push_ptr((void*)bexternal_ctx_buffer_ptr)
+static u8 bTable_2E_NUM[8] = {0};
+#define mwTable_2E_NUM() push_ptr((void*)bTable_2E_NUM)
+static u8 btable_name_buffer_size[16] = {0};
+#define mwtable_name_buffer_size() push_ptr((void*)btable_name_buffer_size)
+static u8 btable_name_buffer_ptr[16] = {0};
+#define mwtable_name_buffer_ptr() push_ptr((void*)btable_name_buffer_ptr)
+static u8 btable_num_buffer_buffer_size[16] = {0};
+#define mwtable_num_buffer_buffer_size() push_ptr((void*)btable_num_buffer_buffer_size)
+static u8 btable_num_buffer_buffer_ptr[16] = {0};
+#define mwtable_num_buffer_buffer_ptr() push_ptr((void*)btable_num_buffer_buffer_ptr)
+static u8 btable_max_count_buffer_size[16] = {0};
+#define mwtable_max_count_buffer_size() push_ptr((void*)btable_max_count_buffer_size)
+static u8 btable_max_count_buffer_ptr[16] = {0};
+#define mwtable_max_count_buffer_ptr() push_ptr((void*)btable_max_count_buffer_ptr)
+static u8 bField_2E_NUM[8] = {0};
+#define mwField_2E_NUM() push_ptr((void*)bField_2E_NUM)
+static u8 bfield_name_buffer_size[16] = {0};
+#define mwfield_name_buffer_size() push_ptr((void*)bfield_name_buffer_size)
+static u8 bfield_name_buffer_ptr[16] = {0};
+#define mwfield_name_buffer_ptr() push_ptr((void*)bfield_name_buffer_ptr)
+static u8 bfield_table_buffer_size[16] = {0};
+#define mwfield_table_buffer_size() push_ptr((void*)bfield_table_buffer_size)
+static u8 bfield_table_buffer_ptr[16] = {0};
+#define mwfield_table_buffer_ptr() push_ptr((void*)bfield_table_buffer_ptr)
+static u8 bfield_type_buffer_size[16] = {0};
+#define mwfield_type_buffer_size() push_ptr((void*)bfield_type_buffer_size)
+static u8 bfield_type_buffer_ptr[16] = {0};
+#define mwfield_type_buffer_ptr() push_ptr((void*)bfield_type_buffer_ptr)
+static u8 bfield_buffer_size_buffer_size[16] = {0};
+#define mwfield_buffer_size_buffer_size() push_ptr((void*)bfield_buffer_size_buffer_size)
+static u8 bfield_buffer_size_buffer_ptr[16] = {0};
+#define mwfield_buffer_size_buffer_ptr() push_ptr((void*)bfield_buffer_size_buffer_ptr)
+static u8 bfield_buffer_ptr_buffer_size[16] = {0};
+#define mwfield_buffer_ptr_buffer_size() push_ptr((void*)bfield_buffer_ptr_buffer_size)
+static u8 bfield_buffer_ptr_buffer_ptr[16] = {0};
+#define mwfield_buffer_ptr_buffer_ptr() push_ptr((void*)bfield_buffer_ptr_buffer_ptr)
+static u8 bfield_word_ptr_buffer_size[16] = {0};
+#define mwfield_word_ptr_buffer_size() push_ptr((void*)bfield_word_ptr_buffer_size)
+static u8 bfield_word_ptr_buffer_ptr[16] = {0};
+#define mwfield_word_ptr_buffer_ptr() push_ptr((void*)bfield_word_ptr_buffer_ptr)
+static u8 bAB_ARROW[16] = {0};
+#define mwAB_ARROW() push_ptr((void*)bAB_ARROW)
+static u8 barrow_weighted_buffer_size[16] = {0};
+#define mwarrow_weighted_buffer_size() push_ptr((void*)barrow_weighted_buffer_size)
+static u8 barrow_weighted_buffer_ptr[16] = {0};
+#define mwarrow_weighted_buffer_ptr() push_ptr((void*)barrow_weighted_buffer_ptr)
+static u8 barrow_weight_cached_buffer_size[16] = {0};
+#define mwarrow_weight_cached_buffer_size() push_ptr((void*)barrow_weight_cached_buffer_size)
+static u8 barrow_weight_cached_buffer_ptr[16] = {0};
+#define mwarrow_weight_cached_buffer_ptr() push_ptr((void*)barrow_weight_cached_buffer_ptr)
+static u8 bprim_name_buffer_size[16] = {0};
+#define mwprim_name_buffer_size() push_ptr((void*)bprim_name_buffer_size)
+static u8 bprim_name_buffer_ptr[16] = {0};
+#define mwprim_name_buffer_ptr() push_ptr((void*)bprim_name_buffer_ptr)
+static u8 bprim_ctx_buffer_size[16] = {0};
+#define mwprim_ctx_buffer_size() push_ptr((void*)bprim_ctx_buffer_size)
+static u8 bprim_ctx_buffer_ptr[16] = {0};
+#define mwprim_ctx_buffer_ptr() push_ptr((void*)bprim_ctx_buffer_ptr)
+static u8 bprim_type_buffer_size[16] = {0};
+#define mwprim_type_buffer_size() push_ptr((void*)bprim_type_buffer_size)
+static u8 bprim_type_buffer_ptr[16] = {0};
+#define mwprim_type_buffer_ptr() push_ptr((void*)bprim_type_buffer_ptr)
 
 i64 stat (i64, i64);
 static void mwstat (void) {
@@ -23309,7 +23309,7 @@ static void mwBuffer_2E_for_5D__5B_B1690_5D_ (void){
 }
 
 static void mwc99_emit_buffer_21_ (void){
-    push_ptr(" static u8 b");
+    push_ptr("static u8 b");
     mw_2E_();
     mwprim_2E_core_2E_dup();
     mwbuffer_name_26__unsafe();
@@ -23323,18 +23323,18 @@ static void mwc99_emit_buffer_21_ (void){
     mw_2E_n();
     push_ptr("] = {0};");
     mw_3B_();
-    push_ptr(" static void mw");
+    push_ptr("#define mw");
     mw_2E_();
     mwprim_2E_core_2E_dup();
     mwbuffer_name_26__unsafe();
     mwprim_2E_value_2E_get();
     mw_2E_name();
-    push_ptr(" (void) { push_ptr((void*)b");
+    push_ptr("() push_ptr((void*)b");
     mw_2E_();
     mwbuffer_name_26__unsafe();
     mwprim_2E_value_2E_get();
     mw_2E_name();
-    push_ptr("); }");
+    push_ptr(")");
     mw_3B_();
 }
 
