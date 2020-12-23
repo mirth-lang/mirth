@@ -452,42 +452,8 @@ static void do_pack_uncons() {
     }
 }
 
-static i64 get_value_tag(value_t v) {
-    switch (v.tag) {
-        case VT_C64: {
-            cell_t *c = heap + v.payload.vp_u64;
-            if (c->cdr.tag == VT_U64) return c->cdr.payload.vp_i64;
-            return 0;
-        } break;
-        case VT_U64: {
-            return v.payload.vp_i64;
-        } break;
-        case VT_U32: {
-            return v.payload.vp_u64 & 0xFFFFFFFF;
-        } break;
-        case VT_C32: {
-            return v.payload.vp_u64 & 0xFFFFFFFF;
-        } break;
-        case VT_U21: {
-            return v.payload.vp_u64 & 0x1FFFFF;
-        } break;
-        case VT_C21: {
-            return v.payload.vp_u64 & 0x1FFFFF;
-        } break;
-        case VT_U16: {
-            return v.payload.vp_u64 & 0xFFFF;
-        } break;
-        case VT_C16: {
-            return v.payload.vp_u64 & 0xFFFF;
-        } break;
-    }
-    return 0;
-}
-
-static u64 get_top_data_tag() {
-    return get_value_tag(stack[stack_counter]);
-}
-
+#define get_value_tag(v) (((v).tag == VT_U64) ? (v).payload.vp_i64 : (((v).tag == VT_C64) ? (heap[(v).payload.vp_u64].cdr.payload.vp_i64) : (i64)((v).payload.vp_u64 & 0xFFFF)))
+#define get_top_data_tag() (get_value_tag(stack[stack_counter]))
 static int value_cmp(value_t v1, value_t v2) {
     while(1) {
         i64 t1 = get_value_tag(v1);
@@ -543,12 +509,7 @@ static bool value_eq(value_t v1, value_t v2) {
     }
 }
 
-static void do_run() {
-    do_pack_uncons();
-    fnptr fp = pop_fnptr();
-    fp();
-}
-
+#define do_run() do { do_pack_uncons(); fnptr fp = pop_fnptr(); fp(); } while(0)
 #define mwprim_2E_core_2E_id() 0
 #define mwprim_2E_core_2E_dup() do{ value_t v = stack[stack_counter]; push_value(v); incref(v); } while(0)
 
@@ -1003,59 +964,28 @@ static void mwprim_2E_str_2E_eq (void){
 #define mwprim_2E_pack_2E_cons() do_pack_cons();
 #define mwprim_2E_pack_2E_uncons() do_pack_uncons();
 
-static void mwRAWPTR (void) {
-}
-
-static void mwOS_UNKNOWN (void) {
-    push_u64(0LL);
-}
-
-static void mwOS_WINDOWS (void) {
-    push_u64(1LL);
-}
-
-static void mwOS_LINUX (void) {
-    push_u64(2LL);
-}
-
-static void mwOS_MACOS (void) {
-    push_u64(3LL);
-}
-
-static void mwEQ (void) {
-    push_u64(0LL);
-}
-
-static void mwLT (void) {
-    push_u64(1LL);
-}
-
-static void mwGT (void) {
-    push_u64(2LL);
-}
-
-static void mwNONE (void) {
-    push_u64(0LL);
-}
-
+#define mwRAWPTR() 0
+#define mwOS_UNKNOWN() push_u64(0)
+#define mwOS_WINDOWS() push_u64(1)
+#define mwOS_LINUX() push_u64(2)
+#define mwOS_MACOS() push_u64(3)
+#define mwEQ() push_u64(0)
+#define mwLT() push_u64(1)
+#define mwGT() push_u64(2)
+#define mwNONE() push_u64(0)
 static void mwSOME (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwL0 (void) {
-    push_u64(0LL);
-}
-
+#define mwL0() push_u64(0)
 static void mwL1 (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwL2 (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
@@ -1063,7 +993,6 @@ static void mwL2 (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwL3 (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
@@ -1072,7 +1001,6 @@ static void mwL3 (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwLCAT (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
@@ -1081,14 +1009,12 @@ static void mwLCAT (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwL1_2B_ (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwL2_2B_ (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
@@ -1096,7 +1022,6 @@ static void mwL2_2B_ (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwL3_2B_ (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
@@ -1105,7 +1030,6 @@ static void mwL3_2B_ (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwLCAT_2B_ (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
@@ -1114,104 +1038,74 @@ static void mwLCAT_2B_ (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwTS_STOP (void) {
-    push_u64(0LL);
-}
-
-static void mwTS_SKIP (void) {
-    push_u64(1LL);
-}
-
+#define mwTS_STOP() push_u64(0)
+#define mwTS_SKIP() push_u64(1)
 static void mwTS_CHAR (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTS_PUSH (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTS_COPY (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwPATH (void) {
-}
-
-static void mwFILE (void) {
-}
-
-static void mwDEF_NONE (void) {
-    push_u64(0LL);
-}
-
+#define mwPATH() 0
+#define mwFILE() 0
+#define mwDEF_NONE() push_u64(0)
 static void mwDEF_MODULE (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwDEF_TYPE (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwDEF_TAG (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwDEF_PRIM (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwDEF_WORD (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwDEF_BUFFER (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwDEF_EXTERNAL (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwSET (void) {
-}
-
-static void mwROW (void) {
-}
-
-static void mwCOL (void) {
-}
-
+#define mwSET() 0
+#define mwROW() 0
+#define mwCOL() 0
 static void mwLOCATION (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
@@ -1220,157 +1114,108 @@ static void mwLOCATION (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwTOKEN_NONE (void) {
-    push_u64(0LL);
-}
-
-static void mwTOKEN_COMMA (void) {
-    push_u64(1LL);
-}
-
-static void mwTOKEN_NEWLINE (void) {
-    push_u64(2LL);
-}
-
-static void mwTOKEN_COLON (void) {
-    push_u64(3LL);
-}
-
-static void mwTOKEN_EQUAL (void) {
-    push_u64(4LL);
-}
-
-static void mwTOKEN_ARROW (void) {
-    push_u64(5LL);
-}
-
-static void mwTOKEN_DASHES (void) {
-    push_u64(6LL);
-}
-
+#define mwTOKEN_NONE() push_u64(0)
+#define mwTOKEN_COMMA() push_u64(1)
+#define mwTOKEN_NEWLINE() push_u64(2)
+#define mwTOKEN_COLON() push_u64(3)
+#define mwTOKEN_EQUAL() push_u64(4)
+#define mwTOKEN_ARROW() push_u64(5)
+#define mwTOKEN_DASHES() push_u64(6)
 static void mwTOKEN_LPAREN (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTOKEN_RPAREN (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTOKEN_LSQUARE (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTOKEN_RSQUARE (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTOKEN_LCURLY (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTOKEN_RCURLY (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 12LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTOKEN_INT (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 13LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTOKEN_STR (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 14LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTOKEN_NAME (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 15LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwBAG (void) {
-}
-
-static void mwBAG_2B_ (void) {
-}
-
-static void mwMAP (void) {
-}
-
-static void mwTYPE_ERROR (void) {
-    push_u64(0LL);
-}
-
-static void mwTYPE_DONT_CARE (void) {
-    push_u64(1LL);
-}
-
+#define mwBAG() 0
+#define mwBAG_2B_() 0
+#define mwMAP() 0
+#define mwTYPE_ERROR() push_u64(0)
+#define mwTYPE_DONT_CARE() push_u64(1)
 static void mwTPrim (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTMeta (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTHole (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTVar (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTTable (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTData (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTTensor (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
@@ -1378,7 +1223,6 @@ static void mwTTensor (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTMorphism (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
@@ -1386,7 +1230,6 @@ static void mwTMorphism (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTApp (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
@@ -1394,225 +1237,138 @@ static void mwTApp (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwTValue (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwVALUE_INT (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwVALUE_STR (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwVALUE_BLOCK (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwPRIM_TYPE_UNIT (void) {
-    push_u64(0LL);
-}
-
-static void mwPRIM_TYPE_TYPE (void) {
-    push_u64(1LL);
-}
-
-static void mwPRIM_TYPE_STACK (void) {
-    push_u64(2LL);
-}
-
-static void mwPRIM_TYPE_EFFECT (void) {
-    push_u64(3LL);
-}
-
-static void mwPRIM_TYPE_INT (void) {
-    push_u64(4LL);
-}
-
-static void mwPRIM_TYPE_PTR (void) {
-    push_u64(5LL);
-}
-
-static void mwPRIM_TYPE_STR (void) {
-    push_u64(6LL);
-}
-
-static void mwPRIM_TYPE_CHAR (void) {
-    push_u64(7LL);
-}
-
-static void mwPRIM_TYPE_BOOL (void) {
-    push_u64(8LL);
-}
-
-static void mwPRIM_TYPE_U64 (void) {
-    push_u64(9LL);
-}
-
-static void mwPRIM_TYPE_U32 (void) {
-    push_u64(10LL);
-}
-
-static void mwPRIM_TYPE_U16 (void) {
-    push_u64(11LL);
-}
-
-static void mwPRIM_TYPE_U8 (void) {
-    push_u64(12LL);
-}
-
-static void mwPRIM_TYPE_I64 (void) {
-    push_u64(13LL);
-}
-
-static void mwPRIM_TYPE_I32 (void) {
-    push_u64(14LL);
-}
-
-static void mwPRIM_TYPE_I16 (void) {
-    push_u64(15LL);
-}
-
-static void mwPRIM_TYPE_I8 (void) {
-    push_u64(16LL);
-}
-
-static void mwCTX (void) {
-}
-
-static void mwGAMMA (void) {
-}
-
-static void mwSUBST (void) {
-}
-
+#define mwPRIM_TYPE_UNIT() push_u64(0)
+#define mwPRIM_TYPE_TYPE() push_u64(1)
+#define mwPRIM_TYPE_STACK() push_u64(2)
+#define mwPRIM_TYPE_EFFECT() push_u64(3)
+#define mwPRIM_TYPE_INT() push_u64(4)
+#define mwPRIM_TYPE_PTR() push_u64(5)
+#define mwPRIM_TYPE_STR() push_u64(6)
+#define mwPRIM_TYPE_CHAR() push_u64(7)
+#define mwPRIM_TYPE_BOOL() push_u64(8)
+#define mwPRIM_TYPE_U64() push_u64(9)
+#define mwPRIM_TYPE_U32() push_u64(10)
+#define mwPRIM_TYPE_U16() push_u64(11)
+#define mwPRIM_TYPE_U8() push_u64(12)
+#define mwPRIM_TYPE_I64() push_u64(13)
+#define mwPRIM_TYPE_I32() push_u64(14)
+#define mwPRIM_TYPE_I16() push_u64(15)
+#define mwPRIM_TYPE_I8() push_u64(16)
+#define mwCTX() 0
+#define mwGAMMA() 0
+#define mwSUBST() 0
 static void mwARG_BLOCK (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwARG_VAR_RUN (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwOP_NONE (void) {
-    push_u64(0LL);
-}
-
+#define mwOP_NONE() push_u64(0)
 static void mwOP_PRIM (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwOP_WORD (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwOP_EXTERNAL (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwOP_BUFFER (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwOP_INT (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwOP_STR (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwOP_TAG (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwOP_MATCH (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwOP_LAMBDA (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwOP_VAR (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwOP_BLOCK (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwPARAM (void) {
-}
-
-static void mwPATTERN_UNDERSCORE (void) {
-    push_u64(0LL);
-}
-
+#define mwPARAM() 0
+#define mwPATTERN_UNDERSCORE() push_u64(0)
 static void mwPATTERN_TAG (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwIK_NIL (void) {
-    push_u64(0LL);
-}
-
+#define mwIK_NIL() push_u64(0)
 static void mwIK_BLOCK (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
@@ -1620,29 +1376,20 @@ static void mwIK_BLOCK (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwNEED_BLOCK (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwNEED_WORD (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwALLOW_HOLES (void) {
-    push_u64(0LL);
-}
-
-static void mwFORBID_HOLES (void) {
-    push_u64(1LL);
-}
-
+#define mwALLOW_HOLES() push_u64(0)
+#define mwFORBID_HOLES() push_u64(1)
 static void mwTYPE_ELAB (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
@@ -1650,357 +1397,102 @@ static void mwTYPE_ELAB (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwOPSIG_ID (void) {
-    push_u64(0LL);
-}
-
+#define mwOPSIG_ID() push_u64(0)
 static void mwOPSIG_PUSH (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
 static void mwOPSIG_APPLY (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-
-static void mwPRIM_CORE_ID (void) {
-    push_u64(0LL);
-}
-
-static void mwPRIM_CORE_DUP (void) {
-    push_u64(1LL);
-}
-
-static void mwPRIM_CORE_DROP (void) {
-    push_u64(2LL);
-}
-
-static void mwPRIM_CORE_SWAP (void) {
-    push_u64(3LL);
-}
-
-static void mwPRIM_CORE_DIP (void) {
-    push_u64(4LL);
-}
-
-static void mwPRIM_CORE_IF (void) {
-    push_u64(5LL);
-}
-
-static void mwPRIM_CORE_WHILE (void) {
-    push_u64(6LL);
-}
-
-static void mwPRIM_CORE_DEBUG (void) {
-    push_u64(7LL);
-}
-
-static void mwPRIM_CORE_RUN (void) {
-    push_u64(8LL);
-}
-
-static void mwPRIM_CORE_MATCH (void) {
-    push_u64(9LL);
-}
-
-static void mwPRIM_CORE_LAMBDA (void) {
-    push_u64(10LL);
-}
-
-static void mwPRIM_VALUE_CAST (void) {
-    push_u64(11LL);
-}
-
-static void mwPRIM_VALUE_EQ (void) {
-    push_u64(12LL);
-}
-
-static void mwPRIM_VALUE_LT (void) {
-    push_u64(13LL);
-}
-
-static void mwPRIM_VALUE_LE (void) {
-    push_u64(14LL);
-}
-
-static void mwPRIM_VALUE_GET (void) {
-    push_u64(15LL);
-}
-
-static void mwPRIM_VALUE_SET (void) {
-    push_u64(16LL);
-}
-
-static void mwPRIM_INT_ADD (void) {
-    push_u64(17LL);
-}
-
-static void mwPRIM_INT_SUB (void) {
-    push_u64(18LL);
-}
-
-static void mwPRIM_INT_MUL (void) {
-    push_u64(19LL);
-}
-
-static void mwPRIM_INT_DIV (void) {
-    push_u64(20LL);
-}
-
-static void mwPRIM_INT_MOD (void) {
-    push_u64(21LL);
-}
-
-static void mwPRIM_INT_AND (void) {
-    push_u64(22LL);
-}
-
-static void mwPRIM_INT_OR (void) {
-    push_u64(23LL);
-}
-
-static void mwPRIM_INT_XOR (void) {
-    push_u64(24LL);
-}
-
-static void mwPRIM_INT_SHL (void) {
-    push_u64(25LL);
-}
-
-static void mwPRIM_INT_SHR (void) {
-    push_u64(26LL);
-}
-
-static void mwPRIM_INT_GET (void) {
-    push_u64(27LL);
-}
-
-static void mwPRIM_INT_SET (void) {
-    push_u64(28LL);
-}
-
-static void mwPRIM_BOOL_TRUE (void) {
-    push_u64(29LL);
-}
-
-static void mwPRIM_BOOL_FALSE (void) {
-    push_u64(30LL);
-}
-
-static void mwPRIM_BOOL_AND (void) {
-    push_u64(31LL);
-}
-
-static void mwPRIM_BOOL_OR (void) {
-    push_u64(32LL);
-}
-
-static void mwPRIM_PACK_NIL (void) {
-    push_u64(33LL);
-}
-
-static void mwPRIM_PACK_CONS (void) {
-    push_u64(34LL);
-}
-
-static void mwPRIM_PACK_UNCONS (void) {
-    push_u64(35LL);
-}
-
-static void mwPRIM_PTR_ADD (void) {
-    push_u64(36LL);
-}
-
-static void mwPRIM_PTR_SIZE (void) {
-    push_u64(37LL);
-}
-
-static void mwPRIM_PTR_GET (void) {
-    push_u64(38LL);
-}
-
-static void mwPRIM_PTR_SET (void) {
-    push_u64(39LL);
-}
-
-static void mwPRIM_PTR_ALLOC (void) {
-    push_u64(40LL);
-}
-
-static void mwPRIM_PTR_REALLOC (void) {
-    push_u64(41LL);
-}
-
-static void mwPRIM_PTR_NUMBYTES (void) {
-    push_u64(42LL);
-}
-
-static void mwPRIM_PTR_COPY (void) {
-    push_u64(43LL);
-}
-
-static void mwPRIM_PTR_FILL (void) {
-    push_u64(44LL);
-}
-
-static void mwPRIM_PTR_RAW (void) {
-    push_u64(45LL);
-}
-
-static void mwPRIM_STR_EQ (void) {
-    push_u64(46LL);
-}
-
-static void mwPRIM_U8_GET (void) {
-    push_u64(47LL);
-}
-
-static void mwPRIM_U8_SET (void) {
-    push_u64(48LL);
-}
-
-static void mwPRIM_U16_GET (void) {
-    push_u64(49LL);
-}
-
-static void mwPRIM_U16_SET (void) {
-    push_u64(50LL);
-}
-
-static void mwPRIM_U32_GET (void) {
-    push_u64(51LL);
-}
-
-static void mwPRIM_U32_SET (void) {
-    push_u64(52LL);
-}
-
-static void mwPRIM_U64_GET (void) {
-    push_u64(53LL);
-}
-
-static void mwPRIM_U64_SET (void) {
-    push_u64(54LL);
-}
-
-static void mwPRIM_I8_GET (void) {
-    push_u64(55LL);
-}
-
-static void mwPRIM_I8_SET (void) {
-    push_u64(56LL);
-}
-
-static void mwPRIM_I16_GET (void) {
-    push_u64(57LL);
-}
-
-static void mwPRIM_I16_SET (void) {
-    push_u64(58LL);
-}
-
-static void mwPRIM_I32_GET (void) {
-    push_u64(59LL);
-}
-
-static void mwPRIM_I32_SET (void) {
-    push_u64(60LL);
-}
-
-static void mwPRIM_I64_GET (void) {
-    push_u64(61LL);
-}
-
-static void mwPRIM_I64_SET (void) {
-    push_u64(62LL);
-}
-
-static void mwPRIM_SYS_OS (void) {
-    push_u64(63LL);
-}
-
-static void mwPRIM_SYS_ARGC (void) {
-    push_u64(64LL);
-}
-
-static void mwPRIM_SYS_ARGV (void) {
-    push_u64(65LL);
-}
-
-static void mwPRIM_POSIX_READ (void) {
-    push_u64(66LL);
-}
-
-static void mwPRIM_POSIX_WRITE (void) {
-    push_u64(67LL);
-}
-
-static void mwPRIM_POSIX_OPEN (void) {
-    push_u64(68LL);
-}
-
-static void mwPRIM_POSIX_CLOSE (void) {
-    push_u64(69LL);
-}
-
-static void mwPRIM_POSIX_EXIT (void) {
-    push_u64(70LL);
-}
-
-static void mwPRIM_POSIX_MMAP (void) {
-    push_u64(71LL);
-}
-
-static void mwPRIM_SYNTAX_MODULE (void) {
-    push_u64(72LL);
-}
-
-static void mwPRIM_SYNTAX_IMPORT (void) {
-    push_u64(73LL);
-}
-
-static void mwPRIM_SYNTAX_DEF (void) {
-    push_u64(74LL);
-}
-
-static void mwPRIM_SYNTAX_DEF_TYPE (void) {
-    push_u64(75LL);
-}
-
-static void mwPRIM_SYNTAX_BUFFER (void) {
-    push_u64(76LL);
-}
-
-static void mwPRIM_SYNTAX_DEF_EXTERNAL (void) {
-    push_u64(77LL);
-}
-
-static void mwPRIM_SYNTAX_TARGET_C99 (void) {
-    push_u64(78LL);
-}
-
-static void mwPRIM_SYNTAX_TABLE (void) {
-    push_u64(79LL);
-}
-
-static void mwPRIM_SYNTAX_FIELD (void) {
-    push_u64(80LL);
-}
-
-static void mwPRIM_SYNTAX_DATA (void) {
-    push_u64(81LL);
-}
-
-static void mwPRIM_SYNTAX_END (void) {
-    push_u64(82LL);
-}
-
+#define mwPRIM_CORE_ID() push_u64(0)
+#define mwPRIM_CORE_DUP() push_u64(1)
+#define mwPRIM_CORE_DROP() push_u64(2)
+#define mwPRIM_CORE_SWAP() push_u64(3)
+#define mwPRIM_CORE_DIP() push_u64(4)
+#define mwPRIM_CORE_IF() push_u64(5)
+#define mwPRIM_CORE_WHILE() push_u64(6)
+#define mwPRIM_CORE_DEBUG() push_u64(7)
+#define mwPRIM_CORE_RUN() push_u64(8)
+#define mwPRIM_CORE_MATCH() push_u64(9)
+#define mwPRIM_CORE_LAMBDA() push_u64(10)
+#define mwPRIM_VALUE_CAST() push_u64(11)
+#define mwPRIM_VALUE_EQ() push_u64(12)
+#define mwPRIM_VALUE_LT() push_u64(13)
+#define mwPRIM_VALUE_LE() push_u64(14)
+#define mwPRIM_VALUE_GET() push_u64(15)
+#define mwPRIM_VALUE_SET() push_u64(16)
+#define mwPRIM_INT_ADD() push_u64(17)
+#define mwPRIM_INT_SUB() push_u64(18)
+#define mwPRIM_INT_MUL() push_u64(19)
+#define mwPRIM_INT_DIV() push_u64(20)
+#define mwPRIM_INT_MOD() push_u64(21)
+#define mwPRIM_INT_AND() push_u64(22)
+#define mwPRIM_INT_OR() push_u64(23)
+#define mwPRIM_INT_XOR() push_u64(24)
+#define mwPRIM_INT_SHL() push_u64(25)
+#define mwPRIM_INT_SHR() push_u64(26)
+#define mwPRIM_INT_GET() push_u64(27)
+#define mwPRIM_INT_SET() push_u64(28)
+#define mwPRIM_BOOL_TRUE() push_u64(29)
+#define mwPRIM_BOOL_FALSE() push_u64(30)
+#define mwPRIM_BOOL_AND() push_u64(31)
+#define mwPRIM_BOOL_OR() push_u64(32)
+#define mwPRIM_PACK_NIL() push_u64(33)
+#define mwPRIM_PACK_CONS() push_u64(34)
+#define mwPRIM_PACK_UNCONS() push_u64(35)
+#define mwPRIM_PTR_ADD() push_u64(36)
+#define mwPRIM_PTR_SIZE() push_u64(37)
+#define mwPRIM_PTR_GET() push_u64(38)
+#define mwPRIM_PTR_SET() push_u64(39)
+#define mwPRIM_PTR_ALLOC() push_u64(40)
+#define mwPRIM_PTR_REALLOC() push_u64(41)
+#define mwPRIM_PTR_NUMBYTES() push_u64(42)
+#define mwPRIM_PTR_COPY() push_u64(43)
+#define mwPRIM_PTR_FILL() push_u64(44)
+#define mwPRIM_PTR_RAW() push_u64(45)
+#define mwPRIM_STR_EQ() push_u64(46)
+#define mwPRIM_U8_GET() push_u64(47)
+#define mwPRIM_U8_SET() push_u64(48)
+#define mwPRIM_U16_GET() push_u64(49)
+#define mwPRIM_U16_SET() push_u64(50)
+#define mwPRIM_U32_GET() push_u64(51)
+#define mwPRIM_U32_SET() push_u64(52)
+#define mwPRIM_U64_GET() push_u64(53)
+#define mwPRIM_U64_SET() push_u64(54)
+#define mwPRIM_I8_GET() push_u64(55)
+#define mwPRIM_I8_SET() push_u64(56)
+#define mwPRIM_I16_GET() push_u64(57)
+#define mwPRIM_I16_SET() push_u64(58)
+#define mwPRIM_I32_GET() push_u64(59)
+#define mwPRIM_I32_SET() push_u64(60)
+#define mwPRIM_I64_GET() push_u64(61)
+#define mwPRIM_I64_SET() push_u64(62)
+#define mwPRIM_SYS_OS() push_u64(63)
+#define mwPRIM_SYS_ARGC() push_u64(64)
+#define mwPRIM_SYS_ARGV() push_u64(65)
+#define mwPRIM_POSIX_READ() push_u64(66)
+#define mwPRIM_POSIX_WRITE() push_u64(67)
+#define mwPRIM_POSIX_OPEN() push_u64(68)
+#define mwPRIM_POSIX_CLOSE() push_u64(69)
+#define mwPRIM_POSIX_EXIT() push_u64(70)
+#define mwPRIM_POSIX_MMAP() push_u64(71)
+#define mwPRIM_SYNTAX_MODULE() push_u64(72)
+#define mwPRIM_SYNTAX_IMPORT() push_u64(73)
+#define mwPRIM_SYNTAX_DEF() push_u64(74)
+#define mwPRIM_SYNTAX_DEF_TYPE() push_u64(75)
+#define mwPRIM_SYNTAX_BUFFER() push_u64(76)
+#define mwPRIM_SYNTAX_DEF_EXTERNAL() push_u64(77)
+#define mwPRIM_SYNTAX_TARGET_C99() push_u64(78)
+#define mwPRIM_SYNTAX_TABLE() push_u64(79)
+#define mwPRIM_SYNTAX_FIELD() push_u64(80)
+#define mwPRIM_SYNTAX_DATA() push_u64(81)
+#define mwPRIM_SYNTAX_END() push_u64(82)
 
  static u8 bSTR_BUF[4096] = {0};
  static void mwSTR_BUF (void) { push_ptr((void*)bSTR_BUF); }
@@ -5886,12 +5378,12 @@ static void mwstat (void) {
  static void mb_1628 (void);
  static void mb_1629 (void);
  static void mb_mirth_2E_codegen_212_13 (void);
- static void mb_mirth_2E_codegen_218_9 (void);
- static void mb_mirth_2E_codegen_217_9 (void);
- static void mb_mirth_2E_codegen_221_13 (void);
- static void mb_mirth_2E_codegen_219_13 (void);
- static void mb_mirth_2E_codegen_223_28 (void);
- static void mb_mirth_2E_codegen_223_19 (void);
+ static void mb_mirth_2E_codegen_218_5 (void);
+ static void mb_mirth_2E_codegen_216_9 (void);
+ static void mb_mirth_2E_codegen_221_9 (void);
+ static void mb_mirth_2E_codegen_219_9 (void);
+ static void mb_mirth_2E_codegen_224_24 (void);
+ static void mb_mirth_2E_codegen_224_15 (void);
  static void mb_1637 (void);
  static void mb_1638 (void);
  static void mb_1639 (void);
@@ -5899,7 +5391,7 @@ static void mwstat (void) {
  static void mb_1641 (void);
  static void mb_1642 (void);
  static void mb_1643 (void);
- static void mb_mirth_2E_codegen_1218_18 (void);
+ static void mb_mirth_2E_codegen_1240_18 (void);
  static void mb_mirth_2E_data_2E_token_363_9 (void);
  static void mb_mirth_2E_data_2E_token_358_9 (void);
  static void mb_mirth_2E_data_2E_token_370_9 (void);
@@ -5907,120 +5399,120 @@ static void mwstat (void) {
  static void mb_mirth_2E_data_2E_token_370_40 (void);
  static void mb_mirth_2E_data_2E_token_370_31 (void);
  static void mb_mirth_2E_data_2E_token_370_35 (void);
- static void mb_mirth_2E_codegen_1225_9 (void);
- static void mb_mirth_2E_codegen_1223_9 (void);
- static void mb_mirth_2E_codegen_1227_13 (void);
- static void mb_mirth_2E_codegen_1226_13 (void);
- static void mb_mirth_2E_codegen_1231_10 (void);
- static void mb_mirth_2E_codegen_1240_9 (void);
- static void mb_mirth_2E_codegen_1235_9 (void);
- static void mb_mirth_2E_codegen_1237_13 (void);
- static void mb_mirth_2E_codegen_1236_18 (void);
- static void mb_mirth_2E_codegen_1243_29 (void);
+ static void mb_mirth_2E_codegen_1247_9 (void);
  static void mb_mirth_2E_codegen_1245_9 (void);
- static void mb_mirth_2E_codegen_1244_16 (void);
- static void mb_mirth_2E_codegen_1248_37 (void);
- static void mb_mirth_2E_codegen_1248_20 (void);
- static void mb_mirth_2E_codegen_1249_10 (void);
- static void mb_mirth_2E_codegen_1251_9 (void);
- static void mb_mirth_2E_codegen_1259_9 (void);
- static void mb_mirth_2E_codegen_1252_9 (void);
- static void mb_mirth_2E_codegen_1255_13 (void);
- static void mb_mirth_2E_codegen_1254_15 (void);
- static void mb_mirth_2E_codegen_1262_26 (void);
- static void mb_mirth_2E_codegen_1262_20 (void);
+ static void mb_mirth_2E_codegen_1249_13 (void);
+ static void mb_mirth_2E_codegen_1248_13 (void);
+ static void mb_mirth_2E_codegen_1253_10 (void);
+ static void mb_mirth_2E_codegen_1262_9 (void);
+ static void mb_mirth_2E_codegen_1257_9 (void);
+ static void mb_mirth_2E_codegen_1259_13 (void);
+ static void mb_mirth_2E_codegen_1258_18 (void);
+ static void mb_mirth_2E_codegen_1265_29 (void);
+ static void mb_mirth_2E_codegen_1267_9 (void);
+ static void mb_mirth_2E_codegen_1266_16 (void);
+ static void mb_mirth_2E_codegen_1270_37 (void);
+ static void mb_mirth_2E_codegen_1270_20 (void);
+ static void mb_mirth_2E_codegen_1271_10 (void);
+ static void mb_mirth_2E_codegen_1273_9 (void);
+ static void mb_mirth_2E_codegen_1281_9 (void);
+ static void mb_mirth_2E_codegen_1274_9 (void);
+ static void mb_mirth_2E_codegen_1277_13 (void);
+ static void mb_mirth_2E_codegen_1276_15 (void);
+ static void mb_mirth_2E_codegen_1284_26 (void);
+ static void mb_mirth_2E_codegen_1284_20 (void);
  static void mb_1674 (void);
  static void mb_1675 (void);
  static void mb_1676 (void);
- static void mb_mirth_2E_codegen_1530_14 (void);
+ static void mb_mirth_2E_codegen_1552_14 (void);
  static void mb_1678 (void);
  static void mb_1679 (void);
  static void mb_1680 (void);
- static void mb_mirth_2E_codegen_1538_15 (void);
- static void mb_mirth_2E_codegen_1570_9 (void);
- static void mb_mirth_2E_codegen_1569_9 (void);
+ static void mb_mirth_2E_codegen_1560_15 (void);
+ static void mb_mirth_2E_codegen_1592_9 (void);
+ static void mb_mirth_2E_codegen_1591_9 (void);
  static void mb_1684 (void);
  static void mb_1685 (void);
  static void mb_1686 (void);
- static void mb_mirth_2E_codegen_1269_22 (void);
- static void mb_mirth_2E_codegen_1309_13 (void);
- static void mb_mirth_2E_codegen_1317_5 (void);
- static void mb_mirth_2E_codegen_1316_9 (void);
- static void mb_mirth_2E_codegen_1319_5 (void);
- static void mb_mirth_2E_codegen_1318_9 (void);
- static void mb_mirth_2E_codegen_1321_5 (void);
- static void mb_mirth_2E_codegen_1320_9 (void);
- static void mb_mirth_2E_codegen_1323_5 (void);
- static void mb_mirth_2E_codegen_1322_9 (void);
- static void mb_mirth_2E_codegen_1325_5 (void);
- static void mb_mirth_2E_codegen_1324_9 (void);
- static void mb_mirth_2E_codegen_1327_9 (void);
- static void mb_mirth_2E_codegen_1326_9 (void);
+ static void mb_mirth_2E_codegen_1291_22 (void);
+ static void mb_mirth_2E_codegen_1331_13 (void);
+ static void mb_mirth_2E_codegen_1339_5 (void);
+ static void mb_mirth_2E_codegen_1338_9 (void);
+ static void mb_mirth_2E_codegen_1341_5 (void);
+ static void mb_mirth_2E_codegen_1340_9 (void);
+ static void mb_mirth_2E_codegen_1343_5 (void);
+ static void mb_mirth_2E_codegen_1342_9 (void);
+ static void mb_mirth_2E_codegen_1345_5 (void);
+ static void mb_mirth_2E_codegen_1344_9 (void);
+ static void mb_mirth_2E_codegen_1347_5 (void);
+ static void mb_mirth_2E_codegen_1346_9 (void);
+ static void mb_mirth_2E_codegen_1349_9 (void);
+ static void mb_mirth_2E_codegen_1348_9 (void);
  static void mb_data_2E_str_202_9 (void);
  static void mb_data_2E_str_201_11 (void);
  static void mb_data_2E_str_203_13 (void);
  static void mb_1704 (void);
  static void mb_1705 (void);
  static void mb_1706 (void);
- static void mb_mirth_2E_codegen_1436_9 (void);
- static void mb_mirth_2E_codegen_1435_9 (void);
- static void mb_mirth_2E_codegen_1283_17 (void);
- static void mb_mirth_2E_codegen_1378_35 (void);
- static void mb_mirth_2E_codegen_1443_9 (void);
- static void mb_mirth_2E_codegen_1442_9 (void);
- static void mb_mirth_2E_codegen_1399_9 (void);
+ static void mb_mirth_2E_codegen_1458_9 (void);
+ static void mb_mirth_2E_codegen_1457_9 (void);
+ static void mb_mirth_2E_codegen_1305_17 (void);
+ static void mb_mirth_2E_codegen_1400_35 (void);
+ static void mb_mirth_2E_codegen_1465_9 (void);
+ static void mb_mirth_2E_codegen_1464_9 (void);
+ static void mb_mirth_2E_codegen_1421_9 (void);
  static void mb_1714 (void);
  static void mb_1715 (void);
  static void mb_1716 (void);
  static void mb_1717 (void);
  static void mb_1718 (void);
  static void mb_1719 (void);
- static void mb_mirth_2E_codegen_1286_17 (void);
- static void mb_mirth_2E_codegen_1295_17 (void);
- static void mb_mirth_2E_codegen_1469_23 (void);
- static void mb_mirth_2E_codegen_1470_27 (void);
- static void mb_mirth_2E_codegen_1470_8 (void);
- static void mb_mirth_2E_codegen_1373_9 (void);
- static void mb_mirth_2E_codegen_1347_25 (void);
- static void mb_mirth_2E_codegen_1359_25 (void);
- static void mb_mirth_2E_codegen_1497_9 (void);
- static void mb_mirth_2E_codegen_1490_9 (void);
- static void mb_mirth_2E_codegen_1498_26 (void);
- static void mb_mirth_2E_codegen_1525_17 (void);
- static void mb_mirth_2E_codegen_1520_17 (void);
- static void mb_mirth_2E_codegen_1522_21 (void);
- static void mb_mirth_2E_codegen_1521_23 (void);
+ static void mb_mirth_2E_codegen_1308_17 (void);
+ static void mb_mirth_2E_codegen_1317_17 (void);
+ static void mb_mirth_2E_codegen_1491_23 (void);
+ static void mb_mirth_2E_codegen_1492_27 (void);
+ static void mb_mirth_2E_codegen_1492_8 (void);
+ static void mb_mirth_2E_codegen_1395_9 (void);
+ static void mb_mirth_2E_codegen_1369_25 (void);
+ static void mb_mirth_2E_codegen_1381_25 (void);
+ static void mb_mirth_2E_codegen_1519_9 (void);
+ static void mb_mirth_2E_codegen_1512_9 (void);
+ static void mb_mirth_2E_codegen_1520_26 (void);
+ static void mb_mirth_2E_codegen_1547_17 (void);
+ static void mb_mirth_2E_codegen_1542_17 (void);
+ static void mb_mirth_2E_codegen_1544_21 (void);
+ static void mb_mirth_2E_codegen_1543_23 (void);
  static void mb_1735 (void);
  static void mb_1736 (void);
  static void mb_1737 (void);
  static void mb_1738 (void);
- static void mb_mirth_2E_codegen_1501_13 (void);
- static void mb_mirth_2E_codegen_1500_13 (void);
+ static void mb_mirth_2E_codegen_1523_13 (void);
+ static void mb_mirth_2E_codegen_1522_13 (void);
  static void mb_data_2E_list_261_31 (void);
- static void mb_mirth_2E_codegen_1480_9 (void);
+ static void mb_mirth_2E_codegen_1502_9 (void);
  static void mb_1743 (void);
  static void mb_1744 (void);
- static void mb_mirth_2E_codegen_1484_9 (void);
+ static void mb_mirth_2E_codegen_1506_9 (void);
  static void mb_1746 (void);
  static void mb_1747 (void);
  static void mb_1748 (void);
  static void mb_1749 (void);
  static void mb_1750 (void);
  static void mb_1751 (void);
- static void mb_mirth_2E_codegen_1449_9 (void);
- static void mb_mirth_2E_codegen_1448_11 (void);
- static void mb_mirth_2E_codegen_1590_9 (void);
- static void mb_mirth_2E_codegen_1582_9 (void);
- static void mb_mirth_2E_codegen_1585_13 (void);
- static void mb_mirth_2E_codegen_1583_13 (void);
- static void mb_mirth_2E_codegen_1562_9 (void);
- static void mb_mirth_2E_codegen_1551_9 (void);
- static void mb_mirth_2E_codegen_1554_13 (void);
- static void mb_mirth_2E_codegen_1552_13 (void);
- static void mb_mirth_2E_codegen_1405_9 (void);
+ static void mb_mirth_2E_codegen_1471_9 (void);
+ static void mb_mirth_2E_codegen_1470_11 (void);
+ static void mb_mirth_2E_codegen_1612_9 (void);
+ static void mb_mirth_2E_codegen_1604_9 (void);
+ static void mb_mirth_2E_codegen_1607_13 (void);
+ static void mb_mirth_2E_codegen_1605_13 (void);
+ static void mb_mirth_2E_codegen_1584_9 (void);
+ static void mb_mirth_2E_codegen_1573_9 (void);
+ static void mb_mirth_2E_codegen_1576_13 (void);
+ static void mb_mirth_2E_codegen_1574_13 (void);
+ static void mb_mirth_2E_codegen_1427_9 (void);
  static void mb_1763 (void);
  static void mb_1764 (void);
- static void mb_mirth_2E_codegen_1413_9 (void);
+ static void mb_mirth_2E_codegen_1435_9 (void);
  static void mb_1766 (void);
  static void mb_1767 (void);
  static void mb_mirth_2E_elab_1227_13 (void);
@@ -6230,11 +5722,11 @@ static void mwstat (void) {
  static void mb_mirth_2E_data_2E_token_289_42 (void);
  static void mb_mirth_2E_data_2E_token_427_9 (void);
  static void mb_mirth_2E_data_2E_token_426_9 (void);
- static void mb_mirth_2E_codegen_1546_15 (void);
+ static void mb_mirth_2E_codegen_1568_15 (void);
  static void mb_1976 (void);
  static void mb_1977 (void);
  static void mb_1978 (void);
- static void mb_mirth_2E_codegen_1577_14 (void);
+ static void mb_mirth_2E_codegen_1599_14 (void);
  static void mb_1980 (void);
  static void mb_1981 (void);
  static void mb_1982 (void);
@@ -23425,27 +22917,36 @@ static void mwTag_2E_for_5D__5B_B1630_5D_ (void){
 }
 
 static void mwc99_emit_tag_21_ (void){
+    mwtag_is_transparent_3F_();
+    if (pop_u64()) {
+    push_ptr("#define mw");
+    mw_2E_();
+    mwtag_name_40_();
+    mw_2E_name();
+    push_ptr("() 0");
+    mw_3B_();
+    } else {
+    mwtag_num_inputs_3F_();
+    push_i64(0LL);
+    mw_3D__3D_();
+    if (pop_u64()) {
+    push_ptr("#define mw");
+    mw_2E_();
+    mwtag_name_3F_();
+    mw_2E_name();
+    push_ptr("() push_u64(");
+    mw_2E_();
+    mwtag_value_40_();
+    mw_2E_n();
+    push_ptr(")");
+    mw_3B_();
+    } else {
     push_ptr("static void mw");
     mw_2E_();
     mwtag_name_3F_();
     mw_2E_name();
     push_ptr(" (void) {");
     mw_3B_();
-    mwtag_is_transparent_3F_();
-    if (pop_u64()) {
-    mwdrop();
-    } else {
-    mwtag_num_inputs_3F_();
-    push_i64(0LL);
-    mw_3D__3D_();
-    if (pop_u64()) {
-    push_ptr("    push_u64(");
-    mw_2E_();
-    mwtag_value_40_();
-    mw_2E_n();
-    push_ptr("LL);");
-    mw_3B_();
-    } else {
     push_ptr("    value_t car = pop_value();");
     mw_3B_();
     mwtag_num_inputs_3F_();
@@ -23470,10 +22971,10 @@ static void mwc99_emit_tag_21_ (void){
     mw_3B_();
     push_ptr("    push_value(car);");
     mw_3B_();
-    }
-    }
     push_ptr("}");
-    mw_3B__3B_();
+    mw_3B_();
+    }
+    }
 }
 
 static void mwtag_value_40_ (void){
@@ -24186,74 +23687,10 @@ static void mwc99_emit_prims_21_ (void){
     mw_3B_();
     push_ptr("}");
     mw_3B__3B_();
-    push_ptr("static i64 get_value_tag(value_t v) {");
+    push_ptr("#define get_value_tag(v) (((v).tag == VT_U64) ? (v).payload.vp_i64 : (((v).tag == VT_C64) ? (heap[(v).payload.vp_u64].cdr.payload.vp_i64) : (i64)((v).payload.vp_u64 & 0xFFFF)))");
     mw_3B_();
-    push_ptr("    switch (v.tag) {");
+    push_ptr("#define get_top_data_tag() (get_value_tag(stack[stack_counter]))");
     mw_3B_();
-    push_ptr("        case VT_C64: {");
-    mw_3B_();
-    push_ptr("            cell_t *c = heap + v.payload.vp_u64;");
-    mw_3B_();
-    push_ptr("            if (c->cdr.tag == VT_U64) return c->cdr.payload.vp_i64;");
-    mw_3B_();
-    push_ptr("            return 0;");
-    mw_3B_();
-    push_ptr("        } break;");
-    mw_3B_();
-    push_ptr("        case VT_U64: {");
-    mw_3B_();
-    push_ptr("            return v.payload.vp_i64;");
-    mw_3B_();
-    push_ptr("        } break;");
-    mw_3B_();
-    push_ptr("        case VT_U32: {");
-    mw_3B_();
-    push_ptr("            return v.payload.vp_u64 & 0xFFFFFFFF;");
-    mw_3B_();
-    push_ptr("        } break;");
-    mw_3B_();
-    push_ptr("        case VT_C32: {");
-    mw_3B_();
-    push_ptr("            return v.payload.vp_u64 & 0xFFFFFFFF;");
-    mw_3B_();
-    push_ptr("        } break;");
-    mw_3B_();
-    push_ptr("        case VT_U21: {");
-    mw_3B_();
-    push_ptr("            return v.payload.vp_u64 & 0x1FFFFF;");
-    mw_3B_();
-    push_ptr("        } break;");
-    mw_3B_();
-    push_ptr("        case VT_C21: {");
-    mw_3B_();
-    push_ptr("            return v.payload.vp_u64 & 0x1FFFFF;");
-    mw_3B_();
-    push_ptr("        } break;");
-    mw_3B_();
-    push_ptr("        case VT_U16: {");
-    mw_3B_();
-    push_ptr("            return v.payload.vp_u64 & 0xFFFF;");
-    mw_3B_();
-    push_ptr("        } break;");
-    mw_3B_();
-    push_ptr("        case VT_C16: {");
-    mw_3B_();
-    push_ptr("            return v.payload.vp_u64 & 0xFFFF;");
-    mw_3B_();
-    push_ptr("        } break;");
-    mw_3B_();
-    push_ptr("    }");
-    mw_3B_();
-    push_ptr("    return 0;");
-    mw_3B_();
-    push_ptr("}");
-    mw_3B__3B_();
-    push_ptr("static u64 get_top_data_tag() {");
-    mw_3B_();
-    push_ptr("    return get_value_tag(stack[stack_counter]);");
-    mw_3B_();
-    push_ptr("}");
-    mw_3B__3B_();
     push_ptr("static int value_cmp(value_t v1, value_t v2) {");
     mw_3B_();
     push_ptr("    while(1) {");
@@ -24360,16 +23797,8 @@ static void mwc99_emit_prims_21_ (void){
     mw_3B_();
     push_ptr("}");
     mw_3B__3B_();
-    push_ptr("static void do_run() {");
+    push_ptr("#define do_run() do { do_pack_uncons(); fnptr fp = pop_fnptr(); fp(); } while(0)");
     mw_3B_();
-    push_ptr("    do_pack_uncons();");
-    mw_3B_();
-    push_ptr("    fnptr fp = pop_fnptr();");
-    mw_3B_();
-    push_ptr("    fp();");
-    mw_3B_();
-    push_ptr("}");
-    mw_3B__3B_();
     mwPRIM_CORE_ID();
     mw_2E_pm();
     push_ptr("0");

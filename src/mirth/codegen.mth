@@ -212,21 +212,38 @@ def(c99-emit-tags!, +IO,
     Tag.for(c99-emit-tag!) .lf)
 
 def(c99-emit-tag!, Tag -- +IO,
-    "static void mw" . tag-name? .name " (void) {" ;
     tag-is-transparent? if(
-        drop,
-        tag-num-inputs? 0 == if(
-            "    push_u64(" . tag-value@ .n "LL);" ;,
+        "#define mw" . tag-name@ .name "() 0" ; ,
 
-            "    value_t car = pop_value();" ;
-            tag-num-inputs? 1-
-            while(dup 0 >, "    car = mkcell(car, pop_value());" ;  1-) drop
-            "    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = " . tag-value@ .n "LL } };" ;
-            "    car = mkcell(car, tag);" ;
-            "    push_value(car);" ;
-        )
-    )
-    "}" ;;)
+    tag-num-inputs? 0 == if(
+        "#define mw" . tag-name? .name "() push_u64(" . tag-value@ .n ")" ;,
+
+        "static void mw" . tag-name? .name " (void) {" ;
+        "    value_t car = pop_value();" ;
+        tag-num-inputs? 1-
+        while(dup 0 >, "    car = mkcell(car, pop_value());" ;  1-) drop
+        "    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = " . tag-value@ .n "LL } };" ;
+        "    car = mkcell(car, tag);" ;
+        "    push_value(car);" ;
+        "}" ;
+    )))
+
+# def(c99-emit-tag!, Tag -- +IO,
+#     "static void mw" . tag-name? .name " (void) {" ;
+#     tag-is-transparent? if(
+#         drop,
+#         tag-num-inputs? 0 == if(
+#             "    push_u64(" . tag-value@ .n "LL);" ;,
+
+#             "    value_t car = pop_value();" ;
+#             tag-num-inputs? 1-
+#             while(dup 0 >, "    car = mkcell(car, pop_value());" ;  1-) drop
+#             "    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = " . tag-value@ .n "LL } };" ;
+#             "    car = mkcell(car, tag);" ;
+#             "    push_value(car);" ;
+#         )
+#     )
+#     "}" ;;)
 
 def(c99-emit-prims!, +IO,
     "#define get_cell_index(v) ((usize)(((v).tag & 0x80) ? ((v).payload.vp_u64 >> (0xC0 - (u64)((v).tag))) : 0))" ;;
@@ -660,41 +677,45 @@ def(c99-emit-prims!, +IO,
     "    }" ;
     "}" ;;
 
-    "static i64 get_value_tag(value_t v) {" ;
-    "    switch (v.tag) {" ;
-    "        case VT_C64: {" ;
-    "            cell_t *c = heap + v.payload.vp_u64;" ;
-    "            if (c->cdr.tag == VT_U64) return c->cdr.payload.vp_i64;" ;
-    "            return 0;" ;
-    "        } break;" ;
-    "        case VT_U64: {" ;
-    "            return v.payload.vp_i64;" ;
-    "        } break;" ;
-    "        case VT_U32: {" ;
-    "            return v.payload.vp_u64 & 0xFFFFFFFF;" ;
-    "        } break;" ;
-    "        case VT_C32: {" ;
-    "            return v.payload.vp_u64 & 0xFFFFFFFF;" ;
-    "        } break;" ;
-    "        case VT_U21: {" ;
-    "            return v.payload.vp_u64 & 0x1FFFFF;" ;
-    "        } break;" ;
-    "        case VT_C21: {" ;
-    "            return v.payload.vp_u64 & 0x1FFFFF;" ;
-    "        } break;" ;
-    "        case VT_U16: {" ;
-    "            return v.payload.vp_u64 & 0xFFFF;" ;
-    "        } break;" ;
-    "        case VT_C16: {" ;
-    "            return v.payload.vp_u64 & 0xFFFF;" ;
-    "        } break;" ;
-    "    }" ;
-    "    return 0;" ;
-    "}" ;;
+    "#define get_value_tag(v) (((v).tag == VT_U64) ? (v).payload.vp_i64 : (((v).tag == VT_C64) ? (heap[(v).payload.vp_u64].cdr.payload.vp_i64) : (i64)((v).payload.vp_u64 & 0xFFFF)))" ;
 
-    "static u64 get_top_data_tag() {" ;
-    "    return get_value_tag(stack[stack_counter]);" ;
-    "}" ;;
+    # "static i64 get_value_tag_hard(value_t v) {" ;
+    # "    switch (v.tag) {" ;
+    # "        case VT_C64: {" ;
+    # "            cell_t *c = heap + v.payload.vp_u64;" ;
+    # "            if (c->cdr.tag == VT_U64) return c->cdr.payload.vp_i64;" ;
+    # "            return 0;" ;
+    # "        } break;" ;
+    # "        case VT_U64: {" ;
+    # "            return v.payload.vp_i64;" ;
+    # "        } break;" ;
+    # "        case VT_U32: {" ;
+    # "            return v.payload.vp_u64 & 0xFFFFFFFF;" ;
+    # "        } break;" ;
+    # "        case VT_C32: {" ;
+    # "            return v.payload.vp_u64 & 0xFFFFFFFF;" ;
+    # "        } break;" ;
+    # "        case VT_U21: {" ;
+    # "            return v.payload.vp_u64 & 0x1FFFFF;" ;
+    # "        } break;" ;
+    # "        case VT_C21: {" ;
+    # "            return v.payload.vp_u64 & 0x1FFFFF;" ;
+    # "        } break;" ;
+    # "        case VT_U16: {" ;
+    # "            return v.payload.vp_u64 & 0xFFFF;" ;
+    # "        } break;" ;
+    # "        case VT_C16: {" ;
+    # "            return v.payload.vp_u64 & 0xFFFF;" ;
+    # "        } break;" ;
+    # "    }" ;
+    # "    return 0;" ;
+    # "}" ;;
+
+    "#define get_top_data_tag() (get_value_tag(stack[stack_counter]))" ;
+
+    # "static u64 get_top_data_tag() {" ;
+    # "    return get_value_tag(stack[stack_counter]);" ;
+    # "}" ;;
 
     "static int value_cmp(value_t v1, value_t v2) {" ;
     "    while(1) {" ;
@@ -751,11 +772,12 @@ def(c99-emit-prims!, +IO,
     "    }" ;
     "}" ;;
 
-    "static void do_run() {" ;
-    "    do_pack_uncons();" ;
-    "    fnptr fp = pop_fnptr();" ;
-    "    fp();" ;
-    "}" ;;
+    "#define do_run() do { do_pack_uncons(); fnptr fp = pop_fnptr(); fp(); } while(0)" ;
+    # "static void do_run() {" ;
+    # "    do_pack_uncons();" ;
+    # "    fnptr fp = pop_fnptr();" ;
+    # "    fp();" ;
+    # "}" ;;
 
     PRIM_CORE_ID .pm "0" ;
     PRIM_CORE_DUP .pm "do{ value_t v = stack[stack_counter]; push_value(v); incref(v); } while(0)" ;;
