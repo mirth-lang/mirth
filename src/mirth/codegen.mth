@@ -835,26 +835,30 @@ def(c99-emit-prims!, +IO,
     PRIM_INT_SHL .pm "do { stack[stack_counter+1].payload.vp_u64 <<= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)" ;
     PRIM_INT_SHR .pm "do { stack[stack_counter+1].payload.vp_u64 >>= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)" ;
 
-    PRIM_VALUE_EQ .p " {" ;
-    "    value_t v2 = pop_value();" ;
-    "    value_t v1 = pop_value();" ;
-    "    push_bool(value_eq(v1, v2));" ;
-    "    decref(v1); decref(v2);" ;
-    "}" ;;
+    PRIM_VALUE_EQ .pm " do { value_t v2 = pop_value(); value_t v1 = pop_value(); push_bool(value_eq(v1, v2)); decref(v1); decref(v2); } while(0)" ;;
+    PRIM_VALUE_LT .pm " do { value_t v2 = pop_value(); value_t v1 = pop_value(); push_bool(value_cmp(v1, v2) < 0); decref(v1); decref(v2); } while(0)" ;;
+    PRIM_VALUE_LE .pm " do { value_t v2 = pop_value(); value_t v1 = pop_value(); push_bool(value_cmp(v1, v2) <= 0); decref(v1); decref(v2); } while(0)" ;;
 
-    PRIM_VALUE_LT .p " {" ;
-    "    value_t v2 = pop_value();" ;
-    "    value_t v1 = pop_value();" ;
-    "    push_bool(value_cmp(v1, v2) < 0);" ;
-    "    decref(v1); decref(v2);" ;
-    "}" ;;
+    # PRIM_VALUE_EQ .p " {" ;
+    # "    value_t v2 = pop_value();" ;
+    # "    value_t v1 = pop_value();" ;
+    # "    push_bool(value_eq(v1, v2));" ;
+    # "    decref(v1); decref(v2);" ;
+    # "}" ;;
 
-    PRIM_VALUE_LE .p " {" ;
-    "    value_t v2 = pop_value();" ;
-    "    value_t v1 = pop_value();" ;
-    "    push_bool(value_cmp(v1, v2) <= 0);" ;
-    "    decref(v1); decref(v2);" ;
-    "}" ;;
+    # PRIM_VALUE_LT .p " {" ;
+    # "    value_t v2 = pop_value();" ;
+    # "    value_t v1 = pop_value();" ;
+    # "    push_bool(value_cmp(v1, v2) < 0);" ;
+    # "    decref(v1); decref(v2);" ;
+    # "}" ;;
+
+    # PRIM_VALUE_LE .p " {" ;
+    # "    value_t v2 = pop_value();" ;
+    # "    value_t v1 = pop_value();" ;
+    # "    push_bool(value_cmp(v1, v2) <= 0);" ;
+    # "    decref(v1); decref(v2);" ;
+    # "}" ;;
 
     PRIM_POSIX_WRITE .p " {" ;
     "    usize n = (usize)pop_u64();" ;
@@ -934,165 +938,38 @@ def(c99-emit-prims!, +IO,
 
     PRIM_CORE_DEBUG .pm "do_debug()" ;;
 
-    PRIM_VALUE_GET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    value_t* p = value_ptr(vp);" ;
-    "    value_t v = *p;" ;
-    "    push_value(v);" ;
-    "    incref(v);" ;
-    "    decref(vp);" ;
-    "}" ;;
+    # PRIM_VALUE_GET .p " {" ;
+    # "    value_t vp = pop_value();" ;
+    # "    value_t* p = value_ptr(vp);" ;
+    # "    value_t v = *p;" ;
+    # "    push_value(v);" ;
+    # "    incref(v);" ;
+    # "    decref(vp);" ;
+    # "}" ;;
 
-    PRIM_VALUE_SET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    value_t* p = value_ptr(vp);" ;
-    "    value_t v = pop_value();" ;
-    "    value_t old_v = *p;" ;
-    "    *p = v;" ;
-    "    decref(old_v);" ;
-    "    decref(vp);" ;
-    "}" ;;
+    PRIM_VALUE_GET .pm "do { value_t vp = pop_value(); value_t* p = value_ptr(vp); push_value(*p); incref(*p); decref(vp); } while(0)" ;
+    PRIM_INT_GET .pm "do { value_t vp = pop_value(); i64* p = value_ptr(vp); push_i64(*p); decref(vp); } while(0)" ;
+    PRIM_PTR_GET .pm "do { value_t vp = pop_value(); void** p = value_ptr(vp); push_ptr(*p); decref(vp); } while(0)" ;
+    PRIM_U8_GET .pm "do { value_t vp = pop_value(); u8* p = value_ptr(vp); push_u8(*p); decref(vp); } while(0)" ;
+    PRIM_U16_GET .pm "do { value_t vp = pop_value(); u16* p = value_ptr(vp); push_u16(*p); decref(vp); } while(0)" ;
+    PRIM_U32_GET .pm "do { value_t vp = pop_value(); u32* p = value_ptr(vp); push_u32(*p); decref(vp); } while(0)" ;
+    PRIM_U64_GET .pm "do { value_t vp = pop_value(); u64* p = value_ptr(vp); push_u64(*p); decref(vp); } while(0)" ;
+    PRIM_I8_GET .pm "do { value_t vp = pop_value(); i8* p = value_ptr(vp); push_i8(*p); decref(vp); } while(0)" ;
+    PRIM_I16_GET .pm "do { value_t vp = pop_value(); i16* p = value_ptr(vp); push_i16(*p); decref(vp); } while(0)" ;
+    PRIM_I32_GET .pm "do { value_t vp = pop_value(); i32* p = value_ptr(vp); push_i32(*p); decref(vp); } while(0)" ;
+    PRIM_I64_GET .pm "do { value_t vp = pop_value(); i64* p = value_ptr(vp); push_i64(*p); decref(vp); } while(0)" ;
 
-    PRIM_INT_GET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    i64* p = value_ptr(vp);" ;
-    "    push_i64(*p);" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_INT_SET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    i64* p = value_ptr(vp);" ;
-    "    *p = (i64)pop_i64();" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_PTR_GET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    void** p = value_ptr(vp);" ;
-    "    push_ptr(*p);" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_PTR_SET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    value_t vx = pop_value();" ;
-    "    void** p = value_ptr(vp);" ;
-    "    *p = value_ptr(vx);" ;
-    "    decref(vp); decref(vx);" ;
-    "}" ;;
-
-    PRIM_U8_GET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    u8* p = value_ptr(vp);" ;
-    "    push_u8(*p);" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_U8_SET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    u8* p = value_ptr(vp);" ;
-    "    *p = pop_u8();" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_U16_GET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    u16* p = value_ptr(vp);" ;
-    "    push_u16(*p);" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_U16_SET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    u16* p = value_ptr(vp);" ;
-    "    *p = pop_u16();" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_U32_GET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    u32* p = value_ptr(vp);" ;
-    "    push_u32(*p);" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_U32_SET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    u32* p = value_ptr(vp);" ;
-    "    *p = pop_u32();" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_U64_GET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    u64* p = value_ptr(vp);" ;
-    "    push_u64(*p);" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_U64_SET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    u64* p = value_ptr(vp);" ;
-    "    *p = pop_u64();" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_I8_GET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    i8* p = value_ptr(vp);" ;
-    "    push_i8(*p);" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_I8_SET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    i8* p = value_ptr(vp);" ;
-    "    *p = pop_i8();" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_I16_GET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    i16* p = value_ptr(vp);" ;
-    "    push_i16(*p);" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_I16_SET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    i16* p = value_ptr(vp);" ;
-    "    *p = pop_i16();" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_I32_GET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    i32* p = value_ptr(vp);" ;
-    "    push_i32(*p);" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_I32_SET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    i32* p = value_ptr(vp);" ;
-    "    *p = pop_i32();" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_I64_GET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    i64* p = value_ptr(vp);" ;
-    "    push_i64(*p);" ;
-    "    decref(vp);" ;
-    "}" ;;
-
-    PRIM_I64_SET .p " {" ;
-    "    value_t vp = pop_value();" ;
-    "    i64* p = value_ptr(vp);" ;
-    "    *p = pop_i64();" ;
-    "    decref(vp);" ;
-    "}" ;;
+    PRIM_INT_SET .pm "do { value_t vp = pop_value(); i64* p = value_ptr(vp); *p = pop_i64(); decref(vp); } while(0)" ;
+    PRIM_U8_SET .pm "do { value_t vp = pop_value(); u8* p = value_ptr(vp); *p = pop_u8(); decref(vp); } while(0)" ;
+    PRIM_U16_SET .pm "do { value_t vp = pop_value(); u16* p = value_ptr(vp); *p = pop_u16(); decref(vp); } while(0)" ;
+    PRIM_U32_SET .pm "do { value_t vp = pop_value(); u32* p = value_ptr(vp); *p = pop_u32(); decref(vp); } while(0)" ;
+    PRIM_U64_SET .pm "do { value_t vp = pop_value(); u64* p = value_ptr(vp); *p = pop_u64(); decref(vp); } while(0)" ;
+    PRIM_I8_SET .pm "do { value_t vp = pop_value(); i8* p = value_ptr(vp); *p = pop_i8(); decref(vp); } while(0)" ;
+    PRIM_I16_SET .pm "do { value_t vp = pop_value(); i16* p = value_ptr(vp); *p = pop_i16(); decref(vp); } while(0)" ;
+    PRIM_I32_SET .pm "do { value_t vp = pop_value(); i32* p = value_ptr(vp); *p = pop_i32(); decref(vp); } while(0)" ;
+    PRIM_I64_SET .pm "do { value_t vp = pop_value(); i64* p = value_ptr(vp); *p = pop_i64(); decref(vp); } while(0)" ;
+    PRIM_PTR_SET .pm "do { value_t vp = pop_value(); value_t vx = pop_value(); void** p = value_ptr(vp); *p = value_ptr(vx); decref(vp); decref(vx); } while(0)" ;
+    PRIM_VALUE_SET .pm "do { value_t vp = pop_value(); value_t vx = pop_value(); value_t* p = value_ptr(vp); value_t old = *p; *p = vx; decref(old); decref(vp); } while(0)" ;
 
     "#if defined(MIRTH_WINDOWS)" ;
     PRIM_SYS_OS .pm "push_u64(" . OS_WINDOWS cast .n ")" ;
@@ -1188,11 +1065,7 @@ def(c99-emit-prims!, +IO,
     "    }" ;
     "}" ;;
 
-    PRIM_PTR_NUMBYTES .p " {" ;
-    "    value_t v = pop_value();" ;
-    "    push_i64(value_ptr_size(v));" ;
-    "    decref(v);" ;
-    "}" ;;
+    PRIM_PTR_NUMBYTES .pm "do { value_t v = pop_value(); push_i64(value_ptr_size(v)); decref(v); } while(0)" ;;
 
     PRIM_PTR_COPY .p " {" ;
     "    value_t vdst = pop_value();" ;
@@ -1218,11 +1091,9 @@ def(c99-emit-prims!, +IO,
     "    decref(vdst);" ;
     "}" ;;
 
-    PRIM_PTR_RAW .p "{" ;
-    "    value_t vptr = pop_value();" ;
-    "    push_value(vptr);" ;
-    "    push_ptr(value_ptr(vptr));" ;
-    "}" ;;
+    PRIM_PTR_RAW .pm "do { usize i = stack_counter; push_ptr(value_ptr(stack[i])); } while(0)" ;
+
+    # PRIM_STR_EQ .pm "do { value_t vptr1 = pop_value(); value_t vptr2 = pop_value(); const char* ptr1 = value_ptr(vptr1); const char* ptr2 = value_ptr(vptr2); bool result = (!ptr1 || !ptr2) ? (ptr1 == ptr2) : strcmp(ptr1,ptr2) == 0; push_bool(result); decref(vptr1); decref(vptr2); } while(0)" ;
 
     PRIM_STR_EQ .p "{" ;
     "    value_t vptr1 = pop_value();" ;
