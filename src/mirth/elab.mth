@@ -299,7 +299,22 @@ ab-optimized-snoc-swap! =
     )
 
 ab-optimized-snoc-drop! : List(Atom) Atom -- List(Atom)
-ab-optimized-snoc-drop! = snoc # TODO
+ab-optimized-snoc-drop! =
+    over List->List+ match(
+        NONE -> snoc,
+        SOME ->
+            unsnoc atom-op? match(
+                OP_INT -> drop2 dip(drop2),
+                OP_STR -> drop2 dip(drop2),
+                OP_BLOCK -> drop2 dip(drop2),
+                OP_PRIM -> match(
+                    PRIM_CORE_DUP -> drop dip(drop2),
+                    _ -> drop3 snoc
+                ),
+                _ -> drop3 snoc
+            ),
+    )
+
 
 ab-optimized-snoc-dup! : List(Atom) Atom -- List(Atom)
 ab-optimized-snoc-dup! = snoc # TODO
@@ -487,7 +502,13 @@ atom-accepts-args? =
     atom-op? match(
         OP_TAG -> drop true,
         OP_WORD -> drop true,
-        OP_PRIM -> drop true,
+        OP_PRIM ->
+            match(
+                PRIM_CORE_DIP -> true,
+                PRIM_CORE_IF -> true,
+                PRIM_CORE_WHILE -> true,
+                _ -> drop false
+            ),
         _ -> drop false
     )
 

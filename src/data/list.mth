@@ -129,10 +129,10 @@ snoc+ : List(t) t -- List+(t)
 snoc+ =
     swap match(
         L0 -> L1+,
-        L1 -> rot2l L2+,
-        L2 -> rot3l L3+,
+        L1 -> swap L2+,
+        L2 -> rotl L3+,
         L3 -> rot4l L4+,
-        LCAT -> 1+ dip(rot3l snoc++ rebalance+) LCAT+
+        LCAT -> 1+ dip(rotl snoc++ rebalance+) LCAT+
     )
 
 cons++ : t List+(t) -- List+(t)
@@ -195,7 +195,7 @@ cat+ =
     swap match(
         L1+ -> swap cons++,
         L2+ ->
-            rot3l match(
+            rotl match(
                 L1+ -> L3+,
                 L2+ -> L4+,
                 L3+ -> L5+,
