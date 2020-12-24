@@ -1,14 +1,13 @@
 module(data.str)
 import(data.list)
+import(data.char)
 import(prelude)
 
-# TODO: UTF8 support
-str-head : Str -- U8
-str-head = Str->Ptr u8@
+str-head : Str -- Char
+str-head = Str->Ptr u8@ cast # TODO UTF8 support
 
-# TODO: UTF8 support
 str-tail : Str -- Str
-str-tail = Str->Ptr 1 swap ptr+ Ptr->Str
+str-tail = Str->Ptr 1 swap ptr+ Ptr->Str # TODO UTF8 support
 
 str-numbytes : Str -- Int
 str-numbytes = is-nil? if(drop 0, Str->Ptr prim.ptr.numbytes)
@@ -59,7 +58,7 @@ ptr-copy-nonzero! = (
 ||| Return first unwritten location in second argument.
 str-copy-partial! : Str Ptr -- Ptr
 str-copy-partial! = (
-    dip(str-length? dip(Str->Ptr))
+    dip(Str->Ptr dup prim.ptr.numbytes 1-)
     dup2 ptr+ dip(prim.ptr.copy)
 )
 
@@ -71,15 +70,16 @@ str-copy! = (
 )
 
 STR_BUF_SIZE : Int
-STR_BUF_SIZE = 0x1000
-buffer(STR_BUF, 0x1000)
+STR_BUF_SIZE = 0x2000
+buffer(STR_BUF, 0x2000)
 buffer(STR_BUF_LEN, 8)
 
 build-str! : *a [ *a -- *b ] -- *b Str
-build-str! =
+build-str! = \([f] ->
     str-buf-dup! str-buf-clear! dip(
-        run str-buf-dup!
+        f str-buf-dup!
     ) str-buf!
+)
 
 str-buf-dup! : Str
 str-buf-dup! = (
@@ -102,6 +102,9 @@ str-buf-u8@ = STR_BUF u8@@
 str-buf-u8! : U8 Offset -- +StrBuf
 str-buf-u8! = STR_BUF u8!!
 
+str-buf-char@ : Offset -- Char +StrBuf
+str-buf-char@ = str-buf-u8@ cast # TODO UTF8
+
 str-buf-empty? : Bool +StrBuf
 str-buf-empty? = str-buf-length? 0=
 
@@ -111,13 +114,18 @@ str-buf-full? = str-buf-length? 1+ STR_BUF_SIZE >=
 str-buf-clear! : +StrBuf
 str-buf-clear! = 0 str-buf-length!
 
-str-buf-push! : U8 -- +StrBuf
-str-buf-push! =
-    str-buf-full? if(
-        "str-buf-push! but STR_BUF is already full" panic!,
+str-buf-push-u8! : U8 -- +StrBuf
+str-buf-push-u8! = (
+    # str-buf-full? not if(
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
-    )
+    #     "str-buf-push! but STR_BUF is already full" panic!
+    # )
+)
+
+# TODO: UTF8 support
+str-buf-push-char! : Char -- +StrBuf
+str-buf-push-char! = cast str-buf-push-u8!
 
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
@@ -125,24 +133,43 @@ str-buf-push-str! : Str -- +StrBuf
 str-buf-push-str! = Str->Ptr str-buf-push-ptr!
 
 str-buf-push-ptr! : Ptr -- +StrBuf
-str-buf-push-ptr! =
-    while(
-        str-buf-full? if(false, dup u8@ U8->Int nonzero),
-        dup u8@ str-buf-push!
-        1 swap ptr+
-    ) drop
+str-buf-push-ptr! = (
+    dup prim.ptr.numbytes tuck
+    str-buf-length? STR_BUF ptr+
+    prim.ptr.copy
+    str-buf-length? 1- + str-buf-length!
+    # str-buf-length? 2 -
+    # dup str-buf-u8@ is-nil if(
+    #     1+ str-buf-length!,
+    #     drop
+    # )
+)
+
+    # prim.ptr.copy
+    # dup prim.ptr.numbytes
+    # STR_BUF ptr+
+
+    # dup prim.ptr.numbytes prim.ptr.copy
+
+# TODO: use prim.ptr.copy
+    # while(
+    #     str-buf-full? if(false, dup u8@ U8->Int nonzero),
+    #     dup u8@ str-buf-push-u8!
+    #     1 swap ptr+
+    # ) drop
+# )
 
 ||| Set the STR_BUF to a given string. If the string is
 ||| too large it gets truncated.
 str-buf! : Str -- +StrBuf
 str-buf! = str-buf-clear! str-buf-push-str!
 
-# TODO UTF8 support?
+# TODO UTF8 support
 str-buf-char! : Char -- +StrBuf
-str-buf-char! = 0 str-buf-u8! 1 str-buf-length!
+str-buf-char! = cast 0 str-buf-u8! 1 str-buf-length!
 
-to-digit : Int -- U8
-to-digit = 10 % 48 + Int->U8
+to-digit : Int -- Char
+to-digit = 10 % 48 + Int->Char
 
 ||| Put integer into STR_BUF.
 str-buf-int! : Int -- +StrBuf
@@ -152,8 +179,8 @@ str-buf-int! =
         dup dip(
             abs
             str-buf-clear!
-            while(dup nonzero, dup to-digit str-buf-push! 10 /) drop
-        ) 0 < if(45 Int->U8 str-buf-push!, id)
+            while(dup nonzero, dup to-digit str-buf-push-char! 10 /) drop
+        ) 0 < if(45 Int->Char str-buf-push-char!, id)
         str-buf-reverse!
     )
 
@@ -182,14 +209,7 @@ str-buf-reverse! = (
 
 ||| Are two strings equal?
 str-eq : Str Str -- Bool
-str-eq =
-    str-is-empty? if(
-        drop str-is-empty,
-        dup2 str-head swap str-head == if(
-            str-tail swap str-tail str-eq,
-            drop2 false
-        )
-    )
+str-eq = prim.str.eq
 
 ||| Are two strings equal? Preserve pointers.
 str-eq? : Str Str -- Str Str Bool
@@ -220,9 +240,9 @@ str-transduce = \([f] ->
             swap match(
                 TS_STOP -> drop "",
                 TS_SKIP -> id,
-                TS_CHAR -> str-buf-push!,
-                TS_PUSH -> for(str-buf-push!),
-                TS_COPY -> str-for(str-buf-push!)
+                TS_CHAR -> str-buf-push-char!,
+                TS_PUSH -> for(str-buf-push-char!),
+                TS_COPY -> str-buf-push-str!
             )
         ) drop
     )

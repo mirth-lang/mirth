@@ -1,6 +1,7 @@
 module(mirth.data.word)
+import(data.map)
+import(mirth.data.var)
 
-# mirth/data/word
 table(Word)
 field(word-name, Word, Name)
 field(word-sig, Word, Token)
@@ -10,3 +11,4 @@ field(word-type, Word, Type)
 field(word-arrow, Word, Arrow)
 field(word-sig-is-checked, Word, Bool)
 field(word-body-is-checked, Word, Bool)
+field(word-body-is-checking, Word, Bool)

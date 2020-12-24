@@ -184,11 +184,11 @@ def(test@!, --,
 
 def(test-str, --,
     "AaBb"
-    dup str-head U8->Int 65 !!=
-    dup str-tail str-head U8->Int 97 !!=
-    dup str-tail str-tail str-head U8->Int 66 !!=
-    dup str-tail str-tail str-tail str-head U8->Int 98 !!=
-    dup str-tail str-tail str-tail str-tail str-head U8->Int 0 !!=
+    dup str-head Char->Int 65 !!=
+    dup str-tail str-head Char->Int 97 !!=
+    dup str-tail str-tail str-head Char->Int 66 !!=
+    dup str-tail str-tail str-tail str-head Char->Int 98 !!=
+    dup str-tail str-tail str-tail str-tail str-head Char->Int 0 !!=
     drop
 
     "" str-length 0 !!=

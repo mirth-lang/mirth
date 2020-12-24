@@ -179,32 +179,31 @@ def(ab-type@, Type +AB, ab-arrow@ arrow-cod@)
 def(ab-type!, Type -- +AB, ab-arrow@ arrow-cod!)
 
 ab-save! : *a [ *a -- *b +AB ] -- *b +AB
-ab-save! = ab-arrow@ dip(run) ab-arrow!
+ab-save! = \([f] -> ab-arrow@ dip(f) ab-arrow!)
 
 ab-build! : *a Ctx Type Token [ *a -- *b +AB ] -- *b Arrow +AB
-ab-build! =
+ab-build! = \([f] ->
     ab-save!(
-        dip(
-            Arrow.alloc!
-            tuck dup2 arrow-token-start! arrow-token-end!
-            tuck dup2 arrow-dom! arrow-cod!
-            tuck arrow-ctx!
-            ab-arrow!
-        )
-        run
+        Arrow.alloc!
+        tuck dup2 arrow-token-start! arrow-token-end!
+        tuck dup2 arrow-dom! arrow-cod!
+        tuck arrow-ctx!
+        ab-arrow!
+        f
         ab-arrow@
     )
+)
 
 ab-build-word! : *a Word [ *a -- *b +AB ] -- *b Word +AB
-ab-build-word! = (
-    dip (
-        dup dip(elab-word-ctx-sig!)
-        word-body? swap
-        dip(elab-expand-morphism! swap)
-    )
-    { *a Ctx Type Token Type Word [ *a -- *b +AB ] }
-    rotr dip(
-        dip(ab-build!) over
+ab-build-word! = \([f] ->
+    dup dip(elab-word-ctx-sig!)
+    word-body? swap
+    dip(elab-expand-morphism! swap)
+
+    { *a Ctx Type Token Type Word }
+    true over word-body-is-checking!
+    dip(
+        dip(ab-build!(f)) over
         arrow-cod? swap arrow-token-end@
         elab-type-unify! drop2
     )
@@ -231,56 +230,25 @@ ab-atom! = (
 ||| Add an atom to a list of atoms ... smartly.
 ab-optimized-snoc! : List(Atom) Atom -- List(Atom)
 ab-optimized-snoc! = (
-    atom-accepts-args? if(
-        swap atoms-turn-blocks-to-arg swap,
-        id
-    )
-
-    atom-is-coercion? if(
-        atom-cod@ ab-type!,
-        snoc
-    )
+    while(dip?(atoms-has-last-block?) and(atom-accepts-args?),
+        swap atoms-turn-last-block-to-arg swap)
+    snoc
 )
-
-atom-is-coercion? : Atom -- Atom Bool
-atom-is-coercion? =
-    atom-args? is-nil if(
-        atom-op? match(
-            OP_PRIM -> dup PRIM_VALUE_CAST == swap PRIM_CORE_ID == ||,
-            OP_TAG -> tag-is-transparent? nip,
-            OP_MATCH ->
-                match-is-transparent? if(
-                    match-cases@ all(case-body? arrow-atoms@ is-nil),
-                    drop false
-                ),
-            OP_WORD -> word-body-is-checked? if(word-arrow@ arrow-atoms@ is-nil, drop false),
-            _ -> drop false
-        ),
-        false
-    )
-
-# atom-prim=? : Atom Prim -- Atom Bool
-# atom-prim=? =
-#     over atom-op@ match(
-#         OP_PRIM -> ==,
-#         _ -> drop2 false
-#     )
-
-#inline(rotr) inline(rotl)
-#rewrite(swap swap, id)
-#rewrite(dup swap, id)
 
 atom-accepts-args? : Atom -- Atom Bool
 atom-accepts-args? =
     atom-op? match(
-        OP_TAG -> drop true,
-        OP_WORD -> drop true,
-        OP_PRIM -> drop true,
+        OP_WORD -> dip(atom-args? len) elab-word-sig! type-max-num-params <,
+        OP_PRIM ->
+            match(
+                PRIM_CORE_RUN -> atom-args? len 1 <, # this one's dubious
+                PRIM_CORE_DIP -> atom-args? len 1 <,
+                PRIM_CORE_IF -> atom-args? len 2 <,
+                PRIM_CORE_WHILE -> atom-args? len 2 <,
+                _ -> drop false
+            ),
         _ -> drop false
     )
-
-atoms-turn-blocks-to-arg : Atom List(Atom) -- Atom List(Atom)
-atoms-turn-blocks-to-arg = while(atoms-has-last-block?, atoms-turn-last-block-to-arg)
 
 atoms-has-last-block? : List(Atom) -- List(Atom) Bool
 atoms-has-last-block? =
@@ -383,23 +351,53 @@ ab-external! : External -- +AB
 ab-external! = OP_EXTERNAL ab-op!
 
 ab-block-at! : *a Token [ *a -- *b +AB ] -- *b +AB
-ab-block-at! =
+ab-block-at! = \([f] ->
     Block.alloc! dip(
-        dip(ab-ctx@ meta-alloc! TMeta rotl) ab-build!
-    ) tuck block-arrow! OP_BLOCK ab-op!
+        ab-ctx@ meta-alloc! TMeta rotl ab-build!(f)
+    ) tuck block-arrow-raw! OP_BLOCK ab-op!
+)
 
 ab-block! : *a [ *a -- *b +AB ] -- *b +AB
-ab-block! = ab-token@ swap ab-block-at!
+ab-block! = \([f] -> ab-token@ ab-block-at!(f))
 
 ab-dip! : *a [ *a -- *b +AB ] -- *b +AB
-ab-dip! = ab-block! PRIM_CORE_DIP ab-prim!
+ab-dip! = \([f] -> ab-block!(f) PRIM_CORE_DIP ab-prim!)
 
 ab-if! : *a [ *a -- *b +AB ] [ *b -- *c +AB ] -- *c +AB
 ab-if! = dip(ab-block!) ab-block! PRIM_CORE_IF ab-prim!
+    # FIXME TODO there's a problem with multiples somewhere ...
 
 ab-while! : *a [ *a -- *b +AB ] [ *b -- *c +AB ] -- *c +AB
 ab-while! = dip(ab-block!) ab-block! PRIM_CORE_WHILE ab-prim!
+    # FIXME TODO there's a problem with multiples somewhere ...
+    # I probably got the InlineKey's backwards :-(
 
+ab-lambda! : *a List(Param) [*a -- *b +AB] -- *b +AB
+ab-lambda! = \([f] ->
+    Lambda.alloc!
+    ab-ctx@ over lambda-outer-ctx!
+    ab-type@ over lambda-dom!
+    ab-token@ over lambda-token!
+    dup2 lambda-params!
+    dip(ab-ctx@ ab-type@ rotl for(
+        swap dip(Param->Var ctx-new!)
+        ab-token@ elab-expand-tensor! drop2
+    ))
+    tuck lambda-mid!
+    tuck lambda-inner-ctx!
+
+    { *a Lambda }
+
+    lambda-inner-ctx?
+    over lambda-mid@
+    ab-token@
+    ab-build!(
+        dip(f)
+        ab-type@ over lambda-cod!
+    )
+    over lambda-body!
+    OP_LAMBDA ab-op!
+)
 
 data OpSig
     OPSIG_ID
@@ -412,8 +410,8 @@ elab-op-fresh-sig! : Op -- Subst OpSig +AB
 elab-op-fresh-sig! =
     subst-nil swap match(
         OP_NONE -> OPSIG_ID,
-        OP_INT -> drop TYPE_INT OPSIG_PUSH,
-        OP_STR -> drop TYPE_STR OPSIG_PUSH,
+        OP_INT -> VALUE_INT TValue OPSIG_PUSH,
+        OP_STR -> VALUE_STR TValue OPSIG_PUSH,
         OP_BUFFER -> drop TYPE_PTR OPSIG_PUSH,
         OP_TAG -> elab-tag-sig! type-freshen-sig OPSIG_APPLY,
         OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
@@ -426,7 +424,7 @@ elab-op-fresh-sig! =
     )
 
 elab-block-sig! : Block -- OpSig
-elab-block-sig! = block-arrow@ arrow-dom? swap arrow-cod@ T-> OPSIG_PUSH
+elab-block-sig! = VALUE_BLOCK TValue OPSIG_PUSH
 
 elab-match-sig! : Match -- OpSig
 elab-match-sig! = match-dom? swap match-cod@ T-> OPSIG_APPLY
@@ -519,20 +517,34 @@ def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
         )
     ))
 
+def(try-elab-word-body!, Word -- Maybe(Arrow) +Elab,
+    word-body-is-checked? if(
+        word-arrow@ SOME,
+    word-body-is-checking? if(
+        drop NONE,
+        elab-word-body! SOME
+    )))
+
 def(elab-word-body!, Word -- Arrow +Elab,
     word-body-is-checked? if(
         word-arrow@,
+
+    word-body-is-checking? if(
+        word-sig@ token-prev token-prev
+        "compiler error: elab-word-body! called on word already checking"
+        emit-fatal-error!,
 
     word-body? is-nil if(
         word-sig@ token-prev token-prev # not very good :-/
         "Missing word definition."
         emit-fatal-error!,
 
+        true over word-body-is-checking!
         dup dip(elab-word-ctx-sig!)
         dup dip(word-body@ elab-arrow!)
         dup2 word-arrow!
         true swap word-body-is-checked!
-    )))
+    ))))
 
 def(elab-arrow!, Ctx Type Token -- Arrow,
     elab-expand-morphism! elab-arrow-hom!)
@@ -573,7 +585,7 @@ elab-atom-block! : +AB
 elab-atom-block! = ab-token@ token-args-1 elab-block-at!
 
 elab-block-at! : Token -- +AB
-elab-block-at! = ab-block-at!(elab-atoms!)
+elab-block-at! = ab-ctx@ swap block-new-deferred! OP_BLOCK ab-op!
 
 token-args : Token -- List(Token)
 token-args =
@@ -1204,7 +1216,8 @@ def(table-new!, Name -- Table,
     Word.alloc!
     dup2 swap name-word!
     tuck word-name!
-    \(t w ->
+    "x" name-new! var-new!
+    \(t w x ->
 
         "a" name-new! var-new-implicit!
         TYPE_STACK over var-type!
@@ -1214,31 +1227,31 @@ def(table-new!, Name -- Table,
         TVar \( a ->
             a a t TTable T* a T-> T* a T->
             w word-type!
+
+            a t TTable T* a T-> x var-type!
+            true x var-auto-run!
         )
         true w word-sig-is-checked!
 
         w ab-build-word! (
-            1 ab-int!
-            ab-while! (
-                PRIM_CORE_DUP ab-prim!
-                t table-num-buffer@ ab-buffer!
-                PRIM_INT_GET ab-prim!
-                PRIM_VALUE_LE ab-prim!,
+            x Var->Param L1 ab-lambda! (
+                1 ab-int!
+                ab-while! (
+                    PRIM_CORE_DUP ab-prim!
+                    t table-num-buffer@ ab-buffer!
+                    PRIM_INT_GET ab-prim!
+                    PRIM_VALUE_LE ab-prim!,
 
-                PRIM_CORE_DUP ab-prim!
-                ab-dip! (
-                    PRIM_VALUE_CAST ab-prim!
-                    PRIM_CORE_SWAP ab-prim!
                     PRIM_CORE_DUP ab-prim!
                     ab-dip! (
-                        PRIM_CORE_RUN ab-prim!
+                        PRIM_VALUE_CAST ab-prim!
+                        x ab-var!
                     )
+                    1 ab-int!
+                    PRIM_INT_ADD ab-prim!
                 )
-                1 ab-int!
-                PRIM_INT_ADD ab-prim!
+                PRIM_CORE_DROP ab-prim!
             )
-            PRIM_CORE_DROP ab-prim!
-            PRIM_CORE_DROP ab-prim!
         ) drop
 
     t)

@@ -57,6 +57,8 @@ data Prim
     PRIM_PTR_FILL
     PRIM_PTR_RAW
 
+    PRIM_STR_EQ
+
     PRIM_U8_GET
     PRIM_U8_SET
     PRIM_U16_GET
@@ -214,6 +216,8 @@ def(init-prims!, +Names,
     PRIM_PTR_COPY "prim.ptr.copy" def-prim!
     PRIM_PTR_RAW "prim.ptr.raw" def-prim!
 
+    PRIM_STR_EQ "prim.str.eq" def-prim!
+
     PRIM_U8_GET "prim.u8.get" def-prim!
     PRIM_U8_SET "prim.u8.set" def-prim!
     PRIM_U16_GET "prim.u16.get" def-prim!
@@ -326,6 +330,9 @@ def(init-prims!, +Names,
 
     TYPE_PTR T1 TYPE_PTR TYPE_INT T2 T->
     PRIM_PTR_RAW prim-type!
+
+    TYPE_STR TYPE_STR T2 TYPE_BOOL T1 T->
+    PRIM_STR_EQ prim-type!
 
     T0 TYPE_INT T1 T->
     PRIM_SYS_OS prim-type!

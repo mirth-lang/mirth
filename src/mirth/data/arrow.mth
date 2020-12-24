@@ -49,6 +49,7 @@ data Op
     OP_BLOCK -> Block
 end
 data(Param, PARAM -> Var)
+def(unPARAM, Param -- Var, match(PARAM -> id))
 def(Var->Param, Var -- Param, PARAM)
 def(Param->Var, Param -- Var, match(PARAM -> id))
 
@@ -76,7 +77,11 @@ field(lambda-cod, Lambda, Type)
 field(lambda-params, Lambda, List(Param))
 field(lambda-body, Lambda, Arrow)
 
-field(block-arrow, Block, Arrow)
+field(block-deferred, Block, Bool)
+field(block-forcing, Block, Bool)
+field(block-ctx, Block, Ctx)
+field(block-token, Block, Token)
+field(block-arrow-raw, Block, Arrow)
 field(block-needed, Block, Bool)
 
 #######
@@ -105,7 +110,85 @@ arrow-atom-add! = dip(arrow-atoms?) snoc over arrow-atoms!
 #########
 
 block-new! : Arrow -- Block
-block-new! = Block.alloc! tuck block-arrow!
+block-new! = (
+    Block.alloc!
+    over arrow-ctx@ over block-ctx!
+    over arrow-token-start@ over block-token!
+    tuck block-arrow-raw!
+)
+
+block-new-deferred! : Ctx Token -- Block
+block-new-deferred! = (
+    Block.alloc!
+    true over block-deferred!
+    tuck block-token!
+    tuck block-ctx!
+)
+
+block-arrow@ : Block -- Arrow
+block-arrow@ = (
+    dup block-force!
+    block-arrow-raw@
+)
+
+block-arrow? : Block -- Block Arrow
+block-arrow? = dup block-arrow@
+
+block-force! : Block --
+block-force! =
+    block-deferred? if(
+        block-forcing? if(
+            block-token@
+            "Recursive type detected for block."
+            emit-fatal-error!,
+
+            true over block-forcing!
+
+            block-ctx? over block-token@
+            dip(meta-alloc! TMeta)
+            ab-build!(elab-atoms!)
+            over block-arrow-raw!
+            false swap block-deferred!
+        ),
+        drop
+    )
+
+block-unify-type! : Gamma Block Type -- Gamma Type
+block-unify-type! =
+    swap block-deferred? if(
+        block-forcing? if(
+            block-token@
+            "Recursive type detected for block."
+            emit-fatal-error!,
+
+            block-unify-type-aux!
+        ),
+        block-arrow-raw@ arrow-type swap type-unify!
+    )
+
+block-unify-type-aux! : Gamma Type Block -- Gamma Type
+block-unify-type-aux! = (
+    true over block-forcing!
+    dip(over gamma-token@ elab-expand-morphism! drop)
+    rotr dip(
+        dip(block-ctx? over block-token@) swap
+        ab-build!(elab-atoms!)
+
+        dup2 swap block-arrow-raw!
+        dip(false swap block-deferred!)
+        arrow-cod@
+    )
+    type-unify!
+)
+
+# block-force-type! : Block Type --
+#     block-deferred? if(
+#         drop,
+#     )
+
+#     dip(block-token@)
+
+#     ab-build!(elab-atoms!)
 
 ####################################
 # Helpers for constructing arrows. #
@@ -272,3 +355,6 @@ pattern-is-covered =
         PATTERN_UNDERSCORE -> drop true,
         _ -> ==
     )
+
+int-false-prime : Int -- Int Bool
+int-false-prime = dup 2 == or(dup 2 % 1 ==)

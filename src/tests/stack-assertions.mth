@@ -43,13 +43,13 @@ def(non-exhaustive-reverse, a b c d -- a b c d,
 # mirth-test # merr # 27:5: error: Failed to unify [a] with []
 # mirth-test # merr # 28:5: error: Failed to unify [a b] with []
 # mirth-test # merr # 29:5: error: Failed to unify [a b c] with []
-# mirth-test # merr # 33:5: error: Failed to unify d with c
-# mirth-test # merr # 33:5: error: Failed to unify c with b
-# mirth-test # merr # 33:5: error: Failed to unify b with a
 # mirth-test # merr # 33:5: error: Failed to unify [a] with []
-# mirth-test # merr # 34:5: error: Failed to unify d with b
-# mirth-test # merr # 34:5: error: Failed to unify c with a
+# mirth-test # merr # 33:5: error: Failed to unify b with a
+# mirth-test # merr # 33:5: error: Failed to unify c with b
+# mirth-test # merr # 33:5: error: Failed to unify d with c
 # mirth-test # merr # 34:5: error: Failed to unify [a b] with []
-# mirth-test # merr # 35:5: error: Failed to unify d with a
+# mirth-test # merr # 34:5: error: Failed to unify c with a
+# mirth-test # merr # 34:5: error: Failed to unify d with b
 # mirth-test # merr # 35:5: error: Failed to unify [a b c] with []
+# mirth-test # merr # 35:5: error: Failed to unify d with a
 # mirth-test # mret # 1

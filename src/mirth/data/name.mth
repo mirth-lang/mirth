@@ -33,7 +33,7 @@ def(hash, Str -- Hash,
     0 swap
     while(str-is-empty? not,
         dup str-tail
-        dip(str-head U8->Int 5 * swap 18 * ^))
+        dip(str-head Char->Int 5 * swap 18 * ^))
     drop
     NAME_HASH_MAX &
     Int->Hash)
@@ -125,15 +125,15 @@ def(name-mangle-compute!, Name -- Str,
         ))))
     ))
 
-def(char-hexdigits, Char -- Char Char,
-    U8->Int
+def(char-hexdigits, Char -- Char Char, # TODO: support non-ascii chars
+    Char->Int
     dup  16 / hexdigit
     swap 16 % hexdigit)
 
 def(hexdigit, Int -- Char,
     dup 10 >= if(
-        55 + Int->U8,
-        48 + Int->U8
+        55 + Int->Char,
+        48 + Int->Char
     ))
 
 ########

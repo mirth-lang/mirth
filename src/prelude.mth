@@ -21,7 +21,7 @@ def(dup, a -- a a, prim.core.dup)
 def(drop, a --, prim.core.drop)
 def(swap, a b -- b a, prim.core.swap)
 def(??, --, prim.core.debug)
-def(run, *a [ *a -- *b ] -- *b, prim.core.run)
+def(run, *a [ *a -- *b ] -- *b, \([f] -> f))
 
 def(==, a a -- Bool, prim.value.eq)
 def(<=, a a -- Bool, prim.value.le)
@@ -93,127 +93,65 @@ def(posix-exit!, *a Int -- *b, prim.posix.exit)
 def(posix-mmap!, Ptr Int Int Int Int Int -- Ptr, prim.posix.mmap)
 
 rotr : a b c -- c a b
-rotr = \(a b c -> c a b)
+rotr = swap dip(swap)
 
 rotl : a b c -- b c a
-rotl = \(a b c -> b c a)
+rotl = dip(swap) swap
 
 over : a b -- a b a
-over = \(a b -> a b a)
+over = dip(dup) swap
 
 tuck : a b -- b a b
-tuck = \(a b -> b a b)
+tuck = dup dip(swap)
 
 nip : a b -- b
-nip = \(a b -> b)
+nip = dip(drop)
 
 trip : a -- a a a
-quad : a -- a a a a
-
-trip = \(a -> a a a)
-quad = \(a -> a a a a)
-
-swap2 : a1 a2 b1 b2 -- b1 b2 a1 a2
-swap3 : a1 a2 a3 b1 b2 b3 -- b1 b2 b3 a1 a2 a3
-swap4 : a1 a2 a3 a4 b1 b2 b3 b4 -- b1 b2 b3 b4 a1 a2 a3 a4
-
-swap2 = \(a1 a2 b1 b2 -> b1 b2 a1 a2)
-swap3 = \(a1 a2 a3 b1 b2 b3 -> b1 b2 b3 a1 a2 a3)
-swap4 = \(a1 a2 a3 a4 b1 b2 b3 b4 -> b1 b2 b3 b4 a1 a2 a3 a4)
+trip = dup dup
 
 dup2 : a1 a2 -- a1 a2 a1 a2
+dup2 = over over
+
 dup3 : a1 a2 a3 -- a1 a2 a3 a1 a2 a3
-dup4 : a1 a2 a3 a4 -- a1 a2 a3 a4 a1 a2 a3 a4
+dup3 = dup dip(dip(dup2) rotr)
 
-dup2 = \(a1 a2 -> a1 a2 a1 a2)
-dup3 = \(a1 a2 a3 -> a1 a2 a3 a1 a2 a3)
-dup4 = \(a1 a2 a3 a4 -> a1 a2 a3 a4 a1 a2 a3 a4)
+dip? : *a c [*a -- *a Bool] -- *a c Bool
+dip? = \([f] -> dip(f) swap)
 
-dip2 : *a c1 c2       [*a -- *b] -- *b c1 c2
-dip3 : *a c1 c2 c3    [*a -- *b] -- *b c1 c2 c3
-dip4 : *a c1 c2 c3 c4 [*a -- *b] -- *b c1 c2 c3 c4
+dip' : *a c x [*a x -- *b y] -- *b c y
+dip' = \([f] -> swap dip(f) swap)
 
-dip2 = \(c1 c2       [f] -> f c1 c2)
-dip3 = \(c1 c2 c3    [f] -> f c1 c2 c3)
-dip4 = \(c1 c2 c3 c4 [f] -> f c1 c2 c3 c4)
+dip2 : *a c1 c2 [*a -- *b] -- *b c1 c2
+dip2 = \([f] -> dip(dip(f)))
 
-dip'  : *a1 c1 a2          [*a1 a2 -- *b1 b2] -- *b1 c1 b2
-dip2' : *a1 c1 a2 c2       [*a1 a2 -- *b1 b2] -- *b1 c1 b2 c2
-dip3' : *a1 c1 a2 c2 c3    [*a1 a2 -- *b1 b2] -- *b1 c1 b2 c2 c3
-dip4' : *a1 c1 a2 c2 c3 c4 [*a1 a2 -- *b1 b2] -- *b1 c1 b2 c2 c3 c4
-
-dip'   = \([f] -> swap dip(f) swap)
-dip2'  = \([f] -> dip(swap dip(f) swap))
-dip3'  = \([f] -> dip(dip(swap dip(f) swap)))
-dip4'  = \([f] -> dip(dip(dip(swap dip(f) swap))))
-
-dip2'' : *a1 c1 c2 a2       [*a1 a2 -- *b1 b2] -- *b1 c1 c2 b2
-dip3'' : *a1 c1 c2 a2 c3    [*a1 a2 -- *b1 b2] -- *b1 c1 c2 b2 c3
-dip4'' : *a1 c1 c2 a2 c3 c4 [*a1 a2 -- *b1 b2] -- *b1 c1 c2 b2 c3 c4
-
-dip2'' = \([f] -> rotr dip(dip(f)) rotl)
-dip3'' = \([f] -> dip(rotr dip(dip(f)) rotl))
-dip4'' = \([f] -> dip(dip(rotr dip(dip(f)) rotl)))
-
-dip3''' : *a1 c1 c2 c3 a2    [*a1 a2 -- *b1 b2] -- *b1 c1 c2 c3 b2
-dip4''' : *a1 c1 c2 c3 a2 c4 [*a1 a2 -- *b1 b2] -- *b1 c1 c2 c3 b2 c4
-
-dip3''' = \([f] -> rot4r dip3(f) rot4l)
-dip4''' = \([f] -> dip(dip3'''(f)))
-
-dip4'''' : *a1 c1 c2 c3 c4 a2 [*a1 a2 -- *b1 b2] -- *b1 c1 c2 c3 c4 b2
-dip4'''' = \([f] -> rot5r dip4(f) rot5l)
+dip3 : *a c1 c2 c3 [*a -- *b] -- *b c1 c2 c3
+dip3 = \([f] -> dip(dip(dip(f))))
 
 drop2 : a b --
+drop2 = drop drop
+
 drop3 : a b c --
+drop3 = drop drop drop
+
 drop4 : a b c d --
-drop5 : a b c d e --
+drop4 = drop drop drop drop
 
-drop2 = \(a b ->)
-drop3 = \(a b c ->)
-drop4 = \(a b c d ->)
-drop5 = \(a b c d e ->)
-
-rot2r : x y -- y x
-rot3r : x1 x2 y -- y x1 x2
 rot4r : x1 x2 x3 y -- y x1 x2 x3
-rot5r : x1 x2 x3 x4 y -- y x1 x2 x3 x4
-rot6r : x1 x2 x3 x4 x5 y -- y x1 x2 x3 x4 x5
-rot7r : x1 x2 x3 x4 x5 x6 y -- y x1 x2 x3 x4 x5 x6
-rot8r : x1 x2 x3 x4 x5 x6 x7 y -- y x1 x2 x3 x4 x5 x6 x7
+rot4r = swap dip(rotr)
 
-rot2l : y x -- x y
-rot3l : y x1 x2 -- x1 x2 y
 rot4l : y x1 x2 x3 -- x1 x2 x3 y
-rot5l : y x1 x2 x3 x4 -- x1 x2 x3 x4 y
-rot6l : y x1 x2 x3 x4 x5 -- x1 x2 x3 x4 x5 y
-rot7l : y x1 x2 x3 x4 x5 x6 -- x1 x2 x3 x4 x5 x6 y
-rot8l : y x1 x2 x3 x4 x5 x6 x7 -- x1 x2 x3 x4 x5 x6 x7 y
-
-rot2r = \(x y -> y x)
-rot3r = \(x1 x2 y -> y x1 x2)
-rot4r = \(x1 x2 x3 y -> y x1 x2 x3)
-rot5r = \(x1 x2 x3 x4 y -> y x1 x2 x3 x4)
-rot6r = \(x1 x2 x3 x4 x5 y -> y x1 x2 x3 x4 x5)
-rot7r = \(x1 x2 x3 x4 x5 x6 y -> y x1 x2 x3 x4 x5 x6)
-rot8r = \(x1 x2 x3 x4 x5 x6 x7 y -> y x1 x2 x3 x4 x5 x6 x7)
-
-rot2l = \(y x -> x y)
-rot3l = \(y x1 x2 -> x1 x2 y)
-rot4l = \(y x1 x2 x3 -> x1 x2 x3 y)
-rot5l = \(y x1 x2 x3 x4 -> x1 x2 x3 x4 y)
-rot6l = \(y x1 x2 x3 x4 x5 -> x1 x2 x3 x4 x5 y)
-rot7l = \(y x1 x2 x3 x4 x5 x6 -> x1 x2 x3 x4 x5 x6 y)
-rot8l = \(y x1 x2 x3 x4 x5 x6 x7 -> x1 x2 x3 x4 x5 x6 x7 y)
+rot4l = dip(rotl) swap
 
 or : *a Bool [*a -- *a Bool] -- *a Bool
-or = swap if(drop true, run)
+or = \([f] -> if(true, f))
+# or(f) = if(true, f)
 
 and : *a Bool [*a -- *a Bool] -- *a Bool
-and = swap if(run, drop false)
+and = \([f] -> if(f, false))
+# and(f) = if(f, false)
 
 def-type(Byte, U8)
-def-type(Char, U8)
 def-type(Size, Int)
 def-type(Offset, Int)
 
@@ -584,31 +522,3 @@ unpack5 = pack-uncons dip(unpack4)
 
 .5! : y [*a x b c d e f] -- [*a y b c d e f]
 .5! = pack-uncons dip(.4!) pack-cons
-
-#########
-# Maybe #
-#########
-
-
-#########
-# LISTS #
-#########
-
-
-#######
-# BAG #
-#######
-
-
-#######
-# SET #
-#######
-
-
-#######
-# MAP #
-#######
-
-######
-# IO #
-######
