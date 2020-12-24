@@ -450,7 +450,7 @@ static int value_cmp_hard(value_t v1, value_t v2) {
         value_t v1car, v1cdr, v2car, v2cdr;
         value_uncons(v1, &v1car, &v1cdr);
         value_uncons(v2, &v2car, &v2cdr);
-        int cdrcmp = value_cmp(v1cdr, v2cdr);
+        i64 cdrcmp = value_cmp(v1cdr, v2cdr);
         if (cdrcmp != 0) return cdrcmp;
         v1 = v1car; v2 = v2car;
     }
@@ -19612,7 +19612,7 @@ static void mwc99_emit_prims_21_ (void){
     mw_3B_();
     push_ptr("        value_uncons(v2, &v2car, &v2cdr);");
     mw_3B_();
-    push_ptr("        int cdrcmp = value_cmp(v1cdr, v2cdr);");
+    push_ptr("        i64 cdrcmp = value_cmp(v1cdr, v2cdr);");
     mw_3B_();
     push_ptr("        if (cdrcmp != 0) return cdrcmp;");
     mw_3B_();
