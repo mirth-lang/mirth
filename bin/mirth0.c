@@ -469,8 +469,8 @@ static bool value_eq_hard(value_t v1, value_t v2) {
             case VT_U21: return false;
             case VT_U16: return false;
             case VT_C64:
-               c1_index = v1.payload.vp_u64;
-               c2_index = v2.payload.vp_u64;
+               c1_index = (usize)v1.payload.vp_u64;
+               c2_index = (usize)v2.payload.vp_u64;
                break;
             case VT_C32:
                if (v1.payload.vp_u32 != v2.payload.vp_u32) return false;
@@ -19646,9 +19646,9 @@ static void mwc99_emit_prims_21_ (void){
     mw_3B_();
     push_ptr("            case VT_C64:");
     mw_3B_();
-    push_ptr("               c1_index = v1.payload.vp_u64;");
+    push_ptr("               c1_index = (usize)v1.payload.vp_u64;");
     mw_3B_();
-    push_ptr("               c2_index = v2.payload.vp_u64;");
+    push_ptr("               c2_index = (usize)v2.payload.vp_u64;");
     mw_3B_();
     push_ptr("               break;");
     mw_3B_();

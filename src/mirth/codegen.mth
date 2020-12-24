@@ -751,8 +751,8 @@ def(c99-emit-prims!, +IO,
     "            case VT_U21: return false;" ;
     "            case VT_U16: return false;" ;
     "            case VT_C64:" ;
-    "               c1_index = v1.payload.vp_u64;" ;
-    "               c2_index = v2.payload.vp_u64;" ;
+    "               c1_index = (usize)v1.payload.vp_u64;" ;
+    "               c2_index = (usize)v2.payload.vp_u64;" ;
     "               break;" ;
     "            case VT_C32:";
     "               if (v1.payload.vp_u32 != v2.payload.vp_u32) return false;" ;
