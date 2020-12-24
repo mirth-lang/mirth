@@ -116,6 +116,9 @@ dup2 = over over
 dup3 : a1 a2 a3 -- a1 a2 a3 a1 a2 a3
 dup3 = dup dip(dip(dup2) rotr)
 
+dip? : *a c [*a -- *a Bool] -- *a c Bool
+dip? = \([f] -> dip(f) swap)
+
 dip' : *a c x [*a x -- *b y] -- *b c y
 dip' = \([f] -> swap dip(f) swap)
 

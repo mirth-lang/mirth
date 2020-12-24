@@ -34,7 +34,7 @@ main = (
     add20 run1 ??
     add30 run1 ??
     mul2add10 run1 ??
-    comprun(2 *, 10 +) ?? # FIXME should be 350, is currently 360
+    comprun(2 *, 10 +) ??
     drop
 
     10 20 30 L3
@@ -54,7 +54,7 @@ target-c99("blocktest.c", main)
 # mirth-test # perr # ?? 50
 # mirth-test # perr # ?? 80
 # mirth-test # perr # ?? 170
-# mirth-test # perr # ?? 360
+# mirth-test # perr # ?? 350
 # mirth-test # perr # [10 20 30]
 # mirth-test # perr # [20 30 40]
 # mirth-test # perr # 30 found
