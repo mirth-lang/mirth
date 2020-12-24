@@ -58,7 +58,7 @@ ptr-copy-nonzero! = (
 ||| Return first unwritten location in second argument.
 str-copy-partial! : Str Ptr -- Ptr
 str-copy-partial! = (
-    dip(str-length? dip(Str->Ptr))
+    dip(Str->Ptr dup prim.ptr.numbytes 1-)
     dup2 ptr+ dip(prim.ptr.copy)
 )
 
@@ -133,12 +133,31 @@ str-buf-push-str! : Str -- +StrBuf
 str-buf-push-str! = Str->Ptr str-buf-push-ptr!
 
 str-buf-push-ptr! : Ptr -- +StrBuf
-str-buf-push-ptr! = # TODO: use prim.ptr.copy
-    while(
-        str-buf-full? if(false, dup u8@ U8->Int nonzero),
-        dup u8@ str-buf-push-u8!
-        1 swap ptr+
-    ) drop
+str-buf-push-ptr! = (
+    dup prim.ptr.numbytes tuck
+    str-buf-length? STR_BUF ptr+
+    prim.ptr.copy
+    str-buf-length? 1- + str-buf-length!
+    # str-buf-length? 2 -
+    # dup str-buf-u8@ is-nil if(
+    #     1+ str-buf-length!,
+    #     drop
+    # )
+)
+
+    # prim.ptr.copy
+    # dup prim.ptr.numbytes
+    # STR_BUF ptr+
+
+    # dup prim.ptr.numbytes prim.ptr.copy
+
+# TODO: use prim.ptr.copy
+    # while(
+    #     str-buf-full? if(false, dup u8@ U8->Int nonzero),
+    #     dup u8@ str-buf-push-u8!
+    #     1 swap ptr+
+    # ) drop
+# )
 
 ||| Set the STR_BUF to a given string. If the string is
 ||| too large it gets truncated.
