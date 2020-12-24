@@ -440,7 +440,7 @@ static void do_pack_uncons() {
 #define get_top_data_tag() (get_value_tag(stack[stack_counter]))
 #define value_cmp(v1,v2) ((((v1).tag == VT_U64) && ((v2).tag == VT_U64)) ? ((v1).payload.vp_i64 - (v2).payload.vp_i64) : value_cmp_hard((v1), (v2)))
 
-static int value_cmp_hard(value_t v1, value_t v2) {
+static i64 value_cmp_hard(value_t v1, value_t v2) {
     while(1) {
         i64 t1 = get_value_tag(v1);
         i64 t2 = get_value_tag(v2);
@@ -19592,7 +19592,7 @@ static void mwc99_emit_prims_21_ (void){
     mw_3B_();
     push_ptr("#define value_cmp(v1,v2) ((((v1).tag == VT_U64) && ((v2).tag == VT_U64)) ? ((v1).payload.vp_i64 - (v2).payload.vp_i64) : value_cmp_hard((v1), (v2)))");
     mw_3B__3B_();
-    push_ptr("static int value_cmp_hard(value_t v1, value_t v2) {");
+    push_ptr("static i64 value_cmp_hard(value_t v1, value_t v2) {");
     mw_3B_();
     push_ptr("    while(1) {");
     mw_3B_();
