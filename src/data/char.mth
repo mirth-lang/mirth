@@ -1,8 +1,8 @@
 module(data.char)
 import(prelude)
 
-def(Int->Char, Int -- Char, cast) # unsafe
-def(Char->Int, Char -- Int, cast)
+def(char@, Ptr -- Char, u8@ U8->Int Int->Char) # TODO UTF8
+def(char!, Char Ptr --, dip(Char->Int Int->U8) u8!) # TODO UTF8
 
 def(is-nul?, Char -- Char Bool, dup Char->Int 0 ==)
 

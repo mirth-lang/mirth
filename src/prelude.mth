@@ -26,7 +26,7 @@ def(run, *a [ *a -- *b ] -- *b, \([f] -> f))
 def(==, a a -- Bool, prim.value.eq)
 def(<=, a a -- Bool, prim.value.le)
 def(<,  a a -- Bool, prim.value.lt)
-def(cast, a -- b, prim.value.cast)
+# def(cast, a -- b, prim.unsafe.cast)
 def(value@, Ptr -- a, prim.value.get)
 def(value!, a Ptr --, prim.value.set)
 
@@ -81,7 +81,26 @@ data OS
     OS_LINUX
     OS_MACOS
 end
-def(RUNNING_OS, OS, prim.sys.os cast)
+
+def(OS->Int, OS -- Int,
+    match(
+        OS_UNKNOWN -> 0,
+        OS_WINDOWS -> 1,
+        OS_LINUX -> 2,
+        OS_MACOS -> 3
+    ))
+
+def(Int->OS, Int -- OS,
+    dup 1 == if(
+        drop OS_WINDOWS,
+    dup 2 == if(
+        drop OS_LINUX,
+    dup 3 == if(
+        drop OS_MACOS,
+        drop OS_UNKNOWN
+    ))))
+
+def(RUNNING_OS, OS, prim.sys.os Int->OS)
 def(argc, Int, prim.sys.argc)
 def(argv, Ptr, prim.sys.argv)
 
@@ -156,16 +175,10 @@ def-type(Size, Int)
 def-type(Offset, Int)
 
 Str->Ptr : Str -- Ptr
-Str->Ptr = cast
+Str->Ptr = prim.unsafe.cast # TODO
 
 Ptr->Str : Ptr -- Str
-Ptr->Str = cast
-
-Int->Ptr : Int -- Ptr
-Int->Ptr = cast
-
-Ptr->Int : Ptr -- Int
-Ptr->Int = cast
+Ptr->Str = prim.unsafe.cast # TODO
 
 U8_MAX : Int
 U8_MAX = 0xFF
@@ -296,87 +309,85 @@ in-range : Int Int Int -- Bool
 in-range = dip(over dip(>=)) <= &&
 
 Int->U8 : Int -- U8
-Int->U8 = cast # U8_MAX & cast
+Int->U8 = prim.unsafe.cast # U8_MAX & cast
     # dup U8_MIN U8_MAX in-range if(
     #     cast,
     #     "Int->U8 failed: out of bounds" panic!
     # )
 
 Int->U16 : Int -- U16
-Int->U16 = cast # U16_MAX & cast
+Int->U16 = prim.unsafe.cast # U16_MAX & cast
     # dup U16_MIN U16_MAX in-range if(
     #     cast,
     #     "Int->U16 failed: out of bounds" panic!
     # )
 
 Int->U32 : Int -- U32
-Int->U32 = cast # U32_MAX & cast
+Int->U32 = prim.unsafe.cast # U32_MAX & cast
     # dup U32_MIN U32_MAX in-range if(
     #     cast,
     #     "Int->U32 failed: out of bounds" panic!
     # )
 
 Int->U64 : Int -- U64
-Int->U64 = cast
+Int->U64 = prim.unsafe.cast
 
 Int->I8 : Int -- I8
-Int->I8 = cast
+Int->I8 = prim.unsafe.cast
     # dup I8_MIN I8_MAX in-range if(
     #     cast,
     #     "Int->I8 failed: out of bounds" panic!
     # )
 
 Int->I16 : Int -- I16
-Int->I16 = cast
+Int->I16 = prim.unsafe.cast
     # dup I16_MIN I16_MAX in-range if(
     #     cast,
     #     "Int->I16 failed: out of bounds" panic!
     # )
 
 Int->I32 : Int -- I32
-Int->I32 = cast
+Int->I32 = prim.unsafe.cast
     # dup I32_MIN I32_MAX in-range if(
     #     cast,
     #     "Int->I32 failed: out of bounds" panic!
     # )
 
 Int->I64 : Int -- I64
-Int->I64 = cast
+Int->I64 = prim.unsafe.cast
 
 U8->Int : U8 -- Int
-U8->Int = cast
+U8->Int = prim.unsafe.cast
 
 U16->Int : U16 -- Int
-U16->Int = cast
+U16->Int = prim.unsafe.cast
 
 U32->Int : U32 -- Int
-U32->Int = cast
+U32->Int = prim.unsafe.cast
 
 U64->Int : U64 -- Int
-U64->Int = cast
+U64->Int = prim.unsafe.cast
 
 I8->Int : I8 -- Int
-I8->Int = cast
+I8->Int = prim.unsafe.cast
 
 I16->Int : I16 -- Int
-I16->Int = cast
+I16->Int = prim.unsafe.cast
 
 I32->Int : I32 -- Int
-I32->Int = cast
+I32->Int = prim.unsafe.cast
 
 I64->Int : I64 -- Int
-I64->Int = cast
+I64->Int = prim.unsafe.cast
+
+def(Int->Char, Int -- Char, prim.unsafe.cast) # unsafe
+def(Char->Int, Char -- Int, prim.unsafe.cast)
 
 negate : Int -- Int
 negate = -1 *
 
 abs : Int -- Int
 abs = dup 0< if(negate, id)
-
-###########
-# STRINGS #
-###########
-
 
 #######
 # NIL #
@@ -403,7 +414,7 @@ abs = dup 0< if(negate, id)
 ||| - For data types, this is the first constructor, applied to nil values.
 ||| - For n-tuples, this is [ nil ... nil ]
 nil : a
-nil = 0 cast
+nil = 0 prim.unsafe.cast
 
 ||| Test for nil.
 is-nil : a -- Bool

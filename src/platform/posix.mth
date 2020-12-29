@@ -248,7 +248,7 @@ heap-reserve! =
         -1 # file descriptor (-1 for MAP_ANONYMOUS)
         0 # offset
         posix-mmap!
-        dup Ptr->Int nonzero if(
+        is-nil? not if(
             dup heap-length@ heap-base@ ptr+ == if(
                 drop heap-length@ + heap-length!,
                 heap-base! heap-length!

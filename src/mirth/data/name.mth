@@ -23,8 +23,8 @@ field(name-mangle-cached, Name, Str)
 
 table(Hash)
 field(hash-name, Hash, Name)
-def(Int->Hash, Int -- Hash, cast)
-def(Hash->Int, Hash -- Int, cast)
+def(Int->Hash, Int -- Hash, prim.unsafe.cast) # hmm
+def(Hash->Int, Hash -- Int, prim.unsafe.cast) # hmm
 
 def(NAME_HASH_MAX, Size, 0x7FFF)
 

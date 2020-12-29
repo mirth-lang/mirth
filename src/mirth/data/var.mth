@@ -12,8 +12,6 @@ field(var-name, Var, Name)
 field(var-type, Var, Type)
 field(var-auto-run, Var, Bool) # run variable by default
 
-def(Var->Int, Var -- Int, cast)
-
 def(var-new!, Name -- Var,
     Var.alloc!
     tuck var-name!)
@@ -27,3 +25,16 @@ def(var-is-physical?, Var -- Var Bool,
     dip(var-type? PRIM_TYPE_TYPE TPrim !=) &&
     dip(var-type? PRIM_TYPE_STACK TPrim !=) &&
     dip(var-type? PRIM_TYPE_EFFECT TPrim !=) &&)
+
+# a unique int for vars that need it
+buffer(VAR_ID_LAST, 8)
+field(var-id-raw, Var, Int)
+def(var-id, Var -- Int,
+    var-id-raw?
+    dup 0 > if(
+        nip,
+        drop
+        VAR_ID_LAST int@ 1+
+        dup VAR_ID_LAST int!
+        dup dip(swap var-id-raw!)
+    ))

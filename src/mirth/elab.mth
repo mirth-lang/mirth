@@ -1184,7 +1184,7 @@ def(typecheck-name!, Name --,
 def(TABLE_MAX_SIZE, Int, 0x20000)
 
 def(table-new!, Name -- Table,
-    table-alloc!
+    Table.alloc!
     dup2 TTable swap name-type!
     tuck table-name!
 
@@ -1244,7 +1244,7 @@ def(table-new!, Name -- Table,
 
                     PRIM_CORE_DUP ab-prim!
                     ab-dip! (
-                        PRIM_VALUE_CAST ab-prim!
+                        PRIM_UNSAFE_CAST ab-prim!
                         x ab-var!
                     )
                     1 ab-int!
@@ -1274,7 +1274,7 @@ def(table-new!, Name -- Table,
         PRIM_CORE_DUP ab-prim!
         table-num-buffer? ab-buffer!
         PRIM_INT_SET ab-prim!
-        PRIM_VALUE_CAST ab-prim!
+        PRIM_UNSAFE_CAST ab-prim!
     )
     drop
     )
@@ -1283,7 +1283,6 @@ def(table-new!, Name -- Table,
 # FIELD #
 #########
 
-def(Field->Int, Field -- Int, cast)
 def(field-alloc!, Field, Field.alloc!)
 def(field-new!, Name Type Type Int -- Field,
     drop
@@ -1313,7 +1312,7 @@ def(field-new!, Name Type Type Int -- Field,
     true over word-sig-is-checked!
 
     ab-build-word! (
-        PRIM_VALUE_CAST ab-prim!
+        PRIM_UNSAFE_CAST ab-prim!
         16 ab-int!
         PRIM_INT_MUL ab-prim!
 

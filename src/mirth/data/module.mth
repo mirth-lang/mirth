@@ -11,12 +11,6 @@ field(module-start, Module, Token)
 field(module-end, Module, Token)
 field(module-imports, Module, Set(Module))
 
-Module->Int : Module -- Int
-Module->Int = cast
-
-Int->Module : Int -- Module
-Int->Module = cast
-
 module-alloc! : Module
 module-alloc! = Module.alloc!
 

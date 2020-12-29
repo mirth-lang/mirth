@@ -17,7 +17,7 @@ data Prim
     PRIM_CORE_MATCH
     PRIM_CORE_LAMBDA
 
-    PRIM_VALUE_CAST
+    PRIM_UNSAFE_CAST
     PRIM_VALUE_EQ
     PRIM_VALUE_LT
     PRIM_VALUE_LE
@@ -176,10 +176,11 @@ def(init-prims!, +Names,
     PRIM_CORE_MATCH "prim.core.match" def-prim!
     PRIM_CORE_LAMBDA "prim.core.lambda" def-prim!
 
+    PRIM_UNSAFE_CAST "prim.unsafe.cast" def-prim!
+
     PRIM_VALUE_EQ "prim.value.eq" def-prim!
     PRIM_VALUE_LT "prim.value.lt" def-prim!
     PRIM_VALUE_LE "prim.value.le" def-prim!
-    PRIM_VALUE_CAST "prim.value.cast" def-prim!
     PRIM_VALUE_GET "prim.value.get" def-prim!
     PRIM_VALUE_SET "prim.value.set" def-prim!
 
@@ -400,10 +401,10 @@ def(init-prims!, +Names,
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
     "b" name-new! var-new-implicit! TYPE_TYPE over var-type!
     dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_VALUE_CAST prim-ctx!
+    PRIM_UNSAFE_CAST prim-ctx!
 
     dip(TVar T1) TVar T1 T->
-    PRIM_VALUE_CAST prim-type!
+    PRIM_UNSAFE_CAST prim-type!
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
     "*b" name-new! var-new-implicit! TYPE_STACK over var-type!

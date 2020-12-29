@@ -423,7 +423,7 @@ def(type-trace!, Type -- +IO,
         TYPE_DONT_CARE -> "_" str-trace!,
         TPrim -> type-trace-prim!,
         TVar -> var-name@ name-trace!,
-        TMeta -> "?" str-trace! MetaVar->Int int-trace!,
+        TMeta -> metavar-trace!,
         TTensor -> "[" str-trace! TTensor type-trace-stack! "]" str-trace!,
         TMorphism -> "[" str-trace! TMorphism type-trace-sig! "]" str-trace!,
         TData -> data-name@ name-trace!,
@@ -607,9 +607,7 @@ def(type-max-count?, Type -- Type Maybe(Int),
 # Meta-var Types #
 ##################
 
-def(Int->MetaVar, Int -- MetaVar, cast)
-def(MetaVar->Int, MetaVar -- Int, cast)
-
+def(metavar-trace!, MetaVar -- +IO, drop "?" str-trace!)
 def(meta-alloc!, MetaVar, MetaVar.alloc!)
 def(meta-type!, Type MetaVar --, true over meta-is-defined! meta-type-raw!)
 def(meta-expand, MetaVar -- Type,
@@ -633,13 +631,6 @@ def(meta-unify!, Gamma Type MetaVar -- Gamma Type,
         meta-type!
     ))))
 
-########
-# Data #
-########
-
-def(Data->Int, Data -- Int, cast)
-def(Int->Data, Int -- Data, cast)
-
 ##############
 # Type Holes #
 ##############
@@ -652,14 +643,6 @@ def(type-hole-unify!, Type Name -- Type,
         dup type-trace!
         trace-ln!
     ))
-
-##########
-# Tables #
-##########
-
-def(Table->Int, Table -- Int, cast)
-def(Int->Table, Int -- Table, cast)
-def(table-alloc!, Table, Table.alloc!)
 
 ##########
 # Params #
@@ -754,9 +737,6 @@ subst-match-var =
 #######
 # TAG #
 #######
-
-Int->Tag : Int -- Tag
-Int->Tag = cast
 
 tag-num-inputs? : Tag -- Tag Int
 tag-num-inputs? =
