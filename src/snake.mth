@@ -188,7 +188,7 @@ def(snake-init!, +Snake,
     snake-reset!
 
     SNAKE_INIT_FLAGS SDL_Init nonzero if(
-        SDL_GetError cast panic!,
+        SDL_GetError panic!,
         id
     )
 
@@ -207,18 +207,18 @@ def(snake-init!, +Snake,
     SNAKE_WINDOW_H
     SNAKE_WINDOW_FLAGS
     SDL_CreateWindow
-    dup Ptr->Int nonzero if(
+    is-nil? not if(
         snake-window!,
-        SDL_GetError cast panic!
+        SDL_GetError panic!
     )
 
     snake-window@
     -1
     SNAKE_RENDERER_FLAGS
     SDL_CreateRenderer
-    dup Ptr->Int nonzero if(
+    is-nil? not if(
         snake-renderer!,
-        SDL_GetError cast panic!
+        SDL_GetError panic!
     ))
 
 def(snake-loop!, +Snake,

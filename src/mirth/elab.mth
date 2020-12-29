@@ -1184,7 +1184,7 @@ def(typecheck-name!, Name --,
 def(TABLE_MAX_SIZE, Int, 0x20000)
 
 def(table-new!, Name -- Table,
-    table-alloc!
+    Table.alloc!
     dup2 TTable swap name-type!
     tuck table-name!
 
@@ -1210,6 +1210,65 @@ def(table-new!, Name -- Table,
     table-name? ".NUM" name-cat!
     8 buffer-alloc!
     over table-num-buffer!
+
+    # Table.id
+    table-name? ".id" name-cat!
+    Word.alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    over TTable T1 TYPE_INT T1 T->
+    over word-type!
+    true over word-sig-is-checked!
+
+    ab-build-word! (
+        PRIM_UNSAFE_CAST ab-prim!
+    ) drop
+
+    # Table.succ
+    table-name? ".succ" name-cat!
+    Word.alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    over TTable T1 dup T->
+    over word-type!
+    true over word-sig-is-checked!
+
+    ab-build-word! (
+        PRIM_UNSAFE_CAST ab-prim!
+        1 ab-int!
+        PRIM_INT_ADD ab-prim!
+        table-num-buffer? ab-buffer!
+        PRIM_INT_GET ab-prim!
+        1 ab-int!
+        PRIM_INT_ADD ab-prim!
+        PRIM_INT_MOD ab-prim!
+        PRIM_UNSAFE_CAST ab-prim!
+    ) drop
+
+    # Table.succ
+    table-name? ".pred" name-cat!
+    Word.alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    over TTable T1 dup T->
+    over word-type!
+    true over word-sig-is-checked!
+
+    ab-build-word! (
+        PRIM_UNSAFE_CAST ab-prim!
+        PRIM_CORE_DUP ab-prim!
+        0 ab-int!
+        PRIM_VALUE_EQ ab-prim!
+        ab-if!(
+            id,
+            1 ab-int!
+            PRIM_INT_SUB ab-prim!
+        )
+        PRIM_UNSAFE_CAST ab-prim!
+    ) drop
 
     # Table.for
     table-name? ".for" name-cat!
@@ -1244,7 +1303,7 @@ def(table-new!, Name -- Table,
 
                     PRIM_CORE_DUP ab-prim!
                     ab-dip! (
-                        PRIM_VALUE_CAST ab-prim!
+                        PRIM_UNSAFE_CAST ab-prim!
                         x ab-var!
                     )
                     1 ab-int!
@@ -1274,7 +1333,7 @@ def(table-new!, Name -- Table,
         PRIM_CORE_DUP ab-prim!
         table-num-buffer? ab-buffer!
         PRIM_INT_SET ab-prim!
-        PRIM_VALUE_CAST ab-prim!
+        PRIM_UNSAFE_CAST ab-prim!
     )
     drop
     )
@@ -1283,7 +1342,6 @@ def(table-new!, Name -- Table,
 # FIELD #
 #########
 
-def(Field->Int, Field -- Int, cast)
 def(field-alloc!, Field, Field.alloc!)
 def(field-new!, Name Type Type Int -- Field,
     drop
@@ -1313,7 +1371,7 @@ def(field-new!, Name Type Type Int -- Field,
     true over word-sig-is-checked!
 
     ab-build-word! (
-        PRIM_VALUE_CAST ab-prim!
+        PRIM_UNSAFE_CAST ab-prim!
         16 ab-int!
         PRIM_INT_MUL ab-prim!
 

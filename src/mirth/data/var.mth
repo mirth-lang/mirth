@@ -12,8 +12,6 @@ field(var-name, Var, Name)
 field(var-type, Var, Type)
 field(var-auto-run, Var, Bool) # run variable by default
 
-def(Var->Int, Var -- Int, cast)
-
 def(var-new!, Name -- Var,
     Var.alloc!
     tuck var-name!)

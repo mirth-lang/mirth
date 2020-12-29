@@ -64,7 +64,7 @@ def(input-fill-buffer!, +Input,
 # Panics if file is exhausted.
 def(input-peek, Char +Input,
     input-isopen@ if(
-        input-offset@ INPUT_BUFFER u8@@ cast, # TODO UTF8
+        input-offset@ INPUT_BUFFER ptr+ char@,
         "error: attempted to read input buffer when file is already closed" panic!
     ))
 
@@ -72,7 +72,7 @@ def(input-peek, Char +Input,
 # Panics if file is exhausted.
 def(input-move!, +Input,
     input-isopen@ if(
-        input-offset@ 1+ dup input-offset!
+        input-offset@ 1+ dup input-offset! # TODO: utf8 increments?
         input-length@ >= if(
             input-fill-buffer!,
             id

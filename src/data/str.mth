@@ -4,7 +4,7 @@ import(data.char)
 import(prelude)
 
 str-head : Str -- Char
-str-head = Str->Ptr u8@ cast # TODO UTF8 support
+str-head = Str->Ptr u8@ U8->Int Int->Char # TODO UTF8 support
 
 str-tail : Str -- Str
 str-tail = Str->Ptr 1 swap ptr+ Ptr->Str # TODO UTF8 support
@@ -103,7 +103,7 @@ str-buf-u8! : U8 Offset -- +StrBuf
 str-buf-u8! = STR_BUF u8!!
 
 str-buf-char@ : Offset -- Char +StrBuf
-str-buf-char@ = str-buf-u8@ cast # TODO UTF8
+str-buf-char@ = STR_BUF ptr+ char@
 
 str-buf-empty? : Bool +StrBuf
 str-buf-empty? = str-buf-length? 0=
@@ -123,9 +123,11 @@ str-buf-push-u8! = (
     # )
 )
 
-# TODO: UTF8 support
 str-buf-push-char! : Char -- +StrBuf
-str-buf-push-char! = cast str-buf-push-u8!
+str-buf-push-char! = (
+    str-buf-length? STR_BUF ptr+ char!
+    str-buf-length? 1+ str-buf-length! # TODO UTF8
+)
 
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
@@ -166,7 +168,7 @@ str-buf! = str-buf-clear! str-buf-push-str!
 
 # TODO UTF8 support
 str-buf-char! : Char -- +StrBuf
-str-buf-char! = cast 0 str-buf-u8! 1 str-buf-length!
+str-buf-char! = STR_BUF char! 1 str-buf-length! # TODO: better utf8 support...
 
 to-digit : Int -- Char
 to-digit = 10 % 48 + Int->Char

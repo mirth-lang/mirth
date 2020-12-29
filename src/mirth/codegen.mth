@@ -43,7 +43,7 @@ def(.b, Byte -- +Codegen,
     codegen-length@ dup 1+ codegen-length! codegen-u8!)
 
 def(.c, Char -- +Codegen,
-    cast .b) # TODO: UTF8 support
+    Char->Int Int->U8 .b) # TODO: UTF8 support
 
 def(., Str -- +Codegen,
     Str->Ptr dup prim.ptr.numbytes 1-
@@ -975,16 +975,16 @@ def(c99-emit-prims!, +IO,
     PRIM_VALUE_SET .pm "do { value_t vp = pop_value(); value_t vx = pop_value(); value_t* p = value_ptr(vp); value_t old = *p; *p = vx; decref(old); decref(vp); } while(0)" ;
 
     "#if defined(MIRTH_WINDOWS)" ;
-    PRIM_SYS_OS .pm "push_u64(" . OS_WINDOWS cast .n ")" ;
+    PRIM_SYS_OS .pm "push_u64(" . OS_WINDOWS OS->Int .n ")" ;
     "#elif defined(MIRTH_LINUX)" ;
-    PRIM_SYS_OS .pm "push_u64(" . OS_LINUX cast .n ")" ;
+    PRIM_SYS_OS .pm "push_u64(" . OS_LINUX OS->Int .n ")" ;
     "#elif defined(MIRTH_MACOS)" ;
-    PRIM_SYS_OS .pm "push_u64(" . OS_MACOS cast .n ")" ;
+    PRIM_SYS_OS .pm "push_u64(" . OS_MACOS OS->Int .n ")" ;
     "#else" ;
-    PRIM_SYS_OS .pm "push_u64(" . OS_UNKNOWN cast .n ")" ;
+    PRIM_SYS_OS .pm "push_u64(" . OS_UNKNOWN OS->Int .n ")" ;
     "#endif" ;;
 
-    PRIM_VALUE_CAST .pm "0" ;;
+    PRIM_UNSAFE_CAST .pm "0" ;;
     PRIM_CORE_RUN .pm "do_run()" ;;
 
     PRIM_PTR_ADD .p " {" ;
@@ -1291,7 +1291,7 @@ c99-emit-arg-run! =
         ARG_VAR_RUN -> c99-emit-var!,
     )
 
-def(.var-val, Var -- +IO, "var_" . var-name? .name "_" . Var->Int .n)
+def(.var-val, Var -- +IO, "var_" . var-name? .name "_" . Var.id .n)
 
 def(c99-pack-ctx!, Ctx -- +IO,
     "    push_u64(0);" ;
@@ -1466,7 +1466,7 @@ def(.block, Block -- +IO,
     "mb_" .
     block-arrow? arrow-token-start@
     is-nil? if(
-        drop cast .n,
+        drop Block.id .n,
         token-module? module-name@ .name "_" .
         token-row? Row->Int .n "_" .
         token-col@ Col->Int .n

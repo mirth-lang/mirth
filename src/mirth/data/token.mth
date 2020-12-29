@@ -31,17 +31,6 @@ field(token-module, Token, Module)
 field(token-row, Token, Row)
 field(token-col, Token, Col)
 
-def(num-tokens@, Int, Token.NUM int@)
-
-def(MAX_TOKENS, Size, 0x10000)
-def(|Token|, Size, 2)
-def(Token->U16, Token -- U16, Token->Int Int->U16)
-def(U16->Token, U16 -- Token, U16->Int Int->Token)
-def(Token->Int, Token -- Int, cast)
-def(Int->Token, Int -- Token, cast)
-def(token@, Ptr -- Token, u16@ U16->Token)
-def(token!, Token Ptr --, dip(Token->U16) u16!)
-
 def(token-alloc!, Token,
     Token.alloc!
     TOKEN_NONE over token-value!)
@@ -155,32 +144,11 @@ def(token-location, Token -- Location,
 def(token-location?, Token -- Token Location,
     dup token-location)
 
-# def(token-trace!, Token -- +IO,
-#     token-location? location-trace!
-#     ": " str-trace!
-#     dup Token->Int int-trace! " " str-trace!
-#     token-value@ match(
-#         TOKEN_INT ->
-#             "INT " str-trace! int-trace!,
-#         TOKEN_STR ->
-#             "STR \"" str-trace!
-#             StrLit->Str int-trace!
-#             "\"" str-trace!,
-#     ))
-
-# def(show-tokens!, --,
-#     0
-#     while(dup num-tokens@ <,
-#         dup Int->Token token-trace! 1+)
-#     drop)
-
 # Get next token, without respecting nesting or arguments.
-def(token-succ, Token -- Token,
-    Token->Int 1+ Int->Token)
+def(token-succ, Token -- Token, Token.succ)
 
 # Get prev token, without respecting nesting or arguments.
-def(token-pred, Token -- Token,
-    Token->Int 1- Int->Token)
+def(token-pred, Token -- Token, Token.pred)
 
 # Get next token, respecting nesting of tokens and arguments.
 def(token-next, Token -- Token,
@@ -297,28 +265,22 @@ def(emit-fatal-error!, *a Token Str -- *b +IO, dip(token-location) emit-fatal-er
 ||| Is this the end of a module?
 token-is-module-end? : Token -- Token Bool
 token-is-module-end? =
-    dup Token->Int num-tokens@ >= if(
-        true,
-        token-value? match(
-            TOKEN_NONE -> true,
-            _ -> drop false
-        )
+    token-value? match(
+        TOKEN_NONE -> true,
+        _ -> drop false
     )
 
 ||| Is this a token to stop running at?
 token-run-end? : Token -- Token Bool
 token-run-end? =
-    dup Token->Int num-tokens@ >= if(
-        true,
-        token-value? match(
-            TOKEN_NONE -> true,
-            TOKEN_NEWLINE -> true,
-            TOKEN_COMMA -> true,
-            TOKEN_RPAREN -> drop true,
-            TOKEN_RSQUARE -> drop true,
-            TOKEN_RCURLY -> drop true,
-            _ -> drop false
-        )
+    token-value? match(
+        TOKEN_NONE -> true,
+        TOKEN_NEWLINE -> true,
+        TOKEN_COMMA -> true,
+        TOKEN_RPAREN -> drop true,
+        TOKEN_RSQUARE -> drop true,
+        TOKEN_RCURLY -> drop true,
+        _ -> drop false
     )
 
 ||| Skip all the newlines.

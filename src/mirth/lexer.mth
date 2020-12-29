@@ -63,7 +63,7 @@ def(run-lexer!, Path -- Module +Lexer,
     1 Int->Row lexer-row!
     1 Int->Col lexer-col!
 
-    num-tokens@ 1+ Int->Token lexer-module@ module-start!
+    token-alloc!
 
     while(lexer-done? not, lexer-next!)
 
@@ -78,7 +78,8 @@ def(run-lexer!, Path -- Module +Lexer,
         emit-fatal-error!
     )
 
-    num-tokens@  Int->Token lexer-module@ module-end!
+    token-alloc! lexer-module@ module-end!
+    token-succ lexer-module@ module-start!
 
     lexer-module@)
 
@@ -169,7 +170,7 @@ def(lexer-emit-newline!, +Lexer,
     0 Int->Col lexer-col!)
 
 def(lexer-emit-lparen!, +Lexer,
-    0 Int->Token TOKEN_LPAREN lexer-make!
+    nil TOKEN_LPAREN lexer-make!
     lexer-stack-push!)
 def(lexer-emit-rparen!, +Lexer,
     lexer-stack-empty? if(
@@ -182,7 +183,7 @@ def(lexer-emit-rparen!, +Lexer,
     ))
 
 def(lexer-emit-lsquare!, +Lexer,
-    0 Int->Token TOKEN_LSQUARE lexer-make!
+    nil TOKEN_LSQUARE lexer-make!
     lexer-stack-push!)
 def(lexer-emit-rsquare!, +Lexer,
     lexer-stack-empty? if(
@@ -195,7 +196,7 @@ def(lexer-emit-rsquare!, +Lexer,
     ))
 
 def(lexer-emit-lcurly!, +Lexer,
-    0 Int->Token TOKEN_LCURLY lexer-make!
+    nil TOKEN_LCURLY lexer-make!
     lexer-stack-push!)
 def(lexer-emit-rcurly!, +Lexer,
     lexer-stack-empty? if(
