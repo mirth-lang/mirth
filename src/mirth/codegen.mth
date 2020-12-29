@@ -830,8 +830,8 @@ def(c99-emit-prims!, +IO,
     PRIM_INT_ADD .pm "do { stack[stack_counter+1].payload.vp_u64 += stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)" ;
     PRIM_INT_SUB .pm "do { stack[stack_counter+1].payload.vp_u64 -= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)" ;
     PRIM_INT_MUL .pm "do { stack[stack_counter+1].payload.vp_i64 *= stack[stack_counter].payload.vp_i64; stack_counter++; } while(0)" ;
-    PRIM_INT_DIV .pm "do { stack[stack_counter+1].payload.vp_i64 /= stack[stack_counter].payload.vp_i64; stack_counter++; } while(0)" ;
-    PRIM_INT_MOD .pm "do { stack[stack_counter+1].payload.vp_i64 %= stack[stack_counter].payload.vp_i64; stack_counter++; } while(0)" ;
+    PRIM_INT_DIV .pm "do { i64 a = stack[stack_counter+1].payload.vp_i64; i64 b = stack[stack_counter].payload.vp_i64; i64 r = a % b; i64 q = a / b; if (((a < 0) ^ (b < 0)) && r) q--; stack_counter++; stack[stack_counter].payload.vp_i64 = q; } while(0)" ;
+    PRIM_INT_MOD .pm "do { i64 a = stack[stack_counter+1].payload.vp_i64; i64 b = stack[stack_counter].payload.vp_i64; i64 r = a % b; if (((a < 0) ^ (b < 0)) && r) r += b; stack_counter++; stack[stack_counter].payload.vp_i64 = r; } while(0)" ;
     PRIM_INT_AND .pm "do { stack[stack_counter+1].payload.vp_u64 &= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)" ;
     PRIM_INT_OR .pm "do { stack[stack_counter+1].payload.vp_u64 |= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)" ;
     PRIM_INT_XOR .pm "do { stack[stack_counter+1].payload.vp_u64 ^= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)" ;
