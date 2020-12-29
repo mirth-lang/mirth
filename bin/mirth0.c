@@ -544,8 +544,8 @@ static void mwprim_2E_core_2E_while (void) {
 #define mwprim_2E_int_2E_add() do { stack[stack_counter+1].payload.vp_u64 += stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
 #define mwprim_2E_int_2E_sub() do { stack[stack_counter+1].payload.vp_u64 -= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
 #define mwprim_2E_int_2E_mul() do { stack[stack_counter+1].payload.vp_i64 *= stack[stack_counter].payload.vp_i64; stack_counter++; } while(0)
-#define mwprim_2E_int_2E_div() do { stack[stack_counter+1].payload.vp_i64 /= stack[stack_counter].payload.vp_i64; stack_counter++; } while(0)
-#define mwprim_2E_int_2E_mod() do { stack[stack_counter+1].payload.vp_i64 %= stack[stack_counter].payload.vp_i64; stack_counter++; } while(0)
+#define mwprim_2E_int_2E_div() do { i64 a = stack[stack_counter+1].payload.vp_i64; i64 b = stack[stack_counter].payload.vp_i64; i64 r = a % b; i64 q = a / b; if (((a < 0) ^ (b < 0)) && r) q--; stack_counter++; stack[stack_counter].payload.vp_i64 = q; } while(0)
+#define mwprim_2E_int_2E_mod() { i64 a = stack[stack_counter+1].payload.vp_i64; i64 b = stack[stack_counter].payload.vp_i64; i64 r = a % b; if (((a < 0) ^ (b < 0)) && r) r += b; stack_counter++; stack[stack_counter].payload.vp_i64 = r; }
 #define mwprim_2E_int_2E_and() do { stack[stack_counter+1].payload.vp_u64 &= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
 #define mwprim_2E_int_2E_or() do { stack[stack_counter+1].payload.vp_u64 |= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
 #define mwprim_2E_int_2E_xor() do { stack[stack_counter+1].payload.vp_u64 ^= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
@@ -19912,11 +19912,11 @@ static void mwc99_emit_prims_21_ (void){
     mw_3B_();
     mwPRIM_INT_DIV();
     mw_2E_pm();
-    push_ptr("do { stack[stack_counter+1].payload.vp_i64 /= stack[stack_counter].payload.vp_i64; stack_counter++; } while(0)");
+    push_ptr("do { i64 a = stack[stack_counter+1].payload.vp_i64; i64 b = stack[stack_counter].payload.vp_i64; i64 r = a % b; i64 q = a / b; if (((a < 0) ^ (b < 0)) && r) q--; stack_counter++; stack[stack_counter].payload.vp_i64 = q; } while(0)");
     mw_3B_();
     mwPRIM_INT_MOD();
     mw_2E_pm();
-    push_ptr("do { stack[stack_counter+1].payload.vp_i64 %= stack[stack_counter].payload.vp_i64; stack_counter++; } while(0)");
+    push_ptr("{ i64 a = stack[stack_counter+1].payload.vp_i64; i64 b = stack[stack_counter].payload.vp_i64; i64 r = a % b; if (((a < 0) ^ (b < 0)) && r) r += b; stack_counter++; stack[stack_counter].payload.vp_i64 = r; }");
     mw_3B_();
     mwPRIM_INT_AND();
     mw_2E_pm();

@@ -20,7 +20,7 @@ def(!!111, Int Int Int --, 1 !!= 1 !!= 1 !!=)
 def(test-prelude!, --,
     test-if test-drop test-dup test-swap test-dip
     test-trip test-rotr test-rotl test= test< test<= test> test>=
-    test+ test- test* test/ test% test-str test-while
+    test+ test- test* test-str test-while
     test@!)
 def(test-if, --,
     0 !!0 1 !!1 0 1 !!1 !!0
@@ -122,40 +122,6 @@ def(test*, --,
     2 1 * 2 !!=
     2 2 * 4 !!=
     2 4 * 8 !!=)
-
-def(test/, --,
-    1 1 / !!1
-    -5 2 / -2 !!=
-    -4 2 / -2 !!=
-    -3 2 / -1 !!=
-    -2 2 / -1 !!=
-    -1 2 / !!0
-    0 2 / !!0
-    1 2 / !!0
-    2 2 / !!1
-    3 2 / !!1
-    4 2 / 2 !!=
-    5 2 / 2 !!=
-    0 -2 / !!0
-    1 -2 / !!0
-    2 -2 / -1 !!=
-    3 -2 / -1 !!=
-    4 -2 / -2 !!=
-    5 -2 / -2 !!=)
-
-def(test%, --,
-    1 1 % !!0
-    -5 2 % -1 !!=
-    -4 2 % !!0
-    -3 2 % -1 !!=
-    -2 2 % !!0
-    -1 2 % -1 !!=
-    0 2 % !!0
-    1 2 % !!1
-    2 2 % !!0
-    3 2 % !!1
-    4 2 % !!0
-    5 2 % !!1)
 
 buffer(TEST_BUF, 16)
 def(test@!, --,
