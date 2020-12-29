@@ -929,6 +929,7 @@ static void mwDEF_EXTERNAL (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
+#define mwHASH() 0
 #define mwSET() 0
 #define mwROW() 0
 #define mwCOL() 0
@@ -1350,12 +1351,8 @@ static u8 bname_mangle_cached_buffer_size[16] = {0};
 #define mwname_mangle_cached_buffer_size() push_ptr((void*)bname_mangle_cached_buffer_size)
 static u8 bname_mangle_cached_buffer_ptr[16] = {0};
 #define mwname_mangle_cached_buffer_ptr() push_ptr((void*)bname_mangle_cached_buffer_ptr)
-static u8 bHash_2E_NUM[8] = {0};
-#define mwHash_2E_NUM() push_ptr((void*)bHash_2E_NUM)
-static u8 bhash_name_buffer_size[16] = {0};
-#define mwhash_name_buffer_size() push_ptr((void*)bhash_name_buffer_size)
-static u8 bhash_name_buffer_ptr[16] = {0};
-#define mwhash_name_buffer_ptr() push_ptr((void*)bhash_name_buffer_ptr)
+static u8 bNAME_HASH_TABLE[524288] = {0};
+#define mwNAME_HASH_TABLE() push_ptr((void*)bNAME_HASH_TABLE)
 static u8 bModule_2E_NUM[8] = {0};
 #define mwModule_2E_NUM() push_ptr((void*)bModule_2E_NUM)
 static u8 bToken_2E_NUM[8] = {0};
@@ -2264,16 +2261,12 @@ static void mwstat (void) {
  static void mwname_mangle_cached_21_ (void);
  static void mwname_mangle_cached_40_ (void);
  static void mwname_mangle_cached_3F_ (void);
- static void mwHash_2E_MAX (void);
- static void mwHash_2E_for (void);
- static void mwHash_2E_alloc_21_ (void);
- static void mwhash_name_26__unsafe (void);
- static void mwhash_name_21_ (void);
- static void mwhash_name_40_ (void);
- static void mwhash_name_3F_ (void);
  static void mwInt__3E_Hash (void);
  static void mwHash__3E_Int (void);
  static void mwNAME_HASH_MAX (void);
+ static void mwhash_name_21_ (void);
+ static void mwhash_name_40_ (void);
+ static void mwhash_name_3F_ (void);
  static void mwhash (void);
  static void mwname_hash (void);
  static void mwnext_hash (void);
@@ -3805,13 +3798,6 @@ static void mwstat (void) {
  static void mb_464 (void);
  static void mb_465 (void);
  static void mb_466 (void);
- static void mb_467 (void);
- static void mb_468 (void);
- static void mb_469 (void);
- static void mb_470 (void);
- static void mb_471 (void);
- static void mb_472 (void);
- static void mb_473 (void);
  static void mb_mirth_2E_data_2E_prim_397_9 (void);
  static void mb_mirth_2E_data_2E_prim_406_9 (void);
  static void mb_mirth_2E_data_2E_prim_414_9 (void);
@@ -4236,10 +4222,10 @@ static void mwstat (void) {
  static void mb_mirth_2E_lexer_276_28 (void);
  static void mb_mirth_2E_lexer_321_9 (void);
  static void mb_mirth_2E_lexer_320_9 (void);
- static void mb_mirth_2E_data_2E_name_53_29 (void);
- static void mb_mirth_2E_data_2E_name_53_11 (void);
+ static void mb_mirth_2E_data_2E_name_56_29 (void);
+ static void mb_mirth_2E_data_2E_name_56_11 (void);
+ static void mb_mirth_2E_data_2E_name_61_9 (void);
  static void mb_mirth_2E_data_2E_name_58_9 (void);
- static void mb_mirth_2E_data_2E_name_55_9 (void);
  static void mb_mirth_2E_lexer_283_9 (void);
  static void mb_mirth_2E_lexer_282_9 (void);
  static void mb_mirth_2E_lexer_286_9 (void);
@@ -4301,45 +4287,45 @@ static void mwstat (void) {
  static void mb_mirth_2E_data_2E_error_19_9 (void);
  static void mb_mirth_2E_lexer_444_40 (void);
  static void mb_mirth_2E_data_2E_error_35_9 (void);
- static void mb_mirth_2E_data_2E_name_35_9 (void);
- static void mb_mirth_2E_data_2E_name_34_11 (void);
- static void mb_mirth_2E_data_2E_name_36_13 (void);
- static void mb_mirth_2E_data_2E_name_47_9 (void);
- static void mb_mirth_2E_data_2E_name_46_9 (void);
- static void mb_mirth_2E_data_2E_name_47_13 (void);
- static void mb_mirth_2E_data_2E_name_63_17 (void);
+ static void mb_mirth_2E_data_2E_name_38_9 (void);
+ static void mb_mirth_2E_data_2E_name_37_11 (void);
+ static void mb_mirth_2E_data_2E_name_39_13 (void);
+ static void mb_mirth_2E_data_2E_name_50_9 (void);
+ static void mb_mirth_2E_data_2E_name_49_9 (void);
+ static void mb_mirth_2E_data_2E_name_50_13 (void);
+ static void mb_mirth_2E_data_2E_name_66_17 (void);
+ static void mb_mirth_2E_data_2E_name_91_9 (void);
  static void mb_mirth_2E_data_2E_name_88_9 (void);
- static void mb_mirth_2E_data_2E_name_85_9 (void);
- static void mb_mirth_2E_data_2E_name_87_13 (void);
- static void mb_mirth_2E_data_2E_name_86_13 (void);
- static void mb_mirth_2E_data_2E_name_94_9 (void);
- static void mb_mirth_2E_data_2E_name_93_9 (void);
- static void mb_mirth_2E_data_2E_name_100_9 (void);
- static void mb_mirth_2E_data_2E_name_99_9 (void);
- static void mb_mirth_2E_data_2E_name_106_9 (void);
- static void mb_mirth_2E_data_2E_name_105_9 (void);
- static void mb_mirth_2E_data_2E_name_115_9 (void);
- static void mb_mirth_2E_data_2E_name_114_9 (void);
- static void mb_mirth_2E_data_2E_name_114_22 (void);
- static void mb_mirth_2E_data_2E_name_120_9 (void);
- static void mb_mirth_2E_data_2E_name_121_9 (void);
- static void mb_mirth_2E_data_2E_name_120_23 (void);
- static void mb_mirth_2E_data_2E_name_122_9 (void);
- static void mb_mirth_2E_data_2E_name_121_23 (void);
+ static void mb_mirth_2E_data_2E_name_90_13 (void);
+ static void mb_mirth_2E_data_2E_name_89_13 (void);
+ static void mb_mirth_2E_data_2E_name_97_9 (void);
+ static void mb_mirth_2E_data_2E_name_96_9 (void);
+ static void mb_mirth_2E_data_2E_name_103_9 (void);
+ static void mb_mirth_2E_data_2E_name_102_9 (void);
+ static void mb_mirth_2E_data_2E_name_109_9 (void);
+ static void mb_mirth_2E_data_2E_name_108_9 (void);
+ static void mb_mirth_2E_data_2E_name_118_9 (void);
+ static void mb_mirth_2E_data_2E_name_117_9 (void);
+ static void mb_mirth_2E_data_2E_name_117_22 (void);
  static void mb_mirth_2E_data_2E_name_123_9 (void);
- static void mb_mirth_2E_data_2E_name_122_28 (void);
- static void mb_mirth_2E_data_2E_name_124_13 (void);
- static void mb_mirth_2E_data_2E_name_123_22 (void);
- static void mb_mirth_2E_data_2E_name_124_17 (void);
- static void mb_mirth_2E_data_2E_name_136_9 (void);
- static void mb_mirth_2E_data_2E_name_135_9 (void);
- static void mb_mirth_2E_data_2E_name_155_18 (void);
- static void mb_mirth_2E_data_2E_name_156_20 (void);
- static void mb_mirth_2E_data_2E_name_157_18 (void);
- static void mb_mirth_2E_data_2E_name_158_22 (void);
+ static void mb_mirth_2E_data_2E_name_124_9 (void);
+ static void mb_mirth_2E_data_2E_name_123_23 (void);
+ static void mb_mirth_2E_data_2E_name_125_9 (void);
+ static void mb_mirth_2E_data_2E_name_124_23 (void);
+ static void mb_mirth_2E_data_2E_name_126_9 (void);
+ static void mb_mirth_2E_data_2E_name_125_28 (void);
+ static void mb_mirth_2E_data_2E_name_127_13 (void);
+ static void mb_mirth_2E_data_2E_name_126_22 (void);
+ static void mb_mirth_2E_data_2E_name_127_17 (void);
+ static void mb_mirth_2E_data_2E_name_139_9 (void);
+ static void mb_mirth_2E_data_2E_name_138_9 (void);
+ static void mb_mirth_2E_data_2E_name_158_18 (void);
  static void mb_mirth_2E_data_2E_name_159_20 (void);
  static void mb_mirth_2E_data_2E_name_160_18 (void);
- static void mb_mirth_2E_data_2E_name_161_17 (void);
+ static void mb_mirth_2E_data_2E_name_161_22 (void);
+ static void mb_mirth_2E_data_2E_name_162_20 (void);
+ static void mb_mirth_2E_data_2E_name_163_18 (void);
+ static void mb_mirth_2E_data_2E_name_164_17 (void);
  static void mb_mirth_2E_data_2E_token_185_17 (void);
  static void mb_mirth_2E_data_2E_token_184_17 (void);
  static void mb_mirth_2E_data_2E_token_193_34 (void);
@@ -16854,12 +16840,12 @@ static void mwname_mangle_cached_26__unsafe (void){
 static void mwname_mangle_compute_21_ (void){
     mwname_str_40_();
     push_u64(0);
-    push_fnptr(&mb_mirth_2E_data_2E_name_120_9);
+    push_fnptr(&mb_mirth_2E_data_2E_name_123_9);
     do_pack_cons();
     mwstr_transduce();
 }
 
-static void mb_mirth_2E_data_2E_name_120_9 (void) {
+static void mb_mirth_2E_data_2E_name_123_9 (void) {
     do_drop();
     mwis_alpha_3F_();
     if (pop_u64()) {
@@ -21710,47 +21696,26 @@ static void mwname_str_21_ (void){
 }
 
 static void mwhash_name_21_ (void){
-    mwhash_name_26__unsafe();
-    mwprim_2E_value_2E_set();
+    mwHash__3E_Int();
+    mwNAME_HASH_TABLE();
+    mwvalue_21__21_();
 }
 
-static void mwhash_name_26__unsafe (void){
-    mwprim_2E_unsafe_2E_cast();
+static void mwvalue_21__21_ (void){
+    { value_t d1 = pop_value();
+    mwvalues();
+      push_value(d1); }
+    mwptr_2B_();
+    mwvalue_21_();
+}
+
+static void mwvalues (void){
     push_i64(16LL);
-    mwprim_2E_int_2E_mul();
-    mwprim_2E_core_2E_dup();
-    mwhash_name_buffer_size();
-    mwprim_2E_int_2E_get();
-    mwprim_2E_value_2E_lt();
-    if (pop_u64()) {
-    } else {
-    while(1) {
-    mwprim_2E_core_2E_dup();
-    mwhash_name_buffer_size();
-    mwprim_2E_int_2E_get();
-    mwprim_2E_core_2E_swap();
-    mwprim_2E_value_2E_le();
-    if (!pop_u64()) break;
-    mwhash_name_buffer_size();
-    mwprim_2E_int_2E_get();
-    push_i64(2LL);
-    mwprim_2E_int_2E_mul();
-    push_i64(8192LL);
-    mwprim_2E_int_2E_add();
-    mwhash_name_buffer_size();
-    mwprim_2E_int_2E_set();
-    }
-    mwhash_name_buffer_ptr();
-    mwprim_2E_value_2E_get();
-    mwhash_name_buffer_size();
-    mwprim_2E_int_2E_get();
-    mwprim_2E_ptr_2E_realloc();
-    mwhash_name_buffer_ptr();
-    mwprim_2E_value_2E_set();
-    }
-    mwhash_name_buffer_ptr();
-    mwprim_2E_value_2E_get();
-    mwprim_2E_ptr_2E_add();
+    mw_2A_();
+}
+
+static void mwHash__3E_Int (void){
+    mwid();
 }
 
 static void mwName_2E_alloc_21_ (void){
@@ -21765,9 +21730,22 @@ static void mwName_2E_alloc_21_ (void){
 }
 
 static void mwhash_name_3F_ (void){
-    mwprim_2E_core_2E_dup();
-    mwhash_name_26__unsafe();
-    mwprim_2E_value_2E_get();
+    mwdup();
+    mwhash_name_40_();
+}
+
+static void mwhash_name_40_ (void){
+    mwHash__3E_Int();
+    mwNAME_HASH_TABLE();
+    mwvalue_40__40_();
+}
+
+static void mwvalue_40__40_ (void){
+    { value_t d1 = pop_value();
+    mwvalues();
+      push_value(d1); }
+    mwptr_2B_();
+    mwvalue_40_();
 }
 
 static void mwnext_hash (void){
@@ -21779,7 +21757,7 @@ static void mwnext_hash (void){
 }
 
 static void mwInt__3E_Hash (void){
-    mwprim_2E_unsafe_2E_cast();
+    mwHASH();
 }
 
 static void mw_26_ (void){
@@ -21788,10 +21766,6 @@ static void mw_26_ (void){
 
 static void mwNAME_HASH_MAX (void){
     push_i64(32767LL);
-}
-
-static void mwHash__3E_Int (void){
-    mwprim_2E_unsafe_2E_cast();
 }
 
 static void mwname_keep_going_3F_ (void){
@@ -23373,19 +23347,6 @@ static void mwlexer_stack_pop_21_ (void){
     }
 }
 
-static void mwvalue_40__40_ (void){
-    { value_t d1 = pop_value();
-    mwvalues();
-      push_value(d1); }
-    mwptr_2B_();
-    mwvalue_40_();
-}
-
-static void mwvalues (void){
-    push_i64(16LL);
-    mw_2A_();
-}
-
 static void mwlexer_stack_length_21_ (void){
     mwLEXER_STACK_LENGTH();
     mwvalue_21_();
@@ -23916,14 +23877,6 @@ static void mwlexer_stack_push_21_ (void){
     mwLEXER_STACK_BUF();
     mwvalue_21__21_();
     }
-}
-
-static void mwvalue_21__21_ (void){
-    { value_t d1 = pop_value();
-    mwvalues();
-      push_value(d1); }
-    mwptr_2B_();
-    mwvalue_21_();
 }
 
 static void mwlexer_stack_full_3F_ (void){
