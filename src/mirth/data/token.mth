@@ -30,17 +30,10 @@ field(token-value, Token, TokenValue)
 field(token-module, Token, Module)
 field(token-row, Token, Row)
 field(token-col, Token, Col)
-field(token-succ-raw, Token, Token) # silly inefficient, compared to leaning on array-ness
-field(token-pred-raw, Token, Token) # silly inefficient, compared to leaning on array-ness
 
-buffer(TOKEN_LAST, 16)
 def(token-alloc!, Token,
     Token.alloc!
-    TOKEN_NONE over token-value!
-    TOKEN_LAST value@
-    dup2 token-succ-raw!
-    over token-pred-raw!
-    dup TOKEN_LAST value!)
+    TOKEN_NONE over token-value!)
 
 token-is-int? : Token -- Token Bool
 token-is-str? : Token -- Token Bool
@@ -152,12 +145,10 @@ def(token-location?, Token -- Token Location,
     dup token-location)
 
 # Get next token, without respecting nesting or arguments.
-def(token-succ, Token -- Token,
-    token-succ-raw@)
+def(token-succ, Token -- Token, Token.succ)
 
 # Get prev token, without respecting nesting or arguments.
-def(token-pred, Token -- Token,
-    token-pred-raw@)
+def(token-pred, Token -- Token, Token.pred)
 
 # Get next token, respecting nesting of tokens and arguments.
 def(token-next, Token -- Token,

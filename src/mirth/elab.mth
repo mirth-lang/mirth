@@ -1211,6 +1211,65 @@ def(table-new!, Name -- Table,
     8 buffer-alloc!
     over table-num-buffer!
 
+    # Table.id
+    table-name? ".id" name-cat!
+    Word.alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    over TTable T1 TYPE_INT T1 T->
+    over word-type!
+    true over word-sig-is-checked!
+
+    ab-build-word! (
+        PRIM_UNSAFE_CAST ab-prim!
+    ) drop
+
+    # Table.succ
+    table-name? ".succ" name-cat!
+    Word.alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    over TTable T1 dup T->
+    over word-type!
+    true over word-sig-is-checked!
+
+    ab-build-word! (
+        PRIM_UNSAFE_CAST ab-prim!
+        1 ab-int!
+        PRIM_INT_ADD ab-prim!
+        table-num-buffer? ab-buffer!
+        PRIM_INT_GET ab-prim!
+        1 ab-int!
+        PRIM_INT_ADD ab-prim!
+        PRIM_INT_MOD ab-prim!
+        PRIM_UNSAFE_CAST ab-prim!
+    ) drop
+
+    # Table.succ
+    table-name? ".pred" name-cat!
+    Word.alloc!
+    dup2 swap name-word!
+    tuck word-name!
+
+    over TTable T1 dup T->
+    over word-type!
+    true over word-sig-is-checked!
+
+    ab-build-word! (
+        PRIM_UNSAFE_CAST ab-prim!
+        PRIM_CORE_DUP ab-prim!
+        0 ab-int!
+        PRIM_VALUE_EQ ab-prim!
+        ab-if!(
+            id,
+            1 ab-int!
+            PRIM_INT_SUB ab-prim!
+        )
+        PRIM_UNSAFE_CAST ab-prim!
+    ) drop
+
     # Table.for
     table-name? ".for" name-cat!
     Word.alloc!

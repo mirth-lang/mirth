@@ -423,7 +423,7 @@ def(type-trace!, Type -- +IO,
         TYPE_DONT_CARE -> "_" str-trace!,
         TPrim -> type-trace-prim!,
         TVar -> var-name@ name-trace!,
-        TMeta -> metavar-trace!,
+        TMeta -> meta-trace!,
         TTensor -> "[" str-trace! TTensor type-trace-stack! "]" str-trace!,
         TMorphism -> "[" str-trace! TMorphism type-trace-sig! "]" str-trace!,
         TData -> data-name@ name-trace!,
@@ -607,7 +607,7 @@ def(type-max-count?, Type -- Type Maybe(Int),
 # Meta-var Types #
 ##################
 
-def(metavar-trace!, MetaVar -- +IO, drop "?" str-trace!)
+def(meta-trace!, MetaVar -- +IO, "?" str-trace! MetaVar.id int-trace!)
 def(meta-alloc!, MetaVar, MetaVar.alloc!)
 def(meta-type!, Type MetaVar --, true over meta-is-defined! meta-type-raw!)
 def(meta-expand, MetaVar -- Type,

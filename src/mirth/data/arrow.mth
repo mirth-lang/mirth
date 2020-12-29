@@ -109,19 +109,6 @@ arrow-atom-add! = dip(arrow-atoms?) snoc over arrow-atoms!
 # BLOCK #
 #########
 
-# a unique int for blocks that need it
-buffer(BLOCK_ID_LAST, 8)
-field(block-id-raw, Block, Int)
-def(block-id, Block -- Int,
-    block-id-raw?
-    dup 0 > if(
-        nip,
-        drop
-        BLOCK_ID_LAST int@ 1+
-        dup BLOCK_ID_LAST int!
-        dup dip(swap block-id-raw!)
-    ))
-
 block-new! : Arrow -- Block
 block-new! = (
     Block.alloc!
