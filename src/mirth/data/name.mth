@@ -21,12 +21,15 @@ field(name-str, Name, Str)
 field(name-value, Name, NameValue)
 field(name-mangle-cached, Name, Str)
 
-table(Hash)
-field(hash-name, Hash, Name)
-def(Int->Hash, Int -- Hash, prim.unsafe.cast) # hmm
-def(Hash->Int, Hash -- Int, prim.unsafe.cast) # hmm
+data(Hash, HASH -> Int)
+def(Int->Hash, Int -- Hash, HASH)
+def(Hash->Int, Hash -- Int, match(HASH -> id))
 
+buffer(NAME_HASH_TABLE, 0x80000)
 def(NAME_HASH_MAX, Size, 0x7FFF)
+def(hash-name!, Name Hash --, Hash->Int NAME_HASH_TABLE value!!)
+def(hash-name@, Hash -- Name, Hash->Int NAME_HASH_TABLE value@@)
+def(hash-name?, Hash -- Hash Name, dup hash-name@)
 
 ||| Get hash for string.
 def(hash, Str -- Hash,
