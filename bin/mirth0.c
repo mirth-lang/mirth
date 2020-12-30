@@ -2067,7 +2067,6 @@ static void mwstat (void) {
  static void mwchar_40__width (void);
  static void mwchar_width (void);
  static void mwchar_width_3F_ (void);
- static void mw_C3A9_ (void);
  static void mwis_nul_3F_ (void);
  static void mwis_tab_3F_ (void);
  static void mwis_newline_3F_ (void);
@@ -4168,17 +4167,16 @@ static void mwstat (void) {
  static void mb_data_2E_char_17_18 (void);
  static void mb_data_2E_char_29_20 (void);
  static void mb_data_2E_char_33_32 (void);
- static void mb_data_2E_char_104_9 (void);
- static void mb_data_2E_char_104_13 (void);
- static void mb_data_2E_char_110_30 (void);
- static void mb_data_2E_char_110_57 (void);
- static void mb_data_2E_char_113_25 (void);
- static void mb_data_2E_char_125_9 (void);
- static void mb_data_2E_char_125_13 (void);
- static void mb_data_2E_char_140_9 (void);
- static void mb_data_2E_char_139_9 (void);
- static void mb_data_2E_char_152_9 (void);
- static void mb_data_2E_char_151_9 (void);
+ static void mb_data_2E_char_102_9 (void);
+ static void mb_data_2E_char_102_13 (void);
+ static void mb_data_2E_char_108_30 (void);
+ static void mb_data_2E_char_108_57 (void);
+ static void mb_data_2E_char_111_25 (void);
+ static void mb_data_2E_char_123_9 (void);
+ static void mb_data_2E_char_123_13 (void);
+ static void mb_data_2E_char_143_21 (void);
+ static void mb_data_2E_char_150_9 (void);
+ static void mb_data_2E_char_149_9 (void);
  static void mb_data_2E_path_17_13 (void);
  static void mb_data_2E_path_42_52 (void);
  static void mb_data_2E_path_42_46 (void);
@@ -24764,17 +24762,26 @@ static void mwis_pipe_3F_ (void){
 }
 
 static void mwis_name_char_3F_ (void){
+    mwis_visible_3F_();
+    { value_t d1 = pop_value();
+    mwis_special_char_3F_();
+    mwnot();
+      push_value(d1); }
+    mw_26__26_();
+}
+
+static void mwis_special_char_3F_ (void){
     mwdup();
     mwChar__3E_Int();
     mwdup();
     push_i64(64LL);
     mw_3C_();
     if (pop_u64()) {
-    push_i64(-288251327002181632LL);
+    push_i64(288251318412247040LL);
     } else {
     push_i64(64LL);
     mw_();
-    push_i64(6341068274666569727LL);
+    push_i64(2882303762188206080LL);
     }
     mwswap();
     mw_3E__3E_();
@@ -24782,6 +24789,14 @@ static void mwis_name_char_3F_ (void){
     mw_26_();
     push_i64(0LL);
     mw_21__3D_();
+}
+
+static void mwis_visible_3F_ (void){
+    mwdup();
+    mwChar__3E_Int();
+    push_i64(33LL);
+    push_i64(126LL);
+    mwin_range();
 }
 
 static void mwlexer_peek (void){

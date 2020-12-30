@@ -52,8 +52,6 @@ def(char-width, Char -- Int,
 def(char-width?, Char -- Char Int,
     dup char-width)
 
-def(é, Int, 10)
-
 def(is-nul?, Char -- Char Bool, dup Char->Int 0 ==)
 
 def(is-tab?, Char -- Char Bool, dup Char->Int 9 ==)
@@ -135,14 +133,14 @@ is-visible? = dup Char->Int 33 126 in-range
 
 is-name-char? : Char -- Char Bool
 is-name-char? = (
-    dup Char->Int dup 64 < if(
-        0xFBFFECF200000000,
-        64 - 0x57FFFFFFD7FFFFFF
-    ) swap >> 0x1 & 0 !=
-    # TODO: support unicode properly
+    # dup Char->Int dup 64 < if(
+    #     0xFBFFECF200000000,
+    #     64 - 0x57FFFFFFD7FFFFFF
+    # ) swap >> 0x1 & 0 !=
+    # # TODO: support unicode properly
 
-# Equivalent to:
-#   is-visible? dip(is-special-char? not) &&
+# (should be but isn't) equivalent to:
+    is-visible? dip(is-special-char? not) &&
 )
 
 is-special-char? : Char -- Char Bool
