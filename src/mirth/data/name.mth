@@ -124,12 +124,12 @@ def(name-mangle-compute!, Name -- Str,
         is-digit? if( TS_CHAR,
         is-underscore? if( TS_CHAR,
         is-dash? if( drop underscore TS_CHAR,
-            char-hexdigits TS_PUSH
+            char-hexdigits underscore swap cons underscore snoc TS_PUSH
         ))))
     ))
 
-||| Turn character into a sequence of hex digits (in the order they
-||| appear in UTF8 encoding), with an underscore prepended.
+||| Turn character into a sequence of hex digits, in the order they
+||| appear in UTF8 encoding.
 def(char-hexdigits, Char -- List(Char),
     Char->Int
     char-hexdigits-first
@@ -137,7 +137,7 @@ def(char-hexdigits, Char -- List(Char),
     drop)
 
 def(char-hexdigits-first, Int -- List(Char) Int,
-    dip(underscore L1) char-hexdigits-next)
+    dip(L0) char-hexdigits-next)
 
 def(char-hexdigits-next, List(Char) Int -- List(Char) Int,
     dup dip(0xF & hexdigit) 4 >>
