@@ -31,7 +31,7 @@ stderr = 2 Int->File
 
 str-write! : Str File -- +IO
 str-write! = (
-    File->Int swap dup str-length dup
+    File->Int swap dup str-numbytes 1- dup
     dip(dip(Str->Ptr) posix-write!) swap
     dup 0 < if(
         "error: write failed!" panic!,

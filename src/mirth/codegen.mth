@@ -1226,7 +1226,13 @@ c99-emit-string-char! =
         drop "\\n" .,
     dup Char->Int 13 == if(
         drop "\\r" .,
-        "unexpected character in c99 string" panic!
+
+        char-bytes for(
+            "\\x" . dup
+            U8->Int 4 >> hexdigit .c
+            U8->Int 0xF & hexdigit .c
+        )
+#        "unexpected character in c99 string" panic!
     ))))))
 
 c99-emit-prim! : List(Arg) Prim -- +IO
