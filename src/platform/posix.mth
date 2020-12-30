@@ -31,7 +31,7 @@ stderr = 2 Int->File
 
 str-write! : Str File -- +IO
 str-write! = (
-    File->Int swap dup str-numbytes 1- dup
+    File->Int swap dup str-size dup
     dip(dip(Str->Ptr) posix-write!) swap
     dup 0 < if(
         "error: write failed!" panic!,
@@ -186,14 +186,14 @@ def(S_IFMT, Int, 0xF000)
 def(S_IFDIR, Int, 0x4000)
 def(S_IFREG, Int, 0x8000)
 
-def(S_ISDIR, U32 -- Bool, U32->Int S_IFMT & S_IFDIR ==)
+def(S_ISDIR, U16 -- Bool, U16->Int S_IFMT & S_IFDIR ==)
 
-def(st_mode@, Ptr -- U32,
+def(st_mode@, Ptr -- U16,
     RUNNING_OS match(
         OS_LINUX -> 24, # ... this is all terrible and brittle
         OS_WINDOWS -> 6,
         _ -> drop 8
-    ) swap ptr+ u32@)
+    ) swap ptr+ u16@)
 
 ########
 # Heap #

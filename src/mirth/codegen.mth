@@ -48,7 +48,7 @@ def(.c, Char -- +Codegen,
     char-width codegen-length@ + codegen-length!)
 
 def(., Str -- +Codegen,
-    Str->Ptr dup prim.ptr.numbytes 1-
+    dup Str->Ptr swap str-size
     dup codegen-length@ + CODEGEN_BUF_SIZE > if(
         codegen-flush!
         while(dup CODEGEN_BUF_SIZE >,
@@ -429,7 +429,7 @@ def(c99-emit-prims!, +IO,
     "    if (v.payload.vp_u64 == 0) {" ;
     "        return 0;" ;
     "    } else if (v.tag == VT_U64) {" ;
-    "        return strlen(v.payload.vp_ptr) + 1;" ;
+    "        return strlen(v.payload.vp_ptr);" ;
     "    } else if (value_has_ptr_offset(v)) {" ;
     "        value_t car, cdr;" ;
     "        value_uncons(v, &car, &cdr);" ;
@@ -1070,8 +1070,6 @@ def(c99-emit-prims!, +IO,
     "    }" ;
     "}" ;;
 
-    PRIM_PTR_NUMBYTES .pm "do { value_t v = pop_value(); push_i64(value_ptr_size(v)); decref(v); } while(0)" ;;
-
     PRIM_PTR_COPY .p " {" ;
     "    value_t vdst = pop_value();" ;
     "    i64 ilen = pop_i64();" ;
@@ -1109,6 +1107,16 @@ def(c99-emit-prims!, +IO,
     "    push_bool(result);" ;
     "    decref(vptr1); decref(vptr2);" ;
     "}" ;;
+
+    PRIM_STR_ALLOC .p "{" ;
+    "    i64 psize = pop_i64();" ;
+    "    push_i64(psize + 4);" ;
+    "    mwprim_2E_ptr_2E_alloc();" ;
+    "}" ;;
+
+    PRIM_STR_BASE .pm "0" ;;
+
+    PRIM_STR_SIZE .pm "do { value_t v = stack[stack_counter]; if (!v.payload.vp_u64) { push_u64(0); } else if (v.tag == VT_U64) { push_u64((u64)strlen(v.payload.vp_ptr)); } else { push_i64(value_ptr_size(v)-4); }  } while(0)" ;;
 
     "#define do_pack_cons() do { value_t cdr = pop_value(); value_t car = pop_value(); push_value(mkcell(car,cdr)); } while(0)" ;
     PRIM_PACK_NIL .pm " push_u64(0)" ;
@@ -1209,7 +1217,7 @@ c99-emit-string! : Str -- +IO
 c99-emit-string! = (
     "    push_ptr(\"" .
     str-for(c99-emit-string-char!)
-    "\");" ;
+    "\\0\\0\\0\");" ; # wide sentinel is desirable
 )
 
 c99-emit-string-char! : Char -- +IO
