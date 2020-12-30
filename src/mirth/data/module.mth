@@ -35,8 +35,8 @@ module-path-from-name =
         is-dot? if(
             drop "/" # path-separator # TODO: this should be path-separator, but breaks module import check on MSYS2 ... fix module import check / paths?
             TS_COPY,
-        is-upper? if( # TODO: be more specific -- is-upper-ascii?
-            Char->Int 32 + Int->Char TS_CHAR,
+        is-upper? if(# TODO: be more specific -- is-upper-ascii?
+            Char->Int 0x20 | Int->Char TS_CHAR,
             TS_CHAR
 #            "--///error///--" TS_COPY
         ))

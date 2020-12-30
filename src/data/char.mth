@@ -1,8 +1,61 @@
 module(data.char)
 import(prelude)
 
-def(char@, Ptr -- Char, u8@ U8->Int Int->Char) # TODO UTF8
-def(char!, Char Ptr --, dip(Char->Int Int->U8) u8!) # TODO UTF8
+
+||| Write a character. This writes 4 bytes in UTF8, happily
+||| writing up to 3 bytes ahead. The idea is that you'll
+||| overwrite with the next character. Don't use this if you need
+||| pinpoint precision writing. Use [char!-precise] instead.
+def(char!, Char Ptr --, dip(Char->Int Int->U32) u32!)
+
+||| Writes precisely the bytes in the UTF8 representation of the
+||| character. This will only write one byte if the character
+||| happens to be one byte long.
+def(char!-precise, Char Ptr --,
+    dip(char-width?) swap
+    dup 1 == if(
+        drop dip(Char->Int Int->U8) u8!,
+    dup 2 == if(
+        drop dip(Char->Int Int->U16) u16!,
+    dup 3 == if(
+        drop
+        dip(Char->Int dup 0xFFFF & Int->U16) dup
+        dip(u16! 16 >> Int->U8 2) ptr+ u8!,
+        drop dip(Char->Int Int->U32) u32!
+    ))))
+
+||| Write character and advance pointer by character width.
+def(char!++, Char Ptr -- Ptr,
+    dup2 char! dip(char-width) ptr+)
+
+||| Read character and advance pointer by character width.
+def(char?++, Ptr -- Ptr Char,
+    char? char-width? rotr dip(ptr+))
+
+||| Read character but keep pointer on stack.
+def(char?, Ptr -- Ptr Char,
+    dup char@)
+
+||| Read character. This will read 4 bytes at once and then
+||| mask away the unnecessary bits. Use [char@-precise] if you
+||| need pinpoint reading instead.
+def(char@, Ptr -- Char,
+    u32@ U32->Int
+#    dup dip(0x3A55000000000000) 2 >> 0xFE & >> 0x3 &
+    dup dip(0xC5AAFFFFFFFFFFFF) 0xF8 & 2 >> >> 0x3 &
+    dip(0xFFFFFFFF) 3 << >> &
+    # << >> 3 <<
+    # 0xFFFFFFFF
+    Int->Char)
+
+def(char@-width, Ptr -- Int,
+    u8@ U8->Int Int->Char char-width)
+def(char-width, Char -- Int,
+    Char->Int dip(0x3A55000000000000) 0xF8 & 2 >> >> 0x3 & 1 +)
+def(char-width?, Char -- Char Int,
+    dup char-width)
+
+def(é, Int, 10)
 
 def(is-nul?, Char -- Char Bool, dup Char->Int 0 ==)
 
@@ -63,7 +116,11 @@ is-sign? : Char -- Char Bool
 is-sign? = is-plus? dip(is-minus?) ||
 
 is-alpha? : Char -- Char Bool
-is-alpha? = is-lower? dip(is-upper?) ||
+is-alpha? = (
+    dup Char->Int 0xFFFFFFDF & 65 90 in-range
+# Equivalent to:
+    # is-lower? dip(is-upper?) ||
+)
 
 is-string-end? : Char -- Char Bool
 is-string-end? = (

@@ -23,7 +23,7 @@ def(codegen-u8@, Offset -- Byte +Codegen, CODEGEN_BUF u8@@)
 def(codegen-u8!, Byte Offset -- +Codegen, CODEGEN_BUF u8!!)
 
 def(codegen-full?, Bool +Codegen,
-    codegen-length@ CODEGEN_BUF_SIZE >=)
+    codegen-length@ 4 + CODEGEN_BUF_SIZE >=)
 
 def(codegen-flush!, +Codegen,
     codegen-length@ 0 > if(
@@ -43,7 +43,9 @@ def(.b, Byte -- +Codegen,
     codegen-length@ dup 1+ codegen-length! codegen-u8!)
 
 def(.c, Char -- +Codegen,
-    Char->Int Int->U8 .b) # TODO: UTF8 support
+    codegen-full? if(codegen-flush!, id)
+    dup codegen-length@ CODEGEN_BUF ptr+ char!
+    char-width codegen-length@ + codegen-length!)
 
 def(., Str -- +Codegen,
     Str->Ptr dup prim.ptr.numbytes 1-

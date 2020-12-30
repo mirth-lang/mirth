@@ -72,7 +72,8 @@ def(input-peek, Char +Input,
 # Panics if file is exhausted.
 def(input-move!, +Input,
     input-isopen@ if(
-        input-offset@ 1+ dup input-offset! # TODO: utf8 increments?
+        input-offset@ INPUT_BUFFER ptr+ char@-width
+        input-offset@ + dup input-offset!
         input-length@ >= if(
             input-fill-buffer!,
             id

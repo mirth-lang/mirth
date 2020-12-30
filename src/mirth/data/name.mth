@@ -124,14 +124,25 @@ def(name-mangle-compute!, Name -- Str,
         is-digit? if( TS_CHAR,
         is-underscore? if( TS_CHAR,
         is-dash? if( drop underscore TS_CHAR,
-            dip(underscore) char-hexdigits underscore L4 TS_PUSH
+            char-hexdigits TS_PUSH
         ))))
     ))
 
-def(char-hexdigits, Char -- Char Char, # TODO: support non-ascii chars
+||| Turn character into a sequence of hex digits (in the order they
+||| appear in UTF8 encoding), with an underscore prepended.
+def(char-hexdigits, Char -- List(Char),
     Char->Int
-    dup  16 / hexdigit
-    swap 16 % hexdigit)
+    char-hexdigits-first
+    while(dup 0 >, char-hexdigits-next)
+    drop)
+
+def(char-hexdigits-first, Int -- List(Char) Int,
+    dip(underscore L1) char-hexdigits-next)
+
+def(char-hexdigits-next, List(Char) Int -- List(Char) Int,
+    dup dip(0xF & hexdigit) 4 >>
+    dup dip(0xF & hexdigit) 4 >>
+    dip(swap dip(snoc) snoc))
 
 def(hexdigit, Int -- Char,
     dup 10 >= if(
