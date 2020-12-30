@@ -41,11 +41,8 @@ def(char?, Ptr -- Ptr Char,
 ||| need pinpoint reading instead.
 def(char@, Ptr -- Char,
     u32@ U32->Int
-#    dup dip(0x3A55000000000000) 2 >> 0xFE & >> 0x3 &
     dup dip(0xC5AAFFFFFFFFFFFF) 0xF8 & 2 >> >> 0x3 &
     dip(0xFFFFFFFF) 3 << >> &
-    # << >> 3 <<
-    # 0xFFFFFFFF
     Int->Char)
 
 def(char@-width, Ptr -- Int,

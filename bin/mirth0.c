@@ -1335,7 +1335,7 @@ static u8 bINPUT_OFFSET[8] = {0};
 #define mwINPUT_OFFSET() push_ptr((void*)bINPUT_OFFSET)
 static u8 bINPUT_HANDLE[8] = {0};
 #define mwINPUT_HANDLE() push_ptr((void*)bINPUT_HANDLE)
-static u8 bINPUT_BUFFER[2048] = {0};
+static u8 bINPUT_BUFFER[8208] = {0};
 #define mwINPUT_BUFFER() push_ptr((void*)bINPUT_BUFFER)
 static u8 bName_2E_NUM[8] = {0};
 #define mwName_2E_NUM() push_ptr((void*)bName_2E_NUM)
@@ -2233,6 +2233,8 @@ static void mwstat (void) {
  static void mwinput_fill_buffer_21_ (void);
  static void mwinput_peek (void);
  static void mwinput_move_21_ (void);
+ static void mwinput_prepare_for_more_21_ (void);
+ static void mwinput_fill_buffer_tragic_21_ (void);
  static void mwName_2E_MAX (void);
  static void mwName_2E_id (void);
  static void mwName_2E_succ (void);
@@ -3980,8 +3982,8 @@ static void mwstat (void) {
  static void mb_platform_2E_posix_253_17 (void);
  static void mb_platform_2E_posix_279_17 (void);
  static void mb_platform_2E_posix_297_24 (void);
- static void mb_data_2E_char_45_13 (void);
- static void mb_data_2E_char_46_9 (void);
+ static void mb_data_2E_char_44_13 (void);
+ static void mb_data_2E_char_45_9 (void);
  static void mb_data_2E_str_13_20 (void);
  static void mb_data_2E_str_16_35 (void);
  static void mb_data_2E_str_16_27 (void);
@@ -4005,7 +4007,7 @@ static void mwstat (void) {
  static void mb_data_2E_str_55_17 (void);
  static void mb_data_2E_str_90_13 (void);
  static void mb_data_2E_char_9_29 (void);
- static void mb_data_2E_char_54_19 (void);
+ static void mb_data_2E_char_51_19 (void);
  static void mb_data_2E_str_189_9 (void);
  static void mb_data_2E_str_188_11 (void);
  static void mb_data_2E_str_190_13 (void);
@@ -4166,17 +4168,17 @@ static void mwstat (void) {
  static void mb_data_2E_char_17_18 (void);
  static void mb_data_2E_char_29_20 (void);
  static void mb_data_2E_char_33_32 (void);
- static void mb_data_2E_char_107_9 (void);
- static void mb_data_2E_char_107_13 (void);
- static void mb_data_2E_char_113_30 (void);
- static void mb_data_2E_char_113_57 (void);
- static void mb_data_2E_char_116_25 (void);
- static void mb_data_2E_char_128_9 (void);
- static void mb_data_2E_char_128_13 (void);
- static void mb_data_2E_char_143_9 (void);
- static void mb_data_2E_char_142_9 (void);
- static void mb_data_2E_char_155_9 (void);
- static void mb_data_2E_char_154_9 (void);
+ static void mb_data_2E_char_104_9 (void);
+ static void mb_data_2E_char_104_13 (void);
+ static void mb_data_2E_char_110_30 (void);
+ static void mb_data_2E_char_110_57 (void);
+ static void mb_data_2E_char_113_25 (void);
+ static void mb_data_2E_char_125_9 (void);
+ static void mb_data_2E_char_125_13 (void);
+ static void mb_data_2E_char_140_9 (void);
+ static void mb_data_2E_char_139_9 (void);
+ static void mb_data_2E_char_152_9 (void);
+ static void mb_data_2E_char_151_9 (void);
  static void mb_data_2E_path_17_13 (void);
  static void mb_data_2E_path_42_52 (void);
  static void mb_data_2E_path_42_46 (void);
@@ -4192,12 +4194,22 @@ static void mwstat (void) {
  static void mb_mirth_2E_input_52_17 (void);
  static void mb_mirth_2E_input_34_9 (void);
  static void mb_mirth_2E_input_33_9 (void);
- static void mb_mirth_2E_input_68_9 (void);
  static void mb_mirth_2E_input_67_9 (void);
- static void mb_mirth_2E_input_81_9 (void);
- static void mb_mirth_2E_input_75_9 (void);
- static void mb_mirth_2E_input_79_13 (void);
- static void mb_mirth_2E_input_78_13 (void);
+ static void mb_mirth_2E_input_66_9 (void);
+ static void mb_mirth_2E_input_77_9 (void);
+ static void mb_mirth_2E_input_74_9 (void);
+ static void mb_mirth_2E_input_96_9 (void);
+ static void mb_mirth_2E_input_86_9 (void);
+ static void mb_mirth_2E_input_90_9 (void);
+ static void mb_mirth_2E_input_87_13 (void);
+ static void mb_mirth_2E_input_93_13 (void);
+ static void mb_mirth_2E_input_91_13 (void);
+ static void mb_mirth_2E_input_119_9 (void);
+ static void mb_mirth_2E_input_108_9 (void);
+ static void mb_mirth_2E_input_117_13 (void);
+ static void mb_mirth_2E_input_113_13 (void);
+ static void mb_mirth_2E_input_115_17 (void);
+ static void mb_mirth_2E_input_114_17 (void);
  static void mb_mirth_2E_lexer_44_9 (void);
  static void mb_mirth_2E_lexer_43_9 (void);
  static void mb_mirth_2E_lexer_52_9 (void);
@@ -23710,24 +23722,107 @@ static void mwinput_move_21_ (void){
     mwinput_isopen_40_();
     if (pop_u64()) {
     mwinput_offset_40_();
+    mwdup();
     mwINPUT_BUFFER();
     mwptr_2B_();
     mwchar_40__width();
-    mwinput_offset_40_();
     mw_2B_();
-    mwdup();
     mwinput_offset_21_();
-    mwinput_length_40_();
-    mw_3E__3D_();
-    if (pop_u64()) {
-    mwinput_fill_buffer_21_();
-    } else {
-    mwid();
-    }
+    mwinput_prepare_for_more_21_();
     } else {
     push_ptr("error: attempted to move input buffer when file is already closed");
     mwpanic_21_();
     }
+}
+
+static void mwinput_prepare_for_more_21_ (void){
+    mwinput_offset_40_();
+    mwdup();
+    push_i64(4LL);
+    mw_2B_();
+    mwinput_length_40_();
+    mw_3E_();
+    if (pop_u64()) {
+    mwdup();
+    mwinput_length_40_();
+    mw_3E__3D_();
+    if (pop_u64()) {
+    mwdrop();
+    mwinput_fill_buffer_21_();
+    } else {
+    mwdup();
+    mwINPUT_BUFFER();
+    mwptr_2B_();
+    mwchar_40__width();
+    mw_2B_();
+    mwinput_length_40_();
+    mw_3E_();
+    if (pop_u64()) {
+    mwinput_fill_buffer_tragic_21_();
+    } else {
+    mwid();
+    }
+    }
+    } else {
+    mwdrop();
+    }
+}
+
+static void mwinput_fill_buffer_tragic_21_ (void){
+    mwinput_offset_40_();
+    mwINPUT_BUFFER();
+    mwptr_2B_();
+    mwu32_40_();
+    mwINPUT_BUFFER();
+    mwu32_21_();
+    mwinput_offset_40_();
+    mwINPUT_BUFFER();
+    mwptr_2B_();
+    mwchar_40__width();
+    mwinput_length_21_();
+    push_i64(0LL);
+    mwinput_offset_21_();
+    mwinput_isopen_40_();
+    if (pop_u64()) {
+    mwinput_handle_40_();
+    mwFile__3E_Int();
+    mwinput_length_40_();
+    mwINPUT_BUFFER();
+    mwptr_2B_();
+    mwINPUT_BUFFER_SIZE();
+    mwposix_read_21_();
+    mwdup();
+    push_i64(0LL);
+    mw_3E__3D_();
+    if (pop_u64()) {
+    mwdup();
+    push_i64(0LL);
+    mw_3E_();
+    if (pop_u64()) {
+    mwinput_length_40_();
+    mw_2B_();
+    mwinput_length_21_();
+    } else {
+    mwdrop();
+    mwinput_end_21_();
+    }
+    } else {
+    mwdrop();
+    push_ptr("error: failed to read from file");
+    mwpanic_21_();
+    }
+    } else {
+    push_ptr("error: attempted to fill input buffer when file is closed");
+    mwpanic_21_();
+    }
+}
+
+static void mwposix_read_21_ (void){
+    mwprim_2E_posix_2E_read();
+}
+
+static void mwINPUT_BUFFER_SIZE (void){
+    push_i64(8192LL);
 }
 
 static void mwinput_fill_buffer_21_ (void){
@@ -23762,14 +23857,6 @@ static void mwinput_fill_buffer_21_ (void){
     push_ptr("error: attempted to fill input buffer when file is closed");
     mwpanic_21_();
     }
-}
-
-static void mwposix_read_21_ (void){
-    mwprim_2E_posix_2E_read();
-}
-
-static void mwINPUT_BUFFER_SIZE (void){
-    push_i64(2048LL);
 }
 
 static void mwinput_length_40_ (void){
