@@ -232,3 +232,21 @@ str-transduce = \([f] ->
         ) drop
     )
 )
+
+str-chars : Str -- List(Char)
+str-chars = dip(L0) str-for(snoc)
+
+str-codepoints : Str -- List(Int)
+str-codepoints = dip(L0) str-for(char-codepoint snoc)
+
+str-bytes : Str -- List(U8)
+str-bytes = (
+    L0 swap
+    Str->Ptr dup
+    prim.ptr.numbytes 1-
+    while(
+        dup 0 >,
+        1- dip(dup dip(u8@ snoc 1) ptr+)
+    )
+    drop2
+)

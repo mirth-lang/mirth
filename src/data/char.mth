@@ -1,6 +1,53 @@
 module(data.char)
 import(prelude)
 
+||| Get the byte list of a character under UTF8 encoding.
+def(char-bytes, Char -- List(U8),
+    char-width?
+    dup 1 == if(
+        drop Char->Int
+        Int->U8
+        L1,
+    dup 2 == if(
+        drop Char->Int
+        dup 8 >> Int->U8
+        dip(0xFF & Int->U8)
+        L2,
+    3 == if(
+        Char->Int
+        dup 16 >> Int->U8
+        dip(dup 8 >> 0xFF & Int->U8
+        dip(0xFF & Int->U8))
+        L3,
+        Char->Int
+        dup 24 >> Int->U8
+        dip(dup 16 >> 0xFF & Int->U8
+        dip(dup 8 >> 0xFF & Int->U8
+        dip(0xFF & Int->U8)))
+        L4
+    ))))
+
+||| Get the unicode codepoint of a character.
+def(char-codepoint, Char -- Int,
+    char-width?
+    dup 1 == if(
+        drop Char->Int,
+    dup 2 == if(
+        drop Char->Int
+        dup 0x3F00 & 8 >>
+        dip(0x1F & 6 <<) |,
+    3 == if(
+        Char->Int
+        dup 0x3F0000 & 16 >>
+        dip(dup 0x3F00 & 2 >>
+        dip(0x0F & 12 <<)) | |,
+
+        Char->Int
+        dup 0x3F000000 & 24 >>
+        dip(dup 0x3F0000 & 10 >>
+        dip(dup 0x3F00 & 4 <<
+        dip(0x7 & 18 <<))) | | |
+    ))))
 
 ||| Write a character. This writes 4 bytes in UTF8, happily
 ||| writing up to 3 bytes ahead. The idea is that you'll
@@ -128,9 +175,10 @@ is-string-end? = (
 underscore : Char
 underscore = 95 Int->Char
 
+||| An approximation of visible characters. Technically this includes a lot of
+||| stuff that is invisible, like zero-width spaces and such.
 is-visible? : Char -- Char Bool
-is-visible? = dup Char->Int 33 126 in-range
-    # TODO: accept more visible characters (i.e. some in unicode range)
+is-visible? = dup Char->Int 32 >
 
 is-name-char? : Char -- Char Bool
 is-name-char? = (

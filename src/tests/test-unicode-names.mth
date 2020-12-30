@@ -1,0 +1,20 @@
+module(tests.test-unicode-names)
+import(prelude)
+import(platform.posix)
+
+def(Olá-Mundo, --, "Hello world!" str-print-ln!)
+def(Luís, Int, 1)
+def(João, Int, 2)
+def(綴, Int Int -- Int, *)
+
+def(main, --,
+    Olá-Mundo
+    Luís int-print! print-ln!
+    João int-print! print-ln!
+    10 20 綴 int-print! print-ln!)
+
+target-c99("test-unicode-names.c", main)
+# mirth-test # pout # Hello world!
+# mirth-test # pout # 1
+# mirth-test # pout # 2
+# mirth-test # pout # 200
