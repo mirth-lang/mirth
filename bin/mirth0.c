@@ -4174,9 +4174,9 @@ static void mwstat (void) {
  static void mb_data_2E_char_111_25 (void);
  static void mb_data_2E_char_123_9 (void);
  static void mb_data_2E_char_123_13 (void);
- static void mb_data_2E_char_143_21 (void);
+ static void mb_data_2E_char_144_21 (void);
+ static void mb_data_2E_char_151_9 (void);
  static void mb_data_2E_char_150_9 (void);
- static void mb_data_2E_char_149_9 (void);
  static void mb_data_2E_path_17_13 (void);
  static void mb_data_2E_path_42_52 (void);
  static void mb_data_2E_path_42_46 (void);

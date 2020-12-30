@@ -130,6 +130,7 @@ underscore = 95 Int->Char
 
 is-visible? : Char -- Char Bool
 is-visible? = dup Char->Int 33 126 in-range
+    # TODO: accept more visible characters (i.e. some in unicode range)
 
 is-name-char? : Char -- Char Bool
 is-name-char? = (
