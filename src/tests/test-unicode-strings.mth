@@ -1,0 +1,58 @@
+module(tests.test-unicode-strings)
+import(prelude)
+import(platform.posix)
+
+def(display-str!, Str --,
+    "\"" str-print! dup str-print! "\"" str-print-ln!
+    "length: " str-print! dup str-length int-print! print-ln!
+    "size: " str-print! dup str-size int-print! print-ln!
+    "bytes:" str-print! dup str-bytes for(" " str-print! U8->Int int-print!) print-ln!
+    "chars:" str-print! dup str-chars for(" " str-print! Char->Int int-print!) print-ln!
+    "codepoints:" str-print! dup str-codepoints for(" " str-print! int-print!) print-ln!
+    drop "----------" str-print-ln!)
+
+def(main, --,
+    "----------" str-print-ln!
+    "" display-str!
+    "Olá mundo!" display-str!
+    "こんにちは" display-str!
+    "👋🌎🌍🌏" display-str!
+    "🤷‍♀️" display-str!)
+
+target-c99("test-unicode-strings.c", main)
+# mirth-test # pout # ----------
+# mirth-test # pout # ""
+# mirth-test # pout # length: 0
+# mirth-test # pout # size: 0
+# mirth-test # pout # bytes:
+# mirth-test # pout # chars:
+# mirth-test # pout # codepoints:
+# mirth-test # pout # ----------
+# mirth-test # pout # "Olá mundo!"
+# mirth-test # pout # length: 10
+# mirth-test # pout # size: 11
+# mirth-test # pout # bytes: 79 108 195 161 32 109 117 110 100 111 33
+# mirth-test # pout # chars: 79 108 41411 32 109 117 110 100 111 33
+# mirth-test # pout # codepoints: 79 108 225 32 109 117 110 100 111 33
+# mirth-test # pout # ----------
+# mirth-test # pout # "こんにちは"
+# mirth-test # pout # length: 5
+# mirth-test # pout # size: 15
+# mirth-test # pout # bytes: 227 129 147 227 130 147 227 129 171 227 129 161 227 129 175
+# mirth-test # pout # chars: 9667043 9667299 11239907 10584547 11502051
+# mirth-test # pout # codepoints: 12371 12435 12395 12385 12399
+# mirth-test # pout # ----------
+# mirth-test # pout # "👋🌎🌍🌏"
+# mirth-test # pout # length: 4
+# mirth-test # pout # size: 16
+# mirth-test # pout # bytes: 240 159 145 139 240 159 140 142 240 159 140 141 240 159 140 143
+# mirth-test # pout # chars: 2341576688 2391580656 2374803440 2408357872
+# mirth-test # pout # codepoints: 128075 127758 127757 127759
+# mirth-test # pout # ----------
+# mirth-test # pout # "🤷‍♀️"
+# mirth-test # pout # length: 4
+# mirth-test # pout # size: 13
+# mirth-test # pout # bytes: 240 159 164 183 226 128 141 226 153 128 239 184 143
+# mirth-test # pout # chars: 3081019376 9273570 8428002 9418991
+# mirth-test # pout # codepoints: 129335 8205 9792 65039
+# mirth-test # pout # ----------

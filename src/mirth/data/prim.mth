@@ -52,11 +52,13 @@ data Prim
     PRIM_PTR_SET
     PRIM_PTR_ALLOC
     PRIM_PTR_REALLOC
-    PRIM_PTR_NUMBYTES
     PRIM_PTR_COPY
     PRIM_PTR_FILL
     PRIM_PTR_RAW
 
+    PRIM_STR_ALLOC
+    PRIM_STR_SIZE
+    PRIM_STR_BASE
     PRIM_STR_EQ
 
     PRIM_U8_GET
@@ -212,11 +214,13 @@ def(init-prims!, +Names,
     PRIM_PTR_SET "prim.ptr.set" def-prim!
     PRIM_PTR_ALLOC "prim.ptr.alloc" def-prim!
     PRIM_PTR_REALLOC "prim.ptr.realloc" def-prim!
-    PRIM_PTR_NUMBYTES "prim.ptr.numbytes" def-prim!
     PRIM_PTR_FILL "prim.ptr.fill" def-prim!
     PRIM_PTR_COPY "prim.ptr.copy" def-prim!
     PRIM_PTR_RAW "prim.ptr.raw" def-prim!
 
+    PRIM_STR_ALLOC "prim.str.alloc" def-prim!
+    PRIM_STR_SIZE "prim.str.size" def-prim!
+    PRIM_STR_BASE "prim.str.base" def-prim!
     PRIM_STR_EQ "prim.str.eq" def-prim!
 
     PRIM_U8_GET "prim.u8.get" def-prim!
@@ -320,9 +324,6 @@ def(init-prims!, +Names,
     TYPE_PTR TYPE_INT T2 TYPE_PTR T1 T->
     PRIM_PTR_REALLOC prim-type!
 
-    TYPE_PTR T1 TYPE_INT T1 T->
-    PRIM_PTR_NUMBYTES prim-type!
-
     TYPE_PTR TYPE_INT TYPE_PTR T3 T0 T->
     PRIM_PTR_COPY prim-type!
 
@@ -331,6 +332,15 @@ def(init-prims!, +Names,
 
     TYPE_PTR T1 TYPE_PTR TYPE_INT T2 T->
     PRIM_PTR_RAW prim-type!
+
+    TYPE_INT T1 TYPE_STR T1 T->
+    PRIM_STR_ALLOC prim-type!
+
+    TYPE_STR T1 TYPE_STR TYPE_INT T2 T->
+    PRIM_STR_SIZE prim-type!
+
+    TYPE_STR T1 TYPE_PTR T1 T->
+    PRIM_STR_BASE prim-type!
 
     TYPE_STR TYPE_STR T2 TYPE_BOOL T1 T->
     PRIM_STR_EQ prim-type!
