@@ -132,7 +132,7 @@ def(TYPE_BOOL, Type, PRIM_TYPE_BOOL TPrim) # bool type
 def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
 def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
 def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but nominally)
-def(TYPE_CHAR, Type, PRIM_TYPE_CHAR TPrim) # char pointer (valid unicode codepoint)
+def(TYPE_CHAR, Type, PRIM_TYPE_CHAR TPrim) # char (UTF8-encoded codepoint in U32)
 def(TYPE_U8, Type, PRIM_TYPE_U8 TPrim) # fixed width integer type -- unsigned 8 bit
 def(TYPE_U16, Type, PRIM_TYPE_U16 TPrim) # fixed width integer type -- unsigned 16 bit
 def(TYPE_U32, Type, PRIM_TYPE_U32 TPrim) # fixed width integer type -- unsigned 32 bit

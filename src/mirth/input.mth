@@ -9,8 +9,8 @@ buffer(INPUT_ISOPEN, 8)
 buffer(INPUT_LENGTH, 8)
 buffer(INPUT_OFFSET, 8)
 buffer(INPUT_HANDLE, 8)
-buffer(INPUT_BUFFER, 0x800)
-def(INPUT_BUFFER_SIZE, Size, 0x800)
+buffer(INPUT_BUFFER, 0x2010) # a little wiggle room for boundary chars
+def(INPUT_BUFFER_SIZE, Size, 0x2000)
 
 def(input-isopen@, Bool +Input, INPUT_ISOPEN int@ nonzero)
 def(input-length@, Size +Input, INPUT_LENGTH int@)
@@ -59,7 +59,6 @@ def(input-fill-buffer!, +Input,
         "error: attempted to fill input buffer when file is closed" panic!
     ))
 
-
 # Return the current char in the input buffer.
 # Panics if file is exhausted.
 def(input-peek, Char +Input,
@@ -72,10 +71,50 @@ def(input-peek, Char +Input,
 # Panics if file is exhausted.
 def(input-move!, +Input,
     input-isopen@ if(
-        input-offset@ 1+ dup input-offset! # TODO: utf8 increments?
-        input-length@ >= if(
-            input-fill-buffer!,
-            id
-        ),
+        input-offset@ dup INPUT_BUFFER ptr+
+        char@-width + input-offset!
+        input-prepare-for-more!,
         "error: attempted to move input buffer when file is already closed" panic!
+    ))
+
+||| Refill input buffer, with special logic to handle
+||| characters straddling the buffer boundary.
+def(input-prepare-for-more!, +Input,
+    input-offset@
+    dup 4 + input-length@ > if(
+
+        dup input-length@ >= if(
+            drop
+            input-fill-buffer!,
+
+        dup INPUT_BUFFER ptr+ char@-width + input-length@ > if(
+            input-fill-buffer-tragic!,
+
+            id
+        )),
+
+        drop
+    ))
+
+def(input-fill-buffer-tragic!, +Input,
+
+    input-offset@ INPUT_BUFFER ptr+ u32@ # ok because of wiggle room
+    INPUT_BUFFER u32!
+
+    input-offset@ INPUT_BUFFER ptr+ char@-width input-length!
+    0 input-offset!
+
+    input-isopen@ if(
+        input-handle@ File->Int
+        input-length@ INPUT_BUFFER ptr+
+        INPUT_BUFFER_SIZE # ok because of wiggle room
+        posix-read!
+        dup 0 >= if(
+            dup 0 > if(
+                input-length@ + input-length!,
+                drop input-end! # ends with an invalid char
+            ),
+            drop "error: failed to read from file" panic!
+        ),
+        "error: attempted to fill input buffer when file is closed" panic!
     ))
