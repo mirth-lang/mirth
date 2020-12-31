@@ -103,6 +103,9 @@ def(lexer-emit!, TokenValue --, lexer-make! drop)
 def(lexer-next!, --,
     lexer-peek
 
+    char-valid? not if(
+        "invalid character" lexer-emit-fatal-error!,
+
     is-name-char? if(
         drop
         lexer-emit-name!,
@@ -154,11 +157,10 @@ def(lexer-next!, --,
         drop
         lexer-emit-string!,
 
-
-        drop # LATER emit lexer error
+        "unrecognized token" lexer-emit-fatal-error!
     ))))))))))))
 
-    lexer-move!))
+    lexer-move!)))
 
 
 def(lexer-emit-newline!, +Lexer,
@@ -216,9 +218,13 @@ def(lexer-emit-name!, +Lexer,
     lexer-col@
 
     lexer-peek while(is-name-char?,
-        str-buf-push-char!
-        lexer-move!
-        lexer-peek
+        char-valid? if(
+            str-buf-push-char!
+            lexer-move!
+            lexer-peek,
+
+            "invalid character" lexer-emit-fatal-error!
+        )
     )
     drop
 
@@ -377,9 +383,13 @@ def(lexer-emit-string!, +Lexer,
 
     lexer-move!
     lexer-peek while(is-string-end? not,
-        lexer-push-string-char!
-        lexer-move!
-        lexer-peek
+        char-valid? if(
+            lexer-push-string-char!
+            lexer-move!
+            lexer-peek,
+
+            "invalid character in string literal" lexer-emit-fatal-error!
+        )
     )
     drop
 
