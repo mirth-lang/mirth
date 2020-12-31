@@ -1,0 +1,30 @@
+module(tests.test-char-valid)
+import(prelude)
+import(platform.posix)
+import(data.char)
+
+def(valid, Int --,
+    dup Int->Char char-valid if(
+        drop,
+        "expected valid " str-print! int-print! " but got invalid" str-print-ln!
+    ))
+
+def(invalid, Int --,
+    dup Int->Char char-valid if(
+        "expected invalid " str-print! int-print! " but got valid" str-print-ln!,
+        drop
+    ))
+
+def(main, --,
+
+    0x00 valid 0x10 valid 0x20 valid 0x30 valid
+    0x80 invalid 0x8F invalid
+    0xC0 invalid 0x80C0 invalid 0xBFC1 invalid
+    0x80C2 valid 0xBFC2 valid 0xBFDF valid
+    0xC0DF invalid 0xBFE0 invalid
+    0x8080E0 invalid 0x80BFE0 valid
+    # add tests for surrogate & valid-wobbly
+    # add tests for 4 byte chars
+    )
+
+target-c99("test-char-valid.c", main)

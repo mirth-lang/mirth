@@ -101,7 +101,7 @@ def(input-fill-buffer-tragic!, +Input,
     input-offset@ INPUT_BUFFER ptr+ u32@ # ok because of wiggle room
     INPUT_BUFFER u32!
 
-    input-offset@ INPUT_BUFFER ptr+ char@-width input-length!
+    INPUT_BUFFER char@-width input-length!
     0 input-offset!
 
     input-isopen@ if(
@@ -112,7 +112,7 @@ def(input-fill-buffer-tragic!, +Input,
         dup 0 >= if(
             dup 0 > if(
                 input-length@ + input-length!,
-                drop input-end! # ends with an invalid char
+                drop # invalid char left in buffer
             ),
             drop "error: failed to read from file" panic!
         ),

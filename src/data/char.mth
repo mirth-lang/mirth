@@ -27,27 +27,109 @@ def(char-bytes, Char -- List(U8),
         L4
     ))))
 
+||| Validate character for WTF-8 encoding.
+def(char-valid-wobbly, Char -- Bool,
+    char-width?
+    dup 1 == if(
+        drop char-valid-1,
+    dup 2 == if(
+        drop char-valid-2,
+    dup 3 == if(
+        drop char-valid-3-wobbly,
+        drop char-valid-4
+    ))))
+
+char-valid-3-wobbly : Char -- Bool
+char-valid-3-wobbly = (
+    dup Char->Int 0xFFC0C0F0 & 0x008080E0 ==
+    swap char-codepoint-3
+    0x0800 0xFFFF in-range &&
+)
+
+def(char-valid?, Char -- Char Bool,
+    dup char-valid)
+
+||| Validate character for UTF-8 encoding.
+def(char-valid, Char -- Bool,
+    char-width?
+    dup 1 == if(
+        drop char-valid-1,
+    dup 2 == if(
+        drop char-valid-2,
+    dup 3 == if(
+        drop char-valid-3,
+        drop char-valid-4
+    ))))
+
+char-valid-1 : Char -- Bool
+char-valid-2 : Char -- Bool
+char-valid-3 : Char -- Bool
+char-valid-4 : Char -- Bool
+char-valid-1 = Char->Int 0xFFFFFF80 & 0x00000000 ==
+char-valid-2 = (
+    Char->Int
+    dup 0xFFFFC0E0 & 0x000080C0 ==
+
+# range check:
+    swap 0x1F & 0x02 >= && # overlong
+# alternative:
+    # swap char-codepoint-2 0x80 0x7FF in-range
+    # &&
+)
+char-valid-3 = (
+    dup Char->Int 0xFFC0C0F0 & 0x008080E0 ==
+    swap char-codepoint-3
+    dup 0x0800 0xFFFF in-range # overlong
+    swap 0xD800 0xDFFF in-range not # surrogate pair
+    && &&
+)
+char-valid-4 = (
+    dup Char->Int 0xC0C0C0F8 & 0x808080F0 ==
+
+# range check:
+    # swap dup 0x3007 & 0 != # overlong
+    # swap dup 0x04 & 0 == swap 0x3003 & 0 == || # too large
+    # && &&
+# alternative:
+    swap char-codepoint-4 0x10000 0x10FFFF in-range
+    &&
+)
+
 ||| Get the unicode codepoint of a character.
 def(char-codepoint, Char -- Int,
     char-width?
     dup 1 == if(
-        drop Char->Int,
+        drop char-codepoint-1,
     dup 2 == if(
-        drop Char->Int
-        dup 0x3F00 & 8 >>
-        dip(0x1F & 6 <<) |,
-    3 == if(
-        Char->Int
-        dup 0x3F0000 & 16 >>
-        dip(dup 0x3F00 & 2 >>
-        dip(0x0F & 12 <<)) | |,
-
-        Char->Int
-        dup 0x3F000000 & 24 >>
-        dip(dup 0x3F0000 & 10 >>
-        dip(dup 0x3F00 & 4 <<
-        dip(0x7 & 18 <<))) | | |
+        drop char-codepoint-2,
+    dup 3 == if(
+        drop char-codepoint-3,
+        drop char-codepoint-4
     ))))
+
+char-codepoint-1 : Char -- Int
+char-codepoint-2 : Char -- Int
+char-codepoint-3 : Char -- Int
+char-codepoint-4 : Char -- Int
+char-codepoint-1 = Char->Int
+char-codepoint-2 = (
+    Char->Int
+    dup 0x3F00 & 8 >>
+    dip(0x1F & 6 <<) |
+)
+char-codepoint-3 = (
+    Char->Int
+    dup 0x3F0000 & 16 >>
+    dip(dup 0x3F00 & 2 >>
+    dip(0x0F & 12 <<)) | |
+)
+char-codepoint-4 = (
+    Char->Int
+    dup 0x3F000000 & 24 >>
+    dip(dup 0x3F0000 & 10 >>
+    dip(dup 0x3F00 & 4 <<
+    dip(0x7 & 18 <<))) | | |
+)
 
 ||| Write a character. This writes 4 bytes in UTF8, happily
 ||| writing up to 3 bytes ahead. The idea is that you'll
