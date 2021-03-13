@@ -645,6 +645,27 @@ def(c99-emit-prims!, +IO,
     "    return v;" ;
     "}" ;;
 
+    "static value_t mkcell_raw (value_t car, value_t cdr) {" ;
+    "    u64 cell_index = heap_next;" ;
+    "    cell_t *cell = heap + cell_index;" ;
+    "    while ((cell->refs > 0) && (cell_index < HEAP_SIZE)) { cell++; cell_index++; }" ;
+    "    if (cell_index >= HEAP_SIZE - 1) {" ;
+    "        write(2, \"HEAP OVERFLOW\\n\", 14);" ;
+    "        exit(1);" ;
+    "    }" ;
+    "    u64 saved_index = cell->cdr.payload.vp_u64;" ;
+    "    heap_next = (usize)(saved_index ? saved_index : cell_index+1);" ;
+    "    heap_count++;" ;
+    "    cell->refs = 1;" ;
+    "    cell->freecdr = false;" ;
+    "    cell->car = car;" ;
+    "    cell->cdr = cdr;" ;
+    "    value_t v = {0};" ;
+    "    v.tag = VT_C64;" ;
+    "    v.payload.vp_u64 = cell_index;" ;
+    "    return v;" ;
+    "}" ;;
+
     "static value_t mkcell_freecdr (value_t car, value_t cdr) {" ;
     "    if (heap_count >= HEAP_SIZE - 1) {" ;
     "        write(2, \"HEAP OVERFLOW\\n\", 14);" ;
@@ -1122,6 +1143,10 @@ def(c99-emit-prims!, +IO,
     PRIM_PACK_NIL .pm " push_u64(0)" ;
     PRIM_PACK_CONS .pm "do_pack_cons();" ;
     PRIM_PACK_UNCONS .pm "do_pack_uncons();" ;;
+
+    PRIM_MUT_NEW .pm "do { value_t car = pop_value(); value_t cdr = { 0 }; push_value(mkcell_raw(car,cdr)); } while(0)" ;
+    PRIM_MUT_GET .pm "do { do_pack_uncons(); pop_value(); } while(0)" ;
+    PRIM_MUT_SET .pm "do { value_t cellval = pop_value(); value_t newval = pop_value(); push_value(cellval); usize cellidx = get_cell_index(cellval); if (cellidx) { cell_t* cell = heap + cellidx; value_t oldval = cell->car; cell->car = newval; decref(oldval); } else { decref(newval); } } while(0)" ;;
     )
 
 def(c99-emit-externals!, +IO,

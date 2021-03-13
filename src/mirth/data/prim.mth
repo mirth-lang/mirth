@@ -46,6 +46,10 @@ data Prim
     PRIM_PACK_CONS
     PRIM_PACK_UNCONS
 
+    PRIM_MUT_NEW
+    PRIM_MUT_GET
+    PRIM_MUT_SET
+
     PRIM_PTR_ADD
     PRIM_PTR_SIZE
     PRIM_PTR_GET
@@ -207,6 +211,10 @@ def(init-prims!, +Names,
     PRIM_PACK_NIL "prim.pack.nil" def-prim!
     PRIM_PACK_CONS "prim.pack.cons" def-prim!
     PRIM_PACK_UNCONS "prim.pack.uncons" def-prim!
+
+    PRIM_MUT_NEW "prim.mut.new" def-prim!
+    PRIM_MUT_GET "prim.mut.get" def-prim!
+    PRIM_MUT_SET "prim.mut.set" def-prim!
 
     PRIM_PTR_ADD "prim.ptr.add" def-prim!
     PRIM_PTR_SIZE "prim.ptr.size" def-prim!
@@ -499,4 +507,23 @@ def(init-prims!, +Names,
     TVar
     TYPE_PTR T2 T0 T->
     PRIM_VALUE_SET prim-type!
+
+    "a" name-new! var-new-implicit! TYPE_TYPE over var-type!
+    dup ctx-empty swap ctx-new!
+    dup PRIM_MUT_NEW prim-ctx!
+    dup PRIM_MUT_GET prim-ctx!
+    dup PRIM_MUT_SET prim-ctx!
+    drop
+
+    dup TVar
+    dup TMut dip(T1) T1 T->
+    PRIM_MUT_NEW prim-type!
+
+    dup TVar
+    dup dip(TMut T1) T1 T->
+    PRIM_MUT_GET prim-type!
+
+    TVar
+    dup TMut dup dip(T2) T1 T->
+    PRIM_MUT_SET prim-type!
     )
