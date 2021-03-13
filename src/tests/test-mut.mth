@@ -1,0 +1,21 @@
+module(tests.test-mut)
+
+import(prelude)
+import(platform.posix)
+import(data.mut)
+
+def(main, --,
+    10 mut-new!
+    dup mut-get! int-trace-ln!
+    dup 20 swap mut-set! mut-get! int-trace-ln!
+    dup mut-get! int-trace-ln!
+    dup 30 swap mut-set! mut-get! int-trace-ln!
+    dup mut-get! int-trace-ln!
+    drop)
+
+target-c99("test-mut.c", main)
+# mirth-test # perr # 10
+# mirth-test # perr # 20
+# mirth-test # perr # 20
+# mirth-test # perr # 30
+# mirth-test # perr # 30

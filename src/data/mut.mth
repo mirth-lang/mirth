@@ -1,0 +1,9 @@
+module(data.mut)
+
+mut-new! : t -- Mut(t)
+mut-get! : Mut(t) -- t
+mut-set! : t Mut(t) -- Mut(t)
+
+mut-new! = prim.mut.new
+mut-get! = prim.mut.get
+mut-set! = prim.mut.set

@@ -43,6 +43,7 @@ data PrimType
     PRIM_TYPE_I32
     PRIM_TYPE_I16
     PRIM_TYPE_I8
+    PRIM_TYPE_MUT
 end
 
 table(MetaVar)
@@ -83,7 +84,8 @@ def(init-types!, --,
     TYPE_I16 "I16" def-type!
     TYPE_I32 "I32" def-type!
     TYPE_I64 "I64" def-type!
-    TYPE_BOOL "Bool" def-type!)
+    TYPE_BOOL "Bool" def-type!
+    TYPE_MUT "Mut" def-type!)
 
 #########
 # Types #
@@ -91,6 +93,7 @@ def(init-types!, --,
 
 def(T*, Type Type -- Type, TTensor)
 def(T->, Type Type -- Type, TMorphism)
+def(TMut, Type -- Type, TYPE_MUT swap TApp)
 
 def(T0, Type, TYPE_UNIT)
 def(T1, Type -- Type, dip(T0) T*)
@@ -129,6 +132,7 @@ def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
 def(TYPE_EFFECT, Type, PRIM_TYPE_EFFECT TPrim) # type of effect types
 def(TYPE_UNIT, Type, PRIM_TYPE_UNIT TPrim) # unit type
 def(TYPE_BOOL, Type, PRIM_TYPE_BOOL TPrim) # bool type
+def(TYPE_MUT, Type, PRIM_TYPE_MUT TPrim)
 def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
 def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
 def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but nominally)
@@ -459,6 +463,7 @@ def(type-trace-prim!, PrimType -- +IO,
         PRIM_TYPE_I16 -> "I16",
         PRIM_TYPE_I32 -> "I32",
         PRIM_TYPE_I64 -> "I64",
+        PRIM_TYPE_MUT -> "Mut",
     ) str-trace!)
 
 ||| Replace the stack rest with a metavar, if it's unit.
@@ -572,10 +577,17 @@ def(type-var-freshen, Subst Var -- Subst Type,
         dip(rotr subst-new!)
     ))
 
+def(prim-type-arity, PrimType -- Int,
+    match(
+        PRIM_TYPE_MUT -> 1,
+        _ -> drop 0,
+    ))
+
 def(type-arity, Type -- Int,
     type-expand match(
         TData -> data-arity@,
         TApp -> drop type-arity 1-,
+        TPrim -> prim-type-arity,
         _ -> drop 0,
     ))
 

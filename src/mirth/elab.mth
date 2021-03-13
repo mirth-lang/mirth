@@ -11,6 +11,8 @@ import(mirth.data.table)
 import(mirth.data.var)
 import(mirth.data.arrow)
 
+import(data.lazy)
+
 ####################
 # Type Elaboration #
 ####################
