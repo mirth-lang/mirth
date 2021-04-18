@@ -38,6 +38,7 @@ data Op
     OP_NONE
     OP_PRIM -> Prim
     OP_WORD -> Word
+    OP_FIELDWORD -> FieldWord
     OP_EXTERNAL -> External
     OP_BUFFER -> Buffer
     OP_INT -> Int

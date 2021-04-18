@@ -352,6 +352,9 @@ ab-word! = OP_WORD ab-op!
 ab-external! : External -- +AB
 ab-external! = OP_EXTERNAL ab-op!
 
+ab-fieldword! : FieldWord -- +AB
+ab-fieldword! = OP_FIELDWORD ab-op!
+
 ab-block-at! : *a Token [ *a -- *b +AB ] -- *b +AB
 ab-block-at! = \([f] ->
     Block.alloc! dip(
@@ -419,6 +422,7 @@ elab-op-fresh-sig! =
         OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
         OP_PRIM -> prim-type@ type-freshen-sig OPSIG_APPLY,
         OP_EXTERNAL -> elab-external-sig! type-freshen-sig OPSIG_APPLY,
+        OP_FIELDWORD -> elab-field-word-type! type-freshen-sig OPSIG_APPLY,
         OP_BLOCK -> elab-block-sig!,
         OP_VAR -> elab-var-sig!,
         OP_MATCH -> elab-match-sig!,
@@ -614,6 +618,7 @@ elab-atom-name! =
         NONE -> name-value@ match(
             DEF_BUFFER -> elab-no-args! ab-buffer!,
             DEF_EXTERNAL -> elab-no-args! ab-external!,
+            DEF_FIELDWORD -> elab-no-args! ab-fieldword!,
             DEF_WORD -> elab-args! ab-word!,
             DEF_TAG -> elab-args! ab-tag!,
             DEF_PRIM -> elab-prim!,
@@ -1134,22 +1139,6 @@ def(elab-table!, Module Token -- Module Token +Mirth,
         "expected table name" emit-fatal-error!
     ))
 
-||| Elaborate a field definition `field(f, T1, T2)`.
-def(elab-field!, Module Token -- Module Token +Mirth,
-    dup dip(token-next) token-args-3
-    rotl token-value? match(
-        TOKEN_NAME ->
-            nip rotl dup elab-simple-type-arg!
-            type-max-count? match(
-                NONE -> drop "expected table type or enum" emit-fatal-error!,
-                SOME ->
-                    dip(nip rotl elab-simple-type-arg!)
-                    field-new! drop,
-            ),
-        _ ->
-            drop "expected field name" emit-fatal-error!
-    ))
-
 ||| Elaborate C99 build target.
 def(elab-target-c99!, Module Token -- Module Token +Mirth,
     typecheck-everything!
@@ -1174,6 +1163,7 @@ def(typecheck-name!, Name --,
         DEF_TYPE -> drop,
         DEF_EXTERNAL -> elab-external-sig! drop,
         DEF_WORD -> elab-word-body! drop,
+        DEF_FIELDWORD -> elab-field-word-body! drop,
         DEF_TAG -> elab-tag-sig! drop,
     ))
 
@@ -1344,13 +1334,22 @@ def(table-new!, Name -- Table,
 # FIELD #
 #########
 
-def(field-alloc!, Field, Field.alloc!)
-def(field-new!, Name Type Type Int -- Field,
-    drop
+||| Elaborate a field definition `field(f, T1, T2)`.
+def(elab-field!, Module Token -- Module Token +Mirth,
+    dup dip(token-next)
+    token-args-3 rotl token-value? match(
+        TOKEN_NAME ->
+            nip rotr field-new! drop,
+        _ ->
+            drop "expected field name" emit-fatal-error!
+    ))
 
-    field-alloc!
-    tuck field-type!
-    tuck field-table!
+
+def(field-new!, Name Token Token -- Field,
+
+    Field.alloc!
+    tuck field-type-sig!
+    tuck field-table-sig!
     tuck field-name!
 
     # define the buffers for the field
@@ -1359,108 +1358,169 @@ def(field-new!, Name Type Type Int -- Field,
     field-name? "-buffer-ptr" name-cat!
     16 buffer-alloc! over field-buffer-ptr!
 
-    # field&
-    field-name? "&-unsafe" name-cat!
-    Word.alloc!
-    dup2 swap name-word!
-    tuck word-name!
+    dup FIELD@ FIELDWORD
+    over field-name@ "@" name-cat!
+    name-fieldword!
 
-    over field-table@
-    TYPE_UNIT swap TTensor
-    TYPE_UNIT TYPE_PTR TTensor
-    TMorphism
-    over word-type!
-    true over word-sig-is-checked!
+    dup FIELD? FIELDWORD
+    over field-name@ "?" name-cat!
+    name-fieldword!
 
-    ab-build-word! (
-        PRIM_UNSAFE_CAST ab-prim!
-        16 ab-int!
-        PRIM_INT_MUL ab-prim!
+    dup FIELD! FIELDWORD
+    over field-name@ "!" name-cat!
+    name-fieldword!)
 
-        PRIM_CORE_DUP ab-prim!
-        field-buffer-size? ab-buffer!
-        PRIM_INT_GET ab-prim!
-        PRIM_VALUE_LT ab-prim!
-        ab-if! (
-            id,
 
-            ab-while!(
-                PRIM_CORE_DUP ab-prim!
-                field-buffer-size? ab-buffer!
-                PRIM_INT_GET ab-prim!
-                PRIM_CORE_SWAP ab-prim!
-                PRIM_VALUE_LE ab-prim!,
+def(elab-field-sig!, Field -- Type Type,
+    field-sig-is-checked? if(
+        id,
 
-                field-buffer-size? ab-buffer! PRIM_INT_GET ab-prim!
-                2 ab-int! PRIM_INT_MUL ab-prim!
-                0x2000 ab-int! PRIM_INT_ADD ab-prim!
-                field-buffer-size? ab-buffer! PRIM_INT_SET ab-prim!
-            )
-
-            field-buffer-ptr? ab-buffer! PRIM_VALUE_GET ab-prim!
-            field-buffer-size? ab-buffer! PRIM_INT_GET ab-prim!
-            PRIM_PTR_REALLOC ab-prim!
-            field-buffer-ptr? ab-buffer! PRIM_VALUE_SET ab-prim!
+        field-table-sig?
+        dup elab-simple-type-arg! type-max-count? match(
+            NONE -> drop "expected table type or enum" emit-fatal-error!,
+            SOME -> drop nip
         )
-        field-buffer-ptr? ab-buffer!
-        PRIM_VALUE_GET ab-prim!
-        PRIM_PTR_ADD ab-prim!
+        over field-table!
+
+        field-type-sig?
+        elab-simple-type-arg!
+        over field-type!
+
+        true
+        over field-sig-is-checked!
     )
-    over field-word-ptr!
 
-    # field!
-    field-name? "!" name-cat!
-    Word.alloc!
-    dup2 swap name-word!
-    tuck word-name!
+    field-table? swap
+    field-type@)
 
-    over field-table?
-    dip(field-type@ dip(TYPE_UNIT) TTensor) TTensor
-    TYPE_UNIT TMorphism
-    over word-type!
-    true over word-sig-is-checked!
+def(elab-field-word-type!, FieldWord -- Type,
+    unFIELDWORD dip(elab-field-sig!)
+    match(
+        FIELD@ -> dip(T1) T1 T->,
+        FIELD? -> dip(T1 dup) T* T->,
+        FIELD! -> swap T2 T0 T->,
+    ))
 
-    ab-build-word!(
-        field-word-ptr? ab-word!
-        PRIM_VALUE_SET ab-prim!
-    )
-    drop
+def(elab-field-word-body!, FieldWord -- Maybe(Arrow),
+    dup elab-field-word-type! drop2 NONE) # TODO create the body if it's missing
 
-    # field@
-    field-name? "@" name-cat!
-    Word.alloc!
-    dup2 swap name-word!
-    tuck word-name!
 
-    over field-table? swap field-type@
-    dip(TYPE_UNIT swap TTensor)
-    TYPE_UNIT swap TTensor
-    TMorphism
-    over word-type!
-    true over word-sig-is-checked!
+# def(field-new!, Name Type Type Int -- Field,
+#     drop
 
-    ab-build-word!(
-        field-word-ptr? ab-word!
-        PRIM_VALUE_GET ab-prim!
-    )
-    drop
+#     Field.alloc!
+#     tuck field-type!
+#     tuck field-table!
+#     tuck field-name!
 
-    # field?
-    field-name? "?" name-cat!
-    Word.alloc!
-    dup2 swap name-word!
-    tuck word-name!
+#     # define the buffers for the field
+#     field-name? "-buffer-size-unsafe" name-cat!
+#     16 buffer-alloc! over field-buffer-size!
+#     field-name? "-buffer-ptr-unsafe" name-cat!
+#     16 buffer-alloc! over field-buffer-ptr!
 
-    over field-table? swap field-type@
-    dip(TYPE_UNIT swap TTensor)
-    dip(dup) TTensor
-    TMorphism
-    over word-type!
-    true over word-sig-is-checked!
+#     # field&
+#     field-name? "&-unsafe" name-cat!
+#     Word.alloc!
+#     dup2 swap name-word!
+#     tuck word-name!
 
-    ab-build-word!(
-        PRIM_CORE_DUP ab-prim!
-        field-word-ptr? ab-word!
-        PRIM_VALUE_GET ab-prim!
-    )
-    drop)
+#     over field-table@
+#     TYPE_UNIT swap TTensor
+#     TYPE_UNIT TYPE_PTR TTensor
+#     TMorphism
+#     over word-type!
+#     true over word-sig-is-checked!
+
+#     ab-build-word! (
+#         PRIM_UNSAFE_CAST ab-prim!
+#         16 ab-int!
+#         PRIM_INT_MUL ab-prim!
+
+#         PRIM_CORE_DUP ab-prim!
+#         field-buffer-size? ab-buffer!
+#         PRIM_INT_GET ab-prim!
+#         PRIM_VALUE_LT ab-prim!
+#         ab-if! (
+#             id,
+
+#             ab-while!(
+#                 PRIM_CORE_DUP ab-prim!
+#                 field-buffer-size? ab-buffer!
+#                 PRIM_INT_GET ab-prim!
+#                 PRIM_CORE_SWAP ab-prim!
+#                 PRIM_VALUE_LE ab-prim!,
+
+#                 field-buffer-size? ab-buffer! PRIM_INT_GET ab-prim!
+#                 2 ab-int! PRIM_INT_MUL ab-prim!
+#                 0x2000 ab-int! PRIM_INT_ADD ab-prim!
+#                 field-buffer-size? ab-buffer! PRIM_INT_SET ab-prim!
+#             )
+
+#             field-buffer-ptr? ab-buffer! PRIM_VALUE_GET ab-prim!
+#             field-buffer-size? ab-buffer! PRIM_INT_GET ab-prim!
+#             PRIM_PTR_REALLOC ab-prim!
+#             field-buffer-ptr? ab-buffer! PRIM_VALUE_SET ab-prim!
+#         )
+#         field-buffer-ptr? ab-buffer!
+#         PRIM_VALUE_GET ab-prim!
+#         PRIM_PTR_ADD ab-prim!
+#     )
+#     over field-word-ptr!
+
+#     # field!
+#     field-name? "!" name-cat!
+#     Word.alloc!
+#     dup2 swap name-word!
+#     tuck word-name!
+
+#     over field-table?
+#     dip(field-type@ dip(TYPE_UNIT) TTensor) TTensor
+#     TYPE_UNIT TMorphism
+#     over word-type!
+#     true over word-sig-is-checked!
+
+#     ab-build-word!(
+#         field-word-ptr? ab-word!
+#         PRIM_VALUE_SET ab-prim!
+#     )
+#     drop
+
+#     # field@
+#     field-name? "@" name-cat!
+#     Word.alloc!
+#     dup2 swap name-word!
+#     tuck word-name!
+
+#     over field-table? swap field-type@
+#     dip(TYPE_UNIT swap TTensor)
+#     TYPE_UNIT swap TTensor
+#     TMorphism
+#     over word-type!
+#     true over word-sig-is-checked!
+
+#     ab-build-word!(
+#         field-word-ptr? ab-word!
+#         PRIM_VALUE_GET ab-prim!
+#     )
+#     drop
+
+#     # field?
+#     field-name? "?" name-cat!
+#     Word.alloc!
+#     dup2 swap name-word!
+#     tuck word-name!
+
+#     over field-table? swap field-type@
+#     dip(TYPE_UNIT swap TTensor)
+#     dip(dup) TTensor
+#     TMorphism
+#     over word-type!
+#     true over word-sig-is-checked!
+
+#     ab-build-word!(
+#         PRIM_CORE_DUP ab-prim!
+#         field-word-ptr? ab-word!
+#         PRIM_VALUE_GET ab-prim!
+#     )
+#     drop)

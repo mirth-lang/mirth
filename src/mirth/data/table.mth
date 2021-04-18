@@ -11,9 +11,35 @@ field(table-num-buffer, Table, Buffer)
 field(table-max-count, Table, Size)
 
 table(Field)
+field(field-sig-is-checked, Field, Bool)
+field(field-body-is-checked, Field, Bool)
+field(field-table-sig, Field, Token)
+field(field-type-sig, Field, Token)
+
 field(field-name, Field, Name)
 field(field-table, Field, Type)
 field(field-type, Field, Type)
 field(field-buffer-size, Field, Buffer)
 field(field-buffer-ptr, Field, Buffer)
-field(field-word-ptr, Field, Word)
+# field(field-word-ptr, Field, Word)
+
+data FieldWord
+    FIELDWORD -> Field FieldWordName
+end
+
+unFIELDWORD : FieldWord -- Field FieldWordName
+unFIELDWORD = match(FIELDWORD -> id)
+
+data FieldWordName
+    FIELD@
+    FIELD?
+    FIELD!
+end
+
+fieldword-name@ : FieldWord -- Name
+fieldword-name@ =
+    unFIELDWORD dip(field-name@) match(
+        FIELD@ -> "@",
+        FIELD? -> "?",
+        FIELD! -> "!"
+    ) name-cat!
