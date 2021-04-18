@@ -15,6 +15,7 @@ data NameValue
     DEF_WORD -> Word
     DEF_BUFFER -> Buffer
     DEF_EXTERNAL -> External
+    DEF_FIELDWORD -> FieldWord
 end
 table(Name)
 field(name-str, Name, Str)
@@ -165,6 +166,7 @@ name-external! : External Name --
 name-module! : Module Name --
 name-prim! : Prim Name --
 name-tag! : Tag Name --
+name-fieldword! : FieldWord Name --
 
 name-word! = dip(DEF_WORD) name-value!
 name-buffer! = dip(DEF_BUFFER) name-value!
@@ -173,3 +175,4 @@ name-external! = dip(DEF_EXTERNAL) name-value!
 name-module! = dip(DEF_MODULE) name-value!
 name-prim! = dip(DEF_PRIM) name-value!
 name-tag! = dip(DEF_TAG) name-value!
+name-fieldword! = dip(DEF_FIELDWORD) name-value!
