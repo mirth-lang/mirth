@@ -3073,7 +3073,6 @@ static void mwstat (void) {
  static void mwfield_new_21_ (void);
  static void mwelab_field_sig_21_ (void);
  static void mwelab_field_word_type_21_ (void);
- static void mwelab_field_word_body_21_ (void);
  static void mwname_prim_3D_ (void);
  static void mwtoken_prim_3D__3F_ (void);
  static void mwtoken_prim_3D_ (void);
@@ -5421,7 +5420,7 @@ static void mwtypecheck_name_21_ (void){
     break;
     case 8LL:
     do_pack_uncons(); do_drop();
-    mwelab_field_word_body_21_();
+    mwelab_field_word_type_21_();
     mwdrop();
     break;
     case 3LL:
@@ -9298,596 +9297,6 @@ static void mwelab_block_sig_21_ (void){
     mwOPSIG_PUSH();
 }
 
-static void mwelab_field_word_type_21_ (void){
-    mwunFIELDWORD();
-    { value_t d1 = pop_value();
-    mwelab_field_sig_21_();
-      push_value(d1); }
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_drop();
-    { value_t d2 = pop_value();
-    mwT1();
-      push_value(d2); }
-    mwT1();
-    mwT__3E_();
-    break;
-    case 1LL:
-    do_drop();
-    { value_t d2 = pop_value();
-    mwT1();
-    mwdup();
-      push_value(d2); }
-    mwT_2A_();
-    mwT__3E_();
-    break;
-    case 2LL:
-    do_drop();
-    mwswap();
-    mwT2();
-    mwT0();
-    mwT__3E_();
-    break;
-    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
-    }
-}
-
-static void mwT2 (void){
-    { value_t d1 = pop_value();
-    mwT1();
-      push_value(d1); }
-    mwT_2A_();
-}
-
-static void mwelab_field_sig_21_ (void){
-    mwfield_sig_is_checked_3F_();
-    if (pop_u64()) {
-    mwid();
-    } else {
-    mwfield_table_sig_3F_();
-    mwdup();
-    mwelab_simple_type_arg_21_();
-    mwtype_max_count_3F_();
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_drop();
-    mwdrop();
-    push_ptr("expected table type or enum\0\0\0");
-    mwemit_fatal_error_21_();
-    break;
-    case 1LL:
-    do_pack_uncons(); do_drop();
-    mwdrop();
-    mwnip();
-    break;
-    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
-    }
-    mwover();
-    mwfield_table_21_();
-    mwfield_type_sig_3F_();
-    mwelab_simple_type_arg_21_();
-    mwover();
-    mwfield_type_21_();
-    mwtrue();
-    mwover();
-    mwfield_sig_is_checked_21_();
-    }
-    mwfield_table_3F_();
-    mwswap();
-    mwfield_type_40_();
-}
-
-static value_t* fieldptr_field_type (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
-    return p+i;
-}
-
-static void mwfield_type_40_ (void){
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_type(index);
-    incref(v); push_value(v);
-}
-static void mwfield_type_3F_ (void){
-    mwdup();
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_type(index);
-    incref(v); push_value(v);
-}
-static void mwfield_type_21_ (void){
-    usize index = pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_type(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
-
-static value_t* fieldptr_field_type_sig (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
-    return p+i;
-}
-
-static void mwfield_type_sig_40_ (void){
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_type_sig(index);
-    incref(v); push_value(v);
-}
-static void mwfield_type_sig_3F_ (void){
-    mwdup();
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_type_sig(index);
-    incref(v); push_value(v);
-}
-static void mwfield_type_sig_21_ (void){
-    usize index = pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_type_sig(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
-
-static value_t* fieldptr_field_table (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
-    return p+i;
-}
-
-static void mwfield_table_40_ (void){
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_table(index);
-    incref(v); push_value(v);
-}
-static void mwfield_table_3F_ (void){
-    mwdup();
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_table(index);
-    incref(v); push_value(v);
-}
-static void mwfield_table_21_ (void){
-    usize index = pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_table(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
-
-static void mwtype_max_count_3F_ (void){
-    mwdup();
-    switch (get_top_data_tag()) {
-    case 10LL:
-    do_pack_uncons(); do_drop();
-    do_pack_uncons(); do_swap();
-    mwdrop();
-    mwtype_max_count_3F_();
-    mwnip();
-    break;
-    case 6LL:
-    do_pack_uncons(); do_drop();
-    mwtable_max_count_40_();
-    mw1_2B_();
-    mwSOME();
-    break;
-    case 7LL:
-    do_pack_uncons(); do_drop();
-    mwdata_is_enum_3F_();
-    if (pop_u64()) {
-    mwdata_tags_40_();
-    mwlen();
-    mwSOME();
-    } else {
-    mwdrop();
-    mwNONE();
-    }
-    break;
-    default:
-    mwdrop();
-    mwNONE();
-    break;
-    }
-}
-
-static value_t* fieldptr_data_tags (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
-    return p+i;
-}
-
-static void mwdata_tags_40_ (void){
-    usize index = pop_u64();
-    value_t v = *fieldptr_data_tags(index);
-    incref(v); push_value(v);
-}
-static void mwdata_tags_3F_ (void){
-    mwdup();
-    usize index = pop_u64();
-    value_t v = *fieldptr_data_tags(index);
-    incref(v); push_value(v);
-}
-static void mwdata_tags_21_ (void){
-    usize index = pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_data_tags(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
-
-static void mwdata_is_enum_3F_ (void){
-    mwdata_tags_3F_();
-    push_u64(0);
-    push_fnptr(&mb_mirth_2E_data_2E_type_780_33);
-    do_pack_cons();
-    mwall_3F_();
-    mwnip();
-}
-
-static void mb_mirth_2E_data_2E_type_780_33 (void) {
-    do_drop();
-    mwtag_num_inputs_3F_();
-    push_i64(0LL);
-    mw_3D__3D_();
-}
-static void mwtag_num_inputs_3F_ (void){
-    mwtag_has_sig_3F_();
-    if (pop_u64()) {
-    mwtag_sig_3F_();
-    push_i64(0LL);
-    mwswap();
-    while(1) {
-    mwtoken_run_end_3F_();
-    mwnot();
-    if (!pop_u64()) break;
-    mwtoken_next();
-    { value_t d3 = pop_value();
-    mw1_2B_();
-      push_value(d3); }
-    }
-    mwdrop();
-    } else {
-    push_i64(0LL);
-    }
-}
-
-static void mwall_3F_ (void){
-    {
-    value_t var_f_414 = pop_value();
-    push_u64(0);
-    push_value(var_f_414);
-    incref(var_f_414);
-    do_pack_cons();
-    push_fnptr(&mb_data_2E_list_485_23);
-    do_pack_cons();
-    mwfind_3F_();
-    mwis_none();
-    decref(var_f_414);
-    }
-}
-
-static void mwis_none (void){
-    mwis_nil();
-}
-
-static void mb_data_2E_list_485_23 (void) {
-    do_pack_uncons();
-    value_t var_f_414 = pop_value();
-    do_drop();
-    push_value(var_f_414);
-    incref(var_f_414);
-    do_run();
-    mwnot();
-    decref(var_f_414);
-}
-static void mwfind_3F_ (void){
-    {
-    value_t var_f_394 = pop_value();
-    mwdup();
-    { value_t d2 = pop_value();
-    push_value(var_f_394);
-    incref(var_f_394);
-    mwfind();
-      push_value(d2); }
-    mwswap();
-    decref(var_f_394);
-    }
-}
-
-static void mwfind (void){
-    {
-    value_t var_f_388 = pop_value();
-    mwList__3E_List_2B_();
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_drop();
-    mwNONE();
-    break;
-    case 1LL:
-    do_pack_uncons(); do_drop();
-    push_value(var_f_388);
-    incref(var_f_388);
-    mwfind_2B_();
-    break;
-    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
-    }
-    decref(var_f_388);
-    }
-}
-
-static void mwfind_2B_ (void){
-    {
-    value_t var_f_391 = pop_value();
-    switch (get_top_data_tag()) {
-    case 3LL:
-    do_pack_uncons(); do_drop();
-    do_pack_uncons(); do_swap();
-    do_pack_uncons(); do_swap();
-    mwdrop();
-    { value_t d3 = pop_value();
-    push_value(var_f_391);
-    incref(var_f_391);
-    mwfind_2B_();
-      push_value(d3); }
-    mwswap();
-    switch (get_top_data_tag()) {
-    case 1LL:
-    do_pack_uncons(); do_drop();
-    mwnip();
-    mwSOME();
-    break;
-    case 0LL:
-    do_drop();
-    push_value(var_f_391);
-    incref(var_f_391);
-    mwfind_2B_();
-    break;
-    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
-    }
-    break;
-    default:
-    mwuncons();
-    { value_t d3 = pop_value();
-    push_value(var_f_391);
-    incref(var_f_391);
-    do_run();
-      push_value(d3); }
-    mwswap();
-    if (pop_u64()) {
-    mwdrop();
-    mwSOME();
-    } else {
-    mwnip();
-    push_value(var_f_391);
-    incref(var_f_391);
-    mwfind();
-    }
-    break;
-    }
-    decref(var_f_391);
-    }
-}
-
-static void mwuncons (void){
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_pack_uncons(); do_drop();
-    mwL0();
-    break;
-    case 1LL:
-    do_pack_uncons(); do_drop();
-    do_pack_uncons(); do_swap();
-    mwL1();
-    break;
-    case 2LL:
-    do_pack_uncons(); do_drop();
-    do_pack_uncons(); do_swap();
-    do_pack_uncons(); do_swap();
-    mwL2();
-    break;
-    case 3LL:
-    do_pack_uncons(); do_drop();
-    do_pack_uncons(); do_swap();
-    do_pack_uncons(); do_swap();
-    mwdrop();
-    { value_t d2 = pop_value();
-    mwuncons();
-      push_value(d2); }
-    mwcat__2B_();
-    mwList_2B___3E_List();
-    break;
-    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
-    }
-}
-
-static value_t* fieldptr_table_max_count (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
-    return p+i;
-}
-
-static void mwtable_max_count_40_ (void){
-    usize index = pop_u64();
-    value_t v = *fieldptr_table_max_count(index);
-    incref(v); push_value(v);
-}
-static void mwtable_max_count_3F_ (void){
-    mwdup();
-    usize index = pop_u64();
-    value_t v = *fieldptr_table_max_count(index);
-    incref(v); push_value(v);
-}
-static void mwtable_max_count_21_ (void){
-    usize index = pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_table_max_count(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
-
-static void mwelab_simple_type_arg_21_ (void){
-    { value_t d1 = pop_value();
-    mwtype_elab_default();
-      push_value(d1); }
-    mwelab_type_arg_21_();
-    mwdrop();
-    mwnip();
-}
-
-static void mwelab_type_arg_21_ (void){
-    mwelab_type_atom_21_();
-    mwtoken_is_arg_end_3F_();
-    if (pop_u64()) {
-    mwid();
-    } else {
-    push_ptr("Unexpected token after type.\0\0\0");
-    mwemit_fatal_error_21_();
-    }
-}
-
-static void mwtoken_is_arg_end_3F_ (void){
-    mwtoken_value_3F_();
-    switch (get_top_data_tag()) {
-    case 1LL:
-    do_drop();
-    mwtrue();
-    break;
-    case 8LL:
-    do_pack_uncons(); do_drop();
-    mwdrop();
-    mwtrue();
-    break;
-    case 10LL:
-    do_pack_uncons(); do_drop();
-    mwdrop();
-    mwtrue();
-    break;
-    case 12LL:
-    do_pack_uncons(); do_drop();
-    mwdrop();
-    mwtrue();
-    break;
-    default:
-    mwdrop();
-    mwfalse();
-    break;
-    }
-}
-
-static value_t* fieldptr_field_table_sig (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
-    return p+i;
-}
-
-static void mwfield_table_sig_40_ (void){
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_table_sig(index);
-    incref(v); push_value(v);
-}
-static void mwfield_table_sig_3F_ (void){
-    mwdup();
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_table_sig(index);
-    incref(v); push_value(v);
-}
-static void mwfield_table_sig_21_ (void){
-    usize index = pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_table_sig(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
-
-static value_t* fieldptr_field_sig_is_checked (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
-    return p+i;
-}
-
-static void mwfield_sig_is_checked_40_ (void){
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_sig_is_checked(index);
-    incref(v); push_value(v);
-}
-static void mwfield_sig_is_checked_3F_ (void){
-    mwdup();
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_sig_is_checked(index);
-    incref(v); push_value(v);
-}
-static void mwfield_sig_is_checked_21_ (void){
-    usize index = pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_sig_is_checked(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
-
-static void mwunFIELDWORD (void){
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_pack_uncons(); do_drop();
-    do_pack_uncons(); do_swap();
-    mwid();
-    break;
-    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
-    }
-}
-
 static value_t* fieldptr_prim_type (usize i) {
     static struct value_t * p;
     static usize n = 0; 
@@ -11521,6 +10930,39 @@ static void mwdata_num_tags (void){
     mwlen();
 }
 
+static value_t* fieldptr_data_tags (usize i) {
+    static struct value_t * p;
+    static usize n = 0; 
+    if (i >= n) {
+        usize new_n = n+1;
+        while (i >= new_n) new_n *= 2;
+        p = realloc(p, sizeof(struct value_t) * new_n);
+        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
+        n = new_n;
+    }
+    return p+i;
+}
+
+static void mwdata_tags_40_ (void){
+    usize index = pop_u64();
+    value_t v = *fieldptr_data_tags(index);
+    incref(v); push_value(v);
+}
+static void mwdata_tags_3F_ (void){
+    mwdup();
+    usize index = pop_u64();
+    value_t v = *fieldptr_data_tags(index);
+    incref(v); push_value(v);
+}
+static void mwdata_tags_21_ (void){
+    usize index = pop_u64();
+    value_t newvalue = pop_value();
+    value_t* p = fieldptr_data_tags(index);
+    value_t oldvalue = *p;
+    *p = newvalue;
+    decref(oldvalue);
+}
+
 static void mwmatch_scrutinee_data_3F_ (void){
     mwmatch_scrutinee_type_3F_();
     push_u64(0);
@@ -11668,6 +11110,112 @@ static void mwany (void){
     mwfind();
     mwis_some();
     decref(var_f_403);
+    }
+}
+
+static void mwfind (void){
+    {
+    value_t var_f_388 = pop_value();
+    mwList__3E_List_2B_();
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_drop();
+    mwNONE();
+    break;
+    case 1LL:
+    do_pack_uncons(); do_drop();
+    push_value(var_f_388);
+    incref(var_f_388);
+    mwfind_2B_();
+    break;
+    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+    }
+    decref(var_f_388);
+    }
+}
+
+static void mwfind_2B_ (void){
+    {
+    value_t var_f_391 = pop_value();
+    switch (get_top_data_tag()) {
+    case 3LL:
+    do_pack_uncons(); do_drop();
+    do_pack_uncons(); do_swap();
+    do_pack_uncons(); do_swap();
+    mwdrop();
+    { value_t d3 = pop_value();
+    push_value(var_f_391);
+    incref(var_f_391);
+    mwfind_2B_();
+      push_value(d3); }
+    mwswap();
+    switch (get_top_data_tag()) {
+    case 1LL:
+    do_pack_uncons(); do_drop();
+    mwnip();
+    mwSOME();
+    break;
+    case 0LL:
+    do_drop();
+    push_value(var_f_391);
+    incref(var_f_391);
+    mwfind_2B_();
+    break;
+    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+    }
+    break;
+    default:
+    mwuncons();
+    { value_t d3 = pop_value();
+    push_value(var_f_391);
+    incref(var_f_391);
+    do_run();
+      push_value(d3); }
+    mwswap();
+    if (pop_u64()) {
+    mwdrop();
+    mwSOME();
+    } else {
+    mwnip();
+    push_value(var_f_391);
+    incref(var_f_391);
+    mwfind();
+    }
+    break;
+    }
+    decref(var_f_391);
+    }
+}
+
+static void mwuncons (void){
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_pack_uncons(); do_drop();
+    mwL0();
+    break;
+    case 1LL:
+    do_pack_uncons(); do_drop();
+    do_pack_uncons(); do_swap();
+    mwL1();
+    break;
+    case 2LL:
+    do_pack_uncons(); do_drop();
+    do_pack_uncons(); do_swap();
+    do_pack_uncons(); do_swap();
+    mwL2();
+    break;
+    case 3LL:
+    do_pack_uncons(); do_drop();
+    do_pack_uncons(); do_swap();
+    do_pack_uncons(); do_swap();
+    mwdrop();
+    { value_t d2 = pop_value();
+    mwuncons();
+      push_value(d2); }
+    mwcat__2B_();
+    mwList_2B___3E_List();
+    break;
+    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
 }
 
@@ -12281,6 +11829,35 @@ static void mwtoken_next_arg_end (void){
     mwnot();
     if (!pop_u64()) break;
     mwtoken_next();
+    }
+}
+
+static void mwtoken_is_arg_end_3F_ (void){
+    mwtoken_value_3F_();
+    switch (get_top_data_tag()) {
+    case 1LL:
+    do_drop();
+    mwtrue();
+    break;
+    case 8LL:
+    do_pack_uncons(); do_drop();
+    mwdrop();
+    mwtrue();
+    break;
+    case 10LL:
+    do_pack_uncons(); do_drop();
+    mwdrop();
+    mwtrue();
+    break;
+    case 12LL:
+    do_pack_uncons(); do_drop();
+    mwdrop();
+    mwtrue();
+    break;
+    default:
+    mwdrop();
+    mwfalse();
+    break;
     }
 }
 
@@ -14075,6 +13652,17 @@ static void mwelab_type_args_21_ (void){
     }
 }
 
+static void mwelab_type_arg_21_ (void){
+    mwelab_type_atom_21_();
+    mwtoken_is_arg_end_3F_();
+    if (pop_u64()) {
+    mwid();
+    } else {
+    push_ptr("Unexpected token after type.\0\0\0");
+    mwemit_fatal_error_21_();
+    }
+}
+
 static void mwtype_arity (void){
     mwtype_expand();
     switch (get_top_data_tag()) {
@@ -14371,11 +13959,415 @@ static void mwtag_sig_is_checked_21_ (void){
     decref(oldvalue);
 }
 
-static void mwelab_field_word_body_21_ (void){
+static void mwelab_field_word_type_21_ (void){
+    mwunFIELDWORD();
+    { value_t d1 = pop_value();
+    mwelab_field_sig_21_();
+      push_value(d1); }
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_drop();
+    { value_t d2 = pop_value();
+    mwT1();
+      push_value(d2); }
+    mwT1();
+    mwT__3E_();
+    break;
+    case 1LL:
+    do_drop();
+    { value_t d2 = pop_value();
+    mwT1();
     mwdup();
-    mwelab_field_word_type_21_();
-    mwdrop2();
+      push_value(d2); }
+    mwT_2A_();
+    mwT__3E_();
+    break;
+    case 2LL:
+    do_drop();
+    mwswap();
+    mwT2();
+    mwT0();
+    mwT__3E_();
+    break;
+    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+    }
+}
+
+static void mwT2 (void){
+    { value_t d1 = pop_value();
+    mwT1();
+      push_value(d1); }
+    mwT_2A_();
+}
+
+static void mwelab_field_sig_21_ (void){
+    mwfield_sig_is_checked_3F_();
+    if (pop_u64()) {
+    mwid();
+    } else {
+    mwfield_table_sig_3F_();
+    mwdup();
+    mwelab_simple_type_arg_21_();
+    mwtype_max_count_3F_();
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_drop();
+    mwdrop();
+    push_ptr("expected table type or enum\0\0\0");
+    mwemit_fatal_error_21_();
+    break;
+    case 1LL:
+    do_pack_uncons(); do_drop();
+    mwdrop();
+    mwnip();
+    break;
+    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+    }
+    mwover();
+    mwfield_table_21_();
+    mwfield_type_sig_3F_();
+    mwelab_simple_type_arg_21_();
+    mwover();
+    mwfield_type_21_();
+    mwtrue();
+    mwover();
+    mwfield_sig_is_checked_21_();
+    }
+    mwfield_table_3F_();
+    mwswap();
+    mwfield_type_40_();
+}
+
+static value_t* fieldptr_field_type (usize i) {
+    static struct value_t * p;
+    static usize n = 0; 
+    if (i >= n) {
+        usize new_n = n+1;
+        while (i >= new_n) new_n *= 2;
+        p = realloc(p, sizeof(struct value_t) * new_n);
+        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
+        n = new_n;
+    }
+    return p+i;
+}
+
+static void mwfield_type_40_ (void){
+    usize index = pop_u64();
+    value_t v = *fieldptr_field_type(index);
+    incref(v); push_value(v);
+}
+static void mwfield_type_3F_ (void){
+    mwdup();
+    usize index = pop_u64();
+    value_t v = *fieldptr_field_type(index);
+    incref(v); push_value(v);
+}
+static void mwfield_type_21_ (void){
+    usize index = pop_u64();
+    value_t newvalue = pop_value();
+    value_t* p = fieldptr_field_type(index);
+    value_t oldvalue = *p;
+    *p = newvalue;
+    decref(oldvalue);
+}
+
+static value_t* fieldptr_field_type_sig (usize i) {
+    static struct value_t * p;
+    static usize n = 0; 
+    if (i >= n) {
+        usize new_n = n+1;
+        while (i >= new_n) new_n *= 2;
+        p = realloc(p, sizeof(struct value_t) * new_n);
+        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
+        n = new_n;
+    }
+    return p+i;
+}
+
+static void mwfield_type_sig_40_ (void){
+    usize index = pop_u64();
+    value_t v = *fieldptr_field_type_sig(index);
+    incref(v); push_value(v);
+}
+static void mwfield_type_sig_3F_ (void){
+    mwdup();
+    usize index = pop_u64();
+    value_t v = *fieldptr_field_type_sig(index);
+    incref(v); push_value(v);
+}
+static void mwfield_type_sig_21_ (void){
+    usize index = pop_u64();
+    value_t newvalue = pop_value();
+    value_t* p = fieldptr_field_type_sig(index);
+    value_t oldvalue = *p;
+    *p = newvalue;
+    decref(oldvalue);
+}
+
+static value_t* fieldptr_field_table (usize i) {
+    static struct value_t * p;
+    static usize n = 0; 
+    if (i >= n) {
+        usize new_n = n+1;
+        while (i >= new_n) new_n *= 2;
+        p = realloc(p, sizeof(struct value_t) * new_n);
+        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
+        n = new_n;
+    }
+    return p+i;
+}
+
+static void mwfield_table_40_ (void){
+    usize index = pop_u64();
+    value_t v = *fieldptr_field_table(index);
+    incref(v); push_value(v);
+}
+static void mwfield_table_3F_ (void){
+    mwdup();
+    usize index = pop_u64();
+    value_t v = *fieldptr_field_table(index);
+    incref(v); push_value(v);
+}
+static void mwfield_table_21_ (void){
+    usize index = pop_u64();
+    value_t newvalue = pop_value();
+    value_t* p = fieldptr_field_table(index);
+    value_t oldvalue = *p;
+    *p = newvalue;
+    decref(oldvalue);
+}
+
+static void mwtype_max_count_3F_ (void){
+    mwdup();
+    switch (get_top_data_tag()) {
+    case 10LL:
+    do_pack_uncons(); do_drop();
+    do_pack_uncons(); do_swap();
+    mwdrop();
+    mwtype_max_count_3F_();
+    mwnip();
+    break;
+    case 6LL:
+    do_pack_uncons(); do_drop();
+    mwtable_max_count_40_();
+    mw1_2B_();
+    mwSOME();
+    break;
+    case 7LL:
+    do_pack_uncons(); do_drop();
+    mwdata_is_enum_3F_();
+    if (pop_u64()) {
+    mwdata_tags_40_();
+    mwlen();
+    mwSOME();
+    } else {
+    mwdrop();
     mwNONE();
+    }
+    break;
+    default:
+    mwdrop();
+    mwNONE();
+    break;
+    }
+}
+
+static void mwdata_is_enum_3F_ (void){
+    mwdata_tags_3F_();
+    push_u64(0);
+    push_fnptr(&mb_mirth_2E_data_2E_type_780_33);
+    do_pack_cons();
+    mwall_3F_();
+    mwnip();
+}
+
+static void mb_mirth_2E_data_2E_type_780_33 (void) {
+    do_drop();
+    mwtag_num_inputs_3F_();
+    push_i64(0LL);
+    mw_3D__3D_();
+}
+static void mwtag_num_inputs_3F_ (void){
+    mwtag_has_sig_3F_();
+    if (pop_u64()) {
+    mwtag_sig_3F_();
+    push_i64(0LL);
+    mwswap();
+    while(1) {
+    mwtoken_run_end_3F_();
+    mwnot();
+    if (!pop_u64()) break;
+    mwtoken_next();
+    { value_t d3 = pop_value();
+    mw1_2B_();
+      push_value(d3); }
+    }
+    mwdrop();
+    } else {
+    push_i64(0LL);
+    }
+}
+
+static void mwall_3F_ (void){
+    {
+    value_t var_f_414 = pop_value();
+    push_u64(0);
+    push_value(var_f_414);
+    incref(var_f_414);
+    do_pack_cons();
+    push_fnptr(&mb_data_2E_list_485_23);
+    do_pack_cons();
+    mwfind_3F_();
+    mwis_none();
+    decref(var_f_414);
+    }
+}
+
+static void mwis_none (void){
+    mwis_nil();
+}
+
+static void mb_data_2E_list_485_23 (void) {
+    do_pack_uncons();
+    value_t var_f_414 = pop_value();
+    do_drop();
+    push_value(var_f_414);
+    incref(var_f_414);
+    do_run();
+    mwnot();
+    decref(var_f_414);
+}
+static void mwfind_3F_ (void){
+    {
+    value_t var_f_394 = pop_value();
+    mwdup();
+    { value_t d2 = pop_value();
+    push_value(var_f_394);
+    incref(var_f_394);
+    mwfind();
+      push_value(d2); }
+    mwswap();
+    decref(var_f_394);
+    }
+}
+
+static value_t* fieldptr_table_max_count (usize i) {
+    static struct value_t * p;
+    static usize n = 0; 
+    if (i >= n) {
+        usize new_n = n+1;
+        while (i >= new_n) new_n *= 2;
+        p = realloc(p, sizeof(struct value_t) * new_n);
+        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
+        n = new_n;
+    }
+    return p+i;
+}
+
+static void mwtable_max_count_40_ (void){
+    usize index = pop_u64();
+    value_t v = *fieldptr_table_max_count(index);
+    incref(v); push_value(v);
+}
+static void mwtable_max_count_3F_ (void){
+    mwdup();
+    usize index = pop_u64();
+    value_t v = *fieldptr_table_max_count(index);
+    incref(v); push_value(v);
+}
+static void mwtable_max_count_21_ (void){
+    usize index = pop_u64();
+    value_t newvalue = pop_value();
+    value_t* p = fieldptr_table_max_count(index);
+    value_t oldvalue = *p;
+    *p = newvalue;
+    decref(oldvalue);
+}
+
+static void mwelab_simple_type_arg_21_ (void){
+    { value_t d1 = pop_value();
+    mwtype_elab_default();
+      push_value(d1); }
+    mwelab_type_arg_21_();
+    mwdrop();
+    mwnip();
+}
+
+static value_t* fieldptr_field_table_sig (usize i) {
+    static struct value_t * p;
+    static usize n = 0; 
+    if (i >= n) {
+        usize new_n = n+1;
+        while (i >= new_n) new_n *= 2;
+        p = realloc(p, sizeof(struct value_t) * new_n);
+        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
+        n = new_n;
+    }
+    return p+i;
+}
+
+static void mwfield_table_sig_40_ (void){
+    usize index = pop_u64();
+    value_t v = *fieldptr_field_table_sig(index);
+    incref(v); push_value(v);
+}
+static void mwfield_table_sig_3F_ (void){
+    mwdup();
+    usize index = pop_u64();
+    value_t v = *fieldptr_field_table_sig(index);
+    incref(v); push_value(v);
+}
+static void mwfield_table_sig_21_ (void){
+    usize index = pop_u64();
+    value_t newvalue = pop_value();
+    value_t* p = fieldptr_field_table_sig(index);
+    value_t oldvalue = *p;
+    *p = newvalue;
+    decref(oldvalue);
+}
+
+static value_t* fieldptr_field_sig_is_checked (usize i) {
+    static struct value_t * p;
+    static usize n = 0; 
+    if (i >= n) {
+        usize new_n = n+1;
+        while (i >= new_n) new_n *= 2;
+        p = realloc(p, sizeof(struct value_t) * new_n);
+        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
+        n = new_n;
+    }
+    return p+i;
+}
+
+static void mwfield_sig_is_checked_40_ (void){
+    usize index = pop_u64();
+    value_t v = *fieldptr_field_sig_is_checked(index);
+    incref(v); push_value(v);
+}
+static void mwfield_sig_is_checked_3F_ (void){
+    mwdup();
+    usize index = pop_u64();
+    value_t v = *fieldptr_field_sig_is_checked(index);
+    incref(v); push_value(v);
+}
+static void mwfield_sig_is_checked_21_ (void){
+    usize index = pop_u64();
+    value_t newvalue = pop_value();
+    value_t* p = fieldptr_field_sig_is_checked(index);
+    value_t oldvalue = *p;
+    *p = newvalue;
+    decref(oldvalue);
+}
+
+static void mwunFIELDWORD (void){
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_pack_uncons(); do_drop();
+    do_pack_uncons(); do_swap();
+    mwid();
+    break;
+    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+    }
 }
 
 static void mwelab_word_body_21_ (void){
