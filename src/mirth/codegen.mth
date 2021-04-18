@@ -1579,19 +1579,19 @@ def(c99-emit-field-def!, Field -- +IO,
             "    return p+i;" ;
             "}" ;;
             field-name? "@" name-cat! .w "{" ;
-            "    usize index = pop_u64();" ;
+            "    usize index = (usize)pop_u64();" ;
             "    value_t v = *fieldptr_" . field-name? .name "(index);" ;
             "    incref(v); push_value(v);" ;
             "}" ;
             field-name? "?" name-cat! .w "{" ;
             "    mwdup();" ;
-            "    usize index = pop_u64();" ;
+            "    usize index = (usize)pop_u64();" ;
             "    value_t v = *fieldptr_" . field-name? .name "(index);" ;
             "    incref(v); push_value(v);" ;
             "}" ;
 
             field-name? "!" name-cat! .w "{" ;
-            "    usize index = pop_u64();" ;
+            "    usize index = (usize)pop_u64();" ;
             "    value_t newvalue = pop_value();" ;
             "    value_t* p = fieldptr_" . field-name? .name "(index);" ;
             "    value_t oldvalue = *p;" ;

@@ -5521,18 +5521,18 @@ static value_t* fieldptr_module_path (usize i) {
 }
 
 static void mwmodule_path_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_module_path(index);
     incref(v); push_value(v);
 }
 static void mwmodule_path_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_module_path(index);
     incref(v); push_value(v);
 }
 static void mwmodule_path_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_module_path(index);
     value_t oldvalue = *p;
@@ -5592,18 +5592,18 @@ static value_t* fieldptr_token_col (usize i) {
 }
 
 static void mwtoken_col_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_token_col(index);
     incref(v); push_value(v);
 }
 static void mwtoken_col_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_token_col(index);
     incref(v); push_value(v);
 }
 static void mwtoken_col_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_token_col(index);
     value_t oldvalue = *p;
@@ -5625,18 +5625,18 @@ static value_t* fieldptr_token_row (usize i) {
 }
 
 static void mwtoken_row_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_token_row(index);
     incref(v); push_value(v);
 }
 static void mwtoken_row_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_token_row(index);
     incref(v); push_value(v);
 }
 static void mwtoken_row_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_token_row(index);
     value_t oldvalue = *p;
@@ -5658,18 +5658,18 @@ static value_t* fieldptr_token_module (usize i) {
 }
 
 static void mwtoken_module_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_token_module(index);
     incref(v); push_value(v);
 }
 static void mwtoken_module_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_token_module(index);
     incref(v); push_value(v);
 }
 static void mwtoken_module_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_token_module(index);
     value_t oldvalue = *p;
@@ -5728,18 +5728,18 @@ static value_t* fieldptr_token_value (usize i) {
 }
 
 static void mwtoken_value_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_token_value(index);
     incref(v); push_value(v);
 }
 static void mwtoken_value_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_token_value(index);
     incref(v); push_value(v);
 }
 static void mwtoken_value_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_token_value(index);
     value_t oldvalue = *p;
@@ -5883,18 +5883,18 @@ static value_t* fieldptr_name_str (usize i) {
 }
 
 static void mwname_str_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_name_str(index);
     incref(v); push_value(v);
 }
 static void mwname_str_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_name_str(index);
     incref(v); push_value(v);
 }
 static void mwname_str_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_name_str(index);
     value_t oldvalue = *p;
@@ -5948,18 +5948,18 @@ static value_t* fieldptr_tag_sig (usize i) {
 }
 
 static void mwtag_sig_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_sig(index);
     incref(v); push_value(v);
 }
 static void mwtag_sig_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_sig(index);
     incref(v); push_value(v);
 }
 static void mwtag_sig_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_tag_sig(index);
     value_t oldvalue = *p;
@@ -5981,18 +5981,18 @@ static value_t* fieldptr_tag_has_sig (usize i) {
 }
 
 static void mwtag_has_sig_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_has_sig(index);
     incref(v); push_value(v);
 }
 static void mwtag_has_sig_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_has_sig(index);
     incref(v); push_value(v);
 }
 static void mwtag_has_sig_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_tag_has_sig(index);
     value_t oldvalue = *p;
@@ -6697,18 +6697,18 @@ static value_t* fieldptr_var_type (usize i) {
 }
 
 static void mwvar_type_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_var_type(index);
     incref(v); push_value(v);
 }
 static void mwvar_type_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_var_type(index);
     incref(v); push_value(v);
 }
 static void mwvar_type_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_var_type(index);
     value_t oldvalue = *p;
@@ -6737,18 +6737,18 @@ static value_t* fieldptr_var_is_implicit (usize i) {
 }
 
 static void mwvar_is_implicit_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_var_is_implicit(index);
     incref(v); push_value(v);
 }
 static void mwvar_is_implicit_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_var_is_implicit(index);
     incref(v); push_value(v);
 }
 static void mwvar_is_implicit_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_var_is_implicit(index);
     value_t oldvalue = *p;
@@ -6776,18 +6776,18 @@ static value_t* fieldptr_var_name (usize i) {
 }
 
 static void mwvar_name_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_var_name(index);
     incref(v); push_value(v);
 }
 static void mwvar_name_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_var_name(index);
     incref(v); push_value(v);
 }
 static void mwvar_name_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_var_name(index);
     value_t oldvalue = *p;
@@ -7299,18 +7299,18 @@ static value_t* fieldptr_arrow_cod (usize i) {
 }
 
 static void mwarrow_cod_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_arrow_cod(index);
     incref(v); push_value(v);
 }
 static void mwarrow_cod_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_arrow_cod(index);
     incref(v); push_value(v);
 }
 static void mwarrow_cod_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_arrow_cod(index);
     value_t oldvalue = *p;
@@ -7332,18 +7332,18 @@ static value_t* fieldptr_arrow_dom (usize i) {
 }
 
 static void mwarrow_dom_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_arrow_dom(index);
     incref(v); push_value(v);
 }
 static void mwarrow_dom_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_arrow_dom(index);
     incref(v); push_value(v);
 }
 static void mwarrow_dom_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_arrow_dom(index);
     value_t oldvalue = *p;
@@ -7365,18 +7365,18 @@ static value_t* fieldptr_block_arrow_raw (usize i) {
 }
 
 static void mwblock_arrow_raw_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_block_arrow_raw(index);
     incref(v); push_value(v);
 }
 static void mwblock_arrow_raw_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_block_arrow_raw(index);
     incref(v); push_value(v);
 }
 static void mwblock_arrow_raw_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_block_arrow_raw(index);
     value_t oldvalue = *p;
@@ -7454,18 +7454,18 @@ static value_t* fieldptr_arrow_token_end (usize i) {
 }
 
 static void mwarrow_token_end_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_arrow_token_end(index);
     incref(v); push_value(v);
 }
 static void mwarrow_token_end_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_arrow_token_end(index);
     incref(v); push_value(v);
 }
 static void mwarrow_token_end_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_arrow_token_end(index);
     value_t oldvalue = *p;
@@ -7568,18 +7568,18 @@ static value_t* fieldptr_arrow_ctx (usize i) {
 }
 
 static void mwarrow_ctx_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_arrow_ctx(index);
     incref(v); push_value(v);
 }
 static void mwarrow_ctx_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_arrow_ctx(index);
     incref(v); push_value(v);
 }
 static void mwarrow_ctx_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_arrow_ctx(index);
     value_t oldvalue = *p;
@@ -7716,18 +7716,18 @@ static value_t* fieldptr_atom_args (usize i) {
 }
 
 static void mwatom_args_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_args(index);
     incref(v); push_value(v);
 }
 static void mwatom_args_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_args(index);
     incref(v); push_value(v);
 }
 static void mwatom_args_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_atom_args(index);
     value_t oldvalue = *p;
@@ -7800,18 +7800,18 @@ static value_t* fieldptr_var_auto_run (usize i) {
 }
 
 static void mwvar_auto_run_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_var_auto_run(index);
     incref(v); push_value(v);
 }
 static void mwvar_auto_run_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_var_auto_run(index);
     incref(v); push_value(v);
 }
 static void mwvar_auto_run_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_var_auto_run(index);
     value_t oldvalue = *p;
@@ -8081,18 +8081,18 @@ static value_t* fieldptr_word_sig (usize i) {
 }
 
 static void mwword_sig_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_sig(index);
     incref(v); push_value(v);
 }
 static void mwword_sig_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_sig(index);
     incref(v); push_value(v);
 }
 static void mwword_sig_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_word_sig(index);
     value_t oldvalue = *p;
@@ -8114,18 +8114,18 @@ static value_t* fieldptr_word_ctx (usize i) {
 }
 
 static void mwword_ctx_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_ctx(index);
     incref(v); push_value(v);
 }
 static void mwword_ctx_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_ctx(index);
     incref(v); push_value(v);
 }
 static void mwword_ctx_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_word_ctx(index);
     value_t oldvalue = *p;
@@ -8147,18 +8147,18 @@ static value_t* fieldptr_word_type (usize i) {
 }
 
 static void mwword_type_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_type(index);
     incref(v); push_value(v);
 }
 static void mwword_type_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_type(index);
     incref(v); push_value(v);
 }
 static void mwword_type_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_word_type(index);
     value_t oldvalue = *p;
@@ -8180,18 +8180,18 @@ static value_t* fieldptr_word_sig_is_checked (usize i) {
 }
 
 static void mwword_sig_is_checked_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_sig_is_checked(index);
     incref(v); push_value(v);
 }
 static void mwword_sig_is_checked_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_sig_is_checked(index);
     incref(v); push_value(v);
 }
 static void mwword_sig_is_checked_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_word_sig_is_checked(index);
     value_t oldvalue = *p;
@@ -8373,18 +8373,18 @@ static value_t* fieldptr_arrow_atoms (usize i) {
 }
 
 static void mwarrow_atoms_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_arrow_atoms(index);
     incref(v); push_value(v);
 }
 static void mwarrow_atoms_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_arrow_atoms(index);
     incref(v); push_value(v);
 }
 static void mwarrow_atoms_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_arrow_atoms(index);
     value_t oldvalue = *p;
@@ -8411,18 +8411,18 @@ static value_t* fieldptr_atom_cod (usize i) {
 }
 
 static void mwatom_cod_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_cod(index);
     incref(v); push_value(v);
 }
 static void mwatom_cod_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_cod(index);
     incref(v); push_value(v);
 }
 static void mwatom_cod_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_atom_cod(index);
     value_t oldvalue = *p;
@@ -8444,18 +8444,18 @@ static value_t* fieldptr_atom_dom (usize i) {
 }
 
 static void mwatom_dom_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_dom(index);
     incref(v); push_value(v);
 }
 static void mwatom_dom_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_dom(index);
     incref(v); push_value(v);
 }
 static void mwatom_dom_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_atom_dom(index);
     value_t oldvalue = *p;
@@ -8509,18 +8509,18 @@ static value_t* fieldptr_atom_subst (usize i) {
 }
 
 static void mwatom_subst_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_subst(index);
     incref(v); push_value(v);
 }
 static void mwatom_subst_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_subst(index);
     incref(v); push_value(v);
 }
 static void mwatom_subst_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_atom_subst(index);
     value_t oldvalue = *p;
@@ -8626,18 +8626,18 @@ static value_t* fieldptr_lambda_cod (usize i) {
 }
 
 static void mwlambda_cod_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_cod(index);
     incref(v); push_value(v);
 }
 static void mwlambda_cod_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_cod(index);
     incref(v); push_value(v);
 }
 static void mwlambda_cod_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_lambda_cod(index);
     value_t oldvalue = *p;
@@ -8659,18 +8659,18 @@ static value_t* fieldptr_lambda_dom (usize i) {
 }
 
 static void mwlambda_dom_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_dom(index);
     incref(v); push_value(v);
 }
 static void mwlambda_dom_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_dom(index);
     incref(v); push_value(v);
 }
 static void mwlambda_dom_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_lambda_dom(index);
     value_t oldvalue = *p;
@@ -8700,18 +8700,18 @@ static value_t* fieldptr_match_cod (usize i) {
 }
 
 static void mwmatch_cod_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_match_cod(index);
     incref(v); push_value(v);
 }
 static void mwmatch_cod_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_match_cod(index);
     incref(v); push_value(v);
 }
 static void mwmatch_cod_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_match_cod(index);
     value_t oldvalue = *p;
@@ -8733,18 +8733,18 @@ static value_t* fieldptr_match_dom (usize i) {
 }
 
 static void mwmatch_dom_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_match_dom(index);
     incref(v); push_value(v);
 }
 static void mwmatch_dom_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_match_dom(index);
     incref(v); push_value(v);
 }
 static void mwmatch_dom_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_match_dom(index);
     value_t oldvalue = *p;
@@ -8889,18 +8889,18 @@ static value_t* fieldptr_prim_type (usize i) {
 }
 
 static void mwprim_type_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_prim_type(index);
     incref(v); push_value(v);
 }
 static void mwprim_type_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_prim_type(index);
     incref(v); push_value(v);
 }
 static void mwprim_type_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_prim_type(index);
     value_t oldvalue = *p;
@@ -9029,18 +9029,18 @@ static value_t* fieldptr_meta_type_raw (usize i) {
 }
 
 static void mwmeta_type_raw_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_meta_type_raw(index);
     incref(v); push_value(v);
 }
 static void mwmeta_type_raw_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_meta_type_raw(index);
     incref(v); push_value(v);
 }
 static void mwmeta_type_raw_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_meta_type_raw(index);
     value_t oldvalue = *p;
@@ -9062,18 +9062,18 @@ static value_t* fieldptr_meta_is_defined (usize i) {
 }
 
 static void mwmeta_is_defined_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_meta_is_defined(index);
     incref(v); push_value(v);
 }
 static void mwmeta_is_defined_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_meta_is_defined(index);
     incref(v); push_value(v);
 }
 static void mwmeta_is_defined_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_meta_is_defined(index);
     value_t oldvalue = *p;
@@ -9592,18 +9592,18 @@ static value_t* fieldptr_atom_op (usize i) {
 }
 
 static void mwatom_op_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_op(index);
     incref(v); push_value(v);
 }
 static void mwatom_op_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_op(index);
     incref(v); push_value(v);
 }
 static void mwatom_op_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_atom_op(index);
     value_t oldvalue = *p;
@@ -9625,18 +9625,18 @@ static value_t* fieldptr_atom_token (usize i) {
 }
 
 static void mwatom_token_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_token(index);
     incref(v); push_value(v);
 }
 static void mwatom_token_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_token(index);
     incref(v); push_value(v);
 }
 static void mwatom_token_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_atom_token(index);
     value_t oldvalue = *p;
@@ -9658,18 +9658,18 @@ static value_t* fieldptr_atom_ctx (usize i) {
 }
 
 static void mwatom_ctx_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_ctx(index);
     incref(v); push_value(v);
 }
 static void mwatom_ctx_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_atom_ctx(index);
     incref(v); push_value(v);
 }
 static void mwatom_ctx_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_atom_ctx(index);
     value_t oldvalue = *p;
@@ -9867,18 +9867,18 @@ static value_t* fieldptr_lambda_body (usize i) {
 }
 
 static void mwlambda_body_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_body(index);
     incref(v); push_value(v);
 }
 static void mwlambda_body_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_body(index);
     incref(v); push_value(v);
 }
 static void mwlambda_body_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_lambda_body(index);
     value_t oldvalue = *p;
@@ -9911,18 +9911,18 @@ static value_t* fieldptr_lambda_inner_ctx (usize i) {
 }
 
 static void mwlambda_inner_ctx_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_inner_ctx(index);
     incref(v); push_value(v);
 }
 static void mwlambda_inner_ctx_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_inner_ctx(index);
     incref(v); push_value(v);
 }
 static void mwlambda_inner_ctx_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_lambda_inner_ctx(index);
     value_t oldvalue = *p;
@@ -9944,18 +9944,18 @@ static value_t* fieldptr_lambda_mid (usize i) {
 }
 
 static void mwlambda_mid_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_mid(index);
     incref(v); push_value(v);
 }
 static void mwlambda_mid_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_mid(index);
     incref(v); push_value(v);
 }
 static void mwlambda_mid_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_lambda_mid(index);
     value_t oldvalue = *p;
@@ -10141,18 +10141,18 @@ static value_t* fieldptr_lambda_params (usize i) {
 }
 
 static void mwlambda_params_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_params(index);
     incref(v); push_value(v);
 }
 static void mwlambda_params_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_params(index);
     incref(v); push_value(v);
 }
 static void mwlambda_params_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_lambda_params(index);
     value_t oldvalue = *p;
@@ -10346,18 +10346,18 @@ static value_t* fieldptr_lambda_token (usize i) {
 }
 
 static void mwlambda_token_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_token(index);
     incref(v); push_value(v);
 }
 static void mwlambda_token_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_token(index);
     incref(v); push_value(v);
 }
 static void mwlambda_token_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_lambda_token(index);
     value_t oldvalue = *p;
@@ -10379,18 +10379,18 @@ static value_t* fieldptr_lambda_outer_ctx (usize i) {
 }
 
 static void mwlambda_outer_ctx_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_outer_ctx(index);
     incref(v); push_value(v);
 }
 static void mwlambda_outer_ctx_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_lambda_outer_ctx(index);
     incref(v); push_value(v);
 }
 static void mwlambda_outer_ctx_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_lambda_outer_ctx(index);
     value_t oldvalue = *p;
@@ -10484,18 +10484,18 @@ static value_t* fieldptr_match_cases (usize i) {
 }
 
 static void mwmatch_cases_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_match_cases(index);
     incref(v); push_value(v);
 }
 static void mwmatch_cases_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_match_cases(index);
     incref(v); push_value(v);
 }
 static void mwmatch_cases_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_match_cases(index);
     value_t oldvalue = *p;
@@ -10522,18 +10522,18 @@ static value_t* fieldptr_data_tags (usize i) {
 }
 
 static void mwdata_tags_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_data_tags(index);
     incref(v); push_value(v);
 }
 static void mwdata_tags_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_data_tags(index);
     incref(v); push_value(v);
 }
 static void mwdata_tags_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_data_tags(index);
     value_t oldvalue = *p;
@@ -10661,18 +10661,18 @@ static value_t* fieldptr_case_pattern (usize i) {
 }
 
 static void mwcase_pattern_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_case_pattern(index);
     incref(v); push_value(v);
 }
 static void mwcase_pattern_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_case_pattern(index);
     incref(v); push_value(v);
 }
 static void mwcase_pattern_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_case_pattern(index);
     value_t oldvalue = *p;
@@ -10964,18 +10964,18 @@ static value_t* fieldptr_case_body (usize i) {
 }
 
 static void mwcase_body_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_case_body(index);
     incref(v); push_value(v);
 }
 static void mwcase_body_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_case_body(index);
     incref(v); push_value(v);
 }
 static void mwcase_body_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_case_body(index);
     value_t oldvalue = *p;
@@ -10997,18 +10997,18 @@ static value_t* fieldptr_case_mid (usize i) {
 }
 
 static void mwcase_mid_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_case_mid(index);
     incref(v); push_value(v);
 }
 static void mwcase_mid_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_case_mid(index);
     incref(v); push_value(v);
 }
 static void mwcase_mid_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_case_mid(index);
     value_t oldvalue = *p;
@@ -11113,18 +11113,18 @@ static value_t* fieldptr_case_subst (usize i) {
 }
 
 static void mwcase_subst_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_case_subst(index);
     incref(v); push_value(v);
 }
 static void mwcase_subst_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_case_subst(index);
     incref(v); push_value(v);
 }
 static void mwcase_subst_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_case_subst(index);
     value_t oldvalue = *p;
@@ -11165,18 +11165,18 @@ static value_t* fieldptr_case_match (usize i) {
 }
 
 static void mwcase_match_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_case_match(index);
     incref(v); push_value(v);
 }
 static void mwcase_match_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_case_match(index);
     incref(v); push_value(v);
 }
 static void mwcase_match_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_case_match(index);
     value_t oldvalue = *p;
@@ -11198,18 +11198,18 @@ static value_t* fieldptr_case_token (usize i) {
 }
 
 static void mwcase_token_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_case_token(index);
     incref(v); push_value(v);
 }
 static void mwcase_token_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_case_token(index);
     incref(v); push_value(v);
 }
 static void mwcase_token_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_case_token(index);
     value_t oldvalue = *p;
@@ -11257,18 +11257,18 @@ static value_t* fieldptr_match_token (usize i) {
 }
 
 static void mwmatch_token_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_match_token(index);
     incref(v); push_value(v);
 }
 static void mwmatch_token_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_match_token(index);
     incref(v); push_value(v);
 }
 static void mwmatch_token_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_match_token(index);
     value_t oldvalue = *p;
@@ -11290,18 +11290,18 @@ static value_t* fieldptr_match_ctx (usize i) {
 }
 
 static void mwmatch_ctx_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_match_ctx(index);
     incref(v); push_value(v);
 }
 static void mwmatch_ctx_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_match_ctx(index);
     incref(v); push_value(v);
 }
 static void mwmatch_ctx_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_match_ctx(index);
     value_t oldvalue = *p;
@@ -11829,18 +11829,18 @@ static value_t* fieldptr_arrow_token_start (usize i) {
 }
 
 static void mwarrow_token_start_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_arrow_token_start(index);
     incref(v); push_value(v);
 }
 static void mwarrow_token_start_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_arrow_token_start(index);
     incref(v); push_value(v);
 }
 static void mwarrow_token_start_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_arrow_token_start(index);
     value_t oldvalue = *p;
@@ -11887,18 +11887,18 @@ static value_t* fieldptr_block_ctx (usize i) {
 }
 
 static void mwblock_ctx_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_block_ctx(index);
     incref(v); push_value(v);
 }
 static void mwblock_ctx_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_block_ctx(index);
     incref(v); push_value(v);
 }
 static void mwblock_ctx_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_block_ctx(index);
     value_t oldvalue = *p;
@@ -11967,18 +11967,18 @@ static value_t* fieldptr_block_token (usize i) {
 }
 
 static void mwblock_token_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_block_token(index);
     incref(v); push_value(v);
 }
 static void mwblock_token_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_block_token(index);
     incref(v); push_value(v);
 }
 static void mwblock_token_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_block_token(index);
     value_t oldvalue = *p;
@@ -12000,18 +12000,18 @@ static value_t* fieldptr_block_forcing (usize i) {
 }
 
 static void mwblock_forcing_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_block_forcing(index);
     incref(v); push_value(v);
 }
 static void mwblock_forcing_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_block_forcing(index);
     incref(v); push_value(v);
 }
 static void mwblock_forcing_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_block_forcing(index);
     value_t oldvalue = *p;
@@ -12033,18 +12033,18 @@ static value_t* fieldptr_block_deferred (usize i) {
 }
 
 static void mwblock_deferred_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_block_deferred(index);
     incref(v); push_value(v);
 }
 static void mwblock_deferred_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_block_deferred(index);
     incref(v); push_value(v);
 }
 static void mwblock_deferred_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_block_deferred(index);
     value_t oldvalue = *p;
@@ -12422,18 +12422,18 @@ static value_t* fieldptr_table_name (usize i) {
 }
 
 static void mwtable_name_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_table_name(index);
     incref(v); push_value(v);
 }
 static void mwtable_name_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_table_name(index);
     incref(v); push_value(v);
 }
 static void mwtable_name_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_table_name(index);
     value_t oldvalue = *p;
@@ -12455,18 +12455,18 @@ static value_t* fieldptr_data_name (usize i) {
 }
 
 static void mwdata_name_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_data_name(index);
     incref(v); push_value(v);
 }
 static void mwdata_name_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_data_name(index);
     incref(v); push_value(v);
 }
 static void mwdata_name_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_data_name(index);
     value_t oldvalue = *p;
@@ -13293,18 +13293,18 @@ static value_t* fieldptr_data_arity (usize i) {
 }
 
 static void mwdata_arity_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_data_arity(index);
     incref(v); push_value(v);
 }
 static void mwdata_arity_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_data_arity(index);
     incref(v); push_value(v);
 }
 static void mwdata_arity_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_data_arity(index);
     value_t oldvalue = *p;
@@ -13376,18 +13376,18 @@ static value_t* fieldptr_data_header (usize i) {
 }
 
 static void mwdata_header_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_data_header(index);
     incref(v); push_value(v);
 }
 static void mwdata_header_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_data_header(index);
     incref(v); push_value(v);
 }
 static void mwdata_header_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_data_header(index);
     value_t oldvalue = *p;
@@ -13409,18 +13409,18 @@ static value_t* fieldptr_tag_data (usize i) {
 }
 
 static void mwtag_data_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_data(index);
     incref(v); push_value(v);
 }
 static void mwtag_data_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_data(index);
     incref(v); push_value(v);
 }
 static void mwtag_data_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_tag_data(index);
     value_t oldvalue = *p;
@@ -13452,18 +13452,18 @@ static value_t* fieldptr_tag_ctx (usize i) {
 }
 
 static void mwtag_ctx_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_ctx(index);
     incref(v); push_value(v);
 }
 static void mwtag_ctx_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_ctx(index);
     incref(v); push_value(v);
 }
 static void mwtag_ctx_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_tag_ctx(index);
     value_t oldvalue = *p;
@@ -13485,18 +13485,18 @@ static value_t* fieldptr_tag_type_raw (usize i) {
 }
 
 static void mwtag_type_raw_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_type_raw(index);
     incref(v); push_value(v);
 }
 static void mwtag_type_raw_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_type_raw(index);
     incref(v); push_value(v);
 }
 static void mwtag_type_raw_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_tag_type_raw(index);
     value_t oldvalue = *p;
@@ -13518,18 +13518,18 @@ static value_t* fieldptr_tag_sig_is_checked (usize i) {
 }
 
 static void mwtag_sig_is_checked_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_sig_is_checked(index);
     incref(v); push_value(v);
 }
 static void mwtag_sig_is_checked_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_sig_is_checked(index);
     incref(v); push_value(v);
 }
 static void mwtag_sig_is_checked_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_tag_sig_is_checked(index);
     value_t oldvalue = *p;
@@ -13630,18 +13630,18 @@ static value_t* fieldptr_field_type (usize i) {
 }
 
 static void mwfield_type_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_field_type(index);
     incref(v); push_value(v);
 }
 static void mwfield_type_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_field_type(index);
     incref(v); push_value(v);
 }
 static void mwfield_type_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_field_type(index);
     value_t oldvalue = *p;
@@ -13663,18 +13663,18 @@ static value_t* fieldptr_field_type_sig (usize i) {
 }
 
 static void mwfield_type_sig_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_field_type_sig(index);
     incref(v); push_value(v);
 }
 static void mwfield_type_sig_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_field_type_sig(index);
     incref(v); push_value(v);
 }
 static void mwfield_type_sig_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_field_type_sig(index);
     value_t oldvalue = *p;
@@ -13696,18 +13696,18 @@ static value_t* fieldptr_field_table (usize i) {
 }
 
 static void mwfield_table_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_field_table(index);
     incref(v); push_value(v);
 }
 static void mwfield_table_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_field_table(index);
     incref(v); push_value(v);
 }
 static void mwfield_table_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_field_table(index);
     value_t oldvalue = *p;
@@ -13843,18 +13843,18 @@ static value_t* fieldptr_table_max_count (usize i) {
 }
 
 static void mwtable_max_count_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_table_max_count(index);
     incref(v); push_value(v);
 }
 static void mwtable_max_count_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_table_max_count(index);
     incref(v); push_value(v);
 }
 static void mwtable_max_count_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_table_max_count(index);
     value_t oldvalue = *p;
@@ -13885,18 +13885,18 @@ static value_t* fieldptr_field_table_sig (usize i) {
 }
 
 static void mwfield_table_sig_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_field_table_sig(index);
     incref(v); push_value(v);
 }
 static void mwfield_table_sig_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_field_table_sig(index);
     incref(v); push_value(v);
 }
 static void mwfield_table_sig_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_field_table_sig(index);
     value_t oldvalue = *p;
@@ -13918,18 +13918,18 @@ static value_t* fieldptr_field_sig_is_checked (usize i) {
 }
 
 static void mwfield_sig_is_checked_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_field_sig_is_checked(index);
     incref(v); push_value(v);
 }
 static void mwfield_sig_is_checked_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_field_sig_is_checked(index);
     incref(v); push_value(v);
 }
 static void mwfield_sig_is_checked_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_field_sig_is_checked(index);
     value_t oldvalue = *p;
@@ -14024,18 +14024,18 @@ static value_t* fieldptr_word_body (usize i) {
 }
 
 static void mwword_body_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_body(index);
     incref(v); push_value(v);
 }
 static void mwword_body_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_body(index);
     incref(v); push_value(v);
 }
 static void mwword_body_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_word_body(index);
     value_t oldvalue = *p;
@@ -14057,18 +14057,18 @@ static value_t* fieldptr_word_body_is_checking (usize i) {
 }
 
 static void mwword_body_is_checking_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_body_is_checking(index);
     incref(v); push_value(v);
 }
 static void mwword_body_is_checking_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_body_is_checking(index);
     incref(v); push_value(v);
 }
 static void mwword_body_is_checking_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_word_body_is_checking(index);
     value_t oldvalue = *p;
@@ -14090,18 +14090,18 @@ static value_t* fieldptr_word_arrow (usize i) {
 }
 
 static void mwword_arrow_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_arrow(index);
     incref(v); push_value(v);
 }
 static void mwword_arrow_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_arrow(index);
     incref(v); push_value(v);
 }
 static void mwword_arrow_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_word_arrow(index);
     value_t oldvalue = *p;
@@ -14123,18 +14123,18 @@ static value_t* fieldptr_word_body_is_checked (usize i) {
 }
 
 static void mwword_body_is_checked_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_body_is_checked(index);
     incref(v); push_value(v);
 }
 static void mwword_body_is_checked_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_body_is_checked(index);
     incref(v); push_value(v);
 }
 static void mwword_body_is_checked_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_word_body_is_checked(index);
     value_t oldvalue = *p;
@@ -14197,18 +14197,18 @@ static value_t* fieldptr_external_sig (usize i) {
 }
 
 static void mwexternal_sig_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_external_sig(index);
     incref(v); push_value(v);
 }
 static void mwexternal_sig_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_external_sig(index);
     incref(v); push_value(v);
 }
 static void mwexternal_sig_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_external_sig(index);
     value_t oldvalue = *p;
@@ -14230,18 +14230,18 @@ static value_t* fieldptr_external_ctx (usize i) {
 }
 
 static void mwexternal_ctx_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_external_ctx(index);
     incref(v); push_value(v);
 }
 static void mwexternal_ctx_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_external_ctx(index);
     incref(v); push_value(v);
 }
 static void mwexternal_ctx_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_external_ctx(index);
     value_t oldvalue = *p;
@@ -14263,18 +14263,18 @@ static value_t* fieldptr_external_type (usize i) {
 }
 
 static void mwexternal_type_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_external_type(index);
     incref(v); push_value(v);
 }
 static void mwexternal_type_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_external_type(index);
     incref(v); push_value(v);
 }
 static void mwexternal_type_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_external_type(index);
     value_t oldvalue = *p;
@@ -14296,18 +14296,18 @@ static value_t* fieldptr_external_sig_is_checked (usize i) {
 }
 
 static void mwexternal_sig_is_checked_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_external_sig_is_checked(index);
     incref(v); push_value(v);
 }
 static void mwexternal_sig_is_checked_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_external_sig_is_checked(index);
     incref(v); push_value(v);
 }
 static void mwexternal_sig_is_checked_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_external_sig_is_checked(index);
     value_t oldvalue = *p;
@@ -14329,18 +14329,18 @@ static value_t* fieldptr_name_value (usize i) {
 }
 
 static void mwname_value_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_name_value(index);
     incref(v); push_value(v);
 }
 static void mwname_value_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_name_value(index);
     incref(v); push_value(v);
 }
 static void mwname_value_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_name_value(index);
     value_t oldvalue = *p;
@@ -14593,18 +14593,18 @@ static value_t* fieldptr_word_name (usize i) {
 }
 
 static void mwword_name_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_name(index);
     incref(v); push_value(v);
 }
 static void mwword_name_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_word_name(index);
     incref(v); push_value(v);
 }
 static void mwword_name_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_word_name(index);
     value_t oldvalue = *p;
@@ -14838,18 +14838,18 @@ static value_t* fieldptr_tag_value (usize i) {
 }
 
 static void mwtag_value_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_value(index);
     incref(v); push_value(v);
 }
 static void mwtag_value_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_value(index);
     incref(v); push_value(v);
 }
 static void mwtag_value_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_tag_value(index);
     value_t oldvalue = *p;
@@ -14871,18 +14871,18 @@ static value_t* fieldptr_tag_name (usize i) {
 }
 
 static void mwtag_name_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_name(index);
     incref(v); push_value(v);
 }
 static void mwtag_name_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_tag_name(index);
     incref(v); push_value(v);
 }
 static void mwtag_name_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_tag_name(index);
     value_t oldvalue = *p;
@@ -15208,7 +15208,7 @@ static void mwc99_emit_field_def_21_ (void){
     mw_2E_w();
     push_ptr("{\0\0\0");
     mw_3B_();
-    push_ptr("    usize index = pop_u64();\0\0\0");
+    push_ptr("    usize index = (usize)pop_u64();\0\0\0");
     mw_3B_();
     push_ptr("    value_t v = *fieldptr_\0\0\0");
     mw_2E_();
@@ -15228,7 +15228,7 @@ static void mwc99_emit_field_def_21_ (void){
     mw_3B_();
     push_ptr("    mwdup();\0\0\0");
     mw_3B_();
-    push_ptr("    usize index = pop_u64();\0\0\0");
+    push_ptr("    usize index = (usize)pop_u64();\0\0\0");
     mw_3B_();
     push_ptr("    value_t v = *fieldptr_\0\0\0");
     mw_2E_();
@@ -15246,7 +15246,7 @@ static void mwc99_emit_field_def_21_ (void){
     mw_2E_w();
     push_ptr("{\0\0\0");
     mw_3B_();
-    push_ptr("    usize index = pop_u64();\0\0\0");
+    push_ptr("    usize index = (usize)pop_u64();\0\0\0");
     mw_3B_();
     push_ptr("    value_t newvalue = pop_value();\0\0\0");
     mw_3B_();
@@ -15749,18 +15749,18 @@ static value_t* fieldptr_name_mangle_cached (usize i) {
 }
 
 static void mwname_mangle_cached_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_name_mangle_cached(index);
     incref(v); push_value(v);
 }
 static void mwname_mangle_cached_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_name_mangle_cached(index);
     incref(v); push_value(v);
 }
 static void mwname_mangle_cached_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_name_mangle_cached(index);
     value_t oldvalue = *p;
@@ -15782,18 +15782,18 @@ static value_t* fieldptr_field_name (usize i) {
 }
 
 static void mwfield_name_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_field_name(index);
     incref(v); push_value(v);
 }
 static void mwfield_name_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_field_name(index);
     incref(v); push_value(v);
 }
 static void mwfield_name_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_field_name(index);
     value_t oldvalue = *p;
@@ -15865,18 +15865,18 @@ static value_t* fieldptr_c99_field_emitted (usize i) {
 }
 
 static void mwc99_field_emitted_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_c99_field_emitted(index);
     incref(v); push_value(v);
 }
 static void mwc99_field_emitted_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_c99_field_emitted(index);
     incref(v); push_value(v);
 }
 static void mwc99_field_emitted_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_c99_field_emitted(index);
     value_t oldvalue = *p;
@@ -15898,18 +15898,18 @@ static value_t* fieldptr_c99_field_needed (usize i) {
 }
 
 static void mwc99_field_needed_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_c99_field_needed(index);
     incref(v); push_value(v);
 }
 static void mwc99_field_needed_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_c99_field_needed(index);
     incref(v); push_value(v);
 }
 static void mwc99_field_needed_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_c99_field_needed(index);
     value_t oldvalue = *p;
@@ -16674,18 +16674,18 @@ static value_t* fieldptr_prim_name (usize i) {
 }
 
 static void mwprim_name_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_prim_name(index);
     incref(v); push_value(v);
 }
 static void mwprim_name_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_prim_name(index);
     incref(v); push_value(v);
 }
 static void mwprim_name_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_prim_name(index);
     value_t oldvalue = *p;
@@ -16727,18 +16727,18 @@ static value_t* fieldptr_buffer_name (usize i) {
 }
 
 static void mwbuffer_name_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_buffer_name(index);
     incref(v); push_value(v);
 }
 static void mwbuffer_name_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_buffer_name(index);
     incref(v); push_value(v);
 }
 static void mwbuffer_name_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_buffer_name(index);
     value_t oldvalue = *p;
@@ -16760,18 +16760,18 @@ static value_t* fieldptr_external_name (usize i) {
 }
 
 static void mwexternal_name_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_external_name(index);
     incref(v); push_value(v);
 }
 static void mwexternal_name_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_external_name(index);
     incref(v); push_value(v);
 }
 static void mwexternal_name_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_external_name(index);
     value_t oldvalue = *p;
@@ -16877,18 +16877,18 @@ static value_t* fieldptr_c99_word_needed (usize i) {
 }
 
 static void mwc99_word_needed_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_c99_word_needed(index);
     incref(v); push_value(v);
 }
 static void mwc99_word_needed_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_c99_word_needed(index);
     incref(v); push_value(v);
 }
 static void mwc99_word_needed_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_c99_word_needed(index);
     value_t oldvalue = *p;
@@ -17202,18 +17202,18 @@ static value_t* fieldptr_module_name (usize i) {
 }
 
 static void mwmodule_name_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_module_name(index);
     incref(v); push_value(v);
 }
 static void mwmodule_name_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_module_name(index);
     incref(v); push_value(v);
 }
 static void mwmodule_name_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_module_name(index);
     value_t oldvalue = *p;
@@ -17239,18 +17239,18 @@ static value_t* fieldptr_c99_block_emitted (usize i) {
 }
 
 static void mwc99_block_emitted_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_c99_block_emitted(index);
     incref(v); push_value(v);
 }
 static void mwc99_block_emitted_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_c99_block_emitted(index);
     incref(v); push_value(v);
 }
 static void mwc99_block_emitted_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_c99_block_emitted(index);
     value_t oldvalue = *p;
@@ -17272,18 +17272,18 @@ static value_t* fieldptr_block_needed (usize i) {
 }
 
 static void mwblock_needed_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_block_needed(index);
     incref(v); push_value(v);
 }
 static void mwblock_needed_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_block_needed(index);
     incref(v); push_value(v);
 }
 static void mwblock_needed_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_block_needed(index);
     value_t oldvalue = *p;
@@ -17329,18 +17329,18 @@ static value_t* fieldptr_c99_word_emitted (usize i) {
 }
 
 static void mwc99_word_emitted_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_c99_word_emitted(index);
     incref(v); push_value(v);
 }
 static void mwc99_word_emitted_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_c99_word_emitted(index);
     incref(v); push_value(v);
 }
 static void mwc99_word_emitted_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_c99_word_emitted(index);
     value_t oldvalue = *p;
@@ -17842,18 +17842,18 @@ static value_t* fieldptr_buffer_size (usize i) {
 }
 
 static void mwbuffer_size_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_buffer_size(index);
     incref(v); push_value(v);
 }
 static void mwbuffer_size_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_buffer_size(index);
     incref(v); push_value(v);
 }
 static void mwbuffer_size_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_buffer_size(index);
     value_t oldvalue = *p;
@@ -20585,18 +20585,18 @@ static value_t* fieldptr_table_num_buffer (usize i) {
 }
 
 static void mwtable_num_buffer_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_table_num_buffer(index);
     incref(v); push_value(v);
 }
 static void mwtable_num_buffer_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_table_num_buffer(index);
     incref(v); push_value(v);
 }
 static void mwtable_num_buffer_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_table_num_buffer(index);
     value_t oldvalue = *p;
@@ -21165,18 +21165,18 @@ static value_t* fieldptr_module_imports (usize i) {
 }
 
 static void mwmodule_imports_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_module_imports(index);
     incref(v); push_value(v);
 }
 static void mwmodule_imports_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_module_imports(index);
     incref(v); push_value(v);
 }
 static void mwmodule_imports_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_module_imports(index);
     value_t oldvalue = *p;
@@ -21272,18 +21272,18 @@ static value_t* fieldptr_module_start (usize i) {
 }
 
 static void mwmodule_start_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_module_start(index);
     incref(v); push_value(v);
 }
 static void mwmodule_start_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_module_start(index);
     incref(v); push_value(v);
 }
 static void mwmodule_start_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_module_start(index);
     value_t oldvalue = *p;
@@ -21347,18 +21347,18 @@ static value_t* fieldptr_module_end (usize i) {
 }
 
 static void mwmodule_end_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_module_end(index);
     incref(v); push_value(v);
 }
 static void mwmodule_end_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_module_end(index);
     incref(v); push_value(v);
 }
 static void mwmodule_end_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_module_end(index);
     value_t oldvalue = *p;
@@ -24306,18 +24306,18 @@ static value_t* fieldptr_prim_ctx (usize i) {
 }
 
 static void mwprim_ctx_40_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_prim_ctx(index);
     incref(v); push_value(v);
 }
 static void mwprim_ctx_3F_ (void){
     mwdup();
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t v = *fieldptr_prim_ctx(index);
     incref(v); push_value(v);
 }
 static void mwprim_ctx_21_ (void){
-    usize index = pop_u64();
+    usize index = (usize)pop_u64();
     value_t newvalue = pop_value();
     value_t* p = fieldptr_prim_ctx(index);
     value_t oldvalue = *p;
