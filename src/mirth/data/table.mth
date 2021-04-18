@@ -19,9 +19,6 @@ field(field-type-sig, Field, Token)
 field(field-name, Field, Name)
 field(field-table, Field, Type)
 field(field-type, Field, Type)
-field(field-buffer-size, Field, Buffer)
-field(field-buffer-ptr, Field, Buffer)
-# field(field-word-ptr, Field, Word)
 
 data FieldWord
     FIELDWORD -> Field FieldWordName

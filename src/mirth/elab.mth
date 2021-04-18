@@ -1352,12 +1352,6 @@ def(field-new!, Name Token Token -- Field,
     tuck field-table-sig!
     tuck field-name!
 
-    # define the buffers for the field
-    field-name? "-buffer-size" name-cat!
-    16 buffer-alloc! over field-buffer-size!
-    field-name? "-buffer-ptr" name-cat!
-    16 buffer-alloc! over field-buffer-ptr!
-
     dup FIELD@ FIELDWORD
     over field-name@ "@" name-cat!
     name-fieldword!

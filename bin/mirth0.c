@@ -1408,64 +1408,16 @@ static u8 bINPUT_BUFFER[8208] = {0};
 #define mwINPUT_BUFFER() push_ptr((void*)bINPUT_BUFFER)
 static u8 bName_2E_NUM[8] = {0};
 #define mwName_2E_NUM() push_ptr((void*)bName_2E_NUM)
-static u8 bname_str_buffer_size[16] = {0};
-#define mwname_str_buffer_size() push_ptr((void*)bname_str_buffer_size)
-static u8 bname_str_buffer_ptr[16] = {0};
-#define mwname_str_buffer_ptr() push_ptr((void*)bname_str_buffer_ptr)
-static u8 bname_value_buffer_size[16] = {0};
-#define mwname_value_buffer_size() push_ptr((void*)bname_value_buffer_size)
-static u8 bname_value_buffer_ptr[16] = {0};
-#define mwname_value_buffer_ptr() push_ptr((void*)bname_value_buffer_ptr)
-static u8 bname_mangle_cached_buffer_size[16] = {0};
-#define mwname_mangle_cached_buffer_size() push_ptr((void*)bname_mangle_cached_buffer_size)
-static u8 bname_mangle_cached_buffer_ptr[16] = {0};
-#define mwname_mangle_cached_buffer_ptr() push_ptr((void*)bname_mangle_cached_buffer_ptr)
 static u8 bNAME_HASH_TABLE[524288] = {0};
 #define mwNAME_HASH_TABLE() push_ptr((void*)bNAME_HASH_TABLE)
 static u8 bModule_2E_NUM[8] = {0};
 #define mwModule_2E_NUM() push_ptr((void*)bModule_2E_NUM)
 static u8 bToken_2E_NUM[8] = {0};
 #define mwToken_2E_NUM() push_ptr((void*)bToken_2E_NUM)
-static u8 bmodule_name_buffer_size[16] = {0};
-#define mwmodule_name_buffer_size() push_ptr((void*)bmodule_name_buffer_size)
-static u8 bmodule_name_buffer_ptr[16] = {0};
-#define mwmodule_name_buffer_ptr() push_ptr((void*)bmodule_name_buffer_ptr)
-static u8 bmodule_path_buffer_size[16] = {0};
-#define mwmodule_path_buffer_size() push_ptr((void*)bmodule_path_buffer_size)
-static u8 bmodule_path_buffer_ptr[16] = {0};
-#define mwmodule_path_buffer_ptr() push_ptr((void*)bmodule_path_buffer_ptr)
-static u8 bmodule_start_buffer_size[16] = {0};
-#define mwmodule_start_buffer_size() push_ptr((void*)bmodule_start_buffer_size)
-static u8 bmodule_start_buffer_ptr[16] = {0};
-#define mwmodule_start_buffer_ptr() push_ptr((void*)bmodule_start_buffer_ptr)
-static u8 bmodule_end_buffer_size[16] = {0};
-#define mwmodule_end_buffer_size() push_ptr((void*)bmodule_end_buffer_size)
-static u8 bmodule_end_buffer_ptr[16] = {0};
-#define mwmodule_end_buffer_ptr() push_ptr((void*)bmodule_end_buffer_ptr)
-static u8 bmodule_imports_buffer_size[16] = {0};
-#define mwmodule_imports_buffer_size() push_ptr((void*)bmodule_imports_buffer_size)
-static u8 bmodule_imports_buffer_ptr[16] = {0};
-#define mwmodule_imports_buffer_ptr() push_ptr((void*)bmodule_imports_buffer_ptr)
 static u8 bnum_warnings[8] = {0};
 #define mwnum_warnings() push_ptr((void*)bnum_warnings)
 static u8 bnum_errors[8] = {0};
 #define mwnum_errors() push_ptr((void*)bnum_errors)
-static u8 btoken_value_buffer_size[16] = {0};
-#define mwtoken_value_buffer_size() push_ptr((void*)btoken_value_buffer_size)
-static u8 btoken_value_buffer_ptr[16] = {0};
-#define mwtoken_value_buffer_ptr() push_ptr((void*)btoken_value_buffer_ptr)
-static u8 btoken_module_buffer_size[16] = {0};
-#define mwtoken_module_buffer_size() push_ptr((void*)btoken_module_buffer_size)
-static u8 btoken_module_buffer_ptr[16] = {0};
-#define mwtoken_module_buffer_ptr() push_ptr((void*)btoken_module_buffer_ptr)
-static u8 btoken_row_buffer_size[16] = {0};
-#define mwtoken_row_buffer_size() push_ptr((void*)btoken_row_buffer_size)
-static u8 btoken_row_buffer_ptr[16] = {0};
-#define mwtoken_row_buffer_ptr() push_ptr((void*)btoken_row_buffer_ptr)
-static u8 btoken_col_buffer_size[16] = {0};
-#define mwtoken_col_buffer_size() push_ptr((void*)btoken_col_buffer_size)
-static u8 btoken_col_buffer_ptr[16] = {0};
-#define mwtoken_col_buffer_ptr() push_ptr((void*)btoken_col_buffer_ptr)
 static u8 bLEXER_MODULE[16] = {0};
 #define mwLEXER_MODULE() push_ptr((void*)bLEXER_MODULE)
 static u8 bLEXER_ROW[16] = {0};
@@ -1478,76 +1430,12 @@ static u8 bLEXER_STACK_BUF[8192] = {0};
 #define mwLEXER_STACK_BUF() push_ptr((void*)bLEXER_STACK_BUF)
 static u8 bBuffer_2E_NUM[8] = {0};
 #define mwBuffer_2E_NUM() push_ptr((void*)bBuffer_2E_NUM)
-static u8 bbuffer_size_buffer_size[16] = {0};
-#define mwbuffer_size_buffer_size() push_ptr((void*)bbuffer_size_buffer_size)
-static u8 bbuffer_size_buffer_ptr[16] = {0};
-#define mwbuffer_size_buffer_ptr() push_ptr((void*)bbuffer_size_buffer_ptr)
-static u8 bbuffer_name_buffer_size[16] = {0};
-#define mwbuffer_name_buffer_size() push_ptr((void*)bbuffer_name_buffer_size)
-static u8 bbuffer_name_buffer_ptr[16] = {0};
-#define mwbuffer_name_buffer_ptr() push_ptr((void*)bbuffer_name_buffer_ptr)
 static u8 bMetaVar_2E_NUM[8] = {0};
 #define mwMetaVar_2E_NUM() push_ptr((void*)bMetaVar_2E_NUM)
 static u8 bData_2E_NUM[8] = {0};
 #define mwData_2E_NUM() push_ptr((void*)bData_2E_NUM)
 static u8 bTag_2E_NUM[8] = {0};
 #define mwTag_2E_NUM() push_ptr((void*)bTag_2E_NUM)
-static u8 bmeta_is_defined_buffer_size[16] = {0};
-#define mwmeta_is_defined_buffer_size() push_ptr((void*)bmeta_is_defined_buffer_size)
-static u8 bmeta_is_defined_buffer_ptr[16] = {0};
-#define mwmeta_is_defined_buffer_ptr() push_ptr((void*)bmeta_is_defined_buffer_ptr)
-static u8 bmeta_type_raw_buffer_size[16] = {0};
-#define mwmeta_type_raw_buffer_size() push_ptr((void*)bmeta_type_raw_buffer_size)
-static u8 bmeta_type_raw_buffer_ptr[16] = {0};
-#define mwmeta_type_raw_buffer_ptr() push_ptr((void*)bmeta_type_raw_buffer_ptr)
-static u8 bdata_header_buffer_size[16] = {0};
-#define mwdata_header_buffer_size() push_ptr((void*)bdata_header_buffer_size)
-static u8 bdata_header_buffer_ptr[16] = {0};
-#define mwdata_header_buffer_ptr() push_ptr((void*)bdata_header_buffer_ptr)
-static u8 bdata_name_buffer_size[16] = {0};
-#define mwdata_name_buffer_size() push_ptr((void*)bdata_name_buffer_size)
-static u8 bdata_name_buffer_ptr[16] = {0};
-#define mwdata_name_buffer_ptr() push_ptr((void*)bdata_name_buffer_ptr)
-static u8 bdata_arity_buffer_size[16] = {0};
-#define mwdata_arity_buffer_size() push_ptr((void*)bdata_arity_buffer_size)
-static u8 bdata_arity_buffer_ptr[16] = {0};
-#define mwdata_arity_buffer_ptr() push_ptr((void*)bdata_arity_buffer_ptr)
-static u8 bdata_tags_buffer_size[16] = {0};
-#define mwdata_tags_buffer_size() push_ptr((void*)bdata_tags_buffer_size)
-static u8 bdata_tags_buffer_ptr[16] = {0};
-#define mwdata_tags_buffer_ptr() push_ptr((void*)bdata_tags_buffer_ptr)
-static u8 btag_data_buffer_size[16] = {0};
-#define mwtag_data_buffer_size() push_ptr((void*)btag_data_buffer_size)
-static u8 btag_data_buffer_ptr[16] = {0};
-#define mwtag_data_buffer_ptr() push_ptr((void*)btag_data_buffer_ptr)
-static u8 btag_name_buffer_size[16] = {0};
-#define mwtag_name_buffer_size() push_ptr((void*)btag_name_buffer_size)
-static u8 btag_name_buffer_ptr[16] = {0};
-#define mwtag_name_buffer_ptr() push_ptr((void*)btag_name_buffer_ptr)
-static u8 btag_value_buffer_size[16] = {0};
-#define mwtag_value_buffer_size() push_ptr((void*)btag_value_buffer_size)
-static u8 btag_value_buffer_ptr[16] = {0};
-#define mwtag_value_buffer_ptr() push_ptr((void*)btag_value_buffer_ptr)
-static u8 btag_sig_buffer_size[16] = {0};
-#define mwtag_sig_buffer_size() push_ptr((void*)btag_sig_buffer_size)
-static u8 btag_sig_buffer_ptr[16] = {0};
-#define mwtag_sig_buffer_ptr() push_ptr((void*)btag_sig_buffer_ptr)
-static u8 btag_has_sig_buffer_size[16] = {0};
-#define mwtag_has_sig_buffer_size() push_ptr((void*)btag_has_sig_buffer_size)
-static u8 btag_has_sig_buffer_ptr[16] = {0};
-#define mwtag_has_sig_buffer_ptr() push_ptr((void*)btag_has_sig_buffer_ptr)
-static u8 btag_sig_is_checked_buffer_size[16] = {0};
-#define mwtag_sig_is_checked_buffer_size() push_ptr((void*)btag_sig_is_checked_buffer_size)
-static u8 btag_sig_is_checked_buffer_ptr[16] = {0};
-#define mwtag_sig_is_checked_buffer_ptr() push_ptr((void*)btag_sig_is_checked_buffer_ptr)
-static u8 btag_ctx_buffer_size[16] = {0};
-#define mwtag_ctx_buffer_size() push_ptr((void*)btag_ctx_buffer_size)
-static u8 btag_ctx_buffer_ptr[16] = {0};
-#define mwtag_ctx_buffer_ptr() push_ptr((void*)btag_ctx_buffer_ptr)
-static u8 btag_type_raw_buffer_size[16] = {0};
-#define mwtag_type_raw_buffer_size() push_ptr((void*)btag_type_raw_buffer_size)
-static u8 btag_type_raw_buffer_ptr[16] = {0};
-#define mwtag_type_raw_buffer_ptr() push_ptr((void*)btag_type_raw_buffer_ptr)
 static u8 bAtom_2E_NUM[8] = {0};
 #define mwAtom_2E_NUM() push_ptr((void*)bAtom_2E_NUM)
 static u8 bArrow_2E_NUM[8] = {0};
@@ -1556,270 +1444,18 @@ static u8 bLambda_2E_NUM[8] = {0};
 #define mwLambda_2E_NUM() push_ptr((void*)bLambda_2E_NUM)
 static u8 bBlock_2E_NUM[8] = {0};
 #define mwBlock_2E_NUM() push_ptr((void*)bBlock_2E_NUM)
-static u8 barrow_token_start_buffer_size[16] = {0};
-#define mwarrow_token_start_buffer_size() push_ptr((void*)barrow_token_start_buffer_size)
-static u8 barrow_token_start_buffer_ptr[16] = {0};
-#define mwarrow_token_start_buffer_ptr() push_ptr((void*)barrow_token_start_buffer_ptr)
-static u8 barrow_token_end_buffer_size[16] = {0};
-#define mwarrow_token_end_buffer_size() push_ptr((void*)barrow_token_end_buffer_size)
-static u8 barrow_token_end_buffer_ptr[16] = {0};
-#define mwarrow_token_end_buffer_ptr() push_ptr((void*)barrow_token_end_buffer_ptr)
-static u8 barrow_ctx_buffer_size[16] = {0};
-#define mwarrow_ctx_buffer_size() push_ptr((void*)barrow_ctx_buffer_size)
-static u8 barrow_ctx_buffer_ptr[16] = {0};
-#define mwarrow_ctx_buffer_ptr() push_ptr((void*)barrow_ctx_buffer_ptr)
-static u8 barrow_dom_buffer_size[16] = {0};
-#define mwarrow_dom_buffer_size() push_ptr((void*)barrow_dom_buffer_size)
-static u8 barrow_dom_buffer_ptr[16] = {0};
-#define mwarrow_dom_buffer_ptr() push_ptr((void*)barrow_dom_buffer_ptr)
-static u8 barrow_cod_buffer_size[16] = {0};
-#define mwarrow_cod_buffer_size() push_ptr((void*)barrow_cod_buffer_size)
-static u8 barrow_cod_buffer_ptr[16] = {0};
-#define mwarrow_cod_buffer_ptr() push_ptr((void*)barrow_cod_buffer_ptr)
-static u8 barrow_atoms_buffer_size[16] = {0};
-#define mwarrow_atoms_buffer_size() push_ptr((void*)barrow_atoms_buffer_size)
-static u8 barrow_atoms_buffer_ptr[16] = {0};
-#define mwarrow_atoms_buffer_ptr() push_ptr((void*)barrow_atoms_buffer_ptr)
-static u8 batom_token_buffer_size[16] = {0};
-#define mwatom_token_buffer_size() push_ptr((void*)batom_token_buffer_size)
-static u8 batom_token_buffer_ptr[16] = {0};
-#define mwatom_token_buffer_ptr() push_ptr((void*)batom_token_buffer_ptr)
-static u8 batom_ctx_buffer_size[16] = {0};
-#define mwatom_ctx_buffer_size() push_ptr((void*)batom_ctx_buffer_size)
-static u8 batom_ctx_buffer_ptr[16] = {0};
-#define mwatom_ctx_buffer_ptr() push_ptr((void*)batom_ctx_buffer_ptr)
-static u8 batom_op_buffer_size[16] = {0};
-#define mwatom_op_buffer_size() push_ptr((void*)batom_op_buffer_size)
-static u8 batom_op_buffer_ptr[16] = {0};
-#define mwatom_op_buffer_ptr() push_ptr((void*)batom_op_buffer_ptr)
-static u8 batom_args_buffer_size[16] = {0};
-#define mwatom_args_buffer_size() push_ptr((void*)batom_args_buffer_size)
-static u8 batom_args_buffer_ptr[16] = {0};
-#define mwatom_args_buffer_ptr() push_ptr((void*)batom_args_buffer_ptr)
-static u8 batom_dom_buffer_size[16] = {0};
-#define mwatom_dom_buffer_size() push_ptr((void*)batom_dom_buffer_size)
-static u8 batom_dom_buffer_ptr[16] = {0};
-#define mwatom_dom_buffer_ptr() push_ptr((void*)batom_dom_buffer_ptr)
-static u8 batom_cod_buffer_size[16] = {0};
-#define mwatom_cod_buffer_size() push_ptr((void*)batom_cod_buffer_size)
-static u8 batom_cod_buffer_ptr[16] = {0};
-#define mwatom_cod_buffer_ptr() push_ptr((void*)batom_cod_buffer_ptr)
-static u8 batom_subst_buffer_size[16] = {0};
-#define mwatom_subst_buffer_size() push_ptr((void*)batom_subst_buffer_size)
-static u8 batom_subst_buffer_ptr[16] = {0};
-#define mwatom_subst_buffer_ptr() push_ptr((void*)batom_subst_buffer_ptr)
-static u8 blambda_token_buffer_size[16] = {0};
-#define mwlambda_token_buffer_size() push_ptr((void*)blambda_token_buffer_size)
-static u8 blambda_token_buffer_ptr[16] = {0};
-#define mwlambda_token_buffer_ptr() push_ptr((void*)blambda_token_buffer_ptr)
-static u8 blambda_outer_ctx_buffer_size[16] = {0};
-#define mwlambda_outer_ctx_buffer_size() push_ptr((void*)blambda_outer_ctx_buffer_size)
-static u8 blambda_outer_ctx_buffer_ptr[16] = {0};
-#define mwlambda_outer_ctx_buffer_ptr() push_ptr((void*)blambda_outer_ctx_buffer_ptr)
-static u8 blambda_inner_ctx_buffer_size[16] = {0};
-#define mwlambda_inner_ctx_buffer_size() push_ptr((void*)blambda_inner_ctx_buffer_size)
-static u8 blambda_inner_ctx_buffer_ptr[16] = {0};
-#define mwlambda_inner_ctx_buffer_ptr() push_ptr((void*)blambda_inner_ctx_buffer_ptr)
-static u8 blambda_dom_buffer_size[16] = {0};
-#define mwlambda_dom_buffer_size() push_ptr((void*)blambda_dom_buffer_size)
-static u8 blambda_dom_buffer_ptr[16] = {0};
-#define mwlambda_dom_buffer_ptr() push_ptr((void*)blambda_dom_buffer_ptr)
-static u8 blambda_mid_buffer_size[16] = {0};
-#define mwlambda_mid_buffer_size() push_ptr((void*)blambda_mid_buffer_size)
-static u8 blambda_mid_buffer_ptr[16] = {0};
-#define mwlambda_mid_buffer_ptr() push_ptr((void*)blambda_mid_buffer_ptr)
-static u8 blambda_cod_buffer_size[16] = {0};
-#define mwlambda_cod_buffer_size() push_ptr((void*)blambda_cod_buffer_size)
-static u8 blambda_cod_buffer_ptr[16] = {0};
-#define mwlambda_cod_buffer_ptr() push_ptr((void*)blambda_cod_buffer_ptr)
-static u8 blambda_params_buffer_size[16] = {0};
-#define mwlambda_params_buffer_size() push_ptr((void*)blambda_params_buffer_size)
-static u8 blambda_params_buffer_ptr[16] = {0};
-#define mwlambda_params_buffer_ptr() push_ptr((void*)blambda_params_buffer_ptr)
-static u8 blambda_body_buffer_size[16] = {0};
-#define mwlambda_body_buffer_size() push_ptr((void*)blambda_body_buffer_size)
-static u8 blambda_body_buffer_ptr[16] = {0};
-#define mwlambda_body_buffer_ptr() push_ptr((void*)blambda_body_buffer_ptr)
-static u8 bblock_deferred_buffer_size[16] = {0};
-#define mwblock_deferred_buffer_size() push_ptr((void*)bblock_deferred_buffer_size)
-static u8 bblock_deferred_buffer_ptr[16] = {0};
-#define mwblock_deferred_buffer_ptr() push_ptr((void*)bblock_deferred_buffer_ptr)
-static u8 bblock_forcing_buffer_size[16] = {0};
-#define mwblock_forcing_buffer_size() push_ptr((void*)bblock_forcing_buffer_size)
-static u8 bblock_forcing_buffer_ptr[16] = {0};
-#define mwblock_forcing_buffer_ptr() push_ptr((void*)bblock_forcing_buffer_ptr)
-static u8 bblock_ctx_buffer_size[16] = {0};
-#define mwblock_ctx_buffer_size() push_ptr((void*)bblock_ctx_buffer_size)
-static u8 bblock_ctx_buffer_ptr[16] = {0};
-#define mwblock_ctx_buffer_ptr() push_ptr((void*)bblock_ctx_buffer_ptr)
-static u8 bblock_token_buffer_size[16] = {0};
-#define mwblock_token_buffer_size() push_ptr((void*)bblock_token_buffer_size)
-static u8 bblock_token_buffer_ptr[16] = {0};
-#define mwblock_token_buffer_ptr() push_ptr((void*)bblock_token_buffer_ptr)
-static u8 bblock_arrow_raw_buffer_size[16] = {0};
-#define mwblock_arrow_raw_buffer_size() push_ptr((void*)bblock_arrow_raw_buffer_size)
-static u8 bblock_arrow_raw_buffer_ptr[16] = {0};
-#define mwblock_arrow_raw_buffer_ptr() push_ptr((void*)bblock_arrow_raw_buffer_ptr)
-static u8 bblock_needed_buffer_size[16] = {0};
-#define mwblock_needed_buffer_size() push_ptr((void*)bblock_needed_buffer_size)
-static u8 bblock_needed_buffer_ptr[16] = {0};
-#define mwblock_needed_buffer_ptr() push_ptr((void*)bblock_needed_buffer_ptr)
 static u8 bMatch_2E_NUM[8] = {0};
 #define mwMatch_2E_NUM() push_ptr((void*)bMatch_2E_NUM)
 static u8 bCase_2E_NUM[8] = {0};
 #define mwCase_2E_NUM() push_ptr((void*)bCase_2E_NUM)
-static u8 bmatch_ctx_buffer_size[16] = {0};
-#define mwmatch_ctx_buffer_size() push_ptr((void*)bmatch_ctx_buffer_size)
-static u8 bmatch_ctx_buffer_ptr[16] = {0};
-#define mwmatch_ctx_buffer_ptr() push_ptr((void*)bmatch_ctx_buffer_ptr)
-static u8 bmatch_dom_buffer_size[16] = {0};
-#define mwmatch_dom_buffer_size() push_ptr((void*)bmatch_dom_buffer_size)
-static u8 bmatch_dom_buffer_ptr[16] = {0};
-#define mwmatch_dom_buffer_ptr() push_ptr((void*)bmatch_dom_buffer_ptr)
-static u8 bmatch_cod_buffer_size[16] = {0};
-#define mwmatch_cod_buffer_size() push_ptr((void*)bmatch_cod_buffer_size)
-static u8 bmatch_cod_buffer_ptr[16] = {0};
-#define mwmatch_cod_buffer_ptr() push_ptr((void*)bmatch_cod_buffer_ptr)
-static u8 bmatch_token_buffer_size[16] = {0};
-#define mwmatch_token_buffer_size() push_ptr((void*)bmatch_token_buffer_size)
-static u8 bmatch_token_buffer_ptr[16] = {0};
-#define mwmatch_token_buffer_ptr() push_ptr((void*)bmatch_token_buffer_ptr)
-static u8 bmatch_cases_buffer_size[16] = {0};
-#define mwmatch_cases_buffer_size() push_ptr((void*)bmatch_cases_buffer_size)
-static u8 bmatch_cases_buffer_ptr[16] = {0};
-#define mwmatch_cases_buffer_ptr() push_ptr((void*)bmatch_cases_buffer_ptr)
-static u8 bcase_match_buffer_size[16] = {0};
-#define mwcase_match_buffer_size() push_ptr((void*)bcase_match_buffer_size)
-static u8 bcase_match_buffer_ptr[16] = {0};
-#define mwcase_match_buffer_ptr() push_ptr((void*)bcase_match_buffer_ptr)
-static u8 bcase_token_buffer_size[16] = {0};
-#define mwcase_token_buffer_size() push_ptr((void*)bcase_token_buffer_size)
-static u8 bcase_token_buffer_ptr[16] = {0};
-#define mwcase_token_buffer_ptr() push_ptr((void*)bcase_token_buffer_ptr)
-static u8 bcase_pattern_buffer_size[16] = {0};
-#define mwcase_pattern_buffer_size() push_ptr((void*)bcase_pattern_buffer_size)
-static u8 bcase_pattern_buffer_ptr[16] = {0};
-#define mwcase_pattern_buffer_ptr() push_ptr((void*)bcase_pattern_buffer_ptr)
-static u8 bcase_subst_buffer_size[16] = {0};
-#define mwcase_subst_buffer_size() push_ptr((void*)bcase_subst_buffer_size)
-static u8 bcase_subst_buffer_ptr[16] = {0};
-#define mwcase_subst_buffer_ptr() push_ptr((void*)bcase_subst_buffer_ptr)
-static u8 bcase_mid_buffer_size[16] = {0};
-#define mwcase_mid_buffer_size() push_ptr((void*)bcase_mid_buffer_size)
-static u8 bcase_mid_buffer_ptr[16] = {0};
-#define mwcase_mid_buffer_ptr() push_ptr((void*)bcase_mid_buffer_ptr)
-static u8 bcase_body_buffer_size[16] = {0};
-#define mwcase_body_buffer_size() push_ptr((void*)bcase_body_buffer_size)
-static u8 bcase_body_buffer_ptr[16] = {0};
-#define mwcase_body_buffer_ptr() push_ptr((void*)bcase_body_buffer_ptr)
 static u8 bVar_2E_NUM[8] = {0};
 #define mwVar_2E_NUM() push_ptr((void*)bVar_2E_NUM)
-static u8 bvar_is_implicit_buffer_size[16] = {0};
-#define mwvar_is_implicit_buffer_size() push_ptr((void*)bvar_is_implicit_buffer_size)
-static u8 bvar_is_implicit_buffer_ptr[16] = {0};
-#define mwvar_is_implicit_buffer_ptr() push_ptr((void*)bvar_is_implicit_buffer_ptr)
-static u8 bvar_name_buffer_size[16] = {0};
-#define mwvar_name_buffer_size() push_ptr((void*)bvar_name_buffer_size)
-static u8 bvar_name_buffer_ptr[16] = {0};
-#define mwvar_name_buffer_ptr() push_ptr((void*)bvar_name_buffer_ptr)
-static u8 bvar_type_buffer_size[16] = {0};
-#define mwvar_type_buffer_size() push_ptr((void*)bvar_type_buffer_size)
-static u8 bvar_type_buffer_ptr[16] = {0};
-#define mwvar_type_buffer_ptr() push_ptr((void*)bvar_type_buffer_ptr)
-static u8 bvar_auto_run_buffer_size[16] = {0};
-#define mwvar_auto_run_buffer_size() push_ptr((void*)bvar_auto_run_buffer_size)
-static u8 bvar_auto_run_buffer_ptr[16] = {0};
-#define mwvar_auto_run_buffer_ptr() push_ptr((void*)bvar_auto_run_buffer_ptr)
 static u8 bWord_2E_NUM[8] = {0};
 #define mwWord_2E_NUM() push_ptr((void*)bWord_2E_NUM)
-static u8 bword_name_buffer_size[16] = {0};
-#define mwword_name_buffer_size() push_ptr((void*)bword_name_buffer_size)
-static u8 bword_name_buffer_ptr[16] = {0};
-#define mwword_name_buffer_ptr() push_ptr((void*)bword_name_buffer_ptr)
-static u8 bword_sig_buffer_size[16] = {0};
-#define mwword_sig_buffer_size() push_ptr((void*)bword_sig_buffer_size)
-static u8 bword_sig_buffer_ptr[16] = {0};
-#define mwword_sig_buffer_ptr() push_ptr((void*)bword_sig_buffer_ptr)
-static u8 bword_body_buffer_size[16] = {0};
-#define mwword_body_buffer_size() push_ptr((void*)bword_body_buffer_size)
-static u8 bword_body_buffer_ptr[16] = {0};
-#define mwword_body_buffer_ptr() push_ptr((void*)bword_body_buffer_ptr)
-static u8 bword_ctx_buffer_size[16] = {0};
-#define mwword_ctx_buffer_size() push_ptr((void*)bword_ctx_buffer_size)
-static u8 bword_ctx_buffer_ptr[16] = {0};
-#define mwword_ctx_buffer_ptr() push_ptr((void*)bword_ctx_buffer_ptr)
-static u8 bword_type_buffer_size[16] = {0};
-#define mwword_type_buffer_size() push_ptr((void*)bword_type_buffer_size)
-static u8 bword_type_buffer_ptr[16] = {0};
-#define mwword_type_buffer_ptr() push_ptr((void*)bword_type_buffer_ptr)
-static u8 bword_arrow_buffer_size[16] = {0};
-#define mwword_arrow_buffer_size() push_ptr((void*)bword_arrow_buffer_size)
-static u8 bword_arrow_buffer_ptr[16] = {0};
-#define mwword_arrow_buffer_ptr() push_ptr((void*)bword_arrow_buffer_ptr)
-static u8 bword_sig_is_checked_buffer_size[16] = {0};
-#define mwword_sig_is_checked_buffer_size() push_ptr((void*)bword_sig_is_checked_buffer_size)
-static u8 bword_sig_is_checked_buffer_ptr[16] = {0};
-#define mwword_sig_is_checked_buffer_ptr() push_ptr((void*)bword_sig_is_checked_buffer_ptr)
-static u8 bword_body_is_checked_buffer_size[16] = {0};
-#define mwword_body_is_checked_buffer_size() push_ptr((void*)bword_body_is_checked_buffer_size)
-static u8 bword_body_is_checked_buffer_ptr[16] = {0};
-#define mwword_body_is_checked_buffer_ptr() push_ptr((void*)bword_body_is_checked_buffer_ptr)
-static u8 bword_body_is_checking_buffer_size[16] = {0};
-#define mwword_body_is_checking_buffer_size() push_ptr((void*)bword_body_is_checking_buffer_size)
-static u8 bword_body_is_checking_buffer_ptr[16] = {0};
-#define mwword_body_is_checking_buffer_ptr() push_ptr((void*)bword_body_is_checking_buffer_ptr)
 static u8 bTable_2E_NUM[8] = {0};
 #define mwTable_2E_NUM() push_ptr((void*)bTable_2E_NUM)
-static u8 btable_name_buffer_size[16] = {0};
-#define mwtable_name_buffer_size() push_ptr((void*)btable_name_buffer_size)
-static u8 btable_name_buffer_ptr[16] = {0};
-#define mwtable_name_buffer_ptr() push_ptr((void*)btable_name_buffer_ptr)
-static u8 btable_num_buffer_buffer_size[16] = {0};
-#define mwtable_num_buffer_buffer_size() push_ptr((void*)btable_num_buffer_buffer_size)
-static u8 btable_num_buffer_buffer_ptr[16] = {0};
-#define mwtable_num_buffer_buffer_ptr() push_ptr((void*)btable_num_buffer_buffer_ptr)
-static u8 btable_max_count_buffer_size[16] = {0};
-#define mwtable_max_count_buffer_size() push_ptr((void*)btable_max_count_buffer_size)
-static u8 btable_max_count_buffer_ptr[16] = {0};
-#define mwtable_max_count_buffer_ptr() push_ptr((void*)btable_max_count_buffer_ptr)
 static u8 bField_2E_NUM[8] = {0};
 #define mwField_2E_NUM() push_ptr((void*)bField_2E_NUM)
-static u8 bfield_sig_is_checked_buffer_size[16] = {0};
-#define mwfield_sig_is_checked_buffer_size() push_ptr((void*)bfield_sig_is_checked_buffer_size)
-static u8 bfield_sig_is_checked_buffer_ptr[16] = {0};
-#define mwfield_sig_is_checked_buffer_ptr() push_ptr((void*)bfield_sig_is_checked_buffer_ptr)
-static u8 bfield_body_is_checked_buffer_size[16] = {0};
-#define mwfield_body_is_checked_buffer_size() push_ptr((void*)bfield_body_is_checked_buffer_size)
-static u8 bfield_body_is_checked_buffer_ptr[16] = {0};
-#define mwfield_body_is_checked_buffer_ptr() push_ptr((void*)bfield_body_is_checked_buffer_ptr)
-static u8 bfield_table_sig_buffer_size[16] = {0};
-#define mwfield_table_sig_buffer_size() push_ptr((void*)bfield_table_sig_buffer_size)
-static u8 bfield_table_sig_buffer_ptr[16] = {0};
-#define mwfield_table_sig_buffer_ptr() push_ptr((void*)bfield_table_sig_buffer_ptr)
-static u8 bfield_type_sig_buffer_size[16] = {0};
-#define mwfield_type_sig_buffer_size() push_ptr((void*)bfield_type_sig_buffer_size)
-static u8 bfield_type_sig_buffer_ptr[16] = {0};
-#define mwfield_type_sig_buffer_ptr() push_ptr((void*)bfield_type_sig_buffer_ptr)
-static u8 bfield_name_buffer_size[16] = {0};
-#define mwfield_name_buffer_size() push_ptr((void*)bfield_name_buffer_size)
-static u8 bfield_name_buffer_ptr[16] = {0};
-#define mwfield_name_buffer_ptr() push_ptr((void*)bfield_name_buffer_ptr)
-static u8 bfield_table_buffer_size[16] = {0};
-#define mwfield_table_buffer_size() push_ptr((void*)bfield_table_buffer_size)
-static u8 bfield_table_buffer_ptr[16] = {0};
-#define mwfield_table_buffer_ptr() push_ptr((void*)bfield_table_buffer_ptr)
-static u8 bfield_type_buffer_size[16] = {0};
-#define mwfield_type_buffer_size() push_ptr((void*)bfield_type_buffer_size)
-static u8 bfield_type_buffer_ptr[16] = {0};
-#define mwfield_type_buffer_ptr() push_ptr((void*)bfield_type_buffer_ptr)
-static u8 bfield_buffer_size_buffer_size[16] = {0};
-#define mwfield_buffer_size_buffer_size() push_ptr((void*)bfield_buffer_size_buffer_size)
-static u8 bfield_buffer_size_buffer_ptr[16] = {0};
-#define mwfield_buffer_size_buffer_ptr() push_ptr((void*)bfield_buffer_size_buffer_ptr)
-static u8 bfield_buffer_ptr_buffer_size[16] = {0};
-#define mwfield_buffer_ptr_buffer_size() push_ptr((void*)bfield_buffer_ptr_buffer_size)
-static u8 bfield_buffer_ptr_buffer_ptr[16] = {0};
-#define mwfield_buffer_ptr_buffer_ptr() push_ptr((void*)bfield_buffer_ptr_buffer_ptr)
 static u8 bCODEGEN_FILE[8] = {0};
 #define mwCODEGEN_FILE() push_ptr((void*)bCODEGEN_FILE)
 static u8 bCODEGEN_LENGTH[8] = {0};
@@ -1830,62 +1466,10 @@ static u8 bC99_DEPTH[8] = {0};
 #define mwC99_DEPTH() push_ptr((void*)bC99_DEPTH)
 static u8 bC99_NEED_STACK[16] = {0};
 #define mwC99_NEED_STACK() push_ptr((void*)bC99_NEED_STACK)
-static u8 bc99_word_needed_buffer_size[16] = {0};
-#define mwc99_word_needed_buffer_size() push_ptr((void*)bc99_word_needed_buffer_size)
-static u8 bc99_word_needed_buffer_ptr[16] = {0};
-#define mwc99_word_needed_buffer_ptr() push_ptr((void*)bc99_word_needed_buffer_ptr)
-static u8 bc99_field_needed_buffer_size[16] = {0};
-#define mwc99_field_needed_buffer_size() push_ptr((void*)bc99_field_needed_buffer_size)
-static u8 bc99_field_needed_buffer_ptr[16] = {0};
-#define mwc99_field_needed_buffer_ptr() push_ptr((void*)bc99_field_needed_buffer_ptr)
-static u8 bc99_block_emitted_buffer_size[16] = {0};
-#define mwc99_block_emitted_buffer_size() push_ptr((void*)bc99_block_emitted_buffer_size)
-static u8 bc99_block_emitted_buffer_ptr[16] = {0};
-#define mwc99_block_emitted_buffer_ptr() push_ptr((void*)bc99_block_emitted_buffer_ptr)
-static u8 bc99_word_emitted_buffer_size[16] = {0};
-#define mwc99_word_emitted_buffer_size() push_ptr((void*)bc99_word_emitted_buffer_size)
-static u8 bc99_word_emitted_buffer_ptr[16] = {0};
-#define mwc99_word_emitted_buffer_ptr() push_ptr((void*)bc99_word_emitted_buffer_ptr)
-static u8 bc99_field_emitted_buffer_size[16] = {0};
-#define mwc99_field_emitted_buffer_size() push_ptr((void*)bc99_field_emitted_buffer_size)
-static u8 bc99_field_emitted_buffer_ptr[16] = {0};
-#define mwc99_field_emitted_buffer_ptr() push_ptr((void*)bc99_field_emitted_buffer_ptr)
 static u8 bExternal_2E_NUM[8] = {0};
 #define mwExternal_2E_NUM() push_ptr((void*)bExternal_2E_NUM)
-static u8 bexternal_name_buffer_size[16] = {0};
-#define mwexternal_name_buffer_size() push_ptr((void*)bexternal_name_buffer_size)
-static u8 bexternal_name_buffer_ptr[16] = {0};
-#define mwexternal_name_buffer_ptr() push_ptr((void*)bexternal_name_buffer_ptr)
-static u8 bexternal_type_buffer_size[16] = {0};
-#define mwexternal_type_buffer_size() push_ptr((void*)bexternal_type_buffer_size)
-static u8 bexternal_type_buffer_ptr[16] = {0};
-#define mwexternal_type_buffer_ptr() push_ptr((void*)bexternal_type_buffer_ptr)
-static u8 bexternal_sig_buffer_size[16] = {0};
-#define mwexternal_sig_buffer_size() push_ptr((void*)bexternal_sig_buffer_size)
-static u8 bexternal_sig_buffer_ptr[16] = {0};
-#define mwexternal_sig_buffer_ptr() push_ptr((void*)bexternal_sig_buffer_ptr)
-static u8 bexternal_sig_is_checked_buffer_size[16] = {0};
-#define mwexternal_sig_is_checked_buffer_size() push_ptr((void*)bexternal_sig_is_checked_buffer_size)
-static u8 bexternal_sig_is_checked_buffer_ptr[16] = {0};
-#define mwexternal_sig_is_checked_buffer_ptr() push_ptr((void*)bexternal_sig_is_checked_buffer_ptr)
-static u8 bexternal_ctx_buffer_size[16] = {0};
-#define mwexternal_ctx_buffer_size() push_ptr((void*)bexternal_ctx_buffer_size)
-static u8 bexternal_ctx_buffer_ptr[16] = {0};
-#define mwexternal_ctx_buffer_ptr() push_ptr((void*)bexternal_ctx_buffer_ptr)
 static u8 bAB_ARROW[16] = {0};
 #define mwAB_ARROW() push_ptr((void*)bAB_ARROW)
-static u8 bprim_name_buffer_size[16] = {0};
-#define mwprim_name_buffer_size() push_ptr((void*)bprim_name_buffer_size)
-static u8 bprim_name_buffer_ptr[16] = {0};
-#define mwprim_name_buffer_ptr() push_ptr((void*)bprim_name_buffer_ptr)
-static u8 bprim_ctx_buffer_size[16] = {0};
-#define mwprim_ctx_buffer_size() push_ptr((void*)bprim_ctx_buffer_size)
-static u8 bprim_ctx_buffer_ptr[16] = {0};
-#define mwprim_ctx_buffer_ptr() push_ptr((void*)bprim_ctx_buffer_ptr)
-static u8 bprim_type_buffer_size[16] = {0};
-#define mwprim_type_buffer_size() push_ptr((void*)bprim_type_buffer_size)
-static u8 bprim_type_buffer_ptr[16] = {0};
-#define mwprim_type_buffer_ptr() push_ptr((void*)bprim_type_buffer_ptr)
 
 i64 stat (i64, i64);
 static void mwstat (void) {
@@ -3914,7 +3498,7 @@ static void mwstat (void) {
  static void mb_mirth_2E_codegen_1387_9 (void);
  static void mb_mirth_2E_codegen_1386_9 (void);
  static void mb_mirth_2E_codegen_1328_35 (void);
- static void mb_mirth_2E_data_2E_table_41_21 (void);
+ static void mb_mirth_2E_data_2E_table_38_21 (void);
  static void mb_mirth_2E_codegen_1297_25 (void);
  static void mb_mirth_2E_codegen_1309_25 (void);
  static void mb_mirth_2E_codegen_1459_9 (void);
@@ -4273,9 +3857,9 @@ static void mwstat (void) {
  static void mb_mirth_2E_elab_672_27 (void);
  static void mb_mirth_2E_elab_675_17 (void);
  static void mb_mirth_2E_elab_681_17 (void);
- static void mb_mirth_2E_elab_1397_21 (void);
- static void mb_mirth_2E_elab_1399_23 (void);
- static void mb_mirth_2E_elab_1400_23 (void);
+ static void mb_mirth_2E_elab_1391_21 (void);
+ static void mb_mirth_2E_elab_1393_23 (void);
+ static void mb_mirth_2E_elab_1394_23 (void);
  static void mb_mirth_2E_elab_445_9 (void);
  static void mb_mirth_2E_elab_444_9 (void);
  static void mb_mirth_2E_elab_458_9 (void);
@@ -4511,8 +4095,8 @@ static void mwstat (void) {
  static void mb_mirth_2E_elab_1298_25 (void);
  static void mb_mirth_2E_elab_1316_14 (void);
  static void mb_mirth_2E_elab_1321_9 (void);
- static void mb_mirth_2E_elab_1378_9 (void);
- static void mb_mirth_2E_elab_1376_9 (void);
+ static void mb_mirth_2E_elab_1372_9 (void);
+ static void mb_mirth_2E_elab_1370_9 (void);
 
  static void mwname_str_40_ (void);
  static void mwname_str_3F_ (void);
@@ -4781,12 +4365,6 @@ static void mwstat (void) {
  static void mwfield_type_40_ (void);
  static void mwfield_type_3F_ (void);
  static void mwfield_type_21_ (void);
- static void mwfield_buffer_size_40_ (void);
- static void mwfield_buffer_size_3F_ (void);
- static void mwfield_buffer_size_21_ (void);
- static void mwfield_buffer_ptr_40_ (void);
- static void mwfield_buffer_ptr_3F_ (void);
- static void mwfield_buffer_ptr_21_ (void);
  static void mwc99_word_needed_40_ (void);
  static void mwc99_word_needed_3F_ (void);
  static void mwc99_word_needed_21_ (void);
@@ -20308,20 +19886,6 @@ static void mwfield_new_21_ (void){
     mwfield_table_sig_21_();
     mwtuck();
     mwfield_name_21_();
-    mwfield_name_3F_();
-    push_ptr("-buffer-size\0\0\0");
-    mwname_cat_21_();
-    push_i64(16LL);
-    mwbuffer_alloc_21_();
-    mwover();
-    mwfield_buffer_size_21_();
-    mwfield_name_3F_();
-    push_ptr("-buffer-ptr\0\0\0");
-    mwname_cat_21_();
-    push_i64(16LL);
-    mwbuffer_alloc_21_();
-    mwover();
-    mwfield_buffer_ptr_21_();
     mwdup();
     mwFIELD_40_();
     mwFIELDWORD();
@@ -20353,101 +19917,6 @@ static void mwname_fieldword_21_ (void){
     mwDEF_FIELDWORD();
       push_value(d1); }
     mwname_value_21_();
-}
-
-static value_t* fieldptr_field_buffer_ptr (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
-    return p+i;
-}
-
-static void mwfield_buffer_ptr_40_ (void){
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_buffer_ptr(index);
-    incref(v); push_value(v);
-}
-static void mwfield_buffer_ptr_3F_ (void){
-    mwdup();
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_buffer_ptr(index);
-    incref(v); push_value(v);
-}
-static void mwfield_buffer_ptr_21_ (void){
-    usize index = pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_buffer_ptr(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
-
-static value_t* fieldptr_field_buffer_size (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
-    return p+i;
-}
-
-static void mwfield_buffer_size_40_ (void){
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_buffer_size(index);
-    incref(v); push_value(v);
-}
-static void mwfield_buffer_size_3F_ (void){
-    mwdup();
-    usize index = pop_u64();
-    value_t v = *fieldptr_field_buffer_size(index);
-    incref(v); push_value(v);
-}
-static void mwfield_buffer_size_21_ (void){
-    usize index = pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_buffer_size(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
-
-static void mwbuffer_alloc_21_ (void){
-    mwBuffer_2E_alloc_21_();
-    mwtuck();
-    mwbuffer_size_21_();
-    mwtuck();
-    mwdup2();
-    mwbuffer_name_21_();
-    mwswap();
-    mwname_buffer_21_();
-}
-
-static void mwname_buffer_21_ (void){
-    { value_t d1 = pop_value();
-    mwDEF_BUFFER();
-      push_value(d1); }
-    mwname_value_21_();
-}
-
-static void mwBuffer_2E_alloc_21_ (void){
-    mwBuffer_2E_NUM();
-    mwprim_2E_int_2E_get();
-    push_i64(1LL);
-    mwprim_2E_int_2E_add();
-    mwprim_2E_core_2E_dup();
-    mwBuffer_2E_NUM();
-    mwprim_2E_int_2E_set();
-    mwprim_2E_unsafe_2E_cast();
 }
 
 static void mwField_2E_alloc_21_ (void){
@@ -21133,6 +20602,35 @@ static void mwtable_num_buffer_21_ (void){
     value_t oldvalue = *p;
     *p = newvalue;
     decref(oldvalue);
+}
+
+static void mwbuffer_alloc_21_ (void){
+    mwBuffer_2E_alloc_21_();
+    mwtuck();
+    mwbuffer_size_21_();
+    mwtuck();
+    mwdup2();
+    mwbuffer_name_21_();
+    mwswap();
+    mwname_buffer_21_();
+}
+
+static void mwname_buffer_21_ (void){
+    { value_t d1 = pop_value();
+    mwDEF_BUFFER();
+      push_value(d1); }
+    mwname_value_21_();
+}
+
+static void mwBuffer_2E_alloc_21_ (void){
+    mwBuffer_2E_NUM();
+    mwprim_2E_int_2E_get();
+    push_i64(1LL);
+    mwprim_2E_int_2E_add();
+    mwprim_2E_core_2E_dup();
+    mwBuffer_2E_NUM();
+    mwprim_2E_int_2E_set();
+    mwprim_2E_unsafe_2E_cast();
 }
 
 static void mb_mirth_2E_elab_1198_9 (void) {
