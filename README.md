@@ -18,8 +18,6 @@ import(platform.posix)
 
 target-c99("hello-world.c",
     "Hello, world!" str-print-ln!)
-
-# mirth-test # pout # Hello, world!
 ```
 
 
