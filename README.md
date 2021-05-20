@@ -8,6 +8,19 @@ Mirth is inspired by **Forth**, **Joy**, **Haskell**, **Idris**, **Rust**, **Lis
 
 This repository is a work-in-progress implementation of Mirth. If you are interested, please support the development of Mirth on [Patreon](https://patreon.com/typeswitch)! Thank you for your time and generosity.
 
+### Hello, world!
+
+```mirth
+||| A simple hello world program to show off the mirth language.
+module(examples.hello-world)
+import(prelude)
+import(platform.posix)
+
+target-c99("hello-world.c",
+    "Hello, world!" str-print-ln!)
+```
+
+
 ## Tools
 
 | Editor       | Source | Install                                                                                                                    | Syntax highlighting |
