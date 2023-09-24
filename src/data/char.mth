@@ -39,12 +39,10 @@ def(char-valid-wobbly, Char -- Bool,
         drop char-valid-4
     ))))
 
-char-valid-3-wobbly : Char -- Bool
-char-valid-3-wobbly = (
+def(char-valid-3-wobbly, Char -- Bool,
     dup Char->Int 0xFFC0C0F0 & 0x008080E0 ==
     swap char-codepoint-3
-    0x0800 0xFFFF in-range &&
-)
+    0x0800 0xFFFF in-range &&)
 
 def(char-valid?, Char -- Char Bool,
     dup char-valid)
@@ -61,39 +59,23 @@ def(char-valid, Char -- Bool,
         drop char-valid-4
     ))))
 
-char-valid-1 : Char -- Bool
-char-valid-2 : Char -- Bool
-char-valid-3 : Char -- Bool
-char-valid-4 : Char -- Bool
-char-valid-1 = Char->Int 0xFFFFFF80 & 0x00000000 ==
-char-valid-2 = (
+def(char-valid-1, Char -- Bool,
+    Char->Int 0xFFFFFF80 & 0x00000000 ==)
+def(char-valid-2, Char -- Bool,
     Char->Int
     dup 0xFFFFC0E0 & 0x000080C0 ==
-
-# range check:
-    swap 0x1F & 0x02 >= && # overlong
-# alternative:
-    # swap char-codepoint-2 0x80 0x7FF in-range
-    # &&
-)
-char-valid-3 = (
+    swap 0x1F & 0x02 >= # overlong
+    &&)
+def(char-valid-3, Char -- Bool,
     dup Char->Int 0xFFC0C0F0 & 0x008080E0 ==
     swap char-codepoint-3
     dup 0x0800 0xFFFF in-range # overlong
     swap 0xD800 0xDFFF in-range not # surrogate pair
-    && &&
-)
-char-valid-4 = (
+    && &&)
+def(char-valid-4, Char -- Bool,
     dup Char->Int 0xC0C0C0F8 & 0x808080F0 ==
-
-# range check:
-    # swap dup 0x3007 & 0 != # overlong
-    # swap dup 0x04 & 0 == swap 0x3003 & 0 == || # too large
-    # && &&
-# alternative:
     swap char-codepoint-4 0x10000 0x10FFFF in-range
-    &&
-)
+    &&)
 
 ||| Get the unicode codepoint of a character.
 def(char-codepoint, Char -- Int,
@@ -107,29 +89,22 @@ def(char-codepoint, Char -- Int,
         drop char-codepoint-4
     ))))
 
-char-codepoint-1 : Char -- Int
-char-codepoint-2 : Char -- Int
-char-codepoint-3 : Char -- Int
-char-codepoint-4 : Char -- Int
-char-codepoint-1 = Char->Int
-char-codepoint-2 = (
+def(char-codepoint-1, Char -- Int, Char->Int)
+def(char-codepoint-2, Char -- Int,
     Char->Int
     dup 0x3F00 & 8 >>
-    dip(0x1F & 6 <<) |
-)
-char-codepoint-3 = (
+    dip(0x1F & 6 <<) |)
+def(char-codepoint-3, Char -- Int,
     Char->Int
     dup 0x3F0000 & 16 >>
     dip(dup 0x3F00 & 2 >>
-    dip(0x0F & 12 <<)) | |
-)
-char-codepoint-4 = (
+    dip(0x0F & 12 <<)) | |)
+def(char-codepoint-4, Char -- Int,
     Char->Int
     dup 0x3F000000 & 24 >>
     dip(dup 0x3F0000 & 10 >>
     dip(dup 0x3F00 & 4 <<
-    dip(0x7 & 18 <<))) | | |
-)
+    dip(0x7 & 18 <<))) | | |)
 
 ||| Write a character. This writes 4 bytes in UTF8, happily
 ||| writing up to 3 bytes ahead. The idea is that you'll
@@ -225,61 +200,43 @@ def(is-lcurly?, Char -- Char Bool, dup Char->Int 123 ==)
 def(is-pipe?, Char -- Char Bool, dup Char->Int 124 ==)
 def(is-rcurly?, Char -- Char Bool, dup Char->Int 125 ==)
 
-is-whitespace? : Char -- Char Bool
-is-whitespace? = (
+def(is-whitespace?, Char -- Char Bool,
     dup Char->Int dup 33 <
-    dip(dip(0x100020E00) >> 0x1 & 0 !=) &&
+    dip(dip(0x100020E00) >> 0x1 & 0 !=) &&)
 # Equivalent to:
 #    is-space? or(is-tab?) or(is-return?) or(is-newline?) or(is-vtab?)
-)
 
-is-hexdigit? : Char -- Char Bool
-is-hexdigit? = is-digit? dip(is-upper-hexdigit?) || dip(is-lower-hexdigit?) ||
+def(is-hexdigit?, Char -- Char Bool,
+    is-digit?
+    dip(is-upper-hexdigit?) ||
+    dip(is-lower-hexdigit?) ||)
 
-is-sign? : Char -- Char Bool
-is-sign? = is-plus? dip(is-minus?) ||
+def(is-sign?, Char -- Char Bool,
+    is-plus? dip(is-minus?) ||)
+def(is-alpha?, Char -- Char Bool,
+    dup Char->Int 0xFFFFFFDF & 65 90 in-range)
 
-is-alpha? : Char -- Char Bool
-is-alpha? = (
-    dup Char->Int 0xFFFFFFDF & 65 90 in-range
-# Equivalent to:
-    # is-lower? dip(is-upper?) ||
-)
-
-is-string-end? : Char -- Char Bool
-is-string-end? = (
+def(is-string-end?, Char -- Char Bool,
     dup Char->Int dup 64 <
-    dip(dip(0x400000401) >> 0x1 & 0 !=) &&
+    dip(dip(0x400000401) >> 0x1 & 0 !=) &&)
 # Equivalent to:
 #   is-quote? or(is-newline?) or(is-nul?)
-)
 
-underscore : Char
-underscore = 95 Int->Char
+def(underscore, Char, 95 Int->Char)
 
 ||| An approximation of visible characters. Technically this includes a lot of
 ||| stuff that is invisible, like zero-width spaces and such.
-is-visible? : Char -- Char Bool
-is-visible? = dup Char->Int 32 >
+def(is-visible?, Char -- Char Bool,
+    dup Char->Int 32 >)
 
-is-name-char? : Char -- Char Bool
-is-name-char? = (
-    # dup Char->Int dup 64 < if(
-    #     0xFBFFECF200000000,
-    #     64 - 0x57FFFFFFD7FFFFFF
-    # ) swap >> 0x1 & 0 !=
-    # # TODO: support unicode properly
+def(is-name-char?, Char -- Char Bool,
+    is-visible? dip(is-special-char? not) &&)
 
-# (should be but isn't) equivalent to:
-    is-visible? dip(is-special-char? not) &&
-)
-
-is-special-char? : Char -- Char Bool
-is-special-char? = (
+def(is-special-char?, Char -- Char Bool,
     dup Char->Int dup 64 < if(
         0x0400130C00000000,
         64 - 0x2800000028000000
-    ) swap >> 0x1 & 0 !=
+    ) swap >> 0x1 & 0 !=)
     # TODO: support unicode properly
 
 # Equivalent to:
@@ -303,7 +260,6 @@ is-special-char? = (
     # or(is-lparen?) or(is-rparen?)
     # or(is-lsquare?) or(is-rsquare?)
     # or(is-lcurly?) or(is-rcurly?)
-)
 
 # This number:
 #
