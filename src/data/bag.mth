@@ -10,135 +10,69 @@ data Bag(v)
     BAG -> List(v)
 end
 
-unBAG : Bag(v) -- List(v)
-unBAG = match(BAG -> id)
-
-B0 : Bag(v)
-B0 = nil
-
-B1 : v -- Bag(v)
-B1 = L1 BAG
-
-B2 : v v -- Bag(v)
-B2 = order2 L2 BAG
-
-B3 : v v v -- Bag(v)
-B3 = order3 L3 BAG
-
+def(unBAG, Bag(v) -- List(v), match(BAG -> id))
+def(B0, Bag(v), nil)
+def(B1, v -- Bag(v), L1 BAG)
+def(B2, v v -- Bag(v), order2 L2 BAG)
+def(B3, v v v -- Bag(v), order3 L3 BAG)
 
 ||| Same as `Bag(v)` but non-empty.
 data Bag+(v)
     BAG+ -> List+(v)
 end
 
-unBAG+ : Bag+(v) -- List+(v)
-unBAG+ = match(BAG+ -> id)
+def(unBAG+, Bag+(v) -- List+(v), match(BAG+ -> id))
+def(B1+, v -- Bag+(v), L1+ BAG+)
+def(B2+, v v -- Bag+(v), order2 L2+ BAG+)
+def(B3+, v v v -- Bag+(v), order3 L3+ BAG+)
 
-B1+ : v -- Bag+(v)
-B1+ = L1+ BAG+
+def(Bag+->Bag, Bag+(v) -- Bag(v), unBAG+ List+->List BAG)
+def(Bag->Bag+, Bag(v) -- Maybe(Bag+(v)), unBAG List->List+ maybe-map(BAG+))
 
-B2+ : v v -- Bag+(v)
-B2+ = order2 L2+ BAG+
+def(bag-empty, Bag(v), nil)
+def(bag-is-empty, Bag(v) -- Bool, is-nil)
+def(bag-singleton, v -- Bag(v), B1)
+def(bag-is-singleton, Bag(v) -- Bool, bag-len 1 ==)
+def(bag-is-singleton+, Bag+(v) -- Bool, bag-len+ 1 ==)
+def(bag-len, Bag(v) -- Int, unBAG len)
+def(bag-len+, Bag+(v) -- Int, unBAG+ len+)
+def(bag-len?, Bag(v) -- Bag(v) Int, dup bag-len)
+def(bag-len+?, Bag+(v) -- Bag+(v) Int, dup bag-len+)
 
-B3+ : v v v -- Bag+(v)
-B3+ = order3 L3+ BAG+
+def(bag-first, Bag(v) -- Maybe(v), unBAG first)
+def(bag-last, Bag(v) -- Maybe(v), unBAG last)
+def(bag-middle, Bag(v) -- Maybe(v), unBAG middle)
 
-Bag+->Bag : Bag+(v) -- Bag(v)
-Bag+->Bag = unBAG+ List+->List BAG
+def(bag-first+, Bag+(v) -- v, unBAG+ first+)
+def(bag-last+, Bag+(v) -- v, unBAG+ last+)
+def(bag-middle+, Bag+(v) -- v, unBAG+ middle+)
 
-Bag->Bag+ : Bag(v) -- Maybe(Bag+(v))
-Bag->Bag+ = unBAG List->List+ maybe-map(BAG+)
+def(bag-split-half-left, Bag+(v) -- Bag+(v) Bag(v),
+    unBAG+ split-half-left dip(BAG+) BAG)
+def(bag-split-half-right, Bag+(v) -- Bag(v) Bag+(v),
+    unBAG+ split-half-right dip(BAG) BAG+)
+def(bag-split-half, Bag(v) -- Bag(v) Bag(v),
+    unBAG split-half dip(BAG) BAG)
 
-bag-empty : Bag(v)
-bag-empty = nil
+def(bag-uncons, Bag+(v) -- v Bag(v), unBAG+ uncons BAG)
+def(bag-unsnoc, Bag+(v) -- Bag(v) v, unBAG+ unsnoc dip(BAG))
 
-bag-is-empty : Bag(v) -- Bool
-bag-is-empty = is-nil
+def(bag-cons, v Bag(v) -- Bag(v), swap bag-insert)
+def(bag-snoc, Bag(v) v -- Bag(v), bag-insert)
 
-bag-is-empty? : Bag(v) -- Bag(v) Bool
-bag-is-empty? = is-nil?
+def(bag-cons+, v Bag(v) -- Bag+(v), swap bag-insert+)
+def(bag-snoc+, Bag(v) v -- Bag+(v), bag-insert+)
 
-bag-singleton : v -- Bag(v)
-bag-singleton = B1
+def(bag-cons++, v Bag+(v) -- Bag+(v), swap bag-insert++)
+def(bag-snoc++, Bag+(v) v -- Bag+(v), bag-insert++)
 
-bag-is-singleton : Bag(v) -- Bool
-bag-is-singleton = bag-len 1 ==
-
-bag-is-singleton+ : Bag+(v) -- Bool
-bag-is-singleton+ = bag-len+ 1 ==
-
-bag-len : Bag(v) -- Int
-bag-len = unBAG len
-
-bag-len? : Bag(v) -- Bag(v) Int
-bag-len? = dup bag-len
-
-bag-len+ : Bag+(v) -- Int
-bag-len+ = unBAG+ len+
-
-bag-len+? : Bag+(v) -- Bag+(v) Int
-bag-len+? = dup bag-len+
-
-bag-first : Bag(v) -- Maybe(v)
-bag-first = unBAG first
-
-bag-last : Bag(v) -- Maybe(v)
-bag-last = unBAG last
-
-bag-middle : Bag(v) -- Maybe(v)
-bag-middle = unBAG middle
-
-bag-first+ : Bag+(v) -- v
-bag-first+ = unBAG+ first+
-
-bag-last+ : Bag+(v) -- v
-bag-last+ = unBAG+ last+
-
-bag-middle+ : Bag+(v) -- v
-bag-middle+ = unBAG+ middle+
-
-bag-split-half-left : Bag+(v) -- Bag+(v) Bag(v)
-bag-split-half-left = unBAG+ split-half-left dip(BAG+) BAG
-
-bag-split-half-right : Bag+(v) -- Bag(v) Bag+(v)
-bag-split-half-right = unBAG+ split-half-right dip(BAG) BAG+
-
-bag-split-half : Bag(v) -- Bag(v) Bag(v)
-bag-split-half = unBAG split-half dip(BAG) BAG
-
-bag-uncons : Bag+(v) -- v Bag(v)
-bag-uncons = unBAG+ uncons BAG
-
-bag-unsnoc : Bag+(v) -- Bag(v) v
-bag-unsnoc = unBAG+ unsnoc dip(BAG)
-
-bag-cons : v Bag(v) -- Bag(v)
-bag-cons = swap bag-insert
-
-bag-snoc : Bag(v) v -- Bag(v)
-bag-snoc = bag-insert
-
-bag-cons+ : v Bag(v) -- Bag+(v)
-bag-cons+ = swap bag-insert+
-
-bag-snoc+ : Bag(v) v -- Bag+(v)
-bag-snoc+ = bag-insert+
-
-bag-cons++ : v Bag+(v) -- Bag+(v)
-bag-cons++ = swap bag-insert++
-
-bag-snoc++ : Bag+(v) v -- Bag+(v)
-bag-snoc++ = bag-insert++
-
-bag-has : Bag(v) v -- Bool
-bag-has =
+def(bag-has, Bag(v) v -- Bool,
     swap Bag->Bag+ match(
         NONE -> drop false,
         SOME -> swap bag-has+
-    )
+    ))
 
-bag-has+ : Bag+(v) v -- Bool
-bag-has+ =
+def(bag-has+, Bag+(v) v -- Bool,
     over bag-is-singleton+ if(
         dip(bag-first+) ==,
 
@@ -149,28 +83,25 @@ bag-has+ =
             LT -> drop nip bag-has,
             GT -> drop dip(nip) bag-has+
         )
-    )
+    ))
 
-bag-has? : Bag(v) v -- Bag(v) v Bool
-bag-has? = dup2 bag-has
+def(bag-has?, Bag(v) v -- Bag(v) v Bool, dup2 bag-has)
 
 ||| Insert a value into the bag in the proper location.
 ||| Note that `bag-insert` will happily insert duplicates.
 ||| Use `bag-replace` to prevent duplicate insertion.
-bag-insert : Bag(v) v -- Bag(v)
-bag-insert = bag-insert+ Bag+->Bag
+def(bag-insert, Bag(v) v -- Bag(v),
+    bag-insert+ Bag+->Bag)
 
 ||| Same as `bag-insert` but returns a `Bag+`.
-bag-insert+ : Bag(v) v -- Bag+(v)
-bag-insert+ =
+def(bag-insert+, Bag(v) v -- Bag+(v),
     swap Bag->Bag+ match(
         NONE -> B1+,
         SOME -> swap bag-insert++
-    )
+    ))
 
 ||| Same as `bag-insert` but takes and returns a `Bag+`.
-bag-insert++ : Bag+(v) v -- Bag+(v)
-bag-insert++ =
+def(bag-insert++, Bag+(v) v -- Bag+(v),
     over bag-is-singleton+ if(
         dip(bag-first+) B2+,
 
@@ -180,52 +111,50 @@ bag-insert++ =
             drop bag-insert++ bag-cat-unsafe_+,
             drop swap dip(bag-insert+) bag-cat-unsafe+
         )
-    )
+    ))
 
 ||| Insert a value into the bag in the proper location,
 ||| unless the bag already contains this value. This
 ||| prevents introducing new duplicates. Use `bag-insert`
 ||| instead if duplicates are desirable.
-bag-replace : Bag(v) v -- Bag(v)
-bag-replace = bag-has? if(drop, bag-insert)
+def(bag-replace, Bag(v) v -- Bag(v),
+    bag-has? if(drop, bag-insert))
 
 ||| Concatenate two bags. To maintain the bag invariant,
 ||| it is necessary for the last item of the first bag
 ||| be less than or equal to the first item of the
 ||| second bag. In normal code it is recommended to
 ||| use `bag-merge` instead.
-bag-cat-unsafe : Bag(v) Bag(v) -- Bag(v)
-bag-cat-unsafe = dip(unBAG) unBAG cat BAG
+def(bag-cat-unsafe, Bag(v) Bag(v) -- Bag(v),
+    dip(unBAG) unBAG cat BAG)
 
-bag-cat-unsafe_+ : Bag(v) Bag+(v) -- Bag+(v)
-bag-cat-unsafe_+ = dip(unBAG) unBAG+ cat_+ BAG+
+def(bag-cat-unsafe_+, Bag(v) Bag+(v) -- Bag+(v),
+    dip(unBAG) unBAG+ cat_+ BAG+)
 
-bag-cat-unsafe+ : Bag+(v) Bag+(v) -- Bag+(v)
-bag-cat-unsafe+ = dip(unBAG+) unBAG+ cat+ BAG+
+def(bag-cat-unsafe+, Bag+(v) Bag+(v) -- Bag+(v),
+    dip(unBAG+) unBAG+ cat+ BAG+)
 
 ||| Put two stack items in order.
-order2 : v v -- v v
-order2 = dup2 <= if(id, swap)
+def(order2, v v -- v v,
+    dup2 <= if(id, swap))
 
 ||| Put three stack items in order.
-order3 : v v v -- v v v
-order3 = dip(order2) dup2 <= if(id, swap dip(order2))
+def(order3, v v v -- v v v,
+    dip(order2) dup2 <= if(id, swap dip(order2)))
 
 ||| Prerform lookup as an ordered map. Use the key to
 ||| find a corresponding item. Note: If multiple items
 ||| match the key, you may get any of them. There's
 ||| no guarantee it'll be the first item, last item,
 ||| middle item, etc, to match the key.
-bag-lookup-key : Bag([v k]) k -- Maybe(v)
-bag-lookup-key =
+def(bag-lookup-key, Bag([v k]) k -- Maybe(v),
     swap Bag->Bag+ match(
         NONE -> drop NONE,
         SOME -> swap bag-lookup-key+
-    )
+    ))
 
 ||| Same as `bag-lookup-key` for non-empty bags.
-bag-lookup-key+ : Bag+([v k]) k -- Maybe(v)
-bag-lookup-key+ =
+def(bag-lookup-key+, Bag+([v k]) k -- Maybe(v),
     over bag-is-singleton+ if(
         dip(bag-first+ unpack2) == if(SOME, drop NONE),
 
@@ -235,29 +164,26 @@ bag-lookup-key+ =
             LT -> dip(drop2 nip) bag-lookup-key+,
             GT -> dip(drop3) bag-lookup-key
         )
-    )
+    ))
 
 ||| See `bag-lookup-key`.
-bag-lookup-key? : Bag([v k]) k -- Bag([v k]) k Maybe(v)
-bag-lookup-key? = dup2 bag-lookup-key
-
+def(bag-lookup-key?, Bag([v k]) k -- Bag([v k]) k Maybe(v),
+    dup2 bag-lookup-key)
 
 ||| Insert key/value pair in bag, but replace an item
 ||| with a matching key if it exists.
-bag-replace-key : Bag([v k]) [v k] -- Bag([v k])
-bag-replace-key = bag-replace-key+ Bag+->Bag
+def(bag-replace-key, Bag([v k]) [v k] -- Bag([v k]),
+    bag-replace-key+ Bag+->Bag)
 
 ||| Same as `bag-replace-key` but returns a `Bag+`.
-bag-replace-key+ : Bag([v k]) [v k] -- Bag+([v k])
-bag-replace-key+ =
+def(bag-replace-key+, Bag([v k]) [v k] -- Bag+([v k]),
     swap Bag->Bag+ match(
         NONE -> B1+,
         SOME -> swap bag-replace-key++
-    )
+    ))
 
 ||| Same as `bag-replace-key` but takes and returns a `Bag+`.
-bag-replace-key++ : Bag+([v k]) [v k] -- Bag+([v k])
-bag-replace-key++ =
+def(bag-replace-key++, Bag+([v k]) [v k] -- Bag+([v k]),
     over bag-is-singleton+ if(
         dip(bag-first+) dup2 ==key if(
             nip B1+,
@@ -269,20 +195,16 @@ bag-replace-key++ =
             nip bag-replace-key++ bag-cat-unsafe_+,
             nip swap dip(bag-replace-key+) bag-cat-unsafe+
         )
-    )
+    ))
 
 ||| Compare two pairs by their top item (the "key").
-==key : [v k] [v k] -- Bool
-==key = dip(.0) .0 ==
+def(==key, [v k] [v k] -- Bool, dip(.0) .0 ==)
 
 ||| Compare two pairs by their top item (the "key").
-<=key : [v k] [v k] -- Bool
-<=key = dip(.0) .0 <=
+def(<=key, [v k] [v k] -- Bool, dip(.0) .0 <=)
 
 ||| Get underlying list of values from bag.
-bag-values : Bag(v) -- List(v)
-bag-values = unBAG
+def(bag-values, Bag(v) -- List(v), unBAG)
 
 ||| Get underlying non-empty list of values from non-empty bag.
-bag-values+ : Bag+(v) -- List+(v)
-bag-values+ = unBAG+
+def(bag-values+, Bag+(v) -- List+(v), unBAG+)
