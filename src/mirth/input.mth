@@ -12,7 +12,7 @@ buffer(INPUT_HANDLE, 8)
 buffer(INPUT_BUFFER, 0x2010) # a little wiggle room for boundary chars
 def(INPUT_BUFFER_SIZE, Size, 0x2000)
 
-def(input-isopen@, Bool +Input, INPUT_ISOPEN int@ nonzero)
+def(input-isopen@, Bool +Input, INPUT_ISOPEN int@ 0<>)
 def(input-length@, Size +Input, INPUT_LENGTH int@)
 def(input-offset@, Size +Input, INPUT_OFFSET int@)
 def(input-handle@, File +Input, INPUT_HANDLE int@ Int->File)

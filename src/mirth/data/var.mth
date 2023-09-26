@@ -22,6 +22,6 @@ def(var-new-implicit!, Name -- Var,
 
 def(var-is-physical?, Var -- Var Bool,
     true
-    dip(var-type? PRIM_TYPE_TYPE TPrim !=) &&
-    dip(var-type? PRIM_TYPE_STACK TPrim !=) &&
-    dip(var-type? PRIM_TYPE_EFFECT TPrim !=) &&)
+    dip(var-type? PRIM_TYPE_TYPE TPrim <>) &&
+    dip(var-type? PRIM_TYPE_STACK TPrim <>) &&
+    dip(var-type? PRIM_TYPE_EFFECT TPrim <>) &&)

@@ -6,31 +6,20 @@ data(Row, ROW -> Int)
 data(Col, COL -> Int)
 data(Location, LOCATION -> Module Row Col)
 
-Int->Row : Int -- Row
-Int->Row = ROW
+def(Int->Row, Int -- Row, ROW)
+def(Row->Int, Row -- Int, match(ROW -> id))
 
-Row->Int : Row -- Int
-Row->Int = match(ROW -> id)
+def(Int->Col, Int -- Col, COL)
+def(Col->Int, Col -- Int, match(COL -> id))
 
-Int->Col : Int -- Col
-Int->Col = COL
+def(location-pack, Module Row Col -- Location, LOCATION)
+def(location-unpack, Location -- Module Row Col, match(LOCATION -> id))
 
-Col->Int : Col -- Int
-Col->Int = match(COL -> id)
-
-location-pack : Module Row Col -- Location
-location-pack = LOCATION
-
-location-unpack : Location -- Module Row Col
-location-unpack = match(LOCATION -> id)
-
-location-trace! : Location -- +IO
-location-trace! = (
+def(location-trace!, Location --,
     location-unpack
     rotr swap
     module-source-path Path->Str str-trace!
     ":" str-trace!
     Row->Int int-trace!
     ":" str-trace!
-    Col->Int int-trace!
-)
+    Col->Int int-trace!)

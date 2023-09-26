@@ -3,33 +3,29 @@ module(tests.pattern-matching)
 import(prelude)
 import(platform.posix)
 
-data Foo
-    FOO0
-    FOO1 -> Int
-    FOO2 -> Int Int
-    FOO3 -> Int Int Int
-end
+data(Foo,
+    FOO0,
+    FOO1 -> Int,
+    FOO2 -> Int Int,
+    FOO3 -> Int Int Int)
 
-foo-sum : Foo -- Int
-foo-sum =
+def(foo-sum, Foo -- Int,
     match(
         FOO0 -> 0,
         FOO1 -> id,
         FOO2 -> +,
         FOO3 -> + +,
-    )
+    ))
 
-foo-tag : Foo -- Str
-foo-tag =
+def(foo-tag, Foo -- Str,
     match(
         FOO0 -> "FOO0",
         FOO1 -> drop "FOO1",
         FOO2 -> drop2 "FOO2",
         _ -> drop "FOO3"
-    )
+    ))
 
-foo-display : Foo -- +IO
-foo-display = (
+def(foo-display, Foo --,
     dup foo-tag str-print!
     ", sum = " str-print!
     dup foo-sum int-print!
@@ -49,19 +45,16 @@ foo-display = (
             dip2(int-print!) " " str-print!
             dip(int-print!) " " str-print!
             int-print! " ]" str-print-ln!,
-    )
-)
+    ))
 
-main : +IO
-main = (
+def(main, --,
     FOO0 foo-display
     10 FOO1 foo-display
     20 FOO1 foo-display
     30 12 FOO2 foo-display
     40 60 FOO2 foo-display
     90 90 20 FOO3 foo-display
-    9000 0 1 FOO3 foo-display
-)
+    9000 0 1 FOO3 foo-display)
 
 target-c99("pattern-matching.c", main)
 # mirth-test # pout # FOO0, sum = 0, values = []

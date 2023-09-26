@@ -6,9 +6,7 @@ import(data.maybe)
 ||| A bag is a set where items can appear more than once.
 ||| Bags are represented by sorted lists, where the sorting
 ||| is done by the generic order relation on values (<=).
-data Bag(v)
-    BAG -> List(v)
-end
+data(Bag(v), BAG -> List(v))
 
 def(unBAG, Bag(v) -- List(v), match(BAG -> id))
 def(B0, Bag(v), nil)

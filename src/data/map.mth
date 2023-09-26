@@ -6,54 +6,21 @@ import(data.bag)
 ||| has at most one value it corresponds to. Maps are
 ||| represented as bags, but with the condition that
 ||| no two pairs share the same key.
-data Map(k,v)
-    MAP -> Bag([v k])
-end
+data(Map(k,v), MAP -> Bag([v k]))
 
-unMAP : Map(k,v) -- Bag([v k])
-unMAP = match(MAP -> id)
-
-map-empty : Map(k,v)
-map-empty = nil
-
-map-is-empty : Map(k,v) -- Bool
-map-is-empty = is-nil
-
-map-is-empty? : Map(k,v) -- Map(k,v) Bool
-map-is-empty? = is-nil?
-
-map-singleton : [v k] -- Map(k,v)
-map-singleton = B1 MAP
-
-map-is-singleton : Map(k,v) -- Bool
-map-is-singleton = unMAP bag-is-singleton
-
-map-has : Map(k,v) k -- Bool
-map-has = map-lookup is-some
-
-map-has? : Map(k,v) k -- Map(k,v) k Bool
-map-has? = dup2 map-has
-
-map-lookup : Map(k,v) k -- Maybe(v)
-map-lookup = dip(unMAP) bag-lookup-key
-
-map-lookup? : Map(k,v) k -- Map(k,v) k Maybe(v)
-map-lookup? = dup2 map-lookup
-
-map-insert : Map(k,v) [v k] -- Map(k,v)
-map-insert = dip(unMAP) bag-replace-key MAP
-
-map-cons : [v k] Map(k,v) -- Map(k,v)
-map-cons = swap map-insert
-
-map-snoc : Map(k,v) [v k] -- Map(k,v)
-map-snoc = map-insert
-
-map-pairs : Map(k,v) -- List([v k])
-map-pairs = unMAP bag-values
-
-map-keys : Map(k,v) -- List(k)
-map-keys = map-pairs [.0] map
-
-map-values : Map(k,v) -- List(v)
-map-values = map-pairs [.1] map
+def(unMAP, Map(k,v) -- Bag([v k]), match(MAP -> id))
+def(map-empty, Map(k,v), nil)
+def(map-is-empty, Map(k,v) -- Bool, is-nil)
+def(map-is-empty?, Map(k,v) -- Map(k,v) Bool, is-nil?)
+def(map-singleton, [v k] -- Map(k,v), B1 MAP)
+def(map-is-singleton, Map(k,v) -- Bool, unMAP bag-is-singleton)
+def(map-has, Map(k,v) k -- Bool, map-lookup is-some)
+def(map-has?, Map(k,v) k -- Map(k,v) k Bool, dup2 map-has)
+def(map-lookup, Map(k,v) k -- Maybe(v), dip(unMAP) bag-lookup-key)
+def(map-lookup?, Map(k,v) k -- Map(k,v) k Maybe(v), dup2 map-lookup)
+def(map-insert, Map(k,v) [v k] -- Map(k,v), dip(unMAP) bag-replace-key MAP)
+def(map-cons, [v k] Map(k,v) -- Map(k,v), swap map-insert)
+def(map-snoc, Map(k,v) [v k] -- Map(k,v), map-insert)
+def(map-pairs, Map(k,v) -- List([v k]), unMAP bag-values)
+def(map-keys, Map(k,v) -- List(k), map-pairs map(.0))
+def(map-values, Map(k,v) -- List(v), map-pairs map(.1))

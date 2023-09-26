@@ -16,8 +16,7 @@ def(expect!, Str Int Int --,
 def(mod-div-property, Str Int Int --,
     dup2 dup2 % dip(/ *) + swap expect!)
 
-arithmetic-test : --
-arithmetic-test = (
+def(arithmetic-test, --,
     # Addition
     " 10 10 +" 10 10 + 20 expect!
 
@@ -135,7 +134,6 @@ arithmetic-test = (
     "mod-div-property  17  5"  17  5 mod-div-property
     "mod-div-property -17  5" -17  5 mod-div-property
     "mod-div-property  17 -5"  17 -5 mod-div-property
-    "mod-div-property -17 -5" -17 -5 mod-div-property
-)
+    "mod-div-property -17 -5" -17 -5 mod-div-property)
 
 target-c99("test-arithmetic.c", arithmetic-test)

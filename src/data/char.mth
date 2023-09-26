@@ -202,7 +202,7 @@ def(is-rcurly?, Char -- Char Bool, dup Char->Int 125 ==)
 
 def(is-whitespace?, Char -- Char Bool,
     dup Char->Int dup 33 <
-    dip(dip(0x100020E00) >> 0x1 & 0 !=) &&)
+    dip(dip(0x100020E00) >> 0x1 & 0 <>) &&)
 # Equivalent to:
 #    is-space? or(is-tab?) or(is-return?) or(is-newline?) or(is-vtab?)
 
@@ -218,7 +218,7 @@ def(is-alpha?, Char -- Char Bool,
 
 def(is-string-end?, Char -- Char Bool,
     dup Char->Int dup 64 <
-    dip(dip(0x400000401) >> 0x1 & 0 !=) &&)
+    dip(dip(0x400000401) >> 0x1 & 0 <>) &&)
 # Equivalent to:
 #   is-quote? or(is-newline?) or(is-nul?)
 
@@ -236,13 +236,13 @@ def(is-special-char?, Char -- Char Bool,
     dup Char->Int dup 64 < if(
         0x0400130C00000000,
         64 - 0x2800000028000000
-    ) swap >> 0x1 & 0 !=)
+    ) swap >> 0x1 & 0 <>)
     # TODO: support unicode properly
 
 # Equivalent to:
     # dup Char->Int 64 < if(
-    #     dup Char->Int dip(0x0400130C00000000) >> 0x1 & 0 !=,
-    #     dup Char->Int 64 - dip(0x2800000028000000) >> 0x1 & 0 !=
+    #     dup Char->Int dip(0x0400130C00000000) >> 0x1 & 0 <>,
+    #     dup Char->Int 64 - dip(0x2800000028000000) >> 0x1 & 0 <>
     # )
 
 # Equivalent to:

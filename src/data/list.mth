@@ -2,13 +2,12 @@ module(data.list)
 import(data.maybe)
 import(prelude)
 
-data List(t)
-    L0
-    L1 -> t
-    L2 -> t t
-    L3 -> t t t
-    LCAT -> List+(t) List+(t) Int
-end
+data(List(t),
+    L0,
+    L1 -> t,
+    L2 -> t t,
+    L3 -> t t t,
+    LCAT -> List+(t) List+(t) Int)
 
 def(L4,  t t t t                   -- List(t), L4+  List+->List)
 def(L5,  t t t t  t                -- List(t), L5+  List+->List)
@@ -20,12 +19,11 @@ def(L10, t t t t  t t t t  t t     -- List(t), L10+ List+->List)
 def(L11, t t t t  t t t t  t t t   -- List(t), L11+ List+->List)
 def(L12, t t t t  t t t t  t t t t -- List(t), L12+ List+->List)
 
-data List+(t)
-    L1+ -> t
-    L2+ -> t t
-    L3+ -> t t t
-    LCAT+ -> List+(t) List+(t) Int
-end
+data(List+(t),
+    L1+ -> t,
+    L2+ -> t t,
+    L3+ -> t t t,
+    LCAT+ -> List+(t) List+(t) Int)
 
 def(L4+,  t t t t                   -- List+(t), L2+ dip(L2+) 4  LCAT+)
 def(L5+,  t t t t  t                -- List+(t), L3+ dip(L2+) 5  LCAT+)

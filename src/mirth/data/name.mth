@@ -6,20 +6,19 @@ import(data.char)
 #########
 
 # mirth/data/name
-data NameValue
-    DEF_NONE
-    DEF_MODULE -> Module
-    DEF_TYPE -> Type
-    DEF_TAG -> Tag
-    DEF_PRIM -> Prim
-    DEF_WORD -> Word
-    DEF_BUFFER -> Buffer
-    DEF_EXTERNAL -> External
-    DEF_FIELDWORD -> FieldWord
-end
+data(Def,
+    DEF_NONE,
+    DEF_MODULE -> Module,
+    DEF_TYPE -> Type,
+    DEF_TAG -> Tag,
+    DEF_PRIM -> Prim,
+    DEF_WORD -> Word,
+    DEF_BUFFER -> Buffer,
+    DEF_EXTERNAL -> External,
+    DEF_FIELDWORD -> FieldWord)
 table(Name)
 field(name-str, Name, Str)
-field(name-value, Name, NameValue)
+field(name-def, Name, Def)
 field(name-mangle-cached, Name, Str)
 
 data(Hash, HASH -> Int)
@@ -51,7 +50,6 @@ def(name-keep-going?, Str Hash -- Str Hash Bool,
         dip(over) name-str@ str-eq not
     ))
 
-
 def(name-new!, Str -- Name,
     dup hash
     while(name-keep-going?, next-hash)
@@ -63,14 +61,14 @@ def(name-new!, Str -- Name,
     ))
 
 ||| Add string to name, creating new name.
-name-cat! : Name Str -- Name
-name-cat! = dip(name-str@) str-cat name-new!
+def(name-cat!, Name Str -- Name,
+    dip(name-str@) str-cat name-new!)
 
-name-trace! : Name -- +IO
-name-trace! = name-str@ str-trace!
+def(name-trace!, Name --,
+    name-str@ str-trace!)
 
-name-print! : Name -- +IO
-name-print! = name-str@ str-print!
+def(name-print!, Name --,
+    name-str@ str-print!)
 
 def(name-could-be-type, Name -- Bool,
     name-str@ str-head is-alpha? nip)
@@ -156,23 +154,5 @@ def(hexdigit, Int -- Char,
 ########
 
 def(name-undefined?, Name -- Name Bool,
-    name-value? match(DEF_NONE -> true, _ -> drop false))
+    name-def? match(DEF_NONE -> true, _ -> drop false))
 def(name-defined?, Name -- Name Bool, name-undefined? not)
-
-name-word! : Word Name --
-name-buffer! : Buffer Name --
-name-type! : Type Name --
-name-external! : External Name --
-name-module! : Module Name --
-name-prim! : Prim Name --
-name-tag! : Tag Name --
-name-fieldword! : FieldWord Name --
-
-name-word! = dip(DEF_WORD) name-value!
-name-buffer! = dip(DEF_BUFFER) name-value!
-name-type! = dip(DEF_TYPE) name-value!
-name-external! = dip(DEF_EXTERNAL) name-value!
-name-module! = dip(DEF_MODULE) name-value!
-name-prim! = dip(DEF_PRIM) name-value!
-name-tag! = dip(DEF_TAG) name-value!
-name-fieldword! = dip(DEF_FIELDWORD) name-value!

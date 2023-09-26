@@ -3,34 +3,21 @@ import(prelude)
 import(data.str)
 import(data.path)
 
-panic! : *a Str -- *b
-panic! = "panic: " str-trace! str-trace-ln! 1 posix-exit!
+def(panic!, *a Str -- *b,
+    "panic: " str-trace! str-trace-ln! 1 posix-exit!)
 
 data(File, FILE -> Int)
+def(Int->File, Int -- File, FILE)
+def(File->Int, File -- Int, match(FILE -> id))
 
-Int->File : Int -- File
-Int->File = FILE
+def(file@, Ptr -- File, int@ Int->File)
+def(file!, File Ptr --, dip(File->Int) int!)
 
-File->Int : File -- Int
-File->Int = match(FILE -> id)
+def(stdin, File, 0 Int->File)
+def(stdout, File, 1 Int->File)
+def(stderr, File, 2 Int->File)
 
-file@ : Ptr -- File
-file@ = int@ Int->File
-
-file! : File Ptr --
-file! = dip(File->Int) int!
-
-stdin : File
-stdin = 0 Int->File
-
-stdout : File
-stdout = 1 Int->File
-
-stderr : File
-stderr = 2 Int->File
-
-str-write! : Str File -- +IO
-str-write! = (
+def(str-write!, Str File --,
     File->Int swap dup str-size dup
     dip(dip(Str->Ptr) posix-write!) swap
     dup 0 < if(
@@ -39,29 +26,17 @@ str-write! = (
             "error: write output fewer bytes than expected!" panic!,
             id
         )
-    )
-)
+    ))
 
-str-print! : Str -- +IO
-str-print! = stdout str-write!
+def(str-print!, Str --, stdout str-write!)
+def(str-trace!, Str --, stderr str-write!)
+def(str-print-ln!, Str --, str-print! print-ln!)
+def(str-trace-ln!, Str --, str-trace! trace-ln!)
 
-str-trace! : Str -- +IO
-str-trace! = stderr str-write!
+def(print-ln!, --, "\n" str-print!)
+def(trace-ln!, --, "\n" str-trace!)
 
-str-print-ln! : Str -- +IO
-str-print-ln! = str-print! print-ln!
-
-str-trace-ln! : Str -- +IO
-str-trace-ln! = str-trace! trace-ln!
-
-print-ln! : +IO
-print-ln! = "\n" str-print!
-
-trace-ln! : +IO
-trace-ln! = "\n" str-trace!
-
-str-buf-write! : File -- +StrBuf +IO
-str-buf-write! = (
+def(str-buf-write!, File --,
     File->Int STR_BUF str-buf-length?
     posix-write!
     dup 0 < if(
@@ -70,60 +45,36 @@ str-buf-write! = (
             "error: str-buf write wrote fewer bytes than expected!" panic!,
             id
         )
-    )
-)
+    ))
 
-str-buf-print! : +StrBuf +IO
-str-buf-print! = stdout str-buf-write!
-
-str-buf-trace! : +StrBuf +IO
-str-buf-trace! = stderr str-buf-write!
-
-str-buf-read! : File -- +IO
-str-buf-read! = (
+def(str-buf-print!, --, stdout str-buf-write!)
+def(str-buf-trace!, --, stderr str-buf-write!)
+def(str-buf-read!, File --,
     File->Int str-buf-clear!
     STR_BUF STR_BUF_SIZE 1- posix-read!
     dup 0< if(
         "str-buf-read! failed" panic!,
         str-buf-length!
-    )
-)
+    ))
 
-str-buf-input! : -- +IO
-str-buf-input! = stdin str-buf-read!
+def(str-buf-input!, --, stdin str-buf-read!)
+def(print-char!, Char --, build-str!(str-buf-push-char!) str-print!)
+def(trace-char!, Char --, build-str!(str-buf-push-char!) str-trace!)
 
-print-char! : Char -- +IO
-print-char! = build-str!(str-buf-push-char!) str-print!
+def(int-write!, Int File --, dip(str-buf-int!) str-buf-write!)
+def(int-print!, Int --, stdout int-write!)
+def(int-trace!, Int --, stderr int-write!)
+def(int-print-ln!, Int --, int-print! print-ln!)
+def(int-trace-ln!, Int --, int-trace! trace-ln!)
 
-trace-char! : Char -- +IO
-trace-char! = build-str!(str-buf-push-char!) str-trace!
-
-int-write! : Int File -- +IO
-int-write! = dip(str-buf-int!) str-buf-write!
-
-int-print! : Int -- +IO
-int-print! = stdout int-write!
-
-int-trace! : Int -- +IO
-int-trace! = stderr int-write!
-
-int-print-ln! : Int -- +IO
-int-print-ln! = int-print! print-ln!
-
-int-trace-ln! : Int -- +IO
-int-trace-ln! = int-trace! trace-ln!
-
-open-file! : Str -- File +IO
-open-file! = (
+def(open-file!, Str -- File,
     0 0 posix-open!
     dup 0 < if(
         "Failed to open file!" panic!,
         Int->File
-    )
-)
+    ))
 
-create-file! : Str -- File +IO
-create-file! = (
+def(create-file!, Str -- File,
     O_WRONLY|O_CREAT|O_TRUNC
     0x1B6
         # this is the default mode for creating a file
@@ -134,28 +85,22 @@ create-file! = (
     dup 0 < if(
         "Failed to create file!" panic!,
         Int->File
-    )
-)
+    ))
 
-O_WRONLY|O_CREAT|O_TRUNC : Int
-O_WRONLY|O_CREAT|O_TRUNC =
+def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     RUNNING_OS match(
         OS_MACOS -> 0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
         OS_LINUX -> 0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
         OS_WINDOWS -> 0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
         OS_UNKNOWN -> "O_WRONLY|O_CREAT|O_TRUNC on unknown os" panic!
-    )
+    ))
 
-
-close-file! : File -- +IO
-close-file! = (
+def(close-file!, File --,
     File->Int posix-close!
     0 < if(
         "failed to close file." panic!,
         id
-    )
-)
-
+    ))
 
 ########
 # STAT #
@@ -199,100 +144,88 @@ def(st_mode@, Ptr -- U16,
 # Heap #
 ########
 
-buffer(HEAP_LENGTH, 8)
+# buffer(HEAP_LENGTH, 8)
 
-heap-length@ : Size
-heap-length@ = HEAP_LENGTH int@
+# heap-length@ : Size
+# heap-length@ = HEAP_LENGTH int@
 
-heap-length! : Size --
-heap-length! = HEAP_LENGTH int!
+# heap-length! : Size --
+# heap-length! = HEAP_LENGTH int!
 
-buffer(HEAP_BASE, 8)
+# buffer(HEAP_BASE, 8)
 
-heap-base@ : Ptr
-heap-base@ = HEAP_BASE ptr@
+# heap-base@ : Ptr
+# heap-base@ = HEAP_BASE ptr@
 
-heap-base! : Ptr --
-heap-base! = HEAP_BASE ptr!
+# heap-base! : Ptr --
+# heap-base! = HEAP_BASE ptr!
 
-buffer(HEAP_TIMES_EXPANDED, 8)
+# heap-base@ : Ptr
 
-heap-times-expanded@ : Int
-heap-times-expanded@ = HEAP_TIMES_EXPANDED int@
+# buffer(HEAP_TIMES_EXPANDED, 8)
 
-heap-times-expanded! : Int --
-heap-times-expanded! = HEAP_TIMES_EXPANDED int!
+# def(heap-times-expanded@, Int, HEAP_TIMES_EXPANDED int@)
+# def(heap-times-expanded!, Int --, HEAP_TIMES_EXPANDED int!)
+# def(++heap-times-expanded, Int,
+#     heap-times-expanded@ 1+ dup heap-times-expanded!)
 
-++heap-times-expanded : Int
-++heap-times-expanded =
-    heap-times-expanded@ 1+ dup heap-times-expanded!
+# ||| Ensure that at at least X space on the heap is available.
+# |||
+# ||| If the space left is too small (or heap has not been allocated,
+# ||| in which the space left is 0), then it tries to make the heap
+# ||| larger in place. This usually works, but if it fails, we just
+# ||| allocate a new buffer and forget about the old one, leaking
+# ||| some memory and introducing fragmentation.
+# |||
+# ||| Panics if reservation is impossible.
+# def(heap-reserve!, Size --,
+#     dup heap-length@ <= if(
+#         drop,
 
-||| Ensure that at at least X space on the heap is available.
-|||
-||| If the space left is too small (or heap has not been allocated,
-||| in which the space left is 0), then it tries to make the heap
-||| larger in place. This usually works, but if it fails, we just
-||| allocate a new buffer and forget about the old one, leaking
-||| some memory and introducing fragmentation.
-|||
-||| Panics if reservation is impossible.
-heap-reserve! : Size --
-heap-reserve! =
-    dup heap-length@ <= if(
-        drop,
+#         heap-new-size dup # size
+#         heap-length@ heap-base@ ptr+ swap # pointer hint
+#         PROT_READ PROT_WRITE |
+#         MAP_ANON MAP_PRIVATE |
+#         -1 # file descriptor (-1 for MAP_ANONYMOUS)
+#         0 # offset
+#         posix-mmap!
+#         is-nil? not if(
+#             dup heap-length@ heap-base@ ptr+ == if(
+#                 drop heap-length@ + heap-length!,
+#                 heap-base! heap-length!
+#             ),
+#             "Failed to allocate heap buffer." panic!
+#         )
+#     ))
 
-        heap-new-size dup # size
-        heap-length@ heap-base@ ptr+ swap # pointer hint
-        PROT_READ|PROT_WRITE
-        MAP_ANON|MAP_PRIVATE
-        -1 # file descriptor (-1 for MAP_ANONYMOUS)
-        0 # offset
-        posix-mmap!
-        is-nil? not if(
-            dup heap-length@ heap-base@ ptr+ == if(
-                drop heap-length@ + heap-length!,
-                heap-base! heap-length!
-            ),
-            "Failed to allocate heap buffer." panic!
-        )
-    )
+# def(PROT_READ, Int, 0x01)
+# def(PROT_WRITE, Int, 0x02)
+# def(MAP_PRIVATE, Int, 0x0002)
+# def(MAP_ANON, Int,
+#     RUNNING_OS match(
+#         OS_MACOS -> 0x1000,
+#         _ -> drop 0x20,
+#     ))
 
-PROT_READ|PROT_WRITE : Int
-PROT_READ|PROT_WRITE = 0x3
-    # PROT_READ = 0x1, PROT_WRITE = 0x2
+# ||| Aligns a by b, rounding upward. For instance,
+# |||
+# |||   10 64 align == 64
+# |||   64 64 align == 64
+# |||   70 64 align == 128
+# def(align, Size Size -- Size,
+#     dup dip(1- + dup) % -)
 
-MAP_ANON|MAP_PRIVATE : Int
-MAP_ANON|MAP_PRIVATE =
-    RUNNING_OS match(
-        OS_MACOS ->
-            0x1002, # MAP_ANON = 0x1000, MAP_PRIVATE = 0x2
-        _ ->
-            drop 0x22, # MAP_ANON = 0x20, MAP_PRIVATE = 0x2
-    )
+# ||| Figure out how much to expand heap size by, based on a minimum size
+# ||| (i.e. requested size aligned to 4096).
+# ||| The expansion has a quadratic lower bound.
+# def(heap-new-size, Size -- Size,
+#     4096 align
+#     4096 ++heap-times-expanded dup * *
+#     max)
 
-||| Aligns a by b, rounding upward. For instance,
-|||
-|||   10 64 align == 64
-|||   64 64 align == 64
-|||   70 64 align == 128
-align : Size Size -- Size
-align = dup dip(1- + dup) % -
-
-||| Figure out how much to expand heap size by, based on a minimum size
-||| (i.e. requested size aligned to 4096).
-||| The expansion has a quadratic lower bound.
-heap-new-size : Size -- Size
-heap-new-size = (
-    4096 align
-    4096 ++heap-times-expanded square *
-    max
-)
-
-||| Allocate a buffer on the heap.
-heap-alloc! : Size -- Ptr +Heap
-heap-alloc! = (
-    64 align
-    dup heap-reserve!
-    dup heap-length@ swap - heap-length!
-    heap-base@ dup dip(swap) ptr+ heap-base!
-)
+# ||| Allocate a buffer on the heap.
+# def(heap-alloc!, Size -- Ptr,
+#     64 align
+#     dup heap-reserve!
+#     dup heap-length@ swap - heap-length!
+#     heap-base@ dup dip(swap) ptr+ heap-base!)

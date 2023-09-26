@@ -6,40 +6,26 @@ import(mirth.data.token)
 # Errors, Warnings #
 ####################
 
-buffer(num-warnings, 8)
+buffer(NUM_WARNINGS, 8)
+def(num-warnings@, Int, NUM_WARNINGS int@)
+def(num-warnings++, --, num-warnings@ 1+ NUM_WARNINGS int!)
 
-num-warnings@ : Int
-num-warnings@ = num-warnings int@
-
-num-warnings++ : --
-num-warnings++ = num-warnings@ 1+ num-warnings int!
-
-emit-warning-at! : Location Str -- +IO
-emit-warning-at! = (
+def(emit-warning-at!, Location Str --,
     dip(location-trace!)
     ": warning: " str-trace!
     str-trace-ln!
-    num-warnings++
-)
+    num-warnings++)
 
-buffer(num-errors, 8)
+buffer(NUM_ERRORS, 8)
+def(num-errors@, Int, NUM_ERRORS int@)
+def(num-errors++, --, num-errors@ 1+ NUM_ERRORS int!)
 
-num-errors@ : Int
-num-errors@ = num-errors int@
-
-num-errors++ : --
-num-errors++ = num-errors@ 1+ num-errors int!
-
-emit-error-at! : Location Str -- +IO
-emit-error-at! = (
+def(emit-error-at!, Location Str --,
     dip(location-trace!)
     ": error: " str-trace!
     str-trace-ln!
-    num-errors++
-)
+    num-errors++)
 
-emit-fatal-error-at! : *a Location Str -- *b +IO
-emit-fatal-error-at! = (
+def(emit-fatal-error-at!, *a Location Str -- *b,
     emit-error-at!
-    1 posix-exit!
-)
+    1 posix-exit!)

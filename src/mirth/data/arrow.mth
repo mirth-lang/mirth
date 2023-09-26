@@ -30,25 +30,25 @@ table(Arrow)
 table(Lambda)
 table(Block)
 
-data Arg
-    ARG_BLOCK -> Block
-    ARG_VAR_RUN -> Var
-end
-data Op
-    OP_NONE
-    OP_PRIM -> Prim
-    OP_WORD -> Word
-    OP_FIELDWORD -> FieldWord
-    OP_EXTERNAL -> External
-    OP_BUFFER -> Buffer
-    OP_INT -> Int
-    OP_STR -> Str
-    OP_TAG -> Tag
-    OP_MATCH -> Match
-    OP_LAMBDA -> Lambda
-    OP_VAR -> Var
-    OP_BLOCK -> Block
-end
+data(Arg,
+    ARG_BLOCK -> Block,
+    ARG_VAR_RUN -> Var)
+
+data(Op,
+    OP_NONE,
+    OP_PRIM -> Prim,
+    OP_WORD -> Word,
+    OP_FIELDWORD -> FieldWord,
+    OP_EXTERNAL -> External,
+    OP_BUFFER -> Buffer,
+    OP_INT -> Int,
+    OP_STR -> Str,
+    OP_TAG -> Tag,
+    OP_MATCH -> Match,
+    OP_LAMBDA -> Lambda,
+    OP_VAR -> Var,
+    OP_BLOCK -> Block)
+
 data(Param, PARAM -> Var)
 def(unPARAM, Param -- Var, match(PARAM -> id))
 def(Var->Param, Var -- Param, PARAM)
@@ -90,53 +90,45 @@ field(block-needed, Block, Bool)
 #######
 
 ||| Add arg to atom.
-atom-arg-add! : Atom Arg -- Atom
-atom-arg-add! = dip(atom-args?) snoc over atom-args!
+def(atom-arg-add!, Atom Arg -- Atom,
+    dip(atom-args?) snoc over atom-args!)
 
 ||| Add arg to last atom of arrow.
 ||| Will panic if arrow has no atoms.
-arrow-arg-add! : Arrow Arg -- Arrow
-arrow-arg-add! =
+def(arrow-arg-add!, Arrow Arg -- Arrow,
     over arrow-atoms@ last match(
         NONE -> "arrow-arg-add! on empty arrow" panic!,
         SOME -> swap atom-arg-add! drop
-    )
+    ))
 
 ||| Add atom to arrow.
-arrow-atom-add! : Arrow Atom -- Arrow
-arrow-atom-add! = dip(arrow-atoms?) snoc over arrow-atoms!
+def(arrow-atom-add!, Arrow Atom -- Arrow,
+    dip(arrow-atoms?) snoc over arrow-atoms!)
 
 #########
 # BLOCK #
 #########
 
-block-new! : Arrow -- Block
-block-new! = (
+def(block-new!, Arrow -- Block,
     Block.alloc!
     over arrow-ctx@ over block-ctx!
     over arrow-token-start@ over block-token!
-    tuck block-arrow-raw!
-)
+    tuck block-arrow-raw!)
 
-block-new-deferred! : Ctx Token -- Block
-block-new-deferred! = (
+def(block-new-deferred!, Ctx Token -- Block,
     Block.alloc!
     true over block-deferred!
     tuck block-token!
-    tuck block-ctx!
-)
+    tuck block-ctx!)
 
-block-arrow@ : Block -- Arrow
-block-arrow@ = (
+def(block-arrow@, Block -- Arrow,
     dup block-force!
-    block-arrow-raw@
-)
+    block-arrow-raw@)
 
-block-arrow? : Block -- Block Arrow
-block-arrow? = dup block-arrow@
+def(block-arrow?, Block -- Block Arrow,
+    dup block-arrow@)
 
-block-force! : Block --
-block-force! =
+def(block-force!, Block --,
     block-deferred? if(
         block-forcing? if(
             block-token@
@@ -152,10 +144,9 @@ block-force! =
             false swap block-deferred!
         ),
         drop
-    )
+    ))
 
-block-unify-type! : Gamma Block Type -- Gamma Type
-block-unify-type! =
+def(block-unify-type!, Gamma Block Type -- Gamma Type,
     swap block-deferred? if(
         block-forcing? if(
             block-token@
@@ -165,10 +156,9 @@ block-unify-type! =
             block-unify-type-aux!
         ),
         block-arrow-raw@ arrow-type swap type-unify!
-    )
+    ))
 
-block-unify-type-aux! : Gamma Type Block -- Gamma Type
-block-unify-type-aux! = (
+def(block-unify-type-aux!, Gamma Type Block -- Gamma Type,
     true over block-forcing!
     dip(over gamma-token@ elab-expand-morphism! drop)
     rotr dip(
@@ -179,8 +169,7 @@ block-unify-type-aux! = (
         dip(false swap block-deferred!)
         arrow-cod@
     )
-    type-unify!
-)
+    type-unify!)
 
 # block-force-type! : Block Type --
 #     block-deferred? if(
@@ -191,66 +180,6 @@ block-unify-type-aux! = (
 
 #     ab-build!(elab-atoms!)
 
-####################################
-# Helpers for constructing arrows. #
-####################################
-# TODO: Use an effect, or something, to elaborate these with types.
-
-atom-new-lambda! : Lambda -- Atom
-atom-new-lambda! = OP_LAMBDA Atom.alloc! tuck atom-op!
-
-atom-new-int! : Int -- Atom
-atom-new-int! = OP_INT Atom.alloc! tuck atom-op!
-
-atom-new-buffer! : Buffer -- Atom
-atom-new-buffer! = OP_BUFFER Atom.alloc! tuck atom-op!
-
-atom-new-external! : External -- Atom
-atom-new-external! = OP_EXTERNAL Atom.alloc! tuck atom-op!
-
-atom-new-prim! : Prim -- Atom
-atom-new-prim! = OP_PRIM Atom.alloc! tuck atom-op!
-
-atom-new-word! : Word -- Atom
-atom-new-word! = OP_WORD Atom.alloc! tuck atom-op!
-
-arrow-new-lambda! : Lambda -- Arrow
-arrow-new-lambda! = Arrow.alloc! swap arrow-push-lambda!
-
-arrow-new-int! : Int -- Arrow
-arrow-new-int! = Arrow.alloc! swap arrow-push-int!
-
-arrow-new-buffer! : Buffer -- Arrow
-arrow-new-buffer! = Arrow.alloc! swap arrow-push-buffer!
-
-arrow-new-external! : External -- Arrow
-arrow-new-external! = Arrow.alloc! swap arrow-push-external!
-
-arrow-new-prim! : Prim -- Arrow
-arrow-new-prim! = Arrow.alloc! swap arrow-push-prim!
-
-arrow-new-word! : Word -- Arrow
-arrow-new-word! = Arrow.alloc! swap arrow-push-word!
-
-arrow-push-lambda! : Arrow Lambda -- Arrow
-arrow-push-lambda! = atom-new-lambda! arrow-atom-add!
-
-arrow-push-int! : Arrow Int -- Arrow
-arrow-push-int! = atom-new-int! arrow-atom-add!
-
-arrow-push-buffer! : Arrow Buffer -- Arrow
-arrow-push-buffer! = atom-new-buffer! arrow-atom-add!
-
-arrow-push-external! : Arrow External -- Arrow
-arrow-push-external! = atom-new-external! arrow-atom-add!
-
-arrow-push-prim! : Arrow Prim -- Arrow
-arrow-push-prim! = atom-new-prim! arrow-atom-add!
-
-arrow-push-word! : Arrow Word -- Arrow
-arrow-push-word! = atom-new-word! arrow-atom-add!
-
-
 #########
 # MATCH #
 #########
@@ -258,10 +187,7 @@ arrow-push-word! = atom-new-word! arrow-atom-add!
 # mirth/data/type
 table(Match)
 table(Case)
-data Pattern
-    PATTERN_UNDERSCORE
-    PATTERN_TAG -> Tag
-end
+data(Pattern, PATTERN_UNDERSCORE, PATTERN_TAG -> Tag)
 
 field(match-ctx, Match, Ctx)
 field(match-dom, Match, Type)
@@ -275,87 +201,76 @@ field(case-subst, Case, Subst)
 field(case-mid, Case, Type)
 field(case-body, Case, Arrow)
 
-match-is-empty? : Match -- Match Bool
-match-is-empty? = match-cases? is-nil
-
-match-num-cases? : Match -- Match Int
-match-num-cases? = match-cases? len
-
-match-add-case! : Match Case -- Match
-match-add-case! =
+def(match-add-case!, Match Case -- Match,
     dip(match-cases?) cases-cover-case? if(
         case-token@ "Case is unreachable." emit-error! drop,
         snoc over match-cases!
-    )
+    ))
 
-match-has-default-case : Match -- Bool
-match-has-default-case = match-cases@ cases-have-default-case
+def(match-is-exhaustive?, Match -- Match Bool,
+    match-has-default-case? if(
+        true,
+        match-scrutinee-data? match(
+            SOME ->
+                data-num-tags
+                over match-cases@ len ==,
+            NONE ->
+                true # presume exhaustiveness
+        )
+    ))
 
-match-has-default-case? : Match -- Match Bool
-match-has-default-case? = dup match-has-default-case
+def(match-has-default-case?, Match -- Match Bool,
+    match-cases? cases-have-default-case)
 
 ||| Get type we're matching over.
-match-scrutinee-type? : Match -- Match Maybe(Type)
-match-scrutinee-type? =
+def(match-scrutinee-type?, Match -- Match Maybe(Type),
     match-dom? type-expand match(
         TTensor -> nip SOME,
         _ -> drop NONE
-    )
+    ))
 
 ||| Get "data" associated with scrutinee.
-match-scrutinee-data? : Match -- Match Maybe(Data)
-match-scrutinee-data? =
+def(match-scrutinee-data?, Match -- Match Maybe(Data),
     match-scrutinee-type? maybe-bind(
         type-head match(
             TData -> SOME,
             _ -> drop NONE
         )
-    )
+    ))
 
-match-is-transparent? : Match -- Match Bool
-match-is-transparent? =
+def(match-is-transparent?, Match -- Match Bool,
     match-scrutinee-data? match(
-        SOME -> data-is-transparent? nip,
+        SOME -> data-is-transparent,
         NONE -> false
-    )
+    ))
 
 ########
 # CASE #
 ########
 
-cases-cover-case? : List(Case) Case -- List(Case) Case Bool
-cases-cover-case? = dup2 cases-cover-case
+def(cases-cover-case?, List(Case) Case -- List(Case) Case Bool,
+    dup2 cases-cover-case)
 
-cases-cover-case : List(Case) Case -- Bool
-cases-cover-case = swap any(case-is-covered?) nip
-
-case-is-covered? : Case Case -- Case Case Bool
-case-is-covered? = dup2 case-is-covered
+def(cases-cover-case, List(Case) Case -- Bool,
+    swap any(dup2 case-is-covered) nip)
 
 ||| Ask whether the second case covers the first case already.
-case-is-covered : Case Case -- Bool
-case-is-covered = dip(case-pattern@) case-pattern@ pattern-is-covered
+def(case-is-covered, Case Case -- Bool,
+    dip(case-pattern@) case-pattern@ pattern-is-covered)
 
-cases-have-default-case : List(Case) -- Bool
-cases-have-default-case = any(case-is-default-case?)
+def(cases-have-default-case, List(Case) -- Bool,
+    any(dup case-is-default-case))
 
-case-is-default-case? : Case -- Case Bool
-case-is-default-case? = dup case-is-default-case
-
-case-is-default-case : Case -- Bool
-case-is-default-case = case-pattern@ PATTERN_UNDERSCORE ==
+def(case-is-default-case, Case -- Bool,
+    case-pattern@ PATTERN_UNDERSCORE ==)
 
 ###########
 # PATTERN #
 ###########
 
 ||| Asks whether the second pattern already covers the case of the first pattern.
-pattern-is-covered : Pattern Pattern -- Bool
-pattern-is-covered =
+def(pattern-is-covered, Pattern Pattern -- Bool,
     match(
         PATTERN_UNDERSCORE -> drop true,
         _ -> ==
-    )
-
-int-false-prime : Int -- Int Bool
-int-false-prime = dup 2 == or(dup 2 % 1 ==)
+    ))

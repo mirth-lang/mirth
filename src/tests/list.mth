@@ -3,39 +3,52 @@ import(prelude)
 import(data.list)
 import(platform.posix)
 
-list1 : List(Int)
-list1 = L0
+def(list1, List(Int), L0)
+def(list2, List(Int), 10 L1)
+def(list3, List(Int), 10 20 30 L3)
+def(list4, List(Int), 10 20 30 40 50 L5)
+def(list5, List(Int), 10 20 30 40 50 60 70 80 L8)
 
-list2 : List(Int)
-list2 = 10 L1
+def(list6, List(Int),
+    list3 list3 list3 list5 cat cat cat)
 
-list3 : List(Int)
-list3 = 10 20 30 L3
+def(list7, List(Int),
+    list2 list3 list2 list3 list2 list3
+    list2 list3 cat cat cat cat cat cat cat)
 
-list4 : List(Int)
-list4 = 10 20 30 40 50 L5
+def(list8, List(Int),
+    list2 list3 list2 list3 list2 list3 list2
+    list3 list3 list2 list3 list2 list3 list2
+    list3 cat cat cat cat cat cat cat cat cat
+    cat cat cat cat cat)
 
-list5 : List(Int)
-list5 = 10 20 30 40 50 60 70 80 L8
+def(list9, List(Int),
+    list2 list3 list2 list3 list2 list3 list2
+    list3 list3 list2 list3 list2 list3 list2
+    list3 list3 list2 list3 list2 list3 list2
+    list3 list3 list2 list3 list2 list3 list2
+    list3 cat cat cat cat cat cat cat cat cat
+    cat cat cat cat cat cat cat cat cat cat
+    cat cat cat cat cat cat cat cat cat)
 
-list6 : List(Int)
-list6 = list3 list3 list3 list5 cat cat cat
-
-list7 : List(Int)
-list7 = list2 list3 list2 list3 list2 list3 list2 list3 cat cat cat cat cat cat cat
-
-list8 : List(Int)
-list8 = list2 list3 list2 list3 list2 list3 list2 list3 list3 list2 list3 list2 list3 list2 list3 cat cat cat cat cat cat cat cat cat cat cat cat cat cat
-
-list9 : List(Int)
-list9 = list2 list3 list2 list3 list2 list3 list2 list3 list3 list2 list3 list2 list3 list2 list3 list3 list2 list3 list2 list3 list2 list3 list3 list2 list3 list2 list3 list2 list3 cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat
-
-list10 : List(Int)
-list10 = list2 list3 list2 list3 list2 list3 list2 list3 list3 list2 list3 list2 list3 list2 list3 list3 list2 list3 list2 list3 list2 list3 list3 list2 list3 list2 list3 list2 list3 list3 list2 list3 list2 list3 list2 list3 list3 list2 list3 list2 list3 list2 list3 list3 list2 list3 list2 list3 list2 list3 list3 list2 list3 list2 list3 list2 list3 cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat cat
+def(list10, List(Int),
+    list2 list3 list2 list3 list2 list3 list2
+    list3 list3 list2 list3 list2 list3 list2
+    list3 list3 list2 list3 list2 list3 list2
+    list3 list3 list2 list3 list2 list3 list2
+    list3 list3 list2 list3 list2 list3 list2
+    list3 list3 list2 list3 list2 list3 list2
+    list3 list3 list2 list3 list2 list3 list2
+    list3 list3 list2 list3 list2 list3 list2
+    list3 cat cat cat cat cat cat cat cat cat
+    cat cat cat cat cat cat cat cat cat cat
+    cat cat cat cat cat cat cat cat cat cat
+    cat cat cat cat cat cat cat cat cat cat
+    cat cat cat cat cat cat cat cat cat cat
+    cat cat cat cat cat cat cat)
 
 ||| Show the structure of the list.
-trace-list-struc! : List(t) -- +IO
-trace-list-struc! =
+def(trace-list-struc!, List(t) --,
     match(
         L0 -> "L0" str-trace!,
         L1 -> drop "L1" str-trace!,
@@ -45,10 +58,9 @@ trace-list-struc! =
             dip2(List+->List trace-list-struc! " " str-trace!)
             dip(List+->List trace-list-struc! " " str-trace!)
             int-trace! " LCAT" str-trace!
-    )
+    ))
 
-main : --
-main = (
+def(main, --,
     list1 trace-list-struc! trace-ln!
     list2 trace-list-struc! trace-ln!
     list3 trace-list-struc! trace-ln!
@@ -57,8 +69,7 @@ main = (
     list6 trace-list-struc! trace-ln!
     list7 trace-list-struc! trace-ln!
     list8 trace-list-struc! trace-ln!
-    list9 trace-list-struc! trace-ln!
-)
+    list9 trace-list-struc! trace-ln!)
 
 target-c99("list-test.c", main)
 # mirth-test # perr # L0

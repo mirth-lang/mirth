@@ -20,23 +20,17 @@ field(field-name, Field, Name)
 field(field-table, Field, Type)
 field(field-type, Field, Type)
 
-data FieldWord
-    FIELDWORD -> Field FieldWordName
-end
+data(FieldWord, FIELDWORD -> Field FieldWordName)
+def(unFIELDWORD, FieldWord -- Field FieldWordName, match(FIELDWORD -> id))
 
-unFIELDWORD : FieldWord -- Field FieldWordName
-unFIELDWORD = match(FIELDWORD -> id)
+data(FieldWordName,
+    FIELD@,
+    FIELD?,
+    FIELD!)
 
-data FieldWordName
-    FIELD@
-    FIELD?
-    FIELD!
-end
-
-fieldword-name@ : FieldWord -- Name
-fieldword-name@ =
+def(fieldword-name@, FieldWord -- Name,
     unFIELDWORD dip(field-name@) match(
         FIELD@ -> "@",
         FIELD? -> "?",
         FIELD! -> "!"
-    ) name-cat!
+    ) name-cat!)
