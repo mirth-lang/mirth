@@ -11,8 +11,6 @@ import(mirth.data.table)
 import(mirth.data.var)
 import(mirth.data.arrow)
 
-import(data.lazy)
-
 ####################
 # Type Elaboration #
 ####################
@@ -783,14 +781,14 @@ def(elab-module!, Module -- Module +Mirth,
     drop)
 
 ||| Check that the `module(M)` statement exists and save the name.
-def(elab-module-header!, Module Token -- Module Token +Mirth,
+def(elab-module-header!, Module Token -- Module Token,
     PRIM_SYNTAX_MODULE token-prim=? if(
         dup2 elab-module-name! token-next,
         dup "Expected module header." emit-error!
     ))
 
 ||| Check & save the module name from the module header `module(M)`.
-def(elab-module-name!, Module Token -- +Mirth,
+def(elab-module-name!, Module Token --,
     token-args-1 token-is-name? if(
         token-name?
         name-defined? if(
@@ -809,9 +807,8 @@ def(elab-module-name!, Module Token -- +Mirth,
         "Expected module name." emit-fatal-error!
     ))
 
-
 ||| Elaborate module imports. Return token after imports.
-def(elab-module-imports!, Module Token -- Module Token +Mirth,
+def(elab-module-imports!, Module Token -- Module Token,
     while(PRIM_SYNTAX_IMPORT token-prim=?, elab-module-import!))
 
 ||| Add right module as import to left module.
@@ -819,7 +816,7 @@ def(module-add-import!, Module Module --,
     dip(module-imports?) set-insert swap module-imports!)
 
 ||| Elaborate `import(M)` statement. Return token after import.
-def(elab-module-import!, Module Token -- Module Token +Mirth,
+def(elab-module-import!, Module Token -- Module Token,
     dup dip(token-next)
     token-args-1 token-value? match(
         TOKEN_NAME ->
@@ -845,11 +842,11 @@ def(elab-module-import!, Module Token -- Module Token +Mirth,
     ))
 
 ||| Elaborate the rest of the module.
-def(elab-module-decls!, Module Token -- Module Token +Mirth,
+def(elab-module-decls!, Module Token -- Module Token,
     while(token-is-module-end? not, elab-module-decl!))
 
 ||| Elaborate a declaration. Returns the next token.
-def(elab-module-decl!, Module Token -- Module Token +Mirth,
+def(elab-module-decl!, Module Token -- Module Token,
     PRIM_SYNTAX_DEF token-prim=? if( elab-def!,
     PRIM_SYNTAX_DEF_EXTERNAL token-prim=? if( elab-def-external!,
     PRIM_SYNTAX_DEF_TYPE token-prim=? if( elab-def-type!,
@@ -861,7 +858,7 @@ def(elab-module-decl!, Module Token -- Module Token +Mirth,
     "unknown declaration" emit-fatal-error!)))))))))
 
 ||| Elaborate a data definition `data T ... end` or `data(T, ...)`
-def(elab-data!, Module Token -- Module Token,
+def(elab-data!, Token -- Token,
     dup dip(
         Data.alloc! swap token-args+
         uncons dip(elab-data-header!)
@@ -869,8 +866,8 @@ def(elab-data!, Module Token -- Module Token,
         drop
     ) token-next)
 
-||| Get the header, name, arity for a data type. Doesn't move the Token.
-def(elab-data-header!, Module Data Token -- Module Data,
+||| Get the header, name, arity for a data type.
+def(elab-data-header!, Data Token -- Data,
     dup2 swap data-header!
     sig-token-is-type-con? if(id,
         "Expected type name." emit-fatal-error!)
@@ -884,7 +881,7 @@ def(elab-data-header!, Module Data Token -- Module Data,
 
 ||| Get a tag associated with a data type.
 ||| This looks like either "TAG" or "TAG -> TYPE1 ... TYPEN".
-def(elab-data-tag!, Module Data Token -- Module Data,
+def(elab-data-tag!, Data Token -- Data,
     token-is-name? if(
         token-name? name-undefined? if(
             Tag.alloc!
@@ -892,10 +889,10 @@ def(elab-data-tag!, Module Data Token -- Module Data,
             tuck tag-name!,
             drop "Name already defined. (Overlapping tags not yet supported.)" emit-fatal-error!
         )
-        { Module Data Token Tag }
+        { Data Token Tag }
         dip(over) dup2 tag-data!
         tuck dip(data-add-tag!)
-        { Module Data Token Tag }
+        { Data Token Tag }
         swap token-succ
         token-is-arrow? if(
             dip(true over tag-has-sig!)
@@ -905,7 +902,7 @@ def(elab-data-tag!, Module Data Token -- Module Data,
             nip,
             "Expected arrow, comma, or right paren." emit-fatal-error!
         ))
-        { Module Data Token },
+        { Data Token },
 
         "Expected constructor name." emit-fatal-error!
     )
@@ -924,7 +921,7 @@ def(expect-token-arrow, Token -- Token,
     token-is-arrow? if(id, "Expected arrow." emit-fatal-error!))
 
 ||| Elaborate a word definition `def(w, t, b)`.
-def(elab-def!, Module Token -- Module Token +Mirth,
+def(elab-def!, Module Token -- Module Token,
     dup dip(token-next) token-args-3
     rotl token-is-name? if(
         token-name?
@@ -942,7 +939,7 @@ def(elab-def!, Module Token -- Module Token +Mirth,
     ))
 
 ||| Elaborate an external declaration `def-external(w, t)`
-def(elab-def-external!, Module Token -- Module Token +Mirth,
+def(elab-def-external!, Module Token -- Module Token,
     dup dip(token-next) token-args-2
     swap token-is-name? if(
         token-name? name-undefined? if(
@@ -958,7 +955,7 @@ def(elab-def-external!, Module Token -- Module Token +Mirth,
     ))
 
 ||| Elaborate a type definition `def-type(t1, t2)`.
-def(elab-def-type!, Module Token -- Module Token +Mirth,
+def(elab-def-type!, Module Token -- Module Token,
     dup dip(token-next) token-args-2
     swap sig-token-is-type-con? if(
         token-name? name-undefined? if(
@@ -972,7 +969,7 @@ def(elab-def-type!, Module Token -- Module Token +Mirth,
     ))
 
 ||| Elaborate a buffer definition `buffer(B, size)`.
-def(elab-buffer!, Module Token -- Module Token +Mirth,
+def(elab-buffer!, Module Token -- Module Token,
     dup dip(token-next) token-args-2
     swap token-is-name? if(
         token-name? name-undefined? if(
@@ -984,7 +981,7 @@ def(elab-buffer!, Module Token -- Module Token +Mirth,
     ))
 
 ||| Elaborate a table definition `table(T)`.
-def(elab-table!, Module Token -- Module Token +Mirth,
+def(elab-table!, Module Token -- Module Token,
     dup dip(token-next) token-args-1
     sig-token-is-type-con? if(
         token-name@ table-new! drop,
@@ -992,7 +989,7 @@ def(elab-table!, Module Token -- Module Token +Mirth,
     ))
 
 ||| Elaborate C99 build target.
-def(elab-target-c99!, Module Token -- Module Token +Mirth,
+def(elab-target-c99!, Module Token -- Module Token,
     typecheck-everything!
 
     dup dip(token-next) token-args-2
@@ -1185,7 +1182,7 @@ def(table-new!, Name -- Table,
 #########
 
 ||| Elaborate a field definition `field(f, T1, T2)`.
-def(elab-field!, Module Token -- Module Token +Mirth,
+def(elab-field!, Module Token -- Module Token,
     dup dip(token-next)
     token-args-3 rotl token-value? match(
         TOKEN_NAME ->

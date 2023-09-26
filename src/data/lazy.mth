@@ -1,3 +1,0 @@
-module(data.lazy)
-
-import(data.mut)
