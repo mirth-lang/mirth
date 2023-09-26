@@ -12,39 +12,3 @@ data(I, I1, I2 -> Int)
 data(J, J1, J2 -> Int,)
 data(K)
 data(L,)
-
-data M
-end
-
-data N
-    N1
-end
-
-data O
-    O1,
-end
-
-data P
-    P1 -> Int
-end
-
-data Q
-    Q1 -> Int,
-end
-
-data R
-    R1
-    R2
-end
-
-data S
-    S1, S2
-end
-
-data T
-    T1 -> Int,
-    T2
-    T3, T4 -> Int Int,
-    T5 -> Int, T6
-    T7
-end

@@ -75,12 +75,11 @@ def(i32!, I32 Ptr --, prim.i32.set)
 def(i64@, Ptr -- I64, prim.i64.get)
 def(i64!, I64 Ptr --, prim.i64.set)
 
-data OS
-    OS_UNKNOWN
-    OS_WINDOWS
-    OS_LINUX
-    OS_MACOS
-end
+data(OS,
+    OS_UNKNOWN,
+    OS_WINDOWS,
+    OS_LINUX,
+    OS_MACOS)
 
 def(OS->Int, OS -- Int,
     match(

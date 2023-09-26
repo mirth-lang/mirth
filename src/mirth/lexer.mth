@@ -70,7 +70,6 @@ def(run-lexer!, Path -- Module +Lexer,
     input-end!
 
     lexer-stack-empty? if(
-        TOKEN_NEWLINE lexer-emit!
         TOKEN_NONE lexer-emit!,
 
         lexer-stack-pop!
@@ -112,7 +111,7 @@ def(lexer-next!, --,
 
     is-newline? if(
         drop
-        lexer-emit-newline!,
+        lexer-newline!,
 
     is-whitespace? if(
         drop,
@@ -162,12 +161,7 @@ def(lexer-next!, --,
 
     lexer-move!)))
 
-
-def(lexer-emit-newline!, +Lexer,
-    lexer-stack-empty? if(
-        TOKEN_NEWLINE lexer-emit!,
-        id
-    )
+def(lexer-newline!, +Lexer,
     lexer-row@ Row->Int 1+ Int->Row lexer-row!
     0 Int->Col lexer-col!)
 
@@ -428,12 +422,9 @@ def(lexer-push-string-char!, Char -- +Lexer,
         str-buf-push-char!
     ))
 
-def(lexer-skip-comment!, +Lexer,
+def(lexer-skip-comment!, --,
     while(lexer-comment-end? not, lexer-move!)
-    lexer-peek is-newline? if(
-        lexer-emit-newline! drop,
-        drop
-    ))
+    lexer-peek is-newline? if(lexer-newline!, id) drop)
 
 def(lexer-skip-doc!, +Lexer, while(lexer-comment-end? not, lexer-move!))
 

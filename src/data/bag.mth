@@ -15,9 +15,7 @@ def(B2, v v -- Bag(v), order2 L2 BAG)
 def(B3, v v v -- Bag(v), order3 L3 BAG)
 
 ||| Same as `Bag(v)` but non-empty.
-data Bag+(v)
-    BAG+ -> List+(v)
-end
+data(Bag+(v), BAG+ -> List+(v))
 
 def(unBAG+, Bag+(v) -- List+(v), match(BAG+ -> id))
 def(B1+, v -- Bag+(v), L1+ BAG+)

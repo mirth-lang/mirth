@@ -1358,8 +1358,7 @@ def(c99-decref-ctx!, Ctx -- +IO,
 data(Need,
     NEED_BLOCK -> Block,
     NEED_WORD -> Word,
-    NEED_FIELD -> Field,
-)
+    NEED_FIELD -> Field)
 
 buffer(C99_NEED_STACK, 16)
 def(need-push!, Need --, C99_NEED_STACK value@ cons C99_NEED_STACK value!)

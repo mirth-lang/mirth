@@ -554,17 +554,6 @@ def(elab-atom-block!, --,
 def(elab-block-at!, Token --,
     ab-ctx@ swap block-new-deferred! OP_BLOCK ab-op!)
 
-def(token-args, Token -- List(Token),
-    token-has-args? if(
-        token-is-name? if(token-succ, id)
-        L0 swap while (
-            token-is-right-enclosure? not,
-            token-succ dup dip(snoc)
-            token-next-arg-end
-        ) drop,
-        drop L0
-    ))
-
 def(elab-args!, --,
     ab-token@ token-args reverse-for(elab-block-at!))
 
@@ -787,7 +776,6 @@ def(elab-case-body!, Case Token -- Case Token,
 ||| Elaborate all of a module.
 def(elab-module!, Module -- Module +Mirth,
     module-start?
-    token-skip-newlines
     elab-module-header!
     elab-module-imports!
     elab-module-decls!
@@ -799,8 +787,7 @@ def(elab-module-header!, Module Token -- Module Token +Mirth,
     PRIM_SYNTAX_MODULE token-prim=? if(
         dup2 elab-module-name! token-next,
         dup "Expected module header." emit-error!
-    )
-    token-skip-newlines)
+    ))
 
 ||| Check & save the module name from the module header `module(M)`.
 def(elab-module-name!, Module Token -- +Mirth,
@@ -855,8 +842,7 @@ def(elab-module-import!, Module Token -- Module Token +Mirth,
             ),
         _ ->
             drop "expected module name" emit-fatal-error!
-    )
-    token-skip-newlines)
+    ))
 
 ||| Elaborate the rest of the module.
 def(elab-module-decls!, Module Token -- Module Token +Mirth,
@@ -872,90 +858,33 @@ def(elab-module-decl!, Module Token -- Module Token +Mirth,
     PRIM_SYNTAX_FIELD token-prim=? if( elab-field!,
     PRIM_SYNTAX_TARGET_C99 token-prim=? if(elab-target-c99!,
     PRIM_SYNTAX_DATA token-prim=? if( elab-data!,
-    token-could-be-word-sig? if(elab-decl-word-sig!,
-    token-could-be-word-def? if(elab-decl-word-def!,
-    "unknown declaration" emit-fatal-error!))))))))))
-    token-skip-newlines)
+    "unknown declaration" emit-fatal-error!)))))))))
 
 ||| Elaborate a data definition `data T ... end` or `data(T, ...)`
-def(elab-data!, Module Token -- Module Token +Mirth,
-    Data.alloc! swap
-    elab-data-header!
-    elab-data-tags!)
+def(elab-data!, Module Token -- Module Token,
+    dup dip(
+        Data.alloc! swap token-args+
+        uncons dip(elab-data-header!)
+        for(elab-data-tag!)
+        drop
+    ) token-next)
 
 ||| Get the header, name, arity for a data type. Doesn't move the Token.
-def(elab-data-header!, Module Data Token -- Module Data Token +Mirth,
-    dup2 token-has-args? if(
-        token-succ token-succ,
-        token-succ
-    )
+def(elab-data-header!, Module Data Token -- Module Data,
     dup2 swap data-header!
-    sig-token-is-type-con? if(
-        token-name?
-        name-undefined? if(
-            dip(over)
-            dup2 swap data-name!
-            dip(TData DEF_TYPE) name-def!,
-            drop "Name already defined." emit-fatal-error!
-        ),
-        drop2 "Expected type name." emit-fatal-error!
-    )
-
-    token-has-args? if(
-        # TODO check arguments are well-formed / elaborate them properly
-        token-num-args swap data-arity!,
-        drop2
-    ))
-
-||| Get the tags (i.e. constructors) associated with a data type.
-||| Moves the Token to after the data declaration.
-def(elab-data-tags!, Module Data Token -- Module Token +Mirth,
-    token-has-args? if(
-        token-succ token-succ token-next
-        token-is-rparen? if(
-            token-succ,
-        token-is-comma? if(
-            token-succ
-            elab-data-tags-body!
-            expect-token-rparen token-succ,
-            "Expected comma or right parenthesis." emit-fatal-error!
-        )),
-
-        token-succ token-next
-        expect-token-newline token-skip-newlines
-        elab-data-tags-body!
-        expect-token-end token-succ
-    )
-    nip)
-
-def(expect-token-comma, Token -- Token,
-    token-is-comma? if(id, "Expected comma." emit-fatal-error!))
-
-def(expect-token-rparen, Token -- Token,
-    token-is-rparen? if(id, "Expected right parenthesis." emit-fatal-error!))
-
-def(expect-token-newline, Token -- Token,
-    token-is-newline? if(id, "Expected newline." emit-fatal-error!))
-
-def(expect-token-end, Token -- Token,
-    PRIM_SYNTAX_END token-prim=? if(id, "Expected 'end'" emit-fatal-error!))
-
-def(expect-token-arrow, Token -- Token,
-    token-is-arrow? if(id, "Expected arrow." emit-fatal-error!))
-
-||| Get the tags (i.e. constructors) associated with a data type,
-||| from inside the data declaration, one at a time. Moves the Token
-||| to just after the last tag.
-def(elab-data-tags-body!, Module Data Token -- Module Data Token,
-    while(elab-data-tags-done? not, elab-data-tag!))
-
-def(elab-data-tags-done?, Token -- Token Bool,
-    token-is-rparen? if(true, PRIM_SYNTAX_END token-prim=?))
+    sig-token-is-type-con? if(id,
+        "Expected type name." emit-fatal-error!)
+    dup2 token-name@
+    name-undefined? if(id,
+        drop2 "Name already defined." emit-fatal-error!)
+    over TData DEF_TYPE over name-def!
+    swap data-name!
+    # TODO check header args are well-formed / elaborate them properly
+    token-num-args over data-arity!)
 
 ||| Get a tag associated with a data type.
 ||| This looks like either "TAG" or "TAG -> TYPE1 ... TYPEN".
-||| Moves the Token to after the tag declaration.
-def(elab-data-tag!, Module Data Token -- Module Data Token,
+def(elab-data-tag!, Module Data Token -- Module Data,
     token-is-name? if(
         token-name? name-undefined? if(
             Tag.alloc!
@@ -974,14 +903,25 @@ def(elab-data-tag!, Module Data Token -- Module Data Token,
             while(token-run-end? not, token-next),
         token-run-end? if(
             nip,
-            "Expected arrow, comma, right paren, or newline." emit-fatal-error!
+            "Expected arrow, comma, or right paren." emit-fatal-error!
         ))
         { Module Data Token },
 
         "Expected constructor name." emit-fatal-error!
     )
-    token-is-comma? if(token-succ, id)
-    token-skip-newlines)
+    drop)
+
+def(expect-token-comma, Token -- Token,
+    token-is-comma? if(id, "Expected comma." emit-fatal-error!))
+
+def(expect-token-rparen, Token -- Token,
+    token-is-rparen? if(id, "Expected right parenthesis." emit-fatal-error!))
+
+def(expect-token-end, Token -- Token,
+    PRIM_SYNTAX_END token-prim=? if(id, "Expected 'end'" emit-fatal-error!))
+
+def(expect-token-arrow, Token -- Token,
+    token-is-arrow? if(id, "Expected arrow." emit-fatal-error!))
 
 ||| Elaborate a word definition `def(w, t, b)`.
 def(elab-def!, Module Token -- Module Token +Mirth,
@@ -999,35 +939,6 @@ def(elab-def!, Module Token -- Module Token +Mirth,
             drop "word already defined" emit-fatal-error!
         ),
         "expected word name" emit-fatal-error!
-    ))
-
-||| Elaborate a word signature "foo : Bar -- Baz"
-def(elab-decl-word-sig!, Module Token -- Module Token +Mirth,
-    token-name? name-undefined? if(
-        Word.alloc! tuck
-        dup2 word-name!
-        DEF_WORD swap name-def!
-        dip(token-next token-succ dup) word-sig!
-        while(token-is-newline? not, token-next) token-skip-newlines,
-
-        drop "word already defined" emit-fatal-error!
-    ))
-
-||| Elaborate a word definition "foo = bar"
-def(elab-decl-word-def!, Module Token -- Module Token +Mirth,
-    token-name? name-def@ match(
-        DEF_WORD ->
-            word-body? is-nil if(
-                dip(token-next token-succ
-                    token-is-lparen? if(token-succ, token-skip-newlines)
-                    dup) word-body!
-                while(token-is-newline? not, token-next) token-skip-newlines,
-                drop "word already defined" emit-fatal-error!
-            ),
-        DEF_NONE ->
-            "missing word signature" emit-fatal-error!,
-        _ ->
-            drop "name already defined, not a word" emit-fatal-error!
     ))
 
 ||| Elaborate an external declaration `def-external(w, t)`
