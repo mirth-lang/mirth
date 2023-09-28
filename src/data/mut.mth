@@ -3,3 +3,7 @@ module(data.mut)
 def(mut-new!, t -- Mut(t), prim.mut.new)
 def(mut-get!, Mut(t) -- t, prim.mut.get)
 def(mut-set!, t Mut(t) -- Mut(t), prim.mut.set)
+
+def(mut, t -- Mut(t), prim.mut.new)
+def(@, Mut(t) -- t, prim.mut.get)
+def(!, t Mut(t) --, prim.mut.set drop)

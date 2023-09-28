@@ -268,9 +268,7 @@ def(case-is-default-case, Case -- Bool,
 # PATTERN #
 ###########
 
-||| Asks whether the second pattern already covers the case of the first pattern.
+||| Asks whether the second pattern already
+||| covers the case of the first pattern.
 def(pattern-is-covered, Pattern Pattern -- Bool,
-    match(
-        PATTERN_UNDERSCORE -> drop true,
-        _ -> ==
-    ))
+    dup PATTERN_UNDERSCORE == if(drop2 true, ==))

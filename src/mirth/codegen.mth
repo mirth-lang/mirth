@@ -1545,7 +1545,7 @@ def(c99-emit-word-def!, Word -- +IO,
 
             true over c99-word-emitted!
             word-name? .w "{" ;
-            word-arrow@ c99-emit-arrow!
+            word-arrow@ force c99-emit-arrow!
             "}" ;;
         ),
         drop

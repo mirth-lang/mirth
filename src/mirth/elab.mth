@@ -11,6 +11,8 @@ import(mirth.data.table)
 import(mirth.data.var)
 import(mirth.data.arrow)
 
+import(data.lazy)
+
 ####################
 # Type Elaboration #
 ####################
@@ -199,14 +201,13 @@ def(ab-build-word!, *a Word [ *a -- *b ] -- *b Word,
         dip(elab-expand-morphism! swap)
 
         { *a Ctx Type Token Type Word }
-        true over word-body-is-checking!
         dip(
             dip(ab-build!(f)) over
             arrow-cod? swap arrow-token-end@
             elab-type-unify! drop2
+            ready
         )
         tuck word-arrow!
-        true over word-body-is-checked!
     ))
 
 def(ab-unify-type!, Type --,
@@ -463,55 +464,12 @@ def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
         )
     ))
 
-def(elab-word-sig!, Word -- Type +Elab,
-    elab-word-ctx-sig! nip)
+def(elab-word-sig!, Word -- Type, word-type@ force)
+def(elab-word-ctx!, Word -- Ctx, word-ctx@ force)
+def(elab-word-ctx-sig!, Word -- Ctx Type,
+    word-type? force dip(word-ctx@ force))
 
-def(elab-word-ctx!, Word -- Ctx +Elab,
-    elab-word-ctx-sig! drop)
-
-def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
-    word-sig-is-checked? if(
-        word-type? dip(word-ctx@),
-
-        word-sig?
-        dip(type-elab-default)
-        elab-type-sig! drop dip(type-elab-ctx)
-        dup2 dip2(
-            rotl
-            tuck word-type!
-            tuck word-ctx!
-            true swap word-sig-is-checked!
-        )
-    ))
-
-def(try-elab-word-body!, Word -- Maybe(Arrow) +Elab,
-    word-body-is-checked? if(
-        word-arrow@ SOME,
-    word-body-is-checking? if(
-        drop NONE,
-        elab-word-body! SOME
-    )))
-
-def(elab-word-body!, Word -- Arrow +Elab,
-    word-body-is-checked? if(
-        word-arrow@,
-
-    word-body-is-checking? if(
-        word-sig@ token-prev token-prev
-        "compiler error: elab-word-body! called on word already checking"
-        emit-fatal-error!,
-
-    word-body? is-nil if(
-        word-sig@ token-prev token-prev # not very good :-/
-        "Missing word definition."
-        emit-fatal-error!,
-
-        true over word-body-is-checking!
-        dup dip(elab-word-ctx-sig!)
-        dup dip(word-body@ elab-arrow!)
-        dup2 word-arrow!
-        true swap word-body-is-checked!
-    ))))
+def(elab-word-body!, Word -- Arrow, word-arrow@ force)
 
 def(elab-arrow!, Ctx Type Token -- Arrow,
     elab-expand-morphism! elab-arrow-hom!)
@@ -923,20 +881,24 @@ def(expect-token-arrow, Token -- Token,
 ||| Elaborate a word definition `def(w, t, b)`.
 def(elab-def!, Module Token -- Module Token,
     dup dip(token-next) token-args-3
-    rotl token-is-name? if(
-        token-name?
-        name-undefined? if(
-            nip
-            Word.alloc!
-            dup2 DEF_WORD swap name-def!
-            dup dip(word-name!)
-            dup dip(word-body!)
-            word-sig!,
+    rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
+    token-name?
+    name-undefined? if(id, drop "word already defined" emit-fatal-error!)
+    nip
+    Word.alloc!
+    dup2 DEF_WORD swap name-def!
+    dup dip(word-name!)
+    dup dip(word-body!)
+    dup dip(word-sig!)
 
-            drop "word already defined" emit-fatal-error!
-        ),
-        "expected word name" emit-fatal-error!
-    ))
+    dup delay(
+        type-elab-default
+        swap word-sig@ elab-type-sig!
+        drop dip(type-elab-ctx) pack2
+    )
+    dup2 delay(force unpack2 drop) swap word-ctx!
+    dup2 delay(force unpack2 nip) swap word-type!
+    over delay2(dip(force unpack2) word-body@ elab-arrow!) swap word-arrow!)
 
 ||| Elaborate an external declaration `def-external(w, t)`
 def(elab-def-external!, Module Token -- Module Token,
@@ -1011,7 +973,7 @@ def(typecheck-name!, Name --,
         DEF_PRIM -> drop,
         DEF_TYPE -> drop,
         DEF_EXTERNAL -> elab-external-sig! drop,
-        DEF_WORD -> elab-word-body! drop,
+        DEF_WORD -> word-arrow@ force drop,
         DEF_FIELDWORD -> elab-field-word-type! drop,
         DEF_TAG -> elab-tag-sig! drop,
     ))
@@ -1038,8 +1000,7 @@ def(table-new!, Name -- Table,
     TYPE_UNIT
     TYPE_UNIT TYPE_INT TTensor
     TMorphism
-    over word-type!
-    true over word-sig-is-checked!
+    ready over word-type!
 
     ab-build-word!(
         TABLE_MAX_SIZE ab-int!
@@ -1057,8 +1018,7 @@ def(table-new!, Name -- Table,
     tuck word-name!
 
     over TTable T1 TYPE_INT T1 T->
-    over word-type!
-    true over word-sig-is-checked!
+    ready over word-type!
 
     ab-build-word! (
         PRIM_UNSAFE_CAST ab-prim!
@@ -1071,8 +1031,7 @@ def(table-new!, Name -- Table,
     tuck word-name!
 
     over TTable T1 dup T->
-    over word-type!
-    true over word-sig-is-checked!
+    ready over word-type!
 
     ab-build-word! (
         PRIM_UNSAFE_CAST ab-prim!
@@ -1093,8 +1052,7 @@ def(table-new!, Name -- Table,
     tuck word-name!
 
     over TTable T1 dup T->
-    over word-type!
-    true over word-sig-is-checked!
+    ready over word-type!
 
     ab-build-word! (
         PRIM_UNSAFE_CAST ab-prim!
@@ -1120,16 +1078,15 @@ def(table-new!, Name -- Table,
         "a" name-new! var-new-implicit!
         TYPE_STACK over var-type!
         ctx-empty over ctx-new!
-        w word-ctx!
+        ready w word-ctx!
 
         TVar \( a ->
             a a t TTable T* a T-> T* a T->
-            w word-type!
+            ready w word-type!
 
             a t TTable T* a T-> x var-type!
             true x var-auto-run!
         )
-        true w word-sig-is-checked!
 
         w ab-build-word! (
             x Var->Param L1 ab-lambda! (
@@ -1161,8 +1118,7 @@ def(table-new!, Name -- Table,
     tuck word-name!
 
     over dip(T0) TTable T1 T->
-    over word-type!
-    true over word-sig-is-checked!
+    ready over word-type!
 
     ab-build-word! (
         table-num-buffer? ab-buffer!
