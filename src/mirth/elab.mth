@@ -464,10 +464,10 @@ def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
         )
     ))
 
-def(elab-word-sig!, Word -- Type, word-type@ force)
-def(elab-word-ctx!, Word -- Ctx, word-ctx@ force)
+def(elab-word-sig!, Word -- Type, elab-word-ctx-sig! nip)
+def(elab-word-ctx!, Word -- Ctx, elab-word-ctx-sig! drop)
 def(elab-word-ctx-sig!, Word -- Ctx Type,
-    word-type? force dip(word-ctx@ force))
+    word-ctx-type@ force2)
 
 def(elab-word-body!, Word -- Arrow, word-arrow@ force)
 
@@ -896,9 +896,8 @@ def(elab-def!, Module Token -- Module Token,
         swap word-sig@ elab-type-sig!
         drop dip(type-elab-ctx) pack2
     )
-    dup2 delay(force unpack2 drop) swap word-ctx!
-    dup2 delay(force unpack2 nip) swap word-type!
-    over delay2(dip(force unpack2) word-body@ elab-arrow!) swap word-arrow!)
+    dup2 swap word-ctx-type!
+    over delay2(dip(force2) word-body@ elab-arrow!) swap word-arrow!)
 
 ||| Elaborate an external declaration `def-external(w, t)`
 def(elab-def-external!, Module Token -- Module Token,
@@ -997,10 +996,9 @@ def(table-new!, Name -- Table,
     dup2 DEF_WORD swap name-def!
     tuck word-name!
 
-    TYPE_UNIT
-    TYPE_UNIT TYPE_INT TTensor
-    TMorphism
-    ready over word-type!
+    L0 CTX
+    T0 TYPE_INT T1 T->
+    ready2 over word-ctx-type!
 
     ab-build-word!(
         TABLE_MAX_SIZE ab-int!
@@ -1017,8 +1015,9 @@ def(table-new!, Name -- Table,
     dup2 DEF_WORD swap name-def!
     tuck word-name!
 
-    over TTable T1 TYPE_INT T1 T->
-    ready over word-type!
+    L0 CTX
+    over2 TTable T1 TYPE_INT T1 T->
+    ready2 over word-ctx-type!
 
     ab-build-word! (
         PRIM_UNSAFE_CAST ab-prim!
@@ -1030,8 +1029,9 @@ def(table-new!, Name -- Table,
     dup2 DEF_WORD swap name-def!
     tuck word-name!
 
-    over TTable T1 dup T->
-    ready over word-type!
+    L0 CTX
+    over2 TTable T1 dup T->
+    ready2 over word-ctx-type!
 
     ab-build-word! (
         PRIM_UNSAFE_CAST ab-prim!
@@ -1051,8 +1051,9 @@ def(table-new!, Name -- Table,
     dup2 DEF_WORD swap name-def!
     tuck word-name!
 
-    over TTable T1 dup T->
-    ready over word-type!
+    L0 CTX
+    over2 TTable T1 dup T->
+    ready2 over word-ctx-type!
 
     ab-build-word! (
         PRIM_UNSAFE_CAST ab-prim!
@@ -1077,12 +1078,12 @@ def(table-new!, Name -- Table,
 
         "a" name-new! var-new-implicit!
         TYPE_STACK over var-type!
-        ctx-empty over ctx-new!
-        ready w word-ctx!
+        dup L1 CTX
+        swap
 
         TVar \( a ->
             a a t TTable T* a T-> T* a T->
-            ready w word-type!
+            ready2 w word-ctx-type!
 
             a t TTable T* a T-> x var-type!
             true x var-auto-run!
@@ -1117,8 +1118,9 @@ def(table-new!, Name -- Table,
     dup2 DEF_WORD swap name-def!
     tuck word-name!
 
-    over dip(T0) TTable T1 T->
-    ready over word-type!
+    L0 CTX
+    T0 over3 TTable T1 T->
+    ready2 over word-ctx-type!
 
     ab-build-word! (
         table-num-buffer? ab-buffer!

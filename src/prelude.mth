@@ -114,6 +114,9 @@ def(rotr, a b c -- c a b, swap dip(swap))
 def(rotl, a b c -- b c a, dip(swap) swap)
 
 def(over, a b -- a b a, dip(dup) swap)
+def(over2, a b1 b2 -- a b1 b2 a, dip(over) swap)
+def(over3, a b1 b2 b3 -- a b1 b2 b3 a, dip(over2) swap)
+
 def(tuck, a b -- b a b, dup dip(swap))
 
 def(nip, a b -- b, dip(drop))

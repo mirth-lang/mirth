@@ -32,8 +32,13 @@ def(force, Lazy(a) -- a,
                 "attempted to force already running thunk" panic!
         )
     ))
+def(force2, Lazy([a b]) -- a b,
+    force unpack2)
+
 def(ready, a -- Lazy(a),
     LP_READY mut LAZY)
+def(ready2, a b -- Lazy([a b]),
+    pack2 ready)
 
 def(lazy-map, Lazy(a) [a -- b] -- Lazy(b),
     delay2(dip(force) run))
