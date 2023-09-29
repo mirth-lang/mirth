@@ -733,61 +733,54 @@ def(elab-case-body!, Case Token -- Case Token,
 def(elab-module!, Module -- Module +Mirth,
     module-start?
     elab-module-header!
-    elab-module-imports!
-    elab-module-decls!
-#    typecheck-everything!
+    while(token-is-module-end? not, elab-module-decl!)
     drop)
 
 ||| Check that the `module(M)` statement exists and save the name.
-def(elab-module-header!, Module Token -- Module Token,
+def(elab-module-header!, Token -- Token,
     PRIM_SYNTAX_MODULE token-prim=? if(
-        dup2 elab-module-name! token-next,
+        dup token-args-1
+        token-is-name? if(id, "Expected module name." emit-fatal-error!)
+        token-name? name-defined?
+        if(drop "Module name already taken." emit-fatal-error!, id)
+        over token-module@
+        dup2 module-name!
+        dup2 DEF_MODULE swap name-def!
+        module-path@ Path->Str swap
+        module-path-from-name Path->Str str-eq if(drop,
+            "Module name should match path." emit-error!)
+        token-next,
         dup "Expected module header." emit-error!
     ))
 
-||| Check & save the module name from the module header `module(M)`.
-def(elab-module-name!, Module Token --,
-    token-args-1 token-is-name? if(
-        token-name?
-        name-defined? if(
-            drop "Module name already taken." emit-fatal-error!,
-            dip(swap)
-            dup2 swap module-name!
-            dup2 dip(DEF_MODULE) name-def!
-
-            # check module name matches module path
-            dip(module-path@ Path->Str)
-            module-path-from-name Path->Str str-eq if(
-                drop,
-                "Module name should match path." emit-error!
-            )
+||| Elaborate a declaration. Returns the next token.
+def(elab-module-decl!, Token -- Token,
+    token-value? match(
+        TOKEN_NAME -> name-def@ match(
+            DEF_PRIM -> prim-decl@ is-nil? if(
+                drop "unknown declaration" emit-fatal-error!,
+                run
+            ),
+            _ -> drop "unknown declaration" emit-fatal-error!
         ),
-        "Expected module name." emit-fatal-error!
+        _ -> drop "unsupported declaration" emit-fatal-error!
     ))
 
-||| Elaborate module imports. Return token after imports.
-def(elab-module-imports!, Module Token -- Module Token,
-    while(PRIM_SYNTAX_IMPORT token-prim=?, elab-module-import!))
-
-||| Add right module as import to left module.
-def(module-add-import!, Module Module --,
-    dip(module-imports?) set-insert swap module-imports!)
-
 ||| Elaborate `import(M)` statement. Return token after import.
-def(elab-module-import!, Module Token -- Module Token,
+def(elab-module-import!, Token -- Token,
     dup dip(token-next)
     token-args-1 token-value? match(
         TOKEN_NAME ->
             name-def? match(
                 DEF_MODULE ->
-                    dip(drop2 over)
+                    dip(drop2 token-module?)
                     module-add-import!,
                     # module is already loaded
 
                 DEF_NONE ->
                     module-path-from-name run-lexer!
                     elab-module!
-                    dip(drop over) module-add-import!,
+                    dip(drop token-module?) module-add-import!,
                     # elab the imported module
                     # TODO: avoid elaborating here,
                     # use a single loop to dispatch top-level module elaboration.
@@ -799,23 +792,7 @@ def(elab-module-import!, Module Token -- Module Token,
             drop "expected module name" emit-fatal-error!
     ))
 
-||| Elaborate the rest of the module.
-def(elab-module-decls!, Module Token -- Module Token,
-    while(token-is-module-end? not, elab-module-decl!))
-
-||| Elaborate a declaration. Returns the next token.
-def(elab-module-decl!, Module Token -- Module Token,
-    PRIM_SYNTAX_DEF token-prim=? if( elab-def!,
-    PRIM_SYNTAX_DEF_EXTERNAL token-prim=? if( elab-def-external!,
-    PRIM_SYNTAX_DEF_TYPE token-prim=? if( elab-def-type!,
-    PRIM_SYNTAX_BUFFER token-prim=? if( elab-buffer!,
-    PRIM_SYNTAX_TABLE token-prim=? if( elab-table!,
-    PRIM_SYNTAX_FIELD token-prim=? if( elab-field!,
-    PRIM_SYNTAX_TARGET_C99 token-prim=? if(elab-target-c99!,
-    PRIM_SYNTAX_DATA token-prim=? if( elab-data!,
-    "unknown declaration" emit-fatal-error!)))))))))
-
-||| Elaborate a data definition `data T ... end` or `data(T, ...)`
+||| Elaborate a data definition `data(T, ...)`
 def(elab-data!, Token -- Token,
     dup dip(
         Data.alloc! swap token-args+
@@ -879,7 +856,7 @@ def(expect-token-arrow, Token -- Token,
     token-is-arrow? if(id, "Expected arrow." emit-fatal-error!))
 
 ||| Elaborate a word definition `def(w, t, b)`.
-def(elab-def!, Module Token -- Module Token,
+def(elab-def!, Token -- Token,
     dup dip(token-next) token-args-3
     rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
     token-name?
@@ -900,7 +877,7 @@ def(elab-def!, Module Token -- Module Token,
     over delay2(dip(force2) word-body@ elab-arrow!) swap word-arrow!)
 
 ||| Elaborate an external declaration `def-external(w, t)`
-def(elab-def-external!, Module Token -- Module Token,
+def(elab-def-external!, Token -- Token,
     dup dip(token-next) token-args-2
     swap token-is-name? if(
         token-name? name-undefined? if(
@@ -916,7 +893,7 @@ def(elab-def-external!, Module Token -- Module Token,
     ))
 
 ||| Elaborate a type definition `def-type(t1, t2)`.
-def(elab-def-type!, Module Token -- Module Token,
+def(elab-def-type!, Token -- Token,
     dup dip(token-next) token-args-2
     swap sig-token-is-type-con? if(
         token-name? name-undefined? if(
@@ -930,7 +907,7 @@ def(elab-def-type!, Module Token -- Module Token,
     ))
 
 ||| Elaborate a buffer definition `buffer(B, size)`.
-def(elab-buffer!, Module Token -- Module Token,
+def(elab-buffer!, Token -- Token,
     dup dip(token-next) token-args-2
     swap token-is-name? if(
         token-name? name-undefined? if(
@@ -942,7 +919,7 @@ def(elab-buffer!, Module Token -- Module Token,
     ))
 
 ||| Elaborate a table definition `table(T)`.
-def(elab-table!, Module Token -- Module Token,
+def(elab-table!, Token -- Token,
     dup dip(token-next) token-args-1
     sig-token-is-type-con? if(
         token-name@ table-new! drop,
@@ -950,7 +927,7 @@ def(elab-table!, Module Token -- Module Token,
     ))
 
 ||| Elaborate C99 build target.
-def(elab-target-c99!, Module Token -- Module Token,
+def(elab-target-c99!, Token -- Token,
     typecheck-everything!
 
     dup dip(token-next) token-args-2
@@ -1140,7 +1117,7 @@ def(table-new!, Name -- Table,
 #########
 
 ||| Elaborate a field definition `field(f, T1, T2)`.
-def(elab-field!, Module Token -- Module Token,
+def(elab-field!, Token -- Token,
     dup dip(token-next)
     token-args-3 rotl token-value? match(
         TOKEN_NAME ->
