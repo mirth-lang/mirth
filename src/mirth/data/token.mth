@@ -12,10 +12,6 @@ import(data.list)
 data(TokenValue,
     TOKEN_NONE,
     TOKEN_COMMA,
-    TOKEN_COLON,
-    TOKEN_EQUAL,
-    TOKEN_ARROW,
-    TOKEN_DASHES,
     TOKEN_LPAREN -> Token,
     TOKEN_RPAREN -> Token,
     TOKEN_LSQUARE -> Token,
@@ -42,14 +38,10 @@ def(token-is-name?, Token -- Token Bool,
     token-value? match(TOKEN_NAME -> drop true, _ -> drop false))
 def(token-is-comma?, Token -- Token Bool,
     token-value? match(TOKEN_COMMA -> true, _ -> drop false))
-def(token-is-colon?, Token -- Token Bool,
-    token-value? match(TOKEN_COLON -> true, _ -> drop false))
-def(token-is-equal?, Token -- Token Bool,
-    token-value? match(TOKEN_EQUAL -> true, _ -> drop false))
 def(token-is-arrow?, Token -- Token Bool,
-    token-value? match(TOKEN_ARROW -> true, _ -> drop false))
+    PRIM_SYNTAX_ARROW token-prim=?)
 def(token-is-dashes?, Token -- Token Bool,
-    token-value? match(TOKEN_DASHES -> true, _ -> drop false))
+    PRIM_SYNTAX_DASHES token-prim=?)
 def(token-is-lparen?, Token -- Token Bool,
     token-value? match(TOKEN_LPAREN -> drop true, _ -> drop false))
 def(token-is-rparen?, Token -- Token Bool,

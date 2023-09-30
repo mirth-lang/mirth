@@ -387,3 +387,13 @@ def(all, *c List(a) [*c a -- *c a Bool] -- *c Bool,
 ||| Is the predicate true for all elements of the list?
 def(all?, *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool,
     \([f] -> find?(f not) is-none))
+
+||| Build a list through repetition.
+def(collect, a [a -- a Maybe(b)] -- List(b),
+    \([f] ->
+        L0 swap f while(
+            is-some?,
+            unwrap swap
+            dip(snoc) f
+        ) drop2
+    ))

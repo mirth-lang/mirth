@@ -817,30 +817,27 @@ def(elab-data-header!, Data Token -- Data,
 ||| Get a tag associated with a data type.
 ||| This looks like either "TAG" or "TAG -> TYPE1 ... TYPEN".
 def(elab-data-tag!, Data Token -- Data,
-    token-is-name? if(
-        token-name? name-undefined? if(
-            Tag.alloc!
-            dup2 DEF_TAG swap name-def!
-            tuck tag-name!,
-            drop "Name already defined. (Overlapping tags not yet supported.)" emit-fatal-error!
-        )
-        { Data Token Tag }
-        dip(over) dup2 tag-data!
-        tuck dip(data-add-tag!)
-        { Data Token Tag }
-        swap token-succ
-        token-is-arrow? if(
-            dip(true over tag-has-sig!)
-            token-succ tuck dip(tag-sig!)
-            while(token-run-end? not, token-next),
-        token-run-end? if(
-            nip,
-            "Expected arrow, comma, or right paren." emit-fatal-error!
-        ))
-        { Data Token },
+    token-is-name? if(id, "Expected constructor name." emit-fatal-error!)
+    token-name? name-undefined? if(id,
+        drop "Name already defined. (Overlapping tags not supported.)" emit-fatal-error!)
 
-        "Expected constructor name." emit-fatal-error!
-    )
+    Tag.alloc!
+    dup2 DEF_TAG swap name-def!
+    tuck tag-name!
+    { Data Token Tag }
+    dip(over) dup2 tag-data!
+    tuck dip(data-add-tag!)
+    { Data Token Tag }
+    swap token-succ
+    token-is-arrow? if(
+        dip(true over tag-has-sig!)
+        token-succ tuck dip(tag-sig!)
+        while(token-run-end? not, token-next),
+    token-run-end? if(
+        nip,
+        "Expected arrow, comma, or right paren." emit-fatal-error!
+    ))
+    { Data Token }
     drop)
 
 def(expect-token-comma, Token -- Token,
@@ -848,9 +845,6 @@ def(expect-token-comma, Token -- Token,
 
 def(expect-token-rparen, Token -- Token,
     token-is-rparen? if(id, "Expected right parenthesis." emit-fatal-error!))
-
-def(expect-token-end, Token -- Token,
-    PRIM_SYNTAX_END token-prim=? if(id, "Expected 'end'" emit-fatal-error!))
 
 def(expect-token-arrow, Token -- Token,
     token-is-arrow? if(id, "Expected arrow." emit-fatal-error!))

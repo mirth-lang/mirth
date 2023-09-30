@@ -124,10 +124,6 @@ def(lexer-next!, --,
         drop
         TOKEN_COMMA lexer-emit!,
 
-    is-colon? if(
-        drop
-        TOKEN_COLON lexer-emit!,
-
     is-lparen? if(
         drop
         lexer-emit-lparen!,
@@ -157,7 +153,7 @@ def(lexer-next!, --,
         lexer-emit-string!,
 
         "unrecognized token" lexer-emit-fatal-error!
-    ))))))))))))
+    )))))))))))
 
     lexer-move!)))
 
@@ -225,18 +221,12 @@ def(lexer-emit-name!, +Lexer,
     str-buf-is-doc-start? if(
         drop3
         lexer-skip-doc!,
-        # TODO: save the doc in a token-doc field for the proceeding token
+        # TODO: save the doc in the token-doc field for the next token
 
-        str-buf-is-dashes? if(
-            TOKEN_DASHES,
-        str-buf-is-arrow? if(
-            TOKEN_ARROW,
-        str-buf-is-equal? if(
-            TOKEN_EQUAL,
         str-buf-is-int? if(
             str-buf-int? TOKEN_INT,
             str-buf-dup! name-new! TOKEN_NAME
-        ))))
+        )
 
         token-alloc!
         tuck token-value!

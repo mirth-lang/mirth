@@ -105,7 +105,8 @@ data(Prim,
     PRIM_SYNTAX_TABLE,
     PRIM_SYNTAX_FIELD,
     PRIM_SYNTAX_DATA,
-    PRIM_SYNTAX_END)
+    PRIM_SYNTAX_DASHES,
+    PRIM_SYNTAX_ARROW)
 field(prim-name, Prim, Name)
 field(prim-ctx, Prim, Ctx)
 field(prim-type, Prim, Type)
@@ -147,19 +148,8 @@ def(init-prims!, --,
     PRIM_SYNTAX_FIELD "field" def-prim!
     PRIM_SYNTAX_TARGET_C99 "target-c99" def-prim!
     PRIM_SYNTAX_DATA "data" def-prim!
-    PRIM_SYNTAX_END "end" def-prim!
-
-    PRIM_SYNTAX_MODULE "prim.syntax.module" def-prim!
-    PRIM_SYNTAX_IMPORT "prim.syntax.import" def-prim!
-    PRIM_SYNTAX_DEF "prim.syntax.def" def-prim!
-    PRIM_SYNTAX_DEF_TYPE "prim.syntax.def-type" def-prim!
-    PRIM_SYNTAX_BUFFER "prim.syntax.buffer" def-prim!
-    PRIM_SYNTAX_DEF_EXTERNAL "prim.syntax.def-external" def-prim!
-    PRIM_SYNTAX_TABLE "prim.syntax.table" def-prim!
-    PRIM_SYNTAX_FIELD "prim.syntax.field" def-prim!
-    PRIM_SYNTAX_TARGET_C99 "prim.syntax.target-c99" def-prim!
-    PRIM_SYNTAX_DATA "prim.syntax.data" def-prim!
-    PRIM_SYNTAX_END "prim.syntax.end" def-prim!
+    PRIM_SYNTAX_ARROW "->" def-prim!
+    PRIM_SYNTAX_DASHES "--" def-prim!
 
     PRIM_CORE_DIP "dip" def-prim!
     PRIM_CORE_IF "if" def-prim!
