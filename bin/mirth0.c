@@ -20153,6 +20153,8 @@ static void mwc99_emit_external_21_ (void){
     mwdrop();
     } else {
     mwdrop();
+    push_ptr("void\0\0\0");
+    mw_2E_();
     }
     push_ptr(");\0\0\0");
     mw_3B_();

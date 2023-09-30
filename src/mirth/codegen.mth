@@ -1176,7 +1176,7 @@ def(c99-emit-external!, External -- +IO,
             ", i64" .
             1-
         ) drop,
-        drop
+        drop "void" .
     ) ");" ;
 
     "static void mw" . dip2(external-name? .name) " (void) {" ;
