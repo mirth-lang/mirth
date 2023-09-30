@@ -449,7 +449,7 @@ static value_t mkcell_freecdr (value_t car, value_t cdr) {
     return v;
 }
 
-static void do_pack_uncons() {
+static void do_pack_uncons(void) {
     value_t car, cdr, val;
     val = pop_value();
     value_uncons(val, &car, &cdr);
@@ -637,7 +637,7 @@ static void mwprim_2E_posix_2E_mmap (void) {
     #endif
 }
 
-static void do_debug() {
+static void do_debug(void) {
     write(2, "??", 2);
     char c[32] = {0};
     char* cp;
@@ -21218,7 +21218,7 @@ static void mwc99_emit_prims_21_ (void){
     mw_3B_();
     push_ptr("}\0\0\0");
     mw_3B__3B_();
-    push_ptr("static void do_pack_uncons() {\0\0\0");
+    push_ptr("static void do_pack_uncons(void) {\0\0\0");
     mw_3B_();
     push_ptr("    value_t car, cdr, val;\0\0\0");
     mw_3B_();
@@ -21606,7 +21606,7 @@ static void mwc99_emit_prims_21_ (void){
     mw_3B_();
     push_ptr("}\0\0\0");
     mw_3B__3B_();
-    push_ptr("static void do_debug() {\0\0\0");
+    push_ptr("static void do_debug(void) {\0\0\0");
     mw_3B_();
     push_ptr("    write(2, \"??\", 2);\0\0\0");
     mw_3B_();
