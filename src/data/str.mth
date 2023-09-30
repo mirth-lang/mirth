@@ -3,204 +3,175 @@ import(data.list)
 import(data.char)
 import(prelude)
 
-str-head : Str -- Char
-str-head = Str->Ptr char@
+def(str-head, Str -- Char, Str->Ptr char@)
+def(str-head-width, Str -- Int, Str->Ptr char@-width)
 
-str-head-width : Str -- Int
-str-head-width = Str->Ptr char@-width
+def(str-tail, Str -- Str,
+    dup dip(str-head-width) Str->Ptr ptr+ Ptr->Str)
 
-str-tail : Str -- Str
-str-tail = dup dip(str-head-width) Str->Ptr ptr+ Ptr->Str
+def(str-size?, Str -- Str Int,
+    prim.str.size)
 
-str-size? : Str -- Str Int
-str-size? = prim.str.size
+def(str-size, Str -- Int,
+    prim.str.size dip(drop))
 
-str-size : Str -- Int
-str-size = prim.str.size dip(drop)
-
-str-length : Str -- Int
-str-length =
+def(str-length, Str -- Int,
     0 swap while(
         str-is-empty? not,
         dip(1+) str-tail
-    ) drop
+    ) drop)
 
-str-length? : Str -- Str Int
-str-length? = dup str-length
+def(str-length?, Str -- Str Int,
+    dup str-length)
 
-str-concat : List(Str) -- Str
-str-concat = (
+def(str-concat, List(Str) -- Str,
     dup 0 swap for(str-size +)
     prim.str.alloc dup dip(
         prim.str.base
         swap for(swap str-copy-partial!)
         nil swap u8!
-    )
-)
+    ))
 
-str-cat : Str Str -- Str
-str-cat = L2 str-concat
+def(str-cat, Str Str -- Str,
+    L2 str-concat)
 
-str-is-empty : Str -- Bool
-str-is-empty = is-nil? if(drop true, str-head is-nil)
+def(str-is-empty, Str -- Bool,
+    is-nil? if(drop true, str-head is-nil))
 
-str-is-empty? : Str -- Str Bool
-str-is-empty? = dup str-is-empty
+def(str-is-empty?, Str -- Str Bool,
+    dup str-is-empty)
 
 ||| Copy string bytes to second argument without adding 0 at end.
 ||| Return first unwritten location in second argument.
-str-copy-partial! : Str Ptr -- Ptr
-str-copy-partial! = (
+def(str-copy-partial!, Str Ptr -- Ptr,
     dip(dup Str->Ptr swap str-size)
-    dup2 ptr+ dip(prim.ptr.copy)
-)
+    dup2 ptr+ dip(prim.ptr.copy))
 
-STR_BUF_SIZE : Int
-STR_BUF_SIZE = 0x2000
+def(STR_BUF_SIZE, Int, 0x2000)
 buffer(STR_BUF, 0x2000)
 buffer(STR_BUF_LEN, 8)
 
-build-str! : *a [ *a -- *b ] -- *b Str
-build-str! = \([f] ->
-    str-buf-dup! str-buf-clear! dip(
-        f str-buf-dup!
-    ) str-buf!
-)
+def(build-str!, *a [ *a -- *b ] -- *b Str,
+    \([f] ->
+        str-buf-dup! str-buf-clear! dip(
+            f str-buf-dup!
+        ) str-buf!
+    ))
 
-str-buf-dup! : Str
-str-buf-dup! = (
+def(str-buf-dup!, Str,
     STR_BUF str-buf-length? dup prim.str.alloc
-    dup dip(prim.str.base prim.ptr.copy)
-)
+    dup dip(prim.str.base prim.ptr.copy))
 
-str-buf-length? : Int +StrBuf
-str-buf-length? = STR_BUF_LEN int@
+def(str-buf-length?, Int +StrBuf,
+    STR_BUF_LEN int@)
 
-str-buf-length! : Int -- +StrBuf
-str-buf-length! = (
+def(str-buf-length!, Int -- +StrBuf,
     dup STR_BUF_LEN int!
-    dip(0 Int->U8) str-buf-u8!
-)
+    dip(0 Int->U8) str-buf-u8!)
 
-str-buf-u8@ : Offset -- U8 +StrBuf
-str-buf-u8@ = STR_BUF u8@@
+def(str-buf-u8@, Offset -- U8 +StrBuf,
+    STR_BUF u8@@)
 
-str-buf-u8! : U8 Offset -- +StrBuf
-str-buf-u8! = STR_BUF u8!!
+def(str-buf-u8!, U8 Offset -- +StrBuf,
+    STR_BUF u8!!)
 
-str-buf-char@ : Offset -- Char +StrBuf
-str-buf-char@ = STR_BUF ptr+ char@
+def(str-buf-char@, Offset -- Char +StrBuf,
+    STR_BUF ptr+ char@)
 
-str-buf-empty? : Bool +StrBuf
-str-buf-empty? = str-buf-length? 0=
+def(str-buf-empty?, Bool +StrBuf,
+    str-buf-length? 0=)
 
-str-buf-full? : Bool +StrBuf
-str-buf-full? = str-buf-length? 1+ STR_BUF_SIZE >=
+def(str-buf-full?, Bool +StrBuf,
+    str-buf-length? 1+ STR_BUF_SIZE >=)
 
-str-buf-clear! : +StrBuf
-str-buf-clear! = 0 str-buf-length!
+def(str-buf-clear!, +StrBuf,
+    0 str-buf-length!)
 
-str-buf-push-u8! : U8 -- +StrBuf
-str-buf-push-u8! = (
+def(str-buf-push-u8!, U8 -- +StrBuf,
     # str-buf-full? not if(
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
     #     "str-buf-push! but STR_BUF is already full" panic!
     # )
-)
+    )
 
-str-buf-push-char! : Char -- +StrBuf
-str-buf-push-char! = (
+def(str-buf-push-char!, Char -- +StrBuf,
     dup str-buf-length? STR_BUF ptr+ char!
-    char-width str-buf-length? + str-buf-length!
-)
+    char-width str-buf-length? + str-buf-length!)
 
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
-str-buf-push-str! : Str -- +StrBuf
-str-buf-push-str! = dup Str->Ptr swap str-size str-buf-push-ptr!
+def(str-buf-push-str!, Str -- +StrBuf,
+    dup Str->Ptr swap str-size str-buf-push-ptr!)
 
-str-buf-push-ptr! : Ptr Size -- +StrBuf
-str-buf-push-ptr! = (
+def(str-buf-push-ptr!, Ptr Size -- +StrBuf,
     tuck str-buf-length? STR_BUF ptr+ prim.ptr.copy
-    str-buf-length? + str-buf-length!
-)
+    str-buf-length? + str-buf-length!)
 
 ||| Set the STR_BUF to a given string. If the string is
 ||| too large it gets truncated.
-str-buf! : Str -- +StrBuf
-str-buf! = str-buf-clear! str-buf-push-str!
+def(str-buf!, Str -- +StrBuf,
+    str-buf-clear! str-buf-push-str!)
 
-str-buf-char! : Char -- +StrBuf
-str-buf-char! = dup STR_BUF char! char-width str-buf-length!
+def(str-buf-char!, Char -- +StrBuf,
+    dup STR_BUF char! char-width str-buf-length!)
 
-to-digit : Int -- Char
-to-digit = 10 % 48 + Int->Char
+def(to-digit, Int -- Char,
+    10 % 48 + Int->Char)
 
 ||| Put integer into STR_BUF.
-str-buf-int! : Int -- +StrBuf
-str-buf-int! =
+def(str-buf-int!, Int -- +StrBuf,
     dup 0= if(
         drop "0" str-buf!,
         dup dip(
             abs
             str-buf-clear!
-            while(dup nonzero, dup to-digit str-buf-push-char! 10 /) drop
+            while(dup 0>, dup to-digit str-buf-push-char! 10 /) drop
         ) 0 < if(45 Int->Char str-buf-push-char!, id)
         str-buf-reverse!
-    )
+    ))
 
-int-show : Int -- Str
-int-show = build-str!(str-buf-int!)
+def(int-show, Int -- Str,
+    build-str!(str-buf-int!))
 
 ||| Swap two bytes in STR_BUF.
-str-buf-swap-u8! : Int Int -- +StrBuf
-str-buf-swap-u8! = (
+def(str-buf-swap-u8!, Int Int -- +StrBuf,
     dup2 swap
     dip3(str-buf-u8@)
     dip(str-buf-u8@)
-    str-buf-u8! str-buf-u8!
-)
+    str-buf-u8! str-buf-u8!)
 
 ||| Reverse contents of STR_BUF bytewise.
-str-buf-reverse! : +StrBuf
-str-buf-reverse! = (
+def(str-buf-reverse!, +StrBuf,
     0 str-buf-length? 1-
     while(dup2 <,
         dup2 str-buf-swap-u8!
         dip(1+) 1-
     )
-    drop2
-)
+    drop2)
 
 ||| Are two strings equal?
-str-eq : Str Str -- Bool
-str-eq = prim.str.eq
+def(str-eq, Str Str -- Bool, prim.str.eq)
 
 ||| Are two strings equal? Preserve pointers.
-str-eq? : Str Str -- Str Str Bool
-str-eq? = dup2 str-eq
+def(str-eq?, Str Str -- Str Str Bool, dup2 str-eq)
 
 ||| Traverse string characters.
-str-for : *a Str [*a Char -- *a] -- *a
-str-for = \([f] ->
-    while(str-is-empty? not,
+def(str-for, *a Str [*a Char -- *a] -- *a,
+    \([f] -> while(str-is-empty? not,
         dup str-tail
         dip(str-head f)
-    ) drop
-)
+    ) drop))
 
-data TransducerStep
-    TS_STOP
-    TS_SKIP
-    TS_CHAR -> Char
-    TS_PUSH -> List(Char)
-    TS_COPY -> Str
-end
+data(TransducerStep,
+    TS_STOP,
+    TS_SKIP,
+    TS_CHAR -> Char,
+    TS_PUSH -> List(Char),
+    TS_COPY -> Str)
 
-str-transduce : *a Str [ *a Char -- *a TransducerStep ] -- *a Str
-str-transduce = \([f] ->
-    build-str!(
+def(str-transduce, *a Str [ *a Char -- *a TransducerStep ] -- *a Str,
+    \([f] -> build-str!(
         while(str-is-empty? not,
             dup dip(str-head f) str-tail
             swap match(
@@ -211,22 +182,19 @@ str-transduce = \([f] ->
                 TS_COPY -> str-buf-push-str!
             )
         ) drop
-    )
-)
+    )))
 
-str-chars : Str -- List(Char)
-str-chars = dip(L0) str-for(snoc)
+def(str-chars, Str -- List(Char),
+    dip(L0) str-for(snoc))
 
-str-codepoints : Str -- List(Int)
-str-codepoints = dip(L0) str-for(char-codepoint snoc)
+def(str-codepoints, Str -- List(Int),
+    dip(L0) str-for(char-codepoint snoc))
 
-str-bytes : Str -- List(U8)
-str-bytes = (
+def(str-bytes, Str -- List(U8),
     L0 swap
     dup Str->Ptr swap str-size
     while(
         dup 0 >,
         1- dip(dup dip(u8@ snoc 1) ptr+)
     )
-    drop2
-)
+    drop2)

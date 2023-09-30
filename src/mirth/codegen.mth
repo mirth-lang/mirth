@@ -1170,9 +1170,9 @@ def(c99-emit-external!, External -- +IO,
     dip2(external-name? .name)
 
     " (" .
-    over dup nonzero if(
+    over dup 0> if(
         "i64" .
-        1- while(dup nonzero,
+        1- while(dup 0>,
             ", i64" .
             1-
         ) drop,
@@ -1180,17 +1180,17 @@ def(c99-emit-external!, External -- +IO,
     ) ");" ;
 
     "static void mw" . dip2(external-name? .name) " (void) {" ;
-    over while(dup nonzero,
+    over while(dup 0>,
         "    i64 x" . dup .n " = pop_i64();" ;
         1-
     ) drop
-    dup nonzero if("    push_i64(", "    ") .
+    dup 0> if("    push_i64(", "    ") .
     dip2(external-name? .name)
     "(" .
-    dip(dup nonzero if(
+    dip(dup 0> if(
         "x1" .
         dup 1-
-        while(dup nonzero,
+        while(dup 0>,
             ", x" .
             dup2 - 1+ .n
             1-
@@ -1198,7 +1198,7 @@ def(c99-emit-external!, External -- +IO,
         id
     ))
     ")" .
-    dup nonzero if(");", " ;") ;
+    dup 0> if(");", " ;") ;
     "}" ;
 
     drop3)
@@ -1208,8 +1208,7 @@ def(c99-emit-arrow!, Arrow -- +IO,
     arrow-atoms@ for(c99-emit-atom!)
     c99-depth--)
 
-c99-emit-atom! : Atom -- +IO,
-c99-emit-atom! =
+def(c99-emit-atom!, Atom -- +IO,
     atom-op? match(
         OP_NONE -> drop,
         OP_INT ->
@@ -1245,17 +1244,15 @@ c99-emit-atom! =
             nip c99-emit-var!,
         OP_BLOCK ->
             nip c99-emit-block-push!,
-    )
+    ))
 
-c99-emit-string! : Str -- +IO
-c99-emit-string! = (
+def(c99-emit-string!, Str --,
     "    push_ptr(\"" .
     str-for(c99-emit-string-char!)
     "\\0\\0\\0\");" ; # wide sentinel is desirable
-)
+    )
 
-c99-emit-string-char! : Char -- +IO
-c99-emit-string-char! =
+def(c99-emit-string-char!, Char --,
     is-backslash? if(
         drop "\\\\" .,
     is-quote? if(
@@ -1275,10 +1272,9 @@ c99-emit-string-char! =
             U8->Int 0xF & hexdigit .c
         )
 #        "unexpected character in c99 string" panic!
-    ))))))
+    )))))))
 
-c99-emit-prim! : List(Arg) Prim -- +IO
-c99-emit-prim! =
+def(c99-emit-prim!, List(Arg) Prim --,
     match(
         PRIM_CORE_DIP ->
             match(
@@ -1316,30 +1312,26 @@ c99-emit-prim! =
             ),
 
         _ -> c99-emit-prim-default!
-    )
+    ))
 
-c99-emit-prim-default! : List(Arg) Prim -- +IO
-c99-emit-prim-default! = (
+def(c99-emit-prim-default!, List(Arg) Prim --,
     dip(c99-emit-args-push!)
-    "    mw" . prim-name@ .name "();" ;
-)
+    "    mw" . prim-name@ .name "();" ;)
 
-c99-emit-args-push! : List(Arg) -- +IO
-c99-emit-args-push! = reverse-for(c99-emit-arg-push!)
+def(c99-emit-args-push!, List(Arg) --,
+    reverse-for(c99-emit-arg-push!))
 
-c99-emit-arg-push! : Arg -- +IO
-c99-emit-arg-push! =
+def(c99-emit-arg-push!, Arg --,
     match(
         ARG_BLOCK -> c99-emit-block-push!,
         ARG_VAR_RUN -> c99-emit-var-push!,
-    )
+    ))
 
-c99-emit-arg-run! : Arg -- +IO
-c99-emit-arg-run! =
+def(c99-emit-arg-run!, Arg --,
     match(
         ARG_BLOCK -> block-arrow@ c99-emit-arrow!,
         ARG_VAR_RUN -> c99-emit-var!,
-    )
+    ))
 
 def(.var-val, Var -- +IO, "var_" . var-name? .name "_" . Var.id .n)
 
@@ -1366,8 +1358,7 @@ def(c99-decref-ctx!, Ctx -- +IO,
 data(Need,
     NEED_BLOCK -> Block,
     NEED_WORD -> Word,
-    NEED_FIELD -> Field,
-)
+    NEED_FIELD -> Field)
 
 buffer(C99_NEED_STACK, 16)
 def(need-push!, Need --, C99_NEED_STACK value@ cons C99_NEED_STACK value!)
@@ -1458,10 +1449,11 @@ def(c99-emit-match!, Match -- +IO,
 
         "    switch (get_top_data_tag()) {" ;
         match-cases? for(c99-emit-case!)
-        match-has-default-case if(
+        match-has-default-case? if(
             id,
             "    default: write(2, \"unexpected fallthrough in match\\n\", 32); do_debug(); exit(99);" ;
         )
+        drop
         "    }" ;
     ))
 
@@ -1553,7 +1545,7 @@ def(c99-emit-word-def!, Word -- +IO,
 
             true over c99-word-emitted!
             word-name? .w "{" ;
-            word-arrow@ c99-emit-arrow!
+            word-arrow@ force c99-emit-arrow!
             "}" ;;
         ),
         drop

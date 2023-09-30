@@ -31,4 +31,4 @@ target-c99("hello-world.c",
 
 ## License
 
-As this is an unstable work-in-progress, the current version of Mirth is not yet released, and *all rights are reserved*. However, you may, at your risk, check out this repo and run it. But again, this language is not ready to be used, and is subject to backward-incompatible changes.
+This software is licensed under a [BSD Zero Clause License](https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22BSD_Zero_Clause_License%22)). This is a public domain equivalent license. You can use, copy, modify, and/or distribute, with or without fee. You can use it freely as part of larger projects, commercial or otherwise. No warranty is implied. See `LICENSE` for the full text of the license.

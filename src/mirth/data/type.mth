@@ -4,52 +4,48 @@ import(mirth.data.name)
 import(data.map)
 
 # mirth/data/type
-data Type
-    TYPE_ERROR
-    TYPE_DONT_CARE
-    TPrim -> PrimType
-    TMeta -> MetaVar
-    THole -> Name
-    TVar -> Var
-    TTable -> Table
-    TData -> Data
-    TTensor -> Type Type
-    TMorphism -> Type Type
-    TApp -> Type Type
-    TValue -> Value
-end
+data(Type,
+    TYPE_ERROR,
+    TYPE_DONT_CARE,
+    TPrim -> PrimType,
+    TMeta -> MetaVar,
+    THole -> Name,
+    TVar -> Var,
+    TTable -> Table,
+    TData -> Data,
+    TTensor -> Type Type,
+    TMorphism -> Type Type,
+    TApp -> Type Type,
+    TValue -> Value)
 
-data Value
-    VALUE_INT -> Int
-    VALUE_STR -> Str
-    VALUE_BLOCK -> Block
-end
+data(Value,
+    VALUE_INT -> Int,
+    VALUE_STR -> Str,
+    VALUE_BLOCK -> Block)
 
-data PrimType
-    PRIM_TYPE_UNIT
-    PRIM_TYPE_TYPE
-    PRIM_TYPE_STACK
-    PRIM_TYPE_EFFECT
-    PRIM_TYPE_INT
-    PRIM_TYPE_PTR
-    PRIM_TYPE_STR
-    PRIM_TYPE_CHAR
-    PRIM_TYPE_BOOL
-    PRIM_TYPE_U64
-    PRIM_TYPE_U32
-    PRIM_TYPE_U16
-    PRIM_TYPE_U8
-    PRIM_TYPE_I64
-    PRIM_TYPE_I32
-    PRIM_TYPE_I16
-    PRIM_TYPE_I8
-    PRIM_TYPE_MUT
-end
+data(PrimType,
+    PRIM_TYPE_UNIT,
+    PRIM_TYPE_TYPE,
+    PRIM_TYPE_STACK,
+    PRIM_TYPE_EFFECT,
+    PRIM_TYPE_INT,
+    PRIM_TYPE_PTR,
+    PRIM_TYPE_STR,
+    PRIM_TYPE_CHAR,
+    PRIM_TYPE_BOOL,
+    PRIM_TYPE_U64,
+    PRIM_TYPE_U32,
+    PRIM_TYPE_U16,
+    PRIM_TYPE_U8,
+    PRIM_TYPE_I64,
+    PRIM_TYPE_I32,
+    PRIM_TYPE_I16,
+    PRIM_TYPE_I8,
+    PRIM_TYPE_MUT)
 
 table(MetaVar)
 table(Data)
 table(Tag)
-data(Ctx, CTX -> List(Var))
 
 field(meta-is-defined, MetaVar, Bool)
 field(meta-type-raw, MetaVar, Type)
@@ -69,7 +65,7 @@ field(tag-ctx, Tag, Ctx)
 field(tag-type-raw, Tag, Type)
 
 
-def(def-type!, Type Str --, name-new! name-type!)
+def(def-type!, Type Str --, dip(DEF_TYPE) name-new! name-def!)
 
 def(init-types!, --,
     TYPE_INT "Int" def-type!
@@ -153,15 +149,9 @@ def(type-expand, Type -- Type,
         _ -> id
     ))
 
-data Gamma
-    GAMMA -> Token
-end
-
-gamma-token@ : Gamma -- Token
-gamma-token@ = match(GAMMA -> id)
-
-gamma-token? : Gamma -- Gamma Token
-gamma-token? = dup gamma-token@
+data(Gamma, GAMMA -> Token)
+def(gamma-token@, Gamma -- Token, match(GAMMA -> id))
+def(gamma-token?, Gamma -- Gamma Token, dup gamma-token@)
 
 # Raise a type unification error.
 def(type-unify-failed!, Gamma Type Type -- Gamma Type +Elab,
@@ -267,8 +257,7 @@ def(type-unify!, Gamma Type Type -- Gamma Type +Elab,
             ),
     ))
 
-value-unify! : Gamma Value Value -- Gamma Type
-value-unify! =
+def(value-unify!, Gamma Value Value -- Gamma Type,
     swap match(
         VALUE_INT -> swap match(
             VALUE_INT -> dup2 == if(drop VALUE_INT TValue, drop2 TYPE_INT),
@@ -310,30 +299,28 @@ value-unify! =
                 "Can't unify block with string value."
                 emit-error! TYPE_ERROR
         ),
-    )
+    ))
 
-type-value-unify! : Gamma Type Value -- Gamma Type,
-type-value-unify! =
+def(type-value-unify!, Gamma Type Value -- Gamma Type,
     match(
         VALUE_INT -> drop TYPE_INT type-unify!,
         VALUE_STR -> drop TYPE_STR type-unify!,
         VALUE_BLOCK -> swap block-unify-type!, # technically inaccurate?
-    )
+    ))
 
-value-type-unify! : Gamma Value Type -- Gamma Type
-value-type-unify! =
+def(value-type-unify!, Gamma Value Type -- Gamma Type,
     swap match(
         VALUE_INT -> drop TYPE_INT swap type-unify!,
         VALUE_STR -> drop TYPE_STR swap type-unify!,
         VALUE_BLOCK -> swap block-unify-type!,
-    )
+    ))
 
-arrow-type : Arrow -- Type
-arrow-type = arrow-dom? swap arrow-cod@ TMorphism
+def(arrow-type, Arrow -- Type,
+    arrow-dom? swap arrow-cod@ TMorphism)
     # TODO effects
 
-block-infer-type! : Block -- Type
-block-infer-type! = block-arrow@ arrow-type
+def(block-infer-type!, Block -- Type,
+    block-arrow@ arrow-type)
 
 def(type-unify-pair!, Gamma Type Type Type Type -- Gamma Type Type,
     dip(swap dip(type-unify! swap)) type-unify! dip(swap))
@@ -700,88 +687,64 @@ def(app-type-trace-open!, Type Type --,
 #########
 
 # mirth/data/type
-data Subst
-    SUBST -> Map(Var, Type)
-end
-
-unSUBST : Subst -- Map(Var, Type)
-unSUBST = match(SUBST -> id)
-
-subst-nil : Subst
-subst-nil = nil
-
-subst-is-nil : Subst -- Bool
-subst-is-nil = is-nil
-
-subst-is-nil? : Subst -- Subst Bool
-subst-is-nil? = is-nil?
-
-subst-new! : Type Var Subst -- Subst
-subst-new! = unSUBST rotr pack2 map-insert SUBST
-
-subst-has-var : Var Subst -- Bool
-subst-has-var = unSUBST swap map-has
-
-subst-has-var? : Var Subst -- Var Subst Bool
-subst-has-var? = dup2 subst-has-var
-
-subst-get-var : Var Subst -- Type
-subst-get-var =
+data(Subst, SUBST -> Map(Var, Type))
+def(unSUBST, Subst -- Map(Var, Type), match(SUBST -> id))
+def(subst-nil, Subst, nil)
+def(subst-is-nil, Subst -- Bool, is-nil)
+def(subst-is-nil?, Subst -- Subst Bool, is-nil?)
+def(subst-new!, Type Var Subst -- Subst,
+    unSUBST rotr pack2 map-insert SUBST)
+def(subst-has-var, Var Subst -- Bool,
+    unSUBST swap map-has)
+def(subst-has-var?, Var Subst -- Var Subst Bool,
+    dup2 subst-has-var)
+def(subst-get-var, Var Subst -- Type,
     unSUBST swap map-lookup match(
         NONE -> TYPE_ERROR,
         SOME -> id
-    )
-
-subst-get-var? : Var Subst -- Var Subst Type
-subst-get-var? = dup2 subst-get-var
+    ))
+def(subst-get-var?, Var Subst -- Var Subst Type,
+    dup2 subst-get-var)
 
 ||| If variable is in subst, unify new type with type in subst.
 ||| Otherwise, create larger subst with new binding.
-subst-match-var : Gamma Type Var Subst -- Gamma Subst
-subst-match-var =
+def(subst-match-var, Gamma Type Var Subst -- Gamma Subst,
     subst-has-var? if(
         dup dip(subst-get-var type-unify! drop),
         subst-new!
-    )
-
-
+    ))
 
 #######
 # TAG #
 #######
 
-tag-num-inputs? : Tag -- Tag Int
-tag-num-inputs? =
+def(tag-num-inputs?, Tag -- Tag Int,
     # TODO: this should actually be calculated & stored during elaboration based on the type
     tag-has-sig? if(
         tag-sig? 0 swap
         while(token-run-end? not, token-next dip(1+)) drop,
         0
-    )
+    ))
 
-tag-is-transparent? : Tag -- Tag Bool
-tag-is-transparent? = tag-data? data-is-transparent? nip
+def(tag-is-transparent?, Tag -- Tag Bool,
+    tag-data? data-is-transparent)
 
 ########
 # DATA #
 ########
 
-data-num-tags : Data -- Int
-data-num-tags = data-tags@ len
+def(data-num-tags, Data -- Int, data-tags@ len)
 
 ||| Adds constructor to data type, and gives tag its rank.
-data-add-tag! : Tag Data -- +Mirth
-data-add-tag! = (
+def(data-add-tag!, Tag Data --,
     dup2 data-num-tags swap tag-value!
-    data-tags? rotr dip(snoc) data-tags!
-)
+    data-tags? rotr dip(snoc) data-tags!)
 
-data-is-enum? : Data -- Data Bool
-data-is-enum? = data-tags? all?(tag-num-inputs? 0 ==) nip
+def(data-is-enum?, Data -- Data Bool,
+    data-tags? all?(tag-num-inputs? 0 ==) nip)
 
-data-is-transparent? : Data -- Data Bool
-data-is-transparent? =
-    data-tags? match(
+def(data-is-transparent, Data -- Bool,
+    data-tags@ match(
         L1 -> tag-num-inputs? 1 == nip,
         _ -> drop false
-    )
+    ))

@@ -2,143 +2,141 @@ module(mirth.data.prim)
 import(mirth.data.name)
 import(mirth.data.type)
 import(mirth.data.ctx)
+import(mirth.data.token)
 
 # mirth/data/prim
-data Prim
-    PRIM_CORE_ID
-    PRIM_CORE_DUP
-    PRIM_CORE_DROP
-    PRIM_CORE_SWAP
-    PRIM_CORE_DIP
-    PRIM_CORE_IF
-    PRIM_CORE_WHILE
-    PRIM_CORE_DEBUG
-    PRIM_CORE_RUN
-    PRIM_CORE_MATCH
-    PRIM_CORE_LAMBDA
+data(Prim,
+    PRIM_CORE_ID,
+    PRIM_CORE_DUP,
+    PRIM_CORE_DROP,
+    PRIM_CORE_SWAP,
+    PRIM_CORE_DIP,
+    PRIM_CORE_IF,
+    PRIM_CORE_WHILE,
+    PRIM_CORE_DEBUG,
+    PRIM_CORE_RUN,
+    PRIM_CORE_MATCH,
+    PRIM_CORE_LAMBDA,
 
-    PRIM_UNSAFE_CAST
-    PRIM_VALUE_EQ
-    PRIM_VALUE_LT
-    PRIM_VALUE_LE
-    PRIM_VALUE_GET
-    PRIM_VALUE_SET
+    PRIM_UNSAFE_CAST,
+    PRIM_VALUE_EQ,
+    PRIM_VALUE_LT,
+    PRIM_VALUE_LE,
+    PRIM_VALUE_GET,
+    PRIM_VALUE_SET,
 
-    PRIM_INT_ADD
-    PRIM_INT_SUB
-    PRIM_INT_MUL
-    PRIM_INT_DIV
-    PRIM_INT_MOD
-    PRIM_INT_AND
-    PRIM_INT_OR
-    PRIM_INT_XOR
-    PRIM_INT_SHL
-    PRIM_INT_SHR
-    PRIM_INT_GET
-    PRIM_INT_SET
+    PRIM_INT_ADD,
+    PRIM_INT_SUB,
+    PRIM_INT_MUL,
+    PRIM_INT_DIV,
+    PRIM_INT_MOD,
+    PRIM_INT_AND,
+    PRIM_INT_OR,
+    PRIM_INT_XOR,
+    PRIM_INT_SHL,
+    PRIM_INT_SHR,
+    PRIM_INT_GET,
+    PRIM_INT_SET,
 
-    PRIM_BOOL_TRUE
-    PRIM_BOOL_FALSE
-    PRIM_BOOL_AND
-    PRIM_BOOL_OR
+    PRIM_BOOL_TRUE,
+    PRIM_BOOL_FALSE,
+    PRIM_BOOL_AND,
+    PRIM_BOOL_OR,
 
-    PRIM_PACK_NIL
-    PRIM_PACK_CONS
-    PRIM_PACK_UNCONS
+    PRIM_PACK_NIL,
+    PRIM_PACK_CONS,
+    PRIM_PACK_UNCONS,
 
-    PRIM_MUT_NEW
-    PRIM_MUT_GET
-    PRIM_MUT_SET
+    PRIM_MUT_NEW,
+    PRIM_MUT_GET,
+    PRIM_MUT_SET,
 
-    PRIM_PTR_ADD
-    PRIM_PTR_SIZE
-    PRIM_PTR_GET
-    PRIM_PTR_SET
-    PRIM_PTR_ALLOC
-    PRIM_PTR_REALLOC
-    PRIM_PTR_COPY
-    PRIM_PTR_FILL
-    PRIM_PTR_RAW
+    PRIM_PTR_ADD,
+    PRIM_PTR_SIZE,
+    PRIM_PTR_GET,
+    PRIM_PTR_SET,
+    PRIM_PTR_ALLOC,
+    PRIM_PTR_REALLOC,
+    PRIM_PTR_COPY,
+    PRIM_PTR_FILL,
+    PRIM_PTR_RAW,
 
-    PRIM_STR_ALLOC
-    PRIM_STR_SIZE
-    PRIM_STR_BASE
-    PRIM_STR_EQ
+    PRIM_STR_ALLOC,
+    PRIM_STR_SIZE,
+    PRIM_STR_BASE,
+    PRIM_STR_EQ,
 
-    PRIM_U8_GET
-    PRIM_U8_SET
-    PRIM_U16_GET
-    PRIM_U16_SET
-    PRIM_U32_GET
-    PRIM_U32_SET
-    PRIM_U64_GET
-    PRIM_U64_SET
+    PRIM_U8_GET,
+    PRIM_U8_SET,
+    PRIM_U16_GET,
+    PRIM_U16_SET,
+    PRIM_U32_GET,
+    PRIM_U32_SET,
+    PRIM_U64_GET,
+    PRIM_U64_SET,
 
-    PRIM_I8_GET
-    PRIM_I8_SET
-    PRIM_I16_GET
-    PRIM_I16_SET
-    PRIM_I32_GET
-    PRIM_I32_SET
-    PRIM_I64_GET
-    PRIM_I64_SET
+    PRIM_I8_GET,
+    PRIM_I8_SET,
+    PRIM_I16_GET,
+    PRIM_I16_SET,
+    PRIM_I32_GET,
+    PRIM_I32_SET,
+    PRIM_I64_GET,
+    PRIM_I64_SET,
 
-    PRIM_SYS_OS
-    PRIM_SYS_ARGC
-    PRIM_SYS_ARGV
+    PRIM_SYS_OS,
+    PRIM_SYS_ARGC,
+    PRIM_SYS_ARGV,
 
-    PRIM_POSIX_READ
-    PRIM_POSIX_WRITE
-    PRIM_POSIX_OPEN
-    PRIM_POSIX_CLOSE
-    PRIM_POSIX_EXIT
-    PRIM_POSIX_MMAP
+    PRIM_POSIX_READ,
+    PRIM_POSIX_WRITE,
+    PRIM_POSIX_OPEN,
+    PRIM_POSIX_CLOSE,
+    PRIM_POSIX_EXIT,
+    PRIM_POSIX_MMAP,
 
-    PRIM_SYNTAX_MODULE
-    PRIM_SYNTAX_IMPORT
-    PRIM_SYNTAX_DEF
-    PRIM_SYNTAX_DEF_TYPE
-    PRIM_SYNTAX_BUFFER
-    PRIM_SYNTAX_DEF_EXTERNAL
-    PRIM_SYNTAX_TARGET_C99
-    PRIM_SYNTAX_TABLE
-    PRIM_SYNTAX_FIELD
-    PRIM_SYNTAX_DATA
-    PRIM_SYNTAX_END
-end
+    PRIM_SYNTAX_MODULE,
+    PRIM_SYNTAX_IMPORT,
+    PRIM_SYNTAX_DEF,
+    PRIM_SYNTAX_DEF_TYPE,
+    PRIM_SYNTAX_BUFFER,
+    PRIM_SYNTAX_DEF_EXTERNAL,
+    PRIM_SYNTAX_TARGET_C99,
+    PRIM_SYNTAX_TABLE,
+    PRIM_SYNTAX_FIELD,
+    PRIM_SYNTAX_DATA,
+    PRIM_SYNTAX_DASHES,
+    PRIM_SYNTAX_ARROW)
 field(prim-name, Prim, Name)
 field(prim-ctx, Prim, Ctx)
 field(prim-type, Prim, Type)
-
+field(prim-decl, Prim, [Token -- Token])
 
 ||| Does this name refer to this primitive?
-name-prim= : Name Prim -- Bool
-name-prim= =
-    swap name-value@ match(
-        DEF_PRIM -> ==,
-        _ -> drop2 false
-    )
+def(name-prim=, Name Prim -- Bool,
+    dip(name-def@) DEF_PRIM ==)
 
 ||| Does the token refer to this primitive? Preserves the token.
-token-prim=? : Token Prim -- Token Bool
-token-prim=? = dip(dup) token-prim=
+def(token-prim=?, Token Prim -- Token Bool,
+    dip(dup) token-prim=)
 
 ||| Does the token refer to this primitive?
-token-prim= : Token Prim -- Bool
-token-prim= =
+def(token-prim=, Token Prim -- Bool,
     swap token-value@ match(
         TOKEN_NAME ->
             swap name-prim=,
         _ ->
             drop2 false
-    )
+    ))
 
 ||| Auxilliary word for defining primitives.
-def(def-prim!, Prim Str -- +Names,
-    name-new! dup2 name-prim! swap prim-name!)
+def(def-prim!, Prim Str --,
+    name-new!
+    dup2 dip(DEF_PRIM) name-def!
+    swap prim-name!)
 
 ||| Initialize name table with list of primitives.
-def(init-prims!, +Names,
+def(init-prims!, --,
 
     PRIM_SYNTAX_MODULE "module" def-prim!
     PRIM_SYNTAX_IMPORT "import" def-prim!
@@ -150,19 +148,8 @@ def(init-prims!, +Names,
     PRIM_SYNTAX_FIELD "field" def-prim!
     PRIM_SYNTAX_TARGET_C99 "target-c99" def-prim!
     PRIM_SYNTAX_DATA "data" def-prim!
-    PRIM_SYNTAX_END "end" def-prim!
-
-    PRIM_SYNTAX_MODULE "prim.syntax.module" def-prim!
-    PRIM_SYNTAX_IMPORT "prim.syntax.import" def-prim!
-    PRIM_SYNTAX_DEF "prim.syntax.def" def-prim!
-    PRIM_SYNTAX_DEF_TYPE "prim.syntax.def-type" def-prim!
-    PRIM_SYNTAX_BUFFER "prim.syntax.buffer" def-prim!
-    PRIM_SYNTAX_DEF_EXTERNAL "prim.syntax.def-external" def-prim!
-    PRIM_SYNTAX_TABLE "prim.syntax.table" def-prim!
-    PRIM_SYNTAX_FIELD "prim.syntax.field" def-prim!
-    PRIM_SYNTAX_TARGET_C99 "prim.syntax.target-c99" def-prim!
-    PRIM_SYNTAX_DATA "prim.syntax.data" def-prim!
-    PRIM_SYNTAX_END "prim.syntax.end" def-prim!
+    PRIM_SYNTAX_ARROW "->" def-prim!
+    PRIM_SYNTAX_DASHES "--" def-prim!
 
     PRIM_CORE_DIP "dip" def-prim!
     PRIM_CORE_IF "if" def-prim!
@@ -259,6 +246,20 @@ def(init-prims!, +Names,
     PRIM_POSIX_CLOSE "prim.posix.close" def-prim!
     PRIM_POSIX_EXIT "prim.posix.exit" def-prim!
     PRIM_POSIX_MMAP "prim.posix.mmap" def-prim!
+
+    #
+    # decl prims
+    #
+
+    [ elab-module-import! ] PRIM_SYNTAX_IMPORT       prim-decl!
+    [ elab-def!           ] PRIM_SYNTAX_DEF          prim-decl!
+    [ elab-def-external!  ] PRIM_SYNTAX_DEF_EXTERNAL prim-decl!
+    [ elab-def-type!      ] PRIM_SYNTAX_DEF_TYPE     prim-decl!
+    [ elab-buffer!        ] PRIM_SYNTAX_BUFFER       prim-decl!
+    [ elab-table!         ] PRIM_SYNTAX_TABLE        prim-decl!
+    [ elab-field!         ] PRIM_SYNTAX_FIELD        prim-decl!
+    [ elab-target-c99!    ] PRIM_SYNTAX_TARGET_C99   prim-decl!
+    [ elab-data!          ] PRIM_SYNTAX_DATA         prim-decl!
 
     #
     # monomorphic prims

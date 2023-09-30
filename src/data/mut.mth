@@ -1,9 +1,9 @@
 module(data.mut)
 
-mut-new! : t -- Mut(t)
-mut-get! : Mut(t) -- t
-mut-set! : t Mut(t) -- Mut(t)
+def(mut-new!, t -- Mut(t), prim.mut.new)
+def(mut-get!, Mut(t) -- t, prim.mut.get)
+def(mut-set!, t Mut(t) -- Mut(t), prim.mut.set)
 
-mut-new! = prim.mut.new
-mut-get! = prim.mut.get
-mut-set! = prim.mut.set
+def(mut, t -- Mut(t), prim.mut.new)
+def(@, Mut(t) -- t, prim.mut.get)
+def(!, t Mut(t) --, prim.mut.set drop)

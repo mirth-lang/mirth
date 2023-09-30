@@ -1,3 +1,48 @@
 module(data.lazy)
 
 import(data.mut)
+import(data.maybe)
+
+data(LazyPayload(t),
+    LP_READY -> b,
+    LP_THUNK -> a [a -- b],
+    LP_WAIT)
+data(Lazy(t), LAZY -> Mut(LazyPayload(t)))
+
+def(delay, a [a -- b] -- Lazy(b),
+    LP_THUNK mut LAZY)
+
+def(delay0, [-- b] -- Lazy(b),
+    delay(run))
+def(delay2, a1 a2 [a1 a2 -- b] -- Lazy(b),
+    pack3 delay(unpack3 run))
+def(delay3, a1 a2 a3 [a1 a2 a3 -- b] -- Lazy(b),
+    pack4 delay(unpack4 run))
+def(delay4, a1 a2 a3 a4 [a1 a2 a3 a4 -- b] -- Lazy(b),
+    pack5 delay(unpack5 run))
+
+def(force, Lazy(a) -- a,
+    match(LAZY ->
+        dup @ match(
+            LP_READY -> nip,
+            LP_THUNK ->
+                rotl LP_WAIT over !
+                dip(run dup LP_READY) !,
+            LP_WAIT ->
+                "attempted to force already running thunk" panic!
+        )
+    ))
+def(force2, Lazy([a b]) -- a b,
+    force unpack2)
+
+def(ready, a -- Lazy(a),
+    LP_READY mut LAZY)
+def(ready2, a b -- Lazy([a b]),
+    pack2 ready)
+
+def(lazy-map, Lazy(a) [a -- b] -- Lazy(b),
+    delay2(dip(force) run))
+def(lazy-map2, Lazy(a) Lazy(b) [a b -- c] -- Lazy(c),
+    delay3(dip(dip(force) force) run))
+def(lazy-bind, Lazy(a) [a -- Lazy(b)] -- Lazy(b),
+    delay2(dip(force) run force))

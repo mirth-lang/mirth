@@ -2,30 +2,25 @@ module(mirth.data.token)
 import(mirth.data.name)
 import(mirth.data.location)
 import(mirth.data.error)
+import(data.list)
 
 ##########
 # Tokens #
 ##########
 
 # mirth/data/token
-data TokenValue
-    TOKEN_NONE
-    TOKEN_COMMA
-    TOKEN_NEWLINE
-    TOKEN_COLON
-    TOKEN_EQUAL
-    TOKEN_ARROW
-    TOKEN_DASHES
-    TOKEN_LPAREN -> Token
-    TOKEN_RPAREN -> Token
-    TOKEN_LSQUARE -> Token
-    TOKEN_RSQUARE -> Token
-    TOKEN_LCURLY -> Token
-    TOKEN_RCURLY -> Token
-    TOKEN_INT -> Int
-    TOKEN_STR -> Str
-    TOKEN_NAME -> Name
-end
+data(TokenValue,
+    TOKEN_NONE,
+    TOKEN_COMMA,
+    TOKEN_LPAREN -> Token,
+    TOKEN_RPAREN -> Token,
+    TOKEN_LSQUARE -> Token,
+    TOKEN_RSQUARE -> Token,
+    TOKEN_LCURLY -> Token,
+    TOKEN_RCURLY -> Token,
+    TOKEN_INT -> Int,
+    TOKEN_STR -> Str,
+    TOKEN_NAME -> Name)
 field(token-value, Token, TokenValue)
 field(token-module, Token, Module)
 field(token-row, Token, Row)
@@ -35,80 +30,63 @@ def(token-alloc!, Token,
     Token.alloc!
     TOKEN_NONE over token-value!)
 
-token-is-int? : Token -- Token Bool
-token-is-str? : Token -- Token Bool
-token-is-name? : Token -- Token Bool
-token-is-comma? : Token -- Token Bool
-token-is-colon? : Token -- Token Bool
-token-is-equal? : Token -- Token Bool
-token-is-arrow? : Token -- Token Bool
-token-is-dashes? : Token -- Token Bool
-token-is-lparen? : Token -- Token Bool
-token-is-rparen? : Token -- Token Bool
-token-is-lsquare? : Token -- Token Bool
-token-is-rsquare? : Token -- Token Bool
-token-is-lcurly? : Token -- Token Bool
-token-is-rcurly? : Token -- Token Bool
-
-token-is-int? = token-value? match(TOKEN_INT -> drop true, _ -> drop false)
-token-is-str? = token-value? match(TOKEN_STR -> drop true, _ -> drop false)
-token-is-name? = token-value? match(TOKEN_NAME -> drop true, _ -> drop false)
-token-is-comma? = token-value? match(TOKEN_COMMA -> true, _ -> drop false)
-token-is-colon? = token-value? match(TOKEN_COLON -> true, _ -> drop false)
-token-is-equal? = token-value? match(TOKEN_EQUAL -> true, _ -> drop false)
-token-is-arrow? = token-value? match(TOKEN_ARROW -> true, _ -> drop false)
-token-is-dashes? = token-value? match(TOKEN_DASHES -> true, _ -> drop false)
-token-is-lparen? = token-value? match(TOKEN_LPAREN -> drop true, _ -> drop false)
-token-is-rparen? = token-value? match(TOKEN_RPAREN -> drop true, _ -> drop false)
-token-is-lsquare? = token-value? match(TOKEN_LSQUARE -> drop true, _ -> drop false)
-token-is-rsquare? = token-value? match(TOKEN_RSQUARE -> drop true, _ -> drop false)
-token-is-lcurly? = token-value? match(TOKEN_LCURLY -> drop true, _ -> drop false)
-token-is-rcurly? = token-value? match(TOKEN_RCURLY -> drop true, _ -> drop false)
-
-||| Is this a newline token?
-token-is-newline? : Token -- Token Bool
-token-is-newline? =
-    token-value? match(
-        TOKEN_NEWLINE -> true,
-        _ -> drop false
-    )
+def(token-is-int?, Token -- Token Bool,
+    token-value? match(TOKEN_INT -> drop true, _ -> drop false))
+def(token-is-str?, Token -- Token Bool,
+    token-value? match(TOKEN_STR -> drop true, _ -> drop false))
+def(token-is-name?, Token -- Token Bool,
+    token-value? match(TOKEN_NAME -> drop true, _ -> drop false))
+def(token-is-comma?, Token -- Token Bool,
+    token-value? match(TOKEN_COMMA -> true, _ -> drop false))
+def(token-is-arrow?, Token -- Token Bool,
+    PRIM_SYNTAX_ARROW token-prim=?)
+def(token-is-dashes?, Token -- Token Bool,
+    PRIM_SYNTAX_DASHES token-prim=?)
+def(token-is-lparen?, Token -- Token Bool,
+    token-value? match(TOKEN_LPAREN -> drop true, _ -> drop false))
+def(token-is-rparen?, Token -- Token Bool,
+    token-value? match(TOKEN_RPAREN -> drop true, _ -> drop false))
+def(token-is-lsquare?, Token -- Token Bool,
+    token-value? match(TOKEN_LSQUARE -> drop true, _ -> drop false))
+def(token-is-rsquare?, Token -- Token Bool,
+    token-value? match(TOKEN_RSQUARE -> drop true, _ -> drop false))
+def(token-is-lcurly?, Token -- Token Bool,
+    token-value? match(TOKEN_LCURLY -> drop true, _ -> drop false))
+def(token-is-rcurly?, Token -- Token Bool,
+    token-value? match(TOKEN_RCURLY -> drop true, _ -> drop false))
 
 ||| Get token name value, or raise a fatal error.
-token-name@ : Token -- Name
-token-name@ =
+def(token-name@, Token -- Name,
     token-value? match(
         TOKEN_NAME -> nip,
         _ -> drop "expected name" emit-fatal-error!
-    )
+    ))
 
 ||| Get token name value, or raise a fatal error.
-token-name? : Token -- Token Name
-token-name? = dup token-name@
-
+def(token-name?, Token -- Token Name,
+    dup token-name@)
 
 ||| Get token string literal, or raise a fatal error.
-token-str@ : Token -- Str
-token-str@ =
+def(token-str@, Token -- Str,
     token-value? match(
         TOKEN_STR -> nip,
         _ -> drop "expected string" emit-fatal-error!
-    )
+    ))
 
 ||| Get token string literal, or raise a fatal error.
-token-str? : Token -- Token Str
-token-str? = dup token-str@
+def(token-str?, Token -- Token Str,
+    dup token-str@)
 
 ||| Get token integer, or raise a fatal error.
-token-int@ : Token -- Int
-token-int@ =
+def(token-int@, Token -- Int,
     token-value? match(
         TOKEN_INT -> nip,
         _ -> drop "expected int" emit-fatal-error!
-    )
+    ))
 
 ||| Get token integer, or raise a fatal error.
-token-int? : Token -- Token Int
-token-int? = dup token-int@
+def(token-int?, Token -- Token Int,
+    dup token-int@)
 
 ||| Is this an arg ending (COMMA, RPAREN, RSQUARE, RCURLY)?
 def(token-is-arg-end?, Token -- Token Bool,
@@ -254,68 +232,87 @@ def(token-args-3, Token -- Token Token Token,
         )
     ))
 
-def(emit-warning!, Token Str -- +IO, dip(token-location) emit-warning-at!)
-def(emit-error!, Token Str -- +IO, dip(token-location) emit-error-at!)
-def(emit-fatal-error!, *a Token Str -- *b +IO, dip(token-location) emit-fatal-error-at!)
+||| Get List of token args.
+def(token-args, Token -- List(Token),
+    token-has-args? if(
+        token-is-name? if(token-succ, id)
+        L0 swap while (
+            token-is-args-end? not,
+            token-succ dup dip(snoc)
+            token-next-arg-end
+        ) drop,
+        drop L0
+    ))
+
+||| Check if we're at the end of the last argument.
+||| A trailing comma is ignored.
+def(token-is-args-end?, Token -- Token Bool,
+    dup token-is-comma? if(token-succ,id)
+    token-is-right-enclosure? nip)
+
+||| Get List+ of token args.
+||| Emits a fatal error if token has no args,
+def(token-args+, Token -- List+(Token),
+    dup token-args List->List+ match(
+        NONE -> "expected args" emit-fatal-error!,
+        SOME -> nip
+    ))
+
+def(emit-warning!, Token Str --,
+    dip(token-location) emit-warning-at!)
+def(emit-error!, Token Str --,
+    dip(token-location) emit-error-at!)
+def(emit-fatal-error!, *a Token Str -- *b,
+    dip(token-location) emit-fatal-error-at!)
 
 ###############
 # Token Types #
 ###############
 
 ||| Is this the end of a module?
-token-is-module-end? : Token -- Token Bool
-token-is-module-end? =
+def(token-is-module-end?, Token -- Token Bool,
     token-value? match(
         TOKEN_NONE -> true,
         _ -> drop false
-    )
+    ))
 
 ||| Is this a token to stop running at?
-token-run-end? : Token -- Token Bool
-token-run-end? =
+def(token-run-end?, Token -- Token Bool,
     token-value? match(
         TOKEN_NONE -> true,
-        TOKEN_NEWLINE -> true,
         TOKEN_COMMA -> true,
         TOKEN_RPAREN -> drop true,
         TOKEN_RSQUARE -> drop true,
         TOKEN_RCURLY -> drop true,
         _ -> drop false
-    )
-
-||| Skip all the newlines.
-token-skip-newlines : Token -- Token
-token-skip-newlines = while(token-is-newline?, token-succ)
+    ))
 
 ###################
 # Type Signatures #
 ###################
 
-sig-is-stack-end? : Token -- Token Bool
-sig-is-stack-end? =
+def(sig-is-stack-end?, Token -- Token Bool,
     token-is-dashes? if(
         true,
         token-run-end?
-    )
+    ))
 
-sig-is-stack-end2? : Token -- Token Bool
-sig-is-stack-end2? =
+def(sig-is-stack-end2?, Token -- Token Bool,
     sig-is-stack-end? if(
         true,
         sig-token-is-effect-con?
-    )
+    ))
 
-sig-next-stack-end : Token -- Token
-sig-next-stack-end = while(sig-is-stack-end? not, token-next)
+def(sig-next-stack-end, Token -- Token,
+    while(sig-is-stack-end? not, token-next))
 
-sig-has-dashes : Token -- Bool
-sig-has-dashes = sig-next-stack-end token-is-dashes? nip
+def(sig-has-dashes, Token -- Bool,
+    sig-next-stack-end token-is-dashes? nip)
 
-sig-has-dashes? : Token -- Token Bool
-sig-has-dashes? = dup sig-has-dashes
+def(sig-has-dashes?, Token -- Token Bool,
+    dup sig-has-dashes)
 
-sig-arity : Token -- Int Int
-sig-arity =
+def(sig-arity, Token -- Int Int,
     sig-has-dashes? if(
         sig-count-types
         token-next
@@ -324,86 +321,58 @@ sig-arity =
 
         sig-count-types
         drop 0 swap
-    )
+    ))
 
-sig-count-types : Token -- Int Token
-sig-count-types =
+def(sig-count-types, Token -- Int Token,
     0 swap while(sig-is-stack-end? not,
         sig-token-is-type? if(dip(1+), id)
         token-next
-    )
+    ))
 
-sig-token-is-type? : Token -- Token Bool
-sig-token-is-type? =
+def(sig-token-is-type?, Token -- Token Bool,
     token-value? match(
         TOKEN_NAME -> name-could-be-type,
         _ -> drop false
-    )
+    ))
 
-sig-token-is-type-con? : Token -- Token Bool
-sig-token-is-type-con? =
+def(sig-token-is-type-con?, Token -- Token Bool,
     token-value? match(
         TOKEN_NAME -> name-could-be-type-con,
         _ -> drop false
-    )
+    ))
 
-sig-token-is-type-hole? : Token -- Token Bool
-sig-token-is-type-hole? =
+def(sig-token-is-type-hole?, Token -- Token Bool,
     token-value? match(
         TOKEN_NAME -> name-is-type-hole,
         _ -> drop false
-    )
+    ))
 
-token-is-underscore? : Token -- Token Bool
-token-is-underscore? =
+def(token-is-underscore?, Token -- Token Bool,
     token-value? match(
         TOKEN_NAME -> name-is-underscore,
         _ -> drop false
-    )
+    ))
 
-sig-token-is-type-var? : Token -- Token Bool
-sig-token-is-type-var? =
+def(sig-token-is-type-var?, Token -- Token Bool,
     token-value? match(
         TOKEN_NAME -> name-could-be-type-var,
         _ -> drop false
-    )
+    ))
 
-sig-token-is-stack-var? : Token -- Token Bool
-sig-token-is-stack-var? =
+def(sig-token-is-stack-var?, Token -- Token Bool,
     token-value? match(
         TOKEN_NAME -> name-could-be-stack-var,
         _ -> drop false
-    )
+    ))
 
-sig-token-is-effect-con? : Token -- Token Bool
-sig-token-is-effect-con? =
+def(sig-token-is-effect-con?, Token -- Token Bool,
     token-value? match(
         TOKEN_NAME -> name-could-be-effect-con,
         _ -> drop false
-    )
+    ))
 
-sig-skip-dashes : Token -- Token
-sig-skip-dashes =
+def(sig-skip-dashes, Token -- Token,
     sig-has-dashes? if(
         sig-next-stack-end token-next,
         id
-    )
-
-##############
-# BARE DECLS #
-##############
-
-token-could-be-word-sig? : Token -- Token Bool
-token-could-be-word-sig? =
-    token-is-name? if(
-        dup token-next token-is-colon? nip,
-        false
-    )
-
-# TODO eventually figure out how to deal w/ pattern matching...
-token-could-be-word-def? : Token -- Token Bool
-token-could-be-word-def? =
-    token-is-name? if(
-        dup token-next token-is-equal? nip,
-        false
-    )
+    ))

@@ -11,26 +11,23 @@ field(module-start, Module, Token)
 field(module-end, Module, Token)
 field(module-imports, Module, Set(Module))
 
-module-alloc! : Module
-module-alloc! = Module.alloc!
+def(module-new!, Path -- Module,
+    Module.alloc!
+    tuck module-path!)
 
-module-new! : Path -- Module
-module-new! = (
-    module-alloc!
-    tuck module-path!
-)
+||| Add right module as import to left module.
+def(module-add-import!, Module Module --,
+    dip(module-imports?) set-insert swap module-imports!)
 
 ||| Get source path associated with module.
-module-source-path : Module -- Path
-module-source-path =
+def(module-source-path, Module -- Path,
     is-nil? if(
         drop "<generated>" Str->Path,
         module-path@ make-source-path
-    )
+    ))
 
 ||| Get expected module path from module name, relative to src.
-module-path-from-name : Name -- Path
-module-path-from-name =
+def(module-path-from-name, Name -- Path,
     name-str@ str-transduce(
         is-dot? if(
             drop "/" # path-separator # TODO: this should be path-separator, but breaks module import check on MSYS2 ... fix module import check / paths?
@@ -40,4 +37,4 @@ module-path-from-name =
             TS_CHAR
 #            "--///error///--" TS_COPY
         ))
-    ) ".mth" str-cat Str->Path
+    ) ".mth" str-cat Str->Path)

@@ -1,51 +1,39 @@
 module(data.maybe)
 import(prelude)
 
-data Maybe(t)
-    NONE
-    SOME -> t
-end
+data(Maybe(t), NONE, SOME -> t)
 
-is-none : Maybe(t) -- Bool
-is-none = is-nil
+def(is-none, Maybe(t) -- Bool, is-nil)
+def(is-some, Maybe(t) -- Bool, is-nil not)
+def(is-none?, Maybe(t) -- Maybe(t) Bool, is-nil?)
+def(is-some?, Maybe(t) -- Maybe(t) Bool, is-nil? not)
 
-is-some : Maybe(t) -- Bool
-is-some = is-nil not
-
-is-none? : Maybe(t) -- Maybe(t) Bool
-is-none? = is-nil?
-
-is-some? : Maybe(t) -- Maybe(t) Bool
-is-some? = is-nil? not
-
-maybe-map : *c Maybe(a) [*c a -- *c b] -- *c Maybe(b)
-maybe-map = \([f] ->
+def(unwrap, Maybe(t) -- t,
     match(
+        NONE -> "tried to unwrap NONE" panic!,
+        SOME -> id,
+    ))
+
+def(maybe-map, *c Maybe(a) [*c a -- *c b] -- *c Maybe(b),
+    \([f] -> match(
         NONE -> NONE,
         SOME -> f SOME,
-    )
-)
+    )))
 
-maybe-bind : *c Maybe(a) [*c a -- *c Maybe(b)] -- *c Maybe(b)
-maybe-bind = \([f] ->
-    match(
+def(maybe-bind, *c Maybe(a) [*c a -- *c Maybe(b)] -- *c Maybe(b),
+    \([f] -> match(
         NONE -> NONE,
         SOME -> f
-    )
-)
+    )))
 
-maybe-for : *c Maybe(a) [*c a -- *c] -- *c
-maybe-for = \([f] ->
-    match(
+def(maybe-for, *c Maybe(a) [*c a -- *c] -- *c,
+    \([f] -> match(
         NONE -> id,
         SOME -> f
-    )
-)
+    )))
 
-maybe-filter : *c Maybe(a) [*c a -- *c a Bool] -- *c Maybe(a)
-maybe-filter = \([f] ->
-    match(
+def(maybe-filter, *c Maybe(a) [*c a -- *c a Bool] -- *c Maybe(a),
+    \([f] -> match(
         NONE -> NONE,
         SOME -> f if(SOME, drop NONE)
-    )
-)
+    )))

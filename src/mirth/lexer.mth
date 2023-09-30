@@ -70,7 +70,6 @@ def(run-lexer!, Path -- Module +Lexer,
     input-end!
 
     lexer-stack-empty? if(
-        TOKEN_NEWLINE lexer-emit!
         TOKEN_NONE lexer-emit!,
 
         lexer-stack-pop!
@@ -112,7 +111,7 @@ def(lexer-next!, --,
 
     is-newline? if(
         drop
-        lexer-emit-newline!,
+        lexer-newline!,
 
     is-whitespace? if(
         drop,
@@ -124,10 +123,6 @@ def(lexer-next!, --,
     is-comma? if(
         drop
         TOKEN_COMMA lexer-emit!,
-
-    is-colon? if(
-        drop
-        TOKEN_COLON lexer-emit!,
 
     is-lparen? if(
         drop
@@ -158,16 +153,11 @@ def(lexer-next!, --,
         lexer-emit-string!,
 
         "unrecognized token" lexer-emit-fatal-error!
-    ))))))))))))
+    )))))))))))
 
     lexer-move!)))
 
-
-def(lexer-emit-newline!, +Lexer,
-    lexer-stack-empty? if(
-        TOKEN_NEWLINE lexer-emit!,
-        id
-    )
+def(lexer-newline!, +Lexer,
     lexer-row@ Row->Int 1+ Int->Row lexer-row!
     0 Int->Col lexer-col!)
 
@@ -231,18 +221,12 @@ def(lexer-emit-name!, +Lexer,
     str-buf-is-doc-start? if(
         drop3
         lexer-skip-doc!,
-        # TODO: save the doc in a token-doc field for the proceeding token
+        # TODO: save the doc in the token-doc field for the next token
 
-        str-buf-is-dashes? if(
-            TOKEN_DASHES,
-        str-buf-is-arrow? if(
-            TOKEN_ARROW,
-        str-buf-is-equal? if(
-            TOKEN_EQUAL,
         str-buf-is-int? if(
             str-buf-int? TOKEN_INT,
             str-buf-dup! name-new! TOKEN_NAME
-        ))))
+        )
 
         token-alloc!
         tuck token-value!
@@ -428,12 +412,9 @@ def(lexer-push-string-char!, Char -- +Lexer,
         str-buf-push-char!
     ))
 
-def(lexer-skip-comment!, +Lexer,
+def(lexer-skip-comment!, --,
     while(lexer-comment-end? not, lexer-move!)
-    lexer-peek is-newline? if(
-        lexer-emit-newline! drop,
-        drop
-    ))
+    lexer-peek is-newline? if(lexer-newline!, id) drop)
 
 def(lexer-skip-doc!, +Lexer, while(lexer-comment-end? not, lexer-move!))
 

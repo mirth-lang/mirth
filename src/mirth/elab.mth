@@ -104,7 +104,7 @@ def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
     dip2(type-elab-ctx!))
 
 def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
-    token-name? name-value@ match(
+    token-name? name-def@ match(
         DEF_TYPE ->
             over token-num-args
             over type-arity == if(
@@ -180,12 +180,11 @@ def(ab-token!, Token -- +AB, ab-arrow@ arrow-token-end!)
 def(ab-type@, Type +AB, ab-arrow@ arrow-cod@)
 def(ab-type!, Type -- +AB, ab-arrow@ arrow-cod!)
 
-ab-save! : *a [ *a -- *b +AB ] -- *b +AB
-ab-save! = \([f] -> ab-arrow@ dip(f) ab-arrow!)
+def(ab-save!, *a [ *a -- *b ] -- *b,
+    \([f] -> ab-arrow@ dip(f) ab-arrow!))
 
-ab-build! : *a Ctx Type Token [ *a -- *b +AB ] -- *b Arrow +AB
-ab-build! = \([f] ->
-    ab-save!(
+def(ab-build!, *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
+    \([f] -> ab-save!(
         Arrow.alloc!
         tuck dup2 arrow-token-start! arrow-token-end!
         tuck dup2 arrow-dom! arrow-cod!
@@ -193,32 +192,28 @@ ab-build! = \([f] ->
         ab-arrow!
         f
         ab-arrow@
-    )
-)
+    )))
 
-ab-build-word! : *a Word [ *a -- *b +AB ] -- *b Word +AB
-ab-build-word! = \([f] ->
-    dup dip(elab-word-ctx-sig!)
-    word-body? swap
-    dip(elab-expand-morphism! swap)
+def(ab-build-word!, *a Word [ *a -- *b ] -- *b Word,
+    \([f] ->
+        dup dip(elab-word-ctx-sig!)
+        word-body? swap
+        dip(elab-expand-morphism! swap)
 
-    { *a Ctx Type Token Type Word }
-    true over word-body-is-checking!
-    dip(
-        dip(ab-build!(f)) over
-        arrow-cod? swap arrow-token-end@
-        elab-type-unify! drop2
-    )
-    tuck word-arrow!
-    true over word-body-is-checked!
-)
+        { *a Ctx Type Token Type Word }
+        dip(
+            dip(ab-build!(f)) over
+            arrow-cod? swap arrow-token-end@
+            elab-type-unify! drop2
+            ready
+        )
+        tuck word-arrow!
+    ))
 
-ab-unify-type! : Type -- +AB
-ab-unify-type! =
-    dip(ab-token@ GAMMA ab-type@) type-unify! ab-type! drop
+def(ab-unify-type!, Type --,
+    dip(ab-token@ GAMMA ab-type@) type-unify! ab-type! drop)
 
-ab-atom! : Atom -- +AB
-ab-atom! = (
+def(ab-atom!, Atom --,
     atom-token? ab-token!
     # atom-dom? ab-unify-type!     # moved to ab-expand-opsig!
         # ^ a sanity check to make sure
@@ -226,19 +221,15 @@ ab-atom! = (
     atom-cod? ab-type!
     dip(ab-arrow@ arrow-atoms@)
     ab-optimized-snoc!
-    ab-arrow@ arrow-atoms!
-)
+    ab-arrow@ arrow-atoms!)
 
 ||| Add an atom to a list of atoms ... smartly.
-ab-optimized-snoc! : List(Atom) Atom -- List(Atom)
-ab-optimized-snoc! = (
+def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
     while(dip?(atoms-has-last-block?) and(atom-accepts-args?),
         swap atoms-turn-last-block-to-arg swap)
-    snoc
-)
+    snoc)
 
-atom-accepts-args? : Atom -- Atom Bool
-atom-accepts-args? =
+def(atom-accepts-args?, Atom -- Atom Bool,
     atom-op? match(
         OP_WORD -> dip(atom-args? len) elab-word-sig! type-max-num-params <,
         OP_PRIM ->
@@ -250,10 +241,9 @@ atom-accepts-args? =
                 _ -> drop false
             ),
         _ -> drop false
-    )
+    ))
 
-atoms-has-last-block? : List(Atom) -- List(Atom) Bool
-atoms-has-last-block? =
+def(atoms-has-last-block?, List(Atom) -- List(Atom) Bool,
     dup last match(
         NONE -> false,
         SOME ->
@@ -261,10 +251,9 @@ atoms-has-last-block? =
                 OP_BLOCK -> drop true,
                 _ -> drop false
             )
-    )
+    ))
 
-atoms-turn-last-block-to-arg : Atom List(Atom) -- Atom List(Atom)
-atoms-turn-last-block-to-arg =
+def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
     List->List+ match(
         NONE -> L0,
         SOME ->
@@ -277,31 +266,27 @@ atoms-turn-last-block-to-arg =
                     swap,
                 _ -> drop snoc
             )
-    )
+    ))
 
-block-to-arg : Block -- Arg
-block-to-arg =
+def(block-to-arg, Block -- Arg,
     block-arrow? arrow-to-run-var match(
         NONE -> ARG_BLOCK,
         SOME -> ARG_VAR_RUN nip
-    )
+    ))
 
-arrow-to-run-var : Arrow -- Maybe(Var)
-arrow-to-run-var =
+def(arrow-to-run-var, Arrow -- Maybe(Var),
     arrow-atoms@ match(
         L1 -> atom-to-run-var,
         _ -> drop NONE
-    )
+    ))
 
-atom-to-run-var : Atom -- Maybe(Var)
-atom-to-run-var =
+def(atom-to-run-var, Atom -- Maybe(Var),
     atom-op@ match(
         OP_VAR -> var-auto-run? if(SOME, drop NONE),
         _ -> drop NONE
-    )
+    ))
 
-ab-op! : Op -- +AB
-ab-op! = (
+def(ab-op!, Op --,
     Atom.alloc!
     ab-ctx@ over atom-ctx!
     ab-token@ over atom-token!
@@ -310,11 +295,9 @@ ab-op! = (
     dip(over atom-subst!)
     ab-expand-opsig!
     dip(over atom-dom!) over atom-cod!
-    ab-atom!
-)
+    ab-atom!)
 
-ab-expand-opsig! : OpSig -- Type Type
-ab-expand-opsig! =
+def(ab-expand-opsig!, OpSig -- Type Type,
     match(
         OPSIG_ID -> ab-type@ dup,
         OPSIG_PUSH -> dip(ab-type@ dup) TTensor,
@@ -322,97 +305,77 @@ ab-expand-opsig! =
             dip(ab-type@)
             ab-token@ elab-expand-morphism!
             swap dip(elab-type-unify! drop)
-    )
+    ))
 
-ab-int! : Int -- +AB
-ab-int! = OP_INT ab-op!
-
-ab-str! : Str -- +AB
-ab-str! = OP_STR ab-op!
-
-ab-buffer! : Buffer -- +AB
-ab-buffer! = OP_BUFFER ab-op!
-
-ab-var! : Var -- +AB
-ab-var! = OP_VAR ab-op!
-
-ab-tag! : Tag -- +AB
-ab-tag! = OP_TAG ab-op!
-
-ab-prim! : Prim -- +AB
-ab-prim! =
+def(ab-int!, Int --, OP_INT ab-op!)
+def(ab-str!, Str --, OP_STR ab-op!)
+def(ab-buffer!, Buffer --, OP_BUFFER ab-op!)
+def(ab-var!, Var --, OP_VAR ab-op!)
+def(ab-tag!, Tag --, OP_TAG ab-op!)
+def(ab-prim!, Prim --,
     prim-type? is-nil if(
         ab-token@ "compiler error: prim type missing" emit-fatal-error!,
         OP_PRIM ab-op!
-    )
+    ))
+def(ab-word!, Word --, OP_WORD ab-op!)
+def(ab-external!, External --, OP_EXTERNAL ab-op!)
+def(ab-fieldword!, FieldWord --, OP_FIELDWORD ab-op!)
 
-ab-word! : Word -- +AB
-ab-word! = OP_WORD ab-op!
+def(ab-block-at!, *a Token [ *a -- *b ] -- *b,
+    \([f] ->
+        Block.alloc! dip(
+            ab-ctx@ meta-alloc! TMeta rotl ab-build!(f)
+        ) tuck block-arrow-raw! OP_BLOCK ab-op!
+    ))
 
-ab-external! : External -- +AB
-ab-external! = OP_EXTERNAL ab-op!
+def(ab-block!, *a [ *a -- *b ] -- *b,
+    \([f] -> ab-token@ ab-block-at!(f)))
 
-ab-fieldword! : FieldWord -- +AB
-ab-fieldword! = OP_FIELDWORD ab-op!
+def(ab-dip!, *a [ *a -- *b ] -- *b,
+    \([f] -> ab-block!(f) PRIM_CORE_DIP ab-prim!))
 
-ab-block-at! : *a Token [ *a -- *b +AB ] -- *b +AB
-ab-block-at! = \([f] ->
-    Block.alloc! dip(
-        ab-ctx@ meta-alloc! TMeta rotl ab-build!(f)
-    ) tuck block-arrow-raw! OP_BLOCK ab-op!
-)
-
-ab-block! : *a [ *a -- *b +AB ] -- *b +AB
-ab-block! = \([f] -> ab-token@ ab-block-at!(f))
-
-ab-dip! : *a [ *a -- *b +AB ] -- *b +AB
-ab-dip! = \([f] -> ab-block!(f) PRIM_CORE_DIP ab-prim!)
-
-ab-if! : *a [ *a -- *b +AB ] [ *b -- *c +AB ] -- *c +AB
-ab-if! = dip(ab-block!) ab-block! PRIM_CORE_IF ab-prim!
+def(ab-if!, *a [ *a -- *b ] [ *b -- *c ] -- *c,
+    dip(ab-block!) ab-block! PRIM_CORE_IF ab-prim!)
     # FIXME TODO there's a problem with multiples somewhere ...
 
-ab-while! : *a [ *a -- *b +AB ] [ *b -- *c +AB ] -- *c +AB
-ab-while! = dip(ab-block!) ab-block! PRIM_CORE_WHILE ab-prim!
+def(ab-while!, *a [ *a -- *b ] [ *b -- *c ] -- *c,
+    dip(ab-block!) ab-block! PRIM_CORE_WHILE ab-prim!)
     # FIXME TODO there's a problem with multiples somewhere ...
     # I probably got the InlineKey's backwards :-(
 
-ab-lambda! : *a List(Param) [*a -- *b +AB] -- *b +AB
-ab-lambda! = \([f] ->
-    Lambda.alloc!
-    ab-ctx@ over lambda-outer-ctx!
-    ab-type@ over lambda-dom!
-    ab-token@ over lambda-token!
-    dup2 lambda-params!
-    dip(ab-ctx@ ab-type@ rotl for(
-        swap dip(Param->Var ctx-new!)
-        ab-token@ elab-expand-tensor! drop2
+def(ab-lambda!, *a List(Param) [*a -- *b ] -- *b ,
+    \([f] ->
+        Lambda.alloc!
+        ab-ctx@ over lambda-outer-ctx!
+        ab-type@ over lambda-dom!
+        ab-token@ over lambda-token!
+        dup2 lambda-params!
+        dip(ab-ctx@ ab-type@ rotl for(
+            swap dip(Param->Var ctx-new!)
+            ab-token@ elab-expand-tensor! drop2
+        ))
+        tuck lambda-mid!
+        tuck lambda-inner-ctx!
+
+        { *a Lambda }
+
+        lambda-inner-ctx?
+        over lambda-mid@
+        ab-token@
+        ab-build!(
+            dip(f)
+            ab-type@ over lambda-cod!
+        )
+        over lambda-body!
+        OP_LAMBDA ab-op!
     ))
-    tuck lambda-mid!
-    tuck lambda-inner-ctx!
 
-    { *a Lambda }
+data(OpSig,
+    OPSIG_ID,
+    OPSIG_PUSH -> Type,
+    OPSIG_APPLY -> Type)
 
-    lambda-inner-ctx?
-    over lambda-mid@
-    ab-token@
-    ab-build!(
-        dip(f)
-        ab-type@ over lambda-cod!
-    )
-    over lambda-body!
-    OP_LAMBDA ab-op!
-)
-
-data OpSig
-    OPSIG_ID
-    OPSIG_PUSH -> Type
-    OPSIG_APPLY -> Type
-end
-
-
-elab-op-fresh-sig! : Op -- Subst OpSig +AB
-elab-op-fresh-sig! =
+def(elab-op-fresh-sig!, Op -- Subst OpSig,
     subst-nil swap match(
         OP_NONE -> OPSIG_ID,
         OP_INT -> VALUE_INT TValue OPSIG_PUSH,
@@ -427,23 +390,22 @@ elab-op-fresh-sig! =
         OP_VAR -> elab-var-sig!,
         OP_MATCH -> elab-match-sig!,
         OP_LAMBDA -> elab-lambda-sig!,
-    )
+    ))
 
-elab-block-sig! : Block -- OpSig
-elab-block-sig! = VALUE_BLOCK TValue OPSIG_PUSH
+def(elab-block-sig!, Block -- OpSig,
+    VALUE_BLOCK TValue OPSIG_PUSH)
 
-elab-match-sig! : Match -- OpSig
-elab-match-sig! = match-dom? swap match-cod@ T-> OPSIG_APPLY
+def(elab-match-sig!, Match -- OpSig,
+    match-dom? swap match-cod@ T-> OPSIG_APPLY)
 
-elab-lambda-sig! : Lambda -- OpSig
-elab-lambda-sig! = lambda-dom? swap lambda-cod@ T-> OPSIG_APPLY
+def(elab-lambda-sig!, Lambda -- OpSig,
+    lambda-dom? swap lambda-cod@ T-> OPSIG_APPLY)
 
-elab-var-sig! : Var -- OpSig
-elab-var-sig! =
+def(elab-var-sig!, Var -- OpSig,
     var-auto-run? if(
         var-type@ type-semifreshen-sig OPSIG_APPLY,
         var-type@ OPSIG_PUSH
-    )
+    ))
 
 def(elab-tag-sig!, Tag -- Type +Elab,
     elab-tag-ctx-sig! nip)
@@ -502,55 +464,12 @@ def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
         )
     ))
 
-def(elab-word-sig!, Word -- Type +Elab,
-    elab-word-ctx-sig! nip)
+def(elab-word-sig!, Word -- Type, elab-word-ctx-sig! nip)
+def(elab-word-ctx!, Word -- Ctx, elab-word-ctx-sig! drop)
+def(elab-word-ctx-sig!, Word -- Ctx Type,
+    word-ctx-type@ force2)
 
-def(elab-word-ctx!, Word -- Ctx +Elab,
-    elab-word-ctx-sig! drop)
-
-def(elab-word-ctx-sig!, Word -- Ctx Type +Elab,
-    word-sig-is-checked? if(
-        word-type? dip(word-ctx@),
-
-        word-sig?
-        dip(type-elab-default)
-        elab-type-sig! drop dip(type-elab-ctx)
-        dup2 dip2(
-            rotl
-            tuck word-type!
-            tuck word-ctx!
-            true swap word-sig-is-checked!
-        )
-    ))
-
-def(try-elab-word-body!, Word -- Maybe(Arrow) +Elab,
-    word-body-is-checked? if(
-        word-arrow@ SOME,
-    word-body-is-checking? if(
-        drop NONE,
-        elab-word-body! SOME
-    )))
-
-def(elab-word-body!, Word -- Arrow +Elab,
-    word-body-is-checked? if(
-        word-arrow@,
-
-    word-body-is-checking? if(
-        word-sig@ token-prev token-prev
-        "compiler error: elab-word-body! called on word already checking"
-        emit-fatal-error!,
-
-    word-body? is-nil if(
-        word-sig@ token-prev token-prev # not very good :-/
-        "Missing word definition."
-        emit-fatal-error!,
-
-        true over word-body-is-checking!
-        dup dip(elab-word-ctx-sig!)
-        dup dip(word-body@ elab-arrow!)
-        dup2 word-arrow!
-        true swap word-body-is-checked!
-    ))))
+def(elab-word-body!, Word -- Arrow, word-arrow@ force)
 
 def(elab-arrow!, Ctx Type Token -- Arrow,
     elab-expand-morphism! elab-arrow-hom!)
@@ -563,21 +482,19 @@ def(elab-arrow-hom!, Ctx Type Type Token -- Arrow,
     )
     type-unify! drop2)
 
-elab-arrow-fwd! : Ctx Type Token -- Arrow
-elab-arrow-fwd! = ab-build!(elab-atoms!)
+def(elab-arrow-fwd!, Ctx Type Token -- Arrow,
+    ab-build!(elab-atoms!))
 
-elab-atoms! : +AB
-elab-atoms! =
+def(elab-atoms!, --,
     while(
         elab-atoms-done? not,
         elab-atom! ab-token@ token-next ab-token!
-    )
+    ))
 
-elab-atoms-done? : Bool +AB
-elab-atoms-done? = ab-token@ token-run-end? nip
+def(elab-atoms-done?, Bool,
+    ab-token@ token-run-end? nip)
 
-elab-atom! : +AB
-elab-atom! =
+def(elab-atom!, --,
     ab-token@ token-value@ match(
         TOKEN_NAME -> elab-atom-name!,
         TOKEN_INT -> ab-int!,
@@ -585,37 +502,24 @@ elab-atom! =
         TOKEN_LSQUARE -> drop elab-atom-block!,
         TOKEN_LCURLY -> drop elab-atom-assert!,
         _ -> ab-token@ "Unexpected token in elab-atom!" emit-fatal-error!
-    )
+    ))
 
-elab-atom-block! : +AB
-elab-atom-block! = ab-token@ token-args-1 elab-block-at!
+def(elab-atom-block!, --,
+    ab-token@ token-args-1 elab-block-at!)
 
-elab-block-at! : Token -- +AB
-elab-block-at! = ab-ctx@ swap block-new-deferred! OP_BLOCK ab-op!
+def(elab-block-at!, Token --,
+    ab-ctx@ swap block-new-deferred! OP_BLOCK ab-op!)
 
-token-args : Token -- List(Token)
-token-args =
-    token-has-args? if(
-        token-is-name? if(token-succ, id)
-        L0 swap while (
-            token-is-right-enclosure? not,
-            token-succ dup dip(snoc)
-            token-next-arg-end
-        ) drop,
-        drop L0
-    )
+def(elab-args!, --,
+    ab-token@ token-args reverse-for(elab-block-at!))
 
-elab-args! : +AB
-elab-args! = ab-token@ token-args reverse-for(elab-block-at!)
+def(elab-no-args!, --,
+    ab-token@ token-args-0)
 
-elab-no-args! : +AB
-elab-no-args! = ab-token@ token-args-0
-
-elab-atom-name! : Name -- +AB
-elab-atom-name! =
+def(elab-atom-name!, Name --,
     dup ab-ctx@ ctx-lookup match(
         SOME -> nip elab-args! ab-var!,
-        NONE -> name-value@ match(
+        NONE -> name-def@ match(
             DEF_BUFFER -> elab-no-args! ab-buffer!,
             DEF_EXTERNAL -> elab-no-args! ab-external!,
             DEF_FIELDWORD -> elab-no-args! ab-fieldword!,
@@ -624,44 +528,37 @@ elab-atom-name! =
             DEF_PRIM -> elab-prim!,
             _ -> drop ab-token@ "Unknown word." emit-error! TYPE_ERROR ab-type!
         )
-    )
+    ))
 
-elab-prim! : Prim -- +AB
-elab-prim! =
+def(elab-prim!, Prim --,
     match(
         PRIM_CORE_MATCH -> elab-atom-match!,
         PRIM_CORE_LAMBDA -> elab-atom-lambda!,
         _ -> elab-args! ab-prim!
-    )
+    ))
 
-elab-atom-assert! : +AB
-elab-atom-assert! = (
+def(elab-atom-assert!, --,
     ab-token@ GAMMA
     ab-ctx@ type-elab-stack-assertion
     ab-token@ token-args-1 elab-type-stack!
-    drop nip ab-type@ swap type-unify! drop2
-)
+    drop nip ab-type@ swap type-unify! drop2)
 
-elab-atom-lambda! : +AB
-elab-atom-lambda! = (
+def(elab-atom-lambda!, --,
     Lambda.alloc!
     ab-ctx@ over lambda-outer-ctx!
     ab-type@ over lambda-dom!
     ab-token@ over lambda-token!
     elab-lambda!
-    OP_LAMBDA ab-op!
-)
+    OP_LAMBDA ab-op!)
 
-elab-atom-match! : +AB
-elab-atom-match! = (
+def(elab-atom-match!, --,
     Match.alloc!
     ab-ctx@ over match-ctx!
     ab-type@ over match-dom!
     ab-token@ over match-token!
     meta-alloc! TMeta over match-cod!
     elab-match!
-    OP_MATCH ab-op!
-)
+    OP_MATCH ab-op!)
 
 def(elab-lambda!, Lambda -- Lambda,
     elab-lambda-params!
@@ -751,18 +648,9 @@ def(elab-match!, Match -- Match,
 
 ||| Check that match is exhaustive.
 def(elab-match-exhaustive!, Match -- Match,
-    match-has-default-case? if(
+    match-is-exhaustive? if(
         id,
-        match-scrutinee-data? match(
-            SOME ->
-                data-num-tags dip(match-num-cases?) < if(
-                    match-token? "Pattern match not exhaustive." emit-error!,
-                    # TODO -- print missing patterns.
-                    id
-                ),
-            NONE ->
-                id
-        )
+        match-token? "Pattern match not exhaustive." emit-error!
     ))
 
 ||| Elaborate match cases.
@@ -799,7 +687,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
         token-succ,
 
     token-is-name? if(
-        token-name? name-value@ match(
+        token-name? name-def@ match(
             DEF_TAG -> { Case Token Tag }
 
                 # set case pattern
@@ -844,65 +732,55 @@ def(elab-case-body!, Case Token -- Case Token,
 ||| Elaborate all of a module.
 def(elab-module!, Module -- Module +Mirth,
     module-start?
-    token-skip-newlines
     elab-module-header!
-    elab-module-imports!
-    elab-module-decls!
-#    typecheck-everything!
+    while(token-is-module-end? not, elab-module-decl!)
     drop)
 
 ||| Check that the `module(M)` statement exists and save the name.
-def(elab-module-header!, Module Token -- Module Token +Mirth,
+def(elab-module-header!, Token -- Token,
     PRIM_SYNTAX_MODULE token-prim=? if(
-        dup2 elab-module-name! token-next,
+        dup token-args-1
+        token-is-name? if(id, "Expected module name." emit-fatal-error!)
+        token-name? name-defined?
+        if(drop "Module name already taken." emit-fatal-error!, id)
+        over token-module@
+        dup2 module-name!
+        dup2 DEF_MODULE swap name-def!
+        module-path@ Path->Str swap
+        module-path-from-name Path->Str str-eq if(drop,
+            "Module name should match path." emit-error!)
+        token-next,
         dup "Expected module header." emit-error!
-    )
-    token-skip-newlines)
-
-||| Check & save the module name from the module header `module(M)`.
-def(elab-module-name!, Module Token -- +Mirth,
-    token-args-1 token-is-name? if(
-        token-name?
-        name-defined? if(
-            drop "Module name already taken." emit-fatal-error!,
-            dip(swap)
-            dup2 swap module-name!
-            dup2 name-module!
-
-            # check module name matches module path
-            dip(module-path@ Path->Str)
-            module-path-from-name Path->Str str-eq if(
-                drop,
-                "Module name should match path." emit-error!
-            )
-        ),
-        "Expected module name." emit-fatal-error!
     ))
 
-
-||| Elaborate module imports. Return token after imports.
-def(elab-module-imports!, Module Token -- Module Token +Mirth,
-    while(PRIM_SYNTAX_IMPORT token-prim=?, elab-module-import!))
-
-||| Add right module as import to left module.
-def(module-add-import!, Module Module --,
-    dip(module-imports?) set-insert swap module-imports!)
+||| Elaborate a declaration. Returns the next token.
+def(elab-module-decl!, Token -- Token,
+    token-value? match(
+        TOKEN_NAME -> name-def@ match(
+            DEF_PRIM -> prim-decl@ is-nil? if(
+                drop "unknown declaration" emit-fatal-error!,
+                run
+            ),
+            _ -> drop "unknown declaration" emit-fatal-error!
+        ),
+        _ -> drop "unsupported declaration" emit-fatal-error!
+    ))
 
 ||| Elaborate `import(M)` statement. Return token after import.
-def(elab-module-import!, Module Token -- Module Token +Mirth,
+def(elab-module-import!, Token -- Token,
     dup dip(token-next)
     token-args-1 token-value? match(
         TOKEN_NAME ->
-            name-value? match(
+            name-def? match(
                 DEF_MODULE ->
-                    dip(drop2 over)
+                    dip(drop2 token-module?)
                     module-add-import!,
                     # module is already loaded
 
                 DEF_NONE ->
                     module-path-from-name run-lexer!
                     elab-module!
-                    dip(drop over) module-add-import!,
+                    dip(drop token-module?) module-add-import!,
                     # elab the imported module
                     # TODO: avoid elaborating here,
                     # use a single loop to dispatch top-level module elaboration.
@@ -912,191 +790,94 @@ def(elab-module-import!, Module Token -- Module Token +Mirth,
             ),
         _ ->
             drop "expected module name" emit-fatal-error!
-    )
-    token-skip-newlines)
-
-||| Elaborate the rest of the module.
-def(elab-module-decls!, Module Token -- Module Token +Mirth,
-    while(token-is-module-end? not, elab-module-decl!))
-
-||| Elaborate a declaration. Returns the next token.
-def(elab-module-decl!, Module Token -- Module Token +Mirth,
-    PRIM_SYNTAX_DEF token-prim=? if( elab-def!,
-    PRIM_SYNTAX_DEF_EXTERNAL token-prim=? if( elab-def-external!,
-    PRIM_SYNTAX_DEF_TYPE token-prim=? if( elab-def-type!,
-    PRIM_SYNTAX_BUFFER token-prim=? if( elab-buffer!,
-    PRIM_SYNTAX_TABLE token-prim=? if( elab-table!,
-    PRIM_SYNTAX_FIELD token-prim=? if( elab-field!,
-    PRIM_SYNTAX_TARGET_C99 token-prim=? if(elab-target-c99!,
-    PRIM_SYNTAX_DATA token-prim=? if( elab-data!,
-    token-could-be-word-sig? if(elab-decl-word-sig!,
-    token-could-be-word-def? if(elab-decl-word-def!,
-    "unknown declaration" emit-fatal-error!))))))))))
-    token-skip-newlines)
-
-||| Elaborate a data definition `data T ... end` or `data(T, ...)`
-def(elab-data!, Module Token -- Module Token +Mirth,
-    Data.alloc! swap
-    elab-data-header!
-    elab-data-tags!)
-
-||| Get the header, name, arity for a data type. Doesn't move the Token.
-def(elab-data-header!, Module Data Token -- Module Data Token +Mirth,
-    dup2 token-has-args? if(
-        token-succ token-succ,
-        token-succ
-    )
-    dup2 swap data-header!
-    sig-token-is-type-con? if(
-        token-name?
-        name-undefined? if(
-            dip(over)
-            dup2 swap data-name!
-            dip(TData) name-type!,
-            drop "Name already defined." emit-fatal-error!
-        ),
-        drop2 "Expected type name." emit-fatal-error!
-    )
-
-    token-has-args? if(
-        # TODO check arguments are well-formed / elaborate them properly
-        token-num-args swap data-arity!,
-        drop2
     ))
 
-||| Get the tags (i.e. constructors) associated with a data type.
-||| Moves the Token to after the data declaration.
-def(elab-data-tags!, Module Data Token -- Module Token +Mirth,
-    token-has-args? if(
-        token-succ token-succ token-next
-        token-is-rparen? if(
-            token-succ,
-        token-is-comma? if(
-            token-succ
-            elab-data-tags-body!
-            expect-token-rparen token-succ,
-            "Expected comma or right parenthesis." emit-fatal-error!
-        )),
+||| Elaborate a data definition `data(T, ...)`
+def(elab-data!, Token -- Token,
+    dup dip(
+        Data.alloc! swap token-args+
+        uncons dip(elab-data-header!)
+        for(elab-data-tag!)
+        drop
+    ) token-next)
 
-        token-succ token-next
-        expect-token-newline token-skip-newlines
-        elab-data-tags-body!
-        expect-token-end token-succ
-    )
-    nip)
-
-expect-token-comma : Token -- Token
-expect-token-comma = token-is-comma? if(id, "Expected comma." emit-fatal-error!)
-
-expect-token-rparen : Token -- Token
-expect-token-rparen = token-is-rparen? if(id, "Expected right parenthesis." emit-fatal-error!)
-
-expect-token-newline : Token -- Token
-expect-token-newline = token-is-newline? if(id, "Expected newline." emit-fatal-error!)
-
-expect-token-end : Token -- Token
-expect-token-end = PRIM_SYNTAX_END token-prim=? if(id, "Expected 'end'" emit-fatal-error!)
-
-expect-token-arrow : Token -- Token
-expect-token-arrow = token-is-arrow? if(id, "Expected arrow." emit-fatal-error!)
-
-||| Get the tags (i.e. constructors) associated with a data type,
-||| from inside the data declaration, one at a time. Moves the Token
-||| to just after the last tag.
-elab-data-tags-body! : Module Data Token -- Module Data Token
-elab-data-tags-body! = while(elab-data-tags-done? not, elab-data-tag!)
-
-elab-data-tags-done? : Token -- Token Bool
-elab-data-tags-done? = token-is-rparen? if(true, PRIM_SYNTAX_END token-prim=?)
+||| Get the header, name, arity for a data type.
+def(elab-data-header!, Data Token -- Data,
+    dup2 swap data-header!
+    sig-token-is-type-con? if(id,
+        "Expected type name." emit-fatal-error!)
+    dup2 token-name@
+    name-undefined? if(id,
+        drop2 "Name already defined." emit-fatal-error!)
+    over TData DEF_TYPE over name-def!
+    swap data-name!
+    # TODO check header args are well-formed / elaborate them properly
+    token-num-args over data-arity!)
 
 ||| Get a tag associated with a data type.
 ||| This looks like either "TAG" or "TAG -> TYPE1 ... TYPEN".
-||| Moves the Token to after the tag declaration.
-elab-data-tag! : Module Data Token -- Module Data Token +Mirth
-elab-data-tag! = (
-    token-is-name? if(
-        token-name? name-undefined? if(
-            Tag.alloc!
-            dup2 swap name-tag!
-            tuck tag-name!,
-            drop "Name already defined. (Overlapping tags not yet supported.)" emit-fatal-error!
-        )
-        { Module Data Token Tag }
-        dip(over) dup2 tag-data!
-        tuck dip(data-add-tag!)
-        { Module Data Token Tag }
-        swap token-succ
-        token-is-arrow? if(
-            dip(true over tag-has-sig!)
-            token-succ tuck dip(tag-sig!)
-            while(token-run-end? not, token-next),
-        token-run-end? if(
-            nip,
-            "Expected arrow, comma, right paren, or newline." emit-fatal-error!
-        ))
-        { Module Data Token },
+def(elab-data-tag!, Data Token -- Data,
+    token-is-name? if(id, "Expected constructor name." emit-fatal-error!)
+    token-name? name-undefined? if(id,
+        drop "Name already defined. (Overlapping tags not supported.)" emit-fatal-error!)
 
-        "Expected constructor name." emit-fatal-error!
-    )
-    token-is-comma? if(token-succ, id)
-    token-skip-newlines
-)
+    Tag.alloc!
+    dup2 DEF_TAG swap name-def!
+    tuck tag-name!
+    { Data Token Tag }
+    dip(over) dup2 tag-data!
+    tuck dip(data-add-tag!)
+    { Data Token Tag }
+    swap token-succ
+    token-is-arrow? if(
+        dip(true over tag-has-sig!)
+        token-succ tuck dip(tag-sig!)
+        while(token-run-end? not, token-next),
+    token-run-end? if(
+        nip,
+        "Expected arrow, comma, or right paren." emit-fatal-error!
+    ))
+    { Data Token }
+    drop)
+
+def(expect-token-comma, Token -- Token,
+    token-is-comma? if(id, "Expected comma." emit-fatal-error!))
+
+def(expect-token-rparen, Token -- Token,
+    token-is-rparen? if(id, "Expected right parenthesis." emit-fatal-error!))
+
+def(expect-token-arrow, Token -- Token,
+    token-is-arrow? if(id, "Expected arrow." emit-fatal-error!))
 
 ||| Elaborate a word definition `def(w, t, b)`.
-def(elab-def!, Module Token -- Module Token +Mirth,
+def(elab-def!, Token -- Token,
     dup dip(token-next) token-args-3
-    rotl token-is-name? if(
-        token-name?
-        name-undefined? if(
-            nip
-            Word.alloc!
-            dup2 swap name-word!
-            dup dip(word-name!)
-            dup dip(word-body!)
-            word-sig!,
+    rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
+    token-name?
+    name-undefined? if(id, drop "word already defined" emit-fatal-error!)
+    nip
+    Word.alloc!
+    dup2 DEF_WORD swap name-def!
+    dup dip(word-name!)
+    dup dip(word-body!)
+    dup dip(word-sig!)
 
-            drop "word already defined" emit-fatal-error!
-        ),
-        "expected word name" emit-fatal-error!
-    ))
-
-||| Elaborate a word signature "foo : Bar -- Baz"
-def(elab-decl-word-sig!, Module Token -- Module Token +Mirth,
-    token-name? name-undefined? if(
-        Word.alloc! tuck
-        dup2 word-name!
-        swap name-word!
-        dip(token-next token-succ dup) word-sig!
-        while(token-is-newline? not, token-next) token-skip-newlines,
-
-        drop "word already defined" emit-fatal-error!
-    ))
-
-||| Elaborate a word definition "foo = bar"
-def(elab-decl-word-def!, Module Token -- Module Token +Mirth,
-    token-name? name-value@ match(
-        DEF_WORD ->
-            word-body? is-nil if(
-                dip(token-next token-succ
-                    token-is-lparen? if(token-succ, token-skip-newlines)
-                    dup) word-body!
-                while(token-is-newline? not, token-next) token-skip-newlines,
-                drop "word already defined" emit-fatal-error!
-            ),
-        DEF_NONE ->
-            "missing word signature" emit-fatal-error!,
-        _ ->
-            drop "name already defined, not a word" emit-fatal-error!
-    ))
+    dup delay(
+        type-elab-default
+        swap word-sig@ elab-type-sig!
+        drop dip(type-elab-ctx) pack2
+    )
+    dup2 swap word-ctx-type!
+    over delay2(dip(force2) word-body@ elab-arrow!) swap word-arrow!)
 
 ||| Elaborate an external declaration `def-external(w, t)`
-def(elab-def-external!, Module Token -- Module Token +Mirth,
+def(elab-def-external!, Token -- Token,
     dup dip(token-next) token-args-2
     swap token-is-name? if(
         token-name? name-undefined? if(
             nip
             External.alloc!
-            dup2 swap name-external!
+            dup2 DEF_EXTERNAL swap name-def!
             tuck external-name!
             external-sig!,
 
@@ -1106,13 +887,13 @@ def(elab-def-external!, Module Token -- Module Token +Mirth,
     ))
 
 ||| Elaborate a type definition `def-type(t1, t2)`.
-def(elab-def-type!, Module Token -- Module Token +Mirth,
+def(elab-def-type!, Token -- Token,
     dup dip(token-next) token-args-2
     swap sig-token-is-type-con? if(
         token-name? name-undefined? if(
             nip swap
             elab-simple-type-arg!
-            swap name-type!,
+            DEF_TYPE swap name-def!,
 
             drop "type already defined" emit-fatal-error!
         ),
@@ -1120,19 +901,19 @@ def(elab-def-type!, Module Token -- Module Token +Mirth,
     ))
 
 ||| Elaborate a buffer definition `buffer(B, size)`.
-def(elab-buffer!, Module Token -- Module Token +Mirth,
+def(elab-buffer!, Token -- Token,
     dup dip(token-next) token-args-2
     swap token-is-name? if(
         token-name? name-undefined? if(
             nip swap
-            token-int@ buffer-alloc! drop,
+            token-int@ buffer-new! drop,
             drop "buffer already defined" emit-fatal-error!
         ),
         "expected buffer name" emit-fatal-error!
     ))
 
 ||| Elaborate a table definition `table(T)`.
-def(elab-table!, Module Token -- Module Token +Mirth,
+def(elab-table!, Token -- Token,
     dup dip(token-next) token-args-1
     sig-token-is-type-con? if(
         token-name@ table-new! drop,
@@ -1140,7 +921,7 @@ def(elab-table!, Module Token -- Module Token +Mirth,
     ))
 
 ||| Elaborate C99 build target.
-def(elab-target-c99!, Module Token -- Module Token +Mirth,
+def(elab-target-c99!, Token -- Token,
     typecheck-everything!
 
     dup dip(token-next) token-args-2
@@ -1155,19 +936,17 @@ def(typecheck-everything!, --,
 
 ||| Typecheck name.
 def(typecheck-name!, Name --,
-    name-value@ match(
+    name-def@ match(
         DEF_NONE -> id,
         DEF_MODULE -> drop,
         DEF_BUFFER -> drop,
         DEF_PRIM -> drop,
         DEF_TYPE -> drop,
         DEF_EXTERNAL -> elab-external-sig! drop,
-        DEF_WORD -> elab-word-body! drop,
+        DEF_WORD -> word-arrow@ force drop,
         DEF_FIELDWORD -> elab-field-word-type! drop,
         DEF_TAG -> elab-tag-sig! drop,
     ))
-
-
 
 #########
 # TABLE #
@@ -1177,7 +956,7 @@ def(TABLE_MAX_SIZE, Int, 0x20000)
 
 def(table-new!, Name -- Table,
     Table.alloc!
-    dup2 TTable swap name-type!
+    dup2 TTable DEF_TYPE swap name-def!
     tuck table-name!
 
     TABLE_MAX_SIZE over table-max-count!
@@ -1185,14 +964,12 @@ def(table-new!, Name -- Table,
     # Table.MAX
     table-name? ".MAX" name-cat!
     Word.alloc!
-    dup2 swap name-word!
+    dup2 DEF_WORD swap name-def!
     tuck word-name!
 
-    TYPE_UNIT
-    TYPE_UNIT TYPE_INT TTensor
-    TMorphism
-    over word-type!
-    true over word-sig-is-checked!
+    L0 CTX
+    T0 TYPE_INT T1 T->
+    ready2 over word-ctx-type!
 
     ab-build-word!(
         TABLE_MAX_SIZE ab-int!
@@ -1200,18 +977,18 @@ def(table-new!, Name -- Table,
 
     # Table.NUM
     table-name? ".NUM" name-cat!
-    8 buffer-alloc!
+    8 buffer-new!
     over table-num-buffer!
 
     # Table.id
     table-name? ".id" name-cat!
     Word.alloc!
-    dup2 swap name-word!
+    dup2 DEF_WORD swap name-def!
     tuck word-name!
 
-    over TTable T1 TYPE_INT T1 T->
-    over word-type!
-    true over word-sig-is-checked!
+    L0 CTX
+    over2 TTable T1 TYPE_INT T1 T->
+    ready2 over word-ctx-type!
 
     ab-build-word! (
         PRIM_UNSAFE_CAST ab-prim!
@@ -1220,12 +997,12 @@ def(table-new!, Name -- Table,
     # Table.succ
     table-name? ".succ" name-cat!
     Word.alloc!
-    dup2 swap name-word!
+    dup2 DEF_WORD swap name-def!
     tuck word-name!
 
-    over TTable T1 dup T->
-    over word-type!
-    true over word-sig-is-checked!
+    L0 CTX
+    over2 TTable T1 dup T->
+    ready2 over word-ctx-type!
 
     ab-build-word! (
         PRIM_UNSAFE_CAST ab-prim!
@@ -1242,12 +1019,12 @@ def(table-new!, Name -- Table,
     # Table.succ
     table-name? ".pred" name-cat!
     Word.alloc!
-    dup2 swap name-word!
+    dup2 DEF_WORD swap name-def!
     tuck word-name!
 
-    over TTable T1 dup T->
-    over word-type!
-    true over word-sig-is-checked!
+    L0 CTX
+    over2 TTable T1 dup T->
+    ready2 over word-ctx-type!
 
     ab-build-word! (
         PRIM_UNSAFE_CAST ab-prim!
@@ -1265,24 +1042,23 @@ def(table-new!, Name -- Table,
     # Table.for
     table-name? ".for" name-cat!
     Word.alloc!
-    dup2 swap name-word!
+    dup2 DEF_WORD swap name-def!
     tuck word-name!
     "x" name-new! var-new!
     \(t w x ->
 
         "a" name-new! var-new-implicit!
         TYPE_STACK over var-type!
-        ctx-empty over ctx-new!
-        w word-ctx!
+        dup L1 CTX
+        swap
 
         TVar \( a ->
             a a t TTable T* a T-> T* a T->
-            w word-type!
+            ready2 w word-ctx-type!
 
             a t TTable T* a T-> x var-type!
             true x var-auto-run!
         )
-        true w word-sig-is-checked!
 
         w ab-build-word! (
             x Var->Param L1 ab-lambda! (
@@ -1310,12 +1086,12 @@ def(table-new!, Name -- Table,
     # Table.alloc!
     table-name? ".alloc!" name-cat!
     Word.alloc!
-    dup2 swap name-word!
+    dup2 DEF_WORD swap name-def!
     tuck word-name!
 
-    over dip(T0) TTable T1 T->
-    over word-type!
-    true over word-sig-is-checked!
+    L0 CTX
+    T0 over3 TTable T1 T->
+    ready2 over word-ctx-type!
 
     ab-build-word! (
         table-num-buffer? ab-buffer!
@@ -1335,7 +1111,7 @@ def(table-new!, Name -- Table,
 #########
 
 ||| Elaborate a field definition `field(f, T1, T2)`.
-def(elab-field!, Module Token -- Module Token +Mirth,
+def(elab-field!, Token -- Token,
     dup dip(token-next)
     token-args-3 rotl token-value? match(
         TOKEN_NAME ->
@@ -1352,18 +1128,17 @@ def(field-new!, Name Token Token -- Field,
     tuck field-table-sig!
     tuck field-name!
 
-    dup FIELD@ FIELDWORD
+    dup FIELD@ FIELDWORD DEF_FIELDWORD
     over field-name@ "@" name-cat!
-    name-fieldword!
+    name-def!
 
-    dup FIELD? FIELDWORD
+    dup FIELD? FIELDWORD DEF_FIELDWORD
     over field-name@ "?" name-cat!
-    name-fieldword!
+    name-def!
 
-    dup FIELD! FIELDWORD
+    dup FIELD! FIELDWORD DEF_FIELDWORD
     over field-name@ "!" name-cat!
-    name-fieldword!)
-
+    name-def!)
 
 def(elab-field-sig!, Field -- Type Type,
     field-sig-is-checked? if(

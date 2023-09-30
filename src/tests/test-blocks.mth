@@ -2,32 +2,28 @@ module(tests.test-blocks)
 import(prelude)
 import(platform.posix)
 
-run1 : a [a -- b] -- b
-run1 = run
+def(run1, a [a -- b] -- b, run)
+def(add10, [Int -- Int], [10 +])
 
-add10 : [Int -- Int]
-add10 = [10 +]
+def(compose, [*a -- *b] [*b -- *c] -- [*a -- *c],
+    \([f] [g] -> [f g]))
 
-compose : [*a -- *b] [*b -- *c] -- [*a -- *c]
-compose = \([f] [g] -> [f g])
+def(add20, [Int -- Int],
+    add10 add10 compose)
 
-add20 : [Int -- Int]
-add20 = add10 add10 compose
+def(add30, [Int -- Int],
+    add10 add20 compose)
 
-add30 : [Int -- Int]
-add30 = add10 add20 compose
+def(mul2, [Int -- Int],
+    [2 *])
 
-mul2 : [Int -- Int]
-mul2 = [2 *]
+def(mul2add10, [Int -- Int],
+    mul2 add10 compose)
 
-mul2add10 : [Int -- Int]
-mul2add10 = mul2 add10 compose
+def(comprun, *a [*b -- *c] [*a -- *b] -- *c,
+    \([f] [g] -> g f))
 
-comprun : *a [*b -- *c] [*a -- *b] -- *c
-comprun = \([f] [g] -> g f)
-
-main : --
-main = (
+def(main, --,
     10 ??
     add10 run1 ??
     add10 run1 ??
@@ -44,8 +40,7 @@ main = (
     find(dup 25 >) match(
         SOME -> int-trace! " found" str-trace-ln!,
         NONE -> "not found" str-trace-ln!
-    )
-)
+    ))
 
 target-c99("blocktest.c", main)
 # mirth-test # perr # ?? 10

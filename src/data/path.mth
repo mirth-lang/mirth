@@ -3,59 +3,34 @@ import(data.str)
 import(prelude)
 
 data(Path, PATH -> Str)
+def(Str->Path, Str -- Path, PATH)
+def(Path->Str, Path -- Str, match(PATH -> id))
+def(path@, Ptr -- Path, ptr@ Ptr->Str Str->Path)
+def(path!, Path Ptr --, dip(Path->Str Str->Ptr) ptr!)
 
-Str->Path : Str -- Path
-Str->Path = PATH
-
-Path->Str : Path -- Str
-Path->Str = match(PATH -> id)
-
-path@ : Ptr -- Path
-path@ = ptr@ Ptr->Str Str->Path
-
-path! : Path Ptr --
-path! = dip(Path->Str Str->Ptr) ptr!
-
-init-paths! : --
-init-paths! = (
+def(init-paths!, --,
     "src" Str->Path source-path-root!
-    "bin" Str->Path output-path-root!
-)
+    "bin" Str->Path output-path-root!)
 
 buffer(SOURCE_PATH_ROOT, 8)
-
-source-path-root@ : Path
-source-path-root@ = SOURCE_PATH_ROOT path@
-
-source-path-root! : Path --
-source-path-root! = SOURCE_PATH_ROOT path!
+def(source-path-root@, Path, SOURCE_PATH_ROOT path@)
+def(source-path-root!, Path --, SOURCE_PATH_ROOT path!)
 
 buffer(OUTPUT_PATH_ROOT, 8)
+def(output-path-root@, Path, OUTPUT_PATH_ROOT path@)
+def(output-path-root!, Path --, OUTPUT_PATH_ROOT path!)
 
-output-path-root@ : Path
-output-path-root@ = OUTPUT_PATH_ROOT path@
-
-output-path-root! : Path --
-output-path-root! = OUTPUT_PATH_ROOT path!
-
-path-separator : Str
-path-separator = RUNNING_OS OS_WINDOWS == if("\\", "/")
-
-path-is-empty? : Path -- Path Bool
-path-is-empty? = dup Path->Str str-is-empty
-
-path-join : Path Path -- Path
-path-join =
+def(path-separator, Str, RUNNING_OS OS_WINDOWS == if("\\", "/"))
+def(path-is-empty?, Path -- Path Bool, dup Path->Str str-is-empty)
+def(path-join, Path Path -- Path,
     swap path-is-empty? if(
         drop,
         Path->Str path-separator rotl Path->Str
         L3 str-concat Str->Path
-    )
+    ))
 
 ||| Make a source path from a project-relative path.
-make-source-path : Path -- Path
-make-source-path = source-path-root@ swap path-join
+def(make-source-path, Path -- Path, source-path-root@ swap path-join)
 
 ||| Make an output path from a project-relative path.
-make-output-path : Path -- Path
-make-output-path = output-path-root@ swap path-join
+def(make-output-path, Path -- Path, output-path-root@ swap path-join)

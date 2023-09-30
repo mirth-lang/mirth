@@ -5,10 +5,8 @@ table(Buffer)
 field(buffer-size, Buffer, Size)
 field(buffer-name, Buffer, Name)
 
-buffer-alloc! : Name Size -- Buffer +Buffers
-buffer-alloc! = (
+def(buffer-new!, Name Size -- Buffer,
     Buffer.alloc!
     tuck buffer-size!
     tuck dup2 buffer-name!
-    swap name-buffer!
-)
+    DEF_BUFFER swap name-def!)
