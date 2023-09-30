@@ -170,6 +170,9 @@ def(elab-simple-type-arg!, Token -- Type,
 ####################
 
 # AB = Arrow Builder = Arrow Elaborator
+buffer(AB_HOME, 16)
+def(ab-home@, Word, AB_HOME value@)
+def(ab-home!, Word --, AB_HOME value!)
 buffer(AB_ARROW, 16)
 def(ab-arrow@, Arrow +AB, AB_ARROW value@)
 def(ab-arrow!, Arrow -- +AB, AB_ARROW value!)
@@ -186,6 +189,7 @@ def(ab-save!, *a [ *a -- *b ] -- *b,
 def(ab-build!, *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
     \([f] -> ab-save!(
         Arrow.alloc!
+        ab-home@ over arrow-home!
         tuck dup2 arrow-token-start! arrow-token-end!
         tuck dup2 arrow-dom! arrow-cod!
         tuck arrow-ctx!
@@ -196,6 +200,7 @@ def(ab-build!, *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
 
 def(ab-build-word!, *a Word [ *a -- *b ] -- *b Word,
     \([f] ->
+        dup ab-home!
         dup dip(elab-word-ctx-sig!)
         word-body? swap
         dip(elab-expand-morphism! swap)
@@ -208,6 +213,7 @@ def(ab-build-word!, *a Word [ *a -- *b ] -- *b Word,
             ready
         )
         tuck word-arrow!
+        nil ab-home!
     ))
 
 def(ab-unify-type!, Type --,
@@ -868,7 +874,11 @@ def(elab-def!, Token -- Token,
         drop dip(type-elab-ctx) pack2
     )
     dup2 swap word-ctx-type!
-    over delay2(dip(force2) word-body@ elab-arrow!) swap word-arrow!)
+    over delay2(
+        dup ab-home!
+        dip(force2) word-body@ elab-arrow!
+        nil ab-home!
+    ) swap word-arrow!)
 
 ||| Elaborate an external declaration `def-external(w, t)`
 def(elab-def-external!, Token -- Token,
