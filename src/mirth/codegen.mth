@@ -1531,10 +1531,18 @@ def(.block, Block -- +IO,
     block-arrow? arrow-token-start@
     is-nil? if(
         drop Block.id .n,
-        token-module? module-name@ .name "_" .
-        token-row? Row->Int .n "_" .
-        token-col@ Col->Int .n
-        drop
+        over block-arrow@ arrow-home@ is-nil? if(
+            drop
+            token-module? module-name@ .name "_" .
+            token-row? Row->Int .n "_" .
+            token-col@ Col->Int .n
+            drop,
+
+            word-name? .name "_" .
+            word-body@ Token.id
+            dip(Token.id) - .n
+            drop
+        )
     ))
 
 field(c99-word-emitted, Word, Bool)

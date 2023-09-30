@@ -56,6 +56,7 @@ def(Param->Var, Param -- Var, match(PARAM -> id))
 
 field(arrow-token-start, Arrow, Token)
 field(arrow-token-end, Arrow, Token)
+field(arrow-home, Arrow, Word)
 field(arrow-ctx, Arrow, Ctx)
 field(arrow-dom, Arrow, Type)
 field(arrow-cod, Arrow, Type)
