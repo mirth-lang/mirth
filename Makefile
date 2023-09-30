@@ -24,7 +24,7 @@ check:
 
 clean:
 	cp bin/mirth0.c mirth0.c
-	rm -f bin/*
+	rm -rf bin/mirth{0,1,2,}{,.c,.dSYM}
 	mv mirth0.c bin/
 
 install-vim:

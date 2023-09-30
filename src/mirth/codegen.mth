@@ -697,7 +697,7 @@ def(c99-emit-prims!, +IO,
 
     # "#define do_pack_uncons() do{ value_t dpucar, dpucdr, dpuval=pop_value(); value_uncons(dpuval, &dpucar, &dpucdr); push_value(dpucar); push_value(dpucdr); if(dpuval.tag == VT_C64) { decref_for_uncons(dpuval); } }while(0)" ;
 
-    "static void do_pack_uncons() {" ;
+    "static void do_pack_uncons(void) {" ;
     "    value_t car, cdr, val;" ;
     "    val = pop_value();" ;
     "    value_uncons(val, &car, &cdr);" ;
@@ -947,7 +947,7 @@ def(c99-emit-prims!, +IO,
     "    #endif" ;
     "}" ;;
 
-    "static void do_debug() {" ;
+    "static void do_debug(void) {" ;
     "    write(2, \"??\", 2);" ;
     "    char c[32] = {0};" ;
     "    char* cp;" ;
@@ -1176,7 +1176,7 @@ def(c99-emit-external!, External -- +IO,
             ", i64" .
             1-
         ) drop,
-        drop
+        drop "void" .
     ) ");" ;
 
     "static void mw" . dip2(external-name? .name) " (void) {" ;
