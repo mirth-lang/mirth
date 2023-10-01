@@ -12,5 +12,5 @@ field(table-max-count, Table, Size)
 
 table(Field)
 field(field-name, Field, Name)
-field(field-table, Field, Lazy(Type))
-field(field-type, Field, Lazy(Type))
+field(field-index-type, Field, Lazy(Type))
+field(field-value-type, Field, Lazy(Type))

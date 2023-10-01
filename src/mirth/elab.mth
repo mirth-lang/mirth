@@ -1146,13 +1146,11 @@ def(elab-field!, Token -- Token,
 
 def(field-new!, Name Token Token -- Field,
     Field.alloc!
-    swap delay(elab-simple-type-arg!) over field-type !
-    swap delay(elab-simple-type-arg!) over field-table !
+    swap delay(elab-simple-type-arg!) over field-value-type !
+    swap delay(elab-simple-type-arg!) over field-index-type !
     tuck dup2 field-name !
     DEF_FIELD swap name-def !)
 
-def(elab-field-sig!, Field -- Type Type,
-    sip(field-table force!) field-type force!)
-
 def(elab-field-type!, Field -- Type,
-    elab-field-sig! TMut dip(T1) T1 T->)
+    sip(field-index-type force! T1)
+    field-value-type force! TMut T1 T->)
