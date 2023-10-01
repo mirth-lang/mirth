@@ -2,7 +2,9 @@
 
 ![build](https://github.com/mirth-lang/mirth/workflows/build/badge.svg)
 
-**Mirth** is a new concatenative programming language. Mirth is inspired by **Forth**, **Joy**, **Haskell**, **Lisp**, and monoidal category theory.
+**Mirth** is a new strongly-typed concatenative programming language.
+
+Mirth is inspired by **Forth**, **Joy**, **Haskell**, **Lisp**, and monoidal category theory.
 
 This repository is a **work-in-progress** implementation of Mirth. If you are interested, please support the development of Mirth on [Patreon](https://patreon.com/typeswitch). Thank you for your time and generosity.
 
