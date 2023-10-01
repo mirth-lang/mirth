@@ -1544,7 +1544,8 @@ def(c99-emit-field-def!, Field -- +IO,
 
             true over c99-field-emitted !
             "static value_t* fieldptr_" . dup field-name @ .name " (usize i) {" ;
-            "    static struct value_t * p = 0; usize m=0x10000;" ;
+            "    static struct value_t * p = 0;";
+            "    usize m = " . TABLE_MAX_SIZE .n ";" ;
             "    if (!p) { p = calloc(m, sizeof *p); }" ;
             "    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }" ;
             "    return p+i;" ;

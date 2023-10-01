@@ -974,7 +974,7 @@ def(typecheck-name!, Name --,
 # TABLE #
 #########
 
-def(TABLE_MAX_SIZE, Int, 0x20000)
+def(TABLE_MAX_SIZE, Int, 0x10000)
 
 def(table-new!, Name -- Table,
     Table.alloc!
@@ -1137,40 +1137,22 @@ def(elab-field!, Token -- Token,
     sip(token-next)
     token-args-3 rotl dup token-value @ match(
         TOKEN_NAME ->
+            name-undefined? if(id,
+                drop "name already defined" emit-fatal-error!)
             nip rotr field-new! drop,
         _ ->
             drop "expected field name" emit-fatal-error!
     ))
 
-
 def(field-new!, Name Token Token -- Field,
     Field.alloc!
-    tuck field-type-sig !
-    tuck field-table-sig !
+    swap delay(elab-simple-type-arg!) over field-type !
+    swap delay(elab-simple-type-arg!) over field-table !
     tuck dup2 field-name !
     DEF_FIELD swap name-def !)
 
 def(elab-field-sig!, Field -- Type Type,
-    dup field-sig-is-checked @ if(
-        id,
-
-        dup field-table-sig @
-        dup elab-simple-type-arg! type-max-count? match(
-            NONE -> drop "expected table type or enum" emit-fatal-error!,
-            SOME -> drop nip
-        )
-        over field-table !
-
-        dup field-type-sig @
-        elab-simple-type-arg!
-        over field-type !
-
-        true
-        over field-sig-is-checked !
-    )
-
-    sip(field-table @)
-    field-type @)
+    sip(field-table force!) field-type force!)
 
 def(elab-field-type!, Field -- Type,
     elab-field-sig! TMut dip(T1) T1 T->)
