@@ -1,6 +1,7 @@
 module(mirth.lexer)
 import(prelude)
 import(data.char)
+import(data.stack)
 import(mirth.data.name)
 import(mirth.data.token)
 import(mirth.data.error)
@@ -13,35 +14,19 @@ import(mirth.input)
 var(lexer-module, Module)
 var(lexer-row, Row)
 var(lexer-col, Col)
-var(lexer-stack-length, Size)
+var(lexer-stack, Stack(Token))
 
-def(LEXER_STACK_SIZE, Size, 0x200)
-buffer(LEXER_STACK_BUF, 0x2000)
+def(lexer-stack-clear!, --,
+    nil lexer-stack !)
 
-def(lexer-stack-clear!, +Lexer,
-    0 lexer-stack-length !)
+def(lexer-stack-empty?, -- Bool,
+    lexer-stack stack-is-empty)
 
-def(lexer-stack-empty?, Bool +Lexer,
-    lexer-stack-length @ 0 <=)
+def(lexer-stack-push!, Token --,
+    lexer-stack stack-push)
 
-def(lexer-stack-full?, Bool +Lexer,
-    lexer-stack-length @ LEXER_STACK_SIZE >=)
-
-def(lexer-stack-push!, Token -- +Lexer,
-    lexer-stack-full? if(
-        "lexer stack overflow" panic!,
-        lexer-stack-length @
-        dup 1+ lexer-stack-length !
-        LEXER_STACK_BUF value!!
-    ))
-
-def(lexer-stack-pop!, -- Token +Lexer,
-    lexer-stack-empty? if(
-        "lexer stack underflow" panic!,
-        lexer-stack-length @ 1-
-        dup lexer-stack-length !
-        LEXER_STACK_BUF value@@
-    ))
+def(lexer-stack-pop!, -- Token,
+    lexer-stack stack-pop unwrap)
 
 def(run-lexer!, Path -- Module +Lexer,
     module-new! lexer-module !

@@ -1,5 +1,6 @@
 module(mirth.codegen)
 import(prelude)
+import(data.stack)
 import(mirth.data.token)
 import(mirth.data.name)
 import(mirth.data.buffer)
@@ -1368,17 +1369,11 @@ data(Need,
     NEED_BLOCK -> Block,
     NEED_WORD -> Word,
     NEED_FIELD -> Field)
+var(c99-need-stack, Stack(Need))
 
-buffer(C99_NEED_STACK, 16) # TODO convert to variable of List(Need) probably?
-def(need-push!, Need --, C99_NEED_STACK value@ cons C99_NEED_STACK value!)
-def(need-pop!, -- Maybe(Need),
-    C99_NEED_STACK value@
-    List->List+ match(
-        NONE -> NONE,
-        SOME -> uncons C99_NEED_STACK value! SOME
-    ))
-def(has-need?, Bool,
-    C99_NEED_STACK value@ is-nil not)
+def(need-push!, Need --, c99-need-stack stack-push)
+def(need-pop!, -- Maybe(Need), c99-need-stack stack-pop)
+def(has-need?, Bool, c99-need-stack stack-is-empty not)
 
 field(c99-word-needed, Word, Bool)
 def(need-word!, Word -- Word,
@@ -1406,12 +1401,7 @@ def(need-fieldword!, FieldWord -- FieldWord,
     dup unFIELDWORD drop need-field! drop)
 
 def(c99-emit-needs!, +IO,
-    while(has-need?,
-        need-pop! match(
-            NONE -> "unexpected branch in c99-emit-needs!" panic!,
-            SOME -> c99-emit-need!
-        )
-    ))
+    while(has-need?, need-pop! unwrap c99-emit-need!))
 
 def(c99-emit-need!, Need -- +IO,
     match(
