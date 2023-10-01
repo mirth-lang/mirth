@@ -41,6 +41,7 @@ data(Op,
     OP_EXTERNAL -> External,
     OP_BUFFER -> Buffer,
     OP_VARIABLE -> Variable,
+    OP_FIELD -> Field,
     OP_INT -> Int,
     OP_STR -> Str,
     OP_TAG -> Tag,
@@ -93,19 +94,19 @@ field(block-needed, Block, Bool)
 
 ||| Add arg to atom.
 def(atom-arg-add!, Atom Arg -- Atom,
-    dip(atom-args?) snoc over atom-args!)
+    over atom-args modify(swap snoc))
 
 ||| Add arg to last atom of arrow.
 ||| Will panic if arrow has no atoms.
 def(arrow-arg-add!, Arrow Arg -- Arrow,
-    over arrow-atoms@ last match(
+    over arrow-atoms @ last match(
         NONE -> "arrow-arg-add! on empty arrow" panic!,
         SOME -> swap atom-arg-add! drop
     ))
 
 ||| Add atom to arrow.
 def(arrow-atom-add!, Arrow Atom -- Arrow,
-    dip(arrow-atoms?) snoc over arrow-atoms!)
+    over arrow-atoms modify(swap snoc))
 
 #########
 # BLOCK #
@@ -113,44 +114,41 @@ def(arrow-atom-add!, Arrow Atom -- Arrow,
 
 def(block-new!, Arrow -- Block,
     Block.alloc!
-    over arrow-ctx@ over block-ctx!
-    over arrow-token-start@ over block-token!
-    tuck block-arrow-raw!)
+    over arrow-ctx @ over block-ctx !
+    over arrow-token-start @ over block-token !
+    tuck block-arrow-raw !)
 
 def(block-new-deferred!, Ctx Token -- Block,
     Block.alloc!
-    true over block-deferred!
-    tuck block-token!
-    tuck block-ctx!)
+    true over block-deferred !
+    tuck block-token !
+    tuck block-ctx !)
 
-def(block-arrow@, Block -- Arrow,
+def(block-arrow, Block -- Arrow,
     dup block-force!
-    block-arrow-raw@)
-
-def(block-arrow?, Block -- Block Arrow,
-    dup block-arrow@)
+    block-arrow-raw @)
 
 def(block-force!, Block --,
-    block-deferred? if(
-        block-forcing? if(
-            block-token@
+    dup block-deferred @ if(
+        dup block-forcing @ if(
+            block-token @
             "Recursive type detected for block."
             emit-fatal-error!,
 
-            true over block-forcing!
+            true over block-forcing !
 
-            block-ctx? over block-token@
+            dup block-ctx @ over block-token @
             dip(meta-alloc! TMeta)
             ab-build!(elab-atoms!)
-            over block-arrow-raw!
-            false swap block-deferred!
+            over block-arrow-raw !
+            false swap block-deferred !
         ),
         drop
     ))
 
 def(block-unify-type!, Gamma Block Type -- Gamma Type,
-    swap block-deferred? if(
-        block-forcing? if(
+    swap dup block-deferred@ if(
+        dup block-forcing@ if(
             block-token@
             "Recursive type detected for block."
             emit-fatal-error!,
@@ -164,7 +162,7 @@ def(block-unify-type-aux!, Gamma Type Block -- Gamma Type,
     true over block-forcing!
     dip(over gamma-token@ elab-expand-morphism! drop)
     rotr dip(
-        dip(block-ctx? over block-token@) swap
+        dip(dup block-ctx@ over block-token@) swap
         ab-build!(elab-atoms!)
 
         dup2 swap block-arrow-raw!
@@ -204,7 +202,7 @@ field(case-mid, Case, Type)
 field(case-body, Case, Arrow)
 
 def(match-add-case!, Match Case -- Match,
-    dip(match-cases?) cases-cover-case? if(
+    dip(dup match-cases@) cases-cover-case? if(
         case-token@ "Case is unreachable." emit-error! drop,
         snoc over match-cases!
     ))
@@ -222,11 +220,11 @@ def(match-is-exhaustive?, Match -- Match Bool,
     ))
 
 def(match-has-default-case?, Match -- Match Bool,
-    match-cases? cases-have-default-case)
+    dup match-cases@ cases-have-default-case)
 
 ||| Get type we're matching over.
 def(match-scrutinee-type?, Match -- Match Maybe(Type),
-    match-dom? type-expand match(
+    dup match-dom@ type-expand match(
         TTensor -> nip SOME,
         _ -> drop NONE
     ))

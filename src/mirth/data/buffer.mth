@@ -7,6 +7,6 @@ field(buffer-name, Buffer, Name)
 
 def(buffer-new!, Name Size -- Buffer,
     Buffer.alloc!
-    tuck buffer-size!
-    tuck dup2 buffer-name!
-    DEF_BUFFER swap name-def!)
+    tuck buffer-size !
+    tuck dup2 buffer-name !
+    DEF_BUFFER swap name-def !)

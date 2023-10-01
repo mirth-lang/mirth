@@ -17,8 +17,8 @@ def(module-new!, Path -- Module,
 
 ||| Add right module as import to left module.
 def(module-add-import!, Module Module --,
-    dip(module-imports?) set-insert swap module-imports!)
-
+    swap module-imports modify(swap set-insert))
+    
 ||| Get source path associated with module.
 def(module-source-path, Module -- Path,
     is-nil? if(

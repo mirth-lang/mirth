@@ -25,12 +25,10 @@ def(unFIELDWORD, FieldWord -- Field FieldWordName, match(FIELDWORD -> id))
 
 data(FieldWordName,
     FIELD@,
-    FIELD?,
     FIELD!)
 
 def(fieldword-name@, FieldWord -- Name,
     unFIELDWORD dip(field-name@) match(
         FIELD@ -> "@",
-        FIELD? -> "?",
         FIELD! -> "!"
     ) name-cat!)

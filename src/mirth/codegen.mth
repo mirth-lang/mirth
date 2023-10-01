@@ -204,14 +204,14 @@ def(c99-emit-buffers!, +IO,
     Buffer.for(c99-emit-buffer!) .lf)
 
 def(c99-emit-buffer!, Buffer -- +IO,
-    "static u8 b" . buffer-name? .name "[" . buffer-size? .n "] = {0};" ;
-    "#define mw" . buffer-name? .name "() push_ptr((void*)b" . buffer-name@ .name ")" ;)
+    "static u8 b" . dup buffer-name@ .name "[" . dup buffer-size@ .n "] = {0};" ;
+    "#define mw" . dup buffer-name@ .name "() push_ptr((void*)b" . buffer-name@ .name ")" ;)
 
 def(c99-emit-variables!, --,
     Variable.for(c99-emit-variable!) .lf)
 
 def(c99-emit-variable!, Variable --,
-    "void mw" . variable-name? .name "() {" ;
+    "void mw" . dup variable-name @ .name "() {" ;
     "  static value_t v = {0};" ;
     "  push_ptr(&v);" ;
     "}" ;
@@ -225,9 +225,9 @@ def(c99-emit-tag!, Tag -- +IO,
         "#define mw" . tag-name@ .name "() 0" ; ,
 
     tag-num-inputs? 0 == if(
-        "#define mw" . tag-name? .name "() push_u64(" . tag-value@ .n ")" ;,
+        "#define mw" . dup tag-name @ .name "() push_u64(" . tag-value@ .n ")" ;,
 
-        "static void mw" . tag-name? .name " (void) {" ;
+        "static void mw" . dup tag-name @ .name " (void) {" ;
         "    value_t car = pop_value();" ;
         tag-num-inputs? 1-
         while(dup 0 >, "    car = mkcell(car, pop_value());" ;  1-) drop
@@ -1162,7 +1162,7 @@ def(c99-emit-externals!, +IO,
     External.for(c99-emit-external!) .lf)
 
 def(c99-emit-external!, External -- +IO,
-    external-sig? sig-arity
+    dup external-sig @ sig-arity
     dup 2 >= if(
         "can't declare external with multiple return values" panic!,
 
@@ -1172,7 +1172,7 @@ def(c99-emit-external!, External -- +IO,
         )
     )
 
-    dip2(external-name? .name)
+    dip2(dup external-name @ .name)
 
     " (" .
     over dup 0> if(
@@ -1184,13 +1184,13 @@ def(c99-emit-external!, External -- +IO,
         drop "void" .
     ) ");" ;
 
-    "static void mw" . dip2(external-name? .name) " (void) {" ;
+    "static void mw" . dip2(dup external-name @ .name) " (void) {" ;
     over while(dup 0>,
         "    i64 x" . dup .n " = pop_i64();" ;
         1-
     ) drop
     dup 0> if("    push_i64(", "    ") .
-    dip2(external-name? .name)
+    dip2(dup external-name @ .name)
     "(" .
     dip(dup 0> if(
         "x1" .
@@ -1214,7 +1214,7 @@ def(c99-emit-arrow!, Arrow -- +IO,
     c99-depth modify(1-))
 
 def(c99-emit-atom!, Atom -- +IO,
-    atom-op? match(
+    dup atom-op @ match(
         OP_NONE -> drop,
         OP_INT ->
             nip
@@ -1238,6 +1238,10 @@ def(c99-emit-atom!, Atom -- +IO,
             "    mw" . .name "();" ;,
         OP_VARIABLE ->
             nip variable-name@
+            "    mw" . .name "();" ;,
+        OP_FIELD ->
+            need-field!
+            nip field-name@
             "    mw" . .name "();" ;,
         OP_TAG ->
             nip tag-name@
@@ -1337,11 +1341,11 @@ def(c99-emit-arg-push!, Arg --,
 
 def(c99-emit-arg-run!, Arg --,
     match(
-        ARG_BLOCK -> block-arrow@ c99-emit-arrow!,
+        ARG_BLOCK -> block-arrow c99-emit-arrow!,
         ARG_VAR_RUN -> c99-emit-var!,
     ))
 
-def(.var-val, Var -- +IO, "var_" . var-name? .name "_" . Var.id .n)
+def(.var-val, Var -- +IO, "var_" . dup var-name@ .name "_" . Var.id .n)
 
 def(c99-pack-ctx!, Ctx -- +IO,
     "    push_u64(0);" ;
@@ -1371,14 +1375,14 @@ var(c99-need-stack, Stack(Need))
 
 field(c99-word-needed, Word, Bool)
 def(need-word!, Word -- Word,
-    c99-word-needed? if(
+    dup c99-word-needed@ if(
         id,
         true over c99-word-needed!
         dup NEED_WORD c99-need-stack stack-push
     ))
 
 def(need-block!, Block -- Block,
-    block-needed? if(
+    dup block-needed@ if(
         id,
         true over block-needed!
         dup NEED_BLOCK c99-need-stack stack-push
@@ -1386,7 +1390,7 @@ def(need-block!, Block -- Block,
 
 field(c99-field-needed, Field, Bool)
 def(need-field!, Field -- Field,
-    c99-field-needed? if(
+    dup c99-field-needed@ if(
         id,
         true over c99-field-needed!
         dup NEED_FIELD c99-need-stack stack-push
@@ -1406,13 +1410,13 @@ def(c99-emit-need!, Need --,
 
 def(c99-emit-block-push!, Block -- +IO,
     need-block!
-    block-arrow? arrow-ctx@ c99-pack-ctx!
+    dup block-arrow arrow-ctx@ c99-pack-ctx!
     "    push_fnptr(&" . .block ");" ;
     "    do_pack_cons();" ;
     )
 
 def(c99-emit-var!, Var -- +IO,
-    var-auto-run? dip(c99-emit-var-push!)
+    dup var-auto-run@ dip(c99-emit-var-push!)
     if("    do_run();" ;, id))
 
 def(c99-emit-var-push!, Var -- +IO,
@@ -1422,10 +1426,10 @@ def(c99-emit-var-push!, Var -- +IO,
 
 def(c99-emit-lambda!, Lambda -- +IO,
     "    {" ;
-    lambda-params? reverse-for(
+    dup lambda-params@ reverse-for(
         "    value_t " . Param->Var .var-val " = pop_value();" ;
         )
-    lambda-body? c99-emit-arrow!
+    dup lambda-body@ c99-emit-arrow!
     lambda-params@ reverse-for(
         "    decref(" . Param->Var .var-val ");" ;
         )
@@ -1433,7 +1437,7 @@ def(c99-emit-lambda!, Lambda -- +IO,
 
 def(c99-emit-match!, Match -- +IO,
     match-is-transparent? if(
-        match-cases? first match(
+        dup match-cases@ first match(
             NONE -> match-token@
                 "codegen: unexpected number of cases in transparent match" emit-fatal-error!,
             SOME ->
@@ -1441,7 +1445,7 @@ def(c99-emit-match!, Match -- +IO,
         ),
 
         "    switch (get_top_data_tag()) {" ;
-        match-cases? for(c99-emit-case!)
+        dup match-cases@ for(c99-emit-case!)
         match-has-default-case? if(
             id,
             "    default: write(2, \"unexpected fallthrough in match\\n\", 32); do_debug(); exit(99);" ;
@@ -1451,7 +1455,7 @@ def(c99-emit-match!, Match -- +IO,
     ))
 
 def(c99-emit-case!, Case -- +IO,
-    case-pattern? c99-emit-pattern!
+    dup case-pattern@ c99-emit-pattern!
     case-body@ c99-emit-arrow!
     "    break;" ;)
 
@@ -1461,7 +1465,7 @@ def(c99-emit-pattern!, Pattern -- +IO,
             "    default:" ; ,
 
         PATTERN_TAG ->
-            "    case " . tag-value? .n "LL:" ;
+            "    case " . dup tag-value@ .n "LL:" ;
             tag-num-inputs? nip
             dup 0 > if(
                 "    do_pack_uncons(); do_drop();" ;
@@ -1495,8 +1499,8 @@ def(c99-emit-field-sigs!, +IO,
 def(c99-emit-field-sig!, Field -- +IO,
     false over c99-field-needed!
     false over c99-field-emitted!
-    " static void mw" . field-name? "@" name-cat! .name " (void);" ;
-    " static void mw" . field-name? "?" name-cat! .name " (void);" ;
+    " static void mw" . dup field-name@ .name " (void);" ;
+    " static void mw" . dup field-name@ "@" name-cat! .name " (void);" ;
     " static void mw" . field-name@ "!" name-cat! .name " (void);" ;)
 
 def(c99-emit-block-defs!, +IO,
@@ -1504,14 +1508,14 @@ def(c99-emit-block-defs!, +IO,
 
 field(c99-block-emitted, Block, Bool)
 def(c99-emit-block-def!, Block -- +IO,
-    block-needed? if(
-        c99-block-emitted? if(
+    dup block-needed@ if(
+        dup c99-block-emitted@ if(
             drop,
 
             true over c99-block-emitted!
             "static void " . dup .block " (void) {" ;
-            block-arrow@
-            arrow-ctx? c99-unpack-ctx!
+            block-arrow
+            dup arrow-ctx@ c99-unpack-ctx!
             dup c99-emit-arrow!
             arrow-ctx@ c99-decref-ctx!
             "}" ;
@@ -1521,7 +1525,7 @@ def(c99-emit-block-def!, Block -- +IO,
 
 def(.block, Block -- +IO,
     "mb_" .
-    block-arrow? arrow-home? is-nil? if(
+    dup block-arrow dup arrow-home@ is-nil? if(
         drop2 Block.id .n,
         word-name@ .name "_" .
         arrow-homeidx@ .n drop
@@ -1529,12 +1533,12 @@ def(.block, Block -- +IO,
 
 field(c99-word-emitted, Word, Bool)
 def(c99-emit-word-def!, Word -- +IO,
-    c99-word-needed? if(
-        c99-word-emitted? if(
+    dup c99-word-needed@ if(
+        dup c99-word-emitted@ if(
             drop,
 
             true over c99-word-emitted!
-            word-name? .w "{" ;
+            dup word-name@ .w "{" ;
             word-arrow@ force c99-emit-arrow!
             "}" ;;
         ),
@@ -1543,12 +1547,12 @@ def(c99-emit-word-def!, Word -- +IO,
 
 field(c99-field-emitted, Field, Bool)
 def(c99-emit-field-def!, Field -- +IO,
-    c99-field-needed? if(
-        c99-field-emitted? if(
+    dup c99-field-needed@ if(
+        dup c99-field-emitted@ if(
             drop,
 
             true over c99-field-emitted!
-            "static value_t* fieldptr_" . field-name? .name " (usize i) {" ;
+            "static value_t* fieldptr_" . dup field-name@ .name " (usize i) {" ;
             "    static struct value_t * p;" ;
             "    static usize n = 0; " ;
             "    if (i >= n) {" ;
@@ -1560,22 +1564,21 @@ def(c99-emit-field-def!, Field -- +IO,
             "    }" ;
             "    return p+i;" ;
             "}" ;;
-            field-name? "@" name-cat! .w "{" ;
+            dup field-name@ .w "{" ;
             "    usize index = (usize)pop_u64();" ;
-            "    value_t v = *fieldptr_" . field-name? .name "(index);" ;
-            "    incref(v); push_value(v);" ;
+            "    value_t *v = fieldptr_" . dup field-name@ .name "(index);" ;
+            "    push_ptr(v);" ;
             "}" ;
-            field-name? "?" name-cat! .w "{" ;
-            "    mwdup();" ;
+            dup field-name@ "@" name-cat! .w "{" ;
             "    usize index = (usize)pop_u64();" ;
-            "    value_t v = *fieldptr_" . field-name? .name "(index);" ;
+            "    value_t v = *fieldptr_" . dup field-name@ .name "(index);" ;
             "    incref(v); push_value(v);" ;
             "}" ;
 
-            field-name? "!" name-cat! .w "{" ;
+            dup field-name@ "!" name-cat! .w "{" ;
             "    usize index = (usize)pop_u64();" ;
             "    value_t newvalue = pop_value();" ;
-            "    value_t* p = fieldptr_" . field-name? .name "(index);" ;
+            "    value_t* p = fieldptr_" . dup field-name@ .name "(index);" ;
             "    value_t oldvalue = *p;" ;
             "    *p = newvalue;" ;
             "    decref(oldvalue);" ;

@@ -16,6 +16,7 @@ data(Def,
     DEF_BUFFER -> Buffer,
     DEF_VARIABLE -> Variable,
     DEF_EXTERNAL -> External,
+    DEF_FIELD -> Field,
     DEF_FIELDWORD -> FieldWord)
 table(Name)
 field(name-str, Name, Str)
@@ -113,7 +114,7 @@ def(name-print-mangled!, Name -- +IO,
     name-mangle! str-print!)
 
 def(name-mangle!, Name -- Str,
-    name-mangle-cached? is-nil? if(
+    dup name-mangle-cached @ is-nil? if(
         drop sip(name-mangle-compute! dup) name-mangle-cached!,
         nip
     ))
@@ -155,5 +156,5 @@ def(hexdigit, Int -- Char,
 ########
 
 def(name-undefined?, Name -- Name Bool,
-    name-def? match(DEF_NONE -> true, _ -> drop false))
+    dup name-def @ match(DEF_NONE -> true, _ -> drop false))
 def(name-defined?, Name -- Name Bool, name-undefined? not)
