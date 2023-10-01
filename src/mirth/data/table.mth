@@ -19,18 +19,3 @@ field(field-type-sig, Field, Token)
 field(field-name, Field, Name)
 field(field-table, Field, Type)
 field(field-type, Field, Type)
-
-data(FieldWord, FIELDWORD -> Field FieldWordName)
-def(unFIELDWORD, FieldWord -- Field FieldWordName, match(FIELDWORD -> id))
-
-data(FieldWordName,
-    FIELD@,
-    FIELD?,
-    FIELD!)
-
-def(fieldword-name@, FieldWord -- Name,
-    unFIELDWORD dip(field-name@) match(
-        FIELD@ -> "@",
-        FIELD? -> "?",
-        FIELD! -> "!"
-    ) name-cat!)

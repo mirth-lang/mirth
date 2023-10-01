@@ -6,6 +6,6 @@ field(variable-type, Variable, Lazy(Type))
 
 def(variable-new!, Name Lazy(Type) -- Variable,
     Variable.alloc!
-    tuck variable-type!
-    tuck dup2 variable-name!
-    DEF_VARIABLE swap name-def!)
+    tuck variable-type !
+    tuck dup2 variable-name !
+    DEF_VARIABLE swap name-def !)

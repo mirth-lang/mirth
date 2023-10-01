@@ -14,14 +14,19 @@ field(var-auto-run, Var, Bool) # run variable by default
 
 def(var-new!, Name -- Var,
     Var.alloc!
-    tuck var-name!)
+    tuck var-name !)
 
 def(var-new-implicit!, Name -- Var,
     var-new!
-    true over var-is-implicit!)
+    true over var-is-implicit !)
 
 def(var-is-physical?, Var -- Var Bool,
-    true
-    dip(var-type? PRIM_TYPE_TYPE TPrim <>) &&
-    dip(var-type? PRIM_TYPE_STACK TPrim <>) &&
-    dip(var-type? PRIM_TYPE_EFFECT TPrim <>) &&)
+    dup var-type @ match(
+        TPrim -> match(
+            PRIM_TYPE_TYPE -> false,
+            PRIM_TYPE_STACK -> false,
+            PRIM_TYPE_EFFECT -> false,
+            _ -> drop true
+        ),
+        _ -> drop true
+    ))
