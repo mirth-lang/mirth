@@ -28,7 +28,7 @@ field(token-col, Token, Col)
 
 def(token-alloc!, Token,
     Token.alloc!
-    TOKEN_NONE over token-value!)
+    TOKEN_NONE over token-value !)
 
 def(token-is-int?, Token -- Token Bool,
     dup token-value @ match(TOKEN_INT -> drop true, _ -> drop false))

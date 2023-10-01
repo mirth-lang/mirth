@@ -65,7 +65,7 @@ field(tag-ctx, Tag, Ctx)
 field(tag-type-raw, Tag, Type)
 
 
-def(def-type!, Type Str --, dip(DEF_TYPE) name-new! name-def!)
+def(def-type!, Type Str --, dip(DEF_TYPE) name-new! name-def !)
 
 def(init-types!, --,
     TYPE_INT "Int" def-type!
@@ -608,10 +608,10 @@ def(type-max-count?, Type -- Type Maybe(Int),
 
 def(meta-trace!, MetaVar -- +IO, "?" str-trace! MetaVar.id int-trace!)
 def(meta-alloc!, MetaVar, MetaVar.alloc!)
-def(meta-type!, Type MetaVar --, true over meta-is-defined! meta-type-raw!)
+def(meta-type!, Type MetaVar --, true over meta-is-defined ! meta-type-raw !)
 def(meta-expand, MetaVar -- Type,
     dup meta-is-defined @ if(
-        sip(meta-type-raw @ type-expand dup) meta-type-raw!,
+        sip(meta-type-raw @ type-expand dup) meta-type-raw !,
         TMeta
     ))
 
@@ -737,8 +737,8 @@ def(data-num-tags, Data -- Int, data-tags @ len)
 
 ||| Adds constructor to data type, and gives tag its rank.
 def(data-add-tag!, Tag Data --,
-    dup2 data-num-tags swap tag-value!
-    dup data-tags @ rotr dip(snoc) data-tags!)
+    dup2 data-num-tags swap tag-value !
+    dup data-tags @ rotr dip(snoc) data-tags !)
 
 def(data-is-enum?, Data -- Data Bool,
     dup data-tags @ all?(tag-num-inputs? 0 ==) nip)

@@ -14,11 +14,11 @@ field(var-auto-run, Var, Bool) # run variable by default
 
 def(var-new!, Name -- Var,
     Var.alloc!
-    tuck var-name!)
+    tuck var-name !)
 
 def(var-new-implicit!, Name -- Var,
     var-new!
-    true over var-is-implicit!)
+    true over var-is-implicit !)
 
 def(var-is-physical?, Var -- Var Bool,
     dup var-type @ match(

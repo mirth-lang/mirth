@@ -36,8 +36,8 @@ def(run-lexer!, Path -- Module +Lexer,
         SOME -> "Mismatched left parenthesis." emit-fatal-error!
     )
 
-    token-alloc! lexer-module @ module-end!
-    token-succ lexer-module @ module-start!
+    token-alloc! lexer-module @ module-end !
+    token-succ lexer-module @ module-start !
 
     lexer-module @)
 
@@ -49,10 +49,10 @@ def(lexer-done?, Bool +Lexer, input-done?)
 # returning the new token.
 def(lexer-make!, TokenValue -- Token,
     token-alloc!
-    tuck token-value!
-    lexer-module @ over token-module!
-    lexer-row @ over token-row!
-    lexer-col @ over token-col!)
+    tuck token-value !
+    lexer-module @ over token-module !
+    lexer-row @ over token-row !
+    lexer-col @ over token-col !)
 
 # Create a token, and add it to the token buffer.
 def(lexer-emit!, TokenValue --, lexer-make! drop)
@@ -128,7 +128,7 @@ def(lexer-emit-rparen!, +Lexer,
         NONE -> "Mismatched right parenthesis." lexer-emit-fatal-error!,
         SOME -> token-is-lparen? if(
             dup TOKEN_RPAREN lexer-make!
-            TOKEN_LPAREN swap token-value!,
+            TOKEN_LPAREN swap token-value !,
             "Mismatched right parenthesis." lexer-emit-fatal-error!
         )
     ))
@@ -141,7 +141,7 @@ def(lexer-emit-rsquare!, +Lexer,
         NONE -> "Mismatched right bracket." lexer-emit-fatal-error!,
         SOME -> token-is-lsquare? if(
             dup TOKEN_RSQUARE lexer-make!
-            TOKEN_LSQUARE swap token-value!,
+            TOKEN_LSQUARE swap token-value !,
             "Mismatched right bracket." lexer-emit-fatal-error!
         )
     ))
@@ -154,7 +154,7 @@ def(lexer-emit-rcurly!, +Lexer,
         NONE -> "Mismatched right brace." lexer-emit-fatal-error!,
         SOME -> token-is-lcurly? if(
             dup TOKEN_RCURLY lexer-make!
-            TOKEN_LCURLY swap token-value!,
+            TOKEN_LCURLY swap token-value !,
             "Mismatched right brace." lexer-emit-fatal-error!
         )
     ))
@@ -188,10 +188,10 @@ def(lexer-emit-name!, +Lexer,
         )
 
         token-alloc!
-        tuck token-value!
-        tuck token-col!
-        tuck token-row!
-        token-module!
+        tuck token-value !
+        tuck token-col !
+        tuck token-row !
+        token-module !
     ))
 
 def(str-buf-is-doc-start?, Bool +StrBuf,
@@ -337,7 +337,7 @@ def(lexer-emit-string!, +Lexer,
     drop
 
     str-buf-dup! TOKEN_STR
-    swap token-value!)
+    swap token-value !)
 
 def(lexer-push-string-char!, Char -- +Lexer,
     is-backslash? if(

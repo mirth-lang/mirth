@@ -1225,11 +1225,6 @@ def(c99-emit-atom!, Atom -- +IO,
             need-word!
             dip(atom-args @ c99-emit-args-push!)
             "    mw" . word-name @ .name "();" ;,
-        OP_FIELDWORD ->
-            need-fieldword!
-            nip fieldword-name@
-            "    mw" . .name "();" ;,
-
         OP_EXTERNAL ->
             dip(atom-args @ c99-emit-args-push!) # this is probably never desirable
             "    mw" . external-name @ .name "();" ;,
@@ -1377,14 +1372,14 @@ field(c99-word-needed, Word, Bool)
 def(need-word!, Word -- Word,
     dup c99-word-needed @ if(
         id,
-        true over c99-word-needed!
+        true over c99-word-needed !
         dup NEED_WORD c99-need-stack stack-push
     ))
 
 def(need-block!, Block -- Block,
     dup block-needed @ if(
         id,
-        true over block-needed!
+        true over block-needed !
         dup NEED_BLOCK c99-need-stack stack-push
     ))
 
@@ -1392,11 +1387,9 @@ field(c99-field-needed, Field, Bool)
 def(need-field!, Field -- Field,
     dup c99-field-needed @ if(
         id,
-        true over c99-field-needed!
+        true over c99-field-needed !
         dup NEED_FIELD c99-need-stack stack-push
     ))
-def(need-fieldword!, FieldWord -- FieldWord,
-    dup unFIELDWORD drop need-field! drop)
 
 def(c99-emit-needs!, --,
     while-some(c99-need-stack stack-pop, c99-emit-need!))
@@ -1481,26 +1474,25 @@ def(c99-emit-word-sigs!, +IO,
     Word.for(c99-emit-word-sig!) .lf)
 
 def(c99-emit-word-sig!, Word -- +IO,
-    false over c99-word-needed!
-    false over c99-word-emitted!
+    false over c99-word-needed !
+    false over c99-word-emitted !
     " static void mw" . word-name @ .name " (void);" ;)
 
 def(c99-emit-block-sigs!, +IO,
     Block.for(c99-emit-block-sig!) .lf)
 
 def(c99-emit-block-sig!, Block -- +IO,
-    false over block-needed!
-    false over c99-block-emitted!
+    false over block-needed !
+    false over c99-block-emitted !
     " static void " . .block " (void);" ;)
 
 def(c99-emit-field-sigs!, +IO,
     Field.for(c99-emit-field-sig!) .lf)
 
 def(c99-emit-field-sig!, Field -- +IO,
-    false over c99-field-needed!
-    false over c99-field-emitted!
-    " static void mw" . dup field-name @ .name " (void);" ;
-    " static void mw" . field-name @ "!" name-cat! .name " (void);" ;)
+    false over c99-field-needed !
+    false over c99-field-emitted !
+    " static void mw" . field-name @ .name " (void);" ;)
 
 def(c99-emit-block-defs!, +IO,
     Block.for(c99-emit-block-def!) .lf)
@@ -1511,7 +1503,7 @@ def(c99-emit-block-def!, Block -- +IO,
         dup c99-block-emitted @ if(
             drop,
 
-            true over c99-block-emitted!
+            true over c99-block-emitted !
             "static void " . dup .block " (void) {" ;
             block-arrow
             dup arrow-ctx @ c99-unpack-ctx!
@@ -1536,7 +1528,7 @@ def(c99-emit-word-def!, Word -- +IO,
         dup c99-word-emitted @ if(
             drop,
 
-            true over c99-word-emitted!
+            true over c99-word-emitted !
             dup word-name @ .w "{" ;
             word-arrow @ force c99-emit-arrow!
             "}" ;;
@@ -1550,32 +1542,17 @@ def(c99-emit-field-def!, Field -- +IO,
         dup c99-field-emitted @ if(
             drop,
 
-            true over c99-field-emitted!
+            true over c99-field-emitted !
             "static value_t* fieldptr_" . dup field-name @ .name " (usize i) {" ;
-            "    static struct value_t * p;" ;
-            "    static usize n = 0; " ;
-            "    if (i >= n) {" ;
-            "        usize new_n = n+1;" ;
-            "        while (i >= new_n) new_n *= 2;" ;
-            "        p = realloc(p, sizeof(struct value_t) * new_n);" ;
-            "        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));" ;
-            "        n = new_n;" ;
-            "    }" ;
+            "    static struct value_t * p = 0; usize m=0x10000;" ;
+            "    if (!p) { p = calloc(m, sizeof *p); }" ;
+            "    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }" ;
             "    return p+i;" ;
-            "}" ;;
+            "}" ; # TODO make this more flexible wrt table size
             dup field-name @ .w "{" ;
             "    usize index = (usize)pop_u64();" ;
             "    value_t *v = fieldptr_" . dup field-name @ .name "(index);" ;
             "    push_ptr(v);" ;
-            "}" ;
-
-            dup field-name @ "!" name-cat! .w "{" ;
-            "    usize index = (usize)pop_u64();" ;
-            "    value_t newvalue = pop_value();" ;
-            "    value_t* p = fieldptr_" . dup field-name @ .name "(index);" ;
-            "    value_t oldvalue = *p;" ;
-            "    *p = newvalue;" ;
-            "    decref(oldvalue);" ;
             "}" ;;
 
             drop

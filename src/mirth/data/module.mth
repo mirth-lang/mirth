@@ -13,7 +13,7 @@ field(module-imports, Module, Set(Module))
 
 def(module-new!, Path -- Module,
     Module.alloc!
-    tuck module-path!)
+    tuck module-path !)
 
 ||| Add right module as import to left module.
 def(module-add-import!, Module Module --,

@@ -37,7 +37,6 @@ data(Op,
     OP_NONE,
     OP_PRIM -> Prim,
     OP_WORD -> Word,
-    OP_FIELDWORD -> FieldWord,
     OP_EXTERNAL -> External,
     OP_BUFFER -> Buffer,
     OP_VARIABLE -> Variable,
@@ -159,14 +158,14 @@ def(block-unify-type!, Gamma Block Type -- Gamma Type,
     ))
 
 def(block-unify-type-aux!, Gamma Type Block -- Gamma Type,
-    true over block-forcing!
+    true over block-forcing !
     dip(over gamma-token@ elab-expand-morphism! drop)
     rotr dip(
         dip(dup block-ctx @ over block-token @) swap
         ab-build!(elab-atoms!)
 
-        dup2 swap block-arrow-raw!
-        dip(false swap block-deferred!)
+        dup2 swap block-arrow-raw !
+        dip(false swap block-deferred !)
         arrow-cod @
     )
     type-unify!)
@@ -204,7 +203,7 @@ field(case-body, Case, Arrow)
 def(match-add-case!, Match Case -- Match,
     dip(dup match-cases @) cases-cover-case? if(
         case-token @ "Case is unreachable." emit-error! drop,
-        snoc over match-cases!
+        snoc over match-cases !
     ))
 
 def(match-is-exhaustive?, Match -- Match Bool,

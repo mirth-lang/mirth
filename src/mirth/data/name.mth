@@ -16,8 +16,7 @@ data(Def,
     DEF_BUFFER -> Buffer,
     DEF_VARIABLE -> Variable,
     DEF_EXTERNAL -> External,
-    DEF_FIELD -> Field,
-    DEF_FIELDWORD -> FieldWord)
+    DEF_FIELD -> Field)
 table(Name)
 field(name-str, Name, Str)
 field(name-def, Name, Def)
@@ -58,7 +57,7 @@ def(name-new!, Str -- Name,
     hash-name? is-nil? if(
         drop Name.alloc!
         tuck swap hash-name!
-        tuck name-str!,
+        tuck name-str !,
         nip nip
     ))
 
@@ -115,7 +114,7 @@ def(name-print-mangled!, Name -- +IO,
 
 def(name-mangle!, Name -- Str,
     dup name-mangle-cached @ is-nil? if(
-        drop sip(name-mangle-compute! dup) name-mangle-cached!,
+        drop sip(name-mangle-compute! dup) name-mangle-cached !,
         nip
     ))
 
