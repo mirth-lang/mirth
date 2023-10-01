@@ -2,11 +2,9 @@
 
 ![build](https://github.com/mirth-lang/mirth/workflows/build/badge.svg)
 
-**Mirth** is a new concatenative programming language.
+**Mirth** is a new concatenative programming language. Mirth is inspired by **Forth**, **Joy**, **Haskell**, **Lisp**, and monoidal category theory.
 
-Mirth is inspired by **Forth**, **Joy**, **Haskell**, **Idris**, **Rust**, **Lisp**, **ATS**, and monoidal category theory.
-
-This repository is a work-in-progress implementation of Mirth. If you are interested, please support the development of Mirth on [Patreon](https://patreon.com/typeswitch)! Thank you for your time and generosity.
+This repository is a **work-in-progress** implementation of Mirth. If you are interested, please support the development of Mirth on [Patreon](https://patreon.com/typeswitch). Thank you for your time and generosity.
 
 ### Hello, world!
 
@@ -19,7 +17,6 @@ import(platform.posix)
 target-c99("hello-world.c",
     "Hello, world!" str-print-ln!)
 ```
-
 
 ## Tools
 
