@@ -1528,21 +1528,10 @@ def(c99-emit-block-def!, Block -- +IO,
 
 def(.block, Block -- +IO,
     "mb_" .
-    block-arrow? arrow-token-start@
-    is-nil? if(
-        drop Block.id .n,
-        over block-arrow@ arrow-home@ is-nil? if(
-            drop
-            token-module? module-name@ .name "_" .
-            token-row? Row->Int .n "_" .
-            token-col@ Col->Int .n
-            drop,
-
-            word-name? .name "_" .
-            word-body@ Token.id
-            dip(Token.id) - .n
-            drop
-        )
+    block-arrow? arrow-home? is-nil? if(
+        drop2 Block.id .n,
+        word-name@ .name "_" .
+        arrow-homeidx@ .n drop
     ))
 
 field(c99-word-emitted, Word, Bool)
@@ -1603,7 +1592,6 @@ def(c99-emit-field-def!, Field -- +IO,
         ),
         drop
     ))
-
 
 def(c99-emit-main!, Arrow -- +IO,
     "int main (int argc, char** argv) {" ;
