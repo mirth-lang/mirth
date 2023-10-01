@@ -464,7 +464,7 @@ def(init-prims!, --,
 
     dip(TVar) TVar
     dup2 T-> swap
-    dip(dip(TYPE_BOOL T*) dup dip(T*) T*) T->
+    dip(dip(TYPE_BOOL T*) sip(T*) T*) T->
     PRIM_CORE_IF prim-type!
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type!
@@ -473,8 +473,8 @@ def(init-prims!, --,
 
     TVar
     dup
-    dup dip(dup T-> T*)
-    dup dip(dup TYPE_BOOL T* T-> T*)
+    sip(dup T-> T*)
+    sip(dup TYPE_BOOL T* T-> T*)
     T->
     PRIM_CORE_WHILE prim-type!
 
@@ -524,10 +524,10 @@ def(init-prims!, --,
     PRIM_MUT_NEW prim-type!
 
     dup TVar
-    dup dip(TMut T1) T1 T->
+    sip(TMut T1) T1 T->
     PRIM_MUT_GET prim-type!
 
     TVar
-    dup TMut dup dip(T2) T1 T->
+    dup TMut sip(T2) T1 T->
     PRIM_MUT_SET prim-type!
     )

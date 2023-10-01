@@ -77,7 +77,7 @@ def(snake-queue-xy!, XCoord YCoord Offset -- +Snake,
 
 def(snake-enqueue-xy!, XCoord YCoord -- +Snake,
     snake-queue-length @ snake-queue-xy!
-    snake-queue-length @ 1+ snake-queue-length !)
+    snake-queue-length modify(1+))
 
 def(snake-dequeue-xy!, -- XCoord YCoord +Snake,
     0 snake-queue-xy@
@@ -86,7 +86,7 @@ def(snake-dequeue-xy!, -- XCoord YCoord +Snake,
         dup
         dip(1+ snake-queue-xy?) snake-queue-xy!)
     drop
-    snake-queue-length @ 1- snake-queue-length !)
+    snake-queue-length modify(1-))
 
 def(SNAKE_CELL_SIZE, Int, 30)
 def(SNAKE_WINDOW_W, Int, SNAKE_W SNAKE_CELL_SIZE *)
@@ -367,7 +367,6 @@ def(snake-update!, +Snake,
     )))
 
 var(snake-points, Int)
-def(snake-points-inc!, +Snake, snake-points @ 1 + snake-points !)
 def(snake-desired-length, Int +Snake, snake-points @ 5 +)
 
 var(snake-mouse-x, XCoord)
@@ -390,7 +389,7 @@ def(snake-check-mouse!, +Snake,
     snake-x @ snake-mouse-x @ ==
     snake-y @ snake-mouse-y @ == && if(
         snake-randomize-mouse!
-        snake-points-inc!,
+        snake-points modify(1+),
 
         id
     ))

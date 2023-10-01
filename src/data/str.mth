@@ -7,7 +7,7 @@ def(str-head, Str -- Char, Str->Ptr char@)
 def(str-head-width, Str -- Int, Str->Ptr char@-width)
 
 def(str-tail, Str -- Str,
-    dup dip(str-head-width) Str->Ptr ptr+ Ptr->Str)
+    sip(str-head-width) Str->Ptr ptr+ Ptr->Str)
 
 def(str-size?, Str -- Str Int,
     prim.str.size)
@@ -26,7 +26,7 @@ def(str-length?, Str -- Str Int,
 
 def(str-concat, List(Str) -- Str,
     dup 0 swap for(str-size +)
-    prim.str.alloc dup dip(
+    prim.str.alloc sip(
         prim.str.base
         swap for(swap str-copy-partial!)
         nil swap u8!
@@ -60,7 +60,7 @@ def(build-str!, *a [ *a -- *b ] -- *b Str,
 
 def(str-buf-dup!, Str,
     STR_BUF str-buf-length? dup prim.str.alloc
-    dup dip(prim.str.base prim.ptr.copy))
+    sip(prim.str.base prim.ptr.copy))
 
 def(str-buf-length?, Int,
     STR_BUF_LEN @)
@@ -123,7 +123,7 @@ def(to-digit, Int -- Char,
 def(str-buf-int!, Int -- +StrBuf,
     dup 0= if(
         drop "0" str-buf!,
-        dup dip(
+        sip(
             abs
             str-buf-clear!
             while(dup 0>, dup to-digit str-buf-push-char! 10 /) drop
@@ -173,7 +173,7 @@ data(TransducerStep,
 def(str-transduce, *a Str [ *a Char -- *a TransducerStep ] -- *a Str,
     \([f] -> build-str!(
         while(str-is-empty? not,
-            dup dip(str-head f) str-tail
+            sip(str-head f) str-tail
             swap match(
                 TS_STOP -> drop "",
                 TS_SKIP -> id,
@@ -195,6 +195,6 @@ def(str-bytes, Str -- List(U8),
     dup Str->Ptr swap str-size
     while(
         dup 0 >,
-        1- dip(dup dip(u8@ snoc 1) ptr+)
+        1- dip(sip(u8@ snoc 1) ptr+)
     )
     drop2)

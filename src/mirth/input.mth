@@ -102,7 +102,7 @@ def(input-fill-buffer-tragic!, +Input,
         posix-read!
         dup 0 >= if(
             dup 0 > if(
-                input-length @ + input-length !,
+                input-length modify(+),
                 drop # invalid char left in buffer
             ),
             drop "error: failed to read from file" panic!

@@ -38,12 +38,12 @@ def(codegen-flush!, +Codegen,
 
 def(.b, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
-    codegen-length @ dup 1+ codegen-length ! codegen-u8!)
+    codegen-length modify(dup 1+) codegen-u8!)
 
 def(.c, Char -- +Codegen,
     codegen-full? if(codegen-flush!, id)
     dup codegen-length @ CODEGEN_BUF ptr+ char!
-    char-width codegen-length @ + codegen-length !)
+    char-width codegen-length modify(+))
 
 def(., Str -- +Codegen,
     dup Str->Ptr swap str-size
@@ -58,8 +58,8 @@ def(., Str -- +Codegen,
         )
         dup codegen-length ! CODEGEN_BUF prim.ptr.copy,
 
-        dup dip(codegen-length @ CODEGEN_BUF ptr+ prim.ptr.copy)
-        codegen-length @ + codegen-length !
+        sip(codegen-length @ CODEGEN_BUF ptr+ prim.ptr.copy)
+        codegen-length modify(+)
     ))
 
 def(codegen-start!, File -- +Codegen,
@@ -94,8 +94,6 @@ def(run-output-c99!, Arrow Path -- +IO,
     ))
 
 var(c99-depth, Int)
-def(c99-depth++, +Codegen, c99-depth @ 1+ c99-depth !)
-def(c99-depth--, +Codegen, c99-depth @ 1- c99-depth !)
 
 def(.lf, +Codegen, 10 Int->U8 .b)
 def(;, Str -- +Codegen, . .lf)
@@ -1211,9 +1209,9 @@ def(c99-emit-external!, External -- +IO,
     drop3)
 
 def(c99-emit-arrow!, Arrow -- +IO,
-    c99-depth++
+    c99-depth modify(1+)
     arrow-atoms@ for(c99-emit-atom!)
-    c99-depth--)
+    c99-depth modify(1-))
 
 def(c99-emit-atom!, Atom -- +IO,
     atom-op? match(

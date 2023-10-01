@@ -50,9 +50,9 @@ def(lexer-done?, Bool +Lexer, input-done?)
 def(lexer-make!, TokenValue -- Token,
     token-alloc!
     tuck token-value!
-    dip(lexer-module @) dup dip(token-module!)
-    dip(lexer-row @) dup dip(token-row!)
-    dip(lexer-col @) dup dip(token-col!))
+    lexer-module @ over token-module!
+    lexer-row @ over token-row!
+    lexer-col @ over token-col!)
 
 # Create a token, and add it to the token buffer.
 def(lexer-emit!, TokenValue --, lexer-make! drop)
@@ -117,7 +117,7 @@ def(lexer-next!, --,
     lexer-move!)))
 
 def(lexer-newline!, +Lexer,
-    lexer-row @ Row->Int 1+ Int->Row lexer-row !
+    lexer-row modify(Row->Int 1+ Int->Row)
     0 Int->Col lexer-col !)
 
 def(lexer-emit-lparen!, +Lexer,
@@ -283,7 +283,7 @@ def(str-buf-dec-int?, Int +StrBuf,
         drop
     )
     while(dup str-buf-length? <,
-        dup dip(
+        sip(
             str-buf-char@ Char->Int
             dip(10 *) 48 - +
         )
@@ -304,7 +304,7 @@ def(str-buf-hex-int?, Int +StrBuf,
     )
     2 + # skip 0x prefix
     while(dup str-buf-length? <,
-        dup dip(
+        sip(
             str-buf-char@
             dip(16 *) hexdigit-value +
         )
@@ -385,7 +385,7 @@ def(lexer-comment-end?, Bool +Lexer,
 
 def(lexer-peek, Char +Lexer, input-peek)
 def(lexer-move!, +Lexer, input-move!
-    lexer-col @ Col->Int 1+ Int->Col lexer-col !)
+    lexer-col modify(Col->Int 1+ Int->Col))
 
 def(lexer-location, Location +Lexer,
     lexer-module @ lexer-row @ lexer-col @ location-pack)

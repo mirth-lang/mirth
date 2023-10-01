@@ -98,7 +98,7 @@ def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
             dip(
                 dip(var-new-implicit!)
                 over var-type!
-                dup dip(ctx-new!)
+                sip(ctx-new!)
             )
     )
     token-next
@@ -161,7 +161,7 @@ def(elab-type-quote!, TypeElab Token -- TypeElab Type Token,
     token-next)
 
 def(elab-type-unify!, Type Type Token -- Type Token,
-    dup dip(GAMMA rotr type-unify! nip))
+    sip(GAMMA rotr type-unify! nip))
 
 def(elab-simple-type-arg!, Token -- Type,
     dip(type-elab-default) elab-type-arg! drop nip)
@@ -189,7 +189,7 @@ def(ab-build!, *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
         Arrow.alloc!
         ab-home @ over arrow-home!
         ab-homeidx @ over arrow-homeidx!
-        ab-homeidx @ 1+ ab-homeidx !
+        ab-homeidx modify(1+)
         tuck dup2 arrow-token-start! arrow-token-end!
         tuck dup2 arrow-dom! arrow-cod!
         tuck arrow-ctx!
@@ -201,7 +201,7 @@ def(ab-build!, *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
 def(ab-build-word!, *a Word [ *a -- *b ] -- *b Word,
     \([f] ->
         dup ab-home ! 0 ab-homeidx !
-        dup dip(elab-word-ctx-sig!)
+        sip(elab-word-ctx-sig!)
         word-body? swap
         dip(elab-expand-morphism! swap)
 
@@ -442,7 +442,7 @@ def(elab-tag-ctx-sig!, Tag -- Ctx Type +Elab,
         { Tag TypeElab Type Type }
         T-> dip(type-elab-ctx)
         { Tag Ctx Type }
-        dup2 dip2(
+        sip2(
             rotl
             tuck tag-type-raw!
             tuck tag-ctx!
@@ -464,7 +464,7 @@ def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
         external-sig?
         dip(type-elab-default)
         elab-type-sig! drop dip(type-elab-ctx)
-        dup2 dip2(
+        sip2(
             rotl
             tuck external-type!
             tuck external-ctx!
@@ -624,7 +624,7 @@ def(elab-lambda-params!, Lambda -- Lambda,
     while(token-is-lambda-param?, token-next)
     expect-token-arrow token-prev
     while(token-is-lambda-param?,
-        elab-lambda-pop-from-mid! dup dip(
+        elab-lambda-pop-from-mid! sip(
             sig-token-is-type-var? if(
                 token-name@ var-new! tuck var-type!,
 
@@ -636,7 +636,7 @@ def(elab-lambda-params!, Lambda -- Lambda,
                     "block pattern on non-block argument" emit-fatal-error!
                 )
             )
-            dip(lambda-params?) dup dip(Var->Param swap cons over lambda-params!)
+            dip(lambda-params?) sip(Var->Param swap cons over lambda-params!)
             dip(lambda-inner-ctx?) ctx-new! over lambda-inner-ctx!
         )
         token-prev)
@@ -777,7 +777,7 @@ def(elab-module-decl!, Token -- Token,
 
 ||| Elaborate `import(M)` statement. Return token after import.
 def(elab-module-import!, Token -- Token,
-    dup dip(token-next)
+    sip(token-next)
     token-args-1 token-value? match(
         TOKEN_NAME ->
             name-def? match(
@@ -803,7 +803,7 @@ def(elab-module-import!, Token -- Token,
 
 ||| Elaborate a data definition `data(T, ...)`
 def(elab-data!, Token -- Token,
-    dup dip(
+    sip(
         Data.alloc! swap token-args+
         uncons dip(elab-data-header!)
         for(elab-data-tag!)
@@ -860,16 +860,16 @@ def(expect-token-arrow, Token -- Token,
 
 ||| Elaborate a word definition `def(w, t, b)`.
 def(elab-def!, Token -- Token,
-    dup dip(token-next) token-args-3
+    sip(token-next) token-args-3
     rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
     token-name?
     name-undefined? if(id, drop "word already defined" emit-fatal-error!)
     nip
     Word.alloc!
     dup2 DEF_WORD swap name-def!
-    dup dip(word-name!)
-    dup dip(word-body!)
-    dup dip(word-sig!)
+    tuck word-name!
+    tuck word-body!
+    tuck word-sig!
 
     dup delay(
         type-elab-default
@@ -885,7 +885,7 @@ def(elab-def!, Token -- Token,
 
 ||| Elaborate an external declaration `def-external(w, t)`
 def(elab-def-external!, Token -- Token,
-    dup dip(token-next) token-args-2
+    sip(token-next) token-args-2
     swap token-is-name? if(
         token-name? name-undefined? if(
             nip
@@ -901,7 +901,7 @@ def(elab-def-external!, Token -- Token,
 
 ||| Elaborate a type definition `def-type(t1, t2)`.
 def(elab-def-type!, Token -- Token,
-    dup dip(token-next) token-args-2
+    sip(token-next) token-args-2
     swap sig-token-is-type-con? if(
         token-name? name-undefined? if(
             nip swap
@@ -915,7 +915,7 @@ def(elab-def-type!, Token -- Token,
 
 ||| Elaborate a buffer definition `buffer(B, size)`.
 def(elab-buffer!, Token -- Token,
-    dup dip(token-next) token-args-2
+    sip(token-next) token-args-2
     swap token-is-name? if(
         token-name? name-undefined? if(
             nip swap
@@ -936,7 +936,7 @@ def(elab-variable!, Token -- Token,
 
 ||| Elaborate a table definition `table(T)`.
 def(elab-table!, Token -- Token,
-    dup dip(token-next) token-args-1
+    sip(token-next) token-args-1
     sig-token-is-type-con? if(
         token-name@ table-new! drop,
         "expected table name" emit-fatal-error!
@@ -946,7 +946,7 @@ def(elab-table!, Token -- Token,
 def(elab-target-c99!, Token -- Token,
     typecheck-everything!
 
-    dup dip(token-next) token-args-2
+    sip(token-next) token-args-2
     dip(token-str@ Str->Path)
     dip(ctx-empty T0 T0 T->)
     elab-arrow!
@@ -1135,7 +1135,7 @@ def(table-new!, Name -- Table,
 
 ||| Elaborate a field definition `field(f, T1, T2)`.
 def(elab-field!, Token -- Token,
-    dup dip(token-next)
+    sip(token-next)
     token-args-3 rotl token-value? match(
         TOKEN_NAME ->
             nip rotr field-new! drop,

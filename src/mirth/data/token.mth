@@ -238,7 +238,7 @@ def(token-args, Token -- List(Token),
         token-is-name? if(token-succ, id)
         L0 swap while (
             token-is-args-end? not,
-            token-succ dup dip(snoc)
+            token-succ sip(snoc)
             token-next-arg-end
         ) drop,
         drop L0
