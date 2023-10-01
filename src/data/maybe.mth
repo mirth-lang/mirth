@@ -37,3 +37,6 @@ def(maybe-filter, *c Maybe(a) [*c a -- *c a Bool] -- *c Maybe(a),
         NONE -> NONE,
         SOME -> f if(SOME, drop NONE)
     )))
+
+def(while-some, *a [*a b -- *a] [*a -- *a Maybe(b)] -- *a,
+    \([g][f] -> f while(is-some?, unwrap g f) drop))

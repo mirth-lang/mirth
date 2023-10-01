@@ -162,7 +162,7 @@ def(type-unify-failed!, Gamma Type Type -- Gamma Type +Elab,
     type-trace!
     trace-ln!
     TYPE_ERROR
-    num-errors++)
+    num-errors modify(1+))
 
 # Unify two types. Raises an elaboration error if unification is impossible.
 def(type-unify!, Gamma Type Type -- Gamma Type +Elab,
@@ -611,7 +611,7 @@ def(meta-alloc!, MetaVar, MetaVar.alloc!)
 def(meta-type!, Type MetaVar --, true over meta-is-defined! meta-type-raw!)
 def(meta-expand, MetaVar -- Type,
     meta-is-defined? if(
-        dup dip(meta-type-raw@ type-expand dup) meta-type-raw!,
+        sip(meta-type-raw@ type-expand dup) meta-type-raw!,
         TMeta
     ))
 
@@ -710,7 +710,7 @@ def(subst-get-var?, Var Subst -- Var Subst Type,
 ||| Otherwise, create larger subst with new binding.
 def(subst-match-var, Gamma Type Var Subst -- Gamma Subst,
     subst-has-var? if(
-        dup dip(subst-get-var type-unify! drop),
+        sip(subst-get-var type-unify! drop),
         subst-new!
     ))
 

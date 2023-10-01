@@ -14,6 +14,7 @@ data(Def,
     DEF_PRIM -> Prim,
     DEF_WORD -> Word,
     DEF_BUFFER -> Buffer,
+    DEF_VARIABLE -> Variable,
     DEF_EXTERNAL -> External,
     DEF_FIELDWORD -> FieldWord)
 table(Name)
@@ -113,7 +114,7 @@ def(name-print-mangled!, Name -- +IO,
 
 def(name-mangle!, Name -- Str,
     name-mangle-cached? is-nil? if(
-        drop dup dip(name-mangle-compute! dup) name-mangle-cached!,
+        drop sip(name-mangle-compute! dup) name-mangle-cached!,
         nip
     ))
 
@@ -139,8 +140,8 @@ def(char-hexdigits-first, Int -- List(Char) Int,
     dip(L0) char-hexdigits-next)
 
 def(char-hexdigits-next, List(Char) Int -- List(Char) Int,
-    dup dip(0xF & hexdigit) 4 >>
-    dup dip(0xF & hexdigit) 4 >>
+    sip(0xF & hexdigit) 4 >>
+    sip(0xF & hexdigit) 4 >>
     dip(swap dip(snoc) snoc))
 
 def(hexdigit, Int -- Char,

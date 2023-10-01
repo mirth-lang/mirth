@@ -1,6 +1,7 @@
 module(mirth.lexer)
 import(prelude)
 import(data.char)
+import(data.stack)
 import(mirth.data.name)
 import(mirth.data.token)
 import(mirth.data.error)
@@ -10,58 +11,19 @@ import(mirth.input)
 # LEXER #
 #########
 
-buffer(LEXER_MODULE, 16)
-def(lexer-module@, -- Module +Lexer, LEXER_MODULE value@)
-def(lexer-module!, Module -- +Lexer, LEXER_MODULE value!)
-
-buffer(LEXER_ROW, 16)
-def(lexer-row@, -- Row +Lexer, LEXER_ROW value@)
-def(lexer-row!, Row -- +Lexer, LEXER_ROW value!)
-
-buffer(LEXER_COL, 16)
-def(lexer-col@, -- Col +Lexer, LEXER_COL value@)
-def(lexer-col!, Col -- +Lexer, LEXER_COL value!)
-
-buffer(LEXER_STACK_LENGTH, 16)
-def(lexer-stack-length@, Size +Lexer, LEXER_STACK_LENGTH value@)
-def(lexer-stack-length!, Size -- +Lexer, LEXER_STACK_LENGTH value!)
-
-def(LEXER_STACK_SIZE, Size, 0x200)
-buffer(LEXER_STACK_BUF, 0x2000)
-
-def(lexer-stack-clear!, +Lexer,
-    0 lexer-stack-length!)
-
-def(lexer-stack-empty?, Bool +Lexer,
-    lexer-stack-length@ 0 <=)
-
-def(lexer-stack-full?, Bool +Lexer,
-    lexer-stack-length@ LEXER_STACK_SIZE >=)
-
-def(lexer-stack-push!, Token -- +Lexer,
-    lexer-stack-full? if(
-        "lexer stack overflow" panic!,
-        lexer-stack-length@
-        dup 1+ lexer-stack-length!
-        LEXER_STACK_BUF value!!
-    ))
-
-def(lexer-stack-pop!, -- Token +Lexer,
-    lexer-stack-empty? if(
-        "lexer stack underflow" panic!,
-        lexer-stack-length@ 1-
-        dup lexer-stack-length!
-        LEXER_STACK_BUF value@@
-    ))
+var(lexer-module, Module)
+var(lexer-row, Row)
+var(lexer-col, Col)
+var(lexer-stack, Stack(Token))
 
 def(run-lexer!, Path -- Module +Lexer,
-    module-new! lexer-module!
+    module-new! lexer-module !
 
-    lexer-module@ module-source-path
+    lexer-module @ module-source-path
     Path->Str open-file! input-start!
 
-    1 Int->Row lexer-row!
-    1 Int->Col lexer-col!
+    1 Int->Row lexer-row !
+    1 Int->Col lexer-col !
 
     token-alloc!
 
@@ -69,18 +31,15 @@ def(run-lexer!, Path -- Module +Lexer,
 
     input-end!
 
-    lexer-stack-empty? if(
-        TOKEN_NONE lexer-emit!,
-
-        lexer-stack-pop!
-        "Mismatched left parenthesis."
-        emit-fatal-error!
+    lexer-stack stack-pop match(
+        NONE -> TOKEN_NONE lexer-emit!,
+        SOME -> "Mismatched left parenthesis." emit-fatal-error!
     )
 
-    token-alloc! lexer-module@ module-end!
-    token-succ lexer-module@ module-start!
+    token-alloc! lexer-module @ module-end!
+    token-succ lexer-module @ module-start!
 
-    lexer-module@)
+    lexer-module @)
 
 
 # Is the lexer done?
@@ -91,9 +50,9 @@ def(lexer-done?, Bool +Lexer, input-done?)
 def(lexer-make!, TokenValue -- Token,
     token-alloc!
     tuck token-value!
-    dip(lexer-module@) dup dip(token-module!)
-    dip(lexer-row@) dup dip(token-row!)
-    dip(lexer-col@) dup dip(token-col!))
+    lexer-module @ over token-module!
+    lexer-row @ over token-row!
+    lexer-col @ over token-col!)
 
 # Create a token, and add it to the token buffer.
 def(lexer-emit!, TokenValue --, lexer-make! drop)
@@ -158,16 +117,16 @@ def(lexer-next!, --,
     lexer-move!)))
 
 def(lexer-newline!, +Lexer,
-    lexer-row@ Row->Int 1+ Int->Row lexer-row!
-    0 Int->Col lexer-col!)
+    lexer-row modify(Row->Int 1+ Int->Row)
+    0 Int->Col lexer-col !)
 
 def(lexer-emit-lparen!, +Lexer,
     nil TOKEN_LPAREN lexer-make!
-    lexer-stack-push!)
+    lexer-stack stack-push)
 def(lexer-emit-rparen!, +Lexer,
-    lexer-stack-empty? if(
-        "Mismatched right parenthesis." lexer-emit-fatal-error!,
-        lexer-stack-pop! token-is-lparen? if(
+    lexer-stack stack-pop match(
+        NONE -> "Mismatched right parenthesis." lexer-emit-fatal-error!,
+        SOME -> token-is-lparen? if(
             dup TOKEN_RPAREN lexer-make!
             TOKEN_LPAREN swap token-value!,
             "Mismatched right parenthesis." lexer-emit-fatal-error!
@@ -176,11 +135,11 @@ def(lexer-emit-rparen!, +Lexer,
 
 def(lexer-emit-lsquare!, +Lexer,
     nil TOKEN_LSQUARE lexer-make!
-    lexer-stack-push!)
+    lexer-stack stack-push)
 def(lexer-emit-rsquare!, +Lexer,
-    lexer-stack-empty? if(
-        "Mismatched right bracket." lexer-emit-fatal-error!,
-        lexer-stack-pop! token-is-lsquare? if(
+    lexer-stack stack-pop match(
+        NONE -> "Mismatched right bracket." lexer-emit-fatal-error!,
+        SOME -> token-is-lsquare? if(
             dup TOKEN_RSQUARE lexer-make!
             TOKEN_LSQUARE swap token-value!,
             "Mismatched right bracket." lexer-emit-fatal-error!
@@ -189,11 +148,11 @@ def(lexer-emit-rsquare!, +Lexer,
 
 def(lexer-emit-lcurly!, +Lexer,
     nil TOKEN_LCURLY lexer-make!
-    lexer-stack-push!)
+    lexer-stack stack-push)
 def(lexer-emit-rcurly!, +Lexer,
-    lexer-stack-empty? if(
-        "Mismatched right brace." lexer-emit-fatal-error!,
-        lexer-stack-pop! token-is-lcurly? if(
+    lexer-stack stack-pop match(
+        NONE -> "Mismatched right brace." lexer-emit-fatal-error!,
+        SOME -> token-is-lcurly? if(
             dup TOKEN_RCURLY lexer-make!
             TOKEN_LCURLY swap token-value!,
             "Mismatched right brace." lexer-emit-fatal-error!
@@ -203,9 +162,9 @@ def(lexer-emit-rcurly!, +Lexer,
 def(lexer-emit-name!, +Lexer,
     str-buf-clear!
 
-    lexer-module@
-    lexer-row@
-    lexer-col@
+    lexer-module @
+    lexer-row @
+    lexer-col @
 
     lexer-peek while(is-name-char?,
         char-valid? if(
@@ -324,7 +283,7 @@ def(str-buf-dec-int?, Int +StrBuf,
         drop
     )
     while(dup str-buf-length? <,
-        dup dip(
+        sip(
             str-buf-char@ Char->Int
             dip(10 *) 48 - +
         )
@@ -345,7 +304,7 @@ def(str-buf-hex-int?, Int +StrBuf,
     )
     2 + # skip 0x prefix
     while(dup str-buf-length? <,
-        dup dip(
+        sip(
             str-buf-char@
             dip(16 *) hexdigit-value +
         )
@@ -426,10 +385,10 @@ def(lexer-comment-end?, Bool +Lexer,
 
 def(lexer-peek, Char +Lexer, input-peek)
 def(lexer-move!, +Lexer, input-move!
-    lexer-col@ Col->Int 1+ Int->Col lexer-col!)
+    lexer-col modify(Col->Int 1+ Int->Col))
 
 def(lexer-location, Location +Lexer,
-    lexer-module@ lexer-row@ lexer-col@ location-pack)
+    lexer-module @ lexer-row @ lexer-col @ location-pack)
 
 def(lexer-emit-warning!, Str -- +IO, dip(lexer-location) emit-warning-at!)
 def(lexer-emit-error!, Str -- +IO, dip(lexer-location) emit-error-at!)

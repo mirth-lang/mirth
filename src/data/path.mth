@@ -9,16 +9,11 @@ def(path@, Ptr -- Path, ptr@ Ptr->Str Str->Path)
 def(path!, Path Ptr --, dip(Path->Str Str->Ptr) ptr!)
 
 def(init-paths!, --,
-    "src" Str->Path source-path-root!
-    "bin" Str->Path output-path-root!)
+    "src" Str->Path source-path-root !
+    "bin" Str->Path output-path-root !)
 
-buffer(SOURCE_PATH_ROOT, 8)
-def(source-path-root@, Path, SOURCE_PATH_ROOT path@)
-def(source-path-root!, Path --, SOURCE_PATH_ROOT path!)
-
-buffer(OUTPUT_PATH_ROOT, 8)
-def(output-path-root@, Path, OUTPUT_PATH_ROOT path@)
-def(output-path-root!, Path --, OUTPUT_PATH_ROOT path!)
+var(source-path-root, Path)
+var(output-path-root, Path)
 
 def(path-separator, Str, RUNNING_OS OS_WINDOWS == if("\\", "/"))
 def(path-is-empty?, Path -- Path Bool, dup Path->Str str-is-empty)
@@ -30,7 +25,7 @@ def(path-join, Path Path -- Path,
     ))
 
 ||| Make a source path from a project-relative path.
-def(make-source-path, Path -- Path, source-path-root@ swap path-join)
+def(make-source-path, Path -- Path, source-path-root @ swap path-join)
 
 ||| Make an output path from a project-relative path.
-def(make-output-path, Path -- Path, output-path-root@ swap path-join)
+def(make-output-path, Path -- Path, output-path-root @ swap path-join)

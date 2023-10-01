@@ -1,6 +1,5 @@
 module(data.lazy)
 
-import(data.mut)
 import(data.maybe)
 
 data(LazyPayload(t),

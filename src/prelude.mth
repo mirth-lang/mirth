@@ -136,6 +136,11 @@ def(dip2, *a c1 c2 [*a -- *b] -- *b c1 c2,
 def(dip3, *a c1 c2 c3 [*a -- *b] -- *b c1 c2 c3,
     \([f] -> dip(dip(dip(f)))))
 
+def(sip, *a x [*a x -- *b] -- *b x,
+    \([f] -> dup dip(f)))
+def(sip2, *a x1 x2 [*a x1 x2 -- *b] -- *b x1 x2,
+    \([f] -> dup2 dip(dip(f))))
+
 def(drop2, a b --, drop drop)
 def(drop3, a b c --, drop drop drop)
 def(drop4, a b c d --, drop drop drop drop)
@@ -340,3 +345,9 @@ def(.2, [*a b c d] -- b, pack-uncons drop .1)
 def(.3, [*a b c d e] -- b, pack-uncons drop .2)
 def(.4, [*a b c d e f] -- b, pack-uncons drop .3)
 def(.5, [*a b c d e f g] -- b, pack-uncons drop .4)
+
+def(mut, t -- Mut(t), prim.mut.new)
+def(@, Mut(t) -- t, prim.mut.get)
+def(!, t Mut(t) --, prim.mut.set drop)
+def(modify, *a Mut(t) [*a t -- *b t] -- *b,
+    \([f] -> sip(@ f) !))

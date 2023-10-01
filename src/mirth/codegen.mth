@@ -1,5 +1,6 @@
 module(mirth.codegen)
 import(prelude)
+import(data.stack)
 import(mirth.data.token)
 import(mirth.data.name)
 import(mirth.data.buffer)
@@ -12,28 +13,24 @@ import(mirth.data.table)
 ###########
 
 def(CODEGEN_BUF_SIZE, Size, 0x100)
-buffer(CODEGEN_FILE, 8)
-buffer(CODEGEN_LENGTH, 8)
+var(codegen-file, File)
+var(codegen-length, Size)
 buffer(CODEGEN_BUF, 0x100)
 
-def(codegen-file@, -- File +Codegen, CODEGEN_FILE file@)
-def(codegen-file!, File -- +Codegen, CODEGEN_FILE file!)
-def(codegen-length@, -- Size +Codegen, CODEGEN_LENGTH int@)
-def(codegen-length!, Size -- +Codegen, CODEGEN_LENGTH int!)
 def(codegen-u8@, Offset -- Byte +Codegen, CODEGEN_BUF u8@@)
 def(codegen-u8!, Byte Offset -- +Codegen, CODEGEN_BUF u8!!)
 
 def(codegen-full?, Bool +Codegen,
-    codegen-length@ 4 + CODEGEN_BUF_SIZE >=)
+    codegen-length @ 4 + CODEGEN_BUF_SIZE >=)
 
 def(codegen-flush!, +Codegen,
-    codegen-length@ 0 > if(
-        codegen-file@ File->Int CODEGEN_BUF codegen-length@
+    codegen-length @ 0 > if(
+        codegen-file @ File->Int CODEGEN_BUF codegen-length @
         posix-write! dup 0 < if(
             "error: codegen write failed" panic!,
-            codegen-length@ < if(
+            codegen-length @ < if(
                 "error: codegen write wrote fewer bytes than expected" panic!,
-                0 codegen-length!
+                0 codegen-length !
             )
         ),
         id
@@ -41,41 +38,41 @@ def(codegen-flush!, +Codegen,
 
 def(.b, Byte -- +Codegen,
     codegen-full? if(codegen-flush!, id)
-    codegen-length@ dup 1+ codegen-length! codegen-u8!)
+    codegen-length modify(dup 1+) codegen-u8!)
 
 def(.c, Char -- +Codegen,
     codegen-full? if(codegen-flush!, id)
-    dup codegen-length@ CODEGEN_BUF ptr+ char!
-    char-width codegen-length@ + codegen-length!)
+    dup codegen-length @ CODEGEN_BUF ptr+ char!
+    char-width codegen-length modify(+))
 
 def(., Str -- +Codegen,
     dup Str->Ptr swap str-size
-    dup codegen-length@ + CODEGEN_BUF_SIZE > if(
+    dup codegen-length @ + CODEGEN_BUF_SIZE > if(
         codegen-flush!
         while(dup CODEGEN_BUF_SIZE >,
             over CODEGEN_BUF_SIZE CODEGEN_BUF prim.ptr.copy
-            CODEGEN_BUF_SIZE codegen-length!
+            CODEGEN_BUF_SIZE codegen-length !
             codegen-flush!
             dip(CODEGEN_BUF_SIZE swap ptr+)
             CODEGEN_BUF_SIZE -
         )
-        dup codegen-length! CODEGEN_BUF prim.ptr.copy,
+        dup codegen-length ! CODEGEN_BUF prim.ptr.copy,
 
-        dup dip(codegen-length@ CODEGEN_BUF ptr+ prim.ptr.copy)
-        codegen-length@ + codegen-length!
+        sip(codegen-length @ CODEGEN_BUF ptr+ prim.ptr.copy)
+        codegen-length modify(+)
     ))
 
 def(codegen-start!, File -- +Codegen,
-    codegen-file! 0 codegen-length!)
+    codegen-file ! 0 codegen-length !)
 
 def(codegen-end!, +Codegen,
     codegen-flush!
-    codegen-file@ close-file!
-    stdout codegen-file!
-    0 codegen-length!)
+    codegen-file @ close-file!
+    stdout codegen-file !
+    0 codegen-length !)
 
 def(run-output-c99!, Arrow Path -- +IO,
-    num-errors@ 0 > if(
+    num-errors @ 0 > if(
         drop2,
 
         make-output-path Path->Str
@@ -86,6 +83,7 @@ def(run-output-c99!, Arrow Path -- +IO,
         c99-emit-prims!
         c99-emit-tags!
         c99-emit-buffers!
+        c99-emit-variables!
         c99-emit-externals!
         c99-emit-word-sigs!
         c99-emit-block-sigs!
@@ -95,17 +93,13 @@ def(run-output-c99!, Arrow Path -- +IO,
         codegen-end!
     ))
 
-buffer(C99_DEPTH, 8)
-def(c99-depth@, -- Int +Codegen, C99_DEPTH int@)
-def(c99-depth!, Int -- +Codegen, C99_DEPTH int!)
-def(c99-depth++, +Codegen, c99-depth@ 1+ c99-depth!)
-def(c99-depth--, +Codegen, c99-depth@ 1- c99-depth!)
+var(c99-depth, Int)
 
 def(.lf, +Codegen, 10 Int->U8 .b)
 def(;, Str -- +Codegen, . .lf)
 def(;;, Str -- +Codegen, . .lf .lf)
 def(.n, Int -- +Codegen, int-show .)
-def(.d, +Codegen, c99-depth@ .n)
+def(.d, +Codegen, c99-depth @ .n)
 def(.name, Name -- +Codegen, name-mangle! .)
 
 def(.w, Name -- +IO, "static void mw" . .name " (void)" .)
@@ -211,6 +205,17 @@ def(c99-emit-buffers!, +IO,
 def(c99-emit-buffer!, Buffer -- +IO,
     "static u8 b" . buffer-name? .name "[" . buffer-size? .n "] = {0};" ;
     "#define mw" . buffer-name? .name "() push_ptr((void*)b" . buffer-name@ .name ")" ;)
+
+def(c99-emit-variables!, --,
+    Variable.for(c99-emit-variable!) .lf)
+
+def(c99-emit-variable!, Variable --,
+    "void mw" . variable-name? .name "() {" ;
+    "  static value_t v = {0};" ;
+    "  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }" ;
+    "  incref(v); push_value(v);" ;
+    "}" ;
+    drop)
 
 def(c99-emit-tags!, +IO,
     Tag.for(c99-emit-tag!) .lf)
@@ -1204,9 +1209,9 @@ def(c99-emit-external!, External -- +IO,
     drop3)
 
 def(c99-emit-arrow!, Arrow -- +IO,
-    c99-depth++
+    c99-depth modify(1+)
     arrow-atoms@ for(c99-emit-atom!)
-    c99-depth--)
+    c99-depth modify(1-))
 
 def(c99-emit-atom!, Atom -- +IO,
     atom-op? match(
@@ -1230,6 +1235,9 @@ def(c99-emit-atom!, Atom -- +IO,
             "    mw" . external-name@ .name "();" ;,
         OP_BUFFER ->
             nip buffer-name@
+            "    mw" . .name "();" ;,
+        OP_VARIABLE ->
+            nip variable-name@
             "    mw" . .name "();" ;,
         OP_TAG ->
             nip tag-name@
@@ -1359,31 +1367,21 @@ data(Need,
     NEED_BLOCK -> Block,
     NEED_WORD -> Word,
     NEED_FIELD -> Field)
-
-buffer(C99_NEED_STACK, 16)
-def(need-push!, Need --, C99_NEED_STACK value@ cons C99_NEED_STACK value!)
-def(need-pop!, -- Maybe(Need),
-    C99_NEED_STACK value@
-    List->List+ match(
-        NONE -> NONE,
-        SOME -> uncons C99_NEED_STACK value! SOME
-    ))
-def(has-need?, Bool,
-    C99_NEED_STACK value@ is-nil not)
+var(c99-need-stack, Stack(Need))
 
 field(c99-word-needed, Word, Bool)
 def(need-word!, Word -- Word,
     c99-word-needed? if(
         id,
         true over c99-word-needed!
-        dup NEED_WORD need-push!
+        dup NEED_WORD c99-need-stack stack-push
     ))
 
 def(need-block!, Block -- Block,
     block-needed? if(
         id,
         true over block-needed!
-        dup NEED_BLOCK need-push!
+        dup NEED_BLOCK c99-need-stack stack-push
     ))
 
 field(c99-field-needed, Field, Bool)
@@ -1391,20 +1389,15 @@ def(need-field!, Field -- Field,
     c99-field-needed? if(
         id,
         true over c99-field-needed!
-        dup NEED_FIELD need-push!
+        dup NEED_FIELD c99-need-stack stack-push
     ))
 def(need-fieldword!, FieldWord -- FieldWord,
     dup unFIELDWORD drop need-field! drop)
 
-def(c99-emit-needs!, +IO,
-    while(has-need?,
-        need-pop! match(
-            NONE -> "unexpected branch in c99-emit-needs!" panic!,
-            SOME -> c99-emit-need!
-        )
-    ))
+def(c99-emit-needs!, --,
+    while-some(c99-need-stack stack-pop, c99-emit-need!))
 
-def(c99-emit-need!, Need -- +IO,
+def(c99-emit-need!, Need --,
     match(
         NEED_WORD -> c99-emit-word-def!,
         NEED_BLOCK -> c99-emit-block-def!,

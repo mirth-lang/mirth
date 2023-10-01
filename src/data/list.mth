@@ -362,7 +362,7 @@ def(find+, *c List+(a) [*c a -- *c a Bool] -- *c Maybe(a),
 
 ||| Like `find` but preserves the list.
 def(find?, *c List(a) [*c a -- *c a Bool] -- *c List(a) Maybe(a),
-    \([f] -> dup dip(find(f)) swap))
+    \([f] -> sip(find(f)) swap))
 
 ||| Like `find` but goes backward through the list.
 def(reverse-find, *c List(a) [*c a -- *c a Bool] -- *c Maybe(a),
@@ -370,7 +370,7 @@ def(reverse-find, *c List(a) [*c a -- *c a Bool] -- *c Maybe(a),
 
 ||| Like `find?` but goes backward through the list.
 def(reverse-find?, *c List(a) [*c a -- *c a Bool] -- *c List(a) Maybe(a),
-    \([f] -> dup dip(reverse find(f)) swap))
+    \([f] -> sip(reverse-find(f)) swap))
 
 ||| Is the predicate true for any element of the list?
 def(any, *c List(a) [*c a -- *c a Bool] -- *c Bool,
@@ -390,10 +390,4 @@ def(all?, *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool,
 
 ||| Build a list through repetition.
 def(collect, a [a -- a Maybe(b)] -- List(b),
-    \([f] ->
-        L0 swap f while(
-            is-some?,
-            unwrap swap
-            dip(snoc) f
-        ) drop2
-    ))
+    \([f] -> L0 swap while-some(f, swap dip(snoc)) drop))
