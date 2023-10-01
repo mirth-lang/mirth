@@ -1373,14 +1373,14 @@ def(need-word!, Word -- Word,
     dup c99-word-needed @ if(
         id,
         true over c99-word-needed !
-        dup NEED_WORD c99-need-stack stack-push
+        dup NEED_WORD c99-need-stack stack-push!
     ))
 
 def(need-block!, Block -- Block,
     dup block-needed @ if(
         id,
         true over block-needed !
-        dup NEED_BLOCK c99-need-stack stack-push
+        dup NEED_BLOCK c99-need-stack stack-push!
     ))
 
 field(c99-field-needed, Field, Bool)
@@ -1388,11 +1388,11 @@ def(need-field!, Field -- Field,
     dup c99-field-needed @ if(
         id,
         true over c99-field-needed !
-        dup NEED_FIELD c99-need-stack stack-push
+        dup NEED_FIELD c99-need-stack stack-push!
     ))
 
 def(c99-emit-needs!, --,
-    while-some(c99-need-stack stack-pop, c99-emit-need!))
+    while-some(c99-need-stack stack-pop!, c99-emit-need!))
 
 def(c99-emit-need!, Need --,
     match(
@@ -1530,7 +1530,7 @@ def(c99-emit-word-def!, Word -- +IO,
 
             true over c99-word-emitted !
             dup word-name @ .w "{" ;
-            word-arrow @ force c99-emit-arrow!
+            word-arrow force! c99-emit-arrow!
             "}" ;;
         ),
         drop

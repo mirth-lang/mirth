@@ -388,7 +388,7 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_INT -> VALUE_INT TValue OPSIG_PUSH,
         OP_STR -> VALUE_STR TValue OPSIG_PUSH,
         OP_BUFFER -> drop TYPE_PTR OPSIG_PUSH,
-        OP_VARIABLE -> variable-type @ force TMut OPSIG_PUSH,
+        OP_VARIABLE -> variable-type force! TMut OPSIG_PUSH,
         OP_TAG -> elab-tag-sig! type-freshen-sig OPSIG_APPLY,
         OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
         OP_PRIM -> prim-type @ type-freshen-sig OPSIG_APPLY,
@@ -475,9 +475,9 @@ def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
 def(elab-word-sig!, Word -- Type, elab-word-ctx-sig! nip)
 def(elab-word-ctx!, Word -- Ctx, elab-word-ctx-sig! drop)
 def(elab-word-ctx-sig!, Word -- Ctx Type,
-    word-ctx-type @ force2)
+    word-ctx-type force2!)
 
-def(elab-word-body!, Word -- Arrow, word-arrow @ force)
+def(elab-word-body!, Word -- Arrow, word-arrow force!)
 
 def(elab-arrow!, Ctx Type Token -- Arrow,
     elab-expand-morphism! elab-arrow-hom!)
@@ -875,11 +875,10 @@ def(elab-def!, Token -- Token,
         type-elab-default
         swap word-sig @ elab-type-sig!
         drop dip(type-elab-ctx) pack2
-    )
-    dup2 swap word-ctx-type !
-    over delay2(
+    ) over word-ctx-type !
+    dup delay(
         dup ab-home ! 0 ab-homeidx !
-        dip(force2) word-body @ elab-arrow!
+        sip(word-ctx-type force2!) word-body @ elab-arrow!
         nil ab-home !
     ) swap word-arrow !)
 
@@ -965,10 +964,10 @@ def(typecheck-name!, Name --,
         DEF_PRIM -> drop,
         DEF_TYPE -> drop,
         DEF_EXTERNAL -> elab-external-sig! drop,
-        DEF_WORD -> word-arrow @ force drop,
+        DEF_WORD -> word-arrow force! drop,
         DEF_FIELD -> elab-field-type! drop,
         DEF_TAG -> elab-tag-sig! drop,
-        DEF_VARIABLE -> variable-type @ force drop,
+        DEF_VARIABLE -> variable-type force! drop,
     ))
 
 #########
