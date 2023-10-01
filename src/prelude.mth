@@ -340,3 +340,7 @@ def(.2, [*a b c d] -- b, pack-uncons drop .1)
 def(.3, [*a b c d e] -- b, pack-uncons drop .2)
 def(.4, [*a b c d e f] -- b, pack-uncons drop .3)
 def(.5, [*a b c d e f g] -- b, pack-uncons drop .4)
+
+def(mut, t -- Mut(t), prim.mut.new)
+def(@, Mut(t) -- t, prim.mut.get)
+def(!, t Mut(t) --, prim.mut.set drop)

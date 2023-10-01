@@ -10,58 +10,47 @@ import(mirth.input)
 # LEXER #
 #########
 
-buffer(LEXER_MODULE, 16)
-def(lexer-module@, -- Module +Lexer, LEXER_MODULE value@)
-def(lexer-module!, Module -- +Lexer, LEXER_MODULE value!)
-
-buffer(LEXER_ROW, 16)
-def(lexer-row@, -- Row +Lexer, LEXER_ROW value@)
-def(lexer-row!, Row -- +Lexer, LEXER_ROW value!)
-
-buffer(LEXER_COL, 16)
-def(lexer-col@, -- Col +Lexer, LEXER_COL value@)
-def(lexer-col!, Col -- +Lexer, LEXER_COL value!)
-
-buffer(LEXER_STACK_LENGTH, 16)
-def(lexer-stack-length@, Size +Lexer, LEXER_STACK_LENGTH value@)
-def(lexer-stack-length!, Size -- +Lexer, LEXER_STACK_LENGTH value!)
+var(lexer-module, Module)
+var(lexer-row, Row)
+var(lexer-col, Col)
+var(lexer-stack-length, Size)
 
 def(LEXER_STACK_SIZE, Size, 0x200)
 buffer(LEXER_STACK_BUF, 0x2000)
 
 def(lexer-stack-clear!, +Lexer,
-    0 lexer-stack-length!)
+    0 lexer-stack-length !)
 
 def(lexer-stack-empty?, Bool +Lexer,
-    lexer-stack-length@ 0 <=)
+    lexer-stack-length @ 0 <=)
 
 def(lexer-stack-full?, Bool +Lexer,
-    lexer-stack-length@ LEXER_STACK_SIZE >=)
+    lexer-stack-length @ LEXER_STACK_SIZE >=)
 
 def(lexer-stack-push!, Token -- +Lexer,
     lexer-stack-full? if(
         "lexer stack overflow" panic!,
-        lexer-stack-length@
-        dup 1+ lexer-stack-length!
+        lexer-stack-length @
+        dup 1+ lexer-stack-length !
         LEXER_STACK_BUF value!!
     ))
 
 def(lexer-stack-pop!, -- Token +Lexer,
     lexer-stack-empty? if(
         "lexer stack underflow" panic!,
-        lexer-stack-length@ 1-
-        dup lexer-stack-length!
+        lexer-stack-length @ 1-
+        dup lexer-stack-length !
         LEXER_STACK_BUF value@@
     ))
 
 def(run-lexer!, Path -- Module +Lexer,
-    module-new! lexer-module!
+    module-new! lexer-module !
 
-    lexer-module@ module-source-path
+    lexer-module @ module-source-path
     Path->Str open-file! input-start!
 
-    1 Int->Row lexer-row!
-    1 Int->Col lexer-col!
+    1 Int->Row lexer-row !
+    1 Int->Col lexer-col !
 
     token-alloc!
 
@@ -77,10 +66,10 @@ def(run-lexer!, Path -- Module +Lexer,
         emit-fatal-error!
     )
 
-    token-alloc! lexer-module@ module-end!
-    token-succ lexer-module@ module-start!
+    token-alloc! lexer-module @ module-end!
+    token-succ lexer-module @ module-start!
 
-    lexer-module@)
+    lexer-module @)
 
 
 # Is the lexer done?
@@ -91,9 +80,9 @@ def(lexer-done?, Bool +Lexer, input-done?)
 def(lexer-make!, TokenValue -- Token,
     token-alloc!
     tuck token-value!
-    dip(lexer-module@) dup dip(token-module!)
-    dip(lexer-row@) dup dip(token-row!)
-    dip(lexer-col@) dup dip(token-col!))
+    dip(lexer-module @) dup dip(token-module!)
+    dip(lexer-row @) dup dip(token-row!)
+    dip(lexer-col @) dup dip(token-col!))
 
 # Create a token, and add it to the token buffer.
 def(lexer-emit!, TokenValue --, lexer-make! drop)
@@ -158,8 +147,8 @@ def(lexer-next!, --,
     lexer-move!)))
 
 def(lexer-newline!, +Lexer,
-    lexer-row@ Row->Int 1+ Int->Row lexer-row!
-    0 Int->Col lexer-col!)
+    lexer-row @ Row->Int 1+ Int->Row lexer-row !
+    0 Int->Col lexer-col !)
 
 def(lexer-emit-lparen!, +Lexer,
     nil TOKEN_LPAREN lexer-make!
@@ -203,9 +192,9 @@ def(lexer-emit-rcurly!, +Lexer,
 def(lexer-emit-name!, +Lexer,
     str-buf-clear!
 
-    lexer-module@
-    lexer-row@
-    lexer-col@
+    lexer-module @
+    lexer-row @
+    lexer-col @
 
     lexer-peek while(is-name-char?,
         char-valid? if(
@@ -426,10 +415,10 @@ def(lexer-comment-end?, Bool +Lexer,
 
 def(lexer-peek, Char +Lexer, input-peek)
 def(lexer-move!, +Lexer, input-move!
-    lexer-col@ Col->Int 1+ Int->Col lexer-col!)
+    lexer-col @ Col->Int 1+ Int->Col lexer-col !)
 
 def(lexer-location, Location +Lexer,
-    lexer-module@ lexer-row@ lexer-col@ location-pack)
+    lexer-module @ lexer-row @ lexer-col @ location-pack)
 
 def(lexer-emit-warning!, Str -- +IO, dip(lexer-location) emit-warning-at!)
 def(lexer-emit-error!, Str -- +IO, dip(lexer-location) emit-error-at!)

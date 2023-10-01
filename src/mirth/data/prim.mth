@@ -100,6 +100,7 @@ data(Prim,
     PRIM_SYNTAX_DEF,
     PRIM_SYNTAX_DEF_TYPE,
     PRIM_SYNTAX_BUFFER,
+    PRIM_SYNTAX_VARIABLE,
     PRIM_SYNTAX_DEF_EXTERNAL,
     PRIM_SYNTAX_TARGET_C99,
     PRIM_SYNTAX_TABLE,
@@ -148,6 +149,7 @@ def(init-prims!, --,
     PRIM_SYNTAX_FIELD "field" def-prim!
     PRIM_SYNTAX_TARGET_C99 "target-c99" def-prim!
     PRIM_SYNTAX_DATA "data" def-prim!
+    PRIM_SYNTAX_VARIABLE "var" def-prim!
     PRIM_SYNTAX_ARROW "->" def-prim!
     PRIM_SYNTAX_DASHES "--" def-prim!
 
@@ -256,6 +258,7 @@ def(init-prims!, --,
     [ elab-def-external!  ] PRIM_SYNTAX_DEF_EXTERNAL prim-decl!
     [ elab-def-type!      ] PRIM_SYNTAX_DEF_TYPE     prim-decl!
     [ elab-buffer!        ] PRIM_SYNTAX_BUFFER       prim-decl!
+    [ elab-variable!      ] PRIM_SYNTAX_VARIABLE     prim-decl!
     [ elab-table!         ] PRIM_SYNTAX_TABLE        prim-decl!
     [ elab-field!         ] PRIM_SYNTAX_FIELD        prim-decl!
     [ elab-target-c99!    ] PRIM_SYNTAX_TARGET_C99   prim-decl!

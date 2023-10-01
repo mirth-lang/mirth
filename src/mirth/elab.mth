@@ -7,6 +7,7 @@ import(mirth.data.external)
 import(mirth.data.word)
 import(mirth.data.var)
 import(mirth.data.buffer)
+import(mirth.data.variable)
 import(mirth.data.table)
 import(mirth.data.var)
 import(mirth.data.arrow)
@@ -170,42 +171,36 @@ def(elab-simple-type-arg!, Token -- Type,
 ####################
 
 # AB = Arrow Builder = Arrow Elaborator
-buffer(AB_HOME, 16)
-def(ab-home@, Word, AB_HOME value@)
-def(ab-home!, Word --, AB_HOME value!)
-buffer(AB_HOMEIDX, 8)
-def(ab-homeidx@, Int, AB_HOMEIDX int@)
-def(ab-homeidx!, Int --, AB_HOMEIDX int!)
-buffer(AB_ARROW, 16)
-def(ab-arrow@, Arrow +AB, AB_ARROW value@)
-def(ab-arrow!, Arrow -- +AB, AB_ARROW value!)
-def(ab-ctx@, Ctx +AB, ab-arrow@ arrow-ctx@)
-def(ab-ctx!, Ctx -- +AB, ab-arrow@ arrow-ctx!)
-def(ab-token@, Token +AB, ab-arrow@ arrow-token-end@)
-def(ab-token!, Token -- +AB, ab-arrow@ arrow-token-end!)
-def(ab-type@, Type +AB, ab-arrow@ arrow-cod@)
-def(ab-type!, Type -- +AB, ab-arrow@ arrow-cod!)
+var(ab-home, Word)
+var(ab-homeidx, Int)
+var(ab-arrow, Arrow)
+def(ab-ctx@, Ctx +AB, ab-arrow @ arrow-ctx@)
+def(ab-ctx!, Ctx -- +AB, ab-arrow @ arrow-ctx!)
+def(ab-token@, Token +AB, ab-arrow @ arrow-token-end@)
+def(ab-token!, Token -- +AB, ab-arrow @ arrow-token-end!)
+def(ab-type@, Type +AB, ab-arrow @ arrow-cod@)
+def(ab-type!, Type -- +AB, ab-arrow @ arrow-cod!)
 
 def(ab-save!, *a [ *a -- *b ] -- *b,
-    \([f] -> ab-arrow@ dip(f) ab-arrow!))
+    \([f] -> ab-arrow @ dip(f) ab-arrow !))
 
 def(ab-build!, *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
     \([f] -> ab-save!(
         Arrow.alloc!
-        ab-home@ over arrow-home!
-        ab-homeidx@ over arrow-homeidx!
-        ab-homeidx@ 1+ ab-homeidx!
+        ab-home @ over arrow-home!
+        ab-homeidx @ over arrow-homeidx!
+        ab-homeidx @ 1+ ab-homeidx !
         tuck dup2 arrow-token-start! arrow-token-end!
         tuck dup2 arrow-dom! arrow-cod!
         tuck arrow-ctx!
-        ab-arrow!
+        ab-arrow !
         f
-        ab-arrow@
+        ab-arrow @
     )))
 
 def(ab-build-word!, *a Word [ *a -- *b ] -- *b Word,
     \([f] ->
-        dup ab-home! 0 ab-homeidx!
+        dup ab-home ! 0 ab-homeidx !
         dup dip(elab-word-ctx-sig!)
         word-body? swap
         dip(elab-expand-morphism! swap)
@@ -218,7 +213,7 @@ def(ab-build-word!, *a Word [ *a -- *b ] -- *b Word,
             ready
         )
         tuck word-arrow!
-        nil ab-home!
+        nil ab-home !
     ))
 
 def(ab-unify-type!, Type --,
@@ -230,9 +225,9 @@ def(ab-atom!, Atom --,
         # ^ a sanity check to make sure
         # atom dom matches ab-arrow cod
     atom-cod? ab-type!
-    dip(ab-arrow@ arrow-atoms@)
+    dip(ab-arrow @ arrow-atoms@)
     ab-optimized-snoc!
-    ab-arrow@ arrow-atoms!)
+    ab-arrow @ arrow-atoms!)
 
 ||| Add an atom to a list of atoms ... smartly.
 def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
@@ -321,6 +316,7 @@ def(ab-expand-opsig!, OpSig -- Type Type,
 def(ab-int!, Int --, OP_INT ab-op!)
 def(ab-str!, Str --, OP_STR ab-op!)
 def(ab-buffer!, Buffer --, OP_BUFFER ab-op!)
+def(ab-variable!, Variable --, OP_VARIABLE ab-op!)
 def(ab-var!, Var --, OP_VAR ab-op!)
 def(ab-tag!, Tag --, OP_TAG ab-op!)
 def(ab-prim!, Prim --,
@@ -392,6 +388,7 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_INT -> VALUE_INT TValue OPSIG_PUSH,
         OP_STR -> VALUE_STR TValue OPSIG_PUSH,
         OP_BUFFER -> drop TYPE_PTR OPSIG_PUSH,
+        OP_VARIABLE -> variable-type@ force TMut OPSIG_PUSH,
         OP_TAG -> elab-tag-sig! type-freshen-sig OPSIG_APPLY,
         OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
         OP_PRIM -> prim-type@ type-freshen-sig OPSIG_APPLY,
@@ -532,6 +529,7 @@ def(elab-atom-name!, Name --,
         SOME -> nip elab-args! ab-var!,
         NONE -> name-def@ match(
             DEF_BUFFER -> elab-no-args! ab-buffer!,
+            DEF_VARIABLE -> elab-no-args! ab-variable!,
             DEF_EXTERNAL -> elab-no-args! ab-external!,
             DEF_FIELDWORD -> elab-no-args! ab-fieldword!,
             DEF_WORD -> elab-args! ab-word!,
@@ -880,9 +878,9 @@ def(elab-def!, Token -- Token,
     )
     dup2 swap word-ctx-type!
     over delay2(
-        dup ab-home! 0 ab-homeidx!
+        dup ab-home ! 0 ab-homeidx !
         dip(force2) word-body@ elab-arrow!
-        nil ab-home!
+        nil ab-home !
     ) swap word-arrow!)
 
 ||| Elaborate an external declaration `def-external(w, t)`
@@ -927,6 +925,15 @@ def(elab-buffer!, Token -- Token,
         "expected buffer name" emit-fatal-error!
     ))
 
+||| Elaborate a var declaration `var(v, type)`.
+def(elab-variable!, Token -- Token,
+    dup token-args-2
+    swap token-is-name? if(id, "expected variable name" emit-fatal-error!)
+    token-name? name-undefined? if(id,
+        drop "name already defined" emit-fatal-error!)
+    nip swap delay(elab-simple-type-arg!) variable-new! drop
+    token-next)
+
 ||| Elaborate a table definition `table(T)`.
 def(elab-table!, Token -- Token,
     dup dip(token-next) token-args-1
@@ -961,6 +968,7 @@ def(typecheck-name!, Name --,
         DEF_WORD -> word-arrow@ force drop,
         DEF_FIELDWORD -> elab-field-word-type! drop,
         DEF_TAG -> elab-tag-sig! drop,
+        DEF_VARIABLE -> variable-type@ force drop,
     ))
 
 #########

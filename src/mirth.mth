@@ -34,8 +34,8 @@ def(compile!, Path -- +IO,
     elab-module! drop
     typecheck-everything!
 
-    num-errors@ 0 > if(
-        num-errors@ int-trace!
+    num-errors @ 0 > if(
+        num-errors @ int-trace!
         " errors." str-trace-ln!
         1 posix-exit!,
 

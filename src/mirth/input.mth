@@ -5,52 +5,43 @@ import(prelude)
 # Input #
 #########
 
-buffer(INPUT_ISOPEN, 8)
-buffer(INPUT_LENGTH, 8)
-buffer(INPUT_OFFSET, 8)
-buffer(INPUT_HANDLE, 8)
+var(input-isopen, Bool)
+var(input-length, Size)
+var(input-offset, Size)
+var(input-handle, File)
 buffer(INPUT_BUFFER, 0x2010) # a little wiggle room for boundary chars
 def(INPUT_BUFFER_SIZE, Size, 0x2000)
 
-def(input-isopen@, Bool +Input, INPUT_ISOPEN int@ 0<>)
-def(input-length@, Size +Input, INPUT_LENGTH int@)
-def(input-offset@, Size +Input, INPUT_OFFSET int@)
-def(input-handle@, File +Input, INPUT_HANDLE int@ Int->File)
-def(input-isopen!, Bool -- +Input, if(1,0) INPUT_ISOPEN int!)
-def(input-length!, Size -- +Input, INPUT_LENGTH int!)
-def(input-offset!, Size -- +Input, INPUT_OFFSET int!)
-def(input-handle!, File -- +Input, File->Int INPUT_HANDLE int!)
-
 def(input-start!, File -- +Input,
-    input-handle!
-    0 input-length!
-    0 input-offset!
-    true input-isopen!
+    input-handle !
+    0 input-length !
+    0 input-offset !
+    true input-isopen !
     input-fill-buffer!)
 
 def(input-end!, +Input,
-    input-isopen@ if(
-        input-handle@ close-file!,
+    input-isopen @ if(
+        input-handle @ close-file!,
         id
     )
-    stdin input-handle!
-    0 input-length!
-    0 input-offset!
-    false input-isopen!)
+    stdin input-handle !
+    0 input-length !
+    0 input-offset !
+    false input-isopen !)
 
 def(input-done?, Bool +Input,
-    input-isopen@ not)
+    input-isopen @ not)
 
 def(input-fill-buffer!, +Input,
-    input-isopen@ if(
-        input-handle@ File->Int
+    input-isopen @ if(
+        input-handle @ File->Int
         INPUT_BUFFER
         INPUT_BUFFER_SIZE
         posix-read!
         dup 0 >= if(
             dup 0 > if(
-                input-length!
-                0 input-offset!,
+                input-length !
+                0 input-offset !,
                 drop
                 input-end!
             ),
@@ -62,17 +53,17 @@ def(input-fill-buffer!, +Input,
 # Return the current char in the input buffer.
 # Panics if file is exhausted.
 def(input-peek, Char +Input,
-    input-isopen@ if(
-        input-offset@ INPUT_BUFFER ptr+ char@,
+    input-isopen @ if(
+        input-offset @ INPUT_BUFFER ptr+ char@,
         "error: attempted to read input buffer when file is already closed" panic!
     ))
 
 # Move to next char in input buffer.
 # Panics if file is exhausted.
 def(input-move!, +Input,
-    input-isopen@ if(
-        input-offset@ dup INPUT_BUFFER ptr+
-        char@-width + input-offset!
+    input-isopen @ if(
+        input-offset @ dup INPUT_BUFFER ptr+
+        char@-width + input-offset !
         input-prepare-for-more!,
         "error: attempted to move input buffer when file is already closed" panic!
     ))
@@ -80,14 +71,14 @@ def(input-move!, +Input,
 ||| Refill input buffer, with special logic to handle
 ||| characters straddling the buffer boundary.
 def(input-prepare-for-more!, +Input,
-    input-offset@
-    dup 4 + input-length@ > if(
+    input-offset @
+    dup 4 + input-length @ > if(
 
-        dup input-length@ >= if(
+        dup input-length @ >= if(
             drop
             input-fill-buffer!,
 
-        dup INPUT_BUFFER ptr+ char@-width + input-length@ > if(
+        dup INPUT_BUFFER ptr+ char@-width + input-length @ > if(
             input-fill-buffer-tragic!,
 
             id
@@ -98,20 +89,20 @@ def(input-prepare-for-more!, +Input,
 
 def(input-fill-buffer-tragic!, +Input,
 
-    input-offset@ INPUT_BUFFER ptr+ u32@ # ok because of wiggle room
+    input-offset @ INPUT_BUFFER ptr+ u32@ # ok because of wiggle room
     INPUT_BUFFER u32!
 
-    INPUT_BUFFER char@-width input-length!
-    0 input-offset!
+    INPUT_BUFFER char@-width input-length !
+    0 input-offset !
 
-    input-isopen@ if(
-        input-handle@ File->Int
-        input-length@ INPUT_BUFFER ptr+
+    input-isopen @ if(
+        input-handle @ File->Int
+        input-length @ INPUT_BUFFER ptr+
         INPUT_BUFFER_SIZE # ok because of wiggle room
         posix-read!
         dup 0 >= if(
             dup 0 > if(
-                input-length@ + input-length!,
+                input-length @ + input-length !,
                 drop # invalid char left in buffer
             ),
             drop "error: failed to read from file" panic!
