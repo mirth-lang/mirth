@@ -985,12 +985,6 @@ static void mwDEF_FIELD (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwDEF_FIELDWORD (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
-    car = mkcell(car, tag);
-    push_value(car);
-}
 #define mwHASH() 0
 #define mwSET() 0
 #define mwROW() 0
@@ -1190,75 +1184,69 @@ static void mwOP_WORD (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwOP_FIELDWORD (void) {
+static void mwOP_EXTERNAL (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwOP_EXTERNAL (void) {
+static void mwOP_BUFFER (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwOP_BUFFER (void) {
+static void mwOP_VARIABLE (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwOP_VARIABLE (void) {
+static void mwOP_FIELD (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwOP_FIELD (void) {
+static void mwOP_INT (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwOP_INT (void) {
+static void mwOP_STR (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwOP_STR (void) {
+static void mwOP_TAG (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwOP_TAG (void) {
+static void mwOP_MATCH (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwOP_MATCH (void) {
+static void mwOP_LAMBDA (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwOP_LAMBDA (void) {
+static void mwOP_VAR (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 12LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwOP_VAR (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 13LL } };
-    car = mkcell(car, tag);
-    push_value(car);
-}
 static void mwOP_BLOCK (void) {
     value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 14LL } };
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 13LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -1270,29 +1258,20 @@ static void mwPATTERN_TAG (void) {
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwLP_READY (void) {
+static void mwLAZY_READY (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-static void mwLP_THUNK (void) {
+static void mwLAZY_DELAY (void) {
     value_t car = pop_value();
     car = mkcell(car, pop_value());
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
     car = mkcell(car, tag);
     push_value(car);
 }
-#define mwLP_WAIT() push_u64(2)
-#define mwLAZY() 0
-static void mwFIELDWORD (void) {
-    value_t car = pop_value();
-    car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
-    car = mkcell(car, tag);
-    push_value(car);
-}
-#define mwFIELD_21_() push_u64(0)
+#define mwLAZY_WAIT() push_u64(2)
 static void mwNEED_BLOCK (void) {
     value_t car = pop_value();
     value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
@@ -1978,9 +1957,9 @@ static void mwstat (void) {
  static void mwinput_move_21_ (void);
  static void mwinput_prepare_for_more_21_ (void);
  static void mwinput_fill_buffer_tragic_21_ (void);
- static void mwstack_push (void);
- static void mwstack_pop (void);
- static void mwstack_reset (void);
+ static void mwstack_push_21_ (void);
+ static void mwstack_pop_21_ (void);
+ static void mwstack_reset_21_ (void);
  static void mwstack_is_empty (void);
  static void mwName_2E_MAX (void);
  static void mwName_2E_id (void);
@@ -2401,18 +2380,15 @@ static void mwstat (void) {
  static void mwcases_have_default_case (void);
  static void mwcase_is_default_case (void);
  static void mwpattern_is_covered (void);
+ static void mwready (void);
+ static void mwready2 (void);
  static void mwdelay (void);
  static void mwdelay0 (void);
  static void mwdelay2 (void);
  static void mwdelay3 (void);
  static void mwdelay4 (void);
- static void mwforce (void);
- static void mwforce2 (void);
- static void mwready (void);
- static void mwready2 (void);
- static void mwlazy_map (void);
- static void mwlazy_map2 (void);
- static void mwlazy_bind (void);
+ static void mwforce_21_ (void);
+ static void mwforce2_21_ (void);
  static void mwVar_2E_MAX (void);
  static void mwVar_2E_id (void);
  static void mwVar_2E_succ (void);
@@ -2440,8 +2416,6 @@ static void mwstat (void) {
  static void mwField_2E_pred (void);
  static void mwField_2E_for (void);
  static void mwField_2E_alloc_21_ (void);
- static void mwunFIELDWORD (void);
- static void mwfieldword_name_40_ (void);
  static void mwCODEGEN_BUF_SIZE (void);
  static void mwcodegen_u8_40_ (void);
  static void mwcodegen_u8_21_ (void);
@@ -2488,7 +2462,6 @@ static void mwstat (void) {
  static void mwneed_word_21_ (void);
  static void mwneed_block_21_ (void);
  static void mwneed_field_21_ (void);
- static void mwneed_fieldword_21_ (void);
  static void mwc99_emit_needs_21_ (void);
  static void mwc99_emit_need_21_ (void);
  static void mwc99_emit_block_push_21_ (void);
@@ -2582,7 +2555,6 @@ static void mwstat (void) {
  static void mwab_prim_21_ (void);
  static void mwab_word_21_ (void);
  static void mwab_external_21_ (void);
- static void mwab_fieldword_21_ (void);
  static void mwab_block_at_21_ (void);
  static void mwab_block_21_ (void);
  static void mwab_dip_21_ (void);
@@ -2657,7 +2629,6 @@ static void mwstat (void) {
  static void mwfield_new_21_ (void);
  static void mwelab_field_sig_21_ (void);
  static void mwelab_field_type_21_ (void);
- static void mwelab_field_word_type_21_ (void);
  static void mwname_prim_3D_ (void);
  static void mwtoken_prim_3D__3F_ (void);
  static void mwtoken_prim_3D_ (void);
@@ -3202,8 +3173,8 @@ static void mwstat (void) {
  static void mb_lexer_next_21__15 (void);
  static void mb_lexer_next_21__13 (void);
  static void mb_lexer_next_21__14 (void);
- static void mb_stack_pop_1 (void);
- static void mb_stack_pop_4 (void);
+ static void mb_stack_pop_21__1 (void);
+ static void mb_stack_pop_21__4 (void);
  static void mb_emit_fatal_error_21__1 (void);
  static void mb_lexer_emit_fatal_error_21__1 (void);
  static void mb_lexer_emit_name_21__1 (void);
@@ -3230,7 +3201,7 @@ static void mwstat (void) {
  static void mb_lexer_emit_string_21__2 (void);
  static void mb_lexer_emit_string_21__3 (void);
  static void mb_lexer_move_21__1 (void);
- static void mb_stack_push_1 (void);
+ static void mb_stack_push_21__1 (void);
  static void mb_str_buf_is_doc_start_3F__1 (void);
  static void mb_str_buf_is_doc_start_3F__2 (void);
  static void mb_str_buf_is_doc_start_3F__3 (void);
@@ -3489,13 +3460,12 @@ static void mwstat (void) {
  static void mb_c99_emit_arrow_21__2 (void);
  static void mb_c99_emit_arrow_21__3 (void);
  static void mb_c99_emit_atom_21__5 (void);
- static void mb_c99_emit_atom_21__8 (void);
- static void mb_c99_emit_atom_21__14 (void);
+ static void mb_c99_emit_atom_21__7 (void);
+ static void mb_c99_emit_atom_21__13 (void);
  static void mb_c99_emit_string_21__1 (void);
  static void mb_need_word_21__1 (void);
  static void mb_need_word_21__2 (void);
  static void mb_c99_emit_args_push_21__1 (void);
- static void mb_fieldword_name_40__1 (void);
  static void mb_need_field_21__1 (void);
  static void mb_need_field_21__2 (void);
  static void mb_c99_emit_prim_21__6 (void);
@@ -3549,7 +3519,7 @@ static void mwstat (void) {
  static void mb_c99_emit_pattern_21__5 (void);
  static void mb_c99_emit_pattern_21__6 (void);
  static void mb_c99_emit_block_defs_21__1 (void);
- static void mb_force_4 (void);
+ static void mb_force_21__3 (void);
  static void mb_atom_arg_add_21__1 (void);
  static void mb_arrow_atom_add_21__1 (void);
  static void mb_block_force_21__1 (void);
@@ -3755,13 +3725,6 @@ static void mwstat (void) {
  static void mb_delay2_1 (void);
  static void mb_delay3_1 (void);
  static void mb_delay4_1 (void);
- static void mb_lazy_map_1 (void);
- static void mb_lazy_map_2 (void);
- static void mb_lazy_map2_1 (void);
- static void mb_lazy_map2_2 (void);
- static void mb_lazy_map2_3 (void);
- static void mb_lazy_bind_1 (void);
- static void mb_lazy_bind_2 (void);
  static void mb_type_elab_stack_assertion_1 (void);
  static void mb_elab_type_sig_21__1 (void);
  static void mb_elab_type_sig_21__3 (void);
@@ -3864,7 +3827,6 @@ static void mwstat (void) {
  static void mb_elab_expand_tensor_21__5 (void);
  static void mb_elab_expand_tensor_21__7 (void);
  static void mb_elab_field_type_21__1 (void);
- static void mb_elab_field_word_type_21__1 (void);
  static void mb_elab_var_sig_21__1 (void);
  static void mb_elab_var_sig_21__2 (void);
  static void mb_elab_match_sig_21__1 (void);
@@ -4036,211 +3998,108 @@ static void mwstat (void) {
  static void mb_def_prim_21__1 (void);
 
  static void mwname_str (void);
- static void mwname_str_21_ (void);
  static void mwname_def (void);
- static void mwname_def_21_ (void);
  static void mwname_mangle_cached (void);
- static void mwname_mangle_cached_21_ (void);
  static void mwmodule_name (void);
- static void mwmodule_name_21_ (void);
  static void mwmodule_path (void);
- static void mwmodule_path_21_ (void);
  static void mwmodule_start (void);
- static void mwmodule_start_21_ (void);
  static void mwmodule_end (void);
- static void mwmodule_end_21_ (void);
  static void mwmodule_imports (void);
- static void mwmodule_imports_21_ (void);
  static void mwtoken_value (void);
- static void mwtoken_value_21_ (void);
  static void mwtoken_module (void);
- static void mwtoken_module_21_ (void);
  static void mwtoken_row (void);
- static void mwtoken_row_21_ (void);
  static void mwtoken_col (void);
- static void mwtoken_col_21_ (void);
  static void mwbuffer_size (void);
- static void mwbuffer_size_21_ (void);
  static void mwbuffer_name (void);
- static void mwbuffer_name_21_ (void);
  static void mwmeta_is_defined (void);
- static void mwmeta_is_defined_21_ (void);
  static void mwmeta_type_raw (void);
- static void mwmeta_type_raw_21_ (void);
  static void mwdata_header (void);
- static void mwdata_header_21_ (void);
  static void mwdata_name (void);
- static void mwdata_name_21_ (void);
  static void mwdata_arity (void);
- static void mwdata_arity_21_ (void);
  static void mwdata_tags (void);
- static void mwdata_tags_21_ (void);
  static void mwtag_data (void);
- static void mwtag_data_21_ (void);
  static void mwtag_name (void);
- static void mwtag_name_21_ (void);
  static void mwtag_value (void);
- static void mwtag_value_21_ (void);
  static void mwtag_sig (void);
- static void mwtag_sig_21_ (void);
  static void mwtag_has_sig (void);
- static void mwtag_has_sig_21_ (void);
  static void mwtag_sig_is_checked (void);
- static void mwtag_sig_is_checked_21_ (void);
  static void mwtag_ctx (void);
- static void mwtag_ctx_21_ (void);
  static void mwtag_type_raw (void);
- static void mwtag_type_raw_21_ (void);
  static void mwarrow_token_start (void);
- static void mwarrow_token_start_21_ (void);
  static void mwarrow_token_end (void);
- static void mwarrow_token_end_21_ (void);
  static void mwarrow_home (void);
- static void mwarrow_home_21_ (void);
  static void mwarrow_homeidx (void);
- static void mwarrow_homeidx_21_ (void);
  static void mwarrow_ctx (void);
- static void mwarrow_ctx_21_ (void);
  static void mwarrow_dom (void);
- static void mwarrow_dom_21_ (void);
  static void mwarrow_cod (void);
- static void mwarrow_cod_21_ (void);
  static void mwarrow_atoms (void);
- static void mwarrow_atoms_21_ (void);
  static void mwatom_token (void);
- static void mwatom_token_21_ (void);
  static void mwatom_ctx (void);
- static void mwatom_ctx_21_ (void);
  static void mwatom_op (void);
- static void mwatom_op_21_ (void);
  static void mwatom_args (void);
- static void mwatom_args_21_ (void);
  static void mwatom_dom (void);
- static void mwatom_dom_21_ (void);
  static void mwatom_cod (void);
- static void mwatom_cod_21_ (void);
  static void mwatom_subst (void);
- static void mwatom_subst_21_ (void);
  static void mwlambda_token (void);
- static void mwlambda_token_21_ (void);
  static void mwlambda_outer_ctx (void);
- static void mwlambda_outer_ctx_21_ (void);
  static void mwlambda_inner_ctx (void);
- static void mwlambda_inner_ctx_21_ (void);
  static void mwlambda_dom (void);
- static void mwlambda_dom_21_ (void);
  static void mwlambda_mid (void);
- static void mwlambda_mid_21_ (void);
  static void mwlambda_cod (void);
- static void mwlambda_cod_21_ (void);
  static void mwlambda_params (void);
- static void mwlambda_params_21_ (void);
  static void mwlambda_body (void);
- static void mwlambda_body_21_ (void);
  static void mwblock_deferred (void);
- static void mwblock_deferred_21_ (void);
  static void mwblock_forcing (void);
- static void mwblock_forcing_21_ (void);
  static void mwblock_ctx (void);
- static void mwblock_ctx_21_ (void);
  static void mwblock_token (void);
- static void mwblock_token_21_ (void);
  static void mwblock_arrow_raw (void);
- static void mwblock_arrow_raw_21_ (void);
  static void mwblock_needed (void);
- static void mwblock_needed_21_ (void);
  static void mwmatch_ctx (void);
- static void mwmatch_ctx_21_ (void);
  static void mwmatch_dom (void);
- static void mwmatch_dom_21_ (void);
  static void mwmatch_cod (void);
- static void mwmatch_cod_21_ (void);
  static void mwmatch_token (void);
- static void mwmatch_token_21_ (void);
  static void mwmatch_cases (void);
- static void mwmatch_cases_21_ (void);
  static void mwcase_match (void);
- static void mwcase_match_21_ (void);
  static void mwcase_token (void);
- static void mwcase_token_21_ (void);
  static void mwcase_pattern (void);
- static void mwcase_pattern_21_ (void);
  static void mwcase_subst (void);
- static void mwcase_subst_21_ (void);
  static void mwcase_mid (void);
- static void mwcase_mid_21_ (void);
  static void mwcase_body (void);
- static void mwcase_body_21_ (void);
  static void mwvar_is_implicit (void);
- static void mwvar_is_implicit_21_ (void);
  static void mwvar_name (void);
- static void mwvar_name_21_ (void);
  static void mwvar_type (void);
- static void mwvar_type_21_ (void);
  static void mwvar_auto_run (void);
- static void mwvar_auto_run_21_ (void);
  static void mwword_name (void);
- static void mwword_name_21_ (void);
  static void mwword_sig (void);
- static void mwword_sig_21_ (void);
  static void mwword_body (void);
- static void mwword_body_21_ (void);
  static void mwword_ctx_type (void);
- static void mwword_ctx_type_21_ (void);
  static void mwword_arrow (void);
- static void mwword_arrow_21_ (void);
  static void mwtable_name (void);
- static void mwtable_name_21_ (void);
  static void mwtable_num_buffer (void);
- static void mwtable_num_buffer_21_ (void);
  static void mwtable_max_count (void);
- static void mwtable_max_count_21_ (void);
  static void mwfield_sig_is_checked (void);
- static void mwfield_sig_is_checked_21_ (void);
  static void mwfield_body_is_checked (void);
- static void mwfield_body_is_checked_21_ (void);
  static void mwfield_table_sig (void);
- static void mwfield_table_sig_21_ (void);
  static void mwfield_type_sig (void);
- static void mwfield_type_sig_21_ (void);
  static void mwfield_name (void);
- static void mwfield_name_21_ (void);
  static void mwfield_table (void);
- static void mwfield_table_21_ (void);
  static void mwfield_type (void);
- static void mwfield_type_21_ (void);
  static void mwc99_word_needed (void);
- static void mwc99_word_needed_21_ (void);
  static void mwc99_field_needed (void);
- static void mwc99_field_needed_21_ (void);
  static void mwc99_block_emitted (void);
- static void mwc99_block_emitted_21_ (void);
  static void mwc99_word_emitted (void);
- static void mwc99_word_emitted_21_ (void);
  static void mwc99_field_emitted (void);
- static void mwc99_field_emitted_21_ (void);
  static void mwexternal_name (void);
- static void mwexternal_name_21_ (void);
  static void mwexternal_type (void);
- static void mwexternal_type_21_ (void);
  static void mwexternal_sig (void);
- static void mwexternal_sig_21_ (void);
  static void mwexternal_sig_is_checked (void);
- static void mwexternal_sig_is_checked_21_ (void);
  static void mwexternal_ctx (void);
- static void mwexternal_ctx_21_ (void);
  static void mwvariable_name (void);
- static void mwvariable_name_21_ (void);
  static void mwvariable_type (void);
- static void mwvariable_type_21_ (void);
  static void mwprim_name (void);
- static void mwprim_name_21_ (void);
  static void mwprim_ctx (void);
- static void mwprim_ctx_21_ (void);
  static void mwprim_type (void);
- static void mwprim_type_21_ (void);
  static void mwprim_decl (void);
- static void mwprim_decl_21_ (void);
 
 int main (int argc, char** argv) {
     global_argc = argc;
@@ -4833,18 +4692,12 @@ static void mwtypecheck_name_21_ (void){
     case 5LL:
     do_pack_uncons(); do_drop();
     mwword_arrow();
-    mw_40_();
-    mwforce();
+    mwforce_21_();
     mwdrop();
     break;
     case 9LL:
     do_pack_uncons(); do_drop();
     mwelab_field_type_21_();
-    mwdrop();
-    break;
-    case 10LL:
-    do_pack_uncons(); do_drop();
-    mwelab_field_word_type_21_();
     mwdrop();
     break;
     case 3LL:
@@ -4855,8 +4708,7 @@ static void mwtypecheck_name_21_ (void){
     case 7LL:
     do_pack_uncons(); do_drop();
     mwvariable_type();
-    mw_40_();
-    mwforce();
+    mwforce_21_();
     mwdrop();
     break;
     default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
@@ -4864,30 +4716,15 @@ static void mwtypecheck_name_21_ (void){
 }
 
 static value_t* fieldptr_variable_type (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwvariable_type (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_variable_type(index);
     push_ptr(v);
-}
-static void mwvariable_type_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_variable_type(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwelab_tag_sig_21_ (void){
@@ -4961,12 +4798,15 @@ static void mb_elab_tag_ctx_sig_21__8 (void) {
     do_drop();
     mwrotl();
     mwtuck();
-    mwtag_type_raw_21_();
+    mwtag_type_raw();
+    mw_21_();
     mwtuck();
-    mwtag_ctx_21_();
+    mwtag_ctx();
+    mw_21_();
     mwtrue();
     mwswap();
-    mwtag_sig_is_checked_21_();
+    mwtag_sig_is_checked();
+    mw_21_();
 }
 static void mwtrue (void){
     mwprim_2E_bool_2E_true();
@@ -5419,30 +5259,15 @@ static void mwu32_40_ (void){
 }
 
 static value_t* fieldptr_module_path (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwmodule_path (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_module_path(index);
     push_ptr(v);
-}
-static void mwmodule_path_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_module_path(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwis_nil_3F_ (void){
@@ -5489,84 +5314,39 @@ static void mwlocation_pack (void){
 }
 
 static value_t* fieldptr_token_col (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtoken_col (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_token_col(index);
     push_ptr(v);
 }
-static void mwtoken_col_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_token_col(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_token_row (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtoken_row (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_token_row(index);
     push_ptr(v);
 }
-static void mwtoken_row_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_token_row(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_token_module (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtoken_module (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_token_module(index);
     push_ptr(v);
-}
-static void mwtoken_module_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_token_module(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwtoken_run_end_3F_ (void){
@@ -5609,30 +5389,15 @@ static void mwfalse (void){
 }
 
 static value_t* fieldptr_token_value (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtoken_value (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_token_value(index);
     push_ptr(v);
-}
-static void mwtoken_value_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_token_value(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwelab_type_stack_rest_21_ (void){
@@ -5770,30 +5535,15 @@ static void mwis_plus_3F_ (void){
 }
 
 static value_t* fieldptr_name_str (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwname_str (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_name_str(index);
     push_ptr(v);
-}
-static void mwname_str_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_name_str(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwsig_is_stack_end_3F_ (void){
@@ -5853,57 +5603,27 @@ static void mwTYPE_UNIT (void){
 }
 
 static value_t* fieldptr_tag_sig (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtag_sig (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_tag_sig(index);
     push_ptr(v);
 }
-static void mwtag_sig_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_tag_sig(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_tag_has_sig (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtag_has_sig (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_tag_has_sig(index);
     push_ptr(v);
-}
-static void mwtag_has_sig_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_tag_has_sig(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwT1 (void){
@@ -6083,7 +5803,8 @@ static void mwelab_implicit_var_21_ (void){
     mwvar_new_implicit_21_();
       push_value(d3); }
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_elab_implicit_var_21__8);
     do_pack_cons();
@@ -6598,97 +6319,54 @@ static void mwunCTX (void){
 }
 
 static value_t* fieldptr_var_type (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwvar_type (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_var_type(index);
     push_ptr(v);
-}
-static void mwvar_type_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_var_type(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwvar_new_implicit_21_ (void){
     mwvar_new_21_();
     mwtrue();
     mwover();
-    mwvar_is_implicit_21_();
+    mwvar_is_implicit();
+    mw_21_();
 }
 
 static value_t* fieldptr_var_is_implicit (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwvar_is_implicit (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_var_is_implicit(index);
     push_ptr(v);
 }
-static void mwvar_is_implicit_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_var_is_implicit(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static void mwvar_new_21_ (void){
     mwVar_2E_alloc_21_();
     mwtuck();
-    mwvar_name_21_();
+    mwvar_name();
+    mw_21_();
 }
 
 static value_t* fieldptr_var_name (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwvar_name (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_var_name(index);
     push_ptr(v);
-}
-static void mwvar_name_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_var_name(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwVar_2E_alloc_21_ (void){
@@ -7195,90 +6873,46 @@ static void mwarrow_type (void){
 }
 
 static value_t* fieldptr_arrow_cod (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwarrow_cod (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_arrow_cod(index);
     push_ptr(v);
 }
-static void mwarrow_cod_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_arrow_cod(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_arrow_dom (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwarrow_dom (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_arrow_dom(index);
     push_ptr(v);
 }
-static void mwarrow_dom_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_arrow_dom(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_block_arrow_raw (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwblock_arrow_raw (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_block_arrow_raw(index);
     push_ptr(v);
 }
-static void mwblock_arrow_raw_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_block_arrow_raw(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static void mwblock_unify_type_aux_21_ (void){
     mwtrue();
     mwover();
-    mwblock_forcing_21_();
+    mwblock_forcing();
+    mw_21_();
     { value_t d1 = pop_value();
     mwover();
     mwgamma_token_40_();
@@ -7302,11 +6936,13 @@ static void mwblock_unify_type_aux_21_ (void){
     mwab_build_21_();
     mwdup2();
     mwswap();
-    mwblock_arrow_raw_21_();
+    mwblock_arrow_raw();
+    mw_21_();
     { value_t d2 = pop_value();
     mwfalse();
     mwswap();
-    mwblock_deferred_21_();
+    mwblock_deferred();
+    mw_21_();
       push_value(d2); }
     mwarrow_cod();
     mw_40_();
@@ -7333,34 +6969,20 @@ static void mwelab_atoms_21_ (void){
 static void mwab_token_21_ (void){
     mwab_arrow();
     mw_40_();
-    mwarrow_token_end_21_();
+    mwarrow_token_end();
+    mw_21_();
 }
 
 static value_t* fieldptr_arrow_token_end (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwarrow_token_end (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_arrow_token_end(index);
     push_ptr(v);
-}
-static void mwarrow_token_end_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_arrow_token_end(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwab_token_40_ (void){
@@ -7443,30 +7065,15 @@ static void mwab_ctx_40_ (void){
 }
 
 static value_t* fieldptr_arrow_ctx (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwarrow_ctx (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_arrow_ctx(index);
     push_ptr(v);
-}
-static void mwarrow_ctx_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_arrow_ctx(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwelab_atom_block_21_ (void){
@@ -7487,25 +7094,31 @@ static void mwab_op_21_ (void){
     mwAtom_2E_alloc_21_();
     mwab_ctx_40_();
     mwover();
-    mwatom_ctx_21_();
+    mwatom_ctx();
+    mw_21_();
     mwab_token_40_();
     mwover();
-    mwatom_token_21_();
+    mwatom_token();
+    mw_21_();
     mwdup2();
-    mwatom_op_21_();
+    mwatom_op();
+    mw_21_();
     mwswap();
     mwelab_op_fresh_sig_21_();
     { value_t d1 = pop_value();
     mwover();
-    mwatom_subst_21_();
+    mwatom_subst();
+    mw_21_();
       push_value(d1); }
     mwab_expand_opsig_21_();
     { value_t d1 = pop_value();
     mwover();
-    mwatom_dom_21_();
+    mwatom_dom();
+    mw_21_();
       push_value(d1); }
     mwover();
-    mwatom_cod_21_();
+    mwatom_cod();
+    mw_21_();
     mwab_atom_21_();
 }
 
@@ -7527,7 +7140,8 @@ static void mwab_atom_21_ (void){
     mwab_optimized_snoc_21_();
     mwab_arrow();
     mw_40_();
-    mwarrow_atoms_21_();
+    mwarrow_atoms();
+    mw_21_();
 }
 
 static void mwab_optimized_snoc_21_ (void){
@@ -7562,14 +7176,15 @@ static void mwatoms_turn_last_block_to_arg (void){
     mwatom_op();
     mw_40_();
     switch (get_top_data_tag()) {
-    case 14LL:
+    case 13LL:
     do_pack_uncons(); do_drop();
     { value_t d3 = pop_value();
     mwatom_cod();
     mw_40_();
     mwrotl();
     mwtuck();
-    mwatom_dom_21_();
+    mwatom_dom();
+    mw_21_();
       push_value(d3); }
     mwblock_to_arg();
     mwatom_arg_add_21_();
@@ -7600,30 +7215,15 @@ static void mb_atom_arg_add_21__1 (void) {
     mwsnoc();
 }
 static value_t* fieldptr_atom_args (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwatom_args (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_atom_args(index);
     push_ptr(v);
-}
-static void mwatom_args_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_atom_args(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwblock_to_arg (void){
@@ -7663,7 +7263,7 @@ static void mwatom_to_run_var (void){
     mwatom_op();
     mw_40_();
     switch (get_top_data_tag()) {
-    case 13LL:
+    case 12LL:
     do_pack_uncons(); do_drop();
     mwdup();
     mwvar_auto_run();
@@ -7683,30 +7283,15 @@ static void mwatom_to_run_var (void){
 }
 
 static value_t* fieldptr_var_auto_run (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwvar_auto_run (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_var_auto_run(index);
     push_ptr(v);
-}
-static void mwvar_auto_run_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_var_auto_run(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwblock_arrow (void){
@@ -7942,12 +7527,11 @@ static void mwelab_word_sig_21_ (void){
 
 static void mwelab_word_ctx_sig_21_ (void){
     mwword_ctx_type();
-    mw_40_();
-    mwforce2();
+    mwforce2_21_();
 }
 
-static void mwforce2 (void){
-    mwforce();
+static void mwforce2_21_ (void){
+    mwforce_21_();
     mwunpack2();
 }
 
@@ -7968,30 +7552,15 @@ static void mwpack_uncons (void){
 }
 
 static value_t* fieldptr_word_ctx_type (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwword_ctx_type (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_word_ctx_type(index);
     push_ptr(v);
-}
-static void mwword_ctx_type_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_word_ctx_type(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwlen (void){
@@ -8061,7 +7630,7 @@ static void mwatoms_has_last_block_3F_ (void){
     mwatom_op();
     mw_40_();
     switch (get_top_data_tag()) {
-    case 14LL:
+    case 13LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwtrue();
@@ -8156,90 +7725,46 @@ static void mwdip_3F_ (void){
 }
 
 static value_t* fieldptr_arrow_atoms (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwarrow_atoms (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_arrow_atoms(index);
     push_ptr(v);
 }
-static void mwarrow_atoms_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_arrow_atoms(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static void mwab_type_21_ (void){
     mwab_arrow();
     mw_40_();
-    mwarrow_cod_21_();
+    mwarrow_cod();
+    mw_21_();
 }
 
 static value_t* fieldptr_atom_cod (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwatom_cod (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_atom_cod(index);
     push_ptr(v);
 }
-static void mwatom_cod_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_atom_cod(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_atom_dom (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwatom_dom (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_atom_dom(index);
     push_ptr(v);
-}
-static void mwatom_dom_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_atom_dom(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwab_expand_opsig_21_ (void){
@@ -8275,30 +7800,15 @@ static void mwab_expand_opsig_21_ (void){
 }
 
 static value_t* fieldptr_atom_subst (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwatom_subst (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_atom_subst(index);
     push_ptr(v);
-}
-static void mwatom_subst_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_atom_subst(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwelab_op_fresh_sig_21_ (void){
@@ -8309,33 +7819,32 @@ static void mwelab_op_fresh_sig_21_ (void){
     do_drop();
     mwOPSIG_ID();
     break;
-    case 8LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwVALUE_INT();
     mwTValue();
     mwOPSIG_PUSH();
     break;
-    case 9LL:
+    case 8LL:
     do_pack_uncons(); do_drop();
     mwVALUE_STR();
     mwTValue();
     mwOPSIG_PUSH();
     break;
-    case 5LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwdrop();
     mwTYPE_PTR();
     mwOPSIG_PUSH();
     break;
-    case 6LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwvariable_type();
-    mw_40_();
-    mwforce();
+    mwforce_21_();
     mwTMut();
     mwOPSIG_PUSH();
     break;
-    case 10LL:
+    case 9LL:
     do_pack_uncons(); do_drop();
     mwelab_tag_sig_21_();
     mwtype_freshen_sig();
@@ -8354,37 +7863,31 @@ static void mwelab_op_fresh_sig_21_ (void){
     mwtype_freshen_sig();
     mwOPSIG_APPLY();
     break;
-    case 4LL:
+    case 3LL:
     do_pack_uncons(); do_drop();
     mwelab_external_sig_21_();
     mwtype_freshen_sig();
     mwOPSIG_APPLY();
     break;
-    case 7LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwelab_field_type_21_();
     mwtype_freshen_sig();
     mwOPSIG_APPLY();
     break;
-    case 3LL:
-    do_pack_uncons(); do_drop();
-    mwelab_field_word_type_21_();
-    mwtype_freshen_sig();
-    mwOPSIG_APPLY();
-    break;
-    case 14LL:
+    case 13LL:
     do_pack_uncons(); do_drop();
     mwelab_block_sig_21_();
     break;
-    case 13LL:
+    case 12LL:
     do_pack_uncons(); do_drop();
     mwelab_var_sig_21_();
     break;
-    case 11LL:
+    case 10LL:
     do_pack_uncons(); do_drop();
     mwelab_match_sig_21_();
     break;
-    case 12LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwelab_lambda_sig_21_();
     break;
@@ -8404,30 +7907,15 @@ static void mwelab_lambda_sig_21_ (void){
 }
 
 static value_t* fieldptr_lambda_cod (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwlambda_cod (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_lambda_cod(index);
     push_ptr(v);
-}
-static void mwlambda_cod_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_lambda_cod(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mb_elab_lambda_sig_21__1 (void) {
@@ -8436,30 +7924,15 @@ static void mb_elab_lambda_sig_21__1 (void) {
     mw_40_();
 }
 static value_t* fieldptr_lambda_dom (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwlambda_dom (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_lambda_dom(index);
     push_ptr(v);
-}
-static void mwlambda_dom_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_lambda_dom(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwelab_match_sig_21_ (void){
@@ -8474,30 +7947,15 @@ static void mwelab_match_sig_21_ (void){
 }
 
 static value_t* fieldptr_match_cod (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwmatch_cod (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_match_cod(index);
     push_ptr(v);
-}
-static void mwmatch_cod_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_match_cod(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mb_elab_match_sig_21__1 (void) {
@@ -8506,30 +7964,15 @@ static void mb_elab_match_sig_21__1 (void) {
     mw_40_();
 }
 static value_t* fieldptr_match_dom (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwmatch_dom (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_match_dom(index);
     push_ptr(v);
-}
-static void mwmatch_dom_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_match_dom(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwelab_var_sig_21_ (void){
@@ -8660,30 +8103,15 @@ static void mwelab_block_sig_21_ (void){
 }
 
 static value_t* fieldptr_prim_type (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwprim_type (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_prim_type(index);
     push_ptr(v);
-}
-static void mwprim_type_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_prim_type(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwtype_freshen_sig (void){
@@ -8789,37 +8217,23 @@ static void mwmeta_expand (void){
     push_fnptr(&mb_meta_expand_3);
     do_pack_cons();
     mwsip();
-    mwmeta_type_raw_21_();
+    mwmeta_type_raw();
+    mw_21_();
     } else {
     mwTMeta();
     }
 }
 
 static value_t* fieldptr_meta_type_raw (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwmeta_type_raw (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_meta_type_raw(index);
     push_ptr(v);
-}
-static void mwmeta_type_raw_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_meta_type_raw(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mb_meta_expand_3 (void) {
@@ -8830,30 +8244,15 @@ static void mb_meta_expand_3 (void) {
     mwdup();
 }
 static value_t* fieldptr_meta_is_defined (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwmeta_is_defined (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_meta_is_defined(index);
     push_ptr(v);
-}
-static void mwmeta_is_defined_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_meta_is_defined(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwtype_var_freshen (void){
@@ -9349,84 +8748,39 @@ static void mwsubst_nil (void){
 }
 
 static value_t* fieldptr_atom_op (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwatom_op (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_atom_op(index);
     push_ptr(v);
 }
-static void mwatom_op_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_atom_op(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_atom_token (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwatom_token (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_atom_token(index);
     push_ptr(v);
 }
-static void mwatom_token_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_atom_token(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_atom_ctx (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwatom_ctx (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_atom_ctx(index);
     push_ptr(v);
-}
-static void mwatom_ctx_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_atom_ctx(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwAtom_2E_alloc_21_ (void){
@@ -9511,11 +8865,6 @@ static void mwelab_atom_name_21_ (void){
     mwelab_no_args_21_();
     mwab_field_21_();
     break;
-    case 10LL:
-    do_pack_uncons(); do_drop();
-    mwelab_no_args_21_();
-    mwab_fieldword_21_();
-    break;
     case 5LL:
     do_pack_uncons(); do_drop();
     mwelab_args_21_();
@@ -9580,13 +8929,16 @@ static void mwelab_atom_lambda_21_ (void){
     mwLambda_2E_alloc_21_();
     mwab_ctx_40_();
     mwover();
-    mwlambda_outer_ctx_21_();
+    mwlambda_outer_ctx();
+    mw_21_();
     mwab_type_40_();
     mwover();
-    mwlambda_dom_21_();
+    mwlambda_dom();
+    mw_21_();
     mwab_token_40_();
     mwover();
-    mwlambda_token_21_();
+    mwlambda_token();
+    mw_21_();
     mwelab_lambda_21_();
     mwOP_LAMBDA();
     mwab_op_21_();
@@ -9621,38 +8973,25 @@ static void mwelab_lambda_body_21_ (void){
     mwelab_arrow_fwd_21_();
     mwdup2();
     mwswap();
-    mwlambda_body_21_();
+    mwlambda_body();
+    mw_21_();
     mwarrow_cod();
     mw_40_();
     mwover();
-    mwlambda_cod_21_();
+    mwlambda_cod();
+    mw_21_();
 }
 
 static value_t* fieldptr_lambda_body (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwlambda_body (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_lambda_body(index);
     push_ptr(v);
-}
-static void mwlambda_body_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_lambda_body(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwelab_arrow_fwd_21_ (void){
@@ -9667,57 +9006,27 @@ static void mb_elab_arrow_fwd_21__1 (void) {
     mwelab_atoms_21_();
 }
 static value_t* fieldptr_lambda_inner_ctx (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwlambda_inner_ctx (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_lambda_inner_ctx(index);
     push_ptr(v);
 }
-static void mwlambda_inner_ctx_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_lambda_inner_ctx(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_lambda_mid (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwlambda_mid (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_lambda_mid(index);
     push_ptr(v);
-}
-static void mwlambda_mid_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_lambda_mid(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwtoken_is_lambda_param_3F_ (void){
@@ -9815,12 +9124,14 @@ static void mwelab_lambda_params_21_ (void){
     mwlambda_outer_ctx();
     mw_40_();
     mwover();
-    mwlambda_inner_ctx_21_();
+    mwlambda_inner_ctx();
+    mw_21_();
     mwdup();
     mwlambda_dom();
     mw_40_();
     mwover();
-    mwlambda_mid_21_();
+    mwlambda_mid();
+    mw_21_();
     mwdup();
     mwlambda_token();
     mw_40_();
@@ -9852,7 +9163,8 @@ static void mb_elab_lambda_params_21__4 (void) {
     mwtoken_name_40_();
     mwvar_new_21_();
     mwtuck();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     } else {
     mwtoken_succ();
     { value_t d2 = pop_value();
@@ -9865,9 +9177,11 @@ static void mb_elab_lambda_params_21__4 (void) {
     mwvar_new_21_();
     mwtrue();
     mwover();
-    mwvar_auto_run_21_();
+    mwvar_auto_run();
+    mw_21_();
     mwtuck();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     } else {
     push_ptr("block pattern on non-block argument\0\0\0");
     mwemit_fatal_error_21_();
@@ -9889,7 +9203,8 @@ static void mb_elab_lambda_params_21__4 (void) {
       push_value(d1); }
     mwctx_new_21_();
     mwover();
-    mwlambda_inner_ctx_21_();
+    mwlambda_inner_ctx();
+    mw_21_();
 }
 static void mb_elab_lambda_params_21__11 (void) {
     do_drop();
@@ -9897,7 +9212,8 @@ static void mb_elab_lambda_params_21__11 (void) {
     mwswap();
     mwcons();
     mwover();
-    mwlambda_params_21_();
+    mwlambda_params();
+    mw_21_();
 }
 static void mwcons (void){
     mwcons_2B_();
@@ -9909,30 +9225,15 @@ static void mwVar__3E_Param (void){
 }
 
 static value_t* fieldptr_lambda_params (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwlambda_params (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_lambda_params(index);
     push_ptr(v);
-}
-static void mwlambda_params_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_lambda_params(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwtype_is_morphism_3F_ (void){
@@ -9988,7 +9289,8 @@ static void mwelab_lambda_pop_from_mid_21_ (void){
 static void mb_elab_lambda_pop_from_mid_21__2 (void) {
     do_drop();
     mwover();
-    mwlambda_mid_21_();
+    mwlambda_mid();
+    mw_21_();
 }
 static void mwelab_expand_tensor_21_ (void){
     mwswap();
@@ -10036,8 +9338,10 @@ static void mwelab_expand_tensor_21_ (void){
 static void mwmeta_type_21_ (void){
     mwtrue();
     mwover();
-    mwmeta_is_defined_21_();
-    mwmeta_type_raw_21_();
+    mwmeta_is_defined();
+    mw_21_();
+    mwmeta_type_raw();
+    mw_21_();
 }
 
 static void mwtoken_prev (void){
@@ -10105,57 +9409,27 @@ static void mwtoken_is_arrow_3F_ (void){
 }
 
 static value_t* fieldptr_lambda_token (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwlambda_token (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_lambda_token(index);
     push_ptr(v);
 }
-static void mwlambda_token_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_lambda_token(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_lambda_outer_ctx (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwlambda_outer_ctx (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_lambda_outer_ctx(index);
     push_ptr(v);
-}
-static void mwlambda_outer_ctx_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_lambda_outer_ctx(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwLambda_2E_alloc_21_ (void){
@@ -10173,17 +9447,21 @@ static void mwelab_atom_match_21_ (void){
     mwMatch_2E_alloc_21_();
     mwab_ctx_40_();
     mwover();
-    mwmatch_ctx_21_();
+    mwmatch_ctx();
+    mw_21_();
     mwab_type_40_();
     mwover();
-    mwmatch_dom_21_();
+    mwmatch_dom();
+    mw_21_();
     mwab_token_40_();
     mwover();
-    mwmatch_token_21_();
+    mwmatch_token();
+    mw_21_();
     mwmeta_alloc_21_();
     mwTMeta();
     mwover();
-    mwmatch_cod_21_();
+    mwmatch_cod();
+    mw_21_();
     mwelab_match_21_();
     mwOP_MATCH();
     mwab_op_21_();
@@ -10233,30 +9511,15 @@ static void mwmatch_is_exhaustive_3F_ (void){
 }
 
 static value_t* fieldptr_match_cases (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwmatch_cases (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_match_cases(index);
     push_ptr(v);
-}
-static void mwmatch_cases_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_match_cases(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwdata_num_tags (void){
@@ -10266,30 +9529,15 @@ static void mwdata_num_tags (void){
 }
 
 static value_t* fieldptr_data_tags (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwdata_tags (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_data_tags(index);
     push_ptr(v);
-}
-static void mwdata_tags_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_data_tags(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwmatch_scrutinee_data_3F_ (void){
@@ -10395,30 +9643,15 @@ static void mwcase_is_default_case (void){
 }
 
 static value_t* fieldptr_case_pattern (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwcase_pattern (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_case_pattern(index);
     push_ptr(v);
-}
-static void mwcase_pattern_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_case_pattern(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwany (void){
@@ -10562,11 +9795,13 @@ static void mwelab_match_cases_21_ (void){
 static void mwelab_match_case_21_ (void){
     mwCase_2E_alloc_21_();
     mwdup2();
-    mwcase_token_21_();
+    mwcase_token();
+    mw_21_();
     mwswap();
     { value_t d1 = pop_value();
     mwdup2();
-    mwcase_match_21_();
+    mwcase_match();
+    mw_21_();
       push_value(d1); }
     mwelab_case_pattern_21_();
     mwexpect_token_arrow();
@@ -10615,7 +9850,8 @@ static void mwmatch_add_case_21_ (void){
     } else {
     mwsnoc();
     mwover();
-    mwmatch_cases_21_();
+    mwmatch_cases();
+    mw_21_();
     }
 }
 
@@ -10705,60 +9941,31 @@ static void mb_elab_case_body_21__5 (void) {
 static void mb_elab_case_body_21__4 (void) {
     do_drop();
     mwover();
-    mwcase_body_21_();
+    mwcase_body();
+    mw_21_();
 }
 static value_t* fieldptr_case_body (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwcase_body (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_case_body(index);
     push_ptr(v);
 }
-static void mwcase_body_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_case_body(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_case_mid (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwcase_mid (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_case_mid(index);
     push_ptr(v);
-}
-static void mwcase_mid_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_case_mid(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwelab_case_pattern_21_ (void){
@@ -10767,7 +9974,8 @@ static void mwelab_case_pattern_21_ (void){
     { value_t d2 = pop_value();
     mwPATTERN_UNDERSCORE();
     mwover();
-    mwcase_pattern_21_();
+    mwcase_pattern();
+    mw_21_();
       push_value(d2); }
     { value_t d2 = pop_value();
     mwdup();
@@ -10782,7 +9990,8 @@ static void mwelab_case_pattern_21_ (void){
     mwelab_type_unify_21_();
     { value_t d2 = pop_value();
     mwover();
-    mwcase_mid_21_();
+    mwcase_mid();
+    mw_21_();
       push_value(d2); }
     mwtoken_succ();
     } else {
@@ -10820,13 +10029,15 @@ static void mwelab_case_pattern_21_ (void){
     mwnip();
     { value_t d5 = pop_value();
     mwover();
-    mwcase_mid_21_();
+    mwcase_mid();
+    mw_21_();
       push_value(d5); }
       push_value(d4); }
     mwswap();
     { value_t d4 = pop_value();
     mwover();
-    mwcase_subst_21_();
+    mwcase_subst();
+    mw_21_();
       push_value(d4); }
     mwtoken_succ();
     break;
@@ -10849,30 +10060,15 @@ static void mwelab_case_pattern_21_ (void){
 }
 
 static value_t* fieldptr_case_subst (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwcase_subst (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_case_subst(index);
     push_ptr(v);
-}
-static void mwcase_subst_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_case_subst(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mb_elab_case_pattern_21__8 (void) {
@@ -10890,7 +10086,8 @@ static void mb_elab_case_pattern_21__6 (void) {
 static void mb_elab_case_pattern_21__5 (void) {
     do_drop();
     mwover();
-    mwcase_pattern_21_();
+    mwcase_pattern();
+    mw_21_();
 }
 static void mwtoken_name_3F_ (void){
     mwdup();
@@ -10898,57 +10095,27 @@ static void mwtoken_name_3F_ (void){
 }
 
 static value_t* fieldptr_case_match (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwcase_match (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_case_match(index);
     push_ptr(v);
 }
-static void mwcase_match_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_case_match(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_case_token (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwcase_token (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_case_token(index);
     push_ptr(v);
-}
-static void mwcase_token_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_case_token(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwCase_2E_alloc_21_ (void){
@@ -10980,57 +10147,27 @@ static void mwtoken_is_rparen_3F_ (void){
 }
 
 static value_t* fieldptr_match_token (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwmatch_token (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_match_token(index);
     push_ptr(v);
 }
-static void mwmatch_token_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_match_token(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_match_ctx (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwmatch_ctx (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_match_ctx(index);
     push_ptr(v);
-}
-static void mwmatch_ctx_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_match_ctx(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwMatch_2E_alloc_21_ (void){
@@ -11051,11 +10188,6 @@ static void mwab_tag_21_ (void){
 
 static void mwab_word_21_ (void){
     mwOP_WORD();
-    mwab_op_21_();
-}
-
-static void mwab_fieldword_21_ (void){
-    mwOP_FIELDWORD();
     mwab_op_21_();
 }
 
@@ -11529,144 +10661,106 @@ static void mwelab_atoms_done_3F_ (void){
 
 static void mwab_build_21_ (void){
     {
-    value_t var_f_427 = pop_value();
+    value_t var_f_426 = pop_value();
     push_u64(0);
-    push_value(var_f_427);
-    incref(var_f_427);
+    push_value(var_f_426);
+    incref(var_f_426);
     do_pack_cons();
     push_fnptr(&mb_ab_build_21__2);
     do_pack_cons();
     mwab_save_21_();
-    decref(var_f_427);
+    decref(var_f_426);
     }
 }
 
 static void mb_ab_build_21__2 (void) {
     do_pack_uncons();
-    value_t var_f_427 = pop_value();
+    value_t var_f_426 = pop_value();
     do_drop();
     mwArrow_2E_alloc_21_();
     mwab_home();
     mw_40_();
     mwover();
-    mwarrow_home_21_();
+    mwarrow_home();
+    mw_21_();
     mwab_homeidx();
     mw_40_();
     mwover();
-    mwarrow_homeidx_21_();
+    mwarrow_homeidx();
+    mw_21_();
     mwab_homeidx();
     push_u64(0);
-    push_value(var_f_427);
-    incref(var_f_427);
+    push_value(var_f_426);
+    incref(var_f_426);
     do_pack_cons();
     push_fnptr(&mb_ab_build_21__3);
     do_pack_cons();
     mwmodify();
     mwtuck();
     mwdup2();
-    mwarrow_token_start_21_();
-    mwarrow_token_end_21_();
+    mwarrow_token_start();
+    mw_21_();
+    mwarrow_token_end();
+    mw_21_();
     mwtuck();
     mwdup2();
-    mwarrow_dom_21_();
-    mwarrow_cod_21_();
+    mwarrow_dom();
+    mw_21_();
+    mwarrow_cod();
+    mw_21_();
     mwtuck();
-    mwarrow_ctx_21_();
+    mwarrow_ctx();
+    mw_21_();
     mwab_arrow();
     mw_21_();
-    push_value(var_f_427);
-    incref(var_f_427);
+    push_value(var_f_426);
+    incref(var_f_426);
     do_run();
     mwab_arrow();
     mw_40_();
-    decref(var_f_427);
+    decref(var_f_426);
 }
 static value_t* fieldptr_arrow_token_start (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwarrow_token_start (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_arrow_token_start(index);
     push_ptr(v);
 }
-static void mwarrow_token_start_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_arrow_token_start(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static void mb_ab_build_21__3 (void) {
     do_pack_uncons();
-    value_t var_f_427 = pop_value();
+    value_t var_f_426 = pop_value();
     do_drop();
     mw1_2B_();
-    decref(var_f_427);
+    decref(var_f_426);
 }
 static value_t* fieldptr_arrow_homeidx (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwarrow_homeidx (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_arrow_homeidx(index);
     push_ptr(v);
 }
-static void mwarrow_homeidx_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_arrow_homeidx(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_arrow_home (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwarrow_home (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_arrow_home(index);
     push_ptr(v);
-}
-static void mwarrow_home_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_arrow_home(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwArrow_2E_alloc_21_ (void){
@@ -11682,45 +10776,30 @@ static void mwArrow_2E_alloc_21_ (void){
 
 static void mwab_save_21_ (void){
     {
-    value_t var_f_557 = pop_value();
+    value_t var_f_549 = pop_value();
     mwab_arrow();
     mw_40_();
     { value_t d2 = pop_value();
-    push_value(var_f_557);
-    incref(var_f_557);
+    push_value(var_f_549);
+    incref(var_f_549);
     do_run();
       push_value(d2); }
     mwab_arrow();
     mw_21_();
-    decref(var_f_557);
+    decref(var_f_549);
     }
 }
 
 static value_t* fieldptr_block_ctx (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwblock_ctx (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_block_ctx(index);
     push_ptr(v);
-}
-static void mwblock_ctx_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_block_ctx(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwelab_expand_morphism_21_ (void){
@@ -11771,84 +10850,39 @@ static void mwgamma_token_40_ (void){
 }
 
 static value_t* fieldptr_block_token (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwblock_token (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_block_token(index);
     push_ptr(v);
 }
-static void mwblock_token_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_block_token(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_block_forcing (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwblock_forcing (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_block_forcing(index);
     push_ptr(v);
 }
-static void mwblock_forcing_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_block_forcing(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_block_deferred (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwblock_deferred (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_block_deferred(index);
     push_ptr(v);
-}
-static void mwblock_deferred_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_block_deferred(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwTYPE_STR (void){
@@ -12219,57 +11253,27 @@ static void mwapp_type_trace_open_21_ (void){
 }
 
 static value_t* fieldptr_table_name (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtable_name (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_table_name(index);
     push_ptr(v);
 }
-static void mwtable_name_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_table_name(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_data_name (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwdata_name (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_data_name(index);
     push_ptr(v);
-}
-static void mwdata_name_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_data_name(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwtype_trace_sig_21_ (void){
@@ -13111,30 +12115,15 @@ static void mwprim_type_arity (void){
 }
 
 static value_t* fieldptr_data_arity (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwdata_arity (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_data_arity(index);
     push_ptr(v);
-}
-static void mwdata_arity_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_data_arity(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwsig_token_is_type_con_3F_ (void){
@@ -13194,57 +12183,27 @@ static void mwname_could_be_type_var (void){
 }
 
 static value_t* fieldptr_data_header (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwdata_header (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_data_header(index);
     push_ptr(v);
 }
-static void mwdata_header_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_data_header(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_tag_data (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtag_data (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_tag_data(index);
     push_ptr(v);
-}
-static void mwtag_data_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_tag_data(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwtype_elab_default (void){
@@ -13258,108 +12217,49 @@ static void mwctx_empty (void){
 }
 
 static value_t* fieldptr_tag_ctx (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtag_ctx (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_tag_ctx(index);
     push_ptr(v);
 }
-static void mwtag_ctx_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_tag_ctx(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_tag_type_raw (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtag_type_raw (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_tag_type_raw(index);
     push_ptr(v);
 }
-static void mwtag_type_raw_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_tag_type_raw(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_tag_sig_is_checked (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtag_sig_is_checked (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_tag_sig_is_checked(index);
     push_ptr(v);
 }
-static void mwtag_sig_is_checked_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_tag_sig_is_checked(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
-static void mwelab_field_word_type_21_ (void){
-    mwunFIELDWORD();
-    { value_t d1 = pop_value();
+static void mwelab_field_type_21_ (void){
     mwelab_field_sig_21_();
-      push_value(d1); }
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_drop();
-    mwswap();
-    mwT2();
-    mwT0();
-    mwT__3E_();
-    break;
-    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
-    }
-}
-
-static void mwT2 (void){
+    mwTMut();
     { value_t d1 = pop_value();
     mwT1();
       push_value(d1); }
-    mwT_2A_();
+    mwT1();
+    mwT__3E_();
 }
 
 static void mwelab_field_sig_21_ (void){
@@ -13390,16 +12290,19 @@ static void mwelab_field_sig_21_ (void){
     default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
     mwover();
-    mwfield_table_21_();
+    mwfield_table();
+    mw_21_();
     mwdup();
     mwfield_type_sig();
     mw_40_();
     mwelab_simple_type_arg_21_();
     mwover();
-    mwfield_type_21_();
+    mwfield_type();
+    mw_21_();
     mwtrue();
     mwover();
-    mwfield_sig_is_checked_21_();
+    mwfield_sig_is_checked();
+    mw_21_();
     }
     push_u64(0);
     push_fnptr(&mb_elab_field_sig_21__5);
@@ -13415,84 +12318,39 @@ static void mb_elab_field_sig_21__5 (void) {
     mw_40_();
 }
 static value_t* fieldptr_field_type (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwfield_type (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_field_type(index);
     push_ptr(v);
 }
-static void mwfield_type_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_type(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_field_type_sig (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwfield_type_sig (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_field_type_sig(index);
     push_ptr(v);
 }
-static void mwfield_type_sig_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_type_sig(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_field_table (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwfield_table (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_field_table(index);
     push_ptr(v);
-}
-static void mwfield_table_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_table(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwtype_max_count_3F_ (void){
@@ -13628,30 +12486,15 @@ static void mb_find_3F__2 (void) {
     decref(var_f_361);
 }
 static value_t* fieldptr_table_max_count (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtable_max_count (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_table_max_count(index);
     push_ptr(v);
-}
-static void mwtable_max_count_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_table_max_count(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwelab_simple_type_arg_21_ (void){
@@ -13664,81 +12507,30 @@ static void mwelab_simple_type_arg_21_ (void){
 }
 
 static value_t* fieldptr_field_table_sig (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwfield_table_sig (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_field_table_sig(index);
     push_ptr(v);
 }
-static void mwfield_table_sig_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_table_sig(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_field_sig_is_checked (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwfield_sig_is_checked (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_field_sig_is_checked(index);
     push_ptr(v);
 }
-static void mwfield_sig_is_checked_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_sig_is_checked(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
-static void mwunFIELDWORD (void){
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_pack_uncons(); do_drop();
-    do_pack_uncons(); do_swap();
-    mwid();
-    break;
-    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
-    }
-}
-
-static void mwelab_field_type_21_ (void){
-    mwelab_field_sig_21_();
-    mwTMut();
-    { value_t d1 = pop_value();
-    mwT1();
-      push_value(d1); }
-    mwT1();
-    mwT__3E_();
-}
-
-static void mwforce (void){
+static void mwforce_21_ (void){
     mwdup();
     mw_40_();
     switch (get_top_data_tag()) {
@@ -13750,14 +12542,14 @@ static void mwforce (void){
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
     mwrotl();
-    mwLP_WAIT();
+    mwLAZY_WAIT();
     mwover();
     mw_21_();
-    { value_t d3 = pop_value();
+    { value_t d2 = pop_value();
     mwrun();
     mwdup();
-    mwLP_READY();
-      push_value(d3); }
+    mwLAZY_READY();
+      push_value(d2); }
     mw_21_();
     break;
     case 2LL:
@@ -13780,30 +12572,15 @@ static void mwrun (void){
 }
 
 static value_t* fieldptr_word_arrow (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwword_arrow (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_word_arrow(index);
     push_ptr(v);
-}
-static void mwword_arrow_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_word_arrow(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwelab_external_sig_21_ (void){
@@ -13846,146 +12623,74 @@ static void mb_elab_external_ctx_sig_21__4 (void) {
     do_drop();
     mwrotl();
     mwtuck();
-    mwexternal_type_21_();
+    mwexternal_type();
+    mw_21_();
     mwtuck();
-    mwexternal_ctx_21_();
+    mwexternal_ctx();
+    mw_21_();
     mwtrue();
     mwswap();
-    mwexternal_sig_is_checked_21_();
+    mwexternal_sig_is_checked();
+    mw_21_();
 }
 static value_t* fieldptr_external_sig (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwexternal_sig (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_external_sig(index);
     push_ptr(v);
 }
-static void mwexternal_sig_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_external_sig(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_external_ctx (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwexternal_ctx (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_external_ctx(index);
     push_ptr(v);
 }
-static void mwexternal_ctx_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_external_ctx(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_external_type (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwexternal_type (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_external_type(index);
     push_ptr(v);
 }
-static void mwexternal_type_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_external_type(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_external_sig_is_checked (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwexternal_sig_is_checked (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_external_sig_is_checked(index);
     push_ptr(v);
 }
-static void mwexternal_sig_is_checked_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_external_sig_is_checked(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_name_def (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwname_def (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_name_def(index);
     push_ptr(v);
-}
-static void mwname_def_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_name_def(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwName_2E_for (void){
@@ -14066,30 +12771,15 @@ static void mwelab_module_decl_21_ (void){
 }
 
 static value_t* fieldptr_prim_decl (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwprim_decl (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_prim_decl(index);
     push_ptr(v);
-}
-static void mwprim_decl_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_prim_decl(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwtoken_is_module_end_3F_ (void){
@@ -14134,11 +12824,13 @@ static void mwelab_module_header_21_ (void){
     mwtoken_module();
     mw_40_();
     mwdup2();
-    mwmodule_name_21_();
+    mwmodule_name();
+    mw_21_();
     mwdup2();
     mwDEF_MODULE();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwmodule_path();
     mw_40_();
     mwPath__3E_Str();
@@ -14327,30 +13019,15 @@ static void mb_str_buf_dup_21__1 (void) {
     mwprim_2E_ptr_2E_copy();
 }
 static value_t* fieldptr_module_name (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwmodule_name (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_module_name(index);
     push_ptr(v);
-}
-static void mwmodule_name_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_module_name(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwname_defined_3F_ (void){
@@ -14375,30 +13052,15 @@ static void mwname_undefined_3F_ (void){
 }
 
 static value_t* fieldptr_module_start (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwmodule_start (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_module_start(index);
     push_ptr(v);
-}
-static void mwmodule_start_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_module_start(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwrun_lexer_21_ (void){
@@ -14428,7 +13090,7 @@ static void mwrun_lexer_21_ (void){
     }
     mwinput_end_21_();
     mwlexer_stack();
-    mwstack_pop();
+    mwstack_pop_21_();
     switch (get_top_data_tag()) {
     case 0LL:
     do_drop();
@@ -14445,40 +13107,27 @@ static void mwrun_lexer_21_ (void){
     mwtoken_alloc_21_();
     mwlexer_module();
     mw_40_();
-    mwmodule_end_21_();
+    mwmodule_end();
+    mw_21_();
     mwtoken_succ();
     mwlexer_module();
     mw_40_();
-    mwmodule_start_21_();
+    mwmodule_start();
+    mw_21_();
     mwlexer_module();
     mw_40_();
 }
 
 static value_t* fieldptr_module_end (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwmodule_end (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_module_end(index);
     push_ptr(v);
-}
-static void mwmodule_end_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_module_end(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwlexer_emit_21_ (void){
@@ -14489,29 +13138,33 @@ static void mwlexer_emit_21_ (void){
 static void mwlexer_make_21_ (void){
     mwtoken_alloc_21_();
     mwtuck();
-    mwtoken_value_21_();
+    mwtoken_value();
+    mw_21_();
     mwlexer_module();
     mw_40_();
     mwover();
-    mwtoken_module_21_();
+    mwtoken_module();
+    mw_21_();
     mwlexer_row();
     mw_40_();
     mwover();
-    mwtoken_row_21_();
+    mwtoken_row();
+    mw_21_();
     mwlexer_col();
     mw_40_();
     mwover();
-    mwtoken_col_21_();
+    mwtoken_col();
+    mw_21_();
 }
 
-static void mwstack_pop (void){
+static void mwstack_pop_21_ (void){
     push_u64(0);
-    push_fnptr(&mb_stack_pop_1);
+    push_fnptr(&mb_stack_pop_21__1);
     do_pack_cons();
     mwmodify();
 }
 
-static void mb_stack_pop_1 (void) {
+static void mb_stack_pop_21__1 (void) {
     do_drop();
     switch (get_top_data_tag()) {
     case 0LL:
@@ -14861,7 +13514,8 @@ static void mwlexer_emit_string_21_ (void){
     mwstr_buf_dup_21_();
     mwTOKEN_STR();
     mwswap();
-    mwtoken_value_21_();
+    mwtoken_value();
+    mw_21_();
 }
 
 static void mwlexer_push_string_char_21_ (void){
@@ -15013,7 +13667,7 @@ static void mwis_quote_3F_ (void){
 
 static void mwlexer_emit_rcurly_21_ (void){
     mwlexer_stack();
-    mwstack_pop();
+    mwstack_pop_21_();
     switch (get_top_data_tag()) {
     case 0LL:
     do_drop();
@@ -15029,7 +13683,8 @@ static void mwlexer_emit_rcurly_21_ (void){
     mwlexer_make_21_();
     mwTOKEN_LCURLY();
     mwswap();
-    mwtoken_value_21_();
+    mwtoken_value();
+    mw_21_();
     } else {
     push_ptr("Mismatched right brace.\0\0\0");
     mwlexer_emit_fatal_error_21_();
@@ -15068,17 +13723,17 @@ static void mwlexer_emit_lcurly_21_ (void){
     mwTOKEN_LCURLY();
     mwlexer_make_21_();
     mwlexer_stack();
-    mwstack_push();
+    mwstack_push_21_();
 }
 
-static void mwstack_push (void){
+static void mwstack_push_21_ (void){
     push_u64(0);
-    push_fnptr(&mb_stack_push_1);
+    push_fnptr(&mb_stack_push_21__1);
     do_pack_cons();
     mwmodify();
 }
 
-static void mb_stack_push_1 (void) {
+static void mb_stack_push_21__1 (void) {
     do_drop();
     mwSTACK_CONS();
 }
@@ -15091,7 +13746,7 @@ static void mwis_lcurly_3F_ (void){
 
 static void mwlexer_emit_rsquare_21_ (void){
     mwlexer_stack();
-    mwstack_pop();
+    mwstack_pop_21_();
     switch (get_top_data_tag()) {
     case 0LL:
     do_drop();
@@ -15107,7 +13762,8 @@ static void mwlexer_emit_rsquare_21_ (void){
     mwlexer_make_21_();
     mwTOKEN_LSQUARE();
     mwswap();
-    mwtoken_value_21_();
+    mwtoken_value();
+    mw_21_();
     } else {
     push_ptr("Mismatched right bracket.\0\0\0");
     mwlexer_emit_fatal_error_21_();
@@ -15129,7 +13785,7 @@ static void mwlexer_emit_lsquare_21_ (void){
     mwTOKEN_LSQUARE();
     mwlexer_make_21_();
     mwlexer_stack();
-    mwstack_push();
+    mwstack_push_21_();
 }
 
 static void mwis_lsquare_3F_ (void){
@@ -15141,7 +13797,7 @@ static void mwis_lsquare_3F_ (void){
 
 static void mwlexer_emit_rparen_21_ (void){
     mwlexer_stack();
-    mwstack_pop();
+    mwstack_pop_21_();
     switch (get_top_data_tag()) {
     case 0LL:
     do_drop();
@@ -15157,7 +13813,8 @@ static void mwlexer_emit_rparen_21_ (void){
     mwlexer_make_21_();
     mwTOKEN_LPAREN();
     mwswap();
-    mwtoken_value_21_();
+    mwtoken_value();
+    mw_21_();
     } else {
     push_ptr("Mismatched right parenthesis.\0\0\0");
     mwlexer_emit_fatal_error_21_();
@@ -15179,7 +13836,7 @@ static void mwlexer_emit_lparen_21_ (void){
     mwTOKEN_LPAREN();
     mwlexer_make_21_();
     mwlexer_stack();
-    mwstack_push();
+    mwstack_push_21_();
 }
 
 static void mwis_lparen_3F_ (void){
@@ -15314,12 +13971,16 @@ static void mwlexer_emit_name_21_ (void){
     }
     mwtoken_alloc_21_();
     mwtuck();
-    mwtoken_value_21_();
+    mwtoken_value();
+    mw_21_();
     mwtuck();
-    mwtoken_col_21_();
+    mwtoken_col();
+    mw_21_();
     mwtuck();
-    mwtoken_row_21_();
-    mwtoken_module_21_();
+    mwtoken_row();
+    mw_21_();
+    mwtoken_module();
+    mw_21_();
     }
 }
 
@@ -15340,7 +14001,8 @@ static void mwname_new_21_ (void){
     mwswap();
     mwhash_name_21_();
     mwtuck();
-    mwname_str_21_();
+    mwname_str();
+    mw_21_();
     } else {
     mwnip();
     mwnip();
@@ -16079,7 +14741,8 @@ static void mwtoken_alloc_21_ (void){
     mwToken_2E_alloc_21_();
     mwTOKEN_NONE();
     mwover();
-    mwtoken_value_21_();
+    mwtoken_value();
+    mw_21_();
 }
 
 static void mwToken_2E_alloc_21_ (void){
@@ -16146,7 +14809,8 @@ static void mb_posix_open_21__1 (void) {
 static void mwmodule_new_21_ (void){
     mwModule_2E_alloc_21_();
     mwtuck();
-    mwmodule_path_21_();
+    mwmodule_path();
+    mw_21_();
 }
 
 static void mwModule_2E_alloc_21_ (void){
@@ -16311,7 +14975,8 @@ static void mwdef_type_21_ (void){
     mwDEF_TYPE();
       push_value(d1); }
     mwname_new_21_();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
 }
 
 static void mwinit_prims_21_ (void){
@@ -16604,61 +15269,73 @@ static void mwinit_prims_21_ (void){
     push_fnptr(&mb_init_prims_21__1);
     do_pack_cons();
     mwPRIM_SYNTAX_IMPORT();
-    mwprim_decl_21_();
+    mwprim_decl();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__2);
     do_pack_cons();
     mwPRIM_SYNTAX_DEF();
-    mwprim_decl_21_();
+    mwprim_decl();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__3);
     do_pack_cons();
     mwPRIM_SYNTAX_DEF_EXTERNAL();
-    mwprim_decl_21_();
+    mwprim_decl();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__4);
     do_pack_cons();
     mwPRIM_SYNTAX_DEF_TYPE();
-    mwprim_decl_21_();
+    mwprim_decl();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__5);
     do_pack_cons();
     mwPRIM_SYNTAX_BUFFER();
-    mwprim_decl_21_();
+    mwprim_decl();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__6);
     do_pack_cons();
     mwPRIM_SYNTAX_VARIABLE();
-    mwprim_decl_21_();
+    mwprim_decl();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__7);
     do_pack_cons();
     mwPRIM_SYNTAX_TABLE();
-    mwprim_decl_21_();
+    mwprim_decl();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__8);
     do_pack_cons();
     mwPRIM_SYNTAX_FIELD();
-    mwprim_decl_21_();
+    mwprim_decl();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__9);
     do_pack_cons();
     mwPRIM_SYNTAX_TARGET_C99();
-    mwprim_decl_21_();
+    mwprim_decl();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__10);
     do_pack_cons();
     mwPRIM_SYNTAX_DATA();
-    mwprim_decl_21_();
+    mwprim_decl();
+    mw_21_();
     mwT0();
     mwT0();
     mwT__3E_();
     mwdup();
     mwPRIM_CORE_ID();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_CORE_DEBUG();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdrop();
     mwTYPE_INT();
     mwTYPE_INT();
@@ -16668,34 +15345,44 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwdup();
     mwPRIM_INT_ADD();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_INT_SUB();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_INT_MUL();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_INT_DIV();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_INT_MOD();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_INT_AND();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_INT_OR();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_INT_XOR();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_INT_SHL();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_INT_SHR();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdrop();
     mwTYPE_PTR();
     mwT1();
@@ -16703,140 +15390,160 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_INT_GET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwT1();
     mwTYPE_PTR();
     mwT1();
     mwT__3E_();
     mwPRIM_PTR_GET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwT1();
     mwTYPE_U8();
     mwT1();
     mwT__3E_();
     mwPRIM_U8_GET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwT1();
     mwTYPE_U16();
     mwT1();
     mwT__3E_();
     mwPRIM_U16_GET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwT1();
     mwTYPE_U32();
     mwT1();
     mwT__3E_();
     mwPRIM_U32_GET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwT1();
     mwTYPE_U64();
     mwT1();
     mwT__3E_();
     mwPRIM_U64_GET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwT1();
     mwTYPE_I8();
     mwT1();
     mwT__3E_();
     mwPRIM_I8_GET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwT1();
     mwTYPE_I16();
     mwT1();
     mwT__3E_();
     mwPRIM_I16_GET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwT1();
     mwTYPE_I32();
     mwT1();
     mwT__3E_();
     mwPRIM_I32_GET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwT1();
     mwTYPE_I64();
     mwT1();
     mwT__3E_();
     mwPRIM_I64_GET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_INT();
     mwTYPE_PTR();
     mwT2();
     mwT0();
     mwT__3E_();
     mwPRIM_INT_SET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwTYPE_PTR();
     mwT2();
     mwT0();
     mwT__3E_();
     mwPRIM_PTR_SET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_U8();
     mwTYPE_PTR();
     mwT2();
     mwT0();
     mwT__3E_();
     mwPRIM_U8_SET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_U16();
     mwTYPE_PTR();
     mwT2();
     mwT0();
     mwT__3E_();
     mwPRIM_U16_SET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_U32();
     mwTYPE_PTR();
     mwT2();
     mwT0();
     mwT__3E_();
     mwPRIM_U32_SET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_U64();
     mwTYPE_PTR();
     mwT2();
     mwT0();
     mwT__3E_();
     mwPRIM_U64_SET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_I8();
     mwTYPE_PTR();
     mwT2();
     mwT0();
     mwT__3E_();
     mwPRIM_I8_SET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_I16();
     mwTYPE_PTR();
     mwT2();
     mwT0();
     mwT__3E_();
     mwPRIM_I16_SET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_I32();
     mwTYPE_PTR();
     mwT2();
     mwT0();
     mwT__3E_();
     mwPRIM_I32_SET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_I64();
     mwTYPE_PTR();
     mwT2();
     mwT0();
     mwT__3E_();
     mwPRIM_I64_SET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_INT();
     mwTYPE_PTR();
     mwTYPE_INT();
@@ -16845,7 +15552,8 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_POSIX_READ();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_INT();
     mwTYPE_PTR();
     mwTYPE_INT();
@@ -16854,7 +15562,8 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_POSIX_WRITE();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwTYPE_INT();
     mwTYPE_INT();
@@ -16863,14 +15572,16 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_POSIX_OPEN();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_INT();
     mwT1();
     mwTYPE_INT();
     mwT1();
     mwT__3E_();
     mwPRIM_POSIX_CLOSE();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwTYPE_INT();
     mwTYPE_INT();
@@ -16882,7 +15593,8 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_POSIX_MMAP();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_INT();
     mwTYPE_PTR();
     mwT2();
@@ -16890,20 +15602,23 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_PTR_ADD();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwT0();
     mwTYPE_INT();
     mwT1();
     mwT__3E_();
     mwPRIM_PTR_SIZE();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_INT();
     mwT1();
     mwTYPE_PTR();
     mwT1();
     mwT__3E_();
     mwPRIM_PTR_ALLOC();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwTYPE_INT();
     mwT2();
@@ -16911,7 +15626,8 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_PTR_REALLOC();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwTYPE_INT();
     mwTYPE_PTR();
@@ -16919,7 +15635,8 @@ static void mwinit_prims_21_ (void){
     mwT0();
     mwT__3E_();
     mwPRIM_PTR_COPY();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_INT();
     mwTYPE_INT();
     mwTYPE_PTR();
@@ -16927,7 +15644,8 @@ static void mwinit_prims_21_ (void){
     mwT0();
     mwT__3E_();
     mwPRIM_PTR_FILL();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_PTR();
     mwT1();
     mwTYPE_PTR();
@@ -16935,14 +15653,16 @@ static void mwinit_prims_21_ (void){
     mwT2();
     mwT__3E_();
     mwPRIM_PTR_RAW();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_INT();
     mwT1();
     mwTYPE_STR();
     mwT1();
     mwT__3E_();
     mwPRIM_STR_ALLOC();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_STR();
     mwT1();
     mwTYPE_STR();
@@ -16950,14 +15670,16 @@ static void mwinit_prims_21_ (void){
     mwT2();
     mwT__3E_();
     mwPRIM_STR_SIZE();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_STR();
     mwT1();
     mwTYPE_PTR();
     mwT1();
     mwT__3E_();
     mwPRIM_STR_BASE();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTYPE_STR();
     mwTYPE_STR();
     mwT2();
@@ -16965,35 +15687,41 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_STR_EQ();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwT0();
     mwTYPE_INT();
     mwT1();
     mwT__3E_();
     mwPRIM_SYS_OS();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwT0();
     mwTYPE_INT();
     mwT1();
     mwT__3E_();
     mwPRIM_SYS_ARGC();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwT0();
     mwTYPE_PTR();
     mwT1();
     mwT__3E_();
     mwPRIM_SYS_ARGV();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwT0();
     mwTYPE_BOOL();
     mwT1();
     mwT__3E_();
     mwdup();
     mwPRIM_BOOL_TRUE();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_BOOL_FALSE();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdrop();
     mwTYPE_BOOL();
     mwTYPE_BOOL();
@@ -17003,47 +15731,55 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwdup();
     mwPRIM_BOOL_AND();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_BOOL_OR();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdrop();
     mwT0();
     mwT0();
     mwT1();
     mwT__3E_();
     mwPRIM_PACK_NIL();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup();
     mwctx_empty();
     mwswap();
     mwctx_new_21_();
     mwPRIM_CORE_DROP();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     mwTVar();
     mwT1();
     mwT0();
     mwT__3E_();
     mwPRIM_CORE_DROP();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup();
     mwctx_empty();
     mwswap();
     mwctx_new_21_();
     mwPRIM_CORE_DUP();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     mwTVar();
     mwdup();
     mwT1();
@@ -17052,26 +15788,31 @@ static void mwinit_prims_21_ (void){
     mwT_2A_();
     mwT__3E_();
     mwPRIM_CORE_DUP();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup();
     mwctx_empty();
     mwswap();
     mwctx_new_21_();
     mwdup();
     mwPRIM_VALUE_EQ();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     mwdup();
     mwPRIM_VALUE_LT();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     mwdup();
     mwPRIM_VALUE_LE();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     mwdrop();
     mwTVar();
     mwdup();
@@ -17081,26 +15822,31 @@ static void mwinit_prims_21_ (void){
     mwT__3E_();
     mwdup();
     mwPRIM_VALUE_EQ();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_VALUE_LT();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwPRIM_VALUE_LE();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdrop();
     push_ptr("a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     push_ptr("b\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup2();
     mwctx_empty();
     mwswap();
@@ -17108,7 +15854,8 @@ static void mwinit_prims_21_ (void){
     mwswap();
     mwctx_new_21_();
     mwPRIM_CORE_SWAP();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     { value_t d1 = pop_value();
     mwTVar();
       push_value(d1); }
@@ -17120,19 +15867,22 @@ static void mwinit_prims_21_ (void){
     mwT2();
     mwT__3E_();
     mwPRIM_CORE_SWAP();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     push_ptr("b\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup2();
     mwctx_empty();
     mwswap();
@@ -17140,7 +15890,8 @@ static void mwinit_prims_21_ (void){
     mwswap();
     mwctx_new_21_();
     mwPRIM_UNSAFE_CAST();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     { value_t d1 = pop_value();
     mwTVar();
     mwT1();
@@ -17149,19 +15900,22 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_UNSAFE_CAST();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("*a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     push_ptr("*b\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup2();
     mwctx_empty();
     mwswap();
@@ -17169,7 +15923,8 @@ static void mwinit_prims_21_ (void){
     mwswap();
     mwctx_new_21_();
     mwPRIM_CORE_RUN();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     { value_t d1 = pop_value();
     mwTVar();
       push_value(d1); }
@@ -17182,19 +15937,22 @@ static void mwinit_prims_21_ (void){
       push_value(d1); }
     mwT__3E_();
     mwPRIM_CORE_RUN();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("*a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     push_ptr("*b\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup2();
     mwctx_empty();
     mwswap();
@@ -17202,7 +15960,8 @@ static void mwinit_prims_21_ (void){
     mwswap();
     mwctx_new_21_();
     mwPRIM_POSIX_EXIT();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     { value_t d1 = pop_value();
     mwTVar();
       push_value(d1); }
@@ -17213,25 +15972,29 @@ static void mwinit_prims_21_ (void){
       push_value(d1); }
     mwT__3E_();
     mwPRIM_POSIX_EXIT();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("*a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     push_ptr("*b\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     push_ptr("c\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup3();
     mwctx_empty();
     mwswap();
@@ -17241,7 +16004,8 @@ static void mwinit_prims_21_ (void){
     mwswap();
     mwctx_new_21_();
     mwPRIM_CORE_DIP();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     { value_t d1 = pop_value();
     { value_t d2 = pop_value();
     mwTVar();
@@ -17266,19 +16030,22 @@ static void mwinit_prims_21_ (void){
       push_value(d1); }
     mwT__3E_();
     mwPRIM_CORE_DIP();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("*a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     push_ptr("*b\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup2();
     mwctx_empty();
     mwswap();
@@ -17286,7 +16053,8 @@ static void mwinit_prims_21_ (void){
     mwswap();
     mwctx_new_21_();
     mwPRIM_CORE_IF();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     { value_t d1 = pop_value();
     mwTVar();
       push_value(d1); }
@@ -17307,19 +16075,22 @@ static void mwinit_prims_21_ (void){
       push_value(d1); }
     mwT__3E_();
     mwPRIM_CORE_IF();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("*a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup();
     mwctx_empty();
     mwswap();
     mwctx_new_21_();
     mwPRIM_CORE_WHILE();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     mwTVar();
     mwdup();
     push_u64(0);
@@ -17332,19 +16103,22 @@ static void mwinit_prims_21_ (void){
     mwsip();
     mwT__3E_();
     mwPRIM_CORE_WHILE();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("*a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     push_ptr("b\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup2();
     mwctx_empty();
     mwswap();
@@ -17352,7 +16126,8 @@ static void mwinit_prims_21_ (void){
     mwswap();
     mwctx_new_21_();
     mwPRIM_PACK_CONS();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     { value_t d1 = pop_value();
     mwTVar();
       push_value(d1); }
@@ -17364,19 +16139,22 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_PACK_CONS();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("*a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     push_ptr("b\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup2();
     mwctx_empty();
     mwswap();
@@ -17384,7 +16162,8 @@ static void mwinit_prims_21_ (void){
     mwswap();
     mwctx_new_21_();
     mwPRIM_PACK_UNCONS();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     { value_t d1 = pop_value();
     mwTVar();
       push_value(d1); }
@@ -17396,19 +16175,22 @@ static void mwinit_prims_21_ (void){
     mwT2();
     mwT__3E_();
     mwPRIM_PACK_UNCONS();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup();
     mwctx_empty();
     mwswap();
     mwctx_new_21_();
     mwPRIM_VALUE_GET();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     mwTVar();
     { value_t d1 = pop_value();
     mwTYPE_PTR();
@@ -17417,45 +16199,53 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_VALUE_GET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup();
     mwctx_empty();
     mwswap();
     mwctx_new_21_();
     mwPRIM_VALUE_SET();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     mwTVar();
     mwTYPE_PTR();
     mwT2();
     mwT0();
     mwT__3E_();
     mwPRIM_VALUE_SET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     push_ptr("a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_TYPE();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup();
     mwctx_empty();
     mwswap();
     mwctx_new_21_();
     mwdup();
     mwPRIM_MUT_NEW();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     mwdup();
     mwPRIM_MUT_GET();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     mwdup();
     mwPRIM_MUT_SET();
-    mwprim_ctx_21_();
+    mwprim_ctx();
+    mw_21_();
     mwdrop();
     mwdup();
     mwTVar();
@@ -17467,7 +16257,8 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_MUT_NEW();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwdup();
     mwTVar();
     push_u64(0);
@@ -17477,7 +16268,8 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_MUT_GET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
     mwTVar();
     mwdup();
     mwTMut();
@@ -17488,7 +16280,8 @@ static void mwinit_prims_21_ (void){
     mwT1();
     mwT__3E_();
     mwPRIM_MUT_SET();
-    mwprim_type_21_();
+    mwprim_type();
+    mw_21_();
 }
 
 static void mb_init_prims_21__34 (void) {
@@ -17529,30 +16322,15 @@ static void mwdup3 (void){
 }
 
 static value_t* fieldptr_prim_ctx (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwprim_ctx (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_prim_ctx(index);
     push_ptr(v);
-}
-static void mwprim_ctx_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_prim_ctx(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwT6 (void){
@@ -17579,6 +16357,13 @@ static void mwT4 (void){
 static void mwT3 (void){
     { value_t d1 = pop_value();
     mwT2();
+      push_value(d1); }
+    mwT_2A_();
+}
+
+static void mwT2 (void){
+    { value_t d1 = pop_value();
+    mwT1();
       push_value(d1); }
     mwT_2A_();
 }
@@ -17635,14 +16420,17 @@ static void mwelab_data_tag_21_ (void){
     mwdup2();
     mwDEF_TAG();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwtuck();
-    mwtag_name_21_();
+    mwtag_name();
+    mw_21_();
     { value_t d1 = pop_value();
     mwover();
       push_value(d1); }
     mwdup2();
-    mwtag_data_21_();
+    mwtag_data();
+    mw_21_();
     mwtuck();
     { value_t d1 = pop_value();
     mwdata_add_tag_21_();
@@ -17654,12 +16442,14 @@ static void mwelab_data_tag_21_ (void){
     { value_t d2 = pop_value();
     mwtrue();
     mwover();
-    mwtag_has_sig_21_();
+    mwtag_has_sig();
+    mw_21_();
       push_value(d2); }
     mwtoken_succ();
     mwtuck();
     { value_t d2 = pop_value();
-    mwtag_sig_21_();
+    mwtag_sig();
+    mw_21_();
       push_value(d2); }
     while(1) {
     mwtoken_run_end_3F_();
@@ -17683,7 +16473,8 @@ static void mwdata_add_tag_21_ (void){
     mwdup2();
     mwdata_num_tags();
     mwswap();
-    mwtag_value_21_();
+    mwtag_value();
+    mw_21_();
     mwdup();
     mwdata_tags();
     mw_40_();
@@ -17691,61 +16482,32 @@ static void mwdata_add_tag_21_ (void){
     { value_t d1 = pop_value();
     mwsnoc();
       push_value(d1); }
-    mwdata_tags_21_();
+    mwdata_tags();
+    mw_21_();
 }
 
 static value_t* fieldptr_tag_value (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtag_value (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_tag_value(index);
     push_ptr(v);
 }
-static void mwtag_value_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_tag_value(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_tag_name (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtag_name (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_tag_name(index);
     push_ptr(v);
-}
-static void mwtag_name_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_tag_name(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwTag_2E_alloc_21_ (void){
@@ -17762,7 +16524,8 @@ static void mwTag_2E_alloc_21_ (void){
 static void mwelab_data_header_21_ (void){
     mwdup2();
     mwswap();
-    mwdata_header_21_();
+    mwdata_header();
+    mw_21_();
     mwsig_token_is_type_con_3F_();
     if (pop_u64()) {
     mwid();
@@ -17784,12 +16547,15 @@ static void mwelab_data_header_21_ (void){
     mwTData();
     mwDEF_TYPE();
     mwover();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwswap();
-    mwdata_name_21_();
+    mwdata_name();
+    mw_21_();
     mwtoken_num_args();
     mwover();
-    mwdata_arity_21_();
+    mwdata_arity();
+    mw_21_();
 }
 
 static void mwtoken_args_2B_ (void){
@@ -17942,7 +16708,7 @@ static void mwc99_emit_needs_21_ (void){
 static void mb_c99_emit_needs_21__2 (void) {
     do_drop();
     mwc99_need_stack();
-    mwstack_pop();
+    mwstack_pop_21_();
 }
 static void mb_c99_emit_needs_21__1 (void) {
     do_drop();
@@ -17979,7 +16745,8 @@ static void mwc99_emit_field_def_21_ (void){
     } else {
     mwtrue();
     mwover();
-    mwc99_field_emitted_21_();
+    mwc99_field_emitted();
+    mw_21_();
     push_ptr("static value_t* fieldptr_\0\0\0");
     mw_2E_();
     mwdup();
@@ -17988,28 +16755,16 @@ static void mwc99_emit_field_def_21_ (void){
     mw_2E_name();
     push_ptr(" (usize i) {\0\0\0");
     mw_3B_();
-    push_ptr("    static struct value_t * p;\0\0\0");
+    push_ptr("    static struct value_t * p = 0; usize m=0x10000;\0\0\0");
     mw_3B_();
-    push_ptr("    static usize n = 0; \0\0\0");
+    push_ptr("    if (!p) { p = calloc(m, sizeof *p); }\0\0\0");
     mw_3B_();
-    push_ptr("    if (i >= n) {\0\0\0");
-    mw_3B_();
-    push_ptr("        usize new_n = n+1;\0\0\0");
-    mw_3B_();
-    push_ptr("        while (i >= new_n) new_n *= 2;\0\0\0");
-    mw_3B_();
-    push_ptr("        p = realloc(p, sizeof(struct value_t) * new_n);\0\0\0");
-    mw_3B_();
-    push_ptr("        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));\0\0\0");
-    mw_3B_();
-    push_ptr("        n = new_n;\0\0\0");
-    mw_3B_();
-    push_ptr("    }\0\0\0");
+    push_ptr("    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }\0\0\0");
     mw_3B_();
     push_ptr("    return p+i;\0\0\0");
     mw_3B_();
     push_ptr("}\0\0\0");
-    mw_3B__3B_();
+    mw_3B_();
     mwdup();
     mwfield_name();
     mw_40_();
@@ -18029,57 +16784,12 @@ static void mwc99_emit_field_def_21_ (void){
     push_ptr("    push_ptr(v);\0\0\0");
     mw_3B_();
     push_ptr("}\0\0\0");
-    mw_3B_();
-    mwdup();
-    mwfield_name();
-    mw_40_();
-    push_ptr("!\0\0\0");
-    mwname_cat_21_();
-    mw_2E_w();
-    push_ptr("{\0\0\0");
-    mw_3B_();
-    push_ptr("    usize index = (usize)pop_u64();\0\0\0");
-    mw_3B_();
-    push_ptr("    value_t newvalue = pop_value();\0\0\0");
-    mw_3B_();
-    push_ptr("    value_t* p = fieldptr_\0\0\0");
-    mw_2E_();
-    mwdup();
-    mwfield_name();
-    mw_40_();
-    mw_2E_name();
-    push_ptr("(index);\0\0\0");
-    mw_3B_();
-    push_ptr("    value_t oldvalue = *p;\0\0\0");
-    mw_3B_();
-    push_ptr("    *p = newvalue;\0\0\0");
-    mw_3B_();
-    push_ptr("    decref(oldvalue);\0\0\0");
-    mw_3B_();
-    push_ptr("}\0\0\0");
     mw_3B__3B_();
     mwdrop();
     }
     } else {
     mwdrop();
     }
-}
-
-static void mwname_cat_21_ (void){
-    { value_t d1 = pop_value();
-    mwname_str();
-    mw_40_();
-      push_value(d1); }
-    mwstr_cat();
-    mwname_new_21_();
-}
-
-static void mw_2E_w (void){
-    push_ptr("static void mw\0\0\0");
-    mw_2E_();
-    mw_2E_name();
-    push_ptr(" (void)\0\0\0");
-    mw_2E_();
 }
 
 static void mw_3B__3B_ (void){
@@ -18132,6 +16842,14 @@ static void mwCODEGEN_BUF_SIZE (void){
     push_i64(256LL);
 }
 
+static void mw_2E_w (void){
+    push_ptr("static void mw\0\0\0");
+    mw_2E_();
+    mw_2E_name();
+    push_ptr(" (void)\0\0\0");
+    mw_2E_();
+}
+
 static void mw_3B_ (void){
     mw_2E_();
     mw_2E_lf();
@@ -18153,7 +16871,8 @@ static void mwname_mangle_21_ (void){
     push_fnptr(&mb_name_mangle_21__3);
     do_pack_cons();
     mwsip();
-    mwname_mangle_cached_21_();
+    mwname_mangle_cached();
+    mw_21_();
     } else {
     mwnip();
     }
@@ -18290,57 +17009,27 @@ static void mwis_alpha_3F_ (void){
 }
 
 static value_t* fieldptr_name_mangle_cached (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwname_mangle_cached (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_name_mangle_cached(index);
     push_ptr(v);
 }
-static void mwname_mangle_cached_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_name_mangle_cached(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_field_name (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwfield_name (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_field_name(index);
     push_ptr(v);
-}
-static void mwfield_name_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_field_name(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mw_2E_ (void){
@@ -18408,57 +17097,27 @@ static void mb__2E__2 (void) {
     mwprim_2E_ptr_2E_copy();
 }
 static value_t* fieldptr_c99_field_emitted (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwc99_field_emitted (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_c99_field_emitted(index);
     push_ptr(v);
 }
-static void mwc99_field_emitted_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_c99_field_emitted(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_c99_field_needed (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwc99_field_needed (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_c99_field_needed(index);
     push_ptr(v);
-}
-static void mwc99_field_needed_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_c99_field_needed(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwc99_emit_block_def_21_ (void){
@@ -18474,7 +17133,8 @@ static void mwc99_emit_block_def_21_ (void){
     } else {
     mwtrue();
     mwover();
-    mwc99_block_emitted_21_();
+    mwc99_block_emitted();
+    mw_21_();
     push_ptr("static void \0\0\0");
     mw_2E_();
     mwdup();
@@ -18767,7 +17427,7 @@ static void mwc99_emit_atom_21_ (void){
     do_drop();
     mwdrop();
     break;
-    case 8LL:
+    case 7LL:
     do_pack_uncons(); do_drop();
     mwnip();
     push_ptr("    push_i64(\0\0\0");
@@ -18776,7 +17436,7 @@ static void mwc99_emit_atom_21_ (void){
     push_ptr("LL);\0\0\0");
     mw_3B_();
     break;
-    case 9LL:
+    case 8LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwc99_emit_string_21_();
@@ -18799,17 +17459,6 @@ static void mwc99_emit_atom_21_ (void){
     break;
     case 3LL:
     do_pack_uncons(); do_drop();
-    mwneed_fieldword_21_();
-    mwnip();
-    mwfieldword_name_40_();
-    push_ptr("    mw\0\0\0");
-    mw_2E_();
-    mw_2E_name();
-    push_ptr("();\0\0\0");
-    mw_3B_();
-    break;
-    case 4LL:
-    do_pack_uncons(); do_drop();
     { value_t d2 = pop_value();
     mwatom_args();
     mw_40_();
@@ -18823,7 +17472,7 @@ static void mwc99_emit_atom_21_ (void){
     push_ptr("();\0\0\0");
     mw_3B_();
     break;
-    case 5LL:
+    case 4LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwbuffer_name();
@@ -18834,7 +17483,7 @@ static void mwc99_emit_atom_21_ (void){
     push_ptr("();\0\0\0");
     mw_3B_();
     break;
-    case 6LL:
+    case 5LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwvariable_name();
@@ -18845,7 +17494,7 @@ static void mwc99_emit_atom_21_ (void){
     push_ptr("();\0\0\0");
     mw_3B_();
     break;
-    case 7LL:
+    case 6LL:
     do_pack_uncons(); do_drop();
     mwneed_field_21_();
     mwnip();
@@ -18857,7 +17506,7 @@ static void mwc99_emit_atom_21_ (void){
     push_ptr("();\0\0\0");
     mw_3B_();
     break;
-    case 10LL:
+    case 9LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwtag_name();
@@ -18876,22 +17525,22 @@ static void mwc99_emit_atom_21_ (void){
       push_value(d2); }
     mwc99_emit_prim_21_();
     break;
-    case 11LL:
+    case 10LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwc99_emit_match_21_();
     break;
-    case 12LL:
+    case 11LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwc99_emit_lambda_21_();
     break;
-    case 13LL:
+    case 12LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwc99_emit_var_21_();
     break;
-    case 14LL:
+    case 13LL:
     do_pack_uncons(); do_drop();
     mwnip();
     mwc99_emit_block_push_21_();
@@ -18955,11 +17604,12 @@ static void mwneed_block_21_ (void){
     } else {
     mwtrue();
     mwover();
-    mwblock_needed_21_();
+    mwblock_needed();
+    mw_21_();
     mwdup();
     mwNEED_BLOCK();
     mwc99_need_stack();
-    mwstack_push();
+    mwstack_push_21_();
     }
 }
 
@@ -19268,30 +17918,15 @@ static void mwc99_emit_prim_default_21_ (void){
 }
 
 static value_t* fieldptr_prim_name (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwprim_name (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_prim_name(index);
     push_ptr(v);
-}
-static void mwprim_name_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_prim_name(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwc99_emit_arg_run_21_ (void){
@@ -19324,144 +17959,61 @@ static void mwneed_field_21_ (void){
     } else {
     mwtrue();
     mwover();
-    mwc99_field_needed_21_();
+    mwc99_field_needed();
+    mw_21_();
     mwdup();
     mwNEED_FIELD();
     mwc99_need_stack();
-    mwstack_push();
+    mwstack_push_21_();
     }
 }
 
 static value_t* fieldptr_variable_name (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwvariable_name (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_variable_name(index);
     push_ptr(v);
 }
-static void mwvariable_name_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_variable_name(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_buffer_name (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwbuffer_name (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_buffer_name(index);
     push_ptr(v);
 }
-static void mwbuffer_name_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_buffer_name(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_external_name (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwexternal_name (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_external_name(index);
     push_ptr(v);
 }
-static void mwexternal_name_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_external_name(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
-
-static void mwfieldword_name_40_ (void){
-    mwunFIELDWORD();
-    { value_t d1 = pop_value();
-    mwfield_name();
-    mw_40_();
-      push_value(d1); }
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_drop();
-    push_ptr("!\0\0\0");
-    break;
-    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
-    }
-    mwname_cat_21_();
-}
-
-static void mwneed_fieldword_21_ (void){
-    mwdup();
-    mwunFIELDWORD();
-    mwdrop();
-    mwneed_field_21_();
-    mwdrop();
-}
 
 static value_t* fieldptr_word_name (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwword_name (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_word_name(index);
     push_ptr(v);
-}
-static void mwword_name_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_word_name(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwc99_emit_args_push_21_ (void){
@@ -19498,39 +18050,25 @@ static void mwneed_word_21_ (void){
     } else {
     mwtrue();
     mwover();
-    mwc99_word_needed_21_();
+    mwc99_word_needed();
+    mw_21_();
     mwdup();
     mwNEED_WORD();
     mwc99_need_stack();
-    mwstack_push();
+    mwstack_push_21_();
     }
 }
 
 static value_t* fieldptr_c99_word_needed (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwc99_word_needed (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_c99_word_needed(index);
     push_ptr(v);
-}
-static void mwc99_word_needed_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_c99_word_needed(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwc99_emit_string_21_ (void){
@@ -19814,57 +18352,27 @@ static void mwBlock_2E_id (void){
 }
 
 static value_t* fieldptr_c99_block_emitted (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwc99_block_emitted (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_c99_block_emitted(index);
     push_ptr(v);
 }
-static void mwc99_block_emitted_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_c99_block_emitted(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static value_t* fieldptr_block_needed (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwblock_needed (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_block_needed(index);
     push_ptr(v);
-}
-static void mwblock_needed_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_block_needed(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwc99_emit_word_def_21_ (void){
@@ -19880,7 +18388,8 @@ static void mwc99_emit_word_def_21_ (void){
     } else {
     mwtrue();
     mwover();
-    mwc99_word_emitted_21_();
+    mwc99_word_emitted();
+    mw_21_();
     mwdup();
     mwword_name();
     mw_40_();
@@ -19888,8 +18397,7 @@ static void mwc99_emit_word_def_21_ (void){
     push_ptr("{\0\0\0");
     mw_3B_();
     mwword_arrow();
-    mw_40_();
-    mwforce();
+    mwforce_21_();
     mwc99_emit_arrow_21_();
     push_ptr("}\0\0\0");
     mw_3B__3B_();
@@ -19900,30 +18408,15 @@ static void mwc99_emit_word_def_21_ (void){
 }
 
 static value_t* fieldptr_c99_word_emitted (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwc99_word_emitted (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_c99_word_emitted(index);
     push_ptr(v);
-}
-static void mwc99_word_emitted_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_c99_word_emitted(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwwhile_some (void){
@@ -19999,24 +18492,16 @@ static void mb_c99_emit_field_sigs_21__1 (void) {
 static void mwc99_emit_field_sig_21_ (void){
     mwfalse();
     mwover();
-    mwc99_field_needed_21_();
+    mwc99_field_needed();
+    mw_21_();
     mwfalse();
     mwover();
-    mwc99_field_emitted_21_();
-    push_ptr(" static void mw\0\0\0");
-    mw_2E_();
-    mwdup();
-    mwfield_name();
-    mw_40_();
-    mw_2E_name();
-    push_ptr(" (void);\0\0\0");
-    mw_3B_();
+    mwc99_field_emitted();
+    mw_21_();
     push_ptr(" static void mw\0\0\0");
     mw_2E_();
     mwfield_name();
     mw_40_();
-    push_ptr("!\0\0\0");
-    mwname_cat_21_();
     mw_2E_name();
     push_ptr(" (void);\0\0\0");
     mw_3B_();
@@ -20062,10 +18547,12 @@ static void mb_c99_emit_block_sigs_21__1 (void) {
 static void mwc99_emit_block_sig_21_ (void){
     mwfalse();
     mwover();
-    mwblock_needed_21_();
+    mwblock_needed();
+    mw_21_();
     mwfalse();
     mwover();
-    mwc99_block_emitted_21_();
+    mwc99_block_emitted();
+    mw_21_();
     push_ptr(" static void \0\0\0");
     mw_2E_();
     mw_2E_block();
@@ -20113,10 +18600,12 @@ static void mb_c99_emit_word_sigs_21__1 (void) {
 static void mwc99_emit_word_sig_21_ (void){
     mwfalse();
     mwover();
-    mwc99_word_needed_21_();
+    mwc99_word_needed();
+    mw_21_();
     mwfalse();
     mwover();
-    mwc99_word_emitted_21_();
+    mwc99_word_emitted();
+    mw_21_();
     push_ptr(" static void mw\0\0\0");
     mw_2E_();
     mwword_name();
@@ -20493,30 +18982,15 @@ static void mwc99_emit_buffer_21_ (void){
 }
 
 static value_t* fieldptr_buffer_size (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwbuffer_size (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_buffer_size(index);
     push_ptr(v);
-}
-static void mwbuffer_size_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_buffer_size(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwBuffer_2E_for (void){
@@ -22570,25 +21044,19 @@ static void mwelab_field_21_ (void){
 static void mwfield_new_21_ (void){
     mwField_2E_alloc_21_();
     mwtuck();
-    mwfield_type_sig_21_();
+    mwfield_type_sig();
+    mw_21_();
     mwtuck();
-    mwfield_table_sig_21_();
+    mwfield_table_sig();
+    mw_21_();
     mwtuck();
     mwdup2();
-    mwfield_name_21_();
+    mwfield_name();
+    mw_21_();
     mwDEF_FIELD();
     mwswap();
-    mwname_def_21_();
-    mwdup();
-    mwFIELD_21_();
-    mwFIELDWORD();
-    mwDEF_FIELDWORD();
-    mwover();
-    mwfield_name();
-    mw_40_();
-    push_ptr("!\0\0\0");
-    mwname_cat_21_();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
 }
 
 static void mwField_2E_alloc_21_ (void){
@@ -22665,12 +21133,15 @@ static void mwtable_new_21_ (void){
     mwTTable();
     mwDEF_TYPE();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwtuck();
-    mwtable_name_21_();
+    mwtable_name();
+    mw_21_();
     mwTABLE_MAX_SIZE();
     mwover();
-    mwtable_max_count_21_();
+    mwtable_max_count();
+    mw_21_();
     mwdup();
     mwtable_name();
     mw_40_();
@@ -22680,9 +21151,11 @@ static void mwtable_new_21_ (void){
     mwdup2();
     mwDEF_WORD();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwtuck();
-    mwword_name_21_();
+    mwword_name();
+    mw_21_();
     mwL0();
     mwCTX();
     mwT0();
@@ -22691,7 +21164,8 @@ static void mwtable_new_21_ (void){
     mwT__3E_();
     mwready2();
     mwover();
-    mwword_ctx_type_21_();
+    mwword_ctx_type();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_table_new_21__1);
     do_pack_cons();
@@ -22705,7 +21179,8 @@ static void mwtable_new_21_ (void){
     push_i64(8LL);
     mwbuffer_new_21_();
     mwover();
-    mwtable_num_buffer_21_();
+    mwtable_num_buffer();
+    mw_21_();
     mwdup();
     mwtable_name();
     mw_40_();
@@ -22715,9 +21190,11 @@ static void mwtable_new_21_ (void){
     mwdup2();
     mwDEF_WORD();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwtuck();
-    mwword_name_21_();
+    mwword_name();
+    mw_21_();
     mwL0();
     mwCTX();
     mwover2();
@@ -22728,7 +21205,8 @@ static void mwtable_new_21_ (void){
     mwT__3E_();
     mwready2();
     mwover();
-    mwword_ctx_type_21_();
+    mwword_ctx_type();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_table_new_21__2);
     do_pack_cons();
@@ -22743,9 +21221,11 @@ static void mwtable_new_21_ (void){
     mwdup2();
     mwDEF_WORD();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwtuck();
-    mwword_name_21_();
+    mwword_name();
+    mw_21_();
     mwL0();
     mwCTX();
     mwover2();
@@ -22755,7 +21235,8 @@ static void mwtable_new_21_ (void){
     mwT__3E_();
     mwready2();
     mwover();
-    mwword_ctx_type_21_();
+    mwword_ctx_type();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_table_new_21__3);
     do_pack_cons();
@@ -22770,9 +21251,11 @@ static void mwtable_new_21_ (void){
     mwdup2();
     mwDEF_WORD();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwtuck();
-    mwword_name_21_();
+    mwword_name();
+    mw_21_();
     mwL0();
     mwCTX();
     mwover2();
@@ -22782,7 +21265,8 @@ static void mwtable_new_21_ (void){
     mwT__3E_();
     mwready2();
     mwover();
-    mwword_ctx_type_21_();
+    mwword_ctx_type();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_table_new_21__4);
     do_pack_cons();
@@ -22797,87 +21281,93 @@ static void mwtable_new_21_ (void){
     mwdup2();
     mwDEF_WORD();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwtuck();
-    mwword_name_21_();
+    mwword_name();
+    mw_21_();
     push_ptr("x\0\0\0");
     mwname_new_21_();
     mwvar_new_21_();
     {
-    value_t var_x_579 = pop_value();
-    value_t var_w_580 = pop_value();
-    value_t var_t_581 = pop_value();
+    value_t var_x_571 = pop_value();
+    value_t var_w_572 = pop_value();
+    value_t var_t_573 = pop_value();
     push_ptr("a\0\0\0");
     mwname_new_21_();
     mwvar_new_implicit_21_();
     mwTYPE_STACK();
     mwover();
-    mwvar_type_21_();
+    mwvar_type();
+    mw_21_();
     mwdup();
     mwL1();
     mwCTX();
     mwswap();
     mwTVar();
     {
-    value_t var_a_582 = pop_value();
-    push_value(var_a_582);
-    incref(var_a_582);
-    push_value(var_a_582);
-    incref(var_a_582);
-    push_value(var_t_581);
-    incref(var_t_581);
+    value_t var_a_574 = pop_value();
+    push_value(var_a_574);
+    incref(var_a_574);
+    push_value(var_a_574);
+    incref(var_a_574);
+    push_value(var_t_573);
+    incref(var_t_573);
     mwTTable();
     mwT_2A_();
-    push_value(var_a_582);
-    incref(var_a_582);
+    push_value(var_a_574);
+    incref(var_a_574);
     mwT__3E_();
     mwT_2A_();
-    push_value(var_a_582);
-    incref(var_a_582);
+    push_value(var_a_574);
+    incref(var_a_574);
     mwT__3E_();
     mwready2();
-    push_value(var_w_580);
-    incref(var_w_580);
-    mwword_ctx_type_21_();
-    push_value(var_a_582);
-    incref(var_a_582);
-    push_value(var_t_581);
-    incref(var_t_581);
+    push_value(var_w_572);
+    incref(var_w_572);
+    mwword_ctx_type();
+    mw_21_();
+    push_value(var_a_574);
+    incref(var_a_574);
+    push_value(var_t_573);
+    incref(var_t_573);
     mwTTable();
     mwT_2A_();
-    push_value(var_a_582);
-    incref(var_a_582);
+    push_value(var_a_574);
+    incref(var_a_574);
     mwT__3E_();
-    push_value(var_x_579);
-    incref(var_x_579);
-    mwvar_type_21_();
+    push_value(var_x_571);
+    incref(var_x_571);
+    mwvar_type();
+    mw_21_();
     mwtrue();
-    push_value(var_x_579);
-    incref(var_x_579);
-    mwvar_auto_run_21_();
-    decref(var_a_582);
+    push_value(var_x_571);
+    incref(var_x_571);
+    mwvar_auto_run();
+    mw_21_();
+    decref(var_a_574);
     }
-    push_value(var_w_580);
-    incref(var_w_580);
+    push_value(var_w_572);
+    incref(var_w_572);
     push_u64(0);
-    push_value(var_x_579);
-    incref(var_x_579);
+    push_value(var_x_571);
+    incref(var_x_571);
     do_pack_cons();
-    push_value(var_w_580);
-    incref(var_w_580);
+    push_value(var_w_572);
+    incref(var_w_572);
     do_pack_cons();
-    push_value(var_t_581);
-    incref(var_t_581);
+    push_value(var_t_573);
+    incref(var_t_573);
     do_pack_cons();
     push_fnptr(&mb_table_new_21__9);
     do_pack_cons();
     mwab_build_word_21_();
     mwdrop();
-    push_value(var_t_581);
-    incref(var_t_581);
-    decref(var_x_579);
-    decref(var_w_580);
-    decref(var_t_581);
+    push_value(var_t_573);
+    incref(var_t_573);
+    decref(var_x_571);
+    decref(var_w_572);
+    decref(var_t_573);
     }
     mwdup();
     mwtable_name();
@@ -22888,9 +21378,11 @@ static void mwtable_new_21_ (void){
     mwdup2();
     mwDEF_WORD();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwtuck();
-    mwword_name_21_();
+    mwword_name();
+    mw_21_();
     mwL0();
     mwCTX();
     mwT0();
@@ -22900,7 +21392,8 @@ static void mwtable_new_21_ (void){
     mwT__3E_();
     mwready2();
     mwover();
-    mwword_ctx_type_21_();
+    mwword_ctx_type();
+    mw_21_();
     push_u64(0);
     push_fnptr(&mb_table_new_21__14);
     do_pack_cons();
@@ -22940,86 +21433,86 @@ static void mwover3 (void){
 
 static void mb_table_new_21__9 (void) {
     do_pack_uncons();
-    value_t var_t_581 = pop_value();
+    value_t var_t_573 = pop_value();
     do_pack_uncons();
-    value_t var_w_580 = pop_value();
+    value_t var_w_572 = pop_value();
     do_pack_uncons();
-    value_t var_x_579 = pop_value();
+    value_t var_x_571 = pop_value();
     do_drop();
-    push_value(var_x_579);
-    incref(var_x_579);
+    push_value(var_x_571);
+    incref(var_x_571);
     mwVar__3E_Param();
     mwL1();
     push_u64(0);
-    push_value(var_x_579);
-    incref(var_x_579);
+    push_value(var_x_571);
+    incref(var_x_571);
     do_pack_cons();
-    push_value(var_w_580);
-    incref(var_w_580);
+    push_value(var_w_572);
+    incref(var_w_572);
     do_pack_cons();
-    push_value(var_t_581);
-    incref(var_t_581);
+    push_value(var_t_573);
+    incref(var_t_573);
     do_pack_cons();
     push_fnptr(&mb_table_new_21__10);
     do_pack_cons();
     mwab_lambda_21_();
-    decref(var_t_581);
-    decref(var_w_580);
-    decref(var_x_579);
+    decref(var_t_573);
+    decref(var_w_572);
+    decref(var_x_571);
 }
 static void mb_table_new_21__10 (void) {
     do_pack_uncons();
-    value_t var_t_581 = pop_value();
+    value_t var_t_573 = pop_value();
     do_pack_uncons();
-    value_t var_w_580 = pop_value();
+    value_t var_w_572 = pop_value();
     do_pack_uncons();
-    value_t var_x_579 = pop_value();
+    value_t var_x_571 = pop_value();
     do_drop();
     push_i64(1LL);
     mwab_int_21_();
     push_u64(0);
-    push_value(var_x_579);
-    incref(var_x_579);
+    push_value(var_x_571);
+    incref(var_x_571);
     do_pack_cons();
-    push_value(var_w_580);
-    incref(var_w_580);
+    push_value(var_w_572);
+    incref(var_w_572);
     do_pack_cons();
-    push_value(var_t_581);
-    incref(var_t_581);
+    push_value(var_t_573);
+    incref(var_t_573);
     do_pack_cons();
     push_fnptr(&mb_table_new_21__11);
     do_pack_cons();
     push_u64(0);
-    push_value(var_x_579);
-    incref(var_x_579);
+    push_value(var_x_571);
+    incref(var_x_571);
     do_pack_cons();
-    push_value(var_w_580);
-    incref(var_w_580);
+    push_value(var_w_572);
+    incref(var_w_572);
     do_pack_cons();
-    push_value(var_t_581);
-    incref(var_t_581);
+    push_value(var_t_573);
+    incref(var_t_573);
     do_pack_cons();
     push_fnptr(&mb_table_new_21__13);
     do_pack_cons();
     mwab_while_21_();
     mwPRIM_CORE_DROP();
     mwab_prim_21_();
-    decref(var_t_581);
-    decref(var_w_580);
-    decref(var_x_579);
+    decref(var_t_573);
+    decref(var_w_572);
+    decref(var_x_571);
 }
 static void mb_table_new_21__13 (void) {
     do_pack_uncons();
-    value_t var_t_581 = pop_value();
+    value_t var_t_573 = pop_value();
     do_pack_uncons();
-    value_t var_w_580 = pop_value();
+    value_t var_w_572 = pop_value();
     do_pack_uncons();
-    value_t var_x_579 = pop_value();
+    value_t var_x_571 = pop_value();
     do_drop();
     mwPRIM_CORE_DUP();
     mwab_prim_21_();
-    push_value(var_t_581);
-    incref(var_t_581);
+    push_value(var_t_573);
+    incref(var_t_573);
     mwtable_num_buffer();
     mw_40_();
     mwab_buffer_21_();
@@ -23027,29 +21520,29 @@ static void mb_table_new_21__13 (void) {
     mwab_prim_21_();
     mwPRIM_VALUE_LE();
     mwab_prim_21_();
-    decref(var_t_581);
-    decref(var_w_580);
-    decref(var_x_579);
+    decref(var_t_573);
+    decref(var_w_572);
+    decref(var_x_571);
 }
 static void mb_table_new_21__11 (void) {
     do_pack_uncons();
-    value_t var_t_581 = pop_value();
+    value_t var_t_573 = pop_value();
     do_pack_uncons();
-    value_t var_w_580 = pop_value();
+    value_t var_w_572 = pop_value();
     do_pack_uncons();
-    value_t var_x_579 = pop_value();
+    value_t var_x_571 = pop_value();
     do_drop();
     mwPRIM_CORE_DUP();
     mwab_prim_21_();
     push_u64(0);
-    push_value(var_x_579);
-    incref(var_x_579);
+    push_value(var_x_571);
+    incref(var_x_571);
     do_pack_cons();
-    push_value(var_w_580);
-    incref(var_w_580);
+    push_value(var_w_572);
+    incref(var_w_572);
     do_pack_cons();
-    push_value(var_t_581);
-    incref(var_t_581);
+    push_value(var_t_573);
+    incref(var_t_573);
     do_pack_cons();
     push_fnptr(&mb_table_new_21__12);
     do_pack_cons();
@@ -23058,68 +21551,69 @@ static void mb_table_new_21__11 (void) {
     mwab_int_21_();
     mwPRIM_INT_ADD();
     mwab_prim_21_();
-    decref(var_t_581);
-    decref(var_w_580);
-    decref(var_x_579);
+    decref(var_t_573);
+    decref(var_w_572);
+    decref(var_x_571);
 }
 static void mb_table_new_21__12 (void) {
     do_pack_uncons();
-    value_t var_t_581 = pop_value();
+    value_t var_t_573 = pop_value();
     do_pack_uncons();
-    value_t var_w_580 = pop_value();
+    value_t var_w_572 = pop_value();
     do_pack_uncons();
-    value_t var_x_579 = pop_value();
+    value_t var_x_571 = pop_value();
     do_drop();
     mwPRIM_UNSAFE_CAST();
     mwab_prim_21_();
-    push_value(var_x_579);
-    incref(var_x_579);
+    push_value(var_x_571);
+    incref(var_x_571);
     mwab_var_21_();
-    decref(var_t_581);
-    decref(var_w_580);
-    decref(var_x_579);
+    decref(var_t_573);
+    decref(var_w_572);
+    decref(var_x_571);
 }
 static void mwab_dip_21_ (void){
     {
-    value_t var_f_569 = pop_value();
-    push_value(var_f_569);
-    incref(var_f_569);
+    value_t var_f_561 = pop_value();
+    push_value(var_f_561);
+    incref(var_f_561);
     mwab_block_21_();
     mwPRIM_CORE_DIP();
     mwab_prim_21_();
-    decref(var_f_569);
+    decref(var_f_561);
     }
 }
 
 static void mwab_block_21_ (void){
     {
-    value_t var_f_566 = pop_value();
+    value_t var_f_558 = pop_value();
     mwab_token_40_();
-    push_value(var_f_566);
-    incref(var_f_566);
+    push_value(var_f_558);
+    incref(var_f_558);
     mwab_block_at_21_();
-    decref(var_f_566);
+    decref(var_f_558);
     }
 }
 
 static void mwab_block_at_21_ (void){
     {
-    value_t var_f_563 = pop_value();
+    value_t var_f_555 = pop_value();
     mwBlock_2E_alloc_21_();
     { value_t d2 = pop_value();
     mwab_ctx_40_();
     mwmeta_alloc_21_();
     mwTMeta();
     mwrotl();
-    push_value(var_f_563);
-    incref(var_f_563);
+    push_value(var_f_555);
+    incref(var_f_555);
     mwab_build_21_();
       push_value(d2); }
     mwtuck();
-    mwblock_arrow_raw_21_();
+    mwblock_arrow_raw();
+    mw_21_();
     mwOP_BLOCK();
     mwab_op_21_();
-    decref(var_f_563);
+    decref(var_f_555);
     }
 }
 
@@ -23134,35 +21628,41 @@ static void mwab_while_21_ (void){
 
 static void mwab_lambda_21_ (void){
     {
-    value_t var_f_578 = pop_value();
+    value_t var_f_570 = pop_value();
     mwLambda_2E_alloc_21_();
     mwab_ctx_40_();
     mwover();
-    mwlambda_outer_ctx_21_();
+    mwlambda_outer_ctx();
+    mw_21_();
     mwab_type_40_();
     mwover();
-    mwlambda_dom_21_();
+    mwlambda_dom();
+    mw_21_();
     mwab_token_40_();
     mwover();
-    mwlambda_token_21_();
+    mwlambda_token();
+    mw_21_();
     mwdup2();
-    mwlambda_params_21_();
+    mwlambda_params();
+    mw_21_();
     { value_t d2 = pop_value();
     mwab_ctx_40_();
     mwab_type_40_();
     mwrotl();
     push_u64(0);
-    push_value(var_f_578);
-    incref(var_f_578);
+    push_value(var_f_570);
+    incref(var_f_570);
     do_pack_cons();
     push_fnptr(&mb_ab_lambda_21__3);
     do_pack_cons();
     mwfor();
       push_value(d2); }
     mwtuck();
-    mwlambda_mid_21_();
+    mwlambda_mid();
+    mw_21_();
     mwtuck();
-    mwlambda_inner_ctx_21_();
+    mwlambda_inner_ctx();
+    mw_21_();
     mwdup();
     mwlambda_inner_ctx();
     mw_40_();
@@ -23171,37 +21671,39 @@ static void mwab_lambda_21_ (void){
     mw_40_();
     mwab_token_40_();
     push_u64(0);
-    push_value(var_f_578);
-    incref(var_f_578);
+    push_value(var_f_570);
+    incref(var_f_570);
     do_pack_cons();
     push_fnptr(&mb_ab_lambda_21__5);
     do_pack_cons();
     mwab_build_21_();
     mwover();
-    mwlambda_body_21_();
+    mwlambda_body();
+    mw_21_();
     mwOP_LAMBDA();
     mwab_op_21_();
-    decref(var_f_578);
+    decref(var_f_570);
     }
 }
 
 static void mb_ab_lambda_21__5 (void) {
     do_pack_uncons();
-    value_t var_f_578 = pop_value();
+    value_t var_f_570 = pop_value();
     do_drop();
     { value_t d1 = pop_value();
-    push_value(var_f_578);
-    incref(var_f_578);
+    push_value(var_f_570);
+    incref(var_f_570);
     do_run();
       push_value(d1); }
     mwab_type_40_();
     mwover();
-    mwlambda_cod_21_();
-    decref(var_f_578);
+    mwlambda_cod();
+    mw_21_();
+    decref(var_f_570);
 }
 static void mb_ab_lambda_21__3 (void) {
     do_pack_uncons();
-    value_t var_f_578 = pop_value();
+    value_t var_f_570 = pop_value();
     do_drop();
     mwswap();
     { value_t d1 = pop_value();
@@ -23211,7 +21713,7 @@ static void mb_ab_lambda_21__3 (void) {
     mwab_token_40_();
     mwelab_expand_tensor_21_();
     mwdrop2();
-    decref(var_f_578);
+    decref(var_f_570);
 }
 static void mb_table_new_21__4 (void) {
     do_drop();
@@ -23289,30 +21791,15 @@ static void mwover2 (void){
 }
 
 static value_t* fieldptr_table_num_buffer (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwtable_num_buffer (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_table_num_buffer(index);
     push_ptr(v);
-}
-static void mwtable_num_buffer_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_table_num_buffer(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mwbuffer_new_21_ (void){
@@ -23348,7 +21835,7 @@ static void mb_table_new_21__1 (void) {
 }
 static void mwab_build_word_21_ (void){
     {
-    value_t var_f_560 = pop_value();
+    value_t var_f_552 = pop_value();
     mwdup();
     mwab_home();
     mw_21_();
@@ -23356,8 +21843,8 @@ static void mwab_build_word_21_ (void){
     mwab_homeidx();
     mw_21_();
     push_u64(0);
-    push_value(var_f_560);
-    incref(var_f_560);
+    push_value(var_f_552);
+    incref(var_f_552);
     do_pack_cons();
     push_fnptr(&mb_ab_build_word_21__2);
     do_pack_cons();
@@ -23372,8 +21859,8 @@ static void mwab_build_word_21_ (void){
       push_value(d2); }
     { value_t d2 = pop_value();
     { value_t d3 = pop_value();
-    push_value(var_f_560);
-    incref(var_f_560);
+    push_value(var_f_552);
+    incref(var_f_552);
     mwab_build_21_();
       push_value(d3); }
     mwover();
@@ -23388,61 +21875,41 @@ static void mwab_build_word_21_ (void){
     mwready();
       push_value(d2); }
     mwtuck();
-    mwword_arrow_21_();
+    mwword_arrow();
+    mw_21_();
     mwnil();
     mwab_home();
     mw_21_();
-    decref(var_f_560);
+    decref(var_f_552);
     }
 }
 
 static void mwready (void){
-    mwLP_READY();
-    mwmut();
-    mwLAZY();
-}
-
-static void mwmut (void){
-    mwprim_2E_mut_2E_new();
+    mwLAZY_READY();
 }
 
 static value_t* fieldptr_word_body (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwword_body (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_word_body(index);
     push_ptr(v);
 }
-static void mwword_body_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_word_body(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
-}
 
 static void mb_ab_build_word_21__2 (void) {
     do_pack_uncons();
-    value_t var_f_560 = pop_value();
+    value_t var_f_552 = pop_value();
     do_drop();
     mwelab_word_ctx_sig_21_();
-    decref(var_f_560);
+    decref(var_f_552);
 }
 static void mwready2 (void){
     mwpack2();
-    mwready();
+    mwLAZY_READY();
 }
 
 static void mwWord_2E_alloc_21_ (void){
@@ -23454,6 +21921,15 @@ static void mwWord_2E_alloc_21_ (void){
     mwWord_2E_NUM();
     mwprim_2E_int_2E_set();
     mwprim_2E_unsafe_2E_cast();
+}
+
+static void mwname_cat_21_ (void){
+    { value_t d1 = pop_value();
+    mwname_str();
+    mw_40_();
+      push_value(d1); }
+    mwstr_cat();
+    mwname_new_21_();
 }
 
 static void mwTABLE_MAX_SIZE (void){
@@ -23513,13 +21989,16 @@ static void mwelab_variable_21_ (void){
 static void mwvariable_new_21_ (void){
     mwVariable_2E_alloc_21_();
     mwtuck();
-    mwvariable_type_21_();
+    mwvariable_type();
+    mw_21_();
     mwtuck();
     mwdup2();
-    mwvariable_name_21_();
+    mwvariable_name();
+    mw_21_();
     mwDEF_VARIABLE();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
 }
 
 static void mwVariable_2E_alloc_21_ (void){
@@ -23538,9 +22017,7 @@ static void mb_elab_variable_21__5 (void) {
     mwelab_simple_type_arg_21_();
 }
 static void mwdelay (void){
-    mwLP_THUNK();
-    mwmut();
-    mwLAZY();
+    mwLAZY_DELAY();
 }
 
 static void mb_init_prims_21__5 (void) {
@@ -23617,7 +22094,8 @@ static void mwelab_def_type_21_ (void){
     mwelab_simple_type_arg_21_();
     mwDEF_TYPE();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     } else {
     mwdrop();
     push_ptr("type already defined\0\0\0");
@@ -23654,10 +22132,13 @@ static void mwelab_def_external_21_ (void){
     mwdup2();
     mwDEF_EXTERNAL();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwtuck();
-    mwexternal_name_21_();
-    mwexternal_sig_21_();
+    mwexternal_name();
+    mw_21_();
+    mwexternal_sig();
+    mw_21_();
     } else {
     mwdrop();
     push_ptr("word already defined\0\0\0");
@@ -23716,28 +22197,33 @@ static void mwelab_def_21_ (void){
     mwdup2();
     mwDEF_WORD();
     mwswap();
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwtuck();
-    mwword_name_21_();
+    mwword_name();
+    mw_21_();
     mwtuck();
-    mwword_body_21_();
+    mwword_body();
+    mw_21_();
     mwtuck();
-    mwword_sig_21_();
+    mwword_sig();
+    mw_21_();
     mwdup();
     push_u64(0);
     push_fnptr(&mb_elab_def_21__6);
     do_pack_cons();
     mwdelay();
-    mwdup2();
-    mwswap();
-    mwword_ctx_type_21_();
     mwover();
+    mwword_ctx_type();
+    mw_21_();
+    mwdup();
     push_u64(0);
     push_fnptr(&mb_elab_def_21__8);
     do_pack_cons();
-    mwdelay2();
+    mwdelay();
     mwswap();
-    mwword_arrow_21_();
+    mwword_arrow();
+    mw_21_();
 }
 
 static void mb_elab_def_21__8 (void) {
@@ -23748,9 +22234,10 @@ static void mb_elab_def_21__8 (void) {
     push_i64(0LL);
     mwab_homeidx();
     mw_21_();
-    { value_t d1 = pop_value();
-    mwforce2();
-      push_value(d1); }
+    push_u64(0);
+    push_fnptr(&mb_elab_def_21__9);
+    do_pack_cons();
+    mwsip();
     mwword_body();
     mw_40_();
     mwelab_arrow_21_();
@@ -23758,33 +22245,11 @@ static void mb_elab_def_21__8 (void) {
     mwab_home();
     mw_21_();
 }
-static void mwdelay2 (void){
-    mwpack3();
-    push_u64(0);
-    push_fnptr(&mb_delay2_1);
-    do_pack_cons();
-    mwdelay();
-}
-
-static void mb_delay2_1 (void) {
+static void mb_elab_def_21__9 (void) {
     do_drop();
-    mwunpack3();
-    mwrun();
+    mwword_ctx_type();
+    mwforce2_21_();
 }
-static void mwunpack3 (void){
-    mwpack_uncons();
-    { value_t d1 = pop_value();
-    mwunpack2();
-      push_value(d1); }
-}
-
-static void mwpack3 (void){
-    { value_t d1 = pop_value();
-    mwpack2();
-      push_value(d1); }
-    mwpack_cons();
-}
-
 static void mb_elab_def_21__6 (void) {
     do_drop();
     mwtype_elab_default();
@@ -23799,30 +22264,15 @@ static void mb_elab_def_21__6 (void) {
     mwpack2();
 }
 static value_t* fieldptr_word_sig (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwword_sig (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_word_sig(index);
     push_ptr(v);
-}
-static void mwword_sig_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_word_sig(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mb_elab_def_21__1 (void) {
@@ -24046,30 +22496,15 @@ static void mwunSET (void){
 }
 
 static value_t* fieldptr_module_imports (usize i) {
-    static struct value_t * p;
-    static usize n = 0; 
-    if (i >= n) {
-        usize new_n = n+1;
-        while (i >= new_n) new_n *= 2;
-        p = realloc(p, sizeof(struct value_t) * new_n);
-        memset(p+n, 0, sizeof(struct value_t) * (new_n - n));
-        n = new_n;
-    }
+    static struct value_t * p = 0; usize m=0x10000;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-
 static void mwmodule_imports (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_module_imports(index);
     push_ptr(v);
-}
-static void mwmodule_imports_21_ (void){
-    usize index = (usize)pop_u64();
-    value_t newvalue = pop_value();
-    value_t* p = fieldptr_module_imports(index);
-    value_t oldvalue = *p;
-    *p = newvalue;
-    decref(oldvalue);
 }
 
 static void mb_elab_module_import_21__1 (void) {
@@ -24082,9 +22517,11 @@ static void mwdef_prim_21_ (void){
     { value_t d1 = pop_value();
     mwDEF_PRIM();
       push_value(d1); }
-    mwname_def_21_();
+    mwname_def();
+    mw_21_();
     mwswap();
-    mwprim_name_21_();
+    mwprim_name();
+    mw_21_();
 }
 
 static void mwinit_paths_21_ (void){
