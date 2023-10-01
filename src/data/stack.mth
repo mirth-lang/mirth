@@ -12,3 +12,5 @@ def(stack-pop, Mut(Stack(t)) -- Maybe(t),
     ))
 def(stack-is-empty, Mut(Stack(t)) -- Bool,
     @ is-nil)
+def(stack-reset, Mut(Stack(t)) --,
+    STACK_NIL swap !)

@@ -1371,23 +1371,19 @@ data(Need,
     NEED_FIELD -> Field)
 var(c99-need-stack, Stack(Need))
 
-def(need-push!, Need --, c99-need-stack stack-push)
-def(need-pop!, -- Maybe(Need), c99-need-stack stack-pop)
-def(has-need?, Bool, c99-need-stack stack-is-empty not)
-
 field(c99-word-needed, Word, Bool)
 def(need-word!, Word -- Word,
     c99-word-needed? if(
         id,
         true over c99-word-needed!
-        dup NEED_WORD need-push!
+        dup NEED_WORD c99-need-stack stack-push
     ))
 
 def(need-block!, Block -- Block,
     block-needed? if(
         id,
         true over block-needed!
-        dup NEED_BLOCK need-push!
+        dup NEED_BLOCK c99-need-stack stack-push
     ))
 
 field(c99-field-needed, Field, Bool)
@@ -1395,15 +1391,15 @@ def(need-field!, Field -- Field,
     c99-field-needed? if(
         id,
         true over c99-field-needed!
-        dup NEED_FIELD need-push!
+        dup NEED_FIELD c99-need-stack stack-push
     ))
 def(need-fieldword!, FieldWord -- FieldWord,
     dup unFIELDWORD drop need-field! drop)
 
-def(c99-emit-needs!, +IO,
-    while(has-need?, need-pop! unwrap c99-emit-need!))
+def(c99-emit-needs!, --,
+    while-some(c99-need-stack stack-pop, c99-emit-need!))
 
-def(c99-emit-need!, Need -- +IO,
+def(c99-emit-need!, Need --,
     match(
         NEED_WORD -> c99-emit-word-def!,
         NEED_BLOCK -> c99-emit-block-def!,

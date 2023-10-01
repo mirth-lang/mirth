@@ -390,10 +390,4 @@ def(all?, *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool,
 
 ||| Build a list through repetition.
 def(collect, a [a -- a Maybe(b)] -- List(b),
-    \([f] ->
-        L0 swap f while(
-            is-some?,
-            unwrap swap
-            dip(snoc) f
-        ) drop2
-    ))
+    \([f] -> L0 swap while-some(f, swap dip(snoc)) drop))
