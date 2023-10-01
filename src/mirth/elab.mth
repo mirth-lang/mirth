@@ -173,6 +173,9 @@ def(elab-simple-type-arg!, Token -- Type,
 buffer(AB_HOME, 16)
 def(ab-home@, Word, AB_HOME value@)
 def(ab-home!, Word --, AB_HOME value!)
+buffer(AB_HOMEIDX, 8)
+def(ab-homeidx@, Int, AB_HOMEIDX int@)
+def(ab-homeidx!, Int --, AB_HOMEIDX int!)
 buffer(AB_ARROW, 16)
 def(ab-arrow@, Arrow +AB, AB_ARROW value@)
 def(ab-arrow!, Arrow -- +AB, AB_ARROW value!)
@@ -190,6 +193,8 @@ def(ab-build!, *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
     \([f] -> ab-save!(
         Arrow.alloc!
         ab-home@ over arrow-home!
+        ab-homeidx@ over arrow-homeidx!
+        ab-homeidx@ 1+ ab-homeidx!
         tuck dup2 arrow-token-start! arrow-token-end!
         tuck dup2 arrow-dom! arrow-cod!
         tuck arrow-ctx!
@@ -200,7 +205,7 @@ def(ab-build!, *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
 
 def(ab-build-word!, *a Word [ *a -- *b ] -- *b Word,
     \([f] ->
-        dup ab-home!
+        dup ab-home! 0 ab-homeidx!
         dup dip(elab-word-ctx-sig!)
         word-body? swap
         dip(elab-expand-morphism! swap)
@@ -875,7 +880,7 @@ def(elab-def!, Token -- Token,
     )
     dup2 swap word-ctx-type!
     over delay2(
-        dup ab-home!
+        dup ab-home! 0 ab-homeidx!
         dip(force2) word-body@ elab-arrow!
         nil ab-home!
     ) swap word-arrow!)

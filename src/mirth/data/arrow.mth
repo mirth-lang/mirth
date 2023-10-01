@@ -23,7 +23,6 @@ import(mirth.data.type)
 # Originally this type was called Morphism but that's hard to spell and
 # to type repeatedly so now it's called Arrow :-)
 
-
 # mirth/data/arrow
 table(Atom)
 table(Arrow)
@@ -57,6 +56,7 @@ def(Param->Var, Param -- Var, match(PARAM -> id))
 field(arrow-token-start, Arrow, Token)
 field(arrow-token-end, Arrow, Token)
 field(arrow-home, Arrow, Word)
+field(arrow-homeidx, Arrow, Int)
 field(arrow-ctx, Arrow, Ctx)
 field(arrow-dom, Arrow, Type)
 field(arrow-cod, Arrow, Type)
