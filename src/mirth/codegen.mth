@@ -171,6 +171,7 @@ def(c99-emit-header!, +IO,
     "    i64 vp_i64;" ;
     "    bool vp_bool;" ;
     "    fnptr vp_fnptr;" ;
+    "    struct value_t* vp_valueptr;" ;
     "} value_payload_t;" ;;
 
     "typedef struct value_t {" ;
@@ -212,8 +213,7 @@ def(c99-emit-variables!, --,
 def(c99-emit-variable!, Variable --,
     "void mw" . variable-name? .name "() {" ;
     "  static value_t v = {0};" ;
-    "  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }" ;
-    "  incref(v); push_value(v);" ;
+    "  push_ptr(&v);" ;
     "}" ;
     drop)
 
@@ -1154,8 +1154,8 @@ def(c99-emit-prims!, +IO,
     PRIM_PACK_UNCONS .pm "do_pack_uncons();" ;;
 
     PRIM_MUT_NEW .pm "do { value_t car = pop_value(); value_t cdr = { 0 }; push_value(mkcell_raw(car,cdr)); } while(0)" ;
-    PRIM_MUT_GET .pm "do { do_pack_uncons(); pop_value(); } while(0)" ;
-    PRIM_MUT_SET .pm "do { value_t cellval = pop_value(); value_t newval = pop_value(); push_value(cellval); usize cellidx = get_cell_index(cellval); if (cellidx) { cell_t* cell = heap + cellidx; value_t oldval = cell->car; cell->car = newval; decref(oldval); } else { decref(newval); } } while(0)" ;;
+    PRIM_MUT_GET .pm "do { value_t mut = pop_value(); if (mut.tag == VT_U64 && mut.payload.vp_valueptr) { value_t val =*mut.payload.vp_valueptr; push_value(val); incref(val); } else { push_value(mut); do_pack_uncons(); pop_value(); } } while(0)" ;
+    PRIM_MUT_SET .pm "do { value_t mut = pop_value(); value_t newval = pop_value(); push_value(mut); if (mut.tag == VT_U64 && mut.payload.vp_valueptr) { value_t oldval = *mut.payload.vp_valueptr; *mut.payload.vp_valueptr = newval; decref(oldval); } else { usize cellidx = get_cell_index(mut); if (cellidx) { cell_t* cell = heap + cellidx; value_t oldval = cell->car; cell->car = newval; decref(oldval); } else { decref(newval); } } } while(0)" ;;
     )
 
 def(c99-emit-externals!, +IO,

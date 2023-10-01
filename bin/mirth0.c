@@ -62,6 +62,7 @@ typedef union value_payload_t {
     i64 vp_i64;
     bool vp_bool;
     fnptr vp_fnptr;
+    struct value_t* vp_valueptr;
 } value_payload_t;
 
 typedef struct value_t {
@@ -822,8 +823,8 @@ static void mwprim_2E_str_2E_alloc (void){
 #define mwprim_2E_pack_2E_uncons() do_pack_uncons();
 
 #define mwprim_2E_mut_2E_new() do { value_t car = pop_value(); value_t cdr = { 0 }; push_value(mkcell_raw(car,cdr)); } while(0)
-#define mwprim_2E_mut_2E_get() do { do_pack_uncons(); pop_value(); } while(0)
-#define mwprim_2E_mut_2E_set() do { value_t cellval = pop_value(); value_t newval = pop_value(); push_value(cellval); usize cellidx = get_cell_index(cellval); if (cellidx) { cell_t* cell = heap + cellidx; value_t oldval = cell->car; cell->car = newval; decref(oldval); } else { decref(newval); } } while(0)
+#define mwprim_2E_mut_2E_get() do { value_t mut = pop_value(); if (mut.tag == VT_U64 && mut.payload.vp_valueptr) { value_t val =*mut.payload.vp_valueptr; push_value(val); incref(val); } else { push_value(mut); do_pack_uncons(); pop_value(); } } while(0)
+#define mwprim_2E_mut_2E_set() do { value_t mut = pop_value(); value_t newval = pop_value(); push_value(mut); if (mut.tag == VT_U64 && mut.payload.vp_valueptr) { value_t oldval = *mut.payload.vp_valueptr; *mut.payload.vp_valueptr = newval; decref(oldval); } else { usize cellidx = get_cell_index(mut); if (cellidx) { cell_t* cell = heap + cellidx; value_t oldval = cell->car; cell->car = newval; decref(oldval); } else { decref(newval); } } } while(0)
 
 #define mwRAWPTR() 0
 #define mwOS_UNKNOWN() push_u64(0)
@@ -1463,103 +1464,83 @@ static u8 bVariable_2E_NUM[8] = {0};
 
 void mwSTR_BUF_LEN() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwsource_path_root() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwoutput_path_root() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwinput_isopen() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwinput_length() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwinput_offset() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwinput_handle() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwnum_warnings() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwnum_errors() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwlexer_module() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwlexer_row() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwlexer_col() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwlexer_stack() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwcodegen_file() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwcodegen_length() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwc99_depth() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwc99_need_stack() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwab_home() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwab_homeidx() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 void mwab_arrow() {
   static value_t v = {0};
-  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }
-  incref(v); push_value(v);
+  push_ptr(&v);
 }
 
 i64 stat (i64, i64);
@@ -20753,9 +20734,7 @@ static void mwc99_emit_variable_21_ (void){
     mw_3B_();
     push_ptr("  static value_t v = {0};\0\0\0");
     mw_3B_();
-    push_ptr("  if (!v.payload.vp_u64) { value_t nil={0}; v = mkcell_raw(nil,nil); }\0\0\0");
-    mw_3B_();
-    push_ptr("  incref(v); push_value(v);\0\0\0");
+    push_ptr("  push_ptr(&v);\0\0\0");
     mw_3B_();
     push_ptr("}\0\0\0");
     mw_3B_();
@@ -22530,11 +22509,11 @@ static void mwc99_emit_prims_21_ (void){
     mw_3B_();
     mwPRIM_MUT_GET();
     mw_2E_pm();
-    push_ptr("do { do_pack_uncons(); pop_value(); } while(0)\0\0\0");
+    push_ptr("do { value_t mut = pop_value(); if (mut.tag == VT_U64 && mut.payload.vp_valueptr) { value_t val =*mut.payload.vp_valueptr; push_value(val); incref(val); } else { push_value(mut); do_pack_uncons(); pop_value(); } } while(0)\0\0\0");
     mw_3B_();
     mwPRIM_MUT_SET();
     mw_2E_pm();
-    push_ptr("do { value_t cellval = pop_value(); value_t newval = pop_value(); push_value(cellval); usize cellidx = get_cell_index(cellval); if (cellidx) { cell_t* cell = heap + cellidx; value_t oldval = cell->car; cell->car = newval; decref(oldval); } else { decref(newval); } } while(0)\0\0\0");
+    push_ptr("do { value_t mut = pop_value(); value_t newval = pop_value(); push_value(mut); if (mut.tag == VT_U64 && mut.payload.vp_valueptr) { value_t oldval = *mut.payload.vp_valueptr; *mut.payload.vp_valueptr = newval; decref(oldval); } else { usize cellidx = get_cell_index(mut); if (cellidx) { cell_t* cell = heap + cellidx; value_t oldval = cell->car; cell->car = newval; decref(oldval); } else { decref(newval); } } } while(0)\0\0\0");
     mw_3B__3B_();
 }
 
@@ -22690,6 +22669,8 @@ static void mwc99_emit_header_21_ (void){
     push_ptr("    bool vp_bool;\0\0\0");
     mw_3B_();
     push_ptr("    fnptr vp_fnptr;\0\0\0");
+    mw_3B_();
+    push_ptr("    struct value_t* vp_valueptr;\0\0\0");
     mw_3B_();
     push_ptr("} value_payload_t;\0\0\0");
     mw_3B__3B_();
