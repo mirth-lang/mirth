@@ -43,13 +43,13 @@ def(hash, Str -- Hash,
     NAME_HASH_MAX &
     Int->Hash)
 
-def(name-hash, Name -- Hash, name-str@ hash)
+def(name-hash, Name -- Hash, name-str @ hash)
 def(next-hash, Hash -- Hash, Hash->Int 1+ NAME_HASH_MAX & Int->Hash)
 
 def(name-keep-going?, Str Hash -- Str Hash Bool,
     hash-name? is-nil? if(
         drop false,
-        dip(over) name-str@ str-eq not
+        dip(over) name-str @ str-eq not
     ))
 
 def(name-new!, Str -- Name,
@@ -64,28 +64,28 @@ def(name-new!, Str -- Name,
 
 ||| Add string to name, creating new name.
 def(name-cat!, Name Str -- Name,
-    dip(name-str@) str-cat name-new!)
+    dip(name-str @) str-cat name-new!)
 
 def(name-trace!, Name --,
-    name-str@ str-trace!)
+    name-str @ str-trace!)
 
 def(name-print!, Name --,
-    name-str@ str-print!)
+    name-str @ str-print!)
 
 def(name-could-be-type, Name -- Bool,
-    name-str@ str-head is-alpha? nip)
+    name-str @ str-head is-alpha? nip)
 
 def(name-could-be-type-var, Name -- Bool,
-    name-str@ str-could-be-type-var)
+    name-str @ str-could-be-type-var)
 
 def(str-could-be-type-var, Str -- Bool,
     str-head is-lower? nip)
 
 def(name-could-be-type-con, Name -- Bool,
-    name-str@ str-head is-upper? nip)
+    name-str @ str-head is-upper? nip)
 
 def(name-is-type-hole, Name -- Bool,
-    name-str@ dup str-head is-question-mark? nip if(
+    name-str @ dup str-head is-question-mark? nip if(
         str-tail str-is-empty? if(
             drop true,
             str-could-be-type-var),
@@ -93,19 +93,19 @@ def(name-is-type-hole, Name -- Bool,
     ))
 
 def(name-is-underscore, Name -- Bool,
-    name-str@ dup str-head is-underscore? nip if(
+    name-str @ dup str-head is-underscore? nip if(
         str-tail str-is-empty,
         drop false
     ))
 
 def(name-could-be-stack-var, Name -- Bool,
-    name-str@ dup str-head is-asterisk? nip if(
+    name-str @ dup str-head is-asterisk? nip if(
         str-tail str-could-be-type-var,
         drop false
     ))
 
 def(name-could-be-effect-con, Name -- Bool,
-    name-str@ dup str-head is-plus? nip if(
+    name-str @ dup str-head is-plus? nip if(
         str-tail str-head is-upper? nip,
         drop false
     ))
@@ -120,7 +120,7 @@ def(name-mangle!, Name -- Str,
     ))
 
 def(name-mangle-compute!, Name -- Str,
-    name-str@ str-transduce(
+    name-str @ str-transduce(
         is-alpha? if( TS_CHAR,
         is-digit? if( TS_CHAR,
         is-underscore? if( TS_CHAR,

@@ -316,7 +316,7 @@ def(value-type-unify!, Gamma Value Type -- Gamma Type,
     ))
 
 def(arrow-type, Arrow -- Type,
-    dup arrow-dom@ swap arrow-cod@ TMorphism)
+    dup arrow-dom @ swap arrow-cod @ TMorphism)
     # TODO effects
 
 def(block-infer-type!, Block -- Type,
@@ -400,7 +400,7 @@ def(type-trace-stack!, Type -- +IO,
         TTensor ->
             swap type-trace-stack-dom! type-trace!,
         TVar ->
-            var-name@
+            var-name @
             dup name-trace!
             name-could-be-stack-var
             if(id, " ." str-trace!),
@@ -413,12 +413,12 @@ def(type-trace!, Type -- +IO,
         TYPE_ERROR -> "<ERROR>" str-trace!,
         TYPE_DONT_CARE -> "_" str-trace!,
         TPrim -> type-trace-prim!,
-        TVar -> var-name@ name-trace!,
+        TVar -> var-name @ name-trace!,
         TMeta -> meta-trace!,
         TTensor -> "[" str-trace! TTensor type-trace-stack! "]" str-trace!,
         TMorphism -> "[" str-trace! TMorphism type-trace-sig! "]" str-trace!,
-        TData -> data-name@ name-trace!,
-        TTable -> table-name@ name-trace!,
+        TData -> data-name @ name-trace!,
+        TTable -> table-name @ name-trace!,
         THole -> name-trace!,
         TApp -> app-type-trace!,
         TValue -> value-trace!
@@ -572,7 +572,7 @@ def(prim-type-arity, PrimType -- Int,
 
 def(type-arity, Type -- Int,
     type-expand match(
-        TData -> data-arity@,
+        TData -> data-arity @,
         TApp -> drop type-arity 1-,
         TPrim -> prim-type-arity,
         _ -> drop 0,
@@ -593,10 +593,10 @@ def(type-head, Type -- Type,
 def(type-max-count?, Type -- Type Maybe(Int),
     dup match(
         TApp -> drop type-max-count? nip,
-        TTable -> table-max-count@ 1+ SOME,
+        TTable -> table-max-count @ 1+ SOME,
         TData ->
             data-is-enum? if(
-                data-tags@ len SOME,
+                data-tags @ len SOME,
                 drop NONE
             ),
         _ -> drop NONE
@@ -611,7 +611,7 @@ def(meta-alloc!, MetaVar, MetaVar.alloc!)
 def(meta-type!, Type MetaVar --, true over meta-is-defined! meta-type-raw!)
 def(meta-expand, MetaVar -- Type,
     dup meta-is-defined @ if(
-        sip(meta-type-raw@ type-expand dup) meta-type-raw!,
+        sip(meta-type-raw @ type-expand dup) meta-type-raw!,
         TMeta
     ))
 
@@ -733,7 +733,7 @@ def(tag-is-transparent?, Tag -- Tag Bool,
 # DATA #
 ########
 
-def(data-num-tags, Data -- Int, data-tags@ len)
+def(data-num-tags, Data -- Int, data-tags @ len)
 
 ||| Adds constructor to data type, and gives tag its rank.
 def(data-add-tag!, Tag Data --,
@@ -744,7 +744,7 @@ def(data-is-enum?, Data -- Data Bool,
     dup data-tags @ all?(tag-num-inputs? 0 ==) nip)
 
 def(data-is-transparent, Data -- Bool,
-    data-tags@ match(
+    data-tags @ match(
         L1 -> tag-num-inputs? 1 == nip,
         _ -> drop false
     ))

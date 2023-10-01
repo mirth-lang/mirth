@@ -147,27 +147,27 @@ def(block-force!, Block --,
     ))
 
 def(block-unify-type!, Gamma Block Type -- Gamma Type,
-    swap dup block-deferred@ if(
-        dup block-forcing@ if(
-            block-token@
+    swap dup block-deferred @ if(
+        dup block-forcing @ if(
+            block-token @
             "Recursive type detected for block."
             emit-fatal-error!,
 
             block-unify-type-aux!
         ),
-        block-arrow-raw@ arrow-type swap type-unify!
+        block-arrow-raw @ arrow-type swap type-unify!
     ))
 
 def(block-unify-type-aux!, Gamma Type Block -- Gamma Type,
     true over block-forcing!
     dip(over gamma-token@ elab-expand-morphism! drop)
     rotr dip(
-        dip(dup block-ctx@ over block-token@) swap
+        dip(dup block-ctx @ over block-token @) swap
         ab-build!(elab-atoms!)
 
         dup2 swap block-arrow-raw!
         dip(false swap block-deferred!)
-        arrow-cod@
+        arrow-cod @
     )
     type-unify!)
 
@@ -202,8 +202,8 @@ field(case-mid, Case, Type)
 field(case-body, Case, Arrow)
 
 def(match-add-case!, Match Case -- Match,
-    dip(dup match-cases@) cases-cover-case? if(
-        case-token@ "Case is unreachable." emit-error! drop,
+    dip(dup match-cases @) cases-cover-case? if(
+        case-token @ "Case is unreachable." emit-error! drop,
         snoc over match-cases!
     ))
 
@@ -213,18 +213,18 @@ def(match-is-exhaustive?, Match -- Match Bool,
         match-scrutinee-data? match(
             SOME ->
                 data-num-tags
-                over match-cases@ len ==,
+                over match-cases @ len ==,
             NONE ->
                 true # presume exhaustiveness
         )
     ))
 
 def(match-has-default-case?, Match -- Match Bool,
-    dup match-cases@ cases-have-default-case)
+    dup match-cases @ cases-have-default-case)
 
 ||| Get type we're matching over.
 def(match-scrutinee-type?, Match -- Match Maybe(Type),
-    dup match-dom@ type-expand match(
+    dup match-dom @ type-expand match(
         TTensor -> nip SOME,
         _ -> drop NONE
     ))
@@ -256,13 +256,13 @@ def(cases-cover-case, List(Case) Case -- Bool,
 
 ||| Ask whether the second case covers the first case already.
 def(case-is-covered, Case Case -- Bool,
-    dip(case-pattern@) case-pattern@ pattern-is-covered)
+    dip(case-pattern @) case-pattern @ pattern-is-covered)
 
 def(cases-have-default-case, List(Case) -- Bool,
     any(dup case-is-default-case))
 
 def(case-is-default-case, Case -- Bool,
-    case-pattern@ PATTERN_UNDERSCORE ==)
+    case-pattern @ PATTERN_UNDERSCORE ==)
 
 ###########
 # PATTERN #

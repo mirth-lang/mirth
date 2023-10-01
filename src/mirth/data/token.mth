@@ -31,7 +31,7 @@ def(token-alloc!, Token,
     TOKEN_NONE over token-value!)
 
 def(token-is-int?, Token -- Token Bool,
-    dup token-value@ match(TOKEN_INT -> drop true, _ -> drop false))
+    dup token-value @ match(TOKEN_INT -> drop true, _ -> drop false))
 def(token-is-str?, Token -- Token Bool,
     dup token-value @ match(TOKEN_STR -> drop true, _ -> drop false))
 def(token-is-name?, Token -- Token Bool,
@@ -115,9 +115,9 @@ def(token-is-right-enclosure?, Token -- Token Bool,
     ))
 
 def(token-location, Token -- Location,
-    dup token-module@ swap
-    dup token-row@ swap
-    token-col@
+    dup token-module @ swap
+    dup token-row @ swap
+    token-col @
     location-pack)
 def(token-location?, Token -- Token Location,
     dup token-location)
@@ -130,13 +130,13 @@ def(token-pred, Token -- Token, Token.pred)
 
 # Get next token, respecting nesting of tokens and arguments.
 def(token-next, Token -- Token,
-    dup token-value@ match(
+    dup token-value @ match(
         TOKEN_LPAREN -> nip token-succ,
         TOKEN_LSQUARE -> nip token-succ,
         TOKEN_LCURLY -> nip token-succ,
         TOKEN_NAME ->
             drop token-succ
-            dup token-value@ match(
+            dup token-value @ match(
                 TOKEN_LPAREN -> nip token-succ,
                 _ -> drop
             ),
@@ -145,7 +145,7 @@ def(token-next, Token -- Token,
 
 # Get prev token, respecting nesting of tokens and arguments.
 def(token-prev, Token -- Token,
-    token-pred dup token-value@ match(
+    token-pred dup token-value @ match(
         TOKEN_RSQUARE -> nip,
         TOKEN_RCURLY -> nip,
         TOKEN_RPAREN ->
@@ -330,7 +330,7 @@ def(sig-count-types, Token -- Int Token,
     ))
 
 def(sig-token-is-type?, Token -- Token Bool,
-    dup token-value@ match(
+    dup token-value @ match(
         TOKEN_NAME -> name-could-be-type,
         _ -> drop false
     ))

@@ -115,7 +115,7 @@ field(prim-decl, Prim, [Token -- Token])
 
 ||| Does this name refer to this primitive?
 def(name-prim=, Name Prim -- Bool,
-    dip(name-def@) DEF_PRIM ==)
+    dip(name-def @) DEF_PRIM ==)
 
 ||| Does the token refer to this primitive? Preserves the token.
 def(token-prim=?, Token Prim -- Token Bool,
@@ -123,7 +123,7 @@ def(token-prim=?, Token Prim -- Token Bool,
 
 ||| Does the token refer to this primitive?
 def(token-prim=, Token Prim -- Bool,
-    swap token-value@ match(
+    swap token-value @ match(
         TOKEN_NAME ->
             swap name-prim=,
         _ ->
