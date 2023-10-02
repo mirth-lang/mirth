@@ -561,8 +561,8 @@ def(elab-expand-tensor!, Type Token -- Type Type Token,
         TMeta ->
             dip(meta-alloc! TMeta
                 meta-alloc! TMeta
-                dup2 TTensor)
-            meta-type! rotl,
+                dup2 T* SOME)
+            meta-type ! rotl,
         _ ->
             drop dup "expected tuple type" emit-error!
             dip(TYPE_ERROR TYPE_ERROR)
@@ -575,8 +575,8 @@ def(elab-expand-morphism!, Type Token -- Type Type Token,
         TMeta ->
             dip(meta-alloc! TMeta
                 meta-alloc! TMeta
-                dup2 TMorphism)
-            meta-type! rotl,
+                dup2 T-> SOME)
+            meta-type ! rotl,
         _ ->
             drop dup "expected block type" emit-error!
             dip(TYPE_ERROR TYPE_ERROR)

@@ -2298,7 +2298,6 @@ static void mwstat (void) {
  static void mwtype_max_count_3F_ (void);
  static void mwmeta_trace_21_ (void);
  static void mwmeta_alloc_21_ (void);
- static void mwmeta_type_21_ (void);
  static void mwmeta_expand (void);
  static void mwmeta_unify_21_ (void);
  static void mwtype_hole_unify_21_ (void);
@@ -3575,21 +3574,15 @@ static void mwstat (void) {
  static void mb_T4_1 (void);
  static void mb_T5_1 (void);
  static void mb_T6_1 (void);
- static void mb_meta_expand_1 (void);
- static void mb_meta_expand_2 (void);
- static void mb_meta_expand_3 (void);
  static void mb_type_unify_failed_21__1 (void);
  static void mb_type_unify_failed_21__2 (void);
  static void mb_type_unify_failed_21__3 (void);
  static void mb_type_hole_unify_21__1 (void);
  static void mb_type_hole_unify_21__2 (void);
- static void mb_meta_unify_21__1 (void);
- static void mb_meta_unify_21__7 (void);
- static void mb_meta_unify_21__2 (void);
- static void mb_meta_unify_21__6 (void);
  static void mb_meta_unify_21__3 (void);
- static void mb_meta_unify_21__5 (void);
+ static void mb_meta_unify_21__6 (void);
  static void mb_meta_unify_21__4 (void);
+ static void mb_meta_unify_21__5 (void);
  static void mb_type_var_unify_21__1 (void);
  static void mb_type_var_unify_21__3 (void);
  static void mb_type_var_unify_21__2 (void);
@@ -3638,8 +3631,6 @@ static void mwstat (void) {
  static void mb_type_var_freshen_1 (void);
  static void mb_type_var_freshen_3 (void);
  static void mb_type_var_freshen_2 (void);
- static void mb_meta_freshen_1 (void);
- static void mb_meta_freshen_2 (void);
  static void mb_type_pair_freshen_1 (void);
  static void mb_type_pair_freshen_2 (void);
  static void mb_type_max_count_3F__4 (void);
@@ -3988,8 +3979,7 @@ static void mwstat (void) {
  static void mwtoken_col (void);
  static void mwbuffer_size (void);
  static void mwbuffer_name (void);
- static void mwmeta_is_defined (void);
- static void mwmeta_type_raw (void);
+ static void mwmeta_type (void);
  static void mwdata_header (void);
  static void mwdata_name (void);
  static void mwdata_arity (void);
@@ -6955,9 +6945,11 @@ static void mwelab_expand_morphism_21_ (void){
     mwmeta_alloc_21_();
     mwTMeta();
     mwdup2();
-    mwTMorphism();
+    mwT__3E_();
+    mwSOME();
       push_value(d2); }
-    mwmeta_type_21_();
+    mwmeta_type();
+    mw_21_();
     mwrotl();
     break;
     default:
@@ -6973,38 +6965,16 @@ static void mwelab_expand_morphism_21_ (void){
     }
 }
 
-static void mwmeta_type_21_ (void){
-    mwtrue();
-    mwover();
-    mwmeta_is_defined();
-    mw_21_();
-    mwmeta_type_raw();
-    mw_21_();
-}
-
-static value_t* fieldptr_meta_type_raw (usize i) {
+static value_t* fieldptr_meta_type (usize i) {
     static struct value_t * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-static void mwmeta_type_raw (void){
+static void mwmeta_type (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_meta_type_raw(index);
-    push_ptr(v);
-}
-
-static value_t* fieldptr_meta_is_defined (usize i) {
-    static struct value_t * p = 0;
-    usize m = 65536;
-    if (!p) { p = calloc(m, sizeof *p); }
-    if (i>=m) { write(2,"table too big\n",14); exit(123); }
-    return p+i;
-}
-static void mwmeta_is_defined (void){
-    usize index = (usize)pop_u64();
-    value_t *v = fieldptr_meta_is_defined(index);
+    value_t *v = fieldptr_meta_type(index);
     push_ptr(v);
 }
 
@@ -7677,12 +7647,16 @@ static void mwtype_var_unify_21_ (void){
 
 static void mwmeta_unify_21_ (void){
     mwdup();
-    mwmeta_is_defined();
+    mwmeta_type();
     mw_40_();
-    if (pop_u64()) {
-    mwmeta_expand();
+    switch (get_top_data_tag()) {
+    case 1LL:
+    do_pack_uncons(); do_drop();
+    mwnip();
     mwtype_unify_21_();
-    } else {
+    break;
+    case 0LL:
+    do_drop();
     mwdup2();
     mwTMeta();
     mw_3D__3D_();
@@ -7696,13 +7670,15 @@ static void mwmeta_unify_21_ (void){
     mwTMeta();
     mwtype_unify_failed_21_();
     } else {
+    mwtuck();
+    mwSOME();
     mwswap();
-    { value_t d4 = pop_value();
-    mwdup();
-      push_value(d4); }
-    mwmeta_type_21_();
+    mwmeta_type();
+    mw_21_();
     }
     }
+    break;
+    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
 }
 
@@ -7815,29 +7791,6 @@ static void mwtype2_has_meta (void){
     }
 }
 
-static void mwmeta_expand (void){
-    mwdup();
-    mwmeta_is_defined();
-    mw_40_();
-    if (pop_u64()) {
-    push_u64(0);
-    push_fnptr(&mb_meta_expand_3);
-    do_pack_cons();
-    mwsip();
-    mwmeta_type_raw();
-    mw_21_();
-    } else {
-    mwTMeta();
-    }
-}
-
-static void mb_meta_expand_3 (void) {
-    do_drop();
-    mwmeta_type_raw();
-    mw_40_();
-    mwtype_expand();
-    mwdup();
-}
 static void mwtype_hole_unify_21_ (void){
     mwis_nil_3F_();
     if (pop_u64()) {
@@ -7862,6 +7815,28 @@ static void mwtype_expand (void){
     default:
     mwid();
     break;
+    }
+}
+
+static void mwmeta_expand (void){
+    mwdup();
+    mwmeta_type();
+    mw_40_();
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_drop();
+    mwTMeta();
+    break;
+    case 1LL:
+    do_pack_uncons(); do_drop();
+    mwtype_expand();
+    mwtuck();
+    mwSOME();
+    mwswap();
+    mwmeta_type();
+    mw_21_();
+    break;
+    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
 }
 
@@ -19012,15 +18987,21 @@ static void mwtype_pair_freshen (void){
 
 static void mwmeta_freshen (void){
     mwdup();
-    mwmeta_is_defined();
+    mwmeta_type();
     mw_40_();
-    if (pop_u64()) {
-    mwmeta_expand();
-    mwtype_freshen();
-    } else {
+    switch (get_top_data_tag()) {
+    case 0LL:
+    do_drop();
     mwdrop();
     mwmeta_alloc_21_();
     mwTMeta();
+    break;
+    case 1LL:
+    do_pack_uncons(); do_drop();
+    mwnip();
+    mwtype_freshen();
+    break;
+    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
 }
 
@@ -19984,9 +19965,11 @@ static void mwelab_expand_tensor_21_ (void){
     mwmeta_alloc_21_();
     mwTMeta();
     mwdup2();
-    mwTTensor();
+    mwT_2A_();
+    mwSOME();
       push_value(d2); }
-    mwmeta_type_21_();
+    mwmeta_type();
+    mw_21_();
     mwrotl();
     break;
     default:
