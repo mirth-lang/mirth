@@ -330,9 +330,8 @@ def(ab-external!, External --, OP_EXTERNAL ab-op!)
 
 def(ab-block-at!, *a Token [ *a -- *b ] -- *b,
     \([f] ->
-        Block.alloc! dip(
-            ab-ctx@ meta-alloc! TMeta rotl ab-build!(f)
-        ) tuck block-arrow-raw ! OP_BLOCK ab-op!
+        ab-ctx@ meta-alloc! TMeta rotl ab-build!(f)
+        block-new! OP_BLOCK ab-op!
     ))
 
 def(ab-block!, *a [ *a -- *b ] -- *b,
@@ -451,31 +450,13 @@ def(elab-tag-ctx-sig!, Tag -- Ctx Type +Elab,
     ))
 
 
-def(elab-external-sig!, External -- Type +Elab,
-    elab-external-ctx-sig! nip)
-
-def(elab-external-ctx!, External -- Ctx +Elab,
-    elab-external-ctx-sig! drop)
-
-def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
-    dup external-sig-is-checked @ if(
-        dup external-type @ dip(external-ctx @),
-
-        dup external-sig @
-        dip(type-elab-default)
-        elab-type-sig! drop dip(type-elab-ctx)
-        sip2(
-            rotl
-            tuck external-type !
-            tuck external-ctx !
-            true swap external-sig-is-checked !
-        )
-    ))
+def(elab-external-sig!, External -- Type, elab-external-ctx-sig! nip)
+def(elab-external-ctx!, External -- Ctx, elab-external-ctx-sig! drop)
+def(elab-external-ctx-sig!, External -- Ctx Type, external-ctx-type force2!)
 
 def(elab-word-sig!, Word -- Type, elab-word-ctx-sig! nip)
 def(elab-word-ctx!, Word -- Ctx, elab-word-ctx-sig! drop)
-def(elab-word-ctx-sig!, Word -- Ctx Type,
-    word-ctx-type force2!)
+def(elab-word-ctx-sig!, Word -- Ctx Type, word-ctx-type force2!)
 
 def(elab-word-body!, Word -- Arrow, word-arrow force!)
 
@@ -891,7 +872,11 @@ def(elab-def-external!, Token -- Token,
             External.alloc!
             dup2 DEF_EXTERNAL swap name-def !
             tuck external-name !
-            external-sig !,
+            tuck external-sig !
+            dup delay(
+                type-elab-default swap external-sig @
+                elab-type-sig! drop dip(type-elab-ctx) pack2
+            ) swap external-ctx-type !,
 
             drop "word already defined" emit-fatal-error!
         ),

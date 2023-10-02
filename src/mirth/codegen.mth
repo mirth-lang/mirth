@@ -1369,21 +1369,21 @@ data(Need,
 var(c99-need-stack, Stack(Need))
 
 field(c99-word-needed, Word, Bool)
+field(c99-block-needed, Block, Bool)
+field(c99-field-needed, Field, Bool)
+
 def(need-word!, Word -- Word,
     dup c99-word-needed @ if(
         id,
         true over c99-word-needed !
         dup NEED_WORD c99-need-stack stack-push!
     ))
-
 def(need-block!, Block -- Block,
-    dup block-needed @ if(
+    dup c99-block-needed @ if(
         id,
-        true over block-needed !
+        true over c99-block-needed !
         dup NEED_BLOCK c99-need-stack stack-push!
     ))
-
-field(c99-field-needed, Field, Bool)
 def(need-field!, Field -- Field,
     dup c99-field-needed @ if(
         id,
@@ -1393,7 +1393,6 @@ def(need-field!, Field -- Field,
 
 def(c99-emit-needs!, --,
     while-some(c99-need-stack stack-pop!, c99-emit-need!))
-
 def(c99-emit-need!, Need --,
     match(
         NEED_WORD -> c99-emit-word-def!,
@@ -1405,8 +1404,7 @@ def(c99-emit-block-push!, Block -- +IO,
     need-block!
     dup block-arrow arrow-ctx @ c99-pack-ctx!
     "    push_fnptr(&" . .block ");" ;
-    "    do_pack_cons();" ;
-    )
+    "    do_pack_cons();" ;)
 
 def(c99-emit-var!, Var -- +IO,
     dup var-auto-run @ dip(c99-emit-var-push!)
@@ -1414,8 +1412,7 @@ def(c99-emit-var!, Var -- +IO,
 
 def(c99-emit-var-push!, Var -- +IO,
     "    push_value(" . dup .var-val ");" ;
-    "    incref(" . .var-val ");" ;
-    )
+    "    incref(" . .var-val ");" ;)
 
 def(c99-emit-lambda!, Lambda -- +IO,
     "    {" ;
@@ -1482,7 +1479,7 @@ def(c99-emit-block-sigs!, +IO,
     Block.for(c99-emit-block-sig!) .lf)
 
 def(c99-emit-block-sig!, Block -- +IO,
-    false over block-needed !
+    false over c99-block-needed !
     false over c99-block-emitted !
     " static void " . .block " (void);" ;)
 
@@ -1499,7 +1496,7 @@ def(c99-emit-block-defs!, +IO,
 
 field(c99-block-emitted, Block, Bool)
 def(c99-emit-block-def!, Block -- +IO,
-    dup block-needed @ if(
+    dup c99-block-needed @ if(
         dup c99-block-emitted @ if(
             drop,
 
@@ -1569,5 +1566,4 @@ def(c99-emit-main!, Arrow -- +IO,
     "    global_argv = argv;" ;
     c99-emit-arrow!
     "    return 0;" ;
-    "}" ;
-    )
+    "}" ;)

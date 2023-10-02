@@ -80,12 +80,11 @@ field(lambda-cod, Lambda, Type)
 field(lambda-params, Lambda, List(Param))
 field(lambda-body, Lambda, Arrow)
 
-field(block-deferred, Block, Bool)
-field(block-forcing, Block, Bool)
 field(block-ctx, Block, Ctx)
 field(block-token, Block, Token)
-field(block-arrow-raw, Block, Arrow)
-field(block-needed, Block, Bool)
+field(block-dom, Block, Type)
+field(block-cod, Block, Type)
+field(block-arrow-lazy, Block, Lazy(Arrow))
 
 #######
 # ARG #
@@ -115,69 +114,35 @@ def(block-new!, Arrow -- Block,
     Block.alloc!
     over arrow-ctx @ over block-ctx !
     over arrow-token-start @ over block-token !
-    tuck block-arrow-raw !)
+    over arrow-dom @ over block-dom !
+    over arrow-cod @ over block-cod !
+    tuck dip(ready) block-arrow-lazy !)
 
 def(block-new-deferred!, Ctx Token -- Block,
     Block.alloc!
-    true over block-deferred !
     tuck block-token !
-    tuck block-ctx !)
+    tuck block-ctx !
+    meta-alloc! TMeta over block-dom !
+    meta-alloc! TMeta over block-cod !
+    dup delay(
+        dup block-ctx @ swap
+        dup block-dom @ swap
+        dup block-cod @ swap
+        block-token @
+        elab-arrow-hom!
+    ) over block-arrow-lazy !)
 
 def(block-arrow, Block -- Arrow,
-    dup block-force!
-    block-arrow-raw @)
+    block-arrow-lazy force!)
 
 def(block-force!, Block --,
-    dup block-deferred @ if(
-        dup block-forcing @ if(
-            block-token @
-            "Recursive type detected for block."
-            emit-fatal-error!,
-
-            true over block-forcing !
-
-            dup block-ctx @ over block-token @
-            dip(meta-alloc! TMeta)
-            ab-build!(elab-atoms!)
-            over block-arrow-raw !
-            false swap block-deferred !
-        ),
-        drop
-    ))
+    block-arrow drop)
 
 def(block-unify-type!, Gamma Block Type -- Gamma Type,
-    swap dup block-deferred @ if(
-        dup block-forcing @ if(
-            block-token @
-            "Recursive type detected for block."
-            emit-fatal-error!,
-
-            block-unify-type-aux!
-        ),
-        block-arrow-raw @ arrow-type swap type-unify!
-    ))
-
-def(block-unify-type-aux!, Gamma Type Block -- Gamma Type,
-    true over block-forcing !
-    dip(over gamma-token@ elab-expand-morphism! drop)
-    rotr dip(
-        dip(dup block-ctx @ over block-token @) swap
-        ab-build!(elab-atoms!)
-
-        dup2 swap block-arrow-raw !
-        dip(false swap block-deferred !)
-        arrow-cod @
-    )
-    type-unify!)
-
-# block-force-type! : Block Type --
-#     block-deferred? if(
-#         drop,
-#     )
-
-#     dip(block-token@)
-
-#     ab-build!(elab-atoms!)
+    over2 gamma-token@ elab-expand-morphism! drop
+    dip(swap sip(block-dom @ type-unify! drop))
+    swap sip(block-cod @ type-unify! drop)
+    block-arrow arrow-type)
 
 #########
 # MATCH #

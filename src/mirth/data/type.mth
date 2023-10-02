@@ -316,7 +316,7 @@ def(value-type-unify!, Gamma Value Type -- Gamma Type,
     ))
 
 def(arrow-type, Arrow -- Type,
-    dup arrow-dom @ swap arrow-cod @ TMorphism)
+    dup arrow-dom @ swap arrow-cod @ T->)
     # TODO effects
 
 def(block-infer-type!, Block -- Type,
