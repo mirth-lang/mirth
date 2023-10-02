@@ -57,11 +57,8 @@ field(data-tags, Data, List(Tag))
 field(tag-data, Tag, Data)
 field(tag-name, Tag, Name)
 field(tag-value, Tag, Int)
-field(tag-sig, Tag, Token)
-field(tag-has-sig, Tag, Bool)
-field(tag-sig-is-checked, Tag, Bool)
-field(tag-ctx, Tag, Ctx)
-field(tag-type-raw, Tag, Type)
+field(tag-sig, Tag, Maybe(Token))
+field(tag-ctx-type, Tag, Lazy([Ctx Type]))
 
 def(def-type!, Type Str --, dip(DEF_TYPE) name-new! name-def !)
 
@@ -715,10 +712,13 @@ def(subst-match-var, Gamma Type Var Subst -- Gamma Subst,
 
 def(tag-num-inputs?, Tag -- Tag Int,
     # TODO: this should actually be calculated & stored during elaboration based on the type
-    dup tag-has-sig @ if(
-        dup tag-sig @ 0 swap
-        while(token-run-end? not, token-next dip(1+)) drop,
-        0
+    dup tag-sig @ match(
+        NONE -> 0,
+        SOME ->
+            0 swap
+            while(token-run-end? not,
+                token-next dip(1+))
+            drop
     ))
 
 def(tag-is-transparent?, Tag -- Tag Bool,

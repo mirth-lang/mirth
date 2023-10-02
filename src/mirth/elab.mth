@@ -414,41 +414,9 @@ def(elab-var-sig!, Var -- OpSig,
         var-type @ OPSIG_PUSH
     ))
 
-def(elab-tag-sig!, Tag -- Type +Elab,
-    elab-tag-ctx-sig! nip)
-
-def(elab-tag-ctx!, Tag -- Ctx +Elab,
-    elab-tag-ctx-sig! drop)
-
-def(elab-tag-ctx-sig!, Tag -- Ctx Type +Elab,
-    dup tag-sig-is-checked @ if(
-        dup tag-type-raw @ dip(tag-ctx @),
-
-        type-elab-default over
-
-        { Tag TypeElab Tag }
-        tag-data @ data-header @ elab-type-atom! drop T1
-        { Tag TypeElab Type }
-        dip(
-            over dup tag-has-sig @
-            if(
-                tag-sig @ T0 swap elab-type-stack-rest!
-                token-run-end? if(drop, "syntax error" emit-fatal-error!),
-
-                drop T0
-            )
-        )
-        { Tag TypeElab Type Type }
-        T-> dip(type-elab-ctx)
-        { Tag Ctx Type }
-        sip2(
-            rotl
-            tuck tag-type-raw !
-            tuck tag-ctx !
-            true swap tag-sig-is-checked !
-        )
-    ))
-
+def(elab-tag-sig!, Tag -- Type, elab-tag-ctx-sig! nip)
+def(elab-tag-ctx!, Tag -- Ctx , elab-tag-ctx-sig! drop)
+def(elab-tag-ctx-sig!, Tag -- Ctx Type, tag-ctx-type force2!)
 
 def(elab-external-sig!, External -- Type, elab-external-ctx-sig! nip)
 def(elab-external-ctx!, External -- Ctx, elab-external-ctx-sig! drop)
@@ -820,15 +788,24 @@ def(elab-data-tag!, Data Token -- Data,
     { Data Token Tag }
     swap token-succ
     token-is-arrow? if(
-        dip(true over tag-has-sig !)
-        token-succ tuck dip(tag-sig !)
-        while(token-run-end? not, token-next),
+        token-succ SOME over tag-sig !,
     token-run-end? if(
-        nip,
+        drop NONE over tag-sig !,
         "Expected arrow, comma, or right paren." emit-fatal-error!
     ))
-    { Data Token }
-    drop)
+    { Data Tag }
+    dup delay(
+        type-elab-default
+        over tag-data @ data-header @ elab-type-atom! drop T1
+        dip(T0 rotl tag-sig @ match(
+            NONE -> id,
+            SOME ->
+                elab-type-stack-rest!
+                token-run-end? if(drop, "syntax error" emit-fatal-error!)
+        ))
+        T-> dip(type-elab-ctx) pack2
+    )
+    swap tag-ctx-type !)
 
 def(expect-token-comma, Token -- Token,
     token-is-comma? if(id, "Expected comma." emit-fatal-error!))
