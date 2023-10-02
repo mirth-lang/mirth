@@ -320,7 +320,7 @@ def(arrow-type, Arrow -- Type,
     # TODO effects
 
 def(block-infer-type!, Block -- Type,
-    block-arrow arrow-type)
+    block-arrow force! arrow-type)
 
 def(type-unify-pair!, Gamma Type Type Type Type -- Gamma Type Type,
     dip(swap dip(type-unify! swap)) type-unify! dip(swap))
@@ -351,24 +351,26 @@ def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
 
 def(type-has-meta, MetaVar Type -- Bool,
     type-expand match(
+        TMeta -> ==,
         TYPE_ERROR -> drop false,
         TYPE_DONT_CARE -> drop false,
         TPrim -> drop2 false,
         TVar -> drop2 false,
         THole -> drop2 false,
-        TMeta -> ==,
-        TTensor -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
-        TMorphism -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
-        TApp -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
+        TTensor -> type2-has-meta,
+        TMorphism -> type2-has-meta,
+        TApp -> type2-has-meta,
         TData -> drop2 false,
         TTable -> drop2 false,
         TValue -> match(
             VALUE_INT -> drop2 false,
             VALUE_STR -> drop2 false,
-            VALUE_BLOCK -> block-infer-type! type-has-meta
-                # TODO: handle deferred blocks
+            VALUE_BLOCK -> sip(block-dom @) block-cod @ type2-has-meta
         )
     ))
+
+def(type2-has-meta, MetaVar Type Type -- Bool,
+    over2 swap type-has-meta if(drop2 true, type-has-meta))
 
 def(type-trace-sig!, Type -- +IO,
     type-expand match(
@@ -421,14 +423,14 @@ def(type-trace!, Type -- +IO,
         TTable -> table-name @ name-trace!,
         THole -> name-trace!,
         TApp -> app-type-trace!,
-        TValue -> value-trace!
+        TValue -> value-as-type type-trace!
     ))
 
-def(value-trace!, Value -- +IO,
+def(value-as-type, Value -- Type,
     match(
-        VALUE_INT -> int-trace!,
-        VALUE_STR -> drop "\"...\"" str-trace!,
-        VALUE_BLOCK -> drop "[...]" str-trace!,
+        VALUE_INT -> drop PRIM_TYPE_INT TPrim,
+        VALUE_STR -> drop PRIM_TYPE_STR TPrim,
+        VALUE_BLOCK -> sip(block-dom @) block-cod @ T->
     ))
 
 def(type-trace-prim!, PrimType -- +IO,

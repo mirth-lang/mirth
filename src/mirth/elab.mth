@@ -275,7 +275,7 @@ def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
     ))
 
 def(block-to-arg, Block -- Arg,
-    dup block-arrow arrow-to-run-var match(
+    dup block-arrow force! arrow-to-run-var match(
         NONE -> ARG_BLOCK,
         SOME -> ARG_VAR_RUN nip
     ))

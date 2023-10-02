@@ -2272,12 +2272,13 @@ static void mwstat (void) {
  static void mwtype_var_unify_21_ (void);
  static void mwtype_has_meta_3F_ (void);
  static void mwtype_has_meta (void);
+ static void mwtype2_has_meta (void);
  static void mwtype_trace_sig_21_ (void);
  static void mwtype_trace_stack_dom_21_ (void);
  static void mwtype_trace_stack_cod_21_ (void);
  static void mwtype_trace_stack_21_ (void);
  static void mwtype_trace_21_ (void);
- static void mwvalue_trace_21_ (void);
+ static void mwvalue_as_type (void);
  static void mwtype_trace_prim_21_ (void);
  static void mwtype_semifreshen_sig (void);
  static void mwtype_semifreshen_sig_aux (void);
@@ -2353,7 +2354,6 @@ static void mwstat (void) {
  static void mwarrow_atom_add_21_ (void);
  static void mwblock_new_21_ (void);
  static void mwblock_new_deferred_21_ (void);
- static void mwblock_arrow (void);
  static void mwblock_force_21_ (void);
  static void mwblock_unify_type_21_ (void);
  static void mwMatch_2E_MAX (void);
@@ -3519,7 +3519,6 @@ static void mwstat (void) {
  static void mb_c99_emit_block_defs_21__1 (void);
  static void mb_atom_arg_add_21__1 (void);
  static void mb_arrow_atom_add_21__1 (void);
- static void mb_block_new_21__1 (void);
  static void mb_block_new_deferred_21__1 (void);
  static void mb_elab_arrow_hom_21__1 (void);
  static void mb_block_unify_type_21__1 (void);
@@ -3612,21 +3611,16 @@ static void mwstat (void) {
  static void mb_value_unify_21__10 (void);
  static void mb_value_unify_21__15 (void);
  static void mb_value_unify_21__16 (void);
- static void mb_type_has_meta_8 (void);
- static void mb_type_has_meta_9 (void);
- static void mb_type_has_meta_10 (void);
- static void mb_type_has_meta_12 (void);
- static void mb_type_has_meta_13 (void);
- static void mb_type_has_meta_14 (void);
  static void mb_type_has_meta_16 (void);
- static void mb_type_has_meta_17 (void);
- static void mb_type_has_meta_18 (void);
+ static void mb_type2_has_meta_1 (void);
+ static void mb_type2_has_meta_2 (void);
  static void mb_type_trace_stack_dom_21__1 (void);
  static void mb_type_trace_stack_dom_21__2 (void);
  static void mb_type_trace_stack_cod_21__1 (void);
  static void mb_type_trace_stack_cod_21__2 (void);
  static void mb_type_trace_stack_21__3 (void);
  static void mb_type_trace_stack_21__4 (void);
+ static void mb_value_as_type_4 (void);
  static void mb_type_semifreshen_sig_1 (void);
  static void mb_type_semifreshen_sig_2 (void);
  static void mb_type_sig_needs_fresh_stack_rest_3F__2 (void);
@@ -4035,7 +4029,7 @@ static void mwstat (void) {
  static void mwblock_token (void);
  static void mwblock_dom (void);
  static void mwblock_cod (void);
- static void mwblock_arrow_lazy (void);
+ static void mwblock_arrow (void);
  static void mwmatch_ctx (void);
  static void mwmatch_dom (void);
  static void mwmatch_cod (void);
@@ -6843,6 +6837,7 @@ static void mwblock_unify_type_21_ (void){
     do_pack_cons();
     mwsip();
     mwblock_arrow();
+    mwforce_21_();
     mwarrow_type();
 }
 
@@ -6882,21 +6877,16 @@ static void mwarrow_dom (void){
     push_ptr(v);
 }
 
-static void mwblock_arrow (void){
-    mwblock_arrow_lazy();
-    mwforce_21_();
-}
-
-static value_t* fieldptr_block_arrow_lazy (usize i) {
+static value_t* fieldptr_block_arrow (usize i) {
     static struct value_t * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
-static void mwblock_arrow_lazy (void){
+static void mwblock_arrow (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_block_arrow_lazy(index);
+    value_t *v = fieldptr_block_arrow(index);
     push_ptr(v);
 }
 
@@ -7171,6 +7161,7 @@ static void mwvalue_unify_21_ (void){
 
 static void mwblock_infer_type_21_ (void){
     mwblock_arrow();
+    mwforce_21_();
     mwarrow_type();
 }
 
@@ -7357,34 +7348,46 @@ static void mwtype_trace_21_ (void){
     break;
     case 11LL:
     do_pack_uncons(); do_drop();
-    mwvalue_trace_21_();
+    mwvalue_as_type();
+    mwtype_trace_21_();
     break;
     default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
 }
 
-static void mwvalue_trace_21_ (void){
+static void mwvalue_as_type (void){
     switch (get_top_data_tag()) {
     case 0LL:
     do_pack_uncons(); do_drop();
-    mwint_trace_21_();
+    mwdrop();
+    mwPRIM_TYPE_INT();
+    mwTPrim();
     break;
     case 1LL:
     do_pack_uncons(); do_drop();
     mwdrop();
-    push_ptr("\"...\"\0\0\0");
-    mwstr_trace_21_();
+    mwPRIM_TYPE_STR();
+    mwTPrim();
     break;
     case 2LL:
     do_pack_uncons(); do_drop();
-    mwdrop();
-    push_ptr("[...]\0\0\0");
-    mwstr_trace_21_();
+    push_u64(0);
+    push_fnptr(&mb_value_as_type_4);
+    do_pack_cons();
+    mwsip();
+    mwblock_cod();
+    mw_40_();
+    mwT__3E_();
     break;
     default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
 }
 
+static void mb_value_as_type_4 (void) {
+    do_drop();
+    mwblock_dom();
+    mw_40_();
+}
 static void mwapp_type_trace_21_ (void){
     mwapp_type_trace_open_21_();
     push_ptr(")\0\0\0");
@@ -7711,6 +7714,10 @@ static void mwtype_has_meta_3F_ (void){
 static void mwtype_has_meta (void){
     mwtype_expand();
     switch (get_top_data_tag()) {
+    case 3LL:
+    do_pack_uncons(); do_drop();
+    mw_3D__3D_();
+    break;
     case 0LL:
     do_drop();
     mwdrop();
@@ -7736,54 +7743,20 @@ static void mwtype_has_meta (void){
     mwdrop2();
     mwfalse();
     break;
-    case 3LL:
-    do_pack_uncons(); do_drop();
-    mw_3D__3D_();
-    break;
     case 8LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
-    { value_t d2 = pop_value();
-    mwtype_has_meta_3F_();
-    mwnip();
-      push_value(d2); }
-    mwswap();
-    if (pop_u64()) {
-    mwdrop2();
-    mwtrue();
-    } else {
-    mwtype_has_meta();
-    }
+    mwtype2_has_meta();
     break;
     case 9LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
-    { value_t d2 = pop_value();
-    mwtype_has_meta_3F_();
-    mwnip();
-      push_value(d2); }
-    mwswap();
-    if (pop_u64()) {
-    mwdrop2();
-    mwtrue();
-    } else {
-    mwtype_has_meta();
-    }
+    mwtype2_has_meta();
     break;
     case 10LL:
     do_pack_uncons(); do_drop();
     do_pack_uncons(); do_swap();
-    { value_t d2 = pop_value();
-    mwtype_has_meta_3F_();
-    mwnip();
-      push_value(d2); }
-    mwswap();
-    if (pop_u64()) {
-    mwdrop2();
-    mwtrue();
-    } else {
-    mwtype_has_meta();
-    }
+    mwtype2_has_meta();
     break;
     case 7LL:
     do_pack_uncons(); do_drop();
@@ -7810,13 +7783,35 @@ static void mwtype_has_meta (void){
     break;
     case 2LL:
     do_pack_uncons(); do_drop();
-    mwblock_infer_type_21_();
-    mwtype_has_meta();
+    push_u64(0);
+    push_fnptr(&mb_type_has_meta_16);
+    do_pack_cons();
+    mwsip();
+    mwblock_cod();
+    mw_40_();
+    mwtype2_has_meta();
     break;
     default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
     break;
     default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+    }
+}
+
+static void mb_type_has_meta_16 (void) {
+    do_drop();
+    mwblock_dom();
+    mw_40_();
+}
+static void mwtype2_has_meta (void){
+    mwover2();
+    mwswap();
+    mwtype_has_meta();
+    if (pop_u64()) {
+    mwdrop2();
+    mwtrue();
+    } else {
+    mwtype_has_meta();
     }
 }
 
@@ -13658,6 +13653,7 @@ static void mwc99_emit_block_def_21_ (void){
     push_ptr(" (void) {\0\0\0");
     mw_3B_();
     mwblock_arrow();
+    mwforce_21_();
     mwdup();
     mwarrow_ctx();
     mw_40_();
@@ -14181,6 +14177,7 @@ static void mwc99_emit_block_push_21_ (void){
     mwneed_block_21_();
     mwdup();
     mwblock_arrow();
+    mwforce_21_();
     mwarrow_ctx();
     mw_40_();
     mwc99_pack_ctx_21_();
@@ -14859,6 +14856,7 @@ static void mwc99_emit_arg_run_21_ (void){
     case 0LL:
     do_pack_uncons(); do_drop();
     mwblock_arrow();
+    mwforce_21_();
     mwc99_emit_arrow_21_();
     break;
     case 1LL:
@@ -15308,6 +15306,7 @@ static void mw_2E_block (void){
     mw_2E_();
     mwdup();
     mwblock_arrow();
+    mwforce_21_();
     mwdup();
     mwarrow_home();
     mw_40_();
@@ -18249,6 +18248,7 @@ static void mb_atom_arg_add_21__1 (void) {
 static void mwblock_to_arg (void){
     mwdup();
     mwblock_arrow();
+    mwforce_21_();
     mwarrow_to_run_var();
     switch (get_top_data_tag()) {
     case 0LL:
@@ -19528,7 +19528,7 @@ static void mwblock_new_deferred_21_ (void){
     do_pack_cons();
     mwdelay();
     mwover();
-    mwblock_arrow_lazy();
+    mwblock_arrow();
     mw_21_();
 }
 
@@ -21426,11 +21426,10 @@ static void mwblock_new_21_ (void){
     mwover();
     mwblock_cod();
     mw_21_();
-    mwtuck();
-    { value_t d1 = pop_value();
+    mwswap();
     mwready();
-      push_value(d1); }
-    mwblock_arrow_lazy();
+    mwover();
+    mwblock_arrow();
     mw_21_();
 }
 

@@ -1336,7 +1336,7 @@ def(c99-emit-arg-push!, Arg --,
 
 def(c99-emit-arg-run!, Arg --,
     match(
-        ARG_BLOCK -> block-arrow c99-emit-arrow!,
+        ARG_BLOCK -> block-arrow force! c99-emit-arrow!,
         ARG_VAR_RUN -> c99-emit-var!,
     ))
 
@@ -1402,7 +1402,7 @@ def(c99-emit-need!, Need --,
 
 def(c99-emit-block-push!, Block -- +IO,
     need-block!
-    dup block-arrow arrow-ctx @ c99-pack-ctx!
+    dup block-arrow force! arrow-ctx @ c99-pack-ctx!
     "    push_fnptr(&" . .block ");" ;
     "    do_pack_cons();" ;)
 
@@ -1502,7 +1502,7 @@ def(c99-emit-block-def!, Block -- +IO,
 
             true over c99-block-emitted !
             "static void " . dup .block " (void) {" ;
-            block-arrow
+            block-arrow force!
             dup arrow-ctx @ c99-unpack-ctx!
             dup c99-emit-arrow!
             arrow-ctx @ c99-decref-ctx!
@@ -1513,7 +1513,7 @@ def(c99-emit-block-def!, Block -- +IO,
 
 def(.block, Block -- +IO,
     "mb_" .
-    dup block-arrow dup arrow-home @ is-nil? if(
+    dup block-arrow force! dup arrow-home @ is-nil? if(
         drop2 Block.id .n,
         word-name @ .name "_" .
         arrow-homeidx @ .n drop

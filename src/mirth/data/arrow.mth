@@ -84,7 +84,7 @@ field(block-ctx, Block, Ctx)
 field(block-token, Block, Token)
 field(block-dom, Block, Type)
 field(block-cod, Block, Type)
-field(block-arrow-lazy, Block, Lazy(Arrow))
+field(block-arrow, Block, Lazy(Arrow))
 
 #######
 # ARG #
@@ -116,7 +116,7 @@ def(block-new!, Arrow -- Block,
     over arrow-token-start @ over block-token !
     over arrow-dom @ over block-dom !
     over arrow-cod @ over block-cod !
-    tuck dip(ready) block-arrow-lazy !)
+    swap ready over block-arrow !)
 
 def(block-new-deferred!, Ctx Token -- Block,
     Block.alloc!
@@ -130,19 +130,16 @@ def(block-new-deferred!, Ctx Token -- Block,
         dup block-cod @ swap
         block-token @
         elab-arrow-hom!
-    ) over block-arrow-lazy !)
-
-def(block-arrow, Block -- Arrow,
-    block-arrow-lazy force!)
+    ) over block-arrow !)
 
 def(block-force!, Block --,
-    block-arrow drop)
+    block-arrow force! drop)
 
 def(block-unify-type!, Gamma Block Type -- Gamma Type,
     over2 gamma-token@ elab-expand-morphism! drop
     dip(swap sip(block-dom @ type-unify! drop))
     swap sip(block-cod @ type-unify! drop)
-    block-arrow arrow-type)
+    block-arrow force! arrow-type)
 
 #########
 # MATCH #
