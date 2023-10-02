@@ -915,7 +915,8 @@ def(elab-target-c99!, Token -- Token,
 
 ||| Ensure that everything so far has been typechecked.
 def(typecheck-everything!, --,
-    Name.for(typecheck-name!))
+    Name.for(typecheck-name!)
+    Block.for(block-force!))
 
 ||| Typecheck name.
 def(typecheck-name!, Name --,

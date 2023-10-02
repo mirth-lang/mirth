@@ -89,7 +89,9 @@ def(run-output-c99!, Arrow Path -- +IO,
         c99-emit-block-sigs!
         c99-emit-field-sigs!
         c99-emit-main!
-        c99-emit-needs!
+        c99-emit-word-defs!
+        c99-emit-block-defs!
+        c99-emit-field-defs!
         codegen-end!
     ))
 
@@ -1222,7 +1224,6 @@ def(c99-emit-atom!, Atom -- +IO,
         OP_STR ->
             nip c99-emit-string!,
         OP_WORD ->
-            need-word!
             dip(atom-args @ c99-emit-args-push!)
             "    mw" . word-name @ .name "();" ;,
         OP_EXTERNAL ->
@@ -1235,7 +1236,6 @@ def(c99-emit-atom!, Atom -- +IO,
             nip variable-name @
             "    mw" . .name "();" ;,
         OP_FIELD ->
-            need-field!
             nip field-name @
             "    mw" . .name "();" ;,
         OP_TAG ->
@@ -1362,46 +1362,7 @@ def(c99-decref-ctx!, Ctx -- +IO,
         "    decref(" . .var-val ");" ;
     ))
 
-data(Need,
-    NEED_BLOCK -> Block,
-    NEED_WORD -> Word,
-    NEED_FIELD -> Field)
-var(c99-need-stack, Stack(Need))
-
-field(c99-word-needed, Word, Bool)
-field(c99-block-needed, Block, Bool)
-field(c99-field-needed, Field, Bool)
-
-def(need-word!, Word -- Word,
-    dup c99-word-needed @ if(
-        id,
-        true over c99-word-needed !
-        dup NEED_WORD c99-need-stack stack-push!
-    ))
-def(need-block!, Block -- Block,
-    dup c99-block-needed @ if(
-        id,
-        true over c99-block-needed !
-        dup NEED_BLOCK c99-need-stack stack-push!
-    ))
-def(need-field!, Field -- Field,
-    dup c99-field-needed @ if(
-        id,
-        true over c99-field-needed !
-        dup NEED_FIELD c99-need-stack stack-push!
-    ))
-
-def(c99-emit-needs!, --,
-    while-some(c99-need-stack stack-pop!, c99-emit-need!))
-def(c99-emit-need!, Need --,
-    match(
-        NEED_WORD -> c99-emit-word-def!,
-        NEED_BLOCK -> c99-emit-block-def!,
-        NEED_FIELD -> c99-emit-field-def!,
-    ))
-
 def(c99-emit-block-push!, Block -- +IO,
-    need-block!
     dup block-arrow force! arrow-ctx @ c99-pack-ctx!
     "    push_fnptr(&" . .block ");" ;
     "    do_pack_cons();" ;)
@@ -1471,47 +1432,30 @@ def(c99-emit-word-sigs!, +IO,
     Word.for(c99-emit-word-sig!) .lf)
 
 def(c99-emit-word-sig!, Word -- +IO,
-    false over c99-word-needed !
-    false over c99-word-emitted !
     " static void mw" . word-name @ .name " (void);" ;)
 
 def(c99-emit-block-sigs!, +IO,
     Block.for(c99-emit-block-sig!) .lf)
 
 def(c99-emit-block-sig!, Block -- +IO,
-    false over c99-block-needed !
-    false over c99-block-emitted !
     " static void " . .block " (void);" ;)
 
 def(c99-emit-field-sigs!, +IO,
     Field.for(c99-emit-field-sig!) .lf)
 
 def(c99-emit-field-sig!, Field -- +IO,
-    false over c99-field-needed !
-    false over c99-field-emitted !
     " static void mw" . field-name @ .name " (void);" ;)
 
-def(c99-emit-block-defs!, +IO,
-    Block.for(c99-emit-block-def!) .lf)
+def(c99-emit-block-defs!, --, Block.for(c99-emit-block-def!) .lf)
+def(c99-emit-block-def!, Block --,
+    "static void " . dup .block " (void) {" ;
+    block-arrow force!
+    dup arrow-ctx @ c99-unpack-ctx!
+    dup c99-emit-arrow!
+    arrow-ctx @ c99-decref-ctx!
+    "}" ;)
 
-field(c99-block-emitted, Block, Bool)
-def(c99-emit-block-def!, Block -- +IO,
-    dup c99-block-needed @ if(
-        dup c99-block-emitted @ if(
-            drop,
-
-            true over c99-block-emitted !
-            "static void " . dup .block " (void) {" ;
-            block-arrow force!
-            dup arrow-ctx @ c99-unpack-ctx!
-            dup c99-emit-arrow!
-            arrow-ctx @ c99-decref-ctx!
-            "}" ;
-        ),
-        drop
-    ))
-
-def(.block, Block -- +IO,
+def(.block, Block -- ,
     "mb_" .
     dup block-arrow force! dup arrow-home @ is-nil? if(
         drop2 Block.id .n,
@@ -1519,46 +1463,30 @@ def(.block, Block -- +IO,
         arrow-homeidx @ .n drop
     ))
 
-field(c99-word-emitted, Word, Bool)
-def(c99-emit-word-def!, Word -- +IO,
-    dup c99-word-needed @ if(
-        dup c99-word-emitted @ if(
-            drop,
+def(c99-emit-word-defs!, --, Word.for(c99-emit-word-def!) .lf)
+def(c99-emit-word-def!, Word --,
+    dup word-name @ .w "{" ;
+    word-arrow force! c99-emit-arrow!
+    "}" ;;)
 
-            true over c99-word-emitted !
-            dup word-name @ .w "{" ;
-            word-arrow force! c99-emit-arrow!
-            "}" ;;
-        ),
-        drop
-    ))
+def(c99-emit-field-defs!, --, Field.for(c99-emit-field-def!) .lf)
+def(c99-emit-field-def!, Field --,
+    "static value_t* fieldptr_" . dup field-name @ .name " (usize i) {" ;
+    "    static struct value_t * p = 0;";
+    "    usize m = " . TABLE_MAX_SIZE .n ";" ;
+    "    if (!p) { p = calloc(m, sizeof *p); }" ;
+    "    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }" ;
+    "    return p+i;" ;
+    "}" ; # TODO make this more flexible wrt table size
+            # note it's important to have stability,
+            # so we can't just realloc as we used to.
+    dup field-name @ .w "{" ;
+    "    usize index = (usize)pop_u64();" ;
+    "    value_t *v = fieldptr_" . dup field-name @ .name "(index);" ;
+    "    push_ptr(v);" ;
+    "}" ;;
 
-field(c99-field-emitted, Field, Bool)
-def(c99-emit-field-def!, Field -- +IO,
-    dup c99-field-needed @ if(
-        dup c99-field-emitted @ if(
-            drop,
-
-            true over c99-field-emitted !
-            "static value_t* fieldptr_" . dup field-name @ .name " (usize i) {" ;
-            "    static struct value_t * p = 0;";
-            "    usize m = " . TABLE_MAX_SIZE .n ";" ;
-            "    if (!p) { p = calloc(m, sizeof *p); }" ;
-            "    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }" ;
-            "    return p+i;" ;
-            "}" ; # TODO make this more flexible wrt table size
-                  # note it's important to have stability,
-                  # so we can't just realloc as we used to.
-            dup field-name @ .w "{" ;
-            "    usize index = (usize)pop_u64();" ;
-            "    value_t *v = fieldptr_" . dup field-name @ .name "(index);" ;
-            "    push_ptr(v);" ;
-            "}" ;;
-
-            drop
-        ),
-        drop
-    ))
+    drop)
 
 def(c99-emit-main!, Arrow -- +IO,
     "int main (int argc, char** argv) {" ;
