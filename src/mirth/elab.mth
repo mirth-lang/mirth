@@ -275,7 +275,7 @@ def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
     ))
 
 def(block-to-arg, Block -- Arg,
-    dup block-arrow arrow-to-run-var match(
+    dup block-arrow force! arrow-to-run-var match(
         NONE -> ARG_BLOCK,
         SOME -> ARG_VAR_RUN nip
     ))
@@ -330,9 +330,8 @@ def(ab-external!, External --, OP_EXTERNAL ab-op!)
 
 def(ab-block-at!, *a Token [ *a -- *b ] -- *b,
     \([f] ->
-        Block.alloc! dip(
-            ab-ctx@ meta-alloc! TMeta rotl ab-build!(f)
-        ) tuck block-arrow-raw ! OP_BLOCK ab-op!
+        ab-ctx@ meta-alloc! TMeta rotl ab-build!(f)
+        block-new! OP_BLOCK ab-op!
     ))
 
 def(ab-block!, *a [ *a -- *b ] -- *b,
@@ -415,67 +414,17 @@ def(elab-var-sig!, Var -- OpSig,
         var-type @ OPSIG_PUSH
     ))
 
-def(elab-tag-sig!, Tag -- Type +Elab,
-    elab-tag-ctx-sig! nip)
+def(elab-tag-sig!, Tag -- Type, elab-tag-ctx-sig! nip)
+def(elab-tag-ctx!, Tag -- Ctx , elab-tag-ctx-sig! drop)
+def(elab-tag-ctx-sig!, Tag -- Ctx Type, tag-ctx-type force2!)
 
-def(elab-tag-ctx!, Tag -- Ctx +Elab,
-    elab-tag-ctx-sig! drop)
-
-def(elab-tag-ctx-sig!, Tag -- Ctx Type +Elab,
-    dup tag-sig-is-checked @ if(
-        dup tag-type-raw @ dip(tag-ctx @),
-
-        type-elab-default over
-
-        { Tag TypeElab Tag }
-        tag-data @ data-header @ elab-type-atom! drop T1
-        { Tag TypeElab Type }
-        dip(
-            over dup tag-has-sig @
-            if(
-                tag-sig @ T0 swap elab-type-stack-rest!
-                token-run-end? if(drop, "syntax error" emit-fatal-error!),
-
-                drop T0
-            )
-        )
-        { Tag TypeElab Type Type }
-        T-> dip(type-elab-ctx)
-        { Tag Ctx Type }
-        sip2(
-            rotl
-            tuck tag-type-raw !
-            tuck tag-ctx !
-            true swap tag-sig-is-checked !
-        )
-    ))
-
-
-def(elab-external-sig!, External -- Type +Elab,
-    elab-external-ctx-sig! nip)
-
-def(elab-external-ctx!, External -- Ctx +Elab,
-    elab-external-ctx-sig! drop)
-
-def(elab-external-ctx-sig!, External -- Ctx Type +Elab,
-    dup external-sig-is-checked @ if(
-        dup external-type @ dip(external-ctx @),
-
-        dup external-sig @
-        dip(type-elab-default)
-        elab-type-sig! drop dip(type-elab-ctx)
-        sip2(
-            rotl
-            tuck external-type !
-            tuck external-ctx !
-            true swap external-sig-is-checked !
-        )
-    ))
+def(elab-external-sig!, External -- Type, elab-external-ctx-sig! nip)
+def(elab-external-ctx!, External -- Ctx, elab-external-ctx-sig! drop)
+def(elab-external-ctx-sig!, External -- Ctx Type, external-ctx-type force2!)
 
 def(elab-word-sig!, Word -- Type, elab-word-ctx-sig! nip)
 def(elab-word-ctx!, Word -- Ctx, elab-word-ctx-sig! drop)
-def(elab-word-ctx-sig!, Word -- Ctx Type,
-    word-ctx-type force2!)
+def(elab-word-ctx-sig!, Word -- Ctx Type, word-ctx-type force2!)
 
 def(elab-word-body!, Word -- Arrow, word-arrow force!)
 
@@ -580,8 +529,8 @@ def(elab-expand-tensor!, Type Token -- Type Type Token,
         TMeta ->
             dip(meta-alloc! TMeta
                 meta-alloc! TMeta
-                dup2 TTensor)
-            meta-type! rotl,
+                dup2 T* SOME)
+            meta-type ! rotl,
         _ ->
             drop dup "expected tuple type" emit-error!
             dip(TYPE_ERROR TYPE_ERROR)
@@ -594,8 +543,8 @@ def(elab-expand-morphism!, Type Token -- Type Type Token,
         TMeta ->
             dip(meta-alloc! TMeta
                 meta-alloc! TMeta
-                dup2 TMorphism)
-            meta-type! rotl,
+                dup2 T-> SOME)
+            meta-type ! rotl,
         _ ->
             drop dup "expected block type" emit-error!
             dip(TYPE_ERROR TYPE_ERROR)
@@ -839,15 +788,24 @@ def(elab-data-tag!, Data Token -- Data,
     { Data Token Tag }
     swap token-succ
     token-is-arrow? if(
-        dip(true over tag-has-sig !)
-        token-succ tuck dip(tag-sig !)
-        while(token-run-end? not, token-next),
+        token-succ SOME over tag-sig !,
     token-run-end? if(
-        nip,
+        drop NONE over tag-sig !,
         "Expected arrow, comma, or right paren." emit-fatal-error!
     ))
-    { Data Token }
-    drop)
+    { Data Tag }
+    dup delay(
+        type-elab-default
+        over tag-data @ data-header @ elab-type-atom! drop T1
+        dip(T0 rotl tag-sig @ match(
+            NONE -> id,
+            SOME ->
+                elab-type-stack-rest!
+                token-run-end? if(drop, "syntax error" emit-fatal-error!)
+        ))
+        T-> dip(type-elab-ctx) pack2
+    )
+    swap tag-ctx-type !)
 
 def(expect-token-comma, Token -- Token,
     token-is-comma? if(id, "Expected comma." emit-fatal-error!))
@@ -891,7 +849,11 @@ def(elab-def-external!, Token -- Token,
             External.alloc!
             dup2 DEF_EXTERNAL swap name-def !
             tuck external-name !
-            external-sig !,
+            tuck external-sig !
+            dup delay(
+                type-elab-default swap external-sig @
+                elab-type-sig! drop dip(type-elab-ctx) pack2
+            ) swap external-ctx-type !,
 
             drop "word already defined" emit-fatal-error!
         ),
@@ -974,7 +936,7 @@ def(typecheck-name!, Name --,
 # TABLE #
 #########
 
-def(TABLE_MAX_SIZE, Int, 0x20000)
+def(TABLE_MAX_SIZE, Int, 0x10000)
 
 def(table-new!, Name -- Table,
     Table.alloc!
@@ -1137,40 +1099,20 @@ def(elab-field!, Token -- Token,
     sip(token-next)
     token-args-3 rotl dup token-value @ match(
         TOKEN_NAME ->
+            name-undefined? if(id,
+                drop "name already defined" emit-fatal-error!)
             nip rotr field-new! drop,
         _ ->
             drop "expected field name" emit-fatal-error!
     ))
 
-
 def(field-new!, Name Token Token -- Field,
     Field.alloc!
-    tuck field-type-sig !
-    tuck field-table-sig !
+    swap delay(elab-simple-type-arg!) over field-value-type !
+    swap delay(elab-simple-type-arg!) over field-index-type !
     tuck dup2 field-name !
     DEF_FIELD swap name-def !)
 
-def(elab-field-sig!, Field -- Type Type,
-    dup field-sig-is-checked @ if(
-        id,
-
-        dup field-table-sig @
-        dup elab-simple-type-arg! type-max-count? match(
-            NONE -> drop "expected table type or enum" emit-fatal-error!,
-            SOME -> drop nip
-        )
-        over field-table !
-
-        dup field-type-sig @
-        elab-simple-type-arg!
-        over field-type !
-
-        true
-        over field-sig-is-checked !
-    )
-
-    sip(field-table @)
-    field-type @)
-
 def(elab-field-type!, Field -- Type,
-    elab-field-sig! TMut dip(T1) T1 T->)
+    sip(field-index-type force! T1)
+    field-value-type force! TMut T1 T->)

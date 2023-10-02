@@ -11,11 +11,6 @@ field(table-num-buffer, Table, Buffer)
 field(table-max-count, Table, Size)
 
 table(Field)
-field(field-sig-is-checked, Field, Bool)
-field(field-body-is-checked, Field, Bool)
-field(field-table-sig, Field, Token)
-field(field-type-sig, Field, Token)
-
 field(field-name, Field, Name)
-field(field-table, Field, Type)
-field(field-type, Field, Type)
+field(field-index-type, Field, Lazy(Type))
+field(field-value-type, Field, Lazy(Type))

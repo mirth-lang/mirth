@@ -47,8 +47,7 @@ table(MetaVar)
 table(Data)
 table(Tag)
 
-field(meta-is-defined, MetaVar, Bool)
-field(meta-type-raw, MetaVar, Type)
+field(meta-type, MetaVar, Maybe(Type))
 
 field(data-header, Data, Token)
 field(data-name, Data, Name)
@@ -58,12 +57,8 @@ field(data-tags, Data, List(Tag))
 field(tag-data, Tag, Data)
 field(tag-name, Tag, Name)
 field(tag-value, Tag, Int)
-field(tag-sig, Tag, Token)
-field(tag-has-sig, Tag, Bool)
-field(tag-sig-is-checked, Tag, Bool)
-field(tag-ctx, Tag, Ctx)
-field(tag-type-raw, Tag, Type)
-
+field(tag-sig, Tag, Maybe(Token))
+field(tag-ctx-type, Tag, Lazy([Ctx Type]))
 
 def(def-type!, Type Str --, dip(DEF_TYPE) name-new! name-def !)
 
@@ -316,11 +311,11 @@ def(value-type-unify!, Gamma Value Type -- Gamma Type,
     ))
 
 def(arrow-type, Arrow -- Type,
-    dup arrow-dom @ swap arrow-cod @ TMorphism)
+    dup arrow-dom @ swap arrow-cod @ T->)
     # TODO effects
 
 def(block-infer-type!, Block -- Type,
-    block-arrow arrow-type)
+    block-arrow force! arrow-type)
 
 def(type-unify-pair!, Gamma Type Type Type Type -- Gamma Type Type,
     dip(swap dip(type-unify! swap)) type-unify! dip(swap))
@@ -351,24 +346,26 @@ def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
 
 def(type-has-meta, MetaVar Type -- Bool,
     type-expand match(
+        TMeta -> ==,
         TYPE_ERROR -> drop false,
         TYPE_DONT_CARE -> drop false,
         TPrim -> drop2 false,
         TVar -> drop2 false,
         THole -> drop2 false,
-        TMeta -> ==,
-        TTensor -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
-        TMorphism -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
-        TApp -> dip(type-has-meta? nip) swap if(drop2 true, type-has-meta),
+        TTensor -> type2-has-meta,
+        TMorphism -> type2-has-meta,
+        TApp -> type2-has-meta,
         TData -> drop2 false,
         TTable -> drop2 false,
         TValue -> match(
             VALUE_INT -> drop2 false,
             VALUE_STR -> drop2 false,
-            VALUE_BLOCK -> block-infer-type! type-has-meta
-                # TODO: handle deferred blocks
+            VALUE_BLOCK -> sip(block-dom @) block-cod @ type2-has-meta
         )
     ))
+
+def(type2-has-meta, MetaVar Type Type -- Bool,
+    over2 swap type-has-meta if(drop2 true, type-has-meta))
 
 def(type-trace-sig!, Type -- +IO,
     type-expand match(
@@ -421,14 +418,14 @@ def(type-trace!, Type -- +IO,
         TTable -> table-name @ name-trace!,
         THole -> name-trace!,
         TApp -> app-type-trace!,
-        TValue -> value-trace!
+        TValue -> value-as-type type-trace!
     ))
 
-def(value-trace!, Value -- +IO,
+def(value-as-type, Value -- Type,
     match(
-        VALUE_INT -> int-trace!,
-        VALUE_STR -> drop "\"...\"" str-trace!,
-        VALUE_BLOCK -> drop "[...]" str-trace!,
+        VALUE_INT -> drop PRIM_TYPE_INT TPrim,
+        VALUE_STR -> drop PRIM_TYPE_STR TPrim,
+        VALUE_BLOCK -> sip(block-dom @) block-cod @ T->
     ))
 
 def(type-trace-prim!, PrimType -- +IO,
@@ -552,9 +549,9 @@ def(type-pair-freshen, Subst Type Type -- Subst Type Type,
     dip(type-freshen swap) type-freshen dip(swap))
 
 def(meta-freshen, Subst MetaVar -- Subst Type,
-    dup meta-is-defined @ if(
-        meta-expand type-freshen,
-        drop meta-alloc! TMeta
+    dup meta-type @ match(
+        NONE -> drop meta-alloc! TMeta,
+        SOME -> nip type-freshen
     ))
 
 def(type-var-freshen, Subst Var -- Subst Type,
@@ -608,27 +605,22 @@ def(type-max-count?, Type -- Type Maybe(Int),
 
 def(meta-trace!, MetaVar -- +IO, "?" str-trace! MetaVar.id int-trace!)
 def(meta-alloc!, MetaVar, MetaVar.alloc!)
-def(meta-type!, Type MetaVar --, true over meta-is-defined ! meta-type-raw !)
 def(meta-expand, MetaVar -- Type,
-    dup meta-is-defined @ if(
-        sip(meta-type-raw @ type-expand dup) meta-type-raw !,
-        TMeta
+    dup meta-type @ match(
+        NONE -> TMeta,
+        SOME -> type-expand tuck SOME swap meta-type !
     ))
-
 def(meta-unify!, Gamma Type MetaVar -- Gamma Type,
-   dup meta-is-defined @ if(
-        meta-expand type-unify!,
-
-    dup2 TMeta == if(
-        drop,
-
-    swap
-    type-has-meta? if(
-        swap TMeta type-unify-failed!,
-
-        swap dip(dup)
-        meta-type!
-    ))))
+    dup meta-type @ match(
+        SOME -> nip type-unify!,
+        NONE -> dup2 TMeta == if(
+            drop,
+            swap type-has-meta? if(
+                swap TMeta type-unify-failed!,
+                tuck SOME swap meta-type !
+            )
+        )
+    ))
 
 ##############
 # Type Holes #
@@ -720,10 +712,13 @@ def(subst-match-var, Gamma Type Var Subst -- Gamma Subst,
 
 def(tag-num-inputs?, Tag -- Tag Int,
     # TODO: this should actually be calculated & stored during elaboration based on the type
-    dup tag-has-sig @ if(
-        dup tag-sig @ 0 swap
-        while(token-run-end? not, token-next dip(1+)) drop,
-        0
+    dup tag-sig @ match(
+        NONE -> 0,
+        SOME ->
+            0 swap
+            while(token-run-end? not,
+                token-next dip(1+))
+            drop
     ))
 
 def(tag-is-transparent?, Tag -- Tag Bool,
