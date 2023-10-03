@@ -108,7 +108,7 @@ def(close-file!, File --,
 
 def-external(stat, RawPtr RawPtr -- Int)
 
-def(with-raw-path(f), *a Path [*a RawPtr -- *b] -- *b Path,
+def(with-raw-path(f), (*a RawPtr -- *b) *a Path -- *b Path,
     Path->Str Str->Ptr with-raw-ptr(f) Ptr->Str Str->Path)
 
 def(is-directory?, Path -- Path Bool,

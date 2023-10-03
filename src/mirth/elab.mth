@@ -28,13 +28,25 @@ def(type-elab-ctx-replace, TypeElab Ctx -- TypeElab,
     swap match(TYPE_ELAB -> drop swap TYPE_ELAB))
 
 def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
-    elab-type-stack!
+    elab-type-sig-params! dip(swap)
+    elab-type-stack! dip(swap)
     token-is-dashes? if(
-        token-next
-        swap dip(elab-type-stack!) swap,
-        dip(TYPE_UNIT))
-    while(sig-token-is-effect-con?, token-next) # TODO: elaborate effect type
-    dip(swap TMorphism))
+        token-next elab-type-stack! dip(swap),
+        dip(T0 rotr)
+    )
+    token-run-end? if(id,
+        dup "expected right paren or comma" emit-error!)
+    dip(rot4r dip(swap reverse-for(T*)) T->))
+
+def(elab-type-sig-params!, TypeElab Token -- TypeElab List(Type) Token,
+    token-is-lparen? if(
+        dup token-next dip(
+            L0 rotr token-args
+            for(elab-type-sig! drop swap dip(snoc))
+            swap
+        ),
+        L0 swap
+    ))
 
 def(elab-type-stack!, TypeElab Token -- TypeElab Type Token,
     sig-token-is-stack-var? if(
@@ -169,17 +181,17 @@ def(elab-simple-type-arg!, Token -- Type,
 var(ab-home, Word)
 var(ab-homeidx, Int)
 var(ab-arrow, Arrow)
-def(ab-ctx@, Ctx +AB, ab-arrow @ arrow-ctx @)
-def(ab-ctx!, Ctx -- +AB, ab-arrow @ arrow-ctx !)
-def(ab-token@, Token +AB, ab-arrow @ arrow-token-end @)
-def(ab-token!, Token -- +AB, ab-arrow @ arrow-token-end !)
-def(ab-type@, Type +AB, ab-arrow @ arrow-cod @)
-def(ab-type!, Type -- +AB, ab-arrow @ arrow-cod !)
+def(ab-ctx@, Ctx, ab-arrow @ arrow-ctx @)
+def(ab-ctx!, Ctx --, ab-arrow @ arrow-ctx !)
+def(ab-token@, Token, ab-arrow @ arrow-token-end @)
+def(ab-token!, Token --, ab-arrow @ arrow-token-end !)
+def(ab-type@, Type, ab-arrow @ arrow-cod @)
+def(ab-type!, Type --, ab-arrow @ arrow-cod !)
 
-def(ab-save!(f), *a [ *a -- *b ] -- *b,
+def(ab-save!(f), (*a -- *b) *a -- *b,
     ab-arrow @ dip(f) ab-arrow !)
 
-def(ab-build!(f), *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
+def(ab-build!(f), (*a -- *b) *a Ctx Type Token -- *b Arrow,
     ab-save!(
         Arrow.alloc!
         ab-home @ over arrow-home !
@@ -196,15 +208,15 @@ def(ab-build!(f), *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
 ||| Like ab-build! but takes a morphism type to build
 ||| instead of just the domain. The codomain is placed
 ||| on the stack for (in)convenience. (You can ignore it with dip.)
-def(ab-build-hom!(f), *a Ctx Type Token [ *a Type -- *b Type ] -- *b Arrow,
+def(ab-build-hom!(f), (*a Type -- *b Type) *a Ctx Type Token -- *b Arrow,
     elab-expand-morphism! dip(rotr)
     ab-build!(f ab-unify-type!))
-def(ab-build-word-arrow!(f), *a Word [ *a Type -- *b Type ] -- *b Arrow,
+def(ab-build-word-arrow!(f), (*a Type -- *b Type) *a Word -- *b Arrow,
     dup ab-home ! 0 ab-homeidx !
     sip(word-ctx-type force2!)
     word-body @ ab-build-hom!(f)
     nil ab-home !)
-def(ab-build-word!(f), *a Word [ *a -- *b ] -- *b Word,
+def(ab-build-word!(f), (*a -- *b) *a Word -- *b Word,
     sip(ab-build-word-arrow!(dip(f)) ready)
     tuck word-arrow !)
 
@@ -320,25 +332,25 @@ def(ab-prim!, Prim --,
 def(ab-word!, Word --, OP_WORD ab-op!)
 def(ab-external!, External --, OP_EXTERNAL ab-op!)
 
-def(ab-block-at!(f), *a Token [ *a -- *b ] -- *b,
+def(ab-block-at!(f), (*a -- *b) *a Token -- *b,
     ab-ctx@ meta-alloc! TMeta rotl ab-build!(f)
     block-new! OP_BLOCK ab-op!)
 
-def(ab-block!(f), *a [ *a -- *b ] -- *b,
+def(ab-block!(f), (*a -- *b) *a -- *b,
     ab-token@ ab-block-at!(f))
 
-def(ab-dip!(f), *a [ *a -- *b ] -- *b,
+def(ab-dip!(f), (*a -- *b) *a -- *b,
     ab-block!(f) PRIM_CORE_DIP ab-prim!)
 
-def(ab-if!(f,g), *a [ *a -- *b ] [ *b -- *c ] -- *c,
+def(ab-if!(f,g), (*b -- *c, *a -- *b) *a -- *c,
     ab-block!(g) ab-block!(f) PRIM_CORE_IF ab-prim!)
     # FIXME TODO this is cursed/reversed.
 
-def(ab-while!(f,g), *a [ *a -- *b ] [ *b -- *c ] -- *c,
+def(ab-while!(f,g), (*b -- *c, *a -- *b) *a -- *c,
     ab-block!(g) ab-block!(f) PRIM_CORE_WHILE ab-prim!)
     # FIXME TODO this is cursed/reversed.
 
-def(ab-lambda!(f), *a List(Param) [*a -- *b] -- *b ,
+def(ab-lambda!(f), (*a -- *b) *a List(Param) -- *b ,
     Lambda.alloc!
     ab-ctx@ over lambda-outer-ctx !
     ab-type@ over lambda-dom !
@@ -678,7 +690,7 @@ def(elab-case-body!, Case Token -- Case Token,
 ######################
 
 ||| Elaborate all of a module.
-def(elab-module!, Module -- Module +Mirth,
+def(elab-module!, Module -- Module,
     dup module-start @
     elab-module-header!
     while(token-is-module-end? not, elab-module-decl!)

@@ -12,21 +12,21 @@ def(unwrap, Maybe(t) -- t,
     NONE -> "tried to unwrap NONE" panic!,
     SOME -> id)
 
-def(maybe-map(f), *c Maybe(a) [*c a -- *c b] -- *c Maybe(b),
+def(maybe-map(f), (*c a -- *c b) *c Maybe(a) -- *c Maybe(b),
     NONE -> NONE,
     SOME -> f SOME)
 
-def(maybe-bind(f), *c Maybe(a) [*c a -- *c Maybe(b)] -- *c Maybe(b),
+def(maybe-bind(f), (*c a -- *c Maybe(b)) *c Maybe(a) -- *c Maybe(b),
     NONE -> NONE,
     SOME -> f)
 
-def(maybe-for(f), *c Maybe(a) [*c a -- *c] -- *c,
+def(maybe-for(f), (*c a -- *c) *c Maybe(a) -- *c,
     NONE -> id,
     SOME -> f)
 
-def(maybe-filter(f), *c Maybe(a) [*c a -- *c a Bool] -- *c Maybe(a),
+def(maybe-filter(f), (*c a -- *c a Bool) *c Maybe(a) -- *c Maybe(a),
     NONE -> NONE,
     SOME -> f if(SOME, drop NONE))
 
-def(while-some(f,g), *a [*a b -- *a] [*a -- *a Maybe(b)] -- *a,
+def(while-some(f,g), (*a -- *a Maybe(b), *a b -- *a) *a -- *a,
     f while(is-some?, unwrap g f) drop)

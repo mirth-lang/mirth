@@ -110,7 +110,7 @@ def(name-could-be-effect-con, Name -- Bool,
         drop false
     ))
 
-def(name-print-mangled!, Name -- +IO,
+def(name-print-mangled!, Name --,
     name-mangled force! str-print!)
 
 def(name-mangle!, Name -- Str,

@@ -212,7 +212,7 @@ def(reverse+, List+(a) -- List+(a),
     LCAT+ -> dip(reverse+ swap reverse+) LCAT+)
 
 ||| Transform each element of the list.
-def(map(f), *c List(a) [*c a -- *c b] -- *c List(b),
+def(map(f), (*c a -- *c b) *c List(a) -- *c List(b),
     L0 -> L0,
     L1 -> f L1,
     L2 -> dip(f) swap dip(f) swap L2,
@@ -220,14 +220,14 @@ def(map(f), *c List(a) [*c a -- *c b] -- *c List(b),
     LCAT -> dip(dip(map+(f)) swap dip(map+(f)) swap) LCAT)
 
 ||| Transform each element of the list.
-def(map+(f), *c List+(a) [*c a -- *c b] -- *c List+(b),
+def(map+(f), (*c a -- *c b) *c List+(a) -- *c List+(b),
     L1+ -> f L1+,
     L2+ -> dip(f) swap dip(f) swap L2+,
     L3+ -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3+,
     LCAT+ -> dip(dip(map+(f)) swap dip(map+(f)) swap) LCAT+)
 
 ||| Traverse the list, left to right.
-def(for(f), *c List(a) [*c a -- *c] -- *c,
+def(for(f), (*c a -- *c) *c List(a) -- *c,
     L0 -> id,
     L1 -> f,
     L2 -> dip(f) f,
@@ -235,14 +235,14 @@ def(for(f), *c List(a) [*c a -- *c] -- *c,
     LCAT -> drop dip(for+(f)) for+(f))
 
 ||| Traverse the list, left to right.
-def(for+(f), *c List+(a) [*c a -- *c] -- *c,
+def(for+(f), (*c a -- *c) *c List+(a) -- *c,
     L1+ -> f,
     L2+ -> dip(f) f,
     L3+ -> dip(dip(f) f) f,
     LCAT+ -> drop dip(for+(f)) for+(f))
 
 ||| Traverse the list, right to left.
-def(reverse-for(f), *c List(a) [*c a -- *c] -- *c,
+def(reverse-for(f), (*c a -- *c) *c List(a) -- *c,
     L0 -> id,
     L1 -> f,
     L2 -> swap dip(f) f,
@@ -250,32 +250,32 @@ def(reverse-for(f), *c List(a) [*c a -- *c] -- *c,
     LCAT -> drop swap dip(reverse-for+(f)) reverse-for+(f))
 
 ||| Traverse the list, right to left.
-def(reverse-for+(f), *c List+(a) [*c a -- *c] -- *c,
+def(reverse-for+(f), (*c a -- *c) *c List+(a) -- *c,
     L1+ -> f,
     L2+ -> swap dip(f) f,
     L3+ -> rotr dip2(f) swap dip(f) f,
     LCAT+ -> drop swap dip(reverse-for+(f)) reverse-for+(f))
 
 ||| Reduce a list in a bottom-up manner.
-def(reduce(g), List(a) [a a -- a] -- Maybe(a),
+def(reduce(g), (a a -- a) List(a) -- Maybe(a),
     List->List+ maybe-map(reduce+(g)))
 
 ||| Reduce a list in a bottom-up manner.
-def(reduce+(g), List+(a) [a a -- a] -- a,
+def(reduce+(g), (a a -- a) List+(a) -- a,
     L1+ -> id,
     L2+ -> g,
     L3+ -> g g,
     LCAT+ -> drop dip(reduce+(g)) reduce+(g) g)
 
 ||| Filter away any list elements that don't satisfy the predicate.
-def(filter(f), *c List(a) [*c a -- *c a Bool] -- *c List(a),
+def(filter(f), (*c a -- *c a Bool) *c List(a) -- *c List(a),
     List->List+ match(
         NONE -> L0,
         SOME -> filter+(f)
     ))
 
 ||| Filter away any list elements that don't satisfy the predicate.
-def(filter+(f), *c List+(a) [*c a -- *c a Bool] -- *c List(a),
+def(filter+(f), (*c a -- *c a Bool) *c List+(a) -- *c List(a),
     LCAT+ -> drop dip(filter+(f)) dip'(filter+(f)) cat,
     _ ->
         uncons dip(f) swap if(
@@ -285,14 +285,14 @@ def(filter+(f), *c List+(a) [*c a -- *c a Bool] -- *c List(a),
     )
 
 ||| Find the first element that satisfies the predicate, if it exists.
-def(find(f), *c List(a) [*c a -- *c a Bool] -- *c Maybe(a),
+def(find(f), (*c a -- *c a Bool) *c List(a) -- *c Maybe(a),
     List->List+ match(
         NONE -> NONE,
         SOME -> find+(f)
     ))
 
 ||| Find the first element that satisfies the predicate, if it exists.
-def(find+(f), *c List+(a) [*c a -- *c a Bool] -- *c Maybe(a),
+def(find+(f), (*c a -- *c a Bool) *c List+(a) -- *c Maybe(a),
     LCAT+ ->
         drop dip(find+(f)) swap
         match(
@@ -307,36 +307,36 @@ def(find+(f), *c List+(a) [*c a -- *c a Bool] -- *c Maybe(a),
     )
 
 ||| Like `find` but preserves the list.
-def(find?(f), *c List(a) [*c a -- *c a Bool] -- *c List(a) Maybe(a),
+def(find?(f), (*c a -- *c a Bool) *c List(a) -- *c List(a) Maybe(a),
     sip(find(f)) swap)
 
 ||| Like `find` but goes backward through the list.
-def(reverse-find(f), *c List(a) [*c a -- *c a Bool] -- *c Maybe(a),
+def(reverse-find(f), (*c a -- *c a Bool) *c List(a) -- *c Maybe(a),
     reverse find(f))  # TODO: implement directly?
 
 ||| Like `find?` but goes backward through the list.
-def(reverse-find?(f), *c List(a) [*c a -- *c a Bool] -- *c List(a) Maybe(a),
+def(reverse-find?(f), (*c a -- *c a Bool) *c List(a) -- *c List(a) Maybe(a),
     sip(reverse-find(f)) swap)
 
 ||| Is the predicate true for any element of the list?
-def(any(f), *c List(a) [*c a -- *c a Bool] -- *c Bool,
+def(any(f), (*c a -- *c a Bool) *c List(a) -- *c Bool,
     find(f) is-some)
 
 ||| Is the predicate true for any element of the list?
-def(any?(f), *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool,
+def(any?(f), (*c a -- *c a Bool) *c List(a) -- *c List(a) Bool,
     find?(f) is-some)
 
 ||| Is the predicate true for all elements of the list?
-def(all(f), *c List(a) [*c a -- *c a Bool] -- *c Bool,
+def(all(f), (*c a -- *c a Bool) *c List(a) -- *c Bool,
     find(f not) is-none)
 
 ||| Is the predicate true for all elements of the list?
-def(all?(f), *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool,
+def(all?(f), (*c a -- *c a Bool) *c List(a) -- *c List(a) Bool,
     find?(f not) is-none)
 
 ||| Build a list through repetition.
-def(collect(f), a [a -- a Maybe(b)] -- List(b),
+def(collect(f), (a -- a Maybe(b)) a -- List(b),
     L0 swap while-some(f, swap dip(snoc)) drop)
 
-def(collect-while(f,g), *a [*a -- *a b] [*a -- *a Bool] -- *a List(b),
+def(collect-while(f,g), (*a -- *a Bool, *a -- *a b) *a -- *a List(b),
     L0 while(dip(f) swap, dip(g) swap snoc))

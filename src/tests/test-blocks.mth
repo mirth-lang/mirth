@@ -2,10 +2,10 @@ module(tests.test-blocks)
 import(prelude)
 import(platform.posix)
 
-def(run1, a [a -- b] -- b, run)
+def(run1, (a -- b) a -- b, run)
 def(add10, [Int -- Int], [10 +])
 
-def(compose(f,g), [*b -- *c] [*a -- *b] -- [*a -- *c],
+def(compose(f,g), (*a -- *b, *b -- *c) -- [*a -- *c],
     [f g])
 
 def(add20, [Int -- Int],
@@ -20,7 +20,7 @@ def(mul2, [Int -- Int],
 def(mul2add10, [Int -- Int],
     add10 mul2 compose) # FIXME TODO reversed
 
-def(comprun(f,g), *a [*b -- *c] [*a -- *b] -- *c,
+def(comprun(f,g), (*a -- *b, *b -- *c) *a -- *c,
     f g)
 
 def(main, --,

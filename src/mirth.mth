@@ -11,7 +11,7 @@ import(data.path)
 import(mirth.data.prim)
 import(mirth.data.type)
 
-def(init!, +IO,
+def(init!, --,
     init-paths!
     init-prims!
     init-types!)
@@ -20,7 +20,7 @@ def(init!, +IO,
 # Main #
 ########
 
-def(compile!, Path -- +IO,
+def(compile!, Path --,
     "Compiling " str-trace!
     dup Path->Str str-trace-ln!
 
@@ -42,7 +42,7 @@ def(compile!, Path -- +IO,
         "Done." str-trace-ln!
     ))
 
-def(main, +IO,
+def(main, --,
     init!
 
     # argc int-trace-ln!

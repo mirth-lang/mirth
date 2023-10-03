@@ -12,14 +12,14 @@ var(input-handle, File)
 buffer(INPUT_BUFFER, 0x2010) # a little wiggle room for boundary chars
 def(INPUT_BUFFER_SIZE, Size, 0x2000)
 
-def(input-start!, File -- +Input,
+def(input-start!, File --,
     input-handle !
     0 input-length !
     0 input-offset !
     true input-isopen !
     input-fill-buffer!)
 
-def(input-end!, +Input,
+def(input-end!, --,
     input-isopen @ if(
         input-handle @ close-file!,
         id
@@ -29,10 +29,10 @@ def(input-end!, +Input,
     0 input-offset !
     false input-isopen !)
 
-def(input-done?, Bool +Input,
+def(input-done?, Bool,
     input-isopen @ not)
 
-def(input-fill-buffer!, +Input,
+def(input-fill-buffer!, --,
     input-isopen @ if(
         input-handle @ File->Int
         INPUT_BUFFER
@@ -52,7 +52,7 @@ def(input-fill-buffer!, +Input,
 
 # Return the current char in the input buffer.
 # Panics if file is exhausted.
-def(input-peek, Char +Input,
+def(input-peek, Char,
     input-isopen @ if(
         input-offset @ INPUT_BUFFER ptr+ char@,
         "error: attempted to read input buffer when file is already closed" panic!
@@ -60,7 +60,7 @@ def(input-peek, Char +Input,
 
 # Move to next char in input buffer.
 # Panics if file is exhausted.
-def(input-move!, +Input,
+def(input-move!, --,
     input-isopen @ if(
         input-offset @ dup INPUT_BUFFER ptr+
         char@-width + input-offset !
@@ -70,7 +70,7 @@ def(input-move!, +Input,
 
 ||| Refill input buffer, with special logic to handle
 ||| characters straddling the buffer boundary.
-def(input-prepare-for-more!, +Input,
+def(input-prepare-for-more!, --,
     input-offset @
     dup 4 + input-length @ > if(
 
@@ -87,7 +87,7 @@ def(input-prepare-for-more!, +Input,
         drop
     ))
 
-def(input-fill-buffer-tragic!, +Input,
+def(input-fill-buffer-tragic!, --,
 
     input-offset @ INPUT_BUFFER ptr+ u32@ # ok because of wiggle room
     INPUT_BUFFER u32!
