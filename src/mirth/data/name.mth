@@ -24,7 +24,7 @@ field(name-mangled, Name, Lazy(Str))
 
 data(Hash, HASH -> Int)
 def(Int->Hash, Int -- Hash, HASH)
-def(Hash->Int, Hash -- Int, match(HASH -> id))
+def(Hash->Int, Hash -- Int, HASH -> id)
 
 buffer(NAME_HASH_TABLE, 0x80000)
 def(NAME_HASH_MAX, Size, 0x7FFF)
@@ -152,6 +152,5 @@ def(hexdigit, Int -- Char,
 # Defs #
 ########
 
-def(name-undefined?, Name -- Name Bool,
-    dup name-def @ match(DEF_NONE -> true, _ -> drop false))
+def(name-undefined?, Name -- Name Bool, dup name-def @ is-nil)
 def(name-defined?, Name -- Name Bool, name-undefined? not)

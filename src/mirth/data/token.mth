@@ -258,6 +258,14 @@ def(token-args+, Token -- List+(Token),
         SOME -> nip
     ))
 
+||| Get two args plus a nonempty list of the rest.
+def(token-args-3+, Token -- Token Token List+(Token),
+    dup token-args dup len 3 >= if(nip,
+        drop "expected 3+ args" emit-fatal-error!)
+    List->List+ unwrap uncons
+    List->List+ unwrap uncons
+    List->List+ unwrap)
+
 def(emit-warning!, Token Str --,
     dip(token-location) emit-warning-at!)
 def(emit-error!, Token Str --,
@@ -286,6 +294,12 @@ def(token-run-end?, Token -- Token Bool,
         TOKEN_RCURLY -> drop true,
         _ -> drop false
     ))
+
+def(token-run, Token -- List(Token),
+    collect-while(token-run-end? not, sip(token-next)) nip)
+
+def(token-run-has-arrow, Token -- Bool,
+    token-run any(token-is-arrow?))
 
 ###################
 # Type Signatures #

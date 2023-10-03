@@ -50,9 +50,9 @@ data(Op,
     OP_BLOCK -> Block)
 
 data(Param, PARAM -> Var)
-def(unPARAM, Param -- Var, match(PARAM -> id))
+def(unPARAM, Param -- Var, PARAM -> id)
 def(Var->Param, Var -- Param, PARAM)
-def(Param->Var, Param -- Var, match(PARAM -> id))
+def(Param->Var, Param -- Var, PARAM -> id)
 
 field(arrow-token-start, Arrow, Token)
 field(arrow-token-end, Arrow, Token)
@@ -153,7 +153,8 @@ data(Pattern, PATTERN_UNDERSCORE, PATTERN_TAG -> Tag)
 field(match-ctx, Match, Ctx)
 field(match-dom, Match, Type)
 field(match-cod, Match, Type)
-field(match-token, Match, Token)
+field(match-token, Match, Token) # where the diagnostics go
+field(match-body, Match, Token) # where the cases start
 field(match-cases, Match, List(Case))
 field(case-match, Case, Match)
 field(case-token, Case, Token)

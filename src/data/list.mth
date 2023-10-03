@@ -36,50 +36,40 @@ def(L11+, t t t t  t t t t  t t t   -- List+(t), L6+ dip(L5+) 11 LCAT+)
 def(L12+, t t t t  t t t t  t t t t -- List+(t), L6+ dip(L6+) 12 LCAT+)
 
 def(List+->List, List+(t) -- List(t),
-    match(
-        L1+ -> L1,
-        L2+ -> L2,
-        L3+ -> L3,
-        LCAT+ -> LCAT,
-    ))
+    L1+ -> L1,
+    L2+ -> L2,
+    L3+ -> L3,
+    LCAT+ -> LCAT)
 
 def(List->List+, List(t) -- Maybe(List+(t)),
-    match(
-        L0 -> NONE,
-        L1 -> L1+ SOME,
-        L2 -> L2+ SOME,
-        L3 -> L3+ SOME,
-        LCAT -> LCAT+ SOME
-    ))
+    L0 -> NONE,
+    L1 -> L1+ SOME,
+    L2 -> L2+ SOME,
+    L3 -> L3+ SOME,
+    LCAT -> LCAT+ SOME)
 
 def(len, List(t) -- Int,
-    match(
-        L0 -> 0,
-        L1 -> drop 1,
-        L2 -> drop2 2,
-        L3 -> drop3 3,
-        LCAT -> dip(drop2)
-    ))
+    L0 -> 0,
+    L1 -> drop 1,
+    L2 -> drop2 2,
+    L3 -> drop3 3,
+    LCAT -> dip(drop2))
 
 def(len+, List+(t) -- Int,
-    match(
-        L1+ -> drop 1,
-        L2+ -> drop2 2,
-        L3+ -> drop3 3,
-        LCAT+ -> dip(drop2)
-    ))
+    L1+ -> drop 1,
+    L2+ -> drop2 2,
+    L3+ -> drop3 3,
+    LCAT+ -> dip(drop2))
 
 def(len?, List(t) -- List(t) Int, dup len)
 def(len+?, List+(t) -- List+(t) Int, dup len+)
 
 def(cons+, t List(t) -- List+(t),
-    match(
-        L0 -> L1+,
-        L1 -> L2+,
-        L2 -> L3+,
-        L3 -> L4+,
-        LCAT -> 1+ dip(dip(cons++) rebalance+) LCAT+
-    ))
+    L0 -> L1+,
+    L1 -> L2+,
+    L2 -> L3+,
+    L3 -> L4+,
+    LCAT -> 1+ dip(dip(cons++) rebalance+) LCAT+)
 
 def(snoc+, List(t) t -- List+(t),
     swap match(
@@ -96,20 +86,16 @@ def(cons, t List(t) -- List(t), cons+ List+->List)
 def(snoc, List(t) t -- List(t), snoc+ List+->List)
 
 def(uncons, List+(t) -- t List(t),
-    match(
-        L1+ -> L0,
-        L2+ -> L1,
-        L3+ -> L2,
-        LCAT+ -> drop dip(uncons) cat_+ List+->List
-    ))
+    L1+ -> L0,
+    L2+ -> L1,
+    L3+ -> L2,
+    LCAT+ -> drop dip(uncons) cat_+ List+->List)
 
 def(unsnoc, List+(t) -- List(t) t,
-    match(
-        L1+ -> dip(L0),
-        L2+ -> dip(L1),
-        L3+ -> dip(L2),
-        LCAT+ -> drop unsnoc dip(cat+_ List+->List)
-    ))
+    L1+ -> dip(L0),
+    L2+ -> dip(L1),
+    L3+ -> dip(L2),
+    LCAT+ -> drop unsnoc dip(cat+_ List+->List))
 
 def(cat, List(t) List(t) -- List(t),
     swap List->List+ match(
@@ -170,76 +156,60 @@ def(rebalance+, List+(t) List+(t) -- List+(t) List+(t),
     ))
 
 def(split-half-left, List+(t) -- List+(t) List(t),
-    match(
-        L1+ -> L0 dip(L1+),
-        L2+ -> L1 dip(L1+),
-        L3+ -> L1 dip(L2+),
-        LCAT+ -> drop List+->List
-    ))
+    L1+ -> L0 dip(L1+),
+    L2+ -> L1 dip(L1+),
+    L3+ -> L1 dip(L2+),
+    LCAT+ -> drop List+->List)
 
 def(split-half-right, List+(t) -- List(t) List+(t),
-    match(
-        L1+ -> L1+ dip(L0),
-        L2+ -> L1+ dip(L1),
-        L3+ -> L2+ dip(L1),
-        LCAT+ -> drop dip(List+->List)
-    ))
+    L1+ -> L1+ dip(L0),
+    L2+ -> L1+ dip(L1),
+    L3+ -> L2+ dip(L1),
+    LCAT+ -> drop dip(List+->List))
 
 def(split-half, List(t) -- List(t) List(t),
-    match(
-        L0 -> L0 L0,
-        L1 -> L1 dip(L0),
-        L2 -> L1 dip(L1),
-        L3 -> L2 dip(L1),
-        LCAT -> drop dip(List+->List) List+->List
-    ))
+    L0 -> L0 L0,
+    L1 -> L1 dip(L0),
+    L2 -> L1 dip(L1),
+    L3 -> L2 dip(L1),
+    LCAT -> drop dip(List+->List) List+->List)
 
 def(first, List(t) -- Maybe(t), List->List+ maybe-map(first+))
 def(last, List(t) -- Maybe(t), List->List+ maybe-map(last+))
 def(middle, List(t) -- Maybe(t), List->List+ maybe-map(middle+))
 
 def(first+, List+(t) -- t,
-    match(
-        L1+ -> id,
-        L2+ -> drop,
-        L3+ -> drop2,
-        LCAT+ -> drop2 first+
-    ))
+    L1+ -> id,
+    L2+ -> drop,
+    L3+ -> drop2,
+    LCAT+ -> drop2 first+)
 
 def(last+, List+(t) -- t,
-    match(
-        L1+ -> id,
-        L2+ -> dip(drop),
-        L3+ -> dip(drop2),
-        LCAT+ -> drop nip last+
-    ))
+    L1+ -> id,
+    L2+ -> dip(drop),
+    L3+ -> dip(drop2),
+    LCAT+ -> drop nip last+)
 
 def(middle+, List+(t) -- t,
-    match(
-        L1+ -> id,
-        L2+ -> nip,
-        L3+ -> drop nip,
-        LCAT+ -> drop nip first+
-    ))
+    L1+ -> id,
+    L2+ -> nip,
+    L3+ -> drop nip,
+    LCAT+ -> drop nip first+)
 
 ||| Reverse the list.
 def(reverse, List(a) -- List(a),
-    match(
-        L0 -> L0,
-        L1 -> L1,
-        L2 -> swap L2,
-        L3 -> rotr swap L3,
-        LCAT -> dip(reverse+ swap reverse+) LCAT
-    ))
+    L0 -> L0,
+    L1 -> L1,
+    L2 -> swap L2,
+    L3 -> rotr swap L3,
+    LCAT -> dip(reverse+ swap reverse+) LCAT)
 
 ||| Reverse the list.
 def(reverse+, List+(a) -- List+(a),
-    match(
-        L1+ -> L1+,
-        L2+ -> swap L2+,
-        L3+ -> rotr swap L3+,
-        LCAT+ -> dip(reverse+ swap reverse+) LCAT+
-    ))
+    L1+ -> L1+,
+    L2+ -> swap L2+,
+    L3+ -> rotr swap L3+,
+    LCAT+ -> dip(reverse+ swap reverse+) LCAT+)
 
 ||| Transform each element of the list.
 def(map, *c List(a) [*c a -- *c b] -- *c List(b),
@@ -391,3 +361,6 @@ def(all?, *c List(a) [*c a -- *c a Bool] -- *c List(a) Bool,
 ||| Build a list through repetition.
 def(collect, a [a -- a Maybe(b)] -- List(b),
     \([f] -> L0 swap while-some(f, swap dip(snoc)) drop))
+
+def(collect-while, *a [*a -- *a b] [*a -- *a Bool]  -- *a List(b),
+    \([g][f]-> L0 while(dip(f) swap, dip(g) swap snoc)))

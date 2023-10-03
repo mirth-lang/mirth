@@ -1282,44 +1282,42 @@ def(c99-emit-string-char!, Char --,
     )))))))
 
 def(c99-emit-prim!, List(Arg) Prim --,
-    match(
-        PRIM_CORE_DIP ->
-            match(
-                L1 ->
-                    "    { value_t d" . .d " = pop_value();" ;
-                    c99-emit-arg-run!
-                    "      push_value(d" . .d "); }" ;,
-                _ ->
-                    PRIM_CORE_DIP c99-emit-prim-default!
-            ),
+    PRIM_CORE_DIP ->
+        match(
+            L1 ->
+                "    { value_t d" . .d " = pop_value();" ;
+                c99-emit-arg-run!
+                "      push_value(d" . .d "); }" ;,
+            _ ->
+                PRIM_CORE_DIP c99-emit-prim-default!
+        ),
 
-        PRIM_CORE_IF ->
-            match(
-                L2 ->
-                    "    if (pop_u64()) {" ;
-                    dip(c99-emit-arg-run!)
-                    "    } else {" ;
-                    c99-emit-arg-run!
-                    "    }" ;,
-                _ ->
-                    PRIM_CORE_IF c99-emit-prim-default!
-            ),
+    PRIM_CORE_IF ->
+        match(
+            L2 ->
+                "    if (pop_u64()) {" ;
+                dip(c99-emit-arg-run!)
+                "    } else {" ;
+                c99-emit-arg-run!
+                "    }" ;,
+            _ ->
+                PRIM_CORE_IF c99-emit-prim-default!
+        ),
 
-        PRIM_CORE_WHILE ->
-            match(
-                L2 ->
-                    "    while(1) {" ;
-                    dip(c99-emit-arg-run!)
-                    "    if (!pop_u64()) break;" ;
-                    c99-emit-arg-run!
-                    "    }" ;,
+    PRIM_CORE_WHILE ->
+        match(
+            L2 ->
+                "    while(1) {" ;
+                dip(c99-emit-arg-run!)
+                "    if (!pop_u64()) break;" ;
+                c99-emit-arg-run!
+                "    }" ;,
 
-                _ ->
-                    PRIM_CORE_WHILE c99-emit-prim-default!
-            ),
+            _ ->
+                PRIM_CORE_WHILE c99-emit-prim-default!
+        ),
 
-        _ -> c99-emit-prim-default!
-    ))
+    _ -> c99-emit-prim-default!)
 
 def(c99-emit-prim-default!, List(Arg) Prim --,
     dip(c99-emit-args-push!)
@@ -1329,18 +1327,17 @@ def(c99-emit-args-push!, List(Arg) --,
     reverse-for(c99-emit-arg-push!))
 
 def(c99-emit-arg-push!, Arg --,
-    match(
-        ARG_BLOCK -> c99-emit-block-push!,
-        ARG_VAR_RUN -> c99-emit-var-push!,
-    ))
+    ARG_BLOCK -> c99-emit-block-push!,
+    ARG_VAR_RUN -> c99-emit-var-push!)
 
 def(c99-emit-arg-run!, Arg --,
-    match(
-        ARG_BLOCK -> block-arrow force! c99-emit-arrow!,
-        ARG_VAR_RUN -> c99-emit-var!,
-    ))
+    ARG_BLOCK -> block-arrow force! c99-emit-arrow!,
+    ARG_VAR_RUN -> c99-emit-var!)
 
-def(.var-val, Var -- +IO, "var_" . dup var-name @ .name "_" . Var.id .n)
+def(.var-val, Var -- +IO,
+    "var_" . dup var-name @ .name
+    drop) # "_" . Var.id .n)
+    # TODO append an int for shadowing variables
 
 def(c99-pack-ctx!, Ctx -- +IO,
     "    push_u64(0);" ;
@@ -1411,22 +1408,21 @@ def(c99-emit-case!, Case -- +IO,
     "    break;" ;)
 
 def(c99-emit-pattern!, Pattern -- +IO,
-    match(
-        PATTERN_UNDERSCORE ->
-            "    default:" ; ,
+    PATTERN_UNDERSCORE ->
+        "    default:" ; ,
 
-        PATTERN_TAG ->
-            "    case " . dup tag-value @ .n "LL:" ;
-            tag-num-inputs? nip
-            dup 0 > if(
-                "    do_pack_uncons(); do_drop();" ;
-                while(dup 1 >,
-                    "    do_pack_uncons(); do_swap();" ;
-                    1-)
-                drop,
-                drop "    do_drop();" ;
-            )
-    ))
+    PATTERN_TAG ->
+        "    case " . dup tag-value @ .n "LL:" ;
+        tag-num-inputs? nip
+        dup 0 > if(
+            "    do_pack_uncons(); do_drop();" ;
+            while(dup 1 >,
+                "    do_pack_uncons(); do_swap();" ;
+                1-)
+            drop,
+            drop "    do_drop();" ;
+        )
+    )
 
 def(c99-emit-word-sigs!, +IO,
     Word.for(c99-emit-word-sig!) .lf)

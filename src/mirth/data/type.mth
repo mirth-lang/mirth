@@ -3,7 +3,6 @@ module(mirth.data.type)
 import(mirth.data.name)
 import(data.map)
 
-# mirth/data/type
 data(Type,
     TYPE_ERROR,
     TYPE_DONT_CARE,
@@ -42,6 +41,12 @@ data(PrimType,
     PRIM_TYPE_I16,
     PRIM_TYPE_I8,
     PRIM_TYPE_MUT)
+
+def(prim-type-is-physical, PrimType -- Bool,
+    PRIM_TYPE_TYPE -> false,
+    PRIM_TYPE_STACK -> false,
+    PRIM_TYPE_EFFECT -> false,
+    _ -> drop true)
 
 table(MetaVar)
 table(Data)
@@ -100,7 +105,9 @@ def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
 # def(type-is-var, Type -- Bool, match(TVar -> drop true, _ -> drop false))
 # def(type-is-meta, Type -- Bool, match(TMeta -> drop true, _ -> drop false))
 # def(type-is-tensor, Type -- Bool, match(TTensor -> drop2 true, _ -> drop false))
-def(type-is-morphism, Type -- Bool, match(TMorphism -> drop2 true, _ -> drop false))
+def(type-is-morphism, Type -- Bool,
+    TMorphism -> drop2 true,
+    _ -> drop false)
 # def(type-is-table, Type -- Bool, match(TTable -> drop true, _ -> drop false))
 # def(type-is-hole, Type -- Bool, match(THole -> drop true, _ -> drop false))
 # def(type-is-app, Type -- Bool, match(TApp -> drop2 true, _ -> drop false))
@@ -117,6 +124,12 @@ def(type-is-morphism?, Type -- Type Bool, dup type-is-morphism)
 # def(type-is-hole?, Type -- Type Bool, dup type-is-hole)
 # def(type-is-app?, Type -- Type Bool, dup type-is-app)
 # def(type-is-data?, Type -- Type Bool, dup type-is-data)
+
+def(type-is-physical, Type -- Bool,
+    TMeta -> meta-expand-if(type-is-physical,
+        "unbound meta at type-is-physical" panic!),
+    TPrim -> prim-type-is-physical,
+    _ -> drop true)
 
 def(TYPE_TYPE, Type, PRIM_TYPE_TYPE TPrim) # type of types
 def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
@@ -138,18 +151,15 @@ def(TYPE_I32, Type, PRIM_TYPE_I32 TPrim) # fixed width integer type -- signed 32
 def(TYPE_I64, Type, PRIM_TYPE_I64 TPrim) # fixed width integer type -- signed 64 bit
 
 def(type-expand, Type -- Type,
-    match(
-        TMeta -> meta-expand,
-        # TODO: expand/compute app type if this is reasonable
-        _ -> id
-    ))
+    TMeta -> meta-expand,
+    _ -> id)
 
 data(Gamma, GAMMA -> Token)
-def(gamma-token@, Gamma -- Token, match(GAMMA -> id))
+def(gamma-token@, Gamma -- Token, GAMMA -> id)
 def(gamma-token?, Gamma -- Gamma Token, dup gamma-token@)
 
 # Raise a type unification error.
-def(type-unify-failed!, Gamma Type Type -- Gamma Type +Elab,
+def(type-unify-failed!, Gamma Type Type -- Gamma Type,
     dip2(gamma-token? token-location location-trace!)
     ": error: Failed to unify " str-trace!
     dip(type-trace!)
@@ -160,7 +170,7 @@ def(type-unify-failed!, Gamma Type Type -- Gamma Type +Elab,
     num-errors modify(1+))
 
 # Unify two types. Raises an elaboration error if unification is impossible.
-def(type-unify!, Gamma Type Type -- Gamma Type +Elab,
+def(type-unify!, Gamma Type Type -- Gamma Type,
     swap type-expand match(
         TYPE_ERROR -> drop TYPE_ERROR,
         TYPE_DONT_CARE -> id,
@@ -345,38 +355,42 @@ def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
     dup2 type-has-meta)
 
 def(type-has-meta, MetaVar Type -- Bool,
-    type-expand match(
-        TMeta -> ==,
-        TYPE_ERROR -> drop false,
-        TYPE_DONT_CARE -> drop false,
-        TPrim -> drop2 false,
-        TVar -> drop2 false,
-        THole -> drop2 false,
-        TTensor -> type2-has-meta,
-        TMorphism -> type2-has-meta,
-        TApp -> type2-has-meta,
-        TData -> drop2 false,
-        TTable -> drop2 false,
-        TValue -> match(
-            VALUE_INT -> drop2 false,
-            VALUE_STR -> drop2 false,
-            VALUE_BLOCK -> sip(block-dom @) block-cod @ type2-has-meta
-        )
-    ))
+    TMeta -> meta-has-meta,
+    TYPE_ERROR -> drop false,
+    TYPE_DONT_CARE -> drop false,
+    TPrim -> drop2 false,
+    TVar -> drop2 false,
+    THole -> drop2 false,
+    TTensor -> type2-has-meta,
+    TMorphism -> type2-has-meta,
+    TApp -> type2-has-meta,
+    TData -> drop2 false,
+    TTable -> drop2 false,
+    TValue -> value-type-has-meta)
 
 def(type2-has-meta, MetaVar Type Type -- Bool,
     over2 swap type-has-meta if(drop2 true, type-has-meta))
 
-def(type-trace-sig!, Type -- +IO,
-    type-expand match(
-        TYPE_ERROR -> "<ERROR>" str-trace!,
-        TMorphism ->
-            swap
-            type-trace-stack-dom!
-            "--" str-trace!
-            type-trace-stack-cod!,
-        _ -> type-trace-stack!
+def(meta-has-meta, MetaVar MetaVar -- Bool,
+    dup meta-type @ match(
+        NONE -> ==,
+        SOME -> nip type-has-meta
     ))
+
+def(value-type-has-meta, MetaVar Value -- Bool,
+    VALUE_INT -> drop2 false,
+    VALUE_STR -> drop2 false,
+    VALUE_BLOCK -> sip(block-dom @) block-cod @ type2-has-meta)
+
+def(type-trace-sig!, Type --,
+    TMeta -> meta-expand-if(type-trace-sig!, meta-trace!),
+    TYPE_ERROR -> "<ERROR>" str-trace!,
+    TMorphism ->
+        swap
+        type-trace-stack-dom!
+        "--" str-trace!
+        type-trace-stack-cod!,
+    _ -> type-trace-stack!)
 
 def(type-trace-stack-dom!, Type -- +IO,
     type-expand dup TYPE_UNIT == if(
@@ -393,33 +407,28 @@ def(type-trace-stack-cod!, Type -- +IO,
     ))
 
 def(type-trace-stack!, Type -- +IO,
-    type-expand match(
-        TTensor ->
-            swap type-trace-stack-dom! type-trace!,
-        TVar ->
-            var-name @
-            dup name-trace!
-            name-could-be-stack-var
-            if(id, " ." str-trace!),
-        _ ->
-            type-trace!
-    ))
+    TMeta -> meta-expand-if(type-trace-stack!, meta-trace!),
+    TTensor -> swap type-trace-stack-dom! type-trace!,
+    TVar ->
+        var-name @
+        dup name-trace!
+        name-could-be-stack-var
+        if(id, " ." str-trace!),
+    _ -> type-trace!)
 
 def(type-trace!, Type -- +IO,
-    type-expand match(
-        TYPE_ERROR -> "<ERROR>" str-trace!,
-        TYPE_DONT_CARE -> "_" str-trace!,
-        TPrim -> type-trace-prim!,
-        TVar -> var-name @ name-trace!,
-        TMeta -> meta-trace!,
-        TTensor -> "[" str-trace! TTensor type-trace-stack! "]" str-trace!,
-        TMorphism -> "[" str-trace! TMorphism type-trace-sig! "]" str-trace!,
-        TData -> data-name @ name-trace!,
-        TTable -> table-name @ name-trace!,
-        THole -> name-trace!,
-        TApp -> app-type-trace!,
-        TValue -> value-as-type type-trace!
-    ))
+    TYPE_ERROR -> "<ERROR>" str-trace!,
+    TYPE_DONT_CARE -> "_" str-trace!,
+    TPrim -> type-trace-prim!,
+    TVar -> var-name @ name-trace!,
+    TMeta -> meta-trace!,
+    TTensor -> "[" str-trace! TTensor type-trace-stack! "]" str-trace!,
+    TMorphism -> "[" str-trace! TMorphism type-trace-sig! "]" str-trace!,
+    TData -> data-name @ name-trace!,
+    TTable -> table-name @ name-trace!,
+    THole -> name-trace!,
+    TApp -> app-type-trace!,
+    TValue -> value-as-type type-trace!)
 
 def(value-as-type, Value -- Type,
     match(
@@ -452,107 +461,92 @@ def(type-trace-prim!, PrimType -- +IO,
 
 ||| Replace the stack rest with a metavar, if it's unit.
 def(type-semifreshen-sig, Type -- Type,
-    type-sig-needs-fresh-stack-rest? if(
+    dup type-sig-needs-fresh-stack-rest if(
         type-semifreshen-sig-aux,
         id
     ))
 
 def(type-semifreshen-sig-aux, Type -- Type,
-    type-expand match(
-        TMorphism ->
-            meta-alloc! TMeta rotr
-            dip(type-semifreshen-sig-stack) swap
-            dip(type-semifreshen-sig-stack) swap
-            TMorphism nip,
-        _ ->
-            id
-    ))
+    TMeta -> meta-expand-if(type-semifreshen-sig-aux, TMeta),
+    TMorphism ->
+        meta-alloc! TMeta rotr
+        dip(type-semifreshen-sig-stack) swap
+        dip(type-semifreshen-sig-stack) swap
+        TMorphism nip,
+    _ -> id)
 
 def(type-semifreshen-sig-stack, Type Type -- Type Type,
-    type-expand match(
-        TTensor -> dip(type-semifreshen-sig-stack) TTensor,
-        TPrim ->
-            match(
-                PRIM_TYPE_UNIT -> dup,
-                _ -> TPrim
-            ),
-        _ -> id
-    ))
+    TMeta -> meta-expand-if(type-semifreshen-sig-stack, TMeta),
+    TTensor -> dip(type-semifreshen-sig-stack) TTensor,
+    TPrim ->
+        match(
+            PRIM_TYPE_UNIT -> dup,
+            _ -> TPrim
+        ),
+    _ -> id)
 
 ||| Freshen a type signature in preparation for type sig application.
 def(type-freshen-sig, Subst Type -- Subst Type,
-    type-sig-needs-fresh-stack-rest? if(
+    dup type-sig-needs-fresh-stack-rest if(
         type-freshen-sig-aux,
-
         type-freshen
     ))
 
 def(type-stack-rest, Type -- Type,
-    type-expand match(
-        TTensor -> drop type-stack-rest,
-        _ -> id
-    ))
+    TMeta -> meta-expand-if(type-stack-rest, TMeta),
+    TTensor -> drop type-stack-rest,
+    _ -> id)
 
-def(type-sig-needs-fresh-stack-rest?, Type -- Type Bool,
-    dup type-expand match(
-        TMorphism ->
-            type-stack-rest TYPE_UNIT == if(
-                type-stack-rest TYPE_UNIT ==,
-                drop false
-            ),
-        _ -> drop false
-    ))
+def(type-sig-needs-fresh-stack-rest, Type -- Bool,
+    TMeta -> meta-expand-if(type-sig-needs-fresh-stack-rest, drop false),
+    TMorphism ->
+        type-stack-rest TYPE_UNIT == if(
+            type-stack-rest TYPE_UNIT ==,
+            drop false
+        ),
+    _ -> drop false)
 
 def(type-freshen-sig-aux, Subst Type -- Subst Type,
-    type-expand match(
-        TMorphism ->
-            meta-alloc! TMeta rot4r
-            dip(type-freshen-sig-stack) swap
-            dip(type-freshen-sig-stack) swap
-            TMorphism dip(nip),
-        _ ->
-            type-freshen
-    ))
+    TMeta -> meta-expand-if(type-freshen-sig-aux, TMeta),
+    TMorphism ->
+        meta-alloc! TMeta rot4r
+        dip(type-freshen-sig-stack) swap
+        dip(type-freshen-sig-stack) swap
+        TMorphism dip(nip),
+    _ -> type-freshen)
 
 def(type-freshen-sig-stack, Type Subst Type -- Type Subst Type,
-    type-expand match(
-        TTensor ->
-            dip(type-freshen-sig-stack) swap
-            dip(type-freshen) swap
-            TTensor,
-        TPrim ->
-            match(
-                PRIM_TYPE_UNIT -> over,
-                _ -> TPrim
-            ),
-        _ ->
-            type-freshen
-    ))
+    TMeta -> meta-expand-if(type-freshen-sig-stack, meta-freshen),
+    TTensor ->
+        dip(type-freshen-sig-stack) swap
+        dip(type-freshen) swap
+        TTensor,
+    TPrim ->
+        match(
+            PRIM_TYPE_UNIT -> over,
+            _ -> TPrim
+        ),
+    _ -> type-freshen)
 
 def(type-freshen, Subst Type -- Subst Type,
-    match(
-        TYPE_ERROR -> TYPE_ERROR,
-        TYPE_DONT_CARE -> TYPE_DONT_CARE,
-        TPrim -> TPrim,
-        THole -> THole,
-        TData -> TData,
-        TTable -> TTable,
-        TValue -> TValue, # no need to freshen values
-        TVar -> type-var-freshen,
-        TMeta -> meta-freshen,
-        TTensor -> type-pair-freshen TTensor,
-        TMorphism -> type-pair-freshen TMorphism,
-        TApp -> type-pair-freshen TApp,
-    ))
+    TYPE_ERROR -> TYPE_ERROR,
+    TYPE_DONT_CARE -> TYPE_DONT_CARE,
+    TPrim -> TPrim,
+    THole -> THole,
+    TData -> TData,
+    TTable -> TTable,
+    TValue -> TValue, # no need to freshen values
+    TVar -> type-var-freshen,
+    TMeta -> meta-freshen,
+    TTensor -> type-pair-freshen TTensor,
+    TMorphism -> type-pair-freshen TMorphism,
+    TApp -> type-pair-freshen TApp)
 
 def(type-pair-freshen, Subst Type Type -- Subst Type Type,
     dip(type-freshen swap) type-freshen dip(swap))
 
 def(meta-freshen, Subst MetaVar -- Subst Type,
-    dup meta-type @ match(
-        NONE -> drop meta-alloc! TMeta,
-        SOME -> nip type-freshen
-    ))
+    meta-expand-if(type-freshen, drop meta-alloc! TMeta))
 
 def(type-var-freshen, Subst Var -- Subst Type,
     swap subst-has-var? if(
@@ -562,54 +556,55 @@ def(type-var-freshen, Subst Var -- Subst Type,
     ))
 
 def(prim-type-arity, PrimType -- Int,
-    match(
-        PRIM_TYPE_MUT -> 1,
-        _ -> drop 0,
-    ))
+    PRIM_TYPE_MUT -> 1,
+    _ -> drop 0)
 
 def(type-arity, Type -- Int,
-    type-expand match(
-        TData -> data-arity @,
-        TApp -> drop type-arity 1-,
-        TPrim -> prim-type-arity,
-        _ -> drop 0,
-    ))
+    TMeta -> meta-expand-if(type-arity, drop 0),
+    TData -> data-arity @,
+    TApp -> drop type-arity 1-,
+    TPrim -> prim-type-arity,
+    _ -> drop 0)
 
 ||| Get head of type.
 def(type-head, Type -- Type,
-    type-expand match(
-        TApp -> drop type-head,
-        _ -> id
-    ))
+    TMeta -> meta-expand-if(type-head, TMeta),
+    TApp -> drop type-head,
+    _ -> id)
 
 ||| For types that can have a field associated with them,
 ||| get the number of values n, where the type's values
 ||| range from 0 to (n-1). This should not be too large.
 |||
 ||| Do NOT return SOME(n) unless the type has values 0..n-1
-def(type-max-count?, Type -- Type Maybe(Int),
-    dup match(
-        TApp -> drop type-max-count? nip,
-        TTable -> table-max-count @ 1+ SOME,
-        TData ->
-            data-is-enum? if(
-                data-tags @ len SOME,
-                drop NONE
-            ),
-        _ -> drop NONE
-    ))
+def(type-max-count, Type -- Maybe(Int),
+    TMeta -> meta-expand-if(type-max-count, drop NONE),
+    TApp -> drop type-max-count,
+    TTable -> table-max-count @ 1+ SOME,
+    TData ->
+        data-is-enum? if(
+            data-tags @ len SOME,
+            drop NONE
+        ),
+    _ -> drop NONE)
 
 ##################
 # Meta-var Types #
 ##################
 
-def(meta-trace!, MetaVar -- +IO, "?" str-trace! MetaVar.id int-trace!)
-def(meta-alloc!, MetaVar, MetaVar.alloc!)
-def(meta-expand, MetaVar -- Type,
+def(meta-trace!, MetaVar --,
     dup meta-type @ match(
-        NONE -> TMeta,
-        SOME -> type-expand tuck SOME swap meta-type !
+        NONE -> "?" str-trace! MetaVar.id int-trace!,
+        SOME -> nip type-trace!
     ))
+def(meta-alloc!, MetaVar, MetaVar.alloc!)
+def(meta-expand-if, *a MetaVar [*a MetaVar -- *b] [*a Type -- *b] -- *b,
+    \([g][f] -> dup meta-type @ match(
+        NONE -> g,
+        SOME -> type-expand tuck SOME swap meta-type ! f
+    )))
+def(meta-expand, MetaVar -- Type,
+    meta-expand-if(id, TMeta))
 def(meta-unify!, Gamma Type MetaVar -- Gamma Type,
     dup meta-type @ match(
         SOME -> nip type-unify!,
@@ -640,20 +635,14 @@ def(type-hole-unify!, Type Name -- Type,
 ##########
 
 def(type-max-num-params, Type -- Int,
-    type-expand match(
-        TMorphism -> drop type-num-morphisms-on-top,
-        _ -> drop 0
-    ))
+    TMeta -> meta-expand-if(type-max-num-params, drop 0),
+    TMorphism -> drop type-num-morphisms-on-top,
+    _ -> drop 0)
 
 def(type-num-morphisms-on-top, Type -- Int,
-    type-expand match(
-        TTensor ->
-            type-expand match(
-                TMorphism -> drop2 type-num-morphisms-on-top 1+,
-                _ -> drop2 0
-            ),
-        _ -> drop 0
-    ))
+    TMeta -> meta-expand-if(type-num-morphisms-on-top, drop 0),
+    TTensor -> type-is-morphism if(type-num-morphisms-on-top 1+, drop 0),
+    _ -> drop 0)
 
 ############
 # APP TYPE #
@@ -680,7 +669,7 @@ def(app-type-trace-open!, Type Type --,
 
 # mirth/data/type
 data(Subst, SUBST -> Map(Var, Type))
-def(unSUBST, Subst -- Map(Var, Type), match(SUBST -> id))
+def(unSUBST, Subst -- Map(Var, Type), SUBST -> id)
 def(subst-nil, Subst, nil)
 def(subst-is-nil, Subst -- Bool, is-nil)
 def(subst-is-nil?, Subst -- Subst Bool, is-nil?)
