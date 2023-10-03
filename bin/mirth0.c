@@ -2380,7 +2380,9 @@ static void mwstat (void) {
  static void mwdelay3 (void);
  static void mwdelay4 (void);
  static void mwforce_21_ (void);
+ static void mwforce_or_21_ (void);
  static void mwforce2_21_ (void);
+ static void mwforce_or2_21_ (void);
  static void mwVar_2E_MAX (void);
  static void mwVar_2E_id (void);
  static void mwVar_2E_succ (void);
@@ -2568,6 +2570,7 @@ static void mwstat (void) {
  static void mwelab_word_sig_21_ (void);
  static void mwelab_word_ctx_21_ (void);
  static void mwelab_word_ctx_sig_21_ (void);
+ static void mwemit_recursive_word_fatal_error_21_ (void);
  static void mwelab_word_ctx_sig_weak_21_ (void);
  static void mwelab_word_body_21_ (void);
  static void mwelab_arrow_21_ (void);
@@ -3726,6 +3729,7 @@ static void mwstat (void) {
  static void mb_delay2_1 (void);
  static void mb_delay3_1 (void);
  static void mb_delay4_1 (void);
+ static void mb_force_or2_21__2 (void);
  static void mb_type_elab_stack_assertion_1 (void);
  static void mb_elab_type_sig_21__1 (void);
  static void mb_elab_type_sig_21__2 (void);
@@ -3846,6 +3850,7 @@ static void mwstat (void) {
  static void mb_elab_var_sig_21__2 (void);
  static void mb_elab_match_sig_21__1 (void);
  static void mb_elab_lambda_sig_21__1 (void);
+ static void mb_elab_word_ctx_sig_21__1 (void);
  static void mb_elab_arrow_fwd_21__1 (void);
  static void mb_elab_atoms_21__1 (void);
  static void mb_elab_atoms_21__2 (void);
@@ -3957,13 +3962,14 @@ static void mwstat (void) {
  static void mb_elab_def_21__14 (void);
  static void mb_elab_def_21__15 (void);
  static void mb_elab_def_21__16 (void);
- static void mb_elab_def_21__19 (void);
+ static void mb_elab_def_21__18 (void);
  static void mb_elab_def_21__20 (void);
  static void mb_elab_def_21__21 (void);
  static void mb_elab_def_21__22 (void);
  static void mb_elab_def_21__23 (void);
  static void mb_elab_def_21__24 (void);
  static void mb_elab_def_21__25 (void);
+ static void mb_elab_def_21__26 (void);
  static void mb_elab_def_params_21__1 (void);
  static void mb_elab_def_params_21__2 (void);
  static void mb_elab_def_params_21__3 (void);
@@ -15450,9 +15456,46 @@ static void mwforce_21_ (void){
     }
 }
 
+static void mwforce_or_21_ (void){
+    {
+    value_t var_f = pop_value();
+    mwdup();
+    mw_40_();
+    switch (get_top_data_tag()) {
+    case 2LL:
+    do_drop();
+    mwdrop();
+    push_value(var_f);
+    incref(var_f);
+    do_run();
+    break;
+    default:
+    mwdrop();
+    mwforce_21_();
+    break;
+    }
+    decref(var_f);
+    }
+}
+
 static void mwforce2_21_ (void){
     mwforce_21_();
     mwunpack2();
+}
+
+static void mwforce_or2_21_ (void){
+    {
+    value_t var_f = pop_value();
+    push_u64(0);
+    push_value(var_f);
+    incref(var_f);
+    do_pack_cons();
+    push_fnptr(&mb_force_or2_21__2);
+    do_pack_cons();
+    mwforce_or_21_();
+    mwunpack2();
+    decref(var_f);
+    }
 }
 
 static void mwVar_2E_MAX (void){
@@ -20199,8 +20242,21 @@ static void mwelab_word_ctx_21_ (void){
 }
 
 static void mwelab_word_ctx_sig_21_ (void){
+    mwdup();
     mwword_ctx_type();
-    mwforce2_21_();
+    push_u64(0);
+    push_fnptr(&mb_elab_word_ctx_sig_21__1);
+    do_pack_cons();
+    mwforce_or_21_();
+    mwnip();
+    mwunpack2();
+}
+
+static void mwemit_recursive_word_fatal_error_21_ (void){
+    mwword_head();
+    mw_40_();
+    push_ptr("recursive word needs type signature\0\0\0");
+    mwemit_fatal_error_21_();
 }
 
 static void mwelab_word_ctx_sig_weak_21_ (void){
@@ -21303,7 +21359,7 @@ static void mwelab_def_21_ (void){
     mw_21_();
     mwdup();
     push_u64(0);
-    push_fnptr(&mb_elab_def_21__20);
+    push_fnptr(&mb_elab_def_21__21);
     do_pack_cons();
     mwdelay();
     mwover();
@@ -21311,7 +21367,7 @@ static void mwelab_def_21_ (void){
     mw_21_();
     mwdup();
     push_u64(0);
-    push_fnptr(&mb_elab_def_21__21);
+    push_fnptr(&mb_elab_def_21__22);
     do_pack_cons();
     mwdelay();
     mwswap();
@@ -31923,6 +31979,16 @@ static void mb_delay4_1 (void) {
     mwunpack5();
     mwrun();
 }
+static void mb_force_or2_21__2 (void) {
+    do_pack_uncons();
+    value_t var_f = pop_value();
+    do_drop();
+    push_value(var_f);
+    incref(var_f);
+    do_run();
+    mwpack2();
+    decref(var_f);
+}
 static void mb_type_elab_stack_assertion_1 (void) {
     do_drop();
     mwtrue();
@@ -32896,6 +32962,10 @@ static void mb_elab_lambda_sig_21__1 (void) {
     do_drop();
     mwlambda_dom();
     mw_40_();
+}
+static void mb_elab_word_ctx_sig_21__1 (void) {
+    do_drop();
+    mwemit_recursive_word_fatal_error_21_();
 }
 static void mb_elab_arrow_fwd_21__1 (void) {
     do_drop();
@@ -33891,7 +33961,10 @@ static void mb_elab_def_21__16 (void) {
     mwtype_elab_ctx();
     mwover();
     mwword_arrow();
-    mwforce_21_();
+    push_u64(0);
+    push_fnptr(&mb_elab_def_21__18);
+    do_pack_cons();
+    mwforce_or_21_();
     mwarrow_type();
     mwtype_rigidify_sig_21_();
     break;
@@ -33908,23 +33981,28 @@ static void mb_elab_def_21__16 (void) {
     mwpack2();
     mwnip();
 }
-static void mb_elab_def_21__19 (void) {
+static void mb_elab_def_21__18 (void) {
     do_drop();
-    mwtype_elab_ctx();
+    mwswap();
+    mwemit_recursive_word_fatal_error_21_();
 }
 static void mb_elab_def_21__20 (void) {
     do_drop();
-    mwelab_def_params_21_();
+    mwtype_elab_ctx();
 }
 static void mb_elab_def_21__21 (void) {
     do_drop();
+    mwelab_def_params_21_();
+}
+static void mb_elab_def_21__22 (void) {
+    do_drop();
     mwdup();
     push_u64(0);
-    push_fnptr(&mb_elab_def_21__22);
+    push_fnptr(&mb_elab_def_21__23);
     do_pack_cons();
     mwab_build_word_arrow_21_();
 }
-static void mb_elab_def_21__22 (void) {
+static void mb_elab_def_21__23 (void) {
     do_drop();
     mwswap();
     mwword_params();
@@ -33935,24 +34013,24 @@ static void mb_elab_def_21__22 (void) {
     mwelab_def_body_21_();
     } else {
     push_u64(0);
-    push_fnptr(&mb_elab_def_21__25);
+    push_fnptr(&mb_elab_def_21__26);
     do_pack_cons();
     mwab_lambda_21_();
     }
 }
-static void mb_elab_def_21__23 (void) {
+static void mb_elab_def_21__24 (void) {
     do_drop();
     mwdrop();
     mwelab_def_body_21_();
 }
-static void mb_elab_def_21__24 (void) {
+static void mb_elab_def_21__25 (void) {
     do_drop();
     push_u64(0);
-    push_fnptr(&mb_elab_def_21__25);
+    push_fnptr(&mb_elab_def_21__26);
     do_pack_cons();
     mwab_lambda_21_();
 }
-static void mb_elab_def_21__25 (void) {
+static void mb_elab_def_21__26 (void) {
     do_drop();
     mwelab_def_body_21_();
 }

@@ -10,12 +10,11 @@ data(Light, LIGHT_ON, LIGHT_OFF)
 def(switch-light,
     LIGHT_ON -> LIGHT_OFF,
     LIGHT_OFF -> LIGHT_ON)
-
 def(switch-twice, Light -- Light, switch-light switch-light)
 
-# def(myrecursive, dup 0 > if(1- myrecursive, id))
-# def(test-myrecursive, Int -- Int, myrecursive)
+def(my-factorial, dup 1 > if(dup 1- my-factorial *, drop 1))
 
 # mirth-test # merr # 5:36: error: Failed to unify [] with [Int]
 # mirth-test # merr # 7:34: error: Failed to unify [Int] with []
+# mirth-test # merr # 15:5: error: recursive word needs type signature
 # mirth-test # mret # 1

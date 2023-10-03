@@ -420,7 +420,14 @@ def(elab-external-ctx-sig!, External -- Ctx Type, external-ctx-type force2!)
 
 def(elab-word-sig!, Word -- Type, elab-word-ctx-sig! nip)
 def(elab-word-ctx!, Word -- Ctx, elab-word-ctx-sig! drop)
-def(elab-word-ctx-sig!, Word -- Ctx Type, word-ctx-type force2!)
+def(elab-word-ctx-sig!, Word -- Ctx Type,
+    dup word-ctx-type
+    force-or!(emit-recursive-word-fatal-error!)
+    nip unpack2)
+
+def(emit-recursive-word-fatal-error!, *a Word -- *b,
+    word-head @ "recursive word needs type signature" emit-fatal-error!)
+
 def(elab-word-ctx-sig-weak!, Word -- Ctx Type,
     dup word-sig @ match(
         NONE -> word-ctx-type @ match(
@@ -849,7 +856,9 @@ def(elab-def!, Token -- Token,
     dup delay(
         type-elab-default
         over word-sig @ match(
-            NONE -> type-elab-ctx over word-arrow force! arrow-type type-rigidify-sig!,
+            NONE -> type-elab-ctx over word-arrow
+                force-or!(swap emit-recursive-word-fatal-error!)
+                arrow-type type-rigidify-sig!,
             SOME -> elab-type-sig! drop dip(type-elab-ctx)
         )
         pack2 nip
