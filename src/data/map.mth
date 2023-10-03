@@ -8,7 +8,7 @@ import(data.bag)
 ||| no two pairs share the same key.
 data(Map(k,v), MAP -> Bag([v k]))
 
-def(unMAP, Map(k,v) -- Bag([v k]), match(MAP -> id))
+def(unMAP, Map(k,v) -- Bag([v k]), MAP -> id)
 def(map-empty, Map(k,v), nil)
 def(map-is-empty, Map(k,v) -- Bool, is-nil)
 def(map-is-empty?, Map(k,v) -- Map(k,v) Bool, is-nil?)

@@ -9,10 +9,8 @@ def(is-none?, Maybe(t) -- Maybe(t) Bool, is-nil?)
 def(is-some?, Maybe(t) -- Maybe(t) Bool, is-nil? not)
 
 def(unwrap, Maybe(t) -- t,
-    match(
-        NONE -> "tried to unwrap NONE" panic!,
-        SOME -> id,
-    ))
+    NONE -> "tried to unwrap NONE" panic!,
+    SOME -> id)
 
 def(maybe-map, *c Maybe(a) [*c a -- *c b] -- *c Maybe(b),
     \([f] -> match(

@@ -8,12 +8,12 @@ import(mirth.data.var)
 # A context for types and terms.
 data(Ctx, CTX -> List(Var))
 
-def(unCTX, Ctx -- List(Var), match(CTX -> id))
+def(unCTX, Ctx -- List(Var), CTX -> id)
 def(ctx-empty, Ctx, nil)
 def(ctx-is-physically-empty, Ctx -- Bool, ctx-physical-vars is-nil)
 def(ctx-new!, Ctx Var -- Ctx, dip(unCTX) snoc CTX)
 def(ctx-vars, Ctx -- List(Var), unCTX)
 def(ctx-physical-vars, Ctx -- List(Var),
-    ctx-vars filter(var-is-physical?))
+    ctx-vars filter(dup var-is-physical))
 def(ctx-lookup, Name Ctx -- Maybe(Var),
     unCTX reverse-find(dup2 var-name @ ==) nip)

@@ -18,18 +18,13 @@ import(data.lazy)
 # Type Elaboration #
 ####################
 
-data(HolesAllowed, ALLOW_HOLES, FORBID_HOLES)
-def(HolesAllowed->Bool, HolesAllowed -- Bool, ALLOW_HOLES ==)
-
-data(TypeElab, TYPE_ELAB -> HolesAllowed Ctx)
-def(type-elab-default, TypeElab, FORBID_HOLES ctx-empty TYPE_ELAB)
-def(type-elab-stack-assertion, Ctx -- TypeElab, dip(ALLOW_HOLES) TYPE_ELAB)
-def(type-elab-holes-allowed?, TypeElab -- TypeElab HolesAllowed,
-    dup match(TYPE_ELAB -> drop))
-def(type-elab-ctx, TypeElab -- Ctx,
-    match(TYPE_ELAB -> nip))
+data(TypeElab, TYPE_ELAB -> Bool Ctx)
+def(type-elab-default, TypeElab, false ctx-empty TYPE_ELAB)
+def(type-elab-stack-assertion, Ctx -- TypeElab, dip(true) TYPE_ELAB)
+def(type-elab-holes-allowed, TypeElab -- Bool, TYPE_ELAB -> drop)
+def(type-elab-ctx, TypeElab -- Ctx, TYPE_ELAB -> nip)
 def(type-elab-ctx?, TypeElab -- TypeElab Ctx, dup type-elab-ctx)
-def(type-elab-ctx!, TypeElab Ctx -- TypeElab,
+def(type-elab-ctx-replace, TypeElab Ctx -- TypeElab,
     swap match(TYPE_ELAB -> drop swap TYPE_ELAB))
 
 def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
@@ -102,7 +97,7 @@ def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
             )
     )
     token-next
-    dip2(type-elab-ctx!))
+    dip2(type-elab-ctx-replace))
 
 def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
     token-name? name-def @ match(
@@ -135,7 +130,7 @@ def(elab-type-args!, TypeElab Token Type -- TypeElab Token Type,
     ))
 
 def(elab-type-hole!, TypeElab Token -- TypeElab Type Token,
-    dip(type-elab-holes-allowed?) swap HolesAllowed->Bool if(
+    over type-elab-holes-allowed if(
         token-has-args? if(
             dup "Types with args not yet supported." emit-error! TYPE_ERROR,
             token-name? THole)
@@ -144,7 +139,7 @@ def(elab-type-hole!, TypeElab Token -- TypeElab Type Token,
     ))
 
 def(elab-type-dont-care!, TypeElab Token -- TypeElab Type Token,
-    dip(type-elab-holes-allowed?) swap HolesAllowed->Bool if(
+    over type-elab-holes-allowed if(
         token-has-args? if(
             dup "Types with args not yet supported." emit-error! TYPE_ERROR,
             TYPE_DONT_CARE)
@@ -428,6 +423,22 @@ def(elab-word-ctx-sig!, Word -- Ctx Type, word-ctx-type force2!)
 
 def(elab-word-body!, Word -- Arrow, word-arrow force!)
 
+def(elab-match-arrow!, Ctx Type Token -- Arrow,
+    elab-expand-morphism! dip(rotr) ab-build!(
+        Match.alloc!
+        ab-ctx@ over match-ctx !
+        ab-token@ over match-token !
+        ab-token@ over match-body !
+        ab-type@ over match-dom !
+        dup2 match-cod !
+        elab-match!
+        OP_MATCH ab-op!
+    )
+    swap dip(
+        dup arrow-token-end @ GAMMA
+        over arrow-cod @)
+    type-unify! drop2)
+
 def(elab-arrow!, Ctx Type Token -- Arrow,
     elab-expand-morphism! elab-arrow-hom!)
 
@@ -514,6 +525,7 @@ def(elab-atom-match!, --,
     ab-ctx@ over match-ctx !
     ab-type@ over match-dom !
     ab-token@ over match-token !
+    ab-token@ token-args+ first+ over match-body !
     meta-alloc! TMeta over match-cod !
     elab-match!
     OP_MATCH ab-op!)
@@ -613,12 +625,9 @@ def(elab-match-exhaustive!, Match -- Match,
 
 ||| Elaborate match cases.
 def(elab-match-cases!, Match -- Match,
-    dup match-token @ token-has-args? if(
-        token-succ token-succ
-        while(token-is-rparen? not, elab-match-case!)
-        drop,
-        "match expects an arg" emit-fatal-error!
-    ))
+    dup match-body @
+    while(token-is-rparen? not, elab-match-case!)
+    drop)
 
 ||| Elaborate a single match case `pattern -> body ,`
 def(elab-match-case!, Match Token -- Match Token,
@@ -818,7 +827,9 @@ def(expect-token-arrow, Token -- Token,
 
 ||| Elaborate a word definition `def(w, t, b)`.
 def(elab-def!, Token -- Token,
-    sip(token-next) token-args-3
+    sip(token-next) token-args-3+
+    uncons is-nil if(id, dup token-run-has-arrow if(id,
+        "expected match case" emit-fatal-error!))
     rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
     token-name?
     name-undefined? if(id, drop "word already defined" emit-fatal-error!)
@@ -836,7 +847,8 @@ def(elab-def!, Token -- Token,
     ) over word-ctx-type !
     dup delay(
         dup ab-home ! 0 ab-homeidx !
-        sip(word-ctx-type force2!) word-body @ elab-arrow!
+        sip(word-ctx-type force2!) word-body @
+        dup token-run-has-arrow if(elab-match-arrow!, elab-arrow!)
         nil ab-home !
     ) swap word-arrow !)
 
@@ -915,23 +927,21 @@ def(elab-target-c99!, Token -- Token,
 
 ||| Ensure that everything so far has been typechecked.
 def(typecheck-everything!, --,
-    Name.for(typecheck-name!)
+    Name.for(name-def @ typecheck-def!)
     Block.for(block-force!))
 
-||| Typecheck name.
-def(typecheck-name!, Name --,
-    name-def @ match(
-        DEF_NONE -> id,
-        DEF_MODULE -> drop,
-        DEF_BUFFER -> drop,
-        DEF_PRIM -> drop,
-        DEF_TYPE -> drop,
-        DEF_EXTERNAL -> elab-external-sig! drop,
-        DEF_WORD -> word-arrow force! drop,
-        DEF_FIELD -> elab-field-type! drop,
-        DEF_TAG -> elab-tag-sig! drop,
-        DEF_VARIABLE -> variable-type force! drop,
-    ))
+||| Typecheck a definition.
+def(typecheck-def!, Def --,
+    DEF_NONE -> id,
+    DEF_MODULE -> drop,
+    DEF_BUFFER -> drop,
+    DEF_PRIM -> drop,
+    DEF_TYPE -> drop,
+    DEF_EXTERNAL -> elab-external-sig! drop,
+    DEF_WORD -> word-arrow force! drop,
+    DEF_FIELD -> elab-field-type! drop,
+    DEF_TAG -> elab-tag-sig! drop,
+    DEF_VARIABLE -> variable-type force! drop)
 
 #########
 # TABLE #

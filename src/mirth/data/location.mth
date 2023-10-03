@@ -7,13 +7,13 @@ data(Col, COL -> Int)
 data(Location, LOCATION -> Module Row Col)
 
 def(Int->Row, Int -- Row, ROW)
-def(Row->Int, Row -- Int, match(ROW -> id))
+def(Row->Int, Row -- Int, ROW -> id)
 
 def(Int->Col, Int -- Col, COL)
-def(Col->Int, Col -- Int, match(COL -> id))
+def(Col->Int, Col -- Int, COL -> id)
 
 def(location-pack, Module Row Col -- Location, LOCATION)
-def(location-unpack, Location -- Module Row Col, match(LOCATION -> id))
+def(location-unpack, Location -- Module Row Col, LOCATION -> id)
 
 def(location-trace!, Location --,
     location-unpack

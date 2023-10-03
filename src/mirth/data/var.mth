@@ -20,13 +20,5 @@ def(var-new-implicit!, Name -- Var,
     var-new!
     true over var-is-implicit !)
 
-def(var-is-physical?, Var -- Var Bool,
-    dup var-type @ match(
-        TPrim -> match(
-            PRIM_TYPE_TYPE -> false,
-            PRIM_TYPE_STACK -> false,
-            PRIM_TYPE_EFFECT -> false,
-            _ -> drop true
-        ),
-        _ -> drop true
-    ))
+def(var-is-physical, Var -- Bool,
+    var-type @ type-is-physical)

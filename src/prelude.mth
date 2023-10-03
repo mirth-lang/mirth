@@ -82,12 +82,10 @@ data(OS,
     OS_MACOS)
 
 def(OS->Int, OS -- Int,
-    match(
-        OS_UNKNOWN -> 0,
-        OS_WINDOWS -> 1,
-        OS_LINUX -> 2,
-        OS_MACOS -> 3
-    ))
+    OS_UNKNOWN -> 0,
+    OS_WINDOWS -> 1,
+    OS_LINUX -> 2,
+    OS_MACOS -> 3)
 
 def(Int->OS, Int -- OS,
     dup 1 == if(

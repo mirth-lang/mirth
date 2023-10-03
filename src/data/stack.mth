@@ -8,10 +8,10 @@ data(Stack(t),
 def(stack-push!, t Mut(Stack(t)) --,
     modify(STACK_CONS))
 def(stack-pop!, Mut(Stack(t)) -- Maybe(t),
-    modify(match(
-        STACK_NIL -> NONE STACK_NIL,
-        STACK_CONS -> dip(SOME)
-    )))
+    modify(stack-uncons))
+def(stack-uncons, Stack(t) -- Maybe(t) Stack(t),
+    STACK_NIL -> NONE STACK_NIL,
+    STACK_CONS -> dip(SOME))
 def(stack-reset!, Mut(Stack(t)) --,
     STACK_NIL swap !)
 def(stack-is-empty, Stack(t) -- Bool,

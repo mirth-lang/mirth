@@ -174,15 +174,16 @@ def(str-transduce, *a Str [ *a Char -- *a TransducerStep ] -- *a Str,
     \([f] -> build-str!(
         while(str-is-empty? not,
             sip(str-head f) str-tail
-            swap match(
-                TS_STOP -> drop "",
-                TS_SKIP -> id,
-                TS_CHAR -> str-buf-push-char!,
-                TS_PUSH -> for(str-buf-push-char!),
-                TS_COPY -> str-buf-push-str!
-            )
+            swap str-transduce-step
         ) drop
     )))
+
+def(str-transduce-step, Str TransducerStep -- Str,
+    TS_STOP -> drop "",
+    TS_SKIP -> id,
+    TS_CHAR -> str-buf-push-char!,
+    TS_PUSH -> for(str-buf-push-char!),
+    TS_COPY -> str-buf-push-str!)
 
 def(str-chars, Str -- List(Char),
     dip(L0) str-for(snoc))
