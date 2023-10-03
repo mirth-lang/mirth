@@ -90,17 +90,9 @@ field(block-arrow, Block, Lazy(Arrow))
 # ARG #
 #######
 
-||| Add arg to atom.
-def(atom-arg-add!, Atom Arg -- Atom,
-    over atom-args modify(swap snoc))
-
-||| Add arg to last atom of arrow.
-||| Will panic if arrow has no atoms.
-def(arrow-arg-add!, Arrow Arg -- Arrow,
-    over arrow-atoms @ last match(
-        NONE -> "arrow-arg-add! on empty arrow" panic!,
-        SOME -> swap atom-arg-add! drop
-    ))
+||| Add arg to atom, on the left.
+def(atom-arg-add-left!, Atom Arg -- Atom,
+    over atom-args modify(cons))
 
 ||| Add atom to arrow.
 def(arrow-atom-add!, Arrow Atom -- Arrow,

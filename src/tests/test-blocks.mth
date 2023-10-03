@@ -18,7 +18,7 @@ def(mul2, [Int -- Int],
     [2 *])
 
 def(mul2add10, [Int -- Int],
-    add10 mul2 compose) # FIXME TODO reversed
+    mul2 add10 compose)
 
 def(comprun(f,g), (*a -- *b, *b -- *c) *a -- *c,
     f g)
@@ -42,7 +42,7 @@ def(main, --,
         NONE -> "not found" str-trace-ln!
     ))
 
-target-c99("blocktest.c", main)
+target-c99("test-blocks.c", main)
 # mirth-test # perr # ?? 10
 # mirth-test # perr # ?? 20
 # mirth-test # perr # ?? 30

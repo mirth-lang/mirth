@@ -473,8 +473,8 @@ def(init-prims!, --,
 
     TVar
     dup
-    sip(dup T-> T*)
     sip(dup TYPE_BOOL T* T-> T*)
+    sip(dup T-> T*)
     T->
     PRIM_CORE_WHILE prim-type !
 
