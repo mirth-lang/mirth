@@ -45,41 +45,41 @@ def(state-vacate, State -- State, U8->Int 0xFE & Int->U8)
 def(state-is-occupied, State -- Bool, U8->Int 0x1 & 0>)
 def(state-is-occupied?, State -- State Bool, dup state-is-occupied)
 
-def(snake-xy@, -- XCoord YCoord +Snake, snake-x @ snake-y @)
-def(snake-xy!, XCoord YCoord -- +Snake, snake-y ! snake-x !)
+def(snake-xy@, -- XCoord YCoord, snake-x @ snake-y @)
+def(snake-xy!, XCoord YCoord --, snake-y ! snake-x !)
 
 def(coords-offset, XCoord YCoord -- Offset,
     dip(XCoord->Int) YCoord->Int SNAKE_W * +)
-def(snake-grid@, XCoord YCoord -- State +Snake,
+def(snake-grid@, XCoord YCoord -- State,
     coords-offset SNAKE_GRID u8@@)
-def(snake-grid!, State XCoord YCoord -- +Snake,
+def(snake-grid!, State XCoord YCoord --,
     coords-offset SNAKE_GRID u8!!)
-def(snake-grid-clear!, +Snake,
+def(snake-grid-clear!, --,
     SNAKE_W SNAKE_H * while(dup 0>,
         1-
         0 Int->U8 over SNAKE_GRID u8!!
     ) drop)
 
-def(snake-queue-x?, Offset -- Offset XCoord +Snake, dup snake-queue-x@)
-def(snake-queue-x@, Offset -- XCoord +Snake, SNAKE_QUEUE_X u8@@)
-def(snake-queue-x!, XCoord Offset -- +Snake, SNAKE_QUEUE_X u8!!)
+def(snake-queue-x?, Offset -- Offset XCoord, dup snake-queue-x@)
+def(snake-queue-x@, Offset -- XCoord, SNAKE_QUEUE_X u8@@)
+def(snake-queue-x!, XCoord Offset --, SNAKE_QUEUE_X u8!!)
 
-def(snake-queue-y?, Offset -- Offset YCoord +Snake, dup snake-queue-y@)
-def(snake-queue-y@, Offset -- YCoord +Snake, SNAKE_QUEUE_Y u8@@)
-def(snake-queue-y!, YCoord Offset -- +Snake, SNAKE_QUEUE_Y u8!!)
+def(snake-queue-y?, Offset -- Offset YCoord, dup snake-queue-y@)
+def(snake-queue-y@, Offset -- YCoord, SNAKE_QUEUE_Y u8@@)
+def(snake-queue-y!, YCoord Offset --, SNAKE_QUEUE_Y u8!!)
 
-def(snake-queue-xy?, Offset -- Offset XCoord YCoord +Snake,
+def(snake-queue-xy?, Offset -- Offset XCoord YCoord,
     dup snake-queue-xy@)
-def(snake-queue-xy@, Offset -- XCoord YCoord +Snake,
+def(snake-queue-xy@, Offset -- XCoord YCoord,
     snake-queue-y? dip(snake-queue-x@))
-def(snake-queue-xy!, XCoord YCoord Offset -- +Snake,
+def(snake-queue-xy!, XCoord YCoord Offset --,
     tuck snake-queue-y! snake-queue-x!)
 
-def(snake-enqueue-xy!, XCoord YCoord -- +Snake,
+def(snake-enqueue-xy!, XCoord YCoord --,
     snake-queue-length @ snake-queue-xy!
     snake-queue-length modify(1+))
 
-def(snake-dequeue-xy!, -- XCoord YCoord +Snake,
+def(snake-dequeue-xy!, -- XCoord YCoord,
     0 snake-queue-xy@
     0
     while(dup 1+ snake-queue-length @ <,
@@ -137,12 +137,12 @@ def(SDL_GameControllerButton->SnakeButton, SDL_GameControllerButton -- SnakeButt
         drop SNAKE_BUTTON_NONE
     ))))))
 
-def(snake!, +Snake,
+def(snake!, --,
     snake-init!
     snake-loop!
     snake-quit!)
 
-def(snake-reset!, +Snake,
+def(snake-reset!, --,
     DNORTH snake-direction !
     SNAKE_W 2 / Int->XCoord snake-x !
     SNAKE_H 2 / Int->YCoord snake-y !
@@ -158,7 +158,7 @@ def(SNAKE_INIT_FLAGS, SDL_InitFlags,
     SDL_INIT_GAMECONTROLLER U32->Int |
     Int->U32)
 
-def(snake-init!, +Snake,
+def(snake-init!, --,
     snake-reset!
 
     SNAKE_INIT_FLAGS SDL_Init 0> if(
@@ -195,7 +195,7 @@ def(snake-init!, +Snake,
         SDL_GetError panic!
     ))
 
-def(snake-loop!, +Snake,
+def(snake-loop!, --,
     snake-process-events!
     while(snake-done @ not,
         snake-present!
@@ -204,7 +204,7 @@ def(snake-loop!, +Snake,
         snake-update!
     ))
 
-def(snake-quit!, +Snake,
+def(snake-quit!, --,
     SDL_Quit)
 
 def-type(R, Int)
@@ -227,20 +227,20 @@ def(i32!!, I32 Offset Ptr --,
     dip(4 *) ptr+ i32!)
 
 buffer(SNAKE_RECT, 16)
-def(snake-rect!, X Y W H -- +Snake,
+def(snake-rect!, X Y W H --,
     Int->I32 3 SNAKE_RECT i32!!
     Int->I32 2 SNAKE_RECT i32!!
     Int->I32 1 SNAKE_RECT i32!!
     Int->I32 0 SNAKE_RECT i32!!)
 
-def(snake-rect-cell!, XCoord YCoord -- +Snake,
+def(snake-rect-cell!, XCoord YCoord --,
     dip(U8->Int SNAKE_CELL_SIZE *)
     U8->Int SNAKE_CELL_SIZE *
     SNAKE_CELL_SIZE
     SNAKE_CELL_SIZE
     snake-rect!)
 
-def(snake-present!, +Snake,
+def(snake-present!, --,
     snake-window @ SDL_ShowWindow
 
     snake-renderer @ snake-background-color SDL_SetRenderDrawColor
@@ -260,11 +260,11 @@ def(snake-present!, +Snake,
 
     snake-renderer @ SDL_RenderPresent)
 
-def(snake-process-events!, +Snake,
+def(snake-process-events!, --,
     while(SNAKE_EVENT SDL_PollEvent 0>,
         snake-process-event!))
 
-def(snake-process-event!, +Snake,
+def(snake-process-event!, --,
     SNAKE_EVENT SDL_Event.type
     dup SDL_QUIT == if(
         drop true snake-done !,
@@ -291,7 +291,7 @@ def(snake-process-event!, +Snake,
         drop
     ))))
 
-def(snake-press!, SnakeButton -- +Snake,
+def(snake-press!, SnakeButton --,
     dup SNAKE_BUTTON_NONE == if(
         drop,
     dup SNAKE_BUTTON_UP == if(
@@ -331,14 +331,14 @@ def(snake-press!, SnakeButton -- +Snake,
 var(tick-timer, Int)
 def(TICK_FRAMES, Int, 7)
 
-def(snake-tick!, Bool +Snake,
+def(snake-tick!, Bool,
     tick-timer @
     1+ dup TICK_FRAMES >= if(
         drop 0 tick-timer ! true,
         tick-timer ! false
     ))
 
-def(snake-update!, +Snake,
+def(snake-update!, --,
     snake-dead @ if(
         id,
 
@@ -367,16 +367,16 @@ def(snake-update!, +Snake,
     )))
 
 var(snake-points, Int)
-def(snake-desired-length, Int +Snake, snake-points @ 5 +)
+def(snake-desired-length, Int, snake-points @ 5 +)
 
 var(snake-mouse-x, XCoord)
 var(snake-mouse-y, YCoord)
-def(snake-mouse-xy@, XCoord YCoord +Snake,
+def(snake-mouse-xy@, XCoord YCoord,
     snake-mouse-x @ snake-mouse-y @)
 
-def-external(rand, Int +IO)
+def-external(rand, Int)
 
-def(snake-randomize-mouse!, +IO +Snake,
+def(snake-randomize-mouse!, --,
     rand SNAKE_W % Int->XCoord snake-mouse-x !
     rand SNAKE_H % Int->YCoord snake-mouse-y !
 
@@ -385,7 +385,7 @@ def(snake-randomize-mouse!, +IO +Snake,
         id
     ))
 
-def(snake-check-mouse!, +Snake,
+def(snake-check-mouse!, --,
     snake-x @ snake-mouse-x @ ==
     snake-y @ snake-mouse-y @ == && if(
         snake-randomize-mouse!

@@ -5,7 +5,7 @@ import(prelude)
 # SDL2 Bindings #
 #################
 
-def-external(SDL_Init, SDL_InitFlags -- Int +SDL)
+def-external(SDL_Init, SDL_InitFlags -- Int)
 def-type(SDL_InitFlags, U32) # technically this ought to be U32...
 def(SDL_INIT_TIMER, SDL_InitFlags, 0x0001 Int->U32)
 def(SDL_INIT_AUDIO, SDL_InitFlags, 0x0010 Int->U32)
@@ -25,15 +25,15 @@ def(SDL_INIT_EVERYTHING, SDL_InitFlags,
     SDL_INIT_EVENTS U32->Int |
     SDL_INIT_SENSOR U32->Int | Int->U32)
 
-def-external(SDL_Quit, +SDL)
-def-external(SDL_GetError, Str +SDL)
+def-external(SDL_Quit, --)
+def-external(SDL_GetError, -- Str)
 
-def-external(SDL_Delay, SDL_Ticks -- +SDL)
-def-external(SDL_GetTicks, SDL_Ticks +SDL)
+def-external(SDL_Delay, SDL_Ticks --)
+def-external(SDL_GetTicks, -- SDL_Ticks)
 def-type(SDL_Ticks, U32)
 def(ms, Int -- SDL_Ticks, Int->U32)
 
-def-external(SDL_CreateWindow, Str Int Int Int Int SDL_WindowFlags -- SDL_Window* +SDL)
+def-external(SDL_CreateWindow, Str Int Int Int Int SDL_WindowFlags -- SDL_Window*)
 def-type(SDL_Window*, Ptr)
 def-type(SDL_WindowFlags, U32)
 def(SDL_WINDOWPOS_UNDEFINED, Int, 0x1FFF 16 <<)
@@ -61,11 +61,11 @@ def(SDL_WINDOW_TOOLTIP, SDL_WindowFlags, 1 18 << Int->U32)
 def(SDL_WINDOW_POPUP_MENU, SDL_WindowFlags, 1 19 << Int->U32)
 def(SDL_WINDOW_VULKAN, SDL_WindowFlags, 1 28 << Int->U32)
 
-def-external(SDL_ShowWindow, SDL_Window* -- +SDL)
-def-external(SDL_HideWindow, SDL_Window* -- +SDL)
-def-external(SDL_RaiseWindow, SDL_Window* -- +SDL)
+def-external(SDL_ShowWindow, SDL_Window* --)
+def-external(SDL_HideWindow, SDL_Window* --)
+def-external(SDL_RaiseWindow, SDL_Window* --)
 
-def-external(SDL_CreateRenderer, SDL_Window* Int SDL_RendererFlags -- SDL_Renderer* +SDL)
+def-external(SDL_CreateRenderer, SDL_Window* Int SDL_RendererFlags -- SDL_Renderer*)
 def-type(SDL_Renderer*, Ptr)
 def-type(SDL_RendererFlags, U32)
 def(SDL_RENDERER_SOFTWARE, SDL_RendererFlags, 0x1 Int->U32)
@@ -73,10 +73,10 @@ def(SDL_RENDERER_ACCELERATED, SDL_RendererFlags, 0x2 Int->U32)
 def(SDL_RENDERER_PRESENTVSYNC, SDL_RendererFlags, 0x4 Int->U32)
 def(SDL_RENDERER_TARGETTEXTURE, SDL_RendererFlags, 0x8 Int->U32)
 
-def-external(SDL_RenderClear, SDL_Renderer* -- +SDL)
-def-external(SDL_RenderPresent, SDL_Renderer* -- +SDL)
-def-external(SDL_SetRenderDrawColor, SDL_Renderer* Int Int Int Int -- +SDL)
-def-external(SDL_RenderFillRect, SDL_Renderer* SDL_Rect* -- +SDL)
+def-external(SDL_RenderClear, SDL_Renderer* --)
+def-external(SDL_RenderPresent, SDL_Renderer* --)
+def-external(SDL_SetRenderDrawColor, SDL_Renderer* Int Int Int Int --)
+def-external(SDL_RenderFillRect, SDL_Renderer* SDL_Rect* --)
 def-type(SDL_Rect*, Ptr)
 
 # Size of SDL_Event structure.
@@ -189,9 +189,9 @@ def(SDL_SCANCODE_RGUI, SDL_Scancode, 231 Int->U16)
 
 def-type(SDL_JoystickID, Int)
 def-type(SDL_GameController*, Ptr)
-def-external(SDL_NumJoysticks, SDL_JoystickID +SDL)
-def-external(SDL_IsGameController, SDL_JoystickID -- Bool +SDL)
-def-external(SDL_GameControllerOpen, SDL_JoystickID -- SDL_GameController* +SDL)
+def-external(SDL_NumJoysticks, SDL_JoystickID)
+def-external(SDL_IsGameController, SDL_JoystickID -- Bool)
+def-external(SDL_GameControllerOpen, SDL_JoystickID -- SDL_GameController*)
 
 def-type(SDL_GameControllerButton, U8)
 def(SDL_CONTROLLER_BUTTON_INVALID, SDL_GameControllerButton, 0xFF Int->U8)
