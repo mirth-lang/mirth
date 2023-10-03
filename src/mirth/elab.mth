@@ -211,7 +211,7 @@ def(ab-build-hom!(f), (*a Type -- *b Type) *a Ctx Type Token -- *b Arrow,
     ab-build!(f ab-unify-type!))
 def(ab-build-word-arrow!(f), (*a Type -- *b Type) *a Word -- *b Arrow,
     dup ab-home ! 0 ab-homeidx !
-    sip(word-ctx-type force2!)
+    sip(elab-word-ctx-sig-weak!)
     word-body @ ab-build-hom!(f)
     nil ab-home !)
 def(ab-build-word!(f), (*a -- *b) *a Word -- *b Word,
@@ -421,6 +421,14 @@ def(elab-external-ctx-sig!, External -- Ctx Type, external-ctx-type force2!)
 def(elab-word-sig!, Word -- Type, elab-word-ctx-sig! nip)
 def(elab-word-ctx!, Word -- Ctx, elab-word-ctx-sig! drop)
 def(elab-word-ctx-sig!, Word -- Ctx Type, word-ctx-type force2!)
+def(elab-word-ctx-sig-weak!, Word -- Ctx Type,
+    dup word-sig @ match(
+        NONE -> word-ctx-type @ match(
+            LAZY_READY -> unpack2,
+            _ -> drop ctx-empty meta-alloc! TMeta meta-alloc! TMeta T->
+        ),
+        SOME -> drop elab-word-ctx-sig!
+    ))
 
 def(elab-word-body!, Word -- Arrow, word-arrow force!)
 
@@ -816,9 +824,18 @@ def(expect-token-arrow, Token -- Token,
 
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, Token -- Token,
-    sip(token-next) token-args-3+
-    uncons is-nil if(id, dup token-run-has-arrow if(id,
-        "expected match case" emit-fatal-error!))
+    sip(token-next) token-args-2+
+    uncons over token-run-has-dashes if(
+        List->List+
+        unwrap-or(drop "missing def body" emit-fatal-error!)
+        dip(SOME) uncons,
+        NONE rotr
+    )
+    is-nil if(id, dup token-run-has-arrow if(id,
+        over match(
+            NONE -> "expected type signature or match case",
+            SOME -> drop "expected match case"
+        ) emit-fatal-error!))
     rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
     token-name?
     name-undefined? if(id, drop "word already defined" emit-fatal-error!)
@@ -831,8 +848,11 @@ def(elab-def!, Token -- Token,
 
     dup delay(
         type-elab-default
-        swap word-sig @ elab-type-sig!
-        drop dip(type-elab-ctx) pack2
+        over word-sig @ match(
+            NONE -> type-elab-ctx over word-arrow force! arrow-type type-rigidify-sig!,
+            SOME -> elab-type-sig! drop dip(type-elab-ctx)
+        )
+        pack2 nip
     ) over word-ctx-type !
     dup delay(elab-def-params!) over word-params !
     dup delay(
@@ -846,7 +866,7 @@ def(elab-def!, Token -- Token,
 
 ||| Elaborate a word's parameters from its type and declaration.
 def(elab-def-params!, Word -- List(Param),
-    L0 over elab-word-sig!
+    L0 over elab-word-ctx-sig-weak! nip
     rotl word-head @
     elab-expand-morphism! nip
     token-args reverse-for(

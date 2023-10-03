@@ -17,3 +17,15 @@ def(ctx-physical-vars, Ctx -- List(Var),
     ctx-vars filter(dup var-is-physical))
 def(ctx-lookup, Name Ctx -- Maybe(Var),
     unCTX reverse-find(dup2 var-name @ ==) nip)
+
+def(ctx-len, Ctx -- Int, CTX -> len)
+def(ctx-fresh-name!, Ctx -- Ctx Name,
+    # TODO do this properly.
+    "_x" over ctx-len int-show str-cat name-new!)
+
+def(ctx-make-fresh-stack-type-var!, Ctx -- Ctx Var,
+    PRIM_TYPE_STACK TPrim ctx-make-fresh-var!)
+def(ctx-make-fresh-type-var!, Ctx -- Ctx Var,
+    PRIM_TYPE_TYPE TPrim ctx-make-fresh-var!)
+def(ctx-make-fresh-var!, Ctx Type -- Ctx Var,
+    dip(ctx-fresh-name! var-new!) over var-type ! sip(ctx-new!))
