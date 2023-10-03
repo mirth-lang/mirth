@@ -2611,6 +2611,7 @@ static void mwstat (void) {
  static void mwexpect_token_comma (void);
  static void mwexpect_token_rparen (void);
  static void mwexpect_token_arrow (void);
+ static void mwtoken_def_args (void);
  static void mwelab_def_21_ (void);
  static void mwelab_def_params_21_ (void);
  static void mwelab_def_body_21_ (void);
@@ -3948,28 +3949,33 @@ static void mwstat (void) {
  static void mb_expect_token_comma_2 (void);
  static void mb_expect_token_rparen_1 (void);
  static void mb_expect_token_rparen_2 (void);
+ static void mb_token_def_args_1 (void);
+ static void mb_token_def_args_2 (void);
+ static void mb_token_def_args_3 (void);
+ static void mb_token_def_args_5 (void);
+ static void mb_token_def_args_4 (void);
+ static void mb_token_def_args_6 (void);
+ static void mb_token_def_args_8 (void);
+ static void mb_token_def_args_7 (void);
+ static void mb_token_def_args_9 (void);
  static void mb_elab_def_21__1 (void);
  static void mb_elab_def_21__2 (void);
- static void mb_elab_def_21__5 (void);
  static void mb_elab_def_21__3 (void);
  static void mb_elab_def_21__4 (void);
+ static void mb_elab_def_21__5 (void);
  static void mb_elab_def_21__6 (void);
  static void mb_elab_def_21__7 (void);
  static void mb_elab_def_21__8 (void);
  static void mb_elab_def_21__9 (void);
+ static void mb_elab_def_21__10 (void);
  static void mb_elab_def_21__12 (void);
- static void mb_elab_def_21__13 (void);
  static void mb_elab_def_21__14 (void);
  static void mb_elab_def_21__15 (void);
  static void mb_elab_def_21__16 (void);
+ static void mb_elab_def_21__17 (void);
  static void mb_elab_def_21__18 (void);
+ static void mb_elab_def_21__19 (void);
  static void mb_elab_def_21__20 (void);
- static void mb_elab_def_21__21 (void);
- static void mb_elab_def_21__22 (void);
- static void mb_elab_def_21__23 (void);
- static void mb_elab_def_21__24 (void);
- static void mb_elab_def_21__25 (void);
- static void mb_elab_def_21__26 (void);
  static void mb_elab_def_params_21__1 (void);
  static void mb_elab_def_params_21__2 (void);
  static void mb_elab_def_params_21__3 (void);
@@ -19108,9 +19114,6 @@ static void mwelab_type_sig_21_ (void){
     mwswap();
       push_value(d2); }
     } else {
-    mwdup();
-    push_ptr("expected --\0\0\0");
-    mwemit_error_21_();
     { value_t d2 = pop_value();
     mwT0();
     mwrotr();
@@ -21266,29 +21269,57 @@ static void mwexpect_token_arrow (void){
     }
 }
 
+static void mwtoken_def_args (void){
+    mwdup();
+    mwtoken_args();
+    mwlen_3F_();
+    push_i64(2LL);
+    mw_3E__3D_();
+    if (pop_u64()) {
+    mwnip();
+    } else {
+    mwdrop();
+    push_ptr("def expects at least two arguments\0\0\0");
+    mwemit_fatal_error_21_();
+    }
+    mwList__3E_List_2B_();
+    mwunwrap();
+    mwuncons();
+    mwList__3E_List_2B_();
+    mwunwrap();
+    mwuncons();
+    mwis_nil_3F_();
+    if (pop_u64()) {
+    mwdrop();
+    mwL1_2B_();
+    { value_t d2 = pop_value();
+    mwNONE();
+      push_value(d2); }
+    } else {
+    mwover();
+    mwtoken_run_has_arrow();
+    if (pop_u64()) {
+    mwcons_2B_();
+    { value_t d3 = pop_value();
+    mwNONE();
+      push_value(d3); }
+    } else {
+    mwList__3E_List_2B_();
+    mwunwrap();
+    { value_t d3 = pop_value();
+    mwSOME();
+      push_value(d3); }
+    }
+    }
+}
+
 static void mwelab_def_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_def_21__1);
     do_pack_cons();
     mwsip();
-    mwtoken_args_2_2B_();
+    mwtoken_def_args();
     mwuncons();
-    mwover();
-    mwtoken_run_has_dashes();
-    if (pop_u64()) {
-    mwList__3E_List_2B_();
-    push_u64(0);
-    push_fnptr(&mb_elab_def_21__3);
-    do_pack_cons();
-    mwunwrap_or();
-    { value_t d2 = pop_value();
-    mwSOME();
-      push_value(d2); }
-    mwuncons();
-    } else {
-    mwNONE();
-    mwrotr();
-    }
     mwis_nil();
     if (pop_u64()) {
     mwid();
@@ -21298,19 +21329,7 @@ static void mwelab_def_21_ (void){
     if (pop_u64()) {
     mwid();
     } else {
-    mwover();
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_drop();
-    push_ptr("expected type signature or match case\0\0\0");
-    break;
-    case 1LL:
-    do_pack_uncons(); do_drop();
-    mwdrop();
     push_ptr("expected match case\0\0\0");
-    break;
-    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
-    }
     mwemit_fatal_error_21_();
     }
     }
@@ -21351,7 +21370,7 @@ static void mwelab_def_21_ (void){
     mw_21_();
     mwdup();
     push_u64(0);
-    push_fnptr(&mb_elab_def_21__16);
+    push_fnptr(&mb_elab_def_21__10);
     do_pack_cons();
     mwdelay();
     mwover();
@@ -21359,7 +21378,7 @@ static void mwelab_def_21_ (void){
     mw_21_();
     mwdup();
     push_u64(0);
-    push_fnptr(&mb_elab_def_21__21);
+    push_fnptr(&mb_elab_def_21__15);
     do_pack_cons();
     mwdelay();
     mwover();
@@ -21367,7 +21386,7 @@ static void mwelab_def_21_ (void){
     mw_21_();
     mwdup();
     push_u64(0);
-    push_fnptr(&mb_elab_def_21__22);
+    push_fnptr(&mb_elab_def_21__16);
     do_pack_cons();
     mwdelay();
     mwswap();
@@ -32011,9 +32030,6 @@ static void mb_elab_type_sig_21__3 (void) {
 }
 static void mb_elab_type_sig_21__5 (void) {
     do_drop();
-    mwdup();
-    push_ptr("expected --\0\0\0");
-    mwemit_error_21_();
     { value_t d1 = pop_value();
     mwT0();
     mwrotr();
@@ -33851,36 +33867,95 @@ static void mb_expect_token_rparen_2 (void) {
     push_ptr("Expected right parenthesis.\0\0\0");
     mwemit_fatal_error_21_();
 }
+static void mb_token_def_args_1 (void) {
+    do_drop();
+    mwnip();
+}
+static void mb_token_def_args_2 (void) {
+    do_drop();
+    mwdrop();
+    push_ptr("def expects at least two arguments\0\0\0");
+    mwemit_fatal_error_21_();
+}
+static void mb_token_def_args_3 (void) {
+    do_drop();
+    mwdrop();
+    mwL1_2B_();
+    { value_t d1 = pop_value();
+    mwNONE();
+      push_value(d1); }
+}
+static void mb_token_def_args_5 (void) {
+    do_drop();
+    mwover();
+    mwtoken_run_has_arrow();
+    if (pop_u64()) {
+    mwcons_2B_();
+    { value_t d2 = pop_value();
+    mwNONE();
+      push_value(d2); }
+    } else {
+    mwList__3E_List_2B_();
+    mwunwrap();
+    { value_t d2 = pop_value();
+    mwSOME();
+      push_value(d2); }
+    }
+}
+static void mb_token_def_args_4 (void) {
+    do_drop();
+    mwNONE();
+}
+static void mb_token_def_args_6 (void) {
+    do_drop();
+    mwcons_2B_();
+    { value_t d1 = pop_value();
+    mwNONE();
+      push_value(d1); }
+}
+static void mb_token_def_args_8 (void) {
+    do_drop();
+    mwList__3E_List_2B_();
+    mwunwrap();
+    { value_t d1 = pop_value();
+    mwSOME();
+      push_value(d1); }
+}
+static void mb_token_def_args_7 (void) {
+    do_drop();
+    mwNONE();
+}
+static void mb_token_def_args_9 (void) {
+    do_drop();
+    mwSOME();
+}
 static void mb_elab_def_21__1 (void) {
     do_drop();
     mwtoken_next();
 }
 static void mb_elab_def_21__2 (void) {
     do_drop();
-    mwList__3E_List_2B_();
-    push_u64(0);
-    push_fnptr(&mb_elab_def_21__3);
-    do_pack_cons();
-    mwunwrap_or();
-    { value_t d1 = pop_value();
-    mwSOME();
-      push_value(d1); }
-    mwuncons();
-}
-static void mb_elab_def_21__5 (void) {
-    do_drop();
-    mwNONE();
-    mwrotr();
+    mwid();
 }
 static void mb_elab_def_21__3 (void) {
     do_drop();
-    mwdrop();
-    push_ptr("missing def body\0\0\0");
+    mwdup();
+    mwtoken_run_has_arrow();
+    if (pop_u64()) {
+    mwid();
+    } else {
+    push_ptr("expected match case\0\0\0");
     mwemit_fatal_error_21_();
+    }
 }
 static void mb_elab_def_21__4 (void) {
     do_drop();
-    mwSOME();
+    mwid();
+}
+static void mb_elab_def_21__5 (void) {
+    do_drop();
+    push_ptr("expected match case\0\0\0");
+    mwemit_fatal_error_21_();
 }
 static void mb_elab_def_21__6 (void) {
     do_drop();
@@ -33888,26 +33963,8 @@ static void mb_elab_def_21__6 (void) {
 }
 static void mb_elab_def_21__7 (void) {
     do_drop();
-    mwdup();
-    mwtoken_run_has_arrow();
-    if (pop_u64()) {
-    mwid();
-    } else {
-    mwover();
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_drop();
-    push_ptr("expected type signature or match case\0\0\0");
-    break;
-    case 1LL:
-    do_pack_uncons(); do_drop();
-    mwdrop();
-    push_ptr("expected match case\0\0\0");
-    break;
-    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
-    }
+    push_ptr("expected word name\0\0\0");
     mwemit_fatal_error_21_();
-    }
 }
 static void mb_elab_def_21__8 (void) {
     do_drop();
@@ -33915,41 +33972,11 @@ static void mb_elab_def_21__8 (void) {
 }
 static void mb_elab_def_21__9 (void) {
     do_drop();
-    mwover();
-    switch (get_top_data_tag()) {
-    case 0LL:
-    do_drop();
-    push_ptr("expected type signature or match case\0\0\0");
-    break;
-    case 1LL:
-    do_pack_uncons(); do_drop();
-    mwdrop();
-    push_ptr("expected match case\0\0\0");
-    break;
-    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
-    }
-    mwemit_fatal_error_21_();
-}
-static void mb_elab_def_21__12 (void) {
-    do_drop();
-    mwid();
-}
-static void mb_elab_def_21__13 (void) {
-    do_drop();
-    push_ptr("expected word name\0\0\0");
-    mwemit_fatal_error_21_();
-}
-static void mb_elab_def_21__14 (void) {
-    do_drop();
-    mwid();
-}
-static void mb_elab_def_21__15 (void) {
-    do_drop();
     mwdrop();
     push_ptr("word already defined\0\0\0");
     mwemit_fatal_error_21_();
 }
-static void mb_elab_def_21__16 (void) {
+static void mb_elab_def_21__10 (void) {
     do_drop();
     mwtype_elab_default();
     mwover();
@@ -33962,7 +33989,7 @@ static void mb_elab_def_21__16 (void) {
     mwover();
     mwword_arrow();
     push_u64(0);
-    push_fnptr(&mb_elab_def_21__18);
+    push_fnptr(&mb_elab_def_21__12);
     do_pack_cons();
     mwforce_or_21_();
     mwarrow_type();
@@ -33981,28 +34008,28 @@ static void mb_elab_def_21__16 (void) {
     mwpack2();
     mwnip();
 }
-static void mb_elab_def_21__18 (void) {
+static void mb_elab_def_21__12 (void) {
     do_drop();
     mwswap();
     mwemit_recursive_word_fatal_error_21_();
 }
-static void mb_elab_def_21__20 (void) {
+static void mb_elab_def_21__14 (void) {
     do_drop();
     mwtype_elab_ctx();
 }
-static void mb_elab_def_21__21 (void) {
+static void mb_elab_def_21__15 (void) {
     do_drop();
     mwelab_def_params_21_();
 }
-static void mb_elab_def_21__22 (void) {
+static void mb_elab_def_21__16 (void) {
     do_drop();
     mwdup();
     push_u64(0);
-    push_fnptr(&mb_elab_def_21__23);
+    push_fnptr(&mb_elab_def_21__17);
     do_pack_cons();
     mwab_build_word_arrow_21_();
 }
-static void mb_elab_def_21__23 (void) {
+static void mb_elab_def_21__17 (void) {
     do_drop();
     mwswap();
     mwword_params();
@@ -34013,24 +34040,24 @@ static void mb_elab_def_21__23 (void) {
     mwelab_def_body_21_();
     } else {
     push_u64(0);
-    push_fnptr(&mb_elab_def_21__26);
+    push_fnptr(&mb_elab_def_21__20);
     do_pack_cons();
     mwab_lambda_21_();
     }
 }
-static void mb_elab_def_21__24 (void) {
+static void mb_elab_def_21__18 (void) {
     do_drop();
     mwdrop();
     mwelab_def_body_21_();
 }
-static void mb_elab_def_21__25 (void) {
+static void mb_elab_def_21__19 (void) {
     do_drop();
     push_u64(0);
-    push_fnptr(&mb_elab_def_21__26);
+    push_fnptr(&mb_elab_def_21__20);
     do_pack_cons();
     mwab_lambda_21_();
 }
-static void mb_elab_def_21__26 (void) {
+static void mb_elab_def_21__20 (void) {
     do_drop();
     mwelab_def_body_21_();
 }

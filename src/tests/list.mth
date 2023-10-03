@@ -3,26 +3,26 @@ import(prelude)
 import(data.list)
 import(platform.posix)
 
-def(list1, -- List(Int), L0)
-def(list2, -- List(Int), 10 L1)
-def(list3, -- List(Int), 10 20 30 L3)
-def(list4, -- List(Int), 10 20 30 40 50 L5)
-def(list5, -- List(Int), 10 20 30 40 50 60 70 80 L8)
+def(list1, List(Int), L0)
+def(list2, List(Int), 10 L1)
+def(list3, List(Int), 10 20 30 L3)
+def(list4, List(Int), 10 20 30 40 50 L5)
+def(list5, List(Int), 10 20 30 40 50 60 70 80 L8)
 
-def(list6, -- List(Int),
+def(list6, List(Int),
     list3 list3 list3 list5 cat cat cat)
 
-def(list7, -- List(Int),
+def(list7, List(Int),
     list2 list3 list2 list3 list2 list3
     list2 list3 cat cat cat cat cat cat cat)
 
-def(list8, -- List(Int),
+def(list8, List(Int),
     list2 list3 list2 list3 list2 list3 list2
     list3 list3 list2 list3 list2 list3 list2
     list3 cat cat cat cat cat cat cat cat cat
     cat cat cat cat cat)
 
-def(list9, -- List(Int),
+def(list9, List(Int),
     list2 list3 list2 list3 list2 list3 list2
     list3 list3 list2 list3 list2 list3 list2
     list3 list3 list2 list3 list2 list3 list2
@@ -31,7 +31,7 @@ def(list9, -- List(Int),
     cat cat cat cat cat cat cat cat cat cat
     cat cat cat cat cat cat cat cat cat)
 
-def(list10, -- List(Int),
+def(list10, List(Int),
     list2 list3 list2 list3 list2 list3 list2
     list3 list3 list2 list3 list2 list3 list2
     list3 list3 list2 list3 list2 list3 list2

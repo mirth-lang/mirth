@@ -5,7 +5,7 @@ import(platform.posix)
 def(!!true, Bool --, if(id, "Assertion failed" panic!))
 def(!!=, a a --, == !!true)
 
-def(mk-int-pack, -- [Int Int], 10 20 pack2)
+def(mk-int-pack, [Int Int], 10 20 pack2)
 def(swap-int-pack, [a b] -- [b a], unpack2 swap pack2)
 def(sub-int-pack, [Int Int] -- Int, unpack2 -)
 def(main, --,

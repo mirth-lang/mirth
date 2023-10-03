@@ -9,7 +9,7 @@ import(data.bag)
 data(Map(k,v), MAP -> Bag([v k]))
 
 def(unMAP, Map(k,v) -- Bag([v k]), MAP -> id)
-def(map-empty, -- Map(k,v), nil)
+def(map-empty, Map(k,v), nil)
 def(map-is-empty, Map(k,v) -- Bool, is-nil)
 def(map-is-empty?, Map(k,v) -- Map(k,v) Bool, is-nil?)
 def(map-singleton, [v k] -- Map(k,v), B1 MAP)

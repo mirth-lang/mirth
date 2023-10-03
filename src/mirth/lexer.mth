@@ -43,7 +43,7 @@ def(run-lexer!, Path -- Module,
 
 
 # Is the lexer done?
-def(lexer-done?, -- Bool, input-done?)
+def(lexer-done?, Bool, input-done?)
 
 # Create a token, and add it to the token buffer,
 # returning the new token.
@@ -194,37 +194,37 @@ def(lexer-emit-name!, --,
         token-module !
     ))
 
-def(str-buf-is-doc-start?, -- Bool,
+def(str-buf-is-doc-start?, Bool,
     str-buf-length? 3 == and(
         0 str-buf-char@ is-pipe? nip
         and(1 str-buf-char@ is-pipe? nip)
         and(2 str-buf-char@ is-pipe? nip)
     ))
 
-def(str-buf-is-arrow?, -- Bool,
+def(str-buf-is-arrow?, Bool,
     str-buf-length? 2 == and(
         0 str-buf-char@ is-dash? nip
         1 str-buf-char@ is-gt? nip &&
     ))
 
-def(str-buf-is-dashes?, -- Bool,
+def(str-buf-is-dashes?, Bool,
     str-buf-length? 2 == if(
         0 str-buf-char@ is-dash? nip
         1 str-buf-char@ is-dash? nip &&,
         false
     ))
 
-def(str-buf-is-equal?, -- Bool,
+def(str-buf-is-equal?, Bool,
     str-buf-length? 1 == if(
         0 str-buf-char@ is-eq? nip,
         false
     ))
 
 
-def(str-buf-is-int?, -- Bool,
+def(str-buf-is-int?, Bool,
     str-buf-is-dec-int? if(true, str-buf-is-hex-int?))
 
-def(str-buf-is-dec-int?, -- Bool,
+def(str-buf-is-dec-int?, Bool,
     0 # number of digits
     0 # current index
     dup str-buf-char@ is-sign? nip if(
@@ -241,7 +241,7 @@ def(str-buf-is-dec-int?, -- Bool,
 def(is-zero-char, Char -- Bool, Char->Int 48 ==)
 def(is-xX-char, Char -- Bool, Char->Int dup 88 == dip(120 ==) ||)
 
-def(str-buf-is-hex-int?, -- Bool,
+def(str-buf-is-hex-int?, Bool,
     0 # number of digits
     0 # current index
     dup str-buf-char@ is-sign? nip if(
@@ -264,13 +264,13 @@ def(str-buf-is-hex-int?, -- Bool,
         drop2 false
     ))
 
-def(str-buf-int?, -- Int,
+def(str-buf-int?, Int,
     str-buf-is-dec-int? if(
         str-buf-dec-int?,
         str-buf-hex-int?
     ))
 
-def(str-buf-dec-int?, -- Int,
+def(str-buf-dec-int?, Int,
     1 # sign multiplier
     0 # accumulated value
     0 # current index
@@ -290,7 +290,7 @@ def(str-buf-dec-int?, -- Int,
         1+)
     drop *)
 
-def(str-buf-hex-int?, -- Int,
+def(str-buf-hex-int?, Int,
     1 # sign multiplier
     0 # accumulated value
     0 # current index
@@ -377,17 +377,17 @@ def(lexer-skip-comment!, --,
 
 def(lexer-skip-doc!, --, while(lexer-comment-end? not, lexer-move!))
 
-def(lexer-comment-end?, -- Bool,
+def(lexer-comment-end?, Bool,
     lexer-done? if(
         true,
         lexer-peek is-newline? nip
     ))
 
-def(lexer-peek, -- Char, input-peek)
+def(lexer-peek, Char, input-peek)
 def(lexer-move!, --, input-move!
     lexer-col modify(Col->Int 1+ Int->Col))
 
-def(lexer-location, -- Location,
+def(lexer-location, Location,
     lexer-module @ lexer-row @ lexer-col @ location-pack)
 
 def(lexer-emit-warning!, Str --, dip(lexer-location) emit-warning-at!)

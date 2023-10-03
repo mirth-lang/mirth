@@ -222,7 +222,7 @@ def(is-string-end?, Char -- Char Bool,
 # Equivalent to:
 #   is-quote? or(is-newline?) or(is-nul?)
 
-def(underscore, -- Char, 95 Int->Char)
+def(underscore, Char, 95 Int->Char)
 
 ||| An approximation of visible characters. Technically this includes a lot of
 ||| stuff that is invisible, like zero-width spaces and such.

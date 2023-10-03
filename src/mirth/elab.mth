@@ -19,7 +19,7 @@ import(data.lazy)
 ####################
 
 data(TypeElab, TYPE_ELAB -> Bool Ctx)
-def(type-elab-default, -- TypeElab, false ctx-empty TYPE_ELAB)
+def(type-elab-default, TypeElab, false ctx-empty TYPE_ELAB)
 def(type-elab-stack-assertion, Ctx -- TypeElab, dip(true) TYPE_ELAB)
 def(type-elab-holes-allowed, TypeElab -- Bool, TYPE_ELAB -> drop)
 def(type-elab-ctx, TypeElab -- Ctx, TYPE_ELAB -> nip)
@@ -32,9 +32,7 @@ def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
     elab-type-stack! dip(swap)
     token-is-dashes? if(
         token-next elab-type-stack! dip(swap),
-        dup "expected --" emit-error!
-        dip(T0 rotr)
-    )
+        dip(T0 rotr))
     token-run-end? if(id,
         dup "expected right paren or comma" emit-error!)
     dip(rot4r dip(swap for(T*)) T->))
@@ -182,9 +180,9 @@ def(elab-simple-type-arg!, Token -- Type,
 var(ab-home, Word)
 var(ab-homeidx, Int)
 var(ab-arrow, Arrow)
-def(ab-ctx, -- Mut(Ctx), ab-arrow @ arrow-ctx)
-def(ab-token, -- Mut(Token), ab-arrow @ arrow-token-end)
-def(ab-type, -- Mut(Type), ab-arrow @ arrow-cod)
+def(ab-ctx, Mut(Ctx), ab-arrow @ arrow-ctx)
+def(ab-token, Mut(Token), ab-arrow @ arrow-token-end)
+def(ab-type, Mut(Type), ab-arrow @ arrow-cod)
 
 def(ab-save!(f), (*a -- *b) *a -- *b,
     ab-arrow @ dip(f) ab-arrow !)
@@ -459,7 +457,7 @@ def(elab-atoms!, --,
         elab-atom! ab-token modify(token-next)
     ))
 
-def(elab-atoms-done?, -- Bool,
+def(elab-atoms-done?, Bool,
     ab-token @ token-run-end? nip)
 
 def(elab-atom!, --,
@@ -829,20 +827,30 @@ def(expect-token-rparen, Token -- Token,
 def(expect-token-arrow, Token -- Token,
     token-is-arrow? if(id, "Expected arrow." emit-fatal-error!))
 
+
+||| Break apart the arguments for `def` into three categories:
+|||     - head: the name of the definition, plus params
+|||     - (optional) sig: the type signature
+|||     - body: a nonempty list of body arguments
+def(token-def-args, Token -- Token Maybe(Token) List+(Token),
+    dup token-args len? 2 >= if(nip,
+        drop "def expects at least two arguments" emit-fatal-error!)
+    List->List+ unwrap uncons
+    List->List+ unwrap uncons
+    is-nil? if(
+        drop L1+ dip(NONE),
+        over token-run-has-arrow if(
+            cons+ dip(NONE),
+            List->List+ unwrap dip(SOME)
+        )
+    ))
+
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, Token -- Token,
-    sip(token-next) token-args-2+
-    uncons over token-run-has-dashes if(
-        List->List+
-        unwrap-or(drop "missing def body" emit-fatal-error!)
-        dip(SOME) uncons,
-        NONE rotr
-    )
-    is-nil if(id, dup token-run-has-arrow if(id,
-        over match(
-            NONE -> "expected type signature or match case",
-            SOME -> drop "expected match case"
-        ) emit-fatal-error!))
+    sip(token-next) token-def-args
+    uncons is-nil if(id,
+        dup token-run-has-arrow if(id,
+            "expected match case" emit-fatal-error!))
     rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
     token-name?
     name-undefined? if(id, drop "word already defined" emit-fatal-error!)
@@ -996,7 +1004,7 @@ def(typecheck-def!, Def --,
 # TABLE #
 #########
 
-def(TABLE_MAX_SIZE, -- Int, 0x10000)
+def(TABLE_MAX_SIZE, Int, 0x10000)
 
 def(table-new!, Name -- Table,
     Table.alloc!

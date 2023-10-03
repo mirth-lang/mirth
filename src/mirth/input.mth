@@ -10,7 +10,7 @@ var(input-length, Size)
 var(input-offset, Size)
 var(input-handle, File)
 buffer(INPUT_BUFFER, 0x2010) # a little wiggle room for boundary chars
-def(INPUT_BUFFER_SIZE, -- Size, 0x2000)
+def(INPUT_BUFFER_SIZE, Size, 0x2000)
 
 def(input-start!, File --,
     input-handle !
@@ -29,7 +29,7 @@ def(input-end!, --,
     0 input-offset !
     false input-isopen !)
 
-def(input-done?, -- Bool,
+def(input-done?, Bool,
     input-isopen @ not)
 
 def(input-fill-buffer!, --,
@@ -52,7 +52,7 @@ def(input-fill-buffer!, --,
 
 # Return the current char in the input buffer.
 # Panics if file is exhausted.
-def(input-peek, -- Char,
+def(input-peek, Char,
     input-isopen @ if(
         input-offset @ INPUT_BUFFER ptr+ char@,
         "error: attempted to read input buffer when file is already closed" panic!

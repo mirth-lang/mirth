@@ -12,7 +12,7 @@ import(mirth.data.table)
 # Codegen #
 ###########
 
-def(CODEGEN_BUF_SIZE, -- Size, 0x100)
+def(CODEGEN_BUF_SIZE, Size, 0x100)
 var(codegen-file, File)
 var(codegen-length, Size)
 buffer(CODEGEN_BUF, 0x100)
@@ -20,7 +20,7 @@ buffer(CODEGEN_BUF, 0x100)
 def(codegen-u8@, Offset -- Byte, CODEGEN_BUF u8@@)
 def(codegen-u8!, Byte Offset --, CODEGEN_BUF u8!!)
 
-def(codegen-full?, -- Bool,
+def(codegen-full?, Bool,
     codegen-length @ 4 + CODEGEN_BUF_SIZE >=)
 
 def(codegen-flush!, --,

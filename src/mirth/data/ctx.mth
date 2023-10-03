@@ -9,7 +9,7 @@ import(mirth.data.var)
 data(Ctx, CTX -> List(Var))
 
 def(unCTX, Ctx -- List(Var), CTX -> id)
-def(ctx-empty, -- Ctx, nil)
+def(ctx-empty, Ctx, nil)
 def(ctx-is-physically-empty, Ctx -- Bool, ctx-physical-vars is-nil)
 def(ctx-new!, Ctx Var -- Ctx, dip(unCTX) snoc CTX)
 def(ctx-vars, Ctx -- List(Var), unCTX)

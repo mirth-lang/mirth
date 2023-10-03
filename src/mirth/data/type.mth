@@ -91,7 +91,7 @@ def(T*, Type Type -- Type, TTensor)
 def(T->, Type Type -- Type, TMorphism)
 def(TMut, Type -- Type, TYPE_MUT swap TApp)
 
-def(T0, -- Type, TYPE_UNIT)
+def(T0, Type, TYPE_UNIT)
 def(T1, Type -- Type, dip(T0) T*)
 def(T2, Type Type -- Type, dip(T1) T*)
 def(T3, Type Type Type -- Type, dip(T2) T*)
@@ -131,24 +131,24 @@ def(type-is-physical, Type -- Bool,
     TPrim -> prim-type-is-physical,
     _ -> drop true)
 
-def(TYPE_TYPE, -- Type, PRIM_TYPE_TYPE TPrim) # type of types
-def(TYPE_STACK, -- Type, PRIM_TYPE_STACK TPrim) # type of stack types
-def(TYPE_EFFECT, -- Type, PRIM_TYPE_EFFECT TPrim) # type of effect types
-def(TYPE_UNIT, -- Type, PRIM_TYPE_UNIT TPrim) # unit type
-def(TYPE_BOOL, -- Type, PRIM_TYPE_BOOL TPrim) # bool type
-def(TYPE_MUT, -- Type, PRIM_TYPE_MUT TPrim)
-def(TYPE_INT, -- Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
-def(TYPE_PTR, -- Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
-def(TYPE_STR, -- Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but nominally)
-def(TYPE_CHAR, -- Type, PRIM_TYPE_CHAR TPrim) # char (UTF8-encoded codepoint in U32)
-def(TYPE_U8, -- Type, PRIM_TYPE_U8 TPrim) # fixed width integer type -- unsigned 8 bit
-def(TYPE_U16, -- Type, PRIM_TYPE_U16 TPrim) # fixed width integer type -- unsigned 16 bit
-def(TYPE_U32, -- Type, PRIM_TYPE_U32 TPrim) # fixed width integer type -- unsigned 32 bit
-def(TYPE_U64, -- Type, PRIM_TYPE_U64 TPrim) # fixed width integer type -- unsigned 64 bit
-def(TYPE_I8, -- Type, PRIM_TYPE_I8 TPrim) # fixed width integer type -- signed 8 bit
-def(TYPE_I16, -- Type, PRIM_TYPE_I16 TPrim) # fixed width integer type -- signed 16 bit
-def(TYPE_I32, -- Type, PRIM_TYPE_I32 TPrim) # fixed width integer type -- signed 32 bit
-def(TYPE_I64, -- Type, PRIM_TYPE_I64 TPrim) # fixed width integer type -- signed 64 bit
+def(TYPE_TYPE, Type, PRIM_TYPE_TYPE TPrim) # type of types
+def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
+def(TYPE_EFFECT, Type, PRIM_TYPE_EFFECT TPrim) # type of effect types
+def(TYPE_UNIT, Type, PRIM_TYPE_UNIT TPrim) # unit type
+def(TYPE_BOOL, Type, PRIM_TYPE_BOOL TPrim) # bool type
+def(TYPE_MUT, Type, PRIM_TYPE_MUT TPrim)
+def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
+def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
+def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but nominally)
+def(TYPE_CHAR, Type, PRIM_TYPE_CHAR TPrim) # char (UTF8-encoded codepoint in U32)
+def(TYPE_U8, Type, PRIM_TYPE_U8 TPrim) # fixed width integer type -- unsigned 8 bit
+def(TYPE_U16, Type, PRIM_TYPE_U16 TPrim) # fixed width integer type -- unsigned 16 bit
+def(TYPE_U32, Type, PRIM_TYPE_U32 TPrim) # fixed width integer type -- unsigned 32 bit
+def(TYPE_U64, Type, PRIM_TYPE_U64 TPrim) # fixed width integer type -- unsigned 64 bit
+def(TYPE_I8, Type, PRIM_TYPE_I8 TPrim) # fixed width integer type -- signed 8 bit
+def(TYPE_I16, Type, PRIM_TYPE_I16 TPrim) # fixed width integer type -- signed 16 bit
+def(TYPE_I32, Type, PRIM_TYPE_I32 TPrim) # fixed width integer type -- signed 32 bit
+def(TYPE_I64, Type, PRIM_TYPE_I64 TPrim) # fixed width integer type -- signed 64 bit
 
 def(type-expand, Type -- Type,
     TMeta -> meta-expand,
@@ -649,7 +649,7 @@ def(meta-trace!, MetaVar --,
         NONE -> "?" str-trace! MetaVar.id int-trace!,
         SOME -> nip type-trace!
     ))
-def(meta-alloc!, -- MetaVar, MetaVar.alloc!)
+def(meta-alloc!, MetaVar, MetaVar.alloc!)
 def(meta-expand-if(f,g), (*a Type -- *b, *a MetaVar -- *b) *a MetaVar -- *b,
     dup meta-type @ match(
         NONE -> g,
@@ -727,7 +727,7 @@ def(app-type-trace-open!, Type Type --,
 # mirth/data/type
 data(Subst, SUBST -> Map(Var, Type))
 def(unSUBST, Subst -- Map(Var, Type), SUBST -> id)
-def(subst-nil, -- Subst, nil)
+def(subst-nil, Subst, nil)
 def(subst-is-nil, Subst -- Bool, is-nil)
 def(subst-is-nil?, Subst -- Subst Bool, is-nil?)
 def(subst-new!, Type Var Subst -- Subst,
