@@ -36,7 +36,7 @@ def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
     )
     token-run-end? if(id,
         dup "expected right paren or comma" emit-error!)
-    dip(rot4r dip(swap reverse-for(T*)) T->))
+    dip(rot4r dip(swap for(T*)) T->))
 
 def(elab-type-sig-params!, TypeElab Token -- TypeElab List(Type) Token,
     token-is-lparen? if(
@@ -272,7 +272,7 @@ def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
                     { Atom List(Atom) Atom Block }
                     dip(atom-cod @ rotl tuck atom-dom !)
                     { List(Atom) Atom Block }
-                    block-to-arg atom-arg-add!
+                    block-to-arg atom-arg-add-left!
                     swap,
                 _ -> drop snoc
             )
@@ -342,13 +342,11 @@ def(ab-block!(f), (*a -- *b) *a -- *b,
 def(ab-dip!(f), (*a -- *b) *a -- *b,
     ab-block!(f) PRIM_CORE_DIP ab-prim!)
 
-def(ab-if!(f,g), (*b -- *c, *a -- *b) *a -- *c,
-    ab-block!(g) ab-block!(f) PRIM_CORE_IF ab-prim!)
-    # FIXME TODO this is cursed/reversed.
+def(ab-if!(f,g), (*a -- *b, *b -- *c) *a -- *c,
+    ab-block!(f) ab-block!(g) PRIM_CORE_IF ab-prim!)
 
-def(ab-while!(f,g), (*b -- *c, *a -- *b) *a -- *c,
-    ab-block!(g) ab-block!(f) PRIM_CORE_WHILE ab-prim!)
-    # FIXME TODO this is cursed/reversed.
+def(ab-while!(f,g), (*a -- *b, *b -- *c) *a -- *c,
+    ab-block!(f) ab-block!(g) PRIM_CORE_WHILE ab-prim!)
 
 def(ab-lambda!(f), (*a -- *b) *a List(Param) -- *b ,
     Lambda.alloc!
@@ -356,7 +354,7 @@ def(ab-lambda!(f), (*a -- *b) *a List(Param) -- *b ,
     ab-type@ over lambda-dom !
     ab-token@ over lambda-token !
     dup2 lambda-params !
-    dip(ab-ctx@ ab-type@ rotl reverse-for( # FIXME TODO note the reverse!
+    dip(ab-ctx@ ab-type@ rotl reverse-for(
         swap dip(Param->Var dup dip(ctx-new!))
         ab-token@ elab-expand-tensor!
         dip(rotl var-type @) elab-type-unify! drop2
@@ -468,7 +466,7 @@ def(elab-block-at!, Token --,
     ab-ctx@ swap block-new-deferred! OP_BLOCK ab-op!)
 
 def(elab-args!, --,
-    ab-token@ token-args reverse-for(elab-block-at!))
+    ab-token@ token-args for(elab-block-at!))
 
 def(elab-no-args!, --,
     ab-token@ token-args-0)
@@ -843,7 +841,7 @@ def(elab-def!, Token -- Token,
         dup ab-build-word-arrow!(
             swap word-params force! is-nil? if(
                 drop elab-def-body!,
-                reverse ab-lambda!(elab-def-body!) # note the reverse
+                ab-lambda!(elab-def-body!)
             )
         )
     ) swap word-arrow !)
@@ -853,7 +851,7 @@ def(elab-def-params!, Word -- List(Param),
     L0 over elab-word-sig!
     rotl word-head @
     elab-expand-morphism! nip
-    token-args for(
+    token-args reverse-for(
         token-is-param-name? if(id,
             "expected parameter name" emit-fatal-error!)
         dup token-succ token-run-end? if(drop,
@@ -865,7 +863,7 @@ def(elab-def-params!, Word -- List(Param),
         token-name@ var-new!
         tuck var-type !
         true over var-auto-run !
-        PARAM swap dip(snoc)
+        PARAM rotr dip(cons)
     ) drop)
 
 ||| Elaborate the body of a `def`. Takes the codomain from the stack,

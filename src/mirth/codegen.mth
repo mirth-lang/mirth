@@ -836,8 +836,8 @@ def(c99-emit-prims!, --,
     "}" ;;
 
     PRIM_CORE_IF .p " {" ;
-    "    value_t then_branch = pop_value();" ;
     "    value_t else_branch = pop_value();" ;
+    "    value_t then_branch = pop_value();" ;
     "    bool b = pop_bool();" ;
     "    if (b) {" ;
     "        push_value(then_branch);" ;
@@ -850,8 +850,8 @@ def(c99-emit-prims!, --,
     "}" ;;
 
     PRIM_CORE_WHILE .p " {" ;
-    "    value_t cond = pop_value();" ;
     "    value_t body = pop_value();" ;
+    "    value_t cond = pop_value();" ;
     "    while(1) {" ;
     "        push_value(cond); incref(cond); do_run();" ;
     "        bool b = pop_bool();" ;
@@ -1324,7 +1324,7 @@ def(c99-emit-prim-default!, List(Arg) Prim --,
     "    mw" . prim-name @ .name "();" ;)
 
 def(c99-emit-args-push!, List(Arg) --,
-    reverse-for(c99-emit-arg-push!))
+    for(c99-emit-arg-push!))
 
 def(c99-emit-arg-push!, Arg --,
     ARG_BLOCK -> c99-emit-block-push!,
