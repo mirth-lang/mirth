@@ -27,7 +27,7 @@ def(Int->Hash, Int -- Hash, HASH)
 def(Hash->Int, Hash -- Int, HASH -> id)
 
 buffer(NAME_HASH_TABLE, 0x80000)
-def(NAME_HASH_MAX, Size, 0x7FFF)
+def(NAME_HASH_MAX, -- Size, 0x7FFF)
 def(hash-name!, Name Hash --, Hash->Int NAME_HASH_TABLE value!!)
 def(hash-name@, Hash -- Name, Hash->Int NAME_HASH_TABLE value@@)
 def(hash-name?, Hash -- Hash Name, dup hash-name@)

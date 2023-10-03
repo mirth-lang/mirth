@@ -13,9 +13,9 @@ def(File->Int, File -- Int, match(FILE -> id))
 def(file@, Ptr -- File, int@ Int->File)
 def(file!, File Ptr --, dip(File->Int) int!)
 
-def(stdin, File, 0 Int->File)
-def(stdout, File, 1 Int->File)
-def(stderr, File, 2 Int->File)
+def(stdin, -- File, 0 Int->File)
+def(stdout, -- File, 1 Int->File)
+def(stderr, -- File, 2 Int->File)
 
 def(str-write!, Str File --,
     File->Int swap dup str-size dup
@@ -87,7 +87,7 @@ def(create-file!, Str -- File,
         Int->File
     ))
 
-def(O_WRONLY|O_CREAT|O_TRUNC, Int,
+def(O_WRONLY|O_CREAT|O_TRUNC, -- Int,
     RUNNING_OS match(
         OS_MACOS -> 0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
         OS_LINUX -> 0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
@@ -127,9 +127,9 @@ def(is-directory?, Path -- Path Bool,
 #define S_IFBLK  0060000
 #define S_IFDIR  0040000
 
-def(S_IFMT, Int, 0xF000)
-def(S_IFDIR, Int, 0x4000)
-def(S_IFREG, Int, 0x8000)
+def(S_IFMT, -- Int, 0xF000)
+def(S_IFDIR, -- Int, 0x4000)
+def(S_IFREG, -- Int, 0x8000)
 
 def(S_ISDIR, U16 -- Bool, U16->Int S_IFMT & S_IFDIR ==)
 

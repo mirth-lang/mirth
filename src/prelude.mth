@@ -43,13 +43,13 @@ def(>>, Int Int -- Int, prim.int.shr)
 def(int@, Ptr -- Int, prim.int.get)
 def(int!, Int Ptr --, prim.int.set)
 
-def(true, Bool, prim.bool.true)
-def(false, Bool, prim.bool.false)
+def(true, -- Bool, prim.bool.true)
+def(false, -- Bool, prim.bool.false)
 def(&&, Bool Bool -- Bool, prim.bool.and)
 def(||, Bool Bool -- Bool, prim.bool.or)
 
 def(ptr+, Int Ptr -- Ptr, prim.ptr.add)
-def(|ptr|, Int, prim.ptr.size)
+def(|ptr|, -- Int, prim.ptr.size)
 def(ptr@, Ptr -- Ptr, prim.ptr.get)
 def(ptr!, Ptr Ptr --,prim.ptr.set)
 
@@ -97,9 +97,9 @@ def(Int->OS, Int -- OS,
         drop OS_UNKNOWN
     ))))
 
-def(RUNNING_OS, OS, prim.sys.os Int->OS)
-def(argc, Int, prim.sys.argc)
-def(argv, Ptr, prim.sys.argv)
+def(RUNNING_OS, -- OS, prim.sys.os Int->OS)
+def(argc, -- Int, prim.sys.argc)
+def(argv, -- Ptr, prim.sys.argv)
 
 def(posix-read!, Int Ptr Int -- Int, prim.posix.read)
 def(posix-write!, Int Ptr Int -- Int, prim.posix.write)
@@ -152,21 +152,21 @@ def-type(Offset, Int)
 def(Str->Ptr, Str -- Ptr, prim.unsafe.cast) # TODO
 def(Ptr->Str, Ptr -- Str, prim.unsafe.cast) # TODO
 
-def(U8_MAX, Int, 0xFF)
-def(U16_MAX, Int, 0xFFFF)
-def(U32_MAX, Int, 0xFFFFFFFF)
+def(U8_MAX, -- Int, 0xFF)
+def(U16_MAX, -- Int, 0xFFFF)
+def(U32_MAX, -- Int, 0xFFFFFFFF)
 
-def(I8_MAX, Int, 0x7F)
-def(I16_MAX, Int, 0x7FFF)
-def(I32_MAX, Int, 0x7FFFFFFF)
+def(I8_MAX, -- Int, 0x7F)
+def(I16_MAX, -- Int, 0x7FFF)
+def(I32_MAX, -- Int, 0x7FFFFFFF)
 
-def(U8_MIN, Int, 0)
-def(U16_MIN, Int, 0)
-def(U32_MIN, Int, 0)
+def(U8_MIN, -- Int, 0)
+def(U16_MIN, -- Int, 0)
+def(U32_MIN, -- Int, 0)
 
-def(I8_MIN, Int, -0x80)
-def(I16_MIN, Int, -0x8000)
-def(I32_MIN, Int, -0x80000000)
+def(I8_MIN, -- Int, -0x80)
+def(I16_MIN, -- Int, -0x8000)
+def(I32_MIN, -- Int, -0x80000000)
 
 def(not, Bool -- Bool, false ==)
 
@@ -290,7 +290,7 @@ def(abs, Int -- Int, dup 0< if(negate, id))
 |||   Its fields have nil value unless you override them.
 ||| - For data types, this is the first constructor, applied to nil values.
 ||| - For n-tuples, this is [ nil ... nil ]
-def(nil, a, 0 prim.unsafe.cast)
+def(nil, -- a, 0 prim.unsafe.cast)
 
 ||| Test for nil.
 def(is-nil, a -- Bool, nil ==)
@@ -303,7 +303,7 @@ def(is-nil?, a -- a Bool, dup nil ==)
 ##########
 
 ||| Return the "nil" pack, i.e. null.
-def(pack-nil, [*a], nil)
+def(pack-nil, -- [*a], nil)
 
 ||| Is this a nil pack?
 def(pack-nil?, [*a] -- [*a] Bool, dup pack-nil ==)
@@ -314,7 +314,7 @@ def(pack-cons, [*a] b -- [*a b], prim.pack.cons)
 ||| Deconstruct a tuple by splitting it at its last element.
 def(pack-uncons, [*a b] -- [*a] b, prim.pack.uncons)
 
-def(pack0, [], pack-nil)
+def(pack0, -- [], pack-nil)
 def(pack1, a -- [a], dip(pack0) pack-cons)
 def(pack2, a b -- [a b], dip(pack1) pack-cons)
 def(pack3, a b c -- [a b c], dip(pack2) pack-cons)

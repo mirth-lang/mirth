@@ -26,7 +26,7 @@ field(token-module, Token, Module)
 field(token-row, Token, Row)
 field(token-col, Token, Col)
 
-def(token-alloc!, Token,
+def(token-alloc!, -- Token,
     Token.alloc!
     TOKEN_NONE over token-value !)
 
@@ -300,6 +300,9 @@ def(token-run, Token -- List(Token),
 
 def(token-run-has-arrow, Token -- Bool,
     token-run any(token-is-arrow?))
+
+def(token-run-has-dashes, Token -- Bool,
+    token-run any(token-is-dashes?))
 
 ###################
 # Type Signatures #

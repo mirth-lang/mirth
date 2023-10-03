@@ -15,7 +15,7 @@ def(init-paths!, --,
 var(source-path-root, Path)
 var(output-path-root, Path)
 
-def(path-separator, Str, RUNNING_OS OS_WINDOWS == if("\\", "/"))
+def(path-separator, -- Str, RUNNING_OS OS_WINDOWS == if("\\", "/"))
 def(path-is-empty?, Path -- Path Bool, dup Path->Str str-is-empty)
 def(path-join, Path Path -- Path,
     swap path-is-empty? if(

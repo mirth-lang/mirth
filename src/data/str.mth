@@ -47,7 +47,7 @@ def(str-copy-partial!, Str Ptr -- Ptr,
     dip(dup Str->Ptr swap str-size)
     dup2 ptr+ dip(prim.ptr.copy))
 
-def(STR_BUF_SIZE, Int, 0x2000)
+def(STR_BUF_SIZE, -- Int, 0x2000)
 buffer(STR_BUF, 0x2000)
 var(STR_BUF_LEN, Int)
 
@@ -56,11 +56,11 @@ def(build-str!(f), (*a -- *b) *a -- *b Str,
         f str-buf-dup!
     ) str-buf!)
 
-def(str-buf-dup!, Str,
+def(str-buf-dup!, -- Str,
     STR_BUF str-buf-length? dup prim.str.alloc
     sip(prim.str.base prim.ptr.copy))
 
-def(str-buf-length?, Int,
+def(str-buf-length?, -- Int,
     STR_BUF_LEN @)
 
 def(str-buf-length!, Int --,
@@ -76,10 +76,10 @@ def(str-buf-u8!, U8 Offset --,
 def(str-buf-char@, Offset -- Char,
     STR_BUF ptr+ char@)
 
-def(str-buf-empty?, Bool,
+def(str-buf-empty?, -- Bool,
     str-buf-length? 0=)
 
-def(str-buf-full?, Bool,
+def(str-buf-full?, -- Bool,
     str-buf-length? 1+ STR_BUF_SIZE >=)
 
 def(str-buf-clear!, --,

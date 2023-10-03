@@ -19,7 +19,7 @@ import(data.lazy)
 ####################
 
 data(TypeElab, TYPE_ELAB -> Bool Ctx)
-def(type-elab-default, TypeElab, false ctx-empty TYPE_ELAB)
+def(type-elab-default, -- TypeElab, false ctx-empty TYPE_ELAB)
 def(type-elab-stack-assertion, Ctx -- TypeElab, dip(true) TYPE_ELAB)
 def(type-elab-holes-allowed, TypeElab -- Bool, TYPE_ELAB -> drop)
 def(type-elab-ctx, TypeElab -- Ctx, TYPE_ELAB -> nip)
@@ -32,6 +32,7 @@ def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
     elab-type-stack! dip(swap)
     token-is-dashes? if(
         token-next elab-type-stack! dip(swap),
+        dup "expected --" emit-error!
         dip(T0 rotr)
     )
     token-run-end? if(id,
@@ -181,12 +182,9 @@ def(elab-simple-type-arg!, Token -- Type,
 var(ab-home, Word)
 var(ab-homeidx, Int)
 var(ab-arrow, Arrow)
-def(ab-ctx@, Ctx, ab-arrow @ arrow-ctx @)
-def(ab-ctx!, Ctx --, ab-arrow @ arrow-ctx !)
-def(ab-token@, Token, ab-arrow @ arrow-token-end @)
-def(ab-token!, Token --, ab-arrow @ arrow-token-end !)
-def(ab-type@, Type, ab-arrow @ arrow-cod @)
-def(ab-type!, Type --, ab-arrow @ arrow-cod !)
+def(ab-ctx, -- Mut(Ctx), ab-arrow @ arrow-ctx)
+def(ab-token, -- Mut(Token), ab-arrow @ arrow-token-end)
+def(ab-type, -- Mut(Type), ab-arrow @ arrow-cod)
 
 def(ab-save!(f), (*a -- *b) *a -- *b,
     ab-arrow @ dip(f) ab-arrow !)
@@ -221,14 +219,14 @@ def(ab-build-word!(f), (*a -- *b) *a Word -- *b Word,
     tuck word-arrow !)
 
 def(ab-unify-type!, Type --,
-    dip(ab-token@ GAMMA ab-type@) type-unify! ab-type! drop)
+    dip(ab-token @ GAMMA ab-type @) type-unify! ab-type ! drop)
 
 def(ab-atom!, Atom --,
-    dup atom-token @ ab-token!
+    dup atom-token @ ab-token !
     # atom-dom? ab-unify-type!     # moved to ab-expand-opsig!
         # ^ a sanity check to make sure
         # atom dom matches ab-arrow cod
-    dup atom-cod @ ab-type!
+    dup atom-cod @ ab-type !
     dip(ab-arrow @ arrow-atoms @)
     ab-optimized-snoc!
     ab-arrow @ arrow-atoms !)
@@ -298,8 +296,8 @@ def(atom-to-run-var, Atom -- Maybe(Var),
 
 def(ab-op!, Op --,
     Atom.alloc!
-    ab-ctx@ over atom-ctx !
-    ab-token@ over atom-token !
+    ab-ctx @ over atom-ctx !
+    ab-token @ over atom-token !
     dup2 atom-op !
     swap elab-op-fresh-sig!
     dip(over atom-subst !)
@@ -309,11 +307,11 @@ def(ab-op!, Op --,
 
 def(ab-expand-opsig!, OpSig -- Type Type,
     match(
-        OPSIG_ID -> ab-type@ dup,
-        OPSIG_PUSH -> dip(ab-type@ dup) TTensor,
+        OPSIG_ID -> ab-type @ dup,
+        OPSIG_PUSH -> dip(ab-type @ dup) TTensor,
         OPSIG_APPLY ->
-            dip(ab-type@)
-            ab-token@ elab-expand-morphism!
+            dip(ab-type @)
+            ab-token @ elab-expand-morphism!
             swap dip(elab-type-unify! drop)
     ))
 
@@ -326,18 +324,18 @@ def(ab-var!, Var --, OP_VAR ab-op!)
 def(ab-tag!, Tag --, OP_TAG ab-op!)
 def(ab-prim!, Prim --,
     dup prim-type @ is-nil if(
-        ab-token@ "compiler error: prim type missing" emit-fatal-error!,
+        ab-token @ "compiler error: prim type missing" emit-fatal-error!,
         OP_PRIM ab-op!
     ))
 def(ab-word!, Word --, OP_WORD ab-op!)
 def(ab-external!, External --, OP_EXTERNAL ab-op!)
 
 def(ab-block-at!(f), (*a -- *b) *a Token -- *b,
-    ab-ctx@ meta-alloc! TMeta rotl ab-build!(f)
+    ab-ctx @ meta-alloc! TMeta rotl ab-build!(f)
     block-new! OP_BLOCK ab-op!)
 
 def(ab-block!(f), (*a -- *b) *a -- *b,
-    ab-token@ ab-block-at!(f))
+    ab-token @ ab-block-at!(f))
 
 def(ab-dip!(f), (*a -- *b) *a -- *b,
     ab-block!(f) PRIM_CORE_DIP ab-prim!)
@@ -350,13 +348,13 @@ def(ab-while!(f,g), (*a -- *b, *b -- *c) *a -- *c,
 
 def(ab-lambda!(f), (*a -- *b) *a List(Param) -- *b ,
     Lambda.alloc!
-    ab-ctx@ over lambda-outer-ctx !
-    ab-type@ over lambda-dom !
-    ab-token@ over lambda-token !
+    ab-ctx @ over lambda-outer-ctx !
+    ab-type @ over lambda-dom !
+    ab-token @ over lambda-token !
     dup2 lambda-params !
-    dip(ab-ctx@ ab-type@ rotl reverse-for(
+    dip(ab-ctx @ ab-type @ rotl reverse-for(
         swap dip(Param->Var dup dip(ctx-new!))
-        ab-token@ elab-expand-tensor!
+        ab-token @ elab-expand-tensor!
         dip(rotl var-type @) elab-type-unify! drop2
     ))
     tuck lambda-mid !
@@ -366,10 +364,10 @@ def(ab-lambda!(f), (*a -- *b) *a List(Param) -- *b ,
 
     dup lambda-inner-ctx @
     over lambda-mid @
-    ab-token@
+    ab-token @
     ab-build!(
         dip(f)
-        ab-type@ over lambda-cod !
+        ab-type @ over lambda-cod !
     )
     over lambda-body !
     OP_LAMBDA ab-op!)
@@ -443,36 +441,36 @@ def(elab-arrow-fwd!, Ctx Type Token -- Arrow,
 def(elab-atoms!, --,
     while(
         elab-atoms-done? not,
-        elab-atom! ab-token@ token-next ab-token!
+        elab-atom! ab-token modify(token-next)
     ))
 
-def(elab-atoms-done?, Bool,
-    ab-token@ token-run-end? nip)
+def(elab-atoms-done?, -- Bool,
+    ab-token @ token-run-end? nip)
 
 def(elab-atom!, --,
-    ab-token@ token-value @ match(
+    ab-token @ token-value @ match(
         TOKEN_NAME -> elab-atom-name!,
         TOKEN_INT -> ab-int!,
         TOKEN_STR -> ab-str!,
         TOKEN_LSQUARE -> drop elab-atom-block!,
         TOKEN_LCURLY -> drop elab-atom-assert!,
-        _ -> ab-token@ "Unexpected token in elab-atom!" emit-fatal-error!
+        _ -> ab-token @ "Unexpected token in elab-atom!" emit-fatal-error!
     ))
 
 def(elab-atom-block!, --,
-    ab-token@ token-args-1 elab-block-at!)
+    ab-token @ token-args-1 elab-block-at!)
 
 def(elab-block-at!, Token --,
-    ab-ctx@ swap block-new-deferred! OP_BLOCK ab-op!)
+    ab-ctx @ swap block-new-deferred! OP_BLOCK ab-op!)
 
 def(elab-args!, --,
-    ab-token@ token-args for(elab-block-at!))
+    ab-token @ token-args for(elab-block-at!))
 
 def(elab-no-args!, --,
-    ab-token@ token-args-0)
+    ab-token @ token-args-0)
 
 def(elab-atom-name!, Name --,
-    dup ab-ctx@ ctx-lookup match(
+    dup ab-ctx @ ctx-lookup match(
         SOME -> nip elab-args! ab-var!,
         NONE -> name-def @ match(
             DEF_BUFFER -> elab-no-args! ab-buffer!,
@@ -482,7 +480,7 @@ def(elab-atom-name!, Name --,
             DEF_WORD -> elab-args! ab-word!,
             DEF_TAG -> elab-args! ab-tag!,
             DEF_PRIM -> elab-prim!,
-            _ -> drop ab-token@ "Unknown word." emit-error! TYPE_ERROR ab-type!
+            _ -> drop ab-token @ "Unknown word." emit-error! TYPE_ERROR ab-type !
         )
     ))
 
@@ -494,16 +492,16 @@ def(elab-prim!, Prim --,
     ))
 
 def(elab-atom-assert!, --,
-    ab-token@ GAMMA
-    ab-ctx@ type-elab-stack-assertion
-    ab-token@ token-args-1 elab-type-stack!
-    drop nip ab-type@ swap type-unify! drop2)
+    ab-token @ GAMMA
+    ab-ctx @ type-elab-stack-assertion
+    ab-token @ token-args-1 elab-type-stack!
+    drop nip ab-type @ swap type-unify! drop2)
 
 def(elab-atom-lambda!, --,
     Lambda.alloc!
-    ab-ctx@ over lambda-outer-ctx !
-    ab-type@ over lambda-dom !
-    ab-token@ over lambda-token !
+    ab-ctx @ over lambda-outer-ctx !
+    ab-type @ over lambda-dom !
+    ab-token @ over lambda-token !
     elab-lambda!
     OP_LAMBDA ab-op!)
 
@@ -512,9 +510,9 @@ def(elab-atom-lambda!, --,
 ||| the rest from the AB environment.
 def(elab-match-at!, Type Token --,
     Match.alloc!
-    ab-ctx@ over match-ctx !
-    ab-type@ over match-dom !
-    ab-token@ over match-token !
+    ab-ctx @ over match-ctx !
+    ab-type @ over match-dom !
+    ab-token @ over match-token !
     tuck match-body !
     tuck match-cod !
     elab-match-cases!
@@ -523,7 +521,7 @@ def(elab-match-at!, Type Token --,
 
 def(elab-atom-match!, --,
     meta-alloc! TMeta
-    ab-token@ token-args+ first+
+    ab-token @ token-args+ first+
     elab-match-at!)
 
 def(elab-lambda!, Lambda -- Lambda,
@@ -869,8 +867,8 @@ def(elab-def-params!, Word -- List(Param),
 ||| Elaborate the body of a `def`. Takes the codomain from the stack,
 ||| and the rest from the AB environment.
 def(elab-def-body!, Type -- Type,
-    ab-token@ token-run-has-arrow if(
-        dup ab-token@ elab-match-at!,
+    ab-token @ token-run-has-arrow if(
+        dup ab-token @ elab-match-at!,
         elab-atoms!
     ))
 
@@ -969,7 +967,7 @@ def(typecheck-def!, Def --,
 # TABLE #
 #########
 
-def(TABLE_MAX_SIZE, Int, 0x10000)
+def(TABLE_MAX_SIZE, -- Int, 0x10000)
 
 def(table-new!, Name -- Table,
     Table.alloc!
