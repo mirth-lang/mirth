@@ -28,5 +28,14 @@ def(force!, Mut(Lazy(a)) -- a,
         LAZY_WAIT ->
             "attempted to force already running thunk" panic!
     ))
+def(force-or!(f), (*x -- *x a) *x Mut(Lazy(a)) -- *x a,
+    dup @ match(
+        LAZY_WAIT -> drop f,
+        _ -> drop force!
+    ))
+
 def(force2!, Mut(Lazy([a b])) -- a b,
     force! unpack2)
+
+def(force-or2!(f), (*x -- *x a b) *x Mut(Lazy([a b])) -- *x a b,
+    force-or!(f pack2) unpack2)

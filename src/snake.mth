@@ -45,7 +45,7 @@ def(state-vacate, State -- State, U8->Int 0xFE & Int->U8)
 def(state-is-occupied, State -- Bool, U8->Int 0x1 & 0>)
 def(state-is-occupied?, State -- State Bool, dup state-is-occupied)
 
-def(snake-xy@, -- XCoord YCoord, snake-x @ snake-y @)
+def(snake-xy@, XCoord YCoord, snake-x @ snake-y @)
 def(snake-xy!, XCoord YCoord --, snake-y ! snake-x !)
 
 def(coords-offset, XCoord YCoord -- Offset,
@@ -79,7 +79,7 @@ def(snake-enqueue-xy!, XCoord YCoord --,
     snake-queue-length @ snake-queue-xy!
     snake-queue-length modify(1+))
 
-def(snake-dequeue-xy!, -- XCoord YCoord,
+def(snake-dequeue-xy!, XCoord YCoord,
     0 snake-queue-xy@
     0
     while(dup 1+ snake-queue-length @ <,

@@ -91,7 +91,7 @@ def(T*, Type Type -- Type, TTensor)
 def(T->, Type Type -- Type, TMorphism)
 def(TMut, Type -- Type, TYPE_MUT swap TApp)
 
-def(T0, -- Type, TYPE_UNIT)
+def(T0, Type, TYPE_UNIT)
 def(T1, Type -- Type, dip(T0) T*)
 def(T2, Type Type -- Type, dip(T1) T*)
 def(T3, Type Type Type -- Type, dip(T2) T*)
@@ -555,6 +555,58 @@ def(type-var-freshen, Subst Var -- Subst Type,
         dip(rotr subst-new!)
     ))
 
+def(type-rigidify-sig!, Ctx Type -- Ctx Type,
+    TMeta ->
+        meta-expand-or-update!(
+            meta-alloc! TMeta
+            meta-alloc! TMeta TMorphism
+        ) type-rigidify-sig!,
+    _ -> type-rigidify!)
+
+def(type-rigidify-stack!, Ctx Type -- Ctx Type,
+    TMeta ->
+        meta-expand-or-update!(
+            ctx-make-fresh-stack-type-var! TVar
+        ) type-rigidify-stack!,
+    TTensor ->
+        dip(type-rigidify-stack!) swap
+        dip(type-rigidify!) swap
+        TTensor,
+    TVar -> TVar,
+    _ -> type-rigidify!)
+
+def(type-rigidify!, Ctx Type -- Ctx Type,
+    TMeta ->
+        meta-expand-or-update!(
+            ctx-make-fresh-type-var! TVar
+        ) type-rigidify!,
+    TYPE_ERROR -> TYPE_ERROR,
+    TYPE_DONT_CARE -> TYPE_DONT_CARE,
+    TPrim -> TPrim,
+    THole -> THole,
+    TVar -> TVar,
+    TTable -> TTable,
+    TData -> TData,
+    TApp ->
+        dip(type-rigidify!) swap
+        dip(type-rigidify!) swap
+        TApp,
+    TTensor ->
+        dip(type-rigidify-stack!) swap
+        dip(type-rigidify!) swap
+        TTensor,
+    TMorphism ->
+        dip(type-rigidify-stack!) swap
+        dip(type-rigidify-stack!) swap
+        TMorphism,
+    TValue ->
+        type-rigidify-value!)
+
+def(type-rigidify-value!, Ctx Value -- Ctx Type,
+    VALUE_INT -> VALUE_INT TValue,
+    VALUE_STR -> VALUE_STR TValue,
+    VALUE_BLOCK -> block-arrow force! arrow-type type-rigidify-sig!)
+
 def(prim-type-arity, PrimType -- Int,
     PRIM_TYPE_MUT -> 1,
     _ -> drop 0)
@@ -615,6 +667,11 @@ def(meta-unify!, Gamma Type MetaVar -- Gamma Type,
                 tuck SOME swap meta-type !
             )
         )
+    ))
+def(meta-expand-or-update!(f), (*a -- *a Type) *a MetaVar -- *a Type,
+    dup meta-type @ match(
+        NONE -> dip(f dup SOME) meta-type !,
+        SOME -> nip
     ))
 
 ##############

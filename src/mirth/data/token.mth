@@ -258,11 +258,10 @@ def(token-args+, Token -- List+(Token),
         SOME -> nip
     ))
 
-||| Get two args plus a nonempty list of the rest.
-def(token-args-3+, Token -- Token Token List+(Token),
-    dup token-args dup len 3 >= if(nip,
-        drop "expected 3+ args" emit-fatal-error!)
-    List->List+ unwrap uncons
+||| Get one arg plus a nonempty list of the rest.
+def(token-args-2+, Token -- Token List+(Token),
+    dup token-args dup len 2 >= if(nip,
+        drop "expected 2+ args" emit-fatal-error!)
     List->List+ unwrap uncons
     List->List+ unwrap)
 
@@ -300,6 +299,9 @@ def(token-run, Token -- List(Token),
 
 def(token-run-has-arrow, Token -- Bool,
     token-run any(token-is-arrow?))
+
+def(token-run-has-dashes, Token -- Bool,
+    token-run any(token-is-dashes?))
 
 ###################
 # Type Signatures #

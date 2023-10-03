@@ -26,10 +26,10 @@ def(SDL_INIT_EVERYTHING, SDL_InitFlags,
     SDL_INIT_SENSOR U32->Int | Int->U32)
 
 def-external(SDL_Quit, --)
-def-external(SDL_GetError, -- Str)
+def-external(SDL_GetError, Str)
 
 def-external(SDL_Delay, SDL_Ticks --)
-def-external(SDL_GetTicks, -- SDL_Ticks)
+def-external(SDL_GetTicks, SDL_Ticks)
 def-type(SDL_Ticks, U32)
 def(ms, Int -- SDL_Ticks, Int->U32)
 

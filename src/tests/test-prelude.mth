@@ -173,7 +173,7 @@ def(test-tensor-quote-drop, [ Int ] -- , drop)
 def(test-tensor-quote-dup, [ Int ] -- [ Int ] [ Int ], dup)
 
 # Stack assertions
-def(test-stack-assertions, -- ,
+def(test-stack-assertions, --,
     1 2 { Int Int }
     3 4 { Int Int Int Int }
     + + + { Int }
@@ -211,7 +211,7 @@ def(test-stack-assertions-dont-care, a b -- a b,
     { _ b }
 )
 
-def(test-dup2, -- Int Str Int Str,
+def(test-dup2, Int Str Int Str,
     10 "hello" dup2)
 
 target-c99("prelude-test.c", test-prelude!)
