@@ -2051,6 +2051,7 @@ static void mwstat (void) {
  static void mwtoken_run_end_3F_ (void);
  static void mwtoken_run (void);
  static void mwtoken_run_has_arrow (void);
+ static void mwtoken_run_has_dashes (void);
  static void mwsig_is_stack_end_3F_ (void);
  static void mwsig_is_stack_end2_3F_ (void);
  static void mwsig_next_stack_end (void);
@@ -2506,12 +2507,9 @@ static void mwstat (void) {
  static void mwelab_type_quote_21_ (void);
  static void mwelab_type_unify_21_ (void);
  static void mwelab_simple_type_arg_21_ (void);
- static void mwab_ctx_40_ (void);
- static void mwab_ctx_21_ (void);
- static void mwab_token_40_ (void);
- static void mwab_token_21_ (void);
- static void mwab_type_40_ (void);
- static void mwab_type_21_ (void);
+ static void mwab_ctx (void);
+ static void mwab_token (void);
+ static void mwab_type (void);
  static void mwab_save_21_ (void);
  static void mwab_build_21_ (void);
  static void mwab_build_hom_21_ (void);
@@ -3359,6 +3357,7 @@ static void mwstat (void) {
  static void mb_token_run_2 (void);
  static void mb_token_run_3 (void);
  static void mb_token_run_has_arrow_1 (void);
+ static void mb_token_run_has_dashes_1 (void);
  static void mb_sig_is_stack_end_3F__1 (void);
  static void mb_sig_is_stack_end_3F__2 (void);
  static void mb_sig_is_stack_end2_3F__1 (void);
@@ -3824,6 +3823,7 @@ static void mwstat (void) {
  static void mb_elab_arrow_fwd_21__1 (void);
  static void mb_elab_atoms_21__1 (void);
  static void mb_elab_atoms_21__2 (void);
+ static void mb_elab_atoms_21__3 (void);
  static void mb_elab_args_21__1 (void);
  static void mb_elab_match_cases_21__1 (void);
  static void mb_elab_match_cases_21__2 (void);
@@ -10325,6 +10325,14 @@ static void mwtoken_run_has_arrow (void){
     mwtoken_run();
     push_u64(0);
     push_fnptr(&mb_token_run_has_arrow_1);
+    do_pack_cons();
+    mwany();
+}
+
+static void mwtoken_run_has_dashes (void){
+    mwtoken_run();
+    push_u64(0);
+    push_fnptr(&mb_token_run_has_dashes_1);
     do_pack_cons();
     mwany();
 }
@@ -18747,6 +18755,9 @@ static void mwelab_type_sig_21_ (void){
     mwswap();
       push_value(d2); }
     } else {
+    mwdup();
+    push_ptr("expected --\0\0\0");
+    mwemit_error_21_();
     { value_t d2 = pop_value();
     mwT0();
     mwrotr();
@@ -19077,46 +19088,22 @@ static void mwelab_simple_type_arg_21_ (void){
     mwnip();
 }
 
-static void mwab_ctx_40_ (void){
+static void mwab_ctx (void){
     mwab_arrow();
     mw_40_();
     mwarrow_ctx();
-    mw_40_();
 }
 
-static void mwab_ctx_21_ (void){
-    mwab_arrow();
-    mw_40_();
-    mwarrow_ctx();
-    mw_21_();
-}
-
-static void mwab_token_40_ (void){
+static void mwab_token (void){
     mwab_arrow();
     mw_40_();
     mwarrow_token_end();
-    mw_40_();
 }
 
-static void mwab_token_21_ (void){
-    mwab_arrow();
-    mw_40_();
-    mwarrow_token_end();
-    mw_21_();
-}
-
-static void mwab_type_40_ (void){
+static void mwab_type (void){
     mwab_arrow();
     mw_40_();
     mwarrow_cod();
-    mw_40_();
-}
-
-static void mwab_type_21_ (void){
-    mwab_arrow();
-    mw_40_();
-    mwarrow_cod();
-    mw_21_();
 }
 
 static void mwab_save_21_ (void){
@@ -19214,12 +19201,15 @@ static void mwab_build_word_21_ (void){
 
 static void mwab_unify_type_21_ (void){
     { value_t d1 = pop_value();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwGAMMA();
-    mwab_type_40_();
+    mwab_type();
+    mw_40_();
       push_value(d1); }
     mwtype_unify_21_();
-    mwab_type_21_();
+    mwab_type();
+    mw_21_();
     mwdrop();
 }
 
@@ -19227,11 +19217,13 @@ static void mwab_atom_21_ (void){
     mwdup();
     mwatom_token();
     mw_40_();
-    mwab_token_21_();
+    mwab_token();
+    mw_21_();
     mwdup();
     mwatom_cod();
     mw_40_();
-    mwab_type_21_();
+    mwab_type();
+    mw_21_();
     { value_t d1 = pop_value();
     mwab_arrow();
     mw_40_();
@@ -19457,11 +19449,13 @@ static void mwatom_to_run_var (void){
 
 static void mwab_op_21_ (void){
     mwAtom_2E_alloc_21_();
-    mwab_ctx_40_();
+    mwab_ctx();
+    mw_40_();
     mwover();
     mwatom_ctx();
     mw_21_();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwover();
     mwatom_token();
     mw_21_();
@@ -19491,13 +19485,15 @@ static void mwab_expand_opsig_21_ (void){
     switch (get_top_data_tag()) {
     case 0LL:
     do_drop();
-    mwab_type_40_();
+    mwab_type();
+    mw_40_();
     mwdup();
     break;
     case 1LL:
     do_pack_uncons(); do_drop();
     { value_t d2 = pop_value();
-    mwab_type_40_();
+    mwab_type();
+    mw_40_();
     mwdup();
       push_value(d2); }
     mwTTensor();
@@ -19505,9 +19501,11 @@ static void mwab_expand_opsig_21_ (void){
     case 2LL:
     do_pack_uncons(); do_drop();
     { value_t d2 = pop_value();
-    mwab_type_40_();
+    mwab_type();
+    mw_40_();
       push_value(d2); }
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwelab_expand_morphism_21_();
     mwswap();
     { value_t d2 = pop_value();
@@ -19560,7 +19558,8 @@ static void mwab_prim_21_ (void){
     mw_40_();
     mwis_nil();
     if (pop_u64()) {
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     push_ptr("compiler error: prim type missing\0\0\0");
     mwemit_fatal_error_21_();
     } else {
@@ -19582,7 +19581,8 @@ static void mwab_external_21_ (void){
 static void mwab_block_at_21_ (void){
     {
     value_t var_f = pop_value();
-    mwab_ctx_40_();
+    mwab_ctx();
+    mw_40_();
     mwmeta_alloc_21_();
     mwTMeta();
     mwrotl();
@@ -19599,7 +19599,8 @@ static void mwab_block_at_21_ (void){
 static void mwab_block_21_ (void){
     {
     value_t var_f = pop_value();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     push_value(var_f);
     incref(var_f);
     mwab_block_at_21_();
@@ -19657,15 +19658,18 @@ static void mwab_lambda_21_ (void){
     {
     value_t var_f = pop_value();
     mwLambda_2E_alloc_21_();
-    mwab_ctx_40_();
+    mwab_ctx();
+    mw_40_();
     mwover();
     mwlambda_outer_ctx();
     mw_21_();
-    mwab_type_40_();
+    mwab_type();
+    mw_40_();
     mwover();
     mwlambda_dom();
     mw_21_();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwover();
     mwlambda_token();
     mw_21_();
@@ -19673,8 +19677,10 @@ static void mwab_lambda_21_ (void){
     mwlambda_params();
     mw_21_();
     { value_t d2 = pop_value();
-    mwab_ctx_40_();
-    mwab_type_40_();
+    mwab_ctx();
+    mw_40_();
+    mwab_type();
+    mw_40_();
     mwrotl();
     push_u64(0);
     push_value(var_f);
@@ -19696,7 +19702,8 @@ static void mwab_lambda_21_ (void){
     mwover();
     mwlambda_mid();
     mw_40_();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     push_u64(0);
     push_value(var_f);
     incref(var_f);
@@ -19925,20 +19932,24 @@ static void mwelab_atoms_21_ (void){
     mwnot();
     if (!pop_u64()) break;
     mwelab_atom_21_();
-    mwab_token_40_();
-    mwtoken_next();
-    mwab_token_21_();
+    mwab_token();
+    push_u64(0);
+    push_fnptr(&mb_elab_atoms_21__3);
+    do_pack_cons();
+    mwmodify();
     }
 }
 
 static void mwelab_atoms_done_3F_ (void){
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwtoken_run_end_3F_();
     mwnip();
 }
 
 static void mwelab_atom_21_ (void){
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwtoken_value();
     mw_40_();
     switch (get_top_data_tag()) {
@@ -19965,7 +19976,8 @@ static void mwelab_atom_21_ (void){
     mwelab_atom_assert_21_();
     break;
     default:
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     push_ptr("Unexpected token in elab-atom!\0\0\0");
     mwemit_fatal_error_21_();
     break;
@@ -19973,13 +19985,15 @@ static void mwelab_atom_21_ (void){
 }
 
 static void mwelab_atom_block_21_ (void){
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwtoken_args_1();
     mwelab_block_at_21_();
 }
 
 static void mwelab_block_at_21_ (void){
-    mwab_ctx_40_();
+    mwab_ctx();
+    mw_40_();
     mwswap();
     mwblock_new_deferred_21_();
     mwOP_BLOCK();
@@ -19987,7 +20001,8 @@ static void mwelab_block_at_21_ (void){
 }
 
 static void mwelab_args_21_ (void){
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwtoken_args();
     push_u64(0);
     push_fnptr(&mb_elab_args_21__1);
@@ -19996,13 +20011,15 @@ static void mwelab_args_21_ (void){
 }
 
 static void mwelab_no_args_21_ (void){
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwtoken_args_0();
 }
 
 static void mwelab_atom_name_21_ (void){
     mwdup();
-    mwab_ctx_40_();
+    mwab_ctx();
+    mw_40_();
     mwctx_lookup();
     switch (get_top_data_tag()) {
     case 1LL:
@@ -20052,11 +20069,13 @@ static void mwelab_atom_name_21_ (void){
     break;
     default:
     mwdrop();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     push_ptr("Unknown word.\0\0\0");
     mwemit_error_21_();
     mwTYPE_ERROR();
-    mwab_type_21_();
+    mwab_type();
+    mw_21_();
     break;
     }
     break;
@@ -20082,16 +20101,20 @@ static void mwelab_prim_21_ (void){
 }
 
 static void mwelab_atom_assert_21_ (void){
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwGAMMA();
-    mwab_ctx_40_();
+    mwab_ctx();
+    mw_40_();
     mwtype_elab_stack_assertion();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwtoken_args_1();
     mwelab_type_stack_21_();
     mwdrop();
     mwnip();
-    mwab_type_40_();
+    mwab_type();
+    mw_40_();
     mwswap();
     mwtype_unify_21_();
     mwdrop2();
@@ -20099,15 +20122,18 @@ static void mwelab_atom_assert_21_ (void){
 
 static void mwelab_atom_lambda_21_ (void){
     mwLambda_2E_alloc_21_();
-    mwab_ctx_40_();
+    mwab_ctx();
+    mw_40_();
     mwover();
     mwlambda_outer_ctx();
     mw_21_();
-    mwab_type_40_();
+    mwab_type();
+    mw_40_();
     mwover();
     mwlambda_dom();
     mw_21_();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwover();
     mwlambda_token();
     mw_21_();
@@ -20118,15 +20144,18 @@ static void mwelab_atom_lambda_21_ (void){
 
 static void mwelab_match_at_21_ (void){
     mwMatch_2E_alloc_21_();
-    mwab_ctx_40_();
+    mwab_ctx();
+    mw_40_();
     mwover();
     mwmatch_ctx();
     mw_21_();
-    mwab_type_40_();
+    mwab_type();
+    mw_40_();
     mwover();
     mwmatch_dom();
     mw_21_();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwover();
     mwmatch_token();
     mw_21_();
@@ -20145,7 +20174,8 @@ static void mwelab_match_at_21_ (void){
 static void mwelab_atom_match_21_ (void){
     mwmeta_alloc_21_();
     mwTMeta();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwtoken_args_2B_();
     mwfirst_2B_();
     mwelab_match_at_21_();
@@ -20935,11 +20965,13 @@ static void mwelab_def_params_21_ (void){
 }
 
 static void mwelab_def_body_21_ (void){
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwtoken_run_has_arrow();
     if (pop_u64()) {
     mwdup();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwelab_match_at_21_();
     } else {
     mwelab_atoms_21_();
@@ -29100,6 +29132,10 @@ static void mb_token_run_has_arrow_1 (void) {
     do_drop();
     mwtoken_is_arrow_3F_();
 }
+static void mb_token_run_has_dashes_1 (void) {
+    do_drop();
+    mwtoken_is_dashes_3F_();
+}
 static void mb_sig_is_stack_end_3F__1 (void) {
     do_drop();
     mwtrue();
@@ -31471,6 +31507,9 @@ static void mb_elab_type_sig_21__3 (void) {
 }
 static void mb_elab_type_sig_21__5 (void) {
     do_drop();
+    mwdup();
+    push_ptr("expected --\0\0\0");
+    mwemit_error_21_();
     { value_t d1 = pop_value();
     mwT0();
     mwrotr();
@@ -32049,9 +32088,11 @@ static void mb_ab_build_hom_21__3 (void) {
 }
 static void mb_ab_unify_type_21__1 (void) {
     do_drop();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwGAMMA();
-    mwab_type_40_();
+    mwab_type();
+    mw_40_();
 }
 static void mb_ab_build_word_arrow_21__2 (void) {
     do_pack_uncons();
@@ -32175,12 +32216,14 @@ static void mb_ab_op_21__2 (void) {
 }
 static void mb_ab_expand_opsig_21__3 (void) {
     do_drop();
-    mwab_type_40_();
+    mwab_type();
+    mw_40_();
     mwdup();
 }
 static void mb_ab_expand_opsig_21__5 (void) {
     do_drop();
-    mwab_type_40_();
+    mwab_type();
+    mw_40_();
 }
 static void mb_ab_expand_opsig_21__6 (void) {
     do_drop();
@@ -32189,7 +32232,8 @@ static void mb_ab_expand_opsig_21__6 (void) {
 }
 static void mb_ab_prim_21__1 (void) {
     do_drop();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     push_ptr("compiler error: prim type missing\0\0\0");
     mwemit_fatal_error_21_();
 }
@@ -32277,8 +32321,10 @@ static void mb_ab_lambda_21__2 (void) {
     do_pack_uncons();
     value_t var_f = pop_value();
     do_drop();
-    mwab_ctx_40_();
-    mwab_type_40_();
+    mwab_ctx();
+    mw_40_();
+    mwab_type();
+    mw_40_();
     mwrotl();
     push_u64(0);
     push_value(var_f);
@@ -32301,7 +32347,8 @@ static void mb_ab_lambda_21__3 (void) {
     mwctx_new_21_();
       push_value(d2); }
       push_value(d1); }
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwelab_expand_tensor_21_();
     { value_t d1 = pop_value();
     mwrotl();
@@ -32348,7 +32395,8 @@ static void mb_ab_lambda_21__7 (void) {
     incref(var_f);
     do_run();
       push_value(d1); }
-    mwab_type_40_();
+    mwab_type();
+    mw_40_();
     mwover();
     mwlambda_cod();
     mw_21_();
@@ -32424,9 +32472,15 @@ static void mb_elab_atoms_21__1 (void) {
 static void mb_elab_atoms_21__2 (void) {
     do_drop();
     mwelab_atom_21_();
-    mwab_token_40_();
+    mwab_token();
+    push_u64(0);
+    push_fnptr(&mb_elab_atoms_21__3);
+    do_pack_cons();
+    mwmodify();
+}
+static void mb_elab_atoms_21__3 (void) {
+    do_drop();
     mwtoken_next();
-    mwab_token_21_();
 }
 static void mb_elab_args_21__1 (void) {
     do_drop();
@@ -33472,7 +33526,8 @@ static void mb_elab_def_params_21__8 (void) {
 static void mb_elab_def_body_21__1 (void) {
     do_drop();
     mwdup();
-    mwab_token_40_();
+    mwab_token();
+    mw_40_();
     mwelab_match_at_21_();
 }
 static void mb_elab_def_body_21__2 (void) {

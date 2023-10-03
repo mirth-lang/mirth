@@ -3,8 +3,8 @@ import(prelude)
 import(platform.posix)
 
 def(Olá-Mundo, --, "Hello world!" str-print-ln!)
-def(Luís, Int, 1)
-def(João, Int, 2)
+def(Luís, -- Int, 1)
+def(João, -- Int, 2)
 def(綴, Int Int -- Int, *)
 def(🤷‍♀️, --, "...whatever" str-print-ln!)
 

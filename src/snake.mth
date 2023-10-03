@@ -7,8 +7,8 @@ import(sdl2)
 # Snake Game #
 ##############
 
-def(SNAKE_W, Size, 20)
-def(SNAKE_H, Size, 20)
+def(SNAKE_W, -- Size, 20)
+def(SNAKE_H, -- Size, 20)
 
 var(snake-done, Bool)
 var(snake-dead, Bool)
@@ -26,10 +26,10 @@ buffer(SNAKE_GRID, 0x1000)
 buffer(SNAKE_EVENT, 0x100)
 
 def-type(Direction, U8)
-def(DNORTH, Direction, 0 Int->U8)
-def(DEAST, Direction, 1 Int->U8)
-def(DSOUTH, Direction, 2 Int->U8)
-def(DWEST, Direction, 3 Int->U8)
+def(DNORTH, -- Direction, 0 Int->U8)
+def(DEAST, -- Direction, 1 Int->U8)
+def(DSOUTH, -- Direction, 2 Int->U8)
+def(DWEST, -- Direction, 3 Int->U8)
 
 def-type(XCoord, U8)
 def(XCoord->Int, XCoord -- Int, U8->Int)
@@ -88,23 +88,23 @@ def(snake-dequeue-xy!, -- XCoord YCoord,
     drop
     snake-queue-length modify(1-))
 
-def(SNAKE_CELL_SIZE, Int, 30)
-def(SNAKE_WINDOW_W, Int, SNAKE_W SNAKE_CELL_SIZE *)
-def(SNAKE_WINDOW_H, Int, SNAKE_H SNAKE_CELL_SIZE *)
-def(SNAKE_WINDOW_FLAGS, SDL_WindowFlags,
+def(SNAKE_CELL_SIZE, -- Int, 30)
+def(SNAKE_WINDOW_W, -- Int, SNAKE_W SNAKE_CELL_SIZE *)
+def(SNAKE_WINDOW_H, -- Int, SNAKE_H SNAKE_CELL_SIZE *)
+def(SNAKE_WINDOW_FLAGS, -- SDL_WindowFlags,
     SDL_WINDOW_HIDDEN)
-def(SNAKE_RENDERER_FLAGS, SDL_RendererFlags,
+def(SNAKE_RENDERER_FLAGS, -- SDL_RendererFlags,
     SDL_RENDERER_ACCELERATED U32->Int
     SDL_RENDERER_PRESENTVSYNC U32->Int |
     Int->U32)
 
 def-type(SnakeButton, U8)
-def(SNAKE_BUTTON_NONE, SnakeButton, 0 Int->U8)
-def(SNAKE_BUTTON_UP, SnakeButton, 1 Int->U8)
-def(SNAKE_BUTTON_RIGHT, SnakeButton, 2 Int->U8)
-def(SNAKE_BUTTON_DOWN, SnakeButton, 3 Int->U8)
-def(SNAKE_BUTTON_LEFT, SnakeButton, 4 Int->U8)
-def(SNAKE_BUTTON_START, SnakeButton, 5 Int->U8)
+def(SNAKE_BUTTON_NONE, -- SnakeButton, 0 Int->U8)
+def(SNAKE_BUTTON_UP, -- SnakeButton, 1 Int->U8)
+def(SNAKE_BUTTON_RIGHT, -- SnakeButton, 2 Int->U8)
+def(SNAKE_BUTTON_DOWN, -- SnakeButton, 3 Int->U8)
+def(SNAKE_BUTTON_LEFT, -- SnakeButton, 4 Int->U8)
+def(SNAKE_BUTTON_START, -- SnakeButton, 5 Int->U8)
 
 def(SDL_Scancode->SnakeButton, SDL_Scancode -- SnakeButton,
     dup SDL_SCANCODE_UP == if(
@@ -153,7 +153,7 @@ def(snake-reset!, --,
     0 snake-points !
     0 tick-timer !)
 
-def(SNAKE_INIT_FLAGS, SDL_InitFlags,
+def(SNAKE_INIT_FLAGS, -- SDL_InitFlags,
     SDL_INIT_VIDEO U32->Int
     SDL_INIT_GAMECONTROLLER U32->Int |
     Int->U32)
@@ -212,10 +212,10 @@ def-type(G, Int)
 def-type(B, Int)
 def-type(A, Int)
 
-def(snake-background-color, R G B A,
+def(snake-background-color, -- R G B A,
     140 100 150 255)
 
-def(snake-foreground-color, R G B A,
+def(snake-foreground-color, -- R G B A,
     255 255 255 255)
 
 def-type(X, Int)
@@ -329,9 +329,9 @@ def(snake-press!, SnakeButton --,
     )))))))
 
 var(tick-timer, Int)
-def(TICK_FRAMES, Int, 7)
+def(TICK_FRAMES, -- Int, 7)
 
-def(snake-tick!, Bool,
+def(snake-tick!, -- Bool,
     tick-timer @
     1+ dup TICK_FRAMES >= if(
         drop 0 tick-timer ! true,
@@ -367,14 +367,14 @@ def(snake-update!, --,
     )))
 
 var(snake-points, Int)
-def(snake-desired-length, Int, snake-points @ 5 +)
+def(snake-desired-length, -- Int, snake-points @ 5 +)
 
 var(snake-mouse-x, XCoord)
 var(snake-mouse-y, YCoord)
-def(snake-mouse-xy@, XCoord YCoord,
+def(snake-mouse-xy@, -- XCoord YCoord,
     snake-mouse-x @ snake-mouse-y @)
 
-def-external(rand, Int)
+def-external(rand, -- Int)
 
 def(snake-randomize-mouse!, --,
     rand SNAKE_W % Int->XCoord snake-mouse-x !
