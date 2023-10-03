@@ -340,10 +340,3 @@ def(collect(f), (a -- a Maybe(b)) a -- List(b),
 
 def(collect-while(f,g), (*a -- *a Bool, *a -- *a b) *a -- *a List(b),
     L0 while(dip(f) swap, dip(g) swap snoc))
-
-def(mylen,
-    L0 -> 0,
-    L1 -> drop 1,
-    L2 -> drop2 2,
-    L3 -> drop3 3,
-    LCAT -> dip(drop2))

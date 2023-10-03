@@ -28,13 +28,13 @@ def(type-elab-ctx-replace, TypeElab Ctx -- TypeElab,
     swap match(TYPE_ELAB -> drop swap TYPE_ELAB))
 
 def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
+    token-run-end? if(dup "expected type signature" emit-error!, id)
     elab-type-sig-params! dip(swap)
     elab-type-stack! dip(swap)
     token-is-dashes? if(
         token-next elab-type-stack! dip(swap),
         dip(T0 rotr))
-    token-run-end? if(id,
-        dup "expected right paren or comma" emit-error!)
+    token-run-end? if(id, dup "expected right paren or comma" emit-error!)
     dip(rot4r dip(swap for(T*)) T->))
 
 def(elab-type-sig-params!, TypeElab Token -- TypeElab List(Type) Token,
