@@ -21,7 +21,7 @@ def(dup, a -- a a, prim.core.dup)
 def(drop, a --, prim.core.drop)
 def(swap, a b -- b a, prim.core.swap)
 def(??, --, prim.core.debug)
-def(run, *a [ *a -- *b ] -- *b, \([f] -> f))
+def(run(f), *a [ *a -- *b ] -- *b, f)
 
 def(==, a a -- Bool, prim.value.eq)
 def(<=, a a -- Bool, prim.value.le)
@@ -54,8 +54,8 @@ def(ptr@, Ptr -- Ptr, prim.ptr.get)
 def(ptr!, Ptr Ptr --,prim.ptr.set)
 
 data(RawPtr, RAWPTR -> Int)
-def(with-raw-ptr, *a Ptr [*a RawPtr -- *b] -- *b Ptr,
-    \([f] -> prim.ptr.raw RAWPTR swap dip(f)))
+def(with-raw-ptr(f), *a Ptr [*a RawPtr -- *b] -- *b Ptr,
+    prim.ptr.raw RAWPTR swap dip(f))
 
 def(u8@, Ptr -- U8, prim.u8.get)
 def(u8!, U8 Ptr --, prim.u8.set)
@@ -122,22 +122,22 @@ def(nip, a b -- b, dip(drop))
 def(dup2, a b   -- a b    a b  , over over)
 def(dup3, a b c -- a b c  a b c, dup dip(dip(dup2) rotr))
 
-def(dip?, *a c [*a -- *a Bool] -- *a c Bool,
-    \([f] -> dip(f) swap))
+def(dip?(f), *a c [*a -- *a Bool] -- *a c Bool,
+    dip(f) swap)
 
-def(dip', *a c x [*a x -- *b y] -- *b c y,
-    \([f] -> swap dip(f) swap))
+def(dip'(f), *a c x [*a x -- *b y] -- *b c y,
+    swap dip(f) swap)
 
-def(dip2, *a c1 c2 [*a -- *b] -- *b c1 c2,
-    \([f] -> dip(dip(f))))
+def(dip2(f), *a c1 c2 [*a -- *b] -- *b c1 c2,
+    dip(dip(f)))
 
-def(dip3, *a c1 c2 c3 [*a -- *b] -- *b c1 c2 c3,
-    \([f] -> dip(dip(dip(f)))))
+def(dip3(f), *a c1 c2 c3 [*a -- *b] -- *b c1 c2 c3,
+    dip(dip(dip(f))))
 
-def(sip, *a x [*a x -- *b] -- *b x,
-    \([f] -> dup dip(f)))
-def(sip2, *a x1 x2 [*a x1 x2 -- *b] -- *b x1 x2,
-    \([f] -> dup2 dip(dip(f))))
+def(sip(f), *a x [*a x -- *b] -- *b x,
+    dup dip(f))
+def(sip2(f), *a x1 x2 [*a x1 x2 -- *b] -- *b x1 x2,
+    dup2 dip(dip(f)))
 
 def(drop2, a b --, drop drop)
 def(drop3, a b c --, drop drop drop)
@@ -146,13 +146,8 @@ def(drop4, a b c d --, drop drop drop drop)
 def(rot4r, a b c d -- d a b c, swap dip(rotr))
 def(rot4l, a b c d -- b c d a, dip(rotl) swap)
 
-def(or, *a Bool [*a -- *a Bool] -- *a Bool,
-    \([f] -> if(true, f)))
-# or(f) = if(true, f)
-
-def(and, *a Bool [*a -- *a Bool] -- *a Bool,
-    \([f] -> if(f, false)))
-# and(f) = if(f, false)
+def(or(f),  *a Bool [*a -- *a Bool] -- *a Bool, if(true, f))
+def(and(f), *a Bool [*a -- *a Bool] -- *a Bool, if(f, false))
 
 def-type(Byte, U8)
 def-type(Size, Int)
@@ -347,5 +342,5 @@ def(.5, [*a b c d e f g] -- b, pack-uncons drop .4)
 def(mut, t -- Mut(t), prim.mut.new)
 def(@, Mut(t) -- t, prim.mut.get)
 def(!, t Mut(t) --, prim.mut.set drop)
-def(modify, *a Mut(t) [*a t -- *b t] -- *b,
-    \([f] -> sip(@ f) !))
+def(modify(f), *a Mut(t) [*a t -- *b t] -- *b,
+    dup dip(@ f) !)

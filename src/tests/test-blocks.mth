@@ -5,8 +5,8 @@ import(platform.posix)
 def(run1, a [a -- b] -- b, run)
 def(add10, [Int -- Int], [10 +])
 
-def(compose, [*a -- *b] [*b -- *c] -- [*a -- *c],
-    \([f] [g] -> [f g]))
+def(compose(f,g), [*b -- *c] [*a -- *b] -- [*a -- *c],
+    [f g])
 
 def(add20, [Int -- Int],
     add10 add10 compose)
@@ -18,10 +18,10 @@ def(mul2, [Int -- Int],
     [2 *])
 
 def(mul2add10, [Int -- Int],
-    mul2 add10 compose)
+    add10 mul2 compose) # FIXME TODO reversed
 
-def(comprun, *a [*b -- *c] [*a -- *b] -- *c,
-    \([f] [g] -> g f))
+def(comprun(f,g), *a [*b -- *c] [*a -- *b] -- *c,
+    f g)
 
 def(main, --,
     10 ??
