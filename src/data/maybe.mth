@@ -12,29 +12,21 @@ def(unwrap, Maybe(t) -- t,
     NONE -> "tried to unwrap NONE" panic!,
     SOME -> id)
 
-def(maybe-map, *c Maybe(a) [*c a -- *c b] -- *c Maybe(b),
-    \([f] -> match(
-        NONE -> NONE,
-        SOME -> f SOME,
-    )))
+def(maybe-map(f), *c Maybe(a) [*c a -- *c b] -- *c Maybe(b),
+    NONE -> NONE,
+    SOME -> f SOME)
 
-def(maybe-bind, *c Maybe(a) [*c a -- *c Maybe(b)] -- *c Maybe(b),
-    \([f] -> match(
-        NONE -> NONE,
-        SOME -> f
-    )))
+def(maybe-bind(f), *c Maybe(a) [*c a -- *c Maybe(b)] -- *c Maybe(b),
+    NONE -> NONE,
+    SOME -> f)
 
-def(maybe-for, *c Maybe(a) [*c a -- *c] -- *c,
-    \([f] -> match(
-        NONE -> id,
-        SOME -> f
-    )))
+def(maybe-for(f), *c Maybe(a) [*c a -- *c] -- *c,
+    NONE -> id,
+    SOME -> f)
 
-def(maybe-filter, *c Maybe(a) [*c a -- *c a Bool] -- *c Maybe(a),
-    \([f] -> match(
-        NONE -> NONE,
-        SOME -> f if(SOME, drop NONE)
-    )))
+def(maybe-filter(f), *c Maybe(a) [*c a -- *c a Bool] -- *c Maybe(a),
+    NONE -> NONE,
+    SOME -> f if(SOME, drop NONE))
 
-def(while-some, *a [*a b -- *a] [*a -- *a Maybe(b)] -- *a,
-    \([g][f] -> f while(is-some?, unwrap g f) drop))
+def(while-some(f,g), *a [*a b -- *a] [*a -- *a Maybe(b)] -- *a,
+    f while(is-some?, unwrap g f) drop)

@@ -598,11 +598,11 @@ def(meta-trace!, MetaVar --,
         SOME -> nip type-trace!
     ))
 def(meta-alloc!, MetaVar, MetaVar.alloc!)
-def(meta-expand-if, *a MetaVar [*a MetaVar -- *b] [*a Type -- *b] -- *b,
-    \([g][f] -> dup meta-type @ match(
+def(meta-expand-if(f,g), *a MetaVar [*a MetaVar -- *b] [*a Type -- *b] -- *b,
+    dup meta-type @ match(
         NONE -> g,
         SOME -> type-expand tuck SOME swap meta-type ! f
-    )))
+    ))
 def(meta-expand, MetaVar -- Type,
     meta-expand-if(id, TMeta))
 def(meta-unify!, Gamma Type MetaVar -- Gamma Type,

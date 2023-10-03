@@ -176,11 +176,11 @@ def(ab-token!, Token -- +AB, ab-arrow @ arrow-token-end !)
 def(ab-type@, Type +AB, ab-arrow @ arrow-cod @)
 def(ab-type!, Type -- +AB, ab-arrow @ arrow-cod !)
 
-def(ab-save!, *a [ *a -- *b ] -- *b,
-    \([f] -> ab-arrow @ dip(f) ab-arrow !))
+def(ab-save!(f), *a [ *a -- *b ] -- *b,
+    ab-arrow @ dip(f) ab-arrow !)
 
-def(ab-build!, *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
-    \([f] -> ab-save!(
+def(ab-build!(f), *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
+    ab-save!(
         Arrow.alloc!
         ab-home @ over arrow-home !
         ab-homeidx @ over arrow-homeidx !
@@ -191,25 +191,22 @@ def(ab-build!, *a Ctx Type Token [ *a -- *b ] -- *b Arrow,
         ab-arrow !
         f
         ab-arrow @
-    )))
-
-def(ab-build-word!, *a Word [ *a -- *b ] -- *b Word,
-    \([f] ->
-        dup ab-home ! 0 ab-homeidx !
-        sip(elab-word-ctx-sig!)
-        dup word-body @ swap
-        dip(elab-expand-morphism! swap)
-
-        { *a Ctx Type Token Type Word }
-        dip(
-            dip(ab-build!(f)) over
-            dup arrow-cod @ swap arrow-token-end @
-            elab-type-unify! drop2
-            ready
-        )
-        tuck word-arrow !
-        nil ab-home !
     ))
+
+||| Like ab-build! but takes a morphism type to build
+||| instead of just the domain. The codomain is placed
+||| on the stack for (in)convenience. (You can ignore it with dip.)
+def(ab-build-hom!(f), *a Ctx Type Token [ *a Type -- *b Type ] -- *b Arrow,
+    elab-expand-morphism! dip(rotr)
+    ab-build!(f ab-unify-type!))
+def(ab-build-word-arrow!(f), *a Word [ *a Type -- *b Type ] -- *b Arrow,
+    dup ab-home ! 0 ab-homeidx !
+    sip(word-ctx-type force2!)
+    word-body @ ab-build-hom!(f)
+    nil ab-home !)
+def(ab-build-word!(f), *a Word [ *a -- *b ] -- *b Word,
+    sip(ab-build-word-arrow!(dip(f)) ready)
+    tuck word-arrow !)
 
 def(ab-unify-type!, Type --,
     dip(ab-token@ GAMMA ab-type@) type-unify! ab-type! drop)
@@ -323,53 +320,49 @@ def(ab-prim!, Prim --,
 def(ab-word!, Word --, OP_WORD ab-op!)
 def(ab-external!, External --, OP_EXTERNAL ab-op!)
 
-def(ab-block-at!, *a Token [ *a -- *b ] -- *b,
-    \([f] ->
-        ab-ctx@ meta-alloc! TMeta rotl ab-build!(f)
-        block-new! OP_BLOCK ab-op!
+def(ab-block-at!(f), *a Token [ *a -- *b ] -- *b,
+    ab-ctx@ meta-alloc! TMeta rotl ab-build!(f)
+    block-new! OP_BLOCK ab-op!)
+
+def(ab-block!(f), *a [ *a -- *b ] -- *b,
+    ab-token@ ab-block-at!(f))
+
+def(ab-dip!(f), *a [ *a -- *b ] -- *b,
+    ab-block!(f) PRIM_CORE_DIP ab-prim!)
+
+def(ab-if!(f,g), *a [ *a -- *b ] [ *b -- *c ] -- *c,
+    ab-block!(g) ab-block!(f) PRIM_CORE_IF ab-prim!)
+    # FIXME TODO this is cursed/reversed.
+
+def(ab-while!(f,g), *a [ *a -- *b ] [ *b -- *c ] -- *c,
+    ab-block!(g) ab-block!(f) PRIM_CORE_WHILE ab-prim!)
+    # FIXME TODO this is cursed/reversed.
+
+def(ab-lambda!(f), *a List(Param) [*a -- *b] -- *b ,
+    Lambda.alloc!
+    ab-ctx@ over lambda-outer-ctx !
+    ab-type@ over lambda-dom !
+    ab-token@ over lambda-token !
+    dup2 lambda-params !
+    dip(ab-ctx@ ab-type@ rotl reverse-for( # FIXME TODO note the reverse!
+        swap dip(Param->Var dup dip(ctx-new!))
+        ab-token@ elab-expand-tensor!
+        dip(rotl var-type @) elab-type-unify! drop2
     ))
+    tuck lambda-mid !
+    tuck lambda-inner-ctx !
 
-def(ab-block!, *a [ *a -- *b ] -- *b,
-    \([f] -> ab-token@ ab-block-at!(f)))
+    { *a Lambda }
 
-def(ab-dip!, *a [ *a -- *b ] -- *b,
-    \([f] -> ab-block!(f) PRIM_CORE_DIP ab-prim!))
-
-def(ab-if!, *a [ *a -- *b ] [ *b -- *c ] -- *c,
-    dip(ab-block!) ab-block! PRIM_CORE_IF ab-prim!)
-    # FIXME TODO there's a problem with multiples somewhere ...
-
-def(ab-while!, *a [ *a -- *b ] [ *b -- *c ] -- *c,
-    dip(ab-block!) ab-block! PRIM_CORE_WHILE ab-prim!)
-    # FIXME TODO there's a problem with multiples somewhere ...
-    # I probably got the InlineKey's backwards :-(
-
-def(ab-lambda!, *a List(Param) [*a -- *b ] -- *b ,
-    \([f] ->
-        Lambda.alloc!
-        ab-ctx@ over lambda-outer-ctx !
-        ab-type@ over lambda-dom !
-        ab-token@ over lambda-token !
-        dup2 lambda-params !
-        dip(ab-ctx@ ab-type@ rotl for(
-            swap dip(Param->Var ctx-new!)
-            ab-token@ elab-expand-tensor! drop2
-        ))
-        tuck lambda-mid !
-        tuck lambda-inner-ctx !
-
-        { *a Lambda }
-
-        dup lambda-inner-ctx @
-        over lambda-mid @
-        ab-token@
-        ab-build!(
-            dip(f)
-            ab-type@ over lambda-cod !
-        )
-        over lambda-body !
-        OP_LAMBDA ab-op!
-    ))
+    dup lambda-inner-ctx @
+    over lambda-mid @
+    ab-token@
+    ab-build!(
+        dip(f)
+        ab-type@ over lambda-cod !
+    )
+    over lambda-body !
+    OP_LAMBDA ab-op!)
 
 data(OpSig,
     OPSIG_ID,
@@ -422,22 +415,6 @@ def(elab-word-ctx!, Word -- Ctx, elab-word-ctx-sig! drop)
 def(elab-word-ctx-sig!, Word -- Ctx Type, word-ctx-type force2!)
 
 def(elab-word-body!, Word -- Arrow, word-arrow force!)
-
-def(elab-match-arrow!, Ctx Type Token -- Arrow,
-    elab-expand-morphism! dip(rotr) ab-build!(
-        Match.alloc!
-        ab-ctx@ over match-ctx !
-        ab-token@ over match-token !
-        ab-token@ over match-body !
-        ab-type@ over match-dom !
-        dup2 match-cod !
-        elab-match!
-        OP_MATCH ab-op!
-    )
-    swap dip(
-        dup arrow-token-end @ GAMMA
-        over arrow-cod @)
-    type-unify! drop2)
 
 def(elab-arrow!, Ctx Type Token -- Arrow,
     elab-expand-morphism! elab-arrow-hom!)
@@ -520,15 +497,24 @@ def(elab-atom-lambda!, --,
     elab-lambda!
     OP_LAMBDA ab-op!)
 
-def(elab-atom-match!, --,
+||| Elaborate a match body within AB. Takes the output stack type,
+||| and the token for the body of the match, from the stack. Takes
+||| the rest from the AB environment.
+def(elab-match-at!, Type Token --,
     Match.alloc!
     ab-ctx@ over match-ctx !
     ab-type@ over match-dom !
     ab-token@ over match-token !
-    ab-token@ token-args+ first+ over match-body !
-    meta-alloc! TMeta over match-cod !
-    elab-match!
+    tuck match-body !
+    tuck match-cod !
+    elab-match-cases!
+    elab-match-exhaustive!
     OP_MATCH ab-op!)
+
+def(elab-atom-match!, --,
+    meta-alloc! TMeta
+    ab-token@ token-args+ first+
+    elab-match-at!)
 
 def(elab-lambda!, Lambda -- Lambda,
     elab-lambda-params!
@@ -610,11 +596,6 @@ def(elab-lambda-body!, Lambda -- Lambda,
     elab-arrow-fwd!
     dup2 swap lambda-body !
     arrow-cod @ over lambda-cod !)
-
-||| Elaborate `match(...)` expression.
-def(elab-match!, Match -- Match,
-    elab-match-cases!
-    elab-match-exhaustive!)
 
 ||| Check that match is exhaustive.
 def(elab-match-exhaustive!, Match -- Match,
@@ -825,7 +806,7 @@ def(expect-token-rparen, Token -- Token,
 def(expect-token-arrow, Token -- Token,
     token-is-arrow? if(id, "Expected arrow." emit-fatal-error!))
 
-||| Elaborate a word definition `def(w, t, b)`.
+||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, Token -- Token,
     sip(token-next) token-args-3+
     uncons is-nil if(id, dup token-run-has-arrow if(id,
@@ -833,10 +814,10 @@ def(elab-def!, Token -- Token,
     rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
     token-name?
     name-undefined? if(id, drop "word already defined" emit-fatal-error!)
-    nip
     Word.alloc!
     dup2 DEF_WORD swap name-def !
     tuck word-name !
+    tuck word-head !
     tuck word-body !
     tuck word-sig !
 
@@ -845,12 +826,43 @@ def(elab-def!, Token -- Token,
         swap word-sig @ elab-type-sig!
         drop dip(type-elab-ctx) pack2
     ) over word-ctx-type !
+    dup delay(elab-def-params!) over word-params !
     dup delay(
-        dup ab-home ! 0 ab-homeidx !
-        sip(word-ctx-type force2!) word-body @
-        dup token-run-has-arrow if(elab-match-arrow!, elab-arrow!)
-        nil ab-home !
+        dup ab-build-word-arrow!(
+            swap word-params force! is-nil? if(
+                drop elab-def-body!,
+                reverse ab-lambda!(elab-def-body!) # note the reverse
+            )
+        )
     ) swap word-arrow !)
+
+||| Elaborate a word's parameters from its type and declaration.
+def(elab-def-params!, Word -- List(Param),
+    L0 over elab-word-sig!
+    rotl word-head @
+    elab-expand-morphism! nip
+    token-args for(
+        token-is-param-name? if(id,
+            "expected parameter name" emit-fatal-error!)
+        dup token-succ token-run-end? if(drop,
+            "expected right paren or comma" emit-fatal-error!)
+        elab-expand-tensor!
+        dip(dup) elab-expand-morphism! dip(drop2)
+        # dip(type-is-morphism?) swap if(id,
+        #     "need function type for param" emit-fatal-error!)
+        token-name@ var-new!
+        tuck var-type !
+        true over var-auto-run !
+        PARAM swap dip(snoc)
+    ) drop)
+
+||| Elaborate the body of a `def`. Takes the codomain from the stack,
+||| and the rest from the AB environment.
+def(elab-def-body!, Type -- Type,
+    ab-token@ token-run-has-arrow if(
+        dup ab-token@ elab-match-at!,
+        elab-atoms!
+    ))
 
 ||| Elaborate an external declaration `def-external(w, t)`
 def(elab-def-external!, Token -- Token,

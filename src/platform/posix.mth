@@ -108,8 +108,8 @@ def(close-file!, File --,
 
 def-external(stat, RawPtr RawPtr -- Int)
 
-def(with-raw-path, *a Path [*a RawPtr -- *b] -- *b Path,
-    \([f] -> Path->Str Str->Ptr with-raw-ptr(f) Ptr->Str Str->Path))
+def(with-raw-path(f), *a Path [*a RawPtr -- *b] -- *b Path,
+    Path->Str Str->Ptr with-raw-ptr(f) Ptr->Str Str->Path)
 
 def(is-directory?, Path -- Path Bool,
     with-raw-path(

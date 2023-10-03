@@ -51,12 +51,10 @@ def(STR_BUF_SIZE, Int, 0x2000)
 buffer(STR_BUF, 0x2000)
 var(STR_BUF_LEN, Int)
 
-def(build-str!, *a [ *a -- *b ] -- *b Str,
-    \([f] ->
-        str-buf-dup! str-buf-clear! dip(
-            f str-buf-dup!
-        ) str-buf!
-    ))
+def(build-str!(f), *a [ *a -- *b ] -- *b Str,
+    str-buf-dup! str-buf-clear! dip(
+        f str-buf-dup!
+    ) str-buf!)
 
 def(str-buf-dup!, Str,
     STR_BUF str-buf-length? dup prim.str.alloc
@@ -157,11 +155,11 @@ def(str-eq, Str Str -- Bool, prim.str.eq)
 def(str-eq?, Str Str -- Str Str Bool, dup2 str-eq)
 
 ||| Traverse string characters.
-def(str-for, *a Str [*a Char -- *a] -- *a,
-    \([f] -> while(str-is-empty? not,
+def(str-for(f), *a Str [*a Char -- *a] -- *a,
+    while(str-is-empty? not,
         dup str-tail
         dip(str-head f)
-    ) drop))
+    ) drop)
 
 data(TransducerStep,
     TS_STOP,
@@ -170,13 +168,13 @@ data(TransducerStep,
     TS_PUSH -> List(Char),
     TS_COPY -> Str)
 
-def(str-transduce, *a Str [ *a Char -- *a TransducerStep ] -- *a Str,
-    \([f] -> build-str!(
+def(str-transduce(f), *a Str [ *a Char -- *a TransducerStep ] -- *a Str,
+    build-str!(
         while(str-is-empty? not,
             sip(str-head f) str-tail
             swap str-transduce-step
         ) drop
-    )))
+    ))
 
 def(str-transduce-step, Str TransducerStep -- Str,
     TS_STOP -> drop "",

@@ -372,6 +372,8 @@ def(sig-token-is-type-var?, Token -- Token Bool,
         TOKEN_NAME -> name-could-be-type-var,
         _ -> drop false
     ))
+def(token-is-param-name?, Token -- Token Bool,
+    sig-token-is-type-var?)
 
 def(sig-token-is-stack-var?, Token -- Token Bool,
     dup token-value @ match(

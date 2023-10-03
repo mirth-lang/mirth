@@ -1752,8 +1752,6 @@ static void mwstat (void) {
  static void mwreverse_for_2B_ (void);
  static void mwreduce (void);
  static void mwreduce_2B_ (void);
- static void mwmap_reduce (void);
- static void mwmap_reduce_2B_ (void);
  static void mwfilter (void);
  static void mwfilter_2B_ (void);
  static void mwfind (void);
@@ -2065,6 +2063,7 @@ static void mwstat (void) {
  static void mwsig_token_is_type_hole_3F_ (void);
  static void mwtoken_is_underscore_3F_ (void);
  static void mwsig_token_is_type_var_3F_ (void);
+ static void mwtoken_is_param_name_3F_ (void);
  static void mwsig_token_is_stack_var_3F_ (void);
  static void mwsig_token_is_effect_con_3F_ (void);
  static void mwsig_skip_dashes (void);
@@ -2515,6 +2514,8 @@ static void mwstat (void) {
  static void mwab_type_21_ (void);
  static void mwab_save_21_ (void);
  static void mwab_build_21_ (void);
+ static void mwab_build_hom_21_ (void);
+ static void mwab_build_word_arrow_21_ (void);
  static void mwab_build_word_21_ (void);
  static void mwab_unify_type_21_ (void);
  static void mwab_atom_21_ (void);
@@ -2558,7 +2559,6 @@ static void mwstat (void) {
  static void mwelab_word_ctx_21_ (void);
  static void mwelab_word_ctx_sig_21_ (void);
  static void mwelab_word_body_21_ (void);
- static void mwelab_match_arrow_21_ (void);
  static void mwelab_arrow_21_ (void);
  static void mwelab_arrow_hom_21_ (void);
  static void mwelab_arrow_fwd_21_ (void);
@@ -2573,6 +2573,7 @@ static void mwstat (void) {
  static void mwelab_prim_21_ (void);
  static void mwelab_atom_assert_21_ (void);
  static void mwelab_atom_lambda_21_ (void);
+ static void mwelab_match_at_21_ (void);
  static void mwelab_atom_match_21_ (void);
  static void mwelab_lambda_21_ (void);
  static void mwelab_expand_tensor_21_ (void);
@@ -2581,7 +2582,6 @@ static void mwstat (void) {
  static void mwtoken_is_lambda_param_3F_ (void);
  static void mwelab_lambda_params_21_ (void);
  static void mwelab_lambda_body_21_ (void);
- static void mwelab_match_21_ (void);
  static void mwelab_match_exhaustive_21_ (void);
  static void mwelab_match_cases_21_ (void);
  static void mwelab_match_case_21_ (void);
@@ -2598,6 +2598,8 @@ static void mwstat (void) {
  static void mwexpect_token_rparen (void);
  static void mwexpect_token_arrow (void);
  static void mwelab_def_21_ (void);
+ static void mwelab_def_params_21_ (void);
+ static void mwelab_def_body_21_ (void);
  static void mwelab_def_external_21_ (void);
  static void mwelab_def_type_21_ (void);
  static void mwelab_buffer_21_ (void);
@@ -3005,10 +3007,6 @@ static void mwstat (void) {
  static void mb_reduce_2B__6 (void);
  static void mb_reduce_2B__7 (void);
  static void mb_reduce_2B__8 (void);
- static void mb_map_reduce_2 (void);
- static void mb_map_reduce_3 (void);
- static void mb_map_reduce_2B__2 (void);
- static void mb_map_reduce_2B__3 (void);
  static void mb_filter_4 (void);
  static void mb_filter_2B__3 (void);
  static void mb_filter_2B__4 (void);
@@ -3768,12 +3766,14 @@ static void mwstat (void) {
  static void mb_ab_save_21__2 (void);
  static void mb_ab_build_21__2 (void);
  static void mb_ab_build_21__3 (void);
+ static void mb_ab_build_hom_21__2 (void);
+ static void mb_ab_build_hom_21__3 (void);
+ static void mb_ab_unify_type_21__1 (void);
+ static void mb_ab_build_word_arrow_21__2 (void);
+ static void mb_ab_build_word_arrow_21__3 (void);
  static void mb_ab_build_word_21__2 (void);
  static void mb_ab_build_word_21__3 (void);
  static void mb_ab_build_word_21__4 (void);
- static void mb_ab_build_word_21__5 (void);
- static void mb_ab_build_word_21__6 (void);
- static void mb_ab_unify_type_21__1 (void);
  static void mb_ab_atom_21__1 (void);
  static void mb_ab_optimized_snoc_21__1 (void);
  static void mb_ab_optimized_snoc_21__2 (void);
@@ -3793,13 +3793,17 @@ static void mwstat (void) {
  static void mb_ab_block_at_21__2 (void);
  static void mb_ab_block_21__2 (void);
  static void mb_ab_dip_21__2 (void);
- static void mb_ab_if_21__1 (void);
- static void mb_ab_while_21__1 (void);
+ static void mb_ab_if_21__2 (void);
+ static void mb_ab_if_21__3 (void);
+ static void mb_ab_while_21__2 (void);
+ static void mb_ab_while_21__3 (void);
  static void mb_ab_lambda_21__2 (void);
  static void mb_ab_lambda_21__3 (void);
  static void mb_ab_lambda_21__4 (void);
  static void mb_ab_lambda_21__5 (void);
  static void mb_ab_lambda_21__6 (void);
+ static void mb_ab_lambda_21__7 (void);
+ static void mb_ab_lambda_21__8 (void);
  static void mb_elab_expand_tensor_21__2 (void);
  static void mb_elab_expand_tensor_21__5 (void);
  static void mb_elab_expand_tensor_21__7 (void);
@@ -3808,13 +3812,14 @@ static void mwstat (void) {
  static void mb_elab_var_sig_21__2 (void);
  static void mb_elab_match_sig_21__1 (void);
  static void mb_elab_lambda_sig_21__1 (void);
- static void mb_elab_match_arrow_21__1 (void);
- static void mb_elab_match_arrow_21__2 (void);
- static void mb_elab_match_arrow_21__3 (void);
  static void mb_elab_arrow_fwd_21__1 (void);
  static void mb_elab_atoms_21__1 (void);
  static void mb_elab_atoms_21__2 (void);
  static void mb_elab_args_21__1 (void);
+ static void mb_elab_match_cases_21__1 (void);
+ static void mb_elab_match_cases_21__2 (void);
+ static void mb_elab_match_exhaustive_21__1 (void);
+ static void mb_elab_match_exhaustive_21__2 (void);
  static void mb_elab_lambda_params_21__1 (void);
  static void mb_elab_lambda_params_21__2 (void);
  static void mb_elab_lambda_params_21__3 (void);
@@ -3842,10 +3847,6 @@ static void mwstat (void) {
  static void mb_token_is_lambda_param_3F__5 (void);
  static void mb_expect_token_arrow_1 (void);
  static void mb_expect_token_arrow_2 (void);
- static void mb_elab_match_cases_21__1 (void);
- static void mb_elab_match_cases_21__2 (void);
- static void mb_elab_match_exhaustive_21__1 (void);
- static void mb_elab_match_exhaustive_21__2 (void);
  static void mb_elab_match_case_21__1 (void);
  static void mb_elab_match_case_21__2 (void);
  static void mb_elab_match_case_21__3 (void);
@@ -3922,6 +3923,18 @@ static void mwstat (void) {
  static void mb_elab_def_21__13 (void);
  static void mb_elab_def_21__14 (void);
  static void mb_elab_def_21__15 (void);
+ static void mb_elab_def_21__17 (void);
+ static void mb_elab_def_21__16 (void);
+ static void mb_elab_def_params_21__1 (void);
+ static void mb_elab_def_params_21__2 (void);
+ static void mb_elab_def_params_21__3 (void);
+ static void mb_elab_def_params_21__4 (void);
+ static void mb_elab_def_params_21__5 (void);
+ static void mb_elab_def_params_21__6 (void);
+ static void mb_elab_def_params_21__7 (void);
+ static void mb_elab_def_params_21__8 (void);
+ static void mb_elab_def_body_21__1 (void);
+ static void mb_elab_def_body_21__2 (void);
  static void mb_elab_def_external_21__1 (void);
  static void mb_elab_def_external_21__2 (void);
  static void mb_elab_def_external_21__3 (void);
@@ -4039,9 +4052,11 @@ static void mwstat (void) {
  static void mwvar_type (void);
  static void mwvar_auto_run (void);
  static void mwword_name (void);
+ static void mwword_head (void);
  static void mwword_sig (void);
  static void mwword_body (void);
  static void mwword_ctx_type (void);
+ static void mwword_params (void);
  static void mwword_arrow (void);
  static void mwtable_name (void);
  static void mwtable_num_buffer (void);
@@ -5053,13 +5068,13 @@ static void mw_21_ (void){
 static void mwmodify (void){
     {
     value_t var_f = pop_value();
-    push_u64(0);
+    mwdup();
+    { value_t d2 = pop_value();
+    mw_40_();
     push_value(var_f);
     incref(var_f);
-    do_pack_cons();
-    push_fnptr(&mb_modify_2);
-    do_pack_cons();
-    mwsip();
+    do_run();
+      push_value(d2); }
     mw_21_();
     decref(var_f);
     }
@@ -6627,36 +6642,6 @@ static void mwreduce_2B_ (void){
     break;
     default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
     }
-    decref(var_g);
-    }
-}
-
-static void mwmap_reduce (void){
-    {
-    value_t var_f = pop_value();
-    value_t var_g = pop_value();
-    push_value(var_f);
-    incref(var_f);
-    mwmap();
-    push_value(var_g);
-    incref(var_g);
-    mwreduce();
-    decref(var_f);
-    decref(var_g);
-    }
-}
-
-static void mwmap_reduce_2B_ (void){
-    {
-    value_t var_f = pop_value();
-    value_t var_g = pop_value();
-    push_value(var_f);
-    incref(var_f);
-    mwmap_2B_();
-    push_value(var_g);
-    incref(var_g);
-    mwreduce_2B_();
-    decref(var_f);
     decref(var_g);
     }
 }
@@ -10485,6 +10470,10 @@ static void mwsig_token_is_type_var_3F_ (void){
     mwfalse();
     break;
     }
+}
+
+static void mwtoken_is_param_name_3F_ (void){
+    mwsig_token_is_type_var_3F_();
 }
 
 static void mwsig_token_is_stack_var_3F_ (void){
@@ -19134,7 +19123,25 @@ static void mwab_build_21_ (void){
     }
 }
 
-static void mwab_build_word_21_ (void){
+static void mwab_build_hom_21_ (void){
+    {
+    value_t var_f = pop_value();
+    mwelab_expand_morphism_21_();
+    { value_t d2 = pop_value();
+    mwrotr();
+      push_value(d2); }
+    push_u64(0);
+    push_value(var_f);
+    incref(var_f);
+    do_pack_cons();
+    push_fnptr(&mb_ab_build_hom_21__3);
+    do_pack_cons();
+    mwab_build_21_();
+    decref(var_f);
+    }
+}
+
+static void mwab_build_word_arrow_21_ (void){
     {
     value_t var_f = pop_value();
     mwdup();
@@ -19147,39 +19154,33 @@ static void mwab_build_word_21_ (void){
     push_value(var_f);
     incref(var_f);
     do_pack_cons();
+    push_fnptr(&mb_ab_build_word_arrow_21__2);
+    do_pack_cons();
+    mwsip();
+    mwword_body();
+    mw_40_();
+    push_value(var_f);
+    incref(var_f);
+    mwab_build_hom_21_();
+    mwnil();
+    mwab_home();
+    mw_21_();
+    decref(var_f);
+    }
+}
+
+static void mwab_build_word_21_ (void){
+    {
+    value_t var_f = pop_value();
+    push_u64(0);
+    push_value(var_f);
+    incref(var_f);
+    do_pack_cons();
     push_fnptr(&mb_ab_build_word_21__2);
     do_pack_cons();
     mwsip();
-    mwdup();
-    mwword_body();
-    mw_40_();
-    mwswap();
-    { value_t d2 = pop_value();
-    mwelab_expand_morphism_21_();
-    mwswap();
-      push_value(d2); }
-    { value_t d2 = pop_value();
-    { value_t d3 = pop_value();
-    push_value(var_f);
-    incref(var_f);
-    mwab_build_21_();
-      push_value(d3); }
-    mwover();
-    mwdup();
-    mwarrow_cod();
-    mw_40_();
-    mwswap();
-    mwarrow_token_end();
-    mw_40_();
-    mwelab_type_unify_21_();
-    mwdrop2();
-    mwready();
-      push_value(d2); }
     mwtuck();
     mwword_arrow();
-    mw_21_();
-    mwnil();
-    mwab_home();
     mw_21_();
     decref(var_f);
     }
@@ -19593,21 +19594,37 @@ static void mwab_dip_21_ (void){
 }
 
 static void mwab_if_21_ (void){
-    { value_t d1 = pop_value();
+    {
+    value_t var_f = pop_value();
+    value_t var_g = pop_value();
+    push_value(var_g);
+    incref(var_g);
     mwab_block_21_();
-      push_value(d1); }
+    push_value(var_f);
+    incref(var_f);
     mwab_block_21_();
     mwPRIM_CORE_IF();
     mwab_prim_21_();
+    decref(var_f);
+    decref(var_g);
+    }
 }
 
 static void mwab_while_21_ (void){
-    { value_t d1 = pop_value();
+    {
+    value_t var_f = pop_value();
+    value_t var_g = pop_value();
+    push_value(var_g);
+    incref(var_g);
     mwab_block_21_();
-      push_value(d1); }
+    push_value(var_f);
+    incref(var_f);
     mwab_block_21_();
     mwPRIM_CORE_WHILE();
     mwab_prim_21_();
+    decref(var_f);
+    decref(var_g);
+    }
 }
 
 static void mwab_lambda_21_ (void){
@@ -19639,7 +19656,7 @@ static void mwab_lambda_21_ (void){
     do_pack_cons();
     push_fnptr(&mb_ab_lambda_21__3);
     do_pack_cons();
-    mwfor();
+    mwreverse_for();
       push_value(d2); }
     mwtuck();
     mwlambda_mid();
@@ -19658,7 +19675,7 @@ static void mwab_lambda_21_ (void){
     push_value(var_f);
     incref(var_f);
     do_pack_cons();
-    push_fnptr(&mb_ab_lambda_21__5);
+    push_fnptr(&mb_ab_lambda_21__7);
     do_pack_cons();
     mwab_build_21_();
     mwover();
@@ -19846,29 +19863,6 @@ static void mwelab_word_ctx_sig_21_ (void){
 static void mwelab_word_body_21_ (void){
     mwword_arrow();
     mwforce_21_();
-}
-
-static void mwelab_match_arrow_21_ (void){
-    mwelab_expand_morphism_21_();
-    { value_t d1 = pop_value();
-    mwrotr();
-      push_value(d1); }
-    push_u64(0);
-    push_fnptr(&mb_elab_match_arrow_21__2);
-    do_pack_cons();
-    mwab_build_21_();
-    mwswap();
-    { value_t d1 = pop_value();
-    mwdup();
-    mwarrow_token_end();
-    mw_40_();
-    mwGAMMA();
-    mwover();
-    mwarrow_cod();
-    mw_40_();
-      push_value(d1); }
-    mwtype_unify_21_();
-    mwdrop2();
 }
 
 static void mwelab_arrow_21_ (void){
@@ -20096,7 +20090,7 @@ static void mwelab_atom_lambda_21_ (void){
     mwab_op_21_();
 }
 
-static void mwelab_atom_match_21_ (void){
+static void mwelab_match_at_21_ (void){
     mwMatch_2E_alloc_21_();
     mwab_ctx_40_();
     mwover();
@@ -20110,20 +20104,25 @@ static void mwelab_atom_match_21_ (void){
     mwover();
     mwmatch_token();
     mw_21_();
+    mwtuck();
+    mwmatch_body();
+    mw_21_();
+    mwtuck();
+    mwmatch_cod();
+    mw_21_();
+    mwelab_match_cases_21_();
+    mwelab_match_exhaustive_21_();
+    mwOP_MATCH();
+    mwab_op_21_();
+}
+
+static void mwelab_atom_match_21_ (void){
+    mwmeta_alloc_21_();
+    mwTMeta();
     mwab_token_40_();
     mwtoken_args_2B_();
     mwfirst_2B_();
-    mwover();
-    mwmatch_body();
-    mw_21_();
-    mwmeta_alloc_21_();
-    mwTMeta();
-    mwover();
-    mwmatch_cod();
-    mw_21_();
-    mwelab_match_21_();
-    mwOP_MATCH();
-    mwab_op_21_();
+    mwelab_match_at_21_();
 }
 
 static void mwelab_lambda_21_ (void){
@@ -20329,11 +20328,6 @@ static void mwelab_lambda_body_21_ (void){
     mwover();
     mwlambda_cod();
     mw_21_();
-}
-
-static void mwelab_match_21_ (void){
-    mwelab_match_cases_21_();
-    mwelab_match_exhaustive_21_();
 }
 
 static void mwelab_match_exhaustive_21_ (void){
@@ -20853,7 +20847,6 @@ static void mwelab_def_21_ (void){
     push_ptr("word already defined\0\0\0");
     mwemit_fatal_error_21_();
     }
-    mwnip();
     mwWord_2E_alloc_21_();
     mwdup2();
     mwDEF_WORD();
@@ -20862,6 +20855,9 @@ static void mwelab_def_21_ (void){
     mw_21_();
     mwtuck();
     mwword_name();
+    mw_21_();
+    mwtuck();
+    mwword_head();
     mw_21_();
     mwtuck();
     mwword_body();
@@ -20882,9 +20878,46 @@ static void mwelab_def_21_ (void){
     push_fnptr(&mb_elab_def_21__12);
     do_pack_cons();
     mwdelay();
+    mwover();
+    mwword_params();
+    mw_21_();
+    mwdup();
+    push_u64(0);
+    push_fnptr(&mb_elab_def_21__13);
+    do_pack_cons();
+    mwdelay();
     mwswap();
     mwword_arrow();
     mw_21_();
+}
+
+static void mwelab_def_params_21_ (void){
+    mwL0();
+    mwover();
+    mwelab_word_sig_21_();
+    mwrotl();
+    mwword_head();
+    mw_40_();
+    mwelab_expand_morphism_21_();
+    mwnip();
+    mwtoken_args();
+    push_u64(0);
+    push_fnptr(&mb_elab_def_params_21__1);
+    do_pack_cons();
+    mwfor();
+    mwdrop();
+}
+
+static void mwelab_def_body_21_ (void){
+    mwab_token_40_();
+    mwtoken_run_has_arrow();
+    if (pop_u64()) {
+    mwdup();
+    mwab_token_40_();
+    mwelab_match_at_21_();
+    } else {
+    mwelab_atoms_21_();
+    }
 }
 
 static void mwelab_def_external_21_ (void){
@@ -25598,54 +25631,6 @@ static void mb_reduce_2B__8 (void) {
     incref(var_g);
     do_run();
     decref(var_g);
-}
-static void mb_map_reduce_2 (void) {
-    do_pack_uncons();
-    value_t var_g = pop_value();
-    do_pack_uncons();
-    value_t var_f = pop_value();
-    do_drop();
-    push_value(var_f);
-    incref(var_f);
-    do_run();
-    decref(var_g);
-    decref(var_f);
-}
-static void mb_map_reduce_3 (void) {
-    do_pack_uncons();
-    value_t var_g = pop_value();
-    do_pack_uncons();
-    value_t var_f = pop_value();
-    do_drop();
-    push_value(var_g);
-    incref(var_g);
-    do_run();
-    decref(var_g);
-    decref(var_f);
-}
-static void mb_map_reduce_2B__2 (void) {
-    do_pack_uncons();
-    value_t var_g = pop_value();
-    do_pack_uncons();
-    value_t var_f = pop_value();
-    do_drop();
-    push_value(var_f);
-    incref(var_f);
-    do_run();
-    decref(var_g);
-    decref(var_f);
-}
-static void mb_map_reduce_2B__3 (void) {
-    do_pack_uncons();
-    value_t var_g = pop_value();
-    do_pack_uncons();
-    value_t var_f = pop_value();
-    do_drop();
-    push_value(var_g);
-    incref(var_g);
-    do_run();
-    decref(var_g);
-    decref(var_f);
 }
 static void mb_filter_4 (void) {
     do_pack_uncons();
@@ -31946,52 +31931,38 @@ static void mb_ab_build_21__3 (void) {
     mw1_2B_();
     decref(var_f);
 }
-static void mb_ab_build_word_21__2 (void) {
+static void mb_ab_build_hom_21__2 (void) {
     do_pack_uncons();
     value_t var_f = pop_value();
     do_drop();
-    mwelab_word_ctx_sig_21_();
+    mwrotr();
     decref(var_f);
 }
-static void mb_ab_build_word_21__3 (void) {
-    do_pack_uncons();
-    value_t var_f = pop_value();
-    do_drop();
-    mwelab_expand_morphism_21_();
-    mwswap();
-    decref(var_f);
-}
-static void mb_ab_build_word_21__4 (void) {
-    do_pack_uncons();
-    value_t var_f = pop_value();
-    do_drop();
-    { value_t d1 = pop_value();
-    push_value(var_f);
-    incref(var_f);
-    mwab_build_21_();
-      push_value(d1); }
-    mwover();
-    mwdup();
-    mwarrow_cod();
-    mw_40_();
-    mwswap();
-    mwarrow_token_end();
-    mw_40_();
-    mwelab_type_unify_21_();
-    mwdrop2();
-    mwready();
-    decref(var_f);
-}
-static void mb_ab_build_word_21__5 (void) {
+static void mb_ab_build_hom_21__3 (void) {
     do_pack_uncons();
     value_t var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
-    mwab_build_21_();
+    do_run();
+    mwab_unify_type_21_();
     decref(var_f);
 }
-static void mb_ab_build_word_21__6 (void) {
+static void mb_ab_unify_type_21__1 (void) {
+    do_drop();
+    mwab_token_40_();
+    mwGAMMA();
+    mwab_type_40_();
+}
+static void mb_ab_build_word_arrow_21__2 (void) {
+    do_pack_uncons();
+    value_t var_f = pop_value();
+    do_drop();
+    mwword_ctx_type();
+    mwforce2_21_();
+    decref(var_f);
+}
+static void mb_ab_build_word_arrow_21__3 (void) {
     do_pack_uncons();
     value_t var_f = pop_value();
     do_drop();
@@ -32000,11 +31971,39 @@ static void mb_ab_build_word_21__6 (void) {
     do_run();
     decref(var_f);
 }
-static void mb_ab_unify_type_21__1 (void) {
+static void mb_ab_build_word_21__2 (void) {
+    do_pack_uncons();
+    value_t var_f = pop_value();
     do_drop();
-    mwab_token_40_();
-    mwGAMMA();
-    mwab_type_40_();
+    push_u64(0);
+    push_value(var_f);
+    incref(var_f);
+    do_pack_cons();
+    push_fnptr(&mb_ab_build_word_21__3);
+    do_pack_cons();
+    mwab_build_word_arrow_21_();
+    mwready();
+    decref(var_f);
+}
+static void mb_ab_build_word_21__3 (void) {
+    do_pack_uncons();
+    value_t var_f = pop_value();
+    do_drop();
+    { value_t d1 = pop_value();
+    push_value(var_f);
+    incref(var_f);
+    do_run();
+      push_value(d1); }
+    decref(var_f);
+}
+static void mb_ab_build_word_21__4 (void) {
+    do_pack_uncons();
+    value_t var_f = pop_value();
+    do_drop();
+    push_value(var_f);
+    incref(var_f);
+    do_run();
+    decref(var_f);
 }
 static void mb_ab_atom_21__1 (void) {
     do_drop();
@@ -32127,13 +32126,53 @@ static void mb_ab_dip_21__2 (void) {
     do_run();
     decref(var_f);
 }
-static void mb_ab_if_21__1 (void) {
+static void mb_ab_if_21__2 (void) {
+    do_pack_uncons();
+    value_t var_g = pop_value();
+    do_pack_uncons();
+    value_t var_f = pop_value();
     do_drop();
-    mwab_block_21_();
+    push_value(var_g);
+    incref(var_g);
+    do_run();
+    decref(var_g);
+    decref(var_f);
 }
-static void mb_ab_while_21__1 (void) {
+static void mb_ab_if_21__3 (void) {
+    do_pack_uncons();
+    value_t var_g = pop_value();
+    do_pack_uncons();
+    value_t var_f = pop_value();
     do_drop();
-    mwab_block_21_();
+    push_value(var_f);
+    incref(var_f);
+    do_run();
+    decref(var_g);
+    decref(var_f);
+}
+static void mb_ab_while_21__2 (void) {
+    do_pack_uncons();
+    value_t var_g = pop_value();
+    do_pack_uncons();
+    value_t var_f = pop_value();
+    do_drop();
+    push_value(var_g);
+    incref(var_g);
+    do_run();
+    decref(var_g);
+    decref(var_f);
+}
+static void mb_ab_while_21__3 (void) {
+    do_pack_uncons();
+    value_t var_g = pop_value();
+    do_pack_uncons();
+    value_t var_f = pop_value();
+    do_drop();
+    push_value(var_f);
+    incref(var_f);
+    do_run();
+    decref(var_g);
+    decref(var_f);
 }
 static void mb_ab_lambda_21__2 (void) {
     do_pack_uncons();
@@ -32148,7 +32187,7 @@ static void mb_ab_lambda_21__2 (void) {
     do_pack_cons();
     push_fnptr(&mb_ab_lambda_21__3);
     do_pack_cons();
-    mwfor();
+    mwreverse_for();
     decref(var_f);
 }
 static void mb_ab_lambda_21__3 (void) {
@@ -32158,10 +32197,19 @@ static void mb_ab_lambda_21__3 (void) {
     mwswap();
     { value_t d1 = pop_value();
     mwParam__3E_Var();
+    mwdup();
+    { value_t d2 = pop_value();
     mwctx_new_21_();
+      push_value(d2); }
       push_value(d1); }
     mwab_token_40_();
     mwelab_expand_tensor_21_();
+    { value_t d1 = pop_value();
+    mwrotl();
+    mwvar_type();
+    mw_40_();
+      push_value(d1); }
+    mwelab_type_unify_21_();
     mwdrop2();
     decref(var_f);
 }
@@ -32170,10 +32218,29 @@ static void mb_ab_lambda_21__4 (void) {
     value_t var_f = pop_value();
     do_drop();
     mwParam__3E_Var();
+    mwdup();
+    { value_t d1 = pop_value();
     mwctx_new_21_();
+      push_value(d1); }
     decref(var_f);
 }
 static void mb_ab_lambda_21__5 (void) {
+    do_pack_uncons();
+    value_t var_f = pop_value();
+    do_drop();
+    mwctx_new_21_();
+    decref(var_f);
+}
+static void mb_ab_lambda_21__6 (void) {
+    do_pack_uncons();
+    value_t var_f = pop_value();
+    do_drop();
+    mwrotl();
+    mwvar_type();
+    mw_40_();
+    decref(var_f);
+}
+static void mb_ab_lambda_21__7 (void) {
     do_pack_uncons();
     value_t var_f = pop_value();
     do_drop();
@@ -32188,7 +32255,7 @@ static void mb_ab_lambda_21__5 (void) {
     mw_21_();
     decref(var_f);
 }
-static void mb_ab_lambda_21__6 (void) {
+static void mb_ab_lambda_21__8 (void) {
     do_pack_uncons();
     value_t var_f = pop_value();
     do_drop();
@@ -32246,46 +32313,6 @@ static void mb_elab_lambda_sig_21__1 (void) {
     mwlambda_dom();
     mw_40_();
 }
-static void mb_elab_match_arrow_21__1 (void) {
-    do_drop();
-    mwrotr();
-}
-static void mb_elab_match_arrow_21__2 (void) {
-    do_drop();
-    mwMatch_2E_alloc_21_();
-    mwab_ctx_40_();
-    mwover();
-    mwmatch_ctx();
-    mw_21_();
-    mwab_token_40_();
-    mwover();
-    mwmatch_token();
-    mw_21_();
-    mwab_token_40_();
-    mwover();
-    mwmatch_body();
-    mw_21_();
-    mwab_type_40_();
-    mwover();
-    mwmatch_dom();
-    mw_21_();
-    mwdup2();
-    mwmatch_cod();
-    mw_21_();
-    mwelab_match_21_();
-    mwOP_MATCH();
-    mwab_op_21_();
-}
-static void mb_elab_match_arrow_21__3 (void) {
-    do_drop();
-    mwdup();
-    mwarrow_token_end();
-    mw_40_();
-    mwGAMMA();
-    mwover();
-    mwarrow_cod();
-    mw_40_();
-}
 static void mb_elab_arrow_fwd_21__1 (void) {
     do_drop();
     mwelab_atoms_21_();
@@ -32305,6 +32332,27 @@ static void mb_elab_atoms_21__2 (void) {
 static void mb_elab_args_21__1 (void) {
     do_drop();
     mwelab_block_at_21_();
+}
+static void mb_elab_match_cases_21__1 (void) {
+    do_drop();
+    mwelab_match_case_21_();
+}
+static void mb_elab_match_cases_21__2 (void) {
+    do_drop();
+    mwtoken_is_rparen_3F_();
+    mwnot();
+}
+static void mb_elab_match_exhaustive_21__1 (void) {
+    do_drop();
+    mwdup();
+    mwmatch_token();
+    mw_40_();
+    push_ptr("Pattern match not exhaustive.\0\0\0");
+    mwemit_error_21_();
+}
+static void mb_elab_match_exhaustive_21__2 (void) {
+    do_drop();
+    mwid();
 }
 static void mb_elab_lambda_params_21__1 (void) {
     do_drop();
@@ -32550,27 +32598,6 @@ static void mb_expect_token_arrow_1 (void) {
     mwemit_fatal_error_21_();
 }
 static void mb_expect_token_arrow_2 (void) {
-    do_drop();
-    mwid();
-}
-static void mb_elab_match_cases_21__1 (void) {
-    do_drop();
-    mwelab_match_case_21_();
-}
-static void mb_elab_match_cases_21__2 (void) {
-    do_drop();
-    mwtoken_is_rparen_3F_();
-    mwnot();
-}
-static void mb_elab_match_exhaustive_21__1 (void) {
-    do_drop();
-    mwdup();
-    mwmatch_token();
-    mw_40_();
-    push_ptr("Pattern match not exhaustive.\0\0\0");
-    mwemit_error_21_();
-}
-static void mb_elab_match_exhaustive_21__2 (void) {
     do_drop();
     mwid();
 }
@@ -33230,41 +33257,130 @@ static void mb_elab_def_21__11 (void) {
 }
 static void mb_elab_def_21__12 (void) {
     do_drop();
-    mwdup();
-    mwab_home();
-    mw_21_();
-    push_i64(0LL);
-    mwab_homeidx();
-    mw_21_();
-    push_u64(0);
-    push_fnptr(&mb_elab_def_21__13);
-    do_pack_cons();
-    mwsip();
-    mwword_body();
-    mw_40_();
-    mwdup();
-    mwtoken_run_has_arrow();
-    if (pop_u64()) {
-    mwelab_match_arrow_21_();
-    } else {
-    mwelab_arrow_21_();
-    }
-    mwnil();
-    mwab_home();
-    mw_21_();
+    mwelab_def_params_21_();
 }
 static void mb_elab_def_21__13 (void) {
     do_drop();
-    mwword_ctx_type();
-    mwforce2_21_();
+    mwdup();
+    push_u64(0);
+    push_fnptr(&mb_elab_def_21__14);
+    do_pack_cons();
+    mwab_build_word_arrow_21_();
 }
 static void mb_elab_def_21__14 (void) {
     do_drop();
-    mwelab_arrow_21_();
+    mwswap();
+    mwword_params();
+    mwforce_21_();
+    mwis_nil_3F_();
+    if (pop_u64()) {
+    mwdrop();
+    mwelab_def_body_21_();
+    } else {
+    mwreverse();
+    push_u64(0);
+    push_fnptr(&mb_elab_def_21__16);
+    do_pack_cons();
+    mwab_lambda_21_();
+    }
 }
 static void mb_elab_def_21__15 (void) {
     do_drop();
-    mwelab_match_arrow_21_();
+    mwreverse();
+    push_u64(0);
+    push_fnptr(&mb_elab_def_21__16);
+    do_pack_cons();
+    mwab_lambda_21_();
+}
+static void mb_elab_def_21__17 (void) {
+    do_drop();
+    mwdrop();
+    mwelab_def_body_21_();
+}
+static void mb_elab_def_21__16 (void) {
+    do_drop();
+    mwelab_def_body_21_();
+}
+static void mb_elab_def_params_21__1 (void) {
+    do_drop();
+    mwtoken_is_param_name_3F_();
+    if (pop_u64()) {
+    mwid();
+    } else {
+    push_ptr("expected parameter name\0\0\0");
+    mwemit_fatal_error_21_();
+    }
+    mwdup();
+    mwtoken_succ();
+    mwtoken_run_end_3F_();
+    if (pop_u64()) {
+    mwdrop();
+    } else {
+    push_ptr("expected right paren or comma\0\0\0");
+    mwemit_fatal_error_21_();
+    }
+    mwelab_expand_tensor_21_();
+    { value_t d1 = pop_value();
+    mwdup();
+      push_value(d1); }
+    mwelab_expand_morphism_21_();
+    { value_t d1 = pop_value();
+    mwdrop2();
+      push_value(d1); }
+    mwtoken_name_40_();
+    mwvar_new_21_();
+    mwtuck();
+    mwvar_type();
+    mw_21_();
+    mwtrue();
+    mwover();
+    mwvar_auto_run();
+    mw_21_();
+    mwPARAM();
+    mwswap();
+    { value_t d1 = pop_value();
+    mwsnoc();
+      push_value(d1); }
+}
+static void mb_elab_def_params_21__2 (void) {
+    do_drop();
+    push_ptr("expected parameter name\0\0\0");
+    mwemit_fatal_error_21_();
+}
+static void mb_elab_def_params_21__3 (void) {
+    do_drop();
+    mwid();
+}
+static void mb_elab_def_params_21__4 (void) {
+    do_drop();
+    push_ptr("expected right paren or comma\0\0\0");
+    mwemit_fatal_error_21_();
+}
+static void mb_elab_def_params_21__5 (void) {
+    do_drop();
+    mwdrop();
+}
+static void mb_elab_def_params_21__6 (void) {
+    do_drop();
+    mwdup();
+}
+static void mb_elab_def_params_21__7 (void) {
+    do_drop();
+    mwdrop2();
+}
+static void mb_elab_def_params_21__8 (void) {
+    do_drop();
+    mwsnoc();
+}
+static void mb_elab_def_body_21__1 (void) {
+    do_drop();
+    mwelab_atoms_21_();
+}
+static void mb_elab_def_body_21__2 (void) {
+    do_drop();
+    mwdup();
+    mwab_token_40_();
+    mwelab_match_at_21_();
 }
 static void mb_elab_def_external_21__1 (void) {
     do_drop();
@@ -34647,6 +34763,19 @@ static void mwword_name (void){
     push_ptr(v);
 }
 
+static value_t* fieldptr_word_head (usize i) {
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
+}
+static void mwword_head (void){
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_word_head(index);
+    push_ptr(v);
+}
+
 static value_t* fieldptr_word_sig (usize i) {
     static struct value_t * p = 0;
     usize m = 65536;
@@ -34683,6 +34812,19 @@ static value_t* fieldptr_word_ctx_type (usize i) {
 static void mwword_ctx_type (void){
     usize index = (usize)pop_u64();
     value_t *v = fieldptr_word_ctx_type(index);
+    push_ptr(v);
+}
+
+static value_t* fieldptr_word_params (usize i) {
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
+}
+static void mwword_params (void){
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_word_params(index);
     push_ptr(v);
 }
 
