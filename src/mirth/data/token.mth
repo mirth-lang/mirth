@@ -165,7 +165,7 @@ def(token-next-arg-end, Token -- Token,
 def(token-has-args?, Token -- Token Bool,
     token-is-name? if(
         dup token-succ token-is-lparen? nip,
-        false
+        token-is-lparen?
     ))
 
 

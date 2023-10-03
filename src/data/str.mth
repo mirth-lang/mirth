@@ -51,7 +51,7 @@ def(STR_BUF_SIZE, Int, 0x2000)
 buffer(STR_BUF, 0x2000)
 var(STR_BUF_LEN, Int)
 
-def(build-str!(f), *a [ *a -- *b ] -- *b Str,
+def(build-str!(f), (*a -- *b) *a -- *b Str,
     str-buf-dup! str-buf-clear! dip(
         f str-buf-dup!
     ) str-buf!)
@@ -67,25 +67,25 @@ def(str-buf-length!, Int --,
     dup STR_BUF_LEN !
     dip(0 Int->U8) str-buf-u8!)
 
-def(str-buf-u8@, Offset -- U8 +StrBuf,
+def(str-buf-u8@, Offset -- U8,
     STR_BUF u8@@)
 
-def(str-buf-u8!, U8 Offset -- +StrBuf,
+def(str-buf-u8!, U8 Offset --,
     STR_BUF u8!!)
 
-def(str-buf-char@, Offset -- Char +StrBuf,
+def(str-buf-char@, Offset -- Char,
     STR_BUF ptr+ char@)
 
-def(str-buf-empty?, Bool +StrBuf,
+def(str-buf-empty?, Bool,
     str-buf-length? 0=)
 
-def(str-buf-full?, Bool +StrBuf,
+def(str-buf-full?, Bool,
     str-buf-length? 1+ STR_BUF_SIZE >=)
 
-def(str-buf-clear!, +StrBuf,
+def(str-buf-clear!, --,
     0 str-buf-length!)
 
-def(str-buf-push-u8!, U8 -- +StrBuf,
+def(str-buf-push-u8!, U8 --,
     # str-buf-full? not if(
         str-buf-length? str-buf-u8!
         str-buf-length? 1+ str-buf-length!
@@ -93,32 +93,32 @@ def(str-buf-push-u8!, U8 -- +StrBuf,
     # )
     )
 
-def(str-buf-push-char!, Char -- +StrBuf,
+def(str-buf-push-char!, Char --,
     dup str-buf-length? STR_BUF ptr+ char!
     char-width str-buf-length? + str-buf-length!)
 
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
-def(str-buf-push-str!, Str -- +StrBuf,
+def(str-buf-push-str!, Str --,
     dup Str->Ptr swap str-size str-buf-push-ptr!)
 
-def(str-buf-push-ptr!, Ptr Size -- +StrBuf,
+def(str-buf-push-ptr!, Ptr Size -- ,
     tuck str-buf-length? STR_BUF ptr+ prim.ptr.copy
     str-buf-length? + str-buf-length!)
 
 ||| Set the STR_BUF to a given string. If the string is
 ||| too large it gets truncated.
-def(str-buf!, Str -- +StrBuf,
+def(str-buf!, Str --,
     str-buf-clear! str-buf-push-str!)
 
-def(str-buf-char!, Char -- +StrBuf,
+def(str-buf-char!, Char --,
     dup STR_BUF char! char-width str-buf-length!)
 
 def(to-digit, Int -- Char,
     10 % 48 + Int->Char)
 
 ||| Put integer into STR_BUF.
-def(str-buf-int!, Int -- +StrBuf,
+def(str-buf-int!, Int --,
     dup 0= if(
         drop "0" str-buf!,
         sip(
@@ -133,14 +133,14 @@ def(int-show, Int -- Str,
     build-str!(str-buf-int!))
 
 ||| Swap two bytes in STR_BUF.
-def(str-buf-swap-u8!, Int Int -- +StrBuf,
+def(str-buf-swap-u8!, Int Int --,
     dup2 swap
     dip3(str-buf-u8@)
     dip(str-buf-u8@)
     str-buf-u8! str-buf-u8!)
 
 ||| Reverse contents of STR_BUF bytewise.
-def(str-buf-reverse!, +StrBuf,
+def(str-buf-reverse!, --,
     0 str-buf-length? 1-
     while(dup2 <,
         dup2 str-buf-swap-u8!
@@ -155,7 +155,7 @@ def(str-eq, Str Str -- Bool, prim.str.eq)
 def(str-eq?, Str Str -- Str Str Bool, dup2 str-eq)
 
 ||| Traverse string characters.
-def(str-for(f), *a Str [*a Char -- *a] -- *a,
+def(str-for(f), (*a Char -- *a) *a Str -- *a,
     while(str-is-empty? not,
         dup str-tail
         dip(str-head f)
@@ -168,7 +168,7 @@ data(TransducerStep,
     TS_PUSH -> List(Char),
     TS_COPY -> Str)
 
-def(str-transduce(f), *a Str [ *a Char -- *a TransducerStep ] -- *a Str,
+def(str-transduce(f), (*a Char -- *a TransducerStep) *a Str -- *a Str,
     build-str!(
         while(str-is-empty? not,
             sip(str-head f) str-tail

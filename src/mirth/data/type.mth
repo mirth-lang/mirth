@@ -91,7 +91,7 @@ def(T*, Type Type -- Type, TTensor)
 def(T->, Type Type -- Type, TMorphism)
 def(TMut, Type -- Type, TYPE_MUT swap TApp)
 
-def(T0, Type, TYPE_UNIT)
+def(T0, -- Type, TYPE_UNIT)
 def(T1, Type -- Type, dip(T0) T*)
 def(T2, Type Type -- Type, dip(T1) T*)
 def(T3, Type Type Type -- Type, dip(T2) T*)
@@ -392,21 +392,21 @@ def(type-trace-sig!, Type --,
         type-trace-stack-cod!,
     _ -> type-trace-stack!)
 
-def(type-trace-stack-dom!, Type -- +IO,
+def(type-trace-stack-dom!, Type --,
     type-expand dup TYPE_UNIT == if(
         drop,
         type-trace-stack!
         " " str-trace!
     ))
 
-def(type-trace-stack-cod!, Type -- +IO,
+def(type-trace-stack-cod!, Type --,
     type-expand dup TYPE_UNIT == if(
         drop,
         " " str-trace!
         type-trace-stack!
     ))
 
-def(type-trace-stack!, Type -- +IO,
+def(type-trace-stack!, Type --,
     TMeta -> meta-expand-if(type-trace-stack!, meta-trace!),
     TTensor -> swap type-trace-stack-dom! type-trace!,
     TVar ->
@@ -416,7 +416,7 @@ def(type-trace-stack!, Type -- +IO,
         if(id, " ." str-trace!),
     _ -> type-trace!)
 
-def(type-trace!, Type -- +IO,
+def(type-trace!, Type --,
     TYPE_ERROR -> "<ERROR>" str-trace!,
     TYPE_DONT_CARE -> "_" str-trace!,
     TPrim -> type-trace-prim!,
@@ -437,7 +437,7 @@ def(value-as-type, Value -- Type,
         VALUE_BLOCK -> sip(block-dom @) block-cod @ T->
     ))
 
-def(type-trace-prim!, PrimType -- +IO,
+def(type-trace-prim!, PrimType --,
     match(
         PRIM_TYPE_TYPE -> "<TYPE>",
         PRIM_TYPE_STACK -> "<STACK>",
@@ -598,7 +598,7 @@ def(meta-trace!, MetaVar --,
         SOME -> nip type-trace!
     ))
 def(meta-alloc!, MetaVar, MetaVar.alloc!)
-def(meta-expand-if(f,g), *a MetaVar [*a MetaVar -- *b] [*a Type -- *b] -- *b,
+def(meta-expand-if(f,g), (*a Type -- *b, *a MetaVar -- *b) *a MetaVar -- *b,
     dup meta-type @ match(
         NONE -> g,
         SOME -> type-expand tuck SOME swap meta-type ! f

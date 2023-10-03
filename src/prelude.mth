@@ -3,9 +3,9 @@ module(prelude)
 ############################################
 # not re-exported because of optimisations #
 ############################################
-# def(dip, *a c [*a -- *b] -- *b c, prim.core.dip)
-# def(if, *a Bool [*a -- *b] [*a -- *b] -- *b, prim.core.if)
-# def(while, *a [*a -- *a] [*a -- *a Bool] -- *a, prim.core.while)
+# def(dip, (*a -- *b) *a c -- *b c, prim.core.dip)
+# def(if, (*a -- *b, *a -- *b) *a Bool -- *b, prim.core.if)
+# def(while, (*a -- *a Bool, *a -- *a) *a -- *a, prim.core.while)
 ############################################
 
 ##################################################
@@ -21,7 +21,7 @@ def(dup, a -- a a, prim.core.dup)
 def(drop, a --, prim.core.drop)
 def(swap, a b -- b a, prim.core.swap)
 def(??, --, prim.core.debug)
-def(run(f), *a [ *a -- *b ] -- *b, f)
+def(run(f), (*a -- *b) *a -- *b, f)
 
 def(==, a a -- Bool, prim.value.eq)
 def(<=, a a -- Bool, prim.value.le)
@@ -54,7 +54,7 @@ def(ptr@, Ptr -- Ptr, prim.ptr.get)
 def(ptr!, Ptr Ptr --,prim.ptr.set)
 
 data(RawPtr, RAWPTR -> Int)
-def(with-raw-ptr(f), *a Ptr [*a RawPtr -- *b] -- *b Ptr,
+def(with-raw-ptr(f), (*a RawPtr -- *b) *a Ptr -- *b Ptr,
     prim.ptr.raw RAWPTR swap dip(f))
 
 def(u8@, Ptr -- U8, prim.u8.get)
@@ -122,21 +122,17 @@ def(nip, a b -- b, dip(drop))
 def(dup2, a b   -- a b    a b  , over over)
 def(dup3, a b c -- a b c  a b c, dup dip(dip(dup2) rotr))
 
-def(dip?(f), *a c [*a -- *a Bool] -- *a c Bool,
-    dip(f) swap)
+def(dip?(f), (*a -- *a Bool) *a c -- *a c Bool, dip(f) swap)
+def(dip'(f), (*a x -- *b y) *a c x -- *b c y, swap dip(f) swap)
 
-def(dip'(f), *a c x [*a x -- *b y] -- *b c y,
-    swap dip(f) swap)
-
-def(dip2(f), *a c1 c2 [*a -- *b] -- *b c1 c2,
+def(dip2(f), (*a -- *b) *a c1 c2 -- *b c1 c2,
     dip(dip(f)))
-
-def(dip3(f), *a c1 c2 c3 [*a -- *b] -- *b c1 c2 c3,
+def(dip3(f), (*a -- *b) *a c1 c2 c3 -- *b c1 c2 c3,
     dip(dip(dip(f))))
 
-def(sip(f), *a x [*a x -- *b] -- *b x,
+def(sip(f), (*a x -- *b) *a x -- *b x,
     dup dip(f))
-def(sip2(f), *a x1 x2 [*a x1 x2 -- *b] -- *b x1 x2,
+def(sip2(f), (*a x1 x2 -- *b) *a x1 x2 -- *b x1 x2,
     dup2 dip(dip(f)))
 
 def(drop2, a b --, drop drop)
@@ -146,8 +142,8 @@ def(drop4, a b c d --, drop drop drop drop)
 def(rot4r, a b c d -- d a b c, swap dip(rotr))
 def(rot4l, a b c d -- b c d a, dip(rotl) swap)
 
-def(or(f),  *a Bool [*a -- *a Bool] -- *a Bool, if(true, f))
-def(and(f), *a Bool [*a -- *a Bool] -- *a Bool, if(f, false))
+def(or(f), (*a -- *a Bool) *a Bool -- *a Bool, if(true, f))
+def(and(f), (*a -- *a Bool) *a Bool -- *a Bool, if(f, false))
 
 def-type(Byte, U8)
 def-type(Size, Int)
@@ -342,5 +338,5 @@ def(.5, [*a b c d e f g] -- b, pack-uncons drop .4)
 def(mut, t -- Mut(t), prim.mut.new)
 def(@, Mut(t) -- t, prim.mut.get)
 def(!, t Mut(t) --, prim.mut.set drop)
-def(modify(f), *a Mut(t) [*a t -- *b t] -- *b,
+def(modify(f), (*a t -- *b t) *a Mut(t) -- *b,
     dup dip(@ f) !)
