@@ -67,6 +67,19 @@ def(int-trace!, Int --, stderr int-write!)
 def(int-print-ln!, Int --, int-print! print-ln!)
 def(int-trace-ln!, Int --, int-trace! trace-ln!)
 
+def(with-open-file!(f,g), (*a File -- *b, *a -- *b) *a Str -- *b,
+    0 0 posix-open! dup 0 < if(drop g, dup dip(Int->File f) posix-close! drop))
+
+def(read-file!, File -- Str,
+    File->Int
+    0x10000 prim-ptr-alloc tuck
+    0x10000 prim-posix-read
+    # TODO handle error
+    0x10000 4 - < if(id, "read too much" panic!)
+    # TODO don't panic ... just expand buffer and continue reading
+    # TODO realloc
+    Ptr->Str)
+
 def(open-file!, Str -- File,
     0 0 posix-open!
     dup 0 < if(

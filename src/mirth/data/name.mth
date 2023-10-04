@@ -15,6 +15,7 @@ data(Def,
     DEF_WORD -> Word,
     DEF_BUFFER -> Buffer,
     DEF_VARIABLE -> Variable,
+    DEF_CONSTANT -> Value,
     DEF_EXTERNAL -> External,
     DEF_FIELD -> Field)
 table(Name)
