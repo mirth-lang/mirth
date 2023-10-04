@@ -144,6 +144,12 @@ def(rot4l, a b c d -- b c d a, dip(rotl) swap)
 def(or(f), (*a -- *a Bool) *a Bool -- *a Bool, if(true, f))
 def(and(f), (*a -- *a Bool) *a Bool -- *a Bool, if(f, false))
 
+def(repeat(f), (*a -- *a) *a Int -- *a,
+    while(dup 0 >, dip(f) 1-) drop)
+
+def(count(f), (*a Int -- *a) *a Int -- *a,
+    0 swap repeat(dup dip(f) 1+) drop)
+
 def-type(Byte, U8)
 def-type(Size, Int)
 def-type(Offset, Int)
