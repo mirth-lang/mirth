@@ -850,196 +850,196 @@ static void mw_prim_str_alloc (void) {
 static void mw_RAWPTR (void) {
 }
 static void mw_OS_UNKNOWN (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_OS_WINDOWS (void) {
-  push_u64(1LL);
+    push_u64(1LL);
 }
 static void mw_OS_LINUX (void) {
-  push_u64(2LL);
+    push_u64(2LL);
 }
 static void mw_OS_MACOS (void) {
-  push_u64(3LL);
+    push_u64(3LL);
 }
 static void mw_EQ (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_LT (void) {
-  push_u64(1LL);
+    push_u64(1LL);
 }
 static void mw_GT (void) {
-  push_u64(2LL);
+    push_u64(2LL);
 }
 static void mw_NONE (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_SOME (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_L0 (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_L1 (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_L2 (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_L3 (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_LCAT (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_L1_2B_ (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_L2_2B_ (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_L3_2B_ (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_LCAT_2B_ (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TS_STOP (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_TS_SKIP (void) {
-  push_u64(1LL);
+    push_u64(1LL);
 }
 static void mw_TS_CHAR (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TS_PUSH (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TS_COPY (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_PATH (void) {
 }
 static void mw_FILE (void) {
 }
 static void mw_STACK_NIL (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_STACK_CONS (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_DEF_NONE (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_DEF_MODULE (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_DEF_TYPE (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_DEF_TAG (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_DEF_PRIM (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_DEF_WORD (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_DEF_BUFFER (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_DEF_VARIABLE (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_DEF_CONSTANT (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_DEF_EXTERNAL (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_DEF_FIELD (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_HASH (void) {
 }
@@ -1050,72 +1050,72 @@ static void mw_ROW (void) {
 static void mw_COL (void) {
 }
 static void mw_LOCATION (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TOKEN_NONE (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_TOKEN_COMMA (void) {
-  push_u64(1LL);
+    push_u64(1LL);
 }
 static void mw_TOKEN_LPAREN (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TOKEN_RPAREN (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TOKEN_LSQUARE (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TOKEN_RSQUARE (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TOKEN_LCURLY (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TOKEN_RCURLY (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TOKEN_INT (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TOKEN_STR (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TOKEN_NAME (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_BAG (void) {
 }
@@ -1124,752 +1124,752 @@ static void mw_BAG_2B_ (void) {
 static void mw_MAP (void) {
 }
 static void mw_TYPE_ERROR (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_TYPE_DONT_CARE (void) {
-  push_u64(1LL);
+    push_u64(1LL);
 }
 static void mw_TPrim (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TMeta (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_THole (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TVar (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TTable (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TData (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TTensor (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TMorphism (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TApp (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_TValue (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_VALUE_INT (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_VALUE_STR (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_VALUE_BLOCK (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_PRIM_TYPE_UNIT (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_PRIM_TYPE_TYPE (void) {
-  push_u64(1LL);
+    push_u64(1LL);
 }
 static void mw_PRIM_TYPE_STACK (void) {
-  push_u64(2LL);
+    push_u64(2LL);
 }
 static void mw_PRIM_TYPE_EFFECT (void) {
-  push_u64(3LL);
+    push_u64(3LL);
 }
 static void mw_PRIM_TYPE_INT (void) {
-  push_u64(4LL);
+    push_u64(4LL);
 }
 static void mw_PRIM_TYPE_PTR (void) {
-  push_u64(5LL);
+    push_u64(5LL);
 }
 static void mw_PRIM_TYPE_STR (void) {
-  push_u64(6LL);
+    push_u64(6LL);
 }
 static void mw_PRIM_TYPE_CHAR (void) {
-  push_u64(7LL);
+    push_u64(7LL);
 }
 static void mw_PRIM_TYPE_BOOL (void) {
-  push_u64(8LL);
+    push_u64(8LL);
 }
 static void mw_PRIM_TYPE_U64 (void) {
-  push_u64(9LL);
+    push_u64(9LL);
 }
 static void mw_PRIM_TYPE_U32 (void) {
-  push_u64(10LL);
+    push_u64(10LL);
 }
 static void mw_PRIM_TYPE_U16 (void) {
-  push_u64(11LL);
+    push_u64(11LL);
 }
 static void mw_PRIM_TYPE_U8 (void) {
-  push_u64(12LL);
+    push_u64(12LL);
 }
 static void mw_PRIM_TYPE_I64 (void) {
-  push_u64(13LL);
+    push_u64(13LL);
 }
 static void mw_PRIM_TYPE_I32 (void) {
-  push_u64(14LL);
+    push_u64(14LL);
 }
 static void mw_PRIM_TYPE_I16 (void) {
-  push_u64(15LL);
+    push_u64(15LL);
 }
 static void mw_PRIM_TYPE_I8 (void) {
-  push_u64(16LL);
+    push_u64(16LL);
 }
 static void mw_PRIM_TYPE_MUT (void) {
-  push_u64(17LL);
+    push_u64(17LL);
 }
 static void mw_GAMMA (void) {
 }
 static void mw_SUBST (void) {
 }
 static void mw_ARG_BLOCK (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_ARG_VAR_RUN (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_NONE (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_OP_PRIM (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_WORD (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_EXTERNAL (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_BUFFER (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_VARIABLE (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_CONSTANT (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_FIELD (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_INT (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_STR (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_TAG (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_MATCH (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_LAMBDA (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 12LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 12LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_VAR (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 13LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 13LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OP_BLOCK (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 14LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 14LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_PARAM (void) {
 }
 static void mw_PATTERN_UNDERSCORE (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_PATTERN_TAG (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_LAZY_READY (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_LAZY_DELAY (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_LAZY_WAIT (void) {
-  push_u64(2LL);
+    push_u64(2LL);
 }
 static void mw_CTX (void) {
 }
 static void mw_TYPE_ELAB (void) {
-  value_t car = pop_value();
-  car = mkcell(car, pop_value());
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    car = mkcell(car, pop_value());
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OPSIG_ID (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_OPSIG_PUSH (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_OPSIG_APPLY (void) {
-  value_t car = pop_value();
-  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
-  car = mkcell(car, tag);
-  push_value(car);
+    value_t car = pop_value();
+    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    car = mkcell(car, tag);
+    push_value(car);
 }
 static void mw_PRIM_CORE_ID (void) {
-  push_u64(0LL);
+    push_u64(0LL);
 }
 static void mw_PRIM_CORE_DUP (void) {
-  push_u64(1LL);
+    push_u64(1LL);
 }
 static void mw_PRIM_CORE_DROP (void) {
-  push_u64(2LL);
+    push_u64(2LL);
 }
 static void mw_PRIM_CORE_SWAP (void) {
-  push_u64(3LL);
+    push_u64(3LL);
 }
 static void mw_PRIM_CORE_DIP (void) {
-  push_u64(4LL);
+    push_u64(4LL);
 }
 static void mw_PRIM_CORE_IF (void) {
-  push_u64(5LL);
+    push_u64(5LL);
 }
 static void mw_PRIM_CORE_WHILE (void) {
-  push_u64(6LL);
+    push_u64(6LL);
 }
 static void mw_PRIM_CORE_DEBUG (void) {
-  push_u64(7LL);
+    push_u64(7LL);
 }
 static void mw_PRIM_CORE_RUN (void) {
-  push_u64(8LL);
+    push_u64(8LL);
 }
 static void mw_PRIM_CORE_MATCH (void) {
-  push_u64(9LL);
+    push_u64(9LL);
 }
 static void mw_PRIM_CORE_LAMBDA (void) {
-  push_u64(10LL);
+    push_u64(10LL);
 }
 static void mw_PRIM_UNSAFE_CAST (void) {
-  push_u64(11LL);
+    push_u64(11LL);
 }
 static void mw_PRIM_VALUE_EQ (void) {
-  push_u64(12LL);
+    push_u64(12LL);
 }
 static void mw_PRIM_VALUE_LT (void) {
-  push_u64(13LL);
+    push_u64(13LL);
 }
 static void mw_PRIM_VALUE_LE (void) {
-  push_u64(14LL);
+    push_u64(14LL);
 }
 static void mw_PRIM_VALUE_GET (void) {
-  push_u64(15LL);
+    push_u64(15LL);
 }
 static void mw_PRIM_VALUE_SET (void) {
-  push_u64(16LL);
+    push_u64(16LL);
 }
 static void mw_PRIM_INT_ADD (void) {
-  push_u64(17LL);
+    push_u64(17LL);
 }
 static void mw_PRIM_INT_SUB (void) {
-  push_u64(18LL);
+    push_u64(18LL);
 }
 static void mw_PRIM_INT_MUL (void) {
-  push_u64(19LL);
+    push_u64(19LL);
 }
 static void mw_PRIM_INT_DIV (void) {
-  push_u64(20LL);
+    push_u64(20LL);
 }
 static void mw_PRIM_INT_MOD (void) {
-  push_u64(21LL);
+    push_u64(21LL);
 }
 static void mw_PRIM_INT_AND (void) {
-  push_u64(22LL);
+    push_u64(22LL);
 }
 static void mw_PRIM_INT_OR (void) {
-  push_u64(23LL);
+    push_u64(23LL);
 }
 static void mw_PRIM_INT_XOR (void) {
-  push_u64(24LL);
+    push_u64(24LL);
 }
 static void mw_PRIM_INT_SHL (void) {
-  push_u64(25LL);
+    push_u64(25LL);
 }
 static void mw_PRIM_INT_SHR (void) {
-  push_u64(26LL);
+    push_u64(26LL);
 }
 static void mw_PRIM_INT_GET (void) {
-  push_u64(27LL);
+    push_u64(27LL);
 }
 static void mw_PRIM_INT_SET (void) {
-  push_u64(28LL);
+    push_u64(28LL);
 }
 static void mw_PRIM_BOOL_TRUE (void) {
-  push_u64(29LL);
+    push_u64(29LL);
 }
 static void mw_PRIM_BOOL_FALSE (void) {
-  push_u64(30LL);
+    push_u64(30LL);
 }
 static void mw_PRIM_BOOL_AND (void) {
-  push_u64(31LL);
+    push_u64(31LL);
 }
 static void mw_PRIM_BOOL_OR (void) {
-  push_u64(32LL);
+    push_u64(32LL);
 }
 static void mw_PRIM_PACK_NIL (void) {
-  push_u64(33LL);
+    push_u64(33LL);
 }
 static void mw_PRIM_PACK_CONS (void) {
-  push_u64(34LL);
+    push_u64(34LL);
 }
 static void mw_PRIM_PACK_UNCONS (void) {
-  push_u64(35LL);
+    push_u64(35LL);
 }
 static void mw_PRIM_MUT_NEW (void) {
-  push_u64(36LL);
+    push_u64(36LL);
 }
 static void mw_PRIM_MUT_GET (void) {
-  push_u64(37LL);
+    push_u64(37LL);
 }
 static void mw_PRIM_MUT_SET (void) {
-  push_u64(38LL);
+    push_u64(38LL);
 }
 static void mw_PRIM_PTR_ADD (void) {
-  push_u64(39LL);
+    push_u64(39LL);
 }
 static void mw_PRIM_PTR_SIZE (void) {
-  push_u64(40LL);
+    push_u64(40LL);
 }
 static void mw_PRIM_PTR_GET (void) {
-  push_u64(41LL);
+    push_u64(41LL);
 }
 static void mw_PRIM_PTR_SET (void) {
-  push_u64(42LL);
+    push_u64(42LL);
 }
 static void mw_PRIM_PTR_ALLOC (void) {
-  push_u64(43LL);
+    push_u64(43LL);
 }
 static void mw_PRIM_PTR_REALLOC (void) {
-  push_u64(44LL);
+    push_u64(44LL);
 }
 static void mw_PRIM_PTR_COPY (void) {
-  push_u64(45LL);
+    push_u64(45LL);
 }
 static void mw_PRIM_PTR_FILL (void) {
-  push_u64(46LL);
+    push_u64(46LL);
 }
 static void mw_PRIM_PTR_RAW (void) {
-  push_u64(47LL);
+    push_u64(47LL);
 }
 static void mw_PRIM_STR_ALLOC (void) {
-  push_u64(48LL);
+    push_u64(48LL);
 }
 static void mw_PRIM_STR_SIZE (void) {
-  push_u64(49LL);
+    push_u64(49LL);
 }
 static void mw_PRIM_STR_BASE (void) {
-  push_u64(50LL);
+    push_u64(50LL);
 }
 static void mw_PRIM_STR_EQ (void) {
-  push_u64(51LL);
+    push_u64(51LL);
 }
 static void mw_PRIM_U8_GET (void) {
-  push_u64(52LL);
+    push_u64(52LL);
 }
 static void mw_PRIM_U8_SET (void) {
-  push_u64(53LL);
+    push_u64(53LL);
 }
 static void mw_PRIM_U16_GET (void) {
-  push_u64(54LL);
+    push_u64(54LL);
 }
 static void mw_PRIM_U16_SET (void) {
-  push_u64(55LL);
+    push_u64(55LL);
 }
 static void mw_PRIM_U32_GET (void) {
-  push_u64(56LL);
+    push_u64(56LL);
 }
 static void mw_PRIM_U32_SET (void) {
-  push_u64(57LL);
+    push_u64(57LL);
 }
 static void mw_PRIM_U64_GET (void) {
-  push_u64(58LL);
+    push_u64(58LL);
 }
 static void mw_PRIM_U64_SET (void) {
-  push_u64(59LL);
+    push_u64(59LL);
 }
 static void mw_PRIM_I8_GET (void) {
-  push_u64(60LL);
+    push_u64(60LL);
 }
 static void mw_PRIM_I8_SET (void) {
-  push_u64(61LL);
+    push_u64(61LL);
 }
 static void mw_PRIM_I16_GET (void) {
-  push_u64(62LL);
+    push_u64(62LL);
 }
 static void mw_PRIM_I16_SET (void) {
-  push_u64(63LL);
+    push_u64(63LL);
 }
 static void mw_PRIM_I32_GET (void) {
-  push_u64(64LL);
+    push_u64(64LL);
 }
 static void mw_PRIM_I32_SET (void) {
-  push_u64(65LL);
+    push_u64(65LL);
 }
 static void mw_PRIM_I64_GET (void) {
-  push_u64(66LL);
+    push_u64(66LL);
 }
 static void mw_PRIM_I64_SET (void) {
-  push_u64(67LL);
+    push_u64(67LL);
 }
 static void mw_PRIM_SYS_OS (void) {
-  push_u64(68LL);
+    push_u64(68LL);
 }
 static void mw_PRIM_SYS_ARGC (void) {
-  push_u64(69LL);
+    push_u64(69LL);
 }
 static void mw_PRIM_SYS_ARGV (void) {
-  push_u64(70LL);
+    push_u64(70LL);
 }
 static void mw_PRIM_POSIX_READ (void) {
-  push_u64(71LL);
+    push_u64(71LL);
 }
 static void mw_PRIM_POSIX_WRITE (void) {
-  push_u64(72LL);
+    push_u64(72LL);
 }
 static void mw_PRIM_POSIX_OPEN (void) {
-  push_u64(73LL);
+    push_u64(73LL);
 }
 static void mw_PRIM_POSIX_CLOSE (void) {
-  push_u64(74LL);
+    push_u64(74LL);
 }
 static void mw_PRIM_POSIX_EXIT (void) {
-  push_u64(75LL);
+    push_u64(75LL);
 }
 static void mw_PRIM_POSIX_MMAP (void) {
-  push_u64(76LL);
+    push_u64(76LL);
 }
 static void mw_PRIM_SYNTAX_MODULE (void) {
-  push_u64(77LL);
+    push_u64(77LL);
 }
 static void mw_PRIM_SYNTAX_IMPORT (void) {
-  push_u64(78LL);
+    push_u64(78LL);
 }
 static void mw_PRIM_SYNTAX_DEF (void) {
-  push_u64(79LL);
+    push_u64(79LL);
 }
 static void mw_PRIM_SYNTAX_DEF_MISSING (void) {
-  push_u64(80LL);
+    push_u64(80LL);
 }
 static void mw_PRIM_SYNTAX_DEF_TYPE (void) {
-  push_u64(81LL);
+    push_u64(81LL);
 }
 static void mw_PRIM_SYNTAX_BUFFER (void) {
-  push_u64(82LL);
+    push_u64(82LL);
 }
 static void mw_PRIM_SYNTAX_VARIABLE (void) {
-  push_u64(83LL);
+    push_u64(83LL);
 }
 static void mw_PRIM_SYNTAX_DEF_EXTERNAL (void) {
-  push_u64(84LL);
+    push_u64(84LL);
 }
 static void mw_PRIM_SYNTAX_TARGET_C99 (void) {
-  push_u64(85LL);
+    push_u64(85LL);
 }
 static void mw_PRIM_SYNTAX_EMBED_STR (void) {
-  push_u64(86LL);
+    push_u64(86LL);
 }
 static void mw_PRIM_SYNTAX_TABLE (void) {
-  push_u64(87LL);
+    push_u64(87LL);
 }
 static void mw_PRIM_SYNTAX_FIELD (void) {
-  push_u64(88LL);
+    push_u64(88LL);
 }
 static void mw_PRIM_SYNTAX_DATA (void) {
-  push_u64(89LL);
+    push_u64(89LL);
 }
 static void mw_PRIM_SYNTAX_DASHES (void) {
-  push_u64(90LL);
+    push_u64(90LL);
 }
 static void mw_PRIM_SYNTAX_ARROW (void) {
-  push_u64(91LL);
+    push_u64(91LL);
 }
 
 static void mw_STR_BUF (void) {
-  static u8 b[8192] = {0};
-  push_ptr(&b);
+    static u8 b[8192] = {0};
+    push_ptr(&b);
 }
 static void mw_INPUT_BUFFER (void) {
-  static u8 b[8208] = {0};
-  push_ptr(&b);
+    static u8 b[8208] = {0};
+    push_ptr(&b);
 }
 static void mw_Name_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_NAME_HASH_TABLE (void) {
-  static u8 b[524288] = {0};
-  push_ptr(&b);
+    static u8 b[524288] = {0};
+    push_ptr(&b);
 }
 static void mw_Module_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Token_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Buffer_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_MetaVar_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Data_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Tag_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Atom_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Arrow_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Lambda_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Block_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Match_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Case_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Var_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Word_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Table_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Field_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_CODEGEN_BUF (void) {
-  static u8 b[256] = {0};
-  push_ptr(&b);
+    static u8 b[256] = {0};
+    push_ptr(&b);
 }
 static void mw_External_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 static void mw_Variable_2E_NUM (void) {
-  static u8 b[8] = {0};
-  push_ptr(&b);
+    static u8 b[8] = {0};
+    push_ptr(&b);
 }
 
 void mw_STR_BUF_LEN() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_source_path_root() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_output_path_root() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_input_isopen() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_input_length() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_input_offset() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_input_handle() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_num_warnings() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_num_errors() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_lexer_module() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_lexer_row() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_lexer_col() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_lexer_stack() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_codegen_file() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_codegen_length() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_c99_depth() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_ab_home() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_ab_homeidx() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 void mw_ab_arrow() {
-  static value_t v = {0};
-  push_ptr(&v);
+    static value_t v = {0};
+    push_ptr(&v);
 }
 
 i64 stat (i64, i64);
 static void mw_stat (void) {
-  i64 x1 = pop_i64();
-  i64 x0 = pop_i64();
-  push_i64(stat(x0, x1));
+    i64 x1 = pop_i64();
+    i64 x0 = pop_i64();
+    push_i64(stat(x0, x1));
 }
 
 static void mw_id (void);
@@ -4574,10 +4574,10 @@ static void mw_prim_type (void);
 static void mw_prim_decl (void);
 
 int main (int argc, char** argv) {
-  global_argc = argc;
-  global_argv = argv;
+    global_argc = argc;
+    global_argv = argv;
     mw_main();
-  return 0;
+    return 0;
 }
 
 static void mw_id (void){
@@ -19130,7 +19130,7 @@ static void mw_c99_buffer_21_ (void){
     mw__2E_w();
     push_ptr(" {\0\0\0\0");
     mw__3B_();
-    push_ptr("  static u8 b[\0\0\0\0");
+    push_ptr("    static u8 b[\0\0\0\0");
     mw__2E_();
     mw_dup();
     mw_buffer_size();
@@ -19138,7 +19138,7 @@ static void mw_c99_buffer_21_ (void){
     mw__2E_n();
     push_ptr("] = {0};\0\0\0\0");
     mw__3B_();
-    push_ptr("  push_ptr(&b);\0\0\0\0");
+    push_ptr("    push_ptr(&b);\0\0\0\0");
     mw__3B_();
     push_ptr("}\0\0\0\0");
     mw__3B_();
@@ -19161,9 +19161,9 @@ static void mw_c99_variable_21_ (void){
     mw__2E_name();
     push_ptr("() {\0\0\0\0");
     mw__3B_();
-    push_ptr("  static value_t v = {0};\0\0\0\0");
+    push_ptr("    static value_t v = {0};\0\0\0\0");
     mw__3B_();
-    push_ptr("  push_ptr(&v);\0\0\0\0");
+    push_ptr("    push_ptr(&v);\0\0\0\0");
     mw__3B_();
     push_ptr("}\0\0\0\0");
     mw__3B_();
@@ -19192,7 +19192,7 @@ static void mw_c99_tag_21_ (void){
         push_i64(0LL);
         mw__3D__3D_();
         if (pop_u64()) {
-            push_ptr("  push_u64(\0\0\0\0");
+            push_ptr("    push_u64(\0\0\0\0");
             mw__2E_();
             mw_tag_value();
             mw__40_();
@@ -19200,7 +19200,7 @@ static void mw_c99_tag_21_ (void){
             push_ptr("LL);\0\0\0\0");
             mw__3B_();
         } else {
-            push_ptr("  value_t car = pop_value();\0\0\0\0");
+            push_ptr("    value_t car = pop_value();\0\0\0\0");
             mw__3B_();
             mw_tag_num_inputs_3F_();
             mw_1_();
@@ -19208,16 +19208,16 @@ static void mw_c99_tag_21_ (void){
             push_fnptr(&mb_c99_tag_21__5);
             do_pack_cons();
             mw_repeat();
-            push_ptr("  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = \0\0\0\0");
+            push_ptr("    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = \0\0\0\0");
             mw__2E_();
             mw_tag_value();
             mw__40_();
             mw__2E_n();
             push_ptr("LL } };\0\0\0\0");
             mw__3B_();
-            push_ptr("  car = mkcell(car, tag);\0\0\0\0");
+            push_ptr("    car = mkcell(car, tag);\0\0\0\0");
             mw__3B_();
-            push_ptr("  push_value(car);\0\0\0\0");
+            push_ptr("    push_value(car);\0\0\0\0");
             mw__3B_();
         }
     }
@@ -19296,9 +19296,9 @@ static void mw_c99_external_21_ (void){
     mw_dup();
     mw_0_3E_();
     if (pop_u64()) {
-        push_ptr("  push_i64(\0\0\0\0");
+        push_ptr("    push_i64(\0\0\0\0");
     } else {
-        push_ptr("  \0\0\0\0");
+        push_ptr("    \0\0\0\0");
     }
     mw__2E_();
     push_u64(0);
@@ -19334,7 +19334,7 @@ static void mw_c99_external_21_ (void){
     if (pop_u64()) {
         push_ptr(");\0\0\0\0");
     } else {
-        push_ptr(" ;\0\0\0\0");
+        push_ptr(";\0\0\0\0");
     }
     mw__3B_();
     push_ptr("}\0\0\0\0");
@@ -20071,19 +20071,19 @@ static void mw_c99_field_def_21_ (void){
     mw__2E_name();
     push_ptr(" (usize i) {\0\0\0\0");
     mw__3B_();
-    push_ptr("  static struct value_t * p = 0;\0\0\0\0");
+    push_ptr("    static struct value_t * p = 0;\0\0\0\0");
     mw__3B_();
-    push_ptr("  usize m = \0\0\0\0");
+    push_ptr("    usize m = \0\0\0\0");
     mw__2E_();
     mw_TABLE_MAX_SIZE();
     mw__2E_n();
     push_ptr(";\0\0\0\0");
     mw__3B_();
-    push_ptr("  if (!p) { p = calloc(m, sizeof *p); }\0\0\0\0");
+    push_ptr("    if (!p) { p = calloc(m, sizeof *p); }\0\0\0\0");
     mw__3B_();
-    push_ptr("  if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }\0\0\0\0");
+    push_ptr("    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }\0\0\0\0");
     mw__3B_();
-    push_ptr("  return p+i;\0\0\0\0");
+    push_ptr("    return p+i;\0\0\0\0");
     mw__3B_();
     push_ptr("}\0\0\0\0");
     mw__3B__3B_();
@@ -20093,9 +20093,9 @@ static void mw_c99_field_def_21_ (void){
     mw__2E_w();
     push_ptr("{\0\0\0\0");
     mw__3B_();
-    push_ptr("  usize index = (usize)pop_u64();\0\0\0\0");
+    push_ptr("    usize index = (usize)pop_u64();\0\0\0\0");
     mw__3B_();
-    push_ptr("  value_t *v = fieldptr_\0\0\0\0");
+    push_ptr("    value_t *v = fieldptr_\0\0\0\0");
     mw__2E_();
     mw_dup();
     mw_field_name();
@@ -20103,7 +20103,7 @@ static void mw_c99_field_def_21_ (void){
     mw__2E_name();
     push_ptr("(index);\0\0\0\0");
     mw__3B_();
-    push_ptr("  push_ptr(v);\0\0\0\0");
+    push_ptr("    push_ptr(v);\0\0\0\0");
     mw__3B_();
     push_ptr("}\0\0\0\0");
     mw__3B__3B_();
@@ -20113,15 +20113,15 @@ static void mw_c99_field_def_21_ (void){
 static void mw_c99_main_21_ (void){
     push_ptr("int main (int argc, char** argv) {\0\0\0\0");
     mw__3B_();
-    push_ptr("  global_argc = argc;\0\0\0\0");
+    push_ptr("    global_argc = argc;\0\0\0\0");
     mw__3B_();
-    push_ptr("  global_argv = argv;\0\0\0\0");
+    push_ptr("    global_argv = argv;\0\0\0\0");
     mw__3B_();
     push_u64(0);
     push_fnptr(&mb_c99_main_21__1);
     do_pack_cons();
     mw_c99_nest();
-    push_ptr("  return 0;\0\0\0\0");
+    push_ptr("    return 0;\0\0\0\0");
     mw__3B_();
     push_ptr("}\0\0\0\0");
     mw__3B__3B_();
@@ -32753,7 +32753,7 @@ static void mb_c99_tag_21__2 (void) {
     push_i64(0LL);
     mw__3D__3D_();
     if (pop_u64()) {
-        push_ptr("  push_u64(\0\0\0\0");
+        push_ptr("    push_u64(\0\0\0\0");
         mw__2E_();
         mw_tag_value();
         mw__40_();
@@ -32761,7 +32761,7 @@ static void mb_c99_tag_21__2 (void) {
         push_ptr("LL);\0\0\0\0");
         mw__3B_();
     } else {
-        push_ptr("  value_t car = pop_value();\0\0\0\0");
+        push_ptr("    value_t car = pop_value();\0\0\0\0");
         mw__3B_();
         mw_tag_num_inputs_3F_();
         mw_1_();
@@ -32769,23 +32769,23 @@ static void mb_c99_tag_21__2 (void) {
         push_fnptr(&mb_c99_tag_21__5);
         do_pack_cons();
         mw_repeat();
-        push_ptr("  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = \0\0\0\0");
+        push_ptr("    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = \0\0\0\0");
         mw__2E_();
         mw_tag_value();
         mw__40_();
         mw__2E_n();
         push_ptr("LL } };\0\0\0\0");
         mw__3B_();
-        push_ptr("  car = mkcell(car, tag);\0\0\0\0");
+        push_ptr("    car = mkcell(car, tag);\0\0\0\0");
         mw__3B_();
-        push_ptr("  push_value(car);\0\0\0\0");
+        push_ptr("    push_value(car);\0\0\0\0");
         mw__3B_();
     }
 }
 
 static void mb_c99_tag_21__3 (void) {
     do_drop();
-    push_ptr("  push_u64(\0\0\0\0");
+    push_ptr("    push_u64(\0\0\0\0");
     mw__2E_();
     mw_tag_value();
     mw__40_();
@@ -32796,7 +32796,7 @@ static void mb_c99_tag_21__3 (void) {
 
 static void mb_c99_tag_21__4 (void) {
     do_drop();
-    push_ptr("  value_t car = pop_value();\0\0\0\0");
+    push_ptr("    value_t car = pop_value();\0\0\0\0");
     mw__3B_();
     mw_tag_num_inputs_3F_();
     mw_1_();
@@ -32804,22 +32804,22 @@ static void mb_c99_tag_21__4 (void) {
     push_fnptr(&mb_c99_tag_21__5);
     do_pack_cons();
     mw_repeat();
-    push_ptr("  value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = \0\0\0\0");
+    push_ptr("    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = \0\0\0\0");
     mw__2E_();
     mw_tag_value();
     mw__40_();
     mw__2E_n();
     push_ptr("LL } };\0\0\0\0");
     mw__3B_();
-    push_ptr("  car = mkcell(car, tag);\0\0\0\0");
+    push_ptr("    car = mkcell(car, tag);\0\0\0\0");
     mw__3B_();
-    push_ptr("  push_value(car);\0\0\0\0");
+    push_ptr("    push_value(car);\0\0\0\0");
     mw__3B_();
 }
 
 static void mb_c99_tag_21__5 (void) {
     do_drop();
-    push_ptr("  car = mkcell(car, pop_value());\0\0\0\0");
+    push_ptr("    car = mkcell(car, pop_value());\0\0\0\0");
     mw__3B_();
 }
 
@@ -32918,7 +32918,7 @@ static void mb_c99_external_21__9 (void) {
 
 static void mb_c99_external_21__10 (void) {
     do_drop();
-    push_ptr("  i64 x\0\0\0\0");
+    push_ptr("    i64 x\0\0\0\0");
     mw__2E_();
     mw__2E_n();
     push_ptr(" = pop_i64();\0\0\0\0");
@@ -32927,12 +32927,12 @@ static void mb_c99_external_21__10 (void) {
 
 static void mb_c99_external_21__11 (void) {
     do_drop();
-    push_ptr("  push_i64(\0\0\0\0");
+    push_ptr("    push_i64(\0\0\0\0");
 }
 
 static void mb_c99_external_21__12 (void) {
     do_drop();
-    push_ptr("  \0\0\0\0");
+    push_ptr("    \0\0\0\0");
 }
 
 static void mb_c99_external_21__13 (void) {
@@ -32998,7 +32998,7 @@ static void mb_c99_external_21__18 (void) {
 
 static void mb_c99_external_21__19 (void) {
     do_drop();
-    push_ptr(" ;\0\0\0\0");
+    push_ptr(";\0\0\0\0");
 }
 
 static void mb_c99_nest_2 (void) {
@@ -38726,1263 +38726,1263 @@ static void mb_def_prim_21__1 (void) {
 
 
 static value_t* fieldptr_name_str (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_name_str (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_name_str(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_name_str(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_name_def (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_name_def (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_name_def(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_name_def(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_name_mangled (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_name_mangled (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_name_mangled(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_name_mangled(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_module_name (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_module_name (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_module_name(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_module_name(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_module_path (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_module_path (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_module_path(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_module_path(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_module_start (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_module_start (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_module_start(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_module_start(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_module_end (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_module_end (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_module_end(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_module_end(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_module_imports (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_module_imports (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_module_imports(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_module_imports(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_token_value (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_token_value (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_token_value(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_token_value(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_token_module (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_token_module (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_token_module(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_token_module(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_token_row (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_token_row (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_token_row(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_token_row(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_token_col (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_token_col (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_token_col(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_token_col(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_buffer_size (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_buffer_size (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_buffer_size(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_buffer_size(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_buffer_name (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_buffer_name (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_buffer_name(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_buffer_name(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_meta_type (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_meta_type (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_meta_type(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_meta_type(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_data_header (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_data_header (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_data_header(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_data_header(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_data_name (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_data_name (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_data_name(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_data_name(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_data_arity (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_data_arity (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_data_arity(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_data_arity(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_data_tags (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_data_tags (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_data_tags(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_data_tags(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_tag_data (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_tag_data (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_tag_data(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_tag_data(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_tag_name (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_tag_name (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_tag_name(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_tag_name(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_tag_value (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_tag_value (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_tag_value(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_tag_value(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_tag_sig (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_tag_sig (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_tag_sig(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_tag_sig(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_tag_ctx_type (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_tag_ctx_type (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_tag_ctx_type(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_tag_ctx_type(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_arrow_token_start (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_arrow_token_start (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_arrow_token_start(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_arrow_token_start(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_arrow_token_end (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_arrow_token_end (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_arrow_token_end(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_arrow_token_end(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_arrow_home (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_arrow_home (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_arrow_home(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_arrow_home(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_arrow_homeidx (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_arrow_homeidx (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_arrow_homeidx(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_arrow_homeidx(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_arrow_ctx (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_arrow_ctx (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_arrow_ctx(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_arrow_ctx(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_arrow_dom (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_arrow_dom (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_arrow_dom(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_arrow_dom(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_arrow_cod (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_arrow_cod (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_arrow_cod(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_arrow_cod(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_arrow_atoms (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_arrow_atoms (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_arrow_atoms(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_arrow_atoms(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_atom_token (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_atom_token (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_atom_token(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_atom_token(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_atom_ctx (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_atom_ctx (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_atom_ctx(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_atom_ctx(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_atom_op (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_atom_op (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_atom_op(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_atom_op(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_atom_args (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_atom_args (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_atom_args(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_atom_args(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_atom_dom (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_atom_dom (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_atom_dom(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_atom_dom(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_atom_cod (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_atom_cod (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_atom_cod(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_atom_cod(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_atom_subst (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_atom_subst (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_atom_subst(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_atom_subst(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_lambda_token (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_lambda_token (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_lambda_token(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_lambda_token(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_lambda_outer_ctx (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_lambda_outer_ctx (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_lambda_outer_ctx(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_lambda_outer_ctx(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_lambda_inner_ctx (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_lambda_inner_ctx (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_lambda_inner_ctx(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_lambda_inner_ctx(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_lambda_dom (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_lambda_dom (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_lambda_dom(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_lambda_dom(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_lambda_mid (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_lambda_mid (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_lambda_mid(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_lambda_mid(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_lambda_cod (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_lambda_cod (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_lambda_cod(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_lambda_cod(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_lambda_params (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_lambda_params (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_lambda_params(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_lambda_params(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_lambda_body (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_lambda_body (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_lambda_body(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_lambda_body(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_block_ctx (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_block_ctx (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_block_ctx(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_block_ctx(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_block_token (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_block_token (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_block_token(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_block_token(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_block_dom (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_block_dom (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_block_dom(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_block_dom(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_block_cod (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_block_cod (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_block_cod(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_block_cod(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_block_arrow (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_block_arrow (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_block_arrow(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_block_arrow(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_match_ctx (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_match_ctx (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_match_ctx(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_match_ctx(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_match_dom (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_match_dom (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_match_dom(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_match_dom(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_match_cod (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_match_cod (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_match_cod(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_match_cod(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_match_token (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_match_token (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_match_token(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_match_token(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_match_body (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_match_body (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_match_body(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_match_body(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_match_cases (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_match_cases (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_match_cases(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_match_cases(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_case_match (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_case_match (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_case_match(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_case_match(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_case_token (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_case_token (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_case_token(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_case_token(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_case_pattern (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_case_pattern (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_case_pattern(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_case_pattern(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_case_subst (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_case_subst (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_case_subst(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_case_subst(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_case_mid (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_case_mid (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_case_mid(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_case_mid(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_case_body (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_case_body (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_case_body(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_case_body(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_var_is_implicit (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_var_is_implicit (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_var_is_implicit(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_var_is_implicit(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_var_name (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_var_name (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_var_name(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_var_name(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_var_type (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_var_type (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_var_type(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_var_type(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_var_auto_run (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_var_auto_run (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_var_auto_run(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_var_auto_run(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_word_name (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_word_name (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_word_name(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_word_name(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_word_head (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_word_head (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_word_head(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_word_head(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_word_sig (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_word_sig (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_word_sig(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_word_sig(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_word_body (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_word_body (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_word_body(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_word_body(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_word_ctx_type (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_word_ctx_type (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_word_ctx_type(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_word_ctx_type(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_word_params (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_word_params (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_word_params(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_word_params(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_word_arrow (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_word_arrow (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_word_arrow(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_word_arrow(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_table_name (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_table_name (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_table_name(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_table_name(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_table_num_buffer (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_table_num_buffer (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_table_num_buffer(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_table_num_buffer(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_table_max_count (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_table_max_count (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_table_max_count(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_table_max_count(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_field_name (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_field_name (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_field_name(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_field_name(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_field_index_type (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_field_index_type (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_field_index_type(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_field_index_type(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_field_value_type (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_field_value_type (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_field_value_type(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_field_value_type(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_external_name (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_external_name (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_external_name(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_external_name(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_external_sig (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_external_sig (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_external_sig(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_external_sig(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_external_ctx_type (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_external_ctx_type (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_external_ctx_type(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_external_ctx_type(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_variable_name (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_variable_name (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_variable_name(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_variable_name(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_variable_type (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_variable_type (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_variable_type(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_variable_type(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_prim_name (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_prim_name (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_prim_name(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_prim_name(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_prim_ctx (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_prim_ctx (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_prim_ctx(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_prim_ctx(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_prim_type (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_prim_type (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_prim_type(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_prim_type(index);
+    push_ptr(v);
 }
 
 static value_t* fieldptr_prim_decl (usize i) {
-  static struct value_t * p = 0;
-  usize m = 65536;
-  if (!p) { p = calloc(m, sizeof *p); }
-  if (i>=m) { write(2,"table too big\n",14); exit(123); }
-  return p+i;
+    static struct value_t * p = 0;
+    usize m = 65536;
+    if (!p) { p = calloc(m, sizeof *p); }
+    if (i>=m) { write(2,"table too big\n",14); exit(123); }
+    return p+i;
 }
 
 static void mw_prim_decl (void){
-  usize index = (usize)pop_u64();
-  value_t *v = fieldptr_prim_decl(index);
-  push_ptr(v);
+    usize index = (usize)pop_u64();
+    value_t *v = fieldptr_prim_decl(index);
+    push_ptr(v);
 }
 
 
