@@ -105,7 +105,7 @@ def(.p, Prim --, prim-name @ .w)
 def(.pm, Prim --, "#define mw_" . prim-name @ .name "() " .)
 
 embed-str(c99-header-str, "src/mirth/mirth.h")
-def(c99-header!, --, c99-header-str .)
+def(c99-header!, --, c99-header-str . .lf)
 
 def(c99-buffers!, --, Buffer.for(c99-buffer!) .lf)
 def(c99-buffer!, Buffer --,
