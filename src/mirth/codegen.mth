@@ -1422,7 +1422,7 @@ def(c99-block-def!, Block --,
         dup c99-arrow!
         arrow-ctx @ c99-decref-ctx!
     )
-    "}" ;)
+    c99-line("}" .) .lf)
 
 def(.block, Block -- ,
     "mb_" .
