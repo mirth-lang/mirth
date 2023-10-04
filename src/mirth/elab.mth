@@ -845,6 +845,13 @@ def(token-def-args, Token -- Token Maybe(Token) List+(Token),
         )
     ))
 
+||| Elaborate a missing word definition `def-missing(w,t,b...)`
+def(elab-def-missing!, Token -- Token,
+    dup token-succ token-succ token-name@ name-defined? nip if(
+        token-next,
+        elab-def!
+    ))
+
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, Token -- Token,
     sip(token-next) token-def-args

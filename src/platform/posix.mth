@@ -113,7 +113,7 @@ def(with-raw-path(f), (*a RawPtr -- *b) *a Path -- *b Path,
 
 def(is-directory?, Path -- Path Bool,
     with-raw-path(
-        256 prim.ptr.alloc with-raw-ptr(stat)
+        256 prim-ptr-alloc with-raw-ptr(stat)
         swap 0 == if(
             st_mode@ S_ISDIR,
             drop false

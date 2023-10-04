@@ -1,5 +1,5 @@
 ||| Module header should be required.
-def(my-id, Int -- Int, prim.core.id)
+def(my-id, Int -- Int, prim-id)
 
 # mirth-test # merr # 2:1: error: Expected module header.
 # mirth-test # mret # 1

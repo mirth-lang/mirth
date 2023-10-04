@@ -50,15 +50,15 @@ def(., Str --,
     dup codegen-length @ + CODEGEN_BUF_SIZE > if(
         codegen-flush!
         while(dup CODEGEN_BUF_SIZE >,
-            over CODEGEN_BUF_SIZE CODEGEN_BUF prim.ptr.copy
+            over CODEGEN_BUF_SIZE CODEGEN_BUF prim-ptr-copy
             CODEGEN_BUF_SIZE codegen-length !
             codegen-flush!
             dip(CODEGEN_BUF_SIZE swap ptr+)
             CODEGEN_BUF_SIZE -
         )
-        dup codegen-length ! CODEGEN_BUF prim.ptr.copy,
+        dup codegen-length ! CODEGEN_BUF prim-ptr-copy,
 
-        sip(codegen-length @ CODEGEN_BUF ptr+ prim.ptr.copy)
+        sip(codegen-length @ CODEGEN_BUF ptr+ prim-ptr-copy)
         codegen-length modify(+)
     ))
 
@@ -1143,7 +1143,7 @@ def(c99-emit-prims!, --,
     PRIM_STR_ALLOC .p "{" ;
     "    i64 psize = pop_i64();" ;
     "    push_i64(psize + 4);" ;
-    "    mw_prim_2E_ptr_2E_alloc();" ;
+    "    mw_prim_ptr_alloc();" ;
     "}" ;;
 
     PRIM_STR_BASE .pm "0" ;;

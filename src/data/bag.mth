@@ -194,10 +194,10 @@ def(bag-replace-key++, Bag+([v k]) [v k] -- Bag+([v k]),
     ))
 
 ||| Compare two pairs by their top item (the "key").
-def(==key, [v k] [v k] -- Bool, dip(.0) .0 ==)
+def(==key, [v k] [v k] -- Bool, dip(unpack2 nip) unpack2 nip ==)
 
 ||| Compare two pairs by their top item (the "key").
-def(<=key, [v k] [v k] -- Bool, dip(.0) .0 <=)
+def(<=key, [v k] [v k] -- Bool, dip(unpack2 nip) unpack2 nip <=)
 
 ||| Get underlying list of values from bag.
 def(bag-values, Bag(v) -- List(v), unBAG)
