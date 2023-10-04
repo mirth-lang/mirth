@@ -149,6 +149,8 @@ def(repeat(f), (*a -- *a) *a Int -- *a,
 
 def(count(f), (*a Int -- *a) *a Int -- *a,
     0 swap repeat(dup dip(f) 1+) drop)
+def(countdown(f), (*a Int -- *a) *a Int -- *a,
+    dup 1- swap repeat(dup dip(f) 1-) drop)
 
 def-type(Byte, U8)
 def-type(Size, Int)

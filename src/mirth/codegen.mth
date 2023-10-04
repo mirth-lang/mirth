@@ -1170,31 +1170,16 @@ def(c99-external!, External --,
     dip2(dup external-name @ .name)
 
     " (" .
-    over dup 0> if(
-        "i64" .
-        1- while(dup 0>,
-            ", i64" .
-            1-
-        ) drop,
-        drop "void" .
-    ) ");" ;
+    over dup 0> if("i64" . 1- repeat(", i64" .), drop "void" .)
+    ");" ;
 
     "static void mw_" . dip2(dup external-name @ .name) " (void) {" ;
-    over while(dup 0>,
-        "  i64 x" . dup .n " = pop_i64();" ;
-        1-
-    ) drop
+    over countdown("  i64 x" . .n " = pop_i64();" ;)
     dup 0> if("  push_i64(", "  ") .
     dip2(dup external-name @ .name)
     "(" .
     dip(dup 0> if(
-        "x1" .
-        dup 1-
-        while(dup 0>,
-            ", x" .
-            dup2 - 1+ .n
-            1-
-        ) drop,
+        dup 1- dup count("x" . .n ", " .) "x" . .n,
         id
     ))
     ")" .
@@ -1224,7 +1209,7 @@ def(c99-atom!, Atom --,
 def(c99-args-op!, List(Arg) Op --,
     OP_NONE     -> drop,
     OP_INT      -> nip c99-line("push_i64(" . .n "LL);" .),
-    OP_STR      -> nip c99-line(c99-string!),
+    OP_STR      -> nip c99-string!,
     OP_WORD     -> word-name     @ c99-call!,
     OP_EXTERNAL -> external-name @ c99-call!,
     OP_BUFFER   -> buffer-name   @ c99-call!,
@@ -1238,9 +1223,9 @@ def(c99-args-op!, List(Arg) Op --,
     OP_BLOCK    -> nip c99-block-push!)
 
 def(c99-string!, Str --,
-    "  push_ptr(\"" .
+    c99-line("push_ptr(\"" .
     str-for(c99-string-char!)
-    "\\0\\0\\0\");" ; # wide sentinel is desirable
+    "\\0\\0\\0\");" .) # wide sentinel is desirable
     )
 
 def(c99-string-char!, Char --,
@@ -1323,54 +1308,53 @@ def(c99-arg-run!, Arg --,
     ARG_BLOCK -> block-arrow force! c99-arrow!,
     ARG_VAR_RUN -> c99-var!)
 
-def(.var-val, Var --,
-    "var_" . dup var-name @ .name
-    drop) # "_" . Var.id .n)
-    # TODO append an int for shadowing variables
+def(.var, Var --, "var_" . var-name @ .name)
+def(.param, Param --, Param->Var .var)
 
 def(c99-pack-ctx!, Ctx --,
-    "  push_u64(0);" ;
+    c99-line("push_u64(0);" .)
     ctx-physical-vars for(
         c99-var-push!
-        "  do_pack_cons();" ;
+        c99-line("do_pack_cons();" .)
     ))
 
 def(c99-unpack-ctx!, Ctx --,
     ctx-physical-vars reverse-for(
-        "  do_pack_uncons();" ;
-        "  value_t " . .var-val " = pop_value();" ;
-        )
-    "  do_drop();" ;
+        c99-line("do_pack_uncons();" .)
+        c99-line("value_t " . .var " = pop_value();" .)
     )
+    c99-line("do_drop();" .))
 
 def(c99-decref-ctx!, Ctx --,
     ctx-physical-vars reverse-for(
-        "  decref(" . .var-val ");" ;
+        c99-line("decref(" . .var ");" .)
     ))
 
 def(c99-block-push!, Block --,
     dup block-arrow force! arrow-ctx @ c99-pack-ctx!
-    "  push_fnptr(&" . .block ");" ;
-    "  do_pack_cons();" ;)
+    c99-line("push_fnptr(&" . .block ");" .)
+    c99-line("do_pack_cons();" .))
 
 def(c99-var!, Var --,
     dup var-auto-run @ dip(c99-var-push!)
-    if("  do_run();" ;, id))
+    if(c99-line("do_run();" .), id))
 
 def(c99-var-push!, Var --,
-    "  push_value(" . dup .var-val ");" ;
-    "  incref(" . .var-val ");" ;)
+    c99-line("push_value(" . dup .var ");" .)
+    c99-line("incref(" . .var ");" .))
 
 def(c99-lambda!, Lambda --,
-    "  {" ;
-    dup lambda-params @ reverse-for(
-        "  value_t " . Param->Var .var-val " = pop_value();" ;
+    c99-line("{" .)
+    c99-nest(
+        dup lambda-params @ reverse-for(
+            c99-line("value_t " . .param " = pop_value();" .)
         )
-    dup lambda-body @ c99-arrow!
-    lambda-params @ reverse-for(
-        "  decref(" . Param->Var .var-val ");" ;
+        dup lambda-body @ c99-arrow!
+        lambda-params @ reverse-for(
+            c99-line("decref(" . .param ");" .)
         )
-    "  }" ;)
+    )
+    c99-line("}" .))
 
 def(c99-match!, Match --,
     match-is-transparent? if(
@@ -1381,35 +1365,37 @@ def(c99-match!, Match --,
                 case-body @ c99-arrow! drop
         ),
 
-        "  switch (get_top_data_tag()) {" ;
-        dup match-cases @ for(c99-case!)
-        match-has-default-case? if(
-            id,
-            "  default: write(2, \"unexpected fallthrough in match\\n\", 32); do_debug(); exit(99);" ;
+        c99-line("switch (get_top_data_tag()) {" .)
+        c99-nest(
+            dup match-cases @ for(c99-case!)
+            match-has-default-case? if(
+                id,
+                c99-line("default: write(2, \"unexpected fallthrough in match\\n\", 32); do_debug(); exit(99);" .)
+            )
+            drop
         )
-        drop
-        "  }" ;
+        c99-line("}").
     ))
 
 def(c99-case!, Case --,
     dup case-pattern @ c99-pattern!
-    case-body @ c99-arrow!
-    "  break;" ;)
+    c99-nest(
+        case-body @ c99-arrow!
+        c99-line("break;" .)
+    ))
 
 def(c99-pattern!, Pattern --,
     PATTERN_UNDERSCORE ->
-        "  default:" ; ,
+        c99-line("default:" .),
 
     PATTERN_TAG ->
-        "  case " . dup tag-value @ .n "LL:" ;
-        tag-num-inputs? nip
-        dup 0 > if(
-            "  do_pack_uncons(); do_drop();" ;
-            while(dup 1 >,
-                "  do_pack_uncons(); do_swap();" ;
-                1-)
-            drop,
-            drop "  do_drop();" ;
+        c99-line("case " . dup tag-value @ .n "LL:" .)
+        c99-nest(
+            tag-num-inputs? nip dup 0 > if(
+                c99-line("do_pack_uncons(); do_drop();" .)
+                1- repeat(c99-line("do_pack_uncons(); do_swap();" .)),
+                drop c99-line("do_drop();" .)
+            )
         )
     )
 
@@ -1419,25 +1405,23 @@ def(c99-word-sigs!, --,
 def(c99-word-sig!, Word --,
     c99-line("static void mw_" . word-name @ .name " (void);" .))
 
-def(c99-block-sigs!, --,
-    Block.for(c99-block-sig!) .lf)
-
+def(c99-block-sigs!, --, Block.for(c99-block-sig!) .lf)
 def(c99-block-sig!, Block --,
-    " static void " . .block " (void);" ;)
+    c99-line("static void " . .block " (void);" .))
 
-def(c99-field-sigs!, --,
-    Field.for(c99-field-sig!) .lf)
-
+def(c99-field-sigs!, --, Field.for(c99-field-sig!) .lf)
 def(c99-field-sig!, Field --,
-    " static void mw_" . field-name @ .name " (void);" ;)
+    c99-line("static void mw_" . field-name @ .name " (void);" .))
 
 def(c99-block-defs!, --, Block.for(c99-block-def!) .lf)
 def(c99-block-def!, Block --,
-    "static void " . dup .block " (void) {" ;
-    block-arrow force!
-    dup arrow-ctx @ c99-unpack-ctx!
-    dup c99-arrow!
-    arrow-ctx @ c99-decref-ctx!
+    c99-line("static void " . dup .block " (void) {" .)
+    c99-nest(
+        block-arrow force!
+        dup arrow-ctx @ c99-unpack-ctx!
+        dup c99-arrow!
+        arrow-ctx @ c99-decref-ctx!
+    )
     "}" ;)
 
 def(.block, Block -- ,
@@ -1451,7 +1435,7 @@ def(.block, Block -- ,
 def(c99-word-defs!, --, Word.for(c99-word-def!) .lf)
 def(c99-word-def!, Word --,
     dup word-name @ .w "{" ;
-    word-arrow force! c99-arrow!
+    word-arrow force! c99-nest(c99-arrow!)
     "}" ;;)
 
 def(c99-field-defs!, --, Field.for(c99-field-def!) .lf)
@@ -1462,7 +1446,7 @@ def(c99-field-def!, Field --,
     "  if (!p) { p = calloc(m, sizeof *p); }" ;
     "  if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }" ;
     "  return p+i;" ;
-    "}" ; # TODO make this more flexible wrt table size
+    "}" ;;  # TODO make this more flexible wrt table size
             # note it's important to have stability,
             # so we can't just realloc as we used to.
     dup field-name @ .w "{" ;
@@ -1477,6 +1461,6 @@ def(c99-main!, Arrow --,
     "int main (int argc, char** argv) {" ;
     "  global_argc = argc;" ;
     "  global_argv = argv;" ;
-    c99-arrow!
+    c99-nest(c99-arrow!)
     "  return 0;" ;
-    "}" ;)
+    "}" ;;)
