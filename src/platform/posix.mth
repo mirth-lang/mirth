@@ -79,7 +79,8 @@ def(read-file!, File -- Str,
             swap dip(+ dup) swap 2 * prim-ptr-realloc
             dup2 ptr+ over2 dip2(fp) prim-posix-read)
         0 < if("io error while reading file" panic!, id)
-        swap 4 + prim-ptr-realloc Ptr->Str
+        over 4 + prim-ptr-realloc
+        tuck ptr+ 0 Int->U32 swap u32! Ptr->Str
     ))
 
 def(open-file!, Str -- File,
