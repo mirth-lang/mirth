@@ -9397,12 +9397,12 @@ static void mw_with_open_file_21_ (void){
 
 static void mw_read_file_21_ (void){
     mw_File__3E_Int();
-    push_i64(65536LL);
+    push_i64(131072LL);
     mw_prim_ptr_alloc();
     mw_tuck();
-    push_i64(65536LL);
+    push_i64(131072LL);
     mw_prim_posix_read();
-    push_i64(65536LL);
+    push_i64(131072LL);
     push_i64(4LL);
     mw__();
     mw__3C_();

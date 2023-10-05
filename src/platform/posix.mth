@@ -72,10 +72,10 @@ def(with-open-file!(f,g), (*a File -- *b, *a -- *b) *a Str -- *b,
 
 def(read-file!, File -- Str,
     File->Int
-    0x10000 prim-ptr-alloc tuck
-    0x10000 prim-posix-read
+    0x20000 prim-ptr-alloc tuck
+    0x20000 prim-posix-read
     # TODO handle error
-    0x10000 4 - < if(id, "read too much" panic!)
+    0x20000 4 - < if(id, "read too much" panic!)
     # TODO don't panic ... just expand buffer and continue reading
     # TODO realloc
     Ptr->Str)
