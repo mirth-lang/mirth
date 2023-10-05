@@ -67,6 +67,22 @@ def(int-trace!, Int --, stderr int-write!)
 def(int-print-ln!, Int --, int-print! print-ln!)
 def(int-trace-ln!, Int --, int-trace! trace-ln!)
 
+def(with-open-file!(f,g), (*a File -- *b, *a -- *b) *a Str -- *b,
+    0 0 posix-open! dup 0 < if(drop g, dup dip(Int->File f) posix-close! drop))
+
+def(read-file!, File -- Str,
+    File->Int \(fp ->
+        0 0x1000 prim-ptr-alloc
+        fp over 0x1000 prim-posix-read
+        while(dup 0 >,
+            { Int Ptr Int }
+            swap dip(+ dup) swap 2 * prim-ptr-realloc
+            dup2 ptr+ over2 dip2(fp) prim-posix-read)
+        0 < if("io error while reading file" panic!, id)
+        over 4 + prim-ptr-realloc
+        tuck ptr+ 0 Int->U32 swap u32! Ptr->Str
+    ))
+
 def(open-file!, Str -- File,
     0 0 posix-open!
     dup 0 < if(
@@ -113,7 +129,7 @@ def(with-raw-path(f), (*a RawPtr -- *b) *a Path -- *b Path,
 
 def(is-directory?, Path -- Path Bool,
     with-raw-path(
-        256 prim.ptr.alloc with-raw-ptr(stat)
+        256 prim-ptr-alloc with-raw-ptr(stat)
         swap 0 == if(
             st_mode@ S_ISDIR,
             drop false
