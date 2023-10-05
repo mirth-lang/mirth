@@ -218,10 +218,12 @@ def(c99-str!, Str --,
         c99-nest(
             c99-line("static u8 b[] = {" .)
             c99-nest(
-                c99-indent 16 swap
+                c99-indent 256 swap
                 str-for(char-bytes for(
-                    U8->Int .n "," .
-                    1- dup 0= if(drop .lf c99-indent 16, id)
+                    U8->Int dup 13 == if(drop, # TODO CRLF hack, do better
+                        dup .n "," .
+                        dip(1- dup 0=) 10 == || if(drop .lf c99-indent 256, id)
+                    )
                 ))
                 drop .lf
                 c99-line("0,0,0,0," .)
