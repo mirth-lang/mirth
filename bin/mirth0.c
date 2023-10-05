@@ -3236,8 +3236,12 @@ static void mb_str_buf_int_21__7 (void);
 static void mb_with_open_file_21__2 (void);
 static void mb_with_open_file_21__3 (void);
 static void mb_with_open_file_21__4 (void);
-static void mb_read_file_21__1 (void);
 static void mb_read_file_21__2 (void);
+static void mb_read_file_21__3 (void);
+static void mb_read_file_21__4 (void);
+static void mb_read_file_21__5 (void);
+static void mb_read_file_21__6 (void);
+static void mb_read_file_21__7 (void);
 static void mb_open_file_21__1 (void);
 static void mb_open_file_21__2 (void);
 static void mb_create_file_21__1 (void);
@@ -9394,22 +9398,59 @@ static void mw_with_open_file_21_ (void){
 
 static void mw_read_file_21_ (void){
     mw_File__3E_Int();
-    push_i64(131072LL);
-    mw_prim_ptr_alloc();
-    mw_tuck();
-    push_i64(131072LL);
-    mw_prim_posix_read();
-    push_i64(131072LL);
-    push_i64(4LL);
-    mw__();
-    mw__3C_();
-    if (pop_u64()) {
-        mw_id();
-    } else {
-        push_ptr("read too much\0\0\0\0");
-        mw_panic_21_();
+    {
+        value_t var_fp = pop_value();
+        push_i64(0LL);
+        push_i64(4096LL);
+        mw_prim_ptr_alloc();
+        push_value(var_fp);
+        incref(var_fp);
+        mw_over();
+        push_i64(4096LL);
+        mw_prim_posix_read();
+        while(1) {
+            mw_dup();
+            push_i64(0LL);
+            mw__3E_();
+            if (!pop_u64()) break;
+            mw_swap();
+            {
+                value_t d4 = pop_value();
+                mw__2B_();
+                mw_dup();
+                push_value(d4);
+            }
+            mw_swap();
+            push_i64(2LL);
+            mw__2A_();
+            mw_prim_ptr_realloc();
+            mw_dup2();
+            mw_ptr_2B_();
+            mw_over2();
+            push_u64(0);
+            push_value(var_fp);
+            incref(var_fp);
+            do_pack_cons();
+            push_fnptr(&mb_read_file_21__5);
+            do_pack_cons();
+            mw_dip2();
+            mw_prim_posix_read();
+        }
+        push_i64(0LL);
+        mw__3C_();
+        if (pop_u64()) {
+            push_ptr("io error while reading file\0\0\0\0");
+            mw_panic_21_();
+        } else {
+            mw_id();
+        }
+        mw_swap();
+        push_i64(4LL);
+        mw__2B_();
+        mw_prim_ptr_realloc();
+        mw_Ptr__3E_Str();
+        decref(var_fp);
     }
-    mw_Ptr__3E_Str();
 }
 
 static void mw_open_file_21_ (void){
@@ -17151,7 +17192,7 @@ static void mw__2E_pm (void){
 
 static void mw_c99_header_21_ (void){
     {
-        static u8 b[131068] = {
+        static u8 b[31269] = {
             47,42,32,77,73,82,84,72,32,72,69,65,68,69,82,32,42,47,10,
             10,
             35,105,102,32,100,101,102,105,110,101,100,40,87,73,78,51,50,41,32,124,124,32,100,101,102,105,110,101,100,40,95,87,73,78,51,50,41,32,124,124,32,100,101,102,105,110,101,100,40,95,95,87,73,78,51,50,95,95,41,32,124,124,32,100,101,102,105,110,101,100,40,95,95,78,84,95,95,41,10,
@@ -25925,15 +25966,78 @@ static void mb_with_open_file_21__4 (void) {
     decref(var_g);
 }
 
-static void mb_read_file_21__1 (void) {
+static void mb_read_file_21__2 (void) {
+    do_pack_uncons();
+    value_t var_fp = pop_value();
     do_drop();
-    mw_id();
+    mw_dup();
+    push_i64(0LL);
+    mw__3E_();
+    decref(var_fp);
 }
 
-static void mb_read_file_21__2 (void) {
+static void mb_read_file_21__3 (void) {
+    do_pack_uncons();
+    value_t var_fp = pop_value();
     do_drop();
-    push_ptr("read too much\0\0\0\0");
+    mw_swap();
+    {
+        value_t d2 = pop_value();
+        mw__2B_();
+        mw_dup();
+        push_value(d2);
+    }
+    mw_swap();
+    push_i64(2LL);
+    mw__2A_();
+    mw_prim_ptr_realloc();
+    mw_dup2();
+    mw_ptr_2B_();
+    mw_over2();
+    push_u64(0);
+    push_value(var_fp);
+    incref(var_fp);
+    do_pack_cons();
+    push_fnptr(&mb_read_file_21__5);
+    do_pack_cons();
+    mw_dip2();
+    mw_prim_posix_read();
+    decref(var_fp);
+}
+
+static void mb_read_file_21__4 (void) {
+    do_pack_uncons();
+    value_t var_fp = pop_value();
+    do_drop();
+    mw__2B_();
+    mw_dup();
+    decref(var_fp);
+}
+
+static void mb_read_file_21__5 (void) {
+    do_pack_uncons();
+    value_t var_fp = pop_value();
+    do_drop();
+    push_value(var_fp);
+    incref(var_fp);
+    decref(var_fp);
+}
+
+static void mb_read_file_21__6 (void) {
+    do_pack_uncons();
+    value_t var_fp = pop_value();
+    do_drop();
+    push_ptr("io error while reading file\0\0\0\0");
     mw_panic_21_();
+    decref(var_fp);
+}
+
+static void mb_read_file_21__7 (void) {
+    do_pack_uncons();
+    value_t var_fp = pop_value();
+    do_drop();
+    mw_id();
+    decref(var_fp);
 }
 
 static void mb_open_file_21__1 (void) {
@@ -32012,6 +32116,8 @@ static void mb_c99_str_21__4 (void) {
     mw__2E_();
     mw_dup();
     mw_str_size();
+    push_i64(4LL);
+    mw__2B_();
     mw__2E_n();
     push_ptr("] = {\0\0\0\0");
     mw__2E_();
