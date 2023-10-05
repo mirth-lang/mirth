@@ -7,7 +7,7 @@
 #elif defined(__APPLE__)
 #define MIRTH_MACOS 1
 #else
-#error \"Platform not supported.\"
+#error "Platform not supported."
 #endif
 
 #include <stdint.h>
