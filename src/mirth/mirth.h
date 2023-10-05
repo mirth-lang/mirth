@@ -12,6 +12,11 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -22,21 +27,6 @@ typedef int16_t i16;
 typedef int32_t i32;
 typedef int64_t i64;
 typedef uintptr_t usize;
-
-extern void* mmap(void*, int, int, int, int, int);
-extern void* malloc(usize);
-extern void* calloc(usize, usize);
-extern void* realloc(void*, usize);
-extern void* memset(void*, int, usize);
-extern void* memcpy(void*, const void*, usize);
-extern void free(void*);
-extern usize strlen(const char*);
-extern int read(int, void*, usize);
-extern int write(int, void*, usize);
-extern int close(int);
-extern int open(void*, int, int);
-extern int strcmp(const char*, const char*);
-extern void exit(int);
 
 typedef enum TAG {
     VT_U64 = 0x00,
@@ -71,14 +61,14 @@ typedef struct VAL {
     TAG tag;
 } VAL;
 
-typedef struct cell_t {
+typedef struct CONS {
     u32 refs;
     bool freecdr;
     VAL car;
     VAL cdr;
-} cell_t;
+} CONS;
 
-#define STACK_SIZE 0x1000
+#define STACK_SIZE 0x8000
 static usize stack_counter = STACK_SIZE;
 static VAL stack [STACK_SIZE] = {0};
 
@@ -86,7 +76,7 @@ static VAL stack [STACK_SIZE] = {0};
 #define HEAP_MASK 0x7FFFF
 static usize heap_next = 1;
 static usize heap_count = 0;
-static cell_t heap [HEAP_SIZE] = {0};
+static CONS heap [HEAP_SIZE] = {0};
 
 static int global_argc;
 static char** global_argv;
@@ -98,9 +88,9 @@ static char** global_argv;
 #define decref(v) do{ VAL w = (v); usize i = get_cell_index(w); if(i) { if(heap[i].refs) { heap[i].refs--; if (heap[i].refs == 0) heap_free(i); } }} while(0)
 
 static void heap_free(usize i) {
-    cell_t *cell = heap + i;
-    cell_t contents = *cell;
-    memset(cell, 0, sizeof(cell_t));
+    CONS *cell = heap + i;
+    CONS contents = *cell;
+    memset(cell, 0, sizeof(CONS));
     cell->cdr.data.vp_u64 = heap_next;
     heap_next = i;
     heap_count--;
@@ -109,7 +99,7 @@ static void heap_free(usize i) {
     decref(contents.car);
 }
 
-#define decref_for_uncons(v) do{ VAL w = (v); usize i = get_cell_index(w); if(i) { if (heap[i].refs) { heap[i].refs--; if (heap[i].refs == 0) { memset(heap+i, 0, sizeof(cell_t)); heap[i].cdr.data.vp_u64 = heap_next; heap_next = i; heap_count--; } else { cell_t cell = heap[i]; incref(cell.car); incref(cell.cdr); } } } } while(0)
+#define decref_for_uncons(v) do{ VAL w = (v); usize i = get_cell_index(w); if(i) { if (heap[i].refs) { heap[i].refs--; if (heap[i].refs == 0) { memset(heap+i, 0, sizeof(CONS)); heap[i].cdr.data.vp_u64 = heap_next; heap_next = i; heap_count--; } else { CONS cell = heap[i]; incref(cell.car); incref(cell.cdr); } } } } while(0)
 static void value_uncons(VAL val, VAL* car, VAL* cdr) {
     switch (val.tag) {
         case VT_U64: {
@@ -125,7 +115,7 @@ static void value_uncons(VAL val, VAL* car, VAL* cdr) {
             cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
         } break;
         case VT_C64: {
-            cell_t* cell = heap + val.data.vp_u64;
+            CONS* cell = heap + val.data.vp_u64;
             *car = cell->car;
             *cdr = cell->cdr;
         } break;
@@ -180,7 +170,7 @@ static void value_uncons(VAL val, VAL* car, VAL* cdr) {
 static bool value_has_ptr_offset (VAL v) {
     if (v.tag == VT_C64) {
         usize cell_index = (usize)v.data.vp_u64;
-        struct cell_t * cell = heap + cell_index;
+        struct CONS * cell = heap + cell_index;
         return !cell->freecdr;
     } else {
         return v.tag != VT_U64;
@@ -236,7 +226,7 @@ static i64 value_ptr_offset (VAL v) {
 }
 
 static void* value_ptr (VAL v) {
-    usize cell_index; cell_t* cell; usize offset;
+    usize cell_index; CONS* cell; usize offset;
     switch (v.tag) {
         case VT_U64: return v.data.vp_ptr;
         case VT_C64:
@@ -404,7 +394,7 @@ static VAL mkcell (VAL car, VAL cdr) {
         exit(1);
     }
     u64 cell_index = heap_next;
-    cell_t *cell = heap + cell_index;
+    CONS *cell = heap + cell_index;
     while ((cell->refs > 0) && (cell_index < HEAP_SIZE)) { cell++; cell_index++; }
     if (cell_index >= HEAP_SIZE - 1) {
         write(2, "HEAP OVERFLOW\n", 14);
@@ -425,7 +415,7 @@ static VAL mkcell (VAL car, VAL cdr) {
 
 static VAL mkcell_raw (VAL car, VAL cdr) {
     u64 cell_index = heap_next;
-    cell_t *cell = heap + cell_index;
+    CONS *cell = heap + cell_index;
     while ((cell->refs > 0) && (cell_index < HEAP_SIZE)) { cell++; cell_index++; }
     if (cell_index >= HEAP_SIZE - 1) {
         write(2, "HEAP OVERFLOW\n", 14);
@@ -450,7 +440,7 @@ static VAL mkcell_freecdr (VAL car, VAL cdr) {
         exit(1);
     }
     u64 cell_index = heap_next;
-    cell_t *cell = heap + cell_index;
+    CONS *cell = heap + cell_index;
     while ((cell->refs > 0) && (cell_index < HEAP_SIZE)) { cell++; cell_index++; }
     if (cell_index >= HEAP_SIZE - 1) {
         write(2, "HEAP OVERFLOW\n", 14);
@@ -502,7 +492,7 @@ static i64 value_cmp_hard(VAL v1, VAL v2) {
 #define value_eq(v1,v2) (((v1).tag == (v2).tag) && (((v1).data.vp_u64 == (v2).data.vp_u64) || (((v1).tag & 0x80) && value_eq_hard((v1),(v2)))))
 
 static bool value_eq_hard(VAL v1, VAL v2) {
-    usize c1_index, c2_index; cell_t *c1, *c2;
+    usize c1_index, c2_index; CONS *c1, *c2;
     while (1) {
         if (v1.tag != v2.tag) return false;
         if (v1.data.vp_u64 == v2.data.vp_u64) return true;
@@ -769,7 +759,7 @@ static void mw_prim_ptr_realloc (void) {
     usize new_size = (usize)psize;
     if ((vptr.tag == VT_C64) && !value_has_ptr_offset(vptr)) {
         usize cell_index = get_cell_index(vptr);
-        cell_t *cell = heap + cell_index;
+        CONS *cell = heap + cell_index;
         usize old_size = (usize)cell->car.data.vp_u64;
         void* old_ptr = cell->cdr.data.vp_ptr;
         void* new_ptr = realloc(old_ptr, new_size);
@@ -843,6 +833,6 @@ static void mw_prim_str_alloc (void) {
 
 #define mw_prim_mut_new() do { VAL car = pop_value(); VAL cdr = { 0 }; push_value(mkcell_raw(car,cdr)); } while(0)
 #define mw_prim_mut_get() do { VAL mut = pop_value(); if (mut.tag == VT_U64 && mut.data.vp_valueptr) { VAL val =*mut.data.vp_valueptr; push_value(val); incref(val); } else { push_value(mut); do_pack_uncons(); pop_value(); } } while(0)
-#define mw_prim_mut_set() do { VAL mut = pop_value(); VAL newval = pop_value(); push_value(mut); if (mut.tag == VT_U64 && mut.data.vp_valueptr) { VAL oldval = *mut.data.vp_valueptr; *mut.data.vp_valueptr = newval; decref(oldval); } else { usize cellidx = get_cell_index(mut); if (cellidx) { cell_t* cell = heap + cellidx; VAL oldval = cell->car; cell->car = newval; decref(oldval); } else { decref(newval); } } } while(0)
+#define mw_prim_mut_set() do { VAL mut = pop_value(); VAL newval = pop_value(); push_value(mut); if (mut.tag == VT_U64 && mut.data.vp_valueptr) { VAL oldval = *mut.data.vp_valueptr; *mut.data.vp_valueptr = newval; decref(oldval); } else { usize cellidx = get_cell_index(mut); if (cellidx) { CONS* cell = heap + cellidx; VAL oldval = cell->car; cell->car = newval; decref(oldval); } else { decref(newval); } } } while(0)
 
 /* GENERATED C99 */
