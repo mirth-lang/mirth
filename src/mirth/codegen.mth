@@ -104,8 +104,12 @@ def(.w, Name --, "static void mw_" . .name " (void)" .)
 def(.p, Prim --, prim-name @ .w)
 def(.pm, Prim --, "#define mw_" . prim-name @ .name "() " .)
 
-embed-str(c99-header-str, "src/mirth/mirth.h")
-def(c99-header!, --, c99-header-str . .lf)
+embed-str(c99-header-str1, "src/mirth/mirth.h")
+embed-str(c99-header-str2, "src/mirth/mirth2.h")
+def(c99-header!, --,
+    c99-header-str1 .
+    c99-header-str2 .
+    .lf)
 
 def(c99-buffers!, --, Buffer.for(c99-buffer!) .lf)
 def(c99-buffer!, Buffer --,
