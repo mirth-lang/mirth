@@ -38,7 +38,7 @@ extern int open(void*, int, int);
 extern int strcmp(const char*, const char*);
 extern void exit(int);
 
-typedef enum value_tag_t {
+typedef enum TAG {
     VT_U64 = 0x00,
     VT_U32 = 0x01,
     VT_U21 = 0x02,
@@ -47,11 +47,11 @@ typedef enum value_tag_t {
     VT_C21 = 0x96,
     VT_C32 = 0xA0,
     VT_C64 = 0xC0,
-} value_tag_t;
+} TAG;
 
 typedef void (*fnptr)(void);
 
-typedef union value_payload_t {
+typedef union DATA {
     void* vp_ptr;
     u8 vp_u8;
     u16 vp_u16;
@@ -63,24 +63,24 @@ typedef union value_payload_t {
     i64 vp_i64;
     bool vp_bool;
     fnptr vp_fnptr;
-    struct value_t* vp_valueptr;
-} value_payload_t;
+    struct VAL* vp_valueptr;
+} DATA;
 
-typedef struct value_t {
-    value_payload_t payload;
-    value_tag_t tag;
-} value_t;
+typedef struct VAL {
+    DATA data;
+    TAG tag;
+} VAL;
 
 typedef struct cell_t {
     u32 refs;
     bool freecdr;
-    value_t car;
-    value_t cdr;
+    VAL car;
+    VAL cdr;
 } cell_t;
 
 #define STACK_SIZE 0x1000
 static usize stack_counter = STACK_SIZE;
-static value_t stack [STACK_SIZE] = {0};
+static VAL stack [STACK_SIZE] = {0};
 
 #define HEAP_SIZE 0x80000
 #define HEAP_MASK 0x7FFFF
@@ -91,95 +91,95 @@ static cell_t heap [HEAP_SIZE] = {0};
 static int global_argc;
 static char** global_argv;
 
-#define get_cell_index(v) ((usize)(((v).tag & 0x80) ? ((v).payload.vp_u64 >> (0xC0 - (u64)((v).tag))) : 0))
+#define get_cell_index(v) ((usize)(((v).tag & 0x80) ? ((v).data.vp_u64 >> (0xC0 - (u64)((v).tag))) : 0))
 
-#define incref(v) do{ value_t w = (v); usize i = get_cell_index(w); if(i) heap[i].refs++; }while(0)
+#define incref(v) do{ VAL w = (v); usize i = get_cell_index(w); if(i) heap[i].refs++; }while(0)
 
-#define decref(v) do{ value_t w = (v); usize i = get_cell_index(w); if(i) { if(heap[i].refs) { heap[i].refs--; if (heap[i].refs == 0) heap_free(i); } }} while(0)
+#define decref(v) do{ VAL w = (v); usize i = get_cell_index(w); if(i) { if(heap[i].refs) { heap[i].refs--; if (heap[i].refs == 0) heap_free(i); } }} while(0)
 
 static void heap_free(usize i) {
     cell_t *cell = heap + i;
     cell_t contents = *cell;
     memset(cell, 0, sizeof(cell_t));
-    cell->cdr.payload.vp_u64 = heap_next;
+    cell->cdr.data.vp_u64 = heap_next;
     heap_next = i;
     heap_count--;
-    if (contents.freecdr) { free(contents.cdr.payload.vp_ptr); }
+    if (contents.freecdr) { free(contents.cdr.data.vp_ptr); }
     else { decref(contents.cdr); }
     decref(contents.car);
 }
 
-#define decref_for_uncons(v) do{ value_t w = (v); usize i = get_cell_index(w); if(i) { if (heap[i].refs) { heap[i].refs--; if (heap[i].refs == 0) { memset(heap+i, 0, sizeof(cell_t)); heap[i].cdr.payload.vp_u64 = heap_next; heap_next = i; heap_count--; } else { cell_t cell = heap[i]; incref(cell.car); incref(cell.cdr); } } } } while(0)
-static void value_uncons(value_t val, value_t* car, value_t* cdr) {
+#define decref_for_uncons(v) do{ VAL w = (v); usize i = get_cell_index(w); if(i) { if (heap[i].refs) { heap[i].refs--; if (heap[i].refs == 0) { memset(heap+i, 0, sizeof(cell_t)); heap[i].cdr.data.vp_u64 = heap_next; heap_next = i; heap_count--; } else { cell_t cell = heap[i]; incref(cell.car); incref(cell.cdr); } } } } while(0)
+static void value_uncons(VAL val, VAL* car, VAL* cdr) {
     switch (val.tag) {
         case VT_U64: {
-            value_t nil = { 0 };
+            VAL nil = { 0 };
             *car = nil;
             *cdr = val;
         } break;
         case VT_U32: {
-            u64 vv = val.payload.vp_u64;
+            u64 vv = val.data.vp_u64;
             u64 lo = vv & 0xFFFFFFFF;
             u64 hi = vv >> 32;
-            car->tag = VT_U64; car->payload.vp_u64 = hi;
-            cdr->tag = VT_U64; cdr->payload.vp_u64 = lo;
+            car->tag = VT_U64; car->data.vp_u64 = hi;
+            cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
         } break;
         case VT_C64: {
-            cell_t* cell = heap + val.payload.vp_u64;
+            cell_t* cell = heap + val.data.vp_u64;
             *car = cell->car;
             *cdr = cell->cdr;
         } break;
         case VT_C32: {
-            u64 vv = val.payload.vp_u64;
+            u64 vv = val.data.vp_u64;
             u64 lo = vv & 0xFFFFFFFF;
             u64 hi = vv >> 32;
-            car->tag = VT_C64; car->payload.vp_u64 = hi;
-            cdr->tag = VT_U64; cdr->payload.vp_u64 = lo;
+            car->tag = VT_C64; car->data.vp_u64 = hi;
+            cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
         } break;
         case VT_U21: {
-            u64 vv = val.payload.vp_u64;
+            u64 vv = val.data.vp_u64;
             u64 lo = vv & 0x1FFFFF;
             u64 md = (vv >> 21) & 0x1FFFFF;
             u64 hi = (vv >> 42) & 0x1FFFFF;
             car->tag = VT_U32;
-            car->payload.vp_u64 = (hi << 32) | md;
-            cdr->tag = VT_U64; cdr->payload.vp_u64 = lo;
+            car->data.vp_u64 = (hi << 32) | md;
+            cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
         } break;
         case VT_C21: {
-            u64 vv = val.payload.vp_u64;
+            u64 vv = val.data.vp_u64;
             u64 lo = vv & 0x1FFFFF;
             u64 md = (vv >> 21) & 0x1FFFFF;
             u64 hi = (vv >> 42) & 0x1FFFFF;
             car->tag = VT_C32;
-            car->payload.vp_u64 = (hi << 32) | md;
-            cdr->tag = VT_U64; cdr->payload.vp_u64 = lo;
+            car->data.vp_u64 = (hi << 32) | md;
+            cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
         } break;
         case VT_U16: {
-            u64 vv = val.payload.vp_u64;
+            u64 vv = val.data.vp_u64;
             u64 lo = vv & 0xFFFF;
             u64 y2 = (vv >> 16) & 0xFFFF;
             u64 y1 = (vv >> 32) & 0xFFFF;
             u64 y0 = (vv >> 48) & 0xFFFF;
             car->tag = VT_U21;
-            car->payload.vp_u64 = (y0 << 42) | (y1 << 21) | y2;
-            cdr->tag = VT_U64; cdr->payload.vp_u64 = lo;
+            car->data.vp_u64 = (y0 << 42) | (y1 << 21) | y2;
+            cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
         } break;
         case VT_C16: {
-            u64 vv = val.payload.vp_u64;
+            u64 vv = val.data.vp_u64;
             u64 lo = vv & 0xFFFF;
             u64 y2 = (vv >> 16) & 0xFFFF;
             u64 y1 = (vv >> 32) & 0xFFFF;
             u64 y0 = (vv >> 48) & 0xFFFF;
             car->tag = VT_C21;
-            car->payload.vp_u64 = (y0 << 42) | (y1 << 21) | y2;
-            cdr->tag = VT_U64; cdr->payload.vp_u64 = lo;
+            car->data.vp_u64 = (y0 << 42) | (y1 << 21) | y2;
+            cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
         } break;
     }
 }
 
-static bool value_has_ptr_offset (value_t v) {
+static bool value_has_ptr_offset (VAL v) {
     if (v.tag == VT_C64) {
-        usize cell_index = (usize)v.payload.vp_u64;
+        usize cell_index = (usize)v.data.vp_u64;
         struct cell_t * cell = heap + cell_index;
         return !cell->freecdr;
     } else {
@@ -187,94 +187,94 @@ static bool value_has_ptr_offset (value_t v) {
     }
 }
 
-static u64 value_ptr_size (value_t v) {
-    if (v.payload.vp_u64 == 0) {
+static u64 value_ptr_size (VAL v) {
+    if (v.data.vp_u64 == 0) {
         return 0;
     } else if (v.tag == VT_U64) {
-        return strlen(v.payload.vp_ptr);
+        return strlen(v.data.vp_ptr);
     } else if (value_has_ptr_offset(v)) {
-        value_t car, cdr;
+        VAL car, cdr;
         value_uncons(v, &car, &cdr);
-        value_t car2, cdr2;
+        VAL car2, cdr2;
         value_uncons(car, &car2, &cdr2);
-        u64 size = car2.payload.vp_u64;
-        u64 offset = cdr.payload.vp_u64;
+        u64 size = car2.data.vp_u64;
+        u64 offset = cdr.data.vp_u64;
         if (size >= offset) {
             return offset - size;
         } else {
             return 0;
         }
     } else {
-        value_t car, cdr;
+        VAL car, cdr;
         value_uncons(v, &car, &cdr);
-        return car.payload.vp_u64;
+        return car.data.vp_u64;
     }
 }
 
-static void* value_ptr_base (value_t v) {
+static void* value_ptr_base (VAL v) {
     if (value_has_ptr_offset(v)) {
-        value_t car, cdr;
+        VAL car, cdr;
         value_uncons(v, &car, &cdr);
-        value_t car2, cdr2;
+        VAL car2, cdr2;
         value_uncons(car, &car2, &cdr2);
-        return cdr2.payload.vp_ptr;
+        return cdr2.data.vp_ptr;
     } else {
-        value_t car, cdr;
+        VAL car, cdr;
         value_uncons(v, &car, &cdr);
-        return cdr.payload.vp_ptr;
+        return cdr.data.vp_ptr;
     }
 }
 
-static i64 value_ptr_offset (value_t v) {
+static i64 value_ptr_offset (VAL v) {
     if (value_has_ptr_offset(v)) {
-        value_t car, cdr;
+        VAL car, cdr;
         value_uncons(v, &car, &cdr);
-        return cdr.payload.vp_i64;
+        return cdr.data.vp_i64;
     } else {
         return 0;
     }
 }
 
-static void* value_ptr (value_t v) {
+static void* value_ptr (VAL v) {
     usize cell_index; cell_t* cell; usize offset;
     switch (v.tag) {
-        case VT_U64: return v.payload.vp_ptr;
+        case VT_U64: return v.data.vp_ptr;
         case VT_C64:
-            cell_index = (usize)v.payload.vp_u64;
+            cell_index = (usize)v.data.vp_u64;
             cell = heap + cell_index;
             if (cell->freecdr) {
-                return cell->cdr.payload.vp_ptr;
+                return cell->cdr.data.vp_ptr;
             } else {
-                offset = (usize)cell->cdr.payload.vp_u64;
-                cell_index = (usize)cell->car.payload.vp_u64;
+                offset = (usize)cell->cdr.data.vp_u64;
+                cell_index = (usize)cell->car.data.vp_u64;
                 break;
             }
         case VT_C32:
-            offset = (usize)v.payload.vp_u32;
-            cell_index = (usize)(v.payload.vp_u64 >> 32);
+            offset = (usize)v.data.vp_u32;
+            cell_index = (usize)(v.data.vp_u64 >> 32);
             break;
         default:
             return (void*)0;
     }
     cell = heap + cell_index;
     if (cell->freecdr) {
-        char* base = cell->cdr.payload.vp_ptr;
+        char* base = cell->cdr.data.vp_ptr;
         return (void*)(base + offset);
     }
     return (void*)0;
 }
 
-#define pop_fnptr() (pop_value().payload.vp_fnptr)
-#define pop_u8() (pop_value().payload.vp_u8)
-#define pop_u16() (pop_value().payload.vp_u16)
-#define pop_u32() (pop_value().payload.vp_u32)
-#define pop_u64() (pop_value().payload.vp_u64)
-#define pop_i8() (pop_value().payload.vp_i8)
-#define pop_i16() (pop_value().payload.vp_i16)
-#define pop_i32() (pop_value().payload.vp_i32)
-#define pop_i64() (pop_value().payload.vp_i64)
-#define pop_bool() (pop_value().payload.vp_bool)
-#define pop_rawptr() (pop_value().payload.vp_ptr)
+#define pop_fnptr() (pop_value().data.vp_fnptr)
+#define pop_u8() (pop_value().data.vp_u8)
+#define pop_u16() (pop_value().data.vp_u16)
+#define pop_u32() (pop_value().data.vp_u32)
+#define pop_u64() (pop_value().data.vp_u64)
+#define pop_i8() (pop_value().data.vp_i8)
+#define pop_i16() (pop_value().data.vp_i16)
+#define pop_i32() (pop_value().data.vp_i32)
+#define pop_i64() (pop_value().data.vp_i64)
+#define pop_bool() (pop_value().data.vp_bool)
+#define pop_rawptr() (pop_value().data.vp_ptr)
 
 #define push_u64(v) push_value(mku64(v))
 #define push_i64(v) push_value(mki64(v))
@@ -289,110 +289,110 @@ static void* value_ptr (value_t v) {
 #define push_i32(b) push_i64((i64)(b))
 #define push_rawptr(v) push_u64((u64)(void*)(v))
 
-static void push_value(value_t x) {
+static void push_value(VAL x) {
     stack[--stack_counter] = x;
 }
 
-static value_t pop_value(void) {
+static VAL pop_value(void) {
     return stack[stack_counter++];
 }
 
-static value_t mku64 (u64 x) {
-    value_t v = {.tag = VT_U64, .payload = {.vp_u64 = x}};
+static VAL mku64 (u64 x) {
+    VAL v = {.tag = VT_U64, .data = {.vp_u64 = x}};
     return v;
 }
 
-static value_t mki64 (i64 x) {
-    value_t v = {.tag = VT_U64, .payload = {.vp_i64 = x}};
+static VAL mki64 (i64 x) {
+    VAL v = {.tag = VT_U64, .data = {.vp_i64 = x}};
     return v;
 }
 
-static value_t mkcell (value_t car, value_t cdr) {
-    if ((car.payload.vp_u64 == 0) && (cdr.tag == VT_U64))
+static VAL mkcell (VAL car, VAL cdr) {
+    if ((car.data.vp_u64 == 0) && (cdr.tag == VT_U64))
         return cdr;
     if (cdr.tag == VT_U64) {
         switch (car.tag) {
             case VT_U64: {
-                u64 x0 = car.payload.vp_u64;
-                u64 x1 = cdr.payload.vp_u64;
+                u64 x0 = car.data.vp_u64;
+                u64 x1 = cdr.data.vp_u64;
                 u64 y0 = x0 & 0xFFFFFFFFLL;
                 u64 y1 = x1 & 0xFFFFFFFFLL;
                 if ((x0 == y0) && (x1 == y1)) {
-                    value_t r;
+                    VAL r;
                     r.tag = VT_U32;
-                    r.payload.vp_u64 = (y0 << 32) | y1;
+                    r.data.vp_u64 = (y0 << 32) | y1;
                     return r;
                 }
             } break;
             case VT_C64: {
-                u64 x0 = car.payload.vp_u64;
-                u64 x1 = cdr.payload.vp_u64;
+                u64 x0 = car.data.vp_u64;
+                u64 x1 = cdr.data.vp_u64;
                 u64 y0 = x0 & 0xFFFFFFFFLL;
                 u64 y1 = x1 & 0xFFFFFFFFLL;
                 if ((x0 == y0) && (x1 == y1)) {
-                    value_t r;
+                    VAL r;
                     r.tag = VT_C32;
-                    r.payload.vp_u64 = (y0 << 32) | y1;
+                    r.data.vp_u64 = (y0 << 32) | y1;
                     return r;
                 }
             } break;
             case VT_U32: {
-                u64 x0 = car.payload.vp_u64 >> 32;
-                u64 x1 = car.payload.vp_u64 & 0xFFFFFFFFLL;
-                u64 x2 = cdr.payload.vp_u64;
+                u64 x0 = car.data.vp_u64 >> 32;
+                u64 x1 = car.data.vp_u64 & 0xFFFFFFFFLL;
+                u64 x2 = cdr.data.vp_u64;
                 u64 y0 = x0 & 0x1FFFFFLL;
                 u64 y1 = x1 & 0x1FFFFFLL;
                 u64 y2 = x2 & 0x1FFFFFLL;
                 if ((x0 == y0) && (x1 == y1) && (x2 == y2)) {
-                    value_t r;
+                    VAL r;
                     r.tag = VT_U21;
-                    r.payload.vp_u64 = (y0 << 42) | (y1 << 21) | y2;
+                    r.data.vp_u64 = (y0 << 42) | (y1 << 21) | y2;
                     return r;
                 }
             } break;
             case VT_C32: {
-                u64 x0 = car.payload.vp_u64 >> 32;
-                u64 x1 = car.payload.vp_u64 & 0xFFFFFFFFLL;
-                u64 x2 = cdr.payload.vp_u64;
+                u64 x0 = car.data.vp_u64 >> 32;
+                u64 x1 = car.data.vp_u64 & 0xFFFFFFFFLL;
+                u64 x2 = cdr.data.vp_u64;
                 u64 y0 = x0 & 0x1FFFFFLL;
                 u64 y1 = x1 & 0x1FFFFFLL;
                 u64 y2 = x2 & 0x1FFFFFLL;
                 if ((x0 == y0) && (x1 == y1) && (x2 == y2)) {
-                    value_t r;
+                    VAL r;
                     r.tag = VT_C21;
-                    r.payload.vp_u64 = (y0 << 42) | (y1 << 21) | y2;
+                    r.data.vp_u64 = (y0 << 42) | (y1 << 21) | y2;
                     return r;
                 }
             } break;
             case VT_U21: {
-                u64 x0 = car.payload.vp_u64 >> 42;
-                u64 x1 = (car.payload.vp_u64 >> 21) & 0x1FFFFFLL;
-                u64 x2 = car.payload.vp_u64 & 0x1FFFFFLL;
-                u64 x3 = cdr.payload.vp_u64;
+                u64 x0 = car.data.vp_u64 >> 42;
+                u64 x1 = (car.data.vp_u64 >> 21) & 0x1FFFFFLL;
+                u64 x2 = car.data.vp_u64 & 0x1FFFFFLL;
+                u64 x3 = cdr.data.vp_u64;
                 u64 y0 = x0 & 0xFFFFLL;
                 u64 y1 = x1 & 0xFFFFLL;
                 u64 y2 = x2 & 0xFFFFLL;
                 u64 y3 = x3 & 0xFFFFLL;
                 if ((x0 == y0) && (x1 == y1) && (x2 == y2) && (x3 == y3)) {
-                    value_t r;
+                    VAL r;
                     r.tag = VT_U16;
-                    r.payload.vp_u64 = (y0 << 48) | (y1 << 32) | (y2 << 16) | y3;
+                    r.data.vp_u64 = (y0 << 48) | (y1 << 32) | (y2 << 16) | y3;
                     return r;
                 }
             } break;
             case VT_C21: {
-                u64 x0 = car.payload.vp_u64 >> 42;
-                u64 x1 = (car.payload.vp_u64 >> 21) & 0x1FFFFFLL;
-                u64 x2 = car.payload.vp_u64 & 0x1FFFFFLL;
-                u64 x3 = cdr.payload.vp_u64;
+                u64 x0 = car.data.vp_u64 >> 42;
+                u64 x1 = (car.data.vp_u64 >> 21) & 0x1FFFFFLL;
+                u64 x2 = car.data.vp_u64 & 0x1FFFFFLL;
+                u64 x3 = cdr.data.vp_u64;
                 u64 y0 = x0 & 0xFFFFLL;
                 u64 y1 = x1 & 0xFFFFLL;
                 u64 y2 = x2 & 0xFFFFLL;
                 u64 y3 = x3 & 0xFFFFLL;
                 if ((x0 == y0) && (x1 == y1) && (x2 == y2) && (x3 == y3)) {
-                    value_t r;
+                    VAL r;
                     r.tag = VT_C16;
-                    r.payload.vp_u64 = (y0 << 48) | (y1 << 32) | (y2 << 16) | y3;
+                    r.data.vp_u64 = (y0 << 48) | (y1 << 32) | (y2 << 16) | y3;
                     return r;
                 }
             } break;
@@ -410,20 +410,20 @@ static value_t mkcell (value_t car, value_t cdr) {
         write(2, "HEAP OVERFLOW\n", 14);
         exit(1);
     }
-    u64 saved_index = cell->cdr.payload.vp_u64;
+    u64 saved_index = cell->cdr.data.vp_u64;
     heap_next = (usize)(saved_index ? saved_index : cell_index+1);
     heap_count++;
     cell->refs = 1;
     cell->freecdr = false;
     cell->car = car;
     cell->cdr = cdr;
-    value_t v = {0};
+    VAL v = {0};
     v.tag = VT_C64;
-    v.payload.vp_u64 = cell_index;
+    v.data.vp_u64 = cell_index;
     return v;
 }
 
-static value_t mkcell_raw (value_t car, value_t cdr) {
+static VAL mkcell_raw (VAL car, VAL cdr) {
     u64 cell_index = heap_next;
     cell_t *cell = heap + cell_index;
     while ((cell->refs > 0) && (cell_index < HEAP_SIZE)) { cell++; cell_index++; }
@@ -431,20 +431,20 @@ static value_t mkcell_raw (value_t car, value_t cdr) {
         write(2, "HEAP OVERFLOW\n", 14);
         exit(1);
     }
-    u64 saved_index = cell->cdr.payload.vp_u64;
+    u64 saved_index = cell->cdr.data.vp_u64;
     heap_next = (usize)(saved_index ? saved_index : cell_index+1);
     heap_count++;
     cell->refs = 1;
     cell->freecdr = false;
     cell->car = car;
     cell->cdr = cdr;
-    value_t v = {0};
+    VAL v = {0};
     v.tag = VT_C64;
-    v.payload.vp_u64 = cell_index;
+    v.data.vp_u64 = cell_index;
     return v;
 }
 
-static value_t mkcell_freecdr (value_t car, value_t cdr) {
+static VAL mkcell_freecdr (VAL car, VAL cdr) {
     if (heap_count >= HEAP_SIZE - 1) {
         write(2, "HEAP OVERFLOW\n", 14);
         exit(1);
@@ -456,21 +456,21 @@ static value_t mkcell_freecdr (value_t car, value_t cdr) {
         write(2, "HEAP OVERFLOW\n", 14);
         exit(1);
     }
-    u64 saved_index = cell->cdr.payload.vp_u64;
+    u64 saved_index = cell->cdr.data.vp_u64;
     heap_next = (usize)(saved_index ? saved_index : cell_index+1);
     heap_count++;
     cell->refs = 1;
     cell->freecdr = true;
     cell->car = car;
     cell->cdr = cdr;
-    value_t v = {0};
+    VAL v = {0};
     v.tag = VT_C64;
-    v.payload.vp_u64 = cell_index;
+    v.data.vp_u64 = cell_index;
     return v;
 }
 
 static void do_pack_uncons(void) {
-    value_t car, cdr, val;
+    VAL car, cdr, val;
     val = pop_value();
     value_uncons(val, &car, &cdr);
     push_value(car); push_value(cdr);
@@ -479,18 +479,18 @@ static void do_pack_uncons(void) {
     }
 }
 
-#define get_value_tag(v) (((v).tag == VT_U64) ? (v).payload.vp_i64 : (((v).tag == VT_C64) ? (heap[(v).payload.vp_u64].cdr.payload.vp_i64) : (i64)((v).payload.vp_u64 & 0xFFFF)))
-#define get_top_data_tag() (get_value_tag(stack[stack_counter]))
-#define value_cmp(v1,v2) ((((v1).tag == VT_U64) && ((v2).tag == VT_U64)) ? ((v1).payload.vp_i64 - (v2).payload.vp_i64) : value_cmp_hard((v1), (v2)))
+#define get_TAG(v) (((v).tag == VT_U64) ? (v).data.vp_i64 : (((v).tag == VT_C64) ? (heap[(v).data.vp_u64].cdr.data.vp_i64) : (i64)((v).data.vp_u64 & 0xFFFF)))
+#define get_top_data_tag() (get_TAG(stack[stack_counter]))
+#define value_cmp(v1,v2) ((((v1).tag == VT_U64) && ((v2).tag == VT_U64)) ? ((v1).data.vp_i64 - (v2).data.vp_i64) : value_cmp_hard((v1), (v2)))
 
-static i64 value_cmp_hard(value_t v1, value_t v2) {
+static i64 value_cmp_hard(VAL v1, VAL v2) {
     while(1) {
-        i64 t1 = get_value_tag(v1);
-        i64 t2 = get_value_tag(v2);
+        i64 t1 = get_TAG(v1);
+        i64 t2 = get_TAG(v2);
         if (t1 < t2) return -1;
         if (t1 > t2) return 1;
         if ((v1.tag == VT_U64) && (v2.tag == VT_U64)) return 0;
-        value_t v1car, v1cdr, v2car, v2cdr;
+        VAL v1car, v1cdr, v2car, v2cdr;
         value_uncons(v1, &v1car, &v1cdr);
         value_uncons(v2, &v2car, &v2cdr);
         i64 cdrcmp = value_cmp(v1cdr, v2cdr);
@@ -499,38 +499,38 @@ static i64 value_cmp_hard(value_t v1, value_t v2) {
     }
 }
 
-#define value_eq(v1,v2) (((v1).tag == (v2).tag) && (((v1).payload.vp_u64 == (v2).payload.vp_u64) || (((v1).tag & 0x80) && value_eq_hard((v1),(v2)))))
+#define value_eq(v1,v2) (((v1).tag == (v2).tag) && (((v1).data.vp_u64 == (v2).data.vp_u64) || (((v1).tag & 0x80) && value_eq_hard((v1),(v2)))))
 
-static bool value_eq_hard(value_t v1, value_t v2) {
+static bool value_eq_hard(VAL v1, VAL v2) {
     usize c1_index, c2_index; cell_t *c1, *c2;
     while (1) {
         if (v1.tag != v2.tag) return false;
-        if (v1.payload.vp_u64 == v2.payload.vp_u64) return true;
+        if (v1.data.vp_u64 == v2.data.vp_u64) return true;
         switch (v1.tag) {
             case VT_U64: return false;
             case VT_U32: return false;
             case VT_U21: return false;
             case VT_U16: return false;
             case VT_C64:
-                c1_index = (usize)v1.payload.vp_u64;
-                c2_index = (usize)v2.payload.vp_u64;
+                c1_index = (usize)v1.data.vp_u64;
+                c2_index = (usize)v2.data.vp_u64;
                 break;
             case VT_C32:
-                if (v1.payload.vp_u32 != v2.payload.vp_u32) return false;
-                c1_index = (usize)(v1.payload.vp_u64 >> 32);
-                c2_index = (usize)(v2.payload.vp_u64 >> 32);
+                if (v1.data.vp_u32 != v2.data.vp_u32) return false;
+                c1_index = (usize)(v1.data.vp_u64 >> 32);
+                c2_index = (usize)(v2.data.vp_u64 >> 32);
                 break;
             case VT_C21:
-                if (  (v1.payload.vp_u64 & 0x03FFFFFFFFFF)
-                != (v2.payload.vp_u64 & 0x03FFFFFFFFFF)) return false;
-                c1_index = (usize)(v1.payload.vp_u64 >> 42);
-                c2_index = (usize)(v2.payload.vp_u64 >> 42);
+                if (  (v1.data.vp_u64 & 0x03FFFFFFFFFF)
+                != (v2.data.vp_u64 & 0x03FFFFFFFFFF)) return false;
+                c1_index = (usize)(v1.data.vp_u64 >> 42);
+                c2_index = (usize)(v2.data.vp_u64 >> 42);
                 break;
             case VT_C16:
-                if (  (v1.payload.vp_u64 & 0xFFFFFFFFFFFF)
-                != (v2.payload.vp_u64 & 0xFFFFFFFFFFFF)) return false;
-                c1_index = (usize)(v1.payload.vp_u64 >> 48);
-                c2_index = (usize)(v2.payload.vp_u64 >> 48);
+                if (  (v1.data.vp_u64 & 0xFFFFFFFFFFFF)
+                != (v2.data.vp_u64 & 0xFFFFFFFFFFFF)) return false;
+                c1_index = (usize)(v1.data.vp_u64 >> 48);
+                c2_index = (usize)(v2.data.vp_u64 >> 48);
                 break;
         }
         c1 = heap + c1_index;
@@ -542,25 +542,25 @@ static bool value_eq_hard(value_t v1, value_t v2) {
 
 #define do_run() do { do_pack_uncons(); fnptr fp = pop_fnptr(); fp(); } while(0)
 #define mw_prim_id() 0
-#define mw_prim_dup() do{ value_t v = stack[stack_counter]; push_value(v); incref(v); } while(0)
+#define mw_prim_dup() do{ VAL v = stack[stack_counter]; push_value(v); incref(v); } while(0)
 
 #define do_drop() decref(pop_value())
 #define mw_prim_drop() do_drop()
 
-#define do_swap() do{ value_t x = stack[stack_counter]; stack[stack_counter] = stack[stack_counter+1]; stack[stack_counter+1] = x; } while(0)
+#define do_swap() do{ VAL x = stack[stack_counter]; stack[stack_counter] = stack[stack_counter+1]; stack[stack_counter+1] = x; } while(0)
 #define mw_prim_swap() do_swap()
 
 static void mw_prim_dip (void) {
-    value_t f = pop_value();
-    value_t x = pop_value();
+    VAL f = pop_value();
+    VAL x = pop_value();
     push_value(f);
     do_run();
     push_value(x);
 }
 
 static void mw_prim_if (void) {
-    value_t else_branch = pop_value();
-    value_t then_branch = pop_value();
+    VAL else_branch = pop_value();
+    VAL then_branch = pop_value();
     bool b = pop_bool();
     if (b) {
         push_value(then_branch);
@@ -573,8 +573,8 @@ static void mw_prim_if (void) {
 }
 
 static void mw_prim_while (void) {
-    value_t body = pop_value();
-    value_t cond = pop_value();
+    VAL body = pop_value();
+    VAL cond = pop_value();
     while(1) {
         push_value(cond); incref(cond); do_run();
         bool b = pop_bool();
@@ -584,25 +584,25 @@ static void mw_prim_while (void) {
     decref(cond); decref(body);
 }
 
-#define mw_prim_int_add() do { stack[stack_counter+1].payload.vp_u64 += stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
-#define mw_prim_int_sub() do { stack[stack_counter+1].payload.vp_u64 -= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
-#define mw_prim_int_mul() do { stack[stack_counter+1].payload.vp_i64 *= stack[stack_counter].payload.vp_i64; stack_counter++; } while(0)
-#define mw_prim_int_div() do { i64 a = stack[stack_counter+1].payload.vp_i64; i64 b = stack[stack_counter].payload.vp_i64; i64 r = a % b; i64 q = a / b; if (((a < 0) ^ (b < 0)) && r) q--; stack_counter++; stack[stack_counter].payload.vp_i64 = q; } while(0)
-#define mw_prim_int_mod() do { i64 a = stack[stack_counter+1].payload.vp_i64; i64 b = stack[stack_counter].payload.vp_i64; i64 r = a % b; if (((a < 0) ^ (b < 0)) && r) r += b; stack_counter++; stack[stack_counter].payload.vp_i64 = r; } while(0)
-#define mw_prim_int_and() do { stack[stack_counter+1].payload.vp_u64 &= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
-#define mw_prim_int_or() do { stack[stack_counter+1].payload.vp_u64 |= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
-#define mw_prim_int_xor() do { stack[stack_counter+1].payload.vp_u64 ^= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
-#define mw_prim_int_shl() do { stack[stack_counter+1].payload.vp_u64 <<= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
-#define mw_prim_int_shr() do { stack[stack_counter+1].payload.vp_u64 >>= stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
-#define mw_prim_value_eq()  do { value_t v2 = pop_value(); value_t v1 = pop_value(); push_bool(value_eq(v1, v2)); decref(v1); decref(v2); } while(0)
+#define mw_prim_int_add() do { stack[stack_counter+1].data.vp_u64 += stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
+#define mw_prim_int_sub() do { stack[stack_counter+1].data.vp_u64 -= stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
+#define mw_prim_int_mul() do { stack[stack_counter+1].data.vp_i64 *= stack[stack_counter].data.vp_i64; stack_counter++; } while(0)
+#define mw_prim_int_div() do { i64 a = stack[stack_counter+1].data.vp_i64; i64 b = stack[stack_counter].data.vp_i64; i64 r = a % b; i64 q = a / b; if (((a < 0) ^ (b < 0)) && r) q--; stack_counter++; stack[stack_counter].data.vp_i64 = q; } while(0)
+#define mw_prim_int_mod() do { i64 a = stack[stack_counter+1].data.vp_i64; i64 b = stack[stack_counter].data.vp_i64; i64 r = a % b; if (((a < 0) ^ (b < 0)) && r) r += b; stack_counter++; stack[stack_counter].data.vp_i64 = r; } while(0)
+#define mw_prim_int_and() do { stack[stack_counter+1].data.vp_u64 &= stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
+#define mw_prim_int_or() do { stack[stack_counter+1].data.vp_u64 |= stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
+#define mw_prim_int_xor() do { stack[stack_counter+1].data.vp_u64 ^= stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
+#define mw_prim_int_shl() do { stack[stack_counter+1].data.vp_u64 <<= stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
+#define mw_prim_int_shr() do { stack[stack_counter+1].data.vp_u64 >>= stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
+#define mw_prim_value_eq()  do { VAL v2 = pop_value(); VAL v1 = pop_value(); push_bool(value_eq(v1, v2)); decref(v1); decref(v2); } while(0)
 
-#define mw_prim_value_lt()  do { value_t v2 = pop_value(); value_t v1 = pop_value(); push_bool(value_cmp(v1, v2) < 0); decref(v1); decref(v2); } while(0)
+#define mw_prim_value_lt()  do { VAL v2 = pop_value(); VAL v1 = pop_value(); push_bool(value_cmp(v1, v2) < 0); decref(v1); decref(v2); } while(0)
 
-#define mw_prim_value_le()  do { value_t v2 = pop_value(); value_t v1 = pop_value(); push_bool(value_cmp(v1, v2) <= 0); decref(v1); decref(v2); } while(0)
+#define mw_prim_value_le()  do { VAL v2 = pop_value(); VAL v1 = pop_value(); push_bool(value_cmp(v1, v2) <= 0); decref(v1); decref(v2); } while(0)
 
 static void mw_prim_posix_write (void) {
     usize n = (usize)pop_u64();
-    value_t vp = pop_value();
+    VAL vp = pop_value();
     void* p = value_ptr(vp);
     int f = (int)pop_i64();
     push_i64((i64)write(f, p, n));
@@ -611,7 +611,7 @@ static void mw_prim_posix_write (void) {
 
 static void mw_prim_posix_read (void) {
     usize n = (usize)pop_u64();
-    value_t vp = pop_value();
+    VAL vp = pop_value();
     void* p = value_ptr(vp);
     int f = (int)pop_i64();
     push_i64((i64)read(f,p,n));
@@ -621,7 +621,7 @@ static void mw_prim_posix_read (void) {
 static void mw_prim_posix_open (void) {
     int m = (int)pop_i64();
     int f = (int)pop_i64();
-    value_t vp = pop_value();
+    VAL vp = pop_value();
     void* p = value_ptr(vp);
     push_i64((i64)open(p,f,m));
     decref(vp);
@@ -649,7 +649,7 @@ static void mw_prim_posix_mmap (void) {
         int d = (int)pop_i64();
         int c = (int)pop_i64();
         usize b = (usize)pop_u64();
-        value_t va = pop_value();
+        VAL va = pop_value();
         void* a = value_ptr(va);
         void* p = mmap(a,b,c,d,e,f);
         push_ptr(p);
@@ -665,7 +665,7 @@ static void do_debug(void) {
     i64 x; i64 y;
     for (long i = STACK_SIZE-1; i >= (long)stack_counter; i--) {
         cp = c+30;
-        x = stack[i].payload.vp_i64;
+        x = stack[i].data.vp_i64;
         n = 1;
         y = x; if (x < 0) { x = -x; }
         do { *cp-- = '0' + (x % 10); x /= 10; n++; } while(x);
@@ -678,28 +678,28 @@ static void do_debug(void) {
 
 #define mw_prim_debug() do_debug()
 
-#define mw_prim_value_get() do { value_t vp = pop_value(); value_t* p = value_ptr(vp); push_value(*p); incref(*p); decref(vp); } while(0)
-#define mw_prim_int_get() do { value_t vp = pop_value(); i64* p = value_ptr(vp); push_i64(*p); decref(vp); } while(0)
-#define mw_prim_ptr_get() do { value_t vp = pop_value(); void** p = value_ptr(vp); push_ptr(*p); decref(vp); } while(0)
-#define mw_prim_u8_get() do { value_t vp = pop_value(); u8* p = value_ptr(vp); push_u8(*p); decref(vp); } while(0)
-#define mw_prim_u16_get() do { value_t vp = pop_value(); u16* p = value_ptr(vp); push_u16(*p); decref(vp); } while(0)
-#define mw_prim_u32_get() do { value_t vp = pop_value(); u32* p = value_ptr(vp); push_u32(*p); decref(vp); } while(0)
-#define mw_prim_u64_get() do { value_t vp = pop_value(); u64* p = value_ptr(vp); push_u64(*p); decref(vp); } while(0)
-#define mw_prim_i8_get() do { value_t vp = pop_value(); i8* p = value_ptr(vp); push_i8(*p); decref(vp); } while(0)
-#define mw_prim_i16_get() do { value_t vp = pop_value(); i16* p = value_ptr(vp); push_i16(*p); decref(vp); } while(0)
-#define mw_prim_i32_get() do { value_t vp = pop_value(); i32* p = value_ptr(vp); push_i32(*p); decref(vp); } while(0)
-#define mw_prim_i64_get() do { value_t vp = pop_value(); i64* p = value_ptr(vp); push_i64(*p); decref(vp); } while(0)
-#define mw_prim_int_set() do { value_t vp = pop_value(); i64* p = value_ptr(vp); *p = pop_i64(); decref(vp); } while(0)
-#define mw_prim_u8_set() do { value_t vp = pop_value(); u8* p = value_ptr(vp); *p = pop_u8(); decref(vp); } while(0)
-#define mw_prim_u16_set() do { value_t vp = pop_value(); u16* p = value_ptr(vp); *p = pop_u16(); decref(vp); } while(0)
-#define mw_prim_u32_set() do { value_t vp = pop_value(); u32* p = value_ptr(vp); *p = pop_u32(); decref(vp); } while(0)
-#define mw_prim_u64_set() do { value_t vp = pop_value(); u64* p = value_ptr(vp); *p = pop_u64(); decref(vp); } while(0)
-#define mw_prim_i8_set() do { value_t vp = pop_value(); i8* p = value_ptr(vp); *p = pop_i8(); decref(vp); } while(0)
-#define mw_prim_i16_set() do { value_t vp = pop_value(); i16* p = value_ptr(vp); *p = pop_i16(); decref(vp); } while(0)
-#define mw_prim_i32_set() do { value_t vp = pop_value(); i32* p = value_ptr(vp); *p = pop_i32(); decref(vp); } while(0)
-#define mw_prim_i64_set() do { value_t vp = pop_value(); i64* p = value_ptr(vp); *p = pop_i64(); decref(vp); } while(0)
-#define mw_prim_ptr_set() do { value_t vp = pop_value(); value_t vx = pop_value(); void** p = value_ptr(vp); *p = value_ptr(vx); decref(vp); decref(vx); } while(0)
-#define mw_prim_value_set() do { value_t vp = pop_value(); value_t vx = pop_value(); value_t* p = value_ptr(vp); value_t old = *p; *p = vx; decref(old); decref(vp); } while(0)
+#define mw_prim_value_get() do { VAL vp = pop_value(); VAL* p = value_ptr(vp); push_value(*p); incref(*p); decref(vp); } while(0)
+#define mw_prim_int_get() do { VAL vp = pop_value(); i64* p = value_ptr(vp); push_i64(*p); decref(vp); } while(0)
+#define mw_prim_ptr_get() do { VAL vp = pop_value(); void** p = value_ptr(vp); push_ptr(*p); decref(vp); } while(0)
+#define mw_prim_u8_get() do { VAL vp = pop_value(); u8* p = value_ptr(vp); push_u8(*p); decref(vp); } while(0)
+#define mw_prim_u16_get() do { VAL vp = pop_value(); u16* p = value_ptr(vp); push_u16(*p); decref(vp); } while(0)
+#define mw_prim_u32_get() do { VAL vp = pop_value(); u32* p = value_ptr(vp); push_u32(*p); decref(vp); } while(0)
+#define mw_prim_u64_get() do { VAL vp = pop_value(); u64* p = value_ptr(vp); push_u64(*p); decref(vp); } while(0)
+#define mw_prim_i8_get() do { VAL vp = pop_value(); i8* p = value_ptr(vp); push_i8(*p); decref(vp); } while(0)
+#define mw_prim_i16_get() do { VAL vp = pop_value(); i16* p = value_ptr(vp); push_i16(*p); decref(vp); } while(0)
+#define mw_prim_i32_get() do { VAL vp = pop_value(); i32* p = value_ptr(vp); push_i32(*p); decref(vp); } while(0)
+#define mw_prim_i64_get() do { VAL vp = pop_value(); i64* p = value_ptr(vp); push_i64(*p); decref(vp); } while(0)
+#define mw_prim_int_set() do { VAL vp = pop_value(); i64* p = value_ptr(vp); *p = pop_i64(); decref(vp); } while(0)
+#define mw_prim_u8_set() do { VAL vp = pop_value(); u8* p = value_ptr(vp); *p = pop_u8(); decref(vp); } while(0)
+#define mw_prim_u16_set() do { VAL vp = pop_value(); u16* p = value_ptr(vp); *p = pop_u16(); decref(vp); } while(0)
+#define mw_prim_u32_set() do { VAL vp = pop_value(); u32* p = value_ptr(vp); *p = pop_u32(); decref(vp); } while(0)
+#define mw_prim_u64_set() do { VAL vp = pop_value(); u64* p = value_ptr(vp); *p = pop_u64(); decref(vp); } while(0)
+#define mw_prim_i8_set() do { VAL vp = pop_value(); i8* p = value_ptr(vp); *p = pop_i8(); decref(vp); } while(0)
+#define mw_prim_i16_set() do { VAL vp = pop_value(); i16* p = value_ptr(vp); *p = pop_i16(); decref(vp); } while(0)
+#define mw_prim_i32_set() do { VAL vp = pop_value(); i32* p = value_ptr(vp); *p = pop_i32(); decref(vp); } while(0)
+#define mw_prim_i64_set() do { VAL vp = pop_value(); i64* p = value_ptr(vp); *p = pop_i64(); decref(vp); } while(0)
+#define mw_prim_ptr_set() do { VAL vp = pop_value(); VAL vx = pop_value(); void** p = value_ptr(vp); *p = value_ptr(vx); decref(vp); decref(vx); } while(0)
+#define mw_prim_value_set() do { VAL vp = pop_value(); VAL vx = pop_value(); VAL* p = value_ptr(vp); VAL old = *p; *p = vx; decref(old); decref(vp); } while(0)
 #if defined(MIRTH_WINDOWS)
 #define mw_prim_sys_os() push_u64(1)
 #elif defined(MIRTH_LINUX)
@@ -715,24 +715,24 @@ static void do_debug(void) {
 #define mw_prim_run() do_run()
 
 static void mw_prim_ptr_add (void) {
-    value_t vp = pop_value();
+    VAL vp = pop_value();
     i64 y = pop_i64();
     if (vp.tag == VT_U64) {
-        push_i64(y + vp.payload.vp_i64);
+        push_i64(y + vp.data.vp_i64);
     } else if (value_has_ptr_offset(vp)) {
-        value_t car, cdr;
+        VAL car, cdr;
         value_uncons(vp, &car, &cdr);
-        cdr.payload.vp_i64 += y;
+        cdr.data.vp_i64 += y;
         push_value(mkcell(car, cdr));
     } else {
-        value_t vy = { .tag = VT_U64, .payload = { .vp_i64 = y } };
+        VAL vy = { .tag = VT_U64, .data = { .vp_i64 = y } };
         push_value(mkcell(vp, vy));
     }
 }
 #define mw_prim_bool_true() push_bool(true)
 #define mw_prim_bool_false() push_bool(false)
-#define mw_prim_bool_and() do { stack[stack_counter+1].payload.vp_u64 = stack[stack_counter+1].payload.vp_u64 && stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
-#define mw_prim_bool_or() do { stack[stack_counter+1].payload.vp_u64 = stack[stack_counter+1].payload.vp_u64 || stack[stack_counter].payload.vp_u64; stack_counter++; } while(0)
+#define mw_prim_bool_and() do { stack[stack_counter+1].data.vp_u64 = stack[stack_counter+1].data.vp_u64 && stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
+#define mw_prim_bool_or() do { stack[stack_counter+1].data.vp_u64 = stack[stack_counter+1].data.vp_u64 || stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
 #define mw_prim_sys_argc() push_i64(global_argc)
 #define mw_prim_sys_argv() push_ptr(global_argv)
 #define mw_prim_ptr_size() push_u64((u64)sizeof(void*))
@@ -741,9 +741,9 @@ static void mw_prim_ptr_alloc (void) {
     if (psize > 0) {
         usize size = (usize)psize;
         void* ptr = calloc(1,size);
-        value_t vsize = { .tag = VT_U64, .payload = { .vp_i64 = psize } };
-        value_t vptr = { .tag = VT_U64, .payload = { .vp_ptr = ptr } };
-        value_t v = mkcell_freecdr(vsize, vptr);
+        VAL vsize = { .tag = VT_U64, .data = { .vp_i64 = psize } };
+        VAL vptr = { .tag = VT_U64, .data = { .vp_ptr = ptr } };
+        VAL v = mkcell_freecdr(vsize, vptr);
         push_value(v);
     } else {
         push_u64(0);
@@ -760,7 +760,7 @@ static void* alloc_but_copy (usize dstn, void* src, usize srcn) {
 }
 static void mw_prim_ptr_realloc (void) {
     i64 psize = pop_i64();
-    value_t vptr = pop_value();
+    VAL vptr = pop_value();
     if (psize <= 0) {
         decref(vptr);
         push_u64(0);
@@ -770,11 +770,11 @@ static void mw_prim_ptr_realloc (void) {
     if ((vptr.tag == VT_C64) && !value_has_ptr_offset(vptr)) {
         usize cell_index = get_cell_index(vptr);
         cell_t *cell = heap + cell_index;
-        usize old_size = (usize)cell->car.payload.vp_u64;
-        void* old_ptr = cell->cdr.payload.vp_ptr;
+        usize old_size = (usize)cell->car.data.vp_u64;
+        void* old_ptr = cell->cdr.data.vp_ptr;
         void* new_ptr = realloc(old_ptr, new_size);
-        cell->car.payload.vp_i64 = psize;
-        cell->cdr.payload.vp_ptr = new_ptr;
+        cell->car.data.vp_i64 = psize;
+        cell->cdr.data.vp_ptr = new_ptr;
         if (old_size < new_size) {
             memset((char*)new_ptr + old_size, 0, new_size - old_size);
         }
@@ -783,18 +783,18 @@ static void mw_prim_ptr_realloc (void) {
         void* old_ptr = value_ptr(vptr);
         usize old_size = (usize)value_ptr_size(vptr);
         void* new_ptr = alloc_but_copy(new_size, old_ptr, old_size);
-        value_t vsize = { .tag = VT_U64, .payload = { .vp_i64 = psize } };
-        value_t vnew = { .tag = VT_U64, .payload = { .vp_ptr = new_ptr } };
-        value_t v = mkcell_freecdr(vsize, vnew);
+        VAL vsize = { .tag = VT_U64, .data = { .vp_i64 = psize } };
+        VAL vnew = { .tag = VT_U64, .data = { .vp_ptr = new_ptr } };
+        VAL v = mkcell_freecdr(vsize, vnew);
         push_value(v);
         decref(vptr);
     }
 }
 
 static void mw_prim_ptr_copy (void) {
-    value_t vdst = pop_value();
+    VAL vdst = pop_value();
     i64 ilen = pop_i64();
-    value_t vsrc = pop_value();
+    VAL vsrc = pop_value();
     void* src = value_ptr(vsrc);
     void* dst = value_ptr(vdst);
     if (src && dst && (ilen > 0)) {
@@ -805,7 +805,7 @@ static void mw_prim_ptr_copy (void) {
 }
 
 static void mw_prim_ptr_fill (void) {
-    value_t vdst = pop_value();
+    VAL vdst = pop_value();
     i64 ilen = pop_i64();
     i64 val = pop_i64();
     void* dst = value_ptr(vdst);
@@ -817,8 +817,8 @@ static void mw_prim_ptr_fill (void) {
 
 #define mw_prim_ptr_raw() do { usize i = stack_counter; push_ptr(value_ptr(stack[i])); } while(0)
 static void mw_prim_str_eq (void) {
-    value_t vptr1 = pop_value();
-    value_t vptr2 = pop_value();
+    VAL vptr1 = pop_value();
+    VAL vptr2 = pop_value();
     const char* ptr1 = value_ptr(vptr1);
     const char* ptr2 = value_ptr(vptr2);
     bool result = (!ptr1 || !ptr2) ? (ptr1 == ptr2) : strcmp(ptr1,ptr2) == 0;
@@ -834,16 +834,16 @@ static void mw_prim_str_alloc (void) {
 
 #define mw_prim_str_base() 0
 
-#define mw_prim_str_size() do { value_t v = stack[stack_counter]; if (!v.payload.vp_u64) { push_u64(0); } else if (v.tag == VT_U64) { push_u64((u64)strlen(v.payload.vp_ptr)); } else { push_i64(value_ptr_size(v)-4); }  } while(0)
+#define mw_prim_str_size() do { VAL v = stack[stack_counter]; if (!v.data.vp_u64) { push_u64(0); } else if (v.tag == VT_U64) { push_u64((u64)strlen(v.data.vp_ptr)); } else { push_i64(value_ptr_size(v)-4); }  } while(0)
 
-#define do_pack_cons() do { value_t cdr = pop_value(); value_t car = pop_value(); push_value(mkcell(car,cdr)); } while(0)
+#define do_pack_cons() do { VAL cdr = pop_value(); VAL car = pop_value(); push_value(mkcell(car,cdr)); } while(0)
 #define mw_prim_pack_nil()  push_u64(0)
 #define mw_prim_pack_cons() do_pack_cons();
 #define mw_prim_pack_uncons() do_pack_uncons();
 
-#define mw_prim_mut_new() do { value_t car = pop_value(); value_t cdr = { 0 }; push_value(mkcell_raw(car,cdr)); } while(0)
-#define mw_prim_mut_get() do { value_t mut = pop_value(); if (mut.tag == VT_U64 && mut.payload.vp_valueptr) { value_t val =*mut.payload.vp_valueptr; push_value(val); incref(val); } else { push_value(mut); do_pack_uncons(); pop_value(); } } while(0)
-#define mw_prim_mut_set() do { value_t mut = pop_value(); value_t newval = pop_value(); push_value(mut); if (mut.tag == VT_U64 && mut.payload.vp_valueptr) { value_t oldval = *mut.payload.vp_valueptr; *mut.payload.vp_valueptr = newval; decref(oldval); } else { usize cellidx = get_cell_index(mut); if (cellidx) { cell_t* cell = heap + cellidx; value_t oldval = cell->car; cell->car = newval; decref(oldval); } else { decref(newval); } } } while(0)
+#define mw_prim_mut_new() do { VAL car = pop_value(); VAL cdr = { 0 }; push_value(mkcell_raw(car,cdr)); } while(0)
+#define mw_prim_mut_get() do { VAL mut = pop_value(); if (mut.tag == VT_U64 && mut.data.vp_valueptr) { VAL val =*mut.data.vp_valueptr; push_value(val); incref(val); } else { push_value(mut); do_pack_uncons(); pop_value(); } } while(0)
+#define mw_prim_mut_set() do { VAL mut = pop_value(); VAL newval = pop_value(); push_value(mut); if (mut.tag == VT_U64 && mut.data.vp_valueptr) { VAL oldval = *mut.data.vp_valueptr; *mut.data.vp_valueptr = newval; decref(oldval); } else { usize cellidx = get_cell_index(mut); if (cellidx) { cell_t* cell = heap + cellidx; VAL oldval = cell->car; cell->car = newval; decref(oldval); } else { decref(newval); } } } while(0)
 
 /* GENERATED C99 */
 
@@ -874,8 +874,8 @@ static void mw_NONE (void) {
     push_u64(0LL);
 }
 static void mw_SOME (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(1LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -883,60 +883,60 @@ static void mw_L0 (void) {
     push_u64(0LL);
 }
 static void mw_L1 (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(1LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_L2 (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    VAL tag = mku64(2LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_L3 (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    VAL tag = mku64(3LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_LCAT (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    VAL tag = mku64(4LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_L1_2B_ (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(0LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_L2_2B_ (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    VAL tag = mku64(1LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_L3_2B_ (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    VAL tag = mku64(2LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_LCAT_2B_ (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    VAL tag = mku64(3LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -947,20 +947,20 @@ static void mw_TS_SKIP (void) {
     push_u64(1LL);
 }
 static void mw_TS_CHAR (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(2LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TS_PUSH (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(3LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TS_COPY (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(4LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -972,9 +972,9 @@ static void mw_STACK_NIL (void) {
     push_u64(0LL);
 }
 static void mw_STACK_CONS (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    VAL tag = mku64(1LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -982,62 +982,62 @@ static void mw_DEF_NONE (void) {
     push_u64(0LL);
 }
 static void mw_DEF_MODULE (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(1LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_DEF_TYPE (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(2LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_DEF_TAG (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(3LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_DEF_PRIM (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(4LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_DEF_WORD (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(5LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_DEF_BUFFER (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(6LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_DEF_VARIABLE (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(7LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_DEF_CONSTANT (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(8LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_DEF_EXTERNAL (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(9LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_DEF_FIELD (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(10LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -1050,10 +1050,10 @@ static void mw_ROW (void) {
 static void mw_COL (void) {
 }
 static void mw_LOCATION (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    VAL tag = mku64(0LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -1064,56 +1064,56 @@ static void mw_TOKEN_COMMA (void) {
     push_u64(1LL);
 }
 static void mw_TOKEN_LPAREN (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(2LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_RPAREN (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(3LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_LSQUARE (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(4LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_RSQUARE (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(5LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_LCURLY (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(6LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_RCURLY (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(7LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_INT (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(8LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_STR (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(9LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_NAME (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(10LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -1130,83 +1130,83 @@ static void mw_TYPE_DONT_CARE (void) {
     push_u64(1LL);
 }
 static void mw_TPrim (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(2LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TMeta (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(3LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_THole (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(4LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TVar (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(5LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TTable (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(6LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TData (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(7LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TTensor (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
+    VAL tag = mku64(8LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TMorphism (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
+    VAL tag = mku64(9LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TApp (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
+    VAL tag = mku64(10LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_TValue (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(11LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_VALUE_INT (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(0LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_VALUE_STR (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(1LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_VALUE_BLOCK (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(2LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -1269,14 +1269,14 @@ static void mw_GAMMA (void) {
 static void mw_SUBST (void) {
 }
 static void mw_ARG_BLOCK (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(0LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_ARG_VAR_RUN (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(1LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -1284,86 +1284,86 @@ static void mw_OP_NONE (void) {
     push_u64(0LL);
 }
 static void mw_OP_PRIM (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(1LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_WORD (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(2LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_EXTERNAL (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 3LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(3LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_BUFFER (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 4LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(4LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_VARIABLE (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 5LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(5LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_CONSTANT (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 6LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(6LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_FIELD (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 7LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(7LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_INT (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 8LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(8LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_STR (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 9LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(9LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_TAG (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 10LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(10LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_MATCH (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 11LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(11LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_LAMBDA (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 12LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(12LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_VAR (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 13LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(13LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OP_BLOCK (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 14LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(14LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -1373,21 +1373,21 @@ static void mw_PATTERN_UNDERSCORE (void) {
     push_u64(0LL);
 }
 static void mw_PATTERN_TAG (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(1LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_LAZY_READY (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(0LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_LAZY_DELAY (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    VAL tag = mku64(1LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -1397,9 +1397,9 @@ static void mw_LAZY_WAIT (void) {
 static void mw_CTX (void) {
 }
 static void mw_TYPE_ELAB (void) {
-    value_t car = pop_value();
+    VAL car = pop_value();
     car = mkcell(car, pop_value());
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 0LL } };
+    VAL tag = mku64(0LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -1407,14 +1407,14 @@ static void mw_OPSIG_ID (void) {
     push_u64(0LL);
 }
 static void mw_OPSIG_PUSH (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 1LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(1LL);
     car = mkcell(car, tag);
     push_value(car);
 }
 static void mw_OPSIG_APPLY (void) {
-    value_t car = pop_value();
-    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = 2LL } };
+    VAL car = pop_value();
+    VAL tag = mku64(2LL);
     car = mkcell(car, tag);
     push_value(car);
 }
@@ -1789,79 +1789,79 @@ static void mw_Variable_2E_NUM (void) {
 }
 
 void mw_STR_BUF_LEN() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_source_path_root() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_output_path_root() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_input_isopen() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_input_length() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_input_offset() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_input_handle() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_num_warnings() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_num_errors() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_lexer_module() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_lexer_row() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_lexer_col() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_lexer_stack() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_codegen_file() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_codegen_length() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_c99_depth() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_ab_home() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_ab_homeidx() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 void mw_ab_arrow() {
-    static value_t v = {0};
+    static VAL v = {0};
     push_ptr(&v);
 }
 
@@ -4606,7 +4606,7 @@ static void mw_drop (void){
 
 static void mw_run (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -4716,12 +4716,12 @@ static void mw__7C_ptr_7C_ (void){
 
 static void mw_with_raw_ptr (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_prim_ptr_raw();
         mw_RAWPTR();
         mw_swap();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
             do_run();
@@ -4890,7 +4890,7 @@ static void mw_posix_mmap_21_ (void){
 static void mw_rotr (void){
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         push_value(d2);
     }
@@ -4898,7 +4898,7 @@ static void mw_rotr (void){
 
 static void mw_rotl (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         push_value(d2);
     }
@@ -4907,7 +4907,7 @@ static void mw_rotl (void){
 
 static void mw_over (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         push_value(d2);
     }
@@ -4916,7 +4916,7 @@ static void mw_over (void){
 
 static void mw_over2 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_over();
         push_value(d2);
     }
@@ -4925,7 +4925,7 @@ static void mw_over2 (void){
 
 static void mw_over3 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_over2();
         push_value(d2);
     }
@@ -4935,7 +4935,7 @@ static void mw_over3 (void){
 static void mw_tuck (void){
     mw_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         push_value(d2);
     }
@@ -4943,7 +4943,7 @@ static void mw_tuck (void){
 
 static void mw_nip (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_drop();
         push_value(d2);
     }
@@ -4957,9 +4957,9 @@ static void mw_dup2 (void){
 static void mw_dup3 (void){
     mw_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_dup2();
             push_value(d3);
         }
@@ -4970,9 +4970,9 @@ static void mw_dup3 (void){
 
 static void mw_dip_3F_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
             do_run();
@@ -4985,10 +4985,10 @@ static void mw_dip_3F_ (void){
 
 static void mw_dip_27_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_swap();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
             do_run();
@@ -5001,11 +5001,11 @@ static void mw_dip_27_ (void){
 
 static void mw_dip2 (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 push_value(var_f);
                 incref(var_f);
                 do_run();
@@ -5019,13 +5019,13 @@ static void mw_dip2 (void){
 
 static void mw_dip3 (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -5041,10 +5041,10 @@ static void mw_dip3 (void){
 
 static void mw_sip (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_dup();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
             do_run();
@@ -5056,12 +5056,12 @@ static void mw_sip (void){
 
 static void mw_sip2 (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_dup2();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 push_value(var_f);
                 incref(var_f);
                 do_run();
@@ -5094,7 +5094,7 @@ static void mw_drop4 (void){
 static void mw_rot4r (void){
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_rotr();
         push_value(d2);
     }
@@ -5102,7 +5102,7 @@ static void mw_rot4r (void){
 
 static void mw_rot4l (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_rotl();
         push_value(d2);
     }
@@ -5111,7 +5111,7 @@ static void mw_rot4l (void){
 
 static void mw_or (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         if (pop_u64()) {
             mw_true();
         } else {
@@ -5125,7 +5125,7 @@ static void mw_or (void){
 
 static void mw_and (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         if (pop_u64()) {
             push_value(var_f);
             incref(var_f);
@@ -5139,14 +5139,14 @@ static void mw_and (void){
 
 static void mw_repeat (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         while(1) {
             mw_dup();
             push_i64(0LL);
             mw__3E_();
             if (!pop_u64()) break;
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 push_value(var_f);
                 incref(var_f);
                 do_run();
@@ -5161,7 +5161,7 @@ static void mw_repeat (void){
 
 static void mw_count (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_i64(0LL);
         mw_swap();
         push_u64(0);
@@ -5178,7 +5178,7 @@ static void mw_count (void){
 
 static void mw_countdown (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_dup();
         mw_1_();
         mw_swap();
@@ -5348,7 +5348,7 @@ static void mw_ptrs (void){
 
 static void mw_ptr_40__40_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_ptrs();
         push_value(d2);
     }
@@ -5358,7 +5358,7 @@ static void mw_ptr_40__40_ (void){
 
 static void mw_ptr_21__21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_ptrs();
         push_value(d2);
     }
@@ -5383,7 +5383,7 @@ static void mw_ints (void){
 
 static void mw_int_40__40_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_ints();
         push_value(d2);
     }
@@ -5393,7 +5393,7 @@ static void mw_int_40__40_ (void){
 
 static void mw_int_21__21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_ints();
         push_value(d2);
     }
@@ -5408,7 +5408,7 @@ static void mw_values (void){
 
 static void mw_value_40__40_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_values();
         push_value(d2);
     }
@@ -5418,7 +5418,7 @@ static void mw_value_40__40_ (void){
 
 static void mw_value_21__21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_values();
         push_value(d2);
     }
@@ -5428,10 +5428,10 @@ static void mw_value_21__21_ (void){
 
 static void mw_in_range (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_over();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw__3E__3D_();
             push_value(d3);
         }
@@ -5560,7 +5560,7 @@ static void mw_pack0 (void){
 
 static void mw_pack1 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_pack0();
         push_value(d2);
     }
@@ -5569,7 +5569,7 @@ static void mw_pack1 (void){
 
 static void mw_pack2 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_pack1();
         push_value(d2);
     }
@@ -5578,7 +5578,7 @@ static void mw_pack2 (void){
 
 static void mw_pack3 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_pack2();
         push_value(d2);
     }
@@ -5587,7 +5587,7 @@ static void mw_pack3 (void){
 
 static void mw_pack4 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_pack3();
         push_value(d2);
     }
@@ -5596,7 +5596,7 @@ static void mw_pack4 (void){
 
 static void mw_pack5 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_pack4();
         push_value(d2);
     }
@@ -5615,7 +5615,7 @@ static void mw_unpack1 (void){
 static void mw_unpack2 (void){
     mw_prim_pack_uncons();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unpack1();
         push_value(d2);
     }
@@ -5624,7 +5624,7 @@ static void mw_unpack2 (void){
 static void mw_unpack3 (void){
     mw_prim_pack_uncons();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unpack2();
         push_value(d2);
     }
@@ -5633,7 +5633,7 @@ static void mw_unpack3 (void){
 static void mw_unpack4 (void){
     mw_prim_pack_uncons();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unpack3();
         push_value(d2);
     }
@@ -5642,7 +5642,7 @@ static void mw_unpack4 (void){
 static void mw_unpack5 (void){
     mw_prim_pack_uncons();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unpack4();
         push_value(d2);
     }
@@ -5663,10 +5663,10 @@ static void mw__21_ (void){
 
 static void mw_modify (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_dup();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw__40_();
             push_value(var_f);
             incref(var_f);
@@ -5713,7 +5713,7 @@ static void mw_unwrap (void){
 
 static void mw_unwrap_or (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
                 do_drop();
@@ -5733,7 +5733,7 @@ static void mw_unwrap_or (void){
 
 static void mw_maybe_map (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
                 do_drop();
@@ -5754,7 +5754,7 @@ static void mw_maybe_map (void){
 
 static void mw_maybe_bind (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
                 do_drop();
@@ -5774,7 +5774,7 @@ static void mw_maybe_bind (void){
 
 static void mw_maybe_for (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
                 do_drop();
@@ -5794,7 +5794,7 @@ static void mw_maybe_for (void){
 
 static void mw_maybe_filter (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
                 do_drop();
@@ -5820,8 +5820,8 @@ static void mw_maybe_filter (void){
 
 static void mw_while_some (void){
     {
-        value_t var_g = pop_value();
-        value_t var_f = pop_value();
+        VAL var_g = pop_value();
+        VAL var_f = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -5890,7 +5890,7 @@ static void mw_L12 (void){
 static void mw_L4_2B_ (void){
     mw_L2_2B_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L2_2B_();
         push_value(d2);
     }
@@ -5901,7 +5901,7 @@ static void mw_L4_2B_ (void){
 static void mw_L5_2B_ (void){
     mw_L3_2B_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L2_2B_();
         push_value(d2);
     }
@@ -5912,7 +5912,7 @@ static void mw_L5_2B_ (void){
 static void mw_L6_2B_ (void){
     mw_L3_2B_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L3_2B_();
         push_value(d2);
     }
@@ -5923,7 +5923,7 @@ static void mw_L6_2B_ (void){
 static void mw_L7_2B_ (void){
     mw_L4_2B_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L3_2B_();
         push_value(d2);
     }
@@ -5934,7 +5934,7 @@ static void mw_L7_2B_ (void){
 static void mw_L8_2B_ (void){
     mw_L5_2B_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L3_2B_();
         push_value(d2);
     }
@@ -5945,7 +5945,7 @@ static void mw_L8_2B_ (void){
 static void mw_L9_2B_ (void){
     mw_L6_2B_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L3_2B_();
         push_value(d2);
     }
@@ -5956,7 +5956,7 @@ static void mw_L9_2B_ (void){
 static void mw_L10_2B_ (void){
     mw_L5_2B_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L5_2B_();
         push_value(d2);
     }
@@ -5967,7 +5967,7 @@ static void mw_L10_2B_ (void){
 static void mw_L11_2B_ (void){
     mw_L6_2B_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L5_2B_();
         push_value(d2);
     }
@@ -5978,7 +5978,7 @@ static void mw_L11_2B_ (void){
 static void mw_L12_2B_ (void){
     mw_L6_2B_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L6_2B_();
         push_value(d2);
     }
@@ -6077,7 +6077,7 @@ static void mw_len (void){
             do_pack_uncons(); do_swap();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_drop2();
                 push_value(d4);
             }
@@ -6111,7 +6111,7 @@ static void mw_len_2B_ (void){
             do_pack_uncons(); do_swap();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_drop2();
                 push_value(d4);
             }
@@ -6157,9 +6157,9 @@ static void mw_cons_2B_ (void){
             do_pack_uncons(); do_swap();
             mw_1_2B_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_cons_2B__2B_();
                     push_value(d5);
                 }
@@ -6203,7 +6203,7 @@ static void mw_snoc_2B_ (void){
             do_pack_uncons(); do_swap();
             mw_1_2B_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_rotl();
                 mw_snoc_2B__2B_();
                 mw_rebalance_2B_();
@@ -6222,7 +6222,7 @@ static void mw_cons_2B__2B_ (void){
 
 static void mw_snoc_2B__2B_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_List_2B___3E_List();
         push_value(d2);
     }
@@ -6262,7 +6262,7 @@ static void mw_uncons (void){
             do_pack_uncons(); do_swap();
             mw_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_uncons();
                 push_value(d4);
             }
@@ -6278,7 +6278,7 @@ static void mw_unsnoc (void){
         case 0LL:
             do_pack_uncons(); do_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_L0();
                 push_value(d4);
             }
@@ -6287,7 +6287,7 @@ static void mw_unsnoc (void){
             do_pack_uncons(); do_drop();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_L1();
                 push_value(d4);
             }
@@ -6297,7 +6297,7 @@ static void mw_unsnoc (void){
             do_pack_uncons(); do_swap();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_L2();
                 push_value(d4);
             }
@@ -6309,7 +6309,7 @@ static void mw_unsnoc (void){
             mw_drop();
             mw_unsnoc();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_cat_2B__();
                 mw_List_2B___3E_List();
                 push_value(d4);
@@ -6410,7 +6410,7 @@ static void mw_cat_2B_ (void){
                     break;
                 default:
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_L2_2B_();
                         push_value(d6);
                     }
@@ -6441,7 +6441,7 @@ static void mw_cat_2B_ (void){
                     break;
                 default:
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_L3_2B_();
                         push_value(d6);
                     }
@@ -6468,7 +6468,7 @@ static void mw_cat_aux (void){
     mw_rebalance_2B_();
     mw_dup2();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_len_2B_();
         push_value(d2);
     }
@@ -6480,7 +6480,7 @@ static void mw_cat_aux (void){
 static void mw_rebalance_2B_ (void){
     mw_dup2();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_len_2B_();
         push_value(d2);
     }
@@ -6492,7 +6492,7 @@ static void mw_rebalance_2B_ (void){
     if (pop_u64()) {
         mw_drop2();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_split_half_left();
             push_value(d3);
         }
@@ -6500,7 +6500,7 @@ static void mw_rebalance_2B_ (void){
         mw_rebalance_2B_();
     } else {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_i64(3LL);
             mw__2A_();
             push_value(d3);
@@ -6509,7 +6509,7 @@ static void mw_rebalance_2B_ (void){
         if (pop_u64()) {
             mw_split_half_right();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_cat_2B__();
                 push_value(d4);
             }
@@ -6526,7 +6526,7 @@ static void mw_split_half_left (void){
             do_pack_uncons(); do_drop();
             mw_L0();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_L1_2B_();
                 push_value(d4);
             }
@@ -6536,7 +6536,7 @@ static void mw_split_half_left (void){
             do_pack_uncons(); do_swap();
             mw_L1();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_L1_2B_();
                 push_value(d4);
             }
@@ -6547,7 +6547,7 @@ static void mw_split_half_left (void){
             do_pack_uncons(); do_swap();
             mw_L1();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_L2_2B_();
                 push_value(d4);
             }
@@ -6569,7 +6569,7 @@ static void mw_split_half_right (void){
             do_pack_uncons(); do_drop();
             mw_L1_2B_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_L0();
                 push_value(d4);
             }
@@ -6579,7 +6579,7 @@ static void mw_split_half_right (void){
             do_pack_uncons(); do_swap();
             mw_L1_2B_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_L1();
                 push_value(d4);
             }
@@ -6590,7 +6590,7 @@ static void mw_split_half_right (void){
             do_pack_uncons(); do_swap();
             mw_L2_2B_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_L1();
                 push_value(d4);
             }
@@ -6601,7 +6601,7 @@ static void mw_split_half_right (void){
             do_pack_uncons(); do_swap();
             mw_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_List_2B___3E_List();
                 push_value(d4);
             }
@@ -6621,7 +6621,7 @@ static void mw_split_half (void){
             do_pack_uncons(); do_drop();
             mw_L1();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_L0();
                 push_value(d4);
             }
@@ -6631,7 +6631,7 @@ static void mw_split_half (void){
             do_pack_uncons(); do_swap();
             mw_L1();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_L1();
                 push_value(d4);
             }
@@ -6642,7 +6642,7 @@ static void mw_split_half (void){
             do_pack_uncons(); do_swap();
             mw_L2();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_L1();
                 push_value(d4);
             }
@@ -6653,7 +6653,7 @@ static void mw_split_half (void){
             do_pack_uncons(); do_swap();
             mw_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_List_2B___3E_List();
                 push_value(d4);
             }
@@ -6725,7 +6725,7 @@ static void mw_last_2B_ (void){
             do_pack_uncons(); do_drop();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_drop();
                 push_value(d4);
             }
@@ -6735,7 +6735,7 @@ static void mw_last_2B_ (void){
             do_pack_uncons(); do_swap();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_drop2();
                 push_value(d4);
             }
@@ -6811,7 +6811,7 @@ static void mw_reverse (void){
             do_pack_uncons(); do_swap();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_reverse_2B_();
                 mw_swap();
                 mw_reverse_2B_();
@@ -6848,7 +6848,7 @@ static void mw_reverse_2B_ (void){
             do_pack_uncons(); do_swap();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_reverse_2B_();
                 mw_swap();
                 mw_reverse_2B_();
@@ -6862,7 +6862,7 @@ static void mw_reverse_2B_ (void){
 
 static void mw_map (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
                 do_drop();
@@ -6879,7 +6879,7 @@ static void mw_map (void){
                 do_pack_uncons(); do_drop();
                 do_pack_uncons(); do_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -6887,7 +6887,7 @@ static void mw_map (void){
                 }
                 mw_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -6901,9 +6901,9 @@ static void mw_map (void){
                 do_pack_uncons(); do_swap();
                 do_pack_uncons(); do_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
                         do_run();
@@ -6913,9 +6913,9 @@ static void mw_map (void){
                 }
                 mw_rotr();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
                         do_run();
@@ -6925,9 +6925,9 @@ static void mw_map (void){
                 }
                 mw_rotr();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
                         do_run();
@@ -6943,9 +6943,9 @@ static void mw_map (void){
                 do_pack_uncons(); do_swap();
                 do_pack_uncons(); do_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
                         mw_map_2B_();
@@ -6953,7 +6953,7 @@ static void mw_map (void){
                     }
                     mw_swap();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
                         mw_map_2B_();
@@ -6972,7 +6972,7 @@ static void mw_map (void){
 
 static void mw_map_2B_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
                 do_pack_uncons(); do_drop();
@@ -6985,7 +6985,7 @@ static void mw_map_2B_ (void){
                 do_pack_uncons(); do_drop();
                 do_pack_uncons(); do_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -6993,7 +6993,7 @@ static void mw_map_2B_ (void){
                 }
                 mw_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -7007,9 +7007,9 @@ static void mw_map_2B_ (void){
                 do_pack_uncons(); do_swap();
                 do_pack_uncons(); do_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
                         do_run();
@@ -7019,9 +7019,9 @@ static void mw_map_2B_ (void){
                 }
                 mw_rotr();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
                         do_run();
@@ -7031,9 +7031,9 @@ static void mw_map_2B_ (void){
                 }
                 mw_rotr();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
                         do_run();
@@ -7049,9 +7049,9 @@ static void mw_map_2B_ (void){
                 do_pack_uncons(); do_swap();
                 do_pack_uncons(); do_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
                         mw_map_2B_();
@@ -7059,7 +7059,7 @@ static void mw_map_2B_ (void){
                     }
                     mw_swap();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
                         mw_map_2B_();
@@ -7078,7 +7078,7 @@ static void mw_map_2B_ (void){
 
 static void mw_for (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
                 do_drop();
@@ -7094,7 +7094,7 @@ static void mw_for (void){
                 do_pack_uncons(); do_drop();
                 do_pack_uncons(); do_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -7109,9 +7109,9 @@ static void mw_for (void){
                 do_pack_uncons(); do_swap();
                 do_pack_uncons(); do_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
                         do_run();
@@ -7132,7 +7132,7 @@ static void mw_for (void){
                 do_pack_uncons(); do_swap();
                 mw_drop();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     mw_for_2B_();
@@ -7150,7 +7150,7 @@ static void mw_for (void){
 
 static void mw_for_2B_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
                 do_pack_uncons(); do_drop();
@@ -7162,7 +7162,7 @@ static void mw_for_2B_ (void){
                 do_pack_uncons(); do_drop();
                 do_pack_uncons(); do_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -7177,9 +7177,9 @@ static void mw_for_2B_ (void){
                 do_pack_uncons(); do_swap();
                 do_pack_uncons(); do_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
                         do_run();
@@ -7200,7 +7200,7 @@ static void mw_for_2B_ (void){
                 do_pack_uncons(); do_swap();
                 mw_drop();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     mw_for_2B_();
@@ -7218,7 +7218,7 @@ static void mw_for_2B_ (void){
 
 static void mw_reverse_for (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
                 do_drop();
@@ -7235,7 +7235,7 @@ static void mw_reverse_for (void){
                 do_pack_uncons(); do_swap();
                 mw_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -7255,7 +7255,7 @@ static void mw_reverse_for (void){
                 mw_dip2();
                 mw_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -7272,7 +7272,7 @@ static void mw_reverse_for (void){
                 mw_drop();
                 mw_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     mw_reverse_for_2B_();
@@ -7290,7 +7290,7 @@ static void mw_reverse_for (void){
 
 static void mw_reverse_for_2B_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
                 do_pack_uncons(); do_drop();
@@ -7303,7 +7303,7 @@ static void mw_reverse_for_2B_ (void){
                 do_pack_uncons(); do_swap();
                 mw_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -7323,7 +7323,7 @@ static void mw_reverse_for_2B_ (void){
                 mw_dip2();
                 mw_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -7340,7 +7340,7 @@ static void mw_reverse_for_2B_ (void){
                 mw_drop();
                 mw_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     mw_reverse_for_2B_();
@@ -7358,7 +7358,7 @@ static void mw_reverse_for_2B_ (void){
 
 static void mw_reduce (void){
     {
-        value_t var_g = pop_value();
+        VAL var_g = pop_value();
         mw_List__3E_List_2B_();
         push_u64(0);
         push_value(var_g);
@@ -7373,7 +7373,7 @@ static void mw_reduce (void){
 
 static void mw_reduce_2B_ (void){
     {
-        value_t var_g = pop_value();
+        VAL var_g = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
                 do_pack_uncons(); do_drop();
@@ -7403,7 +7403,7 @@ static void mw_reduce_2B_ (void){
                 do_pack_uncons(); do_swap();
                 mw_drop();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_g);
                     incref(var_g);
                     mw_reduce_2B_();
@@ -7424,7 +7424,7 @@ static void mw_reduce_2B_ (void){
 
 static void mw_filter (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_List__3E_List_2B_();
         switch (get_top_data_tag()) {
             case 0LL:
@@ -7445,7 +7445,7 @@ static void mw_filter (void){
 
 static void mw_filter_2B_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 3LL:
                 do_pack_uncons(); do_drop();
@@ -7453,7 +7453,7 @@ static void mw_filter_2B_ (void){
                 do_pack_uncons(); do_swap();
                 mw_drop();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     mw_filter_2B_();
@@ -7471,7 +7471,7 @@ static void mw_filter_2B_ (void){
             default:
                 mw_uncons();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -7501,7 +7501,7 @@ static void mw_filter_2B_ (void){
 
 static void mw_find (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_List__3E_List_2B_();
         switch (get_top_data_tag()) {
             case 0LL:
@@ -7522,7 +7522,7 @@ static void mw_find (void){
 
 static void mw_find_2B_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 3LL:
                 do_pack_uncons(); do_drop();
@@ -7530,7 +7530,7 @@ static void mw_find_2B_ (void){
                 do_pack_uncons(); do_swap();
                 mw_drop();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     mw_find_2B_();
@@ -7555,7 +7555,7 @@ static void mw_find_2B_ (void){
             default:
                 mw_uncons();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -7579,7 +7579,7 @@ static void mw_find_2B_ (void){
 
 static void mw_find_3F_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_u64(0);
         push_value(var_f);
         incref(var_f);
@@ -7594,7 +7594,7 @@ static void mw_find_3F_ (void){
 
 static void mw_reverse_find (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_reverse();
         push_value(var_f);
         incref(var_f);
@@ -7605,7 +7605,7 @@ static void mw_reverse_find (void){
 
 static void mw_reverse_find_3F_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_u64(0);
         push_value(var_f);
         incref(var_f);
@@ -7620,7 +7620,7 @@ static void mw_reverse_find_3F_ (void){
 
 static void mw_any (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_value(var_f);
         incref(var_f);
         mw_find();
@@ -7631,7 +7631,7 @@ static void mw_any (void){
 
 static void mw_any_3F_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_value(var_f);
         incref(var_f);
         mw_find_3F_();
@@ -7642,7 +7642,7 @@ static void mw_any_3F_ (void){
 
 static void mw_all (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_u64(0);
         push_value(var_f);
         incref(var_f);
@@ -7657,7 +7657,7 @@ static void mw_all (void){
 
 static void mw_all_3F_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_u64(0);
         push_value(var_f);
         incref(var_f);
@@ -7672,7 +7672,7 @@ static void mw_all_3F_ (void){
 
 static void mw_collect (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_L0();
         mw_swap();
         push_value(var_f);
@@ -7691,12 +7691,12 @@ static void mw_collect (void){
 
 static void mw_collect_while (void){
     {
-        value_t var_g = pop_value();
-        value_t var_f = pop_value();
+        VAL var_g = pop_value();
+        VAL var_f = pop_value();
         mw_L0();
         while(1) {
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 push_value(var_f);
                 incref(var_f);
                 do_run();
@@ -7705,7 +7705,7 @@ static void mw_collect_while (void){
             mw_swap();
             if (!pop_u64()) break;
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 push_value(var_g);
                 incref(var_g);
                 do_run();
@@ -7741,7 +7741,7 @@ static void mw_char_bytes (void){
             mw__3E__3E_();
             mw_Int__3E_U8();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 push_i64(255LL);
                 mw__26_();
                 mw_Int__3E_U8();
@@ -7758,7 +7758,7 @@ static void mw_char_bytes (void){
                 mw__3E__3E_();
                 mw_Int__3E_U8();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_dup();
                     push_i64(8LL);
                     mw__3E__3E_();
@@ -7766,7 +7766,7 @@ static void mw_char_bytes (void){
                     mw__26_();
                     mw_Int__3E_U8();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_i64(255LL);
                         mw__26_();
                         mw_Int__3E_U8();
@@ -7782,7 +7782,7 @@ static void mw_char_bytes (void){
                 mw__3E__3E_();
                 mw_Int__3E_U8();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_dup();
                     push_i64(16LL);
                     mw__3E__3E_();
@@ -7790,7 +7790,7 @@ static void mw_char_bytes (void){
                     mw__26_();
                     mw_Int__3E_U8();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_dup();
                         push_i64(8LL);
                         mw__3E__3E_();
@@ -7798,7 +7798,7 @@ static void mw_char_bytes (void){
                         mw__26_();
                         mw_Int__3E_U8();
                         {
-                            value_t d7 = pop_value();
+                            VAL d7 = pop_value();
                             push_i64(255LL);
                             mw__26_();
                             mw_Int__3E_U8();
@@ -7996,7 +7996,7 @@ static void mw_char_codepoint_2 (void){
     push_i64(8LL);
     mw__3E__3E_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(31LL);
         mw__26_();
         push_i64(6LL);
@@ -8014,14 +8014,14 @@ static void mw_char_codepoint_3 (void){
     push_i64(16LL);
     mw__3E__3E_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         push_i64(16128LL);
         mw__26_();
         push_i64(2LL);
         mw__3E__3E_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_i64(15LL);
             mw__26_();
             push_i64(12LL);
@@ -8042,21 +8042,21 @@ static void mw_char_codepoint_4 (void){
     push_i64(24LL);
     mw__3E__3E_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         push_i64(4128768LL);
         mw__26_();
         push_i64(10LL);
         mw__3E__3E_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_dup();
             push_i64(16128LL);
             mw__26_();
             push_i64(4LL);
             mw__3C__3C_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 push_i64(7LL);
                 mw__26_();
                 push_i64(18LL);
@@ -8074,7 +8074,7 @@ static void mw_char_codepoint_4 (void){
 
 static void mw_char_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_Char__3E_Int();
         mw_Int__3E_U32();
         push_value(d2);
@@ -8084,7 +8084,7 @@ static void mw_char_21_ (void){
 
 static void mw_char_21__precise (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_char_width_3F_();
         push_value(d2);
     }
@@ -8095,7 +8095,7 @@ static void mw_char_21__precise (void){
     if (pop_u64()) {
         mw_drop();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_Char__3E_Int();
             mw_Int__3E_U8();
             push_value(d3);
@@ -8108,7 +8108,7 @@ static void mw_char_21__precise (void){
         if (pop_u64()) {
             mw_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_Char__3E_Int();
                 mw_Int__3E_U16();
                 push_value(d4);
@@ -8121,7 +8121,7 @@ static void mw_char_21__precise (void){
             if (pop_u64()) {
                 mw_drop();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_Char__3E_Int();
                     mw_dup();
                     push_i64(65535LL);
@@ -8131,7 +8131,7 @@ static void mw_char_21__precise (void){
                 }
                 mw_dup();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_u16_21_();
                     push_i64(16LL);
                     mw__3E__3E_();
@@ -8144,7 +8144,7 @@ static void mw_char_21__precise (void){
             } else {
                 mw_drop();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_Char__3E_Int();
                     mw_Int__3E_U32();
                     push_value(d5);
@@ -8159,7 +8159,7 @@ static void mw_char_21__2B__2B_ (void){
     mw_dup2();
     mw_char_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_char_width();
         push_value(d2);
     }
@@ -8171,7 +8171,7 @@ static void mw_char_3F__2B__2B_ (void){
     mw_char_width_3F_();
     mw_rotr();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_ptr_2B_();
         push_value(d2);
     }
@@ -8197,7 +8197,7 @@ static void mw_char_40_ (void){
     push_i64(3LL);
     mw__26_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(4294967295LL);
         push_value(d2);
     }
@@ -8218,7 +8218,7 @@ static void mw_char_40__width (void){
 static void mw_char_width (void){
     mw_Char__3E_Int();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(4203265827220226048LL);
         push_value(d2);
     }
@@ -8509,9 +8509,9 @@ static void mw_is_whitespace_3F_ (void){
     push_i64(33LL);
     mw__3C_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_i64(4295101952LL);
             push_value(d3);
         }
@@ -8528,13 +8528,13 @@ static void mw_is_whitespace_3F_ (void){
 static void mw_is_hexdigit_3F_ (void){
     mw_is_digit_3F_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_is_upper_hexdigit_3F_();
         push_value(d2);
     }
     mw__7C__7C_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_is_lower_hexdigit_3F_();
         push_value(d2);
     }
@@ -8544,7 +8544,7 @@ static void mw_is_hexdigit_3F_ (void){
 static void mw_is_sign_3F_ (void){
     mw_is_plus_3F_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_is_minus_3F_();
         push_value(d2);
     }
@@ -8568,9 +8568,9 @@ static void mw_is_string_end_3F_ (void){
     push_i64(64LL);
     mw__3C_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_i64(17179870209LL);
             push_value(d3);
         }
@@ -8599,7 +8599,7 @@ static void mw_is_visible_3F_ (void){
 static void mw_is_name_char_3F_ (void){
     mw_is_visible_3F_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_is_special_char_3F_();
         mw_not();
         push_value(d2);
@@ -8665,7 +8665,7 @@ static void mw_str_length (void){
         mw_not();
         if (!pop_u64()) break;
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_1_2B_();
             push_value(d3);
         }
@@ -8717,7 +8717,7 @@ static void mw_str_is_empty_3F_ (void){
 
 static void mw_str_copy_partial_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         mw_Str__3E_Ptr();
         mw_swap();
@@ -8727,7 +8727,7 @@ static void mw_str_copy_partial_21_ (void){
     mw_dup2();
     mw_ptr_2B_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_ptr_copy();
         push_value(d2);
     }
@@ -8739,11 +8739,11 @@ static void mw_STR_BUF_SIZE (void){
 
 static void mw_build_str_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_str_buf_dup_21_();
         mw_str_buf_clear_21_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
             do_run();
@@ -8776,7 +8776,7 @@ static void mw_str_buf_length_21_ (void){
     mw_STR_BUF_LEN();
     mw__21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(0LL);
         mw_Int__3E_U8();
         push_value(d2);
@@ -8917,7 +8917,7 @@ static void mw_str_buf_swap_u8_21_ (void){
     do_pack_cons();
     mw_dip3();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_str_buf_u8_40_();
         push_value(d2);
     }
@@ -8936,7 +8936,7 @@ static void mw_str_buf_reverse_21_ (void){
         mw_dup2();
         mw_str_buf_swap_u8_21_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_1_2B_();
             push_value(d3);
         }
@@ -8956,7 +8956,7 @@ static void mw_str_eq_3F_ (void){
 
 static void mw_str_for (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         while(1) {
             mw_str_is_empty_3F_();
             mw_not();
@@ -8964,7 +8964,7 @@ static void mw_str_for (void){
             mw_dup();
             mw_str_tail();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_str_head();
                 push_value(var_f);
                 incref(var_f);
@@ -8979,7 +8979,7 @@ static void mw_str_for (void){
 
 static void mw_str_transduce (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_u64(0);
         push_value(var_f);
         incref(var_f);
@@ -9023,7 +9023,7 @@ static void mw_str_transduce_step (void){
 
 static void mw_str_chars (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L0();
         push_value(d2);
     }
@@ -9035,7 +9035,7 @@ static void mw_str_chars (void){
 
 static void mw_str_codepoints (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L0();
         push_value(d2);
     }
@@ -9059,7 +9059,7 @@ static void mw_str_bytes (void){
         if (!pop_u64()) break;
         mw_1_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_u64(0);
             push_fnptr(&mb_str_bytes_4);
             do_pack_cons();
@@ -9087,7 +9087,7 @@ static void mw_path_40_ (void){
 
 static void mw_path_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_Path__3E_Str();
         mw_Str__3E_Ptr();
         push_value(d2);
@@ -9176,7 +9176,7 @@ static void mw_file_40_ (void){
 
 static void mw_file_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_File__3E_Int();
         push_value(d2);
     }
@@ -9205,9 +9205,9 @@ static void mw_str_write_21_ (void){
     mw_str_size();
     mw_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_Str__3E_Ptr();
             push_value(d3);
         }
@@ -9336,7 +9336,7 @@ static void mw_trace_char_21_ (void){
 
 static void mw_int_write_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_str_buf_int_21_();
         push_value(d2);
     }
@@ -9365,8 +9365,8 @@ static void mw_int_trace_ln_21_ (void){
 
 static void mw_with_open_file_21_ (void){
     {
-        value_t var_g = pop_value();
-        value_t var_f = pop_value();
+        VAL var_g = pop_value();
+        VAL var_f = pop_value();
         push_i64(0LL);
         push_i64(0LL);
         mw_posix_open_21_();
@@ -9381,7 +9381,7 @@ static void mw_with_open_file_21_ (void){
         } else {
             mw_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_Int__3E_File();
                 push_value(var_f);
                 incref(var_f);
@@ -9399,7 +9399,7 @@ static void mw_with_open_file_21_ (void){
 static void mw_read_file_21_ (void){
     mw_File__3E_Int();
     {
-        value_t var_fp = pop_value();
+        VAL var_fp = pop_value();
         push_i64(0LL);
         push_i64(4096LL);
         mw_prim_ptr_alloc();
@@ -9415,7 +9415,7 @@ static void mw_read_file_21_ (void){
             if (!pop_u64()) break;
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw__2B_();
                 mw_dup();
                 push_value(d4);
@@ -9528,7 +9528,7 @@ static void mw_close_file_21_ (void){
 
 static void mw_with_raw_path (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_Path__3E_Str();
         mw_Str__3E_Ptr();
         push_value(var_f);
@@ -9827,7 +9827,7 @@ static void mw_stack_uncons (void){
             do_pack_uncons(); do_drop();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_SOME();
                 push_value(d4);
             }
@@ -9881,7 +9881,7 @@ static void mw_Name_2E_pred (void){
 
 static void mw_Name_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -9891,7 +9891,7 @@ static void mw_Name_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -9956,7 +9956,7 @@ static void mw_hash (void){
         mw_dup();
         mw_str_tail();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_str_head();
             mw_Char__3E_Int();
             push_i64(5LL);
@@ -9996,7 +9996,7 @@ static void mw_name_keep_going_3F_ (void){
         mw_false();
     } else {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_over();
             push_value(d3);
         }
@@ -10042,7 +10042,7 @@ static void mw_name_new_21_ (void){
 
 static void mw_name_cat_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_name_str();
         mw__40_();
         push_value(d2);
@@ -10198,7 +10198,7 @@ static void mw_char_hexdigits (void){
 
 static void mw_char_hexdigits_first (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L0();
         push_value(d2);
     }
@@ -10219,10 +10219,10 @@ static void mw_char_hexdigits_next (void){
     push_i64(4LL);
     mw__3E__3E_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_snoc();
             push_value(d3);
         }
@@ -10264,7 +10264,7 @@ static void mw_unSET (void){
 
 static void mw_set_snoc (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unSET();
         push_value(d2);
     }
@@ -10312,7 +10312,7 @@ static void mw_Module_2E_pred (void){
 
 static void mw_Module_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -10322,7 +10322,7 @@ static void mw_Module_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -10383,7 +10383,7 @@ static void mw_Token_2E_pred (void){
 
 static void mw_Token_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -10393,7 +10393,7 @@ static void mw_Token_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -10511,7 +10511,7 @@ static void mw_location_trace_21_ (void){
 
 static void mw_emit_warning_at_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_location_trace_21_();
         push_value(d2);
     }
@@ -10527,7 +10527,7 @@ static void mw_emit_warning_at_21_ (void){
 
 static void mw_emit_error_at_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_location_trace_21_();
         push_value(d2);
     }
@@ -11025,7 +11025,7 @@ static void mw_token_num_args (void){
     mw_token_is_left_enclosure_3F_();
     if (pop_u64()) {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_i64(0LL);
             push_value(d3);
         }
@@ -11034,7 +11034,7 @@ static void mw_token_num_args (void){
             mw_not();
             if (!pop_u64()) break;
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_1_2B_();
                 push_value(d4);
             }
@@ -11234,7 +11234,7 @@ static void mw_token_args_2_2B_ (void){
 
 static void mw_emit_warning_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_token_location();
         push_value(d2);
     }
@@ -11243,7 +11243,7 @@ static void mw_emit_warning_21_ (void){
 
 static void mw_emit_error_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_token_location();
         push_value(d2);
     }
@@ -11252,7 +11252,7 @@ static void mw_emit_error_21_ (void){
 
 static void mw_emit_fatal_error_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_token_location();
         push_value(d2);
     }
@@ -11400,7 +11400,7 @@ static void mw_sig_count_types (void){
         mw_sig_token_is_type_3F_();
         if (pop_u64()) {
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_1_2B_();
                 push_value(d4);
             }
@@ -11965,7 +11965,7 @@ static void mw_str_buf_is_dec_int_3F_ (void){
         mw_nip();
         if (!pop_u64()) break;
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_1_2B_();
             push_value(d3);
         }
@@ -11995,7 +11995,7 @@ static void mw_is_xX_char (void){
     push_i64(88LL);
     mw__3D__3D_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(120LL);
         mw__3D__3D_();
         push_value(d2);
@@ -12032,7 +12032,7 @@ static void mw_str_buf_is_hex_int_3F_ (void){
                 mw_nip();
                 if (!pop_u64()) break;
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_1_2B_();
                     push_value(d5);
                 }
@@ -12306,7 +12306,7 @@ static void mw_lexer_location (void){
 
 static void mw_lexer_emit_warning_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_lexer_location();
         push_value(d2);
     }
@@ -12315,7 +12315,7 @@ static void mw_lexer_emit_warning_21_ (void){
 
 static void mw_lexer_emit_error_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_lexer_location();
         push_value(d2);
     }
@@ -12324,7 +12324,7 @@ static void mw_lexer_emit_error_21_ (void){
 
 static void mw_lexer_emit_fatal_error_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_lexer_location();
         push_value(d2);
     }
@@ -12366,7 +12366,7 @@ static void mw_Buffer_2E_pred (void){
 
 static void mw_Buffer_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -12376,7 +12376,7 @@ static void mw_Buffer_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -12556,7 +12556,7 @@ static void mw_bag_split_half_left (void){
     mw_unBAG_2B_();
     mw_split_half_left();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_BAG_2B_();
         push_value(d2);
     }
@@ -12567,7 +12567,7 @@ static void mw_bag_split_half_right (void){
     mw_unBAG_2B_();
     mw_split_half_right();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_BAG();
         push_value(d2);
     }
@@ -12578,7 +12578,7 @@ static void mw_bag_split_half (void){
     mw_unBAG();
     mw_split_half();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_BAG();
         push_value(d2);
     }
@@ -12595,7 +12595,7 @@ static void mw_bag_unsnoc (void){
     mw_unBAG_2B_();
     mw_unsnoc();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_BAG();
         push_value(d2);
     }
@@ -12651,14 +12651,14 @@ static void mw_bag_has_2B_ (void){
     mw_bag_is_singleton_2B_();
     if (pop_u64()) {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_bag_first_2B_();
             push_value(d3);
         }
         mw__3D__3D_();
     } else {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_bag_split_half_right();
             push_value(d3);
         }
@@ -12681,7 +12681,7 @@ static void mw_bag_has_2B_ (void){
                 do_drop();
                 mw_drop();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_nip();
                     push_value(d5);
                 }
@@ -12724,14 +12724,14 @@ static void mw_bag_insert_2B__2B_ (void){
     mw_bag_is_singleton_2B_();
     if (pop_u64()) {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_bag_first_2B_();
             push_value(d3);
         }
         mw_B2_2B_();
     } else {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_bag_split_half_right();
             push_value(d3);
         }
@@ -12747,7 +12747,7 @@ static void mw_bag_insert_2B__2B_ (void){
             mw_drop();
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_bag_insert_2B_();
                 push_value(d4);
             }
@@ -12767,7 +12767,7 @@ static void mw_bag_replace (void){
 
 static void mw_bag_cat_unsafe (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unBAG();
         push_value(d2);
     }
@@ -12778,7 +12778,7 @@ static void mw_bag_cat_unsafe (void){
 
 static void mw_bag_cat_unsafe__2B_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unBAG();
         push_value(d2);
     }
@@ -12789,7 +12789,7 @@ static void mw_bag_cat_unsafe__2B_ (void){
 
 static void mw_bag_cat_unsafe_2B_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unBAG_2B_();
         push_value(d2);
     }
@@ -12810,7 +12810,7 @@ static void mw_order2 (void){
 
 static void mw_order3 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_order2();
         push_value(d2);
     }
@@ -12821,7 +12821,7 @@ static void mw_order3 (void){
     } else {
         mw_swap();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_order2();
             push_value(d3);
         }
@@ -12851,7 +12851,7 @@ static void mw_bag_lookup_key_2B_ (void){
     mw_bag_is_singleton_2B_();
     if (pop_u64()) {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_bag_first_2B_();
             mw_unpack2();
             push_value(d3);
@@ -12865,7 +12865,7 @@ static void mw_bag_lookup_key_2B_ (void){
         }
     } else {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_bag_split_half_right();
             mw_dup();
             mw_bag_first_2B_();
@@ -12879,7 +12879,7 @@ static void mw_bag_lookup_key_2B_ (void){
                 mw_drop2();
                 mw_SOME();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_drop2();
                     push_value(d5);
                 }
@@ -12887,7 +12887,7 @@ static void mw_bag_lookup_key_2B_ (void){
             case 1LL:
                 do_drop();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_drop2();
                     mw_nip();
                     push_value(d5);
@@ -12897,7 +12897,7 @@ static void mw_bag_lookup_key_2B_ (void){
             case 2LL:
                 do_drop();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_drop3();
                     push_value(d5);
                 }
@@ -12940,7 +12940,7 @@ static void mw_bag_replace_key_2B__2B_ (void){
     mw_bag_is_singleton_2B_();
     if (pop_u64()) {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_bag_first_2B_();
             push_value(d3);
         }
@@ -12954,7 +12954,7 @@ static void mw_bag_replace_key_2B__2B_ (void){
         }
     } else {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_bag_split_half_right();
             mw_dup();
             mw_bag_first_2B_();
@@ -12970,7 +12970,7 @@ static void mw_bag_replace_key_2B__2B_ (void){
             mw_nip();
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_bag_replace_key_2B_();
                 push_value(d4);
             }
@@ -12981,7 +12981,7 @@ static void mw_bag_replace_key_2B__2B_ (void){
 
 static void mw__3D__3D_key (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unpack2();
         mw_nip();
         push_value(d2);
@@ -12993,7 +12993,7 @@ static void mw__3D__3D_key (void){
 
 static void mw__3C__3D_key (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unpack2();
         mw_nip();
         push_value(d2);
@@ -13049,7 +13049,7 @@ static void mw_map_has_3F_ (void){
 
 static void mw_map_lookup (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unMAP();
         push_value(d2);
     }
@@ -13063,7 +13063,7 @@ static void mw_map_lookup_3F_ (void){
 
 static void mw_map_insert (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unMAP();
         push_value(d2);
     }
@@ -13157,7 +13157,7 @@ static void mw_MetaVar_2E_pred (void){
 
 static void mw_MetaVar_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -13167,7 +13167,7 @@ static void mw_MetaVar_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -13228,7 +13228,7 @@ static void mw_Data_2E_pred (void){
 
 static void mw_Data_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -13238,7 +13238,7 @@ static void mw_Data_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -13299,7 +13299,7 @@ static void mw_Tag_2E_pred (void){
 
 static void mw_Tag_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -13309,7 +13309,7 @@ static void mw_Tag_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -13337,7 +13337,7 @@ static void mw_Tag_2E_alloc_21_ (void){
 
 static void mw_def_type_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_DEF_TYPE();
         push_value(d2);
     }
@@ -13411,7 +13411,7 @@ static void mw_T0 (void){
 
 static void mw_T1 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_T0();
         push_value(d2);
     }
@@ -13420,7 +13420,7 @@ static void mw_T1 (void){
 
 static void mw_T2 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_T1();
         push_value(d2);
     }
@@ -13429,7 +13429,7 @@ static void mw_T2 (void){
 
 static void mw_T3 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_T2();
         push_value(d2);
     }
@@ -13438,7 +13438,7 @@ static void mw_T3 (void){
 
 static void mw_T4 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_T3();
         push_value(d2);
     }
@@ -13447,7 +13447,7 @@ static void mw_T4 (void){
 
 static void mw_T5 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_T4();
         push_value(d2);
     }
@@ -13456,7 +13456,7 @@ static void mw_T5 (void){
 
 static void mw_T6 (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_T5();
         push_value(d2);
     }
@@ -13625,7 +13625,7 @@ static void mw_type_unify_failed_21_ (void){
     push_ptr(": error: Failed to unify \0\0\0\0");
     mw_str_trace_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_type_trace_21_();
         push_value(d2);
     }
@@ -13675,7 +13675,7 @@ static void mw_type_unify_21_ (void){
                 case 4LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TMeta();
                         push_value(d6);
                     }
@@ -13704,7 +13704,7 @@ static void mw_type_unify_21_ (void){
                 case 4LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TVar();
                         push_value(d6);
                     }
@@ -13713,7 +13713,7 @@ static void mw_type_unify_21_ (void){
                 case 3LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TVar();
                         push_value(d6);
                     }
@@ -13725,7 +13725,7 @@ static void mw_type_unify_21_ (void){
                     break;
                 default:
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TVar();
                         push_value(d6);
                     }
@@ -13750,7 +13750,7 @@ static void mw_type_unify_21_ (void){
                 case 4LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TPrim();
                         push_value(d6);
                     }
@@ -13759,7 +13759,7 @@ static void mw_type_unify_21_ (void){
                 case 3LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TPrim();
                         push_value(d6);
                     }
@@ -13768,7 +13768,7 @@ static void mw_type_unify_21_ (void){
                 case 11LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TPrim();
                         push_value(d6);
                     }
@@ -13780,7 +13780,7 @@ static void mw_type_unify_21_ (void){
                     break;
                 default:
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TPrim();
                         push_value(d6);
                     }
@@ -13805,7 +13805,7 @@ static void mw_type_unify_21_ (void){
                 case 4LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TData();
                         push_value(d6);
                     }
@@ -13814,7 +13814,7 @@ static void mw_type_unify_21_ (void){
                 case 3LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TData();
                         push_value(d6);
                     }
@@ -13823,7 +13823,7 @@ static void mw_type_unify_21_ (void){
                 case 11LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TData();
                         push_value(d6);
                     }
@@ -13835,7 +13835,7 @@ static void mw_type_unify_21_ (void){
                     break;
                 default:
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TData();
                         push_value(d6);
                     }
@@ -13860,7 +13860,7 @@ static void mw_type_unify_21_ (void){
                 case 4LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TTable();
                         push_value(d6);
                     }
@@ -13869,7 +13869,7 @@ static void mw_type_unify_21_ (void){
                 case 3LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TTable();
                         push_value(d6);
                     }
@@ -13878,7 +13878,7 @@ static void mw_type_unify_21_ (void){
                 case 11LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TTable();
                         push_value(d6);
                     }
@@ -13890,7 +13890,7 @@ static void mw_type_unify_21_ (void){
                     break;
                 default:
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TTable();
                         push_value(d6);
                     }
@@ -13916,7 +13916,7 @@ static void mw_type_unify_21_ (void){
                 case 4LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TTensor();
                         push_value(d6);
                     }
@@ -13925,7 +13925,7 @@ static void mw_type_unify_21_ (void){
                 case 3LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TTensor();
                         push_value(d6);
                     }
@@ -13934,7 +13934,7 @@ static void mw_type_unify_21_ (void){
                 case 11LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TTensor();
                         push_value(d6);
                     }
@@ -13948,7 +13948,7 @@ static void mw_type_unify_21_ (void){
                     break;
                 default:
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TTensor();
                         push_value(d6);
                     }
@@ -13974,7 +13974,7 @@ static void mw_type_unify_21_ (void){
                 case 4LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TMorphism();
                         push_value(d6);
                     }
@@ -13983,7 +13983,7 @@ static void mw_type_unify_21_ (void){
                 case 3LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TMorphism();
                         push_value(d6);
                     }
@@ -13992,7 +13992,7 @@ static void mw_type_unify_21_ (void){
                 case 11LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TMorphism();
                         push_value(d6);
                     }
@@ -14006,7 +14006,7 @@ static void mw_type_unify_21_ (void){
                     break;
                 default:
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TMorphism();
                         push_value(d6);
                     }
@@ -14032,7 +14032,7 @@ static void mw_type_unify_21_ (void){
                 case 4LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TApp();
                         push_value(d6);
                     }
@@ -14041,7 +14041,7 @@ static void mw_type_unify_21_ (void){
                 case 3LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TApp();
                         push_value(d6);
                     }
@@ -14050,7 +14050,7 @@ static void mw_type_unify_21_ (void){
                 case 11LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TApp();
                         push_value(d6);
                     }
@@ -14064,7 +14064,7 @@ static void mw_type_unify_21_ (void){
                     break;
                 default:
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TApp();
                         push_value(d6);
                     }
@@ -14089,7 +14089,7 @@ static void mw_type_unify_21_ (void){
                 case 4LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TValue();
                         push_value(d6);
                     }
@@ -14098,7 +14098,7 @@ static void mw_type_unify_21_ (void){
                 case 3LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TValue();
                         push_value(d6);
                     }
@@ -14299,10 +14299,10 @@ static void mw_block_infer_type_21_ (void){
 
 static void mw_type_unify_pair_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_type_unify_21_();
             mw_swap();
             push_value(d3);
@@ -14311,7 +14311,7 @@ static void mw_type_unify_pair_21_ (void){
     }
     mw_type_unify_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         push_value(d2);
     }
@@ -14325,7 +14325,7 @@ static void mw_type_prim_unify_21_ (void){
         mw_TPrim();
     } else {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_TPrim();
             push_value(d3);
         }
@@ -14342,7 +14342,7 @@ static void mw_type_data_unify_21_ (void){
         mw_TData();
     } else {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_TData();
             push_value(d3);
         }
@@ -14359,7 +14359,7 @@ static void mw_type_table_unify_21_ (void){
         mw_TTable();
     } else {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_TTable();
             push_value(d3);
         }
@@ -14376,7 +14376,7 @@ static void mw_type_var_unify_21_ (void){
         mw_TVar();
     } else {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_TVar();
             push_value(d3);
         }
@@ -14821,13 +14821,13 @@ static void mw_type_semifreshen_sig_aux (void){
             mw_TMeta();
             mw_rotr();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_semifreshen_sig_stack();
                 push_value(d4);
             }
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_semifreshen_sig_stack();
                 push_value(d4);
             }
@@ -14857,7 +14857,7 @@ static void mw_type_semifreshen_sig_stack (void){
             do_pack_uncons(); do_drop();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_semifreshen_sig_stack();
                 push_value(d4);
             }
@@ -14968,20 +14968,20 @@ static void mw_type_freshen_sig_aux (void){
             mw_TMeta();
             mw_rot4r();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_freshen_sig_stack();
                 push_value(d4);
             }
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_freshen_sig_stack();
                 push_value(d4);
             }
             mw_swap();
             mw_TMorphism();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_nip();
                 push_value(d4);
             }
@@ -15008,13 +15008,13 @@ static void mw_type_freshen_sig_stack (void){
             do_pack_uncons(); do_drop();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_freshen_sig_stack();
                 push_value(d4);
             }
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_freshen();
                 push_value(d4);
             }
@@ -15101,14 +15101,14 @@ static void mw_type_freshen (void){
 
 static void mw_type_pair_freshen (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_type_freshen();
         mw_swap();
         push_value(d2);
     }
     mw_type_freshen();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         push_value(d2);
     }
@@ -15135,7 +15135,7 @@ static void mw_type_var_freshen (void){
         mw_TMeta();
         mw_dup();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_rotr();
             mw_subst_new_21_();
             push_value(d3);
@@ -15173,13 +15173,13 @@ static void mw_type_rigidify_stack_21_ (void){
             do_pack_uncons(); do_drop();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_rigidify_stack_21_();
                 push_value(d4);
             }
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_rigidify_21_();
                 push_value(d4);
             }
@@ -15238,13 +15238,13 @@ static void mw_type_rigidify_21_ (void){
             do_pack_uncons(); do_drop();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_rigidify_21_();
                 push_value(d4);
             }
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_rigidify_21_();
                 push_value(d4);
             }
@@ -15255,13 +15255,13 @@ static void mw_type_rigidify_21_ (void){
             do_pack_uncons(); do_drop();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_rigidify_stack_21_();
                 push_value(d4);
             }
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_rigidify_21_();
                 push_value(d4);
             }
@@ -15272,13 +15272,13 @@ static void mw_type_rigidify_21_ (void){
             do_pack_uncons(); do_drop();
             do_pack_uncons(); do_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_rigidify_stack_21_();
                 push_value(d4);
             }
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_rigidify_stack_21_();
                 push_value(d4);
             }
@@ -15460,8 +15460,8 @@ static void mw_meta_alloc_21_ (void){
 
 static void mw_meta_expand_if (void){
     {
-        value_t var_g = pop_value();
-        value_t var_f = pop_value();
+        VAL var_g = pop_value();
+        VAL var_f = pop_value();
         mw_dup();
         mw_meta_type();
         mw__40_();
@@ -15540,7 +15540,7 @@ static void mw_meta_unify_21_ (void){
 
 static void mw_meta_expand_or_update_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_dup();
         mw_meta_type();
         mw__40_();
@@ -15548,7 +15548,7 @@ static void mw_meta_expand_or_update_21_ (void){
             case 0LL:
                 do_drop();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
                     do_run();
@@ -15754,7 +15754,7 @@ static void mw_tag_num_inputs_3F_ (void){
                 if (!pop_u64()) break;
                 mw_token_next();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_1_2B_();
                     push_value(d5);
                 }
@@ -15789,7 +15789,7 @@ static void mw_data_add_tag_21_ (void){
     mw__40_();
     mw_rotr();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_snoc();
         push_value(d2);
     }
@@ -15861,7 +15861,7 @@ static void mw_Atom_2E_pred (void){
 
 static void mw_Atom_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -15871,7 +15871,7 @@ static void mw_Atom_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -15932,7 +15932,7 @@ static void mw_Arrow_2E_pred (void){
 
 static void mw_Arrow_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -15942,7 +15942,7 @@ static void mw_Arrow_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -16003,7 +16003,7 @@ static void mw_Lambda_2E_pred (void){
 
 static void mw_Lambda_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -16013,7 +16013,7 @@ static void mw_Lambda_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -16074,7 +16074,7 @@ static void mw_Block_2E_pred (void){
 
 static void mw_Block_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -16084,7 +16084,7 @@ static void mw_Block_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -16213,7 +16213,7 @@ static void mw_block_unify_type_21_ (void){
     mw_elab_expand_morphism_21_();
     mw_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         push_u64(0);
         push_fnptr(&mb_block_unify_type_21__2);
@@ -16266,7 +16266,7 @@ static void mw_Match_2E_pred (void){
 
 static void mw_Match_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -16276,7 +16276,7 @@ static void mw_Match_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -16337,7 +16337,7 @@ static void mw_Case_2E_pred (void){
 
 static void mw_Case_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -16347,7 +16347,7 @@ static void mw_Case_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -16375,7 +16375,7 @@ static void mw_Case_2E_alloc_21_ (void){
 
 static void mw_match_add_case_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         mw_match_cases();
         mw__40_();
@@ -16486,7 +16486,7 @@ static void mw_cases_cover_case (void){
 
 static void mw_case_is_covered (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_case_pattern();
         mw__40_();
         push_value(d2);
@@ -16582,7 +16582,7 @@ static void mw_force_21_ (void){
             mw_over();
             mw__21_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_run();
                 mw_dup();
                 mw_LAZY_READY();
@@ -16601,7 +16601,7 @@ static void mw_force_21_ (void){
 
 static void mw_force_or_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_dup();
         mw__40_();
         switch (get_top_data_tag()) {
@@ -16628,7 +16628,7 @@ static void mw_force2_21_ (void){
 
 static void mw_force_or2_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_u64(0);
         push_value(var_f);
         incref(var_f);
@@ -16676,7 +16676,7 @@ static void mw_Var_2E_pred (void){
 
 static void mw_Var_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -16686,7 +16686,7 @@ static void mw_Var_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -16768,7 +16768,7 @@ static void mw_Word_2E_pred (void){
 
 static void mw_Word_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -16778,7 +16778,7 @@ static void mw_Word_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -16839,7 +16839,7 @@ static void mw_Table_2E_pred (void){
 
 static void mw_Table_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -16849,7 +16849,7 @@ static void mw_Table_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -16910,7 +16910,7 @@ static void mw_Field_2E_pred (void){
 
 static void mw_Field_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -16920,7 +16920,7 @@ static void mw_Field_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -17069,7 +17069,7 @@ static void mw__2E_ (void){
             mw__21_();
             mw_codegen_flush_21_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_CODEGEN_BUF_SIZE();
                 mw_swap();
                 mw_ptr_2B_();
@@ -17198,7 +17198,7 @@ static void mw__2E_pm (void){
 
 static void mw_c99_header_21_ (void){
     {
-        static u8 b[31269] = {
+        static u8 b[30216] = {
             47,42,32,77,73,82,84,72,32,72,69,65,68,69,82,32,42,47,10,
             10,
             35,105,102,32,100,101,102,105,110,101,100,40,87,73,78,51,50,41,32,124,124,32,100,101,102,105,110,101,100,40,95,87,73,78,51,50,41,32,124,124,32,100,101,102,105,110,101,100,40,95,95,87,73,78,51,50,95,95,41,32,124,124,32,100,101,102,105,110,101,100,40,95,95,78,84,95,95,41,10,
@@ -17239,7 +17239,7 @@ static void mw_c99_header_21_ (void){
             101,120,116,101,114,110,32,105,110,116,32,115,116,114,99,109,112,40,99,111,110,115,116,32,99,104,97,114,42,44,32,99,111,110,115,116,32,99,104,97,114,42,41,59,10,
             101,120,116,101,114,110,32,118,111,105,100,32,101,120,105,116,40,105,110,116,41,59,10,
             10,
-            116,121,112,101,100,101,102,32,101,110,117,109,32,118,97,108,117,101,95,116,97,103,95,116,32,123,10,
+            116,121,112,101,100,101,102,32,101,110,117,109,32,84,65,71,32,123,10,
             32,32,32,32,86,84,95,85,54,52,32,61,32,48,120,48,48,44,10,
             32,32,32,32,86,84,95,85,51,50,32,61,32,48,120,48,49,44,10,
             32,32,32,32,86,84,95,85,50,49,32,61,32,48,120,48,50,44,10,
@@ -17248,11 +17248,11 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,86,84,95,67,50,49,32,61,32,48,120,57,54,44,10,
             32,32,32,32,86,84,95,67,51,50,32,61,32,48,120,65,48,44,10,
             32,32,32,32,86,84,95,67,54,52,32,61,32,48,120,67,48,44,10,
-            125,32,118,97,108,117,101,95,116,97,103,95,116,59,10,
+            125,32,84,65,71,59,10,
             10,
             116,121,112,101,100,101,102,32,118,111,105,100,32,40,42,102,110,112,116,114,41,40,118,111,105,100,41,59,10,
             10,
-            116,121,112,101,100,101,102,32,117,110,105,111,110,32,118,97,108,117,101,95,112,97,121,108,111,97,100,95,116,32,123,10,
+            116,121,112,101,100,101,102,32,117,110,105,111,110,32,68,65,84,65,32,123,10,
             32,32,32,32,118,111,105,100,42,32,118,112,95,112,116,114,59,10,
             32,32,32,32,117,56,32,118,112,95,117,56,59,10,
             32,32,32,32,117,49,54,32,118,112,95,117,49,54,59,10,
@@ -17264,24 +17264,24 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,105,54,52,32,118,112,95,105,54,52,59,10,
             32,32,32,32,98,111,111,108,32,118,112,95,98,111,111,108,59,10,
             32,32,32,32,102,110,112,116,114,32,118,112,95,102,110,112,116,114,59,10,
-            32,32,32,32,115,116,114,117,99,116,32,118,97,108,117,101,95,116,42,32,118,112,95,118,97,108,117,101,112,116,114,59,10,
-            125,32,118,97,108,117,101,95,112,97,121,108,111,97,100,95,116,59,10,
+            32,32,32,32,115,116,114,117,99,116,32,86,65,76,42,32,118,112,95,118,97,108,117,101,112,116,114,59,10,
+            125,32,68,65,84,65,59,10,
             10,
-            116,121,112,101,100,101,102,32,115,116,114,117,99,116,32,118,97,108,117,101,95,116,32,123,10,
-            32,32,32,32,118,97,108,117,101,95,112,97,121,108,111,97,100,95,116,32,112,97,121,108,111,97,100,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,97,103,95,116,32,116,97,103,59,10,
-            125,32,118,97,108,117,101,95,116,59,10,
+            116,121,112,101,100,101,102,32,115,116,114,117,99,116,32,86,65,76,32,123,10,
+            32,32,32,32,68,65,84,65,32,100,97,116,97,59,10,
+            32,32,32,32,84,65,71,32,116,97,103,59,10,
+            125,32,86,65,76,59,10,
             10,
             116,121,112,101,100,101,102,32,115,116,114,117,99,116,32,99,101,108,108,95,116,32,123,10,
             32,32,32,32,117,51,50,32,114,101,102,115,59,10,
             32,32,32,32,98,111,111,108,32,102,114,101,101,99,100,114,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,99,97,114,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,99,100,114,59,10,
+            32,32,32,32,86,65,76,32,99,97,114,59,10,
+            32,32,32,32,86,65,76,32,99,100,114,59,10,
             125,32,99,101,108,108,95,116,59,10,
             10,
             35,100,101,102,105,110,101,32,83,84,65,67,75,95,83,73,90,69,32,48,120,49,48,48,48,10,
             115,116,97,116,105,99,32,117,115,105,122,101,32,115,116,97,99,107,95,99,111,117,110,116,101,114,32,61,32,83,84,65,67,75,95,83,73,90,69,59,10,
-            115,116,97,116,105,99,32,118,97,108,117,101,95,116,32,115,116,97,99,107,32,91,83,84,65,67,75,95,83,73,90,69,93,32,61,32,123,48,125,59,10,
+            115,116,97,116,105,99,32,86,65,76,32,115,116,97,99,107,32,91,83,84,65,67,75,95,83,73,90,69,93,32,61,32,123,48,125,59,10,
             10,
             35,100,101,102,105,110,101,32,72,69,65,80,95,83,73,90,69,32,48,120,56,48,48,48,48,10,
             35,100,101,102,105,110,101,32,72,69,65,80,95,77,65,83,75,32,48,120,55,70,70,70,70,10,
@@ -17292,95 +17292,95 @@ static void mw_c99_header_21_ (void){
             115,116,97,116,105,99,32,105,110,116,32,103,108,111,98,97,108,95,97,114,103,99,59,10,
             115,116,97,116,105,99,32,99,104,97,114,42,42,32,103,108,111,98,97,108,95,97,114,103,118,59,10,
             10,
-            35,100,101,102,105,110,101,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,118,41,32,40,40,117,115,105,122,101,41,40,40,40,118,41,46,116,97,103,32,38,32,48,120,56,48,41,32,63,32,40,40,118,41,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,40,48,120,67,48,32,45,32,40,117,54,52,41,40,40,118,41,46,116,97,103,41,41,41,32,58,32,48,41,41,10,
+            35,100,101,102,105,110,101,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,118,41,32,40,40,117,115,105,122,101,41,40,40,40,118,41,46,116,97,103,32,38,32,48,120,56,48,41,32,63,32,40,40,118,41,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,40,48,120,67,48,32,45,32,40,117,54,52,41,40,40,118,41,46,116,97,103,41,41,41,32,58,32,48,41,41,10,
             10,
-            35,100,101,102,105,110,101,32,105,110,99,114,101,102,40,118,41,32,100,111,123,32,118,97,108,117,101,95,116,32,119,32,61,32,40,118,41,59,32,117,115,105,122,101,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,119,41,59,32,105,102,40,105,41,32,104,101,97,112,91,105,93,46,114,101,102,115,43,43,59,32,125,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,105,110,99,114,101,102,40,118,41,32,100,111,123,32,86,65,76,32,119,32,61,32,40,118,41,59,32,117,115,105,122,101,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,119,41,59,32,105,102,40,105,41,32,104,101,97,112,91,105,93,46,114,101,102,115,43,43,59,32,125,119,104,105,108,101,40,48,41,10,
             10,
-            35,100,101,102,105,110,101,32,100,101,99,114,101,102,40,118,41,32,100,111,123,32,118,97,108,117,101,95,116,32,119,32,61,32,40,118,41,59,32,117,115,105,122,101,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,119,41,59,32,105,102,40,105,41,32,123,32,105,102,40,104,101,97,112,91,105,93,46,114,101,102,115,41,32,123,32,104,101,97,112,91,105,93,46,114,101,102,115,45,45,59,32,105,102,32,40,104,101,97,112,91,105,93,46,114,101,102,115,32,61,61,32,48,41,32,104,101,97,112,95,102,114,101,101,40,105,41,59,32,125,32,125,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,100,101,99,114,101,102,40,118,41,32,100,111,123,32,86,65,76,32,119,32,61,32,40,118,41,59,32,117,115,105,122,101,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,119,41,59,32,105,102,40,105,41,32,123,32,105,102,40,104,101,97,112,91,105,93,46,114,101,102,115,41,32,123,32,104,101,97,112,91,105,93,46,114,101,102,115,45,45,59,32,105,102,32,40,104,101,97,112,91,105,93,46,114,101,102,115,32,61,61,32,48,41,32,104,101,97,112,95,102,114,101,101,40,105,41,59,32,125,32,125,125,32,119,104,105,108,101,40,48,41,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,104,101,97,112,95,102,114,101,101,40,117,115,105,122,101,32,105,41,32,123,10,
             32,32,32,32,99,101,108,108,95,116,32,42,99,101,108,108,32,61,32,104,101,97,112,32,43,32,105,59,10,
             32,32,32,32,99,101,108,108,95,116,32,99,111,110,116,101,110,116,115,32,61,32,42,99,101,108,108,59,10,
             32,32,32,32,109,101,109,115,101,116,40,99,101,108,108,44,32,48,44,32,115,105,122,101,111,102,40,99,101,108,108,95,116,41,41,59,10,
-            32,32,32,32,99,101,108,108,45,62,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,104,101,97,112,95,110,101,120,116,59,10,
+            32,32,32,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,104,101,97,112,95,110,101,120,116,59,10,
             32,32,32,32,104,101,97,112,95,110,101,120,116,32,61,32,105,59,10,
             32,32,32,32,104,101,97,112,95,99,111,117,110,116,45,45,59,10,
-            32,32,32,32,105,102,32,40,99,111,110,116,101,110,116,115,46,102,114,101,101,99,100,114,41,32,123,32,102,114,101,101,40,99,111,110,116,101,110,116,115,46,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,112,116,114,41,59,32,125,10,
+            32,32,32,32,105,102,32,40,99,111,110,116,101,110,116,115,46,102,114,101,101,99,100,114,41,32,123,32,102,114,101,101,40,99,111,110,116,101,110,116,115,46,99,100,114,46,100,97,116,97,46,118,112,95,112,116,114,41,59,32,125,10,
             32,32,32,32,101,108,115,101,32,123,32,100,101,99,114,101,102,40,99,111,110,116,101,110,116,115,46,99,100,114,41,59,32,125,10,
             32,32,32,32,100,101,99,114,101,102,40,99,111,110,116,101,110,116,115,46,99,97,114,41,59,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,100,101,99,114,101,102,95,102,111,114,95,117,110,99,111,110,115,40,118,41,32,100,111,123,32,118,97,108,117,101,95,116,32,119,32,61,32,40,118,41,59,32,117,115,105,122,101,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,119,41,59,32,105,102,40,105,41,32,123,32,105,102,32,40,104,101,97,112,91,105,93,46,114,101,102,115,41,32,123,32,104,101,97,112,91,105,93,46,114,101,102,115,45,45,59,32,105,102,32,40,104,101,97,112,91,105,93,46,114,101,102,115,32,61,61,32,48,41,32,123,32,109,101,109,115,101,116,40,104,101,97,112,43,105,44,32,48,44,32,115,105,122,101,111,102,40,99,101,108,108,95,116,41,41,59,32,104,101,97,112,91,105,93,46,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,104,101,97,112,95,110,101,120,116,59,32,104,101,97,112,95,110,101,120,116,32,61,32,105,59,32,104,101,97,112,95,99,111,117,110,116,45,45,59,32,125,32,101,108,115,101,32,123,32,99,101,108,108,95,116,32,99,101,108,108,32,61,32,104,101,97,112,91,105,93,59,32,105,110,99,114,101,102,40,99,101,108,108,46,99,97,114,41,59,32,105,110,99,114,101,102,40,99,101,108,108,46,99,100,114,41,59,32,125,32,125,32,125,32,125,32,119,104,105,108,101,40,48,41,10,
-            115,116,97,116,105,99,32,118,111,105,100,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,97,108,117,101,95,116,32,118,97,108,44,32,118,97,108,117,101,95,116,42,32,99,97,114,44,32,118,97,108,117,101,95,116,42,32,99,100,114,41,32,123,10,
+            35,100,101,102,105,110,101,32,100,101,99,114,101,102,95,102,111,114,95,117,110,99,111,110,115,40,118,41,32,100,111,123,32,86,65,76,32,119,32,61,32,40,118,41,59,32,117,115,105,122,101,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,119,41,59,32,105,102,40,105,41,32,123,32,105,102,32,40,104,101,97,112,91,105,93,46,114,101,102,115,41,32,123,32,104,101,97,112,91,105,93,46,114,101,102,115,45,45,59,32,105,102,32,40,104,101,97,112,91,105,93,46,114,101,102,115,32,61,61,32,48,41,32,123,32,109,101,109,115,101,116,40,104,101,97,112,43,105,44,32,48,44,32,115,105,122,101,111,102,40,99,101,108,108,95,116,41,41,59,32,104,101,97,112,91,105,93,46,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,104,101,97,112,95,110,101,120,116,59,32,104,101,97,112,95,110,101,120,116,32,61,32,105,59,32,104,101,97,112,95,99,111,117,110,116,45,45,59,32,125,32,101,108,115,101,32,123,32,99,101,108,108,95,116,32,99,101,108,108,32,61,32,104,101,97,112,91,105,93,59,32,105,110,99,114,101,102,40,99,101,108,108,46,99,97,114,41,59,32,105,110,99,114,101,102,40,99,101,108,108,46,99,100,114,41,59,32,125,32,125,32,125,32,125,32,119,104,105,108,101,40,48,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,118,97,108,117,101,95,117,110,99,111,110,115,40,86,65,76,32,118,97,108,44,32,86,65,76,42,32,99,97,114,44,32,86,65,76,42,32,99,100,114,41,32,123,10,
             32,32,32,32,115,119,105,116,99,104,32,40,118,97,108,46,116,97,103,41,32,123,10,
             32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,54,52,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,110,105,108,32,61,32,123,32,48,32,125,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,110,105,108,32,61,32,123,32,48,32,125,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,42,99,97,114,32,61,32,110,105,108,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,42,99,100,114,32,61,32,118,97,108,59,10,
             32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,51,50,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,108,111,32,61,32,118,118,32,38,32,48,120,70,70,70,70,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,104,105,32,61,32,118,118,32,62,62,32,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,97,114,45,62,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,104,105,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,97,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,104,105,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
             32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,54,52,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,95,116,42,32,99,101,108,108,32,61,32,104,101,97,112,32,43,32,118,97,108,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,95,116,42,32,99,101,108,108,32,61,32,104,101,97,112,32,43,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,42,99,97,114,32,61,32,99,101,108,108,45,62,99,97,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,42,99,100,114,32,61,32,99,101,108,108,45,62,99,100,114,59,10,
             32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,51,50,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,108,111,32,61,32,118,118,32,38,32,48,120,70,70,70,70,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,104,105,32,61,32,118,118,32,62,62,32,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,67,54,52,59,32,99,97,114,45,62,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,104,105,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,67,54,52,59,32,99,97,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,104,105,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
             32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,50,49,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,108,111,32,61,32,118,118,32,38,32,48,120,49,70,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,109,100,32,61,32,40,118,118,32,62,62,32,50,49,41,32,38,32,48,120,49,70,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,104,105,32,61,32,40,118,118,32,62,62,32,52,50,41,32,38,32,48,120,49,70,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,85,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,40,104,105,32,60,60,32,51,50,41,32,124,32,109,100,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,104,105,32,60,60,32,51,50,41,32,124,32,109,100,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
             32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,50,49,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,108,111,32,61,32,118,118,32,38,32,48,120,49,70,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,109,100,32,61,32,40,118,118,32,62,62,32,50,49,41,32,38,32,48,120,49,70,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,104,105,32,61,32,40,118,118,32,62,62,32,52,50,41,32,38,32,48,120,49,70,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,67,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,40,104,105,32,60,60,32,51,50,41,32,124,32,109,100,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,104,105,32,60,60,32,51,50,41,32,124,32,109,100,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
             32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,49,54,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,108,111,32,61,32,118,118,32,38,32,48,120,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,50,32,61,32,40,118,118,32,62,62,32,49,54,41,32,38,32,48,120,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,40,118,118,32,62,62,32,51,50,41,32,38,32,48,120,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,40,118,118,32,62,62,32,52,56,41,32,38,32,48,120,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,85,50,49,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,50,41,32,124,32,40,121,49,32,60,60,32,50,49,41,32,124,32,121,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,50,41,32,124,32,40,121,49,32,60,60,32,50,49,41,32,124,32,121,50,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
             32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,49,54,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,108,111,32,61,32,118,118,32,38,32,48,120,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,50,32,61,32,40,118,118,32,62,62,32,49,54,41,32,38,32,48,120,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,40,118,118,32,62,62,32,51,50,41,32,38,32,48,120,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,40,118,118,32,62,62,32,52,56,41,32,38,32,48,120,70,70,70,70,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,67,50,49,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,50,41,32,124,32,40,121,49,32,60,60,32,50,49,41,32,124,32,121,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,50,41,32,124,32,40,121,49,32,60,60,32,50,49,41,32,124,32,121,50,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
             32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,125,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,98,111,111,108,32,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,32,40,118,97,108,117,101,95,116,32,118,41,32,123,10,
+            115,116,97,116,105,99,32,98,111,111,108,32,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,32,40,86,65,76,32,118,41,32,123,10,
             32,32,32,32,105,102,32,40,118,46,116,97,103,32,61,61,32,86,84,95,67,54,52,41,32,123,10,
-            32,32,32,32,32,32,32,32,117,115,105,122,101,32,99,101,108,108,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,118,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,117,115,105,122,101,32,99,101,108,108,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,118,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,115,116,114,117,99,116,32,99,101,108,108,95,116,32,42,32,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,95,105,110,100,101,120,59,10,
             32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,33,99,101,108,108,45,62,102,114,101,101,99,100,114,59,10,
             32,32,32,32,125,32,101,108,115,101,32,123,10,
@@ -17388,94 +17388,94 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,125,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,117,54,52,32,118,97,108,117,101,95,112,116,114,95,115,105,122,101,32,40,118,97,108,117,101,95,116,32,118,41,32,123,10,
-            32,32,32,32,105,102,32,40,118,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,61,32,48,41,32,123,10,
+            115,116,97,116,105,99,32,117,54,52,32,118,97,108,117,101,95,112,116,114,95,115,105,122,101,32,40,86,65,76,32,118,41,32,123,10,
+            32,32,32,32,105,102,32,40,118,46,100,97,116,97,46,118,112,95,117,54,52,32,61,61,32,48,41,32,123,10,
             32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,48,59,10,
             32,32,32,32,125,32,101,108,115,101,32,105,102,32,40,118,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,123,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,115,116,114,108,101,110,40,118,46,112,97,121,108,111,97,100,46,118,112,95,112,116,114,41,59,10,
+            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,115,116,114,108,101,110,40,118,46,100,97,116,97,46,118,112,95,112,116,114,41,59,10,
             32,32,32,32,125,32,101,108,115,101,32,105,102,32,40,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,40,118,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,99,97,114,44,32,99,100,114,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
             32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,99,97,114,50,44,32,99,100,114,50,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,50,44,32,99,100,114,50,59,10,
             32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,99,97,114,44,32,38,99,97,114,50,44,32,38,99,100,114,50,41,59,10,
-            32,32,32,32,32,32,32,32,117,54,52,32,115,105,122,101,32,61,32,99,97,114,50,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,117,54,52,32,111,102,102,115,101,116,32,61,32,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,117,54,52,32,115,105,122,101,32,61,32,99,97,114,50,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,117,54,52,32,111,102,102,115,101,116,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,105,102,32,40,115,105,122,101,32,62,61,32,111,102,102,115,101,116,41,32,123,10,
             32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,111,102,102,115,101,116,32,45,32,115,105,122,101,59,10,
             32,32,32,32,32,32,32,32,125,32,101,108,115,101,32,123,10,
             32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,48,59,10,
             32,32,32,32,32,32,32,32,125,10,
             32,32,32,32,125,32,101,108,115,101,32,123,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,99,97,114,44,32,99,100,114,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
             32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,125,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,118,111,105,100,42,32,118,97,108,117,101,95,112,116,114,95,98,97,115,101,32,40,118,97,108,117,101,95,116,32,118,41,32,123,10,
+            115,116,97,116,105,99,32,118,111,105,100,42,32,118,97,108,117,101,95,112,116,114,95,98,97,115,101,32,40,86,65,76,32,118,41,32,123,10,
             32,32,32,32,105,102,32,40,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,40,118,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,99,97,114,44,32,99,100,114,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
             32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,99,97,114,50,44,32,99,100,114,50,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,50,44,32,99,100,114,50,59,10,
             32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,99,97,114,44,32,38,99,97,114,50,44,32,38,99,100,114,50,41,59,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,100,114,50,46,112,97,121,108,111,97,100,46,118,112,95,112,116,114,59,10,
+            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,100,114,50,46,100,97,116,97,46,118,112,95,112,116,114,59,10,
             32,32,32,32,125,32,101,108,115,101,32,123,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,99,97,114,44,32,99,100,114,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
             32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,112,116,114,59,10,
+            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,100,114,46,100,97,116,97,46,118,112,95,112,116,114,59,10,
             32,32,32,32,125,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,105,54,52,32,118,97,108,117,101,95,112,116,114,95,111,102,102,115,101,116,32,40,118,97,108,117,101,95,116,32,118,41,32,123,10,
+            115,116,97,116,105,99,32,105,54,52,32,118,97,108,117,101,95,112,116,114,95,111,102,102,115,101,116,32,40,86,65,76,32,118,41,32,123,10,
             32,32,32,32,105,102,32,40,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,40,118,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,99,97,114,44,32,99,100,114,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
             32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,59,10,
+            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,100,114,46,100,97,116,97,46,118,112,95,105,54,52,59,10,
             32,32,32,32,125,32,101,108,115,101,32,123,10,
             32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,48,59,10,
             32,32,32,32,125,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,118,111,105,100,42,32,118,97,108,117,101,95,112,116,114,32,40,118,97,108,117,101,95,116,32,118,41,32,123,10,
+            115,116,97,116,105,99,32,118,111,105,100,42,32,118,97,108,117,101,95,112,116,114,32,40,86,65,76,32,118,41,32,123,10,
             32,32,32,32,117,115,105,122,101,32,99,101,108,108,95,105,110,100,101,120,59,32,99,101,108,108,95,116,42,32,99,101,108,108,59,32,117,115,105,122,101,32,111,102,102,115,101,116,59,10,
             32,32,32,32,115,119,105,116,99,104,32,40,118,46,116,97,103,41,32,123,10,
-            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,54,52,58,32,114,101,116,117,114,110,32,118,46,112,97,121,108,111,97,100,46,118,112,95,112,116,114,59,10,
+            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,54,52,58,32,114,101,116,117,114,110,32,118,46,100,97,116,97,46,118,112,95,112,116,114,59,10,
             32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,54,52,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,118,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,118,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,95,105,110,100,101,120,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,99,101,108,108,45,62,102,114,101,101,99,100,114,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,101,108,108,45,62,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,112,116,114,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,112,116,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,125,32,101,108,115,101,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,111,102,102,115,101,116,32,61,32,40,117,115,105,122,101,41,99,101,108,108,45,62,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,99,101,108,108,45,62,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,111,102,102,115,101,116,32,61,32,40,117,115,105,122,101,41,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,99,101,108,108,45,62,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,125,10,
             32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,51,50,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,111,102,102,115,101,116,32,61,32,40,117,115,105,122,101,41,118,46,112,97,121,108,111,97,100,46,118,112,95,117,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,51,50,41,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,111,102,102,115,101,116,32,61,32,40,117,115,105,122,101,41,118,46,100,97,116,97,46,118,112,95,117,51,50,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,51,50,41,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,100,101,102,97,117,108,116,58,10,
             32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,40,118,111,105,100,42,41,48,59,10,
             32,32,32,32,125,10,
             32,32,32,32,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,95,105,110,100,101,120,59,10,
             32,32,32,32,105,102,32,40,99,101,108,108,45,62,102,114,101,101,99,100,114,41,32,123,10,
-            32,32,32,32,32,32,32,32,99,104,97,114,42,32,98,97,115,101,32,61,32,99,101,108,108,45,62,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,112,116,114,59,10,
+            32,32,32,32,32,32,32,32,99,104,97,114,42,32,98,97,115,101,32,61,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,112,116,114,59,10,
             32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,40,118,111,105,100,42,41,40,98,97,115,101,32,43,32,111,102,102,115,101,116,41,59,10,
             32,32,32,32,125,10,
             32,32,32,32,114,101,116,117,114,110,32,40,118,111,105,100,42,41,48,59,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,112,111,112,95,102,110,112,116,114,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,112,97,121,108,111,97,100,46,118,112,95,102,110,112,116,114,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,117,56,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,112,97,121,108,111,97,100,46,118,112,95,117,56,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,117,49,54,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,112,97,121,108,111,97,100,46,118,112,95,117,49,54,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,117,51,50,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,112,97,121,108,111,97,100,46,118,112,95,117,51,50,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,117,54,52,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,105,56,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,112,97,121,108,111,97,100,46,118,112,95,105,56,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,105,49,54,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,112,97,121,108,111,97,100,46,118,112,95,105,49,54,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,105,51,50,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,112,97,121,108,111,97,100,46,118,112,95,105,51,50,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,105,54,52,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,98,111,111,108,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,112,97,121,108,111,97,100,46,118,112,95,98,111,111,108,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,114,97,119,112,116,114,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,112,97,121,108,111,97,100,46,118,112,95,112,116,114,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,102,110,112,116,114,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,102,110,112,116,114,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,117,56,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,117,56,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,117,49,54,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,117,49,54,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,117,51,50,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,117,51,50,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,117,54,52,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,117,54,52,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,105,56,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,105,56,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,105,49,54,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,105,49,54,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,105,51,50,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,105,51,50,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,105,54,52,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,105,54,52,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,98,111,111,108,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,98,111,111,108,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,114,97,119,112,116,114,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,112,116,114,41,10,
             10,
             35,100,101,102,105,110,101,32,112,117,115,104,95,117,54,52,40,118,41,32,112,117,115,104,95,118,97,108,117,101,40,109,107,117,54,52,40,118,41,41,10,
             35,100,101,102,105,110,101,32,112,117,115,104,95,105,54,52,40,118,41,32,112,117,115,104,95,118,97,108,117,101,40,109,107,105,54,52,40,118,41,41,10,
@@ -17490,110 +17490,110 @@ static void mw_c99_header_21_ (void){
             35,100,101,102,105,110,101,32,112,117,115,104,95,105,51,50,40,98,41,32,112,117,115,104,95,105,54,52,40,40,105,54,52,41,40,98,41,41,10,
             35,100,101,102,105,110,101,32,112,117,115,104,95,114,97,119,112,116,114,40,118,41,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,40,118,111,105,100,42,41,40,118,41,41,10,
             10,
-            115,116,97,116,105,99,32,118,111,105,100,32,112,117,115,104,95,118,97,108,117,101,40,118,97,108,117,101,95,116,32,120,41,32,123,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,112,117,115,104,95,118,97,108,117,101,40,86,65,76,32,120,41,32,123,10,
             32,32,32,32,115,116,97,99,107,91,45,45,115,116,97,99,107,95,99,111,117,110,116,101,114,93,32,61,32,120,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,118,97,108,117,101,95,116,32,112,111,112,95,118,97,108,117,101,40,118,111,105,100,41,32,123,10,
+            115,116,97,116,105,99,32,86,65,76,32,112,111,112,95,118,97,108,117,101,40,118,111,105,100,41,32,123,10,
             32,32,32,32,114,101,116,117,114,110,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,93,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,118,97,108,117,101,95,116,32,109,107,117,54,52,32,40,117,54,52,32,120,41,32,123,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,32,61,32,123,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,112,97,121,108,111,97,100,32,61,32,123,46,118,112,95,117,54,52,32,61,32,120,125,125,59,10,
+            115,116,97,116,105,99,32,86,65,76,32,109,107,117,54,52,32,40,117,54,52,32,120,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,32,61,32,123,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,46,118,112,95,117,54,52,32,61,32,120,125,125,59,10,
             32,32,32,32,114,101,116,117,114,110,32,118,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,118,97,108,117,101,95,116,32,109,107,105,54,52,32,40,105,54,52,32,120,41,32,123,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,32,61,32,123,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,112,97,121,108,111,97,100,32,61,32,123,46,118,112,95,105,54,52,32,61,32,120,125,125,59,10,
+            115,116,97,116,105,99,32,86,65,76,32,109,107,105,54,52,32,40,105,54,52,32,120,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,32,61,32,123,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,46,118,112,95,105,54,52,32,61,32,120,125,125,59,10,
             32,32,32,32,114,101,116,117,114,110,32,118,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,118,97,108,117,101,95,116,32,109,107,99,101,108,108,32,40,118,97,108,117,101,95,116,32,99,97,114,44,32,118,97,108,117,101,95,116,32,99,100,114,41,32,123,10,
-            32,32,32,32,105,102,32,40,40,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,61,32,48,41,32,38,38,32,40,99,100,114,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,41,10,
+            115,116,97,116,105,99,32,86,65,76,32,109,107,99,101,108,108,32,40,86,65,76,32,99,97,114,44,32,86,65,76,32,99,100,114,41,32,123,10,
+            32,32,32,32,105,102,32,40,40,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,61,32,48,41,32,38,38,32,40,99,100,114,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,41,10,
             32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,100,114,59,10,
             32,32,32,32,105,102,32,40,99,100,114,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,123,10,
             32,32,32,32,32,32,32,32,115,119,105,116,99,104,32,40,99,97,114,46,116,97,103,41,32,123,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,54,52,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,120,48,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,120,49,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,40,120,48,32,61,61,32,121,48,41,32,38,38,32,40,120,49,32,61,61,32,121,49,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,114,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,116,97,103,32,61,32,86,84,95,85,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,51,50,41,32,124,32,121,49,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,51,50,41,32,124,32,121,49,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,125,10,
             32,32,32,32,32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,54,52,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,120,48,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,120,49,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,40,120,48,32,61,61,32,121,48,41,32,38,38,32,40,120,49,32,61,61,32,121,49,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,114,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,116,97,103,32,61,32,86,84,95,67,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,51,50,41,32,124,32,121,49,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,51,50,41,32,124,32,121,49,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,125,10,
             32,32,32,32,32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,51,50,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,50,32,61,32,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,51,50,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,50,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,120,48,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,120,49,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,50,32,61,32,120,50,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,40,120,48,32,61,61,32,121,48,41,32,38,38,32,40,120,49,32,61,61,32,121,49,41,32,38,38,32,40,120,50,32,61,61,32,121,50,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,114,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,116,97,103,32,61,32,86,84,95,85,50,49,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,50,41,32,124,32,40,121,49,32,60,60,32,50,49,41,32,124,32,121,50,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,50,41,32,124,32,40,121,49,32,60,60,32,50,49,41,32,124,32,121,50,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,125,10,
             32,32,32,32,32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,51,50,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,50,32,61,32,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,51,50,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,50,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,120,48,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,120,49,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,50,32,61,32,120,50,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,40,120,48,32,61,61,32,121,48,41,32,38,38,32,40,120,49,32,61,61,32,121,49,41,32,38,38,32,40,120,50,32,61,61,32,121,50,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,114,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,116,97,103,32,61,32,86,84,95,67,50,49,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,50,41,32,124,32,40,121,49,32,60,60,32,50,49,41,32,124,32,121,50,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,50,41,32,124,32,40,121,49,32,60,60,32,50,49,41,32,124,32,121,50,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,125,10,
             32,32,32,32,32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,50,49,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,52,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,40,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,50,49,41,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,50,32,61,32,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,51,32,61,32,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,52,50,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,40,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,50,49,41,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,50,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,51,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,120,48,32,38,32,48,120,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,120,49,32,38,32,48,120,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,50,32,61,32,120,50,32,38,32,48,120,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,51,32,61,32,120,51,32,38,32,48,120,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,40,120,48,32,61,61,32,121,48,41,32,38,38,32,40,120,49,32,61,61,32,121,49,41,32,38,38,32,40,120,50,32,61,61,32,121,50,41,32,38,38,32,40,120,51,32,61,61,32,121,51,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,114,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,116,97,103,32,61,32,86,84,95,85,49,54,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,56,41,32,124,32,40,121,49,32,60,60,32,51,50,41,32,124,32,40,121,50,32,60,60,32,49,54,41,32,124,32,121,51,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,56,41,32,124,32,40,121,49,32,60,60,32,51,50,41,32,124,32,40,121,50,32,60,60,32,49,54,41,32,124,32,121,51,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,125,10,
             32,32,32,32,32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,50,49,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,52,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,40,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,50,49,41,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,50,32,61,32,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,51,32,61,32,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,52,50,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,40,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,50,49,41,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,50,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,51,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,120,48,32,38,32,48,120,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,120,49,32,38,32,48,120,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,50,32,61,32,120,50,32,38,32,48,120,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,51,32,61,32,120,51,32,38,32,48,120,70,70,70,70,76,76,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,40,120,48,32,61,61,32,121,48,41,32,38,38,32,40,120,49,32,61,61,32,121,49,41,32,38,38,32,40,120,50,32,61,61,32,121,50,41,32,38,38,32,40,120,51,32,61,61,32,121,51,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,114,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,116,97,103,32,61,32,86,84,95,67,49,54,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,56,41,32,124,32,40,121,49,32,60,60,32,51,50,41,32,124,32,40,121,50,32,60,60,32,49,54,41,32,124,32,121,51,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,56,41,32,124,32,40,121,49,32,60,60,32,51,50,41,32,124,32,40,121,50,32,60,60,32,49,54,41,32,124,32,121,51,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,114,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,125,10,
             32,32,32,32,32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
@@ -17611,20 +17611,20 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,32,32,32,32,119,114,105,116,101,40,50,44,32,34,72,69,65,80,32,79,86,69,82,70,76,79,87,92,110,34,44,32,49,52,41,59,10,
             32,32,32,32,32,32,32,32,101,120,105,116,40,49,41,59,10,
             32,32,32,32,125,10,
-            32,32,32,32,117,54,52,32,115,97,118,101,100,95,105,110,100,101,120,32,61,32,99,101,108,108,45,62,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,117,54,52,32,115,97,118,101,100,95,105,110,100,101,120,32,61,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,104,101,97,112,95,110,101,120,116,32,61,32,40,117,115,105,122,101,41,40,115,97,118,101,100,95,105,110,100,101,120,32,63,32,115,97,118,101,100,95,105,110,100,101,120,32,58,32,99,101,108,108,95,105,110,100,101,120,43,49,41,59,10,
             32,32,32,32,104,101,97,112,95,99,111,117,110,116,43,43,59,10,
             32,32,32,32,99,101,108,108,45,62,114,101,102,115,32,61,32,49,59,10,
             32,32,32,32,99,101,108,108,45,62,102,114,101,101,99,100,114,32,61,32,102,97,108,115,101,59,10,
             32,32,32,32,99,101,108,108,45,62,99,97,114,32,61,32,99,97,114,59,10,
             32,32,32,32,99,101,108,108,45,62,99,100,114,32,61,32,99,100,114,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,32,61,32,123,48,125,59,10,
+            32,32,32,32,86,65,76,32,118,32,61,32,123,48,125,59,10,
             32,32,32,32,118,46,116,97,103,32,61,32,86,84,95,67,54,52,59,10,
-            32,32,32,32,118,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,99,101,108,108,95,105,110,100,101,120,59,10,
+            32,32,32,32,118,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,99,101,108,108,95,105,110,100,101,120,59,10,
             32,32,32,32,114,101,116,117,114,110,32,118,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,118,97,108,117,101,95,116,32,109,107,99,101,108,108,95,114,97,119,32,40,118,97,108,117,101,95,116,32,99,97,114,44,32,118,97,108,117,101,95,116,32,99,100,114,41,32,123,10,
+            115,116,97,116,105,99,32,86,65,76,32,109,107,99,101,108,108,95,114,97,119,32,40,86,65,76,32,99,97,114,44,32,86,65,76,32,99,100,114,41,32,123,10,
             32,32,32,32,117,54,52,32,99,101,108,108,95,105,110,100,101,120,32,61,32,104,101,97,112,95,110,101,120,116,59,10,
             32,32,32,32,99,101,108,108,95,116,32,42,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,95,105,110,100,101,120,59,10,
             32,32,32,32,119,104,105,108,101,32,40,40,99,101,108,108,45,62,114,101,102,115,32,62,32,48,41,32,38,38,32,40,99,101,108,108,95,105,110,100,101,120,32,60,32,72,69,65,80,95,83,73,90,69,41,41,32,123,32,99,101,108,108,43,43,59,32,99,101,108,108,95,105,110,100,101,120,43,43,59,32,125,10,
@@ -17632,20 +17632,20 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,32,32,32,32,119,114,105,116,101,40,50,44,32,34,72,69,65,80,32,79,86,69,82,70,76,79,87,92,110,34,44,32,49,52,41,59,10,
             32,32,32,32,32,32,32,32,101,120,105,116,40,49,41,59,10,
             32,32,32,32,125,10,
-            32,32,32,32,117,54,52,32,115,97,118,101,100,95,105,110,100,101,120,32,61,32,99,101,108,108,45,62,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,117,54,52,32,115,97,118,101,100,95,105,110,100,101,120,32,61,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,104,101,97,112,95,110,101,120,116,32,61,32,40,117,115,105,122,101,41,40,115,97,118,101,100,95,105,110,100,101,120,32,63,32,115,97,118,101,100,95,105,110,100,101,120,32,58,32,99,101,108,108,95,105,110,100,101,120,43,49,41,59,10,
             32,32,32,32,104,101,97,112,95,99,111,117,110,116,43,43,59,10,
             32,32,32,32,99,101,108,108,45,62,114,101,102,115,32,61,32,49,59,10,
             32,32,32,32,99,101,108,108,45,62,102,114,101,101,99,100,114,32,61,32,102,97,108,115,101,59,10,
             32,32,32,32,99,101,108,108,45,62,99,97,114,32,61,32,99,97,114,59,10,
             32,32,32,32,99,101,108,108,45,62,99,100,114,32,61,32,99,100,114,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,32,61,32,123,48,125,59,10,
+            32,32,32,32,86,65,76,32,118,32,61,32,123,48,125,59,10,
             32,32,32,32,118,46,116,97,103,32,61,32,86,84,95,67,54,52,59,10,
-            32,32,32,32,118,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,99,101,108,108,95,105,110,100,101,120,59,10,
+            32,32,32,32,118,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,99,101,108,108,95,105,110,100,101,120,59,10,
             32,32,32,32,114,101,116,117,114,110,32,118,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,118,97,108,117,101,95,116,32,109,107,99,101,108,108,95,102,114,101,101,99,100,114,32,40,118,97,108,117,101,95,116,32,99,97,114,44,32,118,97,108,117,101,95,116,32,99,100,114,41,32,123,10,
+            115,116,97,116,105,99,32,86,65,76,32,109,107,99,101,108,108,95,102,114,101,101,99,100,114,32,40,86,65,76,32,99,97,114,44,32,86,65,76,32,99,100,114,41,32,123,10,
             32,32,32,32,105,102,32,40,104,101,97,112,95,99,111,117,110,116,32,62,61,32,72,69,65,80,95,83,73,90,69,32,45,32,49,41,32,123,10,
             32,32,32,32,32,32,32,32,119,114,105,116,101,40,50,44,32,34,72,69,65,80,32,79,86,69,82,70,76,79,87,92,110,34,44,32,49,52,41,59,10,
             32,32,32,32,32,32,32,32,101,120,105,116,40,49,41,59,10,
@@ -17657,21 +17657,21 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,32,32,32,32,119,114,105,116,101,40,50,44,32,34,72,69,65,80,32,79,86,69,82,70,76,79,87,92,110,34,44,32,49,52,41,59,10,
             32,32,32,32,32,32,32,32,101,120,105,116,40,49,41,59,10,
             32,32,32,32,125,10,
-            32,32,32,32,117,54,52,32,115,97,118,101,100,95,105,110,100,101,120,32,61,32,99,101,108,108,45,62,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,117,54,52,32,115,97,118,101,100,95,105,110,100,101,120,32,61,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,104,101,97,112,95,110,101,120,116,32,61,32,40,117,115,105,122,101,41,40,115,97,118,101,100,95,105,110,100,101,120,32,63,32,115,97,118,101,100,95,105,110,100,101,120,32,58,32,99,101,108,108,95,105,110,100,101,120,43,49,41,59,10,
             32,32,32,32,104,101,97,112,95,99,111,117,110,116,43,43,59,10,
             32,32,32,32,99,101,108,108,45,62,114,101,102,115,32,61,32,49,59,10,
             32,32,32,32,99,101,108,108,45,62,102,114,101,101,99,100,114,32,61,32,116,114,117,101,59,10,
             32,32,32,32,99,101,108,108,45,62,99,97,114,32,61,32,99,97,114,59,10,
             32,32,32,32,99,101,108,108,45,62,99,100,114,32,61,32,99,100,114,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,32,61,32,123,48,125,59,10,
+            32,32,32,32,86,65,76,32,118,32,61,32,123,48,125,59,10,
             32,32,32,32,118,46,116,97,103,32,61,32,86,84,95,67,54,52,59,10,
-            32,32,32,32,118,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,99,101,108,108,95,105,110,100,101,120,59,10,
+            32,32,32,32,118,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,99,101,108,108,95,105,110,100,101,120,59,10,
             32,32,32,32,114,101,116,117,114,110,32,118,59,10,
             125,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,100,111,95,112,97,99,107,95,117,110,99,111,110,115,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,99,97,114,44,32,99,100,114,44,32,118,97,108,59,10,
+            32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,44,32,118,97,108,59,10,
             32,32,32,32,118,97,108,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,97,108,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
             32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,99,97,114,41,59,32,112,117,115,104,95,118,97,108,117,101,40,99,100,114,41,59,10,
@@ -17680,18 +17680,18 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,125,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,103,101,116,95,118,97,108,117,101,95,116,97,103,40,118,41,32,40,40,40,118,41,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,63,32,40,118,41,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,32,58,32,40,40,40,118,41,46,116,97,103,32,61,61,32,86,84,95,67,54,52,41,32,63,32,40,104,101,97,112,91,40,118,41,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,93,46,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,41,32,58,32,40,105,54,52,41,40,40,118,41,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,41,41,41,10,
-            35,100,101,102,105,110,101,32,103,101,116,95,116,111,112,95,100,97,116,97,95,116,97,103,40,41,32,40,103,101,116,95,118,97,108,117,101,95,116,97,103,40,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,41,41,10,
-            35,100,101,102,105,110,101,32,118,97,108,117,101,95,99,109,112,40,118,49,44,118,50,41,32,40,40,40,40,118,49,41,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,38,38,32,40,40,118,50,41,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,41,32,63,32,40,40,118,49,41,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,32,45,32,40,118,50,41,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,41,32,58,32,118,97,108,117,101,95,99,109,112,95,104,97,114,100,40,40,118,49,41,44,32,40,118,50,41,41,41,10,
+            35,100,101,102,105,110,101,32,103,101,116,95,84,65,71,40,118,41,32,40,40,40,118,41,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,63,32,40,118,41,46,100,97,116,97,46,118,112,95,105,54,52,32,58,32,40,40,40,118,41,46,116,97,103,32,61,61,32,86,84,95,67,54,52,41,32,63,32,40,104,101,97,112,91,40,118,41,46,100,97,116,97,46,118,112,95,117,54,52,93,46,99,100,114,46,100,97,116,97,46,118,112,95,105,54,52,41,32,58,32,40,105,54,52,41,40,40,118,41,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,41,41,41,10,
+            35,100,101,102,105,110,101,32,103,101,116,95,116,111,112,95,100,97,116,97,95,116,97,103,40,41,32,40,103,101,116,95,84,65,71,40,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,41,41,10,
+            35,100,101,102,105,110,101,32,118,97,108,117,101,95,99,109,112,40,118,49,44,118,50,41,32,40,40,40,40,118,49,41,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,38,38,32,40,40,118,50,41,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,41,32,63,32,40,40,118,49,41,46,100,97,116,97,46,118,112,95,105,54,52,32,45,32,40,118,50,41,46,100,97,116,97,46,118,112,95,105,54,52,41,32,58,32,118,97,108,117,101,95,99,109,112,95,104,97,114,100,40,40,118,49,41,44,32,40,118,50,41,41,41,10,
             10,
-            115,116,97,116,105,99,32,105,54,52,32,118,97,108,117,101,95,99,109,112,95,104,97,114,100,40,118,97,108,117,101,95,116,32,118,49,44,32,118,97,108,117,101,95,116,32,118,50,41,32,123,10,
+            115,116,97,116,105,99,32,105,54,52,32,118,97,108,117,101,95,99,109,112,95,104,97,114,100,40,86,65,76,32,118,49,44,32,86,65,76,32,118,50,41,32,123,10,
             32,32,32,32,119,104,105,108,101,40,49,41,32,123,10,
-            32,32,32,32,32,32,32,32,105,54,52,32,116,49,32,61,32,103,101,116,95,118,97,108,117,101,95,116,97,103,40,118,49,41,59,10,
-            32,32,32,32,32,32,32,32,105,54,52,32,116,50,32,61,32,103,101,116,95,118,97,108,117,101,95,116,97,103,40,118,50,41,59,10,
+            32,32,32,32,32,32,32,32,105,54,52,32,116,49,32,61,32,103,101,116,95,84,65,71,40,118,49,41,59,10,
+            32,32,32,32,32,32,32,32,105,54,52,32,116,50,32,61,32,103,101,116,95,84,65,71,40,118,50,41,59,10,
             32,32,32,32,32,32,32,32,105,102,32,40,116,49,32,60,32,116,50,41,32,114,101,116,117,114,110,32,45,49,59,10,
             32,32,32,32,32,32,32,32,105,102,32,40,116,49,32,62,32,116,50,41,32,114,101,116,117,114,110,32,49,59,10,
             32,32,32,32,32,32,32,32,105,102,32,40,40,118,49,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,38,38,32,40,118,50,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,41,32,114,101,116,117,114,110,32,48,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,118,49,99,97,114,44,32,118,49,99,100,114,44,32,118,50,99,97,114,44,32,118,50,99,100,114,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,118,49,99,97,114,44,32,118,49,99,100,114,44,32,118,50,99,97,114,44,32,118,50,99,100,114,59,10,
             32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,49,44,32,38,118,49,99,97,114,44,32,38,118,49,99,100,114,41,59,10,
             32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,50,44,32,38,118,50,99,97,114,44,32,38,118,50,99,100,114,41,59,10,
             32,32,32,32,32,32,32,32,105,54,52,32,99,100,114,99,109,112,32,61,32,118,97,108,117,101,95,99,109,112,40,118,49,99,100,114,44,32,118,50,99,100,114,41,59,10,
@@ -17700,38 +17700,38 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,125,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,118,97,108,117,101,95,101,113,40,118,49,44,118,50,41,32,40,40,40,118,49,41,46,116,97,103,32,61,61,32,40,118,50,41,46,116,97,103,41,32,38,38,32,40,40,40,118,49,41,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,61,32,40,118,50,41,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,41,32,124,124,32,40,40,40,118,49,41,46,116,97,103,32,38,32,48,120,56,48,41,32,38,38,32,118,97,108,117,101,95,101,113,95,104,97,114,100,40,40,118,49,41,44,40,118,50,41,41,41,41,41,10,
+            35,100,101,102,105,110,101,32,118,97,108,117,101,95,101,113,40,118,49,44,118,50,41,32,40,40,40,118,49,41,46,116,97,103,32,61,61,32,40,118,50,41,46,116,97,103,41,32,38,38,32,40,40,40,118,49,41,46,100,97,116,97,46,118,112,95,117,54,52,32,61,61,32,40,118,50,41,46,100,97,116,97,46,118,112,95,117,54,52,41,32,124,124,32,40,40,40,118,49,41,46,116,97,103,32,38,32,48,120,56,48,41,32,38,38,32,118,97,108,117,101,95,101,113,95,104,97,114,100,40,40,118,49,41,44,40,118,50,41,41,41,41,41,10,
             10,
-            115,116,97,116,105,99,32,98,111,111,108,32,118,97,108,117,101,95,101,113,95,104,97,114,100,40,118,97,108,117,101,95,116,32,118,49,44,32,118,97,108,117,101,95,116,32,118,50,41,32,123,10,
+            115,116,97,116,105,99,32,98,111,111,108,32,118,97,108,117,101,95,101,113,95,104,97,114,100,40,86,65,76,32,118,49,44,32,86,65,76,32,118,50,41,32,123,10,
             32,32,32,32,117,115,105,122,101,32,99,49,95,105,110,100,101,120,44,32,99,50,95,105,110,100,101,120,59,32,99,101,108,108,95,116,32,42,99,49,44,32,42,99,50,59,10,
             32,32,32,32,119,104,105,108,101,32,40,49,41,32,123,10,
             32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,116,97,103,32,33,61,32,118,50,46,116,97,103,41,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,61,32,118,50,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,41,32,114,101,116,117,114,110,32,116,114,117,101,59,10,
+            32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,100,97,116,97,46,118,112,95,117,54,52,32,61,61,32,118,50,46,100,97,116,97,46,118,112,95,117,54,52,41,32,114,101,116,117,114,110,32,116,114,117,101,59,10,
             32,32,32,32,32,32,32,32,115,119,105,116,99,104,32,40,118,49,46,116,97,103,41,32,123,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,54,52,58,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,51,50,58,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,50,49,58,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,49,54,58,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,54,52,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,49,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,118,49,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,50,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,118,50,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,49,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,118,49,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,50,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,118,50,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,51,50,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,112,97,121,108,111,97,100,46,118,112,95,117,51,50,32,33,61,32,118,50,46,112,97,121,108,111,97,100,46,118,112,95,117,51,50,41,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,49,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,49,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,51,50,41,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,50,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,50,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,51,50,41,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,100,97,116,97,46,118,112,95,117,51,50,32,33,61,32,118,50,46,100,97,116,97,46,118,112,95,117,51,50,41,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,49,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,49,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,51,50,41,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,50,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,50,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,51,50,41,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,50,49,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,32,32,40,118,49,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,38,32,48,120,48,51,70,70,70,70,70,70,70,70,70,70,41,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,61,32,40,118,50,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,38,32,48,120,48,51,70,70,70,70,70,70,70,70,70,70,41,41,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,49,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,49,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,52,50,41,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,50,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,50,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,52,50,41,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,32,32,40,118,49,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,48,51,70,70,70,70,70,70,70,70,70,70,41,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,61,32,40,118,50,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,48,51,70,70,70,70,70,70,70,70,70,70,41,41,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,49,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,49,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,52,50,41,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,50,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,50,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,52,50,41,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,49,54,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,32,32,40,118,49,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,70,70,70,70,70,70,70,70,41,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,61,32,40,118,50,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,70,70,70,70,70,70,70,70,41,41,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,49,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,49,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,52,56,41,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,50,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,50,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,32,52,56,41,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,32,32,40,118,49,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,70,70,70,70,70,70,70,70,41,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,61,32,40,118,50,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,70,70,70,70,70,70,70,70,41,41,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,49,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,49,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,52,56,41,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,50,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,50,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,52,56,41,59,10,
             32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,98,114,101,97,107,59,10,
             32,32,32,32,32,32,32,32,125,10,
             32,32,32,32,32,32,32,32,99,49,32,61,32,104,101,97,112,32,43,32,99,49,95,105,110,100,101,120,59,10,
@@ -17743,25 +17743,25 @@ static void mw_c99_header_21_ (void){
             10,
             35,100,101,102,105,110,101,32,100,111,95,114,117,110,40,41,32,100,111,32,123,32,100,111,95,112,97,99,107,95,117,110,99,111,110,115,40,41,59,32,102,110,112,116,114,32,102,112,32,61,32,112,111,112,95,102,110,112,116,114,40,41,59,32,102,112,40,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,100,40,41,32,48,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,100,117,112,40,41,32,100,111,123,32,118,97,108,117,101,95,116,32,118,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,59,32,112,117,115,104,95,118,97,108,117,101,40,118,41,59,32,105,110,99,114,101,102,40,118,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,100,117,112,40,41,32,100,111,123,32,86,65,76,32,118,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,59,32,112,117,115,104,95,118,97,108,117,101,40,118,41,59,32,105,110,99,114,101,102,40,118,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
             10,
             35,100,101,102,105,110,101,32,100,111,95,100,114,111,112,40,41,32,100,101,99,114,101,102,40,112,111,112,95,118,97,108,117,101,40,41,41,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,100,114,111,112,40,41,32,100,111,95,100,114,111,112,40,41,10,
             10,
-            35,100,101,102,105,110,101,32,100,111,95,115,119,97,112,40,41,32,100,111,123,32,118,97,108,117,101,95,116,32,120,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,59,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,59,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,32,61,32,120,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,100,111,95,115,119,97,112,40,41,32,100,111,123,32,86,65,76,32,120,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,59,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,59,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,32,61,32,120,59,32,125,32,119,104,105,108,101,40,48,41,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,119,97,112,40,41,32,100,111,95,115,119,97,112,40,41,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,100,105,112,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,102,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,120,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,102,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,120,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,102,41,59,10,
             32,32,32,32,100,111,95,114,117,110,40,41,59,10,
             32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,120,41,59,10,
             125,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,102,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,101,108,115,101,95,98,114,97,110,99,104,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,116,104,101,110,95,98,114,97,110,99,104,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,101,108,115,101,95,98,114,97,110,99,104,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,116,104,101,110,95,98,114,97,110,99,104,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,98,111,111,108,32,98,32,61,32,112,111,112,95,98,111,111,108,40,41,59,10,
             32,32,32,32,105,102,32,40,98,41,32,123,10,
             32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,116,104,101,110,95,98,114,97,110,99,104,41,59,10,
@@ -17774,8 +17774,8 @@ static void mw_c99_header_21_ (void){
             125,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,119,104,105,108,101,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,98,111,100,121,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,99,111,110,100,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,98,111,100,121,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,99,111,110,100,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,119,104,105,108,101,40,49,41,32,123,10,
             32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,99,111,110,100,41,59,32,105,110,99,114,101,102,40,99,111,110,100,41,59,32,100,111,95,114,117,110,40,41,59,10,
             32,32,32,32,32,32,32,32,98,111,111,108,32,98,32,61,32,112,111,112,95,98,111,111,108,40,41,59,10,
@@ -17785,25 +17785,25 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,100,101,99,114,101,102,40,99,111,110,100,41,59,32,100,101,99,114,101,102,40,98,111,100,121,41,59,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,97,100,100,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,43,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,115,117,98,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,45,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,109,117,108,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,32,42,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,100,105,118,40,41,32,100,111,32,123,32,105,54,52,32,97,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,59,32,105,54,52,32,98,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,59,32,105,54,52,32,114,32,61,32,97,32,37,32,98,59,32,105,54,52,32,113,32,61,32,97,32,47,32,98,59,32,105,102,32,40,40,40,97,32,60,32,48,41,32,94,32,40,98,32,60,32,48,41,41,32,38,38,32,114,41,32,113,45,45,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,32,61,32,113,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,109,111,100,40,41,32,100,111,32,123,32,105,54,52,32,97,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,59,32,105,54,52,32,98,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,59,32,105,54,52,32,114,32,61,32,97,32,37,32,98,59,32,105,102,32,40,40,40,97,32,60,32,48,41,32,94,32,40,98,32,60,32,48,41,41,32,38,38,32,114,41,32,114,32,43,61,32,98,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,32,61,32,114,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,97,110,100,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,38,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,111,114,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,124,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,120,111,114,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,94,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,115,104,108,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,60,60,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,115,104,114,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,62,62,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,101,113,40,41,32,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,97,108,117,101,95,116,32,118,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,98,111,111,108,40,118,97,108,117,101,95,101,113,40,118,49,44,32,118,50,41,41,59,32,100,101,99,114,101,102,40,118,49,41,59,32,100,101,99,114,101,102,40,118,50,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,97,100,100,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,43,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,115,117,98,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,45,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,109,117,108,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,105,54,52,32,42,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,105,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,100,105,118,40,41,32,100,111,32,123,32,105,54,52,32,97,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,105,54,52,59,32,105,54,52,32,98,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,105,54,52,59,32,105,54,52,32,114,32,61,32,97,32,37,32,98,59,32,105,54,52,32,113,32,61,32,97,32,47,32,98,59,32,105,102,32,40,40,40,97,32,60,32,48,41,32,94,32,40,98,32,60,32,48,41,41,32,38,38,32,114,41,32,113,45,45,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,105,54,52,32,61,32,113,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,109,111,100,40,41,32,100,111,32,123,32,105,54,52,32,97,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,105,54,52,59,32,105,54,52,32,98,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,105,54,52,59,32,105,54,52,32,114,32,61,32,97,32,37,32,98,59,32,105,102,32,40,40,40,97,32,60,32,48,41,32,94,32,40,98,32,60,32,48,41,41,32,38,38,32,114,41,32,114,32,43,61,32,98,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,105,54,52,32,61,32,114,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,97,110,100,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,38,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,111,114,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,124,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,120,111,114,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,94,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,115,104,108,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,60,60,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,115,104,114,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,101,113,40,41,32,32,100,111,32,123,32,86,65,76,32,118,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,118,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,98,111,111,108,40,118,97,108,117,101,95,101,113,40,118,49,44,32,118,50,41,41,59,32,100,101,99,114,101,102,40,118,49,41,59,32,100,101,99,114,101,102,40,118,50,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,108,116,40,41,32,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,97,108,117,101,95,116,32,118,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,98,111,111,108,40,118,97,108,117,101,95,99,109,112,40,118,49,44,32,118,50,41,32,60,32,48,41,59,32,100,101,99,114,101,102,40,118,49,41,59,32,100,101,99,114,101,102,40,118,50,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,108,116,40,41,32,32,100,111,32,123,32,86,65,76,32,118,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,118,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,98,111,111,108,40,118,97,108,117,101,95,99,109,112,40,118,49,44,32,118,50,41,32,60,32,48,41,59,32,100,101,99,114,101,102,40,118,49,41,59,32,100,101,99,114,101,102,40,118,50,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,108,101,40,41,32,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,97,108,117,101,95,116,32,118,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,98,111,111,108,40,118,97,108,117,101,95,99,109,112,40,118,49,44,32,118,50,41,32,60,61,32,48,41,59,32,100,101,99,114,101,102,40,118,49,41,59,32,100,101,99,114,101,102,40,118,50,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,108,101,40,41,32,32,100,111,32,123,32,86,65,76,32,118,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,118,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,98,111,111,108,40,118,97,108,117,101,95,99,109,112,40,118,49,44,32,118,50,41,32,60,61,32,48,41,59,32,100,101,99,114,101,102,40,118,49,41,59,32,100,101,99,114,101,102,40,118,50,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,111,115,105,120,95,119,114,105,116,101,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,117,115,105,122,101,32,110,32,61,32,40,117,115,105,122,101,41,112,111,112,95,117,54,52,40,41,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,118,111,105,100,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
             32,32,32,32,105,110,116,32,102,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,112,117,115,104,95,105,54,52,40,40,105,54,52,41,119,114,105,116,101,40,102,44,32,112,44,32,110,41,41,59,10,
@@ -17812,7 +17812,7 @@ static void mw_c99_header_21_ (void){
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,111,115,105,120,95,114,101,97,100,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,117,115,105,122,101,32,110,32,61,32,40,117,115,105,122,101,41,112,111,112,95,117,54,52,40,41,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,118,111,105,100,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
             32,32,32,32,105,110,116,32,102,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,112,117,115,104,95,105,54,52,40,40,105,54,52,41,114,101,97,100,40,102,44,112,44,110,41,41,59,10,
@@ -17822,7 +17822,7 @@ static void mw_c99_header_21_ (void){
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,111,115,105,120,95,111,112,101,110,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,105,110,116,32,109,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,105,110,116,32,102,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,118,111,105,100,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
             32,32,32,32,112,117,115,104,95,105,54,52,40,40,105,54,52,41,111,112,101,110,40,112,44,102,44,109,41,41,59,10,
             32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
@@ -17850,7 +17850,7 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,32,32,32,32,105,110,116,32,100,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,32,32,32,32,105,110,116,32,99,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,32,32,32,32,117,115,105,122,101,32,98,32,61,32,40,117,115,105,122,101,41,112,111,112,95,117,54,52,40,41,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,118,97,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,118,97,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,32,32,32,32,118,111,105,100,42,32,97,32,61,32,118,97,108,117,101,95,112,116,114,40,118,97,41,59,10,
             32,32,32,32,32,32,32,32,118,111,105,100,42,32,112,32,61,32,109,109,97,112,40,97,44,98,44,99,44,100,44,101,44,102,41,59,10,
             32,32,32,32,32,32,32,32,112,117,115,104,95,112,116,114,40,112,41,59,10,
@@ -17866,7 +17866,7 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,105,54,52,32,120,59,32,105,54,52,32,121,59,10,
             32,32,32,32,102,111,114,32,40,108,111,110,103,32,105,32,61,32,83,84,65,67,75,95,83,73,90,69,45,49,59,32,105,32,62,61,32,40,108,111,110,103,41,115,116,97,99,107,95,99,111,117,110,116,101,114,59,32,105,45,45,41,32,123,10,
             32,32,32,32,32,32,32,32,99,112,32,61,32,99,43,51,48,59,10,
-            32,32,32,32,32,32,32,32,120,32,61,32,115,116,97,99,107,91,105,93,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,59,10,
+            32,32,32,32,32,32,32,32,120,32,61,32,115,116,97,99,107,91,105,93,46,100,97,116,97,46,118,112,95,105,54,52,59,10,
             32,32,32,32,32,32,32,32,110,32,61,32,49,59,10,
             32,32,32,32,32,32,32,32,121,32,61,32,120,59,32,105,102,32,40,120,32,60,32,48,41,32,123,32,120,32,61,32,45,120,59,32,125,10,
             32,32,32,32,32,32,32,32,100,111,32,123,32,42,99,112,45,45,32,61,32,39,48,39,32,43,32,40,120,32,37,32,49,48,41,59,32,120,32,47,61,32,49,48,59,32,110,43,43,59,32,125,32,119,104,105,108,101,40,120,41,59,10,
@@ -17879,28 +17879,28 @@ static void mw_c99_header_21_ (void){
             10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,100,101,98,117,103,40,41,32,100,111,95,100,101,98,117,103,40,41,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,103,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,97,108,117,101,95,116,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,118,97,108,117,101,40,42,112,41,59,32,105,110,99,114,101,102,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,103,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,54,52,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,116,114,95,103,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,111,105,100,42,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,112,116,114,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,56,95,103,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,56,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,117,56,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,49,54,95,103,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,49,54,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,117,49,54,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,51,50,95,103,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,51,50,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,117,51,50,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,54,52,95,103,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,117,54,52,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,56,95,103,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,56,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,56,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,49,54,95,103,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,49,54,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,49,54,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,51,50,95,103,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,51,50,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,51,50,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,54,52,95,103,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,54,52,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,115,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,54,52,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,56,95,115,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,56,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,117,56,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,49,54,95,115,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,49,54,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,117,49,54,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,51,50,95,115,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,51,50,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,117,51,50,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,54,52,95,115,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,117,54,52,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,56,95,115,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,56,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,56,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,49,54,95,115,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,49,54,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,49,54,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,51,50,95,115,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,51,50,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,51,50,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,54,52,95,115,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,54,52,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,116,114,95,115,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,97,108,117,101,95,116,32,118,120,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,111,105,100,42,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,120,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,100,101,99,114,101,102,40,118,120,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,115,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,97,108,117,101,95,116,32,118,120,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,97,108,117,101,95,116,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,118,97,108,117,101,95,116,32,111,108,100,32,61,32,42,112,59,32,42,112,32,61,32,118,120,59,32,100,101,99,114,101,102,40,111,108,100,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,118,97,108,117,101,40,42,112,41,59,32,105,110,99,114,101,102,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,54,52,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,116,114,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,111,105,100,42,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,112,116,114,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,56,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,56,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,117,56,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,49,54,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,49,54,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,117,49,54,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,51,50,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,51,50,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,117,51,50,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,54,52,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,117,54,52,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,56,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,56,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,56,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,49,54,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,49,54,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,49,54,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,51,50,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,51,50,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,51,50,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,54,52,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,54,52,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,54,52,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,56,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,56,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,117,56,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,49,54,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,49,54,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,117,49,54,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,51,50,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,51,50,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,117,51,50,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,54,52,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,117,54,52,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,56,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,56,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,56,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,49,54,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,49,54,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,49,54,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,51,50,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,51,50,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,51,50,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,54,52,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,54,52,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,116,114,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,118,120,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,111,105,100,42,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,120,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,100,101,99,114,101,102,40,118,120,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,118,120,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,86,65,76,32,111,108,100,32,61,32,42,112,59,32,42,112,32,61,32,118,120,59,32,100,101,99,114,101,102,40,111,108,100,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
             35,105,102,32,100,101,102,105,110,101,100,40,77,73,82,84,72,95,87,73,78,68,79,87,83,41,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,121,115,95,111,115,40,41,32,112,117,115,104,95,117,54,52,40,49,41,10,
             35,101,108,105,102,32,100,101,102,105,110,101,100,40,77,73,82,84,72,95,76,73,78,85,88,41,10,
@@ -17916,24 +17916,24 @@ static void mw_c99_header_21_ (void){
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,114,117,110,40,41,32,100,111,95,114,117,110,40,41,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,97,100,100,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,105,54,52,32,121,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,105,102,32,40,118,112,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,123,10,
-            32,32,32,32,32,32,32,32,112,117,115,104,95,105,54,52,40,121,32,43,32,118,112,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,41,59,10,
+            32,32,32,32,32,32,32,32,112,117,115,104,95,105,54,52,40,121,32,43,32,118,112,46,100,97,116,97,46,118,112,95,105,54,52,41,59,10,
             32,32,32,32,125,32,101,108,115,101,32,105,102,32,40,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,40,118,112,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,99,97,114,44,32,99,100,114,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
             32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,112,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,32,43,61,32,121,59,10,
+            32,32,32,32,32,32,32,32,99,100,114,46,100,97,116,97,46,118,112,95,105,54,52,32,43,61,32,121,59,10,
             32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,109,107,99,101,108,108,40,99,97,114,44,32,99,100,114,41,41,59,10,
             32,32,32,32,125,32,101,108,115,101,32,123,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,118,121,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,112,97,121,108,111,97,100,32,61,32,123,32,46,118,112,95,105,54,52,32,61,32,121,32,125,32,125,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,118,121,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,32,46,118,112,95,105,54,52,32,61,32,121,32,125,32,125,59,10,
             32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,109,107,99,101,108,108,40,118,112,44,32,118,121,41,41,59,10,
             32,32,32,32,125,10,
             125,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,98,111,111,108,95,116,114,117,101,40,41,32,112,117,115,104,95,98,111,111,108,40,116,114,117,101,41,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,98,111,111,108,95,102,97,108,115,101,40,41,32,112,117,115,104,95,98,111,111,108,40,102,97,108,115,101,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,98,111,111,108,95,97,110,100,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,38,38,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,98,111,111,108,95,111,114,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,32,124,124,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,98,111,111,108,95,97,110,100,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,38,38,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,98,111,111,108,95,111,114,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,124,124,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,121,115,95,97,114,103,99,40,41,32,112,117,115,104,95,105,54,52,40,103,108,111,98,97,108,95,97,114,103,99,41,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,121,115,95,97,114,103,118,40,41,32,112,117,115,104,95,112,116,114,40,103,108,111,98,97,108,95,97,114,103,118,41,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,116,114,95,115,105,122,101,40,41,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,115,105,122,101,111,102,40,118,111,105,100,42,41,41,10,
@@ -17942,9 +17942,9 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,105,102,32,40,112,115,105,122,101,32,62,32,48,41,32,123,10,
             32,32,32,32,32,32,32,32,117,115,105,122,101,32,115,105,122,101,32,61,32,40,117,115,105,122,101,41,112,115,105,122,101,59,10,
             32,32,32,32,32,32,32,32,118,111,105,100,42,32,112,116,114,32,61,32,99,97,108,108,111,99,40,49,44,115,105,122,101,41,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,118,115,105,122,101,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,112,97,121,108,111,97,100,32,61,32,123,32,46,118,112,95,105,54,52,32,61,32,112,115,105,122,101,32,125,32,125,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,118,112,116,114,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,112,97,121,108,111,97,100,32,61,32,123,32,46,118,112,95,112,116,114,32,61,32,112,116,114,32,125,32,125,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,118,32,61,32,109,107,99,101,108,108,95,102,114,101,101,99,100,114,40,118,115,105,122,101,44,32,118,112,116,114,41,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,118,115,105,122,101,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,32,46,118,112,95,105,54,52,32,61,32,112,115,105,122,101,32,125,32,125,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,118,112,116,114,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,32,46,118,112,95,112,116,114,32,61,32,112,116,114,32,125,32,125,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,118,32,61,32,109,107,99,101,108,108,95,102,114,101,101,99,100,114,40,118,115,105,122,101,44,32,118,112,116,114,41,59,10,
             32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,118,41,59,10,
             32,32,32,32,125,32,101,108,115,101,32,123,10,
             32,32,32,32,32,32,32,32,112,117,115,104,95,117,54,52,40,48,41,59,10,
@@ -17961,7 +17961,7 @@ static void mw_c99_header_21_ (void){
             125,10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,114,101,97,108,108,111,99,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,105,54,52,32,112,115,105,122,101,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,112,116,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,118,112,116,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,105,102,32,40,112,115,105,122,101,32,60,61,32,48,41,32,123,10,
             32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,118,112,116,114,41,59,10,
             32,32,32,32,32,32,32,32,112,117,115,104,95,117,54,52,40,48,41,59,10,
@@ -17971,11 +17971,11 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,105,102,32,40,40,118,112,116,114,46,116,97,103,32,61,61,32,86,84,95,67,54,52,41,32,38,38,32,33,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,40,118,112,116,114,41,41,32,123,10,
             32,32,32,32,32,32,32,32,117,115,105,122,101,32,99,101,108,108,95,105,110,100,101,120,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,118,112,116,114,41,59,10,
             32,32,32,32,32,32,32,32,99,101,108,108,95,116,32,42,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,95,105,110,100,101,120,59,10,
-            32,32,32,32,32,32,32,32,117,115,105,122,101,32,111,108,100,95,115,105,122,101,32,61,32,40,117,115,105,122,101,41,99,101,108,108,45,62,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,118,111,105,100,42,32,111,108,100,95,112,116,114,32,61,32,99,101,108,108,45,62,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,112,116,114,59,10,
+            32,32,32,32,32,32,32,32,117,115,105,122,101,32,111,108,100,95,115,105,122,101,32,61,32,40,117,115,105,122,101,41,99,101,108,108,45,62,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
+            32,32,32,32,32,32,32,32,118,111,105,100,42,32,111,108,100,95,112,116,114,32,61,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,112,116,114,59,10,
             32,32,32,32,32,32,32,32,118,111,105,100,42,32,110,101,119,95,112,116,114,32,61,32,114,101,97,108,108,111,99,40,111,108,100,95,112,116,114,44,32,110,101,119,95,115,105,122,101,41,59,10,
-            32,32,32,32,32,32,32,32,99,101,108,108,45,62,99,97,114,46,112,97,121,108,111,97,100,46,118,112,95,105,54,52,32,61,32,112,115,105,122,101,59,10,
-            32,32,32,32,32,32,32,32,99,101,108,108,45,62,99,100,114,46,112,97,121,108,111,97,100,46,118,112,95,112,116,114,32,61,32,110,101,119,95,112,116,114,59,10,
+            32,32,32,32,32,32,32,32,99,101,108,108,45,62,99,97,114,46,100,97,116,97,46,118,112,95,105,54,52,32,61,32,112,115,105,122,101,59,10,
+            32,32,32,32,32,32,32,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,112,116,114,32,61,32,110,101,119,95,112,116,114,59,10,
             32,32,32,32,32,32,32,32,105,102,32,40,111,108,100,95,115,105,122,101,32,60,32,110,101,119,95,115,105,122,101,41,32,123,10,
             32,32,32,32,32,32,32,32,32,32,32,32,109,101,109,115,101,116,40,40,99,104,97,114,42,41,110,101,119,95,112,116,114,32,43,32,111,108,100,95,115,105,122,101,44,32,48,44,32,110,101,119,95,115,105,122,101,32,45,32,111,108,100,95,115,105,122,101,41,59,10,
             32,32,32,32,32,32,32,32,125,10,
@@ -17984,18 +17984,18 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,32,32,32,32,118,111,105,100,42,32,111,108,100,95,112,116,114,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,116,114,41,59,10,
             32,32,32,32,32,32,32,32,117,115,105,122,101,32,111,108,100,95,115,105,122,101,32,61,32,40,117,115,105,122,101,41,118,97,108,117,101,95,112,116,114,95,115,105,122,101,40,118,112,116,114,41,59,10,
             32,32,32,32,32,32,32,32,118,111,105,100,42,32,110,101,119,95,112,116,114,32,61,32,97,108,108,111,99,95,98,117,116,95,99,111,112,121,40,110,101,119,95,115,105,122,101,44,32,111,108,100,95,112,116,114,44,32,111,108,100,95,115,105,122,101,41,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,118,115,105,122,101,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,112,97,121,108,111,97,100,32,61,32,123,32,46,118,112,95,105,54,52,32,61,32,112,115,105,122,101,32,125,32,125,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,118,110,101,119,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,112,97,121,108,111,97,100,32,61,32,123,32,46,118,112,95,112,116,114,32,61,32,110,101,119,95,112,116,114,32,125,32,125,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,32,118,32,61,32,109,107,99,101,108,108,95,102,114,101,101,99,100,114,40,118,115,105,122,101,44,32,118,110,101,119,41,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,118,115,105,122,101,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,32,46,118,112,95,105,54,52,32,61,32,112,115,105,122,101,32,125,32,125,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,118,110,101,119,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,32,46,118,112,95,112,116,114,32,61,32,110,101,119,95,112,116,114,32,125,32,125,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,118,32,61,32,109,107,99,101,108,108,95,102,114,101,101,99,100,114,40,118,115,105,122,101,44,32,118,110,101,119,41,59,10,
             32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,118,41,59,10,
             32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,118,112,116,114,41,59,10,
             32,32,32,32,125,10,
             125,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,99,111,112,121,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,100,115,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,118,100,115,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,105,54,52,32,105,108,101,110,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,115,114,99,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,118,115,114,99,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,118,111,105,100,42,32,115,114,99,32,61,32,118,97,108,117,101,95,112,116,114,40,118,115,114,99,41,59,10,
             32,32,32,32,118,111,105,100,42,32,100,115,116,32,61,32,118,97,108,117,101,95,112,116,114,40,118,100,115,116,41,59,10,
             32,32,32,32,105,102,32,40,115,114,99,32,38,38,32,100,115,116,32,38,38,32,40,105,108,101,110,32,62,32,48,41,41,32,123,10,
@@ -18006,7 +18006,7 @@ static void mw_c99_header_21_ (void){
             125,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,102,105,108,108,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,100,115,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,118,100,115,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,105,54,52,32,105,108,101,110,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,105,54,52,32,118,97,108,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,118,111,105,100,42,32,100,115,116,32,61,32,118,97,108,117,101,95,112,116,114,40,118,100,115,116,41,59,10,
@@ -18018,8 +18018,8 @@ static void mw_c99_header_21_ (void){
             10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,116,114,95,114,97,119,40,41,32,100,111,32,123,32,117,115,105,122,101,32,105,32,61,32,115,116,97,99,107,95,99,111,117,110,116,101,114,59,32,112,117,115,104,95,112,116,114,40,118,97,108,117,101,95,112,116,114,40,115,116,97,99,107,91,105,93,41,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,115,116,114,95,101,113,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,112,116,114,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-            32,32,32,32,118,97,108,117,101,95,116,32,118,112,116,114,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,118,112,116,114,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,118,112,116,114,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,99,111,110,115,116,32,99,104,97,114,42,32,112,116,114,49,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,116,114,49,41,59,10,
             32,32,32,32,99,111,110,115,116,32,99,104,97,114,42,32,112,116,114,50,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,116,114,50,41,59,10,
             32,32,32,32,98,111,111,108,32,114,101,115,117,108,116,32,61,32,40,33,112,116,114,49,32,124,124,32,33,112,116,114,50,41,32,63,32,40,112,116,114,49,32,61,61,32,112,116,114,50,41,32,58,32,115,116,114,99,109,112,40,112,116,114,49,44,112,116,114,50,41,32,61,61,32,48,59,10,
@@ -18035,16 +18035,16 @@ static void mw_c99_header_21_ (void){
             10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,116,114,95,98,97,115,101,40,41,32,48,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,116,114,95,115,105,122,101,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,118,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,59,32,105,102,32,40,33,118,46,112,97,121,108,111,97,100,46,118,112,95,117,54,52,41,32,123,32,112,117,115,104,95,117,54,52,40,48,41,59,32,125,32,101,108,115,101,32,105,102,32,40,118,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,123,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,115,116,114,108,101,110,40,118,46,112,97,121,108,111,97,100,46,118,112,95,112,116,114,41,41,59,32,125,32,101,108,115,101,32,123,32,112,117,115,104,95,105,54,52,40,118,97,108,117,101,95,112,116,114,95,115,105,122,101,40,118,41,45,52,41,59,32,125,32,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,116,114,95,115,105,122,101,40,41,32,100,111,32,123,32,86,65,76,32,118,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,59,32,105,102,32,40,33,118,46,100,97,116,97,46,118,112,95,117,54,52,41,32,123,32,112,117,115,104,95,117,54,52,40,48,41,59,32,125,32,101,108,115,101,32,105,102,32,40,118,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,123,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,115,116,114,108,101,110,40,118,46,100,97,116,97,46,118,112,95,112,116,114,41,41,59,32,125,32,101,108,115,101,32,123,32,112,117,115,104,95,105,54,52,40,118,97,108,117,101,95,112,116,114,95,115,105,122,101,40,118,41,45,52,41,59,32,125,32,32,125,32,119,104,105,108,101,40,48,41,10,
             10,
-            35,100,101,102,105,110,101,32,100,111,95,112,97,99,107,95,99,111,110,115,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,99,100,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,97,108,117,101,95,116,32,99,97,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,118,97,108,117,101,40,109,107,99,101,108,108,40,99,97,114,44,99,100,114,41,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,100,111,95,112,97,99,107,95,99,111,110,115,40,41,32,100,111,32,123,32,86,65,76,32,99,100,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,99,97,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,118,97,108,117,101,40,109,107,99,101,108,108,40,99,97,114,44,99,100,114,41,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,97,99,107,95,110,105,108,40,41,32,32,112,117,115,104,95,117,54,52,40,48,41,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,97,99,107,95,99,111,110,115,40,41,32,100,111,95,112,97,99,107,95,99,111,110,115,40,41,59,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,97,99,107,95,117,110,99,111,110,115,40,41,32,100,111,95,112,97,99,107,95,117,110,99,111,110,115,40,41,59,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,109,117,116,95,110,101,119,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,99,97,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,97,108,117,101,95,116,32,99,100,114,32,61,32,123,32,48,32,125,59,32,112,117,115,104,95,118,97,108,117,101,40,109,107,99,101,108,108,95,114,97,119,40,99,97,114,44,99,100,114,41,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,109,117,116,95,103,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,109,117,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,102,32,40,109,117,116,46,116,97,103,32,61,61,32,86,84,95,85,54,52,32,38,38,32,109,117,116,46,112,97,121,108,111,97,100,46,118,112,95,118,97,108,117,101,112,116,114,41,32,123,32,118,97,108,117,101,95,116,32,118,97,108,32,61,42,109,117,116,46,112,97,121,108,111,97,100,46,118,112,95,118,97,108,117,101,112,116,114,59,32,112,117,115,104,95,118,97,108,117,101,40,118,97,108,41,59,32,105,110,99,114,101,102,40,118,97,108,41,59,32,125,32,101,108,115,101,32,123,32,112,117,115,104,95,118,97,108,117,101,40,109,117,116,41,59,32,100,111,95,112,97,99,107,95,117,110,99,111,110,115,40,41,59,32,112,111,112,95,118,97,108,117,101,40,41,59,32,125,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,109,117,116,95,115,101,116,40,41,32,100,111,32,123,32,118,97,108,117,101,95,116,32,109,117,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,97,108,117,101,95,116,32,110,101,119,118,97,108,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,118,97,108,117,101,40,109,117,116,41,59,32,105,102,32,40,109,117,116,46,116,97,103,32,61,61,32,86,84,95,85,54,52,32,38,38,32,109,117,116,46,112,97,121,108,111,97,100,46,118,112,95,118,97,108,117,101,112,116,114,41,32,123,32,118,97,108,117,101,95,116,32,111,108,100,118,97,108,32,61,32,42,109,117,116,46,112,97,121,108,111,97,100,46,118,112,95,118,97,108,117,101,112,116,114,59,32,42,109,117,116,46,112,97,121,108,111,97,100,46,118,112,95,118,97,108,117,101,112,116,114,32,61,32,110,101,119,118,97,108,59,32,100,101,99,114,101,102,40,111,108,100,118,97,108,41,59,32,125,32,101,108,115,101,32,123,32,117,115,105,122,101,32,99,101,108,108,105,100,120,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,109,117,116,41,59,32,105,102,32,40,99,101,108,108,105,100,120,41,32,123,32,99,101,108,108,95,116,42,32,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,105,100,120,59,32,118,97,108,117,101,95,116,32,111,108,100,118,97,108,32,61,32,99,101,108,108,45,62,99,97,114,59,32,99,101,108,108,45,62,99,97,114,32,61,32,110,101,119,118,97,108,59,32,100,101,99,114,101,102,40,111,108,100,118,97,108,41,59,32,125,32,101,108,115,101,32,123,32,100,101,99,114,101,102,40,110,101,119,118,97,108,41,59,32,125,32,125,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,109,117,116,95,110,101,119,40,41,32,100,111,32,123,32,86,65,76,32,99,97,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,99,100,114,32,61,32,123,32,48,32,125,59,32,112,117,115,104,95,118,97,108,117,101,40,109,107,99,101,108,108,95,114,97,119,40,99,97,114,44,99,100,114,41,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,109,117,116,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,109,117,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,102,32,40,109,117,116,46,116,97,103,32,61,61,32,86,84,95,85,54,52,32,38,38,32,109,117,116,46,100,97,116,97,46,118,112,95,118,97,108,117,101,112,116,114,41,32,123,32,86,65,76,32,118,97,108,32,61,42,109,117,116,46,100,97,116,97,46,118,112,95,118,97,108,117,101,112,116,114,59,32,112,117,115,104,95,118,97,108,117,101,40,118,97,108,41,59,32,105,110,99,114,101,102,40,118,97,108,41,59,32,125,32,101,108,115,101,32,123,32,112,117,115,104,95,118,97,108,117,101,40,109,117,116,41,59,32,100,111,95,112,97,99,107,95,117,110,99,111,110,115,40,41,59,32,112,111,112,95,118,97,108,117,101,40,41,59,32,125,32,125,32,119,104,105,108,101,40,48,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,109,117,116,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,109,117,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,110,101,119,118,97,108,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,118,97,108,117,101,40,109,117,116,41,59,32,105,102,32,40,109,117,116,46,116,97,103,32,61,61,32,86,84,95,85,54,52,32,38,38,32,109,117,116,46,100,97,116,97,46,118,112,95,118,97,108,117,101,112,116,114,41,32,123,32,86,65,76,32,111,108,100,118,97,108,32,61,32,42,109,117,116,46,100,97,116,97,46,118,112,95,118,97,108,117,101,112,116,114,59,32,42,109,117,116,46,100,97,116,97,46,118,112,95,118,97,108,117,101,112,116,114,32,61,32,110,101,119,118,97,108,59,32,100,101,99,114,101,102,40,111,108,100,118,97,108,41,59,32,125,32,101,108,115,101,32,123,32,117,115,105,122,101,32,99,101,108,108,105,100,120,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,109,117,116,41,59,32,105,102,32,40,99,101,108,108,105,100,120,41,32,123,32,99,101,108,108,95,116,42,32,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,105,100,120,59,32,86,65,76,32,111,108,100,118,97,108,32,61,32,99,101,108,108,45,62,99,97,114,59,32,99,101,108,108,45,62,99,97,114,32,61,32,110,101,119,118,97,108,59,32,100,101,99,114,101,102,40,111,108,100,118,97,108,41,59,32,125,32,101,108,115,101,32,123,32,100,101,99,114,101,102,40,110,101,119,118,97,108,41,59,32,125,32,125,32,125,32,119,104,105,108,101,40,48,41,10,
             10,
             47,42,32,71,69,78,69,82,65,84,69,68,32,67,57,57,32,42,47,10,
             
@@ -18102,7 +18102,7 @@ static void mw_c99_variable_21_ (void){
     mw__2E_name();
     push_ptr("() {\0\0\0\0");
     mw__3B_();
-    push_ptr("    static value_t v = {0};\0\0\0\0");
+    push_ptr("    static VAL v = {0};\0\0\0\0");
     mw__3B_();
     push_ptr("    push_ptr(&v);\0\0\0\0");
     mw__3B_();
@@ -18141,7 +18141,7 @@ static void mw_c99_tag_21_ (void){
             push_ptr("LL);\0\0\0\0");
             mw__3B_();
         } else {
-            push_ptr("    value_t car = pop_value();\0\0\0\0");
+            push_ptr("    VAL car = pop_value();\0\0\0\0");
             mw__3B_();
             mw_tag_num_inputs_3F_();
             mw_1_();
@@ -18149,12 +18149,12 @@ static void mw_c99_tag_21_ (void){
             push_fnptr(&mb_c99_tag_21__5);
             do_pack_cons();
             mw_repeat();
-            push_ptr("    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = \0\0\0\0");
+            push_ptr("    VAL tag = mku64(\0\0\0\0");
             mw__2E_();
             mw_tag_value();
             mw__40_();
             mw__2E_n();
-            push_ptr("LL } };\0\0\0\0");
+            push_ptr("LL);\0\0\0\0");
             mw__3B_();
             push_ptr("    car = mkcell(car, tag);\0\0\0\0");
             mw__3B_();
@@ -18249,7 +18249,7 @@ static void mw_c99_external_21_ (void){
     push_ptr("(\0\0\0\0");
     mw__2E_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         mw_0_3E_();
         if (pop_u64()) {
@@ -18285,7 +18285,7 @@ static void mw_c99_external_21_ (void){
 
 static void mw_c99_nest (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_c99_depth();
         push_u64(0);
         push_value(var_f);
@@ -18320,7 +18320,7 @@ static void mw_c99_indent (void){
 
 static void mw_c99_line (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_c99_indent();
         push_value(var_f);
         incref(var_f);
@@ -18332,7 +18332,7 @@ static void mw_c99_line (void){
 
 static void mw_c99_call_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_c99_args_push_21_();
         push_value(d2);
     }
@@ -18758,7 +18758,7 @@ static void mw_c99_var_21_ (void){
     mw_var_auto_run();
     mw__40_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_c99_var_push_21_();
         push_value(d2);
     }
@@ -19004,7 +19004,7 @@ static void mw_c99_field_defs_21_ (void){
 }
 
 static void mw_c99_field_def_21_ (void){
-    push_ptr("static value_t* fieldptr_\0\0\0\0");
+    push_ptr("static VAL* fieldptr_\0\0\0\0");
     mw__2E_();
     mw_dup();
     mw_field_name();
@@ -19012,7 +19012,7 @@ static void mw_c99_field_def_21_ (void){
     mw__2E_name();
     push_ptr(" (usize i) {\0\0\0\0");
     mw__3B_();
-    push_ptr("    static struct value_t * p = 0;\0\0\0\0");
+    push_ptr("    static struct VAL * p = 0;\0\0\0\0");
     mw__3B_();
     push_ptr("    usize m = \0\0\0\0");
     mw__2E_();
@@ -19036,7 +19036,7 @@ static void mw_c99_field_def_21_ (void){
     mw__3B_();
     push_ptr("    usize index = (usize)pop_u64();\0\0\0\0");
     mw__3B_();
-    push_ptr("    value_t *v = fieldptr_\0\0\0\0");
+    push_ptr("    VAL *v = fieldptr_\0\0\0\0");
     mw__2E_();
     mw_dup();
     mw_field_name();
@@ -19083,7 +19083,7 @@ static void mw_ctx_is_physically_empty (void){
 
 static void mw_ctx_new_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_unCTX();
         push_value(d2);
     }
@@ -19139,7 +19139,7 @@ static void mw_ctx_make_fresh_type_var_21_ (void){
 
 static void mw_ctx_make_fresh_var_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_ctx_fresh_name_21_();
         mw_var_new_21_();
         push_value(d2);
@@ -19188,7 +19188,7 @@ static void mw_External_2E_pred (void){
 
 static void mw_External_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -19198,7 +19198,7 @@ static void mw_External_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -19259,7 +19259,7 @@ static void mw_Variable_2E_pred (void){
 
 static void mw_Variable_2E_for (void){
     {
-        value_t var_x = pop_value();
+        VAL var_x = pop_value();
         push_i64(1LL);
         while(1) {
             mw_prim_dup();
@@ -19269,7 +19269,7 @@ static void mw_Variable_2E_for (void){
             if (!pop_u64()) break;
             mw_prim_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
@@ -19318,7 +19318,7 @@ static void mw_type_elab_default (void){
 
 static void mw_type_elab_stack_assertion (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_true();
         push_value(d2);
     }
@@ -19377,13 +19377,13 @@ static void mw_elab_type_sig_21_ (void){
     }
     mw_elab_type_sig_params_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         push_value(d2);
     }
     mw_elab_type_stack_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         push_value(d2);
     }
@@ -19392,13 +19392,13 @@ static void mw_elab_type_sig_21_ (void){
         mw_token_next();
         mw_elab_type_stack_21_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_swap();
             push_value(d3);
         }
     } else {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_T0();
             mw_rotr();
             push_value(d3);
@@ -19413,10 +19413,10 @@ static void mw_elab_type_sig_21_ (void){
         mw_emit_error_21_();
     }
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_rot4r();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_swap();
             push_u64(0);
             push_fnptr(&mb_elab_type_sig_21__13);
@@ -19435,7 +19435,7 @@ static void mw_elab_type_sig_params_21_ (void){
         mw_dup();
         mw_token_next();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_L0();
             mw_rotr();
             mw_token_args();
@@ -19457,13 +19457,13 @@ static void mw_elab_type_stack_21_ (void){
     if (pop_u64()) {
         mw_elab_stack_var_21_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_TVar();
             push_value(d3);
         }
     } else {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_TYPE_UNIT();
             push_value(d3);
         }
@@ -19478,13 +19478,13 @@ static void mw_elab_type_stack_rest_21_ (void){
         if (!pop_u64()) break;
         mw_swap();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_elab_type_atom_21_();
             push_value(d3);
         }
         mw_swap();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_swap();
             mw_TTensor();
             push_value(d3);
@@ -19508,7 +19508,7 @@ static void mw_elab_type_atom_21_ (void){
     if (pop_u64()) {
         mw_elab_type_var_21_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_TVar();
             push_value(d3);
         }
@@ -19533,7 +19533,7 @@ static void mw_elab_type_atom_21_ (void){
                         push_ptr("Expected type, got unknown token.\0\0\0\0");
                         mw_emit_error_21_();
                         {
-                            value_t d7 = pop_value();
+                            VAL d7 = pop_value();
                             mw_TYPE_ERROR();
                             push_value(d7);
                         }
@@ -19580,9 +19580,9 @@ static void mw_elab_implicit_var_21_ (void){
         case 0LL:
             do_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_var_new_implicit_21_();
                     push_value(d5);
                 }
@@ -19648,14 +19648,14 @@ static void mw_elab_type_con_21_ (void){
 
 static void mw_elab_type_args_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_token_has_args_3F_();
         push_value(d2);
     }
     mw_swap();
     if (pop_u64()) {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_tuck();
             push_value(d3);
         }
@@ -19668,13 +19668,13 @@ static void mw_elab_type_args_21_ (void){
             mw_token_succ();
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_elab_type_arg_21_();
                 push_value(d4);
             }
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_swap();
                 mw_TApp();
                 push_value(d4);
@@ -19682,7 +19682,7 @@ static void mw_elab_type_args_21_ (void){
         }
         mw_drop();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_swap();
             push_value(d3);
         }
@@ -19754,7 +19754,7 @@ static void mw_elab_type_unify_21_ (void){
 
 static void mw_elab_simple_type_arg_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_type_elab_default();
         push_value(d2);
     }
@@ -19783,11 +19783,11 @@ static void mw_ab_type (void){
 
 static void mw_ab_save_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_ab_arrow();
         mw__40_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
             do_run();
@@ -19801,7 +19801,7 @@ static void mw_ab_save_21_ (void){
 
 static void mw_ab_build_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_u64(0);
         push_value(var_f);
         incref(var_f);
@@ -19815,10 +19815,10 @@ static void mw_ab_build_21_ (void){
 
 static void mw_ab_build_hom_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_elab_expand_morphism_21_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_rotr();
             push_value(d3);
         }
@@ -19835,7 +19835,7 @@ static void mw_ab_build_hom_21_ (void){
 
 static void mw_ab_build_word_arrow_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_dup();
         mw_ab_home();
         mw__21_();
@@ -19863,7 +19863,7 @@ static void mw_ab_build_word_arrow_21_ (void){
 
 static void mw_ab_build_word_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_u64(0);
         push_value(var_f);
         incref(var_f);
@@ -19880,7 +19880,7 @@ static void mw_ab_build_word_21_ (void){
 
 static void mw_ab_unify_type_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_ab_token();
         mw__40_();
         mw_GAMMA();
@@ -19906,7 +19906,7 @@ static void mw_ab_atom_21_ (void){
     mw_ab_type();
     mw__21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_ab_arrow();
         mw__40_();
         mw_arrow_atoms();
@@ -19946,7 +19946,7 @@ static void mw_atom_accepts_args_3F_ (void){
         case 2LL:
             do_pack_uncons(); do_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_dup();
                 mw_atom_args();
                 mw__40_();
@@ -20054,7 +20054,7 @@ static void mw_atoms_turn_last_block_to_arg (void){
                 case 14LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_atom_cod();
                         mw__40_();
                         mw_rotl();
@@ -20152,7 +20152,7 @@ static void mw_ab_op_21_ (void){
     mw_swap();
     mw_elab_op_fresh_sig_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_over();
         mw_atom_subst();
         mw__21_();
@@ -20160,7 +20160,7 @@ static void mw_ab_op_21_ (void){
     }
     mw_ab_expand_opsig_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_over();
         mw_atom_dom();
         mw__21_();
@@ -20183,7 +20183,7 @@ static void mw_ab_expand_opsig_21_ (void){
         case 1LL:
             do_pack_uncons(); do_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_ab_type();
                 mw__40_();
                 mw_dup();
@@ -20194,7 +20194,7 @@ static void mw_ab_expand_opsig_21_ (void){
         case 2LL:
             do_pack_uncons(); do_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_ab_type();
                 mw__40_();
                 push_value(d4);
@@ -20204,7 +20204,7 @@ static void mw_ab_expand_opsig_21_ (void){
             mw_elab_expand_morphism_21_();
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_elab_type_unify_21_();
                 mw_drop();
                 push_value(d4);
@@ -20282,7 +20282,7 @@ static void mw_ab_external_21_ (void){
 
 static void mw_ab_block_at_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_ab_ctx();
         mw__40_();
         mw_meta_alloc_21_();
@@ -20300,7 +20300,7 @@ static void mw_ab_block_at_21_ (void){
 
 static void mw_ab_block_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_ab_token();
         mw__40_();
         push_value(var_f);
@@ -20312,7 +20312,7 @@ static void mw_ab_block_21_ (void){
 
 static void mw_ab_dip_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         push_value(var_f);
         incref(var_f);
         mw_ab_block_21_();
@@ -20324,8 +20324,8 @@ static void mw_ab_dip_21_ (void){
 
 static void mw_ab_if_21_ (void){
     {
-        value_t var_g = pop_value();
-        value_t var_f = pop_value();
+        VAL var_g = pop_value();
+        VAL var_f = pop_value();
         push_value(var_f);
         incref(var_f);
         mw_ab_block_21_();
@@ -20341,8 +20341,8 @@ static void mw_ab_if_21_ (void){
 
 static void mw_ab_while_21_ (void){
     {
-        value_t var_g = pop_value();
-        value_t var_f = pop_value();
+        VAL var_g = pop_value();
+        VAL var_f = pop_value();
         push_value(var_f);
         incref(var_f);
         mw_ab_block_21_();
@@ -20358,7 +20358,7 @@ static void mw_ab_while_21_ (void){
 
 static void mw_ab_lambda_21_ (void){
     {
-        value_t var_f = pop_value();
+        VAL var_f = pop_value();
         mw_Lambda_2E_alloc_21_();
         mw_ab_ctx();
         mw__40_();
@@ -20379,7 +20379,7 @@ static void mw_ab_lambda_21_ (void){
         mw_lambda_params();
         mw__21_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_ab_ctx();
             mw__40_();
             mw_ab_type();
@@ -20662,7 +20662,7 @@ static void mw_elab_arrow_21_ (void){
 static void mw_elab_arrow_hom_21_ (void){
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_elab_arrow_fwd_21_();
         mw_dup();
         mw_arrow_token_end();
@@ -20956,7 +20956,7 @@ static void mw_elab_expand_tensor_21_ (void){
         case 0LL:
             do_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_TYPE_ERROR();
                 mw_TYPE_ERROR();
                 push_value(d4);
@@ -20971,7 +20971,7 @@ static void mw_elab_expand_tensor_21_ (void){
         case 3LL:
             do_pack_uncons(); do_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_meta_alloc_21_();
                 mw_TMeta();
                 mw_meta_alloc_21_();
@@ -20991,7 +20991,7 @@ static void mw_elab_expand_tensor_21_ (void){
             push_ptr("expected tuple type\0\0\0\0");
             mw_emit_error_21_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_TYPE_ERROR();
                 mw_TYPE_ERROR();
                 push_value(d4);
@@ -21007,7 +21007,7 @@ static void mw_elab_expand_morphism_21_ (void){
         case 0LL:
             do_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_TYPE_ERROR();
                 mw_TYPE_ERROR();
                 push_value(d4);
@@ -21022,7 +21022,7 @@ static void mw_elab_expand_morphism_21_ (void){
         case 3LL:
             do_pack_uncons(); do_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_meta_alloc_21_();
                 mw_TMeta();
                 mw_meta_alloc_21_();
@@ -21042,7 +21042,7 @@ static void mw_elab_expand_morphism_21_ (void){
             push_ptr("expected block type\0\0\0\0");
             mw_emit_error_21_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_TYPE_ERROR();
                 mw_TYPE_ERROR();
                 push_value(d4);
@@ -21053,7 +21053,7 @@ static void mw_elab_expand_morphism_21_ (void){
 
 static void mw_elab_lambda_pop_from_mid_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         mw_lambda_mid();
         mw__40_();
@@ -21077,14 +21077,14 @@ static void mw_token_is_lambda_param_3F_ (void){
             mw_dup();
             mw_true();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_token_succ();
                 mw_sig_token_is_type_var_3F_();
                 push_value(d4);
             }
             mw__26__26_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_token_succ();
                 mw_token_is_rsquare_3F_();
                 push_value(d4);
@@ -21146,12 +21146,12 @@ static void mw_elab_lambda_body_21_ (void){
     }
     mw_token_succ();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         mw_lambda_mid();
         mw__40_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_dup();
             mw_lambda_inner_ctx();
             mw__40_();
@@ -21204,7 +21204,7 @@ static void mw_elab_match_case_21_ (void){
     mw__21_();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup2();
         mw_case_match();
         mw__21_();
@@ -21215,7 +21215,7 @@ static void mw_elab_match_case_21_ (void){
     mw_token_succ();
     mw_elab_case_body_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_match_add_case_21_();
         push_value(d2);
     }
@@ -21231,7 +21231,7 @@ static void mw_elab_case_pattern_21_ (void){
     mw_token_is_underscore_3F_();
     if (pop_u64()) {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_PATTERN_UNDERSCORE();
             mw_over();
             mw_case_pattern();
@@ -21239,7 +21239,7 @@ static void mw_elab_case_pattern_21_ (void){
             push_value(d3);
         }
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_dup();
             mw_case_match();
             mw__40_();
@@ -21252,7 +21252,7 @@ static void mw_elab_case_pattern_21_ (void){
         }
         mw_elab_type_unify_21_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_over();
             mw_case_mid();
             mw__21_();
@@ -21285,7 +21285,7 @@ static void mw_elab_case_pattern_21_ (void){
                     mw_type_freshen_sig();
                     mw_rotr();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_elab_expand_morphism_21_();
                         push_u64(0);
                         push_fnptr(&mb_elab_case_pattern_21__11);
@@ -21294,7 +21294,7 @@ static void mw_elab_case_pattern_21_ (void){
                         mw_elab_type_unify_21_();
                         mw_nip();
                         {
-                            value_t d7 = pop_value();
+                            VAL d7 = pop_value();
                             mw_over();
                             mw_case_mid();
                             mw__21_();
@@ -21304,7 +21304,7 @@ static void mw_elab_case_pattern_21_ (void){
                     }
                     mw_swap();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_over();
                         mw_case_subst();
                         mw__21_();
@@ -21332,12 +21332,12 @@ static void mw_elab_case_pattern_21_ (void){
 
 static void mw_elab_case_body_21_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         mw_case_mid();
         mw__40_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_dup();
             mw_case_match();
             mw__40_();
@@ -21352,7 +21352,7 @@ static void mw_elab_case_body_21_ (void){
     mw_arrow_token_end();
     mw__40_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         mw_arrow_cod();
         mw__40_();
@@ -21495,7 +21495,7 @@ static void mw_elab_module_import_21_ (void){
                 case 1LL:
                     do_pack_uncons(); do_drop();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_drop2();
                         mw_dup();
                         mw_token_module();
@@ -21510,7 +21510,7 @@ static void mw_elab_module_import_21_ (void){
                     mw_run_lexer_21_();
                     mw_elab_module_21_();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_drop();
                         mw_dup();
                         mw_token_module();
@@ -21606,7 +21606,7 @@ static void mw_elab_data_tag_21_ (void){
     mw_tag_name();
     mw__21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_over();
         push_value(d2);
     }
@@ -21615,7 +21615,7 @@ static void mw_elab_data_tag_21_ (void){
     mw__21_();
     mw_tuck();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_data_add_tag_21_();
         push_value(d2);
     }
@@ -21705,7 +21705,7 @@ static void mw_token_def_args (void){
         mw_drop();
         mw_L1_2B_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_NONE();
             push_value(d3);
         }
@@ -21715,7 +21715,7 @@ static void mw_token_def_args (void){
         if (pop_u64()) {
             mw_cons_2B_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_NONE();
                 push_value(d4);
             }
@@ -21723,7 +21723,7 @@ static void mw_token_def_args (void){
             mw_List__3E_List_2B_();
             mw_unwrap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_SOME();
                 push_value(d4);
             }
@@ -22016,13 +22016,13 @@ static void mw_elab_target_c99_21_ (void){
     mw_sip();
     mw_token_args_2();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_token_str_40_();
         mw_Str__3E_Path();
         push_value(d2);
     }
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_ctx_empty();
         mw_T0();
         mw_T0();
@@ -22316,9 +22316,9 @@ static void mw_table_new_21_ (void){
     mw_name_new_21_();
     mw_var_new_21_();
     {
-        value_t var_x = pop_value();
-        value_t var_w = pop_value();
-        value_t var_t = pop_value();
+        VAL var_x = pop_value();
+        VAL var_w = pop_value();
+        VAL var_t = pop_value();
         push_ptr("a\0\0\0\0");
         mw_name_new_21_();
         mw_var_new_implicit_21_();
@@ -22332,7 +22332,7 @@ static void mw_table_new_21_ (void){
         mw_swap();
         mw_TVar();
         {
-            value_t var_a = pop_value();
+            VAL var_a = pop_value();
             push_value(var_a);
             incref(var_a);
             push_value(var_a);
@@ -22503,7 +22503,7 @@ static void mw_elab_field_type_21_ (void){
 
 static void mw_name_prim_3D_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_name_def();
         mw__40_();
         push_value(d2);
@@ -22514,7 +22514,7 @@ static void mw_name_prim_3D_ (void){
 
 static void mw_token_prim_3D__3F_ (void){
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         push_value(d2);
     }
@@ -22542,7 +22542,7 @@ static void mw_def_prim_21_ (void){
     mw_name_new_21_();
     mw_dup2();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_DEF_PRIM();
         push_value(d2);
     }
@@ -23449,7 +23449,7 @@ static void mw_init_prims_21_ (void){
     mw_prim_ctx();
     mw__21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TVar();
         push_value(d2);
     }
@@ -23487,7 +23487,7 @@ static void mw_init_prims_21_ (void){
     mw_prim_ctx();
     mw__21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TVar();
         mw_T1();
         push_value(d2);
@@ -23522,7 +23522,7 @@ static void mw_init_prims_21_ (void){
     mw_prim_ctx();
     mw__21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TVar();
         push_value(d2);
     }
@@ -23531,7 +23531,7 @@ static void mw_init_prims_21_ (void){
     mw_T__3E_();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_T_2A_();
         push_value(d2);
     }
@@ -23563,13 +23563,13 @@ static void mw_init_prims_21_ (void){
     mw_prim_ctx();
     mw__21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TVar();
         push_value(d2);
     }
     mw_TVar();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TYPE_INT();
         mw_T_2A_();
         push_value(d2);
@@ -23611,9 +23611,9 @@ static void mw_init_prims_21_ (void){
     mw_prim_ctx();
     mw__21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_TVar();
             push_value(d3);
         }
@@ -23622,21 +23622,21 @@ static void mw_init_prims_21_ (void){
     }
     mw_TVar();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup2();
         push_value(d2);
     }
     mw_tuck();
     mw_T_2A_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_T_2A_();
         push_value(d2);
     }
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_T__3E_();
             push_value(d3);
         }
@@ -23672,7 +23672,7 @@ static void mw_init_prims_21_ (void){
     mw_prim_ctx();
     mw__21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TVar();
         push_value(d2);
     }
@@ -23681,9 +23681,9 @@ static void mw_init_prims_21_ (void){
     mw_T__3E_();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_TYPE_BOOL();
             mw_T_2A_();
             push_value(d3);
@@ -23751,7 +23751,7 @@ static void mw_init_prims_21_ (void){
     mw_prim_ctx();
     mw__21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TVar();
         push_value(d2);
     }
@@ -23789,7 +23789,7 @@ static void mw_init_prims_21_ (void){
     mw_prim_ctx();
     mw__21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TVar();
         push_value(d2);
     }
@@ -23819,7 +23819,7 @@ static void mw_init_prims_21_ (void){
     mw__21_();
     mw_TVar();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TYPE_PTR();
         mw_T1();
         push_value(d2);
@@ -23880,7 +23880,7 @@ static void mw_init_prims_21_ (void){
     mw_dup();
     mw_TMut();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_T1();
         push_value(d2);
     }
@@ -23981,7 +23981,7 @@ static void mb_Name_2E_pred_2 (void) {
 
 static void mb_Name_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Name_2E_NUM();
@@ -23992,7 +23992,7 @@ static void mb_Name_2E_for_2 (void) {
 
 static void mb_Name_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24003,11 +24003,11 @@ static void mb_Name_2E_for_4 (void) {
 
 static void mb_Name_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24031,7 +24031,7 @@ static void mb_Module_2E_pred_2 (void) {
 
 static void mb_Module_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Module_2E_NUM();
@@ -24042,7 +24042,7 @@ static void mb_Module_2E_for_2 (void) {
 
 static void mb_Module_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24053,11 +24053,11 @@ static void mb_Module_2E_for_4 (void) {
 
 static void mb_Module_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24081,7 +24081,7 @@ static void mb_Token_2E_pred_2 (void) {
 
 static void mb_Token_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Token_2E_NUM();
@@ -24092,7 +24092,7 @@ static void mb_Token_2E_for_2 (void) {
 
 static void mb_Token_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24103,11 +24103,11 @@ static void mb_Token_2E_for_4 (void) {
 
 static void mb_Token_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24131,7 +24131,7 @@ static void mb_Buffer_2E_pred_2 (void) {
 
 static void mb_Buffer_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Buffer_2E_NUM();
@@ -24142,7 +24142,7 @@ static void mb_Buffer_2E_for_2 (void) {
 
 static void mb_Buffer_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24153,11 +24153,11 @@ static void mb_Buffer_2E_for_4 (void) {
 
 static void mb_Buffer_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24181,7 +24181,7 @@ static void mb_MetaVar_2E_pred_2 (void) {
 
 static void mb_MetaVar_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_MetaVar_2E_NUM();
@@ -24192,7 +24192,7 @@ static void mb_MetaVar_2E_for_2 (void) {
 
 static void mb_MetaVar_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24203,11 +24203,11 @@ static void mb_MetaVar_2E_for_4 (void) {
 
 static void mb_MetaVar_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24231,7 +24231,7 @@ static void mb_Data_2E_pred_2 (void) {
 
 static void mb_Data_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Data_2E_NUM();
@@ -24242,7 +24242,7 @@ static void mb_Data_2E_for_2 (void) {
 
 static void mb_Data_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24253,11 +24253,11 @@ static void mb_Data_2E_for_4 (void) {
 
 static void mb_Data_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24281,7 +24281,7 @@ static void mb_Tag_2E_pred_2 (void) {
 
 static void mb_Tag_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Tag_2E_NUM();
@@ -24292,7 +24292,7 @@ static void mb_Tag_2E_for_2 (void) {
 
 static void mb_Tag_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24303,11 +24303,11 @@ static void mb_Tag_2E_for_4 (void) {
 
 static void mb_Tag_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24331,7 +24331,7 @@ static void mb_Atom_2E_pred_2 (void) {
 
 static void mb_Atom_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Atom_2E_NUM();
@@ -24342,7 +24342,7 @@ static void mb_Atom_2E_for_2 (void) {
 
 static void mb_Atom_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24353,11 +24353,11 @@ static void mb_Atom_2E_for_4 (void) {
 
 static void mb_Atom_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24381,7 +24381,7 @@ static void mb_Arrow_2E_pred_2 (void) {
 
 static void mb_Arrow_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Arrow_2E_NUM();
@@ -24392,7 +24392,7 @@ static void mb_Arrow_2E_for_2 (void) {
 
 static void mb_Arrow_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24403,11 +24403,11 @@ static void mb_Arrow_2E_for_4 (void) {
 
 static void mb_Arrow_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24431,7 +24431,7 @@ static void mb_Lambda_2E_pred_2 (void) {
 
 static void mb_Lambda_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Lambda_2E_NUM();
@@ -24442,7 +24442,7 @@ static void mb_Lambda_2E_for_2 (void) {
 
 static void mb_Lambda_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24453,11 +24453,11 @@ static void mb_Lambda_2E_for_4 (void) {
 
 static void mb_Lambda_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24481,7 +24481,7 @@ static void mb_Block_2E_pred_2 (void) {
 
 static void mb_Block_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Block_2E_NUM();
@@ -24492,7 +24492,7 @@ static void mb_Block_2E_for_2 (void) {
 
 static void mb_Block_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24503,11 +24503,11 @@ static void mb_Block_2E_for_4 (void) {
 
 static void mb_Block_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24531,7 +24531,7 @@ static void mb_Match_2E_pred_2 (void) {
 
 static void mb_Match_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Match_2E_NUM();
@@ -24542,7 +24542,7 @@ static void mb_Match_2E_for_2 (void) {
 
 static void mb_Match_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24553,11 +24553,11 @@ static void mb_Match_2E_for_4 (void) {
 
 static void mb_Match_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24581,7 +24581,7 @@ static void mb_Case_2E_pred_2 (void) {
 
 static void mb_Case_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Case_2E_NUM();
@@ -24592,7 +24592,7 @@ static void mb_Case_2E_for_2 (void) {
 
 static void mb_Case_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24603,11 +24603,11 @@ static void mb_Case_2E_for_4 (void) {
 
 static void mb_Case_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24631,7 +24631,7 @@ static void mb_Var_2E_pred_2 (void) {
 
 static void mb_Var_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Var_2E_NUM();
@@ -24642,7 +24642,7 @@ static void mb_Var_2E_for_2 (void) {
 
 static void mb_Var_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24653,11 +24653,11 @@ static void mb_Var_2E_for_4 (void) {
 
 static void mb_Var_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24681,7 +24681,7 @@ static void mb_Word_2E_pred_2 (void) {
 
 static void mb_Word_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Word_2E_NUM();
@@ -24692,7 +24692,7 @@ static void mb_Word_2E_for_2 (void) {
 
 static void mb_Word_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24703,11 +24703,11 @@ static void mb_Word_2E_for_4 (void) {
 
 static void mb_Word_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24731,7 +24731,7 @@ static void mb_Table_2E_pred_2 (void) {
 
 static void mb_Table_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Table_2E_NUM();
@@ -24742,7 +24742,7 @@ static void mb_Table_2E_for_2 (void) {
 
 static void mb_Table_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24753,11 +24753,11 @@ static void mb_Table_2E_for_4 (void) {
 
 static void mb_Table_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24781,7 +24781,7 @@ static void mb_Field_2E_pred_2 (void) {
 
 static void mb_Field_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Field_2E_NUM();
@@ -24792,7 +24792,7 @@ static void mb_Field_2E_for_2 (void) {
 
 static void mb_Field_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24803,11 +24803,11 @@ static void mb_Field_2E_for_4 (void) {
 
 static void mb_Field_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24831,7 +24831,7 @@ static void mb_External_2E_pred_2 (void) {
 
 static void mb_External_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_External_2E_NUM();
@@ -24842,7 +24842,7 @@ static void mb_External_2E_for_2 (void) {
 
 static void mb_External_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24853,11 +24853,11 @@ static void mb_External_2E_for_4 (void) {
 
 static void mb_External_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -24881,7 +24881,7 @@ static void mb_Variable_2E_pred_2 (void) {
 
 static void mb_Variable_2E_for_2 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     mw_Variable_2E_NUM();
@@ -24892,7 +24892,7 @@ static void mb_Variable_2E_for_2 (void) {
 
 static void mb_Variable_2E_for_4 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
@@ -24903,11 +24903,11 @@ static void mb_Variable_2E_for_4 (void) {
 
 static void mb_Variable_2E_for_3 (void) {
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_prim_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
@@ -25014,7 +25014,7 @@ static void mb_init_prims_21__18 (void) {
 static void mb_init_prims_21__19 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TVar();
         push_value(d2);
     }
@@ -25039,7 +25039,7 @@ static void mb_init_prims_21__22 (void) {
 static void mb_init_prims_21__23 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_T__3E_();
         push_value(d2);
     }
@@ -25060,7 +25060,7 @@ static void mb_init_prims_21__25 (void) {
 static void mb_init_prims_21__26 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TYPE_BOOL();
         mw_T_2A_();
         push_value(d2);
@@ -25205,7 +25205,7 @@ static void mb_ptr_40__40__1 (void) {
 
 static void mb_with_raw_ptr_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25280,10 +25280,10 @@ static void mb_posix_open_21__1 (void) {
 
 static void mb_dip2_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -25294,7 +25294,7 @@ static void mb_dip2_2 (void) {
 
 static void mb_dip2_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25340,7 +25340,7 @@ static void mb_nip_1 (void) {
 static void mb_dup3_1 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup2();
         push_value(d2);
     }
@@ -25354,7 +25354,7 @@ static void mb_dup3_2 (void) {
 
 static void mb_dip_3F__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25364,7 +25364,7 @@ static void mb_dip_3F__2 (void) {
 
 static void mb_dip_27__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25374,12 +25374,12 @@ static void mb_dip_27__2 (void) {
 
 static void mb_dip3_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
             do_run();
@@ -25392,10 +25392,10 @@ static void mb_dip3_2 (void) {
 
 static void mb_dip3_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -25406,7 +25406,7 @@ static void mb_dip3_3 (void) {
 
 static void mb_dip3_4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25416,7 +25416,7 @@ static void mb_dip3_4 (void) {
 
 static void mb_sip_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25426,10 +25426,10 @@ static void mb_sip_2 (void) {
 
 static void mb_sip2_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -25440,7 +25440,7 @@ static void mb_sip2_2 (void) {
 
 static void mb_sip2_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25460,7 +25460,7 @@ static void mb_rot4l_1 (void) {
 
 static void mb_or_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_true();
     decref(var_f);
@@ -25468,7 +25468,7 @@ static void mb_or_2 (void) {
 
 static void mb_or_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25478,7 +25478,7 @@ static void mb_or_3 (void) {
 
 static void mb_and_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25488,7 +25488,7 @@ static void mb_and_2 (void) {
 
 static void mb_and_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_false();
     decref(var_f);
@@ -25496,7 +25496,7 @@ static void mb_and_3 (void) {
 
 static void mb_repeat_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_dup();
     push_i64(0LL);
@@ -25506,10 +25506,10 @@ static void mb_repeat_2 (void) {
 
 static void mb_repeat_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -25521,7 +25521,7 @@ static void mb_repeat_3 (void) {
 
 static void mb_repeat_4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25531,11 +25531,11 @@ static void mb_repeat_4 (void) {
 
 static void mb_count_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -25547,7 +25547,7 @@ static void mb_count_2 (void) {
 
 static void mb_count_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25557,11 +25557,11 @@ static void mb_count_3 (void) {
 
 static void mb_countdown_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -25573,7 +25573,7 @@ static void mb_countdown_2 (void) {
 
 static void mb_countdown_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25656,7 +25656,7 @@ static void mb_in_range_1 (void) {
     do_drop();
     mw_over();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw__3E__3D_();
         push_value(d2);
     }
@@ -25724,7 +25724,7 @@ static void mb_unpack5_1 (void) {
 
 static void mb_modify_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw__40_();
     push_value(var_f);
@@ -25741,7 +25741,7 @@ static void mb_file_21__1 (void) {
 static void mb_str_write_21__1 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_Str__3E_Ptr();
         push_value(d2);
     }
@@ -25835,7 +25835,7 @@ static void mb_print_char_21__1 (void) {
 
 static void mb_build_str_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -25925,9 +25925,9 @@ static void mb_str_buf_int_21__7 (void) {
 
 static void mb_with_open_file_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     mw_drop();
     push_value(var_g);
@@ -25939,13 +25939,13 @@ static void mb_with_open_file_21__2 (void) {
 
 static void mb_with_open_file_21__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     mw_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_Int__3E_File();
         push_value(var_f);
         incref(var_f);
@@ -25960,9 +25960,9 @@ static void mb_with_open_file_21__3 (void) {
 
 static void mb_with_open_file_21__4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     mw_Int__3E_File();
     push_value(var_f);
@@ -25974,7 +25974,7 @@ static void mb_with_open_file_21__4 (void) {
 
 static void mb_read_file_21__2 (void) {
     do_pack_uncons();
-    value_t var_fp = pop_value();
+    VAL var_fp = pop_value();
     do_drop();
     mw_dup();
     push_i64(0LL);
@@ -25984,11 +25984,11 @@ static void mb_read_file_21__2 (void) {
 
 static void mb_read_file_21__3 (void) {
     do_pack_uncons();
-    value_t var_fp = pop_value();
+    VAL var_fp = pop_value();
     do_drop();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw__2B_();
         mw_dup();
         push_value(d2);
@@ -26013,7 +26013,7 @@ static void mb_read_file_21__3 (void) {
 
 static void mb_read_file_21__4 (void) {
     do_pack_uncons();
-    value_t var_fp = pop_value();
+    VAL var_fp = pop_value();
     do_drop();
     mw__2B_();
     mw_dup();
@@ -26022,7 +26022,7 @@ static void mb_read_file_21__4 (void) {
 
 static void mb_read_file_21__5 (void) {
     do_pack_uncons();
-    value_t var_fp = pop_value();
+    VAL var_fp = pop_value();
     do_drop();
     push_value(var_fp);
     incref(var_fp);
@@ -26031,7 +26031,7 @@ static void mb_read_file_21__5 (void) {
 
 static void mb_read_file_21__6 (void) {
     do_pack_uncons();
-    value_t var_fp = pop_value();
+    VAL var_fp = pop_value();
     do_drop();
     push_ptr("io error while reading file\0\0\0\0");
     mw_panic_21_();
@@ -26040,7 +26040,7 @@ static void mb_read_file_21__6 (void) {
 
 static void mb_read_file_21__7 (void) {
     do_pack_uncons();
-    value_t var_fp = pop_value();
+    VAL var_fp = pop_value();
     do_drop();
     mw_id();
     decref(var_fp);
@@ -26081,7 +26081,7 @@ static void mb_close_file_21__2 (void) {
 
 static void mb_with_raw_path_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26150,7 +26150,7 @@ static void mb_str_length_1 (void) {
 static void mb_str_length_2 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_1_2B_();
         push_value(d2);
     }
@@ -26189,7 +26189,7 @@ static void mb_str_concat_3 (void) {
 
 static void mb_for_5 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26199,10 +26199,10 @@ static void mb_for_5 (void) {
 
 static void mb_for_7 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -26216,7 +26216,7 @@ static void mb_for_7 (void) {
 
 static void mb_for_8 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26226,7 +26226,7 @@ static void mb_for_8 (void) {
 
 static void mb_for_10 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26236,7 +26236,7 @@ static void mb_for_10 (void) {
 
 static void mb_for_11 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26246,7 +26246,7 @@ static void mb_for_11 (void) {
 
 static void mb_for_12 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26307,7 +26307,7 @@ static void mb_str_buf_reverse_21__2 (void) {
     mw_dup2();
     mw_str_buf_swap_u8_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_1_2B_();
         push_value(d2);
     }
@@ -26336,7 +26336,7 @@ static void mb_str_buf_swap_u8_21__2 (void) {
 
 static void mb_str_for_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_str_is_empty_3F_();
     mw_not();
@@ -26345,12 +26345,12 @@ static void mb_str_for_2 (void) {
 
 static void mb_str_for_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_dup();
     mw_str_tail();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_str_head();
         push_value(var_f);
         incref(var_f);
@@ -26362,7 +26362,7 @@ static void mb_str_for_3 (void) {
 
 static void mb_str_for_4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_str_head();
     push_value(var_f);
@@ -26373,7 +26373,7 @@ static void mb_str_for_4 (void) {
 
 static void mb_str_transduce_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     while(1) {
         mw_str_is_empty_3F_();
@@ -26396,7 +26396,7 @@ static void mb_str_transduce_2 (void) {
 
 static void mb_str_transduce_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_str_is_empty_3F_();
     mw_not();
@@ -26405,7 +26405,7 @@ static void mb_str_transduce_3 (void) {
 
 static void mb_str_transduce_4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_u64(0);
     push_value(var_f);
@@ -26422,7 +26422,7 @@ static void mb_str_transduce_4 (void) {
 
 static void mb_str_transduce_5 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_str_head();
     push_value(var_f);
@@ -26528,7 +26528,7 @@ static void mb_str_bytes_2 (void) {
     do_drop();
     mw_1_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_u64(0);
         push_fnptr(&mb_str_bytes_4);
         do_pack_cons();
@@ -26612,7 +26612,7 @@ static void mb_len_2B__5 (void) {
 static void mb_cons_2B__6 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_cons_2B__2B_();
         push_value(d2);
     }
@@ -26633,7 +26633,7 @@ static void mb_rebalance_2B__2 (void) {
     do_drop();
     mw_drop2();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_split_half_left();
         push_value(d2);
     }
@@ -26644,7 +26644,7 @@ static void mb_rebalance_2B__2 (void) {
 static void mb_rebalance_2B__4 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(3LL);
         mw__2A_();
         push_value(d2);
@@ -26653,7 +26653,7 @@ static void mb_rebalance_2B__4 (void) {
     if (pop_u64()) {
         mw_split_half_right();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_cat_2B__();
             push_value(d3);
         }
@@ -26678,7 +26678,7 @@ static void mb_rebalance_2B__6 (void) {
     do_drop();
     mw_split_half_right();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_cat_2B__();
         push_value(d2);
     }
@@ -26844,7 +26844,7 @@ static void mb_reverse_2B__5 (void) {
 
 static void mb_map_5 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26854,7 +26854,7 @@ static void mb_map_5 (void) {
 
 static void mb_map_6 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26864,10 +26864,10 @@ static void mb_map_6 (void) {
 
 static void mb_map_8 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -26878,7 +26878,7 @@ static void mb_map_8 (void) {
 
 static void mb_map_9 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26888,10 +26888,10 @@ static void mb_map_9 (void) {
 
 static void mb_map_10 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -26902,7 +26902,7 @@ static void mb_map_10 (void) {
 
 static void mb_map_11 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26912,10 +26912,10 @@ static void mb_map_11 (void) {
 
 static void mb_map_12 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -26926,7 +26926,7 @@ static void mb_map_12 (void) {
 
 static void mb_map_13 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26936,10 +26936,10 @@ static void mb_map_13 (void) {
 
 static void mb_map_15 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         mw_map_2B_();
@@ -26947,7 +26947,7 @@ static void mb_map_15 (void) {
     }
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         mw_map_2B_();
@@ -26959,7 +26959,7 @@ static void mb_map_15 (void) {
 
 static void mb_map_16 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26969,7 +26969,7 @@ static void mb_map_16 (void) {
 
 static void mb_map_17 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26979,7 +26979,7 @@ static void mb_map_17 (void) {
 
 static void mb_map_18 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26989,7 +26989,7 @@ static void mb_map_18 (void) {
 
 static void mb_map_19 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -26999,7 +26999,7 @@ static void mb_map_19 (void) {
 
 static void mb_map_2B__4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27009,7 +27009,7 @@ static void mb_map_2B__4 (void) {
 
 static void mb_map_2B__5 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27019,10 +27019,10 @@ static void mb_map_2B__5 (void) {
 
 static void mb_map_2B__7 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -27033,7 +27033,7 @@ static void mb_map_2B__7 (void) {
 
 static void mb_map_2B__8 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27043,10 +27043,10 @@ static void mb_map_2B__8 (void) {
 
 static void mb_map_2B__9 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -27057,7 +27057,7 @@ static void mb_map_2B__9 (void) {
 
 static void mb_map_2B__10 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27067,10 +27067,10 @@ static void mb_map_2B__10 (void) {
 
 static void mb_map_2B__11 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -27081,7 +27081,7 @@ static void mb_map_2B__11 (void) {
 
 static void mb_map_2B__12 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27091,10 +27091,10 @@ static void mb_map_2B__12 (void) {
 
 static void mb_map_2B__14 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         mw_map_2B_();
@@ -27102,7 +27102,7 @@ static void mb_map_2B__14 (void) {
     }
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         mw_map_2B_();
@@ -27114,7 +27114,7 @@ static void mb_map_2B__14 (void) {
 
 static void mb_map_2B__15 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27124,7 +27124,7 @@ static void mb_map_2B__15 (void) {
 
 static void mb_map_2B__16 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27134,7 +27134,7 @@ static void mb_map_2B__16 (void) {
 
 static void mb_map_2B__17 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27144,7 +27144,7 @@ static void mb_map_2B__17 (void) {
 
 static void mb_map_2B__18 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27154,7 +27154,7 @@ static void mb_map_2B__18 (void) {
 
 static void mb_for_2B__4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27164,10 +27164,10 @@ static void mb_for_2B__4 (void) {
 
 static void mb_for_2B__6 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -27181,7 +27181,7 @@ static void mb_for_2B__6 (void) {
 
 static void mb_for_2B__7 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27191,7 +27191,7 @@ static void mb_for_2B__7 (void) {
 
 static void mb_for_2B__9 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27201,7 +27201,7 @@ static void mb_for_2B__9 (void) {
 
 static void mb_for_2B__10 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27211,7 +27211,7 @@ static void mb_for_2B__10 (void) {
 
 static void mb_for_2B__11 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27221,7 +27221,7 @@ static void mb_for_2B__11 (void) {
 
 static void mb_reverse_for_5 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27231,7 +27231,7 @@ static void mb_reverse_for_5 (void) {
 
 static void mb_reverse_for_7 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27241,7 +27241,7 @@ static void mb_reverse_for_7 (void) {
 
 static void mb_reverse_for_8 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27251,7 +27251,7 @@ static void mb_reverse_for_8 (void) {
 
 static void mb_reverse_for_10 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27261,7 +27261,7 @@ static void mb_reverse_for_10 (void) {
 
 static void mb_reverse_for_11 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27271,7 +27271,7 @@ static void mb_reverse_for_11 (void) {
 
 static void mb_reverse_for_12 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27281,7 +27281,7 @@ static void mb_reverse_for_12 (void) {
 
 static void mb_reverse_for_2B__4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27291,7 +27291,7 @@ static void mb_reverse_for_2B__4 (void) {
 
 static void mb_reverse_for_2B__6 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27301,7 +27301,7 @@ static void mb_reverse_for_2B__6 (void) {
 
 static void mb_reverse_for_2B__7 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27311,7 +27311,7 @@ static void mb_reverse_for_2B__7 (void) {
 
 static void mb_reverse_for_2B__9 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27321,7 +27321,7 @@ static void mb_reverse_for_2B__9 (void) {
 
 static void mb_reverse_for_2B__10 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27331,7 +27331,7 @@ static void mb_reverse_for_2B__10 (void) {
 
 static void mb_reverse_for_2B__11 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27341,7 +27341,7 @@ static void mb_reverse_for_2B__11 (void) {
 
 static void mb_reduce_2 (void) {
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     push_value(var_g);
     incref(var_g);
@@ -27351,7 +27351,7 @@ static void mb_reduce_2 (void) {
 
 static void mb_reduce_3 (void) {
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     push_value(var_g);
     incref(var_g);
@@ -27361,7 +27361,7 @@ static void mb_reduce_3 (void) {
 
 static void mb_reduce_2B__6 (void) {
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     push_value(var_g);
     incref(var_g);
@@ -27371,7 +27371,7 @@ static void mb_reduce_2B__6 (void) {
 
 static void mb_reduce_2B__7 (void) {
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     push_value(var_g);
     incref(var_g);
@@ -27381,7 +27381,7 @@ static void mb_reduce_2B__7 (void) {
 
 static void mb_reduce_2B__8 (void) {
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     push_value(var_g);
     incref(var_g);
@@ -27391,7 +27391,7 @@ static void mb_reduce_2B__8 (void) {
 
 static void mb_filter_4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27401,7 +27401,7 @@ static void mb_filter_4 (void) {
 
 static void mb_filter_2B__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27411,7 +27411,7 @@ static void mb_filter_2B__3 (void) {
 
 static void mb_filter_2B__4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27421,7 +27421,7 @@ static void mb_filter_2B__4 (void) {
 
 static void mb_filter_2B__5 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27431,7 +27431,7 @@ static void mb_filter_2B__5 (void) {
 
 static void mb_filter_2B__6 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27441,7 +27441,7 @@ static void mb_filter_2B__6 (void) {
 
 static void mb_filter_2B__8 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27451,7 +27451,7 @@ static void mb_filter_2B__8 (void) {
 
 static void mb_filter_2B__9 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_u64(0);
     push_value(var_f);
@@ -27466,7 +27466,7 @@ static void mb_filter_2B__9 (void) {
 
 static void mb_filter_2B__12 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_nip();
     push_value(var_f);
@@ -27477,7 +27477,7 @@ static void mb_filter_2B__12 (void) {
 
 static void mb_filter_2B__10 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27487,7 +27487,7 @@ static void mb_filter_2B__10 (void) {
 
 static void mb_filter_2B__11 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27497,7 +27497,7 @@ static void mb_filter_2B__11 (void) {
 
 static void mb_filter_2B__13 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27507,7 +27507,7 @@ static void mb_filter_2B__13 (void) {
 
 static void mb_find_4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27517,7 +27517,7 @@ static void mb_find_4 (void) {
 
 static void mb_find_2B__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27527,7 +27527,7 @@ static void mb_find_2B__3 (void) {
 
 static void mb_find_2B__4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27537,7 +27537,7 @@ static void mb_find_2B__4 (void) {
 
 static void mb_find_2B__7 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27547,7 +27547,7 @@ static void mb_find_2B__7 (void) {
 
 static void mb_find_2B__9 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27557,7 +27557,7 @@ static void mb_find_2B__9 (void) {
 
 static void mb_find_2B__10 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_drop();
     mw_SOME();
@@ -27566,7 +27566,7 @@ static void mb_find_2B__10 (void) {
 
 static void mb_find_2B__11 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_nip();
     push_value(var_f);
@@ -27577,7 +27577,7 @@ static void mb_find_2B__11 (void) {
 
 static void mb_find_2B__12 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27587,7 +27587,7 @@ static void mb_find_2B__12 (void) {
 
 static void mb_find_3F__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27597,7 +27597,7 @@ static void mb_find_3F__2 (void) {
 
 static void mb_find_3F__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27607,7 +27607,7 @@ static void mb_find_3F__3 (void) {
 
 static void mb_reverse_find_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27617,7 +27617,7 @@ static void mb_reverse_find_2 (void) {
 
 static void mb_reverse_find_3F__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27627,7 +27627,7 @@ static void mb_reverse_find_3F__2 (void) {
 
 static void mb_reverse_find_3F__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27637,7 +27637,7 @@ static void mb_reverse_find_3F__3 (void) {
 
 static void mb_any_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27647,7 +27647,7 @@ static void mb_any_2 (void) {
 
 static void mb_any_3F__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27657,7 +27657,7 @@ static void mb_any_3F__2 (void) {
 
 static void mb_all_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27668,7 +27668,7 @@ static void mb_all_2 (void) {
 
 static void mb_all_3F__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27679,7 +27679,7 @@ static void mb_all_3F__2 (void) {
 
 static void mb_collect_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27689,11 +27689,11 @@ static void mb_collect_2 (void) {
 
 static void mb_collect_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_snoc();
         push_value(d2);
     }
@@ -27702,7 +27702,7 @@ static void mb_collect_3 (void) {
 
 static void mb_collect_4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_snoc();
     decref(var_f);
@@ -27710,9 +27710,9 @@ static void mb_collect_4 (void) {
 
 static void mb_while_some_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     mw_is_some_3F_();
     decref(var_f);
@@ -27721,9 +27721,9 @@ static void mb_while_some_2 (void) {
 
 static void mb_while_some_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     mw_unwrap();
     push_value(var_g);
@@ -27738,12 +27738,12 @@ static void mb_while_some_3 (void) {
 
 static void mb_collect_while_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -27756,12 +27756,12 @@ static void mb_collect_while_2 (void) {
 
 static void mb_collect_while_4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_g);
         incref(var_g);
         do_run();
@@ -27775,9 +27775,9 @@ static void mb_collect_while_4 (void) {
 
 static void mb_collect_while_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -27788,9 +27788,9 @@ static void mb_collect_while_3 (void) {
 
 static void mb_collect_while_5 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     push_value(var_g);
     incref(var_g);
@@ -27801,7 +27801,7 @@ static void mb_collect_while_5 (void) {
 
 static void mb_maybe_filter_4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_SOME();
     decref(var_f);
@@ -27809,7 +27809,7 @@ static void mb_maybe_filter_4 (void) {
 
 static void mb_maybe_filter_5 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_drop();
     mw_NONE();
@@ -27837,7 +27837,7 @@ static void mb_char_bytes_2 (void) {
         mw__3E__3E_();
         mw_Int__3E_U8();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_i64(255LL);
             mw__26_();
             mw_Int__3E_U8();
@@ -27854,7 +27854,7 @@ static void mb_char_bytes_2 (void) {
             mw__3E__3E_();
             mw_Int__3E_U8();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_dup();
                 push_i64(8LL);
                 mw__3E__3E_();
@@ -27862,7 +27862,7 @@ static void mb_char_bytes_2 (void) {
                 mw__26_();
                 mw_Int__3E_U8();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_i64(255LL);
                     mw__26_();
                     mw_Int__3E_U8();
@@ -27878,7 +27878,7 @@ static void mb_char_bytes_2 (void) {
             mw__3E__3E_();
             mw_Int__3E_U8();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_dup();
                 push_i64(16LL);
                 mw__3E__3E_();
@@ -27886,7 +27886,7 @@ static void mb_char_bytes_2 (void) {
                 mw__26_();
                 mw_Int__3E_U8();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_dup();
                     push_i64(8LL);
                     mw__3E__3E_();
@@ -27894,7 +27894,7 @@ static void mb_char_bytes_2 (void) {
                     mw__26_();
                     mw_Int__3E_U8();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         push_i64(255LL);
                         mw__26_();
                         mw_Int__3E_U8();
@@ -27918,7 +27918,7 @@ static void mb_char_bytes_3 (void) {
     mw__3E__3E_();
     mw_Int__3E_U8();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(255LL);
         mw__26_();
         mw_Int__3E_U8();
@@ -27938,7 +27938,7 @@ static void mb_char_bytes_5 (void) {
         mw__3E__3E_();
         mw_Int__3E_U8();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_dup();
             push_i64(8LL);
             mw__3E__3E_();
@@ -27946,7 +27946,7 @@ static void mb_char_bytes_5 (void) {
             mw__26_();
             mw_Int__3E_U8();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 push_i64(255LL);
                 mw__26_();
                 mw_Int__3E_U8();
@@ -27962,7 +27962,7 @@ static void mb_char_bytes_5 (void) {
         mw__3E__3E_();
         mw_Int__3E_U8();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_dup();
             push_i64(16LL);
             mw__3E__3E_();
@@ -27970,7 +27970,7 @@ static void mb_char_bytes_5 (void) {
             mw__26_();
             mw_Int__3E_U8();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_dup();
                 push_i64(8LL);
                 mw__3E__3E_();
@@ -27978,7 +27978,7 @@ static void mb_char_bytes_5 (void) {
                 mw__26_();
                 mw_Int__3E_U8();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     push_i64(255LL);
                     mw__26_();
                     mw_Int__3E_U8();
@@ -28007,7 +28007,7 @@ static void mb_char_bytes_6 (void) {
     mw__3E__3E_();
     mw_Int__3E_U8();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         push_i64(8LL);
         mw__3E__3E_();
@@ -28015,7 +28015,7 @@ static void mb_char_bytes_6 (void) {
         mw__26_();
         mw_Int__3E_U8();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_i64(255LL);
             mw__26_();
             mw_Int__3E_U8();
@@ -28034,7 +28034,7 @@ static void mb_char_bytes_9 (void) {
     mw__3E__3E_();
     mw_Int__3E_U8();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         push_i64(16LL);
         mw__3E__3E_();
@@ -28042,7 +28042,7 @@ static void mb_char_bytes_9 (void) {
         mw__26_();
         mw_Int__3E_U8();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_dup();
             push_i64(8LL);
             mw__3E__3E_();
@@ -28050,7 +28050,7 @@ static void mb_char_bytes_9 (void) {
             mw__26_();
             mw_Int__3E_U8();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 push_i64(255LL);
                 mw__26_();
                 mw_Int__3E_U8();
@@ -28072,7 +28072,7 @@ static void mb_char_bytes_7 (void) {
     mw__26_();
     mw_Int__3E_U8();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(255LL);
         mw__26_();
         mw_Int__3E_U8();
@@ -28096,7 +28096,7 @@ static void mb_char_bytes_10 (void) {
     mw__26_();
     mw_Int__3E_U8();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         push_i64(8LL);
         mw__3E__3E_();
@@ -28104,7 +28104,7 @@ static void mb_char_bytes_10 (void) {
         mw__26_();
         mw_Int__3E_U8();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_i64(255LL);
             mw__26_();
             mw_Int__3E_U8();
@@ -28123,7 +28123,7 @@ static void mb_char_bytes_11 (void) {
     mw__26_();
     mw_Int__3E_U8();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(255LL);
         mw__26_();
         mw_Int__3E_U8();
@@ -28206,7 +28206,7 @@ static void mb_char_codepoint_3_1 (void) {
     push_i64(2LL);
     mw__3E__3E_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(15LL);
         mw__26_();
         push_i64(12LL);
@@ -28291,14 +28291,14 @@ static void mb_char_codepoint_4_1 (void) {
     push_i64(10LL);
     mw__3E__3E_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         push_i64(16128LL);
         mw__26_();
         push_i64(4LL);
         mw__3C__3C_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             push_i64(7LL);
             mw__26_();
             push_i64(18LL);
@@ -28317,7 +28317,7 @@ static void mb_char_codepoint_4_2 (void) {
     push_i64(4LL);
     mw__3C__3C_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(7LL);
         mw__26_();
         push_i64(18LL);
@@ -28351,7 +28351,7 @@ static void mb_char_21__precise_2 (void) {
     do_drop();
     mw_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_Char__3E_Int();
         mw_Int__3E_U8();
         push_value(d2);
@@ -28367,7 +28367,7 @@ static void mb_char_21__precise_4 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_Char__3E_Int();
             mw_Int__3E_U16();
             push_value(d3);
@@ -28380,7 +28380,7 @@ static void mb_char_21__precise_4 (void) {
         if (pop_u64()) {
             mw_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_Char__3E_Int();
                 mw_dup();
                 push_i64(65535LL);
@@ -28390,7 +28390,7 @@ static void mb_char_21__precise_4 (void) {
             }
             mw_dup();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_u16_21_();
                 push_i64(16LL);
                 mw__3E__3E_();
@@ -28403,7 +28403,7 @@ static void mb_char_21__precise_4 (void) {
         } else {
             mw_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_Char__3E_Int();
                 mw_Int__3E_U32();
                 push_value(d4);
@@ -28423,7 +28423,7 @@ static void mb_char_21__precise_5 (void) {
     do_drop();
     mw_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_Char__3E_Int();
         mw_Int__3E_U16();
         push_value(d2);
@@ -28439,7 +28439,7 @@ static void mb_char_21__precise_7 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_Char__3E_Int();
             mw_dup();
             push_i64(65535LL);
@@ -28449,7 +28449,7 @@ static void mb_char_21__precise_7 (void) {
         }
         mw_dup();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_u16_21_();
             push_i64(16LL);
             mw__3E__3E_();
@@ -28462,7 +28462,7 @@ static void mb_char_21__precise_7 (void) {
     } else {
         mw_drop();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_Char__3E_Int();
             mw_Int__3E_U32();
             push_value(d3);
@@ -28481,7 +28481,7 @@ static void mb_char_21__precise_8 (void) {
     do_drop();
     mw_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_Char__3E_Int();
         mw_dup();
         push_i64(65535LL);
@@ -28491,7 +28491,7 @@ static void mb_char_21__precise_8 (void) {
     }
     mw_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_u16_21_();
         push_i64(16LL);
         mw__3E__3E_();
@@ -28507,7 +28507,7 @@ static void mb_char_21__precise_11 (void) {
     do_drop();
     mw_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_Char__3E_Int();
         mw_Int__3E_U32();
         push_value(d2);
@@ -28552,7 +28552,7 @@ static void mb_char_3F__2B__2B__1 (void) {
 static void mb_is_whitespace_3F__1 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(4295101952LL);
         push_value(d2);
     }
@@ -28586,7 +28586,7 @@ static void mb_is_sign_3F__1 (void) {
 static void mb_is_string_end_3F__1 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(17179870209LL);
         push_value(d2);
     }
@@ -29946,7 +29946,7 @@ static void mb_str_buf_is_dec_int_3F__3 (void) {
 static void mb_str_buf_is_dec_int_3F__4 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_1_2B_();
         push_value(d2);
     }
@@ -29995,7 +29995,7 @@ static void mb_str_buf_is_hex_int_3F__3 (void) {
             mw_nip();
             if (!pop_u64()) break;
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_1_2B_();
                 push_value(d4);
             }
@@ -30033,7 +30033,7 @@ static void mb_str_buf_is_hex_int_3F__4 (void) {
         mw_nip();
         if (!pop_u64()) break;
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_1_2B_();
             push_value(d3);
         }
@@ -30068,7 +30068,7 @@ static void mb_str_buf_is_hex_int_3F__5 (void) {
 static void mb_str_buf_is_hex_int_3F__6 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_1_2B_();
         push_value(d2);
     }
@@ -30158,7 +30158,7 @@ static void mb_str_buf_dec_int_3F__8 (void) {
     mw_str_buf_char_40_();
     mw_Char__3E_Int();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(10LL);
         mw__2A_();
         push_value(d2);
@@ -30233,7 +30233,7 @@ static void mb_str_buf_hex_int_3F__8 (void) {
     do_drop();
     mw_str_buf_char_40_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(16LL);
         mw__2A_();
         push_value(d2);
@@ -30569,7 +30569,7 @@ static void mb_hash_2 (void) {
     mw_dup();
     mw_str_tail();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_str_head();
         mw_Char__3E_Int();
         push_i64(5LL);
@@ -30603,7 +30603,7 @@ static void mb_name_keep_going_3F__1 (void) {
 static void mb_name_keep_going_3F__2 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_over();
         push_value(d2);
     }
@@ -30868,7 +30868,7 @@ static void mb_char_hexdigits_next_3 (void) {
     do_drop();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_snoc();
         push_value(d2);
     }
@@ -30961,7 +30961,7 @@ static void mb_token_num_args_3 (void) {
 static void mb_token_num_args_5 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_i64(0LL);
         push_value(d2);
     }
@@ -30970,7 +30970,7 @@ static void mb_token_num_args_5 (void) {
         mw_not();
         if (!pop_u64()) break;
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_1_2B_();
             push_value(d3);
         }
@@ -31000,7 +31000,7 @@ static void mb_token_num_args_7 (void) {
 static void mb_token_num_args_8 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_1_2B_();
         push_value(d2);
     }
@@ -31354,7 +31354,7 @@ static void mb_sig_count_types_2 (void) {
     mw_sig_token_is_type_3F_();
     if (pop_u64()) {
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_1_2B_();
             push_value(d3);
         }
@@ -31367,7 +31367,7 @@ static void mb_sig_count_types_2 (void) {
 static void mb_sig_count_types_3 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_1_2B_();
         push_value(d2);
     }
@@ -31587,7 +31587,7 @@ static void mb__2E__1 (void) {
         mw__21_();
         mw_codegen_flush_21_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_CODEGEN_BUF_SIZE();
             mw_swap();
             mw_ptr_2B_();
@@ -31634,7 +31634,7 @@ static void mb__2E__3 (void) {
     mw__21_();
     mw_codegen_flush_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_CODEGEN_BUF_SIZE();
         mw_swap();
         mw_ptr_2B_();
@@ -31765,7 +31765,7 @@ static void mb_c99_tag_21__2 (void) {
         push_ptr("LL);\0\0\0\0");
         mw__3B_();
     } else {
-        push_ptr("    value_t car = pop_value();\0\0\0\0");
+        push_ptr("    VAL car = pop_value();\0\0\0\0");
         mw__3B_();
         mw_tag_num_inputs_3F_();
         mw_1_();
@@ -31773,12 +31773,12 @@ static void mb_c99_tag_21__2 (void) {
         push_fnptr(&mb_c99_tag_21__5);
         do_pack_cons();
         mw_repeat();
-        push_ptr("    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = \0\0\0\0");
+        push_ptr("    VAL tag = mku64(\0\0\0\0");
         mw__2E_();
         mw_tag_value();
         mw__40_();
         mw__2E_n();
-        push_ptr("LL } };\0\0\0\0");
+        push_ptr("LL);\0\0\0\0");
         mw__3B_();
         push_ptr("    car = mkcell(car, tag);\0\0\0\0");
         mw__3B_();
@@ -31800,7 +31800,7 @@ static void mb_c99_tag_21__3 (void) {
 
 static void mb_c99_tag_21__4 (void) {
     do_drop();
-    push_ptr("    value_t car = pop_value();\0\0\0\0");
+    push_ptr("    VAL car = pop_value();\0\0\0\0");
     mw__3B_();
     mw_tag_num_inputs_3F_();
     mw_1_();
@@ -31808,12 +31808,12 @@ static void mb_c99_tag_21__4 (void) {
     push_fnptr(&mb_c99_tag_21__5);
     do_pack_cons();
     mw_repeat();
-    push_ptr("    value_t tag = { .tag = VT_U64, .payload = { .vp_i64 = \0\0\0\0");
+    push_ptr("    VAL tag = mku64(\0\0\0\0");
     mw__2E_();
     mw_tag_value();
     mw__40_();
     mw__2E_n();
-    push_ptr("LL } };\0\0\0\0");
+    push_ptr("LL);\0\0\0\0");
     mw__3B_();
     push_ptr("    car = mkcell(car, tag);\0\0\0\0");
     mw__3B_();
@@ -31837,7 +31837,7 @@ static void mb_tag_num_inputs_3F__4 (void) {
     do_drop();
     mw_token_next();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_1_2B_();
         push_value(d2);
     }
@@ -32007,7 +32007,7 @@ static void mb_c99_external_21__19 (void) {
 
 static void mb_c99_nest_2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_1_2B_();
     decref(var_f);
@@ -32015,7 +32015,7 @@ static void mb_c99_nest_2 (void) {
 
 static void mb_c99_nest_3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_1_();
     decref(var_f);
@@ -32242,7 +32242,7 @@ static void mb_c99_prim_21__4 (void) {
 
 static void mb_c99_prim_21__5 (void) {
     do_drop();
-    push_ptr("value_t d\0\0\0\0");
+    push_ptr("VAL d\0\0\0\0");
     mw__2E_();
     mw_c99_depth();
     mw__40_();
@@ -32461,7 +32461,7 @@ static void mb_c99_lambda_21__3 (void) {
 
 static void mb_c99_lambda_21__4 (void) {
     do_drop();
-    push_ptr("value_t \0\0\0\0");
+    push_ptr("VAL \0\0\0\0");
     mw__2E_();
     mw__2E_param();
     push_ptr(" = pop_value();\0\0\0\0");
@@ -32852,7 +32852,7 @@ static void mb_c99_unpack_ctx_21__2 (void) {
 
 static void mb_c99_unpack_ctx_21__3 (void) {
     do_drop();
-    push_ptr("value_t \0\0\0\0");
+    push_ptr("VAL \0\0\0\0");
     mw__2E_();
     mw__2E_var();
     push_ptr(" = pop_value();\0\0\0\0");
@@ -33558,7 +33558,7 @@ static void mb_type_var_unify_21__1 (void) {
 static void mb_type_var_unify_21__2 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TVar();
         push_value(d2);
     }
@@ -33580,7 +33580,7 @@ static void mb_type_prim_unify_21__1 (void) {
 static void mb_type_prim_unify_21__2 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TPrim();
         push_value(d2);
     }
@@ -33602,7 +33602,7 @@ static void mb_type_data_unify_21__1 (void) {
 static void mb_type_data_unify_21__2 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TData();
         push_value(d2);
     }
@@ -33624,7 +33624,7 @@ static void mb_type_table_unify_21__1 (void) {
 static void mb_type_table_unify_21__2 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TTable();
         push_value(d2);
     }
@@ -33641,7 +33641,7 @@ static void mb_type_unify_pair_21__1 (void) {
     do_drop();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_type_unify_21_();
         mw_swap();
         push_value(d2);
@@ -33934,7 +33934,7 @@ static void mb_type_var_freshen_2 (void) {
     mw_TMeta();
     mw_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_rotr();
         mw_subst_new_21_();
         push_value(d2);
@@ -33969,7 +33969,7 @@ static void mb_type_rigidify_sig_21__2 (void) {
 
 static void mb_meta_expand_or_update_21__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -34179,7 +34179,7 @@ static void mb_order3_3 (void) {
     do_drop();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_order2();
         push_value(d2);
     }
@@ -34218,7 +34218,7 @@ static void mb_bag_unsnoc_1 (void) {
 static void mb_bag_insert_2B__2B__1 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_bag_first_2B_();
         push_value(d2);
     }
@@ -34228,7 +34228,7 @@ static void mb_bag_insert_2B__2B__1 (void) {
 static void mb_bag_insert_2B__2B__3 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_bag_split_half_right();
         push_value(d2);
     }
@@ -34244,7 +34244,7 @@ static void mb_bag_insert_2B__2B__3 (void) {
         mw_drop();
         mw_swap();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_bag_insert_2B_();
             push_value(d3);
         }
@@ -34274,7 +34274,7 @@ static void mb_bag_insert_2B__2B__6 (void) {
     mw_drop();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_bag_insert_2B_();
         push_value(d2);
     }
@@ -34289,7 +34289,7 @@ static void mb_bag_insert_2B__2B__7 (void) {
 static void mb_bag_has_2B__1 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_bag_first_2B_();
         push_value(d2);
     }
@@ -34299,7 +34299,7 @@ static void mb_bag_has_2B__1 (void) {
 static void mb_bag_has_2B__3 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_bag_split_half_right();
         push_value(d2);
     }
@@ -34322,7 +34322,7 @@ static void mb_bag_has_2B__3 (void) {
             do_drop();
             mw_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_nip();
                 push_value(d4);
             }
@@ -34365,7 +34365,7 @@ static void mb_bag_cat_unsafe_1 (void) {
 static void mb_bag_lookup_key_2B__1 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_bag_first_2B_();
         mw_unpack2();
         push_value(d2);
@@ -34382,7 +34382,7 @@ static void mb_bag_lookup_key_2B__1 (void) {
 static void mb_bag_lookup_key_2B__5 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_bag_split_half_right();
         mw_dup();
         mw_bag_first_2B_();
@@ -34396,7 +34396,7 @@ static void mb_bag_lookup_key_2B__5 (void) {
             mw_drop2();
             mw_SOME();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_drop2();
                 push_value(d4);
             }
@@ -34404,7 +34404,7 @@ static void mb_bag_lookup_key_2B__5 (void) {
         case 1LL:
             do_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_drop2();
                 mw_nip();
                 push_value(d4);
@@ -34414,7 +34414,7 @@ static void mb_bag_lookup_key_2B__5 (void) {
         case 2LL:
             do_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_drop3();
                 push_value(d4);
             }
@@ -34468,7 +34468,7 @@ static void mb_bag_lookup_key_2B__12 (void) {
 static void mb_bag_replace_key_2B__2B__1 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_bag_first_2B_();
         push_value(d2);
     }
@@ -34485,7 +34485,7 @@ static void mb_bag_replace_key_2B__2B__1 (void) {
 static void mb_bag_replace_key_2B__2B__5 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_bag_split_half_right();
         mw_dup();
         mw_bag_first_2B_();
@@ -34501,7 +34501,7 @@ static void mb_bag_replace_key_2B__2B__5 (void) {
         mw_nip();
         mw_swap();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_bag_replace_key_2B_();
             push_value(d3);
         }
@@ -34544,7 +34544,7 @@ static void mb_bag_replace_key_2B__2B__8 (void) {
     mw_nip();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_bag_replace_key_2B_();
         push_value(d2);
     }
@@ -34593,7 +34593,7 @@ static void mb_delay4_1 (void) {
 
 static void mb_force_or2_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -34634,7 +34634,7 @@ static void mb_elab_type_sig_21__5 (void) {
     mw_token_next();
     mw_elab_type_stack_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         push_value(d2);
     }
@@ -34643,7 +34643,7 @@ static void mb_elab_type_sig_21__5 (void) {
 static void mb_elab_type_sig_21__7 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_T0();
         mw_rotr();
         push_value(d2);
@@ -34677,7 +34677,7 @@ static void mb_elab_type_sig_21__11 (void) {
     do_drop();
     mw_rot4r();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         push_u64(0);
         push_fnptr(&mb_elab_type_sig_21__13);
@@ -34707,7 +34707,7 @@ static void mb_elab_type_sig_params_21__1 (void) {
     mw_dup();
     mw_token_next();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_L0();
         mw_rotr();
         mw_token_args();
@@ -34744,7 +34744,7 @@ static void mb_elab_type_sig_params_21__3 (void) {
     mw_drop();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_snoc();
         push_value(d2);
     }
@@ -34759,7 +34759,7 @@ static void mb_elab_type_stack_21__1 (void) {
     do_drop();
     mw_elab_stack_var_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TVar();
         push_value(d2);
     }
@@ -34768,7 +34768,7 @@ static void mb_elab_type_stack_21__1 (void) {
 static void mb_elab_type_stack_21__3 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TYPE_UNIT();
         push_value(d2);
     }
@@ -34794,13 +34794,13 @@ static void mb_elab_type_stack_rest_21__2 (void) {
     do_drop();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_elab_type_atom_21_();
         push_value(d2);
     }
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         mw_TTensor();
         push_value(d2);
@@ -34822,7 +34822,7 @@ static void mb_elab_type_atom_21__1 (void) {
     do_drop();
     mw_elab_type_var_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TVar();
         push_value(d2);
     }
@@ -34850,7 +34850,7 @@ static void mb_elab_type_atom_21__3 (void) {
                     push_ptr("Expected type, got unknown token.\0\0\0\0");
                     mw_emit_error_21_();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_TYPE_ERROR();
                         push_value(d6);
                     }
@@ -34889,7 +34889,7 @@ static void mb_elab_type_atom_21__5 (void) {
                 push_ptr("Expected type, got unknown token.\0\0\0\0");
                 mw_emit_error_21_();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_TYPE_ERROR();
                     push_value(d5);
                 }
@@ -34918,7 +34918,7 @@ static void mb_elab_type_atom_21__7 (void) {
             push_ptr("Expected type, got unknown token.\0\0\0\0");
             mw_emit_error_21_();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_TYPE_ERROR();
                 push_value(d4);
             }
@@ -34942,7 +34942,7 @@ static void mb_elab_type_atom_21__9 (void) {
         push_ptr("Expected type, got unknown token.\0\0\0\0");
         mw_emit_error_21_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_TYPE_ERROR();
             push_value(d3);
         }
@@ -34961,7 +34961,7 @@ static void mb_elab_type_atom_21__11 (void) {
     push_ptr("Expected type, got unknown token.\0\0\0\0");
     mw_emit_error_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_TYPE_ERROR();
         push_value(d2);
     }
@@ -35102,7 +35102,7 @@ static void mb_elab_implicit_var_21__4 (void) {
 static void mb_elab_implicit_var_21__6 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_var_new_implicit_21_();
         push_value(d2);
     }
@@ -35159,7 +35159,7 @@ static void mb_elab_type_args_21__1 (void) {
 static void mb_elab_type_args_21__2 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_tuck();
         push_value(d2);
     }
@@ -35172,13 +35172,13 @@ static void mb_elab_type_args_21__2 (void) {
         mw_token_succ();
         mw_swap();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_elab_type_arg_21_();
             push_value(d3);
         }
         mw_swap();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_swap();
             mw_TApp();
             push_value(d3);
@@ -35186,7 +35186,7 @@ static void mb_elab_type_args_21__2 (void) {
     }
     mw_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         push_value(d2);
     }
@@ -35213,13 +35213,13 @@ static void mb_elab_type_args_21__5 (void) {
     mw_token_succ();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_elab_type_arg_21_();
         push_value(d2);
     }
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_swap();
         mw_TApp();
         push_value(d2);
@@ -35249,7 +35249,7 @@ static void mb_elab_simple_type_arg_21__1 (void) {
 
 static void mb_ab_save_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -35259,7 +35259,7 @@ static void mb_ab_save_21__2 (void) {
 
 static void mb_ab_build_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_Arrow_2E_alloc_21_();
     mw_ab_home();
@@ -35307,7 +35307,7 @@ static void mb_ab_build_21__2 (void) {
 
 static void mb_ab_build_21__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_1_2B_();
     decref(var_f);
@@ -35315,7 +35315,7 @@ static void mb_ab_build_21__3 (void) {
 
 static void mb_ab_build_hom_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_rotr();
     decref(var_f);
@@ -35323,7 +35323,7 @@ static void mb_ab_build_hom_21__2 (void) {
 
 static void mb_ab_build_hom_21__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -35343,7 +35343,7 @@ static void mb_ab_unify_type_21__1 (void) {
 
 static void mb_ab_build_word_arrow_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_elab_word_ctx_sig_weak_21_();
     decref(var_f);
@@ -35351,7 +35351,7 @@ static void mb_ab_build_word_arrow_21__2 (void) {
 
 static void mb_ab_build_word_arrow_21__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -35361,7 +35361,7 @@ static void mb_ab_build_word_arrow_21__3 (void) {
 
 static void mb_ab_build_word_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_u64(0);
     push_value(var_f);
@@ -35376,10 +35376,10 @@ static void mb_ab_build_word_21__2 (void) {
 
 static void mb_ab_build_word_21__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -35390,7 +35390,7 @@ static void mb_ab_build_word_21__3 (void) {
 
 static void mb_ab_build_word_21__4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -35513,7 +35513,7 @@ static void mb_ab_prim_21__2 (void) {
 
 static void mb_ab_block_at_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -35523,7 +35523,7 @@ static void mb_ab_block_at_21__2 (void) {
 
 static void mb_ab_block_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -35533,7 +35533,7 @@ static void mb_ab_block_21__2 (void) {
 
 static void mb_ab_dip_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -35543,9 +35543,9 @@ static void mb_ab_dip_21__2 (void) {
 
 static void mb_ab_if_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -35556,9 +35556,9 @@ static void mb_ab_if_21__2 (void) {
 
 static void mb_ab_if_21__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     push_value(var_g);
     incref(var_g);
@@ -35569,9 +35569,9 @@ static void mb_ab_if_21__3 (void) {
 
 static void mb_ab_while_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -35582,9 +35582,9 @@ static void mb_ab_while_21__2 (void) {
 
 static void mb_ab_while_21__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_pack_uncons();
-    value_t var_g = pop_value();
+    VAL var_g = pop_value();
     do_drop();
     push_value(var_g);
     incref(var_g);
@@ -35595,7 +35595,7 @@ static void mb_ab_while_21__3 (void) {
 
 static void mb_ab_lambda_21__2 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_ab_ctx();
     mw__40_();
@@ -35614,15 +35614,15 @@ static void mb_ab_lambda_21__2 (void) {
 
 static void mb_ab_lambda_21__3 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_swap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_Param__3E_Var();
         mw_dup();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_ctx_new_21_();
             push_value(d3);
         }
@@ -35632,7 +35632,7 @@ static void mb_ab_lambda_21__3 (void) {
     mw__40_();
     mw_elab_expand_tensor_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_rotl();
         mw_var_type();
         mw__40_();
@@ -35645,12 +35645,12 @@ static void mb_ab_lambda_21__3 (void) {
 
 static void mb_ab_lambda_21__4 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_Param__3E_Var();
     mw_dup();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_ctx_new_21_();
         push_value(d2);
     }
@@ -35659,7 +35659,7 @@ static void mb_ab_lambda_21__4 (void) {
 
 static void mb_ab_lambda_21__5 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_ctx_new_21_();
     decref(var_f);
@@ -35667,7 +35667,7 @@ static void mb_ab_lambda_21__5 (void) {
 
 static void mb_ab_lambda_21__6 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     mw_rotl();
     mw_var_type();
@@ -35677,10 +35677,10 @@ static void mb_ab_lambda_21__6 (void) {
 
 static void mb_ab_lambda_21__7 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
         do_run();
@@ -35696,7 +35696,7 @@ static void mb_ab_lambda_21__7 (void) {
 
 static void mb_ab_lambda_21__8 (void) {
     do_pack_uncons();
-    value_t var_f = pop_value();
+    VAL var_f = pop_value();
     do_drop();
     push_value(var_f);
     incref(var_f);
@@ -35859,7 +35859,7 @@ static void mb_elab_lambda_params_21__5 (void) {
     } else {
         mw_token_succ();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_type_expand();
             mw_type_is_morphism_3F_();
             push_value(d3);
@@ -35881,7 +35881,7 @@ static void mb_elab_lambda_params_21__5 (void) {
         }
     }
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         mw_lambda_params();
         mw__40_();
@@ -35892,7 +35892,7 @@ static void mb_elab_lambda_params_21__5 (void) {
     do_pack_cons();
     mw_sip();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         mw_lambda_inner_ctx();
         mw__40_();
@@ -35917,7 +35917,7 @@ static void mb_elab_lambda_params_21__7 (void) {
     do_drop();
     mw_token_succ();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_type_expand();
         mw_type_is_morphism_3F_();
         push_value(d2);
@@ -36004,7 +36004,7 @@ static void mb_elab_lambda_body_21__3 (void) {
     mw_lambda_mid();
     mw__40_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         mw_lambda_inner_ctx();
         mw__40_();
@@ -36046,14 +36046,14 @@ static void mb_token_is_lambda_param_3F__2 (void) {
         mw_dup();
         mw_true();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_token_succ();
             mw_sig_token_is_type_var_3F_();
             push_value(d3);
         }
         mw__26__26_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_token_succ();
             mw_token_is_rsquare_3F_();
             push_value(d3);
@@ -36070,14 +36070,14 @@ static void mb_token_is_lambda_param_3F__3 (void) {
     mw_dup();
     mw_true();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_token_succ();
         mw_sig_token_is_type_var_3F_();
         push_value(d2);
     }
     mw__26__26_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_token_succ();
         mw_token_is_rsquare_3F_();
         push_value(d2);
@@ -36139,7 +36139,7 @@ static void mb_elab_match_case_21__4 (void) {
 static void mb_elab_case_pattern_21__1 (void) {
     do_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_PATTERN_UNDERSCORE();
         mw_over();
         mw_case_pattern();
@@ -36147,7 +36147,7 @@ static void mb_elab_case_pattern_21__1 (void) {
         push_value(d2);
     }
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         mw_case_match();
         mw__40_();
@@ -36160,7 +36160,7 @@ static void mb_elab_case_pattern_21__1 (void) {
     }
     mw_elab_type_unify_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_over();
         mw_case_mid();
         mw__21_();
@@ -36196,7 +36196,7 @@ static void mb_elab_case_pattern_21__5 (void) {
                 mw_type_freshen_sig();
                 mw_rotr();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_elab_expand_morphism_21_();
                     push_u64(0);
                     push_fnptr(&mb_elab_case_pattern_21__11);
@@ -36205,7 +36205,7 @@ static void mb_elab_case_pattern_21__5 (void) {
                     mw_elab_type_unify_21_();
                     mw_nip();
                     {
-                        value_t d6 = pop_value();
+                        VAL d6 = pop_value();
                         mw_over();
                         mw_case_mid();
                         mw__21_();
@@ -36215,7 +36215,7 @@ static void mb_elab_case_pattern_21__5 (void) {
                 }
                 mw_swap();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_over();
                     mw_case_subst();
                     mw__21_();
@@ -36292,7 +36292,7 @@ static void mb_elab_case_pattern_21__6 (void) {
             mw_type_freshen_sig();
             mw_rotr();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_elab_expand_morphism_21_();
                 push_u64(0);
                 push_fnptr(&mb_elab_case_pattern_21__11);
@@ -36301,7 +36301,7 @@ static void mb_elab_case_pattern_21__6 (void) {
                 mw_elab_type_unify_21_();
                 mw_nip();
                 {
-                    value_t d5 = pop_value();
+                    VAL d5 = pop_value();
                     mw_over();
                     mw_case_mid();
                     mw__21_();
@@ -36311,7 +36311,7 @@ static void mb_elab_case_pattern_21__6 (void) {
             }
             mw_swap();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_over();
                 mw_case_subst();
                 mw__21_();
@@ -36364,7 +36364,7 @@ static void mb_elab_case_pattern_21__10 (void) {
     mw_elab_type_unify_21_();
     mw_nip();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_over();
         mw_case_mid();
         mw__21_();
@@ -36397,7 +36397,7 @@ static void mb_elab_case_body_21__1 (void) {
     mw_case_mid();
     mw__40_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         mw_case_match();
         mw__40_();
@@ -36567,7 +36567,7 @@ static void mb_elab_data_21__1 (void) {
     mw_token_args_2B_();
     mw_uncons();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_elab_data_header_21_();
         push_value(d2);
     }
@@ -36695,7 +36695,7 @@ static void mb_elab_data_tag_21__11 (void) {
     mw_drop();
     mw_T1();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_T0();
         mw_rotl();
         mw_tag_sig();
@@ -36722,7 +36722,7 @@ static void mb_elab_data_tag_21__11 (void) {
     }
     mw_T__3E_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_type_elab_ctx();
         push_value(d2);
     }
@@ -36810,7 +36810,7 @@ static void mb_token_def_args_3 (void) {
     mw_drop();
     mw_L1_2B_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_NONE();
         push_value(d2);
     }
@@ -36823,7 +36823,7 @@ static void mb_token_def_args_5 (void) {
     if (pop_u64()) {
         mw_cons_2B_();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_NONE();
             push_value(d3);
         }
@@ -36831,7 +36831,7 @@ static void mb_token_def_args_5 (void) {
         mw_List__3E_List_2B_();
         mw_unwrap();
         {
-            value_t d3 = pop_value();
+            VAL d3 = pop_value();
             mw_SOME();
             push_value(d3);
         }
@@ -36847,7 +36847,7 @@ static void mb_token_def_args_6 (void) {
     do_drop();
     mw_cons_2B_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_NONE();
         push_value(d2);
     }
@@ -36858,7 +36858,7 @@ static void mb_token_def_args_8 (void) {
     mw_List__3E_List_2B_();
     mw_unwrap();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_SOME();
         push_value(d2);
     }
@@ -36964,7 +36964,7 @@ static void mb_elab_def_21__10 (void) {
             mw_elab_type_sig_21_();
             mw_drop();
             {
-                value_t d4 = pop_value();
+                VAL d4 = pop_value();
                 mw_type_elab_ctx();
                 push_value(d4);
             }
@@ -37056,13 +37056,13 @@ static void mb_elab_def_params_21__1 (void) {
     }
     mw_elab_expand_tensor_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_dup();
         push_value(d2);
     }
     mw_elab_expand_morphism_21_();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_drop2();
         push_value(d2);
     }
@@ -37078,7 +37078,7 @@ static void mb_elab_def_params_21__1 (void) {
     mw_PARAM();
     mw_rotr();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_cons();
         push_value(d2);
     }
@@ -37219,7 +37219,7 @@ static void mb_elab_def_external_21__4 (void) {
     mw_elab_type_sig_21_();
     mw_drop();
     {
-        value_t d2 = pop_value();
+        VAL d2 = pop_value();
         mw_type_elab_ctx();
         push_value(d2);
     }
@@ -37441,11 +37441,11 @@ static void mb_table_new_21__6 (void) {
 
 static void mb_table_new_21__9 (void) {
     do_pack_uncons();
-    value_t var_t = pop_value();
+    VAL var_t = pop_value();
     do_pack_uncons();
-    value_t var_w = pop_value();
+    VAL var_w = pop_value();
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     push_value(var_x);
     incref(var_x);
@@ -37471,11 +37471,11 @@ static void mb_table_new_21__9 (void) {
 
 static void mb_table_new_21__10 (void) {
     do_pack_uncons();
-    value_t var_t = pop_value();
+    VAL var_t = pop_value();
     do_pack_uncons();
-    value_t var_w = pop_value();
+    VAL var_w = pop_value();
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     push_i64(1LL);
     mw_ab_int_21_();
@@ -37513,11 +37513,11 @@ static void mb_table_new_21__10 (void) {
 
 static void mb_table_new_21__11 (void) {
     do_pack_uncons();
-    value_t var_t = pop_value();
+    VAL var_t = pop_value();
     do_pack_uncons();
-    value_t var_w = pop_value();
+    VAL var_w = pop_value();
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_PRIM_CORE_DUP();
     mw_ab_prim_21_();
@@ -37537,11 +37537,11 @@ static void mb_table_new_21__11 (void) {
 
 static void mb_table_new_21__12 (void) {
     do_pack_uncons();
-    value_t var_t = pop_value();
+    VAL var_t = pop_value();
     do_pack_uncons();
-    value_t var_w = pop_value();
+    VAL var_w = pop_value();
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_PRIM_CORE_DUP();
     mw_ab_prim_21_();
@@ -37569,11 +37569,11 @@ static void mb_table_new_21__12 (void) {
 
 static void mb_table_new_21__13 (void) {
     do_pack_uncons();
-    value_t var_t = pop_value();
+    VAL var_t = pop_value();
     do_pack_uncons();
-    value_t var_w = pop_value();
+    VAL var_w = pop_value();
     do_pack_uncons();
-    value_t var_x = pop_value();
+    VAL var_x = pop_value();
     do_drop();
     mw_PRIM_UNSAFE_CAST();
     mw_ab_prim_21_();
@@ -37729,8 +37729,8 @@ static void mb_def_prim_21__1 (void) {
 }
 
 
-static value_t* fieldptr_name_str (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_name_str (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37739,12 +37739,12 @@ static value_t* fieldptr_name_str (usize i) {
 
 static void mw_name_str (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_name_str(index);
+    VAL *v = fieldptr_name_str(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_name_def (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_name_def (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37753,12 +37753,12 @@ static value_t* fieldptr_name_def (usize i) {
 
 static void mw_name_def (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_name_def(index);
+    VAL *v = fieldptr_name_def(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_name_mangled (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_name_mangled (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37767,12 +37767,12 @@ static value_t* fieldptr_name_mangled (usize i) {
 
 static void mw_name_mangled (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_name_mangled(index);
+    VAL *v = fieldptr_name_mangled(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_module_name (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_module_name (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37781,12 +37781,12 @@ static value_t* fieldptr_module_name (usize i) {
 
 static void mw_module_name (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_module_name(index);
+    VAL *v = fieldptr_module_name(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_module_path (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_module_path (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37795,12 +37795,12 @@ static value_t* fieldptr_module_path (usize i) {
 
 static void mw_module_path (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_module_path(index);
+    VAL *v = fieldptr_module_path(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_module_start (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_module_start (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37809,12 +37809,12 @@ static value_t* fieldptr_module_start (usize i) {
 
 static void mw_module_start (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_module_start(index);
+    VAL *v = fieldptr_module_start(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_module_end (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_module_end (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37823,12 +37823,12 @@ static value_t* fieldptr_module_end (usize i) {
 
 static void mw_module_end (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_module_end(index);
+    VAL *v = fieldptr_module_end(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_module_imports (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_module_imports (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37837,12 +37837,12 @@ static value_t* fieldptr_module_imports (usize i) {
 
 static void mw_module_imports (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_module_imports(index);
+    VAL *v = fieldptr_module_imports(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_token_value (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_token_value (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37851,12 +37851,12 @@ static value_t* fieldptr_token_value (usize i) {
 
 static void mw_token_value (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_token_value(index);
+    VAL *v = fieldptr_token_value(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_token_module (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_token_module (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37865,12 +37865,12 @@ static value_t* fieldptr_token_module (usize i) {
 
 static void mw_token_module (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_token_module(index);
+    VAL *v = fieldptr_token_module(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_token_row (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_token_row (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37879,12 +37879,12 @@ static value_t* fieldptr_token_row (usize i) {
 
 static void mw_token_row (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_token_row(index);
+    VAL *v = fieldptr_token_row(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_token_col (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_token_col (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37893,12 +37893,12 @@ static value_t* fieldptr_token_col (usize i) {
 
 static void mw_token_col (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_token_col(index);
+    VAL *v = fieldptr_token_col(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_buffer_size (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_buffer_size (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37907,12 +37907,12 @@ static value_t* fieldptr_buffer_size (usize i) {
 
 static void mw_buffer_size (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_buffer_size(index);
+    VAL *v = fieldptr_buffer_size(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_buffer_name (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_buffer_name (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37921,12 +37921,12 @@ static value_t* fieldptr_buffer_name (usize i) {
 
 static void mw_buffer_name (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_buffer_name(index);
+    VAL *v = fieldptr_buffer_name(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_meta_type (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_meta_type (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37935,12 +37935,12 @@ static value_t* fieldptr_meta_type (usize i) {
 
 static void mw_meta_type (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_meta_type(index);
+    VAL *v = fieldptr_meta_type(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_data_header (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_data_header (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37949,12 +37949,12 @@ static value_t* fieldptr_data_header (usize i) {
 
 static void mw_data_header (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_data_header(index);
+    VAL *v = fieldptr_data_header(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_data_name (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_data_name (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37963,12 +37963,12 @@ static value_t* fieldptr_data_name (usize i) {
 
 static void mw_data_name (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_data_name(index);
+    VAL *v = fieldptr_data_name(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_data_arity (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_data_arity (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37977,12 +37977,12 @@ static value_t* fieldptr_data_arity (usize i) {
 
 static void mw_data_arity (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_data_arity(index);
+    VAL *v = fieldptr_data_arity(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_data_tags (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_data_tags (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -37991,12 +37991,12 @@ static value_t* fieldptr_data_tags (usize i) {
 
 static void mw_data_tags (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_data_tags(index);
+    VAL *v = fieldptr_data_tags(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_tag_data (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_tag_data (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38005,12 +38005,12 @@ static value_t* fieldptr_tag_data (usize i) {
 
 static void mw_tag_data (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_tag_data(index);
+    VAL *v = fieldptr_tag_data(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_tag_name (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_tag_name (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38019,12 +38019,12 @@ static value_t* fieldptr_tag_name (usize i) {
 
 static void mw_tag_name (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_tag_name(index);
+    VAL *v = fieldptr_tag_name(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_tag_value (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_tag_value (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38033,12 +38033,12 @@ static value_t* fieldptr_tag_value (usize i) {
 
 static void mw_tag_value (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_tag_value(index);
+    VAL *v = fieldptr_tag_value(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_tag_sig (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_tag_sig (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38047,12 +38047,12 @@ static value_t* fieldptr_tag_sig (usize i) {
 
 static void mw_tag_sig (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_tag_sig(index);
+    VAL *v = fieldptr_tag_sig(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_tag_ctx_type (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_tag_ctx_type (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38061,12 +38061,12 @@ static value_t* fieldptr_tag_ctx_type (usize i) {
 
 static void mw_tag_ctx_type (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_tag_ctx_type(index);
+    VAL *v = fieldptr_tag_ctx_type(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_arrow_token_start (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_arrow_token_start (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38075,12 +38075,12 @@ static value_t* fieldptr_arrow_token_start (usize i) {
 
 static void mw_arrow_token_start (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_arrow_token_start(index);
+    VAL *v = fieldptr_arrow_token_start(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_arrow_token_end (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_arrow_token_end (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38089,12 +38089,12 @@ static value_t* fieldptr_arrow_token_end (usize i) {
 
 static void mw_arrow_token_end (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_arrow_token_end(index);
+    VAL *v = fieldptr_arrow_token_end(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_arrow_home (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_arrow_home (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38103,12 +38103,12 @@ static value_t* fieldptr_arrow_home (usize i) {
 
 static void mw_arrow_home (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_arrow_home(index);
+    VAL *v = fieldptr_arrow_home(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_arrow_homeidx (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_arrow_homeidx (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38117,12 +38117,12 @@ static value_t* fieldptr_arrow_homeidx (usize i) {
 
 static void mw_arrow_homeidx (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_arrow_homeidx(index);
+    VAL *v = fieldptr_arrow_homeidx(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_arrow_ctx (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_arrow_ctx (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38131,12 +38131,12 @@ static value_t* fieldptr_arrow_ctx (usize i) {
 
 static void mw_arrow_ctx (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_arrow_ctx(index);
+    VAL *v = fieldptr_arrow_ctx(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_arrow_dom (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_arrow_dom (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38145,12 +38145,12 @@ static value_t* fieldptr_arrow_dom (usize i) {
 
 static void mw_arrow_dom (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_arrow_dom(index);
+    VAL *v = fieldptr_arrow_dom(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_arrow_cod (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_arrow_cod (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38159,12 +38159,12 @@ static value_t* fieldptr_arrow_cod (usize i) {
 
 static void mw_arrow_cod (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_arrow_cod(index);
+    VAL *v = fieldptr_arrow_cod(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_arrow_atoms (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_arrow_atoms (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38173,12 +38173,12 @@ static value_t* fieldptr_arrow_atoms (usize i) {
 
 static void mw_arrow_atoms (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_arrow_atoms(index);
+    VAL *v = fieldptr_arrow_atoms(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_atom_token (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_atom_token (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38187,12 +38187,12 @@ static value_t* fieldptr_atom_token (usize i) {
 
 static void mw_atom_token (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_atom_token(index);
+    VAL *v = fieldptr_atom_token(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_atom_ctx (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_atom_ctx (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38201,12 +38201,12 @@ static value_t* fieldptr_atom_ctx (usize i) {
 
 static void mw_atom_ctx (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_atom_ctx(index);
+    VAL *v = fieldptr_atom_ctx(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_atom_op (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_atom_op (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38215,12 +38215,12 @@ static value_t* fieldptr_atom_op (usize i) {
 
 static void mw_atom_op (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_atom_op(index);
+    VAL *v = fieldptr_atom_op(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_atom_args (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_atom_args (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38229,12 +38229,12 @@ static value_t* fieldptr_atom_args (usize i) {
 
 static void mw_atom_args (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_atom_args(index);
+    VAL *v = fieldptr_atom_args(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_atom_dom (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_atom_dom (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38243,12 +38243,12 @@ static value_t* fieldptr_atom_dom (usize i) {
 
 static void mw_atom_dom (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_atom_dom(index);
+    VAL *v = fieldptr_atom_dom(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_atom_cod (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_atom_cod (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38257,12 +38257,12 @@ static value_t* fieldptr_atom_cod (usize i) {
 
 static void mw_atom_cod (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_atom_cod(index);
+    VAL *v = fieldptr_atom_cod(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_atom_subst (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_atom_subst (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38271,12 +38271,12 @@ static value_t* fieldptr_atom_subst (usize i) {
 
 static void mw_atom_subst (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_atom_subst(index);
+    VAL *v = fieldptr_atom_subst(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_lambda_token (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_lambda_token (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38285,12 +38285,12 @@ static value_t* fieldptr_lambda_token (usize i) {
 
 static void mw_lambda_token (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_lambda_token(index);
+    VAL *v = fieldptr_lambda_token(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_lambda_outer_ctx (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_lambda_outer_ctx (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38299,12 +38299,12 @@ static value_t* fieldptr_lambda_outer_ctx (usize i) {
 
 static void mw_lambda_outer_ctx (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_lambda_outer_ctx(index);
+    VAL *v = fieldptr_lambda_outer_ctx(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_lambda_inner_ctx (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_lambda_inner_ctx (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38313,12 +38313,12 @@ static value_t* fieldptr_lambda_inner_ctx (usize i) {
 
 static void mw_lambda_inner_ctx (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_lambda_inner_ctx(index);
+    VAL *v = fieldptr_lambda_inner_ctx(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_lambda_dom (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_lambda_dom (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38327,12 +38327,12 @@ static value_t* fieldptr_lambda_dom (usize i) {
 
 static void mw_lambda_dom (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_lambda_dom(index);
+    VAL *v = fieldptr_lambda_dom(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_lambda_mid (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_lambda_mid (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38341,12 +38341,12 @@ static value_t* fieldptr_lambda_mid (usize i) {
 
 static void mw_lambda_mid (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_lambda_mid(index);
+    VAL *v = fieldptr_lambda_mid(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_lambda_cod (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_lambda_cod (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38355,12 +38355,12 @@ static value_t* fieldptr_lambda_cod (usize i) {
 
 static void mw_lambda_cod (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_lambda_cod(index);
+    VAL *v = fieldptr_lambda_cod(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_lambda_params (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_lambda_params (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38369,12 +38369,12 @@ static value_t* fieldptr_lambda_params (usize i) {
 
 static void mw_lambda_params (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_lambda_params(index);
+    VAL *v = fieldptr_lambda_params(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_lambda_body (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_lambda_body (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38383,12 +38383,12 @@ static value_t* fieldptr_lambda_body (usize i) {
 
 static void mw_lambda_body (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_lambda_body(index);
+    VAL *v = fieldptr_lambda_body(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_block_ctx (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_block_ctx (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38397,12 +38397,12 @@ static value_t* fieldptr_block_ctx (usize i) {
 
 static void mw_block_ctx (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_block_ctx(index);
+    VAL *v = fieldptr_block_ctx(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_block_token (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_block_token (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38411,12 +38411,12 @@ static value_t* fieldptr_block_token (usize i) {
 
 static void mw_block_token (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_block_token(index);
+    VAL *v = fieldptr_block_token(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_block_dom (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_block_dom (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38425,12 +38425,12 @@ static value_t* fieldptr_block_dom (usize i) {
 
 static void mw_block_dom (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_block_dom(index);
+    VAL *v = fieldptr_block_dom(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_block_cod (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_block_cod (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38439,12 +38439,12 @@ static value_t* fieldptr_block_cod (usize i) {
 
 static void mw_block_cod (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_block_cod(index);
+    VAL *v = fieldptr_block_cod(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_block_arrow (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_block_arrow (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38453,12 +38453,12 @@ static value_t* fieldptr_block_arrow (usize i) {
 
 static void mw_block_arrow (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_block_arrow(index);
+    VAL *v = fieldptr_block_arrow(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_match_ctx (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_match_ctx (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38467,12 +38467,12 @@ static value_t* fieldptr_match_ctx (usize i) {
 
 static void mw_match_ctx (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_match_ctx(index);
+    VAL *v = fieldptr_match_ctx(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_match_dom (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_match_dom (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38481,12 +38481,12 @@ static value_t* fieldptr_match_dom (usize i) {
 
 static void mw_match_dom (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_match_dom(index);
+    VAL *v = fieldptr_match_dom(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_match_cod (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_match_cod (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38495,12 +38495,12 @@ static value_t* fieldptr_match_cod (usize i) {
 
 static void mw_match_cod (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_match_cod(index);
+    VAL *v = fieldptr_match_cod(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_match_token (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_match_token (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38509,12 +38509,12 @@ static value_t* fieldptr_match_token (usize i) {
 
 static void mw_match_token (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_match_token(index);
+    VAL *v = fieldptr_match_token(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_match_body (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_match_body (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38523,12 +38523,12 @@ static value_t* fieldptr_match_body (usize i) {
 
 static void mw_match_body (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_match_body(index);
+    VAL *v = fieldptr_match_body(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_match_cases (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_match_cases (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38537,12 +38537,12 @@ static value_t* fieldptr_match_cases (usize i) {
 
 static void mw_match_cases (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_match_cases(index);
+    VAL *v = fieldptr_match_cases(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_case_match (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_case_match (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38551,12 +38551,12 @@ static value_t* fieldptr_case_match (usize i) {
 
 static void mw_case_match (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_case_match(index);
+    VAL *v = fieldptr_case_match(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_case_token (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_case_token (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38565,12 +38565,12 @@ static value_t* fieldptr_case_token (usize i) {
 
 static void mw_case_token (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_case_token(index);
+    VAL *v = fieldptr_case_token(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_case_pattern (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_case_pattern (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38579,12 +38579,12 @@ static value_t* fieldptr_case_pattern (usize i) {
 
 static void mw_case_pattern (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_case_pattern(index);
+    VAL *v = fieldptr_case_pattern(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_case_subst (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_case_subst (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38593,12 +38593,12 @@ static value_t* fieldptr_case_subst (usize i) {
 
 static void mw_case_subst (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_case_subst(index);
+    VAL *v = fieldptr_case_subst(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_case_mid (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_case_mid (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38607,12 +38607,12 @@ static value_t* fieldptr_case_mid (usize i) {
 
 static void mw_case_mid (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_case_mid(index);
+    VAL *v = fieldptr_case_mid(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_case_body (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_case_body (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38621,12 +38621,12 @@ static value_t* fieldptr_case_body (usize i) {
 
 static void mw_case_body (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_case_body(index);
+    VAL *v = fieldptr_case_body(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_var_is_implicit (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_var_is_implicit (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38635,12 +38635,12 @@ static value_t* fieldptr_var_is_implicit (usize i) {
 
 static void mw_var_is_implicit (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_var_is_implicit(index);
+    VAL *v = fieldptr_var_is_implicit(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_var_name (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_var_name (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38649,12 +38649,12 @@ static value_t* fieldptr_var_name (usize i) {
 
 static void mw_var_name (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_var_name(index);
+    VAL *v = fieldptr_var_name(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_var_type (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_var_type (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38663,12 +38663,12 @@ static value_t* fieldptr_var_type (usize i) {
 
 static void mw_var_type (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_var_type(index);
+    VAL *v = fieldptr_var_type(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_var_auto_run (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_var_auto_run (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38677,12 +38677,12 @@ static value_t* fieldptr_var_auto_run (usize i) {
 
 static void mw_var_auto_run (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_var_auto_run(index);
+    VAL *v = fieldptr_var_auto_run(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_word_name (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_word_name (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38691,12 +38691,12 @@ static value_t* fieldptr_word_name (usize i) {
 
 static void mw_word_name (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_word_name(index);
+    VAL *v = fieldptr_word_name(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_word_head (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_word_head (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38705,12 +38705,12 @@ static value_t* fieldptr_word_head (usize i) {
 
 static void mw_word_head (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_word_head(index);
+    VAL *v = fieldptr_word_head(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_word_sig (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_word_sig (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38719,12 +38719,12 @@ static value_t* fieldptr_word_sig (usize i) {
 
 static void mw_word_sig (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_word_sig(index);
+    VAL *v = fieldptr_word_sig(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_word_body (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_word_body (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38733,12 +38733,12 @@ static value_t* fieldptr_word_body (usize i) {
 
 static void mw_word_body (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_word_body(index);
+    VAL *v = fieldptr_word_body(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_word_ctx_type (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_word_ctx_type (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38747,12 +38747,12 @@ static value_t* fieldptr_word_ctx_type (usize i) {
 
 static void mw_word_ctx_type (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_word_ctx_type(index);
+    VAL *v = fieldptr_word_ctx_type(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_word_params (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_word_params (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38761,12 +38761,12 @@ static value_t* fieldptr_word_params (usize i) {
 
 static void mw_word_params (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_word_params(index);
+    VAL *v = fieldptr_word_params(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_word_arrow (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_word_arrow (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38775,12 +38775,12 @@ static value_t* fieldptr_word_arrow (usize i) {
 
 static void mw_word_arrow (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_word_arrow(index);
+    VAL *v = fieldptr_word_arrow(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_table_name (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_table_name (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38789,12 +38789,12 @@ static value_t* fieldptr_table_name (usize i) {
 
 static void mw_table_name (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_table_name(index);
+    VAL *v = fieldptr_table_name(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_table_num_buffer (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_table_num_buffer (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38803,12 +38803,12 @@ static value_t* fieldptr_table_num_buffer (usize i) {
 
 static void mw_table_num_buffer (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_table_num_buffer(index);
+    VAL *v = fieldptr_table_num_buffer(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_table_max_count (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_table_max_count (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38817,12 +38817,12 @@ static value_t* fieldptr_table_max_count (usize i) {
 
 static void mw_table_max_count (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_table_max_count(index);
+    VAL *v = fieldptr_table_max_count(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_field_name (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_field_name (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38831,12 +38831,12 @@ static value_t* fieldptr_field_name (usize i) {
 
 static void mw_field_name (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_field_name(index);
+    VAL *v = fieldptr_field_name(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_field_index_type (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_field_index_type (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38845,12 +38845,12 @@ static value_t* fieldptr_field_index_type (usize i) {
 
 static void mw_field_index_type (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_field_index_type(index);
+    VAL *v = fieldptr_field_index_type(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_field_value_type (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_field_value_type (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38859,12 +38859,12 @@ static value_t* fieldptr_field_value_type (usize i) {
 
 static void mw_field_value_type (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_field_value_type(index);
+    VAL *v = fieldptr_field_value_type(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_external_name (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_external_name (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38873,12 +38873,12 @@ static value_t* fieldptr_external_name (usize i) {
 
 static void mw_external_name (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_external_name(index);
+    VAL *v = fieldptr_external_name(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_external_sig (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_external_sig (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38887,12 +38887,12 @@ static value_t* fieldptr_external_sig (usize i) {
 
 static void mw_external_sig (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_external_sig(index);
+    VAL *v = fieldptr_external_sig(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_external_ctx_type (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_external_ctx_type (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38901,12 +38901,12 @@ static value_t* fieldptr_external_ctx_type (usize i) {
 
 static void mw_external_ctx_type (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_external_ctx_type(index);
+    VAL *v = fieldptr_external_ctx_type(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_variable_name (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_variable_name (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38915,12 +38915,12 @@ static value_t* fieldptr_variable_name (usize i) {
 
 static void mw_variable_name (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_variable_name(index);
+    VAL *v = fieldptr_variable_name(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_variable_type (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_variable_type (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38929,12 +38929,12 @@ static value_t* fieldptr_variable_type (usize i) {
 
 static void mw_variable_type (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_variable_type(index);
+    VAL *v = fieldptr_variable_type(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_prim_name (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_prim_name (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38943,12 +38943,12 @@ static value_t* fieldptr_prim_name (usize i) {
 
 static void mw_prim_name (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_prim_name(index);
+    VAL *v = fieldptr_prim_name(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_prim_ctx (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_prim_ctx (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38957,12 +38957,12 @@ static value_t* fieldptr_prim_ctx (usize i) {
 
 static void mw_prim_ctx (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_prim_ctx(index);
+    VAL *v = fieldptr_prim_ctx(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_prim_type (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_prim_type (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38971,12 +38971,12 @@ static value_t* fieldptr_prim_type (usize i) {
 
 static void mw_prim_type (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_prim_type(index);
+    VAL *v = fieldptr_prim_type(index);
     push_ptr(v);
 }
 
-static value_t* fieldptr_prim_decl (usize i) {
-    static struct value_t * p = 0;
+static VAL* fieldptr_prim_decl (usize i) {
+    static struct VAL * p = 0;
     usize m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
@@ -38985,7 +38985,7 @@ static value_t* fieldptr_prim_decl (usize i) {
 
 static void mw_prim_decl (void){
     usize index = (usize)pop_u64();
-    value_t *v = fieldptr_prim_decl(index);
+    VAL *v = fieldptr_prim_decl(index);
     push_ptr(v);
 }
 
