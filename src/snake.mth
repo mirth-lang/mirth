@@ -224,7 +224,7 @@ def-type(W, Int)
 def-type(H, Int)
 
 def(i32!!, I32 Offset Ptr --,
-    dip(4 *) ptr+ i32!)
+    dip(4 *) with-ptr+(i32!))
 
 buffer(SNAKE_RECT, 16)
 def(snake-rect!, X Y W H --,

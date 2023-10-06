@@ -12,24 +12,32 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include <stddef.h>
 
-#define EXPECT(test,...) \
+extern void* malloc(size_t);
+extern void* calloc(size_t, size_t);
+extern void* realloc(void*, size_t);
+extern void* memset(void*, int, size_t);
+extern void* memcpy(void*, const void*, size_t);
+extern void free(void*);
+extern size_t strlen(const char*);
+extern int read(int, void*, size_t);
+extern int write(int, void*, size_t);
+extern int close(int);
+extern int open(void*, int, int);
+extern int strcmp(const char*, const char*);
+extern void exit(int);
+
+#define EXPECT(test,msg) \
     do { \
         if (!(test)) { \
-            fprintf(stderr, __VA_ARGS__); \
-            fprintf(stderr, "\n"); \
+            write(2, msg "\n", strlen(msg "\n")); \
             exit(1); \
         } \
     } while(0)
 
 #define ASSERT(test) \
-    EXPECT(test, "%s:%d: assertion failed (%s)", __FILE__, __LINE__, #test)
+    EXPECT(test, "assertion failed (" #test ")")
 
 typedef enum TAG {
     TAG_INT = 0,
