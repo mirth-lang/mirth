@@ -47,8 +47,12 @@ def(false, Bool, prim-bool-false)
 def(&&, Bool Bool -- Bool, prim-bool-and)
 def(||, Bool Bool -- Bool, prim-bool-or)
 
+# use ptr+ only if Ptr is static or has another reference
+# otherwise use with-ptr+
+def(ptr+, Offset Ptr -- Ptr, prim-ptr-add)
 def(with-ptr+(f), (*a Ptr -- *b) *a Offset Ptr -- *b,
     dup dip(prim-ptr-add f) drop)
+
 def(ptr@, Ptr -- Ptr, prim-ptr-get)
 def(ptr!, Ptr Ptr --, prim-ptr-set)
 def(|ptr|, Size, prim-ptr-size)

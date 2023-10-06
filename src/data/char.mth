@@ -130,11 +130,11 @@ def(char!-precise, Char Ptr --,
 
 ||| Write character and advance pointer by character width.
 def(char!++, Char Ptr -- Ptr,
-    dup2 char! dip(char-width) with-ptr+())
+    dup2 char! dip(char-width) ptr+)
 
 ||| Read character and advance pointer by character width.
 def(char?++, Ptr -- Ptr Char,
-    char? char-width? rotr dip(with-ptr+()))
+    char? char-width? rotr dip(ptr+))
 
 ||| Read character but keep pointer on stack.
 def(char?, Ptr -- Ptr Char,

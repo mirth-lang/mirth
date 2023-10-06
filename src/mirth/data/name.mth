@@ -35,11 +35,7 @@ def(hash-name?, Hash -- Hash Name, dup hash-name@)
 
 ||| Get hash for string.
 def(hash, Str -- Hash,
-    0 swap
-    while(str-is-empty? not,
-        dup str-tail
-        dip(str-head Char->Int 5 * swap 18 * ^))
-    drop
+    0 swap str-for(Char->Int 5 * swap 18 * ^)
     NAME_HASH_MAX &
     Int->Hash)
 
