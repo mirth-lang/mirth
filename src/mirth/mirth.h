@@ -67,8 +67,10 @@ typedef struct VAL {
     TAG tag;
 } VAL;
 
+typedef uint32_t REFS;
+
 typedef struct CONS {
-    uint32_t refs;
+    REFS refs;
     bool freecdr;
     VAL car;
     VAL cdr;
@@ -94,39 +96,58 @@ static size_t get_cell_index(VAL v) {
         return 0;
 }
 
+static REFS* value_refs(VAL v) {
+    if (v.tag == TAG_CONS)
+        return &heap[v.data.usize].refs;
+    else
+        return 0;
+}
+
+static CONS* value_get_cons(VAL v) {
+    if (v.tag == TAG_CONS)
+        return heap + v.data.usize;
+    else
+        return 0;
+}
+
+static void free_value(VAL v);
+
 static void incref(VAL v) {
-    size_t i = get_cell_index(v);
-    if (i) {
-        heap[i].refs++;
-    }
+    REFS *refs = value_refs(v);
+    if (refs) *refs += 1;
 }
 
 static void decref(VAL v) {
-    size_t i = get_cell_index(v);
-    if (i) {
-        ASSERT(heap[i].refs);
-        heap[i].refs--;
-        if (heap[i].refs == 0) {
-            CONS cons = heap[i];
-            memset(heap+i, 0, sizeof(CONS));
-            heap[i].cdr.data.usize = heap_next;
-            heap_next = i;
-            heap_count--;
-            if (cons.freecdr) {
-                free(cons.cdr.data.ptr);
-            } else {
-                decref(cons.cdr);
-            }
-            decref(cons.car);
+    REFS *refs = value_refs(v);
+    if (refs) {
+        if (--*refs == 0) {
+            free_value(v);
         }
     }
 }
 
+static void free_value(VAL v) {
+    size_t i = get_cell_index(v);
+    ASSERT(i);
+    CONS cons = heap[i];
+    ASSERT(cons.refs == 0);
+    memset(heap+i, 0, sizeof(CONS));
+    heap[i].cdr.data.usize = heap_next;
+    heap_next = i;
+    heap_count--;
+    if (cons.freecdr) {
+        free(cons.cdr.data.ptr);
+    } else {
+        decref(cons.cdr);
+    }
+    decref(cons.car);
+}
+
 static void value_uncons(VAL val, VAL* car, VAL* cdr) {
-    size_t i = get_cell_index(val);
-    if (i) {
-        *car = heap[i].car;
-        *cdr = heap[i].cdr;
+    CONS *cons = value_get_cons(val);
+    if (cons) {
+        *car = cons->car;
+        *cdr = cons->cdr;
     } else {
         *car = (VAL){0};
         *cdr = val;
@@ -227,8 +248,8 @@ static VAL mkptr_shared (void* ptr, size_t size) {
 }
 
 static bool val_has_freecdr (VAL v) {
-    size_t i = get_cell_index(v);
-    return i && heap[i].freecdr;
+    CONS* cons = value_get_cons(v);
+    return cons && cons->freecdr;
 }
 
 static void do_uncons(void) {
@@ -698,13 +719,13 @@ static void mw_prim_run (void) {
 static void mw_prim_ptr_add (void) {
     VAL vp = pop_value();
     uint64_t y = pop_u64();
-    size_t i = get_cell_index(vp);
-    if (i) {
-        CONS *cell = heap+i;
-        ASSERT(!cell->freecdr || (cell->refs > 1));
-        cell->refs--;
-        void* ptr = (void*)(cell->cdr.data.charptr + y);
-        size_t size = (cell->car.data.usize > y ? cell->car.data.usize - y : 0);
+    CONS* cons = value_get_cons(vp);
+    if (cons) {
+        ASSERT(!cons->freecdr || (cons->refs > 1));
+        cons->refs--;
+        void* ptr = (void*)(cons->cdr.data.charptr + y);
+        size_t osize = cons->car.data.usize;
+        size_t size = (osize > y ? osize - y : 0);
         push_value(mkptr_shared(ptr,size));
     } else {
         push_u64(y + vp.data.u64);
@@ -856,11 +877,10 @@ static void mw_prim_mut_set (void) {
         *mut.data.valptr = newval;
         decref(oldval);
     } else {
-        size_t i = get_cell_index(mut);
-        if (i) {
-            CONS *cell = heap+i;
-            VAL oldval = cell->car;
-            cell->car = newval;
+        CONS* cons = value_get_cons(mut);
+        if (cons) {
+            VAL oldval = cons->car;
+            cons->car = newval;
             decref(oldval);
         } else {
             decref(newval);
