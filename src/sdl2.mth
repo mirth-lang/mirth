@@ -96,12 +96,12 @@ def(SDL_CONTROLLERDEVICEADDED, SDL_EventType, 0x653 Int->U32)
 def(SDL_CONTROLLERDEVICEREMOVED, SDL_EventType, 0x654 Int->U32)
 def(SDL_CONTROLLERDEVICEREMAPPED, SDL_EventType, 0x655 Int->U32)
 
-def(SDL_Event.key.repeat, SDL_Event* -- U8, 13 swap ptr+ u8@)
+def(SDL_Event.key.repeat, SDL_Event* -- U8, 13 swap with-ptr+(u8@))
 def(SDL_Event.key.keysym.scancode, SDL_Event* -- SDL_Scancode,
-    16 swap ptr+ u16@)
+    16 swap with-ptr+(u16@))
 
-def(SDL_Event.cbutton.which, SDL_Event* -- SDL_JoystickID, 8 swap ptr+ i32@ I32->Int)
-def(SDL_Event.cbutton.button, SDL_Event* -- SDL_GameControllerButton, 12 swap ptr+ u8@)
+def(SDL_Event.cbutton.which, SDL_Event* -- SDL_JoystickID, 8 swap with-ptr+(i32@) I32->Int)
+def(SDL_Event.cbutton.button, SDL_Event* -- SDL_GameControllerButton, 12 swap with-ptr+(u8@))
 
 def-type(SDL_Scancode, U16)
 def(SDL_SCANCODE_UNKNOWN, SDL_Scancode, 0 Int->U16)
