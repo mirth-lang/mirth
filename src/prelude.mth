@@ -333,7 +333,6 @@ def(unpack3, [a b c] -- a b c, prim-pack-uncons dip(unpack2))
 def(unpack4, [a b c d] -- a b c d, prim-pack-uncons dip(unpack3))
 def(unpack5, [a b c d e] -- a b c d e, prim-pack-uncons dip(unpack4))
 
-def(mut, t -- Mut(t), prim-mut-new)
 def(@, Mut(t) -- t, prim-mut-get)
 def(!, t Mut(t) --, prim-mut-set drop)
 def(modify(f), (*a t -- *b t) *a Mut(t) -- *b,

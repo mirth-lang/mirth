@@ -848,44 +848,23 @@ static void mw_prim_pack_uncons (void) {
     incref(car); incref(cdr); decref(v);
 }
 
-static void mw_prim_mut_new (void) {
-    VAL car = pop_value();
-    VAL cdr = {0};
-    push_value(mkcell_raw(car,cdr,false));
-}
 static void mw_prim_mut_get (void) {
     VAL mut = pop_value();
-    if ((mut.tag == TAG_INT) && mut.data.ptr) {
-        VAL v = *mut.data.valptr;
-        push_value(v);
-        incref(v);
-    } else {
-        VAL car,cdr;
-        value_uncons(mut, &car, &cdr);
-        ASSERT((cdr.tag == 0) && (cdr.data.u64 == 0));
-        push_value(car);
-        incref(car);
-        decref(mut);
-    }
+    ASSERT(mut.tag == TAG_INT);
+    ASSERT(mut.data.ptr);
+    VAL v = *mut.data.valptr;
+    push_value(v);
+    incref(v);
 }
 static void mw_prim_mut_set (void) {
     VAL mut = pop_value();
     VAL newval = pop_value();
     push_value(mut);
-    if ((mut.tag == TAG_INT) && mut.data.ptr) {
-        VAL oldval = *mut.data.valptr;
-        *mut.data.valptr = newval;
-        decref(oldval);
-    } else {
-        CONS* cons = value_get_cons(mut);
-        if (cons) {
-            VAL oldval = cons->car;
-            cons->car = newval;
-            decref(oldval);
-        } else {
-            decref(newval);
-        }
-    }
+    ASSERT(mut.tag == TAG_INT);
+    ASSERT(mut.data.ptr);
+    VAL oldval = *mut.data.valptr;
+    *mut.data.valptr = newval;
+    decref(oldval);
 }
 
 /* GENERATED C99 */
