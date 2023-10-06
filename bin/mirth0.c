@@ -17,43 +17,41 @@
 #include <sys/mman.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
-typedef uintptr_t usize;
+#define EXPECT(test,...) \
+    do { \
+        if (!(test)) { \
+            fprintf(stderr, __VA_ARGS__); \
+            fprintf(stderr, "\n"); \
+            exit(1); \
+        } \
+    } while(0)
+
+#define ASSERT(test) \
+    EXPECT(test, "%s:%d: assertion failed (%s)", __FILE__, __LINE__, #test)
 
 typedef enum TAG {
-    VT_U64 = 0x00,
-    VT_U32 = 0x01,
-    VT_U21 = 0x02,
-    VT_U16 = 0x03,
-    VT_C16 = 0x90,
-    VT_C21 = 0x96,
-    VT_C32 = 0xA0,
-    VT_C64 = 0xC0,
+    TAG_INT = 0,
+    TAG_CONS = 1,
 } TAG;
 
 typedef void (*fnptr)(void);
 
 typedef union DATA {
-    void* vp_ptr;
-    u8 vp_u8;
-    u16 vp_u16;
-    u32 vp_u32;
-    u64 vp_u64;
-    i8 vp_i8;
-    i16 vp_i16;
-    i32 vp_i32;
-    i64 vp_i64;
-    bool vp_bool;
-    fnptr vp_fnptr;
-    struct VAL* vp_valueptr;
+    size_t usize;
+    uint64_t u64;
+    uint32_t u32;
+    uint16_t u16;
+    uint8_t u8;
+    int64_t i64;
+    int32_t i32;
+    int16_t i16;
+    int8_t i8;
+    void* ptr;
+    void (*fnptr)(void);
+    struct VAL* valptr;
+    char* charptr;
 } DATA;
 
 typedef struct VAL {
@@ -62,489 +60,250 @@ typedef struct VAL {
 } VAL;
 
 typedef struct CONS {
-    u32 refs;
+    uint32_t refs;
     bool freecdr;
     VAL car;
     VAL cdr;
 } CONS;
 
-#define STACK_SIZE 0x8000
-static usize stack_counter = STACK_SIZE;
-static VAL stack [STACK_SIZE] = {0};
+#define STACK_MAX 0x8000
+static size_t stack_counter = STACK_MAX;
+static VAL stack [STACK_MAX] = {0};
 
 #define HEAP_SIZE 0x80000
 #define HEAP_MASK 0x7FFFF
-static usize heap_next = 1;
-static usize heap_count = 0;
+static size_t heap_next = 1;
+static size_t heap_count = 0;
 static CONS heap [HEAP_SIZE] = {0};
 
 static int global_argc;
 static char** global_argv;
 
-#define get_cell_index(v) ((usize)(((v).tag & 0x80) ? ((v).data.vp_u64 >> (0xC0 - (u64)((v).tag))) : 0))
-
-#define incref(v) do{ VAL w = (v); usize i = get_cell_index(w); if(i) heap[i].refs++; }while(0)
-
-#define decref(v) do{ VAL w = (v); usize i = get_cell_index(w); if(i) { if(heap[i].refs) { heap[i].refs--; if (heap[i].refs == 0) heap_free(i); } }} while(0)
-
-static void heap_free(usize i) {
-    CONS *cell = heap + i;
-    CONS contents = *cell;
-    memset(cell, 0, sizeof(CONS));
-    cell->cdr.data.vp_u64 = heap_next;
-    heap_next = i;
-    heap_count--;
-    if (contents.freecdr) { free(contents.cdr.data.vp_ptr); }
-    else { decref(contents.cdr); }
-    decref(contents.car);
-}
-
-#define decref_for_uncons(v) do{ VAL w = (v); usize i = get_cell_index(w); if(i) { if (heap[i].refs) { heap[i].refs--; if (heap[i].refs == 0) { memset(heap+i, 0, sizeof(CONS)); heap[i].cdr.data.vp_u64 = heap_next; heap_next = i; heap_count--; } else { CONS cell = heap[i]; incref(cell.car); incref(cell.cdr); } } } } while(0)
-static void value_uncons(VAL val, VAL* car, VAL* cdr) {
-    switch (val.tag) {
-        case VT_U64: {
-            VAL nil = { 0 };
-            *car = nil;
-            *cdr = val;
-        } break;
-        case VT_U32: {
-            u64 vv = val.data.vp_u64;
-            u64 lo = vv & 0xFFFFFFFF;
-            u64 hi = vv >> 32;
-            car->tag = VT_U64; car->data.vp_u64 = hi;
-            cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
-        } break;
-        case VT_C64: {
-            CONS* cell = heap + val.data.vp_u64;
-            *car = cell->car;
-            *cdr = cell->cdr;
-        } break;
-        case VT_C32: {
-            u64 vv = val.data.vp_u64;
-            u64 lo = vv & 0xFFFFFFFF;
-            u64 hi = vv >> 32;
-            car->tag = VT_C64; car->data.vp_u64 = hi;
-            cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
-        } break;
-        case VT_U21: {
-            u64 vv = val.data.vp_u64;
-            u64 lo = vv & 0x1FFFFF;
-            u64 md = (vv >> 21) & 0x1FFFFF;
-            u64 hi = (vv >> 42) & 0x1FFFFF;
-            car->tag = VT_U32;
-            car->data.vp_u64 = (hi << 32) | md;
-            cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
-        } break;
-        case VT_C21: {
-            u64 vv = val.data.vp_u64;
-            u64 lo = vv & 0x1FFFFF;
-            u64 md = (vv >> 21) & 0x1FFFFF;
-            u64 hi = (vv >> 42) & 0x1FFFFF;
-            car->tag = VT_C32;
-            car->data.vp_u64 = (hi << 32) | md;
-            cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
-        } break;
-        case VT_U16: {
-            u64 vv = val.data.vp_u64;
-            u64 lo = vv & 0xFFFF;
-            u64 y2 = (vv >> 16) & 0xFFFF;
-            u64 y1 = (vv >> 32) & 0xFFFF;
-            u64 y0 = (vv >> 48) & 0xFFFF;
-            car->tag = VT_U21;
-            car->data.vp_u64 = (y0 << 42) | (y1 << 21) | y2;
-            cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
-        } break;
-        case VT_C16: {
-            u64 vv = val.data.vp_u64;
-            u64 lo = vv & 0xFFFF;
-            u64 y2 = (vv >> 16) & 0xFFFF;
-            u64 y1 = (vv >> 32) & 0xFFFF;
-            u64 y0 = (vv >> 48) & 0xFFFF;
-            car->tag = VT_C21;
-            car->data.vp_u64 = (y0 << 42) | (y1 << 21) | y2;
-            cdr->tag = VT_U64; cdr->data.vp_u64 = lo;
-        } break;
-    }
-}
-
-static bool value_has_ptr_offset (VAL v) {
-    if (v.tag == VT_C64) {
-        usize cell_index = (usize)v.data.vp_u64;
-        struct CONS * cell = heap + cell_index;
-        return !cell->freecdr;
-    } else {
-        return v.tag != VT_U64;
-    }
-}
-
-static u64 value_ptr_size (VAL v) {
-    if (v.data.vp_u64 == 0) {
+static size_t get_cell_index(VAL v) {
+    if (v.tag == TAG_CONS)
+        return v.data.usize;
+    else
         return 0;
-    } else if (v.tag == VT_U64) {
-        return strlen(v.data.vp_ptr);
-    } else if (value_has_ptr_offset(v)) {
-        VAL car, cdr;
-        value_uncons(v, &car, &cdr);
-        VAL car2, cdr2;
-        value_uncons(car, &car2, &cdr2);
-        u64 size = car2.data.vp_u64;
-        u64 offset = cdr.data.vp_u64;
-        if (size >= offset) {
-            return offset - size;
-        } else {
-            return 0;
+}
+
+static void incref(VAL v) {
+    size_t i = get_cell_index(v);
+    if (i) {
+        heap[i].refs++;
+    }
+}
+
+static void decref(VAL v) {
+    size_t i = get_cell_index(v);
+    if (i) {
+        ASSERT(heap[i].refs);
+        heap[i].refs--;
+        if (heap[i].refs == 0) {
+            CONS cons = heap[i];
+            memset(heap+i, 0, sizeof(CONS));
+            heap[i].cdr.data.usize = heap_next;
+            heap_next = i;
+            heap_count--;
+            if (cons.freecdr) {
+                free(cons.cdr.data.ptr);
+            } else {
+                decref(cons.cdr);
+            }
+            decref(cons.car);
         }
-    } else {
-        VAL car, cdr;
-        value_uncons(v, &car, &cdr);
-        return car.data.vp_u64;
     }
 }
 
-static void* value_ptr_base (VAL v) {
-    if (value_has_ptr_offset(v)) {
-        VAL car, cdr;
-        value_uncons(v, &car, &cdr);
-        VAL car2, cdr2;
-        value_uncons(car, &car2, &cdr2);
-        return cdr2.data.vp_ptr;
+static void value_uncons(VAL val, VAL* car, VAL* cdr) {
+    size_t i = get_cell_index(val);
+    if (i) {
+        *car = heap[i].car;
+        *cdr = heap[i].cdr;
     } else {
-        VAL car, cdr;
-        value_uncons(v, &car, &cdr);
-        return cdr.data.vp_ptr;
+        *car = (VAL){0};
+        *cdr = val;
     }
 }
 
-static i64 value_ptr_offset (VAL v) {
-    if (value_has_ptr_offset(v)) {
-        VAL car, cdr;
-        value_uncons(v, &car, &cdr);
-        return cdr.data.vp_i64;
-    } else {
-        return 0;
-    }
+static size_t value_ptr_size (VAL v) {
+    VAL vcar, vcdr;
+    value_uncons(v, &vcar, &vcdr);
+    return vcar.data.usize;
 }
 
 static void* value_ptr (VAL v) {
-    usize cell_index; CONS* cell; usize offset;
-    switch (v.tag) {
-        case VT_U64: return v.data.vp_ptr;
-        case VT_C64:
-            cell_index = (usize)v.data.vp_u64;
-            cell = heap + cell_index;
-            if (cell->freecdr) {
-                return cell->cdr.data.vp_ptr;
-            } else {
-                offset = (usize)cell->cdr.data.vp_u64;
-                cell_index = (usize)cell->car.data.vp_u64;
-                break;
-            }
-        case VT_C32:
-            offset = (usize)v.data.vp_u32;
-            cell_index = (usize)(v.data.vp_u64 >> 32);
-            break;
-        default:
-            return (void*)0;
-    }
-    cell = heap + cell_index;
-    if (cell->freecdr) {
-        char* base = cell->cdr.data.vp_ptr;
-        return (void*)(base + offset);
-    }
-    return (void*)0;
+    VAL vcar, vcdr;
+    value_uncons(v, &vcar, &vcdr);
+    return vcdr.data.ptr;
 }
 
-#define pop_fnptr() (pop_value().data.vp_fnptr)
-#define pop_u8() (pop_value().data.vp_u8)
-#define pop_u16() (pop_value().data.vp_u16)
-#define pop_u32() (pop_value().data.vp_u32)
-#define pop_u64() (pop_value().data.vp_u64)
-#define pop_i8() (pop_value().data.vp_i8)
-#define pop_i16() (pop_value().data.vp_i16)
-#define pop_i32() (pop_value().data.vp_i32)
-#define pop_i64() (pop_value().data.vp_i64)
-#define pop_bool() (pop_value().data.vp_bool)
-#define pop_rawptr() (pop_value().data.vp_ptr)
+#define pop_fnptr() (pop_value().data.fnptr)
+#define pop_u8() (pop_value().data.u8)
+#define pop_u16() (pop_value().data.u16)
+#define pop_u32() (pop_value().data.u32)
+#define pop_u64() (pop_value().data.u64)
+#define pop_i8() (pop_value().data.i8)
+#define pop_i16() (pop_value().data.i16)
+#define pop_i32() (pop_value().data.i32)
+#define pop_i64() (pop_value().data.i64)
+#define pop_usize() (pop_value().data.usize)
+#define pop_bool() ((bool)pop_u64())
+#define pop_ptr() (pop_value().data.ptr)
 
 #define push_u64(v) push_value(mku64(v))
 #define push_i64(v) push_value(mki64(v))
-#define push_ptr(v) push_u64((u64)(v))
-#define push_fnptr(v) push_u64((u64)(v))
-#define push_bool(b) push_u64((u64)((bool)(b)))
-#define push_u8(b) push_u64((u64)(b))
-#define push_u16(b) push_u64((u64)(b))
-#define push_u32(b) push_u64((u64)(b))
-#define push_i8(b) push_i64((i64)(b))
-#define push_i16(b) push_i64((i64)(b))
-#define push_i32(b) push_i64((i64)(b))
-#define push_rawptr(v) push_u64((u64)(void*)(v))
+#define push_usize(v) push_value((uint64_t)(v))
+#define push_fnptr(v) push_u64((uint64_t)(v))
+#define push_bool(b) push_u64((uint64_t)((bool)(b)))
+#define push_u8(b) push_u64((uint64_t)(b))
+#define push_u16(b) push_u64((uint64_t)(b))
+#define push_u32(b) push_u64((uint64_t)(b))
+#define push_i8(b) push_i64((int64_t)(b))
+#define push_i16(b) push_i64((int64_t)(b))
+#define push_i32(b) push_i64((int64_t)(b))
+#define push_ptr(v) push_u64((uint64_t)(void*)(v))
 
 static void push_value(VAL x) {
+    ASSERT(stack_counter > 0);
     stack[--stack_counter] = x;
 }
 
+static VAL top_value(void) {
+    ASSERT(stack_counter < STACK_MAX);
+    return stack[stack_counter];
+}
+
 static VAL pop_value(void) {
+    ASSERT(stack_counter < STACK_MAX);
     return stack[stack_counter++];
 }
 
-static VAL mku64 (u64 x) {
-    VAL v = {.tag = VT_U64, .data = {.vp_u64 = x}};
-    return v;
+static VAL mku64 (uint64_t x) {
+    return (VAL){.tag=TAG_INT, .data={.u64=x}};
 }
 
-static VAL mki64 (i64 x) {
-    VAL v = {.tag = VT_U64, .data = {.vp_i64 = x}};
-    return v;
+static VAL mki64 (int64_t x) {
+    return (VAL){.tag=TAG_INT, .data={.i64=x}};
 }
 
-static VAL mkcell (VAL car, VAL cdr) {
-    if ((car.data.vp_u64 == 0) && (cdr.tag == VT_U64))
+static VAL mkcell_raw (VAL car, VAL cdr, bool freecdr) {
+    EXPECT(heap_count < HEAP_SIZE-1, "heap overflow");
+    size_t i = heap_next;
+    CONS *cell = heap+i;
+    ASSERT(cell->refs == 0);
+    heap_next = cell->cdr.data.usize ? cell->cdr.data.usize : i+1;
+    heap_count++;
+    cell->refs = 1;
+    cell->freecdr = freecdr;
+    cell->car = car;
+    cell->cdr = cdr;
+    return (VAL){ .tag=TAG_CONS, .data={.usize=i} };
+}
+
+static VAL mkcell(VAL car, VAL cdr) {
+    if ((car.data.usize == 0) && (cdr.tag == TAG_INT))
         return cdr;
-    if (cdr.tag == VT_U64) {
-        switch (car.tag) {
-            case VT_U64: {
-                u64 x0 = car.data.vp_u64;
-                u64 x1 = cdr.data.vp_u64;
-                u64 y0 = x0 & 0xFFFFFFFFLL;
-                u64 y1 = x1 & 0xFFFFFFFFLL;
-                if ((x0 == y0) && (x1 == y1)) {
-                    VAL r;
-                    r.tag = VT_U32;
-                    r.data.vp_u64 = (y0 << 32) | y1;
-                    return r;
-                }
-            } break;
-            case VT_C64: {
-                u64 x0 = car.data.vp_u64;
-                u64 x1 = cdr.data.vp_u64;
-                u64 y0 = x0 & 0xFFFFFFFFLL;
-                u64 y1 = x1 & 0xFFFFFFFFLL;
-                if ((x0 == y0) && (x1 == y1)) {
-                    VAL r;
-                    r.tag = VT_C32;
-                    r.data.vp_u64 = (y0 << 32) | y1;
-                    return r;
-                }
-            } break;
-            case VT_U32: {
-                u64 x0 = car.data.vp_u64 >> 32;
-                u64 x1 = car.data.vp_u64 & 0xFFFFFFFFLL;
-                u64 x2 = cdr.data.vp_u64;
-                u64 y0 = x0 & 0x1FFFFFLL;
-                u64 y1 = x1 & 0x1FFFFFLL;
-                u64 y2 = x2 & 0x1FFFFFLL;
-                if ((x0 == y0) && (x1 == y1) && (x2 == y2)) {
-                    VAL r;
-                    r.tag = VT_U21;
-                    r.data.vp_u64 = (y0 << 42) | (y1 << 21) | y2;
-                    return r;
-                }
-            } break;
-            case VT_C32: {
-                u64 x0 = car.data.vp_u64 >> 32;
-                u64 x1 = car.data.vp_u64 & 0xFFFFFFFFLL;
-                u64 x2 = cdr.data.vp_u64;
-                u64 y0 = x0 & 0x1FFFFFLL;
-                u64 y1 = x1 & 0x1FFFFFLL;
-                u64 y2 = x2 & 0x1FFFFFLL;
-                if ((x0 == y0) && (x1 == y1) && (x2 == y2)) {
-                    VAL r;
-                    r.tag = VT_C21;
-                    r.data.vp_u64 = (y0 << 42) | (y1 << 21) | y2;
-                    return r;
-                }
-            } break;
-            case VT_U21: {
-                u64 x0 = car.data.vp_u64 >> 42;
-                u64 x1 = (car.data.vp_u64 >> 21) & 0x1FFFFFLL;
-                u64 x2 = car.data.vp_u64 & 0x1FFFFFLL;
-                u64 x3 = cdr.data.vp_u64;
-                u64 y0 = x0 & 0xFFFFLL;
-                u64 y1 = x1 & 0xFFFFLL;
-                u64 y2 = x2 & 0xFFFFLL;
-                u64 y3 = x3 & 0xFFFFLL;
-                if ((x0 == y0) && (x1 == y1) && (x2 == y2) && (x3 == y3)) {
-                    VAL r;
-                    r.tag = VT_U16;
-                    r.data.vp_u64 = (y0 << 48) | (y1 << 32) | (y2 << 16) | y3;
-                    return r;
-                }
-            } break;
-            case VT_C21: {
-                u64 x0 = car.data.vp_u64 >> 42;
-                u64 x1 = (car.data.vp_u64 >> 21) & 0x1FFFFFLL;
-                u64 x2 = car.data.vp_u64 & 0x1FFFFFLL;
-                u64 x3 = cdr.data.vp_u64;
-                u64 y0 = x0 & 0xFFFFLL;
-                u64 y1 = x1 & 0xFFFFLL;
-                u64 y2 = x2 & 0xFFFFLL;
-                u64 y3 = x3 & 0xFFFFLL;
-                if ((x0 == y0) && (x1 == y1) && (x2 == y2) && (x3 == y3)) {
-                    VAL r;
-                    r.tag = VT_C16;
-                    r.data.vp_u64 = (y0 << 48) | (y1 << 32) | (y2 << 16) | y3;
-                    return r;
-                }
-            } break;
-            default: break;
-        }
-    }
-    if (heap_count >= HEAP_SIZE - 1) {
-        write(2, "HEAP OVERFLOW\n", 14);
-        exit(1);
-    }
-    u64 cell_index = heap_next;
-    CONS *cell = heap + cell_index;
-    while ((cell->refs > 0) && (cell_index < HEAP_SIZE)) { cell++; cell_index++; }
-    if (cell_index >= HEAP_SIZE - 1) {
-        write(2, "HEAP OVERFLOW\n", 14);
-        exit(1);
-    }
-    u64 saved_index = cell->cdr.data.vp_u64;
-    heap_next = (usize)(saved_index ? saved_index : cell_index+1);
-    heap_count++;
-    cell->refs = 1;
-    cell->freecdr = false;
-    cell->car = car;
-    cell->cdr = cdr;
-    VAL v = {0};
-    v.tag = VT_C64;
-    v.data.vp_u64 = cell_index;
-    return v;
+    return mkcell_raw(car, cdr, false);
 }
 
-static VAL mkcell_raw (VAL car, VAL cdr) {
-    u64 cell_index = heap_next;
-    CONS *cell = heap + cell_index;
-    while ((cell->refs > 0) && (cell_index < HEAP_SIZE)) { cell++; cell_index++; }
-    if (cell_index >= HEAP_SIZE - 1) {
-        write(2, "HEAP OVERFLOW\n", 14);
-        exit(1);
-    }
-    u64 saved_index = cell->cdr.data.vp_u64;
-    heap_next = (usize)(saved_index ? saved_index : cell_index+1);
-    heap_count++;
-    cell->refs = 1;
-    cell->freecdr = false;
-    cell->car = car;
-    cell->cdr = cdr;
-    VAL v = {0};
-    v.tag = VT_C64;
-    v.data.vp_u64 = cell_index;
-    return v;
+static VAL mkptr_owned (void* ptr, size_t size) {
+    VAL cdr = { .tag=TAG_INT, .data={.ptr=ptr} }; // TODO TAG_RAWPTR maybe?
+    VAL car = { .tag=TAG_INT, .data={.usize=size} };
+    return mkcell_raw(car, cdr, true);
 }
 
-static VAL mkcell_freecdr (VAL car, VAL cdr) {
-    if (heap_count >= HEAP_SIZE - 1) {
-        write(2, "HEAP OVERFLOW\n", 14);
-        exit(1);
-    }
-    u64 cell_index = heap_next;
-    CONS *cell = heap + cell_index;
-    while ((cell->refs > 0) && (cell_index < HEAP_SIZE)) { cell++; cell_index++; }
-    if (cell_index >= HEAP_SIZE - 1) {
-        write(2, "HEAP OVERFLOW\n", 14);
-        exit(1);
-    }
-    u64 saved_index = cell->cdr.data.vp_u64;
-    heap_next = (usize)(saved_index ? saved_index : cell_index+1);
-    heap_count++;
-    cell->refs = 1;
-    cell->freecdr = true;
-    cell->car = car;
-    cell->cdr = cdr;
-    VAL v = {0};
-    v.tag = VT_C64;
-    v.data.vp_u64 = cell_index;
-    return v;
+static VAL mkptr_shared (void* ptr, size_t size) {
+    VAL cdr = { .tag=TAG_INT, .data={.ptr=ptr} }; // TODO TAG_RAWPTR maybe?
+    VAL car = { .tag=TAG_INT, .data={.usize=size} };
+    return mkcell(car, cdr);
 }
 
-static void do_pack_uncons(void) {
-    VAL car, cdr, val;
+static bool val_has_freecdr (VAL v) {
+    size_t i = get_cell_index(v);
+    return i && heap[i].freecdr;
+}
+
+static void do_uncons(void) {
+    VAL val, car, cdr;
     val = pop_value();
+    ASSERT(!val_has_freecdr(val));
     value_uncons(val, &car, &cdr);
     push_value(car); push_value(cdr);
-    if (val.tag == VT_C64) {
-        decref_for_uncons(val);
-    }
+    incref(car);
+    incref(cdr);
+    decref(val);
 }
 
-#define get_TAG(v) (((v).tag == VT_U64) ? (v).data.vp_i64 : (((v).tag == VT_C64) ? (heap[(v).data.vp_u64].cdr.data.vp_i64) : (i64)((v).data.vp_u64 & 0xFFFF)))
-#define get_top_data_tag() (get_TAG(stack[stack_counter]))
-#define value_cmp(v1,v2) ((((v1).tag == VT_U64) && ((v2).tag == VT_U64)) ? ((v1).data.vp_i64 - (v2).data.vp_i64) : value_cmp_hard((v1), (v2)))
+static size_t get_data_tag(VAL v) {
+    VAL car, cdr;
+    value_uncons(v, &car, &cdr);
+    return cdr.data.usize;
+}
 
-static i64 value_cmp_hard(VAL v1, VAL v2) {
-    while(1) {
-        i64 t1 = get_TAG(v1);
-        i64 t2 = get_TAG(v2);
-        if (t1 < t2) return -1;
-        if (t1 > t2) return 1;
-        if ((v1.tag == VT_U64) && (v2.tag == VT_U64)) return 0;
+static size_t get_top_data_tag(void) {
+    return get_data_tag(top_value());
+}
+
+static int64_t int64_cmp(int64_t i1, int64_t i2) {
+    if (i1 < i2) return -1;
+    if (i1 > i2) return 1;
+    return 0;
+}
+
+static int64_t value_cmp(VAL v1, VAL v2) {
+    while (1) {
+        // TODO fix string comparison, maybe with a TAG_STR
+        if (v1.tag == v2.tag) {
+            if (v1.data.u64 == v2.data.u64) return 0;
+            if (v1.tag == TAG_INT) {
+                if (v1.data.i64 < v2.data.i64) return -1;
+                else return 1;
+            }
+        }
         VAL v1car, v1cdr, v2car, v2cdr;
         value_uncons(v1, &v1car, &v1cdr);
         value_uncons(v2, &v2car, &v2cdr);
-        i64 cdrcmp = value_cmp(v1cdr, v2cdr);
-        if (cdrcmp != 0) return cdrcmp;
+        int64_t cdrcmp = value_cmp(v1cdr, v2cdr);
+        if (cdrcmp) return cdrcmp;
         v1 = v1car; v2 = v2car;
     }
 }
 
-#define value_eq(v1,v2) (((v1).tag == (v2).tag) && (((v1).data.vp_u64 == (v2).data.vp_u64) || (((v1).tag & 0x80) && value_eq_hard((v1),(v2)))))
-
-static bool value_eq_hard(VAL v1, VAL v2) {
-    usize c1_index, c2_index; CONS *c1, *c2;
-    while (1) {
-        if (v1.tag != v2.tag) return false;
-        if (v1.data.vp_u64 == v2.data.vp_u64) return true;
-        switch (v1.tag) {
-            case VT_U64: return false;
-            case VT_U32: return false;
-            case VT_U21: return false;
-            case VT_U16: return false;
-            case VT_C64:
-                c1_index = (usize)v1.data.vp_u64;
-                c2_index = (usize)v2.data.vp_u64;
-                break;
-            case VT_C32:
-                if (v1.data.vp_u32 != v2.data.vp_u32) return false;
-                c1_index = (usize)(v1.data.vp_u64 >> 32);
-                c2_index = (usize)(v2.data.vp_u64 >> 32);
-                break;
-            case VT_C21:
-                if (  (v1.data.vp_u64 & 0x03FFFFFFFFFF)
-                != (v2.data.vp_u64 & 0x03FFFFFFFFFF)) return false;
-                c1_index = (usize)(v1.data.vp_u64 >> 42);
-                c2_index = (usize)(v2.data.vp_u64 >> 42);
-                break;
-            case VT_C16:
-                if (  (v1.data.vp_u64 & 0xFFFFFFFFFFFF)
-                != (v2.data.vp_u64 & 0xFFFFFFFFFFFF)) return false;
-                c1_index = (usize)(v1.data.vp_u64 >> 48);
-                c2_index = (usize)(v2.data.vp_u64 >> 48);
-                break;
-        }
-        c1 = heap + c1_index;
-        c2 = heap + c2_index;
-        if (!value_eq(c1->cdr, c2->cdr)) return false;
-        v1 = c1->car; v2 = c2->car;
-    }
+static bool value_eq(VAL v1, VAL v2) {
+    return value_cmp(v1,v2) == 0;
 }
 
-#define do_run() do { do_pack_uncons(); fnptr fp = pop_fnptr(); fp(); } while(0)
-#define mw_prim_id() 0
-#define mw_prim_dup() do{ VAL v = stack[stack_counter]; push_value(v); incref(v); } while(0)
+static void run_value(VAL v) {
+    VAL car, cdr;
+    value_uncons(v, &car, &cdr);
+    push_value(car);
+    incref(car);
+    decref(v);
+    cdr.data.fnptr();
+}
 
-#define do_drop() decref(pop_value())
-#define mw_prim_drop() do_drop()
+static void mw_prim_id (void) {}
+static void mw_prim_dup (void) {
+    VAL v = top_value();
+    push_value(v);
+    incref(v);
+}
+static void mw_prim_drop (void) {
+    VAL v = pop_value();
+    decref(v);
+}
 
-#define do_swap() do{ VAL x = stack[stack_counter]; stack[stack_counter] = stack[stack_counter+1]; stack[stack_counter+1] = x; } while(0)
-#define mw_prim_swap() do_swap()
+static void mw_prim_swap (void) {
+    VAL a = pop_value();
+    VAL b = pop_value();
+    push_value(a);
+    push_value(b);
+}
 
 static void mw_prim_dip (void) {
     VAL f = pop_value();
     VAL x = pop_value();
-    push_value(f);
-    do_run();
+    run_value(f);
     push_value(x);
 }
 
@@ -553,109 +312,197 @@ static void mw_prim_if (void) {
     VAL then_branch = pop_value();
     bool b = pop_bool();
     if (b) {
-        push_value(then_branch);
         decref(else_branch);
+        run_value(then_branch);
     } else {
-        push_value(else_branch);
         decref(then_branch);
+        run_value(else_branch);
     }
-    do_run();
 }
 
 static void mw_prim_while (void) {
     VAL body = pop_value();
     VAL cond = pop_value();
     while(1) {
-        push_value(cond); incref(cond); do_run();
+        incref(cond); run_value(cond);
         bool b = pop_bool();
         if (!b) break;
-        push_value(body); incref(body); do_run();
+        incref(body); run_value(body);
     }
-    decref(cond); decref(body);
+    decref(cond);
+    decref(body);
 }
 
-#define mw_prim_int_add() do { stack[stack_counter+1].data.vp_u64 += stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
-#define mw_prim_int_sub() do { stack[stack_counter+1].data.vp_u64 -= stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
-#define mw_prim_int_mul() do { stack[stack_counter+1].data.vp_i64 *= stack[stack_counter].data.vp_i64; stack_counter++; } while(0)
-#define mw_prim_int_div() do { i64 a = stack[stack_counter+1].data.vp_i64; i64 b = stack[stack_counter].data.vp_i64; i64 r = a % b; i64 q = a / b; if (((a < 0) ^ (b < 0)) && r) q--; stack_counter++; stack[stack_counter].data.vp_i64 = q; } while(0)
-#define mw_prim_int_mod() do { i64 a = stack[stack_counter+1].data.vp_i64; i64 b = stack[stack_counter].data.vp_i64; i64 r = a % b; if (((a < 0) ^ (b < 0)) && r) r += b; stack_counter++; stack[stack_counter].data.vp_i64 = r; } while(0)
-#define mw_prim_int_and() do { stack[stack_counter+1].data.vp_u64 &= stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
-#define mw_prim_int_or() do { stack[stack_counter+1].data.vp_u64 |= stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
-#define mw_prim_int_xor() do { stack[stack_counter+1].data.vp_u64 ^= stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
-#define mw_prim_int_shl() do { stack[stack_counter+1].data.vp_u64 <<= stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
-#define mw_prim_int_shr() do { stack[stack_counter+1].data.vp_u64 >>= stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
-#define mw_prim_value_eq()  do { VAL v2 = pop_value(); VAL v1 = pop_value(); push_bool(value_eq(v1, v2)); decref(v1); decref(v2); } while(0)
+static void mw_prim_int_add (void) {
+    // TODO promote to bigint on overflow.
+    int64_t b = pop_i64();
+    int64_t a = pop_i64();
+    if (b >= 0) {
+        EXPECT(a <= INT64_MAX - b, "integer overflow during addition (too positive)");
+    } else {
+        EXPECT(a >= INT64_MIN - b, "integer overflow during addition (too negative)");
+    }
+    push_i64(a + b);
+}
+static void mw_prim_int_sub (void) {
+    // TODO promote to bigint on overflow
+    int64_t b = pop_i64();
+    int64_t a = pop_i64();
+    if (b >= 0) {
+        EXPECT(a >= INT64_MIN + b, "integer overflow during subtraction (too negative)");
+    } else {
+        EXPECT(a <= INT64_MAX + b, "integer overflow during subtraction (too positive)");
+    }
+    push_i64(a - b);
+}
+static void mw_prim_int_mul (void) {
+    // TODO promote to bigint on overflow
+    int64_t b = pop_i64();
+    int64_t a = pop_i64();
+    // overflow checks for multiplication
+    push_i64(a * b);
+}
+static void mw_prim_int_div (void) {
+    // TODO promote to bigint on overflow
+    int64_t b = pop_i64();
+    int64_t a = pop_i64();
+    EXPECT(b != 0, "divide by zero");
+    EXPECT(!((b == -1) && (a == INT64_MIN)), "overflow during division");
+    int64_t r = a % b;
+    int64_t q = a / b;
+    if (((a < 0) ^ (b < 0)) && r) q--;
+    push_i64(q);
+}
+static void mw_prim_int_mod (void) {
+    int64_t b = pop_i64();
+    int64_t a = pop_i64();
+    EXPECT(b != 0, "divide by zero");
+    if (b == -1) { push_i64(0); return; }
+    int64_t r = a % b;
+    int64_t q = a / b;
+    if (((a < 0) ^ (b < 0)) && r) r += b;
+    push_i64(r);
+}
 
-#define mw_prim_value_lt()  do { VAL v2 = pop_value(); VAL v1 = pop_value(); push_bool(value_cmp(v1, v2) < 0); decref(v1); decref(v2); } while(0)
+static void mw_prim_int_and (void) {
+    uint64_t b = pop_u64();
+    uint64_t a = pop_u64();
+    push_u64(a & b);
+}
+static void mw_prim_int_or (void) {
+    uint64_t b = pop_u64();
+    uint64_t a = pop_u64();
+    push_u64(a | b);
+}
+static void mw_prim_int_xor (void) {
+    uint64_t b = pop_u64();
+    uint64_t a = pop_u64();
+    push_u64(a ^ b);
+}
+static void mw_prim_int_shl (void) {
+    uint64_t b = pop_u64();
+    uint64_t a = pop_u64();
+    push_u64((b >= 64) ? 0 : (a << b));
+}
+static void mw_prim_int_shr (void) {
+    uint64_t b = pop_u64();
+    uint64_t a = pop_u64();
+    push_u64((b >= 64) ? 0 : (a >> b));
+}
 
-#define mw_prim_value_le()  do { VAL v2 = pop_value(); VAL v1 = pop_value(); push_bool(value_cmp(v1, v2) <= 0); decref(v1); decref(v2); } while(0)
+static void mw_prim_bool_true (void) {
+    push_bool(true);
+}
+
+static void mw_prim_bool_false (void) {
+    push_bool(false);
+}
+
+static void mw_prim_bool_and (void) {
+    uint64_t b = pop_bool();
+    uint64_t a = pop_bool();
+    push_bool(a && b);
+}
+
+static void mw_prim_bool_or (void) {
+    uint64_t b = pop_bool();
+    uint64_t a = pop_bool();
+    push_bool(a || b);
+}
+
+static void mw_prim_value_eq (void) {
+    VAL b = pop_value();
+    VAL a = pop_value();
+    int cmp = value_cmp(a,b);
+    decref(a); decref(b);
+    push_u64(cmp == 0);
+}
+static void mw_prim_value_lt (void) {
+    VAL b = pop_value();
+    VAL a = pop_value();
+    int cmp = value_cmp(a,b);
+    decref(a); decref(b);
+    push_u64(cmp < 0);
+}
+static void mw_prim_value_le (void) {
+    VAL b = pop_value();
+    VAL a = pop_value();
+    int cmp = value_cmp(a,b);
+    decref(a); decref(b);
+    push_u64(cmp <= 0);
+}
+
+static void mw_prim_sys_argc (void) {
+    push_i64(global_argc);
+}
+static void mw_prim_sys_argv (void) {
+    push_ptr(global_argv);
+}
 
 static void mw_prim_posix_write (void) {
-    usize n = (usize)pop_u64();
+    size_t n = pop_usize();
     VAL vp = pop_value();
     void* p = value_ptr(vp);
-    int f = (int)pop_i64();
-    push_i64((i64)write(f, p, n));
+    int fd = (int)pop_i64();
+    // TODO compare given size against pointer size
+    push_i64((int64_t)write(fd, p, n));
     decref(vp);
 }
-
 static void mw_prim_posix_read (void) {
-    usize n = (usize)pop_u64();
+    size_t n = pop_usize();
     VAL vp = pop_value();
     void* p = value_ptr(vp);
-    int f = (int)pop_i64();
-    push_i64((i64)read(f,p,n));
+    int fd = (int)pop_i64();
+    // TODO compare given size against pointer size
+    push_i64((int64_t)read(fd,p,n));
     decref(vp);
 }
-
 static void mw_prim_posix_open (void) {
     int m = (int)pop_i64();
     int f = (int)pop_i64();
     VAL vp = pop_value();
-    void* p = value_ptr(vp);
-    push_i64((i64)open(p,f,m));
+    void* path = value_ptr(vp);
+    push_i64((int64_t)open(path,f,m));
     decref(vp);
 }
-
 static void mw_prim_posix_close (void) {
-    int x = (int)pop_i64();
-    push_i64((i64)close(x));
+    int fd = (int)pop_i64();
+    push_i64((int64_t)close(fd));
 }
-
 static void mw_prim_posix_exit (void) {
     int x = (int)pop_i64();
     exit(x);
 }
 
-static void mw_prim_posix_mmap (void) {
-    #ifdef MIRTH_WINDOWS
-        pop_value(); pop_value(); pop_value(); pop_value();
-        usize b = (usize)pop_u64();
-        pop_value();
-        push_ptr(malloc(b));
-    #else
-        int f = (int)pop_i64();
-        int e = (int)pop_i64();
-        int d = (int)pop_i64();
-        int c = (int)pop_i64();
-        usize b = (usize)pop_u64();
-        VAL va = pop_value();
-        void* a = value_ptr(va);
-        void* p = mmap(a,b,c,d,e,f);
-        push_ptr(p);
-        decref(va);
-    #endif
-}
-
-static void do_debug(void) {
+static void mw_prim_debug (void) {
     write(2, "??", 2);
     char c[32] = {0};
     char* cp;
-    usize n;
-    i64 x; i64 y;
-    for (long i = STACK_SIZE-1; i >= (long)stack_counter; i--) {
+    size_t n;
+    int64_t x, y;
+    for (long i = STACK_MAX-1; i >= (long)stack_counter; i--) {
         cp = c+30;
-        x = stack[i].data.vp_i64;
+        x = stack[i].data.i64; // TODO look at tag, be better at this
         n = 1;
         y = x; if (x < 0) { x = -x; }
         do { *cp-- = '0' + (x % 10); x /= 10; n++; } while(x);
@@ -666,30 +513,163 @@ static void do_debug(void) {
     write(2, "\n", 1);
 }
 
-#define mw_prim_debug() do_debug()
+static void mw_prim_value_get (void) {
+    VAL vp = pop_value();
+    VAL *p = value_ptr(vp);
+    push_value(*p);
+    incref(*p);
+    decref(vp);
+}
 
-#define mw_prim_value_get() do { VAL vp = pop_value(); VAL* p = value_ptr(vp); push_value(*p); incref(*p); decref(vp); } while(0)
-#define mw_prim_int_get() do { VAL vp = pop_value(); i64* p = value_ptr(vp); push_i64(*p); decref(vp); } while(0)
-#define mw_prim_ptr_get() do { VAL vp = pop_value(); void** p = value_ptr(vp); push_ptr(*p); decref(vp); } while(0)
-#define mw_prim_u8_get() do { VAL vp = pop_value(); u8* p = value_ptr(vp); push_u8(*p); decref(vp); } while(0)
-#define mw_prim_u16_get() do { VAL vp = pop_value(); u16* p = value_ptr(vp); push_u16(*p); decref(vp); } while(0)
-#define mw_prim_u32_get() do { VAL vp = pop_value(); u32* p = value_ptr(vp); push_u32(*p); decref(vp); } while(0)
-#define mw_prim_u64_get() do { VAL vp = pop_value(); u64* p = value_ptr(vp); push_u64(*p); decref(vp); } while(0)
-#define mw_prim_i8_get() do { VAL vp = pop_value(); i8* p = value_ptr(vp); push_i8(*p); decref(vp); } while(0)
-#define mw_prim_i16_get() do { VAL vp = pop_value(); i16* p = value_ptr(vp); push_i16(*p); decref(vp); } while(0)
-#define mw_prim_i32_get() do { VAL vp = pop_value(); i32* p = value_ptr(vp); push_i32(*p); decref(vp); } while(0)
-#define mw_prim_i64_get() do { VAL vp = pop_value(); i64* p = value_ptr(vp); push_i64(*p); decref(vp); } while(0)
-#define mw_prim_int_set() do { VAL vp = pop_value(); i64* p = value_ptr(vp); *p = pop_i64(); decref(vp); } while(0)
-#define mw_prim_u8_set() do { VAL vp = pop_value(); u8* p = value_ptr(vp); *p = pop_u8(); decref(vp); } while(0)
-#define mw_prim_u16_set() do { VAL vp = pop_value(); u16* p = value_ptr(vp); *p = pop_u16(); decref(vp); } while(0)
-#define mw_prim_u32_set() do { VAL vp = pop_value(); u32* p = value_ptr(vp); *p = pop_u32(); decref(vp); } while(0)
-#define mw_prim_u64_set() do { VAL vp = pop_value(); u64* p = value_ptr(vp); *p = pop_u64(); decref(vp); } while(0)
-#define mw_prim_i8_set() do { VAL vp = pop_value(); i8* p = value_ptr(vp); *p = pop_i8(); decref(vp); } while(0)
-#define mw_prim_i16_set() do { VAL vp = pop_value(); i16* p = value_ptr(vp); *p = pop_i16(); decref(vp); } while(0)
-#define mw_prim_i32_set() do { VAL vp = pop_value(); i32* p = value_ptr(vp); *p = pop_i32(); decref(vp); } while(0)
-#define mw_prim_i64_set() do { VAL vp = pop_value(); i64* p = value_ptr(vp); *p = pop_i64(); decref(vp); } while(0)
-#define mw_prim_ptr_set() do { VAL vp = pop_value(); VAL vx = pop_value(); void** p = value_ptr(vp); *p = value_ptr(vx); decref(vp); decref(vx); } while(0)
-#define mw_prim_value_set() do { VAL vp = pop_value(); VAL vx = pop_value(); VAL* p = value_ptr(vp); VAL old = *p; *p = vx; decref(old); decref(vp); } while(0)
+static void mw_prim_int_get (void) {
+    VAL vp = pop_value();
+    int64_t *p = value_ptr(vp);
+    push_i64(*p);
+    decref(vp);
+}
+
+static void mw_prim_ptr_get (void) {
+    VAL vp = pop_value();
+    void **p = value_ptr(vp);
+    push_ptr(*p);
+    decref(vp);
+}
+
+static void mw_prim_u8_get (void) {
+    VAL vp = pop_value();
+    uint8_t *p = value_ptr(vp);
+    push_u8(*p);
+    decref(vp);
+}
+
+static void mw_prim_u16_get (void) {
+    VAL vp = pop_value();
+    uint16_t *p = value_ptr(vp);
+    push_u16(*p);
+    decref(vp);
+}
+
+static void mw_prim_u32_get (void) {
+    VAL vp = pop_value();
+    uint32_t *p = value_ptr(vp);
+    push_u32(*p);
+    decref(vp);
+}
+
+static void mw_prim_u64_get (void) {
+    VAL vp = pop_value();
+    uint64_t *p = value_ptr(vp);
+    push_u64(*p);
+    decref(vp);
+}
+
+static void mw_prim_i8_get (void) {
+    VAL vp = pop_value();
+    int8_t *p = value_ptr(vp);
+    push_i8(*p);
+    decref(vp);
+}
+
+static void mw_prim_i16_get (void) {
+    VAL vp = pop_value();
+    int16_t *p = value_ptr(vp);
+    push_i16(*p);
+    decref(vp);
+}
+
+static void mw_prim_i32_get (void) {
+    VAL vp = pop_value();
+    int32_t *p = value_ptr(vp);
+    push_i32(*p);
+    decref(vp);
+}
+
+static void mw_prim_i64_get (void) {
+    VAL vp = pop_value();
+    int64_t *p = value_ptr(vp);
+    push_i64(*p);
+    decref(vp);
+}
+
+static void mw_prim_value_set (void) {
+    VAL vp = pop_value();
+    VAL *p = value_ptr(vp);
+    decref(*p);
+    *p = pop_value();
+    decref(vp);
+}
+
+static void mw_prim_int_set (void) {
+    VAL vp = pop_value();
+    int64_t *p = value_ptr(vp);
+    *p = pop_i64();
+    decref(vp);
+}
+
+static void mw_prim_ptr_set (void) {
+    VAL vp = pop_value();
+    void **p = value_ptr(vp);
+    *p = pop_ptr();
+    decref(vp);
+}
+
+static void mw_prim_u8_set (void) {
+    VAL vp = pop_value();
+    uint8_t *p = value_ptr(vp);
+    *p = pop_u8();
+    decref(vp);
+}
+
+static void mw_prim_u16_set (void) {
+    VAL vp = pop_value();
+    uint16_t *p = value_ptr(vp);
+    *p = pop_u16();
+    decref(vp);
+}
+
+static void mw_prim_u32_set (void) {
+    VAL vp = pop_value();
+    uint32_t *p = value_ptr(vp);
+    *p = pop_u32();
+    decref(vp);
+}
+
+static void mw_prim_u64_set (void) {
+    VAL vp = pop_value();
+    uint64_t *p = value_ptr(vp);
+    *p = pop_u64();
+    decref(vp);
+}
+
+static void mw_prim_i8_set (void) {
+    VAL vp = pop_value();
+    int8_t *p = value_ptr(vp);
+    *p = pop_i8();
+    decref(vp);
+}
+
+static void mw_prim_i16_set (void) {
+    VAL vp = pop_value();
+    int16_t *p = value_ptr(vp);
+    *p = pop_i16();
+    decref(vp);
+}
+
+static void mw_prim_i32_set (void) {
+    VAL vp = pop_value();
+    int32_t *p = value_ptr(vp);
+    *p = pop_i32();
+    decref(vp);
+}
+
+static void mw_prim_i64_set (void) {
+    VAL vp = pop_value();
+    int64_t *p = value_ptr(vp);
+    *p = pop_i64();
+    decref(vp);
+}
+
+
 #if defined(MIRTH_WINDOWS)
 #define mw_prim_sys_os() push_u64(1)
 #elif defined(MIRTH_LINUX)
@@ -700,95 +680,74 @@ static void do_debug(void) {
 #define mw_prim_sys_os() push_u64(0)
 #endif
 
-#define mw_prim_unsafe_cast() 0
+static void mw_prim_unsafe_cast (void) { }
 
-#define mw_prim_run() do_run()
+static void mw_prim_run (void) {
+    VAL f = pop_value();
+    run_value(f);
+}
 
 static void mw_prim_ptr_add (void) {
     VAL vp = pop_value();
-    i64 y = pop_i64();
-    if (vp.tag == VT_U64) {
-        push_i64(y + vp.data.vp_i64);
-    } else if (value_has_ptr_offset(vp)) {
-        VAL car, cdr;
-        value_uncons(vp, &car, &cdr);
-        cdr.data.vp_i64 += y;
-        push_value(mkcell(car, cdr));
+    uint64_t y = pop_u64();
+    size_t i = get_cell_index(vp);
+    if (i) {
+        CONS *cell = heap+i;
+        ASSERT(cell->refs > 1);
+        cell->refs--;
+        void* ptr = (void*)(cell->cdr.data.charptr + y);
+        size_t size = (cell->car.data.usize > y ? cell->car.data.usize - y : 0);
+        push_value(mkptr_shared(ptr,size));
     } else {
-        VAL vy = { .tag = VT_U64, .data = { .vp_i64 = y } };
-        push_value(mkcell(vp, vy));
+        push_u64(y + vp.data.u64);
     }
 }
-#define mw_prim_bool_true() push_bool(true)
-#define mw_prim_bool_false() push_bool(false)
-#define mw_prim_bool_and() do { stack[stack_counter+1].data.vp_u64 = stack[stack_counter+1].data.vp_u64 && stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
-#define mw_prim_bool_or() do { stack[stack_counter+1].data.vp_u64 = stack[stack_counter+1].data.vp_u64 || stack[stack_counter].data.vp_u64; stack_counter++; } while(0)
-#define mw_prim_sys_argc() push_i64(global_argc)
-#define mw_prim_sys_argv() push_ptr(global_argv)
-#define mw_prim_ptr_size() push_u64((u64)sizeof(void*))
+#define mw_prim_ptr_size() push_u64((uint64_t)sizeof(void*))
 static void mw_prim_ptr_alloc (void) {
-    i64 psize = pop_i64();
+    int64_t psize = pop_i64();
     if (psize > 0) {
-        usize size = (usize)psize;
+        size_t size = (size_t)psize;
         void* ptr = calloc(1,size);
-        VAL vsize = { .tag = VT_U64, .data = { .vp_i64 = psize } };
-        VAL vptr = { .tag = VT_U64, .data = { .vp_ptr = ptr } };
-        VAL v = mkcell_freecdr(vsize, vptr);
+        VAL v = mkptr_owned(ptr, size);
         push_value(v);
     } else {
         push_u64(0);
     }
 }
 
-static void* alloc_but_copy (usize dstn, void* src, usize srcn) {
+static void* alloc_but_copy (size_t dstn, void* src, size_t srcn) {
     void* dst = calloc(1,dstn);
-    if (src) {
-        usize cpyn = (dstn > srcn) ? srcn : dstn;
+    if (src && srcn) {
+        size_t cpyn = (dstn > srcn) ? srcn : dstn;
         memcpy(dst, src, cpyn);
     }
     return dst;
 }
 static void mw_prim_ptr_realloc (void) {
-    i64 psize = pop_i64();
+    int64_t psize = pop_i64();
     VAL vptr = pop_value();
     if (psize <= 0) {
         decref(vptr);
         push_u64(0);
         return;
-    }
-    usize new_size = (usize)psize;
-    if ((vptr.tag == VT_C64) && !value_has_ptr_offset(vptr)) {
-        usize cell_index = get_cell_index(vptr);
-        CONS *cell = heap + cell_index;
-        usize old_size = (usize)cell->car.data.vp_u64;
-        void* old_ptr = cell->cdr.data.vp_ptr;
-        void* new_ptr = realloc(old_ptr, new_size);
-        cell->car.data.vp_i64 = psize;
-        cell->cdr.data.vp_ptr = new_ptr;
-        if (old_size < new_size) {
-            memset((char*)new_ptr + old_size, 0, new_size - old_size);
-        }
-        push_value(vptr);
     } else {
+        size_t new_size = (size_t)psize;
         void* old_ptr = value_ptr(vptr);
-        usize old_size = (usize)value_ptr_size(vptr);
+        size_t old_size = value_ptr_size(vptr);
         void* new_ptr = alloc_but_copy(new_size, old_ptr, old_size);
-        VAL vsize = { .tag = VT_U64, .data = { .vp_i64 = psize } };
-        VAL vnew = { .tag = VT_U64, .data = { .vp_ptr = new_ptr } };
-        VAL v = mkcell_freecdr(vsize, vnew);
-        push_value(v);
+        push_value(mkptr_owned(new_ptr, new_size));
         decref(vptr);
     }
 }
 
 static void mw_prim_ptr_copy (void) {
     VAL vdst = pop_value();
-    i64 ilen = pop_i64();
+    int64_t ilen = pop_i64();
     VAL vsrc = pop_value();
     void* src = value_ptr(vsrc);
     void* dst = value_ptr(vdst);
     if (src && dst && (ilen > 0)) {
-        memcpy(dst, src, (usize)ilen);
+        memcpy(dst, src, (size_t)ilen);
     }
     decref(vsrc);
     decref(vdst);
@@ -796,16 +755,21 @@ static void mw_prim_ptr_copy (void) {
 
 static void mw_prim_ptr_fill (void) {
     VAL vdst = pop_value();
-    i64 ilen = pop_i64();
-    i64 val = pop_i64();
+    int64_t ilen = pop_i64();
+    int64_t val = pop_i64();
     void* dst = value_ptr(vdst);
     if (dst && (ilen > 0)) {
-        memset(dst, (int)val, (usize)ilen);
+        memset(dst, (int)val, (size_t)ilen);
     }
     decref(vdst);
 }
 
-#define mw_prim_ptr_raw() do { usize i = stack_counter; push_ptr(value_ptr(stack[i])); } while(0)
+static void mw_prim_ptr_raw (void) {
+    VAL vptr = top_value();
+    void *ptr = value_ptr(vptr);
+    push_ptr(ptr);
+}
+
 static void mw_prim_str_eq (void) {
     VAL vptr1 = pop_value();
     VAL vptr2 = pop_value();
@@ -817,23 +781,84 @@ static void mw_prim_str_eq (void) {
 }
 
 static void mw_prim_str_alloc (void) {
-    i64 psize = pop_i64();
-    push_i64(psize + 4);
+    // strings have a 4 byte sentinel of zeros
+    int64_t psize = pop_i64();
+    push_i64(psize +(psize >= 0 ? 4 : 0));
     mw_prim_ptr_alloc();
 }
 
-#define mw_prim_str_base() 0
+static void mw_prim_str_base (void) { }
 
-#define mw_prim_str_size() do { VAL v = stack[stack_counter]; if (!v.data.vp_u64) { push_u64(0); } else if (v.tag == VT_U64) { push_u64((u64)strlen(v.data.vp_ptr)); } else { push_i64(value_ptr_size(v)-4); }  } while(0)
+static void mw_prim_str_size (void) {
+    VAL v = stack[stack_counter];
+    if (!v.data.u64) {
+        push_u64(0);
+    } else if (v.tag == TAG_INT) {
+        push_u64((uint64_t)strlen(v.data.ptr));
+    } else {
+        push_i64(value_ptr_size(v)-4);
+    }
+}
 
-#define do_pack_cons() do { VAL cdr = pop_value(); VAL car = pop_value(); push_value(mkcell(car,cdr)); } while(0)
-#define mw_prim_pack_nil()  push_u64(0)
-#define mw_prim_pack_cons() do_pack_cons();
-#define mw_prim_pack_uncons() do_pack_uncons();
+static void mw_prim_pack_nil (void) {
+    push_u64(0);
+}
 
-#define mw_prim_mut_new() do { VAL car = pop_value(); VAL cdr = { 0 }; push_value(mkcell_raw(car,cdr)); } while(0)
-#define mw_prim_mut_get() do { VAL mut = pop_value(); if (mut.tag == VT_U64 && mut.data.vp_valueptr) { VAL val =*mut.data.vp_valueptr; push_value(val); incref(val); } else { push_value(mut); do_pack_uncons(); pop_value(); } } while(0)
-#define mw_prim_mut_set() do { VAL mut = pop_value(); VAL newval = pop_value(); push_value(mut); if (mut.tag == VT_U64 && mut.data.vp_valueptr) { VAL oldval = *mut.data.vp_valueptr; *mut.data.vp_valueptr = newval; decref(oldval); } else { usize cellidx = get_cell_index(mut); if (cellidx) { CONS* cell = heap + cellidx; VAL oldval = cell->car; cell->car = newval; decref(oldval); } else { decref(newval); } } } while(0)
+static void mw_prim_pack_cons (void) {
+    VAL cdr = pop_value();
+    VAL car = pop_value();
+    push_value(mkcell(car,cdr));
+}
+
+static void mw_prim_pack_uncons (void) {
+    VAL v = pop_value();
+    VAL car,cdr;
+    value_uncons(v, &car, &cdr);
+    push_value(car);
+    push_value(cdr);
+    incref(car); incref(cdr); decref(v);
+}
+
+static void mw_prim_mut_new (void) {
+    VAL car = pop_value();
+    VAL cdr = {0};
+    push_value(mkcell_raw(car,cdr,false));
+}
+static void mw_prim_mut_get (void) {
+    VAL mut = pop_value();
+    if ((mut.tag == TAG_INT) && mut.data.ptr) {
+        VAL v = *mut.data.valptr;
+        push_value(v);
+        incref(v);
+    } else {
+        VAL car,cdr;
+        value_uncons(mut, &car, &cdr);
+        ASSERT((cdr.tag == 0) && (cdr.data.u64 == 0));
+        push_value(car);
+        incref(car);
+        decref(mut);
+    }
+}
+static void mw_prim_mut_set (void) {
+    VAL mut = pop_value();
+    VAL newval = pop_value();
+    push_value(mut);
+    if ((mut.tag == TAG_INT) && mut.data.ptr) {
+        VAL oldval = *mut.data.valptr;
+        *mut.data.valptr = newval;
+        decref(oldval);
+    } else {
+        size_t i = get_cell_index(mut);
+        if (i) {
+            CONS *cell = heap+i;
+            VAL oldval = cell->car;
+            cell->car = newval;
+            decref(oldval);
+        } else {
+            decref(newval);
+        }
+    }
+}
 
 /* GENERATED C99 */
 
@@ -1686,95 +1711,95 @@ static void mw_PRIM_SYNTAX_ARROW (void) {
 }
 
 static void mw_STR_BUF (void) {
-    static u8 b[8192] = {0};
+    static uint8_t b[8192] = {0};
     push_ptr(&b);
 }
 static void mw_INPUT_BUFFER (void) {
-    static u8 b[8208] = {0};
+    static uint8_t b[8208] = {0};
     push_ptr(&b);
 }
 static void mw_Name_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_NAME_HASH_TABLE (void) {
-    static u8 b[524288] = {0};
+    static uint8_t b[524288] = {0};
     push_ptr(&b);
 }
 static void mw_Module_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Token_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Buffer_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_MetaVar_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Data_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Tag_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Atom_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Arrow_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Lambda_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Block_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Match_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Case_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Var_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Word_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Table_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Field_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_CODEGEN_BUF (void) {
-    static u8 b[256] = {0};
+    static uint8_t b[256] = {0};
     push_ptr(&b);
 }
 static void mw_External_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 static void mw_Variable_2E_NUM (void) {
-    static u8 b[8] = {0};
+    static uint8_t b[8] = {0};
     push_ptr(&b);
 }
 
@@ -1855,10 +1880,10 @@ void mw_ab_arrow() {
     push_ptr(&v);
 }
 
-i64 stat (i64, i64);
+int64_t stat (int64_t, int64_t);
 static void mw_stat (void) {
-    i64 x1 = pop_i64();
-    i64 x0 = pop_i64();
+    int64_t x1 = pop_i64();
+    int64_t x0 = pop_i64();
     push_i64(stat(x0, x1));
 }
 
@@ -1889,7 +1914,7 @@ static void mw_true (void);
 static void mw_false (void);
 static void mw__26__26_ (void);
 static void mw__7C__7C_ (void);
-static void mw_ptr_2B_ (void);
+static void mw_with_ptr_2B_ (void);
 static void mw_ptr_40_ (void);
 static void mw_ptr_21_ (void);
 static void mw__7C_ptr_7C_ (void);
@@ -1920,7 +1945,6 @@ static void mw_posix_write_21_ (void);
 static void mw_posix_open_21_ (void);
 static void mw_posix_close_21_ (void);
 static void mw_posix_exit_21_ (void);
-static void mw_posix_mmap_21_ (void);
 static void mw_rotr (void);
 static void mw_rotl (void);
 static void mw_over (void);
@@ -3131,6 +3155,8 @@ static void mb_typecheck_everything_21__2 (void);
 static void mb_main_1 (void);
 static void mb_main_2 (void);
 static void mb_ptr_40__40__1 (void);
+static void mb_ptr_40__40__2 (void);
+static void mb_with_ptr_2B__2 (void);
 static void mb_with_raw_ptr_2 (void);
 static void mb_Int__3E_OS_1 (void);
 static void mb_Int__3E_OS_2 (void);
@@ -3180,10 +3206,17 @@ static void mb_max_2 (void);
 static void mb_min_1 (void);
 static void mb_min_2 (void);
 static void mb_ptr_21__21__1 (void);
+static void mb_ptr_21__21__2 (void);
+static void mb_u8_40__40__1 (void);
+static void mb_u8_21__21__1 (void);
 static void mb_int_40__40__1 (void);
+static void mb_int_40__40__2 (void);
 static void mb_int_21__21__1 (void);
+static void mb_int_21__21__2 (void);
 static void mb_value_40__40__1 (void);
+static void mb_value_40__40__2 (void);
 static void mb_value_21__21__1 (void);
+static void mb_value_21__21__2 (void);
 static void mb_in_range_1 (void);
 static void mb_in_range_2 (void);
 static void mb_abs_1 (void);
@@ -3214,6 +3247,7 @@ static void mb_str_buf_read_21__2 (void);
 static void mb_str_buf_length_21__1 (void);
 static void mb_print_char_21__1 (void);
 static void mb_build_str_21__2 (void);
+static void mb_str_buf_push_char_21__1 (void);
 static void mb_trace_char_21__1 (void);
 static void mb_int_write_21__1 (void);
 static void mb_str_buf_int_21__1 (void);
@@ -3232,6 +3266,8 @@ static void mb_read_file_21__4 (void);
 static void mb_read_file_21__5 (void);
 static void mb_read_file_21__6 (void);
 static void mb_read_file_21__7 (void);
+static void mb_read_file_21__8 (void);
+static void mb_read_file_21__9 (void);
 static void mb_open_file_21__1 (void);
 static void mb_open_file_21__2 (void);
 static void mb_create_file_21__1 (void);
@@ -3243,9 +3279,11 @@ static void mb_is_directory_3F__1 (void);
 static void mb_is_directory_3F__2 (void);
 static void mb_is_directory_3F__3 (void);
 static void mb_is_directory_3F__4 (void);
+static void mb_st_mode_40__4 (void);
 static void mb_char_40__1 (void);
 static void mb_char_40__2 (void);
 static void mb_str_tail_1 (void);
+static void mb_str_tail_2 (void);
 static void mb_str_length_1 (void);
 static void mb_str_length_2 (void);
 static void mb_str_length_3 (void);
@@ -3260,11 +3298,14 @@ static void mb_for_11 (void);
 static void mb_for_12 (void);
 static void mb_str_copy_partial_21__1 (void);
 static void mb_str_copy_partial_21__2 (void);
+static void mb_str_copy_partial_21__3 (void);
 static void mb_str_is_empty_1 (void);
 static void mb_str_is_empty_2 (void);
 static void mb_str_buf_dup_21__1 (void);
+static void mb_str_buf_char_40__1 (void);
 static void mb_char_21__1 (void);
 static void mb_char_width_1 (void);
+static void mb_str_buf_push_ptr_21__1 (void);
 static void mb_str_buf_reverse_21__1 (void);
 static void mb_str_buf_reverse_21__2 (void);
 static void mb_str_buf_reverse_21__3 (void);
@@ -3293,6 +3334,7 @@ static void mb_str_bytes_1 (void);
 static void mb_str_bytes_2 (void);
 static void mb_str_bytes_3 (void);
 static void mb_str_bytes_4 (void);
+static void mb_str_bytes_5 (void);
 static void mb_L4_2B__1 (void);
 static void mb_L5_2B__1 (void);
 static void mb_L6_2B__1 (void);
@@ -3468,22 +3510,26 @@ static void mb_char_21__precise_5 (void);
 static void mb_char_21__precise_7 (void);
 static void mb_char_21__precise_6 (void);
 static void mb_char_21__precise_8 (void);
-static void mb_char_21__precise_11 (void);
+static void mb_char_21__precise_12 (void);
 static void mb_char_21__precise_9 (void);
 static void mb_char_21__precise_10 (void);
-static void mb_char_21__precise_12 (void);
+static void mb_char_21__precise_11 (void);
+static void mb_char_21__precise_13 (void);
 static void mb_char_21__2B__2B__1 (void);
+static void mb_char_21__2B__2B__2 (void);
 static void mb_char_3F__2B__2B__1 (void);
+static void mb_char_3F__2B__2B__2 (void);
 static void mb_is_whitespace_3F__1 (void);
 static void mb_is_whitespace_3F__2 (void);
 static void mb_is_hexdigit_3F__1 (void);
 static void mb_is_hexdigit_3F__2 (void);
 static void mb_is_sign_3F__1 (void);
 static void mb_is_string_end_3F__1 (void);
-static void mb_is_string_end_3F__2 (void);
 static void mb_is_name_char_3F__1 (void);
 static void mb_is_special_char_3F__1 (void);
 static void mb_is_special_char_3F__2 (void);
+static void mb_is_special_char_3F__3 (void);
+static void mb_is_special_char_3F__4 (void);
 static void mb_path_21__1 (void);
 static void mb_path_separator_1 (void);
 static void mb_path_separator_2 (void);
@@ -3498,22 +3544,27 @@ static void mb_input_fill_buffer_21__4 (void);
 static void mb_input_end_21__1 (void);
 static void mb_input_end_21__2 (void);
 static void mb_input_peek_1 (void);
+static void mb_input_peek_3 (void);
 static void mb_input_peek_2 (void);
 static void mb_input_move_21__1 (void);
+static void mb_input_move_21__3 (void);
 static void mb_input_move_21__2 (void);
 static void mb_input_prepare_for_more_21__1 (void);
-static void mb_input_prepare_for_more_21__6 (void);
+static void mb_input_prepare_for_more_21__7 (void);
 static void mb_input_prepare_for_more_21__2 (void);
 static void mb_input_prepare_for_more_21__3 (void);
 static void mb_input_prepare_for_more_21__4 (void);
 static void mb_input_prepare_for_more_21__5 (void);
+static void mb_input_prepare_for_more_21__6 (void);
 static void mb_input_fill_buffer_tragic_21__1 (void);
-static void mb_input_fill_buffer_tragic_21__7 (void);
 static void mb_input_fill_buffer_tragic_21__2 (void);
-static void mb_input_fill_buffer_tragic_21__6 (void);
+static void mb_input_fill_buffer_tragic_21__9 (void);
 static void mb_input_fill_buffer_tragic_21__3 (void);
-static void mb_input_fill_buffer_tragic_21__5 (void);
 static void mb_input_fill_buffer_tragic_21__4 (void);
+static void mb_input_fill_buffer_tragic_21__8 (void);
+static void mb_input_fill_buffer_tragic_21__5 (void);
+static void mb_input_fill_buffer_tragic_21__7 (void);
+static void mb_input_fill_buffer_tragic_21__6 (void);
 static void mb_module_source_path_1 (void);
 static void mb_module_source_path_2 (void);
 static void mb_lexer_next_21__1 (void);
@@ -3780,13 +3831,16 @@ static void mb__2E_b_3 (void);
 static void mb__2E_c_1 (void);
 static void mb__2E_c_2 (void);
 static void mb__2E_c_3 (void);
+static void mb__2E_c_4 (void);
 static void mb__2E__1 (void);
-static void mb__2E__5 (void);
+static void mb__2E__6 (void);
 static void mb__2E__2 (void);
 static void mb__2E__3 (void);
 static void mb__2E__4 (void);
-static void mb__2E__6 (void);
+static void mb__2E__5 (void);
 static void mb__2E__7 (void);
+static void mb__2E__8 (void);
+static void mb__2E__9 (void);
 static void mb_run_output_c99_21__1 (void);
 static void mb_run_output_c99_21__2 (void);
 static void mb_c99_tags_21__1 (void);
@@ -4599,7 +4653,7 @@ static void mw_run (void){
         VAL var_f = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         decref(var_f);
     }
 }
@@ -4688,8 +4742,21 @@ static void mw__7C__7C_ (void){
     mw_prim_bool_or();
 }
 
-static void mw_ptr_2B_ (void){
-    mw_prim_ptr_add();
+static void mw_with_ptr_2B_ (void){
+    {
+        VAL var_f = pop_value();
+        mw_dup();
+        {
+            VAL d3 = pop_value();
+            mw_prim_ptr_add();
+            push_value(var_f);
+            incref(var_f);
+            mw_prim_run();
+            push_value(d3);
+        }
+        mw_drop();
+        decref(var_f);
+    }
 }
 
 static void mw_ptr_40_ (void){
@@ -4714,7 +4781,7 @@ static void mw_with_raw_ptr (void){
             VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
-            do_run();
+            mw_prim_run();
             push_value(d3);
         }
         decref(var_f);
@@ -4788,22 +4855,22 @@ static void mw_i64_21_ (void){
 static void mw_OS__3E_Int (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_i64(0LL);
             break;
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             push_i64(1LL);
             break;
         case 2LL:
-            do_drop();
+            mw_prim_drop();
             push_i64(2LL);
             break;
         case 3LL:
-            do_drop();
+            mw_prim_drop();
             push_i64(3LL);
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -4860,7 +4927,7 @@ static void mw_posix_write_21_ (void){
 static void mw_posix_open_21_ (void){
     push_u64(0);
     push_fnptr(&mb_posix_open_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
     mw_prim_posix_open();
 }
@@ -4871,10 +4938,6 @@ static void mw_posix_close_21_ (void){
 
 static void mw_posix_exit_21_ (void){
     mw_prim_posix_exit();
-}
-
-static void mw_posix_mmap_21_ (void){
-    mw_prim_posix_mmap();
 }
 
 static void mw_rotr (void){
@@ -4965,7 +5028,7 @@ static void mw_dip_3F_ (void){
             VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
-            do_run();
+            mw_prim_run();
             push_value(d3);
         }
         mw_swap();
@@ -4981,7 +5044,7 @@ static void mw_dip_27_ (void){
             VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
-            do_run();
+            mw_prim_run();
             push_value(d3);
         }
         mw_swap();
@@ -4998,7 +5061,7 @@ static void mw_dip2 (void){
                 VAL d4 = pop_value();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_value(d3);
@@ -5018,7 +5081,7 @@ static void mw_dip3 (void){
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 push_value(d4);
@@ -5037,7 +5100,7 @@ static void mw_sip (void){
             VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
-            do_run();
+            mw_prim_run();
             push_value(d3);
         }
         decref(var_f);
@@ -5054,7 +5117,7 @@ static void mw_sip2 (void){
                 VAL d4 = pop_value();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_value(d3);
@@ -5107,7 +5170,7 @@ static void mw_or (void){
         } else {
             push_value(var_f);
             incref(var_f);
-            do_run();
+            mw_prim_run();
         }
         decref(var_f);
     }
@@ -5119,7 +5182,7 @@ static void mw_and (void){
         if (pop_u64()) {
             push_value(var_f);
             incref(var_f);
-            do_run();
+            mw_prim_run();
         } else {
             mw_false();
         }
@@ -5139,7 +5202,7 @@ static void mw_repeat (void){
                 VAL d4 = pop_value();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             mw_1_();
@@ -5157,9 +5220,9 @@ static void mw_count (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_count_2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_repeat();
         mw_drop();
         decref(var_f);
@@ -5175,9 +5238,9 @@ static void mw_countdown (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_countdown_2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_repeat();
         mw_drop();
         decref(var_f);
@@ -5342,8 +5405,10 @@ static void mw_ptr_40__40_ (void){
         mw_ptrs();
         push_value(d2);
     }
-    mw_ptr_2B_();
-    mw_ptr_40_();
+    push_u64(0);
+    push_fnptr(&mb_ptr_40__40__2);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_ptr_21__21_ (void){
@@ -5352,18 +5417,24 @@ static void mw_ptr_21__21_ (void){
         mw_ptrs();
         push_value(d2);
     }
-    mw_ptr_2B_();
-    mw_ptr_21_();
+    push_u64(0);
+    push_fnptr(&mb_ptr_21__21__2);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_u8_40__40_ (void){
-    mw_ptr_2B_();
-    mw_u8_40_();
+    push_u64(0);
+    push_fnptr(&mb_u8_40__40__1);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_u8_21__21_ (void){
-    mw_ptr_2B_();
-    mw_u8_21_();
+    push_u64(0);
+    push_fnptr(&mb_u8_21__21__1);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_ints (void){
@@ -5377,8 +5448,10 @@ static void mw_int_40__40_ (void){
         mw_ints();
         push_value(d2);
     }
-    mw_ptr_2B_();
-    mw_int_40_();
+    push_u64(0);
+    push_fnptr(&mb_int_40__40__2);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_int_21__21_ (void){
@@ -5387,8 +5460,10 @@ static void mw_int_21__21_ (void){
         mw_ints();
         push_value(d2);
     }
-    mw_ptr_2B_();
-    mw_int_21_();
+    push_u64(0);
+    push_fnptr(&mb_int_21__21__2);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_values (void){
@@ -5402,8 +5477,10 @@ static void mw_value_40__40_ (void){
         mw_values();
         push_value(d2);
     }
-    mw_ptr_2B_();
-    mw_value_40_();
+    push_u64(0);
+    push_fnptr(&mb_value_40__40__2);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_value_21__21_ (void){
@@ -5412,8 +5489,10 @@ static void mw_value_21__21_ (void){
         mw_values();
         push_value(d2);
     }
-    mw_ptr_2B_();
-    mw_value_21_();
+    push_u64(0);
+    push_fnptr(&mb_value_21__21__2);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_in_range (void){
@@ -5660,7 +5739,7 @@ static void mw_modify (void){
             mw__40_();
             push_value(var_f);
             incref(var_f);
-            do_run();
+            mw_prim_run();
             push_value(d3);
         }
         mw__21_();
@@ -5689,15 +5768,15 @@ static void mw_is_some_3F_ (void){
 static void mw_unwrap (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("tried to unwrap NONE\0\0\0\0");
             mw_panic_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_id();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -5706,16 +5785,16 @@ static void mw_unwrap_or (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 mw_id();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -5726,17 +5805,17 @@ static void mw_maybe_map (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_NONE();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 mw_SOME();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -5747,16 +5826,16 @@ static void mw_maybe_bind (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_NONE();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -5767,16 +5846,16 @@ static void mw_maybe_for (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_id();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -5787,14 +5866,14 @@ static void mw_maybe_filter (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_NONE();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 if (pop_u64()) {
                     mw_SOME();
                 } else {
@@ -5802,7 +5881,7 @@ static void mw_maybe_filter (void){
                     mw_NONE();
                 }
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -5814,17 +5893,17 @@ static void mw_while_some (void){
         VAL var_f = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         while(1) {
             mw_is_some_3F_();
             if (!pop_u64()) break;
             mw_unwrap();
             push_value(var_g);
             incref(var_g);
-            do_run();
+            mw_prim_run();
             push_value(var_f);
             incref(var_f);
-            do_run();
+            mw_prim_run();
         }
         mw_drop();
         decref(var_g);
@@ -5979,134 +6058,134 @@ static void mw_L12_2B_ (void){
 static void mw_List_2B___3E_List (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_L1();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L2();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L3();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_LCAT();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_List__3E_List_2B_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_NONE();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_L1_2B_();
             mw_SOME();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L2_2B_();
             mw_SOME();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L3_2B_();
             mw_SOME();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_LCAT_2B_();
             mw_SOME();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_len (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_i64(0LL);
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             push_i64(1LL);
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop2();
             push_i64(2LL);
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop3();
             push_i64(3LL);
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_drop2();
                 push_value(d4);
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_len_2B_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             push_i64(1LL);
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop2();
             push_i64(2LL);
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop3();
             push_i64(3LL);
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_drop2();
                 push_value(d4);
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -6123,28 +6202,28 @@ static void mw_len_2B__3F_ (void){
 static void mw_cons_2B_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_L1_2B_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_L2_2B_();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L3_2B_();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L4_2B_();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_1_2B_();
             {
                 VAL d4 = pop_value();
@@ -6158,7 +6237,7 @@ static void mw_cons_2B_ (void){
             }
             mw_LCAT_2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -6166,31 +6245,31 @@ static void mw_snoc_2B_ (void){
     mw_swap();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_L1_2B_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_L2_2B_();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_rotl();
             mw_L3_2B_();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_rot4l();
             mw_L4_2B_();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_1_2B_();
             {
                 VAL d4 = pop_value();
@@ -6201,7 +6280,7 @@ static void mw_snoc_2B_ (void){
             }
             mw_LCAT_2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -6232,24 +6311,24 @@ static void mw_snoc (void){
 static void mw_uncons (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_L0();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L1();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L2();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             {
                 VAL d4 = pop_value();
@@ -6259,14 +6338,14 @@ static void mw_uncons (void){
             mw_cat__2B_();
             mw_List_2B___3E_List();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_unsnoc (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             {
                 VAL d4 = pop_value();
                 mw_L0();
@@ -6274,8 +6353,8 @@ static void mw_unsnoc (void){
             }
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_L1();
@@ -6283,9 +6362,9 @@ static void mw_unsnoc (void){
             }
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_L2();
@@ -6293,9 +6372,9 @@ static void mw_unsnoc (void){
             }
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             mw_unsnoc();
             {
@@ -6305,7 +6384,7 @@ static void mw_unsnoc (void){
                 push_value(d4);
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -6314,27 +6393,27 @@ static void mw_cat (void){
     mw_List__3E_List_2B_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_id();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_List__3E_List_2B_();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_List_2B___3E_List();
                     break;
                 case 1LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_cat_2B_();
                     mw_List_2B___3E_List();
                     break;
-                default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+                default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
             
 }            break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -6343,15 +6422,15 @@ static void mw_cat__2B_ (void){
     mw_List__3E_List_2B_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_id();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_cat_2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -6359,14 +6438,14 @@ static void mw_cat_2B__ (void){
     mw_List__3E_List_2B_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_id();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_cat_2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -6374,28 +6453,28 @@ static void mw_cat_2B_ (void){
     mw_swap();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_cons_2B__2B_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_rotl();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_L3_2B_();
                     break;
                 case 1LL:
-                    do_pack_uncons(); do_drop();
-                    do_pack_uncons(); do_swap();
+                    mw_prim_pack_uncons(); mw_prim_drop();
+                    mw_prim_pack_uncons(); mw_prim_swap();
                     mw_L4_2B_();
                     break;
                 case 2LL:
-                    do_pack_uncons(); do_drop();
-                    do_pack_uncons(); do_swap();
-                    do_pack_uncons(); do_swap();
+                    mw_prim_pack_uncons(); mw_prim_drop();
+                    mw_prim_pack_uncons(); mw_prim_swap();
+                    mw_prim_pack_uncons(); mw_prim_swap();
                     mw_L5_2B_();
                     break;
                 default:
@@ -6409,24 +6488,24 @@ static void mw_cat_2B_ (void){
             
 }            break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_rot4l();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_L4_2B_();
                     break;
                 case 1LL:
-                    do_pack_uncons(); do_drop();
-                    do_pack_uncons(); do_swap();
+                    mw_prim_pack_uncons(); mw_prim_drop();
+                    mw_prim_pack_uncons(); mw_prim_swap();
                     mw_L5_2B_();
                     break;
                 case 2LL:
-                    do_pack_uncons(); do_drop();
-                    do_pack_uncons(); do_swap();
-                    do_pack_uncons(); do_swap();
+                    mw_prim_pack_uncons(); mw_prim_drop();
+                    mw_prim_pack_uncons(); mw_prim_swap();
+                    mw_prim_pack_uncons(); mw_prim_swap();
                     mw_L6_2B_();
                     break;
                 default:
@@ -6443,7 +6522,7 @@ static void mw_cat_2B_ (void){
             mw_swap();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_snoc_2B__2B_();
                     break;
                 default:
@@ -6513,7 +6592,7 @@ static void mw_rebalance_2B_ (void){
 static void mw_split_half_left (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_L0();
             {
                 VAL d4 = pop_value();
@@ -6522,8 +6601,8 @@ static void mw_split_half_left (void){
             }
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L1();
             {
                 VAL d4 = pop_value();
@@ -6532,9 +6611,9 @@ static void mw_split_half_left (void){
             }
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L1();
             {
                 VAL d4 = pop_value();
@@ -6543,20 +6622,20 @@ static void mw_split_half_left (void){
             }
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             mw_List_2B___3E_List();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_split_half_right (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_L1_2B_();
             {
                 VAL d4 = pop_value();
@@ -6565,8 +6644,8 @@ static void mw_split_half_right (void){
             }
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L1_2B_();
             {
                 VAL d4 = pop_value();
@@ -6575,9 +6654,9 @@ static void mw_split_half_right (void){
             }
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L2_2B_();
             {
                 VAL d4 = pop_value();
@@ -6586,9 +6665,9 @@ static void mw_split_half_right (void){
             }
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             {
                 VAL d4 = pop_value();
@@ -6596,19 +6675,19 @@ static void mw_split_half_right (void){
                 push_value(d4);
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_split_half (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_L0();
             mw_L0();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_L1();
             {
                 VAL d4 = pop_value();
@@ -6617,8 +6696,8 @@ static void mw_split_half (void){
             }
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L1();
             {
                 VAL d4 = pop_value();
@@ -6627,9 +6706,9 @@ static void mw_split_half (void){
             }
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_L2();
             {
                 VAL d4 = pop_value();
@@ -6638,9 +6717,9 @@ static void mw_split_half (void){
             }
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             {
                 VAL d4 = pop_value();
@@ -6649,7 +6728,7 @@ static void mw_split_half (void){
             }
             mw_List_2B___3E_List();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -6657,7 +6736,7 @@ static void mw_first (void){
     mw_List__3E_List_2B_();
     push_u64(0);
     push_fnptr(&mb_first_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_maybe_map();
 }
 
@@ -6665,7 +6744,7 @@ static void mw_last (void){
     mw_List__3E_List_2B_();
     push_u64(0);
     push_fnptr(&mb_last_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_maybe_map();
 }
 
@@ -6673,47 +6752,47 @@ static void mw_middle (void){
     mw_List__3E_List_2B_();
     push_u64(0);
     push_fnptr(&mb_middle_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_maybe_map();
 }
 
 static void mw_first_2B_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_id();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop2();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop2();
             mw_first_2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_last_2B_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_id();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_drop();
@@ -6721,9 +6800,9 @@ static void mw_last_2B_ (void){
             }
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_drop2();
@@ -6731,75 +6810,75 @@ static void mw_last_2B_ (void){
             }
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             mw_nip();
             mw_last_2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_middle_2B_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_id();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_nip();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             mw_nip();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             mw_nip();
             mw_first_2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_reverse (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_L0();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_L1();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_swap();
             mw_L2();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_rotr();
             mw_swap();
             mw_L3();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_reverse_2B_();
@@ -6809,34 +6888,34 @@ static void mw_reverse (void){
             }
             mw_LCAT();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_reverse_2B_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_L1_2B_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_swap();
             mw_L2_2B_();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_rotr();
             mw_swap();
             mw_L3_2B_();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_reverse_2B_();
@@ -6846,7 +6925,7 @@ static void mw_reverse_2B_ (void){
             }
             mw_LCAT_2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -6855,24 +6934,24 @@ static void mw_map (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_L0();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 mw_L1();
                 break;
             case 2LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 {
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 mw_swap();
@@ -6880,23 +6959,23 @@ static void mw_map (void){
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 mw_swap();
                 mw_L2();
                 break;
             case 3LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 {
                     VAL d5 = pop_value();
                     {
                         VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
-                        do_run();
+                        mw_prim_run();
                         push_value(d6);
                     }
                     push_value(d5);
@@ -6908,7 +6987,7 @@ static void mw_map (void){
                         VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
-                        do_run();
+                        mw_prim_run();
                         push_value(d6);
                     }
                     push_value(d5);
@@ -6920,7 +6999,7 @@ static void mw_map (void){
                         VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
-                        do_run();
+                        mw_prim_run();
                         push_value(d6);
                     }
                     push_value(d5);
@@ -6929,9 +7008,9 @@ static void mw_map (void){
                 mw_L3();
                 break;
             case 4LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 {
                     VAL d5 = pop_value();
                     {
@@ -6954,7 +7033,7 @@ static void mw_map (void){
                 }
                 mw_LCAT();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -6965,20 +7044,20 @@ static void mw_map_2B_ (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 mw_L1_2B_();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 {
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 mw_swap();
@@ -6986,23 +7065,23 @@ static void mw_map_2B_ (void){
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 mw_swap();
                 mw_L2_2B_();
                 break;
             case 2LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 {
                     VAL d5 = pop_value();
                     {
                         VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
-                        do_run();
+                        mw_prim_run();
                         push_value(d6);
                     }
                     push_value(d5);
@@ -7014,7 +7093,7 @@ static void mw_map_2B_ (void){
                         VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
-                        do_run();
+                        mw_prim_run();
                         push_value(d6);
                     }
                     push_value(d5);
@@ -7026,7 +7105,7 @@ static void mw_map_2B_ (void){
                         VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
-                        do_run();
+                        mw_prim_run();
                         push_value(d6);
                     }
                     push_value(d5);
@@ -7035,9 +7114,9 @@ static void mw_map_2B_ (void){
                 mw_L3_2B_();
                 break;
             case 3LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 {
                     VAL d5 = pop_value();
                     {
@@ -7060,7 +7139,7 @@ static void mw_map_2B_ (void){
                 }
                 mw_LCAT_2B_();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -7071,55 +7150,55 @@ static void mw_for (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_id();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 2LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 {
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 3LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 {
                     VAL d5 = pop_value();
                     {
                         VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
-                        do_run();
+                        mw_prim_run();
                         push_value(d6);
                     }
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 4LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 mw_drop();
                 {
                     VAL d5 = pop_value();
@@ -7132,7 +7211,7 @@ static void mw_for (void){
                 incref(var_f);
                 mw_for_2B_();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -7143,51 +7222,51 @@ static void mw_for_2B_ (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 {
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 2LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 {
                     VAL d5 = pop_value();
                     {
                         VAL d6 = pop_value();
                         push_value(var_f);
                         incref(var_f);
-                        do_run();
+                        mw_prim_run();
                         push_value(d6);
                     }
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 3LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 mw_drop();
                 {
                     VAL d5 = pop_value();
@@ -7200,7 +7279,7 @@ static void mw_for_2B_ (void){
                 incref(var_f);
                 mw_for_2B_();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -7211,34 +7290,34 @@ static void mw_reverse_for (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_id();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 2LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 mw_swap();
                 {
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 3LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 mw_rotr();
                 push_value(var_f);
                 incref(var_f);
@@ -7248,17 +7327,17 @@ static void mw_reverse_for (void){
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 4LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 mw_drop();
                 mw_swap();
                 {
@@ -7272,7 +7351,7 @@ static void mw_reverse_for (void){
                 incref(var_f);
                 mw_reverse_for_2B_();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -7283,30 +7362,30 @@ static void mw_reverse_for_2B_ (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 mw_swap();
                 {
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 2LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 mw_rotr();
                 push_value(var_f);
                 incref(var_f);
@@ -7316,17 +7395,17 @@ static void mw_reverse_for_2B_ (void){
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             case 3LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 mw_drop();
                 mw_swap();
                 {
@@ -7340,7 +7419,7 @@ static void mw_reverse_for_2B_ (void){
                 incref(var_f);
                 mw_reverse_for_2B_();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -7353,9 +7432,9 @@ static void mw_reduce (void){
         push_u64(0);
         push_value(var_g);
         incref(var_g);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_reduce_2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_maybe_map();
         decref(var_g);
     }
@@ -7366,31 +7445,31 @@ static void mw_reduce_2B_ (void){
         VAL var_g = pop_value();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 mw_id();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 push_value(var_g);
                 incref(var_g);
-                do_run();
+                mw_prim_run();
                 break;
             case 2LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 push_value(var_g);
                 incref(var_g);
-                do_run();
+                mw_prim_run();
                 push_value(var_g);
                 incref(var_g);
-                do_run();
+                mw_prim_run();
                 break;
             case 3LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 mw_drop();
                 {
                     VAL d5 = pop_value();
@@ -7404,9 +7483,9 @@ static void mw_reduce_2B_ (void){
                 mw_reduce_2B_();
                 push_value(var_g);
                 incref(var_g);
-                do_run();
+                mw_prim_run();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_g);
     }
@@ -7418,16 +7497,16 @@ static void mw_filter (void){
         mw_List__3E_List_2B_();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_L0();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
                 mw_filter_2B_();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -7438,9 +7517,9 @@ static void mw_filter_2B_ (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 3LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 mw_drop();
                 {
                     VAL d5 = pop_value();
@@ -7452,9 +7531,9 @@ static void mw_filter_2B_ (void){
                 push_u64(0);
                 push_value(var_f);
                 incref(var_f);
-                do_pack_cons();
+                mw_prim_pack_cons();
                 push_fnptr(&mb_filter_2B__5);
-                do_pack_cons();
+                mw_prim_pack_cons();
                 mw_dip_27_();
                 mw_cat();
                 break;
@@ -7464,7 +7543,7 @@ static void mw_filter_2B_ (void){
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 mw_swap();
@@ -7472,9 +7551,9 @@ static void mw_filter_2B_ (void){
                     push_u64(0);
                     push_value(var_f);
                     incref(var_f);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     push_fnptr(&mb_filter_2B__10);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_dip_27_();
                     mw_cons();
                 } else {
@@ -7495,16 +7574,16 @@ static void mw_find (void){
         mw_List__3E_List_2B_();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_NONE();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 push_value(var_f);
                 incref(var_f);
                 mw_find_2B_();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -7515,9 +7594,9 @@ static void mw_find_2B_ (void){
         VAL var_f = pop_value();
         switch (get_top_data_tag()) {
             case 3LL:
-                do_pack_uncons(); do_drop();
-                do_pack_uncons(); do_swap();
-                do_pack_uncons(); do_swap();
+                mw_prim_pack_uncons(); mw_prim_drop();
+                mw_prim_pack_uncons(); mw_prim_swap();
+                mw_prim_pack_uncons(); mw_prim_swap();
                 mw_drop();
                 {
                     VAL d5 = pop_value();
@@ -7529,17 +7608,17 @@ static void mw_find_2B_ (void){
                 mw_swap();
                 switch (get_top_data_tag()) {
                     case 1LL:
-                        do_pack_uncons(); do_drop();
+                        mw_prim_pack_uncons(); mw_prim_drop();
                         mw_nip();
                         mw_SOME();
                         break;
                     case 0LL:
-                        do_drop();
+                        mw_prim_drop();
                         push_value(var_f);
                         incref(var_f);
                         mw_find_2B_();
                         break;
-                    default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+                    default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
                 
 }                break;
             default:
@@ -7548,7 +7627,7 @@ static void mw_find_2B_ (void){
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     push_value(d5);
                 }
                 mw_swap();
@@ -7573,9 +7652,9 @@ static void mw_find_3F_ (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_find_3F__2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
         mw_swap();
         decref(var_f);
@@ -7599,9 +7678,9 @@ static void mw_reverse_find_3F_ (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_reverse_find_3F__2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
         mw_swap();
         decref(var_f);
@@ -7636,9 +7715,9 @@ static void mw_all (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_all_2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_find();
         mw_is_none();
         decref(var_f);
@@ -7651,9 +7730,9 @@ static void mw_all_3F_ (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_all_3F__2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_find_3F_();
         mw_is_none();
         decref(var_f);
@@ -7670,9 +7749,9 @@ static void mw_collect (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_collect_3);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_while_some();
         mw_drop();
         decref(var_f);
@@ -7689,7 +7768,7 @@ static void mw_collect_while (void){
                 VAL d4 = pop_value();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             mw_swap();
@@ -7698,7 +7777,7 @@ static void mw_collect_while (void){
                 VAL d4 = pop_value();
                 push_value(var_g);
                 incref(var_g);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             mw_swap();
@@ -8129,8 +8208,10 @@ static void mw_char_21__precise (void){
                     push_i64(2LL);
                     push_value(d5);
                 }
-                mw_ptr_2B_();
-                mw_u8_21_();
+                push_u64(0);
+                push_fnptr(&mb_char_21__precise_11);
+                mw_prim_pack_cons();
+                mw_with_ptr_2B_();
             } else {
                 mw_drop();
                 {
@@ -8153,7 +8234,10 @@ static void mw_char_21__2B__2B_ (void){
         mw_char_width();
         push_value(d2);
     }
-    mw_ptr_2B_();
+    push_u64(0);
+    push_fnptr(&mb_char_21__2B__2B__2);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_char_3F__2B__2B_ (void){
@@ -8162,7 +8246,10 @@ static void mw_char_3F__2B__2B_ (void){
     mw_rotr();
     {
         VAL d2 = pop_value();
-        mw_ptr_2B_();
+        push_u64(0);
+        push_fnptr(&mb_char_3F__2B__2B__2);
+        mw_prim_pack_cons();
+        mw_with_ptr_2B_();
         push_value(d2);
     }
 }
@@ -8177,7 +8264,7 @@ static void mw_char_40_ (void){
     mw_U32__3E_Int();
     push_u64(0);
     push_fnptr(&mb_char_40__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     push_i64(248LL);
     mw__26_();
@@ -8557,21 +8644,11 @@ static void mw_is_string_end_3F_ (void){
     mw_dup();
     push_i64(64LL);
     mw__3C_();
-    {
-        VAL d2 = pop_value();
-        {
-            VAL d3 = pop_value();
-            push_i64(17179870209LL);
-            push_value(d3);
-        }
-        mw__3E__3E_();
-        push_i64(1LL);
-        mw__26_();
-        push_i64(0LL);
-        mw__3C__3E_();
-        push_value(d2);
-    }
-    mw__26__26_();
+    push_u64(0);
+    push_fnptr(&mb_is_string_end_3F__1);
+    mw_prim_pack_cons();
+    mw_and();
+    mw_nip();
 }
 
 static void mw_underscore (void){
@@ -8605,13 +8682,23 @@ static void mw_is_special_char_3F_ (void){
     mw__3C_();
     if (pop_u64()) {
         push_i64(288251318412247040LL);
+        mw_swap();
+        mw__3E__3E_();
     } else {
         push_i64(64LL);
         mw__();
-        push_i64(2882303762188206080LL);
+        mw_dup();
+        push_i64(64LL);
+        mw__3C_();
+        if (pop_u64()) {
+            push_i64(2882303762188206080LL);
+            mw_swap();
+            mw__3E__3E_();
+        } else {
+            mw_drop();
+            push_i64(0LL);
+        }
     }
-    mw_swap();
-    mw__3E__3E_();
     push_i64(1LL);
     mw__26_();
     push_i64(0LL);
@@ -8631,11 +8718,13 @@ static void mw_str_head_width (void){
 static void mw_str_tail (void){
     push_u64(0);
     push_fnptr(&mb_str_tail_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_Str__3E_Ptr();
-    mw_ptr_2B_();
-    mw_Ptr__3E_Str();
+    push_u64(0);
+    push_fnptr(&mb_str_tail_2);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_str_size_3F_ (void){
@@ -8675,12 +8764,12 @@ static void mw_str_concat (void){
     mw_swap();
     push_u64(0);
     push_fnptr(&mb_str_concat_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_for();
     mw_prim_str_alloc();
     push_u64(0);
     push_fnptr(&mb_str_concat_2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
 }
 
@@ -8715,12 +8804,10 @@ static void mw_str_copy_partial_21_ (void){
         push_value(d2);
     }
     mw_dup2();
-    mw_ptr_2B_();
-    {
-        VAL d2 = pop_value();
-        mw_prim_ptr_copy();
-        push_value(d2);
-    }
+    push_u64(0);
+    push_fnptr(&mb_str_copy_partial_21__2);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_STR_BUF_SIZE (void){
@@ -8736,7 +8823,7 @@ static void mw_build_str_21_ (void){
             VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
-            do_run();
+            mw_prim_run();
             mw_str_buf_dup_21_();
             push_value(d3);
         }
@@ -8752,7 +8839,7 @@ static void mw_str_buf_dup_21_ (void){
     mw_prim_str_alloc();
     push_u64(0);
     push_fnptr(&mb_str_buf_dup_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
 }
 
@@ -8786,8 +8873,10 @@ static void mw_str_buf_u8_21_ (void){
 
 static void mw_str_buf_char_40_ (void){
     mw_STR_BUF();
-    mw_ptr_2B_();
-    mw_char_40_();
+    push_u64(0);
+    push_fnptr(&mb_str_buf_char_40__1);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_str_buf_empty_3F_ (void){
@@ -8819,8 +8908,10 @@ static void mw_str_buf_push_char_21_ (void){
     mw_dup();
     mw_str_buf_length_3F_();
     mw_STR_BUF();
-    mw_ptr_2B_();
-    mw_char_21_();
+    push_u64(0);
+    push_fnptr(&mb_str_buf_push_char_21__1);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
     mw_char_width();
     mw_str_buf_length_3F_();
     mw__2B_();
@@ -8839,8 +8930,10 @@ static void mw_str_buf_push_ptr_21_ (void){
     mw_tuck();
     mw_str_buf_length_3F_();
     mw_STR_BUF();
-    mw_ptr_2B_();
-    mw_prim_ptr_copy();
+    push_u64(0);
+    push_fnptr(&mb_str_buf_push_ptr_21__1);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
     mw_str_buf_length_3F_();
     mw__2B_();
     mw_str_buf_length_21_();
@@ -8877,7 +8970,7 @@ static void mw_str_buf_int_21_ (void){
     } else {
         push_u64(0);
         push_fnptr(&mb_str_buf_int_21__3);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
         push_i64(0LL);
         mw__3C_();
@@ -8895,7 +8988,7 @@ static void mw_str_buf_int_21_ (void){
 static void mw_int_show (void){
     push_u64(0);
     push_fnptr(&mb_int_show_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_build_str_21_();
 }
 
@@ -8904,7 +8997,7 @@ static void mw_str_buf_swap_u8_21_ (void){
     mw_swap();
     push_u64(0);
     push_fnptr(&mb_str_buf_swap_u8_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip3();
     {
         VAL d2 = pop_value();
@@ -8958,7 +9051,7 @@ static void mw_str_for (void){
                 mw_str_head();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
         }
@@ -8973,9 +9066,9 @@ static void mw_str_transduce (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_str_transduce_2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_build_str_21_();
         decref(var_f);
     }
@@ -8984,30 +9077,30 @@ static void mw_str_transduce (void){
 static void mw_str_transduce_step (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_drop();
             push_ptr("\0\0\0\0");
             break;
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             mw_id();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_str_buf_push_char_21_();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_str_transduce_step_5);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_for();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_str_buf_push_str_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -9019,7 +9112,7 @@ static void mw_str_chars (void){
     }
     push_u64(0);
     push_fnptr(&mb_str_chars_2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_str_for();
 }
 
@@ -9031,7 +9124,7 @@ static void mw_str_codepoints (void){
     }
     push_u64(0);
     push_fnptr(&mb_str_codepoints_2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_str_for();
 }
 
@@ -9052,9 +9145,12 @@ static void mw_str_bytes (void){
             VAL d3 = pop_value();
             push_u64(0);
             push_fnptr(&mb_str_bytes_4);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_sip();
-            mw_ptr_2B_();
+            push_u64(0);
+            push_fnptr(&mb_str_bytes_5);
+            mw_prim_pack_cons();
+            mw_with_ptr_2B_();
             push_value(d3);
         }
     }
@@ -9311,7 +9407,7 @@ static void mw_str_buf_input_21_ (void){
 static void mw_print_char_21_ (void){
     push_u64(0);
     push_fnptr(&mb_print_char_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_build_str_21_();
     mw_str_print_21_();
 }
@@ -9319,7 +9415,7 @@ static void mw_print_char_21_ (void){
 static void mw_trace_char_21_ (void){
     push_u64(0);
     push_fnptr(&mb_trace_char_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_build_str_21_();
     mw_str_trace_21_();
 }
@@ -9367,7 +9463,7 @@ static void mw_with_open_file_21_ (void){
             mw_drop();
             push_value(var_g);
             incref(var_g);
-            do_run();
+            mw_prim_run();
         } else {
             mw_dup();
             {
@@ -9375,7 +9471,7 @@ static void mw_with_open_file_21_ (void){
                 mw_Int__3E_File();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             mw_posix_close_21_();
@@ -9415,16 +9511,13 @@ static void mw_read_file_21_ (void){
             mw__2A_();
             mw_prim_ptr_realloc();
             mw_dup2();
-            mw_ptr_2B_();
-            mw_over2();
             push_u64(0);
             push_value(var_fp);
             incref(var_fp);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_fnptr(&mb_read_file_21__5);
-            do_pack_cons();
-            mw_dip2();
-            mw_prim_posix_read();
+            mw_prim_pack_cons();
+            mw_with_ptr_2B_();
         }
         push_i64(0LL);
         mw__3C_();
@@ -9439,11 +9532,13 @@ static void mw_read_file_21_ (void){
         mw__2B_();
         mw_prim_ptr_realloc();
         mw_tuck();
-        mw_ptr_2B_();
-        push_i64(0LL);
-        mw_Int__3E_U32();
-        mw_swap();
-        mw_u32_21_();
+        push_u64(0);
+        push_value(var_fp);
+        incref(var_fp);
+        mw_prim_pack_cons();
+        push_fnptr(&mb_read_file_21__9);
+        mw_prim_pack_cons();
+        mw_with_ptr_2B_();
         mw_Ptr__3E_Str();
         decref(var_fp);
     }
@@ -9483,23 +9578,23 @@ static void mw_O_WRONLY_7C_O_CREAT_7C_O_TRUNC (void){
     mw_RUNNING_OS();
     switch (get_top_data_tag()) {
         case 3LL:
-            do_drop();
+            mw_prim_drop();
             push_i64(1537LL);
             break;
         case 2LL:
-            do_drop();
+            mw_prim_drop();
             push_i64(577LL);
             break;
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             push_i64(769LL);
             break;
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("O_WRONLY|O_CREAT|O_TRUNC on unknown os\0\0\0\0");
             mw_panic_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -9533,7 +9628,7 @@ static void mw_with_raw_path (void){
 static void mw_is_directory_3F_ (void){
     push_u64(0);
     push_fnptr(&mb_is_directory_3F__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_with_raw_path();
     mw_swap();
 }
@@ -9562,11 +9657,11 @@ static void mw_st_mode_40_ (void){
     mw_RUNNING_OS();
     switch (get_top_data_tag()) {
         case 2LL:
-            do_drop();
+            mw_prim_drop();
             push_i64(24LL);
             break;
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             push_i64(6LL);
             break;
         default:
@@ -9575,8 +9670,10 @@ static void mw_st_mode_40_ (void){
             break;
     
 }    mw_swap();
-    mw_ptr_2B_();
-    mw_u16_40_();
+    push_u64(0);
+    push_fnptr(&mb_st_mode_40__4);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mw_INPUT_BUFFER_SIZE (void){
@@ -9673,8 +9770,10 @@ static void mw_input_peek (void){
         mw_input_offset();
         mw__40_();
         mw_INPUT_BUFFER();
-        mw_ptr_2B_();
-        mw_char_40_();
+        push_u64(0);
+        push_fnptr(&mb_input_peek_2);
+        mw_prim_pack_cons();
+        mw_with_ptr_2B_();
     } else {
         push_ptr("error: attempted to read input buffer when file is already closed\0\0\0\0");
         mw_panic_21_();
@@ -9689,12 +9788,10 @@ static void mw_input_move_21_ (void){
         mw__40_();
         mw_dup();
         mw_INPUT_BUFFER();
-        mw_ptr_2B_();
-        mw_char_40__width();
-        mw__2B_();
-        mw_input_offset();
-        mw__21_();
-        mw_input_prepare_for_more_21_();
+        push_u64(0);
+        push_fnptr(&mb_input_move_21__2);
+        mw_prim_pack_cons();
+        mw_with_ptr_2B_();
     } else {
         push_ptr("error: attempted to move input buffer when file is already closed\0\0\0\0");
         mw_panic_21_();
@@ -9721,8 +9818,10 @@ static void mw_input_prepare_for_more_21_ (void){
         } else {
             mw_dup();
             mw_INPUT_BUFFER();
-            mw_ptr_2B_();
-            mw_char_40__width();
+            push_u64(0);
+            push_fnptr(&mb_input_prepare_for_more_21__4);
+            mw_prim_pack_cons();
+            mw_with_ptr_2B_();
             mw__2B_();
             mw_input_length();
             mw__40_();
@@ -9742,8 +9841,10 @@ static void mw_input_fill_buffer_tragic_21_ (void){
     mw_input_offset();
     mw__40_();
     mw_INPUT_BUFFER();
-    mw_ptr_2B_();
-    mw_u32_40_();
+    push_u64(0);
+    push_fnptr(&mb_input_fill_buffer_tragic_21__1);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
     mw_INPUT_BUFFER();
     mw_u32_21_();
     mw_INPUT_BUFFER();
@@ -9762,9 +9863,10 @@ static void mw_input_fill_buffer_tragic_21_ (void){
         mw_input_length();
         mw__40_();
         mw_INPUT_BUFFER();
-        mw_ptr_2B_();
-        mw_INPUT_BUFFER_SIZE();
-        mw_posix_read_21_();
+        push_u64(0);
+        push_fnptr(&mb_input_fill_buffer_tragic_21__3);
+        mw_prim_pack_cons();
+        mw_with_ptr_2B_();
         mw_dup();
         push_i64(0LL);
         mw__3E__3D_();
@@ -9775,8 +9877,8 @@ static void mw_input_fill_buffer_tragic_21_ (void){
             if (pop_u64()) {
                 mw_input_length();
                 push_u64(0);
-                push_fnptr(&mb_input_fill_buffer_tragic_21__4);
-                do_pack_cons();
+                push_fnptr(&mb_input_fill_buffer_tragic_21__6);
+                mw_prim_pack_cons();
                 mw_modify();
             } else {
                 mw_drop();
@@ -9795,34 +9897,34 @@ static void mw_input_fill_buffer_tragic_21_ (void){
 static void mw_stack_push_21_ (void){
     push_u64(0);
     push_fnptr(&mb_stack_push_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
 }
 
 static void mw_stack_pop_21_ (void){
     push_u64(0);
     push_fnptr(&mb_stack_pop_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
 }
 
 static void mw_stack_uncons (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_NONE();
             mw_STACK_NIL();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_SOME();
                 push_value(d4);
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -9885,7 +9987,7 @@ static void mw_Name_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -10019,7 +10121,7 @@ static void mw_name_new_21_ (void){
         mw_dup();
         push_u64(0);
         push_fnptr(&mb_name_new_21__4);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_delay();
         mw_over();
         mw_name_mangled();
@@ -10169,7 +10271,7 @@ static void mw_name_mangle_compute_21_ (void){
     mw__40_();
     push_u64(0);
     push_fnptr(&mb_name_mangle_compute_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_str_transduce();
 }
 
@@ -10198,13 +10300,13 @@ static void mw_char_hexdigits_first (void){
 static void mw_char_hexdigits_next (void){
     push_u64(0);
     push_fnptr(&mb_char_hexdigits_next_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     push_i64(4LL);
     mw__3E__3E_();
     push_u64(0);
     push_fnptr(&mb_char_hexdigits_next_2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     push_i64(4LL);
     mw__3E__3E_();
@@ -10316,7 +10418,7 @@ static void mw_Module_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -10387,7 +10489,7 @@ static void mw_Token_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -10421,7 +10523,7 @@ static void mw_module_add_import_21_ (void){
     mw_module_imports();
     push_u64(0);
     push_fnptr(&mb_module_add_import_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
 }
 
@@ -10443,7 +10545,7 @@ static void mw_module_path_from_name (void){
     mw__40_();
     push_u64(0);
     push_fnptr(&mb_module_path_from_name_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_str_transduce();
     push_ptr(".mth\0\0\0\0");
     mw_str_cat();
@@ -10473,12 +10575,12 @@ static void mw_location_pack (void){
 static void mw_location_unpack (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_id();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -10511,7 +10613,7 @@ static void mw_emit_warning_at_21_ (void){
     mw_num_warnings();
     push_u64(0);
     push_fnptr(&mb_emit_warning_at_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
 }
 
@@ -10527,7 +10629,7 @@ static void mw_emit_error_at_21_ (void){
     mw_num_errors();
     push_u64(0);
     push_fnptr(&mb_emit_error_at_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
 }
 
@@ -10551,7 +10653,7 @@ static void mw_token_is_int_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 8LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -10568,7 +10670,7 @@ static void mw_token_is_str_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 9LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -10585,7 +10687,7 @@ static void mw_token_is_name_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -10602,7 +10704,7 @@ static void mw_token_is_comma_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             mw_true();
             break;
         default:
@@ -10628,7 +10730,7 @@ static void mw_token_is_lparen_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -10645,7 +10747,7 @@ static void mw_token_is_rparen_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -10662,7 +10764,7 @@ static void mw_token_is_lsquare_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -10679,7 +10781,7 @@ static void mw_token_is_rsquare_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -10696,7 +10798,7 @@ static void mw_token_is_lcurly_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -10713,7 +10815,7 @@ static void mw_token_is_rcurly_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -10730,7 +10832,7 @@ static void mw_token_name_40_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             break;
         default:
@@ -10752,7 +10854,7 @@ static void mw_token_str_40_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 9LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             break;
         default:
@@ -10774,7 +10876,7 @@ static void mw_token_int_40_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 8LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             break;
         default:
@@ -10796,21 +10898,21 @@ static void mw_token_is_arg_end_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             mw_true();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -10827,17 +10929,17 @@ static void mw_token_is_left_enclosure_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -10854,17 +10956,17 @@ static void mw_token_is_right_enclosure_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -10908,22 +11010,22 @@ static void mw_token_next (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_token_succ();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_token_succ();
             break;
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_token_succ();
             break;
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_token_succ();
             mw_dup();
@@ -10931,7 +11033,7 @@ static void mw_token_next (void){
             mw__40_();
             switch (get_top_data_tag()) {
                 case 2LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_nip();
                     mw_token_succ();
                     break;
@@ -10954,15 +11056,15 @@ static void mw_token_prev (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_dup();
             mw_token_pred();
@@ -11160,7 +11262,7 @@ static void mw_token_args (void){
             mw_token_succ();
             push_u64(0);
             push_fnptr(&mb_token_args_6);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_sip();
             mw_token_next_arg_end();
         }
@@ -11189,15 +11291,15 @@ static void mw_token_args_2B_ (void){
     mw_List__3E_List_2B_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("expected args\0\0\0\0");
             mw_emit_fatal_error_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -11255,7 +11357,7 @@ static void mw_token_is_module_end_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_true();
             break;
         default:
@@ -11271,25 +11373,25 @@ static void mw_token_run_end_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_true();
             break;
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             mw_true();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
@@ -11303,10 +11405,10 @@ static void mw_token_run_end_3F_ (void){
 static void mw_token_run (void){
     push_u64(0);
     push_fnptr(&mb_token_run_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_u64(0);
     push_fnptr(&mb_token_run_2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_collect_while();
     mw_nip();
 }
@@ -11315,7 +11417,7 @@ static void mw_token_run_has_arrow (void){
     mw_token_run();
     push_u64(0);
     push_fnptr(&mb_token_run_has_arrow_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_any();
 }
 
@@ -11323,7 +11425,7 @@ static void mw_token_run_has_dashes (void){
     mw_token_run();
     push_u64(0);
     push_fnptr(&mb_token_run_has_dashes_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_any();
 }
 
@@ -11407,7 +11509,7 @@ static void mw_sig_token_is_type_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_could_be_type();
             break;
         default:
@@ -11423,7 +11525,7 @@ static void mw_sig_token_is_type_con_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_could_be_type_con();
             break;
         default:
@@ -11439,7 +11541,7 @@ static void mw_sig_token_is_type_hole_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_is_type_hole();
             break;
         default:
@@ -11455,7 +11557,7 @@ static void mw_token_is_underscore_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_is_underscore();
             break;
         default:
@@ -11471,7 +11573,7 @@ static void mw_sig_token_is_type_var_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_could_be_type_var();
             break;
         default:
@@ -11491,7 +11593,7 @@ static void mw_sig_token_is_stack_var_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_could_be_stack_var();
             break;
         default:
@@ -11507,7 +11609,7 @@ static void mw_sig_token_is_effect_con_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_could_be_effect_con();
             break;
         default:
@@ -11557,16 +11659,16 @@ static void mw_run_lexer_21_ (void){
     mw_stack_pop_21_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_TOKEN_NONE();
             mw_lexer_emit_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_ptr("Mismatched left parenthesis.\0\0\0\0");
             mw_emit_fatal_error_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }    mw_token_alloc_21_();
     mw_lexer_module();
@@ -11703,7 +11805,7 @@ static void mw_lexer_newline_21_ (void){
     mw_lexer_row();
     push_u64(0);
     push_fnptr(&mb_lexer_newline_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
     push_i64(0LL);
     mw_Int__3E_Col();
@@ -11724,12 +11826,12 @@ static void mw_lexer_emit_rparen_21_ (void){
     mw_stack_pop_21_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("Mismatched right parenthesis.\0\0\0\0");
             mw_lexer_emit_fatal_error_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_token_is_lparen_3F_();
             if (pop_u64()) {
                 mw_dup();
@@ -11744,7 +11846,7 @@ static void mw_lexer_emit_rparen_21_ (void){
                 mw_lexer_emit_fatal_error_21_();
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -11761,12 +11863,12 @@ static void mw_lexer_emit_rsquare_21_ (void){
     mw_stack_pop_21_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("Mismatched right bracket.\0\0\0\0");
             mw_lexer_emit_fatal_error_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_token_is_lsquare_3F_();
             if (pop_u64()) {
                 mw_dup();
@@ -11781,7 +11883,7 @@ static void mw_lexer_emit_rsquare_21_ (void){
                 mw_lexer_emit_fatal_error_21_();
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -11798,12 +11900,12 @@ static void mw_lexer_emit_rcurly_21_ (void){
     mw_stack_pop_21_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("Mismatched right brace.\0\0\0\0");
             mw_lexer_emit_fatal_error_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_token_is_lcurly_3F_();
             if (pop_u64()) {
                 mw_dup();
@@ -11818,7 +11920,7 @@ static void mw_lexer_emit_rcurly_21_ (void){
                 mw_lexer_emit_fatal_error_21_();
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -11880,7 +11982,7 @@ static void mw_str_buf_is_doc_start_3F_ (void){
     mw__3D__3D_();
     push_u64(0);
     push_fnptr(&mb_str_buf_is_doc_start_3F__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_and();
 }
 
@@ -11890,7 +11992,7 @@ static void mw_str_buf_is_arrow_3F_ (void){
     mw__3D__3D_();
     push_u64(0);
     push_fnptr(&mb_str_buf_is_arrow_3F__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_and();
 }
 
@@ -12070,7 +12172,7 @@ static void mw_str_buf_dec_int_3F_ (void){
         if (pop_u64()) {
             push_u64(0);
             push_fnptr(&mb_str_buf_dec_int_3F__3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_dip2();
         } else {
             mw_id();
@@ -12086,7 +12188,7 @@ static void mw_str_buf_dec_int_3F_ (void){
         if (!pop_u64()) break;
         push_u64(0);
         push_fnptr(&mb_str_buf_dec_int_3F__8);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
         mw_1_2B_();
     }
@@ -12107,7 +12209,7 @@ static void mw_str_buf_hex_int_3F_ (void){
         if (pop_u64()) {
             push_u64(0);
             push_fnptr(&mb_str_buf_hex_int_3F__3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_dip2();
         } else {
             mw_id();
@@ -12125,7 +12227,7 @@ static void mw_str_buf_hex_int_3F_ (void){
         if (!pop_u64()) break;
         push_u64(0);
         push_fnptr(&mb_str_buf_hex_int_3F__8);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
         mw_1_2B_();
     }
@@ -12280,7 +12382,7 @@ static void mw_lexer_move_21_ (void){
     mw_lexer_col();
     push_u64(0);
     push_fnptr(&mb_lexer_move_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
 }
 
@@ -12370,7 +12472,7 @@ static void mw_Buffer_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -12464,7 +12566,7 @@ static void mw_Bag__3E_Bag_2B_ (void){
     mw_List__3E_List_2B_();
     push_u64(0);
     push_fnptr(&mb_Bag__3E_Bag_2B__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_maybe_map();
 }
 
@@ -12623,16 +12725,16 @@ static void mw_bag_has (void){
     mw_Bag__3E_Bag_2B_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_drop();
             mw_false();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_bag_has_2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -12657,18 +12759,18 @@ static void mw_bag_has_2B_ (void){
         mw_cmp_3F_();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_drop4();
                 mw_true();
                 break;
             case 1LL:
-                do_drop();
+                mw_prim_drop();
                 mw_drop();
                 mw_nip();
                 mw_bag_has();
                 break;
             case 2LL:
-                do_drop();
+                mw_prim_drop();
                 mw_drop();
                 {
                     VAL d5 = pop_value();
@@ -12677,7 +12779,7 @@ static void mw_bag_has_2B_ (void){
                 }
                 mw_bag_has_2B_();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }    }
 }
@@ -12697,15 +12799,15 @@ static void mw_bag_insert_2B_ (void){
     mw_Bag__3E_Bag_2B_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_B1_2B_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_bag_insert_2B__2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -12823,16 +12925,16 @@ static void mw_bag_lookup_key (void){
     mw_Bag__3E_Bag_2B_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_drop();
             mw_NONE();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_bag_lookup_key_2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -12865,7 +12967,7 @@ static void mw_bag_lookup_key_2B_ (void){
         mw_cmp_3F_();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_drop2();
                 mw_SOME();
                 {
@@ -12875,7 +12977,7 @@ static void mw_bag_lookup_key_2B_ (void){
                 }
                 break;
             case 1LL:
-                do_drop();
+                mw_prim_drop();
                 {
                     VAL d5 = pop_value();
                     mw_drop2();
@@ -12885,7 +12987,7 @@ static void mw_bag_lookup_key_2B_ (void){
                 mw_bag_lookup_key_2B_();
                 break;
             case 2LL:
-                do_drop();
+                mw_prim_drop();
                 {
                     VAL d5 = pop_value();
                     mw_drop3();
@@ -12893,7 +12995,7 @@ static void mw_bag_lookup_key_2B_ (void){
                 }
                 mw_bag_lookup_key();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }    }
 }
@@ -12913,15 +13015,15 @@ static void mw_bag_replace_key_2B_ (void){
     mw_Bag__3E_Bag_2B_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_B1_2B_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_bag_replace_key_2B__2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -13079,7 +13181,7 @@ static void mw_map_keys (void){
     mw_map_pairs();
     push_u64(0);
     push_fnptr(&mb_map_keys_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_map();
 }
 
@@ -13087,22 +13189,22 @@ static void mw_map_values (void){
     mw_map_pairs();
     push_u64(0);
     push_fnptr(&mb_map_values_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_map();
 }
 
 static void mw_prim_type_is_physical (void){
     switch (get_top_data_tag()) {
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             mw_false();
             break;
         case 2LL:
-            do_drop();
+            mw_prim_drop();
             mw_false();
             break;
         case 3LL:
-            do_drop();
+            mw_prim_drop();
             mw_false();
             break;
         default:
@@ -13161,7 +13263,7 @@ static void mw_MetaVar_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -13232,7 +13334,7 @@ static void mw_Data_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -13303,7 +13405,7 @@ static void mw_Tag_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -13456,8 +13558,8 @@ static void mw_T6 (void){
 static void mw_type_is_morphism (void){
     switch (get_top_data_tag()) {
         case 9LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop2();
             mw_true();
             break;
@@ -13476,17 +13578,17 @@ static void mw_type_is_morphism_3F_ (void){
 static void mw_type_is_physical (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_is_physical_2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_is_physical_3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_prim_type_is_physical();
             break;
         default:
@@ -13589,7 +13691,7 @@ static void mw_TYPE_I64 (void){
 static void mw_type_expand (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_meta_expand();
             break;
         default:
@@ -13610,7 +13712,7 @@ static void mw_gamma_token_3F_ (void){
 static void mw_type_unify_failed_21_ (void){
     push_u64(0);
     push_fnptr(&mb_type_unify_failed_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
     push_ptr(": error: Failed to unify \0\0\0\0");
     mw_str_trace_21_();
@@ -13627,7 +13729,7 @@ static void mw_type_unify_failed_21_ (void){
     mw_num_errors();
     push_u64(0);
     push_fnptr(&mb_type_unify_failed_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
 }
 
@@ -13636,34 +13738,34 @@ static void mw_type_unify_21_ (void){
     mw_type_expand();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_drop();
             mw_TYPE_ERROR();
             break;
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             mw_id();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_type_hole_unify_21_();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_type_expand();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_drop();
                     mw_TYPE_ERROR();
                     break;
                 case 1LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_TMeta();
                     break;
                 case 4LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TMeta();
@@ -13678,21 +13780,21 @@ static void mw_type_unify_21_ (void){
             
 }            break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_type_expand();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_drop();
                     mw_TYPE_ERROR();
                     break;
                 case 1LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_TVar();
                     break;
                 case 4LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TVar();
@@ -13701,7 +13803,7 @@ static void mw_type_unify_21_ (void){
                     mw_type_hole_unify_21_();
                     break;
                 case 3LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TVar();
@@ -13710,7 +13812,7 @@ static void mw_type_unify_21_ (void){
                     mw_meta_unify_21_();
                     break;
                 case 5LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_type_var_unify_21_();
                     break;
                 default:
@@ -13724,21 +13826,21 @@ static void mw_type_unify_21_ (void){
             
 }            break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_type_expand();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_drop();
                     mw_TYPE_ERROR();
                     break;
                 case 1LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_TPrim();
                     break;
                 case 4LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TPrim();
@@ -13747,7 +13849,7 @@ static void mw_type_unify_21_ (void){
                     mw_type_hole_unify_21_();
                     break;
                 case 3LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TPrim();
@@ -13756,7 +13858,7 @@ static void mw_type_unify_21_ (void){
                     mw_meta_unify_21_();
                     break;
                 case 11LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TPrim();
@@ -13765,7 +13867,7 @@ static void mw_type_unify_21_ (void){
                     mw_type_value_unify_21_();
                     break;
                 case 2LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_type_prim_unify_21_();
                     break;
                 default:
@@ -13779,21 +13881,21 @@ static void mw_type_unify_21_ (void){
             
 }            break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_type_expand();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_drop();
                     mw_TYPE_ERROR();
                     break;
                 case 1LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_TData();
                     break;
                 case 4LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TData();
@@ -13802,7 +13904,7 @@ static void mw_type_unify_21_ (void){
                     mw_type_hole_unify_21_();
                     break;
                 case 3LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TData();
@@ -13811,7 +13913,7 @@ static void mw_type_unify_21_ (void){
                     mw_meta_unify_21_();
                     break;
                 case 11LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TData();
@@ -13820,7 +13922,7 @@ static void mw_type_unify_21_ (void){
                     mw_type_value_unify_21_();
                     break;
                 case 7LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_type_data_unify_21_();
                     break;
                 default:
@@ -13834,21 +13936,21 @@ static void mw_type_unify_21_ (void){
             
 }            break;
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_type_expand();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_drop();
                     mw_TYPE_ERROR();
                     break;
                 case 1LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_TTable();
                     break;
                 case 4LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TTable();
@@ -13857,7 +13959,7 @@ static void mw_type_unify_21_ (void){
                     mw_type_hole_unify_21_();
                     break;
                 case 3LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TTable();
@@ -13866,7 +13968,7 @@ static void mw_type_unify_21_ (void){
                     mw_meta_unify_21_();
                     break;
                 case 11LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TTable();
@@ -13875,7 +13977,7 @@ static void mw_type_unify_21_ (void){
                     mw_type_value_unify_21_();
                     break;
                 case 6LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_type_table_unify_21_();
                     break;
                 default:
@@ -13889,22 +13991,22 @@ static void mw_type_unify_21_ (void){
             
 }            break;
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_rotl();
             mw_type_expand();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_drop2();
                     mw_TYPE_ERROR();
                     break;
                 case 1LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_TTensor();
                     break;
                 case 4LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TTensor();
@@ -13913,7 +14015,7 @@ static void mw_type_unify_21_ (void){
                     mw_type_hole_unify_21_();
                     break;
                 case 3LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TTensor();
@@ -13922,7 +14024,7 @@ static void mw_type_unify_21_ (void){
                     mw_meta_unify_21_();
                     break;
                 case 11LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TTensor();
@@ -13931,8 +14033,8 @@ static void mw_type_unify_21_ (void){
                     mw_type_value_unify_21_();
                     break;
                 case 8LL:
-                    do_pack_uncons(); do_drop();
-                    do_pack_uncons(); do_swap();
+                    mw_prim_pack_uncons(); mw_prim_drop();
+                    mw_prim_pack_uncons(); mw_prim_swap();
                     mw_type_unify_pair_21_();
                     mw_TTensor();
                     break;
@@ -13947,22 +14049,22 @@ static void mw_type_unify_21_ (void){
             
 }            break;
         case 9LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_rotl();
             mw_type_expand();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_drop2();
                     mw_TYPE_ERROR();
                     break;
                 case 1LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_TMorphism();
                     break;
                 case 4LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TMorphism();
@@ -13971,7 +14073,7 @@ static void mw_type_unify_21_ (void){
                     mw_type_hole_unify_21_();
                     break;
                 case 3LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TMorphism();
@@ -13980,7 +14082,7 @@ static void mw_type_unify_21_ (void){
                     mw_meta_unify_21_();
                     break;
                 case 11LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TMorphism();
@@ -13989,8 +14091,8 @@ static void mw_type_unify_21_ (void){
                     mw_type_value_unify_21_();
                     break;
                 case 9LL:
-                    do_pack_uncons(); do_drop();
-                    do_pack_uncons(); do_swap();
+                    mw_prim_pack_uncons(); mw_prim_drop();
+                    mw_prim_pack_uncons(); mw_prim_swap();
                     mw_type_unify_pair_21_();
                     mw_TMorphism();
                     break;
@@ -14005,22 +14107,22 @@ static void mw_type_unify_21_ (void){
             
 }            break;
         case 10LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_rotl();
             mw_type_expand();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_drop2();
                     mw_TYPE_ERROR();
                     break;
                 case 1LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_TApp();
                     break;
                 case 4LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TApp();
@@ -14029,7 +14131,7 @@ static void mw_type_unify_21_ (void){
                     mw_type_hole_unify_21_();
                     break;
                 case 3LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TApp();
@@ -14038,7 +14140,7 @@ static void mw_type_unify_21_ (void){
                     mw_meta_unify_21_();
                     break;
                 case 11LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TApp();
@@ -14047,8 +14149,8 @@ static void mw_type_unify_21_ (void){
                     mw_type_value_unify_21_();
                     break;
                 case 10LL:
-                    do_pack_uncons(); do_drop();
-                    do_pack_uncons(); do_swap();
+                    mw_prim_pack_uncons(); mw_prim_drop();
+                    mw_prim_pack_uncons(); mw_prim_swap();
                     mw_type_unify_pair_21_();
                     mw_TApp();
                     break;
@@ -14063,21 +14165,21 @@ static void mw_type_unify_21_ (void){
             
 }            break;
         case 11LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_type_expand();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_drop();
                     mw_TYPE_ERROR();
                     break;
                 case 1LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_TValue();
                     break;
                 case 4LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TValue();
@@ -14086,7 +14188,7 @@ static void mw_type_unify_21_ (void){
                     mw_type_hole_unify_21_();
                     break;
                 case 3LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_TValue();
@@ -14095,7 +14197,7 @@ static void mw_type_unify_21_ (void){
                     mw_meta_unify_21_();
                     break;
                 case 11LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_value_unify_21_();
                     break;
                 default:
@@ -14103,7 +14205,7 @@ static void mw_type_unify_21_ (void){
                     break;
             
 }            break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -14111,11 +14213,11 @@ static void mw_value_unify_21_ (void){
     mw_swap();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_dup2();
                     mw__3D__3D_();
                     if (pop_u64()) {
@@ -14128,7 +14230,7 @@ static void mw_value_unify_21_ (void){
                     }
                     break;
                 case 1LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_drop2();
                     mw_gamma_token_3F_();
                     push_ptr("Can't unify int value with string value.\0\0\0\0");
@@ -14136,22 +14238,22 @@ static void mw_value_unify_21_ (void){
                     mw_TYPE_ERROR();
                     break;
                 case 2LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_drop2();
                     mw_gamma_token_3F_();
                     push_ptr("Can't unify int value with block.\0\0\0\0");
                     mw_emit_error_21_();
                     mw_TYPE_ERROR();
                     break;
-                default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+                default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
             
 }            break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             switch (get_top_data_tag()) {
                 case 1LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_dup2();
                     mw__3D__3D_();
                     if (pop_u64()) {
@@ -14164,7 +14266,7 @@ static void mw_value_unify_21_ (void){
                     }
                     break;
                 case 0LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_drop2();
                     mw_gamma_token_3F_();
                     push_ptr("Can't unify string value with int value.\0\0\0\0");
@@ -14172,22 +14274,22 @@ static void mw_value_unify_21_ (void){
                     mw_TYPE_ERROR();
                     break;
                 case 2LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_drop2();
                     mw_gamma_token_3F_();
                     push_ptr("Can't unify string value with block.\0\0\0\0");
                     mw_emit_error_21_();
                     mw_TYPE_ERROR();
                     break;
-                default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+                default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
             
 }            break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             switch (get_top_data_tag()) {
                 case 2LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_dup2();
                     mw__3D__3D_();
                     if (pop_u64()) {
@@ -14200,7 +14302,7 @@ static void mw_value_unify_21_ (void){
                     }
                     break;
                 case 0LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_drop2();
                     mw_gamma_token_3F_();
                     push_ptr("Can't unify block with int value.\0\0\0\0");
@@ -14208,40 +14310,40 @@ static void mw_value_unify_21_ (void){
                     mw_TYPE_ERROR();
                     break;
                 case 1LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_drop2();
                     mw_gamma_token_3F_();
                     push_ptr("Can't unify block with string value.\0\0\0\0");
                     mw_emit_error_21_();
                     mw_TYPE_ERROR();
                     break;
-                default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+                default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
             
 }            break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_type_value_unify_21_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_TYPE_INT();
             mw_type_unify_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_TYPE_STR();
             mw_type_unify_21_();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_block_unify_type_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -14249,25 +14351,25 @@ static void mw_value_type_unify_21_ (void){
     mw_swap();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_TYPE_INT();
             mw_swap();
             mw_type_unify_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_TYPE_STR();
             mw_swap();
             mw_type_unify_21_();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_block_unify_type_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -14383,64 +14485,64 @@ static void mw_type_has_meta_3F_ (void){
 static void mw_type_has_meta (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_meta_has_meta();
             break;
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_drop();
             mw_false();
             break;
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             mw_drop();
             mw_false();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop2();
             mw_false();
             break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop2();
             mw_false();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop2();
             mw_false();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_type2_has_meta();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_type2_has_meta();
             break;
         case 10LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_type2_has_meta();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop2();
             mw_false();
             break;
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop2();
             mw_false();
             break;
         case 11LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_value_type_has_meta();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -14462,64 +14564,64 @@ static void mw_meta_has_meta (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw__3D__3D_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_type_has_meta();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_value_type_has_meta (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop2();
             mw_false();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop2();
             mw_false();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_value_type_has_meta_4);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_sip();
             mw_block_cod();
             mw__40_();
             mw_type2_has_meta();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_type_trace_sig_21_ (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_trace_sig_21__2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_trace_sig_21__3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("<ERROR>\0\0\0\0");
             mw_str_trace_21_();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_swap();
             mw_type_trace_stack_dom_21_();
             push_ptr("--\0\0\0\0");
@@ -14563,24 +14665,24 @@ static void mw_type_trace_stack_cod_21_ (void){
 static void mw_type_trace_stack_21_ (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_trace_stack_21__2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_trace_stack_21__3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_swap();
             mw_type_trace_stack_dom_21_();
             mw_type_trace_21_();
             break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_var_name();
             mw__40_();
             mw_dup();
@@ -14602,32 +14704,32 @@ static void mw_type_trace_stack_21_ (void){
 static void mw_type_trace_21_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("<ERROR>\0\0\0\0");
             mw_str_trace_21_();
             break;
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("_\0\0\0\0");
             mw_str_trace_21_();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_type_trace_prim_21_();
             break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_var_name();
             mw__40_();
             mw_name_trace_21_();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_meta_trace_21_();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             push_ptr("[\0\0\0\0");
             mw_str_trace_21_();
             mw_TTensor();
@@ -14636,8 +14738,8 @@ static void mw_type_trace_21_ (void){
             mw_str_trace_21_();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             push_ptr("[\0\0\0\0");
             mw_str_trace_21_();
             mw_TMorphism();
@@ -14646,138 +14748,138 @@ static void mw_type_trace_21_ (void){
             mw_str_trace_21_();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_data_name();
             mw__40_();
             mw_name_trace_21_();
             break;
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_table_name();
             mw__40_();
             mw_name_trace_21_();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_trace_21_();
             break;
         case 10LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_app_type_trace_21_();
             break;
         case 11LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_value_as_type();
             mw_type_trace_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_value_as_type (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_PRIM_TYPE_INT();
             mw_TPrim();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_PRIM_TYPE_STR();
             mw_TPrim();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_value_as_type_4);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_sip();
             mw_block_cod();
             mw__40_();
             mw_T__3E_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_type_trace_prim_21_ (void){
     switch (get_top_data_tag()) {
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("<TYPE>\0\0\0\0");
             break;
         case 2LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("<STACK>\0\0\0\0");
             break;
         case 3LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("<EFFECT>\0\0\0\0");
             break;
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("[]\0\0\0\0");
             break;
         case 8LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("Bool\0\0\0\0");
             break;
         case 4LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("Int\0\0\0\0");
             break;
         case 5LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("Ptr\0\0\0\0");
             break;
         case 6LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("Str\0\0\0\0");
             break;
         case 7LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("Char\0\0\0\0");
             break;
         case 12LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("U8\0\0\0\0");
             break;
         case 11LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("U16\0\0\0\0");
             break;
         case 10LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("U32\0\0\0\0");
             break;
         case 9LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("U64\0\0\0\0");
             break;
         case 16LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("I8\0\0\0\0");
             break;
         case 15LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("I16\0\0\0\0");
             break;
         case 14LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("I32\0\0\0\0");
             break;
         case 13LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("I64\0\0\0\0");
             break;
         case 17LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("Mut\0\0\0\0");
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }    mw_str_trace_21_();
 }
@@ -14795,18 +14897,18 @@ static void mw_type_semifreshen_sig (void){
 static void mw_type_semifreshen_sig_aux (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_semifreshen_sig_aux_2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_semifreshen_sig_aux_3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_meta_alloc_21_();
             mw_TMeta();
             mw_rotr();
@@ -14834,18 +14936,18 @@ static void mw_type_semifreshen_sig_aux (void){
 static void mw_type_semifreshen_sig_stack (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_semifreshen_sig_stack_2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_semifreshen_sig_stack_3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_type_semifreshen_sig_stack();
@@ -14854,10 +14956,10 @@ static void mw_type_semifreshen_sig_stack (void){
             mw_TTensor();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_dup();
                     break;
                 default:
@@ -14884,18 +14986,18 @@ static void mw_type_freshen_sig (void){
 static void mw_type_stack_rest (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_stack_rest_2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_stack_rest_3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             mw_type_stack_rest();
             break;
@@ -14908,18 +15010,18 @@ static void mw_type_stack_rest (void){
 static void mw_type_sig_needs_fresh_stack_rest (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_sig_needs_fresh_stack_rest_2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_sig_needs_fresh_stack_rest_3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_type_stack_rest();
             mw_TYPE_UNIT();
             mw__3D__3D_();
@@ -14942,18 +15044,18 @@ static void mw_type_sig_needs_fresh_stack_rest (void){
 static void mw_type_freshen_sig_aux (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_freshen_sig_aux_2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_freshen_sig_aux_3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_meta_alloc_21_();
             mw_TMeta();
             mw_rot4r();
@@ -14985,18 +15087,18 @@ static void mw_type_freshen_sig_aux (void){
 static void mw_type_freshen_sig_stack (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_freshen_sig_stack_2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_freshen_sig_stack_3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_type_freshen_sig_stack();
@@ -15012,10 +15114,10 @@ static void mw_type_freshen_sig_stack (void){
             mw_TTensor();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_over();
                     break;
                 default:
@@ -15032,60 +15134,60 @@ static void mw_type_freshen_sig_stack (void){
 static void mw_type_freshen (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_TYPE_ERROR();
             break;
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             mw_TYPE_DONT_CARE();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_TPrim();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_THole();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_TData();
             break;
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_TTable();
             break;
         case 11LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_TValue();
             break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_type_var_freshen();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_meta_freshen();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_type_pair_freshen();
             mw_TTensor();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_type_pair_freshen();
             mw_TMorphism();
             break;
         case 10LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_type_pair_freshen();
             mw_TApp();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -15107,10 +15209,10 @@ static void mw_type_pair_freshen (void){
 static void mw_meta_freshen (void){
     push_u64(0);
     push_fnptr(&mb_meta_freshen_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_u64(0);
     push_fnptr(&mb_meta_freshen_2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_meta_expand_if();
 }
 
@@ -15136,10 +15238,10 @@ static void mw_type_var_freshen (void){
 static void mw_type_rigidify_sig_21_ (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_rigidify_sig_21__2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_or_update_21_();
             mw_type_rigidify_sig_21_();
             break;
@@ -15152,16 +15254,16 @@ static void mw_type_rigidify_sig_21_ (void){
 static void mw_type_rigidify_stack_21_ (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_rigidify_stack_21__2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_or_update_21_();
             mw_type_rigidify_stack_21_();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_type_rigidify_stack_21_();
@@ -15177,7 +15279,7 @@ static void mw_type_rigidify_stack_21_ (void){
             mw_TTensor();
             break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_TVar();
             break;
         default:
@@ -15189,44 +15291,44 @@ static void mw_type_rigidify_stack_21_ (void){
 static void mw_type_rigidify_21_ (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_rigidify_21__2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_or_update_21_();
             mw_type_rigidify_21_();
             break;
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_TYPE_ERROR();
             break;
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             mw_TYPE_DONT_CARE();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_TPrim();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_THole();
             break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_TVar();
             break;
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_TTable();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_TData();
             break;
         case 10LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_type_rigidify_21_();
@@ -15242,8 +15344,8 @@ static void mw_type_rigidify_21_ (void){
             mw_TApp();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_type_rigidify_stack_21_();
@@ -15259,8 +15361,8 @@ static void mw_type_rigidify_21_ (void){
             mw_TTensor();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             {
                 VAL d4 = pop_value();
                 mw_type_rigidify_stack_21_();
@@ -15276,40 +15378,40 @@ static void mw_type_rigidify_21_ (void){
             mw_TMorphism();
             break;
         case 11LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_type_rigidify_value_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_type_rigidify_value_21_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_VALUE_INT();
             mw_TValue();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_VALUE_STR();
             mw_TValue();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_block_arrow();
             mw_force_21_();
             mw_arrow_type();
             mw_type_rigidify_sig_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_prim_type_arity (void){
     switch (get_top_data_tag()) {
         case 17LL:
-            do_drop();
+            mw_prim_drop();
             push_i64(1LL);
             break;
         default:
@@ -15322,29 +15424,29 @@ static void mw_prim_type_arity (void){
 static void mw_type_arity (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_arity_2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_arity_3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_data_arity();
             mw__40_();
             break;
         case 10LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             mw_type_arity();
             mw_1_();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_prim_type_arity();
             break;
         default:
@@ -15357,18 +15459,18 @@ static void mw_type_arity (void){
 static void mw_type_head (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_head_2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_head_3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 10LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             mw_type_head();
             break;
@@ -15381,30 +15483,30 @@ static void mw_type_head (void){
 static void mw_type_max_count (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_max_count_2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_max_count_3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 10LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             mw_type_max_count();
             break;
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_table_max_count();
             mw__40_();
             mw_1_2B_();
             mw_SOME();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_data_is_enum_3F_();
             if (pop_u64()) {
                 mw_data_tags();
@@ -15429,18 +15531,18 @@ static void mw_meta_trace_21_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("?\0\0\0\0");
             mw_str_trace_21_();
             mw_MetaVar_2E_id();
             mw_int_trace_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_type_trace_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -15457,13 +15559,13 @@ static void mw_meta_expand_if (void){
         mw__40_();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 push_value(var_g);
                 incref(var_g);
-                do_run();
+                mw_prim_run();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 mw_type_expand();
                 mw_tuck();
                 mw_SOME();
@@ -15472,9 +15574,9 @@ static void mw_meta_expand_if (void){
                 mw__21_();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_g);
         decref(var_f);
@@ -15484,10 +15586,10 @@ static void mw_meta_expand_if (void){
 static void mw_meta_expand (void){
     push_u64(0);
     push_fnptr(&mb_meta_expand_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_u64(0);
     push_fnptr(&mb_meta_expand_2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_meta_expand_if();
 }
 
@@ -15497,12 +15599,12 @@ static void mw_meta_unify_21_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_type_unify_21_();
             break;
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_dup2();
             mw_TMeta();
             mw__3D__3D_();
@@ -15524,7 +15626,7 @@ static void mw_meta_unify_21_ (void){
                 }
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -15536,12 +15638,12 @@ static void mw_meta_expand_or_update_21_ (void){
         mw__40_();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 {
                     VAL d5 = pop_value();
                     push_value(var_f);
                     incref(var_f);
-                    do_run();
+                    mw_prim_run();
                     mw_dup();
                     mw_SOME();
                     push_value(d5);
@@ -15550,10 +15652,10 @@ static void mw_meta_expand_or_update_21_ (void){
                 mw__21_();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 mw_nip();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        decref(var_f);
     }
@@ -15577,18 +15679,18 @@ static void mw_type_hole_unify_21_ (void){
 static void mw_type_max_num_params (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_max_num_params_2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_max_num_params_3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             mw_type_num_morphisms_on_top();
             break;
@@ -15602,18 +15704,18 @@ static void mw_type_max_num_params (void){
 static void mw_type_num_morphisms_on_top (void){
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_type_num_morphisms_on_top_2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_u64(0);
             push_fnptr(&mb_type_num_morphisms_on_top_3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_meta_expand_if();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_type_is_morphism();
             if (pop_u64()) {
                 mw_type_num_morphisms_on_top();
@@ -15640,8 +15742,8 @@ static void mw_app_type_trace_open_21_ (void){
     mw_swap();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_app_type_trace_open_21_();
             push_ptr(", \0\0\0\0");
             mw_str_trace_21_();
@@ -15697,14 +15799,14 @@ static void mw_subst_get_var (void){
     mw_map_lookup();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_TYPE_ERROR();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_id();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -15718,7 +15820,7 @@ static void mw_subst_match_var (void){
     if (pop_u64()) {
         push_u64(0);
         push_fnptr(&mb_subst_match_var_2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
     } else {
         mw_subst_new_21_();
@@ -15731,11 +15833,11 @@ static void mw_tag_num_inputs_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_i64(0LL);
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_i64(0LL);
             mw_swap();
             while(1) {
@@ -15751,7 +15853,7 @@ static void mw_tag_num_inputs_3F_ (void){
             }
             mw_drop();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -15793,7 +15895,7 @@ static void mw_data_is_enum_3F_ (void){
     mw__40_();
     push_u64(0);
     push_fnptr(&mb_data_is_enum_3F__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_all_3F_();
     mw_nip();
 }
@@ -15803,7 +15905,7 @@ static void mw_data_is_transparent (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_tag_num_inputs_3F_();
             push_i64(1LL);
             mw__3D__3D_();
@@ -15865,7 +15967,7 @@ static void mw_Atom_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -15936,7 +16038,7 @@ static void mw_Arrow_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -16007,7 +16109,7 @@ static void mw_Lambda_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -16078,7 +16180,7 @@ static void mw_Block_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -16117,7 +16219,7 @@ static void mw_atom_arg_add_left_21_ (void){
     mw_atom_args();
     push_u64(0);
     push_fnptr(&mb_atom_arg_add_left_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
 }
 
@@ -16126,7 +16228,7 @@ static void mw_arrow_atom_add_21_ (void){
     mw_arrow_atoms();
     push_u64(0);
     push_fnptr(&mb_arrow_atom_add_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
 }
 
@@ -16184,7 +16286,7 @@ static void mw_block_new_deferred_21_ (void){
     mw_dup();
     push_u64(0);
     push_fnptr(&mb_block_new_deferred_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
     mw_over();
     mw_block_arrow();
@@ -16207,14 +16309,14 @@ static void mw_block_unify_type_21_ (void){
         mw_swap();
         push_u64(0);
         push_fnptr(&mb_block_unify_type_21__2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
         push_value(d2);
     }
     mw_swap();
     push_u64(0);
     push_fnptr(&mb_block_unify_type_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_block_arrow();
     mw_force_21_();
@@ -16270,7 +16372,7 @@ static void mw_Match_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -16341,7 +16443,7 @@ static void mw_Case_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -16394,7 +16496,7 @@ static void mw_match_is_exhaustive_3F_ (void){
         mw_match_scrutinee_data_3F_();
         switch (get_top_data_tag()) {
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 mw_data_num_tags();
                 mw_over();
                 mw_match_cases();
@@ -16403,10 +16505,10 @@ static void mw_match_is_exhaustive_3F_ (void){
                 mw__3D__3D_();
                 break;
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_true();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }    }
 }
@@ -16425,8 +16527,8 @@ static void mw_match_scrutinee_type_3F_ (void){
     mw_type_expand();
     switch (get_top_data_tag()) {
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_nip();
             mw_SOME();
             break;
@@ -16441,7 +16543,7 @@ static void mw_match_scrutinee_data_3F_ (void){
     mw_match_scrutinee_type_3F_();
     push_u64(0);
     push_fnptr(&mb_match_scrutinee_data_3F__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_maybe_bind();
 }
 
@@ -16449,14 +16551,14 @@ static void mw_match_is_transparent_3F_ (void){
     mw_match_scrutinee_data_3F_();
     switch (get_top_data_tag()) {
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_data_is_transparent();
             break;
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_false();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -16469,7 +16571,7 @@ static void mw_cases_cover_case (void){
     mw_swap();
     push_u64(0);
     push_fnptr(&mb_cases_cover_case_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_any();
     mw_nip();
 }
@@ -16489,7 +16591,7 @@ static void mw_case_is_covered (void){
 static void mw_cases_have_default_case (void){
     push_u64(0);
     push_fnptr(&mb_cases_have_default_case_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_any();
 }
 
@@ -16528,7 +16630,7 @@ static void mw_delay (void){
 static void mw_delay0 (void){
     push_u64(0);
     push_fnptr(&mb_delay0_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
 }
 
@@ -16536,7 +16638,7 @@ static void mw_delay2 (void){
     mw_pack3();
     push_u64(0);
     push_fnptr(&mb_delay2_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
 }
 
@@ -16544,7 +16646,7 @@ static void mw_delay3 (void){
     mw_pack4();
     push_u64(0);
     push_fnptr(&mb_delay3_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
 }
 
@@ -16552,7 +16654,7 @@ static void mw_delay4 (void){
     mw_pack5();
     push_u64(0);
     push_fnptr(&mb_delay4_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
 }
 
@@ -16561,12 +16663,12 @@ static void mw_force_21_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_rotl();
             mw_LAZY_WAIT();
             mw_over();
@@ -16581,11 +16683,11 @@ static void mw_force_21_ (void){
             mw__21_();
             break;
         case 2LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("attempted to force already running thunk\0\0\0\0");
             mw_panic_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -16596,11 +16698,11 @@ static void mw_force_or_21_ (void){
         mw__40_();
         switch (get_top_data_tag()) {
             case 2LL:
-                do_drop();
+                mw_prim_drop();
                 mw_drop();
                 push_value(var_f);
                 incref(var_f);
-                do_run();
+                mw_prim_run();
                 break;
             default:
                 mw_drop();
@@ -16622,9 +16724,9 @@ static void mw_force_or2_21_ (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_force_or2_21__2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_force_or_21_();
         mw_unpack2();
         decref(var_f);
@@ -16680,7 +16782,7 @@ static void mw_Var_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -16772,7 +16874,7 @@ static void mw_Word_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -16843,7 +16945,7 @@ static void mw_Table_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -16914,7 +17016,7 @@ static void mw_Field_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -17006,7 +17108,7 @@ static void mw__2E_b (void){
     mw_codegen_length();
     push_u64(0);
     push_fnptr(&mb__2E_b_3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
     mw_codegen_u8_21_();
 }
@@ -17022,13 +17124,15 @@ static void mw__2E_c (void){
     mw_codegen_length();
     mw__40_();
     mw_CODEGEN_BUF();
-    mw_ptr_2B_();
-    mw_char_21_();
+    push_u64(0);
+    push_fnptr(&mb__2E_c_3);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
     mw_char_width();
     mw_codegen_length();
     push_u64(0);
-    push_fnptr(&mb__2E_c_3);
-    do_pack_cons();
+    push_fnptr(&mb__2E_c_4);
+    mw_prim_pack_cons();
     mw_modify();
 }
 
@@ -17062,7 +17166,10 @@ static void mw__2E_ (void){
                 VAL d4 = pop_value();
                 mw_CODEGEN_BUF_SIZE();
                 mw_swap();
-                mw_ptr_2B_();
+                push_u64(0);
+                push_fnptr(&mb__2E__5);
+                mw_prim_pack_cons();
+                mw_with_ptr_2B_();
                 push_value(d4);
             }
             mw_CODEGEN_BUF_SIZE();
@@ -17075,13 +17182,13 @@ static void mw__2E_ (void){
         mw_prim_ptr_copy();
     } else {
         push_u64(0);
-        push_fnptr(&mb__2E__6);
-        do_pack_cons();
+        push_fnptr(&mb__2E__7);
+        mw_prim_pack_cons();
         mw_sip();
         mw_codegen_length();
         push_u64(0);
-        push_fnptr(&mb__2E__7);
-        do_pack_cons();
+        push_fnptr(&mb__2E__9);
+        mw_prim_pack_cons();
         mw_modify();
     }
 }
@@ -17188,7 +17295,7 @@ static void mw__2E_pm (void){
 
 static void mw_c99_header_21_ (void){
     {
-        static u8 b[29787] = {
+        static uint8_t b[20210] = {
             47,42,32,77,73,82,84,72,32,72,69,65,68,69,82,32,42,47,10,
             10,
             35,105,102,32,100,101,102,105,110,101,100,40,87,73,78,51,50,41,32,124,124,32,100,101,102,105,110,101,100,40,95,87,73,78,51,50,41,32,124,124,32,100,101,102,105,110,101,100,40,95,95,87,73,78,51,50,95,95,41,32,124,124,32,100,101,102,105,110,101,100,40,95,95,78,84,95,95,41,10,
@@ -17208,43 +17315,41 @@ static void mw_c99_header_21_ (void){
             35,105,110,99,108,117,100,101,32,60,115,121,115,47,109,109,97,110,46,104,62,10,
             35,105,110,99,108,117,100,101,32,60,115,116,100,108,105,98,46,104,62,10,
             35,105,110,99,108,117,100,101,32,60,115,116,114,105,110,103,46,104,62,10,
+            35,105,110,99,108,117,100,101,32,60,115,116,100,105,111,46,104,62,10,
             10,
-            116,121,112,101,100,101,102,32,117,105,110,116,56,95,116,32,117,56,59,10,
-            116,121,112,101,100,101,102,32,117,105,110,116,49,54,95,116,32,117,49,54,59,10,
-            116,121,112,101,100,101,102,32,117,105,110,116,51,50,95,116,32,117,51,50,59,10,
-            116,121,112,101,100,101,102,32,117,105,110,116,54,52,95,116,32,117,54,52,59,10,
-            116,121,112,101,100,101,102,32,105,110,116,56,95,116,32,105,56,59,10,
-            116,121,112,101,100,101,102,32,105,110,116,49,54,95,116,32,105,49,54,59,10,
-            116,121,112,101,100,101,102,32,105,110,116,51,50,95,116,32,105,51,50,59,10,
-            116,121,112,101,100,101,102,32,105,110,116,54,52,95,116,32,105,54,52,59,10,
-            116,121,112,101,100,101,102,32,117,105,110,116,112,116,114,95,116,32,117,115,105,122,101,59,10,
+            35,100,101,102,105,110,101,32,69,88,80,69,67,84,40,116,101,115,116,44,46,46,46,41,32,92,10,
+            32,32,32,32,100,111,32,123,32,92,10,
+            32,32,32,32,32,32,32,32,105,102,32,40,33,40,116,101,115,116,41,41,32,123,32,92,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,102,112,114,105,110,116,102,40,115,116,100,101,114,114,44,32,95,95,86,65,95,65,82,71,83,95,95,41,59,32,92,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,102,112,114,105,110,116,102,40,115,116,100,101,114,114,44,32,34,92,110,34,41,59,32,92,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,101,120,105,116,40,49,41,59,32,92,10,
+            32,32,32,32,32,32,32,32,125,32,92,10,
+            32,32,32,32,125,32,119,104,105,108,101,40,48,41,10,
+            10,
+            35,100,101,102,105,110,101,32,65,83,83,69,82,84,40,116,101,115,116,41,32,92,10,
+            32,32,32,32,69,88,80,69,67,84,40,116,101,115,116,44,32,34,37,115,58,37,100,58,32,97,115,115,101,114,116,105,111,110,32,102,97,105,108,101,100,32,40,37,115,41,34,44,32,95,95,70,73,76,69,95,95,44,32,95,95,76,73,78,69,95,95,44,32,35,116,101,115,116,41,10,
             10,
             116,121,112,101,100,101,102,32,101,110,117,109,32,84,65,71,32,123,10,
-            32,32,32,32,86,84,95,85,54,52,32,61,32,48,120,48,48,44,10,
-            32,32,32,32,86,84,95,85,51,50,32,61,32,48,120,48,49,44,10,
-            32,32,32,32,86,84,95,85,50,49,32,61,32,48,120,48,50,44,10,
-            32,32,32,32,86,84,95,85,49,54,32,61,32,48,120,48,51,44,10,
-            32,32,32,32,86,84,95,67,49,54,32,61,32,48,120,57,48,44,10,
-            32,32,32,32,86,84,95,67,50,49,32,61,32,48,120,57,54,44,10,
-            32,32,32,32,86,84,95,67,51,50,32,61,32,48,120,65,48,44,10,
-            32,32,32,32,86,84,95,67,54,52,32,61,32,48,120,67,48,44,10,
+            32,32,32,32,84,65,71,95,73,78,84,32,61,32,48,44,10,
+            32,32,32,32,84,65,71,95,67,79,78,83,32,61,32,49,44,10,
             125,32,84,65,71,59,10,
             10,
             116,121,112,101,100,101,102,32,118,111,105,100,32,40,42,102,110,112,116,114,41,40,118,111,105,100,41,59,10,
             10,
             116,121,112,101,100,101,102,32,117,110,105,111,110,32,68,65,84,65,32,123,10,
-            32,32,32,32,118,111,105,100,42,32,118,112,95,112,116,114,59,10,
-            32,32,32,32,117,56,32,118,112,95,117,56,59,10,
-            32,32,32,32,117,49,54,32,118,112,95,117,49,54,59,10,
-            32,32,32,32,117,51,50,32,118,112,95,117,51,50,59,10,
-            32,32,32,32,117,54,52,32,118,112,95,117,54,52,59,10,
-            32,32,32,32,105,56,32,118,112,95,105,56,59,10,
-            32,32,32,32,105,49,54,32,118,112,95,105,49,54,59,10,
-            32,32,32,32,105,51,50,32,118,112,95,105,51,50,59,10,
-            32,32,32,32,105,54,52,32,118,112,95,105,54,52,59,10,
-            32,32,32,32,98,111,111,108,32,118,112,95,98,111,111,108,59,10,
-            32,32,32,32,102,110,112,116,114,32,118,112,95,102,110,112,116,114,59,10,
-            32,32,32,32,115,116,114,117,99,116,32,86,65,76,42,32,118,112,95,118,97,108,117,101,112,116,114,59,10,
+            32,32,32,32,115,105,122,101,95,116,32,117,115,105,122,101,59,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,117,54,52,59,10,
+            32,32,32,32,117,105,110,116,51,50,95,116,32,117,51,50,59,10,
+            32,32,32,32,117,105,110,116,49,54,95,116,32,117,49,54,59,10,
+            32,32,32,32,117,105,110,116,56,95,116,32,117,56,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,105,54,52,59,10,
+            32,32,32,32,105,110,116,51,50,95,116,32,105,51,50,59,10,
+            32,32,32,32,105,110,116,49,54,95,116,32,105,49,54,59,10,
+            32,32,32,32,105,110,116,56,95,116,32,105,56,59,10,
+            32,32,32,32,118,111,105,100,42,32,112,116,114,59,10,
+            32,32,32,32,118,111,105,100,32,40,42,102,110,112,116,114,41,40,118,111,105,100,41,59,10,
+            32,32,32,32,115,116,114,117,99,116,32,86,65,76,42,32,118,97,108,112,116,114,59,10,
+            32,32,32,32,99,104,97,114,42,32,99,104,97,114,112,116,114,59,10,
             125,32,68,65,84,65,59,10,
             10,
             116,121,112,101,100,101,102,32,115,116,114,117,99,116,32,86,65,76,32,123,10,
@@ -17253,489 +17358,250 @@ static void mw_c99_header_21_ (void){
             125,32,86,65,76,59,10,
             10,
             116,121,112,101,100,101,102,32,115,116,114,117,99,116,32,67,79,78,83,32,123,10,
-            32,32,32,32,117,51,50,32,114,101,102,115,59,10,
+            32,32,32,32,117,105,110,116,51,50,95,116,32,114,101,102,115,59,10,
             32,32,32,32,98,111,111,108,32,102,114,101,101,99,100,114,59,10,
             32,32,32,32,86,65,76,32,99,97,114,59,10,
             32,32,32,32,86,65,76,32,99,100,114,59,10,
             125,32,67,79,78,83,59,10,
             10,
-            35,100,101,102,105,110,101,32,83,84,65,67,75,95,83,73,90,69,32,48,120,56,48,48,48,10,
-            115,116,97,116,105,99,32,117,115,105,122,101,32,115,116,97,99,107,95,99,111,117,110,116,101,114,32,61,32,83,84,65,67,75,95,83,73,90,69,59,10,
-            115,116,97,116,105,99,32,86,65,76,32,115,116,97,99,107,32,91,83,84,65,67,75,95,83,73,90,69,93,32,61,32,123,48,125,59,10,
+            35,100,101,102,105,110,101,32,83,84,65,67,75,95,77,65,88,32,48,120,56,48,48,48,10,
+            115,116,97,116,105,99,32,115,105,122,101,95,116,32,115,116,97,99,107,95,99,111,117,110,116,101,114,32,61,32,83,84,65,67,75,95,77,65,88,59,10,
+            115,116,97,116,105,99,32,86,65,76,32,115,116,97,99,107,32,91,83,84,65,67,75,95,77,65,88,93,32,61,32,123,48,125,59,10,
             10,
             35,100,101,102,105,110,101,32,72,69,65,80,95,83,73,90,69,32,48,120,56,48,48,48,48,10,
             35,100,101,102,105,110,101,32,72,69,65,80,95,77,65,83,75,32,48,120,55,70,70,70,70,10,
-            115,116,97,116,105,99,32,117,115,105,122,101,32,104,101,97,112,95,110,101,120,116,32,61,32,49,59,10,
-            115,116,97,116,105,99,32,117,115,105,122,101,32,104,101,97,112,95,99,111,117,110,116,32,61,32,48,59,10,
+            115,116,97,116,105,99,32,115,105,122,101,95,116,32,104,101,97,112,95,110,101,120,116,32,61,32,49,59,10,
+            115,116,97,116,105,99,32,115,105,122,101,95,116,32,104,101,97,112,95,99,111,117,110,116,32,61,32,48,59,10,
             115,116,97,116,105,99,32,67,79,78,83,32,104,101,97,112,32,91,72,69,65,80,95,83,73,90,69,93,32,61,32,123,48,125,59,10,
             10,
             115,116,97,116,105,99,32,105,110,116,32,103,108,111,98,97,108,95,97,114,103,99,59,10,
             115,116,97,116,105,99,32,99,104,97,114,42,42,32,103,108,111,98,97,108,95,97,114,103,118,59,10,
             10,
-            35,100,101,102,105,110,101,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,118,41,32,40,40,117,115,105,122,101,41,40,40,40,118,41,46,116,97,103,32,38,32,48,120,56,48,41,32,63,32,40,40,118,41,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,40,48,120,67,48,32,45,32,40,117,54,52,41,40,40,118,41,46,116,97,103,41,41,41,32,58,32,48,41,41,10,
-            10,
-            35,100,101,102,105,110,101,32,105,110,99,114,101,102,40,118,41,32,100,111,123,32,86,65,76,32,119,32,61,32,40,118,41,59,32,117,115,105,122,101,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,119,41,59,32,105,102,40,105,41,32,104,101,97,112,91,105,93,46,114,101,102,115,43,43,59,32,125,119,104,105,108,101,40,48,41,10,
-            10,
-            35,100,101,102,105,110,101,32,100,101,99,114,101,102,40,118,41,32,100,111,123,32,86,65,76,32,119,32,61,32,40,118,41,59,32,117,115,105,122,101,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,119,41,59,32,105,102,40,105,41,32,123,32,105,102,40,104,101,97,112,91,105,93,46,114,101,102,115,41,32,123,32,104,101,97,112,91,105,93,46,114,101,102,115,45,45,59,32,105,102,32,40,104,101,97,112,91,105,93,46,114,101,102,115,32,61,61,32,48,41,32,104,101,97,112,95,102,114,101,101,40,105,41,59,32,125,32,125,125,32,119,104,105,108,101,40,48,41,10,
-            10,
-            115,116,97,116,105,99,32,118,111,105,100,32,104,101,97,112,95,102,114,101,101,40,117,115,105,122,101,32,105,41,32,123,10,
-            32,32,32,32,67,79,78,83,32,42,99,101,108,108,32,61,32,104,101,97,112,32,43,32,105,59,10,
-            32,32,32,32,67,79,78,83,32,99,111,110,116,101,110,116,115,32,61,32,42,99,101,108,108,59,10,
-            32,32,32,32,109,101,109,115,101,116,40,99,101,108,108,44,32,48,44,32,115,105,122,101,111,102,40,67,79,78,83,41,41,59,10,
-            32,32,32,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,104,101,97,112,95,110,101,120,116,59,10,
-            32,32,32,32,104,101,97,112,95,110,101,120,116,32,61,32,105,59,10,
-            32,32,32,32,104,101,97,112,95,99,111,117,110,116,45,45,59,10,
-            32,32,32,32,105,102,32,40,99,111,110,116,101,110,116,115,46,102,114,101,101,99,100,114,41,32,123,32,102,114,101,101,40,99,111,110,116,101,110,116,115,46,99,100,114,46,100,97,116,97,46,118,112,95,112,116,114,41,59,32,125,10,
-            32,32,32,32,101,108,115,101,32,123,32,100,101,99,114,101,102,40,99,111,110,116,101,110,116,115,46,99,100,114,41,59,32,125,10,
-            32,32,32,32,100,101,99,114,101,102,40,99,111,110,116,101,110,116,115,46,99,97,114,41,59,10,
-            125,10,
-            10,
-            35,100,101,102,105,110,101,32,100,101,99,114,101,102,95,102,111,114,95,117,110,99,111,110,115,40,118,41,32,100,111,123,32,86,65,76,32,119,32,61,32,40,118,41,59,32,117,115,105,122,101,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,119,41,59,32,105,102,40,105,41,32,123,32,105,102,32,40,104,101,97,112,91,105,93,46,114,101,102,115,41,32,123,32,104,101,97,112,91,105,93,46,114,101,102,115,45,45,59,32,105,102,32,40,104,101,97,112,91,105,93,46,114,101,102,115,32,61,61,32,48,41,32,123,32,109,101,109,115,101,116,40,104,101,97,112,43,105,44,32,48,44,32,115,105,122,101,111,102,40,67,79,78,83,41,41,59,32,104,101,97,112,91,105,93,46,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,104,101,97,112,95,110,101,120,116,59,32,104,101,97,112,95,110,101,120,116,32,61,32,105,59,32,104,101,97,112,95,99,111,117,110,116,45,45,59,32,125,32,101,108,115,101,32,123,32,67,79,78,83,32,99,101,108,108,32,61,32,104,101,97,112,91,105,93,59,32,105,110,99,114,101,102,40,99,101,108,108,46,99,97,114,41,59,32,105,110,99,114,101,102,40,99,101,108,108,46,99,100,114,41,59,32,125,32,125,32,125,32,125,32,119,104,105,108,101,40,48,41,10,
-            115,116,97,116,105,99,32,118,111,105,100,32,118,97,108,117,101,95,117,110,99,111,110,115,40,86,65,76,32,118,97,108,44,32,86,65,76,42,32,99,97,114,44,32,86,65,76,42,32,99,100,114,41,32,123,10,
-            32,32,32,32,115,119,105,116,99,104,32,40,118,97,108,46,116,97,103,41,32,123,10,
-            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,54,52,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,110,105,108,32,61,32,123,32,48,32,125,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,42,99,97,114,32,61,32,110,105,108,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,42,99,100,114,32,61,32,118,97,108,59,10,
-            32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,51,50,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,108,111,32,61,32,118,118,32,38,32,48,120,70,70,70,70,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,104,105,32,61,32,118,118,32,62,62,32,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,97,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,104,105,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
-            32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,54,52,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,67,79,78,83,42,32,99,101,108,108,32,61,32,104,101,97,112,32,43,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,42,99,97,114,32,61,32,99,101,108,108,45,62,99,97,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,42,99,100,114,32,61,32,99,101,108,108,45,62,99,100,114,59,10,
-            32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,51,50,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,108,111,32,61,32,118,118,32,38,32,48,120,70,70,70,70,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,104,105,32,61,32,118,118,32,62,62,32,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,67,54,52,59,32,99,97,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,104,105,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
-            32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,50,49,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,108,111,32,61,32,118,118,32,38,32,48,120,49,70,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,109,100,32,61,32,40,118,118,32,62,62,32,50,49,41,32,38,32,48,120,49,70,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,104,105,32,61,32,40,118,118,32,62,62,32,52,50,41,32,38,32,48,120,49,70,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,85,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,104,105,32,60,60,32,51,50,41,32,124,32,109,100,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
-            32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,50,49,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,108,111,32,61,32,118,118,32,38,32,48,120,49,70,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,109,100,32,61,32,40,118,118,32,62,62,32,50,49,41,32,38,32,48,120,49,70,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,104,105,32,61,32,40,118,118,32,62,62,32,52,50,41,32,38,32,48,120,49,70,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,67,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,104,105,32,60,60,32,51,50,41,32,124,32,109,100,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
-            32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,49,54,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,108,111,32,61,32,118,118,32,38,32,48,120,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,50,32,61,32,40,118,118,32,62,62,32,49,54,41,32,38,32,48,120,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,40,118,118,32,62,62,32,51,50,41,32,38,32,48,120,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,40,118,118,32,62,62,32,52,56,41,32,38,32,48,120,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,85,50,49,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,50,41,32,124,32,40,121,49,32,60,60,32,50,49,41,32,124,32,121,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
-            32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,49,54,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,118,118,32,61,32,118,97,108,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,108,111,32,61,32,118,118,32,38,32,48,120,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,50,32,61,32,40,118,118,32,62,62,32,49,54,41,32,38,32,48,120,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,40,118,118,32,62,62,32,51,50,41,32,38,32,48,120,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,40,118,118,32,62,62,32,52,56,41,32,38,32,48,120,70,70,70,70,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,116,97,103,32,61,32,86,84,95,67,50,49,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,50,41,32,124,32,40,121,49,32,60,60,32,50,49,41,32,124,32,121,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,100,114,45,62,116,97,103,32,61,32,86,84,95,85,54,52,59,32,99,100,114,45,62,100,97,116,97,46,118,112,95,117,54,52,32,61,32,108,111,59,10,
-            32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,125,10,
-            125,10,
-            10,
-            115,116,97,116,105,99,32,98,111,111,108,32,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,32,40,86,65,76,32,118,41,32,123,10,
-            32,32,32,32,105,102,32,40,118,46,116,97,103,32,61,61,32,86,84,95,67,54,52,41,32,123,10,
-            32,32,32,32,32,32,32,32,117,115,105,122,101,32,99,101,108,108,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,118,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,115,116,114,117,99,116,32,67,79,78,83,32,42,32,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,95,105,110,100,101,120,59,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,33,99,101,108,108,45,62,102,114,101,101,99,100,114,59,10,
-            32,32,32,32,125,32,101,108,115,101,32,123,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,118,46,116,97,103,32,33,61,32,86,84,95,85,54,52,59,10,
-            32,32,32,32,125,10,
-            125,10,
-            10,
-            115,116,97,116,105,99,32,117,54,52,32,118,97,108,117,101,95,112,116,114,95,115,105,122,101,32,40,86,65,76,32,118,41,32,123,10,
-            32,32,32,32,105,102,32,40,118,46,100,97,116,97,46,118,112,95,117,54,52,32,61,61,32,48,41,32,123,10,
+            115,116,97,116,105,99,32,115,105,122,101,95,116,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,86,65,76,32,118,41,32,123,10,
+            32,32,32,32,105,102,32,40,118,46,116,97,103,32,61,61,32,84,65,71,95,67,79,78,83,41,10,
+            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,118,46,100,97,116,97,46,117,115,105,122,101,59,10,
+            32,32,32,32,101,108,115,101,10,
             32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,48,59,10,
-            32,32,32,32,125,32,101,108,115,101,32,105,102,32,40,118,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,123,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,115,116,114,108,101,110,40,118,46,100,97,116,97,46,118,112,95,112,116,114,41,59,10,
-            32,32,32,32,125,32,101,108,115,101,32,105,102,32,40,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,40,118,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,50,44,32,99,100,114,50,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,99,97,114,44,32,38,99,97,114,50,44,32,38,99,100,114,50,41,59,10,
-            32,32,32,32,32,32,32,32,117,54,52,32,115,105,122,101,32,61,32,99,97,114,50,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,117,54,52,32,111,102,102,115,101,116,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,105,102,32,40,115,105,122,101,32,62,61,32,111,102,102,115,101,116,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,111,102,102,115,101,116,32,45,32,115,105,122,101,59,10,
-            32,32,32,32,32,32,32,32,125,32,101,108,115,101,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,48,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,105,110,99,114,101,102,40,86,65,76,32,118,41,32,123,10,
+            32,32,32,32,115,105,122,101,95,116,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,118,41,59,10,
+            32,32,32,32,105,102,32,40,105,41,32,123,10,
+            32,32,32,32,32,32,32,32,104,101,97,112,91,105,93,46,114,101,102,115,43,43,59,10,
+            32,32,32,32,125,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,100,101,99,114,101,102,40,86,65,76,32,118,41,32,123,10,
+            32,32,32,32,115,105,122,101,95,116,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,118,41,59,10,
+            32,32,32,32,105,102,32,40,105,41,32,123,10,
+            32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,104,101,97,112,91,105,93,46,114,101,102,115,41,59,10,
+            32,32,32,32,32,32,32,32,104,101,97,112,91,105,93,46,114,101,102,115,45,45,59,10,
+            32,32,32,32,32,32,32,32,105,102,32,40,104,101,97,112,91,105,93,46,114,101,102,115,32,61,61,32,48,41,32,123,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,67,79,78,83,32,99,111,110,115,32,61,32,104,101,97,112,91,105,93,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,109,101,109,115,101,116,40,104,101,97,112,43,105,44,32,48,44,32,115,105,122,101,111,102,40,67,79,78,83,41,41,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,104,101,97,112,91,105,93,46,99,100,114,46,100,97,116,97,46,117,115,105,122,101,32,61,32,104,101,97,112,95,110,101,120,116,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,104,101,97,112,95,110,101,120,116,32,61,32,105,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,104,101,97,112,95,99,111,117,110,116,45,45,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,99,111,110,115,46,102,114,101,101,99,100,114,41,32,123,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,102,114,101,101,40,99,111,110,115,46,99,100,114,46,100,97,116,97,46,112,116,114,41,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,125,32,101,108,115,101,32,123,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,99,111,110,115,46,99,100,114,41,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,125,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,99,111,110,115,46,99,97,114,41,59,10,
             32,32,32,32,32,32,32,32,125,10,
-            32,32,32,32,125,32,101,108,115,101,32,123,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
             32,32,32,32,125,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,118,111,105,100,42,32,118,97,108,117,101,95,112,116,114,95,98,97,115,101,32,40,86,65,76,32,118,41,32,123,10,
-            32,32,32,32,105,102,32,40,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,40,118,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,50,44,32,99,100,114,50,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,99,97,114,44,32,38,99,97,114,50,44,32,38,99,100,114,50,41,59,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,100,114,50,46,100,97,116,97,46,118,112,95,112,116,114,59,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,118,97,108,117,101,95,117,110,99,111,110,115,40,86,65,76,32,118,97,108,44,32,86,65,76,42,32,99,97,114,44,32,86,65,76,42,32,99,100,114,41,32,123,10,
+            32,32,32,32,115,105,122,101,95,116,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,118,97,108,41,59,10,
+            32,32,32,32,105,102,32,40,105,41,32,123,10,
+            32,32,32,32,32,32,32,32,42,99,97,114,32,61,32,104,101,97,112,91,105,93,46,99,97,114,59,10,
+            32,32,32,32,32,32,32,32,42,99,100,114,32,61,32,104,101,97,112,91,105,93,46,99,100,114,59,10,
             32,32,32,32,125,32,101,108,115,101,32,123,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,100,114,46,100,97,116,97,46,118,112,95,112,116,114,59,10,
+            32,32,32,32,32,32,32,32,42,99,97,114,32,61,32,40,86,65,76,41,123,48,125,59,10,
+            32,32,32,32,32,32,32,32,42,99,100,114,32,61,32,118,97,108,59,10,
             32,32,32,32,125,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,105,54,52,32,118,97,108,117,101,95,112,116,114,95,111,102,102,115,101,116,32,40,86,65,76,32,118,41,32,123,10,
-            32,32,32,32,105,102,32,40,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,40,118,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,100,114,46,100,97,116,97,46,118,112,95,105,54,52,59,10,
-            32,32,32,32,125,32,101,108,115,101,32,123,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,48,59,10,
-            32,32,32,32,125,10,
+            115,116,97,116,105,99,32,115,105,122,101,95,116,32,118,97,108,117,101,95,112,116,114,95,115,105,122,101,32,40,86,65,76,32,118,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,99,97,114,44,32,118,99,100,114,59,10,
+            32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,118,99,97,114,44,32,38,118,99,100,114,41,59,10,
+            32,32,32,32,114,101,116,117,114,110,32,118,99,97,114,46,100,97,116,97,46,117,115,105,122,101,59,10,
             125,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,42,32,118,97,108,117,101,95,112,116,114,32,40,86,65,76,32,118,41,32,123,10,
-            32,32,32,32,117,115,105,122,101,32,99,101,108,108,95,105,110,100,101,120,59,32,67,79,78,83,42,32,99,101,108,108,59,32,117,115,105,122,101,32,111,102,102,115,101,116,59,10,
-            32,32,32,32,115,119,105,116,99,104,32,40,118,46,116,97,103,41,32,123,10,
-            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,54,52,58,32,114,101,116,117,114,110,32,118,46,100,97,116,97,46,118,112,95,112,116,114,59,10,
-            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,54,52,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,118,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,95,105,110,100,101,120,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,99,101,108,108,45,62,102,114,101,101,99,100,114,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,112,116,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,125,32,101,108,115,101,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,111,102,102,115,101,116,32,61,32,40,117,115,105,122,101,41,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,99,101,108,108,45,62,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,125,10,
-            32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,51,50,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,111,102,102,115,101,116,32,61,32,40,117,115,105,122,101,41,118,46,100,97,116,97,46,118,112,95,117,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,51,50,41,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,100,101,102,97,117,108,116,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,40,118,111,105,100,42,41,48,59,10,
-            32,32,32,32,125,10,
-            32,32,32,32,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,95,105,110,100,101,120,59,10,
-            32,32,32,32,105,102,32,40,99,101,108,108,45,62,102,114,101,101,99,100,114,41,32,123,10,
-            32,32,32,32,32,32,32,32,99,104,97,114,42,32,98,97,115,101,32,61,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,112,116,114,59,10,
-            32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,40,118,111,105,100,42,41,40,98,97,115,101,32,43,32,111,102,102,115,101,116,41,59,10,
-            32,32,32,32,125,10,
-            32,32,32,32,114,101,116,117,114,110,32,40,118,111,105,100,42,41,48,59,10,
+            32,32,32,32,86,65,76,32,118,99,97,114,44,32,118,99,100,114,59,10,
+            32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,118,99,97,114,44,32,38,118,99,100,114,41,59,10,
+            32,32,32,32,114,101,116,117,114,110,32,118,99,100,114,46,100,97,116,97,46,112,116,114,59,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,112,111,112,95,102,110,112,116,114,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,102,110,112,116,114,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,117,56,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,117,56,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,117,49,54,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,117,49,54,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,117,51,50,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,117,51,50,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,117,54,52,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,117,54,52,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,105,56,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,105,56,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,105,49,54,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,105,49,54,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,105,51,50,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,105,51,50,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,105,54,52,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,105,54,52,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,98,111,111,108,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,98,111,111,108,41,10,
-            35,100,101,102,105,110,101,32,112,111,112,95,114,97,119,112,116,114,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,118,112,95,112,116,114,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,102,110,112,116,114,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,102,110,112,116,114,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,117,56,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,117,56,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,117,49,54,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,117,49,54,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,117,51,50,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,117,51,50,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,117,54,52,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,117,54,52,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,105,56,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,105,56,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,105,49,54,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,105,49,54,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,105,51,50,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,105,51,50,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,105,54,52,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,105,54,52,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,117,115,105,122,101,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,117,115,105,122,101,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,98,111,111,108,40,41,32,40,40,98,111,111,108,41,112,111,112,95,117,54,52,40,41,41,10,
+            35,100,101,102,105,110,101,32,112,111,112,95,112,116,114,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,112,116,114,41,10,
             10,
             35,100,101,102,105,110,101,32,112,117,115,104,95,117,54,52,40,118,41,32,112,117,115,104,95,118,97,108,117,101,40,109,107,117,54,52,40,118,41,41,10,
             35,100,101,102,105,110,101,32,112,117,115,104,95,105,54,52,40,118,41,32,112,117,115,104,95,118,97,108,117,101,40,109,107,105,54,52,40,118,41,41,10,
-            35,100,101,102,105,110,101,32,112,117,115,104,95,112,116,114,40,118,41,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,40,118,41,41,10,
-            35,100,101,102,105,110,101,32,112,117,115,104,95,102,110,112,116,114,40,118,41,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,40,118,41,41,10,
-            35,100,101,102,105,110,101,32,112,117,115,104,95,98,111,111,108,40,98,41,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,40,40,98,111,111,108,41,40,98,41,41,41,10,
-            35,100,101,102,105,110,101,32,112,117,115,104,95,117,56,40,98,41,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,40,98,41,41,10,
-            35,100,101,102,105,110,101,32,112,117,115,104,95,117,49,54,40,98,41,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,40,98,41,41,10,
-            35,100,101,102,105,110,101,32,112,117,115,104,95,117,51,50,40,98,41,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,40,98,41,41,10,
-            35,100,101,102,105,110,101,32,112,117,115,104,95,105,56,40,98,41,32,112,117,115,104,95,105,54,52,40,40,105,54,52,41,40,98,41,41,10,
-            35,100,101,102,105,110,101,32,112,117,115,104,95,105,49,54,40,98,41,32,112,117,115,104,95,105,54,52,40,40,105,54,52,41,40,98,41,41,10,
-            35,100,101,102,105,110,101,32,112,117,115,104,95,105,51,50,40,98,41,32,112,117,115,104,95,105,54,52,40,40,105,54,52,41,40,98,41,41,10,
-            35,100,101,102,105,110,101,32,112,117,115,104,95,114,97,119,112,116,114,40,118,41,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,40,118,111,105,100,42,41,40,118,41,41,10,
+            35,100,101,102,105,110,101,32,112,117,115,104,95,117,115,105,122,101,40,118,41,32,112,117,115,104,95,118,97,108,117,101,40,40,117,105,110,116,54,52,95,116,41,40,118,41,41,10,
+            35,100,101,102,105,110,101,32,112,117,115,104,95,102,110,112,116,114,40,118,41,32,112,117,115,104,95,117,54,52,40,40,117,105,110,116,54,52,95,116,41,40,118,41,41,10,
+            35,100,101,102,105,110,101,32,112,117,115,104,95,98,111,111,108,40,98,41,32,112,117,115,104,95,117,54,52,40,40,117,105,110,116,54,52,95,116,41,40,40,98,111,111,108,41,40,98,41,41,41,10,
+            35,100,101,102,105,110,101,32,112,117,115,104,95,117,56,40,98,41,32,112,117,115,104,95,117,54,52,40,40,117,105,110,116,54,52,95,116,41,40,98,41,41,10,
+            35,100,101,102,105,110,101,32,112,117,115,104,95,117,49,54,40,98,41,32,112,117,115,104,95,117,54,52,40,40,117,105,110,116,54,52,95,116,41,40,98,41,41,10,
+            35,100,101,102,105,110,101,32,112,117,115,104,95,117,51,50,40,98,41,32,112,117,115,104,95,117,54,52,40,40,117,105,110,116,54,52,95,116,41,40,98,41,41,10,
+            35,100,101,102,105,110,101,32,112,117,115,104,95,105,56,40,98,41,32,112,117,115,104,95,105,54,52,40,40,105,110,116,54,52,95,116,41,40,98,41,41,10,
+            35,100,101,102,105,110,101,32,112,117,115,104,95,105,49,54,40,98,41,32,112,117,115,104,95,105,54,52,40,40,105,110,116,54,52,95,116,41,40,98,41,41,10,
+            35,100,101,102,105,110,101,32,112,117,115,104,95,105,51,50,40,98,41,32,112,117,115,104,95,105,54,52,40,40,105,110,116,54,52,95,116,41,40,98,41,41,10,
+            35,100,101,102,105,110,101,32,112,117,115,104,95,112,116,114,40,118,41,32,112,117,115,104,95,117,54,52,40,40,117,105,110,116,54,52,95,116,41,40,118,111,105,100,42,41,40,118,41,41,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,112,117,115,104,95,118,97,108,117,101,40,86,65,76,32,120,41,32,123,10,
+            32,32,32,32,65,83,83,69,82,84,40,115,116,97,99,107,95,99,111,117,110,116,101,114,32,62,32,48,41,59,10,
             32,32,32,32,115,116,97,99,107,91,45,45,115,116,97,99,107,95,99,111,117,110,116,101,114,93,32,61,32,120,59,10,
             125,10,
             10,
+            115,116,97,116,105,99,32,86,65,76,32,116,111,112,95,118,97,108,117,101,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,65,83,83,69,82,84,40,115,116,97,99,107,95,99,111,117,110,116,101,114,32,60,32,83,84,65,67,75,95,77,65,88,41,59,10,
+            32,32,32,32,114,101,116,117,114,110,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,59,10,
+            125,10,
+            10,
             115,116,97,116,105,99,32,86,65,76,32,112,111,112,95,118,97,108,117,101,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,65,83,83,69,82,84,40,115,116,97,99,107,95,99,111,117,110,116,101,114,32,60,32,83,84,65,67,75,95,77,65,88,41,59,10,
             32,32,32,32,114,101,116,117,114,110,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,93,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,86,65,76,32,109,107,117,54,52,32,40,117,54,52,32,120,41,32,123,10,
-            32,32,32,32,86,65,76,32,118,32,61,32,123,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,46,118,112,95,117,54,52,32,61,32,120,125,125,59,10,
-            32,32,32,32,114,101,116,117,114,110,32,118,59,10,
+            115,116,97,116,105,99,32,86,65,76,32,109,107,117,54,52,32,40,117,105,110,116,54,52,95,116,32,120,41,32,123,10,
+            32,32,32,32,114,101,116,117,114,110,32,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,73,78,84,44,32,46,100,97,116,97,61,123,46,117,54,52,61,120,125,125,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,86,65,76,32,109,107,105,54,52,32,40,105,54,52,32,120,41,32,123,10,
-            32,32,32,32,86,65,76,32,118,32,61,32,123,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,46,118,112,95,105,54,52,32,61,32,120,125,125,59,10,
-            32,32,32,32,114,101,116,117,114,110,32,118,59,10,
+            115,116,97,116,105,99,32,86,65,76,32,109,107,105,54,52,32,40,105,110,116,54,52,95,116,32,120,41,32,123,10,
+            32,32,32,32,114,101,116,117,114,110,32,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,73,78,84,44,32,46,100,97,116,97,61,123,46,105,54,52,61,120,125,125,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,86,65,76,32,109,107,99,101,108,108,32,40,86,65,76,32,99,97,114,44,32,86,65,76,32,99,100,114,41,32,123,10,
-            32,32,32,32,105,102,32,40,40,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,61,32,48,41,32,38,38,32,40,99,100,114,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,41,10,
+            115,116,97,116,105,99,32,86,65,76,32,109,107,99,101,108,108,95,114,97,119,32,40,86,65,76,32,99,97,114,44,32,86,65,76,32,99,100,114,44,32,98,111,111,108,32,102,114,101,101,99,100,114,41,32,123,10,
+            32,32,32,32,69,88,80,69,67,84,40,104,101,97,112,95,99,111,117,110,116,32,60,32,72,69,65,80,95,83,73,90,69,45,49,44,32,34,104,101,97,112,32,111,118,101,114,102,108,111,119,34,41,59,10,
+            32,32,32,32,115,105,122,101,95,116,32,105,32,61,32,104,101,97,112,95,110,101,120,116,59,10,
+            32,32,32,32,67,79,78,83,32,42,99,101,108,108,32,61,32,104,101,97,112,43,105,59,10,
+            32,32,32,32,65,83,83,69,82,84,40,99,101,108,108,45,62,114,101,102,115,32,61,61,32,48,41,59,10,
+            32,32,32,32,104,101,97,112,95,110,101,120,116,32,61,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,117,115,105,122,101,32,63,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,117,115,105,122,101,32,58,32,105,43,49,59,10,
+            32,32,32,32,104,101,97,112,95,99,111,117,110,116,43,43,59,10,
+            32,32,32,32,99,101,108,108,45,62,114,101,102,115,32,61,32,49,59,10,
+            32,32,32,32,99,101,108,108,45,62,102,114,101,101,99,100,114,32,61,32,102,114,101,101,99,100,114,59,10,
+            32,32,32,32,99,101,108,108,45,62,99,97,114,32,61,32,99,97,114,59,10,
+            32,32,32,32,99,101,108,108,45,62,99,100,114,32,61,32,99,100,114,59,10,
+            32,32,32,32,114,101,116,117,114,110,32,40,86,65,76,41,123,32,46,116,97,103,61,84,65,71,95,67,79,78,83,44,32,46,100,97,116,97,61,123,46,117,115,105,122,101,61,105,125,32,125,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,86,65,76,32,109,107,99,101,108,108,40,86,65,76,32,99,97,114,44,32,86,65,76,32,99,100,114,41,32,123,10,
+            32,32,32,32,105,102,32,40,40,99,97,114,46,100,97,116,97,46,117,115,105,122,101,32,61,61,32,48,41,32,38,38,32,40,99,100,114,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,41,10,
             32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,100,114,59,10,
-            32,32,32,32,105,102,32,40,99,100,114,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,123,10,
-            32,32,32,32,32,32,32,32,115,119,105,116,99,104,32,40,99,97,114,46,116,97,103,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,54,52,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,120,48,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,120,49,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,40,120,48,32,61,61,32,121,48,41,32,38,38,32,40,120,49,32,61,61,32,121,49,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,116,97,103,32,61,32,86,84,95,85,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,51,50,41,32,124,32,121,49,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,125,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,54,52,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,120,48,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,120,49,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,40,120,48,32,61,61,32,121,48,41,32,38,38,32,40,120,49,32,61,61,32,121,49,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,116,97,103,32,61,32,86,84,95,67,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,51,50,41,32,124,32,121,49,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,125,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,51,50,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,50,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,120,48,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,120,49,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,50,32,61,32,120,50,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,40,120,48,32,61,61,32,121,48,41,32,38,38,32,40,120,49,32,61,61,32,121,49,41,32,38,38,32,40,120,50,32,61,61,32,121,50,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,116,97,103,32,61,32,86,84,95,85,50,49,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,50,41,32,124,32,40,121,49,32,60,60,32,50,49,41,32,124,32,121,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,125,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,51,50,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,51,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,50,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,120,48,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,120,49,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,50,32,61,32,120,50,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,40,120,48,32,61,61,32,121,48,41,32,38,38,32,40,120,49,32,61,61,32,121,49,41,32,38,38,32,40,120,50,32,61,61,32,121,50,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,116,97,103,32,61,32,86,84,95,67,50,49,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,50,41,32,124,32,40,121,49,32,60,60,32,50,49,41,32,124,32,121,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,125,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,50,49,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,52,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,40,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,50,49,41,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,50,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,51,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,120,48,32,38,32,48,120,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,120,49,32,38,32,48,120,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,50,32,61,32,120,50,32,38,32,48,120,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,51,32,61,32,120,51,32,38,32,48,120,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,40,120,48,32,61,61,32,121,48,41,32,38,38,32,40,120,49,32,61,61,32,121,49,41,32,38,38,32,40,120,50,32,61,61,32,121,50,41,32,38,38,32,40,120,51,32,61,61,32,121,51,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,116,97,103,32,61,32,86,84,95,85,49,54,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,56,41,32,124,32,40,121,49,32,60,60,32,51,50,41,32,124,32,40,121,50,32,60,60,32,49,54,41,32,124,32,121,51,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,125,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,50,49,58,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,48,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,52,50,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,49,32,61,32,40,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,50,49,41,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,50,32,61,32,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,49,70,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,120,51,32,61,32,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,48,32,61,32,120,48,32,38,32,48,120,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,49,32,61,32,120,49,32,38,32,48,120,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,50,32,61,32,120,50,32,38,32,48,120,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,117,54,52,32,121,51,32,61,32,120,51,32,38,32,48,120,70,70,70,70,76,76,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,40,120,48,32,61,61,32,121,48,41,32,38,38,32,40,120,49,32,61,61,32,121,49,41,32,38,38,32,40,120,50,32,61,61,32,121,50,41,32,38,38,32,40,120,51,32,61,61,32,121,51,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,116,97,103,32,61,32,86,84,95,67,49,54,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,40,121,48,32,60,60,32,52,56,41,32,124,32,40,121,49,32,60,60,32,51,50,41,32,124,32,40,121,50,32,60,60,32,49,54,41,32,124,32,121,51,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,114,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,125,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,100,101,102,97,117,108,116,58,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,125,10,
-            32,32,32,32,125,10,
-            32,32,32,32,105,102,32,40,104,101,97,112,95,99,111,117,110,116,32,62,61,32,72,69,65,80,95,83,73,90,69,32,45,32,49,41,32,123,10,
-            32,32,32,32,32,32,32,32,119,114,105,116,101,40,50,44,32,34,72,69,65,80,32,79,86,69,82,70,76,79,87,92,110,34,44,32,49,52,41,59,10,
-            32,32,32,32,32,32,32,32,101,120,105,116,40,49,41,59,10,
-            32,32,32,32,125,10,
-            32,32,32,32,117,54,52,32,99,101,108,108,95,105,110,100,101,120,32,61,32,104,101,97,112,95,110,101,120,116,59,10,
-            32,32,32,32,67,79,78,83,32,42,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,95,105,110,100,101,120,59,10,
-            32,32,32,32,119,104,105,108,101,32,40,40,99,101,108,108,45,62,114,101,102,115,32,62,32,48,41,32,38,38,32,40,99,101,108,108,95,105,110,100,101,120,32,60,32,72,69,65,80,95,83,73,90,69,41,41,32,123,32,99,101,108,108,43,43,59,32,99,101,108,108,95,105,110,100,101,120,43,43,59,32,125,10,
-            32,32,32,32,105,102,32,40,99,101,108,108,95,105,110,100,101,120,32,62,61,32,72,69,65,80,95,83,73,90,69,32,45,32,49,41,32,123,10,
-            32,32,32,32,32,32,32,32,119,114,105,116,101,40,50,44,32,34,72,69,65,80,32,79,86,69,82,70,76,79,87,92,110,34,44,32,49,52,41,59,10,
-            32,32,32,32,32,32,32,32,101,120,105,116,40,49,41,59,10,
-            32,32,32,32,125,10,
-            32,32,32,32,117,54,52,32,115,97,118,101,100,95,105,110,100,101,120,32,61,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,104,101,97,112,95,110,101,120,116,32,61,32,40,117,115,105,122,101,41,40,115,97,118,101,100,95,105,110,100,101,120,32,63,32,115,97,118,101,100,95,105,110,100,101,120,32,58,32,99,101,108,108,95,105,110,100,101,120,43,49,41,59,10,
-            32,32,32,32,104,101,97,112,95,99,111,117,110,116,43,43,59,10,
-            32,32,32,32,99,101,108,108,45,62,114,101,102,115,32,61,32,49,59,10,
-            32,32,32,32,99,101,108,108,45,62,102,114,101,101,99,100,114,32,61,32,102,97,108,115,101,59,10,
-            32,32,32,32,99,101,108,108,45,62,99,97,114,32,61,32,99,97,114,59,10,
-            32,32,32,32,99,101,108,108,45,62,99,100,114,32,61,32,99,100,114,59,10,
-            32,32,32,32,86,65,76,32,118,32,61,32,123,48,125,59,10,
-            32,32,32,32,118,46,116,97,103,32,61,32,86,84,95,67,54,52,59,10,
-            32,32,32,32,118,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,99,101,108,108,95,105,110,100,101,120,59,10,
-            32,32,32,32,114,101,116,117,114,110,32,118,59,10,
+            32,32,32,32,114,101,116,117,114,110,32,109,107,99,101,108,108,95,114,97,119,40,99,97,114,44,32,99,100,114,44,32,102,97,108,115,101,41,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,86,65,76,32,109,107,99,101,108,108,95,114,97,119,32,40,86,65,76,32,99,97,114,44,32,86,65,76,32,99,100,114,41,32,123,10,
-            32,32,32,32,117,54,52,32,99,101,108,108,95,105,110,100,101,120,32,61,32,104,101,97,112,95,110,101,120,116,59,10,
-            32,32,32,32,67,79,78,83,32,42,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,95,105,110,100,101,120,59,10,
-            32,32,32,32,119,104,105,108,101,32,40,40,99,101,108,108,45,62,114,101,102,115,32,62,32,48,41,32,38,38,32,40,99,101,108,108,95,105,110,100,101,120,32,60,32,72,69,65,80,95,83,73,90,69,41,41,32,123,32,99,101,108,108,43,43,59,32,99,101,108,108,95,105,110,100,101,120,43,43,59,32,125,10,
-            32,32,32,32,105,102,32,40,99,101,108,108,95,105,110,100,101,120,32,62,61,32,72,69,65,80,95,83,73,90,69,32,45,32,49,41,32,123,10,
-            32,32,32,32,32,32,32,32,119,114,105,116,101,40,50,44,32,34,72,69,65,80,32,79,86,69,82,70,76,79,87,92,110,34,44,32,49,52,41,59,10,
-            32,32,32,32,32,32,32,32,101,120,105,116,40,49,41,59,10,
-            32,32,32,32,125,10,
-            32,32,32,32,117,54,52,32,115,97,118,101,100,95,105,110,100,101,120,32,61,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,104,101,97,112,95,110,101,120,116,32,61,32,40,117,115,105,122,101,41,40,115,97,118,101,100,95,105,110,100,101,120,32,63,32,115,97,118,101,100,95,105,110,100,101,120,32,58,32,99,101,108,108,95,105,110,100,101,120,43,49,41,59,10,
-            32,32,32,32,104,101,97,112,95,99,111,117,110,116,43,43,59,10,
-            32,32,32,32,99,101,108,108,45,62,114,101,102,115,32,61,32,49,59,10,
-            32,32,32,32,99,101,108,108,45,62,102,114,101,101,99,100,114,32,61,32,102,97,108,115,101,59,10,
-            32,32,32,32,99,101,108,108,45,62,99,97,114,32,61,32,99,97,114,59,10,
-            32,32,32,32,99,101,108,108,45,62,99,100,114,32,61,32,99,100,114,59,10,
-            32,32,32,32,86,65,76,32,118,32,61,32,123,48,125,59,10,
-            32,32,32,32,118,46,116,97,103,32,61,32,86,84,95,67,54,52,59,10,
-            32,32,32,32,118,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,99,101,108,108,95,105,110,100,101,120,59,10,
-            32,32,32,32,114,101,116,117,114,110,32,118,59,10,
+            115,116,97,116,105,99,32,86,65,76,32,109,107,112,116,114,95,111,119,110,101,100,32,40,118,111,105,100,42,32,112,116,114,44,32,115,105,122,101,95,116,32,115,105,122,101,41,32,123,10,
+            32,32,32,32,86,65,76,32,99,100,114,32,61,32,123,32,46,116,97,103,61,84,65,71,95,73,78,84,44,32,46,100,97,116,97,61,123,46,112,116,114,61,112,116,114,125,32,125,59,32,47,47,32,84,79,68,79,32,84,65,71,95,82,65,87,80,84,82,32,109,97,121,98,101,63,10,
+            32,32,32,32,86,65,76,32,99,97,114,32,61,32,123,32,46,116,97,103,61,84,65,71,95,73,78,84,44,32,46,100,97,116,97,61,123,46,117,115,105,122,101,61,115,105,122,101,125,32,125,59,10,
+            32,32,32,32,114,101,116,117,114,110,32,109,107,99,101,108,108,95,114,97,119,40,99,97,114,44,32,99,100,114,44,32,116,114,117,101,41,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,86,65,76,32,109,107,99,101,108,108,95,102,114,101,101,99,100,114,32,40,86,65,76,32,99,97,114,44,32,86,65,76,32,99,100,114,41,32,123,10,
-            32,32,32,32,105,102,32,40,104,101,97,112,95,99,111,117,110,116,32,62,61,32,72,69,65,80,95,83,73,90,69,32,45,32,49,41,32,123,10,
-            32,32,32,32,32,32,32,32,119,114,105,116,101,40,50,44,32,34,72,69,65,80,32,79,86,69,82,70,76,79,87,92,110,34,44,32,49,52,41,59,10,
-            32,32,32,32,32,32,32,32,101,120,105,116,40,49,41,59,10,
-            32,32,32,32,125,10,
-            32,32,32,32,117,54,52,32,99,101,108,108,95,105,110,100,101,120,32,61,32,104,101,97,112,95,110,101,120,116,59,10,
-            32,32,32,32,67,79,78,83,32,42,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,95,105,110,100,101,120,59,10,
-            32,32,32,32,119,104,105,108,101,32,40,40,99,101,108,108,45,62,114,101,102,115,32,62,32,48,41,32,38,38,32,40,99,101,108,108,95,105,110,100,101,120,32,60,32,72,69,65,80,95,83,73,90,69,41,41,32,123,32,99,101,108,108,43,43,59,32,99,101,108,108,95,105,110,100,101,120,43,43,59,32,125,10,
-            32,32,32,32,105,102,32,40,99,101,108,108,95,105,110,100,101,120,32,62,61,32,72,69,65,80,95,83,73,90,69,32,45,32,49,41,32,123,10,
-            32,32,32,32,32,32,32,32,119,114,105,116,101,40,50,44,32,34,72,69,65,80,32,79,86,69,82,70,76,79,87,92,110,34,44,32,49,52,41,59,10,
-            32,32,32,32,32,32,32,32,101,120,105,116,40,49,41,59,10,
-            32,32,32,32,125,10,
-            32,32,32,32,117,54,52,32,115,97,118,101,100,95,105,110,100,101,120,32,61,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,104,101,97,112,95,110,101,120,116,32,61,32,40,117,115,105,122,101,41,40,115,97,118,101,100,95,105,110,100,101,120,32,63,32,115,97,118,101,100,95,105,110,100,101,120,32,58,32,99,101,108,108,95,105,110,100,101,120,43,49,41,59,10,
-            32,32,32,32,104,101,97,112,95,99,111,117,110,116,43,43,59,10,
-            32,32,32,32,99,101,108,108,45,62,114,101,102,115,32,61,32,49,59,10,
-            32,32,32,32,99,101,108,108,45,62,102,114,101,101,99,100,114,32,61,32,116,114,117,101,59,10,
-            32,32,32,32,99,101,108,108,45,62,99,97,114,32,61,32,99,97,114,59,10,
-            32,32,32,32,99,101,108,108,45,62,99,100,114,32,61,32,99,100,114,59,10,
-            32,32,32,32,86,65,76,32,118,32,61,32,123,48,125,59,10,
-            32,32,32,32,118,46,116,97,103,32,61,32,86,84,95,67,54,52,59,10,
-            32,32,32,32,118,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,99,101,108,108,95,105,110,100,101,120,59,10,
-            32,32,32,32,114,101,116,117,114,110,32,118,59,10,
+            115,116,97,116,105,99,32,86,65,76,32,109,107,112,116,114,95,115,104,97,114,101,100,32,40,118,111,105,100,42,32,112,116,114,44,32,115,105,122,101,95,116,32,115,105,122,101,41,32,123,10,
+            32,32,32,32,86,65,76,32,99,100,114,32,61,32,123,32,46,116,97,103,61,84,65,71,95,73,78,84,44,32,46,100,97,116,97,61,123,46,112,116,114,61,112,116,114,125,32,125,59,32,47,47,32,84,79,68,79,32,84,65,71,95,82,65,87,80,84,82,32,109,97,121,98,101,63,10,
+            32,32,32,32,86,65,76,32,99,97,114,32,61,32,123,32,46,116,97,103,61,84,65,71,95,73,78,84,44,32,46,100,97,116,97,61,123,46,117,115,105,122,101,61,115,105,122,101,125,32,125,59,10,
+            32,32,32,32,114,101,116,117,114,110,32,109,107,99,101,108,108,40,99,97,114,44,32,99,100,114,41,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,118,111,105,100,32,100,111,95,112,97,99,107,95,117,110,99,111,110,115,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,44,32,118,97,108,59,10,
+            115,116,97,116,105,99,32,98,111,111,108,32,118,97,108,95,104,97,115,95,102,114,101,101,99,100,114,32,40,86,65,76,32,118,41,32,123,10,
+            32,32,32,32,115,105,122,101,95,116,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,118,41,59,10,
+            32,32,32,32,114,101,116,117,114,110,32,105,32,38,38,32,104,101,97,112,91,105,93,46,102,114,101,101,99,100,114,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,100,111,95,117,110,99,111,110,115,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,97,108,44,32,99,97,114,44,32,99,100,114,59,10,
             32,32,32,32,118,97,108,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,65,83,83,69,82,84,40,33,118,97,108,95,104,97,115,95,102,114,101,101,99,100,114,40,118,97,108,41,41,59,10,
             32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,97,108,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
             32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,99,97,114,41,59,32,112,117,115,104,95,118,97,108,117,101,40,99,100,114,41,59,10,
-            32,32,32,32,105,102,32,40,118,97,108,46,116,97,103,32,61,61,32,86,84,95,67,54,52,41,32,123,10,
-            32,32,32,32,32,32,32,32,100,101,99,114,101,102,95,102,111,114,95,117,110,99,111,110,115,40,118,97,108,41,59,10,
-            32,32,32,32,125,10,
+            32,32,32,32,105,110,99,114,101,102,40,99,97,114,41,59,10,
+            32,32,32,32,105,110,99,114,101,102,40,99,100,114,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,97,108,41,59,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,103,101,116,95,84,65,71,40,118,41,32,40,40,40,118,41,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,63,32,40,118,41,46,100,97,116,97,46,118,112,95,105,54,52,32,58,32,40,40,40,118,41,46,116,97,103,32,61,61,32,86,84,95,67,54,52,41,32,63,32,40,104,101,97,112,91,40,118,41,46,100,97,116,97,46,118,112,95,117,54,52,93,46,99,100,114,46,100,97,116,97,46,118,112,95,105,54,52,41,32,58,32,40,105,54,52,41,40,40,118,41,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,41,41,41,10,
-            35,100,101,102,105,110,101,32,103,101,116,95,116,111,112,95,100,97,116,97,95,116,97,103,40,41,32,40,103,101,116,95,84,65,71,40,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,41,41,10,
-            35,100,101,102,105,110,101,32,118,97,108,117,101,95,99,109,112,40,118,49,44,118,50,41,32,40,40,40,40,118,49,41,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,38,38,32,40,40,118,50,41,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,41,32,63,32,40,40,118,49,41,46,100,97,116,97,46,118,112,95,105,54,52,32,45,32,40,118,50,41,46,100,97,116,97,46,118,112,95,105,54,52,41,32,58,32,118,97,108,117,101,95,99,109,112,95,104,97,114,100,40,40,118,49,41,44,32,40,118,50,41,41,41,10,
+            115,116,97,116,105,99,32,115,105,122,101,95,116,32,103,101,116,95,100,97,116,97,95,116,97,103,40,86,65,76,32,118,41,32,123,10,
+            32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
+            32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
+            32,32,32,32,114,101,116,117,114,110,32,99,100,114,46,100,97,116,97,46,117,115,105,122,101,59,10,
+            125,10,
             10,
-            115,116,97,116,105,99,32,105,54,52,32,118,97,108,117,101,95,99,109,112,95,104,97,114,100,40,86,65,76,32,118,49,44,32,86,65,76,32,118,50,41,32,123,10,
-            32,32,32,32,119,104,105,108,101,40,49,41,32,123,10,
-            32,32,32,32,32,32,32,32,105,54,52,32,116,49,32,61,32,103,101,116,95,84,65,71,40,118,49,41,59,10,
-            32,32,32,32,32,32,32,32,105,54,52,32,116,50,32,61,32,103,101,116,95,84,65,71,40,118,50,41,59,10,
-            32,32,32,32,32,32,32,32,105,102,32,40,116,49,32,60,32,116,50,41,32,114,101,116,117,114,110,32,45,49,59,10,
-            32,32,32,32,32,32,32,32,105,102,32,40,116,49,32,62,32,116,50,41,32,114,101,116,117,114,110,32,49,59,10,
-            32,32,32,32,32,32,32,32,105,102,32,40,40,118,49,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,38,38,32,40,118,50,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,41,32,114,101,116,117,114,110,32,48,59,10,
+            115,116,97,116,105,99,32,115,105,122,101,95,116,32,103,101,116,95,116,111,112,95,100,97,116,97,95,116,97,103,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,114,101,116,117,114,110,32,103,101,116,95,100,97,116,97,95,116,97,103,40,116,111,112,95,118,97,108,117,101,40,41,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,105,110,116,54,52,95,116,32,105,110,116,54,52,95,99,109,112,40,105,110,116,54,52,95,116,32,105,49,44,32,105,110,116,54,52,95,116,32,105,50,41,32,123,10,
+            32,32,32,32,105,102,32,40,105,49,32,60,32,105,50,41,32,114,101,116,117,114,110,32,45,49,59,10,
+            32,32,32,32,105,102,32,40,105,49,32,62,32,105,50,41,32,114,101,116,117,114,110,32,49,59,10,
+            32,32,32,32,114,101,116,117,114,110,32,48,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,105,110,116,54,52,95,116,32,118,97,108,117,101,95,99,109,112,40,86,65,76,32,118,49,44,32,86,65,76,32,118,50,41,32,123,10,
+            32,32,32,32,119,104,105,108,101,32,40,49,41,32,123,10,
+            32,32,32,32,32,32,32,32,47,47,32,84,79,68,79,32,102,105,120,32,115,116,114,105,110,103,32,99,111,109,112,97,114,105,115,111,110,44,32,109,97,121,98,101,32,119,105,116,104,32,97,32,84,65,71,95,83,84,82,10,
+            32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,116,97,103,32,61,61,32,118,50,46,116,97,103,41,32,123,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,100,97,116,97,46,117,54,52,32,61,61,32,118,50,46,100,97,116,97,46,117,54,52,41,32,114,101,116,117,114,110,32,48,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,32,123,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,100,97,116,97,46,105,54,52,32,60,32,118,50,46,100,97,116,97,46,105,54,52,41,32,114,101,116,117,114,110,32,45,49,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,101,108,115,101,32,114,101,116,117,114,110,32,49,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,125,10,
+            32,32,32,32,32,32,32,32,125,10,
             32,32,32,32,32,32,32,32,86,65,76,32,118,49,99,97,114,44,32,118,49,99,100,114,44,32,118,50,99,97,114,44,32,118,50,99,100,114,59,10,
             32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,49,44,32,38,118,49,99,97,114,44,32,38,118,49,99,100,114,41,59,10,
             32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,50,44,32,38,118,50,99,97,114,44,32,38,118,50,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,105,54,52,32,99,100,114,99,109,112,32,61,32,118,97,108,117,101,95,99,109,112,40,118,49,99,100,114,44,32,118,50,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,105,102,32,40,99,100,114,99,109,112,32,33,61,32,48,41,32,114,101,116,117,114,110,32,99,100,114,99,109,112,59,10,
+            32,32,32,32,32,32,32,32,105,110,116,54,52,95,116,32,99,100,114,99,109,112,32,61,32,118,97,108,117,101,95,99,109,112,40,118,49,99,100,114,44,32,118,50,99,100,114,41,59,10,
+            32,32,32,32,32,32,32,32,105,102,32,40,99,100,114,99,109,112,41,32,114,101,116,117,114,110,32,99,100,114,99,109,112,59,10,
             32,32,32,32,32,32,32,32,118,49,32,61,32,118,49,99,97,114,59,32,118,50,32,61,32,118,50,99,97,114,59,10,
             32,32,32,32,125,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,118,97,108,117,101,95,101,113,40,118,49,44,118,50,41,32,40,40,40,118,49,41,46,116,97,103,32,61,61,32,40,118,50,41,46,116,97,103,41,32,38,38,32,40,40,40,118,49,41,46,100,97,116,97,46,118,112,95,117,54,52,32,61,61,32,40,118,50,41,46,100,97,116,97,46,118,112,95,117,54,52,41,32,124,124,32,40,40,40,118,49,41,46,116,97,103,32,38,32,48,120,56,48,41,32,38,38,32,118,97,108,117,101,95,101,113,95,104,97,114,100,40,40,118,49,41,44,40,118,50,41,41,41,41,41,10,
-            10,
-            115,116,97,116,105,99,32,98,111,111,108,32,118,97,108,117,101,95,101,113,95,104,97,114,100,40,86,65,76,32,118,49,44,32,86,65,76,32,118,50,41,32,123,10,
-            32,32,32,32,117,115,105,122,101,32,99,49,95,105,110,100,101,120,44,32,99,50,95,105,110,100,101,120,59,32,67,79,78,83,32,42,99,49,44,32,42,99,50,59,10,
-            32,32,32,32,119,104,105,108,101,32,40,49,41,32,123,10,
-            32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,116,97,103,32,33,61,32,118,50,46,116,97,103,41,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,100,97,116,97,46,118,112,95,117,54,52,32,61,61,32,118,50,46,100,97,116,97,46,118,112,95,117,54,52,41,32,114,101,116,117,114,110,32,116,114,117,101,59,10,
-            32,32,32,32,32,32,32,32,115,119,105,116,99,104,32,40,118,49,46,116,97,103,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,54,52,58,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,51,50,58,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,50,49,58,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,85,49,54,58,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,54,52,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,49,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,118,49,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,50,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,118,50,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,51,50,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,100,97,116,97,46,118,112,95,117,51,50,32,33,61,32,118,50,46,100,97,116,97,46,118,112,95,117,51,50,41,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,49,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,49,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,51,50,41,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,50,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,50,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,51,50,41,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,50,49,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,32,32,40,118,49,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,48,51,70,70,70,70,70,70,70,70,70,70,41,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,61,32,40,118,50,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,48,51,70,70,70,70,70,70,70,70,70,70,41,41,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,49,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,49,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,52,50,41,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,50,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,50,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,52,50,41,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,99,97,115,101,32,86,84,95,67,49,54,58,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,32,32,40,118,49,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,70,70,70,70,70,70,70,70,41,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,33,61,32,40,118,50,46,100,97,116,97,46,118,112,95,117,54,52,32,38,32,48,120,70,70,70,70,70,70,70,70,70,70,70,70,41,41,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,49,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,49,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,52,56,41,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,99,50,95,105,110,100,101,120,32,61,32,40,117,115,105,122,101,41,40,118,50,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,32,52,56,41,59,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,125,10,
-            32,32,32,32,32,32,32,32,99,49,32,61,32,104,101,97,112,32,43,32,99,49,95,105,110,100,101,120,59,10,
-            32,32,32,32,32,32,32,32,99,50,32,61,32,104,101,97,112,32,43,32,99,50,95,105,110,100,101,120,59,10,
-            32,32,32,32,32,32,32,32,105,102,32,40,33,118,97,108,117,101,95,101,113,40,99,49,45,62,99,100,114,44,32,99,50,45,62,99,100,114,41,41,32,114,101,116,117,114,110,32,102,97,108,115,101,59,10,
-            32,32,32,32,32,32,32,32,118,49,32,61,32,99,49,45,62,99,97,114,59,32,118,50,32,61,32,99,50,45,62,99,97,114,59,10,
-            32,32,32,32,125,10,
+            115,116,97,116,105,99,32,98,111,111,108,32,118,97,108,117,101,95,101,113,40,86,65,76,32,118,49,44,32,86,65,76,32,118,50,41,32,123,10,
+            32,32,32,32,114,101,116,117,114,110,32,118,97,108,117,101,95,99,109,112,40,118,49,44,118,50,41,32,61,61,32,48,59,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,100,111,95,114,117,110,40,41,32,100,111,32,123,32,100,111,95,112,97,99,107,95,117,110,99,111,110,115,40,41,59,32,102,110,112,116,114,32,102,112,32,61,32,112,111,112,95,102,110,112,116,114,40,41,59,32,102,112,40,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,100,40,41,32,48,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,100,117,112,40,41,32,100,111,123,32,86,65,76,32,118,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,59,32,112,117,115,104,95,118,97,108,117,101,40,118,41,59,32,105,110,99,114,101,102,40,118,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,114,117,110,95,118,97,108,117,101,40,86,65,76,32,118,41,32,123,10,
+            32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
+            32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
+            32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,99,97,114,41,59,10,
+            32,32,32,32,105,110,99,114,101,102,40,99,97,114,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,41,59,10,
+            32,32,32,32,99,100,114,46,100,97,116,97,46,102,110,112,116,114,40,41,59,10,
+            125,10,
             10,
-            35,100,101,102,105,110,101,32,100,111,95,100,114,111,112,40,41,32,100,101,99,114,101,102,40,112,111,112,95,118,97,108,117,101,40,41,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,100,114,111,112,40,41,32,100,111,95,100,114,111,112,40,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,100,32,40,118,111,105,100,41,32,123,125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,100,117,112,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,32,61,32,116,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,118,41,59,10,
+            32,32,32,32,105,110,99,114,101,102,40,118,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,100,114,111,112,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,41,59,10,
+            125,10,
             10,
-            35,100,101,102,105,110,101,32,100,111,95,115,119,97,112,40,41,32,100,111,123,32,86,65,76,32,120,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,59,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,59,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,32,61,32,120,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,119,97,112,40,41,32,100,111,95,115,119,97,112,40,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,115,119,97,112,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,97,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,98,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,97,41,59,10,
+            32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,98,41,59,10,
+            125,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,100,105,112,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,86,65,76,32,102,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,86,65,76,32,120,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-            32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,102,41,59,10,
-            32,32,32,32,100,111,95,114,117,110,40,41,59,10,
+            32,32,32,32,114,117,110,95,118,97,108,117,101,40,102,41,59,10,
             32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,120,41,59,10,
             125,10,
             10,
@@ -17744,109 +17610,197 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,86,65,76,32,116,104,101,110,95,98,114,97,110,99,104,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,98,111,111,108,32,98,32,61,32,112,111,112,95,98,111,111,108,40,41,59,10,
             32,32,32,32,105,102,32,40,98,41,32,123,10,
-            32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,116,104,101,110,95,98,114,97,110,99,104,41,59,10,
             32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,101,108,115,101,95,98,114,97,110,99,104,41,59,10,
+            32,32,32,32,32,32,32,32,114,117,110,95,118,97,108,117,101,40,116,104,101,110,95,98,114,97,110,99,104,41,59,10,
             32,32,32,32,125,32,101,108,115,101,32,123,10,
-            32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,101,108,115,101,95,98,114,97,110,99,104,41,59,10,
             32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,116,104,101,110,95,98,114,97,110,99,104,41,59,10,
+            32,32,32,32,32,32,32,32,114,117,110,95,118,97,108,117,101,40,101,108,115,101,95,98,114,97,110,99,104,41,59,10,
             32,32,32,32,125,10,
-            32,32,32,32,100,111,95,114,117,110,40,41,59,10,
             125,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,119,104,105,108,101,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,86,65,76,32,98,111,100,121,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,86,65,76,32,99,111,110,100,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,119,104,105,108,101,40,49,41,32,123,10,
-            32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,99,111,110,100,41,59,32,105,110,99,114,101,102,40,99,111,110,100,41,59,32,100,111,95,114,117,110,40,41,59,10,
+            32,32,32,32,32,32,32,32,105,110,99,114,101,102,40,99,111,110,100,41,59,32,114,117,110,95,118,97,108,117,101,40,99,111,110,100,41,59,10,
             32,32,32,32,32,32,32,32,98,111,111,108,32,98,32,61,32,112,111,112,95,98,111,111,108,40,41,59,10,
             32,32,32,32,32,32,32,32,105,102,32,40,33,98,41,32,98,114,101,97,107,59,10,
-            32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,98,111,100,121,41,59,32,105,110,99,114,101,102,40,98,111,100,121,41,59,32,100,111,95,114,117,110,40,41,59,10,
+            32,32,32,32,32,32,32,32,105,110,99,114,101,102,40,98,111,100,121,41,59,32,114,117,110,95,118,97,108,117,101,40,98,111,100,121,41,59,10,
             32,32,32,32,125,10,
-            32,32,32,32,100,101,99,114,101,102,40,99,111,110,100,41,59,32,100,101,99,114,101,102,40,98,111,100,121,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,99,111,110,100,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,98,111,100,121,41,59,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,97,100,100,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,43,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,115,117,98,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,45,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,109,117,108,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,105,54,52,32,42,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,105,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,100,105,118,40,41,32,100,111,32,123,32,105,54,52,32,97,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,105,54,52,59,32,105,54,52,32,98,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,105,54,52,59,32,105,54,52,32,114,32,61,32,97,32,37,32,98,59,32,105,54,52,32,113,32,61,32,97,32,47,32,98,59,32,105,102,32,40,40,40,97,32,60,32,48,41,32,94,32,40,98,32,60,32,48,41,41,32,38,38,32,114,41,32,113,45,45,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,105,54,52,32,61,32,113,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,109,111,100,40,41,32,100,111,32,123,32,105,54,52,32,97,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,105,54,52,59,32,105,54,52,32,98,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,105,54,52,59,32,105,54,52,32,114,32,61,32,97,32,37,32,98,59,32,105,102,32,40,40,40,97,32,60,32,48,41,32,94,32,40,98,32,60,32,48,41,41,32,38,38,32,114,41,32,114,32,43,61,32,98,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,105,54,52,32,61,32,114,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,97,110,100,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,38,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,111,114,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,124,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,120,111,114,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,94,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,115,104,108,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,60,60,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,115,104,114,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,62,62,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,101,113,40,41,32,32,100,111,32,123,32,86,65,76,32,118,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,118,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,98,111,111,108,40,118,97,108,117,101,95,101,113,40,118,49,44,32,118,50,41,41,59,32,100,101,99,114,101,102,40,118,49,41,59,32,100,101,99,114,101,102,40,118,50,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,97,100,100,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,47,47,32,84,79,68,79,32,112,114,111,109,111,116,101,32,116,111,32,98,105,103,105,110,116,32,111,110,32,111,118,101,114,102,108,111,119,46,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,98,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,97,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,105,102,32,40,98,32,62,61,32,48,41,32,123,10,
+            32,32,32,32,32,32,32,32,69,88,80,69,67,84,40,97,32,60,61,32,73,78,84,54,52,95,77,65,88,32,45,32,98,44,32,34,105,110,116,101,103,101,114,32,111,118,101,114,102,108,111,119,32,100,117,114,105,110,103,32,97,100,100,105,116,105,111,110,32,40,116,111,111,32,112,111,115,105,116,105,118,101,41,34,41,59,10,
+            32,32,32,32,125,32,101,108,115,101,32,123,10,
+            32,32,32,32,32,32,32,32,69,88,80,69,67,84,40,97,32,62,61,32,73,78,84,54,52,95,77,73,78,32,45,32,98,44,32,34,105,110,116,101,103,101,114,32,111,118,101,114,102,108,111,119,32,100,117,114,105,110,103,32,97,100,100,105,116,105,111,110,32,40,116,111,111,32,110,101,103,97,116,105,118,101,41,34,41,59,10,
+            32,32,32,32,125,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,97,32,43,32,98,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,115,117,98,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,47,47,32,84,79,68,79,32,112,114,111,109,111,116,101,32,116,111,32,98,105,103,105,110,116,32,111,110,32,111,118,101,114,102,108,111,119,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,98,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,97,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,105,102,32,40,98,32,62,61,32,48,41,32,123,10,
+            32,32,32,32,32,32,32,32,69,88,80,69,67,84,40,97,32,62,61,32,73,78,84,54,52,95,77,73,78,32,43,32,98,44,32,34,105,110,116,101,103,101,114,32,111,118,101,114,102,108,111,119,32,100,117,114,105,110,103,32,115,117,98,116,114,97,99,116,105,111,110,32,40,116,111,111,32,110,101,103,97,116,105,118,101,41,34,41,59,10,
+            32,32,32,32,125,32,101,108,115,101,32,123,10,
+            32,32,32,32,32,32,32,32,69,88,80,69,67,84,40,97,32,60,61,32,73,78,84,54,52,95,77,65,88,32,43,32,98,44,32,34,105,110,116,101,103,101,114,32,111,118,101,114,102,108,111,119,32,100,117,114,105,110,103,32,115,117,98,116,114,97,99,116,105,111,110,32,40,116,111,111,32,112,111,115,105,116,105,118,101,41,34,41,59,10,
+            32,32,32,32,125,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,97,32,45,32,98,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,109,117,108,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,47,47,32,84,79,68,79,32,112,114,111,109,111,116,101,32,116,111,32,98,105,103,105,110,116,32,111,110,32,111,118,101,114,102,108,111,119,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,98,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,97,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,47,47,32,111,118,101,114,102,108,111,119,32,99,104,101,99,107,115,32,102,111,114,32,109,117,108,116,105,112,108,105,99,97,116,105,111,110,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,97,32,42,32,98,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,100,105,118,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,47,47,32,84,79,68,79,32,112,114,111,109,111,116,101,32,116,111,32,98,105,103,105,110,116,32,111,110,32,111,118,101,114,102,108,111,119,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,98,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,97,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,69,88,80,69,67,84,40,98,32,33,61,32,48,44,32,34,100,105,118,105,100,101,32,98,121,32,122,101,114,111,34,41,59,10,
+            32,32,32,32,69,88,80,69,67,84,40,33,40,40,98,32,61,61,32,45,49,41,32,38,38,32,40,97,32,61,61,32,73,78,84,54,52,95,77,73,78,41,41,44,32,34,111,118,101,114,102,108,111,119,32,100,117,114,105,110,103,32,100,105,118,105,115,105,111,110,34,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,114,32,61,32,97,32,37,32,98,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,113,32,61,32,97,32,47,32,98,59,10,
+            32,32,32,32,105,102,32,40,40,40,97,32,60,32,48,41,32,94,32,40,98,32,60,32,48,41,41,32,38,38,32,114,41,32,113,45,45,59,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,113,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,109,111,100,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,98,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,97,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,69,88,80,69,67,84,40,98,32,33,61,32,48,44,32,34,100,105,118,105,100,101,32,98,121,32,122,101,114,111,34,41,59,10,
+            32,32,32,32,105,102,32,40,98,32,61,61,32,45,49,41,32,123,32,112,117,115,104,95,105,54,52,40,48,41,59,32,114,101,116,117,114,110,59,32,125,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,114,32,61,32,97,32,37,32,98,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,113,32,61,32,97,32,47,32,98,59,10,
+            32,32,32,32,105,102,32,40,40,40,97,32,60,32,48,41,32,94,32,40,98,32,60,32,48,41,41,32,38,38,32,114,41,32,114,32,43,61,32,98,59,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,114,41,59,10,
+            125,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,108,116,40,41,32,32,100,111,32,123,32,86,65,76,32,118,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,118,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,98,111,111,108,40,118,97,108,117,101,95,99,109,112,40,118,49,44,32,118,50,41,32,60,32,48,41,59,32,100,101,99,114,101,102,40,118,49,41,59,32,100,101,99,114,101,102,40,118,50,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,97,110,100,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,98,32,61,32,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,97,32,61,32,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,117,54,52,40,97,32,38,32,98,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,111,114,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,98,32,61,32,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,97,32,61,32,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,117,54,52,40,97,32,124,32,98,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,120,111,114,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,98,32,61,32,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,97,32,61,32,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,117,54,52,40,97,32,94,32,98,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,115,104,108,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,98,32,61,32,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,97,32,61,32,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,117,54,52,40,40,98,32,62,61,32,54,52,41,32,63,32,48,32,58,32,40,97,32,60,60,32,98,41,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,115,104,114,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,98,32,61,32,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,97,32,61,32,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,117,54,52,40,40,98,32,62,61,32,54,52,41,32,63,32,48,32,58,32,40,97,32,62,62,32,98,41,41,59,10,
+            125,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,108,101,40,41,32,32,100,111,32,123,32,86,65,76,32,118,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,118,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,98,111,111,108,40,118,97,108,117,101,95,99,109,112,40,118,49,44,32,118,50,41,32,60,61,32,48,41,59,32,100,101,99,114,101,102,40,118,49,41,59,32,100,101,99,114,101,102,40,118,50,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,98,111,111,108,95,116,114,117,101,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,112,117,115,104,95,98,111,111,108,40,116,114,117,101,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,98,111,111,108,95,102,97,108,115,101,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,112,117,115,104,95,98,111,111,108,40,102,97,108,115,101,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,98,111,111,108,95,97,110,100,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,98,32,61,32,112,111,112,95,98,111,111,108,40,41,59,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,97,32,61,32,112,111,112,95,98,111,111,108,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,98,111,111,108,40,97,32,38,38,32,98,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,98,111,111,108,95,111,114,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,98,32,61,32,112,111,112,95,98,111,111,108,40,41,59,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,97,32,61,32,112,111,112,95,98,111,111,108,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,98,111,111,108,40,97,32,124,124,32,98,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,101,113,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,98,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,97,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,32,99,109,112,32,61,32,118,97,108,117,101,95,99,109,112,40,97,44,98,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,97,41,59,32,100,101,99,114,101,102,40,98,41,59,10,
+            32,32,32,32,112,117,115,104,95,117,54,52,40,99,109,112,32,61,61,32,48,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,108,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,98,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,97,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,32,99,109,112,32,61,32,118,97,108,117,101,95,99,109,112,40,97,44,98,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,97,41,59,32,100,101,99,114,101,102,40,98,41,59,10,
+            32,32,32,32,112,117,115,104,95,117,54,52,40,99,109,112,32,60,32,48,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,108,101,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,98,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,97,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,32,99,109,112,32,61,32,118,97,108,117,101,95,99,109,112,40,97,44,98,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,97,41,59,32,100,101,99,114,101,102,40,98,41,59,10,
+            32,32,32,32,112,117,115,104,95,117,54,52,40,99,109,112,32,60,61,32,48,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,115,121,115,95,97,114,103,99,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,103,108,111,98,97,108,95,97,114,103,99,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,115,121,115,95,97,114,103,118,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,112,117,115,104,95,112,116,114,40,103,108,111,98,97,108,95,97,114,103,118,41,59,10,
+            125,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,111,115,105,120,95,119,114,105,116,101,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,117,115,105,122,101,32,110,32,61,32,40,117,115,105,122,101,41,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,115,105,122,101,95,116,32,110,32,61,32,112,111,112,95,117,115,105,122,101,40,41,59,10,
             32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,118,111,105,100,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
-            32,32,32,32,105,110,116,32,102,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,112,117,115,104,95,105,54,52,40,40,105,54,52,41,119,114,105,116,101,40,102,44,32,112,44,32,110,41,41,59,10,
+            32,32,32,32,105,110,116,32,102,100,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,47,47,32,84,79,68,79,32,99,111,109,112,97,114,101,32,103,105,118,101,110,32,115,105,122,101,32,97,103,97,105,110,115,116,32,112,111,105,110,116,101,114,32,115,105,122,101,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,40,105,110,116,54,52,95,116,41,119,114,105,116,101,40,102,100,44,32,112,44,32,110,41,41,59,10,
             32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
             125,10,
-            10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,111,115,105,120,95,114,101,97,100,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,117,115,105,122,101,32,110,32,61,32,40,117,115,105,122,101,41,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,115,105,122,101,95,116,32,110,32,61,32,112,111,112,95,117,115,105,122,101,40,41,59,10,
             32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,118,111,105,100,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
-            32,32,32,32,105,110,116,32,102,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,112,117,115,104,95,105,54,52,40,40,105,54,52,41,114,101,97,100,40,102,44,112,44,110,41,41,59,10,
+            32,32,32,32,105,110,116,32,102,100,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,47,47,32,84,79,68,79,32,99,111,109,112,97,114,101,32,103,105,118,101,110,32,115,105,122,101,32,97,103,97,105,110,115,116,32,112,111,105,110,116,101,114,32,115,105,122,101,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,40,105,110,116,54,52,95,116,41,114,101,97,100,40,102,100,44,112,44,110,41,41,59,10,
             32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
             125,10,
-            10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,111,115,105,120,95,111,112,101,110,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,105,110,116,32,109,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,105,110,116,32,102,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-            32,32,32,32,118,111,105,100,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
-            32,32,32,32,112,117,115,104,95,105,54,52,40,40,105,54,52,41,111,112,101,110,40,112,44,102,44,109,41,41,59,10,
+            32,32,32,32,118,111,105,100,42,32,112,97,116,104,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,40,105,110,116,54,52,95,116,41,111,112,101,110,40,112,97,116,104,44,102,44,109,41,41,59,10,
             32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
             125,10,
-            10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,111,115,105,120,95,99,108,111,115,101,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,105,110,116,32,120,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,112,117,115,104,95,105,54,52,40,40,105,54,52,41,99,108,111,115,101,40,120,41,41,59,10,
+            32,32,32,32,105,110,116,32,102,100,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,40,105,110,116,54,52,95,116,41,99,108,111,115,101,40,102,100,41,41,59,10,
             125,10,
-            10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,111,115,105,120,95,101,120,105,116,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,105,110,116,32,120,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,101,120,105,116,40,120,41,59,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,111,115,105,120,95,109,109,97,112,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,35,105,102,100,101,102,32,77,73,82,84,72,95,87,73,78,68,79,87,83,10,
-            32,32,32,32,32,32,32,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-            32,32,32,32,32,32,32,32,117,115,105,122,101,32,98,32,61,32,40,117,115,105,122,101,41,112,111,112,95,117,54,52,40,41,59,10,
-            32,32,32,32,32,32,32,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-            32,32,32,32,32,32,32,32,112,117,115,104,95,112,116,114,40,109,97,108,108,111,99,40,98,41,41,59,10,
-            32,32,32,32,35,101,108,115,101,10,
-            32,32,32,32,32,32,32,32,105,110,116,32,102,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,32,32,32,32,105,110,116,32,101,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,32,32,32,32,105,110,116,32,100,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,32,32,32,32,105,110,116,32,99,32,61,32,40,105,110,116,41,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,32,32,32,32,117,115,105,122,101,32,98,32,61,32,40,117,115,105,122,101,41,112,111,112,95,117,54,52,40,41,59,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,118,97,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-            32,32,32,32,32,32,32,32,118,111,105,100,42,32,97,32,61,32,118,97,108,117,101,95,112,116,114,40,118,97,41,59,10,
-            32,32,32,32,32,32,32,32,118,111,105,100,42,32,112,32,61,32,109,109,97,112,40,97,44,98,44,99,44,100,44,101,44,102,41,59,10,
-            32,32,32,32,32,32,32,32,112,117,115,104,95,112,116,114,40,112,41,59,10,
-            32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,118,97,41,59,10,
-            32,32,32,32,35,101,110,100,105,102,10,
-            125,10,
-            10,
-            115,116,97,116,105,99,32,118,111,105,100,32,100,111,95,100,101,98,117,103,40,118,111,105,100,41,32,123,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,100,101,98,117,103,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,119,114,105,116,101,40,50,44,32,34,63,63,34,44,32,50,41,59,10,
             32,32,32,32,99,104,97,114,32,99,91,51,50,93,32,61,32,123,48,125,59,10,
             32,32,32,32,99,104,97,114,42,32,99,112,59,10,
-            32,32,32,32,117,115,105,122,101,32,110,59,10,
-            32,32,32,32,105,54,52,32,120,59,32,105,54,52,32,121,59,10,
-            32,32,32,32,102,111,114,32,40,108,111,110,103,32,105,32,61,32,83,84,65,67,75,95,83,73,90,69,45,49,59,32,105,32,62,61,32,40,108,111,110,103,41,115,116,97,99,107,95,99,111,117,110,116,101,114,59,32,105,45,45,41,32,123,10,
+            32,32,32,32,115,105,122,101,95,116,32,110,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,120,44,32,121,59,10,
+            32,32,32,32,102,111,114,32,40,108,111,110,103,32,105,32,61,32,83,84,65,67,75,95,77,65,88,45,49,59,32,105,32,62,61,32,40,108,111,110,103,41,115,116,97,99,107,95,99,111,117,110,116,101,114,59,32,105,45,45,41,32,123,10,
             32,32,32,32,32,32,32,32,99,112,32,61,32,99,43,51,48,59,10,
-            32,32,32,32,32,32,32,32,120,32,61,32,115,116,97,99,107,91,105,93,46,100,97,116,97,46,118,112,95,105,54,52,59,10,
+            32,32,32,32,32,32,32,32,120,32,61,32,115,116,97,99,107,91,105,93,46,100,97,116,97,46,105,54,52,59,32,47,47,32,84,79,68,79,32,108,111,111,107,32,97,116,32,116,97,103,44,32,98,101,32,98,101,116,116,101,114,32,97,116,32,116,104,105,115,10,
             32,32,32,32,32,32,32,32,110,32,61,32,49,59,10,
             32,32,32,32,32,32,32,32,121,32,61,32,120,59,32,105,102,32,40,120,32,60,32,48,41,32,123,32,120,32,61,32,45,120,59,32,125,10,
             32,32,32,32,32,32,32,32,100,111,32,123,32,42,99,112,45,45,32,61,32,39,48,39,32,43,32,40,120,32,37,32,49,48,41,59,32,120,32,47,61,32,49,48,59,32,110,43,43,59,32,125,32,119,104,105,108,101,40,120,41,59,10,
@@ -17857,30 +17811,163 @@ static void mw_c99_header_21_ (void){
             32,32,32,32,119,114,105,116,101,40,50,44,32,34,92,110,34,44,32,49,41,59,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,100,101,98,117,103,40,41,32,100,111,95,100,101,98,117,103,40,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,42,112,41,59,10,
+            32,32,32,32,105,110,99,114,101,102,40,42,112,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,118,97,108,117,101,40,42,112,41,59,32,105,110,99,114,101,102,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,54,52,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,116,114,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,111,105,100,42,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,112,116,114,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,56,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,56,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,117,56,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,49,54,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,49,54,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,117,49,54,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,51,50,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,51,50,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,117,51,50,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,54,52,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,117,54,52,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,56,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,56,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,56,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,49,54,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,49,54,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,49,54,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,51,50,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,51,50,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,51,50,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,54,52,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,112,117,115,104,95,105,54,52,40,42,112,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,110,116,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,54,52,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,56,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,56,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,117,56,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,49,54,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,49,54,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,117,49,54,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,51,50,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,51,50,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,117,51,50,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,54,52,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,117,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,117,54,52,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,56,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,56,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,56,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,49,54,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,49,54,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,49,54,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,51,50,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,51,50,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,51,50,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,105,54,52,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,54,52,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,112,111,112,95,105,54,52,40,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,116,114,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,118,120,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,118,111,105,100,42,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,120,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,100,101,99,114,101,102,40,118,120,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,118,120,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,42,32,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,32,86,65,76,32,111,108,100,32,61,32,42,112,59,32,42,112,32,61,32,118,120,59,32,100,101,99,114,101,102,40,111,108,100,41,59,32,100,101,99,114,101,102,40,118,112,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,42,112,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,118,111,105,100,32,42,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,112,117,115,104,95,112,116,114,40,42,112,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,117,56,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,117,105,110,116,56,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,112,117,115,104,95,117,56,40,42,112,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,117,49,54,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,117,105,110,116,49,54,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,112,117,115,104,95,117,49,54,40,42,112,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,117,51,50,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,117,105,110,116,51,50,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,112,117,115,104,95,117,51,50,40,42,112,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,117,54,52,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,112,117,115,104,95,117,54,52,40,42,112,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,56,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,56,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,112,117,115,104,95,105,56,40,42,112,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,49,54,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,49,54,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,112,117,115,104,95,105,49,54,40,42,112,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,51,50,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,51,50,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,112,117,115,104,95,105,51,50,40,42,112,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,54,52,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,42,112,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,115,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,42,112,41,59,10,
+            32,32,32,32,42,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,115,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,42,112,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,115,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,118,111,105,100,32,42,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,42,112,32,61,32,112,111,112,95,112,116,114,40,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,117,56,95,115,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,117,105,110,116,56,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,42,112,32,61,32,112,111,112,95,117,56,40,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,117,49,54,95,115,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,117,105,110,116,49,54,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,42,112,32,61,32,112,111,112,95,117,49,54,40,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,117,51,50,95,115,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,117,105,110,116,51,50,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,42,112,32,61,32,112,111,112,95,117,51,50,40,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,117,54,52,95,115,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,42,112,32,61,32,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,56,95,115,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,56,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,42,112,32,61,32,112,111,112,95,105,56,40,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,49,54,95,115,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,49,54,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,42,112,32,61,32,112,111,112,95,105,49,54,40,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,51,50,95,115,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,51,50,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,42,112,32,61,32,112,111,112,95,105,51,50,40,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,54,52,95,115,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
+            32,32,32,32,42,112,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
+            125,10,
+            10,
+            10,
             35,105,102,32,100,101,102,105,110,101,100,40,77,73,82,84,72,95,87,73,78,68,79,87,83,41,10,
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,121,115,95,111,115,40,41,32,112,117,115,104,95,117,54,52,40,49,41,10,
             35,101,108,105,102,32,100,101,102,105,110,101,100,40,77,73,82,84,72,95,76,73,78,85,88,41,10,
@@ -17891,95 +17978,74 @@ static void mw_c99_header_21_ (void){
             35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,121,115,95,111,115,40,41,32,112,117,115,104,95,117,54,52,40,48,41,10,
             35,101,110,100,105,102,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,117,110,115,97,102,101,95,99,97,115,116,40,41,32,48,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,117,110,115,97,102,101,95,99,97,115,116,32,40,118,111,105,100,41,32,123,32,125,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,114,117,110,40,41,32,100,111,95,114,117,110,40,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,114,117,110,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,102,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,114,117,110,95,118,97,108,117,101,40,102,41,59,10,
+            125,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,97,100,100,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-            32,32,32,32,105,54,52,32,121,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,105,102,32,40,118,112,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,123,10,
-            32,32,32,32,32,32,32,32,112,117,115,104,95,105,54,52,40,121,32,43,32,118,112,46,100,97,116,97,46,118,112,95,105,54,52,41,59,10,
-            32,32,32,32,125,32,101,108,115,101,32,105,102,32,40,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,40,118,112,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
-            32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,112,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-            32,32,32,32,32,32,32,32,99,100,114,46,100,97,116,97,46,118,112,95,105,54,52,32,43,61,32,121,59,10,
-            32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,109,107,99,101,108,108,40,99,97,114,44,32,99,100,114,41,41,59,10,
+            32,32,32,32,117,105,110,116,54,52,95,116,32,121,32,61,32,112,111,112,95,117,54,52,40,41,59,10,
+            32,32,32,32,115,105,122,101,95,116,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,118,112,41,59,10,
+            32,32,32,32,105,102,32,40,105,41,32,123,10,
+            32,32,32,32,32,32,32,32,67,79,78,83,32,42,99,101,108,108,32,61,32,104,101,97,112,43,105,59,10,
+            32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,99,101,108,108,45,62,114,101,102,115,32,62,32,49,41,59,10,
+            32,32,32,32,32,32,32,32,99,101,108,108,45,62,114,101,102,115,45,45,59,10,
+            32,32,32,32,32,32,32,32,118,111,105,100,42,32,112,116,114,32,61,32,40,118,111,105,100,42,41,40,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,99,104,97,114,112,116,114,32,43,32,121,41,59,10,
+            32,32,32,32,32,32,32,32,115,105,122,101,95,116,32,115,105,122,101,32,61,32,40,99,101,108,108,45,62,99,97,114,46,100,97,116,97,46,117,115,105,122,101,32,62,32,121,32,63,32,99,101,108,108,45,62,99,97,114,46,100,97,116,97,46,117,115,105,122,101,32,45,32,121,32,58,32,48,41,59,10,
+            32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,109,107,112,116,114,95,115,104,97,114,101,100,40,112,116,114,44,115,105,122,101,41,41,59,10,
             32,32,32,32,125,32,101,108,115,101,32,123,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,118,121,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,32,46,118,112,95,105,54,52,32,61,32,121,32,125,32,125,59,10,
-            32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,109,107,99,101,108,108,40,118,112,44,32,118,121,41,41,59,10,
+            32,32,32,32,32,32,32,32,112,117,115,104,95,117,54,52,40,121,32,43,32,118,112,46,100,97,116,97,46,117,54,52,41,59,10,
             32,32,32,32,125,10,
             125,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,98,111,111,108,95,116,114,117,101,40,41,32,112,117,115,104,95,98,111,111,108,40,116,114,117,101,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,98,111,111,108,95,102,97,108,115,101,40,41,32,112,117,115,104,95,98,111,111,108,40,102,97,108,115,101,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,98,111,111,108,95,97,110,100,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,38,38,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,98,111,111,108,95,111,114,40,41,32,100,111,32,123,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,49,93,46,100,97,116,97,46,118,112,95,117,54,52,32,124,124,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,46,100,97,116,97,46,118,112,95,117,54,52,59,32,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,121,115,95,97,114,103,99,40,41,32,112,117,115,104,95,105,54,52,40,103,108,111,98,97,108,95,97,114,103,99,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,121,115,95,97,114,103,118,40,41,32,112,117,115,104,95,112,116,114,40,103,108,111,98,97,108,95,97,114,103,118,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,116,114,95,115,105,122,101,40,41,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,115,105,122,101,111,102,40,118,111,105,100,42,41,41,10,
+            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,116,114,95,115,105,122,101,40,41,32,112,117,115,104,95,117,54,52,40,40,117,105,110,116,54,52,95,116,41,115,105,122,101,111,102,40,118,111,105,100,42,41,41,10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,97,108,108,111,99,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,105,54,52,32,112,115,105,122,101,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,112,115,105,122,101,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,105,102,32,40,112,115,105,122,101,32,62,32,48,41,32,123,10,
-            32,32,32,32,32,32,32,32,117,115,105,122,101,32,115,105,122,101,32,61,32,40,117,115,105,122,101,41,112,115,105,122,101,59,10,
+            32,32,32,32,32,32,32,32,115,105,122,101,95,116,32,115,105,122,101,32,61,32,40,115,105,122,101,95,116,41,112,115,105,122,101,59,10,
             32,32,32,32,32,32,32,32,118,111,105,100,42,32,112,116,114,32,61,32,99,97,108,108,111,99,40,49,44,115,105,122,101,41,59,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,118,115,105,122,101,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,32,46,118,112,95,105,54,52,32,61,32,112,115,105,122,101,32,125,32,125,59,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,118,112,116,114,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,32,46,118,112,95,112,116,114,32,61,32,112,116,114,32,125,32,125,59,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,118,32,61,32,109,107,99,101,108,108,95,102,114,101,101,99,100,114,40,118,115,105,122,101,44,32,118,112,116,114,41,59,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,118,32,61,32,109,107,112,116,114,95,111,119,110,101,100,40,112,116,114,44,32,115,105,122,101,41,59,10,
             32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,118,41,59,10,
             32,32,32,32,125,32,101,108,115,101,32,123,10,
             32,32,32,32,32,32,32,32,112,117,115,104,95,117,54,52,40,48,41,59,10,
             32,32,32,32,125,10,
             125,10,
             10,
-            115,116,97,116,105,99,32,118,111,105,100,42,32,97,108,108,111,99,95,98,117,116,95,99,111,112,121,32,40,117,115,105,122,101,32,100,115,116,110,44,32,118,111,105,100,42,32,115,114,99,44,32,117,115,105,122,101,32,115,114,99,110,41,32,123,10,
+            115,116,97,116,105,99,32,118,111,105,100,42,32,97,108,108,111,99,95,98,117,116,95,99,111,112,121,32,40,115,105,122,101,95,116,32,100,115,116,110,44,32,118,111,105,100,42,32,115,114,99,44,32,115,105,122,101,95,116,32,115,114,99,110,41,32,123,10,
             32,32,32,32,118,111,105,100,42,32,100,115,116,32,61,32,99,97,108,108,111,99,40,49,44,100,115,116,110,41,59,10,
-            32,32,32,32,105,102,32,40,115,114,99,41,32,123,10,
-            32,32,32,32,32,32,32,32,117,115,105,122,101,32,99,112,121,110,32,61,32,40,100,115,116,110,32,62,32,115,114,99,110,41,32,63,32,115,114,99,110,32,58,32,100,115,116,110,59,10,
+            32,32,32,32,105,102,32,40,115,114,99,32,38,38,32,115,114,99,110,41,32,123,10,
+            32,32,32,32,32,32,32,32,115,105,122,101,95,116,32,99,112,121,110,32,61,32,40,100,115,116,110,32,62,32,115,114,99,110,41,32,63,32,115,114,99,110,32,58,32,100,115,116,110,59,10,
             32,32,32,32,32,32,32,32,109,101,109,99,112,121,40,100,115,116,44,32,115,114,99,44,32,99,112,121,110,41,59,10,
             32,32,32,32,125,10,
             32,32,32,32,114,101,116,117,114,110,32,100,115,116,59,10,
             125,10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,114,101,97,108,108,111,99,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,105,54,52,32,112,115,105,122,101,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,112,115,105,122,101,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,86,65,76,32,118,112,116,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,105,102,32,40,112,115,105,122,101,32,60,61,32,48,41,32,123,10,
             32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,118,112,116,114,41,59,10,
             32,32,32,32,32,32,32,32,112,117,115,104,95,117,54,52,40,48,41,59,10,
             32,32,32,32,32,32,32,32,114,101,116,117,114,110,59,10,
-            32,32,32,32,125,10,
-            32,32,32,32,117,115,105,122,101,32,110,101,119,95,115,105,122,101,32,61,32,40,117,115,105,122,101,41,112,115,105,122,101,59,10,
-            32,32,32,32,105,102,32,40,40,118,112,116,114,46,116,97,103,32,61,61,32,86,84,95,67,54,52,41,32,38,38,32,33,118,97,108,117,101,95,104,97,115,95,112,116,114,95,111,102,102,115,101,116,40,118,112,116,114,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,117,115,105,122,101,32,99,101,108,108,95,105,110,100,101,120,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,118,112,116,114,41,59,10,
-            32,32,32,32,32,32,32,32,67,79,78,83,32,42,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,95,105,110,100,101,120,59,10,
-            32,32,32,32,32,32,32,32,117,115,105,122,101,32,111,108,100,95,115,105,122,101,32,61,32,40,117,115,105,122,101,41,99,101,108,108,45,62,99,97,114,46,100,97,116,97,46,118,112,95,117,54,52,59,10,
-            32,32,32,32,32,32,32,32,118,111,105,100,42,32,111,108,100,95,112,116,114,32,61,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,112,116,114,59,10,
-            32,32,32,32,32,32,32,32,118,111,105,100,42,32,110,101,119,95,112,116,114,32,61,32,114,101,97,108,108,111,99,40,111,108,100,95,112,116,114,44,32,110,101,119,95,115,105,122,101,41,59,10,
-            32,32,32,32,32,32,32,32,99,101,108,108,45,62,99,97,114,46,100,97,116,97,46,118,112,95,105,54,52,32,61,32,112,115,105,122,101,59,10,
-            32,32,32,32,32,32,32,32,99,101,108,108,45,62,99,100,114,46,100,97,116,97,46,118,112,95,112,116,114,32,61,32,110,101,119,95,112,116,114,59,10,
-            32,32,32,32,32,32,32,32,105,102,32,40,111,108,100,95,115,105,122,101,32,60,32,110,101,119,95,115,105,122,101,41,32,123,10,
-            32,32,32,32,32,32,32,32,32,32,32,32,109,101,109,115,101,116,40,40,99,104,97,114,42,41,110,101,119,95,112,116,114,32,43,32,111,108,100,95,115,105,122,101,44,32,48,44,32,110,101,119,95,115,105,122,101,32,45,32,111,108,100,95,115,105,122,101,41,59,10,
-            32,32,32,32,32,32,32,32,125,10,
-            32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,118,112,116,114,41,59,10,
             32,32,32,32,125,32,101,108,115,101,32,123,10,
+            32,32,32,32,32,32,32,32,115,105,122,101,95,116,32,110,101,119,95,115,105,122,101,32,61,32,40,115,105,122,101,95,116,41,112,115,105,122,101,59,10,
             32,32,32,32,32,32,32,32,118,111,105,100,42,32,111,108,100,95,112,116,114,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,116,114,41,59,10,
-            32,32,32,32,32,32,32,32,117,115,105,122,101,32,111,108,100,95,115,105,122,101,32,61,32,40,117,115,105,122,101,41,118,97,108,117,101,95,112,116,114,95,115,105,122,101,40,118,112,116,114,41,59,10,
+            32,32,32,32,32,32,32,32,115,105,122,101,95,116,32,111,108,100,95,115,105,122,101,32,61,32,118,97,108,117,101,95,112,116,114,95,115,105,122,101,40,118,112,116,114,41,59,10,
             32,32,32,32,32,32,32,32,118,111,105,100,42,32,110,101,119,95,112,116,114,32,61,32,97,108,108,111,99,95,98,117,116,95,99,111,112,121,40,110,101,119,95,115,105,122,101,44,32,111,108,100,95,112,116,114,44,32,111,108,100,95,115,105,122,101,41,59,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,118,115,105,122,101,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,32,46,118,112,95,105,54,52,32,61,32,112,115,105,122,101,32,125,32,125,59,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,118,110,101,119,32,61,32,123,32,46,116,97,103,32,61,32,86,84,95,85,54,52,44,32,46,100,97,116,97,32,61,32,123,32,46,118,112,95,112,116,114,32,61,32,110,101,119,95,112,116,114,32,125,32,125,59,10,
-            32,32,32,32,32,32,32,32,86,65,76,32,118,32,61,32,109,107,99,101,108,108,95,102,114,101,101,99,100,114,40,118,115,105,122,101,44,32,118,110,101,119,41,59,10,
-            32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,118,41,59,10,
+            32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,109,107,112,116,114,95,111,119,110,101,100,40,110,101,119,95,112,116,114,44,32,110,101,119,95,115,105,122,101,41,41,59,10,
             32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,118,112,116,114,41,59,10,
             32,32,32,32,125,10,
             125,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,99,111,112,121,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,86,65,76,32,118,100,115,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-            32,32,32,32,105,54,52,32,105,108,101,110,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,105,108,101,110,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,86,65,76,32,118,115,114,99,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,118,111,105,100,42,32,115,114,99,32,61,32,118,97,108,117,101,95,112,116,114,40,118,115,114,99,41,59,10,
             32,32,32,32,118,111,105,100,42,32,100,115,116,32,61,32,118,97,108,117,101,95,112,116,114,40,118,100,115,116,41,59,10,
             32,32,32,32,105,102,32,40,115,114,99,32,38,38,32,100,115,116,32,38,38,32,40,105,108,101,110,32,62,32,48,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,109,101,109,99,112,121,40,100,115,116,44,32,115,114,99,44,32,40,117,115,105,122,101,41,105,108,101,110,41,59,10,
+            32,32,32,32,32,32,32,32,109,101,109,99,112,121,40,100,115,116,44,32,115,114,99,44,32,40,115,105,122,101,95,116,41,105,108,101,110,41,59,10,
             32,32,32,32,125,10,
             32,32,32,32,100,101,99,114,101,102,40,118,115,114,99,41,59,10,
             32,32,32,32,100,101,99,114,101,102,40,118,100,115,116,41,59,10,
@@ -17987,16 +18053,21 @@ static void mw_c99_header_21_ (void){
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,102,105,108,108,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,86,65,76,32,118,100,115,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-            32,32,32,32,105,54,52,32,105,108,101,110,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,105,54,52,32,118,97,108,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,105,108,101,110,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,118,97,108,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
             32,32,32,32,118,111,105,100,42,32,100,115,116,32,61,32,118,97,108,117,101,95,112,116,114,40,118,100,115,116,41,59,10,
             32,32,32,32,105,102,32,40,100,115,116,32,38,38,32,40,105,108,101,110,32,62,32,48,41,41,32,123,10,
-            32,32,32,32,32,32,32,32,109,101,109,115,101,116,40,100,115,116,44,32,40,105,110,116,41,118,97,108,44,32,40,117,115,105,122,101,41,105,108,101,110,41,59,10,
+            32,32,32,32,32,32,32,32,109,101,109,115,101,116,40,100,115,116,44,32,40,105,110,116,41,118,97,108,44,32,40,115,105,122,101,95,116,41,105,108,101,110,41,59,10,
             32,32,32,32,125,10,
             32,32,32,32,100,101,99,114,101,102,40,118,100,115,116,41,59,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,116,114,95,114,97,119,40,41,32,100,111,32,123,32,117,115,105,122,101,32,105,32,61,32,115,116,97,99,107,95,99,111,117,110,116,101,114,59,32,112,117,115,104,95,112,116,114,40,118,97,108,117,101,95,112,116,114,40,115,116,97,99,107,91,105,93,41,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,114,97,119,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,112,116,114,32,61,32,116,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,118,111,105,100,32,42,112,116,114,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,116,114,41,59,10,
+            32,32,32,32,112,117,115,104,95,112,116,114,40,112,116,114,41,59,10,
+            125,10,
+            10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,115,116,114,95,101,113,32,40,118,111,105,100,41,32,123,10,
             32,32,32,32,86,65,76,32,118,112,116,114,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
             32,32,32,32,86,65,76,32,118,112,116,114,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
@@ -18008,23 +18079,84 @@ static void mw_c99_header_21_ (void){
             125,10,
             10,
             115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,115,116,114,95,97,108,108,111,99,32,40,118,111,105,100,41,32,123,10,
-            32,32,32,32,105,54,52,32,112,115,105,122,101,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
-            32,32,32,32,112,117,115,104,95,105,54,52,40,112,115,105,122,101,32,43,32,52,41,59,10,
+            32,32,32,32,47,47,32,115,116,114,105,110,103,115,32,104,97,118,101,32,97,32,52,32,98,121,116,101,32,115,101,110,116,105,110,101,108,32,111,102,32,122,101,114,111,115,10,
+            32,32,32,32,105,110,116,54,52,95,116,32,112,115,105,122,101,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,105,54,52,40,112,115,105,122,101,32,43,40,112,115,105,122,101,32,62,61,32,48,32,63,32,52,32,58,32,48,41,41,59,10,
             32,32,32,32,109,119,95,112,114,105,109,95,112,116,114,95,97,108,108,111,99,40,41,59,10,
             125,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,116,114,95,98,97,115,101,40,41,32,48,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,115,116,114,95,98,97,115,101,32,40,118,111,105,100,41,32,123,32,125,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,115,116,114,95,115,105,122,101,40,41,32,100,111,32,123,32,86,65,76,32,118,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,59,32,105,102,32,40,33,118,46,100,97,116,97,46,118,112,95,117,54,52,41,32,123,32,112,117,115,104,95,117,54,52,40,48,41,59,32,125,32,101,108,115,101,32,105,102,32,40,118,46,116,97,103,32,61,61,32,86,84,95,85,54,52,41,32,123,32,112,117,115,104,95,117,54,52,40,40,117,54,52,41,115,116,114,108,101,110,40,118,46,100,97,116,97,46,118,112,95,112,116,114,41,41,59,32,125,32,101,108,115,101,32,123,32,112,117,115,104,95,105,54,52,40,118,97,108,117,101,95,112,116,114,95,115,105,122,101,40,118,41,45,52,41,59,32,125,32,32,125,32,119,104,105,108,101,40,48,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,115,116,114,95,115,105,122,101,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,32,61,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,93,59,10,
+            32,32,32,32,105,102,32,40,33,118,46,100,97,116,97,46,117,54,52,41,32,123,10,
+            32,32,32,32,32,32,32,32,112,117,115,104,95,117,54,52,40,48,41,59,10,
+            32,32,32,32,125,32,101,108,115,101,32,105,102,32,40,118,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,32,123,10,
+            32,32,32,32,32,32,32,32,112,117,115,104,95,117,54,52,40,40,117,105,110,116,54,52,95,116,41,115,116,114,108,101,110,40,118,46,100,97,116,97,46,112,116,114,41,41,59,10,
+            32,32,32,32,125,32,101,108,115,101,32,123,10,
+            32,32,32,32,32,32,32,32,112,117,115,104,95,105,54,52,40,118,97,108,117,101,95,112,116,114,95,115,105,122,101,40,118,41,45,52,41,59,10,
+            32,32,32,32,125,10,
+            125,10,
             10,
-            35,100,101,102,105,110,101,32,100,111,95,112,97,99,107,95,99,111,110,115,40,41,32,100,111,32,123,32,86,65,76,32,99,100,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,99,97,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,118,97,108,117,101,40,109,107,99,101,108,108,40,99,97,114,44,99,100,114,41,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,97,99,107,95,110,105,108,40,41,32,32,112,117,115,104,95,117,54,52,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,97,99,107,95,99,111,110,115,40,41,32,100,111,95,112,97,99,107,95,99,111,110,115,40,41,59,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,97,99,107,95,117,110,99,111,110,115,40,41,32,100,111,95,112,97,99,107,95,117,110,99,111,110,115,40,41,59,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,97,99,107,95,110,105,108,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,112,117,115,104,95,117,54,52,40,48,41,59,10,
+            125,10,
             10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,109,117,116,95,110,101,119,40,41,32,100,111,32,123,32,86,65,76,32,99,97,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,99,100,114,32,61,32,123,32,48,32,125,59,32,112,117,115,104,95,118,97,108,117,101,40,109,107,99,101,108,108,95,114,97,119,40,99,97,114,44,99,100,114,41,41,59,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,109,117,116,95,103,101,116,40,41,32,100,111,32,123,32,86,65,76,32,109,117,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,105,102,32,40,109,117,116,46,116,97,103,32,61,61,32,86,84,95,85,54,52,32,38,38,32,109,117,116,46,100,97,116,97,46,118,112,95,118,97,108,117,101,112,116,114,41,32,123,32,86,65,76,32,118,97,108,32,61,42,109,117,116,46,100,97,116,97,46,118,112,95,118,97,108,117,101,112,116,114,59,32,112,117,115,104,95,118,97,108,117,101,40,118,97,108,41,59,32,105,110,99,114,101,102,40,118,97,108,41,59,32,125,32,101,108,115,101,32,123,32,112,117,115,104,95,118,97,108,117,101,40,109,117,116,41,59,32,100,111,95,112,97,99,107,95,117,110,99,111,110,115,40,41,59,32,112,111,112,95,118,97,108,117,101,40,41,59,32,125,32,125,32,119,104,105,108,101,40,48,41,10,
-            35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,109,117,116,95,115,101,116,40,41,32,100,111,32,123,32,86,65,76,32,109,117,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,86,65,76,32,110,101,119,118,97,108,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,32,112,117,115,104,95,118,97,108,117,101,40,109,117,116,41,59,32,105,102,32,40,109,117,116,46,116,97,103,32,61,61,32,86,84,95,85,54,52,32,38,38,32,109,117,116,46,100,97,116,97,46,118,112,95,118,97,108,117,101,112,116,114,41,32,123,32,86,65,76,32,111,108,100,118,97,108,32,61,32,42,109,117,116,46,100,97,116,97,46,118,112,95,118,97,108,117,101,112,116,114,59,32,42,109,117,116,46,100,97,116,97,46,118,112,95,118,97,108,117,101,112,116,114,32,61,32,110,101,119,118,97,108,59,32,100,101,99,114,101,102,40,111,108,100,118,97,108,41,59,32,125,32,101,108,115,101,32,123,32,117,115,105,122,101,32,99,101,108,108,105,100,120,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,109,117,116,41,59,32,105,102,32,40,99,101,108,108,105,100,120,41,32,123,32,67,79,78,83,42,32,99,101,108,108,32,61,32,104,101,97,112,32,43,32,99,101,108,108,105,100,120,59,32,86,65,76,32,111,108,100,118,97,108,32,61,32,99,101,108,108,45,62,99,97,114,59,32,99,101,108,108,45,62,99,97,114,32,61,32,110,101,119,118,97,108,59,32,100,101,99,114,101,102,40,111,108,100,118,97,108,41,59,32,125,32,101,108,115,101,32,123,32,100,101,99,114,101,102,40,110,101,119,118,97,108,41,59,32,125,32,125,32,125,32,119,104,105,108,101,40,48,41,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,97,99,107,95,99,111,110,115,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,99,100,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,99,97,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,109,107,99,101,108,108,40,99,97,114,44,99,100,114,41,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,97,99,107,95,117,110,99,111,110,115,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,118,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,99,97,114,44,99,100,114,59,10,
+            32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
+            32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,99,97,114,41,59,10,
+            32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,99,100,114,41,59,10,
+            32,32,32,32,105,110,99,114,101,102,40,99,97,114,41,59,32,105,110,99,114,101,102,40,99,100,114,41,59,32,100,101,99,114,101,102,40,118,41,59,10,
+            125,10,
+            10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,109,117,116,95,110,101,119,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,99,97,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,99,100,114,32,61,32,123,48,125,59,10,
+            32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,109,107,99,101,108,108,95,114,97,119,40,99,97,114,44,99,100,114,44,102,97,108,115,101,41,41,59,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,109,117,116,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,109,117,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,105,102,32,40,40,109,117,116,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,32,38,38,32,109,117,116,46,100,97,116,97,46,112,116,114,41,32,123,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,118,32,61,32,42,109,117,116,46,100,97,116,97,46,118,97,108,112,116,114,59,10,
+            32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,118,41,59,10,
+            32,32,32,32,32,32,32,32,105,110,99,114,101,102,40,118,41,59,10,
+            32,32,32,32,125,32,101,108,115,101,32,123,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,99,100,114,59,10,
+            32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,109,117,116,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
+            32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,40,99,100,114,46,116,97,103,32,61,61,32,48,41,32,38,38,32,40,99,100,114,46,100,97,116,97,46,117,54,52,32,61,61,32,48,41,41,59,10,
+            32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,99,97,114,41,59,10,
+            32,32,32,32,32,32,32,32,105,110,99,114,101,102,40,99,97,114,41,59,10,
+            32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,109,117,116,41,59,10,
+            32,32,32,32,125,10,
+            125,10,
+            115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,109,117,116,95,115,101,116,32,40,118,111,105,100,41,32,123,10,
+            32,32,32,32,86,65,76,32,109,117,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,86,65,76,32,110,101,119,118,97,108,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
+            32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,109,117,116,41,59,10,
+            32,32,32,32,105,102,32,40,40,109,117,116,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,32,38,38,32,109,117,116,46,100,97,116,97,46,112,116,114,41,32,123,10,
+            32,32,32,32,32,32,32,32,86,65,76,32,111,108,100,118,97,108,32,61,32,42,109,117,116,46,100,97,116,97,46,118,97,108,112,116,114,59,10,
+            32,32,32,32,32,32,32,32,42,109,117,116,46,100,97,116,97,46,118,97,108,112,116,114,32,61,32,110,101,119,118,97,108,59,10,
+            32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,111,108,100,118,97,108,41,59,10,
+            32,32,32,32,125,32,101,108,115,101,32,123,10,
+            32,32,32,32,32,32,32,32,115,105,122,101,95,116,32,105,32,61,32,103,101,116,95,99,101,108,108,95,105,110,100,101,120,40,109,117,116,41,59,10,
+            32,32,32,32,32,32,32,32,105,102,32,40,105,41,32,123,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,67,79,78,83,32,42,99,101,108,108,32,61,32,104,101,97,112,43,105,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,86,65,76,32,111,108,100,118,97,108,32,61,32,99,101,108,108,45,62,99,97,114,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,99,101,108,108,45,62,99,97,114,32,61,32,110,101,119,118,97,108,59,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,111,108,100,118,97,108,41,59,10,
+            32,32,32,32,32,32,32,32,125,32,101,108,115,101,32,123,10,
+            32,32,32,32,32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,110,101,119,118,97,108,41,59,10,
+            32,32,32,32,32,32,32,32,125,10,
+            32,32,32,32,125,10,
+            125,10,
             10,
             47,42,32,71,69,78,69,82,65,84,69,68,32,67,57,57,32,42,47,10,
             
@@ -18039,7 +18171,7 @@ static void mw_c99_header_21_ (void){
 static void mw_c99_buffers_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_buffers_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_Buffer_2E_for();
     mw__2E_lf();
 }
@@ -18051,7 +18183,7 @@ static void mw_c99_buffer_21_ (void){
     mw__2E_w();
     push_ptr(" {\0\0\0\0");
     mw__3B_();
-    push_ptr("    static u8 b[\0\0\0\0");
+    push_ptr("    static uint8_t b[\0\0\0\0");
     mw__2E_();
     mw_dup();
     mw_buffer_size();
@@ -18069,7 +18201,7 @@ static void mw_c99_buffer_21_ (void){
 static void mw_c99_variables_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_variables_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_Variable_2E_for();
     mw__2E_lf();
 }
@@ -18093,7 +18225,7 @@ static void mw_c99_variable_21_ (void){
 static void mw_c99_tags_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_tags_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_Tag_2E_for();
     mw__2E_lf();
 }
@@ -18127,7 +18259,7 @@ static void mw_c99_tag_21_ (void){
             mw_1_();
             push_u64(0);
             push_fnptr(&mb_c99_tag_21__5);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_repeat();
             push_ptr("    VAL tag = mku64(\0\0\0\0");
             mw__2E_();
@@ -18149,7 +18281,7 @@ static void mw_c99_tag_21_ (void){
 static void mw_c99_externals_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_externals_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_External_2E_for();
     mw__2E_lf();
 }
@@ -18170,7 +18302,7 @@ static void mw_c99_external_21_ (void){
         push_i64(1LL);
         mw__3E__3D_();
         if (pop_u64()) {
-            push_ptr("i64 \0\0\0\0");
+            push_ptr("int64_t \0\0\0\0");
             mw__2E_();
         } else {
             push_ptr("void \0\0\0\0");
@@ -18179,7 +18311,7 @@ static void mw_c99_external_21_ (void){
     }
     push_u64(0);
     push_fnptr(&mb_c99_external_21__5);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
     push_ptr(" (\0\0\0\0");
     mw__2E_();
@@ -18187,12 +18319,12 @@ static void mw_c99_external_21_ (void){
     mw_dup();
     mw_0_3E_();
     if (pop_u64()) {
-        push_ptr("i64\0\0\0\0");
+        push_ptr("int64_t\0\0\0\0");
         mw__2E_();
         mw_1_();
         push_u64(0);
         push_fnptr(&mb_c99_external_21__7);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_repeat();
     } else {
         mw_drop();
@@ -18205,14 +18337,14 @@ static void mw_c99_external_21_ (void){
     mw__2E_();
     push_u64(0);
     push_fnptr(&mb_c99_external_21__9);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
     push_ptr(" (void) {\0\0\0\0");
     mw__3B_();
     mw_over();
     push_u64(0);
     push_fnptr(&mb_c99_external_21__10);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_countdown();
     mw_dup();
     mw_0_3E_();
@@ -18224,7 +18356,7 @@ static void mw_c99_external_21_ (void){
     mw__2E_();
     push_u64(0);
     push_fnptr(&mb_c99_external_21__13);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
     push_ptr("(\0\0\0\0");
     mw__2E_();
@@ -18238,7 +18370,7 @@ static void mw_c99_external_21_ (void){
             mw_dup();
             push_u64(0);
             push_fnptr(&mb_c99_external_21__16);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_count();
             push_ptr("x\0\0\0\0");
             mw__2E_();
@@ -18270,20 +18402,20 @@ static void mw_c99_nest (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_c99_nest_2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_modify();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         mw_c99_depth();
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_c99_nest_3);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_modify();
         decref(var_f);
     }
@@ -18294,7 +18426,7 @@ static void mw_c99_indent (void){
     mw__40_();
     push_u64(0);
     push_fnptr(&mb_c99_indent_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_repeat();
 }
 
@@ -18304,7 +18436,7 @@ static void mw_c99_line (void){
         mw_c99_indent();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         mw__2E_lf();
         decref(var_f);
     }
@@ -18318,7 +18450,7 @@ static void mw_c99_call_21_ (void){
     }
     push_u64(0);
     push_fnptr(&mb_c99_call_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
@@ -18327,14 +18459,14 @@ static void mw_c99_arrow_21_ (void){
     mw__40_();
     push_u64(0);
     push_fnptr(&mb_c99_arrow_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_for();
 }
 
 static void mw_c99_atom_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_atom_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_atom_op();
     mw__40_();
@@ -18344,92 +18476,92 @@ static void mw_c99_atom_21_ (void){
 static void mw_c99_args_op_21_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_drop();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_c99_int_21_();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_c99_str_21_();
             break;
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_c99_constant_21_();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_word_name();
             mw__40_();
             mw_c99_call_21_();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_external_name();
             mw__40_();
             mw_c99_call_21_();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_buffer_name();
             mw__40_();
             mw_c99_call_21_();
             break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_variable_name();
             mw__40_();
             mw_c99_call_21_();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_field_name();
             mw__40_();
             mw_c99_call_21_();
             break;
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_tag_name();
             mw__40_();
             mw_c99_call_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_c99_prim_21_();
             break;
         case 11LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_c99_match_21_();
             break;
         case 12LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_c99_lambda_21_();
             break;
         case 13LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_c99_var_21_();
             break;
         case 14LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_c99_block_push_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_c99_int_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_int_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
@@ -18441,20 +18573,20 @@ static void mw_c99_str_21_ (void){
     if (pop_u64()) {
         push_u64(0);
         push_fnptr(&mb_c99_str_21__2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_c99_line();
         push_u64(0);
         push_fnptr(&mb_c99_str_21__3);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_c99_nest();
         push_u64(0);
         push_fnptr(&mb_c99_str_21__13);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_c99_line();
     } else {
         push_u64(0);
         push_fnptr(&mb_c99_str_21__15);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_c99_line();
     }
 }
@@ -18462,18 +18594,18 @@ static void mw_c99_str_21_ (void){
 static void mw_c99_constant_21_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_c99_int_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_c99_str_21_();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_c99_block_push_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -18528,7 +18660,7 @@ static void mw_c99_string_char_21_ (void){
                             mw_char_bytes();
                             push_u64(0);
                             push_fnptr(&mb_c99_string_char_21__13);
-                            do_pack_cons();
+                            mw_prim_pack_cons();
                             mw_for();
                         }
                     }
@@ -18541,21 +18673,21 @@ static void mw_c99_string_char_21_ (void){
 static void mw_c99_prim_21_ (void){
     switch (get_top_data_tag()) {
         case 4LL:
-            do_drop();
+            mw_prim_drop();
             switch (get_top_data_tag()) {
                 case 1LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     push_u64(0);
                     push_fnptr(&mb_c99_prim_21__3);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_c99_line();
                     push_u64(0);
                     push_fnptr(&mb_c99_prim_21__4);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_c99_nest();
                     push_u64(0);
                     push_fnptr(&mb_c99_prim_21__7);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_c99_line();
                     break;
                 default:
@@ -18565,30 +18697,30 @@ static void mw_c99_prim_21_ (void){
             
 }            break;
         case 5LL:
-            do_drop();
+            mw_prim_drop();
             switch (get_top_data_tag()) {
                 case 2LL:
-                    do_pack_uncons(); do_drop();
-                    do_pack_uncons(); do_swap();
+                    mw_prim_pack_uncons(); mw_prim_drop();
+                    mw_prim_pack_uncons(); mw_prim_swap();
                     push_u64(0);
                     push_fnptr(&mb_c99_prim_21__11);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_c99_line();
                     push_u64(0);
                     push_fnptr(&mb_c99_prim_21__12);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_c99_nest();
                     push_u64(0);
                     push_fnptr(&mb_c99_prim_21__13);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_c99_line();
                     push_u64(0);
                     push_fnptr(&mb_c99_prim_21__14);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_c99_nest();
                     push_u64(0);
                     push_fnptr(&mb_c99_prim_21__15);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_c99_line();
                     break;
                 default:
@@ -18598,22 +18730,22 @@ static void mw_c99_prim_21_ (void){
             
 }            break;
         case 6LL:
-            do_drop();
+            mw_prim_drop();
             switch (get_top_data_tag()) {
                 case 2LL:
-                    do_pack_uncons(); do_drop();
-                    do_pack_uncons(); do_swap();
+                    mw_prim_pack_uncons(); mw_prim_drop();
+                    mw_prim_pack_uncons(); mw_prim_swap();
                     push_u64(0);
                     push_fnptr(&mb_c99_prim_21__19);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_c99_line();
                     push_u64(0);
                     push_fnptr(&mb_c99_prim_21__20);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_c99_nest();
                     push_u64(0);
                     push_fnptr(&mb_c99_prim_21__22);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_c99_line();
                     break;
                 default:
@@ -18637,37 +18769,37 @@ static void mw_c99_prim_default_21_ (void){
 static void mw_c99_args_push_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_args_push_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_for();
 }
 
 static void mw_c99_arg_push_21_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_c99_block_push_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_c99_var_push_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_c99_arg_run_21_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_block_arrow();
             mw_force_21_();
             mw_c99_arrow_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_c99_var_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -18687,12 +18819,12 @@ static void mw__2E_param (void){
 static void mw_c99_pack_ctx_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_pack_ctx_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     mw_ctx_physical_vars();
     push_u64(0);
     push_fnptr(&mb_c99_pack_ctx_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_for();
 }
 
@@ -18700,11 +18832,11 @@ static void mw_c99_unpack_ctx_21_ (void){
     mw_ctx_physical_vars();
     push_u64(0);
     push_fnptr(&mb_c99_unpack_ctx_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_reverse_for();
     push_u64(0);
     push_fnptr(&mb_c99_unpack_ctx_21__4);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
@@ -18712,7 +18844,7 @@ static void mw_c99_decref_ctx_21_ (void){
     mw_ctx_physical_vars();
     push_u64(0);
     push_fnptr(&mb_c99_decref_ctx_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_reverse_for();
 }
 
@@ -18725,11 +18857,11 @@ static void mw_c99_block_push_21_ (void){
     mw_c99_pack_ctx_21_();
     push_u64(0);
     push_fnptr(&mb_c99_block_push_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     push_u64(0);
     push_fnptr(&mb_c99_block_push_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
@@ -18745,7 +18877,7 @@ static void mw_c99_var_21_ (void){
     if (pop_u64()) {
         push_u64(0);
         push_fnptr(&mb_c99_var_21__3);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_c99_line();
     } else {
         mw_id();
@@ -18755,26 +18887,26 @@ static void mw_c99_var_21_ (void){
 static void mw_c99_var_push_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_var_push_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     push_u64(0);
     push_fnptr(&mb_c99_var_push_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mw_c99_lambda_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_lambda_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     push_u64(0);
     push_fnptr(&mb_c99_lambda_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_nest();
     push_u64(0);
     push_fnptr(&mb_c99_lambda_21__7);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
@@ -18787,33 +18919,33 @@ static void mw_c99_match_21_ (void){
         mw_first();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_match_token();
                 mw__40_();
                 push_ptr("codegen: unexpected number of cases in transparent match\0\0\0\0");
                 mw_emit_fatal_error_21_();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 mw_case_body();
                 mw__40_();
                 mw_c99_arrow_21_();
                 mw_drop();
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }    } else {
         push_u64(0);
         push_fnptr(&mb_c99_match_21__5);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_c99_line();
         push_u64(0);
         push_fnptr(&mb_c99_match_21__6);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_c99_nest();
         push_u64(0);
         push_fnptr(&mb_c99_match_21__11);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_c99_line();
         mw__2E_();
     }
@@ -18826,38 +18958,38 @@ static void mw_c99_case_21_ (void){
     mw_c99_pattern_21_();
     push_u64(0);
     push_fnptr(&mb_c99_case_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_nest();
 }
 
 static void mw_c99_pattern_21_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_c99_pattern_21__2);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_c99_line();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             push_u64(0);
             push_fnptr(&mb_c99_pattern_21__4);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_c99_line();
             push_u64(0);
             push_fnptr(&mb_c99_pattern_21__5);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_c99_nest();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_c99_word_sigs_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_word_sigs_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_Word_2E_for();
     mw__2E_lf();
 }
@@ -18865,14 +18997,14 @@ static void mw_c99_word_sigs_21_ (void){
 static void mw_c99_word_sig_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_word_sig_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mw_c99_block_sigs_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_block_sigs_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_Block_2E_for();
     mw__2E_lf();
 }
@@ -18880,14 +19012,14 @@ static void mw_c99_block_sigs_21_ (void){
 static void mw_c99_block_sig_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_block_sig_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mw_c99_field_sigs_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_field_sigs_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_Field_2E_for();
     mw__2E_lf();
 }
@@ -18895,14 +19027,14 @@ static void mw_c99_field_sigs_21_ (void){
 static void mw_c99_field_sig_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_field_sig_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mw_c99_block_defs_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_block_defs_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_Block_2E_for();
     mw__2E_lf();
 }
@@ -18910,15 +19042,15 @@ static void mw_c99_block_defs_21_ (void){
 static void mw_c99_block_def_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_block_def_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     push_u64(0);
     push_fnptr(&mb_c99_block_def_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_nest();
     push_u64(0);
     push_fnptr(&mb_c99_block_def_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     mw__2E_lf();
 }
@@ -18953,7 +19085,7 @@ static void mw__2E_block (void){
 static void mw_c99_word_defs_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_word_defs_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_Word_2E_for();
     mw__2E_lf();
 }
@@ -18969,7 +19101,7 @@ static void mw_c99_word_def_21_ (void){
     mw_force_21_();
     push_u64(0);
     push_fnptr(&mb_c99_word_def_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_nest();
     push_ptr("}\0\0\0\0");
     mw__3B__3B_();
@@ -18978,7 +19110,7 @@ static void mw_c99_word_def_21_ (void){
 static void mw_c99_field_defs_21_ (void){
     push_u64(0);
     push_fnptr(&mb_c99_field_defs_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_Field_2E_for();
     mw__2E_lf();
 }
@@ -18990,11 +19122,11 @@ static void mw_c99_field_def_21_ (void){
     mw_field_name();
     mw__40_();
     mw__2E_name();
-    push_ptr(" (usize i) {\0\0\0\0");
+    push_ptr(" (size_t i) {\0\0\0\0");
     mw__3B_();
     push_ptr("    static struct VAL * p = 0;\0\0\0\0");
     mw__3B_();
-    push_ptr("    usize m = \0\0\0\0");
+    push_ptr("    size_t m = \0\0\0\0");
     mw__2E_();
     mw_TABLE_MAX_SIZE();
     mw__2E_n();
@@ -19014,7 +19146,7 @@ static void mw_c99_field_def_21_ (void){
     mw__2E_w();
     push_ptr("{\0\0\0\0");
     mw__3B_();
-    push_ptr("    usize index = (usize)pop_u64();\0\0\0\0");
+    push_ptr("    size_t index = (size_t)pop_u64();\0\0\0\0");
     mw__3B_();
     push_ptr("    VAL *v = fieldptr_\0\0\0\0");
     mw__2E_();
@@ -19040,7 +19172,7 @@ static void mw_c99_main_21_ (void){
     mw__3B_();
     push_u64(0);
     push_fnptr(&mb_c99_main_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_nest();
     push_ptr("    return 0;\0\0\0\0");
     mw__3B_();
@@ -19079,7 +19211,7 @@ static void mw_ctx_physical_vars (void){
     mw_ctx_vars();
     push_u64(0);
     push_fnptr(&mb_ctx_physical_vars_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_filter();
 }
 
@@ -19087,7 +19219,7 @@ static void mw_ctx_lookup (void){
     mw_unCTX();
     push_u64(0);
     push_fnptr(&mb_ctx_lookup_1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_reverse_find();
     mw_nip();
 }
@@ -19129,7 +19261,7 @@ static void mw_ctx_make_fresh_var_21_ (void){
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_ctx_make_fresh_var_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
 }
 
@@ -19182,7 +19314,7 @@ static void mw_External_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -19253,7 +19385,7 @@ static void mw_Variable_2E_for (void){
                 mw_prim_unsafe_cast();
                 push_value(var_x);
                 incref(var_x);
-                do_run();
+                mw_prim_run();
                 push_value(d4);
             }
             push_i64(1LL);
@@ -19308,22 +19440,22 @@ static void mw_type_elab_stack_assertion (void){
 static void mw_type_elab_holes_allowed (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_type_elab_ctx (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_nip();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -19336,13 +19468,13 @@ static void mw_type_elab_ctx_replace (void){
     mw_swap();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_drop();
             mw_swap();
             mw_TYPE_ELAB();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -19400,7 +19532,7 @@ static void mw_elab_type_sig_21_ (void){
             mw_swap();
             push_u64(0);
             push_fnptr(&mb_elab_type_sig_21__13);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_for();
             push_value(d3);
         }
@@ -19421,7 +19553,7 @@ static void mw_elab_type_sig_params_21_ (void){
             mw_token_args();
             push_u64(0);
             push_fnptr(&mb_elab_type_sig_params_21__3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_for();
             mw_swap();
             push_value(d3);
@@ -19538,27 +19670,27 @@ static void mw_elab_type_var_21_ (void){
 static void mw_elab_implicit_var_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_implicit_var_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
     mw_over();
     push_u64(0);
     push_fnptr(&mb_elab_implicit_var_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
     mw_rotl();
     switch (get_top_data_tag()) {
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_rotr();
             push_u64(0);
             push_fnptr(&mb_elab_implicit_var_21__4);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_dip2();
             mw_elab_type_unify_21_();
             mw_nip();
             break;
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             {
                 VAL d4 = pop_value();
                 {
@@ -19571,17 +19703,17 @@ static void mw_elab_implicit_var_21_ (void){
                 mw__21_();
                 push_u64(0);
                 push_fnptr(&mb_elab_implicit_var_21__8);
-                do_pack_cons();
+                mw_prim_pack_cons();
                 mw_sip();
                 push_value(d4);
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }    mw_token_next();
     push_u64(0);
     push_fnptr(&mb_elab_implicit_var_21__9);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
 }
 
@@ -19591,7 +19723,7 @@ static void mw_elab_type_con_21_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_over();
             mw_token_num_args();
             mw_over();
@@ -19608,7 +19740,7 @@ static void mw_elab_type_con_21_ (void){
             }
             break;
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_dup();
             push_ptr("Unknown type.\0\0\0\0");
             mw_emit_error_21_();
@@ -19728,7 +19860,7 @@ static void mw_elab_type_quote_21_ (void){
 static void mw_elab_type_unify_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_type_unify_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
 }
 
@@ -19770,7 +19902,7 @@ static void mw_ab_save_21_ (void){
             VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
-            do_run();
+            mw_prim_run();
             push_value(d3);
         }
         mw_ab_arrow();
@@ -19785,9 +19917,9 @@ static void mw_ab_build_21_ (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_ab_build_21__2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_ab_save_21_();
         decref(var_f);
     }
@@ -19805,9 +19937,9 @@ static void mw_ab_build_hom_21_ (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_ab_build_hom_21__3);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_ab_build_21_();
         decref(var_f);
     }
@@ -19825,9 +19957,9 @@ static void mw_ab_build_word_arrow_21_ (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_ab_build_word_arrow_21__2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
         mw_word_body();
         mw__40_();
@@ -19847,9 +19979,9 @@ static void mw_ab_build_word_21_ (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_ab_build_word_21__2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
         mw_tuck();
         mw_word_arrow();
@@ -19904,11 +20036,11 @@ static void mw_ab_optimized_snoc_21_ (void){
     while(1) {
         push_u64(0);
         push_fnptr(&mb_ab_optimized_snoc_21__2);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_dip_3F_();
         push_u64(0);
         push_fnptr(&mb_ab_optimized_snoc_21__3);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_and();
         if (!pop_u64()) break;
         mw_swap();
@@ -19924,7 +20056,7 @@ static void mw_atom_accepts_args_3F_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             {
                 VAL d4 = pop_value();
                 mw_dup();
@@ -19938,10 +20070,10 @@ static void mw_atom_accepts_args_3F_ (void){
             mw__3C_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             switch (get_top_data_tag()) {
                 case 8LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_dup();
                     mw_atom_args();
                     mw__40_();
@@ -19950,7 +20082,7 @@ static void mw_atom_accepts_args_3F_ (void){
                     mw__3C_();
                     break;
                 case 4LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_dup();
                     mw_atom_args();
                     mw__40_();
@@ -19959,7 +20091,7 @@ static void mw_atom_accepts_args_3F_ (void){
                     mw__3C_();
                     break;
                 case 5LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_dup();
                     mw_atom_args();
                     mw__40_();
@@ -19968,7 +20100,7 @@ static void mw_atom_accepts_args_3F_ (void){
                     mw__3C_();
                     break;
                 case 6LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_dup();
                     mw_atom_args();
                     mw__40_();
@@ -19994,16 +20126,16 @@ static void mw_atoms_has_last_block_3F_ (void){
     mw_last();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_false();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_atom_op();
             mw__40_();
             switch (get_top_data_tag()) {
                 case 14LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_drop();
                     mw_true();
                     break;
@@ -20013,7 +20145,7 @@ static void mw_atoms_has_last_block_3F_ (void){
                     break;
             
 }            break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -20021,18 +20153,18 @@ static void mw_atoms_turn_last_block_to_arg (void){
     mw_List__3E_List_2B_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_L0();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_unsnoc();
             mw_dup();
             mw_atom_op();
             mw__40_();
             switch (get_top_data_tag()) {
                 case 14LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_atom_cod();
@@ -20053,7 +20185,7 @@ static void mw_atoms_turn_last_block_to_arg (void){
                     break;
             
 }            break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -20064,15 +20196,15 @@ static void mw_block_to_arg (void){
     mw_arrow_to_run_var();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_ARG_BLOCK();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_ARG_VAR_RUN();
             mw_nip();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -20081,7 +20213,7 @@ static void mw_arrow_to_run_var (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_atom_to_run_var();
             break;
         default:
@@ -20096,7 +20228,7 @@ static void mw_atom_to_run_var (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 13LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_dup();
             mw_var_auto_run();
             mw__40_();
@@ -20155,13 +20287,13 @@ static void mw_ab_op_21_ (void){
 static void mw_ab_expand_opsig_21_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_ab_type();
             mw__40_();
             mw_dup();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             {
                 VAL d4 = pop_value();
                 mw_ab_type();
@@ -20172,7 +20304,7 @@ static void mw_ab_expand_opsig_21_ (void){
             mw_TTensor();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             {
                 VAL d4 = pop_value();
                 mw_ab_type();
@@ -20190,7 +20322,7 @@ static void mw_ab_expand_opsig_21_ (void){
                 push_value(d4);
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -20368,9 +20500,9 @@ static void mw_ab_lambda_21_ (void){
             push_u64(0);
             push_value(var_f);
             incref(var_f);
-            do_pack_cons();
+            mw_prim_pack_cons();
             push_fnptr(&mb_ab_lambda_21__3);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_reverse_for();
             push_value(d3);
         }
@@ -20391,9 +20523,9 @@ static void mw_ab_lambda_21_ (void){
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_ab_lambda_21__7);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_ab_build_21_();
         mw_over();
         mw_lambda_body();
@@ -20409,87 +20541,87 @@ static void mw_elab_op_fresh_sig_21_ (void){
     mw_swap();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_OPSIG_ID();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_VALUE_INT();
             mw_TValue();
             mw_OPSIG_PUSH();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_VALUE_STR();
             mw_TValue();
             mw_OPSIG_PUSH();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_TYPE_PTR();
             mw_OPSIG_PUSH();
             break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_variable_type();
             mw_force_21_();
             mw_TMut();
             mw_OPSIG_PUSH();
             break;
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_TValue();
             mw_OPSIG_PUSH();
             break;
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_tag_sig_21_();
             mw_type_freshen_sig();
             mw_OPSIG_APPLY();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_word_sig_21_();
             mw_type_freshen_sig();
             mw_OPSIG_APPLY();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_prim_type();
             mw__40_();
             mw_type_freshen_sig();
             mw_OPSIG_APPLY();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_external_sig_21_();
             mw_type_freshen_sig();
             mw_OPSIG_APPLY();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_field_type_21_();
             mw_type_freshen_sig();
             mw_OPSIG_APPLY();
             break;
         case 14LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_block_sig_21_();
             break;
         case 13LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_var_sig_21_();
             break;
         case 11LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_match_sig_21_();
             break;
         case 12LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_lambda_sig_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -20502,7 +20634,7 @@ static void mw_elab_block_sig_21_ (void){
 static void mw_elab_match_sig_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_match_sig_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_match_cod();
     mw__40_();
@@ -20513,7 +20645,7 @@ static void mw_elab_match_sig_21_ (void){
 static void mw_elab_lambda_sig_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_lambda_sig_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_lambda_cod();
     mw__40_();
@@ -20582,7 +20714,7 @@ static void mw_elab_word_ctx_sig_21_ (void){
     mw_word_ctx_type();
     push_u64(0);
     push_fnptr(&mb_elab_word_ctx_sig_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_force_or_21_();
     mw_nip();
     mw_unpack2();
@@ -20601,12 +20733,12 @@ static void mw_elab_word_ctx_sig_weak_21_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_word_ctx_type();
             mw__40_();
             switch (get_top_data_tag()) {
                 case 0LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_unpack2();
                     break;
                 default:
@@ -20621,11 +20753,11 @@ static void mw_elab_word_ctx_sig_weak_21_ (void){
             
 }            break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_elab_word_ctx_sig_21_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -20660,7 +20792,7 @@ static void mw_elab_arrow_hom_21_ (void){
 static void mw_elab_arrow_fwd_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_arrow_fwd_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_build_21_();
 }
 
@@ -20673,7 +20805,7 @@ static void mw_elab_atoms_21_ (void){
         mw_ab_token();
         push_u64(0);
         push_fnptr(&mb_elab_atoms_21__3);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_modify();
     }
 }
@@ -20692,24 +20824,24 @@ static void mw_elab_atom_21_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_atom_name_21_();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_ab_int_21_();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_ab_str_21_();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_elab_atom_block_21_();
             break;
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_elab_atom_assert_21_();
             break;
@@ -20744,7 +20876,7 @@ static void mw_elab_args_21_ (void){
     mw_token_args();
     push_u64(0);
     push_fnptr(&mb_elab_args_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_for();
 }
 
@@ -20761,53 +20893,53 @@ static void mw_elab_atom_name_21_ (void){
     mw_ctx_lookup();
     switch (get_top_data_tag()) {
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_elab_args_21_();
             mw_ab_var_21_();
             break;
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_name_def();
             mw__40_();
             switch (get_top_data_tag()) {
                 case 6LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_elab_no_args_21_();
                     mw_ab_buffer_21_();
                     break;
                 case 7LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_elab_no_args_21_();
                     mw_ab_variable_21_();
                     break;
                 case 8LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_elab_no_args_21_();
                     mw_ab_constant_21_();
                     break;
                 case 9LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_elab_no_args_21_();
                     mw_ab_external_21_();
                     break;
                 case 10LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_elab_no_args_21_();
                     mw_ab_field_21_();
                     break;
                 case 5LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_elab_args_21_();
                     mw_ab_word_21_();
                     break;
                 case 3LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_elab_args_21_();
                     mw_ab_tag_21_();
                     break;
                 case 4LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_elab_prim_21_();
                     break;
                 default:
@@ -20822,18 +20954,18 @@ static void mw_elab_atom_name_21_ (void){
                     break;
             
 }            break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mw_elab_prim_21_ (void){
     switch (get_top_data_tag()) {
         case 9LL:
-            do_drop();
+            mw_prim_drop();
             mw_elab_atom_match_21_();
             break;
         case 10LL:
-            do_drop();
+            mw_prim_drop();
             mw_elab_atom_lambda_21_();
             break;
         default:
@@ -20934,7 +21066,7 @@ static void mw_elab_expand_tensor_21_ (void){
     mw_type_expand();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             {
                 VAL d4 = pop_value();
                 mw_TYPE_ERROR();
@@ -20943,13 +21075,13 @@ static void mw_elab_expand_tensor_21_ (void){
             }
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_id();
             mw_rotl();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             {
                 VAL d4 = pop_value();
                 mw_meta_alloc_21_();
@@ -20985,7 +21117,7 @@ static void mw_elab_expand_morphism_21_ (void){
     mw_type_expand();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             {
                 VAL d4 = pop_value();
                 mw_TYPE_ERROR();
@@ -20994,13 +21126,13 @@ static void mw_elab_expand_morphism_21_ (void){
             }
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
-            do_pack_uncons(); do_swap();
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_prim_pack_uncons(); mw_prim_swap();
             mw_id();
             mw_rotl();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             {
                 VAL d4 = pop_value();
                 mw_meta_alloc_21_();
@@ -21042,7 +21174,7 @@ static void mw_elab_lambda_pop_from_mid_21_ (void){
     mw_elab_expand_tensor_21_();
     push_u64(0);
     push_fnptr(&mb_elab_lambda_pop_from_mid_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
 }
 
@@ -21107,7 +21239,7 @@ static void mw_elab_lambda_params_21_ (void){
         mw_elab_lambda_pop_from_mid_21_();
         push_u64(0);
         push_fnptr(&mb_elab_lambda_params_21__5);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
         mw_token_prev();
     }
@@ -21247,17 +21379,17 @@ static void mw_elab_case_pattern_21_ (void){
             mw__40_();
             switch (get_top_data_tag()) {
                 case 3LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_dup();
                     mw_PATTERN_TAG();
                     mw_rotr();
                     push_u64(0);
                     push_fnptr(&mb_elab_case_pattern_21__8);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_dip2();
                     push_u64(0);
                     push_fnptr(&mb_elab_case_pattern_21__9);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_dip2();
                     mw_elab_tag_sig_21_();
                     mw_subst_nil();
@@ -21269,7 +21401,7 @@ static void mw_elab_case_pattern_21_ (void){
                         mw_elab_expand_morphism_21_();
                         push_u64(0);
                         push_fnptr(&mb_elab_case_pattern_21__11);
-                        do_pack_cons();
+                        mw_prim_pack_cons();
                         mw_dip2();
                         mw_elab_type_unify_21_();
                         mw_nip();
@@ -21293,7 +21425,7 @@ static void mw_elab_case_pattern_21_ (void){
                     mw_token_succ();
                     break;
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     push_ptr("Unknown constructor.\0\0\0\0");
                     mw_emit_fatal_error_21_();
                     break;
@@ -21340,11 +21472,11 @@ static void mw_elab_case_body_21_ (void){
     }
     push_u64(0);
     push_fnptr(&mb_elab_case_body_21__4);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
     push_u64(0);
     push_fnptr(&mb_elab_case_body_21__5);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
     mw_elab_type_unify_21_();
     mw_nip();
@@ -21424,12 +21556,12 @@ static void mw_elab_module_decl_21_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_def();
             mw__40_();
             switch (get_top_data_tag()) {
                 case 4LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     mw_prim_decl();
                     mw__40_();
                     mw_is_nil_3F_();
@@ -21459,7 +21591,7 @@ static void mw_elab_module_decl_21_ (void){
 static void mw_elab_module_import_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_module_import_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_token_args_1();
     mw_dup();
@@ -21467,13 +21599,13 @@ static void mw_elab_module_import_21_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_dup();
             mw_name_def();
             mw__40_();
             switch (get_top_data_tag()) {
                 case 1LL:
-                    do_pack_uncons(); do_drop();
+                    mw_prim_pack_uncons(); mw_prim_drop();
                     {
                         VAL d6 = pop_value();
                         mw_drop2();
@@ -21485,7 +21617,7 @@ static void mw_elab_module_import_21_ (void){
                     mw_module_add_import_21_();
                     break;
                 case 0LL:
-                    do_drop();
+                    mw_prim_drop();
                     mw_module_path_from_name();
                     mw_run_lexer_21_();
                     mw_elab_module_21_();
@@ -21517,7 +21649,7 @@ static void mw_elab_module_import_21_ (void){
 static void mw_elab_data_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_data_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_token_next();
 }
@@ -21624,7 +21756,7 @@ static void mw_elab_data_tag_21_ (void){
     mw_dup();
     push_u64(0);
     push_fnptr(&mb_elab_data_tag_21__11);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
     mw_swap();
     mw_tag_ctx_type();
@@ -21728,7 +21860,7 @@ static void mw_elab_def_missing_21_ (void){
 static void mw_elab_def_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_def_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_token_def_args();
     mw_uncons();
@@ -21783,7 +21915,7 @@ static void mw_elab_def_21_ (void){
     mw_dup();
     push_u64(0);
     push_fnptr(&mb_elab_def_21__10);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
     mw_over();
     mw_word_ctx_type();
@@ -21791,7 +21923,7 @@ static void mw_elab_def_21_ (void){
     mw_dup();
     push_u64(0);
     push_fnptr(&mb_elab_def_21__15);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
     mw_over();
     mw_word_params();
@@ -21799,7 +21931,7 @@ static void mw_elab_def_21_ (void){
     mw_dup();
     push_u64(0);
     push_fnptr(&mb_elab_def_21__16);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
     mw_swap();
     mw_word_arrow();
@@ -21819,7 +21951,7 @@ static void mw_elab_def_params_21_ (void){
     mw_token_args();
     push_u64(0);
     push_fnptr(&mb_elab_def_params_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_reverse_for();
     mw_drop();
 }
@@ -21841,7 +21973,7 @@ static void mw_elab_def_body_21_ (void){
 static void mw_elab_def_external_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_def_external_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_token_args_2();
     mw_swap();
@@ -21866,7 +21998,7 @@ static void mw_elab_def_external_21_ (void){
             mw_dup();
             push_u64(0);
             push_fnptr(&mb_elab_def_external_21__4);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_delay();
             mw_swap();
             mw_external_ctx_type();
@@ -21885,7 +22017,7 @@ static void mw_elab_def_external_21_ (void){
 static void mw_elab_def_type_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_def_type_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_token_args_2();
     mw_swap();
@@ -21915,7 +22047,7 @@ static void mw_elab_def_type_21_ (void){
 static void mw_elab_buffer_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_buffer_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_token_args_2();
     mw_swap();
@@ -21964,7 +22096,7 @@ static void mw_elab_variable_21_ (void){
     mw_swap();
     push_u64(0);
     push_fnptr(&mb_elab_variable_21__5);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
     mw_variable_new_21_();
     mw_drop();
@@ -21974,7 +22106,7 @@ static void mw_elab_variable_21_ (void){
 static void mw_elab_table_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_table_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_token_args_1();
     mw_sig_token_is_type_con_3F_();
@@ -21992,7 +22124,7 @@ static void mw_elab_target_c99_21_ (void){
     mw_typecheck_everything_21_();
     push_u64(0);
     push_fnptr(&mb_elab_target_c99_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_token_args_2();
     {
@@ -22017,7 +22149,7 @@ static void mw_elab_target_c99_21_ (void){
 static void mw_elab_embed_str_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_embed_str_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_token_args_2();
     mw_swap();
@@ -22049,10 +22181,10 @@ static void mw_elab_embed_str_21_ (void){
     mw_token_str_3F_();
     push_u64(0);
     push_fnptr(&mb_elab_embed_str_21__8);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_u64(0);
     push_fnptr(&mb_elab_embed_str_21__9);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_with_open_file_21_();
     mw_VALUE_STR();
     mw_DEF_CONSTANT();
@@ -22064,68 +22196,68 @@ static void mw_elab_embed_str_21_ (void){
 static void mw_typecheck_everything_21_ (void){
     push_u64(0);
     push_fnptr(&mb_typecheck_everything_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_Name_2E_for();
     push_u64(0);
     push_fnptr(&mb_typecheck_everything_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_Block_2E_for();
 }
 
 static void mw_typecheck_def_21_ (void){
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_id();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             break;
         case 6LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             break;
         case 4LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             break;
         case 2LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             break;
         case 9LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_external_sig_21_();
             mw_drop();
             break;
         case 5LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_word_arrow();
             mw_force_21_();
             mw_drop();
             break;
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_field_type_21_();
             mw_drop();
             break;
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_tag_sig_21_();
             mw_drop();
             break;
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_variable_type();
             mw_force_21_();
             mw_drop();
             break;
         case 8LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
@@ -22174,7 +22306,7 @@ static void mw_table_new_21_ (void){
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_table_new_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_build_word_21_();
     mw_drop();
     mw_dup();
@@ -22215,7 +22347,7 @@ static void mw_table_new_21_ (void){
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_table_new_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_build_word_21_();
     mw_drop();
     mw_dup();
@@ -22245,7 +22377,7 @@ static void mw_table_new_21_ (void){
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_table_new_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_build_word_21_();
     mw_drop();
     mw_dup();
@@ -22275,7 +22407,7 @@ static void mw_table_new_21_ (void){
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_table_new_21__4);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_build_word_21_();
     mw_drop();
     mw_dup();
@@ -22358,15 +22490,15 @@ static void mw_table_new_21_ (void){
         push_u64(0);
         push_value(var_x);
         incref(var_x);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_value(var_w);
         incref(var_w);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_value(var_t);
         incref(var_t);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_table_new_21__9);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_ab_build_word_21_();
         mw_drop();
         push_value(var_t);
@@ -22402,7 +22534,7 @@ static void mw_table_new_21_ (void){
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_table_new_21__14);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_build_word_21_();
     mw_drop();
 }
@@ -22410,7 +22542,7 @@ static void mw_table_new_21_ (void){
 static void mw_elab_field_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_field_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_token_args_3();
     mw_rotl();
@@ -22419,7 +22551,7 @@ static void mw_elab_field_21_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_undefined_3F_();
             if (pop_u64()) {
                 mw_id();
@@ -22446,7 +22578,7 @@ static void mw_field_new_21_ (void){
     mw_swap();
     push_u64(0);
     push_fnptr(&mb_field_new_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
     mw_over();
     mw_field_value_type();
@@ -22454,7 +22586,7 @@ static void mw_field_new_21_ (void){
     mw_swap();
     push_u64(0);
     push_fnptr(&mb_field_new_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
     mw_over();
     mw_field_index_type();
@@ -22472,7 +22604,7 @@ static void mw_field_new_21_ (void){
 static void mw_elab_field_type_21_ (void){
     push_u64(0);
     push_fnptr(&mb_elab_field_type_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_field_value_type();
     mw_force_21_();
@@ -22507,7 +22639,7 @@ static void mw_token_prim_3D_ (void){
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_name_prim_3D_();
             break;
@@ -22822,78 +22954,75 @@ static void mw_init_prims_21_ (void){
     mw_PRIM_POSIX_EXIT();
     push_ptr("prim-posix-exit\0\0\0\0");
     mw_def_prim_21_();
-    mw_PRIM_POSIX_MMAP();
-    push_ptr("prim-posix-mmap\0\0\0\0");
-    mw_def_prim_21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__1);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_PRIM_SYNTAX_IMPORT();
     mw_prim_decl();
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_PRIM_SYNTAX_DEF();
     mw_prim_decl();
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_PRIM_SYNTAX_DEF_MISSING();
     mw_prim_decl();
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__4);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_PRIM_SYNTAX_DEF_EXTERNAL();
     mw_prim_decl();
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__5);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_PRIM_SYNTAX_DEF_TYPE();
     mw_prim_decl();
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__6);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_PRIM_SYNTAX_BUFFER();
     mw_prim_decl();
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__7);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_PRIM_SYNTAX_VARIABLE();
     mw_prim_decl();
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__8);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_PRIM_SYNTAX_TABLE();
     mw_prim_decl();
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__9);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_PRIM_SYNTAX_FIELD();
     mw_prim_decl();
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__10);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_PRIM_SYNTAX_DATA();
     mw_prim_decl();
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__11);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_PRIM_SYNTAX_TARGET_C99();
     mw_prim_decl();
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__12);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_PRIM_SYNTAX_EMBED_STR();
     mw_prim_decl();
     mw__21_();
@@ -23670,7 +23799,7 @@ static void mw_init_prims_21_ (void){
         }
         push_u64(0);
         push_fnptr(&mb_init_prims_21__28);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
         mw_T_2A_();
         push_value(d2);
@@ -23697,11 +23826,11 @@ static void mw_init_prims_21_ (void){
     mw_dup();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__29);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__30);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_T__3E_();
     mw_PRIM_CORE_WHILE();
@@ -23873,7 +24002,7 @@ static void mw_init_prims_21_ (void){
     mw_TVar();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__35);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_T1();
     mw_T__3E_();
@@ -23885,7 +24014,7 @@ static void mw_init_prims_21_ (void){
     mw_TMut();
     push_u64(0);
     push_fnptr(&mb_init_prims_21__36);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_T1();
     mw_T__3E_();
@@ -23950,19 +24079,19 @@ static void mw_main (void){
 
 
 static void mb_Name_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Name_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Name_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Name_2E_NUM();
     mw_prim_int_get();
@@ -23971,27 +24100,27 @@ static void mb_Name_2E_for_2 (void) {
 }
 
 static void mb_Name_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Name_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24000,19 +24129,19 @@ static void mb_Name_2E_for_3 (void) {
 }
 
 static void mb_Module_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Module_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Module_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Module_2E_NUM();
     mw_prim_int_get();
@@ -24021,27 +24150,27 @@ static void mb_Module_2E_for_2 (void) {
 }
 
 static void mb_Module_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Module_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24050,19 +24179,19 @@ static void mb_Module_2E_for_3 (void) {
 }
 
 static void mb_Token_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Token_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Token_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Token_2E_NUM();
     mw_prim_int_get();
@@ -24071,27 +24200,27 @@ static void mb_Token_2E_for_2 (void) {
 }
 
 static void mb_Token_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Token_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24100,19 +24229,19 @@ static void mb_Token_2E_for_3 (void) {
 }
 
 static void mb_Buffer_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Buffer_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Buffer_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Buffer_2E_NUM();
     mw_prim_int_get();
@@ -24121,27 +24250,27 @@ static void mb_Buffer_2E_for_2 (void) {
 }
 
 static void mb_Buffer_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Buffer_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24150,19 +24279,19 @@ static void mb_Buffer_2E_for_3 (void) {
 }
 
 static void mb_MetaVar_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_MetaVar_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_MetaVar_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_MetaVar_2E_NUM();
     mw_prim_int_get();
@@ -24171,27 +24300,27 @@ static void mb_MetaVar_2E_for_2 (void) {
 }
 
 static void mb_MetaVar_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_MetaVar_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24200,19 +24329,19 @@ static void mb_MetaVar_2E_for_3 (void) {
 }
 
 static void mb_Data_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Data_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Data_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Data_2E_NUM();
     mw_prim_int_get();
@@ -24221,27 +24350,27 @@ static void mb_Data_2E_for_2 (void) {
 }
 
 static void mb_Data_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Data_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24250,19 +24379,19 @@ static void mb_Data_2E_for_3 (void) {
 }
 
 static void mb_Tag_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Tag_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Tag_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Tag_2E_NUM();
     mw_prim_int_get();
@@ -24271,27 +24400,27 @@ static void mb_Tag_2E_for_2 (void) {
 }
 
 static void mb_Tag_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Tag_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24300,19 +24429,19 @@ static void mb_Tag_2E_for_3 (void) {
 }
 
 static void mb_Atom_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Atom_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Atom_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Atom_2E_NUM();
     mw_prim_int_get();
@@ -24321,27 +24450,27 @@ static void mb_Atom_2E_for_2 (void) {
 }
 
 static void mb_Atom_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Atom_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24350,19 +24479,19 @@ static void mb_Atom_2E_for_3 (void) {
 }
 
 static void mb_Arrow_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Arrow_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Arrow_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Arrow_2E_NUM();
     mw_prim_int_get();
@@ -24371,27 +24500,27 @@ static void mb_Arrow_2E_for_2 (void) {
 }
 
 static void mb_Arrow_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Arrow_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24400,19 +24529,19 @@ static void mb_Arrow_2E_for_3 (void) {
 }
 
 static void mb_Lambda_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Lambda_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Lambda_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Lambda_2E_NUM();
     mw_prim_int_get();
@@ -24421,27 +24550,27 @@ static void mb_Lambda_2E_for_2 (void) {
 }
 
 static void mb_Lambda_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Lambda_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24450,19 +24579,19 @@ static void mb_Lambda_2E_for_3 (void) {
 }
 
 static void mb_Block_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Block_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Block_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Block_2E_NUM();
     mw_prim_int_get();
@@ -24471,27 +24600,27 @@ static void mb_Block_2E_for_2 (void) {
 }
 
 static void mb_Block_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Block_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24500,19 +24629,19 @@ static void mb_Block_2E_for_3 (void) {
 }
 
 static void mb_Match_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Match_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Match_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Match_2E_NUM();
     mw_prim_int_get();
@@ -24521,27 +24650,27 @@ static void mb_Match_2E_for_2 (void) {
 }
 
 static void mb_Match_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Match_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24550,19 +24679,19 @@ static void mb_Match_2E_for_3 (void) {
 }
 
 static void mb_Case_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Case_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Case_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Case_2E_NUM();
     mw_prim_int_get();
@@ -24571,27 +24700,27 @@ static void mb_Case_2E_for_2 (void) {
 }
 
 static void mb_Case_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Case_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24600,19 +24729,19 @@ static void mb_Case_2E_for_3 (void) {
 }
 
 static void mb_Var_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Var_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Var_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Var_2E_NUM();
     mw_prim_int_get();
@@ -24621,27 +24750,27 @@ static void mb_Var_2E_for_2 (void) {
 }
 
 static void mb_Var_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Var_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24650,19 +24779,19 @@ static void mb_Var_2E_for_3 (void) {
 }
 
 static void mb_Word_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Word_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Word_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Word_2E_NUM();
     mw_prim_int_get();
@@ -24671,27 +24800,27 @@ static void mb_Word_2E_for_2 (void) {
 }
 
 static void mb_Word_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Word_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24700,19 +24829,19 @@ static void mb_Word_2E_for_3 (void) {
 }
 
 static void mb_Table_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Table_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Table_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Table_2E_NUM();
     mw_prim_int_get();
@@ -24721,27 +24850,27 @@ static void mb_Table_2E_for_2 (void) {
 }
 
 static void mb_Table_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Table_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24750,19 +24879,19 @@ static void mb_Table_2E_for_3 (void) {
 }
 
 static void mb_Field_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Field_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Field_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Field_2E_NUM();
     mw_prim_int_get();
@@ -24771,27 +24900,27 @@ static void mb_Field_2E_for_2 (void) {
 }
 
 static void mb_Field_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Field_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24800,19 +24929,19 @@ static void mb_Field_2E_for_3 (void) {
 }
 
 static void mb_External_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_External_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_External_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_External_2E_NUM();
     mw_prim_int_get();
@@ -24821,27 +24950,27 @@ static void mb_External_2E_for_2 (void) {
 }
 
 static void mb_External_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_External_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24850,19 +24979,19 @@ static void mb_External_2E_for_3 (void) {
 }
 
 static void mb_Variable_2E_pred_1 (void) {
-    do_drop();
+    mw_prim_drop();
 }
 
 static void mb_Variable_2E_pred_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_prim_int_sub();
 }
 
 static void mb_Variable_2E_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     mw_Variable_2E_NUM();
     mw_prim_int_get();
@@ -24871,27 +25000,27 @@ static void mb_Variable_2E_for_2 (void) {
 }
 
 static void mb_Variable_2E_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_unsafe_cast();
     push_value(var_x);
     incref(var_x);
-    do_run();
+    mw_prim_run();
     decref(var_x);
 }
 
 static void mb_Variable_2E_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_prim_dup();
     {
         VAL d2 = pop_value();
         mw_prim_unsafe_cast();
         push_value(var_x);
         incref(var_x);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_i64(1LL);
@@ -24900,99 +25029,99 @@ static void mb_Variable_2E_for_3 (void) {
 }
 
 static void mb_init_prims_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_module_import_21_();
 }
 
 static void mb_init_prims_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_def_21_();
 }
 
 static void mb_init_prims_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_def_missing_21_();
 }
 
 static void mb_init_prims_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_def_external_21_();
 }
 
 static void mb_init_prims_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_def_type_21_();
 }
 
 static void mb_init_prims_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_buffer_21_();
 }
 
 static void mb_init_prims_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_variable_21_();
 }
 
 static void mb_init_prims_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_table_21_();
 }
 
 static void mb_init_prims_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_field_21_();
 }
 
 static void mb_init_prims_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_data_21_();
 }
 
 static void mb_init_prims_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_target_c99_21_();
 }
 
 static void mb_init_prims_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_embed_str_21_();
 }
 
 static void mb_init_prims_21__13 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_init_prims_21__14 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
     mw_T1();
 }
 
 static void mb_init_prims_21__15 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_init_prims_21__16 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T_2A_();
 }
 
 static void mb_init_prims_21__17 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_init_prims_21__18 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TYPE_INT();
     mw_T_2A_();
 }
 
 static void mb_init_prims_21__19 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_TVar();
@@ -25002,22 +25131,22 @@ static void mb_init_prims_21__19 (void) {
 }
 
 static void mb_init_prims_21__20 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_init_prims_21__21 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup2();
 }
 
 static void mb_init_prims_21__22 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T_2A_();
 }
 
 static void mb_init_prims_21__23 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_T__3E_();
@@ -25028,17 +25157,17 @@ static void mb_init_prims_21__23 (void) {
 }
 
 static void mb_init_prims_21__24 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T__3E_();
 }
 
 static void mb_init_prims_21__25 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_init_prims_21__26 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_TYPE_BOOL();
@@ -25047,24 +25176,24 @@ static void mb_init_prims_21__26 (void) {
     }
     push_u64(0);
     push_fnptr(&mb_init_prims_21__28);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_T_2A_();
 }
 
 static void mb_init_prims_21__27 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TYPE_BOOL();
     mw_T_2A_();
 }
 
 static void mb_init_prims_21__28 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T_2A_();
 }
 
 static void mb_init_prims_21__29 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_TYPE_BOOL();
     mw_T_2A_();
@@ -25073,46 +25202,46 @@ static void mb_init_prims_21__29 (void) {
 }
 
 static void mb_init_prims_21__30 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_T__3E_();
     mw_T_2A_();
 }
 
 static void mb_init_prims_21__31 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_init_prims_21__32 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_init_prims_21__33 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TYPE_PTR();
     mw_T1();
 }
 
 static void mb_init_prims_21__34 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T1();
 }
 
 static void mb_init_prims_21__35 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TMut();
     mw_T1();
 }
 
 static void mb_init_prims_21__36 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T2();
 }
 
 static void mb_compile_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_num_errors();
     mw__40_();
     mw_int_trace_21_();
@@ -25123,47 +25252,47 @@ static void mb_compile_21__1 (void) {
 }
 
 static void mb_compile_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Done.\0\0\0\0");
     mw_str_trace_ln_21_();
 }
 
 static void mb_run_lexer_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lexer_done_3F_();
     mw_not();
 }
 
 static void mb_run_lexer_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lexer_next_21_();
 }
 
 static void mb_elab_module_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_module_end_3F_();
     mw_not();
 }
 
 static void mb_elab_module_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_module_decl_21_();
 }
 
 static void mb_typecheck_everything_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_name_def();
     mw__40_();
     mw_typecheck_def_21_();
 }
 
 static void mb_typecheck_everything_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_block_force_21_();
 }
 
 static void mb_main_1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_argv();
     mw_ptr_40__40_();
@@ -25173,34 +25302,50 @@ static void mb_main_1 (void) {
 }
 
 static void mb_main_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Expected at least one argument\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_ptr_40__40__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ptrs();
 }
 
-static void mb_with_raw_ptr_2 (void) {
-    do_pack_uncons();
+static void mb_ptr_40__40__2 (void) {
+    mw_prim_drop();
+    mw_ptr_40_();
+}
+
+static void mb_with_ptr_2B__2 (void) {
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
+    mw_prim_ptr_add();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
+    decref(var_f);
+}
+
+static void mb_with_raw_ptr_2 (void) {
+    mw_prim_pack_uncons();
+    VAL var_f = pop_value();
+    mw_prim_drop();
+    push_value(var_f);
+    incref(var_f);
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_Int__3E_OS_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_OS_WINDOWS();
 }
 
 static void mb_Int__3E_OS_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(2LL);
     mw__3D__3D_();
@@ -25222,13 +25367,13 @@ static void mb_Int__3E_OS_2 (void) {
 }
 
 static void mb_Int__3E_OS_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_OS_LINUX();
 }
 
 static void mb_Int__3E_OS_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(3LL);
     mw__3D__3D_();
@@ -25242,83 +25387,83 @@ static void mb_Int__3E_OS_4 (void) {
 }
 
 static void mb_Int__3E_OS_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_OS_MACOS();
 }
 
 static void mb_Int__3E_OS_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_OS_UNKNOWN();
 }
 
 static void mb_posix_open_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Str__3E_Ptr();
 }
 
 static void mb_dip2_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     decref(var_f);
 }
 
 static void mb_dip2_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_rotr_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
 }
 
 static void mb_rotl_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
 }
 
 static void mb_over_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
 }
 
 static void mb_over2_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
 }
 
 static void mb_over3_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over2();
 }
 
 static void mb_tuck_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
 }
 
 static void mb_nip_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_dup3_1 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_dup2();
@@ -25328,41 +25473,41 @@ static void mb_dup3_1 (void) {
 }
 
 static void mb_dup3_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup2();
 }
 
 static void mb_dip_3F__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_dip_27__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_dip3_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         {
             VAL d3 = pop_value();
             push_value(var_f);
             incref(var_f);
-            do_run();
+            mw_prim_run();
             push_value(d3);
         }
         push_value(d2);
@@ -25371,113 +25516,113 @@ static void mb_dip3_2 (void) {
 }
 
 static void mb_dip3_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     decref(var_f);
 }
 
 static void mb_dip3_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_sip_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_sip2_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     decref(var_f);
 }
 
 static void mb_sip2_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_rot4r_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_rotr();
 }
 
 static void mb_rot4l_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_rotl();
 }
 
 static void mb_or_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_true();
     decref(var_f);
 }
 
 static void mb_or_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_and_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_and_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_false();
     decref(var_f);
 }
 
 static void mb_repeat_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(0LL);
     mw__3E_();
@@ -25485,14 +25630,14 @@ static void mb_repeat_2 (void) {
 }
 
 static void mb_repeat_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     mw_1_();
@@ -25500,25 +25645,25 @@ static void mb_repeat_3 (void) {
 }
 
 static void mb_repeat_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_count_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     mw_1_2B_();
@@ -25526,25 +25671,25 @@ static void mb_count_2 (void) {
 }
 
 static void mb_count_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_countdown_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     mw_1_();
@@ -25552,23 +25697,23 @@ static void mb_countdown_2 (void) {
 }
 
 static void mb_countdown_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_cmp_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
     mw_EQ();
 }
 
 static void mb_cmp_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw__3C_();
     if (pop_u64()) {
         mw_LT();
@@ -25578,62 +25723,97 @@ static void mb_cmp_2 (void) {
 }
 
 static void mb_cmp_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_LT();
 }
 
 static void mb_cmp_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_GT();
 }
 
 static void mb_max_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
 }
 
 static void mb_max_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_min_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_min_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
 }
 
 static void mb_ptr_21__21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ptrs();
 }
 
+static void mb_ptr_21__21__2 (void) {
+    mw_prim_drop();
+    mw_ptr_21_();
+}
+
+static void mb_u8_40__40__1 (void) {
+    mw_prim_drop();
+    mw_u8_40_();
+}
+
+static void mb_u8_21__21__1 (void) {
+    mw_prim_drop();
+    mw_u8_21_();
+}
+
 static void mb_int_40__40__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ints();
+}
+
+static void mb_int_40__40__2 (void) {
+    mw_prim_drop();
+    mw_int_40_();
 }
 
 static void mb_int_21__21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ints();
 }
 
+static void mb_int_21__21__2 (void) {
+    mw_prim_drop();
+    mw_int_21_();
+}
+
 static void mb_value_40__40__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_values();
+}
+
+static void mb_value_40__40__2 (void) {
+    mw_prim_drop();
+    mw_value_40_();
 }
 
 static void mb_value_21__21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_values();
 }
 
+static void mb_value_21__21__2 (void) {
+    mw_prim_drop();
+    mw_value_21_();
+}
+
 static void mb_in_range_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
     {
         VAL d2 = pop_value();
@@ -25643,83 +25823,83 @@ static void mb_in_range_1 (void) {
 }
 
 static void mb_in_range_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw__3E__3D_();
 }
 
 static void mb_abs_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_negate();
 }
 
 static void mb_abs_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_pack1_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_pack0();
 }
 
 static void mb_pack2_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_pack1();
 }
 
 static void mb_pack3_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_pack2();
 }
 
 static void mb_pack4_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_pack3();
 }
 
 static void mb_pack5_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_pack4();
 }
 
 static void mb_unpack2_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unpack1();
 }
 
 static void mb_unpack3_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unpack2();
 }
 
 static void mb_unpack4_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unpack3();
 }
 
 static void mb_unpack5_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unpack4();
 }
 
 static void mb_modify_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw__40_();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_file_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_File__3E_Int();
 }
 
 static void mb_str_write_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_Str__3E_Ptr();
@@ -25729,18 +25909,18 @@ static void mb_str_write_21__1 (void) {
 }
 
 static void mb_str_write_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Str__3E_Ptr();
 }
 
 static void mb_str_write_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("error: write failed!\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_str_write_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     mw__3C_();
     if (pop_u64()) {
@@ -25752,24 +25932,24 @@ static void mb_str_write_21__4 (void) {
 }
 
 static void mb_str_write_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("error: write output fewer bytes than expected!\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_str_write_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_str_buf_write_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("error: str-buf write failed!\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_str_buf_write_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_length_3F_();
     mw__3C_();
     if (pop_u64()) {
@@ -25781,71 +25961,76 @@ static void mb_str_buf_write_21__2 (void) {
 }
 
 static void mb_str_buf_write_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("error: str-buf write wrote fewer bytes than expected!\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_str_buf_write_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_str_buf_read_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("str-buf-read! failed\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_str_buf_read_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_length_21_();
 }
 
 static void mb_str_buf_length_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(0LL);
     mw_Int__3E_U8();
 }
 
 static void mb_print_char_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_push_char_21_();
 }
 
 static void mb_build_str_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     mw_str_buf_dup_21_();
     decref(var_f);
 }
 
+static void mb_str_buf_push_char_21__1 (void) {
+    mw_prim_drop();
+    mw_char_21_();
+}
+
 static void mb_trace_char_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_push_char_21_();
 }
 
 static void mb_int_write_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_int_21_();
 }
 
 static void mb_str_buf_int_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("0\0\0\0\0");
     mw_str_buf_21_();
 }
 
 static void mb_str_buf_int_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_str_buf_int_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     push_i64(0LL);
     mw__3C_();
@@ -25860,7 +26045,7 @@ static void mb_str_buf_int_21__2 (void) {
 }
 
 static void mb_str_buf_int_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_abs();
     mw_str_buf_clear_21_();
     while(1) {
@@ -25877,13 +26062,13 @@ static void mb_str_buf_int_21__3 (void) {
 }
 
 static void mb_str_buf_int_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_0_3E_();
 }
 
 static void mb_str_buf_int_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_to_digit();
     mw_str_buf_push_char_21_();
@@ -25892,44 +26077,44 @@ static void mb_str_buf_int_21__5 (void) {
 }
 
 static void mb_str_buf_int_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(45LL);
     mw_Int__3E_Char();
     mw_str_buf_push_char_21_();
 }
 
 static void mb_str_buf_int_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_with_open_file_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_value(var_g);
     incref(var_g);
-    do_run();
+    mw_prim_run();
     decref(var_f);
     decref(var_g);
 }
 
 static void mb_with_open_file_21__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     {
         VAL d2 = pop_value();
         mw_Int__3E_File();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     mw_posix_close_21_();
@@ -25939,23 +26124,23 @@ static void mb_with_open_file_21__3 (void) {
 }
 
 static void mb_with_open_file_21__4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_Int__3E_File();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
     decref(var_g);
 }
 
 static void mb_read_file_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_fp = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(0LL);
     mw__3E_();
@@ -25963,9 +26148,9 @@ static void mb_read_file_21__2 (void) {
 }
 
 static void mb_read_file_21__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_fp = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     {
         VAL d2 = pop_value();
@@ -25978,104 +26163,128 @@ static void mb_read_file_21__3 (void) {
     mw__2A_();
     mw_prim_ptr_realloc();
     mw_dup2();
-    mw_ptr_2B_();
-    mw_over2();
     push_u64(0);
     push_value(var_fp);
     incref(var_fp);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_fnptr(&mb_read_file_21__5);
-    do_pack_cons();
-    mw_dip2();
-    mw_prim_posix_read();
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
     decref(var_fp);
 }
 
 static void mb_read_file_21__4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_fp = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw__2B_();
     mw_dup();
     decref(var_fp);
 }
 
 static void mb_read_file_21__5 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_fp = pop_value();
-    do_drop();
+    mw_prim_drop();
+    mw_over2();
+    push_u64(0);
+    push_value(var_fp);
+    incref(var_fp);
+    mw_prim_pack_cons();
+    push_fnptr(&mb_read_file_21__6);
+    mw_prim_pack_cons();
+    mw_dip2();
+    mw_prim_posix_read();
+    decref(var_fp);
+}
+
+static void mb_read_file_21__6 (void) {
+    mw_prim_pack_uncons();
+    VAL var_fp = pop_value();
+    mw_prim_drop();
     push_value(var_fp);
     incref(var_fp);
     decref(var_fp);
 }
 
-static void mb_read_file_21__6 (void) {
-    do_pack_uncons();
+static void mb_read_file_21__7 (void) {
+    mw_prim_pack_uncons();
     VAL var_fp = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_ptr("io error while reading file\0\0\0\0");
     mw_panic_21_();
     decref(var_fp);
 }
 
-static void mb_read_file_21__7 (void) {
-    do_pack_uncons();
+static void mb_read_file_21__8 (void) {
+    mw_prim_pack_uncons();
     VAL var_fp = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_id();
     decref(var_fp);
 }
 
+static void mb_read_file_21__9 (void) {
+    mw_prim_pack_uncons();
+    VAL var_fp = pop_value();
+    mw_prim_drop();
+    push_i64(0LL);
+    mw_Int__3E_U32();
+    mw_swap();
+    mw_u32_21_();
+    decref(var_fp);
+}
+
 static void mb_open_file_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Failed to open file!\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_open_file_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Int__3E_File();
 }
 
 static void mb_create_file_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Failed to create file!\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_create_file_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Int__3E_File();
 }
 
 static void mb_close_file_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("failed to close file.\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_close_file_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_with_raw_path_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_is_directory_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(256LL);
     mw_prim_ptr_alloc();
     push_u64(0);
     push_fnptr(&mb_is_directory_3F__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_with_raw_ptr();
     mw_swap();
     push_i64(0LL);
@@ -26090,45 +26299,55 @@ static void mb_is_directory_3F__1 (void) {
 }
 
 static void mb_is_directory_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_stat();
 }
 
 static void mb_is_directory_3F__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_st_mode_40_();
     mw_S_ISDIR();
 }
 
 static void mb_is_directory_3F__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_false();
 }
 
+static void mb_st_mode_40__4 (void) {
+    mw_prim_drop();
+    mw_u16_40_();
+}
+
 static void mb_char_40__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(-4203265827220226049LL);
 }
 
 static void mb_char_40__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(4294967295LL);
 }
 
 static void mb_str_tail_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_head_width();
 }
 
+static void mb_str_tail_2 (void) {
+    mw_prim_drop();
+    mw_Ptr__3E_Str();
+}
+
 static void mb_str_length_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_is_empty_3F_();
     mw_not();
 }
 
 static void mb_str_length_2 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_1_2B_();
@@ -26138,23 +26357,23 @@ static void mb_str_length_2 (void) {
 }
 
 static void mb_str_length_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
 }
 
 static void mb_str_concat_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_size();
     mw__2B_();
 }
 
 static void mb_str_concat_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_prim_str_base();
     mw_swap();
     push_u64(0);
     push_fnptr(&mb_str_concat_3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_for();
     mw_nil();
     mw_swap();
@@ -26162,52 +26381,52 @@ static void mb_str_concat_2 (void) {
 }
 
 static void mb_str_concat_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     mw_str_copy_partial_21_();
 }
 
 static void mb_for_5 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_for_7 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_for_8 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_for_10 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_for_2B_();
@@ -26215,27 +26434,27 @@ static void mb_for_10 (void) {
 }
 
 static void mb_for_11 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_for_12 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_str_copy_partial_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_Str__3E_Ptr();
     mw_swap();
@@ -26243,47 +26462,66 @@ static void mb_str_copy_partial_21__1 (void) {
 }
 
 static void mb_str_copy_partial_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
+    {
+        VAL d2 = pop_value();
+        mw_prim_ptr_copy();
+        push_value(d2);
+    }
+}
+
+static void mb_str_copy_partial_21__3 (void) {
+    mw_prim_drop();
     mw_prim_ptr_copy();
 }
 
 static void mb_str_is_empty_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_true();
 }
 
 static void mb_str_is_empty_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_head();
     mw_is_nil();
 }
 
 static void mb_str_buf_dup_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_prim_str_base();
     mw_prim_ptr_copy();
 }
 
+static void mb_str_buf_char_40__1 (void) {
+    mw_prim_drop();
+    mw_char_40_();
+}
+
 static void mb_char_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Char__3E_Int();
     mw_Int__3E_U32();
 }
 
 static void mb_char_width_1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(4203265827220226048LL);
 }
 
+static void mb_str_buf_push_ptr_21__1 (void) {
+    mw_prim_drop();
+    mw_prim_ptr_copy();
+}
+
 static void mb_str_buf_reverse_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup2();
     mw__3C_();
 }
 
 static void mb_str_buf_reverse_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup2();
     mw_str_buf_swap_u8_21_();
     {
@@ -26295,38 +26533,38 @@ static void mb_str_buf_reverse_21__2 (void) {
 }
 
 static void mb_str_buf_reverse_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
 }
 
 static void mb_int_show_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_int_21_();
 }
 
 static void mb_str_buf_swap_u8_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_u8_40_();
 }
 
 static void mb_str_buf_swap_u8_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_u8_40_();
 }
 
 static void mb_str_for_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_str_is_empty_3F_();
     mw_not();
     decref(var_f);
 }
 
 static void mb_str_for_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_str_tail();
     {
@@ -26334,27 +26572,27 @@ static void mb_str_for_3 (void) {
         mw_str_head();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     decref(var_f);
 }
 
 static void mb_str_for_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_str_head();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_str_transduce_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     while(1) {
         mw_str_is_empty_3F_();
         mw_not();
@@ -26362,9 +26600,9 @@ static void mb_str_transduce_2 (void) {
         push_u64(0);
         push_value(var_f);
         incref(var_f);
-        do_pack_cons();
+        mw_prim_pack_cons();
         push_fnptr(&mb_str_transduce_5);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
         mw_str_tail();
         mw_swap();
@@ -26375,24 +26613,24 @@ static void mb_str_transduce_2 (void) {
 }
 
 static void mb_str_transduce_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_str_is_empty_3F_();
     mw_not();
     decref(var_f);
 }
 
 static void mb_str_transduce_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_value(var_f);
     incref(var_f);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_fnptr(&mb_str_transduce_5);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_str_tail();
     mw_swap();
@@ -26401,50 +26639,50 @@ static void mb_str_transduce_4 (void) {
 }
 
 static void mb_str_transduce_5 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_str_head();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_str_transduce_step_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_push_char_21_();
 }
 
 static void mb_str_chars_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L0();
 }
 
 static void mb_str_chars_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_snoc();
 }
 
 static void mb_str_codepoints_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L0();
 }
 
 static void mb_str_codepoints_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_char_codepoint();
     mw_snoc();
 }
 
 static void mb_char_codepoint_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_char_codepoint_1();
 }
 
 static void mb_char_codepoint_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(2LL);
     mw__3D__3D_();
@@ -26466,13 +26704,13 @@ static void mb_char_codepoint_2 (void) {
 }
 
 static void mb_char_codepoint_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_char_codepoint_2();
 }
 
 static void mb_char_codepoint_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(3LL);
     mw__3D__3D_();
@@ -26486,111 +26724,121 @@ static void mb_char_codepoint_4 (void) {
 }
 
 static void mb_char_codepoint_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_char_codepoint_3();
 }
 
 static void mb_char_codepoint_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_char_codepoint_4();
 }
 
 static void mb_str_bytes_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(0LL);
     mw__3E_();
 }
 
 static void mb_str_bytes_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_();
     {
         VAL d2 = pop_value();
         push_u64(0);
         push_fnptr(&mb_str_bytes_4);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
-        mw_ptr_2B_();
+        push_u64(0);
+        push_fnptr(&mb_str_bytes_5);
+        mw_prim_pack_cons();
+        mw_with_ptr_2B_();
         push_value(d2);
     }
 }
 
 static void mb_str_bytes_3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_str_bytes_4);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
-    mw_ptr_2B_();
+    push_u64(0);
+    push_fnptr(&mb_str_bytes_5);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
 static void mb_str_bytes_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_u8_40_();
     mw_snoc();
     push_i64(1LL);
 }
 
+static void mb_str_bytes_5 (void) {
+    mw_prim_drop();
+}
+
 static void mb_L4_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L2_2B_();
 }
 
 static void mb_L5_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L2_2B_();
 }
 
 static void mb_L6_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L3_2B_();
 }
 
 static void mb_L7_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L3_2B_();
 }
 
 static void mb_L8_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L3_2B_();
 }
 
 static void mb_L9_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L3_2B_();
 }
 
 static void mb_L10_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L5_2B_();
 }
 
 static void mb_L11_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L5_2B_();
 }
 
 static void mb_L12_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L6_2B_();
 }
 
 static void mb_len_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
 }
 
 static void mb_len_2B__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
 }
 
 static void mb_cons_2B__6 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_cons_2B__2B_();
@@ -26600,17 +26848,17 @@ static void mb_cons_2B__6 (void) {
 }
 
 static void mb_cons_2B__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_cons_2B__2B_();
 }
 
 static void mb_rebalance_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_len_2B_();
 }
 
 static void mb_rebalance_2B__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
     {
         VAL d2 = pop_value();
@@ -26622,7 +26870,7 @@ static void mb_rebalance_2B__2 (void) {
 }
 
 static void mb_rebalance_2B__4 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_i64(3LL);
@@ -26644,18 +26892,18 @@ static void mb_rebalance_2B__4 (void) {
 }
 
 static void mb_rebalance_2B__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_split_half_left();
 }
 
 static void mb_rebalance_2B__5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(3LL);
     mw__2A_();
 }
 
 static void mb_rebalance_2B__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_split_half_right();
     {
         VAL d2 = pop_value();
@@ -26666,258 +26914,258 @@ static void mb_rebalance_2B__6 (void) {
 }
 
 static void mb_rebalance_2B__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_rebalance_2B__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_cat_2B__();
 }
 
 static void mb_snoc_2B__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_rotl();
     mw_snoc_2B__2B_();
     mw_rebalance_2B_();
 }
 
 static void mb_snoc_2B__2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_List_2B___3E_List();
 }
 
 static void mb_uncons_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_uncons();
 }
 
 static void mb_unsnoc_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L0();
 }
 
 static void mb_unsnoc_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L1();
 }
 
 static void mb_unsnoc_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L2();
 }
 
 static void mb_unsnoc_8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_cat_2B__();
     mw_List_2B___3E_List();
 }
 
 static void mb_cat_2B__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L2_2B_();
 }
 
 static void mb_cat_2B__13 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L3_2B_();
 }
 
 static void mb_cat_aux_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_len_2B_();
 }
 
 static void mb_split_half_left_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L1_2B_();
 }
 
 static void mb_split_half_left_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L1_2B_();
 }
 
 static void mb_split_half_left_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L2_2B_();
 }
 
 static void mb_split_half_right_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L0();
 }
 
 static void mb_split_half_right_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L1();
 }
 
 static void mb_split_half_right_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L1();
 }
 
 static void mb_split_half_right_8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_List_2B___3E_List();
 }
 
 static void mb_split_half_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L0();
 }
 
 static void mb_split_half_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L1();
 }
 
 static void mb_split_half_7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L1();
 }
 
 static void mb_split_half_9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_List_2B___3E_List();
 }
 
 static void mb_first_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_first_2B_();
 }
 
 static void mb_last_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_last_2B_();
 }
 
 static void mb_last_2B__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_last_2B__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
 }
 
 static void mb_middle_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_middle_2B_();
 }
 
 static void mb_reverse_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_reverse_2B_();
     mw_swap();
     mw_reverse_2B_();
 }
 
 static void mb_reverse_2B__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_reverse_2B_();
     mw_swap();
     mw_reverse_2B_();
 }
 
 static void mb_map_5 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_6 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_8 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     decref(var_f);
 }
 
 static void mb_map_9 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_10 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     decref(var_f);
 }
 
 static void mb_map_11 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_12 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     decref(var_f);
 }
 
 static void mb_map_13 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_15 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
@@ -26938,9 +27186,9 @@ static void mb_map_15 (void) {
 }
 
 static void mb_map_16 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_map_2B_();
@@ -26948,19 +27196,19 @@ static void mb_map_16 (void) {
 }
 
 static void mb_map_17 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_18 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_map_2B_();
@@ -26968,111 +27216,111 @@ static void mb_map_18 (void) {
 }
 
 static void mb_map_19 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_2B__4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_2B__5 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_2B__7 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     decref(var_f);
 }
 
 static void mb_map_2B__8 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_2B__9 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     decref(var_f);
 }
 
 static void mb_map_2B__10 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_2B__11 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     decref(var_f);
 }
 
 static void mb_map_2B__12 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_2B__14 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
@@ -27093,9 +27341,9 @@ static void mb_map_2B__14 (void) {
 }
 
 static void mb_map_2B__15 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_map_2B_();
@@ -27103,19 +27351,19 @@ static void mb_map_2B__15 (void) {
 }
 
 static void mb_map_2B__16 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_map_2B__17 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_map_2B_();
@@ -27123,56 +27371,56 @@ static void mb_map_2B__17 (void) {
 }
 
 static void mb_map_2B__18 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_for_2B__4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_for_2B__6 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_for_2B__7 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_for_2B__9 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_for_2B_();
@@ -27180,59 +27428,59 @@ static void mb_for_2B__9 (void) {
 }
 
 static void mb_for_2B__10 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_for_2B__11 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reverse_for_5 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reverse_for_7 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reverse_for_8 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reverse_for_10 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_reverse_for_2B_();
@@ -27240,59 +27488,59 @@ static void mb_reverse_for_10 (void) {
 }
 
 static void mb_reverse_for_11 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reverse_for_12 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reverse_for_2B__4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reverse_for_2B__6 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reverse_for_2B__7 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reverse_for_2B__9 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_reverse_for_2B_();
@@ -27300,29 +27548,29 @@ static void mb_reverse_for_2B__9 (void) {
 }
 
 static void mb_reverse_for_2B__10 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reverse_for_2B__11 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reduce_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_g);
     incref(var_g);
     mw_reduce_2B_();
@@ -27330,19 +27578,19 @@ static void mb_reduce_2 (void) {
 }
 
 static void mb_reduce_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_g);
     incref(var_g);
-    do_run();
+    mw_prim_run();
     decref(var_g);
 }
 
 static void mb_reduce_2B__6 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_g);
     incref(var_g);
     mw_reduce_2B_();
@@ -27350,39 +27598,39 @@ static void mb_reduce_2B__6 (void) {
 }
 
 static void mb_reduce_2B__7 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_g);
     incref(var_g);
-    do_run();
+    mw_prim_run();
     decref(var_g);
 }
 
 static void mb_reduce_2B__8 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_g);
     incref(var_g);
-    do_run();
+    mw_prim_run();
     decref(var_g);
 }
 
 static void mb_filter_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_filter_2B__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_filter_2B_();
@@ -27390,19 +27638,19 @@ static void mb_filter_2B__3 (void) {
 }
 
 static void mb_filter_2B__4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_filter_2B__5 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_filter_2B_();
@@ -27410,44 +27658,44 @@ static void mb_filter_2B__5 (void) {
 }
 
 static void mb_filter_2B__6 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_filter_2B__8 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_filter_2B__9 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_value(var_f);
     incref(var_f);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_fnptr(&mb_filter_2B__10);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip_27_();
     mw_cons();
     decref(var_f);
 }
 
 static void mb_filter_2B__12 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_nip();
     push_value(var_f);
     incref(var_f);
@@ -27456,9 +27704,9 @@ static void mb_filter_2B__12 (void) {
 }
 
 static void mb_filter_2B__10 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_filter();
@@ -27466,39 +27714,39 @@ static void mb_filter_2B__10 (void) {
 }
 
 static void mb_filter_2B__11 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_filter_2B__13 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_find_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_find_2B__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_find_2B_();
@@ -27506,48 +27754,48 @@ static void mb_find_2B__3 (void) {
 }
 
 static void mb_find_2B__4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_find_2B__7 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_find_2B__9 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_find_2B__10 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_SOME();
     decref(var_f);
 }
 
 static void mb_find_2B__11 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_nip();
     push_value(var_f);
     incref(var_f);
@@ -27556,19 +27804,19 @@ static void mb_find_2B__11 (void) {
 }
 
 static void mb_find_2B__12 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_find_3F__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_find();
@@ -27576,29 +27824,29 @@ static void mb_find_3F__2 (void) {
 }
 
 static void mb_find_3F__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reverse_find_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_reverse_find_3F__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
     mw_reverse_find();
@@ -27606,71 +27854,71 @@ static void mb_reverse_find_3F__2 (void) {
 }
 
 static void mb_reverse_find_3F__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_any_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_any_3F__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_all_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     mw_not();
     decref(var_f);
 }
 
 static void mb_all_3F__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     mw_not();
     decref(var_f);
 }
 
 static void mb_collect_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_collect_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     {
         VAL d2 = pop_value();
@@ -27681,52 +27929,52 @@ static void mb_collect_3 (void) {
 }
 
 static void mb_collect_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_snoc();
     decref(var_f);
 }
 
 static void mb_while_some_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_is_some_3F_();
     decref(var_f);
     decref(var_g);
 }
 
 static void mb_while_some_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_unwrap();
     push_value(var_g);
     incref(var_g);
-    do_run();
+    mw_prim_run();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
     decref(var_g);
 }
 
 static void mb_collect_while_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     mw_swap();
@@ -27735,16 +27983,16 @@ static void mb_collect_while_2 (void) {
 }
 
 static void mb_collect_while_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_g);
         incref(var_g);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     mw_swap();
@@ -27754,50 +28002,50 @@ static void mb_collect_while_4 (void) {
 }
 
 static void mb_collect_while_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
     decref(var_g);
 }
 
 static void mb_collect_while_5 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_g);
     incref(var_g);
-    do_run();
+    mw_prim_run();
     decref(var_f);
     decref(var_g);
 }
 
 static void mb_maybe_filter_4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_SOME();
     decref(var_f);
 }
 
 static void mb_maybe_filter_5 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_NONE();
     decref(var_f);
 }
 
 static void mb_char_bytes_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_Char__3E_Int();
     mw_Int__3E_U8();
@@ -27805,7 +28053,7 @@ static void mb_char_bytes_1 (void) {
 }
 
 static void mb_char_bytes_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(2LL);
     mw__3D__3D_();
@@ -27890,7 +28138,7 @@ static void mb_char_bytes_2 (void) {
 }
 
 static void mb_char_bytes_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_Char__3E_Int();
     mw_dup();
@@ -27908,7 +28156,7 @@ static void mb_char_bytes_3 (void) {
 }
 
 static void mb_char_bytes_5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(3LL);
     mw__3D__3D_();
     if (pop_u64()) {
@@ -27973,14 +28221,14 @@ static void mb_char_bytes_5 (void) {
 }
 
 static void mb_char_bytes_4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(255LL);
     mw__26_();
     mw_Int__3E_U8();
 }
 
 static void mb_char_bytes_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Char__3E_Int();
     mw_dup();
     push_i64(16LL);
@@ -28007,7 +28255,7 @@ static void mb_char_bytes_6 (void) {
 }
 
 static void mb_char_bytes_9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Char__3E_Int();
     mw_dup();
     push_i64(24LL);
@@ -28044,7 +28292,7 @@ static void mb_char_bytes_9 (void) {
 }
 
 static void mb_char_bytes_7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(8LL);
     mw__3E__3E_();
@@ -28061,14 +28309,14 @@ static void mb_char_bytes_7 (void) {
 }
 
 static void mb_char_bytes_8 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(255LL);
     mw__26_();
     mw_Int__3E_U8();
 }
 
 static void mb_char_bytes_10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(16LL);
     mw__3E__3E_();
@@ -28095,7 +28343,7 @@ static void mb_char_bytes_10 (void) {
 }
 
 static void mb_char_bytes_11 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(8LL);
     mw__3E__3E_();
@@ -28112,20 +28360,20 @@ static void mb_char_bytes_11 (void) {
 }
 
 static void mb_char_bytes_12 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(255LL);
     mw__26_();
     mw_Int__3E_U8();
 }
 
 static void mb_char_valid_wobbly_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_char_valid_1();
 }
 
 static void mb_char_valid_wobbly_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(2LL);
     mw__3D__3D_();
@@ -28147,13 +28395,13 @@ static void mb_char_valid_wobbly_2 (void) {
 }
 
 static void mb_char_valid_wobbly_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_char_valid_2();
 }
 
 static void mb_char_valid_wobbly_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(3LL);
     mw__3D__3D_();
@@ -28167,19 +28415,19 @@ static void mb_char_valid_wobbly_4 (void) {
 }
 
 static void mb_char_valid_wobbly_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_char_valid_3_wobbly();
 }
 
 static void mb_char_valid_wobbly_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_char_valid_4();
 }
 
 static void mb_char_codepoint_3_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(16128LL);
     mw__26_();
@@ -28196,7 +28444,7 @@ static void mb_char_codepoint_3_1 (void) {
 }
 
 static void mb_char_codepoint_3_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(15LL);
     mw__26_();
     push_i64(12LL);
@@ -28204,13 +28452,13 @@ static void mb_char_codepoint_3_2 (void) {
 }
 
 static void mb_char_valid_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_char_valid_1();
 }
 
 static void mb_char_valid_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(2LL);
     mw__3D__3D_();
@@ -28232,13 +28480,13 @@ static void mb_char_valid_2 (void) {
 }
 
 static void mb_char_valid_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_char_valid_2();
 }
 
 static void mb_char_valid_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(3LL);
     mw__3D__3D_();
@@ -28252,19 +28500,19 @@ static void mb_char_valid_4 (void) {
 }
 
 static void mb_char_valid_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_char_valid_3();
 }
 
 static void mb_char_valid_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_char_valid_4();
 }
 
 static void mb_char_codepoint_4_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(4128768LL);
     mw__26_();
@@ -28290,7 +28538,7 @@ static void mb_char_codepoint_4_1 (void) {
 }
 
 static void mb_char_codepoint_4_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(16128LL);
     mw__26_();
@@ -28307,7 +28555,7 @@ static void mb_char_codepoint_4_2 (void) {
 }
 
 static void mb_char_codepoint_4_3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(7LL);
     mw__26_();
     push_i64(18LL);
@@ -28315,7 +28563,7 @@ static void mb_char_codepoint_4_3 (void) {
 }
 
 static void mb_char_codepoint_2_1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(31LL);
     mw__26_();
     push_i64(6LL);
@@ -28323,12 +28571,12 @@ static void mb_char_codepoint_2_1 (void) {
 }
 
 static void mb_char_21__precise_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_char_width_3F_();
 }
 
 static void mb_char_21__precise_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     {
         VAL d2 = pop_value();
@@ -28340,7 +28588,7 @@ static void mb_char_21__precise_2 (void) {
 }
 
 static void mb_char_21__precise_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(2LL);
     mw__3D__3D_();
@@ -28378,8 +28626,10 @@ static void mb_char_21__precise_4 (void) {
                 push_i64(2LL);
                 push_value(d4);
             }
-            mw_ptr_2B_();
-            mw_u8_21_();
+            push_u64(0);
+            push_fnptr(&mb_char_21__precise_11);
+            mw_prim_pack_cons();
+            mw_with_ptr_2B_();
         } else {
             mw_drop();
             {
@@ -28394,13 +28644,13 @@ static void mb_char_21__precise_4 (void) {
 }
 
 static void mb_char_21__precise_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Char__3E_Int();
     mw_Int__3E_U8();
 }
 
 static void mb_char_21__precise_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     {
         VAL d2 = pop_value();
@@ -28412,7 +28662,7 @@ static void mb_char_21__precise_5 (void) {
 }
 
 static void mb_char_21__precise_7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(3LL);
     mw__3D__3D_();
@@ -28437,8 +28687,10 @@ static void mb_char_21__precise_7 (void) {
             push_i64(2LL);
             push_value(d3);
         }
-        mw_ptr_2B_();
-        mw_u8_21_();
+        push_u64(0);
+        push_fnptr(&mb_char_21__precise_11);
+        mw_prim_pack_cons();
+        mw_with_ptr_2B_();
     } else {
         mw_drop();
         {
@@ -28452,13 +28704,13 @@ static void mb_char_21__precise_7 (void) {
 }
 
 static void mb_char_21__precise_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Char__3E_Int();
     mw_Int__3E_U16();
 }
 
 static void mb_char_21__precise_8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     {
         VAL d2 = pop_value();
@@ -28479,12 +28731,14 @@ static void mb_char_21__precise_8 (void) {
         push_i64(2LL);
         push_value(d2);
     }
-    mw_ptr_2B_();
-    mw_u8_21_();
+    push_u64(0);
+    push_fnptr(&mb_char_21__precise_11);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
-static void mb_char_21__precise_11 (void) {
-    do_drop();
+static void mb_char_21__precise_12 (void) {
+    mw_prim_drop();
     mw_drop();
     {
         VAL d2 = pop_value();
@@ -28496,7 +28750,7 @@ static void mb_char_21__precise_11 (void) {
 }
 
 static void mb_char_21__precise_9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Char__3E_Int();
     mw_dup();
     push_i64(65535LL);
@@ -28505,7 +28759,7 @@ static void mb_char_21__precise_9 (void) {
 }
 
 static void mb_char_21__precise_10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_u16_21_();
     push_i64(16LL);
     mw__3E__3E_();
@@ -28513,24 +28767,40 @@ static void mb_char_21__precise_10 (void) {
     push_i64(2LL);
 }
 
-static void mb_char_21__precise_12 (void) {
-    do_drop();
+static void mb_char_21__precise_11 (void) {
+    mw_prim_drop();
+    mw_u8_21_();
+}
+
+static void mb_char_21__precise_13 (void) {
+    mw_prim_drop();
     mw_Char__3E_Int();
     mw_Int__3E_U32();
 }
 
 static void mb_char_21__2B__2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_char_width();
 }
 
+static void mb_char_21__2B__2B__2 (void) {
+    mw_prim_drop();
+}
+
 static void mb_char_3F__2B__2B__1 (void) {
-    do_drop();
-    mw_ptr_2B_();
+    mw_prim_drop();
+    push_u64(0);
+    push_fnptr(&mb_char_3F__2B__2B__2);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
+}
+
+static void mb_char_3F__2B__2B__2 (void) {
+    mw_prim_drop();
 }
 
 static void mb_is_whitespace_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_i64(4295101952LL);
@@ -28544,32 +28814,29 @@ static void mb_is_whitespace_3F__1 (void) {
 }
 
 static void mb_is_whitespace_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(4295101952LL);
 }
 
 static void mb_is_hexdigit_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_upper_hexdigit_3F_();
 }
 
 static void mb_is_hexdigit_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_lower_hexdigit_3F_();
 }
 
 static void mb_is_sign_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_minus_3F_();
 }
 
 static void mb_is_string_end_3F__1 (void) {
-    do_drop();
-    {
-        VAL d2 = pop_value();
-        push_i64(17179870209LL);
-        push_value(d2);
-    }
+    mw_prim_drop();
+    push_i64(17179870209LL);
+    mw_over();
     mw__3E__3E_();
     push_i64(1LL);
     mw__26_();
@@ -28577,52 +28844,72 @@ static void mb_is_string_end_3F__1 (void) {
     mw__3C__3E_();
 }
 
-static void mb_is_string_end_3F__2 (void) {
-    do_drop();
-    push_i64(17179870209LL);
-}
-
 static void mb_is_name_char_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_special_char_3F_();
     mw_not();
 }
 
 static void mb_is_special_char_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(288251318412247040LL);
+    mw_swap();
+    mw__3E__3E_();
 }
 
 static void mb_is_special_char_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(64LL);
     mw__();
+    mw_dup();
+    push_i64(64LL);
+    mw__3C_();
+    if (pop_u64()) {
+        push_i64(2882303762188206080LL);
+        mw_swap();
+        mw__3E__3E_();
+    } else {
+        mw_drop();
+        push_i64(0LL);
+    }
+}
+
+static void mb_is_special_char_3F__3 (void) {
+    mw_prim_drop();
     push_i64(2882303762188206080LL);
+    mw_swap();
+    mw__3E__3E_();
+}
+
+static void mb_is_special_char_3F__4 (void) {
+    mw_prim_drop();
+    mw_drop();
+    push_i64(0LL);
 }
 
 static void mb_path_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Path__3E_Str();
     mw_Str__3E_Ptr();
 }
 
 static void mb_path_separator_1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("\\\0\0\0\0");
 }
 
 static void mb_path_separator_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("/\0\0\0\0");
 }
 
 static void mb_path_join_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_path_join_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Path__3E_Str();
     mw_path_separator();
     mw_rotl();
@@ -28633,7 +28920,7 @@ static void mb_path_join_2 (void) {
 }
 
 static void mb_input_fill_buffer_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_input_handle();
     mw__40_();
     mw_File__3E_Int();
@@ -28665,13 +28952,13 @@ static void mb_input_fill_buffer_21__1 (void) {
 }
 
 static void mb_input_fill_buffer_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("error: attempted to fill input buffer when file is closed\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_input_fill_buffer_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(0LL);
     mw__3E_();
@@ -28688,14 +28975,14 @@ static void mb_input_fill_buffer_21__2 (void) {
 }
 
 static void mb_input_fill_buffer_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("error: failed to read from file\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_input_fill_buffer_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_input_length();
     mw__21_();
     push_i64(0LL);
@@ -28704,45 +28991,65 @@ static void mb_input_fill_buffer_21__3 (void) {
 }
 
 static void mb_input_fill_buffer_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_input_end_21_();
 }
 
 static void mb_input_end_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_input_handle();
     mw__40_();
     mw_close_file_21_();
 }
 
 static void mb_input_end_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_input_peek_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_input_offset();
     mw__40_();
     mw_INPUT_BUFFER();
-    mw_ptr_2B_();
-    mw_char_40_();
+    push_u64(0);
+    push_fnptr(&mb_input_peek_2);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
-static void mb_input_peek_2 (void) {
-    do_drop();
+static void mb_input_peek_3 (void) {
+    mw_prim_drop();
     push_ptr("error: attempted to read input buffer when file is already closed\0\0\0\0");
     mw_panic_21_();
 }
 
+static void mb_input_peek_2 (void) {
+    mw_prim_drop();
+    mw_char_40_();
+}
+
 static void mb_input_move_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_input_offset();
     mw__40_();
     mw_dup();
     mw_INPUT_BUFFER();
-    mw_ptr_2B_();
+    push_u64(0);
+    push_fnptr(&mb_input_move_21__2);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
+}
+
+static void mb_input_move_21__3 (void) {
+    mw_prim_drop();
+    push_ptr("error: attempted to move input buffer when file is already closed\0\0\0\0");
+    mw_panic_21_();
+}
+
+static void mb_input_move_21__2 (void) {
+    mw_prim_drop();
     mw_char_40__width();
     mw__2B_();
     mw_input_offset();
@@ -28750,14 +29057,8 @@ static void mb_input_move_21__1 (void) {
     mw_input_prepare_for_more_21_();
 }
 
-static void mb_input_move_21__2 (void) {
-    do_drop();
-    push_ptr("error: attempted to move input buffer when file is already closed\0\0\0\0");
-    mw_panic_21_();
-}
-
 static void mb_input_prepare_for_more_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_input_length();
     mw__40_();
@@ -28768,8 +29069,10 @@ static void mb_input_prepare_for_more_21__1 (void) {
     } else {
         mw_dup();
         mw_INPUT_BUFFER();
-        mw_ptr_2B_();
-        mw_char_40__width();
+        push_u64(0);
+        push_fnptr(&mb_input_prepare_for_more_21__4);
+        mw_prim_pack_cons();
+        mw_with_ptr_2B_();
         mw__2B_();
         mw_input_length();
         mw__40_();
@@ -28782,23 +29085,25 @@ static void mb_input_prepare_for_more_21__1 (void) {
     }
 }
 
-static void mb_input_prepare_for_more_21__6 (void) {
-    do_drop();
+static void mb_input_prepare_for_more_21__7 (void) {
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_input_prepare_for_more_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_input_fill_buffer_21_();
 }
 
 static void mb_input_prepare_for_more_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_INPUT_BUFFER();
-    mw_ptr_2B_();
-    mw_char_40__width();
+    push_u64(0);
+    push_fnptr(&mb_input_prepare_for_more_21__4);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
     mw__2B_();
     mw_input_length();
     mw__40_();
@@ -28811,26 +29116,37 @@ static void mb_input_prepare_for_more_21__3 (void) {
 }
 
 static void mb_input_prepare_for_more_21__4 (void) {
-    do_drop();
-    mw_input_fill_buffer_tragic_21_();
+    mw_prim_drop();
+    mw_char_40__width();
 }
 
 static void mb_input_prepare_for_more_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
+    mw_input_fill_buffer_tragic_21_();
+}
+
+static void mb_input_prepare_for_more_21__6 (void) {
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_input_fill_buffer_tragic_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
+    mw_u32_40_();
+}
+
+static void mb_input_fill_buffer_tragic_21__2 (void) {
+    mw_prim_drop();
     mw_input_handle();
     mw__40_();
     mw_File__3E_Int();
     mw_input_length();
     mw__40_();
     mw_INPUT_BUFFER();
-    mw_ptr_2B_();
-    mw_INPUT_BUFFER_SIZE();
-    mw_posix_read_21_();
+    push_u64(0);
+    push_fnptr(&mb_input_fill_buffer_tragic_21__3);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
     mw_dup();
     push_i64(0LL);
     mw__3E__3D_();
@@ -28841,8 +29157,8 @@ static void mb_input_fill_buffer_tragic_21__1 (void) {
         if (pop_u64()) {
             mw_input_length();
             push_u64(0);
-            push_fnptr(&mb_input_fill_buffer_tragic_21__4);
-            do_pack_cons();
+            push_fnptr(&mb_input_fill_buffer_tragic_21__6);
+            mw_prim_pack_cons();
             mw_modify();
         } else {
             mw_drop();
@@ -28854,76 +29170,82 @@ static void mb_input_fill_buffer_tragic_21__1 (void) {
     }
 }
 
-static void mb_input_fill_buffer_tragic_21__7 (void) {
-    do_drop();
+static void mb_input_fill_buffer_tragic_21__9 (void) {
+    mw_prim_drop();
     push_ptr("error: attempted to fill input buffer when file is closed\0\0\0\0");
     mw_panic_21_();
 }
 
-static void mb_input_fill_buffer_tragic_21__2 (void) {
-    do_drop();
+static void mb_input_fill_buffer_tragic_21__3 (void) {
+    mw_prim_drop();
+    mw_INPUT_BUFFER_SIZE();
+    mw_posix_read_21_();
+}
+
+static void mb_input_fill_buffer_tragic_21__4 (void) {
+    mw_prim_drop();
     mw_dup();
     push_i64(0LL);
     mw__3E_();
     if (pop_u64()) {
         mw_input_length();
         push_u64(0);
-        push_fnptr(&mb_input_fill_buffer_tragic_21__4);
-        do_pack_cons();
+        push_fnptr(&mb_input_fill_buffer_tragic_21__6);
+        mw_prim_pack_cons();
         mw_modify();
     } else {
         mw_drop();
     }
 }
 
-static void mb_input_fill_buffer_tragic_21__6 (void) {
-    do_drop();
+static void mb_input_fill_buffer_tragic_21__8 (void) {
+    mw_prim_drop();
     mw_drop();
     push_ptr("error: failed to read from file\0\0\0\0");
     mw_panic_21_();
 }
 
-static void mb_input_fill_buffer_tragic_21__3 (void) {
-    do_drop();
+static void mb_input_fill_buffer_tragic_21__5 (void) {
+    mw_prim_drop();
     mw_input_length();
     push_u64(0);
-    push_fnptr(&mb_input_fill_buffer_tragic_21__4);
-    do_pack_cons();
+    push_fnptr(&mb_input_fill_buffer_tragic_21__6);
+    mw_prim_pack_cons();
     mw_modify();
 }
 
-static void mb_input_fill_buffer_tragic_21__5 (void) {
-    do_drop();
+static void mb_input_fill_buffer_tragic_21__7 (void) {
+    mw_prim_drop();
     mw_drop();
 }
 
-static void mb_input_fill_buffer_tragic_21__4 (void) {
-    do_drop();
+static void mb_input_fill_buffer_tragic_21__6 (void) {
+    mw_prim_drop();
     mw__2B_();
 }
 
 static void mb_module_source_path_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("<generated>\0\0\0\0");
     mw_Str__3E_Path();
 }
 
 static void mb_module_source_path_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_module_path();
     mw__40_();
     mw_make_source_path();
 }
 
 static void mb_lexer_next_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("invalid character\0\0\0\0");
     mw_lexer_emit_fatal_error_21_();
 }
 
 static void mb_lexer_next_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_name_char_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -29002,13 +29324,13 @@ static void mb_lexer_next_21__2 (void) {
 }
 
 static void mb_lexer_next_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_lexer_emit_name_21_();
 }
 
 static void mb_lexer_next_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_newline_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -29081,13 +29403,13 @@ static void mb_lexer_next_21__4 (void) {
 }
 
 static void mb_lexer_next_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_lexer_newline_21_();
 }
 
 static void mb_lexer_next_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_whitespace_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -29153,12 +29475,12 @@ static void mb_lexer_next_21__6 (void) {
 }
 
 static void mb_lexer_next_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_lexer_next_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_pound_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -29219,13 +29541,13 @@ static void mb_lexer_next_21__8 (void) {
 }
 
 static void mb_lexer_next_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_lexer_skip_comment_21_();
 }
 
 static void mb_lexer_next_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_comma_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -29280,14 +29602,14 @@ static void mb_lexer_next_21__10 (void) {
 }
 
 static void mb_lexer_next_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_TOKEN_COMMA();
     mw_lexer_emit_21_();
 }
 
 static void mb_lexer_next_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_lparen_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -29335,13 +29657,13 @@ static void mb_lexer_next_21__12 (void) {
 }
 
 static void mb_lexer_next_21__13 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_lexer_emit_lparen_21_();
 }
 
 static void mb_lexer_next_21__14 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_rparen_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -29383,13 +29705,13 @@ static void mb_lexer_next_21__14 (void) {
 }
 
 static void mb_lexer_next_21__15 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_lexer_emit_rparen_21_();
 }
 
 static void mb_lexer_next_21__16 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_lsquare_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -29425,13 +29747,13 @@ static void mb_lexer_next_21__16 (void) {
 }
 
 static void mb_lexer_next_21__17 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_lexer_emit_lsquare_21_();
 }
 
 static void mb_lexer_next_21__18 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_rsquare_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -29461,13 +29783,13 @@ static void mb_lexer_next_21__18 (void) {
 }
 
 static void mb_lexer_next_21__19 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_lexer_emit_rsquare_21_();
 }
 
 static void mb_lexer_next_21__20 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_lcurly_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -29491,13 +29813,13 @@ static void mb_lexer_next_21__20 (void) {
 }
 
 static void mb_lexer_next_21__21 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_lexer_emit_lcurly_21_();
 }
 
 static void mb_lexer_next_21__22 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_rcurly_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -29515,13 +29837,13 @@ static void mb_lexer_next_21__22 (void) {
 }
 
 static void mb_lexer_next_21__23 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_lexer_emit_rcurly_21_();
 }
 
 static void mb_lexer_next_21__24 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_quote_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -29533,39 +29855,39 @@ static void mb_lexer_next_21__24 (void) {
 }
 
 static void mb_lexer_next_21__25 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_lexer_emit_string_21_();
 }
 
 static void mb_lexer_next_21__26 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("unrecognized token\0\0\0\0");
     mw_lexer_emit_fatal_error_21_();
 }
 
 static void mb_stack_pop_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_stack_uncons();
 }
 
 static void mb_emit_fatal_error_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_location();
 }
 
 static void mb_lexer_emit_fatal_error_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lexer_location();
 }
 
 static void mb_lexer_emit_name_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_name_char_3F_();
 }
 
 static void mb_lexer_emit_name_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_char_valid_3F_();
     if (pop_u64()) {
         mw_str_buf_push_char_21_();
@@ -29578,26 +29900,26 @@ static void mb_lexer_emit_name_21__2 (void) {
 }
 
 static void mb_lexer_emit_name_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_push_char_21_();
     mw_lexer_move_21_();
     mw_lexer_peek();
 }
 
 static void mb_lexer_emit_name_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("invalid character\0\0\0\0");
     mw_lexer_emit_fatal_error_21_();
 }
 
 static void mb_lexer_emit_name_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop3();
     mw_lexer_skip_doc_21_();
 }
 
 static void mb_lexer_emit_name_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_is_int_3F_();
     if (pop_u64()) {
         mw_str_buf_int_3F_();
@@ -29622,48 +29944,48 @@ static void mb_lexer_emit_name_21__6 (void) {
 }
 
 static void mb_lexer_emit_name_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_int_3F_();
     mw_TOKEN_INT();
 }
 
 static void mb_lexer_emit_name_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_dup_21_();
     mw_name_new_21_();
     mw_TOKEN_NAME();
 }
 
 static void mb_lexer_newline_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Row__3E_Int();
     mw_1_2B_();
     mw_Int__3E_Row();
 }
 
 static void mb_lexer_skip_comment_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lexer_comment_end_3F_();
     mw_not();
 }
 
 static void mb_lexer_skip_comment_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lexer_move_21_();
 }
 
 static void mb_lexer_skip_comment_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lexer_newline_21_();
 }
 
 static void mb_lexer_skip_comment_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_lexer_emit_rparen_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_TOKEN_RPAREN();
     mw_lexer_make_21_();
@@ -29674,13 +29996,13 @@ static void mb_lexer_emit_rparen_21__3 (void) {
 }
 
 static void mb_lexer_emit_rparen_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Mismatched right parenthesis.\0\0\0\0");
     mw_lexer_emit_fatal_error_21_();
 }
 
 static void mb_lexer_emit_rsquare_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_TOKEN_RSQUARE();
     mw_lexer_make_21_();
@@ -29691,13 +30013,13 @@ static void mb_lexer_emit_rsquare_21__3 (void) {
 }
 
 static void mb_lexer_emit_rsquare_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Mismatched right bracket.\0\0\0\0");
     mw_lexer_emit_fatal_error_21_();
 }
 
 static void mb_lexer_emit_rcurly_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_TOKEN_RCURLY();
     mw_lexer_make_21_();
@@ -29708,19 +30030,19 @@ static void mb_lexer_emit_rcurly_21__3 (void) {
 }
 
 static void mb_lexer_emit_rcurly_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Mismatched right brace.\0\0\0\0");
     mw_lexer_emit_fatal_error_21_();
 }
 
 static void mb_lexer_emit_string_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_string_end_3F_();
     mw_not();
 }
 
 static void mb_lexer_emit_string_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_char_valid_3F_();
     if (pop_u64()) {
         mw_lexer_push_string_char_21_();
@@ -29733,48 +30055,48 @@ static void mb_lexer_emit_string_21__2 (void) {
 }
 
 static void mb_lexer_emit_string_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lexer_push_string_char_21_();
     mw_lexer_move_21_();
     mw_lexer_peek();
 }
 
 static void mb_lexer_emit_string_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("invalid character in string literal\0\0\0\0");
     mw_lexer_emit_fatal_error_21_();
 }
 
 static void mb_lexer_move_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Col__3E_Int();
     mw_1_2B_();
     mw_Int__3E_Col();
 }
 
 static void mb_stack_push_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_STACK_CONS();
 }
 
 static void mb_str_buf_is_doc_start_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(0LL);
     mw_str_buf_char_40_();
     mw_is_pipe_3F_();
     mw_nip();
     push_u64(0);
     push_fnptr(&mb_str_buf_is_doc_start_3F__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_and();
     push_u64(0);
     push_fnptr(&mb_str_buf_is_doc_start_3F__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_and();
 }
 
 static void mb_str_buf_is_doc_start_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_str_buf_char_40_();
     mw_is_pipe_3F_();
@@ -29782,7 +30104,7 @@ static void mb_str_buf_is_doc_start_3F__2 (void) {
 }
 
 static void mb_str_buf_is_doc_start_3F__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(2LL);
     mw_str_buf_char_40_();
     mw_is_pipe_3F_();
@@ -29790,48 +30112,48 @@ static void mb_str_buf_is_doc_start_3F__3 (void) {
 }
 
 static void mb_lexer_skip_doc_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lexer_comment_end_3F_();
     mw_not();
 }
 
 static void mb_lexer_skip_doc_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lexer_move_21_();
 }
 
 static void mb_str_buf_is_int_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_true();
 }
 
 static void mb_str_buf_is_int_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_is_hex_int_3F_();
 }
 
 static void mb_str_buf_int_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_dec_int_3F_();
 }
 
 static void mb_str_buf_int_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_hex_int_3F_();
 }
 
 static void mb_name_new_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_name_keep_going_3F_();
 }
 
 static void mb_name_new_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_next_hash();
 }
 
 static void mb_name_new_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_Name_2E_alloc_21_();
     mw_tuck();
@@ -29843,7 +30165,7 @@ static void mb_name_new_21__3 (void) {
     mw_dup();
     push_u64(0);
     push_fnptr(&mb_name_new_21__4);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
     mw_over();
     mw_name_mangled();
@@ -29851,18 +30173,18 @@ static void mb_name_new_21__3 (void) {
 }
 
 static void mb_name_new_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
     mw_nip();
 }
 
 static void mb_name_new_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_name_mangle_compute_21_();
 }
 
 static void mb_str_buf_is_arrow_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(0LL);
     mw_str_buf_char_40_();
     mw_is_dash_3F_();
@@ -29875,7 +30197,7 @@ static void mb_str_buf_is_arrow_3F__1 (void) {
 }
 
 static void mb_str_buf_is_dashes_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(0LL);
     mw_str_buf_char_40_();
     mw_is_dash_3F_();
@@ -29888,12 +30210,12 @@ static void mb_str_buf_is_dashes_3F__1 (void) {
 }
 
 static void mb_str_buf_is_dashes_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_false();
 }
 
 static void mb_str_buf_is_equal_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(0LL);
     mw_str_buf_char_40_();
     mw_is_eq_3F_();
@@ -29901,22 +30223,22 @@ static void mb_str_buf_is_equal_3F__1 (void) {
 }
 
 static void mb_str_buf_is_equal_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_false();
 }
 
 static void mb_str_buf_is_dec_int_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
 }
 
 static void mb_str_buf_is_dec_int_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_str_buf_is_dec_int_3F__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_str_buf_char_40_();
     mw_is_digit_3F_();
@@ -29924,7 +30246,7 @@ static void mb_str_buf_is_dec_int_3F__3 (void) {
 }
 
 static void mb_str_buf_is_dec_int_3F__4 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_1_2B_();
@@ -29934,34 +30256,34 @@ static void mb_str_buf_is_dec_int_3F__4 (void) {
 }
 
 static void mb_str_buf_is_dec_int_3F__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
 }
 
 static void mb_str_buf_is_dec_int_3F__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_length_3F_();
     mw__3D__3D_();
 }
 
 static void mb_str_buf_is_dec_int_3F__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_false();
 }
 
 static void mb_str_buf_is_hex_int_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
 }
 
 static void mb_str_buf_is_hex_int_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_str_buf_is_hex_int_3F__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
     mw_dup();
     mw_str_buf_char_40_();
@@ -29998,13 +30320,13 @@ static void mb_str_buf_is_hex_int_3F__3 (void) {
 }
 
 static void mb_str_buf_is_hex_int_3F__11 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
     mw_false();
 }
 
 static void mb_str_buf_is_hex_int_3F__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
     while(1) {
         mw_dup();
@@ -30032,13 +30354,13 @@ static void mb_str_buf_is_hex_int_3F__4 (void) {
 }
 
 static void mb_str_buf_is_hex_int_3F__10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
     mw_false();
 }
 
 static void mb_str_buf_is_hex_int_3F__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_str_buf_char_40_();
     mw_is_hexdigit_3F_();
@@ -30046,7 +30368,7 @@ static void mb_str_buf_is_hex_int_3F__5 (void) {
 }
 
 static void mb_str_buf_is_hex_int_3F__6 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_1_2B_();
@@ -30056,36 +30378,36 @@ static void mb_str_buf_is_hex_int_3F__6 (void) {
 }
 
 static void mb_str_buf_is_hex_int_3F__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
 }
 
 static void mb_str_buf_is_hex_int_3F__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_length_3F_();
     mw__3D__3D_();
 }
 
 static void mb_str_buf_is_hex_int_3F__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_false();
 }
 
 static void mb_is_xX_char_1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(120LL);
     mw__3D__3D_();
 }
 
 static void mb_str_buf_dec_int_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_dash_3F_();
     mw_nip();
     if (pop_u64()) {
         push_u64(0);
         push_fnptr(&mb_str_buf_dec_int_3F__3);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_dip2();
     } else {
         mw_id();
@@ -30094,47 +30416,47 @@ static void mb_str_buf_dec_int_3F__1 (void) {
 }
 
 static void mb_str_buf_dec_int_3F__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_str_buf_dec_int_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_str_buf_dec_int_3F__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
 }
 
 static void mb_str_buf_dec_int_3F__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_str_buf_dec_int_3F__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_i64(-1LL);
 }
 
 static void mb_str_buf_dec_int_3F__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_str_buf_length_3F_();
     mw__3C_();
 }
 
 static void mb_str_buf_dec_int_3F__7 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_str_buf_dec_int_3F__8);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_1_2B_();
 }
 
 static void mb_str_buf_dec_int_3F__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_char_40_();
     mw_Char__3E_Int();
     {
@@ -30149,19 +30471,19 @@ static void mb_str_buf_dec_int_3F__8 (void) {
 }
 
 static void mb_str_buf_dec_int_3F__9 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(10LL);
     mw__2A_();
 }
 
 static void mb_str_buf_hex_int_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_dash_3F_();
     mw_nip();
     if (pop_u64()) {
         push_u64(0);
         push_fnptr(&mb_str_buf_hex_int_3F__3);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_dip2();
     } else {
         mw_id();
@@ -30170,47 +30492,47 @@ static void mb_str_buf_hex_int_3F__1 (void) {
 }
 
 static void mb_str_buf_hex_int_3F__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_str_buf_hex_int_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_str_buf_hex_int_3F__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
 }
 
 static void mb_str_buf_hex_int_3F__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_str_buf_hex_int_3F__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_i64(-1LL);
 }
 
 static void mb_str_buf_hex_int_3F__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_str_buf_length_3F_();
     mw__3C_();
 }
 
 static void mb_str_buf_hex_int_3F__7 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_str_buf_hex_int_3F__8);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_1_2B_();
 }
 
 static void mb_str_buf_hex_int_3F__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_char_40_();
     {
         VAL d2 = pop_value();
@@ -30223,20 +30545,20 @@ static void mb_str_buf_hex_int_3F__8 (void) {
 }
 
 static void mb_str_buf_hex_int_3F__9 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(16LL);
     mw__2A_();
 }
 
 static void mb_hexdigit_value_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Char__3E_Int();
     push_i64(48LL);
     mw__();
 }
 
 static void mb_hexdigit_value_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_upper_hexdigit_3F_();
     if (pop_u64()) {
         mw_Char__3E_Int();
@@ -30250,21 +30572,21 @@ static void mb_hexdigit_value_2 (void) {
 }
 
 static void mb_hexdigit_value_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Char__3E_Int();
     push_i64(55LL);
     mw__();
 }
 
 static void mb_hexdigit_value_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Char__3E_Int();
     push_i64(87LL);
     mw__();
 }
 
 static void mb_lexer_push_string_char_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_lexer_move_21_();
     mw_lexer_peek();
@@ -30313,17 +30635,17 @@ static void mb_lexer_push_string_char_21__1 (void) {
 }
 
 static void mb_lexer_push_string_char_21__14 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_push_char_21_();
 }
 
 static void mb_lexer_push_string_char_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_lexer_push_string_char_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_n_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -30364,7 +30686,7 @@ static void mb_lexer_push_string_char_21__3 (void) {
 }
 
 static void mb_lexer_push_string_char_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_i64(10LL);
     mw_Int__3E_Char();
@@ -30372,7 +30694,7 @@ static void mb_lexer_push_string_char_21__4 (void) {
 }
 
 static void mb_lexer_push_string_char_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_r_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -30405,7 +30727,7 @@ static void mb_lexer_push_string_char_21__5 (void) {
 }
 
 static void mb_lexer_push_string_char_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_i64(13LL);
     mw_Int__3E_Char();
@@ -30413,7 +30735,7 @@ static void mb_lexer_push_string_char_21__6 (void) {
 }
 
 static void mb_lexer_push_string_char_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_t_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -30438,7 +30760,7 @@ static void mb_lexer_push_string_char_21__7 (void) {
 }
 
 static void mb_lexer_push_string_char_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_i64(9LL);
     mw_Int__3E_Char();
@@ -30446,7 +30768,7 @@ static void mb_lexer_push_string_char_21__8 (void) {
 }
 
 static void mb_lexer_push_string_char_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_quote_3F_();
     if (pop_u64()) {
         mw_str_buf_push_char_21_();
@@ -30463,12 +30785,12 @@ static void mb_lexer_push_string_char_21__9 (void) {
 }
 
 static void mb_lexer_push_string_char_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_push_char_21_();
 }
 
 static void mb_lexer_push_string_char_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_backslash_3F_();
     if (pop_u64()) {
         mw_str_buf_push_char_21_();
@@ -30480,72 +30802,72 @@ static void mb_lexer_push_string_char_21__11 (void) {
 }
 
 static void mb_lexer_push_string_char_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_push_char_21_();
 }
 
 static void mb_lexer_push_string_char_21__13 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_buf_push_char_21_();
     push_ptr("Unknown character escape sequence.\0\0\0\0");
     mw_lexer_emit_warning_21_();
 }
 
 static void mb_lexer_emit_warning_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lexer_location();
 }
 
 static void mb_lexer_comment_end_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_true();
 }
 
 static void mb_lexer_comment_end_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lexer_peek();
     mw_is_newline_3F_();
     mw_nip();
 }
 
 static void mb_emit_warning_at_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_location_trace_21_();
 }
 
 static void mb_emit_warning_at_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
 }
 
 static void mb_lexer_emit_error_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lexer_location();
 }
 
 static void mb_emit_error_at_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_location_trace_21_();
 }
 
 static void mb_emit_error_at_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
 }
 
 static void mb_stack_uncons_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_SOME();
 }
 
 static void mb_hash_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_is_empty_3F_();
     mw_not();
 }
 
 static void mb_hash_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_str_tail();
     {
@@ -30563,7 +30885,7 @@ static void mb_hash_2 (void) {
 }
 
 static void mb_hash_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_head();
     mw_Char__3E_Int();
     push_i64(5LL);
@@ -30575,13 +30897,13 @@ static void mb_hash_3 (void) {
 }
 
 static void mb_name_keep_going_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_false();
 }
 
 static void mb_name_keep_going_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_over();
@@ -30594,12 +30916,12 @@ static void mb_name_keep_going_3F__2 (void) {
 }
 
 static void mb_name_keep_going_3F__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
 }
 
 static void mb_name_mangle_compute_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_alpha_3F_();
     if (pop_u64()) {
         mw_TS_CHAR();
@@ -30632,12 +30954,12 @@ static void mb_name_mangle_compute_21__1 (void) {
 }
 
 static void mb_name_mangle_compute_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TS_CHAR();
 }
 
 static void mb_name_mangle_compute_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_digit_3F_();
     if (pop_u64()) {
         mw_TS_CHAR();
@@ -30665,12 +30987,12 @@ static void mb_name_mangle_compute_21__3 (void) {
 }
 
 static void mb_name_mangle_compute_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TS_CHAR();
 }
 
 static void mb_name_mangle_compute_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_underscore_3F_();
     if (pop_u64()) {
         mw_TS_CHAR();
@@ -30693,12 +31015,12 @@ static void mb_name_mangle_compute_21__5 (void) {
 }
 
 static void mb_name_mangle_compute_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TS_CHAR();
 }
 
 static void mb_name_mangle_compute_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_dash_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -30716,14 +31038,14 @@ static void mb_name_mangle_compute_21__7 (void) {
 }
 
 static void mb_name_mangle_compute_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_underscore();
     mw_TS_CHAR();
 }
 
 static void mb_name_mangle_compute_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_char_hexdigits();
     mw_underscore();
     mw_swap();
@@ -30734,13 +31056,13 @@ static void mb_name_mangle_compute_21__9 (void) {
 }
 
 static void mb_name_cat_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_name_str();
     mw__40_();
 }
 
 static void mb_name_is_type_hole_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_tail();
     mw_str_is_empty_3F_();
     if (pop_u64()) {
@@ -30752,48 +31074,48 @@ static void mb_name_is_type_hole_1 (void) {
 }
 
 static void mb_name_is_type_hole_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_false();
 }
 
 static void mb_name_is_type_hole_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_true();
 }
 
 static void mb_name_is_type_hole_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_could_be_type_var();
 }
 
 static void mb_name_is_underscore_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_tail();
     mw_str_is_empty();
 }
 
 static void mb_name_is_underscore_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_false();
 }
 
 static void mb_name_could_be_stack_var_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_tail();
     mw_str_could_be_type_var();
 }
 
 static void mb_name_could_be_stack_var_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_false();
 }
 
 static void mb_name_could_be_effect_con_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_str_tail();
     mw_str_head();
     mw_is_upper_3F_();
@@ -30801,51 +31123,51 @@ static void mb_name_could_be_effect_con_1 (void) {
 }
 
 static void mb_name_could_be_effect_con_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_false();
 }
 
 static void mb_force_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_run();
     mw_dup();
     mw_LAZY_READY();
 }
 
 static void mb_char_hexdigits_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(0LL);
     mw__3E_();
 }
 
 static void mb_char_hexdigits_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_char_hexdigits_next();
 }
 
 static void mb_char_hexdigits_first_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L0();
 }
 
 static void mb_char_hexdigits_next_1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(15LL);
     mw__26_();
     mw_hexdigit();
 }
 
 static void mb_char_hexdigits_next_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(15LL);
     mw__26_();
     mw_hexdigit();
 }
 
 static void mb_char_hexdigits_next_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     {
         VAL d2 = pop_value();
@@ -30856,52 +31178,52 @@ static void mb_char_hexdigits_next_3 (void) {
 }
 
 static void mb_char_hexdigits_next_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_snoc();
 }
 
 static void mb_hexdigit_1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(55LL);
     mw__2B_();
     mw_Int__3E_Char();
 }
 
 static void mb_hexdigit_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(48LL);
     mw__2B_();
     mw_Int__3E_Char();
 }
 
 static void mb_token_prim_3D__3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
 }
 
 static void mb_token_prev_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
 }
 
 static void mb_token_prev_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_token_next_arg_end_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_arg_end_3F_();
     mw_not();
 }
 
 static void mb_token_next_arg_end_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_token_has_args_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_token_succ();
     mw_token_is_lparen_3F_();
@@ -30909,12 +31231,12 @@ static void mb_token_has_args_3F__1 (void) {
 }
 
 static void mb_token_has_args_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_lparen_3F_();
 }
 
 static void mb_token_num_args_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_has_args_3F_();
     if (pop_u64()) {
         mw_token_succ();
@@ -30924,22 +31246,22 @@ static void mb_token_num_args_1 (void) {
 }
 
 static void mb_token_num_args_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_token_num_args_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
 }
 
 static void mb_token_num_args_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_token_num_args_5 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_i64(0LL);
@@ -30961,24 +31283,24 @@ static void mb_token_num_args_5 (void) {
 }
 
 static void mb_token_num_args_10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_i64(0LL);
 }
 
 static void mb_token_num_args_6 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(0LL);
 }
 
 static void mb_token_num_args_7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_right_enclosure_3F_();
     mw_not();
 }
 
 static void mb_token_num_args_8 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_1_2B_();
@@ -30989,23 +31311,23 @@ static void mb_token_num_args_8 (void) {
 }
 
 static void mb_token_num_args_9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
 }
 
 static void mb_token_args_0_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_token_args_0_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected no args\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_token_args_1_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_name_3F_();
     if (pop_u64()) {
         mw_token_succ();
@@ -31016,7 +31338,7 @@ static void mb_token_args_1_1 (void) {
 }
 
 static void mb_token_args_1_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_num_args_3F_();
     push_i64(1LL);
     mw__3C_();
@@ -31030,29 +31352,29 @@ static void mb_token_args_1_4 (void) {
 }
 
 static void mb_token_args_1_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
 }
 
 static void mb_token_args_1_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_token_args_1_5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected 1 arg, got none\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_token_args_1_6 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected 1 arg, got too many\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_token_args_2_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_name_3F_();
     if (pop_u64()) {
         mw_token_succ();
@@ -31066,7 +31388,7 @@ static void mb_token_args_2_1 (void) {
 }
 
 static void mb_token_args_2_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_num_args_3F_();
     push_i64(2LL);
     mw__3C_();
@@ -31080,29 +31402,29 @@ static void mb_token_args_2_4 (void) {
 }
 
 static void mb_token_args_2_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
 }
 
 static void mb_token_args_2_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_token_args_2_5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected 2 args, got too few\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_token_args_2_6 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected 2 args, got too many\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_token_args_3_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_name_3F_();
     if (pop_u64()) {
         mw_token_succ();
@@ -31119,7 +31441,7 @@ static void mb_token_args_3_1 (void) {
 }
 
 static void mb_token_args_3_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_num_args_3F_();
     push_i64(3LL);
     mw__3C_();
@@ -31133,29 +31455,29 @@ static void mb_token_args_3_4 (void) {
 }
 
 static void mb_token_args_3_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
 }
 
 static void mb_token_args_3_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_token_args_3_5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected 3 args, got too few\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_token_args_3_6 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected 3 args, got too many\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_token_args_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_name_3F_();
     if (pop_u64()) {
         mw_token_succ();
@@ -31171,7 +31493,7 @@ static void mb_token_args_1 (void) {
         mw_token_succ();
         push_u64(0);
         push_fnptr(&mb_token_args_6);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_sip();
         mw_token_next_arg_end();
     }
@@ -31179,136 +31501,136 @@ static void mb_token_args_1 (void) {
 }
 
 static void mb_token_args_7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_L0();
 }
 
 static void mb_token_args_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
 }
 
 static void mb_token_args_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_token_args_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_args_end_3F_();
     mw_not();
 }
 
 static void mb_token_args_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
     push_u64(0);
     push_fnptr(&mb_token_args_6);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_token_next_arg_end();
 }
 
 static void mb_token_args_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_snoc();
 }
 
 static void mb_token_is_args_end_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
 }
 
 static void mb_token_is_args_end_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_token_args_2_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
 }
 
 static void mb_token_args_2_2B__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("expected 2+ args\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_emit_warning_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_location();
 }
 
 static void mb_emit_error_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_location();
 }
 
 static void mb_token_run_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_run_end_3F_();
     mw_not();
 }
 
 static void mb_token_run_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_token_run_3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
 }
 
 static void mb_token_run_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_token_run_has_arrow_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_arrow_3F_();
 }
 
 static void mb_token_run_has_dashes_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_dashes_3F_();
 }
 
 static void mb_sig_is_stack_end_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_true();
 }
 
 static void mb_sig_is_stack_end_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_run_end_3F_();
 }
 
 static void mb_sig_is_stack_end2_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_true();
 }
 
 static void mb_sig_is_stack_end2_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_sig_token_is_effect_con_3F_();
 }
 
 static void mb_sig_next_stack_end_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_sig_is_stack_end_3F_();
     mw_not();
 }
 
 static void mb_sig_next_stack_end_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_sig_arity_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_sig_count_types();
     mw_token_next();
     mw_sig_count_types();
@@ -31316,7 +31638,7 @@ static void mb_sig_arity_1 (void) {
 }
 
 static void mb_sig_arity_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_sig_count_types();
     mw_drop();
     push_i64(0LL);
@@ -31324,13 +31646,13 @@ static void mb_sig_arity_2 (void) {
 }
 
 static void mb_sig_count_types_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_sig_is_stack_end_3F_();
     mw_not();
 }
 
 static void mb_sig_count_types_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_sig_token_is_type_3F_();
     if (pop_u64()) {
         {
@@ -31345,7 +31667,7 @@ static void mb_sig_count_types_2 (void) {
 }
 
 static void mb_sig_count_types_3 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_1_2B_();
@@ -31354,33 +31676,33 @@ static void mb_sig_count_types_3 (void) {
 }
 
 static void mb_sig_count_types_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_sig_count_types_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
 }
 
 static void mb_sig_skip_dashes_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_sig_next_stack_end();
     mw_token_next();
 }
 
 static void mb_sig_skip_dashes_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_module_add_import_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_set_cons();
 }
 
 static void mb_module_path_from_name_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_dot_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -31401,14 +31723,14 @@ static void mb_module_path_from_name_1 (void) {
 }
 
 static void mb_module_path_from_name_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("/\0\0\0\0");
     mw_TS_COPY();
 }
 
 static void mb_module_path_from_name_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_upper_3F_();
     if (pop_u64()) {
         mw_Char__3E_Int();
@@ -31422,7 +31744,7 @@ static void mb_module_path_from_name_3 (void) {
 }
 
 static void mb_module_path_from_name_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Char__3E_Int();
     push_i64(32LL);
     mw__7C_();
@@ -31431,27 +31753,27 @@ static void mb_module_path_from_name_4 (void) {
 }
 
 static void mb_module_path_from_name_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TS_CHAR();
 }
 
 static void mb_set_snoc_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unSET();
 }
 
 static void mb_bag_replace_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_bag_replace_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_bag_insert();
 }
 
 static void mb_codegen_flush_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_codegen_file();
     mw__40_();
     mw_File__3E_Int();
@@ -31481,18 +31803,18 @@ static void mb_codegen_flush_21__1 (void) {
 }
 
 static void mb_codegen_flush_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_codegen_flush_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("error: codegen write failed\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_codegen_flush_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_codegen_length();
     mw__40_();
     mw__3C_();
@@ -31507,51 +31829,56 @@ static void mb_codegen_flush_21__3 (void) {
 }
 
 static void mb_codegen_flush_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("error: codegen write wrote fewer bytes than expected\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_codegen_flush_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(0LL);
     mw_codegen_length();
     mw__21_();
 }
 
 static void mb__2E_b_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_codegen_flush_21_();
 }
 
 static void mb__2E_b_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb__2E_b_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_1_2B_();
 }
 
 static void mb__2E_c_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_codegen_flush_21_();
 }
 
 static void mb__2E_c_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb__2E_c_3 (void) {
-    do_drop();
+    mw_prim_drop();
+    mw_char_21_();
+}
+
+static void mb__2E_c_4 (void) {
+    mw_prim_drop();
     mw__2B_();
 }
 
 static void mb__2E__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_codegen_flush_21_();
     while(1) {
         mw_dup();
@@ -31570,7 +31897,10 @@ static void mb__2E__1 (void) {
             VAL d3 = pop_value();
             mw_CODEGEN_BUF_SIZE();
             mw_swap();
-            mw_ptr_2B_();
+            push_u64(0);
+            push_fnptr(&mb__2E__5);
+            mw_prim_pack_cons();
+            mw_with_ptr_2B_();
             push_value(d3);
         }
         mw_CODEGEN_BUF_SIZE();
@@ -31583,28 +31913,28 @@ static void mb__2E__1 (void) {
     mw_prim_ptr_copy();
 }
 
-static void mb__2E__5 (void) {
-    do_drop();
+static void mb__2E__6 (void) {
+    mw_prim_drop();
     push_u64(0);
-    push_fnptr(&mb__2E__6);
-    do_pack_cons();
+    push_fnptr(&mb__2E__7);
+    mw_prim_pack_cons();
     mw_sip();
     mw_codegen_length();
     push_u64(0);
-    push_fnptr(&mb__2E__7);
-    do_pack_cons();
+    push_fnptr(&mb__2E__9);
+    mw_prim_pack_cons();
     mw_modify();
 }
 
 static void mb__2E__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_CODEGEN_BUF_SIZE();
     mw__3E_();
 }
 
 static void mb__2E__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
     mw_CODEGEN_BUF_SIZE();
     mw_CODEGEN_BUF();
@@ -31617,7 +31947,10 @@ static void mb__2E__3 (void) {
         VAL d2 = pop_value();
         mw_CODEGEN_BUF_SIZE();
         mw_swap();
-        mw_ptr_2B_();
+        push_u64(0);
+        push_fnptr(&mb__2E__5);
+        mw_prim_pack_cons();
+        mw_with_ptr_2B_();
         push_value(d2);
     }
     mw_CODEGEN_BUF_SIZE();
@@ -31625,33 +31958,47 @@ static void mb__2E__3 (void) {
 }
 
 static void mb__2E__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_CODEGEN_BUF_SIZE();
     mw_swap();
-    mw_ptr_2B_();
+    push_u64(0);
+    push_fnptr(&mb__2E__5);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
 }
 
-static void mb__2E__6 (void) {
-    do_drop();
-    mw_codegen_length();
-    mw__40_();
-    mw_CODEGEN_BUF();
-    mw_ptr_2B_();
-    mw_prim_ptr_copy();
+static void mb__2E__5 (void) {
+    mw_prim_drop();
 }
 
 static void mb__2E__7 (void) {
-    do_drop();
+    mw_prim_drop();
+    mw_codegen_length();
+    mw__40_();
+    mw_CODEGEN_BUF();
+    push_u64(0);
+    push_fnptr(&mb__2E__8);
+    mw_prim_pack_cons();
+    mw_with_ptr_2B_();
+    mw_prim_ptr_copy();
+}
+
+static void mb__2E__8 (void) {
+    mw_prim_drop();
+}
+
+static void mb__2E__9 (void) {
+    mw_prim_drop();
     mw__2B_();
 }
 
 static void mb_run_output_c99_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
 }
 
 static void mb_run_output_c99_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_make_output_path();
     mw_Path__3E_Str();
     mw_create_file_21_();
@@ -31672,67 +32019,67 @@ static void mb_run_output_c99_21__2 (void) {
 }
 
 static void mb_c99_tags_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_tag_21_();
 }
 
 static void mb_c99_buffers_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_buffer_21_();
 }
 
 static void mb_c99_variables_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_variable_21_();
 }
 
 static void mb_c99_externals_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_external_21_();
 }
 
 static void mb_c99_word_sigs_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_word_sig_21_();
 }
 
 static void mb_c99_block_sigs_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_block_sig_21_();
 }
 
 static void mb_c99_field_sigs_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_field_sig_21_();
 }
 
 static void mb_c99_main_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_arrow_21_();
 }
 
 static void mb_c99_word_defs_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_word_def_21_();
 }
 
 static void mb_c99_block_defs_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_block_def_21_();
 }
 
 static void mb_c99_field_defs_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_field_def_21_();
 }
 
 static void mb_c99_tag_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_c99_tag_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_tag_num_inputs_3F_();
     push_i64(0LL);
     mw__3D__3D_();
@@ -31751,7 +32098,7 @@ static void mb_c99_tag_21__2 (void) {
         mw_1_();
         push_u64(0);
         push_fnptr(&mb_c99_tag_21__5);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_repeat();
         push_ptr("    VAL tag = mku64(\0\0\0\0");
         mw__2E_();
@@ -31768,7 +32115,7 @@ static void mb_c99_tag_21__2 (void) {
 }
 
 static void mb_c99_tag_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("    push_u64(\0\0\0\0");
     mw__2E_();
     mw_tag_value();
@@ -31779,14 +32126,14 @@ static void mb_c99_tag_21__3 (void) {
 }
 
 static void mb_c99_tag_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("    VAL car = pop_value();\0\0\0\0");
     mw__3B_();
     mw_tag_num_inputs_3F_();
     mw_1_();
     push_u64(0);
     push_fnptr(&mb_c99_tag_21__5);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_repeat();
     push_ptr("    VAL tag = mku64(\0\0\0\0");
     mw__2E_();
@@ -31802,19 +32149,19 @@ static void mb_c99_tag_21__4 (void) {
 }
 
 static void mb_c99_tag_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("    car = mkcell(car, pop_value());\0\0\0\0");
     mw__3B_();
 }
 
 static void mb_tag_num_inputs_3F__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_run_end_3F_();
     mw_not();
 }
 
 static void mb_tag_num_inputs_3F__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
     {
         VAL d2 = pop_value();
@@ -31824,23 +32171,23 @@ static void mb_tag_num_inputs_3F__4 (void) {
 }
 
 static void mb_tag_num_inputs_3F__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
 }
 
 static void mb_c99_external_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("can't declare external with multiple return values\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_c99_external_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_i64(1LL);
     mw__3E__3D_();
     if (pop_u64()) {
-        push_ptr("i64 \0\0\0\0");
+        push_ptr("int64_t \0\0\0\0");
         mw__2E_();
     } else {
         push_ptr("void \0\0\0\0");
@@ -31849,19 +32196,19 @@ static void mb_c99_external_21__2 (void) {
 }
 
 static void mb_c99_external_21__3 (void) {
-    do_drop();
-    push_ptr("i64 \0\0\0\0");
+    mw_prim_drop();
+    push_ptr("int64_t \0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_external_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("void \0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_external_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_external_name();
     mw__40_();
@@ -31869,31 +32216,31 @@ static void mb_c99_external_21__5 (void) {
 }
 
 static void mb_c99_external_21__6 (void) {
-    do_drop();
-    push_ptr("i64\0\0\0\0");
+    mw_prim_drop();
+    push_ptr("int64_t\0\0\0\0");
     mw__2E_();
     mw_1_();
     push_u64(0);
     push_fnptr(&mb_c99_external_21__7);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_repeat();
 }
 
 static void mb_c99_external_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("void\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_external_21__7 (void) {
-    do_drop();
-    push_ptr(", i64\0\0\0\0");
+    mw_prim_drop();
+    push_ptr(", int64_t\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_external_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_external_name();
     mw__40_();
@@ -31901,8 +32248,8 @@ static void mb_c99_external_21__9 (void) {
 }
 
 static void mb_c99_external_21__10 (void) {
-    do_drop();
-    push_ptr("    i64 x\0\0\0\0");
+    mw_prim_drop();
+    push_ptr("    int64_t x\0\0\0\0");
     mw__2E_();
     mw__2E_n();
     push_ptr(" = pop_i64();\0\0\0\0");
@@ -31910,17 +32257,17 @@ static void mb_c99_external_21__10 (void) {
 }
 
 static void mb_c99_external_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("    push_i64(\0\0\0\0");
 }
 
 static void mb_c99_external_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("    \0\0\0\0");
 }
 
 static void mb_c99_external_21__13 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_external_name();
     mw__40_();
@@ -31928,7 +32275,7 @@ static void mb_c99_external_21__13 (void) {
 }
 
 static void mb_c99_external_21__14 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_0_3E_();
     if (pop_u64()) {
@@ -31937,7 +32284,7 @@ static void mb_c99_external_21__14 (void) {
         mw_dup();
         push_u64(0);
         push_fnptr(&mb_c99_external_21__16);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_count();
         push_ptr("x\0\0\0\0");
         mw__2E_();
@@ -31948,13 +32295,13 @@ static void mb_c99_external_21__14 (void) {
 }
 
 static void mb_c99_external_21__15 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_1_();
     mw_dup();
     push_u64(0);
     push_fnptr(&mb_c99_external_21__16);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_count();
     push_ptr("x\0\0\0\0");
     mw__2E_();
@@ -31962,12 +32309,12 @@ static void mb_c99_external_21__15 (void) {
 }
 
 static void mb_c99_external_21__17 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_c99_external_21__16 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("x\0\0\0\0");
     mw__2E_();
     mw__2E_n();
@@ -31976,44 +32323,44 @@ static void mb_c99_external_21__16 (void) {
 }
 
 static void mb_c99_external_21__18 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr(");\0\0\0\0");
 }
 
 static void mb_c99_external_21__19 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr(";\0\0\0\0");
 }
 
 static void mb_c99_nest_2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
     decref(var_f);
 }
 
 static void mb_c99_nest_3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_1_();
     decref(var_f);
 }
 
 static void mb_c99_indent_1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("    \0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_call_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_args_push_21_();
 }
 
 static void mb_c99_call_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("mw_\0\0\0\0");
     mw__2E_();
     mw__2E_name();
@@ -32022,23 +32369,23 @@ static void mb_c99_call_21__2 (void) {
 }
 
 static void mb_c99_args_push_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_arg_push_21_();
 }
 
 static void mb_c99_arrow_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_atom_21_();
 }
 
 static void mb_c99_atom_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_atom_args();
     mw__40_();
 }
 
 static void mb_c99_int_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("push_i64(\0\0\0\0");
     mw__2E_();
     mw__2E_n();
@@ -32047,58 +32394,58 @@ static void mb_c99_int_21__1 (void) {
 }
 
 static void mb_c99_str_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_nest();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__13);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_str_21__14 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__15);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_str_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("{\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_str_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__4);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__5);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_nest();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__11);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__12);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_str_21__4 (void) {
-    do_drop();
-    push_ptr("static u8 b[\0\0\0\0");
+    mw_prim_drop();
+    push_ptr("static uint8_t b[\0\0\0\0");
     mw__2E_();
     mw_dup();
     mw_str_size();
@@ -32110,30 +32457,30 @@ static void mb_c99_str_21__4 (void) {
 }
 
 static void mb_c99_str_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_indent();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__6);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_str_for();
     mw__2E_lf();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__10);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_str_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_char_bytes();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__7);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_for();
 }
 
 static void mb_c99_str_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_U8__3E_Int();
     mw_dup();
     mw__2E_n();
@@ -32150,78 +32497,78 @@ static void mb_c99_str_21__7 (void) {
 }
 
 static void mb_c99_str_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw__2E_lf();
     mw_c99_indent();
 }
 
 static void mb_c99_str_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_c99_str_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("0,0,0,0,\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_str_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("};\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_str_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("push_ptr((void*)b);\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_str_21__13 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("}\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_str_21__15 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("push_ptr(\"\0\0\0\0");
     mw__2E_();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__16);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_str_for();
     push_ptr("\\0\\0\\0\\0\");\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_str_21__16 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_string_char_21_();
 }
 
 static void mb_c99_prim_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("{\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_prim_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_prim_21__5);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     mw_c99_arg_run_21_();
     push_u64(0);
     push_fnptr(&mb_c99_prim_21__6);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_prim_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("VAL d\0\0\0\0");
     mw__2E_();
     mw_c99_depth();
@@ -32232,7 +32579,7 @@ static void mb_c99_prim_21__5 (void) {
 }
 
 static void mb_c99_prim_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("push_value(d\0\0\0\0");
     mw__2E_();
     mw_c99_depth();
@@ -32243,125 +32590,125 @@ static void mb_c99_prim_21__6 (void) {
 }
 
 static void mb_c99_prim_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("}\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_prim_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("if (pop_u64()) {\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_prim_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     mw_c99_arg_run_21_();
 }
 
 static void mb_c99_prim_21__13 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("} else {\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_prim_21__14 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_arg_run_21_();
 }
 
 static void mb_c99_prim_21__15 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("}\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_prim_21__19 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("while(1) {\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_prim_21__20 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     mw_c99_arg_run_21_();
     push_u64(0);
     push_fnptr(&mb_c99_prim_21__21);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     mw_c99_arg_run_21_();
 }
 
 static void mb_c99_prim_21__21 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("if (!pop_u64()) break;\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_prim_21__22 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("}\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_match_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_match_cases();
     mw__40_();
     mw_first();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_match_token();
             mw__40_();
             push_ptr("codegen: unexpected number of cases in transparent match\0\0\0\0");
             mw_emit_fatal_error_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_case_body();
             mw__40_();
             mw_c99_arrow_21_();
             mw_drop();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mb_c99_match_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_match_21__5);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     push_u64(0);
     push_fnptr(&mb_c99_match_21__6);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_nest();
     push_u64(0);
     push_fnptr(&mb_c99_match_21__11);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     mw__2E_();
 }
 
 static void mb_c99_match_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("switch (get_top_data_tag()) {\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_match_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_match_cases();
     mw__40_();
     push_u64(0);
     push_fnptr(&mb_c99_match_21__7);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_for();
     mw_match_has_default_case_3F_();
     if (pop_u64()) {
@@ -32369,55 +32716,55 @@ static void mb_c99_match_21__6 (void) {
     } else {
         push_u64(0);
         push_fnptr(&mb_c99_match_21__10);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_c99_line();
     }
     mw_drop();
 }
 
 static void mb_c99_match_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_case_21_();
 }
 
 static void mb_c99_match_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_c99_match_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_match_21__10);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_match_21__10 (void) {
-    do_drop();
-    push_ptr("default: write(2, \"unexpected fallthrough in match\\n\", 32); do_debug(); exit(99);\0\0\0\0");
+    mw_prim_drop();
+    push_ptr("default: write(2, \"unexpected fallthrough in match\\n\", 32); mw_prim_debug(); exit(99);\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_match_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("}\0\0\0\0");
 }
 
 static void mb_c99_lambda_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("{\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_lambda_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_lambda_params();
     mw__40_();
     push_u64(0);
     push_fnptr(&mb_c99_lambda_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_reverse_for();
     mw_dup();
     mw_lambda_body();
@@ -32427,20 +32774,20 @@ static void mb_c99_lambda_21__2 (void) {
     mw__40_();
     push_u64(0);
     push_fnptr(&mb_c99_lambda_21__5);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_reverse_for();
 }
 
 static void mb_c99_lambda_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_lambda_21__4);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_lambda_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("VAL \0\0\0\0");
     mw__2E_();
     mw__2E_param();
@@ -32449,15 +32796,15 @@ static void mb_c99_lambda_21__4 (void) {
 }
 
 static void mb_c99_lambda_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_lambda_21__6);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_lambda_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("decref(\0\0\0\0");
     mw__2E_();
     mw__2E_param();
@@ -32466,37 +32813,37 @@ static void mb_c99_lambda_21__6 (void) {
 }
 
 static void mb_c99_lambda_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("}\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_var_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_var_push_21_();
 }
 
 static void mb_c99_var_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_var_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_var_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_c99_var_21__3 (void) {
-    do_drop();
-    push_ptr("do_run();\0\0\0\0");
+    mw_prim_drop();
+    push_ptr("mw_prim_run();\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_block_push_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("push_fnptr(&\0\0\0\0");
     mw__2E_();
     mw__2E_block();
@@ -32505,20 +32852,20 @@ static void mb_c99_block_push_21__1 (void) {
 }
 
 static void mb_c99_block_push_21__2 (void) {
-    do_drop();
-    push_ptr("do_pack_cons();\0\0\0\0");
+    mw_prim_drop();
+    push_ptr("mw_prim_pack_cons();\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_string_char_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("\\\\\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_string_char_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_is_quote_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -32563,7 +32910,7 @@ static void mb_c99_string_char_21__2 (void) {
                         mw_char_bytes();
                         push_u64(0);
                         push_fnptr(&mb_c99_string_char_21__13);
-                        do_pack_cons();
+                        mw_prim_pack_cons();
                         mw_for();
                     }
                 }
@@ -32573,14 +32920,14 @@ static void mb_c99_string_char_21__2 (void) {
 }
 
 static void mb_c99_string_char_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("\\\"\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_string_char_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_Char__3E_Int();
     push_i64(32LL);
@@ -32619,7 +32966,7 @@ static void mb_c99_string_char_21__4 (void) {
                     mw_char_bytes();
                     push_u64(0);
                     push_fnptr(&mb_c99_string_char_21__13);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_for();
                 }
             }
@@ -32628,12 +32975,12 @@ static void mb_c99_string_char_21__4 (void) {
 }
 
 static void mb_c99_string_char_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw__2E_c();
 }
 
 static void mb_c99_string_char_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_Char__3E_Int();
     push_i64(9LL);
@@ -32664,7 +33011,7 @@ static void mb_c99_string_char_21__6 (void) {
                 mw_char_bytes();
                 push_u64(0);
                 push_fnptr(&mb_c99_string_char_21__13);
-                do_pack_cons();
+                mw_prim_pack_cons();
                 mw_for();
             }
         }
@@ -32672,14 +33019,14 @@ static void mb_c99_string_char_21__6 (void) {
 }
 
 static void mb_c99_string_char_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("\\t\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_string_char_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_Char__3E_Int();
     push_i64(10LL);
@@ -32701,21 +33048,21 @@ static void mb_c99_string_char_21__8 (void) {
             mw_char_bytes();
             push_u64(0);
             push_fnptr(&mb_c99_string_char_21__13);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_for();
         }
     }
 }
 
 static void mb_c99_string_char_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("\\n\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_string_char_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_Char__3E_Int();
     push_i64(13LL);
@@ -32728,29 +33075,29 @@ static void mb_c99_string_char_21__10 (void) {
         mw_char_bytes();
         push_u64(0);
         push_fnptr(&mb_c99_string_char_21__13);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_for();
     }
 }
 
 static void mb_c99_string_char_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("\\r\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_string_char_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_char_bytes();
     push_u64(0);
     push_fnptr(&mb_c99_string_char_21__13);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_for();
 }
 
 static void mb_c99_string_char_21__13 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("\\x\0\0\0\0");
     mw__2E_();
     mw_dup();
@@ -32767,7 +33114,7 @@ static void mb_c99_string_char_21__13 (void) {
 }
 
 static void mb_c99_var_push_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("push_value(\0\0\0\0");
     mw__2E_();
     mw_dup();
@@ -32777,7 +33124,7 @@ static void mb_c99_var_push_21__1 (void) {
 }
 
 static void mb_c99_var_push_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("incref(\0\0\0\0");
     mw__2E_();
     mw__2E_var();
@@ -32786,52 +33133,52 @@ static void mb_c99_var_push_21__2 (void) {
 }
 
 static void mb_c99_pack_ctx_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("push_u64(0);\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_pack_ctx_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_var_push_21_();
     push_u64(0);
     push_fnptr(&mb_c99_pack_ctx_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_pack_ctx_21__3 (void) {
-    do_drop();
-    push_ptr("do_pack_cons();\0\0\0\0");
+    mw_prim_drop();
+    push_ptr("mw_prim_pack_cons();\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_ctx_physical_vars_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_var_is_physical();
 }
 
 static void mb_c99_unpack_ctx_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_unpack_ctx_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     push_u64(0);
     push_fnptr(&mb_c99_unpack_ctx_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_unpack_ctx_21__2 (void) {
-    do_drop();
-    push_ptr("do_pack_uncons();\0\0\0\0");
+    mw_prim_drop();
+    push_ptr("mw_prim_pack_uncons();\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_unpack_ctx_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("VAL \0\0\0\0");
     mw__2E_();
     mw__2E_var();
@@ -32840,21 +33187,21 @@ static void mb_c99_unpack_ctx_21__3 (void) {
 }
 
 static void mb_c99_unpack_ctx_21__4 (void) {
-    do_drop();
-    push_ptr("do_drop();\0\0\0\0");
+    mw_prim_drop();
+    push_ptr("mw_prim_drop();\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_decref_ctx_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_decref_ctx_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_decref_ctx_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("decref(\0\0\0\0");
     mw__2E_();
     mw__2E_var();
@@ -32863,14 +33210,14 @@ static void mb_c99_decref_ctx_21__2 (void) {
 }
 
 static void mb__2E_block_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
     mw_Block_2E_id();
     mw__2E_n();
 }
 
 static void mb__2E_block_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_word_name();
     mw__40_();
     mw__2E_name();
@@ -32883,30 +33230,30 @@ static void mb__2E_block_2 (void) {
 }
 
 static void mb_c99_case_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_case_body();
     mw__40_();
     mw_c99_arrow_21_();
     push_u64(0);
     push_fnptr(&mb_c99_case_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_case_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("break;\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_pattern_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("default:\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_pattern_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("case \0\0\0\0");
     mw__2E_();
     mw_dup();
@@ -32918,7 +33265,7 @@ static void mb_c99_pattern_21__4 (void) {
 }
 
 static void mb_c99_pattern_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_tag_num_inputs_3F_();
     mw_nip();
     mw_dup();
@@ -32927,72 +33274,72 @@ static void mb_c99_pattern_21__5 (void) {
     if (pop_u64()) {
         push_u64(0);
         push_fnptr(&mb_c99_pattern_21__7);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_c99_line();
         mw_1_();
         push_u64(0);
         push_fnptr(&mb_c99_pattern_21__8);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_repeat();
     } else {
         mw_drop();
         push_u64(0);
         push_fnptr(&mb_c99_pattern_21__11);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_c99_line();
     }
 }
 
 static void mb_c99_pattern_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_pattern_21__7);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
     mw_1_();
     push_u64(0);
     push_fnptr(&mb_c99_pattern_21__8);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_repeat();
 }
 
 static void mb_c99_pattern_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_u64(0);
     push_fnptr(&mb_c99_pattern_21__11);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_pattern_21__7 (void) {
-    do_drop();
-    push_ptr("do_pack_uncons(); do_drop();\0\0\0\0");
+    mw_prim_drop();
+    push_ptr("mw_prim_pack_uncons(); mw_prim_drop();\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_pattern_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_c99_pattern_21__9);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_pattern_21__9 (void) {
-    do_drop();
-    push_ptr("do_pack_uncons(); do_swap();\0\0\0\0");
+    mw_prim_drop();
+    push_ptr("mw_prim_pack_uncons(); mw_prim_swap();\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_pattern_21__11 (void) {
-    do_drop();
-    push_ptr("do_drop();\0\0\0\0");
+    mw_prim_drop();
+    push_ptr("mw_prim_drop();\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_word_sig_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("static void mw_\0\0\0\0");
     mw__2E_();
     mw_word_name();
@@ -33003,7 +33350,7 @@ static void mb_c99_word_sig_21__1 (void) {
 }
 
 static void mb_c99_block_sig_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("static void \0\0\0\0");
     mw__2E_();
     mw__2E_block();
@@ -33012,7 +33359,7 @@ static void mb_c99_block_sig_21__1 (void) {
 }
 
 static void mb_c99_field_sig_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("static void mw_\0\0\0\0");
     mw__2E_();
     mw_field_name();
@@ -33023,7 +33370,7 @@ static void mb_c99_field_sig_21__1 (void) {
 }
 
 static void mb_c99_block_def_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("static void \0\0\0\0");
     mw__2E_();
     mw_dup();
@@ -33033,7 +33380,7 @@ static void mb_c99_block_def_21__1 (void) {
 }
 
 static void mb_c99_block_def_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_block_arrow();
     mw_force_21_();
     mw_dup();
@@ -33048,29 +33395,29 @@ static void mb_c99_block_def_21__2 (void) {
 }
 
 static void mb_c99_block_def_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("}\0\0\0\0");
     mw__2E_();
 }
 
 static void mb_c99_word_def_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_c99_arrow_21_();
 }
 
 static void mb_atom_arg_add_left_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_cons();
 }
 
 static void mb_arrow_atom_add_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     mw_snoc();
 }
 
 static void mb_block_new_deferred_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_block_ctx();
     mw__40_();
@@ -33089,7 +33436,7 @@ static void mb_block_new_deferred_21__1 (void) {
 }
 
 static void mb_elab_arrow_hom_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_arrow_fwd_21_();
     mw_dup();
     mw_arrow_token_end();
@@ -33101,16 +33448,16 @@ static void mb_elab_arrow_hom_21__1 (void) {
 }
 
 static void mb_block_unify_type_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     push_u64(0);
     push_fnptr(&mb_block_unify_type_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
 }
 
 static void mb_block_unify_type_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_block_dom();
     mw__40_();
     mw_type_unify_21_();
@@ -33118,7 +33465,7 @@ static void mb_block_unify_type_21__2 (void) {
 }
 
 static void mb_block_unify_type_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_block_cod();
     mw__40_();
     mw_type_unify_21_();
@@ -33126,13 +33473,13 @@ static void mb_block_unify_type_21__3 (void) {
 }
 
 static void mb_elab_expand_morphism_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TYPE_ERROR();
     mw_TYPE_ERROR();
 }
 
 static void mb_elab_expand_morphism_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_meta_alloc_21_();
     mw_TMeta();
     mw_meta_alloc_21_();
@@ -33143,170 +33490,170 @@ static void mb_elab_expand_morphism_21__5 (void) {
 }
 
 static void mb_elab_expand_morphism_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TYPE_ERROR();
     mw_TYPE_ERROR();
 }
 
 static void mb_type_unify_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TMeta();
 }
 
 static void mb_type_unify_21__14 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_type_unify_21__16 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_type_unify_21__19 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_type_unify_21__24 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TPrim();
 }
 
 static void mb_type_unify_21__26 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TPrim();
 }
 
 static void mb_type_unify_21__28 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TPrim();
 }
 
 static void mb_type_unify_21__31 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TPrim();
 }
 
 static void mb_type_unify_21__36 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TData();
 }
 
 static void mb_type_unify_21__38 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TData();
 }
 
 static void mb_type_unify_21__40 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TData();
 }
 
 static void mb_type_unify_21__43 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TData();
 }
 
 static void mb_type_unify_21__48 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TTable();
 }
 
 static void mb_type_unify_21__50 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TTable();
 }
 
 static void mb_type_unify_21__52 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TTable();
 }
 
 static void mb_type_unify_21__55 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TTable();
 }
 
 static void mb_type_unify_21__60 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TTensor();
 }
 
 static void mb_type_unify_21__62 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TTensor();
 }
 
 static void mb_type_unify_21__64 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TTensor();
 }
 
 static void mb_type_unify_21__67 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TTensor();
 }
 
 static void mb_type_unify_21__72 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TMorphism();
 }
 
 static void mb_type_unify_21__74 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TMorphism();
 }
 
 static void mb_type_unify_21__76 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TMorphism();
 }
 
 static void mb_type_unify_21__79 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TMorphism();
 }
 
 static void mb_type_unify_21__84 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TApp();
 }
 
 static void mb_type_unify_21__86 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TApp();
 }
 
 static void mb_type_unify_21__88 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TApp();
 }
 
 static void mb_type_unify_21__91 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TApp();
 }
 
 static void mb_type_unify_21__96 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TValue();
 }
 
 static void mb_type_unify_21__98 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TValue();
 }
 
 static void mb_match_add_case_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_match_cases();
     mw__40_();
 }
 
 static void mb_match_add_case_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_case_token();
     mw__40_();
     push_ptr("Case is unreachable.\0\0\0\0");
@@ -33315,7 +33662,7 @@ static void mb_match_add_case_21__2 (void) {
 }
 
 static void mb_match_add_case_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_snoc();
     mw_over();
     mw_match_cases();
@@ -33323,16 +33670,16 @@ static void mb_match_add_case_21__3 (void) {
 }
 
 static void mb_match_is_exhaustive_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_true();
 }
 
 static void mb_match_is_exhaustive_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_match_scrutinee_data_3F_();
     switch (get_top_data_tag()) {
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_data_num_tags();
             mw_over();
             mw_match_cases();
@@ -33341,19 +33688,19 @@ static void mb_match_is_exhaustive_3F__2 (void) {
             mw__3D__3D_();
             break;
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_true();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mb_match_scrutinee_data_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_head();
     switch (get_top_data_tag()) {
         case 7LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_SOME();
             break;
         default:
@@ -33364,124 +33711,124 @@ static void mb_match_scrutinee_data_3F__1 (void) {
 }}
 
 static void mb_cases_have_default_case_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_case_is_default_case();
 }
 
 static void mb_type_head_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_head();
 }
 
 static void mb_type_head_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TMeta();
 }
 
 static void mb_cases_cover_case_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup2();
     mw_case_is_covered();
 }
 
 static void mb_case_is_covered_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_case_pattern();
     mw__40_();
 }
 
 static void mb_pattern_is_covered_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
     mw_true();
 }
 
 static void mb_pattern_is_covered_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw__3D__3D_();
 }
 
 static void mb_def_type_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_DEF_TYPE();
 }
 
 static void mb_T1_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T0();
 }
 
 static void mb_T2_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T1();
 }
 
 static void mb_T3_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T2();
 }
 
 static void mb_T4_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T3();
 }
 
 static void mb_T5_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T4();
 }
 
 static void mb_T6_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T5();
 }
 
 static void mb_type_is_physical_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_is_physical();
 }
 
 static void mb_type_is_physical_3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("unbound meta at type-is-physical\0\0\0\0");
     mw_panic_21_();
 }
 
 static void mb_meta_expand_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_meta_expand_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TMeta();
 }
 
 static void mb_type_unify_failed_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_gamma_token_3F_();
     mw_token_location();
     mw_location_trace_21_();
 }
 
 static void mb_type_unify_failed_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_trace_21_();
 }
 
 static void mb_type_unify_failed_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
 }
 
 static void mb_type_hole_unify_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_type_hole_unify_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_THole();
     mw_type_trace_21_();
     push_ptr(" ~ \0\0\0\0");
@@ -33492,12 +33839,12 @@ static void mb_type_hole_unify_21__2 (void) {
 }
 
 static void mb_meta_unify_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_meta_unify_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     mw_type_has_meta_3F_();
     if (pop_u64()) {
@@ -33514,14 +33861,14 @@ static void mb_meta_unify_21__4 (void) {
 }
 
 static void mb_meta_unify_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     mw_TMeta();
     mw_type_unify_failed_21_();
 }
 
 static void mb_meta_unify_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_tuck();
     mw_SOME();
     mw_swap();
@@ -33530,13 +33877,13 @@ static void mb_meta_unify_21__6 (void) {
 }
 
 static void mb_type_var_unify_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_TVar();
 }
 
 static void mb_type_var_unify_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_TVar();
@@ -33547,18 +33894,18 @@ static void mb_type_var_unify_21__2 (void) {
 }
 
 static void mb_type_var_unify_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_type_prim_unify_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_TPrim();
 }
 
 static void mb_type_prim_unify_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_TPrim();
@@ -33569,18 +33916,18 @@ static void mb_type_prim_unify_21__2 (void) {
 }
 
 static void mb_type_prim_unify_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TPrim();
 }
 
 static void mb_type_data_unify_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_TData();
 }
 
 static void mb_type_data_unify_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_TData();
@@ -33591,18 +33938,18 @@ static void mb_type_data_unify_21__2 (void) {
 }
 
 static void mb_type_data_unify_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TData();
 }
 
 static void mb_type_table_unify_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_TTable();
 }
 
 static void mb_type_table_unify_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_TTable();
@@ -33613,12 +33960,12 @@ static void mb_type_table_unify_21__2 (void) {
 }
 
 static void mb_type_table_unify_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TTable();
 }
 
 static void mb_type_unify_pair_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     {
         VAL d2 = pop_value();
@@ -33629,287 +33976,287 @@ static void mb_type_unify_pair_21__1 (void) {
 }
 
 static void mb_type_unify_pair_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_unify_21_();
     mw_swap();
 }
 
 static void mb_type_unify_pair_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
 }
 
 static void mb_value_unify_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_VALUE_INT();
     mw_TValue();
 }
 
 static void mb_value_unify_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
     mw_TYPE_INT();
 }
 
 static void mb_value_unify_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_VALUE_STR();
     mw_TValue();
 }
 
 static void mb_value_unify_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
     mw_TYPE_STR();
 }
 
 static void mb_value_unify_21__15 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_VALUE_BLOCK();
     mw_TValue();
 }
 
 static void mb_value_unify_21__16 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_block_infer_type_21_();
     mw_block_unify_type_21_();
 }
 
 static void mb_type2_has_meta_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
     mw_true();
 }
 
 static void mb_type2_has_meta_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_has_meta();
 }
 
 static void mb_value_type_has_meta_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_block_dom();
     mw__40_();
 }
 
 static void mb_type_trace_sig_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_trace_sig_21_();
 }
 
 static void mb_type_trace_sig_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_meta_trace_21_();
 }
 
 static void mb_type_trace_stack_dom_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_type_trace_stack_dom_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_trace_stack_21_();
     push_ptr(" \0\0\0\0");
     mw_str_trace_21_();
 }
 
 static void mb_type_trace_stack_cod_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_type_trace_stack_cod_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr(" \0\0\0\0");
     mw_str_trace_21_();
     mw_type_trace_stack_21_();
 }
 
 static void mb_type_trace_stack_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_trace_stack_21_();
 }
 
 static void mb_type_trace_stack_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_meta_trace_21_();
 }
 
 static void mb_type_trace_stack_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_type_trace_stack_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr(" .\0\0\0\0");
     mw_str_trace_21_();
 }
 
 static void mb_value_as_type_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_block_dom();
     mw__40_();
 }
 
 static void mb_type_semifreshen_sig_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_semifreshen_sig_aux();
 }
 
 static void mb_type_semifreshen_sig_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_type_sig_needs_fresh_stack_rest_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_sig_needs_fresh_stack_rest();
 }
 
 static void mb_type_sig_needs_fresh_stack_rest_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_false();
 }
 
 static void mb_type_sig_needs_fresh_stack_rest_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_stack_rest();
     mw_TYPE_UNIT();
     mw__3D__3D_();
 }
 
 static void mb_type_sig_needs_fresh_stack_rest_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_false();
 }
 
 static void mb_type_semifreshen_sig_aux_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_semifreshen_sig_aux();
 }
 
 static void mb_type_semifreshen_sig_aux_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TMeta();
 }
 
 static void mb_type_semifreshen_sig_aux_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_semifreshen_sig_stack();
 }
 
 static void mb_type_semifreshen_sig_aux_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_semifreshen_sig_stack();
 }
 
 static void mb_type_semifreshen_sig_stack_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_semifreshen_sig_stack();
 }
 
 static void mb_type_semifreshen_sig_stack_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TMeta();
 }
 
 static void mb_type_semifreshen_sig_stack_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_semifreshen_sig_stack();
 }
 
 static void mb_type_freshen_sig_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_freshen_sig_aux();
 }
 
 static void mb_type_freshen_sig_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_freshen();
 }
 
 static void mb_type_freshen_sig_aux_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_freshen_sig_aux();
 }
 
 static void mb_type_freshen_sig_aux_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TMeta();
 }
 
 static void mb_type_freshen_sig_aux_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_freshen_sig_stack();
 }
 
 static void mb_type_freshen_sig_aux_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_freshen_sig_stack();
 }
 
 static void mb_type_freshen_sig_aux_7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
 }
 
 static void mb_type_stack_rest_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_stack_rest();
 }
 
 static void mb_type_stack_rest_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TMeta();
 }
 
 static void mb_type_freshen_sig_stack_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_freshen_sig_stack();
 }
 
 static void mb_type_freshen_sig_stack_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_meta_freshen();
 }
 
 static void mb_type_freshen_sig_stack_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_freshen_sig_stack();
 }
 
 static void mb_type_freshen_sig_stack_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_freshen();
 }
 
 static void mb_meta_freshen_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_freshen();
 }
 
 static void mb_meta_freshen_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_meta_alloc_21_();
     mw_TMeta();
 }
 
 static void mb_type_var_freshen_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_tuck();
     mw_subst_get_var();
 }
 
 static void mb_type_var_freshen_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_meta_alloc_21_();
     mw_TMeta();
     mw_dup();
@@ -33922,24 +34269,24 @@ static void mb_type_var_freshen_2 (void) {
 }
 
 static void mb_type_var_freshen_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_rotr();
     mw_subst_new_21_();
 }
 
 static void mb_type_pair_freshen_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_freshen();
     mw_swap();
 }
 
 static void mb_type_pair_freshen_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
 }
 
 static void mb_type_rigidify_sig_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_meta_alloc_21_();
     mw_TMeta();
     mw_meta_alloc_21_();
@@ -33948,93 +34295,93 @@ static void mb_type_rigidify_sig_21__2 (void) {
 }
 
 static void mb_meta_expand_or_update_21__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     mw_dup();
     mw_SOME();
     decref(var_f);
 }
 
 static void mb_type_rigidify_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ctx_make_fresh_type_var_21_();
     mw_TVar();
 }
 
 static void mb_type_rigidify_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_rigidify_21_();
 }
 
 static void mb_type_rigidify_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_rigidify_21_();
 }
 
 static void mb_type_rigidify_21__14 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_rigidify_stack_21_();
 }
 
 static void mb_type_rigidify_21__15 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_rigidify_21_();
 }
 
 static void mb_type_rigidify_21__17 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_rigidify_stack_21_();
 }
 
 static void mb_type_rigidify_21__18 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_rigidify_stack_21_();
 }
 
 static void mb_type_rigidify_stack_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ctx_make_fresh_stack_type_var_21_();
     mw_TVar();
 }
 
 static void mb_type_rigidify_stack_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_rigidify_stack_21_();
 }
 
 static void mb_type_rigidify_stack_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_rigidify_21_();
 }
 
 static void mb_type_arity_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_arity();
 }
 
 static void mb_type_arity_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_i64(0LL);
 }
 
 static void mb_type_max_count_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_max_count();
 }
 
 static void mb_type_max_count_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_NONE();
 }
 
 static void mb_type_max_count_7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_data_tags();
     mw__40_();
     mw_len();
@@ -34042,121 +34389,121 @@ static void mb_type_max_count_7 (void) {
 }
 
 static void mb_type_max_count_8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_NONE();
 }
 
 static void mb_data_is_enum_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_tag_num_inputs_3F_();
     push_i64(0LL);
     mw__3D__3D_();
 }
 
 static void mb_type_max_num_params_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_max_num_params();
 }
 
 static void mb_type_max_num_params_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_i64(0LL);
 }
 
 static void mb_type_num_morphisms_on_top_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_num_morphisms_on_top();
 }
 
 static void mb_type_num_morphisms_on_top_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_i64(0LL);
 }
 
 static void mb_type_num_morphisms_on_top_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_num_morphisms_on_top();
     mw_1_2B_();
 }
 
 static void mb_type_num_morphisms_on_top_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_i64(0LL);
 }
 
 static void mb_map_insert_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unMAP();
 }
 
 static void mb_map_lookup_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unMAP();
 }
 
 static void mb_subst_match_var_1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_subst_match_var_2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
 }
 
 static void mb_subst_match_var_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_subst_new_21_();
 }
 
 static void mb_subst_match_var_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_subst_get_var();
     mw_type_unify_21_();
     mw_drop();
 }
 
 static void mb_data_add_tag_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_snoc();
 }
 
 static void mb_map_keys_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unpack2();
     mw_nip();
 }
 
 static void mb_map_values_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unpack2();
     mw_drop();
 }
 
 static void mb_order2_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_order2_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
 }
 
 static void mb_order3_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_order2();
 }
 
 static void mb_order3_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_order3_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     {
         VAL d2 = pop_value();
@@ -34166,37 +34513,37 @@ static void mb_order3_3 (void) {
 }
 
 static void mb_order3_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_order2();
 }
 
 static void mb_Bag__3E_Bag_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_BAG_2B_();
 }
 
 static void mb_bag_split_half_left_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_BAG_2B_();
 }
 
 static void mb_bag_split_half_right_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_BAG();
 }
 
 static void mb_bag_split_half_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_BAG();
 }
 
 static void mb_bag_unsnoc_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_BAG();
 }
 
 static void mb_bag_insert_2B__2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_bag_first_2B_();
@@ -34206,7 +34553,7 @@ static void mb_bag_insert_2B__2B__1 (void) {
 }
 
 static void mb_bag_insert_2B__2B__3 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_bag_split_half_right();
@@ -34233,24 +34580,24 @@ static void mb_bag_insert_2B__2B__3 (void) {
 }
 
 static void mb_bag_insert_2B__2B__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_bag_first_2B_();
 }
 
 static void mb_bag_insert_2B__2B__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_bag_split_half_right();
 }
 
 static void mb_bag_insert_2B__2B__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_bag_insert_2B__2B_();
     mw_bag_cat_unsafe__2B_();
 }
 
 static void mb_bag_insert_2B__2B__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_swap();
     {
@@ -34262,12 +34609,12 @@ static void mb_bag_insert_2B__2B__6 (void) {
 }
 
 static void mb_bag_insert_2B__2B__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_bag_insert_2B_();
 }
 
 static void mb_bag_has_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_bag_first_2B_();
@@ -34277,7 +34624,7 @@ static void mb_bag_has_2B__1 (void) {
 }
 
 static void mb_bag_has_2B__3 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_bag_split_half_right();
@@ -34288,18 +34635,18 @@ static void mb_bag_has_2B__3 (void) {
     mw_cmp_3F_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_drop4();
             mw_true();
             break;
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             mw_drop();
             mw_nip();
             mw_bag_has();
             break;
         case 2LL:
-            do_drop();
+            mw_prim_drop();
             mw_drop();
             {
                 VAL d4 = pop_value();
@@ -34308,42 +34655,42 @@ static void mb_bag_has_2B__3 (void) {
             }
             mw_bag_has_2B_();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mb_bag_has_2B__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_bag_first_2B_();
 }
 
 static void mb_bag_has_2B__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_bag_split_half_right();
 }
 
 static void mb_bag_has_2B__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
 }
 
 static void mb_bag_cat_unsafe__2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unBAG();
 }
 
 static void mb_bag_cat_unsafe_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unBAG_2B_();
 }
 
 static void mb_bag_cat_unsafe_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unBAG();
 }
 
 static void mb_bag_lookup_key_2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_bag_first_2B_();
@@ -34360,7 +34707,7 @@ static void mb_bag_lookup_key_2B__1 (void) {
 }
 
 static void mb_bag_lookup_key_2B__5 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_bag_split_half_right();
@@ -34372,7 +34719,7 @@ static void mb_bag_lookup_key_2B__5 (void) {
     mw_cmp_3F_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_drop2();
             mw_SOME();
             {
@@ -34382,7 +34729,7 @@ static void mb_bag_lookup_key_2B__5 (void) {
             }
             break;
         case 1LL:
-            do_drop();
+            mw_prim_drop();
             {
                 VAL d4 = pop_value();
                 mw_drop2();
@@ -34392,7 +34739,7 @@ static void mb_bag_lookup_key_2B__5 (void) {
             mw_bag_lookup_key_2B_();
             break;
         case 2LL:
-            do_drop();
+            mw_prim_drop();
             {
                 VAL d4 = pop_value();
                 mw_drop3();
@@ -34400,29 +34747,29 @@ static void mb_bag_lookup_key_2B__5 (void) {
             }
             mw_bag_lookup_key();
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mb_bag_lookup_key_2B__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_bag_first_2B_();
     mw_unpack2();
 }
 
 static void mb_bag_lookup_key_2B__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_SOME();
 }
 
 static void mb_bag_lookup_key_2B__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_NONE();
 }
 
 static void mb_bag_lookup_key_2B__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_bag_split_half_right();
     mw_dup();
     mw_bag_first_2B_();
@@ -34430,23 +34777,23 @@ static void mb_bag_lookup_key_2B__6 (void) {
 }
 
 static void mb_bag_lookup_key_2B__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
 }
 
 static void mb_bag_lookup_key_2B__10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
     mw_nip();
 }
 
 static void mb_bag_lookup_key_2B__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop3();
 }
 
 static void mb_bag_replace_key_2B__2B__1 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_bag_first_2B_();
@@ -34463,7 +34810,7 @@ static void mb_bag_replace_key_2B__2B__1 (void) {
 }
 
 static void mb_bag_replace_key_2B__2B__5 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_bag_split_half_right();
@@ -34490,37 +34837,37 @@ static void mb_bag_replace_key_2B__2B__5 (void) {
 }
 
 static void mb_bag_replace_key_2B__2B__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_bag_first_2B_();
 }
 
 static void mb_bag_replace_key_2B__2B__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
     mw_B1_2B_();
 }
 
 static void mb_bag_replace_key_2B__2B__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_B2_2B_();
 }
 
 static void mb_bag_replace_key_2B__2B__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_bag_split_half_right();
     mw_dup();
     mw_bag_first_2B_();
 }
 
 static void mb_bag_replace_key_2B__2B__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
     mw_bag_replace_key_2B__2B_();
     mw_bag_cat_unsafe__2B_();
 }
 
 static void mb_bag_replace_key_2B__2B__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
     mw_swap();
     {
@@ -34532,85 +34879,85 @@ static void mb_bag_replace_key_2B__2B__8 (void) {
 }
 
 static void mb_bag_replace_key_2B__2B__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_bag_replace_key_2B_();
 }
 
 static void mb__3D__3D_key_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unpack2();
     mw_nip();
 }
 
 static void mb__3C__3D_key_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unpack2();
     mw_nip();
 }
 
 static void mb_delay0_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_run();
 }
 
 static void mb_delay2_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unpack3();
     mw_run();
 }
 
 static void mb_delay3_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unpack4();
     mw_run();
 }
 
 static void mb_delay4_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unpack5();
     mw_run();
 }
 
 static void mb_force_or2_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     mw_pack2();
     decref(var_f);
 }
 
 static void mb_type_elab_stack_assertion_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_true();
 }
 
 static void mb_elab_type_sig_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_ptr("expected type signature\0\0\0\0");
     mw_emit_error_21_();
 }
 
 static void mb_elab_type_sig_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_type_sig_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
 }
 
 static void mb_elab_type_sig_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
 }
 
 static void mb_elab_type_sig_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
     mw_elab_type_stack_21_();
     {
@@ -34621,7 +34968,7 @@ static void mb_elab_type_sig_21__5 (void) {
 }
 
 static void mb_elab_type_sig_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_T0();
@@ -34631,37 +34978,37 @@ static void mb_elab_type_sig_21__7 (void) {
 }
 
 static void mb_elab_type_sig_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
 }
 
 static void mb_elab_type_sig_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T0();
     mw_rotr();
 }
 
 static void mb_elab_type_sig_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_type_sig_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_ptr("expected right paren or comma\0\0\0\0");
     mw_emit_error_21_();
 }
 
 static void mb_elab_type_sig_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_rot4r();
     {
         VAL d2 = pop_value();
         mw_swap();
         push_u64(0);
         push_fnptr(&mb_elab_type_sig_21__13);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_for();
         push_value(d2);
     }
@@ -34669,21 +35016,21 @@ static void mb_elab_type_sig_21__11 (void) {
 }
 
 static void mb_elab_type_sig_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     push_u64(0);
     push_fnptr(&mb_elab_type_sig_21__13);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_for();
 }
 
 static void mb_elab_type_sig_21__13 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T_2A_();
 }
 
 static void mb_elab_type_sig_params_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_token_next();
     {
@@ -34693,7 +35040,7 @@ static void mb_elab_type_sig_params_21__1 (void) {
         mw_token_args();
         push_u64(0);
         push_fnptr(&mb_elab_type_sig_params_21__3);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_for();
         mw_swap();
         push_value(d2);
@@ -34701,25 +35048,25 @@ static void mb_elab_type_sig_params_21__1 (void) {
 }
 
 static void mb_elab_type_sig_params_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L0();
     mw_swap();
 }
 
 static void mb_elab_type_sig_params_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_L0();
     mw_rotr();
     mw_token_args();
     push_u64(0);
     push_fnptr(&mb_elab_type_sig_params_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_for();
     mw_swap();
 }
 
 static void mb_elab_type_sig_params_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_type_sig_21_();
     mw_drop();
     mw_swap();
@@ -34731,12 +35078,12 @@ static void mb_elab_type_sig_params_21__3 (void) {
 }
 
 static void mb_elab_type_sig_params_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_snoc();
 }
 
 static void mb_elab_type_stack_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_stack_var_21_();
     {
         VAL d2 = pop_value();
@@ -34746,7 +35093,7 @@ static void mb_elab_type_stack_21__1 (void) {
 }
 
 static void mb_elab_type_stack_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_TYPE_UNIT();
@@ -34755,23 +35102,23 @@ static void mb_elab_type_stack_21__3 (void) {
 }
 
 static void mb_elab_type_stack_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_elab_type_stack_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TYPE_UNIT();
 }
 
 static void mb_elab_type_stack_rest_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_sig_is_stack_end2_3F_();
     mw_not();
 }
 
 static void mb_elab_type_stack_rest_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     {
         VAL d2 = pop_value();
@@ -34788,18 +35135,18 @@ static void mb_elab_type_stack_rest_21__2 (void) {
 }
 
 static void mb_elab_type_stack_rest_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_type_atom_21_();
 }
 
 static void mb_elab_type_stack_rest_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     mw_TTensor();
 }
 
 static void mb_elab_type_atom_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_type_var_21_();
     {
         VAL d2 = pop_value();
@@ -34809,7 +35156,7 @@ static void mb_elab_type_atom_21__1 (void) {
 }
 
 static void mb_elab_type_atom_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_sig_token_is_type_con_3F_();
     if (pop_u64()) {
         mw_elab_type_con_21_();
@@ -34842,17 +35189,17 @@ static void mb_elab_type_atom_21__3 (void) {
 }
 
 static void mb_elab_type_atom_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TVar();
 }
 
 static void mb_elab_type_atom_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_type_con_21_();
 }
 
 static void mb_elab_type_atom_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_underscore_3F_();
     if (pop_u64()) {
         mw_elab_type_dont_care_21_();
@@ -34880,12 +35227,12 @@ static void mb_elab_type_atom_21__5 (void) {
 }
 
 static void mb_elab_type_atom_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_type_dont_care_21_();
 }
 
 static void mb_elab_type_atom_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_sig_token_is_type_hole_3F_();
     if (pop_u64()) {
         mw_elab_type_hole_21_();
@@ -34908,12 +35255,12 @@ static void mb_elab_type_atom_21__7 (void) {
 }
 
 static void mb_elab_type_atom_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_type_hole_21_();
 }
 
 static void mb_elab_type_atom_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_lsquare_3F_();
     if (pop_u64()) {
         mw_elab_type_quote_21_();
@@ -34931,12 +35278,12 @@ static void mb_elab_type_atom_21__9 (void) {
 }
 
 static void mb_elab_type_atom_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_type_quote_21_();
 }
 
 static void mb_elab_type_atom_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_ptr("Expected type, got unknown token.\0\0\0\0");
     mw_emit_error_21_();
@@ -34949,28 +35296,28 @@ static void mb_elab_type_atom_21__11 (void) {
 }
 
 static void mb_elab_type_atom_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TYPE_ERROR();
 }
 
 static void mb_elab_type_arg_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_type_arg_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Unexpected token after type.\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_type_con_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_type_args_21_();
 }
 
 static void mb_elab_type_con_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_dup();
     push_ptr("Wrong number of arguments for type.\0\0\0\0");
@@ -34979,7 +35326,7 @@ static void mb_elab_type_con_21__3 (void) {
 }
 
 static void mb_elab_type_dont_care_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_has_args_3F_();
     if (pop_u64()) {
         mw_dup();
@@ -34994,13 +35341,13 @@ static void mb_elab_type_dont_care_21__1 (void) {
 }
 
 static void mb_elab_type_dont_care_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("type don't care is not allowed here\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_type_dont_care_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_ptr("Types with args not yet supported.\0\0\0\0");
     mw_emit_error_21_();
@@ -35008,12 +35355,12 @@ static void mb_elab_type_dont_care_21__2 (void) {
 }
 
 static void mb_elab_type_dont_care_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TYPE_DONT_CARE();
 }
 
 static void mb_elab_type_hole_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_has_args_3F_();
     if (pop_u64()) {
         mw_dup();
@@ -35029,13 +35376,13 @@ static void mb_elab_type_hole_21__1 (void) {
 }
 
 static void mb_elab_type_hole_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("type holes are not allowed here\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_type_hole_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_ptr("Types with args not yet supported.\0\0\0\0");
     mw_emit_error_21_();
@@ -35043,28 +35390,28 @@ static void mb_elab_type_hole_21__2 (void) {
 }
 
 static void mb_elab_type_hole_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_name_3F_();
     mw_THole();
 }
 
 static void mb_elab_type_quote_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_type_sig_21_();
 }
 
 static void mb_elab_type_quote_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_type_stack_21_();
 }
 
 static void mb_elab_implicit_var_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_elab_ctx_3F_();
 }
 
 static void mb_elab_implicit_var_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_name_40_();
     mw_dup2();
     mw_swap();
@@ -35072,7 +35419,7 @@ static void mb_elab_implicit_var_21__2 (void) {
 }
 
 static void mb_elab_implicit_var_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
     mw_dup();
     mw_var_type();
@@ -35080,7 +35427,7 @@ static void mb_elab_implicit_var_21__4 (void) {
 }
 
 static void mb_elab_implicit_var_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_var_new_implicit_21_();
@@ -35091,27 +35438,27 @@ static void mb_elab_implicit_var_21__6 (void) {
     mw__21_();
     push_u64(0);
     push_fnptr(&mb_elab_implicit_var_21__8);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
 }
 
 static void mb_elab_implicit_var_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_var_new_implicit_21_();
 }
 
 static void mb_elab_implicit_var_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ctx_new_21_();
 }
 
 static void mb_elab_implicit_var_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_elab_ctx_replace();
 }
 
 static void mb_ctx_lookup_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup2();
     mw_var_name();
     mw__40_();
@@ -35119,7 +35466,7 @@ static void mb_ctx_lookup_1 (void) {
 }
 
 static void mb_elab_type_unify_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_GAMMA();
     mw_rotr();
     mw_type_unify_21_();
@@ -35127,17 +35474,17 @@ static void mb_elab_type_unify_21__1 (void) {
 }
 
 static void mb_ctx_new_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_unCTX();
 }
 
 static void mb_elab_type_args_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_has_args_3F_();
 }
 
 static void mb_elab_type_args_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_tuck();
@@ -35173,23 +35520,23 @@ static void mb_elab_type_args_21__2 (void) {
 }
 
 static void mb_elab_type_args_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_type_args_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_tuck();
 }
 
 static void mb_elab_type_args_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_right_enclosure_3F_();
     mw_not();
 }
 
 static void mb_elab_type_args_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
     mw_swap();
     {
@@ -35207,40 +35554,40 @@ static void mb_elab_type_args_21__5 (void) {
 }
 
 static void mb_elab_type_args_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_type_arg_21_();
 }
 
 static void mb_elab_type_args_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     mw_TApp();
 }
 
 static void mb_elab_type_args_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
 }
 
 static void mb_elab_simple_type_arg_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_elab_default();
 }
 
 static void mb_ab_save_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_ab_build_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_Arrow_2E_alloc_21_();
     mw_ab_home();
     mw__40_();
@@ -35256,9 +35603,9 @@ static void mb_ab_build_21__2 (void) {
     push_u64(0);
     push_value(var_f);
     incref(var_f);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_fnptr(&mb_ab_build_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
     mw_tuck();
     mw_dup2();
@@ -35279,41 +35626,41 @@ static void mb_ab_build_21__2 (void) {
     mw__21_();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     mw_ab_arrow();
     mw__40_();
     decref(var_f);
 }
 
 static void mb_ab_build_21__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_1_2B_();
     decref(var_f);
 }
 
 static void mb_ab_build_hom_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_rotr();
     decref(var_f);
 }
 
 static void mb_ab_build_hom_21__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     mw_ab_unify_type_21_();
     decref(var_f);
 }
 
 static void mb_ab_unify_type_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ab_token();
     mw__40_();
     mw_GAMMA();
@@ -35322,64 +35669,64 @@ static void mb_ab_unify_type_21__1 (void) {
 }
 
 static void mb_ab_build_word_arrow_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_elab_word_ctx_sig_weak_21_();
     decref(var_f);
 }
 
 static void mb_ab_build_word_arrow_21__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_ab_build_word_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_value(var_f);
     incref(var_f);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_fnptr(&mb_ab_build_word_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_build_word_arrow_21_();
     mw_ready();
     decref(var_f);
 }
 
 static void mb_ab_build_word_21__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     decref(var_f);
 }
 
 static void mb_ab_build_word_21__4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_ab_atom_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ab_arrow();
     mw__40_();
     mw_arrow_atoms();
@@ -35387,36 +35734,36 @@ static void mb_ab_atom_21__1 (void) {
 }
 
 static void mb_ab_optimized_snoc_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_ab_optimized_snoc_21__2);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip_3F_();
     push_u64(0);
     push_fnptr(&mb_ab_optimized_snoc_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_and();
 }
 
 static void mb_ab_optimized_snoc_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     mw_atoms_turn_last_block_to_arg();
     mw_swap();
 }
 
 static void mb_ab_optimized_snoc_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_atoms_has_last_block_3F_();
 }
 
 static void mb_ab_optimized_snoc_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_atom_accepts_args_3F_();
 }
 
 static void mb_atom_accepts_args_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_atom_args();
     mw__40_();
@@ -35424,7 +35771,7 @@ static void mb_atom_accepts_args_3F__2 (void) {
 }
 
 static void mb_atoms_turn_last_block_to_arg_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_atom_cod();
     mw__40_();
     mw_rotl();
@@ -35434,51 +35781,51 @@ static void mb_atoms_turn_last_block_to_arg_4 (void) {
 }
 
 static void mb_atom_to_run_var_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_SOME();
 }
 
 static void mb_atom_to_run_var_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_NONE();
 }
 
 static void mb_ab_op_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
     mw_atom_subst();
     mw__21_();
 }
 
 static void mb_ab_op_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
     mw_atom_dom();
     mw__21_();
 }
 
 static void mb_ab_expand_opsig_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ab_type();
     mw__40_();
     mw_dup();
 }
 
 static void mb_ab_expand_opsig_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ab_type();
     mw__40_();
 }
 
 static void mb_ab_expand_opsig_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_type_unify_21_();
     mw_drop();
 }
 
 static void mb_ab_prim_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ab_token();
     mw__40_();
     push_ptr("compiler error: prim type missing\0\0\0\0");
@@ -35486,97 +35833,97 @@ static void mb_ab_prim_21__1 (void) {
 }
 
 static void mb_ab_prim_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_OP_PRIM();
     mw_ab_op_21_();
 }
 
 static void mb_ab_block_at_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_ab_block_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_ab_dip_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_ab_if_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
     decref(var_g);
 }
 
 static void mb_ab_if_21__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_g);
     incref(var_g);
-    do_run();
+    mw_prim_run();
     decref(var_f);
     decref(var_g);
 }
 
 static void mb_ab_while_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
     decref(var_g);
 }
 
 static void mb_ab_while_21__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_g = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_g);
     incref(var_g);
-    do_run();
+    mw_prim_run();
     decref(var_f);
     decref(var_g);
 }
 
 static void mb_ab_lambda_21__2 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_ab_ctx();
     mw__40_();
     mw_ab_type();
@@ -35585,17 +35932,17 @@ static void mb_ab_lambda_21__2 (void) {
     push_u64(0);
     push_value(var_f);
     incref(var_f);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_fnptr(&mb_ab_lambda_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_reverse_for();
     decref(var_f);
 }
 
 static void mb_ab_lambda_21__3 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     {
         VAL d2 = pop_value();
@@ -35624,9 +35971,9 @@ static void mb_ab_lambda_21__3 (void) {
 }
 
 static void mb_ab_lambda_21__4 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_Param__3E_Var();
     mw_dup();
     {
@@ -35638,17 +35985,17 @@ static void mb_ab_lambda_21__4 (void) {
 }
 
 static void mb_ab_lambda_21__5 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_ctx_new_21_();
     decref(var_f);
 }
 
 static void mb_ab_lambda_21__6 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_rotl();
     mw_var_type();
     mw__40_();
@@ -35656,14 +36003,14 @@ static void mb_ab_lambda_21__6 (void) {
 }
 
 static void mb_ab_lambda_21__7 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         push_value(var_f);
         incref(var_f);
-        do_run();
+        mw_prim_run();
         push_value(d2);
     }
     mw_ab_type();
@@ -35675,23 +36022,23 @@ static void mb_ab_lambda_21__7 (void) {
 }
 
 static void mb_ab_lambda_21__8 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_f = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_f);
     incref(var_f);
-    do_run();
+    mw_prim_run();
     decref(var_f);
 }
 
 static void mb_elab_expand_tensor_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TYPE_ERROR();
     mw_TYPE_ERROR();
 }
 
 static void mb_elab_expand_tensor_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_meta_alloc_21_();
     mw_TMeta();
     mw_meta_alloc_21_();
@@ -35702,20 +36049,20 @@ static void mb_elab_expand_tensor_21__5 (void) {
 }
 
 static void mb_elab_expand_tensor_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TYPE_ERROR();
     mw_TYPE_ERROR();
 }
 
 static void mb_elab_field_type_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_field_index_type();
     mw_force_21_();
     mw_T1();
 }
 
 static void mb_elab_var_sig_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_var_type();
     mw__40_();
     mw_type_semifreshen_sig();
@@ -35723,78 +36070,78 @@ static void mb_elab_var_sig_21__1 (void) {
 }
 
 static void mb_elab_var_sig_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_var_type();
     mw__40_();
     mw_OPSIG_PUSH();
 }
 
 static void mb_elab_match_sig_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_match_dom();
     mw__40_();
 }
 
 static void mb_elab_lambda_sig_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_lambda_dom();
     mw__40_();
 }
 
 static void mb_elab_word_ctx_sig_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_emit_recursive_word_fatal_error_21_();
 }
 
 static void mb_elab_arrow_fwd_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_atoms_21_();
 }
 
 static void mb_elab_atoms_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_atoms_done_3F_();
     mw_not();
 }
 
 static void mb_elab_atoms_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_atom_21_();
     mw_ab_token();
     push_u64(0);
     push_fnptr(&mb_elab_atoms_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_modify();
 }
 
 static void mb_elab_atoms_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_args_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_block_at_21_();
 }
 
 static void mb_elab_match_cases_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_rparen_3F_();
     mw_not();
 }
 
 static void mb_elab_match_cases_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_match_case_21_();
 }
 
 static void mb_elab_match_exhaustive_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_match_exhaustive_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_match_token();
     mw__40_();
@@ -35803,32 +36150,32 @@ static void mb_elab_match_exhaustive_21__2 (void) {
 }
 
 static void mb_elab_lambda_params_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_lambda_param_3F_();
 }
 
 static void mb_elab_lambda_params_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_lambda_params_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_lambda_param_3F_();
 }
 
 static void mb_elab_lambda_params_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_lambda_pop_from_mid_21_();
     push_u64(0);
     push_fnptr(&mb_elab_lambda_params_21__5);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     mw_token_prev();
 }
 
 static void mb_elab_lambda_params_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_sig_token_is_type_var_3F_();
     if (pop_u64()) {
         mw_token_name_40_();
@@ -35869,7 +36216,7 @@ static void mb_elab_lambda_params_21__5 (void) {
     }
     push_u64(0);
     push_fnptr(&mb_elab_lambda_params_21__12);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_sip();
     {
         VAL d2 = pop_value();
@@ -35885,7 +36232,7 @@ static void mb_elab_lambda_params_21__5 (void) {
 }
 
 static void mb_elab_lambda_params_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_name_40_();
     mw_var_new_21_();
     mw_tuck();
@@ -35894,7 +36241,7 @@ static void mb_elab_lambda_params_21__6 (void) {
 }
 
 static void mb_elab_lambda_params_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
     {
         VAL d2 = pop_value();
@@ -35920,13 +36267,13 @@ static void mb_elab_lambda_params_21__7 (void) {
 }
 
 static void mb_elab_lambda_params_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_expand();
     mw_type_is_morphism_3F_();
 }
 
 static void mb_elab_lambda_params_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_name_40_();
     mw_var_new_21_();
     mw_true();
@@ -35939,20 +36286,20 @@ static void mb_elab_lambda_params_21__9 (void) {
 }
 
 static void mb_elab_lambda_params_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("block pattern on non-block argument\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_lambda_params_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_lambda_params();
     mw__40_();
 }
 
 static void mb_elab_lambda_params_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Var__3E_Param();
     mw_swap();
     mw_cons();
@@ -35962,24 +36309,24 @@ static void mb_elab_lambda_params_21__12 (void) {
 }
 
 static void mb_elab_lambda_params_21__13 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_lambda_inner_ctx();
     mw__40_();
 }
 
 static void mb_elab_lambda_body_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_lambda_param_3F_();
 }
 
 static void mb_elab_lambda_body_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_lambda_body_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_lambda_mid();
     mw__40_();
@@ -35993,34 +36340,34 @@ static void mb_elab_lambda_body_21__3 (void) {
 }
 
 static void mb_elab_lambda_body_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_lambda_inner_ctx();
     mw__40_();
 }
 
 static void mb_elab_lambda_pop_from_mid_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_lambda_mid();
     mw__40_();
 }
 
 static void mb_elab_lambda_pop_from_mid_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
     mw_lambda_mid();
     mw__21_();
 }
 
 static void mb_token_is_lambda_param_3F__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_has_args_3F_();
     mw_not();
 }
 
 static void mb_token_is_lambda_param_3F__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_lsquare_3F_();
     if (pop_u64()) {
         mw_dup();
@@ -36046,7 +36393,7 @@ static void mb_token_is_lambda_param_3F__2 (void) {
 }
 
 static void mb_token_is_lambda_param_3F__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_true();
     {
@@ -36067,57 +36414,57 @@ static void mb_token_is_lambda_param_3F__3 (void) {
 }
 
 static void mb_token_is_lambda_param_3F__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_false();
 }
 
 static void mb_token_is_lambda_param_3F__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
     mw_sig_token_is_type_var_3F_();
 }
 
 static void mb_token_is_lambda_param_3F__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
     mw_token_is_rsquare_3F_();
 }
 
 static void mb_expect_token_arrow_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_expect_token_arrow_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Expected arrow.\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_match_case_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup2();
     mw_case_match();
     mw__21_();
 }
 
 static void mb_elab_match_case_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_match_add_case_21_();
 }
 
 static void mb_elab_match_case_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
 }
 
 static void mb_elab_match_case_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_case_pattern_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     {
         VAL d2 = pop_value();
         mw_PATTERN_UNDERSCORE();
@@ -36150,7 +36497,7 @@ static void mb_elab_case_pattern_21__1 (void) {
 }
 
 static void mb_elab_case_pattern_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_name_3F_();
     if (pop_u64()) {
         mw_token_name_3F_();
@@ -36158,17 +36505,17 @@ static void mb_elab_case_pattern_21__5 (void) {
         mw__40_();
         switch (get_top_data_tag()) {
             case 3LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 mw_dup();
                 mw_PATTERN_TAG();
                 mw_rotr();
                 push_u64(0);
                 push_fnptr(&mb_elab_case_pattern_21__8);
-                do_pack_cons();
+                mw_prim_pack_cons();
                 mw_dip2();
                 push_u64(0);
                 push_fnptr(&mb_elab_case_pattern_21__9);
-                do_pack_cons();
+                mw_prim_pack_cons();
                 mw_dip2();
                 mw_elab_tag_sig_21_();
                 mw_subst_nil();
@@ -36180,7 +36527,7 @@ static void mb_elab_case_pattern_21__5 (void) {
                     mw_elab_expand_morphism_21_();
                     push_u64(0);
                     push_fnptr(&mb_elab_case_pattern_21__11);
-                    do_pack_cons();
+                    mw_prim_pack_cons();
                     mw_dip2();
                     mw_elab_type_unify_21_();
                     mw_nip();
@@ -36204,7 +36551,7 @@ static void mb_elab_case_pattern_21__5 (void) {
                 mw_token_succ();
                 break;
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 push_ptr("Unknown constructor.\0\0\0\0");
                 mw_emit_fatal_error_21_();
                 break;
@@ -36221,7 +36568,7 @@ static void mb_elab_case_pattern_21__5 (void) {
 }
 
 static void mb_elab_case_pattern_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_PATTERN_UNDERSCORE();
     mw_over();
     mw_case_pattern();
@@ -36229,7 +36576,7 @@ static void mb_elab_case_pattern_21__2 (void) {
 }
 
 static void mb_elab_case_pattern_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_case_match();
     mw__40_();
@@ -36241,30 +36588,30 @@ static void mb_elab_case_pattern_21__3 (void) {
 }
 
 static void mb_elab_case_pattern_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
     mw_case_mid();
     mw__21_();
 }
 
 static void mb_elab_case_pattern_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_name_3F_();
     mw_name_def();
     mw__40_();
     switch (get_top_data_tag()) {
         case 3LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_dup();
             mw_PATTERN_TAG();
             mw_rotr();
             push_u64(0);
             push_fnptr(&mb_elab_case_pattern_21__8);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_dip2();
             push_u64(0);
             push_fnptr(&mb_elab_case_pattern_21__9);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_dip2();
             mw_elab_tag_sig_21_();
             mw_subst_nil();
@@ -36276,7 +36623,7 @@ static void mb_elab_case_pattern_21__6 (void) {
                 mw_elab_expand_morphism_21_();
                 push_u64(0);
                 push_fnptr(&mb_elab_case_pattern_21__11);
-                do_pack_cons();
+                mw_prim_pack_cons();
                 mw_dip2();
                 mw_elab_type_unify_21_();
                 mw_nip();
@@ -36300,7 +36647,7 @@ static void mb_elab_case_pattern_21__6 (void) {
             mw_token_succ();
             break;
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             push_ptr("Unknown constructor.\0\0\0\0");
             mw_emit_fatal_error_21_();
             break;
@@ -36313,20 +36660,20 @@ static void mb_elab_case_pattern_21__6 (void) {
 }}
 
 static void mb_elab_case_pattern_21__16 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Expected constructor name.\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_case_pattern_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
     mw_case_pattern();
     mw__21_();
 }
 
 static void mb_elab_case_pattern_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_case_match();
     mw__40_();
@@ -36335,11 +36682,11 @@ static void mb_elab_case_pattern_21__9 (void) {
 }
 
 static void mb_elab_case_pattern_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_expand_morphism_21_();
     push_u64(0);
     push_fnptr(&mb_elab_case_pattern_21__11);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_dip2();
     mw_elab_type_unify_21_();
     mw_nip();
@@ -36353,26 +36700,26 @@ static void mb_elab_case_pattern_21__10 (void) {
 }
 
 static void mb_elab_case_pattern_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
 }
 
 static void mb_elab_case_pattern_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
     mw_case_mid();
     mw__21_();
 }
 
 static void mb_elab_case_pattern_21__13 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
     mw_case_subst();
     mw__21_();
 }
 
 static void mb_elab_case_body_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_case_mid();
     mw__40_();
@@ -36388,7 +36735,7 @@ static void mb_elab_case_body_21__1 (void) {
 }
 
 static void mb_elab_case_body_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_case_match();
     mw__40_();
@@ -36397,21 +36744,21 @@ static void mb_elab_case_body_21__2 (void) {
 }
 
 static void mb_elab_case_body_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_arrow_cod();
     mw__40_();
 }
 
 static void mb_elab_case_body_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
     mw_case_body();
     mw__21_();
 }
 
 static void mb_elab_case_body_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_case_match();
     mw__40_();
@@ -36420,7 +36767,7 @@ static void mb_elab_case_body_21__5 (void) {
 }
 
 static void mb_elab_module_header_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_token_args_1();
     mw_token_is_name_3F_();
@@ -36467,65 +36814,65 @@ static void mb_elab_module_header_21__1 (void) {
 }
 
 static void mb_elab_module_header_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_ptr("Expected module header.\0\0\0\0");
     mw_emit_error_21_();
 }
 
 static void mb_elab_module_header_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_module_header_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Expected module name.\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_module_header_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("Module name already taken.\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_module_header_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_module_header_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_elab_module_header_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Module name should match path.\0\0\0\0");
     mw_emit_error_21_();
 }
 
 static void mb_elab_module_decl_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("unknown declaration\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_module_decl_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_run();
 }
 
 static void mb_elab_module_import_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_module_import_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
     mw_dup();
     mw_token_module();
@@ -36533,7 +36880,7 @@ static void mb_elab_module_import_21__4 (void) {
 }
 
 static void mb_elab_module_import_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_dup();
     mw_token_module();
@@ -36541,7 +36888,7 @@ static void mb_elab_module_import_21__6 (void) {
 }
 
 static void mb_elab_data_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_Data_2E_alloc_21_();
     mw_swap();
     mw_token_args_2B_();
@@ -36553,79 +36900,79 @@ static void mb_elab_data_21__1 (void) {
     }
     push_u64(0);
     push_fnptr(&mb_elab_data_21__3);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_for();
     mw_drop();
 }
 
 static void mb_elab_data_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_data_header_21_();
 }
 
 static void mb_elab_data_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_data_tag_21_();
 }
 
 static void mb_elab_data_header_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_data_header_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Expected type name.\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_data_header_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_data_header_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
     push_ptr("Name already defined.\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_data_tag_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_data_tag_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Expected constructor name.\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_data_tag_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_data_tag_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("Name already defined. (Overlapping tags not supported.)\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_data_tag_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
 }
 
 static void mb_elab_data_tag_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_data_add_tag_21_();
 }
 
 static void mb_elab_data_tag_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_succ();
     mw_SOME();
     mw_over();
@@ -36634,7 +36981,7 @@ static void mb_elab_data_tag_21__7 (void) {
 }
 
 static void mb_elab_data_tag_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_run_end_3F_();
     if (pop_u64()) {
         mw_drop();
@@ -36649,7 +36996,7 @@ static void mb_elab_data_tag_21__8 (void) {
 }
 
 static void mb_elab_data_tag_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_NONE();
     mw_over();
@@ -36658,13 +37005,13 @@ static void mb_elab_data_tag_21__9 (void) {
 }
 
 static void mb_elab_data_tag_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Expected arrow, comma, or right paren.\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_data_tag_21__11 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_elab_default();
     mw_over();
     mw_tag_data();
@@ -36682,11 +37029,11 @@ static void mb_elab_data_tag_21__11 (void) {
         mw__40_();
         switch (get_top_data_tag()) {
             case 0LL:
-                do_drop();
+                mw_prim_drop();
                 mw_id();
                 break;
             case 1LL:
-                do_pack_uncons(); do_drop();
+                mw_prim_pack_uncons(); mw_prim_drop();
                 mw_elab_type_stack_rest_21_();
                 mw_token_run_end_3F_();
                 if (pop_u64()) {
@@ -36696,7 +37043,7 @@ static void mb_elab_data_tag_21__11 (void) {
                     mw_emit_fatal_error_21_();
                 }
                 break;
-            default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+            default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
         
 }        push_value(d2);
     }
@@ -36710,18 +37057,18 @@ static void mb_elab_data_tag_21__11 (void) {
 }
 
 static void mb_elab_data_tag_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_T0();
     mw_rotl();
     mw_tag_sig();
     mw__40_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_id();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_type_stack_rest_21_();
             mw_token_run_end_3F_();
             if (pop_u64()) {
@@ -36731,62 +37078,62 @@ static void mb_elab_data_tag_21__12 (void) {
                 mw_emit_fatal_error_21_();
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }}
 
 static void mb_elab_data_tag_21__15 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_elab_data_tag_21__16 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("syntax error\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_data_tag_21__17 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_elab_ctx();
 }
 
 static void mb_expect_token_comma_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_expect_token_comma_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Expected comma.\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_expect_token_rparen_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_expect_token_rparen_2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("Expected right parenthesis.\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_token_def_args_1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
 }
 
 static void mb_token_def_args_2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("def expects at least two arguments\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_token_def_args_3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_L1_2B_();
     {
@@ -36797,7 +37144,7 @@ static void mb_token_def_args_3 (void) {
 }
 
 static void mb_token_def_args_5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_over();
     mw_token_run_has_arrow();
     if (pop_u64()) {
@@ -36819,12 +37166,12 @@ static void mb_token_def_args_5 (void) {
 }
 
 static void mb_token_def_args_4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_NONE();
 }
 
 static void mb_token_def_args_6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_cons_2B_();
     {
         VAL d2 = pop_value();
@@ -36834,7 +37181,7 @@ static void mb_token_def_args_6 (void) {
 }
 
 static void mb_token_def_args_8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_List__3E_List_2B_();
     mw_unwrap();
     {
@@ -36845,37 +37192,37 @@ static void mb_token_def_args_8 (void) {
 }
 
 static void mb_token_def_args_7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_NONE();
 }
 
 static void mb_token_def_args_9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_SOME();
 }
 
 static void mb_elab_def_missing_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_def_missing_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_def_21_();
 }
 
 static void mb_elab_def_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_def_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_def_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_token_run_has_arrow();
     if (pop_u64()) {
@@ -36887,60 +37234,60 @@ static void mb_elab_def_21__3 (void) {
 }
 
 static void mb_elab_def_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_def_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected match case\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_def_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_def_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected word name\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_def_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_def_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("word already defined\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_def_21__10 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_elab_default();
     mw_over();
     mw_word_sig();
     mw__40_();
     switch (get_top_data_tag()) {
         case 0LL:
-            do_drop();
+            mw_prim_drop();
             mw_type_elab_ctx();
             mw_over();
             mw_word_arrow();
             push_u64(0);
             push_fnptr(&mb_elab_def_21__12);
-            do_pack_cons();
+            mw_prim_pack_cons();
             mw_force_or_21_();
             mw_arrow_type();
             mw_type_rigidify_sig_21_();
             break;
         case 1LL:
-            do_pack_uncons(); do_drop();
+            mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_type_sig_21_();
             mw_drop();
             {
@@ -36949,39 +37296,39 @@ static void mb_elab_def_21__10 (void) {
                 push_value(d4);
             }
             break;
-        default: write(2, "unexpected fallthrough in match\n", 32); do_debug(); exit(99);
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
     
 }    mw_pack2();
     mw_nip();
 }
 
 static void mb_elab_def_21__12 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     mw_emit_recursive_word_fatal_error_21_();
 }
 
 static void mb_elab_def_21__14 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_elab_ctx();
 }
 
 static void mb_elab_def_21__15 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_def_params_21_();
 }
 
 static void mb_elab_def_21__16 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     push_u64(0);
     push_fnptr(&mb_elab_def_21__17);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_build_word_arrow_21_();
 }
 
 static void mb_elab_def_21__17 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_swap();
     mw_word_params();
     mw_force_21_();
@@ -36992,32 +37339,32 @@ static void mb_elab_def_21__17 (void) {
     } else {
         push_u64(0);
         push_fnptr(&mb_elab_def_21__20);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_ab_lambda_21_();
     }
 }
 
 static void mb_elab_def_21__18 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     mw_elab_def_body_21_();
 }
 
 static void mb_elab_def_21__19 (void) {
-    do_drop();
+    mw_prim_drop();
     push_u64(0);
     push_fnptr(&mb_elab_def_21__20);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_lambda_21_();
 }
 
 static void mb_elab_def_21__20 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_def_body_21_();
 }
 
 static void mb_elab_def_params_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_is_param_name_3F_();
     if (pop_u64()) {
         mw_id();
@@ -37065,44 +37412,44 @@ static void mb_elab_def_params_21__1 (void) {
 }
 
 static void mb_elab_def_params_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_def_params_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected parameter name\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_def_params_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
 }
 
 static void mb_elab_def_params_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected right paren or comma\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_def_params_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
 }
 
 static void mb_elab_def_params_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop2();
 }
 
 static void mb_elab_def_params_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_cons();
 }
 
 static void mb_elab_def_body_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_ab_token();
     mw__40_();
@@ -37110,17 +37457,17 @@ static void mb_elab_def_body_21__1 (void) {
 }
 
 static void mb_elab_def_body_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_atoms_21_();
 }
 
 static void mb_elab_def_external_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_def_external_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_name_3F_();
     mw_name_undefined_3F_();
     if (pop_u64()) {
@@ -37140,7 +37487,7 @@ static void mb_elab_def_external_21__2 (void) {
         mw_dup();
         push_u64(0);
         push_fnptr(&mb_elab_def_external_21__4);
-        do_pack_cons();
+        mw_prim_pack_cons();
         mw_delay();
         mw_swap();
         mw_external_ctx_type();
@@ -37153,13 +37500,13 @@ static void mb_elab_def_external_21__2 (void) {
 }
 
 static void mb_elab_def_external_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected word name\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_def_external_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
     mw_External_2E_alloc_21_();
     mw_dup2();
@@ -37176,7 +37523,7 @@ static void mb_elab_def_external_21__3 (void) {
     mw_dup();
     push_u64(0);
     push_fnptr(&mb_elab_def_external_21__4);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_delay();
     mw_swap();
     mw_external_ctx_type();
@@ -37184,14 +37531,14 @@ static void mb_elab_def_external_21__3 (void) {
 }
 
 static void mb_elab_def_external_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("word already defined\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_def_external_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_elab_default();
     mw_swap();
     mw_external_sig();
@@ -37207,17 +37554,17 @@ static void mb_elab_def_external_21__4 (void) {
 }
 
 static void mb_elab_def_external_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_type_elab_ctx();
 }
 
 static void mb_elab_def_type_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_def_type_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_name_3F_();
     mw_name_undefined_3F_();
     if (pop_u64()) {
@@ -37236,13 +37583,13 @@ static void mb_elab_def_type_21__2 (void) {
 }
 
 static void mb_elab_def_type_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected type constructor\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_def_type_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
     mw_swap();
     mw_elab_simple_type_arg_21_();
@@ -37253,19 +37600,19 @@ static void mb_elab_def_type_21__3 (void) {
 }
 
 static void mb_elab_def_type_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("type already defined\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_buffer_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_buffer_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_name_3F_();
     mw_name_undefined_3F_();
     if (pop_u64()) {
@@ -37282,13 +37629,13 @@ static void mb_elab_buffer_21__2 (void) {
 }
 
 static void mb_elab_buffer_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected buffer name\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_buffer_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_nip();
     mw_swap();
     mw_token_int_40_();
@@ -37297,72 +37644,72 @@ static void mb_elab_buffer_21__3 (void) {
 }
 
 static void mb_elab_buffer_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("buffer already defined\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_variable_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_variable_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected variable name\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_variable_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_variable_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("name already defined\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_variable_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_simple_type_arg_21_();
 }
 
 static void mb_elab_table_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_table_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_name_40_();
     mw_table_new_21_();
     mw_drop();
 }
 
 static void mb_elab_table_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected table name\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_table_new_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_TABLE_MAX_SIZE();
     mw_ab_int_21_();
 }
 
 static void mb_table_new_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_PRIM_UNSAFE_CAST();
     mw_ab_prim_21_();
 }
 
 static void mb_table_new_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_PRIM_UNSAFE_CAST();
     mw_ab_prim_21_();
     push_i64(1LL);
@@ -37386,7 +37733,7 @@ static void mb_table_new_21__3 (void) {
 }
 
 static void mb_table_new_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_PRIM_UNSAFE_CAST();
     mw_ab_prim_21_();
     mw_PRIM_CORE_DUP();
@@ -37397,22 +37744,22 @@ static void mb_table_new_21__4 (void) {
     mw_ab_prim_21_();
     push_u64(0);
     push_fnptr(&mb_table_new_21__5);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_u64(0);
     push_fnptr(&mb_table_new_21__6);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_if_21_();
     mw_PRIM_UNSAFE_CAST();
     mw_ab_prim_21_();
 }
 
 static void mb_table_new_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_table_new_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_ab_int_21_();
     mw_PRIM_INT_SUB();
@@ -37420,13 +37767,13 @@ static void mb_table_new_21__6 (void) {
 }
 
 static void mb_table_new_21__9 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_t = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_w = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_value(var_x);
     incref(var_x);
     mw_Var__3E_Param();
@@ -37434,15 +37781,15 @@ static void mb_table_new_21__9 (void) {
     push_u64(0);
     push_value(var_x);
     incref(var_x);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_value(var_w);
     incref(var_w);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_value(var_t);
     incref(var_t);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_fnptr(&mb_table_new_21__10);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_lambda_21_();
     decref(var_t);
     decref(var_w);
@@ -37450,39 +37797,39 @@ static void mb_table_new_21__9 (void) {
 }
 
 static void mb_table_new_21__10 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_t = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_w = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     push_i64(1LL);
     mw_ab_int_21_();
     push_u64(0);
     push_value(var_x);
     incref(var_x);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_value(var_w);
     incref(var_w);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_value(var_t);
     incref(var_t);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_fnptr(&mb_table_new_21__11);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_u64(0);
     push_value(var_x);
     incref(var_x);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_value(var_w);
     incref(var_w);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_value(var_t);
     incref(var_t);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_fnptr(&mb_table_new_21__12);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_while_21_();
     mw_PRIM_CORE_DROP();
     mw_ab_prim_21_();
@@ -37492,13 +37839,13 @@ static void mb_table_new_21__10 (void) {
 }
 
 static void mb_table_new_21__11 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_t = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_w = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_PRIM_CORE_DUP();
     mw_ab_prim_21_();
     push_value(var_t);
@@ -37516,27 +37863,27 @@ static void mb_table_new_21__11 (void) {
 }
 
 static void mb_table_new_21__12 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_t = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_w = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_PRIM_CORE_DUP();
     mw_ab_prim_21_();
     push_u64(0);
     push_value(var_x);
     incref(var_x);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_value(var_w);
     incref(var_w);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_value(var_t);
     incref(var_t);
-    do_pack_cons();
+    mw_prim_pack_cons();
     push_fnptr(&mb_table_new_21__13);
-    do_pack_cons();
+    mw_prim_pack_cons();
     mw_ab_dip_21_();
     push_i64(1LL);
     mw_ab_int_21_();
@@ -37548,13 +37895,13 @@ static void mb_table_new_21__12 (void) {
 }
 
 static void mb_table_new_21__13 (void) {
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_t = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_w = pop_value();
-    do_pack_uncons();
+    mw_prim_pack_uncons();
     VAL var_x = pop_value();
-    do_drop();
+    mw_prim_drop();
     mw_PRIM_UNSAFE_CAST();
     mw_ab_prim_21_();
     push_value(var_x);
@@ -37566,7 +37913,7 @@ static void mb_table_new_21__13 (void) {
 }
 
 static void mb_table_new_21__14 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_dup();
     mw_table_num_buffer();
     mw__40_();
@@ -37590,18 +37937,18 @@ static void mb_table_new_21__14 (void) {
 }
 
 static void mb_elab_target_c99_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_target_c99_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_str_40_();
     mw_Str__3E_Path();
 }
 
 static void mb_elab_target_c99_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ctx_empty();
     mw_T0();
     mw_T0();
@@ -37609,1362 +37956,1362 @@ static void mb_elab_target_c99_21__3 (void) {
 }
 
 static void mb_elab_embed_str_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_embed_str_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_embed_str_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected name\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_embed_str_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_embed_str_21__5 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("name already defined\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_embed_str_21__6 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_embed_str_21__7 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("expected path\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_embed_str_21__8 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_read_file_21_();
     mw_nip();
 }
 
 static void mb_elab_embed_str_21__9 (void) {
-    do_drop();
+    mw_prim_drop();
     push_ptr("could not open file\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_elab_field_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_token_next();
 }
 
 static void mb_elab_field_21__3 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_id();
 }
 
 static void mb_elab_field_21__4 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_drop();
     push_ptr("name already defined\0\0\0\0");
     mw_emit_fatal_error_21_();
 }
 
 static void mb_field_new_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_simple_type_arg_21_();
 }
 
 static void mb_field_new_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_elab_simple_type_arg_21_();
 }
 
 static void mb_ctx_make_fresh_var_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ctx_fresh_name_21_();
     mw_var_new_21_();
 }
 
 static void mb_ctx_make_fresh_var_21__2 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_ctx_new_21_();
 }
 
 static void mb_name_prim_3D__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_name_def();
     mw__40_();
 }
 
 static void mb_def_prim_21__1 (void) {
-    do_drop();
+    mw_prim_drop();
     mw_DEF_PRIM();
 }
 
 
-static VAL* fieldptr_name_str (usize i) {
+static VAL* fieldptr_name_str (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_name_str (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_name_str(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_name_def (usize i) {
+static VAL* fieldptr_name_def (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_name_def (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_name_def(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_name_mangled (usize i) {
+static VAL* fieldptr_name_mangled (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_name_mangled (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_name_mangled(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_module_name (usize i) {
+static VAL* fieldptr_module_name (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_module_name (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_module_name(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_module_path (usize i) {
+static VAL* fieldptr_module_path (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_module_path (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_module_path(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_module_start (usize i) {
+static VAL* fieldptr_module_start (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_module_start (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_module_start(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_module_end (usize i) {
+static VAL* fieldptr_module_end (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_module_end (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_module_end(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_module_imports (usize i) {
+static VAL* fieldptr_module_imports (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_module_imports (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_module_imports(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_token_value (usize i) {
+static VAL* fieldptr_token_value (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_token_value (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_token_value(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_token_module (usize i) {
+static VAL* fieldptr_token_module (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_token_module (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_token_module(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_token_row (usize i) {
+static VAL* fieldptr_token_row (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_token_row (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_token_row(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_token_col (usize i) {
+static VAL* fieldptr_token_col (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_token_col (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_token_col(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_buffer_size (usize i) {
+static VAL* fieldptr_buffer_size (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_buffer_size (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_buffer_size(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_buffer_name (usize i) {
+static VAL* fieldptr_buffer_name (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_buffer_name (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_buffer_name(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_meta_type (usize i) {
+static VAL* fieldptr_meta_type (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_meta_type (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_meta_type(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_data_header (usize i) {
+static VAL* fieldptr_data_header (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_data_header (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_data_header(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_data_name (usize i) {
+static VAL* fieldptr_data_name (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_data_name (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_data_name(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_data_arity (usize i) {
+static VAL* fieldptr_data_arity (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_data_arity (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_data_arity(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_data_tags (usize i) {
+static VAL* fieldptr_data_tags (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_data_tags (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_data_tags(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_tag_data (usize i) {
+static VAL* fieldptr_tag_data (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_tag_data (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_tag_data(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_tag_name (usize i) {
+static VAL* fieldptr_tag_name (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_tag_name (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_tag_name(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_tag_value (usize i) {
+static VAL* fieldptr_tag_value (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_tag_value (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_tag_value(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_tag_sig (usize i) {
+static VAL* fieldptr_tag_sig (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_tag_sig (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_tag_sig(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_tag_ctx_type (usize i) {
+static VAL* fieldptr_tag_ctx_type (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_tag_ctx_type (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_tag_ctx_type(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_arrow_token_start (usize i) {
+static VAL* fieldptr_arrow_token_start (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_arrow_token_start (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_arrow_token_start(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_arrow_token_end (usize i) {
+static VAL* fieldptr_arrow_token_end (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_arrow_token_end (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_arrow_token_end(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_arrow_home (usize i) {
+static VAL* fieldptr_arrow_home (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_arrow_home (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_arrow_home(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_arrow_homeidx (usize i) {
+static VAL* fieldptr_arrow_homeidx (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_arrow_homeidx (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_arrow_homeidx(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_arrow_ctx (usize i) {
+static VAL* fieldptr_arrow_ctx (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_arrow_ctx (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_arrow_ctx(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_arrow_dom (usize i) {
+static VAL* fieldptr_arrow_dom (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_arrow_dom (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_arrow_dom(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_arrow_cod (usize i) {
+static VAL* fieldptr_arrow_cod (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_arrow_cod (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_arrow_cod(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_arrow_atoms (usize i) {
+static VAL* fieldptr_arrow_atoms (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_arrow_atoms (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_arrow_atoms(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_atom_token (usize i) {
+static VAL* fieldptr_atom_token (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_atom_token (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_atom_token(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_atom_ctx (usize i) {
+static VAL* fieldptr_atom_ctx (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_atom_ctx (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_atom_ctx(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_atom_op (usize i) {
+static VAL* fieldptr_atom_op (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_atom_op (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_atom_op(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_atom_args (usize i) {
+static VAL* fieldptr_atom_args (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_atom_args (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_atom_args(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_atom_dom (usize i) {
+static VAL* fieldptr_atom_dom (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_atom_dom (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_atom_dom(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_atom_cod (usize i) {
+static VAL* fieldptr_atom_cod (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_atom_cod (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_atom_cod(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_atom_subst (usize i) {
+static VAL* fieldptr_atom_subst (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_atom_subst (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_atom_subst(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_lambda_token (usize i) {
+static VAL* fieldptr_lambda_token (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_lambda_token (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_lambda_token(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_lambda_outer_ctx (usize i) {
+static VAL* fieldptr_lambda_outer_ctx (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_lambda_outer_ctx (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_lambda_outer_ctx(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_lambda_inner_ctx (usize i) {
+static VAL* fieldptr_lambda_inner_ctx (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_lambda_inner_ctx (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_lambda_inner_ctx(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_lambda_dom (usize i) {
+static VAL* fieldptr_lambda_dom (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_lambda_dom (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_lambda_dom(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_lambda_mid (usize i) {
+static VAL* fieldptr_lambda_mid (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_lambda_mid (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_lambda_mid(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_lambda_cod (usize i) {
+static VAL* fieldptr_lambda_cod (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_lambda_cod (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_lambda_cod(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_lambda_params (usize i) {
+static VAL* fieldptr_lambda_params (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_lambda_params (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_lambda_params(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_lambda_body (usize i) {
+static VAL* fieldptr_lambda_body (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_lambda_body (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_lambda_body(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_block_ctx (usize i) {
+static VAL* fieldptr_block_ctx (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_block_ctx (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_block_ctx(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_block_token (usize i) {
+static VAL* fieldptr_block_token (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_block_token (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_block_token(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_block_dom (usize i) {
+static VAL* fieldptr_block_dom (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_block_dom (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_block_dom(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_block_cod (usize i) {
+static VAL* fieldptr_block_cod (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_block_cod (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_block_cod(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_block_arrow (usize i) {
+static VAL* fieldptr_block_arrow (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_block_arrow (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_block_arrow(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_match_ctx (usize i) {
+static VAL* fieldptr_match_ctx (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_match_ctx (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_match_ctx(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_match_dom (usize i) {
+static VAL* fieldptr_match_dom (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_match_dom (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_match_dom(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_match_cod (usize i) {
+static VAL* fieldptr_match_cod (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_match_cod (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_match_cod(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_match_token (usize i) {
+static VAL* fieldptr_match_token (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_match_token (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_match_token(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_match_body (usize i) {
+static VAL* fieldptr_match_body (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_match_body (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_match_body(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_match_cases (usize i) {
+static VAL* fieldptr_match_cases (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_match_cases (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_match_cases(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_case_match (usize i) {
+static VAL* fieldptr_case_match (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_case_match (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_case_match(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_case_token (usize i) {
+static VAL* fieldptr_case_token (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_case_token (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_case_token(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_case_pattern (usize i) {
+static VAL* fieldptr_case_pattern (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_case_pattern (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_case_pattern(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_case_subst (usize i) {
+static VAL* fieldptr_case_subst (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_case_subst (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_case_subst(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_case_mid (usize i) {
+static VAL* fieldptr_case_mid (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_case_mid (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_case_mid(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_case_body (usize i) {
+static VAL* fieldptr_case_body (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_case_body (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_case_body(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_var_is_implicit (usize i) {
+static VAL* fieldptr_var_is_implicit (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_var_is_implicit (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_var_is_implicit(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_var_name (usize i) {
+static VAL* fieldptr_var_name (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_var_name (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_var_name(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_var_type (usize i) {
+static VAL* fieldptr_var_type (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_var_type (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_var_type(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_var_auto_run (usize i) {
+static VAL* fieldptr_var_auto_run (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_var_auto_run (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_var_auto_run(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_word_name (usize i) {
+static VAL* fieldptr_word_name (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_word_name (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_word_name(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_word_head (usize i) {
+static VAL* fieldptr_word_head (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_word_head (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_word_head(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_word_sig (usize i) {
+static VAL* fieldptr_word_sig (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_word_sig (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_word_sig(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_word_body (usize i) {
+static VAL* fieldptr_word_body (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_word_body (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_word_body(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_word_ctx_type (usize i) {
+static VAL* fieldptr_word_ctx_type (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_word_ctx_type (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_word_ctx_type(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_word_params (usize i) {
+static VAL* fieldptr_word_params (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_word_params (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_word_params(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_word_arrow (usize i) {
+static VAL* fieldptr_word_arrow (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_word_arrow (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_word_arrow(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_table_name (usize i) {
+static VAL* fieldptr_table_name (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_table_name (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_table_name(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_table_num_buffer (usize i) {
+static VAL* fieldptr_table_num_buffer (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_table_num_buffer (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_table_num_buffer(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_table_max_count (usize i) {
+static VAL* fieldptr_table_max_count (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_table_max_count (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_table_max_count(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_field_name (usize i) {
+static VAL* fieldptr_field_name (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_field_name (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_field_name(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_field_index_type (usize i) {
+static VAL* fieldptr_field_index_type (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_field_index_type (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_field_index_type(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_field_value_type (usize i) {
+static VAL* fieldptr_field_value_type (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_field_value_type (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_field_value_type(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_external_name (usize i) {
+static VAL* fieldptr_external_name (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_external_name (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_external_name(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_external_sig (usize i) {
+static VAL* fieldptr_external_sig (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_external_sig (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_external_sig(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_external_ctx_type (usize i) {
+static VAL* fieldptr_external_ctx_type (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_external_ctx_type (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_external_ctx_type(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_variable_name (usize i) {
+static VAL* fieldptr_variable_name (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_variable_name (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_variable_name(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_variable_type (usize i) {
+static VAL* fieldptr_variable_type (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_variable_type (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_variable_type(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_prim_name (usize i) {
+static VAL* fieldptr_prim_name (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_prim_name (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_prim_name(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_prim_ctx (usize i) {
+static VAL* fieldptr_prim_ctx (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_prim_ctx (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_prim_ctx(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_prim_type (usize i) {
+static VAL* fieldptr_prim_type (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_prim_type (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_prim_type(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_prim_decl (usize i) {
+static VAL* fieldptr_prim_decl (size_t i) {
     static struct VAL * p = 0;
-    usize m = 65536;
+    size_t m = 65536;
     if (!p) { p = calloc(m, sizeof *p); }
     if (i>=m) { write(2,"table too big\n",14); exit(123); }
     return p+i;
 }
 
 static void mw_prim_decl (void){
-    usize index = (usize)pop_u64();
+    size_t index = (size_t)pop_u64();
     VAL *v = fieldptr_prim_decl(index);
     push_ptr(v);
 }

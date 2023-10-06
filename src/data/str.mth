@@ -7,7 +7,7 @@ def(str-head, Str -- Char, Str->Ptr char@)
 def(str-head-width, Str -- Int, Str->Ptr char@-width)
 
 def(str-tail, Str -- Str,
-    sip(str-head-width) Str->Ptr ptr+ Ptr->Str)
+    sip(str-head-width) Str->Ptr with-ptr+(Ptr->Str)) # unsafe
 
 def(str-size?, Str -- Str Int, prim-str-size)
 def(str-size, Str -- Int, prim-str-size nip)
@@ -42,7 +42,7 @@ def(str-is-empty?, Str -- Str Bool,
 ||| Return first unwritten location in second argument.
 def(str-copy-partial!, Str Ptr -- Ptr,
     dip(dup Str->Ptr swap str-size)
-    dup2 ptr+ dip(prim-ptr-copy))
+    dup2 with-ptr+(dip(prim-ptr-copy))) # unsafe
 
 def(STR_BUF_SIZE, Int, 0x2000)
 buffer(STR_BUF, 0x2000)
@@ -71,7 +71,7 @@ def(str-buf-u8!, U8 Offset --,
     STR_BUF u8!!)
 
 def(str-buf-char@, Offset -- Char,
-    STR_BUF ptr+ char@)
+    STR_BUF with-ptr+(char@))
 
 def(str-buf-empty?, str-buf-length? 0=)
 def(str-buf-full?, str-buf-length? 1+ STR_BUF_SIZE >=)
@@ -88,7 +88,7 @@ def(str-buf-push-u8!, U8 --,
     )
 
 def(str-buf-push-char!, Char --,
-    dup str-buf-length? STR_BUF ptr+ char!
+    dup str-buf-length? STR_BUF with-ptr+(char!)
     char-width str-buf-length? + str-buf-length!)
 
 ||| Append the given string into STR_BUF. If the string is
@@ -97,7 +97,7 @@ def(str-buf-push-str!, Str --,
     dup Str->Ptr swap str-size str-buf-push-ptr!)
 
 def(str-buf-push-ptr!, Ptr Size -- ,
-    tuck str-buf-length? STR_BUF ptr+ prim-ptr-copy
+    tuck str-buf-length? STR_BUF with-ptr+(prim-ptr-copy)
     str-buf-length? + str-buf-length!)
 
 ||| Set the STR_BUF to a given string. If the string is
@@ -188,6 +188,6 @@ def(str-bytes, Str -- List(U8),
     dup Str->Ptr swap str-size
     while(
         dup 0 >,
-        1- dip(sip(u8@ snoc 1) ptr+)
+        1- dip(sip(u8@ snoc 1) with-ptr+())
     )
     drop2)

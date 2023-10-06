@@ -54,7 +54,7 @@ def(input-fill-buffer!, --,
 # Panics if file is exhausted.
 def(input-peek, Char,
     input-isopen @ if(
-        input-offset @ INPUT_BUFFER ptr+ char@,
+        input-offset @ INPUT_BUFFER with-ptr+(char@),
         "error: attempted to read input buffer when file is already closed" panic!
     ))
 
@@ -62,9 +62,9 @@ def(input-peek, Char,
 # Panics if file is exhausted.
 def(input-move!, --,
     input-isopen @ if(
-        input-offset @ dup INPUT_BUFFER ptr+
+        input-offset @ dup INPUT_BUFFER with-ptr+(
         char@-width + input-offset !
-        input-prepare-for-more!,
+        input-prepare-for-more!),
         "error: attempted to move input buffer when file is already closed" panic!
     ))
 
@@ -78,7 +78,7 @@ def(input-prepare-for-more!, --,
             drop
             input-fill-buffer!,
 
-        dup INPUT_BUFFER ptr+ char@-width + input-length @ > if(
+        dup INPUT_BUFFER with-ptr+(char@-width) + input-length @ > if(
             input-fill-buffer-tragic!,
 
             id
@@ -89,7 +89,7 @@ def(input-prepare-for-more!, --,
 
 def(input-fill-buffer-tragic!, --,
 
-    input-offset @ INPUT_BUFFER ptr+ u32@ # ok because of wiggle room
+    input-offset @ INPUT_BUFFER with-ptr+(u32@) # ok because of wiggle room
     INPUT_BUFFER u32!
 
     INPUT_BUFFER char@-width input-length !
@@ -97,9 +97,9 @@ def(input-fill-buffer-tragic!, --,
 
     input-isopen @ if(
         input-handle @ File->Int
-        input-length @ INPUT_BUFFER ptr+
+        input-length @ INPUT_BUFFER with-ptr+(
         INPUT_BUFFER_SIZE # ok because of wiggle room
-        posix-read!
+        posix-read!)
         dup 0 >= if(
             dup 0 > if(
                 input-length modify(+),

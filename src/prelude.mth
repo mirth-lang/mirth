@@ -47,7 +47,8 @@ def(false, Bool, prim-bool-false)
 def(&&, Bool Bool -- Bool, prim-bool-and)
 def(||, Bool Bool -- Bool, prim-bool-or)
 
-def(ptr+, Offset Ptr -- Ptr, prim-ptr-add)
+def(with-ptr+(f), (*a Ptr -- *b) *a Offset Ptr -- *b,
+    dup dip(prim-ptr-add f) drop)
 def(ptr@, Ptr -- Ptr, prim-ptr-get)
 def(ptr!, Ptr Ptr --, prim-ptr-set)
 def(|ptr|, Size, prim-ptr-size)
@@ -105,7 +106,6 @@ def(posix-write!, Int Ptr Int -- Int, prim-posix-write)
 def(posix-open!, Str Int Int -- Int, dip2(Str->Ptr) prim-posix-open)
 def(posix-close!, Int -- Int, prim-posix-close)
 def(posix-exit!, *a Int -- *b, prim-posix-exit)
-def(posix-mmap!, Ptr Int Int Int Int Int -- Ptr, prim-posix-mmap)
 
 def(rotr, a b c -- c a b, swap dip(swap))
 def(rotl, a b c -- b c a, dip(swap) swap)
@@ -201,19 +201,19 @@ def(max, a a -- a, dup2 < if(nip, drop))
 def(min, a a -- a, dup2 < if(drop, nip))
 
 def(ptrs, Size -- Size, |ptr| *)
-def(ptr@@, Offset Ptr -- Ptr, dip(ptrs) ptr+ ptr@)
-def(ptr!!, Ptr Offset Ptr --, dip(ptrs) ptr+ ptr!)
+def(ptr@@, Offset Ptr -- Ptr, dip(ptrs) with-ptr+(ptr@))
+def(ptr!!, Ptr Offset Ptr --, dip(ptrs) with-ptr+(ptr!))
 
-def(u8@@, Offset Ptr -- Byte, ptr+ u8@)
-def(u8!!, Byte Offset Ptr --, ptr+ u8!)
+def(u8@@, Offset Ptr -- Byte, with-ptr+(u8@))
+def(u8!!, Byte Offset Ptr --, with-ptr+(u8!))
 
 def(ints, Size -- Size, 8 *)
-def(int@@, Offset Ptr -- Int, dip(ints) ptr+ int@)
-def(int!!, Int Offset Ptr --, dip(ints) ptr+ int!)
+def(int@@, Offset Ptr -- Int, dip(ints) with-ptr+(int@))
+def(int!!, Int Offset Ptr --, dip(ints) with-ptr+(int!))
 
 def(values, Size -- Size, 16 *)
-def(value@@, Offset Ptr -- a, dip(values) ptr+ value@)
-def(value!!, a Offset Ptr --, dip(values) ptr+ value!)
+def(value@@, Offset Ptr -- a, dip(values) with-ptr+(value@))
+def(value!!, a Offset Ptr --, dip(values) with-ptr+(value!))
 
 def(in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
 
