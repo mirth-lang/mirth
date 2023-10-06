@@ -181,8 +181,8 @@ def(str-codepoints, Str -- List(Int),
     dip(L0) str-for(char-codepoint snoc))
 
 def(str-bytes, Str -- List(U8),
-    L0 swap dup sip(Str->Ptr swap str-size
+    L0 over dup Str->Ptr swap str-size
     while(
         dup 0 >,
         1- dip(sip(u8@ snoc 1) ptr+)
-    )) drop3)
+    ) drop2 nip)
