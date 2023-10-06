@@ -46,6 +46,8 @@ typedef enum TAG {
 
 typedef void (*fnptr)(void);
 
+typedef uint32_t REFS;
+
 typedef union DATA {
     size_t usize;
     uint64_t u64;
@@ -60,6 +62,8 @@ typedef union DATA {
     void (*fnptr)(void);
     struct VAL* valptr;
     char* charptr;
+    REFS* refs;
+    struct CONS* cons;
 } DATA;
 
 typedef struct VAL {
@@ -67,7 +71,6 @@ typedef struct VAL {
     TAG tag;
 } VAL;
 
-typedef uint32_t REFS;
 
 typedef struct CONS {
     REFS refs;
@@ -80,12 +83,6 @@ typedef struct CONS {
 static size_t stack_counter = STACK_MAX;
 static VAL stack [STACK_MAX] = {0};
 
-#define HEAP_SIZE 0x80000
-#define HEAP_MASK 0x7FFFF
-static size_t heap_next = 1;
-static size_t heap_count = 0;
-static CONS heap [HEAP_SIZE] = {0};
-
 static int global_argc;
 static char** global_argv;
 
@@ -97,15 +94,15 @@ static size_t get_cell_index(VAL v) {
 }
 
 static REFS* value_refs(VAL v) {
-    if (v.tag == TAG_CONS)
-        return &heap[v.data.usize].refs;
+    if (v.tag != TAG_INT)
+        return v.data.refs;
     else
         return 0;
 }
 
 static CONS* value_get_cons(VAL v) {
     if (v.tag == TAG_CONS)
-        return heap + v.data.usize;
+        return v.data.cons;
     else
         return 0;
 }
@@ -127,20 +124,17 @@ static void decref(VAL v) {
 }
 
 static void free_value(VAL v) {
-    size_t i = get_cell_index(v);
-    ASSERT(i);
-    CONS cons = heap[i];
-    ASSERT(cons.refs == 0);
-    memset(heap+i, 0, sizeof(CONS));
-    heap[i].cdr.data.usize = heap_next;
-    heap_next = i;
-    heap_count--;
-    if (cons.freecdr) {
-        free(cons.cdr.data.ptr);
-    } else {
-        decref(cons.cdr);
+    switch (v.tag) {
+        case TAG_INT: break;
+        case TAG_CONS: {
+            CONS* cons = v.data.cons;
+            ASSERT(cons);
+            ASSERT(cons->refs == 0);
+            decref(cons->car);
+            decref(cons->cdr);
+            free(cons);
+        } break;
     }
-    decref(cons.car);
 }
 
 static void value_uncons(VAL val, VAL* car, VAL* cdr) {
@@ -216,17 +210,13 @@ static VAL mki64 (int64_t x) {
 }
 
 static VAL mkcell_raw (VAL car, VAL cdr, bool freecdr) {
-    EXPECT(heap_count < HEAP_SIZE-1, "heap overflow");
-    size_t i = heap_next;
-    CONS *cell = heap+i;
-    ASSERT(cell->refs == 0);
-    heap_next = cell->cdr.data.usize ? cell->cdr.data.usize : i+1;
-    heap_count++;
-    cell->refs = 1;
-    cell->freecdr = freecdr;
-    cell->car = car;
-    cell->cdr = cdr;
-    return (VAL){ .tag=TAG_CONS, .data={.usize=i} };
+    CONS *cons = calloc(1, sizeof(CONS));
+    EXPECT(cons, "failed to allocate a cons cell");
+    cons->refs = 1;
+    cons->freecdr = freecdr;
+    cons->car = car;
+    cons->cdr = cdr;
+    return (VAL){.tag=TAG_CONS, .data={.cons=cons}};
 }
 
 static VAL mkcell(VAL car, VAL cdr) {
