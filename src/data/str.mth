@@ -6,17 +6,16 @@ import(prelude)
 def(str-head, Str -- Char, Str->Ptr char@)
 def(str-head-width, Str -- Int, Str->Ptr char@-width)
 
+# like ptr+ you must ensure the string's base pointer still
+# has a reference somewhere, for now
 def(str-tail, Str -- Str,
-    sip(str-head-width) Str->Ptr with-ptr+(Ptr->Str)) # unsafe
+    sip(str-head-width) Str->Ptr ptr+ Ptr->Str)
 
 def(str-size?, Str -- Str Int, prim-str-size)
 def(str-size, Str -- Int, prim-str-size nip)
 
 def(str-length, Str -- Int,
-    0 swap while(
-        str-is-empty? not,
-        dip(1+) str-tail
-    ) drop)
+    0 swap str-for(drop 1+))
 
 def(str-length?, Str -- Str Int,
     dup str-length)
@@ -42,7 +41,7 @@ def(str-is-empty?, Str -- Str Bool,
 ||| Return first unwritten location in second argument.
 def(str-copy-partial!, Str Ptr -- Ptr,
     dip(dup Str->Ptr swap str-size)
-    dup2 with-ptr+(dip(prim-ptr-copy))) # unsafe
+    dup2 ptr+ dip(prim-ptr-copy)) # unsafe
 
 def(STR_BUF_SIZE, Int, 0x2000)
 buffer(STR_BUF, 0x2000)
@@ -150,10 +149,8 @@ def(str-eq?, Str Str -- Str Str Bool, dup2 str-eq)
 
 ||| Traverse string characters.
 def(str-for(f), (*a Char -- *a) *a Str -- *a,
-    while(str-is-empty? not,
-        dup str-tail
-        dip(str-head f)
-    ) drop)
+    sip(while(str-is-empty? not, sip(str-head f) str-tail))
+    drop2)
 
 data(TransducerStep,
     TS_STOP,
@@ -163,12 +160,12 @@ data(TransducerStep,
     TS_COPY -> Str)
 
 def(str-transduce(f), (*a Char -- *a TransducerStep) *a Str -- *a Str,
-    build-str!(
+    sip(build-str!(
         while(str-is-empty? not,
             sip(str-head f) str-tail
             swap str-transduce-step
         ) drop
-    ))
+    ))drop)
 
 def(str-transduce-step, Str TransducerStep -- Str,
     TS_STOP -> drop "",
@@ -184,10 +181,8 @@ def(str-codepoints, Str -- List(Int),
     dip(L0) str-for(char-codepoint snoc))
 
 def(str-bytes, Str -- List(U8),
-    L0 swap
-    dup Str->Ptr swap str-size
+    L0 swap dup sip(Str->Ptr swap str-size
     while(
         dup 0 >,
-        1- dip(sip(u8@ snoc 1) with-ptr+())
-    )
-    drop2)
+        1- dip(sip(u8@ snoc 1) ptr+)
+    )) drop3)

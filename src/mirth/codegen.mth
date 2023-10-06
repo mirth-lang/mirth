@@ -53,12 +53,12 @@ def(., Str --,
             over CODEGEN_BUF_SIZE CODEGEN_BUF prim-ptr-copy
             CODEGEN_BUF_SIZE codegen-length !
             codegen-flush!
-            dip(CODEGEN_BUF_SIZE swap with-ptr+())
+            dip(CODEGEN_BUF_SIZE swap ptr+)
             CODEGEN_BUF_SIZE -
         )
         dup codegen-length ! CODEGEN_BUF prim-ptr-copy,
 
-        sip(codegen-length @ CODEGEN_BUF with-ptr+() prim-ptr-copy)
+        sip(codegen-length @ CODEGEN_BUF ptr+ prim-ptr-copy)
         codegen-length modify(+)
     ))
 

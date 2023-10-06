@@ -701,7 +701,7 @@ static void mw_prim_ptr_add (void) {
     size_t i = get_cell_index(vp);
     if (i) {
         CONS *cell = heap+i;
-        ASSERT(cell->refs > 1);
+        ASSERT(!cell->freecdr || (cell->refs > 1));
         cell->refs--;
         void* ptr = (void*)(cell->cdr.data.charptr + y);
         size_t size = (cell->car.data.usize > y ? cell->car.data.usize - y : 0);
