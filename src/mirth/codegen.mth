@@ -42,7 +42,7 @@ def(.b, Byte --,
 
 def(.c, Char --,
     codegen-full? if(codegen-flush!, id)
-    dup codegen-length @ CODEGEN_BUF ptr+ char!
+    dup codegen-length @ CODEGEN_BUF with-ptr+(char!)
     char-width codegen-length modify(+))
 
 def(., Str --,
@@ -53,12 +53,12 @@ def(., Str --,
             over CODEGEN_BUF_SIZE CODEGEN_BUF prim-ptr-copy
             CODEGEN_BUF_SIZE codegen-length !
             codegen-flush!
-            dip(CODEGEN_BUF_SIZE swap ptr+)
+            dip(CODEGEN_BUF_SIZE swap with-ptr+())
             CODEGEN_BUF_SIZE -
         )
         dup codegen-length ! CODEGEN_BUF prim-ptr-copy,
 
-        sip(codegen-length @ CODEGEN_BUF ptr+ prim-ptr-copy)
+        sip(codegen-length @ CODEGEN_BUF with-ptr+() prim-ptr-copy)
         codegen-length modify(+)
     ))
 
@@ -110,7 +110,7 @@ def(c99-header!, --, c99-header-str . .lf)
 def(c99-buffers!, --, Buffer.for(c99-buffer!) .lf)
 def(c99-buffer!, Buffer --,
     dup buffer-name @ .w " {" ;
-    "    static u8 b[" . dup buffer-size @ .n "] = {0};" ;
+    "    static uint8_t b[" . dup buffer-size @ .n "] = {0};" ;
     "    push_ptr(&b);" ;
     "}" ;
     drop)
@@ -148,7 +148,7 @@ def(c99-external!, External --,
         "can't declare external with multiple return values" panic!,
 
         dup 1 >= if(
-            "i64 " .,
+            "int64_t " .,
             "void " .
         )
     )
@@ -156,11 +156,11 @@ def(c99-external!, External --,
     dip2(dup external-name @ .name)
 
     " (" .
-    over dup 0> if("i64" . 1- repeat(", i64" .), drop "void" .)
+    over dup 0> if("int64_t" . 1- repeat(", int64_t" .), drop "void" .)
     ");" ;
 
     "static void mw_" . dip2(dup external-name @ .name) " (void) {" ;
-    over countdown("    i64 x" . .n " = pop_i64();" ;)
+    over countdown("    int64_t x" . .n " = pop_i64();" ;)
     dup 0> if("    push_i64(", "    ") .
     dip2(dup external-name @ .name)
     "(" .
@@ -216,7 +216,7 @@ def(c99-str!, Str --,
     dup str-size 4090 > if(
         c99-line("{" .)
         c99-nest(
-            c99-line("static u8 b[" . dup str-size 4 + .n  "] = {" .)
+            c99-line("static uint8_t b[" . dup str-size 4 + .n  "] = {" .)
             c99-nest(
                 c99-indent str-for(char-bytes for(
                     U8->Int dup .n "," .
@@ -328,15 +328,15 @@ def(c99-pack-ctx!, Ctx --,
     c99-line("push_u64(0);" .)
     ctx-physical-vars for(
         c99-var-push!
-        c99-line("do_pack_cons();" .)
+        c99-line("mw_prim_pack_cons();" .)
     ))
 
 def(c99-unpack-ctx!, Ctx --,
     ctx-physical-vars reverse-for(
-        c99-line("do_pack_uncons();" .)
+        c99-line("mw_prim_pack_uncons();" .)
         c99-line("VAL " . .var " = pop_value();" .)
     )
-    c99-line("do_drop();" .))
+    c99-line("mw_prim_drop();" .))
 
 def(c99-decref-ctx!, Ctx --,
     ctx-physical-vars reverse-for(
@@ -346,11 +346,11 @@ def(c99-decref-ctx!, Ctx --,
 def(c99-block-push!, Block --,
     dup block-arrow force! arrow-ctx @ c99-pack-ctx!
     c99-line("push_fnptr(&" . .block ");" .)
-    c99-line("do_pack_cons();" .))
+    c99-line("mw_prim_pack_cons();" .))
 
 def(c99-var!, Var --,
     dup var-auto-run @ dip(c99-var-push!)
-    if(c99-line("do_run();" .), id))
+    if(c99-line("mw_prim_run();" .), id))
 
 def(c99-var-push!, Var --,
     c99-line("push_value(" . dup .var ");" .)
@@ -383,7 +383,7 @@ def(c99-match!, Match --,
             dup match-cases @ for(c99-case!)
             match-has-default-case? if(
                 id,
-                c99-line("default: write(2, \"unexpected fallthrough in match\\n\", 32); do_debug(); exit(99);" .)
+                c99-line("default: write(2, \"unexpected fallthrough in match\\n\", 32); mw_prim_debug(); exit(99);" .)
             )
             drop
         )
@@ -405,9 +405,9 @@ def(c99-pattern!, Pattern --,
         c99-line("case " . dup tag-value @ .n "LL:" .)
         c99-nest(
             tag-num-inputs? nip dup 0 > if(
-                c99-line("do_pack_uncons(); do_drop();" .)
-                1- repeat(c99-line("do_pack_uncons(); do_swap();" .)),
-                drop c99-line("do_drop();" .)
+                c99-line("mw_prim_pack_uncons(); mw_prim_drop();" .)
+                1- repeat(c99-line("mw_prim_pack_uncons(); mw_prim_swap();" .)),
+                drop c99-line("mw_prim_drop();" .)
             )
         )
     )
@@ -453,9 +453,9 @@ def(c99-word-def!, Word --,
 
 def(c99-field-defs!, --, Field.for(c99-field-def!) .lf)
 def(c99-field-def!, Field --,
-    "static VAL* fieldptr_" . dup field-name @ .name " (usize i) {" ;
+    "static VAL* fieldptr_" . dup field-name @ .name " (size_t i) {" ;
     "    static struct VAL * p = 0;";
-    "    usize m = " . TABLE_MAX_SIZE .n ";" ;
+    "    size_t m = " . TABLE_MAX_SIZE .n ";" ;
     "    if (!p) { p = calloc(m, sizeof *p); }" ;
     "    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }" ;
     "    return p+i;" ;
@@ -463,7 +463,7 @@ def(c99-field-def!, Field --,
             # note it's important to have stability,
             # so we can't just realloc as we used to.
     dup field-name @ .w "{" ;
-    "    usize index = (usize)pop_u64();" ;
+    "    size_t index = (size_t)pop_u64();" ;
     "    VAL *v = fieldptr_" . dup field-name @ .name "(index);" ;
     "    push_ptr(v);" ;
     "}" ;;

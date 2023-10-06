@@ -251,7 +251,6 @@ def(init-prims!, --,
     PRIM_POSIX_OPEN "prim-posix-open" def-prim!
     PRIM_POSIX_CLOSE "prim-posix-close" def-prim!
     PRIM_POSIX_EXIT "prim-posix-exit" def-prim!
-    PRIM_POSIX_MMAP "prim-posix-mmap" def-prim!
 
     #
     # decl prims

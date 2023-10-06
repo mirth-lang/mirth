@@ -77,10 +77,10 @@ def(read-file!, File -- Str,
         while(dup 0 >,
             { Int Ptr Int }
             swap dip(+ dup) swap 2 * prim-ptr-realloc
-            dup2 ptr+ over2 dip2(fp) prim-posix-read)
+            dup2 with-ptr+(over2 dip2(fp) prim-posix-read))
         0 < if("io error while reading file" panic!, id)
         over 4 + prim-ptr-realloc
-        tuck ptr+ 0 Int->U32 swap u32! Ptr->Str
+        tuck with-ptr+(0 Int->U32 swap u32!) Ptr->Str
     ))
 
 def(open-file!, Str -- File,
@@ -154,4 +154,4 @@ def(st_mode@, Ptr -- U16,
         OS_LINUX -> 24, # ... this is all terrible and brittle
         OS_WINDOWS -> 6,
         _ -> drop 8
-    ) swap ptr+ u16@)
+    ) swap with-ptr+(u16@))
