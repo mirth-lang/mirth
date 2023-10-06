@@ -205,7 +205,6 @@ def(init-prims!, --,
     PRIM_PACK_CONS "prim-pack-cons" def-prim!
     PRIM_PACK_UNCONS "prim-pack-uncons" def-prim!
 
-    PRIM_MUT_NEW "prim-mut-new" def-prim!
     PRIM_MUT_GET "prim-mut-get" def-prim!
     PRIM_MUT_SET "prim-mut-set" def-prim!
 
