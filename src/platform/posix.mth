@@ -123,13 +123,14 @@ def(close-file!, File --,
 ########
 
 def-external(stat, RawPtr RawPtr -- Int)
+buffer(POSIX_STAT_BUF, 256)
 
 def(with-raw-path(f), (*a RawPtr -- *b) *a Path -- *b Path,
     Path->Str Str->Ptr with-raw-ptr(f) Ptr->Str Str->Path)
 
 def(is-directory?, Path -- Path Bool,
     with-raw-path(
-        256 prim-ptr-alloc with-raw-ptr(stat)
+        POSIX_STAT_BUF with-raw-ptr(stat)
         swap 0 == if(
             st_mode@ S_ISDIR,
             drop false

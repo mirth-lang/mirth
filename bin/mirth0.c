@@ -1721,6 +1721,10 @@ static void mw_STR_BUF (void) {
     static uint8_t b[8192] = {0};
     push_ptr(&b);
 }
+static void mw_POSIX_STAT_BUF (void) {
+    static uint8_t b[256] = {0};
+    push_ptr(&b);
+}
 static void mw_INPUT_BUFFER (void) {
     static uint8_t b[8208] = {0};
     push_ptr(&b);
@@ -3339,7 +3343,6 @@ static void mb_str_bytes_1 (void);
 static void mb_str_bytes_2 (void);
 static void mb_str_bytes_3 (void);
 static void mb_str_bytes_4 (void);
-static void mb_str_bytes_5 (void);
 static void mb_L4_2B__1 (void);
 static void mb_L5_2B__1 (void);
 static void mb_L6_2B__1 (void);
@@ -9108,13 +9111,29 @@ static void mw_str_codepoints (void){
 
 static void mw_str_bytes (void){
     mw_L0();
-    mw_swap();
+    mw_over();
     mw_dup();
-    push_u64(0);
-    push_fnptr(&mb_str_bytes_1);
-    mw_prim_pack_cons();
-    mw_sip();
-    mw_drop3();
+    mw_Str__3E_Ptr();
+    mw_swap();
+    mw_str_size();
+    while(1) {
+        mw_dup();
+        push_i64(0LL);
+        mw__3E_();
+        if (!pop_u64()) break;
+        mw_1_();
+        {
+            VAL d3 = pop_value();
+            push_u64(0);
+            push_fnptr(&mb_str_bytes_4);
+            mw_prim_pack_cons();
+            mw_sip();
+            mw_ptr_2B_();
+            push_value(d3);
+        }
+    }
+    mw_drop2();
+    mw_nip();
 }
 
 static void mw_Str__3E_Path (void){
@@ -26225,8 +26244,7 @@ static void mb_with_raw_path_2 (void) {
 
 static void mb_is_directory_3F__1 (void) {
     mw_prim_drop();
-    push_i64(256LL);
-    mw_prim_ptr_alloc();
+    mw_POSIX_STAT_BUF();
     push_u64(0);
     push_fnptr(&mb_is_directory_3F__2);
     mw_prim_pack_cons();
@@ -26685,41 +26703,18 @@ static void mb_char_codepoint_6 (void) {
 
 static void mb_str_bytes_1 (void) {
     mw_prim_drop();
-    mw_Str__3E_Ptr();
-    mw_swap();
-    mw_str_size();
-    while(1) {
-        mw_dup();
-        push_i64(0LL);
-        mw__3E_();
-        if (!pop_u64()) break;
-        mw_1_();
-        {
-            VAL d3 = pop_value();
-            push_u64(0);
-            push_fnptr(&mb_str_bytes_5);
-            mw_prim_pack_cons();
-            mw_sip();
-            mw_ptr_2B_();
-            push_value(d3);
-        }
-    }
-}
-
-static void mb_str_bytes_2 (void) {
-    mw_prim_drop();
     mw_dup();
     push_i64(0LL);
     mw__3E_();
 }
 
-static void mb_str_bytes_3 (void) {
+static void mb_str_bytes_2 (void) {
     mw_prim_drop();
     mw_1_();
     {
         VAL d2 = pop_value();
         push_u64(0);
-        push_fnptr(&mb_str_bytes_5);
+        push_fnptr(&mb_str_bytes_4);
         mw_prim_pack_cons();
         mw_sip();
         mw_ptr_2B_();
@@ -26727,16 +26722,16 @@ static void mb_str_bytes_3 (void) {
     }
 }
 
-static void mb_str_bytes_4 (void) {
+static void mb_str_bytes_3 (void) {
     mw_prim_drop();
     push_u64(0);
-    push_fnptr(&mb_str_bytes_5);
+    push_fnptr(&mb_str_bytes_4);
     mw_prim_pack_cons();
     mw_sip();
     mw_ptr_2B_();
 }
 
-static void mb_str_bytes_5 (void) {
+static void mb_str_bytes_4 (void) {
     mw_prim_drop();
     mw_u8_40_();
     mw_snoc();
