@@ -4,9 +4,7 @@ import(prelude)
 
 data(Path, PATH -> Str)
 def(Str->Path, Str -- Path, PATH)
-def(Path->Str, Path -- Str, match(PATH -> id))
-def(path@, Ptr -- Path, ptr@ Ptr->Str Str->Path)
-def(path!, Path Ptr --, dip(Path->Str Str->Ptr) ptr!)
+def(Path->Str, Path -- Str, PATH -> id)
 
 def(init-paths!, --,
     "src" Str->Path source-path-root !
@@ -21,7 +19,7 @@ def(path-join, Path Path -- Path,
     swap path-is-empty? if(
         drop,
         Path->Str path-separator rotl Path->Str
-        L3 str-concat Str->Path
+        dip(str-cat) str-cat Str->Path
     ))
 
 ||| Make a source path from a project-relative path.

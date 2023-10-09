@@ -107,7 +107,8 @@ def(argv, Ptr, prim-sys-argv)
 
 def(posix-read!, Int Ptr Int -- Int, prim-posix-read)
 def(posix-write!, Int Ptr Int -- Int, prim-posix-write)
-def(posix-open!, Str Int Int -- Int, dip2(Str->Ptr) prim-posix-open)
+def(posix-open!, Str Int Int -- Int,
+    rotl with-str-data(drop rotr prim-posix-open))
 def(posix-close!, Int -- Int, prim-posix-close)
 def(posix-exit!, *a Int -- *b, prim-posix-exit)
 
@@ -159,9 +160,6 @@ def(countdown(f), (*a Int -- *a) *a Int -- *a,
 def-type(Byte, U8)
 def-type(Size, Int)
 def-type(Offset, Int)
-
-def(Str->Ptr, Str -- Ptr, prim-unsafe-cast) # TODO
-def(Ptr->Str, Ptr -- Str, prim-unsafe-cast) # TODO
 
 def(U8_MAX, Int, 0xFF)
 def(U16_MAX, Int, 0xFFFF)
@@ -277,49 +275,11 @@ def(Char->Int, Char -- Int, prim-unsafe-cast)
 def(negate, Int -- Int, -1 *)
 def(abs, Int -- Int, dup 0< if(negate, id))
 
-#######
-# NIL #
-#######
-
-||| Default value for any type. This is the 0-filled memory
-||| version of the type (hence "nil"). Best practice is to
-||| set up your types such that 0-filled memory is a sensible
-||| default value.
-|||
-||| Use nil with care! Don't confuse it for an "optional"
-||| value, use `Maybe(t)` instead. Rather, `nil` should
-||| be a value within the acceptable range of the type, and
-||| a sensible default value for fields of this type.
-|||
-||| In the future, there will be better control over which
-||| types admit a `nil` value.
-|||
-||| - For booleans, this is false.
-||| - For integers, this is zero.
-||| - For pointers, this is NULL.
-||| - For table typess, this is the 0th row, which you never alloc.
-|||   Its fields have nil value unless you override them.
-||| - For data types, this is the first constructor, applied to nil values.
-||| - For n-tuples, this is [ nil ... nil ]
-def(nil, a, 0 prim-unsafe-cast)
-
-||| Test for nil.
-def(is-nil, a -- Bool, nil ==)
-
-||| Test for nil.
-def(is-nil?, a -- a Bool, dup nil ==)
-
 ##########
 # TUPLES #
 ##########
 
-||| Return the "nil" pack, i.e. null.
-def(pack-nil, [*a], nil)
-
-||| Is this a nil pack?
-def(pack-nil?, [*a] -- [*a] Bool, dup pack-nil ==)
-
-def(pack0, [], pack-nil)
+def(pack0, [], prim-pack-nil)
 def(pack1, a -- [a], dip(pack0) prim-pack-cons)
 def(pack2, a b -- [a b], dip(pack1) prim-pack-cons)
 def(pack3, a b c -- [a b c], dip(pack2) prim-pack-cons)

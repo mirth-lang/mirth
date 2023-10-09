@@ -15,4 +15,5 @@ def(stack-uncons, Stack(t) -- Maybe(t) Stack(t),
 def(stack-reset!, Mut(Stack(t)) --,
     STACK_NIL swap !)
 def(stack-is-empty, Stack(t) -- Bool,
-    is-nil)
+    STACK_NIL -> true,
+    STACK_CONS -> drop2 false)

@@ -48,6 +48,10 @@ def(List->List+, List(t) -- Maybe(List+(t)),
     L3 -> L3+ SOME,
     LCAT -> LCAT+ SOME)
 
+def(list-is-empty, List(t) -- Bool,
+    L0 -> true,
+    _ -> drop false)
+
 def(len, List(t) -- Int,
     L0 -> 0,
     L1 -> drop 1,

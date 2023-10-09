@@ -211,7 +211,7 @@ def(ab-build-word-arrow!(f), (*a Type -- *b Type) *a Word -- *b Arrow,
     dup ab-home ! 0 ab-homeidx !
     sip(elab-word-ctx-sig-weak!)
     word-body @ ab-build-hom!(f)
-    nil ab-home !)
+    word-nil ab-home !)
 def(ab-build-word!(f), (*a -- *b) *a Word -- *b Word,
     sip(ab-build-word-arrow!(dip(f)) ready)
     tuck word-arrow !)
@@ -322,8 +322,8 @@ def(ab-field!, Field --, OP_FIELD ab-op!)
 def(ab-var!, Var --, OP_VAR ab-op!)
 def(ab-tag!, Tag --, OP_TAG ab-op!)
 def(ab-prim!, Prim --,
-    dup prim-type @ is-nil if(
-        ab-token @ "compiler error: prim type missing" emit-fatal-error!,
+    dup prim-type @ TYPE_ERROR == if(
+        ab-token @ "prim does not have type" emit-fatal-error!,
         OP_PRIM ab-op!
     ))
 def(ab-word!, Word --, OP_WORD ab-op!)
@@ -710,6 +710,7 @@ def(elab-module!, Module -- Module,
 
 ||| Check that the `module(M)` statement exists and save the name.
 def(elab-module-header!, Token -- Token,
+    # dup token-name@ name-str @ str-trace-ln!
     PRIM_SYNTAX_MODULE token-prim=? if(
         dup token-args-1
         token-is-name? if(id, "Expected module name." emit-fatal-error!)
@@ -728,12 +729,15 @@ def(elab-module-header!, Token -- Token,
 ||| Elaborate a declaration. Returns the next token.
 def(elab-module-decl!, Token -- Token,
     dup token-value @ match(
-        TOKEN_NAME -> name-def @ match(
-            DEF_PRIM -> prim-decl @ is-nil? if(
-                drop "unknown declaration" emit-fatal-error!,
-                run
+        TOKEN_NAME -> dup name-def @ match(
+            DEF_PRIM -> prim-decl @ match(
+                NONE ->
+                    name-str @ str-trace-ln!
+                    "unknown declaration, prim prim" emit-fatal-error!,
+                SOME -> nip run
             ),
-            _ -> drop "unknown declaration" emit-fatal-error!
+            _ -> drop name-str @ str-trace-ln!
+                 "unknown declaration, not prim" emit-fatal-error!
         ),
         _ -> drop "unsupported declaration" emit-fatal-error!
     ))
@@ -840,7 +844,7 @@ def(token-def-args, Token -- Token Maybe(Token) List+(Token),
         drop "def expects at least two arguments" emit-fatal-error!)
     List->List+ unwrap uncons
     List->List+ unwrap uncons
-    is-nil? if(
+    dup list-is-empty if(
         drop L1+ dip(NONE),
         over token-run-has-arrow if(
             cons+ dip(NONE),
@@ -858,7 +862,7 @@ def(elab-def-missing!, Token -- Token,
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, Token -- Token,
     sip(token-next) token-def-args
-    uncons is-nil if(id,
+    uncons list-is-empty if(id,
         dup token-run-has-arrow if(id,
             "expected match case" emit-fatal-error!))
     rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
@@ -884,7 +888,7 @@ def(elab-def!, Token -- Token,
     dup delay(elab-def-params!) over word-params !
     dup delay(
         dup ab-build-word-arrow!(
-            swap word-params force! is-nil? if(
+            swap word-params force! dup list-is-empty if(
                 drop elab-def-body!,
                 ab-lambda!(elab-def-body!)
             )

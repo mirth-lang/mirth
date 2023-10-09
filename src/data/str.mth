@@ -1,47 +1,49 @@
 module(data.str)
 import(data.list)
 import(data.char)
+import(data.maybe)
 import(prelude)
 
-def(str-head, Str -- Char, Str->Ptr char@)
-def(str-head-width, Str -- Int, Str->Ptr char@-width)
+data(StrSlice, STR_SLICE -> Str Ptr Size)
+def(str-slice, Str -- StrSlice, dup with-str-data(STR_SLICE))
+def(str-slice-head, StrSlice -- Char,
+    STR_SLICE -> 0 > if(char@ nip, drop2 0 Int->Char))
+def(str-slice-tail, StrSlice -- StrSlice, str-slice-next drop)
+def(str-slice-next, StrSlice -- StrSlice Maybe(Char),
+    STR_SLICE -> dup 0 > if(
+        over char@ dup SOME
+        dip(char-width tuck - dip(swap ptr+) STR_SLICE),
+        STR_SLICE NONE
+    ))
+def(str-slice-copy, StrSlice -- Str,
+    STR_SLICE -> str-copy nip)
 
-# like ptr+ you must ensure the string's base pointer still
-# has a reference somewhere, for now
-def(str-tail, Str -- Str,
-    sip(str-head-width) Str->Ptr ptr+ Ptr->Str)
-
-def(str-size?, Str -- Str Int, prim-str-size)
+def(str-nil, Str, "")
 def(str-size, Str -- Int, prim-str-size nip)
 
-def(str-length, Str -- Int,
+def(str-len, Str -- Int,
     0 swap str-for(drop 1+))
 
-def(str-length?, Str -- Str Int,
-    dup str-length)
-
+def(str-cat, Str Str -- Str, prim-str-cat)
 def(str-concat, List(Str) -- Str,
-    dup 0 swap for(str-size +)
-    prim-str-alloc sip(
-        prim-str-base
-        swap for(swap str-copy-partial!)
-        nil swap u8!
+    List->List+ match(
+        NONE -> str-nil,
+        SOME -> uncons for(str-cat)
     ))
 
-def(str-cat, Str Str -- Str,
-    L2 str-concat)
-
 def(str-is-empty, Str -- Bool,
-    is-nil? if(drop true, str-head is-nil))
-
+    str-size 0=)
 def(str-is-empty?, Str -- Str Bool,
     dup str-is-empty)
 
 ||| Copy string bytes to second argument without adding 0 at end.
 ||| Return first unwritten location in second argument.
 def(str-copy-partial!, Str Ptr -- Ptr,
-    dip(dup Str->Ptr swap str-size)
-    dup2 ptr+ dip(prim-ptr-copy)) # unsafe
+    swap with-str-data(
+        rotl
+        dup2 ptr+
+        dip(prim-ptr-copy)
+    ))
 
 def(STR_BUF_SIZE, Int, 0x2000)
 buffer(STR_BUF, 0x2000)
@@ -52,9 +54,20 @@ def(build-str!(f), (*a -- *b) *a -- *b Str,
         f str-buf-dup!
     ) str-buf!)
 
+def-missing(prim-str-copy, Ptr Size -- Str,
+    dup prim-str-alloc sip(prim-str-base prim-ptr-copy))
+
+def(str-copy, Ptr Size -- Str,
+    prim-str-copy)
+
+def(str-copy-cstr, Ptr -- Str,
+    dup cstr-len prim-str-copy)
+
+def(cstr-len, Ptr -- Size,
+    0 swap while(dup u8@ U8->Int 0 >, dip(1+ 1) ptr+) drop)
+
 def(str-buf-dup!, Str,
-    STR_BUF str-buf-length? dup prim-str-alloc
-    sip(prim-str-base prim-ptr-copy))
+    STR_BUF str-buf-length? prim-str-copy)
 
 def(str-buf-length?, Int,
     STR_BUF_LEN @)
@@ -93,7 +106,10 @@ def(str-buf-push-char!, Char --,
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
 def(str-buf-push-str!, Str --,
-    dup Str->Ptr swap str-size str-buf-push-ptr!)
+    with-str-data(str-buf-push-ptr!))
+
+def(with-str-data(f), (*a Ptr Size -- *b) *a Str -- *b,
+    dup dip(dup prim-str-base swap prim-str-size nip f) drop)
 
 def(str-buf-push-ptr!, Ptr Size -- ,
     tuck str-buf-length? STR_BUF with-ptr+(prim-ptr-copy)
@@ -149,8 +165,10 @@ def(str-eq?, Str Str -- Str Str Bool, dup2 str-eq)
 
 ||| Traverse string characters.
 def(str-for(f), (*a Char -- *a) *a Str -- *a,
-    sip(while(str-is-empty? not, sip(str-head f) str-tail))
-    drop2)
+    str-slice while-some(
+        str-slice-next,
+        swap dip(f)
+    ) drop)
 
 data(TransducerStep,
     TS_STOP,
@@ -160,15 +178,16 @@ data(TransducerStep,
     TS_COPY -> Str)
 
 def(str-transduce(f), (*a Char -- *a TransducerStep) *a Str -- *a Str,
-    sip(build-str!(
-        while(str-is-empty? not,
-            sip(str-head f) str-tail
-            swap str-transduce-step
+    build-str!(
+        str-slice while-some(
+            str-slice-next,
+            swap dip(f) swap
+            str-transduce-step
         ) drop
-    ))drop)
+    ))
 
-def(str-transduce-step, Str TransducerStep -- Str,
-    TS_STOP -> drop "",
+def(str-transduce-step, StrSlice TransducerStep -- StrSlice,
+    TS_STOP -> drop str-nil str-slice,
     TS_SKIP -> id,
     TS_CHAR -> str-buf-push-char!,
     TS_PUSH -> for(str-buf-push-char!),
@@ -181,8 +200,10 @@ def(str-codepoints, Str -- List(Int),
     dip(L0) str-for(char-codepoint snoc))
 
 def(str-bytes, Str -- List(U8),
-    L0 over dup Str->Ptr swap str-size
-    while(
-        dup 0 >,
-        1- dip(sip(u8@ snoc 1) ptr+)
-    ) drop2 nip)
+    L0 swap with-str-data(
+        while(
+            dup 0 >,
+            1- dip(sip(u8@ snoc 1) ptr+)
+        )
+        drop2
+    ))

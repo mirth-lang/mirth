@@ -106,16 +106,10 @@ def(char-codepoint-4, Char -- Int,
     dip(dup 0x3F00 & 4 <<
     dip(0x7 & 18 <<))) | | |)
 
-||| Write a character. This writes 4 bytes in UTF8, happily
-||| writing up to 3 bytes ahead. The idea is that you'll
-||| overwrite with the next character. Don't use this if you need
-||| pinpoint precision writing. Use [char!-precise] instead.
-def(char!, Char Ptr --, dip(Char->Int Int->U32) u32!)
-
-||| Writes precisely the bytes in the UTF8 representation of the
-||| character. This will only write one byte if the character
+||| Writes a character in UTF8 representation of the character.
+||| This will only write one byte if the character
 ||| happens to be one byte long.
-def(char!-precise, Char Ptr --,
+def(char!, Char Ptr --,
     dip(char-width?) swap
     dup 1 == if(
         drop dip(Char->Int Int->U8) u8!,
@@ -144,10 +138,15 @@ def(char?, Ptr -- Ptr Char,
 ||| mask away the unnecessary bits. Use [char@-precise] if you
 ||| need pinpoint reading instead.
 def(char@, Ptr -- Char,
-    u32@ U32->Int
-    sip(0xC5AAFFFFFFFFFFFF) 0xF8 & 2 >> >> 0x3 &
-    dip(0xFFFFFFFF) 3 << >> &
-    Int->Char)
+    dup char@-width
+    dup 1 == if(
+        drop u8@ U8->Int Int->Char,
+    dup 2 == if(
+        drop u16@ U16->Int Int->Char,
+    dup 3 == if(
+        drop dup dip(u16@ U16->Int 2) ptr+ u8@ U8->Int 16 << | Int->Char,
+        drop u32@ U32->Int Int->Char
+    ))))
 
 def(char@-width, Ptr -- Int,
     u8@ U8->Int Int->Char char-width)
@@ -156,69 +155,63 @@ def(char-width, Char -- Int,
 def(char-width?, Char -- Char Int,
     dup char-width)
 
-def(is-nul?, Char -- Char Bool, dup Char->Int 0 ==)
+def(is-nul, Char -- Bool, Char->Int 0=)
+def(is-tab, Char -- Bool, Char->Int 9 ==)
+def(is-newline, Char -- Bool, Char->Int 10 ==)
+def(is-vtab, Char -- Bool, Char->Int 11 ==)
+def(is-return, Char -- Bool, Char->Int 13 ==)
+def(is-space, Char -- Bool, Char->Int 32 ==)
 
-def(is-tab?, Char -- Char Bool, dup Char->Int 9 ==)
-def(is-newline?, Char -- Char Bool, dup Char->Int 10 ==)
-def(is-vtab?, Char -- Char Bool, dup Char->Int 11 ==)
-def(is-return?, Char -- Char Bool, dup Char->Int 13 ==)
-def(is-space?, Char -- Char Bool, dup Char->Int 32 ==)
-
-def(is-quote?, Char -- Char Bool, dup Char->Int 34 ==)
-def(is-pound?, Char -- Char Bool, dup Char->Int 35 ==)
-def(is-lparen?, Char -- Char Bool, dup Char->Int 40 ==)
-def(is-rparen?, Char -- Char Bool, dup Char->Int 41 ==)
-def(is-asterisk?, Char -- Char Bool, dup Char->Int 42 ==)
-def(is-plus?, Char -- Char Bool, dup Char->Int 43 ==)
-def(is-comma?, Char -- Char Bool, dup Char->Int 44 ==)
-def(is-minus?, Char -- Char Bool, dup Char->Int 45 ==)
-def(is-dash?, Char -- Char Bool, dup Char->Int 45 ==)
-def(is-dot?, Char -- Char Bool, dup Char->Int 46 ==)
-def(is-digit?, Char -- Char Bool, dup Char->Int 48 57 in-range)
-def(is-colon?, Char -- Char Bool, dup Char->Int 58 ==)
-def(is-semicolon?, Char -- Char Bool, dup Char->Int 59 ==)
-def(is-lt?, Char -- Char Bool, dup Char->Int 60 ==)
-def(is-eq?, Char -- Char Bool, dup Char->Int 61 ==)
-def(is-gt?, Char -- Char Bool, dup Char->Int 62 ==)
-def(is-question-mark?, Char -- Char Bool, dup Char->Int 63 ==)
-
-def(is-upper?, Char -- Char Bool, dup Char->Int 65 90 in-range)
-def(is-upper-hexdigit?, Char -- Char Bool, dup Char->Int 65 70 in-range)
-
-def(is-lsquare?, Char -- Char Bool, dup Char->Int 91 ==)
-def(is-backslash?, Char -- Char Bool, dup Char->Int 92 ==)
-def(is-rsquare?, Char -- Char Bool, dup Char->Int 93 ==)
-def(is-underscore?, Char -- Char Bool, dup Char->Int 95 ==)
-
-def(is-lower?, Char -- Char Bool, dup Char->Int 97 122 in-range)
-def(is-lower-hexdigit?, Char -- Char Bool, dup Char->Int 97 102 in-range)
-def(is-n?, Char -- Char Bool, dup Char->Int 110 ==)
-def(is-r?, Char -- Char Bool, dup Char->Int 114 ==)
-def(is-t?, Char -- Char Bool, dup Char->Int 116 ==)
-
-def(is-lcurly?, Char -- Char Bool, dup Char->Int 123 ==)
-def(is-pipe?, Char -- Char Bool, dup Char->Int 124 ==)
-def(is-rcurly?, Char -- Char Bool, dup Char->Int 125 ==)
-
-def(is-whitespace?, Char -- Char Bool,
-    dup Char->Int dup 33 <
+def(is-quote, Char -- Bool, Char->Int 34 ==)
+def(is-pound, Char -- Bool, Char->Int 35 ==)
+def(is-lparen, Char -- Bool, Char->Int 40 ==)
+def(is-rparen, Char -- Bool, Char->Int 41 ==)
+def(is-asterisk, Char -- Bool, Char->Int 42 ==)
+def(is-plus, Char -- Bool, Char->Int 43 ==)
+def(is-comma, Char -- Bool, Char->Int 44 ==)
+def(is-minus, Char -- Bool, Char->Int 45 ==)
+def(is-dash, Char -- Bool, Char->Int 45 ==)
+def(is-dot, Char -- Bool, Char->Int 46 ==)
+def(is-digit, Char -- Bool, Char->Int 48 57 in-range)
+def(is-colon, Char -- Bool, Char->Int 58 ==)
+def(is-semicolon, Char -- Bool, Char->Int 59 ==)
+def(is-lt, Char -- Bool, Char->Int 60 ==)
+def(is-eq, Char -- Bool, Char->Int 61 ==)
+def(is-gt, Char -- Bool, Char->Int 62 ==)
+def(is-question-mark, Char -- Bool, Char->Int 63 ==)
+def(is-upper, Char -- Bool, Char->Int 65 90 in-range)
+def(is-upper-hexdigit, Char -- Bool, Char->Int 65 70 in-range)
+def(is-lsquare, Char -- Bool, Char->Int 91 ==)
+def(is-backslash, Char -- Bool, Char->Int 92 ==)
+def(is-rsquare, Char -- Bool, Char->Int 93 ==)
+def(is-underscore, Char -- Bool, Char->Int 95 ==)
+def(is-lower, Char -- Bool, Char->Int 97 122 in-range)
+def(is-lower-hexdigit, Char -- Bool, Char->Int 97 102 in-range)
+def(is-n, Char -- Bool, Char->Int 110 ==)
+def(is-r, Char -- Bool, Char->Int 114 ==)
+def(is-t, Char -- Bool, Char->Int 116 ==)
+def(is-lcurly, Char -- Bool, Char->Int 123 ==)
+def(is-pipe, Char -- Bool, Char->Int 124 ==)
+def(is-rcurly, Char -- Bool, Char->Int 125 ==)
+def(is-whitespace, Char -- Bool,
+    Char->Int dup 33 <
     dip(dip(0x100020E00) >> 0x1 & 0 <>) &&)
 # Equivalent to:
 #    is-space? or(is-tab?) or(is-return?) or(is-newline?) or(is-vtab?)
 
-def(is-hexdigit?, Char -- Char Bool,
-    is-digit?
-    dip(is-upper-hexdigit?) ||
-    dip(is-lower-hexdigit?) ||)
+def(is-hexdigit, Char -- Bool,
+    dup is-digit swap
+    dup is-upper-hexdigit swap
+    is-lower-hexdigit || ||)
 
-def(is-sign?, Char -- Char Bool,
-    is-plus? dip(is-minus?) ||)
-def(is-alpha?, Char -- Char Bool,
-    dup Char->Int 0xFFFFFFDF & 65 90 in-range)
+def(is-sign, Char -- Bool,
+    dup is-plus swap is-minus ||)
 
-def(is-string-end?, Char -- Char Bool,
-    dup Char->Int dup 64 <
-    and(0x400000401 over >> 0x1 & 0 <>) nip)
+def(is-alpha, Char -- Bool,
+    Char->Int 0xFFFFFFDF & 65 90 in-range)
+
+def(is-string-end, Char -- Bool,
+    Char->Int dup 64 < and(0x400000401 over >> 0x1 & 0 <>) nip)
 # Equivalent to:
 #   is-quote? or(is-newline?) or(is-nul?)
 
@@ -226,14 +219,10 @@ def(underscore, Char, 95 Int->Char)
 
 ||| An approximation of visible characters. Technically this includes a lot of
 ||| stuff that is invisible, like zero-width spaces and such.
-def(is-visible?, Char -- Char Bool,
-    dup Char->Int 32 >)
-
-def(is-name-char?, Char -- Char Bool,
-    is-visible? dip(is-special-char? not) &&)
-
-def(is-special-char?, Char -- Char Bool,
-    dup Char->Int dup 64 < if(
+def(is-visible, Char -- Bool, Char->Int 32 >)
+def(is-name-char, Char -- Bool, dup is-visible swap is-special-char not &&)
+def(is-special-char, Char -- Bool,
+    Char->Int dup 64 < if(
         0x0400130C00000000 swap >>,
         64 - dup 64 < if(0x2800000028000000 swap >>, drop 0)
     ) 0x1 & 0 <>)

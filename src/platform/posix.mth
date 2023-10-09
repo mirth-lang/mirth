@@ -4,11 +4,13 @@ import(data.str)
 import(data.path)
 
 def(panic!, *a Str -- *b,
-    "panic: " str-trace! str-trace-ln! 1 posix-exit!)
+    "panic: " str-trace! str-trace-ln!
+    0 prim-unsafe-cast u64@ # for debug
+    1 posix-exit!)
 
 data(File, FILE -> Int)
 def(Int->File, Int -- File, FILE)
-def(File->Int, File -- Int, match(FILE -> id))
+def(File->Int, File -- Int, FILE -> id)
 
 def(file@, Ptr -- File, int@ Int->File)
 def(file!, File Ptr --, dip(File->Int) int!)
@@ -18,15 +20,12 @@ def(stdout, File, 1 Int->File)
 def(stderr, File, 2 Int->File)
 
 def(str-write!, Str File --,
-    File->Int swap dup str-size dup
-    dip(dip(Str->Ptr) posix-write!) swap
-    dup 0 < if(
-        "error: write failed!" panic!,
-        swap < if(
-            "error: write output fewer bytes than expected!" panic!,
-            id
-        )
-    ))
+    swap with-str-data(slice-write!))
+
+def(slice-write!, File Ptr Int --,
+    dip2(File->Int) dup dip(posix-write!)
+    dup 0 < if("error: write failed!" panic!, id)
+    > if("error: write output fewer bytes than expected!" panic!, id))
 
 def(str-print!, Str --, stdout str-write!)
 def(str-trace!, Str --, stderr str-write!)
@@ -36,17 +35,7 @@ def(str-trace-ln!, Str --, str-trace! trace-ln!)
 def(print-ln!, --, "\n" str-print!)
 def(trace-ln!, --, "\n" str-trace!)
 
-def(str-buf-write!, File --,
-    File->Int STR_BUF str-buf-length?
-    posix-write!
-    dup 0 < if(
-        "error: str-buf write failed!" panic!,
-        str-buf-length? < if(
-            "error: str-buf write wrote fewer bytes than expected!" panic!,
-            id
-        )
-    ))
-
+def(str-buf-write!, File --, STR_BUF str-buf-length? slice-write!)
 def(str-buf-print!, --, stdout str-buf-write!)
 def(str-buf-trace!, --, stderr str-buf-write!)
 def(str-buf-read!, File --,
@@ -70,20 +59,18 @@ def(int-trace-ln!, Int --, int-trace! trace-ln!)
 def(with-open-file!(f,g), (*a File -- *b, *a -- *b) *a Str -- *b,
     0 0 posix-open! dup 0 < if(drop g, dup dip(Int->File f) posix-close! drop))
 
+def(READ_FILE_BUF_SIZE, 0x1000)
+buffer(READ_FILE_BUF, 0x1000)
 def(read-file!, File -- Str,
-    File->Int \(fp ->
-        0 0x1000 prim-ptr-alloc
-        fp over 0x1000 prim-posix-read
-        while(dup 0 >,
-            { Int Ptr Int }
-            swap dip(+ dup) swap 2 * prim-ptr-realloc
-            dup2 with-ptr+(over2 dip2(fp) prim-posix-read))
-        0 < if("io error while reading file" panic!, id)
-        over 4 + prim-ptr-realloc
-        tuck with-ptr+(0 Int->U32 swap u32!) Ptr->Str
-    ))
+    File->Int \(fp -> ""
+    fp READ_FILE_BUF READ_FILE_BUF_SIZE prim-posix-read
+    while(dup 0 >,
+        READ_FILE_BUF swap prim-str-copy str-cat
+        fp READ_FILE_BUF READ_FILE_BUF_SIZE prim-posix-read)
+    0 < if("io error while reading file" panic!, id)))
 
 def(open-file!, Str -- File,
+    dup str-print-ln!
     0 0 posix-open!
     dup 0 < if(
         "Failed to open file!" panic!,
@@ -126,7 +113,7 @@ def-external(stat, RawPtr RawPtr -- Int)
 buffer(POSIX_STAT_BUF, 256)
 
 def(with-raw-path(f), (*a RawPtr -- *b) *a Path -- *b Path,
-    Path->Str Str->Ptr with-raw-ptr(f) Ptr->Str Str->Path)
+    sip(Path->Str prim-str-base with-raw-ptr(f) drop))
 
 def(is-directory?, Path -- Path Bool,
     with-raw-path(
