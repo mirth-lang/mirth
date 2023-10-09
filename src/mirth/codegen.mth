@@ -46,7 +46,7 @@ def(.c, Char --,
     char-width codegen-length modify(+))
 
 def(., Str --,
-    dup Str->Ptr swap str-size
+    dup prim-str-base over str-size
     dup codegen-length @ + CODEGEN_BUF_SIZE > if(
         codegen-flush!
         while(dup CODEGEN_BUF_SIZE >,
@@ -60,7 +60,7 @@ def(., Str --,
 
         sip(codegen-length @ CODEGEN_BUF ptr+ prim-ptr-copy)
         codegen-length modify(+)
-    ))
+    ) drop)
 
 def(codegen-start!, File --,
     codegen-file ! 0 codegen-length !)
@@ -131,9 +131,9 @@ def(c99-tag!, Tag --,
             "    push_u64(" . tag-value @ .n "LL);" ;,
 
             "    VAL car = pop_value();" ;
-            tag-num-inputs? 1- repeat("    car = mkcell(car, pop_value());" ;)
+            tag-num-inputs? 1- repeat("    car = mkcons(car, pop_value());" ;)
             "    VAL tag = mku64(" . tag-value @ .n "LL);" ;
-            "    car = mkcell(car, tag);" ;
+            "    car = mkcons(car, tag);" ;
             "    push_value(car);" ;
         )
     )
@@ -213,28 +213,37 @@ def(c99-int!, Int --,
     c99-line("push_i64(" . .n "LL);" .))
 
 def(c99-str!, Str --,
-    dup str-size 4090 > if(
-        c99-line("{" .)
+    c99-line("{" .)
+    c99-nest(
+        c99-line("static STR s = {" .)
         c99-nest(
-            c99-line("static uint8_t b[" . dup str-size 4 + .n  "] = {" .)
-            c99-nest(
-                c99-indent str-for(char-bytes for(
-                    U8->Int dup .n "," .
-                    10 == if(.lf c99-indent, id)
-                )) .lf
-                c99-line("0,0,0,0," .)
+            c99-line(".refs = 1," .)
+            c99-line(".cap = " . dup str-size 4 + .n "," .)
+            c99-line(".size = " . dup str-size .n "," .)
+            dup str-size 4090 > if(
+                c99-line(".data = {" .)
+                c99-nest(
+                    c99-indent dup str-for(char-bytes for(
+                        U8->Int dup .n "," .
+                        10 == if(.lf c99-indent, id)
+                    )) .lf
+                    c99-line("0,0,0,0," .)
+                )
+                c99-line("}," .),
+                c99-line(
+                    ".data = \"" .
+                    dup str-for(c99-string-char!)
+                    "\\0\\0\\0\\0\"," .
+                )
             )
-            c99-line("};" .)
-            c99-line("push_ptr((void*)b);" .)
         )
-        c99-line("}" .),
-
-        c99-line(
-            "push_ptr(\"" .
-            str-for(c99-string-char!)
-            "\\0\\0\\0\\0\");" .
-        ) # wide sentinel
-    ))
+        c99-line("};" .)
+        c99-line("ASSERT(s.refs > 0);" .)
+        c99-line("s.refs++;" .)
+        c99-line("push_value((VAL){.tag=TAG_STR, .data={.str=&s}});" .)
+        drop
+    )
+    c99-line("}" .))
 
 def(c99-constant!, Value --,
     VALUE_INT -> c99-int!,
@@ -242,11 +251,11 @@ def(c99-constant!, Value --,
     VALUE_BLOCK -> c99-block-push!)
 
 def(c99-string-char!, Char --,
-    is-backslash? if(
+    dup is-backslash if(
         drop "\\\\" .,
-    is-quote? if(
+    dup is-quote if(
         drop "\\\"" .,
-    dup Char->Int 32 127 in-range if(
+    dup Char->Int 32 126 in-range if(
         .c,
     dup Char->Int 9 == if(
         drop "\\t" .,
@@ -439,7 +448,7 @@ def(c99-block-def!, Block --,
 
 def(.block, Block -- ,
     "mb_" .
-    dup block-arrow force! dup arrow-home @ is-nil? if(
+    dup block-arrow force! dup arrow-home @ dup word-nil == if(
         drop2 Block.id .n,
         word-name @ .name "_" .
         arrow-homeidx @ .n drop

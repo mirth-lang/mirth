@@ -679,7 +679,7 @@ def(meta-expand-or-update!(f), (*a -- *a Type) *a MetaVar -- *a Type,
 ##############
 
 def(type-hole-unify!, Type Name -- Type,
-    is-nil? if(
+    dup name-is-nil if(
         drop,
         THole type-trace!
         " ~ " str-trace!
@@ -727,9 +727,8 @@ def(app-type-trace-open!, Type Type --,
 # mirth/data/type
 data(Subst, SUBST -> Map(Var, Type))
 def(unSUBST, Subst -- Map(Var, Type), SUBST -> id)
-def(subst-nil, Subst, nil)
-def(subst-is-nil, Subst -- Bool, is-nil)
-def(subst-is-nil?, Subst -- Subst Bool, is-nil?)
+def(subst-nil, Subst, map-empty SUBST)
+def(subst-is-nil, Subst -- Bool, SUBST -> map-is-empty)
 def(subst-new!, Type Var Subst -- Subst,
     unSUBST rotr pack2 map-insert SUBST)
 def(subst-has-var, Var Subst -- Bool,

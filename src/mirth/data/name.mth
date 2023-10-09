@@ -22,38 +22,37 @@ table(Name)
 field(name-str, Name, Str)
 field(name-def, Name, Def)
 field(name-mangled, Name, Lazy(Str))
+def(name-is-nil, Name -- Bool, Name.id 0 ==)
 
-data(Hash, HASH -> Int)
-def(Int->Hash, Int -- Hash, HASH)
-def(Hash->Int, Hash -- Int, HASH -> id)
+def(name-debug!, Name --,
+    dup name-str @ str-trace!
+    "[" str-trace! Name.id int-trace! "] " str-trace!)
 
-buffer(NAME_HASH_TABLE, 0x80000)
-def(NAME_HASH_MAX, Size, 0x7FFF)
-def(hash-name!, Name Hash --, Hash->Int NAME_HASH_TABLE value!!)
-def(hash-name@, Hash -- Name, Hash->Int NAME_HASH_TABLE value@@)
-def(hash-name?, Hash -- Hash Name, dup hash-name@)
+table(Hash)
+field(hash-name, Hash, Name)
+def(Hash->Int, Hash -- Int, Hash.id)
+def(Int->Hash, Int -- Hash, Hash.MAX % prim-unsafe-cast)
 
 ||| Get hash for string.
 def(hash, Str -- Hash,
-    0 swap str-for(Char->Int 5 * swap 18 * ^)
-    NAME_HASH_MAX &
+    0 swap str-for(Char->Int 17 * over 7 << ^ swap 27 >> ^)
     Int->Hash)
 
 def(name-hash, Name -- Hash, name-str @ hash)
-def(next-hash, Hash -- Hash, Hash->Int 1+ NAME_HASH_MAX & Int->Hash)
+def(next-hash, Hash -- Hash, Hash->Int 1+ Int->Hash)
 
 def(name-keep-going?, Str Hash -- Str Hash Bool,
-    hash-name? is-nil? if(
-        drop false,
-        dip(over) name-str @ str-eq not
+    dup hash-name @ name-is-nil if(
+        false,
+        dup2 hash-name @ name-str @ str-eq not
     ))
 
 def(name-new!, Str -- Name,
     dup hash
     while(name-keep-going?, next-hash)
-    hash-name? is-nil? if(
+    dup hash-name @ dup name-is-nil if(
         drop Name.alloc!
-        tuck swap hash-name!
+        tuck swap hash-name !
         tuck name-str !
         dup delay(name-mangle-compute!) over name-mangled !,
         nip nip
@@ -69,43 +68,35 @@ def(name-trace!, Name --,
 def(name-print!, Name --,
     name-str @ str-print!)
 
+def(name-head, Name -- Char,
+    name-str @ str-slice str-slice-head)
+def(name-tail-head, Name -- Char,
+    name-str @ str-slice str-slice-tail str-slice-head)
+
 def(name-could-be-type, Name -- Bool,
-    name-str @ str-head is-alpha? nip)
+    name-head is-alpha)
 
 def(name-could-be-type-var, Name -- Bool,
-    name-str @ str-could-be-type-var)
-
-def(str-could-be-type-var, Str -- Bool,
-    str-head is-lower? nip)
+    name-head is-lower)
 
 def(name-could-be-type-con, Name -- Bool,
-    name-str @ str-head is-upper? nip)
+    name-head is-upper)
 
 def(name-is-type-hole, Name -- Bool,
-    name-str @ dup str-head is-question-mark? nip if(
-        str-tail str-is-empty? if(
-            drop true,
-            str-could-be-type-var),
-        drop false
-    ))
+    dup name-head is-question-mark
+    swap name-tail-head dup is-nul swap is-lower || &&)
 
 def(name-is-underscore, Name -- Bool,
-    name-str @ dup str-head is-underscore? nip if(
-        str-tail str-is-empty,
-        drop false
-    ))
+    dup name-head is-underscore
+    swap name-tail-head is-nul &&)
 
 def(name-could-be-stack-var, Name -- Bool,
-    name-str @ dup str-head is-asterisk? nip if(
-        str-tail str-could-be-type-var,
-        drop false
-    ))
+    dup name-head is-asterisk
+    swap name-tail-head is-lower &&)
 
 def(name-could-be-effect-con, Name -- Bool,
-    name-str @ dup str-head is-plus? nip if(
-        str-tail str-head is-upper? nip,
-        drop false
-    ))
+    dup name-head is-plus
+    swap name-tail-head is-lower &&)
 
 def(name-print-mangled!, Name --,
     name-mangled force! str-print!)
@@ -115,10 +106,10 @@ def(name-mangle!, Name -- Str,
 
 def(name-mangle-compute!, Name -- Str,
     name-str @ str-transduce(
-        is-alpha? if( TS_CHAR,
-        is-digit? if( TS_CHAR,
-        is-underscore? if( TS_CHAR,
-        is-dash? if( drop underscore TS_CHAR,
+        dup is-alpha if( TS_CHAR,
+        dup is-digit if( TS_CHAR,
+        dup is-underscore if( TS_CHAR,
+        dup is-dash if( drop underscore TS_CHAR,
             char-hexdigits underscore swap cons underscore snoc TS_PUSH
         ))))
     ))
@@ -149,5 +140,5 @@ def(hexdigit, Int -- Char,
 # Defs #
 ########
 
-def(name-undefined?, Name -- Name Bool, dup name-def @ is-nil)
+def(name-undefined?, Name -- Name Bool, dup name-def @ DEF_NONE ==)
 def(name-defined?, Name -- Name Bool, name-undefined? not)

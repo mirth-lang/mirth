@@ -3,10 +3,10 @@ import(prelude)
 
 data(Maybe(t), NONE, SOME -> t)
 
-def(is-none, Maybe(t) -- Bool, is-nil)
-def(is-some, Maybe(t) -- Bool, is-nil not)
-def(is-none?, Maybe(t) -- Maybe(t) Bool, is-nil?)
-def(is-some?, Maybe(t) -- Maybe(t) Bool, is-nil? not)
+def(is-none, Maybe(t) -- Bool,
+    NONE -> true,
+    SOME -> drop false)
+def(is-some, Maybe(t) -- Bool, is-none not)
 
 def(unwrap, Maybe(t) -- t,
     NONE -> "tried to unwrap NONE" panic!,
@@ -33,4 +33,4 @@ def(maybe-filter(f), (*c a -- *c a Bool) *c Maybe(a) -- *c Maybe(a),
     SOME -> f if(SOME, drop NONE))
 
 def(while-some(f,g), (*a -- *a Maybe(b), *a b -- *a) *a -- *a,
-    f while(is-some?, unwrap g f) drop)
+    f while(dup is-some, unwrap g f) drop)

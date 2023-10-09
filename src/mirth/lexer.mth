@@ -64,50 +64,50 @@ def(lexer-next!, --,
     char-valid? not if(
         "invalid character" lexer-emit-fatal-error!,
 
-    is-name-char? if(
+    dup is-name-char if(
         drop
         lexer-emit-name!,
 
-    is-newline? if(
+    dup is-newline if(
         drop
         lexer-newline!,
 
-    is-whitespace? if(
+    dup is-whitespace if(
         drop,
 
-    is-pound? if(
+    dup is-pound if(
         drop
         lexer-skip-comment!,
 
-    is-comma? if(
+    dup is-comma if(
         drop
         TOKEN_COMMA lexer-emit!,
 
-    is-lparen? if(
+    dup is-lparen if(
         drop
         lexer-emit-lparen!,
 
-    is-rparen? if(
+    dup is-rparen if(
         drop
         lexer-emit-rparen!,
 
-    is-lsquare? if(
+    dup is-lsquare if(
         drop
         lexer-emit-lsquare!,
 
-    is-rsquare? if(
+    dup is-rsquare if(
         drop
         lexer-emit-rsquare!,
 
-    is-lcurly? if(
+    dup is-lcurly if(
         drop
         lexer-emit-lcurly!,
 
-    is-rcurly? if(
+    dup is-rcurly if(
         drop
         lexer-emit-rcurly!,
 
-    is-quote? if(
+    dup is-quote if(
         drop
         lexer-emit-string!,
 
@@ -120,8 +120,11 @@ def(lexer-newline!, --,
     lexer-row modify(Row->Int 1+ Int->Row)
     0 Int->Col lexer-col !)
 
+def(token-nil, Token,
+    0 prim-unsafe-cast)
+
 def(lexer-emit-lparen!, --,
-    nil TOKEN_LPAREN lexer-make!
+    token-nil TOKEN_LPAREN lexer-make!
     lexer-stack stack-push!)
 def(lexer-emit-rparen!, --,
     lexer-stack stack-pop! match(
@@ -134,7 +137,7 @@ def(lexer-emit-rparen!, --,
     ))
 
 def(lexer-emit-lsquare!, --,
-    nil TOKEN_LSQUARE lexer-make!
+    token-nil TOKEN_LSQUARE lexer-make!
     lexer-stack stack-push!)
 def(lexer-emit-rsquare!, --,
     lexer-stack stack-pop! match(
@@ -147,7 +150,7 @@ def(lexer-emit-rsquare!, --,
     ))
 
 def(lexer-emit-lcurly!, --,
-    nil TOKEN_LCURLY lexer-make!
+    token-nil TOKEN_LCURLY lexer-make!
     lexer-stack stack-push!)
 def(lexer-emit-rcurly!, --,
     lexer-stack stack-pop! match(
@@ -166,7 +169,7 @@ def(lexer-emit-name!, --,
     lexer-row @
     lexer-col @
 
-    lexer-peek while(is-name-char?,
+    lexer-peek while(dup is-name-char,
         char-valid? if(
             str-buf-push-char!
             lexer-move!
@@ -196,30 +199,29 @@ def(lexer-emit-name!, --,
 
 def(str-buf-is-doc-start?, Bool,
     str-buf-length? 3 == and(
-        0 str-buf-char@ is-pipe? nip
-        and(1 str-buf-char@ is-pipe? nip)
-        and(2 str-buf-char@ is-pipe? nip)
+        0 str-buf-char@ is-pipe
+        and(1 str-buf-char@ is-pipe)
+        and(2 str-buf-char@ is-pipe)
     ))
 
 def(str-buf-is-arrow?, Bool,
     str-buf-length? 2 == and(
-        0 str-buf-char@ is-dash? nip
-        1 str-buf-char@ is-gt? nip &&
+        0 str-buf-char@ is-dash
+        1 str-buf-char@ is-gt &&
     ))
 
 def(str-buf-is-dashes?, Bool,
     str-buf-length? 2 == if(
-        0 str-buf-char@ is-dash? nip
-        1 str-buf-char@ is-dash? nip &&,
+        0 str-buf-char@ is-dash
+        1 str-buf-char@ is-dash &&,
         false
     ))
 
 def(str-buf-is-equal?, Bool,
     str-buf-length? 1 == if(
-        0 str-buf-char@ is-eq? nip,
+        0 str-buf-char@ is-eq,
         false
     ))
-
 
 def(str-buf-is-int?, Bool,
     str-buf-is-dec-int? if(true, str-buf-is-hex-int?))
@@ -227,11 +229,11 @@ def(str-buf-is-int?, Bool,
 def(str-buf-is-dec-int?, Bool,
     0 # number of digits
     0 # current index
-    dup str-buf-char@ is-sign? nip if(
+    dup str-buf-char@ is-sign if(
         1+,
         id
     )
-    while(dup str-buf-char@ is-digit? nip,
+    while(dup str-buf-char@ is-digit,
         dip(1+) 1+)
     swap 1 >= if(
         str-buf-length? ==,
@@ -244,7 +246,7 @@ def(is-xX-char, Char -- Bool, Char->Int dup 88 == dip(120 ==) ||)
 def(str-buf-is-hex-int?, Bool,
     0 # number of digits
     0 # current index
-    dup str-buf-char@ is-sign? nip if(
+    dup str-buf-char@ is-sign if(
         1+,
         id
     )
@@ -252,7 +254,7 @@ def(str-buf-is-hex-int?, Bool,
         1+
         dup str-buf-char@ is-xX-char if(
             1+
-            while(dup str-buf-char@ is-hexdigit? nip, dip(1+) 1+)
+            while(dup str-buf-char@ is-hexdigit, dip(1+) 1+)
             swap 1 >= if(
                 str-buf-length? ==,
                 drop false
@@ -274,8 +276,8 @@ def(str-buf-dec-int?, Int,
     1 # sign multiplier
     0 # accumulated value
     0 # current index
-    dup str-buf-char@ is-sign? if(
-        is-dash? nip if(
+    dup str-buf-char@ dup is-sign if(
+        is-dash if(
             dip2(drop -1),
             id
         )
@@ -294,8 +296,8 @@ def(str-buf-hex-int?, Int,
     1 # sign multiplier
     0 # accumulated value
     0 # current index
-    dup str-buf-char@ is-sign? if(
-        is-dash? nip if(
+    dup str-buf-char@ dup is-sign if(
+        is-minus if(
             dip2(drop -1),
             id
         )
@@ -312,9 +314,9 @@ def(str-buf-hex-int?, Int,
     drop *)
 
 def(hexdigit-value, Char -- Int,
-    is-digit? if(
+    dup is-digit if(
         Char->Int 48 -,
-        is-upper-hexdigit? if(
+        dup is-upper-hexdigit if(
             Char->Int 55 -,
             Char->Int 87 -
         )
@@ -325,7 +327,7 @@ def(lexer-emit-string!, --,
     TOKEN_NONE lexer-make!
 
     lexer-move!
-    lexer-peek while(is-string-end? not,
+    lexer-peek while(dup is-string-end not,
         char-valid? if(
             lexer-push-string-char!
             lexer-move!
@@ -340,25 +342,25 @@ def(lexer-emit-string!, --,
     swap token-value !)
 
 def(lexer-push-string-char!, Char --,
-    is-backslash? if(
+    dup is-backslash if(
         drop lexer-move! lexer-peek
 
-        is-newline? if(
+        dup is-newline if(
             drop,
 
-        is-n? if(
+        dup is-n if(
             drop 10 Int->Char str-buf-push-char!,
 
-        is-r? if(
+        dup is-r if(
             drop 13 Int->Char str-buf-push-char!,
 
-        is-t? if(
+        dup is-t if(
             drop 9 Int->Char str-buf-push-char!,
 
-        is-quote? if(
+        dup is-quote if(
             str-buf-push-char!,
 
-        is-backslash? if(
+        dup is-backslash if(
             str-buf-push-char!,
 
             str-buf-push-char!
@@ -373,14 +375,14 @@ def(lexer-push-string-char!, Char --,
 
 def(lexer-skip-comment!, --,
     while(lexer-comment-end? not, lexer-move!)
-    lexer-peek is-newline? if(lexer-newline!, id) drop)
+    lexer-peek dup is-newline if(lexer-newline!, id) drop)
 
 def(lexer-skip-doc!, --, while(lexer-comment-end? not, lexer-move!))
 
 def(lexer-comment-end?, Bool,
     lexer-done? if(
         true,
-        lexer-peek is-newline? nip
+        lexer-peek dup is-newline nip
     ))
 
 def(lexer-peek, Char, input-peek)
