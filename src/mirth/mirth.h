@@ -246,7 +246,8 @@ static VAL mkptr (void* ptr) {
 }
 
 static STR* str_alloc (USIZE cap) {
-    STR* str = calloc(1, sizeof(STR) + cap + 4);
+    ASSERT(cap <= SIZE_MAX - sizeof(STR) - 4);
+    STR* str = calloc(1, (size_t)(cap + sizeof(STR) + 4));
     EXPECT(str, "failed to allocate string");
     str->refs = 1;
     str->cap = cap;
@@ -254,9 +255,11 @@ static STR* str_alloc (USIZE cap) {
 }
 
 static VAL mkstr (const char* data, USIZE size) {
+    ASSERT(data);
+    ASSERT(size <= SIZE_MAX - sizeof(STR) - 4);
     STR* str = str_alloc(size);
     str->size = size;
-    memcpy(str->data, data, size);
+    memcpy(str->data, data, (size_t)size);
     return (VAL) { .tag=TAG_STR, .data={.str=str} };
 }
 
@@ -303,7 +306,8 @@ static int value_cmp(VAL v1, VAL v2) {
             USIZE n1 = v1.data.str->size;
             USIZE n2 = v2.data.str->size;
             USIZE n = (n1 < n2 ? n1 : n2);
-            int r = memcmp(v1.data.str->data, v2.data.str->data, n);
+            ASSERT(n < SIZE_MAX);
+            int r = memcmp(v1.data.str->data, v2.data.str->data, (size_t)n);
             if (r) return r;
             if (n1 < n2) return -1;
             if (n1 > n2) return 1;
@@ -509,7 +513,8 @@ static void mw_prim_posix_write (void) {
     VAL vp = pop_value();
     void* p = value_ptr(vp);
     int fd = (int)pop_i64();
-    push_i64((int64_t)write(fd, p, n));
+    ASSERT(n <= SIZE_MAX);
+    push_i64((int64_t)write(fd, p, (size_t)n));
     decref(vp);
 }
 static void mw_prim_posix_read (void) {
@@ -517,7 +522,8 @@ static void mw_prim_posix_read (void) {
     VAL vp = pop_value();
     void* p = value_ptr(vp);
     int fd = (int)pop_i64();
-    push_i64((int64_t)read(fd,p,n));
+    ASSERT(n <= SIZE_MAX);
+    push_i64((int64_t)read(fd, p, (size_t)n));
     decref(vp);
 }
 static void mw_prim_posix_open (void) {
@@ -540,7 +546,7 @@ static void mw_prim_posix_exit (void) {
 void int_trace_(int64_t y, int fd) {
     char c[32] = {0};
     char* p = c+30;
-    USIZE n = 0;
+    size_t n = 0;
     uint64_t x;
     if (y < 0) {
         if (y == INT64_MIN) {
@@ -564,8 +570,9 @@ void int_trace_(int64_t y, int fd) {
 }
 
 void str_trace_(STR* str, int fd) {
+    ASSERT(str->size <= SIZE_MAX);
     write(fd, "\"", 1);
-    write(fd, str->data, str->size); // TODO handle escapes
+    write(fd, str->data, (size_t)str->size); // TODO handle escapes
     write(fd, "\"", 1);
 }
 
@@ -788,7 +795,8 @@ static void mw_prim_ptr_copy (void) {
     void* src = value_ptr(vsrc);
     void* dst = value_ptr(vdst);
     if (src && dst && (ilen > 0)) {
-        memcpy(dst, src, (USIZE)ilen);
+        ASSERT((USIZE)ilen <= SIZE_MAX);
+        memcpy(dst, src, (size_t)ilen);
     }
 }
 
@@ -799,7 +807,8 @@ static void mw_prim_ptr_fill (void) {
     int64_t val = pop_i64();
     void* dst = value_ptr(vdst);
     if (dst && (ilen > 0)) {
-        memset(dst, (int)val, (USIZE)ilen);
+        ASSERT((USIZE)ilen <= SIZE_MAX);
+        memset(dst, (int)val, (size_t)ilen);
     }
 }
 
@@ -815,8 +824,9 @@ static void mw_prim_str_eq (void) {
     ASSERT2(vptr1.tag == TAG_STR && vptr2.tag == TAG_STR, vptr1, vptr2);
     STR* str1 = vptr1.data.str;
     STR* str2 = vptr2.data.str;
+    ASSERT(str1->size <= SIZE_MAX);
     push_bool((str1->size == str2->size) &&
-        (memcmp(str1->data, str2->data, str1->size) == 0));
+        (memcmp(str1->data, str2->data, (size_t)str1->size) == 0));
     decref(vptr1);
     decref(vptr2);
 }
@@ -839,7 +849,8 @@ static void mw_prim_str_cat (void) {
     USIZE n1 = s1->size;
     USIZE n2 = s2->size;
     if ((s1->refs == 1) && (n1 + n2 + 4 <= m)) {
-        memcpy(s1->data + n1, s2->data, n2);
+        ASSERT(n2 <= SIZE_MAX);
+        memcpy(s1->data + n1, s2->data, (size_t)n2);
         s1->size += n2;
         ASSERT(s1->size + 4 <= s1->cap);
         push_value(v1);
@@ -849,8 +860,10 @@ static void mw_prim_str_cat (void) {
         if (m2 < m*2) m2 = m*2;
         STR* str = str_alloc(m2);
         str->size = n1+n2;
-        memcpy(str->data, s1->data, n1);
-        memcpy(str->data+n1, s2->data, n2);
+        ASSERT(n1 <= SIZE_MAX);
+        ASSERT(n2 <= SIZE_MAX);
+        memcpy(str->data, s1->data, (size_t)n1);
+        memcpy(str->data+n1, s2->data, (size_t)n2);
         push_value((VAL){ .tag=TAG_STR, .data={.str=str} });
         decref(v1);
         decref(v2);
