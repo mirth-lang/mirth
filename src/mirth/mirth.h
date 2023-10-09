@@ -537,13 +537,20 @@ static void mw_prim_posix_exit (void) {
     exit(x);
 }
 
-void int_trace_(int64_t x, int fd) {
+void int_trace_(int64_t y, int fd) {
     char c[32] = {0};
     char* p = c+30;
-    size_t n = 1;
-    int64_t y = x;
-    if (x < 0) x = -x;
-    *p = ' ';
+    size_t n = 0;
+    uint64_t x;
+    if (y < 0) {
+        if (y == INT64_MIN) {
+            x = 1+(uint64_t)INT64_MAX;
+        } else {
+            x = (uint64_t)-y;
+        }
+    } else {
+        x = (uint64_t)y;
+    }
     do {
         *--p = '0' + (x % 10);
         x /= 10;
@@ -559,7 +566,7 @@ void int_trace_(int64_t x, int fd) {
 void str_trace_(STR* str, int fd) {
     write(fd, "\"", 1);
     write(fd, str->data, str->size); // TODO handle escapes
-    write(fd, "\" ", 2);
+    write(fd, "\"", 1);
 }
 
 void value_trace_(VAL val, int fd) {
@@ -569,14 +576,16 @@ void value_trace_(VAL val, int fd) {
         case TAG_CONS:
             write(fd, "[ ", 2);
             value_trace_(val.data.cons->car, fd);
+            write(fd, " ", 1);
             value_trace_(val.data.cons->cdr, fd);
-            write(fd, "] ", 2);
+            write(fd, " ]", 2);
     }
 }
 
 static void mw_prim_debug (void) {
-    write(2, "?? ", 3);
+    write(2, "??", 2);
     for (long i = STACK_MAX-1; i >= (long)stack_counter; i--) {
+        write(2, " ", 1);
         value_trace_(stack[i], 2);
     }
     write(2, "\n", 1);

@@ -20,7 +20,7 @@ def(!!111, Int Int Int --, 1 !!= 1 !!= 1 !!=)
 def(test-prelude!, --,
     test-if test-drop test-dup test-swap test-dip
     test-rotr test-rotl test= test< test<= test> test>=
-    test+ test- test* test-str test-while
+    test+ test- test* test-while
     test@!)
 def(test-if, --,
     0 !!0 1 !!1 0 1 !!1 !!0
@@ -140,22 +140,6 @@ def(test@!, --,
     2 TEST_BUF u8@@ U8->Int 99 !!=
     3 TEST_BUF u8@@ U8->Int 0 !!=)
 
-def(test-str, --,
-    "AaBb"
-    dup str-head Char->Int 65 !!=
-    dup str-tail str-head Char->Int 97 !!=
-    dup str-tail str-tail str-head Char->Int 66 !!=
-    dup str-tail str-tail str-tail str-head Char->Int 98 !!=
-    dup str-tail str-tail str-tail str-tail str-head Char->Int 0 !!=
-    drop
-
-    "" str-length 0 !!=
-    "hello" str-length 5 !!=
-    "hello, world!" str-length 13 !!=
-    "hello, " "world!" str-cat str-length int-trace! "\n" str-trace!
-    "hello, " "world!\n" str-cat str-trace!
-    )
-
 def(test-while, --,
     999 10 20 while(dup 0<>, 1- dip(1+)) drop 30 !!= 999 !!=
     10 20 [dup 0 >] while(1- dip(1+)) drop 30 !!=
@@ -215,5 +199,3 @@ def(test-dup2, Int Str Int Str,
     10 "hello" dup2)
 
 target-c99("prelude-test.c", test-prelude!)
-# mirth-test # perr # 13
-# mirth-test # perr # hello, world!

@@ -70,7 +70,6 @@ def(read-file!, File -- Str,
     0 < if("io error while reading file" panic!, id)))
 
 def(open-file!, Str -- File,
-    dup str-print-ln!
     0 0 posix-open!
     dup 0 < if(
         "Failed to open file!" panic!,
