@@ -172,11 +172,8 @@ static void value_uncons(VAL val, VAL* car, VAL* cdr) {
 }
 
 static void* value_ptr (VAL v) {
-    switch(v.tag) {
-        case TAG_INT: return v.data.ptr;
-        case TAG_STR: return v.data.str->data;
-        case TAG_CONS: return value_ptr(v.data.cons->cdr);
-    }
+    ASSERT(v.tag == TAG_INT);
+    return v.data.ptr;
 }
 
 #define pop_fnptr() (pop_value().data.fnptr)
