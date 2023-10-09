@@ -63,7 +63,7 @@ bin/mirth1: bin/mirth1.c
 	$(CC) -o bin/mirth1 bin/mirth1.c
 
 bin/mirth2: bin/mirth2.c
-	$(CC) -fsanitize=undefined -fsanitize=address -o bin/mirth2 bin/mirth2.c
+	$(CC) -o bin/mirth2 bin/mirth2.c
 
 bin/mirth1.c: bin/mirth0 $(SRCS)
 	bin/mirth0 mirth.mth
