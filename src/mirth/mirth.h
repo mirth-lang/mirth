@@ -39,9 +39,10 @@ typedef enum TAG {
 typedef void (*fnptr)(void);
 
 typedef uint32_t REFS;
+typedef uint64_t USIZE;
 
 typedef union DATA {
-    size_t usize;
+    USIZE usize;
     uint64_t u64;
     uint32_t u32;
     uint16_t u16;
@@ -73,13 +74,13 @@ typedef struct CONS {
 
 typedef struct STR {
     REFS refs;
-    size_t cap;
-    size_t size;
+    USIZE cap;
+    USIZE size;
     char data[];
 } STR;
 
 #define STACK_MAX 0x8000
-static size_t stack_counter = STACK_MAX;
+static USIZE stack_counter = STACK_MAX;
 static VAL stack [STACK_MAX] = {0};
 static int global_argc;
 static char** global_argv;
@@ -244,7 +245,7 @@ static VAL mkptr (void* ptr) {
     return (VAL) {.tag=TAG_INT, .data={.ptr=ptr}};
 }
 
-static STR* str_alloc (size_t cap) {
+static STR* str_alloc (USIZE cap) {
     STR* str = calloc(1, sizeof(STR) + cap + 4);
     EXPECT(str, "failed to allocate string");
     str->refs = 1;
@@ -252,7 +253,7 @@ static STR* str_alloc (size_t cap) {
     return str;
 }
 
-static VAL mkstr (const char* data, size_t size) {
+static VAL mkstr (const char* data, USIZE size) {
     STR* str = str_alloc(size);
     str->size = size;
     memcpy(str->data, data, size);
@@ -270,13 +271,13 @@ static void do_uncons(void) {
     decref(val);
 }
 
-static size_t get_data_tag(VAL v) {
+static USIZE get_data_tag(VAL v) {
     VAL car, cdr;
     value_uncons(v, &car, &cdr);
     return cdr.data.usize;
 }
 
-static size_t get_top_data_tag(void) {
+static USIZE get_top_data_tag(void) {
     return get_data_tag(top_value());
 }
 
@@ -299,9 +300,9 @@ static int value_cmp(VAL v1, VAL v2) {
         case TAG_STR:
             ASSERT(v1.data.str);
             ASSERT(v2.data.str);
-            size_t n1 = v1.data.str->size;
-            size_t n2 = v2.data.str->size;
-            size_t n = (n1 < n2 ? n1 : n2);
+            USIZE n1 = v1.data.str->size;
+            USIZE n2 = v2.data.str->size;
+            USIZE n = (n1 < n2 ? n1 : n2);
             int r = memcmp(v1.data.str->data, v2.data.str->data, n);
             if (r) return r;
             if (n1 < n2) return -1;
@@ -504,7 +505,7 @@ static void mw_prim_sys_argv (void) {
 }
 
 static void mw_prim_posix_write (void) {
-    size_t n = pop_usize();
+    USIZE n = pop_usize();
     VAL vp = pop_value();
     void* p = value_ptr(vp);
     int fd = (int)pop_i64();
@@ -512,7 +513,7 @@ static void mw_prim_posix_write (void) {
     decref(vp);
 }
 static void mw_prim_posix_read (void) {
-    size_t n = pop_usize();
+    USIZE n = pop_usize();
     VAL vp = pop_value();
     void* p = value_ptr(vp);
     int fd = (int)pop_i64();
@@ -539,7 +540,7 @@ static void mw_prim_posix_exit (void) {
 void int_trace_(int64_t y, int fd) {
     char c[32] = {0};
     char* p = c+30;
-    size_t n = 0;
+    USIZE n = 0;
     uint64_t x;
     if (y < 0) {
         if (y == INT64_MIN) {
@@ -766,7 +767,7 @@ static void mw_prim_run (void) {
 
 static void mw_prim_ptr_add (void) {
     VAL vptr = pop_value();
-    size_t n = pop_usize();
+    USIZE n = pop_usize();
     ASSERT(vptr.tag == TAG_INT);
     char* ptr = vptr.data.ptr;
     push_ptr(ptr + n);
@@ -787,7 +788,7 @@ static void mw_prim_ptr_copy (void) {
     void* src = value_ptr(vsrc);
     void* dst = value_ptr(vdst);
     if (src && dst && (ilen > 0)) {
-        memcpy(dst, src, (size_t)ilen);
+        memcpy(dst, src, (USIZE)ilen);
     }
 }
 
@@ -798,7 +799,7 @@ static void mw_prim_ptr_fill (void) {
     int64_t val = pop_i64();
     void* dst = value_ptr(vdst);
     if (dst && (ilen > 0)) {
-        memset(dst, (int)val, (size_t)ilen);
+        memset(dst, (int)val, (USIZE)ilen);
     }
 }
 
@@ -821,7 +822,7 @@ static void mw_prim_str_eq (void) {
 }
 
 static void mw_prim_str_alloc (void) {
-    size_t size = pop_usize();
+    USIZE size = pop_usize();
     ASSERT(size <= SIZE_MAX-sizeof(STR)-4);
     STR* str = str_alloc(size);
     str->size = size;
@@ -834,9 +835,9 @@ static void mw_prim_str_cat (void) {
     ASSERT2((v1.tag == TAG_STR) && (v2.tag == TAG_STR), v1, v2);
     STR* s1 = v1.data.str;
     STR* s2 = v2.data.str;
-    size_t m = s1->cap;
-    size_t n1 = s1->size;
-    size_t n2 = s2->size;
+    USIZE m = s1->cap;
+    USIZE n1 = s1->size;
+    USIZE n2 = s2->size;
     if ((s1->refs == 1) && (n1 + n2 + 4 <= m)) {
         memcpy(s1->data + n1, s2->data, n2);
         s1->size += n2;
@@ -844,7 +845,7 @@ static void mw_prim_str_cat (void) {
         push_value(v1);
         decref(v2);
     } else {
-        size_t m2 = n1 + n2 + 4;
+        USIZE m2 = n1 + n2 + 4;
         if (m2 < m*2) m2 = m*2;
         STR* str = str_alloc(m2);
         str->size = n1+n2;
