@@ -311,6 +311,8 @@ static int value_cmp(VAL v1, VAL v2) {
         case TAG_CONS:
             ASSERT(0);
     }
+    ASSERT(0);
+    return 0;
 }
 
 static void run_value(VAL v) {
