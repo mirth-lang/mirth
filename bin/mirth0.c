@@ -3940,24 +3940,20 @@ static void mb_c99_str_21__3 (void);
 static void mb_c99_str_21__4 (void);
 static void mb_c99_str_21__5 (void);
 static void mb_c99_str_21__6 (void);
+static void mb_c99_str_21__14 (void);
 static void mb_c99_str_21__7 (void);
 static void mb_c99_str_21__8 (void);
-static void mb_c99_str_21__17 (void);
 static void mb_c99_str_21__9 (void);
 static void mb_c99_str_21__10 (void);
 static void mb_c99_str_21__11 (void);
 static void mb_c99_str_21__12 (void);
 static void mb_c99_str_21__13 (void);
-static void mb_c99_str_21__14 (void);
 static void mb_c99_str_21__15 (void);
 static void mb_c99_str_21__16 (void);
+static void mb_c99_str_21__17 (void);
 static void mb_c99_str_21__18 (void);
 static void mb_c99_str_21__19 (void);
 static void mb_c99_str_21__20 (void);
-static void mb_c99_str_21__21 (void);
-static void mb_c99_str_21__22 (void);
-static void mb_c99_str_21__23 (void);
-static void mb_c99_str_21__24 (void);
 static void mb_c99_prim_21__3 (void);
 static void mb_c99_prim_21__4 (void);
 static void mb_c99_prim_21__5 (void);
@@ -5788,15 +5784,12 @@ static void mw_unwrap (void){
         case 0LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 24,
-                    .size = 20,
-                    .data = "tried to unwrap NONE\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("tried to unwrap NONE", 20);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_panic_21_();
             break;
@@ -8791,15 +8784,12 @@ static void mw_str_slice_copy (void){
 
 static void mw_str_nil (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 4,
-            .size = 0,
-            .data = "\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("", 0);
+        }
+        push_value(v);
+        incref(v);
     }
 }
 
@@ -9069,15 +9059,12 @@ static void mw_str_buf_int_21_ (void){
     if (pop_u64()) {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 5,
-                .size = 1,
-                .data = "0\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("0", 1);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_str_buf_21_();
     } else {
@@ -9260,29 +9247,23 @@ static void mw_Path__3E_Str (void){
 
 static void mw_init_paths_21_ (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "src\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("src", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_Str__3E_Path();
     mw_source_path_root();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "bin\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("bin", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_Str__3E_Path();
     mw_output_path_root();
@@ -9295,27 +9276,21 @@ static void mw_path_separator (void){
     mw__3D__3D_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 5,
-                .size = 1,
-                .data = "\\\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("\\", 1);
+            }
+            push_value(v);
+            incref(v);
         }
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 5,
-                .size = 1,
-                .data = "/\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("/", 1);
+            }
+            push_value(v);
+            incref(v);
         }
     }
 }
@@ -9362,15 +9337,12 @@ static void mw_make_output_path (void){
 
 static void mw_panic_21_ (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 11,
-            .size = 7,
-            .data = "panic: \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("panic: ", 7);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
     mw_str_trace_ln_21_();
@@ -9442,15 +9414,12 @@ static void mw_slice_write_21_ (void){
     mw__3C_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 24,
-                .size = 20,
-                .data = "error: write failed!\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("error: write failed!", 20);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     } else {
@@ -9459,15 +9428,12 @@ static void mw_slice_write_21_ (void){
     mw__3E_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 50,
-                .size = 46,
-                .data = "error: write output fewer bytes than expected!\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("error: write output fewer bytes than expected!", 46);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     } else {
@@ -9497,30 +9463,24 @@ static void mw_str_trace_ln_21_ (void){
 
 static void mw_print_ln_21_ (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "\n\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("\n", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_print_21_();
 }
 
 static void mw_trace_ln_21_ (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "\n\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("\n", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
 }
@@ -9552,15 +9512,12 @@ static void mw_str_buf_read_21_ (void){
     mw_0_3C_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 24,
-                .size = 20,
-                .data = "str-buf-read! failed\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("str-buf-read! failed", 20);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     } else {
@@ -9660,15 +9617,12 @@ static void mw_read_file_21_ (void){
     {
         VAL var_fp = pop_value();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 4,
-                .size = 0,
-                .data = "\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("", 0);
+            }
+            push_value(v);
+            incref(v);
         }
         push_value(var_fp);
         incref(var_fp);
@@ -9694,15 +9648,12 @@ static void mw_read_file_21_ (void){
         mw__3C_();
         if (pop_u64()) {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 31,
-                    .size = 27,
-                    .data = "io error while reading file\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("io error while reading file", 27);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_panic_21_();
         } else {
@@ -9723,15 +9674,12 @@ static void mw_open_file_21_ (void){
     mw__3C_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 24,
-                .size = 20,
-                .data = "Failed to open file!\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Failed to open file!", 20);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     } else {
@@ -9748,15 +9696,12 @@ static void mw_create_file_21_ (void){
     mw__3C_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 26,
-                .size = 22,
-                .data = "Failed to create file!\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Failed to create file!", 22);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     } else {
@@ -9782,15 +9727,12 @@ static void mw_O_WRONLY_7C_O_CREAT_7C_O_TRUNC (void){
         case 0LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 42,
-                    .size = 38,
-                    .data = "O_WRONLY|O_CREAT|O_TRUNC on unknown os\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("O_WRONLY|O_CREAT|O_TRUNC on unknown os", 38);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_panic_21_();
             break;
@@ -9805,15 +9747,12 @@ static void mw_close_file_21_ (void){
     mw__3C_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 25,
-                .size = 21,
-                .data = "failed to close file.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("failed to close file.", 21);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     } else {
@@ -9965,29 +9904,23 @@ static void mw_input_fill_buffer_21_ (void){
         } else {
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 35,
-                    .size = 31,
-                    .data = "error: failed to read from file\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("error: failed to read from file", 31);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_panic_21_();
         }
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 61,
-                .size = 57,
-                .data = "error: attempted to fill input buffer when file is closed\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("error: attempted to fill input buffer when file is closed", 57);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     }
@@ -10006,15 +9939,12 @@ static void mw_input_peek (void){
         mw_with_ptr_2B_();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 69,
-                .size = 65,
-                .data = "error: attempted to read input buffer when file is already closed\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("error: attempted to read input buffer when file is already closed", 65);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     }
@@ -10034,15 +9964,12 @@ static void mw_input_move_21_ (void){
         mw_with_ptr_2B_();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 69,
-                .size = 65,
-                .data = "error: attempted to move input buffer when file is already closed\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("error: attempted to move input buffer when file is already closed", 65);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     }
@@ -10136,29 +10063,23 @@ static void mw_input_fill_buffer_tragic_21_ (void){
         } else {
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 35,
-                    .size = 31,
-                    .data = "error: failed to read from file\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("error: failed to read from file", 31);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_panic_21_();
         }
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 61,
-                .size = 57,
-                .data = "error: attempted to fill input buffer when file is closed\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("error: attempted to fill input buffer when file is closed", 57);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     }
@@ -10303,29 +10224,23 @@ static void mw_name_debug_21_ (void){
     mw__40_();
     mw_str_trace_21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "[\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("[", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
     mw_Name_2E_id();
     mw_int_trace_21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "] \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("] ", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
 }
@@ -10870,15 +10785,12 @@ static void mw_module_source_path (void){
     if (pop_u64()) {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 15,
-                .size = 11,
-                .data = "<generated>\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("<generated>", 11);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_Str__3E_Path();
     } else {
@@ -10896,15 +10808,12 @@ static void mw_module_path_from_name (void){
     mw_prim_pack_cons();
     mw_str_transduce();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = ".mth\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(".mth", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_cat();
     mw_Str__3E_Path();
@@ -10950,29 +10859,23 @@ static void mw_location_trace_21_ (void){
     mw_Path__3E_Str();
     mw_str_trace_21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = ":\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(":", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
     mw_Row__3E_Int();
     mw_int_trace_21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = ":\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(":", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
     mw_Col__3E_Int();
@@ -10986,15 +10889,12 @@ static void mw_emit_warning_at_21_ (void){
         push_value(d2);
     }
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = ": warning: \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(": warning: ", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
     mw_str_trace_ln_21_();
@@ -11012,15 +10912,12 @@ static void mw_emit_error_at_21_ (void){
         push_value(d2);
     }
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 13,
-            .size = 9,
-            .data = ": error: \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(": error: ", 9);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
     mw_str_trace_ln_21_();
@@ -11236,15 +11133,12 @@ static void mw_token_name_40_ (void){
         default:
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 17,
-                    .size = 13,
-                    .data = "expected name\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected name", 13);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
             break;
@@ -11268,15 +11162,12 @@ static void mw_token_str_40_ (void){
         default:
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 19,
-                    .size = 15,
-                    .data = "expected string\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected string", 15);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
             break;
@@ -11300,15 +11191,12 @@ static void mw_token_int_40_ (void){
         default:
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 16,
-                    .size = 12,
-                    .data = "expected int\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected int", 12);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
             break;
@@ -11581,15 +11469,12 @@ static void mw_token_args_0 (void){
         mw_drop();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 20,
-                .size = 16,
-                .data = "expected no args\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected no args", 16);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -11613,28 +11498,22 @@ static void mw_token_args_1 (void){
         mw__3C_();
         if (pop_u64()) {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 28,
-                    .size = 24,
-                    .data = "expected 1 arg, got none\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected 1 arg, got none", 24);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 32,
-                    .size = 28,
-                    .data = "expected 1 arg, got too many\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected 1 arg, got too many", 28);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         }
@@ -11662,28 +11541,22 @@ static void mw_token_args_2 (void){
         mw__3C_();
         if (pop_u64()) {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 32,
-                    .size = 28,
-                    .data = "expected 2 args, got too few\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected 2 args, got too few", 28);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 33,
-                    .size = 29,
-                    .data = "expected 2 args, got too many\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected 2 args, got too many", 29);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         }
@@ -11714,28 +11587,22 @@ static void mw_token_args_3 (void){
         mw__3C_();
         if (pop_u64()) {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 32,
-                    .size = 28,
-                    .data = "expected 3 args, got too few\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected 3 args, got too few", 28);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 33,
-                    .size = 29,
-                    .data = "expected 3 args, got too many\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected 3 args, got too many", 29);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         }
@@ -11791,15 +11658,12 @@ static void mw_token_args_2B_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 17,
-                    .size = 13,
-                    .data = "expected args\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected args", 13);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
             break;
@@ -11823,15 +11687,12 @@ static void mw_token_args_2_2B_ (void){
     } else {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 20,
-                .size = 16,
-                .data = "expected 2+ args\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected 2+ args", 16);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -12184,15 +12045,12 @@ static void mw_run_lexer_21_ (void){
         case 1LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 32,
-                    .size = 28,
-                    .data = "Mismatched left parenthesis.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Mismatched left parenthesis.", 28);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
             break;
@@ -12249,15 +12107,12 @@ static void mw_lexer_next_21_ (void){
     mw_not();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 21,
-                .size = 17,
-                .data = "invalid character\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("invalid character", 17);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_lexer_emit_fatal_error_21_();
     } else {
@@ -12334,15 +12189,12 @@ static void mw_lexer_next_21_ (void){
                                                         mw_lexer_emit_string_21_();
                                                     } else {
                                                         {
-                                                            static STR s = {
-                                                                .refs = 1,
-                                                                .cap = 22,
-                                                                .size = 18,
-                                                                .data = "unrecognized token\0\0\0\0",
-                                                            };
-                                                            ASSERT(s.refs > 0);
-                                                            s.refs++;
-                                                            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                                                            static VAL v = {0};
+                                                            if (!v.data.str) {
+                                                                v = mkstr("unrecognized token", 18);
+                                                            }
+                                                            push_value(v);
+                                                            incref(v);
                                                         }
                                                         mw_lexer_emit_fatal_error_21_();
                                                     }
@@ -12393,15 +12245,12 @@ static void mw_lexer_emit_rparen_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 33,
-                    .size = 29,
-                    .data = "Mismatched right parenthesis.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Mismatched right parenthesis.", 29);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_lexer_emit_fatal_error_21_();
             break;
@@ -12418,15 +12267,12 @@ static void mw_lexer_emit_rparen_21_ (void){
                 mw__21_();
             } else {
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 33,
-                        .size = 29,
-                        .data = "Mismatched right parenthesis.\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("Mismatched right parenthesis.", 29);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_lexer_emit_fatal_error_21_();
             }
@@ -12450,15 +12296,12 @@ static void mw_lexer_emit_rsquare_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 29,
-                    .size = 25,
-                    .data = "Mismatched right bracket.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Mismatched right bracket.", 25);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_lexer_emit_fatal_error_21_();
             break;
@@ -12475,15 +12318,12 @@ static void mw_lexer_emit_rsquare_21_ (void){
                 mw__21_();
             } else {
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 29,
-                        .size = 25,
-                        .data = "Mismatched right bracket.\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("Mismatched right bracket.", 25);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_lexer_emit_fatal_error_21_();
             }
@@ -12507,15 +12347,12 @@ static void mw_lexer_emit_rcurly_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 27,
-                    .size = 23,
-                    .data = "Mismatched right brace.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Mismatched right brace.", 23);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_lexer_emit_fatal_error_21_();
             break;
@@ -12532,15 +12369,12 @@ static void mw_lexer_emit_rcurly_21_ (void){
                 mw__21_();
             } else {
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 27,
-                        .size = 23,
-                        .data = "Mismatched right brace.\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("Mismatched right brace.", 23);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_lexer_emit_fatal_error_21_();
             }
@@ -12569,15 +12403,12 @@ static void mw_lexer_emit_name_21_ (void){
             mw_lexer_peek();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 21,
-                    .size = 17,
-                    .data = "invalid character\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("invalid character", 17);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_lexer_emit_fatal_error_21_();
         }
@@ -12904,15 +12735,12 @@ static void mw_lexer_emit_string_21_ (void){
             mw_lexer_peek();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 39,
-                    .size = 35,
-                    .data = "invalid character in string literal\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("invalid character in string literal", 35);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_lexer_emit_fatal_error_21_();
         }
@@ -12973,15 +12801,12 @@ static void mw_lexer_push_string_char_21_ (void){
                             } else {
                                 mw_str_buf_push_char_21_();
                                 {
-                                    static STR s = {
-                                        .refs = 1,
-                                        .cap = 38,
-                                        .size = 34,
-                                        .data = "Unknown character escape sequence.\0\0\0\0",
-                                    };
-                                    ASSERT(s.refs > 0);
-                                    s.refs++;
-                                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                                    static VAL v = {0};
+                                    if (!v.data.str) {
+                                        v = mkstr("Unknown character escape sequence.", 34);
+                                    }
+                                    push_value(v);
+                                    incref(v);
                                 }
                                 mw_lexer_emit_warning_21_();
                             }
@@ -14101,184 +13926,142 @@ static void mw_def_type_21_ (void){
 static void mw_init_types_21_ (void){
     mw_TYPE_INT();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "Int\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Int", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_PTR();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "Ptr\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Ptr", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_STR();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "Str\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Str", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_CHAR();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "Char\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Char", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_U8();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "U8\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("U8", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_U16();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "U16\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("U16", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_U32();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "U32\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("U32", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_U64();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "U64\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("U64", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_I8();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "I8\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("I8", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_I16();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "I16\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("I16", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_I32();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "I32\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("I32", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_I64();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "I64\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("I64", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_BOOL();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "Bool\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Bool", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
     mw_TYPE_MUT();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "Mut\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Mut", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_type_21_();
 }
@@ -14515,15 +14298,12 @@ static void mw_type_unify_failed_21_ (void){
     mw_prim_pack_cons();
     mw_dip2();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 29,
-            .size = 25,
-            .data = ": error: Failed to unify \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(": error: Failed to unify ", 25);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
     {
@@ -14532,15 +14312,12 @@ static void mw_type_unify_failed_21_ (void){
         push_value(d2);
     }
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 10,
-            .size = 6,
-            .data = " with \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" with ", 6);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
     mw_type_trace_21_();
@@ -15054,15 +14831,12 @@ static void mw_value_unify_21_ (void){
                     mw_drop2();
                     mw_gamma_token_3F_();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 44,
-                            .size = 40,
-                            .data = "Can't unify int value with string value.\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("Can't unify int value with string value.", 40);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_error_21_();
                     mw_TYPE_ERROR();
@@ -15072,15 +14846,12 @@ static void mw_value_unify_21_ (void){
                     mw_drop2();
                     mw_gamma_token_3F_();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 37,
-                            .size = 33,
-                            .data = "Can't unify int value with block.\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("Can't unify int value with block.", 33);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_error_21_();
                     mw_TYPE_ERROR();
@@ -15110,15 +14881,12 @@ static void mw_value_unify_21_ (void){
                     mw_drop2();
                     mw_gamma_token_3F_();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 44,
-                            .size = 40,
-                            .data = "Can't unify string value with int value.\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("Can't unify string value with int value.", 40);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_error_21_();
                     mw_TYPE_ERROR();
@@ -15128,15 +14896,12 @@ static void mw_value_unify_21_ (void){
                     mw_drop2();
                     mw_gamma_token_3F_();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 40,
-                            .size = 36,
-                            .data = "Can't unify string value with block.\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("Can't unify string value with block.", 36);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_error_21_();
                     mw_TYPE_ERROR();
@@ -15166,15 +14931,12 @@ static void mw_value_unify_21_ (void){
                     mw_drop2();
                     mw_gamma_token_3F_();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 37,
-                            .size = 33,
-                            .data = "Can't unify block with int value.\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("Can't unify block with int value.", 33);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_error_21_();
                     mw_TYPE_ERROR();
@@ -15184,15 +14946,12 @@ static void mw_value_unify_21_ (void){
                     mw_drop2();
                     mw_gamma_token_3F_();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 40,
-                            .size = 36,
-                            .data = "Can't unify block with string value.\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("Can't unify block with string value.", 36);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_error_21_();
                     mw_TYPE_ERROR();
@@ -15497,15 +15256,12 @@ static void mw_type_trace_sig_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 11,
-                    .size = 7,
-                    .data = "<ERROR>\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("<ERROR>", 7);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_str_trace_21_();
             break;
@@ -15515,15 +15271,12 @@ static void mw_type_trace_sig_21_ (void){
             mw_swap();
             mw_type_trace_stack_dom_21_();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 6,
-                    .size = 2,
-                    .data = "--\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("--", 2);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_str_trace_21_();
             mw_type_trace_stack_cod_21_();
@@ -15544,15 +15297,12 @@ static void mw_type_trace_stack_dom_21_ (void){
     } else {
         mw_type_trace_stack_21_();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 5,
-                .size = 1,
-                .data = " \0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr(" ", 1);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_str_trace_21_();
     }
@@ -15567,15 +15317,12 @@ static void mw_type_trace_stack_cod_21_ (void){
         mw_drop();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 5,
-                .size = 1,
-                .data = " \0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr(" ", 1);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_str_trace_21_();
         mw_type_trace_stack_21_();
@@ -15612,15 +15359,12 @@ static void mw_type_trace_stack_21_ (void){
                 mw_id();
             } else {
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 6,
-                        .size = 2,
-                        .data = " .\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr(" .", 2);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_str_trace_21_();
             }
@@ -15636,30 +15380,24 @@ static void mw_type_trace_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 11,
-                    .size = 7,
-                    .data = "<ERROR>\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("<ERROR>", 7);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_str_trace_21_();
             break;
         case 1LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 5,
-                    .size = 1,
-                    .data = "_\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("_", 1);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_str_trace_21_();
             break;
@@ -15681,29 +15419,23 @@ static void mw_type_trace_21_ (void){
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_prim_pack_uncons(); mw_prim_swap();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 5,
-                    .size = 1,
-                    .data = "[\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("[", 1);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_str_trace_21_();
             mw_TTensor();
             mw_type_trace_stack_21_();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 5,
-                    .size = 1,
-                    .data = "]\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("]", 1);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_str_trace_21_();
             break;
@@ -15711,29 +15443,23 @@ static void mw_type_trace_21_ (void){
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_prim_pack_uncons(); mw_prim_swap();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 5,
-                    .size = 1,
-                    .data = "[\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("[", 1);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_str_trace_21_();
             mw_TMorphism();
             mw_type_trace_sig_21_();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 5,
-                    .size = 1,
-                    .data = "]\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("]", 1);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_str_trace_21_();
             break;
@@ -15800,253 +15526,199 @@ static void mw_type_trace_prim_21_ (void){
         case 1LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 10,
-                    .size = 6,
-                    .data = "<TYPE>\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("<TYPE>", 6);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 2LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 11,
-                    .size = 7,
-                    .data = "<STACK>\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("<STACK>", 7);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 3LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 12,
-                    .size = 8,
-                    .data = "<EFFECT>\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("<EFFECT>", 8);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 0LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 6,
-                    .size = 2,
-                    .data = "[]\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("[]", 2);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 8LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 8,
-                    .size = 4,
-                    .data = "Bool\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Bool", 4);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 4LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 7,
-                    .size = 3,
-                    .data = "Int\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Int", 3);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 5LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 7,
-                    .size = 3,
-                    .data = "Ptr\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Ptr", 3);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 6LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 7,
-                    .size = 3,
-                    .data = "Str\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Str", 3);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 7LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 8,
-                    .size = 4,
-                    .data = "Char\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Char", 4);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 12LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 6,
-                    .size = 2,
-                    .data = "U8\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("U8", 2);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 11LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 7,
-                    .size = 3,
-                    .data = "U16\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("U16", 3);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 10LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 7,
-                    .size = 3,
-                    .data = "U32\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("U32", 3);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 9LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 7,
-                    .size = 3,
-                    .data = "U64\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("U64", 3);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 16LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 6,
-                    .size = 2,
-                    .data = "I8\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("I8", 2);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 15LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 7,
-                    .size = 3,
-                    .data = "I16\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("I16", 3);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 14LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 7,
-                    .size = 3,
-                    .data = "I32\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("I32", 3);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 13LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 7,
-                    .size = 3,
-                    .data = "I64\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("I64", 3);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         case 17LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 7,
-                    .size = 3,
-                    .data = "Mut\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Mut", 3);
+                }
+                push_value(v);
+                incref(v);
             }
             break;
         default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
@@ -16703,15 +16375,12 @@ static void mw_meta_trace_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 5,
-                    .size = 1,
-                    .data = "?\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("?", 1);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_str_trace_21_();
             mw_MetaVar_2E_id();
@@ -16850,15 +16519,12 @@ static void mw_type_hole_unify_21_ (void){
         mw_THole();
         mw_type_trace_21_();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 7,
-                .size = 3,
-                .data = " ~ \0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr(" ~ ", 3);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_str_trace_21_();
         mw_dup();
@@ -16926,15 +16592,12 @@ static void mw_type_num_morphisms_on_top (void){
 static void mw_app_type_trace_21_ (void){
     mw_app_type_trace_open_21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = ")\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(")", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
 }
@@ -16947,15 +16610,12 @@ static void mw_app_type_trace_open_21_ (void){
             mw_prim_pack_uncons(); mw_prim_swap();
             mw_app_type_trace_open_21_();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 6,
-                    .size = 2,
-                    .data = ", \0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr(", ", 2);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_str_trace_21_();
             mw_type_trace_21_();
@@ -16963,15 +16623,12 @@ static void mw_app_type_trace_open_21_ (void){
         default:
             mw_type_trace_21_();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 5,
-                    .size = 1,
-                    .data = "(\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("(", 1);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_str_trace_21_();
             mw_type_trace_21_();
@@ -17696,15 +17353,12 @@ static void mw_match_add_case_21_ (void){
         mw_case_token();
         mw__40_();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 24,
-                .size = 20,
-                .data = "Case is unreachable.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Case is unreachable.", 20);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_error_21_();
         mw_drop();
@@ -17913,15 +17567,12 @@ static void mw_force_21_ (void){
         case 2LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 44,
-                    .size = 40,
-                    .data = "attempted to force already running thunk\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("attempted to force already running thunk", 40);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_panic_21_();
             break;
@@ -18322,15 +17973,12 @@ static void mw_codegen_flush_21_ (void){
         mw__3C_();
         if (pop_u64()) {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 31,
-                    .size = 27,
-                    .data = "error: codegen write failed\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("error: codegen write failed", 27);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_panic_21_();
         } else {
@@ -18339,15 +17987,12 @@ static void mw_codegen_flush_21_ (void){
             mw__3C_();
             if (pop_u64()) {
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 56,
-                        .size = 52,
-                        .data = "error: codegen write wrote fewer bytes than expected\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("error: codegen write wrote fewer bytes than expected", 52);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_panic_21_();
             } else {
@@ -18532,28 +18177,22 @@ static void mw__2E_name (void){
 
 static void mw__2E_w (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "static void mw_\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("static void mw_", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_name();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 11,
-            .size = 7,
-            .data = " (void)\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" (void)", 7);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -18566,42 +18205,33 @@ static void mw__2E_p (void){
 
 static void mw__2E_pm (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = "#define mw_\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("#define mw_", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_prim_name();
     mw__40_();
     mw__2E_name();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "() \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("() ", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
 
 static void mw_c99_header_21_ (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 21051,
-            .size = 21047,
-            .data = {
-                47,42,32,77,73,82,84,72,32,72,69,65,68,69,82,32,42,47,10,
+        static VAL v = {0};
+        if (!v.data.str) {
+static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,82,32,42,47,10,
                 10,
                 35,105,102,32,100,101,102,105,110,101,100,40,87,73,78,51,50,41,32,124,124,32,100,101,102,105,110,101,100,40,95,87,73,78,51,50,41,32,124,124,32,100,101,102,105,110,101,100,40,95,95,87,73,78,51,50,95,95,41,32,124,124,32,100,101,102,105,110,101,100,40,95,95,78,84,95,95,41,10,
                 35,100,101,102,105,110,101,32,77,73,82,84,72,95,87,73,78,68,79,87,83,32,49,10,
@@ -19504,12 +19134,11 @@ static void mw_c99_header_21_ (void){
                 10,
                 47,42,32,71,69,78,69,82,65,84,69,68,32,67,57,57,32,42,47,10,
                 
-                0,0,0,0,
-            },
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            };
+            v = mkstr((char*)b, 21047);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_lf();
@@ -19529,27 +19158,21 @@ static void mw_c99_buffer_21_ (void){
     mw__40_();
     mw__2E_w();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = " {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" {", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 25,
-            .size = 21,
-            .data = "    static uint8_t b[\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    static uint8_t b[", 21);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_dup();
@@ -19557,39 +19180,30 @@ static void mw_c99_buffer_21_ (void){
     mw__40_();
     mw__2E_n();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = "] = {0};\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("] = {0};", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 21,
-            .size = 17,
-            .data = "    push_ptr(&b);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    push_ptr(&b);", 17);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     mw_drop();
@@ -19605,66 +19219,51 @@ static void mw_c99_variables_21_ (void){
 
 static void mw_c99_variable_21_ (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = "void mw_\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("void mw_", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_variable_name();
     mw__40_();
     mw__2E_name();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "() {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("() {", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 27,
-            .size = 23,
-            .data = "    static VAL v = {0};\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    static VAL v = {0};", 23);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 21,
-            .size = 17,
-            .data = "    push_ptr(&v);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    push_ptr(&v);", 17);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
 }
@@ -19683,15 +19282,12 @@ static void mw_c99_tag_21_ (void){
     mw__40_();
     mw__2E_w();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = " {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" {", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     mw_tag_is_transparent_3F_();
@@ -19703,43 +19299,34 @@ static void mw_c99_tag_21_ (void){
         mw__3D__3D_();
         if (pop_u64()) {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 17,
-                    .size = 13,
-                    .data = "    push_u64(\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("    push_u64(", 13);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__2E_();
             mw_tag_value();
             mw__40_();
             mw__2E_n();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 8,
-                    .size = 4,
-                    .data = "LL);\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("LL);", 4);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__3B_();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 30,
-                    .size = 26,
-                    .data = "    VAL car = pop_value();\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("    VAL car = pop_value();", 26);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__3B_();
             mw_tag_num_inputs_3F_();
@@ -19749,68 +19336,53 @@ static void mw_c99_tag_21_ (void){
             mw_prim_pack_cons();
             mw_repeat();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 24,
-                    .size = 20,
-                    .data = "    VAL tag = mku64(\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("    VAL tag = mku64(", 20);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__2E_();
             mw_tag_value();
             mw__40_();
             mw__2E_n();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 8,
-                    .size = 4,
-                    .data = "LL);\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("LL);", 4);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__3B_();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 31,
-                    .size = 27,
-                    .data = "    car = mkcons(car, tag);\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("    car = mkcons(car, tag);", 27);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__3B_();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 24,
-                    .size = 20,
-                    .data = "    push_value(car);\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("    push_value(car);", 20);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__3B_();
         }
     }
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
 }
@@ -19833,15 +19405,12 @@ static void mw_c99_external_21_ (void){
     mw__3E__3D_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 54,
-                .size = 50,
-                .data = "can't declare external with multiple return values\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("can't declare external with multiple return values", 50);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     } else {
@@ -19850,28 +19419,22 @@ static void mw_c99_external_21_ (void){
         mw__3E__3D_();
         if (pop_u64()) {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 12,
-                    .size = 8,
-                    .data = "int64_t \0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("int64_t ", 8);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__2E_();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 9,
-                    .size = 5,
-                    .data = "void \0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("void ", 5);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__2E_();
         }
@@ -19881,15 +19444,12 @@ static void mw_c99_external_21_ (void){
     mw_prim_pack_cons();
     mw_dip2();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = " (\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" (", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_over();
@@ -19897,15 +19457,12 @@ static void mw_c99_external_21_ (void){
     mw_0_3E_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 11,
-                .size = 7,
-                .data = "int64_t\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("int64_t", 7);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
         mw_1_();
@@ -19916,40 +19473,31 @@ static void mw_c99_external_21_ (void){
     } else {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 8,
-                .size = 4,
-                .data = "void\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("void", 4);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
     }
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = ");\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(");", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "static void mw_\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("static void mw_", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     push_u64(0);
@@ -19957,15 +19505,12 @@ static void mw_c99_external_21_ (void){
     mw_prim_pack_cons();
     mw_dip2();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 13,
-            .size = 9,
-            .data = " (void) {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" (void) {", 9);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     mw_over();
@@ -19977,27 +19522,21 @@ static void mw_c99_external_21_ (void){
     mw_0_3E_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 17,
-                .size = 13,
-                .data = "    push_i64(\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("    push_i64(", 13);
+            }
+            push_value(v);
+            incref(v);
         }
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 8,
-                .size = 4,
-                .data = "    \0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("    ", 4);
+            }
+            push_value(v);
+            incref(v);
         }
     }
     mw__2E_();
@@ -20006,15 +19545,12 @@ static void mw_c99_external_21_ (void){
     mw_prim_pack_cons();
     mw_dip2();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "(\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("(", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     {
@@ -20030,15 +19566,12 @@ static void mw_c99_external_21_ (void){
             mw_prim_pack_cons();
             mw_count();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 5,
-                    .size = 1,
-                    .data = "x\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("x", 1);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__2E_();
             mw__2E_n();
@@ -20048,55 +19581,43 @@ static void mw_c99_external_21_ (void){
         push_value(d2);
     }
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = ")\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(")", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_dup();
     mw_0_3E_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 6,
-                .size = 2,
-                .data = ");\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr(");", 2);
+            }
+            push_value(v);
+            incref(v);
         }
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 5,
-                .size = 1,
-                .data = ";\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr(";", 1);
+            }
+            push_value(v);
+            incref(v);
         }
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     mw_drop3();
@@ -20282,9 +19803,10 @@ static void mw_c99_str_21_ (void){
     mw_prim_pack_cons();
     mw_c99_nest();
     push_u64(0);
-    push_fnptr(&mb_c99_str_21__24);
+    push_fnptr(&mb_c99_str_21__20);
     mw_prim_pack_cons();
     mw_c99_line();
+    mw_drop();
 }
 
 static void mw_c99_constant_21_ (void){
@@ -20311,15 +19833,12 @@ static void mw_c99_string_char_21_ (void){
     if (pop_u64()) {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 6,
-                .size = 2,
-                .data = "\\\\\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("\\\\", 2);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
     } else {
@@ -20328,15 +19847,12 @@ static void mw_c99_string_char_21_ (void){
         if (pop_u64()) {
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 6,
-                    .size = 2,
-                    .data = "\\\"\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("\\\"", 2);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__2E_();
         } else {
@@ -20355,15 +19871,12 @@ static void mw_c99_string_char_21_ (void){
                 if (pop_u64()) {
                     mw_drop();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 6,
-                            .size = 2,
-                            .data = "\\t\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("\\t", 2);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw__2E_();
                 } else {
@@ -20374,15 +19887,12 @@ static void mw_c99_string_char_21_ (void){
                     if (pop_u64()) {
                         mw_drop();
                         {
-                            static STR s = {
-                                .refs = 1,
-                                .cap = 6,
-                                .size = 2,
-                                .data = "\\n\0\0\0\0",
-                            };
-                            ASSERT(s.refs > 0);
-                            s.refs++;
-                            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                            static VAL v = {0};
+                            if (!v.data.str) {
+                                v = mkstr("\\n", 2);
+                            }
+                            push_value(v);
+                            incref(v);
                         }
                         mw__2E_();
                     } else {
@@ -20393,15 +19903,12 @@ static void mw_c99_string_char_21_ (void){
                         if (pop_u64()) {
                             mw_drop();
                             {
-                                static STR s = {
-                                    .refs = 1,
-                                    .cap = 6,
-                                    .size = 2,
-                                    .data = "\\r\0\0\0\0",
-                                };
-                                ASSERT(s.refs > 0);
-                                s.refs++;
-                                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                                static VAL v = {0};
+                                if (!v.data.str) {
+                                    v = mkstr("\\r", 2);
+                                }
+                                push_value(v);
+                                incref(v);
                             }
                             mw__2E_();
                         } else {
@@ -20553,15 +20060,12 @@ static void mw_c99_arg_run_21_ (void){
 
 static void mw__2E_var (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "var_\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("var_", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_var_name();
@@ -20681,15 +20185,12 @@ static void mw_c99_match_21_ (void){
                 mw_match_token();
                 mw__40_();
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 60,
-                        .size = 56,
-                        .data = "codegen: unexpected number of cases in transparent match\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("codegen: unexpected number of cases in transparent match", 56);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_emit_fatal_error_21_();
                 break;
@@ -20825,15 +20326,12 @@ static void mw_c99_block_def_21_ (void){
 
 static void mw__2E_block (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "mb_\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("mb_", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_dup();
@@ -20854,15 +20352,12 @@ static void mw__2E_block (void){
         mw__40_();
         mw__2E_name();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 5,
-                .size = 1,
-                .data = "_\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("_", 1);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
         mw_arrow_homeidx();
@@ -20886,15 +20381,12 @@ static void mw_c99_word_def_21_ (void){
     mw__40_();
     mw__2E_w();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "{\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("{", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     mw_word_arrow();
@@ -20904,15 +20396,12 @@ static void mw_c99_word_def_21_ (void){
     mw_prim_pack_cons();
     mw_c99_nest();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B__3B_();
 }
@@ -20927,15 +20416,12 @@ static void mw_c99_field_defs_21_ (void){
 
 static void mw_c99_field_def_21_ (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 25,
-            .size = 21,
-            .data = "static VAL* fieldptr_\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("static VAL* fieldptr_", 21);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_dup();
@@ -20943,101 +20429,77 @@ static void mw_c99_field_def_21_ (void){
     mw__40_();
     mw__2E_name();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = " (size_t i) {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" (size_t i) {", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 34,
-            .size = 30,
-            .data = "    static struct VAL * p = 0;\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    static struct VAL * p = 0;", 30);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "    size_t m = \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    size_t m = ", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_TABLE_MAX_SIZE();
     mw__2E_n();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = ";\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(";", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 45,
-            .size = 41,
-            .data = "    if (!p) { p = calloc(m, sizeof *p); }\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    if (!p) { p = calloc(m, sizeof *p); }", 41);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 63,
-            .size = 59,
-            .data = "    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }", 59);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "    return p+i;\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    return p+i;", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B__3B_();
     mw_dup();
@@ -21045,39 +20507,30 @@ static void mw_c99_field_def_21_ (void){
     mw__40_();
     mw__2E_w();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "{\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("{", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 41,
-            .size = 37,
-            .data = "    size_t index = (size_t)pop_u64();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    size_t index = (size_t)pop_u64();", 37);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 26,
-            .size = 22,
-            .data = "    VAL *v = fieldptr_\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    VAL *v = fieldptr_", 22);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_dup();
@@ -21085,39 +20538,30 @@ static void mw_c99_field_def_21_ (void){
     mw__40_();
     mw__2E_name();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = "(index);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("(index);", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 20,
-            .size = 16,
-            .data = "    push_ptr(v);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    push_ptr(v);", 16);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B__3B_();
     mw_drop();
@@ -21125,39 +20569,30 @@ static void mw_c99_field_def_21_ (void){
 
 static void mw_c99_main_21_ (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 38,
-            .size = 34,
-            .data = "int main (int argc, char** argv) {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("int main (int argc, char** argv) {", 34);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 27,
-            .size = 23,
-            .data = "    global_argc = argc;\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    global_argc = argc;", 23);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 27,
-            .size = 23,
-            .data = "    global_argv = argv;\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    global_argv = argv;", 23);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     push_u64(0);
@@ -21165,27 +20600,21 @@ static void mw_c99_main_21_ (void){
     mw_prim_pack_cons();
     mw_c99_nest();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "    return 0;\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    return 0;", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B__3B_();
 }
@@ -21241,15 +20670,12 @@ static void mw_ctx_len (void){
 
 static void mw_ctx_fresh_name_21_ (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "_x\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("_x", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_over();
     mw_ctx_len();
@@ -21504,15 +20930,12 @@ static void mw_elab_type_sig_21_ (void){
     if (pop_u64()) {
         mw_dup();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 27,
-                .size = 23,
-                .data = "expected type signature\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected type signature", 23);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_error_21_();
     } else {
@@ -21553,15 +20976,12 @@ static void mw_elab_type_sig_21_ (void){
     } else {
         mw_dup();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 33,
-                .size = 29,
-                .data = "expected right paren or comma\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected right paren or comma", 29);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_error_21_();
     }
@@ -21652,15 +21072,12 @@ static void mw_elab_type_arg_21_ (void){
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 32,
-                .size = 28,
-                .data = "Unexpected token after type.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Unexpected token after type.", 28);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -21694,15 +21111,12 @@ static void mw_elab_type_atom_21_ (void){
                     } else {
                         mw_dup();
                         {
-                            static STR s = {
-                                .refs = 1,
-                                .cap = 37,
-                                .size = 33,
-                                .data = "Expected type, got unknown token.\0\0\0\0",
-                            };
-                            ASSERT(s.refs > 0);
-                            s.refs++;
-                            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                            static VAL v = {0};
+                            if (!v.data.str) {
+                                v = mkstr("Expected type, got unknown token.", 33);
+                            }
+                            push_value(v);
+                            incref(v);
                         }
                         mw_emit_error_21_();
                         {
@@ -21796,15 +21210,12 @@ static void mw_elab_type_con_21_ (void){
                 mw_drop();
                 mw_dup();
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 39,
-                        .size = 35,
-                        .data = "Wrong number of arguments for type.\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("Wrong number of arguments for type.", 35);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_emit_error_21_();
                 mw_TYPE_ERROR();
@@ -21814,15 +21225,12 @@ static void mw_elab_type_con_21_ (void){
             mw_prim_drop();
             mw_dup();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 17,
-                    .size = 13,
-                    .data = "Unknown type.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Unknown type.", 13);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_error_21_();
             mw_TYPE_ERROR();
@@ -21831,15 +21239,12 @@ static void mw_elab_type_con_21_ (void){
             mw_drop();
             mw_dup();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 15,
-                    .size = 11,
-                    .data = "Not a type.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Not a type.", 11);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_error_21_();
             mw_TYPE_ERROR();
@@ -21902,15 +21307,12 @@ static void mw_elab_type_hole_21_ (void){
         if (pop_u64()) {
             mw_dup();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 38,
-                    .size = 34,
-                    .data = "Types with args not yet supported.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Types with args not yet supported.", 34);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_error_21_();
             mw_TYPE_ERROR();
@@ -21922,15 +21324,12 @@ static void mw_elab_type_hole_21_ (void){
         mw_token_next();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 35,
-                .size = 31,
-                .data = "type holes are not allowed here\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("type holes are not allowed here", 31);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -21944,15 +21343,12 @@ static void mw_elab_type_dont_care_21_ (void){
         if (pop_u64()) {
             mw_dup();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 38,
-                    .size = 34,
-                    .data = "Types with args not yet supported.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Types with args not yet supported.", 34);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_error_21_();
             mw_TYPE_ERROR();
@@ -21963,15 +21359,12 @@ static void mw_elab_type_dont_care_21_ (void){
         mw_token_next();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 39,
-                .size = 35,
-                .data = "type don't care is not allowed here\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("type don't care is not allowed here", 35);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -22507,15 +21900,12 @@ static void mw_ab_prim_21_ (void){
         mw_ab_token();
         mw__40_();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 27,
-                .size = 23,
-                .data = "prim does not have type\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("prim does not have type", 23);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     } else {
@@ -22866,15 +22256,12 @@ static void mw_emit_recursive_word_fatal_error_21_ (void){
     mw_word_head();
     mw__40_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 39,
-            .size = 35,
-            .data = "recursive word needs type signature\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("recursive word needs type signature", 35);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -23001,15 +22388,12 @@ static void mw_elab_atom_21_ (void){
             mw_ab_token();
             mw__40_();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 34,
-                    .size = 30,
-                    .data = "Unexpected token in elab-atom!\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Unexpected token in elab-atom!", 30);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
             break;
@@ -23109,15 +22493,12 @@ static void mw_elab_atom_name_21_ (void){
                     mw_ab_token();
                     mw__40_();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 17,
-                            .size = 13,
-                            .data = "Unknown word.\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("Unknown word.", 13);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_error_21_();
                     mw_TYPE_ERROR();
@@ -23273,15 +22654,12 @@ static void mw_elab_expand_tensor_21_ (void){
             mw_drop();
             mw_dup();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 23,
-                    .size = 19,
-                    .data = "expected tuple type\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected tuple type", 19);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_error_21_();
             {
@@ -23334,15 +22712,12 @@ static void mw_elab_expand_morphism_21_ (void){
             mw_drop();
             mw_dup();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 23,
-                    .size = 19,
-                    .data = "expected block type\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected block type", 19);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_error_21_();
             {
@@ -23484,15 +22859,12 @@ static void mw_elab_match_exhaustive_21_ (void){
         mw_match_token();
         mw__40_();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 33,
-                .size = 29,
-                .data = "Pattern match not exhaustive.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Pattern match not exhaustive.", 29);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_error_21_();
     }
@@ -23629,45 +23001,36 @@ static void mw_elab_case_pattern_21_ (void){
                 case 0LL:
                     mw_prim_drop();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 24,
-                            .size = 20,
-                            .data = "Unknown constructor.\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("Unknown constructor.", 20);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_fatal_error_21_();
                     break;
                 default:
                     mw_drop();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 22,
-                            .size = 18,
-                            .data = "Not a constructor.\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("Not a constructor.", 18);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_fatal_error_21_();
                     break;
             
 }        } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 30,
-                    .size = 26,
-                    .data = "Expected constructor name.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Expected constructor name.", 26);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         }
@@ -23739,15 +23102,12 @@ static void mw_elab_module_header_21_ (void){
             mw_id();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 25,
-                    .size = 21,
-                    .data = "Expected module name.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Expected module name.", 21);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         }
@@ -23756,15 +23116,12 @@ static void mw_elab_module_header_21_ (void){
         if (pop_u64()) {
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 30,
-                    .size = 26,
-                    .data = "Module name already taken.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Module name already taken.", 26);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         } else {
@@ -23792,15 +23149,12 @@ static void mw_elab_module_header_21_ (void){
             mw_drop();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 34,
-                    .size = 30,
-                    .data = "Module name should match path.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Module name should match path.", 30);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_error_21_();
         }
@@ -23808,15 +23162,12 @@ static void mw_elab_module_header_21_ (void){
     } else {
         mw_dup();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 27,
-                .size = 23,
-                .data = "Expected module header.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Expected module header.", 23);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_error_21_();
     }
@@ -23844,15 +23195,12 @@ static void mw_elab_module_decl_21_ (void){
                             mw__40_();
                             mw_str_trace_ln_21_();
                             {
-                                static STR s = {
-                                    .refs = 1,
-                                    .cap = 34,
-                                    .size = 30,
-                                    .data = "unknown declaration, prim prim\0\0\0\0",
-                                };
-                                ASSERT(s.refs > 0);
-                                s.refs++;
-                                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                                static VAL v = {0};
+                                if (!v.data.str) {
+                                    v = mkstr("unknown declaration, prim prim", 30);
+                                }
+                                push_value(v);
+                                incref(v);
                             }
                             mw_emit_fatal_error_21_();
                             break;
@@ -23870,15 +23218,12 @@ static void mw_elab_module_decl_21_ (void){
                     mw__40_();
                     mw_str_trace_ln_21_();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 33,
-                            .size = 29,
-                            .data = "unknown declaration, not prim\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("unknown declaration, not prim", 29);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_fatal_error_21_();
                     break;
@@ -23887,15 +23232,12 @@ static void mw_elab_module_decl_21_ (void){
         default:
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 27,
-                    .size = 23,
-                    .data = "unsupported declaration\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("unsupported declaration", 23);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
             break;
@@ -23948,15 +23290,12 @@ static void mw_elab_module_import_21_ (void){
                 default:
                     mw_drop2();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 29,
-                            .size = 25,
-                            .data = "module name already taken\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("module name already taken", 25);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_fatal_error_21_();
                     break;
@@ -23965,15 +23304,12 @@ static void mw_elab_module_import_21_ (void){
         default:
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 24,
-                    .size = 20,
-                    .data = "expected module name\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected module name", 20);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
             break;
@@ -23998,15 +23334,12 @@ static void mw_elab_data_header_21_ (void){
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 23,
-                .size = 19,
-                .data = "Expected type name.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Expected type name.", 19);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24018,15 +23351,12 @@ static void mw_elab_data_header_21_ (void){
     } else {
         mw_drop2();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 25,
-                .size = 21,
-                .data = "Name already defined.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Name already defined.", 21);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24051,15 +23381,12 @@ static void mw_elab_data_tag_21_ (void){
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 30,
-                .size = 26,
-                .data = "Expected constructor name.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Expected constructor name.", 26);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24070,15 +23397,12 @@ static void mw_elab_data_tag_21_ (void){
     } else {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 59,
-                .size = 55,
-                .data = "Name already defined. (Overlapping tags not supported.)\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Name already defined. (Overlapping tags not supported.)", 55);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24124,15 +23448,12 @@ static void mw_elab_data_tag_21_ (void){
             mw__21_();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 42,
-                    .size = 38,
-                    .data = "Expected arrow, comma, or right paren.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Expected arrow, comma, or right paren.", 38);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         }
@@ -24153,15 +23474,12 @@ static void mw_expect_token_comma (void){
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 19,
-                .size = 15,
-                .data = "Expected comma.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Expected comma.", 15);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24173,15 +23491,12 @@ static void mw_expect_token_rparen (void){
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 31,
-                .size = 27,
-                .data = "Expected right parenthesis.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Expected right parenthesis.", 27);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24193,15 +23508,12 @@ static void mw_expect_token_arrow (void){
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 19,
-                .size = 15,
-                .data = "Expected arrow.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Expected arrow.", 15);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24218,15 +23530,12 @@ static void mw_token_def_args (void){
     } else {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 38,
-                .size = 34,
-                .data = "def expects at least two arguments\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("def expects at least two arguments", 34);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24299,15 +23608,12 @@ static void mw_elab_def_21_ (void){
             mw_id();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 23,
-                    .size = 19,
-                    .data = "expected match case\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected match case", 19);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         }
@@ -24318,15 +23624,12 @@ static void mw_elab_def_21_ (void){
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 22,
-                .size = 18,
-                .data = "expected word name\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected word name", 18);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24337,15 +23640,12 @@ static void mw_elab_def_21_ (void){
     } else {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 24,
-                .size = 20,
-                .data = "word already defined\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("word already defined", 20);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24461,29 +23761,23 @@ static void mw_elab_def_external_21_ (void){
         } else {
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 24,
-                    .size = 20,
-                    .data = "word already defined\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("word already defined", 20);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         }
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 22,
-                .size = 18,
-                .data = "expected word name\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected word name", 18);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24511,29 +23805,23 @@ static void mw_elab_def_type_21_ (void){
         } else {
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 24,
-                    .size = 20,
-                    .data = "type already defined\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("type already defined", 20);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         }
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 29,
-                .size = 25,
-                .data = "expected type constructor\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected type constructor", 25);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24559,29 +23847,23 @@ static void mw_elab_buffer_21_ (void){
         } else {
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 26,
-                    .size = 22,
-                    .data = "buffer already defined\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("buffer already defined", 22);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         }
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 24,
-                .size = 20,
-                .data = "expected buffer name\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected buffer name", 20);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24596,15 +23878,12 @@ static void mw_elab_variable_21_ (void){
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 26,
-                .size = 22,
-                .data = "expected variable name\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected variable name", 22);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24615,15 +23894,12 @@ static void mw_elab_variable_21_ (void){
     } else {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 24,
-                .size = 20,
-                .data = "name already defined\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("name already defined", 20);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24651,15 +23927,12 @@ static void mw_elab_table_21_ (void){
         mw_drop();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 23,
-                .size = 19,
-                .data = "expected table name\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected table name", 19);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24703,15 +23976,12 @@ static void mw_elab_embed_str_21_ (void){
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 17,
-                .size = 13,
-                .data = "expected name\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected name", 13);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24722,15 +23992,12 @@ static void mw_elab_embed_str_21_ (void){
     } else {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 24,
-                .size = 20,
-                .data = "name already defined\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("name already defined", 20);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24741,15 +24008,12 @@ static void mw_elab_embed_str_21_ (void){
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 17,
-                .size = 13,
-                .data = "expected path\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected path", 13);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -24859,15 +24123,12 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = ".MAX\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(".MAX", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_cat_21_();
     mw_Word_2E_alloc_21_();
@@ -24898,15 +24159,12 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = ".NUM\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(".NUM", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_cat_21_();
     push_i64(8LL);
@@ -24918,15 +24176,12 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = ".id\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(".id", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_cat_21_();
     mw_Word_2E_alloc_21_();
@@ -24959,15 +24214,12 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 9,
-            .size = 5,
-            .data = ".succ\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(".succ", 5);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_cat_21_();
     mw_Word_2E_alloc_21_();
@@ -24999,15 +24251,12 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 9,
-            .size = 5,
-            .data = ".pred\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(".pred", 5);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_cat_21_();
     mw_Word_2E_alloc_21_();
@@ -25039,15 +24288,12 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = ".for\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(".for", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_cat_21_();
     mw_Word_2E_alloc_21_();
@@ -25060,15 +24306,12 @@ static void mw_table_new_21_ (void){
     mw_word_name();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "x\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("x", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_21_();
@@ -25077,15 +24320,12 @@ static void mw_table_new_21_ (void){
         VAL var_w = pop_value();
         VAL var_t = pop_value();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 5,
-                .size = 1,
-                .data = "a\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("a", 1);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_name_new_21_();
         mw_var_new_implicit_21_();
@@ -25166,15 +24406,12 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 11,
-            .size = 7,
-            .data = ".alloc!\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(".alloc!", 7);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_cat_21_();
     mw_Word_2E_alloc_21_();
@@ -25223,15 +24460,12 @@ static void mw_elab_field_21_ (void){
             } else {
                 mw_drop();
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 24,
-                        .size = 20,
-                        .data = "name already defined\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("name already defined", 20);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_emit_fatal_error_21_();
             }
@@ -25243,15 +24477,12 @@ static void mw_elab_field_21_ (void){
         default:
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 23,
-                    .size = 19,
-                    .data = "expected field name\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("expected field name", 19);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
             break;
@@ -25358,1250 +24589,962 @@ static void mw_def_prim_21_ (void){
 static void mw_init_prims_21_ (void){
     mw_PRIM_SYNTAX_MODULE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 10,
-            .size = 6,
-            .data = "module\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("module", 6);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_IMPORT();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 10,
-            .size = 6,
-            .data = "import\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("import", 6);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_DEF();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "def\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("def", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_DEF_TYPE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = "def-type\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("def-type", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_DEF_MISSING();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = "def-missing\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("def-missing", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_BUFFER();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 10,
-            .size = 6,
-            .data = "buffer\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("buffer", 6);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_DEF_EXTERNAL();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "def-external\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("def-external", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_TABLE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 9,
-            .size = 5,
-            .data = "table\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("table", 5);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_FIELD();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 9,
-            .size = 5,
-            .data = "field\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("field", 5);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_TARGET_C99();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 14,
-            .size = 10,
-            .data = "target-c99\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("target-c99", 10);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_EMBED_STR();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 13,
-            .size = 9,
-            .data = "embed-str\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("embed-str", 9);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_DATA();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "data\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("data", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_VARIABLE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "var\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("var", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_ARROW();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "->\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("->", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_DASHES();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "--\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("--", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_DIP();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "dip\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("dip", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_IF();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "if\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("if", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_WHILE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 9,
-            .size = 5,
-            .data = "while\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("while", 5);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_MATCH();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 9,
-            .size = 5,
-            .data = "match\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("match", 5);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_LAMBDA();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "\\\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("\\", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_ID();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 11,
-            .size = 7,
-            .data = "prim-id\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-id", 7);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_DUP();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = "prim-dup\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-dup", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_DROP();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 13,
-            .size = 9,
-            .data = "prim-drop\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-drop", 9);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_SWAP();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 13,
-            .size = 9,
-            .data = "prim-swap\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-swap", 9);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_DIP();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = "prim-dip\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-dip", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_IF();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 11,
-            .size = 7,
-            .data = "prim-if\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-if", 7);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_WHILE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 14,
-            .size = 10,
-            .data = "prim-while\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-while", 10);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_DEBUG();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 14,
-            .size = 10,
-            .data = "prim-debug\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-debug", 10);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_RUN();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = "prim-run\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-run", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_MATCH();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 14,
-            .size = 10,
-            .data = "prim-match\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-match", 10);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_CORE_LAMBDA();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = "prim-lambda\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-lambda", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_UNSAFE_CAST();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 20,
-            .size = 16,
-            .data = "prim-unsafe-cast\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-unsafe-cast", 16);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_VALUE_EQ();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "prim-value-eq\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-value-eq", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_VALUE_LT();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "prim-value-lt\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-value-lt", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_VALUE_LE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "prim-value-le\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-value-le", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_VALUE_GET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 18,
-            .size = 14,
-            .data = "prim-value-get\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-value-get", 14);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_VALUE_SET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 18,
-            .size = 14,
-            .data = "prim-value-set\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-value-set", 14);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_INT_ADD();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-int-add\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-int-add", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_INT_SUB();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-int-sub\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-int-sub", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_INT_MUL();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-int-mul\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-int-mul", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_INT_DIV();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-int-div\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-int-div", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_INT_MOD();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-int-mod\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-int-mod", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_INT_AND();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-int-and\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-int-and", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_INT_OR();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = "prim-int-or\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-int-or", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_INT_XOR();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-int-xor\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-int-xor", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_INT_SHL();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-int-shl\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-int-shl", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_INT_SHR();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-int-shr\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-int-shr", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_INT_GET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-int-get\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-int-get", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_INT_SET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-int-set\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-int-set", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_BOOL_TRUE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 18,
-            .size = 14,
-            .data = "prim-bool-true\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-bool-true", 14);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_BOOL_FALSE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "prim-bool-false\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-bool-false", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_BOOL_AND();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "prim-bool-and\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-bool-and", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_BOOL_OR();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-bool-or\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-bool-or", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_PACK_NIL();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "prim-pack-nil\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-pack-nil", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_PACK_CONS();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 18,
-            .size = 14,
-            .data = "prim-pack-cons\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-pack-cons", 14);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_PACK_UNCONS();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 20,
-            .size = 16,
-            .data = "prim-pack-uncons\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-pack-uncons", 16);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_MUT_GET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-mut-get\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-mut-get", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_MUT_SET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-mut-set\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-mut-set", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_PTR_ADD();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-ptr-add\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-ptr-add", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_PTR_SIZE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "prim-ptr-size\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-ptr-size", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_PTR_GET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-ptr-get\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-ptr-get", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_PTR_SET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-ptr-set\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-ptr-set", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_PTR_ALLOC();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 18,
-            .size = 14,
-            .data = "prim-ptr-alloc\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-ptr-alloc", 14);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_PTR_REALLOC();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 20,
-            .size = 16,
-            .data = "prim-ptr-realloc\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-ptr-realloc", 16);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_PTR_FILL();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "prim-ptr-fill\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-ptr-fill", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_PTR_COPY();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "prim-ptr-copy\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-ptr-copy", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_PTR_RAW();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-ptr-raw\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-ptr-raw", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_STR_ALLOC();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 18,
-            .size = 14,
-            .data = "prim-str-alloc\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-str-alloc", 14);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_STR_SIZE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "prim-str-size\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-str-size", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_STR_BASE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "prim-str-base\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-str-base", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_STR_EQ();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = "prim-str-eq\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-str-eq", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_STR_CAT();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-str-cat\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-str-cat", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_U8_GET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = "prim-u8-get\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-u8-get", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_U8_SET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = "prim-u8-set\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-u8-set", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_U16_GET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-u16-get\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-u16-get", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_U16_SET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-u16-set\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-u16-set", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_U32_GET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-u32-get\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-u32-get", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_U32_SET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-u32-set\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-u32-set", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_U64_GET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-u64-get\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-u64-get", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_U64_SET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-u64-set\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-u64-set", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_I8_GET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = "prim-i8-get\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-i8-get", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_I8_SET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = "prim-i8-set\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-i8-set", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_I16_GET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-i16-get\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-i16-get", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_I16_SET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-i16-set\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-i16-set", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_I32_GET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-i32-get\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-i32-get", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_I32_SET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-i32-set\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-i32-set", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_I64_GET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-i64-get\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-i64-get", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_I64_SET();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "prim-i64-set\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-i64-set", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYS_OS();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = "prim-sys-os\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-sys-os", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYS_ARGC();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "prim-sys-argc\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-sys-argc", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_SYS_ARGV();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "prim-sys-argv\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-sys-argv", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_POSIX_READ();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "prim-posix-read\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-posix-read", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_POSIX_WRITE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 20,
-            .size = 16,
-            .data = "prim-posix-write\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-posix-write", 16);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_POSIX_OPEN();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "prim-posix-open\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-posix-open", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_POSIX_CLOSE();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 20,
-            .size = 16,
-            .data = "prim-posix-close\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-posix-close", 16);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     mw_PRIM_POSIX_EXIT();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "prim-posix-exit\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim-posix-exit", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_def_prim_21_();
     push_u64(0);
@@ -27118,15 +26061,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("a", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27149,15 +26089,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("a", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27183,15 +26120,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("a", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27236,15 +26170,12 @@ static void mw_init_prims_21_ (void){
     mw__21_();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("a", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27253,15 +26184,12 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "b\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("b", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27294,15 +26222,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("a", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27311,15 +26236,12 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "b\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("b", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27349,15 +26271,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "*a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("*a", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27366,15 +26285,12 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "*b\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("*b", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27410,15 +26326,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "*a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("*a", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27427,15 +26340,12 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "*b\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("*b", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27469,15 +26379,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "*a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("*a", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27486,15 +26393,12 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "*b\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("*b", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27503,15 +26407,12 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "c\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("c", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27569,15 +26470,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "*a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("*a", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27586,15 +26484,12 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "*b\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("*b", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27640,15 +26535,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "*a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("*a", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27678,15 +26570,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "*a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("*a", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27695,15 +26584,12 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "b\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("b", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27736,15 +26622,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "*a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("*a", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27753,15 +26636,12 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "b\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("b", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27794,15 +26674,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("a", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27830,15 +26707,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("a", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27862,15 +26736,12 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "a\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("a", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_name_new_21_();
     mw_var_new_implicit_21_();
@@ -27942,15 +26813,12 @@ static void mw_init_21_ (void){
 
 static void mw_compile_21_ (void){
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 14,
-            .size = 10,
-            .data = "Compiling \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Compiling ", 10);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
     mw_dup();
@@ -27958,15 +26826,12 @@ static void mw_compile_21_ (void){
     mw_str_trace_ln_21_();
     mw_run_lexer_21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 13,
-            .size = 9,
-            .data = "Building.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Building.", 9);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_ln_21_();
     mw_elab_module_21_();
@@ -27981,30 +26846,24 @@ static void mw_compile_21_ (void){
         mw__40_();
         mw_int_trace_21_();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 12,
-                .size = 8,
-                .data = " errors.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr(" errors.", 8);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_str_trace_ln_21_();
         push_i64(1LL);
         mw_posix_exit_21_();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 9,
-                .size = 5,
-                .data = "Done.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Done.", 5);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_str_trace_ln_21_();
     }
@@ -28024,15 +26883,12 @@ static void mw_main (void){
         mw_compile_21_();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 34,
-                .size = 30,
-                .data = "Expected at least one argument\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Expected at least one argument", 30);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     }
@@ -29257,15 +28113,12 @@ static void mb_compile_21__1 (void) {
     mw__40_();
     mw_int_trace_21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = " errors.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" errors.", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_ln_21_();
     push_i64(1LL);
@@ -29275,15 +28128,12 @@ static void mb_compile_21__1 (void) {
 static void mb_compile_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 9,
-            .size = 5,
-            .data = "Done.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Done.", 5);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_ln_21_();
 }
@@ -29335,15 +28185,12 @@ static void mb_main_1 (void) {
 static void mb_main_2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 34,
-            .size = 30,
-            .data = "Expected at least one argument\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Expected at least one argument", 30);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -29974,15 +28821,12 @@ static void mb_slice_write_21__2 (void) {
 static void mb_slice_write_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "error: write failed!\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("error: write failed!", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -29995,15 +28839,12 @@ static void mb_slice_write_21__4 (void) {
 static void mb_slice_write_21__5 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 50,
-            .size = 46,
-            .data = "error: write output fewer bytes than expected!\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("error: write output fewer bytes than expected!", 46);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -30016,15 +28857,12 @@ static void mb_slice_write_21__6 (void) {
 static void mb_str_buf_read_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "str-buf-read! failed\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("str-buf-read! failed", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -30075,15 +28913,12 @@ static void mb_str_buf_int_21__1 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "0\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("0", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_buf_21_();
 }
@@ -30230,15 +29065,12 @@ static void mb_read_file_21__4 (void) {
     VAL var_fp = pop_value();
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 31,
-            .size = 27,
-            .data = "io error while reading file\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("io error while reading file", 27);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
     decref(var_fp);
@@ -30261,15 +29093,12 @@ static void mb_prim_str_copy_1 (void) {
 static void mb_open_file_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "Failed to open file!\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Failed to open file!", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -30282,15 +29111,12 @@ static void mb_open_file_21__2 (void) {
 static void mb_create_file_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 26,
-            .size = 22,
-            .data = "Failed to create file!\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Failed to create file!", 22);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -30303,15 +29129,12 @@ static void mb_create_file_21__2 (void) {
 static void mb_close_file_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 25,
-            .size = 21,
-            .data = "failed to close file.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("failed to close file.", 21);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -33062,30 +31885,24 @@ static void mb_is_special_char_4 (void) {
 static void mb_path_separator_1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "\\\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("\\", 1);
+        }
+        push_value(v);
+        incref(v);
     }
 }
 
 static void mb_path_separator_2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "/\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("/", 1);
+        }
+        push_value(v);
+        incref(v);
     }
 }
 
@@ -33142,15 +31959,12 @@ static void mb_input_fill_buffer_21__1 (void) {
     } else {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 35,
-                .size = 31,
-                .data = "error: failed to read from file\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("error: failed to read from file", 31);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     }
@@ -33159,15 +31973,12 @@ static void mb_input_fill_buffer_21__1 (void) {
 static void mb_input_fill_buffer_21__6 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 61,
-            .size = 57,
-            .data = "error: attempted to fill input buffer when file is closed\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("error: attempted to fill input buffer when file is closed", 57);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -33193,15 +32004,12 @@ static void mb_input_fill_buffer_21__5 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 35,
-            .size = 31,
-            .data = "error: failed to read from file\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("error: failed to read from file", 31);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -33247,15 +32055,12 @@ static void mb_input_peek_1 (void) {
 static void mb_input_peek_3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 69,
-            .size = 65,
-            .data = "error: attempted to read input buffer when file is already closed\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("error: attempted to read input buffer when file is already closed", 65);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -33280,15 +32085,12 @@ static void mb_input_move_21__1 (void) {
 static void mb_input_move_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 69,
-            .size = 65,
-            .data = "error: attempted to move input buffer when file is already closed\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("error: attempted to move input buffer when file is already closed", 65);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -33411,15 +32213,12 @@ static void mb_input_fill_buffer_tragic_21__2 (void) {
     } else {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 35,
-                .size = 31,
-                .data = "error: failed to read from file\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("error: failed to read from file", 31);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     }
@@ -33428,15 +32227,12 @@ static void mb_input_fill_buffer_tragic_21__2 (void) {
 static void mb_input_fill_buffer_tragic_21__9 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 61,
-            .size = 57,
-            .data = "error: attempted to fill input buffer when file is closed\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("error: attempted to fill input buffer when file is closed", 57);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -33467,15 +32263,12 @@ static void mb_input_fill_buffer_tragic_21__8 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 35,
-            .size = 31,
-            .data = "error: failed to read from file\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("error: failed to read from file", 31);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -33503,15 +32296,12 @@ static void mb_module_source_path_1 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = "<generated>\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("<generated>", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_Str__3E_Path();
 }
@@ -33526,15 +32316,12 @@ static void mb_module_source_path_2 (void) {
 static void mb_lexer_next_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 21,
-            .size = 17,
-            .data = "invalid character\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("invalid character", 17);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_lexer_emit_fatal_error_21_();
 }
@@ -33614,15 +32401,12 @@ static void mb_lexer_next_21__2 (void) {
                                                     mw_lexer_emit_string_21_();
                                                 } else {
                                                     {
-                                                        static STR s = {
-                                                            .refs = 1,
-                                                            .cap = 22,
-                                                            .size = 18,
-                                                            .data = "unrecognized token\0\0\0\0",
-                                                        };
-                                                        ASSERT(s.refs > 0);
-                                                        s.refs++;
-                                                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                                                        static VAL v = {0};
+                                                        if (!v.data.str) {
+                                                            v = mkstr("unrecognized token", 18);
+                                                        }
+                                                        push_value(v);
+                                                        incref(v);
                                                     }
                                                     mw_lexer_emit_fatal_error_21_();
                                                 }
@@ -33715,15 +32499,12 @@ static void mb_lexer_next_21__4 (void) {
                                                 mw_lexer_emit_string_21_();
                                             } else {
                                                 {
-                                                    static STR s = {
-                                                        .refs = 1,
-                                                        .cap = 22,
-                                                        .size = 18,
-                                                        .data = "unrecognized token\0\0\0\0",
-                                                    };
-                                                    ASSERT(s.refs > 0);
-                                                    s.refs++;
-                                                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                                                    static VAL v = {0};
+                                                    if (!v.data.str) {
+                                                        v = mkstr("unrecognized token", 18);
+                                                    }
+                                                    push_value(v);
+                                                    incref(v);
                                                 }
                                                 mw_lexer_emit_fatal_error_21_();
                                             }
@@ -33809,15 +32590,12 @@ static void mb_lexer_next_21__6 (void) {
                                             mw_lexer_emit_string_21_();
                                         } else {
                                             {
-                                                static STR s = {
-                                                    .refs = 1,
-                                                    .cap = 22,
-                                                    .size = 18,
-                                                    .data = "unrecognized token\0\0\0\0",
-                                                };
-                                                ASSERT(s.refs > 0);
-                                                s.refs++;
-                                                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                                                static VAL v = {0};
+                                                if (!v.data.str) {
+                                                    v = mkstr("unrecognized token", 18);
+                                                }
+                                                push_value(v);
+                                                incref(v);
                                             }
                                             mw_lexer_emit_fatal_error_21_();
                                         }
@@ -33895,15 +32673,12 @@ static void mb_lexer_next_21__8 (void) {
                                         mw_lexer_emit_string_21_();
                                     } else {
                                         {
-                                            static STR s = {
-                                                .refs = 1,
-                                                .cap = 22,
-                                                .size = 18,
-                                                .data = "unrecognized token\0\0\0\0",
-                                            };
-                                            ASSERT(s.refs > 0);
-                                            s.refs++;
-                                            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                                            static VAL v = {0};
+                                            if (!v.data.str) {
+                                                v = mkstr("unrecognized token", 18);
+                                            }
+                                            push_value(v);
+                                            incref(v);
                                         }
                                         mw_lexer_emit_fatal_error_21_();
                                     }
@@ -33975,15 +32750,12 @@ static void mb_lexer_next_21__10 (void) {
                                     mw_lexer_emit_string_21_();
                                 } else {
                                     {
-                                        static STR s = {
-                                            .refs = 1,
-                                            .cap = 22,
-                                            .size = 18,
-                                            .data = "unrecognized token\0\0\0\0",
-                                        };
-                                        ASSERT(s.refs > 0);
-                                        s.refs++;
-                                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                                        static VAL v = {0};
+                                        if (!v.data.str) {
+                                            v = mkstr("unrecognized token", 18);
+                                        }
+                                        push_value(v);
+                                        incref(v);
                                     }
                                     mw_lexer_emit_fatal_error_21_();
                                 }
@@ -34048,15 +32820,12 @@ static void mb_lexer_next_21__12 (void) {
                                 mw_lexer_emit_string_21_();
                             } else {
                                 {
-                                    static STR s = {
-                                        .refs = 1,
-                                        .cap = 22,
-                                        .size = 18,
-                                        .data = "unrecognized token\0\0\0\0",
-                                    };
-                                    ASSERT(s.refs > 0);
-                                    s.refs++;
-                                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                                    static VAL v = {0};
+                                    if (!v.data.str) {
+                                        v = mkstr("unrecognized token", 18);
+                                    }
+                                    push_value(v);
+                                    incref(v);
                                 }
                                 mw_lexer_emit_fatal_error_21_();
                             }
@@ -34113,15 +32882,12 @@ static void mb_lexer_next_21__14 (void) {
                             mw_lexer_emit_string_21_();
                         } else {
                             {
-                                static STR s = {
-                                    .refs = 1,
-                                    .cap = 22,
-                                    .size = 18,
-                                    .data = "unrecognized token\0\0\0\0",
-                                };
-                                ASSERT(s.refs > 0);
-                                s.refs++;
-                                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                                static VAL v = {0};
+                                if (!v.data.str) {
+                                    v = mkstr("unrecognized token", 18);
+                                }
+                                push_value(v);
+                                incref(v);
                             }
                             mw_lexer_emit_fatal_error_21_();
                         }
@@ -34171,15 +32937,12 @@ static void mb_lexer_next_21__16 (void) {
                         mw_lexer_emit_string_21_();
                     } else {
                         {
-                            static STR s = {
-                                .refs = 1,
-                                .cap = 22,
-                                .size = 18,
-                                .data = "unrecognized token\0\0\0\0",
-                            };
-                            ASSERT(s.refs > 0);
-                            s.refs++;
-                            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                            static VAL v = {0};
+                            if (!v.data.str) {
+                                v = mkstr("unrecognized token", 18);
+                            }
+                            push_value(v);
+                            incref(v);
                         }
                         mw_lexer_emit_fatal_error_21_();
                     }
@@ -34222,15 +32985,12 @@ static void mb_lexer_next_21__18 (void) {
                     mw_lexer_emit_string_21_();
                 } else {
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 22,
-                            .size = 18,
-                            .data = "unrecognized token\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("unrecognized token", 18);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_lexer_emit_fatal_error_21_();
                 }
@@ -34266,15 +33026,12 @@ static void mb_lexer_next_21__20 (void) {
                 mw_lexer_emit_string_21_();
             } else {
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 22,
-                        .size = 18,
-                        .data = "unrecognized token\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("unrecognized token", 18);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_lexer_emit_fatal_error_21_();
             }
@@ -34303,15 +33060,12 @@ static void mb_lexer_next_21__22 (void) {
             mw_lexer_emit_string_21_();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 22,
-                    .size = 18,
-                    .data = "unrecognized token\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("unrecognized token", 18);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_lexer_emit_fatal_error_21_();
         }
@@ -34333,15 +33087,12 @@ static void mb_lexer_next_21__24 (void) {
         mw_lexer_emit_string_21_();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 22,
-                .size = 18,
-                .data = "unrecognized token\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("unrecognized token", 18);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_lexer_emit_fatal_error_21_();
     }
@@ -34356,15 +33107,12 @@ static void mb_lexer_next_21__25 (void) {
 static void mb_lexer_next_21__26 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 22,
-            .size = 18,
-            .data = "unrecognized token\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("unrecognized token", 18);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_lexer_emit_fatal_error_21_();
 }
@@ -34399,15 +33147,12 @@ static void mb_lexer_emit_name_21__2 (void) {
         mw_lexer_peek();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 21,
-                .size = 17,
-                .data = "invalid character\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("invalid character", 17);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_lexer_emit_fatal_error_21_();
     }
@@ -34423,15 +33168,12 @@ static void mb_lexer_emit_name_21__3 (void) {
 static void mb_lexer_emit_name_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 21,
-            .size = 17,
-            .data = "invalid character\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("invalid character", 17);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_lexer_emit_fatal_error_21_();
 }
@@ -34522,15 +33264,12 @@ static void mb_lexer_emit_rparen_21__3 (void) {
 static void mb_lexer_emit_rparen_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 33,
-            .size = 29,
-            .data = "Mismatched right parenthesis.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Mismatched right parenthesis.", 29);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_lexer_emit_fatal_error_21_();
 }
@@ -34549,15 +33288,12 @@ static void mb_lexer_emit_rsquare_21__3 (void) {
 static void mb_lexer_emit_rsquare_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 29,
-            .size = 25,
-            .data = "Mismatched right bracket.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Mismatched right bracket.", 25);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_lexer_emit_fatal_error_21_();
 }
@@ -34576,15 +33312,12 @@ static void mb_lexer_emit_rcurly_21__3 (void) {
 static void mb_lexer_emit_rcurly_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 27,
-            .size = 23,
-            .data = "Mismatched right brace.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Mismatched right brace.", 23);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_lexer_emit_fatal_error_21_();
 }
@@ -34605,15 +33338,12 @@ static void mb_lexer_emit_string_21__2 (void) {
         mw_lexer_peek();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 39,
-                .size = 35,
-                .data = "invalid character in string literal\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("invalid character in string literal", 35);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_lexer_emit_fatal_error_21_();
     }
@@ -34629,15 +33359,12 @@ static void mb_lexer_emit_string_21__3 (void) {
 static void mb_lexer_emit_string_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 39,
-            .size = 35,
-            .data = "invalid character in string literal\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("invalid character in string literal", 35);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_lexer_emit_fatal_error_21_();
 }
@@ -35194,15 +33921,12 @@ static void mb_lexer_push_string_char_21__1 (void) {
                         } else {
                             mw_str_buf_push_char_21_();
                             {
-                                static STR s = {
-                                    .refs = 1,
-                                    .cap = 38,
-                                    .size = 34,
-                                    .data = "Unknown character escape sequence.\0\0\0\0",
-                                };
-                                ASSERT(s.refs > 0);
-                                s.refs++;
-                                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                                static VAL v = {0};
+                                if (!v.data.str) {
+                                    v = mkstr("Unknown character escape sequence.", 34);
+                                }
+                                push_value(v);
+                                incref(v);
                             }
                             mw_lexer_emit_warning_21_();
                         }
@@ -35261,15 +33985,12 @@ static void mb_lexer_push_string_char_21__3 (void) {
                     } else {
                         mw_str_buf_push_char_21_();
                         {
-                            static STR s = {
-                                .refs = 1,
-                                .cap = 38,
-                                .size = 34,
-                                .data = "Unknown character escape sequence.\0\0\0\0",
-                            };
-                            ASSERT(s.refs > 0);
-                            s.refs++;
-                            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                            static VAL v = {0};
+                            if (!v.data.str) {
+                                v = mkstr("Unknown character escape sequence.", 34);
+                            }
+                            push_value(v);
+                            incref(v);
                         }
                         mw_lexer_emit_warning_21_();
                     }
@@ -35317,15 +34038,12 @@ static void mb_lexer_push_string_char_21__5 (void) {
                 } else {
                     mw_str_buf_push_char_21_();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 38,
-                            .size = 34,
-                            .data = "Unknown character escape sequence.\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("Unknown character escape sequence.", 34);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_lexer_emit_warning_21_();
                 }
@@ -35364,15 +34082,12 @@ static void mb_lexer_push_string_char_21__7 (void) {
             } else {
                 mw_str_buf_push_char_21_();
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 38,
-                        .size = 34,
-                        .data = "Unknown character escape sequence.\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("Unknown character escape sequence.", 34);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_lexer_emit_warning_21_();
             }
@@ -35402,15 +34117,12 @@ static void mb_lexer_push_string_char_21__9 (void) {
         } else {
             mw_str_buf_push_char_21_();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 38,
-                    .size = 34,
-                    .data = "Unknown character escape sequence.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Unknown character escape sequence.", 34);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_lexer_emit_warning_21_();
         }
@@ -35431,15 +34143,12 @@ static void mb_lexer_push_string_char_21__11 (void) {
     } else {
         mw_str_buf_push_char_21_();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 38,
-                .size = 34,
-                .data = "Unknown character escape sequence.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Unknown character escape sequence.", 34);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_lexer_emit_warning_21_();
     }
@@ -35454,15 +34163,12 @@ static void mb_lexer_push_string_char_21__13 (void) {
     mw_prim_drop();
     mw_str_buf_push_char_21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 38,
-            .size = 34,
-            .data = "Unknown character escape sequence.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Unknown character escape sequence.", 34);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_lexer_emit_warning_21_();
 }
@@ -35892,15 +34598,12 @@ static void mb_token_args_0_1 (void) {
 static void mb_token_args_0_2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 20,
-            .size = 16,
-            .data = "expected no args\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected no args", 16);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -35923,28 +34626,22 @@ static void mb_token_args_1_4 (void) {
     mw__3C_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 28,
-                .size = 24,
-                .data = "expected 1 arg, got none\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected 1 arg, got none", 24);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 32,
-                .size = 28,
-                .data = "expected 1 arg, got too many\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected 1 arg, got too many", 28);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -35963,15 +34660,12 @@ static void mb_token_args_1_3 (void) {
 static void mb_token_args_1_5 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 28,
-            .size = 24,
-            .data = "expected 1 arg, got none\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected 1 arg, got none", 24);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -35979,15 +34673,12 @@ static void mb_token_args_1_5 (void) {
 static void mb_token_args_1_6 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 32,
-            .size = 28,
-            .data = "expected 1 arg, got too many\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected 1 arg, got too many", 28);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -36013,28 +34704,22 @@ static void mb_token_args_2_4 (void) {
     mw__3C_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 32,
-                .size = 28,
-                .data = "expected 2 args, got too few\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected 2 args, got too few", 28);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 33,
-                .size = 29,
-                .data = "expected 2 args, got too many\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected 2 args, got too many", 29);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -36053,15 +34738,12 @@ static void mb_token_args_2_3 (void) {
 static void mb_token_args_2_5 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 32,
-            .size = 28,
-            .data = "expected 2 args, got too few\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected 2 args, got too few", 28);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -36069,15 +34751,12 @@ static void mb_token_args_2_5 (void) {
 static void mb_token_args_2_6 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 33,
-            .size = 29,
-            .data = "expected 2 args, got too many\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected 2 args, got too many", 29);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -36106,28 +34785,22 @@ static void mb_token_args_3_4 (void) {
     mw__3C_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 32,
-                .size = 28,
-                .data = "expected 3 args, got too few\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected 3 args, got too few", 28);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 33,
-                .size = 29,
-                .data = "expected 3 args, got too many\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected 3 args, got too many", 29);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -36146,15 +34819,12 @@ static void mb_token_args_3_3 (void) {
 static void mb_token_args_3_5 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 32,
-            .size = 28,
-            .data = "expected 3 args, got too few\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected 3 args, got too few", 28);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -36162,15 +34832,12 @@ static void mb_token_args_3_5 (void) {
 static void mb_token_args_3_6 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 33,
-            .size = 29,
-            .data = "expected 3 args, got too many\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected 3 args, got too many", 29);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -36255,15 +34922,12 @@ static void mb_token_args_2_2B__2 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 20,
-            .size = 16,
-            .data = "expected 2+ args\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected 2+ args", 16);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -36417,15 +35081,12 @@ static void mb_module_path_from_name_1 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 5,
-                .size = 1,
-                .data = "/\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("/", 1);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_TS_COPY();
     } else {
@@ -36447,15 +35108,12 @@ static void mb_module_path_from_name_2 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "/\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("/", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_TS_COPY();
 }
@@ -36518,15 +35176,12 @@ static void mb_codegen_flush_21__1 (void) {
     mw__3C_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 31,
-                .size = 27,
-                .data = "error: codegen write failed\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("error: codegen write failed", 27);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     } else {
@@ -36535,15 +35190,12 @@ static void mb_codegen_flush_21__1 (void) {
         mw__3C_();
         if (pop_u64()) {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 56,
-                    .size = 52,
-                    .data = "error: codegen write wrote fewer bytes than expected\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("error: codegen write wrote fewer bytes than expected", 52);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_panic_21_();
         } else {
@@ -36562,15 +35214,12 @@ static void mb_codegen_flush_21__6 (void) {
 static void mb_codegen_flush_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 31,
-            .size = 27,
-            .data = "error: codegen write failed\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("error: codegen write failed", 27);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -36582,15 +35231,12 @@ static void mb_codegen_flush_21__3 (void) {
     mw__3C_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 56,
-                .size = 52,
-                .data = "error: codegen write wrote fewer bytes than expected\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("error: codegen write wrote fewer bytes than expected", 52);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_panic_21_();
     } else {
@@ -36603,15 +35249,12 @@ static void mb_codegen_flush_21__3 (void) {
 static void mb_codegen_flush_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 56,
-            .size = 52,
-            .data = "error: codegen write wrote fewer bytes than expected\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("error: codegen write wrote fewer bytes than expected", 52);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -36847,43 +35490,34 @@ static void mb_c99_tag_21__2 (void) {
     mw__3D__3D_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 17,
-                .size = 13,
-                .data = "    push_u64(\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("    push_u64(", 13);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
         mw_tag_value();
         mw__40_();
         mw__2E_n();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 8,
-                .size = 4,
-                .data = "LL);\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("LL);", 4);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__3B_();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 30,
-                .size = 26,
-                .data = "    VAL car = pop_value();\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("    VAL car = pop_value();", 26);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__3B_();
         mw_tag_num_inputs_3F_();
@@ -36893,54 +35527,42 @@ static void mb_c99_tag_21__2 (void) {
         mw_prim_pack_cons();
         mw_repeat();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 24,
-                .size = 20,
-                .data = "    VAL tag = mku64(\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("    VAL tag = mku64(", 20);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
         mw_tag_value();
         mw__40_();
         mw__2E_n();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 8,
-                .size = 4,
-                .data = "LL);\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("LL);", 4);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__3B_();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 31,
-                .size = 27,
-                .data = "    car = mkcons(car, tag);\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("    car = mkcons(car, tag);", 27);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__3B_();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 24,
-                .size = 20,
-                .data = "    push_value(car);\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("    push_value(car);", 20);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__3B_();
     }
@@ -36949,30 +35571,24 @@ static void mb_c99_tag_21__2 (void) {
 static void mb_c99_tag_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "    push_u64(\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    push_u64(", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_tag_value();
     mw__40_();
     mw__2E_n();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "LL);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("LL);", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
 }
@@ -36980,15 +35596,12 @@ static void mb_c99_tag_21__3 (void) {
 static void mb_c99_tag_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 30,
-            .size = 26,
-            .data = "    VAL car = pop_value();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    VAL car = pop_value();", 26);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     mw_tag_num_inputs_3F_();
@@ -36998,54 +35611,42 @@ static void mb_c99_tag_21__4 (void) {
     mw_prim_pack_cons();
     mw_repeat();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "    VAL tag = mku64(\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    VAL tag = mku64(", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_tag_value();
     mw__40_();
     mw__2E_n();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "LL);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("LL);", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 31,
-            .size = 27,
-            .data = "    car = mkcons(car, tag);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    car = mkcons(car, tag);", 27);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "    push_value(car);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    push_value(car);", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
 }
@@ -37053,15 +35654,12 @@ static void mb_c99_tag_21__4 (void) {
 static void mb_c99_tag_21__5 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 39,
-            .size = 35,
-            .data = "    car = mkcons(car, pop_value());\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    car = mkcons(car, pop_value());", 35);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
 }
@@ -37090,15 +35688,12 @@ static void mb_tag_num_inputs_3F__5 (void) {
 static void mb_c99_external_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 54,
-            .size = 50,
-            .data = "can't declare external with multiple return values\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("can't declare external with multiple return values", 50);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -37110,28 +35705,22 @@ static void mb_c99_external_21__2 (void) {
     mw__3E__3D_();
     if (pop_u64()) {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 12,
-                .size = 8,
-                .data = "int64_t \0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("int64_t ", 8);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 9,
-                .size = 5,
-                .data = "void \0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("void ", 5);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
     }
@@ -37140,15 +35729,12 @@ static void mb_c99_external_21__2 (void) {
 static void mb_c99_external_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = "int64_t \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("int64_t ", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -37156,15 +35742,12 @@ static void mb_c99_external_21__3 (void) {
 static void mb_c99_external_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 9,
-            .size = 5,
-            .data = "void \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("void ", 5);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -37180,15 +35763,12 @@ static void mb_c99_external_21__5 (void) {
 static void mb_c99_external_21__6 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 11,
-            .size = 7,
-            .data = "int64_t\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("int64_t", 7);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_1_();
@@ -37202,15 +35782,12 @@ static void mb_c99_external_21__8 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "void\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("void", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -37218,15 +35795,12 @@ static void mb_c99_external_21__8 (void) {
 static void mb_c99_external_21__7 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 13,
-            .size = 9,
-            .data = ", int64_t\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(", int64_t", 9);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -37242,28 +35816,22 @@ static void mb_c99_external_21__9 (void) {
 static void mb_c99_external_21__10 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "    int64_t x\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    int64_t x", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_n();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = " = pop_i64();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" = pop_i64();", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__3B_();
 }
@@ -37271,30 +35839,24 @@ static void mb_c99_external_21__10 (void) {
 static void mb_c99_external_21__11 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "    push_i64(\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    push_i64(", 13);
+        }
+        push_value(v);
+        incref(v);
     }
 }
 
 static void mb_c99_external_21__12 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "    \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    ", 4);
+        }
+        push_value(v);
+        incref(v);
     }
 }
 
@@ -37319,15 +35881,12 @@ static void mb_c99_external_21__14 (void) {
         mw_prim_pack_cons();
         mw_count();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 5,
-                .size = 1,
-                .data = "x\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("x", 1);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
         mw__2E_n();
@@ -37346,15 +35905,12 @@ static void mb_c99_external_21__15 (void) {
     mw_prim_pack_cons();
     mw_count();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "x\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("x", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_n();
@@ -37368,28 +35924,22 @@ static void mb_c99_external_21__17 (void) {
 static void mb_c99_external_21__16 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "x\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("x", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_n();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = ", \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(", ", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -37397,30 +35947,24 @@ static void mb_c99_external_21__16 (void) {
 static void mb_c99_external_21__18 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = ");\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(");", 2);
+        }
+        push_value(v);
+        incref(v);
     }
 }
 
 static void mb_c99_external_21__19 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = ";\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(";", 1);
+        }
+        push_value(v);
+        incref(v);
     }
 }
 
@@ -37443,15 +35987,12 @@ static void mb_c99_nest_3 (void) {
 static void mb_c99_indent_1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "    \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("    ", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -37464,28 +36005,22 @@ static void mb_c99_call_21__1 (void) {
 static void mb_c99_call_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "mw_\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("mw_", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_name();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("();", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -37509,28 +36044,22 @@ static void mb_c99_atom_21__1 (void) {
 static void mb_c99_int_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 13,
-            .size = 9,
-            .data = "push_i64(\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("push_i64(", 9);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_n();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "LL);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("LL);", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -37538,15 +36067,12 @@ static void mb_c99_int_21__1 (void) {
 static void mb_c99_str_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "{\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("{", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -37560,240 +36086,152 @@ static void mb_c99_str_21__2 (void) {
     push_u64(0);
     push_fnptr(&mb_c99_str_21__4);
     mw_prim_pack_cons();
+    mw_c99_line();
+    push_u64(0);
+    push_fnptr(&mb_c99_str_21__5);
+    mw_prim_pack_cons();
     mw_c99_nest();
     push_u64(0);
-    push_fnptr(&mb_c99_str_21__20);
+    push_fnptr(&mb_c99_str_21__17);
     mw_prim_pack_cons();
     mw_c99_line();
     push_u64(0);
-    push_fnptr(&mb_c99_str_21__21);
+    push_fnptr(&mb_c99_str_21__18);
     mw_prim_pack_cons();
     mw_c99_line();
     push_u64(0);
-    push_fnptr(&mb_c99_str_21__22);
+    push_fnptr(&mb_c99_str_21__19);
     mw_prim_pack_cons();
     mw_c99_line();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__23);
-    mw_prim_pack_cons();
-    mw_c99_line();
-    mw_drop();
 }
 
 static void mb_c99_str_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 20,
-            .size = 16,
-            .data = "static STR s = {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("static VAL v = {0};", 19);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
 
 static void mb_c99_str_21__4 (void) {
     mw_prim_drop();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__5);
-    mw_prim_pack_cons();
-    mw_c99_line();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__6);
-    mw_prim_pack_cons();
-    mw_c99_line();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__7);
-    mw_prim_pack_cons();
-    mw_c99_line();
+    {
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("if (!v.data.str) {", 18);
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
+}
+
+static void mb_c99_str_21__5 (void) {
+    mw_prim_drop();
     mw_dup();
     mw_str_size();
     push_i64(4090LL);
     mw__3E_();
     if (pop_u64()) {
+        {
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("static uint8_t b[] = {", 22);
+            }
+            push_value(v);
+            incref(v);
+        }
+        mw__2E_();
         push_u64(0);
-        push_fnptr(&mb_c99_str_21__9);
-        mw_prim_pack_cons();
-        mw_c99_line();
-        push_u64(0);
-        push_fnptr(&mb_c99_str_21__10);
+        push_fnptr(&mb_c99_str_21__7);
         mw_prim_pack_cons();
         mw_c99_nest();
         push_u64(0);
-        push_fnptr(&mb_c99_str_21__16);
+        push_fnptr(&mb_c99_str_21__12);
+        mw_prim_pack_cons();
+        mw_c99_line();
+        push_u64(0);
+        push_fnptr(&mb_c99_str_21__13);
         mw_prim_pack_cons();
         mw_c99_line();
     } else {
         push_u64(0);
-        push_fnptr(&mb_c99_str_21__18);
+        push_fnptr(&mb_c99_str_21__15);
         mw_prim_pack_cons();
         mw_c99_line();
     }
-}
-
-static void mb_c99_str_21__5 (void) {
-    mw_prim_drop();
-    {
-        static STR s = {
-            .refs = 1,
-            .cap = 14,
-            .size = 10,
-            .data = ".refs = 1,\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
-    }
-    mw__2E_();
 }
 
 static void mb_c99_str_21__6 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 11,
-            .size = 7,
-            .data = ".cap = \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("static uint8_t b[] = {", 22);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
-    mw_dup();
-    mw_str_size();
-    push_i64(4LL);
-    mw__2B_();
-    mw__2E_n();
-    {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = ",\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
-    }
-    mw__2E_();
-}
-
-static void mb_c99_str_21__7 (void) {
-    mw_prim_drop();
-    {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = ".size = \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
-    }
-    mw__2E_();
-    mw_dup();
-    mw_str_size();
-    mw__2E_n();
-    {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = ",\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
-    }
-    mw__2E_();
-}
-
-static void mb_c99_str_21__8 (void) {
-    mw_prim_drop();
     push_u64(0);
-    push_fnptr(&mb_c99_str_21__9);
-    mw_prim_pack_cons();
-    mw_c99_line();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__10);
+    push_fnptr(&mb_c99_str_21__7);
     mw_prim_pack_cons();
     mw_c99_nest();
     push_u64(0);
-    push_fnptr(&mb_c99_str_21__16);
+    push_fnptr(&mb_c99_str_21__12);
+    mw_prim_pack_cons();
+    mw_c99_line();
+    push_u64(0);
+    push_fnptr(&mb_c99_str_21__13);
     mw_prim_pack_cons();
     mw_c99_line();
 }
 
-static void mb_c99_str_21__17 (void) {
+static void mb_c99_str_21__14 (void) {
     mw_prim_drop();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__18);
-    mw_prim_pack_cons();
-    mw_c99_line();
-}
-
-static void mb_c99_str_21__9 (void) {
-    mw_prim_drop();
-    {
-        static STR s = {
-            .refs = 1,
-            .cap = 13,
-            .size = 9,
-            .data = ".data = {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
-    }
-    mw__2E_();
-}
-
-static void mb_c99_str_21__10 (void) {
-    mw_prim_drop();
-    mw_c99_indent();
-    mw_dup();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__11);
-    mw_prim_pack_cons();
-    mw_str_for();
-    mw__2E_lf();
     push_u64(0);
     push_fnptr(&mb_c99_str_21__15);
     mw_prim_pack_cons();
     mw_c99_line();
 }
 
-static void mb_c99_str_21__11 (void) {
+static void mb_c99_str_21__7 (void) {
+    mw_prim_drop();
+    mw_c99_indent();
+    mw_dup();
+    push_u64(0);
+    push_fnptr(&mb_c99_str_21__8);
+    mw_prim_pack_cons();
+    mw_str_for();
+    mw__2E_lf();
+}
+
+static void mb_c99_str_21__8 (void) {
     mw_prim_drop();
     mw_char_bytes();
     push_u64(0);
-    push_fnptr(&mb_c99_str_21__12);
+    push_fnptr(&mb_c99_str_21__9);
     mw_prim_pack_cons();
     mw_for();
 }
 
-static void mb_c99_str_21__12 (void) {
+static void mb_c99_str_21__9 (void) {
     mw_prim_drop();
     mw_U8__3E_Int();
     mw_dup();
     mw__2E_n();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = ",\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(",", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     push_i64(10LL);
@@ -37806,45 +36244,108 @@ static void mb_c99_str_21__12 (void) {
     }
 }
 
-static void mb_c99_str_21__13 (void) {
+static void mb_c99_str_21__10 (void) {
     mw_prim_drop();
     mw__2E_lf();
     mw_c99_indent();
 }
 
-static void mb_c99_str_21__14 (void) {
+static void mb_c99_str_21__11 (void) {
     mw_prim_drop();
     mw_id();
+}
+
+static void mb_c99_str_21__12 (void) {
+    mw_prim_drop();
+    {
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("};", 2);
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
+}
+
+static void mb_c99_str_21__13 (void) {
+    mw_prim_drop();
+    {
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("v = mkstr((char*)b, ", 20);
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
+    mw_dup();
+    mw_str_size();
+    mw__2E_n();
+    {
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(");", 2);
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
 }
 
 static void mb_c99_str_21__15 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = "0,0,0,0,\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("v = mkstr(\"", 11);
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
+    mw_dup();
+    push_u64(0);
+    push_fnptr(&mb_c99_str_21__16);
+    mw_prim_pack_cons();
+    mw_str_for();
+    {
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("\", ", 3);
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
+    mw_dup();
+    mw_str_size();
+    mw__2E_n();
+    {
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(");", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
 
 static void mb_c99_str_21__16 (void) {
     mw_prim_drop();
+    mw_c99_string_char_21_();
+}
+
+static void mb_c99_str_21__17 (void) {
+    mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "},\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -37852,117 +36353,38 @@ static void mb_c99_str_21__16 (void) {
 static void mb_c99_str_21__18 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 13,
-            .size = 9,
-            .data = ".data = \"\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
-    }
-    mw__2E_();
-    mw_dup();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__19);
-    mw_prim_pack_cons();
-    mw_str_for();
-    {
-        static STR s = {
-            .refs = 1,
-            .cap = 14,
-            .size = 10,
-            .data = "\\0\\0\\0\\0\",\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("push_value(v);", 14);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
 
 static void mb_c99_str_21__19 (void) {
     mw_prim_drop();
-    mw_c99_string_char_21_();
+    {
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("incref(v);", 10);
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
 }
 
 static void mb_c99_str_21__20 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "};\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
-    }
-    mw__2E_();
-}
-
-static void mb_c99_str_21__21 (void) {
-    mw_prim_drop();
-    {
-        static STR s = {
-            .refs = 1,
-            .cap = 23,
-            .size = 19,
-            .data = "ASSERT(s.refs > 0);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
-    }
-    mw__2E_();
-}
-
-static void mb_c99_str_21__22 (void) {
-    mw_prim_drop();
-    {
-        static STR s = {
-            .refs = 1,
-            .cap = 13,
-            .size = 9,
-            .data = "s.refs++;\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
-    }
-    mw__2E_();
-}
-
-static void mb_c99_str_21__23 (void) {
-    mw_prim_drop();
-    {
-        static STR s = {
-            .refs = 1,
-            .cap = 53,
-            .size = 49,
-            .data = "push_value((VAL){.tag=TAG_STR, .data={.str=&s}});\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
-    }
-    mw__2E_();
-}
-
-static void mb_c99_str_21__24 (void) {
-    mw_prim_drop();
-    {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -37970,15 +36392,12 @@ static void mb_c99_str_21__24 (void) {
 static void mb_c99_prim_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "{\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("{", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -37999,30 +36418,24 @@ static void mb_c99_prim_21__4 (void) {
 static void mb_c99_prim_21__5 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 9,
-            .size = 5,
-            .data = "VAL d\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("VAL d", 5);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_c99_depth();
     mw__40_();
     mw__2E_n();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = " = pop_value();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" = pop_value();", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38030,30 +36443,24 @@ static void mb_c99_prim_21__5 (void) {
 static void mb_c99_prim_21__6 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "push_value(d\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("push_value(d", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_c99_depth();
     mw__40_();
     mw__2E_n();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = ");\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(");", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38061,15 +36468,12 @@ static void mb_c99_prim_21__6 (void) {
 static void mb_c99_prim_21__7 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38077,15 +36481,12 @@ static void mb_c99_prim_21__7 (void) {
 static void mb_c99_prim_21__11 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 20,
-            .size = 16,
-            .data = "if (pop_u64()) {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("if (pop_u64()) {", 16);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38099,15 +36500,12 @@ static void mb_c99_prim_21__12 (void) {
 static void mb_c99_prim_21__13 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = "} else {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("} else {", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38120,15 +36518,12 @@ static void mb_c99_prim_21__14 (void) {
 static void mb_c99_prim_21__15 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38136,15 +36531,12 @@ static void mb_c99_prim_21__15 (void) {
 static void mb_c99_prim_21__19 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 14,
-            .size = 10,
-            .data = "while(1) {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("while(1) {", 10);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38163,15 +36555,12 @@ static void mb_c99_prim_21__20 (void) {
 static void mb_c99_prim_21__21 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 26,
-            .size = 22,
-            .data = "if (!pop_u64()) break;\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("if (!pop_u64()) break;", 22);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38179,15 +36568,12 @@ static void mb_c99_prim_21__21 (void) {
 static void mb_c99_prim_21__22 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38204,15 +36590,12 @@ static void mb_c99_match_21__1 (void) {
             mw_match_token();
             mw__40_();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 60,
-                    .size = 56,
-                    .data = "codegen: unexpected number of cases in transparent match\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("codegen: unexpected number of cases in transparent match", 56);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
             break;
@@ -38247,15 +36630,12 @@ static void mb_c99_match_21__4 (void) {
 static void mb_c99_match_21__5 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 33,
-            .size = 29,
-            .data = "switch (get_top_data_tag()) {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("switch (get_top_data_tag()) {", 29);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38302,15 +36682,12 @@ static void mb_c99_match_21__9 (void) {
 static void mb_c99_match_21__10 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 90,
-            .size = 86,
-            .data = "default: write(2, \"unexpected fallthrough in match\\n\", 32); mw_prim_debug(); exit(99);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("default: write(2, \"unexpected fallthrough in match\\n\", 32); mw_prim_debug(); exit(99);", 86);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38318,30 +36695,24 @@ static void mb_c99_match_21__10 (void) {
 static void mb_c99_match_21__11 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
 }
 
 static void mb_c99_lambda_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "{\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("{", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38378,28 +36749,22 @@ static void mb_c99_lambda_21__3 (void) {
 static void mb_c99_lambda_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "VAL \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("VAL ", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_param();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = " = pop_value();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" = pop_value();", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38415,28 +36780,22 @@ static void mb_c99_lambda_21__5 (void) {
 static void mb_c99_lambda_21__6 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 11,
-            .size = 7,
-            .data = "decref(\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("decref(", 7);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_param();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = ");\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(");", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38444,15 +36803,12 @@ static void mb_c99_lambda_21__6 (void) {
 static void mb_c99_lambda_21__7 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38478,15 +36834,12 @@ static void mb_c99_var_21__4 (void) {
 static void mb_c99_var_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 18,
-            .size = 14,
-            .data = "mw_prim_run();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("mw_prim_run();", 14);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38494,28 +36847,22 @@ static void mb_c99_var_21__3 (void) {
 static void mb_c99_block_push_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "push_fnptr(&\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("push_fnptr(&", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_block();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = ");\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(");", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38523,15 +36870,12 @@ static void mb_c99_block_push_21__1 (void) {
 static void mb_c99_block_push_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "mw_prim_pack_cons();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("mw_prim_pack_cons();", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38540,15 +36884,12 @@ static void mb_c99_string_char_21__1 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "\\\\\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("\\\\", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38560,15 +36901,12 @@ static void mb_c99_string_char_21__2 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 6,
-                .size = 2,
-                .data = "\\\"\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("\\\"", 2);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
     } else {
@@ -38587,15 +36925,12 @@ static void mb_c99_string_char_21__2 (void) {
             if (pop_u64()) {
                 mw_drop();
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 6,
-                        .size = 2,
-                        .data = "\\t\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("\\t", 2);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw__2E_();
             } else {
@@ -38606,15 +36941,12 @@ static void mb_c99_string_char_21__2 (void) {
                 if (pop_u64()) {
                     mw_drop();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 6,
-                            .size = 2,
-                            .data = "\\n\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("\\n", 2);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw__2E_();
                 } else {
@@ -38625,15 +36957,12 @@ static void mb_c99_string_char_21__2 (void) {
                     if (pop_u64()) {
                         mw_drop();
                         {
-                            static STR s = {
-                                .refs = 1,
-                                .cap = 6,
-                                .size = 2,
-                                .data = "\\r\0\0\0\0",
-                            };
-                            ASSERT(s.refs > 0);
-                            s.refs++;
-                            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                            static VAL v = {0};
+                            if (!v.data.str) {
+                                v = mkstr("\\r", 2);
+                            }
+                            push_value(v);
+                            incref(v);
                         }
                         mw__2E_();
                     } else {
@@ -38653,15 +36982,12 @@ static void mb_c99_string_char_21__3 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "\\\"\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("\\\"", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38683,15 +37009,12 @@ static void mb_c99_string_char_21__4 (void) {
         if (pop_u64()) {
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 6,
-                    .size = 2,
-                    .data = "\\t\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("\\t", 2);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__2E_();
         } else {
@@ -38702,15 +37025,12 @@ static void mb_c99_string_char_21__4 (void) {
             if (pop_u64()) {
                 mw_drop();
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 6,
-                        .size = 2,
-                        .data = "\\n\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("\\n", 2);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw__2E_();
             } else {
@@ -38721,15 +37041,12 @@ static void mb_c99_string_char_21__4 (void) {
                 if (pop_u64()) {
                     mw_drop();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 6,
-                            .size = 2,
-                            .data = "\\r\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("\\r", 2);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw__2E_();
                 } else {
@@ -38758,15 +37075,12 @@ static void mb_c99_string_char_21__6 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 6,
-                .size = 2,
-                .data = "\\t\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("\\t", 2);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
     } else {
@@ -38777,15 +37091,12 @@ static void mb_c99_string_char_21__6 (void) {
         if (pop_u64()) {
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 6,
-                    .size = 2,
-                    .data = "\\n\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("\\n", 2);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__2E_();
         } else {
@@ -38796,15 +37107,12 @@ static void mb_c99_string_char_21__6 (void) {
             if (pop_u64()) {
                 mw_drop();
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 6,
-                        .size = 2,
-                        .data = "\\r\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("\\r", 2);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw__2E_();
             } else {
@@ -38822,15 +37130,12 @@ static void mb_c99_string_char_21__7 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "\\t\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("\\t", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38844,15 +37149,12 @@ static void mb_c99_string_char_21__8 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 6,
-                .size = 2,
-                .data = "\\n\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("\\n", 2);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
     } else {
@@ -38863,15 +37165,12 @@ static void mb_c99_string_char_21__8 (void) {
         if (pop_u64()) {
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 6,
-                    .size = 2,
-                    .data = "\\r\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("\\r", 2);
+                }
+                push_value(v);
+                incref(v);
             }
             mw__2E_();
         } else {
@@ -38888,15 +37187,12 @@ static void mb_c99_string_char_21__9 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "\\n\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("\\n", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38910,15 +37206,12 @@ static void mb_c99_string_char_21__10 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 6,
-                .size = 2,
-                .data = "\\r\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("\\r", 2);
+            }
+            push_value(v);
+            incref(v);
         }
         mw__2E_();
     } else {
@@ -38934,15 +37227,12 @@ static void mb_c99_string_char_21__11 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "\\r\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("\\r", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -38959,15 +37249,12 @@ static void mb_c99_string_char_21__12 (void) {
 static void mb_c99_string_char_21__13 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = "\\x\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("\\x", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_dup();
@@ -38986,29 +37273,23 @@ static void mb_c99_string_char_21__13 (void) {
 static void mb_c99_var_push_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 15,
-            .size = 11,
-            .data = "push_value(\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("push_value(", 11);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_dup();
     mw__2E_var();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = ");\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(");", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39016,28 +37297,22 @@ static void mb_c99_var_push_21__1 (void) {
 static void mb_c99_var_push_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 11,
-            .size = 7,
-            .data = "incref(\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("incref(", 7);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_var();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = ");\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(");", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39045,15 +37320,12 @@ static void mb_c99_var_push_21__2 (void) {
 static void mb_c99_pack_ctx_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "push_u64(0);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("push_u64(0);", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39070,15 +37342,12 @@ static void mb_c99_pack_ctx_21__2 (void) {
 static void mb_c99_pack_ctx_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "mw_prim_pack_cons();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("mw_prim_pack_cons();", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39104,15 +37373,12 @@ static void mb_c99_unpack_ctx_21__1 (void) {
 static void mb_c99_unpack_ctx_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 26,
-            .size = 22,
-            .data = "mw_prim_pack_uncons();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("mw_prim_pack_uncons();", 22);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39120,28 +37386,22 @@ static void mb_c99_unpack_ctx_21__2 (void) {
 static void mb_c99_unpack_ctx_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 8,
-            .size = 4,
-            .data = "VAL \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("VAL ", 4);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_var();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = " = pop_value();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" = pop_value();", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39149,15 +37409,12 @@ static void mb_c99_unpack_ctx_21__3 (void) {
 static void mb_c99_unpack_ctx_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "mw_prim_drop();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("mw_prim_drop();", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39173,28 +37430,22 @@ static void mb_c99_decref_ctx_21__1 (void) {
 static void mb_c99_decref_ctx_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 11,
-            .size = 7,
-            .data = "decref(\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("decref(", 7);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_var();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = ");\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(");", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39212,15 +37463,12 @@ static void mb__2E_block_2 (void) {
     mw__40_();
     mw__2E_name();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "_\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("_", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_arrow_homeidx();
@@ -39243,15 +37491,12 @@ static void mb_c99_case_21__1 (void) {
 static void mb_c99_case_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 10,
-            .size = 6,
-            .data = "break;\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("break;", 6);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39259,15 +37504,12 @@ static void mb_c99_case_21__2 (void) {
 static void mb_c99_pattern_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = "default:\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("default:", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39275,15 +37517,12 @@ static void mb_c99_pattern_21__2 (void) {
 static void mb_c99_pattern_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 9,
-            .size = 5,
-            .data = "case \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("case ", 5);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_dup();
@@ -39291,15 +37530,12 @@ static void mb_c99_pattern_21__4 (void) {
     mw__40_();
     mw__2E_n();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = "LL:\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("LL:", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39355,15 +37591,12 @@ static void mb_c99_pattern_21__10 (void) {
 static void mb_c99_pattern_21__7 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 42,
-            .size = 38,
-            .data = "mw_prim_pack_uncons(); mw_prim_drop();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("mw_prim_pack_uncons(); mw_prim_drop();", 38);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39379,15 +37612,12 @@ static void mb_c99_pattern_21__8 (void) {
 static void mb_c99_pattern_21__9 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 42,
-            .size = 38,
-            .data = "mw_prim_pack_uncons(); mw_prim_swap();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("mw_prim_pack_uncons(); mw_prim_swap();", 38);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39395,15 +37625,12 @@ static void mb_c99_pattern_21__9 (void) {
 static void mb_c99_pattern_21__11 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "mw_prim_drop();\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("mw_prim_drop();", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39411,30 +37638,24 @@ static void mb_c99_pattern_21__11 (void) {
 static void mb_c99_word_sig_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "static void mw_\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("static void mw_", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_word_name();
     mw__40_();
     mw__2E_name();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = " (void);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" (void);", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39442,28 +37663,22 @@ static void mb_c99_word_sig_21__1 (void) {
 static void mb_c99_block_sig_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "static void \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("static void ", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw__2E_block();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = " (void);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" (void);", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39471,30 +37686,24 @@ static void mb_c99_block_sig_21__1 (void) {
 static void mb_c99_field_sig_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "static void mw_\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("static void mw_", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_field_name();
     mw__40_();
     mw__2E_name();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 12,
-            .size = 8,
-            .data = " (void);\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" (void);", 8);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39502,29 +37711,23 @@ static void mb_c99_field_sig_21__1 (void) {
 static void mb_c99_block_def_21__1 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "static void \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("static void ", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
     mw_dup();
     mw__2E_block();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 13,
-            .size = 9,
-            .data = " (void) {\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" (void) {", 9);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39547,15 +37750,12 @@ static void mb_c99_block_def_21__2 (void) {
 static void mb_c99_block_def_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = "}\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("}", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw__2E_();
 }
@@ -39817,15 +38017,12 @@ static void mb_match_add_case_21__2 (void) {
     mw_case_token();
     mw__40_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "Case is unreachable.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Case is unreachable.", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_error_21_();
     mw_drop();
@@ -39962,15 +38159,12 @@ static void mb_type_is_physical_2 (void) {
 static void mb_type_is_physical_3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 36,
-            .size = 32,
-            .data = "unbound meta at type-is-physical\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("unbound meta at type-is-physical", 32);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_panic_21_();
 }
@@ -40012,15 +38206,12 @@ static void mb_type_hole_unify_21__2 (void) {
     mw_THole();
     mw_type_trace_21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 7,
-            .size = 3,
-            .data = " ~ \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" ~ ", 3);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
     mw_dup();
@@ -40251,15 +38442,12 @@ static void mb_type_trace_stack_dom_21__2 (void) {
     mw_prim_drop();
     mw_type_trace_stack_21_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = " \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" ", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
 }
@@ -40272,15 +38460,12 @@ static void mb_type_trace_stack_cod_21__1 (void) {
 static void mb_type_trace_stack_cod_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 5,
-            .size = 1,
-            .data = " \0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" ", 1);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
     mw_type_trace_stack_21_();
@@ -40304,15 +38489,12 @@ static void mb_type_trace_stack_21__6 (void) {
 static void mb_type_trace_stack_21__7 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 6,
-            .size = 2,
-            .data = " .\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr(" .", 2);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_str_trace_21_();
 }
@@ -41158,15 +39340,12 @@ static void mb_elab_type_sig_21__1 (void) {
     mw_prim_drop();
     mw_dup();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 27,
-            .size = 23,
-            .data = "expected type signature\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected type signature", 23);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_error_21_();
 }
@@ -41227,15 +39406,12 @@ static void mb_elab_type_sig_21__10 (void) {
     mw_prim_drop();
     mw_dup();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 33,
-            .size = 29,
-            .data = "expected right paren or comma\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected right paren or comma", 29);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_error_21_();
 }
@@ -41415,15 +39591,12 @@ static void mb_elab_type_atom_21__3 (void) {
                 } else {
                     mw_dup();
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 37,
-                            .size = 33,
-                            .data = "Expected type, got unknown token.\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("Expected type, got unknown token.", 33);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_error_21_();
                     {
@@ -41464,15 +39637,12 @@ static void mb_elab_type_atom_21__5 (void) {
             } else {
                 mw_dup();
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 37,
-                        .size = 33,
-                        .data = "Expected type, got unknown token.\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("Expected type, got unknown token.", 33);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_emit_error_21_();
                 {
@@ -41503,15 +39673,12 @@ static void mb_elab_type_atom_21__7 (void) {
         } else {
             mw_dup();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 37,
-                    .size = 33,
-                    .data = "Expected type, got unknown token.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Expected type, got unknown token.", 33);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_error_21_();
             {
@@ -41537,15 +39704,12 @@ static void mb_elab_type_atom_21__9 (void) {
     } else {
         mw_dup();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 37,
-                .size = 33,
-                .data = "Expected type, got unknown token.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Expected type, got unknown token.", 33);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_error_21_();
         {
@@ -41566,15 +39730,12 @@ static void mb_elab_type_atom_21__11 (void) {
     mw_prim_drop();
     mw_dup();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 37,
-            .size = 33,
-            .data = "Expected type, got unknown token.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Expected type, got unknown token.", 33);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_error_21_();
     {
@@ -41598,15 +39759,12 @@ static void mb_elab_type_arg_21__1 (void) {
 static void mb_elab_type_arg_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 32,
-            .size = 28,
-            .data = "Unexpected token after type.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Unexpected token after type.", 28);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -41621,15 +39779,12 @@ static void mb_elab_type_con_21__3 (void) {
     mw_drop();
     mw_dup();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 39,
-            .size = 35,
-            .data = "Wrong number of arguments for type.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Wrong number of arguments for type.", 35);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_error_21_();
     mw_TYPE_ERROR();
@@ -41641,15 +39796,12 @@ static void mb_elab_type_dont_care_21__1 (void) {
     if (pop_u64()) {
         mw_dup();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 38,
-                .size = 34,
-                .data = "Types with args not yet supported.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Types with args not yet supported.", 34);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_error_21_();
         mw_TYPE_ERROR();
@@ -41663,15 +39815,12 @@ static void mb_elab_type_dont_care_21__1 (void) {
 static void mb_elab_type_dont_care_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 39,
-            .size = 35,
-            .data = "type don't care is not allowed here\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("type don't care is not allowed here", 35);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -41680,15 +39829,12 @@ static void mb_elab_type_dont_care_21__2 (void) {
     mw_prim_drop();
     mw_dup();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 38,
-            .size = 34,
-            .data = "Types with args not yet supported.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Types with args not yet supported.", 34);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_error_21_();
     mw_TYPE_ERROR();
@@ -41705,15 +39851,12 @@ static void mb_elab_type_hole_21__1 (void) {
     if (pop_u64()) {
         mw_dup();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 38,
-                .size = 34,
-                .data = "Types with args not yet supported.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Types with args not yet supported.", 34);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_error_21_();
         mw_TYPE_ERROR();
@@ -41728,15 +39871,12 @@ static void mb_elab_type_hole_21__1 (void) {
 static void mb_elab_type_hole_21__4 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 35,
-            .size = 31,
-            .data = "type holes are not allowed here\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("type holes are not allowed here", 31);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -41745,15 +39885,12 @@ static void mb_elab_type_hole_21__2 (void) {
     mw_prim_drop();
     mw_dup();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 38,
-            .size = 34,
-            .data = "Types with args not yet supported.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Types with args not yet supported.", 34);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_error_21_();
     mw_TYPE_ERROR();
@@ -42199,15 +40336,12 @@ static void mb_ab_prim_21__1 (void) {
     mw_ab_token();
     mw__40_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 27,
-            .size = 23,
-            .data = "prim does not have type\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("prim does not have type", 23);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -42526,15 +40660,12 @@ static void mb_elab_match_exhaustive_21__2 (void) {
     mw_match_token();
     mw__40_();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 33,
-            .size = 29,
-            .data = "Pattern match not exhaustive.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Pattern match not exhaustive.", 29);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_error_21_();
 }
@@ -42594,15 +40725,12 @@ static void mb_elab_lambda_params_21__5 (void) {
             mw__21_();
         } else {
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 39,
-                    .size = 35,
-                    .data = "block pattern on non-block argument\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("block pattern on non-block argument", 35);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
         }
@@ -42662,15 +40790,12 @@ static void mb_elab_lambda_params_21__7 (void) {
         mw__21_();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 39,
-                .size = 35,
-                .data = "block pattern on non-block argument\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("block pattern on non-block argument", 35);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -42698,15 +40823,12 @@ static void mb_elab_lambda_params_21__9 (void) {
 static void mb_elab_lambda_params_21__10 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 39,
-            .size = 35,
-            .data = "block pattern on non-block argument\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("block pattern on non-block argument", 35);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -42858,15 +40980,12 @@ static void mb_expect_token_arrow_1 (void) {
 static void mb_expect_token_arrow_2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "Expected arrow.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Expected arrow.", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -42983,45 +41102,36 @@ static void mb_elab_case_pattern_21__5 (void) {
             case 0LL:
                 mw_prim_drop();
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 24,
-                        .size = 20,
-                        .data = "Unknown constructor.\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("Unknown constructor.", 20);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_emit_fatal_error_21_();
                 break;
             default:
                 mw_drop();
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 22,
-                        .size = 18,
-                        .data = "Not a constructor.\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("Not a constructor.", 18);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_emit_fatal_error_21_();
                 break;
         
 }    } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 30,
-                .size = 26,
-                .data = "Expected constructor name.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Expected constructor name.", 26);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -43109,30 +41219,24 @@ static void mb_elab_case_pattern_21__6 (void) {
         case 0LL:
             mw_prim_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 24,
-                    .size = 20,
-                    .data = "Unknown constructor.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Unknown constructor.", 20);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
             break;
         default:
             mw_drop();
             {
-                static STR s = {
-                    .refs = 1,
-                    .cap = 22,
-                    .size = 18,
-                    .data = "Not a constructor.\0\0\0\0",
-                };
-                ASSERT(s.refs > 0);
-                s.refs++;
-                push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                static VAL v = {0};
+                if (!v.data.str) {
+                    v = mkstr("Not a constructor.", 18);
+                }
+                push_value(v);
+                incref(v);
             }
             mw_emit_fatal_error_21_();
             break;
@@ -43142,15 +41246,12 @@ static void mb_elab_case_pattern_21__6 (void) {
 static void mb_elab_case_pattern_21__16 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 30,
-            .size = 26,
-            .data = "Expected constructor name.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Expected constructor name.", 26);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43265,15 +41366,12 @@ static void mb_elab_module_header_21__1 (void) {
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 25,
-                .size = 21,
-                .data = "Expected module name.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Expected module name.", 21);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -43282,15 +41380,12 @@ static void mb_elab_module_header_21__1 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 30,
-                .size = 26,
-                .data = "Module name already taken.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Module name already taken.", 26);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     } else {
@@ -43318,15 +41413,12 @@ static void mb_elab_module_header_21__1 (void) {
         mw_drop();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 34,
-                .size = 30,
-                .data = "Module name should match path.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Module name should match path.", 30);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_error_21_();
     }
@@ -43337,15 +41429,12 @@ static void mb_elab_module_header_21__8 (void) {
     mw_prim_drop();
     mw_dup();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 27,
-            .size = 23,
-            .data = "Expected module header.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Expected module header.", 23);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_error_21_();
 }
@@ -43358,15 +41447,12 @@ static void mb_elab_module_header_21__2 (void) {
 static void mb_elab_module_header_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 25,
-            .size = 21,
-            .data = "Expected module name.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Expected module name.", 21);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43375,15 +41461,12 @@ static void mb_elab_module_header_21__4 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 30,
-            .size = 26,
-            .data = "Module name already taken.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Module name already taken.", 26);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43401,15 +41484,12 @@ static void mb_elab_module_header_21__6 (void) {
 static void mb_elab_module_header_21__7 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 34,
-            .size = 30,
-            .data = "Module name should match path.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Module name should match path.", 30);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_error_21_();
 }
@@ -43471,15 +41551,12 @@ static void mb_elab_data_header_21__1 (void) {
 static void mb_elab_data_header_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 23,
-            .size = 19,
-            .data = "Expected type name.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Expected type name.", 19);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43493,15 +41570,12 @@ static void mb_elab_data_header_21__4 (void) {
     mw_prim_drop();
     mw_drop2();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 25,
-            .size = 21,
-            .data = "Name already defined.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Name already defined.", 21);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43514,15 +41588,12 @@ static void mb_elab_data_tag_21__1 (void) {
 static void mb_elab_data_tag_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 30,
-            .size = 26,
-            .data = "Expected constructor name.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Expected constructor name.", 26);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43536,15 +41607,12 @@ static void mb_elab_data_tag_21__4 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 59,
-            .size = 55,
-            .data = "Name already defined. (Overlapping tags not supported.)\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Name already defined. (Overlapping tags not supported.)", 55);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43579,15 +41647,12 @@ static void mb_elab_data_tag_21__8 (void) {
         mw__21_();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 42,
-                .size = 38,
-                .data = "Expected arrow, comma, or right paren.\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("Expected arrow, comma, or right paren.", 38);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -43605,15 +41670,12 @@ static void mb_elab_data_tag_21__9 (void) {
 static void mb_elab_data_tag_21__10 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 42,
-            .size = 38,
-            .data = "Expected arrow, comma, or right paren.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Expected arrow, comma, or right paren.", 38);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43648,15 +41710,12 @@ static void mb_elab_data_tag_21__11 (void) {
                     mw_drop();
                 } else {
                     {
-                        static STR s = {
-                            .refs = 1,
-                            .cap = 16,
-                            .size = 12,
-                            .data = "syntax error\0\0\0\0",
-                        };
-                        ASSERT(s.refs > 0);
-                        s.refs++;
-                        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                        static VAL v = {0};
+                        if (!v.data.str) {
+                            v = mkstr("syntax error", 12);
+                        }
+                        push_value(v);
+                        incref(v);
                     }
                     mw_emit_fatal_error_21_();
                 }
@@ -43693,15 +41752,12 @@ static void mb_elab_data_tag_21__12 (void) {
                 mw_drop();
             } else {
                 {
-                    static STR s = {
-                        .refs = 1,
-                        .cap = 16,
-                        .size = 12,
-                        .data = "syntax error\0\0\0\0",
-                    };
-                    ASSERT(s.refs > 0);
-                    s.refs++;
-                    push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+                    static VAL v = {0};
+                    if (!v.data.str) {
+                        v = mkstr("syntax error", 12);
+                    }
+                    push_value(v);
+                    incref(v);
                 }
                 mw_emit_fatal_error_21_();
             }
@@ -43718,15 +41774,12 @@ static void mb_elab_data_tag_21__15 (void) {
 static void mb_elab_data_tag_21__16 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 16,
-            .size = 12,
-            .data = "syntax error\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("syntax error", 12);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43744,15 +41797,12 @@ static void mb_expect_token_comma_1 (void) {
 static void mb_expect_token_comma_2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 19,
-            .size = 15,
-            .data = "Expected comma.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Expected comma.", 15);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43765,15 +41815,12 @@ static void mb_expect_token_rparen_1 (void) {
 static void mb_expect_token_rparen_2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 31,
-            .size = 27,
-            .data = "Expected right parenthesis.\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("Expected right parenthesis.", 27);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43787,15 +41834,12 @@ static void mb_token_def_args_2 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 38,
-            .size = 34,
-            .data = "def expects at least two arguments\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("def expects at least two arguments", 34);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43897,15 +41941,12 @@ static void mb_elab_def_21__3 (void) {
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 23,
-                .size = 19,
-                .data = "expected match case\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected match case", 19);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -43919,15 +41960,12 @@ static void mb_elab_def_21__4 (void) {
 static void mb_elab_def_21__5 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 23,
-            .size = 19,
-            .data = "expected match case\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected match case", 19);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43940,15 +41978,12 @@ static void mb_elab_def_21__6 (void) {
 static void mb_elab_def_21__7 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 22,
-            .size = 18,
-            .data = "expected word name\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected word name", 18);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -43962,15 +41997,12 @@ static void mb_elab_def_21__9 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "word already defined\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("word already defined", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44079,15 +42111,12 @@ static void mb_elab_def_params_21__1 (void) {
         mw_id();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 27,
-                .size = 23,
-                .data = "expected parameter name\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected parameter name", 23);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -44098,15 +42127,12 @@ static void mb_elab_def_params_21__1 (void) {
         mw_drop();
     } else {
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 33,
-                .size = 29,
-                .data = "expected right paren or comma\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("expected right paren or comma", 29);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -44148,15 +42174,12 @@ static void mb_elab_def_params_21__2 (void) {
 static void mb_elab_def_params_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 27,
-            .size = 23,
-            .data = "expected parameter name\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected parameter name", 23);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44169,15 +42192,12 @@ static void mb_elab_def_params_21__4 (void) {
 static void mb_elab_def_params_21__5 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 33,
-            .size = 29,
-            .data = "expected right paren or comma\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected right paren or comma", 29);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44244,15 +42264,12 @@ static void mb_elab_def_external_21__2 (void) {
     } else {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 24,
-                .size = 20,
-                .data = "word already defined\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("word already defined", 20);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -44261,15 +42278,12 @@ static void mb_elab_def_external_21__2 (void) {
 static void mb_elab_def_external_21__7 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 22,
-            .size = 18,
-            .data = "expected word name\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected word name", 18);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44303,15 +42317,12 @@ static void mb_elab_def_external_21__6 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "word already defined\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("word already defined", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44357,15 +42368,12 @@ static void mb_elab_def_type_21__2 (void) {
     } else {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 24,
-                .size = 20,
-                .data = "type already defined\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("type already defined", 20);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -44374,15 +42382,12 @@ static void mb_elab_def_type_21__2 (void) {
 static void mb_elab_def_type_21__5 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 29,
-            .size = 25,
-            .data = "expected type constructor\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected type constructor", 25);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44402,15 +42407,12 @@ static void mb_elab_def_type_21__4 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "type already defined\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("type already defined", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44433,15 +42435,12 @@ static void mb_elab_buffer_21__2 (void) {
     } else {
         mw_drop();
         {
-            static STR s = {
-                .refs = 1,
-                .cap = 26,
-                .size = 22,
-                .data = "buffer already defined\0\0\0\0",
-            };
-            ASSERT(s.refs > 0);
-            s.refs++;
-            push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+            static VAL v = {0};
+            if (!v.data.str) {
+                v = mkstr("buffer already defined", 22);
+            }
+            push_value(v);
+            incref(v);
         }
         mw_emit_fatal_error_21_();
     }
@@ -44450,15 +42449,12 @@ static void mb_elab_buffer_21__2 (void) {
 static void mb_elab_buffer_21__5 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "expected buffer name\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected buffer name", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44476,15 +42472,12 @@ static void mb_elab_buffer_21__4 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 26,
-            .size = 22,
-            .data = "buffer already defined\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("buffer already defined", 22);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44497,15 +42490,12 @@ static void mb_elab_variable_21__1 (void) {
 static void mb_elab_variable_21__2 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 26,
-            .size = 22,
-            .data = "expected variable name\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected variable name", 22);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44519,15 +42509,12 @@ static void mb_elab_variable_21__4 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "name already defined\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("name already defined", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44552,15 +42539,12 @@ static void mb_elab_table_21__2 (void) {
 static void mb_elab_table_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 23,
-            .size = 19,
-            .data = "expected table name\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected table name", 19);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44837,15 +42821,12 @@ static void mb_elab_embed_str_21__2 (void) {
 static void mb_elab_embed_str_21__3 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "expected name\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected name", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44859,15 +42840,12 @@ static void mb_elab_embed_str_21__5 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "name already defined\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("name already defined", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44880,15 +42858,12 @@ static void mb_elab_embed_str_21__6 (void) {
 static void mb_elab_embed_str_21__7 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 17,
-            .size = 13,
-            .data = "expected path\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("expected path", 13);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44902,15 +42877,12 @@ static void mb_elab_embed_str_21__8 (void) {
 static void mb_elab_embed_str_21__9 (void) {
     mw_prim_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 23,
-            .size = 19,
-            .data = "could not open file\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("could not open file", 19);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
@@ -44929,15 +42901,12 @@ static void mb_elab_field_21__4 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static STR s = {
-            .refs = 1,
-            .cap = 24,
-            .size = 20,
-            .data = "name already defined\0\0\0\0",
-        };
-        ASSERT(s.refs > 0);
-        s.refs++;
-        push_value((VAL){.tag=TAG_STR, .data={.str=&s}});
+        static VAL v = {0};
+        if (!v.data.str) {
+            v = mkstr("name already defined", 20);
+        }
+        push_value(v);
+        incref(v);
     }
     mw_emit_fatal_error_21_();
 }
