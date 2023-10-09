@@ -215,35 +215,30 @@ def(c99-int!, Int --,
 def(c99-str!, Str --,
     c99-line("{" .)
     c99-nest(
-        c99-line("static STR s = {" .)
+        c99-line("static VAL v = {0};" .)
+        c99-line("if (!v.data.str) {" .)
         c99-nest(
-            c99-line(".refs = 1," .)
-            c99-line(".cap = " . dup str-size 4 + .n "," .)
-            c99-line(".size = " . dup str-size .n "," .)
             dup str-size 4090 > if(
-                c99-line(".data = {" .)
+                "static uint8_t b[] = {" .
                 c99-nest(
                     c99-indent dup str-for(char-bytes for(
                         U8->Int dup .n "," .
                         10 == if(.lf c99-indent, id)
                     )) .lf
-                    c99-line("0,0,0,0," .)
                 )
-                c99-line("}," .),
-                c99-line(
-                    ".data = \"" .
-                    dup str-for(c99-string-char!)
-                    "\\0\\0\\0\\0\"," .
-                )
+                c99-line("};" .)
+                c99-line("v = mkstr((char*)b, " . dup str-size .n ");" .),
+                c99-line("v = mkstr(\"" .
+                dup str-for(c99-string-char!)
+                "\", " . dup str-size .n ");" .),
             )
         )
-        c99-line("};" .)
-        c99-line("ASSERT(s.refs > 0);" .)
-        c99-line("s.refs++;" .)
-        c99-line("push_value((VAL){.tag=TAG_STR, .data={.str=&s}});" .)
-        drop
+        c99-line("}" .)
+        c99-line("push_value(v);" .)
+        c99-line("incref(v);" .)
     )
-    c99-line("}" .))
+    c99-line("}" .)
+    drop)
 
 def(c99-constant!, Value --,
     VALUE_INT -> c99-int!,
