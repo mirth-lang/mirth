@@ -2062,6 +2062,8 @@ static void mw_1_2B_ (void);
 static void mw_1_ (void);
 static void mw_max (void);
 static void mw_min (void);
+static void mw_ptr_nil (void);
+static void mw_ptr_is_nil (void);
 static void mw_ptrs (void);
 static void mw_ptr_40__40_ (void);
 static void mw_ptr_21__21_ (void);
@@ -5448,6 +5450,17 @@ static void mw_min (void){
     } else {
         mw_nip();
     }
+}
+
+static void mw_ptr_nil (void){
+    push_i64(0LL);
+    mw_prim_unsafe_cast();
+}
+
+static void mw_ptr_is_nil (void){
+    mw_prim_unsafe_cast();
+    push_i64(0LL);
+    mw__3D__3D_();
 }
 
 static void mw_ptrs (void){
