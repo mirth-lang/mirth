@@ -108,7 +108,10 @@ def(argv, Ptr, prim-sys-argv)
 def(posix-read!, Int Ptr Int -- Int, prim-posix-read)
 def(posix-write!, Int Ptr Int -- Int, prim-posix-write)
 def(posix-open!, Str Int Int -- Int,
-    rotl with-str-data(drop rotr prim-posix-open))
+    rotl dup dip(
+        prim-str-base rotr
+        prim-posix-open
+    ) drop)
 def(posix-close!, Int -- Int, prim-posix-close)
 def(posix-exit!, *a Int -- *b, prim-posix-exit)
 

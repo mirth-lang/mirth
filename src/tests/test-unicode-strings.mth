@@ -4,7 +4,7 @@ import(platform.posix)
 
 def(display-str!, Str --,
     "\"" str-print! dup str-print! "\"" str-print-ln!
-    "length: " str-print! dup str-length int-print! print-ln!
+    "length: " str-print! dup str-len int-print! print-ln!
     "size: " str-print! dup str-size int-print! print-ln!
     "bytes:" str-print! dup str-bytes for(" " str-print! U8->Int int-print!) print-ln!
     "chars:" str-print! dup str-chars for(" " str-print! Char->Int int-print!) print-ln!
