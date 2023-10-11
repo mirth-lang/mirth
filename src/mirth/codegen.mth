@@ -445,10 +445,11 @@ def(c99-block-def!, Block --,
 
 def(.block, Block -- ,
     "mb_" .
-    dup block-arrow force! dup arrow-home @ dup word-nil == if(
-        drop2 Block.id .n,
-        word-name @ .name "_" .
-        arrow-homeidx @ .n drop
+    dup block-arrow force! dup arrow-home @ match(
+        NONE -> drop Block.id .n,
+        SOME ->
+            word-name @ .name "_" .
+            arrow-homeidx @ .n drop
     ))
 
 def(c99-word-defs!, --, Word.for(c99-word-def!) .lf)
