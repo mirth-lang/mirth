@@ -120,16 +120,13 @@ def(lexer-newline!, --,
     lexer-row modify(Row->Int 1+ Int->Row)
     0 Int->Col lexer-col !)
 
-def-missing(Token.nil, Token, 0 prim-unsafe-cast)
-def(token-nil, Token, Token.nil)
-
 def(lexer-emit-lparen!, --,
-    token-nil TOKEN_LPAREN lexer-make!
+    TOKEN_LPAREN_OPEN lexer-make!
     lexer-stack stack-push!)
 def(lexer-emit-rparen!, --,
     lexer-stack stack-pop! match(
         NONE -> "Mismatched right parenthesis." lexer-emit-fatal-error!,
-        SOME -> token-is-lparen? if(
+        SOME -> token-is-lparen-open? if(
             dup TOKEN_RPAREN lexer-make!
             TOKEN_LPAREN swap token-value !,
             "Mismatched right parenthesis." lexer-emit-fatal-error!
@@ -137,28 +134,28 @@ def(lexer-emit-rparen!, --,
     ))
 
 def(lexer-emit-lsquare!, --,
-    token-nil TOKEN_LSQUARE lexer-make!
+    TOKEN_LSQUARE_OPEN lexer-make!
     lexer-stack stack-push!)
 def(lexer-emit-rsquare!, --,
     lexer-stack stack-pop! match(
-        NONE -> "Mismatched right bracket." lexer-emit-fatal-error!,
-        SOME -> token-is-lsquare? if(
+        NONE -> "Mismatched right square bracket." lexer-emit-fatal-error!,
+        SOME -> token-is-lsquare-open? if(
             dup TOKEN_RSQUARE lexer-make!
             TOKEN_LSQUARE swap token-value !,
-            "Mismatched right bracket." lexer-emit-fatal-error!
+            "Mismatched right square bracket." lexer-emit-fatal-error!
         )
     ))
 
 def(lexer-emit-lcurly!, --,
-    token-nil TOKEN_LCURLY lexer-make!
+    TOKEN_LCURLY_OPEN lexer-make!
     lexer-stack stack-push!)
 def(lexer-emit-rcurly!, --,
     lexer-stack stack-pop! match(
-        NONE -> "Mismatched right brace." lexer-emit-fatal-error!,
-        SOME -> token-is-lcurly? if(
+        NONE -> "Mismatched right curly brace." lexer-emit-fatal-error!,
+        SOME -> token-is-lcurly-open? if(
             dup TOKEN_RCURLY lexer-make!
             TOKEN_LCURLY swap token-value !,
-            "Mismatched right brace." lexer-emit-fatal-error!
+            "Mismatched right curly brace." lexer-emit-fatal-error!
         )
     ))
 

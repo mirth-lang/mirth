@@ -1157,57 +1157,66 @@ static void mw_TOKEN_NONE (void) {
 static void mw_TOKEN_COMMA (void) {
     push_u64(1LL);
 }
-static void mw_TOKEN_LPAREN (void) {
-    VAL car = pop_value();
-    VAL tag = MKU64(2LL);
-    car = mkcons(car, tag);
-    push_value(car);
+static void mw_TOKEN_LPAREN_OPEN (void) {
+    push_u64(2LL);
 }
-static void mw_TOKEN_RPAREN (void) {
+static void mw_TOKEN_LPAREN (void) {
     VAL car = pop_value();
     VAL tag = MKU64(3LL);
     car = mkcons(car, tag);
     push_value(car);
 }
-static void mw_TOKEN_LSQUARE (void) {
+static void mw_TOKEN_RPAREN (void) {
     VAL car = pop_value();
     VAL tag = MKU64(4LL);
     car = mkcons(car, tag);
     push_value(car);
 }
-static void mw_TOKEN_RSQUARE (void) {
-    VAL car = pop_value();
-    VAL tag = MKU64(5LL);
-    car = mkcons(car, tag);
-    push_value(car);
+static void mw_TOKEN_LSQUARE_OPEN (void) {
+    push_u64(5LL);
 }
-static void mw_TOKEN_LCURLY (void) {
+static void mw_TOKEN_LSQUARE (void) {
     VAL car = pop_value();
     VAL tag = MKU64(6LL);
     car = mkcons(car, tag);
     push_value(car);
 }
-static void mw_TOKEN_RCURLY (void) {
+static void mw_TOKEN_RSQUARE (void) {
     VAL car = pop_value();
     VAL tag = MKU64(7LL);
     car = mkcons(car, tag);
     push_value(car);
 }
-static void mw_TOKEN_INT (void) {
-    VAL car = pop_value();
-    VAL tag = MKU64(8LL);
-    car = mkcons(car, tag);
-    push_value(car);
+static void mw_TOKEN_LCURLY_OPEN (void) {
+    push_u64(8LL);
 }
-static void mw_TOKEN_STR (void) {
+static void mw_TOKEN_LCURLY (void) {
     VAL car = pop_value();
     VAL tag = MKU64(9LL);
     car = mkcons(car, tag);
     push_value(car);
 }
-static void mw_TOKEN_NAME (void) {
+static void mw_TOKEN_RCURLY (void) {
     VAL car = pop_value();
     VAL tag = MKU64(10LL);
+    car = mkcons(car, tag);
+    push_value(car);
+}
+static void mw_TOKEN_INT (void) {
+    VAL car = pop_value();
+    VAL tag = MKU64(11LL);
+    car = mkcons(car, tag);
+    push_value(car);
+}
+static void mw_TOKEN_STR (void) {
+    VAL car = pop_value();
+    VAL tag = MKU64(12LL);
+    car = mkcons(car, tag);
+    push_value(car);
+}
+static void mw_TOKEN_NAME (void) {
+    VAL car = pop_value();
+    VAL tag = MKU64(13LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -2478,10 +2487,13 @@ static void mw_token_is_name_3F_ (void);
 static void mw_token_is_comma_3F_ (void);
 static void mw_token_is_arrow_3F_ (void);
 static void mw_token_is_dashes_3F_ (void);
+static void mw_token_is_lparen_open_3F_ (void);
 static void mw_token_is_lparen_3F_ (void);
 static void mw_token_is_rparen_3F_ (void);
+static void mw_token_is_lsquare_open_3F_ (void);
 static void mw_token_is_lsquare_3F_ (void);
 static void mw_token_is_rsquare_3F_ (void);
+static void mw_token_is_lcurly_open_3F_ (void);
 static void mw_token_is_lcurly_3F_ (void);
 static void mw_token_is_rcurly_3F_ (void);
 static void mw_token_name_40_ (void);
@@ -2541,8 +2553,6 @@ static void mw_lexer_make_21_ (void);
 static void mw_lexer_emit_21_ (void);
 static void mw_lexer_next_21_ (void);
 static void mw_lexer_newline_21_ (void);
-static void mw_Token_2E_nil (void);
-static void mw_token_nil (void);
 static void mw_lexer_emit_lparen_21_ (void);
 static void mw_lexer_emit_rparen_21_ (void);
 static void mw_lexer_emit_lsquare_21_ (void);
@@ -11062,7 +11072,7 @@ static void mw_token_is_int_3F_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 8LL:
+        case 11LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
@@ -11079,7 +11089,7 @@ static void mw_token_is_str_3F_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 9LL:
+        case 12LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
@@ -11096,7 +11106,7 @@ static void mw_token_is_name_3F_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
@@ -11134,14 +11144,13 @@ static void mw_token_is_dashes_3F_ (void){
     mw_token_prim_3D__3F_();
 }
 
-static void mw_token_is_lparen_3F_ (void){
+static void mw_token_is_lparen_open_3F_ (void){
     mw_dup();
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
         case 2LL:
-            mw_prim_pack_uncons(); mw_prim_drop();
-            mw_drop();
+            mw_prim_drop();
             mw_true();
             break;
         default:
@@ -11151,7 +11160,7 @@ static void mw_token_is_lparen_3F_ (void){
     
 }}
 
-static void mw_token_is_rparen_3F_ (void){
+static void mw_token_is_lparen_3F_ (void){
     mw_dup();
     mw_token_value();
     mw__40_();
@@ -11168,7 +11177,7 @@ static void mw_token_is_rparen_3F_ (void){
     
 }}
 
-static void mw_token_is_lsquare_3F_ (void){
+static void mw_token_is_rparen_3F_ (void){
     mw_dup();
     mw_token_value();
     mw__40_();
@@ -11185,14 +11194,13 @@ static void mw_token_is_lsquare_3F_ (void){
     
 }}
 
-static void mw_token_is_rsquare_3F_ (void){
+static void mw_token_is_lsquare_open_3F_ (void){
     mw_dup();
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
         case 5LL:
-            mw_prim_pack_uncons(); mw_prim_drop();
-            mw_drop();
+            mw_prim_drop();
             mw_true();
             break;
         default:
@@ -11202,7 +11210,7 @@ static void mw_token_is_rsquare_3F_ (void){
     
 }}
 
-static void mw_token_is_lcurly_3F_ (void){
+static void mw_token_is_lsquare_3F_ (void){
     mw_dup();
     mw_token_value();
     mw__40_();
@@ -11219,7 +11227,7 @@ static void mw_token_is_lcurly_3F_ (void){
     
 }}
 
-static void mw_token_is_rcurly_3F_ (void){
+static void mw_token_is_rsquare_3F_ (void){
     mw_dup();
     mw_token_value();
     mw__40_();
@@ -11236,12 +11244,62 @@ static void mw_token_is_rcurly_3F_ (void){
     
 }}
 
-static void mw_token_name_40_ (void){
+static void mw_token_is_lcurly_open_3F_ (void){
+    mw_dup();
+    mw_token_value();
+    mw__40_();
+    switch (get_top_data_tag()) {
+        case 8LL:
+            mw_prim_drop();
+            mw_true();
+            break;
+        default:
+            mw_drop();
+            mw_false();
+            break;
+    
+}}
+
+static void mw_token_is_lcurly_3F_ (void){
+    mw_dup();
+    mw_token_value();
+    mw__40_();
+    switch (get_top_data_tag()) {
+        case 9LL:
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_drop();
+            mw_true();
+            break;
+        default:
+            mw_drop();
+            mw_false();
+            break;
+    
+}}
+
+static void mw_token_is_rcurly_3F_ (void){
     mw_dup();
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
         case 10LL:
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_drop();
+            mw_true();
+            break;
+        default:
+            mw_drop();
+            mw_false();
+            break;
+    
+}}
+
+static void mw_token_name_40_ (void){
+    mw_dup();
+    mw_token_value();
+    mw__40_();
+    switch (get_top_data_tag()) {
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             break;
@@ -11272,7 +11330,7 @@ static void mw_token_str_40_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 9LL:
+        case 12LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             break;
@@ -11303,7 +11361,7 @@ static void mw_token_int_40_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 8LL:
+        case 11LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             break;
@@ -11338,17 +11396,17 @@ static void mw_token_is_arg_end_3F_ (void){
             mw_prim_drop();
             mw_true();
             break;
-        case 3LL:
-            mw_prim_pack_uncons(); mw_prim_drop();
-            mw_drop();
-            mw_true();
-            break;
-        case 5LL:
+        case 4LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
         case 7LL:
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_drop();
+            mw_true();
+            break;
+        case 10LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
@@ -11365,17 +11423,17 @@ static void mw_token_is_left_enclosure_3F_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 2LL:
-            mw_prim_pack_uncons(); mw_prim_drop();
-            mw_drop();
-            mw_true();
-            break;
-        case 4LL:
+        case 3LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
         case 6LL:
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_drop();
+            mw_true();
+            break;
+        case 9LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
@@ -11392,17 +11450,17 @@ static void mw_token_is_right_enclosure_3F_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 3LL:
-            mw_prim_pack_uncons(); mw_prim_drop();
-            mw_drop();
-            mw_true();
-            break;
-        case 5LL:
+        case 4LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
         case 7LL:
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_drop();
+            mw_true();
+            break;
+        case 10LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
@@ -11446,12 +11504,7 @@ static void mw_token_next (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 2LL:
-            mw_prim_pack_uncons(); mw_prim_drop();
-            mw_nip();
-            mw_token_succ();
-            break;
-        case 4LL:
+        case 3LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_token_succ();
@@ -11461,7 +11514,12 @@ static void mw_token_next (void){
             mw_nip();
             mw_token_succ();
             break;
-        case 10LL:
+        case 9LL:
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_nip();
+            mw_token_succ();
+            break;
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_token_succ();
@@ -11469,7 +11527,7 @@ static void mw_token_next (void){
             mw_token_value();
             mw__40_();
             switch (get_top_data_tag()) {
-                case 2LL:
+                case 3LL:
                     mw_prim_pack_uncons(); mw_prim_drop();
                     mw_nip();
                     mw_token_succ();
@@ -11492,15 +11550,15 @@ static void mw_token_prev (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 5LL:
-            mw_prim_pack_uncons(); mw_prim_drop();
-            mw_nip();
-            break;
         case 7LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             break;
-        case 3LL:
+        case 10LL:
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_nip();
+            break;
+        case 4LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_nip();
             mw_dup();
@@ -11898,17 +11956,17 @@ static void mw_token_run_end_3F_ (void){
             mw_prim_drop();
             mw_true();
             break;
-        case 3LL:
-            mw_prim_pack_uncons(); mw_prim_drop();
-            mw_drop();
-            mw_true();
-            break;
-        case 5LL:
+        case 4LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
             break;
         case 7LL:
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_drop();
+            mw_true();
+            break;
+        case 10LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_true();
@@ -12026,7 +12084,7 @@ static void mw_sig_token_is_type_3F_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_could_be_type();
             break;
@@ -12042,7 +12100,7 @@ static void mw_sig_token_is_type_con_3F_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_could_be_type_con();
             break;
@@ -12058,7 +12116,7 @@ static void mw_sig_token_is_type_hole_3F_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_is_type_hole();
             break;
@@ -12074,7 +12132,7 @@ static void mw_token_is_underscore_3F_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_is_underscore();
             break;
@@ -12090,7 +12148,7 @@ static void mw_sig_token_is_type_var_3F_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_could_be_type_var();
             break;
@@ -12110,7 +12168,7 @@ static void mw_sig_token_is_stack_var_3F_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_could_be_stack_var();
             break;
@@ -12126,7 +12184,7 @@ static void mw_sig_token_is_effect_con_3F_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_could_be_effect_con();
             break;
@@ -12370,18 +12428,8 @@ static void mw_lexer_newline_21_ (void){
     mw__21_();
 }
 
-static void mw_Token_2E_nil (void){
-    push_i64(0LL);
-    mw_prim_unsafe_cast();
-}
-
-static void mw_token_nil (void){
-    mw_Token_2E_nil();
-}
-
 static void mw_lexer_emit_lparen_21_ (void){
-    mw_token_nil();
-    mw_TOKEN_LPAREN();
+    mw_TOKEN_LPAREN_OPEN();
     mw_lexer_make_21_();
     mw_lexer_stack();
     mw_stack_push_21_();
@@ -12407,7 +12455,7 @@ static void mw_lexer_emit_rparen_21_ (void){
             break;
         case 1LL:
             mw_prim_pack_uncons(); mw_prim_drop();
-            mw_token_is_lparen_3F_();
+            mw_token_is_lparen_open_3F_();
             if (pop_u64()) {
                 mw_dup();
                 mw_TOKEN_RPAREN();
@@ -12435,8 +12483,7 @@ static void mw_lexer_emit_rparen_21_ (void){
 }}
 
 static void mw_lexer_emit_lsquare_21_ (void){
-    mw_token_nil();
-    mw_TOKEN_LSQUARE();
+    mw_TOKEN_LSQUARE_OPEN();
     mw_lexer_make_21_();
     mw_lexer_stack();
     mw_stack_push_21_();
@@ -12452,7 +12499,7 @@ static void mw_lexer_emit_rsquare_21_ (void){
                 static bool vready = false;
                 static VAL v;
                 if (!vready) {
-                    v = mkstr("Mismatched right bracket.", 25);
+                    v = mkstr("Mismatched right square bracket.", 32);
                     vready = true;
                 }
                 push_value(v);
@@ -12462,7 +12509,7 @@ static void mw_lexer_emit_rsquare_21_ (void){
             break;
         case 1LL:
             mw_prim_pack_uncons(); mw_prim_drop();
-            mw_token_is_lsquare_3F_();
+            mw_token_is_lsquare_open_3F_();
             if (pop_u64()) {
                 mw_dup();
                 mw_TOKEN_RSQUARE();
@@ -12476,7 +12523,7 @@ static void mw_lexer_emit_rsquare_21_ (void){
                     static bool vready = false;
                     static VAL v;
                     if (!vready) {
-                        v = mkstr("Mismatched right bracket.", 25);
+                        v = mkstr("Mismatched right square bracket.", 32);
                         vready = true;
                     }
                     push_value(v);
@@ -12490,8 +12537,7 @@ static void mw_lexer_emit_rsquare_21_ (void){
 }}
 
 static void mw_lexer_emit_lcurly_21_ (void){
-    mw_token_nil();
-    mw_TOKEN_LCURLY();
+    mw_TOKEN_LCURLY_OPEN();
     mw_lexer_make_21_();
     mw_lexer_stack();
     mw_stack_push_21_();
@@ -12507,7 +12553,7 @@ static void mw_lexer_emit_rcurly_21_ (void){
                 static bool vready = false;
                 static VAL v;
                 if (!vready) {
-                    v = mkstr("Mismatched right brace.", 23);
+                    v = mkstr("Mismatched right curly brace.", 29);
                     vready = true;
                 }
                 push_value(v);
@@ -12517,7 +12563,7 @@ static void mw_lexer_emit_rcurly_21_ (void){
             break;
         case 1LL:
             mw_prim_pack_uncons(); mw_prim_drop();
-            mw_token_is_lcurly_3F_();
+            mw_token_is_lcurly_open_3F_();
             if (pop_u64()) {
                 mw_dup();
                 mw_TOKEN_RCURLY();
@@ -12531,7 +12577,7 @@ static void mw_lexer_emit_rcurly_21_ (void){
                     static bool vready = false;
                     static VAL v;
                     if (!vready) {
-                        v = mkstr("Mismatched right brace.", 23);
+                        v = mkstr("Mismatched right curly brace.", 29);
                         vready = true;
                     }
                     push_value(v);
@@ -22854,24 +22900,24 @@ static void mw_elab_atom_21_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_elab_atom_name_21_();
             break;
-        case 8LL:
+        case 11LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_ab_int_21_();
             break;
-        case 9LL:
+        case 12LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_ab_str_21_();
             break;
-        case 4LL:
+        case 6LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_elab_atom_block_21_();
             break;
-        case 6LL:
+        case 9LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_drop();
             mw_elab_atom_assert_21_();
@@ -23694,7 +23740,7 @@ static void mw_elab_module_decl_21_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_dup();
             mw_name_def();
@@ -23776,7 +23822,7 @@ static void mw_elab_module_import_21_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_dup();
             mw_name_def();
@@ -25044,7 +25090,7 @@ static void mw_elab_field_21_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_name_undefined_3F_();
             if (pop_u64()) {
@@ -25155,7 +25201,7 @@ static void mw_token_prim_3D_ (void){
     mw_token_value();
     mw__40_();
     switch (get_top_data_tag()) {
-        case 10LL:
+        case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_swap();
             mw_name_prim_3D_();
@@ -34234,7 +34280,7 @@ static void mb_lexer_emit_rsquare_21__4 (void) {
         static bool vready = false;
         static VAL v;
         if (!vready) {
-            v = mkstr("Mismatched right bracket.", 25);
+            v = mkstr("Mismatched right square bracket.", 32);
             vready = true;
         }
         push_value(v);
@@ -34260,7 +34306,7 @@ static void mb_lexer_emit_rcurly_21__4 (void) {
         static bool vready = false;
         static VAL v;
         if (!vready) {
-            v = mkstr("Mismatched right brace.", 23);
+            v = mkstr("Mismatched right curly brace.", 29);
             vready = true;
         }
         push_value(v);
