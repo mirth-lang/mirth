@@ -5,7 +5,7 @@ import(data.path)
 
 def(panic!, *a Str -- *b,
     "panic: " str-trace! str-trace-ln!
-    0 prim-unsafe-cast u64@ # for debug
+    ptr-nil u64@ # for debug
     1 posix-exit!)
 
 data(File, FILE -> Int)

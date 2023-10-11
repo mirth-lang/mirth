@@ -783,6 +783,9 @@ static void mw_prim_run (void) {
     run_value(f);
 }
 
+static void mw_prim_ptr_nil (void) {
+    push_ptr((void*)0);
+}
 static void mw_prim_ptr_add (void) {
     VAL vptr = pop_value();
     USIZE n = pop_usize();
@@ -1626,167 +1629,170 @@ static void mw_PRIM_MUT_GET (void) {
 static void mw_PRIM_MUT_SET (void) {
     push_u64(38LL);
 }
-static void mw_PRIM_PTR_ADD (void) {
+static void mw_PRIM_PTR_NIL (void) {
     push_u64(39LL);
 }
-static void mw_PRIM_PTR_SIZE (void) {
+static void mw_PRIM_PTR_ADD (void) {
     push_u64(40LL);
 }
-static void mw_PRIM_PTR_GET (void) {
+static void mw_PRIM_PTR_SIZE (void) {
     push_u64(41LL);
 }
-static void mw_PRIM_PTR_SET (void) {
+static void mw_PRIM_PTR_GET (void) {
     push_u64(42LL);
 }
-static void mw_PRIM_PTR_ALLOC (void) {
+static void mw_PRIM_PTR_SET (void) {
     push_u64(43LL);
 }
-static void mw_PRIM_PTR_REALLOC (void) {
+static void mw_PRIM_PTR_ALLOC (void) {
     push_u64(44LL);
 }
-static void mw_PRIM_PTR_COPY (void) {
+static void mw_PRIM_PTR_REALLOC (void) {
     push_u64(45LL);
 }
-static void mw_PRIM_PTR_FILL (void) {
+static void mw_PRIM_PTR_COPY (void) {
     push_u64(46LL);
 }
-static void mw_PRIM_PTR_RAW (void) {
+static void mw_PRIM_PTR_FILL (void) {
     push_u64(47LL);
 }
-static void mw_PRIM_STR_ALLOC (void) {
+static void mw_PRIM_PTR_RAW (void) {
     push_u64(48LL);
 }
-static void mw_PRIM_STR_SIZE (void) {
+static void mw_PRIM_STR_ALLOC (void) {
     push_u64(49LL);
 }
-static void mw_PRIM_STR_BASE (void) {
+static void mw_PRIM_STR_SIZE (void) {
     push_u64(50LL);
 }
-static void mw_PRIM_STR_EQ (void) {
+static void mw_PRIM_STR_BASE (void) {
     push_u64(51LL);
 }
-static void mw_PRIM_STR_CAT (void) {
+static void mw_PRIM_STR_EQ (void) {
     push_u64(52LL);
 }
-static void mw_PRIM_U8_GET (void) {
+static void mw_PRIM_STR_CAT (void) {
     push_u64(53LL);
 }
-static void mw_PRIM_U8_SET (void) {
+static void mw_PRIM_U8_GET (void) {
     push_u64(54LL);
 }
-static void mw_PRIM_U16_GET (void) {
+static void mw_PRIM_U8_SET (void) {
     push_u64(55LL);
 }
-static void mw_PRIM_U16_SET (void) {
+static void mw_PRIM_U16_GET (void) {
     push_u64(56LL);
 }
-static void mw_PRIM_U32_GET (void) {
+static void mw_PRIM_U16_SET (void) {
     push_u64(57LL);
 }
-static void mw_PRIM_U32_SET (void) {
+static void mw_PRIM_U32_GET (void) {
     push_u64(58LL);
 }
-static void mw_PRIM_U64_GET (void) {
+static void mw_PRIM_U32_SET (void) {
     push_u64(59LL);
 }
-static void mw_PRIM_U64_SET (void) {
+static void mw_PRIM_U64_GET (void) {
     push_u64(60LL);
 }
-static void mw_PRIM_I8_GET (void) {
+static void mw_PRIM_U64_SET (void) {
     push_u64(61LL);
 }
-static void mw_PRIM_I8_SET (void) {
+static void mw_PRIM_I8_GET (void) {
     push_u64(62LL);
 }
-static void mw_PRIM_I16_GET (void) {
+static void mw_PRIM_I8_SET (void) {
     push_u64(63LL);
 }
-static void mw_PRIM_I16_SET (void) {
+static void mw_PRIM_I16_GET (void) {
     push_u64(64LL);
 }
-static void mw_PRIM_I32_GET (void) {
+static void mw_PRIM_I16_SET (void) {
     push_u64(65LL);
 }
-static void mw_PRIM_I32_SET (void) {
+static void mw_PRIM_I32_GET (void) {
     push_u64(66LL);
 }
-static void mw_PRIM_I64_GET (void) {
+static void mw_PRIM_I32_SET (void) {
     push_u64(67LL);
 }
-static void mw_PRIM_I64_SET (void) {
+static void mw_PRIM_I64_GET (void) {
     push_u64(68LL);
 }
-static void mw_PRIM_SYS_OS (void) {
+static void mw_PRIM_I64_SET (void) {
     push_u64(69LL);
 }
-static void mw_PRIM_SYS_ARGC (void) {
+static void mw_PRIM_SYS_OS (void) {
     push_u64(70LL);
 }
-static void mw_PRIM_SYS_ARGV (void) {
+static void mw_PRIM_SYS_ARGC (void) {
     push_u64(71LL);
 }
-static void mw_PRIM_POSIX_READ (void) {
+static void mw_PRIM_SYS_ARGV (void) {
     push_u64(72LL);
 }
-static void mw_PRIM_POSIX_WRITE (void) {
+static void mw_PRIM_POSIX_READ (void) {
     push_u64(73LL);
 }
-static void mw_PRIM_POSIX_OPEN (void) {
+static void mw_PRIM_POSIX_WRITE (void) {
     push_u64(74LL);
 }
-static void mw_PRIM_POSIX_CLOSE (void) {
+static void mw_PRIM_POSIX_OPEN (void) {
     push_u64(75LL);
 }
-static void mw_PRIM_POSIX_EXIT (void) {
+static void mw_PRIM_POSIX_CLOSE (void) {
     push_u64(76LL);
 }
-static void mw_PRIM_POSIX_MMAP (void) {
+static void mw_PRIM_POSIX_EXIT (void) {
     push_u64(77LL);
 }
-static void mw_PRIM_SYNTAX_MODULE (void) {
+static void mw_PRIM_POSIX_MMAP (void) {
     push_u64(78LL);
 }
-static void mw_PRIM_SYNTAX_IMPORT (void) {
+static void mw_PRIM_SYNTAX_MODULE (void) {
     push_u64(79LL);
 }
-static void mw_PRIM_SYNTAX_DEF (void) {
+static void mw_PRIM_SYNTAX_IMPORT (void) {
     push_u64(80LL);
 }
-static void mw_PRIM_SYNTAX_DEF_MISSING (void) {
+static void mw_PRIM_SYNTAX_DEF (void) {
     push_u64(81LL);
 }
-static void mw_PRIM_SYNTAX_DEF_TYPE (void) {
+static void mw_PRIM_SYNTAX_DEF_MISSING (void) {
     push_u64(82LL);
 }
-static void mw_PRIM_SYNTAX_BUFFER (void) {
+static void mw_PRIM_SYNTAX_DEF_TYPE (void) {
     push_u64(83LL);
 }
-static void mw_PRIM_SYNTAX_VARIABLE (void) {
+static void mw_PRIM_SYNTAX_BUFFER (void) {
     push_u64(84LL);
 }
-static void mw_PRIM_SYNTAX_DEF_EXTERNAL (void) {
+static void mw_PRIM_SYNTAX_VARIABLE (void) {
     push_u64(85LL);
 }
-static void mw_PRIM_SYNTAX_TARGET_C99 (void) {
+static void mw_PRIM_SYNTAX_DEF_EXTERNAL (void) {
     push_u64(86LL);
 }
-static void mw_PRIM_SYNTAX_EMBED_STR (void) {
+static void mw_PRIM_SYNTAX_TARGET_C99 (void) {
     push_u64(87LL);
 }
-static void mw_PRIM_SYNTAX_TABLE (void) {
+static void mw_PRIM_SYNTAX_EMBED_STR (void) {
     push_u64(88LL);
 }
-static void mw_PRIM_SYNTAX_FIELD (void) {
+static void mw_PRIM_SYNTAX_TABLE (void) {
     push_u64(89LL);
 }
-static void mw_PRIM_SYNTAX_DATA (void) {
+static void mw_PRIM_SYNTAX_FIELD (void) {
     push_u64(90LL);
 }
-static void mw_PRIM_SYNTAX_DASHES (void) {
+static void mw_PRIM_SYNTAX_DATA (void) {
     push_u64(91LL);
 }
-static void mw_PRIM_SYNTAX_ARROW (void) {
+static void mw_PRIM_SYNTAX_DASHES (void) {
     push_u64(92LL);
+}
+static void mw_PRIM_SYNTAX_ARROW (void) {
+    push_u64(93LL);
 }
 
 static void mw_STR_BUF (void) {
@@ -2450,6 +2456,7 @@ static void mw_Token_2E_succ (void);
 static void mw_Token_2E_pred (void);
 static void mw_Token_2E_for (void);
 static void mw_Token_2E_alloc_21_ (void);
+static void mw_Module_2E_nil (void);
 static void mw_module_nil (void);
 static void mw_module_new_21_ (void);
 static void mw_module_add_import_21_ (void);
@@ -2535,6 +2542,7 @@ static void mw_lexer_make_21_ (void);
 static void mw_lexer_emit_21_ (void);
 static void mw_lexer_next_21_ (void);
 static void mw_lexer_newline_21_ (void);
+static void mw_Token_2E_nil (void);
 static void mw_token_nil (void);
 static void mw_lexer_emit_lparen_21_ (void);
 static void mw_lexer_emit_rparen_21_ (void);
@@ -2856,6 +2864,7 @@ static void mw_Word_2E_succ (void);
 static void mw_Word_2E_pred (void);
 static void mw_Word_2E_for (void);
 static void mw_Word_2E_alloc_21_ (void);
+static void mw_Word_2E_nil (void);
 static void mw_word_nil (void);
 static void mw_Table_2E_MAX (void);
 static void mw_Table_2E_id (void);
@@ -5477,13 +5486,11 @@ static void mw_min (void){
 }
 
 static void mw_ptr_nil (void){
-    push_i64(0LL);
-    mw_prim_unsafe_cast();
+    mw_prim_ptr_nil();
 }
 
 static void mw_ptr_is_nil (void){
-    mw_prim_unsafe_cast();
-    push_i64(0LL);
+    mw_ptr_nil();
     mw__3D__3D_();
 }
 
@@ -9413,8 +9420,7 @@ static void mw_panic_21_ (void){
     }
     mw_str_trace_21_();
     mw_str_trace_ln_21_();
-    push_i64(0LL);
-    mw_prim_unsafe_cast();
+    mw_ptr_nil();
     mw_u64_40_();
     push_i64(1LL);
     mw_posix_exit_21_();
@@ -10860,9 +10866,13 @@ static void mw_Token_2E_alloc_21_ (void){
     mw_prim_unsafe_cast();
 }
 
-static void mw_module_nil (void){
+static void mw_Module_2E_nil (void){
     push_i64(0LL);
     mw_prim_unsafe_cast();
+}
+
+static void mw_module_nil (void){
+    mw_Module_2E_nil();
 }
 
 static void mw_module_new_21_ (void){
@@ -12370,9 +12380,13 @@ static void mw_lexer_newline_21_ (void){
     mw__21_();
 }
 
-static void mw_token_nil (void){
+static void mw_Token_2E_nil (void){
     push_i64(0LL);
     mw_prim_unsafe_cast();
+}
+
+static void mw_token_nil (void){
+    mw_Token_2E_nil();
 }
 
 static void mw_lexer_emit_lparen_21_ (void){
@@ -18064,9 +18078,13 @@ static void mw_Word_2E_alloc_21_ (void){
     mw_prim_unsafe_cast();
 }
 
-static void mw_word_nil (void){
+static void mw_Word_2E_nil (void){
     push_i64(0LL);
     mw_prim_unsafe_cast();
+}
+
+static void mw_word_nil (void){
+    mw_Word_2E_nil();
 }
 
 static void mw_Table_2E_MAX (void){
@@ -19308,6 +19326,9 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 32,32,32,32,114,117,110,95,118,97,108,117,101,40,102,41,59,10,
                 125,10,
                 10,
+                115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,110,105,108,32,40,118,111,105,100,41,32,123,10,
+                32,32,32,32,112,117,115,104,95,112,116,114,40,40,118,111,105,100,42,41,48,41,59,10,
+                125,10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,97,100,100,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,86,65,76,32,118,112,116,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
                 32,32,32,32,85,83,73,90,69,32,110,32,61,32,112,111,112,95,117,115,105,122,101,40,41,59,10,
@@ -19458,7 +19479,7 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 47,42,32,71,69,78,69,82,65,84,69,68,32,67,57,57,32,42,47,10,
                 
             };
-            v = mkstr((char*)b, 22210);
+            v = mkstr((char*)b, 22273);
             vready = true;
         }
         push_value(v);
@@ -25873,6 +25894,18 @@ static void mw_init_prims_21_ (void){
         incref(v);
     }
     mw_def_prim_21_();
+    mw_PRIM_PTR_NIL();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("prim-ptr-nil", 12);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw_def_prim_21_();
     mw_PRIM_PTR_ADD();
     {
         static bool vready = false;
@@ -26681,6 +26714,13 @@ static void mw_init_prims_21_ (void){
     mw_T1();
     mw_T__3E_();
     mw_PRIM_POSIX_MMAP();
+    mw_prim_type();
+    mw__21_();
+    mw_T0();
+    mw_TYPE_PTR();
+    mw_T1();
+    mw_T__3E_();
+    mw_PRIM_PTR_NIL();
     mw_prim_type();
     mw__21_();
     mw_TYPE_INT();

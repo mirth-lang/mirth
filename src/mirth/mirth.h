@@ -783,6 +783,9 @@ static void mw_prim_run (void) {
     run_value(f);
 }
 
+static void mw_prim_ptr_nil (void) {
+    push_ptr((void*)0);
+}
 static void mw_prim_ptr_add (void) {
     VAL vptr = pop_value();
     USIZE n = pop_usize();

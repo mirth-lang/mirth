@@ -11,7 +11,8 @@ field(module-start, Module, Token)
 field(module-end, Module, Token)
 field(module-imports, Module, Set(Module))
 
-def(module-nil, Module, 0 prim-unsafe-cast)
+def-missing(Module.nil, Module, 0 prim-unsafe-cast)
+def(module-nil, Module, Module.nil)
 
 def(module-new!, Path -- Module,
     Module.alloc!
