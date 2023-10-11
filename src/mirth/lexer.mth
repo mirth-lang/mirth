@@ -120,8 +120,8 @@ def(lexer-newline!, --,
     lexer-row modify(Row->Int 1+ Int->Row)
     0 Int->Col lexer-col !)
 
-def(token-nil, Token,
-    0 prim-unsafe-cast)
+def-missing(Token.nil, Token, 0 prim-unsafe-cast)
+def(token-nil, Token, Token.nil)
 
 def(lexer-emit-lparen!, --,
     token-nil TOKEN_LPAREN lexer-make!

@@ -205,8 +205,8 @@ def(1-, Int -- Int, 1 -)
 def(max, a a -- a, dup2 < if(nip, drop))
 def(min, a a -- a, dup2 < if(drop, nip))
 
-def(ptr-nil, Ptr, 0 prim-unsafe-cast)
-def(ptr-is-nil, Ptr -- Bool, prim-unsafe-cast 0 ==)
+def(ptr-nil, Ptr, prim-ptr-nil)
+def(ptr-is-nil, Ptr -- Bool, ptr-nil ==)
 
 def(ptrs, Size -- Size, |ptr| *)
 def(ptr@@, Offset Ptr -- Ptr, dip(ptrs) with-ptr+(ptr@))
