@@ -12,10 +12,13 @@ import(data.list)
 data(TokenValue,
     TOKEN_NONE,
     TOKEN_COMMA,
+    TOKEN_LPAREN_OPEN,
     TOKEN_LPAREN -> Token,
     TOKEN_RPAREN -> Token,
+    TOKEN_LSQUARE_OPEN,
     TOKEN_LSQUARE -> Token,
     TOKEN_RSQUARE -> Token,
+    TOKEN_LCURLY_OPEN,
     TOKEN_LCURLY -> Token,
     TOKEN_RCURLY -> Token,
     TOKEN_INT -> Int,
@@ -42,14 +45,20 @@ def(token-is-arrow?, Token -- Token Bool,
     PRIM_SYNTAX_ARROW token-prim=?)
 def(token-is-dashes?, Token -- Token Bool,
     PRIM_SYNTAX_DASHES token-prim=?)
+def(token-is-lparen-open?, Token -- Token Bool,
+    dup token-value @ match(TOKEN_LPAREN_OPEN -> true, _ -> drop false))
 def(token-is-lparen?, Token -- Token Bool,
     dup token-value @ match(TOKEN_LPAREN -> drop true, _ -> drop false))
 def(token-is-rparen?, Token -- Token Bool,
     dup token-value @ match(TOKEN_RPAREN -> drop true, _ -> drop false))
+def(token-is-lsquare-open?, Token -- Token Bool,
+    dup token-value @ match(TOKEN_LSQUARE_OPEN -> true, _ -> drop false))
 def(token-is-lsquare?, Token -- Token Bool,
     dup token-value @ match(TOKEN_LSQUARE -> drop true, _ -> drop false))
 def(token-is-rsquare?, Token -- Token Bool,
     dup token-value @ match(TOKEN_RSQUARE -> drop true, _ -> drop false))
+def(token-is-lcurly-open?, Token -- Token Bool,
+    dup token-value @ match(TOKEN_LCURLY_OPEN -> true, _ -> drop false))
 def(token-is-lcurly?, Token -- Token Bool,
     dup token-value @ match(TOKEN_LCURLY -> drop true, _ -> drop false))
 def(token-is-rcurly?, Token -- Token Bool,
