@@ -2091,7 +2091,6 @@ static void mw_1_ (void);
 static void mw_max (void);
 static void mw_min (void);
 static void mw_ptr_nil (void);
-static void mw_ptr_is_nil (void);
 static void mw_ptrs (void);
 static void mw_ptr_40__40_ (void);
 static void mw_ptr_21__21_ (void);
@@ -2864,8 +2863,6 @@ static void mw_Word_2E_succ (void);
 static void mw_Word_2E_pred (void);
 static void mw_Word_2E_for (void);
 static void mw_Word_2E_alloc_21_ (void);
-static void mw_Word_2E_nil (void);
-static void mw_word_nil (void);
 static void mw_Table_2E_MAX (void);
 static void mw_Table_2E_id (void);
 static void mw_Table_2E_succ (void);
@@ -4059,8 +4056,6 @@ static void mb_c99_unpack_ctx_21__3 (void);
 static void mb_c99_unpack_ctx_21__4 (void);
 static void mb_c99_decref_ctx_21__1 (void);
 static void mb_c99_decref_ctx_21__2 (void);
-static void mb__2E_block_1 (void);
-static void mb__2E_block_2 (void);
 static void mb_c99_case_21__1 (void);
 static void mb_c99_case_21__2 (void);
 static void mb_c99_pattern_21__2 (void);
@@ -5487,11 +5482,6 @@ static void mw_min (void){
 
 static void mw_ptr_nil (void){
     mw_prim_ptr_nil();
-}
-
-static void mw_ptr_is_nil (void){
-    mw_ptr_nil();
-    mw__3D__3D_();
 }
 
 static void mw_ptrs (void){
@@ -18078,15 +18068,6 @@ static void mw_Word_2E_alloc_21_ (void){
     mw_prim_unsafe_cast();
 }
 
-static void mw_Word_2E_nil (void){
-    push_i64(0LL);
-    mw_prim_unsafe_cast();
-}
-
-static void mw_word_nil (void){
-    mw_Word_2E_nil();
-}
-
 static void mw_Table_2E_MAX (void){
     push_i64(65536LL);
 }
@@ -20773,34 +20754,37 @@ static void mw__2E_block (void){
     mw_dup();
     mw_arrow_home();
     mw__40_();
-    mw_dup();
-    mw_word_nil();
-    mw__3D__3D_();
-    if (pop_u64()) {
-        mw_drop2();
-        mw_Block_2E_id();
-        mw__2E_n();
-    } else {
-        mw_word_name();
-        mw__40_();
-        mw__2E_name();
-        {
-            static bool vready = false;
-            static VAL v;
-            if (!vready) {
-                v = mkstr("_", 1);
-                vready = true;
+    switch (get_top_data_tag()) {
+        case 0LL:
+            mw_prim_drop();
+            mw_drop();
+            mw_Block_2E_id();
+            mw__2E_n();
+            break;
+        case 1LL:
+            mw_prim_pack_uncons(); mw_prim_drop();
+            mw_word_name();
+            mw__40_();
+            mw__2E_name();
+            {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
+                    v = mkstr("_", 1);
+                    vready = true;
+                }
+                push_value(v);
+                incref(v);
             }
-            push_value(v);
-            incref(v);
-        }
-        mw__2E_();
-        mw_arrow_homeidx();
-        mw__40_();
-        mw__2E_n();
-        mw_drop();
-    }
-}
+            mw__2E_();
+            mw_arrow_homeidx();
+            mw__40_();
+            mw__2E_n();
+            mw_drop();
+            break;
+        default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
+    
+}}
 
 static void mw_c99_word_defs_21_ (void){
     push_u64(0);
@@ -21976,6 +21960,7 @@ static void mw_ab_build_word_arrow_21_ (void){
     {
         VAL var_f = pop_value();
         mw_dup();
+        mw_SOME();
         mw_ab_home();
         mw__21_();
         push_i64(0LL);
@@ -21993,7 +21978,7 @@ static void mw_ab_build_word_arrow_21_ (void){
         push_value(var_f);
         incref(var_f);
         mw_ab_build_hom_21_();
-        mw_word_nil();
+        mw_NONE();
         mw_ab_home();
         mw__21_();
         decref(var_f);
@@ -38730,35 +38715,6 @@ static void mb_c99_decref_ctx_21__2 (void) {
         incref(v);
     }
     mw__2E_();
-}
-
-static void mb__2E_block_1 (void) {
-    mw_prim_drop();
-    mw_drop2();
-    mw_Block_2E_id();
-    mw__2E_n();
-}
-
-static void mb__2E_block_2 (void) {
-    mw_prim_drop();
-    mw_word_name();
-    mw__40_();
-    mw__2E_name();
-    {
-        static bool vready = false;
-        static VAL v;
-        if (!vready) {
-            v = mkstr("_", 1);
-            vready = true;
-        }
-        push_value(v);
-        incref(v);
-    }
-    mw__2E_();
-    mw_arrow_homeidx();
-    mw__40_();
-    mw__2E_n();
-    mw_drop();
 }
 
 static void mb_c99_case_21__1 (void) {

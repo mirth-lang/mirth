@@ -11,6 +11,3 @@ field(word-body, Word, Token)
 field(word-ctx-type, Word, Lazy([Ctx Type]))
 field(word-params, Word, Lazy(List(Param)))
 field(word-arrow, Word, Lazy(Arrow))
-
-def-missing(Word.nil, Word, 0 prim-unsafe-cast)
-def(word-nil, Word, Word.nil)

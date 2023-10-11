@@ -1,5 +1,6 @@
 module(mirth.data.arrow)
 import(mirth.data.type)
+import(data.maybe)
 
 ##########
 # ARROWS #
@@ -57,7 +58,7 @@ def(Param->Var, Param -- Var, PARAM -> id)
 
 field(arrow-token-start, Arrow, Token)
 field(arrow-token-end, Arrow, Token)
-field(arrow-home, Arrow, Word)
+field(arrow-home, Arrow, Maybe(Word))
 field(arrow-homeidx, Arrow, Int)
 field(arrow-ctx, Arrow, Ctx)
 field(arrow-dom, Arrow, Type)

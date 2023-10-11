@@ -177,7 +177,7 @@ def(elab-simple-type-arg!, Token -- Type,
 ####################
 
 # AB = Arrow Builder = Arrow Elaborator
-var(ab-home, Word)
+var(ab-home, Maybe(Word))
 var(ab-homeidx, Int)
 var(ab-arrow, Arrow)
 def(ab-ctx, Mut(Ctx), ab-arrow @ arrow-ctx)
@@ -208,10 +208,10 @@ def(ab-build-hom!(f), (*a Type -- *b Type) *a Ctx Type Token -- *b Arrow,
     elab-expand-morphism! dip(rotr)
     ab-build!(f ab-unify-type!))
 def(ab-build-word-arrow!(f), (*a Type -- *b Type) *a Word -- *b Arrow,
-    dup ab-home ! 0 ab-homeidx !
+    dup SOME ab-home ! 0 ab-homeidx !
     sip(elab-word-ctx-sig-weak!)
     word-body @ ab-build-hom!(f)
-    word-nil ab-home !)
+    NONE ab-home !)
 def(ab-build-word!(f), (*a -- *b) *a Word -- *b Word,
     sip(ab-build-word-arrow!(dip(f)) ready)
     tuck word-arrow !)
