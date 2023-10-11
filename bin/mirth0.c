@@ -24,16 +24,18 @@ extern int strcmp(const char*, const char*);
 extern size_t strlen(const char*);
 extern void free(void*);
 extern int read(int, void*, size_t);
-extern int write(int, void*, size_t);
+extern int write(int, const char*, size_t);
 extern int close(int);
-extern int open(void*, int, int);
+extern int open(const char*, int, int);
 extern void exit(int);
 
-#define HAS_REFS 0x8000
+#define HAS_REFS_FLAG 0x8000
 typedef enum TAG {
+    // TODO: TAG_NIL
+    // TODO: TAG_PTR
     TAG_INT  = 0,
-    TAG_CONS = 1 | HAS_REFS,
-    TAG_STR  = 2 | HAS_REFS,
+    TAG_CONS = 1 | HAS_REFS_FLAG,
+    TAG_STR  = 2 | HAS_REFS_FLAG,
 } TAG;
 
 typedef void (*fnptr)(void);
@@ -65,6 +67,33 @@ typedef struct VAL {
     TAG tag;
 } VAL;
 
+#define VREFS(v)  (*(v).data.refs)
+#define VINT(v)   ((v).data.i64)
+#define VI64(v)   ((v).data.i64)
+#define VU64(v)   ((v).data.u64)
+#define VPTR(v)   ((v).data.ptr)
+#define VFNPTR(v) ((v).data.fnptr)
+#define VSTR(v)   ((v).data.str)
+#define VCONS(v)  ((v).data.cons)
+
+#define HAS_REFS(v) ((v).tag & HAS_REFS_FLAG)
+#define IS_INT(v)   ((v).tag == TAG_INT)
+#define IS_U64(v)   ((v).tag == TAG_INT)
+#define IS_I64(v)   ((v).tag == TAG_INT)
+#define IS_PTR(v)   ((v).tag == TAG_INT)
+#define IS_FNPTR(v) ((v).tag == TAG_INT)
+#define IS_STR(v)   ((v).tag == TAG_STR)
+#define IS_CONS(v)  ((v).tag == TAG_CONS)
+#define IS_NIL(v)   (((v).tag == TAG_INT) && ((v).data.i64 == 0))
+
+#define MKINT(x)   ((VAL){.tag=TAG_INT,  .data={.i64=(x)}})
+#define MKI64(x)   ((VAL){.tag=TAG_INT,  .data={.i64=(x)}})
+#define MKU64(x)   ((VAL){.tag=TAG_INT,  .data={.u64=(x)}})
+#define MKFNPTR(x) ((VAL){.tag=TAG_INT,  .data={.fnptr=(x)}})
+#define MKPTR(x)   ((VAL){.tag=TAG_INT,  .data={.ptr=(x)}})
+#define MKSTR(x)   ((VAL){.tag=TAG_STR,  .data={.str=(x)}})
+#define MKCONS(x)  ((VAL){.tag=TAG_CONS, .data={.cons=(x)}})
+#define MKNIL()    ((VAL){.tag=TAG_INT,  .data={.i64=0}})
 
 typedef struct CONS {
     REFS refs;
@@ -125,73 +154,70 @@ static void mw_prim_debug(void);
 #define ASSERT2(test,v1,v2) \
     EXPECT2(test,  "assertion failed (" #test ")", v1, v2)
 
-
 static void free_value(VAL v);
 
 static void incref(VAL v) {
-    if (v.tag & HAS_REFS) {
-        (*v.data.refs)++;
+    if (HAS_REFS(v)) {
+        VREFS(v)++;
     }
 }
 
 static void decref(VAL v) {
-    if (v.tag & HAS_REFS) {
-        if(--(*v.data.refs) == 0) {
+    if (HAS_REFS(v)) {
+        if(--VREFS(v) == 0) {
             free_value(v);
         }
     }
 }
 
 static void free_value(VAL v) {
-    ASSERT(v.tag & HAS_REFS);
-    ASSERT(v.data.refs && *v.data.refs == 0);
-    switch (v.tag) {
-        case TAG_INT: ASSERT(0); break;
-        case TAG_CONS: {
-            CONS* cons = v.data.cons;
-            ASSERT(cons);
-            decref(cons->car);
-            decref(cons->cdr);
-            free(cons);
-        } break;
-        case TAG_STR: {
-            STR* str = v.data.str;
-            ASSERT(str);
-            free(str);
-        } break;
+    ASSERT(HAS_REFS(v));
+    ASSERT(VREFS(v) == 0);
+    ASSERT1(IS_CONS(v)||IS_STR(v), v);
+    if (IS_CONS(v)) {
+        CONS* cons = VCONS(v);
+        ASSERT(cons);
+        decref(cons->car);
+        decref(cons->cdr);
+        free(cons);
+    } else if (IS_STR(v)) {
+        STR* str = VSTR(v);
+        ASSERT(str);
+        free(str);
     }
 }
 
 static void value_uncons(VAL val, VAL* car, VAL* cdr) {
-    if (val.tag == TAG_CONS) {
-        *car = val.data.cons->car;
-        *cdr = val.data.cons->cdr;
+    if (IS_CONS(val)) {
+        CONS* cons = VCONS(val);
+        *car = cons->car;
+        *cdr = cons->cdr;
     } else {
-        *car = (VAL){0};
+        *car = MKNIL();
         *cdr = val;
     }
 }
 
 static void* value_ptr (VAL v) {
-    ASSERT(v.tag == TAG_INT);
-    return v.data.ptr;
+    ASSERT(IS_PTR(v));
+    return VPTR(v);
 }
 
-#define pop_fnptr() (pop_value().data.fnptr)
-#define pop_u8() (pop_value().data.u8)
-#define pop_u16() (pop_value().data.u16)
-#define pop_u32() (pop_value().data.u32)
-#define pop_u64() (pop_value().data.u64)
-#define pop_i8() (pop_value().data.i8)
-#define pop_i16() (pop_value().data.i16)
-#define pop_i32() (pop_value().data.i32)
-#define pop_i64() (pop_value().data.i64)
-#define pop_usize() (pop_value().data.usize)
-#define pop_bool() ((bool)pop_u64())
-#define pop_ptr() (pop_value().data.ptr)
+#define pop_fnptr() VFNPTR(pop_value())
+#define pop_u8() ((uint8_t)VU64(pop_value()))
+#define pop_u16() ((uint16_t)VU64(pop_value()))
+#define pop_u32() ((uint32_t)VU64(pop_value()))
+#define pop_u64() (VU64(pop_value()))
+#define pop_i8() ((int8_t)VI64(pop_value()))
+#define pop_i16() ((int16_t)VI64(pop_value()))
+#define pop_i32() ((int32_t)VI64(pop_value()))
+#define pop_i64() (VI64(pop_value()))
+#define pop_usize() (VU64(pop_value()))
+#define pop_bool() ((bool)VU64(pop_value()))
+#define pop_ptr() (VPTR(pop_value()))
 
-#define push_u64(v) push_value(mku64(v))
-#define push_i64(v) push_value(mki64(v))
+#define push_u64(v) push_value(MKU64(v))
+#define push_i64(v) push_value(MKI64(v))
 #define push_usize(v) push_u64((uint64_t)(v))
 #define push_fnptr(v) push_u64((uint64_t)(v))
 #define push_bool(b) push_u64((uint64_t)((bool)(b)))
@@ -218,31 +244,15 @@ static VAL pop_value(void) {
     return stack[stack_counter++];
 }
 
-static VAL mkint (int64_t x) {
-    return (VAL){.tag=TAG_INT, .data={.i64=x}};
-}
-
-static VAL mku64 (uint64_t x) {
-    return (VAL){.tag=TAG_INT, .data={.u64=x}};
-}
-
-static VAL mki64 (int64_t x) {
-    return (VAL){.tag=TAG_INT, .data={.i64=x}};
-}
-
 static VAL mkcons (VAL car, VAL cdr) {
-    if ((car.data.usize == 0) && (cdr.tag != TAG_CONS))
+    if (IS_NIL(car) && !IS_CONS(cdr))
         return cdr;
     CONS *cons = calloc(1, sizeof(CONS));
     EXPECT(cons, "failed to allocate a cons cell");
     cons->refs = 1;
     cons->car = car;
     cons->cdr = cdr;
-    return (VAL){.tag=TAG_CONS, .data={.cons=cons}};
-}
-
-static VAL mkptr (void* ptr) {
-    return (VAL) {.tag=TAG_INT, .data={.ptr=ptr}};
+    return MKCONS(cons);
 }
 
 static STR* str_alloc (USIZE cap) {
@@ -260,7 +270,7 @@ static VAL mkstr (const char* data, USIZE size) {
     STR* str = str_alloc(size);
     str->size = size;
     memcpy(str->data, data, (size_t)size);
-    return (VAL) { .tag=TAG_STR, .data={.str=str} };
+    return MKSTR(str);
 }
 
 static void do_uncons(void) {
@@ -277,46 +287,39 @@ static void do_uncons(void) {
 static USIZE get_data_tag(VAL v) {
     VAL car, cdr;
     value_uncons(v, &car, &cdr);
-    return cdr.data.usize;
+    return VU64(cdr);
 }
 
 static USIZE get_top_data_tag(void) {
     return get_data_tag(top_value());
 }
 
-static int value_cmp(VAL v1, VAL v2) {
-    while ((v1.tag == TAG_CONS) || (v2.tag == TAG_CONS)) {
+static int value_cmp_(VAL v1, VAL v2) {
+    while (IS_CONS(v1) || IS_CONS(v2)) {
         VAL v1car, v1cdr; value_uncons(v1, &v1car, &v1cdr);
         VAL v2car, v2cdr; value_uncons(v2, &v2car, &v2cdr);
-        int r = value_cmp(v1cdr, v2cdr);
+        int r = value_cmp_(v1cdr, v2cdr);
         if (r) return r;
         v1 = v1car;
         v2 = v2car;
     }
-    ASSERT2(v1.tag == v2.tag, v1, v2);
-    switch (v1.tag) {
-        case TAG_INT:
-            if (v1.data.i64 < v2.data.i64) return -1;
-            if (v1.data.i64 > v2.data.i64) return 1;
-            return 0;
-
-        case TAG_STR:
-            ASSERT(v1.data.str);
-            ASSERT(v2.data.str);
-            USIZE n1 = v1.data.str->size;
-            USIZE n2 = v2.data.str->size;
-            USIZE n = (n1 < n2 ? n1 : n2);
-            ASSERT(n < SIZE_MAX);
-            int r = memcmp(v1.data.str->data, v2.data.str->data, (size_t)n);
-            if (r) return r;
-            if (n1 < n2) return -1;
-            if (n1 > n2) return 1;
-            return 0;
-
-        case TAG_CONS:
-            ASSERT(0);
+    if (IS_INT(v1) && IS_INT(v2)) {
+        if (VINT(v1) < VINT(v2)) return -1;
+        if (VINT(v1) > VINT(v2)) return 1;
+        return 0;
+    } else if (IS_STR(v1) && IS_STR(v2)) {
+        ASSERT2(VSTR(v1) && VSTR(v2), v1, v2);
+        USIZE n1 = VSTR(v1)->size;
+        USIZE n2 = VSTR(v2)->size;
+        USIZE n = (n1 < n2 ? n1 : n2);
+        ASSERT(n < SIZE_MAX);
+        int r = memcmp(VSTR(v1)->data, VSTR(v2)->data, (size_t)n);
+        if (r) return r;
+        if (n1 < n2) return -1;
+        if (n1 > n2) return 1;
+        return 0;
     }
-    ASSERT(0);
+    ASSERT2(0, v1, v2);
     return 0;
 }
 
@@ -328,7 +331,8 @@ static void run_value(VAL v) {
     push_value(car);
     incref(car);
     decref(v);
-    cdr.data.fnptr();
+    ASSERT(IS_FNPTR(cdr) && VFNPTR(cdr));
+    VFNPTR(cdr)();
 }
 
 static void mw_prim_id (void) {}
@@ -482,21 +486,21 @@ static void mw_prim_bool_or (void) {
 static void mw_prim_value_eq (void) {
     VAL b = pop_value();
     VAL a = pop_value();
-    int cmp = value_cmp(a,b);
+    int cmp = value_cmp_(a,b);
     push_bool(cmp == 0);
     decref(a); decref(b);
 }
 static void mw_prim_value_lt (void) {
     VAL b = pop_value();
     VAL a = pop_value();
-    int cmp = value_cmp(a,b);
+    int cmp = value_cmp_(a,b);
     push_bool(cmp < 0);
     decref(a); decref(b);
 }
 static void mw_prim_value_le (void) {
     VAL b = pop_value();
     VAL a = pop_value();
-    int cmp = value_cmp(a,b);
+    int cmp = value_cmp_(a,b);
     push_bool(cmp <= 0);
     decref(a); decref(b);
 }
@@ -577,15 +581,22 @@ void str_trace_(STR* str, int fd) {
 }
 
 void value_trace_(VAL val, int fd) {
-    switch (val.tag) {
-        case TAG_INT: int_trace_(val.data.i64,fd); break;
-        case TAG_STR: str_trace_(val.data.str,fd); break;
-        case TAG_CONS:
-            write(fd, "[ ", 2);
-            value_trace_(val.data.cons->car, fd);
-            write(fd, " ", 1);
-            value_trace_(val.data.cons->cdr, fd);
-            write(fd, " ]", 2);
+    if (IS_INT(val)) {
+        int_trace_(VINT(val), fd);
+    } else if (IS_STR(val)) {
+        str_trace_(VSTR(val), fd);
+    } else if (IS_CONS(val)) {
+        VAL car, cdr;
+        value_uncons(val, &car, &cdr);
+        write(fd, "[ ", 2);
+        value_trace_(car, fd);
+        write(fd, " ", 1);
+        value_trace_(cdr, fd);
+        write(fd, " ]", 2);
+    } else {
+        const char* msg = "value cannot be traced";
+        write(2, msg, strlen(msg));
+        exit(1);
     }
 }
 
@@ -775,8 +786,8 @@ static void mw_prim_run (void) {
 static void mw_prim_ptr_add (void) {
     VAL vptr = pop_value();
     USIZE n = pop_usize();
-    ASSERT(vptr.tag == TAG_INT);
-    char* ptr = vptr.data.ptr;
+    ASSERT(IS_PTR(vptr) && VPTR(vptr));
+    char* ptr = (char*)VPTR(vptr);
     push_ptr(ptr + n);
 }
 #define mw_prim_ptr_size() push_u64((uint64_t)sizeof(void*))
@@ -791,7 +802,7 @@ static void mw_prim_ptr_copy (void) {
     VAL vdst = pop_value();
     int64_t ilen = pop_i64();
     VAL vsrc = pop_value();
-    ASSERT2(vsrc.tag == TAG_INT && vdst.tag == TAG_INT, vsrc, vdst);
+    ASSERT2(IS_PTR(vsrc) && IS_PTR(vdst), vsrc, vdst);
     void* src = value_ptr(vsrc);
     void* dst = value_ptr(vdst);
     if (src && dst && (ilen > 0)) {
@@ -802,7 +813,7 @@ static void mw_prim_ptr_copy (void) {
 
 static void mw_prim_ptr_fill (void) {
     VAL vdst = pop_value();
-    ASSERT1(vdst.tag == TAG_INT, vdst);
+    ASSERT1(IS_PTR(vdst), vdst);
     int64_t ilen = pop_i64();
     int64_t val = pop_i64();
     void* dst = value_ptr(vdst);
@@ -814,16 +825,16 @@ static void mw_prim_ptr_fill (void) {
 
 static void mw_prim_ptr_raw (void) {
     VAL vptr = top_value();
-    ASSERT(vptr.tag == TAG_INT);
+    ASSERT(IS_PTR(vptr));
     push_value(vptr);
 }
 
 static void mw_prim_str_eq (void) {
     VAL vptr1 = pop_value();
     VAL vptr2 = pop_value();
-    ASSERT2(vptr1.tag == TAG_STR && vptr2.tag == TAG_STR, vptr1, vptr2);
-    STR* str1 = vptr1.data.str;
-    STR* str2 = vptr2.data.str;
+    ASSERT2(IS_STR(vptr1) && IS_STR(vptr2), vptr1, vptr2);
+    STR* str1 = VSTR(vptr1);
+    STR* str2 = VSTR(vptr2);
     ASSERT(str1->size <= SIZE_MAX);
     push_bool((str1->size == str2->size) &&
         (memcmp(str1->data, str2->data, (size_t)str1->size) == 0));
@@ -836,15 +847,15 @@ static void mw_prim_str_alloc (void) {
     ASSERT(size <= SIZE_MAX-sizeof(STR)-4);
     STR* str = str_alloc(size);
     str->size = size;
-    push_value((VAL){.tag=TAG_STR, .data={.str=str}});
+    push_value(MKSTR(str));
 }
 
 static void mw_prim_str_cat (void) {
     VAL v2 = pop_value();
     VAL v1 = pop_value();
-    ASSERT2((v1.tag == TAG_STR) && (v2.tag == TAG_STR), v1, v2);
-    STR* s1 = v1.data.str;
-    STR* s2 = v2.data.str;
+    ASSERT2(IS_STR(v1) && IS_STR(v2), v1, v2);
+    STR* s1 = VSTR(v1);
+    STR* s2 = VSTR(v2);
     USIZE m = s1->cap;
     USIZE n1 = s1->size;
     USIZE n2 = s2->size;
@@ -864,7 +875,7 @@ static void mw_prim_str_cat (void) {
         ASSERT(n2 <= SIZE_MAX);
         memcpy(str->data, s1->data, (size_t)n1);
         memcpy(str->data+n1, s2->data, (size_t)n2);
-        push_value((VAL){ .tag=TAG_STR, .data={.str=str} });
+        push_value(MKSTR(str));
         decref(v1);
         decref(v2);
     }
@@ -872,15 +883,15 @@ static void mw_prim_str_cat (void) {
 
 static void mw_prim_str_base (void) {
     VAL vstr = pop_value();
-    ASSERT1(vstr.tag == TAG_STR && vstr.data.str, vstr);
-    push_ptr(vstr.data.str->data);
+    ASSERT1(IS_STR(vstr) && VSTR(vstr), vstr);
+    push_ptr(VSTR(vstr)->data);
     decref(vstr);
 }
 
 static void mw_prim_str_size (void) {
     VAL v = top_value();
-    ASSERT(v.tag == TAG_STR && v.data.str);
-    push_usize(v.data.str->size);
+    ASSERT(IS_STR(v) && VSTR(v));
+    push_usize(VSTR(v)->size);
 }
 
 static void mw_prim_pack_nil (void) {
@@ -904,9 +915,8 @@ static void mw_prim_pack_uncons (void) {
 
 static void mw_prim_mut_get (void) {
     VAL mut = pop_value();
-    ASSERT(mut.tag == TAG_INT);
-    ASSERT(mut.data.ptr);
-    VAL v = *mut.data.valptr;
+    ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
+    VAL v = *(VAL*)VPTR(mut);
     push_value(v);
     incref(v);
 }
@@ -914,10 +924,9 @@ static void mw_prim_mut_set (void) {
     VAL mut = pop_value();
     VAL newval = pop_value();
     push_value(mut);
-    ASSERT(mut.tag == TAG_INT);
-    ASSERT(mut.data.ptr);
-    VAL oldval = *mut.data.valptr;
-    *mut.data.valptr = newval;
+    ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
+    VAL oldval = *(VAL*)VPTR(mut);
+    *(VAL*)VPTR(mut) = newval;
     decref(oldval);
 }
 
@@ -951,7 +960,7 @@ static void mw_NONE (void) {
 }
 static void mw_SOME (void) {
     VAL car = pop_value();
-    VAL tag = mku64(1LL);
+    VAL tag = MKU64(1LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -960,14 +969,14 @@ static void mw_L0 (void) {
 }
 static void mw_L1 (void) {
     VAL car = pop_value();
-    VAL tag = mku64(1LL);
+    VAL tag = MKU64(1LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_L2 (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
-    VAL tag = mku64(2LL);
+    VAL tag = MKU64(2LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -975,7 +984,7 @@ static void mw_L3 (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
     car = mkcons(car, pop_value());
-    VAL tag = mku64(3LL);
+    VAL tag = MKU64(3LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -983,20 +992,20 @@ static void mw_LCAT (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
     car = mkcons(car, pop_value());
-    VAL tag = mku64(4LL);
+    VAL tag = MKU64(4LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_L1_2B_ (void) {
     VAL car = pop_value();
-    VAL tag = mku64(0LL);
+    VAL tag = MKU64(0LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_L2_2B_ (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
-    VAL tag = mku64(1LL);
+    VAL tag = MKU64(1LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1004,7 +1013,7 @@ static void mw_L3_2B_ (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
     car = mkcons(car, pop_value());
-    VAL tag = mku64(2LL);
+    VAL tag = MKU64(2LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1012,7 +1021,7 @@ static void mw_LCAT_2B_ (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
     car = mkcons(car, pop_value());
-    VAL tag = mku64(3LL);
+    VAL tag = MKU64(3LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1020,7 +1029,7 @@ static void mw_STR_SLICE (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
     car = mkcons(car, pop_value());
-    VAL tag = mku64(0LL);
+    VAL tag = MKU64(0LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1032,19 +1041,19 @@ static void mw_TS_SKIP (void) {
 }
 static void mw_TS_CHAR (void) {
     VAL car = pop_value();
-    VAL tag = mku64(2LL);
+    VAL tag = MKU64(2LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TS_PUSH (void) {
     VAL car = pop_value();
-    VAL tag = mku64(3LL);
+    VAL tag = MKU64(3LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TS_COPY (void) {
     VAL car = pop_value();
-    VAL tag = mku64(4LL);
+    VAL tag = MKU64(4LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1058,7 +1067,7 @@ static void mw_STACK_NIL (void) {
 static void mw_STACK_CONS (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
-    VAL tag = mku64(1LL);
+    VAL tag = MKU64(1LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1067,61 +1076,61 @@ static void mw_DEF_NONE (void) {
 }
 static void mw_DEF_MODULE (void) {
     VAL car = pop_value();
-    VAL tag = mku64(1LL);
+    VAL tag = MKU64(1LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_DEF_TYPE (void) {
     VAL car = pop_value();
-    VAL tag = mku64(2LL);
+    VAL tag = MKU64(2LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_DEF_TAG (void) {
     VAL car = pop_value();
-    VAL tag = mku64(3LL);
+    VAL tag = MKU64(3LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_DEF_PRIM (void) {
     VAL car = pop_value();
-    VAL tag = mku64(4LL);
+    VAL tag = MKU64(4LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_DEF_WORD (void) {
     VAL car = pop_value();
-    VAL tag = mku64(5LL);
+    VAL tag = MKU64(5LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_DEF_BUFFER (void) {
     VAL car = pop_value();
-    VAL tag = mku64(6LL);
+    VAL tag = MKU64(6LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_DEF_VARIABLE (void) {
     VAL car = pop_value();
-    VAL tag = mku64(7LL);
+    VAL tag = MKU64(7LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_DEF_CONSTANT (void) {
     VAL car = pop_value();
-    VAL tag = mku64(8LL);
+    VAL tag = MKU64(8LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_DEF_EXTERNAL (void) {
     VAL car = pop_value();
-    VAL tag = mku64(9LL);
+    VAL tag = MKU64(9LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_DEF_FIELD (void) {
     VAL car = pop_value();
-    VAL tag = mku64(10LL);
+    VAL tag = MKU64(10LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1135,7 +1144,7 @@ static void mw_LOCATION (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
     car = mkcons(car, pop_value());
-    VAL tag = mku64(0LL);
+    VAL tag = MKU64(0LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1147,55 +1156,55 @@ static void mw_TOKEN_COMMA (void) {
 }
 static void mw_TOKEN_LPAREN (void) {
     VAL car = pop_value();
-    VAL tag = mku64(2LL);
+    VAL tag = MKU64(2LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_RPAREN (void) {
     VAL car = pop_value();
-    VAL tag = mku64(3LL);
+    VAL tag = MKU64(3LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_LSQUARE (void) {
     VAL car = pop_value();
-    VAL tag = mku64(4LL);
+    VAL tag = MKU64(4LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_RSQUARE (void) {
     VAL car = pop_value();
-    VAL tag = mku64(5LL);
+    VAL tag = MKU64(5LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_LCURLY (void) {
     VAL car = pop_value();
-    VAL tag = mku64(6LL);
+    VAL tag = MKU64(6LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_RCURLY (void) {
     VAL car = pop_value();
-    VAL tag = mku64(7LL);
+    VAL tag = MKU64(7LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_INT (void) {
     VAL car = pop_value();
-    VAL tag = mku64(8LL);
+    VAL tag = MKU64(8LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_STR (void) {
     VAL car = pop_value();
-    VAL tag = mku64(9LL);
+    VAL tag = MKU64(9LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TOKEN_NAME (void) {
     VAL car = pop_value();
-    VAL tag = mku64(10LL);
+    VAL tag = MKU64(10LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1213,82 +1222,82 @@ static void mw_TYPE_DONT_CARE (void) {
 }
 static void mw_TPrim (void) {
     VAL car = pop_value();
-    VAL tag = mku64(2LL);
+    VAL tag = MKU64(2LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TMeta (void) {
     VAL car = pop_value();
-    VAL tag = mku64(3LL);
+    VAL tag = MKU64(3LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_THole (void) {
     VAL car = pop_value();
-    VAL tag = mku64(4LL);
+    VAL tag = MKU64(4LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TVar (void) {
     VAL car = pop_value();
-    VAL tag = mku64(5LL);
+    VAL tag = MKU64(5LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TTable (void) {
     VAL car = pop_value();
-    VAL tag = mku64(6LL);
+    VAL tag = MKU64(6LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TData (void) {
     VAL car = pop_value();
-    VAL tag = mku64(7LL);
+    VAL tag = MKU64(7LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TTensor (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
-    VAL tag = mku64(8LL);
+    VAL tag = MKU64(8LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TMorphism (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
-    VAL tag = mku64(9LL);
+    VAL tag = MKU64(9LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TApp (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
-    VAL tag = mku64(10LL);
+    VAL tag = MKU64(10LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_TValue (void) {
     VAL car = pop_value();
-    VAL tag = mku64(11LL);
+    VAL tag = MKU64(11LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_VALUE_INT (void) {
     VAL car = pop_value();
-    VAL tag = mku64(0LL);
+    VAL tag = MKU64(0LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_VALUE_STR (void) {
     VAL car = pop_value();
-    VAL tag = mku64(1LL);
+    VAL tag = MKU64(1LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_VALUE_BLOCK (void) {
     VAL car = pop_value();
-    VAL tag = mku64(2LL);
+    VAL tag = MKU64(2LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1352,13 +1361,13 @@ static void mw_SUBST (void) {
 }
 static void mw_ARG_BLOCK (void) {
     VAL car = pop_value();
-    VAL tag = mku64(0LL);
+    VAL tag = MKU64(0LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_ARG_VAR_RUN (void) {
     VAL car = pop_value();
-    VAL tag = mku64(1LL);
+    VAL tag = MKU64(1LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1367,85 +1376,85 @@ static void mw_OP_NONE (void) {
 }
 static void mw_OP_PRIM (void) {
     VAL car = pop_value();
-    VAL tag = mku64(1LL);
+    VAL tag = MKU64(1LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_WORD (void) {
     VAL car = pop_value();
-    VAL tag = mku64(2LL);
+    VAL tag = MKU64(2LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_EXTERNAL (void) {
     VAL car = pop_value();
-    VAL tag = mku64(3LL);
+    VAL tag = MKU64(3LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_BUFFER (void) {
     VAL car = pop_value();
-    VAL tag = mku64(4LL);
+    VAL tag = MKU64(4LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_VARIABLE (void) {
     VAL car = pop_value();
-    VAL tag = mku64(5LL);
+    VAL tag = MKU64(5LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_CONSTANT (void) {
     VAL car = pop_value();
-    VAL tag = mku64(6LL);
+    VAL tag = MKU64(6LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_FIELD (void) {
     VAL car = pop_value();
-    VAL tag = mku64(7LL);
+    VAL tag = MKU64(7LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_INT (void) {
     VAL car = pop_value();
-    VAL tag = mku64(8LL);
+    VAL tag = MKU64(8LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_STR (void) {
     VAL car = pop_value();
-    VAL tag = mku64(9LL);
+    VAL tag = MKU64(9LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_TAG (void) {
     VAL car = pop_value();
-    VAL tag = mku64(10LL);
+    VAL tag = MKU64(10LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_MATCH (void) {
     VAL car = pop_value();
-    VAL tag = mku64(11LL);
+    VAL tag = MKU64(11LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_LAMBDA (void) {
     VAL car = pop_value();
-    VAL tag = mku64(12LL);
+    VAL tag = MKU64(12LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_VAR (void) {
     VAL car = pop_value();
-    VAL tag = mku64(13LL);
+    VAL tag = MKU64(13LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OP_BLOCK (void) {
     VAL car = pop_value();
-    VAL tag = mku64(14LL);
+    VAL tag = MKU64(14LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1456,20 +1465,20 @@ static void mw_PATTERN_UNDERSCORE (void) {
 }
 static void mw_PATTERN_TAG (void) {
     VAL car = pop_value();
-    VAL tag = mku64(1LL);
+    VAL tag = MKU64(1LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_LAZY_READY (void) {
     VAL car = pop_value();
-    VAL tag = mku64(0LL);
+    VAL tag = MKU64(0LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_LAZY_DELAY (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
-    VAL tag = mku64(1LL);
+    VAL tag = MKU64(1LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1481,7 +1490,7 @@ static void mw_CTX (void) {
 static void mw_TYPE_ELAB (void) {
     VAL car = pop_value();
     car = mkcons(car, pop_value());
-    VAL tag = mku64(0LL);
+    VAL tag = MKU64(0LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -1490,13 +1499,13 @@ static void mw_OPSIG_ID (void) {
 }
 static void mw_OPSIG_PUSH (void) {
     VAL car = pop_value();
-    VAL tag = mku64(1LL);
+    VAL tag = MKU64(1LL);
     car = mkcons(car, tag);
     push_value(car);
 }
 static void mw_OPSIG_APPLY (void) {
     VAL car = pop_value();
-    VAL tag = mku64(2LL);
+    VAL tag = MKU64(2LL);
     car = mkcons(car, tag);
     push_value(car);
 }
@@ -3964,20 +3973,22 @@ static void mb_c99_str_21__3 (void);
 static void mb_c99_str_21__4 (void);
 static void mb_c99_str_21__5 (void);
 static void mb_c99_str_21__6 (void);
-static void mb_c99_str_21__14 (void);
 static void mb_c99_str_21__7 (void);
+static void mb_c99_str_21__15 (void);
 static void mb_c99_str_21__8 (void);
 static void mb_c99_str_21__9 (void);
 static void mb_c99_str_21__10 (void);
 static void mb_c99_str_21__11 (void);
 static void mb_c99_str_21__12 (void);
 static void mb_c99_str_21__13 (void);
-static void mb_c99_str_21__15 (void);
+static void mb_c99_str_21__14 (void);
 static void mb_c99_str_21__16 (void);
 static void mb_c99_str_21__17 (void);
 static void mb_c99_str_21__18 (void);
 static void mb_c99_str_21__19 (void);
 static void mb_c99_str_21__20 (void);
+static void mb_c99_str_21__21 (void);
+static void mb_c99_str_21__22 (void);
 static void mb_c99_prim_21__3 (void);
 static void mb_c99_prim_21__4 (void);
 static void mb_c99_prim_21__5 (void);
@@ -5824,9 +5835,11 @@ static void mw_unwrap (void){
         case 0LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("tried to unwrap NONE", 20);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -8824,9 +8837,11 @@ static void mw_str_slice_copy (void){
 
 static void mw_str_nil (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("", 0);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -9099,9 +9114,11 @@ static void mw_str_buf_int_21_ (void){
     if (pop_u64()) {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("0", 1);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -9287,9 +9304,11 @@ static void mw_Path__3E_Str (void){
 
 static void mw_init_paths_21_ (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("src", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -9298,9 +9317,11 @@ static void mw_init_paths_21_ (void){
     mw_source_path_root();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("bin", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -9316,18 +9337,22 @@ static void mw_path_separator (void){
     mw__3D__3D_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("\\", 1);
+                vready = true;
             }
             push_value(v);
             incref(v);
         }
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("/", 1);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -9377,9 +9402,11 @@ static void mw_make_output_path (void){
 
 static void mw_panic_21_ (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("panic: ", 7);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -9454,9 +9481,11 @@ static void mw_slice_write_21_ (void){
     mw__3C_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("error: write failed!", 20);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -9468,9 +9497,11 @@ static void mw_slice_write_21_ (void){
     mw__3E_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("error: write output fewer bytes than expected!", 46);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -9503,9 +9534,11 @@ static void mw_str_trace_ln_21_ (void){
 
 static void mw_print_ln_21_ (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("\n", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -9515,9 +9548,11 @@ static void mw_print_ln_21_ (void){
 
 static void mw_trace_ln_21_ (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("\n", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -9552,9 +9587,11 @@ static void mw_str_buf_read_21_ (void){
     mw_0_3C_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("str-buf-read! failed", 20);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -9657,9 +9694,11 @@ static void mw_read_file_21_ (void){
     {
         VAL var_fp = pop_value();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("", 0);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -9688,9 +9727,11 @@ static void mw_read_file_21_ (void){
         mw__3C_();
         if (pop_u64()) {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("io error while reading file", 27);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -9712,9 +9753,11 @@ static void mw_open_file_21_ (void){
     mw__3C_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Failed to open file!", 20);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -9734,9 +9777,11 @@ static void mw_create_file_21_ (void){
     mw__3C_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Failed to create file!", 22);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -9765,9 +9810,11 @@ static void mw_O_WRONLY_7C_O_CREAT_7C_O_TRUNC (void){
         case 0LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("O_WRONLY|O_CREAT|O_TRUNC on unknown os", 38);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -9785,9 +9832,11 @@ static void mw_close_file_21_ (void){
     mw__3C_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("failed to close file.", 21);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -9942,9 +9991,11 @@ static void mw_input_fill_buffer_21_ (void){
         } else {
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("error: failed to read from file", 31);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -9953,9 +10004,11 @@ static void mw_input_fill_buffer_21_ (void){
         }
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("error: attempted to fill input buffer when file is closed", 57);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -9977,9 +10030,11 @@ static void mw_input_peek (void){
         mw_with_ptr_2B_();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("error: attempted to read input buffer when file is already closed", 65);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -10002,9 +10057,11 @@ static void mw_input_move_21_ (void){
         mw_with_ptr_2B_();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("error: attempted to move input buffer when file is already closed", 65);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -10101,9 +10158,11 @@ static void mw_input_fill_buffer_tragic_21_ (void){
         } else {
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("error: failed to read from file", 31);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -10112,9 +10171,11 @@ static void mw_input_fill_buffer_tragic_21_ (void){
         }
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("error: attempted to fill input buffer when file is closed", 57);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -10262,9 +10323,11 @@ static void mw_name_debug_21_ (void){
     mw__40_();
     mw_str_trace_21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("[", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -10273,9 +10336,11 @@ static void mw_name_debug_21_ (void){
     mw_Name_2E_id();
     mw_int_trace_21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("] ", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -10823,9 +10888,11 @@ static void mw_module_source_path (void){
     if (pop_u64()) {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("<generated>", 11);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -10846,9 +10913,11 @@ static void mw_module_path_from_name (void){
     mw_prim_pack_cons();
     mw_str_transduce();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(".mth", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -10897,9 +10966,11 @@ static void mw_location_trace_21_ (void){
     mw_Path__3E_Str();
     mw_str_trace_21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(":", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -10908,9 +10979,11 @@ static void mw_location_trace_21_ (void){
     mw_Row__3E_Int();
     mw_int_trace_21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(":", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -10927,9 +11000,11 @@ static void mw_emit_warning_at_21_ (void){
         push_value(d2);
     }
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(": warning: ", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -10950,9 +11025,11 @@ static void mw_emit_error_at_21_ (void){
         push_value(d2);
     }
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(": error: ", 9);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -11171,9 +11248,11 @@ static void mw_token_name_40_ (void){
         default:
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected name", 13);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -11200,9 +11279,11 @@ static void mw_token_str_40_ (void){
         default:
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected string", 15);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -11229,9 +11310,11 @@ static void mw_token_int_40_ (void){
         default:
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected int", 12);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -11507,9 +11590,11 @@ static void mw_token_args_0 (void){
         mw_drop();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected no args", 16);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -11536,9 +11621,11 @@ static void mw_token_args_1 (void){
         mw__3C_();
         if (pop_u64()) {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected 1 arg, got none", 24);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -11546,9 +11633,11 @@ static void mw_token_args_1 (void){
             mw_emit_fatal_error_21_();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected 1 arg, got too many", 28);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -11579,9 +11668,11 @@ static void mw_token_args_2 (void){
         mw__3C_();
         if (pop_u64()) {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected 2 args, got too few", 28);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -11589,9 +11680,11 @@ static void mw_token_args_2 (void){
             mw_emit_fatal_error_21_();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected 2 args, got too many", 29);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -11625,9 +11718,11 @@ static void mw_token_args_3 (void){
         mw__3C_();
         if (pop_u64()) {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected 3 args, got too few", 28);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -11635,9 +11730,11 @@ static void mw_token_args_3 (void){
             mw_emit_fatal_error_21_();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected 3 args, got too many", 29);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -11696,9 +11793,11 @@ static void mw_token_args_2B_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected args", 13);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -11725,9 +11824,11 @@ static void mw_token_args_2_2B_ (void){
     } else {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected 2+ args", 16);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -12083,9 +12184,11 @@ static void mw_run_lexer_21_ (void){
         case 1LL:
             mw_prim_pack_uncons(); mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Mismatched left parenthesis.", 28);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -12145,9 +12248,11 @@ static void mw_lexer_next_21_ (void){
     mw_not();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("invalid character", 17);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -12227,9 +12332,11 @@ static void mw_lexer_next_21_ (void){
                                                         mw_lexer_emit_string_21_();
                                                     } else {
                                                         {
-                                                            static VAL v = {0};
-                                                            if (!v.data.str) {
+                                                            static bool vready = false;
+                                                            static VAL v;
+                                                            if (!vready) {
                                                                 v = mkstr("unrecognized token", 18);
+                                                                vready = true;
                                                             }
                                                             push_value(v);
                                                             incref(v);
@@ -12283,9 +12390,11 @@ static void mw_lexer_emit_rparen_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Mismatched right parenthesis.", 29);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -12305,9 +12414,11 @@ static void mw_lexer_emit_rparen_21_ (void){
                 mw__21_();
             } else {
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("Mismatched right parenthesis.", 29);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -12334,9 +12445,11 @@ static void mw_lexer_emit_rsquare_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Mismatched right bracket.", 25);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -12356,9 +12469,11 @@ static void mw_lexer_emit_rsquare_21_ (void){
                 mw__21_();
             } else {
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("Mismatched right bracket.", 25);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -12385,9 +12500,11 @@ static void mw_lexer_emit_rcurly_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Mismatched right brace.", 23);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -12407,9 +12524,11 @@ static void mw_lexer_emit_rcurly_21_ (void){
                 mw__21_();
             } else {
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("Mismatched right brace.", 23);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -12441,9 +12560,11 @@ static void mw_lexer_emit_name_21_ (void){
             mw_lexer_peek();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("invalid character", 17);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -12773,9 +12894,11 @@ static void mw_lexer_emit_string_21_ (void){
             mw_lexer_peek();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("invalid character in string literal", 35);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -12839,9 +12962,11 @@ static void mw_lexer_push_string_char_21_ (void){
                             } else {
                                 mw_str_buf_push_char_21_();
                                 {
-                                    static VAL v = {0};
-                                    if (!v.data.str) {
+                                    static bool vready = false;
+                                    static VAL v;
+                                    if (!vready) {
                                         v = mkstr("Unknown character escape sequence.", 34);
+                                        vready = true;
                                     }
                                     push_value(v);
                                     incref(v);
@@ -13964,9 +14089,11 @@ static void mw_def_type_21_ (void){
 static void mw_init_types_21_ (void){
     mw_TYPE_INT();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Int", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -13974,9 +14101,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_PTR();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Ptr", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -13984,9 +14113,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_STR();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Str", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -13994,9 +14125,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_CHAR();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Char", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14004,9 +14137,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_U8();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("U8", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14014,9 +14149,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_U16();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("U16", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14024,9 +14161,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_U32();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("U32", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14034,9 +14173,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_U64();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("U64", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14044,9 +14185,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_I8();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("I8", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14054,9 +14197,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_I16();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("I16", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14064,9 +14209,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_I32();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("I32", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14074,9 +14221,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_I64();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("I64", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14084,9 +14233,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_BOOL();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Bool", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14094,9 +14245,11 @@ static void mw_init_types_21_ (void){
     mw_def_type_21_();
     mw_TYPE_MUT();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Mut", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14336,9 +14489,11 @@ static void mw_type_unify_failed_21_ (void){
     mw_prim_pack_cons();
     mw_dip2();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(": error: Failed to unify ", 25);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14350,9 +14505,11 @@ static void mw_type_unify_failed_21_ (void){
         push_value(d2);
     }
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" with ", 6);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -14869,9 +15026,11 @@ static void mw_value_unify_21_ (void){
                     mw_drop2();
                     mw_gamma_token_3F_();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("Can't unify int value with string value.", 40);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -14884,9 +15043,11 @@ static void mw_value_unify_21_ (void){
                     mw_drop2();
                     mw_gamma_token_3F_();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("Can't unify int value with block.", 33);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -14919,9 +15080,11 @@ static void mw_value_unify_21_ (void){
                     mw_drop2();
                     mw_gamma_token_3F_();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("Can't unify string value with int value.", 40);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -14934,9 +15097,11 @@ static void mw_value_unify_21_ (void){
                     mw_drop2();
                     mw_gamma_token_3F_();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("Can't unify string value with block.", 36);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -14969,9 +15134,11 @@ static void mw_value_unify_21_ (void){
                     mw_drop2();
                     mw_gamma_token_3F_();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("Can't unify block with int value.", 33);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -14984,9 +15151,11 @@ static void mw_value_unify_21_ (void){
                     mw_drop2();
                     mw_gamma_token_3F_();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("Can't unify block with string value.", 36);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -15294,9 +15463,11 @@ static void mw_type_trace_sig_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("<ERROR>", 7);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15309,9 +15480,11 @@ static void mw_type_trace_sig_21_ (void){
             mw_swap();
             mw_type_trace_stack_dom_21_();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("--", 2);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15335,9 +15508,11 @@ static void mw_type_trace_stack_dom_21_ (void){
     } else {
         mw_type_trace_stack_21_();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr(" ", 1);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -15355,9 +15530,11 @@ static void mw_type_trace_stack_cod_21_ (void){
         mw_drop();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr(" ", 1);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -15397,9 +15574,11 @@ static void mw_type_trace_stack_21_ (void){
                 mw_id();
             } else {
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr(" .", 2);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -15418,9 +15597,11 @@ static void mw_type_trace_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("<ERROR>", 7);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15430,9 +15611,11 @@ static void mw_type_trace_21_ (void){
         case 1LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("_", 1);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15457,9 +15640,11 @@ static void mw_type_trace_21_ (void){
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_prim_pack_uncons(); mw_prim_swap();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("[", 1);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15468,9 +15653,11 @@ static void mw_type_trace_21_ (void){
             mw_TTensor();
             mw_type_trace_stack_21_();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("]", 1);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15481,9 +15668,11 @@ static void mw_type_trace_21_ (void){
             mw_prim_pack_uncons(); mw_prim_drop();
             mw_prim_pack_uncons(); mw_prim_swap();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("[", 1);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15492,9 +15681,11 @@ static void mw_type_trace_21_ (void){
             mw_TMorphism();
             mw_type_trace_sig_21_();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("]", 1);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15564,9 +15755,11 @@ static void mw_type_trace_prim_21_ (void){
         case 1LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("<TYPE>", 6);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15575,9 +15768,11 @@ static void mw_type_trace_prim_21_ (void){
         case 2LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("<STACK>", 7);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15586,9 +15781,11 @@ static void mw_type_trace_prim_21_ (void){
         case 3LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("<EFFECT>", 8);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15597,9 +15794,11 @@ static void mw_type_trace_prim_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("[]", 2);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15608,9 +15807,11 @@ static void mw_type_trace_prim_21_ (void){
         case 8LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Bool", 4);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15619,9 +15820,11 @@ static void mw_type_trace_prim_21_ (void){
         case 4LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Int", 3);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15630,9 +15833,11 @@ static void mw_type_trace_prim_21_ (void){
         case 5LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Ptr", 3);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15641,9 +15846,11 @@ static void mw_type_trace_prim_21_ (void){
         case 6LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Str", 3);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15652,9 +15859,11 @@ static void mw_type_trace_prim_21_ (void){
         case 7LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Char", 4);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15663,9 +15872,11 @@ static void mw_type_trace_prim_21_ (void){
         case 12LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("U8", 2);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15674,9 +15885,11 @@ static void mw_type_trace_prim_21_ (void){
         case 11LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("U16", 3);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15685,9 +15898,11 @@ static void mw_type_trace_prim_21_ (void){
         case 10LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("U32", 3);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15696,9 +15911,11 @@ static void mw_type_trace_prim_21_ (void){
         case 9LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("U64", 3);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15707,9 +15924,11 @@ static void mw_type_trace_prim_21_ (void){
         case 16LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("I8", 2);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15718,9 +15937,11 @@ static void mw_type_trace_prim_21_ (void){
         case 15LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("I16", 3);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15729,9 +15950,11 @@ static void mw_type_trace_prim_21_ (void){
         case 14LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("I32", 3);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15740,9 +15963,11 @@ static void mw_type_trace_prim_21_ (void){
         case 13LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("I64", 3);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -15751,9 +15976,11 @@ static void mw_type_trace_prim_21_ (void){
         case 17LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Mut", 3);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -16413,9 +16640,11 @@ static void mw_meta_trace_21_ (void){
         case 0LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("?", 1);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -16557,9 +16786,11 @@ static void mw_type_hole_unify_21_ (void){
         mw_THole();
         mw_type_trace_21_();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr(" ~ ", 3);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -16630,9 +16861,11 @@ static void mw_type_num_morphisms_on_top (void){
 static void mw_app_type_trace_21_ (void){
     mw_app_type_trace_open_21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(")", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -16648,9 +16881,11 @@ static void mw_app_type_trace_open_21_ (void){
             mw_prim_pack_uncons(); mw_prim_swap();
             mw_app_type_trace_open_21_();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr(", ", 2);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -16661,9 +16896,11 @@ static void mw_app_type_trace_open_21_ (void){
         default:
             mw_type_trace_21_();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("(", 1);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -17391,9 +17628,11 @@ static void mw_match_add_case_21_ (void){
         mw_case_token();
         mw__40_();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Case is unreachable.", 20);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -17605,9 +17844,11 @@ static void mw_force_21_ (void){
         case 2LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("attempted to force already running thunk", 40);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -18011,9 +18252,11 @@ static void mw_codegen_flush_21_ (void){
         mw__3C_();
         if (pop_u64()) {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("error: codegen write failed", 27);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -18025,9 +18268,11 @@ static void mw_codegen_flush_21_ (void){
             mw__3C_();
             if (pop_u64()) {
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("error: codegen write wrote fewer bytes than expected", 52);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -18215,9 +18460,11 @@ static void mw__2E_name (void){
 
 static void mw__2E_w (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("static void mw_", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -18225,9 +18472,11 @@ static void mw__2E_w (void){
     mw__2E_();
     mw__2E_name();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" (void)", 7);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -18243,9 +18492,11 @@ static void mw__2E_p (void){
 
 static void mw__2E_pm (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("#define mw_", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -18255,9 +18506,11 @@ static void mw__2E_pm (void){
     mw__40_();
     mw__2E_name();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("() ", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -18267,8 +18520,9 @@ static void mw__2E_pm (void){
 
 static void mw_c99_header_21_ (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
 static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,82,32,42,47,10,
                 10,
                 35,105,102,32,100,101,102,105,110,101,100,40,87,73,78,51,50,41,32,124,124,32,100,101,102,105,110,101,100,40,95,87,73,78,51,50,41,32,124,124,32,100,101,102,105,110,101,100,40,95,95,87,73,78,51,50,95,95,41,32,124,124,32,100,101,102,105,110,101,100,40,95,95,78,84,95,95,41,10,
@@ -18295,16 +18549,18 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 101,120,116,101,114,110,32,115,105,122,101,95,116,32,115,116,114,108,101,110,40,99,111,110,115,116,32,99,104,97,114,42,41,59,10,
                 101,120,116,101,114,110,32,118,111,105,100,32,102,114,101,101,40,118,111,105,100,42,41,59,10,
                 101,120,116,101,114,110,32,105,110,116,32,114,101,97,100,40,105,110,116,44,32,118,111,105,100,42,44,32,115,105,122,101,95,116,41,59,10,
-                101,120,116,101,114,110,32,105,110,116,32,119,114,105,116,101,40,105,110,116,44,32,118,111,105,100,42,44,32,115,105,122,101,95,116,41,59,10,
+                101,120,116,101,114,110,32,105,110,116,32,119,114,105,116,101,40,105,110,116,44,32,99,111,110,115,116,32,99,104,97,114,42,44,32,115,105,122,101,95,116,41,59,10,
                 101,120,116,101,114,110,32,105,110,116,32,99,108,111,115,101,40,105,110,116,41,59,10,
-                101,120,116,101,114,110,32,105,110,116,32,111,112,101,110,40,118,111,105,100,42,44,32,105,110,116,44,32,105,110,116,41,59,10,
+                101,120,116,101,114,110,32,105,110,116,32,111,112,101,110,40,99,111,110,115,116,32,99,104,97,114,42,44,32,105,110,116,44,32,105,110,116,41,59,10,
                 101,120,116,101,114,110,32,118,111,105,100,32,101,120,105,116,40,105,110,116,41,59,10,
                 10,
-                35,100,101,102,105,110,101,32,72,65,83,95,82,69,70,83,32,48,120,56,48,48,48,10,
+                35,100,101,102,105,110,101,32,72,65,83,95,82,69,70,83,95,70,76,65,71,32,48,120,56,48,48,48,10,
                 116,121,112,101,100,101,102,32,101,110,117,109,32,84,65,71,32,123,10,
+                32,32,32,32,47,47,32,84,79,68,79,58,32,84,65,71,95,78,73,76,10,
+                32,32,32,32,47,47,32,84,79,68,79,58,32,84,65,71,95,80,84,82,10,
                 32,32,32,32,84,65,71,95,73,78,84,32,32,61,32,48,44,10,
-                32,32,32,32,84,65,71,95,67,79,78,83,32,61,32,49,32,124,32,72,65,83,95,82,69,70,83,44,10,
-                32,32,32,32,84,65,71,95,83,84,82,32,32,61,32,50,32,124,32,72,65,83,95,82,69,70,83,44,10,
+                32,32,32,32,84,65,71,95,67,79,78,83,32,61,32,49,32,124,32,72,65,83,95,82,69,70,83,95,70,76,65,71,44,10,
+                32,32,32,32,84,65,71,95,83,84,82,32,32,61,32,50,32,124,32,72,65,83,95,82,69,70,83,95,70,76,65,71,44,10,
                 125,32,84,65,71,59,10,
                 10,
                 116,121,112,101,100,101,102,32,118,111,105,100,32,40,42,102,110,112,116,114,41,40,118,111,105,100,41,59,10,
@@ -18336,6 +18592,33 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 32,32,32,32,84,65,71,32,116,97,103,59,10,
                 125,32,86,65,76,59,10,
                 10,
+                35,100,101,102,105,110,101,32,86,82,69,70,83,40,118,41,32,32,40,42,40,118,41,46,100,97,116,97,46,114,101,102,115,41,10,
+                35,100,101,102,105,110,101,32,86,73,78,84,40,118,41,32,32,32,40,40,118,41,46,100,97,116,97,46,105,54,52,41,10,
+                35,100,101,102,105,110,101,32,86,73,54,52,40,118,41,32,32,32,40,40,118,41,46,100,97,116,97,46,105,54,52,41,10,
+                35,100,101,102,105,110,101,32,86,85,54,52,40,118,41,32,32,32,40,40,118,41,46,100,97,116,97,46,117,54,52,41,10,
+                35,100,101,102,105,110,101,32,86,80,84,82,40,118,41,32,32,32,40,40,118,41,46,100,97,116,97,46,112,116,114,41,10,
+                35,100,101,102,105,110,101,32,86,70,78,80,84,82,40,118,41,32,40,40,118,41,46,100,97,116,97,46,102,110,112,116,114,41,10,
+                35,100,101,102,105,110,101,32,86,83,84,82,40,118,41,32,32,32,40,40,118,41,46,100,97,116,97,46,115,116,114,41,10,
+                35,100,101,102,105,110,101,32,86,67,79,78,83,40,118,41,32,32,40,40,118,41,46,100,97,116,97,46,99,111,110,115,41,10,
+                10,
+                35,100,101,102,105,110,101,32,72,65,83,95,82,69,70,83,40,118,41,32,40,40,118,41,46,116,97,103,32,38,32,72,65,83,95,82,69,70,83,95,70,76,65,71,41,10,
+                35,100,101,102,105,110,101,32,73,83,95,73,78,84,40,118,41,32,32,32,40,40,118,41,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,10,
+                35,100,101,102,105,110,101,32,73,83,95,85,54,52,40,118,41,32,32,32,40,40,118,41,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,10,
+                35,100,101,102,105,110,101,32,73,83,95,73,54,52,40,118,41,32,32,32,40,40,118,41,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,10,
+                35,100,101,102,105,110,101,32,73,83,95,80,84,82,40,118,41,32,32,32,40,40,118,41,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,10,
+                35,100,101,102,105,110,101,32,73,83,95,70,78,80,84,82,40,118,41,32,40,40,118,41,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,10,
+                35,100,101,102,105,110,101,32,73,83,95,83,84,82,40,118,41,32,32,32,40,40,118,41,46,116,97,103,32,61,61,32,84,65,71,95,83,84,82,41,10,
+                35,100,101,102,105,110,101,32,73,83,95,67,79,78,83,40,118,41,32,32,40,40,118,41,46,116,97,103,32,61,61,32,84,65,71,95,67,79,78,83,41,10,
+                35,100,101,102,105,110,101,32,73,83,95,78,73,76,40,118,41,32,32,32,40,40,40,118,41,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,32,38,38,32,40,40,118,41,46,100,97,116,97,46,105,54,52,32,61,61,32,48,41,41,10,
+                10,
+                35,100,101,102,105,110,101,32,77,75,73,78,84,40,120,41,32,32,32,40,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,73,78,84,44,32,32,46,100,97,116,97,61,123,46,105,54,52,61,40,120,41,125,125,41,10,
+                35,100,101,102,105,110,101,32,77,75,73,54,52,40,120,41,32,32,32,40,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,73,78,84,44,32,32,46,100,97,116,97,61,123,46,105,54,52,61,40,120,41,125,125,41,10,
+                35,100,101,102,105,110,101,32,77,75,85,54,52,40,120,41,32,32,32,40,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,73,78,84,44,32,32,46,100,97,116,97,61,123,46,117,54,52,61,40,120,41,125,125,41,10,
+                35,100,101,102,105,110,101,32,77,75,70,78,80,84,82,40,120,41,32,40,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,73,78,84,44,32,32,46,100,97,116,97,61,123,46,102,110,112,116,114,61,40,120,41,125,125,41,10,
+                35,100,101,102,105,110,101,32,77,75,80,84,82,40,120,41,32,32,32,40,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,73,78,84,44,32,32,46,100,97,116,97,61,123,46,112,116,114,61,40,120,41,125,125,41,10,
+                35,100,101,102,105,110,101,32,77,75,83,84,82,40,120,41,32,32,32,40,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,83,84,82,44,32,32,46,100,97,116,97,61,123,46,115,116,114,61,40,120,41,125,125,41,10,
+                35,100,101,102,105,110,101,32,77,75,67,79,78,83,40,120,41,32,32,40,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,67,79,78,83,44,32,46,100,97,116,97,61,123,46,99,111,110,115,61,40,120,41,125,125,41,10,
+                35,100,101,102,105,110,101,32,77,75,78,73,76,40,41,32,32,32,32,40,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,73,78,84,44,32,32,46,100,97,116,97,61,123,46,105,54,52,61,48,125,125,41,10,
                 10,
                 116,121,112,101,100,101,102,32,115,116,114,117,99,116,32,67,79,78,83,32,123,10,
                 32,32,32,32,82,69,70,83,32,114,101,102,115,59,10,
@@ -18396,73 +18679,70 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 35,100,101,102,105,110,101,32,65,83,83,69,82,84,50,40,116,101,115,116,44,118,49,44,118,50,41,32,92,10,
                 32,32,32,32,69,88,80,69,67,84,50,40,116,101,115,116,44,32,32,34,97,115,115,101,114,116,105,111,110,32,102,97,105,108,101,100,32,40,34,32,35,116,101,115,116,32,34,41,34,44,32,118,49,44,32,118,50,41,10,
                 10,
-                10,
                 115,116,97,116,105,99,32,118,111,105,100,32,102,114,101,101,95,118,97,108,117,101,40,86,65,76,32,118,41,59,10,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,105,110,99,114,101,102,40,86,65,76,32,118,41,32,123,10,
-                32,32,32,32,105,102,32,40,118,46,116,97,103,32,38,32,72,65,83,95,82,69,70,83,41,32,123,10,
-                32,32,32,32,32,32,32,32,40,42,118,46,100,97,116,97,46,114,101,102,115,41,43,43,59,10,
+                32,32,32,32,105,102,32,40,72,65,83,95,82,69,70,83,40,118,41,41,32,123,10,
+                32,32,32,32,32,32,32,32,86,82,69,70,83,40,118,41,43,43,59,10,
                 32,32,32,32,125,10,
                 125,10,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,100,101,99,114,101,102,40,86,65,76,32,118,41,32,123,10,
-                32,32,32,32,105,102,32,40,118,46,116,97,103,32,38,32,72,65,83,95,82,69,70,83,41,32,123,10,
-                32,32,32,32,32,32,32,32,105,102,40,45,45,40,42,118,46,100,97,116,97,46,114,101,102,115,41,32,61,61,32,48,41,32,123,10,
+                32,32,32,32,105,102,32,40,72,65,83,95,82,69,70,83,40,118,41,41,32,123,10,
+                32,32,32,32,32,32,32,32,105,102,40,45,45,86,82,69,70,83,40,118,41,32,61,61,32,48,41,32,123,10,
                 32,32,32,32,32,32,32,32,32,32,32,32,102,114,101,101,95,118,97,108,117,101,40,118,41,59,10,
                 32,32,32,32,32,32,32,32,125,10,
                 32,32,32,32,125,10,
                 125,10,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,102,114,101,101,95,118,97,108,117,101,40,86,65,76,32,118,41,32,123,10,
-                32,32,32,32,65,83,83,69,82,84,40,118,46,116,97,103,32,38,32,72,65,83,95,82,69,70,83,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,40,118,46,100,97,116,97,46,114,101,102,115,32,38,38,32,42,118,46,100,97,116,97,46,114,101,102,115,32,61,61,32,48,41,59,10,
-                32,32,32,32,115,119,105,116,99,104,32,40,118,46,116,97,103,41,32,123,10,
-                32,32,32,32,32,32,32,32,99,97,115,101,32,84,65,71,95,73,78,84,58,32,65,83,83,69,82,84,40,48,41,59,32,98,114,101,97,107,59,10,
-                32,32,32,32,32,32,32,32,99,97,115,101,32,84,65,71,95,67,79,78,83,58,32,123,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,67,79,78,83,42,32,99,111,110,115,32,61,32,118,46,100,97,116,97,46,99,111,110,115,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,99,111,110,115,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,99,111,110,115,45,62,99,97,114,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,99,111,110,115,45,62,99,100,114,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,102,114,101,101,40,99,111,110,115,41,59,10,
-                32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
-                32,32,32,32,32,32,32,32,99,97,115,101,32,84,65,71,95,83,84,82,58,32,123,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,83,84,82,42,32,115,116,114,32,61,32,118,46,100,97,116,97,46,115,116,114,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,115,116,114,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,102,114,101,101,40,115,116,114,41,59,10,
-                32,32,32,32,32,32,32,32,125,32,98,114,101,97,107,59,10,
+                32,32,32,32,65,83,83,69,82,84,40,72,65,83,95,82,69,70,83,40,118,41,41,59,10,
+                32,32,32,32,65,83,83,69,82,84,40,86,82,69,70,83,40,118,41,32,61,61,32,48,41,59,10,
+                32,32,32,32,65,83,83,69,82,84,49,40,73,83,95,67,79,78,83,40,118,41,124,124,73,83,95,83,84,82,40,118,41,44,32,118,41,59,10,
+                32,32,32,32,105,102,32,40,73,83,95,67,79,78,83,40,118,41,41,32,123,10,
+                32,32,32,32,32,32,32,32,67,79,78,83,42,32,99,111,110,115,32,61,32,86,67,79,78,83,40,118,41,59,10,
+                32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,99,111,110,115,41,59,10,
+                32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,99,111,110,115,45,62,99,97,114,41,59,10,
+                32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,99,111,110,115,45,62,99,100,114,41,59,10,
+                32,32,32,32,32,32,32,32,102,114,101,101,40,99,111,110,115,41,59,10,
+                32,32,32,32,125,32,101,108,115,101,32,105,102,32,40,73,83,95,83,84,82,40,118,41,41,32,123,10,
+                32,32,32,32,32,32,32,32,83,84,82,42,32,115,116,114,32,61,32,86,83,84,82,40,118,41,59,10,
+                32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,115,116,114,41,59,10,
+                32,32,32,32,32,32,32,32,102,114,101,101,40,115,116,114,41,59,10,
                 32,32,32,32,125,10,
                 125,10,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,118,97,108,117,101,95,117,110,99,111,110,115,40,86,65,76,32,118,97,108,44,32,86,65,76,42,32,99,97,114,44,32,86,65,76,42,32,99,100,114,41,32,123,10,
-                32,32,32,32,105,102,32,40,118,97,108,46,116,97,103,32,61,61,32,84,65,71,95,67,79,78,83,41,32,123,10,
-                32,32,32,32,32,32,32,32,42,99,97,114,32,61,32,118,97,108,46,100,97,116,97,46,99,111,110,115,45,62,99,97,114,59,10,
-                32,32,32,32,32,32,32,32,42,99,100,114,32,61,32,118,97,108,46,100,97,116,97,46,99,111,110,115,45,62,99,100,114,59,10,
+                32,32,32,32,105,102,32,40,73,83,95,67,79,78,83,40,118,97,108,41,41,32,123,10,
+                32,32,32,32,32,32,32,32,67,79,78,83,42,32,99,111,110,115,32,61,32,86,67,79,78,83,40,118,97,108,41,59,10,
+                32,32,32,32,32,32,32,32,42,99,97,114,32,61,32,99,111,110,115,45,62,99,97,114,59,10,
+                32,32,32,32,32,32,32,32,42,99,100,114,32,61,32,99,111,110,115,45,62,99,100,114,59,10,
                 32,32,32,32,125,32,101,108,115,101,32,123,10,
-                32,32,32,32,32,32,32,32,42,99,97,114,32,61,32,40,86,65,76,41,123,48,125,59,10,
+                32,32,32,32,32,32,32,32,42,99,97,114,32,61,32,77,75,78,73,76,40,41,59,10,
                 32,32,32,32,32,32,32,32,42,99,100,114,32,61,32,118,97,108,59,10,
                 32,32,32,32,125,10,
                 125,10,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,42,32,118,97,108,117,101,95,112,116,114,32,40,86,65,76,32,118,41,32,123,10,
-                32,32,32,32,65,83,83,69,82,84,40,118,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,59,10,
-                32,32,32,32,114,101,116,117,114,110,32,118,46,100,97,116,97,46,112,116,114,59,10,
+                32,32,32,32,65,83,83,69,82,84,40,73,83,95,80,84,82,40,118,41,41,59,10,
+                32,32,32,32,114,101,116,117,114,110,32,86,80,84,82,40,118,41,59,10,
                 125,10,
                 10,
-                35,100,101,102,105,110,101,32,112,111,112,95,102,110,112,116,114,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,102,110,112,116,114,41,10,
-                35,100,101,102,105,110,101,32,112,111,112,95,117,56,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,117,56,41,10,
-                35,100,101,102,105,110,101,32,112,111,112,95,117,49,54,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,117,49,54,41,10,
-                35,100,101,102,105,110,101,32,112,111,112,95,117,51,50,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,117,51,50,41,10,
-                35,100,101,102,105,110,101,32,112,111,112,95,117,54,52,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,117,54,52,41,10,
-                35,100,101,102,105,110,101,32,112,111,112,95,105,56,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,105,56,41,10,
-                35,100,101,102,105,110,101,32,112,111,112,95,105,49,54,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,105,49,54,41,10,
-                35,100,101,102,105,110,101,32,112,111,112,95,105,51,50,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,105,51,50,41,10,
-                35,100,101,102,105,110,101,32,112,111,112,95,105,54,52,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,105,54,52,41,10,
-                35,100,101,102,105,110,101,32,112,111,112,95,117,115,105,122,101,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,117,115,105,122,101,41,10,
-                35,100,101,102,105,110,101,32,112,111,112,95,98,111,111,108,40,41,32,40,40,98,111,111,108,41,112,111,112,95,117,54,52,40,41,41,10,
-                35,100,101,102,105,110,101,32,112,111,112,95,112,116,114,40,41,32,40,112,111,112,95,118,97,108,117,101,40,41,46,100,97,116,97,46,112,116,114,41,10,
+                35,100,101,102,105,110,101,32,112,111,112,95,102,110,112,116,114,40,41,32,86,70,78,80,84,82,40,112,111,112,95,118,97,108,117,101,40,41,41,10,
+                35,100,101,102,105,110,101,32,112,111,112,95,117,56,40,41,32,40,40,117,105,110,116,56,95,116,41,86,85,54,52,40,112,111,112,95,118,97,108,117,101,40,41,41,41,10,
+                35,100,101,102,105,110,101,32,112,111,112,95,117,49,54,40,41,32,40,40,117,105,110,116,49,54,95,116,41,86,85,54,52,40,112,111,112,95,118,97,108,117,101,40,41,41,41,10,
+                35,100,101,102,105,110,101,32,112,111,112,95,117,51,50,40,41,32,40,40,117,105,110,116,51,50,95,116,41,86,85,54,52,40,112,111,112,95,118,97,108,117,101,40,41,41,41,10,
+                35,100,101,102,105,110,101,32,112,111,112,95,117,54,52,40,41,32,40,86,85,54,52,40,112,111,112,95,118,97,108,117,101,40,41,41,41,10,
+                35,100,101,102,105,110,101,32,112,111,112,95,105,56,40,41,32,40,40,105,110,116,56,95,116,41,86,73,54,52,40,112,111,112,95,118,97,108,117,101,40,41,41,41,10,
+                35,100,101,102,105,110,101,32,112,111,112,95,105,49,54,40,41,32,40,40,105,110,116,49,54,95,116,41,86,73,54,52,40,112,111,112,95,118,97,108,117,101,40,41,41,41,10,
+                35,100,101,102,105,110,101,32,112,111,112,95,105,51,50,40,41,32,40,40,105,110,116,51,50,95,116,41,86,73,54,52,40,112,111,112,95,118,97,108,117,101,40,41,41,41,10,
+                35,100,101,102,105,110,101,32,112,111,112,95,105,54,52,40,41,32,40,86,73,54,52,40,112,111,112,95,118,97,108,117,101,40,41,41,41,10,
+                35,100,101,102,105,110,101,32,112,111,112,95,117,115,105,122,101,40,41,32,40,86,85,54,52,40,112,111,112,95,118,97,108,117,101,40,41,41,41,10,
+                35,100,101,102,105,110,101,32,112,111,112,95,98,111,111,108,40,41,32,40,40,98,111,111,108,41,86,85,54,52,40,112,111,112,95,118,97,108,117,101,40,41,41,41,10,
+                35,100,101,102,105,110,101,32,112,111,112,95,112,116,114,40,41,32,40,86,80,84,82,40,112,111,112,95,118,97,108,117,101,40,41,41,41,10,
                 10,
-                35,100,101,102,105,110,101,32,112,117,115,104,95,117,54,52,40,118,41,32,112,117,115,104,95,118,97,108,117,101,40,109,107,117,54,52,40,118,41,41,10,
-                35,100,101,102,105,110,101,32,112,117,115,104,95,105,54,52,40,118,41,32,112,117,115,104,95,118,97,108,117,101,40,109,107,105,54,52,40,118,41,41,10,
+                35,100,101,102,105,110,101,32,112,117,115,104,95,117,54,52,40,118,41,32,112,117,115,104,95,118,97,108,117,101,40,77,75,85,54,52,40,118,41,41,10,
+                35,100,101,102,105,110,101,32,112,117,115,104,95,105,54,52,40,118,41,32,112,117,115,104,95,118,97,108,117,101,40,77,75,73,54,52,40,118,41,41,10,
                 35,100,101,102,105,110,101,32,112,117,115,104,95,117,115,105,122,101,40,118,41,32,112,117,115,104,95,117,54,52,40,40,117,105,110,116,54,52,95,116,41,40,118,41,41,10,
                 35,100,101,102,105,110,101,32,112,117,115,104,95,102,110,112,116,114,40,118,41,32,112,117,115,104,95,117,54,52,40,40,117,105,110,116,54,52,95,116,41,40,118,41,41,10,
                 35,100,101,102,105,110,101,32,112,117,115,104,95,98,111,111,108,40,98,41,32,112,117,115,104,95,117,54,52,40,40,117,105,110,116,54,52,95,116,41,40,40,98,111,111,108,41,40,98,41,41,41,10,
@@ -18489,31 +18769,15 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 32,32,32,32,114,101,116,117,114,110,32,115,116,97,99,107,91,115,116,97,99,107,95,99,111,117,110,116,101,114,43,43,93,59,10,
                 125,10,
                 10,
-                115,116,97,116,105,99,32,86,65,76,32,109,107,105,110,116,32,40,105,110,116,54,52,95,116,32,120,41,32,123,10,
-                32,32,32,32,114,101,116,117,114,110,32,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,73,78,84,44,32,46,100,97,116,97,61,123,46,105,54,52,61,120,125,125,59,10,
-                125,10,
-                10,
-                115,116,97,116,105,99,32,86,65,76,32,109,107,117,54,52,32,40,117,105,110,116,54,52,95,116,32,120,41,32,123,10,
-                32,32,32,32,114,101,116,117,114,110,32,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,73,78,84,44,32,46,100,97,116,97,61,123,46,117,54,52,61,120,125,125,59,10,
-                125,10,
-                10,
-                115,116,97,116,105,99,32,86,65,76,32,109,107,105,54,52,32,40,105,110,116,54,52,95,116,32,120,41,32,123,10,
-                32,32,32,32,114,101,116,117,114,110,32,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,73,78,84,44,32,46,100,97,116,97,61,123,46,105,54,52,61,120,125,125,59,10,
-                125,10,
-                10,
                 115,116,97,116,105,99,32,86,65,76,32,109,107,99,111,110,115,32,40,86,65,76,32,99,97,114,44,32,86,65,76,32,99,100,114,41,32,123,10,
-                32,32,32,32,105,102,32,40,40,99,97,114,46,100,97,116,97,46,117,115,105,122,101,32,61,61,32,48,41,32,38,38,32,40,99,100,114,46,116,97,103,32,33,61,32,84,65,71,95,67,79,78,83,41,41,10,
+                32,32,32,32,105,102,32,40,73,83,95,78,73,76,40,99,97,114,41,32,38,38,32,33,73,83,95,67,79,78,83,40,99,100,114,41,41,10,
                 32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,99,100,114,59,10,
                 32,32,32,32,67,79,78,83,32,42,99,111,110,115,32,61,32,99,97,108,108,111,99,40,49,44,32,115,105,122,101,111,102,40,67,79,78,83,41,41,59,10,
                 32,32,32,32,69,88,80,69,67,84,40,99,111,110,115,44,32,34,102,97,105,108,101,100,32,116,111,32,97,108,108,111,99,97,116,101,32,97,32,99,111,110,115,32,99,101,108,108,34,41,59,10,
                 32,32,32,32,99,111,110,115,45,62,114,101,102,115,32,61,32,49,59,10,
                 32,32,32,32,99,111,110,115,45,62,99,97,114,32,61,32,99,97,114,59,10,
                 32,32,32,32,99,111,110,115,45,62,99,100,114,32,61,32,99,100,114,59,10,
-                32,32,32,32,114,101,116,117,114,110,32,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,67,79,78,83,44,32,46,100,97,116,97,61,123,46,99,111,110,115,61,99,111,110,115,125,125,59,10,
-                125,10,
-                10,
-                115,116,97,116,105,99,32,86,65,76,32,109,107,112,116,114,32,40,118,111,105,100,42,32,112,116,114,41,32,123,10,
-                32,32,32,32,114,101,116,117,114,110,32,40,86,65,76,41,32,123,46,116,97,103,61,84,65,71,95,73,78,84,44,32,46,100,97,116,97,61,123,46,112,116,114,61,112,116,114,125,125,59,10,
+                32,32,32,32,114,101,116,117,114,110,32,77,75,67,79,78,83,40,99,111,110,115,41,59,10,
                 125,10,
                 10,
                 115,116,97,116,105,99,32,83,84,82,42,32,115,116,114,95,97,108,108,111,99,32,40,85,83,73,90,69,32,99,97,112,41,32,123,10,
@@ -18531,7 +18795,7 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 32,32,32,32,83,84,82,42,32,115,116,114,32,61,32,115,116,114,95,97,108,108,111,99,40,115,105,122,101,41,59,10,
                 32,32,32,32,115,116,114,45,62,115,105,122,101,32,61,32,115,105,122,101,59,10,
                 32,32,32,32,109,101,109,99,112,121,40,115,116,114,45,62,100,97,116,97,44,32,100,97,116,97,44,32,40,115,105,122,101,95,116,41,115,105,122,101,41,59,10,
-                32,32,32,32,114,101,116,117,114,110,32,40,86,65,76,41,32,123,32,46,116,97,103,61,84,65,71,95,83,84,82,44,32,46,100,97,116,97,61,123,46,115,116,114,61,115,116,114,125,32,125,59,10,
+                32,32,32,32,114,101,116,117,114,110,32,77,75,83,84,82,40,115,116,114,41,59,10,
                 125,10,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,100,111,95,117,110,99,111,110,115,40,118,111,105,100,41,32,123,10,
@@ -18548,46 +18812,39 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 115,116,97,116,105,99,32,85,83,73,90,69,32,103,101,116,95,100,97,116,97,95,116,97,103,40,86,65,76,32,118,41,32,123,10,
                 32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
                 32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
-                32,32,32,32,114,101,116,117,114,110,32,99,100,114,46,100,97,116,97,46,117,115,105,122,101,59,10,
+                32,32,32,32,114,101,116,117,114,110,32,86,85,54,52,40,99,100,114,41,59,10,
                 125,10,
                 10,
                 115,116,97,116,105,99,32,85,83,73,90,69,32,103,101,116,95,116,111,112,95,100,97,116,97,95,116,97,103,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,114,101,116,117,114,110,32,103,101,116,95,100,97,116,97,95,116,97,103,40,116,111,112,95,118,97,108,117,101,40,41,41,59,10,
                 125,10,
                 10,
-                115,116,97,116,105,99,32,105,110,116,32,118,97,108,117,101,95,99,109,112,40,86,65,76,32,118,49,44,32,86,65,76,32,118,50,41,32,123,10,
-                32,32,32,32,119,104,105,108,101,32,40,40,118,49,46,116,97,103,32,61,61,32,84,65,71,95,67,79,78,83,41,32,124,124,32,40,118,50,46,116,97,103,32,61,61,32,84,65,71,95,67,79,78,83,41,41,32,123,10,
+                115,116,97,116,105,99,32,105,110,116,32,118,97,108,117,101,95,99,109,112,95,40,86,65,76,32,118,49,44,32,86,65,76,32,118,50,41,32,123,10,
+                32,32,32,32,119,104,105,108,101,32,40,73,83,95,67,79,78,83,40,118,49,41,32,124,124,32,73,83,95,67,79,78,83,40,118,50,41,41,32,123,10,
                 32,32,32,32,32,32,32,32,86,65,76,32,118,49,99,97,114,44,32,118,49,99,100,114,59,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,49,44,32,38,118,49,99,97,114,44,32,38,118,49,99,100,114,41,59,10,
                 32,32,32,32,32,32,32,32,86,65,76,32,118,50,99,97,114,44,32,118,50,99,100,114,59,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,50,44,32,38,118,50,99,97,114,44,32,38,118,50,99,100,114,41,59,10,
-                32,32,32,32,32,32,32,32,105,110,116,32,114,32,61,32,118,97,108,117,101,95,99,109,112,40,118,49,99,100,114,44,32,118,50,99,100,114,41,59,10,
+                32,32,32,32,32,32,32,32,105,110,116,32,114,32,61,32,118,97,108,117,101,95,99,109,112,95,40,118,49,99,100,114,44,32,118,50,99,100,114,41,59,10,
                 32,32,32,32,32,32,32,32,105,102,32,40,114,41,32,114,101,116,117,114,110,32,114,59,10,
                 32,32,32,32,32,32,32,32,118,49,32,61,32,118,49,99,97,114,59,10,
                 32,32,32,32,32,32,32,32,118,50,32,61,32,118,50,99,97,114,59,10,
                 32,32,32,32,125,10,
-                32,32,32,32,65,83,83,69,82,84,50,40,118,49,46,116,97,103,32,61,61,32,118,50,46,116,97,103,44,32,118,49,44,32,118,50,41,59,10,
-                32,32,32,32,115,119,105,116,99,104,32,40,118,49,46,116,97,103,41,32,123,10,
-                32,32,32,32,32,32,32,32,99,97,115,101,32,84,65,71,95,73,78,84,58,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,100,97,116,97,46,105,54,52,32,60,32,118,50,46,100,97,116,97,46,105,54,52,41,32,114,101,116,117,114,110,32,45,49,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,118,49,46,100,97,116,97,46,105,54,52,32,62,32,118,50,46,100,97,116,97,46,105,54,52,41,32,114,101,116,117,114,110,32,49,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,48,59,10,
-                10,
-                32,32,32,32,32,32,32,32,99,97,115,101,32,84,65,71,95,83,84,82,58,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,118,49,46,100,97,116,97,46,115,116,114,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,118,50,46,100,97,116,97,46,115,116,114,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,85,83,73,90,69,32,110,49,32,61,32,118,49,46,100,97,116,97,46,115,116,114,45,62,115,105,122,101,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,85,83,73,90,69,32,110,50,32,61,32,118,50,46,100,97,116,97,46,115,116,114,45,62,115,105,122,101,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,85,83,73,90,69,32,110,32,61,32,40,110,49,32,60,32,110,50,32,63,32,110,49,32,58,32,110,50,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,110,32,60,32,83,73,90,69,95,77,65,88,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,105,110,116,32,114,32,61,32,109,101,109,99,109,112,40,118,49,46,100,97,116,97,46,115,116,114,45,62,100,97,116,97,44,32,118,50,46,100,97,116,97,46,115,116,114,45,62,100,97,116,97,44,32,40,115,105,122,101,95,116,41,110,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,114,41,32,114,101,116,117,114,110,32,114,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,110,49,32,60,32,110,50,41,32,114,101,116,117,114,110,32,45,49,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,105,102,32,40,110,49,32,62,32,110,50,41,32,114,101,116,117,114,110,32,49,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,48,59,10,
-                10,
-                32,32,32,32,32,32,32,32,99,97,115,101,32,84,65,71,95,67,79,78,83,58,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,48,41,59,10,
+                32,32,32,32,105,102,32,40,73,83,95,73,78,84,40,118,49,41,32,38,38,32,73,83,95,73,78,84,40,118,50,41,41,32,123,10,
+                32,32,32,32,32,32,32,32,105,102,32,40,86,73,78,84,40,118,49,41,32,60,32,86,73,78,84,40,118,50,41,41,32,114,101,116,117,114,110,32,45,49,59,10,
+                32,32,32,32,32,32,32,32,105,102,32,40,86,73,78,84,40,118,49,41,32,62,32,86,73,78,84,40,118,50,41,41,32,114,101,116,117,114,110,32,49,59,10,
+                32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,48,59,10,
+                32,32,32,32,125,32,101,108,115,101,32,105,102,32,40,73,83,95,83,84,82,40,118,49,41,32,38,38,32,73,83,95,83,84,82,40,118,50,41,41,32,123,10,
+                32,32,32,32,32,32,32,32,65,83,83,69,82,84,50,40,86,83,84,82,40,118,49,41,32,38,38,32,86,83,84,82,40,118,50,41,44,32,118,49,44,32,118,50,41,59,10,
+                32,32,32,32,32,32,32,32,85,83,73,90,69,32,110,49,32,61,32,86,83,84,82,40,118,49,41,45,62,115,105,122,101,59,10,
+                32,32,32,32,32,32,32,32,85,83,73,90,69,32,110,50,32,61,32,86,83,84,82,40,118,50,41,45,62,115,105,122,101,59,10,
+                32,32,32,32,32,32,32,32,85,83,73,90,69,32,110,32,61,32,40,110,49,32,60,32,110,50,32,63,32,110,49,32,58,32,110,50,41,59,10,
+                32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,110,32,60,32,83,73,90,69,95,77,65,88,41,59,10,
+                32,32,32,32,32,32,32,32,105,110,116,32,114,32,61,32,109,101,109,99,109,112,40,86,83,84,82,40,118,49,41,45,62,100,97,116,97,44,32,86,83,84,82,40,118,50,41,45,62,100,97,116,97,44,32,40,115,105,122,101,95,116,41,110,41,59,10,
+                32,32,32,32,32,32,32,32,105,102,32,40,114,41,32,114,101,116,117,114,110,32,114,59,10,
+                32,32,32,32,32,32,32,32,105,102,32,40,110,49,32,60,32,110,50,41,32,114,101,116,117,114,110,32,45,49,59,10,
+                32,32,32,32,32,32,32,32,105,102,32,40,110,49,32,62,32,110,50,41,32,114,101,116,117,114,110,32,49,59,10,
+                32,32,32,32,32,32,32,32,114,101,116,117,114,110,32,48,59,10,
                 32,32,32,32,125,10,
-                32,32,32,32,65,83,83,69,82,84,40,48,41,59,10,
+                32,32,32,32,65,83,83,69,82,84,50,40,48,44,32,118,49,44,32,118,50,41,59,10,
                 32,32,32,32,114,101,116,117,114,110,32,48,59,10,
                 125,10,
                 10,
@@ -18599,7 +18856,8 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,99,97,114,41,59,10,
                 32,32,32,32,105,110,99,114,101,102,40,99,97,114,41,59,10,
                 32,32,32,32,100,101,99,114,101,102,40,118,41,59,10,
-                32,32,32,32,99,100,114,46,100,97,116,97,46,102,110,112,116,114,40,41,59,10,
+                32,32,32,32,65,83,83,69,82,84,40,73,83,95,70,78,80,84,82,40,99,100,114,41,32,38,38,32,86,70,78,80,84,82,40,99,100,114,41,41,59,10,
+                32,32,32,32,86,70,78,80,84,82,40,99,100,114,41,40,41,59,10,
                 125,10,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,100,32,40,118,111,105,100,41,32,123,125,10,
@@ -18753,21 +19011,21 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,101,113,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,86,65,76,32,98,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
                 32,32,32,32,86,65,76,32,97,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-                32,32,32,32,105,110,116,32,99,109,112,32,61,32,118,97,108,117,101,95,99,109,112,40,97,44,98,41,59,10,
+                32,32,32,32,105,110,116,32,99,109,112,32,61,32,118,97,108,117,101,95,99,109,112,95,40,97,44,98,41,59,10,
                 32,32,32,32,112,117,115,104,95,98,111,111,108,40,99,109,112,32,61,61,32,48,41,59,10,
                 32,32,32,32,100,101,99,114,101,102,40,97,41,59,32,100,101,99,114,101,102,40,98,41,59,10,
                 125,10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,108,116,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,86,65,76,32,98,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
                 32,32,32,32,86,65,76,32,97,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-                32,32,32,32,105,110,116,32,99,109,112,32,61,32,118,97,108,117,101,95,99,109,112,40,97,44,98,41,59,10,
+                32,32,32,32,105,110,116,32,99,109,112,32,61,32,118,97,108,117,101,95,99,109,112,95,40,97,44,98,41,59,10,
                 32,32,32,32,112,117,115,104,95,98,111,111,108,40,99,109,112,32,60,32,48,41,59,10,
                 32,32,32,32,100,101,99,114,101,102,40,97,41,59,32,100,101,99,114,101,102,40,98,41,59,10,
                 125,10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,118,97,108,117,101,95,108,101,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,86,65,76,32,98,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
                 32,32,32,32,86,65,76,32,97,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-                32,32,32,32,105,110,116,32,99,109,112,32,61,32,118,97,108,117,101,95,99,109,112,40,97,44,98,41,59,10,
+                32,32,32,32,105,110,116,32,99,109,112,32,61,32,118,97,108,117,101,95,99,109,112,95,40,97,44,98,41,59,10,
                 32,32,32,32,112,117,115,104,95,98,111,111,108,40,99,109,112,32,60,61,32,48,41,59,10,
                 32,32,32,32,100,101,99,114,101,102,40,97,41,59,32,100,101,99,114,101,102,40,98,41,59,10,
                 125,10,
@@ -18848,15 +19106,22 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 125,10,
                 10,
                 118,111,105,100,32,118,97,108,117,101,95,116,114,97,99,101,95,40,86,65,76,32,118,97,108,44,32,105,110,116,32,102,100,41,32,123,10,
-                32,32,32,32,115,119,105,116,99,104,32,40,118,97,108,46,116,97,103,41,32,123,10,
-                32,32,32,32,32,32,32,32,99,97,115,101,32,84,65,71,95,73,78,84,58,32,105,110,116,95,116,114,97,99,101,95,40,118,97,108,46,100,97,116,97,46,105,54,52,44,102,100,41,59,32,98,114,101,97,107,59,10,
-                32,32,32,32,32,32,32,32,99,97,115,101,32,84,65,71,95,83,84,82,58,32,115,116,114,95,116,114,97,99,101,95,40,118,97,108,46,100,97,116,97,46,115,116,114,44,102,100,41,59,32,98,114,101,97,107,59,10,
-                32,32,32,32,32,32,32,32,99,97,115,101,32,84,65,71,95,67,79,78,83,58,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,119,114,105,116,101,40,102,100,44,32,34,91,32,34,44,32,50,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,114,97,99,101,95,40,118,97,108,46,100,97,116,97,46,99,111,110,115,45,62,99,97,114,44,32,102,100,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,119,114,105,116,101,40,102,100,44,32,34,32,34,44,32,49,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,114,97,99,101,95,40,118,97,108,46,100,97,116,97,46,99,111,110,115,45,62,99,100,114,44,32,102,100,41,59,10,
-                32,32,32,32,32,32,32,32,32,32,32,32,119,114,105,116,101,40,102,100,44,32,34,32,93,34,44,32,50,41,59,10,
+                32,32,32,32,105,102,32,40,73,83,95,73,78,84,40,118,97,108,41,41,32,123,10,
+                32,32,32,32,32,32,32,32,105,110,116,95,116,114,97,99,101,95,40,86,73,78,84,40,118,97,108,41,44,32,102,100,41,59,10,
+                32,32,32,32,125,32,101,108,115,101,32,105,102,32,40,73,83,95,83,84,82,40,118,97,108,41,41,32,123,10,
+                32,32,32,32,32,32,32,32,115,116,114,95,116,114,97,99,101,95,40,86,83,84,82,40,118,97,108,41,44,32,102,100,41,59,10,
+                32,32,32,32,125,32,101,108,115,101,32,105,102,32,40,73,83,95,67,79,78,83,40,118,97,108,41,41,32,123,10,
+                32,32,32,32,32,32,32,32,86,65,76,32,99,97,114,44,32,99,100,114,59,10,
+                32,32,32,32,32,32,32,32,118,97,108,117,101,95,117,110,99,111,110,115,40,118,97,108,44,32,38,99,97,114,44,32,38,99,100,114,41,59,10,
+                32,32,32,32,32,32,32,32,119,114,105,116,101,40,102,100,44,32,34,91,32,34,44,32,50,41,59,10,
+                32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,114,97,99,101,95,40,99,97,114,44,32,102,100,41,59,10,
+                32,32,32,32,32,32,32,32,119,114,105,116,101,40,102,100,44,32,34,32,34,44,32,49,41,59,10,
+                32,32,32,32,32,32,32,32,118,97,108,117,101,95,116,114,97,99,101,95,40,99,100,114,44,32,102,100,41,59,10,
+                32,32,32,32,32,32,32,32,119,114,105,116,101,40,102,100,44,32,34,32,93,34,44,32,50,41,59,10,
+                32,32,32,32,125,32,101,108,115,101,32,123,10,
+                32,32,32,32,32,32,32,32,99,111,110,115,116,32,99,104,97,114,42,32,109,115,103,32,61,32,34,118,97,108,117,101,32,99,97,110,110,111,116,32,98,101,32,116,114,97,99,101,100,34,59,10,
+                32,32,32,32,32,32,32,32,119,114,105,116,101,40,50,44,32,109,115,103,44,32,115,116,114,108,101,110,40,109,115,103,41,41,59,10,
+                32,32,32,32,32,32,32,32,101,120,105,116,40,49,41,59,10,
                 32,32,32,32,125,10,
                 125,10,
                 10,
@@ -19046,8 +19311,8 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,97,100,100,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,86,65,76,32,118,112,116,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
                 32,32,32,32,85,83,73,90,69,32,110,32,61,32,112,111,112,95,117,115,105,122,101,40,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,40,118,112,116,114,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,59,10,
-                32,32,32,32,99,104,97,114,42,32,112,116,114,32,61,32,118,112,116,114,46,100,97,116,97,46,112,116,114,59,10,
+                32,32,32,32,65,83,83,69,82,84,40,73,83,95,80,84,82,40,118,112,116,114,41,32,38,38,32,86,80,84,82,40,118,112,116,114,41,41,59,10,
+                32,32,32,32,99,104,97,114,42,32,112,116,114,32,61,32,40,99,104,97,114,42,41,86,80,84,82,40,118,112,116,114,41,59,10,
                 32,32,32,32,112,117,115,104,95,112,116,114,40,112,116,114,32,43,32,110,41,59,10,
                 125,10,
                 35,100,101,102,105,110,101,32,109,119,95,112,114,105,109,95,112,116,114,95,115,105,122,101,40,41,32,112,117,115,104,95,117,54,52,40,40,117,105,110,116,54,52,95,116,41,115,105,122,101,111,102,40,118,111,105,100,42,41,41,10,
@@ -19062,7 +19327,7 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 32,32,32,32,86,65,76,32,118,100,115,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
                 32,32,32,32,105,110,116,54,52,95,116,32,105,108,101,110,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
                 32,32,32,32,86,65,76,32,118,115,114,99,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,50,40,118,115,114,99,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,32,38,38,32,118,100,115,116,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,44,32,118,115,114,99,44,32,118,100,115,116,41,59,10,
+                32,32,32,32,65,83,83,69,82,84,50,40,73,83,95,80,84,82,40,118,115,114,99,41,32,38,38,32,73,83,95,80,84,82,40,118,100,115,116,41,44,32,118,115,114,99,44,32,118,100,115,116,41,59,10,
                 32,32,32,32,118,111,105,100,42,32,115,114,99,32,61,32,118,97,108,117,101,95,112,116,114,40,118,115,114,99,41,59,10,
                 32,32,32,32,118,111,105,100,42,32,100,115,116,32,61,32,118,97,108,117,101,95,112,116,114,40,118,100,115,116,41,59,10,
                 32,32,32,32,105,102,32,40,115,114,99,32,38,38,32,100,115,116,32,38,38,32,40,105,108,101,110,32,62,32,48,41,41,32,123,10,
@@ -19073,7 +19338,7 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,102,105,108,108,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,86,65,76,32,118,100,115,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,49,40,118,100,115,116,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,44,32,118,100,115,116,41,59,10,
+                32,32,32,32,65,83,83,69,82,84,49,40,73,83,95,80,84,82,40,118,100,115,116,41,44,32,118,100,115,116,41,59,10,
                 32,32,32,32,105,110,116,54,52,95,116,32,105,108,101,110,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
                 32,32,32,32,105,110,116,54,52,95,116,32,118,97,108,32,61,32,112,111,112,95,105,54,52,40,41,59,10,
                 32,32,32,32,118,111,105,100,42,32,100,115,116,32,61,32,118,97,108,117,101,95,112,116,114,40,118,100,115,116,41,59,10,
@@ -19085,16 +19350,16 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,114,97,119,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,86,65,76,32,118,112,116,114,32,61,32,116,111,112,95,118,97,108,117,101,40,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,40,118,112,116,114,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,59,10,
+                32,32,32,32,65,83,83,69,82,84,40,73,83,95,80,84,82,40,118,112,116,114,41,41,59,10,
                 32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,118,112,116,114,41,59,10,
                 125,10,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,115,116,114,95,101,113,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,86,65,76,32,118,112,116,114,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
                 32,32,32,32,86,65,76,32,118,112,116,114,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,50,40,118,112,116,114,49,46,116,97,103,32,61,61,32,84,65,71,95,83,84,82,32,38,38,32,118,112,116,114,50,46,116,97,103,32,61,61,32,84,65,71,95,83,84,82,44,32,118,112,116,114,49,44,32,118,112,116,114,50,41,59,10,
-                32,32,32,32,83,84,82,42,32,115,116,114,49,32,61,32,118,112,116,114,49,46,100,97,116,97,46,115,116,114,59,10,
-                32,32,32,32,83,84,82,42,32,115,116,114,50,32,61,32,118,112,116,114,50,46,100,97,116,97,46,115,116,114,59,10,
+                32,32,32,32,65,83,83,69,82,84,50,40,73,83,95,83,84,82,40,118,112,116,114,49,41,32,38,38,32,73,83,95,83,84,82,40,118,112,116,114,50,41,44,32,118,112,116,114,49,44,32,118,112,116,114,50,41,59,10,
+                32,32,32,32,83,84,82,42,32,115,116,114,49,32,61,32,86,83,84,82,40,118,112,116,114,49,41,59,10,
+                32,32,32,32,83,84,82,42,32,115,116,114,50,32,61,32,86,83,84,82,40,118,112,116,114,50,41,59,10,
                 32,32,32,32,65,83,83,69,82,84,40,115,116,114,49,45,62,115,105,122,101,32,60,61,32,83,73,90,69,95,77,65,88,41,59,10,
                 32,32,32,32,112,117,115,104,95,98,111,111,108,40,40,115,116,114,49,45,62,115,105,122,101,32,61,61,32,115,116,114,50,45,62,115,105,122,101,41,32,38,38,10,
                 32,32,32,32,32,32,32,32,40,109,101,109,99,109,112,40,115,116,114,49,45,62,100,97,116,97,44,32,115,116,114,50,45,62,100,97,116,97,44,32,40,115,105,122,101,95,116,41,115,116,114,49,45,62,115,105,122,101,41,32,61,61,32,48,41,41,59,10,
@@ -19107,15 +19372,15 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 32,32,32,32,65,83,83,69,82,84,40,115,105,122,101,32,60,61,32,83,73,90,69,95,77,65,88,45,115,105,122,101,111,102,40,83,84,82,41,45,52,41,59,10,
                 32,32,32,32,83,84,82,42,32,115,116,114,32,61,32,115,116,114,95,97,108,108,111,99,40,115,105,122,101,41,59,10,
                 32,32,32,32,115,116,114,45,62,115,105,122,101,32,61,32,115,105,122,101,59,10,
-                32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,40,86,65,76,41,123,46,116,97,103,61,84,65,71,95,83,84,82,44,32,46,100,97,116,97,61,123,46,115,116,114,61,115,116,114,125,125,41,59,10,
+                32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,77,75,83,84,82,40,115,116,114,41,41,59,10,
                 125,10,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,115,116,114,95,99,97,116,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,86,65,76,32,118,50,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
                 32,32,32,32,86,65,76,32,118,49,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,50,40,40,118,49,46,116,97,103,32,61,61,32,84,65,71,95,83,84,82,41,32,38,38,32,40,118,50,46,116,97,103,32,61,61,32,84,65,71,95,83,84,82,41,44,32,118,49,44,32,118,50,41,59,10,
-                32,32,32,32,83,84,82,42,32,115,49,32,61,32,118,49,46,100,97,116,97,46,115,116,114,59,10,
-                32,32,32,32,83,84,82,42,32,115,50,32,61,32,118,50,46,100,97,116,97,46,115,116,114,59,10,
+                32,32,32,32,65,83,83,69,82,84,50,40,73,83,95,83,84,82,40,118,49,41,32,38,38,32,73,83,95,83,84,82,40,118,50,41,44,32,118,49,44,32,118,50,41,59,10,
+                32,32,32,32,83,84,82,42,32,115,49,32,61,32,86,83,84,82,40,118,49,41,59,10,
+                32,32,32,32,83,84,82,42,32,115,50,32,61,32,86,83,84,82,40,118,50,41,59,10,
                 32,32,32,32,85,83,73,90,69,32,109,32,61,32,115,49,45,62,99,97,112,59,10,
                 32,32,32,32,85,83,73,90,69,32,110,49,32,61,32,115,49,45,62,115,105,122,101,59,10,
                 32,32,32,32,85,83,73,90,69,32,110,50,32,61,32,115,50,45,62,115,105,122,101,59,10,
@@ -19135,7 +19400,7 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 32,32,32,32,32,32,32,32,65,83,83,69,82,84,40,110,50,32,60,61,32,83,73,90,69,95,77,65,88,41,59,10,
                 32,32,32,32,32,32,32,32,109,101,109,99,112,121,40,115,116,114,45,62,100,97,116,97,44,32,115,49,45,62,100,97,116,97,44,32,40,115,105,122,101,95,116,41,110,49,41,59,10,
                 32,32,32,32,32,32,32,32,109,101,109,99,112,121,40,115,116,114,45,62,100,97,116,97,43,110,49,44,32,115,50,45,62,100,97,116,97,44,32,40,115,105,122,101,95,116,41,110,50,41,59,10,
-                32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,40,86,65,76,41,123,32,46,116,97,103,61,84,65,71,95,83,84,82,44,32,46,100,97,116,97,61,123,46,115,116,114,61,115,116,114,125,32,125,41,59,10,
+                32,32,32,32,32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,77,75,83,84,82,40,115,116,114,41,41,59,10,
                 32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,118,49,41,59,10,
                 32,32,32,32,32,32,32,32,100,101,99,114,101,102,40,118,50,41,59,10,
                 32,32,32,32,125,10,
@@ -19143,15 +19408,15 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,115,116,114,95,98,97,115,101,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,86,65,76,32,118,115,116,114,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,49,40,118,115,116,114,46,116,97,103,32,61,61,32,84,65,71,95,83,84,82,32,38,38,32,118,115,116,114,46,100,97,116,97,46,115,116,114,44,32,118,115,116,114,41,59,10,
-                32,32,32,32,112,117,115,104,95,112,116,114,40,118,115,116,114,46,100,97,116,97,46,115,116,114,45,62,100,97,116,97,41,59,10,
+                32,32,32,32,65,83,83,69,82,84,49,40,73,83,95,83,84,82,40,118,115,116,114,41,32,38,38,32,86,83,84,82,40,118,115,116,114,41,44,32,118,115,116,114,41,59,10,
+                32,32,32,32,112,117,115,104,95,112,116,114,40,86,83,84,82,40,118,115,116,114,41,45,62,100,97,116,97,41,59,10,
                 32,32,32,32,100,101,99,114,101,102,40,118,115,116,114,41,59,10,
                 125,10,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,115,116,114,95,115,105,122,101,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,86,65,76,32,118,32,61,32,116,111,112,95,118,97,108,117,101,40,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,40,118,46,116,97,103,32,61,61,32,84,65,71,95,83,84,82,32,38,38,32,118,46,100,97,116,97,46,115,116,114,41,59,10,
-                32,32,32,32,112,117,115,104,95,117,115,105,122,101,40,118,46,100,97,116,97,46,115,116,114,45,62,115,105,122,101,41,59,10,
+                32,32,32,32,65,83,83,69,82,84,40,73,83,95,83,84,82,40,118,41,32,38,38,32,86,83,84,82,40,118,41,41,59,10,
+                32,32,32,32,112,117,115,104,95,117,115,105,122,101,40,86,83,84,82,40,118,41,45,62,115,105,122,101,41,59,10,
                 125,10,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,97,99,107,95,110,105,108,32,40,118,111,105,100,41,32,123,10,
@@ -19175,9 +19440,8 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,109,117,116,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,86,65,76,32,109,117,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,40,109,117,116,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,40,109,117,116,46,100,97,116,97,46,112,116,114,41,59,10,
-                32,32,32,32,86,65,76,32,118,32,61,32,42,109,117,116,46,100,97,116,97,46,118,97,108,112,116,114,59,10,
+                32,32,32,32,65,83,83,69,82,84,49,40,73,83,95,80,84,82,40,109,117,116,41,32,38,38,32,86,80,84,82,40,109,117,116,41,44,32,109,117,116,41,59,10,
+                32,32,32,32,86,65,76,32,118,32,61,32,42,40,86,65,76,42,41,86,80,84,82,40,109,117,116,41,59,10,
                 32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,118,41,59,10,
                 32,32,32,32,105,110,99,114,101,102,40,118,41,59,10,
                 125,10,
@@ -19185,17 +19449,17 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 32,32,32,32,86,65,76,32,109,117,116,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
                 32,32,32,32,86,65,76,32,110,101,119,118,97,108,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
                 32,32,32,32,112,117,115,104,95,118,97,108,117,101,40,109,117,116,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,40,109,117,116,46,116,97,103,32,61,61,32,84,65,71,95,73,78,84,41,59,10,
-                32,32,32,32,65,83,83,69,82,84,40,109,117,116,46,100,97,116,97,46,112,116,114,41,59,10,
-                32,32,32,32,86,65,76,32,111,108,100,118,97,108,32,61,32,42,109,117,116,46,100,97,116,97,46,118,97,108,112,116,114,59,10,
-                32,32,32,32,42,109,117,116,46,100,97,116,97,46,118,97,108,112,116,114,32,61,32,110,101,119,118,97,108,59,10,
+                32,32,32,32,65,83,83,69,82,84,49,40,73,83,95,80,84,82,40,109,117,116,41,32,38,38,32,86,80,84,82,40,109,117,116,41,44,32,109,117,116,41,59,10,
+                32,32,32,32,86,65,76,32,111,108,100,118,97,108,32,61,32,42,40,86,65,76,42,41,86,80,84,82,40,109,117,116,41,59,10,
+                32,32,32,32,42,40,86,65,76,42,41,86,80,84,82,40,109,117,116,41,32,61,32,110,101,119,118,97,108,59,10,
                 32,32,32,32,100,101,99,114,101,102,40,111,108,100,118,97,108,41,59,10,
                 125,10,
                 10,
                 47,42,32,71,69,78,69,82,65,84,69,68,32,67,57,57,32,42,47,10,
                 
             };
-            v = mkstr((char*)b, 21697);
+            v = mkstr((char*)b, 22210);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19218,18 +19482,22 @@ static void mw_c99_buffer_21_ (void){
     mw__40_();
     mw__2E_w();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" {", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    static uint8_t b[", 21);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19240,27 +19508,33 @@ static void mw_c99_buffer_21_ (void){
     mw__40_();
     mw__2E_n();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("] = {0};", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    push_ptr(&b);", 17);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19279,9 +19553,11 @@ static void mw_c99_variables_21_ (void){
 
 static void mw_c99_variable_21_ (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("void mw_", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19291,36 +19567,44 @@ static void mw_c99_variable_21_ (void){
     mw__40_();
     mw__2E_name();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("() {", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    static VAL v = {0};", 23);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    push_ptr(&v);", 17);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19342,9 +19626,11 @@ static void mw_c99_tag_21_ (void){
     mw__40_();
     mw__2E_w();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" {", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19359,9 +19645,11 @@ static void mw_c99_tag_21_ (void){
         mw__3D__3D_();
         if (pop_u64()) {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("    push_u64(", 13);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -19371,9 +19659,11 @@ static void mw_c99_tag_21_ (void){
             mw__40_();
             mw__2E_n();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("LL);", 4);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -19381,9 +19671,11 @@ static void mw_c99_tag_21_ (void){
             mw__3B_();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("    VAL car = pop_value();", 26);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -19396,9 +19688,11 @@ static void mw_c99_tag_21_ (void){
             mw_prim_pack_cons();
             mw_repeat();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
-                    v = mkstr("    VAL tag = mku64(", 20);
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
+                    v = mkstr("    VAL tag = MKU64(", 20);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -19408,27 +19702,33 @@ static void mw_c99_tag_21_ (void){
             mw__40_();
             mw__2E_n();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("LL);", 4);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
             }
             mw__3B_();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("    car = mkcons(car, tag);", 27);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
             }
             mw__3B_();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("    push_value(car);", 20);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -19437,9 +19737,11 @@ static void mw_c99_tag_21_ (void){
         }
     }
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19465,9 +19767,11 @@ static void mw_c99_external_21_ (void){
     mw__3E__3D_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("can't declare external with multiple return values", 50);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -19479,9 +19783,11 @@ static void mw_c99_external_21_ (void){
         mw__3E__3D_();
         if (pop_u64()) {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("int64_t ", 8);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -19489,9 +19795,11 @@ static void mw_c99_external_21_ (void){
             mw__2E_();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("void ", 5);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -19504,9 +19812,11 @@ static void mw_c99_external_21_ (void){
     mw_prim_pack_cons();
     mw_dip2();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" (", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19517,9 +19827,11 @@ static void mw_c99_external_21_ (void){
     mw_0_3E_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("int64_t", 7);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -19533,9 +19845,11 @@ static void mw_c99_external_21_ (void){
     } else {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("void", 4);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -19543,18 +19857,22 @@ static void mw_c99_external_21_ (void){
         mw__2E_();
     }
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(");", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("static void mw_", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19565,9 +19883,11 @@ static void mw_c99_external_21_ (void){
     mw_prim_pack_cons();
     mw_dip2();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" (void) {", 9);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19582,18 +19902,22 @@ static void mw_c99_external_21_ (void){
     mw_0_3E_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("    push_i64(", 13);
+                vready = true;
             }
             push_value(v);
             incref(v);
         }
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("    ", 4);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -19605,9 +19929,11 @@ static void mw_c99_external_21_ (void){
     mw_prim_pack_cons();
     mw_dip2();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("(", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19626,9 +19952,11 @@ static void mw_c99_external_21_ (void){
             mw_prim_pack_cons();
             mw_count();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("x", 1);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -19641,9 +19969,11 @@ static void mw_c99_external_21_ (void){
         push_value(d2);
     }
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(")", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19653,18 +19983,22 @@ static void mw_c99_external_21_ (void){
     mw_0_3E_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr(");", 2);
+                vready = true;
             }
             push_value(v);
             incref(v);
         }
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr(";", 1);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -19672,9 +20006,11 @@ static void mw_c99_external_21_ (void){
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -19863,7 +20199,7 @@ static void mw_c99_str_21_ (void){
     mw_prim_pack_cons();
     mw_c99_nest();
     push_u64(0);
-    push_fnptr(&mb_c99_str_21__20);
+    push_fnptr(&mb_c99_str_21__22);
     mw_prim_pack_cons();
     mw_c99_line();
     mw_drop();
@@ -19893,9 +20229,11 @@ static void mw_c99_string_char_21_ (void){
     if (pop_u64()) {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("\\\\", 2);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -19907,9 +20245,11 @@ static void mw_c99_string_char_21_ (void){
         if (pop_u64()) {
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("\\\"", 2);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -19931,9 +20271,11 @@ static void mw_c99_string_char_21_ (void){
                 if (pop_u64()) {
                     mw_drop();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("\\t", 2);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -19947,9 +20289,11 @@ static void mw_c99_string_char_21_ (void){
                     if (pop_u64()) {
                         mw_drop();
                         {
-                            static VAL v = {0};
-                            if (!v.data.str) {
+                            static bool vready = false;
+                            static VAL v;
+                            if (!vready) {
                                 v = mkstr("\\n", 2);
+                                vready = true;
                             }
                             push_value(v);
                             incref(v);
@@ -19963,9 +20307,11 @@ static void mw_c99_string_char_21_ (void){
                         if (pop_u64()) {
                             mw_drop();
                             {
-                                static VAL v = {0};
-                                if (!v.data.str) {
+                                static bool vready = false;
+                                static VAL v;
+                                if (!vready) {
                                     v = mkstr("\\r", 2);
+                                    vready = true;
                                 }
                                 push_value(v);
                                 incref(v);
@@ -20120,9 +20466,11 @@ static void mw_c99_arg_run_21_ (void){
 
 static void mw__2E_var (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("var_", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -20245,9 +20593,11 @@ static void mw_c99_match_21_ (void){
                 mw_match_token();
                 mw__40_();
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("codegen: unexpected number of cases in transparent match", 56);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -20386,9 +20736,11 @@ static void mw_c99_block_def_21_ (void){
 
 static void mw__2E_block (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("mb_", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -20412,9 +20764,11 @@ static void mw__2E_block (void){
         mw__40_();
         mw__2E_name();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("_", 1);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -20441,9 +20795,11 @@ static void mw_c99_word_def_21_ (void){
     mw__40_();
     mw__2E_w();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("{", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -20456,9 +20812,11 @@ static void mw_c99_word_def_21_ (void){
     mw_prim_pack_cons();
     mw_c99_nest();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -20476,9 +20834,11 @@ static void mw_c99_field_defs_21_ (void){
 
 static void mw_c99_field_def_21_ (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("static VAL* fieldptr_", 21);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -20489,27 +20849,33 @@ static void mw_c99_field_def_21_ (void){
     mw__40_();
     mw__2E_name();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" (size_t i) {", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    static struct VAL * p = 0;", 30);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    size_t m = ", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -20518,45 +20884,55 @@ static void mw_c99_field_def_21_ (void){
     mw_TABLE_MAX_SIZE();
     mw__2E_n();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(";", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    if (!p) { p = calloc(m, sizeof *p); }", 41);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }", 59);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    return p+i;", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -20567,27 +20943,33 @@ static void mw_c99_field_def_21_ (void){
     mw__40_();
     mw__2E_w();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("{", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    size_t index = (size_t)pop_u64();", 37);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    VAL *v = fieldptr_", 22);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -20598,27 +20980,33 @@ static void mw_c99_field_def_21_ (void){
     mw__40_();
     mw__2E_name();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("(index);", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    push_ptr(v);", 16);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -20629,27 +21017,33 @@ static void mw_c99_field_def_21_ (void){
 
 static void mw_c99_main_21_ (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("int main (int argc, char** argv) {", 34);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    global_argc = argc;", 23);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    global_argv = argv;", 23);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -20660,18 +21054,22 @@ static void mw_c99_main_21_ (void){
     mw_prim_pack_cons();
     mw_c99_nest();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    return 0;", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -20730,9 +21128,11 @@ static void mw_ctx_len (void){
 
 static void mw_ctx_fresh_name_21_ (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("_x", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -20990,9 +21390,11 @@ static void mw_elab_type_sig_21_ (void){
     if (pop_u64()) {
         mw_dup();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected type signature", 23);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -21036,9 +21438,11 @@ static void mw_elab_type_sig_21_ (void){
     } else {
         mw_dup();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected right paren or comma", 29);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -21132,9 +21536,11 @@ static void mw_elab_type_arg_21_ (void){
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Unexpected token after type.", 28);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -21171,9 +21577,11 @@ static void mw_elab_type_atom_21_ (void){
                     } else {
                         mw_dup();
                         {
-                            static VAL v = {0};
-                            if (!v.data.str) {
+                            static bool vready = false;
+                            static VAL v;
+                            if (!vready) {
                                 v = mkstr("Expected type, got unknown token.", 33);
+                                vready = true;
                             }
                             push_value(v);
                             incref(v);
@@ -21270,9 +21678,11 @@ static void mw_elab_type_con_21_ (void){
                 mw_drop();
                 mw_dup();
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("Wrong number of arguments for type.", 35);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -21285,9 +21695,11 @@ static void mw_elab_type_con_21_ (void){
             mw_prim_drop();
             mw_dup();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Unknown type.", 13);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -21299,9 +21711,11 @@ static void mw_elab_type_con_21_ (void){
             mw_drop();
             mw_dup();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Not a type.", 11);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -21367,9 +21781,11 @@ static void mw_elab_type_hole_21_ (void){
         if (pop_u64()) {
             mw_dup();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Types with args not yet supported.", 34);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -21384,9 +21800,11 @@ static void mw_elab_type_hole_21_ (void){
         mw_token_next();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("type holes are not allowed here", 31);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -21403,9 +21821,11 @@ static void mw_elab_type_dont_care_21_ (void){
         if (pop_u64()) {
             mw_dup();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Types with args not yet supported.", 34);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -21419,9 +21839,11 @@ static void mw_elab_type_dont_care_21_ (void){
         mw_token_next();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("type don't care is not allowed here", 35);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -21960,9 +22382,11 @@ static void mw_ab_prim_21_ (void){
         mw_ab_token();
         mw__40_();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("prim does not have type", 23);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -22316,9 +22740,11 @@ static void mw_emit_recursive_word_fatal_error_21_ (void){
     mw_word_head();
     mw__40_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("recursive word needs type signature", 35);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -22448,9 +22874,11 @@ static void mw_elab_atom_21_ (void){
             mw_ab_token();
             mw__40_();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Unexpected token in elab-atom!", 30);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -22553,9 +22981,11 @@ static void mw_elab_atom_name_21_ (void){
                     mw_ab_token();
                     mw__40_();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("Unknown word.", 13);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -22714,9 +23144,11 @@ static void mw_elab_expand_tensor_21_ (void){
             mw_drop();
             mw_dup();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected tuple type", 19);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -22772,9 +23204,11 @@ static void mw_elab_expand_morphism_21_ (void){
             mw_drop();
             mw_dup();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected block type", 19);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -22919,9 +23353,11 @@ static void mw_elab_match_exhaustive_21_ (void){
         mw_match_token();
         mw__40_();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Pattern match not exhaustive.", 29);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23061,9 +23497,11 @@ static void mw_elab_case_pattern_21_ (void){
                 case 0LL:
                     mw_prim_drop();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("Unknown constructor.", 20);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -23073,9 +23511,11 @@ static void mw_elab_case_pattern_21_ (void){
                 default:
                     mw_drop();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("Not a constructor.", 18);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -23085,9 +23525,11 @@ static void mw_elab_case_pattern_21_ (void){
             
 }        } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Expected constructor name.", 26);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -23162,9 +23604,11 @@ static void mw_elab_module_header_21_ (void){
             mw_id();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Expected module name.", 21);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -23176,9 +23620,11 @@ static void mw_elab_module_header_21_ (void){
         if (pop_u64()) {
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Module name already taken.", 26);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -23209,9 +23655,11 @@ static void mw_elab_module_header_21_ (void){
             mw_drop();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Module name should match path.", 30);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -23222,9 +23670,11 @@ static void mw_elab_module_header_21_ (void){
     } else {
         mw_dup();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Expected module header.", 23);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23255,9 +23705,11 @@ static void mw_elab_module_decl_21_ (void){
                             mw__40_();
                             mw_str_trace_ln_21_();
                             {
-                                static VAL v = {0};
-                                if (!v.data.str) {
+                                static bool vready = false;
+                                static VAL v;
+                                if (!vready) {
                                     v = mkstr("unknown declaration, prim prim", 30);
+                                    vready = true;
                                 }
                                 push_value(v);
                                 incref(v);
@@ -23278,9 +23730,11 @@ static void mw_elab_module_decl_21_ (void){
                     mw__40_();
                     mw_str_trace_ln_21_();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("unknown declaration, not prim", 29);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -23292,9 +23746,11 @@ static void mw_elab_module_decl_21_ (void){
         default:
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("unsupported declaration", 23);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -23350,9 +23806,11 @@ static void mw_elab_module_import_21_ (void){
                 default:
                     mw_drop2();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("module name already taken", 25);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -23364,9 +23822,11 @@ static void mw_elab_module_import_21_ (void){
         default:
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected module name", 20);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -23394,9 +23854,11 @@ static void mw_elab_data_header_21_ (void){
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Expected type name.", 19);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23411,9 +23873,11 @@ static void mw_elab_data_header_21_ (void){
     } else {
         mw_drop2();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Name already defined.", 21);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23441,9 +23905,11 @@ static void mw_elab_data_tag_21_ (void){
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Expected constructor name.", 26);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23457,9 +23923,11 @@ static void mw_elab_data_tag_21_ (void){
     } else {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Name already defined. (Overlapping tags not supported.)", 55);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23508,9 +23976,11 @@ static void mw_elab_data_tag_21_ (void){
             mw__21_();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Expected arrow, comma, or right paren.", 38);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -23534,9 +24004,11 @@ static void mw_expect_token_comma (void){
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Expected comma.", 15);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23551,9 +24023,11 @@ static void mw_expect_token_rparen (void){
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Expected right parenthesis.", 27);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23568,9 +24042,11 @@ static void mw_expect_token_arrow (void){
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Expected arrow.", 15);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23590,9 +24066,11 @@ static void mw_token_def_args (void){
     } else {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("def expects at least two arguments", 34);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23668,9 +24146,11 @@ static void mw_elab_def_21_ (void){
             mw_id();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected match case", 19);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -23684,9 +24164,11 @@ static void mw_elab_def_21_ (void){
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected word name", 18);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23700,9 +24182,11 @@ static void mw_elab_def_21_ (void){
     } else {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("word already defined", 20);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23821,9 +24305,11 @@ static void mw_elab_def_external_21_ (void){
         } else {
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("word already defined", 20);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -23832,9 +24318,11 @@ static void mw_elab_def_external_21_ (void){
         }
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected word name", 18);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23865,9 +24353,11 @@ static void mw_elab_def_type_21_ (void){
         } else {
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("type already defined", 20);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -23876,9 +24366,11 @@ static void mw_elab_def_type_21_ (void){
         }
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected type constructor", 25);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23907,9 +24399,11 @@ static void mw_elab_buffer_21_ (void){
         } else {
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("buffer already defined", 22);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -23918,9 +24412,11 @@ static void mw_elab_buffer_21_ (void){
         }
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected buffer name", 20);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23938,9 +24434,11 @@ static void mw_elab_variable_21_ (void){
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected variable name", 22);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23954,9 +24452,11 @@ static void mw_elab_variable_21_ (void){
     } else {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("name already defined", 20);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -23987,9 +24487,11 @@ static void mw_elab_table_21_ (void){
         mw_drop();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected table name", 19);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -24036,9 +24538,11 @@ static void mw_elab_embed_str_21_ (void){
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected name", 13);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -24052,9 +24556,11 @@ static void mw_elab_embed_str_21_ (void){
     } else {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("name already defined", 20);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -24068,9 +24574,11 @@ static void mw_elab_embed_str_21_ (void){
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected path", 13);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -24183,9 +24691,11 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(".MAX", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24219,9 +24729,11 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(".NUM", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24236,9 +24748,11 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(".id", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24274,9 +24788,11 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(".succ", 5);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24311,9 +24827,11 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(".pred", 5);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24348,9 +24866,11 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(".for", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24366,9 +24886,11 @@ static void mw_table_new_21_ (void){
     mw_word_name();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("x", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24380,9 +24902,11 @@ static void mw_table_new_21_ (void){
         VAL var_w = pop_value();
         VAL var_t = pop_value();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("a", 1);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -24466,9 +24990,11 @@ static void mw_table_new_21_ (void){
     mw_table_name();
     mw__40_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(".alloc!", 7);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24520,9 +25046,11 @@ static void mw_elab_field_21_ (void){
             } else {
                 mw_drop();
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("name already defined", 20);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -24537,9 +25065,11 @@ static void mw_elab_field_21_ (void){
         default:
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("expected field name", 19);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -24649,9 +25179,11 @@ static void mw_def_prim_21_ (void){
 static void mw_init_prims_21_ (void){
     mw_PRIM_SYNTAX_MODULE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("module", 6);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24659,9 +25191,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_IMPORT();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("import", 6);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24669,9 +25203,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_DEF();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("def", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24679,9 +25215,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_DEF_TYPE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("def-type", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24689,9 +25227,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_DEF_MISSING();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("def-missing", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24699,9 +25239,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_BUFFER();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("buffer", 6);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24709,9 +25251,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_DEF_EXTERNAL();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("def-external", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24719,9 +25263,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_TABLE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("table", 5);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24729,9 +25275,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_FIELD();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("field", 5);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24739,9 +25287,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_TARGET_C99();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("target-c99", 10);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24749,9 +25299,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_EMBED_STR();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("embed-str", 9);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24759,9 +25311,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_DATA();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("data", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24769,9 +25323,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_VARIABLE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("var", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24779,9 +25335,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_ARROW();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("->", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24789,9 +25347,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYNTAX_DASHES();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("--", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24799,9 +25359,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_DIP();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("dip", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24809,9 +25371,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_IF();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("if", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24819,9 +25383,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_WHILE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("while", 5);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24829,9 +25395,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_MATCH();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("match", 5);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24839,9 +25407,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_LAMBDA();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("\\", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24849,9 +25419,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_ID();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-id", 7);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24859,9 +25431,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_DUP();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-dup", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24869,9 +25443,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_DROP();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-drop", 9);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24879,9 +25455,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_SWAP();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-swap", 9);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24889,9 +25467,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_DIP();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-dip", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24899,9 +25479,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_IF();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-if", 7);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24909,9 +25491,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_WHILE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-while", 10);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24919,9 +25503,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_DEBUG();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-debug", 10);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24929,9 +25515,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_RUN();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-run", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24939,9 +25527,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_MATCH();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-match", 10);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24949,9 +25539,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_CORE_LAMBDA();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-lambda", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24959,9 +25551,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_UNSAFE_CAST();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-unsafe-cast", 16);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24969,9 +25563,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_VALUE_EQ();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-value-eq", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24979,9 +25575,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_VALUE_LT();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-value-lt", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24989,9 +25587,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_VALUE_LE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-value-le", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -24999,9 +25599,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_VALUE_GET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-value-get", 14);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25009,9 +25611,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_VALUE_SET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-value-set", 14);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25019,9 +25623,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_INT_ADD();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-int-add", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25029,9 +25635,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_INT_SUB();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-int-sub", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25039,9 +25647,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_INT_MUL();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-int-mul", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25049,9 +25659,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_INT_DIV();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-int-div", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25059,9 +25671,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_INT_MOD();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-int-mod", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25069,9 +25683,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_INT_AND();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-int-and", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25079,9 +25695,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_INT_OR();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-int-or", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25089,9 +25707,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_INT_XOR();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-int-xor", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25099,9 +25719,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_INT_SHL();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-int-shl", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25109,9 +25731,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_INT_SHR();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-int-shr", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25119,9 +25743,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_INT_GET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-int-get", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25129,9 +25755,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_INT_SET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-int-set", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25139,9 +25767,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_BOOL_TRUE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-bool-true", 14);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25149,9 +25779,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_BOOL_FALSE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-bool-false", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25159,9 +25791,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_BOOL_AND();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-bool-and", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25169,9 +25803,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_BOOL_OR();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-bool-or", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25179,9 +25815,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_PACK_NIL();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-pack-nil", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25189,9 +25827,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_PACK_CONS();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-pack-cons", 14);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25199,9 +25839,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_PACK_UNCONS();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-pack-uncons", 16);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25209,9 +25851,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_MUT_GET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-mut-get", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25219,9 +25863,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_MUT_SET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-mut-set", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25229,9 +25875,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_PTR_ADD();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-ptr-add", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25239,9 +25887,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_PTR_SIZE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-ptr-size", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25249,9 +25899,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_PTR_GET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-ptr-get", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25259,9 +25911,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_PTR_SET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-ptr-set", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25269,9 +25923,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_PTR_ALLOC();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-ptr-alloc", 14);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25279,9 +25935,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_PTR_REALLOC();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-ptr-realloc", 16);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25289,9 +25947,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_PTR_FILL();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-ptr-fill", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25299,9 +25959,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_PTR_COPY();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-ptr-copy", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25309,9 +25971,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_PTR_RAW();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-ptr-raw", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25319,9 +25983,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_STR_ALLOC();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-str-alloc", 14);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25329,9 +25995,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_STR_SIZE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-str-size", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25339,9 +26007,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_STR_BASE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-str-base", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25349,9 +26019,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_STR_EQ();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-str-eq", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25359,9 +26031,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_STR_CAT();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-str-cat", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25369,9 +26043,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_U8_GET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-u8-get", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25379,9 +26055,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_U8_SET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-u8-set", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25389,9 +26067,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_U16_GET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-u16-get", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25399,9 +26079,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_U16_SET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-u16-set", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25409,9 +26091,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_U32_GET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-u32-get", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25419,9 +26103,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_U32_SET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-u32-set", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25429,9 +26115,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_U64_GET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-u64-get", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25439,9 +26127,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_U64_SET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-u64-set", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25449,9 +26139,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_I8_GET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-i8-get", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25459,9 +26151,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_I8_SET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-i8-set", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25469,9 +26163,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_I16_GET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-i16-get", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25479,9 +26175,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_I16_SET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-i16-set", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25489,9 +26187,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_I32_GET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-i32-get", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25499,9 +26199,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_I32_SET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-i32-set", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25509,9 +26211,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_I64_GET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-i64-get", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25519,9 +26223,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_I64_SET();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-i64-set", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25529,9 +26235,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYS_OS();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-sys-os", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25539,9 +26247,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYS_ARGC();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-sys-argc", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25549,9 +26259,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_SYS_ARGV();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-sys-argv", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25559,9 +26271,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_POSIX_READ();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-posix-read", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25569,9 +26283,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_POSIX_WRITE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-posix-write", 16);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25579,9 +26295,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_POSIX_OPEN();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-posix-open", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25589,9 +26307,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_POSIX_CLOSE();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-posix-close", 16);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -25599,9 +26319,11 @@ static void mw_init_prims_21_ (void){
     mw_def_prim_21_();
     mw_PRIM_POSIX_EXIT();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim-posix-exit", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26121,9 +26843,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("a", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26149,9 +26873,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("a", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26180,9 +26906,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("a", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26230,9 +26958,11 @@ static void mw_init_prims_21_ (void){
     mw__21_();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("a", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26244,9 +26974,11 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("b", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26282,9 +27014,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("a", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26296,9 +27030,11 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("b", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26331,9 +27067,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("*a", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26345,9 +27083,11 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("*b", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26386,9 +27126,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("*a", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26400,9 +27142,11 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("*b", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26439,9 +27183,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("*a", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26453,9 +27199,11 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("*b", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26467,9 +27215,11 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("c", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26530,9 +27280,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("*a", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26544,9 +27296,11 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("*b", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26595,9 +27349,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("*a", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26630,9 +27386,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("*a", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26644,9 +27402,11 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("b", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26682,9 +27442,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("*a", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26696,9 +27458,11 @@ static void mw_init_prims_21_ (void){
     mw_var_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("b", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26734,9 +27498,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("a", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26767,9 +27533,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("a", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26796,9 +27564,11 @@ static void mw_init_prims_21_ (void){
     mw_prim_type();
     mw__21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("a", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26873,9 +27643,11 @@ static void mw_init_21_ (void){
 
 static void mw_compile_21_ (void){
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Compiling ", 10);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26886,9 +27658,11 @@ static void mw_compile_21_ (void){
     mw_str_trace_ln_21_();
     mw_run_lexer_21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Building.", 9);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -26906,9 +27680,11 @@ static void mw_compile_21_ (void){
         mw__40_();
         mw_int_trace_21_();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr(" errors.", 8);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -26918,9 +27694,11 @@ static void mw_compile_21_ (void){
         mw_posix_exit_21_();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Done.", 5);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -26943,9 +27721,11 @@ static void mw_main (void){
         mw_compile_21_();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Expected at least one argument", 30);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -28173,9 +28953,11 @@ static void mb_compile_21__1 (void) {
     mw__40_();
     mw_int_trace_21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" errors.", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -28188,9 +28970,11 @@ static void mb_compile_21__1 (void) {
 static void mb_compile_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Done.", 5);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -28245,9 +29029,11 @@ static void mb_main_1 (void) {
 static void mb_main_2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Expected at least one argument", 30);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -28881,9 +29667,11 @@ static void mb_slice_write_21__2 (void) {
 static void mb_slice_write_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("error: write failed!", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -28899,9 +29687,11 @@ static void mb_slice_write_21__4 (void) {
 static void mb_slice_write_21__5 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("error: write output fewer bytes than expected!", 46);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -28917,9 +29707,11 @@ static void mb_slice_write_21__6 (void) {
 static void mb_str_buf_read_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("str-buf-read! failed", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -28973,9 +29765,11 @@ static void mb_str_buf_int_21__1 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("0", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -29125,9 +29919,11 @@ static void mb_read_file_21__4 (void) {
     VAL var_fp = pop_value();
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("io error while reading file", 27);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -29153,9 +29949,11 @@ static void mb_prim_str_copy_1 (void) {
 static void mb_open_file_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Failed to open file!", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -29171,9 +29969,11 @@ static void mb_open_file_21__2 (void) {
 static void mb_create_file_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Failed to create file!", 22);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -29189,9 +29989,11 @@ static void mb_create_file_21__2 (void) {
 static void mb_close_file_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("failed to close file.", 21);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -31945,9 +32747,11 @@ static void mb_is_special_char_4 (void) {
 static void mb_path_separator_1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("\\", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -31957,9 +32761,11 @@ static void mb_path_separator_1 (void) {
 static void mb_path_separator_2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("/", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -32019,9 +32825,11 @@ static void mb_input_fill_buffer_21__1 (void) {
     } else {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("error: failed to read from file", 31);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -32033,9 +32841,11 @@ static void mb_input_fill_buffer_21__1 (void) {
 static void mb_input_fill_buffer_21__6 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("error: attempted to fill input buffer when file is closed", 57);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -32064,9 +32874,11 @@ static void mb_input_fill_buffer_21__5 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("error: failed to read from file", 31);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -32115,9 +32927,11 @@ static void mb_input_peek_1 (void) {
 static void mb_input_peek_3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("error: attempted to read input buffer when file is already closed", 65);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -32145,9 +32959,11 @@ static void mb_input_move_21__1 (void) {
 static void mb_input_move_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("error: attempted to move input buffer when file is already closed", 65);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -32273,9 +33089,11 @@ static void mb_input_fill_buffer_tragic_21__2 (void) {
     } else {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("error: failed to read from file", 31);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -32287,9 +33105,11 @@ static void mb_input_fill_buffer_tragic_21__2 (void) {
 static void mb_input_fill_buffer_tragic_21__9 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("error: attempted to fill input buffer when file is closed", 57);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -32323,9 +33143,11 @@ static void mb_input_fill_buffer_tragic_21__8 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("error: failed to read from file", 31);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -32356,9 +33178,11 @@ static void mb_module_source_path_1 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("<generated>", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -32376,9 +33200,11 @@ static void mb_module_source_path_2 (void) {
 static void mb_lexer_next_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("invalid character", 17);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -32461,9 +33287,11 @@ static void mb_lexer_next_21__2 (void) {
                                                     mw_lexer_emit_string_21_();
                                                 } else {
                                                     {
-                                                        static VAL v = {0};
-                                                        if (!v.data.str) {
+                                                        static bool vready = false;
+                                                        static VAL v;
+                                                        if (!vready) {
                                                             v = mkstr("unrecognized token", 18);
+                                                            vready = true;
                                                         }
                                                         push_value(v);
                                                         incref(v);
@@ -32559,9 +33387,11 @@ static void mb_lexer_next_21__4 (void) {
                                                 mw_lexer_emit_string_21_();
                                             } else {
                                                 {
-                                                    static VAL v = {0};
-                                                    if (!v.data.str) {
+                                                    static bool vready = false;
+                                                    static VAL v;
+                                                    if (!vready) {
                                                         v = mkstr("unrecognized token", 18);
+                                                        vready = true;
                                                     }
                                                     push_value(v);
                                                     incref(v);
@@ -32650,9 +33480,11 @@ static void mb_lexer_next_21__6 (void) {
                                             mw_lexer_emit_string_21_();
                                         } else {
                                             {
-                                                static VAL v = {0};
-                                                if (!v.data.str) {
+                                                static bool vready = false;
+                                                static VAL v;
+                                                if (!vready) {
                                                     v = mkstr("unrecognized token", 18);
+                                                    vready = true;
                                                 }
                                                 push_value(v);
                                                 incref(v);
@@ -32733,9 +33565,11 @@ static void mb_lexer_next_21__8 (void) {
                                         mw_lexer_emit_string_21_();
                                     } else {
                                         {
-                                            static VAL v = {0};
-                                            if (!v.data.str) {
+                                            static bool vready = false;
+                                            static VAL v;
+                                            if (!vready) {
                                                 v = mkstr("unrecognized token", 18);
+                                                vready = true;
                                             }
                                             push_value(v);
                                             incref(v);
@@ -32810,9 +33644,11 @@ static void mb_lexer_next_21__10 (void) {
                                     mw_lexer_emit_string_21_();
                                 } else {
                                     {
-                                        static VAL v = {0};
-                                        if (!v.data.str) {
+                                        static bool vready = false;
+                                        static VAL v;
+                                        if (!vready) {
                                             v = mkstr("unrecognized token", 18);
+                                            vready = true;
                                         }
                                         push_value(v);
                                         incref(v);
@@ -32880,9 +33716,11 @@ static void mb_lexer_next_21__12 (void) {
                                 mw_lexer_emit_string_21_();
                             } else {
                                 {
-                                    static VAL v = {0};
-                                    if (!v.data.str) {
+                                    static bool vready = false;
+                                    static VAL v;
+                                    if (!vready) {
                                         v = mkstr("unrecognized token", 18);
+                                        vready = true;
                                     }
                                     push_value(v);
                                     incref(v);
@@ -32942,9 +33780,11 @@ static void mb_lexer_next_21__14 (void) {
                             mw_lexer_emit_string_21_();
                         } else {
                             {
-                                static VAL v = {0};
-                                if (!v.data.str) {
+                                static bool vready = false;
+                                static VAL v;
+                                if (!vready) {
                                     v = mkstr("unrecognized token", 18);
+                                    vready = true;
                                 }
                                 push_value(v);
                                 incref(v);
@@ -32997,9 +33837,11 @@ static void mb_lexer_next_21__16 (void) {
                         mw_lexer_emit_string_21_();
                     } else {
                         {
-                            static VAL v = {0};
-                            if (!v.data.str) {
+                            static bool vready = false;
+                            static VAL v;
+                            if (!vready) {
                                 v = mkstr("unrecognized token", 18);
+                                vready = true;
                             }
                             push_value(v);
                             incref(v);
@@ -33045,9 +33887,11 @@ static void mb_lexer_next_21__18 (void) {
                     mw_lexer_emit_string_21_();
                 } else {
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("unrecognized token", 18);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -33086,9 +33930,11 @@ static void mb_lexer_next_21__20 (void) {
                 mw_lexer_emit_string_21_();
             } else {
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("unrecognized token", 18);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -33120,9 +33966,11 @@ static void mb_lexer_next_21__22 (void) {
             mw_lexer_emit_string_21_();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("unrecognized token", 18);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -33147,9 +33995,11 @@ static void mb_lexer_next_21__24 (void) {
         mw_lexer_emit_string_21_();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("unrecognized token", 18);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -33167,9 +34017,11 @@ static void mb_lexer_next_21__25 (void) {
 static void mb_lexer_next_21__26 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("unrecognized token", 18);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -33207,9 +34059,11 @@ static void mb_lexer_emit_name_21__2 (void) {
         mw_lexer_peek();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("invalid character", 17);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -33228,9 +34082,11 @@ static void mb_lexer_emit_name_21__3 (void) {
 static void mb_lexer_emit_name_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("invalid character", 17);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -33324,9 +34180,11 @@ static void mb_lexer_emit_rparen_21__3 (void) {
 static void mb_lexer_emit_rparen_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Mismatched right parenthesis.", 29);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -33348,9 +34206,11 @@ static void mb_lexer_emit_rsquare_21__3 (void) {
 static void mb_lexer_emit_rsquare_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Mismatched right bracket.", 25);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -33372,9 +34232,11 @@ static void mb_lexer_emit_rcurly_21__3 (void) {
 static void mb_lexer_emit_rcurly_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Mismatched right brace.", 23);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -33398,9 +34260,11 @@ static void mb_lexer_emit_string_21__2 (void) {
         mw_lexer_peek();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("invalid character in string literal", 35);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -33419,9 +34283,11 @@ static void mb_lexer_emit_string_21__3 (void) {
 static void mb_lexer_emit_string_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("invalid character in string literal", 35);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -33981,9 +34847,11 @@ static void mb_lexer_push_string_char_21__1 (void) {
                         } else {
                             mw_str_buf_push_char_21_();
                             {
-                                static VAL v = {0};
-                                if (!v.data.str) {
+                                static bool vready = false;
+                                static VAL v;
+                                if (!vready) {
                                     v = mkstr("Unknown character escape sequence.", 34);
+                                    vready = true;
                                 }
                                 push_value(v);
                                 incref(v);
@@ -34045,9 +34913,11 @@ static void mb_lexer_push_string_char_21__3 (void) {
                     } else {
                         mw_str_buf_push_char_21_();
                         {
-                            static VAL v = {0};
-                            if (!v.data.str) {
+                            static bool vready = false;
+                            static VAL v;
+                            if (!vready) {
                                 v = mkstr("Unknown character escape sequence.", 34);
+                                vready = true;
                             }
                             push_value(v);
                             incref(v);
@@ -34098,9 +34968,11 @@ static void mb_lexer_push_string_char_21__5 (void) {
                 } else {
                     mw_str_buf_push_char_21_();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("Unknown character escape sequence.", 34);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -34142,9 +35014,11 @@ static void mb_lexer_push_string_char_21__7 (void) {
             } else {
                 mw_str_buf_push_char_21_();
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("Unknown character escape sequence.", 34);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -34177,9 +35051,11 @@ static void mb_lexer_push_string_char_21__9 (void) {
         } else {
             mw_str_buf_push_char_21_();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Unknown character escape sequence.", 34);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -34203,9 +35079,11 @@ static void mb_lexer_push_string_char_21__11 (void) {
     } else {
         mw_str_buf_push_char_21_();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Unknown character escape sequence.", 34);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -34223,9 +35101,11 @@ static void mb_lexer_push_string_char_21__13 (void) {
     mw_prim_drop();
     mw_str_buf_push_char_21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Unknown character escape sequence.", 34);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -34658,9 +35538,11 @@ static void mb_token_args_0_1 (void) {
 static void mb_token_args_0_2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected no args", 16);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -34686,9 +35568,11 @@ static void mb_token_args_1_4 (void) {
     mw__3C_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected 1 arg, got none", 24);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -34696,9 +35580,11 @@ static void mb_token_args_1_4 (void) {
         mw_emit_fatal_error_21_();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected 1 arg, got too many", 28);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -34720,9 +35606,11 @@ static void mb_token_args_1_3 (void) {
 static void mb_token_args_1_5 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected 1 arg, got none", 24);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -34733,9 +35621,11 @@ static void mb_token_args_1_5 (void) {
 static void mb_token_args_1_6 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected 1 arg, got too many", 28);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -34764,9 +35654,11 @@ static void mb_token_args_2_4 (void) {
     mw__3C_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected 2 args, got too few", 28);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -34774,9 +35666,11 @@ static void mb_token_args_2_4 (void) {
         mw_emit_fatal_error_21_();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected 2 args, got too many", 29);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -34798,9 +35692,11 @@ static void mb_token_args_2_3 (void) {
 static void mb_token_args_2_5 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected 2 args, got too few", 28);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -34811,9 +35707,11 @@ static void mb_token_args_2_5 (void) {
 static void mb_token_args_2_6 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected 2 args, got too many", 29);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -34845,9 +35743,11 @@ static void mb_token_args_3_4 (void) {
     mw__3C_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected 3 args, got too few", 28);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -34855,9 +35755,11 @@ static void mb_token_args_3_4 (void) {
         mw_emit_fatal_error_21_();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected 3 args, got too many", 29);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -34879,9 +35781,11 @@ static void mb_token_args_3_3 (void) {
 static void mb_token_args_3_5 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected 3 args, got too few", 28);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -34892,9 +35796,11 @@ static void mb_token_args_3_5 (void) {
 static void mb_token_args_3_6 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected 3 args, got too many", 29);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -34982,9 +35888,11 @@ static void mb_token_args_2_2B__2 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected 2+ args", 16);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35141,9 +36049,11 @@ static void mb_module_path_from_name_1 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("/", 1);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -35168,9 +36078,11 @@ static void mb_module_path_from_name_2 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("/", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35236,9 +36148,11 @@ static void mb_codegen_flush_21__1 (void) {
     mw__3C_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("error: codegen write failed", 27);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -35250,9 +36164,11 @@ static void mb_codegen_flush_21__1 (void) {
         mw__3C_();
         if (pop_u64()) {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("error: codegen write wrote fewer bytes than expected", 52);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -35274,9 +36190,11 @@ static void mb_codegen_flush_21__6 (void) {
 static void mb_codegen_flush_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("error: codegen write failed", 27);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35291,9 +36209,11 @@ static void mb_codegen_flush_21__3 (void) {
     mw__3C_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("error: codegen write wrote fewer bytes than expected", 52);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -35309,9 +36229,11 @@ static void mb_codegen_flush_21__3 (void) {
 static void mb_codegen_flush_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("error: codegen write wrote fewer bytes than expected", 52);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35550,9 +36472,11 @@ static void mb_c99_tag_21__2 (void) {
     mw__3D__3D_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("    push_u64(", 13);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -35562,9 +36486,11 @@ static void mb_c99_tag_21__2 (void) {
         mw__40_();
         mw__2E_n();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("LL);", 4);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -35572,9 +36498,11 @@ static void mb_c99_tag_21__2 (void) {
         mw__3B_();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("    VAL car = pop_value();", 26);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -35587,9 +36515,11 @@ static void mb_c99_tag_21__2 (void) {
         mw_prim_pack_cons();
         mw_repeat();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
-                v = mkstr("    VAL tag = mku64(", 20);
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
+                v = mkstr("    VAL tag = MKU64(", 20);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -35599,27 +36529,33 @@ static void mb_c99_tag_21__2 (void) {
         mw__40_();
         mw__2E_n();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("LL);", 4);
+                vready = true;
             }
             push_value(v);
             incref(v);
         }
         mw__3B_();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("    car = mkcons(car, tag);", 27);
+                vready = true;
             }
             push_value(v);
             incref(v);
         }
         mw__3B_();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("    push_value(car);", 20);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -35631,9 +36567,11 @@ static void mb_c99_tag_21__2 (void) {
 static void mb_c99_tag_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    push_u64(", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35643,9 +36581,11 @@ static void mb_c99_tag_21__3 (void) {
     mw__40_();
     mw__2E_n();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("LL);", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35656,9 +36596,11 @@ static void mb_c99_tag_21__3 (void) {
 static void mb_c99_tag_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    VAL car = pop_value();", 26);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35671,9 +36613,11 @@ static void mb_c99_tag_21__4 (void) {
     mw_prim_pack_cons();
     mw_repeat();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
-            v = mkstr("    VAL tag = mku64(", 20);
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("    VAL tag = MKU64(", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35683,27 +36627,33 @@ static void mb_c99_tag_21__4 (void) {
     mw__40_();
     mw__2E_n();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("LL);", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    car = mkcons(car, tag);", 27);
+            vready = true;
         }
         push_value(v);
         incref(v);
     }
     mw__3B_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    push_value(car);", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35714,9 +36664,11 @@ static void mb_c99_tag_21__4 (void) {
 static void mb_c99_tag_21__5 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    car = mkcons(car, pop_value());", 35);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35748,9 +36700,11 @@ static void mb_tag_num_inputs_3F__5 (void) {
 static void mb_c99_external_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("can't declare external with multiple return values", 50);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35765,9 +36719,11 @@ static void mb_c99_external_21__2 (void) {
     mw__3E__3D_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("int64_t ", 8);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -35775,9 +36731,11 @@ static void mb_c99_external_21__2 (void) {
         mw__2E_();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("void ", 5);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -35789,9 +36747,11 @@ static void mb_c99_external_21__2 (void) {
 static void mb_c99_external_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("int64_t ", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35802,9 +36762,11 @@ static void mb_c99_external_21__3 (void) {
 static void mb_c99_external_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("void ", 5);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35823,9 +36785,11 @@ static void mb_c99_external_21__5 (void) {
 static void mb_c99_external_21__6 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("int64_t", 7);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35842,9 +36806,11 @@ static void mb_c99_external_21__8 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("void", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35855,9 +36821,11 @@ static void mb_c99_external_21__8 (void) {
 static void mb_c99_external_21__7 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(", int64_t", 9);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35876,9 +36844,11 @@ static void mb_c99_external_21__9 (void) {
 static void mb_c99_external_21__10 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    int64_t x", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35886,9 +36856,11 @@ static void mb_c99_external_21__10 (void) {
     mw__2E_();
     mw__2E_n();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" = pop_i64();", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35899,9 +36871,11 @@ static void mb_c99_external_21__10 (void) {
 static void mb_c99_external_21__11 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    push_i64(", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35911,9 +36885,11 @@ static void mb_c99_external_21__11 (void) {
 static void mb_c99_external_21__12 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    ", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35941,9 +36917,11 @@ static void mb_c99_external_21__14 (void) {
         mw_prim_pack_cons();
         mw_count();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("x", 1);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -35965,9 +36943,11 @@ static void mb_c99_external_21__15 (void) {
     mw_prim_pack_cons();
     mw_count();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("x", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35984,9 +36964,11 @@ static void mb_c99_external_21__17 (void) {
 static void mb_c99_external_21__16 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("x", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -35994,9 +36976,11 @@ static void mb_c99_external_21__16 (void) {
     mw__2E_();
     mw__2E_n();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(", ", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36007,9 +36991,11 @@ static void mb_c99_external_21__16 (void) {
 static void mb_c99_external_21__18 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(");", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36019,9 +37005,11 @@ static void mb_c99_external_21__18 (void) {
 static void mb_c99_external_21__19 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(";", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36047,9 +37035,11 @@ static void mb_c99_nest_3 (void) {
 static void mb_c99_indent_1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("    ", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36065,9 +37055,11 @@ static void mb_c99_call_21__1 (void) {
 static void mb_c99_call_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("mw_", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36075,9 +37067,11 @@ static void mb_c99_call_21__2 (void) {
     mw__2E_();
     mw__2E_name();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("();", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36104,9 +37098,11 @@ static void mb_c99_atom_21__1 (void) {
 static void mb_c99_int_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("push_i64(", 9);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36114,9 +37110,11 @@ static void mb_c99_int_21__1 (void) {
     mw__2E_();
     mw__2E_n();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("LL);", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36127,9 +37125,11 @@ static void mb_c99_int_21__1 (void) {
 static void mb_c99_str_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("{", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36150,17 +37150,21 @@ static void mb_c99_str_21__2 (void) {
     push_u64(0);
     push_fnptr(&mb_c99_str_21__5);
     mw_prim_pack_cons();
+    mw_c99_line();
+    push_u64(0);
+    push_fnptr(&mb_c99_str_21__6);
+    mw_prim_pack_cons();
     mw_c99_nest();
     push_u64(0);
-    push_fnptr(&mb_c99_str_21__17);
-    mw_prim_pack_cons();
-    mw_c99_line();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__18);
-    mw_prim_pack_cons();
-    mw_c99_line();
-    push_u64(0);
     push_fnptr(&mb_c99_str_21__19);
+    mw_prim_pack_cons();
+    mw_c99_line();
+    push_u64(0);
+    push_fnptr(&mb_c99_str_21__20);
+    mw_prim_pack_cons();
+    mw_c99_line();
+    push_u64(0);
+    push_fnptr(&mb_c99_str_21__21);
     mw_prim_pack_cons();
     mw_c99_line();
 }
@@ -36168,9 +37172,11 @@ static void mb_c99_str_21__2 (void) {
 static void mb_c99_str_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
-            v = mkstr("static VAL v = {0};", 19);
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("static bool vready = false;", 27);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36181,9 +37187,11 @@ static void mb_c99_str_21__3 (void) {
 static void mb_c99_str_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
-            v = mkstr("if (!v.data.str) {", 18);
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("static VAL v;", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36193,102 +37201,127 @@ static void mb_c99_str_21__4 (void) {
 
 static void mb_c99_str_21__5 (void) {
     mw_prim_drop();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("if (!vready) {", 14);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
+}
+
+static void mb_c99_str_21__6 (void) {
+    mw_prim_drop();
     mw_dup();
     mw_str_size();
     push_i64(4090LL);
     mw__3E_();
     if (pop_u64()) {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("static uint8_t b[] = {", 22);
+                vready = true;
             }
             push_value(v);
             incref(v);
         }
         mw__2E_();
         push_u64(0);
-        push_fnptr(&mb_c99_str_21__7);
+        push_fnptr(&mb_c99_str_21__8);
         mw_prim_pack_cons();
         mw_c99_nest();
-        push_u64(0);
-        push_fnptr(&mb_c99_str_21__12);
-        mw_prim_pack_cons();
-        mw_c99_line();
         push_u64(0);
         push_fnptr(&mb_c99_str_21__13);
         mw_prim_pack_cons();
         mw_c99_line();
+        push_u64(0);
+        push_fnptr(&mb_c99_str_21__14);
+        mw_prim_pack_cons();
+        mw_c99_line();
     } else {
         push_u64(0);
-        push_fnptr(&mb_c99_str_21__15);
+        push_fnptr(&mb_c99_str_21__16);
         mw_prim_pack_cons();
         mw_c99_line();
     }
-}
-
-static void mb_c99_str_21__6 (void) {
-    mw_prim_drop();
-    {
-        static VAL v = {0};
-        if (!v.data.str) {
-            v = mkstr("static uint8_t b[] = {", 22);
-        }
-        push_value(v);
-        incref(v);
-    }
-    mw__2E_();
     push_u64(0);
-    push_fnptr(&mb_c99_str_21__7);
-    mw_prim_pack_cons();
-    mw_c99_nest();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__12);
-    mw_prim_pack_cons();
-    mw_c99_line();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__13);
-    mw_prim_pack_cons();
-    mw_c99_line();
-}
-
-static void mb_c99_str_21__14 (void) {
-    mw_prim_drop();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__15);
+    push_fnptr(&mb_c99_str_21__18);
     mw_prim_pack_cons();
     mw_c99_line();
 }
 
 static void mb_c99_str_21__7 (void) {
     mw_prim_drop();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("static uint8_t b[] = {", 22);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
+    push_u64(0);
+    push_fnptr(&mb_c99_str_21__8);
+    mw_prim_pack_cons();
+    mw_c99_nest();
+    push_u64(0);
+    push_fnptr(&mb_c99_str_21__13);
+    mw_prim_pack_cons();
+    mw_c99_line();
+    push_u64(0);
+    push_fnptr(&mb_c99_str_21__14);
+    mw_prim_pack_cons();
+    mw_c99_line();
+}
+
+static void mb_c99_str_21__15 (void) {
+    mw_prim_drop();
+    push_u64(0);
+    push_fnptr(&mb_c99_str_21__16);
+    mw_prim_pack_cons();
+    mw_c99_line();
+}
+
+static void mb_c99_str_21__8 (void) {
+    mw_prim_drop();
     mw_c99_indent();
     mw_dup();
     push_u64(0);
-    push_fnptr(&mb_c99_str_21__8);
+    push_fnptr(&mb_c99_str_21__9);
     mw_prim_pack_cons();
     mw_str_for();
     mw__2E_lf();
 }
 
-static void mb_c99_str_21__8 (void) {
+static void mb_c99_str_21__9 (void) {
     mw_prim_drop();
     mw_char_bytes();
     push_u64(0);
-    push_fnptr(&mb_c99_str_21__9);
+    push_fnptr(&mb_c99_str_21__10);
     mw_prim_pack_cons();
     mw_for();
 }
 
-static void mb_c99_str_21__9 (void) {
+static void mb_c99_str_21__10 (void) {
     mw_prim_drop();
     mw_U8__3E_Int();
     mw_dup();
     mw__2E_n();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(",", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36304,48 +37337,25 @@ static void mb_c99_str_21__9 (void) {
     }
 }
 
-static void mb_c99_str_21__10 (void) {
+static void mb_c99_str_21__11 (void) {
     mw_prim_drop();
     mw__2E_lf();
     mw_c99_indent();
 }
 
-static void mb_c99_str_21__11 (void) {
-    mw_prim_drop();
-    mw_id();
-}
-
 static void mb_c99_str_21__12 (void) {
     mw_prim_drop();
-    {
-        static VAL v = {0};
-        if (!v.data.str) {
-            v = mkstr("};", 2);
-        }
-        push_value(v);
-        incref(v);
-    }
-    mw__2E_();
+    mw_id();
 }
 
 static void mb_c99_str_21__13 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
-            v = mkstr("v = mkstr((char*)b, ", 20);
-        }
-        push_value(v);
-        incref(v);
-    }
-    mw__2E_();
-    mw_dup();
-    mw_str_size();
-    mw__2E_n();
-    {
-        static VAL v = {0};
-        if (!v.data.str) {
-            v = mkstr(");", 2);
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("};", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36353,26 +37363,14 @@ static void mb_c99_str_21__13 (void) {
     mw__2E_();
 }
 
-static void mb_c99_str_21__15 (void) {
+static void mb_c99_str_21__14 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
-            v = mkstr("v = mkstr(\"", 11);
-        }
-        push_value(v);
-        incref(v);
-    }
-    mw__2E_();
-    mw_dup();
-    push_u64(0);
-    push_fnptr(&mb_c99_str_21__16);
-    mw_prim_pack_cons();
-    mw_str_for();
-    {
-        static VAL v = {0};
-        if (!v.data.str) {
-            v = mkstr("\", ", 3);
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("v = mkstr((char*)b, ", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36382,9 +37380,11 @@ static void mb_c99_str_21__15 (void) {
     mw_str_size();
     mw__2E_n();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(");", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36394,15 +37394,42 @@ static void mb_c99_str_21__15 (void) {
 
 static void mb_c99_str_21__16 (void) {
     mw_prim_drop();
-    mw_c99_string_char_21_();
-}
-
-static void mb_c99_str_21__17 (void) {
-    mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
-            v = mkstr("}", 1);
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("v = mkstr(\"", 11);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
+    mw_dup();
+    push_u64(0);
+    push_fnptr(&mb_c99_str_21__17);
+    mw_prim_pack_cons();
+    mw_str_for();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("\", ", 3);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
+    mw_dup();
+    mw_str_size();
+    mw__2E_n();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr(");", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36410,12 +37437,19 @@ static void mb_c99_str_21__17 (void) {
     mw__2E_();
 }
 
+static void mb_c99_str_21__17 (void) {
+    mw_prim_drop();
+    mw_c99_string_char_21_();
+}
+
 static void mb_c99_str_21__18 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
-            v = mkstr("push_value(v);", 14);
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("vready = true;", 14);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36426,9 +37460,11 @@ static void mb_c99_str_21__18 (void) {
 static void mb_c99_str_21__19 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
-            v = mkstr("incref(v);", 10);
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36439,9 +37475,41 @@ static void mb_c99_str_21__19 (void) {
 static void mb_c99_str_21__20 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("push_value(v);", 14);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
+}
+
+static void mb_c99_str_21__21 (void) {
+    mw_prim_drop();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("incref(v);", 10);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    mw__2E_();
+}
+
+static void mb_c99_str_21__22 (void) {
+    mw_prim_drop();
+    {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36452,9 +37520,11 @@ static void mb_c99_str_21__20 (void) {
 static void mb_c99_prim_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("{", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36478,9 +37548,11 @@ static void mb_c99_prim_21__4 (void) {
 static void mb_c99_prim_21__5 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("VAL d", 5);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36490,9 +37562,11 @@ static void mb_c99_prim_21__5 (void) {
     mw__40_();
     mw__2E_n();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" = pop_value();", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36503,9 +37577,11 @@ static void mb_c99_prim_21__5 (void) {
 static void mb_c99_prim_21__6 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("push_value(d", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36515,9 +37591,11 @@ static void mb_c99_prim_21__6 (void) {
     mw__40_();
     mw__2E_n();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(");", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36528,9 +37606,11 @@ static void mb_c99_prim_21__6 (void) {
 static void mb_c99_prim_21__7 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36541,9 +37621,11 @@ static void mb_c99_prim_21__7 (void) {
 static void mb_c99_prim_21__11 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("if (pop_u64()) {", 16);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36560,9 +37642,11 @@ static void mb_c99_prim_21__12 (void) {
 static void mb_c99_prim_21__13 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("} else {", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36578,9 +37662,11 @@ static void mb_c99_prim_21__14 (void) {
 static void mb_c99_prim_21__15 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36591,9 +37677,11 @@ static void mb_c99_prim_21__15 (void) {
 static void mb_c99_prim_21__19 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("while(1) {", 10);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36615,9 +37703,11 @@ static void mb_c99_prim_21__20 (void) {
 static void mb_c99_prim_21__21 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("if (!pop_u64()) break;", 22);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36628,9 +37718,11 @@ static void mb_c99_prim_21__21 (void) {
 static void mb_c99_prim_21__22 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36650,9 +37742,11 @@ static void mb_c99_match_21__1 (void) {
             mw_match_token();
             mw__40_();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("codegen: unexpected number of cases in transparent match", 56);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -36690,9 +37784,11 @@ static void mb_c99_match_21__4 (void) {
 static void mb_c99_match_21__5 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("switch (get_top_data_tag()) {", 29);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36742,9 +37838,11 @@ static void mb_c99_match_21__9 (void) {
 static void mb_c99_match_21__10 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("default: write(2, \"unexpected fallthrough in match\\n\", 32); mw_prim_debug(); exit(99);", 86);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36755,9 +37853,11 @@ static void mb_c99_match_21__10 (void) {
 static void mb_c99_match_21__11 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36767,9 +37867,11 @@ static void mb_c99_match_21__11 (void) {
 static void mb_c99_lambda_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("{", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36809,9 +37911,11 @@ static void mb_c99_lambda_21__3 (void) {
 static void mb_c99_lambda_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("VAL ", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36819,9 +37923,11 @@ static void mb_c99_lambda_21__4 (void) {
     mw__2E_();
     mw__2E_param();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" = pop_value();", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36840,9 +37946,11 @@ static void mb_c99_lambda_21__5 (void) {
 static void mb_c99_lambda_21__6 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("decref(", 7);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36850,9 +37958,11 @@ static void mb_c99_lambda_21__6 (void) {
     mw__2E_();
     mw__2E_param();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(");", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36863,9 +37973,11 @@ static void mb_c99_lambda_21__6 (void) {
 static void mb_c99_lambda_21__7 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36894,9 +38006,11 @@ static void mb_c99_var_21__4 (void) {
 static void mb_c99_var_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("mw_prim_run();", 14);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36907,9 +38021,11 @@ static void mb_c99_var_21__3 (void) {
 static void mb_c99_block_push_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("push_fnptr(&", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36917,9 +38033,11 @@ static void mb_c99_block_push_21__1 (void) {
     mw__2E_();
     mw__2E_block();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(");", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36930,9 +38048,11 @@ static void mb_c99_block_push_21__1 (void) {
 static void mb_c99_block_push_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("mw_prim_pack_cons();", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36944,9 +38064,11 @@ static void mb_c99_string_char_21__1 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("\\\\", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -36961,9 +38083,11 @@ static void mb_c99_string_char_21__2 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("\\\"", 2);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -36985,9 +38109,11 @@ static void mb_c99_string_char_21__2 (void) {
             if (pop_u64()) {
                 mw_drop();
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("\\t", 2);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -37001,9 +38127,11 @@ static void mb_c99_string_char_21__2 (void) {
                 if (pop_u64()) {
                     mw_drop();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("\\n", 2);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -37017,9 +38145,11 @@ static void mb_c99_string_char_21__2 (void) {
                     if (pop_u64()) {
                         mw_drop();
                         {
-                            static VAL v = {0};
-                            if (!v.data.str) {
+                            static bool vready = false;
+                            static VAL v;
+                            if (!vready) {
                                 v = mkstr("\\r", 2);
+                                vready = true;
                             }
                             push_value(v);
                             incref(v);
@@ -37042,9 +38172,11 @@ static void mb_c99_string_char_21__3 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("\\\"", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37069,9 +38201,11 @@ static void mb_c99_string_char_21__4 (void) {
         if (pop_u64()) {
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("\\t", 2);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -37085,9 +38219,11 @@ static void mb_c99_string_char_21__4 (void) {
             if (pop_u64()) {
                 mw_drop();
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("\\n", 2);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -37101,9 +38237,11 @@ static void mb_c99_string_char_21__4 (void) {
                 if (pop_u64()) {
                     mw_drop();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("\\r", 2);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -37135,9 +38273,11 @@ static void mb_c99_string_char_21__6 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("\\t", 2);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -37151,9 +38291,11 @@ static void mb_c99_string_char_21__6 (void) {
         if (pop_u64()) {
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("\\n", 2);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -37167,9 +38309,11 @@ static void mb_c99_string_char_21__6 (void) {
             if (pop_u64()) {
                 mw_drop();
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("\\r", 2);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -37190,9 +38334,11 @@ static void mb_c99_string_char_21__7 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("\\t", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37209,9 +38355,11 @@ static void mb_c99_string_char_21__8 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("\\n", 2);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -37225,9 +38373,11 @@ static void mb_c99_string_char_21__8 (void) {
         if (pop_u64()) {
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("\\r", 2);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -37247,9 +38397,11 @@ static void mb_c99_string_char_21__9 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("\\n", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37266,9 +38418,11 @@ static void mb_c99_string_char_21__10 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("\\r", 2);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -37287,9 +38441,11 @@ static void mb_c99_string_char_21__11 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("\\r", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37309,9 +38465,11 @@ static void mb_c99_string_char_21__12 (void) {
 static void mb_c99_string_char_21__13 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("\\x", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37333,9 +38491,11 @@ static void mb_c99_string_char_21__13 (void) {
 static void mb_c99_var_push_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("push_value(", 11);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37344,9 +38504,11 @@ static void mb_c99_var_push_21__1 (void) {
     mw_dup();
     mw__2E_var();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(");", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37357,9 +38519,11 @@ static void mb_c99_var_push_21__1 (void) {
 static void mb_c99_var_push_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("incref(", 7);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37367,9 +38531,11 @@ static void mb_c99_var_push_21__2 (void) {
     mw__2E_();
     mw__2E_var();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(");", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37380,9 +38546,11 @@ static void mb_c99_var_push_21__2 (void) {
 static void mb_c99_pack_ctx_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("push_u64(0);", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37402,9 +38570,11 @@ static void mb_c99_pack_ctx_21__2 (void) {
 static void mb_c99_pack_ctx_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("mw_prim_pack_cons();", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37433,9 +38603,11 @@ static void mb_c99_unpack_ctx_21__1 (void) {
 static void mb_c99_unpack_ctx_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("mw_prim_pack_uncons();", 22);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37446,9 +38618,11 @@ static void mb_c99_unpack_ctx_21__2 (void) {
 static void mb_c99_unpack_ctx_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("VAL ", 4);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37456,9 +38630,11 @@ static void mb_c99_unpack_ctx_21__3 (void) {
     mw__2E_();
     mw__2E_var();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" = pop_value();", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37469,9 +38645,11 @@ static void mb_c99_unpack_ctx_21__3 (void) {
 static void mb_c99_unpack_ctx_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("mw_prim_drop();", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37490,9 +38668,11 @@ static void mb_c99_decref_ctx_21__1 (void) {
 static void mb_c99_decref_ctx_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("decref(", 7);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37500,9 +38680,11 @@ static void mb_c99_decref_ctx_21__2 (void) {
     mw__2E_();
     mw__2E_var();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(");", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37523,9 +38705,11 @@ static void mb__2E_block_2 (void) {
     mw__40_();
     mw__2E_name();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("_", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37551,9 +38735,11 @@ static void mb_c99_case_21__1 (void) {
 static void mb_c99_case_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("break;", 6);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37564,9 +38750,11 @@ static void mb_c99_case_21__2 (void) {
 static void mb_c99_pattern_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("default:", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37577,9 +38765,11 @@ static void mb_c99_pattern_21__2 (void) {
 static void mb_c99_pattern_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("case ", 5);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37590,9 +38780,11 @@ static void mb_c99_pattern_21__4 (void) {
     mw__40_();
     mw__2E_n();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("LL:", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37651,9 +38843,11 @@ static void mb_c99_pattern_21__10 (void) {
 static void mb_c99_pattern_21__7 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("mw_prim_pack_uncons(); mw_prim_drop();", 38);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37672,9 +38866,11 @@ static void mb_c99_pattern_21__8 (void) {
 static void mb_c99_pattern_21__9 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("mw_prim_pack_uncons(); mw_prim_swap();", 38);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37685,9 +38881,11 @@ static void mb_c99_pattern_21__9 (void) {
 static void mb_c99_pattern_21__11 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("mw_prim_drop();", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37698,9 +38896,11 @@ static void mb_c99_pattern_21__11 (void) {
 static void mb_c99_word_sig_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("static void mw_", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37710,9 +38910,11 @@ static void mb_c99_word_sig_21__1 (void) {
     mw__40_();
     mw__2E_name();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" (void);", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37723,9 +38925,11 @@ static void mb_c99_word_sig_21__1 (void) {
 static void mb_c99_block_sig_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("static void ", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37733,9 +38937,11 @@ static void mb_c99_block_sig_21__1 (void) {
     mw__2E_();
     mw__2E_block();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" (void);", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37746,9 +38952,11 @@ static void mb_c99_block_sig_21__1 (void) {
 static void mb_c99_field_sig_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("static void mw_", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37758,9 +38966,11 @@ static void mb_c99_field_sig_21__1 (void) {
     mw__40_();
     mw__2E_name();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" (void);", 8);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37771,9 +38981,11 @@ static void mb_c99_field_sig_21__1 (void) {
 static void mb_c99_block_def_21__1 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("static void ", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37782,9 +38994,11 @@ static void mb_c99_block_def_21__1 (void) {
     mw_dup();
     mw__2E_block();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" (void) {", 9);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -37810,9 +39024,11 @@ static void mb_c99_block_def_21__2 (void) {
 static void mb_c99_block_def_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("}", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -38077,9 +39293,11 @@ static void mb_match_add_case_21__2 (void) {
     mw_case_token();
     mw__40_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Case is unreachable.", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -38219,9 +39437,11 @@ static void mb_type_is_physical_2 (void) {
 static void mb_type_is_physical_3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("unbound meta at type-is-physical", 32);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -38266,9 +39486,11 @@ static void mb_type_hole_unify_21__2 (void) {
     mw_THole();
     mw_type_trace_21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" ~ ", 3);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -38502,9 +39724,11 @@ static void mb_type_trace_stack_dom_21__2 (void) {
     mw_prim_drop();
     mw_type_trace_stack_21_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" ", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -38520,9 +39744,11 @@ static void mb_type_trace_stack_cod_21__1 (void) {
 static void mb_type_trace_stack_cod_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" ", 1);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -38549,9 +39775,11 @@ static void mb_type_trace_stack_21__6 (void) {
 static void mb_type_trace_stack_21__7 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr(" .", 2);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -39400,9 +40628,11 @@ static void mb_elab_type_sig_21__1 (void) {
     mw_prim_drop();
     mw_dup();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected type signature", 23);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -39466,9 +40696,11 @@ static void mb_elab_type_sig_21__10 (void) {
     mw_prim_drop();
     mw_dup();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected right paren or comma", 29);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -39651,9 +40883,11 @@ static void mb_elab_type_atom_21__3 (void) {
                 } else {
                     mw_dup();
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("Expected type, got unknown token.", 33);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -39697,9 +40931,11 @@ static void mb_elab_type_atom_21__5 (void) {
             } else {
                 mw_dup();
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("Expected type, got unknown token.", 33);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -39733,9 +40969,11 @@ static void mb_elab_type_atom_21__7 (void) {
         } else {
             mw_dup();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Expected type, got unknown token.", 33);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -39764,9 +41002,11 @@ static void mb_elab_type_atom_21__9 (void) {
     } else {
         mw_dup();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Expected type, got unknown token.", 33);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -39790,9 +41030,11 @@ static void mb_elab_type_atom_21__11 (void) {
     mw_prim_drop();
     mw_dup();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Expected type, got unknown token.", 33);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -39819,9 +41061,11 @@ static void mb_elab_type_arg_21__1 (void) {
 static void mb_elab_type_arg_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Unexpected token after type.", 28);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -39839,9 +41083,11 @@ static void mb_elab_type_con_21__3 (void) {
     mw_drop();
     mw_dup();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Wrong number of arguments for type.", 35);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -39856,9 +41102,11 @@ static void mb_elab_type_dont_care_21__1 (void) {
     if (pop_u64()) {
         mw_dup();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Types with args not yet supported.", 34);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -39875,9 +41123,11 @@ static void mb_elab_type_dont_care_21__1 (void) {
 static void mb_elab_type_dont_care_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("type don't care is not allowed here", 35);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -39889,9 +41139,11 @@ static void mb_elab_type_dont_care_21__2 (void) {
     mw_prim_drop();
     mw_dup();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Types with args not yet supported.", 34);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -39911,9 +41163,11 @@ static void mb_elab_type_hole_21__1 (void) {
     if (pop_u64()) {
         mw_dup();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Types with args not yet supported.", 34);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -39931,9 +41185,11 @@ static void mb_elab_type_hole_21__1 (void) {
 static void mb_elab_type_hole_21__4 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("type holes are not allowed here", 31);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -39945,9 +41201,11 @@ static void mb_elab_type_hole_21__2 (void) {
     mw_prim_drop();
     mw_dup();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Types with args not yet supported.", 34);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -40396,9 +41654,11 @@ static void mb_ab_prim_21__1 (void) {
     mw_ab_token();
     mw__40_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("prim does not have type", 23);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -40720,9 +41980,11 @@ static void mb_elab_match_exhaustive_21__2 (void) {
     mw_match_token();
     mw__40_();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Pattern match not exhaustive.", 29);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -40785,9 +42047,11 @@ static void mb_elab_lambda_params_21__5 (void) {
             mw__21_();
         } else {
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("block pattern on non-block argument", 35);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -40850,9 +42114,11 @@ static void mb_elab_lambda_params_21__7 (void) {
         mw__21_();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("block pattern on non-block argument", 35);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -40883,9 +42149,11 @@ static void mb_elab_lambda_params_21__9 (void) {
 static void mb_elab_lambda_params_21__10 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("block pattern on non-block argument", 35);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41040,9 +42308,11 @@ static void mb_expect_token_arrow_1 (void) {
 static void mb_expect_token_arrow_2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Expected arrow.", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41162,9 +42432,11 @@ static void mb_elab_case_pattern_21__5 (void) {
             case 0LL:
                 mw_prim_drop();
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("Unknown constructor.", 20);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -41174,9 +42446,11 @@ static void mb_elab_case_pattern_21__5 (void) {
             default:
                 mw_drop();
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("Not a constructor.", 18);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -41186,9 +42460,11 @@ static void mb_elab_case_pattern_21__5 (void) {
         
 }    } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Expected constructor name.", 26);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -41279,9 +42555,11 @@ static void mb_elab_case_pattern_21__6 (void) {
         case 0LL:
             mw_prim_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Unknown constructor.", 20);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -41291,9 +42569,11 @@ static void mb_elab_case_pattern_21__6 (void) {
         default:
             mw_drop();
             {
-                static VAL v = {0};
-                if (!v.data.str) {
+                static bool vready = false;
+                static VAL v;
+                if (!vready) {
                     v = mkstr("Not a constructor.", 18);
+                    vready = true;
                 }
                 push_value(v);
                 incref(v);
@@ -41306,9 +42586,11 @@ static void mb_elab_case_pattern_21__6 (void) {
 static void mb_elab_case_pattern_21__16 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Expected constructor name.", 26);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41426,9 +42708,11 @@ static void mb_elab_module_header_21__1 (void) {
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Expected module name.", 21);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -41440,9 +42724,11 @@ static void mb_elab_module_header_21__1 (void) {
     if (pop_u64()) {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Module name already taken.", 26);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -41473,9 +42759,11 @@ static void mb_elab_module_header_21__1 (void) {
         mw_drop();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Module name should match path.", 30);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -41489,9 +42777,11 @@ static void mb_elab_module_header_21__8 (void) {
     mw_prim_drop();
     mw_dup();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Expected module header.", 23);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41507,9 +42797,11 @@ static void mb_elab_module_header_21__2 (void) {
 static void mb_elab_module_header_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Expected module name.", 21);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41521,9 +42813,11 @@ static void mb_elab_module_header_21__4 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Module name already taken.", 26);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41544,9 +42838,11 @@ static void mb_elab_module_header_21__6 (void) {
 static void mb_elab_module_header_21__7 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Module name should match path.", 30);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41611,9 +42907,11 @@ static void mb_elab_data_header_21__1 (void) {
 static void mb_elab_data_header_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Expected type name.", 19);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41630,9 +42928,11 @@ static void mb_elab_data_header_21__4 (void) {
     mw_prim_drop();
     mw_drop2();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Name already defined.", 21);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41648,9 +42948,11 @@ static void mb_elab_data_tag_21__1 (void) {
 static void mb_elab_data_tag_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Expected constructor name.", 26);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41667,9 +42969,11 @@ static void mb_elab_data_tag_21__4 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Name already defined. (Overlapping tags not supported.)", 55);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41707,9 +43011,11 @@ static void mb_elab_data_tag_21__8 (void) {
         mw__21_();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("Expected arrow, comma, or right paren.", 38);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -41730,9 +43036,11 @@ static void mb_elab_data_tag_21__9 (void) {
 static void mb_elab_data_tag_21__10 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Expected arrow, comma, or right paren.", 38);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41770,9 +43078,11 @@ static void mb_elab_data_tag_21__11 (void) {
                     mw_drop();
                 } else {
                     {
-                        static VAL v = {0};
-                        if (!v.data.str) {
+                        static bool vready = false;
+                        static VAL v;
+                        if (!vready) {
                             v = mkstr("syntax error", 12);
+                            vready = true;
                         }
                         push_value(v);
                         incref(v);
@@ -41812,9 +43122,11 @@ static void mb_elab_data_tag_21__12 (void) {
                 mw_drop();
             } else {
                 {
-                    static VAL v = {0};
-                    if (!v.data.str) {
+                    static bool vready = false;
+                    static VAL v;
+                    if (!vready) {
                         v = mkstr("syntax error", 12);
+                        vready = true;
                     }
                     push_value(v);
                     incref(v);
@@ -41834,9 +43146,11 @@ static void mb_elab_data_tag_21__15 (void) {
 static void mb_elab_data_tag_21__16 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("syntax error", 12);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41857,9 +43171,11 @@ static void mb_expect_token_comma_1 (void) {
 static void mb_expect_token_comma_2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Expected comma.", 15);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41875,9 +43191,11 @@ static void mb_expect_token_rparen_1 (void) {
 static void mb_expect_token_rparen_2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("Expected right parenthesis.", 27);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -41894,9 +43212,11 @@ static void mb_token_def_args_2 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("def expects at least two arguments", 34);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42001,9 +43321,11 @@ static void mb_elab_def_21__3 (void) {
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected match case", 19);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -42020,9 +43342,11 @@ static void mb_elab_def_21__4 (void) {
 static void mb_elab_def_21__5 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected match case", 19);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42038,9 +43362,11 @@ static void mb_elab_def_21__6 (void) {
 static void mb_elab_def_21__7 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected word name", 18);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42057,9 +43383,11 @@ static void mb_elab_def_21__9 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("word already defined", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42171,9 +43499,11 @@ static void mb_elab_def_params_21__1 (void) {
         mw_id();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected parameter name", 23);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -42187,9 +43517,11 @@ static void mb_elab_def_params_21__1 (void) {
         mw_drop();
     } else {
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("expected right paren or comma", 29);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -42234,9 +43566,11 @@ static void mb_elab_def_params_21__2 (void) {
 static void mb_elab_def_params_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected parameter name", 23);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42252,9 +43586,11 @@ static void mb_elab_def_params_21__4 (void) {
 static void mb_elab_def_params_21__5 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected right paren or comma", 29);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42324,9 +43660,11 @@ static void mb_elab_def_external_21__2 (void) {
     } else {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("word already defined", 20);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -42338,9 +43676,11 @@ static void mb_elab_def_external_21__2 (void) {
 static void mb_elab_def_external_21__7 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected word name", 18);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42377,9 +43717,11 @@ static void mb_elab_def_external_21__6 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("word already defined", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42428,9 +43770,11 @@ static void mb_elab_def_type_21__2 (void) {
     } else {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("type already defined", 20);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -42442,9 +43786,11 @@ static void mb_elab_def_type_21__2 (void) {
 static void mb_elab_def_type_21__5 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected type constructor", 25);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42467,9 +43813,11 @@ static void mb_elab_def_type_21__4 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("type already defined", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42495,9 +43843,11 @@ static void mb_elab_buffer_21__2 (void) {
     } else {
         mw_drop();
         {
-            static VAL v = {0};
-            if (!v.data.str) {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
                 v = mkstr("buffer already defined", 22);
+                vready = true;
             }
             push_value(v);
             incref(v);
@@ -42509,9 +43859,11 @@ static void mb_elab_buffer_21__2 (void) {
 static void mb_elab_buffer_21__5 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected buffer name", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42532,9 +43884,11 @@ static void mb_elab_buffer_21__4 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("buffer already defined", 22);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42550,9 +43904,11 @@ static void mb_elab_variable_21__1 (void) {
 static void mb_elab_variable_21__2 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected variable name", 22);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42569,9 +43925,11 @@ static void mb_elab_variable_21__4 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("name already defined", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42599,9 +43957,11 @@ static void mb_elab_table_21__2 (void) {
 static void mb_elab_table_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected table name", 19);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42881,9 +44241,11 @@ static void mb_elab_embed_str_21__2 (void) {
 static void mb_elab_embed_str_21__3 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected name", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42900,9 +44262,11 @@ static void mb_elab_embed_str_21__5 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("name already defined", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42918,9 +44282,11 @@ static void mb_elab_embed_str_21__6 (void) {
 static void mb_elab_embed_str_21__7 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("expected path", 13);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42937,9 +44303,11 @@ static void mb_elab_embed_str_21__8 (void) {
 static void mb_elab_embed_str_21__9 (void) {
     mw_prim_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("could not open file", 19);
+            vready = true;
         }
         push_value(v);
         incref(v);
@@ -42961,9 +44329,11 @@ static void mb_elab_field_21__4 (void) {
     mw_prim_drop();
     mw_drop();
     {
-        static VAL v = {0};
-        if (!v.data.str) {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
             v = mkstr("name already defined", 20);
+            vready = true;
         }
         push_value(v);
         incref(v);

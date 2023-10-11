@@ -24,16 +24,18 @@ extern int strcmp(const char*, const char*);
 extern size_t strlen(const char*);
 extern void free(void*);
 extern int read(int, void*, size_t);
-extern int write(int, void*, size_t);
+extern int write(int, const char*, size_t);
 extern int close(int);
-extern int open(void*, int, int);
+extern int open(const char*, int, int);
 extern void exit(int);
 
-#define HAS_REFS 0x8000
+#define HAS_REFS_FLAG 0x8000
 typedef enum TAG {
+    // TODO: TAG_NIL
+    // TODO: TAG_PTR
     TAG_INT  = 0,
-    TAG_CONS = 1 | HAS_REFS,
-    TAG_STR  = 2 | HAS_REFS,
+    TAG_CONS = 1 | HAS_REFS_FLAG,
+    TAG_STR  = 2 | HAS_REFS_FLAG,
 } TAG;
 
 typedef void (*fnptr)(void);
@@ -65,6 +67,33 @@ typedef struct VAL {
     TAG tag;
 } VAL;
 
+#define VREFS(v)  (*(v).data.refs)
+#define VINT(v)   ((v).data.i64)
+#define VI64(v)   ((v).data.i64)
+#define VU64(v)   ((v).data.u64)
+#define VPTR(v)   ((v).data.ptr)
+#define VFNPTR(v) ((v).data.fnptr)
+#define VSTR(v)   ((v).data.str)
+#define VCONS(v)  ((v).data.cons)
+
+#define HAS_REFS(v) ((v).tag & HAS_REFS_FLAG)
+#define IS_INT(v)   ((v).tag == TAG_INT)
+#define IS_U64(v)   ((v).tag == TAG_INT)
+#define IS_I64(v)   ((v).tag == TAG_INT)
+#define IS_PTR(v)   ((v).tag == TAG_INT)
+#define IS_FNPTR(v) ((v).tag == TAG_INT)
+#define IS_STR(v)   ((v).tag == TAG_STR)
+#define IS_CONS(v)  ((v).tag == TAG_CONS)
+#define IS_NIL(v)   (((v).tag == TAG_INT) && ((v).data.i64 == 0))
+
+#define MKINT(x)   ((VAL){.tag=TAG_INT,  .data={.i64=(x)}})
+#define MKI64(x)   ((VAL){.tag=TAG_INT,  .data={.i64=(x)}})
+#define MKU64(x)   ((VAL){.tag=TAG_INT,  .data={.u64=(x)}})
+#define MKFNPTR(x) ((VAL){.tag=TAG_INT,  .data={.fnptr=(x)}})
+#define MKPTR(x)   ((VAL){.tag=TAG_INT,  .data={.ptr=(x)}})
+#define MKSTR(x)   ((VAL){.tag=TAG_STR,  .data={.str=(x)}})
+#define MKCONS(x)  ((VAL){.tag=TAG_CONS, .data={.cons=(x)}})
+#define MKNIL()    ((VAL){.tag=TAG_INT,  .data={.i64=0}})
 
 typedef struct CONS {
     REFS refs;
@@ -125,73 +154,70 @@ static void mw_prim_debug(void);
 #define ASSERT2(test,v1,v2) \
     EXPECT2(test,  "assertion failed (" #test ")", v1, v2)
 
-
 static void free_value(VAL v);
 
 static void incref(VAL v) {
-    if (v.tag & HAS_REFS) {
-        (*v.data.refs)++;
+    if (HAS_REFS(v)) {
+        VREFS(v)++;
     }
 }
 
 static void decref(VAL v) {
-    if (v.tag & HAS_REFS) {
-        if(--(*v.data.refs) == 0) {
+    if (HAS_REFS(v)) {
+        if(--VREFS(v) == 0) {
             free_value(v);
         }
     }
 }
 
 static void free_value(VAL v) {
-    ASSERT(v.tag & HAS_REFS);
-    ASSERT(v.data.refs && *v.data.refs == 0);
-    switch (v.tag) {
-        case TAG_INT: ASSERT(0); break;
-        case TAG_CONS: {
-            CONS* cons = v.data.cons;
-            ASSERT(cons);
-            decref(cons->car);
-            decref(cons->cdr);
-            free(cons);
-        } break;
-        case TAG_STR: {
-            STR* str = v.data.str;
-            ASSERT(str);
-            free(str);
-        } break;
+    ASSERT(HAS_REFS(v));
+    ASSERT(VREFS(v) == 0);
+    ASSERT1(IS_CONS(v)||IS_STR(v), v);
+    if (IS_CONS(v)) {
+        CONS* cons = VCONS(v);
+        ASSERT(cons);
+        decref(cons->car);
+        decref(cons->cdr);
+        free(cons);
+    } else if (IS_STR(v)) {
+        STR* str = VSTR(v);
+        ASSERT(str);
+        free(str);
     }
 }
 
 static void value_uncons(VAL val, VAL* car, VAL* cdr) {
-    if (val.tag == TAG_CONS) {
-        *car = val.data.cons->car;
-        *cdr = val.data.cons->cdr;
+    if (IS_CONS(val)) {
+        CONS* cons = VCONS(val);
+        *car = cons->car;
+        *cdr = cons->cdr;
     } else {
-        *car = (VAL){0};
+        *car = MKNIL();
         *cdr = val;
     }
 }
 
 static void* value_ptr (VAL v) {
-    ASSERT(v.tag == TAG_INT);
-    return v.data.ptr;
+    ASSERT(IS_PTR(v));
+    return VPTR(v);
 }
 
-#define pop_fnptr() (pop_value().data.fnptr)
-#define pop_u8() (pop_value().data.u8)
-#define pop_u16() (pop_value().data.u16)
-#define pop_u32() (pop_value().data.u32)
-#define pop_u64() (pop_value().data.u64)
-#define pop_i8() (pop_value().data.i8)
-#define pop_i16() (pop_value().data.i16)
-#define pop_i32() (pop_value().data.i32)
-#define pop_i64() (pop_value().data.i64)
-#define pop_usize() (pop_value().data.usize)
-#define pop_bool() ((bool)pop_u64())
-#define pop_ptr() (pop_value().data.ptr)
+#define pop_fnptr() VFNPTR(pop_value())
+#define pop_u8() ((uint8_t)VU64(pop_value()))
+#define pop_u16() ((uint16_t)VU64(pop_value()))
+#define pop_u32() ((uint32_t)VU64(pop_value()))
+#define pop_u64() (VU64(pop_value()))
+#define pop_i8() ((int8_t)VI64(pop_value()))
+#define pop_i16() ((int16_t)VI64(pop_value()))
+#define pop_i32() ((int32_t)VI64(pop_value()))
+#define pop_i64() (VI64(pop_value()))
+#define pop_usize() (VU64(pop_value()))
+#define pop_bool() ((bool)VU64(pop_value()))
+#define pop_ptr() (VPTR(pop_value()))
 
-#define push_u64(v) push_value(mku64(v))
-#define push_i64(v) push_value(mki64(v))
+#define push_u64(v) push_value(MKU64(v))
+#define push_i64(v) push_value(MKI64(v))
 #define push_usize(v) push_u64((uint64_t)(v))
 #define push_fnptr(v) push_u64((uint64_t)(v))
 #define push_bool(b) push_u64((uint64_t)((bool)(b)))
@@ -218,31 +244,15 @@ static VAL pop_value(void) {
     return stack[stack_counter++];
 }
 
-static VAL mkint (int64_t x) {
-    return (VAL){.tag=TAG_INT, .data={.i64=x}};
-}
-
-static VAL mku64 (uint64_t x) {
-    return (VAL){.tag=TAG_INT, .data={.u64=x}};
-}
-
-static VAL mki64 (int64_t x) {
-    return (VAL){.tag=TAG_INT, .data={.i64=x}};
-}
-
 static VAL mkcons (VAL car, VAL cdr) {
-    if ((car.data.usize == 0) && (cdr.tag != TAG_CONS))
+    if (IS_NIL(car) && !IS_CONS(cdr))
         return cdr;
     CONS *cons = calloc(1, sizeof(CONS));
     EXPECT(cons, "failed to allocate a cons cell");
     cons->refs = 1;
     cons->car = car;
     cons->cdr = cdr;
-    return (VAL){.tag=TAG_CONS, .data={.cons=cons}};
-}
-
-static VAL mkptr (void* ptr) {
-    return (VAL) {.tag=TAG_INT, .data={.ptr=ptr}};
+    return MKCONS(cons);
 }
 
 static STR* str_alloc (USIZE cap) {
@@ -260,7 +270,7 @@ static VAL mkstr (const char* data, USIZE size) {
     STR* str = str_alloc(size);
     str->size = size;
     memcpy(str->data, data, (size_t)size);
-    return (VAL) { .tag=TAG_STR, .data={.str=str} };
+    return MKSTR(str);
 }
 
 static void do_uncons(void) {
@@ -277,46 +287,39 @@ static void do_uncons(void) {
 static USIZE get_data_tag(VAL v) {
     VAL car, cdr;
     value_uncons(v, &car, &cdr);
-    return cdr.data.usize;
+    return VU64(cdr);
 }
 
 static USIZE get_top_data_tag(void) {
     return get_data_tag(top_value());
 }
 
-static int value_cmp(VAL v1, VAL v2) {
-    while ((v1.tag == TAG_CONS) || (v2.tag == TAG_CONS)) {
+static int value_cmp_(VAL v1, VAL v2) {
+    while (IS_CONS(v1) || IS_CONS(v2)) {
         VAL v1car, v1cdr; value_uncons(v1, &v1car, &v1cdr);
         VAL v2car, v2cdr; value_uncons(v2, &v2car, &v2cdr);
-        int r = value_cmp(v1cdr, v2cdr);
+        int r = value_cmp_(v1cdr, v2cdr);
         if (r) return r;
         v1 = v1car;
         v2 = v2car;
     }
-    ASSERT2(v1.tag == v2.tag, v1, v2);
-    switch (v1.tag) {
-        case TAG_INT:
-            if (v1.data.i64 < v2.data.i64) return -1;
-            if (v1.data.i64 > v2.data.i64) return 1;
-            return 0;
-
-        case TAG_STR:
-            ASSERT(v1.data.str);
-            ASSERT(v2.data.str);
-            USIZE n1 = v1.data.str->size;
-            USIZE n2 = v2.data.str->size;
-            USIZE n = (n1 < n2 ? n1 : n2);
-            ASSERT(n < SIZE_MAX);
-            int r = memcmp(v1.data.str->data, v2.data.str->data, (size_t)n);
-            if (r) return r;
-            if (n1 < n2) return -1;
-            if (n1 > n2) return 1;
-            return 0;
-
-        case TAG_CONS:
-            ASSERT(0);
+    if (IS_INT(v1) && IS_INT(v2)) {
+        if (VINT(v1) < VINT(v2)) return -1;
+        if (VINT(v1) > VINT(v2)) return 1;
+        return 0;
+    } else if (IS_STR(v1) && IS_STR(v2)) {
+        ASSERT2(VSTR(v1) && VSTR(v2), v1, v2);
+        USIZE n1 = VSTR(v1)->size;
+        USIZE n2 = VSTR(v2)->size;
+        USIZE n = (n1 < n2 ? n1 : n2);
+        ASSERT(n < SIZE_MAX);
+        int r = memcmp(VSTR(v1)->data, VSTR(v2)->data, (size_t)n);
+        if (r) return r;
+        if (n1 < n2) return -1;
+        if (n1 > n2) return 1;
+        return 0;
     }
-    ASSERT(0);
+    ASSERT2(0, v1, v2);
     return 0;
 }
 
@@ -328,7 +331,8 @@ static void run_value(VAL v) {
     push_value(car);
     incref(car);
     decref(v);
-    cdr.data.fnptr();
+    ASSERT(IS_FNPTR(cdr) && VFNPTR(cdr));
+    VFNPTR(cdr)();
 }
 
 static void mw_prim_id (void) {}
@@ -482,21 +486,21 @@ static void mw_prim_bool_or (void) {
 static void mw_prim_value_eq (void) {
     VAL b = pop_value();
     VAL a = pop_value();
-    int cmp = value_cmp(a,b);
+    int cmp = value_cmp_(a,b);
     push_bool(cmp == 0);
     decref(a); decref(b);
 }
 static void mw_prim_value_lt (void) {
     VAL b = pop_value();
     VAL a = pop_value();
-    int cmp = value_cmp(a,b);
+    int cmp = value_cmp_(a,b);
     push_bool(cmp < 0);
     decref(a); decref(b);
 }
 static void mw_prim_value_le (void) {
     VAL b = pop_value();
     VAL a = pop_value();
-    int cmp = value_cmp(a,b);
+    int cmp = value_cmp_(a,b);
     push_bool(cmp <= 0);
     decref(a); decref(b);
 }
@@ -577,15 +581,22 @@ void str_trace_(STR* str, int fd) {
 }
 
 void value_trace_(VAL val, int fd) {
-    switch (val.tag) {
-        case TAG_INT: int_trace_(val.data.i64,fd); break;
-        case TAG_STR: str_trace_(val.data.str,fd); break;
-        case TAG_CONS:
-            write(fd, "[ ", 2);
-            value_trace_(val.data.cons->car, fd);
-            write(fd, " ", 1);
-            value_trace_(val.data.cons->cdr, fd);
-            write(fd, " ]", 2);
+    if (IS_INT(val)) {
+        int_trace_(VINT(val), fd);
+    } else if (IS_STR(val)) {
+        str_trace_(VSTR(val), fd);
+    } else if (IS_CONS(val)) {
+        VAL car, cdr;
+        value_uncons(val, &car, &cdr);
+        write(fd, "[ ", 2);
+        value_trace_(car, fd);
+        write(fd, " ", 1);
+        value_trace_(cdr, fd);
+        write(fd, " ]", 2);
+    } else {
+        const char* msg = "value cannot be traced";
+        write(2, msg, strlen(msg));
+        exit(1);
     }
 }
 
@@ -775,8 +786,8 @@ static void mw_prim_run (void) {
 static void mw_prim_ptr_add (void) {
     VAL vptr = pop_value();
     USIZE n = pop_usize();
-    ASSERT(vptr.tag == TAG_INT);
-    char* ptr = vptr.data.ptr;
+    ASSERT(IS_PTR(vptr) && VPTR(vptr));
+    char* ptr = (char*)VPTR(vptr);
     push_ptr(ptr + n);
 }
 #define mw_prim_ptr_size() push_u64((uint64_t)sizeof(void*))
@@ -791,7 +802,7 @@ static void mw_prim_ptr_copy (void) {
     VAL vdst = pop_value();
     int64_t ilen = pop_i64();
     VAL vsrc = pop_value();
-    ASSERT2(vsrc.tag == TAG_INT && vdst.tag == TAG_INT, vsrc, vdst);
+    ASSERT2(IS_PTR(vsrc) && IS_PTR(vdst), vsrc, vdst);
     void* src = value_ptr(vsrc);
     void* dst = value_ptr(vdst);
     if (src && dst && (ilen > 0)) {
@@ -802,7 +813,7 @@ static void mw_prim_ptr_copy (void) {
 
 static void mw_prim_ptr_fill (void) {
     VAL vdst = pop_value();
-    ASSERT1(vdst.tag == TAG_INT, vdst);
+    ASSERT1(IS_PTR(vdst), vdst);
     int64_t ilen = pop_i64();
     int64_t val = pop_i64();
     void* dst = value_ptr(vdst);
@@ -814,16 +825,16 @@ static void mw_prim_ptr_fill (void) {
 
 static void mw_prim_ptr_raw (void) {
     VAL vptr = top_value();
-    ASSERT(vptr.tag == TAG_INT);
+    ASSERT(IS_PTR(vptr));
     push_value(vptr);
 }
 
 static void mw_prim_str_eq (void) {
     VAL vptr1 = pop_value();
     VAL vptr2 = pop_value();
-    ASSERT2(vptr1.tag == TAG_STR && vptr2.tag == TAG_STR, vptr1, vptr2);
-    STR* str1 = vptr1.data.str;
-    STR* str2 = vptr2.data.str;
+    ASSERT2(IS_STR(vptr1) && IS_STR(vptr2), vptr1, vptr2);
+    STR* str1 = VSTR(vptr1);
+    STR* str2 = VSTR(vptr2);
     ASSERT(str1->size <= SIZE_MAX);
     push_bool((str1->size == str2->size) &&
         (memcmp(str1->data, str2->data, (size_t)str1->size) == 0));
@@ -836,15 +847,15 @@ static void mw_prim_str_alloc (void) {
     ASSERT(size <= SIZE_MAX-sizeof(STR)-4);
     STR* str = str_alloc(size);
     str->size = size;
-    push_value((VAL){.tag=TAG_STR, .data={.str=str}});
+    push_value(MKSTR(str));
 }
 
 static void mw_prim_str_cat (void) {
     VAL v2 = pop_value();
     VAL v1 = pop_value();
-    ASSERT2((v1.tag == TAG_STR) && (v2.tag == TAG_STR), v1, v2);
-    STR* s1 = v1.data.str;
-    STR* s2 = v2.data.str;
+    ASSERT2(IS_STR(v1) && IS_STR(v2), v1, v2);
+    STR* s1 = VSTR(v1);
+    STR* s2 = VSTR(v2);
     USIZE m = s1->cap;
     USIZE n1 = s1->size;
     USIZE n2 = s2->size;
@@ -864,7 +875,7 @@ static void mw_prim_str_cat (void) {
         ASSERT(n2 <= SIZE_MAX);
         memcpy(str->data, s1->data, (size_t)n1);
         memcpy(str->data+n1, s2->data, (size_t)n2);
-        push_value((VAL){ .tag=TAG_STR, .data={.str=str} });
+        push_value(MKSTR(str));
         decref(v1);
         decref(v2);
     }
@@ -872,15 +883,15 @@ static void mw_prim_str_cat (void) {
 
 static void mw_prim_str_base (void) {
     VAL vstr = pop_value();
-    ASSERT1(vstr.tag == TAG_STR && vstr.data.str, vstr);
-    push_ptr(vstr.data.str->data);
+    ASSERT1(IS_STR(vstr) && VSTR(vstr), vstr);
+    push_ptr(VSTR(vstr)->data);
     decref(vstr);
 }
 
 static void mw_prim_str_size (void) {
     VAL v = top_value();
-    ASSERT(v.tag == TAG_STR && v.data.str);
-    push_usize(v.data.str->size);
+    ASSERT(IS_STR(v) && VSTR(v));
+    push_usize(VSTR(v)->size);
 }
 
 static void mw_prim_pack_nil (void) {
@@ -904,9 +915,8 @@ static void mw_prim_pack_uncons (void) {
 
 static void mw_prim_mut_get (void) {
     VAL mut = pop_value();
-    ASSERT(mut.tag == TAG_INT);
-    ASSERT(mut.data.ptr);
-    VAL v = *mut.data.valptr;
+    ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
+    VAL v = *(VAL*)VPTR(mut);
     push_value(v);
     incref(v);
 }
@@ -914,10 +924,9 @@ static void mw_prim_mut_set (void) {
     VAL mut = pop_value();
     VAL newval = pop_value();
     push_value(mut);
-    ASSERT(mut.tag == TAG_INT);
-    ASSERT(mut.data.ptr);
-    VAL oldval = *mut.data.valptr;
-    *mut.data.valptr = newval;
+    ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
+    VAL oldval = *(VAL*)VPTR(mut);
+    *(VAL*)VPTR(mut) = newval;
     decref(oldval);
 }
 
