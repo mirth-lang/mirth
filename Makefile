@@ -11,8 +11,14 @@ show: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3.c
 	diff --strip-trailing-cr bin/mirth0.c bin/mirth1.c | head -n 5
 	diff --strip-trailing-cr bin/mirth1.c bin/mirth2.c | head -n 10
 	diff --strip-trailing-cr bin/mirth2.c bin/mirth3.c
+showsan: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3san.c bin/mirth3.c
+	diff --strip-trailing-cr bin/mirth0.c bin/mirth1.c | head -n 5
+	diff --strip-trailing-cr bin/mirth1.c bin/mirth2.c | head -n 10
+	diff --strip-trailing-cr bin/mirth2.c bin/mirth3san.c
+	diff --strip-trailing-cr bin/mirth3san.c bin/mirth3.c
 
 build: bin/mirth0 bin/mirth1 bin/mirth2 bin/mirth1.c bin/mirth2.c bin/mirth3.c
+buildsan: bin/mirth0 bin/mirth1 bin/mirth2san bin/mirth1.c bin/mirth2.c bin/mirth3san.c
 
 update: bin/mirth0.c bin/mirth3.c
 	cp bin/mirth3.c bin/mirth0.c
@@ -65,6 +71,9 @@ bin/mirth1: bin/mirth1.c
 bin/mirth2: bin/mirth2.c
 	$(CC) -o bin/mirth2 bin/mirth2.c
 
+bin/mirth2san: bin/mirth2.c
+	$(CC) -fsanitize=undefined -fsanitize=address -o bin/mirth2san bin/mirth2.c
+
 bin/mirth1.c: bin/mirth0 $(SRCS)
 	bin/mirth0 mirth.mth
 	mv bin/mirth.c bin/mirth1.c
@@ -76,6 +85,10 @@ bin/mirth2.c: bin/mirth1 $(SRCS)
 bin/mirth3.c: bin/mirth2 $(SRCS)
 	bin/mirth2 mirth.mth
 	mv bin/mirth.c bin/mirth3.c
+
+bin/mirth3san.c: bin/mirth2san $(SRCS)
+	bin/mirth2san mirth.mth
+	mv bin/mirth.c bin/mirth3san.c
 
 bin/mirth_prof.c: bin/mirth3.c
 
