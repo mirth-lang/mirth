@@ -33,9 +33,9 @@ extern void exit(int);
 typedef enum TAG {
     // TODO: TAG_NIL
     // TODO: TAG_PTR
-    TAG_INT  = 0,
-    TAG_CONS = 1 | HAS_REFS_FLAG,
-    TAG_STR  = 2 | HAS_REFS_FLAG,
+    TAG_INT  = 1,
+    TAG_CONS = 2 | HAS_REFS_FLAG,
+    TAG_STR  = 3 | HAS_REFS_FLAG,
 } TAG;
 
 typedef void (*fnptr)(void);
@@ -928,6 +928,8 @@ static void mw_prim_mut_get (void) {
     VAL mut = pop_value();
     ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
     VAL v = *(VAL*)VPTR(mut);
+    if (!v.tag) v = MKNIL();
+    // EXPECT(v.tag, "read uninitialized value");
     push_value(v);
     incref(v);
 }
@@ -938,7 +940,9 @@ static void mw_prim_mut_set (void) {
     ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
     VAL oldval = *(VAL*)VPTR(mut);
     *(VAL*)VPTR(mut) = newval;
-    decref(oldval);
+    if (oldval.tag) {
+        decref(oldval);
+    }
 }
 
 /* GENERATED C99 */
