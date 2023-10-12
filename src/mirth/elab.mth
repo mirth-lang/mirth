@@ -982,7 +982,7 @@ def(elab-variable!, Token -- Token,
 def(elab-table!, Token -- Token,
     sip(token-next) token-args-1
     sig-token-is-type-con? if(
-        token-name@ table-new! drop,
+        dup token-name@ table-new! drop,
         "expected table name" emit-fatal-error!
     ))
 
@@ -1038,10 +1038,11 @@ def(typecheck-def!, Def --,
 
 def(TABLE_MAX_SIZE, Int, 0x10000)
 
-def(table-new!, Name -- Table,
+def(table-new!, Token Name -- Table,
     Table.alloc!
     dup2 TTable DEF_TYPE swap name-def !
     tuck table-name !
+    tuck table-head !
 
     TABLE_MAX_SIZE over table-max-count !
 
@@ -1056,7 +1057,24 @@ def(table-new!, Name -- Table,
     ready2 over word-ctx-type !
 
     ab-build-word!(
+        dup table-head @ ab-token !
         TABLE_MAX_SIZE ab-int!
+    ) drop
+
+    # Table.nil
+    dup table-name @ ".nil" name-cat!
+    Word.alloc!
+    dup2 DEF_WORD swap name-def !
+    tuck word-name !
+
+    L0 CTX
+    T0 over3 TTable T1 T->
+    ready2 over word-ctx-type !
+
+    ab-build-word!(
+        dup table-head @ ab-token !
+        0 ab-int!
+        PRIM_UNSAFE_CAST ab-prim!
     ) drop
 
     # Table.NUM
@@ -1075,6 +1093,22 @@ def(table-new!, Name -- Table,
     ready2 over word-ctx-type !
 
     ab-build-word! (
+        dup table-head @ ab-token !
+        PRIM_UNSAFE_CAST ab-prim!
+    ) drop
+
+    # Table.from-id
+    dup table-name @ ".from-id" name-cat!
+    Word.alloc!
+    dup2 DEF_WORD swap name-def !
+    tuck word-name !
+
+    L0 CTX
+    over2 TTable T1 TYPE_INT T1 swap T->
+    ready2 over word-ctx-type !
+
+    ab-build-word! (
+        dup table-head @ ab-token !
         PRIM_UNSAFE_CAST ab-prim!
     ) drop
 
@@ -1089,6 +1123,7 @@ def(table-new!, Name -- Table,
     ready2 over word-ctx-type !
 
     ab-build-word! (
+        dup table-head @ ab-token !
         PRIM_UNSAFE_CAST ab-prim!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
@@ -1100,7 +1135,7 @@ def(table-new!, Name -- Table,
         PRIM_UNSAFE_CAST ab-prim!
     ) drop
 
-    # Table.succ
+    # Table.pred
     dup table-name @ ".pred" name-cat!
     Word.alloc!
     dup2 DEF_WORD swap name-def !
@@ -1111,6 +1146,7 @@ def(table-new!, Name -- Table,
     ready2 over word-ctx-type !
 
     ab-build-word! (
+        dup table-head @ ab-token !
         PRIM_UNSAFE_CAST ab-prim!
         PRIM_CORE_DUP ab-prim!
         0 ab-int!
@@ -1145,6 +1181,7 @@ def(table-new!, Name -- Table,
         )
 
         w ab-build-word! (
+            t table-head @ ab-token !
             x Var->Param L1 ab-lambda! (
                 1 ab-int!
                 ab-while! (
@@ -1178,6 +1215,7 @@ def(table-new!, Name -- Table,
     ready2 over word-ctx-type !
 
     ab-build-word! (
+        dup table-head @ ab-token !
         dup table-num-buffer @ ab-buffer!
         PRIM_INT_GET ab-prim!
         1 ab-int!

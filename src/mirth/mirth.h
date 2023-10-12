@@ -853,6 +853,14 @@ static void mw_prim_str_alloc (void) {
     push_value(MKSTR(str));
 }
 
+static void mw_prim_str_copy (void) {
+    USIZE size = pop_usize();
+    char* ptr = (char*)pop_ptr();
+    ASSERT(size <= SIZE_MAX-sizeof(STR)-4);
+    ASSERT(ptr);
+    push_value(mkstr(ptr, size));
+}
+
 static void mw_prim_str_cat (void) {
     VAL v2 = pop_value();
     VAL v1 = pop_value();
