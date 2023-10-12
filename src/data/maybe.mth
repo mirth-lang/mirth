@@ -12,6 +12,10 @@ def(unwrap, Maybe(t) -- t,
     NONE -> "tried to unwrap NONE" panic!,
     SOME -> id)
 
+def(maybe(f,g), (*a -- *b, *a t -- *b) *a Maybe(t) -- *b,
+    NONE -> f,
+    SOME -> g)
+
 def(unwrap-or(f), (*a -- *a t) *a Maybe(t) -- *a t,
     NONE -> f,
     SOME -> id)

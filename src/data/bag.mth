@@ -25,7 +25,7 @@ def(B3+, v v v -- Bag+(v), order3 L3+ BAG+)
 def(Bag+->Bag, Bag+(v) -- Bag(v), unBAG+ List+->List BAG)
 def(Bag->Bag+, Bag(v) -- Maybe(Bag+(v)), unBAG List->List+ maybe-map(BAG+))
 
-def(bag-empty, Bag(v), L0 BAG)
+def(bag-nil, Bag(v), L0 BAG)
 def(bag-is-empty, Bag(v) -- Bool, BAG -> list-is-empty)
 def(bag-singleton, v -- Bag(v), B1)
 def(bag-is-singleton, Bag(v) -- Bool, bag-len 1 ==)

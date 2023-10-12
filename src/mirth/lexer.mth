@@ -24,6 +24,7 @@ def(run-lexer!, Path -- Module,
 
     1 Int->Row lexer-row !
     1 Int->Col lexer-col !
+    STACK_NIL lexer-stack !
 
     token-alloc!
 

@@ -649,7 +649,9 @@ def(meta-trace!, MetaVar --,
         NONE -> "?" str-trace! MetaVar.id int-trace!,
         SOME -> nip type-trace!
     ))
-def(meta-alloc!, MetaVar, MetaVar.alloc!)
+def(meta-alloc!, MetaVar,
+    MetaVar.alloc!
+    NONE over meta-type !)
 def(meta-expand-if(f,g), (*a Type -- *b, *a MetaVar -- *b) *a MetaVar -- *b,
     dup meta-type @ match(
         NONE -> g,

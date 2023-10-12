@@ -14,7 +14,8 @@ field(var-auto-run, Var, Bool) # run variable by default
 
 def(var-new!, Name -- Var,
     Var.alloc!
-    tuck var-name !)
+    tuck var-name !
+    false over var-auto-run !)
 
 def(var-new-implicit!, Name -- Var,
     var-new!
