@@ -28,10 +28,17 @@ def(name-debug!, Name --,
     dup name-str @ str-trace!
     "[" str-trace! Name.id int-trace! "] " str-trace!)
 
-table(Hash)
-field(hash-name, Hash, Name)
-def(Hash->Int, Hash -- Int, Hash.id)
-def(Int->Hash, Int -- Hash, Hash.MAX % Hash.from-id)
+
+data(Hash, HASH -> Int)
+def(Hash->Int, Hash -- Int, HASH -> id)
+def(Int->Hash, Int -- Hash, HASH_MAX % HASH)
+
+def(HASH_MAX, Int, 0x10000)
+buffer(HASH_BUF,   0x80000)
+def(hash-name@, Hash -- Maybe(Name),
+    Hash->Int HASH_BUF int@@
+    dup 0= if(drop NONE, Name.from-id SOME))
+def(hash-name!, Name Hash --, dip(Name.id) Hash->Int HASH_BUF int!!)
 
 ||| Get hash for string.
 def(hash, Str -- Hash,
@@ -42,20 +49,23 @@ def(name-hash, Name -- Hash, name-str @ hash)
 def(next-hash, Hash -- Hash, Hash->Int 1+ Int->Hash)
 
 def(name-keep-going?, Str Hash -- Str Hash Bool,
-    dup hash-name @ name-is-nil if(
-        false,
-        dup2 hash-name @ name-str @ str-eq not
+    dup hash-name@ match(
+        NONE -> false,
+        SOME -> name-str @ over2 <>
     ))
 
 def(name-new!, Str -- Name,
     dup hash
     while(name-keep-going?, next-hash)
-    dup hash-name @ dup name-is-nil if(
-        drop Name.alloc!
-        tuck swap hash-name !
-        tuck name-str !
-        dup delay(name-mangle-compute!) over name-mangled !,
-        nip nip
+    dup hash-name@ match(
+        NONE ->
+            Name.alloc!
+            tuck swap hash-name!
+            tuck name-str !
+            DEF_NONE over name-def !
+            dup delay(name-mangle-compute!) over name-mangled !,
+        SOME ->
+            dip(drop2)
     ))
 
 ||| Add string to name, creating new name.

@@ -196,6 +196,7 @@ def(ab-build!(f), (*a -- *b) *a Ctx Type Token -- *b Arrow,
         tuck dup2 arrow-token-start ! arrow-token-end !
         tuck dup2 arrow-dom ! arrow-cod !
         tuck arrow-ctx !
+        L0 over arrow-atoms !
         ab-arrow !
         f
         ab-arrow @
@@ -301,6 +302,7 @@ def(ab-op!, Op --,
     dip(over atom-subst !)
     ab-expand-opsig!
     dip(over atom-dom !) over atom-cod !
+    L0 over atom-args !
     ab-atom!)
 
 def(ab-expand-opsig!, OpSig -- Type Type,
@@ -589,6 +591,7 @@ def(token-is-lambda-param?, Token -- Token Bool,
     )))
 
 def(elab-lambda-params!, Lambda -- Lambda,
+    L0 over lambda-params !
     dup lambda-outer-ctx @ over lambda-inner-ctx !
     dup lambda-dom @ over lambda-mid !
     dup lambda-token @ token-args-1
