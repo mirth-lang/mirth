@@ -31,7 +31,7 @@ def(name-debug!, Name --,
 table(Hash)
 field(hash-name, Hash, Name)
 def(Hash->Int, Hash -- Int, Hash.id)
-def(Int->Hash, Int -- Hash, Hash.MAX % prim-unsafe-cast)
+def(Int->Hash, Int -- Hash, Hash.MAX % Hash.from-id)
 
 ||| Get hash for string.
 def(hash, Str -- Hash,

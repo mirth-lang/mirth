@@ -54,9 +54,6 @@ def(build-str!(f), (*a -- *b) *a -- *b Str,
         f str-buf-dup!
     ) str-buf!)
 
-def-missing(prim-str-copy, Ptr Size -- Str,
-    dup prim-str-alloc sip(prim-str-base prim-ptr-copy))
-
 def(str-copy, Ptr Size -- Str,
     prim-str-copy)
 

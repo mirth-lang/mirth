@@ -6,6 +6,7 @@ import(mirth.data.word)
 
 # mirth/data/table
 table(Table)
+field(table-head, Table, Token) # where the table was defined
 field(table-name, Table, Name)
 field(table-num-buffer, Table, Buffer)
 field(table-max-count, Table, Size)
