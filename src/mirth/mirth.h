@@ -108,20 +108,66 @@ typedef struct STR {
     char data[];
 } STR;
 
-#define STACK_MAX 0x8000
+typedef struct LOC {
+    void (*fnptr) (void);
+    const char* word;
+    const char* path;
+    USIZE line;
+    const char* atom;
+} LOC;
+
+#define STACK_MAX 0x80000
 static USIZE stack_counter = STACK_MAX;
 static VAL stack [STACK_MAX] = {0};
+static USIZE rstack_counter = 1;
+static LOC rstack [STACK_MAX] = {0};
 static int global_argc;
 static char** global_argv;
 
 static void push_value(VAL v);
 static void mw_prim_debug(void);
+static void mw_prim_rdebug(void);
+
+#define WORD_ENTER(_f,_w,_p,_l) \
+    do { \
+        rstack[rstack_counter].fnptr = (_f); \
+        rstack[rstack_counter].word = (_w); \
+        rstack[rstack_counter].path = (_p); \
+        rstack[rstack_counter].line = (_l); \
+        rstack[rstack_counter].atom = ""; \
+        rstack_counter++; \
+    } while(0)
+
+#define WORD_ATOM(_l,_n) \
+    do { \
+        if (rstack_counter > 0) { \
+            rstack[rstack_counter-1].line = (_l); \
+            rstack[rstack_counter-1].atom = (_n); \
+        } \
+    } while(0)
+
+#define WORD_EXIT(_f) \
+    do { \
+        if ((rstack_counter == 0) || (rstack[rstack_counter-1].fnptr != (_f))) { \
+            TRACE("mismatched WORD_EXIT, expected " #_f "\n"); \
+            exit(1); \
+        } \
+        rstack_counter--; \
+    } while(0)
+
+#define PRIM_ENTER(_f,_w) WORD_ENTER(_f,_w,__FILE__,__LINE__)
+#define PRIM_EXIT(_f) WORD_EXIT(_f)
+
+#define TRACE(x) write(2,x,strlen(x))
+#define _STR(x) #x
+#define STR(x) _STR(x)
 
 #define EXPECT(test,msg) \
     do { \
         if (!(test)) { \
-            write(2, msg "\n", strlen(msg "\n")); \
+            TRACE(msg "\n"); \
             mw_prim_debug(); \
+            mw_prim_rdebug(); \
             exit(1); \
         } \
     } while(0)
@@ -129,9 +175,10 @@ static void mw_prim_debug(void);
 #define EXPECT1(test,msg,v1) \
     do { \
         if (!(test)) { \
-            write(2, msg "\n", strlen(msg "\n")); \
+            TRACE(msg "\n"); \
             push_value(v1); \
             mw_prim_debug(); \
+            mw_prim_rdebug(); \
             exit(1); \
         } \
     } while(0)
@@ -139,20 +186,21 @@ static void mw_prim_debug(void);
 #define EXPECT2(test,msg,v1,v2) \
     do { \
         if (!(test)) { \
-            write(2, msg "\n", strlen(msg "\n")); \
+            TRACE(msg "\n"); \
             push_value(v1); \
             push_value(v2); \
             mw_prim_debug(); \
+            mw_prim_rdebug(); \
             exit(1); \
         } \
     } while(0)
 
 #define ASSERT(test) \
-    EXPECT(test, "assertion failed (" #test ")")
+    EXPECT(test, __FILE__ ":" STR(__LINE__) ": error: assertion failed (" #test ")")
 #define ASSERT1(test,v) \
-    EXPECT1(test,  "assertion failed (" #test ")", v)
+    EXPECT1(test, __FILE__ ":" STR(__LINE__) ": error: assertion failed (" #test ")", v)
 #define ASSERT2(test,v1,v2) \
-    EXPECT2(test,  "assertion failed (" #test ")", v1, v2)
+    EXPECT2(test, __FILE__ ":" STR(__LINE__) ": error: assertion failed (" #test ")", v1, v2)
 
 static void free_value(VAL v);
 
@@ -337,30 +385,39 @@ static void run_value(VAL v) {
 
 static void mw_prim_id (void) {}
 static void mw_prim_dup (void) {
+    PRIM_ENTER(mw_prim_dup,"prim-dup");
     VAL v = top_value();
     push_value(v);
     incref(v);
+    PRIM_EXIT(mw_prim_dup);
 }
 static void mw_prim_drop (void) {
+    PRIM_ENTER(mw_prim_drop,"prim-drop");
     VAL v = pop_value();
     decref(v);
+    PRIM_EXIT(mw_prim_drop);
 }
 
 static void mw_prim_swap (void) {
+    PRIM_ENTER(mw_prim_swap,"prim-swap");
     VAL a = pop_value();
     VAL b = pop_value();
     push_value(a);
     push_value(b);
+    PRIM_EXIT(mw_prim_swap);
 }
 
 static void mw_prim_dip (void) {
+    PRIM_ENTER(mw_prim_dip,"dip");
     VAL f = pop_value();
     VAL x = pop_value();
     run_value(f);
     push_value(x);
+    PRIM_EXIT(mw_prim_dip);
 }
 
 static void mw_prim_if (void) {
+    PRIM_ENTER(mw_prim_if,"if");
     VAL else_branch = pop_value();
     VAL then_branch = pop_value();
     bool b = pop_bool();
@@ -371,9 +428,11 @@ static void mw_prim_if (void) {
         decref(then_branch);
         run_value(else_branch);
     }
+    PRIM_EXIT(mw_prim_if);
 }
 
 static void mw_prim_while (void) {
+    PRIM_ENTER(mw_prim_while,"while");
     VAL body = pop_value();
     VAL cond = pop_value();
     while(1) {
@@ -384,9 +443,11 @@ static void mw_prim_while (void) {
     }
     decref(cond);
     decref(body);
+    PRIM_EXIT(mw_prim_while);
 }
 
 static void mw_prim_int_add (void) {
+    PRIM_ENTER(mw_prim_int_add,"prim-int-add");
     // TODO promote to bigint on overflow.
     int64_t b = pop_i64();
     int64_t a = pop_i64();
@@ -396,8 +457,10 @@ static void mw_prim_int_add (void) {
         EXPECT(a >= INT64_MIN - b, "integer overflow during addition (too negative)");
     }
     push_i64(a + b);
+    PRIM_EXIT(mw_prim_int_add);
 }
 static void mw_prim_int_sub (void) {
+    PRIM_ENTER(mw_prim_int_sub,"prim-int-sub");
     // TODO promote to bigint on overflow
     int64_t b = pop_i64();
     int64_t a = pop_i64();
@@ -407,15 +470,19 @@ static void mw_prim_int_sub (void) {
         EXPECT(a <= INT64_MAX + b, "integer overflow during subtraction (too positive)");
     }
     push_i64(a - b);
+    PRIM_EXIT(mw_prim_int_sub);
 }
 static void mw_prim_int_mul (void) {
+    PRIM_ENTER(mw_prim_int_mul,"prim-int-mul");
     // TODO promote to bigint on overflow
     int64_t b = pop_i64();
     int64_t a = pop_i64();
     // overflow checks for multiplication
     push_i64(a * b);
+    PRIM_EXIT(mw_prim_int_mul);
 }
 static void mw_prim_int_div (void) {
+    PRIM_ENTER(mw_prim_int_div,"prim-int-div");
     // TODO promote to bigint on overflow
     int64_t b = pop_i64();
     int64_t a = pop_i64();
@@ -425,8 +492,10 @@ static void mw_prim_int_div (void) {
     int64_t q = a / b;
     if (((a < 0) ^ (b < 0)) && r) q--;
     push_i64(q);
+    PRIM_EXIT(mw_prim_int_div);
 }
 static void mw_prim_int_mod (void) {
+    PRIM_ENTER(mw_prim_int_mod,"prim-int-div");
     int64_t b = pop_i64();
     int64_t a = pop_i64();
     EXPECT(b != 0, "divide by zero");
@@ -435,84 +504,114 @@ static void mw_prim_int_mod (void) {
     int64_t q = a / b;
     if (((a < 0) ^ (b < 0)) && r) r += b;
     push_i64(r);
+    PRIM_EXIT(mw_prim_int_mod);
 }
 
 static void mw_prim_int_and (void) {
+    PRIM_ENTER(mw_prim_int_and,"prim-int-and");
     uint64_t b = pop_u64();
     uint64_t a = pop_u64();
     push_u64(a & b);
+    PRIM_EXIT(mw_prim_int_and);
 }
 static void mw_prim_int_or (void) {
+    PRIM_ENTER(mw_prim_int_or,"prim-int-or");
     uint64_t b = pop_u64();
     uint64_t a = pop_u64();
     push_u64(a | b);
+    PRIM_EXIT(mw_prim_int_or);
 }
 static void mw_prim_int_xor (void) {
+    PRIM_ENTER(mw_prim_int_xor,"prim-int-xor");
     uint64_t b = pop_u64();
     uint64_t a = pop_u64();
     push_u64(a ^ b);
+    PRIM_EXIT(mw_prim_int_xor);
 }
 static void mw_prim_int_shl (void) {
+    PRIM_ENTER(mw_prim_int_shl,"prim-int-shl");
     uint64_t b = pop_u64();
     uint64_t a = pop_u64();
     push_u64((b >= 64) ? 0 : (a << b));
+    PRIM_EXIT(mw_prim_int_shl);
 }
 static void mw_prim_int_shr (void) {
+    PRIM_ENTER(mw_prim_int_shr,"prim-int-shr");
     uint64_t b = pop_u64();
     uint64_t a = pop_u64();
     push_u64((b >= 64) ? 0 : (a >> b));
+    PRIM_EXIT(mw_prim_int_shr);
 }
 
 static void mw_prim_bool_true (void) {
+    PRIM_ENTER(mw_prim_bool_true,"prim-bool-true");
     push_bool(true);
+    PRIM_EXIT(mw_prim_bool_true);
 }
 
 static void mw_prim_bool_false (void) {
+    PRIM_ENTER(mw_prim_bool_false,"prim-bool-false");
     push_bool(false);
+    PRIM_EXIT(mw_prim_bool_false);
 }
 
 static void mw_prim_bool_and (void) {
+    PRIM_ENTER(mw_prim_bool_and,"prim-bool-and");
     uint64_t b = pop_bool();
     uint64_t a = pop_bool();
     push_bool(a && b);
+    PRIM_EXIT(mw_prim_bool_and);
 }
 
 static void mw_prim_bool_or (void) {
+    PRIM_ENTER(mw_prim_bool_or,"prim-bool-or");
     uint64_t b = pop_bool();
     uint64_t a = pop_bool();
     push_bool(a || b);
+    PRIM_EXIT(mw_prim_bool_or);
 }
 
 static void mw_prim_value_eq (void) {
+    PRIM_ENTER(mw_prim_value_eq,"prim-value-eq");
     VAL b = pop_value();
     VAL a = pop_value();
     int cmp = value_cmp_(a,b);
     push_bool(cmp == 0);
     decref(a); decref(b);
+    PRIM_EXIT(mw_prim_value_eq);
 }
 static void mw_prim_value_lt (void) {
+    PRIM_ENTER(mw_prim_value_lt,"prim-value-lt");
     VAL b = pop_value();
     VAL a = pop_value();
     int cmp = value_cmp_(a,b);
     push_bool(cmp < 0);
     decref(a); decref(b);
+    PRIM_EXIT(mw_prim_value_lt);
 }
 static void mw_prim_value_le (void) {
+    PRIM_ENTER(mw_prim_value_le,"prim-value-lt");
     VAL b = pop_value();
     VAL a = pop_value();
     int cmp = value_cmp_(a,b);
     push_bool(cmp <= 0);
     decref(a); decref(b);
+    PRIM_EXIT(mw_prim_value_le);
 }
 
 static void mw_prim_sys_argc (void) {
+    PRIM_ENTER(mw_prim_sys_argc,"prim-sys-argc");
     push_i64(global_argc);
+    PRIM_EXIT(mw_prim_sys_argc);
 }
 static void mw_prim_sys_argv (void) {
+    PRIM_ENTER(mw_prim_sys_argv,"prim-sys-argv");
     push_ptr(global_argv);
+    PRIM_EXIT(mw_prim_sys_argv);
 }
 
 static void mw_prim_posix_write (void) {
+    PRIM_ENTER(mw_prim_posix_write,"prim-posix-write");
     USIZE n = pop_usize();
     VAL vp = pop_value();
     void* p = value_ptr(vp);
@@ -520,8 +619,10 @@ static void mw_prim_posix_write (void) {
     ASSERT(n <= SIZE_MAX);
     push_i64((int64_t)write(fd, p, (size_t)n));
     decref(vp);
+    PRIM_EXIT(mw_prim_posix_write);
 }
 static void mw_prim_posix_read (void) {
+    PRIM_ENTER(mw_prim_posix_read,"prim-posix-read");
     USIZE n = pop_usize();
     VAL vp = pop_value();
     void* p = value_ptr(vp);
@@ -529,22 +630,29 @@ static void mw_prim_posix_read (void) {
     ASSERT(n <= SIZE_MAX);
     push_i64((int64_t)read(fd, p, (size_t)n));
     decref(vp);
+    PRIM_EXIT(mw_prim_posix_read);
 }
 static void mw_prim_posix_open (void) {
+    PRIM_ENTER(mw_prim_posix_open,"prim-posix-open");
     int m = (int)pop_i64();
     int f = (int)pop_i64();
     VAL vp = pop_value();
     void* path = value_ptr(vp);
     push_i64((int64_t)open(path,f,m));
     decref(vp);
+    PRIM_EXIT(mw_prim_posix_open);
 }
 static void mw_prim_posix_close (void) {
+    PRIM_ENTER(mw_prim_posix_close,"prim-posix-close");
     int fd = (int)pop_i64();
     push_i64((int64_t)close(fd));
+    PRIM_EXIT(mw_prim_posix_close);
 }
 static void mw_prim_posix_exit (void) {
+    PRIM_ENTER(mw_prim_posix_exit,"prim-posix-exit");
     int x = (int)pop_i64();
     exit(x);
+    PRIM_EXIT(mw_prim_posix_exit);
 }
 
 void int_trace_(int64_t y, int fd) {
@@ -594,175 +702,258 @@ void value_trace_(VAL val, int fd) {
         value_trace_(cdr, fd);
         write(fd, " ]", 2);
     } else {
-        const char* msg = "value cannot be traced";
-        write(2, msg, strlen(msg));
+        TRACE("value cannot be traced");
         exit(1);
     }
 }
 
 static void mw_prim_debug (void) {
-    write(2, "??", 2);
+    TRACE("??");
     for (long i = STACK_MAX-1; i >= (long)stack_counter; i--) {
-        write(2, " ", 1);
+        TRACE(" ");
         value_trace_(stack[i], 2);
     }
-    write(2, "\n", 1);
+    TRACE("\n");
+}
+
+static void mw_prim_rdebug (void) {
+    TRACE("call stack:\n");
+    for (USIZE i = rstack_counter; i --> 1;) {
+        TRACE("    ");
+        if (rstack[i-1].atom && *rstack[i-1].atom && strcmp(rstack[i-1].atom, rstack[i].word)) {
+            TRACE(rstack[i-1].atom);
+            TRACE(" -> ");
+        }
+        TRACE(rstack[i].word);
+        TRACE(" at line ");
+        int_trace_((int64_t)rstack[i-1].line, 2);
+        TRACE(" in ");
+        TRACE(rstack[i-1].path);
+        TRACE("\n");
+    }
 }
 
 static void mw_prim_value_get (void) {
+    PRIM_ENTER(mw_prim_value_get,"prim-value-get");
     VAL vp = pop_value();
     VAL *p = value_ptr(vp);
+    EXPECT(p, "tried to load from null pointer");
+    EXPECT(p->tag, "tried to load uninitialized value");
     push_value(*p);
     incref(*p);
     decref(vp);
+    PRIM_EXIT(mw_prim_value_get);
 }
 
 static void mw_prim_int_get (void) {
+    PRIM_ENTER(mw_prim_int_get,"prim-int-get");
     VAL vp = pop_value();
     int64_t *p = value_ptr(vp);
+    EXPECT(p, "tried to load from null pointer");
     push_i64(*p);
     decref(vp);
+    PRIM_EXIT(mw_prim_int_get);
 }
 
 static void mw_prim_ptr_get (void) {
+    PRIM_ENTER(mw_prim_ptr_get,"prim-ptr-get");
     VAL vp = pop_value();
     void **p = value_ptr(vp);
+    EXPECT(p, "tried to load from null pointer");
     push_ptr(*p);
     decref(vp);
+    PRIM_EXIT(mw_prim_ptr_get);
 }
 
 static void mw_prim_u8_get (void) {
+    PRIM_ENTER(mw_prim_u8_get,"prim-u8-get");
     VAL vp = pop_value();
     uint8_t *p = value_ptr(vp);
+    EXPECT(p, "tried to load from null pointer");
     push_u8(*p);
     decref(vp);
+    PRIM_EXIT(mw_prim_u8_get);
 }
 
 static void mw_prim_u16_get (void) {
+    PRIM_ENTER(mw_prim_u16_get,"prim-u16-get");
     VAL vp = pop_value();
     uint16_t *p = value_ptr(vp);
+    EXPECT(p, "tried to load from null pointer");
     push_u16(*p);
     decref(vp);
+    PRIM_EXIT(mw_prim_u16_get);
 }
 
 static void mw_prim_u32_get (void) {
+    PRIM_ENTER(mw_prim_u32_get,"prim-u32-get");
     VAL vp = pop_value();
     uint32_t *p = value_ptr(vp);
+    EXPECT(p, "tried to load from null pointer");
     push_u32(*p);
     decref(vp);
+    PRIM_EXIT(mw_prim_u32_get);
 }
 
 static void mw_prim_u64_get (void) {
+    PRIM_ENTER(mw_prim_u64_get,"prim-u64-get");
     VAL vp = pop_value();
     uint64_t *p = value_ptr(vp);
+    EXPECT(p, "tried to load from null pointer");
     push_u64(*p);
     decref(vp);
+    PRIM_EXIT(mw_prim_u64_get);
 }
 
 static void mw_prim_i8_get (void) {
+    PRIM_ENTER(mw_prim_i8_get,"prim-i8-get");
     VAL vp = pop_value();
     int8_t *p = value_ptr(vp);
+    EXPECT(p, "tried to load from null pointer");
     push_i8(*p);
     decref(vp);
+    PRIM_EXIT(mw_prim_i8_get);
 }
 
 static void mw_prim_i16_get (void) {
+    PRIM_ENTER(mw_prim_i16_get,"prim-i16-get");
     VAL vp = pop_value();
     int16_t *p = value_ptr(vp);
+    EXPECT(p, "tried to load from null pointer");
     push_i16(*p);
     decref(vp);
+    PRIM_EXIT(mw_prim_i16_get);
 }
 
 static void mw_prim_i32_get (void) {
+    PRIM_ENTER(mw_prim_i32_get,"prim-i32-get");
     VAL vp = pop_value();
     int32_t *p = value_ptr(vp);
+    EXPECT(p, "tried to load from null pointer");
     push_i32(*p);
     decref(vp);
+    PRIM_EXIT(mw_prim_i32_get);
 }
 
 static void mw_prim_i64_get (void) {
+    PRIM_ENTER(mw_prim_i64_get,"prim-i64-get");
     VAL vp = pop_value();
     int64_t *p = value_ptr(vp);
+    EXPECT(p, "tried to load from null pointer");
     push_i64(*p);
     decref(vp);
+    PRIM_EXIT(mw_prim_i64_get);
 }
 
 static void mw_prim_value_set (void) {
+    PRIM_ENTER(mw_prim_value_set,"prim-value-set");
     VAL vp = pop_value();
     VAL *p = value_ptr(vp);
-    decref(*p);
+    EXPECT(p, "tried to write to null pointer");
+    if (p->tag) decref(*p);
     *p = pop_value();
     decref(vp);
+    PRIM_EXIT(mw_prim_value_set);
 }
 
 static void mw_prim_int_set (void) {
+    PRIM_ENTER(mw_prim_int_set,"prim-int-set");
     VAL vp = pop_value();
     int64_t *p = value_ptr(vp);
+    EXPECT(p, "tried to write to null pointer");
     *p = pop_i64();
     decref(vp);
+    PRIM_EXIT(mw_prim_int_set);
 }
 
 static void mw_prim_ptr_set (void) {
+    PRIM_ENTER(mw_prim_ptr_set,"prim-ptr-set");
     VAL vp = pop_value();
     void **p = value_ptr(vp);
+    EXPECT(p, "tried to write to null pointer");
     *p = pop_ptr();
     decref(vp);
+    PRIM_EXIT(mw_prim_ptr_set);
 }
 
 static void mw_prim_u8_set (void) {
+    PRIM_ENTER(mw_prim_u8_set,"prim-u8-set");
     VAL vp = pop_value();
     uint8_t *p = value_ptr(vp);
+    EXPECT(p, "tried to write to null pointer");
     *p = pop_u8();
     decref(vp);
+    PRIM_EXIT(mw_prim_u8_set);
 }
 
 static void mw_prim_u16_set (void) {
+    PRIM_ENTER(mw_prim_u16_set,"prim-u16-set");
     VAL vp = pop_value();
     uint16_t *p = value_ptr(vp);
+    EXPECT(p, "tried to write to null pointer");
     *p = pop_u16();
     decref(vp);
+    PRIM_EXIT(mw_prim_u16_set);
 }
 
 static void mw_prim_u32_set (void) {
+    PRIM_ENTER(mw_prim_u32_set,"prim-u32-set");
     VAL vp = pop_value();
     uint32_t *p = value_ptr(vp);
+    EXPECT(p, "tried to write to null pointer");
     *p = pop_u32();
     decref(vp);
+    PRIM_EXIT(mw_prim_u32_set);
 }
 
 static void mw_prim_u64_set (void) {
+    PRIM_ENTER(mw_prim_u64_set,"prim-u64-set");
     VAL vp = pop_value();
     uint64_t *p = value_ptr(vp);
+    EXPECT(p, "tried to write to null pointer");
     *p = pop_u64();
     decref(vp);
+    PRIM_EXIT(mw_prim_u64_set);
 }
 
 static void mw_prim_i8_set (void) {
+    PRIM_ENTER(mw_prim_i8_set,"prim-i8-set");
     VAL vp = pop_value();
     int8_t *p = value_ptr(vp);
+    EXPECT(p, "tried to write to null pointer");
     *p = pop_i8();
     decref(vp);
+    PRIM_EXIT(mw_prim_i8_set);
 }
 
 static void mw_prim_i16_set (void) {
+    PRIM_ENTER(mw_prim_i16_set,"prim-i16-set");
     VAL vp = pop_value();
     int16_t *p = value_ptr(vp);
+    EXPECT(p, "tried to write to null pointer");
     *p = pop_i16();
     decref(vp);
+    PRIM_EXIT(mw_prim_i16_set);
 }
 
 static void mw_prim_i32_set (void) {
+    PRIM_ENTER(mw_prim_i32_set,"prim-i32-set");
     VAL vp = pop_value();
     int32_t *p = value_ptr(vp);
+    EXPECT(p, "tried to write to null pointer");
     *p = pop_i32();
     decref(vp);
+    PRIM_EXIT(mw_prim_i32_set);
 }
 
 static void mw_prim_i64_set (void) {
+    PRIM_ENTER(mw_prim_i64_set,"prim-i64-set");
     VAL vp = pop_value();
     int64_t *p = value_ptr(vp);
+    EXPECT(p, "tried to write to null pointer");
     *p = pop_i64();
     decref(vp);
+    PRIM_EXIT(mw_prim_i64_set);
 }
 
 
@@ -779,29 +970,41 @@ static void mw_prim_i64_set (void) {
 static void mw_prim_unsafe_cast (void) { }
 
 static void mw_prim_run (void) {
+    PRIM_ENTER(mw_prim_run,"prim-run");
     VAL f = pop_value();
     run_value(f);
+    PRIM_EXIT(mw_prim_run);
 }
 
 static void mw_prim_ptr_nil (void) {
+    PRIM_ENTER(mw_prim_ptr_nil,"prim-ptr-nil");
     push_ptr((void*)0);
+    PRIM_EXIT(mw_prim_ptr_nil);
 }
 static void mw_prim_ptr_add (void) {
+    PRIM_ENTER(mw_prim_ptr_add,"prim-ptr-add");
     VAL vptr = pop_value();
     USIZE n = pop_usize();
-    ASSERT(IS_PTR(vptr) && VPTR(vptr));
+    ASSERT1(IS_PTR(vptr), vptr);
+    EXPECT(VPTR(vptr), "attempt to add to null pointer");
     char* ptr = (char*)VPTR(vptr);
     push_ptr(ptr + n);
+    PRIM_EXIT(mw_prim_ptr_add);
 }
 #define mw_prim_ptr_size() push_u64((uint64_t)sizeof(void*))
 static void mw_prim_ptr_alloc (void) {
+    PRIM_ENTER(mw_prim_ptr_alloc,"prim-ptr-alloc");
     ASSERT(0);
+    PRIM_EXIT(mw_prim_ptr_alloc);
 }
 static void mw_prim_ptr_realloc (void) {
+    PRIM_ENTER(mw_prim_ptr_realloc,"prim-ptr-realloc");
     ASSERT(0);
+    PRIM_EXIT(mw_prim_ptr_realloc);
 }
 
 static void mw_prim_ptr_copy (void) {
+    PRIM_ENTER(mw_prim_ptr_copy,"prim-ptr-copy");
     VAL vdst = pop_value();
     int64_t ilen = pop_i64();
     VAL vsrc = pop_value();
@@ -812,9 +1015,11 @@ static void mw_prim_ptr_copy (void) {
         ASSERT((USIZE)ilen <= SIZE_MAX);
         memcpy(dst, src, (size_t)ilen);
     }
+    PRIM_EXIT(mw_prim_ptr_copy);
 }
 
 static void mw_prim_ptr_fill (void) {
+    PRIM_ENTER(mw_prim_ptr_fill,"prim-ptr-fill");
     VAL vdst = pop_value();
     ASSERT1(IS_PTR(vdst), vdst);
     int64_t ilen = pop_i64();
@@ -824,15 +1029,19 @@ static void mw_prim_ptr_fill (void) {
         ASSERT((USIZE)ilen <= SIZE_MAX);
         memset(dst, (int)val, (size_t)ilen);
     }
+    PRIM_EXIT(mw_prim_ptr_fill);
 }
 
-static void mw_prim_ptr_raw (void) {
+static void mw_prim_ptr_raw (void) { // TODO remove
+    PRIM_ENTER(mw_prim_ptr_raw,"prim-ptr-raw");
     VAL vptr = top_value();
     ASSERT(IS_PTR(vptr));
     push_value(vptr);
+    PRIM_EXIT(mw_prim_ptr_raw);
 }
 
-static void mw_prim_str_eq (void) {
+static void mw_prim_str_eq (void) { // TODO remove
+    PRIM_ENTER(mw_prim_str_eq,"prim-str-eq");
     VAL vptr1 = pop_value();
     VAL vptr2 = pop_value();
     ASSERT2(IS_STR(vptr1) && IS_STR(vptr2), vptr1, vptr2);
@@ -843,25 +1052,31 @@ static void mw_prim_str_eq (void) {
         (memcmp(str1->data, str2->data, (size_t)str1->size) == 0));
     decref(vptr1);
     decref(vptr2);
+    PRIM_EXIT(mw_prim_str_eq);
 }
 
-static void mw_prim_str_alloc (void) {
+static void mw_prim_str_alloc (void) { // TODO remove probably?
+    PRIM_ENTER(mw_prim_str_alloc,"prim-str-alloc");
     USIZE size = pop_usize();
     ASSERT(size <= SIZE_MAX-sizeof(STR)-4);
     STR* str = str_alloc(size);
     str->size = size;
     push_value(MKSTR(str));
+    PRIM_EXIT(mw_prim_str_alloc);
 }
 
 static void mw_prim_str_copy (void) {
+    PRIM_ENTER(mw_prim_str_copy,"prim-str-copy");
     USIZE size = pop_usize();
     char* ptr = (char*)pop_ptr();
     ASSERT(size <= SIZE_MAX-sizeof(STR)-4);
     ASSERT(ptr);
     push_value(mkstr(ptr, size));
+    PRIM_EXIT(mw_prim_str_copy);
 }
 
 static void mw_prim_str_cat (void) {
+    PRIM_ENTER(mw_prim_str_cat,"prim-str-cat");
     VAL v2 = pop_value();
     VAL v1 = pop_value();
     ASSERT2(IS_STR(v1) && IS_STR(v2), v1, v2);
@@ -890,41 +1105,53 @@ static void mw_prim_str_cat (void) {
         decref(v1);
         decref(v2);
     }
+    PRIM_EXIT(mw_prim_str_cat);
 }
 
 static void mw_prim_str_base (void) {
+    PRIM_ENTER(mw_prim_str_base,"prim-str-base");
     VAL vstr = pop_value();
     ASSERT1(IS_STR(vstr) && VSTR(vstr), vstr);
     push_ptr(VSTR(vstr)->data);
     decref(vstr);
+    PRIM_EXIT(mw_prim_str_base);
 }
 
 static void mw_prim_str_size (void) {
+    PRIM_ENTER(mw_prim_str_size,"prim-str-size");
     VAL v = top_value();
     ASSERT(IS_STR(v) && VSTR(v));
     push_usize(VSTR(v)->size);
+    PRIM_EXIT(mw_prim_str_size);
 }
 
 static void mw_prim_pack_nil (void) {
+    PRIM_ENTER(mw_prim_pack_nil,"prim-pack-nil");
     push_u64(0);
+    PRIM_EXIT(mw_prim_pack_nil);
 }
 
 static void mw_prim_pack_cons (void) {
+    PRIM_ENTER(mw_prim_pack_cons,"prim-pack-cons");
     VAL cdr = pop_value();
     VAL car = pop_value();
     push_value(mkcons(car,cdr));
+    PRIM_EXIT(mw_prim_pack_cons);
 }
 
 static void mw_prim_pack_uncons (void) {
+    PRIM_ENTER(mw_prim_pack_uncons,"prim-pack-uncons");
     VAL v = pop_value();
     VAL car,cdr;
     value_uncons(v, &car, &cdr);
     push_value(car);
     push_value(cdr);
     incref(car); incref(cdr); decref(v);
+    PRIM_EXIT(mw_prim_pack_uncons);
 }
 
 static void mw_prim_mut_get (void) {
+    PRIM_ENTER(mw_prim_mut_get,"prim-mut-get");
     VAL mut = pop_value();
     ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
     VAL v = *(VAL*)VPTR(mut);
@@ -932,8 +1159,10 @@ static void mw_prim_mut_get (void) {
     // EXPECT(v.tag, "read uninitialized value");
     push_value(v);
     incref(v);
+    PRIM_EXIT(mw_prim_mut_get);
 }
 static void mw_prim_mut_set (void) {
+    PRIM_ENTER(mw_prim_mut_set,"prim-mut-set");
     VAL mut = pop_value();
     VAL newval = pop_value();
     push_value(mut);
@@ -943,6 +1172,7 @@ static void mw_prim_mut_set (void) {
     if (oldval.tag) {
         decref(oldval);
     }
+    PRIM_EXIT(mw_prim_mut_set);
 }
 
 /* GENERATED C99 */

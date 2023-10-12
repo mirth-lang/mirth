@@ -189,6 +189,12 @@ def(c99-arrow!, Arrow --,
     arrow-atoms @ for(c99-atom!))
 
 def(c99-atom!, Atom --,
+    c99-line("WORD_ATOM(" .
+        dup atom-token @ token-row @ Row->Int .n ", " .
+        dup atom-token @ token-is-name? if(
+            token-name@ name-str @ .str,
+            drop "\"\"" .)
+        ");" .)
     sip(atom-args @) atom-op @
     c99-args-op!)
 
@@ -229,9 +235,7 @@ def(c99-str!, Str --,
                 )
                 c99-line("};" .)
                 c99-line("v = mkstr((char*)b, " . dup str-size .n ");" .),
-                c99-line("v = mkstr(\"" .
-                dup str-for(c99-string-char!)
-                "\", " . dup str-size .n ");" .),
+                c99-line("v = mkstr(" . dup .str ", " . dup str-size .n ");" .)
             )
             c99-line("vready = true;" .)
         )
@@ -242,10 +246,7 @@ def(c99-str!, Str --,
     c99-line("}" .)
     drop)
 
-def(c99-constant!, Value --,
-    VALUE_INT -> c99-int!,
-    VALUE_STR -> c99-str!,
-    VALUE_BLOCK -> c99-block-push!)
+def(.str, Str --, "\"" . str-for(c99-string-char!) "\"" .)
 
 def(c99-string-char!, Char --,
     dup is-backslash if(
@@ -268,6 +269,11 @@ def(c99-string-char!, Char --,
         )
 #        "unexpected character in c99 string" panic!
     )))))))
+
+def(c99-constant!, Value --,
+    VALUE_INT -> c99-int!,
+    VALUE_STR -> c99-str!,
+    VALUE_BLOCK -> c99-block-push!)
 
 def(c99-prim!, List(Arg) Prim --,
     PRIM_CORE_DIP ->
@@ -355,12 +361,17 @@ def(c99-block-push!, Block --,
     c99-line("mw_prim_pack_cons();" .))
 
 def(c99-var!, Var --,
-    dup var-auto-run @ dip(c99-var-push!)
-    if(c99-line("mw_prim_run();" .), id))
+    dup var-auto-run @ if(c99-var-run!, c99-var-push!))
+
+def(c99-var-run!, Var --,
+    c99-line("incref(" . dup .var ");" .)
+    c99-line("run_value(" . dup .var ");" .)
+    drop)
 
 def(c99-var-push!, Var --,
+    c99-line("incref(" . dup .var ");" .)
     c99-line("push_value(" . dup .var ");" .)
-    c99-line("incref(" . .var ");" .))
+    drop)
 
 def(c99-lambda!, Lambda --,
     c99-line("{" .)
@@ -432,14 +443,30 @@ def(c99-field-sigs!, --, Field.for(c99-field-sig!) .lf)
 def(c99-field-sig!, Field --,
     c99-line("static void mw_" . field-name @ .name " (void);" .))
 
+def(c99-block-enter!, Block --,
+    c99-line("WORD_ENTER(" .
+        dup .block ", " .
+        dup block-arrow force! arrow-home @ match(
+            NONE -> "block",
+            SOME -> word-name @ name-str @ " block" str-cat,
+        ) .str ", " .
+        dup block-token @ token-module @ module-source-path Path->Str .str ", " .
+        dup block-token @ token-row @ Row->Int .n ");" . )
+    drop)
+
+def(c99-block-exit!, Block --,
+    c99-line("WORD_EXIT(" . .block ");" .))
+
 def(c99-block-defs!, --, Block.for(c99-block-def!) .lf)
 def(c99-block-def!, Block --,
     c99-line("static void " . dup .block " (void) {" .)
     c99-nest(
-        block-arrow force!
+        dup c99-block-enter!
+        dup block-arrow force!
         dup arrow-ctx @ c99-unpack-ctx!
         dup c99-arrow!
         arrow-ctx @ c99-decref-ctx!
+        c99-block-exit!
     )
     c99-line("}" .) .lf)
 
@@ -452,11 +479,29 @@ def(.block, Block -- ,
             arrow-homeidx @ .n drop
     ))
 
+def(c99-word-enter!, Word --,
+    c99-line("WORD_ENTER(" .
+        "mw_" . dup word-name @ .name ", " .
+        dup word-name @ name-str @ .str ", " .
+        dup word-body @ token-module @ module-source-path Path->Str .str ", " .
+        dup word-body @ token-row @ Row->Int .n ");" . )
+    drop)
+
+def(c99-word-exit!, Word --,
+    c99-line("WORD_EXIT(" .
+        "mw_" . dup word-name @ .name ");" .)
+    drop)
+
 def(c99-word-defs!, --, Word.for(c99-word-def!) .lf)
 def(c99-word-def!, Word --,
-    dup word-name @ .w "{" ;
-    word-arrow force! c99-nest(c99-arrow!)
-    "}" ;;)
+    c99-line(dup word-name @ .w "{" .)
+    c99-nest(
+        dup c99-word-enter!
+        dup word-arrow force! c99-arrow!
+        dup c99-word-exit!
+    )
+    c99-line("}" .)
+    drop)
 
 def(c99-field-defs!, --, Field.for(c99-field-def!) .lf)
 def(c99-field-def!, Field --,
