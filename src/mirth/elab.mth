@@ -11,6 +11,7 @@ import(mirth.data.variable)
 import(mirth.data.table)
 import(mirth.data.var)
 import(mirth.data.arrow)
+import(mirth.data.word)
 
 import(data.lazy)
 
@@ -183,6 +184,9 @@ var(ab-arrow, Arrow)
 def(ab-ctx, Mut(Ctx), ab-arrow @ arrow-ctx)
 def(ab-token, Mut(Token), ab-arrow @ arrow-token-end)
 def(ab-type, Mut(Type), ab-arrow @ arrow-cod)
+
+def(init-elab!,
+    Arrow.nil ab-arrow !)
 
 def(ab-save!(f), (*a -- *b) *a -- *b,
     ab-arrow @ dip(f) ab-arrow !)
@@ -633,6 +637,7 @@ def(elab-match-exhaustive!, Match -- Match,
 
 ||| Elaborate match cases.
 def(elab-match-cases!, Match -- Match,
+    L0 over match-cases !
     dup match-body @
     while(token-is-rparen? not, elab-match-case!)
     drop)
@@ -774,7 +779,9 @@ def(elab-module-import!, Token -- Token,
 ||| Elaborate a data definition `data(T, ...)`
 def(elab-data!, Token -- Token,
     sip(
-        Data.alloc! swap token-args+
+        Data.alloc!
+        L0 over data-tags !
+        swap token-args+
         uncons dip(elab-data-header!)
         for(elab-data-tag!)
         drop
@@ -871,11 +878,7 @@ def(elab-def!, Token -- Token,
     rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
     token-name?
     name-undefined? if(id, drop "word already defined" emit-fatal-error!)
-    Word.alloc!
-    dup2 DEF_WORD swap name-def !
-    tuck word-name !
-    tuck word-head !
-    tuck word-body !
+    word-new!
     tuck word-sig !
 
     dup delay(
@@ -1041,6 +1044,9 @@ def(typecheck-def!, Def --,
 
 def(TABLE_MAX_SIZE, Int, 0x10000)
 
+def(table-word-new!, Table Str -- Word,
+    dip(dup table-head @ dup rotl table-name @) name-cat! word-new!)
+
 def(table-new!, Token Name -- Table,
     Table.alloc!
     dup2 TTable DEF_TYPE swap name-def !
@@ -1050,10 +1056,7 @@ def(table-new!, Token Name -- Table,
     TABLE_MAX_SIZE over table-max-count !
 
     # Table.MAX
-    dup table-name @ ".MAX" name-cat!
-    Word.alloc!
-    dup2 DEF_WORD swap name-def !
-    tuck word-name !
+    dup ".MAX" table-word-new!
 
     L0 CTX
     T0 TYPE_INT T1 T->
@@ -1065,10 +1068,7 @@ def(table-new!, Token Name -- Table,
     ) drop
 
     # Table.nil
-    dup table-name @ ".nil" name-cat!
-    Word.alloc!
-    dup2 DEF_WORD swap name-def !
-    tuck word-name !
+    dup ".nil" table-word-new!
 
     L0 CTX
     T0 over3 TTable T1 T->
@@ -1086,10 +1086,7 @@ def(table-new!, Token Name -- Table,
     over table-num-buffer !
 
     # Table.id
-    dup table-name @ ".id" name-cat!
-    Word.alloc!
-    dup2 DEF_WORD swap name-def !
-    tuck word-name !
+    dup ".id" table-word-new!
 
     L0 CTX
     over2 TTable T1 TYPE_INT T1 T->
@@ -1101,10 +1098,7 @@ def(table-new!, Token Name -- Table,
     ) drop
 
     # Table.from-id
-    dup table-name @ ".from-id" name-cat!
-    Word.alloc!
-    dup2 DEF_WORD swap name-def !
-    tuck word-name !
+    dup ".from-id" table-word-new!
 
     L0 CTX
     over2 TTable T1 TYPE_INT T1 swap T->
@@ -1116,10 +1110,7 @@ def(table-new!, Token Name -- Table,
     ) drop
 
     # Table.succ
-    dup table-name @ ".succ" name-cat!
-    Word.alloc!
-    dup2 DEF_WORD swap name-def !
-    tuck word-name !
+    dup ".succ" table-word-new!
 
     L0 CTX
     over2 TTable T1 dup T->
@@ -1139,10 +1130,7 @@ def(table-new!, Token Name -- Table,
     ) drop
 
     # Table.pred
-    dup table-name @ ".pred" name-cat!
-    Word.alloc!
-    dup2 DEF_WORD swap name-def !
-    tuck word-name !
+    dup ".pred" table-word-new!
 
     L0 CTX
     over2 TTable T1 dup T->
@@ -1163,10 +1151,7 @@ def(table-new!, Token Name -- Table,
     ) drop
 
     # Table.for
-    dup table-name @ ".for" name-cat!
-    Word.alloc!
-    dup2 DEF_WORD swap name-def !
-    tuck word-name !
+    dup ".for" table-word-new!
     "x" name-new! var-new!
     \(t w x ->
 
@@ -1208,10 +1193,7 @@ def(table-new!, Token Name -- Table,
     t)
 
     # Table.alloc!
-    dup table-name @ ".alloc!" name-cat!
-    Word.alloc!
-    dup2 DEF_WORD swap name-def !
-    tuck word-name !
+    dup ".alloc!" table-word-new!
 
     L0 CTX
     T0 over3 TTable T1 T->

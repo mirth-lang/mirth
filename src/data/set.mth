@@ -5,5 +5,6 @@ module(data.set)
 data(Set(v), SET -> Bag(v))
 
 def(unSET, Set(v) -- Bag(v), SET -> id)
+def(set-nil, Set(v), bag-nil SET)
 def(set-snoc, Set(v) v -- Set(v), dip(unSET) bag-replace SET)
 def(set-cons, v Set(v) -- Set(v), swap set-snoc)

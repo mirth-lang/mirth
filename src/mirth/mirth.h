@@ -112,7 +112,7 @@ typedef struct LOC {
     void (*fnptr) (void);
     const char* word;
     const char* path;
-    USIZE line;
+    USIZE line, col;
     const char* atom;
 } LOC;
 
@@ -120,7 +120,15 @@ typedef struct LOC {
 static USIZE stack_counter = STACK_MAX;
 static VAL stack [STACK_MAX] = {0};
 static USIZE rstack_counter = 1;
-static LOC rstack [STACK_MAX] = {0};
+static LOC rstack [STACK_MAX] = {
+    {
+        .fnptr=(void(*)(void))0,
+        .word="<word>",
+        .path="<path>",
+        .line=0, .col=0,
+        .atom="<atom>"
+    },
+};
 static int global_argc;
 static char** global_argv;
 
@@ -128,20 +136,22 @@ static void push_value(VAL v);
 static void mw_prim_debug(void);
 static void mw_prim_rdebug(void);
 
-#define WORD_ENTER(_f,_w,_p,_l) \
+#define WORD_ENTER(_f,_w,_p,_l,_c) \
     do { \
         rstack[rstack_counter].fnptr = (_f); \
         rstack[rstack_counter].word = (_w); \
         rstack[rstack_counter].path = (_p); \
         rstack[rstack_counter].line = (_l); \
+        rstack[rstack_counter].col = (_c); \
         rstack[rstack_counter].atom = ""; \
         rstack_counter++; \
     } while(0)
 
-#define WORD_ATOM(_l,_n) \
+#define WORD_ATOM(_l,_c,_n) \
     do { \
         if (rstack_counter > 0) { \
             rstack[rstack_counter-1].line = (_l); \
+            rstack[rstack_counter-1].col = (_c); \
             rstack[rstack_counter-1].atom = (_n); \
         } \
     } while(0)
@@ -155,7 +165,7 @@ static void mw_prim_rdebug(void);
         rstack_counter--; \
     } while(0)
 
-#define PRIM_ENTER(_f,_w) WORD_ENTER(_f,_w,__FILE__,__LINE__)
+#define PRIM_ENTER(_f,_w) WORD_ENTER(_f,_w,__FILE__,__LINE__,1)
 #define PRIM_EXIT(_f) WORD_EXIT(_f)
 
 #define TRACE(x) write(2,x,strlen(x))
@@ -725,10 +735,12 @@ static void mw_prim_rdebug (void) {
             TRACE(" -> ");
         }
         TRACE(rstack[i].word);
-        TRACE(" at line ");
-        int_trace_((int64_t)rstack[i-1].line, 2);
-        TRACE(" in ");
+        TRACE(" at ");
         TRACE(rstack[i-1].path);
+        TRACE(":");
+        int_trace_((int64_t)rstack[i-1].line, 2);
+        TRACE(":");
+        int_trace_((int64_t)rstack[i-1].col, 2);
         TRACE("\n");
     }
 }
@@ -1155,8 +1167,7 @@ static void mw_prim_mut_get (void) {
     VAL mut = pop_value();
     ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
     VAL v = *(VAL*)VPTR(mut);
-    if (!v.tag) v = MKNIL();
-    // EXPECT(v.tag, "read uninitialized value");
+    EXPECT(v.tag, "tried to read uninitialized value");
     push_value(v);
     incref(v);
     PRIM_EXIT(mw_prim_mut_get);

@@ -75,6 +75,7 @@ def(run-output-c99!, Arrow Path --,
     num-errors @ 0 > if(
         drop2,
 
+        0 c99-depth !
         make-output-path Path->Str
         create-file! codegen-start!
         c99-header!
@@ -191,6 +192,7 @@ def(c99-arrow!, Arrow --,
 def(c99-atom!, Atom --,
     c99-line("WORD_ATOM(" .
         dup atom-token @ token-row @ Row->Int .n ", " .
+        dup atom-token @ token-col @ Col->Int .n ", " .
         dup atom-token @ token-is-name? if(
             token-name@ name-str @ .str,
             drop "\"\"" .)
@@ -451,7 +453,8 @@ def(c99-block-enter!, Block --,
             SOME -> word-name @ name-str @ " block" str-cat,
         ) .str ", " .
         dup block-token @ token-module @ module-source-path Path->Str .str ", " .
-        dup block-token @ token-row @ Row->Int .n ");" . )
+        dup block-token @ token-row @ Row->Int .n ", " .
+        dup block-token @ token-col @ Col->Int .n ");" . )
     drop)
 
 def(c99-block-exit!, Block --,
@@ -484,7 +487,8 @@ def(c99-word-enter!, Word --,
         "mw_" . dup word-name @ .name ", " .
         dup word-name @ name-str @ .str ", " .
         dup word-body @ token-module @ module-source-path Path->Str .str ", " .
-        dup word-body @ token-row @ Row->Int .n ");" . )
+        dup word-body @ token-row @ Row->Int .n ", " .
+        dup word-body @ token-col @ Col->Int .n ");" . )
     drop)
 
 def(c99-word-exit!, Word --,

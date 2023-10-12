@@ -12,9 +12,11 @@ import(mirth.data.prim)
 import(mirth.data.type)
 
 def(init!, --,
+    init-errors!
     init-paths!
     init-prims!
-    init-types!)
+    init-types!
+    init-elab!)
 
 ########
 # Main #
