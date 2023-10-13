@@ -196,6 +196,7 @@ def(snake-init!, --,
     ))
 
 def(snake-loop!, --,
+    false snake-done !
     snake-process-events!
     while(snake-done @ not,
         snake-present!
