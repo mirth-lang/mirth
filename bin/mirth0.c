@@ -2607,6 +2607,7 @@ static void mw_init_paths_21_ (void);
 static void mw_path_separator (void);
 static void mw_path_is_empty_3F_ (void);
 static void mw_path_join (void);
+static void mw_unix_path_join (void);
 static void mw_make_source_path (void);
 static void mw_make_output_path (void);
 static void mw_panic_21_ (void);
@@ -3939,6 +3940,9 @@ static void mb_path_separator_2 (void);
 static void mb_path_join_1 (void);
 static void mb_path_join_2 (void);
 static void mb_path_join_3 (void);
+static void mb_unix_path_join_1 (void);
+static void mb_unix_path_join_2 (void);
+static void mb_unix_path_join_3 (void);
 static void mb_input_fill_buffer_21__1 (void);
 static void mb_input_fill_buffer_21__6 (void);
 static void mb_input_fill_buffer_21__2 (void);
@@ -11726,28 +11730,70 @@ static void mw_path_join (void){
     }
     WORD_EXIT(mw_path_join);
 }
-static void mw_make_source_path (void){
-    WORD_ENTER(mw_make_source_path, "make-source-path", "src/data/path.mth", 26, 37);
-    WORD_ATOM(26, 37, "source-path-root");
-    mw_source_path_root();
-    WORD_ATOM(26, 54, "@");
-    mw__40_();
-    WORD_ATOM(26, 56, "swap");
+static void mw_unix_path_join (void){
+    WORD_ENTER(mw_unix_path_join, "unix-path-join", "src/data/path.mth", 26, 5);
+    WORD_ATOM(26, 5, "swap");
     mw_swap();
-    WORD_ATOM(26, 61, "path-join");
-    mw_path_join();
+    WORD_ATOM(26, 10, "path-is-empty?");
+    mw_path_is_empty_3F_();
+    WORD_ATOM(26, 25, "if");
+    if (pop_u64()) {
+        WORD_ATOM(27, 9, "drop");
+        mw_drop();
+    } else {
+        WORD_ATOM(28, 9, "Path->Str");
+        mw_Path__3E_Str();
+        WORD_ATOM(28, 19, "");
+        {
+            static bool vready = false;
+            static VAL v;
+            if (!vready) {
+                v = mkstr("/", 1);
+                vready = true;
+            }
+            push_value(v);
+            incref(v);
+        }
+        WORD_ATOM(28, 23, "rotl");
+        mw_rotl();
+        WORD_ATOM(28, 28, "Path->Str");
+        mw_Path__3E_Str();
+        WORD_ATOM(29, 9, "dip");
+        {
+            VAL d3 = pop_value();
+            WORD_ATOM(29, 13, "str-cat");
+            mw_str_cat();
+            push_value(d3);
+        }
+        WORD_ATOM(29, 22, "str-cat");
+        mw_str_cat();
+        WORD_ATOM(29, 30, "Str->Path");
+        mw_Str__3E_Path();
+    }
+    WORD_EXIT(mw_unix_path_join);
+}
+static void mw_make_source_path (void){
+    WORD_ENTER(mw_make_source_path, "make-source-path", "src/data/path.mth", 33, 37);
+    WORD_ATOM(33, 37, "source-path-root");
+    mw_source_path_root();
+    WORD_ATOM(33, 54, "@");
+    mw__40_();
+    WORD_ATOM(33, 56, "swap");
+    mw_swap();
+    WORD_ATOM(33, 61, "unix-path-join");
+    mw_unix_path_join();
     WORD_EXIT(mw_make_source_path);
 }
 static void mw_make_output_path (void){
-    WORD_ENTER(mw_make_output_path, "make-output-path", "src/data/path.mth", 29, 37);
-    WORD_ATOM(29, 37, "output-path-root");
+    WORD_ENTER(mw_make_output_path, "make-output-path", "src/data/path.mth", 36, 37);
+    WORD_ATOM(36, 37, "output-path-root");
     mw_output_path_root();
-    WORD_ATOM(29, 54, "@");
+    WORD_ATOM(36, 54, "@");
     mw__40_();
-    WORD_ATOM(29, 56, "swap");
+    WORD_ATOM(36, 56, "swap");
     mw_swap();
-    WORD_ATOM(29, 61, "path-join");
-    mw_path_join();
+    WORD_ATOM(36, 61, "unix-path-join");
+    mw_unix_path_join();
     WORD_EXIT(mw_make_output_path);
 }
 static void mw_panic_21_ (void){
@@ -46687,6 +46733,56 @@ static void mb_path_join_3 (void) {
     WORD_ATOM(22, 13, "str-cat");
     mw_str_cat();
     WORD_EXIT(mb_path_join_3);
+}
+
+static void mb_unix_path_join_1 (void) {
+    WORD_ENTER(mb_unix_path_join_1, "unix-path-join block", "src/data/path.mth", 27, 9);
+    mw_prim_drop();
+    WORD_ATOM(27, 9, "drop");
+    mw_drop();
+    WORD_EXIT(mb_unix_path_join_1);
+}
+
+static void mb_unix_path_join_2 (void) {
+    WORD_ENTER(mb_unix_path_join_2, "unix-path-join block", "src/data/path.mth", 28, 9);
+    mw_prim_drop();
+    WORD_ATOM(28, 9, "Path->Str");
+    mw_Path__3E_Str();
+    WORD_ATOM(28, 19, "");
+    {
+        static bool vready = false;
+        static VAL v;
+        if (!vready) {
+            v = mkstr("/", 1);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    WORD_ATOM(28, 23, "rotl");
+    mw_rotl();
+    WORD_ATOM(28, 28, "Path->Str");
+    mw_Path__3E_Str();
+    WORD_ATOM(29, 9, "dip");
+    {
+        VAL d2 = pop_value();
+        WORD_ATOM(29, 13, "str-cat");
+        mw_str_cat();
+        push_value(d2);
+    }
+    WORD_ATOM(29, 22, "str-cat");
+    mw_str_cat();
+    WORD_ATOM(29, 30, "Str->Path");
+    mw_Str__3E_Path();
+    WORD_EXIT(mb_unix_path_join_2);
+}
+
+static void mb_unix_path_join_3 (void) {
+    WORD_ENTER(mb_unix_path_join_3, "unix-path-join block", "src/data/path.mth", 29, 13);
+    mw_prim_drop();
+    WORD_ATOM(29, 13, "str-cat");
+    mw_str_cat();
+    WORD_EXIT(mb_unix_path_join_3);
 }
 
 static void mb_input_fill_buffer_21__1 (void) {

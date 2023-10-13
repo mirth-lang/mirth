@@ -22,8 +22,15 @@ def(path-join, Path Path -- Path,
         dip(str-cat) str-cat Str->Path
     ))
 
+def(unix-path-join, Path Path -- Path,
+    swap path-is-empty? if(
+        drop,
+        Path->Str "/" rotl Path->Str
+        dip(str-cat) str-cat Str->Path
+    ))
+
 ||| Make a source path from a project-relative path.
-def(make-source-path, Path -- Path, source-path-root @ swap path-join)
+def(make-source-path, Path -- Path, source-path-root @ swap unix-path-join)
 
 ||| Make an output path from a project-relative path.
-def(make-output-path, Path -- Path, output-path-root @ swap path-join)
+def(make-output-path, Path -- Path, output-path-root @ swap unix-path-join)
