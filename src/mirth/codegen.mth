@@ -328,12 +328,13 @@ def(c99-args-push!, List(Arg) --,
     for(c99-arg-push!))
 
 def(c99-arg-push!, Arg --,
-    ARG_BLOCK -> c99-block-push!,
-    ARG_VAR_RUN -> c99-var-push!)
+    ARG_BLOCK -> c99-block-push!)
 
 def(c99-arg-run!, Arg --,
-    ARG_BLOCK -> block-arrow force! c99-arrow!,
-    ARG_VAR_RUN -> c99-var!)
+    ARG_BLOCK -> c99-block-run!)
+
+def(c99-block-run!, Block --,
+    block-arrow force! c99-arrow!)
 
 def(.var, Var --, "var_" . var-name @ .name)
 def(.param, Param --, Param->Var .var)
@@ -358,9 +359,13 @@ def(c99-decref-ctx!, Ctx --,
     ))
 
 def(c99-block-push!, Block --,
-    dup block-arrow force! arrow-ctx @ c99-pack-ctx!
-    c99-line("push_fnptr(&" . .block ");" .)
-    c99-line("mw_prim_pack_cons();" .))
+    dup block-to-run-var match(
+        SOME -> nip c99-var-push!,
+        NONE ->
+            dup block-arrow force! arrow-ctx @ c99-pack-ctx!
+            c99-line("push_fnptr(&" . .block ");" .)
+            c99-line("mw_prim_pack_cons();" .)
+    ))
 
 def(c99-var!, Var --,
     dup var-auto-run @ if(c99-var-run!, c99-var-push!))
