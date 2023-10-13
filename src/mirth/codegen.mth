@@ -532,9 +532,19 @@ def(c99-field-def!, Field --,
     drop)
 
 def(c99-main!, Arrow --,
-    "int main (int argc, char** argv) {" ;
-    "    global_argc = argc;" ;
-    "    global_argv = argv;" ;
-    c99-nest(c99-arrow!)
-    "    return 0;" ;
-    "}" ;;)
+    c99-line("int main (int argc, char** argv) {" .)
+    c99-nest(
+        c99-line("global_argc = argc;" .)
+        c99-line("global_argv = argv;" .)
+        c99-line("WORD_ENTER(" .
+            "(void(*)(void))0, " .
+            "\"<main>\", " .
+            dup arrow-token-start @ token-module @
+                module-source-path Path->Str .str ", " .
+            dup arrow-token-start @ token-row @ Row->Int .n ", " .
+            dup arrow-token-start @ token-col @ Col->Int .n ");" .)
+        c99-arrow!
+        c99-line("WORD_EXIT((void(*)(void))0);" .)
+        c99-line("return 0;" .)
+    )
+    c99-line("}" .))
