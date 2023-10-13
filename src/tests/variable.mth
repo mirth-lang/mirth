@@ -27,5 +27,5 @@ target-c99("test-variable.c", main)
 # mirth-test # perr # ??
 # mirth-test # perr # call stack:
 # mirth-test # perr #     @ -> prim-mut-get at src/tests/variable.mth:18:12
-# mirth-test # perr #     main at <path>:20:31
+# mirth-test # perr #     main at src/tests/variable.mth:20:31
 # mirth-test # pret # 1
