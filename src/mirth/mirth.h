@@ -119,7 +119,7 @@ typedef struct LOC {
 #define STACK_MAX 0x80000
 static USIZE stack_counter = STACK_MAX;
 static VAL stack [STACK_MAX] = {0};
-static USIZE rstack_counter = 1;
+static USIZE rstack_counter = 0;
 static LOC rstack [STACK_MAX] = {
     {
         .fnptr=(void(*)(void))0,
