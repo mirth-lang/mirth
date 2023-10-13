@@ -6,7 +6,7 @@
         {
             "label": "make",
             "type": "shell",
-            "command": "make showsan",
+            "command": "make show",
             "group": {
                 "kind": "build",
                 "isDefault": true

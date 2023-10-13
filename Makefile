@@ -3,7 +3,7 @@ CC=gcc $(C99FLAGS)
 
 SRCS=src/*.mth src/data/*.mth src/platform/*.mth src/mirth/*.mth src/mirth/data/*.mth src/mirth/*.h
 
-.PHONY: default show build update check update-mirth install-vim install-code install profile play-snake test test-update
+.PHONY: default show showsan build buildsan update check checksan update-mirth install-vim install-code install profile play-snake test test-update
 
 default: show
 
@@ -27,6 +27,9 @@ check:
 	diff --strip-trailing-cr bin/mirth2.c bin/mirth3.c
 	diff --strip-trailing-cr bin/mirth1.c bin/mirth3.c
 	diff --strip-trailing-cr bin/mirth0.c bin/mirth3.c
+
+checksan:
+	diff --strip-trailing-cr bin/mirth3.c bin/mirth3san.c
 
 clean:
 	cp bin/mirth0.c mirth0.c

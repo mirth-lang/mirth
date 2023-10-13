@@ -25,6 +25,18 @@ jobs:
     - name: make test-verify
       run: make test-verify
 
+  build-san:
+    strategy:
+      matrix:
+        os: [macOS-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: make buildsan
+      run: make buildsan
+    - name: make checksan
+      run: make checksan
+
   build-bat:
     strategy:
       matrix:

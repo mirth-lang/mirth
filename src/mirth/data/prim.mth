@@ -100,6 +100,7 @@ data(Prim,
 
     PRIM_SYNTAX_MODULE,
     PRIM_SYNTAX_IMPORT,
+    PRIM_SYNTAX_ALIAS,
     PRIM_SYNTAX_DEF,
     PRIM_SYNTAX_DEF_MISSING,
     PRIM_SYNTAX_DEF_TYPE,
@@ -149,6 +150,7 @@ def(init-prims!, --,
 
     PRIM_SYNTAX_MODULE "module" def-prim!
     PRIM_SYNTAX_IMPORT "import" def-prim!
+    PRIM_SYNTAX_ALIAS "alias" def-prim!
     PRIM_SYNTAX_DEF "def" def-prim!
     PRIM_SYNTAX_DEF_TYPE "def-type" def-prim!
     PRIM_SYNTAX_DEF_MISSING "def-missing" def-prim!
@@ -265,6 +267,7 @@ def(init-prims!, --,
     #
 
     [ elab-module-import! ] SOME PRIM_SYNTAX_IMPORT       prim-decl !
+    [ elab-alias!         ] SOME PRIM_SYNTAX_ALIAS        prim-decl !
     [ elab-def!           ] SOME PRIM_SYNTAX_DEF          prim-decl !
     [ elab-def-missing!   ] SOME PRIM_SYNTAX_DEF_MISSING  prim-decl !
     [ elab-def-external!  ] SOME PRIM_SYNTAX_DEF_EXTERNAL prim-decl !
