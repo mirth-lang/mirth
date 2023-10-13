@@ -3,7 +3,9 @@ import(prelude)
 import(platform.posix)
 
 var(myvar, Int)
+var(myvar2, Int)
 def(main, --,
+    0 myvar !
     myvar @ int-trace-ln!
     10 myvar !
     myvar @ int-trace-ln!
@@ -11,7 +13,9 @@ def(main, --,
     myvar @ int-trace-ln!
     myvar @ int-trace-ln!
     30 myvar !
-    myvar @ int-trace-ln!)
+    myvar @ int-trace-ln!
+
+    myvar2 @ drop)
 
 target-c99("test-variable.c", main)
 # mirth-test # perr # 0
@@ -19,3 +23,10 @@ target-c99("test-variable.c", main)
 # mirth-test # perr # 20
 # mirth-test # perr # 20
 # mirth-test # perr # 30
+# mirth-test # perr # tried to read uninitialized value
+# mirth-test # perr # ??
+# mirth-test # perr # call stack:
+# mirth-test # perr #     prim-mut-get at src/prelude.mth:301:21
+# mirth-test # perr #     @ at src/tests/variable.mth:18:12
+# mirth-test # perr #     main at <path>:20:31
+# mirth-test # pret # 1
