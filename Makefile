@@ -11,11 +11,10 @@ show: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3.c
 	diff --strip-trailing-cr bin/mirth0.c bin/mirth1.c | head -n 5
 	diff --strip-trailing-cr bin/mirth1.c bin/mirth2.c | head -n 10
 	diff --strip-trailing-cr bin/mirth2.c bin/mirth3.c
-showsan: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3san.c bin/mirth3.c
+showsan: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3san.c
 	diff --strip-trailing-cr bin/mirth0.c bin/mirth1.c | head -n 5
 	diff --strip-trailing-cr bin/mirth1.c bin/mirth2.c | head -n 10
 	diff --strip-trailing-cr bin/mirth2.c bin/mirth3san.c
-	diff --strip-trailing-cr bin/mirth3san.c bin/mirth3.c
 
 build: bin/mirth0 bin/mirth1 bin/mirth2 bin/mirth1.c bin/mirth2.c bin/mirth3.c
 buildsan: bin/mirth0 bin/mirth1 bin/mirth2san bin/mirth1.c bin/mirth2.c bin/mirth3san.c
@@ -23,13 +22,15 @@ buildsan: bin/mirth0 bin/mirth1 bin/mirth2san bin/mirth1.c bin/mirth2.c bin/mirt
 update: bin/mirth0.c bin/mirth3.c
 	cp bin/mirth3.c bin/mirth0.c
 
-check:
+check: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3.c
 	diff --strip-trailing-cr bin/mirth2.c bin/mirth3.c
 	diff --strip-trailing-cr bin/mirth1.c bin/mirth3.c
 	diff --strip-trailing-cr bin/mirth0.c bin/mirth3.c
 
-checksan:
-	diff --strip-trailing-cr bin/mirth3.c bin/mirth3san.c
+checksan: bin/mirth0.c bin/mirth1.c bin/mirth2.c bin/mirth3san.c
+	diff --strip-trailing-cr bin/mirth0.c bin/mirth3san.c
+	diff --strip-trailing-cr bin/mirth1.c bin/mirth3san.c
+	diff --strip-trailing-cr bin/mirth2.c bin/mirth3san.c
 
 clean:
 	cp bin/mirth0.c mirth0.c
