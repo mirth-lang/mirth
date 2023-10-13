@@ -493,17 +493,21 @@ def(elab-no-args!, --,
 def(elab-atom-name!, Name --,
     dup ab-ctx @ ctx-lookup match(
         SOME -> nip elab-args! ab-var!,
-        NONE -> name-def @ match(
-            DEF_BUFFER -> elab-no-args! ab-buffer!,
-            DEF_VARIABLE -> elab-no-args! ab-variable!,
-            DEF_CONSTANT -> elab-no-args! ab-constant!,
-            DEF_EXTERNAL -> elab-no-args! ab-external!,
-            DEF_FIELD -> elab-no-args! ab-field!,
-            DEF_WORD -> elab-args! ab-word!,
-            DEF_TAG -> elab-args! ab-tag!,
-            DEF_PRIM -> elab-prim!,
-            _ -> drop ab-token @ "Unknown word." emit-error! TYPE_ERROR ab-type !
-        )
+        NONE -> elab-atom-name-global!
+    ))
+
+def(elab-atom-name-global!, Name --,
+    name-def @ match(
+        DEF_ALIAS -> elab-atom-name-global!,
+        DEF_BUFFER -> elab-no-args! ab-buffer!,
+        DEF_VARIABLE -> elab-no-args! ab-variable!,
+        DEF_CONSTANT -> elab-no-args! ab-constant!,
+        DEF_EXTERNAL -> elab-no-args! ab-external!,
+        DEF_FIELD -> elab-no-args! ab-field!,
+        DEF_WORD -> elab-args! ab-word!,
+        DEF_TAG -> elab-args! ab-tag!,
+        DEF_PRIM -> elab-prim!,
+        _ -> drop ab-token @ "Unknown word." emit-error! TYPE_ERROR ab-type !
     ))
 
 def(elab-prim!, Prim --,
@@ -862,6 +866,19 @@ def(token-def-args, Token -- Token Maybe(Token) List+(Token),
         )
     ))
 
+||| Elaborate an alias `alias(w1,w2)`
+def(elab-alias!, Token -- Token,
+    sip(token-next)
+    token-args-2
+    swap token-is-name? if(id, "expected word name" emit-fatal-error!)
+    dup token-args-0
+    token-name? name-undefined? if(nip,
+        drop "word already defined" emit-fatal-error! swap)
+    swap token-is-name? if(id, "expected word name" emit-fatal-error!)
+    dup token-args-0
+    token-name@ DEF_ALIAS
+    swap name-def !)
+
 ||| Elaborate a missing word definition `def-missing(w,t,b...)`
 def(elab-def-missing!, Token -- Token,
     dup token-succ token-succ token-name@ name-defined? nip if(
@@ -1027,6 +1044,7 @@ def(typecheck-everything!, --,
 ||| Typecheck a definition.
 def(typecheck-def!, Def --,
     DEF_NONE -> id,
+    DEF_ALIAS -> name-def @ typecheck-def!, # TODO verify it's not DEF_NONE!!
     DEF_MODULE -> drop,
     DEF_BUFFER -> drop,
     DEF_PRIM -> drop,

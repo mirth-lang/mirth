@@ -8,6 +8,7 @@ import(data.char)
 # mirth/data/name
 data(Def,
     DEF_NONE,
+    DEF_ALIAS -> Name,
     DEF_MODULE -> Module,
     DEF_TYPE -> Type,
     DEF_TAG -> Tag,
