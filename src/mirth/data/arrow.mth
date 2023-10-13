@@ -30,9 +30,7 @@ table(Arrow)
 table(Lambda)
 table(Block)
 
-data(Arg,
-    ARG_BLOCK -> Block,
-    ARG_VAR_RUN -> Var)
+data(Arg, ARG_BLOCK -> Block)
 
 data(Op,
     OP_NONE,
