@@ -1176,13 +1176,13 @@ static void mw_prim_mut_set (void) {
     PRIM_ENTER(mw_prim_mut_set,"prim-mut-set");
     VAL mut = pop_value();
     VAL newval = pop_value();
-    push_value(mut);
     ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
     VAL oldval = *(VAL*)VPTR(mut);
     *(VAL*)VPTR(mut) = newval;
     if (oldval.tag) {
         decref(oldval);
     }
+    decref(mut);
     PRIM_EXIT(mw_prim_mut_set);
 }
 

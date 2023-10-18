@@ -553,6 +553,6 @@ def(init-prims!, --,
     PRIM_MUT_GET prim-type !
 
     TVar
-    dup TMut sip(T2) T1 T->
+    dup TMut T2 T0 T->
     PRIM_MUT_SET prim-type !
     )
