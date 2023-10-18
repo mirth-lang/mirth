@@ -196,14 +196,19 @@ def(cmp?, a a -- a a Comparison, dup2 cmp)
 def(<>, a a -- Bool, == not)
 def(>, a a -- Bool, swap <)
 def(>=, a a -- Bool, swap <=)
+def(max, a a -- a, dup2 < if(nip, drop))
+def(min, a a -- a, dup2 < if(drop, nip))
+
+def-missing(prim-int-succ, Int -- Int, 1 +)
+def-missing(prim-int-pred, Int -- Int, 1 -)
+def-missing(prim-int-negate, Int -- Int, -1 *)
+alias(negate, prim-int-negate)
+alias(1+, prim-int-succ)
+alias(1-, prim-int-pred)
 def(0=, Int -- Bool, 0 ==)
 def(0<, Int -- Bool, 0 <)
 def(0>, Int -- Bool, 0 >)
 def(0<>, Int -- Bool, 0 <>)
-def(1+, Int -- Int, 1 +)
-def(1-, Int -- Int, 1 -)
-def(max, a a -- a, dup2 < if(nip, drop))
-def(min, a a -- a, dup2 < if(drop, nip))
 
 alias(ptr-nil, prim-ptr-nil)
 def(ptrs, Size -- Size, |ptr| *)
@@ -276,7 +281,6 @@ def(I64->Int, I64 -- Int, prim-unsafe-cast)
 def(Int->Char, Int -- Char, prim-unsafe-cast) # unsafe
 def(Char->Int, Char -- Int, prim-unsafe-cast)
 
-def(negate, Int -- Int, -1 *)
 def(abs, Int -- Int, dup 0< if(negate, id))
 
 ##########
@@ -298,6 +302,5 @@ def(unpack4, [a b c d] -- a b c d, prim-pack-uncons dip(unpack3))
 def(unpack5, [a b c d e] -- a b c d e, prim-pack-uncons dip(unpack4))
 
 alias(@, prim-mut-get)
-def(!, t Mut(t) --, prim-mut-set drop)
-def(modify(f), (*a t -- *b t) *a Mut(t) -- *b,
-    dup dip(@ f) !)
+alias(!, prim-mut-set)
+def(modify(f), (*a t -- *b t) *a Mut(t) -- *b, dup dip(@ f) !)
