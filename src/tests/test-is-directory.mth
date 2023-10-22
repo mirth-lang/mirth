@@ -1,5 +1,7 @@
 module(tests.test-is-directory)
+import(prelude)
 import(platform.posix)
+import(data.path)
 
 def(should-be-directory, Str --,
     Str->Path is-directory? nip if("ok", "err") str-trace-ln!)
