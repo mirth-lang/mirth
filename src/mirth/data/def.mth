@@ -1,6 +1,8 @@
 module(mirth.data.def)
 
+import(prelude)
 import(data.maybe)
+import(mirth.data.alias)
 import(mirth.data.type)
 import(mirth.data.token)
 import(mirth.data.word)
@@ -9,7 +11,7 @@ import(mirth.data.table)
 
 data(Def,
     DEF_NONE,
-    DEF_ALIAS -> Name,
+    DEF_ALIAS -> Alias,
     DEF_MODULE -> Module,
     DEF_TYPE -> Type,
     DEF_TAG -> Tag,
@@ -23,7 +25,7 @@ data(Def,
 
 def(def-module, Def -- Maybe(Module),
     DEF_NONE -> NONE,
-    DEF_ALIAS -> drop NONE,
+    DEF_ALIAS -> alias-head @ token-module @ SOME,
     DEF_MODULE -> drop NONE,
     DEF_TYPE -> drop NONE,
     DEF_TAG -> tag-data @ data-header @ token-module @ SOME,
@@ -33,4 +35,4 @@ def(def-module, Def -- Maybe(Module),
     DEF_VARIABLE -> drop NONE,
     DEF_CONSTANT -> drop NONE,
     DEF_EXTERNAL -> external-sig @ token-module @ SOME,
-    DEF_FIELD -> field-head @ token-module @ SOME )
+    DEF_FIELD -> field-head @ token-module @ SOME)
