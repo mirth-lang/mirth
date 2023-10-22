@@ -5,11 +5,13 @@ import(mirth.data.name)
 import(mirth.data.def)
 
 table(Variable)
+field(variable-head, Variable, Token)
 field(variable-name, Variable, Name)
 field(variable-type, Variable, Lazy(Type))
 
-def(variable-new!, Name Lazy(Type) -- Variable,
+def(variable-new!, Token Name Lazy(Type) -- Variable,
     Variable.alloc!
     tuck variable-type !
     tuck dup2 variable-name !
-    DEF_VARIABLE swap name-def !)
+    DEF_VARIABLE swap name-def !
+    tuck variable-head !)

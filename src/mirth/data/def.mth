@@ -8,6 +8,7 @@ import(mirth.data.token)
 import(mirth.data.word)
 import(mirth.data.external)
 import(mirth.data.table)
+import(mirth.data.variable)
 
 data(Def,
     DEF_NONE,
@@ -32,7 +33,7 @@ def(def-module, Def -- Maybe(Module),
     DEF_PRIM -> drop NONE,
     DEF_WORD -> word-head @ token-module @ SOME,
     DEF_BUFFER -> drop NONE,
-    DEF_VARIABLE -> drop NONE,
+    DEF_VARIABLE -> variable-head @ token-module @ SOME,
     DEF_CONSTANT -> drop NONE,
     DEF_EXTERNAL -> external-sig @ token-module @ SOME,
     DEF_FIELD -> field-head @ token-module @ SOME)
