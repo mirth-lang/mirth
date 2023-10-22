@@ -6,6 +6,7 @@ import(data.lazy)
 import(data.maybe)
 import(mirth.data.var)
 import(mirth.data.name)
+import(mirth.data.def)
 
 table(Word)
 field(word-name, Word, Name)
