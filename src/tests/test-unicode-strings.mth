@@ -1,6 +1,8 @@
 module(tests.test-unicode-strings)
 import(prelude)
 import(platform.posix)
+import(data.str)
+import(data.list)
 
 def(display-str!, Str --,
     "\"" str-print! dup str-print! "\"" str-print-ln!

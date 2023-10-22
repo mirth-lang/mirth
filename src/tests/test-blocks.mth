@@ -1,6 +1,7 @@
 module(tests.test-blocks)
 import(prelude)
 import(platform.posix)
+import(data.list)
 
 def(run1, (a -- b) a -- b, run)
 def(add10, [Int -- Int], [10 +])
