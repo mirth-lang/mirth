@@ -9,6 +9,7 @@ import(mirth.data.word)
 import(mirth.data.external)
 import(mirth.data.table)
 import(mirth.data.variable)
+import(mirth.data.constant)
 import(mirth.data.buffer)
 
 data(Def,
@@ -21,7 +22,7 @@ data(Def,
     DEF_WORD -> Word,
     DEF_BUFFER -> Buffer,
     DEF_VARIABLE -> Variable,
-    DEF_CONSTANT -> Value,
+    DEF_CONSTANT -> Constant,
     DEF_EXTERNAL -> External,
     DEF_FIELD -> Field)
 
@@ -35,6 +36,6 @@ def(def-module, Def -- Maybe(Module),
     DEF_WORD -> word-head @ token-module @ SOME,
     DEF_BUFFER -> buffer-head @ token-module @ SOME,
     DEF_VARIABLE -> variable-head @ token-module @ SOME,
-    DEF_CONSTANT -> drop NONE,
+    DEF_CONSTANT -> constant-head @ token-module @ SOME,
     DEF_EXTERNAL -> external-sig @ token-module @ SOME,
     DEF_FIELD -> field-head @ token-module @ SOME)

@@ -18,6 +18,7 @@ import(mirth.data.word)
 import(mirth.data.table)
 import(mirth.data.variable)
 import(mirth.data.external)
+import(mirth.data.constant)
 import(mirth.data.ctx)
 import(mirth.data.type)
 import(mirth.data.prim)
@@ -288,7 +289,10 @@ def(c99-string-char!, Char --,
 #        "unexpected character in c99 string" panic!
     )))))))
 
-def(c99-constant!, Value --,
+def(c99-constant!, Constant --,
+    constant-value @ c99-value!)
+
+def(c99-value!, Value --,
     VALUE_INT -> c99-int!,
     VALUE_STR -> c99-str!,
     VALUE_BLOCK -> c99-block-push!)
