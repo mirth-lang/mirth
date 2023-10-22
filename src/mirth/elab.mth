@@ -1008,8 +1008,7 @@ def(elab-buffer!, Token -- Token,
     sip(token-next) token-args-2
     swap token-is-name? if(
         token-name? name-undefined? if(
-            nip swap
-            token-int@ buffer-new! drop,
+            rotl token-int@ buffer-new! drop,
             drop "buffer already defined" emit-fatal-error!
         ),
         "expected buffer name" emit-fatal-error!
@@ -1122,7 +1121,8 @@ def(table-new!, Token Name -- Table,
     ) drop
 
     # Table.NUM
-    dup table-name @ ".NUM" name-cat!
+    dup table-head @
+    over table-name @ ".NUM" name-cat!
     8 buffer-new!
     over table-num-buffer !
 

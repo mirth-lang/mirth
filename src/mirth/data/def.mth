@@ -9,6 +9,7 @@ import(mirth.data.word)
 import(mirth.data.external)
 import(mirth.data.table)
 import(mirth.data.variable)
+import(mirth.data.buffer)
 
 data(Def,
     DEF_NONE,
@@ -32,7 +33,7 @@ def(def-module, Def -- Maybe(Module),
     DEF_TAG -> tag-data @ data-header @ token-module @ SOME,
     DEF_PRIM -> drop NONE,
     DEF_WORD -> word-head @ token-module @ SOME,
-    DEF_BUFFER -> drop NONE,
+    DEF_BUFFER -> buffer-head @ token-module @ SOME,
     DEF_VARIABLE -> variable-head @ token-module @ SOME,
     DEF_CONSTANT -> drop NONE,
     DEF_EXTERNAL -> external-sig @ token-module @ SOME,
