@@ -15,6 +15,7 @@ import(mirth.data.location)
 import(mirth.data.def)
 import(mirth.data.var)
 import(mirth.data.table)
+import(mirth.data.error)
 
 data(Type,
     TYPE_ERROR,

@@ -1021,7 +1021,7 @@ def(elab-variable!, Token -- Token,
     swap token-is-name? if(id, "expected variable name" emit-fatal-error!)
     token-name? name-undefined? if(id,
         drop "name already defined" emit-fatal-error!)
-    nip swap delay(elab-simple-type-arg!) variable-new! drop
+    rotl delay(elab-simple-type-arg!) variable-new! drop
     token-next)
 
 ||| Elaborate a table definition `table(T)`.
