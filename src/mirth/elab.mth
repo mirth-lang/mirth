@@ -24,6 +24,7 @@ import(mirth.data.arrow)
 import(mirth.data.word)
 import(mirth.data.prim)
 import(mirth.data.module)
+import(mirth.data.alias)
 import(mirth.lexer)
 import(mirth.codegen)
 
@@ -521,7 +522,7 @@ def(elab-module-is-visible, Module -- Bool,
 
 def(elab-atom-name-global!, Name --,
     name-def @ match(
-        DEF_ALIAS -> elab-atom-name-global!,
+        DEF_ALIAS -> alias-target @ elab-atom-name-global!,
         DEF_BUFFER -> elab-no-args! ab-buffer!,
         DEF_VARIABLE -> elab-no-args! ab-variable!,
         DEF_CONSTANT -> elab-no-args! ab-constant!,
@@ -895,12 +896,11 @@ def(elab-alias!, Token -- Token,
     token-args-2
     swap token-is-name? if(id, "expected word name" emit-fatal-error!)
     dup token-args-0
-    token-name? name-undefined? if(nip,
-        drop "word already defined" emit-fatal-error! swap)
-    swap token-is-name? if(id, "expected word name" emit-fatal-error!)
-    dup token-args-0
-    token-name@ DEF_ALIAS
-    swap name-def !)
+    token-name? name-undefined? if(id,
+        drop "word already defined" emit-fatal-error!)
+    rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
+    dup token-args-0 token-name@
+    alias-new! drop)
 
 ||| Elaborate a missing word definition `def-missing(w,t,b...)`
 def(elab-def-missing!, Token -- Token,
@@ -1067,7 +1067,7 @@ def(typecheck-everything!, --,
 ||| Typecheck a definition.
 def(typecheck-def!, Def --,
     DEF_NONE -> id,
-    DEF_ALIAS -> name-def @ typecheck-def!, # TODO verify it's not DEF_NONE!!
+    DEF_ALIAS -> alias-target @ name-def @ typecheck-def!, # TODO verify it's not DEF_NONE!!
     DEF_MODULE -> drop,
     DEF_BUFFER -> drop,
     DEF_PRIM -> drop,
