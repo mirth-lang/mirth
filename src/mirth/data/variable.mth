@@ -1,6 +1,7 @@
 module(mirth.data.variable)
 
 import(prelude)
+import(mirth.data.name)
 
 table(Variable)
 field(variable-name, Variable, Name)

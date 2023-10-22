@@ -3,7 +3,9 @@ module(mirth.data.word)
 import(prelude)
 import(data.map)
 import(data.lazy)
+import(data.maybe)
 import(mirth.data.var)
+import(mirth.data.name)
 
 table(Word)
 field(word-name, Word, Name)
@@ -20,7 +22,4 @@ def(word-new!, Token Token Name -- Word,
     tuck word-name !
     tuck word-head !
     tuck word-body !
-    NONE over word-sig !
-
-    dup word-head @ token-module @ SOME
-    over word-name @ name-module !)
+    NONE over word-sig !)

@@ -19,6 +19,7 @@ import(mirth.data.variable)
 import(mirth.data.external)
 import(mirth.data.ctx)
 import(mirth.data.type)
+import(mirth.data.prim)
 import(mirth.elab)
 
 ###########

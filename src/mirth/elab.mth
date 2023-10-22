@@ -506,7 +506,7 @@ def(elab-atom-name!, Name --,
     ))
 
 def(elab-check-name-visible!, Name -- Name,
-    dup name-module @ maybe-for(
+    dup name-def @ def-module maybe-for(
         dup elab-module-is-visible if(drop,
             "name not visible, must import " swap module-name @ name-str @ str-cat
             ab-token @ swap emit-error!)

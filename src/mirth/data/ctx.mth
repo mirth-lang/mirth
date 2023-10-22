@@ -5,6 +5,7 @@ import(data.str)
 import(data.list)
 import(mirth.data.name)
 import(mirth.data.var)
+import(mirth.data.type)
 
 ###########
 # Context #

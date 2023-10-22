@@ -3,6 +3,7 @@ module(mirth.data.type)
 
 import(prelude)
 import(platform.posix)
+import(data.maybe)
 import(data.map)
 import(data.list)
 import(data.lazy)

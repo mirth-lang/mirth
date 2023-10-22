@@ -1,6 +1,7 @@
 module(mirth.data.prim)
 
 import(prelude)
+import(data.maybe)
 import(mirth.data.name)
 import(mirth.data.type)
 import(mirth.data.ctx)

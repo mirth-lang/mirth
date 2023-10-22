@@ -1,5 +1,7 @@
 module(mirth.data.buffer)
+
 import(prelude)
+import(mirth.data.name)
 
 # mirth/data/buffer
 table(Buffer)
