@@ -7,38 +7,13 @@ import(data.str)
 import(data.list)
 import(data.lazy)
 import(data.maybe)
+import(mirth.data.def)
 
 #########
 # Names #
 #########
 
 # mirth/data/name
-data(Def,
-    DEF_NONE,
-    DEF_ALIAS -> Name,
-    DEF_MODULE -> Module,
-    DEF_TYPE -> Type,
-    DEF_TAG -> Tag,
-    DEF_PRIM -> Prim,
-    DEF_WORD -> Word,
-    DEF_BUFFER -> Buffer,
-    DEF_VARIABLE -> Variable,
-    DEF_CONSTANT -> Value,
-    DEF_EXTERNAL -> External,
-    DEF_FIELD -> Field)
-def(def-module, Def -- Maybe(Module),
-    DEF_NONE -> NONE,
-    DEF_ALIAS -> drop NONE,
-    DEF_MODULE -> drop NONE,
-    DEF_TYPE -> drop NONE,
-    DEF_TAG -> tag-data @ data-header @ token-module @ SOME,
-    DEF_PRIM -> drop NONE,
-    DEF_WORD -> word-head @ token-module @ SOME,
-    DEF_BUFFER -> drop NONE,
-    DEF_VARIABLE -> drop NONE,
-    DEF_CONSTANT -> drop NONE,
-    DEF_EXTERNAL -> external-sig @ token-module @ SOME,
-    DEF_FIELD -> drop NONE)
 
 table(Name)
 field(name-str, Name, Str)
