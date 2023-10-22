@@ -1,5 +1,8 @@
 module(mirth.data.var)
+
+import(prelude)
 import(mirth.data.name)
+import(mirth.data.type)
 
 #######
 # VAR #

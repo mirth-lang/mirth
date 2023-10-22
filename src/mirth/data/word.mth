@@ -1,4 +1,6 @@
 module(mirth.data.word)
+
+import(prelude)
 import(data.map)
 import(data.lazy)
 import(mirth.data.var)
@@ -18,4 +20,7 @@ def(word-new!, Token Token Name -- Word,
     tuck word-name !
     tuck word-head !
     tuck word-body !
-    NONE over word-sig !)
+    NONE over word-sig !
+
+    dup word-head @ token-module @ SOME
+    over word-name @ name-module !)

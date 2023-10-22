@@ -1,8 +1,12 @@
 module(mirth.data.token)
+
+import(prelude)
+import(data.list)
+import(data.maybe)
 import(mirth.data.name)
 import(mirth.data.location)
 import(mirth.data.error)
-import(data.list)
+import(mirth.data.prim)
 
 ##########
 # Tokens #
@@ -24,6 +28,7 @@ data(TokenValue,
     TOKEN_INT -> Int,
     TOKEN_STR -> Str,
     TOKEN_NAME -> Name)
+table(Token)
 field(token-value, Token, TokenValue)
 field(token-module, Token, Module)
 field(token-row, Token, Row)

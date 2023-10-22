@@ -1,6 +1,9 @@
 module(data.map)
+
 import(prelude)
 import(data.bag)
+import(data.maybe)
+import(data.list)
 
 ||| A map associates keys with values. A single key
 ||| has at most one value it corresponds to. Maps are

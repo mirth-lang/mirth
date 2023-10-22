@@ -1,5 +1,11 @@
 module(mirth.data.name)
+
+import(prelude)
+import(platform.posix)
 import(data.char)
+import(data.str)
+import(data.list)
+import(data.lazy)
 
 #########
 # Names #
@@ -22,6 +28,7 @@ data(Def,
 table(Name)
 field(name-str, Name, Str)
 field(name-def, Name, Def)
+field(name-module, Name, Maybe(Module)) # where this name is defined
 field(name-mangled, Name, Lazy(Str))
 def(name-is-nil, Name -- Bool, Name.id 0 ==)
 
@@ -64,6 +71,7 @@ def(name-new!, Str -- Name,
             tuck swap hash-name!
             tuck name-str !
             DEF_NONE over name-def !
+            NONE over name-module !
             dup delay(name-mangle-compute!) over name-mangled !,
         SOME ->
             dip(drop2)

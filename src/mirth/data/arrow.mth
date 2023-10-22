@@ -1,6 +1,12 @@
 module(mirth.data.arrow)
-import(mirth.data.type)
+
+import(prelude)
 import(data.maybe)
+import(data.list)
+import(data.lazy)
+import(mirth.data.token)
+import(mirth.data.type)
+import(mirth.elab)
 
 ##########
 # ARROWS #
