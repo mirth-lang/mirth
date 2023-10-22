@@ -18,6 +18,7 @@ import(mirth.data.word)
 import(mirth.data.var)
 import(mirth.data.buffer)
 import(mirth.data.variable)
+import(mirth.data.constant)
 import(mirth.data.table)
 import(mirth.data.var)
 import(mirth.data.arrow)
@@ -333,7 +334,7 @@ def(ab-int!, Int --, OP_INT ab-op!)
 def(ab-str!, Str --, OP_STR ab-op!)
 def(ab-buffer!, Buffer --, OP_BUFFER ab-op!)
 def(ab-variable!, Variable --, OP_VARIABLE ab-op!)
-def(ab-constant!, Value --, OP_CONSTANT ab-op!)
+def(ab-constant!, Constant --, OP_CONSTANT ab-op!)
 def(ab-field!, Field --, OP_FIELD ab-op!)
 def(ab-var!, Var --, OP_VAR ab-op!)
 def(ab-tag!, Tag --, OP_TAG ab-op!)
@@ -399,7 +400,7 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_STR -> VALUE_STR TValue OPSIG_PUSH,
         OP_BUFFER -> drop TYPE_PTR OPSIG_PUSH,
         OP_VARIABLE -> variable-type force! TMut OPSIG_PUSH,
-        OP_CONSTANT -> TValue OPSIG_PUSH,
+        OP_CONSTANT -> constant-value @ TValue OPSIG_PUSH,
         OP_TAG -> elab-tag-sig! type-freshen-sig OPSIG_APPLY,
         OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
         OP_PRIM -> prim-type @ type-freshen-sig OPSIG_APPLY,
@@ -1045,18 +1046,18 @@ def(elab-target-c99!, Token -- Token,
 ||| The path is relative to compiler's cwd, not source root.
 def(elab-embed-str!, Token -- Token,
     sip(token-next) token-args-2
+
     swap token-is-name? if(id,
         "expected name" emit-fatal-error!)
     token-name? name-undefined? if(id,
         drop "name already defined" emit-fatal-error!)
-    nip
 
-    swap token-is-str? if(id,
+    rotl token-is-str? if(id,
         "expected path" emit-fatal-error!)
     token-str? with-open-file!(read-file! nip,
         "could not open file" emit-fatal-error!)
 
-    VALUE_STR DEF_CONSTANT swap name-def !)
+    VALUE_STR constant-new! drop)
 
 ||| Ensure that everything so far has been typechecked.
 def(typecheck-everything!, --,

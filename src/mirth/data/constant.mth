@@ -1,0 +1,17 @@
+module(mirth.data.constant)
+
+import(prelude)
+import(mirth.data.name)
+import(mirth.data.def)
+
+table(Constant)
+field(constant-head, Constant, Token)
+field(constant-name, Constant, Name)
+field(constant-value, Constant, Value)
+
+def(constant-new!, Token Name Value -- Constant,
+    Constant.alloc!
+    tuck constant-value !
+    dup2 DEF_CONSTANT swap name-def !
+    tuck constant-name !
+    tuck constant-head !)
