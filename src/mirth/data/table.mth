@@ -12,6 +12,7 @@ field(table-num-buffer, Table, Buffer)
 field(table-max-count, Table, Size)
 
 table(Field)
+field(field-head, Field, Token)
 field(field-name, Field, Name)
 field(field-index-type, Field, Lazy(Type))
 field(field-value-type, Field, Lazy(Type))

@@ -5,6 +5,7 @@ import(data.path)
 import(data.char)
 import(data.str)
 import(data.set)
+import(mirth.data.name)
 
 # mirth/data/module
 table(Module)
