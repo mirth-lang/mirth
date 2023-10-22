@@ -6,6 +6,7 @@ import(data.char)
 import(data.str)
 import(data.list)
 import(data.lazy)
+import(data.maybe)
 
 #########
 # Names #
@@ -25,10 +26,23 @@ data(Def,
     DEF_CONSTANT -> Value,
     DEF_EXTERNAL -> External,
     DEF_FIELD -> Field)
+def(def-module, Def -- Maybe(Module),
+    DEF_NONE -> NONE,
+    DEF_ALIAS -> drop NONE,
+    DEF_MODULE -> drop NONE,
+    DEF_TYPE -> drop NONE,
+    DEF_TAG -> tag-data @ data-header @ token-module @ SOME,
+    DEF_PRIM -> drop NONE,
+    DEF_WORD -> word-head @ token-module @ SOME,
+    DEF_BUFFER -> drop NONE,
+    DEF_VARIABLE -> drop NONE,
+    DEF_CONSTANT -> drop NONE,
+    DEF_EXTERNAL -> external-sig @ token-module @ SOME,
+    DEF_FIELD -> drop NONE)
+
 table(Name)
 field(name-str, Name, Str)
 field(name-def, Name, Def)
-field(name-module, Name, Maybe(Module)) # where this name is defined
 field(name-mangled, Name, Lazy(Str))
 def(name-is-nil, Name -- Bool, Name.id 0 ==)
 
@@ -71,7 +85,6 @@ def(name-new!, Str -- Name,
             tuck swap hash-name!
             tuck name-str !
             DEF_NONE over name-def !
-            NONE over name-module !
             dup delay(name-mangle-compute!) over name-mangled !,
         SOME ->
             dip(drop2)

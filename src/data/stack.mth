@@ -1,5 +1,7 @@
 module(data.stack)
+
 import(prelude)
+import(data.maybe)
 
 data(Stack(t),
     STACK_NIL,
