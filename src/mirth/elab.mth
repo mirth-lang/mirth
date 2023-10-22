@@ -1265,17 +1265,18 @@ def(elab-field!, Token -- Token,
         TOKEN_NAME ->
             name-undefined? if(id,
                 drop "name already defined" emit-fatal-error!)
-            nip rotr field-new! drop,
+            field-new! drop,
         _ ->
             drop "expected field name" emit-fatal-error!
     ))
 
-def(field-new!, Name Token Token -- Field,
+def(field-new!, Token Token Token Name -- Field,
     Field.alloc!
-    swap delay(elab-simple-type-arg!) over field-value-type !
-    swap delay(elab-simple-type-arg!) over field-index-type !
     tuck dup2 field-name !
-    DEF_FIELD swap name-def !)
+    DEF_FIELD swap name-def !
+    tuck field-head !
+    swap delay(elab-simple-type-arg!) over field-value-type !
+    swap delay(elab-simple-type-arg!) over field-index-type !)
 
 def(elab-field-type!, Field -- Type,
     sip(field-index-type force! T1)

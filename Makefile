@@ -1,5 +1,6 @@
 C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-unused-value -Wno-missing-braces -Werror -pedantic -O0 -g
 CC=gcc $(C99FLAGS)
+CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
 
 SRCS=src/*.mth src/data/*.mth src/platform/*.mth src/mirth/*.mth src/mirth/data/*.mth src/mirth/*.h
 
@@ -75,8 +76,14 @@ bin/mirth1: bin/mirth1.c
 bin/mirth2: bin/mirth2.c
 	$(CC) -o bin/mirth2 bin/mirth2.c
 
+bin/mirth0san: bin/mirth0.c
+	$(CCSAN) -o bin/mirth0san bin/mirth0.c
+
+bin/mirth1san: bin/mirth1.c
+	$(CCSAN) -o bin/mirth1san bin/mirth1.c
+
 bin/mirth2san: bin/mirth2.c
-	$(CC) -fsanitize=undefined -fsanitize=address -o bin/mirth2san bin/mirth2.c
+	$(CCSAN) -o bin/mirth2san bin/mirth2.c
 
 bin/mirth1.c: bin/mirth0 $(SRCS)
 	bin/mirth0 mirth.mth

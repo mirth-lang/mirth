@@ -20,6 +20,7 @@ import(mirth.data.external)
 import(mirth.data.ctx)
 import(mirth.data.type)
 import(mirth.data.prim)
+import(mirth.data.var)
 import(mirth.elab)
 
 ###########

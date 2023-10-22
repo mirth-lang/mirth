@@ -1,6 +1,11 @@
 module(mirth.data.def)
 
 import(data.maybe)
+import(mirth.data.type)
+import(mirth.data.token)
+import(mirth.data.word)
+import(mirth.data.external)
+import(mirth.data.table)
 
 data(Def,
     DEF_NONE,
@@ -28,4 +33,4 @@ def(def-module, Def -- Maybe(Module),
     DEF_VARIABLE -> drop NONE,
     DEF_CONSTANT -> drop NONE,
     DEF_EXTERNAL -> external-sig @ token-module @ SOME,
-    DEF_FIELD -> drop NONE)
+    DEF_FIELD -> field-head @ token-module @ SOME )

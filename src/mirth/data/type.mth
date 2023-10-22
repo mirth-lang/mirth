@@ -13,6 +13,8 @@ import(mirth.data.token)
 import(mirth.data.arrow)
 import(mirth.data.location)
 import(mirth.data.def)
+import(mirth.data.var)
+import(mirth.data.table)
 
 data(Type,
     TYPE_ERROR,
