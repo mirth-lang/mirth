@@ -1,4 +1,13 @@
 module(mirth.elab)
+
+import(prelude)
+import(platform.posix)
+import(data.str)
+import(data.lazy)
+import(data.list)
+import(data.maybe)
+import(data.set)
+import(data.path)
 import(mirth.data.name)
 import(mirth.data.token)
 import(mirth.data.type)
@@ -12,8 +21,10 @@ import(mirth.data.table)
 import(mirth.data.var)
 import(mirth.data.arrow)
 import(mirth.data.word)
-
-import(data.lazy)
+import(mirth.data.prim)
+import(mirth.data.module)
+import(mirth.lexer)
+import(mirth.codegen)
 
 ####################
 # Type Elaboration #
@@ -490,7 +501,21 @@ def(elab-no-args!, --,
 def(elab-atom-name!, Name --,
     dup ab-ctx @ ctx-lookup match(
         SOME -> nip elab-args! ab-var!,
-        NONE -> elab-atom-name-global!
+        NONE -> elab-check-name-visible!
+                elab-atom-name-global!
+    ))
+
+def(elab-check-name-visible!, Name -- Name,
+    dup name-module @ maybe-for(
+        dup elab-module-is-visible if(drop,
+            "name not visible, must import " swap module-name @ name-str @ str-cat
+            ab-token @ swap emit-error!)
+    ))
+
+def(elab-module-is-visible, Module -- Bool,
+    dup ab-token @ token-module @ == if(
+        drop true,
+        ab-token @ token-module @ module-imports @ set-has
     ))
 
 def(elab-atom-name-global!, Name --,

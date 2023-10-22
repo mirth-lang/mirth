@@ -1,10 +1,13 @@
 module(mirth.data.module)
+
+import(prelude)
 import(data.path)
+import(data.char)
+import(data.str)
 import(data.set)
 
 # mirth/data/module
 table(Module)
-table(Token)
 field(module-name, Module, Name)
 field(module-path, Module, Path)
 field(module-start, Module, Token)

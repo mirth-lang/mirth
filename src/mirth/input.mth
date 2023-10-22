@@ -1,5 +1,8 @@
 module(mirth.input)
+
 import(prelude)
+import(platform.posix)
+import(data.char)
 
 #########
 # Input #

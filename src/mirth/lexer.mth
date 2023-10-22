@@ -1,10 +1,16 @@
 module(mirth.lexer)
+
 import(prelude)
+import(platform.posix)
 import(data.char)
 import(data.stack)
+import(data.path)
+import(data.str)
+import(mirth.data.location)
 import(mirth.data.name)
 import(mirth.data.token)
 import(mirth.data.error)
+import(mirth.data.module)
 import(mirth.input)
 
 #########

@@ -1,5 +1,7 @@
 module(data.char)
+
 import(prelude)
+import(data.list)
 
 ||| Get the byte list of a character under UTF8 encoding.
 def(char-bytes, Char -- List(U8),

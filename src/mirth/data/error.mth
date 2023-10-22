@@ -1,4 +1,7 @@
 module(mirth.data.error)
+
+import(prelude)
+import(platform.posix)
 import(mirth.data.location)
 import(mirth.data.token)
 

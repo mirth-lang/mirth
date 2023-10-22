@@ -1,7 +1,16 @@
 
 module(mirth.data.type)
-import(mirth.data.name)
+
+import(prelude)
+import(platform.posix)
 import(data.map)
+import(data.list)
+import(data.lazy)
+import(mirth.data.ctx)
+import(mirth.data.name)
+import(mirth.data.token)
+import(mirth.data.arrow)
+import(mirth.data.location)
 
 data(Type,
     TYPE_ERROR,

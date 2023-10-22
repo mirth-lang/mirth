@@ -1,5 +1,10 @@
 module(mirth.data.location)
+
+import(prelude)
+import(platform.posix)
+import(data.path)
 import(mirth.data.module)
+
 
 # mirth/data/location
 data(Row, ROW -> Int)
