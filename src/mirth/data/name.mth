@@ -39,7 +39,7 @@ def(hash-name!, Name Hash --, dip(Name.id) Hash->Int HASH_BUF int!!)
 
 ||| Get hash for string.
 def(hash, Str -- Hash,
-    0 swap str-for(Char->Int 17 * over 7 << ^ swap 27 >> ^)
+    0 swap str-bytes-for(U8->Int 17 * over 7 << ^ swap 27 >> ^)
     Int->Hash)
 
 def(name-hash, Name -- Hash, name-str @ hash)

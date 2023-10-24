@@ -3,7 +3,6 @@ import(prelude)
 import(platform.posix)
 import(data.str)
 import(data.stack)
-import(data.char)
 import(data.path)
 import(data.list)
 import(data.lazy)
@@ -57,13 +56,8 @@ def(.b, Byte --,
     codegen-full? if(codegen-flush!, id)
     codegen-length modify(dup 1+) codegen-u8!)
 
-def(.c, Char --,
-    codegen-full? if(codegen-flush!, id)
-    dup codegen-length @ CODEGEN_BUF with-ptr+(char!)
-    char-width codegen-length modify(+))
-
 def(., Str --,
-    dup prim-str-base over str-size
+    dup prim-str-base over str-num-bytes
     dup codegen-length @ + CODEGEN_BUF_SIZE > if(
         codegen-flush!
         while(dup CODEGEN_BUF_SIZE >,
@@ -244,17 +238,17 @@ def(c99-str!, Str --,
         c99-line("static VAL v;" .)
         c99-line("if (!vready) {" .)
         c99-nest(
-            dup str-size 4090 > if(
+            dup str-num-bytes 4090 > if(
                 "static uint8_t b[] = {" .
                 c99-nest(
-                    c99-indent dup str-for(char-bytes for(
+                    c99-indent dup str-bytes-for(
                         U8->Int dup .n "," .
                         10 == if(.lf c99-indent, id)
-                    )) .lf
+                    ) .lf
                 )
                 c99-line("};" .)
-                c99-line("v = mkstr((char*)b, " . dup str-size .n ");" .),
-                c99-line("v = mkstr(" . dup .str ", " . dup str-size .n ");" .)
+                c99-line("v = mkstr((char*)b, " . dup str-num-bytes .n ");" .),
+                c99-line("v = mkstr(" . dup .str ", " . dup str-num-bytes .n ");" .)
             )
             c99-line("vready = true;" .)
         )
@@ -265,28 +259,30 @@ def(c99-str!, Str --,
     c99-line("}" .)
     drop)
 
-def(.str, Str --, "\"" . str-for(c99-string-char!) "\"" .)
+def(.str, Str --, "\"" . str-bytes-for(c99-string-byte!) "\"" .)
 
-def(c99-string-char!, Char --,
-    dup is-backslash if(
+def(byte-to-hexdigits, U8 -- U8 U8,
+    U8->Int
+    dup 4 >> one-hexdigit-byte
+    swap 0xF & one-hexdigit-byte)
+def(one-hexdigit-byte, Int -- U8,
+    dup 9 > if(55, 48) + Int->U8)
+
+def(c99-string-byte!, U8 --,
+    U8->Int
+    dup 0x5C == if( # backslash
         drop "\\\\" .,
-    dup is-quote if(
+    dup 0x22 == if ( # quote
         drop "\\\"" .,
-    dup Char->Int 32 126 in-range if(
-        .c,
-    dup Char->Int 9 == if(
+    dup 32 126 in-range if(
+        Int->U8 .b,
+    dup 9 == if(
         drop "\\t" .,
-    dup Char->Int 10 == if(
+    dup 10 == if(
         drop "\\n" .,
-    dup Char->Int 13 == if(
+    dup 13 == if(
         drop "\\r" .,
-
-        char-bytes for(
-            "\\x" . dup
-            U8->Int 4 >> hexdigit .c
-            U8->Int 0xF & hexdigit .c
-        )
-#        "unexpected character in c99 string" panic!
+        "\\x" . Int->U8 byte-to-hexdigits dip(.b) .b
     )))))))
 
 def(c99-constant!, Constant --,
