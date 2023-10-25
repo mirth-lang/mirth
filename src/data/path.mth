@@ -3,8 +3,9 @@ import(data.str)
 import(prelude)
 
 data(Path, PATH -> Str)
-def(Str->Path, Str -- Path, PATH)
-def(Path->Str, Path -- Str, PATH -> id)
+def(/PATH, Path -- Str, PATH -> id)
+alias(Str->Path, PATH)
+alias(Path->Str, /PATH)
 
 def(init-paths!, --,
     "src" Str->Path source-path-root !
@@ -14,23 +15,19 @@ var(source-path-root, Path)
 var(output-path-root, Path)
 
 def(path-separator, Str, RUNNING_OS OS_WINDOWS == if("\\", "/"))
-def(path-is-empty?, Path -- Path Bool, dup Path->Str str-is-empty)
-def(path-join, Path Path -- Path,
-    swap path-is-empty? if(
-        drop,
-        Path->Str path-separator rotl Path->Str
-        dip(str-cat) str-cat Str->Path
+def(path-is-empty, Path -- Bool, /PATH str-is-empty)
+def(path-join-with, Path Path Str -- Path,
+    over2 path-is-empty if(
+        drop nip,
+        dip2(/PATH) swap /PATH
+        dip(str-cat) str-cat PATH
     ))
 
-def(unix-path-join, Path Path -- Path,
-    swap path-is-empty? if(
-        drop,
-        Path->Str "/" rotl Path->Str
-        dip(str-cat) str-cat Str->Path
-    ))
+def(path-join, Path Path -- Path, path-separator path-join-with)
+def(path-join-unix, Path Path -- Path, "/" path-join-with)
 
 ||| Make a source path from a project-relative path.
-def(make-source-path, Path -- Path, source-path-root @ swap unix-path-join)
+def(make-source-path, Path -- Path, source-path-root @ swap path-join-unix)
 
 ||| Make an output path from a project-relative path.
-def(make-output-path, Path -- Path, output-path-root @ swap unix-path-join)
+def(make-output-path, Path -- Path, output-path-root @ swap path-join-unix)

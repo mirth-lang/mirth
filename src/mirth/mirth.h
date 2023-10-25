@@ -1143,12 +1143,13 @@ static void mw_prim_str_base (void) {
     PRIM_EXIT(mw_prim_str_base);
 }
 
-static void mw_prim_str_size (void) {
-    PRIM_ENTER(mw_prim_str_size,"prim-str-size");
-    VAL v = top_value();
+static void mw_prim_str_num_bytes (void) {
+    PRIM_ENTER(mw_prim_str_num_bytes,"prim-str-num-bytes");
+    VAL v = pop_value();
     ASSERT(IS_STR(v) && VSTR(v));
     push_usize(VSTR(v)->size);
-    PRIM_EXIT(mw_prim_str_size);
+    decref(v);
+    PRIM_EXIT(mw_prim_str_num_bytes);
 }
 
 static void mw_prim_pack_nil (void) {

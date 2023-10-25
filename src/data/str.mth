@@ -4,20 +4,10 @@ import(data.maybe)
 import(data.byte)
 import(prelude)
 
-def(str-num-bytes, Str -- Size,
-    prim-str-size nip)
+alias(str-num-bytes, prim-str-num-bytes)
 
 def(str-cat, Str Str -- Str, prim-str-cat)
-def(str-concat, List(Str) -- Str,
-    List->List+ match(
-        NONE -> "",
-        SOME -> uncons for(str-cat)
-    ))
-
-def(str-is-empty, Str -- Bool,
-    str-num-bytes 0=)
-def(str-is-empty?, Str -- Str Bool,
-    dup str-is-empty)
+def(str-is-empty, Str -- Bool, str-num-bytes 0=)
 
 ||| Copy string bytes to second argument without adding 0 at end.
 ||| Return first unwritten location in second argument.
@@ -88,7 +78,7 @@ def(str-buf-push-str!, Str --,
     with-str-data(str-buf-push-ptr!))
 
 def(with-str-data(f), (*a Ptr Size -- *b) *a Str -- *b,
-    dup dip(prim-str-size dip(prim-str-base) f) drop)
+    dup dip(dup dip(prim-str-base) str-num-bytes f) drop)
 
 def(str-buf-push-ptr!, Ptr Size -- ,
     tuck str-buf-length? STR_BUF with-ptr+(prim-ptr-copy)
