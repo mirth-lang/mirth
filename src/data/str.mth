@@ -169,29 +169,6 @@ def(str-bytes-for(f), (*a Byte -- *a) *a Str -- *a,
         dup dip(byte@ f 1) ptr+
     ) drop))
 
-data(TransducerStep,
-    TS_STOP,
-    TS_SKIP,
-    TS_CHAR -> Char,
-    TS_PUSH -> List(Char),
-    TS_COPY -> Str)
-
-def(str-transduce(f), (*a Char -- *a TransducerStep) *a Str -- *a Str,
-    build-str!(
-        str-slice while-some(
-            str-slice-next,
-            swap dip(f) swap
-            str-transduce-step
-        ) drop
-    ))
-
-def(str-transduce-step, StrSlice TransducerStep -- StrSlice,
-    TS_STOP -> drop str-nil str-slice,
-    TS_SKIP -> id,
-    TS_CHAR -> str-buf-push-char!,
-    TS_PUSH -> for(str-buf-push-char!),
-    TS_COPY -> str-buf-push-str!)
-
 def(str-chars, Str -- List(Char),
     dip(L0) str-chars-for(snoc))
 

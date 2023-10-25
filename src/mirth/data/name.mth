@@ -2,7 +2,6 @@ module(mirth.data.name)
 
 import(prelude)
 import(platform.posix)
-import(data.char)
 import(data.byte)
 import(data.str)
 import(data.list)
@@ -76,35 +75,35 @@ def(name-trace!, Name --,
 def(name-print!, Name --,
     name-str @ str-print!)
 
-def(name-head, Name -- Char,
-    name-str @ str-slice str-slice-head)
-def(name-tail-head, Name -- Char,
-    name-str @ str-slice str-slice-tail str-slice-head)
+def(name-head, Name -- Byte,
+    name-str @ with-str-data(1 >= if(byte@, drop BNUL)))
+def(name-tail-head, Name -- Byte,
+    name-str @ with-str-data(2 >= if(dip(1) ptr+ byte@, drop BNUL)))
 
 def(name-could-be-type, Name -- Bool,
-    name-head is-alpha)
+    name-head byte-is-alpha)
 
 def(name-could-be-type-var, Name -- Bool,
-    name-head is-lower)
+    name-head byte-is-lower)
 
 def(name-could-be-type-con, Name -- Bool,
-    name-head is-upper)
+    name-head byte-is-upper)
 
 def(name-is-type-hole, Name -- Bool,
-    dup name-head is-question-mark
-    swap name-tail-head dup is-nul swap is-lower || &&)
+    dup name-head B'?' ==
+    swap name-tail-head dup BNUL == swap byte-is-lower || &&)
 
 def(name-is-underscore, Name -- Bool,
-    dup name-head is-underscore
-    swap name-tail-head is-nul &&)
+    dup name-head B'_' ==
+    swap name-tail-head BNUL == &&)
 
 def(name-could-be-stack-var, Name -- Bool,
-    dup name-head is-asterisk
-    swap name-tail-head is-lower &&)
+    dup name-head B'*' ==
+    swap name-tail-head byte-is-lower &&)
 
 def(name-could-be-effect-con, Name -- Bool,
-    dup name-head is-plus
-    swap name-tail-head is-lower &&)
+    dup name-head B'+' ==
+    swap name-tail-head byte-is-lower &&)
 
 def(name-print-mangled!, Name --,
     name-mangled force! str-print!)
