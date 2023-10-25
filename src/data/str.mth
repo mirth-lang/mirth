@@ -128,18 +128,9 @@ def(to-digit, Int -- Char,
 
 ||| Put integer into STR_BUF.
 def(str-buf-int!, Int --,
-    dup 0= if(
-        drop "0" str-buf!,
-        sip(
-            abs
-            str-buf-clear!
-            while(dup 0>, dup to-digit str-buf-push-char! 10 /) drop
-        ) 0 < if(45 Int->Char str-buf-push-char!, id)
-        str-buf-reverse!
-    ))
+    int-to-str str-buf!)
 
-def(int-show, Int -- Str,
-    build-str!(str-buf-int!))
+alias(int-to-str, prim-int-to-str)
 
 ||| Swap two bytes in STR_BUF.
 def(str-buf-swap-u8!, Int Int --,

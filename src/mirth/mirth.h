@@ -665,8 +665,9 @@ static void mw_prim_posix_exit (void) {
     PRIM_EXIT(mw_prim_posix_exit);
 }
 
-void int_trace_(int64_t y, int fd) {
-    char c[32] = {0};
+void int_repr(int64_t y, char** out_ptr, size_t *out_size) {
+    static char c[32] = {0};
+    memset(c, 0, 32);
     char* p = c+30;
     size_t n = 0;
     uint64_t x;
@@ -688,7 +689,35 @@ void int_trace_(int64_t y, int fd) {
         *--p = '-';
         n++;
     }
+    *out_ptr = p;
+    *out_size = n;
+}
+
+void int_trace_(int64_t y, int fd) {
+    char* p; size_t n;
+    int_repr(y, &p, &n);
     write(fd, p, n);
+}
+
+void mw_prim_int_to_str(void) {
+    PRIM_ENTER(mw_prim_int_to_str,"prim-int-to-str");
+    int64_t x = pop_i64();
+    bool cache = (0 <= x) && (x <= 255);
+    static VAL scache[256] = {0};
+    if (cache && scache[x].tag) {
+        incref(scache[x]);
+        push_value(scache[x]);
+    } else {
+        char* p; size_t n;
+        int_repr(x,&p,&n);
+        VAL out = mkstr(p,n);
+        push_value(out);
+        if (cache) {
+            scache[x] = out;
+            incref(out);
+        }
+    }
+    PRIM_EXIT(mw_prim_int_to_str);
 }
 
 void str_trace_(STR* str, int fd) {

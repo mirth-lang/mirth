@@ -43,6 +43,7 @@ data(Prim,
     PRIM_INT_SHR,
     PRIM_INT_GET,
     PRIM_INT_SET,
+    PRIM_INT_TO_STR,
 
     PRIM_BOOL_TRUE,
     PRIM_BOOL_FALSE,
@@ -209,6 +210,7 @@ def(init-prims!, --,
     PRIM_INT_SHR "prim-int-shr" def-prim!
     PRIM_INT_GET "prim-int-get" def-prim!
     PRIM_INT_SET "prim-int-set" def-prim!
+    PRIM_INT_TO_STR "prim-int-to-str" def-prim!
 
     PRIM_BOOL_TRUE "prim-bool-true" def-prim!
     PRIM_BOOL_FALSE "prim-bool-false" def-prim!
@@ -307,6 +309,8 @@ def(init-prims!, --,
     dup PRIM_INT_SHL prim-type !
     dup PRIM_INT_SHR prim-type !
     drop
+
+    TYPE_INT T1 TYPE_STR T1 T-> PRIM_INT_TO_STR prim-type !
 
     TYPE_PTR T1 TYPE_INT T1 T-> PRIM_INT_GET prim-type !
     TYPE_PTR T1 TYPE_PTR T1 T-> PRIM_PTR_GET prim-type !

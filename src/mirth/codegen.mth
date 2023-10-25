@@ -109,7 +109,7 @@ var(c99-depth, Int)
 def(.lf, --, 10 Int->U8 .b)
 def(;, Str --, . .lf)
 def(;;, Str --, . .lf .lf)
-def(.n, Int --, int-show .)
+def(.n, Int --, int-to-str .)
 def(.name, Name --, name-mangle! .)
 
 def(.w, Name --, "static void mw_" . .name " (void)" .)
