@@ -57,6 +57,7 @@ data(Prim,
     PRIM_MUT_NEW,
     PRIM_MUT_GET,
     PRIM_MUT_SET,
+    PRIM_MUT_IS_SET,
 
     PRIM_PTR_NIL,
     PRIM_PTR_ADD,
@@ -222,6 +223,7 @@ def(init-prims!, --,
 
     PRIM_MUT_GET "prim-mut-get" def-prim!
     PRIM_MUT_SET "prim-mut-set" def-prim!
+    PRIM_MUT_IS_SET "prim-mut-is-set" def-prim!
 
     PRIM_PTR_NIL "prim-ptr-nil" def-prim!
     PRIM_PTR_ADD "prim-ptr-add" def-prim!
@@ -547,6 +549,7 @@ def(init-prims!, --,
     dup PRIM_MUT_NEW prim-ctx !
     dup PRIM_MUT_GET prim-ctx !
     dup PRIM_MUT_SET prim-ctx !
+    dup PRIM_MUT_IS_SET prim-ctx !
     drop
 
     dup TVar
@@ -557,7 +560,11 @@ def(init-prims!, --,
     sip(TMut T1) T1 T->
     PRIM_MUT_GET prim-type !
 
-    TVar
+    dup TVar
     dup TMut T2 T0 T->
     PRIM_MUT_SET prim-type !
-    )
+
+    dup TVar TMut T1 TYPE_BOOL T1 T->
+    PRIM_MUT_IS_SET prim-type !
+
+    drop)

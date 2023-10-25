@@ -1200,5 +1200,14 @@ static void mw_prim_mut_set (void) {
     decref(mut);
     PRIM_EXIT(mw_prim_mut_set);
 }
+static void mw_prim_mut_is_set (void) {
+    PRIM_ENTER(mw_prim_mut_is_set,"prim-mut-is-set");
+    VAL mut = pop_value();
+    ASSERT1(IS_PTR(mut) && VPTR(mut), mut);
+    VAL val = *(VAL*)VPTR(mut);
+    push_bool(val.tag);
+    decref(mut);
+    PRIM_EXIT(mw_prim_mut_is_set);
+}
 
 /* GENERATED C99 */
