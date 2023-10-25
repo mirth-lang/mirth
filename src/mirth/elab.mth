@@ -339,9 +339,9 @@ def(ab-field!, Field --, OP_FIELD ab-op!)
 def(ab-var!, Var --, OP_VAR ab-op!)
 def(ab-tag!, Tag --, OP_TAG ab-op!)
 def(ab-prim!, Prim --,
-    dup prim-type @ TYPE_ERROR == if(
-        ab-token @ "prim does not have type" emit-fatal-error!,
-        OP_PRIM ab-op!
+    dup prim-type mut-is-set if(
+        OP_PRIM ab-op!,
+        ab-token @ "prim does not have type" emit-fatal-error!
     ))
 def(ab-word!, Word --, OP_WORD ab-op!)
 def(ab-external!, External --, OP_EXTERNAL ab-op!)

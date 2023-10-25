@@ -302,4 +302,5 @@ def(unpack5, [a b c d e] -- a b c d e, prim-pack-uncons dip(unpack4))
 
 alias(@, prim-mut-get)
 alias(!, prim-mut-set)
+alias(mut-is-set, prim-mut-is-set)
 def(modify(f), (*a t -- *b t) *a Mut(t) -- *b, dup dip(@ f) !)
