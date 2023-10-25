@@ -160,7 +160,6 @@ def(count(f), (*a Int -- *a) *a Int -- *a,
 def(countdown(f), (*a Int -- *a) *a Int -- *a,
     dup 1- swap repeat(dup dip(f) 1-) drop)
 
-def-type(Byte, U8)
 def-type(Size, Int)
 def-type(Offset, Int)
 
@@ -215,8 +214,8 @@ def(ptrs, Size -- Size, |ptr| *)
 def(ptr@@, Offset Ptr -- Ptr, dip(ptrs) with-ptr+(ptr@))
 def(ptr!!, Ptr Offset Ptr --, dip(ptrs) with-ptr+(ptr!))
 
-def(u8@@, Offset Ptr -- Byte, with-ptr+(u8@))
-def(u8!!, Byte Offset Ptr --, with-ptr+(u8!))
+def(u8@@, Offset Ptr -- U8, with-ptr+(u8@))
+def(u8!!, U8 Offset Ptr --, with-ptr+(u8!))
 
 def(ints, Size -- Size, 8 *)
 def(int@@, Offset Ptr -- Int, dip(ints) with-ptr+(int@))
@@ -226,7 +225,7 @@ def(values, Size -- Size, 16 *)
 def(value@@, Offset Ptr -- a, dip(values) with-ptr+(value@))
 def(value!!, a Offset Ptr --, dip(values) with-ptr+(value!))
 
-def(in-range, Int Int Int -- Bool, dip(over dip(>=)) <= &&)
+def(in-range, a a a -- Bool, dip(dip(dup) >= swap) <= &&)
 
 def(Int->U8, Int -- U8, prim-unsafe-cast)  # U8_MAX & cast
     # dup U8_MIN U8_MAX in-range if(

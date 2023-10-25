@@ -2,6 +2,7 @@ module(data.str)
 import(data.list)
 import(data.char)
 import(data.maybe)
+import(data.byte)
 import(prelude)
 
 data(StrSlice, STR_SLICE -> Str Ptr Size)
@@ -99,6 +100,9 @@ def(str-buf-push-u8!, U8 --,
     # )
     )
 
+def(str-buf-push-byte!, Byte --,
+    Byte->U8 str-buf-push-u8!)
+
 def(str-buf-push-char!, Char --,
     dup str-buf-length? STR_BUF with-ptr+(char!)
     char-width str-buf-length? + str-buf-length!)
@@ -160,9 +164,9 @@ def(str-codepoints-for(f), (*a Int -- *a) *a Str -- *a,
     str-chars-for(char-codepoint f))
 
 ||| Traverse string bytes.
-def(str-bytes-for(f), (*a U8 -- *a) *a Str -- *a,
+def(str-bytes-for(f), (*a Byte -- *a) *a Str -- *a,
     with-str-data(repeat(
-        dup dip(u8@ f 1) ptr+
+        dup dip(byte@ f 1) ptr+
     ) drop))
 
 data(TransducerStep,
@@ -194,5 +198,5 @@ def(str-chars, Str -- List(Char),
 def(str-codepoints, Str -- List(Int),
     dip(L0) str-codepoints-for(snoc))
 
-def(str-bytes, Str -- List(U8),
+def(str-bytes, Str -- List(Byte),
     dip(L0) str-bytes-for(snoc))

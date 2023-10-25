@@ -2,6 +2,7 @@ module(tests.test-unicode-strings)
 import(prelude)
 import(platform.posix)
 import(data.str)
+import(data.byte)
 import(data.list)
 
 def(display-str!, Str --,
@@ -9,7 +10,7 @@ def(display-str!, Str --,
     "num-chars: " str-print! dup str-num-chars int-print! print-ln!
     "num-codepoints: " str-print! dup str-num-codepoints int-print! print-ln!
     "num-bytes: " str-print! dup str-num-bytes int-print! print-ln!
-    "bytes:" str-print! dup str-bytes-for(" " str-print! U8->Int int-print!) print-ln!
+    "bytes:" str-print! dup str-bytes-for(" " str-print! Byte->Int int-print!) print-ln!
     "chars:" str-print! dup str-chars-for(" " str-print! Char->Int int-print!) print-ln!
     "codepoints:" str-print! dup str-codepoints-for(" " str-print! int-print!) print-ln!
     drop "----------" str-print-ln!)

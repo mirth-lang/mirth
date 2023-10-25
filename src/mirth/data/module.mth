@@ -5,6 +5,7 @@ import(data.path)
 import(data.char)
 import(data.str)
 import(data.set)
+import(data.byte)
 import(mirth.data.name)
 
 # mirth/data/module
@@ -31,15 +32,27 @@ def(module-source-path, Module -- Path,
         module-path @ make-source-path
     ))
 
-||| Get expected module path from module name, relative to src.
+# ||| Get expected module path from module name, relative to src.
+# def(module-path-from-name, Name -- Path,
+#     name-str @ str-transduce(
+#         dup is-dot if(
+#             drop "/" # path-separator # TODO: this should be path-separator, but breaks module import check on MSYS2 ... fix module import check / paths?
+#             TS_COPY,
+#         dup is-upper if(# TODO: be more specific -- is-upper-ascii?
+#             Char->Int 0x20 | Int->Char TS_CHAR,
+#             TS_CHAR
+# #            "--///error///--" TS_COPY
+#         ))
+#     ) ".mth" str-cat Str->Path)
+
 def(module-path-from-name, Name -- Path,
-    name-str @ str-transduce(
-        dup is-dot if(
-            drop "/" # path-separator # TODO: this should be path-separator, but breaks module import check on MSYS2 ... fix module import check / paths?
-            TS_COPY,
-        dup is-upper if(# TODO: be more specific -- is-upper-ascii?
-            Char->Int 0x20 | Int->Char TS_CHAR,
-            TS_CHAR
-#            "--///error///--" TS_COPY
-        ))
-    ) ".mth" str-cat Str->Path)
+    build-str!(
+        name-str @ str-bytes-for(
+            dup B'.' == if(
+                drop B'/',
+                dup byte-is-upper if(byte-to-lower, id)
+            )
+            str-buf-push-byte!
+        )
+        ".mth" str-buf-push-str!
+    ) Str->Path)

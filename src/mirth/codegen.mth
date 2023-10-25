@@ -6,6 +6,7 @@ import(data.stack)
 import(data.path)
 import(data.list)
 import(data.lazy)
+import(data.byte)
 import(mirth.data.error)
 import(mirth.data.module)
 import(mirth.data.location)
@@ -33,9 +34,6 @@ var(codegen-file, File)
 var(codegen-length, Size)
 buffer(CODEGEN_BUF, 0x100)
 
-def(codegen-u8@, Offset -- Byte, CODEGEN_BUF u8@@)
-def(codegen-u8!, Byte Offset --, CODEGEN_BUF u8!!)
-
 def(codegen-full?, Bool,
     codegen-length @ 4 + CODEGEN_BUF_SIZE >=)
 
@@ -53,8 +51,10 @@ def(codegen-flush!, --,
     ))
 
 def(.b, Byte --,
+    Byte->U8
     codegen-full? if(codegen-flush!, id)
-    codegen-length modify(dup 1+) codegen-u8!)
+    codegen-length modify(dup 1+)
+    CODEGEN_BUF u8!!)
 
 def(., Str --,
     dup prim-str-base over str-num-bytes
@@ -106,7 +106,7 @@ def(run-output-c99!, Arrow Path --,
 
 var(c99-depth, Int)
 
-def(.lf, --, 10 Int->U8 .b)
+def(.lf, --, BLF .b)
 def(;, Str --, . .lf)
 def(;;, Str --, . .lf .lf)
 def(.n, Int --, int-to-str .)
@@ -242,7 +242,7 @@ def(c99-str!, Str --,
                 "static uint8_t b[] = {" .
                 c99-nest(
                     c99-indent dup str-bytes-for(
-                        U8->Int dup .n "," .
+                        Byte->Int dup .n "," .
                         10 == if(.lf c99-indent, id)
                     ) .lf
                 )
@@ -261,28 +261,20 @@ def(c99-str!, Str --,
 
 def(.str, Str --, "\"" . str-bytes-for(c99-string-byte!) "\"" .)
 
-def(byte-to-hexdigits, U8 -- U8 U8,
-    U8->Int
-    dup 4 >> one-hexdigit-byte
-    swap 0xF & one-hexdigit-byte)
-def(one-hexdigit-byte, Int -- U8,
-    dup 9 > if(55, 48) + Int->U8)
-
-def(c99-string-byte!, U8 --,
-    U8->Int
-    dup 0x5C == if( # backslash
+def(c99-string-byte!, Byte --,
+    dup B'\' == if( # backslash
         drop "\\\\" .,
-    dup 0x22 == if ( # quote
+    dup BQUOTE == if ( # quote
         drop "\\\"" .,
-    dup 32 126 in-range if(
-        Int->U8 .b,
-    dup 9 == if(
+    dup BSPACE B'~' in-range if(
+        .b,
+    dup BHT == if(
         drop "\\t" .,
-    dup 10 == if(
+    dup BLF == if(
         drop "\\n" .,
-    dup 13 == if(
+    dup BCR == if(
         drop "\\r" .,
-        "\\x" . Int->U8 byte-to-hexdigits dip(.b) .b
+        "\\x" . byte-to-hexdigits dip(.b) .b
     )))))))
 
 def(c99-constant!, Constant --,
