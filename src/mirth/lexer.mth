@@ -2,7 +2,7 @@ module(mirth.lexer)
 
 import(prelude)
 import(platform.posix)
-import(data.char)
+import(data.byte)
 import(data.stack)
 import(data.path)
 import(data.str)
@@ -65,63 +65,25 @@ def(lexer-make!, TokenValue -- Token,
 def(lexer-emit!, TokenValue --, lexer-make! drop)
 
 # Lex the next token.
-def(lexer-next!, --,
-    lexer-peek
-
-    char-valid? not if(
-        "invalid character" lexer-emit-fatal-error!,
-
-    dup is-name-char if(
-        drop
+def(lexer-next!, --, lexer-peek match(
+    BLF -> lexer-newline! lexer-move!,
+    BSPACE -> lexer-move!,
+    BHT -> lexer-move!,
+    BVT -> lexer-move!,
+    BCR -> lexer-move!,
+    BHASH -> lexer-skip-comment! lexer-move!,
+    BCOMMA -> TOKEN_COMMA lexer-emit! lexer-move!,
+    BLPAREN -> lexer-emit-lparen! lexer-move!,
+    BRPAREN -> lexer-emit-rparen! lexer-move!,
+    BLSQUARE -> lexer-emit-lsquare! lexer-move!,
+    BRSQUARE -> lexer-emit-rsquare! lexer-move!,
+    BLCURLY -> lexer-emit-lcurly! lexer-move!,
+    BRCURLY -> lexer-emit-rcurly! lexer-move!,
+    BQUOTE -> lexer-emit-string! lexer-move!,
+    _ -> byte-is-name-byte if(
         lexer-emit-name!,
-
-    dup is-newline if(
-        drop
-        lexer-newline!,
-
-    dup is-whitespace if(
-        drop,
-
-    dup is-pound if(
-        drop
-        lexer-skip-comment!,
-
-    dup is-comma if(
-        drop
-        TOKEN_COMMA lexer-emit!,
-
-    dup is-lparen if(
-        drop
-        lexer-emit-lparen!,
-
-    dup is-rparen if(
-        drop
-        lexer-emit-rparen!,
-
-    dup is-lsquare if(
-        drop
-        lexer-emit-lsquare!,
-
-    dup is-rsquare if(
-        drop
-        lexer-emit-rsquare!,
-
-    dup is-lcurly if(
-        drop
-        lexer-emit-lcurly!,
-
-    dup is-rcurly if(
-        drop
-        lexer-emit-rcurly!,
-
-    dup is-quote if(
-        drop
-        lexer-emit-string!,
-
-        "unrecognized token" lexer-emit-fatal-error!
-    )))))))))))
-
-    lexer-move!)))
+        "Unrecognized byte." lexer-emit-fatal-error!
+    )))
 
 def(lexer-newline!, --,
     lexer-row modify(Row->Int 1+ Int->Row)
@@ -173,15 +135,10 @@ def(lexer-emit-name!, --,
     lexer-row @
     lexer-col @
 
-    lexer-peek while(dup is-name-char,
-        char-valid? if(
-            str-buf-push-char!
-            lexer-move!
-            lexer-peek,
-
-            "invalid character" lexer-emit-fatal-error!
-        )
-    )
+    lexer-peek while(dup byte-is-name-byte,
+        str-buf-push-byte!
+        lexer-move!
+        lexer-peek)
     drop
 
     str-buf-is-doc-start? if(
@@ -202,28 +159,23 @@ def(lexer-emit-name!, --,
     ))
 
 def(str-buf-is-doc-start?, Bool,
-    str-buf-length? 3 == and(
-        0 str-buf-char@ is-pipe
-        and(1 str-buf-char@ is-pipe)
-        and(2 str-buf-char@ is-pipe)
+    str-buf-length? 3 == if(
+        0 str-buf-byte@ B'|' ==
+        1 str-buf-byte@ B'|' == &&
+        2 str-buf-byte@ B'|' == &&,
+        false
     ))
 
 def(str-buf-is-arrow?, Bool,
     str-buf-length? 2 == and(
-        0 str-buf-char@ is-dash
-        1 str-buf-char@ is-gt &&
+        0 str-buf-byte@ B'-' ==
+        1 str-buf-byte@ B'>' == &&
     ))
 
 def(str-buf-is-dashes?, Bool,
     str-buf-length? 2 == if(
-        0 str-buf-char@ is-dash
-        1 str-buf-char@ is-dash &&,
-        false
-    ))
-
-def(str-buf-is-equal?, Bool,
-    str-buf-length? 1 == if(
-        0 str-buf-char@ is-eq,
+        0 str-buf-byte@ B'-' ==
+        1 str-buf-byte@ B'-' == &&,
         false
     ))
 
@@ -233,32 +185,22 @@ def(str-buf-is-int?, Bool,
 def(str-buf-is-dec-int?, Bool,
     0 # number of digits
     0 # current index
-    dup str-buf-char@ is-sign if(
-        1+,
-        id
-    )
-    while(dup str-buf-char@ is-digit,
-        dip(1+) 1+)
-    swap 1 >= if(
-        str-buf-length? ==,
-        drop false
-    ))
-
-def(is-zero-char, Char -- Bool, Char->Int 48 ==)
-def(is-xX-char, Char -- Bool, Char->Int dup 88 == dip(120 ==) ||)
+    dup str-buf-byte@ byte-is-sign if(1+, id)
+    while(dup str-buf-byte@ byte-is-digit, dip(1+) 1+)
+    swap 1 >= if(str-buf-length? ==, drop false))
 
 def(str-buf-is-hex-int?, Bool,
     0 # number of digits
     0 # current index
-    dup str-buf-char@ is-sign if(
+    dup str-buf-byte@ byte-is-sign if(
         1+,
         id
     )
-    dup str-buf-char@ is-zero-char if(
+    dup str-buf-byte@ B'0' == if(
         1+
-        dup str-buf-char@ is-xX-char if(
+        dup str-buf-byte@ B'x' == if(
             1+
-            while(dup str-buf-char@ is-hexdigit, dip(1+) 1+)
+            while(dup str-buf-byte@ byte-is-hexdigit, dip(1+) 1+)
             swap 1 >= if(
                 str-buf-length? ==,
                 drop false
@@ -276,54 +218,44 @@ def(str-buf-int?, Int,
         str-buf-hex-int?
     ))
 
+def(byte-sign-multiplier, Byte -- Int,
+    B'-' -> -1,
+    B'+' -> +1,
+    _ -> drop "unexpected byte in byte-sign-multiplier" panic!)
+
+||| process int sign and return initial state for rest of int lexing.
+||| returns: (sign multiplier) (accumulated value == 0) (str-buf index)
+def(str-buf-int-sign, -- Int Int Int,
+    0 str-buf-byte@ match(
+        B'-' -> -1 0 1,
+        B'+' -> +1 0 1,
+        _ -> drop +1 0 0,
+    ))
+
 def(str-buf-dec-int?, Int,
-    1 # sign multiplier
-    0 # accumulated value
-    0 # current index
-    dup str-buf-char@ dup is-sign if(
-        is-dash if(
-            dip2(drop -1),
-            id
-        )
-        1+,
-        drop
-    )
+    str-buf-int-sign
     while(dup str-buf-length? <,
         sip(
-            str-buf-char@ Char->Int
+            str-buf-byte@ Byte->Int
             dip(10 *) 48 - +
         )
         1+)
     drop *)
 
 def(str-buf-hex-int?, Int,
-    1 # sign multiplier
-    0 # accumulated value
-    0 # current index
-    dup str-buf-char@ dup is-sign if(
-        is-minus if(
-            dip2(drop -1),
-            id
-        )
-        1+,
-        drop
-    )
-    2 + # skip 0x prefix
+    str-buf-int-sign 2 + # skip 0x prefix
     while(dup str-buf-length? <,
         sip(
-            str-buf-char@
+            str-buf-byte@
             dip(16 *) hexdigit-value +
         )
         1+)
     drop *)
 
-def(hexdigit-value, Char -- Int,
-    dup is-digit if(
-        Char->Int 48 -,
-        dup is-upper-hexdigit if(
-            Char->Int 55 -,
-            Char->Int 87 -
-        )
+def(hexdigit-value, Byte -- Int,
+    dup byte-is-digit if(
+        Byte->Int 48 -,
+        Byte->Int 55 -
     ))
 
 def(lexer-emit-string!, --,
@@ -331,65 +263,43 @@ def(lexer-emit-string!, --,
     TOKEN_NONE lexer-make!
 
     lexer-move!
-    lexer-peek while(dup is-string-end not,
-        char-valid? if(
-            lexer-push-string-char!
-            lexer-move!
-            lexer-peek,
-
-            "invalid character in string literal" lexer-emit-fatal-error!
-        )
+    lexer-peek while(dup byte-is-string-end not,
+        lexer-push-string-byte!
+        lexer-move!
+        lexer-peek
     )
     drop
 
     str-buf-dup! TOKEN_STR
     swap token-value !)
 
-def(lexer-push-string-char!, Char --,
-    dup is-backslash if(
-        drop lexer-move! lexer-peek
+def(lexer-push-string-byte!, Byte --,
+    B'\' -> lexer-move! lexer-peek lexer-push-string-escape-byte!,
+    _ -> str-buf-push-byte!)
 
-        dup is-newline if(
-            drop,
-
-        dup is-n if(
-            drop 10 Int->Char str-buf-push-char!,
-
-        dup is-r if(
-            drop 13 Int->Char str-buf-push-char!,
-
-        dup is-t if(
-            drop 9 Int->Char str-buf-push-char!,
-
-        dup is-quote if(
-            str-buf-push-char!,
-
-        dup is-backslash if(
-            str-buf-push-char!,
-
-            str-buf-push-char!
-
-            "Unknown character escape sequence."
-            lexer-emit-warning!
-
-        )))))),
-
-        str-buf-push-char!
-    ))
+def(lexer-push-string-escape-byte!, Byte --,
+    BLF -> id,
+    B'n' -> BLF str-buf-push-byte!,
+    B'r' -> BCR str-buf-push-byte!,
+    B't' -> BHT str-buf-push-byte!,
+    B'\' -> B'\' str-buf-push-byte!,
+    BQUOTE -> BQUOTE str-buf-push-byte!,
+    _ -> str-buf-push-byte!
+    "Unknown character escape sequence." lexer-emit-warning!)
 
 def(lexer-skip-comment!, --,
     while(lexer-comment-end? not, lexer-move!)
-    lexer-peek dup is-newline if(lexer-newline!, id) drop)
+    lexer-peek dup BLF == if(lexer-newline!, id) drop)
 
 def(lexer-skip-doc!, --, while(lexer-comment-end? not, lexer-move!))
 
 def(lexer-comment-end?, Bool,
     lexer-done? if(
         true,
-        lexer-peek dup is-newline nip
+        lexer-peek dup BLF == nip
     ))
 
-def(lexer-peek, Char, input-peek)
+def(lexer-peek, Byte, input-peek)
 def(lexer-move!, --, input-move!
     lexer-col modify(Col->Int 1+ Int->Col))
 

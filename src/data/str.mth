@@ -86,6 +86,9 @@ def(str-buf-u8!, U8 Offset --,
 def(str-buf-char@, Offset -- Char,
     STR_BUF with-ptr+(char@))
 
+def(str-buf-byte@, Offset -- Byte,
+    STR_BUF with-ptr+(byte@))
+
 def(str-buf-empty?, str-buf-length? 0=)
 def(str-buf-full?, str-buf-length? 1+ STR_BUF_SIZE >=)
 
