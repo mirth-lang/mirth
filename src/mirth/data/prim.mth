@@ -71,7 +71,7 @@ data(Prim,
 
     PRIM_STR_ALLOC,
     PRIM_STR_COPY,
-    PRIM_STR_SIZE,
+    PRIM_STR_NUM_BYTES,
     PRIM_STR_BASE,
     PRIM_STR_CAT,
 
@@ -236,7 +236,7 @@ def(init-prims!, --,
 
     PRIM_STR_ALLOC "prim-str-alloc" def-prim!
     PRIM_STR_COPY "prim-str-copy" def-prim!
-    PRIM_STR_SIZE "prim-str-size" def-prim!
+    PRIM_STR_NUM_BYTES "prim-str-num-bytes" def-prim!
     PRIM_STR_BASE "prim-str-base" def-prim!
     PRIM_STR_CAT "prim-str-cat" def-prim!
 
@@ -378,8 +378,8 @@ def(init-prims!, --,
     TYPE_PTR TYPE_INT T2 TYPE_STR T1 T->
     PRIM_STR_COPY prim-type !
 
-    TYPE_STR T1 TYPE_STR TYPE_INT T2 T->
-    PRIM_STR_SIZE prim-type !
+    TYPE_STR T1 TYPE_INT T1 T->
+    PRIM_STR_NUM_BYTES prim-type !
 
     TYPE_STR T1 TYPE_PTR T1 T->
     PRIM_STR_BASE prim-type !
