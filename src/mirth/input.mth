@@ -2,7 +2,7 @@ module(mirth.input)
 
 import(prelude)
 import(platform.posix)
-import(data.char)
+import(data.byte)
 
 #########
 # Input #
@@ -55,9 +55,9 @@ def(input-fill-buffer!, --,
 
 # Return the current char in the input buffer.
 # Panics if file is exhausted.
-def(input-peek, Char,
+def(input-peek, Byte,
     input-isopen @ if(
-        input-offset @ INPUT_BUFFER with-ptr+(char@),
+        input-offset @ INPUT_BUFFER with-ptr+(byte@),
         "error: attempted to read input buffer when file is already closed" panic!
     ))
 
@@ -65,9 +65,8 @@ def(input-peek, Char,
 # Panics if file is exhausted.
 def(input-move!, --,
     input-isopen @ if(
-        input-offset @ dup INPUT_BUFFER with-ptr+(
-        char@-width + input-offset !
-        input-prepare-for-more!),
+        input-offset @ 1+ input-offset !
+        input-prepare-for-more!,
         "error: attempted to move input buffer when file is already closed" panic!
     ))
 
@@ -75,40 +74,7 @@ def(input-move!, --,
 ||| characters straddling the buffer boundary.
 def(input-prepare-for-more!, --,
     input-offset @
-    dup 4 + input-length @ > if(
-
-        dup input-length @ >= if(
-            drop
-            input-fill-buffer!,
-
-        dup INPUT_BUFFER with-ptr+(char@-width) + input-length @ > if(
-            input-fill-buffer-tragic!,
-
-            id
-        )),
-
-        drop
-    ))
-
-def(input-fill-buffer-tragic!, --,
-
-    input-offset @ INPUT_BUFFER with-ptr+(u32@) # ok because of wiggle room
-    INPUT_BUFFER u32!
-
-    INPUT_BUFFER char@-width input-length !
-    0 input-offset !
-
-    input-isopen @ if(
-        input-handle @ File->Int
-        input-length @ INPUT_BUFFER with-ptr+(
-        INPUT_BUFFER_SIZE # ok because of wiggle room
-        posix-read!)
-        dup 0 >= if(
-            dup 0 > if(
-                input-length modify(+),
-                drop # invalid char left in buffer
-            ),
-            drop "error: failed to read from file" panic!
-        ),
-        "error: attempted to fill input buffer when file is closed" panic!
+    input-length @ >= if(
+        input-fill-buffer!,
+        id
     ))

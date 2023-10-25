@@ -756,8 +756,8 @@ def(elab-module-header!, Token -- Token,
         over token-module @
         dup2 module-name !
         dup2 DEF_MODULE swap name-def !
-        module-path @ Path->Str swap
-        module-path-from-name Path->Str str-eq if(drop,
+        module-path @ swap
+        module-path-from-name == if(drop,
             "Module name should match path." emit-error!)
         token-next,
         dup "Expected module header." emit-error!

@@ -1,0 +1,92 @@
+module(data.byte)
+
+import(prelude)
+
+data(Byte,
+    BNUL, BSOH, BSTX, BETX, BEOT, BENQ, BACK, BBEL,
+    BBS,  BHT,  BLF,  BVT,  BFF,  BCR,  BSO,  BSI,
+    BDLE, BDC1, BDC2, BDC3, BDC4, BNAK, BSYN, BETB,
+    BCAN, BEM,  BSUB, BESC, BFS,  BGS,  BRS,  BUS,
+    BSPACE,  B'!', BQUOTE, BHASH, B'$', B'%', B'&', BTICK,
+    BLPAREN, BRPAREN, B'*', B'+', BCOMMA, B'-', B'.', B'/',
+    B'0', B'1', B'2', B'3', B'4', B'5', B'6', B'7',
+    B'8', B'9', BCOLON, B';', B'<', B'=', B'>', B'?',
+    B'@', B'A', B'B', B'C', B'D', B'E', B'F', B'G',
+    B'H', B'I', B'J', B'K', B'L', B'M', B'N', B'O',
+    B'P', B'Q', B'R', B'S', B'T', B'U', B'V', B'W',
+    B'X', B'Y', B'Z', BLSQUARE, B'\', BRSQUARE, B'^', B'_',
+    B'`', B'a', B'b', B'c', B'd', B'e', B'f', B'g',
+    B'h', B'i', B'j', B'k', B'l', B'm', B'n', B'o',
+    B'p', B'q', B'r', B's', B't', B'u', B'v', B'w',
+    B'x', B'y', B'z', BLCURLY, B'|', BRCURLY, B'~', BDEL,
+
+    Bx80, Bx81, Bx82, Bx83, Bx84, Bx85, Bx86, Bx87,
+    Bx88, Bx89, Bx8A, Bx8B, Bx8C, Bx8D, Bx8E, Bx8F,
+    Bx90, Bx91, Bx92, Bx93, Bx94, Bx95, Bx96, Bx97,
+    Bx98, Bx99, Bx9A, Bx9B, Bx9C, Bx9D, Bx9E, Bx9F,
+    BxA0, BxA1, BxA2, BxA3, BxA4, BxA5, BxA6, BxA7,
+    BxA8, BxA9, BxAA, BxAB, BxAC, BxAD, BxAE, BxAF,
+    BxB0, BxB1, BxB2, BxB3, BxB4, BxB5, BxB6, BxB7,
+    BxB8, BxB9, BxBA, BxBB, BxBC, BxBD, BxBE, BxBF,
+    BxC0, BxC1, BxC2, BxC3, BxC4, BxC5, BxC6, BxC7,
+    BxC8, BxC9, BxCA, BxCB, BxCC, BxCD, BxCE, BxCF,
+    BxD0, BxD1, BxD2, BxD3, BxD4, BxD5, BxD6, BxD7,
+    BxD8, BxD9, BxDA, BxDB, BxDC, BxDD, BxDE, BxDF,
+    BxE0, BxE1, BxE2, BxE3, BxE4, BxE5, BxE6, BxE7,
+    BxE8, BxE9, BxEA, BxEB, BxEC, BxED, BxEE, BxEF,
+    BxF0, BxF1, BxF2, BxF3, BxF4, BxF5, BxF6, BxF7,
+    BxF8, BxF9, BxFA, BxFB, BxFC, BxFD, BxFE, BxFF)
+
+def(Byte->Int, Byte -- Int, prim-unsafe-cast)
+def(Int->Byte, Int -- Byte, prim-unsafe-cast) # FIXME check range?
+def(Byte->U8, Byte -- U8, prim-unsafe-cast)
+def(U8->Byte, U8 -- Byte, prim-unsafe-cast)
+
+def(byte@, Ptr -- Byte, u8@ U8->Byte)
+def(byte!, Byte Ptr --, dip(Byte->U8) u8!)
+
+def(byte-is-upper, Byte -- Bool, B'A' B'Z' in-range)
+def(byte-is-lower, Byte -- Bool, B'a' B'z' in-range)
+def(byte-is-digit, Byte -- Bool, B'0' B'9' in-range)
+def(byte-is-alpha, Byte -- Bool, dup byte-is-upper if(drop true, byte-is-lower))
+def(byte-is-alnum, Byte -- Bool, dup byte-is-digit if(drop true, byte-is-alpha))
+
+def(byte-is-hexdigit, Byte -- Bool,
+    B'0' -> true, B'1' -> true, B'2' -> true, B'3' -> true,
+    B'4' -> true, B'5' -> true, B'6' -> true, B'7' -> true,
+    B'8' -> true, B'9' -> true, B'A' -> true, B'B' -> true,
+    B'C' -> true, B'D' -> true, B'E' -> true, B'F' -> true,
+    _ -> drop false)
+
+def(byte-is-string-end, Byte -- Bool,
+    BQUOTE -> true, BLF -> true, BNUL -> true, _ -> drop false)
+
+def(byte-to-lower, Byte -- Byte,
+    dup byte-is-upper if(Byte->Int 0x20 + Int->Byte, id))
+def(byte-to-upper, Byte -- Byte,
+    dup byte-is-lower if(Byte->Int 0x20 - Int->Byte, id))
+
+def(byte-to-hexdigits, Byte -- Byte Byte,
+    Byte->Int
+    dup 4 >> one-hexdigit-byte
+    swap 0xF & one-hexdigit-byte)
+def(one-hexdigit-byte, Int -- Byte,
+    dup 9 > if(55, 48) + Int->Byte)
+
+
+def(byte-is-name-byte, Byte -- Bool,
+    BLPAREN -> false,
+    BRPAREN -> false,
+    BLSQUARE -> false,
+    BRSQUARE -> false,
+    BLCURLY -> false,
+    BRCURLY -> false,
+    BCOMMA -> false,
+    BQUOTE -> false,
+    BDEL -> false,
+    _ -> BSPACE >)
+
+def(byte-is-sign, Byte -- Bool,
+    B'-' -> true,
+    B'+' -> true,
+    _ -> drop false)

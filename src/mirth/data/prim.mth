@@ -43,6 +43,7 @@ data(Prim,
     PRIM_INT_SHR,
     PRIM_INT_GET,
     PRIM_INT_SET,
+    PRIM_INT_TO_STR,
 
     PRIM_BOOL_TRUE,
     PRIM_BOOL_FALSE,
@@ -72,7 +73,6 @@ data(Prim,
     PRIM_STR_COPY,
     PRIM_STR_SIZE,
     PRIM_STR_BASE,
-    PRIM_STR_EQ,
     PRIM_STR_CAT,
 
     PRIM_U8_GET,
@@ -209,6 +209,7 @@ def(init-prims!, --,
     PRIM_INT_SHR "prim-int-shr" def-prim!
     PRIM_INT_GET "prim-int-get" def-prim!
     PRIM_INT_SET "prim-int-set" def-prim!
+    PRIM_INT_TO_STR "prim-int-to-str" def-prim!
 
     PRIM_BOOL_TRUE "prim-bool-true" def-prim!
     PRIM_BOOL_FALSE "prim-bool-false" def-prim!
@@ -237,7 +238,6 @@ def(init-prims!, --,
     PRIM_STR_COPY "prim-str-copy" def-prim!
     PRIM_STR_SIZE "prim-str-size" def-prim!
     PRIM_STR_BASE "prim-str-base" def-prim!
-    PRIM_STR_EQ "prim-str-eq" def-prim!
     PRIM_STR_CAT "prim-str-cat" def-prim!
 
     PRIM_U8_GET "prim-u8-get" def-prim!
@@ -307,6 +307,8 @@ def(init-prims!, --,
     dup PRIM_INT_SHL prim-type !
     dup PRIM_INT_SHR prim-type !
     drop
+
+    TYPE_INT T1 TYPE_STR T1 T-> PRIM_INT_TO_STR prim-type !
 
     TYPE_PTR T1 TYPE_INT T1 T-> PRIM_INT_GET prim-type !
     TYPE_PTR T1 TYPE_PTR T1 T-> PRIM_PTR_GET prim-type !
@@ -381,9 +383,6 @@ def(init-prims!, --,
 
     TYPE_STR T1 TYPE_PTR T1 T->
     PRIM_STR_BASE prim-type !
-
-    TYPE_STR TYPE_STR T2 TYPE_BOOL T1 T->
-    PRIM_STR_EQ prim-type !
 
     TYPE_STR TYPE_STR T2 TYPE_STR T1 T->
     PRIM_STR_CAT prim-type !

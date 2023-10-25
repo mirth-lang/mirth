@@ -665,8 +665,9 @@ static void mw_prim_posix_exit (void) {
     PRIM_EXIT(mw_prim_posix_exit);
 }
 
-void int_trace_(int64_t y, int fd) {
-    char c[32] = {0};
+void int_repr(int64_t y, char** out_ptr, size_t *out_size) {
+    static char c[32] = {0};
+    memset(c, 0, 32);
     char* p = c+30;
     size_t n = 0;
     uint64_t x;
@@ -688,7 +689,35 @@ void int_trace_(int64_t y, int fd) {
         *--p = '-';
         n++;
     }
+    *out_ptr = p;
+    *out_size = n;
+}
+
+void int_trace_(int64_t y, int fd) {
+    char* p; size_t n;
+    int_repr(y, &p, &n);
     write(fd, p, n);
+}
+
+void mw_prim_int_to_str(void) {
+    PRIM_ENTER(mw_prim_int_to_str,"prim-int-to-str");
+    int64_t x = pop_i64();
+    bool cache = (0 <= x) && (x <= 255);
+    static VAL scache[256] = {0};
+    if (cache && scache[x].tag) {
+        incref(scache[x]);
+        push_value(scache[x]);
+    } else {
+        char* p; size_t n;
+        int_repr(x,&p,&n);
+        VAL out = mkstr(p,n);
+        push_value(out);
+        if (cache) {
+            scache[x] = out;
+            incref(out);
+        }
+    }
+    PRIM_EXIT(mw_prim_int_to_str);
 }
 
 void str_trace_(STR* str, int fd) {
@@ -1050,21 +1079,6 @@ static void mw_prim_ptr_raw (void) { // TODO remove
     ASSERT(IS_PTR(vptr));
     push_value(vptr);
     PRIM_EXIT(mw_prim_ptr_raw);
-}
-
-static void mw_prim_str_eq (void) { // TODO remove
-    PRIM_ENTER(mw_prim_str_eq,"prim-str-eq");
-    VAL vptr1 = pop_value();
-    VAL vptr2 = pop_value();
-    ASSERT2(IS_STR(vptr1) && IS_STR(vptr2), vptr1, vptr2);
-    STR* str1 = VSTR(vptr1);
-    STR* str2 = VSTR(vptr2);
-    ASSERT(str1->size <= SIZE_MAX);
-    push_bool((str1->size == str2->size) &&
-        (memcmp(str1->data, str2->data, (size_t)str1->size) == 0));
-    decref(vptr1);
-    decref(vptr2);
-    PRIM_EXIT(mw_prim_str_eq);
 }
 
 static void mw_prim_str_alloc (void) { // TODO remove probably?

@@ -3,10 +3,10 @@ import(prelude)
 import(platform.posix)
 import(data.str)
 import(data.stack)
-import(data.char)
 import(data.path)
 import(data.list)
 import(data.lazy)
+import(data.byte)
 import(mirth.data.error)
 import(mirth.data.module)
 import(mirth.data.location)
@@ -34,9 +34,6 @@ var(codegen-file, File)
 var(codegen-length, Size)
 buffer(CODEGEN_BUF, 0x100)
 
-def(codegen-u8@, Offset -- Byte, CODEGEN_BUF u8@@)
-def(codegen-u8!, Byte Offset --, CODEGEN_BUF u8!!)
-
 def(codegen-full?, Bool,
     codegen-length @ 4 + CODEGEN_BUF_SIZE >=)
 
@@ -54,16 +51,13 @@ def(codegen-flush!, --,
     ))
 
 def(.b, Byte --,
+    Byte->U8
     codegen-full? if(codegen-flush!, id)
-    codegen-length modify(dup 1+) codegen-u8!)
-
-def(.c, Char --,
-    codegen-full? if(codegen-flush!, id)
-    dup codegen-length @ CODEGEN_BUF with-ptr+(char!)
-    char-width codegen-length modify(+))
+    codegen-length modify(dup 1+)
+    CODEGEN_BUF u8!!)
 
 def(., Str --,
-    dup prim-str-base over str-size
+    dup prim-str-base over str-num-bytes
     dup codegen-length @ + CODEGEN_BUF_SIZE > if(
         codegen-flush!
         while(dup CODEGEN_BUF_SIZE >,
@@ -112,10 +106,10 @@ def(run-output-c99!, Arrow Path --,
 
 var(c99-depth, Int)
 
-def(.lf, --, 10 Int->U8 .b)
+def(.lf, --, BLF .b)
 def(;, Str --, . .lf)
 def(;;, Str --, . .lf .lf)
-def(.n, Int --, int-show .)
+def(.n, Int --, int-to-str .)
 def(.name, Name --, name-mangle! .)
 
 def(.w, Name --, "static void mw_" . .name " (void)" .)
@@ -171,7 +165,7 @@ def(c99-external!, External --,
         )
     )
 
-    dip2(dup external-name @ .name)
+    dip2(dup external-name @ name-str @ .)
 
     " (" .
     over dup 0> if("int64_t" . 1- repeat(", int64_t" .), drop "void" .)
@@ -180,7 +174,7 @@ def(c99-external!, External --,
     "static void mw_" . dip2(dup external-name @ .name) " (void) {" ;
     over countdown("    int64_t x" . .n " = pop_i64();" ;)
     dup 0> if("    push_i64(", "    ") .
-    dip2(dup external-name @ .name)
+    dip2(dup external-name @ name-str @ .)
     "(" .
     dip(dup 0> if(
         dup 1- dup count("x" . .n ", " .) "x" . .n,
@@ -244,17 +238,17 @@ def(c99-str!, Str --,
         c99-line("static VAL v;" .)
         c99-line("if (!vready) {" .)
         c99-nest(
-            dup str-size 4090 > if(
+            dup str-num-bytes 4090 > if(
                 "static uint8_t b[] = {" .
                 c99-nest(
-                    c99-indent dup str-for(char-bytes for(
-                        U8->Int dup .n "," .
+                    c99-indent dup str-bytes-for(
+                        Byte->Int dup .n "," .
                         10 == if(.lf c99-indent, id)
-                    )) .lf
+                    ) .lf
                 )
                 c99-line("};" .)
-                c99-line("v = mkstr((char*)b, " . dup str-size .n ");" .),
-                c99-line("v = mkstr(" . dup .str ", " . dup str-size .n ");" .)
+                c99-line("v = mkstr((char*)b, " . dup str-num-bytes .n ");" .),
+                c99-line("v = mkstr(" . dup .str ", " . dup str-num-bytes .n ");" .)
             )
             c99-line("vready = true;" .)
         )
@@ -265,28 +259,22 @@ def(c99-str!, Str --,
     c99-line("}" .)
     drop)
 
-def(.str, Str --, "\"" . str-for(c99-string-char!) "\"" .)
+def(.str, Str --, "\"" . str-bytes-for(c99-string-byte!) "\"" .)
 
-def(c99-string-char!, Char --,
-    dup is-backslash if(
+def(c99-string-byte!, Byte --,
+    dup B'\' == if( # backslash
         drop "\\\\" .,
-    dup is-quote if(
+    dup BQUOTE == if ( # quote
         drop "\\\"" .,
-    dup Char->Int 32 126 in-range if(
-        .c,
-    dup Char->Int 9 == if(
+    dup BSPACE B'~' in-range if(
+        .b,
+    dup BHT == if(
         drop "\\t" .,
-    dup Char->Int 10 == if(
+    dup BLF == if(
         drop "\\n" .,
-    dup Char->Int 13 == if(
+    dup BCR == if(
         drop "\\r" .,
-
-        char-bytes for(
-            "\\x" . dup
-            U8->Int 4 >> hexdigit .c
-            U8->Int 0xF & hexdigit .c
-        )
-#        "unexpected character in c99 string" panic!
+        "\\x" . byte-to-hexdigits dip(.b) .b
     )))))))
 
 def(c99-constant!, Constant --,

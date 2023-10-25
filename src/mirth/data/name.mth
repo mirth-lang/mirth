@@ -2,7 +2,7 @@ module(mirth.data.name)
 
 import(prelude)
 import(platform.posix)
-import(data.char)
+import(data.byte)
 import(data.str)
 import(data.list)
 import(data.lazy)
@@ -39,7 +39,7 @@ def(hash-name!, Name Hash --, dip(Name.id) Hash->Int HASH_BUF int!!)
 
 ||| Get hash for string.
 def(hash, Str -- Hash,
-    0 swap str-for(Char->Int 17 * over 7 << ^ swap 27 >> ^)
+    0 swap str-bytes-for(Byte->Int 17 * over 7 << ^ swap 27 >> ^)
     Int->Hash)
 
 def(name-hash, Name -- Hash, name-str @ hash)
@@ -75,35 +75,35 @@ def(name-trace!, Name --,
 def(name-print!, Name --,
     name-str @ str-print!)
 
-def(name-head, Name -- Char,
-    name-str @ str-slice str-slice-head)
-def(name-tail-head, Name -- Char,
-    name-str @ str-slice str-slice-tail str-slice-head)
+def(name-head, Name -- Byte,
+    name-str @ with-str-data(1 >= if(byte@, drop BNUL)))
+def(name-tail-head, Name -- Byte,
+    name-str @ with-str-data(2 >= if(dip(1) ptr+ byte@, drop BNUL)))
 
 def(name-could-be-type, Name -- Bool,
-    name-head is-alpha)
+    name-head byte-is-alpha)
 
 def(name-could-be-type-var, Name -- Bool,
-    name-head is-lower)
+    name-head byte-is-lower)
 
 def(name-could-be-type-con, Name -- Bool,
-    name-head is-upper)
+    name-head byte-is-upper)
 
 def(name-is-type-hole, Name -- Bool,
-    dup name-head is-question-mark
-    swap name-tail-head dup is-nul swap is-lower || &&)
+    dup name-head B'?' ==
+    swap name-tail-head dup BNUL == swap byte-is-lower || &&)
 
 def(name-is-underscore, Name -- Bool,
-    dup name-head is-underscore
-    swap name-tail-head is-nul &&)
+    dup name-head B'_' ==
+    swap name-tail-head BNUL == &&)
 
 def(name-could-be-stack-var, Name -- Bool,
-    dup name-head is-asterisk
-    swap name-tail-head is-lower &&)
+    dup name-head B'*' ==
+    swap name-tail-head byte-is-lower &&)
 
 def(name-could-be-effect-con, Name -- Bool,
-    dup name-head is-plus
-    swap name-tail-head is-lower &&)
+    dup name-head B'+' ==
+    swap name-tail-head byte-is-lower &&)
 
 def(name-print-mangled!, Name --,
     name-mangled force! str-print!)
@@ -112,36 +112,17 @@ def(name-mangle!, Name -- Str,
     name-mangled force!)
 
 def(name-mangle-compute!, Name -- Str,
-    name-str @ str-transduce(
-        dup is-alpha if( TS_CHAR,
-        dup is-digit if( TS_CHAR,
-        dup is-underscore if( TS_CHAR,
-        dup is-dash if( drop underscore TS_CHAR,
-            char-hexdigits underscore swap cons underscore snoc TS_PUSH
-        ))))
-    ))
-
-||| Turn character into a sequence of hex digits, in the order they
-||| appear in UTF8 encoding.
-def(char-hexdigits, Char -- List(Char),
-    Char->Int
-    char-hexdigits-first
-    while(dup 0 >, char-hexdigits-next)
-    drop)
-
-def(char-hexdigits-first, Int -- List(Char) Int,
-    dip(L0) char-hexdigits-next)
-
-def(char-hexdigits-next, List(Char) Int -- List(Char) Int,
-    sip(0xF & hexdigit) 4 >>
-    sip(0xF & hexdigit) 4 >>
-    dip(swap dip(snoc) snoc))
-
-def(hexdigit, Int -- Char,
-    dup 10 >= if(
-        55 + Int->Char,
-        48 + Int->Char
-    ))
+    build-str!(name-str @ str-bytes-for(
+        dup byte-is-alnum if(
+            str-buf-push-byte!,
+            dup B'-' == if(
+                drop B'_' str-buf-push-byte!,
+                B'_' str-buf-push-byte!
+                byte-to-hexdigits dip(str-buf-push-byte!) str-buf-push-byte!
+                B'_' str-buf-push-byte!
+            )
+        )
+    )))
 
 ########
 # Defs #

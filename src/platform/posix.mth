@@ -35,22 +35,7 @@ def(str-trace-ln!, Str --, str-trace! trace-ln!)
 def(print-ln!, --, "\n" str-print!)
 def(trace-ln!, --, "\n" str-trace!)
 
-def(str-buf-write!, File --, STR_BUF str-buf-length? slice-write!)
-def(str-buf-print!, --, stdout str-buf-write!)
-def(str-buf-trace!, --, stderr str-buf-write!)
-def(str-buf-read!, File --,
-    File->Int str-buf-clear!
-    STR_BUF STR_BUF_SIZE 1- posix-read!
-    dup 0< if(
-        "str-buf-read! failed" panic!,
-        str-buf-length!
-    ))
-
-def(str-buf-input!, --, stdin str-buf-read!)
-def(print-char!, Char --, build-str!(str-buf-push-char!) str-print!)
-def(trace-char!, Char --, build-str!(str-buf-push-char!) str-trace!)
-
-def(int-write!, Int File --, dip(str-buf-int!) str-buf-write!)
+def(int-write!, Int File --, dip(int-to-str) str-write!)
 def(int-print!, Int --, stdout int-write!)
 def(int-trace!, Int --, stderr int-write!)
 def(int-print-ln!, Int --, int-print! print-ln!)
