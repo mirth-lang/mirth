@@ -148,12 +148,6 @@ def(str-buf-reverse!, --,
     )
     drop2)
 
-||| Are two strings equal?
-def(str-eq, Str Str -- Bool, prim-str-eq)
-
-||| Are two strings equal? Preserve pointers.
-def(str-eq?, Str Str -- Str Str Bool, dup2 str-eq)
-
 ||| Traverse string chars.
 def(str-chars-for(f), (*a Char -- *a) *a Str -- *a,
     str-slice while-some(

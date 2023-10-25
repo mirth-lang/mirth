@@ -1081,21 +1081,6 @@ static void mw_prim_ptr_raw (void) { // TODO remove
     PRIM_EXIT(mw_prim_ptr_raw);
 }
 
-static void mw_prim_str_eq (void) { // TODO remove
-    PRIM_ENTER(mw_prim_str_eq,"prim-str-eq");
-    VAL vptr1 = pop_value();
-    VAL vptr2 = pop_value();
-    ASSERT2(IS_STR(vptr1) && IS_STR(vptr2), vptr1, vptr2);
-    STR* str1 = VSTR(vptr1);
-    STR* str2 = VSTR(vptr2);
-    ASSERT(str1->size <= SIZE_MAX);
-    push_bool((str1->size == str2->size) &&
-        (memcmp(str1->data, str2->data, (size_t)str1->size) == 0));
-    decref(vptr1);
-    decref(vptr2);
-    PRIM_EXIT(mw_prim_str_eq);
-}
-
 static void mw_prim_str_alloc (void) { // TODO remove probably?
     PRIM_ENTER(mw_prim_str_alloc,"prim-str-alloc");
     USIZE size = pop_usize();
