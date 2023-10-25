@@ -1,37 +1,16 @@
 module(data.str)
 import(data.list)
-import(data.char)
 import(data.maybe)
 import(data.byte)
 import(prelude)
 
-data(StrSlice, STR_SLICE -> Str Ptr Size)
-def(str-slice, Str -- StrSlice, dup with-str-data(STR_SLICE))
-def(str-slice-head, StrSlice -- Char,
-    STR_SLICE -> 0 > if(char@ nip, drop2 0 Int->Char))
-def(str-slice-tail, StrSlice -- StrSlice, str-slice-next drop)
-def(str-slice-next, StrSlice -- StrSlice Maybe(Char),
-    STR_SLICE -> dup 0 > if(
-        over char@ dup SOME
-        dip(char-width tuck - dip(swap ptr+) STR_SLICE),
-        STR_SLICE NONE
-    ))
-def(str-slice-copy, StrSlice -- Str,
-    STR_SLICE -> str-copy nip)
-
-def(str-nil, Str, "")
-
-def(str-num-chars, Str -- Size,
-    0 swap str-chars-for(drop 1+))
-def(str-num-codepoints, Str -- Size,
-    0 swap str-codepoints-for(drop 1+))
 def(str-num-bytes, Str -- Size,
     prim-str-size nip)
 
 def(str-cat, Str Str -- Str, prim-str-cat)
 def(str-concat, List(Str) -- Str,
     List->List+ match(
-        NONE -> str-nil,
+        NONE -> "",
         SOME -> uncons for(str-cat)
     ))
 
@@ -83,9 +62,6 @@ def(str-buf-u8@, Offset -- U8,
 def(str-buf-u8!, U8 Offset --,
     STR_BUF u8!!)
 
-def(str-buf-char@, Offset -- Char,
-    STR_BUF with-ptr+(char@))
-
 def(str-buf-byte@, Offset -- Byte,
     STR_BUF with-ptr+(byte@))
 
@@ -106,10 +82,6 @@ def(str-buf-push-u8!, U8 --,
 def(str-buf-push-byte!, Byte --,
     Byte->U8 str-buf-push-u8!)
 
-def(str-buf-push-char!, Char --,
-    dup str-buf-length? STR_BUF with-ptr+(char!)
-    char-width str-buf-length? + str-buf-length!)
-
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
 def(str-buf-push-str!, Str --,
@@ -127,56 +99,14 @@ def(str-buf-push-ptr!, Ptr Size -- ,
 def(str-buf!, Str --,
     str-buf-clear! str-buf-push-str!)
 
-def(str-buf-char!, Char --,
-    dup STR_BUF char! char-width str-buf-length!)
-
-def(to-digit, Int -- Char,
-    10 % 48 + Int->Char)
-
 ||| Put integer into STR_BUF.
 def(str-buf-int!, Int --,
     int-to-str str-buf!)
 
 alias(int-to-str, prim-int-to-str)
 
-||| Swap two bytes in STR_BUF.
-def(str-buf-swap-u8!, Int Int --,
-    dup2 swap
-    dip3(str-buf-u8@)
-    dip(str-buf-u8@)
-    str-buf-u8! str-buf-u8!)
-
-||| Reverse contents of STR_BUF bytewise.
-def(str-buf-reverse!, --,
-    0 str-buf-length? 1-
-    while(dup2 <,
-        dup2 str-buf-swap-u8!
-        dip(1+) 1-
-    )
-    drop2)
-
-||| Traverse string chars.
-def(str-chars-for(f), (*a Char -- *a) *a Str -- *a,
-    str-slice while-some(
-        str-slice-next,
-        swap dip(f)
-    ) drop)
-
-||| Traverse string codepoints.
-def(str-codepoints-for(f), (*a Int -- *a) *a Str -- *a,
-    str-chars-for(char-codepoint f))
-
 ||| Traverse string bytes.
 def(str-bytes-for(f), (*a Byte -- *a) *a Str -- *a,
     with-str-data(repeat(
         dup dip(byte@ f 1) ptr+
     ) drop))
-
-def(str-chars, Str -- List(Char),
-    dip(L0) str-chars-for(snoc))
-
-def(str-codepoints, Str -- List(Int),
-    dip(L0) str-codepoints-for(snoc))
-
-def(str-bytes, Str -- List(Byte),
-    dip(L0) str-bytes-for(snoc))

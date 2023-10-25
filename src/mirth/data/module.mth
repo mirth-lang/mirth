@@ -2,7 +2,6 @@ module(mirth.data.module)
 
 import(prelude)
 import(data.path)
-import(data.char)
 import(data.str)
 import(data.set)
 import(data.byte)
