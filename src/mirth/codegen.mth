@@ -165,7 +165,7 @@ def(c99-external!, External --,
         )
     )
 
-    dip2(dup external-name @ .name)
+    dip2(dup external-name @ name-str @ .)
 
     " (" .
     over dup 0> if("int64_t" . 1- repeat(", int64_t" .), drop "void" .)
@@ -174,7 +174,7 @@ def(c99-external!, External --,
     "static void mw_" . dip2(dup external-name @ .name) " (void) {" ;
     over countdown("    int64_t x" . .n " = pop_i64();" ;)
     dup 0> if("    push_i64(", "    ") .
-    dip2(dup external-name @ .name)
+    dip2(dup external-name @ name-str @ .)
     "(" .
     dip(dup 0> if(
         dup 1- dup count("x" . .n ", " .) "x" . .n,

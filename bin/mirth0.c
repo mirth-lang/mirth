@@ -60224,8 +60224,12 @@ static void mb_c99_external_21__5 (void) {
     mw_external_name();
     WORD_ATOM(168, 28, "@");
     mw_prim_mut_get();
-    WORD_ATOM(168, 30, ".name");
-    mw__2E_name();
+    WORD_ATOM(168, 30, "name-str");
+    mw_name_str();
+    WORD_ATOM(168, 39, "@");
+    mw_prim_mut_get();
+    WORD_ATOM(168, 41, ".");
+    mw__2E_();
     WORD_EXIT(mb_c99_external_21__5);
 }
 
@@ -60386,8 +60390,12 @@ static void mb_c99_external_21__13 (void) {
     mw_external_name();
     WORD_ATOM(177, 28, "@");
     mw_prim_mut_get();
-    WORD_ATOM(177, 30, ".name");
-    mw__2E_name();
+    WORD_ATOM(177, 30, "name-str");
+    mw_name_str();
+    WORD_ATOM(177, 39, "@");
+    mw_prim_mut_get();
+    WORD_ATOM(177, 41, ".");
+    mw__2E_();
     WORD_EXIT(mb_c99_external_21__13);
 }
 
