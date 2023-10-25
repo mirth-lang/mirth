@@ -114,9 +114,9 @@ def(name-mangle!, Name -- Str,
 
 def(name-mangle-compute!, Name -- Str,
     build-str!(name-str @ str-bytes-for(
-        dup byte-is-alnum or(dup B'_' ==) if(
+        dup byte-is-alnum if(
             str-buf-push-byte!,
-            dup BDASH == if(
+            dup B'-' == if(
                 drop B'_' str-buf-push-byte!,
                 B'_' str-buf-push-byte!
                 byte-to-hexdigits dip(str-buf-push-byte!) str-buf-push-byte!
