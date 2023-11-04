@@ -62,12 +62,9 @@ def(str-buf-clear!, --,
     0 str-buf-length!)
 
 def(str-buf-push-u8!, U8 --,
-    # str-buf-full? not if(
-        str-buf-length? str-buf-u8!
-        str-buf-length? 1+ str-buf-length!
-    #     "str-buf-push! but STR_BUF is already full" panic!
-    # )
-    )
+    assert!(str-buf-full? not, "str-buf-push! but STR_BUF is already full")
+    str-buf-length? str-buf-u8!
+    str-buf-length? 1+ str-buf-length!)
 
 def(str-buf-push-byte!, Byte --,
     Byte->U8 str-buf-push-u8!)

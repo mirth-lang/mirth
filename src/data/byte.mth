@@ -38,7 +38,9 @@ data(Byte,
     BxF8, BxF9, BxFA, BxFB, BxFC, BxFD, BxFE, BxFF)
 
 def(Byte->Int, Byte -- Int, prim-unsafe-cast)
-def(Int->Byte, Int -- Byte, prim-unsafe-cast) # FIXME check range?
+def(Int->Byte, Int -- Byte,
+    assert!(dup 0 255 in-range, "Int->Byte out of range")
+    prim-unsafe-cast)
 def(Byte->U8, Byte -- U8, prim-unsafe-cast)
 def(U8->Byte, U8 -- Byte, prim-unsafe-cast)
 

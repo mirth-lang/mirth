@@ -3,11 +3,6 @@ import(prelude)
 import(data.str)
 import(data.path)
 
-def(panic!, *a Str -- *b,
-    "panic: " str-trace! str-trace-ln!
-    ptr-nil u64@ # for debug
-    1 posix-exit!)
-
 data(File, FILE -> Int)
 def(Int->File, Int -- File, FILE)
 def(File->Int, File -- Int, FILE -> id)
@@ -24,8 +19,9 @@ def(str-write!, Str File --,
 
 def(slice-write!, File Ptr Int --,
     dip2(File->Int) dup dip(posix-write!)
-    dup 0 < if("error: write failed!" panic!, id)
-    > if("error: write output fewer bytes than expected!" panic!, id))
+    expect!(dup 0 >=, "write failed")
+    expect!(dup2 ==, "write output fewer bytes than expected")
+    drop2)
 
 def(str-print!, Str --, stdout str-write!)
 def(str-trace!, Str --, stderr str-write!)
@@ -52,14 +48,13 @@ def(read-file!, File -- Str,
     while(dup 0 >,
         READ_FILE_BUF swap prim-str-copy str-cat
         fp READ_FILE_BUF READ_FILE_BUF_SIZE prim-posix-read)
-    0 < if("io error while reading file" panic!, id)))
+    expect!(dup 0=, "error while reading file")
+    drop))
 
 def(open-file!, Str -- File,
     0 0 posix-open!
-    dup 0 < if(
-        "Failed to open file!" panic!,
-        Int->File
-    ))
+    expect!(dup 0 >, "failed to open file")
+    Int->File)
 
 def(create-file!, Str -- File,
     O_WRONLY|O_CREAT|O_TRUNC
@@ -69,10 +64,8 @@ def(create-file!, Str -- File,
         # read+write, everyone can read
         #  ---- NB: this is inaccurate . . .
     posix-open!
-    dup 0 < if(
-        "Failed to create file!" panic!,
-        Int->File
-    ))
+    expect!(dup 0 >, "failed to create file")
+    Int->File)
 
 def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     RUNNING_OS match(
@@ -84,10 +77,8 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
 
 def(close-file!, File --,
     File->Int posix-close!
-    0 < if(
-        "failed to close file." panic!,
-        id
-    ))
+    expect!(dup 0 >=, "failed to close file")
+    drop)
 
 ########
 # STAT #

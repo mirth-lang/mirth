@@ -1,6 +1,5 @@
 module(snake)
 import(prelude)
-import(platform.posix)
 import(sdl2)
 
 ##############
