@@ -20,6 +20,7 @@ data(Prim,
     PRIM_CORE_IF,
     PRIM_CORE_WHILE,
     PRIM_CORE_DEBUG,
+    PRIM_CORE_PANIC,
     PRIM_CORE_RUN,
     PRIM_CORE_MATCH,
     PRIM_CORE_LAMBDA,
@@ -186,6 +187,7 @@ def(init-prims!, --,
     PRIM_CORE_IF "prim-if" def-prim!
     PRIM_CORE_WHILE "prim-while" def-prim!
     PRIM_CORE_DEBUG "prim-debug" def-prim!
+    PRIM_CORE_PANIC "prim-panic" def-prim!
     PRIM_CORE_RUN "prim-run" def-prim!
     PRIM_CORE_MATCH "prim-match" def-prim!
     PRIM_CORE_LAMBDA "prim-lambda" def-prim!
@@ -480,6 +482,15 @@ def(init-prims!, --,
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
     "*b" name-new! var-new-implicit! TYPE_STACK over var-type !
+    dup2 ctx-empty swap ctx-new! swap ctx-new!
+    PRIM_CORE_PANIC prim-ctx !
+
+    dip(TVar) TVar
+    dip(TYPE_STR T*) T->
+    PRIM_CORE_PANIC prim-type !
+
+    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
+    "*b" name-new! var-new-implicit! TYPE_STACK over var-type !
     "c" name-new! var-new-implicit! TYPE_TYPE over var-type !
     dup3 ctx-empty swap ctx-new! swap ctx-new! swap ctx-new!
     PRIM_CORE_DIP prim-ctx !
@@ -498,6 +509,7 @@ def(init-prims!, --,
     dup2 T-> swap
     dip(dip(TYPE_BOOL T*) sip(T*) T*) T->
     PRIM_CORE_IF prim-type !
+
 
     "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
     dup ctx-empty swap ctx-new!

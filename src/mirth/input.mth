@@ -36,21 +36,17 @@ def(input-done?, Bool,
     input-isopen @ not)
 
 def(input-fill-buffer!, --,
-    input-isopen @ if(
-        input-handle @ File->Int
-        INPUT_BUFFER
-        INPUT_BUFFER_SIZE
-        posix-read!
-        dup 0 >= if(
-            dup 0 > if(
-                input-length !
-                0 input-offset !,
-                drop
-                input-end!
-            ),
-            drop "error: failed to read from file" panic!
-        ),
-        "error: attempted to fill input buffer when file is closed" panic!
+    assert!(input-isopen @, "attempted to fill input buffer when file is closed")
+    input-handle @ File->Int
+    INPUT_BUFFER
+    INPUT_BUFFER_SIZE
+    posix-read!
+    expect!(dup 0 >=, "failed to read from file")
+    dup 0 > if(
+        input-length !
+        0 input-offset !,
+        drop
+        input-end!
     ))
 
 # Return the current char in the input buffer.

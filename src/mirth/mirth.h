@@ -774,6 +774,18 @@ static void mw_prim_rdebug (void) {
     }
 }
 
+static void mw_prim_panic(void) {
+    // TODO: expect less of the stack, i.e. panic gracefully even if stack
+    // is in a weird state ... this is panic! after all
+    VAL v = pop_value();
+    ASSERT(IS_STR(v));
+    ASSERT(VSTR(v)->size < SIZE_MAX);
+    write(2,VSTR(v)->data, (size_t)VSTR(v)->size);
+    mw_prim_debug();
+    mw_prim_rdebug();
+    exit(1);
+}
+
 static void mw_prim_value_get (void) {
     PRIM_ENTER(mw_prim_value_get,"prim-value-get");
     VAL vp = pop_value();

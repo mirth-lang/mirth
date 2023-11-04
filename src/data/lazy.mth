@@ -1,7 +1,6 @@
 module(data.lazy)
 
 import(prelude)
-import(platform.posix)
 
 data(Lazy(t),
     LAZY_READY -> b,

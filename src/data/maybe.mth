@@ -1,7 +1,6 @@
 module(data.maybe)
 
 import(prelude)
-import(platform.posix)
 
 data(Maybe(t), NONE, SOME -> t)
 
