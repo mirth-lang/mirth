@@ -293,12 +293,6 @@ alias(!, prim-mut-set)
 alias(mut-is-set, prim-mut-is-set)
 def(modify(f), (*a t -- *b t) *a Mut(t) -- *b, dup dip(@ f) !)
 
-def-missing(prim-panic, *a Str -- *b,
-    2 "panic: " dup dip(prim-str-base) prim-str-num-bytes prim-posix-write drop
-    2 over dup dip(prim-str-base) prim-str-num-bytes prim-posix-write
-    2 "\n" prim-str-base 1 prim-posix-write
-    0 prim-unsafe-cast u64@ # for debug ...
-    1 prim-posix-exit)
 alias(panic!, prim-panic)
 def(expect!(f,g), (*a -- *a Bool, *a -- *b Str) *a -- *a,
     f if(id, g panic!))
