@@ -779,7 +779,8 @@ static void mw_prim_panic(void) {
     // is in a weird state ... this is panic! after all
     VAL v = pop_value();
     ASSERT(IS_STR(v));
-    write(2,VSTR(v)->data, VSTR(v)->size);
+    ASSERT(VSTR(v)->size < SIZE_MAX);
+    write(2,VSTR(v)->data, (size_t)VSTR(v)->size);
     mw_prim_debug();
     mw_prim_rdebug();
     exit(1);
