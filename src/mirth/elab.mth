@@ -42,17 +42,17 @@ def(type-elab-ctx?, TypeElab -- TypeElab Ctx, dup type-elab-ctx)
 def(type-elab-ctx-replace, TypeElab Ctx -- TypeElab,
     swap match(TYPE_ELAB -> drop swap TYPE_ELAB))
 
-def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
+def(elab-type-sig!, TypeElab Token -- TypeElab TypeSig Token,
     token-run-end? if(dup "expected type signature" emit-error!, id)
     elab-type-sig-params! dip(swap)
     elab-type-stack! dip(swap)
     token-is-dashes? if(
         token-next elab-type-stack! dip(swap),
-        dip(T0 rotr))
+        dip(T0 TYPESTACK rotr))
     token-run-end? if(id, dup "expected right paren or comma" emit-error!)
-    dip(rot4r dip(swap for(T*)) T->))
+    dip(rot4r dip(swap for(/TYPESIG TYPESTACK*)) TYPESIG->))
 
-def(elab-type-sig-params!, TypeElab Token -- TypeElab List(Type) Token,
+def(elab-type-sig-params!, TypeElab Token -- TypeElab List(TypeSig) Token,
     token-is-lparen? if(
         dup token-next dip(
             L0 rotr token-args
@@ -62,17 +62,17 @@ def(elab-type-sig-params!, TypeElab Token -- TypeElab List(Type) Token,
         L0 swap
     ))
 
-def(elab-type-stack!, TypeElab Token -- TypeElab Type Token,
+def(elab-type-stack!, TypeElab Token -- TypeElab TypeStack Token,
     sig-token-is-stack-var? if(
-        elab-stack-var! dip(TVar),
-        dip(TYPE_UNIT)
+        elab-stack-var! dip(TVar TYPESTACK),
+        dip(TYPE_UNIT TYPESTACK)
     )
     elab-type-stack-rest!)
 
-def(elab-type-stack-rest!, TypeElab Type Token -- TypeElab Type Token,
+def(elab-type-stack-rest!, TypeElab TypeStack Token -- TypeElab TypeStack Token,
     while(sig-is-stack-end2? not,
         swap dip(elab-type-atom!) swap
-        dip(swap TTensor)
+        dip(swap TYPESTACK*)
     ))
 
 def(elab-type-arg!, TypeElab Token -- TypeElab Type Token,
@@ -176,8 +176,8 @@ def(elab-type-dont-care!, TypeElab Token -- TypeElab Type Token,
 def(elab-type-quote!, TypeElab Token -- TypeElab Type Token,
     token-args-1
     sig-has-dashes? if(
-        elab-type-sig!,
-        elab-type-stack!
+        elab-type-sig! dip(/TYPESIG),
+        elab-type-stack! dip(/TYPESTACK)
     )
     token-next)
 
@@ -223,8 +223,8 @@ def(ab-build!(f), (*a -- *b) *a Ctx Type Token -- *b Arrow,
 ||| Like ab-build! but takes a morphism type to build
 ||| instead of just the domain. The codomain is placed
 ||| on the stack for (in)convenience. (You can ignore it with dip.)
-def(ab-build-hom!(f), (*a Type -- *b Type) *a Ctx Type Token -- *b Arrow,
-    elab-expand-morphism! dip(rotr)
+def(ab-build-hom!(f), (*a Type -- *b Type) *a Ctx TypeSig Token -- *b Arrow,
+    dip(/TYPESIG) elab-expand-morphism! dip(rotr)
     ab-build!(f ab-unify-type!))
 def(ab-build-word-arrow!(f), (*a Type -- *b Type) *a Word -- *b Arrow,
     dup SOME ab-home ! 0 ab-homeidx !
@@ -256,7 +256,7 @@ def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
 
 def(atom-accepts-args?, Atom -- Atom Bool,
     dup atom-op @ match(
-        OP_WORD -> dip(dup atom-args @ len) elab-word-sig! type-max-num-params <,
+        OP_WORD -> dip(dup atom-args @ len) elab-word-sig! type-sig-max-num-params <,
         OP_PRIM ->
             match(
                 PRIM_CORE_RUN -> dup atom-args @ len 1 <, # this one's dubious
@@ -325,6 +325,7 @@ def(ab-expand-opsig!, OpSig -- Type Type,
         OPSIG_ID -> ab-type @ dup,
         OPSIG_PUSH -> dip(ab-type @ dup) TTensor,
         OPSIG_APPLY ->
+            /TYPESIG
             dip(ab-type @)
             ab-token @ elab-expand-morphism!
             swap dip(elab-type-unify! drop)
@@ -391,7 +392,7 @@ def(ab-lambda!(f), (*a -- *b) *a List(Param) -- *b ,
 data(OpSig,
     OPSIG_ID,
     OPSIG_PUSH -> Type,
-    OPSIG_APPLY -> Type)
+    OPSIG_APPLY -> TypeSig)
 
 def(elab-op-fresh-sig!, Op -- Subst OpSig,
     subst-nil swap match(
@@ -416,28 +417,28 @@ def(elab-block-sig!, Block -- OpSig,
     VALUE_BLOCK TValue OPSIG_PUSH)
 
 def(elab-match-sig!, Match -- OpSig,
-    sip(match-dom @) match-cod @ T-> OPSIG_APPLY)
+    sip(match-dom @) match-cod @ T-> TYPESIG OPSIG_APPLY)
 
 def(elab-lambda-sig!, Lambda -- OpSig,
-    sip(lambda-dom @) lambda-cod @ T-> OPSIG_APPLY)
+    sip(lambda-dom @) lambda-cod @ T-> TYPESIG OPSIG_APPLY)
 
 def(elab-var-sig!, Var -- OpSig,
     dup var-auto-run @ if(
-        var-type @ type-semifreshen-sig OPSIG_APPLY,
+        var-type @ TYPESIG type-semifreshen-sig OPSIG_APPLY,
         var-type @ OPSIG_PUSH
     ))
 
-def(elab-tag-sig!, Tag -- Type, elab-tag-ctx-sig! nip)
+def(elab-tag-sig!, Tag -- TypeSig, elab-tag-ctx-sig! nip)
 def(elab-tag-ctx!, Tag -- Ctx , elab-tag-ctx-sig! drop)
-def(elab-tag-ctx-sig!, Tag -- Ctx Type, tag-ctx-type force2!)
+def(elab-tag-ctx-sig!, Tag -- Ctx TypeSig, tag-ctx-type force2!)
 
-def(elab-external-sig!, External -- Type, elab-external-ctx-sig! nip)
+def(elab-external-sig!, External -- TypeSig, elab-external-ctx-sig! nip)
 def(elab-external-ctx!, External -- Ctx, elab-external-ctx-sig! drop)
-def(elab-external-ctx-sig!, External -- Ctx Type, external-ctx-type force2!)
+def(elab-external-ctx-sig!, External -- Ctx TypeSig, external-ctx-type force2!)
 
-def(elab-word-sig!, Word -- Type, elab-word-ctx-sig! nip)
+def(elab-word-sig!, Word -- TypeSig, elab-word-ctx-sig! nip)
 def(elab-word-ctx!, Word -- Ctx, elab-word-ctx-sig! drop)
-def(elab-word-ctx-sig!, Word -- Ctx Type,
+def(elab-word-ctx-sig!, Word -- Ctx TypeSig,
     dup word-ctx-type
     force-or!(emit-recursive-word-fatal-error!)
     nip unpack2)
@@ -445,11 +446,11 @@ def(elab-word-ctx-sig!, Word -- Ctx Type,
 def(emit-recursive-word-fatal-error!, *a Word -- *b,
     word-head @ "recursive word needs type signature" emit-fatal-error!)
 
-def(elab-word-ctx-sig-weak!, Word -- Ctx Type,
+def(elab-word-ctx-sig-weak!, Word -- Ctx TypeSig,
     dup word-sig @ match(
         NONE -> word-ctx-type @ match(
             LAZY_READY -> unpack2,
-            _ -> drop ctx-empty meta-alloc! TMeta meta-alloc! TMeta T->
+            _ -> drop ctx-empty meta-alloc! TMeta meta-alloc! TMeta T-> TYPESIG
         ),
         SOME -> drop elab-word-ctx-sig!
     ))
@@ -545,7 +546,7 @@ def(elab-prim!, Prim --,
 def(elab-atom-assert!, --,
     ab-token @ GAMMA
     ab-ctx @ type-elab-stack-assertion
-    ab-token @ token-args-1 elab-type-stack!
+    ab-token @ token-args-1 elab-type-stack! dip(/TYPESTACK)
     drop nip ab-type @ swap type-unify! drop2)
 
 def(elab-atom-lambda!, --,
@@ -705,7 +706,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
 
                 # set case mid
                 dip2(dup case-match @ match-dom @) { Case Type Token Tag }
-                elab-tag-sig! subst-nil swap type-freshen-sig
+                elab-tag-sig! subst-nil swap type-freshen-sig /TYPESIG
                 { Case Type Token Subst Type }
                 rotr dip(
                     elab-expand-morphism!
@@ -853,14 +854,14 @@ def(elab-data-tag!, Data Token -- Data,
     { Data Tag }
     dup delay(
         type-elab-default
-        over tag-data @ data-header @ elab-type-atom! drop T1
-        dip(T0 rotl tag-sig @ match(
+        over tag-data @ data-header @ elab-type-atom! drop T1 TYPESTACK
+        dip(T0 TYPESTACK rotl tag-sig @ match(
             NONE -> id,
             SOME ->
                 elab-type-stack-rest!
                 token-run-end? if(drop, "syntax error" emit-fatal-error!)
         ))
-        T-> dip(type-elab-ctx) pack2
+        TYPESIG-> dip(type-elab-ctx) pack2
     )
     swap tag-ctx-type !)
 
@@ -944,7 +945,7 @@ def(elab-def!, Token -- Token,
 
 ||| Elaborate a word's parameters from its type and declaration.
 def(elab-def-params!, Word -- List(Param),
-    L0 over elab-word-ctx-sig-weak! nip
+    L0 over elab-word-ctx-sig-weak! nip /TYPESIG
     rotl word-head @
     elab-expand-morphism! nip
     token-args reverse-for(
@@ -1100,7 +1101,7 @@ def(table-new!, Token Name -- Table,
     dup ".MAX" table-word-new!
 
     L0 CTX
-    T0 TYPE_INT T1 T->
+    T0 TYPE_INT T1 T-> TYPESIG
     ready2 over word-ctx-type !
 
     ab-build-word!(
@@ -1112,7 +1113,7 @@ def(table-new!, Token Name -- Table,
     dup ".nil" table-word-new!
 
     L0 CTX
-    T0 over3 TTable T1 T->
+    T0 over3 TTable T1 T-> TYPESIG
     ready2 over word-ctx-type !
 
     ab-build-word!(
@@ -1131,7 +1132,7 @@ def(table-new!, Token Name -- Table,
     dup ".id" table-word-new!
 
     L0 CTX
-    over2 TTable T1 TYPE_INT T1 T->
+    over2 TTable T1 TYPE_INT T1 T-> TYPESIG
     ready2 over word-ctx-type !
 
     ab-build-word! (
@@ -1143,7 +1144,7 @@ def(table-new!, Token Name -- Table,
     dup ".from-id" table-word-new!
 
     L0 CTX
-    over2 TTable T1 TYPE_INT T1 swap T->
+    over2 TTable T1 TYPE_INT T1 swap T-> TYPESIG
     ready2 over word-ctx-type !
 
     ab-build-word! (
@@ -1155,7 +1156,7 @@ def(table-new!, Token Name -- Table,
     dup ".succ" table-word-new!
 
     L0 CTX
-    over2 TTable T1 dup T->
+    over2 TTable T1 dup T-> TYPESIG
     ready2 over word-ctx-type !
 
     ab-build-word! (
@@ -1175,7 +1176,7 @@ def(table-new!, Token Name -- Table,
     dup ".pred" table-word-new!
 
     L0 CTX
-    over2 TTable T1 dup T->
+    over2 TTable T1 dup T-> TYPESIG
     ready2 over word-ctx-type !
 
     ab-build-word! (
@@ -1203,7 +1204,7 @@ def(table-new!, Token Name -- Table,
         swap
 
         TVar \( a ->
-            a a t TTable T* a T-> T* a T->
+            a a t TTable T* a T-> T* a T-> TYPESIG
             ready2 w word-ctx-type !
 
             a t TTable T* a T-> x var-type !
@@ -1238,7 +1239,7 @@ def(table-new!, Token Name -- Table,
     dup ".alloc!" table-word-new!
 
     L0 CTX
-    T0 over3 TTable T1 T->
+    T0 over3 TTable T1 T-> TYPESIG
     ready2 over word-ctx-type !
 
     ab-build-word! (
@@ -1279,6 +1280,6 @@ def(field-new!, Token Token Token Name -- Field,
     swap delay(elab-simple-type-arg!) over field-value-type !
     swap delay(elab-simple-type-arg!) over field-index-type !)
 
-def(elab-field-type!, Field -- Type,
+def(elab-field-type!, Field -- TypeSig,
     sip(field-index-type force! T1)
-    field-value-type force! TMut T1 T->)
+    field-value-type force! TMut T1 T-> TYPESIG)

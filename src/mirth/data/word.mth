@@ -13,7 +13,7 @@ field(word-name, Word, Name)
 field(word-head, Word, Token)
 field(word-sig, Word, Maybe(Token))
 field(word-body, Word, Token)
-field(word-ctx-type, Word, Lazy([Ctx Type]))
+field(word-ctx-type, Word, Lazy([Ctx TypeSig]))
 field(word-params, Word, Lazy(List(Param)))
 field(word-arrow, Word, Lazy(Arrow))
 
