@@ -137,7 +137,7 @@ def(block-unify-type!, Gamma Block Type -- Gamma Type,
     over2 gamma-token@ elab-expand-morphism! drop
     dip(swap sip(block-dom @ type-unify! drop))
     swap sip(block-cod @ type-unify! drop)
-    block-arrow force! arrow-type /TYPESIG)
+    block-arrow force! arrow-type /HOMTYPE)
 
 #########
 # MATCH #

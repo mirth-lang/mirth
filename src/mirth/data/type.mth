@@ -303,7 +303,7 @@ def(value-unify!, Gamma Value Value -- Gamma Type,
             VALUE_BLOCK ->
                 dup2 == if(
                     drop VALUE_BLOCK TValue,
-                    block-infer-type! /TYPESIG
+                    block-infer-type! /HOMTYPE
                     block-unify-type! # this is weird
                 ),
             VALUE_INT ->
@@ -332,7 +332,7 @@ def(value-type-unify!, Gamma Value Type -- Gamma Type,
     ))
 
 def(arrow-type, Arrow -- HomType,
-    dup arrow-dom @ swap arrow-cod @ T-> TYPESIG)
+    dup arrow-dom @ swap arrow-cod @ T-> HOMTYPE)
     # TODO effects
 
 def(block-infer-type!, Block -- HomType,
@@ -489,16 +489,16 @@ def(type-stack-replace-rest, Type TypeStack -- TypeStack,
 def(TYPESTACK*, TypeStack Type -- TypeStack,
     dip(/TYPESTACK) TTensor TYPESTACK)
 
-data(HomType, TYPESIG -> Type)
-def(/TYPESIG, TYPESIG -> id)
+data(HomType, HOMTYPE -> Type)
+def(/HOMTYPE, HOMTYPE -> id)
 def(hom-type-expand-if(f,g), (*a TypeStack TypeStack -- *b, *a HomType -- *b)
                               *a HomType -- *b,
-    dup /TYPESIG type-expand match(
+    dup /HOMTYPE type-expand match(
         THom -> dip(nip TYPESTACK) TYPESTACK f,
         _ -> drop g
     ))
-def(TYPESIG->, TypeStack TypeStack -- HomType,
-    dip(/TYPESTACK) /TYPESTACK THom TYPESIG)
+def(HOMTYPE->, TypeStack TypeStack -- HomType,
+    dip(/TYPESTACK) /TYPESTACK THom HOMTYPE)
 
 def(hom-type-needs-fresh-stack-rest, HomType -- Bool,
     hom-type-expand-if(
@@ -516,7 +516,7 @@ def(type-semifreshen-sig, HomType -- HomType,
             dip(meta-alloc! TMeta tuck)
             type-stack-replace-rest
             dip(type-stack-replace-rest)
-            TYPESIG->,
+            HOMTYPE->,
 
             id
         ),
@@ -526,7 +526,7 @@ def(type-semifreshen-sig, HomType -- HomType,
 ||| Freshen a type signature in preparation for type sig application.
 def(type-freshen-sig, Subst HomType -- Subst HomType,
     type-semifreshen-sig
-    /TYPESIG type-freshen TYPESIG)
+    /HOMTYPE type-freshen HOMTYPE)
 
 def(type-freshen, Subst Type -- Subst Type,
     TYPE_ERROR -> TYPE_ERROR,
@@ -556,13 +556,13 @@ def(type-var-freshen, Subst Var -- Subst Type,
     ))
 
 def(type-rigidify-sig!, Ctx HomType -- Ctx HomType,
-    /TYPESIG match(
+    /HOMTYPE match(
         TMeta ->
             meta-expand-or-update!(
                 meta-alloc! TMeta
                 meta-alloc! TMeta THom
-            ) TYPESIG type-rigidify-sig!,
-        _ -> type-rigidify! TYPESIG
+            ) HOMTYPE type-rigidify-sig!,
+        _ -> type-rigidify! HOMTYPE
     ))
 
 def(type-rigidify-stack!, Ctx Type -- Ctx Type,
@@ -607,7 +607,7 @@ def(type-rigidify!, Ctx Type -- Ctx Type,
 def(type-rigidify-value!, Ctx Value -- Ctx Type,
     VALUE_INT -> VALUE_INT TValue,
     VALUE_STR -> VALUE_STR TValue,
-    VALUE_BLOCK -> block-arrow force! arrow-type type-rigidify-sig! /TYPESIG)
+    VALUE_BLOCK -> block-arrow force! arrow-type type-rigidify-sig! /HOMTYPE)
 
 def(prim-type-arity, PrimType -- Int,
     PRIM_TYPE_MUT -> 1,
