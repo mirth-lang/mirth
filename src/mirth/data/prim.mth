@@ -124,7 +124,7 @@ data(Prim,
     PRIM_SYNTAX_ARROW)
 field(prim-name, Prim, Name)
 field(prim-ctx, Prim, Ctx)
-field(prim-type, Prim, TypeSig)
+field(prim-type, Prim, HomType)
 field(prim-decl, Prim, Maybe([Token -- Token]))
 
 ||| Does this name refer to this primitive?

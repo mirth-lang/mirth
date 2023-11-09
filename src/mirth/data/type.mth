@@ -27,7 +27,7 @@ data(Type,
     TTable -> Table,
     TData -> Data,
     TTensor -> Type Type,
-    TMorphism -> Type Type,
+    THom -> Type Type,
     TApp -> Type Type,
     TValue -> Value)
 
@@ -76,7 +76,7 @@ field(tag-data, Tag, Data)
 field(tag-name, Tag, Name)
 field(tag-value, Tag, Int)
 field(tag-sig, Tag, Maybe(Token))
-field(tag-ctx-type, Tag, Lazy([Ctx TypeSig]))
+field(tag-ctx-type, Tag, Lazy([Ctx HomType]))
 
 def(def-type!, Type Str --, dip(DEF_TYPE) name-new! name-def !)
 
@@ -100,7 +100,7 @@ def(init-types!, --,
 #########
 
 def(T*, Type Type -- Type, TTensor)
-def(T->, Type Type -- Type, TMorphism)
+def(T->, Type Type -- Type, THom)
 def(TMut, Type -- Type, TYPE_MUT swap TApp)
 
 def(T0, Type, TYPE_UNIT)
@@ -117,7 +117,7 @@ def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
 # def(type-is-var, Type -- Bool, match(TVar -> drop true, _ -> drop false))
 # def(type-is-meta, Type -- Bool, match(TMeta -> drop true, _ -> drop false))
 def(type-is-tensor, Type -- Bool, TTensor -> drop2 true, _ -> drop false)
-def(type-is-morphism, Type -- Bool, TMorphism -> drop2 true, _ -> drop false)
+def(type-is-morphism, Type -- Bool, THom -> drop2 true, _ -> drop false)
 # def(type-is-table, Type -- Bool, match(TTable -> drop true, _ -> drop false))
 # def(type-is-hole, Type -- Bool, match(THole -> drop true, _ -> drop false))
 # def(type-is-app, Type -- Bool, match(TApp -> drop2 true, _ -> drop false))
@@ -242,15 +242,15 @@ def(type-unify!, Gamma Type Type -- Gamma Type,
                 TTensor -> type-unify-pair! TTensor,
                 _ -> dip(TTensor) type-unify-failed!,
             ),
-        TMorphism ->
+        THom ->
             rotl type-expand match(
                 TYPE_ERROR -> drop2 TYPE_ERROR,
-                TYPE_DONT_CARE -> TMorphism,
-                THole -> dip(TMorphism) type-hole-unify!,
-                TMeta -> dip(TMorphism) meta-unify!,
-                TValue -> dip(TMorphism) type-value-unify!,
-                TMorphism -> type-unify-pair! TMorphism,
-                _ -> dip(TMorphism) type-unify-failed!,
+                TYPE_DONT_CARE -> THom,
+                THole -> dip(THom) type-hole-unify!,
+                TMeta -> dip(THom) meta-unify!,
+                TValue -> dip(THom) type-value-unify!,
+                THom -> type-unify-pair! THom,
+                _ -> dip(THom) type-unify-failed!,
             ),
         TApp ->
             rotl type-expand match(
@@ -331,11 +331,11 @@ def(value-type-unify!, Gamma Value Type -- Gamma Type,
         VALUE_BLOCK -> swap block-unify-type!,
     ))
 
-def(arrow-type, Arrow -- TypeSig,
+def(arrow-type, Arrow -- HomType,
     dup arrow-dom @ swap arrow-cod @ T-> TYPESIG)
     # TODO effects
 
-def(block-infer-type!, Block -- TypeSig,
+def(block-infer-type!, Block -- HomType,
     block-arrow force! arrow-type)
 
 def(type-unify-pair!, Gamma Type Type Type Type -- Gamma Type Type,
@@ -373,7 +373,7 @@ def(type-has-meta, MetaVar Type -- Bool,
     TVar -> drop2 false,
     THole -> drop2 false,
     TTensor -> type2-has-meta,
-    TMorphism -> type2-has-meta,
+    THom -> type2-has-meta,
     TApp -> type2-has-meta,
     TData -> drop2 false,
     TTable -> drop2 false,
@@ -396,7 +396,7 @@ def(value-type-has-meta, MetaVar Value -- Bool,
 def(type-trace-sig!, Type --,
     TMeta -> meta-expand-if(type-trace-sig!, meta-trace!),
     TYPE_ERROR -> "<ERROR>" str-trace!,
-    TMorphism ->
+    THom ->
         swap
         type-trace-stack-dom!
         "--" str-trace!
@@ -434,7 +434,7 @@ def(type-trace!, Type --,
     TVar -> var-name @ name-trace!,
     TMeta -> meta-trace!,
     TTensor -> "[" str-trace! TTensor type-trace-stack! "]" str-trace!,
-    TMorphism -> "[" str-trace! TMorphism type-trace-sig! "]" str-trace!,
+    THom -> "[" str-trace! THom type-trace-sig! "]" str-trace!,
     TData -> data-name @ name-trace!,
     TTable -> table-name @ name-trace!,
     THole -> name-trace!,
@@ -489,19 +489,19 @@ def(type-stack-replace-rest, Type TypeStack -- TypeStack,
 def(TYPESTACK*, TypeStack Type -- TypeStack,
     dip(/TYPESTACK) TTensor TYPESTACK)
 
-data(TypeSig, TYPESIG -> Type)
+data(HomType, TYPESIG -> Type)
 def(/TYPESIG, TYPESIG -> id)
-def(type-sig-expand-if(f,g), (*a TypeStack TypeStack -- *b, *a TypeSig -- *b)
-                              *a TypeSig -- *b,
+def(hom-type-expand-if(f,g), (*a TypeStack TypeStack -- *b, *a HomType -- *b)
+                              *a HomType -- *b,
     dup /TYPESIG type-expand match(
-        TMorphism -> dip(nip TYPESTACK) TYPESTACK f,
+        THom -> dip(nip TYPESTACK) TYPESTACK f,
         _ -> drop g
     ))
-def(TYPESIG->, TypeStack TypeStack -- TypeSig,
-    dip(/TYPESTACK) /TYPESTACK TMorphism TYPESIG)
+def(TYPESIG->, TypeStack TypeStack -- HomType,
+    dip(/TYPESTACK) /TYPESTACK THom TYPESIG)
 
-def(type-sig-needs-fresh-stack-rest, TypeSig -- Bool,
-    type-sig-expand-if(
+def(hom-type-needs-fresh-stack-rest, HomType -- Bool,
+    hom-type-expand-if(
         type-stack-root TYPE_UNIT == if(
             type-stack-root TYPE_UNIT ==,
             drop false
@@ -510,9 +510,9 @@ def(type-sig-needs-fresh-stack-rest, TypeSig -- Bool,
     ))
 
 ||| Replace the stack rest with a metavar, if it's unit.
-def(type-semifreshen-sig, TypeSig -- TypeSig,
-    dup type-sig-needs-fresh-stack-rest if(
-        type-sig-expand-if(
+def(type-semifreshen-sig, HomType -- HomType,
+    dup hom-type-needs-fresh-stack-rest if(
+        hom-type-expand-if(
             dip(meta-alloc! TMeta tuck)
             type-stack-replace-rest
             dip(type-stack-replace-rest)
@@ -524,7 +524,7 @@ def(type-semifreshen-sig, TypeSig -- TypeSig,
     ))
 
 ||| Freshen a type signature in preparation for type sig application.
-def(type-freshen-sig, Subst TypeSig -- Subst TypeSig,
+def(type-freshen-sig, Subst HomType -- Subst HomType,
     type-semifreshen-sig
     /TYPESIG type-freshen TYPESIG)
 
@@ -539,7 +539,7 @@ def(type-freshen, Subst Type -- Subst Type,
     TVar -> type-var-freshen,
     TMeta -> meta-freshen,
     TTensor -> type-pair-freshen TTensor,
-    TMorphism -> type-pair-freshen TMorphism,
+    THom -> type-pair-freshen THom,
     TApp -> type-pair-freshen TApp)
 
 def(type-pair-freshen, Subst Type Type -- Subst Type Type,
@@ -555,12 +555,12 @@ def(type-var-freshen, Subst Var -- Subst Type,
         dip(rotr subst-new!)
     ))
 
-def(type-rigidify-sig!, Ctx TypeSig -- Ctx TypeSig,
+def(type-rigidify-sig!, Ctx HomType -- Ctx HomType,
     /TYPESIG match(
         TMeta ->
             meta-expand-or-update!(
                 meta-alloc! TMeta
-                meta-alloc! TMeta TMorphism
+                meta-alloc! TMeta THom
             ) TYPESIG type-rigidify-sig!,
         _ -> type-rigidify! TYPESIG
     ))
@@ -597,10 +597,10 @@ def(type-rigidify!, Ctx Type -- Ctx Type,
         dip(type-rigidify-stack!) swap
         dip(type-rigidify!) swap
         TTensor,
-    TMorphism ->
+    THom ->
         dip(type-rigidify-stack!) swap
         dip(type-rigidify-stack!) swap
-        TMorphism,
+        THom,
     TValue ->
         type-rigidify-value!)
 
@@ -695,8 +695,8 @@ def(type-hole-unify!, Type Name -- Type,
 # Params #
 ##########
 
-def(type-sig-max-num-params, TypeSig -- Int,
-    type-sig-expand-if(
+def(hom-type-max-num-params, HomType -- Int,
+    hom-type-expand-if(
         drop /TYPESTACK type-num-morphisms-on-top,
         drop 0
     ))
