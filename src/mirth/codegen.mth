@@ -7,6 +7,7 @@ import(data.path)
 import(data.list)
 import(data.lazy)
 import(data.byte)
+import(data.maybe)
 import(mirth.data.error)
 import(mirth.data.module)
 import(mirth.data.location)
@@ -33,6 +34,36 @@ def(CODEGEN_BUF_SIZE, Size, 0x100)
 var(codegen-file, File)
 var(codegen-length, Size)
 buffer(CODEGEN_BUF, 0x100)
+data(Need,
+    NEED_WORD -> Word,
+    NEED_BLOCK -> Block)
+
+var(needs, Stack(Need))
+field(word-emitted,  Word, Bool)
+field(word-needed,   Word, Bool)
+field(block-emitted, Block, Bool)
+field(block-needed,  Block, Bool)
+
+def(reset-needs-and-emits!, --,
+    Block.for(false over block-needed ! false swap block-emitted !)
+    Word.for(false over word-needed ! false swap word-emitted !)
+    needs stack-reset!)
+
+def(need-block, Block --,
+    dup block-needed @ or(dup block-emitted @) if(
+        drop,
+        true over block-needed !
+        NEED_BLOCK needs stack-push!
+    ))
+def(need-word, Word --,
+    dup word-needed @ or(dup word-emitted @) if(
+        drop,
+        true over word-needed !
+        NEED_WORD needs stack-push!
+    ))
+
+def(for-needs(f), (*a Need -- *a) *a -- *a,
+    while-some(needs stack-pop!, f))
 
 def(codegen-full?, Bool,
     codegen-length @ 4 + CODEGEN_BUF_SIZE >=)
@@ -85,6 +116,7 @@ def(run-output-c99!, Arrow Path --,
         drop2,
 
         0 c99-depth !
+        reset-needs-and-emits!
         make-output-path Path->Str
         create-file! codegen-start!
         c99-header!
@@ -96,9 +128,13 @@ def(run-output-c99!, Arrow Path --,
         c99-block-sigs!
         c99-field-sigs!
         c99-main!
-        c99-word-defs!
-        c99-block-defs!
         c99-field-defs!
+        for-needs(
+            match(
+                NEED_BLOCK -> c99-block-def!,
+                NEED_WORD -> c99-word-def!
+            )
+        )
         codegen-end!
     ))
 
@@ -214,7 +250,7 @@ def(c99-args-op!, List(Arg) Op --,
     OP_INT      -> nip c99-int!,
     OP_STR      -> nip c99-str!,
     OP_CONSTANT -> nip c99-constant!,
-    OP_WORD     -> word-name     @ c99-call!,
+    OP_WORD     -> dup need-word word-name @ c99-call!,
     OP_EXTERNAL -> external-name @ c99-call!,
     OP_BUFFER   -> buffer-name   @ c99-call!,
     OP_VARIABLE -> variable-name @ c99-call!,
@@ -368,6 +404,7 @@ def(c99-block-push!, Block --,
     dup block-to-run-var match(
         SOME -> nip c99-var-push!,
         NONE ->
+            dup need-block
             dup block-arrow force! arrow-ctx @ c99-pack-ctx!
             c99-line("push_fnptr(&" . .block ");" .)
             c99-line("mw_prim_pack_cons();" .)
@@ -473,6 +510,7 @@ def(c99-block-exit!, Block --,
 
 def(c99-block-defs!, --, Block.for(c99-block-def!) .lf)
 def(c99-block-def!, Block --,
+    true over block-emitted !
     c99-line("static void " . dup .block " (void) {" .)
     c99-nest(
         dup c99-block-enter!
@@ -509,6 +547,7 @@ def(c99-word-exit!, Word --,
 
 def(c99-word-defs!, --, Word.for(c99-word-def!) .lf)
 def(c99-word-def!, Word --,
+    true over word-emitted !
     c99-line(dup word-name @ .w "{" .)
     c99-nest(
         dup c99-word-enter!
