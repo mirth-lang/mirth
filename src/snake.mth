@@ -24,11 +24,7 @@ buffer(SNAKE_QUEUE_Y, 0x1000)
 buffer(SNAKE_GRID, 0x1000)
 buffer(SNAKE_EVENT, 0x100)
 
-def-type(Direction, U8)
-def(DNORTH, Direction, 0 Int->U8)
-def(DEAST, Direction, 1 Int->U8)
-def(DSOUTH, Direction, 2 Int->U8)
-def(DWEST, Direction, 3 Int->U8)
+data(Direction, DNORTH, DEAST, DSOUTH, DWEST)
 
 def-type(XCoord, U8)
 def(XCoord->Int, XCoord -- Int, U8->Int)
@@ -97,44 +93,29 @@ def(SNAKE_RENDERER_FLAGS, SDL_RendererFlags,
     SDL_RENDERER_PRESENTVSYNC U32->Int |
     Int->U32)
 
-def-type(SnakeButton, U8)
-def(SNAKE_BUTTON_NONE, SnakeButton, 0 Int->U8)
-def(SNAKE_BUTTON_UP, SnakeButton, 1 Int->U8)
-def(SNAKE_BUTTON_RIGHT, SnakeButton, 2 Int->U8)
-def(SNAKE_BUTTON_DOWN, SnakeButton, 3 Int->U8)
-def(SNAKE_BUTTON_LEFT, SnakeButton, 4 Int->U8)
-def(SNAKE_BUTTON_START, SnakeButton, 5 Int->U8)
+data(SnakeButton,
+    SNAKE_BUTTON_NONE,
+    SNAKE_BUTTON_UP,
+    SNAKE_BUTTON_RIGHT,
+    SNAKE_BUTTON_DOWN,
+    SNAKE_BUTTON_LEFT,
+    SNAKE_BUTTON_START)
 
 def(SDL_Scancode->SnakeButton, SDL_Scancode -- SnakeButton,
-    dup SDL_SCANCODE_UP == if(
-        drop SNAKE_BUTTON_UP,
-    dup SDL_SCANCODE_RIGHT == if(
-        drop SNAKE_BUTTON_RIGHT,
-    dup SDL_SCANCODE_DOWN == if(
-        drop SNAKE_BUTTON_DOWN,
-    dup SDL_SCANCODE_LEFT == if(
-        drop SNAKE_BUTTON_LEFT,
-    dup SDL_SCANCODE_SPACE == if(
-        drop SNAKE_BUTTON_START,
-
-        drop SNAKE_BUTTON_NONE
-    ))))))
+    SDL_SCANCODE_UP -> SNAKE_BUTTON_UP,
+    SDL_SCANCODE_DOWN -> SNAKE_BUTTON_DOWN,
+    SDL_SCANCODE_LEFT -> SNAKE_BUTTON_LEFT,
+    SDL_SCANCODE_RIGHT -> SNAKE_BUTTON_RIGHT,
+    SDL_SCANCODE_SPACE -> SNAKE_BUTTON_START,
+    _ -> drop SNAKE_BUTTON_NONE)
 
 def(SDL_GameControllerButton->SnakeButton, SDL_GameControllerButton -- SnakeButton,
-
-    dup SDL_CONTROLLER_BUTTON_DPAD_UP == if(
-        drop SNAKE_BUTTON_UP,
-    dup SDL_CONTROLLER_BUTTON_DPAD_DOWN == if(
-        drop SNAKE_BUTTON_DOWN,
-    dup SDL_CONTROLLER_BUTTON_DPAD_LEFT == if(
-        drop SNAKE_BUTTON_LEFT,
-    dup SDL_CONTROLLER_BUTTON_DPAD_RIGHT == if(
-        drop SNAKE_BUTTON_RIGHT,
-    dup SDL_CONTROLLER_BUTTON_START == if(
-        drop SNAKE_BUTTON_START,
-
-        drop SNAKE_BUTTON_NONE
-    ))))))
+    SDL_CONTROLLER_BUTTON_DPAD_UP -> SNAKE_BUTTON_UP,
+    SDL_CONTROLLER_BUTTON_DPAD_DOWN -> SNAKE_BUTTON_DOWN,
+    SDL_CONTROLLER_BUTTON_DPAD_LEFT -> SNAKE_BUTTON_LEFT,
+    SDL_CONTROLLER_BUTTON_DPAD_RIGHT -> SNAKE_BUTTON_RIGHT,
+    SDL_CONTROLLER_BUTTON_START -> SNAKE_BUTTON_START,
+    _ -> drop SNAKE_BUTTON_NONE)
 
 def(snake!, --,
     snake-init!
@@ -292,41 +273,12 @@ def(snake-process-event!, --,
     ))))
 
 def(snake-press!, SnakeButton --,
-    dup SNAKE_BUTTON_NONE == if(
-        drop,
-    dup SNAKE_BUTTON_UP == if(
-        drop
-        DSOUTH snake-last-direction @ == if(
-            id,
-            DNORTH snake-direction !
-        ),
-    dup SNAKE_BUTTON_RIGHT == if(
-        drop
-        DWEST snake-last-direction @ == if(
-            id,
-            DEAST snake-direction !
-        ),
-    dup SNAKE_BUTTON_DOWN == if(
-        drop
-        DNORTH snake-last-direction @ == if(
-            id,
-            DSOUTH snake-direction !
-        ),
-    dup SNAKE_BUTTON_LEFT == if(
-        drop
-        DEAST snake-last-direction @ == if(
-            id,
-            DWEST snake-direction !
-        ),
-    dup SNAKE_BUTTON_START == if(
-        drop
-        snake-dead @ if(
-            snake-reset!,
-            id
-        ),
-
-        drop "Unhandled button press!" panic!
-    )))))))
+    SNAKE_BUTTON_NONE -> id,
+    SNAKE_BUTTON_UP -> DNORTH snake-turn!,
+    SNAKE_BUTTON_RIGHT -> DWEST snake-turn!,
+    SNAKE_BUTTON_DOWN -> DSOUTH snake-turn!,
+    SNAKE_BUTTON_LEFT -> DEAST snake-turn!,
+    SNAKE_BUTTON_START -> snake-dead @ if(snake-reset!, id))
 
 var(tick-timer, Int)
 def(TICK_FRAMES, Int, 7)
@@ -394,17 +346,27 @@ def(snake-check-mouse!, --,
         id
     ))
 
-def(snake-apply-direction, XCoord YCoord Direction -- XCoord YCoord,
-    dup DNORTH == if(
-        drop YCoord->Int 1- SNAKE_H + SNAKE_H % Int->YCoord,
-    dup DEAST == if(
-        drop dip(XCoord->Int 1+ SNAKE_W % Int->XCoord),
-    dup DSOUTH == if(
-        drop YCoord->Int 1+ SNAKE_H % Int->YCoord,
-    dup DWEST == if(
-        drop dip(XCoord->Int 1- SNAKE_W + SNAKE_W % Int->XCoord),
+def(snake-turn!, Direction --,
+    dup snake-flip-direction snake-last-direction @ == if(
+        drop, # can't turn back directly
+        snake-direction !
+    ))
 
-        "unknown direction in snake-apply-direction" panic!
-    )))) )
+def(snake-flip-direction, Direction -- Direction,
+    DNORTH -> DSOUTH,
+    DWEST -> DEAST,
+    DSOUTH -> DNORTH,
+    DEAST -> DWEST)
+
+def(snake-direction-offset, Direction -- Int Int,
+    DNORTH ->  0 -1,
+    DEAST  -> -1  0,
+    DSOUTH ->  0  1,
+    DWEST  ->  1  0)
+
+def(snake-apply-direction, XCoord YCoord Direction -- XCoord YCoord,
+    snake-direction-offset
+    dip(swap YCoord->Int) + SNAKE_H + SNAKE_H % Int->YCoord
+    dip(dip(XCoord->Int) + SNAKE_W + SNAKE_W % Int->XCoord))
 
 target-c99("snake.c", snake!)
