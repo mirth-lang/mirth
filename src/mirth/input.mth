@@ -19,7 +19,7 @@ def(input-start!, File --,
     input-handle !
     0 input-length !
     0 input-offset !
-    true input-isopen !
+    T input-isopen !
     input-fill-buffer!)
 
 def(input-end!, --,
@@ -30,7 +30,7 @@ def(input-end!, --,
     stdin input-handle !
     0 input-length !
     0 input-offset !
-    false input-isopen !)
+    F input-isopen !)
 
 def(input-done?, Bool,
     input-isopen @ not)

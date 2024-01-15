@@ -5,8 +5,8 @@ import(prelude)
 data(Maybe(t), NONE, SOME -> t)
 
 def(is-none, Maybe(t) -- Bool,
-    NONE -> true,
-    SOME -> drop false)
+    NONE -> T,
+    SOME -> drop F)
 def(is-some, Maybe(t) -- Bool, is-none not)
 
 def(unwrap, Maybe(t) -- t,

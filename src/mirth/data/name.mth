@@ -47,7 +47,7 @@ def(next-hash, Hash -- Hash, Hash->Int 1+ Int->Hash)
 
 def(name-keep-going?, Str Hash -- Str Hash Bool,
     dup hash-name@ match(
-        NONE -> false,
+        NONE -> F,
         SOME -> name-str @ over2 <>
     ))
 

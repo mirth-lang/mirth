@@ -126,7 +126,7 @@ field(prim-decl, Prim, Maybe([Token -- Token]))
 def(name-prim=, Name Prim -- Bool,
     swap name-def @ match(
         DEF_PRIM -> ==,
-        _ -> drop2 false
+        _ -> drop2 F
     ))
 
 ||| Does the token refer to this primitive? Preserves the token.
@@ -139,7 +139,7 @@ def(token-prim=, Token Prim -- Bool,
         TOKEN_NAME ->
             swap name-prim=,
         _ ->
-            drop2 false
+            drop2 F
     ))
 
 ||| Auxilliary word for defining primitives.

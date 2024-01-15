@@ -95,7 +95,7 @@ def(is-directory?, Path -- Path Bool,
         POSIX_STAT_BUF with-raw-ptr(stat)
         swap 0 == if(
             st_mode@ S_ISDIR,
-            drop false
+            drop F
         )
     ) swap)
 

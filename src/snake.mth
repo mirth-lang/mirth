@@ -148,7 +148,7 @@ def(snake-reset!, --,
     0 snake-queue-length !
     snake-grid-clear!
     snake-randomize-mouse!
-    false snake-dead !
+    F snake-dead !
     0 snake-points !
     0 tick-timer !)
 
@@ -195,7 +195,7 @@ def(snake-init!, --,
     ))
 
 def(snake-loop!, --,
-    false snake-done !
+    F snake-done !
     snake-process-events!
     while(snake-done @ not,
         snake-present!
@@ -267,7 +267,7 @@ def(snake-process-events!, --,
 def(snake-process-event!, --,
     SNAKE_EVENT SDL_Event.type
     dup SDL_QUIT == if(
-        drop true snake-done !,
+        drop T snake-done !,
 
     dup SDL_KEYDOWN == if(
         drop
@@ -275,7 +275,7 @@ def(snake-process-event!, --,
             id,
             SNAKE_EVENT SDL_Event.key.keysym.scancode
             dup SDL_SCANCODE_ESCAPE == if(
-                drop true snake-done !,
+                drop T snake-done !,
                 SDL_Scancode->SnakeButton snake-press!
             )
         ),
@@ -334,8 +334,8 @@ def(TICK_FRAMES, Int, 7)
 def(snake-tick!, Bool,
     tick-timer @
     1+ dup TICK_FRAMES >= if(
-        drop 0 tick-timer ! true,
-        tick-timer ! false
+        drop 0 tick-timer ! T,
+        tick-timer ! F
     ))
 
 def(snake-update!, --,
@@ -351,7 +351,7 @@ def(snake-update!, --,
         snake-xy!
 
         snake-xy@ snake-grid@ U8->Int 0> if(
-            true snake-dead !,
+            T snake-dead !,
 
             1 Int->U8 snake-xy@ snake-grid!
             snake-check-mouse!

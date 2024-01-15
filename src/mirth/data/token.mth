@@ -39,35 +39,35 @@ def(token-alloc!, Token,
     TOKEN_NONE over token-value !)
 
 def(token-is-int?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_INT -> drop true, _ -> drop false))
+    dup token-value @ match(TOKEN_INT -> drop T, _ -> drop F))
 def(token-is-str?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_STR -> drop true, _ -> drop false))
+    dup token-value @ match(TOKEN_STR -> drop T, _ -> drop F))
 def(token-is-name?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_NAME -> drop true, _ -> drop false))
+    dup token-value @ match(TOKEN_NAME -> drop T, _ -> drop F))
 def(token-is-comma?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_COMMA -> true, _ -> drop false))
+    dup token-value @ match(TOKEN_COMMA -> T, _ -> drop F))
 def(token-is-arrow?, Token -- Token Bool,
     PRIM_SYNTAX_ARROW token-prim=?)
 def(token-is-dashes?, Token -- Token Bool,
     PRIM_SYNTAX_DASHES token-prim=?)
 def(token-is-lparen-open?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_LPAREN_OPEN -> true, _ -> drop false))
+    dup token-value @ match(TOKEN_LPAREN_OPEN -> T, _ -> drop F))
 def(token-is-lparen?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_LPAREN -> drop true, _ -> drop false))
+    dup token-value @ match(TOKEN_LPAREN -> drop T, _ -> drop F))
 def(token-is-rparen?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_RPAREN -> drop true, _ -> drop false))
+    dup token-value @ match(TOKEN_RPAREN -> drop T, _ -> drop F))
 def(token-is-lsquare-open?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_LSQUARE_OPEN -> true, _ -> drop false))
+    dup token-value @ match(TOKEN_LSQUARE_OPEN -> T, _ -> drop F))
 def(token-is-lsquare?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_LSQUARE -> drop true, _ -> drop false))
+    dup token-value @ match(TOKEN_LSQUARE -> drop T, _ -> drop F))
 def(token-is-rsquare?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_RSQUARE -> drop true, _ -> drop false))
+    dup token-value @ match(TOKEN_RSQUARE -> drop T, _ -> drop F))
 def(token-is-lcurly-open?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_LCURLY_OPEN -> true, _ -> drop false))
+    dup token-value @ match(TOKEN_LCURLY_OPEN -> T, _ -> drop F))
 def(token-is-lcurly?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_LCURLY -> drop true, _ -> drop false))
+    dup token-value @ match(TOKEN_LCURLY -> drop T, _ -> drop F))
 def(token-is-rcurly?, Token -- Token Bool,
-    dup token-value @ match(TOKEN_RCURLY -> drop true, _ -> drop false))
+    dup token-value @ match(TOKEN_RCURLY -> drop T, _ -> drop F))
 
 ||| Get token name value, or raise a fatal error.
 def(token-name@, Token -- Name,
@@ -105,27 +105,27 @@ def(token-int?, Token -- Token Int,
 ||| Is this an arg ending (COMMA, RPAREN, RSQUARE, RCURLY)?
 def(token-is-arg-end?, Token -- Token Bool,
     dup token-value @ match(
-        TOKEN_COMMA -> true,
-        TOKEN_RPAREN -> drop true,
-        TOKEN_RSQUARE -> drop true,
-        TOKEN_RCURLY -> drop true,
-        _ -> drop false
+        TOKEN_COMMA -> T,
+        TOKEN_RPAREN -> drop T,
+        TOKEN_RSQUARE -> drop T,
+        TOKEN_RCURLY -> drop T,
+        _ -> drop F
     ))
 
 def(token-is-left-enclosure?, Token -- Token Bool,
     dup token-value @ match(
-        TOKEN_LPAREN -> drop true,
-        TOKEN_LSQUARE -> drop true,
-        TOKEN_LCURLY -> drop true,
-        _ -> drop false
+        TOKEN_LPAREN -> drop T,
+        TOKEN_LSQUARE -> drop T,
+        TOKEN_LCURLY -> drop T,
+        _ -> drop F
     ))
 
 def(token-is-right-enclosure?, Token -- Token Bool,
     dup token-value @ match(
-        TOKEN_RPAREN -> drop true,
-        TOKEN_RSQUARE -> drop true,
-        TOKEN_RCURLY -> drop true,
-        _ -> drop false
+        TOKEN_RPAREN -> drop T,
+        TOKEN_RSQUARE -> drop T,
+        TOKEN_RCURLY -> drop T,
+        _ -> drop F
     ))
 
 def(token-location, Token -- Location,
@@ -293,19 +293,19 @@ def(emit-fatal-error!, *a Token Str -- *b,
 ||| Is this the end of a module?
 def(token-is-module-end?, Token -- Token Bool,
     dup token-value @ match(
-        TOKEN_NONE -> true,
-        _ -> drop false
+        TOKEN_NONE -> T,
+        _ -> drop F
     ))
 
 ||| Is this a token to stop running at?
 def(token-run-end?, Token -- Token Bool,
     dup token-value @ match(
-        TOKEN_NONE -> true,
-        TOKEN_COMMA -> true,
-        TOKEN_RPAREN -> drop true,
-        TOKEN_RSQUARE -> drop true,
-        TOKEN_RCURLY -> drop true,
-        _ -> drop false
+        TOKEN_NONE -> T,
+        TOKEN_COMMA -> T,
+        TOKEN_RPAREN -> drop T,
+        TOKEN_RSQUARE -> drop T,
+        TOKEN_RCURLY -> drop T,
+        _ -> drop F
     ))
 
 def(token-run, Token -- List(Token),
@@ -323,13 +323,13 @@ def(token-run-has-dashes, Token -- Bool,
 
 def(sig-is-stack-end?, Token -- Token Bool,
     token-is-dashes? if(
-        true,
+        T,
         token-run-end?
     ))
 
 def(sig-is-stack-end2?, Token -- Token Bool,
     sig-is-stack-end? if(
-        true,
+        T,
         sig-token-is-effect-con?
     ))
 
@@ -362,31 +362,31 @@ def(sig-count-types, Token -- Int Token,
 def(sig-token-is-type?, Token -- Token Bool,
     dup token-value @ match(
         TOKEN_NAME -> name-could-be-type,
-        _ -> drop false
+        _ -> drop F
     ))
 
 def(sig-token-is-type-con?, Token -- Token Bool,
     dup token-value @ match(
         TOKEN_NAME -> name-could-be-type-con,
-        _ -> drop false
+        _ -> drop F
     ))
 
 def(sig-token-is-type-hole?, Token -- Token Bool,
     dup token-value @ match(
         TOKEN_NAME -> name-is-type-hole,
-        _ -> drop false
+        _ -> drop F
     ))
 
 def(token-is-underscore?, Token -- Token Bool,
     dup token-value @ match(
         TOKEN_NAME -> name-is-underscore,
-        _ -> drop false
+        _ -> drop F
     ))
 
 def(sig-token-is-type-var?, Token -- Token Bool,
     dup token-value @ match(
         TOKEN_NAME -> name-could-be-type-var,
-        _ -> drop false
+        _ -> drop F
     ))
 def(token-is-param-name?, Token -- Token Bool,
     sig-token-is-type-var?)
@@ -394,13 +394,13 @@ def(token-is-param-name?, Token -- Token Bool,
 def(sig-token-is-stack-var?, Token -- Token Bool,
     dup token-value @ match(
         TOKEN_NAME -> name-could-be-stack-var,
-        _ -> drop false
+        _ -> drop F
     ))
 
 def(sig-token-is-effect-con?, Token -- Token Bool,
     dup token-value @ match(
         TOKEN_NAME -> name-could-be-effect-con,
-        _ -> drop false
+        _ -> drop F
     ))
 
 def(sig-skip-dashes, Token -- Token,
