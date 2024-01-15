@@ -44,7 +44,6 @@ data(PrimType,
     PRIM_TYPE_INT,
     PRIM_TYPE_PTR,
     PRIM_TYPE_STR,
-    PRIM_TYPE_BOOL,
     PRIM_TYPE_U64,
     PRIM_TYPE_U32,
     PRIM_TYPE_U16,
@@ -67,7 +66,7 @@ table(Tag)
 
 field(meta-type, MetaVar, Maybe(Type))
 
-field(data-header, Data, Token)
+field(data-header, Data, Maybe(Token))
 field(data-name, Data, Name)
 field(data-arity, Data, Int)
 field(data-tags, Data, List(Tag))
@@ -80,7 +79,39 @@ field(tag-ctx-type, Tag, Lazy([Ctx Type]))
 
 def(def-type!, Type Str --, dip(DEF_TYPE) name-new! name-def !)
 
+var(DATA_BOOL, Data)
+var(TAG_T, Tag)
+var(TAG_F, Tag)
+def(TYPE_BOOL, Type, DATA_BOOL @ TData)
+
 def(init-types!, --,
+    Data.alloc! DATA_BOOL !
+    Tag.alloc! TAG_F !
+    Tag.alloc! TAG_T !
+    
+    0 DATA_BOOL @ data-arity !
+    "Bool" name-new! DATA_BOOL @ data-name !
+    TAG_T @ TAG_F @ L2 DATA_BOOL @ data-tags !
+    NONE DATA_BOOL @ data-header !
+
+    DATA_BOOL @ TAG_F @ tag-data !
+    "F" name-new! TAG_F @ tag-name !
+    0 TAG_F @ tag-value !
+    NONE TAG_F @ tag-sig !
+    TAG_F @ DEF_TAG TAG_F @ tag-name @ name-def !
+
+    DATA_BOOL @ TAG_T @ tag-data !
+    "T" name-new! TAG_T @ tag-name !
+    1 TAG_T @ tag-value !
+    NONE TAG_T @ tag-sig !
+    TAG_T @ DEF_TAG TAG_T @ tag-name @ name-def !
+
+    ctx-empty
+    T0 TYPE_BOOL T1 T->
+    pack2 LAZY_READY dup
+    TAG_F @ tag-ctx-type !
+    TAG_T @ tag-ctx-type !
+
     TYPE_INT "Int" def-type!
     TYPE_PTR "Ptr" def-type!
     TYPE_STR "Str" def-type!
@@ -147,7 +178,6 @@ def(TYPE_TYPE, Type, PRIM_TYPE_TYPE TPrim) # type of types
 def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
 def(TYPE_EFFECT, Type, PRIM_TYPE_EFFECT TPrim) # type of effect types
 def(TYPE_UNIT, Type, PRIM_TYPE_UNIT TPrim) # unit type
-def(TYPE_BOOL, Type, PRIM_TYPE_BOOL TPrim) # bool type
 def(TYPE_MUT, Type, PRIM_TYPE_MUT TPrim)
 def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
 def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
@@ -454,7 +484,6 @@ def(type-trace-prim!, PrimType --,
         PRIM_TYPE_STACK -> "<STACK>",
         PRIM_TYPE_EFFECT -> "<EFFECT>",
         PRIM_TYPE_UNIT -> "[]",
-        PRIM_TYPE_BOOL -> "Bool",
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",

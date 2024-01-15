@@ -15,8 +15,8 @@ import(mirth.elab)
 def(init!, --,
     init-errors!
     init-paths!
-    init-prims!
     init-types!
+    init-prims!
     init-elab!)
 
 ########
