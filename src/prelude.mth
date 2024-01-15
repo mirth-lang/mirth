@@ -265,9 +265,6 @@ def(I16->Int, I16 -- Int, prim-unsafe-cast)
 def(I32->Int, I32 -- Int, prim-unsafe-cast)
 def(I64->Int, I64 -- Int, prim-unsafe-cast)
 
-def(Int->Char, Int -- Char, prim-unsafe-cast) # unsafe
-def(Char->Int, Char -- Int, prim-unsafe-cast)
-
 def(abs, Int -- Int, dup 0< if(negate, id))
 
 ##########
