@@ -18,11 +18,11 @@ field(var-auto-run, Var, Bool) # run variable by default
 def(var-new!, Name -- Var,
     Var.alloc!
     tuck var-name !
-    false over var-auto-run !)
+    F over var-auto-run !)
 
 def(var-new-implicit!, Name -- Var,
     var-new!
-    true over var-is-implicit !)
+    T over var-is-implicit !)
 
 def(var-is-physical, Var -- Bool,
     var-type @ type-is-physical)

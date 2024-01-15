@@ -50,19 +50,19 @@ def(byte!, Byte Ptr --, dip(Byte->U8) u8!)
 def(byte-is-upper, Byte -- Bool, B'A' B'Z' in-range)
 def(byte-is-lower, Byte -- Bool, B'a' B'z' in-range)
 def(byte-is-digit, Byte -- Bool, B'0' B'9' in-range)
-def(byte-is-alpha, Byte -- Bool, dup byte-is-upper if(drop true, byte-is-lower))
-def(byte-is-alnum, Byte -- Bool, dup byte-is-digit if(drop true, byte-is-alpha))
+def(byte-is-alpha, Byte -- Bool, dup byte-is-upper if(drop T, byte-is-lower))
+def(byte-is-alnum, Byte -- Bool, dup byte-is-digit if(drop T, byte-is-alpha))
 
 def(byte-is-hexdigit, Byte -- Bool,
-    B'0' -> true, B'1' -> true, B'2' -> true, B'3' -> true,
-    B'4' -> true, B'5' -> true, B'6' -> true, B'7' -> true,
-    B'8' -> true, B'9' -> true, B'A' -> true, B'B' -> true,
-    B'C' -> true, B'D' -> true, B'E' -> true, B'F' -> true,
-    _ -> drop false)
+    B'0' -> T, B'1' -> T, B'2' -> T, B'3' -> T,
+    B'4' -> T, B'5' -> T, B'6' -> T, B'7' -> T,
+    B'8' -> T, B'9' -> T, B'A' -> T, B'B' -> T,
+    B'C' -> T, B'D' -> T, B'E' -> T, B'F' -> T,
+    _ -> drop F)
 
 def(byte-is-string-end, Byte -- Bool,
-    BQUOTE -> true, BLF -> true, BNUL -> true, _ -> drop false)
-
+    BQUOTE -> T, BLF -> T, BNUL -> T, _ -> drop F)
+    
 def(byte-to-lower, Byte -- Byte,
     dup byte-is-upper if(Byte->Int 0x20 + Int->Byte, id))
 def(byte-to-upper, Byte -- Byte,
@@ -77,18 +77,18 @@ def(one-hexdigit-byte, Int -- Byte,
 
 
 def(byte-is-name-byte, Byte -- Bool,
-    BLPAREN -> false,
-    BRPAREN -> false,
-    BLSQUARE -> false,
-    BRSQUARE -> false,
-    BLCURLY -> false,
-    BRCURLY -> false,
-    BCOMMA -> false,
-    BQUOTE -> false,
-    BDEL -> false,
+    BLPAREN -> F,
+    BRPAREN -> F,
+    BLSQUARE -> F,
+    BRSQUARE -> F,
+    BLCURLY -> F,
+    BRCURLY -> F,
+    BCOMMA -> F,
+    BQUOTE -> F,
+    BDEL -> F,
     _ -> BSPACE >)
 
 def(byte-is-sign, Byte -- Bool,
-    B'-' -> true,
-    B'+' -> true,
-    _ -> drop false)
+    B'-' -> T,
+    B'+' -> T,
+    _ -> drop F)

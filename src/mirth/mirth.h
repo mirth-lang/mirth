@@ -553,34 +553,6 @@ static void mw_prim_int_shr (void) {
     PRIM_EXIT(mw_prim_int_shr);
 }
 
-static void mw_prim_bool_true (void) {
-    PRIM_ENTER(mw_prim_bool_true,"prim-bool-true");
-    push_bool(true);
-    PRIM_EXIT(mw_prim_bool_true);
-}
-
-static void mw_prim_bool_false (void) {
-    PRIM_ENTER(mw_prim_bool_false,"prim-bool-false");
-    push_bool(false);
-    PRIM_EXIT(mw_prim_bool_false);
-}
-
-static void mw_prim_bool_and (void) {
-    PRIM_ENTER(mw_prim_bool_and,"prim-bool-and");
-    uint64_t b = pop_bool();
-    uint64_t a = pop_bool();
-    push_bool(a && b);
-    PRIM_EXIT(mw_prim_bool_and);
-}
-
-static void mw_prim_bool_or (void) {
-    PRIM_ENTER(mw_prim_bool_or,"prim-bool-or");
-    uint64_t b = pop_bool();
-    uint64_t a = pop_bool();
-    push_bool(a || b);
-    PRIM_EXIT(mw_prim_bool_or);
-}
-
 static void mw_prim_value_eq (void) {
     PRIM_ENTER(mw_prim_value_eq,"prim-value-eq");
     VAL b = pop_value();

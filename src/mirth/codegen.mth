@@ -45,20 +45,20 @@ field(block-emitted, Block, Bool)
 field(block-needed,  Block, Bool)
 
 def(reset-needs-and-emits!, --,
-    Block.for(false over block-needed ! false swap block-emitted !)
-    Word.for(false over word-needed ! false swap word-emitted !)
+    Block.for(F over block-needed ! F swap block-emitted !)
+    Word.for(F over word-needed ! F swap word-emitted !)
     needs stack-reset!)
 
 def(need-block, Block --,
     dup block-needed @ or(dup block-emitted @) if(
         drop,
-        true over block-needed !
+        T over block-needed !
         NEED_BLOCK needs stack-push!
     ))
 def(need-word, Word --,
     dup word-needed @ or(dup word-emitted @) if(
         drop,
-        true over word-needed !
+        T over word-needed !
         NEED_WORD needs stack-push!
     ))
 
@@ -270,7 +270,7 @@ def(c99-str!, Str --,
     c99-nest(
         c99-line("static bool vready = false;" .)
         c99-line("static VAL v;" .)
-        c99-line("if (!vready) {" .)
+        c99-line("if (! vready) {" .)
         c99-nest(
             dup str-num-bytes 4090 > if(
                 "static uint8_t b[] = {" .
@@ -352,7 +352,7 @@ def(c99-prim!, List(Arg) Prim --,
                 c99-line("while(1) {" .)
                 c99-nest(
                     swap c99-arg-run!
-                    c99-line("if (!pop_u64()) break;" .)
+                    c99-line("if (! pop_u64()) break;" .)
                     c99-arg-run!
                 )
                 c99-line("}" .),
@@ -510,7 +510,7 @@ def(c99-block-exit!, Block --,
 
 def(c99-block-defs!, --, Block.for(c99-block-def!) .lf)
 def(c99-block-def!, Block --,
-    true over block-emitted !
+    T over block-emitted !
     c99-line("static void " . dup .block " (void) {" .)
     c99-nest(
         dup c99-block-enter!
@@ -547,7 +547,7 @@ def(c99-word-exit!, Word --,
 
 def(c99-word-defs!, --, Word.for(c99-word-def!) .lf)
 def(c99-word-def!, Word --,
-    true over word-emitted !
+    T over word-emitted !
     c99-line(dup word-name @ .w "{" .)
     c99-nest(
         dup c99-word-enter!
@@ -562,7 +562,7 @@ def(c99-field-def!, Field --,
     "static VAL* fieldptr_" . dup field-name @ .name " (size_t i) {" ;
     "    static struct VAL * p = 0;";
     "    size_t m = " . TABLE_MAX_SIZE .n ";" ;
-    "    if (!p) { p = calloc(m, sizeof *p); }" ;
+    "    if (! p) { p = calloc(m, sizeof *p); }" ;
     "    if (i>=m) { write(2,\"table too big\\n\",14); exit(123); }" ;
     "    return p+i;" ;
     "}" ;;  # TODO make this more flexible wrt table size

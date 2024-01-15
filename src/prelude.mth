@@ -42,10 +42,10 @@ alias(>>, prim-int-shr)
 alias(int@, prim-int-get)
 alias(int!, prim-int-set)
 
-alias(true, prim-bool-true)
-alias(false, prim-bool-false)
-alias(&&, prim-bool-and)
-alias(||, prim-bool-or)
+def(&&, Bool Bool -- Bool, T -> id, F -> drop F)
+def(||, Bool Bool -- Bool, T -> drop T, F -> id)
+def(or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(T, p))
+def(and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, F))
 
 # use ptr+ only if Ptr is static or has another reference
 # otherwise use with-ptr+
@@ -149,9 +149,6 @@ def(drop4, a b c d --, drop drop drop drop)
 def(rot4r, a b c d -- d a b c, swap dip(rotr))
 def(rot4l, a b c d -- b c d a, dip(rotl) swap)
 
-def(or(f), (*a -- *a Bool) *a Bool -- *a Bool, if(true, f))
-def(and(f), (*a -- *a Bool) *a Bool -- *a Bool, if(f, false))
-
 def(repeat(f), (*a -- *a) *a Int -- *a,
     while(dup 0 >, dip(f) 1-) drop)
 
@@ -179,7 +176,7 @@ def(I8_MIN, Int, -0x80)
 def(I16_MIN, Int, -0x8000)
 def(I32_MIN, Int, -0x80000000)
 
-def(not, Bool -- Bool, false ==)
+def(not, Bool -- Bool, F ==)
 
 data(Comparison, EQ, LT, GT)
 

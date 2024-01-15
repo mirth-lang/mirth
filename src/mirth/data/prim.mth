@@ -46,11 +46,6 @@ data(Prim,
     PRIM_INT_SET,
     PRIM_INT_TO_STR,
 
-    PRIM_BOOL_TRUE,
-    PRIM_BOOL_FALSE,
-    PRIM_BOOL_AND,
-    PRIM_BOOL_OR,
-
     PRIM_PACK_NIL,
     PRIM_PACK_CONS,
     PRIM_PACK_UNCONS,
@@ -131,7 +126,7 @@ field(prim-decl, Prim, Maybe([Token -- Token]))
 def(name-prim=, Name Prim -- Bool,
     swap name-def @ match(
         DEF_PRIM -> ==,
-        _ -> drop2 false
+        _ -> drop2 F
     ))
 
 ||| Does the token refer to this primitive? Preserves the token.
@@ -144,7 +139,7 @@ def(token-prim=, Token Prim -- Bool,
         TOKEN_NAME ->
             swap name-prim=,
         _ ->
-            drop2 false
+            drop2 F
     ))
 
 ||| Auxilliary word for defining primitives.
@@ -213,11 +208,6 @@ def(init-prims!, --,
     PRIM_INT_GET "prim-int-get" def-prim!
     PRIM_INT_SET "prim-int-set" def-prim!
     PRIM_INT_TO_STR "prim-int-to-str" def-prim!
-
-    PRIM_BOOL_TRUE "prim-bool-true" def-prim!
-    PRIM_BOOL_FALSE "prim-bool-false" def-prim!
-    PRIM_BOOL_AND "prim-bool-and" def-prim!
-    PRIM_BOOL_OR "prim-bool-or" def-prim!
 
     PRIM_PACK_NIL "prim-pack-nil" def-prim!
     PRIM_PACK_CONS "prim-pack-cons" def-prim!
@@ -399,16 +389,6 @@ def(init-prims!, --,
 
     T0 TYPE_PTR T1 T->
     PRIM_SYS_ARGV prim-type !
-
-    T0 TYPE_BOOL T1 T->
-    dup PRIM_BOOL_TRUE prim-type !
-    dup PRIM_BOOL_FALSE prim-type !
-    drop
-
-    TYPE_BOOL TYPE_BOOL T2 TYPE_BOOL T1 T->
-    dup PRIM_BOOL_AND prim-type !
-    dup PRIM_BOOL_OR prim-type !
-    drop
 
     T0 T0 T1 T->
     PRIM_PACK_NIL prim-type !

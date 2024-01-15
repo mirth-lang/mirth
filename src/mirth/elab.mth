@@ -34,8 +34,8 @@ import(mirth.codegen)
 ####################
 
 data(TypeElab, TYPE_ELAB -> Bool Ctx)
-def(type-elab-default, TypeElab, false ctx-empty TYPE_ELAB)
-def(type-elab-stack-assertion, Ctx -- TypeElab, dip(true) TYPE_ELAB)
+def(type-elab-default, TypeElab, F ctx-empty TYPE_ELAB)
+def(type-elab-stack-assertion, Ctx -- TypeElab, dip(T) TYPE_ELAB)
 def(type-elab-holes-allowed, TypeElab -- Bool, TYPE_ELAB -> drop)
 def(type-elab-ctx, TypeElab -- Ctx, TYPE_ELAB -> nip)
 def(type-elab-ctx?, TypeElab -- TypeElab Ctx, dup type-elab-ctx)
@@ -263,18 +263,18 @@ def(atom-accepts-args?, Atom -- Atom Bool,
                 PRIM_CORE_DIP -> dup atom-args @ len 1 <,
                 PRIM_CORE_IF -> dup atom-args @ len 2 <,
                 PRIM_CORE_WHILE -> dup atom-args @ len 2 <,
-                _ -> drop false
+                _ -> drop F
             ),
-        _ -> drop false
+        _ -> drop F
     ))
 
 def(atoms-has-last-block?, List(Atom) -- List(Atom) Bool,
     dup last match(
-        NONE -> false,
+        NONE -> F,
         SOME ->
             atom-op @ match(
-                OP_BLOCK -> drop true,
-                _ -> drop false
+                OP_BLOCK -> drop T,
+                _ -> drop F
             )
     ))
 
@@ -517,7 +517,7 @@ def(elab-check-name-visible!, Name -- Name,
 
 def(elab-module-is-visible, Module -- Bool,
     dup ab-token @ token-module @ == if(
-        drop true,
+        drop T,
         ab-token @ token-module @ module-imports @ set-has
     ))
 
@@ -616,11 +616,11 @@ def(token-is-lambda-param?, Token -- Token Bool,
     sig-token-is-type-var? if(
         token-has-args? not,
     token-is-lsquare? if(
-        dup true
+        dup T
         dip(token-succ sig-token-is-type-var?) &&
         dip(token-succ token-is-rsquare?) &&
         nip,
-        false
+        F
     )))
 
 def(elab-lambda-params!, Lambda -- Lambda,
@@ -637,7 +637,7 @@ def(elab-lambda-params!, Lambda -- Lambda,
 
                 token-succ dip(type-expand type-is-morphism?) swap if(
                     token-name@ var-new!
-                    true over var-auto-run !
+                    T over var-auto-run !
                     tuck var-type !,
 
                     "block pattern on non-block argument" emit-fatal-error!
@@ -818,7 +818,7 @@ def(elab-data!, Token -- Token,
 
 ||| Get the header, name, arity for a data type.
 def(elab-data-header!, Data Token -- Data,
-    dup2 swap data-header !
+    dup2 SOME swap data-header !
     sig-token-is-type-con? if(id,
         "Expected type name." emit-fatal-error!)
     dup2 token-name@
@@ -853,7 +853,7 @@ def(elab-data-tag!, Data Token -- Data,
     { Data Tag }
     dup delay(
         type-elab-default
-        over tag-data @ data-header @ elab-type-atom! drop T1
+        over tag-data @ data-header @ unwrap elab-type-atom! drop T1
         dip(T0 rotl tag-sig @ match(
             NONE -> id,
             SOME ->
@@ -958,7 +958,7 @@ def(elab-def-params!, Word -- List(Param),
         #     "need function type for param" emit-fatal-error!)
         token-name@ var-new!
         tuck var-type !
-        true over var-auto-run !
+        T over var-auto-run !
         PARAM rotr dip(cons)
     ) drop)
 
@@ -1207,7 +1207,7 @@ def(table-new!, Token Name -- Table,
             ready2 w word-ctx-type !
 
             a t TTable T* a T-> x var-type !
-            true x var-auto-run !
+            T x var-auto-run !
         )
 
         w ab-build-word! (

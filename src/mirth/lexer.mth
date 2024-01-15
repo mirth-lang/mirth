@@ -163,7 +163,7 @@ def(str-buf-is-doc-start?, Bool,
         0 str-buf-byte@ B'|' ==
         1 str-buf-byte@ B'|' == &&
         2 str-buf-byte@ B'|' == &&,
-        false
+        F
     ))
 
 def(str-buf-is-arrow?, Bool,
@@ -176,18 +176,18 @@ def(str-buf-is-dashes?, Bool,
     str-buf-length? 2 == if(
         0 str-buf-byte@ B'-' ==
         1 str-buf-byte@ B'-' == &&,
-        false
+        F
     ))
 
 def(str-buf-is-int?, Bool,
-    str-buf-is-dec-int? if(true, str-buf-is-hex-int?))
+    str-buf-is-dec-int? if(T, str-buf-is-hex-int?))
 
 def(str-buf-is-dec-int?, Bool,
     0 # number of digits
     0 # current index
     dup str-buf-byte@ byte-is-sign if(1+, id)
     while(dup str-buf-byte@ byte-is-digit, dip(1+) 1+)
-    swap 1 >= if(str-buf-length? ==, drop false))
+    swap 1 >= if(str-buf-length? ==, drop F))
 
 def(str-buf-is-hex-int?, Bool,
     0 # number of digits
@@ -203,13 +203,13 @@ def(str-buf-is-hex-int?, Bool,
             while(dup str-buf-byte@ byte-is-hexdigit, dip(1+) 1+)
             swap 1 >= if(
                 str-buf-length? ==,
-                drop false
+                drop F
             ),
 
-            drop2 false
+            drop2 F
         ),
 
-        drop2 false
+        drop2 F
     ))
 
 def(str-buf-int?, Int,
@@ -295,7 +295,7 @@ def(lexer-skip-doc!, --, while(lexer-comment-end? not, lexer-move!))
 
 def(lexer-comment-end?, Bool,
     lexer-done? if(
-        true,
+        T,
         lexer-peek dup BLF == nip
     ))
 

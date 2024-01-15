@@ -64,7 +64,7 @@ def(bag-snoc++, Bag+(v) v -- Bag+(v), bag-insert++)
 
 def(bag-has, Bag(v) v -- Bool,
     swap Bag->Bag+ match(
-        NONE -> drop false,
+        NONE -> drop F,
         SOME -> swap bag-has+
     ))
 
@@ -75,7 +75,7 @@ def(bag-has+, Bag+(v) v -- Bool,
         dip(bag-split-half-right)
         over bag-first+
         cmp? match(
-            EQ -> drop4 true,
+            EQ -> drop4 T,
             LT -> drop nip bag-has,
             GT -> drop dip(nip) bag-has+
         )

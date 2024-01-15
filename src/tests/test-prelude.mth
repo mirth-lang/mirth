@@ -4,9 +4,9 @@ import(platform.posix)
 
 # Assertions
 
-def(!!true, Bool --, if(id, "Assertion failed" panic!))
-def(!!false, Bool --, not !!true)
-def(!!=, a a --, == !!true)
+def(!!T, Bool --, if(id, "Assertion failed" panic!))
+def(!!F, Bool --, not !!T)
+def(!!=, a a --, == !!T)
 def(!!0, Int --, 0 !!=)
 def(!!1, Int --, 1 !!=)
 def(!!001, Int Int Int --, 1 !!= 0 !!= 0 !!=)
@@ -24,10 +24,10 @@ def(test-prelude!, --,
     test@!)
 def(test-if, --,
     0 !!0 1 !!1 0 1 !!1 !!0
-    true  [ 10 ] [ 20 ] if 10 !!=
-    false [ 10 ] [ 20 ] if 20 !!=
-    true  [ 30 ] if(20) 30 !!=
-    false [ 30 ] if(20) 20 !!=)
+    T  [ 10 ] [ 20 ] if 10 !!=
+    F [ 10 ] [ 20 ] if 20 !!=
+    T  [ 30 ] if(20) 30 !!=
+    F [ 30 ] if(20) 20 !!=)
 
 def(test-drop, --, 0 1 drop !!0)
 def(test-dup, --, 0 1 dup !!011)
@@ -46,58 +46,58 @@ def(test-rotl, --,
     0 0 1 rotl !!010)
 
 def(test=, --,
-    0 0 == !!true
-    0 1 == !!false
-    1 0 == !!false
-    1 1 == !!true
-    1 2 == !!false
-    2 1 == !!false
-    2 2 == !!true)
+    0 0 == !!T
+    0 1 == !!F
+    1 0 == !!F
+    1 1 == !!T
+    1 2 == !!F
+    2 1 == !!F
+    2 2 == !!T)
 def(test<, --,
-    0 0 < !!false
-    0 1 < !!true
-    1 0 < !!false
-    1 1 < !!false
-    1 2 < !!true
-    2 1 < !!false
-    2 2 < !!false)
+    0 0 < !!F
+    0 1 < !!T
+    1 0 < !!F
+    1 1 < !!F
+    1 2 < !!T
+    2 1 < !!F
+    2 2 < !!F)
 def(test<=, --,
-    0 0 <= !!true
-    0 1 <= !!true
-    1 0 <= !!false
-    1 1 <= !!true
-    1 2 <= !!true
-    2 1 <= !!false
-    2 2 <= !!true)
+    0 0 <= !!T
+    0 1 <= !!T
+    1 0 <= !!F
+    1 1 <= !!T
+    1 2 <= !!T
+    2 1 <= !!F
+    2 2 <= !!T)
 def(test>, --,
-    0 0 > !!false
-    0 1 > !!false
-    1 0 > !!true
-    1 1 > !!false
-    1 2 > !!false
-    2 1 > !!true
-    2 2 > !!false)
+    0 0 > !!F
+    0 1 > !!F
+    1 0 > !!T
+    1 1 > !!F
+    1 2 > !!F
+    2 1 > !!T
+    2 2 > !!F)
 def(test>=, --,
-    0 0 >= !!true
-    0 1 >= !!false
-    1 0 >= !!true
-    1 1 >= !!true
-    1 2 >= !!false
-    2 1 >= !!true
-    2 2 >= !!true
-    -1 0 >= !!false
-    -1 -1 >= !!true
-    0 -1 >= !!true
-    -1 -2 >= !!true
-    -2 -2 >= !!true
-    -2 -1 >= !!false)
+    0 0 >= !!T
+    0 1 >= !!F
+    1 0 >= !!T
+    1 1 >= !!T
+    1 2 >= !!F
+    2 1 >= !!T
+    2 2 >= !!T
+    -1 0 >= !!F
+    -1 -1 >= !!T
+    0 -1 >= !!T
+    -1 -2 >= !!T
+    -2 -2 >= !!T
+    -2 -1 >= !!F)
 
 def(test+, --,
     0 0 + !!0
     0 1 + !!1
     1 0 + !!1
-    1 1 + 2 == !!true
-    2 2 + 4 == !!true
+    1 1 + 2 == !!T
+    2 2 + 4 == !!T
     2 -2 + !!0)
 
 def(test-, --,

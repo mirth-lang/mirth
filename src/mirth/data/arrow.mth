@@ -169,13 +169,13 @@ def(match-add-case!, Match Case -- Match,
 
 def(match-is-exhaustive?, Match -- Match Bool,
     match-has-default-case? if(
-        true,
+        T,
         match-scrutinee-data? match(
             SOME ->
                 data-num-tags
                 over match-cases @ len ==,
             NONE ->
-                true # presume exhaustiveness
+                T # presume exhaustiveness
         )
     ))
 
@@ -201,7 +201,7 @@ def(match-scrutinee-data?, Match -- Match Maybe(Data),
 def(match-is-transparent?, Match -- Match Bool,
     match-scrutinee-data? match(
         SOME -> data-is-transparent,
-        NONE -> false
+        NONE -> F
     ))
 
 ########
@@ -231,4 +231,4 @@ def(case-is-default-case, Case -- Bool,
 ||| Asks whether the second pattern already
 ||| covers the case of the first pattern.
 def(pattern-is-covered, Pattern Pattern -- Bool,
-    dup PATTERN_UNDERSCORE == if(drop2 true, ==))
+    dup PATTERN_UNDERSCORE == if(drop2 T, ==))

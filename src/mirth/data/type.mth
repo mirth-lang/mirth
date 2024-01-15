@@ -44,7 +44,6 @@ data(PrimType,
     PRIM_TYPE_INT,
     PRIM_TYPE_PTR,
     PRIM_TYPE_STR,
-    PRIM_TYPE_BOOL,
     PRIM_TYPE_U64,
     PRIM_TYPE_U32,
     PRIM_TYPE_U16,
@@ -56,10 +55,10 @@ data(PrimType,
     PRIM_TYPE_MUT)
 
 def(prim-type-is-physical, PrimType -- Bool,
-    PRIM_TYPE_TYPE -> false,
-    PRIM_TYPE_STACK -> false,
-    PRIM_TYPE_EFFECT -> false,
-    _ -> drop true)
+    PRIM_TYPE_TYPE -> F,
+    PRIM_TYPE_STACK -> F,
+    PRIM_TYPE_EFFECT -> F,
+    _ -> drop T)
 
 table(MetaVar)
 table(Data)
@@ -67,7 +66,7 @@ table(Tag)
 
 field(meta-type, MetaVar, Maybe(Type))
 
-field(data-header, Data, Token)
+field(data-header, Data, Maybe(Token))
 field(data-name, Data, Name)
 field(data-arity, Data, Int)
 field(data-tags, Data, List(Tag))
@@ -80,7 +79,39 @@ field(tag-ctx-type, Tag, Lazy([Ctx Type]))
 
 def(def-type!, Type Str --, dip(DEF_TYPE) name-new! name-def !)
 
+var(DATA_BOOL, Data)
+var(TAG_T, Tag)
+var(TAG_F, Tag)
+def(TYPE_BOOL, Type, DATA_BOOL @ TData)
+
 def(init-types!, --,
+    Data.alloc! DATA_BOOL !
+    Tag.alloc! TAG_F !
+    Tag.alloc! TAG_T !
+    
+    0 DATA_BOOL @ data-arity !
+    "Bool" name-new! DATA_BOOL @ data-name !
+    TAG_T @ TAG_F @ L2 DATA_BOOL @ data-tags !
+    NONE DATA_BOOL @ data-header !
+
+    DATA_BOOL @ TAG_F @ tag-data !
+    "F" name-new! TAG_F @ tag-name !
+    0 TAG_F @ tag-value !
+    NONE TAG_F @ tag-sig !
+    TAG_F @ DEF_TAG TAG_F @ tag-name @ name-def !
+
+    DATA_BOOL @ TAG_T @ tag-data !
+    "T" name-new! TAG_T @ tag-name !
+    1 TAG_T @ tag-value !
+    NONE TAG_T @ tag-sig !
+    TAG_T @ DEF_TAG TAG_T @ tag-name @ name-def !
+
+    ctx-empty
+    T0 TYPE_BOOL T1 T->
+    pack2 LAZY_READY dup
+    TAG_F @ tag-ctx-type !
+    TAG_T @ tag-ctx-type !
+
     TYPE_INT "Int" def-type!
     TYPE_PTR "Ptr" def-type!
     TYPE_STR "Str" def-type!
@@ -111,19 +142,19 @@ def(T4, Type Type Type Type -- Type, dip(T3) T*)
 def(T5, Type Type Type Type Type -- Type, dip(T4) T*)
 def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
 
-# def(type-is-error, Type -- Bool, match(TYPE_ERROR -> true, _ -> drop false))
-# def(type-is-dont-care, Type -- Bool, match(TYPE_DONT_CARE -> true, _ -> drop false))
-# def(type-is-prim, Type -- Bool, match(TPrim -> drop true, _ -> drop false))
-# def(type-is-var, Type -- Bool, match(TVar -> drop true, _ -> drop false))
-# def(type-is-meta, Type -- Bool, match(TMeta -> drop true, _ -> drop false))
-# def(type-is-tensor, Type -- Bool, match(TTensor -> drop2 true, _ -> drop false))
+# def(type-is-error, Type -- Bool, match(TYPE_ERROR -> T, _ -> drop F))
+# def(type-is-dont-care, Type -- Bool, match(TYPE_DONT_CARE -> T, _ -> drop F))
+# def(type-is-prim, Type -- Bool, match(TPrim -> drop T, _ -> drop F))
+# def(type-is-var, Type -- Bool, match(TVar -> drop T, _ -> drop F))
+# def(type-is-meta, Type -- Bool, match(TMeta -> drop T, _ -> drop F))
+# def(type-is-tensor, Type -- Bool, match(TTensor -> drop2 T, _ -> drop F))
 def(type-is-morphism, Type -- Bool,
-    TMorphism -> drop2 true,
-    _ -> drop false)
-# def(type-is-table, Type -- Bool, match(TTable -> drop true, _ -> drop false))
-# def(type-is-hole, Type -- Bool, match(THole -> drop true, _ -> drop false))
-# def(type-is-app, Type -- Bool, match(TApp -> drop2 true, _ -> drop false))
-# def(type-is-data, Type -- Bool, match(TData -> drop true, _ -> drop false))
+    TMorphism -> drop2 T,
+    _ -> drop F)
+# def(type-is-table, Type -- Bool, match(TTable -> drop T, _ -> drop F))
+# def(type-is-hole, Type -- Bool, match(THole -> drop T, _ -> drop F))
+# def(type-is-app, Type -- Bool, match(TApp -> drop2 T, _ -> drop F))
+# def(type-is-data, Type -- Bool, match(TData -> drop T, _ -> drop F))
 
 # def(type-is-error?, Type -- Type Bool, dup type-is-error)
 # def(type-is-dont-care?, Type -- Type Bool, dup type-is-dont-care)
@@ -141,13 +172,12 @@ def(type-is-physical, Type -- Bool,
     TMeta -> meta-expand-if(type-is-physical,
         "unbound meta at type-is-physical" panic!),
     TPrim -> prim-type-is-physical,
-    _ -> drop true)
+    _ -> drop T)
 
 def(TYPE_TYPE, Type, PRIM_TYPE_TYPE TPrim) # type of types
 def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
 def(TYPE_EFFECT, Type, PRIM_TYPE_EFFECT TPrim) # type of effect types
 def(TYPE_UNIT, Type, PRIM_TYPE_UNIT TPrim) # unit type
-def(TYPE_BOOL, Type, PRIM_TYPE_BOOL TPrim) # bool type
 def(TYPE_MUT, Type, PRIM_TYPE_MUT TPrim)
 def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
 def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
@@ -367,20 +397,20 @@ def(type-has-meta?, MetaVar Type -- MetaVar Type Bool,
 
 def(type-has-meta, MetaVar Type -- Bool,
     TMeta -> meta-has-meta,
-    TYPE_ERROR -> drop false,
-    TYPE_DONT_CARE -> drop false,
-    TPrim -> drop2 false,
-    TVar -> drop2 false,
-    THole -> drop2 false,
+    TYPE_ERROR -> drop F,
+    TYPE_DONT_CARE -> drop F,
+    TPrim -> drop2 F,
+    TVar -> drop2 F,
+    THole -> drop2 F,
     TTensor -> type2-has-meta,
     TMorphism -> type2-has-meta,
     TApp -> type2-has-meta,
-    TData -> drop2 false,
-    TTable -> drop2 false,
+    TData -> drop2 F,
+    TTable -> drop2 F,
     TValue -> value-type-has-meta)
 
 def(type2-has-meta, MetaVar Type Type -- Bool,
-    over2 swap type-has-meta if(drop2 true, type-has-meta))
+    over2 swap type-has-meta if(drop2 T, type-has-meta))
 
 def(meta-has-meta, MetaVar MetaVar -- Bool,
     dup meta-type @ match(
@@ -389,8 +419,8 @@ def(meta-has-meta, MetaVar MetaVar -- Bool,
     ))
 
 def(value-type-has-meta, MetaVar Value -- Bool,
-    VALUE_INT -> drop2 false,
-    VALUE_STR -> drop2 false,
+    VALUE_INT -> drop2 F,
+    VALUE_STR -> drop2 F,
     VALUE_BLOCK -> sip(block-dom @) block-cod @ type2-has-meta)
 
 def(type-trace-sig!, Type --,
@@ -454,7 +484,6 @@ def(type-trace-prim!, PrimType --,
         PRIM_TYPE_STACK -> "<STACK>",
         PRIM_TYPE_EFFECT -> "<EFFECT>",
         PRIM_TYPE_UNIT -> "[]",
-        PRIM_TYPE_BOOL -> "Bool",
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
@@ -508,13 +537,13 @@ def(type-stack-rest, Type -- Type,
     _ -> id)
 
 def(type-sig-needs-fresh-stack-rest, Type -- Bool,
-    TMeta -> meta-expand-if(type-sig-needs-fresh-stack-rest, drop false),
+    TMeta -> meta-expand-if(type-sig-needs-fresh-stack-rest, drop F),
     TMorphism ->
         type-stack-rest TYPE_UNIT == if(
             type-stack-rest TYPE_UNIT ==,
-            drop false
+            drop F
         ),
-    _ -> drop false)
+    _ -> drop F)
 
 def(type-freshen-sig-aux, Subst Type -- Subst Type,
     TMeta -> meta-expand-if(type-freshen-sig-aux, TMeta),
@@ -798,5 +827,5 @@ def(data-is-enum?, Data -- Data Bool,
 def(data-is-transparent, Data -- Bool,
     data-tags @ match(
         L1 -> tag-num-inputs? 1 == nip,
-        _ -> drop false
+        _ -> drop F
     ))

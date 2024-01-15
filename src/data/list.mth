@@ -49,8 +49,8 @@ def(List->List+, List(t) -- Maybe(List+(t)),
     LCAT -> LCAT+ SOME)
 
 def(list-is-empty, List(t) -- Bool,
-    L0 -> true,
-    _ -> drop false)
+    L0 -> T,
+    _ -> drop F)
 
 def(len, List(t) -- Int,
     L0 -> 0,
