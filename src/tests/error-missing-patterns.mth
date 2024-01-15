@@ -1,22 +1,22 @@
 module(tests.error-missing-patterns)
 import(prelude)
 
-data(T,
+data(Foo,
     A,
     B,
     C
 )
 
-def(f, T --,
+def(f, Foo --,
     match(A ->, B ->, C ->))
 
-def(g, T --,
+def(g, Foo --,
     match(A ->, B ->))
 
-def(h, T --,
+def(h, Foo --,
     match(A ->, _ -> drop))
 
-def(i, T --,
+def(i, Foo --,
     match())
 
 data(M(t),
