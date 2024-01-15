@@ -44,7 +44,6 @@ data(PrimType,
     PRIM_TYPE_INT,
     PRIM_TYPE_PTR,
     PRIM_TYPE_STR,
-    PRIM_TYPE_CHAR,
     PRIM_TYPE_BOOL,
     PRIM_TYPE_U64,
     PRIM_TYPE_U32,
@@ -85,7 +84,6 @@ def(init-types!, --,
     TYPE_INT "Int" def-type!
     TYPE_PTR "Ptr" def-type!
     TYPE_STR "Str" def-type!
-    TYPE_CHAR "Char" def-type!
     TYPE_U8 "U8" def-type!
     TYPE_U16 "U16" def-type!
     TYPE_U32 "U32" def-type!
@@ -154,7 +152,6 @@ def(TYPE_MUT, Type, PRIM_TYPE_MUT TPrim)
 def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
 def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
 def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but nominally)
-def(TYPE_CHAR, Type, PRIM_TYPE_CHAR TPrim) # char (UTF8-encoded codepoint in U32)
 def(TYPE_U8, Type, PRIM_TYPE_U8 TPrim) # fixed width integer type -- unsigned 8 bit
 def(TYPE_U16, Type, PRIM_TYPE_U16 TPrim) # fixed width integer type -- unsigned 16 bit
 def(TYPE_U32, Type, PRIM_TYPE_U32 TPrim) # fixed width integer type -- unsigned 32 bit
@@ -461,7 +458,6 @@ def(type-trace-prim!, PrimType --,
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
-        PRIM_TYPE_CHAR -> "Char",
         PRIM_TYPE_U8 -> "U8",
         PRIM_TYPE_U16 -> "U16",
         PRIM_TYPE_U32 -> "U32",
