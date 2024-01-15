@@ -42,10 +42,10 @@ alias(>>, prim-int-shr)
 alias(int@, prim-int-get)
 alias(int!, prim-int-set)
 
-alias(true, prim-bool-true)
-alias(false, prim-bool-false)
-alias(&&, prim-bool-and)
-alias(||, prim-bool-or)
+alias(true, T)
+alias(false, F)
+def(&&, Bool Bool -- Bool, T -> id, F -> drop F)
+def(||, Bool Bool -- Bool, T -> drop T, F -> id)
 
 # use ptr+ only if Ptr is static or has another reference
 # otherwise use with-ptr+
