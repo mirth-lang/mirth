@@ -77,7 +77,7 @@ def(snake-enqueue-xy!, XCoord YCoord --,
 def(snake-dequeue-xy!, XCoord YCoord,
     0 snake-queue-xy@
     0
-    while(dup 1+ snake-queue-length @ <,
+    while(dup 1+ snake-queue-length @ int<,
         dup
         dip(1+ snake-queue-xy?) snake-queue-xy!)
     drop
@@ -146,7 +146,7 @@ def(snake-init!, --,
         id
     )
 
-    SDL_NumJoysticks 0 while(dup2 >,
+    SDL_NumJoysticks 0 while(dup2 int>,
         dup SDL_IsGameController if(
             snake-controller ! dup
             snake-controller @ SDL_GameControllerOpen drop,
@@ -161,7 +161,7 @@ def(snake-init!, --,
     SNAKE_WINDOW_H
     SNAKE_WINDOW_FLAGS
     SDL_CreateWindow
-    dup ptr-nil == if(
+    dup ptr-is-null if(
         SDL_GetError panic!,
         snake-window !
     )
@@ -170,7 +170,7 @@ def(snake-init!, --,
     -1
     SNAKE_RENDERER_FLAGS
     SDL_CreateRenderer
-    dup ptr-nil == if(
+    dup ptr-is-null if(
         SDL_GetError panic!,
         snake-renderer !
     ))
@@ -231,7 +231,7 @@ def(snake-present!, --,
     snake-xy@ snake-rect-cell!
     snake-renderer @ SNAKE_RECT SDL_RenderFillRect
     0
-    while(dup snake-queue-length @ <,
+    while(dup snake-queue-length @ int<,
         snake-queue-xy? snake-rect-cell!
         snake-renderer @ SNAKE_RECT SDL_RenderFillRect
         1+)
@@ -246,24 +246,24 @@ def(snake-process-events!, --,
         snake-process-event!))
 
 def(snake-process-event!, --,
-    SNAKE_EVENT SDL_Event.type
-    dup SDL_QUIT == if(
+    SNAKE_EVENT SDL_Event.type U32->Int
+    dup SDL_QUIT U32->Int int== if(
         drop T snake-done !,
 
-    dup SDL_KEYDOWN == if(
+    dup SDL_KEYDOWN U32->Int int== if(
         drop
         SNAKE_EVENT SDL_Event.key.repeat U8->Int 0> if(
             id,
             SNAKE_EVENT SDL_Event.key.keysym.scancode
-            dup SDL_SCANCODE_ESCAPE == if(
-                drop T snake-done !,
-                SDL_Scancode->SnakeButton snake-press!
+            match(
+                SDL_SCANCODE_ESCAPE -> T snake-done !,
+                _ -> SDL_Scancode->SnakeButton snake-press!
             )
         ),
 
-    dup SDL_CONTROLLERBUTTONDOWN == if(
+    dup SDL_CONTROLLERBUTTONDOWN U32->Int int== if(
         drop
-        SNAKE_EVENT SDL_Event.cbutton.which snake-controller @ == if(
+        SNAKE_EVENT SDL_Event.cbutton.which snake-controller @ int== if(
             SNAKE_EVENT SDL_Event.cbutton.button
             SDL_GameControllerButton->SnakeButton snake-press!,
             id
@@ -285,7 +285,7 @@ def(TICK_FRAMES, Int, 7)
 
 def(snake-tick!, Bool,
     tick-timer @
-    1+ dup TICK_FRAMES >= if(
+    1+ dup TICK_FRAMES int>= if(
         drop 0 tick-timer ! T,
         tick-timer ! F
     ))
@@ -309,7 +309,7 @@ def(snake-update!, --,
             snake-check-mouse!
 
             snake-xy@ snake-enqueue-xy!
-            snake-queue-length @ snake-desired-length > if(
+            snake-queue-length @ snake-desired-length int> if(
                 0 Int->U8 snake-dequeue-xy! snake-grid!,
                 id
             )
@@ -338,16 +338,19 @@ def(snake-randomize-mouse!, --,
     ))
 
 def(snake-check-mouse!, --,
-    snake-x @ snake-mouse-x @ ==
-    snake-y @ snake-mouse-y @ == && if(
+    snake-x @ snake-mouse-x @ both(U8->Int) int==
+    snake-y @ snake-mouse-y @ both(U8->Int) int== && if(
         snake-randomize-mouse!
         snake-points modify(1+),
 
         id
     ))
 
+def(Direction->Int, Direction -- Int, prim-unsafe-cast)
+def(direction==, Direction Direction -- Bool, both(Direction->Int) int==)
+
 def(snake-turn!, Direction --,
-    dup snake-flip-direction snake-last-direction @ == if(
+    dup snake-flip-direction snake-last-direction @ direction== if(
         drop, # can't turn back directly
         snake-direction !
     ))

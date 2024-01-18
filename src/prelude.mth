@@ -216,6 +216,7 @@ def(0>, Int -- Bool, 0 int>)
 def(0<>, Int -- Bool, 0 int<>)
 
 alias(ptr-nil, prim-ptr-nil)
+def(ptr-is-null, Ptr -- Bool, prim-unsafe-cast 0=)
 def(ptrs, Size -- Size, |ptr| *)
 def(ptr@@, Offset Ptr -- Ptr, dip(ptrs) with-ptr+(ptr@))
 def(ptr!!, Ptr Offset Ptr --, dip(ptrs) with-ptr+(ptr!))

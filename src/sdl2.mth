@@ -84,7 +84,7 @@ def(SDL_EVENT_SIZE, Size, 56)
 def-type(SDL_Event*, Ptr)
 def-type(SDL_EventType, U32)
 def-external(SDL_PollEvent, SDL_Event* -- Int)
-
+ 
 def(SDL_Event.type, SDL_Event* -- SDL_EventType, u32@)
 def(SDL_QUIT, SDL_EventType, 0x100 Int->U32)
 def(SDL_KEYDOWN, SDL_EventType, 0x300 Int->U32)
