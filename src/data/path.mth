@@ -6,6 +6,7 @@ data(Path, PATH -> Str)
 def(/PATH, Path -- Str, PATH -> id)
 alias(Str->Path, PATH)
 alias(Path->Str, /PATH)
+def(path==, Path Path -- Bool, both(/PATH) str==)
 
 def(init-paths!, --,
     "src" Str->Path source-path-root !
@@ -14,7 +15,7 @@ def(init-paths!, --,
 var(source-path-root, Path)
 var(output-path-root, Path)
 
-def(path-separator, Str, RUNNING_OS OS_WINDOWS == if("\\", "/"))
+def(path-separator, Str, RUNNING_OS OS_WINDOWS os== if("\\", "/"))
 def(path-is-empty, Path -- Bool, /PATH str-is-empty)
 def(path-join-with, Path Path Str -- Path,
     over2 path-is-empty if(

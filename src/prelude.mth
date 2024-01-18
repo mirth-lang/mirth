@@ -23,9 +23,9 @@ alias(dup, prim-dup)
 alias(drop, prim-drop)
 alias(run, prim-run)
 
-alias(==, prim-value-eq)
-alias(<=, prim-value-le)
-alias(<, prim-value-lt)
+alias(value==, prim-value-eq)
+alias(value<=, prim-value-le)
+alias(value<, prim-value-lt)
 
 alias(+, prim-int-add)
 alias(-, prim-int-sub)
@@ -40,6 +40,7 @@ alias(>>, prim-int-shr)
 
 def(&&, Bool Bool -- Bool, T -> id, F -> drop F)
 def(||, Bool Bool -- Bool, T -> drop T, F -> id)
+def(not, Bool -- Bool, T -> F, F -> T)
 def(or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(T, p))
 def(and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, F))
 
@@ -88,14 +89,16 @@ def(OS->Int, OS -- Int,
     OS_MACOS -> 3)
 
 def(Int->OS, Int -- OS,
-    dup 1 == if(
+    dup 1 int== if(
         drop OS_WINDOWS,
-    dup 2 == if(
+    dup 2 int== if(
         drop OS_LINUX,
-    dup 3 == if(
+    dup 3 int== if(
         drop OS_MACOS,
         drop OS_UNKNOWN
     ))))
+
+def(os==, OS OS -- Bool, dip(OS->Int) OS->Int int==)
 
 def(RUNNING_OS, OS, prim-sys-os Int->OS)
 alias(argc, prim-sys-argc)
@@ -138,6 +141,9 @@ def(sip(f), (*a x -- *b) *a x -- *b x,
 def(sip2(f), (*a x1 x2 -- *b) *a x1 x2 -- *b x1 x2,
     dup2 dip(dip(f)))
 
+def(both(f), (a -- b) a a -- b b, dip(f) f)
+def(both2(f), (a1 a2 -- b) a1 a2 a1 a2 -- b b, dip2(f) f)
+
 def(drop2, a b --, drop drop)
 def(drop3, a b c --, drop drop drop)
 def(drop4, a b c d --, drop drop drop drop)
@@ -146,7 +152,7 @@ def(rot4r, a b c d -- d a b c, swap dip(rotr))
 def(rot4l, a b c d -- b c d a, dip(rotl) swap)
 
 def(repeat(f), (*a -- *a) *a Int -- *a,
-    while(dup 0 >, dip(f) 1-) drop)
+    while(dup 0 int>, dip(f) 1-) drop)
 
 def(count(f), (*a Int -- *a) *a Int -- *a,
     0 swap repeat(dup dip(f) 1+) drop)
@@ -172,24 +178,47 @@ def(I8_MIN, Int, -0x80)
 def(I16_MIN, Int, -0x8000)
 def(I32_MIN, Int, -0x80000000)
 
-def(not, Bool -- Bool, F ==)
 
 data(Comparison, EQ, LT, GT)
 
-def(cmp, a a -- Comparison,
-    dup2 == if(
+def(value-cmp, a a -- Comparison,
+    dup2 value== if(
         drop2 EQ,
-        < if(
+        value< if(
             LT,
             GT
         )
     ))
-def(cmp?, a a -- a a Comparison, dup2 cmp)
-def(<>, a a -- Bool, == not)
-def(>, a a -- Bool, swap <)
-def(>=, a a -- Bool, swap <=)
-def(max, a a -- a, dup2 < if(nip, drop))
-def(min, a a -- a, dup2 < if(drop, nip))
+def(value-cmp?, a a -- a a Comparison, dup2 value-cmp)
+def(value<>, a a -- Bool, value== not)
+def(value>, a a -- Bool, swap value<)
+def(value>=, a a -- Bool, swap value<=)
+def(value-max, a a -- a, dup2 value< if(nip, drop))
+def(value-min, a a -- a, dup2 value< if(drop, nip))
+def(value-in-range, a a a -- Bool, dip(dip(dup) value>= swap) value<= &&)
+
+def(str-cmp, Str Str -- Comparison, value-cmp)
+def(str-cmp?, Str Str -- Str Str Comparison, value-cmp?)
+def(str==, Str Str -- Bool, value==)
+def(str<=, Str Str -- Bool, value<=)
+def(str<, Str Str -- Bool, value<)
+def(str>=, Str Str -- Bool, value>=)
+def(str<>, Str Str -- Bool, value<>)
+def(str>, Str Str -- Bool, value>)
+def(str-max, Str Str -- Str, value-max)
+def(str-min, Str Str -- Str, value-min)
+
+def(int-cmp, Int Int -- Comparison, value-cmp)
+def(int-cmp?, Int Int -- Int Int Comparison, value-cmp?)
+def(int==, Int Int -- Bool, value==)
+def(int<=, Int Int -- Bool, value<=)
+def(int<, Int Int -- Bool, value<)
+def(int>=, Int Int -- Bool, value>=)
+def(int<>, Int Int -- Bool, value<>)
+def(int>, Int Int -- Bool, value>)
+def(int-max, Int Int -- Int, value-max)
+def(int-min, Int Int -- Int, value-min)
+def(int-in-range, Int Int Int -- Bool, dip(dip(dup) int>= swap) int<= &&)
 
 def-missing(prim-int-succ, Int -- Int, 1 +)
 def-missing(prim-int-pred, Int -- Int, 1 -)
@@ -197,10 +226,10 @@ def-missing(prim-int-negate, Int -- Int, -1 *)
 alias(negate, prim-int-negate)
 alias(1+, prim-int-succ)
 alias(1-, prim-int-pred)
-def(0=, Int -- Bool, 0 ==)
-def(0<, Int -- Bool, 0 <)
-def(0>, Int -- Bool, 0 >)
-def(0<>, Int -- Bool, 0 <>)
+def(0=, Int -- Bool, 0 int==)
+def(0<, Int -- Bool, 0 int<)
+def(0>, Int -- Bool, 0 int>)
+def(0<>, Int -- Bool, 0 int<>)
 
 alias(ptr-nil, prim-ptr-nil)
 def(ptrs, Size -- Size, |ptr| *)
@@ -216,32 +245,30 @@ def(u64!!, U64 Offset Ptr --, dip(8 *) with-ptr+(u64!))
 def(i64@@, Offset Ptr -- I64, dip(8 *) with-ptr+(i64@))
 def(i64!!, I64 Offset Ptr --, dip(8 *) with-ptr+(i64!))
 
-def(in-range, a a a -- Bool, dip(dip(dup) >= swap) <= &&)
-
 def(Int->U8, Int -- U8,
-    assert!(dup U8_MIN U8_MAX in-range, "Int->U8 out of bounds error")
+    assert!(dup U8_MIN U8_MAX int-in-range, "Int->U8 out of bounds error")
     prim-unsafe-cast)
 
 def(Int->U16, Int -- U16,
-    assert!(dup U16_MIN U16_MAX in-range, "Int->U16 out of bounds error")
+    assert!(dup U16_MIN U16_MAX int-in-range, "Int->U16 out of bounds error")
     prim-unsafe-cast)
 
 def(Int->U32, Int -- U32,
-    assert!(dup U32_MIN U32_MAX in-range, "Int->U32 out of bounds error")
+    assert!(dup U32_MIN U32_MAX int-in-range, "Int->U32 out of bounds error")
     prim-unsafe-cast)
 
 def(Int->U64, Int -- U64, prim-unsafe-cast)
 
 def(Int->I8, Int -- I8,
-    assert!(dup I8_MIN I8_MAX in-range, "Int->I8 out of bounds error")
+    assert!(dup I8_MIN I8_MAX int-in-range, "Int->I8 out of bounds error")
     prim-unsafe-cast)
 
 def(Int->I16, Int -- I16,
-    assert!(dup I16_MIN I16_MAX in-range, "Int->I16 out of bounds error")
+    assert!(dup I16_MIN I16_MAX int-in-range, "Int->I16 out of bounds error")
     prim-unsafe-cast)
 
 def(Int->I32, Int -- I32,
-    assert!(dup I32_MIN I32_MAX in-range, "Int->I32 out of bounds error")
+    assert!(dup I32_MIN I32_MAX int-in-range, "Int->I32 out of bounds error")
     prim-unsafe-cast)
 
 def(Int->I64, Int -- I64, prim-unsafe-cast)

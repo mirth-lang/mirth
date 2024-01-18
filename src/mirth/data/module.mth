@@ -15,6 +15,11 @@ field(module-start, Module, Token)
 field(module-end, Module, Token)
 field(module-imports, Module, Set(Module))
 
+def(module-cmp, Module Module -- Comparison, dip(Module.id) Module.id int-cmp)
+def(module==, Module Module -- Bool, dip(Module.id) Module.id int==)
+def(module<=, Module Module -- Bool, dip(Module.id) Module.id int<=)
+def(module<, Module Module -- Bool, dip(Module.id) Module.id int<)
+
 def(module-new!, Path -- Module,
     Module.alloc!
     set-nil over module-imports !
@@ -26,7 +31,7 @@ def(module-add-import!, Module Module --,
 
 ||| Get source path associated with module.
 def(module-source-path, Module -- Path,
-    dup Module.nil == if(
+    dup Module.nil module== if(
         drop "<generated>" Str->Path,
         module-path @ make-source-path
     ))
@@ -34,7 +39,7 @@ def(module-source-path, Module -- Path,
 def(module-path-from-name, Name -- Path,
     build-str!(
         name-str @ str-bytes-for(
-            dup B'.' == if(
+            dup B'.' byte== if(
                 drop B'/',
                 dup byte-is-upper if(byte-to-lower, id)
             )

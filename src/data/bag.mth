@@ -11,16 +11,16 @@ data(Bag(v), BAG -> List(v))
 def(unBAG, Bag(v) -- List(v), match(BAG -> id))
 def(B0, Bag(v), L0 BAG)
 def(B1, v -- Bag(v), L1 BAG)
-def(B2, v v -- Bag(v), order2 L2 BAG)
-def(B3, v v v -- Bag(v), order3 L3 BAG)
+def(B2, v v -- Bag(v), value-order2 L2 BAG)
+def(B3, v v v -- Bag(v), value-order3 L3 BAG)
 
 ||| Same as `Bag(v)` but non-empty.
 data(Bag+(v), BAG+ -> List+(v))
 
 def(unBAG+, Bag+(v) -- List+(v), BAG+ -> id)
 def(B1+, v -- Bag+(v), L1+ BAG+)
-def(B2+, v v -- Bag+(v), order2 L2+ BAG+)
-def(B3+, v v v -- Bag+(v), order3 L3+ BAG+)
+def(B2+, v v -- Bag+(v), value-order2 L2+ BAG+)
+def(B3+, v v v -- Bag+(v), value-order3 L3+ BAG+)
 
 def(Bag+->Bag, Bag+(v) -- Bag(v), unBAG+ List+->List BAG)
 def(Bag->Bag+, Bag(v) -- Maybe(Bag+(v)), unBAG List->List+ maybe-map(BAG+))
@@ -28,8 +28,8 @@ def(Bag->Bag+, Bag(v) -- Maybe(Bag+(v)), unBAG List->List+ maybe-map(BAG+))
 def(bag-nil, Bag(v), L0 BAG)
 def(bag-is-empty, Bag(v) -- Bool, BAG -> list-is-empty)
 def(bag-singleton, v -- Bag(v), B1)
-def(bag-is-singleton, Bag(v) -- Bool, bag-len 1 ==)
-def(bag-is-singleton+, Bag+(v) -- Bool, bag-len+ 1 ==)
+def(bag-is-singleton, Bag(v) -- Bool, bag-len 1 int==)
+def(bag-is-singleton+, Bag+(v) -- Bool, bag-len+ 1 int==)
 def(bag-len, Bag(v) -- Int, unBAG len)
 def(bag-len+, Bag+(v) -- Int, unBAG+ len+)
 def(bag-len?, Bag(v) -- Bag(v) Int, dup bag-len)
@@ -70,11 +70,11 @@ def(bag-has, Bag(v) v -- Bool,
 
 def(bag-has+, Bag+(v) v -- Bool,
     over bag-is-singleton+ if(
-        dip(bag-first+) ==,
+        dip(bag-first+) value==,
 
         dip(bag-split-half-right)
         over bag-first+
-        cmp? match(
+        value-cmp? match(
             EQ -> drop4 T,
             LT -> drop nip bag-has,
             GT -> drop dip(nip) bag-has+
@@ -103,7 +103,7 @@ def(bag-insert++, Bag+(v) v -- Bag+(v),
 
         dip(bag-split-half-right)
         over bag-first+
-        dup2 >= if(
+        dup2 value>= if(
             drop bag-insert++ bag-cat-unsafe_+,
             drop swap dip(bag-insert+) bag-cat-unsafe+
         )
@@ -131,14 +131,14 @@ def(bag-cat-unsafe+, Bag+(v) Bag+(v) -- Bag+(v),
     dip(unBAG+) unBAG+ cat+ BAG+)
 
 ||| Put two stack items in order.
-def(order2, v v -- v v,
-    dup2 <= if(id, swap))
+def(value-order2, v v -- v v,
+    dup2 value<= if(id, swap))
 
 ||| Put three stack items in order.
-def(order3, v v v -- v v v,
-    dip(order2) dup2 <= if(id, swap dip(order2)))
+def(value-order3, v v v -- v v v,
+    dip(value-order2) dup2 value<= if(id, swap dip(value-order2)))
 
-||| Prerform lookup as an ordered map. Use the key to
+||| Perform lookup as an ordered map. Use the key to
 ||| find a corresponding item. Note: If multiple items
 ||| match the key, you may get any of them. There's
 ||| no guarantee it'll be the first item, last item,
@@ -152,10 +152,10 @@ def(bag-lookup-key, Bag([v k]) k -- Maybe(v),
 ||| Same as `bag-lookup-key` for non-empty bags.
 def(bag-lookup-key+, Bag+([v k]) k -- Maybe(v),
     over bag-is-singleton+ if(
-        dip(bag-first+ unpack2) == if(SOME, drop NONE),
+        dip(bag-first+ unpack2) value== if(SOME, drop NONE),
 
         dip(bag-split-half-right dup bag-first+ unpack2)
-        cmp? match(
+        value-cmp? match(
             EQ -> drop2 SOME dip(drop2),
             LT -> dip(drop2 nip) bag-lookup-key+,
             GT -> dip(drop3) bag-lookup-key
@@ -194,10 +194,10 @@ def(bag-replace-key++, Bag+([v k]) [v k] -- Bag+([v k]),
     ))
 
 ||| Compare two pairs by their top item (the "key").
-def(==key, [v k] [v k] -- Bool, dip(unpack2 nip) unpack2 nip ==)
+def(==key, [v k] [v k] -- Bool, dip(unpack2 nip) unpack2 nip value==)
 
 ||| Compare two pairs by their top item (the "key").
-def(<=key, [v k] [v k] -- Bool, dip(unpack2 nip) unpack2 nip <=)
+def(<=key, [v k] [v k] -- Bool, dip(unpack2 nip) unpack2 nip value<=)
 
 ||| Get underlying list of values from bag.
 def(bag-values, Bag(v) -- List(v), unBAG)

@@ -34,7 +34,7 @@ def(str-copy-cstr, Ptr -- Str,
     dup cstr-num-bytes prim-str-copy)
 
 def(cstr-num-bytes, Ptr -- Size,
-    0 swap while(dup u8@ U8->Int 0 >, dip(1+ 1) ptr+) drop)
+    0 swap while(dup u8@ U8->Int 0 int>, dip(1+ 1) ptr+) drop)
 
 def(str-buf-dup!, Str,
     STR_BUF str-buf-length? prim-str-copy)
@@ -56,7 +56,7 @@ def(str-buf-byte@, Offset -- Byte,
     STR_BUF with-ptr+(byte@))
 
 def(str-buf-empty?, str-buf-length? 0=)
-def(str-buf-full?, str-buf-length? 1+ STR_BUF_SIZE >=)
+def(str-buf-full?, str-buf-length? 1+ STR_BUF_SIZE int>=)
 
 def(str-buf-clear!, --,
     0 str-buf-length!)

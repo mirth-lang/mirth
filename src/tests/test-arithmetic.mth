@@ -3,7 +3,7 @@ import(prelude)
 import(platform.posix)
 
 def(expect==!, Str Int Int --,
-    dup2 == if(
+    dup2 int== if(
         drop3,
 
         "failed: " str-print!

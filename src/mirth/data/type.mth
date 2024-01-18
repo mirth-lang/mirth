@@ -60,6 +60,9 @@ def(prim-type-is-physical, PrimType -- Bool,
     PRIM_TYPE_EFFECT -> F,
     _ -> drop T)
 
+def(PrimType->Int, PrimType -- Int, prim-unsafe-cast)
+def(prim-type==, PrimType PrimType -- Bool, both(PrimType->Int) int==)
+
 table(MetaVar)
 table(Data)
 table(Tag)
@@ -155,6 +158,17 @@ def(type-is-morphism, Type -- Bool,
 # def(type-is-hole, Type -- Bool, match(THole -> drop T, _ -> drop F))
 # def(type-is-app, Type -- Bool, match(TApp -> drop2 T, _ -> drop F))
 # def(type-is-data, Type -- Bool, match(TData -> drop T, _ -> drop F))
+
+def(type-is-unit, Type -- Bool,
+    TPrim -> match(
+        PRIM_TYPE_UNIT -> T,
+        _ -> drop F
+    ),
+    _ -> drop F)
+
+def(type-equals-meta, MetaVar Type -- Bool,
+    TMeta -> meta==,
+    _ -> drop2 F)
 
 # def(type-is-error?, Type -- Type Bool, dup type-is-error)
 # def(type-is-dont-care?, Type -- Type Bool, dup type-is-dont-care)
@@ -306,7 +320,7 @@ def(type-unify!, Gamma Type Type -- Gamma Type,
 def(value-unify!, Gamma Value Value -- Gamma Type,
     swap match(
         VALUE_INT -> swap match(
-            VALUE_INT -> dup2 == if(drop VALUE_INT TValue, drop2 TYPE_INT),
+            VALUE_INT -> dup2 int== if(drop VALUE_INT TValue, drop2 TYPE_INT),
             VALUE_STR ->
                 drop2 gamma-token?
                 "Can't unify int value with string value."
@@ -318,7 +332,7 @@ def(value-unify!, Gamma Value Value -- Gamma Type,
         ),
 
         VALUE_STR -> swap match(
-            VALUE_STR -> dup2 == if(drop VALUE_STR TValue, drop2 TYPE_STR),
+            VALUE_STR -> dup2 str== if(drop VALUE_STR TValue, drop2 TYPE_STR),
             VALUE_INT ->
                 drop2 gamma-token?
                 "Can't unify string value with int value."
@@ -331,7 +345,7 @@ def(value-unify!, Gamma Value Value -- Gamma Type,
 
         VALUE_BLOCK -> swap match(
             VALUE_BLOCK ->
-                dup2 == if(
+                dup2 block== if(
                     drop VALUE_BLOCK TValue,
                     block-infer-type!
                     block-unify-type!
@@ -372,22 +386,22 @@ def(type-unify-pair!, Gamma Type Type Type Type -- Gamma Type Type,
     dip(swap dip(type-unify! swap)) type-unify! dip(swap))
 
 def(type-prim-unify!, Gamma PrimType PrimType -- Gamma Type,
-    dup2 == if(
+    dup2 prim-type== if(
         drop TPrim,
         dip(TPrim) TPrim type-unify-failed!
     ))
 def(type-data-unify!, Gamma Data Data -- Gamma Type,
-    dup2 == if(
+    dup2 data== if(
         drop TData,
         dip(TData) TData type-unify-failed!
     ))
 def(type-table-unify!, Gamma Table Table -- Gamma Type,
-    dup2 == if(
+    dup2 table== if(
         drop TTable,
         dip(TTable) TTable type-unify-failed!
     ))
 def(type-var-unify!, Gamma Var Var -- Gamma Type,
-    dup2 == if(
+    dup2 var== if(
         drop TVar,
         dip(TVar) TVar type-unify-failed!
     ))
@@ -414,7 +428,7 @@ def(type2-has-meta, MetaVar Type Type -- Bool,
 
 def(meta-has-meta, MetaVar MetaVar -- Bool,
     dup meta-type @ match(
-        NONE -> ==,
+        NONE -> meta==,
         SOME -> nip type-has-meta
     ))
 
@@ -434,14 +448,14 @@ def(type-trace-sig!, Type --,
     _ -> type-trace-stack!)
 
 def(type-trace-stack-dom!, Type --,
-    type-expand dup TYPE_UNIT == if(
+    type-expand dup type-is-unit if(
         drop,
         type-trace-stack!
         " " str-trace!
     ))
 
 def(type-trace-stack-cod!, Type --,
-    type-expand dup TYPE_UNIT == if(
+    type-expand dup type-is-unit if(
         drop,
         " " str-trace!
         type-trace-stack!
@@ -539,8 +553,8 @@ def(type-stack-rest, Type -- Type,
 def(type-sig-needs-fresh-stack-rest, Type -- Bool,
     TMeta -> meta-expand-if(type-sig-needs-fresh-stack-rest, drop F),
     TMorphism ->
-        type-stack-rest TYPE_UNIT == if(
-            type-stack-rest TYPE_UNIT ==,
+        type-stack-rest type-is-unit if(
+            type-stack-rest type-is-unit,
             drop F
         ),
     _ -> drop F)
@@ -701,7 +715,7 @@ def(meta-expand, MetaVar -- Type,
 def(meta-unify!, Gamma Type MetaVar -- Gamma Type,
     dup meta-type @ match(
         SOME -> nip type-unify!,
-        NONE -> dup2 TMeta == if(
+        NONE -> dup2 swap type-equals-meta if(
             drop,
             swap type-has-meta? if(
                 swap TMeta type-unify-failed!,
@@ -714,6 +728,8 @@ def(meta-expand-or-update!(f), (*a -- *a Type) *a MetaVar -- *a Type,
         NONE -> dip(f dup SOME) meta-type !,
         SOME -> nip
     ))
+
+def(meta==, MetaVar MetaVar -- Bool, both(MetaVar.id) int==)
 
 ##############
 # Type Holes #
@@ -810,10 +826,13 @@ def(tag-num-inputs?, Tag -- Tag Int,
 def(tag-is-transparent?, Tag -- Tag Bool,
     dup tag-data @ data-is-transparent)
 
+def(tag==, Tag Tag -- Bool, both(Tag.id) int==)
+
 ########
 # DATA #
 ########
 
+def(data==, Data Data -- Bool, both(Data.id) int==)
 def(data-num-tags, Data -- Int, data-tags @ len)
 
 ||| Adds constructor to data type, and gives tag its rank.
@@ -822,10 +841,10 @@ def(data-add-tag!, Tag Data --,
     dup data-tags @ rotr dip(snoc) data-tags !)
 
 def(data-is-enum?, Data -- Data Bool,
-    dup data-tags @ all?(tag-num-inputs? 0 ==) nip)
+    dup data-tags @ all?(tag-num-inputs? 0 int==) nip)
 
 def(data-is-transparent, Data -- Bool,
     data-tags @ match(
-        L1 -> tag-num-inputs? 1 == nip,
+        L1 -> tag-num-inputs? 1 int== nip,
         _ -> drop F
     ))

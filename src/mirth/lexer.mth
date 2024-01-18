@@ -159,23 +159,23 @@ def(lexer-emit-name!, --,
     ))
 
 def(str-buf-is-doc-start?, Bool,
-    str-buf-length? 3 == if(
-        0 str-buf-byte@ B'|' ==
-        1 str-buf-byte@ B'|' == &&
-        2 str-buf-byte@ B'|' == &&,
+    str-buf-length? 3 int== if(
+        0 str-buf-byte@ B'|' byte==
+        1 str-buf-byte@ B'|' byte== &&
+        2 str-buf-byte@ B'|' byte== &&,
         F
     ))
 
 def(str-buf-is-arrow?, Bool,
-    str-buf-length? 2 == and(
-        0 str-buf-byte@ B'-' ==
-        1 str-buf-byte@ B'>' == &&
+    str-buf-length? 2 int== and(
+        0 str-buf-byte@ B'-' byte==
+        1 str-buf-byte@ B'>' byte== &&
     ))
 
 def(str-buf-is-dashes?, Bool,
-    str-buf-length? 2 == if(
-        0 str-buf-byte@ B'-' ==
-        1 str-buf-byte@ B'-' == &&,
+    str-buf-length? 2 int== if(
+        0 str-buf-byte@ B'-' byte==
+        1 str-buf-byte@ B'-' byte== &&,
         F
     ))
 
@@ -187,7 +187,7 @@ def(str-buf-is-dec-int?, Bool,
     0 # current index
     dup str-buf-byte@ byte-is-sign if(1+, id)
     while(dup str-buf-byte@ byte-is-digit, dip(1+) 1+)
-    swap 1 >= if(str-buf-length? ==, drop F))
+    swap 1 int>= if(str-buf-length? int==, drop F))
 
 def(str-buf-is-hex-int?, Bool,
     0 # number of digits
@@ -196,13 +196,13 @@ def(str-buf-is-hex-int?, Bool,
         1+,
         id
     )
-    dup str-buf-byte@ B'0' == if(
+    dup str-buf-byte@ B'0' byte== if(
         1+
-        dup str-buf-byte@ B'x' == if(
+        dup str-buf-byte@ B'x' byte== if(
             1+
             while(dup str-buf-byte@ byte-is-hexdigit, dip(1+) 1+)
-            swap 1 >= if(
-                str-buf-length? ==,
+            swap 1 int>= if(
+                str-buf-length? int==,
                 drop F
             ),
 
@@ -234,7 +234,7 @@ def(str-buf-int-sign, -- Int Int Int,
 
 def(str-buf-dec-int?, Int,
     str-buf-int-sign
-    while(dup str-buf-length? <,
+    while(dup str-buf-length? int<,
         sip(
             str-buf-byte@ Byte->Int
             dip(10 *) 48 - +
@@ -244,7 +244,7 @@ def(str-buf-dec-int?, Int,
 
 def(str-buf-hex-int?, Int,
     str-buf-int-sign 2 + # skip 0x prefix
-    while(dup str-buf-length? <,
+    while(dup str-buf-length? int<,
         sip(
             str-buf-byte@
             dip(16 *) hexdigit-value +
@@ -289,14 +289,14 @@ def(lexer-push-string-escape-byte!, Byte --,
 
 def(lexer-skip-comment!, --,
     while(lexer-comment-end? not, lexer-move!)
-    lexer-peek dup BLF == if(lexer-newline!, id) drop)
+    lexer-peek dup BLF byte== if(lexer-newline!, id) drop)
 
 def(lexer-skip-doc!, --, while(lexer-comment-end? not, lexer-move!))
 
 def(lexer-comment-end?, Bool,
     lexer-done? if(
         T,
-        lexer-peek dup BLF == nip
+        lexer-peek dup BLF byte== nip
     ))
 
 def(lexer-peek, Byte, input-peek)

@@ -1,4 +1,5 @@
 module(mirth.data.table)
+import(prelude)
 import(mirth.data.name)
 import(mirth.data.type)
 import(mirth.data.buffer)
@@ -16,3 +17,5 @@ field(field-head, Field, Token)
 field(field-name, Field, Name)
 field(field-index-type, Field, Lazy(Type))
 field(field-value-type, Field, Lazy(Type))
+
+def(table==, Table Table -- Bool, both(Table.id) int==)

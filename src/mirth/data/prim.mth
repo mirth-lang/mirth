@@ -118,10 +118,13 @@ field(prim-ctx, Prim, Ctx)
 field(prim-type, Prim, Type)
 field(prim-decl, Prim, Maybe([Token -- Token]))
 
+def(Prim->Int, Prim -- Int, prim-unsafe-cast)
+def(prim==, both(Prim->Int) int==)
+
 ||| Does this name refer to this primitive?
 def(name-prim=, Name Prim -- Bool,
     swap name-def @ match(
-        DEF_PRIM -> ==,
+        DEF_PRIM -> prim==,
         _ -> drop2 F
     ))
 

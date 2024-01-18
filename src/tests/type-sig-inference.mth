@@ -12,7 +12,7 @@ def(switch-light,
     LIGHT_OFF -> LIGHT_ON)
 def(switch-twice, Light -- Light, switch-light switch-light)
 
-def(my-factorial, dup 1 > if(dup 1- my-factorial *, drop 1))
+def(my-factorial, dup 1 int> if(dup 1- my-factorial *, drop 1))
 
 # mirth-test # merr # 5:36: error: Failed to unify [] with [Int]
 # mirth-test # merr # 7:34: error: Failed to unify [Int] with []

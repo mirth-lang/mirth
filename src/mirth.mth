@@ -37,7 +37,7 @@ def(compile!, Path --,
     elab-module! drop
     typecheck-everything!
 
-    num-errors @ 0 > if(
+    num-errors @ 0 int> if(
         num-errors @ int-trace!
         " errors." str-trace-ln!
         1 posix-exit!,
@@ -54,7 +54,7 @@ def(main, --,
     #     1+
     # ) drop
 
-    expect!(argc 2 ==, "expected one argument")
+    expect!(argc 2 int==, "expected one argument")
     1 argv ptr@@ str-copy-cstr Str->Path compile!)
 
 #########
