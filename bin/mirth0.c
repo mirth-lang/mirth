@@ -758,16 +758,6 @@ static void mw_prim_panic(void) {
     exit(1);
 }
 
-static void mw_prim_int_get (void) {
-    PRIM_ENTER(mw_prim_int_get,"prim-int-get");
-    VAL vp = pop_value();
-    int64_t *p = value_ptr(vp);
-    EXPECT(p, "tried to load from null pointer");
-    push_i64(*p);
-    decref(vp);
-    PRIM_EXIT(mw_prim_int_get);
-}
-
 static void mw_prim_ptr_get (void) {
     PRIM_ENTER(mw_prim_ptr_get,"prim-ptr-get");
     VAL vp = pop_value();
@@ -2431,203 +2421,197 @@ static void mw_PRIM_5F_INT_5F_SHL (void) {
 static void mw_PRIM_5F_INT_5F_SHR (void) {
     push_u64(25LL);
 }
-static void mw_PRIM_5F_INT_5F_GET (void) {
+static void mw_PRIM_5F_INT_5F_TO_5F_STR (void) {
     push_u64(26LL);
 }
-static void mw_PRIM_5F_INT_5F_SET (void) {
+static void mw_PRIM_5F_PACK_5F_NIL (void) {
     push_u64(27LL);
 }
-static void mw_PRIM_5F_INT_5F_TO_5F_STR (void) {
+static void mw_PRIM_5F_PACK_5F_CONS (void) {
     push_u64(28LL);
 }
-static void mw_PRIM_5F_PACK_5F_NIL (void) {
+static void mw_PRIM_5F_PACK_5F_UNCONS (void) {
     push_u64(29LL);
 }
-static void mw_PRIM_5F_PACK_5F_CONS (void) {
+static void mw_PRIM_5F_MUT_5F_NEW (void) {
     push_u64(30LL);
 }
-static void mw_PRIM_5F_PACK_5F_UNCONS (void) {
+static void mw_PRIM_5F_MUT_5F_GET (void) {
     push_u64(31LL);
 }
-static void mw_PRIM_5F_MUT_5F_NEW (void) {
+static void mw_PRIM_5F_MUT_5F_SET (void) {
     push_u64(32LL);
 }
-static void mw_PRIM_5F_MUT_5F_GET (void) {
+static void mw_PRIM_5F_MUT_5F_IS_5F_SET (void) {
     push_u64(33LL);
 }
-static void mw_PRIM_5F_MUT_5F_SET (void) {
+static void mw_PRIM_5F_PTR_5F_NIL (void) {
     push_u64(34LL);
 }
-static void mw_PRIM_5F_MUT_5F_IS_5F_SET (void) {
+static void mw_PRIM_5F_PTR_5F_ADD (void) {
     push_u64(35LL);
 }
-static void mw_PRIM_5F_PTR_5F_NIL (void) {
+static void mw_PRIM_5F_PTR_5F_SIZE (void) {
     push_u64(36LL);
 }
-static void mw_PRIM_5F_PTR_5F_ADD (void) {
+static void mw_PRIM_5F_PTR_5F_GET (void) {
     push_u64(37LL);
 }
-static void mw_PRIM_5F_PTR_5F_SIZE (void) {
+static void mw_PRIM_5F_PTR_5F_SET (void) {
     push_u64(38LL);
 }
-static void mw_PRIM_5F_PTR_5F_GET (void) {
+static void mw_PRIM_5F_PTR_5F_ALLOC (void) {
     push_u64(39LL);
 }
-static void mw_PRIM_5F_PTR_5F_SET (void) {
+static void mw_PRIM_5F_PTR_5F_REALLOC (void) {
     push_u64(40LL);
 }
-static void mw_PRIM_5F_PTR_5F_ALLOC (void) {
+static void mw_PRIM_5F_PTR_5F_COPY (void) {
     push_u64(41LL);
 }
-static void mw_PRIM_5F_PTR_5F_REALLOC (void) {
+static void mw_PRIM_5F_PTR_5F_FILL (void) {
     push_u64(42LL);
 }
-static void mw_PRIM_5F_PTR_5F_COPY (void) {
+static void mw_PRIM_5F_PTR_5F_RAW (void) {
     push_u64(43LL);
 }
-static void mw_PRIM_5F_PTR_5F_FILL (void) {
+static void mw_PRIM_5F_STR_5F_ALLOC (void) {
     push_u64(44LL);
 }
-static void mw_PRIM_5F_PTR_5F_RAW (void) {
+static void mw_PRIM_5F_STR_5F_COPY (void) {
     push_u64(45LL);
 }
-static void mw_PRIM_5F_STR_5F_ALLOC (void) {
+static void mw_PRIM_5F_STR_5F_NUM_5F_BYTES (void) {
     push_u64(46LL);
 }
-static void mw_PRIM_5F_STR_5F_COPY (void) {
+static void mw_PRIM_5F_STR_5F_BASE (void) {
     push_u64(47LL);
 }
-static void mw_PRIM_5F_STR_5F_NUM_5F_BYTES (void) {
+static void mw_PRIM_5F_STR_5F_CAT (void) {
     push_u64(48LL);
 }
-static void mw_PRIM_5F_STR_5F_BASE (void) {
+static void mw_PRIM_5F_U8_5F_GET (void) {
     push_u64(49LL);
 }
-static void mw_PRIM_5F_STR_5F_CAT (void) {
+static void mw_PRIM_5F_U8_5F_SET (void) {
     push_u64(50LL);
 }
-static void mw_PRIM_5F_U8_5F_GET (void) {
+static void mw_PRIM_5F_U16_5F_GET (void) {
     push_u64(51LL);
 }
-static void mw_PRIM_5F_U8_5F_SET (void) {
+static void mw_PRIM_5F_U16_5F_SET (void) {
     push_u64(52LL);
 }
-static void mw_PRIM_5F_U16_5F_GET (void) {
+static void mw_PRIM_5F_U32_5F_GET (void) {
     push_u64(53LL);
 }
-static void mw_PRIM_5F_U16_5F_SET (void) {
+static void mw_PRIM_5F_U32_5F_SET (void) {
     push_u64(54LL);
 }
-static void mw_PRIM_5F_U32_5F_GET (void) {
+static void mw_PRIM_5F_U64_5F_GET (void) {
     push_u64(55LL);
 }
-static void mw_PRIM_5F_U32_5F_SET (void) {
+static void mw_PRIM_5F_U64_5F_SET (void) {
     push_u64(56LL);
 }
-static void mw_PRIM_5F_U64_5F_GET (void) {
+static void mw_PRIM_5F_I8_5F_GET (void) {
     push_u64(57LL);
 }
-static void mw_PRIM_5F_U64_5F_SET (void) {
+static void mw_PRIM_5F_I8_5F_SET (void) {
     push_u64(58LL);
 }
-static void mw_PRIM_5F_I8_5F_GET (void) {
+static void mw_PRIM_5F_I16_5F_GET (void) {
     push_u64(59LL);
 }
-static void mw_PRIM_5F_I8_5F_SET (void) {
+static void mw_PRIM_5F_I16_5F_SET (void) {
     push_u64(60LL);
 }
-static void mw_PRIM_5F_I16_5F_GET (void) {
+static void mw_PRIM_5F_I32_5F_GET (void) {
     push_u64(61LL);
 }
-static void mw_PRIM_5F_I16_5F_SET (void) {
+static void mw_PRIM_5F_I32_5F_SET (void) {
     push_u64(62LL);
 }
-static void mw_PRIM_5F_I32_5F_GET (void) {
+static void mw_PRIM_5F_I64_5F_GET (void) {
     push_u64(63LL);
 }
-static void mw_PRIM_5F_I32_5F_SET (void) {
+static void mw_PRIM_5F_I64_5F_SET (void) {
     push_u64(64LL);
 }
-static void mw_PRIM_5F_I64_5F_GET (void) {
+static void mw_PRIM_5F_SYS_5F_OS (void) {
     push_u64(65LL);
 }
-static void mw_PRIM_5F_I64_5F_SET (void) {
+static void mw_PRIM_5F_SYS_5F_ARGC (void) {
     push_u64(66LL);
 }
-static void mw_PRIM_5F_SYS_5F_OS (void) {
+static void mw_PRIM_5F_SYS_5F_ARGV (void) {
     push_u64(67LL);
 }
-static void mw_PRIM_5F_SYS_5F_ARGC (void) {
+static void mw_PRIM_5F_POSIX_5F_READ (void) {
     push_u64(68LL);
 }
-static void mw_PRIM_5F_SYS_5F_ARGV (void) {
+static void mw_PRIM_5F_POSIX_5F_WRITE (void) {
     push_u64(69LL);
 }
-static void mw_PRIM_5F_POSIX_5F_READ (void) {
+static void mw_PRIM_5F_POSIX_5F_OPEN (void) {
     push_u64(70LL);
 }
-static void mw_PRIM_5F_POSIX_5F_WRITE (void) {
+static void mw_PRIM_5F_POSIX_5F_CLOSE (void) {
     push_u64(71LL);
 }
-static void mw_PRIM_5F_POSIX_5F_OPEN (void) {
+static void mw_PRIM_5F_POSIX_5F_EXIT (void) {
     push_u64(72LL);
 }
-static void mw_PRIM_5F_POSIX_5F_CLOSE (void) {
+static void mw_PRIM_5F_POSIX_5F_MMAP (void) {
     push_u64(73LL);
 }
-static void mw_PRIM_5F_POSIX_5F_EXIT (void) {
+static void mw_PRIM_5F_SYNTAX_5F_MODULE (void) {
     push_u64(74LL);
 }
-static void mw_PRIM_5F_POSIX_5F_MMAP (void) {
+static void mw_PRIM_5F_SYNTAX_5F_IMPORT (void) {
     push_u64(75LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_MODULE (void) {
+static void mw_PRIM_5F_SYNTAX_5F_ALIAS (void) {
     push_u64(76LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_IMPORT (void) {
+static void mw_PRIM_5F_SYNTAX_5F_DEF (void) {
     push_u64(77LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_ALIAS (void) {
+static void mw_PRIM_5F_SYNTAX_5F_DEF_5F_MISSING (void) {
     push_u64(78LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_DEF (void) {
+static void mw_PRIM_5F_SYNTAX_5F_DEF_5F_TYPE (void) {
     push_u64(79LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_DEF_5F_MISSING (void) {
+static void mw_PRIM_5F_SYNTAX_5F_BUFFER (void) {
     push_u64(80LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_DEF_5F_TYPE (void) {
+static void mw_PRIM_5F_SYNTAX_5F_VARIABLE (void) {
     push_u64(81LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_BUFFER (void) {
+static void mw_PRIM_5F_SYNTAX_5F_DEF_5F_EXTERNAL (void) {
     push_u64(82LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_VARIABLE (void) {
+static void mw_PRIM_5F_SYNTAX_5F_TARGET_5F_C99 (void) {
     push_u64(83LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_DEF_5F_EXTERNAL (void) {
+static void mw_PRIM_5F_SYNTAX_5F_EMBED_5F_STR (void) {
     push_u64(84LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_TARGET_5F_C99 (void) {
+static void mw_PRIM_5F_SYNTAX_5F_TABLE (void) {
     push_u64(85LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_EMBED_5F_STR (void) {
+static void mw_PRIM_5F_SYNTAX_5F_FIELD (void) {
     push_u64(86LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_TABLE (void) {
+static void mw_PRIM_5F_SYNTAX_5F_DATA (void) {
     push_u64(87LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_FIELD (void) {
+static void mw_PRIM_5F_SYNTAX_5F_DASHES (void) {
     push_u64(88LL);
 }
-static void mw_PRIM_5F_SYNTAX_5F_DATA (void) {
-    push_u64(89LL);
-}
-static void mw_PRIM_5F_SYNTAX_5F_DASHES (void) {
-    push_u64(90LL);
-}
 static void mw_PRIM_5F_SYNTAX_5F_ARROW (void) {
-    push_u64(91LL);
+    push_u64(89LL);
 }
 static void mw_TOKEN_5F_NONE (void) {
     push_u64(0LL);
@@ -3034,12 +3018,13 @@ static void mw_0_3E_ (void);
 static void mw_ptrs (void);
 static void mw_ptr_40__40_ (void);
 static void mw_u8_21__21_ (void);
-static void mw_ints (void);
-static void mw_int_40__40_ (void);
-static void mw_int_21__21_ (void);
+static void mw_u64_40__40_ (void);
+static void mw_u64_21__21_ (void);
 static void mw_in_range (void);
 static void mw_Int__3E_U8 (void);
+static void mw_Int__3E_U64 (void);
 static void mw_U8__3E_Int (void);
+static void mw_U64__3E_Int (void);
 static void mw_pack1 (void);
 static void mw_pack2 (void);
 static void mw_unpack1 (void);
@@ -3779,8 +3764,8 @@ static void mb_ptr_40__40__2 (void);
 static void mb_count_2 (void);
 static void mb_countdown_2 (void);
 static void mb_u8_21__21__1 (void);
-static void mb_int_40__40__2 (void);
-static void mb_int_21__21__2 (void);
+static void mb_u64_40__40__2 (void);
+static void mb_u64_21__21__2 (void);
 static void mb_Int__3E_U8_1 (void);
 static void mb_Int__3E_U8_2 (void);
 static void mb_assert_21__3 (void);
@@ -5636,19 +5621,19 @@ static void mw_module_imports (void){
 
 
 static void mw__26__26_ (void){
-    WORD_ENTER(mw__26__26_, "&&", "src/prelude.mth", 43, 28);
-    WORD_ATOM(43, 28, "T");
+    WORD_ENTER(mw__26__26_, "&&", "src/prelude.mth", 41, 28);
+    WORD_ATOM(41, 28, "T");
     switch (get_top_data_tag()) {
         case 1LL:
             mw_prim_drop();
-            WORD_ATOM(43, 33, "id");
+            WORD_ATOM(41, 33, "id");
             mw_prim_id();
             break;
         case 0LL:
             mw_prim_drop();
-            WORD_ATOM(43, 42, "drop");
+            WORD_ATOM(41, 42, "drop");
             mw_prim_drop();
-            WORD_ATOM(43, 47, "F");
+            WORD_ATOM(41, 47, "F");
             mw_F();
             break;
         default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
@@ -5656,19 +5641,19 @@ static void mw__26__26_ (void){
 }    WORD_EXIT(mw__26__26_);
 }
 static void mw__7C__7C_ (void){
-    WORD_ENTER(mw__7C__7C_, "||", "src/prelude.mth", 44, 28);
-    WORD_ATOM(44, 28, "T");
+    WORD_ENTER(mw__7C__7C_, "||", "src/prelude.mth", 42, 28);
+    WORD_ATOM(42, 28, "T");
     switch (get_top_data_tag()) {
         case 1LL:
             mw_prim_drop();
-            WORD_ATOM(44, 33, "drop");
+            WORD_ATOM(42, 33, "drop");
             mw_prim_drop();
-            WORD_ATOM(44, 38, "T");
+            WORD_ATOM(42, 38, "T");
             mw_T();
             break;
         case 0LL:
             mw_prim_drop();
-            WORD_ATOM(44, 46, "id");
+            WORD_ATOM(42, 46, "id");
             mw_prim_id();
             break;
         default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
@@ -5676,17 +5661,17 @@ static void mw__7C__7C_ (void){
 }    WORD_EXIT(mw__7C__7C_);
 }
 static void mw_and (void){
-    WORD_ENTER(mw_and, "and", "src/prelude.mth", 46, 49);
-    WORD_ATOM(46, 49, "if");
+    WORD_ENTER(mw_and, "and", "src/prelude.mth", 44, 49);
+    WORD_ATOM(44, 49, "if");
     {
         VAL var_p = pop_value();
-        WORD_ATOM(46, 49, "if");
+        WORD_ATOM(44, 49, "if");
         if (pop_u64()) {
-            WORD_ATOM(46, 52, "p");
+            WORD_ATOM(44, 52, "p");
             incref(var_p);
             run_value(var_p);
         } else {
-            WORD_ATOM(46, 55, "F");
+            WORD_ATOM(44, 55, "F");
             mw_F();
         }
         decref(var_p);
@@ -5694,72 +5679,72 @@ static void mw_and (void){
     WORD_EXIT(mw_and);
 }
 static void mw_with_ptr_2B_ (void){
-    WORD_ENTER(mw_with_ptr_2B_, "with-ptr+", "src/prelude.mth", 52, 5);
-    WORD_ATOM(52, 5, "dup");
+    WORD_ENTER(mw_with_ptr_2B_, "with-ptr+", "src/prelude.mth", 50, 5);
+    WORD_ATOM(50, 5, "dup");
     {
         VAL var_f = pop_value();
-        WORD_ATOM(52, 5, "dup");
+        WORD_ATOM(50, 5, "dup");
         mw_prim_dup();
-        WORD_ATOM(52, 9, "dip");
+        WORD_ATOM(50, 9, "dip");
         {
             VAL d3 = pop_value();
-            WORD_ATOM(52, 13, "prim-ptr-add");
+            WORD_ATOM(50, 13, "prim-ptr-add");
             mw_prim_ptr_add();
-            WORD_ATOM(52, 26, "f");
+            WORD_ATOM(50, 26, "f");
             incref(var_f);
             run_value(var_f);
             push_value(d3);
         }
-        WORD_ATOM(52, 29, "drop");
+        WORD_ATOM(50, 29, "drop");
         mw_prim_drop();
         decref(var_f);
     }
     WORD_EXIT(mw_with_ptr_2B_);
 }
 static void mw_Int__3E_OS (void){
-    WORD_ENTER(mw_Int__3E_OS, "Int->OS", "src/prelude.mth", 93, 5);
-    WORD_ATOM(93, 5, "dup");
+    WORD_ENTER(mw_Int__3E_OS, "Int->OS", "src/prelude.mth", 91, 5);
+    WORD_ATOM(91, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(93, 9, "");
+    WORD_ATOM(91, 9, "");
     push_i64(1LL);
-    WORD_ATOM(93, 11, "==");
+    WORD_ATOM(91, 11, "==");
     mw_prim_value_eq();
-    WORD_ATOM(93, 14, "if");
+    WORD_ATOM(91, 14, "if");
     if (pop_u64()) {
-        WORD_ATOM(94, 9, "drop");
+        WORD_ATOM(92, 9, "drop");
         mw_prim_drop();
-        WORD_ATOM(94, 14, "OS_WINDOWS");
+        WORD_ATOM(92, 14, "OS_WINDOWS");
         mw_OS_5F_WINDOWS();
     } else {
-        WORD_ATOM(95, 5, "dup");
+        WORD_ATOM(93, 5, "dup");
         mw_prim_dup();
-        WORD_ATOM(95, 9, "");
+        WORD_ATOM(93, 9, "");
         push_i64(2LL);
-        WORD_ATOM(95, 11, "==");
+        WORD_ATOM(93, 11, "==");
         mw_prim_value_eq();
-        WORD_ATOM(95, 14, "if");
+        WORD_ATOM(93, 14, "if");
         if (pop_u64()) {
-            WORD_ATOM(96, 9, "drop");
+            WORD_ATOM(94, 9, "drop");
             mw_prim_drop();
-            WORD_ATOM(96, 14, "OS_LINUX");
+            WORD_ATOM(94, 14, "OS_LINUX");
             mw_OS_5F_LINUX();
         } else {
-            WORD_ATOM(97, 5, "dup");
+            WORD_ATOM(95, 5, "dup");
             mw_prim_dup();
-            WORD_ATOM(97, 9, "");
+            WORD_ATOM(95, 9, "");
             push_i64(3LL);
-            WORD_ATOM(97, 11, "==");
+            WORD_ATOM(95, 11, "==");
             mw_prim_value_eq();
-            WORD_ATOM(97, 14, "if");
+            WORD_ATOM(95, 14, "if");
             if (pop_u64()) {
-                WORD_ATOM(98, 9, "drop");
+                WORD_ATOM(96, 9, "drop");
                 mw_prim_drop();
-                WORD_ATOM(98, 14, "OS_MACOS");
+                WORD_ATOM(96, 14, "OS_MACOS");
                 mw_OS_5F_MACOS();
             } else {
-                WORD_ATOM(99, 9, "drop");
+                WORD_ATOM(97, 9, "drop");
                 mw_prim_drop();
-                WORD_ATOM(99, 14, "OS_UNKNOWN");
+                WORD_ATOM(97, 14, "OS_UNKNOWN");
                 mw_OS_5F_UNKNOWN();
             }
         }
@@ -5767,203 +5752,203 @@ static void mw_Int__3E_OS (void){
     WORD_EXIT(mw_Int__3E_OS);
 }
 static void mw_RUNNING_5F_OS (void){
-    WORD_ENTER(mw_RUNNING_5F_OS, "RUNNING_OS", "src/prelude.mth", 102, 21);
-    WORD_ATOM(102, 21, "prim-sys-os");
+    WORD_ENTER(mw_RUNNING_5F_OS, "RUNNING_OS", "src/prelude.mth", 100, 21);
+    WORD_ATOM(100, 21, "prim-sys-os");
     mw_prim_sys_os();
-    WORD_ATOM(102, 33, "Int->OS");
+    WORD_ATOM(100, 33, "Int->OS");
     mw_Int__3E_OS();
     WORD_EXIT(mw_RUNNING_5F_OS);
 }
 static void mw_posix_open_21_ (void){
-    WORD_ENTER(mw_posix_open_21_, "posix-open!", "src/prelude.mth", 109, 5);
-    WORD_ATOM(109, 5, "rotl");
+    WORD_ENTER(mw_posix_open_21_, "posix-open!", "src/prelude.mth", 107, 5);
+    WORD_ATOM(107, 5, "rotl");
     mw_rotl();
-    WORD_ATOM(109, 10, "dup");
+    WORD_ATOM(107, 10, "dup");
     mw_prim_dup();
-    WORD_ATOM(109, 14, "dip");
+    WORD_ATOM(107, 14, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(110, 9, "prim-str-base");
+        WORD_ATOM(108, 9, "prim-str-base");
         mw_prim_str_base();
-        WORD_ATOM(110, 23, "rotr");
+        WORD_ATOM(108, 23, "rotr");
         mw_rotr();
-        WORD_ATOM(111, 9, "prim-posix-open");
+        WORD_ATOM(109, 9, "prim-posix-open");
         mw_prim_posix_open();
         push_value(d2);
     }
-    WORD_ATOM(112, 7, "drop");
+    WORD_ATOM(110, 7, "drop");
     mw_prim_drop();
     WORD_EXIT(mw_posix_open_21_);
 }
 static void mw_rotr (void){
-    WORD_ENTER(mw_rotr, "rotr", "src/prelude.mth", 116, 27);
-    WORD_ATOM(116, 27, "swap");
+    WORD_ENTER(mw_rotr, "rotr", "src/prelude.mth", 114, 27);
+    WORD_ATOM(114, 27, "swap");
     mw_prim_swap();
-    WORD_ATOM(116, 32, "dip");
+    WORD_ATOM(114, 32, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(116, 36, "swap");
+        WORD_ATOM(114, 36, "swap");
         mw_prim_swap();
         push_value(d2);
     }
     WORD_EXIT(mw_rotr);
 }
 static void mw_rotl (void){
-    WORD_ENTER(mw_rotl, "rotl", "src/prelude.mth", 117, 27);
-    WORD_ATOM(117, 27, "dip");
+    WORD_ENTER(mw_rotl, "rotl", "src/prelude.mth", 115, 27);
+    WORD_ATOM(115, 27, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(117, 31, "swap");
+        WORD_ATOM(115, 31, "swap");
         mw_prim_swap();
         push_value(d2);
     }
-    WORD_ATOM(117, 37, "swap");
+    WORD_ATOM(115, 37, "swap");
     mw_prim_swap();
     WORD_EXIT(mw_rotl);
 }
 static void mw_over (void){
-    WORD_ENTER(mw_over, "over", "src/prelude.mth", 119, 25);
-    WORD_ATOM(119, 25, "dip");
+    WORD_ENTER(mw_over, "over", "src/prelude.mth", 117, 25);
+    WORD_ATOM(117, 25, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(119, 29, "dup");
+        WORD_ATOM(117, 29, "dup");
         mw_prim_dup();
         push_value(d2);
     }
-    WORD_ATOM(119, 34, "swap");
+    WORD_ATOM(117, 34, "swap");
     mw_prim_swap();
     WORD_EXIT(mw_over);
 }
 static void mw_over2 (void){
-    WORD_ENTER(mw_over2, "over2", "src/prelude.mth", 120, 34);
-    WORD_ATOM(120, 34, "dip");
+    WORD_ENTER(mw_over2, "over2", "src/prelude.mth", 118, 34);
+    WORD_ATOM(118, 34, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(120, 38, "over");
+        WORD_ATOM(118, 38, "over");
         mw_over();
         push_value(d2);
     }
-    WORD_ATOM(120, 44, "swap");
+    WORD_ATOM(118, 44, "swap");
     mw_prim_swap();
     WORD_EXIT(mw_over2);
 }
 static void mw_over3 (void){
-    WORD_ENTER(mw_over3, "over3", "src/prelude.mth", 121, 40);
-    WORD_ATOM(121, 40, "dip");
+    WORD_ENTER(mw_over3, "over3", "src/prelude.mth", 119, 40);
+    WORD_ATOM(119, 40, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(121, 44, "over2");
+        WORD_ATOM(119, 44, "over2");
         mw_over2();
         push_value(d2);
     }
-    WORD_ATOM(121, 51, "swap");
+    WORD_ATOM(119, 51, "swap");
     mw_prim_swap();
     WORD_EXIT(mw_over3);
 }
 static void mw_tuck (void){
-    WORD_ENTER(mw_tuck, "tuck", "src/prelude.mth", 123, 25);
-    WORD_ATOM(123, 25, "dup");
+    WORD_ENTER(mw_tuck, "tuck", "src/prelude.mth", 121, 25);
+    WORD_ATOM(121, 25, "dup");
     mw_prim_dup();
-    WORD_ATOM(123, 29, "dip");
+    WORD_ATOM(121, 29, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(123, 33, "swap");
+        WORD_ATOM(121, 33, "swap");
         mw_prim_swap();
         push_value(d2);
     }
     WORD_EXIT(mw_tuck);
 }
 static void mw_nip (void){
-    WORD_ENTER(mw_nip, "nip", "src/prelude.mth", 125, 20);
-    WORD_ATOM(125, 20, "dip");
+    WORD_ENTER(mw_nip, "nip", "src/prelude.mth", 123, 20);
+    WORD_ATOM(123, 20, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(125, 24, "drop");
+        WORD_ATOM(123, 24, "drop");
         mw_prim_drop();
         push_value(d2);
     }
     WORD_EXIT(mw_nip);
 }
 static void mw_dup2 (void){
-    WORD_ENTER(mw_dup2, "dup2", "src/prelude.mth", 127, 34);
-    WORD_ATOM(127, 34, "over");
+    WORD_ENTER(mw_dup2, "dup2", "src/prelude.mth", 125, 34);
+    WORD_ATOM(125, 34, "over");
     mw_over();
-    WORD_ATOM(127, 39, "over");
+    WORD_ATOM(125, 39, "over");
     mw_over();
     WORD_EXIT(mw_dup2);
 }
 static void mw_dup3 (void){
-    WORD_ENTER(mw_dup3, "dup3", "src/prelude.mth", 128, 34);
-    WORD_ATOM(128, 34, "dup");
+    WORD_ENTER(mw_dup3, "dup3", "src/prelude.mth", 126, 34);
+    WORD_ATOM(126, 34, "dup");
     mw_prim_dup();
-    WORD_ATOM(128, 38, "dip");
+    WORD_ATOM(126, 38, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(128, 42, "dip");
+        WORD_ATOM(126, 42, "dip");
         {
             VAL d3 = pop_value();
-            WORD_ATOM(128, 46, "dup2");
+            WORD_ATOM(126, 46, "dup2");
             mw_dup2();
             push_value(d3);
         }
-        WORD_ATOM(128, 52, "rotr");
+        WORD_ATOM(126, 52, "rotr");
         mw_rotr();
         push_value(d2);
     }
     WORD_EXIT(mw_dup3);
 }
 static void mw_dip_3F_ (void){
-    WORD_ENTER(mw_dip_3F_, "dip?", "src/prelude.mth", 130, 49);
-    WORD_ATOM(130, 49, "dip");
+    WORD_ENTER(mw_dip_3F_, "dip?", "src/prelude.mth", 128, 49);
+    WORD_ATOM(128, 49, "dip");
     {
         VAL var_f = pop_value();
-        WORD_ATOM(130, 49, "dip");
+        WORD_ATOM(128, 49, "dip");
         {
             VAL d3 = pop_value();
-            WORD_ATOM(130, 53, "f");
+            WORD_ATOM(128, 53, "f");
             incref(var_f);
             run_value(var_f);
             push_value(d3);
         }
-        WORD_ATOM(130, 56, "swap");
+        WORD_ATOM(128, 56, "swap");
         mw_prim_swap();
         decref(var_f);
     }
     WORD_EXIT(mw_dip_3F_);
 }
 static void mw_dip_27_ (void){
-    WORD_ENTER(mw_dip_27_, "dip'", "src/prelude.mth", 131, 47);
-    WORD_ATOM(131, 47, "swap");
+    WORD_ENTER(mw_dip_27_, "dip'", "src/prelude.mth", 129, 47);
+    WORD_ATOM(129, 47, "swap");
     {
         VAL var_f = pop_value();
-        WORD_ATOM(131, 47, "swap");
+        WORD_ATOM(129, 47, "swap");
         mw_prim_swap();
-        WORD_ATOM(131, 52, "dip");
+        WORD_ATOM(129, 52, "dip");
         {
             VAL d3 = pop_value();
-            WORD_ATOM(131, 56, "f");
+            WORD_ATOM(129, 56, "f");
             incref(var_f);
             run_value(var_f);
             push_value(d3);
         }
-        WORD_ATOM(131, 59, "swap");
+        WORD_ATOM(129, 59, "swap");
         mw_prim_swap();
         decref(var_f);
     }
     WORD_EXIT(mw_dip_27_);
 }
 static void mw_dip2 (void){
-    WORD_ENTER(mw_dip2, "dip2", "src/prelude.mth", 134, 5);
-    WORD_ATOM(134, 5, "dip");
+    WORD_ENTER(mw_dip2, "dip2", "src/prelude.mth", 132, 5);
+    WORD_ATOM(132, 5, "dip");
     {
         VAL var_f = pop_value();
-        WORD_ATOM(134, 5, "dip");
+        WORD_ATOM(132, 5, "dip");
         {
             VAL d3 = pop_value();
-            WORD_ATOM(134, 9, "dip");
+            WORD_ATOM(132, 9, "dip");
             {
                 VAL d4 = pop_value();
-                WORD_ATOM(134, 13, "f");
+                WORD_ATOM(132, 13, "f");
                 incref(var_f);
                 run_value(var_f);
                 push_value(d4);
@@ -5975,16 +5960,16 @@ static void mw_dip2 (void){
     WORD_EXIT(mw_dip2);
 }
 static void mw_sip (void){
-    WORD_ENTER(mw_sip, "sip", "src/prelude.mth", 139, 5);
-    WORD_ATOM(139, 5, "dup");
+    WORD_ENTER(mw_sip, "sip", "src/prelude.mth", 137, 5);
+    WORD_ATOM(137, 5, "dup");
     {
         VAL var_f = pop_value();
-        WORD_ATOM(139, 5, "dup");
+        WORD_ATOM(137, 5, "dup");
         mw_prim_dup();
-        WORD_ATOM(139, 9, "dip");
+        WORD_ATOM(137, 9, "dip");
         {
             VAL d3 = pop_value();
-            WORD_ATOM(139, 13, "f");
+            WORD_ATOM(137, 13, "f");
             incref(var_f);
             run_value(var_f);
             push_value(d3);
@@ -5994,102 +5979,102 @@ static void mw_sip (void){
     WORD_EXIT(mw_sip);
 }
 static void mw_drop2 (void){
-    WORD_ENTER(mw_drop2, "drop2", "src/prelude.mth", 143, 20);
-    WORD_ATOM(143, 20, "drop");
+    WORD_ENTER(mw_drop2, "drop2", "src/prelude.mth", 141, 20);
+    WORD_ATOM(141, 20, "drop");
     mw_prim_drop();
-    WORD_ATOM(143, 25, "drop");
+    WORD_ATOM(141, 25, "drop");
     mw_prim_drop();
     WORD_EXIT(mw_drop2);
 }
 static void mw_drop3 (void){
-    WORD_ENTER(mw_drop3, "drop3", "src/prelude.mth", 144, 22);
-    WORD_ATOM(144, 22, "drop");
+    WORD_ENTER(mw_drop3, "drop3", "src/prelude.mth", 142, 22);
+    WORD_ATOM(142, 22, "drop");
     mw_prim_drop();
-    WORD_ATOM(144, 27, "drop");
+    WORD_ATOM(142, 27, "drop");
     mw_prim_drop();
-    WORD_ATOM(144, 32, "drop");
+    WORD_ATOM(142, 32, "drop");
     mw_prim_drop();
     WORD_EXIT(mw_drop3);
 }
 static void mw_drop4 (void){
-    WORD_ENTER(mw_drop4, "drop4", "src/prelude.mth", 145, 24);
-    WORD_ATOM(145, 24, "drop");
+    WORD_ENTER(mw_drop4, "drop4", "src/prelude.mth", 143, 24);
+    WORD_ATOM(143, 24, "drop");
     mw_prim_drop();
-    WORD_ATOM(145, 29, "drop");
+    WORD_ATOM(143, 29, "drop");
     mw_prim_drop();
-    WORD_ATOM(145, 34, "drop");
+    WORD_ATOM(143, 34, "drop");
     mw_prim_drop();
-    WORD_ATOM(145, 39, "drop");
+    WORD_ATOM(143, 39, "drop");
     mw_prim_drop();
     WORD_EXIT(mw_drop4);
 }
 static void mw_rot4r (void){
-    WORD_ENTER(mw_rot4r, "rot4r", "src/prelude.mth", 147, 32);
-    WORD_ATOM(147, 32, "swap");
+    WORD_ENTER(mw_rot4r, "rot4r", "src/prelude.mth", 145, 32);
+    WORD_ATOM(145, 32, "swap");
     mw_prim_swap();
-    WORD_ATOM(147, 37, "dip");
+    WORD_ATOM(145, 37, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(147, 41, "rotr");
+        WORD_ATOM(145, 41, "rotr");
         mw_rotr();
         push_value(d2);
     }
     WORD_EXIT(mw_rot4r);
 }
 static void mw_rot4l (void){
-    WORD_ENTER(mw_rot4l, "rot4l", "src/prelude.mth", 148, 32);
-    WORD_ATOM(148, 32, "dip");
+    WORD_ENTER(mw_rot4l, "rot4l", "src/prelude.mth", 146, 32);
+    WORD_ATOM(146, 32, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(148, 36, "rotl");
+        WORD_ATOM(146, 36, "rotl");
         mw_rotl();
         push_value(d2);
     }
-    WORD_ATOM(148, 42, "swap");
+    WORD_ATOM(146, 42, "swap");
     mw_prim_swap();
     WORD_EXIT(mw_rot4l);
 }
 static void mw_repeat (void){
-    WORD_ENTER(mw_repeat, "repeat", "src/prelude.mth", 151, 5);
-    WORD_ATOM(151, 5, "while");
+    WORD_ENTER(mw_repeat, "repeat", "src/prelude.mth", 149, 5);
+    WORD_ATOM(149, 5, "while");
     {
         VAL var_f = pop_value();
-        WORD_ATOM(151, 5, "while");
+        WORD_ATOM(149, 5, "while");
         while(1) {
-            WORD_ATOM(151, 11, "dup");
+            WORD_ATOM(149, 11, "dup");
             mw_prim_dup();
-            WORD_ATOM(151, 15, "");
+            WORD_ATOM(149, 15, "");
             push_i64(0LL);
-            WORD_ATOM(151, 17, ">");
+            WORD_ATOM(149, 17, ">");
             mw__3E_();
             if (! pop_u64()) break;
-            WORD_ATOM(151, 20, "dip");
+            WORD_ATOM(149, 20, "dip");
             {
                 VAL d4 = pop_value();
-                WORD_ATOM(151, 24, "f");
+                WORD_ATOM(149, 24, "f");
                 incref(var_f);
                 run_value(var_f);
                 push_value(d4);
             }
-            WORD_ATOM(151, 27, "1-");
+            WORD_ATOM(149, 27, "1-");
             mw_prim_int_pred();
         }
-        WORD_ATOM(151, 31, "drop");
+        WORD_ATOM(149, 31, "drop");
         mw_prim_drop();
         decref(var_f);
     }
     WORD_EXIT(mw_repeat);
 }
 static void mw_count (void){
-    WORD_ENTER(mw_count, "count", "src/prelude.mth", 154, 5);
-    WORD_ATOM(154, 5, "");
+    WORD_ENTER(mw_count, "count", "src/prelude.mth", 152, 5);
+    WORD_ATOM(152, 5, "");
     {
         VAL var_f = pop_value();
-        WORD_ATOM(154, 5, "");
+        WORD_ATOM(152, 5, "");
         push_i64(0LL);
-        WORD_ATOM(154, 7, "swap");
+        WORD_ATOM(152, 7, "swap");
         mw_prim_swap();
-        WORD_ATOM(154, 12, "repeat");
+        WORD_ATOM(152, 12, "repeat");
         push_u64(0);
         incref(var_f);
         push_value(var_f);
@@ -6097,24 +6082,24 @@ static void mw_count (void){
         push_fnptr(&mb_count_2);
         mw_prim_pack_cons();
         mw_repeat();
-        WORD_ATOM(154, 34, "drop");
+        WORD_ATOM(152, 34, "drop");
         mw_prim_drop();
         decref(var_f);
     }
     WORD_EXIT(mw_count);
 }
 static void mw_countdown (void){
-    WORD_ENTER(mw_countdown, "countdown", "src/prelude.mth", 156, 5);
-    WORD_ATOM(156, 5, "dup");
+    WORD_ENTER(mw_countdown, "countdown", "src/prelude.mth", 154, 5);
+    WORD_ATOM(154, 5, "dup");
     {
         VAL var_f = pop_value();
-        WORD_ATOM(156, 5, "dup");
+        WORD_ATOM(154, 5, "dup");
         mw_prim_dup();
-        WORD_ATOM(156, 9, "1-");
+        WORD_ATOM(154, 9, "1-");
         mw_prim_int_pred();
-        WORD_ATOM(156, 12, "swap");
+        WORD_ATOM(154, 12, "swap");
         mw_prim_swap();
-        WORD_ATOM(156, 17, "repeat");
+        WORD_ATOM(154, 17, "repeat");
         push_u64(0);
         incref(var_f);
         push_value(var_f);
@@ -6122,140 +6107,140 @@ static void mw_countdown (void){
         push_fnptr(&mb_countdown_2);
         mw_prim_pack_cons();
         mw_repeat();
-        WORD_ATOM(156, 39, "drop");
+        WORD_ATOM(154, 39, "drop");
         mw_prim_drop();
         decref(var_f);
     }
     WORD_EXIT(mw_countdown);
 }
 static void mw_U8_5F_MAX (void){
-    WORD_ENTER(mw_U8_5F_MAX, "U8_MAX", "src/prelude.mth", 161, 18);
-    WORD_ATOM(161, 18, "");
+    WORD_ENTER(mw_U8_5F_MAX, "U8_MAX", "src/prelude.mth", 159, 18);
+    WORD_ATOM(159, 18, "");
     push_i64(255LL);
     WORD_EXIT(mw_U8_5F_MAX);
 }
 static void mw_U8_5F_MIN (void){
-    WORD_ENTER(mw_U8_5F_MIN, "U8_MIN", "src/prelude.mth", 169, 18);
-    WORD_ATOM(169, 18, "");
+    WORD_ENTER(mw_U8_5F_MIN, "U8_MIN", "src/prelude.mth", 167, 18);
+    WORD_ATOM(167, 18, "");
     push_i64(0LL);
     WORD_EXIT(mw_U8_5F_MIN);
 }
 static void mw_not (void){
-    WORD_ENTER(mw_not, "not", "src/prelude.mth", 177, 24);
-    WORD_ATOM(177, 24, "F");
+    WORD_ENTER(mw_not, "not", "src/prelude.mth", 175, 24);
+    WORD_ATOM(175, 24, "F");
     mw_F();
-    WORD_ATOM(177, 26, "==");
+    WORD_ATOM(175, 26, "==");
     mw_prim_value_eq();
     WORD_EXIT(mw_not);
 }
 static void mw_cmp (void){
-    WORD_ENTER(mw_cmp, "cmp", "src/prelude.mth", 182, 5);
-    WORD_ATOM(182, 5, "dup2");
+    WORD_ENTER(mw_cmp, "cmp", "src/prelude.mth", 180, 5);
+    WORD_ATOM(180, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(182, 10, "==");
+    WORD_ATOM(180, 10, "==");
     mw_prim_value_eq();
-    WORD_ATOM(182, 13, "if");
+    WORD_ATOM(180, 13, "if");
     if (pop_u64()) {
-        WORD_ATOM(183, 9, "drop2");
+        WORD_ATOM(181, 9, "drop2");
         mw_drop2();
-        WORD_ATOM(183, 15, "EQ");
+        WORD_ATOM(181, 15, "EQ");
         mw_EQ();
     } else {
-        WORD_ATOM(184, 9, "<");
+        WORD_ATOM(182, 9, "<");
         mw_prim_value_lt();
-        WORD_ATOM(184, 11, "if");
+        WORD_ATOM(182, 11, "if");
         if (pop_u64()) {
-            WORD_ATOM(185, 13, "LT");
+            WORD_ATOM(183, 13, "LT");
             mw_LT();
         } else {
-            WORD_ATOM(186, 13, "GT");
+            WORD_ATOM(184, 13, "GT");
             mw_GT();
         }
     }
     WORD_EXIT(mw_cmp);
 }
 static void mw_cmp_3F_ (void){
-    WORD_ENTER(mw_cmp_3F_, "cmp?", "src/prelude.mth", 189, 34);
-    WORD_ATOM(189, 34, "dup2");
+    WORD_ENTER(mw_cmp_3F_, "cmp?", "src/prelude.mth", 187, 34);
+    WORD_ATOM(187, 34, "dup2");
     mw_dup2();
-    WORD_ATOM(189, 39, "cmp");
+    WORD_ATOM(187, 39, "cmp");
     mw_cmp();
     WORD_EXIT(mw_cmp_3F_);
 }
 static void mw__3C__3E_ (void){
-    WORD_ENTER(mw__3C__3E_, "<>", "src/prelude.mth", 190, 22);
-    WORD_ATOM(190, 22, "==");
+    WORD_ENTER(mw__3C__3E_, "<>", "src/prelude.mth", 188, 22);
+    WORD_ATOM(188, 22, "==");
     mw_prim_value_eq();
-    WORD_ATOM(190, 25, "not");
+    WORD_ATOM(188, 25, "not");
     mw_not();
     WORD_EXIT(mw__3C__3E_);
 }
 static void mw__3E_ (void){
-    WORD_ENTER(mw__3E_, ">", "src/prelude.mth", 191, 21);
-    WORD_ATOM(191, 21, "swap");
+    WORD_ENTER(mw__3E_, ">", "src/prelude.mth", 189, 21);
+    WORD_ATOM(189, 21, "swap");
     mw_prim_swap();
-    WORD_ATOM(191, 26, "<");
+    WORD_ATOM(189, 26, "<");
     mw_prim_value_lt();
     WORD_EXIT(mw__3E_);
 }
 static void mw__3E__3D_ (void){
-    WORD_ENTER(mw__3E__3D_, ">=", "src/prelude.mth", 192, 22);
-    WORD_ATOM(192, 22, "swap");
+    WORD_ENTER(mw__3E__3D_, ">=", "src/prelude.mth", 190, 22);
+    WORD_ATOM(190, 22, "swap");
     mw_prim_swap();
-    WORD_ATOM(192, 27, "<=");
+    WORD_ATOM(190, 27, "<=");
     mw_prim_value_le();
     WORD_EXIT(mw__3E__3D_);
 }
 static void mw_prim_int_succ (void){
-    WORD_ENTER(mw_prim_int_succ, "prim-int-succ", "src/prelude.mth", 196, 40);
-    WORD_ATOM(196, 40, "");
+    WORD_ENTER(mw_prim_int_succ, "prim-int-succ", "src/prelude.mth", 194, 40);
+    WORD_ATOM(194, 40, "");
     push_i64(1LL);
-    WORD_ATOM(196, 42, "+");
+    WORD_ATOM(194, 42, "+");
     mw_prim_int_add();
     WORD_EXIT(mw_prim_int_succ);
 }
 static void mw_prim_int_pred (void){
-    WORD_ENTER(mw_prim_int_pred, "prim-int-pred", "src/prelude.mth", 197, 40);
-    WORD_ATOM(197, 40, "");
+    WORD_ENTER(mw_prim_int_pred, "prim-int-pred", "src/prelude.mth", 195, 40);
+    WORD_ATOM(195, 40, "");
     push_i64(1LL);
-    WORD_ATOM(197, 42, "-");
+    WORD_ATOM(195, 42, "-");
     mw_prim_int_sub();
     WORD_EXIT(mw_prim_int_pred);
 }
 static void mw_0_3D_ (void){
-    WORD_ENTER(mw_0_3D_, "0=", "src/prelude.mth", 202, 22);
-    WORD_ATOM(202, 22, "");
+    WORD_ENTER(mw_0_3D_, "0=", "src/prelude.mth", 200, 22);
+    WORD_ATOM(200, 22, "");
     push_i64(0LL);
-    WORD_ATOM(202, 24, "==");
+    WORD_ATOM(200, 24, "==");
     mw_prim_value_eq();
     WORD_EXIT(mw_0_3D_);
 }
 static void mw_0_3E_ (void){
-    WORD_ENTER(mw_0_3E_, "0>", "src/prelude.mth", 204, 22);
-    WORD_ATOM(204, 22, "");
+    WORD_ENTER(mw_0_3E_, "0>", "src/prelude.mth", 202, 22);
+    WORD_ATOM(202, 22, "");
     push_i64(0LL);
-    WORD_ATOM(204, 24, ">");
+    WORD_ATOM(202, 24, ">");
     mw__3E_();
     WORD_EXIT(mw_0_3E_);
 }
 static void mw_ptrs (void){
-    WORD_ENTER(mw_ptrs, "ptrs", "src/prelude.mth", 208, 25);
-    WORD_ATOM(208, 25, "|ptr|");
+    WORD_ENTER(mw_ptrs, "ptrs", "src/prelude.mth", 206, 25);
+    WORD_ATOM(206, 25, "|ptr|");
     mw_prim_ptr_size();
-    WORD_ATOM(208, 31, "*");
+    WORD_ATOM(206, 31, "*");
     mw_prim_int_mul();
     WORD_EXIT(mw_ptrs);
 }
 static void mw_ptr_40__40_ (void){
-    WORD_ENTER(mw_ptr_40__40_, "ptr@@", "src/prelude.mth", 209, 31);
-    WORD_ATOM(209, 31, "dip");
+    WORD_ENTER(mw_ptr_40__40_, "ptr@@", "src/prelude.mth", 207, 31);
+    WORD_ATOM(207, 31, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(209, 35, "ptrs");
+        WORD_ATOM(207, 35, "ptrs");
         mw_ptrs();
         push_value(d2);
     }
-    WORD_ATOM(209, 41, "with-ptr+");
+    WORD_ATOM(207, 41, "with-ptr+");
     push_u64(0);
     push_fnptr(&mb_ptr_40__40__2);
     mw_prim_pack_cons();
@@ -6263,53 +6248,49 @@ static void mw_ptr_40__40_ (void){
     WORD_EXIT(mw_ptr_40__40_);
 }
 static void mw_u8_21__21_ (void){
-    WORD_ENTER(mw_u8_21__21_, "u8!!", "src/prelude.mth", 213, 29);
-    WORD_ATOM(213, 29, "with-ptr+");
+    WORD_ENTER(mw_u8_21__21_, "u8!!", "src/prelude.mth", 211, 29);
+    WORD_ATOM(211, 29, "with-ptr+");
     push_u64(0);
     push_fnptr(&mb_u8_21__21__1);
     mw_prim_pack_cons();
     mw_with_ptr_2B_();
     WORD_EXIT(mw_u8_21__21_);
 }
-static void mw_ints (void){
-    WORD_ENTER(mw_ints, "ints", "src/prelude.mth", 215, 25);
-    WORD_ATOM(215, 25, "");
-    push_i64(8LL);
-    WORD_ATOM(215, 27, "*");
-    mw_prim_int_mul();
-    WORD_EXIT(mw_ints);
-}
-static void mw_int_40__40_ (void){
-    WORD_ENTER(mw_int_40__40_, "int@@", "src/prelude.mth", 216, 31);
-    WORD_ATOM(216, 31, "dip");
+static void mw_u64_40__40_ (void){
+    WORD_ENTER(mw_u64_40__40_, "u64@@", "src/prelude.mth", 213, 31);
+    WORD_ATOM(213, 31, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(216, 35, "ints");
-        mw_ints();
+        WORD_ATOM(213, 35, "");
+        push_i64(8LL);
+        WORD_ATOM(213, 37, "*");
+        mw_prim_int_mul();
         push_value(d2);
     }
-    WORD_ATOM(216, 41, "with-ptr+");
+    WORD_ATOM(213, 40, "with-ptr+");
     push_u64(0);
-    push_fnptr(&mb_int_40__40__2);
+    push_fnptr(&mb_u64_40__40__2);
     mw_prim_pack_cons();
     mw_with_ptr_2B_();
-    WORD_EXIT(mw_int_40__40_);
+    WORD_EXIT(mw_u64_40__40_);
 }
-static void mw_int_21__21_ (void){
-    WORD_ENTER(mw_int_21__21_, "int!!", "src/prelude.mth", 217, 31);
-    WORD_ATOM(217, 31, "dip");
+static void mw_u64_21__21_ (void){
+    WORD_ENTER(mw_u64_21__21_, "u64!!", "src/prelude.mth", 214, 31);
+    WORD_ATOM(214, 31, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(217, 35, "ints");
-        mw_ints();
+        WORD_ATOM(214, 35, "");
+        push_i64(8LL);
+        WORD_ATOM(214, 37, "*");
+        mw_prim_int_mul();
         push_value(d2);
     }
-    WORD_ATOM(217, 41, "with-ptr+");
+    WORD_ATOM(214, 40, "with-ptr+");
     push_u64(0);
-    push_fnptr(&mb_int_21__21__2);
+    push_fnptr(&mb_u64_21__21__2);
     mw_prim_pack_cons();
     mw_with_ptr_2B_();
-    WORD_EXIT(mw_int_21__21_);
+    WORD_EXIT(mw_u64_21__21_);
 }
 static void mw_in_range (void){
     WORD_ENTER(mw_in_range, "in-range", "src/prelude.mth", 219, 30);
@@ -6349,11 +6330,23 @@ static void mw_Int__3E_U8 (void){
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Int__3E_U8);
 }
+static void mw_Int__3E_U64 (void){
+    WORD_ENTER(mw_Int__3E_U64, "Int->U64", "src/prelude.mth", 233, 27);
+    WORD_ATOM(233, 27, "prim-unsafe-cast");
+    mw_prim_unsafe_cast();
+    WORD_EXIT(mw_Int__3E_U64);
+}
 static void mw_U8__3E_Int (void){
     WORD_ENTER(mw_U8__3E_Int, "U8->Int", "src/prelude.mth", 249, 25);
     WORD_ATOM(249, 25, "prim-unsafe-cast");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_U8__3E_Int);
+}
+static void mw_U64__3E_Int (void){
+    WORD_ENTER(mw_U64__3E_Int, "U64->Int", "src/prelude.mth", 252, 27);
+    WORD_ATOM(252, 27, "prim-unsafe-cast");
+    mw_prim_unsafe_cast();
+    WORD_EXIT(mw_U64__3E_Int);
 }
 static void mw_pack1 (void){
     WORD_ENTER(mw_pack1, "pack1", "src/prelude.mth", 266, 22);
@@ -9151,34 +9144,34 @@ static void mw_File__3E_Int (void){
     WORD_EXIT(mw_File__3E_Int);
 }
 static void mw_stdin (void){
-    WORD_ENTER(mw_stdin, "stdin", "src/platform/posix.mth", 13, 18);
-    WORD_ATOM(13, 18, "");
+    WORD_ENTER(mw_stdin, "stdin", "src/platform/posix.mth", 10, 18);
+    WORD_ATOM(10, 18, "");
     push_i64(0LL);
-    WORD_ATOM(13, 20, "Int->File");
+    WORD_ATOM(10, 20, "Int->File");
     mw_Int__3E_File();
     WORD_EXIT(mw_stdin);
 }
 static void mw_stdout (void){
-    WORD_ENTER(mw_stdout, "stdout", "src/platform/posix.mth", 14, 19);
-    WORD_ATOM(14, 19, "");
+    WORD_ENTER(mw_stdout, "stdout", "src/platform/posix.mth", 11, 19);
+    WORD_ATOM(11, 19, "");
     push_i64(1LL);
-    WORD_ATOM(14, 21, "Int->File");
+    WORD_ATOM(11, 21, "Int->File");
     mw_Int__3E_File();
     WORD_EXIT(mw_stdout);
 }
 static void mw_stderr (void){
-    WORD_ENTER(mw_stderr, "stderr", "src/platform/posix.mth", 15, 19);
-    WORD_ATOM(15, 19, "");
+    WORD_ENTER(mw_stderr, "stderr", "src/platform/posix.mth", 12, 19);
+    WORD_ATOM(12, 19, "");
     push_i64(2LL);
-    WORD_ATOM(15, 21, "Int->File");
+    WORD_ATOM(12, 21, "Int->File");
     mw_Int__3E_File();
     WORD_EXIT(mw_stderr);
 }
 static void mw_str_write_21_ (void){
-    WORD_ENTER(mw_str_write_21_, "str-write!", "src/platform/posix.mth", 18, 5);
-    WORD_ATOM(18, 5, "swap");
+    WORD_ENTER(mw_str_write_21_, "str-write!", "src/platform/posix.mth", 15, 5);
+    WORD_ATOM(15, 5, "swap");
     mw_prim_swap();
-    WORD_ATOM(18, 10, "with-str-data");
+    WORD_ATOM(15, 10, "with-str-data");
     push_u64(0);
     push_fnptr(&mb_str_write_21__1);
     mw_prim_pack_cons();
@@ -9186,22 +9179,22 @@ static void mw_str_write_21_ (void){
     WORD_EXIT(mw_str_write_21_);
 }
 static void mw_slice_write_21_ (void){
-    WORD_ENTER(mw_slice_write_21_, "slice-write!", "src/platform/posix.mth", 21, 5);
-    WORD_ATOM(21, 5, "dip2");
+    WORD_ENTER(mw_slice_write_21_, "slice-write!", "src/platform/posix.mth", 18, 5);
+    WORD_ATOM(18, 5, "dip2");
     push_u64(0);
     push_fnptr(&mb_slice_write_21__1);
     mw_prim_pack_cons();
     mw_dip2();
-    WORD_ATOM(21, 21, "dup");
+    WORD_ATOM(18, 21, "dup");
     mw_prim_dup();
-    WORD_ATOM(21, 25, "dip");
+    WORD_ATOM(18, 25, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(21, 29, "posix-write!");
+        WORD_ATOM(18, 29, "posix-write!");
         mw_prim_posix_write();
         push_value(d2);
     }
-    WORD_ATOM(22, 5, "expect!");
+    WORD_ATOM(19, 5, "expect!");
     push_u64(0);
     push_fnptr(&mb_slice_write_21__3);
     mw_prim_pack_cons();
@@ -9209,7 +9202,7 @@ static void mw_slice_write_21_ (void){
     push_fnptr(&mb_slice_write_21__4);
     mw_prim_pack_cons();
     mw_expect_21_();
-    WORD_ATOM(23, 5, "expect!");
+    WORD_ATOM(20, 5, "expect!");
     push_u64(0);
     push_fnptr(&mb_slice_write_21__5);
     mw_prim_pack_cons();
@@ -9217,29 +9210,29 @@ static void mw_slice_write_21_ (void){
     push_fnptr(&mb_slice_write_21__6);
     mw_prim_pack_cons();
     mw_expect_21_();
-    WORD_ATOM(24, 5, "drop2");
+    WORD_ATOM(21, 5, "drop2");
     mw_drop2();
     WORD_EXIT(mw_slice_write_21_);
 }
 static void mw_str_trace_21_ (void){
-    WORD_ENTER(mw_str_trace_21_, "str-trace!", "src/platform/posix.mth", 27, 25);
-    WORD_ATOM(27, 25, "stderr");
+    WORD_ENTER(mw_str_trace_21_, "str-trace!", "src/platform/posix.mth", 24, 25);
+    WORD_ATOM(24, 25, "stderr");
     mw_stderr();
-    WORD_ATOM(27, 32, "str-write!");
+    WORD_ATOM(24, 32, "str-write!");
     mw_str_write_21_();
     WORD_EXIT(mw_str_trace_21_);
 }
 static void mw_str_trace_ln_21_ (void){
-    WORD_ENTER(mw_str_trace_ln_21_, "str-trace-ln!", "src/platform/posix.mth", 29, 28);
-    WORD_ATOM(29, 28, "str-trace!");
+    WORD_ENTER(mw_str_trace_ln_21_, "str-trace-ln!", "src/platform/posix.mth", 26, 28);
+    WORD_ATOM(26, 28, "str-trace!");
     mw_str_trace_21_();
-    WORD_ATOM(29, 39, "trace-ln!");
+    WORD_ATOM(26, 39, "trace-ln!");
     mw_trace_ln_21_();
     WORD_EXIT(mw_str_trace_ln_21_);
 }
 static void mw_trace_ln_21_ (void){
-    WORD_ENTER(mw_trace_ln_21_, "trace-ln!", "src/platform/posix.mth", 32, 20);
-    WORD_ATOM(32, 20, "");
+    WORD_ENTER(mw_trace_ln_21_, "trace-ln!", "src/platform/posix.mth", 29, 20);
+    WORD_ATOM(29, 20, "");
     {
         static bool vready = false;
         static VAL v;
@@ -9250,72 +9243,72 @@ static void mw_trace_ln_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(32, 25, "str-trace!");
+    WORD_ATOM(29, 25, "str-trace!");
     mw_str_trace_21_();
     WORD_EXIT(mw_trace_ln_21_);
 }
 static void mw_int_write_21_ (void){
-    WORD_ENTER(mw_int_write_21_, "int-write!", "src/platform/posix.mth", 34, 30);
-    WORD_ATOM(34, 30, "dip");
+    WORD_ENTER(mw_int_write_21_, "int-write!", "src/platform/posix.mth", 31, 30);
+    WORD_ATOM(31, 30, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(34, 34, "int-to-str");
+        WORD_ATOM(31, 34, "int-to-str");
         mw_prim_int_to_str();
         push_value(d2);
     }
-    WORD_ATOM(34, 46, "str-write!");
+    WORD_ATOM(31, 46, "str-write!");
     mw_str_write_21_();
     WORD_EXIT(mw_int_write_21_);
 }
 static void mw_int_trace_21_ (void){
-    WORD_ENTER(mw_int_trace_21_, "int-trace!", "src/platform/posix.mth", 36, 25);
-    WORD_ATOM(36, 25, "stderr");
+    WORD_ENTER(mw_int_trace_21_, "int-trace!", "src/platform/posix.mth", 33, 25);
+    WORD_ATOM(33, 25, "stderr");
     mw_stderr();
-    WORD_ATOM(36, 32, "int-write!");
+    WORD_ATOM(33, 32, "int-write!");
     mw_int_write_21_();
     WORD_EXIT(mw_int_trace_21_);
 }
 static void mw_with_open_file_21_ (void){
-    WORD_ENTER(mw_with_open_file_21_, "with-open-file!", "src/platform/posix.mth", 41, 5);
-    WORD_ATOM(41, 5, "");
+    WORD_ENTER(mw_with_open_file_21_, "with-open-file!", "src/platform/posix.mth", 38, 5);
+    WORD_ATOM(38, 5, "");
     {
         VAL var_g = pop_value();
         VAL var_f = pop_value();
-        WORD_ATOM(41, 5, "");
+        WORD_ATOM(38, 5, "");
         push_i64(0LL);
-        WORD_ATOM(41, 7, "");
+        WORD_ATOM(38, 7, "");
         push_i64(0LL);
-        WORD_ATOM(41, 9, "posix-open!");
+        WORD_ATOM(38, 9, "posix-open!");
         mw_posix_open_21_();
-        WORD_ATOM(41, 21, "dup");
+        WORD_ATOM(38, 21, "dup");
         mw_prim_dup();
-        WORD_ATOM(41, 25, "");
+        WORD_ATOM(38, 25, "");
         push_i64(0LL);
-        WORD_ATOM(41, 27, "<");
+        WORD_ATOM(38, 27, "<");
         mw_prim_value_lt();
-        WORD_ATOM(41, 29, "if");
+        WORD_ATOM(38, 29, "if");
         if (pop_u64()) {
-            WORD_ATOM(41, 32, "drop");
+            WORD_ATOM(38, 32, "drop");
             mw_prim_drop();
-            WORD_ATOM(41, 37, "g");
+            WORD_ATOM(38, 37, "g");
             incref(var_g);
             run_value(var_g);
         } else {
-            WORD_ATOM(41, 40, "dup");
+            WORD_ATOM(38, 40, "dup");
             mw_prim_dup();
-            WORD_ATOM(41, 44, "dip");
+            WORD_ATOM(38, 44, "dip");
             {
                 VAL d4 = pop_value();
-                WORD_ATOM(41, 48, "Int->File");
+                WORD_ATOM(38, 48, "Int->File");
                 mw_Int__3E_File();
-                WORD_ATOM(41, 58, "f");
+                WORD_ATOM(38, 58, "f");
                 incref(var_f);
                 run_value(var_f);
                 push_value(d4);
             }
-            WORD_ATOM(41, 61, "posix-close!");
+            WORD_ATOM(38, 61, "posix-close!");
             mw_prim_posix_close();
-            WORD_ATOM(41, 74, "drop");
+            WORD_ATOM(38, 74, "drop");
             mw_prim_drop();
         }
         decref(var_g);
@@ -9324,19 +9317,19 @@ static void mw_with_open_file_21_ (void){
     WORD_EXIT(mw_with_open_file_21_);
 }
 static void mw_READ_5F_FILE_5F_BUF_5F_SIZE (void){
-    WORD_ENTER(mw_READ_5F_FILE_5F_BUF_5F_SIZE, "READ_FILE_BUF_SIZE", "src/platform/posix.mth", 43, 25);
-    WORD_ATOM(43, 25, "");
+    WORD_ENTER(mw_READ_5F_FILE_5F_BUF_5F_SIZE, "READ_FILE_BUF_SIZE", "src/platform/posix.mth", 40, 25);
+    WORD_ATOM(40, 25, "");
     push_i64(4096LL);
     WORD_EXIT(mw_READ_5F_FILE_5F_BUF_5F_SIZE);
 }
 static void mw_read_file_21_ (void){
-    WORD_ENTER(mw_read_file_21_, "read-file!", "src/platform/posix.mth", 46, 5);
-    WORD_ATOM(46, 5, "File->Int");
+    WORD_ENTER(mw_read_file_21_, "read-file!", "src/platform/posix.mth", 43, 5);
+    WORD_ATOM(43, 5, "File->Int");
     mw_File__3E_Int();
-    WORD_ATOM(46, 15, "\\");
+    WORD_ATOM(43, 15, "\\");
     {
         VAL var_fp = pop_value();
-        WORD_ATOM(46, 23, "");
+        WORD_ATOM(43, 23, "");
         {
             static bool vready = false;
             static VAL v;
@@ -9347,43 +9340,43 @@ static void mw_read_file_21_ (void){
             push_value(v);
             incref(v);
         }
-        WORD_ATOM(47, 5, "fp");
+        WORD_ATOM(44, 5, "fp");
         incref(var_fp);
         push_value(var_fp);
-        WORD_ATOM(47, 8, "READ_FILE_BUF");
+        WORD_ATOM(44, 8, "READ_FILE_BUF");
         mw_READ_5F_FILE_5F_BUF();
-        WORD_ATOM(47, 22, "READ_FILE_BUF_SIZE");
+        WORD_ATOM(44, 22, "READ_FILE_BUF_SIZE");
         mw_READ_5F_FILE_5F_BUF_5F_SIZE();
-        WORD_ATOM(47, 41, "prim-posix-read");
+        WORD_ATOM(44, 41, "prim-posix-read");
         mw_prim_posix_read();
-        WORD_ATOM(48, 5, "while");
+        WORD_ATOM(45, 5, "while");
         while(1) {
-            WORD_ATOM(48, 11, "dup");
+            WORD_ATOM(45, 11, "dup");
             mw_prim_dup();
-            WORD_ATOM(48, 15, "");
+            WORD_ATOM(45, 15, "");
             push_i64(0LL);
-            WORD_ATOM(48, 17, ">");
+            WORD_ATOM(45, 17, ">");
             mw__3E_();
             if (! pop_u64()) break;
-            WORD_ATOM(49, 9, "READ_FILE_BUF");
+            WORD_ATOM(46, 9, "READ_FILE_BUF");
             mw_READ_5F_FILE_5F_BUF();
-            WORD_ATOM(49, 23, "swap");
+            WORD_ATOM(46, 23, "swap");
             mw_prim_swap();
-            WORD_ATOM(49, 28, "prim-str-copy");
+            WORD_ATOM(46, 28, "prim-str-copy");
             mw_prim_str_copy();
-            WORD_ATOM(49, 42, "str-cat");
+            WORD_ATOM(46, 42, "str-cat");
             mw_str_cat();
-            WORD_ATOM(50, 9, "fp");
+            WORD_ATOM(47, 9, "fp");
             incref(var_fp);
             push_value(var_fp);
-            WORD_ATOM(50, 12, "READ_FILE_BUF");
+            WORD_ATOM(47, 12, "READ_FILE_BUF");
             mw_READ_5F_FILE_5F_BUF();
-            WORD_ATOM(50, 26, "READ_FILE_BUF_SIZE");
+            WORD_ATOM(47, 26, "READ_FILE_BUF_SIZE");
             mw_READ_5F_FILE_5F_BUF_5F_SIZE();
-            WORD_ATOM(50, 45, "prim-posix-read");
+            WORD_ATOM(47, 45, "prim-posix-read");
             mw_prim_posix_read();
         }
-        WORD_ATOM(51, 5, "expect!");
+        WORD_ATOM(48, 5, "expect!");
         push_u64(0);
         incref(var_fp);
         push_value(var_fp);
@@ -9397,21 +9390,21 @@ static void mw_read_file_21_ (void){
         push_fnptr(&mb_read_file_21__5);
         mw_prim_pack_cons();
         mw_expect_21_();
-        WORD_ATOM(52, 5, "drop");
+        WORD_ATOM(49, 5, "drop");
         mw_prim_drop();
         decref(var_fp);
     }
     WORD_EXIT(mw_read_file_21_);
 }
 static void mw_open_file_21_ (void){
-    WORD_ENTER(mw_open_file_21_, "open-file!", "src/platform/posix.mth", 55, 5);
-    WORD_ATOM(55, 5, "");
+    WORD_ENTER(mw_open_file_21_, "open-file!", "src/platform/posix.mth", 52, 5);
+    WORD_ATOM(52, 5, "");
     push_i64(0LL);
-    WORD_ATOM(55, 7, "");
+    WORD_ATOM(52, 7, "");
     push_i64(0LL);
-    WORD_ATOM(55, 9, "posix-open!");
+    WORD_ATOM(52, 9, "posix-open!");
     mw_posix_open_21_();
-    WORD_ATOM(56, 5, "expect!");
+    WORD_ATOM(53, 5, "expect!");
     push_u64(0);
     push_fnptr(&mb_open_file_21__1);
     mw_prim_pack_cons();
@@ -9419,19 +9412,19 @@ static void mw_open_file_21_ (void){
     push_fnptr(&mb_open_file_21__2);
     mw_prim_pack_cons();
     mw_expect_21_();
-    WORD_ATOM(57, 5, "Int->File");
+    WORD_ATOM(54, 5, "Int->File");
     mw_Int__3E_File();
     WORD_EXIT(mw_open_file_21_);
 }
 static void mw_create_file_21_ (void){
-    WORD_ENTER(mw_create_file_21_, "create-file!", "src/platform/posix.mth", 60, 5);
-    WORD_ATOM(60, 5, "O_WRONLY|O_CREAT|O_TRUNC");
+    WORD_ENTER(mw_create_file_21_, "create-file!", "src/platform/posix.mth", 57, 5);
+    WORD_ATOM(57, 5, "O_WRONLY|O_CREAT|O_TRUNC");
     mw_O_5F_WRONLY_7C_O_5F_CREAT_7C_O_5F_TRUNC();
-    WORD_ATOM(61, 5, "");
+    WORD_ATOM(58, 5, "");
     push_i64(438LL);
-    WORD_ATOM(66, 5, "posix-open!");
+    WORD_ATOM(63, 5, "posix-open!");
     mw_posix_open_21_();
-    WORD_ATOM(67, 5, "expect!");
+    WORD_ATOM(64, 5, "expect!");
     push_u64(0);
     push_fnptr(&mb_create_file_21__1);
     mw_prim_pack_cons();
@@ -9439,34 +9432,34 @@ static void mw_create_file_21_ (void){
     push_fnptr(&mb_create_file_21__2);
     mw_prim_pack_cons();
     mw_expect_21_();
-    WORD_ATOM(68, 5, "Int->File");
+    WORD_ATOM(65, 5, "Int->File");
     mw_Int__3E_File();
     WORD_EXIT(mw_create_file_21_);
 }
 static void mw_O_5F_WRONLY_7C_O_5F_CREAT_7C_O_5F_TRUNC (void){
-    WORD_ENTER(mw_O_5F_WRONLY_7C_O_5F_CREAT_7C_O_5F_TRUNC, "O_WRONLY|O_CREAT|O_TRUNC", "src/platform/posix.mth", 71, 5);
-    WORD_ATOM(71, 5, "RUNNING_OS");
+    WORD_ENTER(mw_O_5F_WRONLY_7C_O_5F_CREAT_7C_O_5F_TRUNC, "O_WRONLY|O_CREAT|O_TRUNC", "src/platform/posix.mth", 68, 5);
+    WORD_ATOM(68, 5, "RUNNING_OS");
     mw_RUNNING_5F_OS();
-    WORD_ATOM(71, 16, "match");
+    WORD_ATOM(68, 16, "match");
     switch (get_top_data_tag()) {
         case 3LL:
             mw_prim_drop();
-            WORD_ATOM(72, 21, "");
+            WORD_ATOM(69, 21, "");
             push_i64(1537LL);
             break;
         case 2LL:
             mw_prim_drop();
-            WORD_ATOM(73, 21, "");
+            WORD_ATOM(70, 21, "");
             push_i64(577LL);
             break;
         case 1LL:
             mw_prim_drop();
-            WORD_ATOM(74, 23, "");
+            WORD_ATOM(71, 23, "");
             push_i64(769LL);
             break;
         case 0LL:
             mw_prim_drop();
-            WORD_ATOM(75, 23, "");
+            WORD_ATOM(72, 23, "");
             {
                 static bool vready = false;
                 static VAL v;
@@ -9477,7 +9470,7 @@ static void mw_O_5F_WRONLY_7C_O_5F_CREAT_7C_O_5F_TRUNC (void){
                 push_value(v);
                 incref(v);
             }
-            WORD_ATOM(75, 64, "panic!");
+            WORD_ATOM(72, 64, "panic!");
             mw_prim_panic();
             break;
         default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
@@ -9485,12 +9478,12 @@ static void mw_O_5F_WRONLY_7C_O_5F_CREAT_7C_O_5F_TRUNC (void){
 }    WORD_EXIT(mw_O_5F_WRONLY_7C_O_5F_CREAT_7C_O_5F_TRUNC);
 }
 static void mw_close_file_21_ (void){
-    WORD_ENTER(mw_close_file_21_, "close-file!", "src/platform/posix.mth", 79, 5);
-    WORD_ATOM(79, 5, "File->Int");
+    WORD_ENTER(mw_close_file_21_, "close-file!", "src/platform/posix.mth", 76, 5);
+    WORD_ATOM(76, 5, "File->Int");
     mw_File__3E_Int();
-    WORD_ATOM(79, 15, "posix-close!");
+    WORD_ATOM(76, 15, "posix-close!");
     mw_prim_posix_close();
-    WORD_ATOM(80, 5, "expect!");
+    WORD_ATOM(77, 5, "expect!");
     push_u64(0);
     push_fnptr(&mb_close_file_21__1);
     mw_prim_pack_cons();
@@ -9498,7 +9491,7 @@ static void mw_close_file_21_ (void){
     push_fnptr(&mb_close_file_21__2);
     mw_prim_pack_cons();
     mw_expect_21_();
-    WORD_ATOM(81, 5, "drop");
+    WORD_ATOM(78, 5, "drop");
     mw_prim_drop();
     WORD_EXIT(mw_close_file_21_);
 }
@@ -10351,7 +10344,9 @@ static void mw_Var_2E_alloc_21_ (void){
     WORD_ATOM(12, 7, "Var");
     mw_Var_2E_NUM();
     WORD_ATOM(12, 7, "Var");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(12, 7, "Var");
+    mw_prim_unsafe_cast();
     WORD_ATOM(12, 7, "Var");
     push_i64(1LL);
     WORD_ATOM(12, 7, "Var");
@@ -10359,9 +10354,11 @@ static void mw_Var_2E_alloc_21_ (void){
     WORD_ATOM(12, 7, "Var");
     mw_prim_dup();
     WORD_ATOM(12, 7, "Var");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(12, 7, "Var");
     mw_Var_2E_NUM();
     WORD_ATOM(12, 7, "Var");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(12, 7, "Var");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Var_2E_alloc_21_);
@@ -10560,7 +10557,9 @@ static void mw_External_2E_for (void){
             WORD_ATOM(6, 7, "External");
             mw_External_2E_NUM();
             WORD_ATOM(6, 7, "External");
-            mw_prim_int_get();
+            mw_prim_u64_get();
+            WORD_ATOM(6, 7, "External");
+            mw_prim_unsafe_cast();
             WORD_ATOM(6, 7, "External");
             mw_prim_value_le();
             if (! pop_u64()) break;
@@ -10592,7 +10591,9 @@ static void mw_External_2E_alloc_21_ (void){
     WORD_ATOM(6, 7, "External");
     mw_External_2E_NUM();
     WORD_ATOM(6, 7, "External");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(6, 7, "External");
+    mw_prim_unsafe_cast();
     WORD_ATOM(6, 7, "External");
     push_i64(1LL);
     WORD_ATOM(6, 7, "External");
@@ -10600,9 +10601,11 @@ static void mw_External_2E_alloc_21_ (void){
     WORD_ATOM(6, 7, "External");
     mw_prim_dup();
     WORD_ATOM(6, 7, "External");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(6, 7, "External");
     mw_External_2E_NUM();
     WORD_ATOM(6, 7, "External");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(6, 7, "External");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_External_2E_alloc_21_);
@@ -10621,7 +10624,9 @@ static void mw_Word_2E_for (void){
             WORD_ATOM(11, 7, "Word");
             mw_Word_2E_NUM();
             WORD_ATOM(11, 7, "Word");
-            mw_prim_int_get();
+            mw_prim_u64_get();
+            WORD_ATOM(11, 7, "Word");
+            mw_prim_unsafe_cast();
             WORD_ATOM(11, 7, "Word");
             mw_prim_value_le();
             if (! pop_u64()) break;
@@ -10653,7 +10658,9 @@ static void mw_Word_2E_alloc_21_ (void){
     WORD_ATOM(11, 7, "Word");
     mw_Word_2E_NUM();
     WORD_ATOM(11, 7, "Word");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(11, 7, "Word");
+    mw_prim_unsafe_cast();
     WORD_ATOM(11, 7, "Word");
     push_i64(1LL);
     WORD_ATOM(11, 7, "Word");
@@ -10661,9 +10668,11 @@ static void mw_Word_2E_alloc_21_ (void){
     WORD_ATOM(11, 7, "Word");
     mw_prim_dup();
     WORD_ATOM(11, 7, "Word");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(11, 7, "Word");
     mw_Word_2E_NUM();
     WORD_ATOM(11, 7, "Word");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(11, 7, "Word");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Word_2E_alloc_21_);
@@ -10724,7 +10733,9 @@ static void mw_Buffer_2E_for (void){
             WORD_ATOM(8, 7, "Buffer");
             mw_Buffer_2E_NUM();
             WORD_ATOM(8, 7, "Buffer");
-            mw_prim_int_get();
+            mw_prim_u64_get();
+            WORD_ATOM(8, 7, "Buffer");
+            mw_prim_unsafe_cast();
             WORD_ATOM(8, 7, "Buffer");
             mw_prim_value_le();
             if (! pop_u64()) break;
@@ -10756,7 +10767,9 @@ static void mw_Buffer_2E_alloc_21_ (void){
     WORD_ATOM(8, 7, "Buffer");
     mw_Buffer_2E_NUM();
     WORD_ATOM(8, 7, "Buffer");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(8, 7, "Buffer");
+    mw_prim_unsafe_cast();
     WORD_ATOM(8, 7, "Buffer");
     push_i64(1LL);
     WORD_ATOM(8, 7, "Buffer");
@@ -10764,9 +10777,11 @@ static void mw_Buffer_2E_alloc_21_ (void){
     WORD_ATOM(8, 7, "Buffer");
     mw_prim_dup();
     WORD_ATOM(8, 7, "Buffer");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(8, 7, "Buffer");
     mw_Buffer_2E_NUM();
     WORD_ATOM(8, 7, "Buffer");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(8, 7, "Buffer");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Buffer_2E_alloc_21_);
@@ -10819,7 +10834,9 @@ static void mw_Variable_2E_for (void){
             WORD_ATOM(7, 7, "Variable");
             mw_Variable_2E_NUM();
             WORD_ATOM(7, 7, "Variable");
-            mw_prim_int_get();
+            mw_prim_u64_get();
+            WORD_ATOM(7, 7, "Variable");
+            mw_prim_unsafe_cast();
             WORD_ATOM(7, 7, "Variable");
             mw_prim_value_le();
             if (! pop_u64()) break;
@@ -10851,7 +10868,9 @@ static void mw_Variable_2E_alloc_21_ (void){
     WORD_ATOM(7, 7, "Variable");
     mw_Variable_2E_NUM();
     WORD_ATOM(7, 7, "Variable");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(7, 7, "Variable");
+    mw_prim_unsafe_cast();
     WORD_ATOM(7, 7, "Variable");
     push_i64(1LL);
     WORD_ATOM(7, 7, "Variable");
@@ -10859,9 +10878,11 @@ static void mw_Variable_2E_alloc_21_ (void){
     WORD_ATOM(7, 7, "Variable");
     mw_prim_dup();
     WORD_ATOM(7, 7, "Variable");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(7, 7, "Variable");
     mw_Variable_2E_NUM();
     WORD_ATOM(7, 7, "Variable");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(7, 7, "Variable");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Variable_2E_alloc_21_);
@@ -10905,7 +10926,9 @@ static void mw_Constant_2E_alloc_21_ (void){
     WORD_ATOM(7, 7, "Constant");
     mw_Constant_2E_NUM();
     WORD_ATOM(7, 7, "Constant");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(7, 7, "Constant");
+    mw_prim_unsafe_cast();
     WORD_ATOM(7, 7, "Constant");
     push_i64(1LL);
     WORD_ATOM(7, 7, "Constant");
@@ -10913,9 +10936,11 @@ static void mw_Constant_2E_alloc_21_ (void){
     WORD_ATOM(7, 7, "Constant");
     mw_prim_dup();
     WORD_ATOM(7, 7, "Constant");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(7, 7, "Constant");
     mw_Constant_2E_NUM();
     WORD_ATOM(7, 7, "Constant");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(7, 7, "Constant");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Constant_2E_alloc_21_);
@@ -10959,7 +10984,9 @@ static void mw_Table_2E_alloc_21_ (void){
     WORD_ATOM(8, 7, "Table");
     mw_Table_2E_NUM();
     WORD_ATOM(8, 7, "Table");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(8, 7, "Table");
+    mw_prim_unsafe_cast();
     WORD_ATOM(8, 7, "Table");
     push_i64(1LL);
     WORD_ATOM(8, 7, "Table");
@@ -10967,9 +10994,11 @@ static void mw_Table_2E_alloc_21_ (void){
     WORD_ATOM(8, 7, "Table");
     mw_prim_dup();
     WORD_ATOM(8, 7, "Table");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(8, 7, "Table");
     mw_Table_2E_NUM();
     WORD_ATOM(8, 7, "Table");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(8, 7, "Table");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Table_2E_alloc_21_);
@@ -10988,7 +11017,9 @@ static void mw_Field_2E_for (void){
             WORD_ATOM(14, 7, "Field");
             mw_Field_2E_NUM();
             WORD_ATOM(14, 7, "Field");
-            mw_prim_int_get();
+            mw_prim_u64_get();
+            WORD_ATOM(14, 7, "Field");
+            mw_prim_unsafe_cast();
             WORD_ATOM(14, 7, "Field");
             mw_prim_value_le();
             if (! pop_u64()) break;
@@ -11020,7 +11051,9 @@ static void mw_Field_2E_alloc_21_ (void){
     WORD_ATOM(14, 7, "Field");
     mw_Field_2E_NUM();
     WORD_ATOM(14, 7, "Field");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(14, 7, "Field");
+    mw_prim_unsafe_cast();
     WORD_ATOM(14, 7, "Field");
     push_i64(1LL);
     WORD_ATOM(14, 7, "Field");
@@ -11028,9 +11061,11 @@ static void mw_Field_2E_alloc_21_ (void){
     WORD_ATOM(14, 7, "Field");
     mw_prim_dup();
     WORD_ATOM(14, 7, "Field");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(14, 7, "Field");
     mw_Field_2E_NUM();
     WORD_ATOM(14, 7, "Field");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(14, 7, "Field");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Field_2E_alloc_21_);
@@ -14108,16 +14143,6 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 32,32,32,32,101,120,105,116,40,49,41,59,10,
                 125,10,
                 10,
-                115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,105,110,116,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
-                32,32,32,32,80,82,73,77,95,69,78,84,69,82,40,109,119,95,112,114,105,109,95,105,110,116,95,103,101,116,44,34,112,114,105,109,45,105,110,116,45,103,101,116,34,41,59,10,
-                32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
-                32,32,32,32,105,110,116,54,52,95,116,32,42,112,32,61,32,118,97,108,117,101,95,112,116,114,40,118,112,41,59,10,
-                32,32,32,32,69,88,80,69,67,84,40,112,44,32,34,116,114,105,101,100,32,116,111,32,108,111,97,100,32,102,114,111,109,32,110,117,108,108,32,112,111,105,110,116,101,114,34,41,59,10,
-                32,32,32,32,112,117,115,104,95,105,54,52,40,42,112,41,59,10,
-                32,32,32,32,100,101,99,114,101,102,40,118,112,41,59,10,
-                32,32,32,32,80,82,73,77,95,69,88,73,84,40,109,119,95,112,114,105,109,95,105,110,116,95,103,101,116,41,59,10,
-                125,10,
-                10,
                 115,116,97,116,105,99,32,118,111,105,100,32,109,119,95,112,114,105,109,95,112,116,114,95,103,101,116,32,40,118,111,105,100,41,32,123,10,
                 32,32,32,32,80,82,73,77,95,69,78,84,69,82,40,109,119,95,112,114,105,109,95,112,116,114,95,103,101,116,44,34,112,114,105,109,45,112,116,114,45,103,101,116,34,41,59,10,
                 32,32,32,32,86,65,76,32,118,112,32,61,32,112,111,112,95,118,97,108,117,101,40,41,59,10,
@@ -14524,7 +14549,7 @@ static uint8_t b[] = {                47,42,32,77,73,82,84,72,32,72,69,65,68,69,
                 47,42,32,71,69,78,69,82,65,84,69,68,32,67,57,57,32,42,47,10,
                 
             };
-            v = mkstr((char*)b, 31184);
+            v = mkstr((char*)b, 30922);
             vready = true;
         }
         push_value(v);
@@ -22144,11 +22169,11 @@ static void mw_table_new_21_ (void){
     push_fnptr(&mb_table_new_21__5);
     mw_prim_pack_cons();
     mw_ab_build_word_21_();
-    WORD_ATOM(1172, 7, "drop");
+    WORD_ATOM(1173, 7, "drop");
     mw_prim_drop();
-    WORD_ATOM(1175, 5, "dup");
+    WORD_ATOM(1176, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(1175, 9, "");
+    WORD_ATOM(1176, 9, "");
     {
         static bool vready = false;
         static VAL v;
@@ -22159,40 +22184,40 @@ static void mw_table_new_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(1175, 17, "table-word-new!");
+    WORD_ATOM(1176, 17, "table-word-new!");
     mw_table_word_new_21_();
-    WORD_ATOM(1177, 5, "L0");
+    WORD_ATOM(1178, 5, "L0");
     mw_L0();
-    WORD_ATOM(1177, 8, "CTX");
+    WORD_ATOM(1178, 8, "CTX");
     mw_CTX();
-    WORD_ATOM(1178, 5, "over2");
+    WORD_ATOM(1179, 5, "over2");
     mw_over2();
-    WORD_ATOM(1178, 11, "TTable");
+    WORD_ATOM(1179, 11, "TTable");
     mw_TTable();
-    WORD_ATOM(1178, 18, "T1");
+    WORD_ATOM(1179, 18, "T1");
     mw_T1();
-    WORD_ATOM(1178, 21, "dup");
+    WORD_ATOM(1179, 21, "dup");
     mw_prim_dup();
-    WORD_ATOM(1178, 25, "T->");
+    WORD_ATOM(1179, 25, "T->");
     mw_T__3E_();
-    WORD_ATOM(1179, 5, "ready2");
+    WORD_ATOM(1180, 5, "ready2");
     mw_ready2();
-    WORD_ATOM(1179, 12, "over");
+    WORD_ATOM(1180, 12, "over");
     mw_over();
-    WORD_ATOM(1179, 17, "word-ctx-type");
+    WORD_ATOM(1180, 17, "word-ctx-type");
     mw_word_ctx_type();
-    WORD_ATOM(1179, 31, "!");
+    WORD_ATOM(1180, 31, "!");
     mw_prim_mut_set();
-    WORD_ATOM(1181, 5, "ab-build-word!");
+    WORD_ATOM(1182, 5, "ab-build-word!");
     push_u64(0);
     push_fnptr(&mb_table_new_21__6);
     mw_prim_pack_cons();
     mw_ab_build_word_21_();
-    WORD_ATOM(1193, 7, "drop");
+    WORD_ATOM(1194, 7, "drop");
     mw_prim_drop();
-    WORD_ATOM(1196, 5, "dup");
+    WORD_ATOM(1197, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(1196, 9, "");
+    WORD_ATOM(1197, 9, "");
     {
         static bool vready = false;
         static VAL v;
@@ -22203,9 +22228,9 @@ static void mw_table_new_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(1196, 16, "table-word-new!");
+    WORD_ATOM(1197, 16, "table-word-new!");
     mw_table_word_new_21_();
-    WORD_ATOM(1197, 5, "");
+    WORD_ATOM(1198, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -22216,16 +22241,16 @@ static void mw_table_new_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(1197, 9, "name-new!");
+    WORD_ATOM(1198, 9, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(1197, 19, "var-new!");
+    WORD_ATOM(1198, 19, "var-new!");
     mw_var_new_21_();
-    WORD_ATOM(1198, 5, "\\");
+    WORD_ATOM(1199, 5, "\\");
     {
         VAL var_x = pop_value();
         VAL var_w = pop_value();
         VAL var_t = pop_value();
-        WORD_ATOM(1200, 9, "");
+        WORD_ATOM(1201, 9, "");
         {
             static bool vready = false;
             static VAL v;
@@ -22236,102 +22261,102 @@ static void mw_table_new_21_ (void){
             push_value(v);
             incref(v);
         }
-        WORD_ATOM(1200, 13, "name-new!");
+        WORD_ATOM(1201, 13, "name-new!");
         mw_name_new_21_();
-        WORD_ATOM(1200, 23, "var-new-implicit!");
+        WORD_ATOM(1201, 23, "var-new-implicit!");
         mw_var_new_implicit_21_();
-        WORD_ATOM(1201, 9, "TYPE_STACK");
+        WORD_ATOM(1202, 9, "TYPE_STACK");
         mw_TYPE_5F_STACK();
-        WORD_ATOM(1201, 20, "over");
+        WORD_ATOM(1202, 20, "over");
         mw_over();
-        WORD_ATOM(1201, 25, "var-type");
+        WORD_ATOM(1202, 25, "var-type");
         mw_var_type();
-        WORD_ATOM(1201, 34, "!");
+        WORD_ATOM(1202, 34, "!");
         mw_prim_mut_set();
-        WORD_ATOM(1202, 9, "dup");
+        WORD_ATOM(1203, 9, "dup");
         mw_prim_dup();
-        WORD_ATOM(1202, 13, "L1");
+        WORD_ATOM(1203, 13, "L1");
         mw_L1();
-        WORD_ATOM(1202, 16, "CTX");
+        WORD_ATOM(1203, 16, "CTX");
         mw_CTX();
-        WORD_ATOM(1203, 9, "swap");
+        WORD_ATOM(1204, 9, "swap");
         mw_prim_swap();
-        WORD_ATOM(1205, 9, "TVar");
+        WORD_ATOM(1206, 9, "TVar");
         mw_TVar();
-        WORD_ATOM(1205, 14, "\\");
+        WORD_ATOM(1206, 14, "\\");
         {
             VAL var_a = pop_value();
-            WORD_ATOM(1206, 13, "a");
+            WORD_ATOM(1207, 13, "a");
             incref(var_a);
             push_value(var_a);
-            WORD_ATOM(1206, 15, "a");
+            WORD_ATOM(1207, 15, "a");
             incref(var_a);
             push_value(var_a);
-            WORD_ATOM(1206, 17, "t");
+            WORD_ATOM(1207, 17, "t");
             incref(var_t);
             push_value(var_t);
-            WORD_ATOM(1206, 19, "TTable");
+            WORD_ATOM(1207, 19, "TTable");
             mw_TTable();
-            WORD_ATOM(1206, 26, "T*");
+            WORD_ATOM(1207, 26, "T*");
             mw_T_2A_();
-            WORD_ATOM(1206, 29, "a");
+            WORD_ATOM(1207, 29, "a");
             incref(var_a);
             push_value(var_a);
-            WORD_ATOM(1206, 31, "T->");
+            WORD_ATOM(1207, 31, "T->");
             mw_T__3E_();
-            WORD_ATOM(1206, 35, "T*");
+            WORD_ATOM(1207, 35, "T*");
             mw_T_2A_();
-            WORD_ATOM(1206, 38, "a");
+            WORD_ATOM(1207, 38, "a");
             incref(var_a);
             push_value(var_a);
-            WORD_ATOM(1206, 40, "T->");
+            WORD_ATOM(1207, 40, "T->");
             mw_T__3E_();
-            WORD_ATOM(1207, 13, "ready2");
+            WORD_ATOM(1208, 13, "ready2");
             mw_ready2();
-            WORD_ATOM(1207, 20, "w");
+            WORD_ATOM(1208, 20, "w");
             incref(var_w);
             push_value(var_w);
-            WORD_ATOM(1207, 22, "word-ctx-type");
+            WORD_ATOM(1208, 22, "word-ctx-type");
             mw_word_ctx_type();
-            WORD_ATOM(1207, 36, "!");
+            WORD_ATOM(1208, 36, "!");
             mw_prim_mut_set();
-            WORD_ATOM(1209, 13, "a");
+            WORD_ATOM(1210, 13, "a");
             incref(var_a);
             push_value(var_a);
-            WORD_ATOM(1209, 15, "t");
+            WORD_ATOM(1210, 15, "t");
             incref(var_t);
             push_value(var_t);
-            WORD_ATOM(1209, 17, "TTable");
+            WORD_ATOM(1210, 17, "TTable");
             mw_TTable();
-            WORD_ATOM(1209, 24, "T*");
+            WORD_ATOM(1210, 24, "T*");
             mw_T_2A_();
-            WORD_ATOM(1209, 27, "a");
+            WORD_ATOM(1210, 27, "a");
             incref(var_a);
             push_value(var_a);
-            WORD_ATOM(1209, 29, "T->");
+            WORD_ATOM(1210, 29, "T->");
             mw_T__3E_();
-            WORD_ATOM(1209, 33, "x");
+            WORD_ATOM(1210, 33, "x");
             incref(var_x);
             push_value(var_x);
-            WORD_ATOM(1209, 35, "var-type");
+            WORD_ATOM(1210, 35, "var-type");
             mw_var_type();
-            WORD_ATOM(1209, 44, "!");
+            WORD_ATOM(1210, 44, "!");
             mw_prim_mut_set();
-            WORD_ATOM(1210, 13, "T");
+            WORD_ATOM(1211, 13, "T");
             mw_T();
-            WORD_ATOM(1210, 15, "x");
+            WORD_ATOM(1211, 15, "x");
             incref(var_x);
             push_value(var_x);
-            WORD_ATOM(1210, 17, "var-auto-run");
+            WORD_ATOM(1211, 17, "var-auto-run");
             mw_var_auto_run();
-            WORD_ATOM(1210, 30, "!");
+            WORD_ATOM(1211, 30, "!");
             mw_prim_mut_set();
             decref(var_a);
         }
-        WORD_ATOM(1213, 9, "w");
+        WORD_ATOM(1214, 9, "w");
         incref(var_w);
         push_value(var_w);
-        WORD_ATOM(1213, 11, "ab-build-word!");
+        WORD_ATOM(1214, 11, "ab-build-word!");
         push_u64(0);
         incref(var_x);
         push_value(var_x);
@@ -22345,18 +22370,18 @@ static void mw_table_new_21_ (void){
         push_fnptr(&mb_table_new_21__11);
         mw_prim_pack_cons();
         mw_ab_build_word_21_();
-        WORD_ATOM(1233, 11, "drop");
+        WORD_ATOM(1235, 11, "drop");
         mw_prim_drop();
-        WORD_ATOM(1235, 5, "t");
+        WORD_ATOM(1237, 5, "t");
         incref(var_t);
         push_value(var_t);
         decref(var_x);
         decref(var_w);
         decref(var_t);
     }
-    WORD_ATOM(1238, 5, "dup");
+    WORD_ATOM(1240, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(1238, 9, "");
+    WORD_ATOM(1240, 9, "");
     {
         static bool vready = false;
         static VAL v;
@@ -22367,70 +22392,70 @@ static void mw_table_new_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(1238, 19, "table-word-new!");
+    WORD_ATOM(1240, 19, "table-word-new!");
     mw_table_word_new_21_();
-    WORD_ATOM(1240, 5, "L0");
+    WORD_ATOM(1242, 5, "L0");
     mw_L0();
-    WORD_ATOM(1240, 8, "CTX");
+    WORD_ATOM(1242, 8, "CTX");
     mw_CTX();
-    WORD_ATOM(1241, 5, "T0");
+    WORD_ATOM(1243, 5, "T0");
     mw_T0();
-    WORD_ATOM(1241, 8, "over3");
+    WORD_ATOM(1243, 8, "over3");
     mw_over3();
-    WORD_ATOM(1241, 14, "TTable");
+    WORD_ATOM(1243, 14, "TTable");
     mw_TTable();
-    WORD_ATOM(1241, 21, "T1");
+    WORD_ATOM(1243, 21, "T1");
     mw_T1();
-    WORD_ATOM(1241, 24, "T->");
+    WORD_ATOM(1243, 24, "T->");
     mw_T__3E_();
-    WORD_ATOM(1242, 5, "ready2");
+    WORD_ATOM(1244, 5, "ready2");
     mw_ready2();
-    WORD_ATOM(1242, 12, "over");
+    WORD_ATOM(1244, 12, "over");
     mw_over();
-    WORD_ATOM(1242, 17, "word-ctx-type");
+    WORD_ATOM(1244, 17, "word-ctx-type");
     mw_word_ctx_type();
-    WORD_ATOM(1242, 31, "!");
+    WORD_ATOM(1244, 31, "!");
     mw_prim_mut_set();
-    WORD_ATOM(1244, 5, "ab-build-word!");
+    WORD_ATOM(1246, 5, "ab-build-word!");
     push_u64(0);
     push_fnptr(&mb_table_new_21__16);
     mw_prim_pack_cons();
     mw_ab_build_word_21_();
-    WORD_ATOM(1255, 5, "drop");
+    WORD_ATOM(1259, 5, "drop");
     mw_prim_drop();
     WORD_EXIT(mw_table_new_21_);
 }
 static void mw_elab_field_21_ (void){
-    WORD_ENTER(mw_elab_field_21_, "elab-field!", "src/mirth/elab.mth", 1264, 5);
-    WORD_ATOM(1264, 5, "sip");
+    WORD_ENTER(mw_elab_field_21_, "elab-field!", "src/mirth/elab.mth", 1268, 5);
+    WORD_ATOM(1268, 5, "sip");
     push_u64(0);
     push_fnptr(&mb_elab_field_21__1);
     mw_prim_pack_cons();
     mw_sip();
-    WORD_ATOM(1265, 5, "token-args-3");
+    WORD_ATOM(1269, 5, "token-args-3");
     mw_token_args_3();
-    WORD_ATOM(1265, 18, "rotl");
+    WORD_ATOM(1269, 18, "rotl");
     mw_rotl();
-    WORD_ATOM(1265, 23, "dup");
+    WORD_ATOM(1269, 23, "dup");
     mw_prim_dup();
-    WORD_ATOM(1265, 27, "token-value");
+    WORD_ATOM(1269, 27, "token-value");
     mw_token_value();
-    WORD_ATOM(1265, 39, "@");
+    WORD_ATOM(1269, 39, "@");
     mw_prim_mut_get();
-    WORD_ATOM(1265, 41, "match");
+    WORD_ATOM(1269, 41, "match");
     switch (get_top_data_tag()) {
         case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
-            WORD_ATOM(1267, 13, "name-undefined?");
+            WORD_ATOM(1271, 13, "name-undefined?");
             mw_name_undefined_3F_();
-            WORD_ATOM(1267, 29, "if");
+            WORD_ATOM(1271, 29, "if");
             if (pop_u64()) {
-                WORD_ATOM(1267, 32, "id");
+                WORD_ATOM(1271, 32, "id");
                 mw_prim_id();
             } else {
-                WORD_ATOM(1268, 17, "drop");
+                WORD_ATOM(1272, 17, "drop");
                 mw_prim_drop();
-                WORD_ATOM(1268, 22, "");
+                WORD_ATOM(1272, 22, "");
                 {
                     static bool vready = false;
                     static VAL v;
@@ -22441,18 +22466,18 @@ static void mw_elab_field_21_ (void){
                     push_value(v);
                     incref(v);
                 }
-                WORD_ATOM(1268, 45, "emit-fatal-error!");
+                WORD_ATOM(1272, 45, "emit-fatal-error!");
                 mw_emit_fatal_error_21_();
             }
-            WORD_ATOM(1269, 13, "field-new!");
+            WORD_ATOM(1273, 13, "field-new!");
             mw_field_new_21_();
-            WORD_ATOM(1269, 24, "drop");
+            WORD_ATOM(1273, 24, "drop");
             mw_prim_drop();
             break;
         default:
-            WORD_ATOM(1271, 13, "drop");
+            WORD_ATOM(1275, 13, "drop");
             mw_prim_drop();
-            WORD_ATOM(1271, 18, "");
+            WORD_ATOM(1275, 18, "");
             {
                 static bool vready = false;
                 static VAL v;
@@ -22463,82 +22488,82 @@ static void mw_elab_field_21_ (void){
                 push_value(v);
                 incref(v);
             }
-            WORD_ATOM(1271, 40, "emit-fatal-error!");
+            WORD_ATOM(1275, 40, "emit-fatal-error!");
             mw_emit_fatal_error_21_();
             break;
     
 }    WORD_EXIT(mw_elab_field_21_);
 }
 static void mw_field_new_21_ (void){
-    WORD_ENTER(mw_field_new_21_, "field-new!", "src/mirth/elab.mth", 1275, 5);
-    WORD_ATOM(1275, 5, "Field.alloc!");
+    WORD_ENTER(mw_field_new_21_, "field-new!", "src/mirth/elab.mth", 1279, 5);
+    WORD_ATOM(1279, 5, "Field.alloc!");
     mw_Field_2E_alloc_21_();
-    WORD_ATOM(1276, 5, "tuck");
+    WORD_ATOM(1280, 5, "tuck");
     mw_tuck();
-    WORD_ATOM(1276, 10, "dup2");
+    WORD_ATOM(1280, 10, "dup2");
     mw_dup2();
-    WORD_ATOM(1276, 15, "field-name");
+    WORD_ATOM(1280, 15, "field-name");
     mw_field_name();
-    WORD_ATOM(1276, 26, "!");
+    WORD_ATOM(1280, 26, "!");
     mw_prim_mut_set();
-    WORD_ATOM(1277, 5, "DEF_FIELD");
+    WORD_ATOM(1281, 5, "DEF_FIELD");
     mw_DEF_5F_FIELD();
-    WORD_ATOM(1277, 15, "swap");
+    WORD_ATOM(1281, 15, "swap");
     mw_prim_swap();
-    WORD_ATOM(1277, 20, "name-def");
+    WORD_ATOM(1281, 20, "name-def");
     mw_name_def();
-    WORD_ATOM(1277, 29, "!");
+    WORD_ATOM(1281, 29, "!");
     mw_prim_mut_set();
-    WORD_ATOM(1278, 5, "tuck");
+    WORD_ATOM(1282, 5, "tuck");
     mw_tuck();
-    WORD_ATOM(1278, 10, "field-head");
+    WORD_ATOM(1282, 10, "field-head");
     mw_field_head();
-    WORD_ATOM(1278, 21, "!");
+    WORD_ATOM(1282, 21, "!");
     mw_prim_mut_set();
-    WORD_ATOM(1279, 5, "swap");
+    WORD_ATOM(1283, 5, "swap");
     mw_prim_swap();
-    WORD_ATOM(1279, 10, "delay");
+    WORD_ATOM(1283, 10, "delay");
     push_u64(0);
     push_fnptr(&mb_field_new_21__1);
     mw_prim_pack_cons();
     mw_delay();
-    WORD_ATOM(1279, 39, "over");
+    WORD_ATOM(1283, 39, "over");
     mw_over();
-    WORD_ATOM(1279, 44, "field-value-type");
+    WORD_ATOM(1283, 44, "field-value-type");
     mw_field_value_type();
-    WORD_ATOM(1279, 61, "!");
+    WORD_ATOM(1283, 61, "!");
     mw_prim_mut_set();
-    WORD_ATOM(1280, 5, "swap");
+    WORD_ATOM(1284, 5, "swap");
     mw_prim_swap();
-    WORD_ATOM(1280, 10, "delay");
+    WORD_ATOM(1284, 10, "delay");
     push_u64(0);
     push_fnptr(&mb_field_new_21__2);
     mw_prim_pack_cons();
     mw_delay();
-    WORD_ATOM(1280, 39, "over");
+    WORD_ATOM(1284, 39, "over");
     mw_over();
-    WORD_ATOM(1280, 44, "field-index-type");
+    WORD_ATOM(1284, 44, "field-index-type");
     mw_field_index_type();
-    WORD_ATOM(1280, 61, "!");
+    WORD_ATOM(1284, 61, "!");
     mw_prim_mut_set();
     WORD_EXIT(mw_field_new_21_);
 }
 static void mw_elab_field_type_21_ (void){
-    WORD_ENTER(mw_elab_field_type_21_, "elab-field-type!", "src/mirth/elab.mth", 1283, 5);
-    WORD_ATOM(1283, 5, "sip");
+    WORD_ENTER(mw_elab_field_type_21_, "elab-field-type!", "src/mirth/elab.mth", 1287, 5);
+    WORD_ATOM(1287, 5, "sip");
     push_u64(0);
     push_fnptr(&mb_elab_field_type_21__1);
     mw_prim_pack_cons();
     mw_sip();
-    WORD_ATOM(1284, 5, "field-value-type");
+    WORD_ATOM(1288, 5, "field-value-type");
     mw_field_value_type();
-    WORD_ATOM(1284, 22, "force!");
+    WORD_ATOM(1288, 22, "force!");
     mw_force_21_();
-    WORD_ATOM(1284, 29, "TMut");
+    WORD_ATOM(1288, 29, "TMut");
     mw_TMut();
-    WORD_ATOM(1284, 34, "T1");
+    WORD_ATOM(1288, 34, "T1");
     mw_T1();
-    WORD_ATOM(1284, 37, "T->");
+    WORD_ATOM(1288, 37, "T->");
     mw_T__3E_();
     WORD_EXIT(mw_elab_field_type_21_);
 }
@@ -22547,7 +22572,9 @@ static void mw_Atom_2E_alloc_21_ (void){
     WORD_ATOM(34, 7, "Atom");
     mw_Atom_2E_NUM();
     WORD_ATOM(34, 7, "Atom");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(34, 7, "Atom");
+    mw_prim_unsafe_cast();
     WORD_ATOM(34, 7, "Atom");
     push_i64(1LL);
     WORD_ATOM(34, 7, "Atom");
@@ -22555,9 +22582,11 @@ static void mw_Atom_2E_alloc_21_ (void){
     WORD_ATOM(34, 7, "Atom");
     mw_prim_dup();
     WORD_ATOM(34, 7, "Atom");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(34, 7, "Atom");
     mw_Atom_2E_NUM();
     WORD_ATOM(34, 7, "Atom");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(34, 7, "Atom");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Atom_2E_alloc_21_);
@@ -22575,7 +22604,9 @@ static void mw_Arrow_2E_alloc_21_ (void){
     WORD_ATOM(35, 7, "Arrow");
     mw_Arrow_2E_NUM();
     WORD_ATOM(35, 7, "Arrow");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(35, 7, "Arrow");
+    mw_prim_unsafe_cast();
     WORD_ATOM(35, 7, "Arrow");
     push_i64(1LL);
     WORD_ATOM(35, 7, "Arrow");
@@ -22583,9 +22614,11 @@ static void mw_Arrow_2E_alloc_21_ (void){
     WORD_ATOM(35, 7, "Arrow");
     mw_prim_dup();
     WORD_ATOM(35, 7, "Arrow");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(35, 7, "Arrow");
     mw_Arrow_2E_NUM();
     WORD_ATOM(35, 7, "Arrow");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(35, 7, "Arrow");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Arrow_2E_alloc_21_);
@@ -22595,7 +22628,9 @@ static void mw_Lambda_2E_alloc_21_ (void){
     WORD_ATOM(36, 7, "Lambda");
     mw_Lambda_2E_NUM();
     WORD_ATOM(36, 7, "Lambda");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(36, 7, "Lambda");
+    mw_prim_unsafe_cast();
     WORD_ATOM(36, 7, "Lambda");
     push_i64(1LL);
     WORD_ATOM(36, 7, "Lambda");
@@ -22603,9 +22638,11 @@ static void mw_Lambda_2E_alloc_21_ (void){
     WORD_ATOM(36, 7, "Lambda");
     mw_prim_dup();
     WORD_ATOM(36, 7, "Lambda");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(36, 7, "Lambda");
     mw_Lambda_2E_NUM();
     WORD_ATOM(36, 7, "Lambda");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(36, 7, "Lambda");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Lambda_2E_alloc_21_);
@@ -22630,7 +22667,9 @@ static void mw_Block_2E_for (void){
             WORD_ATOM(37, 7, "Block");
             mw_Block_2E_NUM();
             WORD_ATOM(37, 7, "Block");
-            mw_prim_int_get();
+            mw_prim_u64_get();
+            WORD_ATOM(37, 7, "Block");
+            mw_prim_unsafe_cast();
             WORD_ATOM(37, 7, "Block");
             mw_prim_value_le();
             if (! pop_u64()) break;
@@ -22662,7 +22701,9 @@ static void mw_Block_2E_alloc_21_ (void){
     WORD_ATOM(37, 7, "Block");
     mw_Block_2E_NUM();
     WORD_ATOM(37, 7, "Block");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(37, 7, "Block");
+    mw_prim_unsafe_cast();
     WORD_ATOM(37, 7, "Block");
     push_i64(1LL);
     WORD_ATOM(37, 7, "Block");
@@ -22670,9 +22711,11 @@ static void mw_Block_2E_alloc_21_ (void){
     WORD_ATOM(37, 7, "Block");
     mw_prim_dup();
     WORD_ATOM(37, 7, "Block");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(37, 7, "Block");
     mw_Block_2E_NUM();
     WORD_ATOM(37, 7, "Block");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(37, 7, "Block");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Block_2E_alloc_21_);
@@ -22870,7 +22913,9 @@ static void mw_Match_2E_alloc_21_ (void){
     WORD_ATOM(147, 7, "Match");
     mw_Match_2E_NUM();
     WORD_ATOM(147, 7, "Match");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(147, 7, "Match");
+    mw_prim_unsafe_cast();
     WORD_ATOM(147, 7, "Match");
     push_i64(1LL);
     WORD_ATOM(147, 7, "Match");
@@ -22878,9 +22923,11 @@ static void mw_Match_2E_alloc_21_ (void){
     WORD_ATOM(147, 7, "Match");
     mw_prim_dup();
     WORD_ATOM(147, 7, "Match");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(147, 7, "Match");
     mw_Match_2E_NUM();
     WORD_ATOM(147, 7, "Match");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(147, 7, "Match");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Match_2E_alloc_21_);
@@ -22890,7 +22937,9 @@ static void mw_Case_2E_alloc_21_ (void){
     WORD_ATOM(148, 7, "Case");
     mw_Case_2E_NUM();
     WORD_ATOM(148, 7, "Case");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(148, 7, "Case");
+    mw_prim_unsafe_cast();
     WORD_ATOM(148, 7, "Case");
     push_i64(1LL);
     WORD_ATOM(148, 7, "Case");
@@ -22898,9 +22947,11 @@ static void mw_Case_2E_alloc_21_ (void){
     WORD_ATOM(148, 7, "Case");
     mw_prim_dup();
     WORD_ATOM(148, 7, "Case");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(148, 7, "Case");
     mw_Case_2E_NUM();
     WORD_ATOM(148, 7, "Case");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(148, 7, "Case");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Case_2E_alloc_21_);
@@ -23183,7 +23234,9 @@ static void mw_MetaVar_2E_alloc_21_ (void){
     WORD_ATOM(63, 7, "MetaVar");
     mw_MetaVar_2E_NUM();
     WORD_ATOM(63, 7, "MetaVar");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(63, 7, "MetaVar");
+    mw_prim_unsafe_cast();
     WORD_ATOM(63, 7, "MetaVar");
     push_i64(1LL);
     WORD_ATOM(63, 7, "MetaVar");
@@ -23191,9 +23244,11 @@ static void mw_MetaVar_2E_alloc_21_ (void){
     WORD_ATOM(63, 7, "MetaVar");
     mw_prim_dup();
     WORD_ATOM(63, 7, "MetaVar");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(63, 7, "MetaVar");
     mw_MetaVar_2E_NUM();
     WORD_ATOM(63, 7, "MetaVar");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(63, 7, "MetaVar");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_MetaVar_2E_alloc_21_);
@@ -23203,7 +23258,9 @@ static void mw_Data_2E_alloc_21_ (void){
     WORD_ATOM(64, 7, "Data");
     mw_Data_2E_NUM();
     WORD_ATOM(64, 7, "Data");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(64, 7, "Data");
+    mw_prim_unsafe_cast();
     WORD_ATOM(64, 7, "Data");
     push_i64(1LL);
     WORD_ATOM(64, 7, "Data");
@@ -23211,9 +23268,11 @@ static void mw_Data_2E_alloc_21_ (void){
     WORD_ATOM(64, 7, "Data");
     mw_prim_dup();
     WORD_ATOM(64, 7, "Data");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(64, 7, "Data");
     mw_Data_2E_NUM();
     WORD_ATOM(64, 7, "Data");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(64, 7, "Data");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Data_2E_alloc_21_);
@@ -23232,7 +23291,9 @@ static void mw_Tag_2E_for (void){
             WORD_ATOM(65, 7, "Tag");
             mw_Tag_2E_NUM();
             WORD_ATOM(65, 7, "Tag");
-            mw_prim_int_get();
+            mw_prim_u64_get();
+            WORD_ATOM(65, 7, "Tag");
+            mw_prim_unsafe_cast();
             WORD_ATOM(65, 7, "Tag");
             mw_prim_value_le();
             if (! pop_u64()) break;
@@ -23264,7 +23325,9 @@ static void mw_Tag_2E_alloc_21_ (void){
     WORD_ATOM(65, 7, "Tag");
     mw_Tag_2E_NUM();
     WORD_ATOM(65, 7, "Tag");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(65, 7, "Tag");
+    mw_prim_unsafe_cast();
     WORD_ATOM(65, 7, "Tag");
     push_i64(1LL);
     WORD_ATOM(65, 7, "Tag");
@@ -23272,9 +23335,11 @@ static void mw_Tag_2E_alloc_21_ (void){
     WORD_ATOM(65, 7, "Tag");
     mw_prim_dup();
     WORD_ATOM(65, 7, "Tag");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(65, 7, "Tag");
     mw_Tag_2E_NUM();
     WORD_ATOM(65, 7, "Tag");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(65, 7, "Tag");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Tag_2E_alloc_21_);
@@ -27438,98 +27503,98 @@ static void mw_data_is_transparent (void){
 }    WORD_EXIT(mw_data_is_transparent);
 }
 static void mw_name_prim_3D_ (void){
-    WORD_ENTER(mw_name_prim_3D_, "name-prim=", "src/mirth/data/prim.mth", 125, 5);
-    WORD_ATOM(125, 5, "swap");
+    WORD_ENTER(mw_name_prim_3D_, "name-prim=", "src/mirth/data/prim.mth", 123, 5);
+    WORD_ATOM(123, 5, "swap");
     mw_prim_swap();
-    WORD_ATOM(125, 10, "name-def");
+    WORD_ATOM(123, 10, "name-def");
     mw_name_def();
-    WORD_ATOM(125, 19, "@");
+    WORD_ATOM(123, 19, "@");
     mw_prim_mut_get();
-    WORD_ATOM(125, 21, "match");
+    WORD_ATOM(123, 21, "match");
     switch (get_top_data_tag()) {
         case 5LL:
             mw_prim_pack_uncons(); mw_prim_drop();
-            WORD_ATOM(126, 21, "==");
+            WORD_ATOM(124, 21, "==");
             mw_prim_value_eq();
             break;
         default:
-            WORD_ATOM(127, 14, "drop2");
+            WORD_ATOM(125, 14, "drop2");
             mw_drop2();
-            WORD_ATOM(127, 20, "F");
+            WORD_ATOM(125, 20, "F");
             mw_F();
             break;
     
 }    WORD_EXIT(mw_name_prim_3D_);
 }
 static void mw_token_prim_3D__3F_ (void){
-    WORD_ENTER(mw_token_prim_3D__3F_, "token-prim=?", "src/mirth/data/prim.mth", 132, 5);
-    WORD_ATOM(132, 5, "dip");
+    WORD_ENTER(mw_token_prim_3D__3F_, "token-prim=?", "src/mirth/data/prim.mth", 130, 5);
+    WORD_ATOM(130, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(132, 9, "dup");
+        WORD_ATOM(130, 9, "dup");
         mw_prim_dup();
         push_value(d2);
     }
-    WORD_ATOM(132, 14, "token-prim=");
+    WORD_ATOM(130, 14, "token-prim=");
     mw_token_prim_3D_();
     WORD_EXIT(mw_token_prim_3D__3F_);
 }
 static void mw_token_prim_3D_ (void){
-    WORD_ENTER(mw_token_prim_3D_, "token-prim=", "src/mirth/data/prim.mth", 136, 5);
-    WORD_ATOM(136, 5, "swap");
+    WORD_ENTER(mw_token_prim_3D_, "token-prim=", "src/mirth/data/prim.mth", 134, 5);
+    WORD_ATOM(134, 5, "swap");
     mw_prim_swap();
-    WORD_ATOM(136, 10, "token-value");
+    WORD_ATOM(134, 10, "token-value");
     mw_token_value();
-    WORD_ATOM(136, 22, "@");
+    WORD_ATOM(134, 22, "@");
     mw_prim_mut_get();
-    WORD_ATOM(136, 24, "match");
+    WORD_ATOM(134, 24, "match");
     switch (get_top_data_tag()) {
         case 13LL:
             mw_prim_pack_uncons(); mw_prim_drop();
-            WORD_ATOM(138, 13, "swap");
+            WORD_ATOM(136, 13, "swap");
             mw_prim_swap();
-            WORD_ATOM(138, 18, "name-prim=");
+            WORD_ATOM(136, 18, "name-prim=");
             mw_name_prim_3D_();
             break;
         default:
-            WORD_ATOM(140, 13, "drop2");
+            WORD_ATOM(138, 13, "drop2");
             mw_drop2();
-            WORD_ATOM(140, 19, "F");
+            WORD_ATOM(138, 19, "F");
             mw_F();
             break;
     
 }    WORD_EXIT(mw_token_prim_3D_);
 }
 static void mw_def_prim_21_ (void){
-    WORD_ENTER(mw_def_prim_21_, "def-prim!", "src/mirth/data/prim.mth", 145, 5);
-    WORD_ATOM(145, 5, "name-new!");
+    WORD_ENTER(mw_def_prim_21_, "def-prim!", "src/mirth/data/prim.mth", 143, 5);
+    WORD_ATOM(143, 5, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(146, 5, "dup2");
+    WORD_ATOM(144, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(146, 10, "dip");
+    WORD_ATOM(144, 10, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(146, 14, "DEF_PRIM");
+        WORD_ATOM(144, 14, "DEF_PRIM");
         mw_DEF_5F_PRIM();
         push_value(d2);
     }
-    WORD_ATOM(146, 24, "name-def");
+    WORD_ATOM(144, 24, "name-def");
     mw_name_def();
-    WORD_ATOM(146, 33, "!");
+    WORD_ATOM(144, 33, "!");
     mw_prim_mut_set();
-    WORD_ATOM(147, 5, "swap");
+    WORD_ATOM(145, 5, "swap");
     mw_prim_swap();
-    WORD_ATOM(147, 10, "prim-name");
+    WORD_ATOM(145, 10, "prim-name");
     mw_prim_name();
-    WORD_ATOM(147, 20, "!");
+    WORD_ATOM(145, 20, "!");
     mw_prim_mut_set();
     WORD_EXIT(mw_def_prim_21_);
 }
 static void mw_init_prims_21_ (void){
-    WORD_ENTER(mw_init_prims_21_, "init-prims!", "src/mirth/data/prim.mth", 152, 5);
-    WORD_ATOM(152, 5, "PRIM_SYNTAX_MODULE");
+    WORD_ENTER(mw_init_prims_21_, "init-prims!", "src/mirth/data/prim.mth", 150, 5);
+    WORD_ATOM(150, 5, "PRIM_SYNTAX_MODULE");
     mw_PRIM_5F_SYNTAX_5F_MODULE();
-    WORD_ATOM(152, 24, "");
+    WORD_ATOM(150, 24, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27540,11 +27605,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(152, 33, "def-prim!");
+    WORD_ATOM(150, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(153, 5, "PRIM_SYNTAX_IMPORT");
+    WORD_ATOM(151, 5, "PRIM_SYNTAX_IMPORT");
     mw_PRIM_5F_SYNTAX_5F_IMPORT();
-    WORD_ATOM(153, 24, "");
+    WORD_ATOM(151, 24, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27555,11 +27620,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(153, 33, "def-prim!");
+    WORD_ATOM(151, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(154, 5, "PRIM_SYNTAX_ALIAS");
+    WORD_ATOM(152, 5, "PRIM_SYNTAX_ALIAS");
     mw_PRIM_5F_SYNTAX_5F_ALIAS();
-    WORD_ATOM(154, 23, "");
+    WORD_ATOM(152, 23, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27570,11 +27635,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(154, 31, "def-prim!");
+    WORD_ATOM(152, 31, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(155, 5, "PRIM_SYNTAX_DEF");
+    WORD_ATOM(153, 5, "PRIM_SYNTAX_DEF");
     mw_PRIM_5F_SYNTAX_5F_DEF();
-    WORD_ATOM(155, 21, "");
+    WORD_ATOM(153, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27585,11 +27650,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(155, 27, "def-prim!");
+    WORD_ATOM(153, 27, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(156, 5, "PRIM_SYNTAX_DEF_TYPE");
+    WORD_ATOM(154, 5, "PRIM_SYNTAX_DEF_TYPE");
     mw_PRIM_5F_SYNTAX_5F_DEF_5F_TYPE();
-    WORD_ATOM(156, 26, "");
+    WORD_ATOM(154, 26, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27600,11 +27665,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(156, 37, "def-prim!");
+    WORD_ATOM(154, 37, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(157, 5, "PRIM_SYNTAX_DEF_MISSING");
+    WORD_ATOM(155, 5, "PRIM_SYNTAX_DEF_MISSING");
     mw_PRIM_5F_SYNTAX_5F_DEF_5F_MISSING();
-    WORD_ATOM(157, 29, "");
+    WORD_ATOM(155, 29, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27615,11 +27680,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(157, 43, "def-prim!");
+    WORD_ATOM(155, 43, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(158, 5, "PRIM_SYNTAX_BUFFER");
+    WORD_ATOM(156, 5, "PRIM_SYNTAX_BUFFER");
     mw_PRIM_5F_SYNTAX_5F_BUFFER();
-    WORD_ATOM(158, 24, "");
+    WORD_ATOM(156, 24, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27630,11 +27695,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(158, 33, "def-prim!");
+    WORD_ATOM(156, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(159, 5, "PRIM_SYNTAX_DEF_EXTERNAL");
+    WORD_ATOM(157, 5, "PRIM_SYNTAX_DEF_EXTERNAL");
     mw_PRIM_5F_SYNTAX_5F_DEF_5F_EXTERNAL();
-    WORD_ATOM(159, 30, "");
+    WORD_ATOM(157, 30, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27645,11 +27710,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(159, 45, "def-prim!");
+    WORD_ATOM(157, 45, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(160, 5, "PRIM_SYNTAX_TABLE");
+    WORD_ATOM(158, 5, "PRIM_SYNTAX_TABLE");
     mw_PRIM_5F_SYNTAX_5F_TABLE();
-    WORD_ATOM(160, 23, "");
+    WORD_ATOM(158, 23, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27660,11 +27725,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(160, 31, "def-prim!");
+    WORD_ATOM(158, 31, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(161, 5, "PRIM_SYNTAX_FIELD");
+    WORD_ATOM(159, 5, "PRIM_SYNTAX_FIELD");
     mw_PRIM_5F_SYNTAX_5F_FIELD();
-    WORD_ATOM(161, 23, "");
+    WORD_ATOM(159, 23, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27675,11 +27740,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(161, 31, "def-prim!");
+    WORD_ATOM(159, 31, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(162, 5, "PRIM_SYNTAX_TARGET_C99");
+    WORD_ATOM(160, 5, "PRIM_SYNTAX_TARGET_C99");
     mw_PRIM_5F_SYNTAX_5F_TARGET_5F_C99();
-    WORD_ATOM(162, 28, "");
+    WORD_ATOM(160, 28, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27690,11 +27755,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(162, 41, "def-prim!");
+    WORD_ATOM(160, 41, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(163, 5, "PRIM_SYNTAX_EMBED_STR");
+    WORD_ATOM(161, 5, "PRIM_SYNTAX_EMBED_STR");
     mw_PRIM_5F_SYNTAX_5F_EMBED_5F_STR();
-    WORD_ATOM(163, 27, "");
+    WORD_ATOM(161, 27, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27705,11 +27770,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(163, 39, "def-prim!");
+    WORD_ATOM(161, 39, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(164, 5, "PRIM_SYNTAX_DATA");
+    WORD_ATOM(162, 5, "PRIM_SYNTAX_DATA");
     mw_PRIM_5F_SYNTAX_5F_DATA();
-    WORD_ATOM(164, 22, "");
+    WORD_ATOM(162, 22, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27720,11 +27785,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(164, 29, "def-prim!");
+    WORD_ATOM(162, 29, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(165, 5, "PRIM_SYNTAX_VARIABLE");
+    WORD_ATOM(163, 5, "PRIM_SYNTAX_VARIABLE");
     mw_PRIM_5F_SYNTAX_5F_VARIABLE();
-    WORD_ATOM(165, 26, "");
+    WORD_ATOM(163, 26, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27735,11 +27800,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(165, 32, "def-prim!");
+    WORD_ATOM(163, 32, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(166, 5, "PRIM_SYNTAX_ARROW");
+    WORD_ATOM(164, 5, "PRIM_SYNTAX_ARROW");
     mw_PRIM_5F_SYNTAX_5F_ARROW();
-    WORD_ATOM(166, 23, "");
+    WORD_ATOM(164, 23, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27750,11 +27815,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(166, 28, "def-prim!");
+    WORD_ATOM(164, 28, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(167, 5, "PRIM_SYNTAX_DASHES");
+    WORD_ATOM(165, 5, "PRIM_SYNTAX_DASHES");
     mw_PRIM_5F_SYNTAX_5F_DASHES();
-    WORD_ATOM(167, 24, "");
+    WORD_ATOM(165, 24, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27765,11 +27830,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(167, 29, "def-prim!");
+    WORD_ATOM(165, 29, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(169, 5, "PRIM_CORE_DIP");
+    WORD_ATOM(167, 5, "PRIM_CORE_DIP");
     mw_PRIM_5F_CORE_5F_DIP();
-    WORD_ATOM(169, 19, "");
+    WORD_ATOM(167, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27780,11 +27845,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(169, 25, "def-prim!");
+    WORD_ATOM(167, 25, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(170, 5, "PRIM_CORE_IF");
+    WORD_ATOM(168, 5, "PRIM_CORE_IF");
     mw_PRIM_5F_CORE_5F_IF();
-    WORD_ATOM(170, 18, "");
+    WORD_ATOM(168, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27795,11 +27860,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(170, 23, "def-prim!");
+    WORD_ATOM(168, 23, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(171, 5, "PRIM_CORE_WHILE");
+    WORD_ATOM(169, 5, "PRIM_CORE_WHILE");
     mw_PRIM_5F_CORE_5F_WHILE();
-    WORD_ATOM(171, 21, "");
+    WORD_ATOM(169, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27810,11 +27875,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(171, 29, "def-prim!");
+    WORD_ATOM(169, 29, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(172, 5, "PRIM_CORE_MATCH");
+    WORD_ATOM(170, 5, "PRIM_CORE_MATCH");
     mw_PRIM_5F_CORE_5F_MATCH();
-    WORD_ATOM(172, 21, "");
+    WORD_ATOM(170, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27825,11 +27890,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(172, 29, "def-prim!");
+    WORD_ATOM(170, 29, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(173, 5, "PRIM_CORE_LAMBDA");
+    WORD_ATOM(171, 5, "PRIM_CORE_LAMBDA");
     mw_PRIM_5F_CORE_5F_LAMBDA();
-    WORD_ATOM(173, 22, "");
+    WORD_ATOM(171, 22, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27840,11 +27905,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(173, 27, "def-prim!");
+    WORD_ATOM(171, 27, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(175, 5, "PRIM_CORE_ID");
+    WORD_ATOM(173, 5, "PRIM_CORE_ID");
     mw_PRIM_5F_CORE_5F_ID();
-    WORD_ATOM(175, 18, "");
+    WORD_ATOM(173, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27855,11 +27920,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(175, 28, "def-prim!");
+    WORD_ATOM(173, 28, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(176, 5, "PRIM_CORE_DUP");
+    WORD_ATOM(174, 5, "PRIM_CORE_DUP");
     mw_PRIM_5F_CORE_5F_DUP();
-    WORD_ATOM(176, 19, "");
+    WORD_ATOM(174, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27870,11 +27935,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(176, 30, "def-prim!");
+    WORD_ATOM(174, 30, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(177, 5, "PRIM_CORE_DROP");
+    WORD_ATOM(175, 5, "PRIM_CORE_DROP");
     mw_PRIM_5F_CORE_5F_DROP();
-    WORD_ATOM(177, 20, "");
+    WORD_ATOM(175, 20, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27885,11 +27950,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(177, 32, "def-prim!");
+    WORD_ATOM(175, 32, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(178, 5, "PRIM_CORE_SWAP");
+    WORD_ATOM(176, 5, "PRIM_CORE_SWAP");
     mw_PRIM_5F_CORE_5F_SWAP();
-    WORD_ATOM(178, 20, "");
+    WORD_ATOM(176, 20, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27900,11 +27965,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(178, 32, "def-prim!");
+    WORD_ATOM(176, 32, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(179, 5, "PRIM_CORE_DIP");
+    WORD_ATOM(177, 5, "PRIM_CORE_DIP");
     mw_PRIM_5F_CORE_5F_DIP();
-    WORD_ATOM(179, 19, "");
+    WORD_ATOM(177, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27915,11 +27980,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(179, 30, "def-prim!");
+    WORD_ATOM(177, 30, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(180, 5, "PRIM_CORE_IF");
+    WORD_ATOM(178, 5, "PRIM_CORE_IF");
     mw_PRIM_5F_CORE_5F_IF();
-    WORD_ATOM(180, 18, "");
+    WORD_ATOM(178, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27930,11 +27995,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(180, 28, "def-prim!");
+    WORD_ATOM(178, 28, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(181, 5, "PRIM_CORE_WHILE");
+    WORD_ATOM(179, 5, "PRIM_CORE_WHILE");
     mw_PRIM_5F_CORE_5F_WHILE();
-    WORD_ATOM(181, 21, "");
+    WORD_ATOM(179, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27945,11 +28010,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(181, 34, "def-prim!");
+    WORD_ATOM(179, 34, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(182, 5, "PRIM_CORE_DEBUG");
+    WORD_ATOM(180, 5, "PRIM_CORE_DEBUG");
     mw_PRIM_5F_CORE_5F_DEBUG();
-    WORD_ATOM(182, 21, "");
+    WORD_ATOM(180, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27960,11 +28025,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(182, 34, "def-prim!");
+    WORD_ATOM(180, 34, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(183, 5, "PRIM_CORE_PANIC");
+    WORD_ATOM(181, 5, "PRIM_CORE_PANIC");
     mw_PRIM_5F_CORE_5F_PANIC();
-    WORD_ATOM(183, 21, "");
+    WORD_ATOM(181, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27975,11 +28040,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(183, 34, "def-prim!");
+    WORD_ATOM(181, 34, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(184, 5, "PRIM_CORE_RUN");
+    WORD_ATOM(182, 5, "PRIM_CORE_RUN");
     mw_PRIM_5F_CORE_5F_RUN();
-    WORD_ATOM(184, 19, "");
+    WORD_ATOM(182, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -27990,11 +28055,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(184, 30, "def-prim!");
+    WORD_ATOM(182, 30, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(185, 5, "PRIM_CORE_MATCH");
+    WORD_ATOM(183, 5, "PRIM_CORE_MATCH");
     mw_PRIM_5F_CORE_5F_MATCH();
-    WORD_ATOM(185, 21, "");
+    WORD_ATOM(183, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28005,11 +28070,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(185, 34, "def-prim!");
+    WORD_ATOM(183, 34, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(186, 5, "PRIM_CORE_LAMBDA");
+    WORD_ATOM(184, 5, "PRIM_CORE_LAMBDA");
     mw_PRIM_5F_CORE_5F_LAMBDA();
-    WORD_ATOM(186, 22, "");
+    WORD_ATOM(184, 22, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28020,11 +28085,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(186, 36, "def-prim!");
+    WORD_ATOM(184, 36, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(188, 5, "PRIM_UNSAFE_CAST");
+    WORD_ATOM(186, 5, "PRIM_UNSAFE_CAST");
     mw_PRIM_5F_UNSAFE_5F_CAST();
-    WORD_ATOM(188, 22, "");
+    WORD_ATOM(186, 22, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28035,11 +28100,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(188, 41, "def-prim!");
+    WORD_ATOM(186, 41, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(190, 5, "PRIM_VALUE_EQ");
+    WORD_ATOM(188, 5, "PRIM_VALUE_EQ");
     mw_PRIM_5F_VALUE_5F_EQ();
-    WORD_ATOM(190, 19, "");
+    WORD_ATOM(188, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28050,11 +28115,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(190, 35, "def-prim!");
+    WORD_ATOM(188, 35, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(191, 5, "PRIM_VALUE_LT");
+    WORD_ATOM(189, 5, "PRIM_VALUE_LT");
     mw_PRIM_5F_VALUE_5F_LT();
-    WORD_ATOM(191, 19, "");
+    WORD_ATOM(189, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28065,11 +28130,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(191, 35, "def-prim!");
+    WORD_ATOM(189, 35, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(192, 5, "PRIM_VALUE_LE");
+    WORD_ATOM(190, 5, "PRIM_VALUE_LE");
     mw_PRIM_5F_VALUE_5F_LE();
-    WORD_ATOM(192, 19, "");
+    WORD_ATOM(190, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28080,11 +28145,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(192, 35, "def-prim!");
+    WORD_ATOM(190, 35, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(194, 5, "PRIM_INT_ADD");
+    WORD_ATOM(192, 5, "PRIM_INT_ADD");
     mw_PRIM_5F_INT_5F_ADD();
-    WORD_ATOM(194, 18, "");
+    WORD_ATOM(192, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28095,11 +28160,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(194, 33, "def-prim!");
+    WORD_ATOM(192, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(195, 5, "PRIM_INT_SUB");
+    WORD_ATOM(193, 5, "PRIM_INT_SUB");
     mw_PRIM_5F_INT_5F_SUB();
-    WORD_ATOM(195, 18, "");
+    WORD_ATOM(193, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28110,11 +28175,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(195, 33, "def-prim!");
+    WORD_ATOM(193, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(196, 5, "PRIM_INT_MUL");
+    WORD_ATOM(194, 5, "PRIM_INT_MUL");
     mw_PRIM_5F_INT_5F_MUL();
-    WORD_ATOM(196, 18, "");
+    WORD_ATOM(194, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28125,11 +28190,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(196, 33, "def-prim!");
+    WORD_ATOM(194, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(197, 5, "PRIM_INT_DIV");
+    WORD_ATOM(195, 5, "PRIM_INT_DIV");
     mw_PRIM_5F_INT_5F_DIV();
-    WORD_ATOM(197, 18, "");
+    WORD_ATOM(195, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28140,11 +28205,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(197, 33, "def-prim!");
+    WORD_ATOM(195, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(198, 5, "PRIM_INT_MOD");
+    WORD_ATOM(196, 5, "PRIM_INT_MOD");
     mw_PRIM_5F_INT_5F_MOD();
-    WORD_ATOM(198, 18, "");
+    WORD_ATOM(196, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28155,11 +28220,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(198, 33, "def-prim!");
+    WORD_ATOM(196, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(199, 5, "PRIM_INT_AND");
+    WORD_ATOM(197, 5, "PRIM_INT_AND");
     mw_PRIM_5F_INT_5F_AND();
-    WORD_ATOM(199, 18, "");
+    WORD_ATOM(197, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28170,11 +28235,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(199, 33, "def-prim!");
+    WORD_ATOM(197, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(200, 5, "PRIM_INT_OR");
+    WORD_ATOM(198, 5, "PRIM_INT_OR");
     mw_PRIM_5F_INT_5F_OR();
-    WORD_ATOM(200, 17, "");
+    WORD_ATOM(198, 17, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28185,11 +28250,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(200, 31, "def-prim!");
+    WORD_ATOM(198, 31, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(201, 5, "PRIM_INT_XOR");
+    WORD_ATOM(199, 5, "PRIM_INT_XOR");
     mw_PRIM_5F_INT_5F_XOR();
-    WORD_ATOM(201, 18, "");
+    WORD_ATOM(199, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28200,11 +28265,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(201, 33, "def-prim!");
+    WORD_ATOM(199, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(202, 5, "PRIM_INT_SHL");
+    WORD_ATOM(200, 5, "PRIM_INT_SHL");
     mw_PRIM_5F_INT_5F_SHL();
-    WORD_ATOM(202, 18, "");
+    WORD_ATOM(200, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28215,11 +28280,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(202, 33, "def-prim!");
+    WORD_ATOM(200, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(203, 5, "PRIM_INT_SHR");
+    WORD_ATOM(201, 5, "PRIM_INT_SHR");
     mw_PRIM_5F_INT_5F_SHR();
-    WORD_ATOM(203, 18, "");
+    WORD_ATOM(201, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28230,41 +28295,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(203, 33, "def-prim!");
+    WORD_ATOM(201, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(204, 5, "PRIM_INT_GET");
-    mw_PRIM_5F_INT_5F_GET();
-    WORD_ATOM(204, 18, "");
-    {
-        static bool vready = false;
-        static VAL v;
-        if (! vready) {
-            v = mkstr("prim-int-get", 12);
-            vready = true;
-        }
-        push_value(v);
-        incref(v);
-    }
-    WORD_ATOM(204, 33, "def-prim!");
-    mw_def_prim_21_();
-    WORD_ATOM(205, 5, "PRIM_INT_SET");
-    mw_PRIM_5F_INT_5F_SET();
-    WORD_ATOM(205, 18, "");
-    {
-        static bool vready = false;
-        static VAL v;
-        if (! vready) {
-            v = mkstr("prim-int-set", 12);
-            vready = true;
-        }
-        push_value(v);
-        incref(v);
-    }
-    WORD_ATOM(205, 33, "def-prim!");
-    mw_def_prim_21_();
-    WORD_ATOM(206, 5, "PRIM_INT_TO_STR");
+    WORD_ATOM(202, 5, "PRIM_INT_TO_STR");
     mw_PRIM_5F_INT_5F_TO_5F_STR();
-    WORD_ATOM(206, 21, "");
+    WORD_ATOM(202, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28275,11 +28310,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(206, 39, "def-prim!");
+    WORD_ATOM(202, 39, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(208, 5, "PRIM_PACK_NIL");
+    WORD_ATOM(204, 5, "PRIM_PACK_NIL");
     mw_PRIM_5F_PACK_5F_NIL();
-    WORD_ATOM(208, 19, "");
+    WORD_ATOM(204, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28290,11 +28325,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(208, 35, "def-prim!");
+    WORD_ATOM(204, 35, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(209, 5, "PRIM_PACK_CONS");
+    WORD_ATOM(205, 5, "PRIM_PACK_CONS");
     mw_PRIM_5F_PACK_5F_CONS();
-    WORD_ATOM(209, 20, "");
+    WORD_ATOM(205, 20, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28305,11 +28340,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(209, 37, "def-prim!");
+    WORD_ATOM(205, 37, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(210, 5, "PRIM_PACK_UNCONS");
+    WORD_ATOM(206, 5, "PRIM_PACK_UNCONS");
     mw_PRIM_5F_PACK_5F_UNCONS();
-    WORD_ATOM(210, 22, "");
+    WORD_ATOM(206, 22, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28320,11 +28355,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(210, 41, "def-prim!");
+    WORD_ATOM(206, 41, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(212, 5, "PRIM_MUT_GET");
+    WORD_ATOM(208, 5, "PRIM_MUT_GET");
     mw_PRIM_5F_MUT_5F_GET();
-    WORD_ATOM(212, 18, "");
+    WORD_ATOM(208, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28335,11 +28370,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(212, 33, "def-prim!");
+    WORD_ATOM(208, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(213, 5, "PRIM_MUT_SET");
+    WORD_ATOM(209, 5, "PRIM_MUT_SET");
     mw_PRIM_5F_MUT_5F_SET();
-    WORD_ATOM(213, 18, "");
+    WORD_ATOM(209, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28350,11 +28385,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(213, 33, "def-prim!");
+    WORD_ATOM(209, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(214, 5, "PRIM_MUT_IS_SET");
+    WORD_ATOM(210, 5, "PRIM_MUT_IS_SET");
     mw_PRIM_5F_MUT_5F_IS_5F_SET();
-    WORD_ATOM(214, 21, "");
+    WORD_ATOM(210, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28365,11 +28400,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(214, 39, "def-prim!");
+    WORD_ATOM(210, 39, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(216, 5, "PRIM_PTR_NIL");
+    WORD_ATOM(212, 5, "PRIM_PTR_NIL");
     mw_PRIM_5F_PTR_5F_NIL();
-    WORD_ATOM(216, 18, "");
+    WORD_ATOM(212, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28380,11 +28415,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(216, 33, "def-prim!");
+    WORD_ATOM(212, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(217, 5, "PRIM_PTR_ADD");
+    WORD_ATOM(213, 5, "PRIM_PTR_ADD");
     mw_PRIM_5F_PTR_5F_ADD();
-    WORD_ATOM(217, 18, "");
+    WORD_ATOM(213, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28395,11 +28430,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(217, 33, "def-prim!");
+    WORD_ATOM(213, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(218, 5, "PRIM_PTR_SIZE");
+    WORD_ATOM(214, 5, "PRIM_PTR_SIZE");
     mw_PRIM_5F_PTR_5F_SIZE();
-    WORD_ATOM(218, 19, "");
+    WORD_ATOM(214, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28410,11 +28445,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(218, 35, "def-prim!");
+    WORD_ATOM(214, 35, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(219, 5, "PRIM_PTR_GET");
+    WORD_ATOM(215, 5, "PRIM_PTR_GET");
     mw_PRIM_5F_PTR_5F_GET();
-    WORD_ATOM(219, 18, "");
+    WORD_ATOM(215, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28425,11 +28460,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(219, 33, "def-prim!");
+    WORD_ATOM(215, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(220, 5, "PRIM_PTR_SET");
+    WORD_ATOM(216, 5, "PRIM_PTR_SET");
     mw_PRIM_5F_PTR_5F_SET();
-    WORD_ATOM(220, 18, "");
+    WORD_ATOM(216, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28440,11 +28475,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(220, 33, "def-prim!");
+    WORD_ATOM(216, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(221, 5, "PRIM_PTR_ALLOC");
+    WORD_ATOM(217, 5, "PRIM_PTR_ALLOC");
     mw_PRIM_5F_PTR_5F_ALLOC();
-    WORD_ATOM(221, 20, "");
+    WORD_ATOM(217, 20, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28455,11 +28490,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(221, 37, "def-prim!");
+    WORD_ATOM(217, 37, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(222, 5, "PRIM_PTR_REALLOC");
+    WORD_ATOM(218, 5, "PRIM_PTR_REALLOC");
     mw_PRIM_5F_PTR_5F_REALLOC();
-    WORD_ATOM(222, 22, "");
+    WORD_ATOM(218, 22, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28470,11 +28505,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(222, 41, "def-prim!");
+    WORD_ATOM(218, 41, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(223, 5, "PRIM_PTR_FILL");
+    WORD_ATOM(219, 5, "PRIM_PTR_FILL");
     mw_PRIM_5F_PTR_5F_FILL();
-    WORD_ATOM(223, 19, "");
+    WORD_ATOM(219, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28485,11 +28520,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(223, 35, "def-prim!");
+    WORD_ATOM(219, 35, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(224, 5, "PRIM_PTR_COPY");
+    WORD_ATOM(220, 5, "PRIM_PTR_COPY");
     mw_PRIM_5F_PTR_5F_COPY();
-    WORD_ATOM(224, 19, "");
+    WORD_ATOM(220, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28500,11 +28535,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(224, 35, "def-prim!");
+    WORD_ATOM(220, 35, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(225, 5, "PRIM_PTR_RAW");
+    WORD_ATOM(221, 5, "PRIM_PTR_RAW");
     mw_PRIM_5F_PTR_5F_RAW();
-    WORD_ATOM(225, 18, "");
+    WORD_ATOM(221, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28515,11 +28550,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(225, 33, "def-prim!");
+    WORD_ATOM(221, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(227, 5, "PRIM_STR_ALLOC");
+    WORD_ATOM(223, 5, "PRIM_STR_ALLOC");
     mw_PRIM_5F_STR_5F_ALLOC();
-    WORD_ATOM(227, 20, "");
+    WORD_ATOM(223, 20, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28530,11 +28565,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(227, 37, "def-prim!");
+    WORD_ATOM(223, 37, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(228, 5, "PRIM_STR_COPY");
+    WORD_ATOM(224, 5, "PRIM_STR_COPY");
     mw_PRIM_5F_STR_5F_COPY();
-    WORD_ATOM(228, 19, "");
+    WORD_ATOM(224, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28545,11 +28580,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(228, 35, "def-prim!");
+    WORD_ATOM(224, 35, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(229, 5, "PRIM_STR_NUM_BYTES");
+    WORD_ATOM(225, 5, "PRIM_STR_NUM_BYTES");
     mw_PRIM_5F_STR_5F_NUM_5F_BYTES();
-    WORD_ATOM(229, 24, "");
+    WORD_ATOM(225, 24, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28560,11 +28595,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(229, 45, "def-prim!");
+    WORD_ATOM(225, 45, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(230, 5, "PRIM_STR_BASE");
+    WORD_ATOM(226, 5, "PRIM_STR_BASE");
     mw_PRIM_5F_STR_5F_BASE();
-    WORD_ATOM(230, 19, "");
+    WORD_ATOM(226, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28575,11 +28610,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(230, 35, "def-prim!");
+    WORD_ATOM(226, 35, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(231, 5, "PRIM_STR_CAT");
+    WORD_ATOM(227, 5, "PRIM_STR_CAT");
     mw_PRIM_5F_STR_5F_CAT();
-    WORD_ATOM(231, 18, "");
+    WORD_ATOM(227, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28590,11 +28625,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(231, 33, "def-prim!");
+    WORD_ATOM(227, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(233, 5, "PRIM_U8_GET");
+    WORD_ATOM(229, 5, "PRIM_U8_GET");
     mw_PRIM_5F_U8_5F_GET();
-    WORD_ATOM(233, 17, "");
+    WORD_ATOM(229, 17, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28605,11 +28640,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(233, 31, "def-prim!");
+    WORD_ATOM(229, 31, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(234, 5, "PRIM_U8_SET");
+    WORD_ATOM(230, 5, "PRIM_U8_SET");
     mw_PRIM_5F_U8_5F_SET();
-    WORD_ATOM(234, 17, "");
+    WORD_ATOM(230, 17, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28620,11 +28655,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(234, 31, "def-prim!");
+    WORD_ATOM(230, 31, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(235, 5, "PRIM_U16_GET");
+    WORD_ATOM(231, 5, "PRIM_U16_GET");
     mw_PRIM_5F_U16_5F_GET();
-    WORD_ATOM(235, 18, "");
+    WORD_ATOM(231, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28635,11 +28670,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(235, 33, "def-prim!");
+    WORD_ATOM(231, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(236, 5, "PRIM_U16_SET");
+    WORD_ATOM(232, 5, "PRIM_U16_SET");
     mw_PRIM_5F_U16_5F_SET();
-    WORD_ATOM(236, 18, "");
+    WORD_ATOM(232, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28650,11 +28685,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(236, 33, "def-prim!");
+    WORD_ATOM(232, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(237, 5, "PRIM_U32_GET");
+    WORD_ATOM(233, 5, "PRIM_U32_GET");
     mw_PRIM_5F_U32_5F_GET();
-    WORD_ATOM(237, 18, "");
+    WORD_ATOM(233, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28665,11 +28700,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(237, 33, "def-prim!");
+    WORD_ATOM(233, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(238, 5, "PRIM_U32_SET");
+    WORD_ATOM(234, 5, "PRIM_U32_SET");
     mw_PRIM_5F_U32_5F_SET();
-    WORD_ATOM(238, 18, "");
+    WORD_ATOM(234, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28680,11 +28715,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(238, 33, "def-prim!");
+    WORD_ATOM(234, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(239, 5, "PRIM_U64_GET");
+    WORD_ATOM(235, 5, "PRIM_U64_GET");
     mw_PRIM_5F_U64_5F_GET();
-    WORD_ATOM(239, 18, "");
+    WORD_ATOM(235, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28695,11 +28730,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(239, 33, "def-prim!");
+    WORD_ATOM(235, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(240, 5, "PRIM_U64_SET");
+    WORD_ATOM(236, 5, "PRIM_U64_SET");
     mw_PRIM_5F_U64_5F_SET();
-    WORD_ATOM(240, 18, "");
+    WORD_ATOM(236, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28710,11 +28745,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(240, 33, "def-prim!");
+    WORD_ATOM(236, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(242, 5, "PRIM_I8_GET");
+    WORD_ATOM(238, 5, "PRIM_I8_GET");
     mw_PRIM_5F_I8_5F_GET();
-    WORD_ATOM(242, 17, "");
+    WORD_ATOM(238, 17, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28725,11 +28760,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(242, 31, "def-prim!");
+    WORD_ATOM(238, 31, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(243, 5, "PRIM_I8_SET");
+    WORD_ATOM(239, 5, "PRIM_I8_SET");
     mw_PRIM_5F_I8_5F_SET();
-    WORD_ATOM(243, 17, "");
+    WORD_ATOM(239, 17, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28740,11 +28775,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(243, 31, "def-prim!");
+    WORD_ATOM(239, 31, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(244, 5, "PRIM_I16_GET");
+    WORD_ATOM(240, 5, "PRIM_I16_GET");
     mw_PRIM_5F_I16_5F_GET();
-    WORD_ATOM(244, 18, "");
+    WORD_ATOM(240, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28755,11 +28790,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(244, 33, "def-prim!");
+    WORD_ATOM(240, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(245, 5, "PRIM_I16_SET");
+    WORD_ATOM(241, 5, "PRIM_I16_SET");
     mw_PRIM_5F_I16_5F_SET();
-    WORD_ATOM(245, 18, "");
+    WORD_ATOM(241, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28770,11 +28805,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(245, 33, "def-prim!");
+    WORD_ATOM(241, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(246, 5, "PRIM_I32_GET");
+    WORD_ATOM(242, 5, "PRIM_I32_GET");
     mw_PRIM_5F_I32_5F_GET();
-    WORD_ATOM(246, 18, "");
+    WORD_ATOM(242, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28785,11 +28820,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(246, 33, "def-prim!");
+    WORD_ATOM(242, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(247, 5, "PRIM_I32_SET");
+    WORD_ATOM(243, 5, "PRIM_I32_SET");
     mw_PRIM_5F_I32_5F_SET();
-    WORD_ATOM(247, 18, "");
+    WORD_ATOM(243, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28800,11 +28835,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(247, 33, "def-prim!");
+    WORD_ATOM(243, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(248, 5, "PRIM_I64_GET");
+    WORD_ATOM(244, 5, "PRIM_I64_GET");
     mw_PRIM_5F_I64_5F_GET();
-    WORD_ATOM(248, 18, "");
+    WORD_ATOM(244, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28815,11 +28850,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(248, 33, "def-prim!");
+    WORD_ATOM(244, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(249, 5, "PRIM_I64_SET");
+    WORD_ATOM(245, 5, "PRIM_I64_SET");
     mw_PRIM_5F_I64_5F_SET();
-    WORD_ATOM(249, 18, "");
+    WORD_ATOM(245, 18, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28830,11 +28865,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(249, 33, "def-prim!");
+    WORD_ATOM(245, 33, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(251, 5, "PRIM_SYS_OS");
+    WORD_ATOM(247, 5, "PRIM_SYS_OS");
     mw_PRIM_5F_SYS_5F_OS();
-    WORD_ATOM(251, 17, "");
+    WORD_ATOM(247, 17, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28845,11 +28880,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(251, 31, "def-prim!");
+    WORD_ATOM(247, 31, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(252, 5, "PRIM_SYS_ARGC");
+    WORD_ATOM(248, 5, "PRIM_SYS_ARGC");
     mw_PRIM_5F_SYS_5F_ARGC();
-    WORD_ATOM(252, 19, "");
+    WORD_ATOM(248, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28860,11 +28895,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(252, 35, "def-prim!");
+    WORD_ATOM(248, 35, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(253, 5, "PRIM_SYS_ARGV");
+    WORD_ATOM(249, 5, "PRIM_SYS_ARGV");
     mw_PRIM_5F_SYS_5F_ARGV();
-    WORD_ATOM(253, 19, "");
+    WORD_ATOM(249, 19, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28875,11 +28910,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(253, 35, "def-prim!");
+    WORD_ATOM(249, 35, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(255, 5, "PRIM_POSIX_READ");
+    WORD_ATOM(251, 5, "PRIM_POSIX_READ");
     mw_PRIM_5F_POSIX_5F_READ();
-    WORD_ATOM(255, 21, "");
+    WORD_ATOM(251, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28890,11 +28925,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(255, 39, "def-prim!");
+    WORD_ATOM(251, 39, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(256, 5, "PRIM_POSIX_WRITE");
+    WORD_ATOM(252, 5, "PRIM_POSIX_WRITE");
     mw_PRIM_5F_POSIX_5F_WRITE();
-    WORD_ATOM(256, 22, "");
+    WORD_ATOM(252, 22, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28905,11 +28940,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(256, 41, "def-prim!");
+    WORD_ATOM(252, 41, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(257, 5, "PRIM_POSIX_OPEN");
+    WORD_ATOM(253, 5, "PRIM_POSIX_OPEN");
     mw_PRIM_5F_POSIX_5F_OPEN();
-    WORD_ATOM(257, 21, "");
+    WORD_ATOM(253, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28920,11 +28955,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(257, 39, "def-prim!");
+    WORD_ATOM(253, 39, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(258, 5, "PRIM_POSIX_CLOSE");
+    WORD_ATOM(254, 5, "PRIM_POSIX_CLOSE");
     mw_PRIM_5F_POSIX_5F_CLOSE();
-    WORD_ATOM(258, 22, "");
+    WORD_ATOM(254, 22, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28935,11 +28970,11 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(258, 41, "def-prim!");
+    WORD_ATOM(254, 41, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(259, 5, "PRIM_POSIX_EXIT");
+    WORD_ATOM(255, 5, "PRIM_POSIX_EXIT");
     mw_PRIM_5F_POSIX_5F_EXIT();
-    WORD_ATOM(259, 21, "");
+    WORD_ATOM(255, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -28950,310 +28985,374 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(259, 39, "def-prim!");
+    WORD_ATOM(255, 39, "def-prim!");
     mw_def_prim_21_();
-    WORD_ATOM(265, 5, "");
+    WORD_ATOM(261, 5, "");
     push_u64(0);
     push_fnptr(&mb_init_prims_21__1);
     mw_prim_pack_cons();
+    WORD_ATOM(261, 29, "SOME");
+    mw_SOME();
+    WORD_ATOM(261, 34, "PRIM_SYNTAX_IMPORT");
+    mw_PRIM_5F_SYNTAX_5F_IMPORT();
+    WORD_ATOM(261, 59, "prim-decl");
+    mw_prim_decl();
+    WORD_ATOM(261, 69, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(262, 5, "");
+    push_u64(0);
+    push_fnptr(&mb_init_prims_21__2);
+    mw_prim_pack_cons();
+    WORD_ATOM(262, 29, "SOME");
+    mw_SOME();
+    WORD_ATOM(262, 34, "PRIM_SYNTAX_ALIAS");
+    mw_PRIM_5F_SYNTAX_5F_ALIAS();
+    WORD_ATOM(262, 59, "prim-decl");
+    mw_prim_decl();
+    WORD_ATOM(262, 69, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(263, 5, "");
+    push_u64(0);
+    push_fnptr(&mb_init_prims_21__3);
+    mw_prim_pack_cons();
+    WORD_ATOM(263, 29, "SOME");
+    mw_SOME();
+    WORD_ATOM(263, 34, "PRIM_SYNTAX_DEF");
+    mw_PRIM_5F_SYNTAX_5F_DEF();
+    WORD_ATOM(263, 59, "prim-decl");
+    mw_prim_decl();
+    WORD_ATOM(263, 69, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(264, 5, "");
+    push_u64(0);
+    push_fnptr(&mb_init_prims_21__4);
+    mw_prim_pack_cons();
+    WORD_ATOM(264, 29, "SOME");
+    mw_SOME();
+    WORD_ATOM(264, 34, "PRIM_SYNTAX_DEF_MISSING");
+    mw_PRIM_5F_SYNTAX_5F_DEF_5F_MISSING();
+    WORD_ATOM(264, 59, "prim-decl");
+    mw_prim_decl();
+    WORD_ATOM(264, 69, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(265, 5, "");
+    push_u64(0);
+    push_fnptr(&mb_init_prims_21__5);
+    mw_prim_pack_cons();
     WORD_ATOM(265, 29, "SOME");
     mw_SOME();
-    WORD_ATOM(265, 34, "PRIM_SYNTAX_IMPORT");
-    mw_PRIM_5F_SYNTAX_5F_IMPORT();
+    WORD_ATOM(265, 34, "PRIM_SYNTAX_DEF_EXTERNAL");
+    mw_PRIM_5F_SYNTAX_5F_DEF_5F_EXTERNAL();
     WORD_ATOM(265, 59, "prim-decl");
     mw_prim_decl();
     WORD_ATOM(265, 69, "!");
     mw_prim_mut_set();
     WORD_ATOM(266, 5, "");
     push_u64(0);
-    push_fnptr(&mb_init_prims_21__2);
+    push_fnptr(&mb_init_prims_21__6);
     mw_prim_pack_cons();
     WORD_ATOM(266, 29, "SOME");
     mw_SOME();
-    WORD_ATOM(266, 34, "PRIM_SYNTAX_ALIAS");
-    mw_PRIM_5F_SYNTAX_5F_ALIAS();
+    WORD_ATOM(266, 34, "PRIM_SYNTAX_DEF_TYPE");
+    mw_PRIM_5F_SYNTAX_5F_DEF_5F_TYPE();
     WORD_ATOM(266, 59, "prim-decl");
     mw_prim_decl();
     WORD_ATOM(266, 69, "!");
     mw_prim_mut_set();
     WORD_ATOM(267, 5, "");
     push_u64(0);
-    push_fnptr(&mb_init_prims_21__3);
+    push_fnptr(&mb_init_prims_21__7);
     mw_prim_pack_cons();
     WORD_ATOM(267, 29, "SOME");
     mw_SOME();
-    WORD_ATOM(267, 34, "PRIM_SYNTAX_DEF");
-    mw_PRIM_5F_SYNTAX_5F_DEF();
+    WORD_ATOM(267, 34, "PRIM_SYNTAX_BUFFER");
+    mw_PRIM_5F_SYNTAX_5F_BUFFER();
     WORD_ATOM(267, 59, "prim-decl");
     mw_prim_decl();
     WORD_ATOM(267, 69, "!");
     mw_prim_mut_set();
     WORD_ATOM(268, 5, "");
     push_u64(0);
-    push_fnptr(&mb_init_prims_21__4);
+    push_fnptr(&mb_init_prims_21__8);
     mw_prim_pack_cons();
     WORD_ATOM(268, 29, "SOME");
     mw_SOME();
-    WORD_ATOM(268, 34, "PRIM_SYNTAX_DEF_MISSING");
-    mw_PRIM_5F_SYNTAX_5F_DEF_5F_MISSING();
+    WORD_ATOM(268, 34, "PRIM_SYNTAX_VARIABLE");
+    mw_PRIM_5F_SYNTAX_5F_VARIABLE();
     WORD_ATOM(268, 59, "prim-decl");
     mw_prim_decl();
     WORD_ATOM(268, 69, "!");
     mw_prim_mut_set();
     WORD_ATOM(269, 5, "");
     push_u64(0);
-    push_fnptr(&mb_init_prims_21__5);
+    push_fnptr(&mb_init_prims_21__9);
     mw_prim_pack_cons();
     WORD_ATOM(269, 29, "SOME");
     mw_SOME();
-    WORD_ATOM(269, 34, "PRIM_SYNTAX_DEF_EXTERNAL");
-    mw_PRIM_5F_SYNTAX_5F_DEF_5F_EXTERNAL();
+    WORD_ATOM(269, 34, "PRIM_SYNTAX_TABLE");
+    mw_PRIM_5F_SYNTAX_5F_TABLE();
     WORD_ATOM(269, 59, "prim-decl");
     mw_prim_decl();
     WORD_ATOM(269, 69, "!");
     mw_prim_mut_set();
     WORD_ATOM(270, 5, "");
     push_u64(0);
-    push_fnptr(&mb_init_prims_21__6);
+    push_fnptr(&mb_init_prims_21__10);
     mw_prim_pack_cons();
     WORD_ATOM(270, 29, "SOME");
     mw_SOME();
-    WORD_ATOM(270, 34, "PRIM_SYNTAX_DEF_TYPE");
-    mw_PRIM_5F_SYNTAX_5F_DEF_5F_TYPE();
+    WORD_ATOM(270, 34, "PRIM_SYNTAX_FIELD");
+    mw_PRIM_5F_SYNTAX_5F_FIELD();
     WORD_ATOM(270, 59, "prim-decl");
     mw_prim_decl();
     WORD_ATOM(270, 69, "!");
     mw_prim_mut_set();
     WORD_ATOM(271, 5, "");
     push_u64(0);
-    push_fnptr(&mb_init_prims_21__7);
+    push_fnptr(&mb_init_prims_21__11);
     mw_prim_pack_cons();
     WORD_ATOM(271, 29, "SOME");
     mw_SOME();
-    WORD_ATOM(271, 34, "PRIM_SYNTAX_BUFFER");
-    mw_PRIM_5F_SYNTAX_5F_BUFFER();
+    WORD_ATOM(271, 34, "PRIM_SYNTAX_DATA");
+    mw_PRIM_5F_SYNTAX_5F_DATA();
     WORD_ATOM(271, 59, "prim-decl");
     mw_prim_decl();
     WORD_ATOM(271, 69, "!");
     mw_prim_mut_set();
     WORD_ATOM(272, 5, "");
     push_u64(0);
-    push_fnptr(&mb_init_prims_21__8);
+    push_fnptr(&mb_init_prims_21__12);
     mw_prim_pack_cons();
     WORD_ATOM(272, 29, "SOME");
     mw_SOME();
-    WORD_ATOM(272, 34, "PRIM_SYNTAX_VARIABLE");
-    mw_PRIM_5F_SYNTAX_5F_VARIABLE();
+    WORD_ATOM(272, 34, "PRIM_SYNTAX_TARGET_C99");
+    mw_PRIM_5F_SYNTAX_5F_TARGET_5F_C99();
     WORD_ATOM(272, 59, "prim-decl");
     mw_prim_decl();
     WORD_ATOM(272, 69, "!");
     mw_prim_mut_set();
     WORD_ATOM(273, 5, "");
     push_u64(0);
-    push_fnptr(&mb_init_prims_21__9);
+    push_fnptr(&mb_init_prims_21__13);
     mw_prim_pack_cons();
     WORD_ATOM(273, 29, "SOME");
     mw_SOME();
-    WORD_ATOM(273, 34, "PRIM_SYNTAX_TABLE");
-    mw_PRIM_5F_SYNTAX_5F_TABLE();
+    WORD_ATOM(273, 34, "PRIM_SYNTAX_EMBED_STR");
+    mw_PRIM_5F_SYNTAX_5F_EMBED_5F_STR();
     WORD_ATOM(273, 59, "prim-decl");
     mw_prim_decl();
     WORD_ATOM(273, 69, "!");
     mw_prim_mut_set();
-    WORD_ATOM(274, 5, "");
-    push_u64(0);
-    push_fnptr(&mb_init_prims_21__10);
-    mw_prim_pack_cons();
-    WORD_ATOM(274, 29, "SOME");
-    mw_SOME();
-    WORD_ATOM(274, 34, "PRIM_SYNTAX_FIELD");
-    mw_PRIM_5F_SYNTAX_5F_FIELD();
-    WORD_ATOM(274, 59, "prim-decl");
-    mw_prim_decl();
-    WORD_ATOM(274, 69, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(275, 5, "");
-    push_u64(0);
-    push_fnptr(&mb_init_prims_21__11);
-    mw_prim_pack_cons();
-    WORD_ATOM(275, 29, "SOME");
-    mw_SOME();
-    WORD_ATOM(275, 34, "PRIM_SYNTAX_DATA");
-    mw_PRIM_5F_SYNTAX_5F_DATA();
-    WORD_ATOM(275, 59, "prim-decl");
-    mw_prim_decl();
-    WORD_ATOM(275, 69, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(276, 5, "");
-    push_u64(0);
-    push_fnptr(&mb_init_prims_21__12);
-    mw_prim_pack_cons();
-    WORD_ATOM(276, 29, "SOME");
-    mw_SOME();
-    WORD_ATOM(276, 34, "PRIM_SYNTAX_TARGET_C99");
-    mw_PRIM_5F_SYNTAX_5F_TARGET_5F_C99();
-    WORD_ATOM(276, 59, "prim-decl");
-    mw_prim_decl();
-    WORD_ATOM(276, 69, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(277, 5, "");
-    push_u64(0);
-    push_fnptr(&mb_init_prims_21__13);
-    mw_prim_pack_cons();
-    WORD_ATOM(277, 29, "SOME");
-    mw_SOME();
-    WORD_ATOM(277, 34, "PRIM_SYNTAX_EMBED_STR");
-    mw_PRIM_5F_SYNTAX_5F_EMBED_5F_STR();
-    WORD_ATOM(277, 59, "prim-decl");
-    mw_prim_decl();
-    WORD_ATOM(277, 69, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(283, 5, "T0");
+    WORD_ATOM(279, 5, "T0");
     mw_T0();
-    WORD_ATOM(283, 8, "T0");
+    WORD_ATOM(279, 8, "T0");
     mw_T0();
-    WORD_ATOM(283, 11, "T->");
+    WORD_ATOM(279, 11, "T->");
     mw_T__3E_();
-    WORD_ATOM(284, 5, "dup");
+    WORD_ATOM(280, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(284, 9, "PRIM_CORE_ID");
+    WORD_ATOM(280, 9, "PRIM_CORE_ID");
     mw_PRIM_5F_CORE_5F_ID();
-    WORD_ATOM(284, 22, "prim-type");
+    WORD_ATOM(280, 22, "prim-type");
     mw_prim_type();
-    WORD_ATOM(284, 32, "!");
+    WORD_ATOM(280, 32, "!");
     mw_prim_mut_set();
+    WORD_ATOM(281, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(281, 9, "PRIM_CORE_DEBUG");
+    mw_PRIM_5F_CORE_5F_DEBUG();
+    WORD_ATOM(281, 25, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(281, 35, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(282, 5, "drop");
+    mw_prim_drop();
+    WORD_ATOM(284, 5, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(284, 14, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(284, 23, "T2");
+    mw_T2();
+    WORD_ATOM(284, 26, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(284, 35, "T1");
+    mw_T1();
+    WORD_ATOM(284, 38, "T->");
+    mw_T__3E_();
     WORD_ATOM(285, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(285, 9, "PRIM_CORE_DEBUG");
-    mw_PRIM_5F_CORE_5F_DEBUG();
-    WORD_ATOM(285, 25, "prim-type");
+    WORD_ATOM(285, 9, "PRIM_INT_ADD");
+    mw_PRIM_5F_INT_5F_ADD();
+    WORD_ATOM(285, 22, "prim-type");
     mw_prim_type();
-    WORD_ATOM(285, 35, "!");
+    WORD_ATOM(285, 32, "!");
     mw_prim_mut_set();
-    WORD_ATOM(286, 5, "drop");
-    mw_prim_drop();
-    WORD_ATOM(288, 5, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(288, 14, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(288, 23, "T2");
-    mw_T2();
-    WORD_ATOM(288, 26, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(288, 35, "T1");
-    mw_T1();
-    WORD_ATOM(288, 38, "T->");
-    mw_T__3E_();
+    WORD_ATOM(286, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(286, 9, "PRIM_INT_SUB");
+    mw_PRIM_5F_INT_5F_SUB();
+    WORD_ATOM(286, 22, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(286, 32, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(287, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(287, 9, "PRIM_INT_MUL");
+    mw_PRIM_5F_INT_5F_MUL();
+    WORD_ATOM(287, 22, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(287, 32, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(288, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(288, 9, "PRIM_INT_DIV");
+    mw_PRIM_5F_INT_5F_DIV();
+    WORD_ATOM(288, 22, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(288, 32, "!");
+    mw_prim_mut_set();
     WORD_ATOM(289, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(289, 9, "PRIM_INT_ADD");
-    mw_PRIM_5F_INT_5F_ADD();
+    WORD_ATOM(289, 9, "PRIM_INT_MOD");
+    mw_PRIM_5F_INT_5F_MOD();
     WORD_ATOM(289, 22, "prim-type");
     mw_prim_type();
     WORD_ATOM(289, 32, "!");
     mw_prim_mut_set();
     WORD_ATOM(290, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(290, 9, "PRIM_INT_SUB");
-    mw_PRIM_5F_INT_5F_SUB();
+    WORD_ATOM(290, 9, "PRIM_INT_AND");
+    mw_PRIM_5F_INT_5F_AND();
     WORD_ATOM(290, 22, "prim-type");
     mw_prim_type();
     WORD_ATOM(290, 32, "!");
     mw_prim_mut_set();
     WORD_ATOM(291, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(291, 9, "PRIM_INT_MUL");
-    mw_PRIM_5F_INT_5F_MUL();
-    WORD_ATOM(291, 22, "prim-type");
+    WORD_ATOM(291, 9, "PRIM_INT_OR");
+    mw_PRIM_5F_INT_5F_OR();
+    WORD_ATOM(291, 21, "prim-type");
     mw_prim_type();
-    WORD_ATOM(291, 32, "!");
+    WORD_ATOM(291, 31, "!");
     mw_prim_mut_set();
     WORD_ATOM(292, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(292, 9, "PRIM_INT_DIV");
-    mw_PRIM_5F_INT_5F_DIV();
+    WORD_ATOM(292, 9, "PRIM_INT_XOR");
+    mw_PRIM_5F_INT_5F_XOR();
     WORD_ATOM(292, 22, "prim-type");
     mw_prim_type();
     WORD_ATOM(292, 32, "!");
     mw_prim_mut_set();
     WORD_ATOM(293, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(293, 9, "PRIM_INT_MOD");
-    mw_PRIM_5F_INT_5F_MOD();
+    WORD_ATOM(293, 9, "PRIM_INT_SHL");
+    mw_PRIM_5F_INT_5F_SHL();
     WORD_ATOM(293, 22, "prim-type");
     mw_prim_type();
     WORD_ATOM(293, 32, "!");
     mw_prim_mut_set();
     WORD_ATOM(294, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(294, 9, "PRIM_INT_AND");
-    mw_PRIM_5F_INT_5F_AND();
+    WORD_ATOM(294, 9, "PRIM_INT_SHR");
+    mw_PRIM_5F_INT_5F_SHR();
     WORD_ATOM(294, 22, "prim-type");
     mw_prim_type();
     WORD_ATOM(294, 32, "!");
     mw_prim_mut_set();
-    WORD_ATOM(295, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(295, 9, "PRIM_INT_OR");
-    mw_PRIM_5F_INT_5F_OR();
-    WORD_ATOM(295, 21, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(295, 31, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(296, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(296, 9, "PRIM_INT_XOR");
-    mw_PRIM_5F_INT_5F_XOR();
-    WORD_ATOM(296, 22, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(296, 32, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(297, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(297, 9, "PRIM_INT_SHL");
-    mw_PRIM_5F_INT_5F_SHL();
-    WORD_ATOM(297, 22, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(297, 32, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(298, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(298, 9, "PRIM_INT_SHR");
-    mw_PRIM_5F_INT_5F_SHR();
-    WORD_ATOM(298, 22, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(298, 32, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(299, 5, "drop");
+    WORD_ATOM(295, 5, "drop");
     mw_prim_drop();
-    WORD_ATOM(301, 5, "TYPE_INT");
+    WORD_ATOM(297, 5, "TYPE_INT");
     mw_TYPE_5F_INT();
+    WORD_ATOM(297, 14, "T1");
+    mw_T1();
+    WORD_ATOM(297, 17, "TYPE_STR");
+    mw_TYPE_5F_STR();
+    WORD_ATOM(297, 26, "T1");
+    mw_T1();
+    WORD_ATOM(297, 29, "T->");
+    mw_T__3E_();
+    WORD_ATOM(297, 33, "PRIM_INT_TO_STR");
+    mw_PRIM_5F_INT_5F_TO_5F_STR();
+    WORD_ATOM(297, 49, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(297, 59, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(299, 5, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(299, 14, "T1");
+    mw_T1();
+    WORD_ATOM(299, 17, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(299, 26, "T1");
+    mw_T1();
+    WORD_ATOM(299, 29, "T->");
+    mw_T__3E_();
+    WORD_ATOM(299, 33, "PRIM_PTR_GET");
+    mw_PRIM_5F_PTR_5F_GET();
+    WORD_ATOM(299, 46, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(299, 56, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(300, 5, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(300, 14, "T1");
+    mw_T1();
+    WORD_ATOM(300, 17, "TYPE_U8");
+    mw_TYPE_5F_U8();
+    WORD_ATOM(300, 26, "T1");
+    mw_T1();
+    WORD_ATOM(300, 29, "T->");
+    mw_T__3E_();
+    WORD_ATOM(300, 33, "PRIM_U8_GET");
+    mw_PRIM_5F_U8_5F_GET();
+    WORD_ATOM(300, 46, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(300, 56, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(301, 5, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
     WORD_ATOM(301, 14, "T1");
     mw_T1();
-    WORD_ATOM(301, 17, "TYPE_STR");
-    mw_TYPE_5F_STR();
+    WORD_ATOM(301, 17, "TYPE_U16");
+    mw_TYPE_5F_U16();
     WORD_ATOM(301, 26, "T1");
     mw_T1();
     WORD_ATOM(301, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(301, 33, "PRIM_INT_TO_STR");
-    mw_PRIM_5F_INT_5F_TO_5F_STR();
-    WORD_ATOM(301, 49, "prim-type");
+    WORD_ATOM(301, 33, "PRIM_U16_GET");
+    mw_PRIM_5F_U16_5F_GET();
+    WORD_ATOM(301, 46, "prim-type");
     mw_prim_type();
-    WORD_ATOM(301, 59, "!");
+    WORD_ATOM(301, 56, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(302, 5, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(302, 14, "T1");
+    mw_T1();
+    WORD_ATOM(302, 17, "TYPE_U32");
+    mw_TYPE_5F_U32();
+    WORD_ATOM(302, 26, "T1");
+    mw_T1();
+    WORD_ATOM(302, 29, "T->");
+    mw_T__3E_();
+    WORD_ATOM(302, 33, "PRIM_U32_GET");
+    mw_PRIM_5F_U32_5F_GET();
+    WORD_ATOM(302, 46, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(302, 56, "!");
     mw_prim_mut_set();
     WORD_ATOM(303, 5, "TYPE_PTR");
     mw_TYPE_5F_PTR();
     WORD_ATOM(303, 14, "T1");
     mw_T1();
-    WORD_ATOM(303, 17, "TYPE_INT");
-    mw_TYPE_5F_INT();
+    WORD_ATOM(303, 17, "TYPE_U64");
+    mw_TYPE_5F_U64();
     WORD_ATOM(303, 26, "T1");
     mw_T1();
     WORD_ATOM(303, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(303, 33, "PRIM_INT_GET");
-    mw_PRIM_5F_INT_5F_GET();
+    WORD_ATOM(303, 33, "PRIM_U64_GET");
+    mw_PRIM_5F_U64_5F_GET();
     WORD_ATOM(303, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(303, 56, "!");
@@ -29262,14 +29361,14 @@ static void mw_init_prims_21_ (void){
     mw_TYPE_5F_PTR();
     WORD_ATOM(304, 14, "T1");
     mw_T1();
-    WORD_ATOM(304, 17, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
+    WORD_ATOM(304, 17, "TYPE_I8");
+    mw_TYPE_5F_I8();
     WORD_ATOM(304, 26, "T1");
     mw_T1();
     WORD_ATOM(304, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(304, 33, "PRIM_PTR_GET");
-    mw_PRIM_5F_PTR_5F_GET();
+    WORD_ATOM(304, 33, "PRIM_I8_GET");
+    mw_PRIM_5F_I8_5F_GET();
     WORD_ATOM(304, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(304, 56, "!");
@@ -29278,14 +29377,14 @@ static void mw_init_prims_21_ (void){
     mw_TYPE_5F_PTR();
     WORD_ATOM(305, 14, "T1");
     mw_T1();
-    WORD_ATOM(305, 17, "TYPE_U8");
-    mw_TYPE_5F_U8();
+    WORD_ATOM(305, 17, "TYPE_I16");
+    mw_TYPE_5F_I16();
     WORD_ATOM(305, 26, "T1");
     mw_T1();
     WORD_ATOM(305, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(305, 33, "PRIM_U8_GET");
-    mw_PRIM_5F_U8_5F_GET();
+    WORD_ATOM(305, 33, "PRIM_I16_GET");
+    mw_PRIM_5F_I16_5F_GET();
     WORD_ATOM(305, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(305, 56, "!");
@@ -29294,14 +29393,14 @@ static void mw_init_prims_21_ (void){
     mw_TYPE_5F_PTR();
     WORD_ATOM(306, 14, "T1");
     mw_T1();
-    WORD_ATOM(306, 17, "TYPE_U16");
-    mw_TYPE_5F_U16();
+    WORD_ATOM(306, 17, "TYPE_I32");
+    mw_TYPE_5F_I32();
     WORD_ATOM(306, 26, "T1");
     mw_T1();
     WORD_ATOM(306, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(306, 33, "PRIM_U16_GET");
-    mw_PRIM_5F_U16_5F_GET();
+    WORD_ATOM(306, 33, "PRIM_I32_GET");
+    mw_PRIM_5F_I32_5F_GET();
     WORD_ATOM(306, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(306, 56, "!");
@@ -29310,100 +29409,100 @@ static void mw_init_prims_21_ (void){
     mw_TYPE_5F_PTR();
     WORD_ATOM(307, 14, "T1");
     mw_T1();
-    WORD_ATOM(307, 17, "TYPE_U32");
-    mw_TYPE_5F_U32();
+    WORD_ATOM(307, 17, "TYPE_I64");
+    mw_TYPE_5F_I64();
     WORD_ATOM(307, 26, "T1");
     mw_T1();
     WORD_ATOM(307, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(307, 33, "PRIM_U32_GET");
-    mw_PRIM_5F_U32_5F_GET();
+    WORD_ATOM(307, 33, "PRIM_I64_GET");
+    mw_PRIM_5F_I64_5F_GET();
     WORD_ATOM(307, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(307, 56, "!");
     mw_prim_mut_set();
-    WORD_ATOM(308, 5, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(308, 14, "T1");
-    mw_T1();
-    WORD_ATOM(308, 17, "TYPE_U64");
-    mw_TYPE_5F_U64();
-    WORD_ATOM(308, 26, "T1");
-    mw_T1();
-    WORD_ATOM(308, 29, "T->");
-    mw_T__3E_();
-    WORD_ATOM(308, 33, "PRIM_U64_GET");
-    mw_PRIM_5F_U64_5F_GET();
-    WORD_ATOM(308, 46, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(308, 56, "!");
-    mw_prim_mut_set();
     WORD_ATOM(309, 5, "TYPE_PTR");
     mw_TYPE_5F_PTR();
-    WORD_ATOM(309, 14, "T1");
-    mw_T1();
-    WORD_ATOM(309, 17, "TYPE_I8");
-    mw_TYPE_5F_I8();
-    WORD_ATOM(309, 26, "T1");
-    mw_T1();
+    WORD_ATOM(309, 14, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(309, 23, "T2");
+    mw_T2();
+    WORD_ATOM(309, 26, "T0");
+    mw_T0();
     WORD_ATOM(309, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(309, 33, "PRIM_I8_GET");
-    mw_PRIM_5F_I8_5F_GET();
+    WORD_ATOM(309, 33, "PRIM_PTR_SET");
+    mw_PRIM_5F_PTR_5F_SET();
     WORD_ATOM(309, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(309, 56, "!");
     mw_prim_mut_set();
-    WORD_ATOM(310, 5, "TYPE_PTR");
+    WORD_ATOM(310, 5, "TYPE_U8");
+    mw_TYPE_5F_U8();
+    WORD_ATOM(310, 14, "TYPE_PTR");
     mw_TYPE_5F_PTR();
-    WORD_ATOM(310, 14, "T1");
-    mw_T1();
-    WORD_ATOM(310, 17, "TYPE_I16");
-    mw_TYPE_5F_I16();
-    WORD_ATOM(310, 26, "T1");
-    mw_T1();
+    WORD_ATOM(310, 23, "T2");
+    mw_T2();
+    WORD_ATOM(310, 26, "T0");
+    mw_T0();
     WORD_ATOM(310, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(310, 33, "PRIM_I16_GET");
-    mw_PRIM_5F_I16_5F_GET();
+    WORD_ATOM(310, 33, "PRIM_U8_SET");
+    mw_PRIM_5F_U8_5F_SET();
     WORD_ATOM(310, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(310, 56, "!");
     mw_prim_mut_set();
-    WORD_ATOM(311, 5, "TYPE_PTR");
+    WORD_ATOM(311, 5, "TYPE_U16");
+    mw_TYPE_5F_U16();
+    WORD_ATOM(311, 14, "TYPE_PTR");
     mw_TYPE_5F_PTR();
-    WORD_ATOM(311, 14, "T1");
-    mw_T1();
-    WORD_ATOM(311, 17, "TYPE_I32");
-    mw_TYPE_5F_I32();
-    WORD_ATOM(311, 26, "T1");
-    mw_T1();
+    WORD_ATOM(311, 23, "T2");
+    mw_T2();
+    WORD_ATOM(311, 26, "T0");
+    mw_T0();
     WORD_ATOM(311, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(311, 33, "PRIM_I32_GET");
-    mw_PRIM_5F_I32_5F_GET();
+    WORD_ATOM(311, 33, "PRIM_U16_SET");
+    mw_PRIM_5F_U16_5F_SET();
     WORD_ATOM(311, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(311, 56, "!");
     mw_prim_mut_set();
-    WORD_ATOM(312, 5, "TYPE_PTR");
+    WORD_ATOM(312, 5, "TYPE_U32");
+    mw_TYPE_5F_U32();
+    WORD_ATOM(312, 14, "TYPE_PTR");
     mw_TYPE_5F_PTR();
-    WORD_ATOM(312, 14, "T1");
-    mw_T1();
-    WORD_ATOM(312, 17, "TYPE_I64");
-    mw_TYPE_5F_I64();
-    WORD_ATOM(312, 26, "T1");
-    mw_T1();
+    WORD_ATOM(312, 23, "T2");
+    mw_T2();
+    WORD_ATOM(312, 26, "T0");
+    mw_T0();
     WORD_ATOM(312, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(312, 33, "PRIM_I64_GET");
-    mw_PRIM_5F_I64_5F_GET();
+    WORD_ATOM(312, 33, "PRIM_U32_SET");
+    mw_PRIM_5F_U32_5F_SET();
     WORD_ATOM(312, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(312, 56, "!");
     mw_prim_mut_set();
-    WORD_ATOM(314, 5, "TYPE_INT");
-    mw_TYPE_5F_INT();
+    WORD_ATOM(313, 5, "TYPE_U64");
+    mw_TYPE_5F_U64();
+    WORD_ATOM(313, 14, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(313, 23, "T2");
+    mw_T2();
+    WORD_ATOM(313, 26, "T0");
+    mw_T0();
+    WORD_ATOM(313, 29, "T->");
+    mw_T__3E_();
+    WORD_ATOM(313, 33, "PRIM_U64_SET");
+    mw_PRIM_5F_U64_5F_SET();
+    WORD_ATOM(313, 46, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(313, 56, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(314, 5, "TYPE_I8");
+    mw_TYPE_5F_I8();
     WORD_ATOM(314, 14, "TYPE_PTR");
     mw_TYPE_5F_PTR();
     WORD_ATOM(314, 23, "T2");
@@ -29412,14 +29511,14 @@ static void mw_init_prims_21_ (void){
     mw_T0();
     WORD_ATOM(314, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(314, 33, "PRIM_INT_SET");
-    mw_PRIM_5F_INT_5F_SET();
+    WORD_ATOM(314, 33, "PRIM_I8_SET");
+    mw_PRIM_5F_I8_5F_SET();
     WORD_ATOM(314, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(314, 56, "!");
     mw_prim_mut_set();
-    WORD_ATOM(315, 5, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
+    WORD_ATOM(315, 5, "TYPE_I16");
+    mw_TYPE_5F_I16();
     WORD_ATOM(315, 14, "TYPE_PTR");
     mw_TYPE_5F_PTR();
     WORD_ATOM(315, 23, "T2");
@@ -29428,14 +29527,14 @@ static void mw_init_prims_21_ (void){
     mw_T0();
     WORD_ATOM(315, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(315, 33, "PRIM_PTR_SET");
-    mw_PRIM_5F_PTR_5F_SET();
+    WORD_ATOM(315, 33, "PRIM_I16_SET");
+    mw_PRIM_5F_I16_5F_SET();
     WORD_ATOM(315, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(315, 56, "!");
     mw_prim_mut_set();
-    WORD_ATOM(316, 5, "TYPE_U8");
-    mw_TYPE_5F_U8();
+    WORD_ATOM(316, 5, "TYPE_I32");
+    mw_TYPE_5F_I32();
     WORD_ATOM(316, 14, "TYPE_PTR");
     mw_TYPE_5F_PTR();
     WORD_ATOM(316, 23, "T2");
@@ -29444,14 +29543,14 @@ static void mw_init_prims_21_ (void){
     mw_T0();
     WORD_ATOM(316, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(316, 33, "PRIM_U8_SET");
-    mw_PRIM_5F_U8_5F_SET();
+    WORD_ATOM(316, 33, "PRIM_I32_SET");
+    mw_PRIM_5F_I32_5F_SET();
     WORD_ATOM(316, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(316, 56, "!");
     mw_prim_mut_set();
-    WORD_ATOM(317, 5, "TYPE_U16");
-    mw_TYPE_5F_U16();
+    WORD_ATOM(317, 5, "TYPE_I64");
+    mw_TYPE_5F_I64();
     WORD_ATOM(317, 14, "TYPE_PTR");
     mw_TYPE_5F_PTR();
     WORD_ATOM(317, 23, "T2");
@@ -29460,112 +29559,56 @@ static void mw_init_prims_21_ (void){
     mw_T0();
     WORD_ATOM(317, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(317, 33, "PRIM_U16_SET");
-    mw_PRIM_5F_U16_5F_SET();
+    WORD_ATOM(317, 33, "PRIM_I64_SET");
+    mw_PRIM_5F_I64_5F_SET();
     WORD_ATOM(317, 46, "prim-type");
     mw_prim_type();
     WORD_ATOM(317, 56, "!");
     mw_prim_mut_set();
-    WORD_ATOM(318, 5, "TYPE_U32");
-    mw_TYPE_5F_U32();
-    WORD_ATOM(318, 14, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(318, 23, "T2");
-    mw_T2();
-    WORD_ATOM(318, 26, "T0");
-    mw_T0();
-    WORD_ATOM(318, 29, "T->");
-    mw_T__3E_();
-    WORD_ATOM(318, 33, "PRIM_U32_SET");
-    mw_PRIM_5F_U32_5F_SET();
-    WORD_ATOM(318, 46, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(318, 56, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(319, 5, "TYPE_U64");
-    mw_TYPE_5F_U64();
+    WORD_ATOM(319, 5, "TYPE_INT");
+    mw_TYPE_5F_INT();
     WORD_ATOM(319, 14, "TYPE_PTR");
     mw_TYPE_5F_PTR();
-    WORD_ATOM(319, 23, "T2");
-    mw_T2();
-    WORD_ATOM(319, 26, "T0");
-    mw_T0();
-    WORD_ATOM(319, 29, "T->");
+    WORD_ATOM(319, 23, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(319, 32, "T3");
+    mw_T3();
+    WORD_ATOM(319, 35, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(319, 44, "T1");
+    mw_T1();
+    WORD_ATOM(319, 47, "T->");
     mw_T__3E_();
-    WORD_ATOM(319, 33, "PRIM_U64_SET");
-    mw_PRIM_5F_U64_5F_SET();
-    WORD_ATOM(319, 46, "prim-type");
+    WORD_ATOM(320, 5, "PRIM_POSIX_READ");
+    mw_PRIM_5F_POSIX_5F_READ();
+    WORD_ATOM(320, 21, "prim-type");
     mw_prim_type();
-    WORD_ATOM(319, 56, "!");
+    WORD_ATOM(320, 31, "!");
     mw_prim_mut_set();
-    WORD_ATOM(320, 5, "TYPE_I8");
-    mw_TYPE_5F_I8();
-    WORD_ATOM(320, 14, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(320, 23, "T2");
-    mw_T2();
-    WORD_ATOM(320, 26, "T0");
-    mw_T0();
-    WORD_ATOM(320, 29, "T->");
-    mw_T__3E_();
-    WORD_ATOM(320, 33, "PRIM_I8_SET");
-    mw_PRIM_5F_I8_5F_SET();
-    WORD_ATOM(320, 46, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(320, 56, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(321, 5, "TYPE_I16");
-    mw_TYPE_5F_I16();
-    WORD_ATOM(321, 14, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(321, 23, "T2");
-    mw_T2();
-    WORD_ATOM(321, 26, "T0");
-    mw_T0();
-    WORD_ATOM(321, 29, "T->");
-    mw_T__3E_();
-    WORD_ATOM(321, 33, "PRIM_I16_SET");
-    mw_PRIM_5F_I16_5F_SET();
-    WORD_ATOM(321, 46, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(321, 56, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(322, 5, "TYPE_I32");
-    mw_TYPE_5F_I32();
+    WORD_ATOM(322, 5, "TYPE_INT");
+    mw_TYPE_5F_INT();
     WORD_ATOM(322, 14, "TYPE_PTR");
     mw_TYPE_5F_PTR();
-    WORD_ATOM(322, 23, "T2");
-    mw_T2();
-    WORD_ATOM(322, 26, "T0");
-    mw_T0();
-    WORD_ATOM(322, 29, "T->");
-    mw_T__3E_();
-    WORD_ATOM(322, 33, "PRIM_I32_SET");
-    mw_PRIM_5F_I32_5F_SET();
-    WORD_ATOM(322, 46, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(322, 56, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(323, 5, "TYPE_I64");
-    mw_TYPE_5F_I64();
-    WORD_ATOM(323, 14, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(323, 23, "T2");
-    mw_T2();
-    WORD_ATOM(323, 26, "T0");
-    mw_T0();
-    WORD_ATOM(323, 29, "T->");
-    mw_T__3E_();
-    WORD_ATOM(323, 33, "PRIM_I64_SET");
-    mw_PRIM_5F_I64_5F_SET();
-    WORD_ATOM(323, 46, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(323, 56, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(325, 5, "TYPE_INT");
+    WORD_ATOM(322, 23, "TYPE_INT");
     mw_TYPE_5F_INT();
-    WORD_ATOM(325, 14, "TYPE_PTR");
+    WORD_ATOM(322, 32, "T3");
+    mw_T3();
+    WORD_ATOM(322, 35, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(322, 44, "T1");
+    mw_T1();
+    WORD_ATOM(322, 47, "T->");
+    mw_T__3E_();
+    WORD_ATOM(323, 5, "PRIM_POSIX_WRITE");
+    mw_PRIM_5F_POSIX_5F_WRITE();
+    WORD_ATOM(323, 22, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(323, 32, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(325, 5, "TYPE_PTR");
     mw_TYPE_5F_PTR();
+    WORD_ATOM(325, 14, "TYPE_INT");
+    mw_TYPE_5F_INT();
     WORD_ATOM(325, 23, "TYPE_INT");
     mw_TYPE_5F_INT();
     WORD_ATOM(325, 32, "T3");
@@ -29576,28 +29619,24 @@ static void mw_init_prims_21_ (void){
     mw_T1();
     WORD_ATOM(325, 47, "T->");
     mw_T__3E_();
-    WORD_ATOM(326, 5, "PRIM_POSIX_READ");
-    mw_PRIM_5F_POSIX_5F_READ();
+    WORD_ATOM(326, 5, "PRIM_POSIX_OPEN");
+    mw_PRIM_5F_POSIX_5F_OPEN();
     WORD_ATOM(326, 21, "prim-type");
     mw_prim_type();
     WORD_ATOM(326, 31, "!");
     mw_prim_mut_set();
     WORD_ATOM(328, 5, "TYPE_INT");
     mw_TYPE_5F_INT();
-    WORD_ATOM(328, 14, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(328, 23, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(328, 32, "T3");
-    mw_T3();
-    WORD_ATOM(328, 35, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(328, 44, "T1");
+    WORD_ATOM(328, 14, "T1");
     mw_T1();
-    WORD_ATOM(328, 47, "T->");
+    WORD_ATOM(328, 17, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(328, 26, "T1");
+    mw_T1();
+    WORD_ATOM(328, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(329, 5, "PRIM_POSIX_WRITE");
-    mw_PRIM_5F_POSIX_5F_WRITE();
+    WORD_ATOM(329, 5, "PRIM_POSIX_CLOSE");
+    mw_PRIM_5F_POSIX_5F_CLOSE();
     WORD_ATOM(329, 22, "prim-type");
     mw_prim_type();
     WORD_ATOM(329, 32, "!");
@@ -29608,337 +29647,301 @@ static void mw_init_prims_21_ (void){
     mw_TYPE_5F_INT();
     WORD_ATOM(331, 23, "TYPE_INT");
     mw_TYPE_5F_INT();
-    WORD_ATOM(331, 32, "T3");
-    mw_T3();
-    WORD_ATOM(331, 35, "TYPE_INT");
+    WORD_ATOM(331, 32, "TYPE_INT");
     mw_TYPE_5F_INT();
-    WORD_ATOM(331, 44, "T1");
-    mw_T1();
-    WORD_ATOM(331, 47, "T->");
-    mw_T__3E_();
-    WORD_ATOM(332, 5, "PRIM_POSIX_OPEN");
-    mw_PRIM_5F_POSIX_5F_OPEN();
-    WORD_ATOM(332, 21, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(332, 31, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(334, 5, "TYPE_INT");
+    WORD_ATOM(331, 41, "TYPE_INT");
     mw_TYPE_5F_INT();
-    WORD_ATOM(334, 14, "T1");
-    mw_T1();
-    WORD_ATOM(334, 17, "TYPE_INT");
+    WORD_ATOM(331, 50, "TYPE_INT");
     mw_TYPE_5F_INT();
-    WORD_ATOM(334, 26, "T1");
-    mw_T1();
-    WORD_ATOM(334, 29, "T->");
-    mw_T__3E_();
-    WORD_ATOM(335, 5, "PRIM_POSIX_CLOSE");
-    mw_PRIM_5F_POSIX_5F_CLOSE();
-    WORD_ATOM(335, 22, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(335, 32, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(337, 5, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(337, 14, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(337, 23, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(337, 32, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(337, 41, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(337, 50, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(337, 59, "T6");
+    WORD_ATOM(331, 59, "T6");
     mw_T6();
-    WORD_ATOM(338, 5, "TYPE_PTR");
+    WORD_ATOM(332, 5, "TYPE_PTR");
     mw_TYPE_5F_PTR();
-    WORD_ATOM(338, 14, "T1");
+    WORD_ATOM(332, 14, "T1");
     mw_T1();
-    WORD_ATOM(338, 17, "T->");
+    WORD_ATOM(332, 17, "T->");
     mw_T__3E_();
-    WORD_ATOM(339, 5, "PRIM_POSIX_MMAP");
+    WORD_ATOM(333, 5, "PRIM_POSIX_MMAP");
     mw_PRIM_5F_POSIX_5F_MMAP();
-    WORD_ATOM(339, 21, "prim-type");
+    WORD_ATOM(333, 21, "prim-type");
     mw_prim_type();
-    WORD_ATOM(339, 31, "!");
+    WORD_ATOM(333, 31, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(335, 5, "T0");
+    mw_T0();
+    WORD_ATOM(335, 8, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(335, 17, "T1");
+    mw_T1();
+    WORD_ATOM(335, 20, "T->");
+    mw_T__3E_();
+    WORD_ATOM(336, 5, "PRIM_PTR_NIL");
+    mw_PRIM_5F_PTR_5F_NIL();
+    WORD_ATOM(336, 18, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(336, 28, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(338, 5, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(338, 14, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(338, 23, "T2");
+    mw_T2();
+    WORD_ATOM(338, 26, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(338, 35, "T1");
+    mw_T1();
+    WORD_ATOM(338, 38, "T->");
+    mw_T__3E_();
+    WORD_ATOM(339, 5, "PRIM_PTR_ADD");
+    mw_PRIM_5F_PTR_5F_ADD();
+    WORD_ATOM(339, 18, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(339, 28, "!");
     mw_prim_mut_set();
     WORD_ATOM(341, 5, "T0");
     mw_T0();
-    WORD_ATOM(341, 8, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
+    WORD_ATOM(341, 8, "TYPE_INT");
+    mw_TYPE_5F_INT();
     WORD_ATOM(341, 17, "T1");
     mw_T1();
     WORD_ATOM(341, 20, "T->");
     mw_T__3E_();
-    WORD_ATOM(342, 5, "PRIM_PTR_NIL");
-    mw_PRIM_5F_PTR_5F_NIL();
-    WORD_ATOM(342, 18, "prim-type");
+    WORD_ATOM(342, 5, "PRIM_PTR_SIZE");
+    mw_PRIM_5F_PTR_5F_SIZE();
+    WORD_ATOM(342, 19, "prim-type");
     mw_prim_type();
-    WORD_ATOM(342, 28, "!");
+    WORD_ATOM(342, 29, "!");
     mw_prim_mut_set();
     WORD_ATOM(344, 5, "TYPE_INT");
     mw_TYPE_5F_INT();
-    WORD_ATOM(344, 14, "TYPE_PTR");
+    WORD_ATOM(344, 14, "T1");
+    mw_T1();
+    WORD_ATOM(344, 17, "TYPE_PTR");
     mw_TYPE_5F_PTR();
-    WORD_ATOM(344, 23, "T2");
-    mw_T2();
-    WORD_ATOM(344, 26, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(344, 35, "T1");
+    WORD_ATOM(344, 26, "T1");
     mw_T1();
-    WORD_ATOM(344, 38, "T->");
+    WORD_ATOM(344, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(345, 5, "PRIM_PTR_ADD");
-    mw_PRIM_5F_PTR_5F_ADD();
-    WORD_ATOM(345, 18, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(345, 28, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(347, 5, "T0");
-    mw_T0();
-    WORD_ATOM(347, 8, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(347, 17, "T1");
-    mw_T1();
-    WORD_ATOM(347, 20, "T->");
-    mw_T__3E_();
-    WORD_ATOM(348, 5, "PRIM_PTR_SIZE");
-    mw_PRIM_5F_PTR_5F_SIZE();
-    WORD_ATOM(348, 19, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(348, 29, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(350, 5, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(350, 14, "T1");
-    mw_T1();
-    WORD_ATOM(350, 17, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(350, 26, "T1");
-    mw_T1();
-    WORD_ATOM(350, 29, "T->");
-    mw_T__3E_();
-    WORD_ATOM(351, 5, "PRIM_PTR_ALLOC");
+    WORD_ATOM(345, 5, "PRIM_PTR_ALLOC");
     mw_PRIM_5F_PTR_5F_ALLOC();
-    WORD_ATOM(351, 20, "prim-type");
+    WORD_ATOM(345, 20, "prim-type");
     mw_prim_type();
-    WORD_ATOM(351, 30, "!");
+    WORD_ATOM(345, 30, "!");
     mw_prim_mut_set();
-    WORD_ATOM(353, 5, "TYPE_PTR");
+    WORD_ATOM(347, 5, "TYPE_PTR");
     mw_TYPE_5F_PTR();
+    WORD_ATOM(347, 14, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(347, 23, "T2");
+    mw_T2();
+    WORD_ATOM(347, 26, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(347, 35, "T1");
+    mw_T1();
+    WORD_ATOM(347, 38, "T->");
+    mw_T__3E_();
+    WORD_ATOM(348, 5, "PRIM_PTR_REALLOC");
+    mw_PRIM_5F_PTR_5F_REALLOC();
+    WORD_ATOM(348, 22, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(348, 32, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(350, 5, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(350, 14, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(350, 23, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(350, 32, "T3");
+    mw_T3();
+    WORD_ATOM(350, 35, "T0");
+    mw_T0();
+    WORD_ATOM(350, 38, "T->");
+    mw_T__3E_();
+    WORD_ATOM(351, 5, "PRIM_PTR_COPY");
+    mw_PRIM_5F_PTR_5F_COPY();
+    WORD_ATOM(351, 19, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(351, 29, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(353, 5, "TYPE_INT");
+    mw_TYPE_5F_INT();
     WORD_ATOM(353, 14, "TYPE_INT");
     mw_TYPE_5F_INT();
-    WORD_ATOM(353, 23, "T2");
-    mw_T2();
-    WORD_ATOM(353, 26, "TYPE_PTR");
+    WORD_ATOM(353, 23, "TYPE_PTR");
     mw_TYPE_5F_PTR();
-    WORD_ATOM(353, 35, "T1");
-    mw_T1();
+    WORD_ATOM(353, 32, "T3");
+    mw_T3();
+    WORD_ATOM(353, 35, "T0");
+    mw_T0();
     WORD_ATOM(353, 38, "T->");
     mw_T__3E_();
-    WORD_ATOM(354, 5, "PRIM_PTR_REALLOC");
-    mw_PRIM_5F_PTR_5F_REALLOC();
-    WORD_ATOM(354, 22, "prim-type");
+    WORD_ATOM(354, 5, "PRIM_PTR_FILL");
+    mw_PRIM_5F_PTR_5F_FILL();
+    WORD_ATOM(354, 19, "prim-type");
     mw_prim_type();
-    WORD_ATOM(354, 32, "!");
+    WORD_ATOM(354, 29, "!");
     mw_prim_mut_set();
     WORD_ATOM(356, 5, "TYPE_PTR");
     mw_TYPE_5F_PTR();
-    WORD_ATOM(356, 14, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(356, 23, "TYPE_PTR");
+    WORD_ATOM(356, 14, "T1");
+    mw_T1();
+    WORD_ATOM(356, 17, "TYPE_PTR");
     mw_TYPE_5F_PTR();
-    WORD_ATOM(356, 32, "T3");
-    mw_T3();
-    WORD_ATOM(356, 35, "T0");
-    mw_T0();
+    WORD_ATOM(356, 26, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(356, 35, "T2");
+    mw_T2();
     WORD_ATOM(356, 38, "T->");
     mw_T__3E_();
-    WORD_ATOM(357, 5, "PRIM_PTR_COPY");
-    mw_PRIM_5F_PTR_5F_COPY();
-    WORD_ATOM(357, 19, "prim-type");
+    WORD_ATOM(357, 5, "PRIM_PTR_RAW");
+    mw_PRIM_5F_PTR_5F_RAW();
+    WORD_ATOM(357, 18, "prim-type");
     mw_prim_type();
-    WORD_ATOM(357, 29, "!");
+    WORD_ATOM(357, 28, "!");
     mw_prim_mut_set();
     WORD_ATOM(359, 5, "TYPE_INT");
     mw_TYPE_5F_INT();
-    WORD_ATOM(359, 14, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(359, 23, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(359, 32, "T3");
-    mw_T3();
-    WORD_ATOM(359, 35, "T0");
-    mw_T0();
-    WORD_ATOM(359, 38, "T->");
+    WORD_ATOM(359, 14, "T1");
+    mw_T1();
+    WORD_ATOM(359, 17, "TYPE_STR");
+    mw_TYPE_5F_STR();
+    WORD_ATOM(359, 26, "T1");
+    mw_T1();
+    WORD_ATOM(359, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(360, 5, "PRIM_PTR_FILL");
-    mw_PRIM_5F_PTR_5F_FILL();
-    WORD_ATOM(360, 19, "prim-type");
+    WORD_ATOM(360, 5, "PRIM_STR_ALLOC");
+    mw_PRIM_5F_STR_5F_ALLOC();
+    WORD_ATOM(360, 20, "prim-type");
     mw_prim_type();
-    WORD_ATOM(360, 29, "!");
+    WORD_ATOM(360, 30, "!");
     mw_prim_mut_set();
     WORD_ATOM(362, 5, "TYPE_PTR");
     mw_TYPE_5F_PTR();
-    WORD_ATOM(362, 14, "T1");
-    mw_T1();
-    WORD_ATOM(362, 17, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(362, 26, "TYPE_INT");
+    WORD_ATOM(362, 14, "TYPE_INT");
     mw_TYPE_5F_INT();
-    WORD_ATOM(362, 35, "T2");
+    WORD_ATOM(362, 23, "T2");
     mw_T2();
+    WORD_ATOM(362, 26, "TYPE_STR");
+    mw_TYPE_5F_STR();
+    WORD_ATOM(362, 35, "T1");
+    mw_T1();
     WORD_ATOM(362, 38, "T->");
     mw_T__3E_();
-    WORD_ATOM(363, 5, "PRIM_PTR_RAW");
-    mw_PRIM_5F_PTR_5F_RAW();
-    WORD_ATOM(363, 18, "prim-type");
+    WORD_ATOM(363, 5, "PRIM_STR_COPY");
+    mw_PRIM_5F_STR_5F_COPY();
+    WORD_ATOM(363, 19, "prim-type");
     mw_prim_type();
-    WORD_ATOM(363, 28, "!");
+    WORD_ATOM(363, 29, "!");
     mw_prim_mut_set();
-    WORD_ATOM(365, 5, "TYPE_INT");
-    mw_TYPE_5F_INT();
+    WORD_ATOM(365, 5, "TYPE_STR");
+    mw_TYPE_5F_STR();
     WORD_ATOM(365, 14, "T1");
     mw_T1();
-    WORD_ATOM(365, 17, "TYPE_STR");
-    mw_TYPE_5F_STR();
+    WORD_ATOM(365, 17, "TYPE_INT");
+    mw_TYPE_5F_INT();
     WORD_ATOM(365, 26, "T1");
     mw_T1();
     WORD_ATOM(365, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(366, 5, "PRIM_STR_ALLOC");
-    mw_PRIM_5F_STR_5F_ALLOC();
-    WORD_ATOM(366, 20, "prim-type");
+    WORD_ATOM(366, 5, "PRIM_STR_NUM_BYTES");
+    mw_PRIM_5F_STR_5F_NUM_5F_BYTES();
+    WORD_ATOM(366, 24, "prim-type");
     mw_prim_type();
-    WORD_ATOM(366, 30, "!");
+    WORD_ATOM(366, 34, "!");
     mw_prim_mut_set();
-    WORD_ATOM(368, 5, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(368, 14, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(368, 23, "T2");
-    mw_T2();
-    WORD_ATOM(368, 26, "TYPE_STR");
+    WORD_ATOM(368, 5, "TYPE_STR");
     mw_TYPE_5F_STR();
-    WORD_ATOM(368, 35, "T1");
+    WORD_ATOM(368, 14, "T1");
     mw_T1();
-    WORD_ATOM(368, 38, "T->");
+    WORD_ATOM(368, 17, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
+    WORD_ATOM(368, 26, "T1");
+    mw_T1();
+    WORD_ATOM(368, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(369, 5, "PRIM_STR_COPY");
-    mw_PRIM_5F_STR_5F_COPY();
+    WORD_ATOM(369, 5, "PRIM_STR_BASE");
+    mw_PRIM_5F_STR_5F_BASE();
     WORD_ATOM(369, 19, "prim-type");
     mw_prim_type();
     WORD_ATOM(369, 29, "!");
     mw_prim_mut_set();
     WORD_ATOM(371, 5, "TYPE_STR");
     mw_TYPE_5F_STR();
-    WORD_ATOM(371, 14, "T1");
-    mw_T1();
-    WORD_ATOM(371, 17, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(371, 26, "T1");
-    mw_T1();
-    WORD_ATOM(371, 29, "T->");
-    mw_T__3E_();
-    WORD_ATOM(372, 5, "PRIM_STR_NUM_BYTES");
-    mw_PRIM_5F_STR_5F_NUM_5F_BYTES();
-    WORD_ATOM(372, 24, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(372, 34, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(374, 5, "TYPE_STR");
+    WORD_ATOM(371, 14, "TYPE_STR");
     mw_TYPE_5F_STR();
-    WORD_ATOM(374, 14, "T1");
-    mw_T1();
-    WORD_ATOM(374, 17, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(374, 26, "T1");
-    mw_T1();
-    WORD_ATOM(374, 29, "T->");
-    mw_T__3E_();
-    WORD_ATOM(375, 5, "PRIM_STR_BASE");
-    mw_PRIM_5F_STR_5F_BASE();
-    WORD_ATOM(375, 19, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(375, 29, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(377, 5, "TYPE_STR");
-    mw_TYPE_5F_STR();
-    WORD_ATOM(377, 14, "TYPE_STR");
-    mw_TYPE_5F_STR();
-    WORD_ATOM(377, 23, "T2");
+    WORD_ATOM(371, 23, "T2");
     mw_T2();
-    WORD_ATOM(377, 26, "TYPE_STR");
+    WORD_ATOM(371, 26, "TYPE_STR");
     mw_TYPE_5F_STR();
-    WORD_ATOM(377, 35, "T1");
+    WORD_ATOM(371, 35, "T1");
     mw_T1();
-    WORD_ATOM(377, 38, "T->");
+    WORD_ATOM(371, 38, "T->");
     mw_T__3E_();
-    WORD_ATOM(378, 5, "PRIM_STR_CAT");
+    WORD_ATOM(372, 5, "PRIM_STR_CAT");
     mw_PRIM_5F_STR_5F_CAT();
-    WORD_ATOM(378, 18, "prim-type");
+    WORD_ATOM(372, 18, "prim-type");
     mw_prim_type();
-    WORD_ATOM(378, 28, "!");
+    WORD_ATOM(372, 28, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(374, 5, "T0");
+    mw_T0();
+    WORD_ATOM(374, 8, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(374, 17, "T1");
+    mw_T1();
+    WORD_ATOM(374, 20, "T->");
+    mw_T__3E_();
+    WORD_ATOM(375, 5, "PRIM_SYS_OS");
+    mw_PRIM_5F_SYS_5F_OS();
+    WORD_ATOM(375, 17, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(375, 27, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(377, 5, "T0");
+    mw_T0();
+    WORD_ATOM(377, 8, "TYPE_INT");
+    mw_TYPE_5F_INT();
+    WORD_ATOM(377, 17, "T1");
+    mw_T1();
+    WORD_ATOM(377, 20, "T->");
+    mw_T__3E_();
+    WORD_ATOM(378, 5, "PRIM_SYS_ARGC");
+    mw_PRIM_5F_SYS_5F_ARGC();
+    WORD_ATOM(378, 19, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(378, 29, "!");
     mw_prim_mut_set();
     WORD_ATOM(380, 5, "T0");
     mw_T0();
-    WORD_ATOM(380, 8, "TYPE_INT");
-    mw_TYPE_5F_INT();
+    WORD_ATOM(380, 8, "TYPE_PTR");
+    mw_TYPE_5F_PTR();
     WORD_ATOM(380, 17, "T1");
     mw_T1();
     WORD_ATOM(380, 20, "T->");
     mw_T__3E_();
-    WORD_ATOM(381, 5, "PRIM_SYS_OS");
-    mw_PRIM_5F_SYS_5F_OS();
-    WORD_ATOM(381, 17, "prim-type");
+    WORD_ATOM(381, 5, "PRIM_SYS_ARGV");
+    mw_PRIM_5F_SYS_5F_ARGV();
+    WORD_ATOM(381, 19, "prim-type");
     mw_prim_type();
-    WORD_ATOM(381, 27, "!");
+    WORD_ATOM(381, 29, "!");
     mw_prim_mut_set();
     WORD_ATOM(383, 5, "T0");
     mw_T0();
-    WORD_ATOM(383, 8, "TYPE_INT");
-    mw_TYPE_5F_INT();
-    WORD_ATOM(383, 17, "T1");
+    WORD_ATOM(383, 8, "T0");
+    mw_T0();
+    WORD_ATOM(383, 11, "T1");
     mw_T1();
-    WORD_ATOM(383, 20, "T->");
+    WORD_ATOM(383, 14, "T->");
     mw_T__3E_();
-    WORD_ATOM(384, 5, "PRIM_SYS_ARGC");
-    mw_PRIM_5F_SYS_5F_ARGC();
+    WORD_ATOM(384, 5, "PRIM_PACK_NIL");
+    mw_PRIM_5F_PACK_5F_NIL();
     WORD_ATOM(384, 19, "prim-type");
     mw_prim_type();
     WORD_ATOM(384, 29, "!");
     mw_prim_mut_set();
-    WORD_ATOM(386, 5, "T0");
-    mw_T0();
-    WORD_ATOM(386, 8, "TYPE_PTR");
-    mw_TYPE_5F_PTR();
-    WORD_ATOM(386, 17, "T1");
-    mw_T1();
-    WORD_ATOM(386, 20, "T->");
-    mw_T__3E_();
-    WORD_ATOM(387, 5, "PRIM_SYS_ARGV");
-    mw_PRIM_5F_SYS_5F_ARGV();
-    WORD_ATOM(387, 19, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(387, 29, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(389, 5, "T0");
-    mw_T0();
-    WORD_ATOM(389, 8, "T0");
-    mw_T0();
-    WORD_ATOM(389, 11, "T1");
-    mw_T1();
-    WORD_ATOM(389, 14, "T->");
-    mw_T__3E_();
-    WORD_ATOM(390, 5, "PRIM_PACK_NIL");
-    mw_PRIM_5F_PACK_5F_NIL();
-    WORD_ATOM(390, 19, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(390, 29, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(396, 5, "");
+    WORD_ATOM(390, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -29949,47 +29952,47 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(396, 9, "name-new!");
+    WORD_ATOM(390, 9, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(396, 19, "var-new-implicit!");
+    WORD_ATOM(390, 19, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(396, 37, "TYPE_TYPE");
+    WORD_ATOM(390, 37, "TYPE_TYPE");
     mw_TYPE_5F_TYPE();
-    WORD_ATOM(396, 47, "over");
+    WORD_ATOM(390, 47, "over");
     mw_over();
-    WORD_ATOM(396, 52, "var-type");
+    WORD_ATOM(390, 52, "var-type");
     mw_var_type();
-    WORD_ATOM(396, 61, "!");
+    WORD_ATOM(390, 61, "!");
     mw_prim_mut_set();
-    WORD_ATOM(397, 5, "dup");
+    WORD_ATOM(391, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(397, 9, "ctx-empty");
+    WORD_ATOM(391, 9, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(397, 19, "swap");
+    WORD_ATOM(391, 19, "swap");
     mw_prim_swap();
-    WORD_ATOM(397, 24, "ctx-new!");
+    WORD_ATOM(391, 24, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(398, 5, "PRIM_CORE_DROP");
+    WORD_ATOM(392, 5, "PRIM_CORE_DROP");
     mw_PRIM_5F_CORE_5F_DROP();
-    WORD_ATOM(398, 20, "prim-ctx");
+    WORD_ATOM(392, 20, "prim-ctx");
     mw_prim_ctx();
-    WORD_ATOM(398, 29, "!");
+    WORD_ATOM(392, 29, "!");
     mw_prim_mut_set();
-    WORD_ATOM(400, 5, "TVar");
+    WORD_ATOM(394, 5, "TVar");
     mw_TVar();
-    WORD_ATOM(400, 10, "T1");
+    WORD_ATOM(394, 10, "T1");
     mw_T1();
-    WORD_ATOM(400, 13, "T0");
+    WORD_ATOM(394, 13, "T0");
     mw_T0();
-    WORD_ATOM(400, 16, "T->");
+    WORD_ATOM(394, 16, "T->");
     mw_T__3E_();
-    WORD_ATOM(401, 5, "PRIM_CORE_DROP");
+    WORD_ATOM(395, 5, "PRIM_CORE_DROP");
     mw_PRIM_5F_CORE_5F_DROP();
-    WORD_ATOM(401, 20, "prim-type");
+    WORD_ATOM(395, 20, "prim-type");
     mw_prim_type();
-    WORD_ATOM(401, 30, "!");
+    WORD_ATOM(395, 30, "!");
     mw_prim_mut_set();
-    WORD_ATOM(403, 5, "");
+    WORD_ATOM(397, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30000,53 +30003,53 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(403, 9, "name-new!");
+    WORD_ATOM(397, 9, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(403, 19, "var-new-implicit!");
+    WORD_ATOM(397, 19, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(403, 37, "TYPE_TYPE");
+    WORD_ATOM(397, 37, "TYPE_TYPE");
     mw_TYPE_5F_TYPE();
-    WORD_ATOM(403, 47, "over");
+    WORD_ATOM(397, 47, "over");
     mw_over();
-    WORD_ATOM(403, 52, "var-type");
+    WORD_ATOM(397, 52, "var-type");
     mw_var_type();
-    WORD_ATOM(403, 61, "!");
+    WORD_ATOM(397, 61, "!");
     mw_prim_mut_set();
-    WORD_ATOM(404, 5, "dup");
+    WORD_ATOM(398, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(404, 9, "ctx-empty");
+    WORD_ATOM(398, 9, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(404, 19, "swap");
+    WORD_ATOM(398, 19, "swap");
     mw_prim_swap();
-    WORD_ATOM(404, 24, "ctx-new!");
+    WORD_ATOM(398, 24, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(405, 5, "PRIM_CORE_DUP");
+    WORD_ATOM(399, 5, "PRIM_CORE_DUP");
     mw_PRIM_5F_CORE_5F_DUP();
-    WORD_ATOM(405, 19, "prim-ctx");
+    WORD_ATOM(399, 19, "prim-ctx");
     mw_prim_ctx();
-    WORD_ATOM(405, 28, "!");
+    WORD_ATOM(399, 28, "!");
     mw_prim_mut_set();
-    WORD_ATOM(407, 5, "TVar");
+    WORD_ATOM(401, 5, "TVar");
     mw_TVar();
-    WORD_ATOM(407, 10, "dup");
+    WORD_ATOM(401, 10, "dup");
     mw_prim_dup();
-    WORD_ATOM(407, 14, "T1");
+    WORD_ATOM(401, 14, "T1");
     mw_T1();
-    WORD_ATOM(407, 17, "dup");
+    WORD_ATOM(401, 17, "dup");
     mw_prim_dup();
-    WORD_ATOM(407, 21, "rotl");
+    WORD_ATOM(401, 21, "rotl");
     mw_rotl();
-    WORD_ATOM(407, 26, "T*");
+    WORD_ATOM(401, 26, "T*");
     mw_T_2A_();
-    WORD_ATOM(407, 29, "T->");
+    WORD_ATOM(401, 29, "T->");
     mw_T__3E_();
-    WORD_ATOM(408, 5, "PRIM_CORE_DUP");
+    WORD_ATOM(402, 5, "PRIM_CORE_DUP");
     mw_PRIM_5F_CORE_5F_DUP();
-    WORD_ATOM(408, 19, "prim-type");
+    WORD_ATOM(402, 19, "prim-type");
     mw_prim_type();
-    WORD_ATOM(408, 29, "!");
+    WORD_ATOM(402, 29, "!");
     mw_prim_mut_set();
-    WORD_ATOM(410, 5, "");
+    WORD_ATOM(404, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30057,91 +30060,91 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(410, 9, "name-new!");
+    WORD_ATOM(404, 9, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(410, 19, "var-new-implicit!");
+    WORD_ATOM(404, 19, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(410, 37, "TYPE_TYPE");
+    WORD_ATOM(404, 37, "TYPE_TYPE");
     mw_TYPE_5F_TYPE();
-    WORD_ATOM(410, 47, "over");
+    WORD_ATOM(404, 47, "over");
     mw_over();
-    WORD_ATOM(410, 52, "var-type");
+    WORD_ATOM(404, 52, "var-type");
     mw_var_type();
-    WORD_ATOM(410, 61, "!");
+    WORD_ATOM(404, 61, "!");
     mw_prim_mut_set();
-    WORD_ATOM(411, 5, "dup");
+    WORD_ATOM(405, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(411, 9, "ctx-empty");
+    WORD_ATOM(405, 9, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(411, 19, "swap");
+    WORD_ATOM(405, 19, "swap");
     mw_prim_swap();
-    WORD_ATOM(411, 24, "ctx-new!");
+    WORD_ATOM(405, 24, "ctx-new!");
     mw_ctx_new_21_();
+    WORD_ATOM(407, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(407, 9, "PRIM_VALUE_EQ");
+    mw_PRIM_5F_VALUE_5F_EQ();
+    WORD_ATOM(407, 23, "prim-ctx");
+    mw_prim_ctx();
+    WORD_ATOM(407, 32, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(408, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(408, 9, "PRIM_VALUE_LT");
+    mw_PRIM_5F_VALUE_5F_LT();
+    WORD_ATOM(408, 23, "prim-ctx");
+    mw_prim_ctx();
+    WORD_ATOM(408, 32, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(409, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(409, 9, "PRIM_VALUE_LE");
+    mw_PRIM_5F_VALUE_5F_LE();
+    WORD_ATOM(409, 23, "prim-ctx");
+    mw_prim_ctx();
+    WORD_ATOM(409, 32, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(410, 5, "drop");
+    mw_prim_drop();
+    WORD_ATOM(412, 5, "TVar");
+    mw_TVar();
+    WORD_ATOM(412, 10, "dup");
+    mw_prim_dup();
+    WORD_ATOM(412, 14, "T2");
+    mw_T2();
+    WORD_ATOM(412, 17, "TYPE_BOOL");
+    mw_TYPE_5F_BOOL();
+    WORD_ATOM(412, 27, "T1");
+    mw_T1();
+    WORD_ATOM(412, 30, "T->");
+    mw_T__3E_();
     WORD_ATOM(413, 5, "dup");
     mw_prim_dup();
     WORD_ATOM(413, 9, "PRIM_VALUE_EQ");
     mw_PRIM_5F_VALUE_5F_EQ();
-    WORD_ATOM(413, 23, "prim-ctx");
-    mw_prim_ctx();
-    WORD_ATOM(413, 32, "!");
+    WORD_ATOM(413, 23, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(413, 33, "!");
     mw_prim_mut_set();
     WORD_ATOM(414, 5, "dup");
     mw_prim_dup();
     WORD_ATOM(414, 9, "PRIM_VALUE_LT");
     mw_PRIM_5F_VALUE_5F_LT();
-    WORD_ATOM(414, 23, "prim-ctx");
-    mw_prim_ctx();
-    WORD_ATOM(414, 32, "!");
+    WORD_ATOM(414, 23, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(414, 33, "!");
     mw_prim_mut_set();
     WORD_ATOM(415, 5, "dup");
     mw_prim_dup();
     WORD_ATOM(415, 9, "PRIM_VALUE_LE");
     mw_PRIM_5F_VALUE_5F_LE();
-    WORD_ATOM(415, 23, "prim-ctx");
-    mw_prim_ctx();
-    WORD_ATOM(415, 32, "!");
+    WORD_ATOM(415, 23, "prim-type");
+    mw_prim_type();
+    WORD_ATOM(415, 33, "!");
     mw_prim_mut_set();
     WORD_ATOM(416, 5, "drop");
     mw_prim_drop();
-    WORD_ATOM(418, 5, "TVar");
-    mw_TVar();
-    WORD_ATOM(418, 10, "dup");
-    mw_prim_dup();
-    WORD_ATOM(418, 14, "T2");
-    mw_T2();
-    WORD_ATOM(418, 17, "TYPE_BOOL");
-    mw_TYPE_5F_BOOL();
-    WORD_ATOM(418, 27, "T1");
-    mw_T1();
-    WORD_ATOM(418, 30, "T->");
-    mw_T__3E_();
-    WORD_ATOM(419, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(419, 9, "PRIM_VALUE_EQ");
-    mw_PRIM_5F_VALUE_5F_EQ();
-    WORD_ATOM(419, 23, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(419, 33, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(420, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(420, 9, "PRIM_VALUE_LT");
-    mw_PRIM_5F_VALUE_5F_LT();
-    WORD_ATOM(420, 23, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(420, 33, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(421, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(421, 9, "PRIM_VALUE_LE");
-    mw_PRIM_5F_VALUE_5F_LE();
-    WORD_ATOM(421, 23, "prim-type");
-    mw_prim_type();
-    WORD_ATOM(421, 33, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(422, 5, "drop");
-    mw_prim_drop();
-    WORD_ATOM(424, 5, "");
+    WORD_ATOM(418, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30152,19 +30155,19 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(424, 9, "name-new!");
+    WORD_ATOM(418, 9, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(424, 19, "var-new-implicit!");
+    WORD_ATOM(418, 19, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(424, 37, "TYPE_TYPE");
+    WORD_ATOM(418, 37, "TYPE_TYPE");
     mw_TYPE_5F_TYPE();
-    WORD_ATOM(424, 47, "over");
+    WORD_ATOM(418, 47, "over");
     mw_over();
-    WORD_ATOM(424, 52, "var-type");
+    WORD_ATOM(418, 52, "var-type");
     mw_var_type();
-    WORD_ATOM(424, 61, "!");
+    WORD_ATOM(418, 61, "!");
     mw_prim_mut_set();
-    WORD_ATOM(425, 5, "");
+    WORD_ATOM(419, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30175,64 +30178,64 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(425, 9, "name-new!");
+    WORD_ATOM(419, 9, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(425, 19, "var-new-implicit!");
+    WORD_ATOM(419, 19, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(425, 37, "TYPE_TYPE");
+    WORD_ATOM(419, 37, "TYPE_TYPE");
     mw_TYPE_5F_TYPE();
-    WORD_ATOM(425, 47, "over");
+    WORD_ATOM(419, 47, "over");
     mw_over();
-    WORD_ATOM(425, 52, "var-type");
+    WORD_ATOM(419, 52, "var-type");
     mw_var_type();
-    WORD_ATOM(425, 61, "!");
+    WORD_ATOM(419, 61, "!");
     mw_prim_mut_set();
-    WORD_ATOM(426, 5, "dup2");
+    WORD_ATOM(420, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(426, 10, "ctx-empty");
+    WORD_ATOM(420, 10, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(426, 20, "swap");
+    WORD_ATOM(420, 20, "swap");
     mw_prim_swap();
-    WORD_ATOM(426, 25, "ctx-new!");
+    WORD_ATOM(420, 25, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(426, 34, "swap");
+    WORD_ATOM(420, 34, "swap");
     mw_prim_swap();
-    WORD_ATOM(426, 39, "ctx-new!");
+    WORD_ATOM(420, 39, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(427, 5, "PRIM_CORE_SWAP");
+    WORD_ATOM(421, 5, "PRIM_CORE_SWAP");
     mw_PRIM_5F_CORE_5F_SWAP();
-    WORD_ATOM(427, 20, "prim-ctx");
+    WORD_ATOM(421, 20, "prim-ctx");
     mw_prim_ctx();
-    WORD_ATOM(427, 29, "!");
+    WORD_ATOM(421, 29, "!");
     mw_prim_mut_set();
-    WORD_ATOM(429, 5, "dip");
+    WORD_ATOM(423, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(429, 9, "TVar");
+        WORD_ATOM(423, 9, "TVar");
         mw_TVar();
         push_value(d2);
     }
-    WORD_ATOM(429, 15, "TVar");
+    WORD_ATOM(423, 15, "TVar");
     mw_TVar();
-    WORD_ATOM(430, 5, "dup2");
+    WORD_ATOM(424, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(430, 10, "T2");
+    WORD_ATOM(424, 10, "T2");
     mw_T2();
-    WORD_ATOM(430, 13, "rotr");
+    WORD_ATOM(424, 13, "rotr");
     mw_rotr();
-    WORD_ATOM(430, 18, "swap");
+    WORD_ATOM(424, 18, "swap");
     mw_prim_swap();
-    WORD_ATOM(430, 23, "T2");
+    WORD_ATOM(424, 23, "T2");
     mw_T2();
-    WORD_ATOM(430, 26, "T->");
+    WORD_ATOM(424, 26, "T->");
     mw_T__3E_();
-    WORD_ATOM(431, 5, "PRIM_CORE_SWAP");
+    WORD_ATOM(425, 5, "PRIM_CORE_SWAP");
     mw_PRIM_5F_CORE_5F_SWAP();
-    WORD_ATOM(431, 20, "prim-type");
+    WORD_ATOM(425, 20, "prim-type");
     mw_prim_type();
-    WORD_ATOM(431, 30, "!");
+    WORD_ATOM(425, 30, "!");
     mw_prim_mut_set();
-    WORD_ATOM(433, 5, "");
+    WORD_ATOM(427, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30243,19 +30246,19 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(433, 9, "name-new!");
+    WORD_ATOM(427, 9, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(433, 19, "var-new-implicit!");
+    WORD_ATOM(427, 19, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(433, 37, "TYPE_TYPE");
+    WORD_ATOM(427, 37, "TYPE_TYPE");
     mw_TYPE_5F_TYPE();
-    WORD_ATOM(433, 47, "over");
+    WORD_ATOM(427, 47, "over");
     mw_over();
-    WORD_ATOM(433, 52, "var-type");
+    WORD_ATOM(427, 52, "var-type");
     mw_var_type();
-    WORD_ATOM(433, 61, "!");
+    WORD_ATOM(427, 61, "!");
     mw_prim_mut_set();
-    WORD_ATOM(434, 5, "");
+    WORD_ATOM(428, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30266,58 +30269,58 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(434, 9, "name-new!");
+    WORD_ATOM(428, 9, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(434, 19, "var-new-implicit!");
+    WORD_ATOM(428, 19, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(434, 37, "TYPE_TYPE");
+    WORD_ATOM(428, 37, "TYPE_TYPE");
     mw_TYPE_5F_TYPE();
-    WORD_ATOM(434, 47, "over");
+    WORD_ATOM(428, 47, "over");
     mw_over();
-    WORD_ATOM(434, 52, "var-type");
+    WORD_ATOM(428, 52, "var-type");
     mw_var_type();
-    WORD_ATOM(434, 61, "!");
+    WORD_ATOM(428, 61, "!");
     mw_prim_mut_set();
-    WORD_ATOM(435, 5, "dup2");
+    WORD_ATOM(429, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(435, 10, "ctx-empty");
+    WORD_ATOM(429, 10, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(435, 20, "swap");
+    WORD_ATOM(429, 20, "swap");
     mw_prim_swap();
-    WORD_ATOM(435, 25, "ctx-new!");
+    WORD_ATOM(429, 25, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(435, 34, "swap");
+    WORD_ATOM(429, 34, "swap");
     mw_prim_swap();
-    WORD_ATOM(435, 39, "ctx-new!");
+    WORD_ATOM(429, 39, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(436, 5, "PRIM_UNSAFE_CAST");
+    WORD_ATOM(430, 5, "PRIM_UNSAFE_CAST");
     mw_PRIM_5F_UNSAFE_5F_CAST();
-    WORD_ATOM(436, 22, "prim-ctx");
+    WORD_ATOM(430, 22, "prim-ctx");
     mw_prim_ctx();
-    WORD_ATOM(436, 31, "!");
+    WORD_ATOM(430, 31, "!");
     mw_prim_mut_set();
-    WORD_ATOM(438, 5, "dip");
+    WORD_ATOM(432, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(438, 9, "TVar");
+        WORD_ATOM(432, 9, "TVar");
         mw_TVar();
-        WORD_ATOM(438, 14, "T1");
+        WORD_ATOM(432, 14, "T1");
         mw_T1();
         push_value(d2);
     }
-    WORD_ATOM(438, 18, "TVar");
+    WORD_ATOM(432, 18, "TVar");
     mw_TVar();
-    WORD_ATOM(438, 23, "T1");
+    WORD_ATOM(432, 23, "T1");
     mw_T1();
-    WORD_ATOM(438, 26, "T->");
+    WORD_ATOM(432, 26, "T->");
     mw_T__3E_();
-    WORD_ATOM(439, 5, "PRIM_UNSAFE_CAST");
+    WORD_ATOM(433, 5, "PRIM_UNSAFE_CAST");
     mw_PRIM_5F_UNSAFE_5F_CAST();
-    WORD_ATOM(439, 22, "prim-type");
+    WORD_ATOM(433, 22, "prim-type");
     mw_prim_type();
-    WORD_ATOM(439, 32, "!");
+    WORD_ATOM(433, 32, "!");
     mw_prim_mut_set();
-    WORD_ATOM(441, 5, "");
+    WORD_ATOM(435, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30328,19 +30331,19 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(441, 10, "name-new!");
+    WORD_ATOM(435, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(441, 20, "var-new-implicit!");
+    WORD_ATOM(435, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(441, 38, "TYPE_STACK");
+    WORD_ATOM(435, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(441, 49, "over");
+    WORD_ATOM(435, 49, "over");
     mw_over();
-    WORD_ATOM(441, 54, "var-type");
+    WORD_ATOM(435, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(441, 63, "!");
+    WORD_ATOM(435, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(442, 5, "");
+    WORD_ATOM(436, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30351,67 +30354,67 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(442, 10, "name-new!");
+    WORD_ATOM(436, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(442, 20, "var-new-implicit!");
+    WORD_ATOM(436, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(442, 38, "TYPE_STACK");
+    WORD_ATOM(436, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(442, 49, "over");
+    WORD_ATOM(436, 49, "over");
     mw_over();
-    WORD_ATOM(442, 54, "var-type");
+    WORD_ATOM(436, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(442, 63, "!");
+    WORD_ATOM(436, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(443, 5, "dup2");
+    WORD_ATOM(437, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(443, 10, "ctx-empty");
+    WORD_ATOM(437, 10, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(443, 20, "swap");
+    WORD_ATOM(437, 20, "swap");
     mw_prim_swap();
-    WORD_ATOM(443, 25, "ctx-new!");
+    WORD_ATOM(437, 25, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(443, 34, "swap");
+    WORD_ATOM(437, 34, "swap");
     mw_prim_swap();
-    WORD_ATOM(443, 39, "ctx-new!");
+    WORD_ATOM(437, 39, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(444, 5, "PRIM_CORE_RUN");
+    WORD_ATOM(438, 5, "PRIM_CORE_RUN");
     mw_PRIM_5F_CORE_5F_RUN();
-    WORD_ATOM(444, 19, "prim-ctx");
+    WORD_ATOM(438, 19, "prim-ctx");
     mw_prim_ctx();
-    WORD_ATOM(444, 28, "!");
+    WORD_ATOM(438, 28, "!");
     mw_prim_mut_set();
-    WORD_ATOM(446, 5, "dip");
+    WORD_ATOM(440, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(446, 9, "TVar");
+        WORD_ATOM(440, 9, "TVar");
         mw_TVar();
         push_value(d2);
     }
-    WORD_ATOM(446, 15, "TVar");
+    WORD_ATOM(440, 15, "TVar");
     mw_TVar();
-    WORD_ATOM(447, 5, "dup2");
+    WORD_ATOM(441, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(447, 10, "T->");
+    WORD_ATOM(441, 10, "T->");
     mw_T__3E_();
-    WORD_ATOM(447, 14, "swap");
+    WORD_ATOM(441, 14, "swap");
     mw_prim_swap();
-    WORD_ATOM(447, 19, "dip");
+    WORD_ATOM(441, 19, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(447, 23, "T*");
+        WORD_ATOM(441, 23, "T*");
         mw_T_2A_();
         push_value(d2);
     }
-    WORD_ATOM(447, 27, "T->");
+    WORD_ATOM(441, 27, "T->");
     mw_T__3E_();
-    WORD_ATOM(448, 5, "PRIM_CORE_RUN");
+    WORD_ATOM(442, 5, "PRIM_CORE_RUN");
     mw_PRIM_5F_CORE_5F_RUN();
-    WORD_ATOM(448, 19, "prim-type");
+    WORD_ATOM(442, 19, "prim-type");
     mw_prim_type();
-    WORD_ATOM(448, 29, "!");
+    WORD_ATOM(442, 29, "!");
     mw_prim_mut_set();
-    WORD_ATOM(450, 5, "");
+    WORD_ATOM(444, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30422,19 +30425,19 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(450, 10, "name-new!");
+    WORD_ATOM(444, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(450, 20, "var-new-implicit!");
+    WORD_ATOM(444, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(450, 38, "TYPE_STACK");
+    WORD_ATOM(444, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(450, 49, "over");
+    WORD_ATOM(444, 49, "over");
     mw_over();
-    WORD_ATOM(450, 54, "var-type");
+    WORD_ATOM(444, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(450, 63, "!");
+    WORD_ATOM(444, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(451, 5, "");
+    WORD_ATOM(445, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30445,63 +30448,63 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(451, 10, "name-new!");
+    WORD_ATOM(445, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(451, 20, "var-new-implicit!");
+    WORD_ATOM(445, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(451, 38, "TYPE_STACK");
+    WORD_ATOM(445, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(451, 49, "over");
+    WORD_ATOM(445, 49, "over");
     mw_over();
-    WORD_ATOM(451, 54, "var-type");
+    WORD_ATOM(445, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(451, 63, "!");
+    WORD_ATOM(445, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(452, 5, "dup2");
+    WORD_ATOM(446, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(452, 10, "ctx-empty");
+    WORD_ATOM(446, 10, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(452, 20, "swap");
+    WORD_ATOM(446, 20, "swap");
     mw_prim_swap();
-    WORD_ATOM(452, 25, "ctx-new!");
+    WORD_ATOM(446, 25, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(452, 34, "swap");
+    WORD_ATOM(446, 34, "swap");
     mw_prim_swap();
-    WORD_ATOM(452, 39, "ctx-new!");
+    WORD_ATOM(446, 39, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(453, 5, "PRIM_POSIX_EXIT");
+    WORD_ATOM(447, 5, "PRIM_POSIX_EXIT");
     mw_PRIM_5F_POSIX_5F_EXIT();
-    WORD_ATOM(453, 21, "prim-ctx");
+    WORD_ATOM(447, 21, "prim-ctx");
     mw_prim_ctx();
-    WORD_ATOM(453, 30, "!");
+    WORD_ATOM(447, 30, "!");
     mw_prim_mut_set();
-    WORD_ATOM(455, 5, "dip");
+    WORD_ATOM(449, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(455, 9, "TVar");
+        WORD_ATOM(449, 9, "TVar");
         mw_TVar();
         push_value(d2);
     }
-    WORD_ATOM(455, 15, "TVar");
+    WORD_ATOM(449, 15, "TVar");
     mw_TVar();
-    WORD_ATOM(456, 5, "dip");
+    WORD_ATOM(450, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(456, 9, "TYPE_INT");
+        WORD_ATOM(450, 9, "TYPE_INT");
         mw_TYPE_5F_INT();
-        WORD_ATOM(456, 18, "T*");
+        WORD_ATOM(450, 18, "T*");
         mw_T_2A_();
         push_value(d2);
     }
-    WORD_ATOM(456, 22, "T->");
+    WORD_ATOM(450, 22, "T->");
     mw_T__3E_();
-    WORD_ATOM(457, 5, "PRIM_POSIX_EXIT");
+    WORD_ATOM(451, 5, "PRIM_POSIX_EXIT");
     mw_PRIM_5F_POSIX_5F_EXIT();
-    WORD_ATOM(457, 21, "prim-type");
+    WORD_ATOM(451, 21, "prim-type");
     mw_prim_type();
-    WORD_ATOM(457, 31, "!");
+    WORD_ATOM(451, 31, "!");
     mw_prim_mut_set();
-    WORD_ATOM(459, 5, "");
+    WORD_ATOM(453, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30512,19 +30515,19 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(459, 10, "name-new!");
+    WORD_ATOM(453, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(459, 20, "var-new-implicit!");
+    WORD_ATOM(453, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(459, 38, "TYPE_STACK");
+    WORD_ATOM(453, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(459, 49, "over");
+    WORD_ATOM(453, 49, "over");
     mw_over();
-    WORD_ATOM(459, 54, "var-type");
+    WORD_ATOM(453, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(459, 63, "!");
+    WORD_ATOM(453, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(460, 5, "");
+    WORD_ATOM(454, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30535,63 +30538,63 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(460, 10, "name-new!");
+    WORD_ATOM(454, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(460, 20, "var-new-implicit!");
+    WORD_ATOM(454, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(460, 38, "TYPE_STACK");
+    WORD_ATOM(454, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(460, 49, "over");
+    WORD_ATOM(454, 49, "over");
     mw_over();
-    WORD_ATOM(460, 54, "var-type");
+    WORD_ATOM(454, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(460, 63, "!");
+    WORD_ATOM(454, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(461, 5, "dup2");
+    WORD_ATOM(455, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(461, 10, "ctx-empty");
+    WORD_ATOM(455, 10, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(461, 20, "swap");
+    WORD_ATOM(455, 20, "swap");
     mw_prim_swap();
-    WORD_ATOM(461, 25, "ctx-new!");
+    WORD_ATOM(455, 25, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(461, 34, "swap");
+    WORD_ATOM(455, 34, "swap");
     mw_prim_swap();
-    WORD_ATOM(461, 39, "ctx-new!");
+    WORD_ATOM(455, 39, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(462, 5, "PRIM_CORE_PANIC");
+    WORD_ATOM(456, 5, "PRIM_CORE_PANIC");
     mw_PRIM_5F_CORE_5F_PANIC();
-    WORD_ATOM(462, 21, "prim-ctx");
+    WORD_ATOM(456, 21, "prim-ctx");
     mw_prim_ctx();
-    WORD_ATOM(462, 30, "!");
+    WORD_ATOM(456, 30, "!");
     mw_prim_mut_set();
-    WORD_ATOM(464, 5, "dip");
+    WORD_ATOM(458, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(464, 9, "TVar");
+        WORD_ATOM(458, 9, "TVar");
         mw_TVar();
         push_value(d2);
     }
-    WORD_ATOM(464, 15, "TVar");
+    WORD_ATOM(458, 15, "TVar");
     mw_TVar();
-    WORD_ATOM(465, 5, "dip");
+    WORD_ATOM(459, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(465, 9, "TYPE_STR");
+        WORD_ATOM(459, 9, "TYPE_STR");
         mw_TYPE_5F_STR();
-        WORD_ATOM(465, 18, "T*");
+        WORD_ATOM(459, 18, "T*");
         mw_T_2A_();
         push_value(d2);
     }
-    WORD_ATOM(465, 22, "T->");
+    WORD_ATOM(459, 22, "T->");
     mw_T__3E_();
-    WORD_ATOM(466, 5, "PRIM_CORE_PANIC");
+    WORD_ATOM(460, 5, "PRIM_CORE_PANIC");
     mw_PRIM_5F_CORE_5F_PANIC();
-    WORD_ATOM(466, 21, "prim-type");
+    WORD_ATOM(460, 21, "prim-type");
     mw_prim_type();
-    WORD_ATOM(466, 31, "!");
+    WORD_ATOM(460, 31, "!");
     mw_prim_mut_set();
-    WORD_ATOM(468, 5, "");
+    WORD_ATOM(462, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30602,19 +30605,19 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(468, 10, "name-new!");
+    WORD_ATOM(462, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(468, 20, "var-new-implicit!");
+    WORD_ATOM(462, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(468, 38, "TYPE_STACK");
+    WORD_ATOM(462, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(468, 49, "over");
+    WORD_ATOM(462, 49, "over");
     mw_over();
-    WORD_ATOM(468, 54, "var-type");
+    WORD_ATOM(462, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(468, 63, "!");
+    WORD_ATOM(462, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(469, 5, "");
+    WORD_ATOM(463, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30625,19 +30628,19 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(469, 10, "name-new!");
+    WORD_ATOM(463, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(469, 20, "var-new-implicit!");
+    WORD_ATOM(463, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(469, 38, "TYPE_STACK");
+    WORD_ATOM(463, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(469, 49, "over");
+    WORD_ATOM(463, 49, "over");
     mw_over();
-    WORD_ATOM(469, 54, "var-type");
+    WORD_ATOM(463, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(469, 63, "!");
+    WORD_ATOM(463, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(470, 5, "");
+    WORD_ATOM(464, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30648,99 +30651,99 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(470, 9, "name-new!");
+    WORD_ATOM(464, 9, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(470, 19, "var-new-implicit!");
+    WORD_ATOM(464, 19, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(470, 37, "TYPE_TYPE");
+    WORD_ATOM(464, 37, "TYPE_TYPE");
     mw_TYPE_5F_TYPE();
-    WORD_ATOM(470, 47, "over");
+    WORD_ATOM(464, 47, "over");
     mw_over();
-    WORD_ATOM(470, 52, "var-type");
+    WORD_ATOM(464, 52, "var-type");
     mw_var_type();
-    WORD_ATOM(470, 61, "!");
+    WORD_ATOM(464, 61, "!");
     mw_prim_mut_set();
-    WORD_ATOM(471, 5, "dup3");
+    WORD_ATOM(465, 5, "dup3");
     mw_dup3();
-    WORD_ATOM(471, 10, "ctx-empty");
+    WORD_ATOM(465, 10, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(471, 20, "swap");
+    WORD_ATOM(465, 20, "swap");
     mw_prim_swap();
-    WORD_ATOM(471, 25, "ctx-new!");
+    WORD_ATOM(465, 25, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(471, 34, "swap");
+    WORD_ATOM(465, 34, "swap");
     mw_prim_swap();
-    WORD_ATOM(471, 39, "ctx-new!");
+    WORD_ATOM(465, 39, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(471, 48, "swap");
+    WORD_ATOM(465, 48, "swap");
     mw_prim_swap();
-    WORD_ATOM(471, 53, "ctx-new!");
+    WORD_ATOM(465, 53, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(472, 5, "PRIM_CORE_DIP");
+    WORD_ATOM(466, 5, "PRIM_CORE_DIP");
     mw_PRIM_5F_CORE_5F_DIP();
-    WORD_ATOM(472, 19, "prim-ctx");
+    WORD_ATOM(466, 19, "prim-ctx");
     mw_prim_ctx();
-    WORD_ATOM(472, 28, "!");
+    WORD_ATOM(466, 28, "!");
     mw_prim_mut_set();
-    WORD_ATOM(474, 5, "dip");
+    WORD_ATOM(468, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(474, 9, "dip");
+        WORD_ATOM(468, 9, "dip");
         {
             VAL d3 = pop_value();
-            WORD_ATOM(474, 13, "TVar");
+            WORD_ATOM(468, 13, "TVar");
             mw_TVar();
             push_value(d3);
         }
-        WORD_ATOM(474, 19, "TVar");
+        WORD_ATOM(468, 19, "TVar");
         mw_TVar();
         push_value(d2);
     }
-    WORD_ATOM(474, 25, "TVar");
+    WORD_ATOM(468, 25, "TVar");
     mw_TVar();
-    WORD_ATOM(475, 5, "dip");
+    WORD_ATOM(469, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(475, 9, "dup2");
+        WORD_ATOM(469, 9, "dup2");
         mw_dup2();
         push_value(d2);
     }
-    WORD_ATOM(475, 15, "tuck");
+    WORD_ATOM(469, 15, "tuck");
     mw_tuck();
-    WORD_ATOM(475, 20, "T*");
+    WORD_ATOM(469, 20, "T*");
     mw_T_2A_();
-    WORD_ATOM(475, 23, "dip");
+    WORD_ATOM(469, 23, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(475, 27, "T*");
+        WORD_ATOM(469, 27, "T*");
         mw_T_2A_();
         push_value(d2);
     }
-    WORD_ATOM(476, 5, "dip");
+    WORD_ATOM(470, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(476, 9, "dip");
+        WORD_ATOM(470, 9, "dip");
         {
             VAL d3 = pop_value();
-            WORD_ATOM(476, 13, "T->");
+            WORD_ATOM(470, 13, "T->");
             mw_T__3E_();
             push_value(d3);
         }
-        WORD_ATOM(476, 18, "swap");
+        WORD_ATOM(470, 18, "swap");
         mw_prim_swap();
-        WORD_ATOM(476, 23, "T*");
+        WORD_ATOM(470, 23, "T*");
         mw_T_2A_();
         push_value(d2);
     }
-    WORD_ATOM(476, 27, "T->");
+    WORD_ATOM(470, 27, "T->");
     mw_T__3E_();
-    WORD_ATOM(477, 5, "PRIM_CORE_DIP");
+    WORD_ATOM(471, 5, "PRIM_CORE_DIP");
     mw_PRIM_5F_CORE_5F_DIP();
-    WORD_ATOM(477, 19, "prim-type");
+    WORD_ATOM(471, 19, "prim-type");
     mw_prim_type();
-    WORD_ATOM(477, 29, "!");
+    WORD_ATOM(471, 29, "!");
     mw_prim_mut_set();
-    WORD_ATOM(479, 5, "");
+    WORD_ATOM(473, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30751,19 +30754,19 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(479, 10, "name-new!");
+    WORD_ATOM(473, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(479, 20, "var-new-implicit!");
+    WORD_ATOM(473, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(479, 38, "TYPE_STACK");
+    WORD_ATOM(473, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(479, 49, "over");
+    WORD_ATOM(473, 49, "over");
     mw_over();
-    WORD_ATOM(479, 54, "var-type");
+    WORD_ATOM(473, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(479, 63, "!");
+    WORD_ATOM(473, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(480, 5, "");
+    WORD_ATOM(474, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30774,81 +30777,81 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(480, 10, "name-new!");
+    WORD_ATOM(474, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(480, 20, "var-new-implicit!");
+    WORD_ATOM(474, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(480, 38, "TYPE_STACK");
+    WORD_ATOM(474, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(480, 49, "over");
+    WORD_ATOM(474, 49, "over");
     mw_over();
-    WORD_ATOM(480, 54, "var-type");
+    WORD_ATOM(474, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(480, 63, "!");
+    WORD_ATOM(474, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(481, 5, "dup2");
+    WORD_ATOM(475, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(481, 10, "ctx-empty");
+    WORD_ATOM(475, 10, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(481, 20, "swap");
+    WORD_ATOM(475, 20, "swap");
     mw_prim_swap();
-    WORD_ATOM(481, 25, "ctx-new!");
+    WORD_ATOM(475, 25, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(481, 34, "swap");
+    WORD_ATOM(475, 34, "swap");
     mw_prim_swap();
-    WORD_ATOM(481, 39, "ctx-new!");
+    WORD_ATOM(475, 39, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(482, 5, "PRIM_CORE_IF");
+    WORD_ATOM(476, 5, "PRIM_CORE_IF");
     mw_PRIM_5F_CORE_5F_IF();
-    WORD_ATOM(482, 18, "prim-ctx");
+    WORD_ATOM(476, 18, "prim-ctx");
     mw_prim_ctx();
-    WORD_ATOM(482, 27, "!");
+    WORD_ATOM(476, 27, "!");
     mw_prim_mut_set();
-    WORD_ATOM(484, 5, "dip");
+    WORD_ATOM(478, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(484, 9, "TVar");
+        WORD_ATOM(478, 9, "TVar");
         mw_TVar();
         push_value(d2);
     }
-    WORD_ATOM(484, 15, "TVar");
+    WORD_ATOM(478, 15, "TVar");
     mw_TVar();
-    WORD_ATOM(485, 5, "dup2");
+    WORD_ATOM(479, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(485, 10, "T->");
+    WORD_ATOM(479, 10, "T->");
     mw_T__3E_();
-    WORD_ATOM(485, 14, "swap");
+    WORD_ATOM(479, 14, "swap");
     mw_prim_swap();
-    WORD_ATOM(486, 5, "dip");
+    WORD_ATOM(480, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(486, 9, "dip");
+        WORD_ATOM(480, 9, "dip");
         {
             VAL d3 = pop_value();
-            WORD_ATOM(486, 13, "TYPE_BOOL");
+            WORD_ATOM(480, 13, "TYPE_BOOL");
             mw_TYPE_5F_BOOL();
-            WORD_ATOM(486, 23, "T*");
+            WORD_ATOM(480, 23, "T*");
             mw_T_2A_();
             push_value(d3);
         }
-        WORD_ATOM(486, 27, "sip");
+        WORD_ATOM(480, 27, "sip");
         push_u64(0);
         push_fnptr(&mb_init_prims_21__31);
         mw_prim_pack_cons();
         mw_sip();
-        WORD_ATOM(486, 35, "T*");
+        WORD_ATOM(480, 35, "T*");
         mw_T_2A_();
         push_value(d2);
     }
-    WORD_ATOM(486, 39, "T->");
+    WORD_ATOM(480, 39, "T->");
     mw_T__3E_();
-    WORD_ATOM(487, 5, "PRIM_CORE_IF");
+    WORD_ATOM(481, 5, "PRIM_CORE_IF");
     mw_PRIM_5F_CORE_5F_IF();
-    WORD_ATOM(487, 18, "prim-type");
+    WORD_ATOM(481, 18, "prim-type");
     mw_prim_type();
-    WORD_ATOM(487, 28, "!");
+    WORD_ATOM(481, 28, "!");
     mw_prim_mut_set();
-    WORD_ATOM(490, 5, "");
+    WORD_ATOM(484, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30859,55 +30862,55 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(490, 10, "name-new!");
+    WORD_ATOM(484, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(490, 20, "var-new-implicit!");
+    WORD_ATOM(484, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(490, 38, "TYPE_STACK");
+    WORD_ATOM(484, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(490, 49, "over");
+    WORD_ATOM(484, 49, "over");
     mw_over();
-    WORD_ATOM(490, 54, "var-type");
+    WORD_ATOM(484, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(490, 63, "!");
+    WORD_ATOM(484, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(491, 5, "dup");
+    WORD_ATOM(485, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(491, 9, "ctx-empty");
+    WORD_ATOM(485, 9, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(491, 19, "swap");
+    WORD_ATOM(485, 19, "swap");
     mw_prim_swap();
-    WORD_ATOM(491, 24, "ctx-new!");
+    WORD_ATOM(485, 24, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(492, 5, "PRIM_CORE_WHILE");
+    WORD_ATOM(486, 5, "PRIM_CORE_WHILE");
     mw_PRIM_5F_CORE_5F_WHILE();
-    WORD_ATOM(492, 21, "prim-ctx");
+    WORD_ATOM(486, 21, "prim-ctx");
     mw_prim_ctx();
-    WORD_ATOM(492, 30, "!");
+    WORD_ATOM(486, 30, "!");
     mw_prim_mut_set();
-    WORD_ATOM(494, 5, "TVar");
+    WORD_ATOM(488, 5, "TVar");
     mw_TVar();
-    WORD_ATOM(495, 5, "dup");
+    WORD_ATOM(489, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(496, 5, "sip");
+    WORD_ATOM(490, 5, "sip");
     push_u64(0);
     push_fnptr(&mb_init_prims_21__32);
     mw_prim_pack_cons();
     mw_sip();
-    WORD_ATOM(497, 5, "sip");
+    WORD_ATOM(491, 5, "sip");
     push_u64(0);
     push_fnptr(&mb_init_prims_21__33);
     mw_prim_pack_cons();
     mw_sip();
-    WORD_ATOM(498, 5, "T->");
+    WORD_ATOM(492, 5, "T->");
     mw_T__3E_();
-    WORD_ATOM(499, 5, "PRIM_CORE_WHILE");
+    WORD_ATOM(493, 5, "PRIM_CORE_WHILE");
     mw_PRIM_5F_CORE_5F_WHILE();
-    WORD_ATOM(499, 21, "prim-type");
+    WORD_ATOM(493, 21, "prim-type");
     mw_prim_type();
-    WORD_ATOM(499, 31, "!");
+    WORD_ATOM(493, 31, "!");
     mw_prim_mut_set();
-    WORD_ATOM(501, 5, "");
+    WORD_ATOM(495, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30918,19 +30921,19 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(501, 10, "name-new!");
+    WORD_ATOM(495, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(501, 20, "var-new-implicit!");
+    WORD_ATOM(495, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(501, 38, "TYPE_STACK");
+    WORD_ATOM(495, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(501, 49, "over");
+    WORD_ATOM(495, 49, "over");
     mw_over();
-    WORD_ATOM(501, 54, "var-type");
+    WORD_ATOM(495, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(501, 63, "!");
+    WORD_ATOM(495, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(502, 5, "");
+    WORD_ATOM(496, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -30941,64 +30944,64 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(502, 9, "name-new!");
+    WORD_ATOM(496, 9, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(502, 19, "var-new-implicit!");
+    WORD_ATOM(496, 19, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(502, 37, "TYPE_TYPE");
+    WORD_ATOM(496, 37, "TYPE_TYPE");
     mw_TYPE_5F_TYPE();
-    WORD_ATOM(502, 47, "over");
+    WORD_ATOM(496, 47, "over");
     mw_over();
-    WORD_ATOM(502, 52, "var-type");
+    WORD_ATOM(496, 52, "var-type");
     mw_var_type();
-    WORD_ATOM(502, 61, "!");
+    WORD_ATOM(496, 61, "!");
     mw_prim_mut_set();
-    WORD_ATOM(503, 5, "dup2");
+    WORD_ATOM(497, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(503, 10, "ctx-empty");
+    WORD_ATOM(497, 10, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(503, 20, "swap");
+    WORD_ATOM(497, 20, "swap");
     mw_prim_swap();
-    WORD_ATOM(503, 25, "ctx-new!");
+    WORD_ATOM(497, 25, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(503, 34, "swap");
+    WORD_ATOM(497, 34, "swap");
     mw_prim_swap();
-    WORD_ATOM(503, 39, "ctx-new!");
+    WORD_ATOM(497, 39, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(504, 5, "PRIM_PACK_CONS");
+    WORD_ATOM(498, 5, "PRIM_PACK_CONS");
     mw_PRIM_5F_PACK_5F_CONS();
-    WORD_ATOM(504, 20, "prim-ctx");
+    WORD_ATOM(498, 20, "prim-ctx");
     mw_prim_ctx();
-    WORD_ATOM(504, 29, "!");
+    WORD_ATOM(498, 29, "!");
     mw_prim_mut_set();
-    WORD_ATOM(506, 5, "dip");
+    WORD_ATOM(500, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(506, 9, "TVar");
+        WORD_ATOM(500, 9, "TVar");
         mw_TVar();
         push_value(d2);
     }
-    WORD_ATOM(506, 15, "TVar");
+    WORD_ATOM(500, 15, "TVar");
     mw_TVar();
-    WORD_ATOM(507, 5, "dup2");
+    WORD_ATOM(501, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(507, 10, "T2");
+    WORD_ATOM(501, 10, "T2");
     mw_T2();
-    WORD_ATOM(507, 13, "rotr");
+    WORD_ATOM(501, 13, "rotr");
     mw_rotr();
-    WORD_ATOM(507, 18, "T*");
+    WORD_ATOM(501, 18, "T*");
     mw_T_2A_();
-    WORD_ATOM(507, 21, "T1");
+    WORD_ATOM(501, 21, "T1");
     mw_T1();
-    WORD_ATOM(507, 24, "T->");
+    WORD_ATOM(501, 24, "T->");
     mw_T__3E_();
-    WORD_ATOM(508, 5, "PRIM_PACK_CONS");
+    WORD_ATOM(502, 5, "PRIM_PACK_CONS");
     mw_PRIM_5F_PACK_5F_CONS();
-    WORD_ATOM(508, 20, "prim-type");
+    WORD_ATOM(502, 20, "prim-type");
     mw_prim_type();
-    WORD_ATOM(508, 30, "!");
+    WORD_ATOM(502, 30, "!");
     mw_prim_mut_set();
-    WORD_ATOM(510, 5, "");
+    WORD_ATOM(504, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -31009,19 +31012,19 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(510, 10, "name-new!");
+    WORD_ATOM(504, 10, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(510, 20, "var-new-implicit!");
+    WORD_ATOM(504, 20, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(510, 38, "TYPE_STACK");
+    WORD_ATOM(504, 38, "TYPE_STACK");
     mw_TYPE_5F_STACK();
-    WORD_ATOM(510, 49, "over");
+    WORD_ATOM(504, 49, "over");
     mw_over();
-    WORD_ATOM(510, 54, "var-type");
+    WORD_ATOM(504, 54, "var-type");
     mw_var_type();
-    WORD_ATOM(510, 63, "!");
+    WORD_ATOM(504, 63, "!");
     mw_prim_mut_set();
-    WORD_ATOM(511, 5, "");
+    WORD_ATOM(505, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -31032,64 +31035,64 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(511, 9, "name-new!");
+    WORD_ATOM(505, 9, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(511, 19, "var-new-implicit!");
+    WORD_ATOM(505, 19, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(511, 37, "TYPE_TYPE");
+    WORD_ATOM(505, 37, "TYPE_TYPE");
     mw_TYPE_5F_TYPE();
-    WORD_ATOM(511, 47, "over");
+    WORD_ATOM(505, 47, "over");
     mw_over();
-    WORD_ATOM(511, 52, "var-type");
+    WORD_ATOM(505, 52, "var-type");
     mw_var_type();
-    WORD_ATOM(511, 61, "!");
+    WORD_ATOM(505, 61, "!");
     mw_prim_mut_set();
-    WORD_ATOM(512, 5, "dup2");
+    WORD_ATOM(506, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(512, 10, "ctx-empty");
+    WORD_ATOM(506, 10, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(512, 20, "swap");
+    WORD_ATOM(506, 20, "swap");
     mw_prim_swap();
-    WORD_ATOM(512, 25, "ctx-new!");
+    WORD_ATOM(506, 25, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(512, 34, "swap");
+    WORD_ATOM(506, 34, "swap");
     mw_prim_swap();
-    WORD_ATOM(512, 39, "ctx-new!");
+    WORD_ATOM(506, 39, "ctx-new!");
     mw_ctx_new_21_();
-    WORD_ATOM(513, 5, "PRIM_PACK_UNCONS");
+    WORD_ATOM(507, 5, "PRIM_PACK_UNCONS");
     mw_PRIM_5F_PACK_5F_UNCONS();
-    WORD_ATOM(513, 22, "prim-ctx");
+    WORD_ATOM(507, 22, "prim-ctx");
     mw_prim_ctx();
-    WORD_ATOM(513, 31, "!");
+    WORD_ATOM(507, 31, "!");
     mw_prim_mut_set();
-    WORD_ATOM(515, 5, "dip");
+    WORD_ATOM(509, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(515, 9, "TVar");
+        WORD_ATOM(509, 9, "TVar");
         mw_TVar();
         push_value(d2);
     }
-    WORD_ATOM(515, 15, "TVar");
+    WORD_ATOM(509, 15, "TVar");
     mw_TVar();
-    WORD_ATOM(516, 5, "dup2");
+    WORD_ATOM(510, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(516, 10, "T*");
+    WORD_ATOM(510, 10, "T*");
     mw_T_2A_();
-    WORD_ATOM(516, 13, "T1");
+    WORD_ATOM(510, 13, "T1");
     mw_T1();
-    WORD_ATOM(516, 16, "rotr");
+    WORD_ATOM(510, 16, "rotr");
     mw_rotr();
-    WORD_ATOM(516, 21, "T2");
+    WORD_ATOM(510, 21, "T2");
     mw_T2();
-    WORD_ATOM(516, 24, "T->");
+    WORD_ATOM(510, 24, "T->");
     mw_T__3E_();
-    WORD_ATOM(517, 5, "PRIM_PACK_UNCONS");
+    WORD_ATOM(511, 5, "PRIM_PACK_UNCONS");
     mw_PRIM_5F_PACK_5F_UNCONS();
-    WORD_ATOM(517, 22, "prim-type");
+    WORD_ATOM(511, 22, "prim-type");
     mw_prim_type();
-    WORD_ATOM(517, 32, "!");
+    WORD_ATOM(511, 32, "!");
     mw_prim_mut_set();
-    WORD_ATOM(519, 5, "");
+    WORD_ATOM(513, 5, "");
     {
         static bool vready = false;
         static VAL v;
@@ -31100,145 +31103,145 @@ static void mw_init_prims_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(519, 9, "name-new!");
+    WORD_ATOM(513, 9, "name-new!");
     mw_name_new_21_();
-    WORD_ATOM(519, 19, "var-new-implicit!");
+    WORD_ATOM(513, 19, "var-new-implicit!");
     mw_var_new_implicit_21_();
-    WORD_ATOM(519, 37, "TYPE_TYPE");
+    WORD_ATOM(513, 37, "TYPE_TYPE");
     mw_TYPE_5F_TYPE();
-    WORD_ATOM(519, 47, "over");
+    WORD_ATOM(513, 47, "over");
     mw_over();
-    WORD_ATOM(519, 52, "var-type");
+    WORD_ATOM(513, 52, "var-type");
     mw_var_type();
-    WORD_ATOM(519, 61, "!");
+    WORD_ATOM(513, 61, "!");
     mw_prim_mut_set();
-    WORD_ATOM(520, 5, "dup");
+    WORD_ATOM(514, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(520, 9, "ctx-empty");
+    WORD_ATOM(514, 9, "ctx-empty");
     mw_ctx_empty();
-    WORD_ATOM(520, 19, "swap");
+    WORD_ATOM(514, 19, "swap");
     mw_prim_swap();
-    WORD_ATOM(520, 24, "ctx-new!");
+    WORD_ATOM(514, 24, "ctx-new!");
     mw_ctx_new_21_();
+    WORD_ATOM(515, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(515, 9, "PRIM_MUT_NEW");
+    mw_PRIM_5F_MUT_5F_NEW();
+    WORD_ATOM(515, 22, "prim-ctx");
+    mw_prim_ctx();
+    WORD_ATOM(515, 31, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(516, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(516, 9, "PRIM_MUT_GET");
+    mw_PRIM_5F_MUT_5F_GET();
+    WORD_ATOM(516, 22, "prim-ctx");
+    mw_prim_ctx();
+    WORD_ATOM(516, 31, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(517, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(517, 9, "PRIM_MUT_SET");
+    mw_PRIM_5F_MUT_5F_SET();
+    WORD_ATOM(517, 22, "prim-ctx");
+    mw_prim_ctx();
+    WORD_ATOM(517, 31, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(518, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(518, 9, "PRIM_MUT_IS_SET");
+    mw_PRIM_5F_MUT_5F_IS_5F_SET();
+    WORD_ATOM(518, 25, "prim-ctx");
+    mw_prim_ctx();
+    WORD_ATOM(518, 34, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(519, 5, "drop");
+    mw_prim_drop();
     WORD_ATOM(521, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(521, 9, "PRIM_MUT_NEW");
-    mw_PRIM_5F_MUT_5F_NEW();
-    WORD_ATOM(521, 22, "prim-ctx");
-    mw_prim_ctx();
-    WORD_ATOM(521, 31, "!");
-    mw_prim_mut_set();
+    WORD_ATOM(521, 9, "TVar");
+    mw_TVar();
     WORD_ATOM(522, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(522, 9, "PRIM_MUT_GET");
-    mw_PRIM_5F_MUT_5F_GET();
-    WORD_ATOM(522, 22, "prim-ctx");
-    mw_prim_ctx();
-    WORD_ATOM(522, 31, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(523, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(523, 9, "PRIM_MUT_SET");
-    mw_PRIM_5F_MUT_5F_SET();
-    WORD_ATOM(523, 22, "prim-ctx");
-    mw_prim_ctx();
-    WORD_ATOM(523, 31, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(524, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(524, 9, "PRIM_MUT_IS_SET");
-    mw_PRIM_5F_MUT_5F_IS_5F_SET();
-    WORD_ATOM(524, 25, "prim-ctx");
-    mw_prim_ctx();
-    WORD_ATOM(524, 34, "!");
-    mw_prim_mut_set();
-    WORD_ATOM(525, 5, "drop");
-    mw_prim_drop();
-    WORD_ATOM(527, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(527, 9, "TVar");
-    mw_TVar();
-    WORD_ATOM(528, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(528, 9, "TMut");
+    WORD_ATOM(522, 9, "TMut");
     mw_TMut();
-    WORD_ATOM(528, 14, "dip");
+    WORD_ATOM(522, 14, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(528, 18, "T1");
+        WORD_ATOM(522, 18, "T1");
         mw_T1();
         push_value(d2);
     }
-    WORD_ATOM(528, 22, "T1");
+    WORD_ATOM(522, 22, "T1");
     mw_T1();
-    WORD_ATOM(528, 25, "T->");
+    WORD_ATOM(522, 25, "T->");
     mw_T__3E_();
-    WORD_ATOM(529, 5, "PRIM_MUT_NEW");
+    WORD_ATOM(523, 5, "PRIM_MUT_NEW");
     mw_PRIM_5F_MUT_5F_NEW();
-    WORD_ATOM(529, 18, "prim-type");
+    WORD_ATOM(523, 18, "prim-type");
     mw_prim_type();
-    WORD_ATOM(529, 28, "!");
+    WORD_ATOM(523, 28, "!");
     mw_prim_mut_set();
-    WORD_ATOM(531, 5, "dup");
+    WORD_ATOM(525, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(531, 9, "TVar");
+    WORD_ATOM(525, 9, "TVar");
     mw_TVar();
-    WORD_ATOM(532, 5, "sip");
+    WORD_ATOM(526, 5, "sip");
     push_u64(0);
     push_fnptr(&mb_init_prims_21__37);
     mw_prim_pack_cons();
     mw_sip();
-    WORD_ATOM(532, 18, "T1");
+    WORD_ATOM(526, 18, "T1");
     mw_T1();
-    WORD_ATOM(532, 21, "T->");
+    WORD_ATOM(526, 21, "T->");
     mw_T__3E_();
-    WORD_ATOM(533, 5, "PRIM_MUT_GET");
+    WORD_ATOM(527, 5, "PRIM_MUT_GET");
     mw_PRIM_5F_MUT_5F_GET();
-    WORD_ATOM(533, 18, "prim-type");
+    WORD_ATOM(527, 18, "prim-type");
     mw_prim_type();
-    WORD_ATOM(533, 28, "!");
+    WORD_ATOM(527, 28, "!");
     mw_prim_mut_set();
-    WORD_ATOM(535, 5, "dup");
+    WORD_ATOM(529, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(535, 9, "TVar");
+    WORD_ATOM(529, 9, "TVar");
     mw_TVar();
-    WORD_ATOM(536, 5, "dup");
+    WORD_ATOM(530, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(536, 9, "TMut");
+    WORD_ATOM(530, 9, "TMut");
     mw_TMut();
-    WORD_ATOM(536, 14, "T2");
+    WORD_ATOM(530, 14, "T2");
     mw_T2();
-    WORD_ATOM(536, 17, "T0");
+    WORD_ATOM(530, 17, "T0");
     mw_T0();
-    WORD_ATOM(536, 20, "T->");
+    WORD_ATOM(530, 20, "T->");
     mw_T__3E_();
-    WORD_ATOM(537, 5, "PRIM_MUT_SET");
+    WORD_ATOM(531, 5, "PRIM_MUT_SET");
     mw_PRIM_5F_MUT_5F_SET();
-    WORD_ATOM(537, 18, "prim-type");
+    WORD_ATOM(531, 18, "prim-type");
     mw_prim_type();
-    WORD_ATOM(537, 28, "!");
+    WORD_ATOM(531, 28, "!");
     mw_prim_mut_set();
-    WORD_ATOM(539, 5, "dup");
+    WORD_ATOM(533, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(539, 9, "TVar");
+    WORD_ATOM(533, 9, "TVar");
     mw_TVar();
-    WORD_ATOM(539, 14, "TMut");
+    WORD_ATOM(533, 14, "TMut");
     mw_TMut();
-    WORD_ATOM(539, 19, "T1");
+    WORD_ATOM(533, 19, "T1");
     mw_T1();
-    WORD_ATOM(539, 22, "TYPE_BOOL");
+    WORD_ATOM(533, 22, "TYPE_BOOL");
     mw_TYPE_5F_BOOL();
-    WORD_ATOM(539, 32, "T1");
+    WORD_ATOM(533, 32, "T1");
     mw_T1();
-    WORD_ATOM(539, 35, "T->");
+    WORD_ATOM(533, 35, "T->");
     mw_T__3E_();
-    WORD_ATOM(540, 5, "PRIM_MUT_IS_SET");
+    WORD_ATOM(534, 5, "PRIM_MUT_IS_SET");
     mw_PRIM_5F_MUT_5F_IS_5F_SET();
-    WORD_ATOM(540, 21, "prim-type");
+    WORD_ATOM(534, 21, "prim-type");
     mw_prim_type();
-    WORD_ATOM(540, 31, "!");
+    WORD_ATOM(534, 31, "!");
     mw_prim_mut_set();
-    WORD_ATOM(542, 5, "drop");
+    WORD_ATOM(536, 5, "drop");
     mw_prim_drop();
     WORD_EXIT(mw_init_prims_21_);
 }
@@ -31253,7 +31256,9 @@ static void mw_Token_2E_succ (void){
     WORD_ATOM(31, 7, "Token");
     mw_Token_2E_NUM();
     WORD_ATOM(31, 7, "Token");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(31, 7, "Token");
+    mw_prim_unsafe_cast();
     WORD_ATOM(31, 7, "Token");
     push_i64(1LL);
     WORD_ATOM(31, 7, "Token");
@@ -31291,7 +31296,9 @@ static void mw_Token_2E_alloc_21_ (void){
     WORD_ATOM(31, 7, "Token");
     mw_Token_2E_NUM();
     WORD_ATOM(31, 7, "Token");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(31, 7, "Token");
+    mw_prim_unsafe_cast();
     WORD_ATOM(31, 7, "Token");
     push_i64(1LL);
     WORD_ATOM(31, 7, "Token");
@@ -31299,9 +31306,11 @@ static void mw_Token_2E_alloc_21_ (void){
     WORD_ATOM(31, 7, "Token");
     mw_prim_dup();
     WORD_ATOM(31, 7, "Token");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(31, 7, "Token");
     mw_Token_2E_NUM();
     WORD_ATOM(31, 7, "Token");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(31, 7, "Token");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Token_2E_alloc_21_);
@@ -32847,7 +32856,9 @@ static void mw_Alias_2E_alloc_21_ (void){
     WORD_ATOM(8, 7, "Alias");
     mw_Alias_2E_NUM();
     WORD_ATOM(8, 7, "Alias");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(8, 7, "Alias");
+    mw_prim_unsafe_cast();
     WORD_ATOM(8, 7, "Alias");
     push_i64(1LL);
     WORD_ATOM(8, 7, "Alias");
@@ -32855,9 +32866,11 @@ static void mw_Alias_2E_alloc_21_ (void){
     WORD_ATOM(8, 7, "Alias");
     mw_prim_dup();
     WORD_ATOM(8, 7, "Alias");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(8, 7, "Alias");
     mw_Alias_2E_NUM();
     WORD_ATOM(8, 7, "Alias");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(8, 7, "Alias");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Alias_2E_alloc_21_);
@@ -33063,7 +33076,9 @@ static void mw_Name_2E_for (void){
             WORD_ATOM(18, 7, "Name");
             mw_Name_2E_NUM();
             WORD_ATOM(18, 7, "Name");
-            mw_prim_int_get();
+            mw_prim_u64_get();
+            WORD_ATOM(18, 7, "Name");
+            mw_prim_unsafe_cast();
             WORD_ATOM(18, 7, "Name");
             mw_prim_value_le();
             if (! pop_u64()) break;
@@ -33095,7 +33110,9 @@ static void mw_Name_2E_alloc_21_ (void){
     WORD_ATOM(18, 7, "Name");
     mw_Name_2E_NUM();
     WORD_ATOM(18, 7, "Name");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(18, 7, "Name");
+    mw_prim_unsafe_cast();
     WORD_ATOM(18, 7, "Name");
     push_i64(1LL);
     WORD_ATOM(18, 7, "Name");
@@ -33103,9 +33120,11 @@ static void mw_Name_2E_alloc_21_ (void){
     WORD_ATOM(18, 7, "Name");
     mw_prim_dup();
     WORD_ATOM(18, 7, "Name");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(18, 7, "Name");
     mw_Name_2E_NUM();
     WORD_ATOM(18, 7, "Name");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(18, 7, "Name");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Name_2E_alloc_21_);
@@ -33149,8 +33168,10 @@ static void mw_hash_name_40_ (void){
     mw_Hash__3E_Int();
     WORD_ATOM(36, 15, "HASH_BUF");
     mw_HASH_5F_BUF();
-    WORD_ATOM(36, 24, "int@@");
-    mw_int_40__40_();
+    WORD_ATOM(36, 24, "u64@@");
+    mw_u64_40__40_();
+    WORD_ATOM(36, 30, "U64->Int");
+    mw_U64__3E_Int();
     WORD_ATOM(37, 5, "dup");
     mw_prim_dup();
     WORD_ATOM(37, 9, "0=");
@@ -33170,69 +33191,71 @@ static void mw_hash_name_40_ (void){
     WORD_EXIT(mw_hash_name_40_);
 }
 static void mw_hash_name_21_ (void){
-    WORD_ENTER(mw_hash_name_21_, "hash-name!", "src/mirth/data/name.mth", 38, 31);
-    WORD_ATOM(38, 31, "dip");
+    WORD_ENTER(mw_hash_name_21_, "hash-name!", "src/mirth/data/name.mth", 39, 5);
+    WORD_ATOM(39, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(38, 35, "Name.id");
+        WORD_ATOM(39, 9, "Name.id");
         mw_Name_2E_id();
+        WORD_ATOM(39, 17, "Int->U64");
+        mw_Int__3E_U64();
         push_value(d2);
     }
-    WORD_ATOM(38, 44, "Hash->Int");
+    WORD_ATOM(40, 5, "Hash->Int");
     mw_Hash__3E_Int();
-    WORD_ATOM(38, 54, "HASH_BUF");
+    WORD_ATOM(40, 15, "HASH_BUF");
     mw_HASH_5F_BUF();
-    WORD_ATOM(38, 63, "int!!");
-    mw_int_21__21_();
+    WORD_ATOM(40, 24, "u64!!");
+    mw_u64_21__21_();
     WORD_EXIT(mw_hash_name_21_);
 }
 static void mw_hash (void){
-    WORD_ENTER(mw_hash, "hash", "src/mirth/data/name.mth", 42, 5);
-    WORD_ATOM(42, 5, "");
+    WORD_ENTER(mw_hash, "hash", "src/mirth/data/name.mth", 44, 5);
+    WORD_ATOM(44, 5, "");
     push_i64(0LL);
-    WORD_ATOM(42, 7, "swap");
+    WORD_ATOM(44, 7, "swap");
     mw_prim_swap();
-    WORD_ATOM(42, 12, "str-bytes-for");
+    WORD_ATOM(44, 12, "str-bytes-for");
     push_u64(0);
     push_fnptr(&mb_hash_1);
     mw_prim_pack_cons();
     mw_str_bytes_for();
-    WORD_ATOM(43, 5, "Int->Hash");
+    WORD_ATOM(45, 5, "Int->Hash");
     mw_Int__3E_Hash();
     WORD_EXIT(mw_hash);
 }
 static void mw_next_hash (void){
-    WORD_ENTER(mw_next_hash, "next-hash", "src/mirth/data/name.mth", 46, 30);
-    WORD_ATOM(46, 30, "Hash->Int");
+    WORD_ENTER(mw_next_hash, "next-hash", "src/mirth/data/name.mth", 48, 30);
+    WORD_ATOM(48, 30, "Hash->Int");
     mw_Hash__3E_Int();
-    WORD_ATOM(46, 40, "1+");
+    WORD_ATOM(48, 40, "1+");
     mw_prim_int_succ();
-    WORD_ATOM(46, 43, "Int->Hash");
+    WORD_ATOM(48, 43, "Int->Hash");
     mw_Int__3E_Hash();
     WORD_EXIT(mw_next_hash);
 }
 static void mw_name_keep_going_3F_ (void){
-    WORD_ENTER(mw_name_keep_going_3F_, "name-keep-going?", "src/mirth/data/name.mth", 49, 5);
-    WORD_ATOM(49, 5, "dup");
+    WORD_ENTER(mw_name_keep_going_3F_, "name-keep-going?", "src/mirth/data/name.mth", 51, 5);
+    WORD_ATOM(51, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(49, 9, "hash-name@");
+    WORD_ATOM(51, 9, "hash-name@");
     mw_hash_name_40_();
-    WORD_ATOM(49, 20, "match");
+    WORD_ATOM(51, 20, "match");
     switch (get_top_data_tag()) {
         case 0LL:
             mw_prim_drop();
-            WORD_ATOM(50, 17, "F");
+            WORD_ATOM(52, 17, "F");
             mw_F();
             break;
         case 1LL:
             mw_prim_pack_uncons(); mw_prim_drop();
-            WORD_ATOM(51, 17, "name-str");
+            WORD_ATOM(53, 17, "name-str");
             mw_name_str();
-            WORD_ATOM(51, 26, "@");
+            WORD_ATOM(53, 26, "@");
             mw_prim_mut_get();
-            WORD_ATOM(51, 28, "over2");
+            WORD_ATOM(53, 28, "over2");
             mw_over2();
-            WORD_ATOM(51, 34, "<>");
+            WORD_ATOM(53, 34, "<>");
             mw__3C__3E_();
             break;
         default: write(2, "unexpected fallthrough in match\n", 32); mw_prim_debug(); exit(99);
@@ -33240,69 +33263,69 @@ static void mw_name_keep_going_3F_ (void){
 }    WORD_EXIT(mw_name_keep_going_3F_);
 }
 static void mw_name_new_21_ (void){
-    WORD_ENTER(mw_name_new_21_, "name-new!", "src/mirth/data/name.mth", 55, 5);
-    WORD_ATOM(55, 5, "dup");
-    mw_prim_dup();
-    WORD_ATOM(55, 9, "hash");
-    mw_hash();
-    WORD_ATOM(56, 5, "while");
-    while(1) {
-        WORD_ATOM(56, 11, "name-keep-going?");
-        mw_name_keep_going_3F_();
-        if (! pop_u64()) break;
-        WORD_ATOM(56, 29, "next-hash");
-        mw_next_hash();
-    }
+    WORD_ENTER(mw_name_new_21_, "name-new!", "src/mirth/data/name.mth", 57, 5);
     WORD_ATOM(57, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(57, 9, "hash-name@");
+    WORD_ATOM(57, 9, "hash");
+    mw_hash();
+    WORD_ATOM(58, 5, "while");
+    while(1) {
+        WORD_ATOM(58, 11, "name-keep-going?");
+        mw_name_keep_going_3F_();
+        if (! pop_u64()) break;
+        WORD_ATOM(58, 29, "next-hash");
+        mw_next_hash();
+    }
+    WORD_ATOM(59, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(59, 9, "hash-name@");
     mw_hash_name_40_();
-    WORD_ATOM(57, 20, "match");
+    WORD_ATOM(59, 20, "match");
     switch (get_top_data_tag()) {
         case 0LL:
             mw_prim_drop();
-            WORD_ATOM(59, 13, "Name.alloc!");
+            WORD_ATOM(61, 13, "Name.alloc!");
             mw_Name_2E_alloc_21_();
-            WORD_ATOM(60, 13, "tuck");
+            WORD_ATOM(62, 13, "tuck");
             mw_tuck();
-            WORD_ATOM(60, 18, "swap");
+            WORD_ATOM(62, 18, "swap");
             mw_prim_swap();
-            WORD_ATOM(60, 23, "hash-name!");
+            WORD_ATOM(62, 23, "hash-name!");
             mw_hash_name_21_();
-            WORD_ATOM(61, 13, "tuck");
+            WORD_ATOM(63, 13, "tuck");
             mw_tuck();
-            WORD_ATOM(61, 18, "name-str");
+            WORD_ATOM(63, 18, "name-str");
             mw_name_str();
-            WORD_ATOM(61, 27, "!");
+            WORD_ATOM(63, 27, "!");
             mw_prim_mut_set();
-            WORD_ATOM(62, 13, "DEF_NONE");
+            WORD_ATOM(64, 13, "DEF_NONE");
             mw_DEF_5F_NONE();
-            WORD_ATOM(62, 22, "over");
+            WORD_ATOM(64, 22, "over");
             mw_over();
-            WORD_ATOM(62, 27, "name-def");
+            WORD_ATOM(64, 27, "name-def");
             mw_name_def();
-            WORD_ATOM(62, 36, "!");
+            WORD_ATOM(64, 36, "!");
             mw_prim_mut_set();
-            WORD_ATOM(63, 13, "dup");
+            WORD_ATOM(65, 13, "dup");
             mw_prim_dup();
-            WORD_ATOM(63, 17, "delay");
+            WORD_ATOM(65, 17, "delay");
             push_u64(0);
             push_fnptr(&mb_name_new_21__4);
             mw_prim_pack_cons();
             mw_delay();
-            WORD_ATOM(63, 45, "over");
+            WORD_ATOM(65, 45, "over");
             mw_over();
-            WORD_ATOM(63, 50, "name-mangled");
+            WORD_ATOM(65, 50, "name-mangled");
             mw_name_mangled();
-            WORD_ATOM(63, 63, "!");
+            WORD_ATOM(65, 63, "!");
             mw_prim_mut_set();
             break;
         case 1LL:
             mw_prim_pack_uncons(); mw_prim_drop();
-            WORD_ATOM(65, 13, "dip");
+            WORD_ATOM(67, 13, "dip");
             {
                 VAL d4 = pop_value();
-                WORD_ATOM(65, 17, "drop2");
+                WORD_ATOM(67, 17, "drop2");
                 mw_drop2();
                 push_value(d4);
             }
@@ -33312,39 +33335,39 @@ static void mw_name_new_21_ (void){
 }    WORD_EXIT(mw_name_new_21_);
 }
 static void mw_name_cat_21_ (void){
-    WORD_ENTER(mw_name_cat_21_, "name-cat!", "src/mirth/data/name.mth", 70, 5);
-    WORD_ATOM(70, 5, "dip");
+    WORD_ENTER(mw_name_cat_21_, "name-cat!", "src/mirth/data/name.mth", 72, 5);
+    WORD_ATOM(72, 5, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(70, 9, "name-str");
+        WORD_ATOM(72, 9, "name-str");
         mw_name_str();
-        WORD_ATOM(70, 18, "@");
+        WORD_ATOM(72, 18, "@");
         mw_prim_mut_get();
         push_value(d2);
     }
-    WORD_ATOM(70, 21, "str-cat");
+    WORD_ATOM(72, 21, "str-cat");
     mw_str_cat();
-    WORD_ATOM(70, 29, "name-new!");
+    WORD_ATOM(72, 29, "name-new!");
     mw_name_new_21_();
     WORD_EXIT(mw_name_cat_21_);
 }
 static void mw_name_trace_21_ (void){
-    WORD_ENTER(mw_name_trace_21_, "name-trace!", "src/mirth/data/name.mth", 73, 5);
-    WORD_ATOM(73, 5, "name-str");
+    WORD_ENTER(mw_name_trace_21_, "name-trace!", "src/mirth/data/name.mth", 75, 5);
+    WORD_ATOM(75, 5, "name-str");
     mw_name_str();
-    WORD_ATOM(73, 14, "@");
+    WORD_ATOM(75, 14, "@");
     mw_prim_mut_get();
-    WORD_ATOM(73, 16, "str-trace!");
+    WORD_ATOM(75, 16, "str-trace!");
     mw_str_trace_21_();
     WORD_EXIT(mw_name_trace_21_);
 }
 static void mw_name_head (void){
-    WORD_ENTER(mw_name_head, "name-head", "src/mirth/data/name.mth", 79, 5);
-    WORD_ATOM(79, 5, "name-str");
+    WORD_ENTER(mw_name_head, "name-head", "src/mirth/data/name.mth", 81, 5);
+    WORD_ATOM(81, 5, "name-str");
     mw_name_str();
-    WORD_ATOM(79, 14, "@");
+    WORD_ATOM(81, 14, "@");
     mw_prim_mut_get();
-    WORD_ATOM(79, 16, "with-str-data");
+    WORD_ATOM(81, 16, "with-str-data");
     push_u64(0);
     push_fnptr(&mb_name_head_1);
     mw_prim_pack_cons();
@@ -33352,12 +33375,12 @@ static void mw_name_head (void){
     WORD_EXIT(mw_name_head);
 }
 static void mw_name_tail_head (void){
-    WORD_ENTER(mw_name_tail_head, "name-tail-head", "src/mirth/data/name.mth", 81, 5);
-    WORD_ATOM(81, 5, "name-str");
+    WORD_ENTER(mw_name_tail_head, "name-tail-head", "src/mirth/data/name.mth", 83, 5);
+    WORD_ATOM(83, 5, "name-str");
     mw_name_str();
-    WORD_ATOM(81, 14, "@");
+    WORD_ATOM(83, 14, "@");
     mw_prim_mut_get();
-    WORD_ATOM(81, 16, "with-str-data");
+    WORD_ATOM(83, 16, "with-str-data");
     push_u64(0);
     push_fnptr(&mb_name_tail_head_1);
     mw_prim_pack_cons();
@@ -33365,132 +33388,132 @@ static void mw_name_tail_head (void){
     WORD_EXIT(mw_name_tail_head);
 }
 static void mw_name_could_be_type (void){
-    WORD_ENTER(mw_name_could_be_type, "name-could-be-type", "src/mirth/data/name.mth", 84, 5);
-    WORD_ATOM(84, 5, "name-head");
+    WORD_ENTER(mw_name_could_be_type, "name-could-be-type", "src/mirth/data/name.mth", 86, 5);
+    WORD_ATOM(86, 5, "name-head");
     mw_name_head();
-    WORD_ATOM(84, 15, "byte-is-alpha");
+    WORD_ATOM(86, 15, "byte-is-alpha");
     mw_byte_is_alpha();
     WORD_EXIT(mw_name_could_be_type);
 }
 static void mw_name_could_be_type_var (void){
-    WORD_ENTER(mw_name_could_be_type_var, "name-could-be-type-var", "src/mirth/data/name.mth", 87, 5);
-    WORD_ATOM(87, 5, "name-head");
+    WORD_ENTER(mw_name_could_be_type_var, "name-could-be-type-var", "src/mirth/data/name.mth", 89, 5);
+    WORD_ATOM(89, 5, "name-head");
     mw_name_head();
-    WORD_ATOM(87, 15, "byte-is-lower");
+    WORD_ATOM(89, 15, "byte-is-lower");
     mw_byte_is_lower();
     WORD_EXIT(mw_name_could_be_type_var);
 }
 static void mw_name_could_be_type_con (void){
-    WORD_ENTER(mw_name_could_be_type_con, "name-could-be-type-con", "src/mirth/data/name.mth", 90, 5);
-    WORD_ATOM(90, 5, "name-head");
+    WORD_ENTER(mw_name_could_be_type_con, "name-could-be-type-con", "src/mirth/data/name.mth", 92, 5);
+    WORD_ATOM(92, 5, "name-head");
     mw_name_head();
-    WORD_ATOM(90, 15, "byte-is-upper");
+    WORD_ATOM(92, 15, "byte-is-upper");
     mw_byte_is_upper();
     WORD_EXIT(mw_name_could_be_type_con);
 }
 static void mw_name_is_type_hole (void){
-    WORD_ENTER(mw_name_is_type_hole, "name-is-type-hole", "src/mirth/data/name.mth", 93, 5);
-    WORD_ATOM(93, 5, "dup");
+    WORD_ENTER(mw_name_is_type_hole, "name-is-type-hole", "src/mirth/data/name.mth", 95, 5);
+    WORD_ATOM(95, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(93, 9, "name-head");
+    WORD_ATOM(95, 9, "name-head");
     mw_name_head();
-    WORD_ATOM(93, 19, "B'?'");
+    WORD_ATOM(95, 19, "B'?'");
     mw_B_27__3F__27_();
-    WORD_ATOM(93, 24, "==");
+    WORD_ATOM(95, 24, "==");
     mw_prim_value_eq();
-    WORD_ATOM(94, 5, "swap");
+    WORD_ATOM(96, 5, "swap");
     mw_prim_swap();
-    WORD_ATOM(94, 10, "name-tail-head");
+    WORD_ATOM(96, 10, "name-tail-head");
     mw_name_tail_head();
-    WORD_ATOM(94, 25, "dup");
+    WORD_ATOM(96, 25, "dup");
     mw_prim_dup();
-    WORD_ATOM(94, 29, "BNUL");
+    WORD_ATOM(96, 29, "BNUL");
     mw_BNUL();
-    WORD_ATOM(94, 34, "==");
+    WORD_ATOM(96, 34, "==");
     mw_prim_value_eq();
-    WORD_ATOM(94, 37, "swap");
+    WORD_ATOM(96, 37, "swap");
     mw_prim_swap();
-    WORD_ATOM(94, 42, "byte-is-lower");
+    WORD_ATOM(96, 42, "byte-is-lower");
     mw_byte_is_lower();
-    WORD_ATOM(94, 56, "||");
+    WORD_ATOM(96, 56, "||");
     mw__7C__7C_();
-    WORD_ATOM(94, 59, "&&");
+    WORD_ATOM(96, 59, "&&");
     mw__26__26_();
     WORD_EXIT(mw_name_is_type_hole);
 }
 static void mw_name_is_underscore (void){
-    WORD_ENTER(mw_name_is_underscore, "name-is-underscore", "src/mirth/data/name.mth", 97, 5);
-    WORD_ATOM(97, 5, "dup");
+    WORD_ENTER(mw_name_is_underscore, "name-is-underscore", "src/mirth/data/name.mth", 99, 5);
+    WORD_ATOM(99, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(97, 9, "name-head");
+    WORD_ATOM(99, 9, "name-head");
     mw_name_head();
-    WORD_ATOM(97, 19, "B'_'");
+    WORD_ATOM(99, 19, "B'_'");
     mw_B_27__5F__27_();
-    WORD_ATOM(97, 24, "==");
+    WORD_ATOM(99, 24, "==");
     mw_prim_value_eq();
-    WORD_ATOM(98, 5, "swap");
+    WORD_ATOM(100, 5, "swap");
     mw_prim_swap();
-    WORD_ATOM(98, 10, "name-tail-head");
+    WORD_ATOM(100, 10, "name-tail-head");
     mw_name_tail_head();
-    WORD_ATOM(98, 25, "BNUL");
+    WORD_ATOM(100, 25, "BNUL");
     mw_BNUL();
-    WORD_ATOM(98, 30, "==");
+    WORD_ATOM(100, 30, "==");
     mw_prim_value_eq();
-    WORD_ATOM(98, 33, "&&");
+    WORD_ATOM(100, 33, "&&");
     mw__26__26_();
     WORD_EXIT(mw_name_is_underscore);
 }
 static void mw_name_could_be_stack_var (void){
-    WORD_ENTER(mw_name_could_be_stack_var, "name-could-be-stack-var", "src/mirth/data/name.mth", 101, 5);
-    WORD_ATOM(101, 5, "dup");
+    WORD_ENTER(mw_name_could_be_stack_var, "name-could-be-stack-var", "src/mirth/data/name.mth", 103, 5);
+    WORD_ATOM(103, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(101, 9, "name-head");
+    WORD_ATOM(103, 9, "name-head");
     mw_name_head();
-    WORD_ATOM(101, 19, "B'*'");
+    WORD_ATOM(103, 19, "B'*'");
     mw_B_27__2A__27_();
-    WORD_ATOM(101, 24, "==");
+    WORD_ATOM(103, 24, "==");
     mw_prim_value_eq();
-    WORD_ATOM(102, 5, "swap");
+    WORD_ATOM(104, 5, "swap");
     mw_prim_swap();
-    WORD_ATOM(102, 10, "name-tail-head");
+    WORD_ATOM(104, 10, "name-tail-head");
     mw_name_tail_head();
-    WORD_ATOM(102, 25, "byte-is-lower");
+    WORD_ATOM(104, 25, "byte-is-lower");
     mw_byte_is_lower();
-    WORD_ATOM(102, 39, "&&");
+    WORD_ATOM(104, 39, "&&");
     mw__26__26_();
     WORD_EXIT(mw_name_could_be_stack_var);
 }
 static void mw_name_could_be_effect_con (void){
-    WORD_ENTER(mw_name_could_be_effect_con, "name-could-be-effect-con", "src/mirth/data/name.mth", 105, 5);
-    WORD_ATOM(105, 5, "dup");
+    WORD_ENTER(mw_name_could_be_effect_con, "name-could-be-effect-con", "src/mirth/data/name.mth", 107, 5);
+    WORD_ATOM(107, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(105, 9, "name-head");
+    WORD_ATOM(107, 9, "name-head");
     mw_name_head();
-    WORD_ATOM(105, 19, "B'+'");
+    WORD_ATOM(107, 19, "B'+'");
     mw_B_27__2B__27_();
-    WORD_ATOM(105, 24, "==");
+    WORD_ATOM(107, 24, "==");
     mw_prim_value_eq();
-    WORD_ATOM(106, 5, "swap");
+    WORD_ATOM(108, 5, "swap");
     mw_prim_swap();
-    WORD_ATOM(106, 10, "name-tail-head");
+    WORD_ATOM(108, 10, "name-tail-head");
     mw_name_tail_head();
-    WORD_ATOM(106, 25, "byte-is-lower");
+    WORD_ATOM(108, 25, "byte-is-lower");
     mw_byte_is_lower();
-    WORD_ATOM(106, 39, "&&");
+    WORD_ATOM(108, 39, "&&");
     mw__26__26_();
     WORD_EXIT(mw_name_could_be_effect_con);
 }
 static void mw_name_mangle_21_ (void){
-    WORD_ENTER(mw_name_mangle_21_, "name-mangle!", "src/mirth/data/name.mth", 112, 5);
-    WORD_ATOM(112, 5, "name-mangled");
+    WORD_ENTER(mw_name_mangle_21_, "name-mangle!", "src/mirth/data/name.mth", 114, 5);
+    WORD_ATOM(114, 5, "name-mangled");
     mw_name_mangled();
-    WORD_ATOM(112, 18, "force!");
+    WORD_ATOM(114, 18, "force!");
     mw_force_21_();
     WORD_EXIT(mw_name_mangle_21_);
 }
 static void mw_name_mangle_compute_21_ (void){
-    WORD_ENTER(mw_name_mangle_compute_21_, "name-mangle-compute!", "src/mirth/data/name.mth", 115, 5);
-    WORD_ATOM(115, 5, "build-str!");
+    WORD_ENTER(mw_name_mangle_compute_21_, "name-mangle-compute!", "src/mirth/data/name.mth", 117, 5);
+    WORD_ATOM(117, 5, "build-str!");
     push_u64(0);
     push_fnptr(&mb_name_mangle_compute_21__1);
     mw_prim_pack_cons();
@@ -33498,24 +33521,24 @@ static void mw_name_mangle_compute_21_ (void){
     WORD_EXIT(mw_name_mangle_compute_21_);
 }
 static void mw_name_undefined_3F_ (void){
-    WORD_ENTER(mw_name_undefined_3F_, "name-undefined?", "src/mirth/data/name.mth", 131, 41);
-    WORD_ATOM(131, 41, "dup");
+    WORD_ENTER(mw_name_undefined_3F_, "name-undefined?", "src/mirth/data/name.mth", 133, 41);
+    WORD_ATOM(133, 41, "dup");
     mw_prim_dup();
-    WORD_ATOM(131, 45, "name-def");
+    WORD_ATOM(133, 45, "name-def");
     mw_name_def();
-    WORD_ATOM(131, 54, "@");
+    WORD_ATOM(133, 54, "@");
     mw_prim_mut_get();
-    WORD_ATOM(131, 56, "DEF_NONE");
+    WORD_ATOM(133, 56, "DEF_NONE");
     mw_DEF_5F_NONE();
-    WORD_ATOM(131, 65, "==");
+    WORD_ATOM(133, 65, "==");
     mw_prim_value_eq();
     WORD_EXIT(mw_name_undefined_3F_);
 }
 static void mw_name_defined_3F_ (void){
-    WORD_ENTER(mw_name_defined_3F_, "name-defined?", "src/mirth/data/name.mth", 132, 39);
-    WORD_ATOM(132, 39, "name-undefined?");
+    WORD_ENTER(mw_name_defined_3F_, "name-defined?", "src/mirth/data/name.mth", 134, 39);
+    WORD_ATOM(134, 39, "name-undefined?");
     mw_name_undefined_3F_();
-    WORD_ATOM(132, 55, "not");
+    WORD_ATOM(134, 55, "not");
     mw_not();
     WORD_EXIT(mw_name_defined_3F_);
 }
@@ -33532,7 +33555,9 @@ static void mw_Module_2E_alloc_21_ (void){
     WORD_ATOM(11, 7, "Module");
     mw_Module_2E_NUM();
     WORD_ATOM(11, 7, "Module");
-    mw_prim_int_get();
+    mw_prim_u64_get();
+    WORD_ATOM(11, 7, "Module");
+    mw_prim_unsafe_cast();
     WORD_ATOM(11, 7, "Module");
     push_i64(1LL);
     WORD_ATOM(11, 7, "Module");
@@ -33540,9 +33565,11 @@ static void mw_Module_2E_alloc_21_ (void){
     WORD_ATOM(11, 7, "Module");
     mw_prim_dup();
     WORD_ATOM(11, 7, "Module");
+    mw_prim_unsafe_cast();
+    WORD_ATOM(11, 7, "Module");
     mw_Module_2E_NUM();
     WORD_ATOM(11, 7, "Module");
-    mw_prim_int_set();
+    mw_prim_u64_set();
     WORD_ATOM(11, 7, "Module");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Module_2E_alloc_21_);
@@ -33949,151 +33976,151 @@ static void mw_main (void){
 }
 
 static void mb_init_prims_21__1 (void) {
-    WORD_ENTER(mb_init_prims_21__1, "init-prims! block", "src/mirth/data/prim.mth", 265, 7);
+    WORD_ENTER(mb_init_prims_21__1, "init-prims! block", "src/mirth/data/prim.mth", 261, 7);
     mw_prim_drop();
-    WORD_ATOM(265, 7, "elab-module-import!");
+    WORD_ATOM(261, 7, "elab-module-import!");
     mw_elab_module_import_21_();
     WORD_EXIT(mb_init_prims_21__1);
 }
 
 static void mb_init_prims_21__2 (void) {
-    WORD_ENTER(mb_init_prims_21__2, "init-prims! block", "src/mirth/data/prim.mth", 266, 7);
+    WORD_ENTER(mb_init_prims_21__2, "init-prims! block", "src/mirth/data/prim.mth", 262, 7);
     mw_prim_drop();
-    WORD_ATOM(266, 7, "elab-alias!");
+    WORD_ATOM(262, 7, "elab-alias!");
     mw_elab_alias_21_();
     WORD_EXIT(mb_init_prims_21__2);
 }
 
 static void mb_init_prims_21__3 (void) {
-    WORD_ENTER(mb_init_prims_21__3, "init-prims! block", "src/mirth/data/prim.mth", 267, 7);
+    WORD_ENTER(mb_init_prims_21__3, "init-prims! block", "src/mirth/data/prim.mth", 263, 7);
     mw_prim_drop();
-    WORD_ATOM(267, 7, "elab-def!");
+    WORD_ATOM(263, 7, "elab-def!");
     mw_elab_def_21_();
     WORD_EXIT(mb_init_prims_21__3);
 }
 
 static void mb_init_prims_21__4 (void) {
-    WORD_ENTER(mb_init_prims_21__4, "init-prims! block", "src/mirth/data/prim.mth", 268, 7);
+    WORD_ENTER(mb_init_prims_21__4, "init-prims! block", "src/mirth/data/prim.mth", 264, 7);
     mw_prim_drop();
-    WORD_ATOM(268, 7, "elab-def-missing!");
+    WORD_ATOM(264, 7, "elab-def-missing!");
     mw_elab_def_missing_21_();
     WORD_EXIT(mb_init_prims_21__4);
 }
 
 static void mb_init_prims_21__5 (void) {
-    WORD_ENTER(mb_init_prims_21__5, "init-prims! block", "src/mirth/data/prim.mth", 269, 7);
+    WORD_ENTER(mb_init_prims_21__5, "init-prims! block", "src/mirth/data/prim.mth", 265, 7);
     mw_prim_drop();
-    WORD_ATOM(269, 7, "elab-def-external!");
+    WORD_ATOM(265, 7, "elab-def-external!");
     mw_elab_def_external_21_();
     WORD_EXIT(mb_init_prims_21__5);
 }
 
 static void mb_init_prims_21__6 (void) {
-    WORD_ENTER(mb_init_prims_21__6, "init-prims! block", "src/mirth/data/prim.mth", 270, 7);
+    WORD_ENTER(mb_init_prims_21__6, "init-prims! block", "src/mirth/data/prim.mth", 266, 7);
     mw_prim_drop();
-    WORD_ATOM(270, 7, "elab-def-type!");
+    WORD_ATOM(266, 7, "elab-def-type!");
     mw_elab_def_type_21_();
     WORD_EXIT(mb_init_prims_21__6);
 }
 
 static void mb_init_prims_21__7 (void) {
-    WORD_ENTER(mb_init_prims_21__7, "init-prims! block", "src/mirth/data/prim.mth", 271, 7);
+    WORD_ENTER(mb_init_prims_21__7, "init-prims! block", "src/mirth/data/prim.mth", 267, 7);
     mw_prim_drop();
-    WORD_ATOM(271, 7, "elab-buffer!");
+    WORD_ATOM(267, 7, "elab-buffer!");
     mw_elab_buffer_21_();
     WORD_EXIT(mb_init_prims_21__7);
 }
 
 static void mb_init_prims_21__8 (void) {
-    WORD_ENTER(mb_init_prims_21__8, "init-prims! block", "src/mirth/data/prim.mth", 272, 7);
+    WORD_ENTER(mb_init_prims_21__8, "init-prims! block", "src/mirth/data/prim.mth", 268, 7);
     mw_prim_drop();
-    WORD_ATOM(272, 7, "elab-variable!");
+    WORD_ATOM(268, 7, "elab-variable!");
     mw_elab_variable_21_();
     WORD_EXIT(mb_init_prims_21__8);
 }
 
 static void mb_init_prims_21__9 (void) {
-    WORD_ENTER(mb_init_prims_21__9, "init-prims! block", "src/mirth/data/prim.mth", 273, 7);
+    WORD_ENTER(mb_init_prims_21__9, "init-prims! block", "src/mirth/data/prim.mth", 269, 7);
     mw_prim_drop();
-    WORD_ATOM(273, 7, "elab-table!");
+    WORD_ATOM(269, 7, "elab-table!");
     mw_elab_table_21_();
     WORD_EXIT(mb_init_prims_21__9);
 }
 
 static void mb_init_prims_21__10 (void) {
-    WORD_ENTER(mb_init_prims_21__10, "init-prims! block", "src/mirth/data/prim.mth", 274, 7);
+    WORD_ENTER(mb_init_prims_21__10, "init-prims! block", "src/mirth/data/prim.mth", 270, 7);
     mw_prim_drop();
-    WORD_ATOM(274, 7, "elab-field!");
+    WORD_ATOM(270, 7, "elab-field!");
     mw_elab_field_21_();
     WORD_EXIT(mb_init_prims_21__10);
 }
 
 static void mb_init_prims_21__11 (void) {
-    WORD_ENTER(mb_init_prims_21__11, "init-prims! block", "src/mirth/data/prim.mth", 275, 7);
+    WORD_ENTER(mb_init_prims_21__11, "init-prims! block", "src/mirth/data/prim.mth", 271, 7);
     mw_prim_drop();
-    WORD_ATOM(275, 7, "elab-data!");
+    WORD_ATOM(271, 7, "elab-data!");
     mw_elab_data_21_();
     WORD_EXIT(mb_init_prims_21__11);
 }
 
 static void mb_init_prims_21__12 (void) {
-    WORD_ENTER(mb_init_prims_21__12, "init-prims! block", "src/mirth/data/prim.mth", 276, 7);
+    WORD_ENTER(mb_init_prims_21__12, "init-prims! block", "src/mirth/data/prim.mth", 272, 7);
     mw_prim_drop();
-    WORD_ATOM(276, 7, "elab-target-c99!");
+    WORD_ATOM(272, 7, "elab-target-c99!");
     mw_elab_target_c99_21_();
     WORD_EXIT(mb_init_prims_21__12);
 }
 
 static void mb_init_prims_21__13 (void) {
-    WORD_ENTER(mb_init_prims_21__13, "init-prims! block", "src/mirth/data/prim.mth", 277, 7);
+    WORD_ENTER(mb_init_prims_21__13, "init-prims! block", "src/mirth/data/prim.mth", 273, 7);
     mw_prim_drop();
-    WORD_ATOM(277, 7, "elab-embed-str!");
+    WORD_ATOM(273, 7, "elab-embed-str!");
     mw_elab_embed_str_21_();
     WORD_EXIT(mb_init_prims_21__13);
 }
 
 static void mb_init_prims_21__31 (void) {
-    WORD_ENTER(mb_init_prims_21__31, "init-prims! block", "src/mirth/data/prim.mth", 486, 31);
+    WORD_ENTER(mb_init_prims_21__31, "init-prims! block", "src/mirth/data/prim.mth", 480, 31);
     mw_prim_drop();
-    WORD_ATOM(486, 31, "T*");
+    WORD_ATOM(480, 31, "T*");
     mw_T_2A_();
     WORD_EXIT(mb_init_prims_21__31);
 }
 
 static void mb_init_prims_21__32 (void) {
-    WORD_ENTER(mb_init_prims_21__32, "init-prims! block", "src/mirth/data/prim.mth", 496, 9);
+    WORD_ENTER(mb_init_prims_21__32, "init-prims! block", "src/mirth/data/prim.mth", 490, 9);
     mw_prim_drop();
-    WORD_ATOM(496, 9, "dup");
+    WORD_ATOM(490, 9, "dup");
     mw_prim_dup();
-    WORD_ATOM(496, 13, "TYPE_BOOL");
+    WORD_ATOM(490, 13, "TYPE_BOOL");
     mw_TYPE_5F_BOOL();
-    WORD_ATOM(496, 23, "T*");
+    WORD_ATOM(490, 23, "T*");
     mw_T_2A_();
-    WORD_ATOM(496, 26, "T->");
+    WORD_ATOM(490, 26, "T->");
     mw_T__3E_();
-    WORD_ATOM(496, 30, "T*");
+    WORD_ATOM(490, 30, "T*");
     mw_T_2A_();
     WORD_EXIT(mb_init_prims_21__32);
 }
 
 static void mb_init_prims_21__33 (void) {
-    WORD_ENTER(mb_init_prims_21__33, "init-prims! block", "src/mirth/data/prim.mth", 497, 9);
+    WORD_ENTER(mb_init_prims_21__33, "init-prims! block", "src/mirth/data/prim.mth", 491, 9);
     mw_prim_drop();
-    WORD_ATOM(497, 9, "dup");
+    WORD_ATOM(491, 9, "dup");
     mw_prim_dup();
-    WORD_ATOM(497, 13, "T->");
+    WORD_ATOM(491, 13, "T->");
     mw_T__3E_();
-    WORD_ATOM(497, 17, "T*");
+    WORD_ATOM(491, 17, "T*");
     mw_T_2A_();
     WORD_EXIT(mb_init_prims_21__33);
 }
 
 static void mb_init_prims_21__37 (void) {
-    WORD_ENTER(mb_init_prims_21__37, "init-prims! block", "src/mirth/data/prim.mth", 532, 9);
+    WORD_ENTER(mb_init_prims_21__37, "init-prims! block", "src/mirth/data/prim.mth", 526, 9);
     mw_prim_drop();
-    WORD_ATOM(532, 9, "TMut");
+    WORD_ATOM(526, 9, "TMut");
     mw_TMut();
-    WORD_ATOM(532, 14, "T1");
+    WORD_ATOM(526, 14, "T1");
     mw_T1();
     WORD_EXIT(mb_init_prims_21__37);
 }
@@ -34148,77 +34175,77 @@ static void mb_main_2 (void) {
 }
 
 static void mb_ptr_40__40__2 (void) {
-    WORD_ENTER(mb_ptr_40__40__2, "ptr@@ block", "src/prelude.mth", 209, 51);
+    WORD_ENTER(mb_ptr_40__40__2, "ptr@@ block", "src/prelude.mth", 207, 51);
     mw_prim_drop();
-    WORD_ATOM(209, 51, "ptr@");
+    WORD_ATOM(207, 51, "ptr@");
     mw_prim_ptr_get();
     WORD_EXIT(mb_ptr_40__40__2);
 }
 
 static void mb_count_2 (void) {
-    WORD_ENTER(mb_count_2, "count block", "src/prelude.mth", 154, 19);
+    WORD_ENTER(mb_count_2, "count block", "src/prelude.mth", 152, 19);
     mw_prim_pack_uncons();
     VAL var_f = pop_value();
     mw_prim_drop();
-    WORD_ATOM(154, 19, "dup");
+    WORD_ATOM(152, 19, "dup");
     mw_prim_dup();
-    WORD_ATOM(154, 23, "dip");
+    WORD_ATOM(152, 23, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(154, 27, "f");
+        WORD_ATOM(152, 27, "f");
         incref(var_f);
         run_value(var_f);
         push_value(d2);
     }
-    WORD_ATOM(154, 30, "1+");
+    WORD_ATOM(152, 30, "1+");
     mw_prim_int_succ();
     decref(var_f);
     WORD_EXIT(mb_count_2);
 }
 
 static void mb_countdown_2 (void) {
-    WORD_ENTER(mb_countdown_2, "countdown block", "src/prelude.mth", 156, 24);
+    WORD_ENTER(mb_countdown_2, "countdown block", "src/prelude.mth", 154, 24);
     mw_prim_pack_uncons();
     VAL var_f = pop_value();
     mw_prim_drop();
-    WORD_ATOM(156, 24, "dup");
+    WORD_ATOM(154, 24, "dup");
     mw_prim_dup();
-    WORD_ATOM(156, 28, "dip");
+    WORD_ATOM(154, 28, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(156, 32, "f");
+        WORD_ATOM(154, 32, "f");
         incref(var_f);
         run_value(var_f);
         push_value(d2);
     }
-    WORD_ATOM(156, 35, "1-");
+    WORD_ATOM(154, 35, "1-");
     mw_prim_int_pred();
     decref(var_f);
     WORD_EXIT(mb_countdown_2);
 }
 
 static void mb_u8_21__21__1 (void) {
-    WORD_ENTER(mb_u8_21__21__1, "u8!! block", "src/prelude.mth", 213, 39);
+    WORD_ENTER(mb_u8_21__21__1, "u8!! block", "src/prelude.mth", 211, 39);
     mw_prim_drop();
-    WORD_ATOM(213, 39, "u8!");
+    WORD_ATOM(211, 39, "u8!");
     mw_prim_u8_set();
     WORD_EXIT(mb_u8_21__21__1);
 }
 
-static void mb_int_40__40__2 (void) {
-    WORD_ENTER(mb_int_40__40__2, "int@@ block", "src/prelude.mth", 216, 51);
+static void mb_u64_40__40__2 (void) {
+    WORD_ENTER(mb_u64_40__40__2, "u64@@ block", "src/prelude.mth", 213, 50);
     mw_prim_drop();
-    WORD_ATOM(216, 51, "int@");
-    mw_prim_int_get();
-    WORD_EXIT(mb_int_40__40__2);
+    WORD_ATOM(213, 50, "u64@");
+    mw_prim_u64_get();
+    WORD_EXIT(mb_u64_40__40__2);
 }
 
-static void mb_int_21__21__2 (void) {
-    WORD_ENTER(mb_int_21__21__2, "int!! block", "src/prelude.mth", 217, 51);
+static void mb_u64_21__21__2 (void) {
+    WORD_ENTER(mb_u64_21__21__2, "u64!! block", "src/prelude.mth", 214, 50);
     mw_prim_drop();
-    WORD_ATOM(217, 51, "int!");
-    mw_prim_int_set();
-    WORD_EXIT(mb_int_21__21__2);
+    WORD_ATOM(214, 50, "u64!");
+    mw_prim_u64_set();
+    WORD_EXIT(mb_u64_21__21__2);
 }
 
 static void mb_Int__3E_U8_1 (void) {
@@ -34283,37 +34310,37 @@ static void mb_assert_21__3 (void) {
 }
 
 static void mb_str_write_21__1 (void) {
-    WORD_ENTER(mb_str_write_21__1, "str-write! block", "src/platform/posix.mth", 18, 24);
+    WORD_ENTER(mb_str_write_21__1, "str-write! block", "src/platform/posix.mth", 15, 24);
     mw_prim_drop();
-    WORD_ATOM(18, 24, "slice-write!");
+    WORD_ATOM(15, 24, "slice-write!");
     mw_slice_write_21_();
     WORD_EXIT(mb_str_write_21__1);
 }
 
 static void mb_slice_write_21__1 (void) {
-    WORD_ENTER(mb_slice_write_21__1, "slice-write! block", "src/platform/posix.mth", 21, 10);
+    WORD_ENTER(mb_slice_write_21__1, "slice-write! block", "src/platform/posix.mth", 18, 10);
     mw_prim_drop();
-    WORD_ATOM(21, 10, "File->Int");
+    WORD_ATOM(18, 10, "File->Int");
     mw_File__3E_Int();
     WORD_EXIT(mb_slice_write_21__1);
 }
 
 static void mb_slice_write_21__3 (void) {
-    WORD_ENTER(mb_slice_write_21__3, "slice-write! block", "src/platform/posix.mth", 22, 13);
+    WORD_ENTER(mb_slice_write_21__3, "slice-write! block", "src/platform/posix.mth", 19, 13);
     mw_prim_drop();
-    WORD_ATOM(22, 13, "dup");
+    WORD_ATOM(19, 13, "dup");
     mw_prim_dup();
-    WORD_ATOM(22, 17, "");
+    WORD_ATOM(19, 17, "");
     push_i64(0LL);
-    WORD_ATOM(22, 19, ">=");
+    WORD_ATOM(19, 19, ">=");
     mw__3E__3D_();
     WORD_EXIT(mb_slice_write_21__3);
 }
 
 static void mb_slice_write_21__4 (void) {
-    WORD_ENTER(mb_slice_write_21__4, "slice-write! block", "src/platform/posix.mth", 22, 23);
+    WORD_ENTER(mb_slice_write_21__4, "slice-write! block", "src/platform/posix.mth", 19, 23);
     mw_prim_drop();
-    WORD_ATOM(22, 23, "");
+    WORD_ATOM(19, 23, "");
     {
         static bool vready = false;
         static VAL v;
@@ -34328,19 +34355,19 @@ static void mb_slice_write_21__4 (void) {
 }
 
 static void mb_slice_write_21__5 (void) {
-    WORD_ENTER(mb_slice_write_21__5, "slice-write! block", "src/platform/posix.mth", 23, 13);
+    WORD_ENTER(mb_slice_write_21__5, "slice-write! block", "src/platform/posix.mth", 20, 13);
     mw_prim_drop();
-    WORD_ATOM(23, 13, "dup2");
+    WORD_ATOM(20, 13, "dup2");
     mw_dup2();
-    WORD_ATOM(23, 18, "==");
+    WORD_ATOM(20, 18, "==");
     mw_prim_value_eq();
     WORD_EXIT(mb_slice_write_21__5);
 }
 
 static void mb_slice_write_21__6 (void) {
-    WORD_ENTER(mb_slice_write_21__6, "slice-write! block", "src/platform/posix.mth", 23, 22);
+    WORD_ENTER(mb_slice_write_21__6, "slice-write! block", "src/platform/posix.mth", 20, 22);
     mw_prim_drop();
-    WORD_ATOM(23, 22, "");
+    WORD_ATOM(20, 22, "");
     {
         static bool vready = false;
         static VAL v;
@@ -34355,24 +34382,24 @@ static void mb_slice_write_21__6 (void) {
 }
 
 static void mb_read_file_21__4 (void) {
-    WORD_ENTER(mb_read_file_21__4, "read-file! block", "src/platform/posix.mth", 51, 13);
+    WORD_ENTER(mb_read_file_21__4, "read-file! block", "src/platform/posix.mth", 48, 13);
     mw_prim_pack_uncons();
     VAL var_fp = pop_value();
     mw_prim_drop();
-    WORD_ATOM(51, 13, "dup");
+    WORD_ATOM(48, 13, "dup");
     mw_prim_dup();
-    WORD_ATOM(51, 17, "0=");
+    WORD_ATOM(48, 17, "0=");
     mw_0_3D_();
     decref(var_fp);
     WORD_EXIT(mb_read_file_21__4);
 }
 
 static void mb_read_file_21__5 (void) {
-    WORD_ENTER(mb_read_file_21__5, "read-file! block", "src/platform/posix.mth", 51, 21);
+    WORD_ENTER(mb_read_file_21__5, "read-file! block", "src/platform/posix.mth", 48, 21);
     mw_prim_pack_uncons();
     VAL var_fp = pop_value();
     mw_prim_drop();
-    WORD_ATOM(51, 21, "");
+    WORD_ATOM(48, 21, "");
     {
         static bool vready = false;
         static VAL v;
@@ -34388,21 +34415,21 @@ static void mb_read_file_21__5 (void) {
 }
 
 static void mb_open_file_21__1 (void) {
-    WORD_ENTER(mb_open_file_21__1, "open-file! block", "src/platform/posix.mth", 56, 13);
+    WORD_ENTER(mb_open_file_21__1, "open-file! block", "src/platform/posix.mth", 53, 13);
     mw_prim_drop();
-    WORD_ATOM(56, 13, "dup");
+    WORD_ATOM(53, 13, "dup");
     mw_prim_dup();
-    WORD_ATOM(56, 17, "");
+    WORD_ATOM(53, 17, "");
     push_i64(0LL);
-    WORD_ATOM(56, 19, ">");
+    WORD_ATOM(53, 19, ">");
     mw__3E_();
     WORD_EXIT(mb_open_file_21__1);
 }
 
 static void mb_open_file_21__2 (void) {
-    WORD_ENTER(mb_open_file_21__2, "open-file! block", "src/platform/posix.mth", 56, 22);
+    WORD_ENTER(mb_open_file_21__2, "open-file! block", "src/platform/posix.mth", 53, 22);
     mw_prim_drop();
-    WORD_ATOM(56, 22, "");
+    WORD_ATOM(53, 22, "");
     {
         static bool vready = false;
         static VAL v;
@@ -34417,21 +34444,21 @@ static void mb_open_file_21__2 (void) {
 }
 
 static void mb_create_file_21__1 (void) {
-    WORD_ENTER(mb_create_file_21__1, "create-file! block", "src/platform/posix.mth", 67, 13);
+    WORD_ENTER(mb_create_file_21__1, "create-file! block", "src/platform/posix.mth", 64, 13);
     mw_prim_drop();
-    WORD_ATOM(67, 13, "dup");
+    WORD_ATOM(64, 13, "dup");
     mw_prim_dup();
-    WORD_ATOM(67, 17, "");
+    WORD_ATOM(64, 17, "");
     push_i64(0LL);
-    WORD_ATOM(67, 19, ">");
+    WORD_ATOM(64, 19, ">");
     mw__3E_();
     WORD_EXIT(mb_create_file_21__1);
 }
 
 static void mb_create_file_21__2 (void) {
-    WORD_ENTER(mb_create_file_21__2, "create-file! block", "src/platform/posix.mth", 67, 22);
+    WORD_ENTER(mb_create_file_21__2, "create-file! block", "src/platform/posix.mth", 64, 22);
     mw_prim_drop();
-    WORD_ATOM(67, 22, "");
+    WORD_ATOM(64, 22, "");
     {
         static bool vready = false;
         static VAL v;
@@ -34446,21 +34473,21 @@ static void mb_create_file_21__2 (void) {
 }
 
 static void mb_close_file_21__1 (void) {
-    WORD_ENTER(mb_close_file_21__1, "close-file! block", "src/platform/posix.mth", 80, 13);
+    WORD_ENTER(mb_close_file_21__1, "close-file! block", "src/platform/posix.mth", 77, 13);
     mw_prim_drop();
-    WORD_ATOM(80, 13, "dup");
+    WORD_ATOM(77, 13, "dup");
     mw_prim_dup();
-    WORD_ATOM(80, 17, "");
+    WORD_ATOM(77, 17, "");
     push_i64(0LL);
-    WORD_ATOM(80, 19, ">=");
+    WORD_ATOM(77, 19, ">=");
     mw__3E__3D_();
     WORD_EXIT(mb_close_file_21__1);
 }
 
 static void mb_close_file_21__2 (void) {
-    WORD_ENTER(mb_close_file_21__2, "close-file! block", "src/platform/posix.mth", 80, 23);
+    WORD_ENTER(mb_close_file_21__2, "close-file! block", "src/platform/posix.mth", 77, 23);
     mw_prim_drop();
-    WORD_ATOM(80, 23, "");
+    WORD_ATOM(77, 23, "");
     {
         static bool vready = false;
         static VAL v;
@@ -34745,49 +34772,49 @@ static void mb_Bag__3E_Bag_2B__1 (void) {
 }
 
 static void mb_hash_1 (void) {
-    WORD_ENTER(mb_hash_1, "hash block", "src/mirth/data/name.mth", 42, 26);
+    WORD_ENTER(mb_hash_1, "hash block", "src/mirth/data/name.mth", 44, 26);
     mw_prim_drop();
-    WORD_ATOM(42, 26, "Byte->Int");
+    WORD_ATOM(44, 26, "Byte->Int");
     mw_Byte__3E_Int();
-    WORD_ATOM(42, 36, "");
+    WORD_ATOM(44, 36, "");
     push_i64(17LL);
-    WORD_ATOM(42, 39, "*");
+    WORD_ATOM(44, 39, "*");
     mw_prim_int_mul();
-    WORD_ATOM(42, 41, "over");
+    WORD_ATOM(44, 41, "over");
     mw_over();
-    WORD_ATOM(42, 46, "");
+    WORD_ATOM(44, 46, "");
     push_i64(7LL);
-    WORD_ATOM(42, 48, "<<");
+    WORD_ATOM(44, 48, "<<");
     mw_prim_int_shl();
-    WORD_ATOM(42, 51, "^");
+    WORD_ATOM(44, 51, "^");
     mw_prim_int_xor();
-    WORD_ATOM(42, 53, "swap");
+    WORD_ATOM(44, 53, "swap");
     mw_prim_swap();
-    WORD_ATOM(42, 58, "");
+    WORD_ATOM(44, 58, "");
     push_i64(27LL);
-    WORD_ATOM(42, 61, ">>");
+    WORD_ATOM(44, 61, ">>");
     mw_prim_int_shr();
-    WORD_ATOM(42, 64, "^");
+    WORD_ATOM(44, 64, "^");
     mw_prim_int_xor();
     WORD_EXIT(mb_hash_1);
 }
 
 static void mb_name_new_21__4 (void) {
-    WORD_ENTER(mb_name_new_21__4, "name-new! block", "src/mirth/data/name.mth", 63, 23);
+    WORD_ENTER(mb_name_new_21__4, "name-new! block", "src/mirth/data/name.mth", 65, 23);
     mw_prim_drop();
-    WORD_ATOM(63, 23, "name-mangle-compute!");
+    WORD_ATOM(65, 23, "name-mangle-compute!");
     mw_name_mangle_compute_21_();
     WORD_EXIT(mb_name_new_21__4);
 }
 
 static void mb_name_mangle_compute_21__1 (void) {
-    WORD_ENTER(mb_name_mangle_compute_21__1, "name-mangle-compute! block", "src/mirth/data/name.mth", 115, 16);
+    WORD_ENTER(mb_name_mangle_compute_21__1, "name-mangle-compute! block", "src/mirth/data/name.mth", 117, 16);
     mw_prim_drop();
-    WORD_ATOM(115, 16, "name-str");
+    WORD_ATOM(117, 16, "name-str");
     mw_name_str();
-    WORD_ATOM(115, 25, "@");
+    WORD_ATOM(117, 25, "@");
     mw_prim_mut_get();
-    WORD_ATOM(115, 27, "str-bytes-for");
+    WORD_ATOM(117, 27, "str-bytes-for");
     push_u64(0);
     push_fnptr(&mb_name_mangle_compute_21__2);
     mw_prim_pack_cons();
@@ -34796,50 +34823,50 @@ static void mb_name_mangle_compute_21__1 (void) {
 }
 
 static void mb_name_mangle_compute_21__2 (void) {
-    WORD_ENTER(mb_name_mangle_compute_21__2, "name-mangle-compute! block", "src/mirth/data/name.mth", 116, 9);
+    WORD_ENTER(mb_name_mangle_compute_21__2, "name-mangle-compute! block", "src/mirth/data/name.mth", 118, 9);
     mw_prim_drop();
-    WORD_ATOM(116, 9, "dup");
+    WORD_ATOM(118, 9, "dup");
     mw_prim_dup();
-    WORD_ATOM(116, 13, "byte-is-alnum");
+    WORD_ATOM(118, 13, "byte-is-alnum");
     mw_byte_is_alnum();
-    WORD_ATOM(116, 27, "if");
+    WORD_ATOM(118, 27, "if");
     if (pop_u64()) {
-        WORD_ATOM(117, 13, "str-buf-push-byte!");
+        WORD_ATOM(119, 13, "str-buf-push-byte!");
         mw_str_buf_push_byte_21_();
     } else {
-        WORD_ATOM(118, 13, "dup");
+        WORD_ATOM(120, 13, "dup");
         mw_prim_dup();
-        WORD_ATOM(118, 17, "B'-'");
+        WORD_ATOM(120, 17, "B'-'");
         mw_B_27___27_();
-        WORD_ATOM(118, 22, "==");
+        WORD_ATOM(120, 22, "==");
         mw_prim_value_eq();
-        WORD_ATOM(118, 25, "if");
+        WORD_ATOM(120, 25, "if");
         if (pop_u64()) {
-            WORD_ATOM(119, 17, "drop");
+            WORD_ATOM(121, 17, "drop");
             mw_prim_drop();
-            WORD_ATOM(119, 22, "B'_'");
+            WORD_ATOM(121, 22, "B'_'");
             mw_B_27__5F__27_();
-            WORD_ATOM(119, 27, "str-buf-push-byte!");
+            WORD_ATOM(121, 27, "str-buf-push-byte!");
             mw_str_buf_push_byte_21_();
         } else {
-            WORD_ATOM(120, 17, "B'_'");
-            mw_B_27__5F__27_();
-            WORD_ATOM(120, 22, "str-buf-push-byte!");
-            mw_str_buf_push_byte_21_();
-            WORD_ATOM(121, 17, "byte-to-hexdigits");
-            mw_byte_to_hexdigits();
-            WORD_ATOM(121, 35, "dip");
-            {
-                VAL d4 = pop_value();
-                WORD_ATOM(121, 39, "str-buf-push-byte!");
-                mw_str_buf_push_byte_21_();
-                push_value(d4);
-            }
-            WORD_ATOM(121, 59, "str-buf-push-byte!");
-            mw_str_buf_push_byte_21_();
             WORD_ATOM(122, 17, "B'_'");
             mw_B_27__5F__27_();
             WORD_ATOM(122, 22, "str-buf-push-byte!");
+            mw_str_buf_push_byte_21_();
+            WORD_ATOM(123, 17, "byte-to-hexdigits");
+            mw_byte_to_hexdigits();
+            WORD_ATOM(123, 35, "dip");
+            {
+                VAL d4 = pop_value();
+                WORD_ATOM(123, 39, "str-buf-push-byte!");
+                mw_str_buf_push_byte_21_();
+                push_value(d4);
+            }
+            WORD_ATOM(123, 59, "str-buf-push-byte!");
+            mw_str_buf_push_byte_21_();
+            WORD_ATOM(124, 17, "B'_'");
+            mw_B_27__5F__27_();
+            WORD_ATOM(124, 22, "str-buf-push-byte!");
             mw_str_buf_push_byte_21_();
         }
     }
@@ -34847,49 +34874,49 @@ static void mb_name_mangle_compute_21__2 (void) {
 }
 
 static void mb_name_head_1 (void) {
-    WORD_ENTER(mb_name_head_1, "name-head block", "src/mirth/data/name.mth", 79, 30);
+    WORD_ENTER(mb_name_head_1, "name-head block", "src/mirth/data/name.mth", 81, 30);
     mw_prim_drop();
-    WORD_ATOM(79, 30, "");
+    WORD_ATOM(81, 30, "");
     push_i64(1LL);
-    WORD_ATOM(79, 32, ">=");
+    WORD_ATOM(81, 32, ">=");
     mw__3E__3D_();
-    WORD_ATOM(79, 35, "if");
+    WORD_ATOM(81, 35, "if");
     if (pop_u64()) {
-        WORD_ATOM(79, 38, "byte@");
+        WORD_ATOM(81, 38, "byte@");
         mw_byte_40_();
     } else {
-        WORD_ATOM(79, 45, "drop");
+        WORD_ATOM(81, 45, "drop");
         mw_prim_drop();
-        WORD_ATOM(79, 50, "BNUL");
+        WORD_ATOM(81, 50, "BNUL");
         mw_BNUL();
     }
     WORD_EXIT(mb_name_head_1);
 }
 
 static void mb_name_tail_head_1 (void) {
-    WORD_ENTER(mb_name_tail_head_1, "name-tail-head block", "src/mirth/data/name.mth", 81, 30);
+    WORD_ENTER(mb_name_tail_head_1, "name-tail-head block", "src/mirth/data/name.mth", 83, 30);
     mw_prim_drop();
-    WORD_ATOM(81, 30, "");
+    WORD_ATOM(83, 30, "");
     push_i64(2LL);
-    WORD_ATOM(81, 32, ">=");
+    WORD_ATOM(83, 32, ">=");
     mw__3E__3D_();
-    WORD_ATOM(81, 35, "if");
+    WORD_ATOM(83, 35, "if");
     if (pop_u64()) {
-        WORD_ATOM(81, 38, "dip");
+        WORD_ATOM(83, 38, "dip");
         {
             VAL d3 = pop_value();
-            WORD_ATOM(81, 42, "");
+            WORD_ATOM(83, 42, "");
             push_i64(1LL);
             push_value(d3);
         }
-        WORD_ATOM(81, 45, "ptr+");
+        WORD_ATOM(83, 45, "ptr+");
         mw_prim_ptr_add();
-        WORD_ATOM(81, 50, "byte@");
+        WORD_ATOM(83, 50, "byte@");
         mw_byte_40_();
     } else {
-        WORD_ATOM(81, 57, "drop");
+        WORD_ATOM(83, 57, "drop");
         mw_prim_drop();
-        WORD_ATOM(81, 62, "BNUL");
+        WORD_ATOM(83, 62, "BNUL");
         mw_BNUL();
     }
     WORD_EXIT(mb_name_tail_head_1);
@@ -35164,9 +35191,9 @@ static void mb_elab_table_21__1 (void) {
 }
 
 static void mb_elab_field_21__1 (void) {
-    WORD_ENTER(mb_elab_field_21__1, "elab-field! block", "src/mirth/elab.mth", 1264, 9);
+    WORD_ENTER(mb_elab_field_21__1, "elab-field! block", "src/mirth/elab.mth", 1268, 9);
     mw_prim_drop();
-    WORD_ATOM(1264, 9, "token-next");
+    WORD_ATOM(1268, 9, "token-next");
     mw_token_next();
     WORD_EXIT(mb_elab_field_21__1);
 }
@@ -36092,13 +36119,13 @@ static void mb_ab_lambda_21__7 (void) {
 }
 
 static void mb_elab_field_type_21__1 (void) {
-    WORD_ENTER(mb_elab_field_type_21__1, "elab-field-type! block", "src/mirth/elab.mth", 1283, 9);
+    WORD_ENTER(mb_elab_field_type_21__1, "elab-field-type! block", "src/mirth/elab.mth", 1287, 9);
     mw_prim_drop();
-    WORD_ATOM(1283, 9, "field-index-type");
+    WORD_ATOM(1287, 9, "field-index-type");
     mw_field_index_type();
-    WORD_ATOM(1283, 26, "force!");
+    WORD_ATOM(1287, 26, "force!");
     mw_force_21_();
-    WORD_ATOM(1283, 33, "T1");
+    WORD_ATOM(1287, 33, "T1");
     mw_T1();
     WORD_EXIT(mb_elab_field_type_21__1);
 }
@@ -36702,59 +36729,63 @@ static void mb_table_new_21__5 (void) {
     mw_prim_mut_get();
     WORD_ATOM(1166, 32, "ab-buffer!");
     mw_ab_buffer_21_();
-    WORD_ATOM(1167, 9, "PRIM_INT_GET");
-    mw_PRIM_5F_INT_5F_GET();
+    WORD_ATOM(1167, 9, "PRIM_U64_GET");
+    mw_PRIM_5F_U64_5F_GET();
     WORD_ATOM(1167, 22, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1168, 9, "");
-    push_i64(1LL);
-    WORD_ATOM(1168, 11, "ab-int!");
-    mw_ab_int_21_();
-    WORD_ATOM(1169, 9, "PRIM_INT_ADD");
-    mw_PRIM_5F_INT_5F_ADD();
-    WORD_ATOM(1169, 22, "ab-prim!");
+    WORD_ATOM(1168, 9, "PRIM_UNSAFE_CAST");
+    mw_PRIM_5F_UNSAFE_5F_CAST();
+    WORD_ATOM(1168, 26, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1170, 9, "PRIM_INT_MOD");
-    mw_PRIM_5F_INT_5F_MOD();
+    WORD_ATOM(1169, 9, "");
+    push_i64(1LL);
+    WORD_ATOM(1169, 11, "ab-int!");
+    mw_ab_int_21_();
+    WORD_ATOM(1170, 9, "PRIM_INT_ADD");
+    mw_PRIM_5F_INT_5F_ADD();
     WORD_ATOM(1170, 22, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1171, 9, "PRIM_UNSAFE_CAST");
+    WORD_ATOM(1171, 9, "PRIM_INT_MOD");
+    mw_PRIM_5F_INT_5F_MOD();
+    WORD_ATOM(1171, 22, "ab-prim!");
+    mw_ab_prim_21_();
+    WORD_ATOM(1172, 9, "PRIM_UNSAFE_CAST");
     mw_PRIM_5F_UNSAFE_5F_CAST();
-    WORD_ATOM(1171, 26, "ab-prim!");
+    WORD_ATOM(1172, 26, "ab-prim!");
     mw_ab_prim_21_();
     WORD_EXIT(mb_table_new_21__5);
 }
 
 static void mb_table_new_21__6 (void) {
-    WORD_ENTER(mb_table_new_21__6, "table-new! block", "src/mirth/elab.mth", 1182, 9);
+    WORD_ENTER(mb_table_new_21__6, "table-new! block", "src/mirth/elab.mth", 1183, 9);
     mw_prim_drop();
-    WORD_ATOM(1182, 9, "dup");
+    WORD_ATOM(1183, 9, "dup");
     mw_prim_dup();
-    WORD_ATOM(1182, 13, "table-head");
+    WORD_ATOM(1183, 13, "table-head");
     mw_table_head();
-    WORD_ATOM(1182, 24, "@");
+    WORD_ATOM(1183, 24, "@");
     mw_prim_mut_get();
-    WORD_ATOM(1182, 26, "ab-token");
+    WORD_ATOM(1183, 26, "ab-token");
     mw_ab_token();
-    WORD_ATOM(1182, 35, "!");
+    WORD_ATOM(1183, 35, "!");
     mw_prim_mut_set();
-    WORD_ATOM(1183, 9, "PRIM_UNSAFE_CAST");
+    WORD_ATOM(1184, 9, "PRIM_UNSAFE_CAST");
     mw_PRIM_5F_UNSAFE_5F_CAST();
-    WORD_ATOM(1183, 26, "ab-prim!");
+    WORD_ATOM(1184, 26, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1184, 9, "PRIM_CORE_DUP");
+    WORD_ATOM(1185, 9, "PRIM_CORE_DUP");
     mw_PRIM_5F_CORE_5F_DUP();
-    WORD_ATOM(1184, 23, "ab-prim!");
+    WORD_ATOM(1185, 23, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1185, 9, "");
+    WORD_ATOM(1186, 9, "");
     push_i64(0LL);
-    WORD_ATOM(1185, 11, "ab-int!");
+    WORD_ATOM(1186, 11, "ab-int!");
     mw_ab_int_21_();
-    WORD_ATOM(1186, 9, "PRIM_VALUE_EQ");
+    WORD_ATOM(1187, 9, "PRIM_VALUE_EQ");
     mw_PRIM_5F_VALUE_5F_EQ();
-    WORD_ATOM(1186, 23, "ab-prim!");
+    WORD_ATOM(1187, 23, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1187, 9, "ab-if!");
+    WORD_ATOM(1188, 9, "ab-if!");
     push_u64(0);
     push_fnptr(&mb_table_new_21__7);
     mw_prim_pack_cons();
@@ -36762,37 +36793,37 @@ static void mb_table_new_21__6 (void) {
     push_fnptr(&mb_table_new_21__8);
     mw_prim_pack_cons();
     mw_ab_if_21_();
-    WORD_ATOM(1192, 9, "PRIM_UNSAFE_CAST");
+    WORD_ATOM(1193, 9, "PRIM_UNSAFE_CAST");
     mw_PRIM_5F_UNSAFE_5F_CAST();
-    WORD_ATOM(1192, 26, "ab-prim!");
+    WORD_ATOM(1193, 26, "ab-prim!");
     mw_ab_prim_21_();
     WORD_EXIT(mb_table_new_21__6);
 }
 
 static void mb_table_new_21__7 (void) {
-    WORD_ENTER(mb_table_new_21__7, "table-new! block", "src/mirth/elab.mth", 1188, 13);
+    WORD_ENTER(mb_table_new_21__7, "table-new! block", "src/mirth/elab.mth", 1189, 13);
     mw_prim_drop();
-    WORD_ATOM(1188, 13, "id");
+    WORD_ATOM(1189, 13, "id");
     mw_prim_id();
     WORD_EXIT(mb_table_new_21__7);
 }
 
 static void mb_table_new_21__8 (void) {
-    WORD_ENTER(mb_table_new_21__8, "table-new! block", "src/mirth/elab.mth", 1189, 13);
+    WORD_ENTER(mb_table_new_21__8, "table-new! block", "src/mirth/elab.mth", 1190, 13);
     mw_prim_drop();
-    WORD_ATOM(1189, 13, "");
+    WORD_ATOM(1190, 13, "");
     push_i64(1LL);
-    WORD_ATOM(1189, 15, "ab-int!");
+    WORD_ATOM(1190, 15, "ab-int!");
     mw_ab_int_21_();
-    WORD_ATOM(1190, 13, "PRIM_INT_SUB");
+    WORD_ATOM(1191, 13, "PRIM_INT_SUB");
     mw_PRIM_5F_INT_5F_SUB();
-    WORD_ATOM(1190, 26, "ab-prim!");
+    WORD_ATOM(1191, 26, "ab-prim!");
     mw_ab_prim_21_();
     WORD_EXIT(mb_table_new_21__8);
 }
 
 static void mb_table_new_21__11 (void) {
-    WORD_ENTER(mb_table_new_21__11, "table-new! block", "src/mirth/elab.mth", 1214, 13);
+    WORD_ENTER(mb_table_new_21__11, "table-new! block", "src/mirth/elab.mth", 1215, 13);
     mw_prim_pack_uncons();
     VAL var_t = pop_value();
     mw_prim_pack_uncons();
@@ -36800,25 +36831,25 @@ static void mb_table_new_21__11 (void) {
     mw_prim_pack_uncons();
     VAL var_x = pop_value();
     mw_prim_drop();
-    WORD_ATOM(1214, 13, "t");
+    WORD_ATOM(1215, 13, "t");
     incref(var_t);
     push_value(var_t);
-    WORD_ATOM(1214, 15, "table-head");
+    WORD_ATOM(1215, 15, "table-head");
     mw_table_head();
-    WORD_ATOM(1214, 26, "@");
+    WORD_ATOM(1215, 26, "@");
     mw_prim_mut_get();
-    WORD_ATOM(1214, 28, "ab-token");
+    WORD_ATOM(1215, 28, "ab-token");
     mw_ab_token();
-    WORD_ATOM(1214, 37, "!");
+    WORD_ATOM(1215, 37, "!");
     mw_prim_mut_set();
-    WORD_ATOM(1215, 13, "x");
+    WORD_ATOM(1216, 13, "x");
     incref(var_x);
     push_value(var_x);
-    WORD_ATOM(1215, 15, "Var->Param");
+    WORD_ATOM(1216, 15, "Var->Param");
     mw_Var__3E_Param();
-    WORD_ATOM(1215, 26, "L1");
+    WORD_ATOM(1216, 26, "L1");
     mw_L1();
-    WORD_ATOM(1215, 29, "ab-lambda!");
+    WORD_ATOM(1216, 29, "ab-lambda!");
     push_u64(0);
     incref(var_x);
     push_value(var_x);
@@ -36839,7 +36870,7 @@ static void mb_table_new_21__11 (void) {
 }
 
 static void mb_table_new_21__12 (void) {
-    WORD_ENTER(mb_table_new_21__12, "table-new! block", "src/mirth/elab.mth", 1216, 17);
+    WORD_ENTER(mb_table_new_21__12, "table-new! block", "src/mirth/elab.mth", 1217, 17);
     mw_prim_pack_uncons();
     VAL var_t = pop_value();
     mw_prim_pack_uncons();
@@ -36847,11 +36878,11 @@ static void mb_table_new_21__12 (void) {
     mw_prim_pack_uncons();
     VAL var_x = pop_value();
     mw_prim_drop();
-    WORD_ATOM(1216, 17, "");
+    WORD_ATOM(1217, 17, "");
     push_i64(1LL);
-    WORD_ATOM(1216, 19, "ab-int!");
+    WORD_ATOM(1217, 19, "ab-int!");
     mw_ab_int_21_();
-    WORD_ATOM(1217, 17, "ab-while!");
+    WORD_ATOM(1218, 17, "ab-while!");
     push_u64(0);
     incref(var_x);
     push_value(var_x);
@@ -36877,9 +36908,9 @@ static void mb_table_new_21__12 (void) {
     push_fnptr(&mb_table_new_21__14);
     mw_prim_pack_cons();
     mw_ab_while_21_();
-    WORD_ATOM(1231, 17, "PRIM_CORE_DROP");
+    WORD_ATOM(1233, 17, "PRIM_CORE_DROP");
     mw_PRIM_5F_CORE_5F_DROP();
-    WORD_ATOM(1231, 32, "ab-prim!");
+    WORD_ATOM(1233, 32, "ab-prim!");
     mw_ab_prim_21_();
     decref(var_t);
     decref(var_w);
@@ -36888,7 +36919,7 @@ static void mb_table_new_21__12 (void) {
 }
 
 static void mb_table_new_21__13 (void) {
-    WORD_ENTER(mb_table_new_21__13, "table-new! block", "src/mirth/elab.mth", 1218, 21);
+    WORD_ENTER(mb_table_new_21__13, "table-new! block", "src/mirth/elab.mth", 1219, 21);
     mw_prim_pack_uncons();
     VAL var_t = pop_value();
     mw_prim_pack_uncons();
@@ -36896,26 +36927,30 @@ static void mb_table_new_21__13 (void) {
     mw_prim_pack_uncons();
     VAL var_x = pop_value();
     mw_prim_drop();
-    WORD_ATOM(1218, 21, "PRIM_CORE_DUP");
+    WORD_ATOM(1219, 21, "PRIM_CORE_DUP");
     mw_PRIM_5F_CORE_5F_DUP();
-    WORD_ATOM(1218, 35, "ab-prim!");
+    WORD_ATOM(1219, 35, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1219, 21, "t");
+    WORD_ATOM(1220, 21, "t");
     incref(var_t);
     push_value(var_t);
-    WORD_ATOM(1219, 23, "table-num-buffer");
+    WORD_ATOM(1220, 23, "table-num-buffer");
     mw_table_num_buffer();
-    WORD_ATOM(1219, 40, "@");
+    WORD_ATOM(1220, 40, "@");
     mw_prim_mut_get();
-    WORD_ATOM(1219, 42, "ab-buffer!");
+    WORD_ATOM(1220, 42, "ab-buffer!");
     mw_ab_buffer_21_();
-    WORD_ATOM(1220, 21, "PRIM_INT_GET");
-    mw_PRIM_5F_INT_5F_GET();
-    WORD_ATOM(1220, 34, "ab-prim!");
+    WORD_ATOM(1221, 21, "PRIM_U64_GET");
+    mw_PRIM_5F_U64_5F_GET();
+    WORD_ATOM(1221, 34, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1221, 21, "PRIM_VALUE_LE");
+    WORD_ATOM(1222, 21, "PRIM_UNSAFE_CAST");
+    mw_PRIM_5F_UNSAFE_5F_CAST();
+    WORD_ATOM(1222, 38, "ab-prim!");
+    mw_ab_prim_21_();
+    WORD_ATOM(1223, 21, "PRIM_VALUE_LE");
     mw_PRIM_5F_VALUE_5F_LE();
-    WORD_ATOM(1221, 35, "ab-prim!");
+    WORD_ATOM(1223, 35, "ab-prim!");
     mw_ab_prim_21_();
     decref(var_t);
     decref(var_w);
@@ -36924,7 +36959,7 @@ static void mb_table_new_21__13 (void) {
 }
 
 static void mb_table_new_21__14 (void) {
-    WORD_ENTER(mb_table_new_21__14, "table-new! block", "src/mirth/elab.mth", 1223, 21);
+    WORD_ENTER(mb_table_new_21__14, "table-new! block", "src/mirth/elab.mth", 1225, 21);
     mw_prim_pack_uncons();
     VAL var_t = pop_value();
     mw_prim_pack_uncons();
@@ -36932,11 +36967,11 @@ static void mb_table_new_21__14 (void) {
     mw_prim_pack_uncons();
     VAL var_x = pop_value();
     mw_prim_drop();
-    WORD_ATOM(1223, 21, "PRIM_CORE_DUP");
+    WORD_ATOM(1225, 21, "PRIM_CORE_DUP");
     mw_PRIM_5F_CORE_5F_DUP();
-    WORD_ATOM(1223, 35, "ab-prim!");
+    WORD_ATOM(1225, 35, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1224, 21, "ab-dip!");
+    WORD_ATOM(1226, 21, "ab-dip!");
     push_u64(0);
     incref(var_x);
     push_value(var_x);
@@ -36950,13 +36985,13 @@ static void mb_table_new_21__14 (void) {
     push_fnptr(&mb_table_new_21__15);
     mw_prim_pack_cons();
     mw_ab_dip_21_();
-    WORD_ATOM(1228, 21, "");
+    WORD_ATOM(1230, 21, "");
     push_i64(1LL);
-    WORD_ATOM(1228, 23, "ab-int!");
+    WORD_ATOM(1230, 23, "ab-int!");
     mw_ab_int_21_();
-    WORD_ATOM(1229, 21, "PRIM_INT_ADD");
+    WORD_ATOM(1231, 21, "PRIM_INT_ADD");
     mw_PRIM_5F_INT_5F_ADD();
-    WORD_ATOM(1229, 34, "ab-prim!");
+    WORD_ATOM(1231, 34, "ab-prim!");
     mw_ab_prim_21_();
     decref(var_t);
     decref(var_w);
@@ -36965,7 +37000,7 @@ static void mb_table_new_21__14 (void) {
 }
 
 static void mb_table_new_21__15 (void) {
-    WORD_ENTER(mb_table_new_21__15, "table-new! block", "src/mirth/elab.mth", 1225, 25);
+    WORD_ENTER(mb_table_new_21__15, "table-new! block", "src/mirth/elab.mth", 1227, 25);
     mw_prim_pack_uncons();
     VAL var_t = pop_value();
     mw_prim_pack_uncons();
@@ -36973,14 +37008,14 @@ static void mb_table_new_21__15 (void) {
     mw_prim_pack_uncons();
     VAL var_x = pop_value();
     mw_prim_drop();
-    WORD_ATOM(1225, 25, "PRIM_UNSAFE_CAST");
+    WORD_ATOM(1227, 25, "PRIM_UNSAFE_CAST");
     mw_PRIM_5F_UNSAFE_5F_CAST();
-    WORD_ATOM(1225, 42, "ab-prim!");
+    WORD_ATOM(1227, 42, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1226, 25, "x");
+    WORD_ATOM(1228, 25, "x");
     incref(var_x);
     push_value(var_x);
-    WORD_ATOM(1226, 27, "ab-var!");
+    WORD_ATOM(1228, 27, "ab-var!");
     mw_ab_var_21_();
     decref(var_t);
     decref(var_w);
@@ -36989,73 +37024,81 @@ static void mb_table_new_21__15 (void) {
 }
 
 static void mb_table_new_21__16 (void) {
-    WORD_ENTER(mb_table_new_21__16, "table-new! block", "src/mirth/elab.mth", 1245, 9);
+    WORD_ENTER(mb_table_new_21__16, "table-new! block", "src/mirth/elab.mth", 1247, 9);
     mw_prim_drop();
-    WORD_ATOM(1245, 9, "dup");
+    WORD_ATOM(1247, 9, "dup");
     mw_prim_dup();
-    WORD_ATOM(1245, 13, "table-head");
+    WORD_ATOM(1247, 13, "table-head");
     mw_table_head();
-    WORD_ATOM(1245, 24, "@");
+    WORD_ATOM(1247, 24, "@");
     mw_prim_mut_get();
-    WORD_ATOM(1245, 26, "ab-token");
+    WORD_ATOM(1247, 26, "ab-token");
     mw_ab_token();
-    WORD_ATOM(1245, 35, "!");
+    WORD_ATOM(1247, 35, "!");
     mw_prim_mut_set();
-    WORD_ATOM(1246, 9, "dup");
+    WORD_ATOM(1248, 9, "dup");
     mw_prim_dup();
-    WORD_ATOM(1246, 13, "table-num-buffer");
+    WORD_ATOM(1248, 13, "table-num-buffer");
     mw_table_num_buffer();
-    WORD_ATOM(1246, 30, "@");
+    WORD_ATOM(1248, 30, "@");
     mw_prim_mut_get();
-    WORD_ATOM(1246, 32, "ab-buffer!");
+    WORD_ATOM(1248, 32, "ab-buffer!");
     mw_ab_buffer_21_();
-    WORD_ATOM(1247, 9, "PRIM_INT_GET");
-    mw_PRIM_5F_INT_5F_GET();
-    WORD_ATOM(1247, 22, "ab-prim!");
-    mw_ab_prim_21_();
-    WORD_ATOM(1248, 9, "");
-    push_i64(1LL);
-    WORD_ATOM(1248, 11, "ab-int!");
-    mw_ab_int_21_();
-    WORD_ATOM(1249, 9, "PRIM_INT_ADD");
-    mw_PRIM_5F_INT_5F_ADD();
+    WORD_ATOM(1249, 9, "PRIM_U64_GET");
+    mw_PRIM_5F_U64_5F_GET();
     WORD_ATOM(1249, 22, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1250, 9, "PRIM_CORE_DUP");
-    mw_PRIM_5F_CORE_5F_DUP();
-    WORD_ATOM(1250, 23, "ab-prim!");
+    WORD_ATOM(1250, 9, "PRIM_UNSAFE_CAST");
+    mw_PRIM_5F_UNSAFE_5F_CAST();
+    WORD_ATOM(1250, 26, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1251, 9, "dup");
-    mw_prim_dup();
-    WORD_ATOM(1251, 13, "table-num-buffer");
-    mw_table_num_buffer();
-    WORD_ATOM(1251, 30, "@");
-    mw_prim_mut_get();
-    WORD_ATOM(1251, 32, "ab-buffer!");
-    mw_ab_buffer_21_();
-    WORD_ATOM(1252, 9, "PRIM_INT_SET");
-    mw_PRIM_5F_INT_5F_SET();
+    WORD_ATOM(1251, 9, "");
+    push_i64(1LL);
+    WORD_ATOM(1251, 11, "ab-int!");
+    mw_ab_int_21_();
+    WORD_ATOM(1252, 9, "PRIM_INT_ADD");
+    mw_PRIM_5F_INT_5F_ADD();
     WORD_ATOM(1252, 22, "ab-prim!");
     mw_ab_prim_21_();
-    WORD_ATOM(1253, 9, "PRIM_UNSAFE_CAST");
+    WORD_ATOM(1253, 9, "PRIM_CORE_DUP");
+    mw_PRIM_5F_CORE_5F_DUP();
+    WORD_ATOM(1253, 23, "ab-prim!");
+    mw_ab_prim_21_();
+    WORD_ATOM(1254, 9, "PRIM_UNSAFE_CAST");
     mw_PRIM_5F_UNSAFE_5F_CAST();
-    WORD_ATOM(1253, 26, "ab-prim!");
+    WORD_ATOM(1254, 26, "ab-prim!");
+    mw_ab_prim_21_();
+    WORD_ATOM(1255, 9, "dup");
+    mw_prim_dup();
+    WORD_ATOM(1255, 13, "table-num-buffer");
+    mw_table_num_buffer();
+    WORD_ATOM(1255, 30, "@");
+    mw_prim_mut_get();
+    WORD_ATOM(1255, 32, "ab-buffer!");
+    mw_ab_buffer_21_();
+    WORD_ATOM(1256, 9, "PRIM_U64_SET");
+    mw_PRIM_5F_U64_5F_SET();
+    WORD_ATOM(1256, 22, "ab-prim!");
+    mw_ab_prim_21_();
+    WORD_ATOM(1257, 9, "PRIM_UNSAFE_CAST");
+    mw_PRIM_5F_UNSAFE_5F_CAST();
+    WORD_ATOM(1257, 26, "ab-prim!");
     mw_ab_prim_21_();
     WORD_EXIT(mb_table_new_21__16);
 }
 
 static void mb_field_new_21__1 (void) {
-    WORD_ENTER(mb_field_new_21__1, "field-new! block", "src/mirth/elab.mth", 1279, 16);
+    WORD_ENTER(mb_field_new_21__1, "field-new! block", "src/mirth/elab.mth", 1283, 16);
     mw_prim_drop();
-    WORD_ATOM(1279, 16, "elab-simple-type-arg!");
+    WORD_ATOM(1283, 16, "elab-simple-type-arg!");
     mw_elab_simple_type_arg_21_();
     WORD_EXIT(mb_field_new_21__1);
 }
 
 static void mb_field_new_21__2 (void) {
-    WORD_ENTER(mb_field_new_21__2, "field-new! block", "src/mirth/elab.mth", 1280, 16);
+    WORD_ENTER(mb_field_new_21__2, "field-new! block", "src/mirth/elab.mth", 1284, 16);
     mw_prim_drop();
-    WORD_ATOM(1280, 16, "elab-simple-type-arg!");
+    WORD_ATOM(1284, 16, "elab-simple-type-arg!");
     mw_elab_simple_type_arg_21_();
     WORD_EXIT(mb_field_new_21__2);
 }

@@ -37,8 +37,6 @@ alias(|, prim-int-or)
 alias(^, prim-int-xor)
 alias(<<, prim-int-shl)
 alias(>>, prim-int-shr)
-alias(int@, prim-int-get)
-alias(int!, prim-int-set)
 
 def(&&, Bool Bool -- Bool, T -> id, F -> drop F)
 def(||, Bool Bool -- Bool, T -> drop T, F -> id)
@@ -212,9 +210,11 @@ def(ptr!!, Ptr Offset Ptr --, dip(ptrs) with-ptr+(ptr!))
 def(u8@@, Offset Ptr -- U8, with-ptr+(u8@))
 def(u8!!, U8 Offset Ptr --, with-ptr+(u8!))
 
-def(ints, Size -- Size, 8 *)
-def(int@@, Offset Ptr -- Int, dip(ints) with-ptr+(int@))
-def(int!!, Int Offset Ptr --, dip(ints) with-ptr+(int!))
+def(u64@@, Offset Ptr -- U64, dip(8 *) with-ptr+(u64@))
+def(u64!!, U64 Offset Ptr --, dip(8 *) with-ptr+(u64!))
+
+def(i64@@, Offset Ptr -- I64, dip(8 *) with-ptr+(i64@))
+def(i64!!, I64 Offset Ptr --, dip(8 *) with-ptr+(i64!))
 
 def(in-range, a a a -- Bool, dip(dip(dup) >= swap) <= &&)
 

@@ -1164,7 +1164,8 @@ def(table-new!, Token Name -- Table,
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         dup table-num-buffer @ ab-buffer!
-        PRIM_INT_GET ab-prim!
+        PRIM_U64_GET ab-prim!
+        PRIM_UNSAFE_CAST ab-prim!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         PRIM_INT_MOD ab-prim!
@@ -1217,7 +1218,8 @@ def(table-new!, Token Name -- Table,
                 ab-while! (
                     PRIM_CORE_DUP ab-prim!
                     t table-num-buffer @ ab-buffer!
-                    PRIM_INT_GET ab-prim!
+                    PRIM_U64_GET ab-prim!
+                    PRIM_UNSAFE_CAST ab-prim!
                     PRIM_VALUE_LE ab-prim!,
 
                     PRIM_CORE_DUP ab-prim!
@@ -1244,12 +1246,14 @@ def(table-new!, Token Name -- Table,
     ab-build-word! (
         dup table-head @ ab-token !
         dup table-num-buffer @ ab-buffer!
-        PRIM_INT_GET ab-prim!
+        PRIM_U64_GET ab-prim!
+        PRIM_UNSAFE_CAST ab-prim!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         PRIM_CORE_DUP ab-prim!
+        PRIM_UNSAFE_CAST ab-prim!
         dup table-num-buffer @ ab-buffer!
-        PRIM_INT_SET ab-prim!
+        PRIM_U64_SET ab-prim!
         PRIM_UNSAFE_CAST ab-prim!
     )
     drop

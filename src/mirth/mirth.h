@@ -758,16 +758,6 @@ static void mw_prim_panic(void) {
     exit(1);
 }
 
-static void mw_prim_int_get (void) {
-    PRIM_ENTER(mw_prim_int_get,"prim-int-get");
-    VAL vp = pop_value();
-    int64_t *p = value_ptr(vp);
-    EXPECT(p, "tried to load from null pointer");
-    push_i64(*p);
-    decref(vp);
-    PRIM_EXIT(mw_prim_int_get);
-}
-
 static void mw_prim_ptr_get (void) {
     PRIM_ENTER(mw_prim_ptr_get,"prim-ptr-get");
     VAL vp = pop_value();

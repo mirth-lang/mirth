@@ -7,9 +7,6 @@ data(File, FILE -> Int)
 def(Int->File, Int -- File, FILE)
 def(File->Int, File -- Int, FILE -> id)
 
-def(file@, Ptr -- File, int@ Int->File)
-def(file!, File Ptr --, dip(File->Int) int!)
-
 def(stdin, File, 0 Int->File)
 def(stdout, File, 1 Int->File)
 def(stderr, File, 2 Int->File)

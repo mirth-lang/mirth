@@ -40,8 +40,6 @@ data(Prim,
     PRIM_INT_XOR,
     PRIM_INT_SHL,
     PRIM_INT_SHR,
-    PRIM_INT_GET,
-    PRIM_INT_SET,
     PRIM_INT_TO_STR,
 
     PRIM_PACK_NIL,
@@ -201,8 +199,6 @@ def(init-prims!, --,
     PRIM_INT_XOR "prim-int-xor" def-prim!
     PRIM_INT_SHL "prim-int-shl" def-prim!
     PRIM_INT_SHR "prim-int-shr" def-prim!
-    PRIM_INT_GET "prim-int-get" def-prim!
-    PRIM_INT_SET "prim-int-set" def-prim!
     PRIM_INT_TO_STR "prim-int-to-str" def-prim!
 
     PRIM_PACK_NIL "prim-pack-nil" def-prim!
@@ -300,7 +296,6 @@ def(init-prims!, --,
 
     TYPE_INT T1 TYPE_STR T1 T-> PRIM_INT_TO_STR prim-type !
 
-    TYPE_PTR T1 TYPE_INT T1 T-> PRIM_INT_GET prim-type !
     TYPE_PTR T1 TYPE_PTR T1 T-> PRIM_PTR_GET prim-type !
     TYPE_PTR T1 TYPE_U8  T1 T-> PRIM_U8_GET  prim-type !
     TYPE_PTR T1 TYPE_U16 T1 T-> PRIM_U16_GET prim-type !
@@ -311,7 +306,6 @@ def(init-prims!, --,
     TYPE_PTR T1 TYPE_I32 T1 T-> PRIM_I32_GET prim-type !
     TYPE_PTR T1 TYPE_I64 T1 T-> PRIM_I64_GET prim-type !
 
-    TYPE_INT TYPE_PTR T2 T0 T-> PRIM_INT_SET prim-type !
     TYPE_PTR TYPE_PTR T2 T0 T-> PRIM_PTR_SET prim-type !
     TYPE_U8  TYPE_PTR T2 T0 T-> PRIM_U8_SET  prim-type !
     TYPE_U16 TYPE_PTR T2 T0 T-> PRIM_U16_SET prim-type !
