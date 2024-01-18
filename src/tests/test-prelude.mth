@@ -118,27 +118,27 @@ def(test*, --,
 buffer(TEST_BUF, 16)
 def(test@!, --,
     # reset test buffer
-    0 Int->I64 0 TEST_BUF i64!!
-    0 Int->I64 1 TEST_BUF i64!!
+    0 >I64 0 TEST_BUF i64!!
+    0 >I64 1 TEST_BUF i64!!
     # run test
-    0 TEST_BUF i64@@ I64->Int !!0
-    1 TEST_BUF i64@@ I64->Int !!0
-    99 Int->I64 0 TEST_BUF i64!!
-    0 TEST_BUF i64@@ I64->Int 99 !!=
-    1 TEST_BUF i64@@ I64->Int !!0
-    30 Int->I64 1 TEST_BUF i64!!
-    0 TEST_BUF i64@@ I64->Int 99 !!=
-    1 TEST_BUF i64@@ I64->Int 30 !!=
-    0 Int->I64 0 TEST_BUF i64!!
-    0 TEST_BUF u8@@ U8->Int 0 !!=
-    1 TEST_BUF u8@@ U8->Int 0 !!=
-    2 TEST_BUF u8@@ U8->Int 0 !!=
-    3 TEST_BUF u8@@ U8->Int 0 !!=
-    99 Int->U8 2 TEST_BUF u8!!
-    0 TEST_BUF u8@@ U8->Int 0 !!=
-    1 TEST_BUF u8@@ U8->Int 0 !!=
-    2 TEST_BUF u8@@ U8->Int 99 !!=
-    3 TEST_BUF u8@@ U8->Int 0 !!=)
+    0 TEST_BUF i64@@ /I64 !!0
+    1 TEST_BUF i64@@ /I64 !!0
+    99 >I64 0 TEST_BUF i64!!
+    0 TEST_BUF i64@@ /I64 99 !!=
+    1 TEST_BUF i64@@ /I64 !!0
+    30 >I64 1 TEST_BUF i64!!
+    0 TEST_BUF i64@@ /I64 99 !!=
+    1 TEST_BUF i64@@ /I64 30 !!=
+    0 >I64 0 TEST_BUF i64!!
+    0 TEST_BUF u8@@ /U8 0 !!=
+    1 TEST_BUF u8@@ /U8 0 !!=
+    2 TEST_BUF u8@@ /U8 0 !!=
+    3 TEST_BUF u8@@ /U8 0 !!=
+    99 >U8 2 TEST_BUF u8!!
+    0 TEST_BUF u8@@ /U8 0 !!=
+    1 TEST_BUF u8@@ /U8 0 !!=
+    2 TEST_BUF u8@@ /U8 99 !!=
+    3 TEST_BUF u8@@ /U8 0 !!=)
 
 def(test-while, --,
     999 10 20 while(dup 0<>, 1- dip(1+)) drop 30 !!= 999 !!=

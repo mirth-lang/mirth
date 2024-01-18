@@ -858,7 +858,8 @@ def(elab-data-tag!, Data Token -- Data,
         ))
         T-> dip(type-elab-ctx) pack2
     )
-    swap tag-ctx-type !)
+    over tag-ctx-type !
+    tag-num-inputs-from-sig swap tag-num-inputs !)
 
 def(expect-token-comma, Token -- Token,
     token-is-comma? if(id, "Expected comma." emit-fatal-error!))
