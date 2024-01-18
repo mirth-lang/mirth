@@ -29,8 +29,6 @@ data(Prim,
     PRIM_VALUE_EQ,
     PRIM_VALUE_LT,
     PRIM_VALUE_LE,
-    PRIM_VALUE_GET,
-    PRIM_VALUE_SET,
 
     PRIM_INT_ADD,
     PRIM_INT_SUB,
@@ -192,8 +190,6 @@ def(init-prims!, --,
     PRIM_VALUE_EQ "prim-value-eq" def-prim!
     PRIM_VALUE_LT "prim-value-lt" def-prim!
     PRIM_VALUE_LE "prim-value-le" def-prim!
-    PRIM_VALUE_GET "prim-value-get" def-prim!
-    PRIM_VALUE_SET "prim-value-set" def-prim!
 
     PRIM_INT_ADD "prim-int-add" def-prim!
     PRIM_INT_SUB "prim-int-sub" def-prim!
@@ -519,22 +515,6 @@ def(init-prims!, --,
     dip(TVar) TVar
     dup2 T* T1 rotr T2 T->
     PRIM_PACK_UNCONS prim-type !
-
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup ctx-empty swap ctx-new!
-    PRIM_VALUE_GET prim-ctx !
-
-    TVar
-    dip(TYPE_PTR T1) T1 T->
-    PRIM_VALUE_GET prim-type !
-
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup ctx-empty swap ctx-new!
-    PRIM_VALUE_SET prim-ctx !
-
-    TVar
-    TYPE_PTR T2 T0 T->
-    PRIM_VALUE_SET prim-type !
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
     dup ctx-empty swap ctx-new!

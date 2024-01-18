@@ -758,18 +758,6 @@ static void mw_prim_panic(void) {
     exit(1);
 }
 
-static void mw_prim_value_get (void) {
-    PRIM_ENTER(mw_prim_value_get,"prim-value-get");
-    VAL vp = pop_value();
-    VAL *p = value_ptr(vp);
-    EXPECT(p, "tried to load from null pointer");
-    EXPECT(p->tag, "tried to load uninitialized value");
-    push_value(*p);
-    incref(*p);
-    decref(vp);
-    PRIM_EXIT(mw_prim_value_get);
-}
-
 static void mw_prim_int_get (void) {
     PRIM_ENTER(mw_prim_int_get,"prim-int-get");
     VAL vp = pop_value();
@@ -868,17 +856,6 @@ static void mw_prim_i64_get (void) {
     push_i64(*p);
     decref(vp);
     PRIM_EXIT(mw_prim_i64_get);
-}
-
-static void mw_prim_value_set (void) {
-    PRIM_ENTER(mw_prim_value_set,"prim-value-set");
-    VAL vp = pop_value();
-    VAL *p = value_ptr(vp);
-    EXPECT(p, "tried to write to null pointer");
-    if (p->tag) decref(*p);
-    *p = pop_value();
-    decref(vp);
-    PRIM_EXIT(mw_prim_value_set);
 }
 
 static void mw_prim_int_set (void) {

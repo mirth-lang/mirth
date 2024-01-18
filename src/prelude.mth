@@ -26,8 +26,6 @@ alias(run, prim-run)
 alias(==, prim-value-eq)
 alias(<=, prim-value-le)
 alias(<, prim-value-lt)
-alias(value@, prim-value-get)
-alias(value!, prim-value-set)
 
 alias(+, prim-int-add)
 alias(-, prim-int-sub)
@@ -217,10 +215,6 @@ def(u8!!, U8 Offset Ptr --, with-ptr+(u8!))
 def(ints, Size -- Size, 8 *)
 def(int@@, Offset Ptr -- Int, dip(ints) with-ptr+(int@))
 def(int!!, Int Offset Ptr --, dip(ints) with-ptr+(int!))
-
-def(values, Size -- Size, 16 *)
-def(value@@, Offset Ptr -- a, dip(values) with-ptr+(value@))
-def(value!!, a Offset Ptr --, dip(values) with-ptr+(value!))
 
 def(in-range, a a a -- Bool, dip(dip(dup) >= swap) <= &&)
 
