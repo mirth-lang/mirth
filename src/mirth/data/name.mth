@@ -33,10 +33,10 @@ def(Int->Hash, Int -- Hash, HASH_MAX % HASH)
 def(HASH_MAX, Int, 0x10000)
 buffer(HASH_BUF,   0x80000)
 def(hash-name@, Hash -- Maybe(Name),
-    Hash->Int HASH_BUF u64@@ U64->Int
+    Hash->Int HASH_BUF u64@@ /U64
     dup 0= if(drop NONE, Name.from-id SOME))
 def(hash-name!, Name Hash --,
-    dip(Name.id Int->U64)
+    dip(Name.id >U64)
     Hash->Int HASH_BUF u64!!)
 
 ||| Get hash for string.

@@ -107,7 +107,7 @@ def(S_IFMT, Int, 0xF000)
 def(S_IFDIR, Int, 0x4000)
 def(S_IFREG, Int, 0x8000)
 
-def(S_ISDIR, U16 -- Bool, U16->Int S_IFMT & S_IFDIR int==)
+def(S_ISDIR, U16 -- Bool, /U16 S_IFMT & S_IFDIR int==)
 
 def(st_mode@, Ptr -- U16,
     RUNNING_OS match(

@@ -43,14 +43,6 @@ data(PrimType,
     PRIM_TYPE_INT,
     PRIM_TYPE_PTR,
     PRIM_TYPE_STR,
-    PRIM_TYPE_U64,
-    PRIM_TYPE_U32,
-    PRIM_TYPE_U16,
-    PRIM_TYPE_U8,
-    PRIM_TYPE_I64,
-    PRIM_TYPE_I32,
-    PRIM_TYPE_I16,
-    PRIM_TYPE_I8,
     PRIM_TYPE_MUT)
 
 def(prim-type-is-physical, PrimType -- Bool,
@@ -76,6 +68,7 @@ field(data-tags, Data, List(Tag))
 field(tag-data, Tag, Data)
 field(tag-name, Tag, Name)
 field(tag-value, Tag, Int)
+field(tag-num-inputs, Tag, Int)
 field(tag-sig, Tag, Maybe(Token))
 field(tag-ctx-type, Tag, Lazy([Ctx Type]))
 
@@ -86,46 +79,65 @@ var(TAG_T, Tag)
 var(TAG_F, Tag)
 def(TYPE_BOOL, Type, DATA_BOOL @ TData)
 
+var(DATA_U64, Data) var(TAG_U64, Tag)
+var(DATA_U32, Data) var(TAG_U32, Tag)
+var(DATA_U16, Data) var(TAG_U16, Tag)
+var(DATA_U8, Data) var(TAG_U8, Tag)
+var(DATA_I64, Data) var(TAG_I64, Tag)
+var(DATA_I32, Data) var(TAG_I32, Tag)
+var(DATA_I16, Data) var(TAG_I16, Tag)
+var(DATA_I8, Data) var(TAG_I8, Tag)
+def(TYPE_U64, Type, DATA_U64 @ TData)
+def(TYPE_U32, Type, DATA_U32 @ TData)
+def(TYPE_U16, Type, DATA_U16 @ TData)
+def(TYPE_U8, Type, DATA_U8 @ TData)
+def(TYPE_I64, Type, DATA_I64 @ TData)
+def(TYPE_I32, Type, DATA_I32 @ TData)
+def(TYPE_I16, Type, DATA_I16 @ TData)
+def(TYPE_I8, Type, DATA_I8 @ TData)
+
+def(init-data!, Str Mut(Data) List(Mut(Tag)) --,
+    dip(dip(Data.alloc! dup) !)
+    map(dip(Tag.alloc! dup) !)
+    { Str Data List(Tag) }
+    dip(
+        dip(name-new!) 
+        dup2 data-name !
+        tuck TData DEF_TYPE swap name-def !
+    )
+    { Data List(Tag) }
+    dup for(dip(over) tag-data !)
+    over data-tags !
+    { Data }
+    0 over data-arity !
+    NONE over data-header !
+    drop)
+
+def(init-tag!, Str Int Int Type Mut(Tag) --,
+    @
+    sip(ctx-empty rotr tag-data @ TData T1 T-> pack2 LAZY_READY) sip(tag-ctx-type !)
+    sip(tag-num-inputs !)
+    sip(tag-value !)
+    dip(name-new!) dup2 tag-name !
+    DEF_TAG swap name-def !)
+
 def(init-types!, --,
-    Data.alloc! DATA_BOOL !
-    Tag.alloc! TAG_F !
-    Tag.alloc! TAG_T !
-    
-    0 DATA_BOOL @ data-arity !
-    "Bool" name-new! DATA_BOOL @ data-name !
-    TAG_T @ TAG_F @ L2 DATA_BOOL @ data-tags !
-    NONE DATA_BOOL @ data-header !
+    "Bool" DATA_BOOL TAG_F TAG_T L2 init-data!
+    "F" 0 0 T0 TAG_F init-tag!
+    "T" 1 0 T0 TAG_T init-tag!
 
-    DATA_BOOL @ TAG_F @ tag-data !
-    "F" name-new! TAG_F @ tag-name !
-    0 TAG_F @ tag-value !
-    NONE TAG_F @ tag-sig !
-    TAG_F @ DEF_TAG TAG_F @ tag-name @ name-def !
-
-    DATA_BOOL @ TAG_T @ tag-data !
-    "T" name-new! TAG_T @ tag-name !
-    1 TAG_T @ tag-value !
-    NONE TAG_T @ tag-sig !
-    TAG_T @ DEF_TAG TAG_T @ tag-name @ name-def !
-
-    ctx-empty
-    T0 TYPE_BOOL T1 T->
-    pack2 LAZY_READY dup
-    TAG_F @ tag-ctx-type !
-    TAG_T @ tag-ctx-type !
+    "U64" DATA_U64 TAG_U64 L1 init-data! ">U64" 0 1 TYPE_INT T1 TAG_U64 init-tag!
+    "U32" DATA_U32 TAG_U32 L1 init-data! ">U32" 0 1 TYPE_INT T1 TAG_U32 init-tag!
+    "U16" DATA_U16 TAG_U16 L1 init-data! ">U16" 0 1 TYPE_INT T1 TAG_U16 init-tag!
+    "U8"  DATA_U8  TAG_U8  L1 init-data! ">U8"  0 1 TYPE_INT T1 TAG_U8  init-tag!
+    "I64" DATA_I64 TAG_I64 L1 init-data! ">I64" 0 1 TYPE_INT T1 TAG_I64 init-tag!
+    "I32" DATA_I32 TAG_I32 L1 init-data! ">I32" 0 1 TYPE_INT T1 TAG_I32 init-tag!
+    "I16" DATA_I16 TAG_I16 L1 init-data! ">I16" 0 1 TYPE_INT T1 TAG_I16 init-tag!
+    "I8"  DATA_I8  TAG_I8  L1 init-data! ">I8"  0 1 TYPE_INT T1 TAG_I8  init-tag!
 
     TYPE_INT "Int" def-type!
     TYPE_PTR "Ptr" def-type!
     TYPE_STR "Str" def-type!
-    TYPE_U8 "U8" def-type!
-    TYPE_U16 "U16" def-type!
-    TYPE_U32 "U32" def-type!
-    TYPE_U64 "U64" def-type!
-    TYPE_I8 "I8" def-type!
-    TYPE_I16 "I16" def-type!
-    TYPE_I32 "I32" def-type!
-    TYPE_I64 "I64" def-type!
-    TYPE_BOOL "Bool" def-type!
     TYPE_MUT "Mut" def-type!)
 
 #########
@@ -195,14 +207,14 @@ def(TYPE_MUT, Type, PRIM_TYPE_MUT TPrim)
 def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
 def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
 def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but nominally)
-def(TYPE_U8, Type, PRIM_TYPE_U8 TPrim) # fixed width integer type -- unsigned 8 bit
-def(TYPE_U16, Type, PRIM_TYPE_U16 TPrim) # fixed width integer type -- unsigned 16 bit
-def(TYPE_U32, Type, PRIM_TYPE_U32 TPrim) # fixed width integer type -- unsigned 32 bit
-def(TYPE_U64, Type, PRIM_TYPE_U64 TPrim) # fixed width integer type -- unsigned 64 bit
-def(TYPE_I8, Type, PRIM_TYPE_I8 TPrim) # fixed width integer type -- signed 8 bit
-def(TYPE_I16, Type, PRIM_TYPE_I16 TPrim) # fixed width integer type -- signed 16 bit
-def(TYPE_I32, Type, PRIM_TYPE_I32 TPrim) # fixed width integer type -- signed 32 bit
-def(TYPE_I64, Type, PRIM_TYPE_I64 TPrim) # fixed width integer type -- signed 64 bit
+# def(TYPE_U8, Type, PRIM_TYPE_U8 TPrim) # fixed width integer type -- unsigned 8 bit
+# def(TYPE_U16, Type, PRIM_TYPE_U16 TPrim) # fixed width integer type -- unsigned 16 bit
+# def(TYPE_U32, Type, PRIM_TYPE_U32 TPrim) # fixed width integer type -- unsigned 32 bit
+# def(TYPE_U64, Type, PRIM_TYPE_U64 TPrim) # fixed width integer type -- unsigned 64 bit
+# def(TYPE_I8, Type, PRIM_TYPE_I8 TPrim) # fixed width integer type -- signed 8 bit
+# def(TYPE_I16, Type, PRIM_TYPE_I16 TPrim) # fixed width integer type -- signed 16 bit
+# def(TYPE_I32, Type, PRIM_TYPE_I32 TPrim) # fixed width integer type -- signed 32 bit
+# def(TYPE_I64, Type, PRIM_TYPE_I64 TPrim) # fixed width integer type -- signed 64 bit
 
 def(type-expand, Type -- Type,
     TMeta -> meta-expand,
@@ -500,14 +512,6 @@ def(type-trace-prim!, PrimType --,
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
-        PRIM_TYPE_U8 -> "U8",
-        PRIM_TYPE_U16 -> "U16",
-        PRIM_TYPE_U32 -> "U32",
-        PRIM_TYPE_U64 -> "U64",
-        PRIM_TYPE_I8 -> "I8",
-        PRIM_TYPE_I16 -> "I16",
-        PRIM_TYPE_I32 -> "I32",
-        PRIM_TYPE_I64 -> "I64",
         PRIM_TYPE_MUT -> "Mut",
     ) str-trace!)
 
@@ -811,7 +815,7 @@ def(subst-match-var, Gamma Type Var Subst -- Gamma Subst,
 # TAG #
 #######
 
-def(tag-num-inputs?, Tag -- Tag Int,
+def(tag-num-inputs-from-sig, Tag -- Tag Int,
     # TODO: this should actually be calculated & stored during elaboration based on the type
     dup tag-sig @ match(
         NONE -> 0,
@@ -840,10 +844,10 @@ def(data-add-tag!, Tag Data --,
     dup data-tags @ rotr dip(snoc) data-tags !)
 
 def(data-is-enum?, Data -- Data Bool,
-    dup data-tags @ all?(tag-num-inputs? 0 int==) nip)
+    dup data-tags @ all?(dup tag-num-inputs @ 0=) nip)
 
 def(data-is-transparent, Data -- Bool,
     data-tags @ match(
-        L1 -> tag-num-inputs? 1 int== nip,
+        L1 -> tag-num-inputs @ 1 int==,
         _ -> drop F
     ))

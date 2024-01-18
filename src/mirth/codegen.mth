@@ -230,11 +230,11 @@ def(c99-tag!, Tag --,
     dup tag-name @ .w " {" ;
     tag-is-transparent? if(
         drop,
-        tag-num-inputs? 0 int== if(
+        dup tag-num-inputs @ 0 int== if(
             "    push_u64(" . tag-value @ .n "LL);" ;,
 
             "    VAL car = pop_value();" ;
-            tag-num-inputs? 1- repeat("    car = mkcons(car, pop_value());" ;)
+            dup tag-num-inputs @ 1- repeat("    car = mkcons(car, pop_value());" ;)
             "    VAL tag = MKU64(" . tag-value @ .n "LL);" ;
             "    car = mkcons(car, tag);" ;
             "    push_value(car);" ;
@@ -525,7 +525,7 @@ def(c99-pattern!, Pattern --,
     PATTERN_TAG ->
         c99-line("case " . dup tag-value @ .n "LL:" .)
         c99-nest(
-            tag-num-inputs? nip dup 0 int> if(
+            tag-num-inputs @ dup 0 int> if(
                 c99-line("mw_prim_pack_uncons(); mw_prim_drop();" .)
                 1- repeat(c99-line("mw_prim_pack_uncons(); mw_prim_swap();" .)),
                 drop c99-line("mw_prim_drop();" .)
