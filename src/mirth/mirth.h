@@ -381,6 +381,19 @@ static int value_cmp_(VAL v1, VAL v2) {
     return 0;
 }
 
+static int str_cmp_(STR* s1, STR* s2) {
+    ASSERT(s1 && s2);
+    USIZE n1 = s1->size;
+    USIZE n2 = s2->size;
+    USIZE n = (n1 < n2 ? n1 : n2);
+    ASSERT(n < SIZE_MAX);
+    int r = memcmp(s1->data, s2->data, (size_t)n);
+    if (r) return r;
+    if (n1 < n2) return -1;
+    if (n1 > n2) return 1;
+    return 0;
+}
+
 static void run_value(VAL v) {
     // TODO Make a closure tag or something.
     // As it is, this feels kinda wrong.
@@ -579,6 +592,34 @@ static void mw_prim_value_le (void) {
     push_bool(cmp <= 0);
     decref(a); decref(b);
     PRIM_EXIT(mw_prim_value_le);
+}
+
+static void mw_prim_int_eq (void) {
+    PRIM_ENTER(mw_prim_int_eq,"prim-int-eq");
+    VAL b = pop_value();
+    VAL a = pop_value();
+    ASSERT1(IS_INT(a), a);
+    ASSERT1(IS_INT(b), a);
+    push_bool(VINT(a) == VINT(b));
+    PRIM_EXIT(mw_prim_int_eq);
+}
+static void mw_prim_int_lt (void) {
+    PRIM_ENTER(mw_prim_int_lt,"prim-int-lt");
+    VAL b = pop_value();
+    VAL a = pop_value();
+    ASSERT2(IS_INT(a) && IS_INT(b), a, b);
+    push_bool(VINT(a) < VINT(b));
+    PRIM_EXIT(mw_prim_int_lt);
+}
+static void mw_prim_str_cmp (void) {
+    PRIM_ENTER(mw_prim_str_cmp,"prim-str-cmp");
+    VAL b = pop_value();
+    VAL a = pop_value();
+    ASSERT2(IS_STR(a) && IS_STR(b), a, b);
+    int64_t cmp = str_cmp_(VSTR(a), VSTR(b));
+    push_i64(cmp);
+    decref(a); decref(b);
+    PRIM_EXIT(mw_prim_str_cmp);
 }
 
 static void mw_prim_sys_argc (void) {
