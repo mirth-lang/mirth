@@ -38,7 +38,7 @@ def(main, --,
     "[" over for(swap str-trace! int-trace! " ") drop "]" str-trace-ln!
     map(10 +)
     "[" over for(swap str-trace! int-trace! " ") drop "]" str-trace-ln!
-    find(dup 25 >) match(
+    find(dup 25 int>) match(
         SOME -> int-trace! " found" str-trace-ln!,
         NONE -> "not found" str-trace-ln!
     ))

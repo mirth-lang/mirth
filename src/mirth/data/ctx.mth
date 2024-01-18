@@ -22,7 +22,7 @@ def(ctx-vars, Ctx -- List(Var), unCTX)
 def(ctx-physical-vars, Ctx -- List(Var),
     ctx-vars filter(dup var-is-physical))
 def(ctx-lookup, Name Ctx -- Maybe(Var),
-    unCTX reverse-find(dup2 var-name @ ==) nip)
+    unCTX reverse-find(dup2 var-name @ name==) nip)
 
 def(ctx-len, Ctx -- Int, CTX -> len)
 def(ctx-fresh-name!, Ctx -- Ctx Name,

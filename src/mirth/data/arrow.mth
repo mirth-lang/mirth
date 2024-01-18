@@ -108,6 +108,8 @@ def(arrow-atom-add!, Arrow Atom -- Arrow,
 # BLOCK #
 #########
 
+def(block==, Block Block -- Bool, both(Block.id) int==)
+
 def(block-new!, Arrow -- Block,
     Block.alloc!
     over arrow-ctx @ over block-ctx !
@@ -146,7 +148,6 @@ def(block-unify-type!, Gamma Block Type -- Gamma Type,
 # mirth/data/type
 table(Match)
 table(Case)
-data(Pattern, PATTERN_UNDERSCORE, PATTERN_TAG -> Tag)
 
 field(match-ctx, Match, Ctx)
 field(match-dom, Match, Type)
@@ -173,7 +174,7 @@ def(match-is-exhaustive?, Match -- Match Bool,
         match-scrutinee-data? match(
             SOME ->
                 data-num-tags
-                over match-cases @ len ==,
+                over match-cases @ len int==,
             NONE ->
                 T # presume exhaustiveness
         )
@@ -222,13 +223,30 @@ def(cases-have-default-case, List(Case) -- Bool,
     any(dup case-is-default-case))
 
 def(case-is-default-case, Case -- Bool,
-    case-pattern @ PATTERN_UNDERSCORE ==)
+    case-pattern @ pattern-is-underscore)
 
 ###########
 # PATTERN #
 ###########
 
+data(Pattern,
+    PATTERN_UNDERSCORE,
+    PATTERN_TAG -> Tag)
+
+def(pattern-is-underscore, Pattern -- Bool,
+    PATTERN_UNDERSCORE -> T,
+    PATTERN_TAG -> drop F)
+
+def(pattern-equals-tag, Tag Pattern -- Bool,
+    PATTERN_TAG -> tag==,
+    PATTERN_UNDERSCORE -> drop F)
+
+def(pattern==, Pattern Pattern -- Bool,
+    PATTERN_UNDERSCORE -> pattern-is-underscore,
+    PATTERN_TAG -> swap pattern-equals-tag)
+
 ||| Asks whether the second pattern already
 ||| covers the case of the first pattern.
 def(pattern-is-covered, Pattern Pattern -- Bool,
-    dup PATTERN_UNDERSCORE == if(drop2 T, ==))
+    PATTERN_UNDERSCORE -> drop T,
+    PATTERN_TAG -> swap pattern-equals-tag)

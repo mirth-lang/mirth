@@ -19,7 +19,7 @@ table(Name)
 field(name-str, Name, Str)
 field(name-def, Name, Def)
 field(name-mangled, Name, Lazy(Str))
-def(name-is-nil, Name -- Bool, Name.id 0 ==)
+def(name-is-nil, Name -- Bool, Name.id 0 int==)
 
 def(name-debug!, Name --,
     dup name-str @ str-trace!
@@ -33,9 +33,11 @@ def(Int->Hash, Int -- Hash, HASH_MAX % HASH)
 def(HASH_MAX, Int, 0x10000)
 buffer(HASH_BUF,   0x80000)
 def(hash-name@, Hash -- Maybe(Name),
-    Hash->Int HASH_BUF int@@
+    Hash->Int HASH_BUF u64@@ U64->Int
     dup 0= if(drop NONE, Name.from-id SOME))
-def(hash-name!, Name Hash --, dip(Name.id) Hash->Int HASH_BUF int!!)
+def(hash-name!, Name Hash --,
+    dip(Name.id Int->U64)
+    Hash->Int HASH_BUF u64!!)
 
 ||| Get hash for string.
 def(hash, Str -- Hash,
@@ -48,7 +50,7 @@ def(next-hash, Hash -- Hash, Hash->Int 1+ Int->Hash)
 def(name-keep-going?, Str Hash -- Str Hash Bool,
     dup hash-name@ match(
         NONE -> F,
-        SOME -> name-str @ over2 <>
+        SOME -> name-str @ over2 str<>
     ))
 
 def(name-new!, Str -- Name,
@@ -76,9 +78,9 @@ def(name-print!, Name --,
     name-str @ str-print!)
 
 def(name-head, Name -- Byte,
-    name-str @ with-str-data(1 >= if(byte@, drop BNUL)))
+    name-str @ with-str-data(1 int>= if(byte@, drop BNUL)))
 def(name-tail-head, Name -- Byte,
-    name-str @ with-str-data(2 >= if(dip(1) ptr+ byte@, drop BNUL)))
+    name-str @ with-str-data(2 int>= if(dip(1) ptr+ byte@, drop BNUL)))
 
 def(name-could-be-type, Name -- Bool,
     name-head byte-is-alpha)
@@ -90,19 +92,19 @@ def(name-could-be-type-con, Name -- Bool,
     name-head byte-is-upper)
 
 def(name-is-type-hole, Name -- Bool,
-    dup name-head B'?' ==
-    swap name-tail-head dup BNUL == swap byte-is-lower || &&)
+    dup name-head B'?' byte==
+    swap name-tail-head dup BNUL byte== swap byte-is-lower || &&)
 
 def(name-is-underscore, Name -- Bool,
-    dup name-head B'_' ==
-    swap name-tail-head BNUL == &&)
+    dup name-head B'_' byte==
+    swap name-tail-head BNUL byte== &&)
 
 def(name-could-be-stack-var, Name -- Bool,
-    dup name-head B'*' ==
+    dup name-head B'*' byte==
     swap name-tail-head byte-is-lower &&)
 
 def(name-could-be-effect-con, Name -- Bool,
-    dup name-head B'+' ==
+    dup name-head B'+' byte==
     swap name-tail-head byte-is-lower &&)
 
 def(name-print-mangled!, Name --,
@@ -115,7 +117,7 @@ def(name-mangle-compute!, Name -- Str,
     build-str!(name-str @ str-bytes-for(
         dup byte-is-alnum if(
             str-buf-push-byte!,
-            dup B'-' == if(
+            dup B'-' byte== if(
                 drop B'_' str-buf-push-byte!,
                 B'_' str-buf-push-byte!
                 byte-to-hexdigits dip(str-buf-push-byte!) str-buf-push-byte!
@@ -123,10 +125,12 @@ def(name-mangle-compute!, Name -- Str,
             )
         )
     )))
+    
+def(name==, Name Name -- Bool, both(Name.id) int==)
 
 ########
 # Defs #
 ########
 
-def(name-undefined?, Name -- Name Bool, dup name-def @ DEF_NONE ==)
+def(name-undefined?, Name -- Name Bool, dup name-def @ match(DEF_NONE -> T, _ -> drop F))
 def(name-defined?, Name -- Name Bool, name-undefined? not)

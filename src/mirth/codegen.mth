@@ -30,10 +30,10 @@ import(mirth.elab)
 # Codegen #
 ###########
 
-def(CODEGEN_BUF_SIZE, Size, 0x100)
+def(CODEGEN_BUF_SIZE, Size, 0x2000)
 var(codegen-file, File)
 var(codegen-length, Size)
-buffer(CODEGEN_BUF, 0x100)
+buffer(CODEGEN_BUF, 0x2000)
 data(Need,
     NEED_WORD -> Word,
     NEED_BLOCK -> Block)
@@ -125,14 +125,14 @@ def(need-block-run, Block --,
     block-arrow force! need-arrow-run)
 
 def(codegen-full?, Bool,
-    codegen-length @ 4 + CODEGEN_BUF_SIZE >=)
+    codegen-length @ 4 + CODEGEN_BUF_SIZE int>=)
 
 def(codegen-flush!, --,
-    codegen-length @ 0 > if(
+    codegen-length @ 0 int> if(
         codegen-file @ File->Int CODEGEN_BUF codegen-length @
         posix-write!
-        expect!(dup 0 >, "codegen write failed")
-        expect!(dup codegen-length @ ==, "codegen wrote fewer bytes than expected")
+        expect!(dup 0 int>, "codegen write failed")
+        expect!(dup codegen-length @ int==, "codegen wrote fewer bytes than expected")
         drop
         0 codegen-length !,
         id
@@ -146,9 +146,9 @@ def(.b, Byte --,
 
 def(., Str --,
     dup prim-str-base over str-num-bytes
-    dup codegen-length @ + CODEGEN_BUF_SIZE > if(
+    dup codegen-length @ + CODEGEN_BUF_SIZE int> if(
         codegen-flush!
-        while(dup CODEGEN_BUF_SIZE >,
+        while(dup CODEGEN_BUF_SIZE int>,
             over CODEGEN_BUF_SIZE CODEGEN_BUF prim-ptr-copy
             CODEGEN_BUF_SIZE codegen-length !
             codegen-flush!
@@ -171,7 +171,7 @@ def(codegen-end!, --,
     0 codegen-length !)
 
 def(run-output-c99!, Arrow Path --,
-    num-errors @ 0 > if(
+    num-errors @ 0 int> if(
         drop2,
 
         reset-needs!
@@ -230,7 +230,7 @@ def(c99-tag!, Tag --,
     dup tag-name @ .w " {" ;
     tag-is-transparent? if(
         drop,
-        tag-num-inputs? 0 == if(
+        tag-num-inputs? 0 int== if(
             "    push_u64(" . tag-value @ .n "LL);" ;,
 
             "    VAL car = pop_value();" ;
@@ -247,10 +247,10 @@ def(c99-externals!, --,
 
 def(c99-external!, External --,
     dup external-sig @ sig-arity
-    dup 2 >= if(
+    dup 2 int>= if(
         "can't declare external with multiple return values" panic!,
 
-        dup 1 >= if(
+        dup 1 int>= if(
             "int64_t " .,
             "void " .
         )
@@ -329,12 +329,12 @@ def(c99-str!, Str --,
         c99-line("static VAL v;" .)
         c99-line("if (! vready) {" .)
         c99-nest(
-            dup str-num-bytes 4090 > if(
+            dup str-num-bytes 4090 int> if(
                 "static uint8_t b[] = {" .
                 c99-nest(
                     c99-indent dup str-bytes-for(
                         Byte->Int dup .n "," .
-                        10 == if(.lf c99-indent, id)
+                        10 int== if(.lf c99-indent, id)
                     ) .lf
                 )
                 c99-line("};" .)
@@ -353,20 +353,17 @@ def(c99-str!, Str --,
 def(.str, Str --, "\"" . str-bytes-for(c99-string-byte!) "\"" .)
 
 def(c99-string-byte!, Byte --,
-    dup B'\' == if( # backslash
-        drop "\\\\" .,
-    dup BQUOTE == if ( # quote
-        drop "\\\"" .,
-    dup BSPACE B'~' in-range if(
-        .b,
-    dup BHT == if(
-        drop "\\t" .,
-    dup BLF == if(
-        drop "\\n" .,
-    dup BCR == if(
-        drop "\\r" .,
-        "\\x" . byte-to-hexdigits dip(.b) .b
-    )))))))
+    B'\' -> "\\\\" .,
+    BQUOTE -> "\\\"" .,
+    BHT -> "\\t" ., 
+    BLF -> "\\n" .,
+    BCR -> "\\r" .,
+    _ -> 
+        dup BSPACE B'~' byte-in-range if(
+            .b,
+            "\\x" . byte-to-hexdigits dip(.b) .b
+        )
+    )
 
 def(c99-constant!, Constant --,
     constant-value @ c99-value!)
@@ -528,7 +525,7 @@ def(c99-pattern!, Pattern --,
     PATTERN_TAG ->
         c99-line("case " . dup tag-value @ .n "LL:" .)
         c99-nest(
-            tag-num-inputs? nip dup 0 > if(
+            tag-num-inputs? nip dup 0 int> if(
                 c99-line("mw_prim_pack_uncons(); mw_prim_drop();" .)
                 1- repeat(c99-line("mw_prim_pack_uncons(); mw_prim_swap();" .)),
                 drop c99-line("mw_prim_drop();" .)

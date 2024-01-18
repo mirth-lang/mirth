@@ -7,9 +7,6 @@ data(File, FILE -> Int)
 def(Int->File, Int -- File, FILE)
 def(File->Int, File -- Int, FILE -> id)
 
-def(file@, Ptr -- File, int@ Int->File)
-def(file!, File Ptr --, dip(File->Int) int!)
-
 def(stdin, File, 0 Int->File)
 def(stdout, File, 1 Int->File)
 def(stderr, File, 2 Int->File)
@@ -19,8 +16,8 @@ def(str-write!, Str File --,
 
 def(slice-write!, File Ptr Int --,
     dip2(File->Int) dup dip(posix-write!)
-    expect!(dup 0 >=, "write failed")
-    expect!(dup2 ==, "write output fewer bytes than expected")
+    expect!(dup 0 int>=, "write failed")
+    expect!(dup2 int==, "write output fewer bytes than expected")
     drop2)
 
 def(str-print!, Str --, stdout str-write!)
@@ -38,14 +35,14 @@ def(int-print-ln!, Int --, int-print! print-ln!)
 def(int-trace-ln!, Int --, int-trace! trace-ln!)
 
 def(with-open-file!(f,g), (*a File -- *b, *a -- *b) *a Str -- *b,
-    0 0 posix-open! dup 0 < if(drop g, dup dip(Int->File f) posix-close! drop))
+    0 0 posix-open! dup 0 int< if(drop g, dup dip(Int->File f) posix-close! drop))
 
 def(READ_FILE_BUF_SIZE, 0x1000)
 buffer(READ_FILE_BUF, 0x1000)
 def(read-file!, File -- Str,
     File->Int \(fp -> ""
     fp READ_FILE_BUF READ_FILE_BUF_SIZE prim-posix-read
-    while(dup 0 >,
+    while(dup 0 int>,
         READ_FILE_BUF swap prim-str-copy str-cat
         fp READ_FILE_BUF READ_FILE_BUF_SIZE prim-posix-read)
     expect!(dup 0=, "error while reading file")
@@ -53,7 +50,7 @@ def(read-file!, File -- Str,
 
 def(open-file!, Str -- File,
     0 0 posix-open!
-    expect!(dup 0 >, "failed to open file")
+    expect!(dup 0 int>, "failed to open file")
     Int->File)
 
 def(create-file!, Str -- File,
@@ -64,7 +61,7 @@ def(create-file!, Str -- File,
         # read+write, everyone can read
         #  ---- NB: this is inaccurate . . .
     posix-open!
-    expect!(dup 0 >, "failed to create file")
+    expect!(dup 0 int>, "failed to create file")
     Int->File)
 
 def(O_WRONLY|O_CREAT|O_TRUNC, Int,
@@ -77,7 +74,7 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
 
 def(close-file!, File --,
     File->Int posix-close!
-    expect!(dup 0 >=, "failed to close file")
+    expect!(dup 0 int>=, "failed to close file")
     drop)
 
 ########
@@ -93,7 +90,7 @@ def(with-raw-path(f), (*a RawPtr -- *b) *a Path -- *b Path,
 def(is-directory?, Path -- Path Bool,
     with-raw-path(
         POSIX_STAT_BUF with-raw-ptr(stat)
-        swap 0 == if(
+        swap 0 int== if(
             st_mode@ S_ISDIR,
             drop F
         )
@@ -110,7 +107,7 @@ def(S_IFMT, Int, 0xF000)
 def(S_IFDIR, Int, 0x4000)
 def(S_IFREG, Int, 0x8000)
 
-def(S_ISDIR, U16 -- Bool, U16->Int S_IFMT & S_IFDIR ==)
+def(S_ISDIR, U16 -- Bool, U16->Int S_IFMT & S_IFDIR int==)
 
 def(st_mode@, Ptr -- U16,
     RUNNING_OS match(

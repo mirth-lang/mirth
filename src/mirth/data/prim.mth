@@ -26,12 +26,9 @@ data(Prim,
     PRIM_CORE_LAMBDA,
 
     PRIM_UNSAFE_CAST,
-    PRIM_VALUE_EQ,
-    PRIM_VALUE_LT,
-    PRIM_VALUE_LE,
-    PRIM_VALUE_GET,
-    PRIM_VALUE_SET,
 
+    PRIM_INT_EQ,
+    PRIM_INT_LT,
     PRIM_INT_ADD,
     PRIM_INT_SUB,
     PRIM_INT_MUL,
@@ -42,8 +39,6 @@ data(Prim,
     PRIM_INT_XOR,
     PRIM_INT_SHL,
     PRIM_INT_SHR,
-    PRIM_INT_GET,
-    PRIM_INT_SET,
     PRIM_INT_TO_STR,
 
     PRIM_PACK_NIL,
@@ -66,6 +61,7 @@ data(Prim,
     PRIM_PTR_FILL,
     PRIM_PTR_RAW,
 
+    PRIM_STR_CMP,
     PRIM_STR_ALLOC,
     PRIM_STR_COPY,
     PRIM_STR_NUM_BYTES,
@@ -122,10 +118,13 @@ field(prim-ctx, Prim, Ctx)
 field(prim-type, Prim, Type)
 field(prim-decl, Prim, Maybe([Token -- Token]))
 
+def(Prim->Int, Prim -- Int, prim-unsafe-cast)
+def(prim==, both(Prim->Int) int==)
+
 ||| Does this name refer to this primitive?
 def(name-prim=, Name Prim -- Bool,
     swap name-def @ match(
-        DEF_PRIM -> ==,
+        DEF_PRIM -> prim==,
         _ -> drop2 F
     ))
 
@@ -189,12 +188,6 @@ def(init-prims!, --,
 
     PRIM_UNSAFE_CAST "prim-unsafe-cast" def-prim!
 
-    PRIM_VALUE_EQ "prim-value-eq" def-prim!
-    PRIM_VALUE_LT "prim-value-lt" def-prim!
-    PRIM_VALUE_LE "prim-value-le" def-prim!
-    PRIM_VALUE_GET "prim-value-get" def-prim!
-    PRIM_VALUE_SET "prim-value-set" def-prim!
-
     PRIM_INT_ADD "prim-int-add" def-prim!
     PRIM_INT_SUB "prim-int-sub" def-prim!
     PRIM_INT_MUL "prim-int-mul" def-prim!
@@ -205,9 +198,9 @@ def(init-prims!, --,
     PRIM_INT_XOR "prim-int-xor" def-prim!
     PRIM_INT_SHL "prim-int-shl" def-prim!
     PRIM_INT_SHR "prim-int-shr" def-prim!
-    PRIM_INT_GET "prim-int-get" def-prim!
-    PRIM_INT_SET "prim-int-set" def-prim!
     PRIM_INT_TO_STR "prim-int-to-str" def-prim!
+    PRIM_INT_EQ "prim-int-eq" def-prim!
+    PRIM_INT_LT "prim-int-lt" def-prim!
 
     PRIM_PACK_NIL "prim-pack-nil" def-prim!
     PRIM_PACK_CONS "prim-pack-cons" def-prim!
@@ -233,6 +226,7 @@ def(init-prims!, --,
     PRIM_STR_NUM_BYTES "prim-str-num-bytes" def-prim!
     PRIM_STR_BASE "prim-str-base" def-prim!
     PRIM_STR_CAT "prim-str-cat" def-prim!
+    PRIM_STR_CMP "prim-str-cmp" def-prim!
 
     PRIM_U8_GET "prim-u8-get" def-prim!
     PRIM_U8_SET "prim-u8-set" def-prim!
@@ -302,9 +296,13 @@ def(init-prims!, --,
     dup PRIM_INT_SHR prim-type !
     drop
 
+    TYPE_INT TYPE_INT T2 TYPE_BOOL T1 T->
+    dup PRIM_INT_EQ prim-type !
+    dup PRIM_INT_LT prim-type !
+    drop
+
     TYPE_INT T1 TYPE_STR T1 T-> PRIM_INT_TO_STR prim-type !
 
-    TYPE_PTR T1 TYPE_INT T1 T-> PRIM_INT_GET prim-type !
     TYPE_PTR T1 TYPE_PTR T1 T-> PRIM_PTR_GET prim-type !
     TYPE_PTR T1 TYPE_U8  T1 T-> PRIM_U8_GET  prim-type !
     TYPE_PTR T1 TYPE_U16 T1 T-> PRIM_U16_GET prim-type !
@@ -315,7 +313,6 @@ def(init-prims!, --,
     TYPE_PTR T1 TYPE_I32 T1 T-> PRIM_I32_GET prim-type !
     TYPE_PTR T1 TYPE_I64 T1 T-> PRIM_I64_GET prim-type !
 
-    TYPE_INT TYPE_PTR T2 T0 T-> PRIM_INT_SET prim-type !
     TYPE_PTR TYPE_PTR T2 T0 T-> PRIM_PTR_SET prim-type !
     TYPE_U8  TYPE_PTR T2 T0 T-> PRIM_U8_SET  prim-type !
     TYPE_U16 TYPE_PTR T2 T0 T-> PRIM_U16_SET prim-type !
@@ -381,6 +378,9 @@ def(init-prims!, --,
     TYPE_STR TYPE_STR T2 TYPE_STR T1 T->
     PRIM_STR_CAT prim-type !
 
+    TYPE_STR TYPE_STR T2 TYPE_INT T1 T->
+    PRIM_STR_CMP prim-type !
+
     T0 TYPE_INT T1 T->
     PRIM_SYS_OS prim-type !
 
@@ -410,20 +410,6 @@ def(init-prims!, --,
 
     TVar dup T1 dup rotl T* T->
     PRIM_CORE_DUP prim-type !
-
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup ctx-empty swap ctx-new!
-
-    dup PRIM_VALUE_EQ prim-ctx !
-    dup PRIM_VALUE_LT prim-ctx !
-    dup PRIM_VALUE_LE prim-ctx !
-    drop
-
-    TVar dup T2 TYPE_BOOL T1 T->
-    dup PRIM_VALUE_EQ prim-type !
-    dup PRIM_VALUE_LT prim-type !
-    dup PRIM_VALUE_LE prim-type !
-    drop
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
     "b" name-new! var-new-implicit! TYPE_TYPE over var-type !
@@ -519,22 +505,6 @@ def(init-prims!, --,
     dip(TVar) TVar
     dup2 T* T1 rotr T2 T->
     PRIM_PACK_UNCONS prim-type !
-
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup ctx-empty swap ctx-new!
-    PRIM_VALUE_GET prim-ctx !
-
-    TVar
-    dip(TYPE_PTR T1) T1 T->
-    PRIM_VALUE_GET prim-type !
-
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup ctx-empty swap ctx-new!
-    PRIM_VALUE_SET prim-ctx !
-
-    TVar
-    TYPE_PTR T2 T0 T->
-    PRIM_VALUE_SET prim-type !
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
     dup ctx-empty swap ctx-new!

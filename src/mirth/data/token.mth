@@ -200,7 +200,7 @@ def(token-num-args?, Token -- Token Int,
 ||| Verify that token has 0 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(token-args-0, Token --,
-    token-num-args? 0 == if(
+    token-num-args? 0 int== if(
         drop,
         "expected no args" emit-fatal-error!
     ))
@@ -208,10 +208,10 @@ def(token-args-0, Token --,
 ||| Verify that token has 1 arg, and return it.
 ||| Emits a fatal error if arity is wrong.
 def(token-args-1, Token -- Token,
-    token-num-args? 1 == if(
+    token-num-args? 1 int== if(
         token-is-name? if(token-succ, id)
         token-succ,
-        token-num-args? 1 < if(
+        token-num-args? 1 int< if(
             "expected 1 arg, got none" emit-fatal-error!,
             "expected 1 arg, got too many" emit-fatal-error!
         )
@@ -220,12 +220,12 @@ def(token-args-1, Token -- Token,
 ||| Verify that token has 2 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(token-args-2, Token -- Token Token,
-    token-num-args? 2 == if(
+    token-num-args? 2 int== if(
         token-is-name? if(token-succ, id)
         token-succ
         dup token-next-arg-end token-succ,
 
-        token-num-args? 2 < if(
+        token-num-args? 2 int< if(
             "expected 2 args, got too few" emit-fatal-error!,
             "expected 2 args, got too many" emit-fatal-error!
         )
@@ -234,13 +234,13 @@ def(token-args-2, Token -- Token Token,
 ||| Verify that token has 3 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(token-args-3, Token -- Token Token Token,
-    token-num-args? 3 == if(
+    token-num-args? 3 int== if(
         token-is-name? if(token-succ, id)
         token-succ
         dup token-next-arg-end token-succ
         dup token-next-arg-end token-succ,
 
-        token-num-args? 3 < if(
+        token-num-args? 3 int< if(
             "expected 3 args, got too few" emit-fatal-error!,
             "expected 3 args, got too many" emit-fatal-error!
         )
@@ -274,7 +274,7 @@ def(token-args+, Token -- List+(Token),
 
 ||| Get one arg plus a nonempty list of the rest.
 def(token-args-2+, Token -- Token List+(Token),
-    dup token-args dup len 2 >= if(nip,
+    dup token-args dup len 2 int>= if(nip,
         drop "expected 2+ args" emit-fatal-error!)
     List->List+ unwrap uncons
     List->List+ unwrap)

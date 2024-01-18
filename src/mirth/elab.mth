@@ -6,7 +6,6 @@ import(data.str)
 import(data.lazy)
 import(data.list)
 import(data.maybe)
-import(data.set)
 import(data.path)
 import(mirth.data.name)
 import(mirth.data.def)
@@ -129,7 +128,7 @@ def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
     token-name? name-def @ match(
         DEF_TYPE ->
             over token-num-args
-            over type-arity == if(
+            over type-arity int== if(
                 elab-type-args!,
 
                 drop dup
@@ -256,13 +255,13 @@ def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
 
 def(atom-accepts-args?, Atom -- Atom Bool,
     dup atom-op @ match(
-        OP_WORD -> dip(dup atom-args @ len) elab-word-sig! type-max-num-params <,
+        OP_WORD -> dip(dup atom-args @ len) elab-word-sig! type-max-num-params int<,
         OP_PRIM ->
             match(
-                PRIM_CORE_RUN -> dup atom-args @ len 1 <, # this one's dubious
-                PRIM_CORE_DIP -> dup atom-args @ len 1 <,
-                PRIM_CORE_IF -> dup atom-args @ len 2 <,
-                PRIM_CORE_WHILE -> dup atom-args @ len 2 <,
+                PRIM_CORE_RUN -> dup atom-args @ len 1 int<, # this one's dubious
+                PRIM_CORE_DIP -> dup atom-args @ len 1 int<,
+                PRIM_CORE_IF -> dup atom-args @ len 2 int<,
+                PRIM_CORE_WHILE -> dup atom-args @ len 2 int<,
                 _ -> drop F
             ),
         _ -> drop F
@@ -516,10 +515,7 @@ def(elab-check-name-visible!, Name -- Name,
     ))
 
 def(elab-module-is-visible, Module -- Bool,
-    dup ab-token @ token-module @ == if(
-        drop T,
-        ab-token @ token-module @ module-imports @ set-has
-    ))
+    ab-token @ token-module @ module-visible-in-module)
 
 def(elab-atom-name-global!, Name --,
     name-def @ match(
@@ -757,7 +753,7 @@ def(elab-module-header!, Token -- Token,
         dup2 module-name !
         dup2 DEF_MODULE swap name-def !
         module-path @ swap
-        module-path-from-name == if(drop,
+        module-path-from-name path== if(drop,
             "Module name should match path." emit-error!)
         token-next,
         dup "Expected module header." emit-error!
@@ -879,7 +875,7 @@ def(expect-token-arrow, Token -- Token,
 |||     - (optional) sig: the type signature
 |||     - body: a nonempty list of body arguments
 def(token-def-args, Token -- Token Maybe(Token) List+(Token),
-    dup token-args len? 2 >= if(nip,
+    dup token-args len? 2 int>= if(nip,
         drop "def expects at least two arguments" emit-fatal-error!)
     List->List+ unwrap uncons
     List->List+ unwrap uncons
@@ -1164,7 +1160,8 @@ def(table-new!, Token Name -- Table,
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         dup table-num-buffer @ ab-buffer!
-        PRIM_INT_GET ab-prim!
+        PRIM_U64_GET ab-prim!
+        PRIM_UNSAFE_CAST ab-prim!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         PRIM_INT_MOD ab-prim!
@@ -1183,7 +1180,7 @@ def(table-new!, Token Name -- Table,
         PRIM_UNSAFE_CAST ab-prim!
         PRIM_CORE_DUP ab-prim!
         0 ab-int!
-        PRIM_VALUE_EQ ab-prim!
+        PRIM_INT_EQ ab-prim!
         ab-if!(
             id,
             1 ab-int!
@@ -1217,8 +1214,11 @@ def(table-new!, Token Name -- Table,
                 ab-while! (
                     PRIM_CORE_DUP ab-prim!
                     t table-num-buffer @ ab-buffer!
-                    PRIM_INT_GET ab-prim!
-                    PRIM_VALUE_LE ab-prim!,
+                    PRIM_U64_GET ab-prim!
+                    PRIM_UNSAFE_CAST ab-prim!
+                    1 ab-int!
+                    PRIM_INT_ADD ab-prim!
+                    PRIM_INT_LT ab-prim!,
 
                     PRIM_CORE_DUP ab-prim!
                     ab-dip! (
@@ -1244,12 +1244,14 @@ def(table-new!, Token Name -- Table,
     ab-build-word! (
         dup table-head @ ab-token !
         dup table-num-buffer @ ab-buffer!
-        PRIM_INT_GET ab-prim!
+        PRIM_U64_GET ab-prim!
+        PRIM_UNSAFE_CAST ab-prim!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         PRIM_CORE_DUP ab-prim!
+        PRIM_UNSAFE_CAST ab-prim!
         dup table-num-buffer @ ab-buffer!
-        PRIM_INT_SET ab-prim!
+        PRIM_U64_SET ab-prim!
         PRIM_UNSAFE_CAST ab-prim!
     )
     drop

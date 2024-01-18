@@ -151,9 +151,9 @@ def(cat-aux, List+(t) List+(t) -- List+(t),
     rebalance+ dup2 dip(len+) len+ + LCAT+)
 
 def(rebalance+, List+(t) List+(t) -- List+(t) List+(t),
-    dup2 dip(len+) len+ dup2 6 * > if(
+    dup2 dip(len+) len+ dup2 6 * int> if(
         drop2 dip(split-half-left) cat_+ rebalance+,
-        dip(6 *) < if(
+        dip(6 *) int< if(
             split-half-right dip(cat+_) rebalance+,
             id
         )

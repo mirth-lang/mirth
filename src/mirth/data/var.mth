@@ -26,3 +26,5 @@ def(var-new-implicit!, Name -- Var,
 
 def(var-is-physical, Var -- Bool,
     var-type @ type-is-physical)
+
+def(var==, Var Var -- Bool, both(Var.id) int==)

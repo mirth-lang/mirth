@@ -381,6 +381,19 @@ static int value_cmp_(VAL v1, VAL v2) {
     return 0;
 }
 
+static int str_cmp_(STR* s1, STR* s2) {
+    ASSERT(s1 && s2);
+    USIZE n1 = s1->size;
+    USIZE n2 = s2->size;
+    USIZE n = (n1 < n2 ? n1 : n2);
+    ASSERT(n < SIZE_MAX);
+    int r = memcmp(s1->data, s2->data, (size_t)n);
+    if (r) return r;
+    if (n1 < n2) return -1;
+    if (n1 > n2) return 1;
+    return 0;
+}
+
 static void run_value(VAL v) {
     // TODO Make a closure tag or something.
     // As it is, this feels kinda wrong.
@@ -553,32 +566,32 @@ static void mw_prim_int_shr (void) {
     PRIM_EXIT(mw_prim_int_shr);
 }
 
-static void mw_prim_value_eq (void) {
-    PRIM_ENTER(mw_prim_value_eq,"prim-value-eq");
+static void mw_prim_int_eq (void) {
+    PRIM_ENTER(mw_prim_int_eq,"prim-int-eq");
     VAL b = pop_value();
     VAL a = pop_value();
-    int cmp = value_cmp_(a,b);
-    push_bool(cmp == 0);
-    decref(a); decref(b);
-    PRIM_EXIT(mw_prim_value_eq);
+    ASSERT1(IS_INT(a), a);
+    ASSERT1(IS_INT(b), a);
+    push_bool(VINT(a) == VINT(b));
+    PRIM_EXIT(mw_prim_int_eq);
 }
-static void mw_prim_value_lt (void) {
-    PRIM_ENTER(mw_prim_value_lt,"prim-value-lt");
+static void mw_prim_int_lt (void) {
+    PRIM_ENTER(mw_prim_int_lt,"prim-int-lt");
     VAL b = pop_value();
     VAL a = pop_value();
-    int cmp = value_cmp_(a,b);
-    push_bool(cmp < 0);
-    decref(a); decref(b);
-    PRIM_EXIT(mw_prim_value_lt);
+    ASSERT2(IS_INT(a) && IS_INT(b), a, b);
+    push_bool(VINT(a) < VINT(b));
+    PRIM_EXIT(mw_prim_int_lt);
 }
-static void mw_prim_value_le (void) {
-    PRIM_ENTER(mw_prim_value_le,"prim-value-lt");
+static void mw_prim_str_cmp (void) {
+    PRIM_ENTER(mw_prim_str_cmp,"prim-str-cmp");
     VAL b = pop_value();
     VAL a = pop_value();
-    int cmp = value_cmp_(a,b);
-    push_bool(cmp <= 0);
+    ASSERT2(IS_STR(a) && IS_STR(b), a, b);
+    int64_t cmp = str_cmp_(VSTR(a), VSTR(b));
+    push_i64(cmp);
     decref(a); decref(b);
-    PRIM_EXIT(mw_prim_value_le);
+    PRIM_EXIT(mw_prim_str_cmp);
 }
 
 static void mw_prim_sys_argc (void) {
@@ -758,28 +771,6 @@ static void mw_prim_panic(void) {
     exit(1);
 }
 
-static void mw_prim_value_get (void) {
-    PRIM_ENTER(mw_prim_value_get,"prim-value-get");
-    VAL vp = pop_value();
-    VAL *p = value_ptr(vp);
-    EXPECT(p, "tried to load from null pointer");
-    EXPECT(p->tag, "tried to load uninitialized value");
-    push_value(*p);
-    incref(*p);
-    decref(vp);
-    PRIM_EXIT(mw_prim_value_get);
-}
-
-static void mw_prim_int_get (void) {
-    PRIM_ENTER(mw_prim_int_get,"prim-int-get");
-    VAL vp = pop_value();
-    int64_t *p = value_ptr(vp);
-    EXPECT(p, "tried to load from null pointer");
-    push_i64(*p);
-    decref(vp);
-    PRIM_EXIT(mw_prim_int_get);
-}
-
 static void mw_prim_ptr_get (void) {
     PRIM_ENTER(mw_prim_ptr_get,"prim-ptr-get");
     VAL vp = pop_value();
@@ -868,17 +859,6 @@ static void mw_prim_i64_get (void) {
     push_i64(*p);
     decref(vp);
     PRIM_EXIT(mw_prim_i64_get);
-}
-
-static void mw_prim_value_set (void) {
-    PRIM_ENTER(mw_prim_value_set,"prim-value-set");
-    VAL vp = pop_value();
-    VAL *p = value_ptr(vp);
-    EXPECT(p, "tried to write to null pointer");
-    if (p->tag) decref(*p);
-    *p = pop_value();
-    decref(vp);
-    PRIM_EXIT(mw_prim_value_set);
 }
 
 static void mw_prim_int_set (void) {
