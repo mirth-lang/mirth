@@ -4,7 +4,6 @@ module(mirth.data.type)
 import(prelude)
 import(platform.posix)
 import(data.maybe)
-import(data.map)
 import(data.list)
 import(data.lazy)
 import(mirth.data.ctx)
@@ -782,21 +781,21 @@ def(app-type-trace-open!, Type Type --,
 #########
 
 # mirth/data/type
-data(Subst, SUBST -> Map(Var, Type))
-def(unSUBST, Subst -- Map(Var, Type), SUBST -> id)
-def(subst-nil, Subst, map-empty SUBST)
-def(subst-is-nil, Subst -- Bool, SUBST -> map-is-empty)
-def(subst-new!, Type Var Subst -- Subst,
-    unSUBST rotr pack2 map-insert SUBST)
+data(Subst,
+    SUBST_NIL,
+    SUBST_CON -> Subst Type Var)
+
+def(subst-nil, Subst, SUBST_NIL)
+def(subst-is-nil, Subst -- Bool, SUBST_NIL -> T, _ -> drop F)
+def(subst-new!, Type Var Subst -- Subst, rotr SUBST_CON)
 def(subst-has-var, Var Subst -- Bool,
-    unSUBST swap map-has)
+    SUBST_NIL -> drop F,
+    SUBST_CON -> nip over2 var== if(drop2 T, subst-has-var))
 def(subst-has-var?, Var Subst -- Var Subst Bool,
     dup2 subst-has-var)
 def(subst-get-var, Var Subst -- Type,
-    unSUBST swap map-lookup match(
-        NONE -> TYPE_ERROR,
-        SOME -> id
-    ))
+    SUBST_NIL -> drop TYPE_ERROR,
+    SUBST_CON -> over3 var== if(dip(drop2), drop subst-get-var))
 def(subst-get-var?, Var Subst -- Var Subst Type,
     dup2 subst-get-var)
 
