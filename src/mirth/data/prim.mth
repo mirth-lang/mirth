@@ -26,9 +26,6 @@ data(Prim,
     PRIM_CORE_LAMBDA,
 
     PRIM_UNSAFE_CAST,
-    PRIM_VALUE_EQ,
-    PRIM_VALUE_LT,
-    PRIM_VALUE_LE,
 
     PRIM_INT_EQ,
     PRIM_INT_LT,
@@ -190,10 +187,6 @@ def(init-prims!, --,
     PRIM_CORE_LAMBDA "prim-lambda" def-prim!
 
     PRIM_UNSAFE_CAST "prim-unsafe-cast" def-prim!
-
-    PRIM_VALUE_EQ "prim-value-eq" def-prim!
-    PRIM_VALUE_LT "prim-value-lt" def-prim!
-    PRIM_VALUE_LE "prim-value-le" def-prim!
 
     PRIM_INT_ADD "prim-int-add" def-prim!
     PRIM_INT_SUB "prim-int-sub" def-prim!
@@ -417,20 +410,6 @@ def(init-prims!, --,
 
     TVar dup T1 dup rotl T* T->
     PRIM_CORE_DUP prim-type !
-
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup ctx-empty swap ctx-new!
-
-    dup PRIM_VALUE_EQ prim-ctx !
-    dup PRIM_VALUE_LT prim-ctx !
-    dup PRIM_VALUE_LE prim-ctx !
-    drop
-
-    TVar dup T2 TYPE_BOOL T1 T->
-    dup PRIM_VALUE_EQ prim-type !
-    dup PRIM_VALUE_LT prim-type !
-    dup PRIM_VALUE_LE prim-type !
-    drop
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
     "b" name-new! var-new-implicit! TYPE_TYPE over var-type !

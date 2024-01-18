@@ -566,34 +566,6 @@ static void mw_prim_int_shr (void) {
     PRIM_EXIT(mw_prim_int_shr);
 }
 
-static void mw_prim_value_eq (void) {
-    PRIM_ENTER(mw_prim_value_eq,"prim-value-eq");
-    VAL b = pop_value();
-    VAL a = pop_value();
-    int cmp = value_cmp_(a,b);
-    push_bool(cmp == 0);
-    decref(a); decref(b);
-    PRIM_EXIT(mw_prim_value_eq);
-}
-static void mw_prim_value_lt (void) {
-    PRIM_ENTER(mw_prim_value_lt,"prim-value-lt");
-    VAL b = pop_value();
-    VAL a = pop_value();
-    int cmp = value_cmp_(a,b);
-    push_bool(cmp < 0);
-    decref(a); decref(b);
-    PRIM_EXIT(mw_prim_value_lt);
-}
-static void mw_prim_value_le (void) {
-    PRIM_ENTER(mw_prim_value_le,"prim-value-lt");
-    VAL b = pop_value();
-    VAL a = pop_value();
-    int cmp = value_cmp_(a,b);
-    push_bool(cmp <= 0);
-    decref(a); decref(b);
-    PRIM_EXIT(mw_prim_value_le);
-}
-
 static void mw_prim_int_eq (void) {
     PRIM_ENTER(mw_prim_int_eq,"prim-int-eq");
     VAL b = pop_value();

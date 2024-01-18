@@ -1180,7 +1180,7 @@ def(table-new!, Token Name -- Table,
         PRIM_UNSAFE_CAST ab-prim!
         PRIM_CORE_DUP ab-prim!
         0 ab-int!
-        PRIM_VALUE_EQ ab-prim!
+        PRIM_INT_EQ ab-prim!
         ab-if!(
             id,
             1 ab-int!
@@ -1216,7 +1216,9 @@ def(table-new!, Token Name -- Table,
                     t table-num-buffer @ ab-buffer!
                     PRIM_U64_GET ab-prim!
                     PRIM_UNSAFE_CAST ab-prim!
-                    PRIM_VALUE_LE ab-prim!,
+                    1 ab-int!
+                    PRIM_INT_ADD ab-prim!
+                    PRIM_INT_LT ab-prim!,
 
                     PRIM_CORE_DUP ab-prim!
                     ab-dip! (
