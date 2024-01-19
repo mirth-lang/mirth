@@ -13,18 +13,16 @@ import(mirth.data.def)
 # Names #
 #########
 
-# mirth/data/name
-
 table(Name)
 field(name-str, Name, Str)
 field(name-def, Name, Def)
 field(name-mangled, Name, Lazy(Str))
-def(name-is-nil, Name -- Bool, Name.id 0 int==)
+
+def(name==, Name Name -- Bool, both(Name.id) int==)
 
 def(name-debug!, Name --,
     dup name-str @ str-trace!
     "[" str-trace! Name.id int-trace! "] " str-trace!)
-
 
 data(Hash, HASH -> Int)
 def(Hash->Int, Hash -- Int, HASH -> id)
@@ -125,8 +123,6 @@ def(name-mangle-compute!, Name -- Str,
             )
         )
     )))
-    
-def(name==, Name Name -- Bool, both(Name.id) int==)
 
 ########
 # Defs #
