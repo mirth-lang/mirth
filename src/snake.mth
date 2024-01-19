@@ -77,7 +77,7 @@ def(snake-enqueue-xy!, XCoord YCoord --,
 def(snake-dequeue-xy!, XCoord YCoord,
     0 snake-queue-xy@
     0
-    while(dup 1+ snake-queue-length @ int<,
+    while(dup 1+ snake-queue-length @ <,
         dup
         dip(1+ snake-queue-xy?) snake-queue-xy!)
     drop
@@ -145,7 +145,7 @@ def(snake-init!, --,
         id
     )
 
-    SDL_NumJoysticks 0 while(dup2 int>,
+    SDL_NumJoysticks 0 while(dup2 >,
         dup SDL_IsGameController if(
             snake-controller ! dup
             snake-controller @ SDL_GameControllerOpen drop,
@@ -227,7 +227,7 @@ def(snake-present!, --,
     snake-xy@ snake-rect-cell!
     snake-renderer @ SNAKE_RECT SDL_RenderFillRect
     0
-    while(dup snake-queue-length @ int<,
+    while(dup snake-queue-length @ <,
         snake-queue-xy? snake-rect-cell!
         snake-renderer @ SNAKE_RECT SDL_RenderFillRect
         1+)
@@ -281,7 +281,7 @@ def(TICK_FRAMES, Int, 7)
 
 def(snake-tick!, Bool,
     tick-timer @
-    1+ dup TICK_FRAMES int>= if(
+    1+ dup TICK_FRAMES >= if(
         drop 0 tick-timer ! T,
         tick-timer ! F
     ))
@@ -305,7 +305,7 @@ def(snake-update!, --,
             snake-check-mouse!
 
             snake-xy@ snake-enqueue-xy!
-            snake-queue-length @ snake-desired-length int> if(
+            snake-queue-length @ snake-desired-length > if(
                 0 >U8 snake-dequeue-xy! snake-grid!,
                 id
             )

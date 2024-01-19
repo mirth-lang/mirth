@@ -18,7 +18,7 @@ field(name-str, Name, Str)
 field(name-def, Name, Def)
 field(name-mangled, Name, Lazy(Str))
 
-def(name==, Name Name -- Bool, both(Name.id) int==)
+def(name==, Name Name -- Bool, both(Name.id) =)
 
 def(name-debug!, Name --,
     dup name-str @ str-trace!
@@ -48,7 +48,7 @@ def(next-hash, Hash -- Hash, Hash->Int 1+ Int->Hash)
 def(name-keep-going?, Str Hash -- Str Hash Bool,
     dup hash-name@ match(
         NONE -> F,
-        SOME -> name-str @ over2 str<>
+        SOME -> name-str @ over2 <>
     ))
 
 def(name-search, Str -- Maybe(Name),
@@ -81,9 +81,9 @@ def(name-print!, Name --,
     name-str @ str-print!)
 
 def(name-head, Name -- Byte,
-    name-str @ with-str-data(1 int>= if(@Byte, drop BNUL)))
+    name-str @ with-str-data(1 >= if(@Byte, drop BNUL)))
 def(name-tail-head, Name -- Byte,
-    name-str @ with-str-data(2 int>= if(dip(1) .offset-unsafe @Byte, drop BNUL)))
+    name-str @ with-str-data(2 >= if(dip(1) .offset-unsafe @Byte, drop BNUL)))
 
 def(name-could-be-type, Name -- Bool,
     name-head byte-is-alpha)

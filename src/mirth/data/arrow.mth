@@ -108,7 +108,7 @@ def(arrow-atom-add!, Arrow Atom -- Arrow,
 # BLOCK #
 #########
 
-def(block==, Block Block -- Bool, both(Block.id) int==)
+def(block==, Block Block -- Bool, both(Block.id) =)
 
 def(block-new!, Arrow -- Block,
     Block.alloc!
@@ -174,7 +174,7 @@ def(match-is-exhaustive?, Match -- Match Bool,
         match-scrutinee-data? match(
             SOME ->
                 data-num-tags
-                over match-cases @ len int==,
+                over match-cases @ len =,
             NONE ->
                 T # presume exhaustiveness
         )

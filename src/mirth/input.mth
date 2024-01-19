@@ -41,8 +41,8 @@ def(input-fill-buffer!, --,
     INPUT_BUFFER
     INPUT_BUFFER_SIZE
     posix-read!
-    expect!(dup 0 int>=, "failed to read from file")
-    dup 0 int> if(
+    expect!(dup 0>=, "failed to read from file")
+    dup 0> if(
         input-length !
         0 input-offset !,
         drop
@@ -66,11 +66,10 @@ def(input-move!, --,
         "error: attempted to move input buffer when file is already closed" panic!
     ))
 
-||| Refill input buffer, with special logic to handle
-||| characters straddling the buffer boundary.
+||| Refill input buffer.
 def(input-prepare-for-more!, --,
     input-offset @
-    input-length @ int>= if(
+    input-length @ >= if(
         input-fill-buffer!,
         id
     ))

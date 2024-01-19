@@ -128,7 +128,7 @@ def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
     token-name? name-def @ match(
         DEF_TYPE ->
             over token-num-args
-            over type-arity int== if(
+            over type-arity = if(
                 elab-type-args!,
 
                 drop dup
@@ -255,13 +255,13 @@ def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
 
 def(atom-accepts-args?, Atom -- Atom Bool,
     dup atom-op @ match(
-        OP_WORD -> dip(dup atom-args @ len) elab-word-sig! type-max-num-params int<,
+        OP_WORD -> dip(dup atom-args @ len) elab-word-sig! type-max-num-params <,
         OP_PRIM ->
             match(
-                PRIM_CORE_RUN -> dup atom-args @ len 1 int<, # this one's dubious
-                PRIM_CORE_DIP -> dup atom-args @ len 1 int<,
-                PRIM_CORE_IF -> dup atom-args @ len 2 int<,
-                PRIM_CORE_WHILE -> dup atom-args @ len 2 int<,
+                PRIM_CORE_RUN -> dup atom-args @ len 1 <, # this one's dubious
+                PRIM_CORE_DIP -> dup atom-args @ len 1 <,
+                PRIM_CORE_IF -> dup atom-args @ len 2 <,
+                PRIM_CORE_WHILE -> dup atom-args @ len 2 <,
                 _ -> drop F
             ),
         _ -> drop F
@@ -894,7 +894,7 @@ def(expect-token-arrow, Token -- Token,
 |||     - (optional) sig: the type signature
 |||     - body: a nonempty list of body arguments
 def(token-def-args, Token -- Token Maybe(Token) List+(Token),
-    dup token-args len? 2 int>= if(nip,
+    dup token-args len? 2 >= if(nip,
         drop "def expects at least two arguments" emit-fatal-error!)
     List->List+ unwrap uncons
     List->List+ unwrap uncons

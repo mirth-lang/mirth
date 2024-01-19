@@ -105,7 +105,7 @@ def(value-tycon-name, Value -- Maybe(Name),
     VALUE_BLOCK -> drop NONE)
 
 def(PrimType->Int, PrimType -- Int, prim-unsafe-cast)
-def(prim-type==, PrimType PrimType -- Bool, both(PrimType->Int) int==)
+def(prim-type==, PrimType PrimType -- Bool, both(PrimType->Int) =)
 
 table(MetaVar)
 table(Data)
@@ -384,7 +384,7 @@ def(type-unify!, Gamma Type Type -- Gamma Type,
 def(value-unify!, Gamma Value Value -- Gamma Type,
     swap match(
         VALUE_INT -> swap match(
-            VALUE_INT -> dup2 int== if(drop VALUE_INT TValue, drop2 TYPE_INT),
+            VALUE_INT -> dup2 = if(drop VALUE_INT TValue, drop2 TYPE_INT),
             VALUE_STR ->
                 drop2 gamma-token?
                 "Can't unify int value with string value."
@@ -396,7 +396,7 @@ def(value-unify!, Gamma Value Value -- Gamma Type,
         ),
 
         VALUE_STR -> swap match(
-            VALUE_STR -> dup2 str== if(drop VALUE_STR TValue, drop2 TYPE_STR),
+            VALUE_STR -> dup2 = if(drop VALUE_STR TValue, drop2 TYPE_STR),
             VALUE_INT ->
                 drop2 gamma-token?
                 "Can't unify string value with int value."
@@ -785,7 +785,7 @@ def(meta-expand-or-update!(f), (*a -- *a Type) *a MetaVar -- *a Type,
         SOME -> nip
     ))
 
-def(meta==, MetaVar MetaVar -- Bool, both(MetaVar.id) int==)
+def(meta==, MetaVar MetaVar -- Bool, both(MetaVar.id) =)
 
 ##############
 # Type Holes #
@@ -879,13 +879,13 @@ def(tag-num-inputs-from-sig, Tag -- Tag Int,
 def(tag-is-transparent?, Tag -- Tag Bool,
     dup tag-data @ data-is-transparent)
 
-def(tag==, Tag Tag -- Bool, both(Tag.id) int==)
+def(tag==, Tag Tag -- Bool, both(Tag.id) =)
 
 ########
 # DATA #
 ########
 
-def(data==, Data Data -- Bool, both(Data.id) int==)
+def(data==, Data Data -- Bool, both(Data.id) =)
 def(data-num-tags, Data -- Int, data-tags @ len)
 
 ||| Adds constructor to data type, and gives tag its rank.
@@ -898,6 +898,6 @@ def(data-is-enum?, Data -- Data Bool,
 
 def(data-is-transparent, Data -- Bool,
     data-tags @ match(
-        L1 -> tag-num-inputs @ 1 int==,
+        L1 -> tag-num-inputs @ 1 =,
         _ -> drop F
     ))

@@ -6,7 +6,7 @@ data(Path, PATH -> Str)
 def(/PATH, Path -- Str, PATH -> id)
 alias(Str->Path, PATH)
 alias(Path->Str, /PATH)
-def(path==, Path Path -- Bool, both(/PATH) str==)
+def(path==, Path Path -- Bool, both(/PATH) =)
 
 def(init-paths!, --,
     "src" Str->Path source-path-root !

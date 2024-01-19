@@ -15,10 +15,10 @@ field(module-start, Module, Token)
 field(module-end, Module, Token)
 field(module-imports, Module, List(Module))
 
-def(module-cmp, Module Module -- Comparison, dip(Module.id) Module.id int-cmp)
-def(module==, Module Module -- Bool, dip(Module.id) Module.id int==)
-def(module<=, Module Module -- Bool, dip(Module.id) Module.id int<=)
-def(module<, Module Module -- Bool, dip(Module.id) Module.id int<)
+def(module-cmp, Module Module -- Comparison, dip(Module.id) Module.id .cmp)
+def(module==, Module Module -- Bool, dip(Module.id) Module.id =)
+def(module<=, Module Module -- Bool, dip(Module.id) Module.id <=)
+def(module<, Module Module -- Bool, dip(Module.id) Module.id <)
 
 def(module-new!, Path -- Module,
     Module.alloc!

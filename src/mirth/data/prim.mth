@@ -119,7 +119,7 @@ field(prim-type, Prim, Type)
 field(prim-decl, Prim, Maybe([Token -- Token]))
 
 def(Prim->Int, Prim -- Int, prim-unsafe-cast)
-def(prim==, both(Prim->Int) int==)
+def(prim==, both(Prim->Int) =)
 
 ||| Does this name refer to this primitive?
 def(name-prim=, Name Prim -- Bool,

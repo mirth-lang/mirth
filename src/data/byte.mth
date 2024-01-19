@@ -39,7 +39,7 @@ data(Byte,
 
 def(Byte->Int, Byte -- Int, prim-unsafe-cast)
 def(Int->Byte, Int -- Byte,
-    assert!(dup 0 255 int-in-range, "Int->Byte out of range")
+    assert!(dup 0 255 .in-range, "Int->Byte out of range")
     prim-unsafe-cast)
 def(Byte->U8, Byte -- U8, prim-unsafe-cast)
 def(U8->Byte, U8 -- Byte, prim-unsafe-cast)
@@ -47,14 +47,14 @@ def(U8->Byte, U8 -- Byte, prim-unsafe-cast)
 def(Ptr@Byte, Ptr -- Byte, @U8 U8->Byte)
 def(Ptr!Byte, Byte Ptr --, dip(Byte->U8) !U8)
 
-def(byte-cmp, Byte Byte -- Comparison, dip(Byte->Int) Byte->Int int-cmp)
-def(byte==, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int==)
-def(byte<=, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int<=)
-def(byte<, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int<)
-def(byte>=, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int>=)
-def(byte>, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int>)
-def(byte<>, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int<>)
-def(byte-in-range, Byte Byte Byte -- Bool, dip(dip(Byte->Int) Byte->Int) Byte->Int int-in-range)
+def(byte-cmp, Byte Byte -- Comparison, dip(Byte->Int) Byte->Int .cmp)
+def(byte==, Byte Byte -- Bool, dip(Byte->Int) Byte->Int =)
+def(byte<=, Byte Byte -- Bool, dip(Byte->Int) Byte->Int <=)
+def(byte<, Byte Byte -- Bool, dip(Byte->Int) Byte->Int <)
+def(byte>=, Byte Byte -- Bool, dip(Byte->Int) Byte->Int >=)
+def(byte>, Byte Byte -- Bool, dip(Byte->Int) Byte->Int >)
+def(byte<>, Byte Byte -- Bool, dip(Byte->Int) Byte->Int <>)
+def(byte-in-range, Byte Byte Byte -- Bool, dip(dip(Byte->Int) Byte->Int) Byte->Int .in-range)
 
 def(byte-is-upper, Byte -- Bool, B'A' B'Z' byte-in-range)
 def(byte-is-lower, Byte -- Bool, B'a' B'z' byte-in-range)
@@ -82,7 +82,7 @@ def(byte-to-hexdigits, Byte -- Byte Byte,
     dup 4 >> one-hexdigit-byte
     swap 0xF & one-hexdigit-byte)
 def(one-hexdigit-byte, Int -- Byte,
-    dup 9 int> if(55, 48) + Int->Byte)
+    dup 9 > if(55, 48) + Int->Byte)
 
 def(byte-is-name-byte, Byte -- Bool,
     BLPAREN -> F,

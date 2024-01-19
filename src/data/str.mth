@@ -56,7 +56,7 @@ def(str-buf-byte@, Offset -- Byte,
     STR_BUF .offset(@Byte))
 
 def(str-buf-empty?, str-buf-length? 0=)
-def(str-buf-full?, str-buf-length? 1+ STR_BUF_SIZE int>=)
+def(str-buf-full?, str-buf-length? 1+ STR_BUF_SIZE >=)
 
 def(str-buf-clear!, --,
     0 str-buf-length!)
