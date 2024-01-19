@@ -201,7 +201,7 @@ def(.lf, --, BLF .b)
 def(;, Str --, . .lf)
 def(;;, Str --, . .lf .lf)
 def(.n, Int --, int-to-str .)
-def(.name, Name --, name-mangle! .)
+def(.name, Name --, mangle .)
 
 def(.w, Name --, "static void mw_" . .name " (void)" .)
 def(.p, Prim --, prim-name @ .w)
@@ -256,7 +256,7 @@ def(c99-external!, External --,
         )
     )
 
-    dip2(dup external-name @ name-str @ .)
+    dip2(dup external-name @ >Str .)
 
     " (" .
     over dup 0> if("int64_t" . 1- repeat(", int64_t" .), drop "void" .)
@@ -265,7 +265,7 @@ def(c99-external!, External --,
     "static void mw_" . dip2(dup external-name @ .name) " (void) {" ;
     over countdown("    int64_t x" . .n " = pop_i64();" ;)
     dup 0> if("    push_i64(", "    ") .
-    dip2(dup external-name @ name-str @ .)
+    dip2(dup external-name @ >Str .)
     "(" .
     dip(dup 0> if(
         dup 1- dup count("x" . .n ", " .) "x" . .n,
@@ -296,7 +296,7 @@ def(c99-atom!, Atom --,
         dup atom-token @ token-row @ Row->Int .n ", " .
         dup atom-token @ token-col @ Col->Int .n ", " .
         dup atom-token @ token-is-name? if(
-            token-name@ name-str @ .str,
+            token-name@ >Str .str,
             drop "\"\"" .)
         ");" .)
     sip(atom-args @) atom-op @
@@ -550,7 +550,7 @@ def(c99-block-enter!, Block --,
         dup .block ", " .
         dup block-arrow force! arrow-home @ match(
             NONE -> "block",
-            SOME -> word-name @ name-str @ " block" cat,
+            SOME -> word-name @ >Str " block" cat,
         ) .str ", " .
         dup block-token @ token-module @ module-source-path >Str .str ", " .
         dup block-token @ token-row @ Row->Int .n ", " .
@@ -585,7 +585,7 @@ def(.block, Block -- ,
 def(c99-word-enter!, Word --,
     c99-line("WORD_ENTER(" .
         "mw_" . dup word-name @ .name ", " .
-        dup word-name @ name-str @ .str ", " .
+        dup word-name @ >Str .str ", " .
         dup word-body @ token-module @ module-source-path >Str .str ", " .
         dup word-body @ token-row @ Row->Int .n ", " .
         dup word-body @ token-col @ Col->Int .n ");" . )

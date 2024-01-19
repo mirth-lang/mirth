@@ -125,7 +125,7 @@ field(tag-num-inputs, Tag, Int)
 field(tag-sig, Tag, Maybe(Token))
 field(tag-ctx-type, Tag, Lazy([Ctx Type]))
 
-def(def-type!, Type Str --, dip(DEF_TYPE) name-new! name-def !)
+def(def-type!, Type Str --, dip(DEF_TYPE) name-new! ~Def !)
 
 var(DATA_BOOL, Data)
 var(TAG_T, Tag)
@@ -156,7 +156,7 @@ def(init-data!, Str Mut(Data) List(Mut(Tag)) --,
     dip(
         dip(name-new!) 
         dup2 data-name !
-        tuck TData DEF_TYPE swap name-def !
+        tuck TData DEF_TYPE swap ~Def !
     )
     { Data List(Tag) }
     dup for(dip(over) tag-data !)
@@ -172,7 +172,7 @@ def(init-tag!, Str Int Int Type Mut(Tag) --,
     sip(tag-num-inputs !)
     sip(tag-value !)
     dip(name-new!) dup2 tag-name !
-    DEF_TAG swap name-def !)
+    DEF_TAG swap ~Def !)
 
 def(init-types!, --,
     "Bool" DATA_BOOL TAG_F TAG_T L2 init-data!

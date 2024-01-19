@@ -126,11 +126,11 @@ def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
     dip2(type-elab-ctx-replace))
 
 def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
-    token-name? "Mut" name-new! name== if(
+    token-name? "Mut" name-new! = if(
         tuck token-args-1 elab-type-arg! drop TMut
         rotl token-next,
 
-        token-name? name-def @ match(
+        token-name? >Def match(
             DEF_TYPE ->
                 over token-num-args
                 over type-arity = if(
@@ -518,7 +518,7 @@ def(elab-atom-name!, Name --,
 def(elab-relativize-name!, Name -- Name,
     name-undefined? and(dup name-could-be-relative) if(
         ab-type @ stack-last-tycon-name for(
-            name-str @ over name-to-overload-suffix cat name-search for(
+            >Str over name-to-overload-suffix cat name-search for(
                 name-defined? if(
                     nip,
                     drop
@@ -529,9 +529,9 @@ def(elab-relativize-name!, Name -- Name,
     ))
 
 def(elab-check-name-visible!, Name -- Name,
-    dup name-def @ def-module for(
+    dup >Def >Module? for(
         dup elab-module-is-visible if(drop,
-            "name not visible, must import " swap module-name @ name-str @ cat
+            "name not visible, must import " swap module-name @ >Str cat
             ab-token @ swap emit-error!)
     ))
 
@@ -539,8 +539,8 @@ def(elab-module-is-visible, Module -- Bool,
     ab-token @ token-module @ module-visible-in-module)
 
 def(elab-atom-name-global!, Name --,
-    dup name-def @ match(
-        DEF_ALIAS -> nip alias-target @ elab-atom-name-global!,
+    dup >Def match(
+        DEF_ALIAS -> nip target elab-atom-name-global!,
         DEF_BUFFER -> nip elab-no-args! ab-buffer!,
         DEF_VARIABLE -> nip elab-no-args! ab-variable!,
         DEF_CONSTANT -> nip elab-no-args! ab-constant!,
@@ -552,7 +552,7 @@ def(elab-atom-name-global!, Name --,
         _ ->
             drop
             dip(ab-token @ "Unknown word: ")
-            name-str @ cat emit-error! TYPE_ERROR ab-type !
+            >Str cat emit-error! TYPE_ERROR ab-type !
     ))
 
 def(elab-prim!, Prim --,
@@ -716,7 +716,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
         token-succ,
 
     token-is-name? if(
-        token-name? name-def @ match(
+        token-name? >Def match(
             DEF_TAG -> { Case Token Tag }
 
                 # set case pattern
@@ -775,7 +775,7 @@ def(elab-module-header!, Token -- Token,
         if(drop "Module name already taken." emit-fatal-error!, id)
         over token-module @
         dup2 module-name !
-        dup2 DEF_MODULE swap name-def !
+        dup2 DEF_MODULE swap ~Def !
         module-path @ swap
         module-path-from-name = if(drop,
             "Module name should match path." emit-error!)
@@ -786,15 +786,15 @@ def(elab-module-header!, Token -- Token,
 ||| Elaborate a declaration. Returns the next token.
 def(elab-module-decl!, Token -- Token,
     dup token-value @ match(
-        TOKEN_NAME -> dup name-def @ match(
+        TOKEN_NAME -> dup >Def match(
             DEF_PRIM -> prim-decl @ match(
                 NONE ->
-                    name-str @ str-trace-ln!
+                    >Str str-trace-ln!
                     "unknown declaration, prim prim" emit-fatal-error!,
                 SOME -> nip run
             ),
-            _ -> drop name-str @ str-trace-ln!
-                 "unknown declaration, not prim" emit-fatal-error!
+            _ -> drop >Str str-trace-ln! 
+                "unknown declaration, not prim" emit-fatal-error!
         ),
         _ -> drop "unsupported declaration" emit-fatal-error!
     ))
@@ -804,7 +804,7 @@ def(elab-module-import!, Token -- Token,
     sip(token-next)
     token-args-1 dup token-value @ match(
         TOKEN_NAME ->
-            dup name-def @ match(
+            dup >Def match(
                 DEF_MODULE ->
                     dip(drop2 dup token-module @)
                     module-add-import!,
@@ -844,7 +844,7 @@ def(elab-data-header!, Data Token -- Data,
     dup2 token-name@
     name-undefined? if(id,
         drop2 "Name already defined." emit-fatal-error!)
-    over TData DEF_TYPE over name-def !
+    over TData DEF_TYPE over ~Def !
     swap data-name !
     # TODO check header args are well-formed / elaborate them properly
     token-num-args over data-arity !)
@@ -857,7 +857,7 @@ def(elab-data-tag!, Data Token -- Data,
         drop "Name already defined. (Overlapping tags not supported.)" emit-fatal-error!)
 
     Tag.alloc!
-    dup2 DEF_TAG swap name-def !
+    dup2 DEF_TAG swap ~Def !
     tuck tag-name !
     { Data Token Tag }
     dip(over) dup2 tag-data !
@@ -998,7 +998,7 @@ def(elab-def-external!, Token -- Token,
         token-name? name-undefined? if(
             nip
             External.alloc!
-            dup2 DEF_EXTERNAL swap name-def !
+            dup2 DEF_EXTERNAL swap ~Def !
             tuck external-name !
             tuck external-sig !
             dup delay(
@@ -1018,7 +1018,7 @@ def(elab-def-type!, Token -- Token,
         token-name? name-undefined? if(
             nip swap
             elab-simple-type-arg!
-            DEF_TYPE swap name-def !,
+            DEF_TYPE swap ~Def !,
 
             drop "type already defined" emit-fatal-error!
         ),
@@ -1082,13 +1082,13 @@ def(elab-embed-str!, Token -- Token,
 
 ||| Ensure that everything so far has been typechecked.
 def(typecheck-everything!, --,
-    Name.for(name-def @ typecheck-def!)
+    Name.for(>Def typecheck-def!)
     Block.for(block-force!))
 
 ||| Typecheck a definition.
 def(typecheck-def!, Def --,
     DEF_NONE -> id,
-    DEF_ALIAS -> alias-target @ name-def @ typecheck-def!, # TODO verify it's not DEF_NONE!!
+    DEF_ALIAS -> target >Def typecheck-def!, # TODO verify it's not DEF_NONE!!
     DEF_MODULE -> drop,
     DEF_BUFFER -> drop,
     DEF_PRIM -> drop,
@@ -1111,7 +1111,7 @@ def(table-word-new!, Table Str -- Word,
 
 def(table-new!, Token Name -- Table,
     Table.alloc!
-    dup2 TTable DEF_TYPE swap name-def !
+    dup2 TTable DEF_TYPE swap ~Def !
     tuck table-name !
     tuck table-head !
 
@@ -1301,7 +1301,7 @@ def(elab-field!, Token -- Token,
 def(field-new!, Token Token Token Name -- Field,
     Field.alloc!
     tuck dup2 field-name !
-    DEF_FIELD swap name-def !
+    DEF_FIELD swap ~Def !
     tuck field-head !
     swap delay(elab-simple-type-arg!) over field-value-type !
     swap delay(elab-simple-type-arg!) over field-index-type !)

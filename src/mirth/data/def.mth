@@ -26,9 +26,9 @@ data(Def,
     DEF_EXTERNAL -> External,
     DEF_FIELD -> Field)
 
-def(def-module, Def -- Maybe(Module),
+def(Def>Module?, Def -- Maybe(Module),
     DEF_NONE -> NONE,
-    DEF_ALIAS -> alias-head @ token-module @ SOME,
+    DEF_ALIAS -> >Token token-module @ SOME,
     DEF_MODULE -> drop NONE,
     DEF_TYPE -> drop NONE,
     DEF_TAG -> tag-data @ data-header @ map(token-module @),
@@ -39,3 +39,7 @@ def(def-module, Def -- Maybe(Module),
     DEF_CONSTANT -> constant-head @ token-module @ SOME,
     DEF_EXTERNAL -> external-sig @ token-module @ SOME,
     DEF_FIELD -> field-head @ token-module @ SOME)
+
+def(Def.is-none, Def -- Bool,
+    DEF_NONE -> T,
+    _ -> drop F)

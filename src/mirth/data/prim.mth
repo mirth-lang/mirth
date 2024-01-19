@@ -123,7 +123,7 @@ def(prim==, both(Prim->Int) =)
 
 ||| Does this name refer to this primitive?
 def(name-prim=, Name Prim -- Bool,
-    swap name-def @ match(
+    swap >Def match(
         DEF_PRIM -> prim==,
         _ -> drop2 F
     ))
@@ -144,7 +144,7 @@ def(token-prim=, Token Prim -- Bool,
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str --,
     name-new!
-    dup2 dip(DEF_PRIM) name-def !
+    dup2 dip(DEF_PRIM) ~Def !
     swap prim-name !)
 
 ||| Initialize name table with list of primitives.

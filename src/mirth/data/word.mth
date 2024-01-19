@@ -18,7 +18,7 @@ field(word-arrow, Word, Lazy(Arrow))
 
 def(word-new!, Token Token Name -- Word,
     Word.alloc!
-    dup2 DEF_WORD swap name-def !
+    dup2 DEF_WORD swap ~Def !
     tuck word-name !
     tuck word-head !
     tuck word-body !
