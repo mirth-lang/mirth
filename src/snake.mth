@@ -27,17 +27,17 @@ buffer(SNAKE_EVENT, 0x100)
 data(Direction, DNORTH, DEAST, DSOUTH, DWEST)
 
 def-type(XCoord, U8)
-def(XCoord->Int, XCoord -- Int, /U8)
+def(XCoord->Int, XCoord -- Int, >Int)
 def(Int->XCoord, Int -- XCoord, >U8)
 
 def-type(YCoord, U8)
-def(YCoord->Int, YCoord -- Int, /U8)
+def(YCoord->Int, YCoord -- Int, >Int)
 def(Int->YCoord, Int -- YCoord, >U8)
 
 def-type(State, U8)
-def(state-occupy, State -- State, /U8 0x1 | >U8)
-def(state-vacate, State -- State, /U8 0xFE & >U8)
-def(state-is-occupied, State -- Bool, /U8 0x1 & 0>)
+def(state-occupy, State -- State, >Int 0x1 | >U8)
+def(state-vacate, State -- State, >Int 0xFE & >U8)
+def(state-is-occupied, State -- Bool, >Int 0x1 & 0>)
 def(state-is-occupied?, State -- State Bool, dup state-is-occupied)
 
 def(snake-xy@, XCoord YCoord, snake-x @ snake-y @)
@@ -89,8 +89,8 @@ def(SNAKE_WINDOW_H, Int, SNAKE_H SNAKE_CELL_SIZE *)
 def(SNAKE_WINDOW_FLAGS, SDL_WindowFlags,
     SDL_WINDOW_HIDDEN)
 def(SNAKE_RENDERER_FLAGS, SDL_RendererFlags,
-    SDL_RENDERER_ACCELERATED /U32
-    SDL_RENDERER_PRESENTVSYNC /U32 |
+    SDL_RENDERER_ACCELERATED >Int
+    SDL_RENDERER_PRESENTVSYNC >Int |
     >U32)
 
 data(SnakeButton,
@@ -134,8 +134,8 @@ def(snake-reset!, --,
     0 tick-timer !)
 
 def(SNAKE_INIT_FLAGS, SDL_InitFlags,
-    SDL_INIT_VIDEO /U32
-    SDL_INIT_GAMECONTROLLER /U32 |
+    SDL_INIT_VIDEO >Int
+    SDL_INIT_GAMECONTROLLER >Int |
     >U32)
 
 def(snake-init!, --,
@@ -215,8 +215,8 @@ def(snake-rect!, X Y W H --,
     >I32 0 SNAKE_RECT i32!!)
 
 def(snake-rect-cell!, XCoord YCoord --,
-    dip(/U8 SNAKE_CELL_SIZE *)
-    /U8 SNAKE_CELL_SIZE *
+    dip(>Int SNAKE_CELL_SIZE *)
+    >Int SNAKE_CELL_SIZE *
     SNAKE_CELL_SIZE
     SNAKE_CELL_SIZE
     snake-rect!)
@@ -246,13 +246,13 @@ def(snake-process-events!, --,
         snake-process-event!))
 
 def(snake-process-event!, --,
-    SNAKE_EVENT SDL_Event.type /U32
-    dup SDL_QUIT /U32 int== if(
+    SNAKE_EVENT SDL_Event.type >Int
+    dup SDL_QUIT >Int = if(
         drop T snake-done !,
 
-    dup SDL_KEYDOWN /U32 int== if(
+    dup SDL_KEYDOWN >Int = if(
         drop
-        SNAKE_EVENT SDL_Event.key.repeat /U8 0> if(
+        SNAKE_EVENT SDL_Event.key.repeat >Int 0> if(
             id,
             SNAKE_EVENT SDL_Event.key.keysym.scancode
             match(
@@ -261,9 +261,9 @@ def(snake-process-event!, --,
             )
         ),
 
-    dup SDL_CONTROLLERBUTTONDOWN /U32 int== if(
+    dup SDL_CONTROLLERBUTTONDOWN >Int = if(
         drop
-        SNAKE_EVENT SDL_Event.cbutton.which snake-controller @ int== if(
+        SNAKE_EVENT SDL_Event.cbutton.which snake-controller @ = if(
             SNAKE_EVENT SDL_Event.cbutton.button
             SDL_GameControllerButton->SnakeButton snake-press!,
             id
@@ -302,7 +302,7 @@ def(snake-update!, --,
         snake-apply-direction
         snake-xy!
 
-        snake-xy@ snake-grid@ /U8 0> if(
+        snake-xy@ snake-grid@ >Int 0> if(
             T snake-dead !,
 
             1 >U8 snake-xy@ snake-grid!
@@ -332,14 +332,14 @@ def(snake-randomize-mouse!, --,
     rand SNAKE_W % Int->XCoord snake-mouse-x !
     rand SNAKE_H % Int->YCoord snake-mouse-y !
 
-    snake-mouse-xy@ snake-grid@ /U8 0> if(
+    snake-mouse-xy@ snake-grid@ >Int 0> if(
         snake-randomize-mouse!, # might lead to crash if there is no empty space ...
         id
     ))
 
 def(snake-check-mouse!, --,
-    snake-x @ snake-mouse-x @ both(/U8) int==
-    snake-y @ snake-mouse-y @ both(/U8) int== && if(
+    snake-x @ snake-mouse-x @ both(>Int) =
+    snake-y @ snake-mouse-y @ both(>Int) = && if(
         snake-randomize-mouse!
         snake-points modify(1+),
 
@@ -347,7 +347,7 @@ def(snake-check-mouse!, --,
     ))
 
 def(Direction->Int, Direction -- Int, prim-unsafe-cast)
-def(direction==, Direction Direction -- Bool, both(Direction->Int) int==)
+def(direction==, Direction Direction -- Bool, both(Direction->Int) =)
 
 def(snake-turn!, Direction --,
     dup snake-flip-direction snake-last-direction @ direction== if(

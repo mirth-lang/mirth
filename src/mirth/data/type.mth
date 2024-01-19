@@ -51,6 +51,59 @@ def(prim-type-is-physical, PrimType -- Bool,
     PRIM_TYPE_EFFECT -> F,
     _ -> drop T)
 
+
+||| Get the top type constructor name. 
+def(stack-last-tycon-name, Type -- Maybe(Name),
+    stack-last-type maybe-bind(type-tycon-name))
+
+||| Get the known type constructor names for a stack type.
+def(stack-tycon-names, Type -- List(Name),
+    L0 swap stack-types for(type-tycon-name maybe-for(snoc)))
+
+||| Get the known types on the stack.
+def(stack-types, Type -- List(Type),
+    TMeta -> meta-expand-if(stack-types, drop L0),
+    TTensor -> dip(stack-types) snoc,
+    _ -> drop L0)
+
+||| Get last type on the stack, if known.
+def(stack-last-type, Type -- Maybe(Type),
+    TMeta -> meta-expand-if(stack-last-type, drop NONE),
+    TTensor -> nip SOME,
+    _ -> drop NONE)
+
+||| Get type constructor name for a type, if possible.
+def(type-tycon-name, Type -- Maybe(Name),
+    TYPE_ERROR -> NONE,
+    TYPE_DONT_CARE -> NONE,
+    TPrim -> prim-type-tycon-name,
+    TMeta -> meta-expand-if(type-tycon-name, drop NONE),
+    THole -> drop NONE,
+    TVar -> drop NONE,
+    TTable -> table-name @ SOME,
+    TData -> data-name @ SOME,
+    TMorphism -> drop2 NONE,
+    TTensor -> drop2 NONE,
+    TApp -> drop type-tycon-name,
+    TValue -> value-tycon-name)
+
+||| Get primitive type constructor name.
+def(prim-type-tycon-name, PrimType -- Maybe(Name),
+    PRIM_TYPE_TYPE -> NONE,
+    PRIM_TYPE_STACK -> NONE,
+    PRIM_TYPE_EFFECT -> NONE,
+    PRIM_TYPE_INT -> "Int" name-new! SOME,
+    PRIM_TYPE_STR -> "Str" name-new! SOME,
+    PRIM_TYPE_PTR -> "Ptr" name-new! SOME,
+    PRIM_TYPE_MUT -> "Mut" name-new! SOME,
+    PRIM_TYPE_UNIT -> NONE)
+    
+||| Get value type constructor name.
+def(value-tycon-name, Value -- Maybe(Name),
+    VALUE_INT -> drop "Int" name-new! SOME,
+    VALUE_STR -> drop "Str" name-new! SOME,
+    VALUE_BLOCK -> drop NONE)
+
 def(PrimType->Int, PrimType -- Int, prim-unsafe-cast)
 def(prim-type==, PrimType PrimType -- Bool, both(PrimType->Int) int==)
 
@@ -126,14 +179,14 @@ def(init-types!, --,
     "F" 0 0 T0 TAG_F init-tag!
     "T" 1 0 T0 TAG_T init-tag!
 
-    "U64" DATA_U64 TAG_U64 L1 init-data! ">U64" 0 1 TYPE_INT T1 TAG_U64 init-tag!
-    "U32" DATA_U32 TAG_U32 L1 init-data! ">U32" 0 1 TYPE_INT T1 TAG_U32 init-tag!
-    "U16" DATA_U16 TAG_U16 L1 init-data! ">U16" 0 1 TYPE_INT T1 TAG_U16 init-tag!
-    "U8"  DATA_U8  TAG_U8  L1 init-data! ">U8"  0 1 TYPE_INT T1 TAG_U8  init-tag!
-    "I64" DATA_I64 TAG_I64 L1 init-data! ">I64" 0 1 TYPE_INT T1 TAG_I64 init-tag!
-    "I32" DATA_I32 TAG_I32 L1 init-data! ">I32" 0 1 TYPE_INT T1 TAG_I32 init-tag!
-    "I16" DATA_I16 TAG_I16 L1 init-data! ">I16" 0 1 TYPE_INT T1 TAG_I16 init-tag!
-    "I8"  DATA_I8  TAG_I8  L1 init-data! ">I8"  0 1 TYPE_INT T1 TAG_I8  init-tag!
+    "U64" DATA_U64 TAG_U64 L1 init-data! "Int>U64-unsafe" 0 1 TYPE_INT T1 TAG_U64 init-tag!
+    "U32" DATA_U32 TAG_U32 L1 init-data! "Int>U32-unsafe" 0 1 TYPE_INT T1 TAG_U32 init-tag!
+    "U16" DATA_U16 TAG_U16 L1 init-data! "Int>U16-unsafe" 0 1 TYPE_INT T1 TAG_U16 init-tag!
+    "U8"  DATA_U8  TAG_U8  L1 init-data! "Int>U8-unsafe"  0 1 TYPE_INT T1 TAG_U8  init-tag!
+    "I64" DATA_I64 TAG_I64 L1 init-data! "Int>I64-unsafe" 0 1 TYPE_INT T1 TAG_I64 init-tag!
+    "I32" DATA_I32 TAG_I32 L1 init-data! "Int>I32-unsafe" 0 1 TYPE_INT T1 TAG_I32 init-tag!
+    "I16" DATA_I16 TAG_I16 L1 init-data! "Int>I16-unsafe" 0 1 TYPE_INT T1 TAG_I16 init-tag!
+    "I8"  DATA_I8  TAG_I8  L1 init-data! "Int>I8-unsafe"  0 1 TYPE_INT T1 TAG_I8  init-tag!
 
     TYPE_INT "Int" def-type!
     TYPE_PTR "Ptr" def-type!

@@ -31,11 +31,11 @@ def(Int->Hash, Int -- Hash, HASH_MAX % HASH)
 def(HASH_MAX, Int, 0x10000)
 buffer(HASH_BUF,   0x80000)
 def(hash-name@, Hash -- Maybe(Name),
-    Hash->Int HASH_BUF u64@@ /U64
+    Hash->Int HASH_BUF i64@@ >Int
     dup 0= if(drop NONE, Name.from-id SOME))
 def(hash-name!, Name Hash --,
-    dip(Name.id >U64)
-    Hash->Int HASH_BUF u64!!)
+    dip(Name.id >I64)
+    Hash->Int HASH_BUF i64!!)
 
 ||| Get hash for string.
 def(hash, Str -- Hash,
@@ -50,6 +50,11 @@ def(name-keep-going?, Str Hash -- Str Hash Bool,
         NONE -> F,
         SOME -> name-str @ over2 str<>
     ))
+
+def(name-search, Str -- Maybe(Name),
+    dup hash
+    while(name-keep-going?, next-hash)
+    nip hash-name@)
 
 def(name-new!, Str -- Name,
     dup hash
@@ -123,6 +128,9 @@ def(name-mangle-compute!, Name -- Str,
             )
         )
     )))
+
+def(name-could-be-relative, Name -- Bool,
+    name-head byte-is-overload-trigger)
 
 ########
 # Defs #

@@ -1,4 +1,5 @@
 module(prelude)
+import(data.maybe)
 
 ############################################
 # not re-exported because of optimisations #
@@ -23,19 +24,19 @@ alias(dup, prim-dup)
 alias(drop, prim-drop)
 alias(run, prim-run)
 
-alias(+, prim-int-add)
-alias(-, prim-int-sub)
-alias(*, prim-int-mul)
-alias(/, prim-int-div)
-alias(%, prim-int-mod)
-alias(&, prim-int-and)
-alias(|, prim-int-or)
-alias(^, prim-int-xor)
-alias(<<, prim-int-shl)
-alias(>>, prim-int-shr)
+alias(Int+, prim-int-add)
+alias(Int-, prim-int-sub)
+alias(Int*, prim-int-mul)
+alias(Int/, prim-int-div)
+alias(Int%, prim-int-mod)
+alias(Int&, prim-int-and)
+alias(Int|, prim-int-or)
+alias(Int^, prim-int-xor)
+alias(Int<<, prim-int-shl)
+alias(Int>>, prim-int-shr)
 
-def(&&, Bool Bool -- Bool, T -> id, F -> drop F)
-def(||, Bool Bool -- Bool, T -> drop T, F -> id)
+def(Bool&&, Bool Bool -- Bool, T -> id, F -> drop F)
+def(Bool||, Bool Bool -- Bool, T -> drop T, F -> id)
 def(not, Bool -- Bool, T -> F, F -> T)
 def(or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(T, p))
 def(and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, F))
@@ -78,25 +79,25 @@ data(OS,
     OS_LINUX,
     OS_MACOS)
 
-def(OS->Int, OS -- Int,
+def(OS>Int, OS -- Int,
     OS_UNKNOWN -> 0,
     OS_WINDOWS -> 1,
     OS_LINUX -> 2,
     OS_MACOS -> 3)
 
-def(Int->OS, Int -- OS,
-    dup 1 int== if(
+def(Int>OS, Int -- OS,
+    dup 1 = if(
         drop OS_WINDOWS,
-    dup 2 int== if(
+    dup 2 = if(
         drop OS_LINUX,
-    dup 3 int== if(
+    dup 3 = if(
         drop OS_MACOS,
         drop OS_UNKNOWN
     ))))
 
-def(os==, OS OS -- Bool, dip(OS->Int) OS->Int int==)
+def(OS=, OS OS -- Bool, both(>Int) =)
 
-def(RUNNING_OS, OS, prim-sys-os Int->OS)
+def(RUNNING_OS, OS, prim-sys-os >OS)
 alias(argc, prim-sys-argc)
 alias(argv, prim-sys-argv)
 
@@ -194,6 +195,18 @@ def(int-max, Int Int -- Int, dup2 int< if(nip, drop))
 def(int-min, Int Int -- Int, dup2 int< if(drop, nip))
 def(int-in-range, Int Int Int -- Bool, dip(dip(dup) int>= swap) int<= &&)
 
+alias(Int==, prim-int-eq)
+alias(Int=, prim-int-eq)
+alias(Int<, prim-int-lt)
+def(Int>, Int Int -- Bool, swap Int<)
+def(Int>=, Int Int -- Bool, Int< not)
+def(Int<=, Int Int -- Bool, swap Int< not)
+def(Int<>, Int Int -- Bool, Int== not)
+def(Int.cmp, Int Int -- Comparison, dup2 int== if(drop2 EQ, int< if(LT, GT)))
+def(Int.max, Int Int -- Int, dup2 int< if(nip, drop))
+def(Int.min, Int Int -- Int, dup2 int< if(drop, nip))
+def(Int.in-range, Int Int Int -- Bool, dip(dip(dup) int>= swap) int<= &&)
+
 def(str-cmp, Str Str -- Comparison, prim-str-cmp 0 int-cmp)
 def(str==, Str Str -- Bool, str-cmp comparison-is-eq)
 def(str<=, Str Str -- Bool, str-cmp comparison-is-le)
@@ -204,12 +217,26 @@ def(str<>, Str Str -- Bool, str-cmp comparison-is-ne)
 def(str-max, Str Str -- Str, dup2 str< if(nip, drop))
 def(str-min, Str Str -- Str, dup2 str< if(drop, nip))
 
+def(Str.cmp, Str Str -- Comparison, prim-str-cmp 0 int-cmp)
+def(Str==, Str Str -- Bool, str-cmp comparison-is-eq)
+alias(Str=, Str==)
+def(Str<=, Str Str -- Bool, str-cmp comparison-is-le)
+def(Str< , Str Str -- Bool, str-cmp comparison-is-lt)
+def(Str>=, Str Str -- Bool, str-cmp comparison-is-ge)
+def(Str> , Str Str -- Bool, str-cmp comparison-is-gt)
+def(Str<>, Str Str -- Bool, str-cmp comparison-is-ne)
+def(Str.max, Str Str -- Str, dup2 str< if(nip, drop))
+def(Str.min, Str Str -- Str, dup2 str< if(drop, nip))
+
 def-missing(prim-int-succ, Int -- Int, 1 +)
 def-missing(prim-int-pred, Int -- Int, 1 -)
 def-missing(prim-int-negate, Int -- Int, -1 *)
 alias(negate, prim-int-negate)
 alias(1+, prim-int-succ)
 alias(1-, prim-int-pred)
+alias(Int.negate, prim-int-negate)
+alias(Int.succ, prim-int-succ)
+alias(Int.pred, prim-int-pred)
 def(0=, Int -- Bool, 0 int==)
 def(0<, Int -- Bool, 0 int<)
 def(0>, Int -- Bool, 0 int>)
@@ -230,17 +257,53 @@ def(u64!!, U64 Offset Ptr --, dip(8 *) with-ptr+(u64!))
 def(i64@@, Offset Ptr -- I64, dip(8 *) with-ptr+(i64@))
 def(i64!!, I64 Offset Ptr --, dip(8 *) with-ptr+(i64!))
 
-def(/U8, U8 -- Int, >U8 -> id)
-def(/U16, U16 -- Int, >U16 -> id)
-def(/U32, U32 -- Int, >U32 -> id)
-def(/U64, U64 -- Int, >U64 -> id)
+def(U8>Int,  U8  -- Int, prim-unsafe-cast)
+def(U16>Int, U16 -- Int, prim-unsafe-cast)
+def(U32>Int, U32 -- Int, prim-unsafe-cast)
+def(U64>Int-unsafe, U64 -- Int, prim-unsafe-cast)
+def(U64>Int?, U64 -- Maybe(Int), prim-unsafe-cast dup 0 Int>= if(SOME, drop NONE))
+def(U64>Int!, U64 -- Int, U64>Int? unwrap-or("U64 cannot be safely represented by Int" panic!))
 
-def(/I8, I8 -- Int, >I8 -> id)
-def(/I16, I16 -- Int, >I16 -> id)
-def(/I32, I32 -- Int, >I32 -> id)
-def(/I64, I64 -- Int, >I64 -> id)
+def(I8>Int,  I8  -- Int, prim-unsafe-cast)
+def(I16>Int, I16 -- Int, prim-unsafe-cast)
+def(I32>Int, I32 -- Int, prim-unsafe-cast)
+def(I64>Int, I64 -- Int, prim-unsafe-cast)
 
-def(abs, Int -- Int, dup 0< if(negate, id))
+def-missing(Int>U8-unsafe,  Int --  U8, prim-unsafe-cast)
+def-missing(Int>U16-unsafe, Int -- U16, prim-unsafe-cast)
+def-missing(Int>U32-unsafe, Int -- U32, prim-unsafe-cast)
+def-missing(Int>U64-unsafe, Int -- U64, prim-unsafe-cast)
+def-missing(Int>I8-unsafe,  Int --  I8, prim-unsafe-cast)
+def-missing(Int>I16-unsafe, Int -- I16, prim-unsafe-cast)
+def-missing(Int>I32-unsafe, Int -- I32, prim-unsafe-cast)
+def-missing(Int>I64-unsafe, Int -- I64, prim-unsafe-cast)
+
+def(Int>U8%,  Int --  U8,  U8_MAX &  >U8-unsafe)
+def(Int>U16%, Int -- U16, U16_MAX & >U16-unsafe)
+def(Int>U32%, Int -- U32, U32_MAX & >U32-unsafe)
+def(Int>U64%, Int -- U64,           >U64-unsafe)
+def(Int>U8?,  Int -- Maybe( U8), dup U8_MIN  U8_MAX  .in-range if( >U8-unsafe SOME, drop NONE))
+def(Int>U16?, Int -- Maybe(U16), dup U16_MIN U16_MAX .in-range if(>U16-unsafe SOME, drop NONE))
+def(Int>U32?, Int -- Maybe(U32), dup U32_MIN U32_MAX .in-range if(>U32-unsafe SOME, drop NONE))
+def(Int>U64?, Int -- Maybe(U64), dup 0 >= if(>U64-unsafe SOME, drop NONE))
+def(Int>U8,  Int --  U8, Int>U8?  unwrap-or( "U8 out of bounds" panic!))
+def(Int>U16, Int -- U16, Int>U16? unwrap-or("U16 out of bounds" panic!))
+def(Int>U32, Int -- U32, Int>U32? unwrap-or("U32 out of bounds" panic!))
+def(Int>U64, Int -- U64, Int>U64? unwrap-or("U64 out of bounds" panic!))
+
+def(Int>I8?,  Int -- Maybe( I8), dup I8_MIN  I8_MAX  .in-range if( >I8-unsafe SOME, drop NONE))
+def(Int>I16?, Int -- Maybe(I16), dup I16_MIN I16_MAX .in-range if(>I16-unsafe SOME, drop NONE))
+def(Int>I32?, Int -- Maybe(I32), dup I32_MIN I32_MAX .in-range if(>I32-unsafe SOME, drop NONE))
+def(Int>I64?, Int -- Maybe(I64), >I64-unsafe SOME)
+def(Int>I8,  Int -- I8,  Int>I8?  unwrap-or( "I8 out of bounds" panic!))
+def(Int>I16, Int -- I16, Int>I16? unwrap-or("I16 out of bounds" panic!))
+def(Int>I32, Int -- I32, Int>I32? unwrap-or("I32 out of bounds" panic!))
+def(Int>I64, Int -- I64, >I64-unsafe)
+
+def(U8|,   U8  U8 --  U8, both(>Int) |  >U8-unsafe)
+def(U16|, U16 U16 -- U16, both(>Int) | >U16-unsafe)
+def(U32|, U32 U32 -- U32, both(>Int) | >U32-unsafe)
+def(U64|, U64 U64 -- U64, both(>Int-unsafe) | >U64-unsafe)
 
 ##########
 # TUPLES #

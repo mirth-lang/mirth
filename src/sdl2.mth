@@ -16,14 +16,14 @@ def(SDL_INIT_GAMECONTROLLER, SDL_InitFlags, 0x2000 >U32)
 def(SDL_INIT_EVENTS, SDL_InitFlags, 0x4000 >U32)
 def(SDL_INIT_SENSOR, SDL_InitFlags, 1 15 << >U32)
 def(SDL_INIT_EVERYTHING, SDL_InitFlags,
-    SDL_INIT_TIMER /U32
-    SDL_INIT_AUDIO /U32 |
-    SDL_INIT_VIDEO /U32 |
-    SDL_INIT_JOYSTICK /U32 |
-    SDL_INIT_HAPTIC /U32 |
-    SDL_INIT_GAMECONTROLLER /U32 |
-    SDL_INIT_EVENTS /U32 |
-    SDL_INIT_SENSOR /U32 | >U32)
+    SDL_INIT_TIMER
+    SDL_INIT_AUDIO |
+    SDL_INIT_VIDEO |
+    SDL_INIT_JOYSTICK |
+    SDL_INIT_HAPTIC |
+    SDL_INIT_GAMECONTROLLER |
+    SDL_INIT_EVENTS |
+    SDL_INIT_SENSOR |)
 
 def-external(SDL_Quit, --)
 def-external(SDL_GetError, Str)
@@ -100,7 +100,7 @@ def(SDL_Event.key.repeat, SDL_Event* -- U8, 13 swap with-ptr+(u8@))
 def(SDL_Event.key.keysym.scancode, SDL_Event* -- SDL_Scancode,
     16 swap with-ptr+(u16@) prim-unsafe-cast)
 
-def(SDL_Event.cbutton.which, SDL_Event* -- SDL_JoystickID, 8 swap with-ptr+(i32@) /I32)
+def(SDL_Event.cbutton.which, SDL_Event* -- SDL_JoystickID, 8 swap with-ptr+(i32@) >Int)
 def(SDL_Event.cbutton.button, SDL_Event* -- SDL_GameControllerButton,
     12 swap with-ptr+(u8@) prim-unsafe-cast)
 
@@ -413,3 +413,4 @@ data(SDL_GameControllerButton,
     SDL_CONTROLLER_BUTTON_DPAD_LEFT,
     SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
 def(SDL_CONTROLLER_BUTTON_INVALID, SDL_GameControllerButton, 0xFF prim-unsafe-cast)
+    # TODO find way to fold SDL_CONTROLLER_BUTTON_INVALID into definition of enum.

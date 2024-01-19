@@ -53,6 +53,7 @@ def(byte<=, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int<=)
 def(byte<, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int<)
 def(byte>=, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int>=)
 def(byte>, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int>)
+def(byte<>, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int<>)
 def(byte-in-range, Byte Byte Byte -- Bool, dip(dip(Byte->Int) Byte->Int) Byte->Int int-in-range)
 
 def(byte-is-upper, Byte -- Bool, B'A' B'Z' byte-in-range)
@@ -99,3 +100,6 @@ def(byte-is-sign, Byte -- Bool,
     B'-' -> T,
     B'+' -> T,
     _ -> drop F)
+
+def(byte-is-overload-trigger, Byte -- Bool,
+    dup byte-is-alpha if(drop F, B'_' byte<>))
