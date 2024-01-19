@@ -82,6 +82,7 @@ def(elab-type-arg!, TypeElab Token -- TypeElab Type Token,
     ))
 
 def(elab-type-atom!, TypeElab Token -- TypeElab Type Token,
+    # TODO: handle Mut sugar
     sig-token-is-type-var? if(
         elab-type-var! dip(TVar),
 
@@ -125,22 +126,27 @@ def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
     dip2(type-elab-ctx-replace))
 
 def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
-    token-name? name-def @ match(
-        DEF_TYPE ->
-            over token-num-args
-            over type-arity = if(
-                elab-type-args!,
+    token-name? "Mut" name-new! name== if(
+        tuck token-args-1 elab-type-arg! drop TMut
+        rotl token-next,
 
-                drop dup
-                "Wrong number of arguments for type." emit-error!
-                TYPE_ERROR
-            ),
-        DEF_NONE ->
-            dup "Unknown type." emit-error! TYPE_ERROR,
-        _ ->
-            drop dup "Not a type." emit-error! TYPE_ERROR
-    )
-    swap token-next)
+        token-name? name-def @ match(
+            DEF_TYPE ->
+                over token-num-args
+                over type-arity = if(
+                    elab-type-args!,
+
+                    drop dup
+                    "Wrong number of arguments for type." emit-error!
+                    TYPE_ERROR
+                ),
+            DEF_NONE ->
+                dup "Unknown type." emit-error! TYPE_ERROR,
+            _ ->
+                drop dup "Not a type." emit-error! TYPE_ERROR
+        )
+        swap token-next
+    ))
 
 def(elab-type-args!, TypeElab Token Type -- TypeElab Token Type,
     dip(token-has-args?) swap if(

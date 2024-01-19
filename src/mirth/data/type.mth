@@ -28,6 +28,7 @@ data(Type,
     TTensor -> Type Type,
     TMorphism -> Type Type,
     TApp -> Type Type,
+    TMut -> Type,
     TValue -> Value)
 
 data(Value,
@@ -42,8 +43,7 @@ data(PrimType,
     PRIM_TYPE_EFFECT,
     PRIM_TYPE_INT,
     PRIM_TYPE_PTR,
-    PRIM_TYPE_STR,
-    PRIM_TYPE_MUT)
+    PRIM_TYPE_STR)
 
 def(prim-type-is-physical, PrimType -- Bool,
     PRIM_TYPE_TYPE -> F,
@@ -85,6 +85,7 @@ def(type-tycon-name, Type -- Maybe(Name),
     TMorphism -> drop2 NONE,
     TTensor -> drop2 NONE,
     TApp -> drop type-tycon-name,
+    TMut -> type-tycon-name,
     TValue -> value-tycon-name)
 
 ||| Get primitive type constructor name.
@@ -95,7 +96,6 @@ def(prim-type-tycon-name, PrimType -- Maybe(Name),
     PRIM_TYPE_INT -> "Int" name-new! SOME,
     PRIM_TYPE_STR -> "Str" name-new! SOME,
     PRIM_TYPE_PTR -> "Ptr" name-new! SOME,
-    PRIM_TYPE_MUT -> "Mut" name-new! SOME,
     PRIM_TYPE_UNIT -> NONE)
     
 ||| Get value type constructor name.
@@ -190,8 +190,7 @@ def(init-types!, --,
 
     TYPE_INT "Int" def-type!
     TYPE_PTR "Ptr" def-type!
-    TYPE_STR "Str" def-type!
-    TYPE_MUT "Mut" def-type!)
+    TYPE_STR "Str" def-type!)
 
 #########
 # Types #
@@ -199,7 +198,6 @@ def(init-types!, --,
 
 def(T*, Type Type -- Type, TTensor)
 def(T->, Type Type -- Type, TMorphism)
-def(TMut, Type -- Type, TYPE_MUT swap TApp)
 
 def(T0, Type, TYPE_UNIT)
 def(T1, Type -- Type, dip(T0) T*)
@@ -256,7 +254,6 @@ def(TYPE_TYPE, Type, PRIM_TYPE_TYPE TPrim) # type of types
 def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
 def(TYPE_EFFECT, Type, PRIM_TYPE_EFFECT TPrim) # type of effect types
 def(TYPE_UNIT, Type, PRIM_TYPE_UNIT TPrim) # unit type
-def(TYPE_MUT, Type, PRIM_TYPE_MUT TPrim)
 def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
 def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
 def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but nominally)
@@ -379,6 +376,16 @@ def(type-unify!, Gamma Type Type -- Gamma Type,
                 TValue -> value-unify!,
                 _ -> value-type-unify!
             ),
+        TMut ->
+            swap type-expand match(
+                TYPE_ERROR -> drop TYPE_ERROR,
+                TYPE_DONT_CARE -> TMut,
+                THole -> dip(TMut) type-hole-unify!,
+                TMeta -> dip(TMut) meta-unify!,
+                TValue -> dip(TMut) type-value-unify!,
+                TMut -> type-unify! TMut,
+                _ -> dip(TMut) type-unify-failed!,
+            ),
     ))
 
 def(value-unify!, Gamma Value Value -- Gamma Type,
@@ -485,7 +492,8 @@ def(type-has-meta, MetaVar Type -- Bool,
     TApp -> type2-has-meta,
     TData -> drop2 F,
     TTable -> drop2 F,
-    TValue -> value-type-has-meta)
+    TValue -> value-type-has-meta,
+    TMut -> type-has-meta)
 
 def(type2-has-meta, MetaVar Type Type -- Bool,
     over2 swap type-has-meta if(drop2 T, type-has-meta))
@@ -547,7 +555,9 @@ def(type-trace!, Type --,
     TTable -> table-name @ name-trace!,
     THole -> name-trace!,
     TApp -> app-type-trace!,
-    TValue -> value-as-type type-trace!)
+    TValue -> value-as-type type-trace!,
+    TMut -> "!" str-trace! type-trace!,
+    )
 
 def(value-as-type, Value -- Type,
     match(
@@ -565,7 +575,6 @@ def(type-trace-prim!, PrimType --,
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
-        PRIM_TYPE_MUT -> "Mut",
     ) str-trace!)
 
 ||| Replace the stack rest with a metavar, if it's unit.
@@ -649,7 +658,9 @@ def(type-freshen, Subst Type -- Subst Type,
     TMeta -> meta-freshen,
     TTensor -> type-pair-freshen TTensor,
     TMorphism -> type-pair-freshen TMorphism,
-    TApp -> type-pair-freshen TApp)
+    TApp -> type-pair-freshen TApp,
+    TMut -> type-freshen TMut,
+    )
 
 def(type-pair-freshen, Subst Type Type -- Subst Type Type,
     dip(type-freshen swap) type-freshen dip(swap))
@@ -709,22 +720,19 @@ def(type-rigidify!, Ctx Type -- Ctx Type,
         dip(type-rigidify-stack!) swap
         TMorphism,
     TValue ->
-        type-rigidify-value!)
+        type-rigidify-value!,
+    TMut ->
+        type-rigidify! TMut)
 
 def(type-rigidify-value!, Ctx Value -- Ctx Type,
     VALUE_INT -> VALUE_INT TValue,
     VALUE_STR -> VALUE_STR TValue,
     VALUE_BLOCK -> block-arrow force! arrow-type type-rigidify-sig!)
 
-def(prim-type-arity, PrimType -- Int,
-    PRIM_TYPE_MUT -> 1,
-    _ -> drop 0)
-
 def(type-arity, Type -- Int,
     TMeta -> meta-expand-if(type-arity, drop 0),
     TData -> data-arity @,
     TApp -> drop type-arity 1-,
-    TPrim -> prim-type-arity,
     _ -> drop 0)
 
 ||| Get head of type.

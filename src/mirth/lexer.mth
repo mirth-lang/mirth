@@ -38,7 +38,7 @@ def(run-lexer!, Path -- Module,
 
     input-end!
 
-    lexer-stack stack-pop! match(
+    lexer-stack pop! match(
         NONE -> TOKEN_NONE lexer-emit!,
         SOME -> "Mismatched left parenthesis." emit-fatal-error!
     )
@@ -91,9 +91,9 @@ def(lexer-newline!, --,
 
 def(lexer-emit-lparen!, --,
     TOKEN_LPAREN_OPEN lexer-make!
-    lexer-stack stack-push!)
+    lexer-stack push!)
 def(lexer-emit-rparen!, --,
-    lexer-stack stack-pop! match(
+    lexer-stack pop! match(
         NONE -> "Mismatched right parenthesis." lexer-emit-fatal-error!,
         SOME -> token-is-lparen-open? if(
             dup TOKEN_RPAREN lexer-make!
@@ -104,9 +104,9 @@ def(lexer-emit-rparen!, --,
 
 def(lexer-emit-lsquare!, --,
     TOKEN_LSQUARE_OPEN lexer-make!
-    lexer-stack stack-push!)
+    lexer-stack push!)
 def(lexer-emit-rsquare!, --,
-    lexer-stack stack-pop! match(
+    lexer-stack pop! match(
         NONE -> "Mismatched right square bracket." lexer-emit-fatal-error!,
         SOME -> token-is-lsquare-open? if(
             dup TOKEN_RSQUARE lexer-make!
@@ -117,9 +117,9 @@ def(lexer-emit-rsquare!, --,
 
 def(lexer-emit-lcurly!, --,
     TOKEN_LCURLY_OPEN lexer-make!
-    lexer-stack stack-push!)
+    lexer-stack push!)
 def(lexer-emit-rcurly!, --,
-    lexer-stack stack-pop! match(
+    lexer-stack pop! match(
         NONE -> "Mismatched right curly brace." lexer-emit-fatal-error!,
         SOME -> token-is-lcurly-open? if(
             dup TOKEN_RCURLY lexer-make!

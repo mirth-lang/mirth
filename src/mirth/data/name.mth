@@ -84,15 +84,23 @@ def(name-head, Name -- Byte,
     name-str @ with-str-data(1 >= if(@Byte, drop BNUL)))
 def(name-tail-head, Name -- Byte,
     name-str @ with-str-data(2 >= if(dip(1) .offset-unsafe @Byte, drop BNUL)))
+def(name-tail, Name -- Name,
+    name-str @ with-str-data(dup 2 >= if(dip(dip(1) .offset-unsafe) 1- prim-str-copy, drop2 "")) name-new!)
 
 def(name-could-be-type, Name -- Bool,
     name-head is-alpha)
 
 def(name-could-be-type-var, Name -- Bool,
     name-head is-lower)
+def(name-could-be-mut-type-var, Name -- Bool,
+    dup name-head B'!' =
+    swap name-tail-head is-lower &&)
 
 def(name-could-be-type-con, Name -- Bool,
     name-head is-upper)
+def(name-could-be-mut-type-con, Name -- Bool,
+    dup name-head B'!' =
+    swap name-tail-head is-upper &&)
 
 def(name-is-type-hole, Name -- Bool,
     dup name-head B'?' =

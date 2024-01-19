@@ -44,7 +44,7 @@ field(block-needed, Block, Bool)
 def(reset-needs!, --,
     Block.for(F swap block-needed !)
     Word.for(F swap word-needed !)
-    needs-stack stack-reset!)
+    needs-stack reset!)
 def(for-needed-words(f), (*a Word -- *a) *a -- *a,
     Word.for(dup word-needed @ if(f, drop)))
 def(for-needed-blocks(f), (*a Block -- *a) *a -- *a,
@@ -54,19 +54,19 @@ def(need-block, Block --,
     dup block-needed @ if(
         drop,
         T over block-needed !
-        NEED_BLOCK needs-stack stack-push!
+        NEED_BLOCK needs-stack push!
     ))
 def(need-word, Word --,
     dup word-needed @ if(
         drop,
         T over word-needed !
-        NEED_WORD needs-stack stack-push!
+        NEED_WORD needs-stack push!
     ))
 
 def(determine-arrow-needs!, Arrow --,
     need-arrow-run determine-transitive-needs!)
 def(determine-transitive-needs!, --,
-    while-some(needs-stack stack-pop!, match(
+    while-some(needs-stack pop!, match(
         NEED_BLOCK -> need-block-run,
         NEED_WORD -> word-arrow force! need-arrow-run,
     )))
