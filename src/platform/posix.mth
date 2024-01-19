@@ -114,4 +114,4 @@ def(st_mode@, Ptr -- U16,
         OS_LINUX -> 24, # ... this is all terrible and brittle
         OS_WINDOWS -> 6,
         _ -> drop 8
-    ) swap with-ptr+(u16@))
+    ) swap .offset(@U16))

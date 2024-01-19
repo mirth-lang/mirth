@@ -44,8 +44,8 @@ def(Int->Byte, Int -- Byte,
 def(Byte->U8, Byte -- U8, prim-unsafe-cast)
 def(U8->Byte, U8 -- Byte, prim-unsafe-cast)
 
-def(byte@, Ptr -- Byte, u8@ U8->Byte)
-def(byte!, Byte Ptr --, dip(Byte->U8) u8!)
+def(Ptr@Byte, Ptr -- Byte, @U8 U8->Byte)
+def(Ptr!Byte, Byte Ptr --, dip(Byte->U8) !U8)
 
 def(byte-cmp, Byte Byte -- Comparison, dip(Byte->Int) Byte->Int int-cmp)
 def(byte==, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int==)

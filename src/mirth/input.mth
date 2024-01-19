@@ -53,7 +53,7 @@ def(input-fill-buffer!, --,
 # Panics if file is exhausted.
 def(input-peek, Byte,
     input-isopen @ if(
-        input-offset @ INPUT_BUFFER with-ptr+(byte@),
+        input-offset @ INPUT_BUFFER .offset(@Byte),
         "error: attempted to read input buffer when file is already closed" panic!
     ))
 

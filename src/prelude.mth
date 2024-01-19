@@ -43,35 +43,26 @@ def(and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, F))
 
 # use ptr+ only if Ptr is static or has another reference
 # otherwise use with-ptr+
-alias(ptr+, prim-ptr-add)
-def(with-ptr+(f), (*a Ptr -- *b) *a Offset Ptr -- *b,
+alias(Ptr.offset-unsafe, prim-ptr-add)
+def(Ptr.offset(f), (*a Ptr -- *b) *a Offset Ptr -- *b,
     dup dip(prim-ptr-add f) drop)
 
-alias(ptr@, prim-ptr-get)
-alias(ptr!, prim-ptr-set)
-alias(|ptr|, prim-ptr-size)
+alias(Ptr@Ptr, prim-ptr-get)
+alias(Ptr!Ptr, prim-ptr-set)
+alias(Ptr.sizeof, prim-ptr-size)
 
-data(RawPtr, RAWPTR -> Int)
+data(RawPtr, Int>RawPtr -> Int)
 def(with-raw-ptr(f), (*a RawPtr -- *b) *a Ptr -- *b Ptr,
-    prim-ptr-raw RAWPTR swap dip(f))
+    prim-ptr-raw >RawPtr swap dip(f))
 
-alias(u8@, prim-u8-get)
-alias(u8!, prim-u8-set)
-alias(u16@, prim-u16-get)
-alias(u16!, prim-u16-set)
-alias(u32@, prim-u32-get)
-alias(u32!, prim-u32-set)
-alias(u64@, prim-u64-get)
-alias(u64!, prim-u64-set)
-
-alias(i8@, prim-i8-get)
-alias(i8!, prim-i8-set)
-alias(i16@, prim-i16-get)
-alias(i16!, prim-i16-set)
-alias(i32@, prim-i32-get)
-alias(i32!, prim-i32-set)
-alias(i64@, prim-i64-get)
-alias(i64!, prim-i64-set)
+alias(Ptr@U8,  prim-u8-get ) alias(Ptr!U8,  prim-u8-set )
+alias(Ptr@U16, prim-u16-get) alias(Ptr!U16, prim-u16-set)
+alias(Ptr@U32, prim-u32-get) alias(Ptr!U32, prim-u32-set)
+alias(Ptr@U64, prim-u64-get) alias(Ptr!U64, prim-u64-set)
+alias(Ptr@I8,  prim-i8-get ) alias(Ptr!I8,  prim-i8-set )
+alias(Ptr@I16, prim-i16-get) alias(Ptr!I16, prim-i16-set)
+alias(Ptr@I32, prim-i32-get) alias(Ptr!I32, prim-i32-set)
+alias(Ptr@I64, prim-i64-get) alias(Ptr!I64, prim-i64-set)
 
 data(OS,
     OS_UNKNOWN,
@@ -242,20 +233,29 @@ def(0<, Int -- Bool, 0 int<)
 def(0>, Int -- Bool, 0 int>)
 def(0<>, Int -- Bool, 0 int<>)
 
-alias(ptr-nil, prim-ptr-nil)
-def(ptr-is-null, Ptr -- Bool, prim-unsafe-cast 0=)
-def(ptrs, Size -- Size, |ptr| *)
-def(ptr@@, Offset Ptr -- Ptr, dip(ptrs) with-ptr+(ptr@))
-def(ptr!!, Ptr Offset Ptr --, dip(ptrs) with-ptr+(ptr!))
+alias(Ptr.null, prim-ptr-nil)
+def(Ptr.is-null, Ptr -- Bool, prim-unsafe-cast 0=)
 
-def(u8@@, Offset Ptr -- U8, with-ptr+(u8@))
-def(u8!!, U8 Offset Ptr --, with-ptr+(u8!))
+def(Ptr@@Ptr, Offset Ptr -- Ptr, dip(Ptr.sizeof *).offset(@Ptr))
+def(Ptr!!Ptr, Ptr Offset Ptr --, dip(Ptr.sizeof *).offset(!Ptr))
 
-def(u64@@, Offset Ptr -- U64, dip(8 *) with-ptr+(u64@))
-def(u64!!, U64 Offset Ptr --, dip(8 *) with-ptr+(u64!))
+def(Ptr@@U8,  Offset Ptr -- U8,          .offset(@U8))
+def(Ptr@@U16, Offset Ptr -- U16, dip(2 *).offset(@U16))
+def(Ptr@@U32, Offset Ptr -- U32, dip(4 *).offset(@U32))
+def(Ptr@@U64, Offset Ptr -- U64, dip(8 *).offset(@U64))
+def(Ptr@@I8,  Offset Ptr -- I8,          .offset(@I8))
+def(Ptr@@I16, Offset Ptr -- I16, dip(2 *).offset(@I16))
+def(Ptr@@I32, Offset Ptr -- I32, dip(4 *).offset(@I32))
+def(Ptr@@I64, Offset Ptr -- I64, dip(8 *).offset(@I64))
 
-def(i64@@, Offset Ptr -- I64, dip(8 *) with-ptr+(i64@))
-def(i64!!, I64 Offset Ptr --, dip(8 *) with-ptr+(i64!))
+def(Ptr!!U8,  U8  Offset Ptr --,         .offset(!U8))
+def(Ptr!!U16, U16 Offset Ptr --, dip(2 *).offset(!U16))
+def(Ptr!!U32, U32 Offset Ptr --, dip(4 *).offset(!U32))
+def(Ptr!!U64, U64 Offset Ptr --, dip(8 *).offset(!U64))
+def(Ptr!!I8,  I8  Offset Ptr --,         .offset(!I8))
+def(Ptr!!I16, I16 Offset Ptr --, dip(2 *).offset(!I16))
+def(Ptr!!I32, I32 Offset Ptr --, dip(4 *).offset(!I32))
+def(Ptr!!I64, I64 Offset Ptr --, dip(8 *).offset(!I64))
 
 def(U8>Int,  U8  -- Int, prim-unsafe-cast)
 def(U16>Int, U16 -- Int, prim-unsafe-cast)

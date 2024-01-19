@@ -55,7 +55,7 @@ def(main, --,
     # ) drop
 
     expect!(argc 2 int==, "expected one argument")
-    1 argv ptr@@ str-copy-cstr Str->Path compile!)
+    1 argv @@Ptr str-copy-cstr Str->Path compile!)
 
 #########
 # Build #

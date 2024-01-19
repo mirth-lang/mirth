@@ -142,7 +142,7 @@ def(.b, Byte --,
     Byte->U8
     codegen-full? if(codegen-flush!, id)
     codegen-length modify(dup 1+)
-    CODEGEN_BUF u8!!)
+    CODEGEN_BUF !!U8)
 
 def(., Str --,
     dup prim-str-base over str-num-bytes
@@ -152,12 +152,12 @@ def(., Str --,
             over CODEGEN_BUF_SIZE CODEGEN_BUF prim-ptr-copy
             CODEGEN_BUF_SIZE codegen-length !
             codegen-flush!
-            dip(CODEGEN_BUF_SIZE swap ptr+)
+            dip(CODEGEN_BUF_SIZE swap .offset-unsafe)
             CODEGEN_BUF_SIZE -
         )
         dup codegen-length ! CODEGEN_BUF prim-ptr-copy,
 
-        sip(codegen-length @ CODEGEN_BUF ptr+ prim-ptr-copy)
+        sip(codegen-length @ CODEGEN_BUF .offset-unsafe prim-ptr-copy)
         codegen-length modify(+)
     ) drop)
 
