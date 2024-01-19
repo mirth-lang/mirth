@@ -739,13 +739,10 @@ def(meta==, MetaVar MetaVar -- Bool, both(MetaVar.id) int==)
 ##############
 
 def(type-hole-unify!, Type Name -- Type,
-    dup name-is-nil if(
-        drop,
-        THole type-trace!
-        " ~ " str-trace!
-        dup type-trace!
-        trace-ln!
-    ))
+    THole type-trace!
+    " ~ " str-trace!
+    dup type-trace!
+    trace-ln!)
 
 ##########
 # Params #
