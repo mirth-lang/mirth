@@ -25,7 +25,7 @@ def(init!, --,
 
 def(compile!, Path --,
     "Compiling " str-trace!
-    dup Path->Str str-trace-ln!
+    dup >Str str-trace-ln!
 
     run-lexer!
 
@@ -55,7 +55,7 @@ def(main, --,
     # ) drop
 
     expect!(argc 2 =, "expected one argument")
-    1 argv @@Ptr str-copy-cstr Str->Path compile!)
+    1 argv @@Ptr str-copy-cstr >Path compile!)
 
 #########
 # Build #

@@ -139,13 +139,13 @@ def(codegen-flush!, --,
     ))
 
 def(.b, Byte --,
-    Byte->U8
+    >U8
     codegen-full? if(codegen-flush!, id)
     codegen-length modify(dup 1+)
     CODEGEN_BUF !!U8)
 
 def(., Str --,
-    dup prim-str-base over str-num-bytes
+    dup prim-str-base over num-bytes
     dup codegen-length @ + CODEGEN_BUF_SIZE > if(
         codegen-flush!
         while(dup CODEGEN_BUF_SIZE >,
@@ -178,7 +178,7 @@ def(run-output-c99!, Arrow Path --,
         over determine-arrow-needs!
 
         0 c99-depth !
-        make-output-path Path->Str
+        to-output-path >Str
         create-file! codegen-start!
         c99-header!
         c99-tags!
@@ -329,17 +329,17 @@ def(c99-str!, Str --,
         c99-line("static VAL v;" .)
         c99-line("if (! vready) {" .)
         c99-nest(
-            dup str-num-bytes 4090 > if(
+            dup num-bytes 4090 > if(
                 "static uint8_t b[] = {" .
                 c99-nest(
                     c99-indent dup str-bytes-for(
-                        Byte->Int dup .n "," .
+                        >Int dup .n "," .
                         10 = if(.lf c99-indent, id)
                     ) .lf
                 )
                 c99-line("};" .)
-                c99-line("v = mkstr((char*)b, " . dup str-num-bytes .n ");" .),
-                c99-line("v = mkstr(" . dup .str ", " . dup str-num-bytes .n ");" .)
+                c99-line("v = mkstr((char*)b, " . dup num-bytes .n ");" .),
+                c99-line("v = mkstr(" . dup .str ", " . dup num-bytes .n ");" .)
             )
             c99-line("vready = true;" .)
         )
@@ -359,9 +359,9 @@ def(c99-string-byte!, Byte --,
     BLF -> "\\n" .,
     BCR -> "\\r" .,
     _ -> 
-        dup BSPACE B'~' byte-in-range if(
+        dup BSPACE B'~' in-range if(
             .b,
-            "\\x" . byte-to-hexdigits dip(.b) .b
+            "\\x" . to-hexdigits dip(.b) .b
         )
     )
 
@@ -550,9 +550,9 @@ def(c99-block-enter!, Block --,
         dup .block ", " .
         dup block-arrow force! arrow-home @ match(
             NONE -> "block",
-            SOME -> word-name @ name-str @ " block" str-cat,
+            SOME -> word-name @ name-str @ " block" cat,
         ) .str ", " .
-        dup block-token @ token-module @ module-source-path Path->Str .str ", " .
+        dup block-token @ token-module @ module-source-path >Str .str ", " .
         dup block-token @ token-row @ Row->Int .n ", " .
         dup block-token @ token-col @ Col->Int .n ");" . )
     drop)
@@ -586,7 +586,7 @@ def(c99-word-enter!, Word --,
     c99-line("WORD_ENTER(" .
         "mw_" . dup word-name @ .name ", " .
         dup word-name @ name-str @ .str ", " .
-        dup word-body @ token-module @ module-source-path Path->Str .str ", " .
+        dup word-body @ token-module @ module-source-path >Str .str ", " .
         dup word-body @ token-row @ Row->Int .n ", " .
         dup word-body @ token-col @ Col->Int .n ");" . )
     drop)
@@ -635,7 +635,7 @@ def(c99-main!, Arrow --,
             "(void(*)(void))0, " .
             "\"<main>\", " .
             dup arrow-token-start @ token-module @
-                module-source-path Path->Str .str ", " .
+                module-source-path >Str .str ", " .
             dup arrow-token-start @ token-row @ Row->Int .n ", " .
             dup arrow-token-start @ token-col @ Col->Int .n ");" .)
         c99-arrow!

@@ -43,7 +43,7 @@ def(read-file!, File -- Str,
     File->Int \(fp -> ""
     fp READ_FILE_BUF READ_FILE_BUF_SIZE prim-posix-read
     while(dup 0>,
-        READ_FILE_BUF swap prim-str-copy str-cat
+        READ_FILE_BUF swap prim-str-copy cat
         fp READ_FILE_BUF READ_FILE_BUF_SIZE prim-posix-read)
     expect!(dup 0=, "error while reading file")
     drop))
@@ -85,7 +85,7 @@ def-external(stat, RawPtr RawPtr -- Int)
 buffer(POSIX_STAT_BUF, 256)
 
 def(with-raw-path(f), (*a RawPtr -- *b) *a Path -- *b Path,
-    sip(Path->Str prim-str-base with-raw-ptr(f) drop))
+    sip(>Str prim-str-base with-raw-ptr(f) drop))
 
 def(is-directory?, Path -- Path Bool,
     with-raw-path(

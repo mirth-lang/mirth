@@ -512,7 +512,7 @@ def(elab-atom-name!, Name --,
 def(elab-relativize-name!, Name -- Name,
     name-undefined? and(dup name-could-be-relative) if(
         ab-type @ stack-last-tycon-name for(
-            name-str @ over name-to-overload-suffix str-cat name-search for(
+            name-str @ over name-to-overload-suffix cat name-search for(
                 name-defined? if(
                     nip,
                     drop
@@ -525,7 +525,7 @@ def(elab-relativize-name!, Name -- Name,
 def(elab-check-name-visible!, Name -- Name,
     dup name-def @ def-module for(
         dup elab-module-is-visible if(drop,
-            "name not visible, must import " swap module-name @ name-str @ str-cat
+            "name not visible, must import " swap module-name @ name-str @ cat
             ab-token @ swap emit-error!)
     ))
 
@@ -546,7 +546,7 @@ def(elab-atom-name-global!, Name --,
         _ ->
             drop
             dip(ab-token @ "Unknown word: ")
-            name-str @ str-cat emit-error! TYPE_ERROR ab-type !
+            name-str @ cat emit-error! TYPE_ERROR ab-type !
     ))
 
 def(elab-prim!, Prim --,
@@ -771,7 +771,7 @@ def(elab-module-header!, Token -- Token,
         dup2 module-name !
         dup2 DEF_MODULE swap name-def !
         module-path @ swap
-        module-path-from-name path== if(drop,
+        module-path-from-name = if(drop,
             "Module name should match path." emit-error!)
         token-next,
         dup "Expected module header." emit-error!
@@ -1052,7 +1052,7 @@ def(elab-target-c99!, Token -- Token,
     typecheck-everything!
 
     sip(token-next) token-args-2
-    dip(token-str@ Str->Path)
+    dip(token-str@ >Path)
     dip(ctx-empty T0 T0 T->)
     elab-arrow!
     swap run-output-c99!)

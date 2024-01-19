@@ -39,7 +39,7 @@ def(hash-name!, Name Hash --,
 
 ||| Get hash for string.
 def(hash, Str -- Hash,
-    0 swap str-bytes-for(Byte->Int 17 * over 7 << ^ swap 27 >> ^)
+    0 swap str-bytes-for(>Int 17 * over 7 << ^ swap 27 >> ^)
     Int->Hash)
 
 def(name-hash, Name -- Hash, name-str @ hash)
@@ -72,7 +72,7 @@ def(name-new!, Str -- Name,
 
 ||| Add string to name, creating new name.
 def(name-cat!, Name Str -- Name,
-    dip(name-str @) str-cat name-new!)
+    dip(name-str @) cat name-new!)
 
 def(name-trace!, Name --,
     name-str @ str-trace!)
@@ -86,29 +86,29 @@ def(name-tail-head, Name -- Byte,
     name-str @ with-str-data(2 >= if(dip(1) .offset-unsafe @Byte, drop BNUL)))
 
 def(name-could-be-type, Name -- Bool,
-    name-head byte-is-alpha)
+    name-head is-alpha)
 
 def(name-could-be-type-var, Name -- Bool,
-    name-head byte-is-lower)
+    name-head is-lower)
 
 def(name-could-be-type-con, Name -- Bool,
-    name-head byte-is-upper)
+    name-head is-upper)
 
 def(name-is-type-hole, Name -- Bool,
-    dup name-head B'?' byte==
-    swap name-tail-head dup BNUL byte== swap byte-is-lower || &&)
+    dup name-head B'?' =
+    swap name-tail-head dup BNUL = swap is-lower || &&)
 
 def(name-is-underscore, Name -- Bool,
-    dup name-head B'_' byte==
-    swap name-tail-head BNUL byte== &&)
+    dup name-head B'_' =
+    swap name-tail-head BNUL = &&)
 
 def(name-could-be-stack-var, Name -- Bool,
-    dup name-head B'*' byte==
-    swap name-tail-head byte-is-lower &&)
+    dup name-head B'*' =
+    swap name-tail-head is-lower &&)
 
 def(name-could-be-effect-con, Name -- Bool,
-    dup name-head B'+' byte==
-    swap name-tail-head byte-is-lower &&)
+    dup name-head B'+' =
+    swap name-tail-head is-upper &&)
 
 def(name-print-mangled!, Name --,
     name-mangled force! str-print!)
@@ -118,23 +118,23 @@ def(name-mangle!, Name -- Str,
 
 def(name-mangle-compute!, Name -- Str,
     build-str!(name-str @ str-bytes-for(
-        dup byte-is-alnum if(
+        dup is-alnum if(
             str-buf-push-byte!,
-            dup B'-' byte== if(
+            dup B'-' = if(
                 drop B'_' str-buf-push-byte!,
                 B'_' str-buf-push-byte!
-                byte-to-hexdigits dip(str-buf-push-byte!) str-buf-push-byte!
+                to-hexdigits dip(str-buf-push-byte!) str-buf-push-byte!
                 B'_' str-buf-push-byte!
             )
         )
     )))
 
 def(name-could-be-relative, Name -- Bool,
-    name-head byte-is-overload-trigger)
+    name-head is-overload-trigger)
 
 def(name-to-overload-suffix, Name -- Str,
-    dup name-head byte-is-alpha if(
-        "." swap name-str @ str-cat,
+    dup name-head is-alpha if(
+        "." swap name-str @ cat,
         name-str @
     ))
 
