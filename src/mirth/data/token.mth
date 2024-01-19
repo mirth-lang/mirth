@@ -267,7 +267,7 @@ def(token-is-args-end?, Token -- Token Bool,
 ||| Get List+ of token args.
 ||| Emits a fatal error if token has no args,
 def(token-args+, Token -- List+(Token),
-    dup token-args List->List+ match(
+    dup token-args >List+ match(
         NONE -> "expected args" emit-fatal-error!,
         SOME -> nip
     ))
@@ -276,8 +276,8 @@ def(token-args+, Token -- List+(Token),
 def(token-args-2+, Token -- Token List+(Token),
     dup token-args dup len 2 >= if(nip,
         drop "expected 2+ args" emit-fatal-error!)
-    List->List+ unwrap uncons
-    List->List+ unwrap)
+    >List+ unwrap uncons
+    >List+ unwrap)
 
 def(emit-warning!, Token Str --,
     dip(token-location) emit-warning-at!)

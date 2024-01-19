@@ -132,6 +132,12 @@ def(name-mangle-compute!, Name -- Str,
 def(name-could-be-relative, Name -- Bool,
     name-head byte-is-overload-trigger)
 
+def(name-to-overload-suffix, Name -- Str,
+    dup name-head byte-is-alpha if(
+        "." swap name-str @ str-cat,
+        name-str @
+    ))
+
 ########
 # Defs #
 ########

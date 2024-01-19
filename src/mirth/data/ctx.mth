@@ -16,7 +16,7 @@ data(Ctx, CTX -> List(Var))
 
 def(unCTX, Ctx -- List(Var), CTX -> id)
 def(ctx-empty, Ctx, L0 CTX)
-def(ctx-is-physically-empty, Ctx -- Bool, ctx-physical-vars list-is-empty)
+def(ctx-is-physically-empty, Ctx -- Bool, ctx-physical-vars is-empty)
 def(ctx-new!, Ctx Var -- Ctx, dip(unCTX) snoc CTX)
 def(ctx-vars, Ctx -- List(Var), unCTX)
 def(ctx-physical-vars, Ctx -- List(Var),

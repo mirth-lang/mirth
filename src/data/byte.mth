@@ -102,4 +102,4 @@ def(byte-is-sign, Byte -- Bool,
     _ -> drop F)
 
 def(byte-is-overload-trigger, Byte -- Bool,
-    dup byte-is-alpha if(drop F, B'_' byte<>))
+    dup byte-is-upper if(drop F, B'_' byte<>))

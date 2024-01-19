@@ -54,11 +54,11 @@ def(prim-type-is-physical, PrimType -- Bool,
 
 ||| Get the top type constructor name. 
 def(stack-last-tycon-name, Type -- Maybe(Name),
-    stack-last-type maybe-bind(type-tycon-name))
+    stack-last-type bind(type-tycon-name))
 
 ||| Get the known type constructor names for a stack type.
 def(stack-tycon-names, Type -- List(Name),
-    L0 swap stack-types for(type-tycon-name maybe-for(snoc)))
+    L0 swap stack-types for(type-tycon-name for(snoc)))
 
 ||| Get the known types on the stack.
 def(stack-types, Type -- List(Type),

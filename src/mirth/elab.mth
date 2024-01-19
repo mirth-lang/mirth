@@ -278,7 +278,7 @@ def(atoms-has-last-block?, List(Atom) -- List(Atom) Bool,
     ))
 
 def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
-    List->List+ match(
+    >List+ match(
         NONE -> L0,
         SOME ->
             unsnoc dup atom-op @ match(
@@ -510,9 +510,9 @@ def(elab-atom-name!, Name --,
     ))
 
 def(elab-relativize-name!, Name -- Name,
-    dup name-could-be-relative if(
-        ab-type @ stack-last-tycon-name maybe-for(
-            name-str @ over name-str @ str-cat name-search maybe-for(
+    name-undefined? and(dup name-could-be-relative) if(
+        ab-type @ stack-last-tycon-name for(
+            name-str @ over name-to-overload-suffix str-cat name-search for(
                 name-defined? if(
                     nip,
                     drop
@@ -523,7 +523,7 @@ def(elab-relativize-name!, Name -- Name,
     ))
 
 def(elab-check-name-visible!, Name -- Name,
-    dup name-def @ def-module maybe-for(
+    dup name-def @ def-module for(
         dup elab-module-is-visible if(drop,
             "name not visible, must import " swap module-name @ name-str @ str-cat
             ab-token @ swap emit-error!)
@@ -896,13 +896,13 @@ def(expect-token-arrow, Token -- Token,
 def(token-def-args, Token -- Token Maybe(Token) List+(Token),
     dup token-args len? 2 >= if(nip,
         drop "def expects at least two arguments" emit-fatal-error!)
-    List->List+ unwrap uncons
-    List->List+ unwrap uncons
-    dup list-is-empty if(
+    >List+ unwrap uncons
+    >List+ unwrap uncons
+    dup is-empty if(
         drop L1+ dip(NONE),
         over token-run-has-arrow if(
             cons+ dip(NONE),
-            List->List+ unwrap dip(SOME)
+            >List+ unwrap dip(SOME)
         )
     ))
 
@@ -928,7 +928,7 @@ def(elab-def-missing!, Token -- Token,
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, Token -- Token,
     sip(token-next) token-def-args
-    uncons list-is-empty if(id,
+    uncons is-empty if(id,
         dup token-run-has-arrow if(id,
             "expected match case" emit-fatal-error!))
     rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
@@ -950,7 +950,7 @@ def(elab-def!, Token -- Token,
     dup delay(elab-def-params!) over word-params !
     dup delay(
         dup ab-build-word-arrow!(
-            swap word-params force! dup list-is-empty if(
+            swap word-params force! dup is-empty if(
                 drop elab-def-body!,
                 ab-lambda!(elab-def-body!)
             )
