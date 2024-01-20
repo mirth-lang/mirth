@@ -50,26 +50,26 @@ def(list10, List(Int),
 ||| Show the structure of the list.
 def(trace-list-struc!, List(t) --,
     match(
-        L0 -> "L0" str-trace!,
-        L1 -> drop "L1" str-trace!,
-        L2 -> drop2 "L2" str-trace!,
-        L3 -> drop3 "L3" str-trace!,
+        L0 -> "L0" trace!,
+        L1 -> drop "L1" trace!,
+        L2 -> drop2 "L2" trace!,
+        L3 -> drop3 "L3" trace!,
         LCAT ->
-            dip2(List+->List trace-list-struc! " " str-trace!)
-            dip(List+->List trace-list-struc! " " str-trace!)
-            int-trace! " LCAT" str-trace!
+            dip2(>List trace-list-struc! " " trace!)
+            dip(>List trace-list-struc! " " trace!)
+            trace! " LCAT" trace!
     ))
 
 def(main, --,
-    list1 trace-list-struc! trace-ln!
-    list2 trace-list-struc! trace-ln!
-    list3 trace-list-struc! trace-ln!
-    list4 trace-list-struc! trace-ln!
-    list5 trace-list-struc! trace-ln!
-    list6 trace-list-struc! trace-ln!
-    list7 trace-list-struc! trace-ln!
-    list8 trace-list-struc! trace-ln!
-    list9 trace-list-struc! trace-ln!)
+    list1 trace-list-struc! line-trace!
+    list2 trace-list-struc! line-trace!
+    list3 trace-list-struc! line-trace!
+    list4 trace-list-struc! line-trace!
+    list5 trace-list-struc! line-trace!
+    list6 trace-list-struc! line-trace!
+    list7 trace-list-struc! line-trace!
+    list8 trace-list-struc! line-trace!
+    list9 trace-list-struc! line-trace!)
 
 target-c99("list-test.c", main)
 # mirth-test # perr # L0

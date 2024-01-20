@@ -11,15 +11,6 @@ def(STDIN, File, 0 >File)
 def(STDOUT, File, 1 >File)
 def(STDERR, File, 2 >File)
 
-var(CURIN, File)
-var(CUROUT, File)
-var(CURERR, File)
-
-def(init-posix!, --,
-    STDIN CURIN !
-    STDOUT CUROUT !
-    STDERR CURERR !)
-
 def(Str.write!, File Str --,
     with-str-data(slice-write!))
 
@@ -29,8 +20,8 @@ def(slice-write!, File Ptr Int --,
     expect!(dup2 =, "write output fewer bytes than expected")
     drop2)
 
-def(Str.print!, Str --, dip(CUROUT @) write!)
-def(Str.trace!, Str --, dip(CURERR @) write!)
+def(Str.print!, Str --, dip(STDOUT) write!)
+def(Str.trace!, Str --, dip(STDERR) write!)
 def(Str.print-ln!, Str --, print! line-print!)
 def(Str.trace-ln!, Str --, trace! line-trace!)
 def(line-print!, --, "\n" print!)

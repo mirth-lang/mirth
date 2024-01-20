@@ -3,14 +3,14 @@ import(prelude)
 import(platform.posix)
 
 def(expect==!, Str Int Int --,
-    dup2 int== if(
+    dup2 = if(
         drop3,
 
-        "failed: " str-print!
-        dip2(str-print!)
-        " (expected: " str-print! int-print!
-        ", got: " str-print! int-print!
-        ")" str-print-ln!
+        "failed: " print!
+        dip2(print!)
+        " (expected: " print! print!
+        ", got: " print! print!
+        ")" print-ln!
     ))
 
 def(mod-div-property, Str Int Int --,

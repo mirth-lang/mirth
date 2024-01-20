@@ -26,25 +26,25 @@ def(foo-tag, Foo -- Str,
     ))
 
 def(foo-display, Foo --,
-    dup foo-tag str-print!
-    ", sum = " str-print!
-    dup foo-sum int-print!
-    ", values = " str-print!
+    dup foo-tag print!
+    ", sum = " print!
+    dup foo-sum print!
+    ", values = " print!
     match(
         FOO0 ->
-            "[]" str-print-ln!,
+            "[]" print-ln!,
         FOO1 ->
-            "[ " str-print!
-            int-print! " ]" str-print-ln!,
+            "[ " print!
+            print! " ]" print-ln!,
         FOO2 ->
-            "[ " str-print!
-            dip(int-print!) " " str-print!
-            int-print! " ]" str-print-ln!,
+            "[ " print!
+            dip(print!) " " print!
+            print! " ]" print-ln!,
         FOO3 ->
-            "[ " str-print!
-            dip2(int-print!) " " str-print!
-            dip(int-print!) " " str-print!
-            int-print! " ]" str-print-ln!,
+            "[ " print!
+            dip2(print!) " " print!
+            dip(print!) " " print!
+            print! " ]" print-ln!,
     ))
 
 def(main, --,

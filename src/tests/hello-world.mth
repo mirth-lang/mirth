@@ -7,11 +7,11 @@ import(prelude)
 import(platform.posix)
 
 target-c99("hello-world.c",
-    "Hello, world!" str-print-ln!)
+    "Hello, world!" print-ln!)
 target-c99("hello-world-2.c",
-    "Hello, world, too!" str-trace-ln!)
+    "Hello, world, too!" trace-ln!)
 target-c99("goodbye.c",
-    "Goodbye!" str-print-ln! 1 posix-exit!)
+    "Goodbye!" print-ln! 1 posix-exit!)
 target-c99("answer.c",
     42 posix-exit!)
 

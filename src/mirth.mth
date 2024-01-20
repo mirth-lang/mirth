@@ -13,7 +13,6 @@ import(mirth.codegen)
 import(mirth.elab)
 
 def(init!, --,
-    init-posix!
     init-errors!
     init-paths!
     init-types!
