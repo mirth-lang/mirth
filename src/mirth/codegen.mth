@@ -360,7 +360,7 @@ def(c99-string-byte!, Byte --,
     )
 
 def(c99-constant!, Constant --,
-    constant-value @ c99-value!)
+    value c99-value!)
 
 def(c99-value!, Value --,
     VALUE_INT -> c99-int!,

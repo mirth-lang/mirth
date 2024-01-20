@@ -36,7 +36,7 @@ def(Def>Module?, Def -- Maybe(Module),
     DEF_WORD -> word-head @ .module SOME,
     DEF_BUFFER -> head .module SOME,
     DEF_VARIABLE -> variable-head @ .module SOME,
-    DEF_CONSTANT -> constant-head @ .module SOME,
+    DEF_CONSTANT -> head .module SOME,
     DEF_EXTERNAL -> external-sig @ .module SOME,
     DEF_FIELD -> field-head @ .module SOME)
 
