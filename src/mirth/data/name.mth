@@ -118,5 +118,5 @@ def(Name.to-overload-suffix, Name -- Str,
 # Defs #
 ########
 
-def(name-undefined?, Name -- Name Bool, dup >Def is-none)
+def(name-undefined?, Name -- Name Bool, dup >Def none?)
 def(name-defined?, Name -- Name Bool, name-undefined? not)

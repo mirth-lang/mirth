@@ -121,13 +121,6 @@ field(prim-decl, Prim, Maybe([Token -- Token]))
 def(Prim->Int, Prim -- Int, prim-unsafe-cast)
 def(prim==, both(Prim->Int) =)
 
-||| Does this name refer to this primitive?
-def(name-prim=, Name Prim -- Bool,
-    swap >Def match(
-        DEF_PRIM -> prim==,
-        _ -> drop2 F
-    ))
-
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str --,
     name-new!

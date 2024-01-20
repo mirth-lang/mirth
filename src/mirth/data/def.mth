@@ -40,6 +40,15 @@ def(Def>Module?, Def -- Maybe(Module),
     DEF_EXTERNAL -> external-sig @ .module SOME,
     DEF_FIELD -> field-head @ .module SOME)
 
-def(Def.is-none, Def -- Bool,
-    DEF_NONE -> T,
-    _ -> drop F)
+def(Def.none?, Def -- Bool, DEF_NONE -> T, _ -> drop F)
+def(Def.alias?, Def -- Maybe(Alias), DEF_ALIAS -> SOME, _ -> drop NONE)
+def(Def.module?, Def -- Maybe(Module), DEF_MODULE -> SOME, _ -> drop NONE)
+def(Def.type?, Def -- Maybe(Type), DEF_TYPE -> SOME, _ -> drop NONE)
+def(Def.tag?, Def -- Maybe(Tag), DEF_TAG -> SOME, _ -> drop NONE)
+def(Def.prim?, Def -- Maybe(Prim), DEF_PRIM -> SOME, _ -> drop NONE)
+def(Def.word?, Def -- Maybe(Word), DEF_WORD -> SOME, _ -> drop NONE)
+def(Def.buffer?, Def -- Maybe(Buffer), DEF_BUFFER -> SOME, _ -> drop NONE)
+def(Def.variable?, Def -- Maybe(Variable), DEF_VARIABLE -> SOME, _ -> drop NONE)
+def(Def.constant?, Def -- Maybe(Constant), DEF_CONSTANT -> SOME, _ -> drop NONE)
+def(Def.external?, Def -- Maybe(External), DEF_EXTERNAL -> SOME, _ -> drop NONE)
+def(Def.field?, Def -- Maybe(Field), DEF_FIELD -> SOME, _ -> drop NONE)

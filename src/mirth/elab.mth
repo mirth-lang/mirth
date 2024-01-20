@@ -779,19 +779,11 @@ def(elab-module-header!, Token -- Token,
 
 ||| Elaborate a declaration. Returns the next token.
 def(elab-module-decl!, Token -- Token,
-    dup value match(
-        TOKEN_NAME -> dup >Def match(
-            DEF_PRIM -> prim-decl @ match(
-                NONE ->
-                    >Str trace-ln!
-                    "unknown declaration, prim prim" emit-fatal-error!,
-                SOME -> nip run
-            ),
-            _ -> drop >Str trace-ln! 
-                "unknown declaration, not prim" emit-fatal-error!
-        ),
-        _ -> drop "unsupported declaration" emit-fatal-error!
-    ))
+    dup
+    name? unwrap-or("unknown declaration" emit-fatal-error!)
+    >Def prim? unwrap-or("unknown declaration" emit-fatal-error!)
+    prim-decl @ unwrap-or("unknown declaration" emit-fatal-error!)
+    run)
 
 ||| Elaborate `import(M)` statement. Return token after import.
 def(elab-module-import!, Token -- Token,
