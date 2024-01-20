@@ -405,7 +405,7 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_TAG -> elab-tag-sig! type-freshen-sig OPSIG_APPLY,
         OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
         OP_PRIM -> prim-type @ type-freshen-sig OPSIG_APPLY,
-        OP_EXTERNAL -> elab-external-sig! type-freshen-sig OPSIG_APPLY,
+        OP_EXTERNAL -> type type-freshen-sig OPSIG_APPLY,
         OP_FIELD -> elab-field-type! type-freshen-sig OPSIG_APPLY,
         OP_BLOCK -> elab-block-sig!,
         OP_VAR -> elab-var-sig!,
@@ -431,10 +431,6 @@ def(elab-var-sig!, Var -- OpSig,
 def(elab-tag-sig!, Tag -- Type, elab-tag-ctx-sig! nip)
 def(elab-tag-ctx!, Tag -- Ctx , elab-tag-ctx-sig! drop)
 def(elab-tag-ctx-sig!, Tag -- Ctx Type, tag-ctx-type force2!)
-
-def(elab-external-sig!, External -- Type, elab-external-ctx-sig! nip)
-def(elab-external-ctx!, External -- Ctx, elab-external-ctx-sig! drop)
-def(elab-external-ctx-sig!, External -- Ctx Type, external-ctx-type force2!)
 
 def(elab-word-sig!, Word -- Type, elab-word-ctx-sig! nip)
 def(elab-word-ctx!, Word -- Ctx, elab-word-ctx-sig! drop)
@@ -968,12 +964,12 @@ def(elab-def-external!, Token -- Token,
     nip
     External.alloc!
     dup2 DEF_EXTERNAL swap ~Def !
-    tuck external-name !
-    tuck external-sig !
+    tuck ~name !
+    tuck ~sig !
     dup delay(
-        type-elab-default swap external-sig @
+        type-elab-default swap sig
         elab-type-sig! drop dip(type-elab-ctx) pack2
-    ) swap external-ctx-type !)
+    ) swap ~ctx-type !)
 
 ||| Elaborate a type definition `def-type(t1, t2)`.
 def(elab-def-type!, Token -- Token,
@@ -1037,7 +1033,7 @@ def(typecheck-def!, Def --,
     DEF_BUFFER -> drop,
     DEF_PRIM -> drop,
     DEF_TYPE -> drop,
-    DEF_EXTERNAL -> elab-external-sig! drop,
+    DEF_EXTERNAL -> type drop,
     DEF_WORD -> word-arrow force! drop,
     DEF_FIELD -> elab-field-type! drop,
     DEF_TAG -> elab-tag-sig! drop,

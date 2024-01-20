@@ -244,7 +244,7 @@ def(c99-externals!, --,
     External.for(c99-external!) .lf)
 
 def(c99-external!, External --,
-    dup external-sig @ sig-arity
+    dup sig sig-arity
     dup 2 >= if(
         "can't declare external with multiple return values" panic!,
 
@@ -254,16 +254,16 @@ def(c99-external!, External --,
         )
     )
 
-    dip2(dup external-name @ >Str .)
+    dip2(dup name >Str .)
 
     " (" .
     over dup 0> if("int64_t" . 1- repeat(", int64_t" .), drop "void" .)
     ");" ;
 
-    "static void mw_" . dip2(dup external-name @ .name) " (void) {" ;
+    "static void mw_" . dip2(dup name .name) " (void) {" ;
     over countdown("    int64_t x" . .n " = pop_i64();" ;)
     dup 0> if("    push_i64(", "    ") .
-    dip2(dup external-name @ >Str .)
+    dip2(dup name >Str .)
     "(" .
     dip(dup 0> if(
         dup 1- dup count("x" . .n ", " .) "x" . .n,
@@ -302,7 +302,7 @@ def(c99-args-op!, List(Arg) Op --,
     OP_STR      -> nip c99-str!,
     OP_CONSTANT -> nip c99-constant!,
     OP_WORD     -> dup need-word word-name @ c99-call!,
-    OP_EXTERNAL -> external-name @ c99-call!,
+    OP_EXTERNAL -> name c99-call!,
     OP_BUFFER   -> name c99-call!,
     OP_VARIABLE -> variable-name @ c99-call!,
     OP_FIELD    -> field-name    @ c99-call!,
