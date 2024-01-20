@@ -516,9 +516,9 @@ def(elab-atom-name!, Name --,
     ))
 
 def(elab-relativize-name!, Name -- Name,
-    name-undefined? and(dup name-could-be-relative) if(
+    name-undefined? and(dup could-be-relative) if(
         ab-type @ stack-last-tycon-name for(
-            >Str over name-to-overload-suffix cat name-search for(
+            >Str over to-overload-suffix cat name-search for(
                 name-defined? if(
                     nip,
                     drop
@@ -540,7 +540,7 @@ def(elab-module-is-visible, Module -- Bool,
 
 def(elab-atom-name-global!, Name --,
     dup >Def match(
-        DEF_ALIAS -> nip target elab-atom-name-global!,
+        DEF_ALIAS -> nip >target elab-atom-name-global!,
         DEF_BUFFER -> nip elab-no-args! ab-buffer!,
         DEF_VARIABLE -> nip elab-no-args! ab-variable!,
         DEF_CONSTANT -> nip elab-no-args! ab-constant!,
@@ -1088,7 +1088,7 @@ def(typecheck-everything!, --,
 ||| Typecheck a definition.
 def(typecheck-def!, Def --,
     DEF_NONE -> id,
-    DEF_ALIAS -> target >Def typecheck-def!, # TODO verify it's not DEF_NONE!!
+    DEF_ALIAS -> >target >Def typecheck-def!, # TODO verify it's not DEF_NONE!!
     DEF_MODULE -> drop,
     DEF_BUFFER -> drop,
     DEF_PRIM -> drop,

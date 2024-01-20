@@ -539,7 +539,7 @@ def(type-trace-stack!, Type --,
     TVar ->
         var-name @
         dup trace!
-        name-could-be-stack-var
+        could-be-stack-var
         if(id, " ." trace!),
     _ -> type-trace!)
 

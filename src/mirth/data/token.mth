@@ -359,50 +359,20 @@ def(sig-count-types, Token -- Int Token,
         token-next
     ))
 
-def(sig-token-is-type?, Token -- Token Bool,
+def(Token.is-name-and(p), (Name -- Bool) Token -- Token Bool,
     dup token-value @ match(
-        TOKEN_NAME -> name-could-be-type,
+        TOKEN_NAME -> p,
         _ -> drop F
     ))
 
-def(sig-token-is-type-con?, Token -- Token Bool,
-    dup token-value @ match(
-        TOKEN_NAME -> name-could-be-type-con,
-        _ -> drop F
-    ))
-
-def(sig-token-is-type-hole?, Token -- Token Bool,
-    dup token-value @ match(
-        TOKEN_NAME -> name-is-type-hole,
-        _ -> drop F
-    ))
-
-def(token-is-underscore?, Token -- Token Bool,
-    dup token-value @ match(
-        TOKEN_NAME -> name-is-underscore,
-        _ -> drop F
-    ))
-
-def(sig-token-is-type-var?, Token -- Token Bool,
-    dup token-value @ match(
-        TOKEN_NAME -> name-could-be-type-var,
-        _ -> drop F
-    ))
-def(token-is-param-name?, Token -- Token Bool,
-    sig-token-is-type-var?)
-
-def(sig-token-is-stack-var?, Token -- Token Bool,
-    dup token-value @ match(
-        TOKEN_NAME -> name-could-be-stack-var,
-        _ -> drop F
-    ))
-
-def(sig-token-is-effect-con?, Token -- Token Bool,
-    dup token-value @ match(
-        TOKEN_NAME -> name-could-be-effect-con,
-        _ -> drop F
-    ))
-
+def(sig-token-is-type?, Token -- Token Bool, is-name-and(could-be-type))
+def(sig-token-is-type-con?, Token -- Token Bool, is-name-and(could-be-type-con))
+def(sig-token-is-type-hole?, Token -- Token Bool, is-name-and(is-type-hole))
+def(token-is-underscore?, Token -- Token Bool, is-name-and(is-underscore))
+def(sig-token-is-type-var?, Token -- Token Bool, is-name-and(could-be-type-var))
+def(token-is-param-name?, Token -- Token Bool, sig-token-is-type-var?)
+def(sig-token-is-stack-var?, Token -- Token Bool, is-name-and(could-be-stack-var))
+def(sig-token-is-effect-con?, Token -- Token Bool, is-name-and(could-be-effect-con))
 def(sig-skip-dashes, Token -- Token,
     sig-has-dashes? if(
         sig-next-stack-end token-next,

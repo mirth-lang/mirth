@@ -20,7 +20,8 @@ field(Name~mangled, Name, Lazy(Str))
 
 def(Name>Str, Name -- Str, ~Str @)
 def(Name>Def, Name -- Def, ~Def @)
-def(Name.mangle, Name -- Str, Name~mangled force!)
+def(Name>mangled, Name -- Str, ~mangled force!)
+
 def(Name=, Name Name -- Bool, both(Name.id) =)
 
 data(Hash, HASH -> Int)
@@ -64,7 +65,7 @@ def(name-new!, Str -- Name,
             tuck swap hash-name!
             tuck ~Str !
             DEF_NONE over ~Def !
-            dup delay(name-mangle-compute!) over ~mangled !,
+            dup delay(mangle-compute!) over ~mangled !,
         SOME ->
             dip(drop2)
     ))
@@ -76,47 +77,22 @@ def(name-cat!, Name Str -- Name,
 def(Name.trace!, Name --, >Str trace!)
 def(Name.print!, Name --, >Str print!)
 
-def(name-head, Name -- Byte,
+def(Name.head, Name -- Byte,
     >Str with-str-data(1 >= if(@Byte, drop BNUL)))
-def(name-tail-head, Name -- Byte,
+def(Name.tail-head, Name -- Byte,
     >Str with-str-data(2 >= if(dip(1) .offset-unsafe @Byte, drop BNUL)))
-def(name-tail, Name -- Name,
+def(Name.tail, Name -- Name,
     >Str with-str-data(dup 2 >= if(dip(dip(1) .offset-unsafe) 1- prim-str-copy, drop2 "")) name-new!)
 
-def(name-could-be-type, Name -- Bool,
-    name-head is-alpha)
-
-def(name-could-be-type-var, Name -- Bool,
-    name-head is-lower)
-def(name-could-be-mut-type-var, Name -- Bool,
-    dup name-head B'!' =
-    swap name-tail-head is-lower &&)
-
-def(name-could-be-type-con, Name -- Bool,
-    name-head is-upper)
-def(name-could-be-mut-type-con, Name -- Bool,
-    dup name-head B'!' =
-    swap name-tail-head is-upper &&)
-
-def(name-is-type-hole, Name -- Bool,
-    dup name-head B'?' =
-    swap name-tail-head dup BNUL = swap is-lower || &&)
-
-def(name-is-underscore, Name -- Bool,
-    dup name-head B'_' =
-    swap name-tail-head BNUL = &&)
-
-def(name-could-be-stack-var, Name -- Bool,
-    dup name-head B'*' =
-    swap name-tail-head is-lower &&)
-
-def(name-could-be-effect-con, Name -- Bool,
-    dup name-head B'+' =
-    swap name-tail-head is-upper &&)
-
-def(name-print-mangled!, Name --, mangle print!)
-
-def(name-mangle-compute!, Name -- Str,
+def(Name.could-be-type, Name -- Bool, head is-alpha)
+def(Name.could-be-type-var, Name -- Bool, head is-lower)
+def(Name.could-be-type-con, Name -- Bool, head is-upper)
+def(Name.is-type-hole, Name -- Bool, dup head B'?' = swap tail-head dup BNUL = swap is-lower || &&)
+def(Name.is-underscore, Name -- Bool, dup head B'_' = swap tail-head BNUL = &&)
+def(Name.could-be-stack-var, Name -- Bool, dup head B'*' = swap tail-head is-lower &&)
+def(Name.could-be-effect-con, Name -- Bool, dup head B'+' = swap tail-head is-upper &&)
+def(Name.print-mangled!, Name --, >mangled print!)
+def(Name.mangle-compute!, Name -- Str,
     build-str!(>Str str-bytes-for(
         dup is-alnum if(
             str-buf-push-byte!,
@@ -129,11 +105,11 @@ def(name-mangle-compute!, Name -- Str,
         )
     )))
 
-def(name-could-be-relative, Name -- Bool,
-    name-head is-overload-trigger)
+def(Name.could-be-relative, Name -- Bool,
+    head is-overload-trigger)
 
-def(name-to-overload-suffix, Name -- Str,
-    dup name-head is-alpha if(
+def(Name.to-overload-suffix, Name -- Str,
+    dup head is-alpha if(
         "." swap >Str cat,
         >Str
     ))
