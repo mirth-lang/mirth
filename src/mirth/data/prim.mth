@@ -128,19 +128,6 @@ def(name-prim=, Name Prim -- Bool,
         _ -> drop2 F
     ))
 
-||| Does the token refer to this primitive? Preserves the token.
-def(token-prim=?, Token Prim -- Token Bool,
-    dip(dup) token-prim=)
-
-||| Does the token refer to this primitive?
-def(token-prim=, Token Prim -- Bool,
-    swap token-value @ match(
-        TOKEN_NAME ->
-            swap name-prim=,
-        _ ->
-            drop2 F
-    ))
-
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str --,
     name-new!

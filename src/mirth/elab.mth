@@ -42,19 +42,19 @@ def(type-elab-ctx-replace, TypeElab Ctx -- TypeElab,
     swap match(TYPE_ELAB -> drop swap TYPE_ELAB))
 
 def(elab-type-sig!, TypeElab Token -- TypeElab Type Token,
-    token-run-end? if(dup "expected type signature" emit-error!, id)
+    dup run-end? then(dup "expected type signature" emit-error!)
     elab-type-sig-params! dip(swap)
     elab-type-stack! dip(swap)
-    token-is-dashes? if(
-        token-next elab-type-stack! dip(swap),
+    dup sig-dashes? if(
+        next elab-type-stack! dip(swap),
         dip(T0 rotr))
-    token-run-end? if(id, dup "expected right paren or comma" emit-error!)
+    dup run-end? else(dup "expected right paren or comma" emit-error!)
     dip(rot4r dip(swap for(T*)) T->))
 
 def(elab-type-sig-params!, TypeElab Token -- TypeElab List(Type) Token,
-    token-is-lparen? if(
-        dup token-next dip(
-            L0 rotr token-args
+    dup lparen? .if(
+        dup next dip(
+            L0 rotr args
             for(elab-type-sig! drop swap dip(snoc))
             swap
         ),
@@ -62,44 +62,44 @@ def(elab-type-sig-params!, TypeElab Token -- TypeElab List(Type) Token,
     ))
 
 def(elab-type-stack!, TypeElab Token -- TypeElab Type Token,
-    sig-token-is-stack-var? if(
+    dup sig-stack-var? if(
         elab-stack-var! dip(TVar),
         dip(TYPE_UNIT)
     )
     elab-type-stack-rest!)
 
 def(elab-type-stack-rest!, TypeElab Type Token -- TypeElab Type Token,
-    while(sig-is-stack-end2? not,
+    while(dup sig-stack-end2? not,
         swap dip(elab-type-atom!) swap
         dip(swap TTensor)
     ))
 
 def(elab-type-arg!, TypeElab Token -- TypeElab Type Token,
     elab-type-atom!
-    token-is-arg-end? if(
+    dup arg-end? if(
         id,
         "Unexpected token after type." emit-fatal-error!
     ))
 
 def(elab-type-atom!, TypeElab Token -- TypeElab Type Token,
     # TODO: handle Mut sugar
-    sig-token-is-type-var? if(
+    dup sig-type-var? if(
         elab-type-var! dip(TVar),
 
-    sig-token-is-type-con? if(
+    dup sig-type-con? if(
         elab-type-con!,
 
-    token-is-underscore? if(
+    dup pat-underscore? if(
         elab-type-dont-care!,
 
-    sig-token-is-type-hole? if(
+    dup sig-type-hole? if(
         elab-type-hole!,
 
-    token-is-lsquare? if(
+    dup lsquare? .if(
         elab-type-quote!,
 
         dup "Expected type, got unknown token." emit-error!
-        dip(TYPE_ERROR) token-next
+        dip(TYPE_ERROR) next
     ))))))
 
 def(elab-stack-var!, TypeElab Token -- TypeElab Var Token,
@@ -110,7 +110,7 @@ def(elab-type-var!, TypeElab Token -- TypeElab Var Token,
 
 def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
     dip2(type-elab-ctx?) over
-    dip2(token-name@ dup2 swap ctx-lookup)
+    dip2(name? unwrap dup2 swap ctx-lookup)
     rotl match(
         SOME ->
             rotr dip2(nip dup var-type @)
@@ -122,17 +122,17 @@ def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
                 sip(ctx-new!)
             )
     )
-    token-next
+    next
     dip2(type-elab-ctx-replace))
 
 def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
-    token-name? "Mut" name-new! = if(
-        tuck token-args-1 elab-type-arg! drop TMut
-        rotl token-next,
+    dup name? unwrap >Str "Mut" = if(
+        tuck args-1 elab-type-arg! drop TMut
+        rotl next,
 
-        token-name? >Def match(
+        dup name? unwrap >Def match(
             DEF_TYPE ->
-                over token-num-args
+                over num-args
                 over type-arity = if(
                     elab-type-args!,
 
@@ -145,14 +145,14 @@ def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
             _ ->
                 drop dup "Not a type." emit-error! TYPE_ERROR
         )
-        swap token-next
+        swap next
     ))
 
 def(elab-type-args!, TypeElab Token Type -- TypeElab Token Type,
-    dip(token-has-args?) swap if(
-        dip(tuck) swap token-succ
-        while(token-is-right-enclosure? not,
-            token-succ swap
+    over has-args? if(
+        dip(tuck) swap succ
+        while(dup args-end? not,
+            succ swap
             dip(elab-type-arg!) swap
             dip(swap TApp))
         drop dip(swap),
@@ -162,29 +162,25 @@ def(elab-type-args!, TypeElab Token Type -- TypeElab Token Type,
 
 def(elab-type-hole!, TypeElab Token -- TypeElab Type Token,
     over type-elab-holes-allowed if(
-        token-has-args? if(
-            dup "Types with args not yet supported." emit-error! TYPE_ERROR,
-            token-name? THole)
-        swap token-next,
+        dup args-0
+        dup name? unwrap THole
+        swap next,
         "type holes are not allowed here" emit-fatal-error!
     ))
 
 def(elab-type-dont-care!, TypeElab Token -- TypeElab Type Token,
     over type-elab-holes-allowed if(
-        token-has-args? if(
-            dup "Types with args not yet supported." emit-error! TYPE_ERROR,
-            TYPE_DONT_CARE)
-        swap token-next,
-        "type don't care is not allowed here" emit-fatal-error!
+        dup args-0
+        TYPE_DONT_CARE
+        swap next,
+        "underscore is not allowed here" emit-fatal-error!
     ))
 
 def(elab-type-quote!, TypeElab Token -- TypeElab Type Token,
-    token-args-1
-    sig-has-dashes? if(
+    args-1 dup sig-has-dashes? if(
         elab-type-sig!,
         elab-type-stack!
-    )
-    token-next)
+    ) next)
 
 def(elab-type-unify!, Type Type Token -- Type Token,
     sip(GAMMA rotr type-unify! nip))
@@ -478,14 +474,14 @@ def(elab-arrow-fwd!, Ctx Type Token -- Arrow,
 def(elab-atoms!, --,
     while(
         elab-atoms-done? not,
-        elab-atom! ab-token modify(token-next)
+        elab-atom! ab-token modify(next)
     ))
 
 def(elab-atoms-done?, Bool,
-    ab-token @ token-run-end? nip)
+    ab-token @ run-end?)
 
 def(elab-atom!, --,
-    ab-token @ token-value @ match(
+    ab-token @ value match(
         TOKEN_NAME -> elab-atom-name!,
         TOKEN_INT -> ab-int!,
         TOKEN_STR -> ab-str!,
@@ -495,16 +491,16 @@ def(elab-atom!, --,
     ))
 
 def(elab-atom-block!, --,
-    ab-token @ token-args-1 elab-block-at!)
+    ab-token @ args-1 elab-block-at!)
 
 def(elab-block-at!, Token --,
     ab-ctx @ swap block-new-deferred! OP_BLOCK ab-op!)
 
 def(elab-args!, --,
-    ab-token @ token-args for(elab-block-at!))
+    ab-token @ args for(elab-block-at!))
 
 def(elab-no-args!, --,
-    ab-token @ token-args-0)
+    ab-token @ args-0)
 
 def(elab-atom-name!, Name --,
     dup ab-ctx @ ctx-lookup match(
@@ -536,7 +532,7 @@ def(elab-check-name-visible!, Name -- Name,
     ))
 
 def(elab-module-is-visible, Module -- Bool,
-    ab-token @ token-module @ module-visible-in-module)
+    ab-token @ .module module-visible-in-module)
 
 def(elab-atom-name-global!, Name --,
     dup >Def match(
@@ -565,7 +561,7 @@ def(elab-prim!, Prim --,
 def(elab-atom-assert!, --,
     ab-token @ GAMMA
     ab-ctx @ type-elab-stack-assertion
-    ab-token @ token-args-1 elab-type-stack!
+    ab-token @ args-1 elab-type-stack!
     drop nip ab-type @ swap type-unify! drop2)
 
 def(elab-atom-lambda!, --,
@@ -592,7 +588,7 @@ def(elab-match-at!, Type Token --,
 
 def(elab-atom-match!, --,
     meta-alloc! TMeta
-    ab-token @ token-args+ first+
+    ab-token @ args+ first+
     elab-match-at!)
 
 def(elab-lambda!, Lambda -- Lambda,
@@ -633,12 +629,12 @@ def(elab-lambda-pop-from-mid!, Lambda Token -- Lambda Type Token,
     dip2(over ~mid !))
 
 def(token-is-lambda-param?, Token -- Token Bool,
-    sig-token-is-type-var? if(
-        token-has-args? not,
-    token-is-lsquare? if(
+    dup sig-type-var? if( # TODO use better named predicate than sig-type-var
+        dup has-args? not,
+    dup lsquare? .if(
         dup T
-        dip(token-succ sig-token-is-type-var?) &&
-        dip(token-succ token-is-rsquare?) &&
+        dip(succ dup sig-type-var?) &&
+        dip(succ dup rsquare? some?) &&
         nip,
         F
     )))
@@ -647,16 +643,16 @@ def(elab-lambda-params!, Lambda -- Lambda,
     L0 over ~params !
     dup >outer-ctx over ~inner-ctx !
     dup >dom over ~mid !
-    dup >token token-args-1
-    while(token-is-lambda-param?, token-next)
-    expect-token-arrow token-prev
+    dup >token args-1
+    while(token-is-lambda-param?, next)
+    expect-token-arrow prev
     while(token-is-lambda-param?,
         elab-lambda-pop-from-mid! sip(
-            sig-token-is-type-var? if(
-                token-name@ var-new! tuck var-type !,
+            dup sig-type-var? if(
+                name? unwrap var-new! tuck var-type !,
 
-                token-succ dip(type-expand type-is-morphism?) swap if(
-                    token-name@ var-new!
+                succ dip(type-expand type-is-morphism?) swap if(
+                    name? unwrap var-new!
                     T over var-auto-run !
                     tuck var-type !,
 
@@ -666,12 +662,12 @@ def(elab-lambda-params!, Lambda -- Lambda,
             dip(dup >params) sip(Var>Param swap cons over ~params !)
             dip(dup >inner-ctx) ctx-new! over ~inner-ctx !
         )
-        token-prev)
+        prev)
     drop)
 
 def(elab-lambda-body!, Lambda -- Lambda,
-    dup >token token-args-1
-    while(token-is-lambda-param?, token-next) token-succ
+    dup >token args-1
+    while(token-is-lambda-param?, next) succ
     dip(dup >mid dip(dup >inner-ctx))
     elab-arrow-fwd!
     dup2 swap ~body !
@@ -688,7 +684,7 @@ def(elab-match-exhaustive!, Match -- Match,
 def(elab-match-cases!, Match -- Match,
     L0 over match-cases !
     dup match-body @
-    while(token-is-rparen? not, elab-match-case!)
+    while(dup rparen? not, elab-match-case!)
     drop)
 
 ||| Elaborate a single match case `pattern -> body ,`
@@ -697,14 +693,14 @@ def(elab-match-case!, Match Token -- Match Token,
     dup2 case-token !
     swap dip(dup2 case-match !)
     elab-case-pattern!
-    expect-token-arrow token-succ
+    expect-token-arrow succ
     elab-case-body!
     dip(match-add-case!)
-    token-is-comma? if(token-succ, id))
+    dup comma? then(succ))
 
 ||| Elaborate case pattern.
 def(elab-case-pattern!, Case Token -- Case Token,
-    token-is-underscore? if(
+    dup pat-underscore? if(
         # set case pattern
         dip(PATTERN_UNDERSCORE over case-pattern !)
 
@@ -713,10 +709,10 @@ def(elab-case-pattern!, Case Token -- Case Token,
         elab-type-unify! dip(over case-mid !)
 
         # advance token
-        token-succ,
+        succ,
 
-    token-is-name? if(
-        token-name? >Def match(
+    dup name? if-some(
+        >Def match(
             DEF_TAG -> { Case Token Tag }
 
                 # set case pattern
@@ -735,7 +731,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
                 swap dip(over case-subst !)
 
                 # advance token
-                token-succ,
+                succ,
 
             DEF_NONE ->
                 "Unknown constructor." emit-fatal-error!,
@@ -762,30 +758,28 @@ def(elab-case-body!, Case Token -- Case Token,
 def(elab-module!, Module -- Module,
     dup module-start @
     elab-module-header!
-    while(token-is-module-end? not, elab-module-decl!)
+    while(dup module-end? not, elab-module-decl!)
     drop)
 
 ||| Check that the `module(M)` statement exists and save the name.
 def(elab-module-header!, Token -- Token,
     # dup token-name@ name-str @ str-trace-ln!
-    PRIM_SYNTAX_MODULE token-prim=? if(
-        dup token-args-1
-        token-is-name? if(id, "Expected module name." emit-fatal-error!)
-        token-name? name-defined?
-        if(drop "Module name already taken." emit-fatal-error!, id)
-        over token-module @
+    dup module-header? if(
+        sip(next) args-1
+        dup name? unwrap-or("Expected module name." emit-fatal-error!)
+        name-defined? then(drop "Module name already taken." emit-fatal-error!)
+        over .module
         dup2 module-name !
         dup2 DEF_MODULE swap ~Def !
         module-path @ swap
         module-path-from-name = if(drop,
-            "Module name should match path." emit-error!)
-        token-next,
+            "Module name should match path." emit-error!),
         dup "Expected module header." emit-error!
     ))
 
 ||| Elaborate a declaration. Returns the next token.
 def(elab-module-decl!, Token -- Token,
-    dup token-value @ match(
+    dup value match(
         TOKEN_NAME -> dup >Def match(
             DEF_PRIM -> prim-decl @ match(
                 NONE ->
@@ -801,19 +795,19 @@ def(elab-module-decl!, Token -- Token,
 
 ||| Elaborate `import(M)` statement. Return token after import.
 def(elab-module-import!, Token -- Token,
-    sip(token-next)
-    token-args-1 dup token-value @ match(
+    sip(next)
+    args-1 dup value match(
         TOKEN_NAME ->
             dup >Def match(
                 DEF_MODULE ->
-                    dip(drop2 dup token-module @)
+                    dip(drop2 dup .module)
                     module-add-import!,
                     # module is already loaded
 
                 DEF_NONE ->
                     module-path-from-name run-lexer!
                     elab-module!
-                    dip(drop dup token-module @) module-add-import!,
+                    dip(drop dup .module) module-add-import!,
                     # elab the imported module
                     # TODO: avoid elaborating here,
                     # use a single loop to dispatch top-level module elaboration.
@@ -830,32 +824,27 @@ def(elab-data!, Token -- Token,
     sip(
         Data.alloc!
         L0 over data-tags !
-        swap token-args+
+        swap args+
         uncons dip(elab-data-header!)
         for(elab-data-tag!)
         drop
-    ) token-next)
+    ) next)
 
 ||| Get the header, name, arity for a data type.
 def(elab-data-header!, Data Token -- Data,
     dup2 SOME swap data-header !
-    sig-token-is-type-con? if(id,
-        "Expected type name." emit-fatal-error!)
-    dup2 token-name@
-    name-undefined? if(id,
-        drop2 "Name already defined." emit-fatal-error!)
+    dup sig-type-con? else("Expected type name." emit-fatal-error!)
+    dup2 name? unwrap name-undefined? else(drop2 "Type name already defined." emit-fatal-error!)
     over TData DEF_TYPE over ~Def !
     swap data-name !
     # TODO check header args are well-formed / elaborate them properly
-    token-num-args over data-arity !)
+    num-args over data-arity !)
 
 ||| Get a tag associated with a data type.
 ||| This looks like either "TAG" or "TAG -> TYPE1 ... TYPEN".
 def(elab-data-tag!, Data Token -- Data,
-    token-is-name? if(id, "Expected constructor name." emit-fatal-error!)
-    token-name? name-undefined? if(id,
-        drop "Name already defined. (Overlapping tags not supported.)" emit-fatal-error!)
-
+    dup name? unwrap-or("Expected constructor name." emit-fatal-error!)
+    name-undefined? else(drop "Constructor name already defined." emit-fatal-error!)
     Tag.alloc!
     dup2 DEF_TAG swap ~Def !
     tuck tag-name !
@@ -863,10 +852,10 @@ def(elab-data-tag!, Data Token -- Data,
     dip(over) dup2 tag-data !
     tuck dip(data-add-tag!)
     { Data Token Tag }
-    swap token-succ
-    token-is-arrow? if(
-        token-succ SOME over tag-sig !,
-    token-run-end? if(
+    swap succ
+    dup pat-arrow? if(
+        succ SOME over tag-sig !,
+    dup run-end? if(
         drop NONE over tag-sig !,
         "Expected arrow, comma, or right paren." emit-fatal-error!
     ))
@@ -878,67 +867,56 @@ def(elab-data-tag!, Data Token -- Data,
             NONE -> id,
             SOME ->
                 elab-type-stack-rest!
-                token-run-end? if(drop, "syntax error" emit-fatal-error!)
+                dup run-end? else("syntax error" emit-fatal-error!) drop
         ))
         T-> dip(type-elab-ctx) pack2
     )
     over tag-ctx-type !
     tag-num-inputs-from-sig swap tag-num-inputs !)
 
-def(expect-token-comma, Token -- Token,
-    token-is-comma? if(id, "Expected comma." emit-fatal-error!))
-
-def(expect-token-rparen, Token -- Token,
-    token-is-rparen? if(id, "Expected right parenthesis." emit-fatal-error!))
-
 def(expect-token-arrow, Token -- Token,
-    token-is-arrow? if(id, "Expected arrow." emit-fatal-error!))
-
+    dup pat-arrow? else("Expected arrow." emit-fatal-error!))
 
 ||| Break apart the arguments for `def` into three categories:
 |||     - head: the name of the definition, plus params
 |||     - (optional) sig: the type signature
 |||     - body: a nonempty list of body arguments
 def(token-def-args, Token -- Token Maybe(Token) List+(Token),
-    dup token-args len? 2 >= if(nip,
+    dup args dup len 2 >= if(nip,
         drop "def expects at least two arguments" emit-fatal-error!)
     >List+ unwrap uncons
     >List+ unwrap uncons
-    dup is-empty if(
-        drop L1+ dip(NONE),
-        over token-run-has-arrow if(
+    >List+ if-some(
+        over run-has-arrow? if(
             cons+ dip(NONE),
-            >List+ unwrap dip(SOME)
-        )
+            dip(SOME)
+        ),
+        L1+ dip(NONE)
     ))
 
 ||| Elaborate an alias `alias(w1,w2)`
 def(elab-alias!, Token -- Token,
-    sip(token-next)
-    token-args-2
-    swap token-is-name? if(id, "expected word name" emit-fatal-error!)
-    dup token-args-0
-    token-name? name-undefined? if(id,
-        drop "word already defined" emit-fatal-error!)
-    rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
-    dup token-args-0 token-name@
+    sip(next) args-2 swap
+    dup name? unwrap-or("expected word name" emit-fatal-error!) dip(dup args-0)
+    name-undefined? else(drop "word already defined" emit-fatal-error!) rotl
+    dup name? unwrap-or("expected word name" emit-fatal-error!) dip(args-0)
     alias-new! drop)
 
 ||| Elaborate a missing word definition `def-missing(w,t,b...)`
 def(elab-def-missing!, Token -- Token,
-    dup token-succ token-succ token-name@ name-defined? nip if(
-        token-next,
+    # TODO, verify has args
+    dup succ succ dup name? unwrap-or("expected name" emit-fatal-error!) nip name-defined? nip if(
+        next,
         elab-def!
     ))
 
 ||| Elaborate a word definition `def(w, t, b...)`.
 def(elab-def!, Token -- Token,
-    sip(token-next) token-def-args
+    sip(next) token-def-args
     uncons is-empty if(id,
-        dup token-run-has-arrow if(id,
+        dup run-has-arrow? if(id,
             "expected match case" emit-fatal-error!))
-    rotl token-is-name? if(id, "expected word name" emit-fatal-error!)
-    token-name?
+    rotl dup name? unwrap-or("expected word name" emit-fatal-error!)
     name-undefined? if(id, drop "word already defined" emit-fatal-error!)
     word-new!
     tuck word-sig !
@@ -969,16 +947,14 @@ def(elab-def-params!, Word -- List(Param),
     L0 over elab-word-ctx-sig-weak! nip
     rotl word-head @
     elab-expand-morphism! nip
-    token-args reverse-for(
-        token-is-param-name? if(id,
-            "expected parameter name" emit-fatal-error!)
-        dup token-succ token-run-end? if(drop,
-            "expected right paren or comma" emit-fatal-error!)
+    args reverse-for(
+        dup sig-param-name? else("expected parameter name" emit-fatal-error!)
+        dup succ dup run-end? if(drop, "expected right paren or comma" emit-fatal-error!)
         elab-expand-tensor!
         dip(dup) elab-expand-morphism! dip(drop2)
         # dip(type-is-morphism?) swap if(id,
         #     "need function type for param" emit-fatal-error!)
-        token-name@ var-new!
+        name? unwrap var-new!
         tuck var-type !
         T over var-auto-run !
         PARAM rotr dip(cons)
@@ -987,79 +963,61 @@ def(elab-def-params!, Word -- List(Param),
 ||| Elaborate the body of a `def`. Takes the codomain from the stack,
 ||| and the rest from the AB environment.
 def(elab-def-body!, Type -- Type,
-    ab-token @ token-run-has-arrow if(
+    ab-token @ run-has-arrow? if(
         dup ab-token @ elab-match-at!,
         elab-atoms!
     ))
 
 ||| Elaborate an external declaration `def-external(w, t)`
 def(elab-def-external!, Token -- Token,
-    sip(token-next) token-args-2
-    swap token-is-name? if(
-        token-name? name-undefined? if(
-            nip
-            External.alloc!
-            dup2 DEF_EXTERNAL swap ~Def !
-            tuck external-name !
-            tuck external-sig !
-            dup delay(
-                type-elab-default swap external-sig @
-                elab-type-sig! drop dip(type-elab-ctx) pack2
-            ) swap external-ctx-type !,
-
-            drop "word already defined" emit-fatal-error!
-        ),
-        "expected word name" emit-fatal-error!
-    ))
+    sip(next) args-2
+    swap dup name? unwrap-or("expected word name" emit-fatal-error!)
+    name-undefined? else(drop "word already defined" emit-fatal-error!)
+    nip
+    External.alloc!
+    dup2 DEF_EXTERNAL swap ~Def !
+    tuck external-name !
+    tuck external-sig !
+    dup delay(
+        type-elab-default swap external-sig @
+        elab-type-sig! drop dip(type-elab-ctx) pack2
+    ) swap external-ctx-type !)
 
 ||| Elaborate a type definition `def-type(t1, t2)`.
 def(elab-def-type!, Token -- Token,
-    sip(token-next) token-args-2
-    swap sig-token-is-type-con? if(
-        token-name? name-undefined? if(
-            nip swap
-            elab-simple-type-arg!
-            DEF_TYPE swap ~Def !,
-
-            drop "type already defined" emit-fatal-error!
-        ),
-        "expected type constructor" emit-fatal-error!
-    ))
+    sip(next) args-2
+    swap dup sig-type-con? else("expected type constructor" emit-fatal-error!)
+    dup name? unwrap name-undefined? else(drop "type name already defined" emit-fatal-error!)
+    nip swap elab-simple-type-arg! DEF_TYPE swap ~Def !)
 
 ||| Elaborate a buffer definition `buffer(B, size)`.
 def(elab-buffer!, Token -- Token,
-    sip(token-next) token-args-2
-    swap token-is-name? if(
-        token-name? name-undefined? if(
-            rotl token-int@ buffer-new! drop,
-            drop "buffer already defined" emit-fatal-error!
-        ),
-        "expected buffer name" emit-fatal-error!
-    ))
+    sip(next) args-2
+    swap dup name? unwrap-or("expected buffer name" emit-fatal-error!)
+    name-undefined? else(drop "buffer name already defined" emit-fatal-error!)
+    rotl dup int? unwrap-or("expected buffer size" emit-fatal-error!) nip
+    buffer-new! drop)
 
 ||| Elaborate a var declaration `var(v, type)`.
 def(elab-variable!, Token -- Token,
-    dup token-args-2
-    swap token-is-name? if(id, "expected variable name" emit-fatal-error!)
-    token-name? name-undefined? if(id,
-        drop "name already defined" emit-fatal-error!)
-    rotl delay(elab-simple-type-arg!) variable-new! drop
-    token-next)
+    sip(next) args-2
+    swap dup name? unwrap-or("expected variable name" emit-fatal-error!)
+    name-undefined? else(drop "variable name already defined" emit-fatal-error!)
+    rotl delay(elab-simple-type-arg!)
+    variable-new! drop)
 
 ||| Elaborate a table definition `table(T)`.
 def(elab-table!, Token -- Token,
-    sip(token-next) token-args-1
-    sig-token-is-type-con? if(
-        dup token-name@ table-new! drop,
-        "expected table name" emit-fatal-error!
-    ))
+    sip(next) args-1
+    dup sig-type-con? else("expected type name" emit-fatal-error!)
+    dup name? unwrap name-undefined? else(drop "table name already defined" emit-fatal-error!)
+    table-new! drop)
 
 ||| Elaborate C99 build target.
 def(elab-target-c99!, Token -- Token,
     typecheck-everything!
-
-    sip(token-next) token-args-2
-    dip(token-str@ >Path)
+    sip(next) args-2
+    dip(dup str? unwrap-or("expected output path" emit-fatal-error!) nip >Path)
     dip(ctx-empty T0 T0 T->)
     elab-arrow!
     swap run-output-c99!)
@@ -1067,18 +1025,11 @@ def(elab-target-c99!, Token -- Token,
 ||| Embed a file as a string, embed-str(name, "path").
 ||| The path is relative to compiler's cwd, not source root.
 def(elab-embed-str!, Token -- Token,
-    sip(token-next) token-args-2
-
-    swap token-is-name? if(id,
-        "expected name" emit-fatal-error!)
-    token-name? name-undefined? if(id,
-        drop "name already defined" emit-fatal-error!)
-
-    rotl token-is-str? if(id,
-        "expected path" emit-fatal-error!)
-    token-str? with-open-file!(read-file! nip,
-        "could not open file" emit-fatal-error!)
-
+    sip(next) args-2 swap
+    dup name? unwrap-or("expected embedded constant name" emit-fatal-error!)
+    name-undefined? else(drop "embedded constant name already defined" emit-fatal-error!)
+    rotl dup str? unwrap-or("expected source path" emit-fatal-error!)
+    with-open-file!(read-file! nip, "could not open source file" emit-fatal-error!)
     VALUE_STR constant-new! drop)
 
 ||| Ensure that everything so far has been typechecked.
@@ -1289,8 +1240,7 @@ def(table-new!, Token Name -- Table,
 
 ||| Elaborate a field definition `field(f, T1, T2)`.
 def(elab-field!, Token -- Token,
-    sip(token-next)
-    token-args-3 rotl dup token-value @ match(
+    sip(next) args-3 rotl dup value match(
         TOKEN_NAME ->
             name-undefined? if(id,
                 drop "name already defined" emit-fatal-error!)

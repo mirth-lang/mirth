@@ -276,7 +276,7 @@ def(gamma-token?, Gamma -- Gamma Token, dup gamma-token@)
 
 # Raise a type unification error.
 def(type-unify-failed!, Gamma Type Type -- Gamma Type,
-    dip2(gamma-token? token-location location-trace!)
+    dip2(gamma-token? location location-trace!)
     ": error: Failed to unify " trace!
     dip(type-trace!)
     " with " trace!
@@ -868,14 +868,9 @@ def(subst-match-var, Gamma Type Var Subst -- Gamma Subst,
 #######
 
 def(tag-num-inputs-from-sig, Tag -- Tag Int,
-    # TODO: this should actually be calculated & stored during elaboration based on the type
     dup tag-sig @ match(
         NONE -> 0,
-        SOME ->
-            0 swap
-            while(token-run-end? not,
-                token-next dip(1+))
-            drop
+        SOME -> run-length
     ))
 
 def(tag-is-transparent?, Tag -- Tag Bool,

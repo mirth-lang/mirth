@@ -210,8 +210,8 @@ def(c99-header!, --, c99-header-str . .lf)
 
 def(c99-buffers!, --, Buffer.for(c99-buffer!) .lf)
 def(c99-buffer!, Buffer --,
-    dup buffer-name @ .w " {" ;
-    "    static uint8_t b[" . dup buffer-size @ .n "] = {0};" ;
+    dup name .w " {" ;
+    "    static uint8_t b[" . dup size .n "] = {0};" ;
     "    push_ptr(&b);" ;
     "}" ;
     drop)
@@ -289,11 +289,9 @@ def(c99-call!, List(Arg) Name --,
 def(c99-arrow!, Arrow --, >atoms for(c99-atom!))
 def(c99-atom!, Atom --,
     c99-line("WORD_ATOM(" .
-        dup >token token-row @ Row->Int .n ", " .
-        dup >token token-col @ Col->Int .n ", " .
-        dup >token token-is-name? if(
-            token-name@ >Str .str,
-            drop "\"\"" .)
+        dup >token row Row->Int .n ", " .
+        dup >token col Col->Int .n ", " .
+        dup >token name? if-some(>Str, "") .str
         ");" .)
     sip(>args) >op
     c99-args-op!)
@@ -305,7 +303,7 @@ def(c99-args-op!, List(Arg) Op --,
     OP_CONSTANT -> nip c99-constant!,
     OP_WORD     -> dup need-word word-name @ c99-call!,
     OP_EXTERNAL -> external-name @ c99-call!,
-    OP_BUFFER   -> buffer-name   @ c99-call!,
+    OP_BUFFER   -> name c99-call!,
     OP_VARIABLE -> variable-name @ c99-call!,
     OP_FIELD    -> field-name    @ c99-call!,
     OP_TAG      -> tag-name      @ c99-call!,
@@ -548,9 +546,9 @@ def(c99-block-enter!, Block --,
             NONE -> "block",
             SOME -> word-name @ >Str " block" cat,
         ) .str ", " .
-        dup >token token-module @ module-source-path >Str .str ", " .
-        dup >token token-row @ Row->Int .n ", " .
-        dup >token token-col @ Col->Int .n ");" . )
+        dup >token .module module-source-path >Str .str ", " .
+        dup >token row Row->Int .n ", " .
+        dup >token col Col->Int .n ");" . )
     drop)
 
 def(c99-block-exit!, Block --,
@@ -582,9 +580,9 @@ def(c99-word-enter!, Word --,
     c99-line("WORD_ENTER(" .
         "mw_" . dup word-name @ .name ", " .
         dup word-name @ >Str .str ", " .
-        dup word-body @ token-module @ module-source-path >Str .str ", " .
-        dup word-body @ token-row @ Row->Int .n ", " .
-        dup word-body @ token-col @ Col->Int .n ");" . )
+        dup word-body @ .module module-source-path >Str .str ", " .
+        dup word-body @ row Row->Int .n ", " .
+        dup word-body @ col Col->Int .n ");" . )
     drop)
 
 def(c99-word-exit!, Word --,
@@ -630,10 +628,10 @@ def(c99-main!, Arrow --,
         c99-line("WORD_ENTER(" .
             "(void(*)(void))0, " .
             "\"<main>\", " .
-            dup >token-start token-module @
+            dup >token-start .module
                 module-source-path >Str .str ", " .
-            dup >token-start token-row @ Row->Int .n ", " .
-            dup >token-start token-col @ Col->Int .n ");" .)
+            dup >token-start row Row->Int .n ", " .
+            dup >token-start col Col->Int .n ");" .)
         c99-arrow!
         c99-line("WORD_EXIT((void(*)(void))0);" .)
         c99-line("return 0;" .)

@@ -37,13 +37,30 @@ alias(Int>>, prim-int-shr)
 
 def(Bool&&, Bool Bool -- Bool, T -> id, F -> drop F)
 def(Bool||, Bool Bool -- Bool, T -> drop T, F -> id)
-def(not, Bool -- Bool, T -> F, F -> T)
-def(or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(T, p))
-def(and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, F))
+def(Bool.not, Bool -- Bool, T -> F, F -> T)
+def(Bool.or(p),  (*a -- *a Bool) *a Bool -- *a Bool, if(T, p))
+def(Bool.and(p), (*a -- *a Bool) *a Bool -- *a Bool, if(p, F))
 
-# use ptr+ only if Ptr is static or has another reference
-# otherwise use with-ptr+
+def-missing(Bool.if(then,else), (*a -- *b, *a -- *b) *a Bool -- *b,
+    T -> then,
+    F -> else)
+def(Bool.then(f), (*a -- *a) *a Bool -- *a,
+    T -> f,
+    F -> id)
+def(Bool.else(f), (*a -- *a) *a Bool -- *a,
+    T -> id,
+    F -> f)
+
+||| Add byte offset to Ptr. This is unsafe because you lose a reference to the
+||| original pointer, so the underlying memory could be garbage collected.
+||| Therefore, use Ptr.offset-unsafe only if the Ptr points to a static buffer,
+||| or if there are other references to the Ptr. Otherwise use Ptr.offset,
+||| which keeps the reference alive while you use the offset pointer.
 alias(Ptr.offset-unsafe, prim-ptr-add)
+
+||| Add byte offset to Ptr and use that offset pointer. Unless you know what
+||| you're doing (see `Ptr.offset-unsafe`), make sure to fully use the offset
+||| pointer within the callback `f`, do not leak it.
 def(Ptr.offset(f), (*a Ptr -- *b) *a Offset Ptr -- *b,
     dup dip(prim-ptr-add f) drop)
 
