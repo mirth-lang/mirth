@@ -277,11 +277,11 @@ def(gamma-token?, Gamma -- Gamma Token, dup gamma-token@)
 # Raise a type unification error.
 def(type-unify-failed!, Gamma Type Type -- Gamma Type,
     dip2(gamma-token? token-location location-trace!)
-    ": error: Failed to unify " str-trace!
+    ": error: Failed to unify " trace!
     dip(type-trace!)
-    " with " str-trace!
+    " with " trace!
     type-trace!
-    trace-ln!
+    line-trace!
     TYPE_ERROR
     num-errors modify(1+))
 
@@ -511,11 +511,11 @@ def(value-type-has-meta, MetaVar Value -- Bool,
 
 def(type-trace-sig!, Type --,
     TMeta -> meta-expand-if(type-trace-sig!, meta-trace!),
-    TYPE_ERROR -> "<ERROR>" str-trace!,
+    TYPE_ERROR -> "<ERROR>" trace!,
     TMorphism ->
         swap
         type-trace-stack-dom!
-        "--" str-trace!
+        "--" trace!
         type-trace-stack-cod!,
     _ -> type-trace-stack!)
 
@@ -523,13 +523,13 @@ def(type-trace-stack-dom!, Type --,
     type-expand dup type-is-unit if(
         drop,
         type-trace-stack!
-        " " str-trace!
+        " " trace!
     ))
 
 def(type-trace-stack-cod!, Type --,
     type-expand dup type-is-unit if(
         drop,
-        " " str-trace!
+        " " trace!
         type-trace-stack!
     ))
 
@@ -538,25 +538,25 @@ def(type-trace-stack!, Type --,
     TTensor -> swap type-trace-stack-dom! type-trace!,
     TVar ->
         var-name @
-        dup name-trace!
+        dup trace!
         name-could-be-stack-var
-        if(id, " ." str-trace!),
+        if(id, " ." trace!),
     _ -> type-trace!)
 
 def(type-trace!, Type --,
-    TYPE_ERROR -> "<ERROR>" str-trace!,
-    TYPE_DONT_CARE -> "_" str-trace!,
+    TYPE_ERROR -> "<ERROR>" trace!,
+    TYPE_DONT_CARE -> "_" trace!,
     TPrim -> type-trace-prim!,
-    TVar -> var-name @ name-trace!,
+    TVar -> var-name @ trace!,
     TMeta -> meta-trace!,
-    TTensor -> "[" str-trace! TTensor type-trace-stack! "]" str-trace!,
-    TMorphism -> "[" str-trace! TMorphism type-trace-sig! "]" str-trace!,
-    TData -> data-name @ name-trace!,
-    TTable -> table-name @ name-trace!,
-    THole -> name-trace!,
+    TTensor -> "[" trace! TTensor type-trace-stack! "]" trace!,
+    TMorphism -> "[" trace! TMorphism type-trace-sig! "]" trace!,
+    TData -> data-name @ trace!,
+    TTable -> table-name @ trace!,
+    THole -> trace!,
     TApp -> app-type-trace!,
     TValue -> value-as-type type-trace!,
-    TMut -> "!" str-trace! type-trace!,
+    TMut -> "!" trace! type-trace!,
     )
 
 def(value-as-type, Value -- Type,
@@ -575,7 +575,7 @@ def(type-trace-prim!, PrimType --,
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
-    ) str-trace!)
+    ) trace!)
 
 ||| Replace the stack rest with a metavar, if it's unit.
 def(type-semifreshen-sig, Type -- Type,
@@ -763,7 +763,7 @@ def(type-max-count, Type -- Maybe(Int),
 
 def(meta-trace!, MetaVar --,
     dup meta-type @ match(
-        NONE -> "?" str-trace! MetaVar.id int-trace!,
+        NONE -> "?" trace! MetaVar.id trace!,
         SOME -> nip type-trace!
     ))
 def(meta-alloc!, MetaVar,
@@ -801,9 +801,9 @@ def(meta==, MetaVar MetaVar -- Bool, both(MetaVar.id) =)
 
 def(type-hole-unify!, Type Name -- Type,
     THole type-trace!
-    " ~ " str-trace!
+    " ~ " trace!
     dup type-trace!
-    trace-ln!)
+    line-trace!)
 
 ##########
 # Params #
@@ -824,17 +824,17 @@ def(type-num-morphisms-on-top, Type -- Int,
 ############
 
 def(app-type-trace!, Type Type --,
-    app-type-trace-open! ")" str-trace!)
+    app-type-trace-open! ")" trace!)
 
 def(app-type-trace-open!, Type Type --,
     swap match(
         TApp ->
             app-type-trace-open!
-            ", " str-trace!
+            ", " trace!
             type-trace!,
         _ ->
             type-trace!
-            "(" str-trace!
+            "(" trace!
             type-trace!
     ))
 

@@ -4,43 +4,51 @@ import(data.str)
 import(data.path)
 
 data(File, FILE -> Int)
-def(Int->File, Int -- File, FILE)
-def(File->Int, File -- Int, FILE -> id)
+def(Int>File, Int -- File, FILE)
+def(File>Int, File -- Int, FILE -> id)
 
-def(stdin, File, 0 Int->File)
-def(stdout, File, 1 Int->File)
-def(stderr, File, 2 Int->File)
+def(STDIN, File, 0 >File)
+def(STDOUT, File, 1 >File)
+def(STDERR, File, 2 >File)
 
-def(str-write!, Str File --,
-    swap with-str-data(slice-write!))
+var(CURIN, File)
+var(CUROUT, File)
+var(CURERR, File)
+
+def(init-posix!, --,
+    STDIN CURIN !
+    STDOUT CUROUT !
+    STDERR CURERR !)
+
+def(Str.write!, File Str --,
+    with-str-data(slice-write!))
 
 def(slice-write!, File Ptr Int --,
-    dip2(File->Int) dup dip(posix-write!)
+    dip2(File>Int) dup dip(posix-write!)
     expect!(dup 0 >=, "write failed")
     expect!(dup2 =, "write output fewer bytes than expected")
     drop2)
 
-def(str-print!, Str --, stdout str-write!)
-def(str-trace!, Str --, stderr str-write!)
-def(str-print-ln!, Str --, str-print! print-ln!)
-def(str-trace-ln!, Str --, str-trace! trace-ln!)
+def(Str.print!, Str --, dip(CUROUT @) write!)
+def(Str.trace!, Str --, dip(CURERR @) write!)
+def(Str.print-ln!, Str --, print! line-print!)
+def(Str.trace-ln!, Str --, trace! line-trace!)
+def(line-print!, --, "\n" print!)
+def(line-trace!, --, "\n" trace!)
 
-def(print-ln!, --, "\n" str-print!)
-def(trace-ln!, --, "\n" str-trace!)
-
-def(int-write!, Int File --, dip(int-to-str) str-write!)
-def(int-print!, Int --, stdout int-write!)
-def(int-trace!, Int --, stderr int-write!)
-def(int-print-ln!, Int --, int-print! print-ln!)
-def(int-trace-ln!, Int --, int-trace! trace-ln!)
+def(Int.write!, File Int --, int-to-str write!)
+def(Int.print!, Int --, int-to-str print!)
+def(Int.trace!, Int --, int-to-str trace!)
+def(Int.print-ln!, Int --, int-to-str print-ln!)
+def(Int.trace-ln!, Int --, int-to-str trace-ln!)
 
 def(with-open-file!(f,g), (*a File -- *b, *a -- *b) *a Str -- *b,
-    0 0 posix-open! dup 0< if(drop g, dup dip(Int->File f) posix-close! drop))
+    0 0 posix-open! dup 0< if(drop g, dup dip(Int>File f) posix-close! drop))
 
 def(READ_FILE_BUF_SIZE, 0x1000)
 buffer(READ_FILE_BUF, 0x1000)
 def(read-file!, File -- Str,
-    File->Int \(fp -> ""
+    File>Int \(fp -> ""
     fp READ_FILE_BUF READ_FILE_BUF_SIZE prim-posix-read
     while(dup 0>,
         READ_FILE_BUF swap prim-str-copy cat
@@ -51,7 +59,7 @@ def(read-file!, File -- Str,
 def(open-file!, Str -- File,
     0 0 posix-open!
     expect!(dup 0>, "failed to open file")
-    Int->File)
+    Int>File)
 
 def(create-file!, Str -- File,
     O_WRONLY|O_CREAT|O_TRUNC
@@ -62,7 +70,7 @@ def(create-file!, Str -- File,
         #  ---- NB: this is inaccurate . . .
     posix-open!
     expect!(dup 0>, "failed to create file")
-    Int->File)
+    Int>File)
 
 def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     RUNNING_OS match(
@@ -73,7 +81,7 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     ))
 
 def(close-file!, File --,
-    File->Int posix-close!
+    File>Int posix-close!
     expect!(dup 0>=, "failed to close file")
     drop)
 

@@ -27,7 +27,7 @@ def(input-end!, --,
         input-handle @ close-file!,
         id
     )
-    stdin input-handle !
+    STDIN input-handle !
     0 input-length !
     0 input-offset !
     F input-isopen !)
@@ -37,7 +37,7 @@ def(input-done?, Bool,
 
 def(input-fill-buffer!, --,
     assert!(input-isopen @, "attempted to fill input buffer when file is closed")
-    input-handle @ File->Int
+    input-handle @ >Int
     INPUT_BUFFER
     INPUT_BUFFER_SIZE
     posix-read!

@@ -13,6 +13,7 @@ import(mirth.codegen)
 import(mirth.elab)
 
 def(init!, --,
+    init-posix!
     init-errors!
     init-paths!
     init-types!
@@ -24,25 +25,25 @@ def(init!, --,
 ########
 
 def(compile!, Path --,
-    "Compiling " str-trace!
-    dup >Str str-trace-ln!
+    "Compiling " trace!
+    dup >Str trace-ln!
 
     run-lexer!
 
     # show-names-table!
     # show-tokens!
 
-    "Building." str-trace-ln!
+    "Building." trace-ln!
 
     elab-module! drop
     typecheck-everything!
 
     num-errors @ 0> if(
-        num-errors @ int-trace!
-        " errors." str-trace-ln!
+        num-errors @ trace!
+        " errors." trace-ln!
         1 posix-exit!,
 
-        "Done." str-trace-ln!
+        "Done." trace-ln!
     ))
 
 def(main, --,

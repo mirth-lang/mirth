@@ -73,11 +73,8 @@ def(name-new!, Str -- Name,
 def(name-cat!, Name Str -- Name,
     dip(>Str) cat name-new!)
 
-def(name-trace!, Name --,
-    >Str str-trace!)
-
-def(name-print!, Name --,
-    >Str str-print!)
+def(Name.trace!, Name --, >Str trace!)
+def(Name.print!, Name --, >Str print!)
 
 def(name-head, Name -- Byte,
     >Str with-str-data(1 >= if(@Byte, drop BNUL)))
@@ -117,7 +114,7 @@ def(name-could-be-effect-con, Name -- Bool,
     dup name-head B'+' =
     swap name-tail-head is-upper &&)
 
-def(name-print-mangled!, Name --, mangle str-print!)
+def(name-print-mangled!, Name --, mangle print!)
 
 def(name-mangle-compute!, Name -- Str,
     build-str!(>Str str-bytes-for(

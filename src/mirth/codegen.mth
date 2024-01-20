@@ -129,7 +129,7 @@ def(codegen-full?, Bool,
 
 def(codegen-flush!, --,
     codegen-length @ 0> if(
-        codegen-file @ File->Int CODEGEN_BUF codegen-length @
+        codegen-file @ File>Int CODEGEN_BUF codegen-length @
         posix-write!
         expect!(dup 0>, "codegen write failed")
         expect!(dup codegen-length @ =, "codegen wrote fewer bytes than expected")
@@ -167,7 +167,7 @@ def(codegen-start!, File --,
 def(codegen-end!, --,
     codegen-flush!
     codegen-file @ close-file!
-    stdout codegen-file !
+    STDOUT codegen-file !
     0 codegen-length !)
 
 def(run-output-c99!, Arrow Path --,

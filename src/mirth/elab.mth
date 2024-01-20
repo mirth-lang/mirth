@@ -789,11 +789,11 @@ def(elab-module-decl!, Token -- Token,
         TOKEN_NAME -> dup >Def match(
             DEF_PRIM -> prim-decl @ match(
                 NONE ->
-                    >Str str-trace-ln!
+                    >Str trace-ln!
                     "unknown declaration, prim prim" emit-fatal-error!,
                 SOME -> nip run
             ),
-            _ -> drop >Str str-trace-ln! 
+            _ -> drop >Str trace-ln! 
                 "unknown declaration, not prim" emit-fatal-error!
         ),
         _ -> drop "unsupported declaration" emit-fatal-error!
