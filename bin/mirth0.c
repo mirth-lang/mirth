@@ -3269,7 +3269,7 @@ static void mw_Buffer_2E_alloc_21_ (void);
 static void mw_Buffer_2E_head (void);
 static void mw_Buffer_2E_size (void);
 static void mw_Buffer_2E_name (void);
-static void mw_buffer_new_21_ (void);
+static void mw_Buffer_2E_new_21_ (void);
 static void mw_Variable_2E_for (void);
 static void mw_Variable_2E_alloc_21_ (void);
 static void mw_variable_new_21_ (void);
@@ -10936,8 +10936,8 @@ static void mw_Buffer_2E_name (void){
     mw_prim_mut_get();
     WORD_EXIT(mw_Buffer_2E_name);
 }
-static void mw_buffer_new_21_ (void){
-    WORD_ENTER(mw_buffer_new_21_, "buffer-new!", "src/mirth/data/buffer.mth", 18, 5);
+static void mw_Buffer_2E_new_21_ (void){
+    WORD_ENTER(mw_Buffer_2E_new_21_, "Buffer.new!", "src/mirth/data/buffer.mth", 18, 5);
     WORD_ATOM(18, 5, "Buffer.alloc!");
     mw_Buffer_2E_alloc_21_();
     WORD_ATOM(19, 5, "tuck");
@@ -10968,7 +10968,7 @@ static void mw_buffer_new_21_ (void){
     mw_Buffer_7E_head();
     WORD_ATOM(22, 16, "!");
     mw_prim_mut_set();
-    WORD_EXIT(mw_buffer_new_21_);
+    WORD_EXIT(mw_Buffer_2E_new_21_);
 }
 static void mw_Variable_2E_for (void){
     WORD_ENTER(mw_Variable_2E_for, "Variable.for", "src/mirth/data/variable.mth", 7, 7);
@@ -21149,8 +21149,8 @@ static void mw_elab_buffer_21_ (void){
     mw_Maybe_2E_unwrap_or();
     WORD_ATOM(998, 71, "nip");
     mw_nip();
-    WORD_ATOM(999, 5, "buffer-new!");
-    mw_buffer_new_21_();
+    WORD_ATOM(999, 5, "Buffer.new!");
+    mw_Buffer_2E_new_21_();
     WORD_ATOM(999, 17, "drop");
     mw_prim_drop();
     WORD_EXIT(mw_elab_buffer_21_);
@@ -21618,8 +21618,8 @@ static void mw_table_new_21_ (void){
     mw_name_cat_21_();
     WORD_ATOM(1100, 5, "");
     push_i64(8LL);
-    WORD_ATOM(1100, 7, "buffer-new!");
-    mw_buffer_new_21_();
+    WORD_ATOM(1100, 7, "Buffer.new!");
+    mw_Buffer_2E_new_21_();
     WORD_ATOM(1101, 5, "over");
     mw_over();
     WORD_ATOM(1101, 10, "table-num-buffer");
