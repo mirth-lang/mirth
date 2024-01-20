@@ -276,7 +276,7 @@ def(gamma-token?, Gamma -- Gamma Token, dup gamma-token@)
 
 # Raise a type unification error.
 def(type-unify-failed!, Gamma Type Type -- Gamma Type,
-    dip2(gamma-token? location location-trace!)
+    dip2(gamma-token? location trace!)
     ": error: Failed to unify " trace!
     dip(type-trace!)
     " with " trace!

@@ -117,8 +117,7 @@ def(Token.alloc-none!, Token,
     TOKEN_NONE over ~value !)
 
 def(Token.location, Token -- Location,
-    sip(.module) sip(row) col
-    location-pack)
+    sip(.module) sip(row) col LOCATION)
 
 ||| Get next token, respecting nesting of tokens and arguments.
 def(Token.next, Token -- Token,

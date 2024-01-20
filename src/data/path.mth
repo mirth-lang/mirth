@@ -1,6 +1,7 @@
 module(data.path)
 import(data.str)
 import(prelude)
+import(platform.posix)
 
 data(Path, Str>Path -> Str)
 def(Path>Str, Path -- Str, Str>Path -> id)
@@ -29,3 +30,5 @@ def(Path.to-source-path, Path -- Path, dip(SOURCE_PATH_ROOT @) join-unix)
 
 ||| Make an output path from a project-relative path.
 def(Path.to-output-path, Path -- Path, dip(OUTPUT_PATH_ROOT @) join-unix)
+
+def(Path.trace!, Path --, >Str trace!)

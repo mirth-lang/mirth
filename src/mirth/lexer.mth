@@ -28,8 +28,8 @@ def(run-lexer!, Path -- Module,
     lexer-module @ module-source-path
     >Str open-file! input-start!
 
-    1 Int->Row lexer-row !
-    1 Int->Col lexer-col !
+    1 >Row lexer-row !
+    1 >Col lexer-col !
     STACK_NIL lexer-stack !
 
     Token.alloc-none!
@@ -86,8 +86,8 @@ def(lexer-next!, --, lexer-peek match(
     )))
 
 def(lexer-newline!, --,
-    lexer-row modify(Row->Int 1+ Int->Row)
-    0 Int->Col lexer-col !)
+    lexer-row modify(>Int 1+ >Row)
+    0 >Col lexer-col !)
 
 def(lexer-emit-lparen!, --,
     TOKEN_LPAREN_OPEN lexer-make!
@@ -301,10 +301,10 @@ def(lexer-comment-end?, Bool,
 
 def(lexer-peek, Byte, input-peek)
 def(lexer-move!, --, input-move!
-    lexer-col modify(Col->Int 1+ Int->Col))
+    lexer-col modify(>Int 1+ >Col))
 
 def(lexer-location, Location,
-    lexer-module @ lexer-row @ lexer-col @ location-pack)
+    lexer-module @ lexer-row @ lexer-col @ LOCATION)
 
 def(lexer-emit-warning!, Str --, dip(lexer-location) emit-warning-at!)
 def(lexer-emit-error!, Str --, dip(lexer-location) emit-error-at!)

@@ -5,24 +5,21 @@ import(platform.posix)
 import(data.path)
 import(mirth.data.module)
 
-
 # mirth/data/location
 data(Row, ROW -> Int)
+def(Int>Row, Int -- Row, ROW)
+def(Row>Int, Row -- Int, ROW -> id)
+def(Row.trace!, Row --, >Int trace!)
+
 data(Col, COL -> Int)
+def(Int>Col, Int -- Col, COL)
+def(Col>Int, Col -- Int, COL -> id)
+def(Col.trace!, Col --, >Int trace!)
+
 data(Location, LOCATION -> Module Row Col)
-
-def(Int->Row, Int -- Row, ROW)
-def(Row->Int, Row -- Int, ROW -> id)
-
-def(Int->Col, Int -- Col, COL)
-def(Col->Int, Col -- Int, COL -> id)
-
-def(location-pack, Module Row Col -- Location, LOCATION)
-def(location-unpack, Location -- Module Row Col, LOCATION -> id)
-
-def(location-trace!, Location --,
-    location-unpack
-    rotr swap
-    module-source-path >Str trace!
-    ":" trace! Row->Int trace!
-    ":" trace! Col->Int trace!)
+def(Location.unpack, Location -- Module Row Col, LOCATION -> id)
+def(Location.trace!, Location --,
+    unpack rotr swap
+    module-source-path trace!
+    ":" trace! trace!
+    ":" trace! trace!)

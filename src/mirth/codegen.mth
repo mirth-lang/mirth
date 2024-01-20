@@ -289,8 +289,8 @@ def(c99-call!, List(Arg) Name --,
 def(c99-arrow!, Arrow --, atoms for(c99-atom!))
 def(c99-atom!, Atom --,
     c99-line("WORD_ATOM(" .
-        dup token row Row->Int .n ", " .
-        dup token col Col->Int .n ", " .
+        dup token row >Int .n ", " .
+        dup token col >Int .n ", " .
         dup token name? if-some(>Str, "") .str
         ");" .)
     sip(args) op
@@ -547,8 +547,8 @@ def(c99-block-enter!, Block --,
             SOME -> word-name @ >Str " block" cat,
         ) .str ", " .
         dup token .module module-source-path >Str .str ", " .
-        dup token row Row->Int .n ", " .
-        dup token col Col->Int .n ");" . )
+        dup token row >Int .n ", " .
+        dup token col >Int .n ");" . )
     drop)
 
 def(c99-block-exit!, Block --,
@@ -581,8 +581,8 @@ def(c99-word-enter!, Word --,
         "mw_" . dup word-name @ .name ", " .
         dup word-name @ >Str .str ", " .
         dup word-body @ .module module-source-path >Str .str ", " .
-        dup word-body @ row Row->Int .n ", " .
-        dup word-body @ col Col->Int .n ");" . )
+        dup word-body @ row >Int .n ", " .
+        dup word-body @ col >Int .n ");" . )
     drop)
 
 def(c99-word-exit!, Word --,
@@ -630,8 +630,8 @@ def(c99-main!, Arrow --,
             "\"<main>\", " .
             dup token-start .module
                 module-source-path >Str .str ", " .
-            dup token-start row Row->Int .n ", " .
-            dup token-start col Col->Int .n ");" .)
+            dup token-start row >Int .n ", " .
+            dup token-start col >Int .n ");" .)
         c99-arrow!
         c99-line("WORD_EXIT((void(*)(void))0);" .)
         c99-line("return 0;" .)
