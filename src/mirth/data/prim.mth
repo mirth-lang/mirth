@@ -134,6 +134,9 @@ def(def-prim!, Prim Str --,
     dup2 dip(DEF_PRIM) ~Def !
     swap prim-name !)
 
+def(prim-ctx-type!, Ctx Type Prim --,
+    tuck prim-type ! prim-ctx !)
+
 ||| Initialize name table with list of primitives.
 def(init-prims!, --,
 
@@ -385,135 +388,73 @@ def(init-prims!, --,
     #
 
     "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup ctx-empty swap ctx-new!
-    PRIM_CORE_DROP prim-ctx !
-
-    TVar T1 T0 T->
-    PRIM_CORE_DROP prim-type !
-
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup ctx-empty swap ctx-new!
-    PRIM_CORE_DUP prim-ctx !
-
-    TVar dup T1 dup rotl T* T->
-    PRIM_CORE_DUP prim-type !
-
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
     "b" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_CORE_SWAP prim-ctx !
-
-    dip(TVar) TVar
-    dup2 T2 rotr swap T2 T->
-    PRIM_CORE_SWAP prim-type !
-
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    "b" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_UNSAFE_CAST prim-ctx !
-
-    dip(TVar T1) TVar T1 T->
-    PRIM_UNSAFE_CAST prim-type !
-
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "*b" name-new! var-new-implicit! TYPE_STACK over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_CORE_RUN prim-ctx !
-
-    dip(TVar) TVar
-    dup2 T-> swap dip(T*) T->
-    PRIM_CORE_RUN prim-type !
-
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "*b" name-new! var-new-implicit! TYPE_STACK over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_POSIX_EXIT prim-ctx !
-
-    dip(TVar) TVar
-    dip(TYPE_INT T*) T->
-    PRIM_POSIX_EXIT prim-type !
-
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "*b" name-new! var-new-implicit! TYPE_STACK over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_CORE_PANIC prim-ctx !
-
-    dip(TVar) TVar
-    dip(TYPE_STR T*) T->
-    PRIM_CORE_PANIC prim-type !
-
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "*b" name-new! var-new-implicit! TYPE_STACK over var-type !
     "c" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup3 ctx-empty swap ctx-new! swap ctx-new! swap ctx-new!
-    PRIM_CORE_DIP prim-ctx !
+    "*x" name-new! var-new-implicit! TYPE_STACK over var-type !
+    "*y" name-new! var-new-implicit! TYPE_STACK over var-type !
+    \( a b c xs ys -> a TVar b TVar c TVar xs TVar ys TVar
+    \( ta tb tc txs tys ->
+        a CTX1
+        ta T1 T0 T->
+        PRIM_CORE_DROP prim-ctx-type!
 
-    dip(dip(TVar) TVar) TVar
-    dip(dup2) tuck T* dip(T*)
-    dip(dip(T->) swap T*) T->
-    PRIM_CORE_DIP prim-type !
+        a CTX1
+        ta T1 ta ta T2 T->
+        PRIM_CORE_DUP prim-ctx-type!
 
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "*b" name-new! var-new-implicit! TYPE_STACK over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_CORE_IF prim-ctx !
+        a b CTX2
+        ta tb T2 tb ta T2 T->
+        PRIM_CORE_SWAP prim-ctx-type! 
 
-    dip(TVar) TVar
-    dup2 T-> swap
-    dip(dip(TYPE_BOOL T*) sip(T*) T*) T->
-    PRIM_CORE_IF prim-type !
+        xs ys CTX2
+        txs txs tys T-> T* tys T->
+        PRIM_CORE_RUN prim-ctx-type!
 
+        a b CTX2
+        ta T1 tb T1 T->
+        PRIM_UNSAFE_CAST prim-ctx-type!
 
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    dup ctx-empty swap ctx-new!
-    PRIM_CORE_WHILE prim-ctx !
+        xs ys CTX2
+        txs TYPE_INT T* tys T->
+        PRIM_POSIX_EXIT prim-ctx-type!
 
-    TVar
-    dup
-    sip(dup TYPE_BOOL T* T-> T*)
-    sip(dup T-> T*)
-    T->
-    PRIM_CORE_WHILE prim-type !
+        xs ys CTX2
+        txs TYPE_STR T* tys T->
+        PRIM_CORE_PANIC prim-ctx-type!
 
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "b" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_PACK_CONS prim-ctx !
+        xs ys c CTX3
+        txs tc T* txs tys T-> T* tys tc T* T->
+        PRIM_CORE_DIP prim-ctx-type!
 
-    dip(TVar) TVar
-    dup2 T2 rotr T* T1 T->
-    PRIM_PACK_CONS prim-type !
+        xs ys CTX2
+        txs TYPE_BOOL T* txs tys T-> sip(T*) T* tys T->
+        PRIM_CORE_IF prim-ctx-type!
 
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "b" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_PACK_UNCONS prim-ctx !
+        xs CTX1
+        txs txs txs TYPE_BOOL T* T-> T* txs txs T-> T* txs T->
+        PRIM_CORE_WHILE prim-ctx-type!
 
-    dip(TVar) TVar
-    dup2 T* T1 rotr T2 T->
-    PRIM_PACK_UNCONS prim-type !
+        xs b CTX2
+        txs tb T2 txs tb T* T1 T->
+        PRIM_PACK_CONS prim-ctx-type!
 
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup ctx-empty swap ctx-new!
-    dup PRIM_MUT_NEW prim-ctx !
-    dup PRIM_MUT_GET prim-ctx !
-    dup PRIM_MUT_SET prim-ctx !
-    dup PRIM_MUT_IS_SET prim-ctx !
-    drop
+        xs b CTX2
+        txs tb T* T1 txs tb T2 T->
+        PRIM_PACK_UNCONS prim-ctx-type!
 
-    dup TVar
-    dup TMut dip(T1) T1 T->
-    PRIM_MUT_NEW prim-type !
+        a CTX1
+        ta T1 ta TMut T1 T->
+        PRIM_MUT_NEW prim-ctx-type!
 
-    dup TVar
-    sip(TMut T1) T1 T->
-    PRIM_MUT_GET prim-type !
+        a CTX1
+        ta TMut T1 ta T1 T->
+        PRIM_MUT_GET prim-ctx-type!
 
-    dup TVar
-    dup TMut T2 T0 T->
-    PRIM_MUT_SET prim-type !
+        a CTX1
+        ta ta TMut T2 T0 T->
+        PRIM_MUT_SET prim-ctx-type!
 
-    dup TVar TMut T1 TYPE_BOOL T1 T->
-    PRIM_MUT_IS_SET prim-type !
-
-    drop)
+        a CTX1
+        ta TMut T1 TYPE_BOOL T1 T->
+        PRIM_MUT_IS_SET prim-ctx-type!
+    )))

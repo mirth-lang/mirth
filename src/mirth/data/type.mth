@@ -168,7 +168,7 @@ def(init-data!, Str Mut(Data) List(Mut(Tag)) --,
 
 def(init-tag!, Str Int Int Type Mut(Tag) --,
     @
-    sip(ctx-empty rotr tag-data @ TData T1 T-> pack2 LAZY_READY) sip(tag-ctx-type !)
+    sip(CTX0 rotr tag-data @ TData T1 T-> pack2 LAZY_READY) sip(tag-ctx-type !)
     sip(tag-num-inputs !)
     sip(tag-value !)
     dip(name-new!) dup2 tag-name !
@@ -676,7 +676,7 @@ def(type-rigidify-sig!, Ctx Type -- Ctx Type,
 def(type-rigidify-stack!, Ctx Type -- Ctx Type,
     TMeta ->
         meta-expand-or-update!(
-            ctx-make-fresh-stack-type-var! TVar
+            fresh-stack-type-var! TVar
         ) type-rigidify-stack!,
     TTensor ->
         dip(type-rigidify-stack!) swap
@@ -688,7 +688,7 @@ def(type-rigidify-stack!, Ctx Type -- Ctx Type,
 def(type-rigidify!, Ctx Type -- Ctx Type,
     TMeta ->
         meta-expand-or-update!(
-            ctx-make-fresh-type-var! TVar
+            fresh-type-var! TVar
         ) type-rigidify!,
     TYPE_ERROR -> TYPE_ERROR,
     TYPE_DONT_CARE -> TYPE_DONT_CARE,

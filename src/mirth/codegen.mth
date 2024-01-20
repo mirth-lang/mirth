@@ -431,20 +431,20 @@ def(.param, Param --, >Var .var)
 
 def(c99-pack-ctx!, Ctx --,
     c99-line("push_u64(0);" .)
-    ctx-physical-vars for(
+    physical-vars for(
         c99-var-push!
         c99-line("mw_prim_pack_cons();" .)
     ))
 
 def(c99-unpack-ctx!, Ctx --,
-    ctx-physical-vars reverse-for(
+    physical-vars reverse-for(
         c99-line("mw_prim_pack_uncons();" .)
         c99-line("VAL " . .var " = pop_value();" .)
     )
     c99-line("mw_prim_drop();" .))
 
 def(c99-decref-ctx!, Ctx --,
-    ctx-physical-vars reverse-for(
+    physical-vars reverse-for(
         c99-line("decref(" . .var ");" .)
     ))
 

@@ -33,7 +33,7 @@ import(mirth.codegen)
 ####################
 
 data(TypeElab, TYPE_ELAB -> Bool Ctx)
-def(type-elab-default, TypeElab, F ctx-empty TYPE_ELAB)
+def(type-elab-default, TypeElab, F CTX0 TYPE_ELAB)
 def(type-elab-stack-assertion, Ctx -- TypeElab, dip(T) TYPE_ELAB)
 def(type-elab-holes-allowed, TypeElab -- Bool, TYPE_ELAB -> drop)
 def(type-elab-ctx, TypeElab -- Ctx, TYPE_ELAB -> nip)
@@ -110,7 +110,7 @@ def(elab-type-var!, TypeElab Token -- TypeElab Var Token,
 
 def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
     dip2(type-elab-ctx?) over
-    dip2(name? unwrap dup2 swap ctx-lookup)
+    dip2(name? unwrap dup2 swap lookup)
     rotl match(
         SOME ->
             rotr dip2(nip dup var-type @)
@@ -119,7 +119,7 @@ def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
             dip(
                 dip(var-new-implicit!)
                 over var-type !
-                sip(ctx-new!)
+                sip(Ctx.new)
             )
     )
     next
@@ -370,7 +370,7 @@ def(ab-lambda!(f), (*a -- *b) *a List(Param) -- *b ,
     ab-token @ over ~token !
     dup2 ~params !
     dip(ab-ctx @ ab-type @ rotl reverse-for(
-        swap dip(>Var dup dip(ctx-new!))
+        swap dip(>Var dup dip(Ctx.new))
         ab-token @ elab-expand-tensor!
         dip(rotl var-type @) elab-type-unify! drop2
     ))
@@ -450,7 +450,7 @@ def(elab-word-ctx-sig-weak!, Word -- Ctx Type,
     dup word-sig @ match(
         NONE -> word-ctx-type @ match(
             LAZY_READY -> unpack2,
-            _ -> drop ctx-empty meta-alloc! TMeta meta-alloc! TMeta T->
+            _ -> drop CTX0 meta-alloc! TMeta meta-alloc! TMeta T->
         ),
         SOME -> drop elab-word-ctx-sig!
     ))
@@ -503,7 +503,7 @@ def(elab-no-args!, --,
     ab-token @ args-0)
 
 def(elab-atom-name!, Name --,
-    dup ab-ctx @ ctx-lookup match(
+    dup ab-ctx @ lookup match(
         SOME -> nip elab-args! ab-var!,
         NONE ->
             elab-relativize-name!
@@ -660,7 +660,7 @@ def(elab-lambda-params!, Lambda -- Lambda,
                 )
             )
             dip(dup params) sip(Var>Param swap cons over ~params !)
-            dip(dup inner-ctx) ctx-new! over ~inner-ctx !
+            dip(dup inner-ctx) Ctx.new over ~inner-ctx !
         )
         prev)
     drop)
@@ -1018,7 +1018,7 @@ def(elab-target-c99!, Token -- Token,
     typecheck-everything!
     sip(next) args-2
     dip(dup str? unwrap-or("expected output path" emit-fatal-error!) nip >Path)
-    dip(ctx-empty T0 T0 T->)
+    dip(CTX0 T0 T0 T->)
     elab-arrow!
     swap run-output-c99!)
 

@@ -13,25 +13,29 @@ import(mirth.data.type)
 
 # A context for types and terms.
 data(Ctx, CTX -> List(Var))
+def(List>Ctx, List(Var) -- Ctx, CTX)
+def(Ctx>List, Ctx -- List(Var), CTX -> id)
 
-def(unCTX, Ctx -- List(Var), CTX -> id)
-def(ctx-empty, Ctx, L0 CTX)
-def(ctx-is-physically-empty, Ctx -- Bool, ctx-physical-vars is-empty)
-def(ctx-new!, Ctx Var -- Ctx, dip(unCTX) snoc CTX)
-def(ctx-vars, Ctx -- List(Var), unCTX)
-def(ctx-physical-vars, Ctx -- List(Var),
-    ctx-vars filter(dup var-is-physical))
-def(ctx-lookup, Name Ctx -- Maybe(Var),
-    unCTX reverse-find(dup2 var-name @ =) nip)
+def(CTX0, Ctx, L0 CTX)
+def(CTX1, Var -- Ctx, L1 CTX)
+def(CTX2, Var Var -- Ctx, L2 CTX)
+def(CTX3, Var Var Var -- Ctx, L3 CTX)
+def(CTX4, Var Var Var Var -- Ctx, L4 CTX)
 
-def(ctx-len, Ctx -- Int, CTX -> len)
-def(ctx-fresh-name!, Ctx -- Ctx Name,
+def(Ctx.new, Ctx Var -- Ctx, dip(>List) snoc >Ctx)
+
+def(Ctx.vars, Ctx -- List(Var), >List)
+def(Ctx.physical-vars, Ctx -- List(Var), vars filter(dup var-is-physical))
+def(Ctx.physically-empty?, Ctx -- Bool, physical-vars is-empty)
+def(Ctx.lookup, Name Ctx -- Maybe(Var),
+    >List reverse-find(dup2 var-name @ =) nip)
+def(Ctx.len, Ctx -- Int, >List len)
+def(Ctx.fresh-name!, Ctx -- Ctx Name,
     # TODO do this properly.
-    "_x" over ctx-len int-to-str cat name-new!)
-
-def(ctx-make-fresh-stack-type-var!, Ctx -- Ctx Var,
-    PRIM_TYPE_STACK TPrim ctx-make-fresh-var!)
-def(ctx-make-fresh-type-var!, Ctx -- Ctx Var,
-    PRIM_TYPE_TYPE TPrim ctx-make-fresh-var!)
-def(ctx-make-fresh-var!, Ctx Type -- Ctx Var,
-    dip(ctx-fresh-name! var-new!) over var-type ! sip(ctx-new!))
+    "_x" over len int-to-str cat name-new!)
+def(Ctx.fresh-stack-type-var!, Ctx -- Ctx Var,
+    dip(PRIM_TYPE_STACK TPrim) fresh-var!)
+def(Ctx.fresh-type-var!, Ctx -- Ctx Var,
+    dip(PRIM_TYPE_TYPE TPrim) fresh-var!)
+def(Ctx.fresh-var!, Type Ctx -- Ctx Var,
+    fresh-name! var-new! tuck dip2(var-type !) sip(Ctx.new))
