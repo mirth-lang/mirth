@@ -416,7 +416,7 @@ def(value-unify!, Gamma Value Value -- Gamma Type,
 
         VALUE_BLOCK -> swap match(
             VALUE_BLOCK ->
-                dup2 block== if(
+                dup2 = if(
                     drop VALUE_BLOCK TValue,
                     block-infer-type!
                     block-unify-type!
@@ -446,12 +446,8 @@ def(value-type-unify!, Gamma Value Type -- Gamma Type,
         VALUE_BLOCK -> swap block-unify-type!,
     ))
 
-def(arrow-type, Arrow -- Type,
-    dup arrow-dom @ swap arrow-cod @ T->)
-    # TODO effects
-
-def(block-infer-type!, Block -- Type,
-    block-arrow force! arrow-type)
+def(Arrow.type, Arrow -- Type, dup >dom swap >cod T->)
+def(block-infer-type!, Block -- Type, >arrow type)
 
 def(type-unify-pair!, Gamma Type Type Type Type -- Gamma Type Type,
     dip(swap dip(type-unify! swap)) type-unify! dip(swap))
@@ -505,9 +501,7 @@ def(meta-has-meta, MetaVar MetaVar -- Bool,
     ))
 
 def(value-type-has-meta, MetaVar Value -- Bool,
-    VALUE_INT -> drop2 F,
-    VALUE_STR -> drop2 F,
-    VALUE_BLOCK -> sip(block-dom @) block-cod @ type2-has-meta)
+    value-as-type type-has-meta)
 
 def(type-trace-sig!, Type --,
     TMeta -> meta-expand-if(type-trace-sig!, meta-trace!),
@@ -563,7 +557,7 @@ def(value-as-type, Value -- Type,
     match(
         VALUE_INT -> drop PRIM_TYPE_INT TPrim,
         VALUE_STR -> drop PRIM_TYPE_STR TPrim,
-        VALUE_BLOCK -> sip(block-dom @) block-cod @ T->
+        VALUE_BLOCK -> sip(>dom) >cod T->
     ))
 
 def(type-trace-prim!, PrimType --,
@@ -727,7 +721,7 @@ def(type-rigidify!, Ctx Type -- Ctx Type,
 def(type-rigidify-value!, Ctx Value -- Ctx Type,
     VALUE_INT -> VALUE_INT TValue,
     VALUE_STR -> VALUE_STR TValue,
-    VALUE_BLOCK -> block-arrow force! arrow-type type-rigidify-sig!)
+    VALUE_BLOCK -> >arrow type type-rigidify-sig!)
 
 def(type-arity, Type -- Int,
     TMeta -> meta-expand-if(type-arity, drop 0),

@@ -200,9 +200,9 @@ def(elab-simple-type-arg!, Token -- Type,
 var(ab-home, Maybe(Word))
 var(ab-homeidx, Int)
 var(ab-arrow, Arrow)
-def(ab-ctx, Mut(Ctx), ab-arrow @ arrow-ctx)
-def(ab-token, Mut(Token), ab-arrow @ arrow-token-end)
-def(ab-type, Mut(Type), ab-arrow @ arrow-cod)
+def(ab-ctx, Mut(Ctx), ab-arrow @ ~ctx)
+def(ab-token, Mut(Token), ab-arrow @ ~token-end)
+def(ab-type, Mut(Type), ab-arrow @ ~cod)
 
 def(init-elab!,
     Arrow.nil ab-arrow !)
@@ -213,13 +213,13 @@ def(ab-save!(f), (*a -- *b) *a -- *b,
 def(ab-build!(f), (*a -- *b) *a Ctx Type Token -- *b Arrow,
     ab-save!(
         Arrow.alloc!
-        ab-home @ over arrow-home !
-        ab-homeidx @ over arrow-homeidx !
+        ab-home @ over ~home !
+        ab-homeidx @ over ~homeidx !
         ab-homeidx modify(1+)
-        tuck dup2 arrow-token-start ! arrow-token-end !
-        tuck dup2 arrow-dom ! arrow-cod !
-        tuck arrow-ctx !
-        L0 over arrow-atoms !
+        tuck dup2 ~token-start ! ~token-end !
+        tuck dup2 ~dom ! ~cod !
+        tuck ~ctx !
+        L0 over ~atoms !
         ab-arrow !
         f
         ab-arrow @
@@ -244,14 +244,14 @@ def(ab-unify-type!, Type --,
     dip(ab-token @ GAMMA ab-type @) type-unify! ab-type ! drop)
 
 def(ab-atom!, Atom --,
-    dup atom-token @ ab-token !
+    dup >token ab-token !
     # atom-dom? ab-unify-type!     # moved to ab-expand-opsig!
         # ^ a sanity check to make sure
         # atom dom matches ab-arrow cod
-    dup atom-cod @ ab-type !
-    dip(ab-arrow @ arrow-atoms @)
+    dup >cod ab-type !
+    dip(ab-arrow @ >atoms)
     ab-optimized-snoc!
-    ab-arrow @ arrow-atoms !)
+    ab-arrow @ ~atoms !)
 
 ||| Add an atom to a list of atoms ... smartly.
 def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
@@ -260,14 +260,14 @@ def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
     snoc)
 
 def(atom-accepts-args?, Atom -- Atom Bool,
-    dup atom-op @ match(
-        OP_WORD -> dip(dup atom-args @ len) elab-word-sig! type-max-num-params <,
+    dup >op match(
+        OP_WORD -> dip(dup >args len) elab-word-sig! type-max-num-params <,
         OP_PRIM ->
             match(
-                PRIM_CORE_RUN -> dup atom-args @ len 1 <, # this one's dubious
-                PRIM_CORE_DIP -> dup atom-args @ len 1 <,
-                PRIM_CORE_IF -> dup atom-args @ len 2 <,
-                PRIM_CORE_WHILE -> dup atom-args @ len 2 <,
+                PRIM_CORE_RUN -> dup >args len 1 <, # this one's dubious
+                PRIM_CORE_DIP -> dup >args len 1 <,
+                PRIM_CORE_IF -> dup >args len 2 <,
+                PRIM_CORE_WHILE -> dup >args len 2 <,
                 _ -> drop F
             ),
         _ -> drop F
@@ -277,7 +277,7 @@ def(atoms-has-last-block?, List(Atom) -- List(Atom) Bool,
     dup last match(
         NONE -> F,
         SOME ->
-            atom-op @ match(
+            >op match(
                 OP_BLOCK -> drop T,
                 _ -> drop F
             )
@@ -287,10 +287,10 @@ def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
     >List+ match(
         NONE -> L0,
         SOME ->
-            unsnoc dup atom-op @ match(
+            unsnoc dup >op match(
                 OP_BLOCK ->
                     { Atom List(Atom) Atom Block }
-                    dip(atom-cod @ rotl tuck atom-dom !)
+                    dip(>cod rotl tuck ~dom !)
                     { List(Atom) Atom Block }
                     ARG_BLOCK atom-arg-add-left!
                     swap,
@@ -299,30 +299,30 @@ def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
     ))
 
 def(block-to-run-var, Block -- Maybe(Var),
-    block-arrow force! arrow-to-run-var)
+    >arrow arrow-to-run-var)
 
 def(arrow-to-run-var, Arrow -- Maybe(Var),
-    arrow-atoms @ match(
+    >atoms match(
         L1 -> atom-to-run-var,
         _ -> drop NONE
     ))
 
 def(atom-to-run-var, Atom -- Maybe(Var),
-    atom-op @ match(
+    >op match(
         OP_VAR -> dup var-auto-run @ if(SOME, drop NONE),
         _ -> drop NONE
     ))
 
 def(ab-op!, Op --,
     Atom.alloc!
-    ab-ctx @ over atom-ctx !
-    ab-token @ over atom-token !
-    dup2 atom-op !
+    ab-ctx @ over ~ctx !
+    ab-token @ over ~token !
+    dup2 ~op !
     swap elab-op-fresh-sig!
-    dip(over atom-subst !)
+    dip(over ~subst !)
     ab-expand-opsig!
-    dip(over atom-dom !) over atom-cod !
-    L0 over atom-args !
+    dip(over ~dom !) over ~cod !
+    L0 over ~args !
     ab-atom!)
 
 def(ab-expand-opsig!, OpSig -- Type Type,
@@ -369,28 +369,28 @@ def(ab-while!(f,g), (*a -- *b, *b -- *c) *a -- *c,
 
 def(ab-lambda!(f), (*a -- *b) *a List(Param) -- *b ,
     Lambda.alloc!
-    ab-ctx @ over lambda-outer-ctx !
-    ab-type @ over lambda-dom !
-    ab-token @ over lambda-token !
-    dup2 lambda-params !
+    ab-ctx @ over ~outer-ctx !
+    ab-type @ over ~dom !
+    ab-token @ over ~token !
+    dup2 ~params !
     dip(ab-ctx @ ab-type @ rotl reverse-for(
-        swap dip(Param->Var dup dip(ctx-new!))
+        swap dip(>Var dup dip(ctx-new!))
         ab-token @ elab-expand-tensor!
         dip(rotl var-type @) elab-type-unify! drop2
     ))
-    tuck lambda-mid !
-    tuck lambda-inner-ctx !
+    tuck ~mid !
+    tuck ~inner-ctx !
 
     { *a Lambda }
 
-    dup lambda-inner-ctx @
-    over lambda-mid @
+    dup >inner-ctx
+    over >mid
     ab-token @
     ab-build!(
         dip(f)
-        ab-type @ over lambda-cod !
+        ab-type @ over ~cod !
     )
-    over lambda-body !
+    over ~body !
     OP_LAMBDA ab-op!)
 
 data(OpSig,
@@ -424,7 +424,7 @@ def(elab-match-sig!, Match -- OpSig,
     sip(match-dom @) match-cod @ T-> OPSIG_APPLY)
 
 def(elab-lambda-sig!, Lambda -- OpSig,
-    sip(lambda-dom @) lambda-cod @ T-> OPSIG_APPLY)
+    sip(>dom) >cod T-> OPSIG_APPLY)
 
 def(elab-var-sig!, Var -- OpSig,
     dup var-auto-run @ if(
@@ -467,8 +467,8 @@ def(elab-arrow!, Ctx Type Token -- Arrow,
 def(elab-arrow-hom!, Ctx Type Type Token -- Arrow,
     swap dip(
         elab-arrow-fwd!
-        dup arrow-token-end @ GAMMA
-        over arrow-cod @
+        dup >token-end GAMMA
+        over >cod
     )
     type-unify! drop2)
 
@@ -570,9 +570,9 @@ def(elab-atom-assert!, --,
 
 def(elab-atom-lambda!, --,
     Lambda.alloc!
-    ab-ctx @ over lambda-outer-ctx !
-    ab-type @ over lambda-dom !
-    ab-token @ over lambda-token !
+    ab-ctx @ over ~outer-ctx !
+    ab-type @ over ~dom !
+    ab-token @ over ~token !
     elab-lambda!
     OP_LAMBDA ab-op!)
 
@@ -628,9 +628,9 @@ def(elab-expand-morphism!, Type Token -- Type Type Token,
     ))
 
 def(elab-lambda-pop-from-mid!, Lambda Token -- Lambda Type Token,
-    dip(dup lambda-mid @)
+    dip(dup >mid)
     elab-expand-tensor!
-    dip2(over lambda-mid !))
+    dip2(over ~mid !))
 
 def(token-is-lambda-param?, Token -- Token Bool,
     sig-token-is-type-var? if(
@@ -644,10 +644,10 @@ def(token-is-lambda-param?, Token -- Token Bool,
     )))
 
 def(elab-lambda-params!, Lambda -- Lambda,
-    L0 over lambda-params !
-    dup lambda-outer-ctx @ over lambda-inner-ctx !
-    dup lambda-dom @ over lambda-mid !
-    dup lambda-token @ token-args-1
+    L0 over ~params !
+    dup >outer-ctx over ~inner-ctx !
+    dup >dom over ~mid !
+    dup >token token-args-1
     while(token-is-lambda-param?, token-next)
     expect-token-arrow token-prev
     while(token-is-lambda-param?,
@@ -663,19 +663,19 @@ def(elab-lambda-params!, Lambda -- Lambda,
                     "block pattern on non-block argument" emit-fatal-error!
                 )
             )
-            dip(dup lambda-params @) sip(Var->Param swap cons over lambda-params !)
-            dip(dup lambda-inner-ctx @) ctx-new! over lambda-inner-ctx !
+            dip(dup >params) sip(Var>Param swap cons over ~params !)
+            dip(dup >inner-ctx) ctx-new! over ~inner-ctx !
         )
         token-prev)
     drop)
 
 def(elab-lambda-body!, Lambda -- Lambda,
-    dup lambda-token @ token-args-1
+    dup >token token-args-1
     while(token-is-lambda-param?, token-next) token-succ
-    dip(dup lambda-mid @ dip(dup lambda-inner-ctx @))
+    dip(dup >mid dip(dup >inner-ctx))
     elab-arrow-fwd!
-    dup2 swap lambda-body !
-    arrow-cod @ over lambda-cod !)
+    dup2 swap ~body !
+    Arrow>cod over Lambda~cod !)
 
 ||| Check that match is exhaustive.
 def(elab-match-exhaustive!, Match -- Match,
@@ -750,7 +750,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
 ||| Elaborate case body.
 def(elab-case-body!, Case Token -- Case Token,
     dip(dup case-mid @ dip(dup case-match @ match-ctx @)) elab-arrow-fwd!
-    dup arrow-token-end @ dip(dup arrow-cod @) { Case Arrow Type Token }
+    dup >token-end dip(dup >cod) { Case Arrow Type Token }
     dip2(over case-body !) { Case Type Token }
     dip2(dup case-match @ match-cod @) elab-type-unify! nip)
 
@@ -946,9 +946,10 @@ def(elab-def!, Token -- Token,
     dup delay(
         type-elab-default
         over word-sig @ match(
-            NONE -> type-elab-ctx over word-arrow
+            NONE ->
+                type-elab-ctx over word-arrow
                 force-or!(swap emit-recursive-word-fatal-error!)
-                arrow-type type-rigidify-sig!,
+                type type-rigidify-sig!,
             SOME -> elab-type-sig! drop dip(type-elab-ctx)
         )
         pack2 nip
@@ -1234,7 +1235,7 @@ def(table-new!, Token Name -- Table,
 
         w ab-build-word! (
             t table-head @ ab-token !
-            x Var->Param L1 ab-lambda! (
+            x Var>Param L1 ab-lambda! (
                 1 ab-int!
                 ab-while! (
                     PRIM_CORE_DUP ab-prim!
