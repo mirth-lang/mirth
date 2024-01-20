@@ -71,9 +71,9 @@ def(determine-transitive-needs!, --,
         NEED_WORD -> word-arrow force! need-arrow-run,
     )))
 
-def(need-arrow-run, Arrow --, >atoms for(need-atom-run))
+def(need-arrow-run, Arrow --, atoms for(need-atom-run))
 def(need-atom-run, Atom --,
-    sip(>args) >op match(
+    sip(args) op match(
         OP_NONE -> drop,
         OP_INT -> drop2,
         OP_STR -> drop2,
@@ -113,14 +113,14 @@ def(need-prim, List(Arg) Prim --,
     _ -> drop need-args-push)
 
 def(need-match, Match --, match-cases @ for(case-body @ need-arrow-run))
-def(need-lambda, Lambda --, >body need-arrow-run)
+def(need-lambda, Lambda --, body need-arrow-run)
 
 def(need-block-push, Block --,
     dup block-to-run-var match(
         SOME -> drop2,
         NONE -> need-block
     ))
-def(need-block-run, Block --, >arrow need-arrow-run)
+def(need-block-run, Block --, arrow need-arrow-run)
 
 def(codegen-full?, Bool,
     codegen-length @ 4 + CODEGEN_BUF_SIZE >=)
@@ -286,14 +286,14 @@ def(c99-call!, List(Arg) Name --,
     dip(c99-args-push!)
     c99-line("mw_" . .name "();" .))
 
-def(c99-arrow!, Arrow --, >atoms for(c99-atom!))
+def(c99-arrow!, Arrow --, atoms for(c99-atom!))
 def(c99-atom!, Atom --,
     c99-line("WORD_ATOM(" .
-        dup >token row Row->Int .n ", " .
-        dup >token col Col->Int .n ", " .
-        dup >token name? if-some(>Str, "") .str
+        dup token row Row->Int .n ", " .
+        dup token col Col->Int .n ", " .
+        dup token name? if-some(>Str, "") .str
         ");" .)
-    sip(>args) >op
+    sip(args) op
     c99-args-op!)
 
 def(c99-args-op!, List(Arg) Op --,
@@ -424,7 +424,7 @@ def(c99-arg-run!, Arg --,
     ARG_BLOCK -> c99-block-run!)
 
 def(c99-block-run!, Block --,
-    >arrow c99-arrow!)
+    arrow c99-arrow!)
 
 def(.var, Var --, "var_" . var-name @ .name)
 def(.param, Param --, >Var .var)
@@ -453,7 +453,7 @@ def(c99-block-push!, Block --,
         SOME -> nip c99-var-push!,
         NONE ->
             dup need-block
-            dup >ctx c99-pack-ctx!
+            dup ctx c99-pack-ctx!
             c99-line("push_fnptr(&" . .block ");" .)
             c99-line("mw_prim_pack_cons();" .)
     ))
@@ -474,11 +474,11 @@ def(c99-var-push!, Var --,
 def(c99-lambda!, Lambda --,
     c99-line("{" .)
     c99-nest(
-        dup >params reverse-for(
+        dup params reverse-for(
             c99-line("VAL " . .param " = pop_value();" .)
         )
-        dup >body c99-arrow!
-        >params reverse-for(
+        dup body c99-arrow!
+        params reverse-for(
             c99-line("decref(" . .param ");" .)
         )
     )
@@ -542,13 +542,13 @@ def(c99-field-sig!, Field --,
 def(c99-block-enter!, Block --,
     c99-line("WORD_ENTER(" .
         dup .block ", " .
-        dup >arrow >home match(
+        dup arrow home match(
             NONE -> "block",
             SOME -> word-name @ >Str " block" cat,
         ) .str ", " .
-        dup >token .module module-source-path >Str .str ", " .
-        dup >token row Row->Int .n ", " .
-        dup >token col Col->Int .n ");" . )
+        dup token .module module-source-path >Str .str ", " .
+        dup token row Row->Int .n ", " .
+        dup token col Col->Int .n ");" . )
     drop)
 
 def(c99-block-exit!, Block --,
@@ -559,21 +559,21 @@ def(c99-block-def!, Block --,
     c99-line("static void " . dup .block " (void) {" .)
     c99-nest(
         dup c99-block-enter!
-        dup >arrow
-        dup >ctx c99-unpack-ctx!
+        dup arrow
+        dup ctx c99-unpack-ctx!
         dup c99-arrow!
-        >ctx c99-decref-ctx!
+        ctx c99-decref-ctx!
         c99-block-exit!
     )
     c99-line("}" .) .lf)
 
 def(.block, Block -- ,
     "mb_" .
-    dup >arrow dup >home match(
+    dup arrow dup home match(
         NONE -> drop Block.id .n,
         SOME ->
             word-name @ .name "_" .
-            >homeidx .n drop
+            homeidx .n drop
     ))
 
 def(c99-word-enter!, Word --,
@@ -628,10 +628,10 @@ def(c99-main!, Arrow --,
         c99-line("WORD_ENTER(" .
             "(void(*)(void))0, " .
             "\"<main>\", " .
-            dup >token-start .module
+            dup token-start .module
                 module-source-path >Str .str ", " .
-            dup >token-start row Row->Int .n ", " .
-            dup >token-start col Col->Int .n ");" .)
+            dup token-start row Row->Int .n ", " .
+            dup token-start col Col->Int .n ");" .)
         c99-arrow!
         c99-line("WORD_EXIT((void(*)(void))0);" .)
         c99-line("return 0;" .)

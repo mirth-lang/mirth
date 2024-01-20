@@ -10,11 +10,12 @@ field(Alias~head, Alias, Token)
 field(Alias~name, Alias, Name)
 field(Alias~target, Alias, Name)
 
-def(Alias>head, Alias -- Token, ~head @)
-def(Alias>name, Alias -- Name, ~name @)
-def(Alias>target, Alias -- Name, ~target @)
+def(Alias.head, Alias -- Token, ~head @)
+def(Alias.name, Alias -- Name, ~name @)
+def(Alias.target, Alias -- Name, ~target @)
 
-def(alias-new!, Token Name Name -- Alias,
+
+def(Alias.new!, Token Name Name -- Alias,
     Alias.alloc!
     tuck ~target !
     dup2 DEF_ALIAS swap ~Def !

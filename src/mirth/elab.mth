@@ -240,12 +240,12 @@ def(ab-unify-type!, Type --,
     dip(ab-token @ GAMMA ab-type @) type-unify! ab-type ! drop)
 
 def(ab-atom!, Atom --,
-    dup >token ab-token !
+    dup token ab-token !
     # atom-dom? ab-unify-type!     # moved to ab-expand-opsig!
         # ^ a sanity check to make sure
         # atom dom matches ab-arrow cod
-    dup >cod ab-type !
-    dip(ab-arrow @ >atoms)
+    dup cod ab-type !
+    dip(ab-arrow @ atoms)
     ab-optimized-snoc!
     ab-arrow @ ~atoms !)
 
@@ -256,14 +256,14 @@ def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
     snoc)
 
 def(atom-accepts-args?, Atom -- Atom Bool,
-    dup >op match(
-        OP_WORD -> dip(dup >args len) elab-word-sig! type-max-num-params <,
+    dup op match(
+        OP_WORD -> dip(dup args len) elab-word-sig! type-max-num-params <,
         OP_PRIM ->
             match(
-                PRIM_CORE_RUN -> dup >args len 1 <, # this one's dubious
-                PRIM_CORE_DIP -> dup >args len 1 <,
-                PRIM_CORE_IF -> dup >args len 2 <,
-                PRIM_CORE_WHILE -> dup >args len 2 <,
+                PRIM_CORE_RUN -> dup args len 1 <, # this one's dubious
+                PRIM_CORE_DIP -> dup args len 1 <,
+                PRIM_CORE_IF -> dup args len 2 <,
+                PRIM_CORE_WHILE -> dup args len 2 <,
                 _ -> drop F
             ),
         _ -> drop F
@@ -273,7 +273,7 @@ def(atoms-has-last-block?, List(Atom) -- List(Atom) Bool,
     dup last match(
         NONE -> F,
         SOME ->
-            >op match(
+            op match(
                 OP_BLOCK -> drop T,
                 _ -> drop F
             )
@@ -283,10 +283,10 @@ def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
     >List+ match(
         NONE -> L0,
         SOME ->
-            unsnoc dup >op match(
+            unsnoc dup op match(
                 OP_BLOCK ->
                     { Atom List(Atom) Atom Block }
-                    dip(>cod rotl tuck ~dom !)
+                    dip(cod rotl tuck ~dom !)
                     { List(Atom) Atom Block }
                     ARG_BLOCK atom-arg-add-left!
                     swap,
@@ -295,16 +295,16 @@ def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
     ))
 
 def(block-to-run-var, Block -- Maybe(Var),
-    >arrow arrow-to-run-var)
+    arrow arrow-to-run-var)
 
 def(arrow-to-run-var, Arrow -- Maybe(Var),
-    >atoms match(
+    atoms match(
         L1 -> atom-to-run-var,
         _ -> drop NONE
     ))
 
 def(atom-to-run-var, Atom -- Maybe(Var),
-    >op match(
+    op match(
         OP_VAR -> dup var-auto-run @ if(SOME, drop NONE),
         _ -> drop NONE
     ))
@@ -379,8 +379,8 @@ def(ab-lambda!(f), (*a -- *b) *a List(Param) -- *b ,
 
     { *a Lambda }
 
-    dup >inner-ctx
-    over >mid
+    dup inner-ctx
+    over mid
     ab-token @
     ab-build!(
         dip(f)
@@ -420,7 +420,7 @@ def(elab-match-sig!, Match -- OpSig,
     sip(match-dom @) match-cod @ T-> OPSIG_APPLY)
 
 def(elab-lambda-sig!, Lambda -- OpSig,
-    sip(>dom) >cod T-> OPSIG_APPLY)
+    sip(dom) cod T-> OPSIG_APPLY)
 
 def(elab-var-sig!, Var -- OpSig,
     dup var-auto-run @ if(
@@ -463,8 +463,8 @@ def(elab-arrow!, Ctx Type Token -- Arrow,
 def(elab-arrow-hom!, Ctx Type Type Token -- Arrow,
     swap dip(
         elab-arrow-fwd!
-        dup >token-end GAMMA
-        over >cod
+        dup token-end GAMMA
+        over cod
     )
     type-unify! drop2)
 
@@ -536,7 +536,7 @@ def(elab-module-is-visible, Module -- Bool,
 
 def(elab-atom-name-global!, Name --,
     dup >Def match(
-        DEF_ALIAS -> nip >target elab-atom-name-global!,
+        DEF_ALIAS -> nip target elab-atom-name-global!,
         DEF_BUFFER -> nip elab-no-args! ab-buffer!,
         DEF_VARIABLE -> nip elab-no-args! ab-variable!,
         DEF_CONSTANT -> nip elab-no-args! ab-constant!,
@@ -624,7 +624,7 @@ def(elab-expand-morphism!, Type Token -- Type Type Token,
     ))
 
 def(elab-lambda-pop-from-mid!, Lambda Token -- Lambda Type Token,
-    dip(dup >mid)
+    dip(dup mid)
     elab-expand-tensor!
     dip2(over ~mid !))
 
@@ -641,9 +641,9 @@ def(token-is-lambda-param?, Token -- Token Bool,
 
 def(elab-lambda-params!, Lambda -- Lambda,
     L0 over ~params !
-    dup >outer-ctx over ~inner-ctx !
-    dup >dom over ~mid !
-    dup >token args-1
+    dup outer-ctx over ~inner-ctx !
+    dup dom over ~mid !
+    dup token args-1
     while(token-is-lambda-param?, next)
     expect-token-arrow prev
     while(token-is-lambda-param?,
@@ -659,19 +659,19 @@ def(elab-lambda-params!, Lambda -- Lambda,
                     "block pattern on non-block argument" emit-fatal-error!
                 )
             )
-            dip(dup >params) sip(Var>Param swap cons over ~params !)
-            dip(dup >inner-ctx) ctx-new! over ~inner-ctx !
+            dip(dup params) sip(Var>Param swap cons over ~params !)
+            dip(dup inner-ctx) ctx-new! over ~inner-ctx !
         )
         prev)
     drop)
 
 def(elab-lambda-body!, Lambda -- Lambda,
-    dup >token args-1
+    dup token args-1
     while(token-is-lambda-param?, next) succ
-    dip(dup >mid dip(dup >inner-ctx))
+    dip(dup mid dip(dup inner-ctx))
     elab-arrow-fwd!
     dup2 swap ~body !
-    Arrow>cod over Lambda~cod !)
+    cod over ~cod !)
 
 ||| Check that match is exhaustive.
 def(elab-match-exhaustive!, Match -- Match,
@@ -746,7 +746,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
 ||| Elaborate case body.
 def(elab-case-body!, Case Token -- Case Token,
     dip(dup case-mid @ dip(dup case-match @ match-ctx @)) elab-arrow-fwd!
-    dup >token-end dip(dup >cod) { Case Arrow Type Token }
+    dup token-end dip(dup cod) { Case Arrow Type Token }
     dip2(over case-body !) { Case Type Token }
     dip2(dup case-match @ match-cod @) elab-type-unify! nip)
 
@@ -900,7 +900,7 @@ def(elab-alias!, Token -- Token,
     dup name? unwrap-or("expected word name" emit-fatal-error!) dip(dup args-0)
     name-undefined? else(drop "word already defined" emit-fatal-error!) rotl
     dup name? unwrap-or("expected word name" emit-fatal-error!) dip(args-0)
-    alias-new! drop)
+    Alias.new! drop)
 
 ||| Elaborate a missing word definition `def-missing(w,t,b...)`
 def(elab-def-missing!, Token -- Token,
@@ -1040,7 +1040,7 @@ def(typecheck-everything!, --,
 ||| Typecheck a definition.
 def(typecheck-def!, Def --,
     DEF_NONE -> id,
-    DEF_ALIAS -> >target >Def typecheck-def!, # TODO verify it's not DEF_NONE!!
+    DEF_ALIAS -> target >Def typecheck-def!, # TODO verify it's not DEF_NONE!!
     DEF_MODULE -> drop,
     DEF_BUFFER -> drop,
     DEF_PRIM -> drop,

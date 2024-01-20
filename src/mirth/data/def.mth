@@ -28,7 +28,7 @@ data(Def,
 
 def(Def>Module?, Def -- Maybe(Module),
     DEF_NONE -> NONE,
-    DEF_ALIAS -> >head .module SOME,
+    DEF_ALIAS -> head .module SOME,
     DEF_MODULE -> drop NONE,
     DEF_TYPE -> drop NONE,
     DEF_TAG -> tag-data @ data-header @ map(.module),

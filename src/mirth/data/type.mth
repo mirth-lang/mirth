@@ -418,8 +418,7 @@ def(value-unify!, Gamma Value Value -- Gamma Type,
             VALUE_BLOCK ->
                 dup2 = if(
                     drop VALUE_BLOCK TValue,
-                    block-infer-type!
-                    block-unify-type!
+                    arrow type block-unify-type!
                 ),
             VALUE_INT ->
                 drop2 gamma-token?
@@ -445,9 +444,6 @@ def(value-type-unify!, Gamma Value Type -- Gamma Type,
         VALUE_STR -> drop TYPE_STR swap type-unify!,
         VALUE_BLOCK -> swap block-unify-type!,
     ))
-
-def(Arrow.type, Arrow -- Type, dup >dom swap >cod T->)
-def(block-infer-type!, Block -- Type, >arrow type)
 
 def(type-unify-pair!, Gamma Type Type Type Type -- Gamma Type Type,
     dip(swap dip(type-unify! swap)) type-unify! dip(swap))
@@ -557,7 +553,7 @@ def(value-as-type, Value -- Type,
     match(
         VALUE_INT -> drop PRIM_TYPE_INT TPrim,
         VALUE_STR -> drop PRIM_TYPE_STR TPrim,
-        VALUE_BLOCK -> sip(>dom) >cod T->
+        VALUE_BLOCK -> type,
     ))
 
 def(type-trace-prim!, PrimType --,
@@ -721,7 +717,7 @@ def(type-rigidify!, Ctx Type -- Ctx Type,
 def(type-rigidify-value!, Ctx Value -- Ctx Type,
     VALUE_INT -> VALUE_INT TValue,
     VALUE_STR -> VALUE_STR TValue,
-    VALUE_BLOCK -> >arrow type type-rigidify-sig!)
+    VALUE_BLOCK -> arrow type type-rigidify-sig!)
 
 def(type-arity, Type -- Int,
     TMeta -> meta-expand-if(type-arity, drop 0),
