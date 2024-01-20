@@ -68,12 +68,12 @@ def(List+.len, List+(t) -- Int,
 def(List.len?, List(t) -- List(t) Int, dup len)
 def(List+.len?, List+(t) -- List+(t) Int, dup len)
 
-def(cons+, t List(t) -- List+(t),
+def(List.cons+, t List(t) -- List+(t),
     L0 -> L1+,
     L1 -> L2+,
     L2 -> L3+,
     L3 -> L4+,
-    LCAT -> 1+ dip(dip(cons++) rebalance) LCAT+)
+    LCAT -> 1+ dip(dip(cons+) rebalance) LCAT+)
 
 def(snoc+, List(t) t -- List+(t),
     swap match(
@@ -84,9 +84,9 @@ def(snoc+, List(t) t -- List+(t),
         LCAT -> 1+ dip(rotl snoc++ rebalance) LCAT+
     ))
 
-def(cons++, t List+(t) -- List+(t), List+>List cons+)
+def(List+.cons+, t List+(t) -- List+(t), >List cons+)
+def(List.cons, t List(t) -- List(t), cons+ >List)
 def(snoc++, List+(t) t -- List+(t), dip(List+>List) snoc+)
-def(cons, t List(t) -- List(t), cons+ List+>List)
 def(snoc, List(t) t -- List(t), snoc+ List+>List)
 
 def(List+.uncons, List+(t) -- t List(t),
@@ -112,7 +112,7 @@ def(List.cat+, List+(t) List(t) -- List+(t),
 
 def(List+.cat+, List+(t) List+(t) -- List+(t),
     swap match(
-        L1+ -> swap cons++,
+        L1+ -> swap cons+,
         L2+ ->
             rotl match(
                 L1+ -> L3+,
@@ -311,19 +311,19 @@ def(List.reverse-find?(f), (*c a -- *c a Bool) *c List(a) -- *c List(a) Maybe(a)
 
 ||| Is the predicate true for any element of the list?
 def(List.any(f), (*c a -- *c a Bool) *c List(a) -- *c Bool,
-    find(f) is-some)
+    find(f) some?)
 
 ||| Is the predicate true for any element of the list?
 def(List.any?(f), (*c a -- *c a Bool) *c List(a) -- *c List(a) Bool,
-    find?(f) is-some)
+    find?(f) some?)
 
 ||| Is the predicate true for all elements of the list?
 def(List.all(f), (*c a -- *c a Bool) *c List(a) -- *c Bool,
-    find(f not) is-none)
+    find(f not) none?)
 
 ||| Is the predicate true for all elements of the list?
 def(List.all?(f), (*c a -- *c a Bool) *c List(a) -- *c List(a) Bool,
-    find?(f not) is-none)
+    find?(f not) none?)
 
 ||| Build a list through repetition, stopping at the first NONE.
 def(collect(f), (*a -- *a Maybe(b)) *a -- *a List(b),
