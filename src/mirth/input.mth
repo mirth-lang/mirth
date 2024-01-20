@@ -27,7 +27,7 @@ def(input-end!, --,
         input-handle @ close-file!,
         id
     )
-    stdin input-handle !
+    STDIN input-handle !
     0 input-length !
     0 input-offset !
     F input-isopen !)
@@ -37,12 +37,12 @@ def(input-done?, Bool,
 
 def(input-fill-buffer!, --,
     assert!(input-isopen @, "attempted to fill input buffer when file is closed")
-    input-handle @ File->Int
+    input-handle @ >Int
     INPUT_BUFFER
     INPUT_BUFFER_SIZE
     posix-read!
-    expect!(dup 0 int>=, "failed to read from file")
-    dup 0 int> if(
+    expect!(dup 0>=, "failed to read from file")
+    dup 0> if(
         input-length !
         0 input-offset !,
         drop
@@ -53,7 +53,7 @@ def(input-fill-buffer!, --,
 # Panics if file is exhausted.
 def(input-peek, Byte,
     input-isopen @ if(
-        input-offset @ INPUT_BUFFER with-ptr+(byte@),
+        input-offset @ INPUT_BUFFER .offset(@Byte),
         "error: attempted to read input buffer when file is already closed" panic!
     ))
 
@@ -66,11 +66,10 @@ def(input-move!, --,
         "error: attempted to move input buffer when file is already closed" panic!
     ))
 
-||| Refill input buffer, with special logic to handle
-||| characters straddling the buffer boundary.
+||| Refill input buffer.
 def(input-prepare-for-more!, --,
     input-offset @
-    input-length @ int>= if(
+    input-length @ >= if(
         input-fill-buffer!,
         id
     ))

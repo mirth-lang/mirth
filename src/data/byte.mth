@@ -37,53 +37,54 @@ data(Byte,
     BxF0, BxF1, BxF2, BxF3, BxF4, BxF5, BxF6, BxF7,
     BxF8, BxF9, BxFA, BxFB, BxFC, BxFD, BxFE, BxFF)
 
-def(Byte->Int, Byte -- Int, prim-unsafe-cast)
-def(Int->Byte, Int -- Byte,
-    assert!(dup 0 255 int-in-range, "Int->Byte out of range")
+def(Byte>Int, Byte -- Int, prim-unsafe-cast)
+def(Int>Byte, Int -- Byte,
+    assert!(dup 0 255 in-range, "Int->Byte out of range")
     prim-unsafe-cast)
-def(Byte->U8, Byte -- U8, prim-unsafe-cast)
-def(U8->Byte, U8 -- Byte, prim-unsafe-cast)
+def(Byte>U8, Byte -- U8, >Int >U8)
+def(U8>Byte, U8 -- Byte, >Int >Byte)
 
-def(byte@, Ptr -- Byte, u8@ U8->Byte)
-def(byte!, Byte Ptr --, dip(Byte->U8) u8!)
+def(Ptr@Byte, Ptr -- Byte, @U8 >Byte)
+def(Ptr!Byte, Byte Ptr --, dip(>U8) !U8)
 
-def(byte-cmp, Byte Byte -- Comparison, dip(Byte->Int) Byte->Int int-cmp)
-def(byte==, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int==)
-def(byte<=, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int<=)
-def(byte<, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int<)
-def(byte>=, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int>=)
-def(byte>, Byte Byte -- Bool, dip(Byte->Int) Byte->Int int>)
-def(byte-in-range, Byte Byte Byte -- Bool, dip(dip(Byte->Int) Byte->Int) Byte->Int int-in-range)
+def(Byte.cmp, Byte Byte -- Comparison, both(>Int) cmp)
+def(Byte=,  Byte Byte -- Bool, both(>Int) =)
+def(Byte<,  Byte Byte -- Bool, both(>Int) <)
+def(Byte>,  Byte Byte -- Bool, both(>Int) >)
+def(Byte<=, Byte Byte -- Bool, both(>Int) <=)
+def(Byte>=, Byte Byte -- Bool, both(>Int) >=)
+def(Byte<>, Byte Byte -- Bool, both(>Int) <>)
+def(Byte.in-range, Byte Byte Byte -- Bool, dip(both(>Int)) >Int in-range)
 
-def(byte-is-upper, Byte -- Bool, B'A' B'Z' byte-in-range)
-def(byte-is-lower, Byte -- Bool, B'a' B'z' byte-in-range)
-def(byte-is-digit, Byte -- Bool, B'0' B'9' byte-in-range)
-def(byte-is-alpha, Byte -- Bool, dup byte-is-upper if(drop T, byte-is-lower))
-def(byte-is-alnum, Byte -- Bool, dup byte-is-digit if(drop T, byte-is-alpha))
+def(Byte.is-upper, Byte -- Bool, B'A' B'Z' in-range)
+def(Byte.is-lower, Byte -- Bool, B'a' B'z' in-range)
+def(Byte.is-digit, Byte -- Bool, B'0' B'9' in-range)
+def(Byte.is-alpha, Byte -- Bool, dup is-upper if(drop T, is-lower))
+def(Byte.is-alnum, Byte -- Bool, dup is-digit if(drop T, is-alpha))
 
-def(byte-is-hexdigit, Byte -- Bool,
+def(Byte.is-hexdigit, Byte -- Bool,
     B'0' -> T, B'1' -> T, B'2' -> T, B'3' -> T,
     B'4' -> T, B'5' -> T, B'6' -> T, B'7' -> T,
     B'8' -> T, B'9' -> T, B'A' -> T, B'B' -> T,
     B'C' -> T, B'D' -> T, B'E' -> T, B'F' -> T,
     _ -> drop F)
 
-def(byte-is-string-end, Byte -- Bool,
+def(Byte.is-string-end, Byte -- Bool,
     BQUOTE -> T, BLF -> T, BNUL -> T, _ -> drop F)
     
-def(byte-to-lower, Byte -- Byte,
-    dup byte-is-upper if(Byte->Int 0x20 + Int->Byte, id))
-def(byte-to-upper, Byte -- Byte,
-    dup byte-is-lower if(Byte->Int 0x20 - Int->Byte, id))
+def(Byte.to-lower, Byte -- Byte,
+    dup is-upper if(>Int 0x20 + >Byte, id))
+def(Byte.to-upper, Byte -- Byte,
+    dup is-lower if(>Int 0x20 - >Byte, id))
 
-def(byte-to-hexdigits, Byte -- Byte Byte,
-    Byte->Int
+def(Byte.to-hexdigits, Byte -- Byte Byte,
+    >Int
     dup 4 >> one-hexdigit-byte
     swap 0xF & one-hexdigit-byte)
 def(one-hexdigit-byte, Int -- Byte,
-    dup 9 int> if(55, 48) + Int->Byte)
+    dup 9 > if(55, 48) + >Byte)
 
-def(byte-is-name-byte, Byte -- Bool,
+def(Byte.is-name-byte, Byte -- Bool,
     BLPAREN -> F,
     BRPAREN -> F,
     BLSQUARE -> F,
@@ -93,9 +94,16 @@ def(byte-is-name-byte, Byte -- Bool,
     BCOMMA -> F,
     BQUOTE -> F,
     BDEL -> F,
-    _ -> BSPACE byte>)
+    _ -> BSPACE >)
 
-def(byte-is-sign, Byte -- Bool,
+def(Byte.is-sign, Byte -- Bool,
     B'-' -> T,
     B'+' -> T,
     _ -> drop F)
+
+def(Byte.is-upper-or-underscore, Byte -- Bool,
+    B'_' -> T,
+    _ -> is-upper)
+
+def(Byte.is-overload-trigger, Byte -- Bool,
+    is-upper-or-underscore not)

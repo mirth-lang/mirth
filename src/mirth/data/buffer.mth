@@ -14,5 +14,5 @@ def(buffer-new!, Token Name Size -- Buffer,
     Buffer.alloc!
     tuck buffer-size !
     tuck dup2 buffer-name !
-    DEF_BUFFER swap name-def !
+    DEF_BUFFER swap ~Def !
     tuck buffer-head !)

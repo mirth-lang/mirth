@@ -6,14 +6,14 @@ var(myvar, Int)
 var(myvar2, Int)
 def(main, --,
     0 myvar !
-    myvar @ int-trace-ln!
+    myvar @ trace-ln!
     10 myvar !
-    myvar @ int-trace-ln!
+    myvar @ trace-ln!
     20 myvar !
-    myvar @ int-trace-ln!
-    myvar @ int-trace-ln!
+    myvar @ trace-ln!
+    myvar @ trace-ln!
     30 myvar !
-    myvar @ int-trace-ln!
+    myvar @ trace-ln!
 
     myvar2 @ drop)
 

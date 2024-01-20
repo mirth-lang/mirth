@@ -56,41 +56,72 @@ data(Op,
     OP_BLOCK -> Block)
 
 data(Param, PARAM -> Var)
-def(unPARAM, Param -- Var, PARAM -> id)
-def(Var->Param, Var -- Param, PARAM)
-def(Param->Var, Param -- Var, PARAM -> id)
+def(Var>Param, Var -- Param, PARAM)
+def(Param>Var, Param -- Var, PARAM -> id)
 
-field(arrow-token-start, Arrow, Token)
-field(arrow-token-end, Arrow, Token)
-field(arrow-home, Arrow, Maybe(Word))
-field(arrow-homeidx, Arrow, Int)
-field(arrow-ctx, Arrow, Ctx)
-field(arrow-dom, Arrow, Type)
-field(arrow-cod, Arrow, Type)
-field(arrow-atoms, Arrow, List(Atom))
+field(Arrow~token-start, Arrow, Token)
+field(Arrow~token-end, Arrow, Token)
+field(Arrow~home, Arrow, Maybe(Word))
+field(Arrow~homeidx, Arrow, Int)
+field(Arrow~ctx, Arrow, Ctx)
+field(Arrow~dom, Arrow, Type)
+field(Arrow~cod, Arrow, Type)
+field(Arrow~atoms, Arrow, List(Atom))
 
-field(atom-token, Atom, Token)
-field(atom-ctx, Atom, Ctx)
-field(atom-op, Atom, Op)
-field(atom-args, Atom, List(Arg))
-field(atom-dom, Atom, Type)
-field(atom-cod, Atom, Type)
-field(atom-subst, Atom, Subst)
+field(Atom~token, Atom, Token)
+field(Atom~ctx, Atom, Ctx)
+field(Atom~op, Atom, Op)
+field(Atom~args, Atom, List(Arg))
+field(Atom~dom, Atom, Type)
+field(Atom~cod, Atom, Type)
+field(Atom~subst, Atom, Subst)
 
-field(lambda-token, Lambda, Token)
-field(lambda-outer-ctx, Lambda, Ctx)
-field(lambda-inner-ctx, Lambda, Ctx)
-field(lambda-dom, Lambda, Type)
-field(lambda-mid, Lambda, Type)
-field(lambda-cod, Lambda, Type)
-field(lambda-params, Lambda, List(Param))
-field(lambda-body, Lambda, Arrow)
+field(Lambda~token, Lambda, Token)
+field(Lambda~outer-ctx, Lambda, Ctx)
+field(Lambda~inner-ctx, Lambda, Ctx)
+field(Lambda~dom, Lambda, Type)
+field(Lambda~mid, Lambda, Type)
+field(Lambda~cod, Lambda, Type)
+field(Lambda~params, Lambda, List(Param))
+field(Lambda~body, Lambda, Arrow)
 
-field(block-ctx, Block, Ctx)
-field(block-token, Block, Token)
-field(block-dom, Block, Type)
-field(block-cod, Block, Type)
-field(block-arrow, Block, Lazy(Arrow))
+field(Block~ctx, Block, Ctx) 
+field(Block~token, Block, Token) 
+field(Block~dom, Block, Type) 
+field(Block~cod, Block, Type)
+field(Block~arrow, Block, Lazy(Arrow))
+
+def(Arrow>token-start, Arrow -- Token, ~token-start @)
+def(Arrow>token-end, Arrow -- Token, ~token-end @)
+def(Arrow>home, Arrow -- Maybe(Word), ~home @)
+def(Arrow>homeidx, Arrow -- Int, ~homeidx @)
+def(Arrow>ctx, Arrow -- Ctx, ~ctx @)
+def(Arrow>dom, Arrow -- Type, ~dom @)
+def(Arrow>cod, Arrow -- Type, ~cod @)
+def(Arrow>atoms, Arrow -- List(Atom), ~atoms @)
+
+def(Atom>token, Atom -- Token, ~token @)
+def(Atom>ctx, Atom -- Ctx, ~ctx @)
+def(Atom>op, Atom -- Op, ~op @)
+def(Atom>args, Atom -- List(Arg), ~args @)
+def(Atom>dom, Atom -- Type, ~dom @)
+def(Atom>cod, Atom -- Type, ~cod @)
+def(Atom>subst, Atom -- Subst, ~subst @)
+
+def(Lambda>token, Lambda -- Token, ~token @)
+def(Lambda>outer-ctx, Lambda -- Ctx, ~outer-ctx @)
+def(Lambda>inner-ctx, Lambda -- Ctx, ~inner-ctx @)
+def(Lambda>dom, Lambda -- Type, ~dom @)
+def(Lambda>mid, Lambda -- Type, ~mid @)
+def(Lambda>cod, Lambda -- Type, ~cod @)
+def(Lambda>params, Lambda -- List(Param), ~params @)
+def(Lambda>body, Lambda -- Arrow, ~body @)
+
+def(Block>ctx, Block -- Ctx, ~ctx @)
+def(Block>token, Block -- Token, ~token @)
+def(Block>dom, Block -- Type, ~dom @)
+def(Block>cod, Block -- Type, ~cod @)
+def(Block>arrow, Block -- Arrow, ~arrow force!)
 
 #######
 # ARG #
@@ -98,48 +129,47 @@ field(block-arrow, Block, Lazy(Arrow))
 
 ||| Add arg to atom, on the left.
 def(atom-arg-add-left!, Atom Arg -- Atom,
-    over atom-args modify(cons))
+    over ~args modify(cons))
 
 ||| Add atom to arrow.
 def(arrow-atom-add!, Arrow Atom -- Arrow,
-    over arrow-atoms modify(swap snoc))
+    over ~atoms modify(swap snoc))
 
 #########
 # BLOCK #
 #########
 
-def(block==, Block Block -- Bool, both(Block.id) int==)
+def(Block=, Block Block -- Bool, both(Block.id) =)
 
 def(block-new!, Arrow -- Block,
     Block.alloc!
-    over arrow-ctx @ over block-ctx !
-    over arrow-token-start @ over block-token !
-    over arrow-dom @ over block-dom !
-    over arrow-cod @ over block-cod !
-    swap ready over block-arrow !)
+    over >ctx over ~ctx !
+    over >token-start over ~token !
+    over >dom over ~dom !
+    over >cod over ~cod !
+    tuck dip(ready) ~arrow !)
 
 def(block-new-deferred!, Ctx Token -- Block,
     Block.alloc!
-    tuck block-token !
-    tuck block-ctx !
-    meta-alloc! TMeta over block-dom !
-    meta-alloc! TMeta over block-cod !
+    tuck ~token !
+    tuck ~ctx !
+    meta-alloc! TMeta over ~dom !
+    meta-alloc! TMeta over ~cod !
     dup delay(
-        dup block-ctx @ swap
-        dup block-dom @ swap
-        dup block-cod @ swap
-        block-token @
+        dup >ctx swap
+        dup >dom swap
+        dup >cod swap
+        >token
         elab-arrow-hom!
-    ) over block-arrow !)
+    ) over ~arrow !)
 
-def(block-force!, Block --,
-    block-arrow force! drop)
+def(block-force!, Block --, >arrow drop)
 
 def(block-unify-type!, Gamma Block Type -- Gamma Type,
     over2 gamma-token@ elab-expand-morphism! drop
-    dip(swap sip(block-dom @ type-unify! drop))
-    swap sip(block-cod @ type-unify! drop)
-    block-arrow force! arrow-type)
+    dip(swap sip(>dom type-unify! drop))
+    swap sip(>cod type-unify! drop)
+    >arrow type)
 
 #########
 # MATCH #
@@ -174,7 +204,7 @@ def(match-is-exhaustive?, Match -- Match Bool,
         match-scrutinee-data? match(
             SOME ->
                 data-num-tags
-                over match-cases @ len int==,
+                over match-cases @ len =,
             NONE ->
                 T # presume exhaustiveness
         )
@@ -192,7 +222,7 @@ def(match-scrutinee-type?, Match -- Match Maybe(Type),
 
 ||| Get "data" associated with scrutinee.
 def(match-scrutinee-data?, Match -- Match Maybe(Data),
-    match-scrutinee-type? maybe-bind(
+    match-scrutinee-type? bind(
         type-head match(
             TData -> SOME,
             _ -> drop NONE

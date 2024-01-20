@@ -4,54 +4,53 @@ import(data.str)
 import(data.path)
 
 data(File, FILE -> Int)
-def(Int->File, Int -- File, FILE)
-def(File->Int, File -- Int, FILE -> id)
+def(Int>File, Int -- File, FILE)
+def(File>Int, File -- Int, FILE -> id)
 
-def(stdin, File, 0 Int->File)
-def(stdout, File, 1 Int->File)
-def(stderr, File, 2 Int->File)
+def(STDIN, File, 0 >File)
+def(STDOUT, File, 1 >File)
+def(STDERR, File, 2 >File)
 
-def(str-write!, Str File --,
-    swap with-str-data(slice-write!))
+def(Str.write!, File Str --,
+    with-str-data(slice-write!))
 
 def(slice-write!, File Ptr Int --,
-    dip2(File->Int) dup dip(posix-write!)
-    expect!(dup 0 int>=, "write failed")
-    expect!(dup2 int==, "write output fewer bytes than expected")
+    dip2(File>Int) dup dip(posix-write!)
+    expect!(dup 0 >=, "write failed")
+    expect!(dup2 =, "write output fewer bytes than expected")
     drop2)
 
-def(str-print!, Str --, stdout str-write!)
-def(str-trace!, Str --, stderr str-write!)
-def(str-print-ln!, Str --, str-print! print-ln!)
-def(str-trace-ln!, Str --, str-trace! trace-ln!)
+def(Str.print!, Str --, dip(STDOUT) write!)
+def(Str.trace!, Str --, dip(STDERR) write!)
+def(Str.print-ln!, Str --, print! line-print!)
+def(Str.trace-ln!, Str --, trace! line-trace!)
+def(line-print!, --, "\n" print!)
+def(line-trace!, --, "\n" trace!)
 
-def(print-ln!, --, "\n" str-print!)
-def(trace-ln!, --, "\n" str-trace!)
-
-def(int-write!, Int File --, dip(int-to-str) str-write!)
-def(int-print!, Int --, stdout int-write!)
-def(int-trace!, Int --, stderr int-write!)
-def(int-print-ln!, Int --, int-print! print-ln!)
-def(int-trace-ln!, Int --, int-trace! trace-ln!)
+def(Int.write!, File Int --, int-to-str write!)
+def(Int.print!, Int --, int-to-str print!)
+def(Int.trace!, Int --, int-to-str trace!)
+def(Int.print-ln!, Int --, int-to-str print-ln!)
+def(Int.trace-ln!, Int --, int-to-str trace-ln!)
 
 def(with-open-file!(f,g), (*a File -- *b, *a -- *b) *a Str -- *b,
-    0 0 posix-open! dup 0 int< if(drop g, dup dip(Int->File f) posix-close! drop))
+    0 0 posix-open! dup 0< if(drop g, dup dip(Int>File f) posix-close! drop))
 
 def(READ_FILE_BUF_SIZE, 0x1000)
 buffer(READ_FILE_BUF, 0x1000)
 def(read-file!, File -- Str,
-    File->Int \(fp -> ""
+    File>Int \(fp -> ""
     fp READ_FILE_BUF READ_FILE_BUF_SIZE prim-posix-read
-    while(dup 0 int>,
-        READ_FILE_BUF swap prim-str-copy str-cat
+    while(dup 0>,
+        READ_FILE_BUF swap prim-str-copy cat
         fp READ_FILE_BUF READ_FILE_BUF_SIZE prim-posix-read)
     expect!(dup 0=, "error while reading file")
     drop))
 
 def(open-file!, Str -- File,
     0 0 posix-open!
-    expect!(dup 0 int>, "failed to open file")
-    Int->File)
+    expect!(dup 0>, "failed to open file")
+    Int>File)
 
 def(create-file!, Str -- File,
     O_WRONLY|O_CREAT|O_TRUNC
@@ -61,8 +60,8 @@ def(create-file!, Str -- File,
         # read+write, everyone can read
         #  ---- NB: this is inaccurate . . .
     posix-open!
-    expect!(dup 0 int>, "failed to create file")
-    Int->File)
+    expect!(dup 0>, "failed to create file")
+    Int>File)
 
 def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     RUNNING_OS match(
@@ -73,8 +72,8 @@ def(O_WRONLY|O_CREAT|O_TRUNC, Int,
     ))
 
 def(close-file!, File --,
-    File->Int posix-close!
-    expect!(dup 0 int>=, "failed to close file")
+    File>Int posix-close!
+    expect!(dup 0>=, "failed to close file")
     drop)
 
 ########
@@ -85,12 +84,12 @@ def-external(stat, RawPtr RawPtr -- Int)
 buffer(POSIX_STAT_BUF, 256)
 
 def(with-raw-path(f), (*a RawPtr -- *b) *a Path -- *b Path,
-    sip(Path->Str prim-str-base with-raw-ptr(f) drop))
+    sip(>Str prim-str-base with-raw-ptr(f) drop))
 
 def(is-directory?, Path -- Path Bool,
     with-raw-path(
         POSIX_STAT_BUF with-raw-ptr(stat)
-        swap 0 int== if(
+        swap 0= if(
             st_mode@ S_ISDIR,
             drop F
         )
@@ -107,11 +106,11 @@ def(S_IFMT, Int, 0xF000)
 def(S_IFDIR, Int, 0x4000)
 def(S_IFREG, Int, 0x8000)
 
-def(S_ISDIR, U16 -- Bool, /U16 S_IFMT & S_IFDIR int==)
+def(S_ISDIR, U16 -- Bool, >Int S_IFMT & S_IFDIR =)
 
 def(st_mode@, Ptr -- U16,
     RUNNING_OS match(
         OS_LINUX -> 24, # ... this is all terrible and brittle
         OS_WINDOWS -> 6,
         _ -> drop 8
-    ) swap with-ptr+(u16@))
+    ) swap .offset(@U16))

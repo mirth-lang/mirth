@@ -2,33 +2,30 @@ module(data.path)
 import(data.str)
 import(prelude)
 
-data(Path, PATH -> Str)
-def(/PATH, Path -- Str, PATH -> id)
-alias(Str->Path, PATH)
-alias(Path->Str, /PATH)
-def(path==, Path Path -- Bool, both(/PATH) str==)
+data(Path, Str>Path -> Str)
+def(Path>Str, Path -- Str, Str>Path -> id)
+def(Path=, Path Path -- Bool, both(>Str) =)
 
 def(init-paths!, --,
-    "src" Str->Path source-path-root !
-    "bin" Str->Path output-path-root !)
+    "src" >Path SOURCE_PATH_ROOT !
+    "bin" >Path OUTPUT_PATH_ROOT !)
+    
+var(SOURCE_PATH_ROOT, Path)
+var(OUTPUT_PATH_ROOT, Path)
 
-var(source-path-root, Path)
-var(output-path-root, Path)
-
-def(path-separator, Str, RUNNING_OS OS_WINDOWS os== if("\\", "/"))
-def(path-is-empty, Path -- Bool, /PATH str-is-empty)
-def(path-join-with, Path Path Str -- Path,
-    over2 path-is-empty if(
-        drop nip,
-        dip2(/PATH) swap /PATH
-        dip(str-cat) str-cat PATH
+def(PATH_SEPARATOR, Str, RUNNING_OS OS_WINDOWS = if("\\", "/"))
+def(Path.is-empty, Path -- Bool, >Str is-empty)
+def(Path.join-with, Path Str Path -- Path,
+    over2 is-empty if(
+        dip(drop2),
+        dip2(>Str) dip(cat) >Str cat >Path
     ))
 
-def(path-join, Path Path -- Path, path-separator path-join-with)
-def(path-join-unix, Path Path -- Path, "/" path-join-with)
+def(Path.join, Path Path -- Path, dip(PATH_SEPARATOR) join-with)
+def(Path.join-unix, Path Path -- Path, dip("/") join-with)
 
 ||| Make a source path from a project-relative path.
-def(make-source-path, Path -- Path, source-path-root @ swap path-join-unix)
+def(Path.to-source-path, Path -- Path, dip(SOURCE_PATH_ROOT @) join-unix)
 
 ||| Make an output path from a project-relative path.
-def(make-output-path, Path -- Path, output-path-root @ swap path-join-unix)
+def(Path.to-output-path, Path -- Path, dip(OUTPUT_PATH_ROOT @) join-unix)

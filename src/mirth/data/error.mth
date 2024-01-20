@@ -18,14 +18,12 @@ def(init-errors!,
 
 def(emit-warning-at!, Location Str --,
     dip(location-trace!)
-    ": warning: " str-trace!
-    str-trace-ln!
+    ": warning: " trace! trace-ln!
     num-warnings modify(1+))
 
 def(emit-error-at!, Location Str --,
     dip(location-trace!)
-    ": error: " str-trace!
-    str-trace-ln!
+    ": error: " trace! trace-ln!
     num-errors modify(1+))
 
 def(emit-fatal-error-at!, *a Location Str -- *b,

@@ -44,7 +44,7 @@ field(block-needed, Block, Bool)
 def(reset-needs!, --,
     Block.for(F swap block-needed !)
     Word.for(F swap word-needed !)
-    needs-stack stack-reset!)
+    needs-stack reset!)
 def(for-needed-words(f), (*a Word -- *a) *a -- *a,
     Word.for(dup word-needed @ if(f, drop)))
 def(for-needed-blocks(f), (*a Block -- *a) *a -- *a,
@@ -54,27 +54,26 @@ def(need-block, Block --,
     dup block-needed @ if(
         drop,
         T over block-needed !
-        NEED_BLOCK needs-stack stack-push!
+        NEED_BLOCK needs-stack push!
     ))
 def(need-word, Word --,
     dup word-needed @ if(
         drop,
         T over word-needed !
-        NEED_WORD needs-stack stack-push!
+        NEED_WORD needs-stack push!
     ))
 
 def(determine-arrow-needs!, Arrow --,
     need-arrow-run determine-transitive-needs!)
 def(determine-transitive-needs!, --,
-    while-some(needs-stack stack-pop!, match(
+    while-some(needs-stack pop!, match(
         NEED_BLOCK -> need-block-run,
         NEED_WORD -> word-arrow force! need-arrow-run,
     )))
 
-def(need-arrow-run, Arrow --,
-    arrow-atoms @ for(need-atom-run))
+def(need-arrow-run, Arrow --, >atoms for(need-atom-run))
 def(need-atom-run, Atom --,
-    sip(atom-args @) atom-op @ match(
+    sip(>args) >op match(
         OP_NONE -> drop,
         OP_INT -> drop2,
         OP_STR -> drop2,
@@ -114,50 +113,49 @@ def(need-prim, List(Arg) Prim --,
     _ -> drop need-args-push)
 
 def(need-match, Match --, match-cases @ for(case-body @ need-arrow-run))
-def(need-lambda, Lambda --, lambda-body @ need-arrow-run)
+def(need-lambda, Lambda --, >body need-arrow-run)
 
 def(need-block-push, Block --,
     dup block-to-run-var match(
         SOME -> drop2,
         NONE -> need-block
     ))
-def(need-block-run, Block --,
-    block-arrow force! need-arrow-run)
+def(need-block-run, Block --, >arrow need-arrow-run)
 
 def(codegen-full?, Bool,
-    codegen-length @ 4 + CODEGEN_BUF_SIZE int>=)
+    codegen-length @ 4 + CODEGEN_BUF_SIZE >=)
 
 def(codegen-flush!, --,
-    codegen-length @ 0 int> if(
-        codegen-file @ File->Int CODEGEN_BUF codegen-length @
+    codegen-length @ 0> if(
+        codegen-file @ File>Int CODEGEN_BUF codegen-length @
         posix-write!
-        expect!(dup 0 int>, "codegen write failed")
-        expect!(dup codegen-length @ int==, "codegen wrote fewer bytes than expected")
+        expect!(dup 0>, "codegen write failed")
+        expect!(dup codegen-length @ =, "codegen wrote fewer bytes than expected")
         drop
         0 codegen-length !,
         id
     ))
 
 def(.b, Byte --,
-    Byte->U8
+    >U8
     codegen-full? if(codegen-flush!, id)
     codegen-length modify(dup 1+)
-    CODEGEN_BUF u8!!)
+    CODEGEN_BUF !!U8)
 
 def(., Str --,
-    dup prim-str-base over str-num-bytes
-    dup codegen-length @ + CODEGEN_BUF_SIZE int> if(
+    dup prim-str-base over num-bytes
+    dup codegen-length @ + CODEGEN_BUF_SIZE > if(
         codegen-flush!
-        while(dup CODEGEN_BUF_SIZE int>,
+        while(dup CODEGEN_BUF_SIZE >,
             over CODEGEN_BUF_SIZE CODEGEN_BUF prim-ptr-copy
             CODEGEN_BUF_SIZE codegen-length !
             codegen-flush!
-            dip(CODEGEN_BUF_SIZE swap ptr+)
+            dip(CODEGEN_BUF_SIZE swap .offset-unsafe)
             CODEGEN_BUF_SIZE -
         )
         dup codegen-length ! CODEGEN_BUF prim-ptr-copy,
 
-        sip(codegen-length @ CODEGEN_BUF ptr+ prim-ptr-copy)
+        sip(codegen-length @ CODEGEN_BUF .offset-unsafe prim-ptr-copy)
         codegen-length modify(+)
     ) drop)
 
@@ -167,18 +165,18 @@ def(codegen-start!, File --,
 def(codegen-end!, --,
     codegen-flush!
     codegen-file @ close-file!
-    stdout codegen-file !
+    STDOUT codegen-file !
     0 codegen-length !)
 
 def(run-output-c99!, Arrow Path --,
-    num-errors @ 0 int> if(
+    num-errors @ 0> if(
         drop2,
 
         reset-needs!
         over determine-arrow-needs!
 
         0 c99-depth !
-        make-output-path Path->Str
+        to-output-path >Str
         create-file! codegen-start!
         c99-header!
         c99-tags!
@@ -201,7 +199,7 @@ def(.lf, --, BLF .b)
 def(;, Str --, . .lf)
 def(;;, Str --, . .lf .lf)
 def(.n, Int --, int-to-str .)
-def(.name, Name --, name-mangle! .)
+def(.name, Name --, >mangled .)
 
 def(.w, Name --, "static void mw_" . .name " (void)" .)
 def(.p, Prim --, prim-name @ .w)
@@ -230,7 +228,7 @@ def(c99-tag!, Tag --,
     dup tag-name @ .w " {" ;
     tag-is-transparent? if(
         drop,
-        dup tag-num-inputs @ 0 int== if(
+        dup tag-num-inputs @ 0= if(
             "    push_u64(" . tag-value @ .n "LL);" ;,
 
             "    VAL car = pop_value();" ;
@@ -247,16 +245,16 @@ def(c99-externals!, --,
 
 def(c99-external!, External --,
     dup external-sig @ sig-arity
-    dup 2 int>= if(
+    dup 2 >= if(
         "can't declare external with multiple return values" panic!,
 
-        dup 1 int>= if(
+        dup 1 >= if(
             "int64_t " .,
             "void " .
         )
     )
 
-    dip2(dup external-name @ name-str @ .)
+    dip2(dup external-name @ >Str .)
 
     " (" .
     over dup 0> if("int64_t" . 1- repeat(", int64_t" .), drop "void" .)
@@ -265,7 +263,7 @@ def(c99-external!, External --,
     "static void mw_" . dip2(dup external-name @ .name) " (void) {" ;
     over countdown("    int64_t x" . .n " = pop_i64();" ;)
     dup 0> if("    push_i64(", "    ") .
-    dip2(dup external-name @ name-str @ .)
+    dip2(dup external-name @ >Str .)
     "(" .
     dip(dup 0> if(
         dup 1- dup count("x" . .n ", " .) "x" . .n,
@@ -288,18 +286,16 @@ def(c99-call!, List(Arg) Name --,
     dip(c99-args-push!)
     c99-line("mw_" . .name "();" .))
 
-def(c99-arrow!, Arrow --,
-    arrow-atoms @ for(c99-atom!))
-
+def(c99-arrow!, Arrow --, >atoms for(c99-atom!))
 def(c99-atom!, Atom --,
     c99-line("WORD_ATOM(" .
-        dup atom-token @ token-row @ Row->Int .n ", " .
-        dup atom-token @ token-col @ Col->Int .n ", " .
-        dup atom-token @ token-is-name? if(
-            token-name@ name-str @ .str,
+        dup >token token-row @ Row->Int .n ", " .
+        dup >token token-col @ Col->Int .n ", " .
+        dup >token token-is-name? if(
+            token-name@ >Str .str,
             drop "\"\"" .)
         ");" .)
-    sip(atom-args @) atom-op @
+    sip(>args) >op
     c99-args-op!)
 
 def(c99-args-op!, List(Arg) Op --,
@@ -329,17 +325,17 @@ def(c99-str!, Str --,
         c99-line("static VAL v;" .)
         c99-line("if (! vready) {" .)
         c99-nest(
-            dup str-num-bytes 4090 int> if(
+            dup num-bytes 4090 > if(
                 "static uint8_t b[] = {" .
                 c99-nest(
                     c99-indent dup str-bytes-for(
-                        Byte->Int dup .n "," .
-                        10 int== if(.lf c99-indent, id)
+                        >Int dup .n "," .
+                        10 = if(.lf c99-indent, id)
                     ) .lf
                 )
                 c99-line("};" .)
-                c99-line("v = mkstr((char*)b, " . dup str-num-bytes .n ");" .),
-                c99-line("v = mkstr(" . dup .str ", " . dup str-num-bytes .n ");" .)
+                c99-line("v = mkstr((char*)b, " . dup num-bytes .n ");" .),
+                c99-line("v = mkstr(" . dup .str ", " . dup num-bytes .n ");" .)
             )
             c99-line("vready = true;" .)
         )
@@ -359,9 +355,9 @@ def(c99-string-byte!, Byte --,
     BLF -> "\\n" .,
     BCR -> "\\r" .,
     _ -> 
-        dup BSPACE B'~' byte-in-range if(
+        dup BSPACE B'~' in-range if(
             .b,
-            "\\x" . byte-to-hexdigits dip(.b) .b
+            "\\x" . to-hexdigits dip(.b) .b
         )
     )
 
@@ -430,10 +426,10 @@ def(c99-arg-run!, Arg --,
     ARG_BLOCK -> c99-block-run!)
 
 def(c99-block-run!, Block --,
-    block-arrow force! c99-arrow!)
+    >arrow c99-arrow!)
 
 def(.var, Var --, "var_" . var-name @ .name)
-def(.param, Param --, Param->Var .var)
+def(.param, Param --, >Var .var)
 
 def(c99-pack-ctx!, Ctx --,
     c99-line("push_u64(0);" .)
@@ -459,7 +455,7 @@ def(c99-block-push!, Block --,
         SOME -> nip c99-var-push!,
         NONE ->
             dup need-block
-            dup block-arrow force! arrow-ctx @ c99-pack-ctx!
+            dup >ctx c99-pack-ctx!
             c99-line("push_fnptr(&" . .block ");" .)
             c99-line("mw_prim_pack_cons();" .)
     ))
@@ -480,11 +476,11 @@ def(c99-var-push!, Var --,
 def(c99-lambda!, Lambda --,
     c99-line("{" .)
     c99-nest(
-        dup lambda-params @ reverse-for(
+        dup >params reverse-for(
             c99-line("VAL " . .param " = pop_value();" .)
         )
-        dup lambda-body @ c99-arrow!
-        lambda-params @ reverse-for(
+        dup >body c99-arrow!
+        >params reverse-for(
             c99-line("decref(" . .param ");" .)
         )
     )
@@ -525,7 +521,7 @@ def(c99-pattern!, Pattern --,
     PATTERN_TAG ->
         c99-line("case " . dup tag-value @ .n "LL:" .)
         c99-nest(
-            tag-num-inputs @ dup 0 int> if(
+            tag-num-inputs @ dup 0> if(
                 c99-line("mw_prim_pack_uncons(); mw_prim_drop();" .)
                 1- repeat(c99-line("mw_prim_pack_uncons(); mw_prim_swap();" .)),
                 drop c99-line("mw_prim_drop();" .)
@@ -548,13 +544,13 @@ def(c99-field-sig!, Field --,
 def(c99-block-enter!, Block --,
     c99-line("WORD_ENTER(" .
         dup .block ", " .
-        dup block-arrow force! arrow-home @ match(
+        dup >arrow >home match(
             NONE -> "block",
-            SOME -> word-name @ name-str @ " block" str-cat,
+            SOME -> word-name @ >Str " block" cat,
         ) .str ", " .
-        dup block-token @ token-module @ module-source-path Path->Str .str ", " .
-        dup block-token @ token-row @ Row->Int .n ", " .
-        dup block-token @ token-col @ Col->Int .n ");" . )
+        dup >token token-module @ module-source-path >Str .str ", " .
+        dup >token token-row @ Row->Int .n ", " .
+        dup >token token-col @ Col->Int .n ");" . )
     drop)
 
 def(c99-block-exit!, Block --,
@@ -565,28 +561,28 @@ def(c99-block-def!, Block --,
     c99-line("static void " . dup .block " (void) {" .)
     c99-nest(
         dup c99-block-enter!
-        dup block-arrow force!
-        dup arrow-ctx @ c99-unpack-ctx!
+        dup >arrow
+        dup >ctx c99-unpack-ctx!
         dup c99-arrow!
-        arrow-ctx @ c99-decref-ctx!
+        >ctx c99-decref-ctx!
         c99-block-exit!
     )
     c99-line("}" .) .lf)
 
 def(.block, Block -- ,
     "mb_" .
-    dup block-arrow force! dup arrow-home @ match(
+    dup >arrow dup >home match(
         NONE -> drop Block.id .n,
         SOME ->
             word-name @ .name "_" .
-            arrow-homeidx @ .n drop
+            >homeidx .n drop
     ))
 
 def(c99-word-enter!, Word --,
     c99-line("WORD_ENTER(" .
         "mw_" . dup word-name @ .name ", " .
-        dup word-name @ name-str @ .str ", " .
-        dup word-body @ token-module @ module-source-path Path->Str .str ", " .
+        dup word-name @ >Str .str ", " .
+        dup word-body @ token-module @ module-source-path >Str .str ", " .
         dup word-body @ token-row @ Row->Int .n ", " .
         dup word-body @ token-col @ Col->Int .n ");" . )
     drop)
@@ -634,10 +630,10 @@ def(c99-main!, Arrow --,
         c99-line("WORD_ENTER(" .
             "(void(*)(void))0, " .
             "\"<main>\", " .
-            dup arrow-token-start @ token-module @
-                module-source-path Path->Str .str ", " .
-            dup arrow-token-start @ token-row @ Row->Int .n ", " .
-            dup arrow-token-start @ token-col @ Col->Int .n ");" .)
+            dup >token-start token-module @
+                module-source-path >Str .str ", " .
+            dup >token-start token-row @ Row->Int .n ", " .
+            dup >token-start token-col @ Col->Int .n ");" .)
         c99-arrow!
         c99-line("WORD_EXIT((void(*)(void))0);" .)
         c99-line("return 0;" .)

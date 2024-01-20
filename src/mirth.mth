@@ -24,25 +24,25 @@ def(init!, --,
 ########
 
 def(compile!, Path --,
-    "Compiling " str-trace!
-    dup Path->Str str-trace-ln!
+    "Compiling " trace!
+    dup >Str trace-ln!
 
     run-lexer!
 
     # show-names-table!
     # show-tokens!
 
-    "Building." str-trace-ln!
+    "Building." trace-ln!
 
     elab-module! drop
     typecheck-everything!
 
-    num-errors @ 0 int> if(
-        num-errors @ int-trace!
-        " errors." str-trace-ln!
+    num-errors @ 0> if(
+        num-errors @ trace!
+        " errors." trace-ln!
         1 posix-exit!,
 
-        "Done." str-trace-ln!
+        "Done." trace-ln!
     ))
 
 def(main, --,
@@ -54,8 +54,8 @@ def(main, --,
     #     1+
     # ) drop
 
-    expect!(argc 2 int==, "expected one argument")
-    1 argv ptr@@ str-copy-cstr Str->Path compile!)
+    expect!(argc 2 =, "expected one argument")
+    1 argv @@Ptr str-copy-cstr >Path compile!)
 
 #########
 # Build #

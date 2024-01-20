@@ -16,18 +16,18 @@ data(Ctx, CTX -> List(Var))
 
 def(unCTX, Ctx -- List(Var), CTX -> id)
 def(ctx-empty, Ctx, L0 CTX)
-def(ctx-is-physically-empty, Ctx -- Bool, ctx-physical-vars list-is-empty)
+def(ctx-is-physically-empty, Ctx -- Bool, ctx-physical-vars is-empty)
 def(ctx-new!, Ctx Var -- Ctx, dip(unCTX) snoc CTX)
 def(ctx-vars, Ctx -- List(Var), unCTX)
 def(ctx-physical-vars, Ctx -- List(Var),
     ctx-vars filter(dup var-is-physical))
 def(ctx-lookup, Name Ctx -- Maybe(Var),
-    unCTX reverse-find(dup2 var-name @ name==) nip)
+    unCTX reverse-find(dup2 var-name @ =) nip)
 
 def(ctx-len, Ctx -- Int, CTX -> len)
 def(ctx-fresh-name!, Ctx -- Ctx Name,
     # TODO do this properly.
-    "_x" over ctx-len int-to-str str-cat name-new!)
+    "_x" over ctx-len int-to-str cat name-new!)
 
 def(ctx-make-fresh-stack-type-var!, Ctx -- Ctx Var,
     PRIM_TYPE_STACK TPrim ctx-make-fresh-var!)

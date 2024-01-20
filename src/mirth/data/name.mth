@@ -14,119 +14,109 @@ import(mirth.data.def)
 #########
 
 table(Name)
-field(name-str, Name, Str)
-field(name-def, Name, Def)
-field(name-mangled, Name, Lazy(Str))
+field(Name~Str, Name, Str)
+field(Name~Def, Name, Def)
+field(Name~mangled, Name, Lazy(Str))
 
-def(name==, Name Name -- Bool, both(Name.id) int==)
+def(Name>Str, Name -- Str, ~Str @)
+def(Name>Def, Name -- Def, ~Def @)
+def(Name>mangled, Name -- Str, ~mangled force!)
 
-def(name-debug!, Name --,
-    dup name-str @ str-trace!
-    "[" str-trace! Name.id int-trace! "] " str-trace!)
+def(Name=, Name Name -- Bool, both(Name.id) =)
 
 data(Hash, HASH -> Int)
-def(Hash->Int, Hash -- Int, HASH -> id)
-def(Int->Hash, Int -- Hash, HASH_MAX % HASH)
+def(Hash>Int, Hash -- Int, HASH -> id)
+def(Int>Hash, Int -- Hash, HASH_MAX % HASH)
 
 def(HASH_MAX, Int, 0x10000)
 buffer(HASH_BUF,   0x80000)
 def(hash-name@, Hash -- Maybe(Name),
-    Hash->Int HASH_BUF u64@@ /U64
+    >Int HASH_BUF @@I64 >Int
     dup 0= if(drop NONE, Name.from-id SOME))
 def(hash-name!, Name Hash --,
-    dip(Name.id >U64)
-    Hash->Int HASH_BUF u64!!)
+    dip(Name.id >I64)
+    >Int HASH_BUF !!I64)
 
 ||| Get hash for string.
-def(hash, Str -- Hash,
-    0 swap str-bytes-for(Byte->Int 17 * over 7 << ^ swap 27 >> ^)
-    Int->Hash)
+def(Str.hash, Str -- Hash,
+    0 swap str-bytes-for(>Int 17 * over 7 << ^ swap 27 >> ^)
+    >Hash)
 
-def(name-hash, Name -- Hash, name-str @ hash)
-def(next-hash, Hash -- Hash, Hash->Int 1+ Int->Hash)
+def(Name.hash, Name -- Hash, >Str hash)
+def(Hash.next, Hash -- Hash, >Int 1+ >Hash)
 
-def(name-keep-going?, Str Hash -- Str Hash Bool,
+def(Hash.keep-going?, Str Hash -- Str Hash Bool,
     dup hash-name@ match(
         NONE -> F,
-        SOME -> name-str @ over2 str<>
+        SOME -> >Str over2 <>
     ))
+
+def(name-search, Str -- Maybe(Name),
+    dup hash
+    while(keep-going?, next)
+    nip hash-name@)
 
 def(name-new!, Str -- Name,
     dup hash
-    while(name-keep-going?, next-hash)
+    while(keep-going?, next)
     dup hash-name@ match(
         NONE ->
             Name.alloc!
             tuck swap hash-name!
-            tuck name-str !
-            DEF_NONE over name-def !
-            dup delay(name-mangle-compute!) over name-mangled !,
+            tuck ~Str !
+            DEF_NONE over ~Def !
+            dup delay(mangle-compute!) over ~mangled !,
         SOME ->
             dip(drop2)
     ))
 
 ||| Add string to name, creating new name.
 def(name-cat!, Name Str -- Name,
-    dip(name-str @) str-cat name-new!)
+    dip(>Str) cat name-new!)
 
-def(name-trace!, Name --,
-    name-str @ str-trace!)
+def(Name.trace!, Name --, >Str trace!)
+def(Name.print!, Name --, >Str print!)
 
-def(name-print!, Name --,
-    name-str @ str-print!)
+def(Name.head, Name -- Byte,
+    >Str with-str-data(1 >= if(@Byte, drop BNUL)))
+def(Name.tail-head, Name -- Byte,
+    >Str with-str-data(2 >= if(dip(1) .offset-unsafe @Byte, drop BNUL)))
+def(Name.tail, Name -- Name,
+    >Str with-str-data(dup 2 >= if(dip(dip(1) .offset-unsafe) 1- prim-str-copy, drop2 "")) name-new!)
 
-def(name-head, Name -- Byte,
-    name-str @ with-str-data(1 int>= if(byte@, drop BNUL)))
-def(name-tail-head, Name -- Byte,
-    name-str @ with-str-data(2 int>= if(dip(1) ptr+ byte@, drop BNUL)))
-
-def(name-could-be-type, Name -- Bool,
-    name-head byte-is-alpha)
-
-def(name-could-be-type-var, Name -- Bool,
-    name-head byte-is-lower)
-
-def(name-could-be-type-con, Name -- Bool,
-    name-head byte-is-upper)
-
-def(name-is-type-hole, Name -- Bool,
-    dup name-head B'?' byte==
-    swap name-tail-head dup BNUL byte== swap byte-is-lower || &&)
-
-def(name-is-underscore, Name -- Bool,
-    dup name-head B'_' byte==
-    swap name-tail-head BNUL byte== &&)
-
-def(name-could-be-stack-var, Name -- Bool,
-    dup name-head B'*' byte==
-    swap name-tail-head byte-is-lower &&)
-
-def(name-could-be-effect-con, Name -- Bool,
-    dup name-head B'+' byte==
-    swap name-tail-head byte-is-lower &&)
-
-def(name-print-mangled!, Name --,
-    name-mangled force! str-print!)
-
-def(name-mangle!, Name -- Str,
-    name-mangled force!)
-
-def(name-mangle-compute!, Name -- Str,
-    build-str!(name-str @ str-bytes-for(
-        dup byte-is-alnum if(
+def(Name.could-be-type, Name -- Bool, head is-alpha)
+def(Name.could-be-type-var, Name -- Bool, head is-lower)
+def(Name.could-be-type-con, Name -- Bool, head is-upper)
+def(Name.is-type-hole, Name -- Bool, dup head B'?' = swap tail-head dup BNUL = swap is-lower || &&)
+def(Name.is-underscore, Name -- Bool, dup head B'_' = swap tail-head BNUL = &&)
+def(Name.could-be-stack-var, Name -- Bool, dup head B'*' = swap tail-head is-lower &&)
+def(Name.could-be-effect-con, Name -- Bool, dup head B'+' = swap tail-head is-upper &&)
+def(Name.print-mangled!, Name --, >mangled print!)
+def(Name.mangle-compute!, Name -- Str,
+    build-str!(>Str str-bytes-for(
+        dup is-alnum if(
             str-buf-push-byte!,
-            dup B'-' byte== if(
+            dup B'-' = if(
                 drop B'_' str-buf-push-byte!,
                 B'_' str-buf-push-byte!
-                byte-to-hexdigits dip(str-buf-push-byte!) str-buf-push-byte!
+                to-hexdigits dip(str-buf-push-byte!) str-buf-push-byte!
                 B'_' str-buf-push-byte!
             )
         )
     )))
 
+def(Name.could-be-relative, Name -- Bool,
+    head is-overload-trigger)
+
+def(Name.to-overload-suffix, Name -- Str,
+    dup head is-alpha if(
+        "." swap >Str cat,
+        >Str
+    ))
+
 ########
 # Defs #
 ########
 
-def(name-undefined?, Name -- Name Bool, dup name-def @ match(DEF_NONE -> T, _ -> drop F))
+def(name-undefined?, Name -- Name Bool, dup >Def is-none)
 def(name-defined?, Name -- Name Bool, name-undefined? not)

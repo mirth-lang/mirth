@@ -12,6 +12,6 @@ field(constant-value, Constant, Value)
 def(constant-new!, Token Name Value -- Constant,
     Constant.alloc!
     tuck constant-value !
-    dup2 DEF_CONSTANT swap name-def !
+    dup2 DEF_CONSTANT swap ~Def !
     tuck constant-name !
     tuck constant-head !)

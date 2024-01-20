@@ -18,4 +18,4 @@ field(field-name, Field, Name)
 field(field-index-type, Field, Lazy(Type))
 field(field-value-type, Field, Lazy(Type))
 
-def(table==, Table Table -- Bool, both(Table.id) int==)
+def(table==, Table Table -- Bool, both(Table.id) =)

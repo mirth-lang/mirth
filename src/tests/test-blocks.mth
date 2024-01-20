@@ -35,12 +35,12 @@ def(main, --,
     drop
 
     10 20 30 L3
-    "[" over for(swap str-trace! int-trace! " ") drop "]" str-trace-ln!
+    "[" over for(swap trace! trace! " ") drop "]" trace-ln!
     map(10 +)
-    "[" over for(swap str-trace! int-trace! " ") drop "]" str-trace-ln!
-    find(dup 25 int>) match(
-        SOME -> int-trace! " found" str-trace-ln!,
-        NONE -> "not found" str-trace-ln!
+    "[" over for(swap trace! trace! " ") drop "]" trace-ln!
+    find(dup 25 >) match(
+        SOME -> trace! " found" trace-ln!,
+        NONE -> "not found" trace-ln!
     ))
 
 target-c99("test-blocks.c", main)

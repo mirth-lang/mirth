@@ -13,5 +13,5 @@ def(variable-new!, Token Name Lazy(Type) -- Variable,
     Variable.alloc!
     tuck variable-type !
     tuck dup2 variable-name !
-    DEF_VARIABLE swap name-def !
+    DEF_VARIABLE swap ~Def !
     tuck variable-head !)

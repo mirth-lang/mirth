@@ -6,13 +6,17 @@ import(mirth.data.name)
 import(mirth.data.def)
 
 table(Alias)
-field(alias-head, Alias, Token)
-field(alias-name, Alias, Name)
-field(alias-target, Alias, Name)
+field(Alias~head, Alias, Token)
+field(Alias~name, Alias, Name)
+field(Alias~target, Alias, Name)
+
+def(Alias>head, Alias -- Token, ~head @)
+def(Alias>name, Alias -- Name, ~name @)
+def(Alias>target, Alias -- Name, ~target @)
 
 def(alias-new!, Token Name Name -- Alias,
     Alias.alloc!
-    tuck alias-target !
-    dup2 DEF_ALIAS swap name-def !
-    tuck alias-name !
-    tuck alias-head !)
+    tuck ~target !
+    dup2 DEF_ALIAS swap ~Def !
+    tuck ~name !
+    tuck ~head !)

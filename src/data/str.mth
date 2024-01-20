@@ -4,17 +4,16 @@ import(data.maybe)
 import(data.byte)
 import(prelude)
 
-alias(str-num-bytes, prim-str-num-bytes)
-
-def(str-cat, Str Str -- Str, prim-str-cat)
-def(str-is-empty, Str -- Bool, str-num-bytes 0=)
+alias(Str.num-bytes, prim-str-num-bytes)
+alias(Str.cat, prim-str-cat)
+def(Str.is-empty, Str -- Bool, num-bytes 0=)
 
 ||| Copy string bytes to second argument without adding 0 at end.
 ||| Return first unwritten location in second argument.
 def(str-copy-partial!, Str Ptr -- Ptr,
     swap with-str-data(
         rotl
-        dup2 ptr+
+        dup2 .offset-unsafe
         dip(prim-ptr-copy)
     ))
 
@@ -34,7 +33,7 @@ def(str-copy-cstr, Ptr -- Str,
     dup cstr-num-bytes prim-str-copy)
 
 def(cstr-num-bytes, Ptr -- Size,
-    0 swap while(dup u8@ /U8 0 int>, dip(1+ 1) ptr+) drop)
+    dup 0 swap while(dup @U8 >Int 0>, dip(1+ 1) .offset-unsafe) drop nip)
 
 def(str-buf-dup!, Str,
     STR_BUF str-buf-length? prim-str-copy)
@@ -47,16 +46,16 @@ def(str-buf-length!, Int --,
     dip(0 >U8) str-buf-u8!)
 
 def(str-buf-u8@, Offset -- U8,
-    STR_BUF u8@@)
+    STR_BUF @@U8)
 
 def(str-buf-u8!, U8 Offset --,
-    STR_BUF u8!!)
+    STR_BUF !!U8)
 
 def(str-buf-byte@, Offset -- Byte,
-    STR_BUF with-ptr+(byte@))
+    STR_BUF .offset(@Byte))
 
 def(str-buf-empty?, str-buf-length? 0=)
-def(str-buf-full?, str-buf-length? 1+ STR_BUF_SIZE int>=)
+def(str-buf-full?, str-buf-length? 1+ STR_BUF_SIZE >=)
 
 def(str-buf-clear!, --,
     0 str-buf-length!)
@@ -67,7 +66,7 @@ def(str-buf-push-u8!, U8 --,
     str-buf-length? 1+ str-buf-length!)
 
 def(str-buf-push-byte!, Byte --,
-    Byte->U8 str-buf-push-u8!)
+    >U8 str-buf-push-u8!)
 
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
@@ -75,10 +74,10 @@ def(str-buf-push-str!, Str --,
     with-str-data(str-buf-push-ptr!))
 
 def(with-str-data(f), (*a Ptr Size -- *b) *a Str -- *b,
-    dup dip(dup dip(prim-str-base) str-num-bytes f) drop)
+    dup dip(dup dip(prim-str-base) num-bytes f) drop)
 
 def(str-buf-push-ptr!, Ptr Size -- ,
-    tuck str-buf-length? STR_BUF with-ptr+(prim-ptr-copy)
+    tuck str-buf-length? STR_BUF .offset(prim-ptr-copy)
     str-buf-length? + str-buf-length!)
 
 ||| Set the STR_BUF to a given string. If the string is
@@ -95,5 +94,5 @@ alias(int-to-str, prim-int-to-str)
 ||| Traverse string bytes.
 def(str-bytes-for(f), (*a Byte -- *a) *a Str -- *a,
     with-str-data(repeat(
-        dup dip(byte@ f 1) ptr+
+        dup dip(@Byte f 1) .offset-unsafe
     ) drop))

@@ -6,13 +6,13 @@ import(data.byte)
 import(data.list)
 
 def(display-str!, Str --,
-    "\"" str-print! dup str-print! "\"" str-print-ln!
-    "num-bytes: " str-print! dup str-num-bytes int-print! print-ln!
-    "bytes:" str-print! dup str-bytes-for(" " str-print! Byte->Int int-print!) print-ln!
-    drop "----------" str-print-ln!)
+    "\"" print! dup print! "\"" print-ln!
+    "num-bytes: " print! dup num-bytes print-ln!
+    "bytes:" print! dup str-bytes-for(" " print! >Int print!) line-print!
+    drop "----------" print-ln!)
 
 def(main, --,
-    "----------" str-print-ln!
+    "----------" print-ln!
     "" display-str!
     "Olá mundo!" display-str!
     "こんにちは" display-str!

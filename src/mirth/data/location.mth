@@ -23,8 +23,6 @@ def(location-unpack, Location -- Module Row Col, LOCATION -> id)
 def(location-trace!, Location --,
     location-unpack
     rotr swap
-    module-source-path Path->Str str-trace!
-    ":" str-trace!
-    Row->Int int-trace!
-    ":" str-trace!
-    Col->Int int-trace!)
+    module-source-path >Str trace!
+    ":" trace! Row->Int trace!
+    ":" trace! Col->Int trace!)

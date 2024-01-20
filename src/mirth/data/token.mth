@@ -200,7 +200,7 @@ def(token-num-args?, Token -- Token Int,
 ||| Verify that token has 0 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(token-args-0, Token --,
-    token-num-args? 0 int== if(
+    token-num-args? 0= if(
         drop,
         "expected no args" emit-fatal-error!
     ))
@@ -208,10 +208,10 @@ def(token-args-0, Token --,
 ||| Verify that token has 1 arg, and return it.
 ||| Emits a fatal error if arity is wrong.
 def(token-args-1, Token -- Token,
-    token-num-args? 1 int== if(
+    token-num-args? 1 = if(
         token-is-name? if(token-succ, id)
         token-succ,
-        token-num-args? 1 int< if(
+        token-num-args? 1 < if(
             "expected 1 arg, got none" emit-fatal-error!,
             "expected 1 arg, got too many" emit-fatal-error!
         )
@@ -220,12 +220,12 @@ def(token-args-1, Token -- Token,
 ||| Verify that token has 2 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(token-args-2, Token -- Token Token,
-    token-num-args? 2 int== if(
+    token-num-args? 2 = if(
         token-is-name? if(token-succ, id)
         token-succ
         dup token-next-arg-end token-succ,
 
-        token-num-args? 2 int< if(
+        token-num-args? 2 < if(
             "expected 2 args, got too few" emit-fatal-error!,
             "expected 2 args, got too many" emit-fatal-error!
         )
@@ -234,13 +234,13 @@ def(token-args-2, Token -- Token Token,
 ||| Verify that token has 3 args, and return them.
 ||| Emits a fatal error if arity is wrong.
 def(token-args-3, Token -- Token Token Token,
-    token-num-args? 3 int== if(
+    token-num-args? 3 = if(
         token-is-name? if(token-succ, id)
         token-succ
         dup token-next-arg-end token-succ
         dup token-next-arg-end token-succ,
 
-        token-num-args? 3 int< if(
+        token-num-args? 3 < if(
             "expected 3 args, got too few" emit-fatal-error!,
             "expected 3 args, got too many" emit-fatal-error!
         )
@@ -267,17 +267,17 @@ def(token-is-args-end?, Token -- Token Bool,
 ||| Get List+ of token args.
 ||| Emits a fatal error if token has no args,
 def(token-args+, Token -- List+(Token),
-    dup token-args List->List+ match(
+    dup token-args >List+ match(
         NONE -> "expected args" emit-fatal-error!,
         SOME -> nip
     ))
 
 ||| Get one arg plus a nonempty list of the rest.
 def(token-args-2+, Token -- Token List+(Token),
-    dup token-args dup len 2 int>= if(nip,
+    dup token-args dup len 2 >= if(nip,
         drop "expected 2+ args" emit-fatal-error!)
-    List->List+ unwrap uncons
-    List->List+ unwrap)
+    >List+ unwrap uncons
+    >List+ unwrap)
 
 def(emit-warning!, Token Str --,
     dip(token-location) emit-warning-at!)
@@ -359,50 +359,20 @@ def(sig-count-types, Token -- Int Token,
         token-next
     ))
 
-def(sig-token-is-type?, Token -- Token Bool,
+def(Token.is-name-and(p), (Name -- Bool) Token -- Token Bool,
     dup token-value @ match(
-        TOKEN_NAME -> name-could-be-type,
+        TOKEN_NAME -> p,
         _ -> drop F
     ))
 
-def(sig-token-is-type-con?, Token -- Token Bool,
-    dup token-value @ match(
-        TOKEN_NAME -> name-could-be-type-con,
-        _ -> drop F
-    ))
-
-def(sig-token-is-type-hole?, Token -- Token Bool,
-    dup token-value @ match(
-        TOKEN_NAME -> name-is-type-hole,
-        _ -> drop F
-    ))
-
-def(token-is-underscore?, Token -- Token Bool,
-    dup token-value @ match(
-        TOKEN_NAME -> name-is-underscore,
-        _ -> drop F
-    ))
-
-def(sig-token-is-type-var?, Token -- Token Bool,
-    dup token-value @ match(
-        TOKEN_NAME -> name-could-be-type-var,
-        _ -> drop F
-    ))
-def(token-is-param-name?, Token -- Token Bool,
-    sig-token-is-type-var?)
-
-def(sig-token-is-stack-var?, Token -- Token Bool,
-    dup token-value @ match(
-        TOKEN_NAME -> name-could-be-stack-var,
-        _ -> drop F
-    ))
-
-def(sig-token-is-effect-con?, Token -- Token Bool,
-    dup token-value @ match(
-        TOKEN_NAME -> name-could-be-effect-con,
-        _ -> drop F
-    ))
-
+def(sig-token-is-type?, Token -- Token Bool, is-name-and(could-be-type))
+def(sig-token-is-type-con?, Token -- Token Bool, is-name-and(could-be-type-con))
+def(sig-token-is-type-hole?, Token -- Token Bool, is-name-and(is-type-hole))
+def(token-is-underscore?, Token -- Token Bool, is-name-and(is-underscore))
+def(sig-token-is-type-var?, Token -- Token Bool, is-name-and(could-be-type-var))
+def(token-is-param-name?, Token -- Token Bool, sig-token-is-type-var?)
+def(sig-token-is-stack-var?, Token -- Token Bool, is-name-and(could-be-stack-var))
+def(sig-token-is-effect-con?, Token -- Token Bool, is-name-and(could-be-effect-con))
 def(sig-skip-dashes, Token -- Token,
     sig-has-dashes? if(
         sig-next-stack-end token-next,

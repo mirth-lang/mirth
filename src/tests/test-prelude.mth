@@ -6,7 +6,7 @@ import(platform.posix)
 
 def(!!T, Bool --, if(id, "Assertion failed" panic!))
 def(!!F, Bool --, not !!T)
-def(!!=, Int Int --, int== !!T)
+def(!!=, Int Int --, = !!T)
 def(!!0, Int --, 0 !!=)
 def(!!1, Int --, 1 !!=)
 def(!!001, Int Int Int --, 1 !!= 0 !!= 0 !!=)
@@ -46,58 +46,58 @@ def(test-rotl, --,
     0 0 1 rotl !!010)
 
 def(test=, --,
-    0 0 int== !!T
-    0 1 int== !!F
-    1 0 int== !!F
-    1 1 int== !!T
-    1 2 int== !!F
-    2 1 int== !!F
-    2 2 int== !!T)
+    0 0 = !!T
+    0 1 = !!F
+    1 0 = !!F
+    1 1 = !!T
+    1 2 = !!F
+    2 1 = !!F
+    2 2 = !!T)
 def(test<, --,
-    0 0 int< !!F
-    0 1 int< !!T
-    1 0 int< !!F
-    1 1 int< !!F
-    1 2 int< !!T
-    2 1 int< !!F
-    2 2 int< !!F)
+    0 0 < !!F
+    0 1 < !!T
+    1 0 < !!F
+    1 1 < !!F
+    1 2 < !!T
+    2 1 < !!F
+    2 2 < !!F)
 def(test<=, --,
-    0 0 int<= !!T
-    0 1 int<= !!T
-    1 0 int<= !!F
-    1 1 int<= !!T
-    1 2 int<= !!T
-    2 1 int<= !!F
-    2 2 int<= !!T)
+    0 0 <= !!T
+    0 1 <= !!T
+    1 0 <= !!F
+    1 1 <= !!T
+    1 2 <= !!T
+    2 1 <= !!F
+    2 2 <= !!T)
 def(test>, --,
-    0 0 int> !!F
-    0 1 int> !!F
-    1 0 int> !!T
-    1 1 int> !!F
-    1 2 int> !!F
-    2 1 int> !!T
-    2 2 int> !!F)
+    0 0 > !!F
+    0 1 > !!F
+    1 0 > !!T
+    1 1 > !!F
+    1 2 > !!F
+    2 1 > !!T
+    2 2 > !!F)
 def(test>=, --,
-    0 0 int>= !!T
-    0 1 int>= !!F
-    1 0 int>= !!T
-    1 1 int>= !!T
-    1 2 int>= !!F
-    2 1 int>= !!T
-    2 2 int>= !!T
-    -1 0 int>= !!F
-    -1 -1 int>= !!T
-    0 -1 int>= !!T
-    -1 -2 int>= !!T
-    -2 -2 int>= !!T
-    -2 -1 int>= !!F)
+    0 0 >= !!T
+    0 1 >= !!F
+    1 0 >= !!T
+    1 1 >= !!T
+    1 2 >= !!F
+    2 1 >= !!T
+    2 2 >= !!T
+    -1 0 >= !!F
+    -1 -1 >= !!T
+    0 -1 >= !!T
+    -1 -2 >= !!T
+    -2 -2 >= !!T
+    -2 -1 >= !!F)
 
 def(test+, --,
     0 0 + !!0
     0 1 + !!1
     1 0 + !!1
-    1 1 + 2 int== !!T
-    2 2 + 4 int== !!T
+    1 1 + 2 = !!T
+    2 2 + 4 = !!T
     2 -2 + !!0)
 
 def(test-, --,
@@ -118,32 +118,32 @@ def(test*, --,
 buffer(TEST_BUF, 16)
 def(test@!, --,
     # reset test buffer
-    0 >I64 0 TEST_BUF i64!!
-    0 >I64 1 TEST_BUF i64!!
+    0 >I64 0 TEST_BUF !!I64
+    0 >I64 1 TEST_BUF !!I64
     # run test
-    0 TEST_BUF i64@@ /I64 !!0
-    1 TEST_BUF i64@@ /I64 !!0
-    99 >I64 0 TEST_BUF i64!!
-    0 TEST_BUF i64@@ /I64 99 !!=
-    1 TEST_BUF i64@@ /I64 !!0
-    30 >I64 1 TEST_BUF i64!!
-    0 TEST_BUF i64@@ /I64 99 !!=
-    1 TEST_BUF i64@@ /I64 30 !!=
-    0 >I64 0 TEST_BUF i64!!
-    0 TEST_BUF u8@@ /U8 0 !!=
-    1 TEST_BUF u8@@ /U8 0 !!=
-    2 TEST_BUF u8@@ /U8 0 !!=
-    3 TEST_BUF u8@@ /U8 0 !!=
-    99 >U8 2 TEST_BUF u8!!
-    0 TEST_BUF u8@@ /U8 0 !!=
-    1 TEST_BUF u8@@ /U8 0 !!=
-    2 TEST_BUF u8@@ /U8 99 !!=
-    3 TEST_BUF u8@@ /U8 0 !!=)
+    0 TEST_BUF @@I64 >Int !!0
+    1 TEST_BUF @@I64 >Int !!0
+    99 >I64 0 TEST_BUF !!I64
+    0 TEST_BUF @@I64 >Int 99 !!=
+    1 TEST_BUF @@I64 >Int !!0
+    30 >I64 1 TEST_BUF !!I64
+    0 TEST_BUF @@I64 >Int 99 !!=
+    1 TEST_BUF @@I64 >Int 30 !!=
+    0 >I64 0 TEST_BUF !!I64
+    0 TEST_BUF @@U8 >Int 0 !!=
+    1 TEST_BUF @@U8 >Int 0 !!=
+    2 TEST_BUF @@U8 >Int 0 !!=
+    3 TEST_BUF @@U8 >Int 0 !!=
+    99 >U8 2 TEST_BUF !!U8
+    0 TEST_BUF @@U8 >Int 0 !!=
+    1 TEST_BUF @@U8 >Int 0 !!=
+    2 TEST_BUF @@U8 >Int 99 !!=
+    3 TEST_BUF @@U8 >Int 0 !!=)
 
 def(test-while, --,
     999 10 20 while(dup 0<>, 1- dip(1+)) drop 30 !!= 999 !!=
-    10 20 [dup 0 int>] while(1- dip(1+)) drop 30 !!=
-    30 40 [dup 0 int>] [1- dip(1+)] while drop 70 !!=
+    10 20 [dup 0 >] while(1- dip(1+)) drop 30 !!=
+    30 40 [dup 0 >] [1- dip(1+)] while drop 70 !!=
     )
 
 # Morphism quotes
@@ -161,7 +161,7 @@ def(test-stack-assertions, --,
     1 2 { Int Int }
     3 4 { Int Int Int Int }
     + + + { Int }
-    10 int==
+    10 =
     { Bool }
     drop
 )

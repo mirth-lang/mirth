@@ -1,39 +1,40 @@
 module(data.maybe)
 
 import(prelude)
+import(data.list)
 
 data(Maybe(t), NONE, SOME -> t)
 
-def(is-none, Maybe(t) -- Bool,
+def(Maybe>List, Maybe(t) -- List(t),
+    NONE -> L0,
+    SOME -> L1)
+
+def(Maybe.is-none, Maybe(t) -- Bool,
     NONE -> T,
     SOME -> drop F)
-def(is-some, Maybe(t) -- Bool, is-none not)
+def(Maybe.is-some, Maybe(t) -- Bool, is-none not)
 
-def(unwrap, Maybe(t) -- t,
+def(Maybe.unwrap, Maybe(t) -- t,
     NONE -> "tried to unwrap NONE" panic!,
     SOME -> id)
 
-def(maybe(f,g), (*a -- *b, *a t -- *b) *a Maybe(t) -- *b,
-    NONE -> f,
-    SOME -> g)
-
-def(unwrap-or(f), (*a -- *a t) *a Maybe(t) -- *a t,
+def(Maybe.unwrap-or(f), (*a -- *a t) *a Maybe(t) -- *a t,
     NONE -> f,
     SOME -> id)
 
-def(maybe-map(f), (*c a -- *c b) *c Maybe(a) -- *c Maybe(b),
+def(Maybe.map(f), (*c a -- *c b) *c Maybe(a) -- *c Maybe(b),
     NONE -> NONE,
     SOME -> f SOME)
 
-def(maybe-bind(f), (*c a -- *c Maybe(b)) *c Maybe(a) -- *c Maybe(b),
+def(Maybe.bind(f), (*c a -- *c Maybe(b)) *c Maybe(a) -- *c Maybe(b),
     NONE -> NONE,
     SOME -> f)
 
-def(maybe-for(f), (*c a -- *c) *c Maybe(a) -- *c,
+def(Maybe.for(f), (*c a -- *c) *c Maybe(a) -- *c,
     NONE -> id,
     SOME -> f)
 
-def(maybe-filter(f), (*c a -- *c a Bool) *c Maybe(a) -- *c Maybe(a),
+def(Maybe.filter(f), (*c a -- *c a Bool) *c Maybe(a) -- *c Maybe(a),
     NONE -> NONE,
     SOME -> f if(SOME, drop NONE))
 
