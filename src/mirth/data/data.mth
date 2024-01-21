@@ -1,0 +1,123 @@
+module(mirth.data.data)
+
+import(prelude)
+import(data.lazy)
+import(data.list)
+import(data.maybe)
+import(mirth.data.ctx)
+import(mirth.data.type)
+import(mirth.data.token)
+import(mirth.data.name)
+import(mirth.data.def)
+
+table(Data)
+field(data-header, Data, Maybe(Token))
+field(data-name, Data, Name)
+field(data-arity, Data, Int)
+field(data-tags, Data, List(Tag))
+
+table(Tag)
+field(tag-data, Tag, Data)
+field(tag-name, Tag, Name)
+field(tag-value, Tag, Int)
+field(tag-num-inputs, Tag, Int)
+field(tag-sig, Tag, Maybe(Token))
+field(tag-ctx-type, Tag, Lazy([Ctx Type]))
+
+var(DATA_BOOL, Data)
+var(TAG_T, Tag)
+var(TAG_F, Tag)
+def(TYPE_BOOL, Type, DATA_BOOL @ TData)
+
+var(DATA_U64, Data) var(TAG_U64, Tag)
+var(DATA_U32, Data) var(TAG_U32, Tag)
+var(DATA_U16, Data) var(TAG_U16, Tag)
+var(DATA_U8, Data) var(TAG_U8, Tag)
+var(DATA_I64, Data) var(TAG_I64, Tag)
+var(DATA_I32, Data) var(TAG_I32, Tag)
+var(DATA_I16, Data) var(TAG_I16, Tag)
+var(DATA_I8, Data) var(TAG_I8, Tag)
+def(TYPE_U64, Type, DATA_U64 @ TData)
+def(TYPE_U32, Type, DATA_U32 @ TData)
+def(TYPE_U16, Type, DATA_U16 @ TData)
+def(TYPE_U8, Type, DATA_U8 @ TData)
+def(TYPE_I64, Type, DATA_I64 @ TData)
+def(TYPE_I32, Type, DATA_I32 @ TData)
+def(TYPE_I16, Type, DATA_I16 @ TData)
+def(TYPE_I8, Type, DATA_I8 @ TData)
+
+def(make-data!, Str Mut(Data) List(Mut(Tag)) --,
+    dip(dip(Data.alloc! dup) !)
+    map(dip(Tag.alloc! dup) !)
+    { Str Data List(Tag) }
+    dip(
+        dip(>Name) 
+        dup2 data-name !
+        tuck TData DEF_TYPE swap ~Def !
+    )
+    { Data List(Tag) }
+    dup for(dip(over) tag-data !)
+    over data-tags !
+    { Data }
+    0 over data-arity !
+    NONE over data-header !
+    drop)
+
+
+def(make-tag!, Str Int Int Type Mut(Tag) --,
+    @
+    sip(CTX0 rotr tag-data @ TData T1 T-> pack2 LAZY_READY) sip(tag-ctx-type !)
+    sip(tag-num-inputs !)
+    sip(tag-value !)
+    dip(>Name) dup2 tag-name !
+    DEF_TAG swap ~Def !)
+
+def(init-data!, --,
+    "Bool" DATA_BOOL TAG_F TAG_T L2 make-data!
+    "F" 0 0 T0 TAG_F make-tag!
+    "T" 1 0 T0 TAG_T make-tag!
+
+    "U64" DATA_U64 TAG_U64 L1 make-data! "Int>U64-unsafe" 0 1 TYPE_INT T1 TAG_U64 make-tag!
+    "U32" DATA_U32 TAG_U32 L1 make-data! "Int>U32-unsafe" 0 1 TYPE_INT T1 TAG_U32 make-tag!
+    "U16" DATA_U16 TAG_U16 L1 make-data! "Int>U16-unsafe" 0 1 TYPE_INT T1 TAG_U16 make-tag!
+    "U8"  DATA_U8  TAG_U8  L1 make-data! "Int>U8-unsafe"  0 1 TYPE_INT T1 TAG_U8  make-tag!
+    "I64" DATA_I64 TAG_I64 L1 make-data! "Int>I64-unsafe" 0 1 TYPE_INT T1 TAG_I64 make-tag!
+    "I32" DATA_I32 TAG_I32 L1 make-data! "Int>I32-unsafe" 0 1 TYPE_INT T1 TAG_I32 make-tag!
+    "I16" DATA_I16 TAG_I16 L1 make-data! "Int>I16-unsafe" 0 1 TYPE_INT T1 TAG_I16 make-tag!
+    "I8"  DATA_I8  TAG_I8  L1 make-data! "Int>I8-unsafe"  0 1 TYPE_INT T1 TAG_I8  make-tag!)
+
+#######
+# TAG #
+#######
+
+def(tag-num-inputs-from-sig, Tag -- Tag Int,
+    dup tag-sig @ match(
+        NONE -> 0,
+        SOME -> run-length
+    ))
+
+def(tag-is-transparent?, Tag -- Tag Bool,
+    dup tag-data @ data-is-transparent)
+
+def(tag==, Tag Tag -- Bool, both(Tag.id) =)
+
+########
+# DATA #
+########
+
+def(data==, Data Data -- Bool, both(Data.id) =)
+def(data-num-tags, Data -- Int, data-tags @ len)
+
+||| Adds constructor to data type, and gives tag its rank.
+def(data-add-tag!, Tag Data --,
+    dup2 data-num-tags swap tag-value !
+    dup data-tags @ rotr dip(snoc) data-tags !)
+
+def(data-is-enum?, Data -- Data Bool,
+    dup data-tags @ all?(dup tag-num-inputs @ 0=) nip)
+
+def(data-is-transparent, Data -- Bool,
+    data-tags @ match(
+        L1 -> tag-num-inputs @ 1 =,
+        _ -> drop F
+    ))
