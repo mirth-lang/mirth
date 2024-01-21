@@ -207,7 +207,7 @@ def(match-is-exhaustive?, Match -- Match Bool,
         T,
         match-scrutinee-data? match(
             SOME ->
-                data-num-tags
+                num-tags
                 over match-cases @ len =,
             NONE ->
                 T # presume exhaustiveness
@@ -235,7 +235,7 @@ def(match-scrutinee-data?, Match -- Match Maybe(Data),
 
 def(match-is-transparent?, Match -- Match Bool,
     match-scrutinee-data? match(
-        SOME -> data-is-transparent,
+        SOME -> is-transparent?,
         NONE -> F
     ))
 
@@ -272,7 +272,7 @@ def(pattern-is-underscore, Pattern -- Bool,
     PATTERN_TAG -> drop F)
 
 def(pattern-equals-tag, Tag Pattern -- Bool,
-    PATTERN_TAG -> tag==,
+    PATTERN_TAG -> =,
     PATTERN_UNDERSCORE -> drop F)
 
 def(pattern==, Pattern Pattern -- Bool,

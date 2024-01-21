@@ -226,15 +226,15 @@ def(c99-variable!, Variable --,
 
 def(c99-tags!, --, Tag.for(c99-tag!) .lf)
 def(c99-tag!, Tag --,
-    dup tag-name @ .w " {" ;
-    tag-is-transparent? if(
+    dup name .w " {" ;
+    dup is-transparent? if(
         drop,
-        dup tag-num-inputs @ 0= if(
-            "    push_u64(" . tag-value @ .n "LL);" ;,
+        dup num-inputs 0= if(
+            "    push_u64(" . value .n "LL);" ;,
 
             "    VAL car = pop_value();" ;
-            dup tag-num-inputs @ 1- repeat("    car = mkcons(car, pop_value());" ;)
-            "    VAL tag = MKU64(" . tag-value @ .n "LL);" ;
+            dup num-inputs 1- repeat("    car = mkcons(car, pop_value());" ;)
+            "    VAL tag = MKU64(" . value .n "LL);" ;
             "    car = mkcons(car, tag);" ;
             "    push_value(car);" ;
         )
@@ -307,7 +307,7 @@ def(c99-args-op!, List(Arg) Op --,
     OP_BUFFER   -> name c99-call!,
     OP_VARIABLE -> name c99-call!,
     OP_FIELD    -> name c99-call!,
-    OP_TAG      -> tag-name @ c99-call!,
+    OP_TAG      -> name c99-call!,
     OP_PRIM     -> c99-prim!,
     OP_MATCH    -> nip c99-match!,
     OP_LAMBDA   -> nip c99-lambda!,
@@ -517,9 +517,9 @@ def(c99-pattern!, Pattern --,
         c99-line("default:" .),
 
     PATTERN_TAG ->
-        c99-line("case " . dup tag-value @ .n "LL:" .)
+        c99-line("case " . dup value .n "LL:" .)
         c99-nest(
-            tag-num-inputs @ dup 0> if(
+            num-inputs dup 0> if(
                 c99-line("mw_prim_pack_uncons(); mw_prim_drop();" .)
                 1- repeat(c99-line("mw_prim_pack_uncons(); mw_prim_swap();" .)),
                 drop c99-line("mw_prim_drop();" .)

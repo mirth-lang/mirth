@@ -82,7 +82,7 @@ def(type-tycon-name, Type -- Maybe(Name),
     THole -> drop NONE,
     TVar -> drop NONE,
     TTable -> name SOME,
-    TData -> data-name @ SOME,
+    TData -> name SOME,
     TMorphism -> drop2 NONE,
     TTensor -> drop2 NONE,
     TApp -> drop type-tycon-name,
@@ -383,7 +383,7 @@ def(type-prim-unify!, Gamma PrimType PrimType -- Gamma Type,
         dip(TPrim) TPrim type-unify-failed!
     ))
 def(type-data-unify!, Gamma Data Data -- Gamma Type,
-    dup2 data== if(
+    dup2 = if(
         drop TData,
         dip(TData) TData type-unify-failed!
     ))
@@ -466,7 +466,7 @@ def(type-trace!, Type --,
     TMeta -> meta-trace!,
     TTensor -> "[" trace! TTensor type-trace-stack! "]" trace!,
     TMorphism -> "[" trace! TMorphism type-trace-sig! "]" trace!,
-    TData -> data-name @ trace!,
+    TData -> name trace!,
     TTable -> name trace!,
     THole -> trace!,
     TApp -> app-type-trace!,
@@ -646,7 +646,7 @@ def(type-rigidify-value!, Ctx Value -- Ctx Type,
 
 def(type-arity, Type -- Int,
     TMeta -> meta-expand-if(type-arity, drop 0),
-    TData -> data-arity @,
+    TData -> arity,
     TApp -> drop type-arity 1-,
     _ -> drop 0)
 
@@ -666,8 +666,8 @@ def(type-max-count, Type -- Maybe(Int),
     TApp -> drop type-max-count,
     TTable -> max-count 1+ SOME,
     TData ->
-        data-is-enum? if(
-            data-tags @ len SOME,
+        dup is-enum? if(
+            num-tags SOME,
             drop NONE
         ),
     _ -> drop NONE)
