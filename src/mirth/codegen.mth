@@ -202,8 +202,8 @@ def(.n, Int --, int-to-str .)
 def(.name, Name --, mangled .)
 
 def(.w, Name --, "static void mw_" . .name " (void)" .)
-def(.p, Prim --, prim-name @ .w)
-def(.pm, Prim --, "#define mw_" . prim-name @ .name "() " .)
+def(.p, Prim --, name .w)
+def(.pm, Prim --, "#define mw_" . name .name "() " .)
 
 embed-str(c99-header-str, "src/mirth/mirth.h")
 def(c99-header!, --, c99-header-str . .lf)
@@ -412,7 +412,7 @@ def(c99-prim!, List(Arg) Prim --,
     _ -> c99-prim-default!)
 
 def(c99-prim-default!, List(Arg) Prim --,
-    prim-name @ c99-call!)
+    name c99-call!)
 
 def(c99-args-push!, List(Arg) --,
     for(c99-arg-push!))

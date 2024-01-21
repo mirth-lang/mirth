@@ -340,7 +340,7 @@ def(ab-field!, Field --, OP_FIELD ab-op!)
 def(ab-var!, Var --, OP_VAR ab-op!)
 def(ab-tag!, Tag --, OP_TAG ab-op!)
 def(ab-prim!, Prim --,
-    dup prim-type mut-is-set if(
+    dup ~type mut-is-set if(
         OP_PRIM ab-op!,
         ab-token @ "prim does not have type" emit-fatal-error!
     ))
@@ -404,7 +404,7 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_CONSTANT -> value TValue OPSIG_PUSH,
         OP_TAG -> elab-tag-sig! type-freshen-sig OPSIG_APPLY,
         OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
-        OP_PRIM -> prim-type @ type-freshen-sig OPSIG_APPLY,
+        OP_PRIM -> type type-freshen-sig OPSIG_APPLY,
         OP_EXTERNAL -> type type-freshen-sig OPSIG_APPLY,
         OP_FIELD -> elab-field-type! type-freshen-sig OPSIG_APPLY,
         OP_BLOCK -> elab-block-sig!,
@@ -778,7 +778,7 @@ def(elab-module-decl!, Token -- Token,
     dup
     name? unwrap-or("unknown declaration" emit-fatal-error!)
     >Def prim? unwrap-or("unknown declaration" emit-fatal-error!)
-    prim-decl @ unwrap-or("unknown declaration" emit-fatal-error!)
+    decl unwrap-or("unknown declaration" emit-fatal-error!)
     run)
 
 ||| Elaborate `import(M)` statement. Return token after import.

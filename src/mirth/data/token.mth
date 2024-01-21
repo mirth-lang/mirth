@@ -67,10 +67,10 @@ def(TokenValue.sig-type-var?, TokenValue -- Bool, name? and-some(could-be-type-v
 def(TokenValue.sig-param-name?, TokenValue -- Bool, sig-type-var?)
 def(TokenValue.sig-stack-var?, TokenValue -- Bool, name? and-some(could-be-stack-var))
 def(TokenValue.sig-effect-con?, TokenValue -- Bool, name? and-some(could-be-effect-con))
-def(TokenValue.sig-dashes?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_DASHES prim-name @ =))
-def(TokenValue.pat-arrow?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_ARROW prim-name @ =))
+def(TokenValue.sig-dashes?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_DASHES name =))
+def(TokenValue.pat-arrow?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_ARROW name =))
 def(TokenValue.pat-underscore?, TokenValue -- Bool, name? and-some(is-underscore))
-def(TokenValue.module-header?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_MODULE prim-name @ =))
+def(TokenValue.module-header?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_MODULE name =))
 
 table(Token)
 field(Token~value, Token, TokenValue)
