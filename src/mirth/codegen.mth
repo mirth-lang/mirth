@@ -25,6 +25,7 @@ import(mirth.data.type)
 import(mirth.data.data)
 import(mirth.data.prim)
 import(mirth.data.var)
+import(mirth.data.match)
 import(mirth.elab)
 
 ###########

@@ -26,6 +26,7 @@ import(mirth.data.word)
 import(mirth.data.prim)
 import(mirth.data.module)
 import(mirth.data.alias)
+import(mirth.data.match)
 import(mirth.lexer)
 import(mirth.codegen)
 
