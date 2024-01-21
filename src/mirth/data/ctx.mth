@@ -32,7 +32,7 @@ def(Ctx.lookup, Name Ctx -- Maybe(Var),
 def(Ctx.len, Ctx -- Int, >List len)
 def(Ctx.fresh-name!, Ctx -- Ctx Name,
     # TODO do this properly.
-    "_x" over len int-to-str cat name-new!)
+    "_x" over len int-to-str cat >Name)
 def(Ctx.fresh-stack-type-var!, Ctx -- Ctx Var,
     dip(PRIM_TYPE_STACK TPrim) fresh-var!)
 def(Ctx.fresh-type-var!, Ctx -- Ctx Var,

@@ -147,7 +147,7 @@ def(lexer-emit-name!, --,
 
         str-buf-is-int? if(
             str-buf-int? TOKEN_INT,
-            str-buf-dup! name-new! TOKEN_NAME
+            str-buf-dup! >Name TOKEN_NAME
         )
 
         Token.alloc!

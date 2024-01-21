@@ -123,7 +123,7 @@ def(prim==, both(Prim->Int) =)
 
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str --,
-    name-new!
+    >Name
     dup2 dip(DEF_PRIM) ~Def !
     swap prim-name !)
 
@@ -380,11 +380,11 @@ def(init-prims!, --,
     # polymorphic prims -- we really need better technology to notate these
     #
 
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    "b" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    "c" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    "*x" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "*y" name-new! var-new-implicit! TYPE_STACK over var-type !
+    "a" >Name var-new-implicit! TYPE_TYPE over var-type !
+    "b" >Name var-new-implicit! TYPE_TYPE over var-type !
+    "c" >Name var-new-implicit! TYPE_TYPE over var-type !
+    "*x" >Name var-new-implicit! TYPE_STACK over var-type !
+    "*y" >Name var-new-implicit! TYPE_STACK over var-type !
     \( a b c xs ys -> a TVar b TVar c TVar xs TVar ys TVar
     \( ta tb tc txs tys ->
         a CTX1

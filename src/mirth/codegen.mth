@@ -199,7 +199,7 @@ def(.lf, --, BLF .b)
 def(;, Str --, . .lf)
 def(;;, Str --, . .lf .lf)
 def(.n, Int --, int-to-str .)
-def(.name, Name --, >mangled .)
+def(.name, Name --, mangled .)
 
 def(.w, Name --, "static void mw_" . .name " (void)" .)
 def(.p, Prim --, prim-name @ .w)

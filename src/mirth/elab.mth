@@ -510,7 +510,7 @@ def(elab-atom-name!, Name --,
 def(elab-relativize-name!, Name -- Name,
     name-undefined? and(dup could-be-relative) if(
         ab-type @ stack-last-tycon-name for(
-            >Str over to-overload-suffix cat name-search for(
+            >Str over to-overload-suffix cat Name.search for(
                 name-defined? if(
                     nip,
                     drop
@@ -1046,7 +1046,7 @@ def(typecheck-def!, Def --,
 def(TABLE_MAX_SIZE, Int, 0x10000)
 
 def(table-word-new!, Table Str -- Word,
-    dip(dup table-head @ dup rotl table-name @) name-cat! word-new!)
+    dip(dup table-head @ dup rotl table-name @) Name.cat word-new!)
 
 def(table-new!, Token Name -- Table,
     Table.alloc!
@@ -1083,7 +1083,7 @@ def(table-new!, Token Name -- Table,
 
     # Table.NUM
     dup table-head @
-    over table-name @ ".NUM" name-cat!
+    over table-name @ ".NUM" Name.cat
     8 Buffer.new!
     over table-num-buffer !
 
@@ -1155,10 +1155,10 @@ def(table-new!, Token Name -- Table,
 
     # Table.for
     dup ".for" table-word-new!
-    "x" name-new! var-new!
+    "x" >Name var-new!
     \(t w x ->
 
-        "a" name-new! var-new-implicit!
+        "a" >Name var-new-implicit!
         TYPE_STACK over var-type !
         dup L1 CTX
         swap

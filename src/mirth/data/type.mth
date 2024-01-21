@@ -93,15 +93,15 @@ def(prim-type-tycon-name, PrimType -- Maybe(Name),
     PRIM_TYPE_TYPE -> NONE,
     PRIM_TYPE_STACK -> NONE,
     PRIM_TYPE_EFFECT -> NONE,
-    PRIM_TYPE_INT -> "Int" name-new! SOME,
-    PRIM_TYPE_STR -> "Str" name-new! SOME,
-    PRIM_TYPE_PTR -> "Ptr" name-new! SOME,
+    PRIM_TYPE_INT -> "Int" >Name SOME,
+    PRIM_TYPE_STR -> "Str" >Name SOME,
+    PRIM_TYPE_PTR -> "Ptr" >Name SOME,
     PRIM_TYPE_UNIT -> NONE)
     
 ||| Get value type constructor name.
 def(value-tycon-name, Value -- Maybe(Name),
-    VALUE_INT -> drop "Int" name-new! SOME,
-    VALUE_STR -> drop "Str" name-new! SOME,
+    VALUE_INT -> drop "Int" >Name SOME,
+    VALUE_STR -> drop "Str" >Name SOME,
     VALUE_BLOCK -> drop NONE)
 
 def(PrimType->Int, PrimType -- Int, prim-unsafe-cast)
@@ -125,7 +125,7 @@ field(tag-num-inputs, Tag, Int)
 field(tag-sig, Tag, Maybe(Token))
 field(tag-ctx-type, Tag, Lazy([Ctx Type]))
 
-def(def-type!, Type Str --, dip(DEF_TYPE) name-new! ~Def !)
+def(def-type!, Type Str --, dip(DEF_TYPE) >Name ~Def !)
 
 var(DATA_BOOL, Data)
 var(TAG_T, Tag)
@@ -154,7 +154,7 @@ def(init-data!, Str Mut(Data) List(Mut(Tag)) --,
     map(dip(Tag.alloc! dup) !)
     { Str Data List(Tag) }
     dip(
-        dip(name-new!) 
+        dip(>Name) 
         dup2 data-name !
         tuck TData DEF_TYPE swap ~Def !
     )
@@ -171,7 +171,7 @@ def(init-tag!, Str Int Int Type Mut(Tag) --,
     sip(CTX0 rotr tag-data @ TData T1 T-> pack2 LAZY_READY) sip(tag-ctx-type !)
     sip(tag-num-inputs !)
     sip(tag-value !)
-    dip(name-new!) dup2 tag-name !
+    dip(>Name) dup2 tag-name !
     DEF_TAG swap ~Def !)
 
 def(init-types!, --,
