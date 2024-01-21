@@ -38,7 +38,7 @@ def(Def>Module?, Def -- Maybe(Module),
     DEF_VARIABLE -> variable-head @ .module SOME,
     DEF_CONSTANT -> head .module SOME,
     DEF_EXTERNAL -> sig .module SOME,
-    DEF_FIELD -> field-head @ .module SOME)
+    DEF_FIELD -> head .module SOME)
 
 def(Def.none?, Def -- Bool, DEF_NONE -> T, _ -> drop F)
 def(Def.alias?, Def -- Maybe(Alias), DEF_ALIAS -> SOME, _ -> drop NONE)

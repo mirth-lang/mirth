@@ -406,7 +406,7 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
         OP_PRIM -> type type-freshen-sig OPSIG_APPLY,
         OP_EXTERNAL -> type type-freshen-sig OPSIG_APPLY,
-        OP_FIELD -> elab-field-type! type-freshen-sig OPSIG_APPLY,
+        OP_FIELD -> type type-freshen-sig OPSIG_APPLY,
         OP_BLOCK -> elab-block-sig!,
         OP_VAR -> elab-var-sig!,
         OP_MATCH -> elab-match-sig!,
@@ -1034,7 +1034,7 @@ def(typecheck-def!, Def --,
     DEF_TYPE -> drop,
     DEF_EXTERNAL -> type drop,
     DEF_WORD -> word-arrow force! drop,
-    DEF_FIELD -> elab-field-type! drop,
+    DEF_FIELD -> type drop,
     DEF_TAG -> elab-tag-sig! drop,
     DEF_VARIABLE -> variable-type force! drop,
     DEF_CONSTANT -> drop)
@@ -1046,15 +1046,15 @@ def(typecheck-def!, Def --,
 def(TABLE_MAX_SIZE, Int, 0x10000)
 
 def(table-word-new!, Table Str -- Word,
-    dip(dup table-head @ dup rotl table-name @) Name.cat word-new!)
+    dip(dup head dup rotl name) Name.cat word-new!)
 
 def(table-new!, Token Name -- Table,
     Table.alloc!
-    dup2 TTable DEF_TYPE swap ~Def !
-    tuck table-name !
-    tuck table-head !
+    tuck ~name !
+    tuck ~head !
+    TABLE_MAX_SIZE over ~max-count !
+    dup TTable DEF_TYPE over name ~Def !
 
-    TABLE_MAX_SIZE over table-max-count !
 
     # Table.MAX
     dup ".MAX" table-word-new!
@@ -1064,7 +1064,7 @@ def(table-new!, Token Name -- Table,
     ready2 over word-ctx-type !
 
     ab-build-word!(
-        dup table-head @ ab-token !
+        dup head ab-token !
         TABLE_MAX_SIZE ab-int!
     ) drop
 
@@ -1076,16 +1076,16 @@ def(table-new!, Token Name -- Table,
     ready2 over word-ctx-type !
 
     ab-build-word!(
-        dup table-head @ ab-token !
+        dup head ab-token !
         0 ab-int!
         PRIM_UNSAFE_CAST ab-prim!
     ) drop
 
     # Table.NUM
-    dup table-head @
-    over table-name @ ".NUM" Name.cat
+    dup head
+    over name ".NUM" Name.cat
     8 Buffer.new!
-    over table-num-buffer !
+    over ~num-buffer !
 
     # Table.id
     dup ".id" table-word-new!
@@ -1095,7 +1095,7 @@ def(table-new!, Token Name -- Table,
     ready2 over word-ctx-type !
 
     ab-build-word! (
-        dup table-head @ ab-token !
+        dup head ab-token !
         PRIM_UNSAFE_CAST ab-prim!
     ) drop
 
@@ -1107,7 +1107,7 @@ def(table-new!, Token Name -- Table,
     ready2 over word-ctx-type !
 
     ab-build-word! (
-        dup table-head @ ab-token !
+        dup head ab-token !
         PRIM_UNSAFE_CAST ab-prim!
     ) drop
 
@@ -1119,11 +1119,11 @@ def(table-new!, Token Name -- Table,
     ready2 over word-ctx-type !
 
     ab-build-word! (
-        dup table-head @ ab-token !
+        dup head ab-token !
         PRIM_UNSAFE_CAST ab-prim!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
-        dup table-num-buffer @ ab-buffer!
+        dup num-buffer ab-buffer!
         PRIM_U64_GET ab-prim!
         PRIM_UNSAFE_CAST ab-prim!
         1 ab-int!
@@ -1140,7 +1140,7 @@ def(table-new!, Token Name -- Table,
     ready2 over word-ctx-type !
 
     ab-build-word! (
-        dup table-head @ ab-token !
+        dup head ab-token !
         PRIM_UNSAFE_CAST ab-prim!
         PRIM_CORE_DUP ab-prim!
         0 ab-int!
@@ -1172,12 +1172,12 @@ def(table-new!, Token Name -- Table,
         )
 
         w ab-build-word! (
-            t table-head @ ab-token !
+            t head ab-token !
             x Var>Param L1 ab-lambda! (
                 1 ab-int!
                 ab-while! (
                     PRIM_CORE_DUP ab-prim!
-                    t table-num-buffer @ ab-buffer!
+                    t num-buffer ab-buffer!
                     PRIM_U64_GET ab-prim!
                     PRIM_UNSAFE_CAST ab-prim!
                     1 ab-int!
@@ -1206,15 +1206,15 @@ def(table-new!, Token Name -- Table,
     ready2 over word-ctx-type !
 
     ab-build-word! (
-        dup table-head @ ab-token !
-        dup table-num-buffer @ ab-buffer!
+        dup head ab-token !
+        dup num-buffer ab-buffer!
         PRIM_U64_GET ab-prim!
         PRIM_UNSAFE_CAST ab-prim!
         1 ab-int!
         PRIM_INT_ADD ab-prim!
         PRIM_CORE_DUP ab-prim!
         PRIM_UNSAFE_CAST ab-prim!
-        dup table-num-buffer @ ab-buffer!
+        dup num-buffer ab-buffer!
         PRIM_U64_SET ab-prim!
         PRIM_UNSAFE_CAST ab-prim!
     )
@@ -1238,12 +1238,8 @@ def(elab-field!, Token -- Token,
 
 def(field-new!, Token Token Token Name -- Field,
     Field.alloc!
-    tuck dup2 field-name !
+    tuck dup2 ~name !
     DEF_FIELD swap ~Def !
-    tuck field-head !
-    swap delay(elab-simple-type-arg!) over field-value-type !
-    swap delay(elab-simple-type-arg!) over field-index-type !)
-
-def(elab-field-type!, Field -- Type,
-    sip(field-index-type force! T1)
-    field-value-type force! TMut T1 T->)
+    tuck ~head !
+    swap delay(elab-simple-type-arg!) over ~value-type !
+    swap delay(elab-simple-type-arg!) over ~index-type !)

@@ -305,8 +305,8 @@ def(c99-args-op!, List(Arg) Op --,
     OP_EXTERNAL -> name c99-call!,
     OP_BUFFER   -> name c99-call!,
     OP_VARIABLE -> variable-name @ c99-call!,
-    OP_FIELD    -> field-name    @ c99-call!,
-    OP_TAG      -> tag-name      @ c99-call!,
+    OP_FIELD    -> name c99-call!,
+    OP_TAG      -> tag-name @ c99-call!,
     OP_PRIM     -> c99-prim!,
     OP_MATCH    -> nip c99-match!,
     OP_LAMBDA   -> nip c99-lambda!,
@@ -537,7 +537,7 @@ def(c99-block-sig!, Block --,
 
 def(c99-field-sigs!, --, Field.for(c99-field-sig!) .lf)
 def(c99-field-sig!, Field --,
-    c99-line("static void mw_" . field-name @ .name " (void);" .))
+    c99-line("static void mw_" . name .name " (void);" .))
 
 def(c99-block-enter!, Block --,
     c99-line("WORD_ENTER(" .
@@ -603,7 +603,7 @@ def(c99-word-def!, Word --,
 
 def(c99-field-defs!, --, Field.for(c99-field-def!) .lf)
 def(c99-field-def!, Field --,
-    "static VAL* fieldptr_" . dup field-name @ .name " (size_t i) {" ;
+    "static VAL* fieldptr_" . dup name .name " (size_t i) {" ;
     "    static struct VAL * p = 0;";
     "    size_t m = " . TABLE_MAX_SIZE .n ";" ;
     "    if (! p) { p = calloc(m, sizeof *p); }" ;
@@ -612,9 +612,9 @@ def(c99-field-def!, Field --,
     "}" ;;  # TODO make this more flexible wrt table size
             # note it's important to have stability,
             # so we can't just realloc as we used to.
-    dup field-name @ .w "{" ;
+    dup name .w "{" ;
     "    size_t index = (size_t)pop_u64();" ;
-    "    VAL *v = fieldptr_" . dup field-name @ .name "(index);" ;
+    "    VAL *v = fieldptr_" . dup name .name "(index);" ;
     "    push_ptr(v);" ;
     "}" ;;
 

@@ -80,7 +80,7 @@ def(type-tycon-name, Type -- Maybe(Name),
     TMeta -> meta-expand-if(type-tycon-name, drop NONE),
     THole -> drop NONE,
     TVar -> drop NONE,
-    TTable -> table-name @ SOME,
+    TTable -> name SOME,
     TData -> data-name @ SOME,
     TMorphism -> drop2 NONE,
     TTensor -> drop2 NONE,
@@ -459,7 +459,7 @@ def(type-data-unify!, Gamma Data Data -- Gamma Type,
         dip(TData) TData type-unify-failed!
     ))
 def(type-table-unify!, Gamma Table Table -- Gamma Type,
-    dup2 table== if(
+    dup2 = if(
         drop TTable,
         dip(TTable) TTable type-unify-failed!
     ))
@@ -542,7 +542,7 @@ def(type-trace!, Type --,
     TTensor -> "[" trace! TTensor type-trace-stack! "]" trace!,
     TMorphism -> "[" trace! TMorphism type-trace-sig! "]" trace!,
     TData -> data-name @ trace!,
-    TTable -> table-name @ trace!,
+    TTable -> name trace!,
     THole -> trace!,
     TApp -> app-type-trace!,
     TValue -> value-as-type type-trace!,
@@ -739,7 +739,7 @@ def(type-head, Type -- Type,
 def(type-max-count, Type -- Maybe(Int),
     TMeta -> meta-expand-if(type-max-count, drop NONE),
     TApp -> drop type-max-count,
-    TTable -> table-max-count @ 1+ SOME,
+    TTable -> max-count 1+ SOME,
     TData ->
         data-is-enum? if(
             data-tags @ len SOME,
