@@ -199,7 +199,7 @@ def(ab-ctx, Mut(Ctx), ab-arrow @ ~ctx)
 def(ab-token, Mut(Token), ab-arrow @ ~token-end)
 def(ab-type, Mut(Type), ab-arrow @ ~cod)
 
-def(init-elab!,
+def(init-elab!, --,
     Arrow.nil ab-arrow !)
 
 def(ab-save!(f), (*a -- *b) *a -- *b,
@@ -228,12 +228,12 @@ def(ab-build-hom!(f), (*a Type -- *b Type) *a Ctx Type Token -- *b Arrow,
     ab-build!(f ab-unify-type!))
 def(ab-build-word-arrow!(f), (*a Type -- *b Type) *a Word -- *b Arrow,
     dup SOME ab-home ! 0 ab-homeidx !
-    sip(elab-word-ctx-sig-weak!)
-    word-body @ ab-build-hom!(f)
+    sip(elab-word-ctx-type-weak!)
+    body ab-build-hom!(f)
     NONE ab-home !)
 def(ab-build-word!(f), (*a -- *b) *a Word -- *b Word,
     sip(ab-build-word-arrow!(dip(f)) ready)
-    tuck word-arrow !)
+    tuck ~arrow !)
 
 def(ab-unify-type!, Type --,
     dip(ab-token @ GAMMA ab-type @) type-unify! ab-type ! drop)
@@ -256,7 +256,7 @@ def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
 
 def(atom-accepts-args?, Atom -- Atom Bool,
     dup op match(
-        OP_WORD -> dip(dup args len) elab-word-sig! type-max-num-params <,
+        OP_WORD -> dip(dup args len) type type-max-num-params <,
         OP_PRIM ->
             match(
                 PRIM_CORE_RUN -> dup args len 1 <, # this one's dubious
@@ -402,7 +402,7 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_VARIABLE -> type TMut OPSIG_PUSH,
         OP_CONSTANT -> value TValue OPSIG_PUSH,
         OP_TAG -> elab-tag-sig! type-freshen-sig OPSIG_APPLY,
-        OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
+        OP_WORD -> type type-freshen-sig OPSIG_APPLY,
         OP_PRIM -> type type-freshen-sig OPSIG_APPLY,
         OP_EXTERNAL -> type type-freshen-sig OPSIG_APPLY,
         OP_FIELD -> type type-freshen-sig OPSIG_APPLY,
@@ -431,26 +431,14 @@ def(elab-tag-sig!, Tag -- Type, elab-tag-ctx-sig! nip)
 def(elab-tag-ctx!, Tag -- Ctx , elab-tag-ctx-sig! drop)
 def(elab-tag-ctx-sig!, Tag -- Ctx Type, tag-ctx-type force2!)
 
-def(elab-word-sig!, Word -- Type, elab-word-ctx-sig! nip)
-def(elab-word-ctx!, Word -- Ctx, elab-word-ctx-sig! drop)
-def(elab-word-ctx-sig!, Word -- Ctx Type,
-    dup word-ctx-type
-    force-or!(emit-recursive-word-fatal-error!)
-    nip unpack2)
-
-def(emit-recursive-word-fatal-error!, *a Word -- *b,
-    word-head @ "recursive word needs type signature" emit-fatal-error!)
-
-def(elab-word-ctx-sig-weak!, Word -- Ctx Type,
-    dup word-sig @ match(
-        NONE -> word-ctx-type @ match(
+def(elab-word-ctx-type-weak!, Word -- Ctx Type,
+    dup sig match(
+        NONE -> ~ctx-type @ match(
             LAZY_READY -> unpack2,
             _ -> drop CTX0 meta-alloc! TMeta meta-alloc! TMeta T->
         ),
-        SOME -> drop elab-word-ctx-sig!
+        SOME -> drop ctx-type
     ))
-
-def(elab-word-body!, Word -- Arrow, word-arrow force!)
 
 def(elab-arrow!, Ctx Type Token -- Arrow,
     elab-expand-morphism! elab-arrow-hom!)
@@ -902,34 +890,30 @@ def(elab-def!, Token -- Token,
             "expected match case" emit-fatal-error!))
     rotl dup name? unwrap-or("expected word name" emit-fatal-error!)
     name-undefined? if(id, drop "word already defined" emit-fatal-error!)
-    word-new!
-    tuck word-sig !
+
+    Word.new!
+    tuck ~sig !
 
     dup delay(
         type-elab-default
-        over word-sig @ match(
-            NONE ->
-                type-elab-ctx over word-arrow
-                force-or!(swap emit-recursive-word-fatal-error!)
-                type type-rigidify-sig!,
-            SOME -> elab-type-sig! drop dip(type-elab-ctx)
-        )
+        over sig unwrap-or(over head "need word signature" emit-fatal-error!) # TODO make sig mandatory again.
+        elab-type-sig! drop dip(type-elab-ctx)
         pack2 nip
-    ) over word-ctx-type !
-    dup delay(elab-def-params!) over word-params !
+    ) over ~ctx-type !
+    dup delay(elab-def-params!) over ~params !
     dup delay(
         dup ab-build-word-arrow!(
-            swap word-params force! dup is-empty if(
+            swap params dup is-empty if(
                 drop elab-def-body!,
                 ab-lambda!(elab-def-body!)
             )
         )
-    ) swap word-arrow !)
+    ) swap ~arrow !)
 
 ||| Elaborate a word's parameters from its type and declaration.
 def(elab-def-params!, Word -- List(Param),
-    L0 over elab-word-ctx-sig-weak! nip
-    rotl word-head @
+    L0 over elab-word-ctx-type-weak! nip
+    rotl head
     elab-expand-morphism! nip
     args reverse-for(
         dup sig-param-name? else("expected parameter name" emit-fatal-error!)
@@ -1028,7 +1012,7 @@ def(typecheck-def!, Def --,
     DEF_PRIM -> drop,
     DEF_TYPE -> drop,
     DEF_EXTERNAL -> type drop,
-    DEF_WORD -> word-arrow force! drop,
+    DEF_WORD -> arrow drop,
     DEF_FIELD -> type drop,
     DEF_TAG -> elab-tag-sig! drop,
     DEF_VARIABLE -> type drop,
@@ -1041,7 +1025,7 @@ def(typecheck-def!, Def --,
 def(TABLE_MAX_SIZE, Int, 0x10000)
 
 def(table-word-new!, Table Str -- Word,
-    dip(dup head dup rotl name) Name.cat word-new!)
+    dip(dup head dup rotl name) Name.cat Word.new!)
 
 def(table-new!, Token Name -- Table,
     Table.alloc!
@@ -1056,7 +1040,7 @@ def(table-new!, Token Name -- Table,
 
     L0 CTX
     T0 TYPE_INT T1 T->
-    ready2 over word-ctx-type !
+    ready2 over ~ctx-type !
 
     ab-build-word!(
         dup head ab-token !
@@ -1068,7 +1052,7 @@ def(table-new!, Token Name -- Table,
 
     L0 CTX
     T0 over3 TTable T1 T->
-    ready2 over word-ctx-type !
+    ready2 over ~ctx-type !
 
     ab-build-word!(
         dup head ab-token !
@@ -1087,7 +1071,7 @@ def(table-new!, Token Name -- Table,
 
     L0 CTX
     over2 TTable T1 TYPE_INT T1 T->
-    ready2 over word-ctx-type !
+    ready2 over ~ctx-type !
 
     ab-build-word! (
         dup head ab-token !
@@ -1099,7 +1083,7 @@ def(table-new!, Token Name -- Table,
 
     L0 CTX
     over2 TTable T1 TYPE_INT T1 swap T->
-    ready2 over word-ctx-type !
+    ready2 over ~ctx-type !
 
     ab-build-word! (
         dup head ab-token !
@@ -1111,7 +1095,7 @@ def(table-new!, Token Name -- Table,
 
     L0 CTX
     over2 TTable T1 dup T->
-    ready2 over word-ctx-type !
+    ready2 over ~ctx-type !
 
     ab-build-word! (
         dup head ab-token !
@@ -1132,7 +1116,7 @@ def(table-new!, Token Name -- Table,
 
     L0 CTX
     over2 TTable T1 dup T->
-    ready2 over word-ctx-type !
+    ready2 over ~ctx-type !
 
     ab-build-word! (
         dup head ab-token !
@@ -1155,7 +1139,7 @@ def(table-new!, Token Name -- Table,
     \(x ->
         va CTX1
         a a t TTable T* a T-> T* a T->
-        ready2 w word-ctx-type !
+        ready2 w ~ctx-type !
 
         w ab-build-word! (
             t head ab-token !
@@ -1189,7 +1173,7 @@ def(table-new!, Token Name -- Table,
 
     L0 CTX
     T0 over3 TTable T1 T->
-    ready2 over word-ctx-type !
+    ready2 over ~ctx-type !
 
     ab-build-word! (
         dup head ab-token !

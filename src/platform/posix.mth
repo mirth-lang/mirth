@@ -36,7 +36,7 @@ def(Int.trace-ln!, Int --, int-to-str trace-ln!)
 def(with-open-file!(f,g), (*a File -- *b, *a -- *b) *a Str -- *b,
     0 0 posix-open! dup 0< if(drop g, dup dip(Int>File f) posix-close! drop))
 
-def(READ_FILE_BUF_SIZE, 0x1000)
+def(READ_FILE_BUF_SIZE, Size, 0x1000)
 buffer(READ_FILE_BUF, 0x1000)
 def(read-file!, File -- Str,
     File>Int \(fp -> ""

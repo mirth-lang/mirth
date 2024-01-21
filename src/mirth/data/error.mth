@@ -12,7 +12,7 @@ import(mirth.data.token)
 var(num-warnings, Int)
 var(num-errors, Int)
 
-def(init-errors!,
+def(init-errors!, --,
     0 num-errors !
     0 num-warnings !)
 

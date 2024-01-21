@@ -68,7 +68,7 @@ def(determine-arrow-needs!, Arrow --,
 def(determine-transitive-needs!, --,
     while-some(needs-stack pop!, match(
         NEED_BLOCK -> need-block-run,
-        NEED_WORD -> word-arrow force! need-arrow-run,
+        NEED_WORD -> arrow need-arrow-run,
     )))
 
 def(need-arrow-run, Arrow --, atoms for(need-atom-run))
@@ -301,7 +301,7 @@ def(c99-args-op!, List(Arg) Op --,
     OP_INT      -> nip c99-int!,
     OP_STR      -> nip c99-str!,
     OP_CONSTANT -> nip c99-constant!,
-    OP_WORD     -> dup need-word word-name @ c99-call!,
+    OP_WORD     -> name c99-call!,
     OP_EXTERNAL -> name c99-call!,
     OP_BUFFER   -> name c99-call!,
     OP_VARIABLE -> name c99-call!,
@@ -452,7 +452,6 @@ def(c99-block-push!, Block --,
     dup block-to-run-var match(
         SOME -> nip c99-var-push!,
         NONE ->
-            dup need-block
             dup ctx c99-pack-ctx!
             c99-line("push_fnptr(&" . .block ");" .)
             c99-line("mw_prim_pack_cons();" .)
@@ -529,7 +528,7 @@ def(c99-pattern!, Pattern --,
 
 def(c99-word-sigs!, --, for-needed-words(c99-word-sig!) .lf)
 def(c99-word-sig!, Word --,
-    c99-line("static void mw_" . word-name @ .name " (void);" .))
+    c99-line("static void mw_" . name .name " (void);" .))
 
 def(c99-block-sigs!, --, for-needed-blocks(c99-block-sig!) .lf)
 def(c99-block-sig!, Block --,
@@ -544,7 +543,7 @@ def(c99-block-enter!, Block --,
         dup .block ", " .
         dup arrow home match(
             NONE -> "block",
-            SOME -> word-name @ >Str " block" cat,
+            SOME -> name >Str " block" cat,
         ) .str ", " .
         dup token .module source-path >Str .str ", " .
         dup token row >Int .n ", " .
@@ -572,30 +571,30 @@ def(.block, Block -- ,
     dup arrow dup home match(
         NONE -> drop Block.id .n,
         SOME ->
-            word-name @ .name "_" .
+            name .name "_" .
             homeidx .n drop
     ))
 
 def(c99-word-enter!, Word --,
     c99-line("WORD_ENTER(" .
-        "mw_" . dup word-name @ .name ", " .
-        dup word-name @ >Str .str ", " .
-        dup word-body @ .module source-path >Str .str ", " .
-        dup word-body @ row >Int .n ", " .
-        dup word-body @ col >Int .n ");" . )
+        "mw_" . dup name .name ", " .
+        dup name >Str .str ", " .
+        dup body .module source-path >Str .str ", " .
+        dup body row >Int .n ", " .
+        dup body col >Int .n ");" . )
     drop)
 
 def(c99-word-exit!, Word --,
     c99-line("WORD_EXIT(" .
-        "mw_" . dup word-name @ .name ");" .)
+        "mw_" . dup name .name ");" .)
     drop)
 
 def(c99-word-defs!, --, for-needed-words(c99-word-def!) .lf)
 def(c99-word-def!, Word --,
-    c99-line(dup word-name @ .w "{" .)
+    c99-line(dup name .w "{" .)
     c99-nest(
         dup c99-word-enter!
-        dup word-arrow force! c99-arrow!
+        dup arrow c99-arrow!
         dup c99-word-exit!
     )
     c99-line("}" .)
