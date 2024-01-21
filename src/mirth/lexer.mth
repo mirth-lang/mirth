@@ -23,9 +23,9 @@ var(lexer-col, Col)
 var(lexer-stack, Stack(Token))
 
 def(run-lexer!, Path -- Module,
-    module-new! lexer-module !
+    Module.new! lexer-module !
 
-    lexer-module @ module-source-path
+    lexer-module @ source-path
     >Str open-file! input-start!
 
     1 >Row lexer-row !
@@ -43,9 +43,8 @@ def(run-lexer!, Path -- Module,
         SOME -> "Mismatched left parenthesis." emit-fatal-error!
     )
 
-    Token.alloc-none! lexer-module @ module-end !
-    succ lexer-module @ module-start !
-
+    Token.alloc-none! lexer-module @ ~end !
+    succ lexer-module @ ~start !
     lexer-module @)
 
 

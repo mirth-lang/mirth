@@ -546,7 +546,7 @@ def(c99-block-enter!, Block --,
             NONE -> "block",
             SOME -> word-name @ >Str " block" cat,
         ) .str ", " .
-        dup token .module module-source-path >Str .str ", " .
+        dup token .module source-path >Str .str ", " .
         dup token row >Int .n ", " .
         dup token col >Int .n ");" . )
     drop)
@@ -580,7 +580,7 @@ def(c99-word-enter!, Word --,
     c99-line("WORD_ENTER(" .
         "mw_" . dup word-name @ .name ", " .
         dup word-name @ >Str .str ", " .
-        dup word-body @ .module module-source-path >Str .str ", " .
+        dup word-body @ .module source-path >Str .str ", " .
         dup word-body @ row >Int .n ", " .
         dup word-body @ col >Int .n ");" . )
     drop)
@@ -628,8 +628,7 @@ def(c99-main!, Arrow --,
         c99-line("WORD_ENTER(" .
             "(void(*)(void))0, " .
             "\"<main>\", " .
-            dup token-start .module
-                module-source-path >Str .str ", " .
+            dup token-start .module source-path >Str .str ", " .
             dup token-start row >Int .n ", " .
             dup token-start col >Int .n ");" .)
         c99-arrow!

@@ -20,6 +20,6 @@ data(Location, LOCATION -> Module Row Col)
 def(Location.unpack, Location -- Module Row Col, LOCATION -> id)
 def(Location.trace!, Location --,
     unpack rotr swap
-    module-source-path trace!
+    source-path trace!
     ":" trace! trace!
     ":" trace! trace!)

@@ -523,12 +523,12 @@ def(elab-relativize-name!, Name -- Name,
 def(elab-check-name-visible!, Name -- Name,
     dup >Def >Module? for(
         dup elab-module-is-visible if(drop,
-            "name not visible, must import " swap module-name @ >Str cat
+            "name not visible, must import " swap name >Str cat
             ab-token @ swap emit-error!)
     ))
 
 def(elab-module-is-visible, Module -- Bool,
-    ab-token @ .module module-visible-in-module)
+    ab-token @ .module visible)
 
 def(elab-atom-name-global!, Name --,
     dup >Def match(
@@ -752,7 +752,7 @@ def(elab-case-body!, Case Token -- Case Token,
 
 ||| Elaborate all of a module.
 def(elab-module!, Module -- Module,
-    dup module-start @
+    dup start
     elab-module-header!
     while(dup module-end? not, elab-module-decl!)
     drop)
@@ -765,9 +765,9 @@ def(elab-module-header!, Token -- Token,
         dup name? unwrap-or("Expected module name." emit-fatal-error!)
         name-defined? then(drop "Module name already taken." emit-fatal-error!)
         over .module
-        dup2 module-name !
+        dup2 ~name !
         dup2 DEF_MODULE swap ~Def !
-        module-path @ swap
+        path swap
         module-path-from-name = if(drop,
             "Module name should match path." emit-error!),
         dup "Expected module header." emit-error!
@@ -788,14 +788,13 @@ def(elab-module-import!, Token -- Token,
         TOKEN_NAME ->
             dup >Def match(
                 DEF_MODULE ->
-                    dip(drop2 dup .module)
-                    module-add-import!,
+                    dip(drop2 dup .module) add-import!,
                     # module is already loaded
 
                 DEF_NONE ->
                     module-path-from-name run-lexer!
                     elab-module!
-                    dip(drop dup .module) module-add-import!,
+                    dip(drop dup .module) add-import!,
                     # elab the imported module
                     # TODO: avoid elaborating here,
                     # use a single loop to dispatch top-level module elaboration.

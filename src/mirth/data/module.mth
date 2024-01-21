@@ -9,33 +9,33 @@ import(mirth.data.name)
 
 # mirth/data/module
 table(Module)
-field(module-name, Module, Name)
-field(module-path, Module, Path)
-field(module-start, Module, Token)
-field(module-end, Module, Token)
-field(module-imports, Module, List(Module))
+field(Module~name, Module, Name)
+field(Module~path, Module, Path)
+field(Module~start, Module, Token)
+field(Module~end, Module, Token)
+field(Module~imports, Module, List(Module))
 
-def(module-cmp, Module Module -- Comparison, dip(Module.id) Module.id .cmp)
-def(module==, Module Module -- Bool, dip(Module.id) Module.id =)
-def(module<=, Module Module -- Bool, dip(Module.id) Module.id <=)
-def(module<, Module Module -- Bool, dip(Module.id) Module.id <)
+def(Module.name, Module -- Name, ~name @)
+def(Module.path, Module -- Path, ~path @)
+def(Module.start, Module -- Token, ~start @)
+def(Module.end, Module -- Token, ~end @)
+def(Module.imports, Module -- List(Module), ~imports @)
 
-def(module-new!, Path -- Module,
+def(Module=, Module Module -- Bool, both(.id) =)
+
+def(Module.new!, Path -- Module,
     Module.alloc!
-    L0 over module-imports !
-    tuck module-path !)
+    L0 over ~imports !
+    tuck ~path !)
 
 ||| ( module1 module2 -- ) Add module2 as import to module1.
 ||| This does not check if the import is strictly necessary.
-def(module-add-import!, Module Module --,
-    swap module-imports modify(cons))
+def(Module.add-import!, Module Module --,
+    swap ~imports modify(cons))
 
 ||| Get source path associated with module.
-def(module-source-path, Module -- Path,
-    dup Module.nil module== if(
-        drop "<generated>" >Path,
-        module-path @ to-source-path
-    ))
+def(Module.source-path, Module -- Path,
+    path to-source-path)
 
 def(module-path-from-name, Name -- Path,
     build-str!(
@@ -50,8 +50,8 @@ def(module-path-from-name, Name -- Path,
     ) >Path)
 
 ||| ( module1 module2 -- bool ) Check whether module1 is visible in module2.
-def(module-visible-in-module, Module Module -- Bool,
-    dup2 module== if(
+def(Module.visible, Module Module -- Bool,
+    dup2 = if(
         drop2 T, # Module is always visible to itself.
-        module-imports @ any(dup2 module==) nip
+        imports any(dup2 =) nip
     ))
