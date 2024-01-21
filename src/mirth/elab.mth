@@ -113,12 +113,11 @@ def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
     dip2(name? unwrap dup2 swap lookup)
     rotl match(
         SOME ->
-            rotr dip2(nip dup var-type @)
+            rotr dip2(nip dup type)
             elab-type-unify! nip,
         NONE ->
             dip(
-                dip(var-new-implicit!)
-                over var-type !
+                swap Var.new!
                 sip(Ctx.new)
             )
     )
@@ -305,7 +304,7 @@ def(arrow-to-run-var, Arrow -- Maybe(Var),
 
 def(atom-to-run-var, Atom -- Maybe(Var),
     op match(
-        OP_VAR -> dup var-auto-run @ if(SOME, drop NONE),
+        OP_VAR -> dup auto-run? if(SOME, drop NONE),
         _ -> drop NONE
     ))
 
@@ -372,7 +371,7 @@ def(ab-lambda!(f), (*a -- *b) *a List(Param) -- *b ,
     dip(ab-ctx @ ab-type @ rotl reverse-for(
         swap dip(>Var dup dip(Ctx.new))
         ab-token @ elab-expand-tensor!
-        dip(rotl var-type @) elab-type-unify! drop2
+        dip(rotl type) elab-type-unify! drop2
     ))
     tuck ~mid !
     tuck ~inner-ctx !
@@ -423,9 +422,9 @@ def(elab-lambda-sig!, Lambda -- OpSig,
     sip(dom) cod T-> OPSIG_APPLY)
 
 def(elab-var-sig!, Var -- OpSig,
-    dup var-auto-run @ if(
-        var-type @ type-semifreshen-sig OPSIG_APPLY,
-        var-type @ OPSIG_PUSH
+    dup auto-run? if(
+        type type-semifreshen-sig OPSIG_APPLY,
+        type OPSIG_PUSH
     ))
 
 def(elab-tag-sig!, Tag -- Type, elab-tag-ctx-sig! nip)
@@ -645,12 +644,10 @@ def(elab-lambda-params!, Lambda -- Lambda,
     while(token-is-lambda-param?,
         elab-lambda-pop-from-mid! sip(
             dup sig-type-var? if(
-                name? unwrap var-new! tuck var-type !,
+                name? unwrap Var.new!,
 
                 succ dip(type-expand type-is-morphism?) swap if(
-                    name? unwrap var-new!
-                    T over var-auto-run !
-                    tuck var-type !,
+                    name? unwrap Var.new-auto-run!,
 
                     "block pattern on non-block argument" emit-fatal-error!
                 )
@@ -941,9 +938,7 @@ def(elab-def-params!, Word -- List(Param),
         dip(dup) elab-expand-morphism! dip(drop2)
         # dip(type-is-morphism?) swap if(id,
         #     "need function type for param" emit-fatal-error!)
-        name? unwrap var-new!
-        tuck var-type !
-        T over var-auto-run !
+        name? unwrap Var.new-auto-run!
         PARAM rotr dip(cons)
     ) drop)
 
@@ -1155,21 +1150,12 @@ def(table-new!, Token Name -- Table,
 
     # Table.for
     dup ".for" table-word-new!
-    "x" >Name var-new!
-    \(t w x ->
-
-        "a" >Name var-new-implicit!
-        TYPE_STACK over var-type !
-        dup L1 CTX
-        swap
-
-        TVar \( a ->
-            a a t TTable T* a T-> T* a T->
-            ready2 w word-ctx-type !
-
-            a t TTable T* a T-> x var-type !
-            T x var-auto-run !
-        )
+    TYPE_STACK "*a" >Name Var.new! dup TVar
+    \(t w va a -> a t TTable T* a T-> "x" >Name Var.new-auto-run!
+    \(x ->
+        va CTX1
+        a a t TTable T* a T-> T* a T->
+        ready2 w word-ctx-type !
 
         w ab-build-word! (
             t head ab-token !
@@ -1196,7 +1182,7 @@ def(table-new!, Token Name -- Table,
             )
         ) drop
 
-    t)
+    t))
 
     # Table.alloc!
     dup ".alloc!" table-word-new!

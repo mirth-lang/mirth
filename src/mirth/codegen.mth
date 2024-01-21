@@ -426,7 +426,7 @@ def(c99-arg-run!, Arg --,
 def(c99-block-run!, Block --,
     arrow c99-arrow!)
 
-def(.var, Var --, "var_" . var-name @ .name)
+def(.var, Var --, "var_" . name .name)
 def(.param, Param --, >Var .var)
 
 def(c99-pack-ctx!, Ctx --,
@@ -459,7 +459,7 @@ def(c99-block-push!, Block --,
     ))
 
 def(c99-var!, Var --,
-    dup var-auto-run @ if(c99-var-run!, c99-var-push!))
+    dup auto-run? if(c99-var-run!, c99-var-push!))
 
 def(c99-var-run!, Var --,
     c99-line("incref(" . dup .var ");" .)

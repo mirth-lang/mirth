@@ -386,11 +386,11 @@ def(init-prims!, --,
     # polymorphic prims -- we really need better technology to notate these
     #
 
-    "a" >Name var-new-implicit! TYPE_TYPE over var-type !
-    "b" >Name var-new-implicit! TYPE_TYPE over var-type !
-    "c" >Name var-new-implicit! TYPE_TYPE over var-type !
-    "*x" >Name var-new-implicit! TYPE_STACK over var-type !
-    "*y" >Name var-new-implicit! TYPE_STACK over var-type !
+    TYPE_TYPE "a" >Name Var.new!
+    TYPE_TYPE "b" >Name Var.new!
+    TYPE_TYPE "c" >Name Var.new!
+    TYPE_STACK "*x" >Name Var.new!
+    TYPE_STACK "*y" >Name Var.new!
     \( a b c xs ys -> a TVar b TVar c TVar xs TVar ys TVar
     \( ta tb tc txs tys ->
         a CTX1

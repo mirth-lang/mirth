@@ -1,6 +1,7 @@
 module(mirth.data.var)
 
 import(prelude)
+import(data.maybe)
 import(mirth.data.name)
 import(mirth.data.type)
 
@@ -10,21 +11,28 @@ import(mirth.data.type)
 
 # mirth/data/var
 table(Var)
-field(var-is-implicit, Var, Bool)
-field(var-name, Var, Name)
-field(var-type, Var, Type)
-field(var-auto-run, Var, Bool) # run variable by default
+field(Var~name, Var, Name)
+field(Var~type, Var, Type)
+field(Var~auto-run?, Var, Bool) # run variable by default
 
-def(var-new!, Name -- Var,
+def(Var.name, Var -- Name, ~name @)
+def(Var.type, Var -- Type, ~type @)
+def(Var.auto-run?, Var -- Bool, ~auto-run? @)
+
+def(Var=, Var Var -- Bool, both(.id) =)
+def(Var.trace!, Var --, name trace!)
+def(Var.is-type?, Var -- Bool, type prim? and-some(PRIM_TYPE_TYPE =))
+def(Var.is-stack?, Var -- Bool, type prim? and-some(PRIM_TYPE_STACK =))
+def(Var.is-effect?, Var -- Bool, type prim? and-some(PRIM_TYPE_EFFECT =))
+def(Var.is-physical?, Var -- Bool,
+    type type-is-physical)
+
+def(Var.new!, Type Name -- Var,
     Var.alloc!
-    tuck var-name !
-    F over var-auto-run !)
+    tuck ~name !
+    tuck ~type !
+    F over ~auto-run? !)
 
-def(var-new-implicit!, Name -- Var,
-    var-new!
-    T over var-is-implicit !)
-
-def(var-is-physical, Var -- Bool,
-    var-type @ type-is-physical)
-
-def(var==, Var Var -- Bool, both(Var.id) =)
+def(Var.new-auto-run!, Type Name -- Var,
+    Var.new!
+    T over ~auto-run? !)

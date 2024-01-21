@@ -227,13 +227,6 @@ def(Token.args-end?, Token -- Bool,
 def(Token.args+, Token -- List+(Token),
     dup args >List+ unwrap-or("expected 1 or more args, got none" emit-fatal-error!) nip)
 
-||| Get one arg plus a nonempty list of the rest.
-def(token-args-2+, Token -- Token List+(Token),
-    dup args
-    dup len 2 >= else(drop "expected 2 or more args" emit-fatal-error!) nip
-    >List+ unwrap uncons
-    >List+ unwrap)
-
 def(emit-warning!, Token Str --,
     dip(location) emit-warning-at!)
 def(emit-error!, Token Str --,

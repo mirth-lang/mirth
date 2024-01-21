@@ -104,8 +104,8 @@ def(value-tycon-name, Value -- Maybe(Name),
     VALUE_STR -> drop "Str" >Name SOME,
     VALUE_BLOCK -> drop NONE)
 
-def(PrimType->Int, PrimType -- Int, prim-unsafe-cast)
-def(prim-type==, PrimType PrimType -- Bool, both(PrimType->Int) =)
+def(PrimType>Int, PrimType -- Int, prim-unsafe-cast)
+def(PrimType=, PrimType PrimType -- Bool, both(>Int) =)
 
 table(MetaVar)
 table(Data)
@@ -232,9 +232,10 @@ def(type-equals-meta, MetaVar Type -- Bool,
     TMeta -> meta==,
     _ -> drop2 F)
 
+def(Type.prim?, Type -- Maybe(PrimType), type-expand match(TPrim -> SOME, _ -> drop NONE))
+
 # def(type-is-error?, Type -- Type Bool, dup type-is-error)
 # def(type-is-dont-care?, Type -- Type Bool, dup type-is-dont-care)
-# def(type-is-prim?, Type -- Type Bool, dup type-is-prim)
 # def(type-is-var?, Type -- Type Bool, dup type-is-var)
 # def(type-is-meta?, Type -- Type Bool, dup type-is-meta)
 # def(type-is-tensor?, Type -- Type Bool, dup type-is-tensor)
@@ -449,7 +450,7 @@ def(type-unify-pair!, Gamma Type Type Type Type -- Gamma Type Type,
     dip(swap dip(type-unify! swap)) type-unify! dip(swap))
 
 def(type-prim-unify!, Gamma PrimType PrimType -- Gamma Type,
-    dup2 prim-type== if(
+    dup2 = if(
         drop TPrim,
         dip(TPrim) TPrim type-unify-failed!
     ))
@@ -464,7 +465,7 @@ def(type-table-unify!, Gamma Table Table -- Gamma Type,
         dip(TTable) TTable type-unify-failed!
     ))
 def(type-var-unify!, Gamma Var Var -- Gamma Type,
-    dup2 var== if(
+    dup2 = if(
         drop TVar,
         dip(TVar) TVar type-unify-failed!
     ))
@@ -526,18 +527,14 @@ def(type-trace-stack-cod!, Type --,
 def(type-trace-stack!, Type --,
     TMeta -> meta-expand-if(type-trace-stack!, meta-trace!),
     TTensor -> swap type-trace-stack-dom! type-trace!,
-    TVar ->
-        var-name @
-        dup trace!
-        could-be-stack-var
-        if(id, " ." trace!),
+    TVar -> dup trace! is-stack? else(" ." trace!),
     _ -> type-trace!)
 
 def(type-trace!, Type --,
     TYPE_ERROR -> "<ERROR>" trace!,
     TYPE_DONT_CARE -> "_" trace!,
     TPrim -> type-trace-prim!,
-    TVar -> var-name @ trace!,
+    TVar -> trace!,
     TMeta -> meta-trace!,
     TTensor -> "[" trace! TTensor type-trace-stack! "]" trace!,
     TMorphism -> "[" trace! TMorphism type-trace-sig! "]" trace!,
@@ -546,7 +543,7 @@ def(type-trace!, Type --,
     THole -> trace!,
     TApp -> app-type-trace!,
     TValue -> value-as-type type-trace!,
-    TMut -> "!" trace! type-trace!,
+    TMut -> "Mut(" trace! type-trace! ")" trace!,
     )
 
 def(value-as-type, Value -- Type,
@@ -842,12 +839,12 @@ def(subst-is-nil, Subst -- Bool, SUBST_NIL -> T, _ -> drop F)
 def(subst-new!, Type Var Subst -- Subst, rotr SUBST_CON)
 def(subst-has-var, Var Subst -- Bool,
     SUBST_NIL -> drop F,
-    SUBST_CON -> nip over2 var== if(drop2 T, subst-has-var))
+    SUBST_CON -> nip over2 = if(drop2 T, subst-has-var))
 def(subst-has-var?, Var Subst -- Var Subst Bool,
     dup2 subst-has-var)
 def(subst-get-var, Var Subst -- Type,
     SUBST_NIL -> drop TYPE_ERROR,
-    SUBST_CON -> over3 var== if(dip(drop2), drop subst-get-var))
+    SUBST_CON -> over3 = if(dip(drop2), drop subst-get-var))
 def(subst-get-var?, Var Subst -- Var Subst Type,
     dup2 subst-get-var)
 
