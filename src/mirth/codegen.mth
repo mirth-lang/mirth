@@ -218,7 +218,7 @@ def(c99-buffer!, Buffer --,
 
 def(c99-variables!, --, Variable.for(c99-variable!) .lf)
 def(c99-variable!, Variable --,
-    "void mw_" . variable-name @ .name "() {" ;
+    "void mw_" . name .name "() {" ;
     "    static VAL v = {0};" ;
     "    push_ptr(&v);" ;
     "}" ;)
@@ -304,7 +304,7 @@ def(c99-args-op!, List(Arg) Op --,
     OP_WORD     -> dup need-word word-name @ c99-call!,
     OP_EXTERNAL -> name c99-call!,
     OP_BUFFER   -> name c99-call!,
-    OP_VARIABLE -> variable-name @ c99-call!,
+    OP_VARIABLE -> name c99-call!,
     OP_FIELD    -> name c99-call!,
     OP_TAG      -> tag-name @ c99-call!,
     OP_PRIM     -> c99-prim!,

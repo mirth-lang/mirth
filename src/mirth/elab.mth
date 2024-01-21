@@ -399,7 +399,7 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_INT -> VALUE_INT TValue OPSIG_PUSH,
         OP_STR -> VALUE_STR TValue OPSIG_PUSH,
         OP_BUFFER -> drop TYPE_PTR OPSIG_PUSH,
-        OP_VARIABLE -> variable-type force! TMut OPSIG_PUSH,
+        OP_VARIABLE -> type TMut OPSIG_PUSH,
         OP_CONSTANT -> value TValue OPSIG_PUSH,
         OP_TAG -> elab-tag-sig! type-freshen-sig OPSIG_APPLY,
         OP_WORD -> elab-word-sig! type-freshen-sig OPSIG_APPLY,
@@ -986,7 +986,7 @@ def(elab-variable!, Token -- Token,
     swap dup name? unwrap-or("expected variable name" emit-fatal-error!)
     name-undefined? else(drop "variable name already defined" emit-fatal-error!)
     rotl delay(elab-simple-type-arg!)
-    variable-new! drop)
+    Variable.new! drop)
 
 ||| Elaborate a table definition `table(T)`.
 def(elab-table!, Token -- Token,
@@ -1031,7 +1031,7 @@ def(typecheck-def!, Def --,
     DEF_WORD -> word-arrow force! drop,
     DEF_FIELD -> type drop,
     DEF_TAG -> elab-tag-sig! drop,
-    DEF_VARIABLE -> variable-type force! drop,
+    DEF_VARIABLE -> type drop,
     DEF_CONSTANT -> drop)
 
 #########

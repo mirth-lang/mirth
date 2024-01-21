@@ -3285,7 +3285,10 @@ static void mw_Buffer_2E_name (void);
 static void mw_Buffer_2E_new_21_ (void);
 static void mw_Variable_2E_for (void);
 static void mw_Variable_2E_alloc_21_ (void);
-static void mw_variable_new_21_ (void);
+static void mw_Variable_2E_head (void);
+static void mw_Variable_2E_name (void);
+static void mw_Variable_2E_type (void);
+static void mw_Variable_2E_new_21_ (void);
 static void mw_Constant_2E_alloc_21_ (void);
 static void mw_Constant_2E_head (void);
 static void mw_Constant_2E_value (void);
@@ -4364,9 +4367,9 @@ static void mw_word_arrow (void);
 static void mw_Buffer_7E_head (void);
 static void mw_Buffer_7E_size (void);
 static void mw_Buffer_7E_name (void);
-static void mw_variable_head (void);
-static void mw_variable_name (void);
-static void mw_variable_type (void);
+static void mw_Variable_7E_head (void);
+static void mw_Variable_7E_name (void);
+static void mw_Variable_7E_type (void);
 static void mw_Constant_7E_head (void);
 static void mw_Constant_7E_name (void);
 static void mw_Constant_7E_value (void);
@@ -4684,7 +4687,7 @@ static void mw_Buffer_7E_name (void){
     push_ptr(v);
 }
 
-static VAL* fieldptr_variable_head (size_t i) {
+static VAL* fieldptr_Variable_7E_head (size_t i) {
     static struct VAL * p = 0;
     size_t m = 65536;
     if (! p) { p = calloc(m, sizeof *p); }
@@ -4692,13 +4695,13 @@ static VAL* fieldptr_variable_head (size_t i) {
     return p+i;
 }
 
-static void mw_variable_head (void){
+static void mw_Variable_7E_head (void){
     size_t index = (size_t)pop_u64();
-    VAL *v = fieldptr_variable_head(index);
+    VAL *v = fieldptr_Variable_7E_head(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_variable_name (size_t i) {
+static VAL* fieldptr_Variable_7E_name (size_t i) {
     static struct VAL * p = 0;
     size_t m = 65536;
     if (! p) { p = calloc(m, sizeof *p); }
@@ -4706,13 +4709,13 @@ static VAL* fieldptr_variable_name (size_t i) {
     return p+i;
 }
 
-static void mw_variable_name (void){
+static void mw_Variable_7E_name (void){
     size_t index = (size_t)pop_u64();
-    VAL *v = fieldptr_variable_name(index);
+    VAL *v = fieldptr_Variable_7E_name(index);
     push_ptr(v);
 }
 
-static VAL* fieldptr_variable_type (size_t i) {
+static VAL* fieldptr_Variable_7E_type (size_t i) {
     static struct VAL * p = 0;
     size_t m = 65536;
     if (! p) { p = calloc(m, sizeof *p); }
@@ -4720,9 +4723,9 @@ static VAL* fieldptr_variable_type (size_t i) {
     return p+i;
 }
 
-static void mw_variable_type (void){
+static void mw_Variable_7E_type (void){
     size_t index = (size_t)pop_u64();
-    VAL *v = fieldptr_variable_type(index);
+    VAL *v = fieldptr_Variable_7E_type(index);
     push_ptr(v);
 }
 
@@ -11097,109 +11100,135 @@ static void mw_Buffer_2E_new_21_ (void){
     WORD_EXIT(mw_Buffer_2E_new_21_);
 }
 static void mw_Variable_2E_for (void){
-    WORD_ENTER(mw_Variable_2E_for, "Variable.for", "src/mirth/data/variable.mth", 7, 7);
-    WORD_ATOM(7, 7, "Variable");
+    WORD_ENTER(mw_Variable_2E_for, "Variable.for", "src/mirth/data/variable.mth", 8, 7);
+    WORD_ATOM(8, 7, "Variable");
     {
         VAL var_x = pop_value();
-        WORD_ATOM(7, 7, "Variable");
+        WORD_ATOM(8, 7, "Variable");
         push_i64(1LL);
-        WORD_ATOM(7, 7, "Variable");
+        WORD_ATOM(8, 7, "Variable");
         while(1) {
-            WORD_ATOM(7, 7, "Variable");
+            WORD_ATOM(8, 7, "Variable");
             mw_prim_dup();
-            WORD_ATOM(7, 7, "Variable");
+            WORD_ATOM(8, 7, "Variable");
             mw_Variable_2E_NUM();
-            WORD_ATOM(7, 7, "Variable");
+            WORD_ATOM(8, 7, "Variable");
             mw_prim_u64_get();
-            WORD_ATOM(7, 7, "Variable");
+            WORD_ATOM(8, 7, "Variable");
             mw_prim_unsafe_cast();
-            WORD_ATOM(7, 7, "Variable");
+            WORD_ATOM(8, 7, "Variable");
             push_i64(1LL);
-            WORD_ATOM(7, 7, "Variable");
+            WORD_ATOM(8, 7, "Variable");
             mw_prim_int_add();
-            WORD_ATOM(7, 7, "Variable");
+            WORD_ATOM(8, 7, "Variable");
             mw_prim_int_lt();
             if (! pop_u64()) break;
-            WORD_ATOM(7, 7, "Variable");
+            WORD_ATOM(8, 7, "Variable");
             mw_prim_dup();
-            WORD_ATOM(7, 7, "Variable");
+            WORD_ATOM(8, 7, "Variable");
             {
                 VAL d4 = pop_value();
-                WORD_ATOM(7, 7, "Variable");
+                WORD_ATOM(8, 7, "Variable");
                 mw_prim_unsafe_cast();
-                WORD_ATOM(7, 7, "Variable");
+                WORD_ATOM(8, 7, "Variable");
                 incref(var_x);
                 run_value(var_x);
                 push_value(d4);
             }
-            WORD_ATOM(7, 7, "Variable");
+            WORD_ATOM(8, 7, "Variable");
             push_i64(1LL);
-            WORD_ATOM(7, 7, "Variable");
+            WORD_ATOM(8, 7, "Variable");
             mw_prim_int_add();
         }
-        WORD_ATOM(7, 7, "Variable");
+        WORD_ATOM(8, 7, "Variable");
         mw_prim_drop();
         decref(var_x);
     }
     WORD_EXIT(mw_Variable_2E_for);
 }
 static void mw_Variable_2E_alloc_21_ (void){
-    WORD_ENTER(mw_Variable_2E_alloc_21_, "Variable.alloc!", "src/mirth/data/variable.mth", 7, 7);
-    WORD_ATOM(7, 7, "Variable");
+    WORD_ENTER(mw_Variable_2E_alloc_21_, "Variable.alloc!", "src/mirth/data/variable.mth", 8, 7);
+    WORD_ATOM(8, 7, "Variable");
     mw_Variable_2E_NUM();
-    WORD_ATOM(7, 7, "Variable");
+    WORD_ATOM(8, 7, "Variable");
     mw_prim_u64_get();
-    WORD_ATOM(7, 7, "Variable");
+    WORD_ATOM(8, 7, "Variable");
     mw_prim_unsafe_cast();
-    WORD_ATOM(7, 7, "Variable");
+    WORD_ATOM(8, 7, "Variable");
     push_i64(1LL);
-    WORD_ATOM(7, 7, "Variable");
+    WORD_ATOM(8, 7, "Variable");
     mw_prim_int_add();
-    WORD_ATOM(7, 7, "Variable");
+    WORD_ATOM(8, 7, "Variable");
     mw_prim_dup();
-    WORD_ATOM(7, 7, "Variable");
+    WORD_ATOM(8, 7, "Variable");
     mw_prim_unsafe_cast();
-    WORD_ATOM(7, 7, "Variable");
+    WORD_ATOM(8, 7, "Variable");
     mw_Variable_2E_NUM();
-    WORD_ATOM(7, 7, "Variable");
+    WORD_ATOM(8, 7, "Variable");
     mw_prim_u64_set();
-    WORD_ATOM(7, 7, "Variable");
+    WORD_ATOM(8, 7, "Variable");
     mw_prim_unsafe_cast();
     WORD_EXIT(mw_Variable_2E_alloc_21_);
 }
-static void mw_variable_new_21_ (void){
-    WORD_ENTER(mw_variable_new_21_, "variable-new!", "src/mirth/data/variable.mth", 13, 5);
-    WORD_ATOM(13, 5, "Variable.alloc!");
+static void mw_Variable_2E_head (void){
+    WORD_ENTER(mw_Variable_2E_head, "Variable.head", "src/mirth/data/variable.mth", 13, 39);
+    WORD_ATOM(13, 39, "~head");
+    mw_Variable_7E_head();
+    WORD_ATOM(13, 45, "@");
+    mw_prim_mut_get();
+    WORD_EXIT(mw_Variable_2E_head);
+}
+static void mw_Variable_2E_name (void){
+    WORD_ENTER(mw_Variable_2E_name, "Variable.name", "src/mirth/data/variable.mth", 14, 38);
+    WORD_ATOM(14, 38, "~name");
+    mw_Variable_7E_name();
+    WORD_ATOM(14, 44, "@");
+    mw_prim_mut_get();
+    WORD_EXIT(mw_Variable_2E_name);
+}
+static void mw_Variable_2E_type (void){
+    WORD_ENTER(mw_Variable_2E_type, "Variable.type", "src/mirth/data/variable.mth", 15, 38);
+    WORD_ATOM(15, 38, "~type");
+    mw_Variable_7E_type();
+    WORD_ATOM(15, 44, "force!");
+    mw_force_21_();
+    WORD_EXIT(mw_Variable_2E_type);
+}
+static void mw_Variable_2E_new_21_ (void){
+    WORD_ENTER(mw_Variable_2E_new_21_, "Variable.new!", "src/mirth/data/variable.mth", 18, 5);
+    WORD_ATOM(18, 5, "Variable.alloc!");
     mw_Variable_2E_alloc_21_();
-    WORD_ATOM(14, 5, "tuck");
+    WORD_ATOM(19, 5, "tuck");
     mw_tuck();
-    WORD_ATOM(14, 10, "variable-type");
-    mw_variable_type();
-    WORD_ATOM(14, 24, "!");
+    WORD_ATOM(19, 10, "~type");
+    mw_Variable_7E_type();
+    WORD_ATOM(19, 16, "!");
     mw_prim_mut_set();
-    WORD_ATOM(15, 5, "tuck");
+    WORD_ATOM(20, 5, "tuck");
     mw_tuck();
-    WORD_ATOM(15, 10, "dup2");
-    mw_dup2();
-    WORD_ATOM(15, 15, "variable-name");
-    mw_variable_name();
-    WORD_ATOM(15, 29, "!");
+    WORD_ATOM(20, 10, "~name");
+    mw_Variable_7E_name();
+    WORD_ATOM(20, 16, "!");
     mw_prim_mut_set();
-    WORD_ATOM(16, 5, "DEF_VARIABLE");
+    WORD_ATOM(21, 5, "tuck");
+    mw_tuck();
+    WORD_ATOM(21, 10, "~head");
+    mw_Variable_7E_head();
+    WORD_ATOM(21, 16, "!");
+    mw_prim_mut_set();
+    WORD_ATOM(22, 5, "dup");
+    mw_prim_dup();
+    WORD_ATOM(22, 9, "DEF_VARIABLE");
     mw_DEF_5F_VARIABLE();
-    WORD_ATOM(16, 18, "swap");
-    mw_prim_swap();
-    WORD_ATOM(16, 23, "~Def");
+    WORD_ATOM(22, 22, "over");
+    mw_over();
+    WORD_ATOM(22, 27, "name");
+    mw_Variable_2E_name();
+    WORD_ATOM(22, 32, "~Def");
     mw_Name_7E_Def();
-    WORD_ATOM(16, 28, "!");
+    WORD_ATOM(22, 37, "!");
     mw_prim_mut_set();
-    WORD_ATOM(17, 5, "tuck");
-    mw_tuck();
-    WORD_ATOM(17, 10, "variable-head");
-    mw_variable_head();
-    WORD_ATOM(17, 24, "!");
-    mw_prim_mut_set();
-    WORD_EXIT(mw_variable_new_21_);
+    WORD_EXIT(mw_Variable_2E_new_21_);
 }
 static void mw_Constant_2E_alloc_21_ (void){
     WORD_ENTER(mw_Constant_2E_alloc_21_, "Constant.alloc!", "src/mirth/data/constant.mth", 7, 7);
@@ -15076,13 +15105,11 @@ static void mw_c99_variable_21_ (void){
     }
     WORD_ATOM(221, 16, ".");
     mw__2E_();
-    WORD_ATOM(221, 18, "variable-name");
-    mw_variable_name();
-    WORD_ATOM(221, 32, "@");
-    mw_prim_mut_get();
-    WORD_ATOM(221, 34, ".name");
+    WORD_ATOM(221, 18, "name");
+    mw_Variable_2E_name();
+    WORD_ATOM(221, 23, ".name");
     mw__2E_name();
-    WORD_ATOM(221, 40, "");
+    WORD_ATOM(221, 29, "");
     {
         static bool vready = false;
         static VAL v;
@@ -15093,7 +15120,7 @@ static void mw_c99_variable_21_ (void){
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(221, 47, ";");
+    WORD_ATOM(221, 36, ";");
     mw__3B_();
     WORD_ATOM(222, 5, "");
     {
@@ -15831,11 +15858,9 @@ static void mw_c99_args_op_21_ (void){
             break;
         case 5LL:
             mw_prim_pack_uncons(); mw_prim_drop();
-            WORD_ATOM(307, 20, "variable-name");
-            mw_variable_name();
-            WORD_ATOM(307, 34, "@");
-            mw_prim_mut_get();
-            WORD_ATOM(307, 36, "c99-call!");
+            WORD_ATOM(307, 20, "name");
+            mw_Variable_2E_name();
+            WORD_ATOM(307, 25, "c99-call!");
             mw_c99_call_21_();
             break;
         case 7LL:
@@ -18831,13 +18856,11 @@ static void mw_elab_op_fresh_sig_21_ (void){
             break;
         case 5LL:
             mw_prim_pack_uncons(); mw_prim_drop();
-            WORD_ATOM(402, 24, "variable-type");
-            mw_variable_type();
-            WORD_ATOM(402, 38, "force!");
-            mw_force_21_();
-            WORD_ATOM(402, 45, "TMut");
+            WORD_ATOM(402, 24, "type");
+            mw_Variable_2E_type();
+            WORD_ATOM(402, 29, "TMut");
             mw_TMut();
-            WORD_ATOM(402, 50, "OPSIG_PUSH");
+            WORD_ATOM(402, 34, "OPSIG_PUSH");
             mw_OPSIG_5F_PUSH();
             break;
         case 6LL:
@@ -21277,8 +21300,8 @@ static void mw_elab_variable_21_ (void){
     push_fnptr(&mb_elab_variable_21__4);
     mw_prim_pack_cons();
     mw_delay();
-    WORD_ATOM(989, 5, "variable-new!");
-    mw_variable_new_21_();
+    WORD_ATOM(989, 5, "Variable.new!");
+    mw_Variable_2E_new_21_();
     WORD_ATOM(989, 19, "drop");
     mw_prim_drop();
     WORD_EXIT(mw_elab_variable_21_);
@@ -21508,11 +21531,9 @@ static void mw_typecheck_def_21_ (void){
             break;
         case 8LL:
             mw_prim_pack_uncons(); mw_prim_drop();
-            WORD_ATOM(1034, 21, "variable-type");
-            mw_variable_type();
-            WORD_ATOM(1034, 35, "force!");
-            mw_force_21_();
-            WORD_ATOM(1034, 42, "drop");
+            WORD_ATOM(1034, 21, "type");
+            mw_Variable_2E_type();
+            WORD_ATOM(1034, 26, "drop");
             mw_prim_drop();
             break;
         case 9LL:
@@ -32558,13 +32579,11 @@ static void mw_Def_3E_Module_3F_ (void){
             break;
         case 8LL:
             mw_prim_pack_uncons(); mw_prim_drop();
-            WORD_ATOM(38, 21, "variable-head");
-            mw_variable_head();
-            WORD_ATOM(38, 35, "@");
-            mw_prim_mut_get();
-            WORD_ATOM(38, 37, ".module");
+            WORD_ATOM(38, 21, "head");
+            mw_Variable_2E_head();
+            WORD_ATOM(38, 26, ".module");
             mw_Token_2E_module();
-            WORD_ATOM(38, 45, "SOME");
+            WORD_ATOM(38, 34, "SOME");
             mw_SOME();
             break;
         case 9LL:
