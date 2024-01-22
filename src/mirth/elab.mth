@@ -258,7 +258,7 @@ def(ab-optimized-snoc!, List(Atom) Atom -- List(Atom),
 
 def(atom-accepts-args?, Atom -- Atom Bool,
     dup op match(
-        OP_WORD -> dip(dup args len) type type-max-num-params <,
+        OP_WORD -> dip(dup args len) type max-num-params <,
         OP_PRIM ->
             match(
                 PRIM_CORE_RUN -> dup args len 1 <, # this one's dubious
@@ -349,7 +349,7 @@ def(ab-word!, Word --, OP_WORD ab-op!)
 def(ab-external!, External --, OP_EXTERNAL ab-op!)
 
 def(ab-block-at!(f), (*a -- *b) *a Token -- *b,
-    ab-ctx @ meta-alloc! TMeta rotl ab-build!(f)
+    ab-ctx @ MetaVar.new! TMeta rotl ab-build!(f)
     Block.new! OP_BLOCK ab-op!)
 
 def(ab-block!(f), (*a -- *b) *a -- *b,
@@ -433,7 +433,7 @@ def(elab-word-ctx-type-weak!, Word -- Ctx Type,
     dup sig match(
         NONE -> ~ctx-type @ match(
             LAZY_READY -> unpack2,
-            _ -> drop CTX0 meta-alloc! TMeta meta-alloc! TMeta T->
+            _ -> drop CTX0 MetaVar.new! TMeta MetaVar.new! TMeta T->
         ),
         SOME -> drop ctx-type
     ))
@@ -568,7 +568,7 @@ def(elab-match-at!, Type Token --,
     OP_MATCH ab-op!)
 
 def(elab-atom-match!, --,
-    meta-alloc! TMeta
+    MetaVar.new! TMeta
     ab-token @ args+ first+
     elab-match-at!)
 
@@ -581,10 +581,10 @@ def(elab-expand-tensor!, Type Token -- Type Type Token,
         TYPE_ERROR -> dip(TYPE_ERROR TYPE_ERROR),
         TTensor -> id rotl,
         TMeta ->
-            dip(meta-alloc! TMeta
-                meta-alloc! TMeta
+            dip(MetaVar.new! TMeta
+                MetaVar.new! TMeta
                 dup2 T* SOME)
-            meta-type ! rotl,
+            ~type? ! rotl,
         _ ->
             drop dup "expected tuple type" emit-error!
             dip(TYPE_ERROR TYPE_ERROR)
@@ -595,10 +595,10 @@ def(elab-expand-morphism!, Type Token -- Type Type Token,
         TYPE_ERROR -> dip(TYPE_ERROR TYPE_ERROR),
         TMorphism -> id rotl,
         TMeta ->
-            dip(meta-alloc! TMeta
-                meta-alloc! TMeta
+            dip(MetaVar.new! TMeta
+                MetaVar.new! TMeta
                 dup2 T-> SOME)
-            meta-type ! rotl,
+            ~type? ! rotl,
         _ ->
             drop dup "expected block type" emit-error!
             dip(TYPE_ERROR TYPE_ERROR)

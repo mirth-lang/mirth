@@ -87,9 +87,9 @@ field(Lambda~cod, Lambda, Type)
 field(Lambda~params, Lambda, List(Param))
 field(Lambda~body, Lambda, Arrow)
 
-field(Block~ctx, Block, Ctx) 
-field(Block~token, Block, Token) 
-field(Block~dom, Block, Type) 
+field(Block~ctx, Block, Ctx)
+field(Block~token, Block, Token)
+field(Block~dom, Block, Type)
 field(Block~cod, Block, Type)
 field(Block~arrow, Block, Lazy(Arrow))
 
@@ -154,8 +154,8 @@ def(Block.new-deferred!, Ctx Token -- Block,
     Block.alloc!
     tuck ~token !
     tuck ~ctx !
-    meta-alloc! TMeta over ~dom !
-    meta-alloc! TMeta over ~cod !
+    MetaVar.new! TMeta over ~dom !
+    MetaVar.new! TMeta over ~cod !
     dup delay(
         dup ctx swap
         dup dom swap
@@ -165,7 +165,7 @@ def(Block.new-deferred!, Ctx Token -- Block,
     ) over ~arrow !)
 
 def(Block.typecheck!, Block --,
-    arrow drop)    
+    arrow drop)
 
 def(block-unify-type!, Gamma Block Type -- Gamma Type,
     over2 gamma-token@ elab-expand-morphism! drop
