@@ -209,108 +209,53 @@ def(type-unify-failed!, Gamma Type Type -- Gamma Type,
     TYPE_ERROR
     num-errors modify(1+))
 
-# Unify two types. Raises an elaboration error if unification is impossible.
+def(Type.unify-simple!, Gamma Type Type -- Gamma Type,
+    TVar -> swap match(TVar -> type-var-unify!, _ -> dip(TVar) type-unify-failed!),
+    TPrim -> swap match(TPrim -> type-prim-unify!, _ -> dip(TPrim) type-unify-failed!),
+    TData -> swap match(TData -> type-data-unify!, _ -> dip(TData) type-unify-failed!),
+    TTable -> swap match(TTable -> type-table-unify!, _ -> dip(TTable) type-unify-failed!),
+    TTensor -> rotl match(TTensor -> type-unify-pair! TTensor, _ -> dip(TTensor) type-unify-failed!),
+    TMorphism -> rotl match(TMorphism -> type-unify-pair! TMorphism, _ -> dip(TMorphism) type-unify-failed!),
+    TApp -> rotl match(TApp -> type-unify-pair! TApp, _ -> dip(TApp) type-unify-failed!),
+    TMut -> swap match(TMut -> type-unify! TMut, _ -> dip(TMut) type-unify-failed!),
+    _ -> type-unify-failed!)
+
+def(Type.unify-aux!, Gamma Type Type -- Gamma Type,
+    TYPE_ERROR -> drop TYPE_ERROR,
+    TYPE_DONT_CARE -> id,
+    THole -> type-hole-unify!,
+    TMeta ->
+        swap match(
+            TYPE_ERROR -> drop TYPE_ERROR,
+            TYPE_DONT_CARE -> TMeta,
+            THole -> dip(TMeta) type-hole-unify!,
+            TMeta -> dip(TMeta) unify!,
+            TValue -> dip(TMeta) type-value-unify!,
+            _ -> swap unify!,
+        ),
+    TValue ->
+        swap match(
+            TYPE_ERROR -> drop TYPE_ERROR,
+            TYPE_DONT_CARE -> TValue,
+            THole -> dip(TValue) type-hole-unify!,
+            TMeta -> dip(TValue) unify!,
+            TValue -> value-unify!,
+            _ -> swap type-value-unify!
+        ),
+    _ ->
+        swap match(
+            TYPE_ERROR -> drop TYPE_ERROR,
+            TYPE_DONT_CARE -> id,
+            THole -> type-hole-unify!,
+            TMeta -> unify!,
+            TValue -> type-value-unify!,
+            _ -> unify-simple!
+        )
+    )
+
+||| Unify two types. Raises an elaboration error if unification is impossible.
 def(type-unify!, Gamma Type Type -- Gamma Type,
-    swap type-expand match(
-        TYPE_ERROR -> drop TYPE_ERROR,
-        TYPE_DONT_CARE -> id,
-        THole -> type-hole-unify!,
-        TMeta ->
-            swap type-expand match(
-                TYPE_ERROR -> drop TYPE_ERROR,
-                TYPE_DONT_CARE -> TMeta,
-                THole -> dip(TMeta) type-hole-unify!,
-                _ -> swap unify!,
-            ),
-        TVar ->
-            swap type-expand match(
-                TYPE_ERROR -> drop TYPE_ERROR,
-                TYPE_DONT_CARE -> TVar,
-                THole -> dip(TVar) type-hole-unify!,
-                TMeta -> dip(TVar) unify!,
-                TVar -> type-var-unify!,
-                _ -> dip(TVar) type-unify-failed!,
-            ),
-        TPrim ->
-            swap type-expand match(
-                TYPE_ERROR -> drop TYPE_ERROR,
-                TYPE_DONT_CARE -> TPrim,
-                THole -> dip(TPrim) type-hole-unify!,
-                TMeta -> dip(TPrim) unify!,
-                TValue -> dip(TPrim) type-value-unify!,
-                TPrim -> type-prim-unify!,
-                _ -> dip(TPrim) type-unify-failed!,
-            ),
-        TData ->
-            swap type-expand match(
-                TYPE_ERROR -> drop TYPE_ERROR,
-                TYPE_DONT_CARE -> TData,
-                THole -> dip(TData) type-hole-unify!,
-                TMeta -> dip(TData) unify!,
-                TValue -> dip(TData) type-value-unify!,
-                TData -> type-data-unify!,
-                _ -> dip(TData) type-unify-failed!,
-            ),
-        TTable ->
-            swap type-expand match(
-                TYPE_ERROR -> drop TYPE_ERROR,
-                TYPE_DONT_CARE -> TTable,
-                THole -> dip(TTable) type-hole-unify!,
-                TMeta -> dip(TTable) unify!,
-                TValue -> dip(TTable) type-value-unify!,
-                TTable -> type-table-unify!,
-                _ -> dip(TTable) type-unify-failed!,
-            ),
-        TTensor ->
-            rotl type-expand match(
-                TYPE_ERROR -> drop2 TYPE_ERROR,
-                TYPE_DONT_CARE -> TTensor,
-                THole -> dip(TTensor) type-hole-unify!,
-                TMeta -> dip(TTensor) unify!,
-                TValue -> dip(TTensor) type-value-unify!,
-                TTensor -> type-unify-pair! TTensor,
-                _ -> dip(TTensor) type-unify-failed!,
-            ),
-        TMorphism ->
-            rotl type-expand match(
-                TYPE_ERROR -> drop2 TYPE_ERROR,
-                TYPE_DONT_CARE -> TMorphism,
-                THole -> dip(TMorphism) type-hole-unify!,
-                TMeta -> dip(TMorphism) unify!,
-                TValue -> dip(TMorphism) type-value-unify!,
-                TMorphism -> type-unify-pair! TMorphism,
-                _ -> dip(TMorphism) type-unify-failed!,
-            ),
-        TApp ->
-            rotl type-expand match(
-                TYPE_ERROR -> drop2 TYPE_ERROR,
-                TYPE_DONT_CARE -> TApp,
-                THole -> dip(TApp) type-hole-unify!,
-                TMeta -> dip(TApp) unify!,
-                TValue -> dip(TApp) type-value-unify!,
-                TApp -> type-unify-pair! TApp,
-                _ -> dip(TApp) type-unify-failed!,
-            ),
-        TValue ->
-            swap type-expand match(
-                TYPE_ERROR -> drop TYPE_ERROR,
-                TYPE_DONT_CARE -> TValue,
-                THole -> dip(TValue) type-hole-unify!,
-                TMeta -> dip(TValue) unify!, # this might be bad?
-                TValue -> value-unify!,
-                _ -> value-type-unify!
-            ),
-        TMut ->
-            swap type-expand match(
-                TYPE_ERROR -> drop TYPE_ERROR,
-                TYPE_DONT_CARE -> TMut,
-                THole -> dip(TMut) type-hole-unify!,
-                TMeta -> dip(TMut) unify!,
-                TValue -> dip(TMut) type-value-unify!,
-                TMut -> type-unify! TMut,
-                _ -> dip(TMut) type-unify-failed!,
-            ),
-    ))
+    both(type-expand) unify-aux!)
 
 def(value-unify!, Gamma Value Value -- Gamma Type,
     swap match(
