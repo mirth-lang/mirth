@@ -134,7 +134,7 @@ def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
         dup name? unwrap >Def match(
             DEF_TYPE ->
                 over num-args
-                over type-arity = if(
+                over arity = if(
                     elab-type-args!,
 
                     drop dup
@@ -184,7 +184,7 @@ def(elab-type-quote!, TypeElab Token -- TypeElab Type Token,
     ) next)
 
 def(elab-type-unify!, Type Type Token -- Type Token,
-    sip(GAMMA rotr type-unify! nip))
+    sip(GAMMA rotr unify! nip))
 
 def(elab-simple-type-arg!, Token -- Type,
     dip(type-elab-default) elab-type-arg! drop nip)
@@ -238,7 +238,7 @@ def(ab-build-word!(f), (*a -- *b) *a Word -- *b Word,
     tuck ~arrow !)
 
 def(ab-unify-type!, Type --,
-    dip(ab-token @ GAMMA ab-type @) type-unify! ab-type ! drop)
+    dip(ab-token @ GAMMA ab-type @) unify! ab-type ! drop)
 
 def(ab-atom!, Atom --,
     dup token ab-token !
@@ -403,11 +403,11 @@ def(elab-op-fresh-sig!, Op -- Subst OpSig,
         OP_BUFFER -> drop TYPE_PTR OPSIG_PUSH,
         OP_VARIABLE -> type TMut OPSIG_PUSH,
         OP_CONSTANT -> value TValue OPSIG_PUSH,
-        OP_TAG -> type type-freshen-sig OPSIG_APPLY,
-        OP_WORD -> type type-freshen-sig OPSIG_APPLY,
-        OP_PRIM -> type type-freshen-sig OPSIG_APPLY,
-        OP_EXTERNAL -> type type-freshen-sig OPSIG_APPLY,
-        OP_FIELD -> type type-freshen-sig OPSIG_APPLY,
+        OP_TAG -> type freshen-sig OPSIG_APPLY,
+        OP_WORD -> type freshen-sig OPSIG_APPLY,
+        OP_PRIM -> type freshen-sig OPSIG_APPLY,
+        OP_EXTERNAL -> type freshen-sig OPSIG_APPLY,
+        OP_FIELD -> type freshen-sig OPSIG_APPLY,
         OP_BLOCK -> elab-block-sig!,
         OP_VAR -> elab-var-sig!,
         OP_MATCH -> elab-match-sig!,
@@ -425,7 +425,7 @@ def(elab-lambda-sig!, Lambda -- OpSig,
 
 def(elab-var-sig!, Var -- OpSig,
     dup auto-run? if(
-        type type-semifreshen-sig OPSIG_APPLY,
+        type semifreshen-sig OPSIG_APPLY,
         type OPSIG_PUSH
     ))
 
@@ -447,7 +447,7 @@ def(elab-arrow-hom!, Ctx Type Type Token -- Arrow,
         dup token-end GAMMA
         over cod
     )
-    type-unify! drop2)
+    unify! drop2)
 
 def(elab-arrow-fwd!, Ctx Type Token -- Arrow,
     ab-build!(elab-atoms!))
@@ -543,7 +543,7 @@ def(elab-atom-assert!, --,
     ab-token @ GAMMA
     ab-ctx @ type-elab-stack-assertion
     ab-token @ args-1 elab-type-stack!
-    drop nip ab-type @ swap type-unify! drop2)
+    drop nip ab-type @ swap unify! drop2)
 
 def(elab-atom-lambda!, --,
     Lambda.alloc!
@@ -577,7 +577,7 @@ def(elab-lambda!, Lambda -- Lambda,
     elab-lambda-body!)
 
 def(elab-expand-tensor!, Type Token -- Type Type Token,
-    swap type-expand match(
+    swap expand match(
         TYPE_ERROR -> dip(TYPE_ERROR TYPE_ERROR),
         TTensor -> id rotl,
         TMeta ->
@@ -591,7 +591,7 @@ def(elab-expand-tensor!, Type Token -- Type Type Token,
     ))
 
 def(elab-expand-morphism!, Type Token -- Type Type Token,
-    swap type-expand match(
+    swap expand match(
         TYPE_ERROR -> dip(TYPE_ERROR TYPE_ERROR),
         TMorphism -> id rotl,
         TMeta ->
@@ -632,7 +632,7 @@ def(elab-lambda-params!, Lambda -- Lambda,
             dup sig-type-var? if(
                 name? unwrap Var.new!,
 
-                succ dip(type-expand type-is-morphism?) swap if(
+                succ dip(expand dup morphism?) swap .if(
                     name? unwrap Var.new-auto-run!,
 
                     "block pattern on non-block argument" emit-fatal-error!
@@ -699,7 +699,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
 
                 # set case mid
                 dip2(dup .match dom) { Case Type Token Tag }
-                type Subst.nil swap type-freshen-sig
+                type Subst.nil swap freshen-sig
                 { Case Type Token Subst Type }
                 rotr dip(
                     elab-expand-morphism!

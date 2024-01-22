@@ -55,7 +55,7 @@ def(Match.has-default-case?, Match -- Bool,
 
 ||| Get type we're matching over.
 def(Match.scrutinee?, Match -- Maybe(Type),
-    dom type-expand match(
+    dom expand match(
         TTensor -> nip SOME,
         _ -> drop NONE
     ))

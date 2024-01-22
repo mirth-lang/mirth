@@ -168,7 +168,7 @@ def(Block.typecheck!, Block --,
     arrow drop)
 
 def(block-unify-type!, Gamma Block Type -- Gamma Type,
-    over2 gamma-token@ elab-expand-morphism! drop
-    dip(swap sip(dom type-unify! drop))
-    swap sip(cod type-unify! drop)
+    over2 token elab-expand-morphism! drop
+    dip(swap sip(dom unify! drop))
+    swap sip(cod unify! drop)
     arrow type)

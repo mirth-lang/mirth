@@ -24,8 +24,7 @@ def(Var.trace!, Var --, name trace!)
 def(Var.is-type?, Var -- Bool, type prim? and-some(PRIM_TYPE_TYPE =))
 def(Var.is-stack?, Var -- Bool, type prim? and-some(PRIM_TYPE_STACK =))
 def(Var.is-effect?, Var -- Bool, type prim? and-some(PRIM_TYPE_EFFECT =))
-def(Var.is-physical?, Var -- Bool,
-    type type-is-physical)
+def(Var.is-physical?, Var -- Bool, type is-physical?)
 
 def(Var.new!, Type Name -- Var,
     Var.alloc!
