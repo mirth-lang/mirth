@@ -1,5 +1,6 @@
 module(mirth.data.table)
 import(prelude)
+import(data.lazy)
 import(mirth.data.name)
 import(mirth.data.type)
 import(mirth.data.buffer)
@@ -7,15 +8,27 @@ import(mirth.data.word)
 
 # mirth/data/table
 table(Table)
-field(table-head, Table, Token) # where the table was defined
-field(table-name, Table, Name)
-field(table-num-buffer, Table, Buffer)
-field(table-max-count, Table, Size)
+field(Table~head, Table, Token) # where the table was defined
+field(Table~name, Table, Name)
+field(Table~num-buffer, Table, Buffer)
+field(Table~max-count, Table, Size)
+
+def(Table.head, Table -- Token, ~head @)
+def(Table.name, Table -- Name, ~name @)
+def(Table.num-buffer, Table -- Buffer, ~num-buffer @)
+def(Table.max-count, Table -- Size, ~max-count @)
+def(Table=, Table Table -- Bool, both(.id) =)
 
 table(Field)
-field(field-head, Field, Token)
-field(field-name, Field, Name)
-field(field-index-type, Field, Lazy(Type))
-field(field-value-type, Field, Lazy(Type))
+field(Field~head, Field, Token)
+field(Field~name, Field, Name)
+field(Field~index-type, Field, Lazy(Type))
+field(Field~value-type, Field, Lazy(Type))
 
-def(table==, Table Table -- Bool, both(Table.id) =)
+def(Field.head, Field -- Token, ~head @)
+def(Field.name, Field -- Name, ~name @)
+def(Field.index-type, Field -- Type, ~index-type force!)
+def(Field.value-type, Field -- Type, ~value-type force!)
+
+def(Field.type, Field -- Type,
+    sip(index-type T1) value-type TMut T1 T->)

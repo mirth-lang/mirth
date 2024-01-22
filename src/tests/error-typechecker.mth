@@ -2,5 +2,5 @@
 module(tests.error-typechecker)
 def(foo, Int, "hello")
 
-# mirth-test # merr # 3:22: error: Failed to unify Str with Int
+# mirth-test # merr # 3:22: error: Failed to unify Int with Str
 # mirth-test # mret # 1

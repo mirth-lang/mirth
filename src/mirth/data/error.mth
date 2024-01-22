@@ -12,17 +12,17 @@ import(mirth.data.token)
 var(num-warnings, Int)
 var(num-errors, Int)
 
-def(init-errors!,
+def(init-errors!, --,
     0 num-errors !
     0 num-warnings !)
 
 def(emit-warning-at!, Location Str --,
-    dip(location-trace!)
+    dip(trace!)
     ": warning: " trace! trace-ln!
     num-warnings modify(1+))
 
 def(emit-error-at!, Location Str --,
-    dip(location-trace!)
+    dip(trace!)
     ": error: " trace! trace-ln!
     num-errors modify(1+))
 

@@ -20,7 +20,7 @@ field(Name~mangled, Name, Lazy(Str))
 
 def(Name>Str, Name -- Str, ~Str @)
 def(Name>Def, Name -- Def, ~Def @)
-def(Name>mangled, Name -- Str, ~mangled force!)
+def(Name.mangled, Name -- Str, ~mangled force!)
 
 def(Name=, Name Name -- Bool, both(Name.id) =)
 
@@ -51,12 +51,12 @@ def(Hash.keep-going?, Str Hash -- Str Hash Bool,
         SOME -> >Str over2 <>
     ))
 
-def(name-search, Str -- Maybe(Name),
+def(Name.search, Str -- Maybe(Name),
     dup hash
     while(keep-going?, next)
     nip hash-name@)
 
-def(name-new!, Str -- Name,
+def(Str>Name, Str -- Name,
     dup hash
     while(keep-going?, next)
     dup hash-name@ match(
@@ -71,8 +71,8 @@ def(name-new!, Str -- Name,
     ))
 
 ||| Add string to name, creating new name.
-def(name-cat!, Name Str -- Name,
-    dip(>Str) cat name-new!)
+def(Name.cat, Name Str -- Name,
+    dip(>Str) cat >Name)
 
 def(Name.trace!, Name --, >Str trace!)
 def(Name.print!, Name --, >Str print!)
@@ -82,8 +82,11 @@ def(Name.head, Name -- Byte,
 def(Name.tail-head, Name -- Byte,
     >Str with-str-data(2 >= if(dip(1) .offset-unsafe @Byte, drop BNUL)))
 def(Name.tail, Name -- Name,
-    >Str with-str-data(dup 2 >= if(dip(dip(1) .offset-unsafe) 1- prim-str-copy, drop2 "")) name-new!)
-
+    >Str with-str-data(
+        dup 2 >=
+        if(dip(dip(1) .offset-unsafe) 1- prim-str-copy, drop2 "")
+    ) >Name)
+    
 def(Name.could-be-type, Name -- Bool, head is-alpha)
 def(Name.could-be-type-var, Name -- Bool, head is-lower)
 def(Name.could-be-type-con, Name -- Bool, head is-upper)
@@ -91,7 +94,7 @@ def(Name.is-type-hole, Name -- Bool, dup head B'?' = swap tail-head dup BNUL = s
 def(Name.is-underscore, Name -- Bool, dup head B'_' = swap tail-head BNUL = &&)
 def(Name.could-be-stack-var, Name -- Bool, dup head B'*' = swap tail-head is-lower &&)
 def(Name.could-be-effect-con, Name -- Bool, dup head B'+' = swap tail-head is-upper &&)
-def(Name.print-mangled!, Name --, >mangled print!)
+def(Name.print-mangled!, Name --, mangled print!)
 def(Name.mangle-compute!, Name -- Str,
     build-str!(>Str str-bytes-for(
         dup is-alnum if(
@@ -118,5 +121,5 @@ def(Name.to-overload-suffix, Name -- Str,
 # Defs #
 ########
 
-def(name-undefined?, Name -- Name Bool, dup >Def is-none)
+def(name-undefined?, Name -- Name Bool, dup >Def none?)
 def(name-defined?, Name -- Name Bool, name-undefined? not)

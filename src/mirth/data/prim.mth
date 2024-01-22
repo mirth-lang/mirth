@@ -4,6 +4,7 @@ import(prelude)
 import(data.maybe)
 import(mirth.data.name)
 import(mirth.data.type)
+import(mirth.data.data)
 import(mirth.data.ctx)
 import(mirth.data.var)
 import(mirth.data.token)
@@ -113,26 +114,27 @@ data(Prim,
     PRIM_SYNTAX_DATA,
     PRIM_SYNTAX_DASHES,
     PRIM_SYNTAX_ARROW)
-field(prim-name, Prim, Name)
-field(prim-ctx, Prim, Ctx)
-field(prim-type, Prim, Type)
-field(prim-decl, Prim, Maybe([Token -- Token]))
+field(Prim~name, Prim, Name)
+field(Prim~ctx, Prim, Ctx)
+field(Prim~type, Prim, Type)
+field(Prim~decl, Prim, Maybe([Token -- Token]))
 
-def(Prim->Int, Prim -- Int, prim-unsafe-cast)
-def(prim==, both(Prim->Int) =)
+def(Prim.name, Prim -- Name, ~name @)
+def(Prim.ctx, Prim -- Ctx, ~ctx @)
+def(Prim.type, Prim -- Type, ~type @)
+def(Prim.decl, Prim -- Maybe([Token -- Token]), ~decl @)
 
-||| Does this name refer to this primitive?
-def(name-prim=, Name Prim -- Bool,
-    swap >Def match(
-        DEF_PRIM -> prim==,
-        _ -> drop2 F
-    ))
+def(Prim>Int, Prim -- Int, prim-unsafe-cast)
+def(Prim=, Prim Prim -- Bool, both(>Int) =)
 
 ||| Auxilliary word for defining primitives.
 def(def-prim!, Prim Str --,
-    name-new!
+    >Name
     dup2 dip(DEF_PRIM) ~Def !
-    swap prim-name !)
+    swap ~name !)
+
+def(Prim.ctx-type!, Ctx Type Prim --,
+    tuck ~type ! ~ctx !)
 
 ||| Initialize name table with list of primitives.
 def(init-prims!, --,
@@ -247,273 +249,212 @@ def(init-prims!, --,
     # decl prims
     #
 
-    [ elab-module-import! ] SOME PRIM_SYNTAX_IMPORT       prim-decl !
-    [ elab-alias!         ] SOME PRIM_SYNTAX_ALIAS        prim-decl !
-    [ elab-def!           ] SOME PRIM_SYNTAX_DEF          prim-decl !
-    [ elab-def-missing!   ] SOME PRIM_SYNTAX_DEF_MISSING  prim-decl !
-    [ elab-def-external!  ] SOME PRIM_SYNTAX_DEF_EXTERNAL prim-decl !
-    [ elab-def-type!      ] SOME PRIM_SYNTAX_DEF_TYPE     prim-decl !
-    [ elab-buffer!        ] SOME PRIM_SYNTAX_BUFFER       prim-decl !
-    [ elab-variable!      ] SOME PRIM_SYNTAX_VARIABLE     prim-decl !
-    [ elab-table!         ] SOME PRIM_SYNTAX_TABLE        prim-decl !
-    [ elab-field!         ] SOME PRIM_SYNTAX_FIELD        prim-decl !
-    [ elab-data!          ] SOME PRIM_SYNTAX_DATA         prim-decl !
-    [ elab-target-c99!    ] SOME PRIM_SYNTAX_TARGET_C99   prim-decl !
-    [ elab-embed-str!     ] SOME PRIM_SYNTAX_EMBED_STR    prim-decl !
+    [ elab-module-import! ] SOME PRIM_SYNTAX_IMPORT       ~decl !
+    [ elab-alias!         ] SOME PRIM_SYNTAX_ALIAS        ~decl !
+    [ elab-def!           ] SOME PRIM_SYNTAX_DEF          ~decl !
+    [ elab-def-missing!   ] SOME PRIM_SYNTAX_DEF_MISSING  ~decl !
+    [ elab-def-external!  ] SOME PRIM_SYNTAX_DEF_EXTERNAL ~decl !
+    [ elab-def-type!      ] SOME PRIM_SYNTAX_DEF_TYPE     ~decl !
+    [ elab-buffer!        ] SOME PRIM_SYNTAX_BUFFER       ~decl !
+    [ elab-variable!      ] SOME PRIM_SYNTAX_VARIABLE     ~decl !
+    [ elab-table!         ] SOME PRIM_SYNTAX_TABLE        ~decl !
+    [ elab-field!         ] SOME PRIM_SYNTAX_FIELD        ~decl !
+    [ elab-data!          ] SOME PRIM_SYNTAX_DATA         ~decl !
+    [ elab-target-c99!    ] SOME PRIM_SYNTAX_TARGET_C99   ~decl !
+    [ elab-embed-str!     ] SOME PRIM_SYNTAX_EMBED_STR    ~decl !
 
     #
     # monomorphic prims
     #
 
-    T0 T0 T->
-    dup PRIM_CORE_ID prim-type !
-    dup PRIM_CORE_DEBUG prim-type !
-    drop
+    CTX0 T0 T0 T->
+    dup2 PRIM_CORE_ID ctx-type!
+    dup2 PRIM_CORE_DEBUG ctx-type!
+    drop2
 
-    TYPE_INT TYPE_INT T2 TYPE_INT T1 T->
-    dup PRIM_INT_ADD prim-type !
-    dup PRIM_INT_SUB prim-type !
-    dup PRIM_INT_MUL prim-type !
-    dup PRIM_INT_DIV prim-type !
-    dup PRIM_INT_MOD prim-type !
-    dup PRIM_INT_AND prim-type !
-    dup PRIM_INT_OR prim-type !
-    dup PRIM_INT_XOR prim-type !
-    dup PRIM_INT_SHL prim-type !
-    dup PRIM_INT_SHR prim-type !
-    drop
+    CTX0 TYPE_INT TYPE_INT T2 TYPE_INT T1 T->
+    dup2 PRIM_INT_ADD ctx-type!
+    dup2 PRIM_INT_SUB ctx-type!
+    dup2 PRIM_INT_MUL ctx-type!
+    dup2 PRIM_INT_DIV ctx-type!
+    dup2 PRIM_INT_MOD ctx-type!
+    dup2 PRIM_INT_AND ctx-type!
+    dup2 PRIM_INT_OR  ctx-type!
+    dup2 PRIM_INT_XOR ctx-type!
+    dup2 PRIM_INT_SHL ctx-type!
+    dup2 PRIM_INT_SHR ctx-type!
+    drop2
 
-    TYPE_INT TYPE_INT T2 TYPE_BOOL T1 T->
-    dup PRIM_INT_EQ prim-type !
-    dup PRIM_INT_LT prim-type !
-    drop
+    CTX0 TYPE_INT TYPE_INT T2 TYPE_BOOL T1 T->
+    dup2 PRIM_INT_EQ ctx-type!
+    dup2 PRIM_INT_LT ctx-type!
+    drop2
 
-    TYPE_INT T1 TYPE_STR T1 T-> PRIM_INT_TO_STR prim-type !
+    CTX0 TYPE_INT T1 TYPE_STR T1 T-> PRIM_INT_TO_STR ctx-type!
 
-    TYPE_PTR T1 TYPE_PTR T1 T-> PRIM_PTR_GET prim-type !
-    TYPE_PTR T1 TYPE_U8  T1 T-> PRIM_U8_GET  prim-type !
-    TYPE_PTR T1 TYPE_U16 T1 T-> PRIM_U16_GET prim-type !
-    TYPE_PTR T1 TYPE_U32 T1 T-> PRIM_U32_GET prim-type !
-    TYPE_PTR T1 TYPE_U64 T1 T-> PRIM_U64_GET prim-type !
-    TYPE_PTR T1 TYPE_I8  T1 T-> PRIM_I8_GET  prim-type !
-    TYPE_PTR T1 TYPE_I16 T1 T-> PRIM_I16_GET prim-type !
-    TYPE_PTR T1 TYPE_I32 T1 T-> PRIM_I32_GET prim-type !
-    TYPE_PTR T1 TYPE_I64 T1 T-> PRIM_I64_GET prim-type !
+    CTX0 TYPE_PTR T1 TYPE_PTR T1 T-> PRIM_PTR_GET ctx-type!
+    CTX0 TYPE_PTR T1 TYPE_U8  T1 T-> PRIM_U8_GET  ctx-type!
+    CTX0 TYPE_PTR T1 TYPE_U16 T1 T-> PRIM_U16_GET ctx-type!
+    CTX0 TYPE_PTR T1 TYPE_U32 T1 T-> PRIM_U32_GET ctx-type!
+    CTX0 TYPE_PTR T1 TYPE_U64 T1 T-> PRIM_U64_GET ctx-type!
+    CTX0 TYPE_PTR T1 TYPE_I8  T1 T-> PRIM_I8_GET  ctx-type!
+    CTX0 TYPE_PTR T1 TYPE_I16 T1 T-> PRIM_I16_GET ctx-type!
+    CTX0 TYPE_PTR T1 TYPE_I32 T1 T-> PRIM_I32_GET ctx-type!
+    CTX0 TYPE_PTR T1 TYPE_I64 T1 T-> PRIM_I64_GET ctx-type!
 
-    TYPE_PTR TYPE_PTR T2 T0 T-> PRIM_PTR_SET prim-type !
-    TYPE_U8  TYPE_PTR T2 T0 T-> PRIM_U8_SET  prim-type !
-    TYPE_U16 TYPE_PTR T2 T0 T-> PRIM_U16_SET prim-type !
-    TYPE_U32 TYPE_PTR T2 T0 T-> PRIM_U32_SET prim-type !
-    TYPE_U64 TYPE_PTR T2 T0 T-> PRIM_U64_SET prim-type !
-    TYPE_I8  TYPE_PTR T2 T0 T-> PRIM_I8_SET  prim-type !
-    TYPE_I16 TYPE_PTR T2 T0 T-> PRIM_I16_SET prim-type !
-    TYPE_I32 TYPE_PTR T2 T0 T-> PRIM_I32_SET prim-type !
-    TYPE_I64 TYPE_PTR T2 T0 T-> PRIM_I64_SET prim-type !
+    CTX0 TYPE_PTR TYPE_PTR T2 T0 T-> PRIM_PTR_SET ctx-type!
+    CTX0 TYPE_U8  TYPE_PTR T2 T0 T-> PRIM_U8_SET  ctx-type!
+    CTX0 TYPE_U16 TYPE_PTR T2 T0 T-> PRIM_U16_SET ctx-type!
+    CTX0 TYPE_U32 TYPE_PTR T2 T0 T-> PRIM_U32_SET ctx-type!
+    CTX0 TYPE_U64 TYPE_PTR T2 T0 T-> PRIM_U64_SET ctx-type!
+    CTX0 TYPE_I8  TYPE_PTR T2 T0 T-> PRIM_I8_SET  ctx-type!
+    CTX0 TYPE_I16 TYPE_PTR T2 T0 T-> PRIM_I16_SET ctx-type!
+    CTX0 TYPE_I32 TYPE_PTR T2 T0 T-> PRIM_I32_SET ctx-type!
+    CTX0 TYPE_I64 TYPE_PTR T2 T0 T-> PRIM_I64_SET ctx-type!
 
-    TYPE_INT TYPE_PTR TYPE_INT T3 TYPE_INT T1 T->
-    PRIM_POSIX_READ prim-type !
+    CTX0 TYPE_INT TYPE_PTR TYPE_INT T3 TYPE_INT T1 T->
+    PRIM_POSIX_READ ctx-type!
 
-    TYPE_INT TYPE_PTR TYPE_INT T3 TYPE_INT T1 T->
-    PRIM_POSIX_WRITE prim-type !
+    CTX0 TYPE_INT TYPE_PTR TYPE_INT T3 TYPE_INT T1 T->
+    PRIM_POSIX_WRITE ctx-type!
 
-    TYPE_PTR TYPE_INT TYPE_INT T3 TYPE_INT T1 T->
-    PRIM_POSIX_OPEN prim-type !
+    CTX0 TYPE_PTR TYPE_INT TYPE_INT T3 TYPE_INT T1 T->
+    PRIM_POSIX_OPEN ctx-type!
 
-    TYPE_INT T1 TYPE_INT T1 T->
-    PRIM_POSIX_CLOSE prim-type !
+    CTX0 TYPE_INT T1 TYPE_INT T1 T->
+    PRIM_POSIX_CLOSE ctx-type!
 
+    CTX0
     TYPE_PTR TYPE_INT TYPE_INT TYPE_INT TYPE_INT TYPE_INT T6
     TYPE_PTR T1 T->
-    PRIM_POSIX_MMAP prim-type !
+    PRIM_POSIX_MMAP ctx-type!
 
-    T0 TYPE_PTR T1 T->
-    PRIM_PTR_NIL prim-type !
+    CTX0 T0 TYPE_PTR T1 T->
+    PRIM_PTR_NIL ctx-type!
 
-    TYPE_INT TYPE_PTR T2 TYPE_PTR T1 T->
-    PRIM_PTR_ADD prim-type !
+    CTX0 TYPE_INT TYPE_PTR T2 TYPE_PTR T1 T->
+    PRIM_PTR_ADD ctx-type!
 
-    T0 TYPE_INT T1 T->
-    PRIM_PTR_SIZE prim-type !
+    CTX0 T0 TYPE_INT T1 T->
+    PRIM_PTR_SIZE ctx-type!
 
-    TYPE_INT T1 TYPE_PTR T1 T->
-    PRIM_PTR_ALLOC prim-type !
+    CTX0 TYPE_INT T1 TYPE_PTR T1 T->
+    PRIM_PTR_ALLOC ctx-type!
 
-    TYPE_PTR TYPE_INT T2 TYPE_PTR T1 T->
-    PRIM_PTR_REALLOC prim-type !
+    CTX0 TYPE_PTR TYPE_INT T2 TYPE_PTR T1 T->
+    PRIM_PTR_REALLOC ctx-type!
 
-    TYPE_PTR TYPE_INT TYPE_PTR T3 T0 T->
-    PRIM_PTR_COPY prim-type !
+    CTX0 TYPE_PTR TYPE_INT TYPE_PTR T3 T0 T->
+    PRIM_PTR_COPY ctx-type!
 
-    TYPE_INT TYPE_INT TYPE_PTR T3 T0 T->
-    PRIM_PTR_FILL prim-type !
+    CTX0 TYPE_INT TYPE_INT TYPE_PTR T3 T0 T->
+    PRIM_PTR_FILL ctx-type!
 
-    TYPE_PTR T1 TYPE_PTR TYPE_INT T2 T->
-    PRIM_PTR_RAW prim-type !
+    CTX0 TYPE_PTR T1 TYPE_PTR TYPE_INT T2 T->
+    PRIM_PTR_RAW ctx-type!
 
-    TYPE_INT T1 TYPE_STR T1 T->
-    PRIM_STR_ALLOC prim-type !
+    CTX0 TYPE_INT T1 TYPE_STR T1 T->
+    PRIM_STR_ALLOC ctx-type!
 
-    TYPE_PTR TYPE_INT T2 TYPE_STR T1 T->
-    PRIM_STR_COPY prim-type !
+    CTX0 TYPE_PTR TYPE_INT T2 TYPE_STR T1 T->
+    PRIM_STR_COPY ctx-type!
 
-    TYPE_STR T1 TYPE_INT T1 T->
-    PRIM_STR_NUM_BYTES prim-type !
+    CTX0 TYPE_STR T1 TYPE_INT T1 T->
+    PRIM_STR_NUM_BYTES ctx-type!
 
-    TYPE_STR T1 TYPE_PTR T1 T->
-    PRIM_STR_BASE prim-type !
+    CTX0 TYPE_STR T1 TYPE_PTR T1 T->
+    PRIM_STR_BASE ctx-type!
 
-    TYPE_STR TYPE_STR T2 TYPE_STR T1 T->
-    PRIM_STR_CAT prim-type !
+    CTX0 TYPE_STR TYPE_STR T2 TYPE_STR T1 T->
+    PRIM_STR_CAT ctx-type!
 
-    TYPE_STR TYPE_STR T2 TYPE_INT T1 T->
-    PRIM_STR_CMP prim-type !
+    CTX0 TYPE_STR TYPE_STR T2 TYPE_INT T1 T->
+    PRIM_STR_CMP ctx-type!
 
-    T0 TYPE_INT T1 T->
-    PRIM_SYS_OS prim-type !
+    CTX0 T0 TYPE_INT T1 T->
+    PRIM_SYS_OS ctx-type!
 
-    T0 TYPE_INT T1 T->
-    PRIM_SYS_ARGC prim-type !
+    CTX0 T0 TYPE_INT T1 T->
+    PRIM_SYS_ARGC ctx-type!
 
-    T0 TYPE_PTR T1 T->
-    PRIM_SYS_ARGV prim-type !
+    CTX0 T0 TYPE_PTR T1 T->
+    PRIM_SYS_ARGV ctx-type!
 
-    T0 T0 T1 T->
-    PRIM_PACK_NIL prim-type !
+    CTX0 T0 T0 T1 T->
+    PRIM_PACK_NIL ctx-type!
 
     #
     # polymorphic prims -- we really need better technology to notate these
     #
 
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup ctx-empty swap ctx-new!
-    PRIM_CORE_DROP prim-ctx !
+    TYPE_TYPE "a" >Name Var.new!
+    TYPE_TYPE "b" >Name Var.new!
+    TYPE_TYPE "c" >Name Var.new!
+    TYPE_STACK "*x" >Name Var.new!
+    TYPE_STACK "*y" >Name Var.new!
+    \( a b c xs ys -> a TVar b TVar c TVar xs TVar ys TVar
+    \( ta tb tc txs tys ->
+        a CTX1
+        ta T1 T0 T->
+        PRIM_CORE_DROP ctx-type!
 
-    TVar T1 T0 T->
-    PRIM_CORE_DROP prim-type !
+        a CTX1
+        ta T1 ta ta T2 T->
+        PRIM_CORE_DUP ctx-type!
 
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup ctx-empty swap ctx-new!
-    PRIM_CORE_DUP prim-ctx !
+        a b CTX2
+        ta tb T2 tb ta T2 T->
+        PRIM_CORE_SWAP ctx-type! 
 
-    TVar dup T1 dup rotl T* T->
-    PRIM_CORE_DUP prim-type !
+        xs ys CTX2
+        txs txs tys T-> T* tys T->
+        PRIM_CORE_RUN ctx-type!
 
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    "b" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_CORE_SWAP prim-ctx !
+        a b CTX2
+        ta T1 tb T1 T->
+        PRIM_UNSAFE_CAST ctx-type!
 
-    dip(TVar) TVar
-    dup2 T2 rotr swap T2 T->
-    PRIM_CORE_SWAP prim-type !
+        xs ys CTX2
+        txs TYPE_INT T* tys T->
+        PRIM_POSIX_EXIT ctx-type!
 
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    "b" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_UNSAFE_CAST prim-ctx !
+        xs ys CTX2
+        txs TYPE_STR T* tys T->
+        PRIM_CORE_PANIC ctx-type!
 
-    dip(TVar T1) TVar T1 T->
-    PRIM_UNSAFE_CAST prim-type !
+        xs ys c CTX3
+        txs tc T* txs tys T-> T* tys tc T* T->
+        PRIM_CORE_DIP ctx-type!
 
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "*b" name-new! var-new-implicit! TYPE_STACK over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_CORE_RUN prim-ctx !
+        xs ys CTX2
+        txs TYPE_BOOL T* txs tys T-> sip(T*) T* tys T->
+        PRIM_CORE_IF ctx-type!
 
-    dip(TVar) TVar
-    dup2 T-> swap dip(T*) T->
-    PRIM_CORE_RUN prim-type !
+        xs CTX1
+        txs txs txs TYPE_BOOL T* T-> T* txs txs T-> T* txs T->
+        PRIM_CORE_WHILE ctx-type!
 
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "*b" name-new! var-new-implicit! TYPE_STACK over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_POSIX_EXIT prim-ctx !
+        xs b CTX2
+        txs tb T2 txs tb T* T1 T->
+        PRIM_PACK_CONS ctx-type!
 
-    dip(TVar) TVar
-    dip(TYPE_INT T*) T->
-    PRIM_POSIX_EXIT prim-type !
+        xs b CTX2
+        txs tb T* T1 txs tb T2 T->
+        PRIM_PACK_UNCONS ctx-type!
 
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "*b" name-new! var-new-implicit! TYPE_STACK over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_CORE_PANIC prim-ctx !
+        a CTX1
+        ta T1 ta TMut T1 T->
+        PRIM_MUT_NEW ctx-type!
 
-    dip(TVar) TVar
-    dip(TYPE_STR T*) T->
-    PRIM_CORE_PANIC prim-type !
+        a CTX1
+        ta TMut T1 ta T1 T->
+        PRIM_MUT_GET ctx-type!
 
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "*b" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "c" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup3 ctx-empty swap ctx-new! swap ctx-new! swap ctx-new!
-    PRIM_CORE_DIP prim-ctx !
+        a CTX1
+        ta ta TMut T2 T0 T->
+        PRIM_MUT_SET ctx-type!
 
-    dip(dip(TVar) TVar) TVar
-    dip(dup2) tuck T* dip(T*)
-    dip(dip(T->) swap T*) T->
-    PRIM_CORE_DIP prim-type !
-
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "*b" name-new! var-new-implicit! TYPE_STACK over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_CORE_IF prim-ctx !
-
-    dip(TVar) TVar
-    dup2 T-> swap
-    dip(dip(TYPE_BOOL T*) sip(T*) T*) T->
-    PRIM_CORE_IF prim-type !
-
-
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    dup ctx-empty swap ctx-new!
-    PRIM_CORE_WHILE prim-ctx !
-
-    TVar
-    dup
-    sip(dup TYPE_BOOL T* T-> T*)
-    sip(dup T-> T*)
-    T->
-    PRIM_CORE_WHILE prim-type !
-
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "b" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_PACK_CONS prim-ctx !
-
-    dip(TVar) TVar
-    dup2 T2 rotr T* T1 T->
-    PRIM_PACK_CONS prim-type !
-
-    "*a" name-new! var-new-implicit! TYPE_STACK over var-type !
-    "b" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup2 ctx-empty swap ctx-new! swap ctx-new!
-    PRIM_PACK_UNCONS prim-ctx !
-
-    dip(TVar) TVar
-    dup2 T* T1 rotr T2 T->
-    PRIM_PACK_UNCONS prim-type !
-
-    "a" name-new! var-new-implicit! TYPE_TYPE over var-type !
-    dup ctx-empty swap ctx-new!
-    dup PRIM_MUT_NEW prim-ctx !
-    dup PRIM_MUT_GET prim-ctx !
-    dup PRIM_MUT_SET prim-ctx !
-    dup PRIM_MUT_IS_SET prim-ctx !
-    drop
-
-    dup TVar
-    dup TMut dip(T1) T1 T->
-    PRIM_MUT_NEW prim-type !
-
-    dup TVar
-    sip(TMut T1) T1 T->
-    PRIM_MUT_GET prim-type !
-
-    dup TVar
-    dup TMut T2 T0 T->
-    PRIM_MUT_SET prim-type !
-
-    dup TVar TMut T1 TYPE_BOOL T1 T->
-    PRIM_MUT_IS_SET prim-type !
-
-    drop)
+        a CTX1
+        ta TMut T1 TYPE_BOOL T1 T->
+        PRIM_MUT_IS_SET ctx-type!
+    )))

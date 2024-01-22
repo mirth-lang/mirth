@@ -1,17 +1,22 @@
 module(mirth.data.variable)
 
 import(prelude)
+import(data.lazy)
 import(mirth.data.name)
 import(mirth.data.def)
 
 table(Variable)
-field(variable-head, Variable, Token)
-field(variable-name, Variable, Name)
-field(variable-type, Variable, Lazy(Type))
+field(Variable~head, Variable, Token)
+field(Variable~name, Variable, Name)
+field(Variable~type, Variable, Lazy(Type))
 
-def(variable-new!, Token Name Lazy(Type) -- Variable,
+def(Variable.head, Variable -- Token, ~head @)
+def(Variable.name, Variable -- Name, ~name @)
+def(Variable.type, Variable -- Type, ~type force!)
+
+def(Variable.new!, Token Name Lazy(Type) -- Variable,
     Variable.alloc!
-    tuck variable-type !
-    tuck dup2 variable-name !
-    DEF_VARIABLE swap ~Def !
-    tuck variable-head !)
+    tuck ~type !
+    tuck ~name !
+    tuck ~head !
+    dup DEF_VARIABLE over name ~Def !)

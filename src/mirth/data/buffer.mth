@@ -14,7 +14,7 @@ def(Buffer.head, Buffer -- Token, ~head @)
 def(Buffer.size, Buffer -- Size, ~size @)
 def(Buffer.name, Buffer -- Name, ~name @)
 
-def(buffer-new!, Token Name Size -- Buffer,
+def(Buffer.new!, Token Name Size -- Buffer,
     Buffer.alloc!
     tuck ~size !
     tuck dup2 ~name !

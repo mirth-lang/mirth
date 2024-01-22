@@ -1,0 +1,108 @@
+module(mirth.data.match)
+import(prelude)
+import(data.maybe)
+import(data.list)
+import(mirth.data.type)
+import(mirth.data.data)
+import(mirth.data.token)
+
+#########
+# MATCH #
+#########
+
+# mirth/data/type
+table(Match)
+field(Match~ctx, Match, Ctx)
+field(Match~dom, Match, Type)
+field(Match~cod, Match, Type)
+field(Match~token, Match, Token) # where the diagnostics go
+field(Match~body, Match, Token) # where the cases start
+field(Match~cases, Match, List(Case))
+def(Match.ctx, Match -- Ctx, ~ctx @)
+def(Match.dom, Match -- Type, ~dom @)
+def(Match.cod, Match -- Type, ~cod @)
+def(Match.token, Match -- Token, ~token @)
+def(Match.body, Match -- Token, ~body @)
+def(Match.cases, Match -- List(Case), ~cases @)
+
+table(Case)
+field(Case~match, Case, Match)
+field(Case~token, Case, Token)
+field(Case~pattern, Case, Pattern)
+field(Case~subst, Case, Subst)
+field(Case~mid, Case, Type)
+field(Case~body, Case, Arrow)
+def(Case.match, Case -- Match, ~match @)
+def(Case.token, Case -- Token, ~token @)
+def(Case.pattern, Case -- Pattern, ~pattern @)
+def(Case.subst, Case -- Subst, ~subst @)
+def(Case.mid, Case -- Type, ~mid @)
+def(Case.body, Case -- Arrow, ~body @)
+
+def(Match.is-exhaustive?, Match -- Bool,
+    dup has-default-case? or(
+        dup scrutinee-data? match(
+            SOME ->
+                num-tags
+                over cases len =,
+            NONE ->
+                T # presume exhaustiveness
+        )
+    ) nip)
+
+def(Match.has-default-case?, Match -- Bool,
+    cases any(dup is-default-case?))
+
+||| Get type we're matching over.
+def(Match.scrutinee?, Match -- Maybe(Type),
+    dom expand match(
+        TTensor -> nip SOME,
+        _ -> drop NONE
+    ))
+
+||| Get "data" associated with scrutinee.
+def(Match.scrutinee-data?, Match -- Maybe(Data),
+    scrutinee? bind(data?))
+
+def(Match.is-transparent?, Match -- Bool,
+    scrutinee-data? if-some(is-transparent?, F))
+
+def(Match.add-case!, Case Match --,
+    dup2 case-redundant? if(
+        drop token "Case is unreachable." emit-error!,
+        sip(cases swap snoc) ~cases !
+    ))
+
+def(Match.case-redundant?, Case Match -- Bool,
+    cases any(dup2 covers?) nip)
+
+########
+# CASE #
+########
+
+||| Ask whether the second case covers the first case.
+def(Case.covers?, Case Case -- Bool, both(pattern) covers?)
+
+||| Is this a "default" case?
+def(Case.is-default-case?, Case -- Bool, pattern underscore?)
+
+###########
+# PATTERN #
+###########
+
+data(Pattern,
+    PATTERN_UNDERSCORE,
+    PATTERN_TAG -> Tag)
+
+def(Pattern.underscore?, Pattern -- Bool, PATTERN_UNDERSCORE -> T, _ -> drop F)
+def(Pattern.tag?, Pattern -- Maybe(Tag), PATTERN_TAG -> SOME, _ -> drop NONE)
+def(Pattern.tag=, Tag Pattern -- Bool, tag? if-some(=, drop F))
+
+def(Pattern=, Pattern Pattern -- Bool,
+    PATTERN_UNDERSCORE -> underscore?,
+    PATTERN_TAG -> swap tag=)
+
+||| Asks whether the second pattern covers the first pattern.
+def(Pattern.covers?, Pattern Pattern -- Bool,
+    PATTERN_UNDERSCORE -> drop T,
+    PATTERN_TAG -> swap tag=)

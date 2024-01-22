@@ -3,6 +3,6 @@ import(prelude)
 
 def( diverge, *a -- *b,
     [ dup run ] dup run)
-# mirth-test # merr # 5:21: error: Failed to unify [*a [?1 -- ?2]] with ?1
 # mirth-test # merr # 5:11: error: Failed to unify [?7 ?8 -- ?10] with ?8
+# mirth-test # merr # 5:21: error: Failed to unify [*a ?8 -- ?2] with ?8
 # mirth-test # mret # 1

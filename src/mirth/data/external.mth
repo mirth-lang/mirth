@@ -1,9 +1,17 @@
 module(mirth.data.external)
+import(prelude)
+import(data.lazy)
 import(mirth.data.type)
 import(mirth.data.token)
 
 # mirth/data/external
 table(External)
-field(external-name, External, Name)
-field(external-sig, External, Token)
-field(external-ctx-type, External, Lazy([Ctx Type]))
+field(External~name, External, Name)
+field(External~sig, External, Token)
+field(External~ctx-type, External, Lazy([Ctx Type]))
+
+def(External.name, External -- Name, ~name @)
+def(External.sig, External -- Token, ~sig @)
+def(External.ctx-type, External -- Ctx Type, ~ctx-type force! unpack2)
+def(External.ctx, External -- Ctx, ctx-type drop)
+def(External.type, External -- Type, ctx-type nip)

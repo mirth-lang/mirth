@@ -6,6 +6,8 @@ import(data.list)
 import(data.lazy)
 import(mirth.data.token)
 import(mirth.data.type)
+import(mirth.data.data)
+import(mirth.data.match)
 import(mirth.elab)
 
 ##########
@@ -85,55 +87,54 @@ field(Lambda~cod, Lambda, Type)
 field(Lambda~params, Lambda, List(Param))
 field(Lambda~body, Lambda, Arrow)
 
-field(Block~ctx, Block, Ctx) 
-field(Block~token, Block, Token) 
-field(Block~dom, Block, Type) 
+field(Block~ctx, Block, Ctx)
+field(Block~token, Block, Token)
+field(Block~dom, Block, Type)
 field(Block~cod, Block, Type)
 field(Block~arrow, Block, Lazy(Arrow))
 
-def(Arrow>token-start, Arrow -- Token, ~token-start @)
-def(Arrow>token-end, Arrow -- Token, ~token-end @)
-def(Arrow>home, Arrow -- Maybe(Word), ~home @)
-def(Arrow>homeidx, Arrow -- Int, ~homeidx @)
-def(Arrow>ctx, Arrow -- Ctx, ~ctx @)
-def(Arrow>dom, Arrow -- Type, ~dom @)
-def(Arrow>cod, Arrow -- Type, ~cod @)
-def(Arrow>atoms, Arrow -- List(Atom), ~atoms @)
+def(Arrow.token-start, Arrow -- Token, ~token-start @)
+def(Arrow.token-end, Arrow -- Token, ~token-end @)
+def(Arrow.home, Arrow -- Maybe(Word), ~home @)
+def(Arrow.homeidx, Arrow -- Int, ~homeidx @)
+def(Arrow.ctx, Arrow -- Ctx, ~ctx @)
+def(Arrow.dom, Arrow -- Type, ~dom @)
+def(Arrow.cod, Arrow -- Type, ~cod @)
+def(Arrow.atoms, Arrow -- List(Atom), ~atoms @)
+def(Arrow.type, Arrow -- Type, sip(dom) cod T->)
 
-def(Atom>token, Atom -- Token, ~token @)
-def(Atom>ctx, Atom -- Ctx, ~ctx @)
-def(Atom>op, Atom -- Op, ~op @)
-def(Atom>args, Atom -- List(Arg), ~args @)
-def(Atom>dom, Atom -- Type, ~dom @)
-def(Atom>cod, Atom -- Type, ~cod @)
-def(Atom>subst, Atom -- Subst, ~subst @)
+def(Atom.token, Atom -- Token, ~token @)
+def(Atom.ctx, Atom -- Ctx, ~ctx @)
+def(Atom.op, Atom -- Op, ~op @)
+def(Atom.args, Atom -- List(Arg), ~args @)
+def(Atom.dom, Atom -- Type, ~dom @)
+def(Atom.cod, Atom -- Type, ~cod @)
+def(Atom.subst, Atom -- Subst, ~subst @)
 
-def(Lambda>token, Lambda -- Token, ~token @)
-def(Lambda>outer-ctx, Lambda -- Ctx, ~outer-ctx @)
-def(Lambda>inner-ctx, Lambda -- Ctx, ~inner-ctx @)
-def(Lambda>dom, Lambda -- Type, ~dom @)
-def(Lambda>mid, Lambda -- Type, ~mid @)
-def(Lambda>cod, Lambda -- Type, ~cod @)
-def(Lambda>params, Lambda -- List(Param), ~params @)
-def(Lambda>body, Lambda -- Arrow, ~body @)
+def(Lambda.token, Lambda -- Token, ~token @)
+def(Lambda.outer-ctx, Lambda -- Ctx, ~outer-ctx @)
+def(Lambda.inner-ctx, Lambda -- Ctx, ~inner-ctx @)
+def(Lambda.dom, Lambda -- Type, ~dom @)
+def(Lambda.mid, Lambda -- Type, ~mid @)
+def(Lambda.cod, Lambda -- Type, ~cod @)
+def(Lambda.params, Lambda -- List(Param), ~params @)
+def(Lambda.body, Lambda -- Arrow, ~body @)
 
-def(Block>ctx, Block -- Ctx, ~ctx @)
-def(Block>token, Block -- Token, ~token @)
-def(Block>dom, Block -- Type, ~dom @)
-def(Block>cod, Block -- Type, ~cod @)
-def(Block>arrow, Block -- Arrow, ~arrow force!)
+def(Block.ctx, Block -- Ctx, ~ctx @)
+def(Block.token, Block -- Token, ~token @)
+def(Block.dom, Block -- Type, ~dom @)
+def(Block.cod, Block -- Type, ~cod @)
+def(Block.arrow, Block -- Arrow, ~arrow force!)
+def(Block.type, Block -- Type, sip(dom) cod T->)
+def(Block.infer-type!, Block -- Type, arrow type)
 
 #######
 # ARG #
 #######
 
 ||| Add arg to atom, on the left.
-def(atom-arg-add-left!, Atom Arg -- Atom,
-    over ~args modify(cons))
-
-||| Add atom to arrow.
-def(arrow-atom-add!, Arrow Atom -- Arrow,
-    over ~atoms modify(swap snoc))
+def(Atom.add-arg-left!, Arg Atom --,
+    ~args modify(cons))
 
 #########
 # BLOCK #
@@ -141,142 +142,33 @@ def(arrow-atom-add!, Arrow Atom -- Arrow,
 
 def(Block=, Block Block -- Bool, both(Block.id) =)
 
-def(block-new!, Arrow -- Block,
+def(Block.new!, Arrow -- Block,
     Block.alloc!
-    over >ctx over ~ctx !
-    over >token-start over ~token !
-    over >dom over ~dom !
-    over >cod over ~cod !
+    over ctx over ~ctx !
+    over token-start over ~token !
+    over dom over ~dom !
+    over cod over ~cod !
     tuck dip(ready) ~arrow !)
 
-def(block-new-deferred!, Ctx Token -- Block,
+def(Block.new-deferred!, Ctx Token -- Block,
     Block.alloc!
     tuck ~token !
     tuck ~ctx !
-    meta-alloc! TMeta over ~dom !
-    meta-alloc! TMeta over ~cod !
+    MetaVar.new! TMeta over ~dom !
+    MetaVar.new! TMeta over ~cod !
     dup delay(
-        dup >ctx swap
-        dup >dom swap
-        dup >cod swap
-        >token
+        dup ctx swap
+        dup dom swap
+        dup cod swap
+        token
         elab-arrow-hom!
     ) over ~arrow !)
 
-def(block-force!, Block --, >arrow drop)
+def(Block.typecheck!, Block --,
+    arrow drop)
 
 def(block-unify-type!, Gamma Block Type -- Gamma Type,
-    over2 gamma-token@ elab-expand-morphism! drop
-    dip(swap sip(>dom type-unify! drop))
-    swap sip(>cod type-unify! drop)
-    >arrow type)
-
-#########
-# MATCH #
-#########
-
-# mirth/data/type
-table(Match)
-table(Case)
-
-field(match-ctx, Match, Ctx)
-field(match-dom, Match, Type)
-field(match-cod, Match, Type)
-field(match-token, Match, Token) # where the diagnostics go
-field(match-body, Match, Token) # where the cases start
-field(match-cases, Match, List(Case))
-field(case-match, Case, Match)
-field(case-token, Case, Token)
-field(case-pattern, Case, Pattern)
-field(case-subst, Case, Subst)
-field(case-mid, Case, Type)
-field(case-body, Case, Arrow)
-
-def(match-add-case!, Match Case -- Match,
-    dip(dup match-cases @) cases-cover-case? if(
-        case-token @ "Case is unreachable." emit-error! drop,
-        snoc over match-cases !
-    ))
-
-def(match-is-exhaustive?, Match -- Match Bool,
-    match-has-default-case? if(
-        T,
-        match-scrutinee-data? match(
-            SOME ->
-                data-num-tags
-                over match-cases @ len =,
-            NONE ->
-                T # presume exhaustiveness
-        )
-    ))
-
-def(match-has-default-case?, Match -- Match Bool,
-    dup match-cases @ cases-have-default-case)
-
-||| Get type we're matching over.
-def(match-scrutinee-type?, Match -- Match Maybe(Type),
-    dup match-dom @ type-expand match(
-        TTensor -> nip SOME,
-        _ -> drop NONE
-    ))
-
-||| Get "data" associated with scrutinee.
-def(match-scrutinee-data?, Match -- Match Maybe(Data),
-    match-scrutinee-type? bind(
-        type-head match(
-            TData -> SOME,
-            _ -> drop NONE
-        )
-    ))
-
-def(match-is-transparent?, Match -- Match Bool,
-    match-scrutinee-data? match(
-        SOME -> data-is-transparent,
-        NONE -> F
-    ))
-
-########
-# CASE #
-########
-
-def(cases-cover-case?, List(Case) Case -- List(Case) Case Bool,
-    dup2 cases-cover-case)
-
-def(cases-cover-case, List(Case) Case -- Bool,
-    swap any(dup2 case-is-covered) nip)
-
-||| Ask whether the second case covers the first case already.
-def(case-is-covered, Case Case -- Bool,
-    dip(case-pattern @) case-pattern @ pattern-is-covered)
-
-def(cases-have-default-case, List(Case) -- Bool,
-    any(dup case-is-default-case))
-
-def(case-is-default-case, Case -- Bool,
-    case-pattern @ pattern-is-underscore)
-
-###########
-# PATTERN #
-###########
-
-data(Pattern,
-    PATTERN_UNDERSCORE,
-    PATTERN_TAG -> Tag)
-
-def(pattern-is-underscore, Pattern -- Bool,
-    PATTERN_UNDERSCORE -> T,
-    PATTERN_TAG -> drop F)
-
-def(pattern-equals-tag, Tag Pattern -- Bool,
-    PATTERN_TAG -> tag==,
-    PATTERN_UNDERSCORE -> drop F)
-
-def(pattern==, Pattern Pattern -- Bool,
-    PATTERN_UNDERSCORE -> pattern-is-underscore,
-    PATTERN_TAG -> swap pattern-equals-tag)
-
-||| Asks whether the second pattern already
-||| covers the case of the first pattern.
-def(pattern-is-covered, Pattern Pattern -- Bool,
-    PATTERN_UNDERSCORE -> drop T,
-    PATTERN_TAG -> swap pattern-equals-tag)
+    over2 token elab-expand-morphism! drop
+    dip(swap sip(dom unify! drop))
+    swap sip(cod unify! drop)
+    arrow type)
