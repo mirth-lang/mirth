@@ -133,12 +133,8 @@ def(Block.infer-type!, Block -- Type, arrow type)
 #######
 
 ||| Add arg to atom, on the left.
-def(atom-arg-add-left!, Atom Arg -- Atom,
-    over ~args modify(cons))
-
-||| Add atom to arrow.
-def(arrow-atom-add!, Arrow Atom -- Arrow,
-    over ~atoms modify(swap snoc))
+def(Atom.add-arg-left!, Arg Atom --,
+    ~args modify(cons))
 
 #########
 # BLOCK #
@@ -146,7 +142,7 @@ def(arrow-atom-add!, Arrow Atom -- Arrow,
 
 def(Block=, Block Block -- Bool, both(Block.id) =)
 
-def(block-new!, Arrow -- Block,
+def(Block.new!, Arrow -- Block,
     Block.alloc!
     over ctx over ~ctx !
     over token-start over ~token !
@@ -154,7 +150,7 @@ def(block-new!, Arrow -- Block,
     over cod over ~cod !
     tuck dip(ready) ~arrow !)
 
-def(block-new-deferred!, Ctx Token -- Block,
+def(Block.new-deferred!, Ctx Token -- Block,
     Block.alloc!
     tuck ~token !
     tuck ~ctx !
@@ -168,7 +164,8 @@ def(block-new-deferred!, Ctx Token -- Block,
         elab-arrow-hom!
     ) over ~arrow !)
 
-def(block-force!, Block --, arrow drop)
+def(Block.typecheck!, Block --,
+    arrow drop)    
 
 def(block-unify-type!, Gamma Block Type -- Gamma Type,
     over2 gamma-token@ elab-expand-morphism! drop

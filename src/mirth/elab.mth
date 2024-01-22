@@ -289,7 +289,7 @@ def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
                     { Atom List(Atom) Atom Block }
                     dip(cod rotl tuck ~dom !)
                     { List(Atom) Atom Block }
-                    ARG_BLOCK atom-arg-add-left!
+                    ARG_BLOCK over add-arg-left!
                     swap,
                 _ -> drop snoc
             )
@@ -350,7 +350,7 @@ def(ab-external!, External --, OP_EXTERNAL ab-op!)
 
 def(ab-block-at!(f), (*a -- *b) *a Token -- *b,
     ab-ctx @ meta-alloc! TMeta rotl ab-build!(f)
-    block-new! OP_BLOCK ab-op!)
+    Block.new! OP_BLOCK ab-op!)
 
 def(ab-block!(f), (*a -- *b) *a -- *b,
     ab-token @ ab-block-at!(f))
@@ -475,7 +475,7 @@ def(elab-atom-block!, --,
     ab-token @ args-1 elab-block-at!)
 
 def(elab-block-at!, Token --,
-    ab-ctx @ swap block-new-deferred! OP_BLOCK ab-op!)
+    ab-ctx @ swap Block.new-deferred! OP_BLOCK ab-op!)
 
 def(elab-args!, --,
     ab-token @ args for(elab-block-at!))
@@ -995,23 +995,8 @@ def(elab-embed-str!, Token -- Token,
 
 ||| Ensure that everything so far has been typechecked.
 def(typecheck-everything!, --,
-    Name.for(>Def typecheck-def!)
-    Block.for(block-force!))
-
-||| Typecheck a definition.
-def(typecheck-def!, Def --,
-    DEF_NONE -> id,
-    DEF_ALIAS -> target >Def typecheck-def!, # TODO verify it's not DEF_NONE!!
-    DEF_MODULE -> drop,
-    DEF_BUFFER -> drop,
-    DEF_PRIM -> drop,
-    DEF_TYPE -> drop,
-    DEF_EXTERNAL -> type drop,
-    DEF_WORD -> arrow drop,
-    DEF_FIELD -> type drop,
-    DEF_TAG -> type drop,
-    DEF_VARIABLE -> type drop,
-    DEF_CONSTANT -> drop)
+    Name.for(>Def typecheck!)
+    Block.for(typecheck!))
 
 #########
 # TABLE #

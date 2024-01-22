@@ -2,6 +2,7 @@ module(mirth.data.def)
 
 import(prelude)
 import(data.maybe)
+import(mirth.data.name)
 import(mirth.data.alias)
 import(mirth.data.type)
 import(mirth.data.data)
@@ -53,3 +54,17 @@ def(Def.variable?, Def -- Maybe(Variable), DEF_VARIABLE -> SOME, _ -> drop NONE)
 def(Def.constant?, Def -- Maybe(Constant), DEF_CONSTANT -> SOME, _ -> drop NONE)
 def(Def.external?, Def -- Maybe(External), DEF_EXTERNAL -> SOME, _ -> drop NONE)
 def(Def.field?, Def -- Maybe(Field), DEF_FIELD -> SOME, _ -> drop NONE)
+
+def(Def.typecheck!, Def --,
+    DEF_NONE -> id,
+    DEF_ALIAS -> target >Def typecheck!, # TODO verify it's not DEF_NONE!!
+    DEF_MODULE -> drop,
+    DEF_BUFFER -> drop,
+    DEF_PRIM -> drop,
+    DEF_TYPE -> drop,
+    DEF_EXTERNAL -> type drop,
+    DEF_WORD -> arrow drop,
+    DEF_FIELD -> type drop,
+    DEF_TAG -> type drop,
+    DEF_VARIABLE -> type drop,
+    DEF_CONSTANT -> drop)
