@@ -12,83 +12,79 @@ import(mirth.data.token)
 
 # mirth/data/type
 table(Match)
-field(match-ctx, Match, Ctx)
-field(match-dom, Match, Type)
-field(match-cod, Match, Type)
-field(match-token, Match, Token) # where the diagnostics go
-field(match-body, Match, Token) # where the cases start
-field(match-cases, Match, List(Case))
+field(Match~ctx, Match, Ctx)
+field(Match~dom, Match, Type)
+field(Match~cod, Match, Type)
+field(Match~token, Match, Token) # where the diagnostics go
+field(Match~body, Match, Token) # where the cases start
+field(Match~cases, Match, List(Case))
+def(Match.ctx, Match -- Ctx, ~ctx @)
+def(Match.dom, Match -- Type, ~dom @)
+def(Match.cod, Match -- Type, ~cod @)
+def(Match.token, Match -- Token, ~token @)
+def(Match.body, Match -- Token, ~body @)
+def(Match.cases, Match -- List(Case), ~cases @)
 
 table(Case)
-field(case-match, Case, Match)
-field(case-token, Case, Token)
-field(case-pattern, Case, Pattern)
-field(case-subst, Case, Subst)
-field(case-mid, Case, Type)
-field(case-body, Case, Arrow)
+field(Case~match, Case, Match)
+field(Case~token, Case, Token)
+field(Case~pattern, Case, Pattern)
+field(Case~subst, Case, Subst)
+field(Case~mid, Case, Type)
+field(Case~body, Case, Arrow)
+def(Case.match, Case -- Match, ~match @)
+def(Case.token, Case -- Token, ~token @)
+def(Case.pattern, Case -- Pattern, ~pattern @)
+def(Case.subst, Case -- Subst, ~subst @)
+def(Case.mid, Case -- Type, ~mid @)
+def(Case.body, Case -- Arrow, ~body @)
 
-def(match-add-case!, Match Case -- Match,
-    dip(dup match-cases @) cases-cover-case? if(
-        case-token @ "Case is unreachable." emit-error! drop,
-        snoc over match-cases !
-    ))
-
-def(match-is-exhaustive?, Match -- Match Bool,
-    match-has-default-case? if(
-        T,
-        match-scrutinee-data? match(
+def(Match.is-exhaustive?, Match -- Bool,
+    dup has-default-case? or(
+        dup scrutinee-data? match(
             SOME ->
                 num-tags
-                over match-cases @ len =,
+                over cases len =,
             NONE ->
                 T # presume exhaustiveness
         )
-    ))
+    ) nip)
 
-def(match-has-default-case?, Match -- Match Bool,
-    dup match-cases @ cases-have-default-case)
+def(Match.has-default-case?, Match -- Bool,
+    cases any(dup is-default-case?))
 
 ||| Get type we're matching over.
-def(match-scrutinee-type?, Match -- Match Maybe(Type),
-    dup match-dom @ type-expand match(
+def(Match.scrutinee?, Match -- Maybe(Type),
+    dom type-expand match(
         TTensor -> nip SOME,
         _ -> drop NONE
     ))
 
 ||| Get "data" associated with scrutinee.
-def(match-scrutinee-data?, Match -- Match Maybe(Data),
-    match-scrutinee-type? bind(
-        type-head match(
-            TData -> SOME,
-            _ -> drop NONE
-        )
+def(Match.scrutinee-data?, Match -- Maybe(Data),
+    scrutinee? bind(data?))
+
+def(Match.is-transparent?, Match -- Bool,
+    scrutinee-data? if-some(is-transparent?, F))
+
+def(Match.add-case!, Case Match --,
+    dup2 case-redundant? if(
+        drop token "Case is unreachable." emit-error!,
+        sip(cases swap snoc) ~cases !
     ))
 
-def(match-is-transparent?, Match -- Match Bool,
-    match-scrutinee-data? match(
-        SOME -> is-transparent?,
-        NONE -> F
-    ))
+def(Match.case-redundant?, Case Match -- Bool,
+    cases any(dup2 covers?) nip)
 
 ########
 # CASE #
 ########
 
-def(cases-cover-case?, List(Case) Case -- List(Case) Case Bool,
-    dup2 cases-cover-case)
+||| Ask whether the second case covers the first case.
+def(Case.covers?, Case Case -- Bool, both(pattern) covers?)
 
-def(cases-cover-case, List(Case) Case -- Bool,
-    swap any(dup2 case-is-covered) nip)
-
-||| Ask whether the second case covers the first case already.
-def(case-is-covered, Case Case -- Bool,
-    dip(case-pattern @) case-pattern @ pattern-is-covered)
-
-def(cases-have-default-case, List(Case) -- Bool,
-    any(dup case-is-default-case))
-
-def(case-is-default-case, Case -- Bool,
-    case-pattern @ pattern-is-underscore)
+||| Is this a "default" case?
+def(Case.is-default-case?, Case -- Bool, pattern underscore?)
 
 ###########
 # PATTERN #
@@ -98,20 +94,15 @@ data(Pattern,
     PATTERN_UNDERSCORE,
     PATTERN_TAG -> Tag)
 
-def(pattern-is-underscore, Pattern -- Bool,
-    PATTERN_UNDERSCORE -> T,
-    PATTERN_TAG -> drop F)
+def(Pattern.underscore?, Pattern -- Bool, PATTERN_UNDERSCORE -> T, _ -> drop F)
+def(Pattern.tag?, Pattern -- Maybe(Tag), PATTERN_TAG -> SOME, _ -> drop NONE)
+def(Pattern.tag=, Tag Pattern -- Bool, tag? if-some(=, drop F))
 
-def(pattern-equals-tag, Tag Pattern -- Bool,
-    PATTERN_TAG -> =,
-    PATTERN_UNDERSCORE -> drop F)
+def(Pattern=, Pattern Pattern -- Bool,
+    PATTERN_UNDERSCORE -> underscore?,
+    PATTERN_TAG -> swap tag=)
 
-def(pattern==, Pattern Pattern -- Bool,
-    PATTERN_UNDERSCORE -> pattern-is-underscore,
-    PATTERN_TAG -> swap pattern-equals-tag)
-
-||| Asks whether the second pattern already
-||| covers the case of the first pattern.
-def(pattern-is-covered, Pattern Pattern -- Bool,
+||| Asks whether the second pattern covers the first pattern.
+def(Pattern.covers?, Pattern Pattern -- Bool,
     PATTERN_UNDERSCORE -> drop T,
-    PATTERN_TAG -> swap pattern-equals-tag)
+    PATTERN_TAG -> swap tag=)

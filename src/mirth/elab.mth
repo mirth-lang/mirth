@@ -418,7 +418,7 @@ def(elab-block-sig!, Block -- OpSig,
     VALUE_BLOCK TValue OPSIG_PUSH)
 
 def(elab-match-sig!, Match -- OpSig,
-    sip(match-dom @) match-cod @ T-> OPSIG_APPLY)
+    sip(dom) cod T-> OPSIG_APPLY)
 
 def(elab-lambda-sig!, Lambda -- OpSig,
     sip(dom) cod T-> OPSIG_APPLY)
@@ -558,11 +558,11 @@ def(elab-atom-lambda!, --,
 ||| the rest from the AB environment.
 def(elab-match-at!, Type Token --,
     Match.alloc!
-    ab-ctx @ over match-ctx !
-    ab-type @ over match-dom !
-    ab-token @ over match-token !
-    tuck match-body !
-    tuck match-cod !
+    ab-ctx @ over ~ctx !
+    ab-type @ over ~dom !
+    ab-token @ over ~token !
+    tuck ~body !
+    tuck ~cod !
     elab-match-cases!
     elab-match-exhaustive!
     OP_MATCH ab-op!)
@@ -654,38 +654,37 @@ def(elab-lambda-body!, Lambda -- Lambda,
 
 ||| Check that match is exhaustive.
 def(elab-match-exhaustive!, Match -- Match,
-    match-is-exhaustive? if(
-        id,
-        dup match-token @ "Pattern match not exhaustive." emit-error!
+    dup is-exhaustive? else(
+        dup token "Pattern match not exhaustive." emit-error!
     ))
 
 ||| Elaborate match cases.
 def(elab-match-cases!, Match -- Match,
-    L0 over match-cases !
-    dup match-body @
+    L0 over ~cases !
+    dup body
     while(dup rparen? not, elab-match-case!)
     drop)
 
 ||| Elaborate a single match case `pattern -> body ,`
 def(elab-match-case!, Match Token -- Match Token,
     Case.alloc!
-    dup2 case-token !
-    swap dip(dup2 case-match !)
+    dup2 ~token !
+    swap dip(dup2 ~match !)
     elab-case-pattern!
     expect-token-arrow succ
     elab-case-body!
-    dip(match-add-case!)
+    dip(over add-case!)
     dup comma? then(succ))
 
 ||| Elaborate case pattern.
 def(elab-case-pattern!, Case Token -- Case Token,
     dup pat-underscore? if(
         # set case pattern
-        dip(PATTERN_UNDERSCORE over case-pattern !)
+        dip(PATTERN_UNDERSCORE over ~pattern !)
 
         # set case mid
-        dip(dup case-match @ match-dom @ TYPE_DONT_CARE TYPE_DONT_CARE T*)
-        elab-type-unify! dip(over case-mid !)
+        dip(dup .match dom TYPE_DONT_CARE TYPE_DONT_CARE T*)
+        elab-type-unify! dip(over ~mid !)
 
         # advance token
         succ,
@@ -696,18 +695,18 @@ def(elab-case-pattern!, Case Token -- Case Token,
 
                 # set case pattern
                 dup PATTERN_TAG rotr
-                dip2(over case-pattern !)
+                dip2(over ~pattern !)
 
                 # set case mid
-                dip2(dup case-match @ match-dom @) { Case Type Token Tag }
+                dip2(dup .match dom) { Case Type Token Tag }
                 type subst-nil swap type-freshen-sig
                 { Case Type Token Subst Type }
                 rotr dip(
                     elab-expand-morphism!
                     dip2(swap) elab-type-unify! nip
-                    dip(over case-mid !)
+                    dip(over ~mid !)
                 )
-                swap dip(over case-subst !)
+                swap dip(over ~subst !)
 
                 # advance token
                 succ,
@@ -724,10 +723,10 @@ def(elab-case-pattern!, Case Token -- Case Token,
 
 ||| Elaborate case body.
 def(elab-case-body!, Case Token -- Case Token,
-    dip(dup case-mid @ dip(dup case-match @ match-ctx @)) elab-arrow-fwd!
+    dip(dup mid dip(dup .match ctx)) elab-arrow-fwd!
     dup token-end dip(dup cod) { Case Arrow Type Token }
-    dip2(over case-body !) { Case Type Token }
-    dip2(dup case-match @ match-cod @) elab-type-unify! nip)
+    dip2(over ~body !) { Case Type Token }
+    dip2(dup .match cod) elab-type-unify! nip)
 
 ######################
 # Module Elaboration #

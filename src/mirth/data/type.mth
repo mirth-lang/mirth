@@ -52,7 +52,6 @@ def(prim-type-is-physical, PrimType -- Bool,
     PRIM_TYPE_EFFECT -> F,
     _ -> drop T)
 
-
 ||| Get the top type constructor name. 
 def(stack-last-tycon-name, Type -- Maybe(Name),
     stack-last-type bind(type-tycon-name))
@@ -649,6 +648,11 @@ def(type-arity, Type -- Int,
     TData -> arity,
     TApp -> drop type-arity 1-,
     _ -> drop 0)
+
+def(Type.data?, Type -- Maybe(Data),
+    type-head match(TData -> SOME, _ -> drop NONE))
+def(Type.mut?, Type -- Maybe(Type),
+    type-expand match(TMut -> SOME, _ -> drop NONE))
 
 ||| Get head of type.
 def(type-head, Type -- Type,

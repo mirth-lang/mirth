@@ -114,7 +114,7 @@ def(need-prim, List(Arg) Prim --,
         ),
     _ -> drop need-args-push)
 
-def(need-match, Match --, match-cases @ for(case-body @ need-arrow-run))
+def(need-match, Match --, cases for(body need-arrow-run))
 def(need-lambda, Lambda --, body need-arrow-run)
 
 def(need-block-push, Block --,
@@ -486,30 +486,23 @@ def(c99-lambda!, Lambda --,
     c99-line("}" .))
 
 def(c99-match!, Match --,
-    match-is-transparent? if(
-        dup match-cases @ first match(
-            NONE -> match-token @
-                "codegen: unexpected number of cases in transparent match" emit-fatal-error!,
-            SOME ->
-                case-body @ c99-arrow! drop
-        ),
+    dup is-transparent? if(
+        cases first unwrap body c99-arrow!,
 
         c99-line("switch (get_top_data_tag()) {" .)
         c99-nest(
-            dup match-cases @ for(c99-case!)
-            match-has-default-case? if(
-                id,
+            dup cases for(c99-case!)
+            has-default-case? else(
                 c99-line("default: write(2, \"unexpected fallthrough in match\\n\", 32); mw_prim_debug(); exit(99);" .)
             )
-            drop
         )
         c99-line("}").
     ))
 
 def(c99-case!, Case --,
-    dup case-pattern @ c99-pattern!
+    dup pattern c99-pattern!
     c99-nest(
-        case-body @ c99-arrow!
+        body c99-arrow!
         c99-line("break;" .)
     ))
 
