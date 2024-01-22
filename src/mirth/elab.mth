@@ -396,7 +396,7 @@ data(OpSig,
     OPSIG_APPLY -> Type)
 
 def(elab-op-fresh-sig!, Op -- Subst OpSig,
-    subst-nil swap match(
+    Subst.nil swap match(
         OP_NONE -> OPSIG_ID,
         OP_INT -> VALUE_INT TValue OPSIG_PUSH,
         OP_STR -> VALUE_STR TValue OPSIG_PUSH,
@@ -699,7 +699,7 @@ def(elab-case-pattern!, Case Token -- Case Token,
 
                 # set case mid
                 dip2(dup .match dom) { Case Type Token Tag }
-                type subst-nil swap type-freshen-sig
+                type Subst.nil swap type-freshen-sig
                 { Case Type Token Subst Type }
                 rotr dip(
                     elab-expand-morphism!

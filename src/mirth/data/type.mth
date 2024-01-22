@@ -52,7 +52,7 @@ def(prim-type-is-physical, PrimType -- Bool,
     PRIM_TYPE_EFFECT -> F,
     _ -> drop T)
 
-||| Get the top type constructor name. 
+||| Get the top type constructor name.
 def(stack-last-tycon-name, Type -- Maybe(Name),
     stack-last-type bind(type-tycon-name))
 
@@ -97,7 +97,7 @@ def(prim-type-tycon-name, PrimType -- Maybe(Name),
     PRIM_TYPE_STR -> "Str" >Name SOME,
     PRIM_TYPE_PTR -> "Ptr" >Name SOME,
     PRIM_TYPE_UNIT -> NONE)
-    
+
 ||| Get value type constructor name.
 def(value-tycon-name, Value -- Maybe(Name),
     VALUE_INT -> drop "Int" >Name SOME,
@@ -583,10 +583,10 @@ def(meta-freshen, Subst MetaVar -- Subst Type,
     meta-expand-if(type-freshen, drop meta-alloc! TMeta))
 
 def(type-var-freshen, Subst Var -- Subst Type,
-    swap subst-has-var? if(
-        tuck subst-get-var,
+    swap dup2 has-var? if(
+        tuck get-var,
         meta-alloc! TMeta dup
-        dip(rotr subst-new!)
+        dip(rotr cons)
     ))
 
 def(type-rigidify-sig!, Ctx Type -- Ctx Type,
@@ -766,25 +766,24 @@ data(Subst,
     SUBST_NIL,
     SUBST_CON -> Subst Type Var)
 
-def(subst-nil, Subst, SUBST_NIL)
-def(subst-is-nil, Subst -- Bool, SUBST_NIL -> T, _ -> drop F)
-def(subst-new!, Type Var Subst -- Subst, rotr SUBST_CON)
-def(subst-has-var, Var Subst -- Bool,
+def(Subst.nil?, Subst -- Bool, SUBST_NIL -> T, _ -> drop F)
+def(Subst.con?, Subst -- Maybe([Subst Type Var]),
+    SUBST_CON -> pack3 SOME,
+    _ -> drop NONE)
+
+def(Subst.nil, Subst, SUBST_NIL)
+def(Subst.cons, Type Var Subst -- Subst, rotr SUBST_CON)
+def(Subst.has-var?, Var Subst -- Bool,
     SUBST_NIL -> drop F,
-    SUBST_CON -> nip over2 = if(drop2 T, subst-has-var))
-def(subst-has-var?, Var Subst -- Var Subst Bool,
-    dup2 subst-has-var)
-def(subst-get-var, Var Subst -- Type,
+    SUBST_CON -> nip over2 = if(drop2 T, has-var?))
+def(Subst.get-var, Var Subst -- Type,
     SUBST_NIL -> drop TYPE_ERROR,
-    SUBST_CON -> over3 = if(dip(drop2), drop subst-get-var))
-def(subst-get-var?, Var Subst -- Var Subst Type,
-    dup2 subst-get-var)
+    SUBST_CON -> over3 = if(dip(drop2), drop get-var))
 
 ||| If variable is in subst, unify new type with type in subst.
 ||| Otherwise, create larger subst with new binding.
-def(subst-match-var, Gamma Type Var Subst -- Gamma Subst,
-    subst-has-var? if(
-        sip(subst-get-var type-unify! drop),
-        subst-new!
+def(Subst.match-var, Gamma Type Var Subst -- Gamma Subst,
+    dup2 has-var? if(
+        sip(get-var type-unify! drop),
+        cons
     ))
-
