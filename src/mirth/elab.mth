@@ -593,7 +593,7 @@ def(elab-expand-tensor!, Type Token -- Type Type Token,
 def(elab-expand-morphism!, Type Token -- Type Type Token,
     swap expand match(
         TYPE_ERROR -> dip(TYPE_ERROR TYPE_ERROR),
-        TMorphism -> id rotl,
+        TMorphism -> unpack rotl,
         TMeta ->
             dip(MetaVar.new! TMeta
                 MetaVar.new! TMeta

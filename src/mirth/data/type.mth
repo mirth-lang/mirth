@@ -27,7 +27,7 @@ data(Type,
     TTable -> Table,
     TData -> Data,
     TTensor -> Type Type,
-    TMorphism -> Type Type,
+    TMorphism -> ArrowType,
     TApp -> Type Type,
     TMut -> Type,
     TValue -> Value)
@@ -82,7 +82,7 @@ def(Type.tycon-name, Type -- Maybe(Name),
     TVar -> drop NONE,
     TTable -> name SOME,
     TData -> name SOME,
-    TMorphism -> drop2 NONE,
+    TMorphism -> drop NONE,
     TTensor -> drop2 NONE,
     TApp -> drop tycon-name,
     TMut -> tycon-name,
@@ -120,7 +120,7 @@ def(init-types!, --,
 #########
 
 def(T*, Type Type -- Type, TTensor)
-def(T->, Type Type -- Type, TMorphism)
+def(T->, Type Type -- Type, ARROW_TYPE TMorphism)
 
 def(T0, Type, TYPE_UNIT)
 def(T1, Type -- Type, dip(T0) T*)
@@ -142,7 +142,7 @@ def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
 # def(type-is-data, Type -- Bool, match(TData -> drop T, _ -> drop F))
 
 def(Type.error?, Type -- Bool, expand match(TYPE_ERROR -> T, _ -> drop F))
-def(Type.morphism?, Type -- Maybe([Type Type]), expand match(TMorphism -> pack2 SOME, _ -> drop NONE))
+def(Type.morphism?, Type -- Maybe(ArrowType), expand match(TMorphism -> SOME, _ -> drop NONE))
 def(Type.prim?, Type -- Maybe(PrimType), expand match(TPrim -> SOME, _ -> drop NONE))
 def(Type.data?, Type -- Maybe(Data),
     type-head match(TData -> SOME, _ -> drop NONE)) # TODO fix this
@@ -201,7 +201,7 @@ def(Type.unify-simple!, Gamma Type Type -- Gamma Type,
     TData -> swap match(TData -> unify!, _ -> dip(TData) unify-failed!),
     TTable -> swap match(TTable -> unify!, _ -> dip(TTable) unify-failed!),
     TTensor -> rotl match(TTensor -> unify2! TTensor, _ -> dip(TTensor) unify-failed!),
-    TMorphism -> rotl match(TMorphism -> unify2! TMorphism, _ -> dip(TMorphism) unify-failed!),
+    TMorphism -> swap match(TMorphism -> unify! TMorphism, _ -> dip(TMorphism) unify-failed!),
     TApp -> rotl match(TApp -> unify2! TApp, _ -> dip(TApp) unify-failed!),
     TMut -> swap match(TMut -> unify! TMut, _ -> dip(TMut) unify-failed!),
     _ -> unify-failed!)
@@ -313,7 +313,7 @@ def(Type.has-meta?, MetaVar Type -- Bool,
     TVar -> drop2 F,
     THole -> drop2 F,
     TTensor -> has-meta2?,
-    TMorphism -> has-meta2?,
+    TMorphism -> has-meta?,
     TApp -> has-meta2?,
     TData -> drop2 F,
     TTable -> drop2 F,
@@ -329,11 +329,7 @@ def(Value.has-meta?, MetaVar Value -- Bool,
 def(Type.trace-sig!, Type --,
     TMeta -> expand-if(trace-sig!, trace!),
     TYPE_ERROR -> "<ERROR>" trace!,
-    TMorphism ->
-        swap
-        trace-stack-dom!
-        "--" trace!
-        trace-stack-cod!,
+    TMorphism -> trace!,
     _ -> trace-stack!)
 
 def(Type.trace-stack-dom!, Type --,
@@ -396,11 +392,7 @@ def(Type.semifreshen-sig, Type -- Type,
 
 def(Type.semifreshen-sig-aux, Type -- Type,
     TMeta -> expand-if(semifreshen-sig-aux, TMeta),
-    TMorphism ->
-        MetaVar.new! TMeta rotr
-        dip(semifreshen-sig-stack) swap
-        dip(semifreshen-sig-stack) swap
-        TMorphism nip,
+    TMorphism -> semifreshen-sig-aux TMorphism,
     _ -> id)
 
 def(Type.semifreshen-sig-stack, Type Type -- Type Type,
@@ -427,20 +419,12 @@ def(Type.stack-rest, Type -- Type,
 
 def(Type.sig-needs-fresh-stack-rest?, Type -- Bool,
     TMeta -> expand-if(sig-needs-fresh-stack-rest?, drop F),
-    TMorphism ->
-        stack-rest unit? if(
-            stack-rest unit?,
-            drop F
-        ),
+    TMorphism -> needs-fresh-stack-rest?,
     _ -> drop F)
 
 def(Type.freshen-sig-aux, Subst Type -- Subst Type,
     TMeta -> expand-if(freshen-sig-aux, TMeta),
-    TMorphism ->
-        MetaVar.new! TMeta rot4r
-        dip(freshen-sig-stack) swap
-        dip(freshen-sig-stack) swap
-        TMorphism dip(nip),
+    TMorphism -> freshen-sig-aux TMorphism,
     _ -> freshen)
 
 def(Type.freshen-sig-stack, Type Subst Type -- Type Subst Type,
@@ -468,7 +452,7 @@ def(Type.freshen, Subst Type -- Subst Type,
     TVar -> freshen,
     TMeta -> freshen,
     TTensor -> freshen2 TTensor,
-    TMorphism -> freshen2 TMorphism,
+    TMorphism -> freshen TMorphism,
     TApp -> freshen2 TApp,
     TMut -> freshen TMut,
     )
@@ -490,7 +474,7 @@ def(Type.rigidify-sig!, Ctx Type -- Ctx Type,
     TMeta ->
         expand-or-update!(
             MetaVar.new! TMeta
-            MetaVar.new! TMeta TMorphism
+            MetaVar.new! TMeta T->
         ) rigidify-sig!,
     _ -> rigidify!)
 
@@ -527,10 +511,7 @@ def(Type.rigidify!, Ctx Type -- Ctx Type,
         dip(rigidify-stack!) swap
         dip(rigidify!) swap
         TTensor,
-    TMorphism ->
-        dip(rigidify-stack!) swap
-        dip(rigidify-stack!) swap
-        TMorphism,
+    TMorphism -> rigidify! TMorphism,
     TValue -> rigidify!,
     TMut -> rigidify! TMut)
 
@@ -545,7 +526,6 @@ def(Type.arity, Type -- Int,
     TData -> arity,
     TApp -> drop arity 1-,
     _ -> drop 0)
-
 
 ||| Get head of type.
 def(type-head, Type -- Type,
@@ -634,7 +614,7 @@ def(type-hole-unify!, Type Name -- Type,
 
 def(Type.max-num-params, Type -- Int,
     TMeta -> expand-if(max-num-params, drop 0),
-    TMorphism -> drop num-morphisms-on-top,
+    TMorphism -> unpack drop num-morphisms-on-top,
     _ -> drop 0)
 
 def(Type.num-morphisms-on-top, Type -- Int,
@@ -660,6 +640,50 @@ def(Type.trace-app-open!, Type Type --,
             "(" trace!
             trace!
     ))
+
+##############
+# ARROW TYPE #
+##############
+
+data(ArrowType, ARROW_TYPE -> Type Type)
+def(ArrowType.unpack, ArrowType -- Type Type, ARROW_TYPE -> id)
+def(ArrowType.unify!, Gamma ArrowType ArrowType -- Gamma ArrowType,
+    dip(unpack) unpack unify2! ARROW_TYPE)
+def(ArrowType.has-meta?, MetaVar ArrowType -- Bool,
+    unpack has-meta2?)
+
+def(ArrowType.trace!, ArrowType --,
+    unpack swap
+    trace-stack-dom!
+    "--" trace!
+    trace-stack-cod!)
+
+def(ArrowType.semifreshen-sig-aux, ArrowType -- ArrowType,
+    MetaVar.new! TMeta swap unpack
+    dip(semifreshen-sig-stack) swap
+    dip(semifreshen-sig-stack) swap
+    ARROW_TYPE nip)
+
+def(ArrowType.needs-fresh-stack-rest?, ArrowType -- Bool,
+    unpack stack-rest unit? if(
+        stack-rest unit?,
+        drop F
+    ))
+
+def(ArrowType.freshen-sig-aux, Subst ArrowType -- Subst ArrowType,
+    MetaVar.new! TMeta rotr unpack
+    dip(freshen-sig-stack) swap
+    dip(freshen-sig-stack) swap
+    ARROW_TYPE dip(nip))
+
+def(ArrowType.freshen, Subst ArrowType -- Subst ArrowType,
+    unpack freshen2 ARROW_TYPE)
+
+def(ArrowType.rigidify!, Ctx ArrowType -- Ctx ArrowType,
+    unpack
+    dip(rigidify-stack!) swap
+    dip(rigidify-stack!) swap
+    ARROW_TYPE)
 
 #########
 # Subst #
