@@ -3905,7 +3905,7 @@ static void mw_Module_3D_ (void);
 static void mw_Module_2E_new_21_ (void);
 static void mw_Module_2E_add_import_21_ (void);
 static void mw_Module_2E_source_path (void);
-static void mw_module_path_from_name (void);
+static void mw_Name_2E_to_module_path (void);
 static void mw_Module_2E_visible (void);
 static void mw_Int_3E_Row (void);
 static void mw_Row_3E_Int (void);
@@ -3988,8 +3988,8 @@ static void mb_emit_warning_at_21__2 (void);
 static void mb_emit_error_at_21__2 (void);
 static void mb_Module_3D__1 (void);
 static void mb_Module_2E_add_import_21__1 (void);
-static void mb_module_path_from_name_1 (void);
-static void mb_module_path_from_name_2 (void);
+static void mb_Name_2E_to_module_path_1 (void);
+static void mb_Name_2E_to_module_path_2 (void);
 static void mb_Module_2E_visible_3 (void);
 static void mb_Name_3D__1 (void);
 static void mb_Str_2E_hash_1 (void);
@@ -21527,13 +21527,13 @@ static void mw_elab_module_header_21_ (void){
         mw_Module_2E_path();
         WORD_ATOM(752, 14, "swap");
         mw_prim_swap();
-        WORD_ATOM(753, 9, "module-path-from-name");
-        mw_module_path_from_name();
-        WORD_ATOM(753, 31, "=");
+        WORD_ATOM(753, 9, "to-module-path");
+        mw_Name_2E_to_module_path();
+        WORD_ATOM(753, 24, "=");
         mw_Path_3D_();
-        WORD_ATOM(753, 33, "if");
+        WORD_ATOM(753, 26, "if");
         if (pop_u64()) {
-            WORD_ATOM(753, 36, "drop");
+            WORD_ATOM(753, 29, "drop");
             mw_prim_drop();
         } else {
             WORD_ATOM(754, 13, "");
@@ -21641,9 +21641,9 @@ static void mw_elab_module_import_21_ (void){
                     break;
                 case 0LL:
                     mw_prim_drop();
-                    WORD_ATOM(777, 21, "module-path-from-name");
-                    mw_module_path_from_name();
-                    WORD_ATOM(777, 43, "run-lexer!");
+                    WORD_ATOM(777, 21, "to-module-path");
+                    mw_Name_2E_to_module_path();
+                    WORD_ATOM(777, 36, "run-lexer!");
                     mw_run_lexer_21_();
                     WORD_ATOM(778, 21, "elab-module!");
                     mw_elab_module_21_();
@@ -33014,16 +33014,16 @@ static void mw_Module_2E_source_path (void){
     mw_Path_2E_to_source_path();
     WORD_EXIT(mw_Module_2E_source_path);
 }
-static void mw_module_path_from_name (void){
-    WORD_ENTER(mw_module_path_from_name, "module-path-from-name", "src/mirth/data/module.mth", 41, 5);
+static void mw_Name_2E_to_module_path (void){
+    WORD_ENTER(mw_Name_2E_to_module_path, "Name.to-module-path", "src/mirth/data/module.mth", 41, 5);
     WORD_ATOM(41, 5, "build-str!");
     push_u64(0);
-    push_fnptr(&mb_module_path_from_name_1);
+    push_fnptr(&mb_Name_2E_to_module_path_1);
     mw_prim_pack_cons();
     mw_build_str_21_();
     WORD_ATOM(50, 7, ">Path");
     mw_Str_3E_Path();
-    WORD_EXIT(mw_module_path_from_name);
+    WORD_EXIT(mw_Name_2E_to_module_path);
 }
 static void mw_Module_2E_visible (void){
     WORD_ENTER(mw_Module_2E_visible, "Module.visible", "src/mirth/data/module.mth", 54, 5);
@@ -34140,14 +34140,14 @@ static void mb_Module_2E_add_import_21__1 (void) {
     WORD_EXIT(mb_Module_2E_add_import_21__1);
 }
 
-static void mb_module_path_from_name_1 (void) {
-    WORD_ENTER(mb_module_path_from_name_1, "module-path-from-name block", "src/mirth/data/module.mth", 42, 9);
+static void mb_Name_2E_to_module_path_1 (void) {
+    WORD_ENTER(mb_Name_2E_to_module_path_1, "Name.to-module-path block", "src/mirth/data/module.mth", 42, 9);
     mw_prim_drop();
     WORD_ATOM(42, 9, ">Str");
     mw_Name_3E_Str();
     WORD_ATOM(42, 14, "str-bytes-for");
     push_u64(0);
-    push_fnptr(&mb_module_path_from_name_2);
+    push_fnptr(&mb_Name_2E_to_module_path_2);
     mw_prim_pack_cons();
     mw_str_bytes_for();
     WORD_ATOM(49, 9, "");
@@ -34163,11 +34163,11 @@ static void mb_module_path_from_name_1 (void) {
     }
     WORD_ATOM(49, 16, "str-buf-push-str!");
     mw_str_buf_push_str_21_();
-    WORD_EXIT(mb_module_path_from_name_1);
+    WORD_EXIT(mb_Name_2E_to_module_path_1);
 }
 
-static void mb_module_path_from_name_2 (void) {
-    WORD_ENTER(mb_module_path_from_name_2, "module-path-from-name block", "src/mirth/data/module.mth", 43, 13);
+static void mb_Name_2E_to_module_path_2 (void) {
+    WORD_ENTER(mb_Name_2E_to_module_path_2, "Name.to-module-path block", "src/mirth/data/module.mth", 43, 13);
     mw_prim_drop();
     WORD_ATOM(43, 13, "dup");
     mw_prim_dup();
@@ -34197,7 +34197,7 @@ static void mb_module_path_from_name_2 (void) {
     }
     WORD_ATOM(47, 13, "str-buf-push-byte!");
     mw_str_buf_push_byte_21_();
-    WORD_EXIT(mb_module_path_from_name_2);
+    WORD_EXIT(mb_Name_2E_to_module_path_2);
 }
 
 static void mb_Module_2E_visible_3 (void) {

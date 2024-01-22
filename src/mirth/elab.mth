@@ -750,7 +750,7 @@ def(elab-module-header!, Token -- Token,
         dup2 ~name !
         dup2 DEF_MODULE swap ~Def !
         path swap
-        module-path-from-name = if(drop,
+        to-module-path = if(drop,
             "Module name should match path." emit-error!),
         dup "Expected module header." emit-error!
     ))
@@ -774,7 +774,7 @@ def(elab-module-import!, Token -- Token,
                     # module is already loaded
 
                 DEF_NONE ->
-                    module-path-from-name run-lexer!
+                    to-module-path run-lexer!
                     elab-module!
                     dip(drop dup .module) add-import!,
                     # elab the imported module

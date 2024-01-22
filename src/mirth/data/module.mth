@@ -37,7 +37,7 @@ def(Module.add-import!, Module Module --,
 def(Module.source-path, Module -- Path,
     path to-source-path)
 
-def(module-path-from-name, Name -- Path,
+def(Name.to-module-path, Name -- Path,
     build-str!(
         >Str str-bytes-for(
             dup B'.' = if(
