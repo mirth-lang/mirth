@@ -66,31 +66,31 @@ field(Arrow~token-end, Arrow, Token)
 field(Arrow~home, Arrow, Maybe(Word))
 field(Arrow~homeidx, Arrow, Int)
 field(Arrow~ctx, Arrow, Ctx)
-field(Arrow~dom, Arrow, Type)
-field(Arrow~cod, Arrow, Type)
+field(Arrow~dom, Arrow, StackType)
+field(Arrow~cod, Arrow, StackType)
 field(Arrow~atoms, Arrow, List(Atom))
 
 field(Atom~token, Atom, Token)
 field(Atom~ctx, Atom, Ctx)
 field(Atom~op, Atom, Op)
 field(Atom~args, Atom, List(Arg))
-field(Atom~dom, Atom, Type)
-field(Atom~cod, Atom, Type)
+field(Atom~dom, Atom, StackType)
+field(Atom~cod, Atom, StackType)
 field(Atom~subst, Atom, Subst)
 
 field(Lambda~token, Lambda, Token)
 field(Lambda~outer-ctx, Lambda, Ctx)
 field(Lambda~inner-ctx, Lambda, Ctx)
-field(Lambda~dom, Lambda, Type)
-field(Lambda~mid, Lambda, Type)
-field(Lambda~cod, Lambda, Type)
+field(Lambda~dom, Lambda, StackType)
+field(Lambda~mid, Lambda, StackType)
+field(Lambda~cod, Lambda, StackType)
 field(Lambda~params, Lambda, List(Param))
 field(Lambda~body, Lambda, Arrow)
 
 field(Block~ctx, Block, Ctx)
 field(Block~token, Block, Token)
-field(Block~dom, Block, Type)
-field(Block~cod, Block, Type)
+field(Block~dom, Block, StackType)
+field(Block~cod, Block, StackType)
 field(Block~arrow, Block, Lazy(Arrow))
 
 def(Arrow.token-start, Arrow -- Token, ~token-start @)
@@ -98,35 +98,35 @@ def(Arrow.token-end, Arrow -- Token, ~token-end @)
 def(Arrow.home, Arrow -- Maybe(Word), ~home @)
 def(Arrow.homeidx, Arrow -- Int, ~homeidx @)
 def(Arrow.ctx, Arrow -- Ctx, ~ctx @)
-def(Arrow.dom, Arrow -- Type, ~dom @)
-def(Arrow.cod, Arrow -- Type, ~cod @)
+def(Arrow.dom, Arrow -- StackType, ~dom @)
+def(Arrow.cod, Arrow -- StackType, ~cod @)
+def(Arrow.type, Arrow -- ArrowType, sip(dom) cod T->)
 def(Arrow.atoms, Arrow -- List(Atom), ~atoms @)
-def(Arrow.type, Arrow -- Type, sip(dom) cod T->)
 
 def(Atom.token, Atom -- Token, ~token @)
 def(Atom.ctx, Atom -- Ctx, ~ctx @)
 def(Atom.op, Atom -- Op, ~op @)
 def(Atom.args, Atom -- List(Arg), ~args @)
-def(Atom.dom, Atom -- Type, ~dom @)
-def(Atom.cod, Atom -- Type, ~cod @)
+def(Atom.dom, Atom -- StackType, ~dom @)
+def(Atom.cod, Atom -- StackType, ~cod @)
 def(Atom.subst, Atom -- Subst, ~subst @)
 
 def(Lambda.token, Lambda -- Token, ~token @)
 def(Lambda.outer-ctx, Lambda -- Ctx, ~outer-ctx @)
 def(Lambda.inner-ctx, Lambda -- Ctx, ~inner-ctx @)
-def(Lambda.dom, Lambda -- Type, ~dom @)
-def(Lambda.mid, Lambda -- Type, ~mid @)
-def(Lambda.cod, Lambda -- Type, ~cod @)
+def(Lambda.dom, Lambda -- StackType, ~dom @)
+def(Lambda.mid, Lambda -- StackType, ~mid @)
+def(Lambda.cod, Lambda -- StackType, ~cod @)
 def(Lambda.params, Lambda -- List(Param), ~params @)
 def(Lambda.body, Lambda -- Arrow, ~body @)
 
 def(Block.ctx, Block -- Ctx, ~ctx @)
 def(Block.token, Block -- Token, ~token @)
-def(Block.dom, Block -- Type, ~dom @)
-def(Block.cod, Block -- Type, ~cod @)
+def(Block.dom, Block -- StackType, ~dom @)
+def(Block.cod, Block -- StackType, ~cod @)
+def(Block.type, Block -- ArrowType, sip(dom) cod T->)
 def(Block.arrow, Block -- Arrow, ~arrow force!)
-def(Block.type, Block -- Type, sip(dom) cod T->)
-def(Block.infer-type!, Block -- Type, arrow type)
+def(Block.infer-type!, Block -- ArrowType, arrow type)
 
 #######
 # ARG #
@@ -154,8 +154,8 @@ def(Block.new-deferred!, Ctx Token -- Block,
     Block.alloc!
     tuck ~token !
     tuck ~ctx !
-    MetaVar.new! TMeta over ~dom !
-    MetaVar.new! TMeta over ~cod !
+    MetaVar.new! STMeta over ~dom !
+    MetaVar.new! STMeta over ~cod !
     dup delay(
         dup ctx swap
         dup dom swap
@@ -167,8 +167,5 @@ def(Block.new-deferred!, Ctx Token -- Block,
 def(Block.typecheck!, Block --,
     arrow drop)
 
-def(block-unify-type!, Gamma Block Type -- Gamma Type,
-    over2 token elab-expand-morphism! drop
-    dip(swap sip(dom unify! drop))
-    swap sip(cod unify! drop)
-    arrow type)
+def(block-unify-type!, Gamma Block ArrowType -- Gamma ArrowType,
+    dip(dup type) rotl dip(unify! drop) arrow type)

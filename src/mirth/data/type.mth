@@ -26,8 +26,8 @@ data(Type,
     TVar -> Var,
     TTable -> Table,
     TData -> Data,
-    TTensor -> Type Type,
-    TMorphism -> Type Type,
+    TTensor -> StackType,
+    TMorphism -> ArrowType,
     TApp -> Type Type,
     TMut -> Type,
     TValue -> Value)
@@ -38,7 +38,6 @@ data(Value,
     VALUE_BLOCK -> Block)
 
 data(PrimType,
-    PRIM_TYPE_UNIT,
     PRIM_TYPE_TYPE,
     PRIM_TYPE_STACK,
     PRIM_TYPE_EFFECT,
@@ -52,26 +51,6 @@ def(PrimType.is-physical?, PrimType -- Bool,
     PRIM_TYPE_EFFECT -> F,
     _ -> drop T)
 
-||| Get the top type constructor name.
-def(Type.stack-last-tycon-name, Type -- Maybe(Name),
-    stack-last-type bind(tycon-name))
-
-||| Get the known type constructor names for a stack type.
-def(Type.stack-tycon-names, Type -- List(Name),
-    L0 swap stack-types for(tycon-name for(snoc)))
-
-||| Get the known types on the stack.
-def(Type.stack-types, Type -- List(Type),
-    TMeta -> expand-if(stack-types, drop L0),
-    TTensor -> dip(stack-types) snoc,
-    _ -> drop L0)
-
-||| Get last type on the stack, if known.
-def(Type.stack-last-type, Type -- Maybe(Type),
-    TMeta -> expand-if(stack-last-type, drop NONE),
-    TTensor -> nip SOME,
-    _ -> drop NONE)
-
 ||| Get type constructor name for a type, if possible.
 def(Type.tycon-name, Type -- Maybe(Name),
     TYPE_ERROR -> NONE,
@@ -82,8 +61,8 @@ def(Type.tycon-name, Type -- Maybe(Name),
     TVar -> drop NONE,
     TTable -> name SOME,
     TData -> name SOME,
-    TMorphism -> drop2 NONE,
-    TTensor -> drop2 NONE,
+    TMorphism -> drop NONE,
+    TTensor -> drop NONE,
     TApp -> drop tycon-name,
     TMut -> tycon-name,
     TValue -> tycon-name)
@@ -95,8 +74,7 @@ def(PrimType.tycon-name, PrimType -- Maybe(Name),
     PRIM_TYPE_EFFECT -> NONE,
     PRIM_TYPE_INT -> "Int" >Name SOME,
     PRIM_TYPE_STR -> "Str" >Name SOME,
-    PRIM_TYPE_PTR -> "Ptr" >Name SOME,
-    PRIM_TYPE_UNIT -> NONE)
+    PRIM_TYPE_PTR -> "Ptr" >Name SOME)
 
 ||| Get value type constructor name.
 def(Value.tycon-name, Value -- Maybe(Name),
@@ -119,16 +97,17 @@ def(init-types!, --,
 # Types #
 #########
 
-def(T*, Type Type -- Type, TTensor)
-def(T->, Type Type -- Type, TMorphism)
+def(T*, StackType Type -- StackType, STCons)
+def(T->, StackType StackType -- ArrowType, ARROW_TYPE)
 
-def(T0, Type, TYPE_UNIT)
-def(T1, Type -- Type, dip(T0) T*)
-def(T2, Type Type -- Type, dip(T1) T*)
-def(T3, Type Type Type -- Type, dip(T2) T*)
-def(T4, Type Type Type Type -- Type, dip(T3) T*)
-def(T5, Type Type Type Type Type -- Type, dip(T4) T*)
-def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
+def(TT, List(Type) -- StackType, T0 swap for(T*))
+def(T0, StackType, STACK_TYPE_UNIT)
+def(T1, Type -- StackType, dip(T0) T*)
+def(T2, Type Type -- StackType, dip(T1) T*)
+def(T3, Type Type Type -- StackType, dip(T2) T*)
+def(T4, Type Type Type Type -- StackType, dip(T3) T*)
+def(T5, Type Type Type Type Type -- StackType, dip(T4) T*)
+def(T6, Type Type Type Type Type Type -- StackType, dip(T5) T*)
 
 # def(type-is-error, Type -- Bool, match(TYPE_ERROR -> T, _ -> drop F))
 # def(type-is-dont-care, Type -- Bool, match(TYPE_DONT_CARE -> T, _ -> drop F))
@@ -142,14 +121,16 @@ def(T6, Type Type Type Type Type Type -- Type, dip(T5) T*)
 # def(type-is-data, Type -- Bool, match(TData -> drop T, _ -> drop F))
 
 def(Type.error?, Type -- Bool, expand match(TYPE_ERROR -> T, _ -> drop F))
-def(Type.morphism?, Type -- Maybe([Type Type]), expand match(TMorphism -> pack2 SOME, _ -> drop NONE))
+def(Type.morphism?, Type -- Maybe(ArrowType), expand match(TMorphism -> SOME, _ -> drop NONE))
 def(Type.prim?, Type -- Maybe(PrimType), expand match(TPrim -> SOME, _ -> drop NONE))
 def(Type.data?, Type -- Maybe(Data),
     type-head match(TData -> SOME, _ -> drop NONE)) # TODO fix this
 def(Type.mut?, Type -- Maybe(Type),
     expand match(TMut -> SOME, _ -> drop NONE))
 
-def(Type.unit?, Type -- Bool, PRIM_TYPE_UNIT swap =prim)
+def(Type.tensor?, Type -- Maybe(StackType), expand match(TTensor -> SOME, _ -> drop NONE))
+def(Type.unit?, Type -- Bool, tensor? if-some(unit?, F))
+
 def(Type=prim, PrimType Type -- Bool, prim? if-some(=, drop F))
 def(Type=meta, MetaVar Type -- Bool,
     TMeta -> =,
@@ -160,10 +141,10 @@ def(Type.is-physical?, Type -- Bool,
     TPrim -> is-physical?,
     _ -> drop T)
 
+def(TYPE_UNIT, Type, STACK_TYPE_UNIT TTensor) # unit type
 def(TYPE_TYPE, Type, PRIM_TYPE_TYPE TPrim) # type of types
 def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
 def(TYPE_EFFECT, Type, PRIM_TYPE_EFFECT TPrim) # type of effect types
-def(TYPE_UNIT, Type, PRIM_TYPE_UNIT TPrim) # unit type
 def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
 def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
 def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but nominally)
@@ -200,8 +181,8 @@ def(Type.unify-simple!, Gamma Type Type -- Gamma Type,
     TPrim -> swap match(TPrim -> unify!, _ -> dip(TPrim) unify-failed!),
     TData -> swap match(TData -> unify!, _ -> dip(TData) unify-failed!),
     TTable -> swap match(TTable -> unify!, _ -> dip(TTable) unify-failed!),
-    TTensor -> rotl match(TTensor -> unify2! TTensor, _ -> dip(TTensor) unify-failed!),
-    TMorphism -> rotl match(TMorphism -> unify2! TMorphism, _ -> dip(TMorphism) unify-failed!),
+    TTensor -> swap match(TTensor -> unify! >Type, _ -> dip(TTensor) unify-failed!),
+    TMorphism -> swap match(TMorphism -> unify! TMorphism, _ -> dip(TMorphism) unify-failed!),
     TApp -> rotl match(TApp -> unify2! TApp, _ -> dip(TApp) unify-failed!),
     TMut -> swap match(TMut -> unify! TMut, _ -> dip(TMut) unify-failed!),
     _ -> unify-failed!)
@@ -274,7 +255,7 @@ def(Value.unify!, Gamma Value Value -- Gamma Type,
             VALUE_BLOCK ->
                 dup2 = if(
                     drop VALUE_BLOCK TValue,
-                    arrow type block-unify-type!
+                    arrow type block-unify-type! >Type
                 ),
             VALUE_INT ->
                 drop2 dup token
@@ -290,8 +271,14 @@ def(Value.unify!, Gamma Value Value -- Gamma Type,
 def(Value.unify-type!, Gamma Type Value -- Gamma Type,
     VALUE_INT -> drop TYPE_INT unify!,
     VALUE_STR -> drop TYPE_STR unify!,
-    VALUE_BLOCK -> swap block-unify-type!)
+    VALUE_BLOCK -> swap unify-block!)
 
+def(Type.unify-block!, Gamma Block Type -- Gamma Type,
+    expand match(
+        TMeta -> over dip(dip(type >Type) unify! drop) arrow type >Type,
+        TMorphism -> block-unify-type! >Type,
+        _ -> dip(type >Type) unify!
+    ))
 
 def(Type.unify2!, Gamma Type Type Type Type -- Gamma Type Type,
     dip(swap dip(unify! swap)) unify! dip(swap))
@@ -312,8 +299,8 @@ def(Type.has-meta?, MetaVar Type -- Bool,
     TPrim -> drop2 F,
     TVar -> drop2 F,
     THole -> drop2 F,
-    TTensor -> has-meta2?,
-    TMorphism -> has-meta2?,
+    TTensor -> has-meta?,
+    TMorphism -> has-meta?,
     TApp -> has-meta2?,
     TData -> drop2 F,
     TTable -> drop2 F,
@@ -329,31 +316,7 @@ def(Value.has-meta?, MetaVar Value -- Bool,
 def(Type.trace-sig!, Type --,
     TMeta -> expand-if(trace-sig!, trace!),
     TYPE_ERROR -> "<ERROR>" trace!,
-    TMorphism ->
-        swap
-        trace-stack-dom!
-        "--" trace!
-        trace-stack-cod!,
-    _ -> trace-stack!)
-
-def(Type.trace-stack-dom!, Type --,
-    expand dup unit? if(
-        drop,
-        trace-stack!
-        " " trace!
-    ))
-
-def(Type.trace-stack-cod!, Type --,
-    expand dup unit? if(
-        drop,
-        " " trace!
-        trace-stack!
-    ))
-
-def(Type.trace-stack!, Type --,
-    TMeta -> expand-if(trace-stack!, trace!),
-    TTensor -> swap trace-stack-dom! trace!,
-    TVar -> dup trace! is-stack? else(" ." trace!),
+    TMorphism -> trace!,
     _ -> trace!)
 
 def(Type.trace!, Type --,
@@ -362,7 +325,7 @@ def(Type.trace!, Type --,
     TPrim -> trace!,
     TVar -> trace!,
     TMeta -> trace!,
-    TTensor -> "[" trace! TTensor trace-stack! "]" trace!,
+    TTensor -> "[" trace! trace! "]" trace!,
     TMorphism -> "[" trace! TMorphism trace-sig! "]" trace!,
     TData -> name trace!,
     TTable -> name trace!,
@@ -374,87 +337,34 @@ def(Type.trace!, Type --,
 def(Value.type, Value -- Type,
     VALUE_INT -> drop PRIM_TYPE_INT TPrim,
     VALUE_STR -> drop PRIM_TYPE_STR TPrim,
-    VALUE_BLOCK -> type)
+    VALUE_BLOCK -> type >Type)
 
 def(PrimType.trace!, PrimType --,
     match(
         PRIM_TYPE_TYPE -> "<TYPE>",
         PRIM_TYPE_STACK -> "<STACK>",
         PRIM_TYPE_EFFECT -> "<EFFECT>",
-        PRIM_TYPE_UNIT -> "[]",
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
     ) trace!)
 
-||| Replace the stack rest with a metavar, if it's unit.
-def(Type.semifreshen-sig, Type -- Type,
-    dup sig-needs-fresh-stack-rest? if(
-        semifreshen-sig-aux,
-        id
-    ))
+# ||| Freshen a type signature in preparation for type sig application.
+# def(Type.freshen-sig, Subst Type -- Subst Type,
+#     dup sig-needs-fresh-stack-rest? if(
+#         freshen-sig-aux,
+#         freshen
+#     ))
 
-def(Type.semifreshen-sig-aux, Type -- Type,
-    TMeta -> expand-if(semifreshen-sig-aux, TMeta),
-    TMorphism ->
-        MetaVar.new! TMeta rotr
-        dip(semifreshen-sig-stack) swap
-        dip(semifreshen-sig-stack) swap
-        TMorphism nip,
-    _ -> id)
+# def(Type.sig-needs-fresh-stack-rest?, Type -- Bool,
+#     TMeta -> expand-if(sig-needs-fresh-stack-rest?, drop F),
+#     TMorphism -> needs-fresh-stack-rest?,
+#     _ -> drop F)
 
-def(Type.semifreshen-sig-stack, Type Type -- Type Type,
-    TMeta -> expand-if(semifreshen-sig-stack, TMeta),
-    TTensor -> dip(semifreshen-sig-stack) TTensor,
-    TPrim ->
-        match(
-            PRIM_TYPE_UNIT -> dup,
-            _ -> TPrim
-        ),
-    _ -> id)
-
-||| Freshen a type signature in preparation for type sig application.
-def(Type.freshen-sig, Subst Type -- Subst Type,
-    dup sig-needs-fresh-stack-rest? if(
-        freshen-sig-aux,
-        freshen
-    ))
-
-def(Type.stack-rest, Type -- Type,
-    TMeta -> expand-if(stack-rest, TMeta),
-    TTensor -> drop stack-rest,
-    _ -> id)
-
-def(Type.sig-needs-fresh-stack-rest?, Type -- Bool,
-    TMeta -> expand-if(sig-needs-fresh-stack-rest?, drop F),
-    TMorphism ->
-        stack-rest unit? if(
-            stack-rest unit?,
-            drop F
-        ),
-    _ -> drop F)
-
-def(Type.freshen-sig-aux, Subst Type -- Subst Type,
-    TMeta -> expand-if(freshen-sig-aux, TMeta),
-    TMorphism ->
-        MetaVar.new! TMeta rot4r
-        dip(freshen-sig-stack) swap
-        dip(freshen-sig-stack) swap
-        TMorphism dip(nip),
-    _ -> freshen)
-
-def(Type.freshen-sig-stack, Type Subst Type -- Type Subst Type,
-    TMeta -> expand-if(freshen-sig-stack, freshen),
-    TTensor ->
-        dip(freshen-sig-stack) swap
-        dip(freshen) swap
-        TTensor,
-    TPrim ->
-        match(
-            PRIM_TYPE_UNIT -> over,
-            _ -> TPrim
-        ),
-    _ -> freshen)
+# def(Type.freshen-sig-aux, Subst Type -- Subst Type,
+#     TMeta -> expand-if(freshen-sig-aux, TMeta),
+#     TMorphism -> freshen-sig-aux TMorphism,
+#     _ -> freshen)
 
 ||| Replace free type vars and free metavars with brand new metavars.
 def(Type.freshen, Subst Type -- Subst Type,
@@ -467,8 +377,8 @@ def(Type.freshen, Subst Type -- Subst Type,
     TValue -> TValue, # no need to freshen values
     TVar -> freshen,
     TMeta -> freshen,
-    TTensor -> freshen2 TTensor,
-    TMorphism -> freshen2 TMorphism,
+    TTensor -> freshen TTensor,
+    TMorphism -> freshen TMorphism,
     TApp -> freshen2 TApp,
     TMut -> freshen TMut,
     )
@@ -489,21 +399,9 @@ def(Var.freshen, Subst Var -- Subst Type,
 def(Type.rigidify-sig!, Ctx Type -- Ctx Type,
     TMeta ->
         expand-or-update!(
-            MetaVar.new! TMeta
-            MetaVar.new! TMeta TMorphism
+            MetaVar.new! STMeta
+            MetaVar.new! STMeta T-> >Type
         ) rigidify-sig!,
-    _ -> rigidify!)
-
-def(Type.rigidify-stack!, Ctx Type -- Ctx Type,
-    TMeta ->
-        expand-or-update!(
-            fresh-stack-type-var! TVar
-        ) rigidify-stack!,
-    TTensor ->
-        dip(rigidify-stack!) swap
-        dip(rigidify!) swap
-        TTensor,
-    TVar -> TVar,
     _ -> rigidify!)
 
 ||| Replace unbound metavars with new vars, adding them to context.
@@ -523,21 +421,15 @@ def(Type.rigidify!, Ctx Type -- Ctx Type,
         dip(rigidify!) swap
         dip(rigidify!) swap
         TApp,
-    TTensor ->
-        dip(rigidify-stack!) swap
-        dip(rigidify!) swap
-        TTensor,
-    TMorphism ->
-        dip(rigidify-stack!) swap
-        dip(rigidify-stack!) swap
-        TMorphism,
+    TTensor -> rigidify! TTensor,
+    TMorphism -> rigidify! TMorphism,
     TValue -> rigidify!,
     TMut -> rigidify! TMut)
 
 def(Value.rigidify!, Ctx Value -- Ctx Type,
     VALUE_INT -> VALUE_INT TValue,
     VALUE_STR -> VALUE_STR TValue,
-    VALUE_BLOCK -> arrow type rigidify-sig!)
+    VALUE_BLOCK -> arrow type rigidify! >Type)
 
 ||| How many types does this type take as an argument?
 def(Type.arity, Type -- Int,
@@ -545,7 +437,6 @@ def(Type.arity, Type -- Int,
     TData -> arity,
     TApp -> drop arity 1-,
     _ -> drop 0)
-
 
 ||| Get head of type.
 def(type-head, Type -- Type,
@@ -632,14 +523,12 @@ def(type-hole-unify!, Type Name -- Type,
 # Params #
 ##########
 
-def(Type.max-num-params, Type -- Int,
-    TMeta -> expand-if(max-num-params, drop 0),
-    TMorphism -> drop num-morphisms-on-top,
-    _ -> drop 0)
+def(ArrowType.max-num-params, ArrowType -- Int,
+    dom num-morphisms-on-top)
 
-def(Type.num-morphisms-on-top, Type -- Int,
-    TMeta -> expand-if(num-morphisms-on-top, drop 0),
-    TTensor -> morphism? .if(num-morphisms-on-top 1+, drop 0),
+def(StackType.num-morphisms-on-top, StackType -- Int,
+    STMeta -> expand-if(>StackType num-morphisms-on-top, drop 0),
+    STCons -> morphism? .if(num-morphisms-on-top 1+, drop 0),
     _ -> drop 0)
 
 ############
@@ -660,6 +549,231 @@ def(Type.trace-app-open!, Type Type --,
             "(" trace!
             trace!
     ))
+
+##############
+# STACK TYPE #
+##############
+
+data(StackType,
+    STACK_TYPE_ERROR,
+    STACK_TYPE_DONT_CARE,
+    STACK_TYPE_UNIT,
+    STVar -> Var,
+    STMeta -> MetaVar,
+    STCons -> StackType Type)
+
+def(Type>StackType, Type -- StackType,
+    TYPE_ERROR -> STACK_TYPE_ERROR,
+    TYPE_DONT_CARE -> STACK_TYPE_DONT_CARE,
+    TVar -> STVar,
+    TMeta -> STMeta,
+    TTensor -> id,
+    _ -> "kind error! expected stack type, got regular type." panic!)
+
+def(StackType>Type, StackType -- Type,
+    STACK_TYPE_ERROR -> TYPE_ERROR,
+    STACK_TYPE_DONT_CARE -> TYPE_DONT_CARE,
+    STVar -> TVar,
+    STMeta -> TMeta,
+    _ -> TTensor)
+
+def(StackType.expand, StackType -- StackType,
+    STMeta -> expand >StackType,
+    _ -> id)
+
+def(StackType.unit?, StackType -- Bool,
+    expand match(
+        STACK_TYPE_UNIT -> T,
+        _ -> drop F
+    ))
+
+||| Split stack type into bottom and top types.
+def(StackType.split, StackType -- StackType List(Type),
+    expand match(
+        STCons -> dip(split) snoc,
+        _ -> L0
+    ))
+
+||| Get bottom of stack.
+def(StackType.bottom, StackType -- StackType, split drop)
+
+||| Get top types on stack.
+def(StackType.top-types, StackType -- List(Type), split nip)
+
+||| Get top stack type if possible.
+def(StackType.top-type, StackType -- Maybe(Type),
+    expand match(
+        STCons -> nip SOME,
+        _ -> drop NONE
+    ))
+
+||| Get the top type constructor name.
+def(StackType.top-tycon-name, StackType -- Maybe(Name),
+    top-type bind(tycon-name))
+
+def(StackType.has-meta?, MetaVar StackType -- Bool,
+    expand match(
+        STMeta -> =,
+        STACK_TYPE_ERROR -> drop F,
+        STACK_TYPE_DONT_CARE -> drop F,
+        STVar -> drop2 F,
+        STACK_TYPE_UNIT -> drop F,
+        STCons -> dip(over) has-meta? if(drop2 T, has-meta?)
+    ))
+
+def(StackType.unify-failed!, Gamma StackType StackType -- Gamma StackType,
+    # "yo" panic! )
+   both(>Type) unify-failed! >StackType)
+
+def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
+    swap expand match(
+        STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR,
+        STACK_TYPE_DONT_CARE -> id,
+        STMeta -> swap expand match(
+            STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR,
+            STACK_TYPE_DONT_CARE -> STMeta,
+            STMeta -> dip(TMeta) unify! >StackType,
+            _ -> >Type swap unify! >StackType,
+        ),
+        STVar -> swap expand match(
+            STACK_TYPE_ERROR -> drop STACK_TYPE_ERROR,
+            STACK_TYPE_DONT_CARE -> STVar,
+            STMeta -> dip(TVar) unify! >StackType,
+            STVar -> unify! >StackType,
+            _ -> dip(STVar) unify-failed!
+        ),
+        STACK_TYPE_UNIT -> expand match(
+            STACK_TYPE_ERROR -> STACK_TYPE_ERROR,
+            STMeta -> dip(STACK_TYPE_UNIT >Type) unify! >StackType,
+            STACK_TYPE_DONT_CARE -> STACK_TYPE_UNIT,
+            STACK_TYPE_UNIT -> STACK_TYPE_UNIT,
+            _ -> STACK_TYPE_UNIT unify-failed!
+        ),
+        STCons -> rotl expand match(
+            STACK_TYPE_ERROR -> drop2 STACK_TYPE_ERROR,
+            STMeta -> dip(STCons >Type) unify! >StackType,
+            STACK_TYPE_DONT_CARE -> STCons,
+            STCons -> dip(swap dip(unify! swap)) unify! dip(swap) STCons,
+            _ -> dip(STCons) unify-failed!
+        ),
+    ))
+
+def(StackType.trace-dom!, StackType --,
+    expand dup unit? if(
+        drop,
+        trace!
+        " " trace!
+    ))
+
+def(StackType.trace-cod!, StackType --,
+    expand dup unit? if(
+        drop,
+        " " trace!
+        trace!
+    ))
+
+def(StackType.trace!, StackType --,
+    expand match(
+        STACK_TYPE_ERROR -> TYPE_ERROR trace!,
+        STACK_TYPE_DONT_CARE -> TYPE_DONT_CARE trace!,
+        STMeta -> MetaVar.trace!,
+        STVar -> dup Var.trace! is-stack? else(" ." trace!),
+        STACK_TYPE_UNIT -> id,
+        STCons -> dip(trace-dom!) trace!,
+    ))
+
+def(StackType.semifreshen, StackType StackType -- StackType StackType,
+    expand match(
+        STACK_TYPE_UNIT -> dup,
+        STCons -> dip(semifreshen) STCons,
+        _ -> "expected unit-based stack in semifreshen!" panic!
+    ))
+
+def(StackType.freshen, Subst StackType -- Subst StackType,
+    expand match(
+        STACK_TYPE_UNIT -> STACK_TYPE_UNIT,
+        STCons -> dip(freshen) swap dip(freshen) swap STCons,
+        _ -> >Type freshen >StackType
+    ))
+
+def(StackType.freshen-aux, StackType Subst StackType -- StackType Subst StackType,
+    expand match(
+        STACK_TYPE_UNIT -> over,
+        STCons -> dip(freshen-aux) swap dip(freshen) swap STCons,
+        _ -> >Type freshen >StackType
+    ))
+
+def(StackType.rigidify!, Ctx StackType -- Ctx StackType,
+    STACK_TYPE_ERROR -> STACK_TYPE_ERROR,
+    STACK_TYPE_DONT_CARE -> STACK_TYPE_DONT_CARE,
+    STACK_TYPE_UNIT -> STACK_TYPE_UNIT,
+    STMeta -> expand-or-update!(fresh-stack-type-var! TVar) >StackType rigidify!,
+    STVar -> STVar,
+    STCons -> dip(rigidify!) swap dip(rigidify!) swap STCons)
+
+##############
+# ARROW TYPE #
+##############
+
+data(ArrowType, ARROW_TYPE -> StackType StackType)
+def(ArrowType>Type, ArrowType -- Type, TMorphism)
+
+def(ArrowType.unpack, ArrowType -- StackType StackType, ARROW_TYPE -> id)
+def(ArrowType.dom, ArrowType -- StackType, unpack drop)
+def(ArrowType.cod, ArrowType -- StackType, unpack nip)
+def(ArrowType.unify!, Gamma ArrowType ArrowType -- Gamma ArrowType,
+    dip(unpack) unpack
+    dip(swap dip(unify!)) rotl
+    dip(unify!) swap
+    ARROW_TYPE)
+def(ArrowType.has-meta?, MetaVar ArrowType -- Bool,
+    unpack dip(over) has-meta? if(drop2 T, has-meta?))
+
+def(ArrowType.trace!, ArrowType --,
+    unpack swap
+    trace-dom!
+    "--" trace!
+    trace-cod!)
+
+||| Replace the stack rest with a metavar, if they're both unit.
+def(ArrowType.semifreshen-sig, ArrowType -- ArrowType,
+    dup needs-fresh-stack-rest? then(semifreshen-aux))
+
+def(ArrowType.semifreshen-aux, ArrowType -- ArrowType,
+    MetaVar.new! STMeta swap unpack
+    dip(semifreshen) swap
+    dip(semifreshen) swap
+    ARROW_TYPE nip)
+
+def(ArrowType.needs-fresh-stack-rest?, ArrowType -- Bool,
+    unpack bottom unit? if(
+        bottom unit?,
+        drop F
+    ))
+
+def(ArrowType.freshen-sig, Subst ArrowType -- Subst ArrowType,
+    dup needs-fresh-stack-rest? if(
+        freshen-sig-aux,
+        freshen
+    ))
+
+def(ArrowType.freshen-sig-aux, Subst ArrowType -- Subst ArrowType,
+    MetaVar.new! STMeta rotr unpack
+    dip(freshen-aux) swap
+    dip(freshen-aux) swap
+    ARROW_TYPE dip(nip))
+
+def(ArrowType.freshen, Subst ArrowType -- Subst ArrowType,
+    unpack
+    dip(freshen) swap
+    dip(freshen) swap
+    ARROW_TYPE)
+
+def(ArrowType.rigidify!, Ctx ArrowType -- Ctx ArrowType,
+    unpack
+    dip(rigidify!) swap
+    dip(rigidify!) swap
+    ARROW_TYPE)
 
 #########
 # Subst #

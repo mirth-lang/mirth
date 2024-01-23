@@ -30,5 +30,6 @@ def(Field.name, Field -- Name, ~name @)
 def(Field.index-type, Field -- Type, ~index-type force!)
 def(Field.value-type, Field -- Type, ~value-type force!)
 
-def(Field.type, Field -- Type,
-    sip(index-type T1) value-type TMut T1 T->)
+def(Field.dom, Field -- StackType, index-type T1)
+def(Field.cod, Field -- StackType, value-type TMut T1)
+def(Field.type, Field -- ArrowType, sip(dom) cod T->)
