@@ -27,16 +27,16 @@ field(Tag~name, Tag, Name)
 field(Tag~value, Tag, Int)
 field(Tag~num-inputs, Tag, Int)
 field(Tag~sig?, Tag, Maybe(Token))
-field(Tag~ctx-type, Tag, Lazy([Ctx Type]))
+field(Tag~ctx-type, Tag, Lazy([Ctx ArrowType]))
 
 def(Tag.data, Tag -- Data, ~data @)
 def(Tag.name, Tag -- Name, ~name @)
 def(Tag.value, Tag -- Int, ~value @)
 def(Tag.num-inputs, Tag -- Int, ~num-inputs @)
 def(Tag.sig?, Tag -- Maybe(Token), ~sig? @)
-def(Tag.ctx-type, Tag -- Ctx Type, ~ctx-type force! unpack2) 
+def(Tag.ctx-type, Tag -- Ctx ArrowType, ~ctx-type force! unpack2)
 def(Tag.ctx, Tag -- Ctx, ctx-type drop)
-def(Tag.type, Tag -- Type, ctx-type nip)
+def(Tag.type, Tag -- ArrowType, ctx-type nip)
 
 var(DATA_BOOL, Data)
 var(TAG_T, Tag)
@@ -65,7 +65,7 @@ def(make-data!, Str Mut(Data) List(Mut(Tag)) --,
     map(dip(Tag.alloc! dup) !)
     { Str Data List(Tag) }
     dip(
-        dip(>Name) 
+        dip(>Name)
         dup2 ~name !
         tuck TData DEF_TYPE swap ~Def !
     )
@@ -80,14 +80,12 @@ def(make-data!, Str Mut(Data) List(Mut(Tag)) --,
 
 def(make-tag!, Str Int List(Type) Mut(Tag) --,
     @
-    dip(sip(len) >Type)
+    dip(sip(len) TT)
     sip(CTX0 rotr .data TData T1 T-> pack2 LAZY_READY) sip(~ctx-type !)
     sip(~num-inputs !)
     sip(~value !)
     dip(>Name) dup2 ~name !
     DEF_TAG swap ~Def !)
-
-def(List>Type, List(Type) -- Type, T0 swap for(T*))
 
 def(init-data!, --,
     "Bool" DATA_BOOL TAG_F TAG_T L2 make-data!
@@ -135,4 +133,3 @@ def(Tag.is-transparent?, Tag -- Bool,
     .data is-transparent?)
 
 def(Tag=, Tag Tag -- Bool, both(.id) =)
-

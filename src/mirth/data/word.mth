@@ -13,7 +13,7 @@ field(Word~name, Word, Name)
 field(Word~head, Word, Token)
 field(Word~sig, Word, Maybe(Token))
 field(Word~body, Word, Token)
-field(Word~ctx-type, Word, Lazy([Ctx Type]))
+field(Word~ctx-type, Word, Lazy([Ctx ArrowType]))
 field(Word~params, Word, Lazy(List(Param)))
 field(Word~arrow, Word, Lazy(Arrow))
 
@@ -24,12 +24,12 @@ def(Word.body, Word -- Token, ~body @)
 def(Word.params, Word -- List(Param), ~params force!)
 def(Word.arrow, Word -- Arrow, ~arrow force!)
 
-def(Word.ctx-type, Word -- Ctx Type,
+def(Word.ctx-type, Word -- Ctx ArrowType,
     dup ~ctx-type force-or!(
         head "recursive word needs type signature" emit-fatal-error!
     ) nip unpack2)
 def(Word.ctx, Word -- Ctx, ctx-type drop)
-def(Word.type, Word -- Type, ctx-type nip)
+def(Word.type, Word -- ArrowType, ctx-type nip)
 
 def(Word.new!, Token Token Name -- Word,
     Word.alloc!
