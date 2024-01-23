@@ -26,6 +26,9 @@ data(Prim,
     PRIM_CORE_MATCH,
     PRIM_CORE_LAMBDA,
 
+    PRIM_CORE_RSWAP,
+    PRIM_CORE_RDIP,
+
     PRIM_UNSAFE_CAST,
 
     PRIM_INT_EQ,
@@ -174,6 +177,9 @@ def(init-prims!, --,
     PRIM_CORE_RUN "prim-run" def-prim!
     PRIM_CORE_MATCH "prim-match" def-prim!
     PRIM_CORE_LAMBDA "prim-lambda" def-prim!
+
+    PRIM_CORE_RSWAP "prim-rswap" def-prim!
+    PRIM_CORE_RDIP "prim-rdip" def-prim!
 
     PRIM_UNSAFE_CAST "prim-unsafe-cast" def-prim!
 
@@ -390,10 +396,15 @@ def(init-prims!, --,
     TYPE_TYPE "a" >Name Var.new!
     TYPE_TYPE "b" >Name Var.new!
     TYPE_TYPE "c" >Name Var.new!
+    TYPE_RESOURCE "+r" >Name Var.new!
+    TYPE_RESOURCE "+s" >Name Var.new!
     TYPE_STACK "*x" >Name Var.new!
     TYPE_STACK "*y" >Name Var.new!
-    \( a b c xs ys -> a TVar b TVar c TVar xs STVar ys STVar
-    \( ta tb tc txs tys ->
+    \( a b c rr sr xs ys ->
+        a TVar b TVar c TVar
+        rr TVar RESOURCE sr TVar RESOURCE
+        xs STVar ys STVar
+    \( ta tb tc trr tsr txs tys ->
         a CTX1
         ta T1 T0 T->
         PRIM_CORE_DROP ctx-type!
@@ -435,6 +446,14 @@ def(init-prims!, --,
             txs txs T-> >Type T*
         txs T->
         PRIM_CORE_WHILE ctx-type!
+
+        rr sr CTX2
+        T0 trr T+ tsr T+ T0 tsr T+ trr T+ T->
+        PRIM_CORE_RSWAP ctx-type!
+
+        xs ys rr CTX3
+        txs trr T+ txs tys T-> >Type T* tys trr T+ T->
+        PRIM_CORE_RDIP ctx-type!
 
         xs b CTX2
         txs >Type tb T2 txs tb T* >Type T1 T->

@@ -6,6 +6,7 @@ import(data.str)
 import(data.lazy)
 import(data.list)
 import(data.maybe)
+import(data.either)
 import(data.path)
 import(mirth.data.name)
 import(mirth.data.def)
@@ -71,7 +72,7 @@ def(elab-type-stack!, TypeElab Token -- TypeElab StackType Token,
     elab-type-stack-rest!)
 
 def(elab-type-stack-rest!, TypeElab StackType Token -- TypeElab StackType Token,
-    while(dup sig-stack-end2? not,
+    while(dup sig-stack-end? not,
         swap dip(elab-type-atom!) swap
         dip(swap T*)
     ))

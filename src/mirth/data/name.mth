@@ -86,14 +86,15 @@ def(Name.tail, Name -- Name,
         dup 2 >=
         if(dip(dip(1) .offset-unsafe) 1- prim-str-copy, drop2 "")
     ) >Name)
-    
+
 def(Name.could-be-type, Name -- Bool, head is-alpha)
 def(Name.could-be-type-var, Name -- Bool, head is-lower)
 def(Name.could-be-type-con, Name -- Bool, head is-upper)
 def(Name.is-type-hole, Name -- Bool, dup head B'?' = swap tail-head dup BNUL = swap is-lower || &&)
 def(Name.is-underscore, Name -- Bool, dup head B'_' = swap tail-head BNUL = &&)
 def(Name.could-be-stack-var, Name -- Bool, dup head B'*' = swap tail-head is-lower &&)
-def(Name.could-be-effect-con, Name -- Bool, dup head B'+' = swap tail-head is-upper &&)
+def(Name.could-be-resource-var, Name -- Bool, dup head B'+' = swap tail-head is-lower &&)
+def(Name.could-be-resource-con, Name -- Bool, dup head B'+' = swap tail-head is-upper &&)
 def(Name.print-mangled!, Name --, mangled print!)
 def(Name.mangle-compute!, Name -- Str,
     build-str!(>Str str-bytes-for(

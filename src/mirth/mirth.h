@@ -119,8 +119,10 @@ typedef struct LOC {
 #define STACK_MAX 0x80000
 static USIZE stack_counter = STACK_MAX;
 static VAL stack [STACK_MAX] = {0};
-static USIZE rstack_counter = 0;
-static LOC rstack [STACK_MAX] = {
+static USIZE rstack_counter = STACK_MAX;
+static VAL rstack [STACK_MAX] = {0};
+static USIZE fstack_counter = 0;
+static LOC fstack [STACK_MAX] = {
     {
         .fnptr=(void(*)(void))0,
         .word="<word>",
@@ -138,31 +140,31 @@ static void mw_prim_rdebug(void);
 
 #define WORD_ENTER(_f,_w,_p,_l,_c) \
     do { \
-        rstack[rstack_counter].fnptr = (_f); \
-        rstack[rstack_counter].word = (_w); \
-        rstack[rstack_counter].path = (_p); \
-        rstack[rstack_counter].line = (_l); \
-        rstack[rstack_counter].col = (_c); \
-        rstack[rstack_counter].atom = ""; \
-        rstack_counter++; \
+        fstack[fstack_counter].fnptr = (_f); \
+        fstack[fstack_counter].word = (_w); \
+        fstack[fstack_counter].path = (_p); \
+        fstack[fstack_counter].line = (_l); \
+        fstack[fstack_counter].col = (_c); \
+        fstack[fstack_counter].atom = ""; \
+        fstack_counter++; \
     } while(0)
 
 #define WORD_ATOM(_l,_c,_n) \
     do { \
-        if (rstack_counter > 0) { \
-            rstack[rstack_counter-1].line = (_l); \
-            rstack[rstack_counter-1].col = (_c); \
-            rstack[rstack_counter-1].atom = (_n); \
+        if (fstack_counter > 0) { \
+            fstack[fstack_counter-1].line = (_l); \
+            fstack[fstack_counter-1].col = (_c); \
+            fstack[fstack_counter-1].atom = (_n); \
         } \
     } while(0)
 
 #define WORD_EXIT(_f) \
     do { \
-        if ((rstack_counter == 0) || (rstack[rstack_counter-1].fnptr != (_f))) { \
+        if ((fstack_counter == 0) || (fstack[fstack_counter-1].fnptr != (_f))) { \
             TRACE("mismatched WORD_EXIT, expected " #_f "\n"); \
             exit(1); \
         } \
-        rstack_counter--; \
+        fstack_counter--; \
     } while(0)
 
 #define PRIM_ENTER(_f,_w) WORD_ENTER(_f,_w,__FILE__,__LINE__,1)
@@ -300,6 +302,22 @@ static VAL top_value(void) {
 static VAL pop_value(void) {
     ASSERT(stack_counter < STACK_MAX);
     return stack[stack_counter++];
+}
+
+
+static void push_resource(VAL x) {
+    ASSERT(rstack_counter > 0);
+    rstack[--rstack_counter] = x;
+}
+
+static VAL top_resource(void) {
+    ASSERT(rstack_counter < STACK_MAX);
+    return rstack[rstack_counter];
+}
+
+static VAL pop_resource(void) {
+    ASSERT(rstack_counter < STACK_MAX);
+    return rstack[rstack_counter++];
 }
 
 static VAL mkcons (VAL car, VAL cdr) {
@@ -467,6 +485,24 @@ static void mw_prim_while (void) {
     decref(cond);
     decref(body);
     PRIM_EXIT(mw_prim_while);
+}
+
+static void mw_prim_rswap (void) {
+    PRIM_ENTER(mw_prim_rswap,"prim-rswap");
+    VAL a = pop_resource();
+    VAL b = pop_resource();
+    push_resource(a);
+    push_resource(b);
+    PRIM_EXIT(mw_prim_rswap);
+}
+
+static void mw_prim_rdip (void) {
+    PRIM_ENTER(mw_prim_rdip,"rdip");
+    VAL f = pop_value();
+    VAL x = pop_resource();
+    run_value(f);
+    push_resource(x);
+    PRIM_EXIT(mw_prim_rdip);
 }
 
 static void mw_prim_int_add (void) {
@@ -742,19 +778,19 @@ static void mw_prim_debug (void) {
 
 static void mw_prim_rdebug (void) {
     TRACE("call stack:\n");
-    for (USIZE i = rstack_counter; i --> 1;) {
+    for (USIZE i = fstack_counter; i --> 1;) {
         TRACE("    ");
-        if (rstack[i-1].atom && *rstack[i-1].atom && strcmp(rstack[i-1].atom, rstack[i].word)) {
-            TRACE(rstack[i-1].atom);
+        if (fstack[i-1].atom && *fstack[i-1].atom && strcmp(fstack[i-1].atom, fstack[i].word)) {
+            TRACE(fstack[i-1].atom);
             TRACE(" -> ");
         }
-        TRACE(rstack[i].word);
+        TRACE(fstack[i].word);
         TRACE(" at ");
-        TRACE(rstack[i-1].path);
+        TRACE(fstack[i-1].path);
         TRACE(":");
-        int_trace_((int64_t)rstack[i-1].line, 2);
+        int_trace_((int64_t)fstack[i-1].line, 2);
         TRACE(":");
-        int_trace_((int64_t)rstack[i-1].col, 2);
+        int_trace_((int64_t)fstack[i-1].col, 2);
         TRACE("\n");
     }
 }
