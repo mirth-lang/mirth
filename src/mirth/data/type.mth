@@ -724,7 +724,7 @@ def(StackType.trace-cod!, StackType --,
 def(StackType.trace-base!, StackType -- Bool,
     match(
         STACK_TYPE_UNIT -> id F,
-        STMeta -> trace! " ." trace! T,
+        STMeta -> "*" trace! trace! T,
         STVar -> dup trace! is-stack? else(" ." trace!) T,
         _ -> >Type trace! T
     ))
@@ -733,7 +733,7 @@ def(StackType.trace!, StackType --,
     split3
     dip2(trace-base!)
     dip(for(swap then(" " trace!) trace! T))
-    reverse-for(swap then(" " trace!) trace! T) drop)
+    for(swap then(" " trace!) trace! T) drop)
 
     # rotl match(
     #     STVar -> dup Var.trace! is-stack? else(" ." trace!),
