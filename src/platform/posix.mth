@@ -114,3 +114,19 @@ def(st_mode@, Ptr -- U16,
         OS_WINDOWS -> 6,
         _ -> drop 8
     ) swap .offset(@U16))
+
+
+
+data(+IO, IO-unsafe)
+data(+Out, OUT_STR -> Str, OUT_FILE -> File +IO)
+# def(+Out.new(f), )
+# def(+Out.del, +Out(+a) -- +a)
+
+def(Str.put!, Str +Out -- +Out,
+    OUT_STR -> swap cat OUT_STR,
+    OUT_FILE -> tuck dip(Str.write!) OUT_FILE)
+
+    # OUT(f) -> f OUT(f))
+
+# data(+StrBuf, STRBUF -> Str)
+# def(StrBuf.cat, Str +StrBuf -- +StrBuf)

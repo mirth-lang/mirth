@@ -122,6 +122,9 @@ def(Data.is-transparent?, Data -- Bool,
         _ -> drop F
     ))
 
+def(Data.is-resource?, Data -- Bool,
+    name could-be-resource-con)
+
 #######
 # TAG #
 #######

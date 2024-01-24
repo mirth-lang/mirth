@@ -46,23 +46,35 @@ def(Match.is-exhaustive?, Match -- Bool,
                 num-tags
                 over cases len =,
             NONE ->
-                T # presume exhaustiveness
+                dup cases len 0>,
+                # presume exhaustiveness generally.
+                # and don't support empty matches for now.
         )
     ) nip)
 
 def(Match.has-default-case?, Match -- Bool,
     cases any(dup is-default-case?))
 
-||| Get type we're matching over.
-def(Match.scrutinee?, Match -- Maybe(Type),
-    dom top-type)
-
-||| Get "data" associated with scrutinee.
+||| Get "data" associated with scrutinee. Only returns Data if all the
+||| TAG patterns use it.
 def(Match.scrutinee-data?, Match -- Maybe(Data),
-    scrutinee? bind(data?))
+    cases filter(dup is-default-case? not) dup
+    first bind(pattern tag?) map(.data) if-some(
+        swap all(dup pattern tag? if-some(dip(over) .data =, F)) if(
+            SOME,
+            drop NONE
+        ),
+        drop NONE
+    ))
 
 def(Match.is-transparent?, Match -- Bool,
-    scrutinee-data? if-some(is-transparent?, F))
+    cases match(
+        L1 -> pattern match(
+            PATTERN_TAG -> .data is-transparent?,
+            PATTERN_UNDERSCORE -> T
+        ),
+        _ -> drop F
+    ))
 
 def(Match.add-case!, Case Match --,
     dup2 case-redundant? if(

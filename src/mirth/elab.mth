@@ -818,7 +818,7 @@ def(elab-data!, Token -- Token,
 ||| Get the header, name, arity for a data type.
 def(elab-data-header!, Data Token -- Data,
     dup2 SOME swap ~head? !
-    dup sig-type-con? else("Expected type name." emit-fatal-error!)
+    dup sig-type-con? or(dup sig-resource-con?) else("Expected type name." emit-fatal-error!)
     dup2 name? unwrap name-undefined? else(drop2 "Type name already defined." emit-fatal-error!)
     over TData DEF_TYPE over ~Def !
     swap ~name !
