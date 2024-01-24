@@ -68,3 +68,17 @@ def(Def.typecheck!, Def --,
     DEF_TAG -> type drop,
     DEF_VARIABLE -> type drop,
     DEF_CONSTANT -> drop)
+
+def(Def.callable?, Def -- Bool,
+    DEF_NONE -> F,
+    DEF_ALIAS -> target >Def callable?,
+    DEF_MODULE -> drop F,
+    DEF_BUFFER -> drop T,
+    DEF_PRIM -> drop T,
+    DEF_TYPE -> drop F,
+    DEF_EXTERNAL -> drop T,
+    DEF_WORD -> drop T,
+    DEF_FIELD -> drop T,
+    DEF_TAG -> drop T,
+    DEF_VARIABLE -> drop T,
+    DEF_CONSTANT -> drop T)

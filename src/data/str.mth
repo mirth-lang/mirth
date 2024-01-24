@@ -96,3 +96,11 @@ def(str-bytes-for(f), (*a Byte -- *a) *a Str -- *a,
     with-str-data(repeat(
         dup dip(@Byte f 1) .offset-unsafe
     ) drop))
+
+def(Str.first-byte, Str -- Maybe(Byte),
+    with-str-data(
+        1 >= if(
+            @U8 U8>Byte SOME,
+            drop NONE
+        )
+    ))

@@ -146,61 +146,61 @@ def(List+.rebalance, List+(t) List+(t) -- List+(t) List+(t),
         )
     ))
 
-def(split-half-left, List+(t) -- List+(t) List(t),
+def(List+.split-half-left, List+(t) -- List+(t) List(t),
     L1+ -> L0 dip(L1+),
     L2+ -> L1 dip(L1+),
     L3+ -> L1 dip(L2+),
     LCAT+ -> drop List+>List)
 
-def(split-half-right, List+(t) -- List(t) List+(t),
+def(List+.split-half-right, List+(t) -- List(t) List+(t),
     L1+ -> L1+ dip(L0),
     L2+ -> L1+ dip(L1),
     L3+ -> L2+ dip(L1),
     LCAT+ -> drop dip(List+>List))
 
-def(split-half, List(t) -- List(t) List(t),
+def(List.split-half, List(t) -- List(t) List(t),
     L0 -> L0 L0,
     L1 -> L1 dip(L0),
     L2 -> L1 dip(L1),
     L3 -> L2 dip(L1),
     LCAT -> drop dip(List+>List) List+>List)
 
-def(first, List(t) -- Maybe(t), List>List+ map(first+))
-def(last, List(t) -- Maybe(t), List>List+ map(last+))
-def(middle, List(t) -- Maybe(t), List>List+ map(middle+))
+def(List.first, List(t) -- Maybe(t), List>List+ map(first))
+def(List.last, List(t) -- Maybe(t), List>List+ map(last))
+def(List.middle, List(t) -- Maybe(t), List>List+ map(middle))
 
-def(first+, List+(t) -- t,
+def(List+.first, List+(t) -- t,
     L1+ -> id,
     L2+ -> drop,
     L3+ -> drop2,
-    LCAT+ -> drop2 first+)
+    LCAT+ -> drop2 first)
 
-def(last+, List+(t) -- t,
+def(List+.last, List+(t) -- t,
     L1+ -> id,
     L2+ -> dip(drop),
     L3+ -> dip(drop2),
-    LCAT+ -> drop nip last+)
+    LCAT+ -> drop nip last)
 
-def(middle+, List+(t) -- t,
+def(List+.middle, List+(t) -- t,
     L1+ -> id,
     L2+ -> nip,
     L3+ -> drop nip,
-    LCAT+ -> drop nip first+)
+    LCAT+ -> drop nip first)
 
 ||| Reverse the list.
-def(reverse, List(a) -- List(a),
+def(List.reverse, List(a) -- List(a),
     L0 -> L0,
     L1 -> L1,
     L2 -> swap L2,
     L3 -> rotr swap L3,
-    LCAT -> dip(reverse+ swap reverse+) LCAT)
+    LCAT -> dip(reverse swap reverse) LCAT)
 
 ||| Reverse the list.
-def(reverse+, List+(a) -- List+(a),
+def(List+.reverse, List+(a) -- List+(a),
     L1+ -> L1+,
     L2+ -> swap L2+,
     L3+ -> rotr swap L3+,
-    LCAT+ -> dip(reverse+ swap reverse+) LCAT+)
+    LCAT+ -> dip(reverse swap reverse) LCAT+)
 
 ||| Transform each element of the list.
 def(List.map(f), (*c a -- *c b) *c List(a) -- *c List(b),
@@ -208,14 +208,14 @@ def(List.map(f), (*c a -- *c b) *c List(a) -- *c List(b),
     L1 -> f L1,
     L2 -> dip(f) swap dip(f) swap L2,
     L3 -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3,
-    LCAT -> dip(dip(map+(f)) swap dip(map+(f)) swap) LCAT)
+    LCAT -> dip(dip(map(f)) swap dip(map(f)) swap) LCAT)
 
 ||| Transform each element of the list.
-def(map+(f), (*c a -- *c b) *c List+(a) -- *c List+(b),
+def(List+.map(f), (*c a -- *c b) *c List+(a) -- *c List+(b),
     L1+ -> f L1+,
     L2+ -> dip(f) swap dip(f) swap L2+,
     L3+ -> dip(dip(f)) rotr dip(dip(f)) rotr dip(dip(f)) rotr L3+,
-    LCAT+ -> dip(dip(map+(f)) swap dip(map+(f)) swap) LCAT+)
+    LCAT+ -> dip(dip(map(f)) swap dip(map(f)) swap) LCAT+)
 
 ||| Traverse the list, left to right.
 def(List.for(f), (*c a -- *c) *c List(a) -- *c,
@@ -274,6 +274,13 @@ def(List+.filter(f), (*c a -- *c a Bool) *c List+(a) -- *c List(a),
             nip filter(f)
         )
     )
+
+def(List.filter-some(p), (*c a -- *c Maybe(b)) *c List(a) -- *c List(b),
+    List>List+ if-some(filter-some(p), L0))
+
+def(List+.filter-some(p), (*c a -- *c Maybe(b)) *c List+(a) -- *c List(b),
+    LCAT+ -> drop dip(filter-some(p)) dip'(filter-some(p)) cat,
+    _ -> unsnoc dip(filter-some(p)) dip'(p) if-some(snoc, id))
 
 ||| Find the first element that satisfies the predicate, if it exists.
 def(List.find(f), (*c a -- *c a Bool) *c List(a) -- *c Maybe(a),

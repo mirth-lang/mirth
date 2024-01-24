@@ -43,7 +43,9 @@ data(PrimType,
     PRIM_TYPE_RESOURCE,
     PRIM_TYPE_INT,
     PRIM_TYPE_PTR,
-    PRIM_TYPE_STR)
+    PRIM_TYPE_STR,
+    PRIM_TYPE_+PLATFORM,
+    )
 
 def(PrimType.is-physical?, PrimType -- Bool,
     PRIM_TYPE_TYPE -> F,
@@ -74,7 +76,8 @@ def(PrimType.tycon-name, PrimType -- Maybe(Name),
     PRIM_TYPE_RESOURCE -> NONE,
     PRIM_TYPE_INT -> "Int" >Name SOME,
     PRIM_TYPE_STR -> "Str" >Name SOME,
-    PRIM_TYPE_PTR -> "Ptr" >Name SOME)
+    PRIM_TYPE_PTR -> "Ptr" >Name SOME,
+    PRIM_TYPE_+PLATFORM -> "+Platform" >Name SOME)
 
 ||| Get value type constructor name.
 def(Value.tycon-name, Value -- Maybe(Name),
@@ -91,6 +94,7 @@ def(init-types!, --,
     TYPE_INT "Int" def-type!
     TYPE_PTR "Ptr" def-type!
     TYPE_STR "Str" def-type!
+    TYPE_+PLATFORM "+Platform" def-type!
     init-data!)
 
 #########
@@ -158,6 +162,8 @@ def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but no
 # def(TYPE_I16, Type, PRIM_TYPE_I16 TPrim) # fixed width integer type -- signed 16 bit
 # def(TYPE_I32, Type, PRIM_TYPE_I32 TPrim) # fixed width integer type -- signed 32 bit
 # def(TYPE_I64, Type, PRIM_TYPE_I64 TPrim) # fixed width integer type -- signed 64 bit
+def(TYPE_+PLATFORM, Type, PRIM_TYPE_+PLATFORM TPrim)
+def(RESOURCE_+PLATFORM, Resource, TYPE_+PLATFORM RESOURCE)
 
 def(Type.expand, Type -- Type,
     TMeta -> expand,
@@ -349,6 +355,7 @@ def(PrimType.trace!, PrimType --,
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
+        PRIM_TYPE_+PLATFORM -> "+Platform"
     ) trace!)
 
 # ||| Freshen a type signature in preparation for type sig application.
@@ -550,9 +557,7 @@ def(Type>Resource, Type -- Resource, RESOURCE)
 def(Resource.has-meta?, MetaVar Resource -- Bool, >Type has-meta?)
 def(Resource.unify!, Gamma Resource Resource -- Gamma Resource,
     both(>Type) unify! >Resource)
-def(Resource.trace!, Resource --,
-    "+" trace!
-    >Type trace!)
+def(Resource.trace!, Resource --, >Type trace!)
 def(Resource.freshen, Subst Resource -- Subst Resource,
     >Type freshen >Resource)
 def(Resource.rigidify!, Ctx Resource -- Ctx Resource,
@@ -617,12 +622,25 @@ def(StackType.resources, StackType -- List(Resource), split3 dip(drop2))
 def(StackType.top-type, StackType -- Maybe(Type),
     expand match(
         STCons -> nip SOME,
+        STWith -> drop top-type,
         _ -> drop NONE
     ))
 
 ||| Get the top type constructor name.
 def(StackType.top-tycon-name, StackType -- Maybe(Name),
     top-type bind(tycon-name))
+
+||| Get top resource if possible.
+def(StackType.top-resource, StackType -- Maybe(Resource),
+    expand match(
+        STWith -> nip SOME,
+        STCons -> drop top-resource,
+        _ -> drop NONE
+    ))
+
+||| Get the top resource name.
+def(StackType.top-resource-name, StackType -- Maybe(Name),
+    top-resource bind(>Type tycon-name))
 
 def(StackType.has-meta?, MetaVar StackType -- Bool,
     expand match(

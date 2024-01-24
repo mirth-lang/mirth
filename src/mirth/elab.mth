@@ -8,6 +8,7 @@ import(data.list)
 import(data.maybe)
 import(data.either)
 import(data.path)
+import(data.byte)
 import(mirth.data.name)
 import(mirth.data.def)
 import(mirth.data.token)
@@ -508,18 +509,30 @@ def(elab-atom-name!, Name --,
             elab-atom-name-global!
     ))
 
-def(elab-relativize-name!, Name -- Name,
-    name-undefined? and(dup could-be-relative) if(
-        ab-type @ top-tycon-name for(
-            >Str over to-overload-suffix cat Name.search for(
-                name-defined? if(
-                    nip,
-                    drop
-                )
-            )
-        ),
+
+def(elab-needs-dot, Str -- Bool,
+    first-byte if-some(is-alpha, F))
+
+def(elab-combine-prefix, Str Str -- Str,
+    over elab-needs-dot then("." cat) swap cat)
+
+def(elab-combine-prefixes, List+(Str) Maybe(Str) -- List+(Str),
+    if-some(
+        over map(over elab-combine-prefix) nip cat+,
         id
     ))
+
+def(elab-word-search, Str -- Maybe(Name),
+    Name.search filter(dup >Def callable?))
+
+def(elab-name-candidates, Name -- List(Name),
+    >Str L1+
+    ab-type @ top-resource-name map(>Str) elab-combine-prefixes
+    ab-type @ top-tycon-name map(>Str) elab-combine-prefixes
+    filter-some(elab-word-search))
+
+def(elab-relativize-name!, Name -- Name,
+    dup elab-name-candidates first if-some(nip, id))
 
 def(elab-check-name-visible!, Name -- Name,
     dup >Def >Module? for(
@@ -586,7 +599,7 @@ def(elab-match-at!, StackType Token --,
 
 def(elab-atom-match!, --,
     MetaVar.new! STMeta
-    ab-token @ args+ first+
+    ab-token @ args+ first
     elab-match-at!)
 
 def(elab-lambda!, Lambda -- Lambda,
@@ -993,7 +1006,7 @@ def(elab-target-c99!, Token -- Token,
     typecheck-everything!
     sip(next) args-2
     dip(dup str? unwrap-or("expected output path" emit-fatal-error!) nip >Path)
-    dip(CTX0 T0 T0 T->)
+    dip(CTX0 T0 RESOURCE_+PLATFORM T+ T0 RESOURCE_+PLATFORM T+ T->)
     elab-arrow!
     swap run-output-c99!)
 
