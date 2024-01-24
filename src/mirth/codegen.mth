@@ -351,10 +351,10 @@ def(.str, Str --, "\"" . str-bytes-for(c99-string-byte!) "\"" .)
 def(c99-string-byte!, Byte --,
     B'\' -> "\\\\" .,
     BQUOTE -> "\\\"" .,
-    BHT -> "\\t" ., 
+    BHT -> "\\t" .,
     BLF -> "\\n" .,
     BCR -> "\\r" .,
-    _ -> 
+    _ ->
         dup BSPACE B'~' in-range if(
             .b,
             "\\x" . to-hexdigits dip(.b) .b
@@ -489,7 +489,12 @@ def(c99-match!, Match --,
     dup is-transparent? if(
         cases first unwrap body c99-arrow!,
 
-        c99-line("switch (get_top_data_tag()) {" .)
+        dup scrutinee-data?
+        unwrap-or(token "non-uniform match, not supported at present" emit-fatal-error!)
+        is-resource? if(
+            c99-line("switch (get_top_resource_data_tag()) {" .),
+            c99-line("switch (get_top_data_tag()) {" .)
+        )
         c99-nest(
             dup cases for(c99-case!)
             has-default-case? else(

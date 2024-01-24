@@ -370,6 +370,10 @@ static USIZE get_top_data_tag(void) {
     return get_data_tag(top_value());
 }
 
+static USIZE get_top_resource_data_tag(void) {
+    return get_data_tag(top_resource());
+}
+
 static int value_cmp_(VAL v1, VAL v2) {
     while (IS_CONS(v1) || IS_CONS(v2)) {
         VAL v1car, v1cdr; value_uncons(v1, &v1car, &v1cdr);
