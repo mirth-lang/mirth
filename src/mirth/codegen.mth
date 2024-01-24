@@ -102,6 +102,11 @@ def(need-prim, List(Arg) Prim --,
             L1 -> need-arg-run,
             _ -> need-args-push
         ),
+    PRIM_CORE_RDIP ->
+        match(
+            L1 -> need-arg-run,
+            _ -> need-args-push
+        ),
     PRIM_CORE_IF ->
         match(
             L2 -> dip(need-arg-run) need-arg-run,
@@ -382,6 +387,20 @@ def(c99-prim!, List(Arg) Prim --,
                 c99-line("}" .),
             _ ->
                 PRIM_CORE_DIP c99-prim-default!
+        ),
+
+    PRIM_CORE_RDIP ->
+        match(
+            L1 ->
+                c99-line("{" .)
+                c99-nest(
+                    c99-line("VAL d" . c99-depth @ .n " = pop_resource();" .)
+                    c99-arg-run!
+                    c99-line("push_resource(d" . c99-depth @ .n ");" .)
+                )
+                c99-line("}" .),
+            _ ->
+                PRIM_CORE_RDIP c99-prim-default!
         ),
 
     PRIM_CORE_IF ->

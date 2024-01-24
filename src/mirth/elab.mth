@@ -280,8 +280,8 @@ def(atom-accepts-args?, Atom -- Atom Bool,
         OP_WORD -> dip(dup args len) type max-num-params <,
         OP_PRIM ->
             match(
-                PRIM_CORE_RUN -> dup args len 1 <, # this one's dubious
                 PRIM_CORE_DIP -> dup args len 1 <,
+                PRIM_CORE_RDIP -> dup args len 1 <,
                 PRIM_CORE_IF -> dup args len 2 <,
                 PRIM_CORE_WHILE -> dup args len 2 <,
                 _ -> drop F
