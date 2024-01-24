@@ -74,42 +74,55 @@ def(elab-type-stack!, TypeElab Token -- TypeElab StackType Token,
 def(elab-type-stack-rest!, TypeElab StackType Token -- TypeElab StackType Token,
     while(dup sig-stack-end? not,
         swap dip(elab-type-atom!) swap
-        dip(swap T*)
+        dip(swap T*+)
     ))
 
 def(elab-type-arg!, TypeElab Token -- TypeElab Type Token,
     elab-type-atom!
+    swap match(
+        LEFT -> swap,
+        RIGHT -> drop "Expected type, not resource." emit-fatal-error!
+    )
     dup arg-end? if(
         id,
         "Unexpected token after type." emit-fatal-error!
     ))
 
-def(elab-type-atom!, TypeElab Token -- TypeElab Type Token,
+def(elab-type-atom!, TypeElab Token -- TypeElab Either(Type, Resource) Token,
     # TODO: handle Mut sugar
     dup sig-type-var? if(
-        elab-type-var! dip(TVar),
+        elab-type-var! dip(TVar LEFT),
 
     dup sig-type-con? if(
-        elab-type-con!,
+        elab-type-con! dip(LEFT),
+
+    dup sig-resource-var? if(
+        elab-resource-var! dip(TVar RESOURCE RIGHT),
+
+    dup sig-resource-con? if(
+        elab-resource-con! dip(RIGHT),
 
     dup pat-underscore? if(
-        elab-type-dont-care!,
+        elab-type-dont-care! dip(LEFT),
 
     dup sig-type-hole? if(
-        elab-type-hole!,
+        elab-type-hole! dip(LEFT),
 
     dup lsquare? .if(
-        elab-type-quote!,
+        elab-type-quote! dip(LEFT),
 
         dup "Expected type, got unknown token." emit-error!
-        dip(TYPE_ERROR) next
-    ))))))
+        dip(TYPE_ERROR LEFT) next
+    ))))))))
 
 def(elab-stack-var!, TypeElab Token -- TypeElab Var Token,
     TYPE_STACK elab-implicit-var!)
 
 def(elab-type-var!, TypeElab Token -- TypeElab Var Token,
     TYPE_TYPE elab-implicit-var!)
+
+def(elab-resource-var!, TypeElab Token -- TypeElab Var Token,
+    TYPE_RESOURCE elab-implicit-var!)
 
 def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
     dip2(type-elab-ctx?) over
@@ -149,6 +162,9 @@ def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
         )
         swap next
     ))
+
+def(elab-resource-con!, TypeElab Token -- TypeElab Resource Token,
+    elab-type-con! dip(RESOURCE))
 
 def(elab-type-args!, TypeElab Token Type -- TypeElab Token Type,
     over has-args? if(
@@ -831,7 +847,7 @@ def(elab-data-tag!, Data Token -- Data,
     { Data Tag }
     dup delay(
         type-elab-default
-        over .data head? unwrap elab-type-atom! drop T1
+        over .data head? unwrap elab-type-atom! drop dip(T0) T*+
         dip(T0 rotl sig? for(
             elab-type-stack-rest!
             dup run-end? else("syntax error" emit-fatal-error!) drop

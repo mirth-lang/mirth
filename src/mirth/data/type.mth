@@ -99,6 +99,7 @@ def(init-types!, --,
 
 def(T+, StackType Resource -- StackType, STWith)
 def(T*, StackType Type -- StackType, STCons)
+def(T*+, StackType Either(Type, Resource) -- StackType, match(LEFT -> T*, RIGHT -> T+))
 def(T->, StackType StackType -- ArrowType, ARROW_TYPE)
 
 def(TT, List(Type) -- StackType, T0 swap for(T*))
@@ -687,8 +688,8 @@ def(StackType.force-cons?!, StackType -- Maybe([StackType Type]),
         STCons -> pack2 SOME,
         STWith -> swap force-cons?! map(unpack2 dip(over STWith) pack2) nip,
         STMeta ->
-            dip(MetaVar.alloc! STMeta
-                MetaVar.alloc! TMeta
+            dip(MetaVar.new! STMeta
+                MetaVar.new! TMeta
                 dup2 STCons >Type SOME) ~type? !
             pack2 SOME,
         _ -> drop NONE
@@ -699,8 +700,8 @@ def(StackType.force-with?!, StackType -- Maybe([StackType Resource]),
         STWith -> pack2 SOME,
         STCons -> swap force-with?! map(unpack2 dip(over STCons) pack2) nip,
         STMeta ->
-            dip(MetaVar.alloc! STMeta
-                MetaVar.alloc! TMeta RESOURCE
+            dip(MetaVar.new! STMeta
+                MetaVar.new! TMeta RESOURCE
                 dup2 STWith >Type SOME) ~type? !
             pack2 SOME,
         _ -> drop NONE
@@ -720,17 +721,19 @@ def(StackType.trace-cod!, StackType --,
         trace!
     ))
 
-def(StackType.trace-base!, StackType --,
+def(StackType.trace-base!, StackType -- Bool,
     match(
-        STVar -> dup Var.trace! is-stack? else(" ." trace!),
-        _ -> >Type trace!
+        STACK_TYPE_UNIT -> id F,
+        STMeta -> trace! " ." trace! T,
+        STVar -> dup trace! is-stack? else(" ." trace!) T,
+        _ -> >Type trace! T
     ))
 
 def(StackType.trace!, StackType --,
     split3
     dip2(trace-base!)
-    dip(for(" " trace! trace!))
-    reverse-for(" " trace! trace!))
+    dip(for(swap then(" " trace!) trace! T))
+    reverse-for(swap then(" " trace!) trace! T) drop)
 
     # rotl match(
     #     STVar -> dup Var.trace! is-stack? else(" ." trace!),

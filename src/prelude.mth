@@ -24,6 +24,11 @@ alias(dup, prim-dup)
 alias(drop, prim-drop)
 alias(run, prim-run)
 
+alias(rswap, prim-rswap)
+alias(rdip, prim-rdip)
+
+# def(my-fail, +a +b -- +b +a, rswap)
+
 alias(Int+, prim-int-add)
 alias(Int-, prim-int-sub)
 alias(Int*, prim-int-mul)
