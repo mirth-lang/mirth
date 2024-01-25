@@ -257,6 +257,12 @@ static void value_uncons(VAL val, VAL* car, VAL* cdr) {
         *cdr = val;
     }
 }
+static void value_uncons_c(VAL val, VAL* car, VAL* cdr) {
+    value_uncons(val, car, cdr);
+    incref(*car);
+    incref(*cdr);
+    decref(val);
+}
 
 static void* value_ptr (VAL v) {
     ASSERT(IS_PTR(v));
@@ -372,35 +378,6 @@ static USIZE get_top_data_tag(void) {
 
 static USIZE get_top_resource_data_tag(void) {
     return get_data_tag(top_resource());
-}
-
-static int value_cmp_(VAL v1, VAL v2) {
-    while (IS_CONS(v1) || IS_CONS(v2)) {
-        VAL v1car, v1cdr; value_uncons(v1, &v1car, &v1cdr);
-        VAL v2car, v2cdr; value_uncons(v2, &v2car, &v2cdr);
-        int r = value_cmp_(v1cdr, v2cdr);
-        if (r) return r;
-        v1 = v1car;
-        v2 = v2car;
-    }
-    if (IS_INT(v1) && IS_INT(v2)) {
-        if (VINT(v1) < VINT(v2)) return -1;
-        if (VINT(v1) > VINT(v2)) return 1;
-        return 0;
-    } else if (IS_STR(v1) && IS_STR(v2)) {
-        ASSERT2(VSTR(v1) && VSTR(v2), v1, v2);
-        USIZE n1 = VSTR(v1)->size;
-        USIZE n2 = VSTR(v2)->size;
-        USIZE n = (n1 < n2 ? n1 : n2);
-        ASSERT(n < SIZE_MAX);
-        int r = memcmp(VSTR(v1)->data, VSTR(v2)->data, (size_t)n);
-        if (r) return r;
-        if (n1 < n2) return -1;
-        if (n1 > n2) return 1;
-        return 0;
-    }
-    ASSERT2(0, v1, v2);
-    return 0;
 }
 
 static int str_cmp_(STR* s1, STR* s2) {
@@ -1124,7 +1101,7 @@ static void mw_prim_str_cat (void) {
         decref(v2);
     } else {
         USIZE m2 = n1 + n2 + 4;
-        if (m2 < m*2) m2 = m*2;
+        if ((s1->refs == 1) && (m2 < m*2)) m2 = m*2;
         STR* str = str_alloc(m2);
         str->size = n1+n2;
         ASSERT(n1 <= SIZE_MAX);

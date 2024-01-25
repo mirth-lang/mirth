@@ -71,7 +71,7 @@ def(TokenValue.sig-resource-con?, TokenValue -- Bool, name? and-some(could-be-re
 def(TokenValue.sig-dashes?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_DASHES name =))
 def(TokenValue.pat-arrow?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_ARROW name =))
 def(TokenValue.pat-underscore?, TokenValue -- Bool, name? and-some(is-underscore))
-def(TokenValue.module-header?, TokenValue -- Bool, name? and-some(PRIM_SYNTAX_MODULE name =))
+def(TokenValue.module-header?, TokenValue -- Bool, name? and-some(>Str "module" =))
 
 table(Token)
 field(Token~value, Token, TokenValue)

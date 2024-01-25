@@ -868,7 +868,9 @@ def(elab-data-tag!, Data Token -- Data,
         T-> dip(type-elab-ctx) pack2
     )
     over ~ctx-type !
-    sip(num-inputs-from-sig) ~num-inputs !)
+    sip(num-type-inputs-from-sig) sip(~num-type-inputs !)
+    sip(num-resource-inputs-from-sig) sip(~num-resource-inputs !)
+    drop)
 
 def(expect-token-arrow, Token -- Token,
     dup pat-arrow? else("Expected arrow." emit-fatal-error!))

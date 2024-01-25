@@ -21,23 +21,6 @@ def(Data.name, Data -- Name, ~name @)
 def(Data.arity, Data -- Int, ~arity @)
 def(Data.tags, Data -- List(Tag), ~tags @)
 
-table(Tag)
-field(Tag~data, Tag, Data)
-field(Tag~name, Tag, Name)
-field(Tag~value, Tag, Int)
-field(Tag~num-inputs, Tag, Int)
-field(Tag~sig?, Tag, Maybe(Token))
-field(Tag~ctx-type, Tag, Lazy([Ctx ArrowType]))
-
-def(Tag.data, Tag -- Data, ~data @)
-def(Tag.name, Tag -- Name, ~name @)
-def(Tag.value, Tag -- Int, ~value @)
-def(Tag.num-inputs, Tag -- Int, ~num-inputs @)
-def(Tag.sig?, Tag -- Maybe(Token), ~sig? @)
-def(Tag.ctx-type, Tag -- Ctx ArrowType, ~ctx-type force! unpack2)
-def(Tag.ctx, Tag -- Ctx, ctx-type drop)
-def(Tag.type, Tag -- ArrowType, ctx-type nip)
-
 var(DATA_BOOL, Data)
 var(TAG_T, Tag)
 var(TAG_F, Tag)
@@ -82,7 +65,8 @@ def(make-tag!, Str Int List(Type) Mut(Tag) --,
     @
     dip(sip(len) TT)
     sip(CTX0 rotr .data TData T1 T-> pack2 LAZY_READY) sip(~ctx-type !)
-    sip(~num-inputs !)
+    sip(~num-type-inputs !)
+    sip(0 swap ~num-resource-inputs !)
     sip(~value !)
     dip(>Name) dup2 ~name !
     DEF_TAG swap ~Def !)
@@ -114,12 +98,15 @@ def(Data.add-tag!, Tag Data --,
     dup tags rotr dip(snoc) ~tags !)
 
 def(Data.is-enum?, Data -- Bool,
-    tags all?(dup num-inputs 0=) nip)
+    tags all?(dup num-type-inputs 0= and(dup num-resource-inputs 0=)) nip)
 
 def(Data.is-transparent?, Data -- Bool,
-    tags match(
-        L1 -> num-inputs 1 =,
-        _ -> drop F
+    dup is-resource? if(
+        drop F,
+        tags match(
+            L1 -> dup num-type-inputs 1 = swap num-resource-inputs 0 = &&,
+            _ -> drop F
+        )
     ))
 
 def(Data.is-resource?, Data -- Bool,
@@ -129,10 +116,44 @@ def(Data.is-resource?, Data -- Bool,
 # TAG #
 #######
 
-def(Tag.num-inputs-from-sig, Tag -- Int,
-    sig? if-some(run-length, 0))
+table(Tag)
+field(Tag~data, Tag, Data)
+field(Tag~name, Tag, Name)
+field(Tag~value, Tag, Int)
+field(Tag~num-type-inputs, Tag, Int)
+field(Tag~num-resource-inputs, Tag, Int)
+field(Tag~sig?, Tag, Maybe(Token))
+field(Tag~ctx-type, Tag, Lazy([Ctx ArrowType]))
+
+def(Tag.data, Tag -- Data, ~data @)
+def(Tag.name, Tag -- Name, ~name @)
+def(Tag.value, Tag -- Int, ~value @)
+def(Tag.num-type-inputs, Tag -- Int, ~num-type-inputs @)
+def(Tag.num-resource-inputs, Tag -- Int, ~num-resource-inputs @)
+def(Tag.sig?, Tag -- Maybe(Token), ~sig? @)
+def(Tag.ctx-type, Tag -- Ctx ArrowType, ~ctx-type force! unpack2)
+def(Tag.ctx, Tag -- Ctx, ctx-type drop)
+def(Tag.type, Tag -- ArrowType, ctx-type nip)
+
+def(Tag.num-type-inputs-from-sig, Tag -- Int,
+    dup sig? if-some(
+        run-length
+        swap num-resource-inputs-from-sig -,
+        drop 0
+    ))
+
+def(Tag.num-resource-inputs-from-sig, Tag -- Int,
+    sig? if-some(
+        run-tokens filter-some(name?)
+        filter(dup could-be-resource-var or(dup could-be-resource-con))
+        len,
+        0
+    ))
 
 def(Tag.is-transparent?, Tag -- Bool,
     .data is-transparent?)
+
+def(Tag.outputs-resource?, Tag -- Bool,
+    .data is-resource?)
 
 def(Tag=, Tag Tag -- Bool, both(.id) =)

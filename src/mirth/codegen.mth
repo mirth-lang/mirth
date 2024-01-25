@@ -28,14 +28,10 @@ import(mirth.data.var)
 import(mirth.data.match)
 import(mirth.elab)
 
-###########
-# Codegen #
-###########
+#########
+# NEEDS #
+#########
 
-def(CODEGEN_BUF_SIZE, Size, 0x2000)
-var(codegen-file, File)
-var(codegen-length, Size)
-buffer(CODEGEN_BUF, 0x2000)
 data(Need,
     NEED_WORD -> Word,
     NEED_BLOCK -> Block)
@@ -129,51 +125,41 @@ def(need-block-push, Block --,
     ))
 def(need-block-run, Block --, arrow need-arrow-run)
 
-def(codegen-full?, Bool,
-    codegen-length @ 4 + CODEGEN_BUF_SIZE >=)
+###########
+# Codegen #
+###########
 
-def(codegen-flush!, --,
-    codegen-length @ 0> if(
-        codegen-file @ File>Int CODEGEN_BUF codegen-length @
-        posix-write!
-        expect!(dup 0>, "codegen write failed")
-        expect!(dup codegen-length @ =, "codegen wrote fewer bytes than expected")
-        drop
-        0 codegen-length !,
-        id
-    ))
+var(c99-file-var, File)
+var(c99-depth-var, Int)
+var(c99-buffer-var, Str)
 
-def(.b, Byte --,
-    >U8
-    codegen-full? if(codegen-flush!, id)
-    codegen-length modify(dup 1+)
-    CODEGEN_BUF !!U8)
+data(+C99, MKC99-unsafe)
 
-def(., Str --,
-    dup prim-str-base over num-bytes
-    dup codegen-length @ + CODEGEN_BUF_SIZE > if(
-        codegen-flush!
-        while(dup CODEGEN_BUF_SIZE >,
-            over CODEGEN_BUF_SIZE CODEGEN_BUF prim-ptr-copy
-            CODEGEN_BUF_SIZE codegen-length !
-            codegen-flush!
-            dip(CODEGEN_BUF_SIZE swap .offset-unsafe)
-            CODEGEN_BUF_SIZE -
-        )
-        dup codegen-length ! CODEGEN_BUF prim-ptr-copy,
+def(Str+C99., Str +C99 -- +C99,
+    c99-buffer-var modify("")
+    swap cat
+    c99-buffer-var !
+    c99-buffer-var @ num-bytes 512 > then(codegen-flush!))
+def(Int+C99.n, Int +C99 -- +C99, int-to-str .)
+def(Byte+C99.b, Byte +C99 -- +C99, to-ascii-str unwrap .)
+def(+C99.depth@, +C99 -- Int +C99, c99-depth-var @)
+def(+C99.depth!, Int +C99 -- +C99, c99-depth-var !)
 
-        sip(codegen-length @ CODEGEN_BUF .offset-unsafe prim-ptr-copy)
-        codegen-length modify(+)
-    ) drop)
+def(codegen-start!, File +C99 -- +C99,
+    c99-file-var !
+    0 c99-depth-var !
+    "" c99-buffer-var !)
 
-def(codegen-start!, File --,
-    codegen-file ! 0 codegen-length !)
+def(codegen-flush!, +C99 -- +C99,
+    c99-file-var @
+    c99-buffer-var modify("")
+    write!)
 
-def(codegen-end!, --,
+def(codegen-end!, +C99 -- +C99,
     codegen-flush!
-    codegen-file @ close-file!
-    STDOUT codegen-file !
-    0 codegen-length !)
+    c99-file-var @ close-file!)
+
+def(with-c99, *a [*a +C99 -- *b +C99] -- *b, prim-unsafe-cast run)
 
 def(run-output-c99!, Arrow Path --,
     num-errors @ 0> if(
@@ -182,75 +168,103 @@ def(run-output-c99!, Arrow Path --,
         reset-needs!
         over determine-arrow-needs!
 
-        0 c99-depth !
-        to-output-path >Str
-        create-file! codegen-start!
-        c99-header!
-        c99-tags!
-        c99-buffers!
-        c99-variables!
-        c99-externals!
-        c99-word-sigs!
-        c99-block-sigs!
-        c99-field-sigs!
-        c99-main!
-        c99-field-defs!
-        c99-word-defs!
-        c99-block-defs!
-        codegen-end!
+        with-c99(
+            to-output-path >Str
+            create-file! codegen-start!
+            c99-header!
+            c99-tags!
+            c99-buffers!
+            c99-variables!
+            c99-externals!
+            c99-word-sigs!
+            c99-block-sigs!
+            c99-field-sigs!
+            c99-main!
+            c99-field-defs!
+            c99-word-defs!
+            c99-block-defs!
+            codegen-end!
+        )
     ))
 
-var(c99-depth, Int)
-
-def(.lf, --, BLF .b)
-def(;, Str --, . .lf)
-def(;;, Str --, . .lf .lf)
-def(.n, Int --, int-to-str .)
-def(.name, Name --, mangled .)
-
-def(.w, Name --, "static void mw_" . .name " (void)" .)
-def(.p, Prim --, name .w)
-def(.pm, Prim --, "#define mw_" . name .name "() " .)
+def(+C99.lf, +C99 -- +C99, "\n" .)
+def(Str+C99;, Str +C99 -- +C99, . .lf)
+def(Str+C99;;, Str +C99 -- +C99, . .lf .lf)
+def(Name+C99.name, Name +C99 -- +C99, mangled .)
+def(Name+C99.w, Name +C99 -- +C99, "static void mw_" . .name " (void)" .)
+def(Prim+C99.p, Prim +C99 -- +C99, name .w)
+def(Prim+C99.pm, Prim +C99 -- +C99, "#define mw_" . name .name "() " .)
 
 embed-str(c99-header-str, "src/mirth/mirth.h")
-def(c99-header!, --, c99-header-str . .lf)
+def(c99-header!, +C99 -- +C99, c99-header-str . .lf)
 
-def(c99-buffers!, --, Buffer.for(c99-buffer!) .lf)
-def(c99-buffer!, Buffer --,
+def(c99-buffers!, +C99 -- +C99, Buffer.for(c99-buffer!) .lf)
+def(c99-buffer!, Buffer +C99 -- +C99,
     dup name .w " {" ;
     "    static uint8_t b[" . dup size .n "] = {0};" ;
     "    push_ptr(&b);" ;
     "}" ;
     drop)
 
-def(c99-variables!, --, Variable.for(c99-variable!) .lf)
-def(c99-variable!, Variable --,
+def(c99-variables!, +C99 -- +C99, Variable.for(c99-variable!) .lf)
+def(c99-variable!, Variable +C99 -- +C99,
     "void mw_" . name .name "() {" ;
     "    static VAL v = {0};" ;
     "    push_ptr(&v);" ;
     "}" ;)
 
-def(c99-tags!, --, Tag.for(c99-tag!) .lf)
-def(c99-tag!, Tag --,
+def(c99-tags!, +C99 -- +C99, Tag.for(c99-tag!) .lf)
+def(c99-tag!, Tag +C99 -- +C99,
     dup name .w " {" ;
     dup is-transparent? if(
-        drop,
-        dup num-inputs 0= if(
-            "    push_u64(" . value .n "LL);" ;,
-
-            "    VAL car = pop_value();" ;
-            dup num-inputs 1- repeat("    car = mkcons(car, pop_value());" ;)
-            "    VAL tag = MKU64(" . value .n "LL);" ;
-            "    car = mkcons(car, tag);" ;
-            "    push_value(car);" ;
+        id,
+        "    VAL tag = MKU64(" . dup value .n "LL);" ;
+        "    VAL car = (" .
+        dup num-type-inputs repeat(
+            "pop_value());" ;
+            "    car = mkcons(car, " .
+        )
+        dup num-resource-inputs repeat(
+            "pop_resource());" ;
+            "    car = mkcons(car, " .
+        )
+        "tag);" ;
+        dup outputs-resource? if(
+            "    push_resource(car);" ; ,
+            "    push_value(car);" ; ,
         )
     )
-    "}" ;)
+    "}" ;
 
-def(c99-externals!, --,
+    "void co_" . dup name .name "() {" ;
+    dup is-transparent? if(
+        id,
+        dup outputs-resource? if(
+            "    VAL car = pop_resource();" ; ,
+            "    VAL car = pop_value();" ;
+        )
+        "    VAL cdr;" ;
+        "    decref("
+        over num-resource-inputs repeat(
+            "    value_uncons_c(car, &car, &cdr);" ;
+            . "cdr);" ;
+            "    push_resource("
+        )
+        over num-type-inputs repeat(
+            "    value_uncons_c(car, &car, &cdr);" ;
+            . "cdr);" ;
+            "    push_value("
+        )
+        . "car);" ;
+    )
+    "}" ;
+
+    drop)
+
+def(c99-externals!, +C99 -- +C99,
     External.for(c99-external!) .lf)
 
-def(c99-external!, External --,
+def(c99-external!, External +C99 -- +C99,
     dup sig sig-arity
     dup 2 >= if(
         "can't declare external with multiple return values" panic!,
@@ -281,20 +295,20 @@ def(c99-external!, External --,
     "}" ;
     drop3)
 
-def(c99-nest(f), (*a -- *b) *a -- *b,
-    c99-depth modify(1+)
+def(c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99,
+    depth@ 1+ depth!
     f
-    c99-depth modify(1-))
+    depth@ 1- depth!)
 
-def(c99-indent, --, c99-depth @ repeat("    " .))
-def(c99-line(f), (*a -- *b) *a -- *b, c99-indent f .lf)
+def(c99-indent, +C99 -- +C99, depth@ repeat("    " .))
+def(c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, c99-indent f .lf)
 
-def(c99-call!, List(Arg) Name --,
+def(c99-call!, List(Arg) Name +C99 -- +C99,
     dip(c99-args-push!)
     c99-line("mw_" . .name "();" .))
 
-def(c99-arrow!, Arrow --, atoms for(c99-atom!))
-def(c99-atom!, Atom --,
+def(c99-arrow!, Arrow +C99 -- +C99, atoms for(c99-atom!))
+def(c99-atom!, Atom +C99 -- +C99,
     c99-line("WORD_ATOM(" .
         dup token row >Int .n ", " .
         dup token col >Int .n ", " .
@@ -303,7 +317,7 @@ def(c99-atom!, Atom --,
     sip(args) op
     c99-args-op!)
 
-def(c99-args-op!, List(Arg) Op --,
+def(c99-args-op!, List(Arg) Op +C99 -- +C99,
     OP_NONE     -> drop,
     OP_INT      -> nip c99-int!,
     OP_STR      -> nip c99-str!,
@@ -320,10 +334,10 @@ def(c99-args-op!, List(Arg) Op --,
     OP_VAR      -> nip c99-var!,
     OP_BLOCK    -> nip c99-block-push!)
 
-def(c99-int!, Int --,
+def(c99-int!, Int +C99 -- +C99,
     c99-line("push_i64(" . .n "LL);" .))
 
-def(c99-str!, Str --,
+def(c99-str!, Str +C99 -- +C99,
     c99-line("{" .)
     c99-nest(
         c99-line("static bool vready = false;" .)
@@ -351,9 +365,9 @@ def(c99-str!, Str --,
     c99-line("}" .)
     drop)
 
-def(.str, Str --, "\"" . str-bytes-for(c99-string-byte!) "\"" .)
+def(.str, Str +C99 -- +C99, "\"" . str-bytes-for(c99-string-byte!) "\"" .)
 
-def(c99-string-byte!, Byte --,
+def(c99-string-byte!, +C99 Byte -- +C99,
     B'\' -> "\\\\" .,
     BQUOTE -> "\\\"" .,
     BHT -> "\\t" .,
@@ -366,23 +380,23 @@ def(c99-string-byte!, Byte --,
         )
     )
 
-def(c99-constant!, Constant --,
+def(c99-constant!, Constant +C99 -- +C99,
     value c99-value!)
 
-def(c99-value!, Value --,
+def(c99-value!, Value +C99 -- +C99,
     VALUE_INT -> c99-int!,
     VALUE_STR -> c99-str!,
     VALUE_BLOCK -> c99-block-push!)
 
-def(c99-prim!, List(Arg) Prim --,
+def(c99-prim!, +C99 List(Arg) Prim -- +C99,
     PRIM_CORE_DIP ->
         match(
             L1 ->
                 c99-line("{" .)
                 c99-nest(
-                    c99-line("VAL d" . c99-depth @ .n " = pop_value();" .)
+                    c99-line("VAL d" . depth@ .n " = pop_value();" .)
                     c99-arg-run!
-                    c99-line("push_value(d" . c99-depth @ .n ");" .)
+                    c99-line("push_value(d" . depth@ .n ");" .)
                 )
                 c99-line("}" .),
             _ ->
@@ -394,9 +408,9 @@ def(c99-prim!, List(Arg) Prim --,
             L1 ->
                 c99-line("{" .)
                 c99-nest(
-                    c99-line("VAL d" . c99-depth @ .n " = pop_resource();" .)
+                    c99-line("VAL d" . depth@ .n " = pop_resource();" .)
                     c99-arg-run!
-                    c99-line("push_resource(d" . c99-depth @ .n ");" .)
+                    c99-line("push_resource(d" . depth@ .n ");" .)
                 )
                 c99-line("}" .),
             _ ->
@@ -432,44 +446,44 @@ def(c99-prim!, List(Arg) Prim --,
 
     _ -> c99-prim-default!)
 
-def(c99-prim-default!, List(Arg) Prim --,
+def(c99-prim-default!, List(Arg) Prim +C99 -- +C99,
     name c99-call!)
 
-def(c99-args-push!, List(Arg) --,
+def(c99-args-push!, List(Arg) +C99 -- +C99,
     for(c99-arg-push!))
 
-def(c99-arg-push!, Arg --,
+def(c99-arg-push!, Arg +C99 -- +C99,
     ARG_BLOCK -> c99-block-push!)
 
-def(c99-arg-run!, Arg --,
+def(c99-arg-run!, Arg +C99 -- +C99,
     ARG_BLOCK -> c99-block-run!)
 
-def(c99-block-run!, Block --,
+def(c99-block-run!, Block +C99 -- +C99,
     arrow c99-arrow!)
 
-def(.var, Var --, "var_" . name .name)
-def(.param, Param --, >Var .var)
+def(Var+C99.var, Var +C99 -- +C99, "var_" . name .name)
+def(Param+C99.param, Param +C99 -- +C99, >Var .var)
 
-def(c99-pack-ctx!, Ctx --,
+def(c99-pack-ctx!, Ctx +C99 -- +C99,
     c99-line("push_u64(0);" .)
     physical-vars for(
         c99-var-push!
         c99-line("mw_prim_pack_cons();" .)
     ))
 
-def(c99-unpack-ctx!, Ctx --,
+def(c99-unpack-ctx!, Ctx +C99 -- +C99,
     physical-vars reverse-for(
         c99-line("mw_prim_pack_uncons();" .)
         c99-line("VAL " . .var " = pop_value();" .)
     )
     c99-line("mw_prim_drop();" .))
 
-def(c99-decref-ctx!, Ctx --,
+def(c99-decref-ctx!, Ctx +C99 -- +C99,
     physical-vars reverse-for(
         c99-line("decref(" . .var ");" .)
     ))
 
-def(c99-block-push!, Block --,
+def(c99-block-push!, Block +C99 -- +C99,
     dup block-to-run-var match(
         SOME -> nip c99-var-push!,
         NONE ->
@@ -478,20 +492,20 @@ def(c99-block-push!, Block --,
             c99-line("mw_prim_pack_cons();" .)
     ))
 
-def(c99-var!, Var --,
+def(c99-var!, Var +C99 -- +C99,
     dup auto-run? if(c99-var-run!, c99-var-push!))
 
-def(c99-var-run!, Var --,
+def(c99-var-run!, Var +C99 -- +C99,
     c99-line("incref(" . dup .var ");" .)
     c99-line("run_value(" . dup .var ");" .)
     drop)
 
-def(c99-var-push!, Var --,
+def(c99-var-push!, Var +C99 -- +C99,
     c99-line("incref(" . dup .var ");" .)
     c99-line("push_value(" . dup .var ");" .)
     drop)
 
-def(c99-lambda!, Lambda --,
+def(c99-lambda!, Lambda +C99 -- +C99,
     c99-line("{" .)
     c99-nest(
         dup params reverse-for(
@@ -504,7 +518,7 @@ def(c99-lambda!, Lambda --,
     )
     c99-line("}" .))
 
-def(c99-match!, Match --,
+def(c99-match!, Match +C99 -- +C99,
     dup is-transparent? if(
         cases first unwrap body c99-arrow!,
 
@@ -523,41 +537,37 @@ def(c99-match!, Match --,
         c99-line("}").
     ))
 
-def(c99-case!, Case --,
+def(c99-case!, Case +C99 -- +C99,
     dup pattern c99-pattern!
     c99-nest(
         body c99-arrow!
         c99-line("break;" .)
     ))
 
-def(c99-pattern!, Pattern --,
+def(c99-pattern!, Pattern +C99 -- +C99,
     PATTERN_UNDERSCORE ->
         c99-line("default:" .),
 
     PATTERN_TAG ->
         c99-line("case " . dup value .n "LL:" .)
         c99-nest(
-            num-inputs dup 0> if(
-                c99-line("mw_prim_pack_uncons(); mw_prim_drop();" .)
-                1- repeat(c99-line("mw_prim_pack_uncons(); mw_prim_swap();" .)),
-                drop c99-line("mw_prim_drop();" .)
-            )
+            c99-line("co_" . name .name "();" .)
         )
     )
 
-def(c99-word-sigs!, --, for-needed-words(c99-word-sig!) .lf)
-def(c99-word-sig!, Word --,
+def(c99-word-sigs!, +C99 -- +C99, for-needed-words(c99-word-sig!) .lf)
+def(c99-word-sig!, Word +C99 -- +C99,
     c99-line("static void mw_" . name .name " (void);" .))
 
-def(c99-block-sigs!, --, for-needed-blocks(c99-block-sig!) .lf)
-def(c99-block-sig!, Block --,
+def(c99-block-sigs!, +C99 -- +C99, for-needed-blocks(c99-block-sig!) .lf)
+def(c99-block-sig!, Block +C99 -- +C99,
     c99-line("static void " . .block " (void);" .))
 
-def(c99-field-sigs!, --, Field.for(c99-field-sig!) .lf)
-def(c99-field-sig!, Field --,
+def(c99-field-sigs!, +C99 -- +C99, Field.for(c99-field-sig!) .lf)
+def(c99-field-sig!, Field +C99 -- +C99,
     c99-line("static void mw_" . name .name " (void);" .))
 
-def(c99-block-enter!, Block --,
+def(c99-block-enter!, Block +C99 -- +C99,
     c99-line("WORD_ENTER(" .
         dup .block ", " .
         dup arrow home match(
@@ -569,11 +579,11 @@ def(c99-block-enter!, Block --,
         dup token col >Int .n ");" . )
     drop)
 
-def(c99-block-exit!, Block --,
+def(c99-block-exit!, Block +C99 -- +C99,
     c99-line("WORD_EXIT(" . .block ");" .))
 
-def(c99-block-defs!, --, for-needed-blocks(c99-block-def!) .lf)
-def(c99-block-def!, Block --,
+def(c99-block-defs!, +C99 -- +C99, for-needed-blocks(c99-block-def!) .lf)
+def(c99-block-def!, Block +C99 -- +C99,
     c99-line("static void " . dup .block " (void) {" .)
     c99-nest(
         dup c99-block-enter!
@@ -585,7 +595,7 @@ def(c99-block-def!, Block --,
     )
     c99-line("}" .) .lf)
 
-def(.block, Block -- ,
+def(Block+C99.block, Block +C99 -- +C99,
     "mb_" .
     dup arrow dup home match(
         NONE -> drop Block.id .n,
@@ -594,7 +604,7 @@ def(.block, Block -- ,
             homeidx .n drop
     ))
 
-def(c99-word-enter!, Word --,
+def(c99-word-enter!, Word +C99 -- +C99,
     c99-line("WORD_ENTER(" .
         "mw_" . dup name .name ", " .
         dup name >Str .str ", " .
@@ -603,13 +613,13 @@ def(c99-word-enter!, Word --,
         dup body col >Int .n ");" . )
     drop)
 
-def(c99-word-exit!, Word --,
+def(c99-word-exit!, Word +C99 -- +C99,
     c99-line("WORD_EXIT(" .
         "mw_" . dup name .name ");" .)
     drop)
 
-def(c99-word-defs!, --, for-needed-words(c99-word-def!) .lf)
-def(c99-word-def!, Word --,
+def(c99-word-defs!, +C99 -- +C99, for-needed-words(c99-word-def!) .lf)
+def(c99-word-def!, Word +C99 -- +C99,
     c99-line(dup name .w "{" .)
     c99-nest(
         dup c99-word-enter!
@@ -619,8 +629,8 @@ def(c99-word-def!, Word --,
     c99-line("}" .)
     drop)
 
-def(c99-field-defs!, --, Field.for(c99-field-def!) .lf)
-def(c99-field-def!, Field --,
+def(c99-field-defs!, +C99 -- +C99, Field.for(c99-field-def!) .lf)
+def(c99-field-def!, Field +C99 -- +C99,
     "static VAL* fieldptr_" . dup name .name " (size_t i) {" ;
     "    static struct VAL * p = 0;";
     "    size_t m = " . TABLE_MAX_SIZE .n ";" ;
@@ -638,7 +648,7 @@ def(c99-field-def!, Field --,
 
     drop)
 
-def(c99-main!, Arrow --,
+def(c99-main!, Arrow +C99 -- +C99,
     c99-line("int main (int argc, char** argv) {" .)
     c99-nest(
         c99-line("global_argc = argc;" .)

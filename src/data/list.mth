@@ -19,6 +19,11 @@ def(L10, t t t t  t t t t  t t     -- List(t), L10+ >List)
 def(L11, t t t t  t t t t  t t t   -- List(t), L11+ >List)
 def(L12, t t t t  t t t t  t t t t -- List(t), L12+ >List)
 
+def(List/L0, List(t) -- Bool, L0 -> T, _ -> drop F)
+def(List/L1, List(t) -- Maybe(t), L1 -> SOME, _ -> drop NONE)
+def(List/L2, List(t) -- Maybe([t t]), L2 -> pack2 SOME, _ -> drop NONE)
+def(List/L3, List(t) -- Maybe([t t t]), L3 -> pack3 SOME, _ -> drop NONE)
+
 data(List+(t),
     L1+ -> t,
     L2+ -> t t,

@@ -1,6 +1,7 @@
 module(data.byte)
 
 import(prelude)
+import(data.maybe)
 
 data(Byte,
     BNUL, BSOH, BSTX, BETX, BEOT, BENQ, BACK, BBEL,
@@ -69,9 +70,18 @@ def(Byte.is-hexdigit, Byte -- Bool,
     B'C' -> T, B'D' -> T, B'E' -> T, B'F' -> T,
     _ -> drop F)
 
+buffer(BYTE_ASCII_BUF, 8)
+def(Byte.to-ascii-str, Byte -- Maybe(Str),
+    dup BNUL BDEL in-range if(
+        >U8 BYTE_ASCII_BUF !U8
+        BYTE_ASCII_BUF 1 prim-str-copy
+        SOME,
+        drop NONE
+    ))
+
 def(Byte.is-string-end, Byte -- Bool,
     BQUOTE -> T, BLF -> T, BNUL -> T, _ -> drop F)
-    
+
 def(Byte.to-lower, Byte -- Byte,
     dup is-upper if(>Int 0x20 + >Byte, id))
 def(Byte.to-upper, Byte -- Byte,
