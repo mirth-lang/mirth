@@ -23,7 +23,7 @@ def(Var=, Var Var -- Bool, both(.id) =)
 def(Var.trace!, Var --, name trace!)
 def(Var.is-type?, Var -- Bool, type prim? and-some(PRIM_TYPE_TYPE =))
 def(Var.is-stack?, Var -- Bool, type prim? and-some(PRIM_TYPE_STACK =))
-def(Var.is-effect?, Var -- Bool, type prim? and-some(PRIM_TYPE_EFFECT =))
+def(Var.is-resource?, Var -- Bool, type prim? and-some(PRIM_TYPE_RESOURCE =))
 def(Var.is-physical?, Var -- Bool, type is-physical?)
 
 def(Var.new!, Type Name -- Var,

@@ -6,7 +6,9 @@ import(data.str)
 import(data.lazy)
 import(data.list)
 import(data.maybe)
+import(data.either)
 import(data.path)
+import(data.byte)
 import(mirth.data.name)
 import(mirth.data.def)
 import(mirth.data.token)
@@ -71,44 +73,57 @@ def(elab-type-stack!, TypeElab Token -- TypeElab StackType Token,
     elab-type-stack-rest!)
 
 def(elab-type-stack-rest!, TypeElab StackType Token -- TypeElab StackType Token,
-    while(dup sig-stack-end2? not,
+    while(dup sig-stack-end? not,
         swap dip(elab-type-atom!) swap
-        dip(swap T*)
+        dip(swap T*+)
     ))
 
 def(elab-type-arg!, TypeElab Token -- TypeElab Type Token,
     elab-type-atom!
+    swap match(
+        LEFT -> swap,
+        RIGHT -> drop "Expected type, not resource." emit-fatal-error!
+    )
     dup arg-end? if(
         id,
         "Unexpected token after type." emit-fatal-error!
     ))
 
-def(elab-type-atom!, TypeElab Token -- TypeElab Type Token,
+def(elab-type-atom!, TypeElab Token -- TypeElab Either(Type, Resource) Token,
     # TODO: handle Mut sugar
     dup sig-type-var? if(
-        elab-type-var! dip(TVar),
+        elab-type-var! dip(TVar LEFT),
 
     dup sig-type-con? if(
-        elab-type-con!,
+        elab-type-con! dip(LEFT),
+
+    dup sig-resource-var? if(
+        elab-resource-var! dip(TVar RESOURCE RIGHT),
+
+    dup sig-resource-con? if(
+        elab-resource-con! dip(RIGHT),
 
     dup pat-underscore? if(
-        elab-type-dont-care!,
+        elab-type-dont-care! dip(LEFT),
 
     dup sig-type-hole? if(
-        elab-type-hole!,
+        elab-type-hole! dip(LEFT),
 
     dup lsquare? .if(
-        elab-type-quote!,
+        elab-type-quote! dip(LEFT),
 
         dup "Expected type, got unknown token." emit-error!
-        dip(TYPE_ERROR) next
-    ))))))
+        dip(TYPE_ERROR LEFT) next
+    ))))))))
 
 def(elab-stack-var!, TypeElab Token -- TypeElab Var Token,
     TYPE_STACK elab-implicit-var!)
 
 def(elab-type-var!, TypeElab Token -- TypeElab Var Token,
     TYPE_TYPE elab-implicit-var!)
+
+def(elab-resource-var!, TypeElab Token -- TypeElab Var Token,
+    TYPE_RESOURCE elab-implicit-var!)
 
 def(elab-implicit-var!, TypeElab Token Type -- TypeElab Var Token,
     dip2(type-elab-ctx?) over
@@ -148,6 +163,9 @@ def(elab-type-con!, TypeElab Token -- TypeElab Type Token,
         )
         swap next
     ))
+
+def(elab-resource-con!, TypeElab Token -- TypeElab Resource Token,
+    elab-type-con! dip(RESOURCE))
 
 def(elab-type-args!, TypeElab Token Type -- TypeElab Token Type,
     over has-args? if(
@@ -263,8 +281,8 @@ def(atom-accepts-args?, Atom -- Atom Bool,
         OP_WORD -> dip(dup args len) type max-num-params <,
         OP_PRIM ->
             match(
-                PRIM_CORE_RUN -> dup args len 1 <, # this one's dubious
                 PRIM_CORE_DIP -> dup args len 1 <,
+                PRIM_CORE_RDIP -> dup args len 1 <,
                 PRIM_CORE_IF -> dup args len 2 <,
                 PRIM_CORE_WHILE -> dup args len 2 <,
                 _ -> drop F
@@ -491,18 +509,30 @@ def(elab-atom-name!, Name --,
             elab-atom-name-global!
     ))
 
-def(elab-relativize-name!, Name -- Name,
-    name-undefined? and(dup could-be-relative) if(
-        ab-type @ top-tycon-name for(
-            >Str over to-overload-suffix cat Name.search for(
-                name-defined? if(
-                    nip,
-                    drop
-                )
-            )
-        ),
+
+def(elab-needs-dot, Str -- Bool,
+    first-byte if-some(is-alpha, F))
+
+def(elab-combine-prefix, Str Str -- Str,
+    over elab-needs-dot then("." cat) swap cat)
+
+def(elab-combine-prefixes, List+(Str) Maybe(Str) -- List+(Str),
+    if-some(
+        over map(over elab-combine-prefix) nip cat+,
         id
     ))
+
+def(elab-word-search, Str -- Maybe(Name),
+    Name.search filter(dup >Def callable?))
+
+def(elab-name-candidates, Name -- List(Name),
+    >Str L1+
+    ab-type @ top-resource-name map(>Str) elab-combine-prefixes
+    ab-type @ top-tycon-name map(>Str) elab-combine-prefixes
+    filter-some(elab-word-search))
+
+def(elab-relativize-name!, Name -- Name,
+    dup elab-name-candidates first if-some(nip, id))
 
 def(elab-check-name-visible!, Name -- Name,
     dup >Def >Module? for(
@@ -569,7 +599,7 @@ def(elab-match-at!, StackType Token --,
 
 def(elab-atom-match!, --,
     MetaVar.new! STMeta
-    ab-token @ args+ first+
+    ab-token @ args+ first
     elab-match-at!)
 
 def(elab-lambda!, Lambda -- Lambda,
@@ -801,7 +831,7 @@ def(elab-data!, Token -- Token,
 ||| Get the header, name, arity for a data type.
 def(elab-data-header!, Data Token -- Data,
     dup2 SOME swap ~head? !
-    dup sig-type-con? else("Expected type name." emit-fatal-error!)
+    dup sig-type-con? or(dup sig-resource-con?) else("Expected type name." emit-fatal-error!)
     dup2 name? unwrap name-undefined? else(drop2 "Type name already defined." emit-fatal-error!)
     over TData DEF_TYPE over ~Def !
     swap ~name !
@@ -830,7 +860,7 @@ def(elab-data-tag!, Data Token -- Data,
     { Data Tag }
     dup delay(
         type-elab-default
-        over .data head? unwrap elab-type-atom! drop T1
+        over .data head? unwrap elab-type-atom! drop dip(T0) T*+
         dip(T0 rotl sig? for(
             elab-type-stack-rest!
             dup run-end? else("syntax error" emit-fatal-error!) drop
@@ -838,7 +868,9 @@ def(elab-data-tag!, Data Token -- Data,
         T-> dip(type-elab-ctx) pack2
     )
     over ~ctx-type !
-    sip(num-inputs-from-sig) ~num-inputs !)
+    sip(num-type-inputs-from-sig) sip(~num-type-inputs !)
+    sip(num-resource-inputs-from-sig) sip(~num-resource-inputs !)
+    drop)
 
 def(expect-token-arrow, Token -- Token,
     dup pat-arrow? else("Expected arrow." emit-fatal-error!))
@@ -976,7 +1008,7 @@ def(elab-target-c99!, Token -- Token,
     typecheck-everything!
     sip(next) args-2
     dip(dup str? unwrap-or("expected output path" emit-fatal-error!) nip >Path)
-    dip(CTX0 T0 T0 T->)
+    dip(CTX0 T0 RESOURCE_+PLATFORM T+ T0 RESOURCE_+PLATFORM T+ T->)
     elab-arrow!
     swap run-output-c99!)
 

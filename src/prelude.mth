@@ -24,6 +24,9 @@ alias(dup, prim-dup)
 alias(drop, prim-drop)
 alias(run, prim-run)
 
+alias(rswap, prim-rswap)
+alias(rdip, prim-rdip)
+
 alias(Int+, prim-int-add)
 alias(Int-, prim-int-sub)
 alias(Int*, prim-int-mul)
@@ -122,6 +125,9 @@ alias(posix-exit!, prim-posix-exit)
 def(rotr, a b c -- c a b, swap dip(swap))
 def(rotl, a b c -- b c a, dip(swap) swap)
 
+def(rrotr, +a +b +c -- +c +a +b, rswap rdip(rswap))
+def(rrotl, +a +b +c -- +b +c +a, rdip(rswap) rswap)
+
 def(over, a b -- a b a, dip(dup) swap)
 def(over2, a b1 b2 -- a b1 b2 a, dip(over) swap)
 def(over3, a b1 b2 b3 -- a b1 b2 b3 a, dip(over2) swap)
@@ -142,6 +148,11 @@ def(dip2(f), (*a -- *b) *a c1 c2 -- *b c1 c2,
 def(dip3(f), (*a -- *b) *a c1 c2 c3 -- *b c1 c2 c3,
     dip(dip(dip(f))))
 
+def(rdip2(f), (*a -- *b) *a +c1 +c2 -- *b +c1 +c2,
+    rdip(rdip(f)))
+def(rdip3(f), (*a -- *b) *a +c1 +c2 +c3 -- *b +c1 +c2 +c3,
+    rdip(rdip(rdip(f))))
+
 def(sip(f), (*a x -- *b) *a x -- *b x,
     dup dip(f))
 def(sip2(f), (*a x1 x2 -- *b) *a x1 x2 -- *b x1 x2,
@@ -156,6 +167,9 @@ def(drop4, a b c d --, drop drop drop drop)
 
 def(rot4r, a b c d -- d a b c, swap dip(rotr))
 def(rot4l, a b c d -- b c d a, dip(rotl) swap)
+
+def(rrot4r, +a +b +c +d -- +d +a +b +c, rswap rdip(rrotr))
+def(rrot4l, +a +b +c +d -- +b +c +d +a, rdip(rrotl) rswap)
 
 def(repeat(f), (*a -- *a) *a Int -- *a,
     while(dup 0>, dip(f) 1-) drop)

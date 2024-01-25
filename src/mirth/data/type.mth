@@ -40,15 +40,17 @@ data(Value,
 data(PrimType,
     PRIM_TYPE_TYPE,
     PRIM_TYPE_STACK,
-    PRIM_TYPE_EFFECT,
+    PRIM_TYPE_RESOURCE,
     PRIM_TYPE_INT,
     PRIM_TYPE_PTR,
-    PRIM_TYPE_STR)
+    PRIM_TYPE_STR,
+    PRIM_TYPE_+PLATFORM,
+    )
 
 def(PrimType.is-physical?, PrimType -- Bool,
     PRIM_TYPE_TYPE -> F,
     PRIM_TYPE_STACK -> F,
-    PRIM_TYPE_EFFECT -> F,
+    PRIM_TYPE_RESOURCE -> F,
     _ -> drop T)
 
 ||| Get type constructor name for a type, if possible.
@@ -71,10 +73,11 @@ def(Type.tycon-name, Type -- Maybe(Name),
 def(PrimType.tycon-name, PrimType -- Maybe(Name),
     PRIM_TYPE_TYPE -> NONE,
     PRIM_TYPE_STACK -> NONE,
-    PRIM_TYPE_EFFECT -> NONE,
+    PRIM_TYPE_RESOURCE -> NONE,
     PRIM_TYPE_INT -> "Int" >Name SOME,
     PRIM_TYPE_STR -> "Str" >Name SOME,
-    PRIM_TYPE_PTR -> "Ptr" >Name SOME)
+    PRIM_TYPE_PTR -> "Ptr" >Name SOME,
+    PRIM_TYPE_+PLATFORM -> "+Platform" >Name SOME)
 
 ||| Get value type constructor name.
 def(Value.tycon-name, Value -- Maybe(Name),
@@ -91,13 +94,16 @@ def(init-types!, --,
     TYPE_INT "Int" def-type!
     TYPE_PTR "Ptr" def-type!
     TYPE_STR "Str" def-type!
+    TYPE_+PLATFORM "+Platform" def-type!
     init-data!)
 
 #########
 # Types #
 #########
 
+def(T+, StackType Resource -- StackType, STWith)
 def(T*, StackType Type -- StackType, STCons)
+def(T*+, StackType Either(Type, Resource) -- StackType, match(LEFT -> T*, RIGHT -> T+))
 def(T->, StackType StackType -- ArrowType, ARROW_TYPE)
 
 def(TT, List(Type) -- StackType, T0 swap for(T*))
@@ -144,7 +150,7 @@ def(Type.is-physical?, Type -- Bool,
 def(TYPE_UNIT, Type, STACK_TYPE_UNIT TTensor) # unit type
 def(TYPE_TYPE, Type, PRIM_TYPE_TYPE TPrim) # type of types
 def(TYPE_STACK, Type, PRIM_TYPE_STACK TPrim) # type of stack types
-def(TYPE_EFFECT, Type, PRIM_TYPE_EFFECT TPrim) # type of effect types
+def(TYPE_RESOURCE, Type, PRIM_TYPE_RESOURCE TPrim) # type of (linear) resources
 def(TYPE_INT, Type, PRIM_TYPE_INT TPrim) # generic integer type for integer literals
 def(TYPE_PTR, Type, PRIM_TYPE_PTR TPrim) # generic pointer type (e.g. void*)
 def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but nominally)
@@ -156,6 +162,8 @@ def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but no
 # def(TYPE_I16, Type, PRIM_TYPE_I16 TPrim) # fixed width integer type -- signed 16 bit
 # def(TYPE_I32, Type, PRIM_TYPE_I32 TPrim) # fixed width integer type -- signed 32 bit
 # def(TYPE_I64, Type, PRIM_TYPE_I64 TPrim) # fixed width integer type -- signed 64 bit
+def(TYPE_+PLATFORM, Type, PRIM_TYPE_+PLATFORM TPrim)
+def(RESOURCE_+PLATFORM, Resource, TYPE_+PLATFORM RESOURCE)
 
 def(Type.expand, Type -- Type,
     TMeta -> expand,
@@ -343,10 +351,11 @@ def(PrimType.trace!, PrimType --,
     match(
         PRIM_TYPE_TYPE -> "<TYPE>",
         PRIM_TYPE_STACK -> "<STACK>",
-        PRIM_TYPE_EFFECT -> "<EFFECT>",
+        PRIM_TYPE_RESOURCE -> "<RESOURCE>",
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
+        PRIM_TYPE_+PLATFORM -> "+Platform"
     ) trace!)
 
 # ||| Freshen a type signature in preparation for type sig application.
@@ -519,18 +528,6 @@ def(type-hole-unify!, Type Name -- Type,
     dup trace!
     line-trace!)
 
-##########
-# Params #
-##########
-
-def(ArrowType.max-num-params, ArrowType -- Int,
-    dom num-morphisms-on-top)
-
-def(StackType.num-morphisms-on-top, StackType -- Int,
-    STMeta -> expand-if(>StackType num-morphisms-on-top, drop 0),
-    STCons -> morphism? .if(num-morphisms-on-top 1+, drop 0),
-    _ -> drop 0)
-
 ############
 # APP TYPE #
 ############
@@ -550,6 +547,22 @@ def(Type.trace-app-open!, Type Type --,
             trace!
     ))
 
+#################
+# RESOURCE TYPE #
+#################
+
+data(Resource, RESOURCE -> Type)
+def(Resource>Type, Resource -- Type, RESOURCE -> id)
+def(Type>Resource, Type -- Resource, RESOURCE)
+def(Resource.has-meta?, MetaVar Resource -- Bool, >Type has-meta?)
+def(Resource.unify!, Gamma Resource Resource -- Gamma Resource,
+    both(>Type) unify! >Resource)
+def(Resource.trace!, Resource --, >Type trace!)
+def(Resource.freshen, Subst Resource -- Subst Resource,
+    >Type freshen >Resource)
+def(Resource.rigidify!, Ctx Resource -- Ctx Resource,
+    >Type rigidify! >Resource)
+
 ##############
 # STACK TYPE #
 ##############
@@ -560,7 +573,8 @@ data(StackType,
     STACK_TYPE_UNIT,
     STVar -> Var,
     STMeta -> MetaVar,
-    STCons -> StackType Type)
+    STCons -> StackType Type,
+    STWith -> StackType Resource)
 
 def(Type>StackType, Type -- StackType,
     TYPE_ERROR -> STACK_TYPE_ERROR,
@@ -587,29 +601,46 @@ def(StackType.unit?, StackType -- Bool,
         _ -> drop F
     ))
 
-||| Split stack type into bottom and top types.
-def(StackType.split, StackType -- StackType List(Type),
+||| Split stack type into base, types, and resources.
+def(StackType.split3, StackType -- StackType List(Type) List(Resource),
     expand match(
-        STCons -> dip(split) snoc,
-        _ -> L0
+        STCons -> dip(split3) swap dip(snoc),
+        STWith -> dip(split3) snoc,
+        _ -> L0 L0
     ))
 
 ||| Get bottom of stack.
-def(StackType.bottom, StackType -- StackType, split drop)
+def(StackType.base, StackType -- StackType, split3 drop2)
 
-||| Get top types on stack.
-def(StackType.top-types, StackType -- List(Type), split nip)
+||| Get types on stack.
+def(StackType.types, StackType -- List(Type), split3 drop nip)
+
+||| Get resources on stack.
+def(StackType.resources, StackType -- List(Resource), split3 dip(drop2))
 
 ||| Get top stack type if possible.
 def(StackType.top-type, StackType -- Maybe(Type),
     expand match(
         STCons -> nip SOME,
+        STWith -> drop top-type,
         _ -> drop NONE
     ))
 
 ||| Get the top type constructor name.
 def(StackType.top-tycon-name, StackType -- Maybe(Name),
     top-type bind(tycon-name))
+
+||| Get top resource if possible.
+def(StackType.top-resource, StackType -- Maybe(Resource),
+    expand match(
+        STWith -> nip SOME,
+        STCons -> drop top-resource,
+        _ -> drop NONE
+    ))
+
+||| Get the top resource name.
+def(StackType.top-resource-name, StackType -- Maybe(Name),
+    top-resource bind(>Type tycon-name))
 
 def(StackType.has-meta?, MetaVar StackType -- Bool,
     expand match(
@@ -618,7 +649,8 @@ def(StackType.has-meta?, MetaVar StackType -- Bool,
         STACK_TYPE_DONT_CARE -> drop F,
         STVar -> drop2 F,
         STACK_TYPE_UNIT -> drop F,
-        STCons -> dip(over) has-meta? if(drop2 T, has-meta?)
+        STCons -> dip(over) has-meta? if(drop2 T, has-meta?),
+        STWith -> dip(over) has-meta? if(drop2 T, has-meta?),
     ))
 
 def(StackType.unify-failed!, Gamma StackType StackType -- Gamma StackType,
@@ -653,9 +685,44 @@ def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
             STACK_TYPE_ERROR -> drop2 STACK_TYPE_ERROR,
             STMeta -> dip(STCons >Type) unify! >StackType,
             STACK_TYPE_DONT_CARE -> STCons,
-            STCons -> dip(swap dip(unify! swap)) unify! dip(swap) STCons,
-            _ -> dip(STCons) unify-failed!
+            _ -> dup force-cons?! if-some(
+                nip unpack2 dip(swap dip(unify! swap)) unify! dip(swap) STCons,
+                dip(STCons) unify-failed!
+            )
         ),
+        STWith -> rotl expand match(
+            STACK_TYPE_ERROR -> drop2 STACK_TYPE_ERROR,
+            STMeta -> dip(STWith >Type) unify! >StackType,
+            STACK_TYPE_DONT_CARE -> STWith,
+            _ -> dup force-with?! if-some(
+                nip unpack2 dip(swap dip(unify! swap)) unify! dip(swap) STWith,
+                dip(STWith) unify-failed!
+            )
+        ),
+    ))
+
+def(StackType.force-cons?!, StackType -- Maybe([StackType Type]),
+    expand match(
+        STCons -> pack2 SOME,
+        STWith -> swap force-cons?! map(unpack2 dip(over STWith) pack2) nip,
+        STMeta ->
+            dip(MetaVar.new! STMeta
+                MetaVar.new! TMeta
+                dup2 STCons >Type SOME) ~type? !
+            pack2 SOME,
+        _ -> drop NONE
+    ))
+
+def(StackType.force-with?!, StackType -- Maybe([StackType Resource]),
+    expand match(
+        STWith -> pack2 SOME,
+        STCons -> swap force-with?! map(unpack2 dip(over STCons) pack2) nip,
+        STMeta ->
+            dip(MetaVar.new! STMeta
+                MetaVar.new! TMeta RESOURCE
+                dup2 STWith >Type SOME) ~type? !
+            pack2 SOME,
+        _ -> drop NONE
     ))
 
 def(StackType.trace-dom!, StackType --,
@@ -672,20 +739,43 @@ def(StackType.trace-cod!, StackType --,
         trace!
     ))
 
-def(StackType.trace!, StackType --,
-    expand match(
-        STACK_TYPE_ERROR -> TYPE_ERROR trace!,
-        STACK_TYPE_DONT_CARE -> TYPE_DONT_CARE trace!,
-        STMeta -> MetaVar.trace!,
-        STVar -> dup Var.trace! is-stack? else(" ." trace!),
-        STACK_TYPE_UNIT -> id,
-        STCons -> dip(trace-dom!) trace!,
+def(StackType.trace-base!, StackType -- Bool,
+    match(
+        STACK_TYPE_UNIT -> id F,
+        STMeta -> "*" trace! trace! T,
+        STVar -> dup trace! is-stack? else(" ." trace!) T,
+        _ -> >Type trace! T
     ))
+
+def(StackType.trace!, StackType --,
+    split3
+    dip2(trace-base!)
+    dip(for(swap then(" " trace!) trace! T))
+    for(swap then(" " trace!) trace! T) drop)
+
+    # rotl match(
+    #     STVar -> dup Var.trace! is-stack? else(" ." trace!),
+    #     _ -> >Type trace!,
+    # )
+
+
+    # )
+
+    # expand match(
+    #     STACK_TYPE_ERROR -> TYPE_ERROR trace!,
+    #     STACK_TYPE_DONT_CARE -> TYPE_DONT_CARE trace!,
+    #     STMeta -> MetaVar.trace!,
+    #     STVar ->
+    #     STACK_TYPE_UNIT -> id,
+    #     STCons -> dip(trace-dom!) trace!,
+    #     STWith -> dip(trace-dom!) trace!,
+    # ))
 
 def(StackType.semifreshen, StackType StackType -- StackType StackType,
     expand match(
         STACK_TYPE_UNIT -> dup,
         STCons -> dip(semifreshen) STCons,
+        STWith -> dip(semifreshen) STWith,
         _ -> "expected unit-based stack in semifreshen!" panic!
     ))
 
@@ -693,6 +783,7 @@ def(StackType.freshen, Subst StackType -- Subst StackType,
     expand match(
         STACK_TYPE_UNIT -> STACK_TYPE_UNIT,
         STCons -> dip(freshen) swap dip(freshen) swap STCons,
+        STWith -> dip(freshen) swap dip(freshen) swap STWith,
         _ -> >Type freshen >StackType
     ))
 
@@ -700,6 +791,7 @@ def(StackType.freshen-aux, StackType Subst StackType -- StackType Subst StackTyp
     expand match(
         STACK_TYPE_UNIT -> over,
         STCons -> dip(freshen-aux) swap dip(freshen) swap STCons,
+        STWith -> dip(freshen-aux) swap dip(freshen) swap STWith,
         _ -> >Type freshen >StackType
     ))
 
@@ -709,7 +801,14 @@ def(StackType.rigidify!, Ctx StackType -- Ctx StackType,
     STACK_TYPE_UNIT -> STACK_TYPE_UNIT,
     STMeta -> expand-or-update!(fresh-stack-type-var! TVar) >StackType rigidify!,
     STVar -> STVar,
-    STCons -> dip(rigidify!) swap dip(rigidify!) swap STCons)
+    STCons -> dip(rigidify!) swap dip(rigidify!) swap STCons,
+    STWith -> dip(rigidify!) swap dip(rigidify!) swap STWith)
+
+def(StackType.num-morphisms-on-top, StackType -- Int,
+    STMeta -> expand-if(>StackType num-morphisms-on-top, drop 0),
+    STCons -> morphism? .if(num-morphisms-on-top 1+, drop 0),
+    STWith -> drop num-morphisms-on-top,
+    _ -> drop 0)
 
 ##############
 # ARROW TYPE #
@@ -746,8 +845,8 @@ def(ArrowType.semifreshen-aux, ArrowType -- ArrowType,
     ARROW_TYPE nip)
 
 def(ArrowType.needs-fresh-stack-rest?, ArrowType -- Bool,
-    unpack bottom unit? if(
-        bottom unit?,
+    unpack base unit? if(
+        base unit?,
         drop F
     ))
 
@@ -774,6 +873,9 @@ def(ArrowType.rigidify!, Ctx ArrowType -- Ctx ArrowType,
     dip(rigidify!) swap
     dip(rigidify!) swap
     ARROW_TYPE)
+
+def(ArrowType.max-num-params, ArrowType -- Int,
+    dom num-morphisms-on-top)
 
 #########
 # Subst #
