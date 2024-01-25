@@ -232,7 +232,9 @@ def(c99-tag!, Tag +C99 -- +C99,
             "    VAL car = pop_resource();",
             "    VAL car = pop_value();"
         ) put line
-        "    VAL cdr;" put line
+        dup num-resource-inputs over num-type-inputs + 0> then(
+            "    VAL cdr;" put line
+        )
         "    decref("
         over num-resource-inputs repeat(
             "    value_uncons_c(car, &car, &cdr);" put line
