@@ -129,37 +129,28 @@ def(need-block-run, Block --, arrow need-arrow-run)
 # Codegen #
 ###########
 
-var(c99-file-var, File)
-var(c99-depth-var, Int)
-var(c99-buffer-var, Str)
+data(+C99, MKC99 -> File Int Str)
+def(+C99/MKC99, +C99 -- File Int Str, MKC99 -> id)
 
-data(+C99, MKC99-unsafe)
-
+def(+C99.depth@, +C99 -- Int +C99, /MKC99 over dip(MKC99))
+def(+C99.depth!, Int +C99 -- +C99, dip(/MKC99 nip) swap MKC99)
 def(Str+C99., Str +C99 -- +C99,
-    c99-buffer-var modify("")
-    swap cat
-    c99-buffer-var !
-    c99-buffer-var @ num-bytes 512 > then(codegen-flush!))
+    dip(/MKC99) cat
+    dup num-bytes dip(MKC99)
+    512 > then(codegen-flush!))
+
 def(Int+C99.n, Int +C99 -- +C99, int-to-str .)
 def(Byte+C99.b, Byte +C99 -- +C99, to-ascii-str unwrap .)
-def(+C99.depth@, +C99 -- Int +C99, c99-depth-var @)
-def(+C99.depth!, Int +C99 -- +C99, c99-depth-var !)
 
-def(codegen-start!, File +C99 -- +C99,
-    c99-file-var !
-    0 c99-depth-var !
-    "" c99-buffer-var !)
+def(codegen-start!, Path -- +C99,
+    >Str create-file! 0 "" MKC99)
 
 def(codegen-flush!, +C99 -- +C99,
-    c99-file-var @
-    c99-buffer-var modify("")
-    write!)
+    /MKC99 dip(over) write! "" MKC99)
 
-def(codegen-end!, +C99 -- +C99,
+def(codegen-end!, +C99 --,
     codegen-flush!
-    c99-file-var @ close-file!)
-
-def(with-c99, *a [*a +C99 -- *b +C99] -- *b, prim-unsafe-cast run)
+    /MKC99 drop2 close-file!)
 
 def(run-output-c99!, Arrow Path --,
     num-errors @ 0> if(
@@ -168,23 +159,21 @@ def(run-output-c99!, Arrow Path --,
         reset-needs!
         over determine-arrow-needs!
 
-        with-c99(
-            to-output-path >Str
-            create-file! codegen-start!
-            c99-header!
-            c99-tags!
-            c99-buffers!
-            c99-variables!
-            c99-externals!
-            c99-word-sigs!
-            c99-block-sigs!
-            c99-field-sigs!
-            c99-main!
-            c99-field-defs!
-            c99-word-defs!
-            c99-block-defs!
-            codegen-end!
-        )
+        to-output-path
+        codegen-start!
+        c99-header!
+        c99-tags!
+        c99-buffers!
+        c99-variables!
+        c99-externals!
+        c99-word-sigs!
+        c99-block-sigs!
+        c99-field-sigs!
+        c99-main!
+        c99-field-defs!
+        c99-word-defs!
+        c99-block-defs!
+        codegen-end!
     ))
 
 def(+C99.lf, +C99 -- +C99, "\n" .)
