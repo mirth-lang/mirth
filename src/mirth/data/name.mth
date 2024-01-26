@@ -99,12 +99,12 @@ def(Name.print-mangled!, Name --, mangled print!)
 def(Name.mangle-compute!, Name -- Str,
     build-str!(>Str str-bytes-for(
         dup is-alnum if(
-            str-buf-push-byte!,
+            str-buf-push-byte-ascii!,
             dup B'-' = if(
-                drop B'_' str-buf-push-byte!,
-                B'_' str-buf-push-byte!
-                to-hexdigits dip(str-buf-push-byte!) str-buf-push-byte!
-                B'_' str-buf-push-byte!
+                drop B'_' str-buf-push-byte-ascii!,
+                B'_' str-buf-push-byte-ascii!
+                to-hexdigits dip(str-buf-push-byte-ascii!) str-buf-push-byte-ascii!
+                B'_' str-buf-push-byte-ascii!
             )
         )
     )))

@@ -48,7 +48,10 @@ def(str-buf-empty?, +Str -- Bool +Str,
 def(str-buf-clear!, +Str -- +Str,
     +STR -> drop "" +STR)
 
-def(str-buf-push-byte!, Byte +Str -- +Str,
+def(str-buf-push-byte-unsafe!, Byte +Str -- +Str,
+    to-str-unsafe str-buf-push-str!)
+
+def(str-buf-push-byte-ascii!, Byte +Str -- +Str,
     to-ascii-str unwrap str-buf-push-str!)
 
 ||| Append the given string into STR_BUF. If the string is
