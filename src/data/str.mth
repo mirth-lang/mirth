@@ -17,14 +17,12 @@ def(str-copy-partial!, Str Ptr -- Ptr,
         dip(prim-ptr-copy)
     ))
 
-def(STR_BUF_SIZE, Int, 0x2000)
-buffer(STR_BUF, 0x2000)
-var(STR_BUF_LEN, Int)
+data(+Str, +STR -> Str)
+def(Str.thaw, Str -- +Str, +STR)
+def(+Str.freeze, +Str -- Str, +STR -> id)
 
-def(build-str!(f), (*a -- *b) *a -- *b Str,
-    str-buf-dup! str-buf-clear! dip(
-        f str-buf-dup!
-    ) str-buf!)
+def(build-str!(f), (*a +Str -- *b +Str) *a -- *b Str,
+    "" thaw f freeze)
 
 def(str-copy, Ptr Size -- Str,
     prim-str-copy)
@@ -35,61 +33,43 @@ def(str-copy-cstr, Ptr -- Str,
 def(cstr-num-bytes, Ptr -- Size,
     dup 0 swap while(dup @U8 >Int 0>, dip(1+ 1) .offset-unsafe) drop nip)
 
-def(str-buf-dup!, Str,
-    STR_BUF str-buf-length? prim-str-copy)
+def(str-buf-dup!, +Str -- Str +Str,
+    +STR -> dup dip(+STR))
 
-def(str-buf-length?, Int,
-    STR_BUF_LEN @)
+def(str-buf-num-bytes?, +Str -- Int +Str,
+    +STR -> dup num-bytes dip(+STR))
 
-def(str-buf-length!, Int --,
-    dup STR_BUF_LEN !
-    dip(0 >U8) str-buf-u8!)
+def(str-buf-byte@, Offset +Str -- Byte +Str,
+    str-buf-dup! with-str-data(drop .offset(@Byte))) # TODO make this safer
 
-def(str-buf-u8@, Offset -- U8,
-    STR_BUF @@U8)
+def(str-buf-empty?, +Str -- Bool +Str,
+    +STR -> dup +STR is-empty)
 
-def(str-buf-u8!, U8 Offset --,
-    STR_BUF !!U8)
+def(str-buf-clear!, +Str -- +Str,
+    +STR -> drop "" +STR)
 
-def(str-buf-byte@, Offset -- Byte,
-    STR_BUF .offset(@Byte))
-
-def(str-buf-empty?, Bool, str-buf-length? 0=)
-def(str-buf-full?, Bool, str-buf-length? 1+ STR_BUF_SIZE >=)
-
-def(str-buf-clear!, --,
-    0 str-buf-length!)
-
-def(str-buf-push-u8!, U8 --,
-    assert!(str-buf-full? not, "str-buf-push! but STR_BUF is already full")
-    str-buf-length? str-buf-u8!
-    str-buf-length? 1+ str-buf-length!)
-
-def(str-buf-push-byte!, Byte --,
-    >U8 str-buf-push-u8!)
+def(str-buf-push-byte!, Byte +Str -- +Str,
+    to-ascii-str unwrap str-buf-push-str!)
 
 ||| Append the given string into STR_BUF. If the string is
 ||| too large it gets truncated.
-def(str-buf-push-str!, Str --,
-    with-str-data(str-buf-push-ptr!))
+def(str-buf-push-str!, Str +Str -- +Str,
+    +STR -> swap cat +STR)
 
 def(with-str-data(f), (*a Ptr Size -- *b) *a Str -- *b,
     dup dip(dup dip(prim-str-base) num-bytes f) drop)
 
-def(str-buf-push-ptr!, Ptr Size -- ,
-    tuck str-buf-length? STR_BUF .offset(prim-ptr-copy)
-    str-buf-length? + str-buf-length!)
-
 ||| Set the STR_BUF to a given string. If the string is
 ||| too large it gets truncated.
-def(str-buf!, Str --,
-    str-buf-clear! str-buf-push-str!)
+def(str-buf!, Str +Str -- +Str,
+    +STR -> drop +STR)
 
 ||| Put integer into STR_BUF.
-def(str-buf-int!, Int --,
-    int-to-str str-buf!)
+def(str-buf-int!, Int +Str -- +Str,
+    +STR -> drop >Str +STR)
 
 alias(int-to-str, prim-int-to-str)
+alias(Int>Str, prim-int-to-str)
 
 ||| Traverse string bytes.
 def(str-bytes-for(f), (*a Byte -- *a) *a Str -- *a,
