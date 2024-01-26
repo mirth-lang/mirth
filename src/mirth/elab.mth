@@ -870,6 +870,14 @@ def(elab-data-tag!, Data Token -- Data,
     over ~ctx-type !
     sip(num-type-inputs-from-sig) sip(~num-type-inputs !)
     sip(num-resource-inputs-from-sig) sip(~num-resource-inputs !)
+
+    dup outputs-resource? not
+    over num-resource-inputs 0> && then(
+        sig? unwrap run-tokens find(
+            dup sig-resource-con? or(dup sig-resource-var?)
+        ) unwrap "Value type cannot contain resource." emit-fatal-error!
+    )
+
     drop)
 
 def(expect-token-arrow, Token -- Token,
