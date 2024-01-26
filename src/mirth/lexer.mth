@@ -12,7 +12,7 @@ import(mirth.data.name)
 import(mirth.data.token)
 import(mirth.data.error)
 import(mirth.data.module)
-import(mirth.input)
+import(resource.input)
 
 #########
 # LEXER #

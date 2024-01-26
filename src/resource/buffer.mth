@@ -18,13 +18,25 @@ def(+Buffer.buffer-size, +Buffer -- Size +Buffer,
 def(+Buffer.buffer-base, +Buffer -- Ptr +Buffer,
     -BUFFER dup dip(+BUFFER))
 
+def(+Buffer.check-offset!, Offset Size +Buffer -- +Buffer,
+    dup2 dip(0 buffer-size) - in-range
+    else("memory access out of bounds" panic!)
+    % 0= else("memory access unaligned" panic!))
+
 def(+Buffer@U8, Offset +Buffer -- U8 +Buffer,
-    dup 0 buffer-size 1- in-range if(
-        buffer-base .offset(Ptr@U8),
-        "memory access out of bounds" panic!
-    ))
+    dup 1 check-offset! buffer-base prim-ptr-add prim-u8-get)
+def(+Buffer@U16, Offset +Buffer -- U16 +Buffer,
+    dup 2 check-offset! buffer-base prim-ptr-add prim-u16-get)
+def(+Buffer@U32, Offset +Buffer -- U32 +Buffer,
+    dup 4 check-offset! buffer-base prim-ptr-add prim-u32-get)
+def(+Buffer@U64, Offset +Buffer -- U64 +Buffer,
+    dup 8 check-offset! buffer-base prim-ptr-add prim-u64-get)
+
 def(+Buffer!U8, U8 Offset +Buffer -- +Buffer,
-    dup 0 buffer-size 1- in-range if(
-        buffer-base .offset(Ptr!U8),
-        "memory access out of bounds" panic!
-    ))
+    dup 1 check-offset! buffer-base prim-ptr-add prim-u8-set)
+def(+Buffer!U16, U16 Offset +Buffer -- +Buffer,
+    dup 2 check-offset! buffer-base prim-ptr-add prim-u16-set)
+def(+Buffer!U32, U32 Offset +Buffer -- +Buffer,
+    dup 4 check-offset! buffer-base prim-ptr-add prim-u32-set)
+def(+Buffer!U64, U64 Offset +Buffer -- +Buffer,
+    dup 8 check-offset! buffer-base prim-ptr-add prim-u64-set)

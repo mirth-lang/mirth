@@ -1,4 +1,4 @@
-module(mirth.input)
+module(resource.input)
 
 import(prelude)
 import(platform.posix)
