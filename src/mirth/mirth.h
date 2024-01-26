@@ -1016,13 +1016,26 @@ static void mw_prim_ptr_add (void) {
 #define mw_prim_ptr_size() push_u64((uint64_t)sizeof(void*))
 static void mw_prim_ptr_alloc (void) {
     PRIM_ENTER(mw_prim_ptr_alloc,"prim-ptr-alloc");
-    ASSERT(0);
+    USIZE n = pop_usize();
+    void* p = malloc((size_t)n);
+    EXPECT(p, "failed to allocate buffer");
+    push_ptr(p);
     PRIM_EXIT(mw_prim_ptr_alloc);
 }
 static void mw_prim_ptr_realloc (void) {
     PRIM_ENTER(mw_prim_ptr_realloc,"prim-ptr-realloc");
-    ASSERT(0);
+    USIZE n = pop_usize();
+    void* p0 = pop_ptr();
+    void* p1 = realloc(p0, (size_t)n);
+    EXPECT(p1, "failed to reallocate buffer");
+    push_ptr(p1);
     PRIM_EXIT(mw_prim_ptr_realloc);
+}
+static void mw_prim_ptr_free (void) {
+    PRIM_ENTER(mw_prim_ptr_free,"prim-ptr-free");
+    void* p = pop_ptr();
+    free(p);
+    PRIM_EXIT(mw_prim_ptr_free);
 }
 
 static void mw_prim_ptr_copy (void) {

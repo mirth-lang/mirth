@@ -31,17 +31,16 @@ data(+Input,
     +INPUT_OPEN -> +InputOpen,
     +INPUT_DONE)
 
-buffer(INPUT_BUFFER, 0x2010) # a little wiggle room for boundary chars
 def(INPUT_BUFFER_SIZE, Size, 0x2000)
 
 def(input-start!, File -- +Input,
-    0 0 INPUT_BUFFER +INPUTOPEN input-fill-buffer!)
+    0 0 INPUT_BUFFER_SIZE prim-ptr-alloc +INPUTOPEN input-fill-buffer!)
 
 def(input-stop!, +Input -- +Input,
     input-end! +INPUT_DONE)
 
 def(input-end!, +Input --,
-    +INPUT_OPEN -> -INPUTOPEN drop3 close-file!,
+    +INPUT_OPEN -> -INPUTOPEN prim-ptr-free drop2 close-file!,
     +INPUT_DONE -> id)
 
 def(input-done?, +Input -- Bool +Input,
@@ -58,7 +57,7 @@ def(input-fill-buffer!, +InputOpen -- +Input,
         input-length!
         0 input-offset!
         +INPUT_OPEN,
-        drop -INPUTOPEN drop3 close-file! +INPUT_DONE
+        drop +INPUT_OPEN input-stop!
     ))
 
 # Return the current char in the input buffer.

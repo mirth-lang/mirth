@@ -61,6 +61,7 @@ data(Prim,
     PRIM_PTR_SET,
     PRIM_PTR_ALLOC,
     PRIM_PTR_REALLOC,
+    PRIM_PTR_FREE,
     PRIM_PTR_COPY,
     PRIM_PTR_FILL,
     PRIM_PTR_RAW,
@@ -212,6 +213,7 @@ def(init-prims!, --,
     PRIM_PTR_SET "prim-ptr-set" def-prim!
     PRIM_PTR_ALLOC "prim-ptr-alloc" def-prim!
     PRIM_PTR_REALLOC "prim-ptr-realloc" def-prim!
+    PRIM_PTR_FREE "prim-ptr-free" def-prim!
     PRIM_PTR_FILL "prim-ptr-fill" def-prim!
     PRIM_PTR_COPY "prim-ptr-copy" def-prim!
     PRIM_PTR_RAW "prim-ptr-raw" def-prim!
@@ -349,6 +351,9 @@ def(init-prims!, --,
 
     CTX0 TYPE_PTR TYPE_INT T2 TYPE_PTR T1 T->
     PRIM_PTR_REALLOC ctx-type!
+
+    CTX0 TYPE_PTR T1 T0 T->
+    PRIM_PTR_FREE ctx-type!
 
     CTX0 TYPE_PTR TYPE_INT TYPE_PTR T3 T0 T->
     PRIM_PTR_COPY ctx-type!
