@@ -1,0 +1,36 @@
+module(tests.resource-match)
+
+import(prelude)
+import(platform.posix)
+import(data.either)
+
+data(+Foo,
+    FOO! -> Int +World,
+    BAR! -> Str +World,
+    BAZ! -> +Foo)
+
+def(+Foo.reset!, +Foo -- Either(Int,Str) +World,
+    FOO! -> LEFT,
+    BAR! -> RIGHT,
+    BAZ! -> reset!)
+
+def(my-trace, Either(Int,Str) +World -- +World,
+    LEFT -> trace! " LEFT" trace!,
+    RIGHT -> trace! " RIGHT" trace!)
+
+def(whatever, Either(Int,Str) +World -- +World,
+    _ -> drop "whatever" trace!)
+
+def(main, +World -- +World,
+    10 FOO! reset! my-trace line-trace!
+    20 FOO! reset! my-trace line-trace!
+    "Hello." BAR! reset! my-trace line-trace!
+    "World." BAR! BAZ! reset! my-trace line-trace!
+    "Foo" BAR! reset! whatever line-trace!)
+
+target-c99("resource-match.c", main)
+# mirth-test # perr # 10 LEFT
+# mirth-test # perr # 20 LEFT
+# mirth-test # perr # Hello. RIGHT
+# mirth-test # perr # World. RIGHT
+# mirth-test # perr # whatever

@@ -1008,7 +1008,7 @@ def(elab-target-c99!, Token -- Token,
     typecheck-everything!
     sip(next) args-2
     dip(dup str? unwrap-or("expected output path" emit-fatal-error!) nip >Path)
-    dip(CTX0 T0 RESOURCE_+PLATFORM T+ T0 RESOURCE_+PLATFORM T+ T->)
+    dip(CTX0 T0 RESOURCE_WORLD T+ T0 RESOURCE_WORLD T+ T->)
     elab-arrow!
     swap run-output-c99!)
 
