@@ -44,7 +44,7 @@ data(PrimType,
     PRIM_TYPE_INT,
     PRIM_TYPE_PTR,
     PRIM_TYPE_STR,
-    PRIM_TYPE_+PLATFORM,
+    PRIM_TYPE_WORLD,
     )
 
 def(PrimType.is-physical?, PrimType -- Bool,
@@ -77,7 +77,7 @@ def(PrimType.tycon-name, PrimType -- Maybe(Name),
     PRIM_TYPE_INT -> "Int" >Name SOME,
     PRIM_TYPE_STR -> "Str" >Name SOME,
     PRIM_TYPE_PTR -> "Ptr" >Name SOME,
-    PRIM_TYPE_+PLATFORM -> "+Platform" >Name SOME)
+    PRIM_TYPE_WORLD -> "+World" >Name SOME)
 
 ||| Get value type constructor name.
 def(Value.tycon-name, Value -- Maybe(Name),
@@ -94,7 +94,7 @@ def(init-types!, --,
     TYPE_INT "Int" def-type!
     TYPE_PTR "Ptr" def-type!
     TYPE_STR "Str" def-type!
-    TYPE_+PLATFORM "+Platform" def-type!
+    TYPE_WORLD "+World" def-type!
     init-data!)
 
 #########
@@ -162,8 +162,8 @@ def(TYPE_STR, Type, PRIM_TYPE_STR TPrim) # string pointer (just a pointer but no
 # def(TYPE_I16, Type, PRIM_TYPE_I16 TPrim) # fixed width integer type -- signed 16 bit
 # def(TYPE_I32, Type, PRIM_TYPE_I32 TPrim) # fixed width integer type -- signed 32 bit
 # def(TYPE_I64, Type, PRIM_TYPE_I64 TPrim) # fixed width integer type -- signed 64 bit
-def(TYPE_+PLATFORM, Type, PRIM_TYPE_+PLATFORM TPrim)
-def(RESOURCE_+PLATFORM, Resource, TYPE_+PLATFORM RESOURCE)
+def(TYPE_WORLD, Type, PRIM_TYPE_WORLD TPrim)
+def(RESOURCE_WORLD, Resource, TYPE_WORLD RESOURCE)
 
 def(Type.expand, Type -- Type,
     TMeta -> expand,
@@ -355,7 +355,7 @@ def(PrimType.trace!, PrimType --,
         PRIM_TYPE_INT -> "Int",
         PRIM_TYPE_PTR -> "Ptr",
         PRIM_TYPE_STR -> "Str",
-        PRIM_TYPE_+PLATFORM -> "+Platform"
+        PRIM_TYPE_WORLD -> "+World"
     ) trace!)
 
 # ||| Freshen a type signature in preparation for type sig application.
@@ -703,6 +703,10 @@ def(StackType.unify!, Gamma StackType StackType -- Gamma StackType,
 
 def(StackType.force-cons?!, StackType -- Maybe([StackType Type]),
     expand match(
+        STACK_TYPE_ERROR -> STACK_TYPE_ERROR TYPE_ERROR pack2 SOME,
+        STACK_TYPE_DONT_CARE -> STACK_TYPE_DONT_CARE TYPE_DONT_CARE pack2 SOME,
+        STACK_TYPE_UNIT -> NONE,
+        STVar -> drop NONE,
         STCons -> pack2 SOME,
         STWith -> swap force-cons?! map(unpack2 dip(over STWith) pack2) nip,
         STMeta ->
@@ -710,11 +714,14 @@ def(StackType.force-cons?!, StackType -- Maybe([StackType Type]),
                 MetaVar.new! TMeta
                 dup2 STCons >Type SOME) ~type? !
             pack2 SOME,
-        _ -> drop NONE
     ))
 
 def(StackType.force-with?!, StackType -- Maybe([StackType Resource]),
     expand match(
+        STACK_TYPE_ERROR -> STACK_TYPE_ERROR TYPE_ERROR RESOURCE pack2 SOME,
+        STACK_TYPE_DONT_CARE -> STACK_TYPE_DONT_CARE TYPE_DONT_CARE RESOURCE pack2 SOME,
+        STACK_TYPE_UNIT -> NONE,
+        STVar -> drop NONE,
         STWith -> pack2 SOME,
         STCons -> swap force-with?! map(unpack2 dip(over STCons) pack2) nip,
         STMeta ->
@@ -722,7 +729,6 @@ def(StackType.force-with?!, StackType -- Maybe([StackType Resource]),
                 MetaVar.new! TMeta RESOURCE
                 dup2 STWith >Type SOME) ~type? !
             pack2 SOME,
-        _ -> drop NONE
     ))
 
 def(StackType.trace-dom!, StackType --,
