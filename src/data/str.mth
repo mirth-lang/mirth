@@ -1,8 +1,9 @@
 module(data.str)
+import(prelude)
 import(data.list)
 import(data.maybe)
 import(data.byte)
-import(prelude)
+import(resource.buffer)
 
 alias(Str.num-bytes, prim-str-num-bytes)
 alias(Str.cat, prim-str-cat)
@@ -87,3 +88,9 @@ def(Str.first-byte, Str -- Maybe(Byte),
             drop NONE
         )
     ))
+
+def(Str.from-bytes-unsafe, List(Byte) -- Str,
+    dup len allocate-buffer
+    dip(0) for(>U8 over !U8 1+) drop
+    buffer-base buffer-size prim-str-copy
+    free-buffer)

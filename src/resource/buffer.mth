@@ -1,0 +1,30 @@
+module(resource.buffer)
+import(prelude)
+
+data(+Buffer, +BUFFER -> Size Ptr)
+def(-BUFFER, +Buffer -- Size Ptr, +BUFFER -> id)
+
+def(allocate-buffer, Size -- +Buffer,
+    dup prim-ptr-alloc +BUFFER)
+
+def(+Buffer.resize-buffer, Size +Buffer -- +Buffer,
+    -BUFFER nip over prim-ptr-realloc +BUFFER)
+
+def(+Buffer.free-buffer, +Buffer -- ,
+    -BUFFER prim-ptr-free drop)
+
+def(+Buffer.buffer-size, +Buffer -- Size +Buffer,
+    -BUFFER over dip(+BUFFER))
+def(+Buffer.buffer-base, +Buffer -- Ptr +Buffer,
+    -BUFFER dup dip(+BUFFER))
+
+def(+Buffer@U8, Offset +Buffer -- U8 +Buffer,
+    dup 0 buffer-size 1- in-range if(
+        buffer-base .offset(Ptr@U8),
+        "memory access out of bounds" panic!
+    ))
+def(+Buffer!U8, U8 Offset +Buffer -- +Buffer,
+    dup 0 buffer-size 1- in-range if(
+        buffer-base .offset(Ptr!U8),
+        "memory access out of bounds" panic!
+    ))
