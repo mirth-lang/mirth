@@ -18,8 +18,8 @@ import(mirth.input)
 # LEXER #
 #########
 
-data(+Lexer, +LEXER -> Module Row Col Stack(Token))
-def(-LEXER, +Lexer -- Module Row Col Stack(Token), +LEXER -> id)
+data(+Lexer, +LEXER -> Module Row Col Stack(Token) +Input)
+def(-LEXER, +Lexer -- Module Row Col Stack(Token) +Input, +LEXER -> id)
 
 def(lexer-module@, +Lexer -- Module +Lexer, -LEXER over3 dip(+LEXER))
 def(lexer-row@, +Lexer -- Row +Lexer, -LEXER over2 dip(+LEXER))
@@ -36,28 +36,24 @@ def(lexer-stack-pop!, +Lexer -- Maybe(Token) +Lexer,
     -LEXER uncons swap dip(+LEXER))
 
 def(run-lexer!, Path -- Module,
-    Module.new!
+    Module.new! dup source-path >Str open-file! input-start!
     1 >Row
     1 >Col
     STACK_NIL
     +LEXER
 
-    lexer-module@ source-path
-    >Str open-file! input-start!
-
     Token.alloc-none!
 
     while(lexer-done? not, lexer-next!)
     TOKEN_NONE lexer-emit!
-    input-end!
-
-    -LEXER uncons drop for("Mismatched left parenthesis." emit-fatal-error!) drop2
+    -LEXER input-end!
+    uncons drop for("Mismatched left parenthesis." emit-fatal-error!) drop2
 
     Token.alloc-none! over ~end !
     swap succ over ~start !)
 
 # Is the lexer done?
-def(lexer-done?, Bool, input-done?)
+def(lexer-done?, +Lexer -- Bool +Lexer, -LEXER input-done? dip(+LEXER))
 
 # Create a token, and add it to the token buffer,
 # returning the new token.
@@ -72,7 +68,7 @@ def(lexer-make!, TokenValue +Lexer -- Token +Lexer,
 def(lexer-emit!, TokenValue +Lexer -- +Lexer, lexer-make! drop)
 
 # Lex the next token.
-def(lexer-next!, +Lexer -- +Lexer, lexer-peek match(
+def(lexer-next!, +Lexer -- +Lexer, lexer-peek dup nip match(
     BLF -> lexer-newline! lexer-move!,
     BSPACE -> lexer-move!,
     BHT -> lexer-move!,
@@ -301,14 +297,14 @@ def(lexer-skip-comment!, +Lexer -- +Lexer,
 
 def(lexer-skip-doc!, +Lexer -- +Lexer, while(lexer-comment-end? not, lexer-move!))
 
-def(lexer-comment-end?, Bool,
+def(lexer-comment-end?, +Lexer -- Bool +Lexer,
     lexer-done? if(
         T,
         lexer-peek dup BLF = nip
     ))
 
-def(lexer-peek, Byte, input-peek)
-def(lexer-move!, +Lexer -- +Lexer, input-move!
+def(lexer-peek, +Lexer -- Byte +Lexer, -LEXER input-peek dip(+LEXER))
+def(lexer-move!, +Lexer -- +Lexer, -LEXER input-move! +LEXER
     lexer-col@ >Int 1+ >Col lexer-col!)
 
 def(lexer-location, +Lexer -- Location +Lexer,

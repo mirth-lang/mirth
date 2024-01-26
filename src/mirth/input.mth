@@ -8,68 +8,78 @@ import(data.byte)
 # Input #
 #########
 
-var(input-isopen, Bool)
-var(input-length, Size)
-var(input-offset, Size)
-var(input-handle, File)
+data(+InputOpen, +INPUTOPEN -> File Size Offset Ptr)
+def(-INPUTOPEN, +InputOpen -- File Size Offset Ptr, +INPUTOPEN -> id)
+def(+InputOpen.input-handle@, +InputOpen -- File +InputOpen,
+    -INPUTOPEN over3 dip(+INPUTOPEN))
+def(+InputOpen.input-length@, +InputOpen -- Size +InputOpen,
+    -INPUTOPEN over2 dip(+INPUTOPEN))
+def(+InputOpen.input-offset@, +InputOpen -- Offset +InputOpen,
+    -INPUTOPEN over dip(+INPUTOPEN))
+def(+InputOpen.input-buffer@, +InputOpen -- Ptr +InputOpen,
+    -INPUTOPEN dup dip(+INPUTOPEN))
+def(+InputOpen.input-handle!, File +InputOpen -- +InputOpen,
+    dip(-INPUTOPEN rot4l drop) rot4r +INPUTOPEN)
+def(+InputOpen.input-length!, Size +InputOpen -- +InputOpen,
+    dip(-INPUTOPEN rotl drop) rotr +INPUTOPEN)
+def(+InputOpen.input-offset!, Offset +InputOpen -- +InputOpen,
+    dip(-INPUTOPEN swap drop) swap +INPUTOPEN)
+def(+InputOpen.input-buffer!, Ptr +InputOpen -- +InputOpen,
+    dip(-INPUTOPEN drop) +INPUTOPEN)
+
+data(+Input,
+    +INPUT_OPEN -> +InputOpen,
+    +INPUT_DONE)
+
 buffer(INPUT_BUFFER, 0x2010) # a little wiggle room for boundary chars
 def(INPUT_BUFFER_SIZE, Size, 0x2000)
 
-def(input-start!, File --,
-    input-handle !
-    0 input-length !
-    0 input-offset !
-    T input-isopen !
-    input-fill-buffer!)
+def(input-start!, File -- +Input,
+    0 0 INPUT_BUFFER +INPUTOPEN input-fill-buffer!)
 
-def(input-end!, --,
-    input-isopen @ if(
-        input-handle @ close-file!,
-        id
-    )
-    STDIN input-handle !
-    0 input-length !
-    0 input-offset !
-    F input-isopen !)
+def(input-stop!, +Input -- +Input,
+    input-end! +INPUT_DONE)
 
-def(input-done?, Bool,
-    input-isopen @ not)
+def(input-end!, +Input --,
+    +INPUT_OPEN -> -INPUTOPEN drop3 close-file!,
+    +INPUT_DONE -> id)
 
-def(input-fill-buffer!, --,
-    assert!(input-isopen @, "attempted to fill input buffer when file is closed")
-    input-handle @ >Int
-    INPUT_BUFFER
+def(input-done?, +Input -- Bool +Input,
+    +INPUT_OPEN -> F +INPUT_OPEN,
+    +INPUT_DONE -> T +INPUT_DONE)
+
+def(input-fill-buffer!, +InputOpen -- +Input,
+    input-handle@ >Int
+    input-buffer@
     INPUT_BUFFER_SIZE
     posix-read!
-    expect!(dup 0>=, "failed to read from file")
+    expect!(dup 0>=, "failed to read from file") # TODO keep the error.
     dup 0> if(
-        input-length !
-        0 input-offset !,
-        drop
-        input-end!
+        input-length!
+        0 input-offset!
+        +INPUT_OPEN,
+        drop -INPUTOPEN drop3 close-file! +INPUT_DONE
     ))
 
 # Return the current char in the input buffer.
 # Panics if file is exhausted.
-def(input-peek, Byte,
-    input-isopen @ if(
-        input-offset @ INPUT_BUFFER .offset(@Byte),
-        "error: attempted to read input buffer when file is already closed" panic!
-    ))
+def(input-peek, +Input -- Byte +Input,
+    +INPUT_OPEN -> input-offset@ input-buffer@ .offset(@Byte) +INPUT_OPEN,
+    +INPUT_DONE -> "error: no more input" panic!)
 
 # Move to next char in input buffer.
 # Panics if file is exhausted.
-def(input-move!, --,
-    input-isopen @ if(
-        input-offset @ 1+ input-offset !
+def(input-move!, +Input -- +Input,
+    +INPUT_OPEN ->
+        input-offset@ 1+ input-offset!
         input-prepare-for-more!,
-        "error: attempted to move input buffer when file is already closed" panic!
-    ))
+    +INPUT_DONE ->
+        "error: no more input" panic!)
 
 ||| Refill input buffer.
-def(input-prepare-for-more!, --,
-    input-offset @
-    input-length @ >= if(
+def(input-prepare-for-more!, +InputOpen -- +Input,
+    input-offset@
+    input-length@ >= if(
         input-fill-buffer!,
-        id
+        +INPUT_OPEN
     ))
