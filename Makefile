@@ -2,7 +2,7 @@ C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-u
 CC=gcc $(C99FLAGS)
 CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
 
-SRCS=src/prelude.mth src/mirth.mth src/data/*.mth src/platform/*.mth src/mirth/*.mth src/mirth/data/*.mth src/mirth/*.h
+SRCS=src/prelude.mth src/mirth.mth src/data/*.mth src/platform/*.mth src/mirth/*.mth src/mirth/data/*.mth src/mirth/*.h src/resource/*.mth
 
 .PHONY: default show showsan build buildsan update check checksan update-mirth install-vim install-code install profile play-snake test test-update
 

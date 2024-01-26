@@ -1,0 +1,42 @@
+module(resource.buffer)
+import(prelude)
+
+data(+Buffer, +BUFFER -> Size Ptr)
+def(-BUFFER, +Buffer -- Size Ptr, +BUFFER -> id)
+
+def(allocate-buffer, Size -- +Buffer,
+    dup prim-ptr-alloc +BUFFER)
+
+def(+Buffer.resize-buffer, Size +Buffer -- +Buffer,
+    -BUFFER nip over prim-ptr-realloc +BUFFER)
+
+def(+Buffer.free-buffer, +Buffer -- ,
+    -BUFFER prim-ptr-free drop)
+
+def(+Buffer.buffer-size, +Buffer -- Size +Buffer,
+    -BUFFER over dip(+BUFFER))
+def(+Buffer.buffer-base, +Buffer -- Ptr +Buffer,
+    -BUFFER dup dip(+BUFFER))
+
+def(+Buffer.check-offset!, Offset Size +Buffer -- +Buffer,
+    dup2 dip(0 buffer-size) - in-range
+    else("memory access out of bounds" panic!)
+    % 0= else("memory access unaligned" panic!))
+
+def(+Buffer@U8, Offset +Buffer -- U8 +Buffer,
+    dup 1 check-offset! buffer-base prim-ptr-add prim-u8-get)
+def(+Buffer@U16, Offset +Buffer -- U16 +Buffer,
+    dup 2 check-offset! buffer-base prim-ptr-add prim-u16-get)
+def(+Buffer@U32, Offset +Buffer -- U32 +Buffer,
+    dup 4 check-offset! buffer-base prim-ptr-add prim-u32-get)
+def(+Buffer@U64, Offset +Buffer -- U64 +Buffer,
+    dup 8 check-offset! buffer-base prim-ptr-add prim-u64-get)
+
+def(+Buffer!U8, U8 Offset +Buffer -- +Buffer,
+    dup 1 check-offset! buffer-base prim-ptr-add prim-u8-set)
+def(+Buffer!U16, U16 Offset +Buffer -- +Buffer,
+    dup 2 check-offset! buffer-base prim-ptr-add prim-u16-set)
+def(+Buffer!U32, U32 Offset +Buffer -- +Buffer,
+    dup 4 check-offset! buffer-base prim-ptr-add prim-u32-set)
+def(+Buffer!U64, U64 Offset +Buffer -- +Buffer,
+    dup 8 check-offset! buffer-base prim-ptr-add prim-u64-set)

@@ -44,7 +44,7 @@ def(Name.to-module-path, Name -- Path,
                 drop B'/',
                 dup is-upper if(to-lower, id)
             )
-            str-buf-push-byte!
+            str-buf-push-byte-unsafe!
         )
         ".mth" str-buf-push-str!
     ) >Path)
