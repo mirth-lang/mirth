@@ -1,0 +1,16 @@
+module(tests.resource-smuggling)
+
+import(prelude)
+data(TheWorld, THE_WORLD -> +World)
+def(/THE_WORLD, TheWorld -- +World, THE_WORLD -> id)
+
+def(drop-world, +World --, THE_WORLD drop)
+def(dup-world, +World -- +World +World, THE_WORLD dup dip(/THE_WORLD) /THE_WORLD)
+
+def(main, +World -- +World,
+    dup-world
+    drop-world)
+
+target-c99("resource-smuggling.c", main)
+# mirth-test # merr # 4:29: error: Value type cannot contain resource.
+# mirth-test # mret # 1
