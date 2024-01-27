@@ -8,6 +8,7 @@ import(data.list)
 import(data.lazy)
 import(data.byte)
 import(data.maybe)
+import(resource.output)
 import(mirth.data.error)
 import(mirth.data.module)
 import(mirth.data.location)
@@ -129,29 +130,25 @@ def(need-block-run, Block --, arrow need-arrow-run)
 # Codegen #
 ###########
 
-data(+C99, MKC99 -> File Int Str)
-def(+C99/MKC99, +C99 -- File Int Str, MKC99 -> id)
+data(+C99, MKC99 -> Int +Output)
+def(+C99/MKC99, +C99 -- Int +Output, MKC99 -> id)
 
-def(+C99.depth@, +C99 -- Int +C99, /MKC99 over dip(MKC99))
-def(+C99.depth!, Int +C99 -- +C99, dip(/MKC99 nip) swap MKC99)
+def(+C99.depth@, +C99 -- Int +C99, /MKC99 dup dip(MKC99))
+def(+C99.depth!, Int +C99 -- +C99, dip(/MKC99 drop) MKC99)
 
-def(Str+C99.put, Str +C99 -- +C99,
-    dip(/MKC99) cat
-    dup num-bytes dip(MKC99)
-    512 > then(codegen-flush!))
-def(Int+C99.put, Int +C99 -- +C99, int-to-str put)
-def(Byte+C99.put, Byte +C99 -- +C99, to-ascii-str unwrap put)
-def(+C99.line, +C99 -- +C99, "\n" put)
+def(+C99~Output(f), (*a +Output -- *b +Output) *a +C99 -- *b +C99,
+    /MKC99 dip(f) MKC99)
+
+def(Str+C99.put, Str +C99 -- +C99, ~Output(put))
+def(Int+C99.put, Int +C99 -- +C99, ~Output(put))
+def(Byte+C99.put, Byte +C99 -- +C99, ~Output(put))
+def(+C99.line, +C99 -- +C99, ~Output(line))
 
 def(codegen-start!, Path -- +C99,
-    >Str create-file! 0 "" MKC99)
-
-def(codegen-flush!, +C99 -- +C99,
-    /MKC99 dip(over) write! "" MKC99)
+    >Str create-file! output-start! 0 MKC99)
 
 def(codegen-end!, +C99 --,
-    codegen-flush!
-    /MKC99 drop2 close-file!)
+    /MKC99 drop output-end!)
 
 def(run-output-c99!, Arrow Path --,
     num-errors @ 0> if(
