@@ -1,6 +1,5 @@
 module(mirth.codegen)
 import(prelude)
-import(platform.posix)
 import(data.str)
 import(data.stack)
 import(data.path)
@@ -8,6 +7,7 @@ import(data.list)
 import(data.lazy)
 import(data.byte)
 import(data.maybe)
+import(resource.file)
 import(resource.output)
 import(mirth.data.error)
 import(mirth.data.module)
@@ -145,10 +145,10 @@ def(Byte+C99.put, Byte +C99 -- +C99, ~Output(put))
 def(+C99.line, +C99 -- +C99, ~Output(line))
 
 def(codegen-start!, Path -- +C99,
-    >Str create-file! output-start! 0 MKC99)
+    create-file!+ output-start! 0 MKC99)
 
 def(codegen-end!, +C99 --,
-    /MKC99 drop output-end!)
+    /MKC99 drop output-end! +File.close-file!)
 
 def(run-output-c99!, Arrow Path --,
     num-errors @ 0> if(

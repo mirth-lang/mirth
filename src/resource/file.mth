@@ -1,0 +1,39 @@
+module(resource.file)
+
+import(prelude)
+import(data.path)
+import(data.str)
+import(platform.posix)
+
+data(+File, +FILE -> Int)
+def(+File-FILE, +File -- Int, +FILE -> id)
+def(+File.file-descriptor, +File -- Int +File, -FILE dup +FILE)
+
+def(open-file!+, Path -- +File,
+    >Str with-cstr(0 0 prim-posix-open)
+    expect!(dup 0>, "failed to open file")
+    +FILE)
+
+def(create-file!+, Path -- +File,
+    >Str with-cstr(
+        O_WRONLY|O_CREAT|O_TRUNC
+        0x1B6
+            # this is the default mode for creating a file
+            # on unix, 666 in octal, i.e. owner can
+            # read+write, everyone can read
+            #  ---- NB: this is inaccurate . . .
+        prim-posix-open
+    )
+    expect!(dup 0>, "failed to create file")
+    +FILE)
+
+def(+File.close-file!, +File --,
+    -FILE prim-posix-close
+    expect!(dup 0>=, "failed to close file")
+    drop)
+
+def(+File.write!, Ptr Size +File -- +File,
+    dip2(file-descriptor) dup dip(posix-write!)
+    expect!(dup 0 >=, "write failed")
+    expect!(dup2 =, "write output fewer bytes than expected")
+    drop2)
