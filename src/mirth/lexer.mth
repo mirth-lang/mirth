@@ -69,7 +69,7 @@ def(lexer-make!, TokenValue +Lexer -- Token +Lexer,
 def(lexer-emit!, TokenValue +Lexer -- +Lexer, lexer-make! drop)
 
 # Lex the next token.
-def(lexer-next!, +Lexer -- +Lexer, lexer-peek dup nip match(
+def(lexer-next!, +Lexer -- +Lexer, lexer-peek match(
     BLF -> lexer-newline! lexer-move!,
     BSPACE -> lexer-move!,
     BHT -> lexer-move!,

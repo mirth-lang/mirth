@@ -17014,11 +17014,7 @@ static void mw_lexer_next_21_ (void) {
     WORD_ENTER(mw_lexer_next_21_, "lexer-next!", "src/mirth/lexer.mth", 72, 36);
     WORD_ATOM(72, 36, "lexer-peek");
     mw_lexer_peek();
-    WORD_ATOM(72, 47, "dup");
-    mw_prim_dup();
-    WORD_ATOM(72, 51, "nip");
-    mw_nip();
-    WORD_ATOM(72, 55, "match");
+    WORD_ATOM(72, 47, "match");
     switch (get_top_data_tag()) {
         case 10LL:
             mp_BLF();
