@@ -762,7 +762,7 @@ def(elab-case-body!, Case Token -- Case Token,
 ######################
 
 ||| Elaborate all of a module.
-def(elab-module!, Module -- Module,
+def(elab-module!, Module +World -- Module +World,
     dup start
     elab-module-header!
     while(dup module-end? not, elab-module-decl!)
@@ -785,7 +785,7 @@ def(elab-module-header!, Token -- Token,
     ))
 
 ||| Elaborate a declaration. Returns the next token.
-def(elab-module-decl!, Token -- Token,
+def(elab-module-decl!, Token +World -- Token +World,
     dup
     name? unwrap-or("unknown declaration" emit-fatal-error!)
     >Def prim? unwrap-or("unknown declaration" emit-fatal-error!)
@@ -793,7 +793,7 @@ def(elab-module-decl!, Token -- Token,
     run)
 
 ||| Elaborate `import(M)` statement. Return token after import.
-def(elab-module-import!, Token -- Token,
+def(elab-module-import!, Token +World -- Token +World,
     sip(next)
     args-1 dup value match(
         TOKEN_NAME ->
@@ -1012,7 +1012,7 @@ def(elab-table!, Token -- Token,
     table-new! drop)
 
 ||| Elaborate C99 build target.
-def(elab-target-c99!, Token -- Token,
+def(elab-target-c99!, Token +World -- Token +World,
     typecheck-everything!
     sip(next) args-2
     dip(dup str? unwrap-or("expected output path" emit-fatal-error!) nip >Path)

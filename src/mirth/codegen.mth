@@ -144,13 +144,13 @@ def(Int+C99.put, Int +C99 -- +C99, ~Output(put))
 def(Byte+C99.put, Byte +C99 -- +C99, ~Output(put))
 def(+C99.line, +C99 -- +C99, ~Output(line))
 
-def(codegen-start!, Path -- +C99,
-    create-file!+ output-start! 0 MKC99)
+def(codegen-start!, Path +World -- +World +C99,
+    create-file! output-start! 0 MKC99)
 
-def(codegen-end!, +C99 --,
+def(codegen-end!, +World +C99 -- +World,
     /MKC99 drop output-end! +File.close-file!)
 
-def(run-output-c99!, Arrow Path --,
+def(run-output-c99!, Arrow Path +World -- +World,
     num-errors @ 0> if(
         drop2,
 

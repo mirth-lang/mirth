@@ -36,8 +36,8 @@ def(lexer-stack-push!, Token +Lexer -- +Lexer,
 def(lexer-stack-pop!, +Lexer -- Maybe(Token) +Lexer,
     -LEXER uncons swap dip(+LEXER))
 
-def(run-lexer!, Path -- Module,
-    Module.new! dup source-path open-file!+ input-start!
+def(run-lexer!, Path +World -- Module +World,
+    Module.new! dup source-path open-file! input-start!
     1 >Row
     1 >Col
     STACK_NIL

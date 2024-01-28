@@ -22,7 +22,7 @@ def(init!, --,
 # Main #
 ########
 
-def(compile!, Path --,
+def(compile!, Path +World -- +World,
     "Compiling " trace!
     dup >Str trace-ln!
 
@@ -44,7 +44,7 @@ def(compile!, Path --,
         "Done." trace-ln!
     ))
 
-def(main, --,
+def(main, +World -- +World,
     init!
 
     # argc int-trace-ln!

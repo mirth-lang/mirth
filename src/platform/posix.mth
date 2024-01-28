@@ -47,35 +47,6 @@ def(read-file!, File -- Str,
     expect!(dup 0=, "error while reading file")
     drop))
 
-def(open-file!, Str -- File,
-    0 0 posix-open!
-    expect!(dup 0>, "failed to open file")
-    Int>File)
-
-def(create-file!, Str -- File,
-    O_WRONLY|O_CREAT|O_TRUNC
-    0x1B6
-        # this is the default mode for creating a file
-        # on unix, 666 in octal, i.e. owner can
-        # read+write, everyone can read
-        #  ---- NB: this is inaccurate . . .
-    posix-open!
-    expect!(dup 0>, "failed to create file")
-    Int>File)
-
-def(O_WRONLY|O_CREAT|O_TRUNC, Int,
-    RUNNING_OS match(
-        OS_MACOS -> 0x601, # O_WRONLY = 0x1, O_CREAT = 0x200, O_TRUNC = 0x400
-        OS_LINUX -> 0x241, # O_WRONLY = 0x1, O_CREAT = 0x40, O_TRUNC = 0x200
-        OS_WINDOWS -> 0x301, # O_WRONLY = 0x1, O_CREAT|O_TRUNC = 0x300
-        OS_UNKNOWN -> "O_WRONLY|O_CREAT|O_TRUNC on unknown os" panic!
-    ))
-
-def(close-file!, File --,
-    File>Int posix-close!
-    expect!(dup 0>=, "failed to close file")
-    drop)
-
 ########
 # STAT #
 ########
