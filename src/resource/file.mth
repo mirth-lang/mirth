@@ -32,8 +32,12 @@ def(+File.close-file!, +File --,
     expect!(dup 0>=, "failed to close file")
     drop)
 
-def(+File.write!, Ptr Size +File -- +File,
+def(+File.unsafe-write!, Ptr Size +File -- +File,
     dip2(file-descriptor) dup dip(posix-write!)
     expect!(dup 0 >=, "write failed")
     expect!(dup2 =, "write output fewer bytes than expected")
     drop2)
+
+def(+File.unsafe-read!, Ptr Size +File -- Size +File,
+    dip2(file-descriptor) posix-read!
+    expect!(dup 0>=, "read failed"))

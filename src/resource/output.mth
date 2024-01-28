@@ -26,7 +26,7 @@ def(+Output~Buffer(f), (*a +Buffer -- *b +Buffer) *a +Output -- *b +Output,
     -OUTPUT dip(rdip'(f)) +OUTPUT)
 
 def(output-flush!, +Output -- +Output,
-    ~Buffer(buffer-base) output-offset@ ~File(write!)
+    ~Buffer(buffer-base) output-offset@ ~File(unsafe-write!)
     0 output-offset!)
 
 def(output-capacity-total, +Output -- Size +Output, ~Buffer(buffer-size))
@@ -37,7 +37,7 @@ def(output-full?, +Output -- Bool +Output, output-capacity-remaining 0 <=)
 def(Str+Output.put, Str +Output -- +Output,
     dup num-bytes output-capacity-remaining > if(
         output-flush!
-        with-str-data(~File(write!)),
+        with-str-data(~File(unsafe-write!)),
 
         dup output-offset@ ~Buffer(!Str)
         num-bytes output-offset@ + output-offset!
