@@ -28,103 +28,7 @@ import(mirth.data.prim)
 import(mirth.data.var)
 import(mirth.data.match)
 import(mirth.elab)
-
-#########
-# NEEDS #
-#########
-
-data(Need,
-    NEED_WORD -> Word,
-    NEED_BLOCK -> Block)
-
-var(needs-stack, Stack(Need))
-field(word-needed, Word, Bool)
-field(block-needed, Block, Bool)
-def(reset-needs!, --,
-    Block.for(F swap block-needed !)
-    Word.for(F swap word-needed !)
-    needs-stack reset!)
-def(for-needed-words(f), (*a Word -- *a) *a -- *a,
-    Word.for(dup word-needed @ if(f, drop)))
-def(for-needed-blocks(f), (*a Block -- *a) *a -- *a,
-    Block.for(dup block-needed @ if(f, drop)))
-
-def(need-block, Block --,
-    dup block-needed @ if(
-        drop,
-        T over block-needed !
-        NEED_BLOCK needs-stack push!
-    ))
-def(need-word, Word --,
-    dup word-needed @ if(
-        drop,
-        T over word-needed !
-        NEED_WORD needs-stack push!
-    ))
-
-def(determine-arrow-needs!, Arrow --,
-    need-arrow-run determine-transitive-needs!)
-def(determine-transitive-needs!, --,
-    while-some(needs-stack pop!, match(
-        NEED_BLOCK -> need-block-run,
-        NEED_WORD -> arrow need-arrow-run,
-    )))
-
-def(need-arrow-run, Arrow --, atoms for(need-atom-run))
-def(need-atom-run, Atom --,
-    sip(args) op match(
-        OP_NONE -> drop,
-        OP_INT -> drop2,
-        OP_STR -> drop2,
-        OP_CONSTANT -> drop2,
-        OP_WORD -> need-word need-args-push,
-        OP_EXTERNAL -> drop need-args-push,
-        OP_BUFFER -> drop need-args-push,
-        OP_VARIABLE -> drop need-args-push,
-        OP_FIELD -> drop need-args-push,
-        OP_TAG -> drop need-args-push,
-        OP_PRIM -> need-prim,
-        OP_MATCH -> nip need-match,
-        OP_LAMBDA -> nip need-lambda,
-        OP_VAR -> drop2,
-        OP_BLOCK -> nip need-block-push
-    ))
-def(need-args-push, List(Arg) --, for(need-arg-push))
-def(need-arg-push, Arg --, ARG_BLOCK -> need-block-push)
-def(need-arg-run, Arg --, ARG_BLOCK -> need-block-run)
-
-def(need-prim, List(Arg) Prim --,
-    PRIM_CORE_DIP ->
-        match(
-            L1 -> need-arg-run,
-            _ -> need-args-push
-        ),
-    PRIM_CORE_RDIP ->
-        match(
-            L1 -> need-arg-run,
-            _ -> need-args-push
-        ),
-    PRIM_CORE_IF ->
-        match(
-            L2 -> dip(need-arg-run) need-arg-run,
-            _ -> need-args-push
-        ),
-    PRIM_CORE_WHILE ->
-        match(
-            L2 -> dip(need-arg-run) need-arg-run,
-            _ -> need-args-push
-        ),
-    _ -> drop need-args-push)
-
-def(need-match, Match --, cases for(body need-arrow-run))
-def(need-lambda, Lambda --, body need-arrow-run)
-
-def(need-block-push, Block --,
-    dup block-to-run-var match(
-        SOME -> drop2,
-        NONE -> need-block
-    ))
-def(need-block-run, Block --, arrow need-arrow-run)
+import(mirth.analysis.need)
 
 ###########
 # Codegen #
@@ -473,7 +377,7 @@ def(c99-decref-ctx!, Ctx +C99 -- +C99,
     ))
 
 def(c99-block-push!, Block +C99 -- +C99,
-    dup block-to-run-var match(
+    dup to-run-var match(
         SOME -> nip c99-var-push!,
         NONE ->
             dup ctx c99-pack-ctx!

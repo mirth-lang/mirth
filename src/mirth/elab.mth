@@ -315,21 +315,6 @@ def(atoms-turn-last-block-to-arg, Atom List(Atom) -- Atom List(Atom),
             )
     ))
 
-def(block-to-run-var, Block -- Maybe(Var),
-    arrow arrow-to-run-var)
-
-def(arrow-to-run-var, Arrow -- Maybe(Var),
-    atoms match(
-        L1 -> atom-to-run-var,
-        _ -> drop NONE
-    ))
-
-def(atom-to-run-var, Atom -- Maybe(Var),
-    op match(
-        OP_VAR -> dup auto-run? if(SOME, drop NONE),
-        _ -> drop NONE
-    ))
-
 def(ab-op!, Op --,
     Atom.alloc!
     ab-ctx @ over ~ctx !

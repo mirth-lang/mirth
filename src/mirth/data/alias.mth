@@ -1,6 +1,7 @@
 module(mirth.data.alias)
 
 import(prelude)
+import(mirth.resource)
 import(mirth.data.token)
 import(mirth.data.name)
 import(mirth.data.def)
@@ -13,7 +14,6 @@ field(Alias~target, Alias, Name)
 def(Alias.head, Alias -- Token, ~head @)
 def(Alias.name, Alias -- Name, ~name @)
 def(Alias.target, Alias -- Name, ~target @)
-
 
 def(Alias.new!, Token Name Name -- Alias,
     Alias.alloc!

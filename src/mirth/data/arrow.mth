@@ -8,6 +8,7 @@ import(mirth.data.token)
 import(mirth.data.type)
 import(mirth.data.data)
 import(mirth.data.match)
+import(mirth.data.var)
 import(mirth.elab)
 
 ##########
@@ -169,3 +170,18 @@ def(Block.typecheck!, Block --,
 
 def(block-unify-type!, Gamma Block ArrowType -- Gamma ArrowType,
     dip(dup type) rotl dip(unify! drop) arrow type)
+
+def(Block.to-run-var, Block -- Maybe(Var),
+    arrow to-run-var)
+
+def(Arrow.to-run-var, Arrow -- Maybe(Var),
+    atoms match(
+        L1 -> to-run-var,
+        _ -> drop NONE
+    ))
+
+def(Atom.to-run-var, Atom -- Maybe(Var),
+    op match(
+        OP_VAR -> dup auto-run? if(SOME, drop NONE),
+        _ -> drop NONE
+    ))
