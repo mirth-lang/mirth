@@ -1,6 +1,5 @@
 module(mirth.codegen)
 import(prelude)
-import(platform.posix)
 import(data.str)
 import(data.stack)
 import(data.path)
@@ -8,6 +7,8 @@ import(data.list)
 import(data.lazy)
 import(data.byte)
 import(data.maybe)
+import(resource.file)
+import(resource.output)
 import(mirth.data.error)
 import(mirth.data.module)
 import(mirth.data.location)
@@ -27,133 +28,33 @@ import(mirth.data.prim)
 import(mirth.data.var)
 import(mirth.data.match)
 import(mirth.elab)
-
-#########
-# NEEDS #
-#########
-
-data(Need,
-    NEED_WORD -> Word,
-    NEED_BLOCK -> Block)
-
-var(needs-stack, Stack(Need))
-field(word-needed, Word, Bool)
-field(block-needed, Block, Bool)
-def(reset-needs!, --,
-    Block.for(F swap block-needed !)
-    Word.for(F swap word-needed !)
-    needs-stack reset!)
-def(for-needed-words(f), (*a Word -- *a) *a -- *a,
-    Word.for(dup word-needed @ if(f, drop)))
-def(for-needed-blocks(f), (*a Block -- *a) *a -- *a,
-    Block.for(dup block-needed @ if(f, drop)))
-
-def(need-block, Block --,
-    dup block-needed @ if(
-        drop,
-        T over block-needed !
-        NEED_BLOCK needs-stack push!
-    ))
-def(need-word, Word --,
-    dup word-needed @ if(
-        drop,
-        T over word-needed !
-        NEED_WORD needs-stack push!
-    ))
-
-def(determine-arrow-needs!, Arrow --,
-    need-arrow-run determine-transitive-needs!)
-def(determine-transitive-needs!, --,
-    while-some(needs-stack pop!, match(
-        NEED_BLOCK -> need-block-run,
-        NEED_WORD -> arrow need-arrow-run,
-    )))
-
-def(need-arrow-run, Arrow --, atoms for(need-atom-run))
-def(need-atom-run, Atom --,
-    sip(args) op match(
-        OP_NONE -> drop,
-        OP_INT -> drop2,
-        OP_STR -> drop2,
-        OP_CONSTANT -> drop2,
-        OP_WORD -> need-word need-args-push,
-        OP_EXTERNAL -> drop need-args-push,
-        OP_BUFFER -> drop need-args-push,
-        OP_VARIABLE -> drop need-args-push,
-        OP_FIELD -> drop need-args-push,
-        OP_TAG -> drop need-args-push,
-        OP_PRIM -> need-prim,
-        OP_MATCH -> nip need-match,
-        OP_LAMBDA -> nip need-lambda,
-        OP_VAR -> drop2,
-        OP_BLOCK -> nip need-block-push
-    ))
-def(need-args-push, List(Arg) --, for(need-arg-push))
-def(need-arg-push, Arg --, ARG_BLOCK -> need-block-push)
-def(need-arg-run, Arg --, ARG_BLOCK -> need-block-run)
-
-def(need-prim, List(Arg) Prim --,
-    PRIM_CORE_DIP ->
-        match(
-            L1 -> need-arg-run,
-            _ -> need-args-push
-        ),
-    PRIM_CORE_RDIP ->
-        match(
-            L1 -> need-arg-run,
-            _ -> need-args-push
-        ),
-    PRIM_CORE_IF ->
-        match(
-            L2 -> dip(need-arg-run) need-arg-run,
-            _ -> need-args-push
-        ),
-    PRIM_CORE_WHILE ->
-        match(
-            L2 -> dip(need-arg-run) need-arg-run,
-            _ -> need-args-push
-        ),
-    _ -> drop need-args-push)
-
-def(need-match, Match --, cases for(body need-arrow-run))
-def(need-lambda, Lambda --, body need-arrow-run)
-
-def(need-block-push, Block --,
-    dup block-to-run-var match(
-        SOME -> drop2,
-        NONE -> need-block
-    ))
-def(need-block-run, Block --, arrow need-arrow-run)
+import(mirth.analysis.need)
 
 ###########
 # Codegen #
 ###########
 
-data(+C99, MKC99 -> File Int Str)
-def(+C99/MKC99, +C99 -- File Int Str, MKC99 -> id)
+data(+C99, MKC99 -> Int +Output)
+def(+C99/MKC99, +C99 -- Int +Output, MKC99 -> id)
 
-def(+C99.depth@, +C99 -- Int +C99, /MKC99 over dip(MKC99))
-def(+C99.depth!, Int +C99 -- +C99, dip(/MKC99 nip) swap MKC99)
+def(+C99.depth@, +C99 -- Int +C99, /MKC99 dup dip(MKC99))
+def(+C99.depth!, Int +C99 -- +C99, dip(/MKC99 drop) MKC99)
 
-def(Str+C99.put, Str +C99 -- +C99,
-    dip(/MKC99) cat
-    dup num-bytes dip(MKC99)
-    512 > then(codegen-flush!))
-def(Int+C99.put, Int +C99 -- +C99, int-to-str put)
-def(Byte+C99.put, Byte +C99 -- +C99, to-ascii-str unwrap put)
-def(+C99.line, +C99 -- +C99, "\n" put)
+def(+C99~Output(f), (*a +Output -- *b +Output) *a +C99 -- *b +C99,
+    /MKC99 dip(f) MKC99)
 
-def(codegen-start!, Path -- +C99,
-    >Str create-file! 0 "" MKC99)
+def(Str+C99.put, Str +C99 -- +C99, ~Output(put))
+def(Int+C99.put, Int +C99 -- +C99, ~Output(put))
+def(Byte+C99.put, Byte +C99 -- +C99, ~Output(put))
+def(+C99.line, +C99 -- +C99, ~Output(line))
 
-def(codegen-flush!, +C99 -- +C99,
-    /MKC99 dip(over) write! "" MKC99)
+def(codegen-start!, Path +World -- +World +C99,
+    create-file! output-start! 0 MKC99)
 
-def(codegen-end!, +C99 --,
-    codegen-flush!
-    /MKC99 drop2 close-file!)
+def(codegen-end!, +World +C99 -- +World,
+    /MKC99 drop output-end! +File.close-file!)
 
-def(run-output-c99!, Arrow Path --,
+def(run-output-c99!, Arrow Path +World -- +World,
     num-errors @ 0> if(
         drop2,
 
@@ -359,7 +260,7 @@ def(c99-str!, Str +C99 -- +C99,
 def(+C99.put-cstr, Str +C99 -- +C99,
     "\"" put str-bytes-for(c99-string-byte!) "\"" put)
 
-def(c99-string-byte!, +C99 Byte -- +C99,
+def(c99-string-byte!, Byte +C99 -- +C99,
     B'\' -> "\\\\" put,
     BQUOTE -> "\\\"" put,
     BHT -> "\\t" put,
@@ -380,7 +281,7 @@ def(c99-value!, Value +C99 -- +C99,
     VALUE_STR -> c99-str!,
     VALUE_BLOCK -> c99-block-push!)
 
-def(c99-prim!, +C99 List(Arg) Prim -- +C99,
+def(c99-prim!, List(Arg) Prim +C99 -- +C99,
     PRIM_CORE_DIP ->
         match(
             L1 ->
@@ -476,7 +377,7 @@ def(c99-decref-ctx!, Ctx +C99 -- +C99,
     ))
 
 def(c99-block-push!, Block +C99 -- +C99,
-    dup block-to-run-var match(
+    dup to-run-var match(
         SOME -> nip c99-var-push!,
         NONE ->
             dup ctx c99-pack-ctx!

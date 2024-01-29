@@ -121,12 +121,12 @@ data(Prim,
 field(Prim~name, Prim, Name)
 field(Prim~ctx, Prim, Ctx)
 field(Prim~type, Prim, ArrowType)
-field(Prim~decl, Prim, Maybe([Token -- Token]))
+field(Prim~decl, Prim, Maybe([Token +World -- Token +World]))
 
 def(Prim.name, Prim -- Name, ~name @)
 def(Prim.ctx, Prim -- Ctx, ~ctx @)
 def(Prim.type, Prim -- ArrowType, ~type @)
-def(Prim.decl, Prim -- Maybe([Token -- Token]), ~decl @)
+def(Prim.decl, Prim -- Maybe([Token +World -- Token +World]), ~decl @)
 
 def(Prim>Int, Prim -- Int, prim-unsafe-cast)
 def(Prim=, Prim Prim -- Bool, both(>Int) =)

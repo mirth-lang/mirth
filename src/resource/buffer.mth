@@ -1,5 +1,6 @@
 module(resource.buffer)
 import(prelude)
+import(data.str)
 
 data(+Buffer, +BUFFER -> Size Ptr)
 def(-BUFFER, +Buffer -- Size Ptr, +BUFFER -> id)
@@ -40,3 +41,9 @@ def(+Buffer!U32, U32 Offset +Buffer -- +Buffer,
     dup 4 check-offset! buffer-base prim-ptr-add prim-u32-set)
 def(+Buffer!U64, U64 Offset +Buffer -- +Buffer,
     dup 8 check-offset! buffer-base prim-ptr-add prim-u64-set)
+
+def(+Buffer!Str, Str Offset +Buffer -- +Buffer,
+    dup 1 check-offset!
+    over num-bytes over + 1- 1 check-offset!
+    buffer-base prim-ptr-add
+    str-copy-partial! drop)

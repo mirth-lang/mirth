@@ -148,6 +148,9 @@ def(dip2(f), (*a -- *b) *a c1 c2 -- *b c1 c2,
 def(dip3(f), (*a -- *b) *a c1 c2 c3 -- *b c1 c2 c3,
     dip(dip(dip(f))))
 
+def(rdip'(f), (*a +r1 -- *b +r2) *a +c +r1 -- *b +c +r2,
+    rswap rdip(f) rswap)
+
 def(rdip2(f), (*a -- *b) *a +c1 +c2 -- *b +c1 +c2,
     rdip(rdip(f)))
 def(rdip3(f), (*a -- *b) *a +c1 +c2 +c3 -- *b +c1 +c2 +c3,

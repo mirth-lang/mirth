@@ -1,0 +1,52 @@
+module(resource.output)
+
+import(prelude)
+import(data.str)
+import(data.byte)
+import(resource.buffer)
+import(resource.file)
+
+def(OUTPUT_BUFFER_SIZE, Size, 4096)
+data(+Output, +OUTPUT -> Offset +File +Buffer)
+def(-OUTPUT, +Output -- Offset +File +Buffer, +OUTPUT -> id)
+
+def(output-start!, +File -- +Output,
+    0 OUTPUT_BUFFER_SIZE allocate-buffer +OUTPUT)
+
+def(output-end!, +Output -- +File,
+    output-flush! -OUTPUT drop free-buffer)
+
+def(output-offset@, +Output -- Offset +Output, -OUTPUT dup dip(+OUTPUT))
+def(output-offset!, Offset +Output -- +Output, dip(-OUTPUT drop) +OUTPUT)
+
+def(+Output~File(f), (*a +File -- *b +File) *a +Output -- *b +Output,
+    -OUTPUT dip(rdip(f)) +OUTPUT)
+
+def(+Output~Buffer(f), (*a +Buffer -- *b +Buffer) *a +Output -- *b +Output,
+    -OUTPUT dip(rdip'(f)) +OUTPUT)
+
+def(output-flush!, +Output -- +Output,
+    ~Buffer(buffer-base) output-offset@ ~File(unsafe-write!)
+    0 output-offset!)
+
+def(output-capacity-total, +Output -- Size +Output, ~Buffer(buffer-size))
+def(output-capacity-remaining, +Output -- Size +Output,
+    output-capacity-total output-offset@ -)
+def(output-full?, +Output -- Bool +Output, output-capacity-remaining 0 <=)
+
+def(Str+Output.put, Str +Output -- +Output,
+    dup num-bytes output-capacity-remaining > if(
+        output-flush!
+        with-str-data(~File(unsafe-write!)),
+
+        dup output-offset@ ~Buffer(!Str)
+        num-bytes output-offset@ + output-offset!
+    ))
+
+def(Byte+Output.put, Byte +Output -- +Output,
+    output-full? then(output-flush!)
+    dip(-OUTPUT) >U8 over !U8 1+ +OUTPUT)
+
+def(Int+Output.put, Int +Output -- +Output, int-to-str put)
+
+def(+Output.line, +Output -- +Output, BLF put)

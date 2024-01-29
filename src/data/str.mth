@@ -94,3 +94,10 @@ def(Str.from-bytes-unsafe, List(Byte) -- Str,
     dip(0) for(>U8 over !U8 1+) drop
     buffer-base buffer-size prim-str-copy
     free-buffer)
+
+def(Str.with-cstr(f), (*a Ptr -- *b) *a Str -- *b,
+    with-str-data(
+        over prim-ptr-add @U8 >Int
+        expect!(dup 0=, "tried to use string as cstring, but no null terminator")
+        drop f
+    ))

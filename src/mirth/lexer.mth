@@ -12,6 +12,7 @@ import(mirth.data.name)
 import(mirth.data.token)
 import(mirth.data.error)
 import(mirth.data.module)
+import(resource.file)
 import(resource.input)
 
 #########
@@ -35,8 +36,8 @@ def(lexer-stack-push!, Token +Lexer -- +Lexer,
 def(lexer-stack-pop!, +Lexer -- Maybe(Token) +Lexer,
     -LEXER uncons swap dip(+LEXER))
 
-def(run-lexer!, Path -- Module,
-    Module.new! dup source-path >Str open-file! input-start!
+def(run-lexer!, Path +World -- Module +World,
+    Module.new! dup source-path open-file! input-start!
     1 >Row
     1 >Col
     STACK_NIL
@@ -46,7 +47,7 @@ def(run-lexer!, Path -- Module,
 
     while(lexer-done? not, lexer-next!)
     TOKEN_NONE lexer-emit!
-    -LEXER input-end!
+    -LEXER input-end! +File.close-file!
     uncons drop for("Mismatched left parenthesis." emit-fatal-error!) drop2
 
     Token.alloc-none! over ~end !
@@ -68,7 +69,7 @@ def(lexer-make!, TokenValue +Lexer -- Token +Lexer,
 def(lexer-emit!, TokenValue +Lexer -- +Lexer, lexer-make! drop)
 
 # Lex the next token.
-def(lexer-next!, +Lexer -- +Lexer, lexer-peek dup nip match(
+def(lexer-next!, +Lexer -- +Lexer, lexer-peek match(
     BLF -> lexer-newline! lexer-move!,
     BSPACE -> lexer-move!,
     BHT -> lexer-move!,
