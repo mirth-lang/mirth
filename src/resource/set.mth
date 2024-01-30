@@ -1,0 +1,28 @@
+module(resource.set)
+import(prelude)
+import(resource.buffer)
+
+||| Represents a set as a bit string.
+data(+Set(t), +SET -> [t -- Int] +Buffer)
+def(-SET, +Set(t) -- [t -- Int] +Buffer, +SET -> id)
+def(+Set~Buffer(f), (*a +Buffer -- *b +Buffer) *a +Set(t) -- *b +Set(t),
+    -SET dip(f) +SET)
+
+def(+Set.make(f), (t -- Int) -- +Set(t),
+    [f] 256 allocate-buffer +SET)
+
+def(+Set.index, t +Set(t) -- Int +Set(t),
+    -SET dup rdip(dip(run)) +SET)
+
+def(+Set.member?, t +Set(t) -- Bool +Set(t),
+    index 8 /%
+    over ~Buffer(buffer-size) >= if(
+        drop2 F,
+        dip(~Buffer(@U8) >Int) >> 1 & 0>
+    ))
+def(+Set.insert!, t +Set(t) -- +Set(t),
+    index 8 /% over 1+ ~Buffer(expand-buffer)
+    1 swap << >U8 over ~Buffer(@U8 | swap !U8))
+def(+Set.remove!, t +Set(t) -- +Set(t),
+    index 8 /% over 1+ ~Buffer(expand-buffer)
+    1 swap << 0xFF ^ >U8 over ~Buffer(@U8 & swap !U8))

@@ -6,13 +6,29 @@ data(+Buffer, +BUFFER -> Size Ptr)
 def(-BUFFER, +Buffer -- Size Ptr, +BUFFER -> id)
 
 def(allocate-buffer, Size -- +Buffer,
-    dup prim-ptr-alloc +BUFFER)
+    dup dup prim-ptr-alloc +BUFFER
+    0 swap erase-span!)
 
 def(+Buffer.resize-buffer, Size +Buffer -- +Buffer,
-    -BUFFER nip over prim-ptr-realloc +BUFFER)
+    -BUFFER dip(over dup) swap prim-ptr-realloc +BUFFER
+    dup2 <= if(
+        tuck - erase-span!,
+        drop2
+    ))
+
+||| Resize buffer only if the new size is larger,
+||| and resize by a factor of at least two.
+def(+Buffer.expand-buffer, Size +Buffer -- +Buffer,
+    dup buffer-size > if(buffer-size 2 * max resize-buffer, drop))
 
 def(+Buffer.free-buffer, +Buffer -- ,
     -BUFFER prim-ptr-free drop)
+
+def(+Buffer.erase-span!, Offset Size +Buffer -- +Buffer,
+    over 1 check-offset!
+    expect!(dup 0>, "size must be positive")
+    dup2 + 1- 1 check-offset!
+    swap buffer-base prim-ptr-add dip2(0) prim-ptr-fill)
 
 def(+Buffer.buffer-size, +Buffer -- Size +Buffer,
     -BUFFER over dip(+BUFFER))

@@ -6304,6 +6304,7 @@ static void mw_Byte_2E_is_sign (void);
 static void mw__BUFFER (void);
 static void mw_allocate_buffer (void);
 static void mw__2B_Buffer_2E_free_buffer (void);
+static void mw__2B_Buffer_2E_erase_span_21_ (void);
 static void mw__2B_Buffer_2E_buffer_size (void);
 static void mw__2B_Buffer_2E_buffer_base (void);
 static void mw__2B_Buffer_2E_check_offset_21_ (void);
@@ -7180,6 +7181,9 @@ static void mb_Int_3E_Byte_2 (void);
 static void mb_Byte_3D__1 (void);
 static void mb_Byte_3E__1 (void);
 static void mb_Byte_2E_in_range_2 (void);
+static void mb__2B_Buffer_2E_erase_span_21__1 (void);
+static void mb__2B_Buffer_2E_erase_span_21__2 (void);
+static void mb__2B_Buffer_2E_erase_span_21__3 (void);
 static void mb__2B_Buffer_2E_check_offset_21__2 (void);
 static void mb__2B_Buffer_2E_check_offset_21__3 (void);
 static void mb_Path_3D__1 (void);
@@ -12833,79 +12837,128 @@ static void mw_allocate_buffer (void) {
     WORD_ENTER(mw_allocate_buffer, "allocate-buffer", "src/resource/buffer.mth", 9, 5);
     WORD_ATOM(9, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(9, 9, "prim-ptr-alloc");
+    WORD_ATOM(9, 9, "dup");
+    mw_prim_dup();
+    WORD_ATOM(9, 13, "prim-ptr-alloc");
     mw_prim_ptr_alloc();
-    WORD_ATOM(9, 24, "+BUFFER");
+    WORD_ATOM(9, 28, "+BUFFER");
     mw__2B_BUFFER();
+    WORD_ATOM(10, 5, "");
+    push_i64(0LL);
+    WORD_ATOM(10, 7, "swap");
+    mw_prim_swap();
+    WORD_ATOM(10, 12, "erase-span!");
+    mw__2B_Buffer_2E_erase_span_21_();
     WORD_EXIT(mw_allocate_buffer);
 }
 static void mw__2B_Buffer_2E_free_buffer (void) {
-    WORD_ENTER(mw__2B_Buffer_2E_free_buffer, "+Buffer.free-buffer", "src/resource/buffer.mth", 15, 5);
-    WORD_ATOM(15, 5, "-BUFFER");
+    WORD_ENTER(mw__2B_Buffer_2E_free_buffer, "+Buffer.free-buffer", "src/resource/buffer.mth", 20, 5);
+    WORD_ATOM(20, 5, "-BUFFER");
     mw__BUFFER();
-    WORD_ATOM(15, 13, "prim-ptr-free");
+    WORD_ATOM(20, 13, "prim-ptr-free");
     mw_prim_ptr_free();
-    WORD_ATOM(15, 27, "drop");
+    WORD_ATOM(20, 27, "drop");
     mw_prim_drop();
     WORD_EXIT(mw__2B_Buffer_2E_free_buffer);
 }
-static void mw__2B_Buffer_2E_buffer_size (void) {
-    WORD_ENTER(mw__2B_Buffer_2E_buffer_size, "+Buffer.buffer-size", "src/resource/buffer.mth", 18, 5);
-    WORD_ATOM(18, 5, "-BUFFER");
-    mw__BUFFER();
-    WORD_ATOM(18, 13, "over");
+static void mw__2B_Buffer_2E_erase_span_21_ (void) {
+    WORD_ENTER(mw__2B_Buffer_2E_erase_span_21_, "+Buffer.erase-span!", "src/resource/buffer.mth", 23, 5);
+    WORD_ATOM(23, 5, "over");
     mw_over();
-    WORD_ATOM(18, 18, "dip");
+    WORD_ATOM(23, 10, "");
+    push_i64(1LL);
+    WORD_ATOM(23, 12, "check-offset!");
+    mw__2B_Buffer_2E_check_offset_21_();
+    WORD_ATOM(24, 5, "expect!");
+    push_u64(0);
+    push_fnptr(&mb__2B_Buffer_2E_erase_span_21__1);
+    mw_prim_pack_cons();
+    push_u64(0);
+    push_fnptr(&mb__2B_Buffer_2E_erase_span_21__2);
+    mw_prim_pack_cons();
+    mw_expect_21_();
+    WORD_ATOM(25, 5, "dup2");
+    mw_dup2();
+    WORD_ATOM(25, 10, "+");
+    mw_prim_int_add();
+    WORD_ATOM(25, 12, "1-");
+    mw_prim_int_pred();
+    WORD_ATOM(25, 15, "");
+    push_i64(1LL);
+    WORD_ATOM(25, 17, "check-offset!");
+    mw__2B_Buffer_2E_check_offset_21_();
+    WORD_ATOM(26, 5, "swap");
+    mw_prim_swap();
+    WORD_ATOM(26, 10, "buffer-base");
+    mw__2B_Buffer_2E_buffer_base();
+    WORD_ATOM(26, 22, "prim-ptr-add");
+    mw_prim_ptr_add();
+    WORD_ATOM(26, 35, "dip2");
+    push_u64(0);
+    push_fnptr(&mb__2B_Buffer_2E_erase_span_21__3);
+    mw_prim_pack_cons();
+    mw_dip2();
+    WORD_ATOM(26, 43, "prim-ptr-fill");
+    mw_prim_ptr_fill();
+    WORD_EXIT(mw__2B_Buffer_2E_erase_span_21_);
+}
+static void mw__2B_Buffer_2E_buffer_size (void) {
+    WORD_ENTER(mw__2B_Buffer_2E_buffer_size, "+Buffer.buffer-size", "src/resource/buffer.mth", 29, 5);
+    WORD_ATOM(29, 5, "-BUFFER");
+    mw__BUFFER();
+    WORD_ATOM(29, 13, "over");
+    mw_over();
+    WORD_ATOM(29, 18, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(18, 22, "+BUFFER");
+        WORD_ATOM(29, 22, "+BUFFER");
         mw__2B_BUFFER();
         push_value(d2);
     }
     WORD_EXIT(mw__2B_Buffer_2E_buffer_size);
 }
 static void mw__2B_Buffer_2E_buffer_base (void) {
-    WORD_ENTER(mw__2B_Buffer_2E_buffer_base, "+Buffer.buffer-base", "src/resource/buffer.mth", 20, 5);
-    WORD_ATOM(20, 5, "-BUFFER");
+    WORD_ENTER(mw__2B_Buffer_2E_buffer_base, "+Buffer.buffer-base", "src/resource/buffer.mth", 31, 5);
+    WORD_ATOM(31, 5, "-BUFFER");
     mw__BUFFER();
-    WORD_ATOM(20, 13, "dup");
+    WORD_ATOM(31, 13, "dup");
     mw_prim_dup();
-    WORD_ATOM(20, 17, "dip");
+    WORD_ATOM(31, 17, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(20, 21, "+BUFFER");
+        WORD_ATOM(31, 21, "+BUFFER");
         mw__2B_BUFFER();
         push_value(d2);
     }
     WORD_EXIT(mw__2B_Buffer_2E_buffer_base);
 }
 static void mw__2B_Buffer_2E_check_offset_21_ (void) {
-    WORD_ENTER(mw__2B_Buffer_2E_check_offset_21_, "+Buffer.check-offset!", "src/resource/buffer.mth", 23, 5);
-    WORD_ATOM(23, 5, "dup2");
+    WORD_ENTER(mw__2B_Buffer_2E_check_offset_21_, "+Buffer.check-offset!", "src/resource/buffer.mth", 34, 5);
+    WORD_ATOM(34, 5, "dup2");
     mw_dup2();
-    WORD_ATOM(23, 10, "dip");
+    WORD_ATOM(34, 10, "dip");
     {
         VAL d2 = pop_value();
-        WORD_ATOM(23, 14, "");
+        WORD_ATOM(34, 14, "");
         push_i64(0LL);
-        WORD_ATOM(23, 16, "buffer-size");
+        WORD_ATOM(34, 16, "buffer-size");
         mw__2B_Buffer_2E_buffer_size();
         push_value(d2);
     }
-    WORD_ATOM(23, 29, "-");
+    WORD_ATOM(34, 29, "-");
     mw_prim_int_sub();
-    WORD_ATOM(23, 31, "in-range");
+    WORD_ATOM(34, 31, "in-range");
     mw_Int_2E_in_range();
-    WORD_ATOM(24, 5, "else");
+    WORD_ATOM(35, 5, "else");
     push_u64(0);
     push_fnptr(&mb__2B_Buffer_2E_check_offset_21__2);
     mw_prim_pack_cons();
     mw_Bool_2E_else();
-    WORD_ATOM(25, 5, "%");
+    WORD_ATOM(36, 5, "%");
     mw_prim_int_mod();
-    WORD_ATOM(25, 7, "0=");
+    WORD_ATOM(36, 7, "0=");
     mw_0_3D_();
-    WORD_ATOM(25, 10, "else");
+    WORD_ATOM(36, 10, "else");
     push_u64(0);
     push_fnptr(&mb__2B_Buffer_2E_check_offset_21__3);
     mw_prim_pack_cons();
@@ -12913,66 +12966,66 @@ static void mw__2B_Buffer_2E_check_offset_21_ (void) {
     WORD_EXIT(mw__2B_Buffer_2E_check_offset_21_);
 }
 static void mw__2B_Buffer_40_U8 (void) {
-    WORD_ENTER(mw__2B_Buffer_40_U8, "+Buffer@U8", "src/resource/buffer.mth", 28, 5);
-    WORD_ATOM(28, 5, "dup");
+    WORD_ENTER(mw__2B_Buffer_40_U8, "+Buffer@U8", "src/resource/buffer.mth", 39, 5);
+    WORD_ATOM(39, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(28, 9, "");
+    WORD_ATOM(39, 9, "");
     push_i64(1LL);
-    WORD_ATOM(28, 11, "check-offset!");
+    WORD_ATOM(39, 11, "check-offset!");
     mw__2B_Buffer_2E_check_offset_21_();
-    WORD_ATOM(28, 25, "buffer-base");
+    WORD_ATOM(39, 25, "buffer-base");
     mw__2B_Buffer_2E_buffer_base();
-    WORD_ATOM(28, 37, "prim-ptr-add");
+    WORD_ATOM(39, 37, "prim-ptr-add");
     mw_prim_ptr_add();
-    WORD_ATOM(28, 50, "prim-u8-get");
+    WORD_ATOM(39, 50, "prim-u8-get");
     mw_prim_u8_get();
     WORD_EXIT(mw__2B_Buffer_40_U8);
 }
 static void mw__2B_Buffer_21_U8 (void) {
-    WORD_ENTER(mw__2B_Buffer_21_U8, "+Buffer!U8", "src/resource/buffer.mth", 37, 5);
-    WORD_ATOM(37, 5, "dup");
+    WORD_ENTER(mw__2B_Buffer_21_U8, "+Buffer!U8", "src/resource/buffer.mth", 48, 5);
+    WORD_ATOM(48, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(37, 9, "");
+    WORD_ATOM(48, 9, "");
     push_i64(1LL);
-    WORD_ATOM(37, 11, "check-offset!");
+    WORD_ATOM(48, 11, "check-offset!");
     mw__2B_Buffer_2E_check_offset_21_();
-    WORD_ATOM(37, 25, "buffer-base");
+    WORD_ATOM(48, 25, "buffer-base");
     mw__2B_Buffer_2E_buffer_base();
-    WORD_ATOM(37, 37, "prim-ptr-add");
+    WORD_ATOM(48, 37, "prim-ptr-add");
     mw_prim_ptr_add();
-    WORD_ATOM(37, 50, "prim-u8-set");
+    WORD_ATOM(48, 50, "prim-u8-set");
     mw_prim_u8_set();
     WORD_EXIT(mw__2B_Buffer_21_U8);
 }
 static void mw__2B_Buffer_21_Str (void) {
-    WORD_ENTER(mw__2B_Buffer_21_Str, "+Buffer!Str", "src/resource/buffer.mth", 46, 5);
-    WORD_ATOM(46, 5, "dup");
+    WORD_ENTER(mw__2B_Buffer_21_Str, "+Buffer!Str", "src/resource/buffer.mth", 57, 5);
+    WORD_ATOM(57, 5, "dup");
     mw_prim_dup();
-    WORD_ATOM(46, 9, "");
+    WORD_ATOM(57, 9, "");
     push_i64(1LL);
-    WORD_ATOM(46, 11, "check-offset!");
+    WORD_ATOM(57, 11, "check-offset!");
     mw__2B_Buffer_2E_check_offset_21_();
-    WORD_ATOM(47, 5, "over");
+    WORD_ATOM(58, 5, "over");
     mw_over();
-    WORD_ATOM(47, 10, "num-bytes");
+    WORD_ATOM(58, 10, "num-bytes");
     mw_prim_str_num_bytes();
-    WORD_ATOM(47, 20, "over");
+    WORD_ATOM(58, 20, "over");
     mw_over();
-    WORD_ATOM(47, 25, "+");
+    WORD_ATOM(58, 25, "+");
     mw_prim_int_add();
-    WORD_ATOM(47, 27, "1-");
+    WORD_ATOM(58, 27, "1-");
     mw_prim_int_pred();
-    WORD_ATOM(47, 30, "");
+    WORD_ATOM(58, 30, "");
     push_i64(1LL);
-    WORD_ATOM(47, 32, "check-offset!");
+    WORD_ATOM(58, 32, "check-offset!");
     mw__2B_Buffer_2E_check_offset_21_();
-    WORD_ATOM(48, 5, "buffer-base");
+    WORD_ATOM(59, 5, "buffer-base");
     mw__2B_Buffer_2E_buffer_base();
-    WORD_ATOM(48, 17, "prim-ptr-add");
+    WORD_ATOM(59, 17, "prim-ptr-add");
     mw_prim_ptr_add();
-    WORD_ATOM(49, 5, "str-copy-partial!");
+    WORD_ATOM(60, 5, "str-copy-partial!");
     mw_str_copy_partial_21_();
-    WORD_ATOM(49, 23, "drop");
+    WORD_ATOM(60, 23, "drop");
     mw_prim_drop();
     WORD_EXIT(mw__2B_Buffer_21_Str);
 }
@@ -39562,10 +39615,45 @@ static void mb_Byte_2E_in_range_2 (void) {
     WORD_EXIT(mb_Byte_2E_in_range_2);
 }
 
-static void mb__2B_Buffer_2E_check_offset_21__2 (void) {
-    WORD_ENTER(mb__2B_Buffer_2E_check_offset_21__2, "+Buffer.check-offset! block", "src/resource/buffer.mth", 24, 10);
+static void mb__2B_Buffer_2E_erase_span_21__1 (void) {
+    WORD_ENTER(mb__2B_Buffer_2E_erase_span_21__1, "+Buffer.erase-span! block", "src/resource/buffer.mth", 24, 13);
     mw_prim_drop();
-    WORD_ATOM(24, 10, "");
+    WORD_ATOM(24, 13, "dup");
+    mw_prim_dup();
+    WORD_ATOM(24, 17, "0>");
+    mw_0_3E_();
+    WORD_EXIT(mb__2B_Buffer_2E_erase_span_21__1);
+}
+
+static void mb__2B_Buffer_2E_erase_span_21__2 (void) {
+    WORD_ENTER(mb__2B_Buffer_2E_erase_span_21__2, "+Buffer.erase-span! block", "src/resource/buffer.mth", 24, 21);
+    mw_prim_drop();
+    WORD_ATOM(24, 21, "");
+    {
+        static bool vready = false;
+        static VAL v;
+        if (! vready) {
+            v = mkstr("size must be positive", 21);
+            vready = true;
+        }
+        push_value(v);
+        incref(v);
+    }
+    WORD_EXIT(mb__2B_Buffer_2E_erase_span_21__2);
+}
+
+static void mb__2B_Buffer_2E_erase_span_21__3 (void) {
+    WORD_ENTER(mb__2B_Buffer_2E_erase_span_21__3, "+Buffer.erase-span! block", "src/resource/buffer.mth", 26, 40);
+    mw_prim_drop();
+    WORD_ATOM(26, 40, "");
+    push_i64(0LL);
+    WORD_EXIT(mb__2B_Buffer_2E_erase_span_21__3);
+}
+
+static void mb__2B_Buffer_2E_check_offset_21__2 (void) {
+    WORD_ENTER(mb__2B_Buffer_2E_check_offset_21__2, "+Buffer.check-offset! block", "src/resource/buffer.mth", 35, 10);
+    mw_prim_drop();
+    WORD_ATOM(35, 10, "");
     {
         static bool vready = false;
         static VAL v;
@@ -39576,15 +39664,15 @@ static void mb__2B_Buffer_2E_check_offset_21__2 (void) {
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(24, 40, "panic!");
+    WORD_ATOM(35, 40, "panic!");
     mw_prim_panic();
     WORD_EXIT(mb__2B_Buffer_2E_check_offset_21__2);
 }
 
 static void mb__2B_Buffer_2E_check_offset_21__3 (void) {
-    WORD_ENTER(mb__2B_Buffer_2E_check_offset_21__3, "+Buffer.check-offset! block", "src/resource/buffer.mth", 25, 15);
+    WORD_ENTER(mb__2B_Buffer_2E_check_offset_21__3, "+Buffer.check-offset! block", "src/resource/buffer.mth", 36, 15);
     mw_prim_drop();
-    WORD_ATOM(25, 15, "");
+    WORD_ATOM(36, 15, "");
     {
         static bool vready = false;
         static VAL v;
@@ -39595,7 +39683,7 @@ static void mb__2B_Buffer_2E_check_offset_21__3 (void) {
         push_value(v);
         incref(v);
     }
-    WORD_ATOM(25, 41, "panic!");
+    WORD_ATOM(36, 41, "panic!");
     mw_prim_panic();
     WORD_EXIT(mb__2B_Buffer_2E_check_offset_21__3);
 }

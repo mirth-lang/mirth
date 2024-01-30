@@ -7,14 +7,21 @@ import(mirth.resource)
 import(mirth.data.arrow)
 import(mirth.data.word)
 import(mirth.data.match)
+import(resource.set)
 
 #########
 # NEEDS #
 #########
 
+data(+Needs, +NEEDS -> Stack(Need) +Set(Need))
+
 data(Need,
     NEED_WORD -> Word,
     NEED_BLOCK -> Block)
+
+def(Need>Int,
+    NEED_WORD  -> Word.id  2 *,
+    NEED_BLOCK -> Block.id 2 * 1 +)
 
 var(needs-stack, Stack(Need))
 field(word-needed, Word, Bool)
