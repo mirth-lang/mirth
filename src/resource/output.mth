@@ -11,10 +11,10 @@ data(+Output, +OUTPUT -> Offset +File +Buffer)
 def(-OUTPUT, +Output -- Offset +File +Buffer, +OUTPUT -> id)
 
 def(output-start!, +File -- +Output,
-    0 OUTPUT_BUFFER_SIZE allocate-buffer +OUTPUT)
+    0 OUTPUT_BUFFER_SIZE +Buffer.new +OUTPUT)
 
 def(output-end!, +Output -- +File,
-    output-flush! -OUTPUT drop free-buffer)
+    output-flush! -OUTPUT drop rdrop)
 
 def(output-offset@, +Output -- Offset +Output, -OUTPUT dup dip(+OUTPUT))
 def(output-offset!, Offset +Output -- +Output, dip(-OUTPUT drop) +OUTPUT)

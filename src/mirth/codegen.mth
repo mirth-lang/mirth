@@ -34,32 +34,37 @@ import(mirth.analysis.need)
 # Codegen #
 ###########
 
-data(+C99, MKC99 -> Int +Output)
-def(+C99/MKC99, +C99 -- Int +Output, MKC99 -> id)
+data(+C99, MKC99 -> Int +Needs +Output)
+def(+C99/MKC99, +C99 -- Int +Needs +Output, MKC99 -> id)
 
 def(+C99.depth@, +C99 -- Int +C99, /MKC99 dup dip(MKC99))
 def(+C99.depth!, Int +C99 -- +C99, dip(/MKC99 drop) MKC99)
 
+def(+C99~Needs(f), (*a +Needs -- *b +Needs) *a +C99 -- *b +C99,
+    /MKC99 dip(rdip(f)) MKC99)
 def(+C99~Output(f), (*a +Output -- *b +Output) *a +C99 -- *b +C99,
-    /MKC99 dip(f) MKC99)
+    /MKC99 dip(rdip'(f)) MKC99)
 
 def(Str+C99.put, Str +C99 -- +C99, ~Output(put))
 def(Int+C99.put, Int +C99 -- +C99, ~Output(put))
 def(Byte+C99.put, Byte +C99 -- +C99, ~Output(put))
 def(+C99.line, +C99 -- +C99, ~Output(line))
 
-def(codegen-start!, Path +World -- +World +C99,
-    create-file! output-start! 0 MKC99)
+def(Word+C99.needed?, Word +C99 -- Bool +C99, ~Needs(needed?))
+def(Block+C99.needed?, Block +C99 -- Bool +C99, ~Needs(needed?))
 
-def(codegen-end!, +World +C99 -- +World,
-    /MKC99 drop output-end! +File.close-file!)
+def(codegen-start!, Path +World +Needs -- +World +C99,
+    rdip(create-file! output-start!) rswap 0 MKC99)
+
+def(codegen-end!, +World +C99 -- +World +Needs,
+    /MKC99 drop rswap rdip(output-end! +File.close-file!))
 
 def(run-output-c99!, Arrow Path +World -- +World,
     num-errors @ 0> if(
         drop2,
 
-        reset-needs!
-        over determine-arrow-needs!
+        +Needs.new
+        over run! execute!
 
         to-output-path
         codegen-start!
@@ -75,7 +80,9 @@ def(run-output-c99!, Arrow Path +World -- +World,
         c99-field-defs!
         c99-word-defs!
         c99-block-defs!
+
         codegen-end!
+        rdrop
     ))
 
 def(Name+C99.put, Name +C99 -- +C99, mangled put)
@@ -448,11 +455,11 @@ def(c99-pattern!, Pattern +C99 -- +C99,
         )
     )
 
-def(c99-word-sigs!, +C99 -- +C99, for-needed-words(c99-word-sig!) line)
+def(c99-word-sigs!, +C99 -- +C99, Word.for(dup needed? if(c99-word-sig!, drop)) line)
 def(c99-word-sig!, Word +C99 -- +C99,
     c99-line("static void mw_" put name put " (void);" put))
 
-def(c99-block-sigs!, +C99 -- +C99, for-needed-blocks(c99-block-sig!) line)
+def(c99-block-sigs!, +C99 -- +C99, Block.for(dup needed? if(c99-block-sig!, drop)) line)
 def(c99-block-sig!, Block +C99 -- +C99,
     c99-line("static void " put put " (void);" put))
 
@@ -475,7 +482,7 @@ def(c99-block-enter!, Block +C99 -- +C99,
 def(c99-block-exit!, Block +C99 -- +C99,
     c99-line("WORD_EXIT(" put put ");" put))
 
-def(c99-block-defs!, +C99 -- +C99, for-needed-blocks(c99-block-def!) line)
+def(c99-block-defs!, +C99 -- +C99, Block.for(dup needed? if(c99-block-def!, drop)) line)
 def(c99-block-def!, Block +C99 -- +C99,
     c99-line("static void " put dup put " (void) {" put)
     c99-nest(
@@ -511,7 +518,7 @@ def(c99-word-exit!, Word +C99 -- +C99,
         "mw_" put dup name put ");" put)
     drop)
 
-def(c99-word-defs!, +C99 -- +C99, for-needed-words(c99-word-def!) line)
+def(c99-word-defs!, +C99 -- +C99, Word.for(dup needed? if(c99-word-def!, drop)) line)
 def(c99-word-def!, Word +C99 -- +C99,
     c99-line(dup name sig put " {" put)
     c99-nest(

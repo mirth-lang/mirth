@@ -9,105 +9,96 @@ import(mirth.data.word)
 import(mirth.data.match)
 import(resource.set)
 
-#########
-# NEEDS #
-#########
-
-data(+Needs, +NEEDS -> Stack(Need) +Set(Need))
+########
+# NEED #
+########
 
 data(Need,
     NEED_WORD -> Word,
     NEED_BLOCK -> Block)
 
-def(Need>Int,
-    NEED_WORD  -> Word.id  2 *,
+def(Need>Int, Need -- Int,
+    NEED_WORD  -> Word.id 2 *,
     NEED_BLOCK -> Block.id 2 * 1 +)
 
-var(needs-stack, Stack(Need))
-field(word-needed, Word, Bool)
-field(block-needed, Block, Bool)
-def(reset-needs!, --,
-    Block.for(F swap block-needed !)
-    Word.for(F swap word-needed !)
-    needs-stack reset!)
-def(for-needed-words(f), (*a Word -- *a) *a -- *a,
-    Word.for(dup word-needed @ if(f, drop)))
-def(for-needed-blocks(f), (*a Block -- *a) *a -- *a,
-    Block.for(dup block-needed @ if(f, drop)))
+#########
+# NEEDS #
+#########
 
-def(need-block, Block --,
-    dup block-needed @ if(
+data(+Needs, +NEEDS -> Stack(Need) +Set(Need))
+def(-NEEDS, +Needs -- Stack(Need) +Set(Need), +NEEDS -> id)
+def(+Needs~Stack(f), (*a Stack(Need) -- *b Stack(Need)) *a +Needs -- *b +Needs,
+    -NEEDS rdip(f) +NEEDS)
+def(+Needs~Set(f), (*a +Set(Need) -- *b +Set(Need)) *a +Needs -- *b +Needs,
+    -NEEDS dip(f) +NEEDS)
+
+def(+Needs.new, -- +Needs, STACK_NIL +Set.new(Need>Int) +NEEDS)
+def(+Needs.rdrop, +Needs --, -NEEDS rdrop drop)
+
+def(for-needed-words(f), (*a Word -- *a) *a +Needs -- *a +Needs,
+    Word.for(dup needed? if(rdip(f), drop)))
+def(for-needed-blocks(f), (*a Block -- *a) *a +Needs -- *a +Needs,
+    Block.for(dup needed? if(rdip(f), drop)))
+
+def(Need+Needs.needed?, Need +Needs -- Bool +Needs, ~Set(member?))
+def(Word+Needs.needed?, Word +Needs -- Bool +Needs, NEED_WORD needed?)
+def(Block+Needs.needed?, Block +Needs -- Bool +Needs, NEED_BLOCK needed?)
+
+def(Need+Needs.need!, Need +Needs -- +Needs,
+    dup needed? if(
         drop,
-        T over block-needed !
-        NEED_BLOCK needs-stack push!
-    ))
-def(need-word, Word --,
-    dup word-needed @ if(
-        drop,
-        T over word-needed !
-        NEED_WORD needs-stack push!
+        dup ~Set(insert!)
+        expect!(dup needed?, "needed? fail")
+        ~Stack(STACK_CONS)
     ))
 
-def(determine-arrow-needs!, Arrow --,
-    need-arrow-run determine-transitive-needs!)
-def(determine-transitive-needs!, --,
-    while-some(needs-stack pop!, match(
-        NEED_BLOCK -> need-block-run,
-        NEED_WORD -> arrow need-arrow-run,
-    )))
+def(Word+Needs.need!, Word +Needs -- +Needs, NEED_WORD need!)
+def(Block+Needs.need!, Block +Needs -- +Needs, NEED_BLOCK need!)
 
-def(need-arrow-run, Arrow --, atoms for(need-atom-run))
-def(need-atom-run, Atom --,
-    sip(args) op match(
-        OP_NONE -> drop,
-        OP_INT -> drop2,
-        OP_STR -> drop2,
-        OP_CONSTANT -> drop2,
-        OP_WORD -> need-word need-args-push,
-        OP_EXTERNAL -> drop need-args-push,
-        OP_BUFFER -> drop need-args-push,
-        OP_VARIABLE -> drop need-args-push,
-        OP_FIELD -> drop need-args-push,
-        OP_TAG -> drop need-args-push,
-        OP_PRIM -> need-prim,
-        OP_MATCH -> nip need-match,
-        OP_LAMBDA -> nip need-lambda,
-        OP_VAR -> drop2,
-        OP_BLOCK -> nip need-block-push
-    ))
-def(need-args-push, List(Arg) --, for(need-arg-push))
-def(need-arg-push, Arg --, ARG_BLOCK -> need-block-push)
-def(need-arg-run, Arg --, ARG_BLOCK -> need-block-run)
+def(execute!, +Needs -- +Needs,
+    while-some(~Stack(uncons), run!))
 
-def(need-prim, List(Arg) Prim --,
-    PRIM_CORE_DIP ->
-        match(
-            L1 -> need-arg-run,
-            _ -> need-args-push
-        ),
-    PRIM_CORE_RDIP ->
-        match(
-            L1 -> need-arg-run,
-            _ -> need-args-push
-        ),
-    PRIM_CORE_IF ->
-        match(
-            L2 -> dip(need-arg-run) need-arg-run,
-            _ -> need-args-push
-        ),
-    PRIM_CORE_WHILE ->
-        match(
-            L2 -> dip(need-arg-run) need-arg-run,
-            _ -> need-args-push
-        ),
-    _ -> drop need-args-push)
+def(Need+Needs.run!, Need +Needs -- +Needs,
+    NEED_BLOCK -> run!,
+    NEED_WORD -> run!)
 
-def(need-match, Match --, cases for(body need-arrow-run))
-def(need-lambda, Lambda --, body need-arrow-run)
+def(Arg+Needs.run!, Arg +Needs -- +Needs,
+    ARG_BLOCK -> run!)
+def(Block+Needs.run!, Block +Needs -- +Needs, arrow run!)
+def(Word+Needs.run!, Word +Needs -- +Needs, arrow run!)
+def(Arrow+Needs.run!, Arrow +Needs -- +Needs, atoms for(run!))
+def(Atom+Needs.run!, Atom +Needs -- +Needs, sip(args) op run!)
+def(Op+Needs.run!, List(Arg) Op +Needs -- +Needs,
+    OP_NONE -> drop,
+    OP_INT -> drop2,
+    OP_STR -> drop2,
+    OP_CONSTANT -> drop2,
+    OP_WORD -> need! push-args!,
+    OP_EXTERNAL -> drop push-args!,
+    OP_BUFFER -> drop push-args!,
+    OP_VARIABLE -> drop push-args!,
+    OP_FIELD -> drop push-args!,
+    OP_TAG -> drop push-args!,
+    OP_PRIM -> run!,
+    OP_MATCH -> nip run!,
+    OP_LAMBDA -> nip run!,
+    OP_VAR -> drop2,
+    OP_BLOCK -> nip push!)
+def(Prim+Needs.run!, List(Arg) Prim +Needs -- +Needs,
+    PRIM_CORE_DIP -> match(L1 -> run!, _ -> push-args!),
+    PRIM_CORE_RDIP -> match(L1 -> run!, _ -> push-args!),
+    PRIM_CORE_IF -> match(L2 -> dip(run!) run!, _ -> push-args!),
+    PRIM_CORE_WHILE -> match(L2 -> dip(run!) run!, _ -> push-args!),
+    _ -> drop push-args!)
+def(Match+Needs.run!, Match +Needs -- +Needs, cases for(run!))
+def(Case+Needs.run!, Case +Needs -- +Needs, body run!)
+def(Lambda+Needs.run!, Lambda +Needs -- +Needs, body run!)
 
-def(need-block-push, Block --,
-    dup to-run-var match(
-        SOME -> drop2,
-        NONE -> need-block
-    ))
-def(need-block-run, Block --, arrow need-arrow-run)
+def(+Needs.push-args!, List(Arg) +Needs -- +Needs, for(push!))
+def(Arg+Needs.push!, Arg +Needs -- +Needs,
+    ARG_BLOCK -> push!)
+def(Block+Needs.push!, Block +Needs -- +Needs, need!)
+    # dup to-run-var match(
+    #     SOME -> drop2,
+    #     NONE -> need!
+    # ))

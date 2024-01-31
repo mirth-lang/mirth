@@ -535,7 +535,7 @@ static void mw_prim_int_div (void) {
     PRIM_EXIT(mw_prim_int_div);
 }
 static void mw_prim_int_mod (void) {
-    PRIM_ENTER(mw_prim_int_mod,"prim-int-div");
+    PRIM_ENTER(mw_prim_int_mod,"prim-int-mod");
     int64_t b = pop_i64();
     int64_t a = pop_i64();
     EXPECT(b != 0, "divide by zero");
