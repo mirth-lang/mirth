@@ -1,0 +1,2 @@
+module(mirth.codegen.x64)
+import(resource.array)

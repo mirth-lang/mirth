@@ -31,6 +31,7 @@ import(mirth.data.alias)
 import(mirth.data.match)
 import(mirth.lexer)
 import(mirth.codegen.c99)
+import(mirth.codegen.x64)
 
 ####################
 # Type Elaboration #
