@@ -11,7 +11,7 @@ def(+Buffer.new, Size -- +Buffer,
 
 def(+Buffer.resize!, Size +Buffer -- +Buffer,
     -BUFFER dip(over dup) swap prim-ptr-realloc +BUFFER
-    dup2 <= if(
+    dup2 >= if(
         tuck - erase-span!,
         drop2
     ))

@@ -40,22 +40,23 @@ def(for-needed-words(f), (*a Word -- *a) *a +Needs -- *a +Needs,
 def(for-needed-blocks(f), (*a Block -- *a) *a +Needs -- *a +Needs,
     Block.for(dup needed? if(rdip(f), drop)))
 
+# def(Need+Needs.needed?, Need +Needs -- Bool +Needs, drop T)
 def(Need+Needs.needed?, Need +Needs -- Bool +Needs, ~Set(member?))
 def(Word+Needs.needed?, Word +Needs -- Bool +Needs, NEED_WORD needed?)
 def(Block+Needs.needed?, Block +Needs -- Bool +Needs, NEED_BLOCK needed?)
 
 def(Need+Needs.need!, Need +Needs -- +Needs,
-    dup needed? if(
-        drop,
+    dup needed? else(
         dup ~Set(insert!)
+        dup ~Stack(STACK_CONS)
         expect!(dup needed?, "needed? fail")
-        ~Stack(STACK_CONS)
-    ))
-
+    ) drop)
 def(Word+Needs.need!, Word +Needs -- +Needs, NEED_WORD need!)
 def(Block+Needs.need!, Block +Needs -- +Needs, NEED_BLOCK need!)
 
-def(execute!, +Needs -- +Needs,
+def(determine-arrow-needs!, Arrow +Needs -- +Needs,
+    run! determine-transitive-needs!)
+def(determine-transitive-needs!, +Needs -- +Needs,
     while-some(~Stack(uncons), run!))
 
 def(Need+Needs.run!, Need +Needs -- +Needs,
@@ -97,8 +98,8 @@ def(Lambda+Needs.run!, Lambda +Needs -- +Needs, body run!)
 def(+Needs.push-args!, List(Arg) +Needs -- +Needs, for(push!))
 def(Arg+Needs.push!, Arg +Needs -- +Needs,
     ARG_BLOCK -> push!)
-def(Block+Needs.push!, Block +Needs -- +Needs, need!)
-    # dup to-run-var match(
-    #     SOME -> drop2,
-    #     NONE -> need!
-    # ))
+def(Block+Needs.push!, Block +Needs -- +Needs,
+    dup to-run-var match(
+        SOME -> drop2,
+        NONE -> need!
+    ))

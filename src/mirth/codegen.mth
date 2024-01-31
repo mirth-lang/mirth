@@ -64,7 +64,7 @@ def(run-output-c99!, Arrow Path +World -- +World,
         drop2,
 
         +Needs.new
-        over run! execute!
+        over determine-arrow-needs!
 
         to-output-path
         codegen-start!

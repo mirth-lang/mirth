@@ -15,11 +15,8 @@ def(+Set.new(f), (t -- Int) -- +Set(t), [f] 256 +Buffer.new +SET)
 def(+Set.rdrop, +Set(t) --, -SET drop rdrop)
 
 def(+Set.member?, t +Set(t) -- Bool +Set(t),
-    index 8 /%
-    over ~Buffer(buffer-size) >= if(
-        drop2 F,
-        dip(~Buffer(@U8) >Int) >> 1 & 0>
-    ))
+    index 8 /% over 1+ ~Buffer(expand!)
+    1 swap << >U8 ~Buffer(swap @U8) & >Int 0 <>)
 def(+Set.insert!, t +Set(t) -- +Set(t),
     index 8 /% over 1+ ~Buffer(expand!)
     1 swap << >U8 ~Buffer(over @U8 | swap !U8))
