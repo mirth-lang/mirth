@@ -1,4 +1,4 @@
-module(mirth.codegen)
+module(mirth.codegen.c99)
 import(prelude)
 import(data.str)
 import(data.stack)
@@ -30,9 +30,9 @@ import(mirth.data.match)
 import(mirth.elab)
 import(mirth.analysis.need)
 
-###########
-# Codegen #
-###########
+#######
+# C99 #
+#######
 
 data(+C99, MKC99 -> Int +Needs +Output)
 def(+C99/MKC99, +C99 -- Int +Needs +Output, MKC99 -> id)
@@ -53,21 +53,19 @@ def(+C99.line, +C99 -- +C99, ~Output(line))
 def(Word+C99.needed?, Word +C99 -- Bool +C99, ~Needs(needed?))
 def(Block+C99.needed?, Block +C99 -- Bool +C99, ~Needs(needed?))
 
-def(codegen-start!, Path +World +Needs -- +World +C99,
-    rdip(create-file! output-start!) rswap 0 MKC99)
+def(c99-start!, Arrow Path +World -- Arrow +World +C99,
+    to-output-path create-file! output-start!
+    rdip(+Needs.new dup determine-arrow-needs!)
+    0 MKC99)
 
-def(codegen-end!, +World +C99 -- +World +Needs,
-    /MKC99 drop rswap rdip(output-end! +File.close-file!))
+def(c99-end!, +World +C99 -- +World,
+    /MKC99 drop rdip(rdrop) output-end! +File.close-file!)
 
 def(run-output-c99!, Arrow Path +World -- +World,
     num-errors @ 0> if(
         drop2,
 
-        +Needs.new
-        over determine-arrow-needs!
-
-        to-output-path
-        codegen-start!
+        c99-start!
         c99-header!
         c99-tags!
         c99-buffers!
@@ -80,16 +78,14 @@ def(run-output-c99!, Arrow Path +World -- +World,
         c99-field-defs!
         c99-word-defs!
         c99-block-defs!
-
-        codegen-end!
-        rdrop
+        c99-end!
     ))
 
 def(Name+C99.put, Name +C99 -- +C99, mangled put)
 def(Name+C99.sig, Name +C99 -- Str +C99, dip("static void mw_") mangled cat " (void)" cat)
 def(Name+C99.cosig, Name +C99 -- Str +C99, dip("static void mp_") mangled cat " (void)" cat)
 
-embed-str(c99-header-str, "src/mirth/mirth.h")
+embed-str(c99-header-str, "src/mirth/codegen/mirth.h")
 def(c99-header!, +C99 -- +C99, c99-header-str put line)
 
 def(c99-buffers!, +C99 -- +C99, Buffer.for(c99-buffer!) line)

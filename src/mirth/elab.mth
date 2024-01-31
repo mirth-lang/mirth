@@ -30,7 +30,7 @@ import(mirth.data.module)
 import(mirth.data.alias)
 import(mirth.data.match)
 import(mirth.lexer)
-import(mirth.codegen)
+import(mirth.codegen.c99)
 
 ####################
 # Type Elaboration #
