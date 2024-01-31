@@ -40,7 +40,6 @@ def(for-needed-words(f), (*a Word -- *a) *a +Needs -- *a +Needs,
 def(for-needed-blocks(f), (*a Block -- *a) *a +Needs -- *a +Needs,
     Block.for(dup needed? if(rdip(f), drop)))
 
-# def(Need+Needs.needed?, Need +Needs -- Bool +Needs, drop T)
 def(Need+Needs.needed?, Need +Needs -- Bool +Needs, ~Set(member?))
 def(Word+Needs.needed?, Word +Needs -- Bool +Needs, NEED_WORD needed?)
 def(Block+Needs.needed?, Block +Needs -- Bool +Needs, NEED_BLOCK needed?)

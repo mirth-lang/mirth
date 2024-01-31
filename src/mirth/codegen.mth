@@ -89,9 +89,6 @@ def(Name+C99.put, Name +C99 -- +C99, mangled put)
 def(Name+C99.sig, Name +C99 -- Str +C99, dip("static void mw_") mangled cat " (void)" cat)
 def(Name+C99.cosig, Name +C99 -- Str +C99, dip("static void mp_") mangled cat " (void)" cat)
 
-# def(Prim+C99.put-sig, Prim +C99 -- +C99, name .w)
-# def(Prim+C99.put-macro, Prim +C99 -- +C99, "#define mw_" . name .name "() " .)
-
 embed-str(c99-header-str, "src/mirth/mirth.h")
 def(c99-header!, +C99 -- +C99, c99-header-str put line)
 
