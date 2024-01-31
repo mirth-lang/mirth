@@ -37,6 +37,7 @@ alias(Int|, prim-int-or)
 alias(Int^, prim-int-xor)
 alias(Int<<, prim-int-shl)
 alias(Int>>, prim-int-shr)
+def(Int/%, Int Int -- Int Int, dup2 % dip(/))
 
 def(Bool&&, Bool Bool -- Bool, T -> id, F -> drop F)
 def(Bool||, Bool Bool -- Bool, T -> drop T, F -> id)
@@ -317,6 +318,11 @@ def(U8|,   U8  U8 --  U8, both(>Int) |  >U8-unsafe)
 def(U16|, U16 U16 -- U16, both(>Int) | >U16-unsafe)
 def(U32|, U32 U32 -- U32, both(>Int) | >U32-unsafe)
 def(U64|, U64 U64 -- U64, both(>Int-unsafe) | >U64-unsafe)
+
+def(U8&,   U8  U8 --  U8, both(>Int) &  >U8-unsafe)
+def(U16&, U16 U16 -- U16, both(>Int) & >U16-unsafe)
+def(U32&, U32 U32 -- U32, both(>Int) & >U32-unsafe)
+def(U64&, U64 U64 -- U64, both(>Int-unsafe) & >U64-unsafe)
 
 ##########
 # TUPLES #

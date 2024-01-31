@@ -90,11 +90,11 @@ def(Str.first-byte, Str -- Maybe(Byte),
     ))
 
 def(Str.from-bytes-unsafe, List(Byte) -- Str,
-    dup len allocate-buffer
+    dup len +Buffer.new
     dip(0) for(>U8 over !U8 1+) drop
     buffer-base buffer-size prim-str-copy
-    free-buffer)
-
+    rdrop)
+    
 def(Str.with-cstr(f), (*a Ptr -- *b) *a Str -- *b,
     with-str-data(
         over prim-ptr-add @U8 >Int

@@ -535,7 +535,7 @@ static void mw_prim_int_div (void) {
     PRIM_EXIT(mw_prim_int_div);
 }
 static void mw_prim_int_mod (void) {
-    PRIM_ENTER(mw_prim_int_mod,"prim-int-div");
+    PRIM_ENTER(mw_prim_int_mod,"prim-int-mod");
     int64_t b = pop_i64();
     int64_t a = pop_i64();
     EXPECT(b != 0, "divide by zero");
@@ -1058,7 +1058,7 @@ static void mw_prim_ptr_fill (void) {
     VAL vdst = pop_value();
     ASSERT1(IS_PTR(vdst), vdst);
     int64_t ilen = pop_i64();
-    int64_t val = pop_i64();
+    uint64_t val = pop_u64();
     void* dst = value_ptr(vdst);
     if (dst && (ilen > 0)) {
         ASSERT((USIZE)ilen <= SIZE_MAX);
