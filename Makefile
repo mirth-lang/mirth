@@ -1,4 +1,5 @@
-C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-unused-value -Wno-missing-braces -Werror -pedantic -O0 -g
+C99FLAGS=-std=c99 -Wall -Wextra -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter \
+ -Wno-unused-value -Wno-missing-braces -Wno-overlength-strings -Werror -pedantic -O0 -g
 CC=gcc $(C99FLAGS)
 CCSAN=$(CC) -fsanitize=undefined -fsanitize=address
 

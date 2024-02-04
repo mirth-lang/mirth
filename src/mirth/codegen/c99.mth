@@ -192,8 +192,8 @@ def(c99-nest(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99,
     f
     depth@ 1- depth!)
 
-def(c99-indent, +C99 -- +C99, depth@ repeat("    " put))
-def(c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, c99-indent f line)
+def(+C99.indent, +C99 -- +C99, depth@ repeat("    " put))
+def(c99-line(f), (*a +C99 -- *b +C99) *a +C99 -- *b +C99, indent f line)
 
 def(c99-call!, List(Arg) Name +C99 -- +C99,
     dip(c99-args-push!)
@@ -237,15 +237,12 @@ def(c99-str!, Str +C99 -- +C99,
         c99-line("if (! vready) {" put)
         c99-nest(
             dup num-bytes 4090 > if(
-                "static uint8_t b[] = {" put
+                c99-line("v = mkstr(" put)
                 c99-nest(
-                    c99-indent dup str-bytes-for(
-                        >Int dup put "," put
-                        10 = if(line c99-indent, id)
-                    ) line
+                    c99-line(dup put-cstr-long "," put)
+                    c99-line(dup num-bytes put)
                 )
-                c99-line("};" put)
-                c99-line("v = mkstr((char*)b, " put dup num-bytes put ");" put),
+                c99-line(");" put),
                 c99-line("v = mkstr(" put dup put-cstr ", " put dup num-bytes put ");" put)
             )
             c99-line("vready = true;" put)
@@ -257,8 +254,22 @@ def(c99-str!, Str +C99 -- +C99,
     c99-line("}" put)
     drop)
 
+def(+C99.put-cstr-long, Str +C99 -- +C99,
+    BQUOTE put
+    BNUL swap str-bytes-for(
+        swap BLF = then(
+            BQUOTE put
+            line indent
+            BQUOTE put
+        )
+        dup c99-string-byte!
+    )
+    BQUOTE put
+    drop
+)
+
 def(+C99.put-cstr, Str +C99 -- +C99,
-    "\"" put str-bytes-for(c99-string-byte!) "\"" put)
+    BQUOTE put str-bytes-for(c99-string-byte!) BQUOTE put)
 
 def(c99-string-byte!, Byte +C99 -- +C99,
     B'\' -> "\\\\" put,
